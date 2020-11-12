@@ -8,7 +8,7 @@ const _app = {
 	keyMap: {
 		"ArrowLeft": "left",
 		"ArrowRight": "right",
-		"ArrowTop": "top",
+		"ArrowUp": "up",
 		"ArrowDown": "down",
 	},
 };
@@ -74,11 +74,7 @@ function time() {
 // Rendering
 
 const _gfx = {
-	mesh: {},
-	prog: {},
 	sprites: {},
-	defTex: {},
-	transform: mat4(),
 };
 
 const _defaultVert = `
@@ -87,11 +83,10 @@ attribute vec2 a_uv;
 attribute vec4 a_color;
 varying vec2 v_uv;
 varying vec4 v_color;
-uniform mat4 u_proj;
 void main() {
 	v_uv = a_uv;
 	v_color = a_color;
-	gl_Position = u_proj * vec4(a_pos, 0.0, 1.0);
+	gl_Position = vec4(a_pos, 0.0, 1.0);
 }
 `;
 
@@ -135,6 +130,9 @@ function _makeDynMesh(vcount, icount) {
 
 		push(verts, indices) {
 			// TODO: overflow
+			indices = indices.map((i) => {
+				return i + vqueue.length / 8;
+			});
 			vqueue = vqueue.concat(verts);
 			iqueue = iqueue.concat(indices);
 		},
@@ -180,33 +178,21 @@ function _gfxInit() {
 
 	_gfx.mesh = _makeDynMesh(65536, 65536);
 	_gfx.prog = _makeProgram(_defaultVert, _defaultFrag);
-	_gfx.defTex = _makeTex(1, 1, new ImageData(new Uint8ClampedArray([255, 255, 255, 255]), 1, 1));
+	_gfx.defTex = _makeTex(new ImageData(new Uint8ClampedArray([255, 255, 255, 255]), 1, 1));
 
-}
-
-function _mat4Ortho(w, h, near, far) {
-	const left = -w / 2.0;
-	const right = w / 2.0;
-	const bottom = -h / 2.0;
-	const top = h / 2.0;
-	const tx = -(right + left) / (right - left);
-	const ty = -(top + bottom) / (top - bottom);
-	const tz = -(far + near) / (far - near);
-	return mat4([
-		2.0 / (right - left), 0.0, 0.0, 0.0,
-		0.0, 2.0 / (top - bottom), 0.0, 0.0,
-		0.0, 0.0, -2.0 / (far - near), 0.0,
-		tx, ty, tz, 1.0,
-	]);
 }
 
 function _flush() {
 
 	_gfx.mesh.flush();
+
+	if (!_gfx.curTex) {
+		return;
+	}
+
 	_gfx.mesh.bind();
 	_gfx.prog.bind();
-	_gfx.prog.sendMat4("u_proj", _mat4Ortho(_canvas.width, _canvas.height, -1024, 1024).m);
-	_gfx.defTex.bind();
+	_gfx.curTex.bind();
 
 	_gl.vertexAttribPointer(0, 2, _gl.FLOAT, false, 32, 0);
 	_gl.enableVertexAttribArray(0);
@@ -219,6 +205,7 @@ function _flush() {
 
 	_gfx.prog.unbind();
 	_gfx.mesh.unbind();
+	_gfx.curTex = undefined;
 
 }
 
@@ -230,18 +217,22 @@ function _frameEnd() {
 	_flush();
 }
 
-function _makeTex(w, h, data) {
+function _makeTex(data) {
 
 	const id = _gl.createTexture();
 
 	_gl.bindTexture(_gl.TEXTURE_2D, id);
 	_gl.texImage2D(_gl.TEXTURE_2D, 0, _gl.RGBA, _gl.RGBA, _gl.UNSIGNED_BYTE, data);
+	_gl.texParameteri(_gl.TEXTURE_2D, _gl.TEXTURE_MIN_FILTER, _gl.NEAREST);
+	_gl.texParameteri(_gl.TEXTURE_2D, _gl.TEXTURE_MAG_FILTER, _gl.NEAREST);
+	_gl.texParameteri(_gl.TEXTURE_2D, _gl.TEXTURE_WRAP_S, _gl.CLAMP_TO_EDGE);
+	_gl.texParameteri(_gl.TEXTURE_2D, _gl.TEXTURE_WRAP_T, _gl.CLAMP_TO_EDGE);
 	_gl.bindTexture(_gl.TEXTURE_2D, null);
 
 	return {
 		id: id,
-		width: w,
-		height: h,
+		width: data.width,
+		height: data.height,
 		bind() {
 			_gl.bindTexture(_gl.TEXTURE_2D, id);
 		},
@@ -335,8 +326,18 @@ function _makeProgram(vertSrc, fragSrc) {
 }
 
 function loadSprite(id, src, conf) {
+
+	if (typeof(src) === "string") {
+		const img = new Image();
+		img.src = src;
+		img.onload = (() => {
+			loadSprite(id, img, conf);
+		});
+		return;
+	}
+
 	_gfx.sprites[id] = {
-		tex: _makeTexture,
+		tex: _makeTex(src),
 		conf: conf || {
 			frames: [
 				quad(0, 0, 1, 1),
@@ -344,39 +345,35 @@ function loadSprite(id, src, conf) {
 			anims: {},
 		},
 	};
-}
 
-function push() {
-	// ...
-}
-
-function pop() {
-	// ...
-}
-
-function move(pos) {
-	_gfx.transform = _gfx.transform.mult(mat4Translate(pos));
-}
-
-function scale(s) {
-	_gfx.transform = _gfx.transform.mult(mat4Scale(s));
 }
 
 function sprite(id, pos, frame) {
 
-	push();
-	move(pos);
-	scale(vec2(256));
+	const spr = _gfx.sprites[id];
+
+	if (!spr) {
+		console.warn(`sprite not found: ${id}`);
+		return;
+	}
+
+	if (_gfx.curTex != spr.tex) {
+		_flush();
+		_gfx.curTex = spr.tex;
+	}
+
+	const w = spr.tex.width / _canvas.width;
+	const h = spr.tex.height / _canvas.height;
+	const x = pos.x / _canvas.width;
+	const y = pos.y / _canvas.height;
 
 	_gfx.mesh.push([
-		// pos      // uv     // color
-		-0.5, -0.5, 0.0, 1.0, 1.0, 1.0, 1.0, 1.0,
-		-0.5,  0.5, 0.0, 0.0, 1.0, 1.0, 1.0, 1.0,
-		 0.5,  0.5, 1.0, 0.0, 1.0, 1.0, 1.0, 1.0,
-		 0.5, -0.5, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0,
+		// pos  // uv     // color
+		-w + x, -h + y, 0.0, 1.0, 1.0, 1.0, 1.0, 1.0,
+		-w + x,  h + y, 0.0, 0.0, 1.0, 1.0, 1.0, 1.0,
+		 w + x,  h + y, 1.0, 0.0, 1.0, 1.0, 1.0, 1.0,
+		 w + x, -h + y, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0,
 	], [ 0, 1, 2, 0, 2, 3, ]);
-
-	pop();
 
 }
 
@@ -396,61 +393,17 @@ function play(id) {
 
 function vec2(x, y) {
 	return {
-		x: x || 0.0,
-		y: y || x || 0.0,
+		x: x,
+		y: y,
 	};
 }
 
-function mat4Scale(s) {
-	return mat4([
-		s.x, 0, 0, 0,
-		0, s.y, 0, 0,
-		0, 0, 1, 0,
-		0, 0, 0, 1,
-	]);
-}
-
-function mat4Translate(p) {
-	return mat4([
-		1, 0, 0, 0,
-		0, 1, 0, 0,
-		0, 0, 1, 0,
-		p.x, p.y, 0, 1,
-	]);
-}
-
-function mat4(m0) {
-
-	let m = m0 || [
-		1, 0, 0, 0,
-		0, 1, 0, 0,
-		0, 0, 1, 0,
-		0, 0, 0, 1,
-	];
-
+function quad(x, y, w, h) {
 	return {
-
-		m: m,
-
-		mult(m2) {
-
-			const mo = mat4();
-
-			for (let i = 0; i < 4; i++) {
-				for (let j = 0; j < 4; j++) {
-					mo[i * 4 + j] =
-						m[0 * 4 + j] * m2.m[i * 4 + 0] +
-						m[1 * 4 + j] * m2.m[i * 4 + 1] +
-						m[2 * 4 + j] * m2.m[i * 4 + 2] +
-						m[3 * 4 + j] * m2.m[i * 4 + 3];
-				}
-			}
-
-			return mo;
-
-		},
-
+		x: x,
+		y: y,
+		w: w,
+		h: h,
 	};
-
 }
 
