@@ -74,105 +74,151 @@ function time() {
 // Rendering
 
 const _gfx = {
-	vbuf: 0,
-	ibuf: 0,
-	prog: 0,
-	vqueue: [],
-	iqueue: [],
+	mesh: {},
+	prog: {},
 	sprites: {},
+	defTex: {},
 	transform: mat4(),
 };
 
 const _defaultVert = `
-attribute vec3 a_pos;
-attribute vec3 a_normal;
+attribute vec2 a_pos;
 attribute vec2 a_uv;
 attribute vec4 a_color;
-varying vec3 v_pos;
-varying vec3 v_normal;
 varying vec2 v_uv;
 varying vec4 v_color;
-uniform mat4 u_model;
-uniform mat4 u_view;
 uniform mat4 u_proj;
 void main() {
-	v_pos = a_pos;
 	v_uv = a_uv;
 	v_color = a_color;
-	v_normal = normalize(a_normal);
-	gl_Position = vec4(v_pos, 1.0);
+	gl_Position = u_proj * vec4(a_pos, 0.0, 1.0);
 }
 `;
 
 const _defaultFrag = `
 precision mediump float;
-varying vec3 v_pos;
-varying vec3 v_normal;
 varying vec2 v_uv;
 varying vec4 v_color;
 uniform sampler2D u_tex;
-uniform vec4 u_color;
 void main() {
-	gl_FragColor = v_color * u_color;
+	gl_FragColor = v_color * texture2D(u_tex, v_uv);
 	if (gl_FragColor.a == 0.0) {
 		discard;
 	}
 }
 `;
 
+function _makeDynMesh(vcount, icount) {
+
+	const vbuf = _gl.createBuffer();
+
+	_gl.bindBuffer(_gl.ARRAY_BUFFER, vbuf);
+	_gl.bufferData(_gl.ARRAY_BUFFER, vcount * 32, _gl.DYNAMIC_DRAW);
+	_gl.bindBuffer(_gl.ARRAY_BUFFER, null);
+
+	const ibuf = _gl.createBuffer();
+
+	_gl.bindBuffer(_gl.ELEMENT_ARRAY_BUFFER, ibuf);
+	_gl.bufferData(_gl.ELEMENT_ARRAY_BUFFER, icount * 2, _gl.DYNAMIC_DRAW);
+	_gl.bindBuffer(_gl.ELEMENT_ARRAY_BUFFER, null);
+
+	let vqueue = [];
+	let iqueue = [];
+	let count = 0;
+
+	return {
+
+		vbuf: vbuf,
+		ibuf: ibuf,
+		vqueue: vqueue,
+		iqueue: vqueue,
+
+		push(verts, indices) {
+			// TODO: overflow
+			vqueue = vqueue.concat(verts);
+			iqueue = iqueue.concat(indices);
+		},
+
+		flush() {
+
+			_gl.bindBuffer(_gl.ARRAY_BUFFER, vbuf);
+			_gl.bufferSubData(_gl.ARRAY_BUFFER, 0, new Float32Array(vqueue));
+			_gl.bindBuffer(_gl.ARRAY_BUFFER, null);
+
+			_gl.bindBuffer(_gl.ELEMENT_ARRAY_BUFFER, ibuf);
+			_gl.bufferSubData(_gl.ELEMENT_ARRAY_BUFFER, 0, new Uint16Array(iqueue));
+			_gl.bindBuffer(_gl.ELEMENT_ARRAY_BUFFER, null);
+
+			count = iqueue.length;
+
+			iqueue = [];
+			vqueue = [];
+
+		},
+
+		bind() {
+			_gl.bindBuffer(_gl.ARRAY_BUFFER, vbuf);
+			_gl.bindBuffer(_gl.ELEMENT_ARRAY_BUFFER, ibuf);
+		},
+
+		unbind() {
+			_gl.bindBuffer(_gl.ARRAY_BUFFER, null);
+			_gl.bindBuffer(_gl.ELEMENT_ARRAY_BUFFER, null);
+		},
+
+		count() {
+			return count;
+		},
+
+	};
+
+}
+
 function _gfxInit() {
 
 	_gl.clearColor(0.0, 0.0, 0.0, 1.0);
 
-	_gfx.vbuf = _gl.createBuffer();
-
-	_gl.bindBuffer(_gl.ARRAY_BUFFER, _gfx.vbuf);
-	_gl.bufferData(_gl.ARRAY_BUFFER, 65536 * 48, _gl.DYNAMIC_DRAW);
-	_gl.bindBuffer(_gl.ARRAY_BUFFER, null);
-
-	_gfx.ibuf = _gl.createBuffer();
-
-	_gl.bindBuffer(_gl.ELEMENT_ARRAY_BUFFER, _gfx.ibuf);
-	_gl.bufferData(_gl.ELEMENT_ARRAY_BUFFER, 65536 * 2, _gl.DYNAMIC_DRAW);
-	_gl.bindBuffer(_gl.ELEMENT_ARRAY_BUFFER, null);
-
+	_gfx.mesh = _makeDynMesh(65536, 65536);
 	_gfx.prog = _makeProgram(_defaultVert, _defaultFrag);
+	_gfx.defTex = _makeTex(1, 1, new ImageData(new Uint8ClampedArray([255, 255, 255, 255]), 1, 1));
 
 }
 
-function _pushVerts(verts, indices) {
-	_gfx.vqueue = _gfx.vqueue.concat(verts);
-	_gfx.iqueue = _gfx.iqueue.concat(indices);
+function _mat4Ortho(w, h, near, far) {
+	const left = -w / 2.0;
+	const right = w / 2.0;
+	const bottom = -h / 2.0;
+	const top = h / 2.0;
+	const tx = -(right + left) / (right - left);
+	const ty = -(top + bottom) / (top - bottom);
+	const tz = -(far + near) / (far - near);
+	return mat4([
+		2.0 / (right - left), 0.0, 0.0, 0.0,
+		0.0, 2.0 / (top - bottom), 0.0, 0.0,
+		0.0, 0.0, -2.0 / (far - near), 0.0,
+		tx, ty, tz, 1.0,
+	]);
 }
 
 function _flush() {
 
-	_gl.bindBuffer(_gl.ARRAY_BUFFER, _gfx.vbuf);
-	_gl.bufferSubData(_gl.ARRAY_BUFFER, 0, new Float32Array(_gfx.vqueue));
-
-	_gl.bindBuffer(_gl.ELEMENT_ARRAY_BUFFER, _gfx.ibuf);
-	_gl.bufferSubData(_gl.ELEMENT_ARRAY_BUFFER, 0, new Uint16Array(_gfx.iqueue));
-
+	_gfx.mesh.flush();
+	_gfx.mesh.bind();
 	_gfx.prog.bind();
-	_gfx.prog.sendVec4("u_color", 1.0, 1.0, 1.0, 1.0);
+	_gfx.prog.sendMat4("u_proj", _mat4Ortho(_canvas.width, _canvas.height, -1024, 1024).m);
+	_gfx.defTex.bind();
 
-	_gl.vertexAttribPointer(0, 3, _gl.FLOAT, false, 48, 0);
+	_gl.vertexAttribPointer(0, 2, _gl.FLOAT, false, 32, 0);
 	_gl.enableVertexAttribArray(0);
-	_gl.vertexAttribPointer(1, 3, _gl.FLOAT, false, 48, 12);
+	_gl.vertexAttribPointer(1, 2, _gl.FLOAT, false, 32, 8);
 	_gl.enableVertexAttribArray(1);
-	_gl.vertexAttribPointer(2, 2, _gl.FLOAT, false, 48, 24);
+	_gl.vertexAttribPointer(2, 4, _gl.FLOAT, false, 32, 16);
 	_gl.enableVertexAttribArray(2);
-	_gl.vertexAttribPointer(3, 4, _gl.FLOAT, false, 48, 32);
-	_gl.enableVertexAttribArray(3);
 
-	_gl.drawElements(_gl.TRIANGLES, _gfx.iqueue.length, _gl.UNSIGNED_SHORT, 0);
+	_gl.drawElements(_gl.TRIANGLES, _gfx.mesh.count(), _gl.UNSIGNED_SHORT, 0);
 
 	_gfx.prog.unbind();
-	_gl.bindBuffer(_gl.ARRAY_BUFFER, null);
-	_gl.bindBuffer(_gl.ELEMENT_ARRAY_BUFFER, null);
-
-	_gfx.vqueue = [];
-	_gfx.iqueue = [];
+	_gfx.mesh.unbind();
 
 }
 
@@ -184,12 +230,12 @@ function _frameEnd() {
 	_flush();
 }
 
-function _makeTexture(w, h, data) {
+function _makeTex(w, h, data) {
 
 	const id = _gl.createTexture();
 
 	_gl.bindTexture(_gl.TEXTURE_2D, id);
-	_gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, data);
+	_gl.texImage2D(_gl.TEXTURE_2D, 0, _gl.RGBA, _gl.RGBA, _gl.UNSIGNED_BYTE, data);
 	_gl.bindTexture(_gl.TEXTURE_2D, null);
 
 	return {
@@ -236,9 +282,8 @@ function _makeProgram(vertSrc, fragSrc) {
 	_gl.attachShader(id, fragShader);
 
 	_gl.bindAttribLocation(id, 0, "a_pos");
-	_gl.bindAttribLocation(id, 1, "a_normal");
-	_gl.bindAttribLocation(id, 2, "a_uv");
-	_gl.bindAttribLocation(id, 3, "a_color");
+	_gl.bindAttribLocation(id, 1, "a_uv");
+	_gl.bindAttribLocation(id, 2, "a_color");
 
 	_gl.linkProgram(id);
 
@@ -301,14 +346,37 @@ function loadSprite(id, src, conf) {
 	};
 }
 
+function push() {
+	// ...
+}
+
+function pop() {
+	// ...
+}
+
+function move(pos) {
+	_gfx.transform = _gfx.transform.mult(mat4Translate(pos));
+}
+
+function scale(s) {
+	_gfx.transform = _gfx.transform.mult(mat4Scale(s));
+}
+
 function sprite(id, pos, frame) {
 
-	_pushVerts([
-		// pos           // normal      // uv     // color
-		 0.0,  0.5, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0,
-		-0.5, -0.5, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 1.0,
-		 0.5, -0.5, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 1.0,
-	], [ 0, 1, 2, ]);
+	push();
+	move(pos);
+	scale(vec2(256));
+
+	_gfx.mesh.push([
+		// pos      // uv     // color
+		-0.5, -0.5, 0.0, 1.0, 1.0, 1.0, 1.0, 1.0,
+		-0.5,  0.5, 0.0, 0.0, 1.0, 1.0, 1.0, 1.0,
+		 0.5,  0.5, 1.0, 0.0, 1.0, 1.0, 1.0, 1.0,
+		 0.5, -0.5, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0,
+	], [ 0, 1, 2, 0, 2, 3, ]);
+
+	pop();
 
 }
 
@@ -333,14 +401,56 @@ function vec2(x, y) {
 	};
 }
 
-function mat4(m) {
+function mat4Scale(s) {
+	return mat4([
+		s.x, 0, 0, 0,
+		0, s.y, 0, 0,
+		0, 0, 1, 0,
+		0, 0, 0, 1,
+	]);
+}
+
+function mat4Translate(p) {
+	return mat4([
+		1, 0, 0, 0,
+		0, 1, 0, 0,
+		0, 0, 1, 0,
+		p.x, p.y, 0, 1,
+	]);
+}
+
+function mat4(m0) {
+
+	let m = m0 || [
+		1, 0, 0, 0,
+		0, 1, 0, 0,
+		0, 0, 1, 0,
+		0, 0, 0, 1,
+	];
+
 	return {
-		m: m || [
-			1, 0, 0, 0,
-			0, 1, 0, 0,
-			0, 0, 1, 0,
-			0, 0, 0, 1,
-		]
+
+		m: m,
+
+		mult(m2) {
+
+			const mo = mat4();
+
+			for (let i = 0; i < 4; i++) {
+				for (let j = 0; j < 4; j++) {
+					mo[i * 4 + j] =
+						m[0 * 4 + j] * m2.m[i * 4 + 0] +
+						m[1 * 4 + j] * m2.m[i * 4 + 1] +
+						m[2 * 4 + j] * m2.m[i * 4 + 2] +
+						m[3 * 4 + j] * m2.m[i * 4 + 3];
+				}
+			}
+
+			return mo;
+
+		},
+
 	};
+
 }
 
