@@ -5,28 +5,47 @@ const _app = {
 	keyStates: {},
 	time: 0.0,
 	dt: 0.0,
-	keyMap: {
-		"ArrowLeft": "left",
-		"ArrowRight": "right",
-		"ArrowUp": "up",
-		"ArrowDown": "down",
-	},
 };
 
 const _canvas = document.querySelector("#game");
 const _gl = _canvas.getContext("webgl");
 
+const _keyMap = {
+	"ArrowLeft": "left",
+	"ArrowRight": "right",
+	"ArrowUp": "up",
+	"ArrowDown": "down",
+};
+
+const _preventDefaultKeys = [
+	" ",
+	"left",
+	"right",
+	"up",
+	"down",
+];
+
 document.onkeydown = ((e) => {
-	_app.keyStates[_app.keyMap[e.key] || e.key] = "pressed";
+	const k = _keyMap[e.key] || e.key;
+	if (_preventDefaultKeys.includes(k)) {
+		e.preventDefault();
+	}
+	if (e.repeat) {
+		_app.keyStates[k] = "rpressed";
+	} else {
+		_app.keyStates[k] = "pressed";
+	}
 });
 
 document.onkeyup = ((e) => {
-	_app.keyStates[_app.keyMap[e.key] || e.key] = "released";
+	const k = _keyMap[e.key] || e.key;
+	_app.keyStates[k] = "released";
 });
 
 function run(f) {
 
 	_gfxInit();
+	_audioInit();
 
 	const frame = ((t) => {
 
@@ -38,7 +57,7 @@ function run(f) {
 		_frameEnd();
 
 		for (const k in _app.keyStates) {
-			if (_app.keyStates[k] === "pressed") {
+			if (_app.keyStates[k] === "pressed" || _app.keyStates[k] === "rpressed") {
 				_app.keyStates[k] = "down";
 			}
 			if (_app.keyStates[k] === "released") {
@@ -50,7 +69,9 @@ function run(f) {
 
 	});
 
-	requestAnimationFrame(frame);
+	window.onload = (() => {
+		requestAnimationFrame(frame);
+	});
 
 }
 
@@ -58,8 +79,12 @@ function keyPressed(k) {
 	return _app.keyStates[k] === "pressed";
 }
 
+function keyPressedRepeat(k) {
+	return _app.keyStates[k] === "pressed" || _app.keyStates[k] === "rpressed";
+}
+
 function keyDown(k) {
-	return _app.keyStates[k] === "pressed" || _app.keyStates[k] === "down";
+	return _app.keyStates[k] === "pressed" || _app.keyStates[k] === "rpressed" || _app.keyStates[k] === "down";
 }
 
 function dt() {
@@ -353,7 +378,7 @@ function sprite(id, pos, frame) {
 	const spr = _gfx.sprites[id];
 
 	if (!spr) {
-		console.warn(`sprite not found: ${id}`);
+		console.warn(`sprite not found: "${id}"`);
 		return;
 	}
 
@@ -367,8 +392,11 @@ function sprite(id, pos, frame) {
 	const x = pos.x / _canvas.width;
 	const y = pos.y / _canvas.height;
 
+	// TODO: scale
+	// TODO: rot
+
 	_gfx.mesh.push([
-		// pos  // uv     // color
+		// pos          // uv   // color
 		-w + x, -h + y, 0.0, 1.0, 1.0, 1.0, 1.0, 1.0,
 		-w + x,  h + y, 0.0, 0.0, 1.0, 1.0, 1.0, 1.0,
 		 w + x,  h + y, 1.0, 0.0, 1.0, 1.0, 1.0, 1.0,
@@ -381,11 +409,42 @@ function sprite(id, pos, frame) {
 // Audio Playback
 
 const _audio = {
-	clips: {},
+	sounds: {},
 };
 
+function _audioInit() {
+	_audio.ctx = new AudioContext();
+}
+
+function loadSound(id, src, conf) {
+	if (typeof(src === "string")) {
+		fetch(src)
+			.then((res) => {
+				return res.arrayBuffer();
+			})
+			.then((data) => {
+				_audio.ctx.decodeAudioData(data, (buf) => {
+					_audio.sounds[id] = buf;
+				});
+			});
+	}
+}
+
 function play(id) {
-	// ...
+
+	const sound = _audio.sounds[id];
+
+	if (!sound) {
+		console.warn(`sound not found: "${id}"`);
+		return;
+	}
+
+	const source = _audio.ctx.createBufferSource();
+
+	source.buffer = sound;
+	source.connect(_audio.ctx.destination);
+	source.start();
+
 }
 
 // --------------------------------

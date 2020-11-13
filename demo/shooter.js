@@ -1,6 +1,7 @@
 // asset loading (won't need if using editor)
 loadSprite("bullet", "bullet.png");
 loadSprite("frog", "frog.png");
+loadSound("shoot", "shoot.ogg");
 
 // init code are written just outside
 let player = {
@@ -15,7 +16,7 @@ const bulletSpeed = 1280;
 run(() => {
 
 	if (keyPressed(" ")) {
-        // plays an audio clip by id
+		// plays an audio clip by id
 		play("shoot");
 		bullets.push(vec2(player.pos.x, player.pos.y));
 	}
@@ -28,20 +29,12 @@ run(() => {
 		player.pos.x += player.speed * dt();
 	}
 
-	if (keyDown("up")) {
-		player.pos.y += player.speed * dt();
-	}
-
-	if (keyDown("down")) {
-		player.pos.y -= player.speed * dt();
-	}
-
 	for (const b of bullets) {
 		b.y += bulletSpeed * dt();
 		sprite("bullet", b);
 	}
 
-    // draws a sprite by id and pos
+	// draws a sprite by id and pos
 	sprite("frog", player.pos);
 
 });
