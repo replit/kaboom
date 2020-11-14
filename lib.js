@@ -52,9 +52,10 @@ function run(f) {
 		_app.dt = t / 1000 - _app.time;
 		_app.time += _app.dt;
 
-		_frameStart();
+		_gfxFrameStart();
 		f();
-		_frameEnd();
+		_gameFrameEnd();
+		_gfxFrameEnd();
 
 		for (const k in _app.keyStates) {
 			if (_app.keyStates[k] === "pressed" || _app.keyStates[k] === "rpressed") {
@@ -234,11 +235,11 @@ function _flush() {
 
 }
 
-function _frameStart() {
+function _gfxFrameStart() {
 	_gl.clear(_gl.COLOR_BUFFER_BIT);
 }
 
-function _frameEnd() {
+function _gfxFrameEnd() {
 	_flush();
 }
 
@@ -387,16 +388,17 @@ function sprite(id, pos, frame) {
 		_gfx.curTex = spr.tex;
 	}
 
-	const w = spr.tex.width / _canvas.width;
-	const h = spr.tex.height / _canvas.height;
+	const scale = vec2(1, 1);
+	const rot = 30 * Math.PI / 180;
+	const w = spr.tex.width * scale.x / _canvas.width;
+	const h = spr.tex.height * scale.y / _canvas.height;
 	const x = pos.x / _canvas.width;
 	const y = pos.y / _canvas.height;
-
-	// TODO: scale
-	// TODO: rot
+	const rx = Math.cos(rot) - Math.sin(rot);
+	const ry = Math.sin(rot) + Math.cos(rot);
 
 	_gfx.mesh.push([
-		// pos          // uv   // color
+		// pos          // uv     // color
 		-w + x, -h + y, 0.0, 1.0, 1.0, 1.0, 1.0, 1.0,
 		-w + x,  h + y, 0.0, 0.0, 1.0, 1.0, 1.0, 1.0,
 		 w + x,  h + y, 1.0, 0.0, 1.0, 1.0, 1.0, 1.0,
@@ -464,5 +466,84 @@ function quad(x, y, w, h) {
 		w: w,
 		h: h,
 	};
+}
+
+// --------------------------------
+// Game Systems
+
+const _game = {
+	tree: {},
+	lastID: 0,
+};
+
+function add(props) {
+
+	const id = _game.lastID + 1;
+
+	const velMap = {
+		left: vec2(-1, 0),
+		right: vec2(1, 0),
+		up: vec2(0, 1),
+		down: vec2(0, -1),
+	};
+
+	const obj = {
+
+		sprite: props.sprite,
+		frame: props.frame || 0,
+		pos: props.pos ? vec2(props.pos.x, props.pos.y) : vec2(0, 0),
+		scale: props.scale ? vec2(props.scale.x, props.scale.y) : vec2(1, 1),
+		rot: props.rot || 0,
+		tags: props.tags ? [...props.tags] : [],
+		speed: props.speed || 0,
+
+		rm: false,
+		id: id,
+		children: {},
+
+		move(dir) {
+
+			const vel = velMap[dir];
+
+			if (vel) {
+				this.pos.x += vel.x * this.speed * dt();
+				this.pos.y += vel.y * this.speed * dt();
+			}
+
+		},
+
+	};
+
+	_game.tree[id] = obj;
+	_game.lastID += 1;
+
+	return obj;
+
+}
+
+function all(t, f) {
+	for (const id in _game.tree) {
+		const obj = _game.tree[id];
+		if (obj.tags.includes(t)) {
+			f(obj);
+		}
+	}
+}
+
+function rm(obj) {
+	obj.rm = true;
+}
+
+function _gameFrameEnd() {
+	for (const id in _game.tree) {
+		const obj = _game.tree[id];
+		if (obj.rm) {
+			delete _game.tree[id];
+		} else {
+			if (obj.sprite) {
+				sprite(obj.sprite, obj.pos, obj.frame);
+			}
+		}
+	}
 }
 
