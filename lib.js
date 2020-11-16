@@ -12,6 +12,7 @@ const _app = {
 	mousePos: vec2(0, 0),
 	time: 0.0,
 	dt: 0.0,
+	paused: false,
 };
 
 const _gl = document
@@ -76,19 +77,23 @@ function run(f) {
 
 	const frame = ((t) => {
 
-		_app.dt = t / 1000 - _app.time;
-		_app.time += _app.dt;
+		if (document.visibilityState !== "hidden") {
 
-		_gfxFrameStart();
-		f();
-		_gameFrameEnd();
-		_gfxFrameEnd();
+			_app.dt = t / 1000 - _app.time;
+			_app.time += _app.dt;
 
-		for (const k in _app.keyStates) {
-			_app.keyStates[k] = _processBtnState(_app.keyStates[k]);
+			_gfxFrameStart();
+			f();
+			_gameFrameEnd();
+			_gfxFrameEnd();
+
+			for (const k in _app.keyStates) {
+				_app.keyStates[k] = _processBtnState(_app.keyStates[k]);
+			}
+
+			_app.mouseState = _processBtnState(_app.mouseState);
+
 		}
-
-		_app.mouseState = _processBtnState(_app.mouseState);
 
 		requestAnimationFrame(frame);
 
@@ -154,7 +159,8 @@ function time() {
 // Rendering
 
 const _gfx = {
-	sprites: {},
+	drawCalls: 0,
+	cam: vec2(0, 0),
 };
 
 const _defaultVert = `
@@ -250,6 +256,7 @@ function _flush() {
 	_gl.enableVertexAttribArray(2);
 
 	_gl.drawElements(_gl.TRIANGLES, _gfx.mesh.count(), _gl.UNSIGNED_SHORT, 0);
+	_gfx.drawCalls++;
 
 	_gfx.prog.unbind();
 	_gfx.mesh.unbind();
@@ -259,6 +266,7 @@ function _flush() {
 
 function _gfxFrameStart() {
 	_gl.clear(_gl.COLOR_BUFFER_BIT);
+	_gfx.drawCalls = 0;
 }
 
 function _gfxFrameEnd() {
@@ -439,19 +447,31 @@ function _makeProgram(vertSrc, fragSrc) {
 
 }
 
-function _drawTex(conf) {
+// TODO: draw shapes
+// TODO: draw text
 
-	if (_gfx.curTex != conf.tex) {
+function _drawRect(conf) {
+
+	const tex = conf.tex || _gfx.defTex;
+
+	if (_gfx.curTex != tex) {
 		_flush();
-		_gfx.curTex = conf.tex;
+		_gfx.curTex = tex;
 	}
 
 	const pos = conf.pos || vec2(0, 0);
 	const scale = conf.scale || vec2(1, 1);
+
+	if (!conf.tex) {
+		// TODO: use width
+		scale.x = conf.rectWidth || scale.x;
+		scale.y = conf.rectHeight || scale.y;
+	}
+
 	const rot = conf.rot || 0;
 	const q = conf.quad || quad(0, 0, 1, 1);
-	const w = conf.tex.width * scale.x / width();
-	const h = conf.tex.height * scale.y / height();
+	const w = tex.width * scale.x / width();
+	const h = tex.height * scale.y / height();
 	const x = pos.x / width() * 2;
 	const y = pos.y / height() * 2;
 	// TODO: rotation
@@ -503,7 +523,7 @@ function loadSound(id, src, conf) {
 	}
 }
 
-function play(id) {
+function play(id, conf) {
 
 	const sound = _audio.sounds[id];
 
@@ -512,9 +532,19 @@ function play(id) {
 		return;
 	}
 
+	conf = conf || {};
 	const source = _audio.ctx.createBufferSource();
 
 	source.buffer = sound;
+
+	if (conf.detune) {
+		source.detune.value = conf.detune;
+	}
+
+	if (conf.speed) {
+		source.playbackRate.value = conf.speed;
+	}
+
 	source.connect(_audio.ctx.destination);
 	source.start();
 
@@ -523,7 +553,7 @@ function play(id) {
 // --------------------------------
 // Math Utils
 
-// TODO: var args for math types
+// TODO: variadic args for math types
 
 function _lerp(a, b, t) {
 	return a + (b - a) * t;
@@ -563,6 +593,9 @@ function vec2(x, y) {
 		lerp(p2, t) {
 			return vec2(_lerp(this.x, p2.x, t * dt()), _lerp(this.y, p2.y, t * dt()));
 		},
+		eq(other) {
+			return this.x === other.x && this.y === other.y;
+		},
 	};
 }
 
@@ -571,7 +604,19 @@ function color(r, g, b, a) {
 		r: r,
 		g: g,
 		b: b,
-		a: a,
+		a: a || 1,
+		clone() {
+			return color(this.r, this.g, this.b, this.a);
+		},
+		lighten(a) {
+			return color(this.r + a, this.g + a, this.b + a, this.a);
+		},
+		darken(a) {
+			return this.lighten(-a);
+		},
+		eq(other) {
+			return this.r === other.r && this.g === other.g && this.b === other.g && this.a === other.a;
+		},
 	};
 }
 
@@ -581,6 +626,12 @@ function quad(x, y, w, h) {
 		y: y,
 		w: w,
 		h: h,
+		clone() {
+			return quad(this.x, this.y, this.w, this.h);
+		},
+		eq(other) {
+			return this.x === other.x && this.y === other.y && this.w === other.w && this.h === other.h;
+		},
 	};
 }
 
@@ -588,17 +639,195 @@ function rect(p1, p2) {
 	return {
 		p1: p1.clone(),
 		p2: p2.clone(),
+		clone() {
+			return rect(this.p1.clone(), this.p2.clone());
+		},
 		hasPt(pt) {
 			return pt.x >= this.p1.x && pt.x <= this.p2.x && pt.y >= this.p1.y && pt.y < this.p2.y;
 		},
 		intersects(other) {
 			return this.p2.x >= other.p1.x && this.p1.x <= other.p2.x && this.p2.y >= other.p1.y && this.p1.y <= other.p2.y;
 		},
+		eq(other) {
+			return this.p1.eq(other.p1) && this.p2.eq(other.p2);
+		},
 	};
+}
+
+function mat4(m) {
+
+	return {
+
+		m: m ? [...m] : [
+			1, 0, 0, 0,
+			0, 1, 0, 0,
+			0, 0, 1, 0,
+			0, 0, 0, 1,
+		],
+
+		clone() {
+			return mat4(this.m);
+		},
+
+		mult(other) {
+
+			const out = [];
+
+			for (let i = 0; i < 4; i++) {
+				for (let j = 0; j < 4; j++) {
+					out[i * 4 + j] =
+						this.m[0 * 4 + j] * other.m[i * 4 + 0] +
+						this.m[1 * 4 + j] * other.m[i * 4 + 1] +
+						this.m[2 * 4 + j] * other.m[i * 4 + 2] +
+						this.m[3 * 4 + j] * other.m[i * 4 + 3];
+				}
+			}
+
+			return mat4(out);
+
+		},
+
+		scale(s) {
+			return this.mult(mat4([
+				s.x, 0, 0, 0,
+				0, s.y, 0, 0,
+				0, 0, 1, 0,
+				0, 0, 0, 1,
+			]));
+		},
+
+		translate(p) {
+			return this.mult(mat4([
+				1, 0, 0, 0,
+				0, 1, 0, 0,
+				0, 0, 1, 0,
+				p.x, p.y, 0, 1,
+			]));
+		},
+
+		rotateX(a) {
+			return this.mult(mat4([
+				1, 0, 0, 0,
+				0, Math.cos(a), -Math.sin(a), 0,
+				0, Math.sin(a), Math.cos(a), 0,
+				0, 0, 0, 1,
+			]));
+		},
+
+		rotateY(a) {
+			return this.mult(mat4([
+				Math.cos(a), 0, -Math.sin(a), 0,
+				0, 1, 0, 0,
+				Math.sin(a), 0, Math.cos(a), 0,
+				0, 0, 0, 1,
+			]));
+		},
+
+		rotateZ(a) {
+			return this.mult(mat4([
+				Math.cos(a), -Math.sin(a), 0, 0,
+				Math.sin(a), Math.cos(a), 0, 0,
+				0, 0, 1, 0,
+				0, 0, 0, 1,
+			]));
+		},
+
+		multVec2(p) {
+			return vec2(
+				p.x * this.m[0] + p.y * this.m[4] + 0 * this.m[8] + 1 * this.m[12],
+				p.x * this.m[1] + p.y * this.m[5] + 0 * this.m[9] + 1 * this.m[13],
+			);
+		},
+
+		invert() {
+
+			const out = [];
+
+			const f00 = this.m[10] * this.m[15] - this.m[14] * this.m[11];
+			const f01 = this.m[9] * this.m[15] - this.m[13] * this.m[11];
+			const f02 = this.m[9] * this.m[14] - this.m[13] * this.m[10];
+			const f03 = this.m[8] * this.m[15] - this.m[12] * this.m[11];
+			const f04 = this.m[8] * this.m[14] - this.m[12] * this.m[10];
+			const f05 = this.m[8] * this.m[13] - this.m[12] * this.m[9];
+			const f06 = this.m[6] * this.m[15] - this.m[14] * this.m[7];
+			const f07 = this.m[5] * this.m[15] - this.m[13] * this.m[7];
+			const f08 = this.m[5] * this.m[14] - this.m[13] * this.m[6];
+			const f09 = this.m[4] * this.m[15] - this.m[12] * this.m[7];
+			const f10 = this.m[4] * this.m[14] - this.m[12] * this.m[6];
+			const f11 = this.m[5] * this.m[15] - this.m[13] * this.m[7];
+			const f12 = this.m[4] * this.m[13] - this.m[12] * this.m[5];
+			const f13 = this.m[6] * this.m[11] - this.m[10] * this.m[7];
+			const f14 = this.m[5] * this.m[11] - this.m[9] * this.m[7];
+			const f15 = this.m[5] * this.m[10] - this.m[9] * this.m[6];
+			const f16 = this.m[4] * this.m[11] - this.m[8] * this.m[7];
+			const f17 = this.m[4] * this.m[10] - this.m[8] * this.m[6];
+			const f18 = this.m[4] * this.m[9] - this.m[8] * this.m[5];
+
+			out.m[0] = this.m[5] * f00 - this.m[6] * f01 + this.m[7] * f02;
+			out.m[4] = -(this.m[4] * f00 - this.m[6] * f03 + this.m[7] * f04);
+			out.m[8] = this.m[4] * f01 - this.m[5] * f03 + this.m[7] * f05;
+			out.m[12] = -(this.m[4] * f02 - this.m[5] * f04 + this.m[6] * f05);
+
+			out.m[1] = -(this.m[1] * f00 - this.m[2] * f01 + this.m[3] * f02);
+			out.m[5] = this.m[0] * f00 - this.m[2] * f03 + this.m[3] * f04;
+			out.m[9] = -(this.m[0] * f01 - this.m[1] * f03 + this.m[3] * f05);
+			out.m[13] = this.m[0] * f02 - this.m[1] * f04 + this.m[2] * f05;
+
+			out.m[2] = this.m[1] * f06 - this.m[2] * f07 + this.m[3] * f08;
+			out.m[6] = -(this.m[0] * f06 - this.m[2] * f09 + this.m[3] * f10);
+			out.m[10] = this.m[0] * f11 - this.m[1] * f09 + this.m[3] * f12;
+			out.m[14] = -(this.m[0] * f08 - this.m[1] * f10 + this.m[2] * f12);
+
+			out.m[3] = -(this.m[1] * f13 - this.m[2] * f14 + this.m[3] * f15);
+			out.m[7] = this.m[0] * f13 - this.m[2] * f16 + this.m[3] * f17;
+			out.m[11] = -(this.m[0] * f14 - this.m[1] * f16 + this.m[3] * f18);
+			out.m[15] = this.m[0] * f15 - this.m[1] * f17 + this.m[2] * f18;
+
+			const det =
+				this.m[0] * out[0] +
+				this.m[1] * out[4] +
+				this.m[2] * out[8] +
+				this.m[3] * out[12];
+
+			for (let i = 0; i < 4; i++) {
+				for (let j = 0; j < 4; j++) {
+					out[i * 4 + j] *= (1.0 / det);
+				}
+			}
+
+			return mat4(out);
+
+		},
+
+	};
+
 }
 
 function rand(min, max) {
 	return Math.random() * (max - min) + min;
+// 	return vec2(rand(p1.x, p2.x), rand(p1.y, p2.y));
+}
+
+function randOnRect(p1, p2) {
+	const w = p2.x - p1.x;
+	const h = p2.y - p1.y;
+	if (chance(w / (w + h))) {
+		return vec2(rand(p1.x, p2.x), chance(0.5) ? p1.y : p2.y);
+	} else {
+		return vec2(chance(0.5) ? p1.x : p2.x, rand(p1.y, p2.y));
+	}
+}
+
+function randOut() {
+	// ...
+}
+
+function chance(p) {
+	return rand(0, 1) <= p;
+}
+
+function choose(list) {
+	return list[Math.floor(rand(0, list.length))];
 }
 
 // --------------------------------
@@ -607,7 +836,8 @@ function rand(min, max) {
 const _game = {
 	objs: {},
 	lastID: 0,
-	timers: [],
+	lastTimerID: 0,
+	timers: {},
 	sprites: {},
 	sounds: {},
 };
@@ -640,6 +870,8 @@ function loadSprite(id, src, conf) {
 
 }
 
+// TODO: how to deal with e.g. text and simple shapes? do we still use this interface?
+// TODO: get sprite size and stuff, this should be called when assets are loaded
 function add(props) {
 
 	if (!props) {
@@ -648,7 +880,6 @@ function add(props) {
 
 	const id = _game.lastID + 1;
 
-	// TODO: how to deal with e.g. text and simple shapes? do we still use this interface?
 	const obj = {
 
 		...props,
@@ -697,11 +928,19 @@ function add(props) {
 		},
 
 		width() {
-			return _game.sprites[this.sprite].tex.width;
+			if (this.sprite) {
+				return _game.sprites[this.sprite].tex.width;
+			} else {
+				return this.rectWidth;
+			}
 		},
 
 		height() {
-			return _game.sprites[this.sprite].tex.height;
+			if (this.sprite) {
+				return _game.sprites[this.sprite].tex.height;
+			} else {
+				return this.rectHeight;
+			}
 		},
 
 		bbox() {
@@ -737,6 +976,12 @@ function add(props) {
 	_game.objs[id] = obj;
 	_game.lastID++;
 
+	if (props.lifespan) {
+		wait(props.lifespan, () => {
+			destroy(obj);
+		});
+	}
+
 	return obj;
 
 }
@@ -750,10 +995,19 @@ function collides(t1, t2, f) {
 }
 
 function wait(t, f) {
-	_game.timers.push({
+	_game.timers[_game.lastTimerID] = {
 		time: t,
 		cb: f,
-	});
+	};
+	_game.lastTimerID++;
+}
+
+function loop(t, f) {
+	const newF = () => {
+		f();
+		wait(t, newF);
+	};
+	wait(t, newF);
 }
 
 function all(t, f) {
@@ -769,14 +1023,20 @@ function destroy(obj) {
 	obj.destroy = true;
 }
 
+function destroyAll(tag) {
+	all(tag, (o) => {
+		destroy(o);
+	});
+}
+
 function _gameFrameEnd() {
 
-	for (let i = _game.timers.length - 1; i >= 0; i--) {
-		const t = _game.timers[i];
+	for (const id in _game.timers) {
+		const t = _game.timers[id];
 		t.time -= dt();
 		if (t.time <= 0) {
 			t.cb();
-			_game.timers.splice(i, 1);
+			delete _game.timers[id];
 		}
 	}
 
@@ -791,21 +1051,23 @@ function _gameFrameEnd() {
 
 		} else {
 
-			if (!obj.hidden && obj.sprite) {
+			if (!obj.hidden) {
 
 				const spr = _game.sprites[obj.sprite];
 
-				if (!spr) {
-					console.warn(`sprite not found: "${id}"`);
+				if (obj.sprite && !spr) {
+					console.warn(`sprite not found: "${obj.sprite}"`);
 					return;
 				}
 
-				_drawTex({
-					tex: spr.tex,
+				_drawRect({
+					tex: spr ? spr.tex : undefined,
 					pos: obj.pos,
 					scale: obj.scale,
 					rot: obj.rot,
 					color: obj.color,
+					rectWidth: obj.rectWidth,
+					rectHeight: obj.rectHeight,
 				});
 
 			}
