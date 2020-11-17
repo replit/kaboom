@@ -2,6 +2,8 @@
 loadSprite("guy", "guy.png");
 loadSound("shoot", "shoot.ogg");
 
+window.onload = () => {
+
 let score = 0;
 
 // add player to scene
@@ -18,8 +20,8 @@ function makeEnemy() {
 		sprite: "guy",
 		pos: randOnRect(vec2(-width() / 2, -height() / 2), vec2(width() / 2, height() / 2)),
 		tags: [ "enemy", ],
-		color: color(0, 0, 1, 1),
-		speed: 120,
+		color: color(0, 0, 1),
+		speed: 96,
 	});
 }
 
@@ -34,7 +36,7 @@ function randColor() {
 	} else {
 		b = choose([0, 1]);
 	}
-	return color(r, g, b, 1);
+	return color(r, g, b);
 }
 
 makeEnemy();
@@ -55,14 +57,13 @@ run(() => {
 
 		// add a new bullet to game scene
 		add({
-			rectWidth: rand(4, 8),
-			rectHeight: rand(4, 8),
+			width: rand(12, 16),
+			height: rand(12, 16),
 			pos: player.pos,
 			speed: 1280,
 			tags: [ "bullet", ],
 			dir: player.dir,
 			color: randColor(),
-			scale: vec2(0.3, 0.3),
 		});
 
 	}
@@ -86,17 +87,12 @@ run(() => {
 		destroyAll("enemy");
 		player.pos = vec2(0, 0);
 
-		// play a down pitched death sound
-		play("shoot", {
-			speed: 0.2,
-		});
-
 		makeEnemy();
 
 		// add a flash feedback for 0.1 sec
 		add({
-			rectWidth: width(),
-			rectHeight: height(),
+			width: width(),
+			height: height(),
 			color: randColor(),
 			lifespan: 0.1,
 			tags: [ "death", ],
@@ -104,17 +100,7 @@ run(() => {
 
 	});
 
-	if (player.pos.x < -width() / 2) {
-		player.pos.x = width() / 2;
-	} else if (player.pos.x > width() / 2) {
-		player.pos.x = -width() / 2;
-	}
-
-	if (player.pos.y < -height() / 2) {
-		player.pos.y = height() / 2;
-	} else if (player.pos.y > height() / 2) {
-		player.pos.y = -height() / 2;
-	}
+	player.wrap(vec2(-width() / 2, -height() / 2), vec2(width() / 2, height() / 2));
 
 	// destroy enemy
 	collides("bullet", "enemy", (b, e) => {
@@ -131,8 +117,8 @@ run(() => {
 		});
 
 		add({
-			rectWidth: 0,
-			rectHeight: 0,
+			width: 0,
+			height: 0,
 			pos: e.pos,
 			color: randColor(),
 			lifespan: 0.1,
@@ -142,8 +128,8 @@ run(() => {
 	});
 
 	all("explosion", (e) => {
-		e.rectWidth += 800 * dt();
-		e.rectHeight += 800 * dt();
+		e.width += 800 * dt();
+		e.height += 800 * dt();
 		e.color = randColor();
 	});
 
@@ -155,8 +141,8 @@ run(() => {
 	all("bullet", (b) => {
 		b.move(b.dir);
 		b.color = randColor();
-		b.rectWidth = rand(4, 8);
-		b.rectHeight = rand(4, 8);
+		b.width = rand(4, 8);
+		b.height = rand(4, 8);
 		if (b.pos.x <= -1200 || b.pos.x >= 1200 || b.pos.y <= -1200 || b.pos.y >= 1200) {
 			destroy(b);
 		}
@@ -169,4 +155,6 @@ run(() => {
 	});
 
 });
+
+};
 

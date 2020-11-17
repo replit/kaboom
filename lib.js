@@ -72,9 +72,6 @@ document.onkeyup = ((e) => {
 
 function run(f) {
 
-	_gfxInit();
-	_audioInit();
-
 	const frame = ((t) => {
 
 		if (document.visibilityState !== "hidden") {
@@ -99,9 +96,7 @@ function run(f) {
 
 	});
 
-	window.onload = (() => {
-		requestAnimationFrame(frame);
-	});
+	requestAnimationFrame(frame);
 
 }
 
@@ -452,6 +447,10 @@ function _makeProgram(vertSrc, fragSrc) {
 
 function _drawRect(conf) {
 
+	if (!conf.tex && !(conf.width && conf.height)) {
+		return;
+	}
+
 	const tex = conf.tex || _gfx.defTex;
 
 	if (_gfx.curTex != tex) {
@@ -459,19 +458,22 @@ function _drawRect(conf) {
 		_gfx.curTex = tex;
 	}
 
-	const pos = conf.pos || vec2(0, 0);
-	const scale = conf.scale || vec2(1, 1);
+	let w, h;
 
-	if (!conf.tex) {
-		// TODO: use width
-		scale.x = conf.rectWidth || scale.x;
-		scale.y = conf.rectHeight || scale.y;
+	if (conf.tex) {
+		w = conf.width || conf.tex.width;
+		h = conf.height || conf.tex.height;
+	} else {
+		w = conf.width;
+		h = conf.height;
 	}
 
+	const pos = conf.pos || vec2(0, 0);
+	const scale = conf.scale || vec2(1, 1);
 	const rot = conf.rot || 0;
 	const q = conf.quad || quad(0, 0, 1, 1);
-	const w = tex.width * scale.x / width();
-	const h = tex.height * scale.y / height();
+	w = w * scale.x / width();
+	h = h * scale.y / height();
 	const x = pos.x / width() * 2;
 	const y = pos.y / height() * 2;
 	// TODO: rotation
@@ -533,20 +535,27 @@ function play(id, conf) {
 	}
 
 	conf = conf || {};
-	const source = _audio.ctx.createBufferSource();
+	const srcNode = _audio.ctx.createBufferSource();
 
-	source.buffer = sound;
+	srcNode.buffer = sound;
 
 	if (conf.detune) {
-		source.detune.value = conf.detune;
+		srcNode.detune.value = conf.detune;
 	}
 
 	if (conf.speed) {
-		source.playbackRate.value = conf.speed;
+		srcNode.playbackRate.value = conf.speed;
 	}
 
-	source.connect(_audio.ctx.destination);
-	source.start();
+	const gainNode = _audio.ctx.createGain();
+
+	if (conf.volume) {
+		gainNode.gain.value = conf.volume;
+	}
+
+	srcNode.connect(gainNode);
+	gainNode.connect(_audio.ctx.destination);
+	srcNode.start();
 
 }
 
@@ -555,14 +564,18 @@ function play(id, conf) {
 
 // TODO: variadic args for math types
 
-function _lerp(a, b, t) {
+function lerp(a, b, t) {
 	return a + (b - a) * t;
+}
+
+function map(v, l1, h1, l2, h2) {
+	return l2 + (v - l1) / (h1 - l1) * (h2 - l2);
 }
 
 function vec2(x, y) {
 	return {
-		x: x,
-		y: y,
+		x: x || 0,
+		y: y || x || 0,
 		clone() {
 			return vec2(this.x, this.y);
 		},
@@ -591,7 +604,7 @@ function vec2(x, y) {
 			return Math.atan2(this.y - p2.y, this.x - p2.x);
 		},
 		lerp(p2, t) {
-			return vec2(_lerp(this.x, p2.x, t * dt()), _lerp(this.y, p2.y, t * dt()));
+			return vec2(lerp(this.x, p2.x, t * dt()), lerp(this.y, p2.y, t * dt()));
 		},
 		eq(other) {
 			return this.x === other.x && this.y === other.y;
@@ -880,6 +893,19 @@ function add(props) {
 
 	const id = _game.lastID + 1;
 
+	if (props.sprite) {
+		const tw = _game.sprites[props.sprite].tex.width;
+		const th = _game.sprites[props.sprite].tex.height;
+		if (!props.width && !props.height) {
+			props.width = tw;
+			props.height = th;
+		} else if (props.width && !props.height) {
+			props.height = props.width / tw * th;
+		} else if (!props.width && props.height) {
+			props.width = props.height / th * tw;
+		}
+	}
+
 	const obj = {
 
 		...props,
@@ -927,25 +953,9 @@ function add(props) {
 			return this.tags.includes(tag);
 		},
 
-		width() {
-			if (this.sprite) {
-				return _game.sprites[this.sprite].tex.width;
-			} else {
-				return this.rectWidth;
-			}
-		},
-
-		height() {
-			if (this.sprite) {
-				return _game.sprites[this.sprite].tex.height;
-			} else {
-				return this.rectHeight;
-			}
-		},
-
 		bbox() {
-			const w = this.width();
-			const h = this.height();
+			const w = this.width;
+			const h = this.height;
 			const p1 = this.pos.sub(vec2(w / 2, h / 2));
 			const p2 = this.pos.add(vec2(w / 2, h / 2));
 			return rect(p1, p2);
@@ -969,6 +979,19 @@ function add(props) {
 					f(other);
 				}
 			});
+		},
+
+		wrap(p1, p2) {
+			if (this.pos.x < p1.x) {
+				this.pos.x = p2.x;
+			} else if (this.pos.x > p2.x) {
+				this.pos.x = p1.x;
+			}
+			if (this.pos.y < p1.y) {
+				this.pos.y = p2.y;
+			} else if (this.pos.y > p2.y) {
+				this.pos.y = p1.y;
+			}
 		},
 
 	};
@@ -1066,8 +1089,8 @@ function _gameFrameEnd() {
 					scale: obj.scale,
 					rot: obj.rot,
 					color: obj.color,
-					rectWidth: obj.rectWidth,
-					rectHeight: obj.rectHeight,
+					width: obj.width,
+					height: obj.height,
 				});
 
 			}
@@ -1077,4 +1100,13 @@ function _gameFrameEnd() {
 	}
 
 }
+
+function scene(name, f) {
+	_game.scenes[name] = {
+		init: f,
+	};
+}
+
+_gfxInit();
+_audioInit();
 
