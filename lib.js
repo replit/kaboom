@@ -1,3 +1,5 @@
+{
+
 // --------------------------------
 // Resources
 
@@ -21,6 +23,7 @@ const _gl = document
 		antialias: false,
 		depth: false,
 		stencil: false,
+		alpha: true,
 	});
 
 const _keyMap = {
@@ -201,10 +204,10 @@ function _makeFont(tex, gw, gh, chars) {
 
 	chars = chars.split("");
 
-	for (const [i, ch] in chars) {
+	for (const [i, ch] of chars.entries()) {
 		map[ch] = vec2(
 			(i % cols) * qw,
-			(i / cols) * qh,
+			Math.floor(i / cols) * qh,
 		);
 	}
 
@@ -220,13 +223,15 @@ function _makeFont(tex, gw, gh, chars) {
 function _gfxInit() {
 
 	_gl.clearColor(0.0, 0.0, 0.0, 1.0);
+	_gl.enable(_gl.BLEND);
+	_gl.blendFunc(_gl.SRC_ALPHA, _gl.ONE_MINUS_SRC_ALPHA);
 
 	_gfx.mesh = _makeBatchedMesh(65536, 65536);
 	_gfx.prog = _makeProgram(_defaultVert, _defaultFrag);
 	_gfx.defTex = _makeTex(new ImageData(new Uint8ClampedArray([ 255, 255, 255, 255, ]), 1, 1));
 
 	_loadImg("data:image/png;base64," + _fontImgData, (img) => {
-		_gfx.fontTex = _makeFont(_makeTex(img), 8, 8, " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~");
+		_gfx.defFont = _makeFont(_makeTex(img), 8, 8, " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~");
 	});
 
 }
@@ -370,7 +375,7 @@ function _makeProgram(vertSrc, fragSrc) {
 	var msg = _gl.getShaderInfoLog(vertShader);
 
 	if (msg) {
-		console.warn(msg);
+		console.error(msg);
 	}
 
 	const fragShader = _gl.createShader(_gl.FRAGMENT_SHADER);
@@ -381,7 +386,7 @@ function _makeProgram(vertSrc, fragSrc) {
 	var msg = _gl.getShaderInfoLog(fragShader);
 
 	if (msg) {
-		console.warn(msg);
+		console.error(msg);
 	}
 
 	const id = _gl.createProgram();
@@ -398,7 +403,7 @@ function _makeProgram(vertSrc, fragSrc) {
 	var msg = _gl.getProgramInfoLog(id);
 
 	if (msg) {
-		console.warn(msg);
+		console.error(msg);
 	}
 
 	return {
@@ -442,8 +447,38 @@ function _makeProgram(vertSrc, fragSrc) {
 
 }
 
-// TODO: draw shapes
-// TODO: draw text
+// TODO: draw circle
+// TODO: draw line
+
+// TODO: text formatting
+// TODO: text origin
+function _drawText(conf) {
+
+	const font = _gfx.defFont;
+	const chars = conf.text.split("");
+	const gw = font.qw * font.tex.width;
+	const gh = font.qh * font.tex.height;
+	const offset = (chars.length - 1) * gw / 2 * conf.scale.x;
+	const pos = vec2(conf.pos).sub(vec2(offset, 0));
+
+	for (const ch of chars) {
+
+		const qpos = font.map[ch];
+
+		_drawRect({
+			tex: _gfx.defFont.tex,
+			pos: vec2(pos),
+			scale: conf.scale,
+			rot: conf.rot,
+			color: conf.color,
+			quad: quad(qpos.x, qpos.y, font.qw, font.qh),
+		});
+
+		pos.x += gw * conf.scale.x;
+
+	}
+
+}
 
 function _drawRect(conf) {
 
@@ -472,8 +507,8 @@ function _drawRect(conf) {
 	const scale = conf.scale || vec2(1, 1);
 	const rot = conf.rot || 0;
 	const q = conf.quad || quad(0, 0, 1, 1);
-	w = w * scale.x / width();
-	h = h * scale.y / height();
+	w = w * q.w * scale.x / width();
+	h = h * q.h * scale.y / height();
 	const x = pos.x / width() * 2;
 	const y = pos.y / height() * 2;
 	// TODO: rotation
@@ -530,7 +565,7 @@ function play(id, conf) {
 	const sound = _audio.sounds[id];
 
 	if (!sound) {
-		console.warn(`sound not found: "${id}"`);
+		console.error(`sound not found: "${id}"`);
 		return;
 	}
 
@@ -573,9 +608,16 @@ function map(v, l1, h1, l2, h2) {
 }
 
 function vec2(x, y) {
+
+	if (_isVec2(x) && y === undefined) {
+		return vec2(x.x, x.y);
+	}
+
 	return {
-		x: x || 0,
-		y: y || x || 0,
+		x: x !== undefined ? x : 0,
+		y: y !== undefined ? y : (x !== undefined ? x : 0),
+// 		x: x ?? 0,
+// 		y: y ?? x ?? 0,
 		clone() {
 			return vec2(this.x, this.y);
 		},
@@ -617,7 +659,8 @@ function color(r, g, b, a) {
 		r: r,
 		g: g,
 		b: b,
-		a: a || 1,
+		a: a === undefined ? 1 : a,
+// 		a: a ?? 1,
 		clone() {
 			return color(this.r, this.g, this.b, this.a);
 		},
@@ -816,9 +859,27 @@ function mat4(m) {
 
 }
 
-function rand(min, max) {
-	return Math.random() * (max - min) + min;
-// 	return vec2(rand(p1.x, p2.x), rand(p1.y, p2.y));
+function _isVec2(p) {
+	return p !== undefined && p.x !== undefined && p.y !== undefined;
+}
+
+function rand(a, b) {
+	if (_isVec2(a) && _isVec2(b)) {
+		return vec2(
+			rand(p1.x, p2.x),
+			rand(p1.y, p2.y),
+		);
+	} else if (a !== undefined) {
+		if (b === undefined) {
+			return Math.random() * a;
+		} else {
+			return Math.random() * (b - a) + a;
+		}
+	} else if (a === undefined && b === undefined) {
+		return Math.random();
+	} else {
+		console.error("invalid param to rand()");
+	}
 }
 
 function randOnRect(p1, p2) {
@@ -829,10 +890,6 @@ function randOnRect(p1, p2) {
 	} else {
 		return vec2(chance(0.5) ? p1.x : p2.x, rand(p1.y, p2.y));
 	}
-}
-
-function randOut() {
-	// ...
 }
 
 function chance(p) {
@@ -912,13 +969,14 @@ function add(props) {
 
 		sprite: props.sprite,
 		frame: props.frame || 0,
-		pos: props.pos ? props.pos.clone() : vec2(0, 0),
-		scale: props.scale ? props.scale.clone() : vec2(1, 1),
+		pos: props.pos ? vec2(props.pos) : vec2(0),
+		scale: props.scale ? vec2(props.scale) : vec2(1),
 		rot: props.rot || 0,
 		tags: props.tags ? [...props.tags] : [],
 		speed: props.speed || 0,
 		layer: props.layer || 0,
 		color: props.color || color(1, 1, 1, 1),
+		text: props.text,
 
 		destroy: false,
 		exists: true,
@@ -1079,7 +1137,7 @@ function _gameFrameEnd() {
 				const spr = _game.sprites[obj.sprite];
 
 				if (obj.sprite && !spr) {
-					console.warn(`sprite not found: "${obj.sprite}"`);
+					console.error(`sprite not found: "${obj.sprite}"`);
 					return;
 				}
 
@@ -1091,7 +1149,20 @@ function _gameFrameEnd() {
 					color: obj.color,
 					width: obj.width,
 					height: obj.height,
+					quad: quad(0, 0, 1, 1),
 				});
+
+				if (obj.text) {
+
+					_drawText({
+						text: obj.text,
+						pos: obj.pos,
+						scale: obj.scale,
+						rot: obj.rot,
+						color: obj.color,
+					});
+
+				}
 
 			}
 
@@ -1109,4 +1180,6 @@ function scene(name, f) {
 
 _gfxInit();
 _audioInit();
+
+}
 

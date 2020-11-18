@@ -4,14 +4,20 @@ loadSound("shoot", "shoot.ogg");
 
 window.onload = () => {
 
-let score = 0;
-
 // add player to scene
 const player = add({
 	sprite: "guy",
 	pos: vec2(0, 0),
 	speed: 480,
 	dir: "up",
+});
+
+const score = add({
+	value: 0,
+	text: "0",
+	pos: vec2(0),
+	scale: 32,
+	color: color(1, 1, 1, 0.03),
 });
 
 // add an enemy to scene
@@ -83,7 +89,8 @@ run(() => {
 
 		// respawn
 		console.log("DIE!");
-		score = 0;
+		score.value = 0;
+		score.text = `${score.value}`;
 		destroyAll("enemy");
 		player.pos = vec2(0, 0);
 
@@ -107,8 +114,8 @@ run(() => {
 
 		destroy(e);
 		destroy(b);
-		score++;
-		console.log(score);
+		score.value++;
+		score.text = `${score.value}`;
 
 		// play an up pitched victory sound
 		play("shoot", {
