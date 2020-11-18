@@ -458,7 +458,9 @@ function _drawText(conf) {
 	const chars = conf.text.split("");
 	const gw = font.qw * font.tex.width;
 	const gh = font.qh * font.tex.height;
-	const offset = (chars.length - 1) * gw / 2 * conf.scale.x;
+	const size = conf.size || gh;
+	const scale = vec2(size / gh).dot(conf.scale);
+	const offset = (chars.length - 1) * gw / 2 * scale.x;
 	const pos = vec2(conf.pos).sub(vec2(offset, 0));
 
 	for (const ch of chars) {
@@ -468,13 +470,13 @@ function _drawText(conf) {
 		_drawRect({
 			tex: _gfx.defFont.tex,
 			pos: vec2(pos),
-			scale: conf.scale,
+			scale: scale,
 			rot: conf.rot,
 			color: conf.color,
 			quad: quad(qpos.x, qpos.y, font.qw, font.qh),
 		});
 
-		pos.x += gw * conf.scale.x;
+		pos.x += gw * scale.x;
 
 	}
 
@@ -655,6 +657,11 @@ function vec2(x, y) {
 }
 
 function color(r, g, b, a) {
+
+	if (arguments.length === 0) {
+		return color(1, 1, 1, 1);
+	}
+
 	return {
 		r: r,
 		g: g,
@@ -866,8 +873,8 @@ function _isVec2(p) {
 function rand(a, b) {
 	if (_isVec2(a) && _isVec2(b)) {
 		return vec2(
-			rand(p1.x, p2.x),
-			rand(p1.y, p2.y),
+			rand(a.x, b.x),
+			rand(a.y, b.y),
 		);
 	} else if (a !== undefined) {
 		if (b === undefined) {
@@ -1156,6 +1163,7 @@ function _gameFrameEnd() {
 
 					_drawText({
 						text: obj.text,
+						size: obj.size,
 						pos: obj.pos,
 						scale: obj.scale,
 						rot: obj.rot,
