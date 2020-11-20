@@ -459,7 +459,7 @@ function _drawText(conf) {
 	const gw = font.qw * font.tex.width;
 	const gh = font.qh * font.tex.height;
 	const size = conf.size || gh;
-	const scale = vec2(size / gh).dot(conf.scale);
+	const scale = vec2(size / gh).dot(vec2(conf.scale));
 	const offset = (chars.length - 1) * gw / 2 * scale.x;
 	const pos = vec2(conf.pos).sub(vec2(offset, 0));
 
@@ -506,7 +506,7 @@ function _drawRect(conf) {
 	}
 
 	const pos = conf.pos || vec2(0, 0);
-	const scale = conf.scale || vec2(1, 1);
+	const scale = conf.scale === undefined ? vec2(1, 1) : vec2(conf.scale);
 	const rot = conf.rot || 0;
 	const q = conf.quad || quad(0, 0, 1, 1);
 	w = w * q.w * scale.x / width();
@@ -602,7 +602,7 @@ function play(id, conf) {
 // TODO: variadic args for math types
 
 function lerp(a, b, t) {
-	return a + (b - a) * t;
+	return a + (b - a) * t * dt();
 }
 
 function map(v, l1, h1, l2, h2) {
@@ -648,7 +648,7 @@ function vec2(x, y) {
 			return Math.atan2(this.y - p2.y, this.x - p2.x);
 		},
 		lerp(p2, t) {
-			return vec2(lerp(this.x, p2.x, t * dt()), lerp(this.y, p2.y, t * dt()));
+			return vec2(lerp(this.x, p2.x, t), lerp(this.y, p2.y, t));
 		},
 		eq(other) {
 			return this.x === other.x && this.y === other.y;
@@ -698,12 +698,12 @@ function quad(x, y, w, h) {
 	};
 }
 
-function rect(p1, p2) {
+function area(p1, p2) {
 	return {
 		p1: p1.clone(),
 		p2: p2.clone(),
 		clone() {
-			return rect(this.p1.clone(), this.p2.clone());
+			return area(this.p1.clone(), this.p2.clone());
 		},
 		hasPt(pt) {
 			return pt.x >= this.p1.x && pt.x <= this.p2.x && pt.y >= this.p1.y && pt.y < this.p2.y;
@@ -870,6 +870,10 @@ function _isVec2(p) {
 	return p !== undefined && p.x !== undefined && p.y !== undefined;
 }
 
+function wave(a, b, t) {
+	return a + (Math.sin(time() * t) + 1) / 2 * (b - a);
+}
+
 function rand(a, b) {
 	if (_isVec2(a) && _isVec2(b)) {
 		return vec2(
@@ -947,15 +951,58 @@ function loadSprite(id, src, conf) {
 
 }
 
-// TODO: how to deal with e.g. text and simple shapes? do we still use this interface?
-// TODO: get sprite size and stuff, this should be called when assets are loaded
-function add(props) {
+function sprite(id, props) {
+	return _add({
+		...props,
+		type: "sprite",
+		sprite: id,
+	});
+}
+
+function rect(w, h, props) {
+	return _add({
+		...props,
+		type: "rect",
+		width: w,
+		height: h,
+	});
+}
+
+function text(str, props) {
+	return _add({
+		...props,
+		type: "text",
+		text: str,
+	});
+}
+
+function line(p1, p2, props) {
+	return _add({
+		...props,
+		type: "line",
+		p1: p1,
+		p2: p2,
+	});
+}
+
+function circle(center, radius, props) {
+	return _add({
+		...props,
+		type: "circle",
+		pos: center,
+		radius: radius,
+	});
+}
+
+function _add(props) {
 
 	if (!props) {
 		return;
 	}
 
 	const id = _game.lastID + 1;
+
+	// TODO: move some of these to dedicated initializers
 
 	if (props.sprite) {
 		const tw = _game.sprites[props.sprite].tex.width;
@@ -977,7 +1024,7 @@ function add(props) {
 		sprite: props.sprite,
 		frame: props.frame || 0,
 		pos: props.pos ? vec2(props.pos) : vec2(0),
-		scale: props.scale ? vec2(props.scale) : vec2(1),
+		scale: props.scale === undefined ? 1 : props.scale,
 		rot: props.rot || 0,
 		tags: props.tags ? [...props.tags] : [],
 		speed: props.speed || 0,
@@ -1023,7 +1070,7 @@ function add(props) {
 			const h = this.height;
 			const p1 = this.pos.sub(vec2(w / 2, h / 2));
 			const p2 = this.pos.add(vec2(w / 2, h / 2));
-			return rect(p1, p2);
+			return area(p1, p2);
 		},
 
 		hovered() {
@@ -1141,34 +1188,67 @@ function _gameFrameEnd() {
 
 			if (!obj.hidden) {
 
-				const spr = _game.sprites[obj.sprite];
+				switch (obj.type) {
 
-				if (obj.sprite && !spr) {
-					console.error(`sprite not found: "${obj.sprite}"`);
-					return;
-				}
+					case "sprite":
 
-				_drawRect({
-					tex: spr ? spr.tex : undefined,
-					pos: obj.pos,
-					scale: obj.scale,
-					rot: obj.rot,
-					color: obj.color,
-					width: obj.width,
-					height: obj.height,
-					quad: quad(0, 0, 1, 1),
-				});
+						const spr = _game.sprites[obj.sprite];
 
-				if (obj.text) {
+						if (obj.sprite && !spr) {
+							console.error(`sprite not found: "${obj.sprite}"`);
+							return;
+						}
 
-					_drawText({
-						text: obj.text,
-						size: obj.size,
-						pos: obj.pos,
-						scale: obj.scale,
-						rot: obj.rot,
-						color: obj.color,
-					});
+						_drawRect({
+							tex: spr.tex,
+							pos: obj.pos,
+							scale: obj.scale,
+							rot: obj.rot,
+							color: obj.color,
+							width: obj.width,
+							height: obj.height,
+							quad: quad(0, 0, 1, 1),
+						});
+
+						break;
+
+					case "rect":
+
+						_drawRect({
+							tex: undefined,
+							pos: obj.pos,
+							scale: obj.scale,
+							rot: obj.rot,
+							color: obj.color,
+							width: obj.width,
+							height: obj.height,
+							quad: quad(0, 0, 1, 1),
+						});
+
+						break;
+
+					case "text":
+
+						_drawText({
+							text: obj.text,
+							size: obj.size,
+							pos: obj.pos,
+							scale: obj.scale,
+							rot: obj.rot,
+							color: obj.color,
+						});
+
+						break;
+
+					case "line":
+						break;
+
+					case "circle":
+						break;
+
+					default:
+
+						break;
 
 				}
 

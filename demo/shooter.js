@@ -4,17 +4,23 @@ loadSound("shoot", "shoot.ogg");
 
 window.onload = () => {
 
+const powerTime = 4;
+
 // add player to scene
-const player = add({
-	sprite: "guy",
+const player = sprite("guy", {
 	pos: vec2(0, 0),
 	speed: 480,
 	dir: "up",
+	power: 0,
 });
 
-const score = add({
+const powerBar = rect(0, 48, {
+	pos: vec2(0, -height() / 2),
+	color: randColor(),
+});
+
+const score = text("0", {
 	value: 0,
-	text: "0",
 	pos: vec2(0),
 	size: 256,
 	color: color(1, 1, 1, 0.03),
@@ -24,32 +30,29 @@ function addScore() {
 
 	score.value++;
 	score.text = `${score.value}`;
-	score.scale = score.scale.scale(1.2);
+	score.scale = score.scale * 1.2;
 
 	if (score.value % 10 == 0) {
-		addPowerUp();
+		addCandy();
 	}
 
 }
 
 // add an enemy to scene
 function addEnemy() {
-	add({
-		sprite: "guy",
+	sprite("guy", {
 		pos: randOnRect(vec2(-width() / 2, -height() / 2), vec2(width() / 2, height() / 2)),
 		tags: [ "enemy", ],
 		color: color(0, 0, 1),
-		speed: 96,
+		speed: 80,
 	});
 }
 
-function addPowerUp() {
-	add({
-		width: 16,
-		height: 16,
+function addCandy() {
+	rect(16, 16, {
 		pos: rand(vec2(-width() / 2, -height() / 2), vec2(width() / 2, height() / 2)),
 		color: randColor(),
-		tags: [ "powerup", ],
+		tags: [ "candy", ],
 	});
 }
 
@@ -84,9 +87,7 @@ run(() => {
 		});
 
 		// add a new bullet to game scene
-		add({
-			width: rand(12, 16),
-			height: rand(12, 16),
+		rect(rand(12, 16), rand(12, 16), {
 			pos: player.pos,
 			speed: 1280,
 			tags: [ "bullet", ],
@@ -107,26 +108,26 @@ run(() => {
 		addScore();
 	}
 
+	powerBar.width = player.power / powerTime * width();
+	powerBar.color = randColor();
+
 	player.collides("enemy", (e) => {
 
-		if (player.invincible > 0) {
+		if (player.power > 0) {
 			return;
 		}
 
 		// respawn
-		console.log("DIE!");
 		score.value = 0;
 		score.text = `${score.value}`;
 		destroyAll("enemy");
-		destroyAll("powerup");
+		destroyAll("candy");
 		player.pos = vec2(0, 0);
 
 		addEnemy();
 
 		// add a flash feedback for 0.1 sec
-		add({
-			width: width(),
-			height: height(),
+		rect(width(), height(), {
 			color: randColor(),
 			lifespan: 0.1,
 			tags: [ "death", ],
@@ -134,23 +135,24 @@ run(() => {
 
 	});
 
-	player.collides("powerup", (p) => {
+	player.collides("candy", (p) => {
 		destroy(p);
-		player.invincible = 3;
+		player.power = powerTime;
 	});
 
-	if (player.invincible > 0) {
+	if (player.power > 0) {
 		player.color = randColor();
-		player.invincible -= dt();
-		if (player.invincible <= 0) {
-			player.invincible = 0;
+		player.power -= dt();
+		player.scale = wave(1, 1.5, 10);
+		if (player.power <= 0) {
+			player.power = 0;
 			player.color = color(1, 1, 1);
+			player.scale = 1;
 		}
 	}
 
 	player.wrap(vec2(-width() / 2, -height() / 2), vec2(width() / 2, height() / 2));
-
-	score.scale = score.scale.lerp(vec2(1.0), 2);
+	score.scale = lerp(score.scale, 1, 2);
 
 	// destroy enemy
 	collides("bullet", "enemy", (b, e) => {
@@ -165,9 +167,7 @@ run(() => {
 			detune: 1200,
 		});
 
-		add({
-			width: 0,
-			height: 0,
+		rect(0, 0, {
 			pos: e.pos,
 			color: randColor(),
 			lifespan: 0.1,
@@ -197,7 +197,7 @@ run(() => {
 		}
 	});
 
-	all("powerup", (p) => {
+	all("candy", (p) => {
 		p.color = randColor();
 	});
 
