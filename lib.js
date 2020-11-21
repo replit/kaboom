@@ -73,7 +73,7 @@ document.onkeyup = ((e) => {
 	_app.keyStates[k] = "released";
 });
 
-function run(f) {
+function _run(f) {
 
 	const frame = ((t) => {
 
@@ -84,7 +84,6 @@ function run(f) {
 
 			_gfxFrameStart();
 			f();
-			_gameFrameEnd();
 			_gfxFrameEnd();
 
 			for (const k in _app.keyStates) {
@@ -113,35 +112,88 @@ function _processBtnState(s) {
 	return s;
 }
 
+function keyDown(k, f) {
+	const scene = _game.scenes[_game.curDescScene];
+	scene.keyDownEvents.push({
+		key: k,
+		cb: f,
+	});
+}
+
+function keyPress(k, f) {
+	const scene = _game.scenes[_game.curDescScene];
+	scene.keyPressEvents.push({
+		key: k,
+		cb: f,
+	});
+}
+
+function keyPressRep(k, f) {
+	const scene = _game.scenes[_game.curDescScene];
+	scene.keyPressRepEvents.push({
+		key: k,
+		cb: f,
+	});
+}
+
+function keyRelease(k, f) {
+	const scene = _game.scenes[_game.curDescScene];
+	scene.keyReleaseEvents.push({
+		key: k,
+		cb: f,
+	});
+}
+
+function mouseDown(f) {
+	const scene = _game.scenes[_game.curDescScene];
+	scene.mouseDownEvents.push({
+		cb: f,
+	});
+}
+
+function mousePress(f) {
+	const scene = _game.scenes[_game.curDescScene];
+	scene.mousePressEvents.push({
+		cb: f,
+	});
+}
+
+function mouseRelease(f) {
+	const scene = _game.scenes[_game.curDescScene];
+	scene.mousePressEvents.push({
+		cb: f,
+	});
+}
+
 function mousePos() {
 	return _app.mousePos.clone();
 }
 
-function mousePressed() {
+function mouseIsPressed() {
 	return _app.mouseState === "pressed";
 }
 
-function mouseDown() {
+function mouseIsDown() {
 	return _app.mouseState == "pressed" || _app.mouseState === "down";
 }
 
-function mouseReleased() {
+function mouseIsReleased() {
 	return _app.mouseState === "released";
 }
 
-function keyPressed(k) {
+function keyIsPressed(k) {
 	return _app.keyStates[k] === "pressed";
 }
 
-function keyPressedRepeat(k) {
+function keyIsPressedRep(k) {
 	return _app.keyStates[k] === "pressed" || _app.keyStates[k] === "rpressed";
 }
 
-function keyDown(k) {
+function keyIsDown(k) {
 	return _app.keyStates[k] === "pressed" || _app.keyStates[k] === "rpressed" || _app.keyStates[k] === "down";
 }
 
-function keyReleased(k) {
+function keyIsReleased(k) {
 	return _app.keyStates[k] === "released";
 }
 
@@ -915,13 +967,13 @@ function choose(list) {
 // Game Systems
 
 const _game = {
-	objs: {},
-	lastID: 0,
-	lastTimerID: 0,
-	timers: {},
+	curDescScene: "main",
+	curScene: "main",
+	scenes: {},
 	sprites: {},
-	sounds: {},
+	running: false,
 };
+
 
 const _velMap = {
 	left: vec2(-1, 0),
@@ -994,49 +1046,150 @@ function circle(center, radius, props) {
 	});
 }
 
-function _add(props) {
-
-	if (!props) {
-		return;
-	}
-
-	const id = _game.lastID + 1;
-
-	// TODO: move some of these to dedicated initializers
-
-	if (props.sprite) {
-		const tw = _game.sprites[props.sprite].tex.width;
-		const th = _game.sprites[props.sprite].tex.height;
-		if (!props.width && !props.height) {
-			props.width = tw;
-			props.height = th;
-		} else if (props.width && !props.height) {
-			props.height = props.width / tw * th;
-		} else if (!props.width && props.height) {
-			props.width = props.height / th * tw;
+function _applyAll(t, f) {
+	const scene = _game.scenes[_game.curScene];
+	for (const id in scene.objs) {
+		const obj = scene.objs[id];
+		if (obj.is(t)) {
+			f(obj);
 		}
 	}
+}
+
+function lastwish(t, f) {
+	_onlyInit("lastwish");
+	_game.scenes[_game.curDescScene].lastwishes.push({
+		tag: t,
+		cb: f,
+	});
+}
+
+function collides(t1, t2, f) {
+	_onlyInit("collides");
+	all(t1, (o1) => {
+		_applyAll(t2, (o2) => {
+			if (o1.intersects(o2)) {
+				f(o1, o2);
+			}
+		});
+	});
+}
+
+function wait(t, f) {
+	if (_game.running) {
+		const scene = _game.scenes[_game.curScene];
+		scene.timers[scene.lastTimerID] = {
+			time: t,
+			cb: f,
+		};
+		scene.lastTimerID++;
+	} else {
+		const scene = _game.scenes[_game.curDescScene];
+		scene.timersInit.push({
+			time: t,
+			cb: f,
+		});
+	}
+}
+
+function loop(t, f) {
+	const newF = () => {
+		f();
+		wait(t, newF);
+	};
+	wait(t, newF);
+}
+
+function destroyAll(t) {
+	_applyAll(t, (obj) => {
+		destroy(obj);
+	});
+}
+
+function destroy(obj) {
+	obj.destroy = true;
+}
+
+function all(t, f) {
+	_onlyInit("all");
+	const scene = _game.scenes[_game.curDescScene];
+	scene.groupActions.push({
+		tag: t,
+		cb: f,
+	});
+}
+
+function go(name) {
+	_game.curScene = name;
+}
+
+function _onlyInit(name) {
+	if (_game.running) {
+		console.log("'${name}' can only be called at init");
+		return;
+	}
+}
+
+function scene(name) {
+
+	_onlyInit("scene");
+
+	if (!_game.scenes[name]) {
+
+		_game.scenes[name] = {
+
+			objsInit: [],
+			timersInit: [],
+			groupActions: [],
+			keyDownEvents: [],
+			keyPressEvents: [],
+			keyPressRepEvents: [],
+			keyReleaseEvents: [],
+			mousePressEvents: [],
+			mouseReleaseEvents: [],
+			mouseDownEvents: [],
+			lastwishes: [],
+
+			initialized: false,
+			objs: {},
+			lastID: 0,
+			timers: {},
+			lastTimerID: 0,
+
+		};
+
+	}
+
+	_game.curDescScene = name;
+
+}
+
+function _add(props) {
+
+	props = props || {};
 
 	const obj = {
 
 		...props,
 
 		sprite: props.sprite,
-		frame: props.frame || 0,
 		pos: props.pos ? vec2(props.pos) : vec2(0),
 		scale: props.scale === undefined ? 1 : props.scale,
 		rot: props.rot || 0,
+		color: props.color || color(1, 1, 1, 1),
 		tags: props.tags ? [...props.tags] : [],
 		speed: props.speed || 0,
 		layer: props.layer || 0,
-		color: props.color || color(1, 1, 1, 1),
 		text: props.text,
 
-		destroy: false,
+		actions: [],
 		exists: true,
-		hidden: false,
-		id: id,
-		children: {},
+		destroy: props.destroy ?? false,
+		hidden: props.hidden ?? false,
+
+		action(f) {
+			this.actions.push(f);
+		},
 
 		move(dir) {
 
@@ -1057,40 +1210,26 @@ function _add(props) {
 			this.hidden = false;
 		},
 
-		exists() {
-			return this.exists;
-		},
-
 		is(tag) {
 			return this.tags.includes(tag);
 		},
 
-		bbox() {
-			const w = this.width;
-			const h = this.height;
+		area() {
+
+			const { w, h, } = _getSize(this);
 			const p1 = this.pos.sub(vec2(w / 2, h / 2));
 			const p2 = this.pos.add(vec2(w / 2, h / 2));
+
 			return area(p1, p2);
+
 		},
 
 		hovered() {
-			return this.bbox().hasPt(mousePos());
+			return this.area().hasPt(mousePos());
 		},
 
 		clicked() {
 			return mousePressed() && this.hovered();
-		},
-
-		intersects(other) {
-			return this.bbox().intersects(other.bbox());
-		},
-
-		collides(tag, f) {
-			all(tag, (other) => {
-				if (this.intersects(other)) {
-					f(other);
-				}
-			});
 		},
 
 		wrap(p1, p2) {
@@ -1106,149 +1245,280 @@ function _add(props) {
 			}
 		},
 
+		click(f) {
+			this.onClick = f;
+		},
+
+		collides(t, f) {
+			this.action(() => {
+				_applyAll(t, (obj) => {
+					if (this.intersects(obj)) {
+						f(obj);
+					}
+				});
+			});
+		},
+
+		intersects(other) {
+			return this.area().intersects(other.area());
+		},
+
 	};
 
-	_game.objs[id] = obj;
-	_game.lastID++;
+	if (_game.running) {
 
-	if (props.lifespan) {
-		wait(props.lifespan, () => {
-			destroy(obj);
-		});
+		const scene = _game.scenes[_game.curScene];
+
+		scene.objs[scene.lastID] = obj;
+		scene.lastID++;
+
+	} else {
+
+		const scene = _game.scenes[_game.curDescScene];
+		scene.objsInit.push(obj);
+
 	}
 
 	return obj;
 
 }
 
-function collides(t1, t2, f) {
-	all(t1, (o1) => {
-		o1.collides(t2, (o2) => {
-			f(o1, o2);
-		});
-	});
-}
+function _getSize(obj) {
 
-function wait(t, f) {
-	_game.timers[_game.lastTimerID] = {
-		time: t,
-		cb: f,
-	};
-	_game.lastTimerID++;
-}
+	let w = 0;
+	let h = 0;
 
-function loop(t, f) {
-	const newF = () => {
-		f();
-		wait(t, newF);
-	};
-	wait(t, newF);
-}
+	switch (obj.type) {
 
-function all(t, f) {
-	for (const id in _game.objs) {
-		const obj = _game.objs[id];
-		if (obj.is(t)) {
-			f(obj);
-		}
-	}
-}
+		case "sprite":
 
-function destroy(obj) {
-	obj.destroy = true;
-}
+			if (!_game.sprites[obj.sprite]) {
+				break;
+			}
 
-function destroyAll(tag) {
-	all(tag, (o) => {
-		destroy(o);
-	});
-}
+			w = _game.sprites[obj.sprite].tex.width;
+			h = _game.sprites[obj.sprite].tex.height;
 
-function _gameFrameEnd() {
+			if (obj.width && obj.height) {
+				w = obj.width;
+				h = obj.height;
+			} else if (obj.width && !obj.height) {
+				h = obj.width / tw * th;
+			} else if (!obj.width && obj.height) {
+				w = obj.height / th * tw;
+			}
 
-	for (const id in _game.timers) {
-		const t = _game.timers[id];
-		t.time -= dt();
-		if (t.time <= 0) {
-			t.cb();
-			delete _game.timers[id];
-		}
+			break;
+
+		case "rect":
+
+			w = obj.width;
+			h = obj.height;
+
+			break;
+
+		case "text":
+			break;
+
 	}
 
-	for (const id in _game.objs) {
+	return {
+		w: w,
+		h: h,
+	};
 
-		const obj = _game.objs[id];
+}
 
-		if (obj.destroy) {
+window.onload = () => {
 
-			obj.exists = false;
-			delete _game.objs[id];
+	_run(() => {
 
-		} else {
+		_game.running = true;
 
-			if (!obj.hidden) {
+		const scene = _game.scenes[_game.curScene];
 
-				switch (obj.type) {
+		if (!scene) {
+			console.error(`scene not found: '${_game.curScene}'`);
+			return;
+		}
 
-					case "sprite":
+		// TODO: a little repetitive..
+		for (const e of scene.keyDownEvents) {
+			if (keyIsDown(e.key)) {
+				e.cb();
+			}
+		}
 
-						const spr = _game.sprites[obj.sprite];
+		for (const e of scene.keyPressEvents) {
+			if (keyIsPressed(e.key)) {
+				e.cb();
+			}
+		}
 
-						if (obj.sprite && !spr) {
-							console.error(`sprite not found: "${obj.sprite}"`);
-							return;
-						}
+		for (const e of scene.keyPressRepEvents) {
+			if (keyIsPressedRep(e.key)) {
+				e.cb();
+			}
+		}
 
-						_drawRect({
-							tex: spr.tex,
-							pos: obj.pos,
-							scale: obj.scale,
-							rot: obj.rot,
-							color: obj.color,
-							width: obj.width,
-							height: obj.height,
-							quad: quad(0, 0, 1, 1),
-						});
+		for (const e of scene.keyReleaseEvents) {
+			if (keyIsReleased(e.key)) {
+				e.cb();
+			}
+		}
 
-						break;
+		for (const e of scene.mouseDownEvents) {
+			if (mouseIsDown()) {
+				e.cb();
+			}
+		}
 
-					case "rect":
+		for (const e of scene.mousePressEvents) {
+			if (mouseIsPressed()) {
+				e.cb();
+			}
+		}
 
-						_drawRect({
-							tex: undefined,
-							pos: obj.pos,
-							scale: obj.scale,
-							rot: obj.rot,
-							color: obj.color,
-							width: obj.width,
-							height: obj.height,
-							quad: quad(0, 0, 1, 1),
-						});
+		for (const e of scene.mouseReleaseEvents) {
+			if (mouseIsReleased()) {
+				e.cb();
+			}
+		}
 
-						break;
+		if (!scene.initialized) {
 
-					case "text":
+			for (const obj of scene.objsInit) {
+				scene.objs[scene.lastID] = obj;
+				scene.lastID++;
+			}
 
-						_drawText({
-							text: obj.text,
-							size: obj.size,
-							pos: obj.pos,
-							scale: obj.scale,
-							rot: obj.rot,
-							color: obj.color,
-						});
+			for (const timer of scene.timersInit) {
+				scene.timers[scene.lastTimerID] = timer;
+				scene.lastTimerID++;
+			}
 
-						break;
+			scene.initialized = true;
 
-					case "line":
-						break;
+		}
 
-					case "circle":
-						break;
+		for (const e of scene.groupActions) {
+			for (const id in scene.objs) {
+				const obj = scene.objs[id];
+				if (obj.is(e.tag)) {
+					e.cb(obj);
+				}
+			}
+		}
 
-					default:
+		for (const id in scene.timers) {
+			const t = scene.timers[id];
+			t.time -= dt();
+			if (t.time <= 0) {
+				t.cb();
+				delete scene.timers[id];
+			}
+		}
 
-						break;
+		for (const id in scene.objs) {
+
+			const obj = scene.objs[id];
+
+			if (obj.destroy) {
+
+				for (const wish of scene.lastwishes) {
+					if (obj.is(wish.tag)) {
+						wish.cb(obj);
+					}
+				}
+
+				obj.exists = false;
+				delete scene.objs[id];
+
+			} else {
+
+				// update obj
+				if (obj.onClick) {
+					if (obj.clicked()) {
+						obj.onClick.call(obj);
+					}
+				}
+
+				for (const action of obj.actions) {
+					action(obj);
+				}
+
+				if (obj.lifespan !== undefined) {
+					obj.lifespan -= dt();
+					if (obj.lifespan <= 0) {
+						destroy(obj);
+					}
+				}
+
+				// draw obj
+				if (!obj.hidden) {
+
+					switch (obj.type) {
+
+						case "sprite":
+
+							const spr = _game.sprites[obj.sprite];
+
+							if (obj.sprite && !spr) {
+								console.error(`sprite not found: "${obj.sprite}"`);
+								return;
+							}
+
+							_drawRect({
+								tex: spr.tex,
+								pos: obj.pos,
+								scale: obj.scale,
+								rot: obj.rot,
+								color: obj.color,
+								width: obj.width,
+								height: obj.height,
+								quad: quad(0, 0, 1, 1),
+							});
+
+							break;
+
+						case "rect":
+
+							_drawRect({
+								tex: undefined,
+								pos: obj.pos,
+								scale: obj.scale,
+								rot: obj.rot,
+								color: obj.color,
+								width: obj.width,
+								height: obj.height,
+								quad: quad(0, 0, 1, 1),
+							});
+
+							break;
+
+						case "text":
+
+							_drawText({
+								text: obj.text,
+								size: obj.size,
+								pos: obj.pos,
+								scale: obj.scale,
+								rot: obj.rot,
+								color: obj.color,
+							});
+
+							break;
+
+						case "line":
+							break;
+
+						case "circle":
+							break;
+
+						default:
+							break;
+
+					}
 
 				}
 
@@ -1256,18 +1526,13 @@ function _gameFrameEnd() {
 
 		}
 
-	}
+	});
 
-}
-
-function scene(name, f) {
-	_game.scenes[name] = {
-		init: f,
-	};
-}
+};
 
 _gfxInit();
 _audioInit();
+scene("main");
 
 }
 
