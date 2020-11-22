@@ -67,22 +67,22 @@ const preventDefaultKeys = [
 	"down",
 ];
 
-gl.canvas.onmousemove = (e) => {
+gl.canvas.addEventListener("mousemove", (e) => {
 	app.mousePos = vec2(
 		e.offsetX - gl.drawingBufferWidth / 2,
 		gl.drawingBufferHeight / 2 - e.offsetY
 	);
-};
+});
 
-gl.canvas.onmousedown = (e) => {
+gl.canvas.addEventListener("mousedown", (e) => {
 	app.mouseState = "pressed";
-};
+});
 
-gl.canvas.onmouseup = (e) => {
+gl.canvas.addEventListener("mouseup", (e) => {
 	app.mouseState = "released";
-};
+});
 
-document.onkeydown = (e) => {
+document.addEventListener("keydown", (e) => {
 	const k = keyMap[e.key] || e.key;
 	if (preventDefaultKeys.includes(k)) {
 		e.preventDefault();
@@ -92,14 +92,14 @@ document.onkeydown = (e) => {
 	} else {
 		app.keyStates[k] = "pressed";
 	}
-};
+});
 
-document.onkeyup = ((e) => {
+document.addEventListener("keyup", (e) => {
 	const k = keyMap[e.key] || e.key;
 	app.keyStates[k] = "released";
 });
 
-function run(f) {
+function startLoop(f) {
 
 	const frame = ((t) => {
 
@@ -1126,6 +1126,11 @@ function destroy(obj) {
 		if (scene) {
 			delete scene.objs[obj.id];
 			obj.id = undefined;
+			for (const e in scene.lastwishes) {
+				if (obj.is(e.tag)) {
+					e.cb(obj);
+				}
+			}
 		}
 	}
 }
@@ -1146,6 +1151,29 @@ function go(name) {
 	game.curScene = name;
 }
 
+// TODO: needs more review
+function reload(name) {
+	const scene = game.scenes[name];
+	if (!scene.initialized) {
+		return;
+	}
+	scene.initialized = false;
+	for (const id in scene.objs) {
+		scene.objs[id].id = undefined;
+	}
+	for (const obj of scene.objsInit) {
+		for (const k in obj) {
+			if (k !== "initState") {
+				obj[k] = deepCopy(obj.initState[k]);
+			}
+		}
+	}
+	scene.objs = {};
+	scene.lastID = 0;
+	scene.timers = {};
+	scene.lastTimerID = 0;
+}
+
 function scene(name) {
 
 	if (game.running) {
@@ -1159,6 +1187,7 @@ function scene(name) {
 
 			objsInit: [],
 			timersInit: [],
+			lastwishes: [],
 			groupActions: [],
 			keyDownEvents: [],
 			keyPressEvents: [],
@@ -1167,7 +1196,6 @@ function scene(name) {
 			mousePressEvents: [],
 			mouseReleaseEvents: [],
 			mouseDownEvents: [],
-			lastwishes: [],
 
 			initialized: false,
 			objs: {},
@@ -1354,190 +1382,216 @@ function getSize(obj) {
 
 }
 
-window.onload = () => {
+function deepCopy(input) {
 
-	run(() => {
+	if (typeof(input) !== "object" || input === null) {
+		return input;
+	}
 
-		game.running = true;
+	const out = Array.isArray(input) ? [] : {};
 
-		const scene = game.scenes[game.curScene];
+	for (const key in input) {
+		out[key] = deepCopy(input[key]);
+	}
 
-		if (!scene) {
-			console.error(`scene not found: '${game.curScene}'`);
-			return;
+	return out;
+
+}
+
+function start() {
+
+	for (const name in game.scenes) {
+		for (const obj of game.scenes[name].objsInit) {
+			obj.initState = deepCopy(obj);
 		}
+	}
 
-		if (!scene.initialized) {
+	window.addEventListener("load", () => {
 
-			for (const obj of scene.objsInit) {
-				scene.objs[scene.lastID] = obj;
-				obj.id = scene.lastID;
-				scene.lastID++;
+		startLoop(() => {
+
+			game.running = true;
+
+			const scene = game.scenes[game.curScene];
+
+			if (!scene) {
+				console.error(`scene not found: '${game.curScene}'`);
+				return;
 			}
 
-			for (const timer of scene.timersInit) {
-				scene.timers[scene.lastTimerID] = timer;
-				scene.lastTimerID++;
+			if (!scene.initialized) {
+
+				for (const obj of scene.objsInit) {
+					scene.objs[scene.lastID] = obj;
+					obj.id = scene.lastID;
+					scene.lastID++;
+				}
+
+				for (const timer of scene.timersInit) {
+					scene.timers[scene.lastTimerID] = timer;
+					scene.lastTimerID++;
+				}
+
+				scene.initialized = true;
+
 			}
 
-			scene.initialized = true;
-
-		}
-
-		// TODO: a little repetitive..
-		for (const e of scene.keyDownEvents) {
-			if (keyIsDown(e.key)) {
-				e.cb();
+			// TODO: a little repetitive..
+			for (const e of scene.keyDownEvents) {
+				if (keyIsDown(e.key)) {
+					e.cb();
+				}
 			}
-		}
 
-		for (const e of scene.keyPressEvents) {
-			if (keyIsPressed(e.key)) {
-				e.cb();
+			for (const e of scene.keyPressEvents) {
+				if (keyIsPressed(e.key)) {
+					e.cb();
+				}
 			}
-		}
 
-		for (const e of scene.keyPressRepEvents) {
-			if (keyIsPressedRep(e.key)) {
-				e.cb();
+			for (const e of scene.keyPressRepEvents) {
+				if (keyIsPressedRep(e.key)) {
+					e.cb();
+				}
 			}
-		}
 
-		for (const e of scene.keyReleaseEvents) {
-			if (keyIsReleased(e.key)) {
-				e.cb();
+			for (const e of scene.keyReleaseEvents) {
+				if (keyIsReleased(e.key)) {
+					e.cb();
+				}
 			}
-		}
 
-		for (const e of scene.mouseDownEvents) {
-			if (mouseIsDown()) {
-				e.cb();
+			for (const e of scene.mouseDownEvents) {
+				if (mouseIsDown()) {
+					e.cb();
+				}
 			}
-		}
 
-		for (const e of scene.mousePressEvents) {
-			if (mouseIsPressed()) {
-				e.cb();
+			for (const e of scene.mousePressEvents) {
+				if (mouseIsPressed()) {
+					e.cb();
+				}
 			}
-		}
 
-		for (const e of scene.mouseReleaseEvents) {
-			if (mouseIsReleased()) {
-				e.cb();
+			for (const e of scene.mouseReleaseEvents) {
+				if (mouseIsReleased()) {
+					e.cb();
+				}
 			}
-		}
 
-		for (const e of scene.groupActions) {
+			for (const e of scene.groupActions) {
+				for (const id in scene.objs) {
+					const obj = scene.objs[id];
+					if (obj.is(e.tag)) {
+						e.cb(obj);
+					}
+				}
+			}
+
+			for (const id in scene.timers) {
+				const t = scene.timers[id];
+				t.time -= dt();
+				if (t.time <= 0) {
+					t.cb();
+					delete scene.timers[id];
+				}
+			}
+
 			for (const id in scene.objs) {
+
 				const obj = scene.objs[id];
-				if (obj.is(e.tag)) {
-					e.cb(obj);
+
+				if (!obj) {
+					continue;
 				}
-			}
-		}
 
-		for (const id in scene.timers) {
-			const t = scene.timers[id];
-			t.time -= dt();
-			if (t.time <= 0) {
-				t.cb();
-				delete scene.timers[id];
-			}
-		}
-
-		for (const id in scene.objs) {
-
-			const obj = scene.objs[id];
-
-			if (!obj) {
-				continue;
-			}
-
-			// update obj
-			for (const action of obj.actions) {
-				action(obj);
-			}
-
-			if (obj.lifespan !== undefined) {
-				obj.lifespan -= dt();
-				if (obj.lifespan <= 0) {
-					destroy(obj);
+				// update obj
+				for (const action of obj.actions) {
+					action(obj);
 				}
-			}
 
-			// draw obj
-			if (!obj.hidden) {
+				if (obj.lifespan !== undefined) {
+					obj.lifespan -= dt();
+					if (obj.lifespan <= 0) {
+						destroy(obj);
+					}
+				}
 
-				switch (obj.type) {
+				// draw obj
+				if (!obj.hidden) {
 
-					case "sprite":
+					switch (obj.type) {
 
-						const spr = game.sprites[obj.sprite];
+						case "sprite":
 
-						if (obj.sprite && !spr) {
-							console.error(`sprite not found: "${obj.sprite}"`);
+							const spr = game.sprites[obj.sprite];
+
+							if (obj.sprite && !spr) {
+								console.error(`sprite not found: "${obj.sprite}"`);
+								break;
+							}
+
+							drawRect({
+								tex: spr.tex,
+								pos: obj.pos,
+								scale: obj.scale,
+								rot: obj.rot,
+								color: obj.color,
+								width: obj.width,
+								height: obj.height,
+								quad: quad(0, 0, 1, 1),
+							});
+
 							break;
-						}
 
-						drawRect({
-							tex: spr.tex,
-							pos: obj.pos,
-							scale: obj.scale,
-							rot: obj.rot,
-							color: obj.color,
-							width: obj.width,
-							height: obj.height,
-							quad: quad(0, 0, 1, 1),
-						});
+						case "rect":
 
-						break;
+							drawRect({
+								tex: undefined,
+								pos: obj.pos,
+								scale: obj.scale,
+								rot: obj.rot,
+								color: obj.color,
+								width: obj.width,
+								height: obj.height,
+								quad: quad(0, 0, 1, 1),
+							});
 
-					case "rect":
+							break;
 
-						drawRect({
-							tex: undefined,
-							pos: obj.pos,
-							scale: obj.scale,
-							rot: obj.rot,
-							color: obj.color,
-							width: obj.width,
-							height: obj.height,
-							quad: quad(0, 0, 1, 1),
-						});
+						case "text":
 
-						break;
+							drawText({
+								text: obj.text,
+								size: obj.size,
+								pos: obj.pos,
+								scale: obj.scale,
+								rot: obj.rot,
+								color: obj.color,
+							});
 
-					case "text":
+							break;
 
-						drawText({
-							text: obj.text,
-							size: obj.size,
-							pos: obj.pos,
-							scale: obj.scale,
-							rot: obj.rot,
-							color: obj.color,
-						});
+						case "line":
+							break;
 
-						break;
+						case "circle":
+							break;
 
-					case "line":
-						break;
+						default:
+							break;
 
-					case "circle":
-						break;
-
-					default:
-						break;
+					}
 
 				}
 
 			}
 
-		}
+		});
 
 	});
 
-};
+}
 
 // asset load
 window.loadSprite = loadSprite;
@@ -1552,6 +1606,8 @@ window.time = time;
 // scene
 window.scene = scene;
 window.go = go;
+window.reload = reload;
+window.start = start;
 
 // object creation
 window.sprite = sprite;

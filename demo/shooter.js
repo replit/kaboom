@@ -56,19 +56,8 @@ player.collides("enemy", (e) => {
 		return;
 	}
 
-	score.value = 0;
-	score.text = `${score.value}`;
-	destroyAll("enemy");
-	destroyAll("candy");
-	player.pos = vec2(0, 0);
-
-	addEnemy();
-
-	rect(width(), height(), {
-		color: randColor(),
-		lifespan: 0.1,
-		tags: [ "death", ],
-	});
+	reload("death");
+	go("death");
 
 });
 
@@ -180,14 +169,6 @@ all("enemy", (e) => {
 	e.pos = e.pos.add(dir.scale(e.speed * dt()));
 });
 
-lastwish("death", () => {
-	go("start");
-});
-
-all("death", (e) => {
-	e.color = randColor();
-});
-
 collide("bullet", "enemy", (b, e) => {
 
 	destroy(e);
@@ -219,6 +200,22 @@ keyPress("p", () => {
 });
 
 // ------------------------------------
+// Death Scene
+scene("death");
+
+const death = rect(width(), height(), {
+	color: randColor(),
+});
+
+wait(0.1, () => {
+	go("start");
+});
+
+death.action(() => {
+	death.color = randColor();
+});
+
+// ------------------------------------
 // Menu Scene
 scene("menu");
 
@@ -239,8 +236,11 @@ text("Press Spacebar to Start", {
 });
 
 keyPress(" ", () => {
+	reload("main");
 	go("main");
 });
 
 go("start");
+
+start();
 
