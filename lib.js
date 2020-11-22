@@ -5,6 +5,32 @@
 
 const fontImgData = "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";
 
+const defaultVert = `
+attribute vec2 a_pos;
+attribute vec2 a_uv;
+attribute vec4 a_color;
+varying vec2 v_uv;
+varying vec4 v_color;
+void main() {
+	v_uv = a_uv;
+	v_color = a_color;
+	gl_Position = vec4(a_pos, 0.0, 1.0);
+}
+`;
+
+const defaultFrag = `
+precision mediump float;
+varying vec2 v_uv;
+varying vec4 v_color;
+uniform sampler2D u_tex;
+void main() {
+	gl_FragColor = v_color * texture2D(u_tex, v_uv);
+	if (gl_FragColor.a == 0.0) {
+		discard;
+	}
+}
+`;
+
 // --------------------------------
 // Application Lifecycle & Input
 
@@ -204,84 +230,26 @@ function time() {
 // --------------------------------
 // Rendering
 
-const gfx = {
-	drawCalls: 0,
-	cam: vec2(0, 0),
-};
+const gfx = {};
 
-const defaultVert = `
-attribute vec2 a_pos;
-attribute vec2 a_uv;
-attribute vec4 a_color;
-varying vec2 v_uv;
-varying vec4 v_color;
-void main() {
-	v_uv = a_uv;
-	v_color = a_color;
-	gl_Position = vec4(a_pos, 0.0, 1.0);
-}
-`;
+gfx.drawCalls = 0;
+gfx.cam = vec2(0, 0);
+gfx.mesh = makeBatchedMesh(65536, 65536);
+gfx.prog = makeProgram(defaultVert, defaultFrag);
+gfx.defTex = makeTex(new ImageData(new Uint8ClampedArray([ 255, 255, 255, 255, ]), 1, 1));
 
-const defaultFrag = `
-precision mediump float;
-varying vec2 v_uv;
-varying vec4 v_color;
-uniform sampler2D u_tex;
-void main() {
-	gl_FragColor = v_color * texture2D(u_tex, v_uv);
-	if (gl_FragColor.a == 0.0) {
-		discard;
-	}
-}
-`;
+gl.clearColor(0.0, 0.0, 0.0, 1.0);
+gl.enable(gl.BLEND);
+gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+
+loadImg("data:image/png;base64," + fontImgData, (img) => {
+	gfx.defFont = makeFont(makeTex(img), 8, 8, " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~");
+});
 
 function loadImg(src, f) {
 	const img = new Image();
 	img.src = src;
 	img.onload = f.bind(null, img);
-}
-
-function makeFont(tex, gw, gh, chars) {
-
-	const cols = tex.width / gw;
-	const rows = tex.height / gh;
-	const count = cols * rows;
-	const qw = 1.0 / cols;
-	const qh = 1.0 / rows;
-	const map = {};
-
-	chars = chars.split("");
-
-	for (const [i, ch] of chars.entries()) {
-		map[ch] = vec2(
-			(i % cols) * qw,
-			Math.floor(i / cols) * qh,
-		);
-	}
-
-	return {
-		tex: tex,
-		map: map,
-		qw: qw,
-		qh: qh,
-	};
-
-}
-
-function gfxInit() {
-
-	gl.clearColor(0.0, 0.0, 0.0, 1.0);
-	gl.enable(gl.BLEND);
-	gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
-
-	gfx.mesh = makeBatchedMesh(65536, 65536);
-	gfx.prog = makeProgram(defaultVert, defaultFrag);
-	gfx.defTex = makeTex(new ImageData(new Uint8ClampedArray([ 255, 255, 255, 255, ]), 1, 1));
-
-	loadImg("data:image/png;base64," + fontImgData, (img) => {
-		gfx.defFont = makeFont(makeTex(img), 8, 8, " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~");
-	});
-
 }
 
 function flush() {
@@ -495,6 +463,33 @@ function makeProgram(vertSrc, fragSrc) {
 
 }
 
+function makeFont(tex, gw, gh, chars) {
+
+	const cols = tex.width / gw;
+	const rows = tex.height / gh;
+	const count = cols * rows;
+	const qw = 1.0 / cols;
+	const qh = 1.0 / rows;
+	const map = {};
+
+	chars = chars.split("");
+
+	for (const [i, ch] of chars.entries()) {
+		map[ch] = vec2(
+			(i % cols) * qw,
+			Math.floor(i / cols) * qh,
+		);
+	}
+
+	return {
+		tex: tex,
+		map: map,
+		qw: qw,
+		qh: qh,
+	};
+
+}
+
 // TODO: draw circle
 // TODO: draw line
 
@@ -587,14 +582,14 @@ function height() {
 // --------------------------------
 // Audio Playback
 
-const audio = {
-	sounds: {},
-};
+const audio = {};
+const AudioContext = window.AudioContext || window.webkitAudioContext;
 
-function audioInit() {
-	const AudioContext = window.AudioContext || window.webkitAudioContext;
-	audio.ctx = new AudioContext();
-}
+audio.sounds = {};
+audio.ctx = new AudioContext();
+audio.gainNode = audio.ctx.createGain();
+audio.gainNode.gain.value = 1;
+audio.gainNode.connect(audio.ctx.destination);
 
 // TODO: move this to game system
 function loadSound(id, src, conf) {
@@ -610,6 +605,13 @@ function loadSound(id, src, conf) {
 				});
 			});
 	}
+}
+
+function volume(v) {
+	if (v !== undefined) {
+		audio.gainNode.gain.value = v;
+	}
+	return audio.gainNode.gain.value;
 }
 
 function play(id, conf) {
@@ -636,12 +638,12 @@ function play(id, conf) {
 
 	const gainNode = audio.ctx.createGain();
 
-	if (conf.volume) {
+	if (conf.volume !== undefined) {
 		gainNode.gain.value = conf.volume;
 	}
 
 	srcNode.connect(gainNode);
-	gainNode.connect(audio.ctx.destination);
+	gainNode.connect(audio.gainNode);
 	srcNode.start();
 
 }
@@ -972,7 +974,7 @@ const game = {
 	running: false,
 };
 
-const valMap = {
+const velMap = {
 	left: vec2(-1, 0),
 	right: vec2(1, 0),
 	up: vec2(0, 1),
@@ -1054,15 +1056,29 @@ function applyAll(t, f) {
 }
 
 function lastwish(t, f) {
-	onlyInit("lastwish");
+	if (game.running) {
+		console.log("'lastwish' can only be called at init");
+		return;
+	}
 	game.scenes[game.curDescScene].lastwishes.push({
 		tag: t,
 		cb: f,
 	});
 }
 
-function collides(t1, t2, f) {
-	onlyInit("collides");
+function click(t, f) {
+	all(t, (o) => {
+		if (o.clicked()) {
+			f(o);
+		}
+	});
+}
+
+function collide(t1, t2, f) {
+	if (game.running) {
+		console.log("'collide' can only be called at init");
+		return;
+	}
 	all(t1, (o1) => {
 		applyAll(t2, (o2) => {
 			if (o1.intersects(o2)) {
@@ -1089,6 +1105,7 @@ function wait(t, f) {
 	}
 }
 
+// TODO: return handle
 function loop(t, f) {
 	const newF = () => {
 		f();
@@ -1104,11 +1121,20 @@ function destroyAll(t) {
 }
 
 function destroy(obj) {
-	obj.destroy = true;
+	const scene = game.scenes[game.curScene];
+	if (obj.id) {
+		if (scene) {
+			delete scene.objs[obj.id];
+			obj.id = undefined;
+		}
+	}
 }
 
 function all(t, f) {
-	onlyInit("all");
+	if (game.running) {
+		console.log("'all' can only be called at init");
+		return;
+	}
 	const scene = game.scenes[game.curDescScene];
 	scene.groupActions.push({
 		tag: t,
@@ -1120,16 +1146,12 @@ function go(name) {
 	game.curScene = name;
 }
 
-function onlyInit(name) {
-	if (game.running) {
-		console.log("'${name}' can only be called at init");
-		return;
-	}
-}
-
 function scene(name) {
 
-	onlyInit("scene");
+	if (game.running) {
+		console.log("'scene' can only be called at init");
+		return;
+	}
 
 	if (!game.scenes[name]) {
 
@@ -1169,7 +1191,6 @@ function add(props) {
 
 		...props,
 
-		sprite: props.sprite,
 		pos: props.pos ? vec2(props.pos) : vec2(0),
 		scale: props.scale === undefined ? 1 : props.scale,
 		rot: props.rot || 0,
@@ -1177,12 +1198,10 @@ function add(props) {
 		tags: props.tags ? [...props.tags] : [],
 		speed: props.speed || 0,
 		layer: props.layer || 0,
-		text: props.text,
 
 		actions: [],
-		exists: true,
-		destroy: props.destroy ?? false,
-		hidden: props.hidden ?? false,
+		hidden: props.hidden === undefined ? false : props.hidden,
+// 		hidden: props.hidden ?? false,
 
 		action(f) {
 			this.actions.push(f);
@@ -1190,7 +1209,7 @@ function add(props) {
 
 		move(dir) {
 
-			const vel = valMap[dir];
+			const vel = velMap[dir];
 
 			if (vel) {
 				this.pos.x += vel.x * this.speed * dt();
@@ -1226,7 +1245,7 @@ function add(props) {
 		},
 
 		clicked() {
-			return mousePressed() && this.hovered();
+			return mouseIsPressed() && this.hovered();
 		},
 
 		wrap(p1, p2) {
@@ -1242,8 +1261,12 @@ function add(props) {
 			}
 		},
 
-		click(f) {
-			this.onClick = f;
+		clicks(f) {
+			this.action(() => {
+				if (this.clicked()) {
+					f();
+				}
+			});
 		},
 
 		collides(t, f) {
@@ -1260,6 +1283,10 @@ function add(props) {
 			return this.area().intersects(other.area());
 		},
 
+		exists() {
+			return this.id !== undefined;
+		},
+
 	};
 
 	if (game.running) {
@@ -1267,6 +1294,7 @@ function add(props) {
 		const scene = game.scenes[game.curScene];
 
 		scene.objs[scene.lastID] = obj;
+		obj.id = scene.lastID;
 		scene.lastID++;
 
 	} else {
@@ -1339,6 +1367,23 @@ window.onload = () => {
 			return;
 		}
 
+		if (!scene.initialized) {
+
+			for (const obj of scene.objsInit) {
+				scene.objs[scene.lastID] = obj;
+				obj.id = scene.lastID;
+				scene.lastID++;
+			}
+
+			for (const timer of scene.timersInit) {
+				scene.timers[scene.lastTimerID] = timer;
+				scene.lastTimerID++;
+			}
+
+			scene.initialized = true;
+
+		}
+
 		// TODO: a little repetitive..
 		for (const e of scene.keyDownEvents) {
 			if (keyIsDown(e.key)) {
@@ -1382,22 +1427,6 @@ window.onload = () => {
 			}
 		}
 
-		if (!scene.initialized) {
-
-			for (const obj of scene.objsInit) {
-				scene.objs[scene.lastID] = obj;
-				scene.lastID++;
-			}
-
-			for (const timer of scene.timersInit) {
-				scene.timers[scene.lastTimerID] = timer;
-				scene.lastTimerID++;
-			}
-
-			scene.initialized = true;
-
-		}
-
 		for (const e of scene.groupActions) {
 			for (const id in scene.objs) {
 				const obj = scene.objs[id];
@@ -1420,102 +1449,85 @@ window.onload = () => {
 
 			const obj = scene.objs[id];
 
-			if (obj.destroy) {
+			if (!obj) {
+				continue;
+			}
 
-				for (const wish of scene.lastwishes) {
-					if (obj.is(wish.tag)) {
-						wish.cb(obj);
-					}
+			// update obj
+			for (const action of obj.actions) {
+				action(obj);
+			}
+
+			if (obj.lifespan !== undefined) {
+				obj.lifespan -= dt();
+				if (obj.lifespan <= 0) {
+					destroy(obj);
 				}
+			}
 
-				obj.exists = false;
-				delete scene.objs[id];
+			// draw obj
+			if (!obj.hidden) {
 
-			} else {
+				switch (obj.type) {
 
-				// update obj
-				if (obj.onClick) {
-					if (obj.clicked()) {
-						obj.onClick.call(obj);
-					}
-				}
+					case "sprite":
 
-				for (const action of obj.actions) {
-					action(obj);
-				}
+						const spr = game.sprites[obj.sprite];
 
-				if (obj.lifespan !== undefined) {
-					obj.lifespan -= dt();
-					if (obj.lifespan <= 0) {
-						destroy(obj);
-					}
-				}
-
-				// draw obj
-				if (!obj.hidden) {
-
-					switch (obj.type) {
-
-						case "sprite":
-
-							const spr = game.sprites[obj.sprite];
-
-							if (obj.sprite && !spr) {
-								console.error(`sprite not found: "${obj.sprite}"`);
-								return;
-							}
-
-							drawRect({
-								tex: spr.tex,
-								pos: obj.pos,
-								scale: obj.scale,
-								rot: obj.rot,
-								color: obj.color,
-								width: obj.width,
-								height: obj.height,
-								quad: quad(0, 0, 1, 1),
-							});
-
+						if (obj.sprite && !spr) {
+							console.error(`sprite not found: "${obj.sprite}"`);
 							break;
+						}
 
-						case "rect":
+						drawRect({
+							tex: spr.tex,
+							pos: obj.pos,
+							scale: obj.scale,
+							rot: obj.rot,
+							color: obj.color,
+							width: obj.width,
+							height: obj.height,
+							quad: quad(0, 0, 1, 1),
+						});
 
-							drawRect({
-								tex: undefined,
-								pos: obj.pos,
-								scale: obj.scale,
-								rot: obj.rot,
-								color: obj.color,
-								width: obj.width,
-								height: obj.height,
-								quad: quad(0, 0, 1, 1),
-							});
+						break;
 
-							break;
+					case "rect":
 
-						case "text":
+						drawRect({
+							tex: undefined,
+							pos: obj.pos,
+							scale: obj.scale,
+							rot: obj.rot,
+							color: obj.color,
+							width: obj.width,
+							height: obj.height,
+							quad: quad(0, 0, 1, 1),
+						});
 
-							drawText({
-								text: obj.text,
-								size: obj.size,
-								pos: obj.pos,
-								scale: obj.scale,
-								rot: obj.rot,
-								color: obj.color,
-							});
+						break;
 
-							break;
+					case "text":
 
-						case "line":
-							break;
+						drawText({
+							text: obj.text,
+							size: obj.size,
+							pos: obj.pos,
+							scale: obj.scale,
+							rot: obj.rot,
+							color: obj.color,
+						});
 
-						case "circle":
-							break;
+						break;
 
-						default:
-							break;
+					case "line":
+						break;
 
-					}
+					case "circle":
+						break;
+
+					default:
+						break;
 
 				}
 
@@ -1527,16 +1539,30 @@ window.onload = () => {
 
 };
 
+// asset load
 window.loadSprite = loadSprite;
 window.loadSound = loadSound;
+
+// query
+window.width = width;
+window.height = height;
+window.dt = dt;
+window.time = time;
+
+// scene
 window.scene = scene;
+window.go = go;
+
+// object creation
 window.sprite = sprite;
 window.rect = rect;
 window.text = text;
-window.vec2 = vec2;
-window.color = color;
-window.width = width;
-window.height = height;
+window.line = line;
+window.circle = circle;
+window.destroy = destroy;
+window.destroyAll = destroyAll;
+
+// input
 window.keyDown = keyDown;
 window.keyPress = keyPress;
 window.keyPressRep = keyPressRep;
@@ -1544,25 +1570,32 @@ window.keyRelease = keyRelease;
 window.mouseDown = mouseDown;
 window.mousePress = mousePress;
 window.mouseRelease = mouseRelease;
+window.mousePos = mousePos;
+
+// math
+window.vec2 = vec2;
+window.color = color;
 window.choose = choose;
 window.rand = rand;
 window.randOnRect = randOnRect;
-window.loop = loop;
-window.all = all;
-window.lastwish = lastwish;
-window.collides = collides;
-window.go = go;
-window.dt = dt;
-window.time = time;
 window.lerp = lerp;
 window.map = map;
 window.wave = wave;
-window.play = play;
-window.destroy = destroy;
-window.destroyAll = destroyAll;
 
-gfxInit();
-audioInit();
+// timer
+window.loop = loop;
+window.wait = wait;
+
+// events
+window.all = all;
+window.lastwish = lastwish;
+window.collide = collide;
+window.click = click;
+
+// audio
+window.play = play;
+window.volume = volume;
+
 scene("main");
 
 })();
