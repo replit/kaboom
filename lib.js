@@ -1,14 +1,14 @@
-{
+(() => {
 
 // --------------------------------
 // Resources
 
-const _fontImgData = "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";
+const fontImgData = "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";
 
 // --------------------------------
 // Application Lifecycle & Input
 
-const _app = {
+const app = {
 	keyStates: {},
 	mouseState: "up",
 	mousePos: vec2(0, 0),
@@ -17,7 +17,7 @@ const _app = {
 	paused: false,
 };
 
-const _gl = document
+const gl = document
 	.querySelector("#game")
 	.getContext("webgl", {
 		antialias: false,
@@ -26,14 +26,14 @@ const _gl = document
 		alpha: true,
 	});
 
-const _keyMap = {
+const keyMap = {
 	"ArrowLeft": "left",
 	"ArrowRight": "right",
 	"ArrowUp": "up",
 	"ArrowDown": "down",
 };
 
-const _preventDefaultKeys = [
+const preventDefaultKeys = [
 	" ",
 	"left",
 	"right",
@@ -41,58 +41,54 @@ const _preventDefaultKeys = [
 	"down",
 ];
 
-_gl.canvas.onmousemove = (e) => {
-	_app.mousePos = vec2(
-		e.offsetX - _gl.drawingBufferWidth / 2,
-		_gl.drawingBufferHeight / 2 - e.offsetY
+gl.canvas.onmousemove = (e) => {
+	app.mousePos = vec2(
+		e.offsetX - gl.drawingBufferWidth / 2,
+		gl.drawingBufferHeight / 2 - e.offsetY
 	);
 };
 
-_gl.canvas.onmousedown = (e) => {
-	_app.mouseState = "pressed";
+gl.canvas.onmousedown = (e) => {
+	app.mouseState = "pressed";
 };
 
-_gl.canvas.onmouseup = (e) => {
-	_app.mouseState = "released";
+gl.canvas.onmouseup = (e) => {
+	app.mouseState = "released";
 };
 
 document.onkeydown = (e) => {
-	const k = _keyMap[e.key] || e.key;
-	if (_preventDefaultKeys.includes(k)) {
+	const k = keyMap[e.key] || e.key;
+	if (preventDefaultKeys.includes(k)) {
 		e.preventDefault();
 	}
 	if (e.repeat) {
-		_app.keyStates[k] = "rpressed";
+		app.keyStates[k] = "rpressed";
 	} else {
-		_app.keyStates[k] = "pressed";
+		app.keyStates[k] = "pressed";
 	}
 };
 
 document.onkeyup = ((e) => {
-	const k = _keyMap[e.key] || e.key;
-	_app.keyStates[k] = "released";
+	const k = keyMap[e.key] || e.key;
+	app.keyStates[k] = "released";
 });
 
-function _run(f) {
+function run(f) {
 
 	const frame = ((t) => {
 
-		if (document.visibilityState !== "hidden") {
+		app.dt = t / 1000 - app.time;
+		app.time += app.dt;
 
-			_app.dt = t / 1000 - _app.time;
-			_app.time += _app.dt;
+		gfxFrameStart();
+		f();
+		gfxFrameEnd();
 
-			_gfxFrameStart();
-			f();
-			_gfxFrameEnd();
-
-			for (const k in _app.keyStates) {
-				_app.keyStates[k] = _processBtnState(_app.keyStates[k]);
-			}
-
-			_app.mouseState = _processBtnState(_app.mouseState);
-
+		for (const k in app.keyStates) {
+			app.keyStates[k] = processBtnState(app.keyStates[k]);
 		}
+
+		app.mouseState = processBtnState(app.mouseState);
 
 		requestAnimationFrame(frame);
 
@@ -102,7 +98,7 @@ function _run(f) {
 
 }
 
-function _processBtnState(s) {
+function processBtnState(s) {
 	if (s === "pressed" || s === "rpressed") {
 		return "down";
 	}
@@ -113,7 +109,7 @@ function _processBtnState(s) {
 }
 
 function keyDown(k, f) {
-	const scene = _game.scenes[_game.curDescScene];
+	const scene = game.scenes[game.curDescScene];
 	scene.keyDownEvents.push({
 		key: k,
 		cb: f,
@@ -121,7 +117,7 @@ function keyDown(k, f) {
 }
 
 function keyPress(k, f) {
-	const scene = _game.scenes[_game.curDescScene];
+	const scene = game.scenes[game.curDescScene];
 	scene.keyPressEvents.push({
 		key: k,
 		cb: f,
@@ -129,7 +125,7 @@ function keyPress(k, f) {
 }
 
 function keyPressRep(k, f) {
-	const scene = _game.scenes[_game.curDescScene];
+	const scene = game.scenes[game.curDescScene];
 	scene.keyPressRepEvents.push({
 		key: k,
 		cb: f,
@@ -137,7 +133,7 @@ function keyPressRep(k, f) {
 }
 
 function keyRelease(k, f) {
-	const scene = _game.scenes[_game.curDescScene];
+	const scene = game.scenes[game.curDescScene];
 	scene.keyReleaseEvents.push({
 		key: k,
 		cb: f,
@@ -145,75 +141,75 @@ function keyRelease(k, f) {
 }
 
 function mouseDown(f) {
-	const scene = _game.scenes[_game.curDescScene];
+	const scene = game.scenes[game.curDescScene];
 	scene.mouseDownEvents.push({
 		cb: f,
 	});
 }
 
 function mousePress(f) {
-	const scene = _game.scenes[_game.curDescScene];
+	const scene = game.scenes[game.curDescScene];
 	scene.mousePressEvents.push({
 		cb: f,
 	});
 }
 
 function mouseRelease(f) {
-	const scene = _game.scenes[_game.curDescScene];
+	const scene = game.scenes[game.curDescScene];
 	scene.mousePressEvents.push({
 		cb: f,
 	});
 }
 
 function mousePos() {
-	return _app.mousePos.clone();
+	return app.mousePos.clone();
 }
 
 function mouseIsPressed() {
-	return _app.mouseState === "pressed";
+	return app.mouseState === "pressed";
 }
 
 function mouseIsDown() {
-	return _app.mouseState == "pressed" || _app.mouseState === "down";
+	return app.mouseState == "pressed" || app.mouseState === "down";
 }
 
 function mouseIsReleased() {
-	return _app.mouseState === "released";
+	return app.mouseState === "released";
 }
 
 function keyIsPressed(k) {
-	return _app.keyStates[k] === "pressed";
+	return app.keyStates[k] === "pressed";
 }
 
 function keyIsPressedRep(k) {
-	return _app.keyStates[k] === "pressed" || _app.keyStates[k] === "rpressed";
+	return app.keyStates[k] === "pressed" || app.keyStates[k] === "rpressed";
 }
 
 function keyIsDown(k) {
-	return _app.keyStates[k] === "pressed" || _app.keyStates[k] === "rpressed" || _app.keyStates[k] === "down";
+	return app.keyStates[k] === "pressed" || app.keyStates[k] === "rpressed" || app.keyStates[k] === "down";
 }
 
 function keyIsReleased(k) {
-	return _app.keyStates[k] === "released";
+	return app.keyStates[k] === "released";
 }
 
 function dt() {
-	return _app.dt;
+	return app.dt;
 }
 
 function time() {
-	return _app.time;
+	return app.time;
 }
 
 // --------------------------------
 // Rendering
 
-const _gfx = {
+const gfx = {
 	drawCalls: 0,
 	cam: vec2(0, 0),
 };
 
-const _defaultVert = `
+const defaultVert = `
 attribute vec2 a_pos;
 attribute vec2 a_uv;
 attribute vec4 a_color;
@@ -226,7 +222,7 @@ void main() {
 }
 `;
 
-const _defaultFrag = `
+const defaultFrag = `
 precision mediump float;
 varying vec2 v_uv;
 varying vec4 v_color;
@@ -239,13 +235,13 @@ void main() {
 }
 `;
 
-function _loadImg(src, f) {
+function loadImg(src, f) {
 	const img = new Image();
 	img.src = src;
 	img.onload = f.bind(null, img);
 }
 
-function _makeFont(tex, gw, gh, chars) {
+function makeFont(tex, gw, gh, chars) {
 
 	const cols = tex.width / gw;
 	const rows = tex.height / gh;
@@ -272,72 +268,72 @@ function _makeFont(tex, gw, gh, chars) {
 
 }
 
-function _gfxInit() {
+function gfxInit() {
 
-	_gl.clearColor(0.0, 0.0, 0.0, 1.0);
-	_gl.enable(_gl.BLEND);
-	_gl.blendFunc(_gl.SRC_ALPHA, _gl.ONE_MINUS_SRC_ALPHA);
+	gl.clearColor(0.0, 0.0, 0.0, 1.0);
+	gl.enable(gl.BLEND);
+	gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
 
-	_gfx.mesh = _makeBatchedMesh(65536, 65536);
-	_gfx.prog = _makeProgram(_defaultVert, _defaultFrag);
-	_gfx.defTex = _makeTex(new ImageData(new Uint8ClampedArray([ 255, 255, 255, 255, ]), 1, 1));
+	gfx.mesh = makeBatchedMesh(65536, 65536);
+	gfx.prog = makeProgram(defaultVert, defaultFrag);
+	gfx.defTex = makeTex(new ImageData(new Uint8ClampedArray([ 255, 255, 255, 255, ]), 1, 1));
 
-	_loadImg("data:image/png;base64," + _fontImgData, (img) => {
-		_gfx.defFont = _makeFont(_makeTex(img), 8, 8, " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~");
+	loadImg("data:image/png;base64," + fontImgData, (img) => {
+		gfx.defFont = makeFont(makeTex(img), 8, 8, " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~");
 	});
 
 }
 
-function _flush() {
+function flush() {
 
-	_gfx.mesh.flush();
+	gfx.mesh.flush();
 
-	if (!_gfx.curTex) {
+	if (!gfx.curTex) {
 		return;
 	}
 
-	_gfx.mesh.bind();
-	_gfx.prog.bind();
-	_gfx.curTex.bind();
+	gfx.mesh.bind();
+	gfx.prog.bind();
+	gfx.curTex.bind();
 
-	_gl.vertexAttribPointer(0, 2, _gl.FLOAT, false, 32, 0);
-	_gl.enableVertexAttribArray(0);
-	_gl.vertexAttribPointer(1, 2, _gl.FLOAT, false, 32, 8);
-	_gl.enableVertexAttribArray(1);
-	_gl.vertexAttribPointer(2, 4, _gl.FLOAT, false, 32, 16);
-	_gl.enableVertexAttribArray(2);
+	gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 32, 0);
+	gl.enableVertexAttribArray(0);
+	gl.vertexAttribPointer(1, 2, gl.FLOAT, false, 32, 8);
+	gl.enableVertexAttribArray(1);
+	gl.vertexAttribPointer(2, 4, gl.FLOAT, false, 32, 16);
+	gl.enableVertexAttribArray(2);
 
-	_gl.drawElements(_gl.TRIANGLES, _gfx.mesh.count(), _gl.UNSIGNED_SHORT, 0);
-	_gfx.drawCalls++;
+	gl.drawElements(gl.TRIANGLES, gfx.mesh.count(), gl.UNSIGNED_SHORT, 0);
+	gfx.drawCalls++;
 
-	_gfx.prog.unbind();
-	_gfx.mesh.unbind();
-	_gfx.curTex = undefined;
+	gfx.prog.unbind();
+	gfx.mesh.unbind();
+	gfx.curTex = undefined;
 
 }
 
-function _gfxFrameStart() {
-	_gl.clear(_gl.COLOR_BUFFER_BIT);
-	_gfx.drawCalls = 0;
+function gfxFrameStart() {
+	gl.clear(gl.COLOR_BUFFER_BIT);
+	gfx.drawCalls = 0;
 }
 
-function _gfxFrameEnd() {
-	_flush();
+function gfxFrameEnd() {
+	flush();
 }
 
-function _makeBatchedMesh(vcount, icount) {
+function makeBatchedMesh(vcount, icount) {
 
-	const vbuf = _gl.createBuffer();
+	const vbuf = gl.createBuffer();
 
-	_gl.bindBuffer(_gl.ARRAY_BUFFER, vbuf);
-	_gl.bufferData(_gl.ARRAY_BUFFER, vcount * 32, _gl.DYNAMIC_DRAW);
-	_gl.bindBuffer(_gl.ARRAY_BUFFER, null);
+	gl.bindBuffer(gl.ARRAY_BUFFER, vbuf);
+	gl.bufferData(gl.ARRAY_BUFFER, vcount * 32, gl.DYNAMIC_DRAW);
+	gl.bindBuffer(gl.ARRAY_BUFFER, null);
 
-	const ibuf = _gl.createBuffer();
+	const ibuf = gl.createBuffer();
 
-	_gl.bindBuffer(_gl.ELEMENT_ARRAY_BUFFER, ibuf);
-	_gl.bufferData(_gl.ELEMENT_ARRAY_BUFFER, icount * 2, _gl.DYNAMIC_DRAW);
-	_gl.bindBuffer(_gl.ELEMENT_ARRAY_BUFFER, null);
+	gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, ibuf);
+	gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, icount * 2, gl.DYNAMIC_DRAW);
+	gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
 
 	return {
 
@@ -358,13 +354,13 @@ function _makeBatchedMesh(vcount, icount) {
 
 		flush() {
 
-			_gl.bindBuffer(_gl.ARRAY_BUFFER, this.vbuf);
-			_gl.bufferSubData(_gl.ARRAY_BUFFER, 0, new Float32Array(this.vqueue));
-			_gl.bindBuffer(_gl.ARRAY_BUFFER, null);
+			gl.bindBuffer(gl.ARRAY_BUFFER, this.vbuf);
+			gl.bufferSubData(gl.ARRAY_BUFFER, 0, new Float32Array(this.vqueue));
+			gl.bindBuffer(gl.ARRAY_BUFFER, null);
 
-			_gl.bindBuffer(_gl.ELEMENT_ARRAY_BUFFER, this.ibuf);
-			_gl.bufferSubData(_gl.ELEMENT_ARRAY_BUFFER, 0, new Uint16Array(this.iqueue));
-			_gl.bindBuffer(_gl.ELEMENT_ARRAY_BUFFER, null);
+			gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.ibuf);
+			gl.bufferSubData(gl.ELEMENT_ARRAY_BUFFER, 0, new Uint16Array(this.iqueue));
+			gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
 
 			this.numIndices = this.iqueue.length;
 
@@ -374,13 +370,13 @@ function _makeBatchedMesh(vcount, icount) {
 		},
 
 		bind() {
-			_gl.bindBuffer(_gl.ARRAY_BUFFER, this.vbuf);
-			_gl.bindBuffer(_gl.ELEMENT_ARRAY_BUFFER, this.ibuf);
+			gl.bindBuffer(gl.ARRAY_BUFFER, this.vbuf);
+			gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.ibuf);
 		},
 
 		unbind() {
-			_gl.bindBuffer(_gl.ARRAY_BUFFER, null);
-			_gl.bindBuffer(_gl.ELEMENT_ARRAY_BUFFER, null);
+			gl.bindBuffer(gl.ARRAY_BUFFER, null);
+			gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
 		},
 
 		count() {
@@ -391,68 +387,68 @@ function _makeBatchedMesh(vcount, icount) {
 
 }
 
-function _makeTex(data) {
+function makeTex(data) {
 
-	const id = _gl.createTexture();
+	const id = gl.createTexture();
 
-	_gl.bindTexture(_gl.TEXTURE_2D, id);
-	_gl.texImage2D(_gl.TEXTURE_2D, 0, _gl.RGBA, _gl.RGBA, _gl.UNSIGNED_BYTE, data);
-	_gl.texParameteri(_gl.TEXTURE_2D, _gl.TEXTURE_MIN_FILTER, _gl.NEAREST);
-	_gl.texParameteri(_gl.TEXTURE_2D, _gl.TEXTURE_MAG_FILTER, _gl.NEAREST);
-	_gl.texParameteri(_gl.TEXTURE_2D, _gl.TEXTURE_WRAP_S, _gl.CLAMP_TO_EDGE);
-	_gl.texParameteri(_gl.TEXTURE_2D, _gl.TEXTURE_WRAP_T, _gl.CLAMP_TO_EDGE);
-	_gl.bindTexture(_gl.TEXTURE_2D, null);
+	gl.bindTexture(gl.TEXTURE_2D, id);
+	gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, data);
+	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+	gl.bindTexture(gl.TEXTURE_2D, null);
 
 	return {
 		id: id,
 		width: data.width,
 		height: data.height,
 		bind() {
-			_gl.bindTexture(_gl.TEXTURE_2D, this.id);
+			gl.bindTexture(gl.TEXTURE_2D, this.id);
 		},
 		unbind() {
-			_gl.bindTexture(_gl.TEXTURE_2D, null);
+			gl.bindTexture(gl.TEXTURE_2D, null);
 		},
 	};
 
 }
 
-function _makeProgram(vertSrc, fragSrc) {
+function makeProgram(vertSrc, fragSrc) {
 
-	const vertShader = _gl.createShader(_gl.VERTEX_SHADER);
+	const vertShader = gl.createShader(gl.VERTEX_SHADER);
 
-	_gl.shaderSource(vertShader, vertSrc);
-	_gl.compileShader(vertShader);
+	gl.shaderSource(vertShader, vertSrc);
+	gl.compileShader(vertShader);
 
-	var msg = _gl.getShaderInfoLog(vertShader);
-
-	if (msg) {
-		console.error(msg);
-	}
-
-	const fragShader = _gl.createShader(_gl.FRAGMENT_SHADER);
-
-	_gl.shaderSource(fragShader, fragSrc);
-	_gl.compileShader(fragShader);
-
-	var msg = _gl.getShaderInfoLog(fragShader);
+	var msg = gl.getShaderInfoLog(vertShader);
 
 	if (msg) {
 		console.error(msg);
 	}
 
-	const id = _gl.createProgram();
+	const fragShader = gl.createShader(gl.FRAGMENT_SHADER);
 
-	_gl.attachShader(id, vertShader);
-	_gl.attachShader(id, fragShader);
+	gl.shaderSource(fragShader, fragSrc);
+	gl.compileShader(fragShader);
 
-	_gl.bindAttribLocation(id, 0, "a_pos");
-	_gl.bindAttribLocation(id, 1, "a_uv");
-	_gl.bindAttribLocation(id, 2, "a_color");
+	var msg = gl.getShaderInfoLog(fragShader);
 
-	_gl.linkProgram(id);
+	if (msg) {
+		console.error(msg);
+	}
 
-	var msg = _gl.getProgramInfoLog(id);
+	const id = gl.createProgram();
+
+	gl.attachShader(id, vertShader);
+	gl.attachShader(id, fragShader);
+
+	gl.bindAttribLocation(id, 0, "a_pos");
+	gl.bindAttribLocation(id, 1, "a_uv");
+	gl.bindAttribLocation(id, 2, "a_color");
+
+	gl.linkProgram(id);
+
+	var msg = gl.getProgramInfoLog(id);
 
 	if (msg) {
 		console.error(msg);
@@ -463,36 +459,36 @@ function _makeProgram(vertSrc, fragSrc) {
 		id: id,
 
 		bind() {
-			_gl.useProgram(this.id);
+			gl.useProgram(this.id);
 		},
 
 		unbind() {
-			_gl.useProgram(null);
+			gl.useProgram(null);
 		},
 
 		sendFloat(name, val) {
-			const loc = _gl.getUniformLocation(this.id, name);
-			_gl.uniform1f(loc, val);
+			const loc = gl.getUniformLocation(this.id, name);
+			gl.uniform1f(loc, val);
 		},
 
 		sendVec2(name, x, y) {
-			const loc = _gl.getUniformLocation(this.id, name);
-			_gl.uniform2f(loc, x, y);
+			const loc = gl.getUniformLocation(this.id, name);
+			gl.uniform2f(loc, x, y);
 		},
 
 		sendVec3(name, x, y, z) {
-			const loc = _gl.getUniformLocation(this.id, name);
-			_gl.uniform3f(loc, x, y, z);
+			const loc = gl.getUniformLocation(this.id, name);
+			gl.uniform3f(loc, x, y, z);
 		},
 
 		sendVec4(name, x, y, z, w) {
-			const loc = _gl.getUniformLocation(this.id, name);
-			_gl.uniform4f(loc, x, y, z, w);
+			const loc = gl.getUniformLocation(this.id, name);
+			gl.uniform4f(loc, x, y, z, w);
 		},
 
 		sendMat4(name, m) {
-			const loc = _gl.getUniformLocation(this.id, name);
-			_gl.uniformMatrix4fv(loc, false, new Float32Array(m));
+			const loc = gl.getUniformLocation(this.id, name);
+			gl.uniformMatrix4fv(loc, false, new Float32Array(m));
 		},
 
 	};
@@ -504,9 +500,9 @@ function _makeProgram(vertSrc, fragSrc) {
 
 // TODO: text formatting
 // TODO: text origin
-function _drawText(conf) {
+function drawText(conf) {
 
-	const font = _gfx.defFont;
+	const font = gfx.defFont;
 	const chars = conf.text.split("");
 	const gw = font.qw * font.tex.width;
 	const gh = font.qh * font.tex.height;
@@ -519,8 +515,8 @@ function _drawText(conf) {
 
 		const qpos = font.map[ch];
 
-		_drawRect({
-			tex: _gfx.defFont.tex,
+		drawRect({
+			tex: gfx.defFont.tex,
 			pos: vec2(pos),
 			scale: scale,
 			rot: conf.rot,
@@ -534,17 +530,17 @@ function _drawText(conf) {
 
 }
 
-function _drawRect(conf) {
+function drawRect(conf) {
 
 	if (!conf.tex && !(conf.width && conf.height)) {
 		return;
 	}
 
-	const tex = conf.tex || _gfx.defTex;
+	const tex = conf.tex || gfx.defTex;
 
-	if (_gfx.curTex != tex) {
-		_flush();
-		_gfx.curTex = tex;
+	if (gfx.curTex != tex) {
+		flush();
+		gfx.curTex = tex;
 	}
 
 	let w, h;
@@ -570,7 +566,7 @@ function _drawRect(conf) {
 	const ry = Math.sin(rot) + Math.cos(rot);
 	const { r, g, b, a, } = conf.color;
 
-	_gfx.mesh.push([
+	gfx.mesh.push([
 		// pos          // uv                 // color
 		-w + x, -h + y, q.x, q.y + q.h,       r, g, b, a,
 		-w + x,  h + y, q.x, q.y,             r, g, b, a,
@@ -581,22 +577,23 @@ function _drawRect(conf) {
 }
 
 function width() {
-	return  _gl.drawingBufferWidth;
+	return  gl.drawingBufferWidth;
 }
 
 function height() {
-	return  _gl.drawingBufferHeight;
+	return  gl.drawingBufferHeight;
 }
 
 // --------------------------------
 // Audio Playback
 
-const _audio = {
+const audio = {
 	sounds: {},
 };
 
-function _audioInit() {
-	_audio.ctx = new AudioContext();
+function audioInit() {
+	const AudioContext = window.AudioContext || window.webkitAudioContext;
+	audio.ctx = new AudioContext();
 }
 
 // TODO: move this to game system
@@ -607,8 +604,9 @@ function loadSound(id, src, conf) {
 				return res.arrayBuffer();
 			})
 			.then((data) => {
-				_audio.ctx.decodeAudioData(data, (buf) => {
-					_audio.sounds[id] = buf;
+				// TODO: doesn't work on safari
+				audio.ctx.decodeAudioData(data, (buf) => {
+					audio.sounds[id] = buf;
 				});
 			});
 	}
@@ -616,7 +614,7 @@ function loadSound(id, src, conf) {
 
 function play(id, conf) {
 
-	const sound = _audio.sounds[id];
+	const sound = audio.sounds[id];
 
 	if (!sound) {
 		console.error(`sound not found: "${id}"`);
@@ -624,7 +622,7 @@ function play(id, conf) {
 	}
 
 	conf = conf || {};
-	const srcNode = _audio.ctx.createBufferSource();
+	const srcNode = audio.ctx.createBufferSource();
 
 	srcNode.buffer = sound;
 
@@ -636,14 +634,14 @@ function play(id, conf) {
 		srcNode.playbackRate.value = conf.speed;
 	}
 
-	const gainNode = _audio.ctx.createGain();
+	const gainNode = audio.ctx.createGain();
 
 	if (conf.volume) {
 		gainNode.gain.value = conf.volume;
 	}
 
 	srcNode.connect(gainNode);
-	gainNode.connect(_audio.ctx.destination);
+	gainNode.connect(audio.ctx.destination);
 	srcNode.start();
 
 }
@@ -663,7 +661,7 @@ function map(v, l1, h1, l2, h2) {
 
 function vec2(x, y) {
 
-	if (_isVec2(x) && y === undefined) {
+	if (isVec2(x) && y === undefined) {
 		return vec2(x.x, x.y);
 	}
 
@@ -918,7 +916,7 @@ function mat4(m) {
 
 }
 
-function _isVec2(p) {
+function isVec2(p) {
 	return p !== undefined && p.x !== undefined && p.y !== undefined;
 }
 
@@ -927,7 +925,7 @@ function wave(a, b, t) {
 }
 
 function rand(a, b) {
-	if (_isVec2(a) && _isVec2(b)) {
+	if (isVec2(a) && isVec2(b)) {
 		return vec2(
 			rand(a.x, b.x),
 			rand(a.y, b.y),
@@ -966,7 +964,7 @@ function choose(list) {
 // --------------------------------
 // Game Systems
 
-const _game = {
+const game = {
 	curDescScene: "main",
 	curScene: "main",
 	scenes: {},
@@ -974,8 +972,7 @@ const _game = {
 	running: false,
 };
 
-
-const _velMap = {
+const valMap = {
 	left: vec2(-1, 0),
 	right: vec2(1, 0),
 	up: vec2(0, 1),
@@ -985,14 +982,14 @@ const _velMap = {
 function loadSprite(id, src, conf) {
 
 	if (typeof(src) === "string") {
-		_loadImg(src, (img) => {
+		loadImg(src, (img) => {
 			loadSprite(id, img, conf);
 		});
 		return;
 	}
 
-	_game.sprites[id] = {
-		tex: _makeTex(src),
+	game.sprites[id] = {
+		tex: makeTex(src),
 		conf: conf || {
 			frames: [
 				quad(0, 0, 1, 1),
@@ -1004,7 +1001,7 @@ function loadSprite(id, src, conf) {
 }
 
 function sprite(id, props) {
-	return _add({
+	return add({
 		...props,
 		type: "sprite",
 		sprite: id,
@@ -1012,7 +1009,7 @@ function sprite(id, props) {
 }
 
 function rect(w, h, props) {
-	return _add({
+	return add({
 		...props,
 		type: "rect",
 		width: w,
@@ -1021,7 +1018,7 @@ function rect(w, h, props) {
 }
 
 function text(str, props) {
-	return _add({
+	return add({
 		...props,
 		type: "text",
 		text: str,
@@ -1029,7 +1026,7 @@ function text(str, props) {
 }
 
 function line(p1, p2, props) {
-	return _add({
+	return add({
 		...props,
 		type: "line",
 		p1: p1,
@@ -1038,7 +1035,7 @@ function line(p1, p2, props) {
 }
 
 function circle(center, radius, props) {
-	return _add({
+	return add({
 		...props,
 		type: "circle",
 		pos: center,
@@ -1046,8 +1043,8 @@ function circle(center, radius, props) {
 	});
 }
 
-function _applyAll(t, f) {
-	const scene = _game.scenes[_game.curScene];
+function applyAll(t, f) {
+	const scene = game.scenes[game.curScene];
 	for (const id in scene.objs) {
 		const obj = scene.objs[id];
 		if (obj.is(t)) {
@@ -1057,17 +1054,17 @@ function _applyAll(t, f) {
 }
 
 function lastwish(t, f) {
-	_onlyInit("lastwish");
-	_game.scenes[_game.curDescScene].lastwishes.push({
+	onlyInit("lastwish");
+	game.scenes[game.curDescScene].lastwishes.push({
 		tag: t,
 		cb: f,
 	});
 }
 
 function collides(t1, t2, f) {
-	_onlyInit("collides");
+	onlyInit("collides");
 	all(t1, (o1) => {
-		_applyAll(t2, (o2) => {
+		applyAll(t2, (o2) => {
 			if (o1.intersects(o2)) {
 				f(o1, o2);
 			}
@@ -1076,15 +1073,15 @@ function collides(t1, t2, f) {
 }
 
 function wait(t, f) {
-	if (_game.running) {
-		const scene = _game.scenes[_game.curScene];
+	if (game.running) {
+		const scene = game.scenes[game.curScene];
 		scene.timers[scene.lastTimerID] = {
 			time: t,
 			cb: f,
 		};
 		scene.lastTimerID++;
 	} else {
-		const scene = _game.scenes[_game.curDescScene];
+		const scene = game.scenes[game.curDescScene];
 		scene.timersInit.push({
 			time: t,
 			cb: f,
@@ -1101,7 +1098,7 @@ function loop(t, f) {
 }
 
 function destroyAll(t) {
-	_applyAll(t, (obj) => {
+	applyAll(t, (obj) => {
 		destroy(obj);
 	});
 }
@@ -1111,8 +1108,8 @@ function destroy(obj) {
 }
 
 function all(t, f) {
-	_onlyInit("all");
-	const scene = _game.scenes[_game.curDescScene];
+	onlyInit("all");
+	const scene = game.scenes[game.curDescScene];
 	scene.groupActions.push({
 		tag: t,
 		cb: f,
@@ -1120,11 +1117,11 @@ function all(t, f) {
 }
 
 function go(name) {
-	_game.curScene = name;
+	game.curScene = name;
 }
 
-function _onlyInit(name) {
-	if (_game.running) {
+function onlyInit(name) {
+	if (game.running) {
 		console.log("'${name}' can only be called at init");
 		return;
 	}
@@ -1132,11 +1129,11 @@ function _onlyInit(name) {
 
 function scene(name) {
 
-	_onlyInit("scene");
+	onlyInit("scene");
 
-	if (!_game.scenes[name]) {
+	if (!game.scenes[name]) {
 
-		_game.scenes[name] = {
+		game.scenes[name] = {
 
 			objsInit: [],
 			timersInit: [],
@@ -1160,11 +1157,11 @@ function scene(name) {
 
 	}
 
-	_game.curDescScene = name;
+	game.curDescScene = name;
 
 }
 
-function _add(props) {
+function add(props) {
 
 	props = props || {};
 
@@ -1193,7 +1190,7 @@ function _add(props) {
 
 		move(dir) {
 
-			const vel = _velMap[dir];
+			const vel = valMap[dir];
 
 			if (vel) {
 				this.pos.x += vel.x * this.speed * dt();
@@ -1216,7 +1213,7 @@ function _add(props) {
 
 		area() {
 
-			const { w, h, } = _getSize(this);
+			const { w, h, } = getSize(this);
 			const p1 = this.pos.sub(vec2(w / 2, h / 2));
 			const p2 = this.pos.add(vec2(w / 2, h / 2));
 
@@ -1251,7 +1248,7 @@ function _add(props) {
 
 		collides(t, f) {
 			this.action(() => {
-				_applyAll(t, (obj) => {
+				applyAll(t, (obj) => {
 					if (this.intersects(obj)) {
 						f(obj);
 					}
@@ -1265,16 +1262,16 @@ function _add(props) {
 
 	};
 
-	if (_game.running) {
+	if (game.running) {
 
-		const scene = _game.scenes[_game.curScene];
+		const scene = game.scenes[game.curScene];
 
 		scene.objs[scene.lastID] = obj;
 		scene.lastID++;
 
 	} else {
 
-		const scene = _game.scenes[_game.curDescScene];
+		const scene = game.scenes[game.curDescScene];
 		scene.objsInit.push(obj);
 
 	}
@@ -1283,7 +1280,7 @@ function _add(props) {
 
 }
 
-function _getSize(obj) {
+function getSize(obj) {
 
 	let w = 0;
 	let h = 0;
@@ -1292,12 +1289,12 @@ function _getSize(obj) {
 
 		case "sprite":
 
-			if (!_game.sprites[obj.sprite]) {
+			if (!game.sprites[obj.sprite]) {
 				break;
 			}
 
-			w = _game.sprites[obj.sprite].tex.width;
-			h = _game.sprites[obj.sprite].tex.height;
+			w = game.sprites[obj.sprite].tex.width;
+			h = game.sprites[obj.sprite].tex.height;
 
 			if (obj.width && obj.height) {
 				w = obj.width;
@@ -1331,14 +1328,14 @@ function _getSize(obj) {
 
 window.onload = () => {
 
-	_run(() => {
+	run(() => {
 
-		_game.running = true;
+		game.running = true;
 
-		const scene = _game.scenes[_game.curScene];
+		const scene = game.scenes[game.curScene];
 
 		if (!scene) {
-			console.error(`scene not found: '${_game.curScene}'`);
+			console.error(`scene not found: '${game.curScene}'`);
 			return;
 		}
 
@@ -1461,14 +1458,14 @@ window.onload = () => {
 
 						case "sprite":
 
-							const spr = _game.sprites[obj.sprite];
+							const spr = game.sprites[obj.sprite];
 
 							if (obj.sprite && !spr) {
 								console.error(`sprite not found: "${obj.sprite}"`);
 								return;
 							}
 
-							_drawRect({
+							drawRect({
 								tex: spr.tex,
 								pos: obj.pos,
 								scale: obj.scale,
@@ -1483,7 +1480,7 @@ window.onload = () => {
 
 						case "rect":
 
-							_drawRect({
+							drawRect({
 								tex: undefined,
 								pos: obj.pos,
 								scale: obj.scale,
@@ -1498,7 +1495,7 @@ window.onload = () => {
 
 						case "text":
 
-							_drawText({
+							drawText({
 								text: obj.text,
 								size: obj.size,
 								pos: obj.pos,
@@ -1530,9 +1527,43 @@ window.onload = () => {
 
 };
 
-_gfxInit();
-_audioInit();
+window.loadSprite = loadSprite;
+window.loadSound = loadSound;
+window.scene = scene;
+window.sprite = sprite;
+window.rect = rect;
+window.text = text;
+window.vec2 = vec2;
+window.color = color;
+window.width = width;
+window.height = height;
+window.keyDown = keyDown;
+window.keyPress = keyPress;
+window.keyPressRep = keyPressRep;
+window.keyRelease = keyRelease;
+window.mouseDown = mouseDown;
+window.mousePress = mousePress;
+window.mouseRelease = mouseRelease;
+window.choose = choose;
+window.rand = rand;
+window.randOnRect = randOnRect;
+window.loop = loop;
+window.all = all;
+window.lastwish = lastwish;
+window.collides = collides;
+window.go = go;
+window.dt = dt;
+window.time = time;
+window.lerp = lerp;
+window.map = map;
+window.wave = wave;
+window.play = play;
+window.destroy = destroy;
+window.destroyAll = destroyAll;
+
+gfxInit();
+audioInit();
 scene("main");
 
-}
+})();
 
