@@ -32,8 +32,28 @@ void main() {
 `;
 
 // --------------------------------
+// Utils
+
+function deepCopy(input) {
+
+	if (typeof(input) !== "object" || input === null) {
+		return input;
+	}
+
+	const out = Array.isArray(input) ? [] : {};
+
+	for (const key in input) {
+		out[key] = deepCopy(input[key]);
+	}
+
+	return out;
+
+}
+
+// --------------------------------
 // Application Lifecycle & Input
 
+// app system init
 const app = {
 	keyStates: {},
 	mouseState: "up",
@@ -67,6 +87,7 @@ const preventDefaultKeys = [
 	"down",
 ];
 
+// add DOM event listeners
 gl.canvas.addEventListener("mousemove", (e) => {
 	app.mousePos = vec2(
 		e.offsetX - gl.drawingBufferWidth / 2,
@@ -99,6 +120,7 @@ document.addEventListener("keyup", (e) => {
 	app.keyStates[k] = "released";
 });
 
+// starts main loop
 function startLoop(f) {
 
 	const frame = ((t) => {
@@ -134,59 +156,7 @@ function processBtnState(s) {
 	return s;
 }
 
-function keyDown(k, f) {
-	const scene = game.scenes[game.curDescScene];
-	scene.keyDownEvents.push({
-		key: k,
-		cb: f,
-	});
-}
-
-function keyPress(k, f) {
-	const scene = game.scenes[game.curDescScene];
-	scene.keyPressEvents.push({
-		key: k,
-		cb: f,
-	});
-}
-
-function keyPressRep(k, f) {
-	const scene = game.scenes[game.curDescScene];
-	scene.keyPressRepEvents.push({
-		key: k,
-		cb: f,
-	});
-}
-
-function keyRelease(k, f) {
-	const scene = game.scenes[game.curDescScene];
-	scene.keyReleaseEvents.push({
-		key: k,
-		cb: f,
-	});
-}
-
-function mouseDown(f) {
-	const scene = game.scenes[game.curDescScene];
-	scene.mouseDownEvents.push({
-		cb: f,
-	});
-}
-
-function mousePress(f) {
-	const scene = game.scenes[game.curDescScene];
-	scene.mousePressEvents.push({
-		cb: f,
-	});
-}
-
-function mouseRelease(f) {
-	const scene = game.scenes[game.curDescScene];
-	scene.mousePressEvents.push({
-		cb: f,
-	});
-}
-
+// check input state last frame
 function mousePos() {
 	return app.mousePos.clone();
 }
@@ -219,10 +189,12 @@ function keyIsReleased(k) {
 	return app.keyStates[k] === "released";
 }
 
+// get delta time between last frame
 function dt() {
 	return app.dt;
 }
 
+// get current running time
 function time() {
 	return app.time;
 }
@@ -230,6 +202,7 @@ function time() {
 // --------------------------------
 // Rendering
 
+// gfx system init
 const gfx = {};
 
 gfx.drawCalls = 0;
@@ -252,6 +225,7 @@ function loadImg(src, f) {
 	img.onload = f.bind(null, img);
 }
 
+// draw all cached vertices in the batched renderer
 function flush() {
 
 	gfx.mesh.flush();
@@ -490,41 +464,7 @@ function makeFont(tex, gw, gh, chars) {
 
 }
 
-// TODO: draw circle
-// TODO: draw line
-
-// TODO: text formatting
-// TODO: text origin
-function drawText(conf) {
-
-	const font = gfx.defFont;
-	const chars = conf.text.split("");
-	const gw = font.qw * font.tex.width;
-	const gh = font.qh * font.tex.height;
-	const size = conf.size || gh;
-	const scale = vec2(size / gh).dot(vec2(conf.scale));
-	const offset = (chars.length - 1) * gw / 2 * scale.x;
-	const pos = vec2(conf.pos).sub(vec2(offset, 0));
-
-	for (const ch of chars) {
-
-		const qpos = font.map[ch];
-
-		drawRect({
-			tex: gfx.defFont.tex,
-			pos: vec2(pos),
-			scale: scale,
-			rot: conf.rot,
-			color: conf.color,
-			quad: quad(qpos.x, qpos.y, font.qw, font.qh),
-		});
-
-		pos.x += gw * scale.x;
-
-	}
-
-}
-
+// draw a textured rectangle
 function drawRect(conf) {
 
 	if (!conf.tex && !(conf.width && conf.height)) {
@@ -571,10 +511,48 @@ function drawRect(conf) {
 
 }
 
+// TODO: text formatting
+// TODO: text origin
+// draw text
+function drawText(conf) {
+
+	const font = gfx.defFont;
+	const chars = conf.text.split("");
+	const gw = font.qw * font.tex.width;
+	const gh = font.qh * font.tex.height;
+	const size = conf.size || gh;
+	const scale = vec2(size / gh).dot(vec2(conf.scale));
+	const offset = (chars.length - 1) * gw / 2 * scale.x;
+	const pos = vec2(conf.pos).sub(vec2(offset, 0));
+
+	for (const ch of chars) {
+
+		const qpos = font.map[ch];
+
+		drawRect({
+			tex: gfx.defFont.tex,
+			pos: vec2(pos),
+			scale: scale,
+			rot: conf.rot,
+			color: conf.color,
+			quad: quad(qpos.x, qpos.y, font.qw, font.qh),
+		});
+
+		pos.x += gw * scale.x;
+
+	}
+
+}
+
+// TODO: draw circle
+// TODO: draw line
+
+// get current canvas width
 function width() {
 	return  gl.drawingBufferWidth;
 }
 
+// get current canvas height
 function height() {
 	return  gl.drawingBufferHeight;
 }
@@ -582,6 +560,7 @@ function height() {
 // --------------------------------
 // Audio Playback
 
+// audio system init
 const audio = {};
 const AudioContext = window.AudioContext || window.webkitAudioContext;
 
@@ -592,6 +571,7 @@ audio.gainNode.gain.value = 1;
 audio.gainNode.connect(audio.ctx.destination);
 
 // TODO: move this to game system
+// load a sound to asset manager
 function loadSound(id, src, conf) {
 	if (typeof(src === "string")) {
 		fetch(src)
@@ -607,6 +587,7 @@ function loadSound(id, src, conf) {
 	}
 }
 
+// get / set master volume
 function volume(v) {
 	if (v !== undefined) {
 		audio.gainNode.gain.value = v;
@@ -614,6 +595,8 @@ function volume(v) {
 	return audio.gainNode.gain.value;
 }
 
+// TODO: return control handle
+// plays a sound, returns a control handle
 function play(id, conf) {
 
 	const sound = audio.sounds[id];
@@ -706,6 +689,10 @@ function vec2(x, y) {
 			return this.x === other.x && this.y === other.y;
 		},
 	};
+}
+
+function isVec2(p) {
+	return p !== undefined && p.x !== undefined && p.y !== undefined;
 }
 
 function color(r, g, b, a) {
@@ -918,10 +905,7 @@ function mat4(m) {
 
 }
 
-function isVec2(p) {
-	return p !== undefined && p.x !== undefined && p.y !== undefined;
-}
-
+// easy sine wave
 function wave(a, b, t) {
 	return a + (Math.sin(time() * t) + 1) / 2 * (b - a);
 }
@@ -945,6 +929,7 @@ function rand(a, b) {
 	}
 }
 
+// get a random point on the sides of a rectangle
 function randOnRect(p1, p2) {
 	const w = p2.x - p1.x;
 	const h = p2.y - p1.y;
@@ -981,6 +966,7 @@ const velMap = {
 	down: vec2(0, -1),
 };
 
+// load a sprite to asset manager
 function loadSprite(id, src, conf) {
 
 	if (typeof(src) === "string") {
@@ -1002,156 +988,58 @@ function loadSprite(id, src, conf) {
 
 }
 
-function sprite(id, props) {
-	return add({
-		...props,
-		type: "sprite",
-		sprite: id,
-	});
-}
+// start describing a scene (this should be called before start())
+function scene(name) {
 
-function rect(w, h, props) {
-	return add({
-		...props,
-		type: "rect",
-		width: w,
-		height: h,
-	});
-}
-
-function text(str, props) {
-	return add({
-		...props,
-		type: "text",
-		text: str,
-	});
-}
-
-function line(p1, p2, props) {
-	return add({
-		...props,
-		type: "line",
-		p1: p1,
-		p2: p2,
-	});
-}
-
-function circle(center, radius, props) {
-	return add({
-		...props,
-		type: "circle",
-		pos: center,
-		radius: radius,
-	});
-}
-
-function applyAll(t, f) {
-	const scene = game.scenes[game.curScene];
-	for (const id in scene.objs) {
-		const obj = scene.objs[id];
-		if (obj.is(t)) {
-			f(obj);
-		}
-	}
-}
-
-function lastwish(t, f) {
 	if (game.running) {
-		console.log("'lastwish' can only be called at init");
+		console.log("'scene' can only be called at init");
 		return;
 	}
-	game.scenes[game.curDescScene].lastwishes.push({
-		tag: t,
-		cb: f,
-	});
-}
 
-function click(t, f) {
-	all(t, (o) => {
-		if (o.clicked()) {
-			f(o);
-		}
-	});
-}
+	if (!game.scenes[name]) {
 
-function collide(t1, t2, f) {
-	if (game.running) {
-		console.log("'collide' can only be called at init");
-		return;
-	}
-	all(t1, (o1) => {
-		applyAll(t2, (o2) => {
-			if (o1.intersects(o2)) {
-				f(o1, o2);
-			}
-		});
-	});
-}
+		game.scenes[name] = {
 
-function wait(t, f) {
-	if (game.running) {
-		const scene = game.scenes[game.curScene];
-		scene.timers[scene.lastTimerID] = {
-			time: t,
-			cb: f,
+			initialized: false,
+
+			// init lists
+			objsInit: [],
+			timersInit: [],
+
+			// group actions
+			groupActions: [],
+			lastwishes: [],
+
+			// input callbacks
+			keyDownEvents: [],
+			keyPressEvents: [],
+			keyPressRepEvents: [],
+			keyReleaseEvents: [],
+			mousePressEvents: [],
+			mouseReleaseEvents: [],
+			mouseDownEvents: [],
+
+			// in game pool
+			objs: {},
+			lastID: 0,
+			timers: {},
+			lastTimerID: 0,
+
 		};
-		scene.lastTimerID++;
-	} else {
-		const scene = game.scenes[game.curDescScene];
-		scene.timersInit.push({
-			time: t,
-			cb: f,
-		});
+
 	}
+
+	game.curDescScene = name;
+
 }
 
-// TODO: return handle
-function loop(t, f) {
-	const newF = () => {
-		f();
-		wait(t, newF);
-	};
-	wait(t, newF);
-}
-
-function destroyAll(t) {
-	applyAll(t, (obj) => {
-		destroy(obj);
-	});
-}
-
-function destroy(obj) {
-	const scene = game.scenes[game.curScene];
-	if (obj.id) {
-		if (scene) {
-			delete scene.objs[obj.id];
-			obj.id = undefined;
-			for (const e in scene.lastwishes) {
-				if (obj.is(e.tag)) {
-					e.cb(obj);
-				}
-			}
-		}
-	}
-}
-
-function all(t, f) {
-	if (game.running) {
-		console.log("'all' can only be called at init");
-		return;
-	}
-	const scene = game.scenes[game.curDescScene];
-	scene.groupActions.push({
-		tag: t,
-		cb: f,
-	});
-}
-
+// switch to a scene
 function go(name) {
 	game.curScene = name;
 }
 
 // TODO: needs more review
+// reload a scene, reset all objects to their init states
 function reload(name) {
 	const scene = game.scenes[name];
 	if (!scene.initialized) {
@@ -1174,67 +1062,64 @@ function reload(name) {
 	scene.lastTimerID = 0;
 }
 
-function scene(name) {
-
-	if (game.running) {
-		console.log("'scene' can only be called at init");
-		return;
-	}
-
-	if (!game.scenes[name]) {
-
-		game.scenes[name] = {
-
-			objsInit: [],
-			timersInit: [],
-			lastwishes: [],
-			groupActions: [],
-			keyDownEvents: [],
-			keyPressEvents: [],
-			keyPressRepEvents: [],
-			keyReleaseEvents: [],
-			mousePressEvents: [],
-			mouseReleaseEvents: [],
-			mouseDownEvents: [],
-
-			initialized: false,
-			objs: {},
-			lastID: 0,
-			timers: {},
-			lastTimerID: 0,
-
-		};
-
-	}
-
-	game.curDescScene = name;
-
-}
-
+// adds an obj to the current scene
 function add(props) {
 
 	props = props || {};
 
 	const obj = {
 
+		// copy all the custom attrs
 		...props,
 
+		// setting / resolving general props
 		pos: props.pos ? vec2(props.pos) : vec2(0),
 		scale: props.scale === undefined ? 1 : props.scale,
+// 		scale: props.scale ?? 1,
 		rot: props.rot || 0,
 		color: props.color || color(1, 1, 1, 1),
-		tags: props.tags ? [...props.tags] : [],
-		speed: props.speed || 0,
-		layer: props.layer || 0,
-
-		actions: [],
 		hidden: props.hidden === undefined ? false : props.hidden,
 // 		hidden: props.hidden ?? false,
+		layer: props.layer || 0,
+		tags: props.tags ? [...props.tags] : [],
+		speed: props.speed || 0,
 
+		// action lists
+		actions: [],
+		lastwishes: [],
+
+		// an action is a function that's called every frame
 		action(f) {
 			this.actions.push(f);
 		},
 
+		// add callback that runs when the obj is clicked
+		clicks(f) {
+			this.action(() => {
+				if (this.clicked()) {
+					f();
+				}
+			});
+		},
+
+		// add callback that runs when the obj has collided with other objs with tag t
+		collides(t, f) {
+			this.action(() => {
+				applyAll(t, (obj) => {
+					if (this !== obj && this.intersects(obj)) {
+						f(obj);
+					}
+				});
+			});
+		},
+
+		// TODO: implement this in loop
+		// add callback that runs when the obj is destroyed
+		lastwish(f) {
+			this.lastwishes.push(f);
+		},
+
+		// move position
 		move(dir) {
 
 			const vel = velMap[dir];
@@ -1246,21 +1131,55 @@ function add(props) {
 
 		},
 
-		hide() {
-			this.hidden = true;
-		},
-
-		show() {
-			this.hidden = false;
-		},
-
+		// if obj has certain tag
 		is(tag) {
 			return this.tags.includes(tag);
 		},
 
+		// TODO: support custom bounding box
+		// get obj visual bounding box
 		area() {
 
-			const { w, h, } = getSize(this);
+			let w = 0;
+			let h = 0;
+
+			switch (this.type) {
+
+				case "sprite":
+
+					if (!game.sprites[this.sprite]) {
+						break;
+					}
+
+					w = game.sprites[this.sprite].tex.width;
+					h = game.sprites[this.sprite].tex.height;
+
+					if (this.width && this.height) {
+						w = this.width;
+						h = this.height;
+					} else if (this.width && !this.height) {
+						h = this.width / tw * th;
+					} else if (!this.width && this.height) {
+						w = this.height / th * tw;
+					}
+
+					break;
+
+				case "rect":
+
+					w = this.width;
+					h = this.height;
+
+					break;
+
+				case "text":
+
+					// TODO
+
+					break;
+
+			}
+
 			const p1 = this.pos.sub(vec2(w / 2, h / 2));
 			const p2 = this.pos.add(vec2(w / 2, h / 2));
 
@@ -1268,14 +1187,17 @@ function add(props) {
 
 		},
 
+		// if obj is hovered by mouse
 		hovered() {
 			return this.area().hasPt(mousePos());
 		},
 
+		// if obj is clicked this frame
 		clicked() {
 			return mouseIsPressed() && this.hovered();
 		},
 
+		// wrap obj in a rectangle area
 		wrap(p1, p2) {
 			if (this.pos.x < p1.x) {
 				this.pos.x = p2.x;
@@ -1289,34 +1211,19 @@ function add(props) {
 			}
 		},
 
-		clicks(f) {
-			this.action(() => {
-				if (this.clicked()) {
-					f();
-				}
-			});
-		},
-
-		collides(t, f) {
-			this.action(() => {
-				applyAll(t, (obj) => {
-					if (this.intersects(obj)) {
-						f(obj);
-					}
-				});
-			});
-		},
-
+		// if obj intersects with another obj
 		intersects(other) {
 			return this.area().intersects(other.area());
 		},
 
+		// if obj currently exists in the scene
 		exists() {
 			return this.id !== undefined;
 		},
 
 	};
 
+	// if start(), add obj to the current scene
 	if (game.running) {
 
 		const scene = game.scenes[game.curScene];
@@ -1325,6 +1232,7 @@ function add(props) {
 		obj.id = scene.lastID;
 		scene.lastID++;
 
+	// if not start(), add obj to the init obj list of the current scene describing
 	} else {
 
 		const scene = game.scenes[game.curDescScene];
@@ -1332,80 +1240,243 @@ function add(props) {
 
 	}
 
+	// return the shared referenced obj
 	return obj;
 
 }
 
-function getSize(obj) {
+// add() a sprite obj
+function sprite(id, props) {
+	return add({
+		...props,
+		type: "sprite",
+		sprite: id,
+	});
+}
 
-	let w = 0;
-	let h = 0;
+// add() a rect obj
+function rect(w, h, props) {
+	return add({
+		...props,
+		type: "rect",
+		width: w,
+		height: h,
+	});
+}
 
-	switch (obj.type) {
+// add() a text obj
+function text(str, props) {
+	return add({
+		...props,
+		type: "text",
+		text: str,
+	});
+}
 
-		case "sprite":
+// add() a line obj
+function line(p1, p2, props) {
+	return add({
+		...props,
+		type: "line",
+		p1: p1,
+		p2: p2,
+	});
+}
 
-			if (!game.sprites[obj.sprite]) {
-				break;
-			}
+// add() a circle obj
+function circle(center, radius, props) {
+	return add({
+		...props,
+		type: "circle",
+		pos: center,
+		radius: radius,
+	});
+}
 
-			w = game.sprites[obj.sprite].tex.width;
-			h = game.sprites[obj.sprite].tex.height;
-
-			if (obj.width && obj.height) {
-				w = obj.width;
-				h = obj.height;
-			} else if (obj.width && !obj.height) {
-				h = obj.width / tw * th;
-			} else if (!obj.width && obj.height) {
-				w = obj.height / th * tw;
-			}
-
-			break;
-
-		case "rect":
-
-			w = obj.width;
-			h = obj.height;
-
-			break;
-
-		case "text":
-			break;
-
+// add an event that runs every frame for objs with tag t
+function action(t, f) {
+	if (game.running) {
+		console.log("'all' can only be called at init");
+		return;
 	}
+	const scene = game.scenes[game.curDescScene];
+	scene.groupActions.push({
+		tag: t,
+		cb: f,
+	});
+}
 
-	return {
-		w: w,
-		h: h,
+// add an event that runs with objs with t1 collides with objs with t2
+function collide(t1, t2, f) {
+	if (game.running) {
+		console.log("'collide' can only be called at init");
+		return;
+	}
+	action(t1, (o1) => {
+		applyAll(t2, (o2) => {
+			if (o1.intersects(o2)) {
+				f(o1, o2);
+			}
+		});
+	});
+}
+
+// add an event that runs when objs with tag t is clicked
+function click(t, f) {
+	if (game.running) {
+		console.log("'click' can only be called at init");
+		return;
+	}
+	action(t, (o) => {
+		if (o.clicked()) {
+			f(o);
+		}
+	});
+}
+
+// add an event that runs when objs with tag t is destroyed
+function lastwish(t, f) {
+	if (game.running) {
+		console.log("'lastwish' can only be called at init");
+		return;
+	}
+	game.scenes[game.curDescScene].lastwishes.push({
+		tag: t,
+		cb: f,
+	});
+}
+
+// add an event that'd be run after t
+function wait(t, f) {
+	// after start(), start the timer immediately
+	if (game.running) {
+		const scene = game.scenes[game.curScene];
+		scene.timers[scene.lastTimerID] = {
+			time: t,
+			cb: f,
+		};
+		scene.lastTimerID++;
+	// before start(), run the timer when the scene is loaded
+	} else {
+		const scene = game.scenes[game.curDescScene];
+		scene.timersInit.push({
+			time: t,
+			cb: f,
+		});
+	}
+}
+
+// TODO: return control handle
+// add an event that's run every t seconds
+function loop(t, f) {
+	const newF = () => {
+		f();
+		wait(t, newF);
 	};
-
+	wait(t, newF);
 }
 
-function deepCopy(input) {
-
-	if (typeof(input) !== "object" || input === null) {
-		return input;
-	}
-
-	const out = Array.isArray(input) ? [] : {};
-
-	for (const key in input) {
-		out[key] = deepCopy(input[key]);
-	}
-
-	return out;
-
+// input callbacks
+function keyDown(k, f) {
+	const scene = game.scenes[game.curDescScene];
+	scene.keyDownEvents.push({
+		key: k,
+		cb: f,
+	});
 }
 
-function start() {
+function keyPress(k, f) {
+	const scene = game.scenes[game.curDescScene];
+	scene.keyPressEvents.push({
+		key: k,
+		cb: f,
+	});
+}
 
+function keyPressRep(k, f) {
+	const scene = game.scenes[game.curDescScene];
+	scene.keyPressRepEvents.push({
+		key: k,
+		cb: f,
+	});
+}
+
+function keyRelease(k, f) {
+	const scene = game.scenes[game.curDescScene];
+	scene.keyReleaseEvents.push({
+		key: k,
+		cb: f,
+	});
+}
+
+function mouseDown(f) {
+	const scene = game.scenes[game.curDescScene];
+	scene.mouseDownEvents.push({
+		cb: f,
+	});
+}
+
+function mousePress(f) {
+	const scene = game.scenes[game.curDescScene];
+	scene.mousePressEvents.push({
+		cb: f,
+	});
+}
+
+function mouseRelease(f) {
+	const scene = game.scenes[game.curDescScene];
+	scene.mousePressEvents.push({
+		cb: f,
+	});
+}
+
+// apply a function to all objects currently in scene with tag t
+function applyAll(t, f) {
+	const scene = game.scenes[game.curScene];
+	for (const id in scene.objs) {
+		const obj = scene.objs[id];
+		if (obj.is(t)) {
+			f(obj);
+		}
+	}
+}
+
+// destroy an obj
+function destroy(obj) {
+	const scene = game.scenes[game.curScene];
+	if (obj.id) {
+		if (scene) {
+			delete scene.objs[obj.id];
+			obj.id = undefined;
+			for (const e in scene.lastwishes) {
+				if (obj.is(e.tag)) {
+					e.cb(obj);
+				}
+			}
+		}
+	}
+}
+
+// destroy all obj with the tag
+function destroyAll(t) {
+	applyAll(t, (obj) => {
+		destroy(obj);
+	});
+}
+
+// end the scene describing phase, start the main loop with the provided scene
+function start(scene) {
+
+	go(scene);
+
+	// store obj init states in memory by deep copying the states before game loop, for reloading states
 	for (const name in game.scenes) {
 		for (const obj of game.scenes[name].objsInit) {
 			obj.initState = deepCopy(obj);
 		}
 	}
 
+	// start after all assets are loaded
 	window.addEventListener("load", () => {
 
 		startLoop(() => {
@@ -1419,6 +1490,7 @@ function start() {
 				return;
 			}
 
+			// if scene is not initialized, add all objs and timers in init lists to the actual pool
 			if (!scene.initialized) {
 
 				for (const obj of scene.objsInit) {
@@ -1436,7 +1508,8 @@ function start() {
 
 			}
 
-			// TODO: a little repetitive..
+			// TODO: repetitive
+			// run input checks & callbacks
 			for (const e of scene.keyDownEvents) {
 				if (keyIsDown(e.key)) {
 					e.cb();
@@ -1479,6 +1552,7 @@ function start() {
 				}
 			}
 
+			// perform group actions
 			for (const e of scene.groupActions) {
 				for (const id in scene.objs) {
 					const obj = scene.objs[id];
@@ -1488,6 +1562,7 @@ function start() {
 				}
 			}
 
+			// update timers
 			for (const id in scene.timers) {
 				const t = scene.timers[id];
 				t.time -= dt();
@@ -1497,6 +1572,7 @@ function start() {
 				}
 			}
 
+			// update objs
 			for (const id in scene.objs) {
 
 				const obj = scene.objs[id];
@@ -1507,6 +1583,7 @@ function start() {
 
 				// update obj
 				for (const action of obj.actions) {
+					// TODO: bind this?
 					action(obj);
 				}
 
@@ -1520,6 +1597,7 @@ function start() {
 				// draw obj
 				if (!obj.hidden) {
 
+					// perform different draw op depending on the type
 					switch (obj.type) {
 
 						case "sprite":
@@ -1607,7 +1685,6 @@ window.time = time;
 window.scene = scene;
 window.go = go;
 window.reload = reload;
-window.start = start;
 
 // object creation
 window.sprite = sprite;
@@ -1617,6 +1694,12 @@ window.line = line;
 window.circle = circle;
 window.destroy = destroy;
 window.destroyAll = destroyAll;
+
+// group events
+window.action = action;
+window.lastwish = lastwish;
+window.collide = collide;
+window.click = click;
 
 // input
 window.keyDown = keyDown;
@@ -1628,6 +1711,17 @@ window.mousePress = mousePress;
 window.mouseRelease = mouseRelease;
 window.mousePos = mousePos;
 
+// timer
+window.loop = loop;
+window.wait = wait;
+
+// audio
+window.play = play;
+window.volume = volume;
+
+// start
+window.start = start;
+
 // math
 window.vec2 = vec2;
 window.color = color;
@@ -1637,20 +1731,6 @@ window.randOnRect = randOnRect;
 window.lerp = lerp;
 window.map = map;
 window.wave = wave;
-
-// timer
-window.loop = loop;
-window.wait = wait;
-
-// events
-window.all = all;
-window.lastwish = lastwish;
-window.collide = collide;
-window.click = click;
-
-// audio
-window.play = play;
-window.volume = volume;
 
 scene("main");
 

@@ -1,6 +1,8 @@
 loadSprite("guy", "guy.png");
 loadSound("shoot", "shoot.ogg");
 
+volume(0);
+
 const powerTime = 4;
 
 function randColor() {
@@ -147,11 +149,11 @@ function addCandy() {
 	});
 }
 
-all("candy", (c) => {
+action("candy", (c) => {
 	c.color = randColor();
 });
 
-all("bullet", (b) => {
+action("bullet", (b) => {
 
 	b.move(b.dir);
 	b.color = randColor();
@@ -164,7 +166,7 @@ all("bullet", (b) => {
 
 });
 
-all("enemy", (e) => {
+action("enemy", (e) => {
 	const dir = player.pos.sub(e.pos).unit();
 	e.pos = e.pos.add(dir.scale(e.speed * dt()));
 });
@@ -189,7 +191,7 @@ collide("bullet", "enemy", (b, e) => {
 
 });
 
-all("explosion", (e) => {
+action("explosion", (e) => {
 	e.width += 800 * dt();
 	e.height += 800 * dt();
 	e.color = randColor();
@@ -240,7 +242,5 @@ keyPress(" ", () => {
 	go("main");
 });
 
-go("start");
-
-start();
+start("start");
 
