@@ -1,6 +1,8 @@
 loadSprite("guy", "guy.png");
 loadSound("shoot", "shoot.ogg");
 
+window.onload = () => {
+
 volume(0);
 
 const G = 9.8;
@@ -23,7 +25,7 @@ function randColor() {
 
 // player
 const player = sprite("guy", {
-	pos: vec2(0),
+	pos: vec2(0, 320),
 	vel: vec2(0),
 	speed: 320,
 	dir: "left",
@@ -47,7 +49,7 @@ keyPress(" ", () => {
 });
 
 keyPress("up", () => {
-	if (!player.jumping) {
+	if (player.state = "idle" && player.platform) {
 		player.vel.y = force;
 		player.state = "jumping";
 	}
@@ -79,7 +81,7 @@ player.action(() => {
 
 player.collides("platform", (p) => {
 	if (player.state === "falling") {
-		player.pos.y = p.pos.y + p.height / 2 + player.getHeight() / 2;
+		player.pos.y = p.pos.y + p.height / 2 + player.height / 2;
 		player.vel.y = 0;
 		player.jumping = false;
 		player.state = "idle";
@@ -116,4 +118,6 @@ rect(120, 4, {
 });
 
 start();
+
+};
 

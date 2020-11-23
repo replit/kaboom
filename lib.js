@@ -1065,7 +1065,42 @@ function reload(name) {
 // adds an obj to the current scene
 function add(props) {
 
-	props = props || {};
+	switch (props.type) {
+
+		case "sprite":
+
+			if (!game.sprites[props.sprite]) {
+				break;
+			}
+
+			const tw = game.sprites[props.sprite].tex.width;
+			const th = game.sprites[props.sprite].tex.height;
+
+			if (!props.width && !props.height) {
+				props.width = tw;
+				props.height = th;
+			} else if (props.width && !props.height) {
+				props.height = props.width / tw * th;
+			} else if (!props.width && props.height) {
+				props.width = props.height / th * tw;
+			}
+
+			break;
+
+		case "rect":
+
+			w = props.width;
+			h = props.height;
+
+			break;
+
+		case "text":
+
+			// TODO
+
+			break;
+
+	}
 
 	const obj = {
 
@@ -1136,70 +1171,12 @@ function add(props) {
 			return this.tags.includes(tag);
 		},
 
-		getSize() {
-
-			let w = 0;
-			let h = 0;
-
-			switch (this.type) {
-
-				case "sprite":
-
-					if (!game.sprites[this.sprite]) {
-						break;
-					}
-
-					w = game.sprites[this.sprite].tex.width;
-					h = game.sprites[this.sprite].tex.height;
-
-					if (this.width && this.height) {
-						w = this.width;
-						h = this.height;
-					} else if (this.width && !this.height) {
-						h = this.width / tw * th;
-					} else if (!this.width && this.height) {
-						w = this.height / th * tw;
-					}
-
-					break;
-
-				case "rect":
-
-					w = this.width;
-					h = this.height;
-
-					break;
-
-				case "text":
-
-					// TODO
-
-					break;
-
-			}
-
-			return {
-				w: w,
-				h: h,
-			};
-
-		},
-
-		getWidth() {
-			return this.getSize().w;
-		},
-
-		getHeight() {
-			return this.getSize().h;
-		},
-
 		// TODO: support custom bounding box
 		// get obj visual bounding box
 		area() {
 
-			const { w, h, } = this.getSize();
-			const p1 = this.pos.sub(vec2(w / 2, h / 2));
-			const p2 = this.pos.add(vec2(w / 2, h / 2));
+			const p1 = this.pos.sub(vec2(this.width / 2, this.height / 2));
+			const p2 = this.pos.add(vec2(this.width / 2, this.height / 2));
 
 			return area(p1, p2);
 
@@ -1503,196 +1480,191 @@ function start(name) {
 		}
 	}
 
-	// start after all assets are loaded
-	window.addEventListener("load", () => {
+	startLoop(() => {
 
-		startLoop(() => {
+		game.running = true;
 
-			game.running = true;
+		const scene = game.scenes[game.curScene];
 
-			const scene = game.scenes[game.curScene];
+		if (!scene) {
+			console.error(`scene not found: '${game.curScene}'`);
+			return;
+		}
 
-			if (!scene) {
-				console.error(`scene not found: '${game.curScene}'`);
-				return;
+		// if scene is not initialized, add all objs and timers in init lists to the actual pool
+		if (!scene.initialized) {
+
+			for (const obj of scene.objsInit) {
+				scene.objs[scene.lastID] = obj;
+				obj.id = scene.lastID;
+				scene.lastID++;
 			}
 
-			// if scene is not initialized, add all objs and timers in init lists to the actual pool
-			if (!scene.initialized) {
-
-				for (const obj of scene.objsInit) {
-					scene.objs[scene.lastID] = obj;
-					obj.id = scene.lastID;
-					scene.lastID++;
-				}
-
-				for (const timer of scene.timersInit) {
-					scene.timers[scene.lastTimerID] = timer;
-					scene.lastTimerID++;
-				}
-
-				scene.initialized = true;
-
+			for (const timer of scene.timersInit) {
+				scene.timers[scene.lastTimerID] = timer;
+				scene.lastTimerID++;
 			}
 
-			// TODO: repetitive
-			// run input checks & callbacks
-			for (const e of scene.keyDownEvents) {
-				if (keyIsDown(e.key)) {
-					e.cb();
-				}
-			}
+			scene.initialized = true;
 
-			for (const e of scene.keyPressEvents) {
-				if (keyIsPressed(e.key)) {
-					e.cb();
-				}
-			}
+		}
 
-			for (const e of scene.keyPressRepEvents) {
-				if (keyIsPressedRep(e.key)) {
-					e.cb();
-				}
+		// TODO: repetitive
+		// run input checks & callbacks
+		for (const e of scene.keyDownEvents) {
+			if (keyIsDown(e.key)) {
+				e.cb();
 			}
+		}
 
-			for (const e of scene.keyReleaseEvents) {
-				if (keyIsReleased(e.key)) {
-					e.cb();
-				}
+		for (const e of scene.keyPressEvents) {
+			if (keyIsPressed(e.key)) {
+				e.cb();
 			}
+		}
 
-			for (const e of scene.mouseDownEvents) {
-				if (mouseIsDown()) {
-					e.cb();
-				}
+		for (const e of scene.keyPressRepEvents) {
+			if (keyIsPressedRep(e.key)) {
+				e.cb();
 			}
+		}
 
-			for (const e of scene.mousePressEvents) {
-				if (mouseIsPressed()) {
-					e.cb();
-				}
+		for (const e of scene.keyReleaseEvents) {
+			if (keyIsReleased(e.key)) {
+				e.cb();
 			}
+		}
 
-			for (const e of scene.mouseReleaseEvents) {
-				if (mouseIsReleased()) {
-					e.cb();
-				}
+		for (const e of scene.mouseDownEvents) {
+			if (mouseIsDown()) {
+				e.cb();
 			}
+		}
 
-			// perform group actions
-			for (const e of scene.groupActions) {
-				for (const id in scene.objs) {
-					const obj = scene.objs[id];
-					if (obj.is(e.tag)) {
-						e.cb(obj);
-					}
-				}
+		for (const e of scene.mousePressEvents) {
+			if (mouseIsPressed()) {
+				e.cb();
 			}
+		}
 
-			// update timers
-			for (const id in scene.timers) {
-				const t = scene.timers[id];
-				t.time -= dt();
-				if (t.time <= 0) {
-					t.cb();
-					delete scene.timers[id];
-				}
+		for (const e of scene.mouseReleaseEvents) {
+			if (mouseIsReleased()) {
+				e.cb();
 			}
+		}
 
-			// update objs
+		// perform group actions
+		for (const e of scene.groupActions) {
 			for (const id in scene.objs) {
-
 				const obj = scene.objs[id];
-
-				if (!obj) {
-					continue;
+				if (obj.is(e.tag)) {
+					e.cb(obj);
 				}
+			}
+		}
 
-				// update obj
-				for (const action of obj.actions) {
-					// TODO: bind this?
-					action(obj);
+		// update timers
+		for (const id in scene.timers) {
+			const t = scene.timers[id];
+			t.time -= dt();
+			if (t.time <= 0) {
+				t.cb();
+				delete scene.timers[id];
+			}
+		}
+
+		// update objs
+		for (const id in scene.objs) {
+
+			const obj = scene.objs[id];
+
+			if (!obj) {
+				continue;
+			}
+
+			// update obj
+			for (const action of obj.actions) {
+				// TODO: bind this?
+				action(obj);
+			}
+
+			if (obj.lifespan !== undefined) {
+				obj.lifespan -= dt();
+				if (obj.lifespan <= 0) {
+					destroy(obj);
 				}
+			}
 
-				if (obj.lifespan !== undefined) {
-					obj.lifespan -= dt();
-					if (obj.lifespan <= 0) {
-						destroy(obj);
-					}
-				}
+			// draw obj
+			if (!obj.hidden) {
 
-				// draw obj
-				if (!obj.hidden) {
+				// perform different draw op depending on the type
+				switch (obj.type) {
 
-					// perform different draw op depending on the type
-					switch (obj.type) {
+					case "sprite":
 
-						case "sprite":
+						const spr = game.sprites[obj.sprite];
 
-							const spr = game.sprites[obj.sprite];
-
-							if (obj.sprite && !spr) {
-								console.error(`sprite not found: "${obj.sprite}"`);
-								break;
-							}
-
-							drawRect({
-								tex: spr.tex,
-								pos: obj.pos,
-								scale: obj.scale,
-								rot: obj.rot,
-								color: obj.color,
-								width: obj.width,
-								height: obj.height,
-								quad: quad(0, 0, 1, 1),
-							});
-
+						if (obj.sprite && !spr) {
+							console.error(`sprite not found: "${obj.sprite}"`);
 							break;
+						}
 
-						case "rect":
+						drawRect({
+							tex: spr.tex,
+							pos: obj.pos,
+							scale: obj.scale,
+							rot: obj.rot,
+							color: obj.color,
+							width: obj.width,
+							height: obj.height,
+							quad: quad(0, 0, 1, 1),
+						});
 
-							drawRect({
-								tex: undefined,
-								pos: obj.pos,
-								scale: obj.scale,
-								rot: obj.rot,
-								color: obj.color,
-								width: obj.width,
-								height: obj.height,
-								quad: quad(0, 0, 1, 1),
-							});
+						break;
 
-							break;
+					case "rect":
 
-						case "text":
+						drawRect({
+							tex: undefined,
+							pos: obj.pos,
+							scale: obj.scale,
+							rot: obj.rot,
+							color: obj.color,
+							width: obj.width,
+							height: obj.height,
+							quad: quad(0, 0, 1, 1),
+						});
 
-							drawText({
-								text: obj.text,
-								size: obj.size,
-								pos: obj.pos,
-								scale: obj.scale,
-								rot: obj.rot,
-								color: obj.color,
-							});
+						break;
 
-							break;
+					case "text":
 
-						case "line":
-							break;
+						drawText({
+							text: obj.text,
+							size: obj.size,
+							pos: obj.pos,
+							scale: obj.scale,
+							rot: obj.rot,
+							color: obj.color,
+						});
 
-						case "circle":
-							break;
+						break;
 
-						default:
-							break;
+					case "line":
+						break;
 
-					}
+					case "circle":
+						break;
+
+					default:
+						break;
 
 				}
 
 			}
 
-		});
+		}
 
 	});
 

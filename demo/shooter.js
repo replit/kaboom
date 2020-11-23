@@ -1,6 +1,8 @@
 loadSprite("guy", "guy.png");
 loadSound("shoot", "shoot.ogg");
 
+window.onload = () => {
+
 volume(0);
 
 const powerTime = 4;
@@ -243,4 +245,6 @@ keyPress(" ", () => {
 });
 
 start("start");
+
+};
 
