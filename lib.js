@@ -1136,9 +1136,7 @@ function add(props) {
 			return this.tags.includes(tag);
 		},
 
-		// TODO: support custom bounding box
-		// get obj visual bounding box
-		area() {
+		getSize() {
 
 			let w = 0;
 			let h = 0;
@@ -1180,6 +1178,26 @@ function add(props) {
 
 			}
 
+			return {
+				w: w,
+				h: h,
+			};
+
+		},
+
+		getWidth() {
+			return this.getSize().w;
+		},
+
+		getHeight() {
+			return this.getSize().h;
+		},
+
+		// TODO: support custom bounding box
+		// get obj visual bounding box
+		area() {
+
+			const { w, h, } = this.getSize();
 			const p1 = this.pos.sub(vec2(w / 2, h / 2));
 			const p2 = this.pos.add(vec2(w / 2, h / 2));
 
@@ -1293,6 +1311,7 @@ function circle(center, radius, props) {
 	});
 }
 
+// TODO: accept multiple tags
 // add an event that runs every frame for objs with tag t
 function action(t, f) {
 	if (game.running) {
