@@ -1,4 +1,21 @@
-```javascript
+
+## Minimal Example
+
+```js
+```
+
+## Run Demo
+
+start a local http server and run `demo/index.html`, and run `{demo}.js`
+
+available demos:
+
+- shooter.js
+- platformer.js
+
+## Reference
+
+```js
 // asset load
 loadSprite()
 loadSound()
@@ -13,7 +30,6 @@ time()
 scene()
 go()
 reload()
-start()
 
 // object creation
 sprite()
@@ -23,6 +39,12 @@ line()
 circle()
 destroy()
 destroyAll()
+
+// group events
+action()
+lastwish()
+collide()
+click()
 
 // input
 keyDown()
@@ -34,6 +56,17 @@ mousePress()
 mouseRelease()
 mousePos()
 
+// timer
+loop()
+wait()
+
+// audio
+play()
+volume()
+
+// start
+start()
+
 // math
 vec2()
 color()
@@ -43,19 +76,5 @@ randOnRect()
 lerp()
 map()
 wave()
-
-// timer
-loop()
-wait()
-
-// events
-action()
-lastwish()
-collide()
-click()
-
-// audio
-play()
-volume()
 ```
 

@@ -1464,10 +1464,18 @@ function destroyAll(t) {
 	});
 }
 
+// TODO: on screen error message? that'll be cool
 // end the scene describing phase, start the main loop with the provided scene
-function start(scene) {
+function start(name) {
 
-	go(scene);
+	if (name) {
+		if (game.scenes[name]) {
+			game.curScene = name;
+		} else {
+			console.error(`scene '${name}' not found`);
+			return;
+		}
+	}
 
 	// store obj init states in memory by deep copying the states before game loop, for reloading states
 	for (const name in game.scenes) {
