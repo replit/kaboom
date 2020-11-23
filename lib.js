@@ -1065,39 +1065,52 @@ function reload(name) {
 // adds an obj to the current scene
 function add(props) {
 
+	let w = 0;
+	let h = 0;
+
 	switch (props.type) {
 
 		case "sprite":
 
 			if (!game.sprites[props.sprite]) {
+				console.error(`sprite ${props.sprite} not found`);
 				break;
 			}
 
 			const tw = game.sprites[props.sprite].tex.width;
 			const th = game.sprites[props.sprite].tex.height;
+			w = tw;
+			h = th;
 
-			if (!props.width && !props.height) {
-				props.width = tw;
-				props.height = th;
+			if (props.width && props.height) {
+				w = props.width;
+				h = props.height;
 			} else if (props.width && !props.height) {
-				props.height = props.width / tw * th;
+				w = props.width;
+				h = props.width / tw * th;
 			} else if (!props.width && props.height) {
-				props.width = props.height / th * tw;
+				w = props.height / th * tw;
+				h = props.height;
 			}
 
 			break;
 
 		case "rect":
-
 			w = props.width;
 			h = props.height;
-
 			break;
 
 		case "text":
-
 			// TODO
+			break;
 
+		case "line":
+			// TODO
+			break;
+
+		case "circle":
+			w = props.radius * 2;
+			h = props.radius * 2;
 			break;
 
 	}
@@ -1113,6 +1126,8 @@ function add(props) {
 // 		scale: props.scale ?? 1,
 		rot: props.rot || 0,
 		color: props.color || color(1, 1, 1, 1),
+		width: w,
+		height: h,
 		hidden: props.hidden === undefined ? false : props.hidden,
 // 		hidden: props.hidden ?? false,
 		layer: props.layer || 0,
@@ -1122,6 +1137,7 @@ function add(props) {
 		// action lists
 		actions: [],
 		lastwishes: [],
+		states: {},
 
 		// an action is a function that's called every frame
 		action(f) {
@@ -1214,6 +1230,47 @@ function add(props) {
 		// if obj currently exists in the scene
 		exists() {
 			return this.id !== undefined;
+		},
+
+		isState(state) {
+			return this.curState === state;
+		},
+
+		enter(state, ...args) {
+			const prevState = this.curState;
+			if (this.states[prevState]) {
+				if (this.states[prevState].leave) {
+					this.states[prevState].leave();
+				}
+			}
+			this.curState = state;
+			if (this.states[state]) {
+				if (this.states[state].on) {
+					this.states[state].on(...args);
+				}
+			}
+		},
+
+		on(state, f) {
+			if (!this.states[state]) {
+				this.states[state] = {};
+			}
+			this.states[state].on = f;
+		},
+
+		leave(state, f) {
+			if (!this.states[state]) {
+				this.states[state] = {};
+			}
+			this.states[state].leave = f;
+		},
+
+		during(state, f) {
+			this.action(() => {
+				if (this.curState === state) {
+					f();
+				}
+			});
 		},
 
 	};

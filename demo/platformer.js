@@ -29,7 +29,7 @@ const player = sprite("guy", {
 	vel: vec2(0),
 	speed: 320,
 	dir: "left",
-	state: "falling",
+	curState: "falling",
 });
 
 keyPress(" ", () => {
@@ -48,10 +48,17 @@ keyPress(" ", () => {
 
 });
 
+player.leave("idle", () => {
+	player.platform = undefined;
+});
+
+player.on("jumping", () => {
+	player.vel.y = force;
+});
+
 keyPress("up", () => {
-	if (player.state = "idle" && player.platform) {
-		player.vel.y = force;
-		player.state = "jumping";
+	if (player.isState("idle")) {
+		player.enter("jumping");
 	}
 });
 
@@ -65,27 +72,34 @@ keyDown("right", () => {
 	player.dir = "right";
 });
 
-player.action(() => {
-	if (player.state !== "idle") {
-		player.vel.y -= G * dt() * acc;
-		player.pos = player.pos.add(player.vel.scale(dt()));
-		if (player.vel.y <= 0) {
-			player.state = "falling";
-		}
-	} else {
-		if (!player.intersects(player.platform)) {
-			player.state = "falling";
-		}
+player.during("jumping", () => {
+	player.vel.y -= G * dt() * acc;
+	player.pos = player.pos.add(player.vel.scale(dt()));
+	if (player.vel.y <= 0) {
+		player.enter("falling");
 	}
 });
 
+player.during("falling", () => {
+	player.vel.y -= G * dt() * acc;
+	player.pos = player.pos.add(player.vel.scale(dt()));
+});
+
+player.during("idle", () => {
+	if (!player.intersects(player.platform)) {
+		player.enter("falling");
+	}
+});
+
+player.on("idle", (p) => {
+	player.platform = p;
+	player.pos.y = p.pos.y + p.height / 2 + player.height / 2;
+	player.vel.y = 0;
+});
+
 player.collides("platform", (p) => {
-	if (player.state === "falling") {
-		player.pos.y = p.pos.y + p.height / 2 + player.height / 2;
-		player.vel.y = 0;
-		player.jumping = false;
-		player.state = "idle";
-		player.platform = p;
+	if (player.isState("falling")) {
+		player.enter("idle", p);
 	}
 });
 
