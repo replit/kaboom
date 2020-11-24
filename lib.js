@@ -929,17 +929,6 @@ function rand(a, b) {
 	}
 }
 
-// get a random point on the sides of a rectangle
-function randOnRect(p1, p2) {
-	const w = p2.x - p1.x;
-	const h = p2.y - p1.y;
-	if (chance(w / (w + h))) {
-		return vec2(rand(p1.x, p2.x), chance(0.5) ? p1.y : p2.y);
-	} else {
-		return vec2(chance(0.5) ? p1.x : p2.x, rand(p1.y, p2.y));
-	}
-}
-
 function chance(p) {
 	return rand(0, 1) <= p;
 }
@@ -1233,17 +1222,20 @@ function add(props) {
 		},
 
 		isState(state) {
-			return this.curState === state;
+			return this.state === state;
 		},
 
 		enter(state, ...args) {
-			const prevState = this.curState;
+			if (state === this.state) {
+				return;
+			}
+			const prevState = this.state;
 			if (this.states[prevState]) {
 				if (this.states[prevState].leave) {
 					this.states[prevState].leave();
 				}
 			}
-			this.curState = state;
+			this.state = state;
 			if (this.states[state]) {
 				if (this.states[state].on) {
 					this.states[state].on(...args);
@@ -1267,7 +1259,7 @@ function add(props) {
 
 		during(state, f) {
 			this.action(() => {
-				if (this.curState === state) {
+				if (this.state === state) {
 					f();
 				}
 			});
@@ -1783,7 +1775,6 @@ window.vec2 = vec2;
 window.color = color;
 window.choose = choose;
 window.rand = rand;
-window.randOnRect = randOnRect;
 window.lerp = lerp;
 window.map = map;
 window.wave = wave;

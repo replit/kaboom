@@ -29,7 +29,7 @@ const player = sprite("guy", {
 	vel: vec2(0),
 	speed: 320,
 	dir: "left",
-	curState: "falling",
+	state: "falling",
 });
 
 keyPress(" ", () => {
@@ -48,15 +48,8 @@ keyPress(" ", () => {
 
 });
 
-player.leave("idle", () => {
-	player.platform = undefined;
-});
-
-player.on("jumping", () => {
-	player.vel.y = force;
-});
-
 keyPress("up", () => {
+	// can only jump when player is idle
 	if (player.isState("idle")) {
 		player.enter("jumping");
 	}
@@ -72,35 +65,55 @@ keyDown("right", () => {
 	player.dir = "right";
 });
 
+// jump or fall makes player detached to the platform
+player.leave("idle", () => {
+	player.platform = undefined;
+});
+
+// give upward force when enter jumping
+player.on("jumping", () => {
+	player.vel.y = force;
+});
+
 player.during("jumping", () => {
+	// rising at decreasing speed
 	player.vel.y -= G * dt() * acc;
 	player.pos = player.pos.add(player.vel.scale(dt()));
+	// enter falling state after reached the highest point
 	if (player.vel.y <= 0) {
 		player.enter("falling");
 	}
 });
 
 player.during("falling", () => {
+	// falling down
 	player.vel.y -= G * dt() * acc;
 	player.pos = player.pos.add(player.vel.scale(dt()));
 });
 
 player.during("idle", () => {
+	// fall if player is no longer on a platform
 	if (!player.intersects(player.platform)) {
 		player.enter("falling");
 	}
 });
 
+// adjust player position after landed
 player.on("idle", (p) => {
 	player.platform = p;
 	player.pos.y = p.pos.y + p.height / 2 + player.height / 2;
 	player.vel.y = 0;
 });
 
+// land on a platform makes player in idle state
 player.collides("platform", (p) => {
 	if (player.isState("falling")) {
 		player.enter("idle", p);
 	}
+});
+
+player.action(() => {
+	player.wrap(vec2(-width() / 2, -height() / 2), vec2(width() / 2, height() / 2));
 });
 
 action("bullet", (b) => {

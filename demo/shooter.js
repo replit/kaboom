@@ -21,6 +21,16 @@ function randColor() {
 	return color(r, g, b);
 }
 
+function randOnRect(p1, p2) {
+	const w = p2.x - p1.x;
+	const h = p2.y - p1.y;
+	if (chance(w / (w + h))) {
+		return vec2(rand(p1.x, p2.x), chance(0.5) ? p1.y : p2.y);
+	} else {
+		return vec2(chance(0.5) ? p1.x : p2.x, rand(p1.y, p2.y));
+	}
+}
+
 // ------------------------------------
 // Main Scene
 scene("main");
