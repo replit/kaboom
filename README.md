@@ -1,7 +1,9 @@
 
-## Minimal Example
+## Hi
 
 ```js
+text("oh hi");
+start();
 ```
 
 ## Run Demo

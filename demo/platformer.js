@@ -40,7 +40,7 @@ keyPress(" ", () => {
 
 	rect(rand(12, 16), rand(12, 16), {
 		pos: player.pos,
-		speed: 1280,
+		speed: 960,
 		tags: [ "bullet", ],
 		dir: player.dir,
 		color: randColor(),
@@ -93,7 +93,7 @@ player.during("falling", () => {
 
 player.during("idle", () => {
 	// fall if player is no longer on a platform
-	if (!player.intersects(player.platform)) {
+	if (!player.isCollided(player.platform)) {
 		player.enter("falling");
 	}
 });
@@ -142,6 +142,10 @@ rect(120, 4, {
 rect(120, 4, {
 	pos: vec2(120, 0),
 	tags: [ "platform", ],
+});
+
+keyPress("q", () => {
+	quit();
 });
 
 start();

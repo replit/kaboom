@@ -137,13 +137,17 @@ function startLoop(f) {
 		}
 
 		app.mouseState = processBtnState(app.mouseState);
-
-		requestAnimationFrame(frame);
+		app.loop = requestAnimationFrame(frame);
 
 	});
 
-	requestAnimationFrame(frame);
+	app.loop = requestAnimationFrame(frame);
 
+}
+
+// TODO: not working
+function quit() {
+	cancelAnimationFrame(app.loop);
 }
 
 function processBtnState(s) {
@@ -511,37 +515,20 @@ function drawRect(conf) {
 
 }
 
-// TODO: text formatting
-// TODO: text origin
-// draw text
 function drawText(conf) {
+	drawFChars(fmtText(conf.text, conf).chars);
+}
 
-	const font = gfx.defFont;
-	const chars = conf.text.split("");
-	const gw = font.qw * font.tex.width;
-	const gh = font.qh * font.tex.height;
-	const size = conf.size || gh;
-	const scale = vec2(size / gh).dot(vec2(conf.scale));
-	const offset = (chars.length - 1) * gw / 2 * scale.x;
-	const pos = vec2(conf.pos).sub(vec2(offset, 0));
-
-	for (const ch of chars) {
-
-		const qpos = font.map[ch];
-
+function drawFChars(fchars) {
+	for (const ch of fchars) {
 		drawRect({
-			tex: gfx.defFont.tex,
-			pos: vec2(pos),
-			scale: scale,
-			rot: conf.rot,
-			color: conf.color,
-			quad: quad(qpos.x, qpos.y, font.qw, font.qh),
+			tex: ch.tex,
+			pos: ch.pos,
+			scale: ch.scale,
+			color: ch.color,
+			quad: ch.quad,
 		});
-
-		pos.x += gw * scale.x;
-
 	}
-
 }
 
 // TODO: draw circle
@@ -555,6 +542,60 @@ function width() {
 // get current canvas height
 function height() {
 	return  gl.drawingBufferHeight;
+}
+
+function originPt(orig) {
+	switch (orig) {
+		case "topleft": return vec2(-1, 1);
+		case "top": return vec2(0, 1);
+		case "topright": return vec2(1, 1);
+		case "left": return vec2(-1, 0);
+		case "center": return vec2(0, 0);
+		case "right": return vec2(1, 0);
+		case "botleft": return vec2(-1, -1);
+		case "bot": return vec2(0, -1);
+		case "botright": return vec2(1, -1);
+	}
+}
+
+// TODO: line break
+function fmtText(text, conf) {
+
+	const font = gfx.defFont;
+	const chars = text.split("");
+	const gw = font.qw * font.tex.width;
+	const gh = font.qh * font.tex.height;
+	const size = conf.size || gh;
+	const scale = vec2(size / gh).dot(vec2(conf.scale));
+	const cw = scale.x * gw;
+	const tw = cw * chars.length;
+	const th = scale.y * gh;
+	const fchars = [];
+	const offset = originPt(conf.origin).dot(vec2(tw, th)).scale(-0.5);
+	const ox = cw / 2 - tw / 2 + offset.x;
+	const oy = offset.y;
+	let x = conf.pos.x + ox;
+	let y = conf.pos.y + oy;
+
+	for (const ch of chars) {
+		const qpos = font.map[ch];
+		fchars.push({
+			tex: gfx.defFont.tex,
+			quad: quad(qpos.x, qpos.y, font.qw, font.qh),
+			ch: ch,
+			pos: vec2(x, y),
+			color: conf.color,
+			scale: scale,
+		});
+		x += cw;
+	}
+
+	return {
+		tw: tw,
+		th: th,
+		chars: fchars,
+	};
+
 }
 
 // --------------------------------
@@ -946,6 +987,10 @@ const game = {
 	scenes: {},
 	sprites: {},
 	running: false,
+	debug: {
+		drawBBox: false,
+		showStats: false,
+	},
 };
 
 const velMap = {
@@ -1054,60 +1099,11 @@ function reload(name) {
 // adds an obj to the current scene
 function add(props) {
 
-	let w = 0;
-	let h = 0;
-
-	switch (props.type) {
-
-		case "sprite":
-
-			if (!game.sprites[props.sprite]) {
-				console.error(`sprite ${props.sprite} not found`);
-				break;
-			}
-
-			const tw = game.sprites[props.sprite].tex.width;
-			const th = game.sprites[props.sprite].tex.height;
-			w = tw;
-			h = th;
-
-			if (props.width && props.height) {
-				w = props.width;
-				h = props.height;
-			} else if (props.width && !props.height) {
-				w = props.width;
-				h = props.width / tw * th;
-			} else if (!props.width && props.height) {
-				w = props.height / th * tw;
-				h = props.height;
-			}
-
-			break;
-
-		case "rect":
-			w = props.width;
-			h = props.height;
-			break;
-
-		case "text":
-			// TODO
-			break;
-
-		case "line":
-			// TODO
-			break;
-
-		case "circle":
-			w = props.radius * 2;
-			h = props.radius * 2;
-			break;
-
-	}
-
 	const obj = {
 
 		// copy all the custom attrs
 		...props,
+		props: props,
 
 		// setting / resolving general props
 		pos: props.pos ? vec2(props.pos) : vec2(0),
@@ -1115,8 +1111,6 @@ function add(props) {
 // 		scale: props.scale ?? 1,
 		rot: props.rot || 0,
 		color: props.color || color(1, 1, 1, 1),
-		width: w,
-		height: h,
 		hidden: props.hidden === undefined ? false : props.hidden,
 // 		hidden: props.hidden ?? false,
 		layer: props.layer || 0,
@@ -1136,7 +1130,15 @@ function add(props) {
 		// add callback that runs when the obj is clicked
 		clicks(f) {
 			this.action(() => {
-				if (this.clicked()) {
+				if (this.isClicked()) {
+					f();
+				}
+			});
+		},
+
+		hovers(f) {
+			this.action(() => {
+				if (this.isHovered()) {
 					f();
 				}
 			});
@@ -1146,7 +1148,7 @@ function add(props) {
 		collides(t, f) {
 			this.action(() => {
 				applyAll(t, (obj) => {
-					if (this !== obj && this.intersects(obj)) {
+					if (this !== obj && this.isCollided(obj)) {
 						f(obj);
 					}
 				});
@@ -1159,6 +1161,7 @@ function add(props) {
 			this.lastwishes.push(f);
 		},
 
+		// TODO: is this necessary?
 		// move position
 		move(dir) {
 
@@ -1173,9 +1176,18 @@ function add(props) {
 
 		// if obj has certain tag
 		is(tag) {
+			if (Array.isArray(tag)) {
+				for (const t of tag) {
+					if (!this.tags.includes(t)) {
+						return false;
+					}
+				}
+				return true;
+			}
 			return this.tags.includes(tag);
 		},
 
+		// TODO: respect offset
 		// TODO: support custom bounding box
 		// get obj visual bounding box
 		area() {
@@ -1188,13 +1200,13 @@ function add(props) {
 		},
 
 		// if obj is hovered by mouse
-		hovered() {
+		isHovered() {
 			return this.area().hasPt(mousePos());
 		},
 
 		// if obj is clicked this frame
-		clicked() {
-			return mouseIsPressed() && this.hovered();
+		isClicked() {
+			return mouseIsPressed() && this.isHovered();
 		},
 
 		// wrap obj in a rectangle area
@@ -1212,7 +1224,7 @@ function add(props) {
 		},
 
 		// if obj intersects with another obj
-		intersects(other) {
+		isCollided(other) {
 			return this.area().intersects(other.area());
 		},
 
@@ -1267,6 +1279,55 @@ function add(props) {
 
 	};
 
+	switch (obj.type) {
+
+		case "sprite":
+
+			if (!game.sprites[obj.sprite]) {
+				console.error(`sprite ${obj.sprite} not found`);
+				break;
+			}
+
+			const tw = game.sprites[obj.sprite].tex.width;
+			const th = game.sprites[obj.sprite].tex.height;
+			obj.width = tw;
+			obj.height = th;
+
+			if (props.width && props.height) {
+				obj.width = props.width;
+				obj.height = props.height;
+			} else if (props.width && !props.height) {
+				obj.width = props.width;
+				obj.height = props.width / tw * th;
+			} else if (!props.width && props.height) {
+				obj.width = props.height / th * tw;
+				obj.height = props.height;
+			}
+
+			break;
+
+		case "rect":
+			obj.width = props.width;
+			obj.height = props.height;
+			break;
+
+		case "text":
+			const ftext = fmtText(obj.text, obj);
+			obj.width = ftext.tw;
+			obj.height = ftext.th;
+			break;
+
+		case "line":
+			// TODO
+			break;
+
+		case "circle":
+			obj.width = obj.radius * 2;
+			obj.height = obj.radius * 2;
+			break;
+
+	}
+
 	// if start(), add obj to the current scene
 	if (game.running) {
 
@@ -1291,6 +1352,7 @@ function add(props) {
 
 // add() a sprite obj
 function sprite(id, props) {
+	props = props || {};
 	return add({
 		...props,
 		type: "sprite",
@@ -1300,6 +1362,7 @@ function sprite(id, props) {
 
 // add() a rect obj
 function rect(w, h, props) {
+	props = props || {};
 	return add({
 		...props,
 		type: "rect",
@@ -1310,15 +1373,18 @@ function rect(w, h, props) {
 
 // add() a text obj
 function text(str, props) {
+	props = props || {};
 	return add({
 		...props,
 		type: "text",
 		text: str,
+		origin: props.origin || "center",
 	});
 }
 
 // add() a line obj
 function line(p1, p2, props) {
+	props = props || {};
 	return add({
 		...props,
 		type: "line",
@@ -1329,6 +1395,7 @@ function line(p1, p2, props) {
 
 // add() a circle obj
 function circle(center, radius, props) {
+	props = props || {};
 	return add({
 		...props,
 		type: "circle",
@@ -1359,7 +1426,7 @@ function collide(t1, t2, f) {
 	}
 	action(t1, (o1) => {
 		applyAll(t2, (o2) => {
-			if (o1.intersects(o2)) {
+			if (o1.isCollided(o2)) {
 				f(o1, o2);
 			}
 		});
@@ -1373,7 +1440,7 @@ function click(t, f) {
 		return;
 	}
 	action(t, (o) => {
-		if (o.clicked()) {
+		if (o.isClicked()) {
 			f(o);
 		}
 	});
@@ -1696,6 +1763,8 @@ function start(name) {
 							scale: obj.scale,
 							rot: obj.rot,
 							color: obj.color,
+							font: obj.font,
+							origin: obj.origin,
 						});
 
 						break;
@@ -1717,6 +1786,20 @@ function start(name) {
 
 	});
 
+}
+
+function drawBBox(b) {
+	if (b !== undefined) {
+		game.debug.drawBBox = b;
+	}
+	return game.debug.drawBBox;
+}
+
+function showStats(b) {
+	if (b !== undefined) {
+		game.debug.showStats = b;
+	}
+	return game.debug.showStats;
 }
 
 // asset load
@@ -1769,15 +1852,21 @@ window.volume = volume;
 
 // start
 window.start = start;
+window.quit = quit;
 
 // math
 window.vec2 = vec2;
 window.color = color;
 window.choose = choose;
 window.rand = rand;
+window.chance = chance;
 window.lerp = lerp;
 window.map = map;
 window.wave = wave;
+
+// debug
+window.showStats = showStats;
+window.drawBBox = drawBBox;
 
 scene("main");
 
