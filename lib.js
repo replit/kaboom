@@ -60,7 +60,6 @@ const app = {
 	mousePos: vec2(0, 0),
 	time: 0.0,
 	dt: 0.0,
-	paused: false,
 };
 
 const gl = document
@@ -137,17 +136,13 @@ function startLoop(f) {
 		}
 
 		app.mouseState = processBtnState(app.mouseState);
-		app.loop = requestAnimationFrame(frame);
+
+		requestAnimationFrame(frame);
 
 	});
 
-	app.loop = requestAnimationFrame(frame);
+	requestAnimationFrame(frame);
 
-}
-
-// TODO: not working
-function quit() {
-	cancelAnimationFrame(app.loop);
 }
 
 function processBtnState(s) {
@@ -515,6 +510,38 @@ function drawRect(conf) {
 
 }
 
+function drawLine(conf) {
+
+	if (gfx.curTex != gfx.defTex) {
+		flush();
+		gfx.curTex = gfx.defTex;
+	}
+
+	const p1 = conf.p1;
+	const p2 = conf.p2;
+	const w = width();
+	const h = height();
+	const dpos1 = p2.sub(p1).normal().unit().scale(conf.width / 2.0);
+	const dpos2 = p1.sub(p2).normal().unit().scale(conf.width / 2.0);
+	const cp1 = p1.sub(dpos1).dot(vec2(2 / w, 2 / h));
+	const cp2 = p1.add(dpos1).dot(vec2(2 / w, 2 / h));
+	const cp3 = p2.sub(dpos2).dot(vec2(2 / w, 2 / h));
+	const cp4 = p2.add(dpos2).dot(vec2(2 / w, 2 / h));
+	const { r, g, b, a, } = conf.color;
+
+	gfx.mesh.push([
+		cp1.x, cp1.y, 0.0, 0.0, r, g, b, a,
+		cp2.x, cp2.y, 0.0, 0.0, r, g, b, a,
+		cp3.x, cp3.y, 0.0, 0.0, r, g, b, a,
+		cp4.x, cp4.y, 0.0, 0.0, r, g, b, a,
+	], [0, 1, 2, 0, 2, 3]);
+
+}
+
+function drawCircle(conf) {
+	// TODO
+}
+
 function drawText(conf) {
 	drawFChars(fmtText(conf.text, conf).chars);
 }
@@ -532,7 +559,6 @@ function drawFChars(fchars) {
 }
 
 // TODO: draw circle
-// TODO: draw line
 
 // get current canvas width
 function width() {
@@ -562,7 +588,7 @@ function originPt(orig) {
 function fmtText(text, conf) {
 
 	const font = gfx.defFont;
-	const chars = text.split("");
+	const chars = (text + "").split("");
 	const gw = font.qw * font.tex.width;
 	const gh = font.qh * font.tex.height;
 	const size = conf.size || gh;
@@ -716,6 +742,9 @@ function vec2(x, y) {
 		},
 		unit() {
 			return this.scale(1 / this.len());
+		},
+		normal() {
+			return vec2(this.y, -this.x);
 		},
 		dot(p2) {
 			return vec2(this.x * p2.x, this.y * p2.y);
@@ -1037,21 +1066,23 @@ function scene(name) {
 			initialized: false,
 
 			// init lists
-			objsInit: [],
-			timersInit: [],
+			init: {
+				objs: [],
+				timers: [],
+			},
 
-			// group actions
-			groupActions: [],
-			lastwishes: [],
-
-			// input callbacks
-			keyDownEvents: [],
-			keyPressEvents: [],
-			keyPressRepEvents: [],
-			keyReleaseEvents: [],
-			mousePressEvents: [],
-			mouseReleaseEvents: [],
-			mouseDownEvents: [],
+			// event callbacks
+			events: {
+				action: [],
+				destroy: [],
+				keyDown: [],
+				keyPress: [],
+				keyPressRep: [],
+				keyRelease: [],
+				mousePress: [],
+				mouseRelease: [],
+				mouseDown: [],
+			},
 
 			// in game pool
 			objs: {},
@@ -1083,7 +1114,7 @@ function reload(name) {
 	for (const id in scene.objs) {
 		scene.objs[id].id = undefined;
 	}
-	for (const obj of scene.objsInit) {
+	for (const obj of scene.init.objs) {
 		for (const k in obj) {
 			if (k !== "initState") {
 				obj[k] = deepCopy(obj.initState[k]);
@@ -1118,13 +1149,16 @@ function add(props) {
 		speed: props.speed || 0,
 
 		// action lists
-		actions: [],
-		lastwishes: [],
+		events: {
+			action: [],
+			destroy: [],
+		},
+
 		states: {},
 
 		// an action is a function that's called every frame
 		action(f) {
-			this.actions.push(f);
+			this.events.action.push(f);
 		},
 
 		// add callback that runs when the obj is clicked
@@ -1233,48 +1267,67 @@ function add(props) {
 			return this.id !== undefined;
 		},
 
-		isState(state) {
-			return this.state === state;
+		state(name) {
+			return this.states[name];
 		},
 
-		enter(state, ...args) {
-			if (state === this.state) {
-				return;
-			}
-			const prevState = this.state;
-			if (this.states[prevState]) {
-				if (this.states[prevState].leave) {
-					this.states[prevState].leave();
-				}
-			}
-			this.state = state;
-			if (this.states[state]) {
-				if (this.states[state].on) {
-					this.states[state].on(...args);
-				}
-			}
-		},
+		addState(name, init) {
 
-		on(state, f) {
-			if (!this.states[state]) {
-				this.states[state] = {};
-			}
-			this.states[state].on = f;
-		},
+			const obj = this;
 
-		leave(state, f) {
-			if (!this.states[state]) {
-				this.states[state] = {};
-			}
-			this.states[state].leave = f;
-		},
+			this.states[name] = {
 
-		during(state, f) {
-			this.action(() => {
-				if (this.state === state) {
-					f();
-				}
-			});
+				state: init,
+				events: {},
+
+				enter(state, ...args) {
+					if (state === this.state) {
+						return;
+					}
+					const prevState = this.state;
+					if (this.events[prevState]) {
+						if (this.events[prevState].leave) {
+							this.events[prevState].leave();
+						}
+					}
+					this.state = state;
+					if (this.events[state]) {
+						if (this.events[state].on) {
+							this.events[state].on(...args);
+						}
+					}
+				},
+
+				is(state) {
+					return this.state == state;
+				},
+
+				on(state, f) {
+					if (!this.events[state]) {
+						this.events[state] = {};
+					}
+					this.events[state].on = f;
+				},
+
+				leave(state, f) {
+					if (!this.events[state]) {
+						this.events[state] = {};
+					}
+					this.events[state].leave = f;
+				},
+
+				during(state, f) {
+					obj.action(() => {
+						if (this.state === state) {
+							f();
+						}
+					});
+				},
+
+			};
+
+			return this.states[name];
+
 		},
 
 	};
@@ -1341,7 +1394,7 @@ function add(props) {
 	} else {
 
 		const scene = game.scenes[game.curDescScene];
-		scene.objsInit.push(obj);
+		scene.init.objs.push(obj);
 
 	}
 
@@ -1404,7 +1457,6 @@ function circle(center, radius, props) {
 	});
 }
 
-// TODO: accept multiple tags
 // add an event that runs every frame for objs with tag t
 function action(t, f) {
 	if (game.running) {
@@ -1412,7 +1464,7 @@ function action(t, f) {
 		return;
 	}
 	const scene = game.scenes[game.curDescScene];
-	scene.groupActions.push({
+	scene.events.action.push({
 		tag: t,
 		cb: f,
 	});
@@ -1471,7 +1523,7 @@ function wait(t, f) {
 	// before start(), run the timer when the scene is loaded
 	} else {
 		const scene = game.scenes[game.curDescScene];
-		scene.timersInit.push({
+		scene.init.timers.push({
 			time: t,
 			cb: f,
 		});
@@ -1491,7 +1543,7 @@ function loop(t, f) {
 // input callbacks
 function keyDown(k, f) {
 	const scene = game.scenes[game.curDescScene];
-	scene.keyDownEvents.push({
+	scene.events.keyDown.push({
 		key: k,
 		cb: f,
 	});
@@ -1499,7 +1551,7 @@ function keyDown(k, f) {
 
 function keyPress(k, f) {
 	const scene = game.scenes[game.curDescScene];
-	scene.keyPressEvents.push({
+	scene.events.keyPress.push({
 		key: k,
 		cb: f,
 	});
@@ -1507,7 +1559,7 @@ function keyPress(k, f) {
 
 function keyPressRep(k, f) {
 	const scene = game.scenes[game.curDescScene];
-	scene.keyPressRepEvents.push({
+	scene.events.keyPressRep.push({
 		key: k,
 		cb: f,
 	});
@@ -1515,7 +1567,7 @@ function keyPressRep(k, f) {
 
 function keyRelease(k, f) {
 	const scene = game.scenes[game.curDescScene];
-	scene.keyReleaseEvents.push({
+	scene.events.keyRelease.push({
 		key: k,
 		cb: f,
 	});
@@ -1523,21 +1575,21 @@ function keyRelease(k, f) {
 
 function mouseDown(f) {
 	const scene = game.scenes[game.curDescScene];
-	scene.mouseDownEvents.push({
+	scene.events.mouseDown.push({
 		cb: f,
 	});
 }
 
 function mousePress(f) {
 	const scene = game.scenes[game.curDescScene];
-	scene.mousePressEvents.push({
+	scene.events.mousePress.push({
 		cb: f,
 	});
 }
 
 function mouseRelease(f) {
 	const scene = game.scenes[game.curDescScene];
-	scene.mousePressEvents.push({
+	scene.events.mousePress.push({
 		cb: f,
 	});
 }
@@ -1560,7 +1612,7 @@ function destroy(obj) {
 		if (scene) {
 			delete scene.objs[obj.id];
 			obj.id = undefined;
-			for (const e in scene.lastwishes) {
+			for (const e of scene.events.destroy) {
 				if (obj.is(e.tag)) {
 					e.cb(obj);
 				}
@@ -1591,7 +1643,7 @@ function start(name) {
 
 	// store obj init states in memory by deep copying the states before game loop, for reloading states
 	for (const name in game.scenes) {
-		for (const obj of game.scenes[name].objsInit) {
+		for (const obj of game.scenes[name].init.objs) {
 			obj.initState = deepCopy(obj);
 		}
 	}
@@ -1610,13 +1662,13 @@ function start(name) {
 		// if scene is not initialized, add all objs and timers in init lists to the actual pool
 		if (!scene.initialized) {
 
-			for (const obj of scene.objsInit) {
+			for (const obj of scene.init.objs) {
 				scene.objs[scene.lastID] = obj;
 				obj.id = scene.lastID;
 				scene.lastID++;
 			}
 
-			for (const timer of scene.timersInit) {
+			for (const timer of scene.init.timers) {
 				scene.timers[scene.lastTimerID] = timer;
 				scene.lastTimerID++;
 			}
@@ -1627,50 +1679,50 @@ function start(name) {
 
 		// TODO: repetitive
 		// run input checks & callbacks
-		for (const e of scene.keyDownEvents) {
+		for (const e of scene.events.keyDown) {
 			if (keyIsDown(e.key)) {
 				e.cb();
 			}
 		}
 
-		for (const e of scene.keyPressEvents) {
+		for (const e of scene.events.keyPress) {
 			if (keyIsPressed(e.key)) {
 				e.cb();
 			}
 		}
 
-		for (const e of scene.keyPressRepEvents) {
+		for (const e of scene.events.keyPressRep) {
 			if (keyIsPressedRep(e.key)) {
 				e.cb();
 			}
 		}
 
-		for (const e of scene.keyReleaseEvents) {
+		for (const e of scene.events.keyRelease) {
 			if (keyIsReleased(e.key)) {
 				e.cb();
 			}
 		}
 
-		for (const e of scene.mouseDownEvents) {
+		for (const e of scene.events.mouseDown) {
 			if (mouseIsDown()) {
 				e.cb();
 			}
 		}
 
-		for (const e of scene.mousePressEvents) {
+		for (const e of scene.events.mousePress) {
 			if (mouseIsPressed()) {
 				e.cb();
 			}
 		}
 
-		for (const e of scene.mouseReleaseEvents) {
+		for (const e of scene.events.mouseRelease) {
 			if (mouseIsReleased()) {
 				e.cb();
 			}
 		}
 
 		// perform group actions
-		for (const e of scene.groupActions) {
+		for (const e of scene.events.action) {
 			for (const id in scene.objs) {
 				const obj = scene.objs[id];
 				if (obj.is(e.tag)) {
@@ -1699,9 +1751,8 @@ function start(name) {
 			}
 
 			// update obj
-			for (const action of obj.actions) {
-				// TODO: bind this?
-				action(obj);
+			for (const f of obj.events.action) {
+				f(obj);
 			}
 
 			if (obj.lifespan !== undefined) {
@@ -1742,7 +1793,6 @@ function start(name) {
 					case "rect":
 
 						drawRect({
-							tex: undefined,
 							pos: obj.pos,
 							scale: obj.scale,
 							rot: obj.rot,
@@ -1770,9 +1820,28 @@ function start(name) {
 						break;
 
 					case "line":
+
+						drawLine({
+							p1: obj.p1,
+							p2: obj.p2,
+							pos: obj.pos,
+							scale: obj.scale,
+							rot: obj.rot,
+							color: obj.color,
+							width: obj.width || 1,
+						});
+
 						break;
 
 					case "circle":
+
+						drawCircle({
+							pos: obj.pos,
+							radius: obj.radius,
+							scale: obj.scale,
+							color: obj.color,
+						});
+
 						break;
 
 					default:
@@ -1783,6 +1852,8 @@ function start(name) {
 			}
 
 		}
+
+		// TODO: draw debug stuff
 
 	});
 
@@ -1802,71 +1873,88 @@ function showStats(b) {
 	return game.debug.showStats;
 }
 
+const lib = {};
+
 // asset load
-window.loadSprite = loadSprite;
-window.loadSound = loadSound;
+lib.loadSprite = loadSprite;
+lib.loadSound = loadSound;
 
 // query
-window.width = width;
-window.height = height;
-window.dt = dt;
-window.time = time;
+lib.width = width;
+lib.height = height;
+lib.dt = dt;
+lib.time = time;
 
 // scene
-window.scene = scene;
-window.go = go;
-window.reload = reload;
+lib.scene = scene;
+lib.go = go;
+lib.reload = reload;
 
 // object creation
-window.sprite = sprite;
-window.rect = rect;
-window.text = text;
-window.line = line;
-window.circle = circle;
-window.destroy = destroy;
-window.destroyAll = destroyAll;
+lib.sprite = sprite;
+lib.rect = rect;
+lib.text = text;
+lib.line = line;
+lib.circle = circle;
+lib.destroy = destroy;
+lib.destroyAll = destroyAll;
 
 // group events
-window.action = action;
-window.lastwish = lastwish;
-window.collide = collide;
-window.click = click;
+lib.action = action;
+lib.lastwish = lastwish;
+lib.collide = collide;
+lib.click = click;
 
 // input
-window.keyDown = keyDown;
-window.keyPress = keyPress;
-window.keyPressRep = keyPressRep;
-window.keyRelease = keyRelease;
-window.mouseDown = mouseDown;
-window.mousePress = mousePress;
-window.mouseRelease = mouseRelease;
-window.mousePos = mousePos;
+lib.keyDown = keyDown;
+lib.keyPress = keyPress;
+lib.keyPressRep = keyPressRep;
+lib.keyRelease = keyRelease;
+lib.mouseDown = mouseDown;
+lib.mousePress = mousePress;
+lib.mouseRelease = mouseRelease;
+lib.mousePos = mousePos;
 
 // timer
-window.loop = loop;
-window.wait = wait;
+lib.loop = loop;
+lib.wait = wait;
 
 // audio
-window.play = play;
-window.volume = volume;
+lib.play = play;
+lib.volume = volume;
 
 // start
-window.start = start;
-window.quit = quit;
+lib.start = start;
 
 // math
-window.vec2 = vec2;
-window.color = color;
-window.choose = choose;
-window.rand = rand;
-window.chance = chance;
-window.lerp = lerp;
-window.map = map;
-window.wave = wave;
+lib.vec2 = vec2;
+lib.color = color;
+lib.choose = choose;
+lib.rand = rand;
+lib.chance = chance;
+lib.lerp = lerp;
+lib.map = map;
+lib.wave = wave;
 
 // debug
-window.showStats = showStats;
-window.drawBBox = drawBBox;
+lib.showStats = showStats;
+lib.drawBBox = drawBBox;
+
+// function init(conf) {
+// 	if (conf.global) {
+// 		Object.defineProperty(window, k, {
+// 			value: lib[k],
+// 			writable: false,
+// 		});
+// 	}
+// }
+
+for (const k in lib) {
+	Object.defineProperty(window, k, {
+		value: lib[k],
+		writable: false,
+	});
+}
 
 scene("main");
 

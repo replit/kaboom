@@ -25,11 +25,10 @@ function randColor() {
 
 // player
 const player = sprite("guy", {
-	pos: vec2(0, 320),
+	pos: vec2(0, 240),
 	vel: vec2(0),
 	speed: 320,
 	dir: "left",
-	state: "falling",
 });
 
 keyPress(" ", () => {
@@ -49,9 +48,9 @@ keyPress(" ", () => {
 });
 
 keyPress("up", () => {
-	// can only jump when player is idle
-	if (player.isState("idle")) {
-		player.enter("jumping");
+	// can only jump when player is grounded
+	if (jump.is("grounded")) {
+		jump.enter("jumping");
 	}
 });
 
@@ -65,50 +64,53 @@ keyDown("right", () => {
 	player.dir = "right";
 });
 
+const jump = player.addState("jump", "falling");
+
 // jump or fall makes player detached to the platform
-player.leave("idle", () => {
+jump.leave("grounded", () => {
 	player.platform = undefined;
 });
 
 // give upward force when enter jumping
-player.on("jumping", () => {
+jump.on("jumping", () => {
 	player.vel.y = force;
 });
 
-player.during("jumping", () => {
+jump.during("jumping", () => {
 	// rising at decreasing speed
 	player.vel.y -= G * dt() * acc;
 	player.pos = player.pos.add(player.vel.scale(dt()));
 	// enter falling state after reached the highest point
 	if (player.vel.y <= 0) {
-		player.enter("falling");
+		jump.enter("falling");
 	}
 });
 
-player.during("falling", () => {
+jump.during("falling", () => {
 	// falling down
 	player.vel.y -= G * dt() * acc;
 	player.pos = player.pos.add(player.vel.scale(dt()));
 });
 
-player.during("idle", () => {
+// TODO: this is sometimes called on init for some reason, JavaScript event loop related?
+jump.during("grounded", () => {
 	// fall if player is no longer on a platform
 	if (!player.isCollided(player.platform)) {
-		player.enter("falling");
+		jump.enter("falling");
 	}
 });
 
 // adjust player position after landed
-player.on("idle", (p) => {
+jump.on("grounded", (p) => {
 	player.platform = p;
 	player.pos.y = p.pos.y + p.height / 2 + player.height / 2;
 	player.vel.y = 0;
 });
 
-// land on a platform makes player in idle state
+// land on a platform makes player in grounded state
 player.collides("platform", (p) => {
-	if (player.isState("falling")) {
-		player.enter("idle", p);
+	if (jump.is("falling")) {
+		jump.enter("grounded", p);
 	}
 });
 
@@ -144,8 +146,9 @@ rect(120, 4, {
 	tags: [ "platform", ],
 });
 
-keyPress("q", () => {
-	quit();
+// TODO: this does not work
+keyPress("r", () => {
+	reload("main");
 });
 
 start();
