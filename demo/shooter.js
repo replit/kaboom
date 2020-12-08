@@ -1,3 +1,5 @@
+// TODO: BOSS FIGHT!!!
+
 loadSprite("guy", "guy.png");
 loadSound("shoot", "shoot.ogg");
 

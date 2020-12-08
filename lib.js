@@ -210,18 +210,21 @@ gfx.mesh = makeBatchedMesh(65536, 65536);
 gfx.prog = makeProgram(defaultVert, defaultFrag);
 gfx.defTex = makeTex(new ImageData(new Uint8ClampedArray([ 255, 255, 255, 255, ]), 1, 1));
 
-gl.clearColor(0.0, 0.0, 0.0, 1.0);
-gl.enable(gl.BLEND);
-gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
-
 loadImg("data:image/png;base64," + fontImgData, (img) => {
 	gfx.defFont = makeFont(makeTex(img), 8, 8, " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~");
 });
 
+gl.clearColor(0.0, 0.0, 0.0, 1.0);
+gl.enable(gl.BLEND);
+gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+
 function loadImg(src, f) {
 	const img = new Image();
 	img.src = src;
-	img.onload = f.bind(null, img);
+	if (f) {
+		img.onload = f.bind(null, img);
+	}
+	return img;
 }
 
 // draw all cached vertices in the batched renderer
@@ -1104,16 +1107,21 @@ function go(name) {
 }
 
 // TODO: needs more review
-// reload a scene, reset all objects to their init states
+// reload a scene, reset all objs to their init states
 function reload(name) {
+
 	const scene = game.scenes[name];
+
 	if (!scene.initialized) {
 		return;
 	}
+
 	scene.initialized = false;
+
 	for (const id in scene.objs) {
 		scene.objs[id].id = undefined;
 	}
+
 	for (const obj of scene.init.objs) {
 		for (const k in obj) {
 			if (k !== "initState") {
@@ -1121,10 +1129,12 @@ function reload(name) {
 			}
 		}
 	}
+
 	scene.objs = {};
 	scene.lastID = 0;
 	scene.timers = {};
 	scene.lastTimerID = 0;
+
 }
 
 // adds an obj to the current scene
@@ -1161,6 +1171,12 @@ function add(props) {
 			this.events.action.push(f);
 		},
 
+		// TODO: implement this in loop
+		// add callback that runs when the obj is destroyed
+		lastwish(f) {
+			this.events.destroy.push(f);
+		},
+
 		// add callback that runs when the obj is clicked
 		clicks(f) {
 			this.action(() => {
@@ -1189,21 +1205,56 @@ function add(props) {
 			});
 		},
 
-		// TODO: implement this in loop
-		// add callback that runs when the obj is destroyed
-		lastwish(f) {
-			this.lastwishes.push(f);
-		},
-
-		// TODO: is this necessary?
 		// move position
 		move(dir) {
 
 			const vel = velMap[dir];
 
 			if (vel) {
-				this.pos.x += vel.x * this.speed * dt();
-				this.pos.y += vel.y * this.speed * dt();
+
+				const dx = vel.x * this.speed * dt();
+				const dy = vel.y * this.speed * dt();
+
+				const scene = game.scenes[game.curScene];
+
+				// TODO: cache solid objects (?)
+				// TODO: spatial hashing
+				// TODO: is this a good sliding solution?
+
+				if (dx !== 0) {
+					this.onEdgeX = undefined;
+					this.pos.x += dx;
+					for (const id in scene.objs) {
+						if (this.onEdgeY === id) {
+							continue;
+						}
+						const obj = scene.objs[id];
+						if (obj.solid) {
+							if (this.isCollided(obj)) {
+								this.pos.x += (Math.sign(dx) * (obj.pos.x - this.pos.x) - (this.width + obj.width) / 2) * Math.sign(dx);
+								this.onEdgeX = id;
+							}
+						}
+					}
+				}
+
+				if (dy !== 0) {
+					this.onEdgeY = undefined;
+					this.pos.y += dy;
+					for (const id in scene.objs) {
+						if (this.onEdgeX === id) {
+							continue;
+						}
+						const obj = scene.objs[id];
+						if (obj.solid) {
+							if (this.isCollided(obj)) {
+								this.pos.y += (Math.sign(dy) * (obj.pos.y - this.pos.y) - (this.height + obj.height) / 2) * Math.sign(dy);
+								this.onEdgeY = id;
+							}
+						}
+					}
+				}
+
 			}
 
 		},
@@ -1478,8 +1529,10 @@ function collide(t1, t2, f) {
 	}
 	action(t1, (o1) => {
 		applyAll(t2, (o2) => {
-			if (o1.isCollided(o2)) {
-				f(o1, o2);
+			if (o1 !== o2) {
+				if (o1.isCollided(o2)) {
+					f(o1, o2);
+				}
 			}
 		});
 	});
@@ -1589,7 +1642,7 @@ function mousePress(f) {
 
 function mouseRelease(f) {
 	const scene = game.scenes[game.curDescScene];
-	scene.events.mousePress.push({
+	scene.events.mouseRelease.push({
 		cb: f,
 	});
 }
@@ -1914,6 +1967,13 @@ lib.mouseDown = mouseDown;
 lib.mousePress = mousePress;
 lib.mouseRelease = mouseRelease;
 lib.mousePos = mousePos;
+lib.keyIsDown = keyIsDown;
+lib.keyIsPressed = keyIsPressed;
+lib.keyIsPressedRep = keyIsPressedRep;
+lib.keyIsReleased = keyIsReleased;
+lib.mouseIsDown = mouseIsDown;
+lib.mouseIsPressed = mouseIsPressed;
+lib.mouseIsReleased = mouseIsReleased;
 
 // timer
 lib.loop = loop;
