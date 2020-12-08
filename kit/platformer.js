@@ -11,35 +11,24 @@ function addPlayer(conf) {
 
 	const player = sprite("guy", {
 		pos: conf.pos,
-		vel: vec2(0),
+		velY: 0,
 		jumpForce: conf.jumpForce === undefined ? 640 : conf.jumpForce,
 		platform: undefined,
 	});
 
 	player.action(() => {
 		if (!player.platform) {
-			player.vel.y -= world.gravity * world.acc * dt();
-			player.pos = player.pos.add(player.vel.scale(dt()));
+			player.velY -= world.gravity * world.acc * dt();
+			const res = player.move(vec2(0, player.velY));
+			if (res) {
+				player.velY = 0;
+				if (res.edge === "bottom") {
+					player.platform = res.obj;
+				}
+			}
 		} else {
 			if (!player.isCollided(player.platform)) {
 				player.platform = undefined;
-			}
-		}
-	});
-
-	// land on a platform makes player in grounded state
-	player.collides("platform", (p) => {
-		if (player.platform) {
-			return;
-		}
-		if (player.vel.y < 0) {
-			player.platform = p;
-			player.vel.y = 0;
-			player.pos.y = p.pos.y + p.height / 2 + player.height / 2;
-		} else {
-			if (p.solid) {
-				player.vel.y = 0;
-				player.pos.y = p.pos.y - p.height / 2 - player.height / 2;
 			}
 		}
 	});
@@ -51,7 +40,7 @@ function addPlayer(conf) {
 	player.jump = () => {
 		if (player.platform) {
 			player.platform = undefined;
-			player.vel.y = player.jumpForce;
+			player.velY = player.jumpForce;
 		}
 	};
 
@@ -59,18 +48,10 @@ function addPlayer(conf) {
 
 }
 
-function addPlatform(conf) {
-	return rect(conf.width, conf.height, {
-		...conf,
-		tags: [ "platform", ],
-	});
-}
-
 const lib = {};
 
 lib.initWorld = initWorld;
 lib.addPlayer = addPlayer;
-lib.addPlatform = addPlatform;
 
 for (const k in lib) {
 	Object.defineProperty(window, k, {

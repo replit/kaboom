@@ -1,18 +1,15 @@
 loadSprite("guy", "guy.png");
-loadSound("shoot", "shoot.ogg");
 
 window.onload = () => {
 
-volume(0);
-
 initWorld({
 	gravity: 9.8,
-	acc: 160,
+	acc: 120,
 });
 
 const player = addPlayer({
 	pos: vec2(0, 240),
-	jumpForce: 720,
+	jumpForce: 560,
 });
 
 keyPress("up", () => {
@@ -20,29 +17,30 @@ keyPress("up", () => {
 });
 
 keyDown("left", () => {
-	player.pos.x -= dt() * 320;
+	player.move(vec2(-320, 0));
 });
 
 keyDown("right", () => {
-	player.pos.x += dt() * 320;
+	player.move(vec2(320, 0));
 });
 
-addPlatform({
+rect(width(), 4, {
 	pos: vec2(0, -120),
-	width: width(),
-	height: 4,
+	solid: true,
 });
 
-addPlatform({
+rect(128, 4, {
 	pos: vec2(-120, 0),
-	width: 120,
-	height: 4,
+	solid: true,
 });
 
-addPlatform({
+rect(128, 4, {
 	pos: vec2(120, 0),
-	width: 120,
-	height: 4,
+	solid: true,
+});
+
+rect(32, 32, {
+	pos: vec2(120, -64),
 	solid: true,
 });
 

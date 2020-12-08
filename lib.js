@@ -1156,7 +1156,6 @@ function add(props) {
 // 		hidden: props.hidden ?? false,
 		layer: props.layer || 0,
 		tags: props.tags ? [...props.tags] : [],
-		speed: props.speed || 0,
 
 		// action lists
 		events: {
@@ -1206,56 +1205,61 @@ function add(props) {
 		},
 
 		// move position
-		move(dir) {
+		move(p) {
 
-			const vel = velMap[dir];
+			const dx = p.x * dt();
+			const dy = p.y * dt();
 
-			if (vel) {
+			const scene = game.scenes[game.curScene];
 
-				const dx = vel.x * this.speed * dt();
-				const dy = vel.y * this.speed * dt();
+			// TODO: spatial hashing
+			// TODO: is this a good collision resolution?
 
-				const scene = game.scenes[game.curScene];
+			let res = undefined;
 
-				// TODO: cache solid objects (?)
-				// TODO: spatial hashing
-				// TODO: is this a good sliding solution?
-
-				if (dx !== 0) {
-					this.onEdgeX = undefined;
-					this.pos.x += dx;
-					for (const id in scene.objs) {
-						if (this.onEdgeY === id) {
-							continue;
-						}
-						const obj = scene.objs[id];
-						if (obj.solid) {
-							if (this.isCollided(obj)) {
-								this.pos.x += (Math.sign(dx) * (obj.pos.x - this.pos.x) - (this.width + obj.width) / 2) * Math.sign(dx);
-								this.onEdgeX = id;
-							}
+			if (dx !== 0) {
+				this.onEdgeX = undefined;
+				this.pos.x += dx;
+				for (const id in scene.objs) {
+					if (this.onEdgeY === id) {
+						continue;
+					}
+					const obj = scene.objs[id];
+					if (obj.solid) {
+						if (this.isCollided(obj)) {
+							this.pos.x += (Math.sign(dx) * (obj.pos.x - this.pos.x) - (this.width + obj.width) / 2) * Math.sign(dx);
+							this.onEdgeX = id;
+							res = {
+								edge: dx < 0 ? "left" : "right",
+								obj: obj,
+							};
 						}
 					}
 				}
-
-				if (dy !== 0) {
-					this.onEdgeY = undefined;
-					this.pos.y += dy;
-					for (const id in scene.objs) {
-						if (this.onEdgeX === id) {
-							continue;
-						}
-						const obj = scene.objs[id];
-						if (obj.solid) {
-							if (this.isCollided(obj)) {
-								this.pos.y += (Math.sign(dy) * (obj.pos.y - this.pos.y) - (this.height + obj.height) / 2) * Math.sign(dy);
-								this.onEdgeY = id;
-							}
-						}
-					}
-				}
-
 			}
+
+			if (dy !== 0) {
+				this.onEdgeY = undefined;
+				this.pos.y += dy;
+				for (const id in scene.objs) {
+					if (this.onEdgeX === id) {
+						continue;
+					}
+					const obj = scene.objs[id];
+					if (obj.solid) {
+						if (this.isCollided(obj)) {
+							this.pos.y += (Math.sign(dy) * (obj.pos.y - this.pos.y) - (this.height + obj.height) / 2) * Math.sign(dy);
+							this.onEdgeY = id;
+							res = {
+								edge: dy < 0 ? "bottom" : "top",
+								obj: obj,
+							};
+						}
+					}
+				}
+			}
+
+			return res;
 
 		},
 
