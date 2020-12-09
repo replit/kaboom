@@ -9,6 +9,13 @@ volume(0);
 
 const powerTime = 4;
 
+const velMap = {
+	left: vec2(-1, 0),
+	right: vec2(1, 0),
+	up: vec2(0, 1),
+	down: vec2(0, -1),
+};
+
 function randColor() {
 	const r = choose([0, 1]);
 	const g = choose([0, 1]);
@@ -84,7 +91,7 @@ player.collides("candy", (p) => {
 
 for (const dir of [ "left", "right", "up", "down", ]) {
 	keyDown(dir, () => {
-		player.move(dir);
+		player.move(velMap[dir].scale(player.speed));
 		player.dir = dir;
 	});
 }
@@ -169,7 +176,7 @@ action("candy", (c) => {
 
 action("bullet", (b) => {
 
-	b.move(b.dir);
+	b.move(velMap[b.dir].scale(b.speed));
 	b.color = randColor();
 	b.width = rand(4, 8);
 	b.height = rand(4, 8);

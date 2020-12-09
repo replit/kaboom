@@ -1025,13 +1025,6 @@ const game = {
 	},
 };
 
-const velMap = {
-	left: vec2(-1, 0),
-	right: vec2(1, 0),
-	up: vec2(0, 1),
-	down: vec2(0, -1),
-};
-
 // load a sprite to asset manager
 function loadSprite(id, src, conf) {
 
@@ -1058,7 +1051,7 @@ function loadSprite(id, src, conf) {
 function scene(name) {
 
 	if (game.running) {
-		console.log("'scene' can only be called at init");
+		console.error("'scene' can only be called at init");
 		return;
 	}
 
@@ -1137,6 +1130,81 @@ function reload(name) {
 
 }
 
+function aabb(r1, r2, dx, dy) {
+
+	const normal = vec2(0, 0);
+	let xInvEntry, yInvEntry;
+	let xInvExit, yInvExit;
+
+	if (dx > 0) {
+		xInvEntry = r2.p1.x - r1.p2.x;
+		xInvExit = r2.p2.x - r1.p1.x;
+	} else {
+		xInvEntry = r2.p2.x - r1.p1.x;
+		xInvExit = r2.p1.x - r1.p2.x;
+	}
+
+	if (dy > 0) {
+		yInvEntry = r2.p1.y - r1.p2.y;
+		yInvExit = r2.p2.y - r1.p1.y;
+	} else {
+		yInvEntry = r2.p2.y - r1.p1.y;
+		yInvExit = r2.p1.y - r1.p2.y;
+	}
+
+	let xEntry, yEntry;
+	let xExit, yExit;
+
+	if (dx === 0) {
+		xEntry = -Infinity;
+		xExit = Infinity;
+	} else {
+		xEntry = xInvEntry / dx;
+		xExit = xInvExit / dx;
+	}
+
+	if (dy === 0) {
+		yEntry = -Infinity;
+		yExit = Infinity;
+	} else {
+		yEntry = yInvEntry / dy;
+		yExit = yInvExit / dy;
+	}
+
+	const entryTime = Math.max(xEntry, yEntry);
+	const exitTime = Math.min(xExit, yExit);
+
+	if (entryTime > exitTime || xEntry < 0 && yEntry < 0 || xEntry > 1 || yEntry > 1) {
+		return {
+			normal: normal,
+			t: 1,
+		};
+	} else {
+		if (xEntry > yEntry) {
+			if (xInvEntry < 0) {
+				normal.x = 1;
+				normal.y = 0;
+			} else {
+				normal.x = -1;
+				normal.y = 0;
+			}
+		} else {
+			if (yInvEntry < 0) {
+				normal.x = 0;
+				normal.y = 1;
+			} else {
+				normal.x = 0;
+				normal.y = -1;
+			}
+		}
+		return {
+			normal: normal,
+			t: entryTime,
+		};
+	}
+
+};
+
 // adds an obj to the current scene
 function add(props) {
 
@@ -1204,7 +1272,7 @@ function add(props) {
 			});
 		},
 
-		// move position
+		// move and resolve for collision
 		move(p) {
 
 			const dx = p.x * dt();
@@ -1213,7 +1281,22 @@ function add(props) {
 			const scene = game.scenes[game.curScene];
 
 			// TODO: spatial hashing
-			// TODO: is this a good collision resolution?
+			// TODO: try resolve base on normal
+
+// 			let t = 1;
+
+// 			for (const id in scene.objs) {
+// 				const obj = scene.objs[id];
+// 				if (obj.solid) {
+// 					const res = aabb(this.area(), obj.area(), dx, dy);
+// 					if (res.t < t) {
+// 						t = res.t;
+// 					}
+// 				}
+// 			}
+
+// 			this.pos.x += dx * t;
+// 			this.pos.y += dy * t;
 
 			let res = undefined;
 
@@ -1515,7 +1598,7 @@ function circle(center, radius, props) {
 // add an event that runs every frame for objs with tag t
 function action(t, f) {
 	if (game.running) {
-		console.log("'all' can only be called at init");
+		console.error("'all' can only be called at init");
 		return;
 	}
 	const scene = game.scenes[game.curDescScene];
@@ -1528,7 +1611,7 @@ function action(t, f) {
 // add an event that runs with objs with t1 collides with objs with t2
 function collide(t1, t2, f) {
 	if (game.running) {
-		console.log("'collide' can only be called at init");
+		console.error("'collide' can only be called at init");
 		return;
 	}
 	action(t1, (o1) => {
@@ -1545,7 +1628,7 @@ function collide(t1, t2, f) {
 // add an event that runs when objs with tag t is clicked
 function click(t, f) {
 	if (game.running) {
-		console.log("'click' can only be called at init");
+		console.error("'click' can only be called at init");
 		return;
 	}
 	action(t, (o) => {
@@ -1558,7 +1641,7 @@ function click(t, f) {
 // add an event that runs when objs with tag t is destroyed
 function lastwish(t, f) {
 	if (game.running) {
-		console.log("'lastwish' can only be called at init");
+		console.error("'lastwish' can only be called at init");
 		return;
 	}
 	game.scenes[game.curDescScene].lastwishes.push({
@@ -1685,7 +1768,7 @@ function destroyAll(t) {
 	});
 }
 
-// TODO: on screen error message? that'll be cool
+// TODO: on screen error message?
 // end the scene describing phase, start the main loop with the provided scene
 function start(name) {
 
