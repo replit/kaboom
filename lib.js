@@ -1253,35 +1253,32 @@ function add(props) {
 
 		// action lists
 		events: {
+			init: [],
 			action: [],
-			destroy: [],
+			leave: [],
 		},
 
 		states: {},
+
+		// runs when the obj is added to scene
+		init() {
+			this.events.init.push(f);
+		},
 
 		// an action is a function that's called every frame
 		action(f) {
 			this.events.action.push(f);
 		},
 
-		// TODO: implement this in loop
-		// add callback that runs when the obj is destroyed
-		lastwish(f) {
-			this.events.destroy.push(f);
+		// runs when the obj is destroyed
+		leave(f) {
+			this.events.leave.push(f);
 		},
 
 		// add callback that runs when the obj is clicked
 		clicks(f) {
 			this.action(() => {
 				if (this.isClicked()) {
-					f();
-				}
-			});
-		},
-
-		hovers(f) {
-			this.action(() => {
-				if (this.isHovered()) {
 					f();
 				}
 			});
@@ -1390,8 +1387,9 @@ function add(props) {
 		// get obj visual bounding box
 		area() {
 
-			const p1 = this.pos.sub(vec2(this.width / 2, this.height / 2));
-			const p2 = this.pos.add(vec2(this.width / 2, this.height / 2));
+			const s = vec2(this.scale);
+			const p1 = this.pos.sub(vec2(this.width * s.x / 2, this.height * s.x / 2));
+			const p2 = this.pos.add(vec2(this.width * s.y / 2, this.height * s.y / 2));
 
 			return area(p1, p2);
 
@@ -1667,10 +1665,11 @@ function click(t, f) {
 // add an event that runs when objs with tag t is destroyed
 function lastwish(t, f) {
 	if (game.running) {
-		console.error("'lastwish' can only be called at init");
+		console.error("'all' can only be called at init");
 		return;
 	}
-	game.scenes[game.curDescScene].lastwishes.push({
+	const scene = game.scenes[game.curDescScene];
+	scene.events.destroy.push({
 		tag: t,
 		cb: f,
 	});
@@ -1776,13 +1775,13 @@ function destroy(obj) {
 	const scene = game.scenes[game.curScene];
 	if (obj.id) {
 		if (scene) {
-			delete scene.objs[obj.id];
-			obj.id = undefined;
 			for (const e of scene.events.destroy) {
 				if (obj.is(e.tag)) {
 					e.cb(obj);
 				}
 			}
+			delete scene.objs[obj.id];
+			delete obj.id;
 		}
 	}
 }

@@ -1,5 +1,3 @@
-// TODO: BOSS FIGHT!!!
-
 init();
 loadSprite("guy", "guy.png");
 loadSound("shoot", "shoot.ogg");
@@ -144,6 +142,8 @@ function addScore() {
 
 	if (score.value % 10 == 0) {
 		addCandy();
+		destroyAll("enemy");
+		addBoss();
 	}
 
 }
@@ -154,6 +154,7 @@ function addEnemy() {
 		tags: [ "enemy", ],
 		color: color(0, 0, 1),
 		speed: 80,
+		life: 1,
 	});
 }
 
@@ -162,6 +163,17 @@ addEnemy();
 loop(0.7, () => {
 	addEnemy();
 });
+
+function addBoss() {
+	sprite("guy", {
+		pos: randOnRect(vec2(-width() / 2, -height() / 2), vec2(width() / 2, height() / 2)),
+		tags: [ "enemy", ],
+		color: color(0, 0, 1),
+		speed: 80,
+		scale: 8,
+		life: 20,
+	});
+}
 
 function addCandy() {
 	rect(16, 16, {
@@ -195,20 +207,35 @@ action("enemy", (e) => {
 
 collide("bullet", "enemy", (b, e) => {
 
-	destroy(e);
-	destroy(b);
-	addScore();
-
-	play("shoot", {
-		speed: 3.0,
-		detune: 1200,
+	rect(0, 0, {
+		pos: b.pos,
+		color: randColor(),
+		lifespan: 0.05,
+		tags: [ "explosion", ],
 	});
+
+	e.life--;
+	destroy(b);
+
+	if (e.life <= 0) {
+		destroy(e);
+		addScore();
+	}
+
+});
+
+lastwish("enemy", (e) => {
 
 	rect(0, 0, {
 		pos: e.pos,
 		color: randColor(),
 		lifespan: 0.1,
 		tags: [ "explosion", ],
+	});
+
+	play("shoot", {
+		speed: 3.0,
+		detune: 1200,
 	});
 
 });

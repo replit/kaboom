@@ -28,7 +28,7 @@ const page = t("html", {}, [
 	]),
 	t("body", {}, [
 		t("div", { id: "main", }, [
-			t("p", {}, "hi"),
+			t("p", {}, "Let's make a shooter game!"),
 			t("pre", {}, [
 				t("code", { class: "javascript", },
 `// TODO: BOSS FIGHT!!!
@@ -302,10 +302,9 @@ start("start");
 };`
 				)
 			]),
-		])
+		]),
 	]),
 ]);
 
 module.exports = "<!DOCTYPE html>" + page;
-
 
