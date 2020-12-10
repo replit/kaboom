@@ -62,15 +62,6 @@ const app = {
 	dt: 0.0,
 };
 
-const gl = document
-	.querySelector("#game")
-	.getContext("webgl", {
-		antialias: false,
-		depth: false,
-		stencil: false,
-		alpha: true,
-	});
-
 const keyMap = {
 	"ArrowLeft": "left",
 	"ArrowRight": "right",
@@ -86,38 +77,66 @@ const preventDefaultKeys = [
 	"down",
 ];
 
-// add DOM event listeners
-gl.canvas.addEventListener("mousemove", (e) => {
-	app.mousePos = vec2(
-		e.offsetX - gl.drawingBufferWidth / 2,
-		gl.drawingBufferHeight / 2 - e.offsetY
-	);
-});
+// TODO: make this not global?
+let gl;
 
-gl.canvas.addEventListener("mousedown", (e) => {
-	app.mouseState = "pressed";
-});
+function init(conf) {
 
-gl.canvas.addEventListener("mouseup", (e) => {
-	app.mouseState = "released";
-});
+	conf = conf || {};
 
-document.addEventListener("keydown", (e) => {
-	const k = keyMap[e.key] || e.key;
-	if (preventDefaultKeys.includes(k)) {
-		e.preventDefault();
+	let canvas = conf.canvas;
+
+	if (!canvas) {
+		canvas = document.createElement("canvas");
+		canvas.width = conf.width || 640;
+		canvas.height = conf.height || 480;
+		document.body.appendChild(canvas);
 	}
-	if (e.repeat) {
-		app.keyStates[k] = "rpressed";
-	} else {
-		app.keyStates[k] = "pressed";
-	}
-});
 
-document.addEventListener("keyup", (e) => {
-	const k = keyMap[e.key] || e.key;
-	app.keyStates[k] = "released";
-});
+	gl = canvas
+		.getContext("webgl", {
+			antialias: false,
+			depth: false,
+			stencil: false,
+			alpha: true,
+		});
+
+	gfxInit();
+	audioInit();
+
+	canvas.addEventListener("mousemove", (e) => {
+		app.mousePos = vec2(
+			e.offsetX - gl.drawingBufferWidth / 2,
+			gl.drawingBufferHeight / 2 - e.offsetY
+		);
+	});
+
+	canvas.addEventListener("mousedown", (e) => {
+		app.mouseState = "pressed";
+	});
+
+	canvas.addEventListener("mouseup", (e) => {
+		app.mouseState = "released";
+	});
+
+	document.addEventListener("keydown", (e) => {
+		const k = keyMap[e.key] || e.key;
+		if (preventDefaultKeys.includes(k)) {
+			e.preventDefault();
+		}
+		if (e.repeat) {
+			app.keyStates[k] = "rpressed";
+		} else {
+			app.keyStates[k] = "pressed";
+		}
+	});
+
+	document.addEventListener("keyup", (e) => {
+		const k = keyMap[e.key] || e.key;
+		app.keyStates[k] = "released";
+	});
+
+}
 
 // starts main loop
 function startLoop(f) {
@@ -204,19 +223,19 @@ function time() {
 // gfx system init
 const gfx = {};
 
-gfx.drawCalls = 0;
-gfx.cam = vec2(0, 0);
-gfx.mesh = makeBatchedMesh(65536, 65536);
-gfx.prog = makeProgram(defaultVert, defaultFrag);
-gfx.defTex = makeTex(new ImageData(new Uint8ClampedArray([ 255, 255, 255, 255, ]), 1, 1));
-
-loadImg("data:image/png;base64," + fontImgData, (img) => {
-	gfx.defFont = makeFont(makeTex(img), 8, 8, " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~");
-});
-
-gl.clearColor(0.0, 0.0, 0.0, 1.0);
-gl.enable(gl.BLEND);
-gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+function gfxInit() {
+	gfx.drawCalls = 0;
+	gfx.cam = vec2(0, 0);
+	gfx.mesh = makeBatchedMesh(65536, 65536);
+	gfx.prog = makeProgram(defaultVert, defaultFrag);
+	gfx.defTex = makeTex(new ImageData(new Uint8ClampedArray([ 255, 255, 255, 255, ]), 1, 1));
+	gl.clearColor(0.0, 0.0, 0.0, 1.0);
+	gl.enable(gl.BLEND);
+	gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+	loadImg("data:image/png;base64," + fontImgData, (img) => {
+		gfx.defFont = makeFont(makeTex(img), 8, 8, " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~");
+	});
+}
 
 function loadImg(src, f) {
 	const img = new Image();
@@ -632,13 +651,18 @@ function fmtText(text, conf) {
 
 // audio system init
 const audio = {};
-const AudioContext = window.AudioContext || window.webkitAudioContext;
 
-audio.sounds = {};
-audio.ctx = new AudioContext();
-audio.gainNode = audio.ctx.createGain();
-audio.gainNode.gain.value = 1;
-audio.gainNode.connect(audio.ctx.destination);
+function audioInit() {
+
+	const AudioContext = window.AudioContext || window.webkitAudioContext;
+
+	audio.sounds = {};
+	audio.ctx = new AudioContext();
+	audio.gainNode = audio.ctx.createGain();
+	audio.gainNode.gain.value = 1;
+	audio.gainNode.connect(audio.ctx.destination);
+
+}
 
 // TODO: move this to game system
 // load a sound to asset manager
@@ -2016,6 +2040,7 @@ function showStats(b) {
 const lib = {};
 
 // asset load
+lib.init = init;
 lib.loadSprite = loadSprite;
 lib.loadSound = loadSound;
 
@@ -2086,15 +2111,6 @@ lib.wave = wave;
 // debug
 lib.showStats = showStats;
 lib.drawBBox = drawBBox;
-
-// function init(conf) {
-// 	if (conf.global) {
-// 		Object.defineProperty(window, k, {
-// 			value: lib[k],
-// 			writable: false,
-// 		});
-// 	}
-// }
 
 for (const k in lib) {
 	Object.defineProperty(window, k, {

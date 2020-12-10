@@ -1,5 +1,8 @@
+// serve http
+
 const http = require("http");
 const dofile = require("./dofile");
+const port = process.env.PORT || 8000;
 
 const server = http.createServer((req, res) => {
 	res.setHeader("Content-Type", "text/html; charset=utf-8");
@@ -7,5 +10,6 @@ const server = http.createServer((req, res) => {
 	res.end(dofile("./page"));
 });
 
-server.listen(8080);
+console.log(`http://localhost:${port}`);
+server.listen(port);
 

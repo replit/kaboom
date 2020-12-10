@@ -1,3 +1,5 @@
+// main page
+
 const dofile = require("./dofile");
 const www = dofile("./www");
 const api = dofile("./api");
@@ -116,5 +118,5 @@ const page = t("html", {}, [
 	]),
 ]);
 
-module.exports = page;
+module.exports = "<!DOCTYPE html>" + page;
 

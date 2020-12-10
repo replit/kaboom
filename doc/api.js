@@ -1,3 +1,5 @@
+// api desc
+
 function f(name, args, ret, desc) {
 	return {
 		name: name,

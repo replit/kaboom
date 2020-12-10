@@ -1,3 +1,4 @@
+init();
 loadSprite("guy", "guy.png");
 
 window.onload = () => {

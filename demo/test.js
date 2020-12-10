@@ -1,3 +1,5 @@
+init();
+
 window.onload = () => {
 
 const player = rect(12, 12, {
