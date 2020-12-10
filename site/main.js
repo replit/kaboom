@@ -1,82 +1,63 @@
-// main page
+// reference page
 
+const fs = require("fs");
 const dofile = require("./dofile");
 const www = dofile("./www");
 const api = dofile("./api");
+const styles = dofile("./styles");
 const t = www.tag;
 
-const styles = {
+const styles2 = {
 
-	"*": {
-		"margin": "0",
-		"padding": "0",
-		"font-family": "Monospace",
-	},
+	"#sidebar": {
 
-	"html": {
-		"width": "100%",
-	},
+		"width": "20%",
+		"position": "fixed",
 
-	"body": {
-		"width": "100%",
-	},
+		".section": {
 
-	"#main": {
-
-		"width": "80%",
-		"margin": "64px auto",
-
-		"#sidebar": {
-
-			"width": "20%",
-			"position": "fixed",
-
-			".section": {
-
-				".title": {
-					"font-size": "18px",
-					"font-weight": "bold",
-					"margin-top": "16px",
-					"margin-bottom": "12px",
-				},
-
-				".entry": {
-					"font-size": "16px",
-					"display": "table",
-					"color": "blue",
-					":hover": {
-						"text-decoration": "underline",
-						"cursor": "pointer",
-					},
-					":visited": {
-						"color": "blue",
-					},
-				},
+			".title": {
+				"font-size": "18px",
+				"font-weight": "bold",
+				"margin-top": "16px",
+				"margin-bottom": "12px",
 			},
 
+			".entry": {
+				"font-size": "16px",
+				"display": "table",
+				"color": "blue",
+				":hover": {
+					"text-decoration": "underline",
+					"cursor": "pointer",
+				},
+				":visited": {
+					"color": "blue",
+				},
+			},
 		},
 
-		"#content": {
+	},
 
-			"width": "84%",
-			"float": "right",
+	"#content": {
 
-			".entry": {
+		"width": "80%",
+		"float": "right",
 
-				"width": "100%",
-				"margin-bottom": "24px",
+		".entry": {
 
-				".title": {
-					"font-size": "24px",
-					"display": "block",
-					"margin-bottom": "16px",
-				},
+			"width": "100%",
+			"margin-bottom": "24px",
 
-				".desc": {
-					"font-size": "16px",
-					"word-wrap": "break-word",
-				},
+			".title": {
+				"font-size": "24px",
+				"display": "block",
+				"margin-bottom": "16px",
+			},
 
+			".desc": {
+				"font-size": "16px",
+				"word-wrap": "break-word",
 			},
 
 		},
@@ -90,6 +71,10 @@ const page = t("html", {}, [
 		t("title", {}, "gamelib"),
 		t("meta", { charset: "utf-8", }),
 		t("style", {}, www.style(styles)),
+		t("style", {}, www.style(styles2)),
+		t("style", {}, fs.readFileSync(`${__dirname}/lib/highlight.css`, "utf-8")),
+		t("script", {}, fs.readFileSync(`${__dirname}/lib/highlight.js`, "utf-8")),
+		t("script", {}, "hljs.initHighlightingOnLoad();"),
 	]),
 	t("body", {}, [
 		t("div", { id: "main", }, [

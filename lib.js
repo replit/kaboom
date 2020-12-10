@@ -136,6 +136,8 @@ function init(conf) {
 		app.keyStates[k] = "released";
 	});
 
+	scene("main");
+
 }
 
 // starts main loop
@@ -2118,8 +2120,6 @@ for (const k in lib) {
 		writable: false,
 	});
 }
-
-scene("main");
 
 })();
 
