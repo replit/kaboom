@@ -9,6 +9,11 @@ const t = www.tag;
 
 const styles2 = {
 
+	"#main": {
+		"width": "70%",
+		"margin": "64px auto",
+	},
+
 	"#sidebar": {
 
 		"width": "20%",
@@ -75,6 +80,7 @@ const page = t("html", {}, [
 		t("style", {}, fs.readFileSync(`${__dirname}/lib/highlight.css`, "utf-8")),
 		t("script", {}, fs.readFileSync(`${__dirname}/lib/highlight.js`, "utf-8")),
 		t("script", {}, "hljs.initHighlightingOnLoad();"),
+		t("script", {}, "hljs.configure({tabReplace: \"    \"});"),
 	]),
 	t("body", {}, [
 		t("div", { id: "main", }, [

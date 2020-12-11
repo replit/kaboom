@@ -4,15 +4,27 @@ const http = require("http");
 const dofile = require("./dofile");
 const port = process.env.PORT || 8000;
 
-const server = http.createServer((req, res) => {
+function html(res, txt) {
+	res.setHeader("Content-Type", "text/html; charset=utf-8");
+	res.writeHead(200);
+	res.end(txt);
+}
+
+function serve(req, res) {
 	if (req.url === "/") {
-		res.setHeader("Content-Type", "text/html; charset=utf-8");
-		res.writeHead(200);
-		res.end(dofile("./main"));
+		html(res, dofile("./main"));
 	} else if (req.url === "/guide") {
-		res.setHeader("Content-Type", "text/html; charset=utf-8");
-		res.writeHead(200);
-		res.end(dofile("./guide"));
+		html(res, dofile("./guide"));
+	}
+}
+
+const server = http.createServer((req, res) => {
+	try {
+		serve(req, res);
+	} catch (e) {
+		console.log(e);
+		res.writeHead(500);
+		res.end(e.stack);
 	}
 });
 

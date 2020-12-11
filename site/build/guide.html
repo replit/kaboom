@@ -1,12 +1,16 @@
-<!DOCTYPE html><html><head><title>gamelib</title><meta charset="utf-8"><style>* {margin:0;padding:0;font-family:Monospace;}html {width:100%;}body {width:100%;}#main {width:80%;margin:64px auto;}#main #sidebar {width:20%;position:fixed;}#main #sidebar .section {}#main #sidebar .section .title {font-size:18px;font-weight:bold;margin-top:16px;margin-bottom:12px;}#main #sidebar .section .entry {font-size:16px;display:table;color:blue;}#main #sidebar .section .entry:hover {text-decoration:underline;cursor:pointer;}#main #sidebar .section .entry:visited {color:blue;}#main #content {width:84%;float:right;}#main #content .entry {width:100%;margin-bottom:24px;}#main #content .entry .title {font-size:24px;display:block;margin-bottom:16px;}#main #content .entry .desc {font-size:16px;word-wrap:break-word;}</style><style>code {padding:24px;margin:24px 0px;border-radius:24px;background:#eee !important;}</style><style>/* http://jmblog.github.com/color-themes-for-google-code-highlightjs */
+<!DOCTYPE html><html><head><title>Let's Make a Shooter Game!</title><meta charset="utf-8"><style>* {margin:0;padding:0;font-family:Monospace;}html {width:100%;}body {width:100%;}#main {width:70%;margin:64px auto;}</style><style>code {font-size:16px;padding:0 !important;margin:24px 0px;border-radius:6px;border:2px solid #ddd;background:#f7f7f7 !important;}.inline {padding:0 6px;border-radius:6px;border:2px solid #ddd;background:#f7f7f7 !important;}.desc {font-size:18px;margin:24px 0;line-height:1.5;}.code {display:block;padding:6px 12px;}.code.add {background:#e0ffe0 !important;}.code.del {background:#ffe0e0 !important;}</style><style>/*
+    Paraíso (light)
+    Created by Jan T. Sott (http://github.com/idleberg)
+    Inspired by the art of Rubens LP (http://www.rubenslp.com.br)
+*/
 
-/* Tomorrow Comment */
+/* Paraíso Comment */
 .hljs-comment,
 .hljs-quote {
-  color: #8e908c;
+  color: #776e71;
 }
 
-/* Tomorrow Red */
+/* Paraíso Red */
 .hljs-variable,
 .hljs-template-variable,
 .hljs-tag,
@@ -14,52 +18,48 @@
 .hljs-selector-id,
 .hljs-selector-class,
 .hljs-regexp,
-.hljs-deletion {
-  color: #c82829;
+.hljs-link,
+.hljs-meta {
+  color: #ef6155;
 }
 
-/* Tomorrow Orange */
+/* Paraíso Orange */
 .hljs-number,
 .hljs-built_in,
 .hljs-builtin-name,
 .hljs-literal,
 .hljs-type,
 .hljs-params,
-.hljs-meta,
-.hljs-link {
-  color: #f5871f;
+.hljs-deletion {
+  color: #f99b15;
 }
 
-/* Tomorrow Yellow */
+/* Paraíso Yellow */
+.hljs-title,
+.hljs-section,
 .hljs-attribute {
-  color: #eab700;
+  color: #fec418;
 }
 
-/* Tomorrow Green */
+/* Paraíso Green */
 .hljs-string,
 .hljs-symbol,
 .hljs-bullet,
 .hljs-addition {
-  color: #718c00;
+  color: #48b685;
 }
 
-/* Tomorrow Blue */
-.hljs-title,
-.hljs-section {
-  color: #4271ae;
-}
-
-/* Tomorrow Purple */
+/* Paraíso Purple */
 .hljs-keyword,
 .hljs-selector-tag {
-  color: #8959a8;
+  color: #815ba4;
 }
 
 .hljs {
   display: block;
   overflow-x: auto;
-  background: white;
-  color: #4d4d4c;
+  background: #e7e9db;
+  color: #4f424c;
   padding: 0.5em;
 }
 
@@ -410,273 +410,63 @@ beginKeywords:"extends"},t.UNDERSCORE_TITLE_MODE]},{begin:/\b(?=constructor)/,
 end:/[{;]/,excludeEnd:!0,contains:[t.inherit(t.TITLE_MODE,{begin:c}),"self",p]
 },{begin:"(get|set)\\s+(?="+c+"\\()",end:/\{/,keywords:"get set",
 contains:[t.inherit(t.TITLE_MODE,{begin:c}),{begin:/\(\)/},p]},{begin:/\$[(.]/}]
-}}})());</script><script>hljs.initHighlightingOnLoad();</script></head><body><div id="main"><p>hi</p><pre><code class="javascript">// TODO: BOSS FIGHT!!!
+}}})());</script><script>hljs.initHighlightingOnLoad();</script><script>hljs.configure({tabReplace: "    "});</script></head><body><div id="main"><p class="desc"><span>Let's make a shooter game!</span></p><p class="desc"><span>first we should call the </span><span class="inline">init()</span><span> function to initialize our game:</span></p><pre><code class="javascript"><span class="code add">init({
+	width: 640,
+	height: 480,
+});
+</span></code></pre><p class="desc"><span>this will help us create a 640x480 canvas for drawing the game view. Try running this piece of code! Wild 640x480 canvas appears!</span></p><p class="desc"><span>then let's load our resources!</span></p><pre><code class="javascript"><span class="code">init({
+	width: 640,
+	height: 480,
+});
 
-init();
+</span><span class="code add">loadSprite("guy", "guy.png");
+</span></code></pre><p class="desc"><span>this will load the image file "guy.png" into the asset manager, with the name "guy"</span></p><p class="desc"><span>Let's put this image into our game as a character! To do this we are going to create a new scene, called "main"</span></p><pre><code class="javascript"><span class="code">init({
+	width: 640,
+	height: 480,
+});
+
 loadSprite("guy", "guy.png");
-loadSound("shoot", "shoot.ogg");
 
-window.onload = () => {
+</span><span class="code add">scene("main");
 
-volume(0);
+// put stuff in "main" scene here
 
-const powerTime = 4;
+start();
+</span></code></pre><p class="desc"><span>any code below this </span><span class="inline">scene()</span><span> call will be describing what we're going to put into this scene, until another </span><span class="inline">scene()</span><span> call, or a </span><span class="inline">start()</span><span> call to end the scene building and start the game</span></p><p class="desc"><span>Let's add the player sprite to the scene:</span></p><pre><code class="javascript"><span class="code">init({
+	width: 640,
+	height: 480,
+});
 
-const velMap = {
-	left: vec2(-1, 0),
-	right: vec2(1, 0),
-	up: vec2(0, 1),
-	down: vec2(0, -1),
-};
+loadSprite("guy", "guy.png");
 
-function randColor() {
-	const r = choose([0, 1]);
-	const g = choose([0, 1]);
-	let b;
-	if (r === 1 && g === 1) {
-		b = 0;
-	} else if (r === 0 && g === 0) {
-		b = 1;
-	} else {
-		b = choose([0, 1]);
-	}
-	return color(r, g, b);
-}
-
-function randOnRect(p1, p2) {
-	const w = p2.x - p1.x;
-	const h = p2.y - p1.y;
-	if (chance(w / (w + h))) {
-		return vec2(rand(p1.x, p2.x), chance(0.5) ? p1.y : p2.y);
-	} else {
-		return vec2(chance(0.5) ? p1.x : p2.x, rand(p1.y, p2.y));
-	}
-}
-
-// ------------------------------------
-// Main Scene
 scene("main");
-
-// player
-const player = sprite("guy", {
-	pos: vec2(0),
-	power: 0,
-	dir: "up",
-	speed: 480,
+</span><span class="code add">const player = sprite("guy");
+</span><span class="code">start();
+</span></code></pre><p class="desc"><span>the function </span><span class="inline">sprite(name)</span><span> adds a sprite with specified name to the scene, returning the reference to the game object. Try run the game now! There'll now be a player in the middle of the screen!</span></p><p class="desc"><span>now let's make the player move around with our keys!</span></p><pre><code class="javascript"><span class="code">init({
+	width: 640,
+	height: 480,
 });
 
-// action runs every frame
-player.action(() => {
+loadSprite("guy", "guy.png");
 
-	player.wrap(vec2(-width() / 2, -height() / 2), vec2(width() / 2, height() / 2));
+scene("main");
+const player = sprite("guy");
+</span><span class="code add">const speed = 320;
 
-	if (player.power > 0) {
-
-		player.color = randColor();
-		player.power -= dt();
-		player.scale = wave(1, 1.5, 10);
-
-		if (player.power <= 0) {
-			player.power = 0;
-			player.color = color(1, 1, 1);
-			player.scale = 1;
-		}
-
-	}
-
+keyDown("left", () => {
+	player.move(vec2(-speed, 0));
 });
 
-player.collides("enemy", (e) => {
-
-	if (player.power > 0) {
-		return;
-	}
-
-	reload("death");
-	go("death");
-
+keyDown("right", () => {
+	player.move(vec2(speed, 0));
 });
 
-player.collides("candy", (p) => {
-	destroy(p);
-	player.power = powerTime;
+keyDown("up", () => {
+	player.move(vec2(0, speed));
 });
 
-for (const dir of [ "left", "right", "up", "down", ]) {
-	keyDown(dir, () => {
-		player.move(velMap[dir].scale(player.speed));
-		player.dir = dir;
-	});
-}
-
-keyPress(" ", () => {
-
-	play("shoot", {
-		detune: rand(-600, 600),
-	});
-
-	rect(rand(12, 16), rand(12, 16), {
-		pos: player.pos,
-		speed: 1280,
-		tags: [ "bullet", ],
-		dir: player.dir,
-		color: randColor(),
-	});
-
+keyDown("right", () => {
+	player.move(vec2(0, -speed));
 });
-
-// power mode timer UI
-const powerBar = rect(0, 48, {
-	pos: vec2(0, -height() / 2),
-	color: randColor(),
-});
-
-powerBar.action(() => {
-	powerBar.width = player.power / powerTime * width();
-	powerBar.color = randColor();
-});
-
-// score UI
-const score = text("0", {
-	value: 0,
-	pos: vec2(0),
-	size: 256,
-	color: color(1, 1, 1, 0.03),
-});
-
-score.action(() => {
-	score.scale = lerp(score.scale, 1, 2);
-});
-
-function addScore() {
-
-	score.value++;
-	score.text = `${score.value}`;
-	score.scale = score.scale * 1.2;
-
-	if (score.value % 10 == 0) {
-		addCandy();
-	}
-
-}
-
-function addEnemy() {
-	sprite("guy", {
-		pos: randOnRect(vec2(-width() / 2, -height() / 2), vec2(width() / 2, height() / 2)),
-		tags: [ "enemy", ],
-		color: color(0, 0, 1),
-		speed: 80,
-	});
-}
-
-addEnemy();
-
-loop(0.7, () => {
-	addEnemy();
-});
-
-function addCandy() {
-	rect(16, 16, {
-		pos: rand(vec2(-width() / 2, -height() / 2), vec2(width() / 2, height() / 2)),
-		color: randColor(),
-		tags: [ "candy", ],
-	});
-}
-
-action("candy", (c) => {
-	c.color = randColor();
-});
-
-action("bullet", (b) => {
-
-	b.move(velMap[b.dir].scale(b.speed));
-	b.color = randColor();
-	b.width = rand(4, 8);
-	b.height = rand(4, 8);
-
-	if (b.pos.x <= -1200 || b.pos.x >= 1200 || b.pos.y <= -1200 || b.pos.y >= 1200) {
-		destroy(b);
-	}
-
-});
-
-action("enemy", (e) => {
-	const dir = player.pos.sub(e.pos).unit();
-	e.pos = e.pos.add(dir.scale(e.speed * dt()));
-});
-
-collide("bullet", "enemy", (b, e) => {
-
-	destroy(e);
-	destroy(b);
-	addScore();
-
-	play("shoot", {
-		speed: 3.0,
-		detune: 1200,
-	});
-
-	rect(0, 0, {
-		pos: e.pos,
-		color: randColor(),
-		lifespan: 0.1,
-		tags: [ "explosion", ],
-	});
-
-});
-
-action("explosion", (e) => {
-	e.width += 800 * dt();
-	e.height += 800 * dt();
-	e.color = randColor();
-});
-
-keyPress("p", () => {
-	go("menu");
-});
-
-// ------------------------------------
-// Death Scene
-scene("death");
-
-const death = rect(width(), height(), {
-	color: randColor(),
-});
-
-wait(0.1, () => {
-	go("start");
-});
-
-death.action(() => {
-	death.color = randColor();
-});
-
-// ------------------------------------
-// Menu Scene
-scene("menu");
-
-text("paused", {
-	size: 24,
-});
-
-keyPress("p", () => {
-	go("main");
-});
-
-// ------------------------------------
-// Start Scene
-scene("start");
-
-text("Press Spacebar to Start", {
-	size: 24,
-});
-
-keyPress(" ", () => {
-	reload("main");
-	go("main");
-});
-
-start("start");
-
-};
-</code></pre></div></body></html>
+</span><span class="code">start();
+</span></code></pre><p class="desc"><span><span class="inline">keyDown()</span><span> will register a keyDown event, so every frame user is holding the specified key down, the callback would run. </span><span class="inline">player.move()</span><span> does exactly what it says, it moves the player. Try running the game now, the player will move when you hold down arrow keys</span></p></div></body></html>

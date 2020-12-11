@@ -1,12 +1,16 @@
-/* http://jmblog.github.com/color-themes-for-google-code-highlightjs */
+/*
+    Paraíso (light)
+    Created by Jan T. Sott (http://github.com/idleberg)
+    Inspired by the art of Rubens LP (http://www.rubenslp.com.br)
+*/
 
-/* Tomorrow Comment */
+/* Paraíso Comment */
 .hljs-comment,
 .hljs-quote {
-  color: #8e908c;
+  color: #776e71;
 }
 
-/* Tomorrow Red */
+/* Paraíso Red */
 .hljs-variable,
 .hljs-template-variable,
 .hljs-tag,
@@ -14,52 +18,48 @@
 .hljs-selector-id,
 .hljs-selector-class,
 .hljs-regexp,
-.hljs-deletion {
-  color: #c82829;
+.hljs-link,
+.hljs-meta {
+  color: #ef6155;
 }
 
-/* Tomorrow Orange */
+/* Paraíso Orange */
 .hljs-number,
 .hljs-built_in,
 .hljs-builtin-name,
 .hljs-literal,
 .hljs-type,
 .hljs-params,
-.hljs-meta,
-.hljs-link {
-  color: #f5871f;
+.hljs-deletion {
+  color: #f99b15;
 }
 
-/* Tomorrow Yellow */
+/* Paraíso Yellow */
+.hljs-title,
+.hljs-section,
 .hljs-attribute {
-  color: #eab700;
+  color: #fec418;
 }
 
-/* Tomorrow Green */
+/* Paraíso Green */
 .hljs-string,
 .hljs-symbol,
 .hljs-bullet,
 .hljs-addition {
-  color: #718c00;
+  color: #48b685;
 }
 
-/* Tomorrow Blue */
-.hljs-title,
-.hljs-section {
-  color: #4271ae;
-}
-
-/* Tomorrow Purple */
+/* Paraíso Purple */
 .hljs-keyword,
 .hljs-selector-tag {
-  color: #8959a8;
+  color: #815ba4;
 }
 
 .hljs {
   display: block;
   overflow-x: auto;
-  background: white;
-  color: #4d4d4c;
+  background: #e7e9db;
+  color: #4f424c;
   padding: 0.5em;
 }
 

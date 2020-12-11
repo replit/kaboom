@@ -5,7 +5,7 @@ module.exports = {
 	"*": {
 		"margin": "0",
 		"padding": "0",
-		"font-family": "Monospace",
+		"font-family": "Consolas, Monospace, Courier",
 	},
 
 	"html": {
@@ -14,11 +14,6 @@ module.exports = {
 
 	"body": {
 		"width": "100%",
-	},
-
-	"#main": {
-		"width": "70%",
-		"margin": "64px auto",
 	},
 
 };

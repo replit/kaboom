@@ -60,7 +60,7 @@ function style(list) {
 				post += handle_sheet_ex(sel + key, val);
 			// self
 			} else if (key[0] == "&") {
-				post += handle_sheet_ex(sel + key.subsring(1), val);
+				post += handle_sheet_ex(sel + key.substring(1), val);
 			// nesting child
 			} else if (typeof(val) == "object") {
 				post += handle_sheet_ex(sel + " " + key, val);
