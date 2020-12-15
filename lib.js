@@ -90,6 +90,9 @@ function init(conf) {
 		canvas = document.createElement("canvas");
 		canvas.width = conf.width || 640;
 		canvas.height = conf.height || 480;
+		if (conf.crisp) {
+			canvas.style = "image-rendering: pixelated; image-rendering: crisp-edges;";
+		}
 		document.body.appendChild(canvas);
 	}
 
@@ -541,8 +544,14 @@ function drawLine(conf) {
 		gfx.curTex = gfx.defTex;
 	}
 
-	const p1 = conf.p1;
-	const p2 = conf.p2;
+	let p1 = conf.p1;
+	let p2 = conf.p2;
+
+	if (conf.pos) {
+		p1 = p1.add(conf.pos);
+		p2 = p2.add(conf.pos);
+	}
+
 	const w = width();
 	const h = height();
 	const dpos1 = p2.sub(p1).normal().unit().scale(conf.width / 2.0);
@@ -730,7 +739,13 @@ function play(id, conf) {
 // --------------------------------
 // Math Utils
 
-// TODO: variadic args for math types
+Math.radians = function(degrees) {
+	return degrees * Math.PI / 180;
+};
+
+Math.degrees = function(radians) {
+	return radians * 180 / Math.PI;
+};
 
 function lerp(a, b, t) {
 	return a + (b - a) * t * dt();
@@ -836,18 +851,52 @@ function quad(x, y, w, h) {
 	};
 }
 
+function colRectRect(r1, r2) {
+	return r1.p2.x >= r2.p1.x && r1.p1.x <= r2.p2.x && r1.p2.y >= r2.p1.y && r1.p1.y <= r2.p2.y;
+}
+
+function colLineLine(l1, l2) {
+	const a = ((l2.p2.x - l2.p1.x) * (l1.p1.y - l2.p1.y) - (l2.p2.y - l2.p1.y) * (l1.p1.x - l2.p1.x)) / ((l2.p2.y - l2.p1.y) * (l1.p2.x - l1.p1.x) - (l2.p2.x - l2.p1.x) * (l1.p2.y - l1.p1.y));
+	const b = ((l1.p2.x - l1.p1.x) * (l1.p1.y - l2.p1.y) - (l1.p2.y - l1.p1.y) * (l1.p1.x - l2.p1.x)) / ((l2.p2.y - l2.p1.y) * (l1.p2.x - l1.p1.x) - (l2.p2.x - l2.p1.x) * (l1.p2.y - l1.p1.y));
+	return a >= 0.0 && a <= 1.0 && b >= 0.0 && b <= 1.0;
+}
+
+function colRectLine(r, l) {
+	if (colRectPt(r, l.p1) || colRectPt(r, l.p2, )) {
+		return true;
+	}
+	return colLineLine(l, makeLine(r.p1, vec2(r.p2.x, r.p1.y)))
+		|| colLineLine(l, makeLine(vec2(r.p2.x, r.p1.y), r.p2))
+		|| colLineLine(l, makeLine(r.p2, vec2(r.p1.x, r.p2.y)))
+		|| colLineLine(l, makeLine(vec2(r.p1.x, r.p2.y), r.p1));
+}
+
+function colRectPt(r, pt) {
+	return pt.x >= r.p1.x && pt.x <= r.p2.x && pt.y >= r.p1.y && pt.y < r.p2.y;
+}
+
+function makeLine(p1, p2) {
+	return {
+		p1: p1.clone(),
+		p2: p2.clone(),
+		clone() {
+			return makeLine(this.p1, this.p2);
+		},
+	};
+}
+
 function area(p1, p2) {
 	return {
 		p1: p1.clone(),
 		p2: p2.clone(),
 		clone() {
-			return area(this.p1.clone(), this.p2.clone());
+			return area(this.p1, this.p2);
 		},
 		hasPt(pt) {
-			return pt.x >= this.p1.x && pt.x <= this.p2.x && pt.y >= this.p1.y && pt.y < this.p2.y;
+			return colRectPt(this, pt);
 		},
 		intersects(other) {
-			return this.p2.x >= other.p1.x && this.p1.x <= other.p2.x && this.p2.y >= other.p1.y && this.p1.y <= other.p2.y;
+			return colRectRect(this, other);
 		},
 		eq(other) {
 			return this.p1.eq(other.p1) && this.p2.eq(other.p2);
@@ -1061,14 +1110,28 @@ function loadSprite(id, src, conf) {
 		return;
 	}
 
+	if (conf.aseSpriteSheet) {
+		fetch(conf.aseSpriteSheet).then((res) => {
+			return res.json();
+		}).then((data) => {
+			const size = data.meta.size;
+			game.sprites[id].frames = data.frames.map((f) => {
+				return quad(
+					f.frame.x / size.w,
+					f.frame.y / size.h,
+					f.frame.w / size.w,
+					f.frame.h / size.h,
+				);
+			});
+		});
+	}
+
 	game.sprites[id] = {
 		tex: makeTex(src),
-		conf: conf || {
-			frames: [
-				quad(0, 0, 1, 1),
-			],
-			anims: {},
-		},
+		frames: [
+			quad(0, 0, 1, 1),
+		],
+		anims: {},
 	};
 
 }
@@ -1421,7 +1484,21 @@ function add(props) {
 
 		// if obj intersects with another obj
 		isCollided(other) {
-			return this.area().intersects(other.area());
+
+			// TODO: messy!
+			const lineTypes = ["line"];
+			const rectTypes = ["sprite", "rect", "circle", "text"];
+
+			if (lineTypes.includes(this.type) && lineTypes.includes(other.type)) {
+				return colLineLine(makeLine(this.p1, this.p2), makeLine(other.p1, other.p2));
+			} else if (lineTypes.includes(this.type) && rectTypes.includes(other.type)) {
+				return colRectLine(other.area(), makeLine(this.p1.add(this.pos), this.p2.add(this.pos)));
+			} else if (rectTypes.includes(this.type) && lineTypes.includes(other.type)) {
+				return colRectLine(this.area(), makeLine(other.p1.add(other.pos), other.p2.add(other.pos)));
+			} else if (rectTypes.includes(this.type) && rectTypes.includes(other.type)) {
+				return colRectRect(this.area(), other.area());
+			}
+
 		},
 
 		// if obj currently exists in the scene
@@ -1572,6 +1649,7 @@ function sprite(id, props) {
 		...props,
 		type: "sprite",
 		sprite: id,
+		frame: 0,
 	});
 }
 
@@ -1773,7 +1851,7 @@ function applyAll(t, f) {
 // destroy an obj
 function destroy(obj) {
 	const scene = game.scenes[game.curScene];
-	if (obj.id) {
+	if (obj.id !== undefined) {
 		if (scene) {
 			for (const e of scene.events.destroy) {
 				if (obj.is(e.tag)) {
@@ -1942,6 +2020,8 @@ function start(name) {
 							break;
 						}
 
+						const q = spr.frames[obj.frame];
+
 						drawRect({
 							tex: spr.tex,
 							pos: obj.pos,
@@ -1950,7 +2030,7 @@ function start(name) {
 							color: obj.color,
 							width: obj.width,
 							height: obj.height,
-							quad: quad(0, 0, 1, 1),
+							quad: q,
 						});
 
 						break;

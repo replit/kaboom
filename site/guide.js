@@ -8,7 +8,7 @@ const t = www.tag;
 
 const styles2 = {
 	"#main": {
-		"width": "50%",
+		"width": "720px",
 		"margin": "64px auto",
 	},
 	"code": {
