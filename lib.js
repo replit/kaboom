@@ -5,7 +5,7 @@
 
 const fontImgData = "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";
 
-const defaultVert = `
+const defVertSrc = `
 attribute vec2 a_pos;
 attribute vec2 a_uv;
 attribute vec4 a_color;
@@ -18,7 +18,7 @@ void main() {
 }
 `;
 
-const defaultFrag = `
+const defFragSrc = `
 precision mediump float;
 varying vec2 v_uv;
 varying vec4 v_color;
@@ -87,13 +87,18 @@ function init(conf) {
 	let canvas = conf.canvas;
 
 	if (!canvas) {
+
 		canvas = document.createElement("canvas");
 		canvas.width = conf.width || 640;
 		canvas.height = conf.height || 480;
+
 		if (conf.crisp) {
 			canvas.style = "image-rendering: pixelated; image-rendering: crisp-edges;";
 		}
-		document.body.appendChild(canvas);
+
+		const root = conf.root || document.body;
+		root.appendChild(canvas);
+
 	}
 
 	gl = canvas
@@ -205,7 +210,9 @@ function keyIsPressedRep(k) {
 }
 
 function keyIsDown(k) {
-	return app.keyStates[k] === "pressed" || app.keyStates[k] === "rpressed" || app.keyStates[k] === "down";
+	return app.keyStates[k] === "pressed"
+		|| app.keyStates[k] === "rpressed"
+		|| app.keyStates[k] === "down";
 }
 
 function keyIsReleased(k) {
@@ -232,13 +239,20 @@ function gfxInit() {
 	gfx.drawCalls = 0;
 	gfx.cam = vec2(0, 0);
 	gfx.mesh = makeBatchedMesh(65536, 65536);
-	gfx.prog = makeProgram(defaultVert, defaultFrag);
-	gfx.defTex = makeTex(new ImageData(new Uint8ClampedArray([ 255, 255, 255, 255, ]), 1, 1));
+	gfx.prog = makeProgram(defVertSrc, defFragSrc);
+	gfx.defTex = makeTex(
+		new ImageData(new Uint8ClampedArray([ 255, 255, 255, 255, ]), 1, 1)
+	);
 	gl.clearColor(0.0, 0.0, 0.0, 1.0);
 	gl.enable(gl.BLEND);
 	gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
 	loadImg("data:image/png;base64," + fontImgData, (img) => {
-		gfx.defFont = makeFont(makeTex(img), 8, 8, " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~");
+		gfx.defFont = makeFont(
+			makeTex(img),
+			8,
+			8,
+			" !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~"
+		);
 	});
 }
 
@@ -677,8 +691,9 @@ function audioInit() {
 
 // TODO: move this to game system
 // load a sound to asset manager
-function loadSound(id, src, conf) {
+function loadSound(name, src, conf) {
 	if (typeof(src === "string")) {
+		const lid = newLoader();
 		fetch(src)
 			.then((res) => {
 				return res.arrayBuffer();
@@ -686,8 +701,9 @@ function loadSound(id, src, conf) {
 			.then((data) => {
 				// TODO: doesn't work on safari
 				audio.ctx.decodeAudioData(data, (buf) => {
-					audio.sounds[id] = buf;
+					audio.sounds[name] = buf;
 				});
+				loaded(lid);
 			});
 	}
 }
@@ -779,7 +795,10 @@ function vec2(x, y) {
 			return vec2(this.x * s, this.y * s);
 		},
 		dist(p2) {
-			return Math.sqrt((this.x - p2.x) * (this.x - p2.x) + (this.y - p2.y) * (this.y - p2.y));
+			return Math.sqrt(
+				(this.x - p2.x) * (this.x - p2.x)
+				+ (this.y - p2.y) * (this.y - p2.y)
+			);
 		},
 		len() {
 			return this.dist(vec2(0, 0));
@@ -831,7 +850,10 @@ function color(r, g, b, a) {
 			return this.lighten(-a);
 		},
 		eq(other) {
-			return this.r === other.r && this.g === other.g && this.b === other.g && this.a === other.a;
+			return this.r === other.r
+				&& this.g === other.g
+				&& this.b === other.g
+				&& this.a === other.a;
 		},
 	};
 }
@@ -846,18 +868,50 @@ function quad(x, y, w, h) {
 			return quad(this.x, this.y, this.w, this.h);
 		},
 		eq(other) {
-			return this.x === other.x && this.y === other.y && this.w === other.w && this.h === other.h;
+			return this.x === other.x
+				&& this.y === other.y
+				&& this.w === other.w
+				&& this.h === other.h;
 		},
 	};
 }
 
 function colRectRect(r1, r2) {
-	return r1.p2.x >= r2.p1.x && r1.p1.x <= r2.p2.x && r1.p2.y >= r2.p1.y && r1.p1.y <= r2.p2.y;
+	return r1.p2.x >= r2.p1.x
+		&& r1.p1.x <= r2.p2.x
+		&& r1.p2.y >= r2.p1.y
+		&& r1.p1.y <= r2.p2.y;
 }
 
 function colLineLine(l1, l2) {
-	const a = ((l2.p2.x - l2.p1.x) * (l1.p1.y - l2.p1.y) - (l2.p2.y - l2.p1.y) * (l1.p1.x - l2.p1.x)) / ((l2.p2.y - l2.p1.y) * (l1.p2.x - l1.p1.x) - (l2.p2.x - l2.p1.x) * (l1.p2.y - l1.p1.y));
-	const b = ((l1.p2.x - l1.p1.x) * (l1.p1.y - l2.p1.y) - (l1.p2.y - l1.p1.y) * (l1.p1.x - l2.p1.x)) / ((l2.p2.y - l2.p1.y) * (l1.p2.x - l1.p1.x) - (l2.p2.x - l2.p1.x) * (l1.p2.y - l1.p1.y));
+	const a =
+		(
+			(l2.p2.x - l2.p1.x)
+			* (l1.p1.y - l2.p1.y)
+			- (l2.p2.y - l2.p1.y)
+			* (l1.p1.x - l2.p1.x)
+		)
+		/
+		(
+			(l2.p2.y - l2.p1.y)
+			* (l1.p2.x - l1.p1.x)
+			- (l2.p2.x - l2.p1.x)
+			* (l1.p2.y - l1.p1.y)
+		);
+	const b =
+		(
+			(l1.p2.x - l1.p1.x)
+			* (l1.p1.y - l2.p1.y)
+			- (l1.p2.y - l1.p1.y)
+			* (l1.p1.x - l2.p1.x)
+		)
+		/
+		(
+			(l2.p2.y - l2.p1.y)
+			* (l1.p2.x - l1.p1.x)
+			- (l2.p2.x - l2.p1.x)
+			* (l1.p2.y - l1.p1.y)
+		);
 	return a >= 0.0 && a <= 1.0 && b >= 0.0 && b <= 1.0;
 }
 
@@ -1094,28 +1148,51 @@ const game = {
 	scenes: {},
 	sprites: {},
 	running: false,
+	loaders: {},
+	lastLoaderID: 0,
+	loaded: false,
 	debug: {
 		drawBBox: false,
 		showStats: false,
 	},
 };
 
+function newLoader() {
+	if (game.loaded) {
+		console.error("cannot load more when game is fully loaded");
+		return;
+	}
+	const id = game.lastLoaderID;
+	game.loaders[id] = false;
+	game.lastLoaderID++;
+	return id;
+}
+
+function loaded(id) {
+	game.loaders[id] = true;
+}
+
 // load a sprite to asset manager
-function loadSprite(id, src, conf) {
+function loadSprite(name, src, conf) {
+
+	// TODO: might have incorrect loader logic here
 
 	if (typeof(src) === "string") {
+		const lid = newLoader();
 		loadImg(src, (img) => {
-			loadSprite(id, img, conf);
+			loadSprite(name, img, conf);
+			loaded(lid);
 		});
 		return;
 	}
 
-	if (conf.aseSpriteSheet) {
+	if (conf && conf.aseSpriteSheet) {
+		const lid = newLoader();
 		fetch(conf.aseSpriteSheet).then((res) => {
 			return res.json();
 		}).then((data) => {
 			const size = data.meta.size;
-			game.sprites[id].frames = data.frames.map((f) => {
+			game.sprites[name].frames = data.frames.map((f) => {
 				return quad(
 					f.frame.x / size.w,
 					f.frame.y / size.h,
@@ -1123,10 +1200,18 @@ function loadSprite(id, src, conf) {
 					f.frame.h / size.h,
 				);
 			});
+			for (const anim of data.meta.frameTags) {
+				game.sprites[name].anims[anim.name] = {
+					from: anim.from,
+					to: anim.to,
+					dir: anim.direction,
+				};
+			}
+			loaded(lid);
 		});
 	}
 
-	game.sprites[id] = {
+	game.sprites[name] = {
 		tex: makeTex(src),
 		frames: [
 			quad(0, 0, 1, 1),
@@ -1134,6 +1219,26 @@ function loadSprite(id, src, conf) {
 		anims: {},
 	};
 
+}
+
+// TODO: a "loading" text?
+function ready(f) {
+	const check = () => {
+		let loaded = true;
+		for (const id in game.loaders) {
+			if (!game.loaders[id]) {
+				loaded = false;
+				break;
+			}
+		}
+		if (!loaded) {
+			requestAnimationFrame(check);
+		} else {
+			game.loaded = true;
+			f();
+		}
+	};
+	check();
 }
 
 // start describing a scene (this should be called before start())
@@ -1396,7 +1501,11 @@ function add(props) {
 					const obj = scene.objs[id];
 					if (obj.solid) {
 						if (this.isCollided(obj)) {
-							this.pos.x += (Math.sign(dx) * (obj.pos.x - this.pos.x) - (this.width + obj.width) / 2) * Math.sign(dx);
+							this.pos.x +=
+								(   Math.sign(dx)
+									* (obj.pos.x - this.pos.x)
+									- (this.width + obj.width) / 2
+								) * Math.sign(dx);
 							this.onEdgeX = id;
 							res = {
 								edge: dx < 0 ? "left" : "right",
@@ -1417,7 +1526,11 @@ function add(props) {
 					const obj = scene.objs[id];
 					if (obj.solid) {
 						if (this.isCollided(obj)) {
-							this.pos.y += (Math.sign(dy) * (obj.pos.y - this.pos.y) - (this.height + obj.height) / 2) * Math.sign(dy);
+							this.pos.y +=
+								(   Math.sign(dy)
+									* (obj.pos.y - this.pos.y)
+									- (this.height + obj.height) / 2
+								) * Math.sign(dy);
 							this.onEdgeY = id;
 							res = {
 								edge: dy < 0 ? "bottom" : "top",
@@ -1490,13 +1603,25 @@ function add(props) {
 			const rectTypes = ["sprite", "rect", "circle", "text"];
 
 			if (lineTypes.includes(this.type) && lineTypes.includes(other.type)) {
-				return colLineLine(makeLine(this.p1, this.p2), makeLine(other.p1, other.p2));
+				return colLineLine(
+					makeLine(this.p1, this.p2),
+					makeLine(other.p1, other.p2)
+				);
 			} else if (lineTypes.includes(this.type) && rectTypes.includes(other.type)) {
-				return colRectLine(other.area(), makeLine(this.p1.add(this.pos), this.p2.add(this.pos)));
+				return colRectLine(
+					other.area(),
+					makeLine(this.p1.add(this.pos), this.p2.add(this.pos))
+				);
 			} else if (rectTypes.includes(this.type) && lineTypes.includes(other.type)) {
-				return colRectLine(this.area(), makeLine(other.p1.add(other.pos), other.p2.add(other.pos)));
+				return colRectLine(
+					this.area(),
+					makeLine(other.p1.add(other.pos), other.p2.add(other.pos))
+				);
 			} else if (rectTypes.includes(this.type) && rectTypes.includes(other.type)) {
-				return colRectRect(this.area(), other.area());
+				return colRectRect(
+					this.area(),
+					other.area()
+				);
 			}
 
 		},
@@ -1569,6 +1694,26 @@ function add(props) {
 
 		},
 
+		play(name, loop) {
+
+			if (this.type !== "sprite") {
+				console.error(`play() is not available for ${this.type} type obj`);
+				return;
+			}
+
+			const anim = game.sprites[obj.sprite].anims[name];
+
+			if (!anim) {
+				console.error(`anim not found: ${name}`);
+				return;
+			}
+
+			this.curAnim = name;
+			this.frame = anim.from;
+			this.looping = loop;
+
+		},
+
 	};
 
 	switch (obj.type) {
@@ -1580,8 +1725,9 @@ function add(props) {
 				break;
 			}
 
-			const tw = game.sprites[obj.sprite].tex.width;
-			const th = game.sprites[obj.sprite].tex.height;
+			const data = game.sprites[obj.sprite];
+			const tw = data.tex.width * data.frames[0].w;
+			const th = data.tex.height * data.frames[0].h;
 			obj.width = tw;
 			obj.height = th;
 
@@ -1649,6 +1795,7 @@ function sprite(id, props) {
 		...props,
 		type: "sprite",
 		sprite: id,
+		timer: 0,
 		frame: 0,
 	});
 }
@@ -1884,7 +2031,8 @@ function start(name) {
 		}
 	}
 
-	// store obj init states in memory by deep copying the states before game loop, for reloading states
+	// store obj init states in memory by deep copying the states before
+	// game loop, for reloading states
 	for (const name in game.scenes) {
 		for (const obj of game.scenes[name].init.objs) {
 			obj.initState = deepCopy(obj);
@@ -1902,7 +2050,8 @@ function start(name) {
 			return;
 		}
 
-		// if scene is not initialized, add all objs and timers in init lists to the actual pool
+		// if scene is not initialized, add all objs and timers in init lists
+		// to the actual pool
 		if (!scene.initialized) {
 
 			for (const obj of scene.init.objs) {
@@ -2020,6 +2169,17 @@ function start(name) {
 							break;
 						}
 
+						if (obj.curAnim) {
+							const speed = obj.animSpeed || 0.1;
+							const anim = spr.anims[obj.curAnim];
+							obj.timer += dt();
+							if (obj.timer >= obj.animSpeed) {
+								// TODO: anim dir
+								obj.frame = anim.from + (obj.frame + 1) % (anim.to - anim.from + 1);
+								obj.timer -= obj.animSpeed;
+							}
+						}
+
 						const q = spr.frames[obj.frame];
 
 						drawRect({
@@ -2028,8 +2188,8 @@ function start(name) {
 							scale: obj.scale,
 							rot: obj.rot,
 							color: obj.color,
-							width: obj.width,
-							height: obj.height,
+							width: obj.width / q.w,
+							height: obj.height / q.h,
 							quad: q,
 						});
 
@@ -2177,6 +2337,7 @@ lib.play = play;
 lib.volume = volume;
 
 // start
+lib.ready = ready;
 lib.start = start;
 
 // math
