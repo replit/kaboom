@@ -16,7 +16,7 @@ function addPlayer(conf) {
 		platform: undefined,
 	});
 
-	player.action(() => {
+	player.sup(() => {
 		if (!player.platform) {
 			player.velY -= world.gravity * world.acc * dt();
 			const res = player.move(vec2(0, player.velY));
@@ -27,7 +27,7 @@ function addPlayer(conf) {
 				}
 			}
 		} else {
-			if (!player.isCollided(player.platform)) {
+			if (!player.intersects(player.platform)) {
 				player.platform = undefined;
 			}
 		}
@@ -61,3 +61,4 @@ for (const k in lib) {
 }
 
 })();
+

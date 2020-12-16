@@ -1263,8 +1263,9 @@ function scene(name) {
 
 			// event callbacks
 			events: {
-				action: [],
-				destroy: [],
+				hi: [],
+				sup: [],
+				bye: [],
 				keyDown: [],
 				keyPress: [],
 				keyPressRep: [],
@@ -1421,31 +1422,31 @@ function add(props) {
 
 		// action lists
 		events: {
-			init: [],
-			action: [],
-			leave: [],
+			hi: [],
+			sup: [],
+			bye: [],
 		},
 
 		states: {},
 
 		// runs when the obj is added to scene
-		init() {
-			this.events.init.push(f);
+		hi(f) {
+			this.events.hi.push(f);
 		},
 
-		// an action is a function that's called every frame
-		action(f) {
-			this.events.action.push(f);
+		// runs every frame
+		sup(f) {
+			this.events.sup.push(f);
 		},
 
 		// runs when the obj is destroyed
-		leave(f) {
-			this.events.leave.push(f);
+		bye(f) {
+			this.events.bye.push(f);
 		},
 
 		// add callback that runs when the obj is clicked
-		clicks(f) {
-			this.action(() => {
+		click(f) {
+			this.sup(() => {
 				if (this.isClicked()) {
 					f();
 				}
@@ -1453,10 +1454,10 @@ function add(props) {
 		},
 
 		// add callback that runs when the obj has collided with other objs with tag t
-		collides(t, f) {
-			this.action(() => {
-				applyAll(t, (obj) => {
-					if (this !== obj && this.isCollided(obj)) {
+		ouch(t, f) {
+			this.sup(() => {
+				everyone(t, (obj) => {
+					if (this !== obj && this.intersects(obj)) {
 						f(obj);
 					}
 				});
@@ -1500,7 +1501,7 @@ function add(props) {
 					}
 					const obj = scene.objs[id];
 					if (obj.solid) {
-						if (this.isCollided(obj)) {
+						if (this.intersects(obj)) {
 							this.pos.x +=
 								(   Math.sign(dx)
 									* (obj.pos.x - this.pos.x)
@@ -1525,7 +1526,7 @@ function add(props) {
 					}
 					const obj = scene.objs[id];
 					if (obj.solid) {
-						if (this.isCollided(obj)) {
+						if (this.intersects(obj)) {
 							this.pos.y +=
 								(   Math.sign(dy)
 									* (obj.pos.y - this.pos.y)
@@ -1596,7 +1597,7 @@ function add(props) {
 		},
 
 		// if obj intersects with another obj
-		isCollided(other) {
+		intersects(other) {
 
 			// TODO: messy!
 			const lineTypes = ["line"];
@@ -1681,7 +1682,7 @@ function add(props) {
 				},
 
 				during(state, f) {
-					obj.action(() => {
+					obj.sup(() => {
 						if (this.state === state) {
 							f();
 						}
@@ -1769,11 +1770,7 @@ function add(props) {
 	// if start(), add obj to the current scene
 	if (game.running) {
 
-		const scene = game.scenes[game.curScene];
-
-		scene.objs[scene.lastID] = obj;
-		obj.id = scene.lastID;
-		scene.lastID++;
+		addToScene(game.scenes[game.curScene], obj);
 
 	// if not start(), add obj to the init obj list of the current scene describing
 	} else {
@@ -1844,29 +1841,55 @@ function circle(center, radius, props) {
 	});
 }
 
-// add an event that runs every frame for objs with tag t
-function action(t, f) {
+// add an event that runs when objs with tag t is added to scene
+function hi(t, f) {
 	if (game.running) {
-		console.error("'all' can only be called at init");
+		console.error("'hi' can only be called at init");
 		return;
 	}
 	const scene = game.scenes[game.curDescScene];
-	scene.events.action.push({
+	scene.events.hi.push({
+		tag: t,
+		cb: f,
+	});
+}
+
+// add an event that runs every frame for objs with tag t
+function sup(t, f) {
+	if (game.running) {
+		console.error("'sup' can only be called at init");
+		return;
+	}
+	const scene = game.scenes[game.curDescScene];
+	scene.events.sup.push({
+		tag: t,
+		cb: f,
+	});
+}
+
+// add an event that runs when objs with tag t is destroyed
+function bye(t, f) {
+	if (game.running) {
+		console.error("'bye' can only be called at init");
+		return;
+	}
+	const scene = game.scenes[game.curDescScene];
+	scene.events.bye.push({
 		tag: t,
 		cb: f,
 	});
 }
 
 // add an event that runs with objs with t1 collides with objs with t2
-function collide(t1, t2, f) {
+function ouch(t1, t2, f) {
 	if (game.running) {
-		console.error("'collide' can only be called at init");
+		console.error("'ouch' can only be called at init");
 		return;
 	}
-	action(t1, (o1) => {
-		applyAll(t2, (o2) => {
+	sup(t1, (o1) => {
+		everyone(t2, (o2) => {
 			if (o1 !== o2) {
-				if (o1.isCollided(o2)) {
+				if (o1.intersects(o2)) {
 					f(o1, o2);
 				}
 			}
@@ -1880,23 +1903,10 @@ function click(t, f) {
 		console.error("'click' can only be called at init");
 		return;
 	}
-	action(t, (o) => {
+	sup(t, (o) => {
 		if (o.isClicked()) {
 			f(o);
 		}
-	});
-}
-
-// add an event that runs when objs with tag t is destroyed
-function lastwish(t, f) {
-	if (game.running) {
-		console.error("'all' can only be called at init");
-		return;
-	}
-	const scene = game.scenes[game.curDescScene];
-	scene.events.destroy.push({
-		tag: t,
-		cb: f,
 	});
 }
 
@@ -1985,7 +1995,7 @@ function mouseRelease(f) {
 }
 
 // apply a function to all objects currently in scene with tag t
-function applyAll(t, f) {
+function everyone(t, f) {
 	const scene = game.scenes[game.curScene];
 	for (const id in scene.objs) {
 		const obj = scene.objs[id];
@@ -2000,7 +2010,10 @@ function destroy(obj) {
 	const scene = game.scenes[game.curScene];
 	if (obj.id !== undefined) {
 		if (scene) {
-			for (const e of scene.events.destroy) {
+			for (const cb of obj.events.bye) {
+				cb(obj);
+			}
+			for (const e of scene.events.bye) {
 				if (obj.is(e.tag)) {
 					e.cb(obj);
 				}
@@ -2013,9 +2026,27 @@ function destroy(obj) {
 
 // destroy all obj with the tag
 function destroyAll(t) {
-	applyAll(t, (obj) => {
+	everyone(t, (obj) => {
 		destroy(obj);
 	});
+}
+
+function addToScene(scene, obj) {
+
+	scene.objs[scene.lastID] = obj;
+	obj.id = scene.lastID;
+	scene.lastID++;
+
+	for (const cb of obj.events.hi) {
+		cb(obj);
+	}
+
+	for (const e of scene.events.hi) {
+		if (obj.is(e.tag)) {
+			e.cb(obj);
+		}
+	}
+
 }
 
 // TODO: on screen error message?
@@ -2055,9 +2086,7 @@ function start(name) {
 		if (!scene.initialized) {
 
 			for (const obj of scene.init.objs) {
-				scene.objs[scene.lastID] = obj;
-				obj.id = scene.lastID;
-				scene.lastID++;
+				addToScene(scene, obj);
 			}
 
 			for (const timer of scene.init.timers) {
@@ -2113,8 +2142,8 @@ function start(name) {
 			}
 		}
 
-		// perform group actions
-		for (const e of scene.events.action) {
+		// perform group updates
+		for (const e of scene.events.sup) {
 			for (const id in scene.objs) {
 				const obj = scene.objs[id];
 				if (obj.is(e.tag)) {
@@ -2143,7 +2172,7 @@ function start(name) {
 			}
 
 			// update obj
-			for (const f of obj.events.action) {
+			for (const f of obj.events.sup) {
 				f(obj);
 			}
 
@@ -2306,10 +2335,13 @@ lib.destroy = destroy;
 lib.destroyAll = destroyAll;
 
 // group events
-lib.action = action;
-lib.lastwish = lastwish;
-lib.collide = collide;
+lib.sup = sup;
+lib.bye = bye;
+lib.hi = hi;
+lib.ouch = ouch;
 lib.click = click;
+
+lib.everyone = everyone;
 
 // input
 lib.keyDown = keyDown;

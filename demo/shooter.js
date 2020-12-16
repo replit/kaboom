@@ -52,7 +52,7 @@ const player = sprite("guy", {
 });
 
 // action runs every frame
-player.action(() => {
+player.sup(() => {
 
 	player.wrap(vec2(-width() / 2, -height() / 2), vec2(width() / 2, height() / 2));
 
@@ -72,7 +72,7 @@ player.action(() => {
 
 });
 
-player.collides("enemy", (e) => {
+player.ouch("enemy", (e) => {
 
 	if (player.power > 0) {
 		return;
@@ -83,7 +83,7 @@ player.collides("enemy", (e) => {
 
 });
 
-player.collides("candy", (p) => {
+player.ouch("candy", (p) => {
 	destroy(p);
 	player.power = powerTime;
 });
@@ -117,7 +117,7 @@ const powerBar = rect(0, 48, {
 	color: randColor(),
 });
 
-powerBar.action(() => {
+powerBar.sup(() => {
 	powerBar.width = player.power / powerTime * width();
 	powerBar.color = randColor();
 });
@@ -130,7 +130,7 @@ const score = text("0", {
 	color: color(1, 1, 1, 0.03),
 });
 
-score.action(() => {
+score.sup(() => {
 	score.scale = lerp(score.scale, 1, 2);
 });
 
@@ -183,11 +183,11 @@ function addCandy() {
 	});
 }
 
-action("candy", (c) => {
+sup("candy", (c) => {
 	c.color = randColor();
 });
 
-action("bullet", (b) => {
+sup("bullet", (b) => {
 
 	b.move(velMap[b.dir].scale(b.speed));
 	b.color = randColor();
@@ -200,12 +200,12 @@ action("bullet", (b) => {
 
 });
 
-action("enemy", (e) => {
+sup("enemy", (e) => {
 	const dir = player.pos.sub(e.pos).unit();
 	e.pos = e.pos.add(dir.scale(e.speed * dt()));
 });
 
-collide("bullet", "enemy", (b, e) => {
+ouch("bullet", "enemy", (b, e) => {
 
 	rect(0, 0, {
 		pos: b.pos,
@@ -224,7 +224,7 @@ collide("bullet", "enemy", (b, e) => {
 
 });
 
-lastwish("enemy", (e) => {
+bye("enemy", (e) => {
 
 	rect(0, 0, {
 		pos: e.pos,
@@ -240,7 +240,7 @@ lastwish("enemy", (e) => {
 
 });
 
-action("explosion", (e) => {
+sup("explosion", (e) => {
 	e.width += 800 * dt();
 	e.height += 800 * dt();
 	e.color = randColor();
@@ -262,7 +262,7 @@ wait(0.1, () => {
 	go("start");
 });
 
-death.action(() => {
+death.sup(() => {
 	death.color = randColor();
 });
 

@@ -1,40 +1,20 @@
 init();
 loadSprite("guy", "guy.png");
 
-window.onload = () => {
+ready(() => {
 
-const G = 9.8;
-const acc = 160;
-const force = 640;
-
-const player = sprite("guy", {
-	pos: vec2(0, 240),
-	velY: 0,
-	platform: undefined,
+initWorld({
+	gravity: 9.8,
+	acc: 120,
 });
 
-player.action(() => {
-	if (!player.platform) {
-		player.velY -= G * acc * dt();
-		const res = player.move(vec2(0, player.velY));
-		if (res) {
-			player.velY = 0;
-			if (res.edge === "bottom") {
-				player.platform = res.obj;
-			}
-		}
-	} else {
-		if (!player.isCollided(player.platform)) {
-			player.platform = undefined;
-		}
-	}
+const player = addPlayer({
+	pos: vec2(0, 320),
+	jumpForce: 560,
 });
 
 keyPress("up", () => {
-	if (player.platform) {
-		player.platform = undefined;
-		player.velY = force;
-	}
+	player.jump();
 });
 
 keyDown("left", () => {
@@ -61,11 +41,11 @@ rect(128, 4, {
 });
 
 rect(32, 32, {
-	pos: vec2(120, -64),
+	pos: vec2(120, -80),
 	solid: true,
 });
 
 start();
 
-};
+});
 
