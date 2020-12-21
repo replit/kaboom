@@ -542,10 +542,10 @@ function drawRect(conf) {
 	const { r, g, b, a, } = conf.color;
 
 	gfx.mesh.push([
-		// pos          // uv                 // color
-		-w + x, -h + y, q.x, q.y + q.h,       r, g, b, a,
-		-w + x,  h + y, q.x, q.y,             r, g, b, a,
-		 w + x,  h + y, q.x + q.w, q.y,       r, g, b, a,
+		// pos			// uv				  // color
+		-w + x, -h + y, q.x, q.y + q.h,		  r, g, b, a,
+		-w + x,  h + y, q.x, q.y,			  r, g, b, a,
+		 w + x,  h + y, q.x + q.w, q.y,		  r, g, b, a,
 		 w + x, -h + y, q.x + q.w, q.y + q.h, r, g, b, a,
 	], [ 0, 1, 2, 0, 2, 3, ]);
 
@@ -609,12 +609,12 @@ function drawFChars(fchars) {
 
 // get current canvas width
 function width() {
-	return  gl.drawingBufferWidth;
+	return	gl.drawingBufferWidth;
 }
 
 // get current canvas height
 function height() {
-	return  gl.drawingBufferHeight;
+	return	gl.drawingBufferHeight;
 }
 
 function originPt(orig) {
@@ -780,8 +780,6 @@ function vec2(x, y) {
 	return {
 		x: x !== undefined ? x : 0,
 		y: y !== undefined ? y : (x !== undefined ? x : 0),
-// 		x: x ?? 0,
-// 		y: y ?? x ?? 0,
 		clone() {
 			return vec2(this.x, this.y);
 		},
@@ -839,7 +837,6 @@ function color(r, g, b, a) {
 		g: g,
 		b: b,
 		a: a === undefined ? 1 : a,
-// 		a: a ?? 1,
 		clone() {
 			return color(this.r, this.g, this.b, this.a);
 		},
@@ -1307,7 +1304,7 @@ function reload(name) {
 	scene.initialized = false;
 
 	for (const id in scene.objs) {
-		scene.objs[id].id = undefined;
+		scene.objs[id].sceneID = undefined;
 	}
 
 	for (const obj of scene.init.objs) {
@@ -1412,11 +1409,10 @@ function add(props) {
 		// setting / resolving general props
 		pos: props.pos ? vec2(props.pos) : vec2(0),
 		scale: props.scale === undefined ? 1 : props.scale,
-// 		scale: props.scale ?? 1,
 		rot: props.rot || 0,
 		color: props.color || color(1, 1, 1, 1),
 		hidden: props.hidden === undefined ? false : props.hidden,
-// 		hidden: props.hidden ?? false,
+		paused: props.paused === undefined ? false : props.paused,
 		layer: props.layer || 0,
 		tags: props.tags ? [...props.tags] : [],
 
@@ -1444,23 +1440,23 @@ function add(props) {
 			this.events.bye.push(f);
 		},
 
-		// add callback that runs when the obj is clicked
-		click(f) {
-			this.sup(() => {
-				if (this.isClicked()) {
-					f();
-				}
-			});
-		},
-
 		// add callback that runs when the obj has collided with other objs with tag t
 		ouch(t, f) {
 			this.sup(() => {
-				everyone(t, (obj) => {
+				every(t, (obj) => {
 					if (this !== obj && this.intersects(obj)) {
 						f(obj);
 					}
 				});
+			});
+		},
+
+		// add callback that runs when the obj is clicked
+		huh(f) {
+			this.sup(() => {
+				if (this.isClicked()) {
+					f();
+				}
 			});
 		},
 
@@ -1475,20 +1471,20 @@ function add(props) {
 			// TODO: spatial hashing
 			// TODO: try resolve base on normal
 
-// 			let t = 1;
+//			let t = 1;
 
-// 			for (const id in scene.objs) {
-// 				const obj = scene.objs[id];
-// 				if (obj.solid) {
-// 					const res = aabb(this.area(), obj.area(), dx, dy);
-// 					if (res.t < t) {
-// 						t = res.t;
-// 					}
-// 				}
-// 			}
+//			for (const id in scene.objs) {
+//				const obj = scene.objs[id];
+//				if (obj.solid) {
+//					const res = aabb(this.area(), obj.area(), dx, dy);
+//					if (res.t < t) {
+//						t = res.t;
+//					}
+//				}
+//			}
 
-// 			this.pos.x += dx * t;
-// 			this.pos.y += dy * t;
+//			this.pos.x += dx * t;
+//			this.pos.y += dy * t;
 
 			let res = undefined;
 
@@ -1503,7 +1499,7 @@ function add(props) {
 					if (obj.solid) {
 						if (this.intersects(obj)) {
 							this.pos.x +=
-								(   Math.sign(dx)
+								(	Math.sign(dx)
 									* (obj.pos.x - this.pos.x)
 									- (this.width + obj.width) / 2
 								) * Math.sign(dx);
@@ -1528,7 +1524,7 @@ function add(props) {
 					if (obj.solid) {
 						if (this.intersects(obj)) {
 							this.pos.y +=
-								(   Math.sign(dy)
+								(	Math.sign(dy)
 									* (obj.pos.y - this.pos.y)
 									- (this.height + obj.height) / 2
 								) * Math.sign(dy);
@@ -1629,7 +1625,7 @@ function add(props) {
 
 		// if obj currently exists in the scene
 		exists() {
-			return this.id !== undefined;
+			return this.sceneID !== undefined;
 		},
 
 		state(name) {
@@ -1698,7 +1694,7 @@ function add(props) {
 		play(name, loop) {
 
 			if (this.type !== "sprite") {
-				console.error(`play() is not available for ${this.type} type obj`);
+				console.error(`play() is only available for sprites, not ${this.type}`);
 				return;
 			}
 
@@ -1711,12 +1707,21 @@ function add(props) {
 
 			this.curAnim = name;
 			this.frame = anim.from;
-			this.looping = loop;
+			this.looping = loop === undefined ? true : loop;
 
+		},
+
+		stop() {
+			if (this.type !== "sprite") {
+				console.error(`stop() is only available for sprites, not ${this.type}`);
+				return;
+			}
+			this.curAnim = undefined;
 		},
 
 	};
 
+	// figure out obj size
 	switch (obj.type) {
 
 		case "sprite":
@@ -1767,17 +1772,56 @@ function add(props) {
 
 	}
 
-	// if start(), add obj to the current scene
+	// sprite anim
+	if (obj.type === "sprite") {
+
+		obj.sup(() => {
+
+			if (!obj.curAnim) {
+				return;
+			}
+
+			const spr = game.sprites[obj.sprite];
+			const speed = obj.animSpeed || 0.1;
+			const anim = spr.anims[obj.curAnim];
+
+			obj.timer += dt();
+
+			if (obj.timer >= obj.animSpeed) {
+				// TODO: anim dir
+				obj.frame++;
+				if (obj.frame > anim.to) {
+					if (obj.looping) {
+						obj.frame = anim.from;
+					} else {
+						obj.frame--;
+						obj.curAnim = undefined;
+					}
+				}
+				obj.timer -= obj.animSpeed;
+			}
+
+		});
+
+	}
+
+	// ephemeral objs
+	if (obj.lifespan !== undefined) {
+		obj.sup(() => {
+			obj.lifespan -= dt();
+			if (obj.lifespan <= 0) {
+				destroy(obj);
+			}
+		});
+	}
+
+	// if game is running, add obj to the current scene
 	if (game.running) {
-
 		addToScene(game.scenes[game.curScene], obj);
-
-	// if not start(), add obj to the init obj list of the current scene describing
+	// if not, add obj to the init obj list of the current scene describing
 	} else {
-
 		const scene = game.scenes[game.curDescScene];
 		scene.init.objs.push(obj);
-
 	}
 
 	// return the shared referenced obj
@@ -1880,6 +1924,12 @@ function bye(t, f) {
 	});
 }
 
+// aloha!
+function aloha(t, f) {
+	hi(t, f);
+	bye(t, f);
+}
+
 // add an event that runs with objs with t1 collides with objs with t2
 function ouch(t1, t2, f) {
 	if (game.running) {
@@ -1887,7 +1937,7 @@ function ouch(t1, t2, f) {
 		return;
 	}
 	sup(t1, (o1) => {
-		everyone(t2, (o2) => {
+		every(t2, (o2) => {
 			if (o1 !== o2) {
 				if (o1.intersects(o2)) {
 					f(o1, o2);
@@ -1898,9 +1948,9 @@ function ouch(t1, t2, f) {
 }
 
 // add an event that runs when objs with tag t is clicked
-function click(t, f) {
+function huh(t, f) {
 	if (game.running) {
-		console.error("'click' can only be called at init");
+		console.error("'huh' can only be called at init");
 		return;
 	}
 	sup(t, (o) => {
@@ -1994,8 +2044,21 @@ function mouseRelease(f) {
 	});
 }
 
+// get all objects with a tag
+function get(t) {
+	const scene = game.scenes[game.curScene];
+	const list = [];
+	for (const id in scene.objs) {
+		const obj = scene.objs[id];
+		if (obj.is(t)) {
+			list.push(obj);
+		}
+	}
+	return list;
+}
+
 // apply a function to all objects currently in scene with tag t
-function everyone(t, f) {
+function every(t, f) {
 	const scene = game.scenes[game.curScene];
 	for (const id in scene.objs) {
 		const obj = scene.objs[id];
@@ -2008,7 +2071,7 @@ function everyone(t, f) {
 // destroy an obj
 function destroy(obj) {
 	const scene = game.scenes[game.curScene];
-	if (obj.id !== undefined) {
+	if (obj.sceneID !== undefined) {
 		if (scene) {
 			for (const cb of obj.events.bye) {
 				cb(obj);
@@ -2018,15 +2081,15 @@ function destroy(obj) {
 					e.cb(obj);
 				}
 			}
-			delete scene.objs[obj.id];
-			delete obj.id;
+			delete scene.objs[obj.sceneID];
+			delete obj.sceneID;
 		}
 	}
 }
 
 // destroy all obj with the tag
 function destroyAll(t) {
-	everyone(t, (obj) => {
+	every(t, (obj) => {
 		destroy(obj);
 	});
 }
@@ -2034,7 +2097,7 @@ function destroyAll(t) {
 function addToScene(scene, obj) {
 
 	scene.objs[scene.lastID] = obj;
-	obj.id = scene.lastID;
+	obj.sceneID = scene.lastID;
 	scene.lastID++;
 
 	for (const cb of obj.events.hi) {
@@ -2142,16 +2205,6 @@ function start(name) {
 			}
 		}
 
-		// perform group updates
-		for (const e of scene.events.sup) {
-			for (const id in scene.objs) {
-				const obj = scene.objs[id];
-				if (obj.is(e.tag)) {
-					e.cb(obj);
-				}
-			}
-		}
-
 		// update timers
 		for (const id in scene.timers) {
 			const t = scene.timers[id];
@@ -2162,7 +2215,7 @@ function start(name) {
 			}
 		}
 
-		// update objs
+		// objs
 		for (const id in scene.objs) {
 
 			const obj = scene.objs[id];
@@ -2172,15 +2225,18 @@ function start(name) {
 			}
 
 			// update obj
-			for (const f of obj.events.sup) {
-				f(obj);
-			}
+			if (!obj.paused) {
 
-			if (obj.lifespan !== undefined) {
-				obj.lifespan -= dt();
-				if (obj.lifespan <= 0) {
-					destroy(obj);
+				for (const f of obj.events.sup) {
+					f(obj);
 				}
+
+				for (const e of scene.events.sup) {
+					if (obj.is(e.tag)) {
+						e.cb(obj);
+					}
+				}
+
 			}
 
 			// draw obj
@@ -2196,17 +2252,6 @@ function start(name) {
 						if (obj.sprite && !spr) {
 							console.error(`sprite not found: "${obj.sprite}"`);
 							break;
-						}
-
-						if (obj.curAnim) {
-							const speed = obj.animSpeed || 0.1;
-							const anim = spr.anims[obj.curAnim];
-							obj.timer += dt();
-							if (obj.timer >= obj.animSpeed) {
-								// TODO: anim dir
-								obj.frame = anim.from + (obj.frame + 1) % (anim.to - anim.from + 1);
-								obj.timer -= obj.animSpeed;
-							}
 						}
 
 						const q = spr.frames[obj.frame];
@@ -2338,10 +2383,13 @@ lib.destroyAll = destroyAll;
 lib.sup = sup;
 lib.bye = bye;
 lib.hi = hi;
+lib.aloha = aloha;
 lib.ouch = ouch;
-lib.click = click;
+lib.huh = huh;
 
-lib.everyone = everyone;
+// access
+lib.get = get;
+lib.every = every;
 
 // input
 lib.keyDown = keyDown;

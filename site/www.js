@@ -19,7 +19,9 @@ function tag(tag, attrs, children) {
 		text += children;
 	} else if (Array.isArray(children)) {
 		for (const v of children) {
-			text += v;
+			if (v) {
+				text += v;
+			}
 		}
 	}
 

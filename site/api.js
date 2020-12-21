@@ -1,11 +1,12 @@
 // api desc
 
-function f(name, args, ret, desc) {
+function f(name, args, ret, desc, example) {
 	return {
 		name: name,
 		args: args,
 		ret: ret,
 		desc: desc,
+		example: example,
 	};
 }
 
@@ -37,6 +38,7 @@ module.exports = [
 			f("height", [], "height", "canvas height"),
 			f("time", [], "time", "current game time"),
 			f("dt", [], "dt", "delta time since last frame"),
+			f("mousePos", [], "mousePos", "current mouse position"),
 		],
 	},
 	{
@@ -78,31 +80,76 @@ module.exports = [
 		],
 		objects: [
 			{
-				name: "obj",
+				name: "conf",
 				fields: [],
 				methods: [
-					"action",
-					"collides",
-					"clicks",
 				],
 			},
 		]
 	},
 	{
-		name: "Group Events",
+		name: "Lifecycle",
+		desc: "describe behavior of objects",
 		functions: [
-			f("action", [
+			f("hi", [
 				a("tag", "tag selector"),
 				a("cb", "the callback"),
-			], null, "run callback every frame for all object with the specified tag"),
-			f("collide", [
+			], null, "on init", `
+// every time an object with tag "bullet" is added to scene, play a sound with id "shoot"
+hi("bullet", (b) => {
+	play("shoot");
+});
+			`),
+			f("bye", [
 				a("tag", "tag selector"),
 				a("cb", "the callback"),
-			], null, "run callback for every collision between all object with the specified tag"),
-			f("click", [
+			], null, "on destroy", `
+// every objects with tag "enemy" gets destroyed, increment score by 1
+bye("enemy", (e) => {
+	score++;
+});
+			`),
+			f("sup", [
 				a("tag", "tag selector"),
 				a("cb", "the callback"),
-			], null, "run callback for every click on all object with the specified tag"),
+			], null, "on update", `
+// every frame move objs with tag "bullet" up with speed of 100
+sup("bullet", (b) => {
+	b.move(vec2(0, 100));
+});
+			`),
+			f("ouch", [
+				a("tag", "tag selector"),
+				a("cb", "the callback"),
+			], null, "on collision", `
+// every objects with tag "enemy" and objects with tag "bullet" collides, destroy bullet, decrement enemy's life attribute, if enemy life goes below 0, destroy enemy from scene
+ouch("enemy", "bullet", (e, b) => {
+	destroy(b);
+	e.life--;
+	if (e.life <= 0) {
+		destroy(e);
+	}
+});
+			`),
+			f("huh", [
+				a("tag", "tag selector"),
+				a("cb", "the callback"),
+			], null, "on click", `
+// drag n' drop
+huh("draggable", (obj) => {
+	dragging = obj;
+});
+
+sup("draggable", (obj) => {
+	if (obj === dragging) {
+		obj.pos = mousePos();
+	}
+});
+
+mouseRelease(() => {
+	dragging = undefined;
+});
+			`),
 		],
 	},
 ];

@@ -14,6 +14,10 @@ const styles2 = {
 		"margin": "64px auto",
 	},
 
+	"code": {
+		"padding": "6px !important",
+	},
+
 	"#sidebar": {
 
 		"width": "20%",
@@ -73,7 +77,7 @@ const styles2 = {
 
 const page = t("html", {}, [
 	t("head", {}, [
-		t("title", {}, "gamelib"),
+		t("title", {}, "KaBoom!!!"),
 		t("meta", { charset: "utf-8", }),
 		t("style", {}, www.style(styles)),
 		t("style", {}, www.style(styles2)),
@@ -93,17 +97,24 @@ const page = t("html", {}, [
 				]);
 			})),
 			t("div", { id: "content", }, api.map((sec) => {
-				return t("div", {}, sec.functions.map((f) => {
-					let paren = "(";
-					for (const arg of f.args) {
-						paren += arg.name + ", ";
-					}
-					paren += ")";
-					return t("div", { id: f.name, class: "entry", }, [
-						t("a", { class: "title", }, f.name + paren),
-						t("p", { class: "desc", }, f.desc),
-					]);
-				}));
+				return t("div", {}, [
+					t("p", {}, sec.name),
+					t("p", {}, sec.desc),
+					...sec.functions.map((f) => {
+						let paren = "(";
+						for (const arg of f.args) {
+							paren += arg.name + ", ";
+						}
+						paren += ")";
+						return t("div", { id: f.name, class: "entry", }, [
+							t("a", { class: "title", }, f.name + paren),
+							t("p", { class: "desc", }, f.desc),
+							f.example ? t("pre", {}, [
+								t("code", { class: "javascript", }, f.example.trim()),
+							]) : null,
+						]);
+					}),
+				]);
 			})),
 		]),
 	]),

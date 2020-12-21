@@ -16,5 +16,18 @@ module.exports = {
 		"width": "100%",
 	},
 
+	"pre": {
+		"white-space": "pre-wrap",
+	},
+
+	"code": {
+		"font-size": "16px",
+		"padding": "0 !important",
+		"margin": "24px 0px",
+		"border-radius": "6px",
+		"border": "2px solid #ddd",
+		"background": "#f7f7f7 !important",
+	},
+
 };
 

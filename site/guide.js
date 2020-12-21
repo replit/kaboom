@@ -11,14 +11,6 @@ const styles2 = {
 		"width": "720px",
 		"margin": "64px auto",
 	},
-	"code": {
-		"font-size": "16px",
-		"padding": "0 !important",
-		"margin": "24px 0px",
-		"border-radius": "6px",
-		"border": "2px solid #ddd",
-		"background": "#f7f7f7 !important",
-	},
 	".inline": {
 		"padding": "0 6px",
 		"border-radius": "6px",
@@ -268,7 +260,7 @@ p("if you run the game now, there'll be a bullet shooting out of the player's st
 
 const page = t("html", {}, [
 	t("head", {}, [
-		t("title", {}, "Let's Make a Shooter Game!"),
+		t("title", {}, "KaBoom.js: Let's Make a Shooter Game!"),
 		t("meta", { charset: "utf-8", }),
 		t("style", {}, www.style(styles)),
 		t("style", {}, www.style(styles2)),
