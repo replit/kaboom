@@ -6,6 +6,7 @@ module.exports = {
 		"margin": "0",
 		"padding": "0",
 		"font-family": "Consolas, Monospace, Courier",
+		"box-sizing": "border-box",
 	},
 
 	"html": {

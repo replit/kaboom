@@ -1109,23 +1109,38 @@ function wave(a, b, t) {
 	return a + (Math.sin(time() * t) + 1) / 2 * (b - a);
 }
 
+const A = 1103515245;
+const C = 12345;
+const M = 2147483648;
+const defRNG = rng(new Date().getTime());
+
+function rng(seed) {
+	return {
+		seed: seed,
+		gen(a, b) {
+			if (isVec2(a) && isVec2(b)) {
+				return vec2(
+					this.gen(a.x, b.x),
+					this.gen(a.y, b.y),
+				);
+			} else if (a !== undefined) {
+				if (b === undefined) {
+					return this.gen() * a;
+				} else {
+					return this.gen() * (b - a) + a;
+				}
+			} else if (a === undefined && b === undefined) {
+				this.seed = (A * this.seed + C) % M;
+				return this.seed / M;
+			} else {
+				console.error("invalid param to rand()");
+			}
+		},
+	};
+}
+
 function rand(a, b) {
-	if (isVec2(a) && isVec2(b)) {
-		return vec2(
-			rand(a.x, b.x),
-			rand(a.y, b.y),
-		);
-	} else if (a !== undefined) {
-		if (b === undefined) {
-			return Math.random() * a;
-		} else {
-			return Math.random() * (b - a) + a;
-		}
-	} else if (a === undefined && b === undefined) {
-		return Math.random();
-	} else {
-		console.error("invalid param to rand()");
-	}
+	return defRNG.gen(a, b);
 }
 
 function chance(p) {
@@ -1304,7 +1319,7 @@ function reload(name) {
 	scene.initialized = false;
 
 	for (const id in scene.objs) {
-		scene.objs[id].sceneID = undefined;
+		scene.objs[id].id = undefined;
 	}
 
 	for (const obj of scene.init.objs) {
@@ -1625,23 +1640,26 @@ function add(props) {
 
 		// if obj currently exists in the scene
 		exists() {
-			return this.sceneID !== undefined;
+			return this.id !== undefined;
 		},
 
 		state(name) {
 			return this.states[name];
 		},
 
-		addState(name, init) {
+		addState(name) {
 
 			const obj = this;
 
 			this.states[name] = {
 
-				state: init,
+				state: undefined,
 				events: {},
 
 				enter(state, ...args) {
+					if (!obj.exists()) {
+						return;
+					}
 					if (state === this.state) {
 						return;
 					}
@@ -1925,9 +1943,9 @@ function bye(t, f) {
 }
 
 // aloha!
-function aloha(t, f) {
-	hi(t, f);
-	bye(t, f);
+function aloha(tag, cb) {
+	hi(tag, cb);
+	bye(tag, cb);
 }
 
 // add an event that runs with objs with t1 collides with objs with t2
@@ -1962,21 +1980,25 @@ function huh(t, f) {
 
 // add an event that'd be run after t
 function wait(t, f) {
-	// after start(), start the timer immediately
-	if (game.running) {
-		const scene = game.scenes[game.curScene];
-		scene.timers[scene.lastTimerID] = {
-			time: t,
-			cb: f,
-		};
-		scene.lastTimerID++;
-	// before start(), run the timer when the scene is loaded
+	if (f) {
+		// after start(), start the timer immediately
+		if (game.running) {
+			const scene = game.scenes[game.curScene];
+			scene.timers[scene.lastTimerID] = {
+				time: t,
+				cb: f,
+			};
+			scene.lastTimerID++;
+		// before start(), run the timer when the scene is loaded
+		} else {
+			const scene = game.scenes[game.curDescScene];
+			scene.init.timers.push({
+				time: t,
+				cb: f,
+			});
+		}
 	} else {
-		const scene = game.scenes[game.curDescScene];
-		scene.init.timers.push({
-			time: t,
-			cb: f,
-		});
+		return new Promise(r => wait(t, r));
 	}
 }
 
@@ -2044,7 +2066,7 @@ function mouseRelease(f) {
 	});
 }
 
-// get all objects with a tag
+// get all objects with tag
 function get(t) {
 	const scene = game.scenes[game.curScene];
 	const list = [];
@@ -2071,7 +2093,7 @@ function every(t, f) {
 // destroy an obj
 function destroy(obj) {
 	const scene = game.scenes[game.curScene];
-	if (obj.sceneID !== undefined) {
+	if (obj.id !== undefined) {
 		if (scene) {
 			for (const cb of obj.events.bye) {
 				cb(obj);
@@ -2081,8 +2103,8 @@ function destroy(obj) {
 					e.cb(obj);
 				}
 			}
-			delete scene.objs[obj.sceneID];
-			delete obj.sceneID;
+			delete scene.objs[obj.id];
+			delete obj.id;
 		}
 	}
 }
@@ -2097,7 +2119,7 @@ function destroyAll(t) {
 function addToScene(scene, obj) {
 
 	scene.objs[scene.lastID] = obj;
-	obj.sceneID = scene.lastID;
+	obj.id = scene.lastID;
 	scene.lastID++;
 
 	for (const cb of obj.events.hi) {
@@ -2352,6 +2374,15 @@ function showStats(b) {
 	return game.debug.showStats;
 }
 
+function objCount() {
+	const scene = game.scenes[game.curScene];
+	if (!scene) {
+		console.error("game's not running yet");
+		return 0;
+	}
+	return Object.keys(scene.objs).length;
+}
+
 const lib = {};
 
 // asset load
@@ -2387,7 +2418,6 @@ lib.aloha = aloha;
 lib.ouch = ouch;
 lib.huh = huh;
 
-// access
 lib.get = get;
 lib.every = every;
 
@@ -2421,10 +2451,11 @@ lib.ready = ready;
 lib.start = start;
 
 // math
+lib.rng = rng;
+lib.rand = rand;
 lib.vec2 = vec2;
 lib.color = color;
 lib.choose = choose;
-lib.rand = rand;
 lib.chance = chance;
 lib.lerp = lerp;
 lib.map = map;
@@ -2433,6 +2464,7 @@ lib.wave = wave;
 // debug
 lib.showStats = showStats;
 lib.drawBBox = drawBBox;
+lib.objCount = objCount;
 
 for (const k in lib) {
 	Object.defineProperty(window, k, {

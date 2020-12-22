@@ -11,6 +11,9 @@ const styles2 = {
 		"width": "720px",
 		"margin": "64px auto",
 	},
+	"#logo": {
+		"width": "240px",
+	},
 	".inline": {
 		"padding": "0 6px",
 		"border-radius": "6px",
@@ -81,7 +84,7 @@ function p(text) {
 
 const guide = [
 // -------------------------------------------------------------
-p("Let's make a shooter game!"),
+p("Let's make a shooter game with kaboom.js!"),
 p("first let's call the `init()` function to initialize our game:"),
 // -------------------------------------------------------------
 c([
@@ -226,7 +229,7 @@ keyPress("space", () => {
 	});
 });
 
-action("bullet", (b) => {
+sup("bullet", (b) => {
 	b.move(vec2(bulletSpeed, 0));
 });
 `),
@@ -254,6 +257,7 @@ start();
 // -------------------------------------------------------------
 p("ok a lot to explain here. `keyPress()` register a key press event which is different from the `keyDown()` above, `keyPress` would run only once when the player presses the key, while `keyDown` runs every frame when the player is holding down the keys, so `keyPress` is good for one shot events like firing bullets."),
 p("`rect()` is similar to `sprite()`, it creates a rectangle and adds to the game scene"),
+p("`sup()` is asking the bullet, 'sup bullet?', and they're supposed to respond what they're doing at the moment (the behavior every frame, in this case it's moving `vec2(bulletSoeed, 0))`"),
 p("if you run the game now, there'll be a bullet shooting out of the player's stomach everytime you press space, but yeah you might have noticed again, this bullet thing, is clearly not threatening enough.. it's *WHITE* and *FIXED SIZED*, which is the worse thing that can happen to a bullet, we just need to change that before this game becomes a complete bore"),
 // -------------------------------------------------------------
 ];
@@ -270,7 +274,10 @@ const page = t("html", {}, [
 		t("script", {}, "hljs.configure({tabReplace: \"    \"});"),
 	]),
 	t("body", {}, [
-		t("div", { id: "main", }, guide),
+		t("div", { id: "main", }, [
+			t("img", { id: "logo", src: "data:image/png;base64," + fs.readFileSync(`${__dirname}/res/kaboom.png`, "base64") }),
+			...guide,
+		]),
 	]),
 ]);
 

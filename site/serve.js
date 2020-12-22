@@ -27,7 +27,7 @@ const server = http.createServer((req, res) => {
 
 		if (!res.finished) {
 			res.writeHead(404);
-			res.end("no");
+			res.end("nope");
 		}
 
 	} catch (e) {
