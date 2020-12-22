@@ -17,10 +17,6 @@ module.exports = {
 		"width": "100%",
 	},
 
-	"pre": {
-		"white-space": "pre-wrap",
-	},
-
 	"code": {
 		"font-size": "16px",
 		"padding": "0 !important",

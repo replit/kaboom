@@ -15,7 +15,7 @@ function tag(tag, attrs, children) {
 
 	text += ">";
 
-	if (typeof(children) == "string") {
+	if (typeof(children) === "string") {
 		text += children;
 	} else if (Array.isArray(children)) {
 		for (const v of children) {
@@ -53,18 +53,18 @@ function style(list) {
 		for (const key in sheet) {
 			const val = sheet[key];
 			// media
-			if (key == "@media") {
+			if (key === "@media") {
 				for (const cond in val) {
 					post += "@media " + cond + "{" + sel + handle_sheet(val[cond]) + "}";
 				}
 			// pseudo class
-			} else if (key[0] == ":") {
+			} else if (key[0] === ":") {
 				post += handle_sheet_ex(sel + key, val);
 			// self
-			} else if (key[0] == "&") {
+			} else if (key[0] === "&") {
 				post += handle_sheet_ex(sel + key.substring(1), val);
 			// nesting child
-			} else if (typeof(val) == "object") {
+			} else if (typeof(val) === "object") {
 				post += handle_sheet_ex(sel + " " + key, val);
 			} else {
 				t += key + ":" + val + ";";
@@ -76,7 +76,7 @@ function style(list) {
 
 	for (const sel in list) {
 		const sheet = list[sel];
-		if (sel == "@keyframes") {
+		if (sel === "@keyframes") {
 			for (const name in sheet) {
 				const map = sheet[name];
 				text += "@keyframes " + name + "{";

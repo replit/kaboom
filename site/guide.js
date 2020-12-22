@@ -46,6 +46,10 @@ const styles2 = {
 			"background": "#ffe0e0 !important",
 		},
 	},
+	"li": {
+		"font-size": "18px",
+		"margin-left": "32px",
+	},
 };
 
 function c(pieces) {
@@ -126,26 +130,24 @@ loadSprite("guy", "guy.png");
 
 `),
 a(`
-scene("main");
+ready(() => {
 
-// put stuff in "main" scene here
+	scene("main");
 
-start();
+	// put stuff in "main" scene here
+
+	start();
+
+});
 `),
 ]),
 // -------------------------------------------------------------
-p("any code below this `scene()` call will be describing what we're going to put into this scene, until another `scene()` call, or a `start()` call to end the scene building and start the game"),
+p("`ready()` makes sure the callback gets called after all the resources are loaded, so we can have all the asset information we need when we're building our scene, e.g. sprite sizes, animation data etc. we don't really need them now but it's good to wrap everything inside in case of weird asset related bugs."),
+p("Any code below this `scene()` call will be describing what we're going to put into this scene and how stuff works, until another `scene()` call, or a `start()` call to end the scene building step and start the game"),
 p("Let's add the player sprite to the scene:"),
 // -------------------------------------------------------------
 c([
 n(`
-init({
-	width: 640,
-	height: 480,
-});
-
-loadSprite("guy", "guy.png");
-
 scene("main");
 `),
 a(`
@@ -158,18 +160,12 @@ start();
 `),
 ]),
 // -------------------------------------------------------------
-p("the function `sprite(name)` adds a sprite with specified name to the scene, returning the reference to the game object. Try run the game now! There'll now be a player in the middle of the screen!"),
+p("the function `sprite(name)` adds a sprite with specified name to the scene, returning the reference to the game object. A game object is the basic unit in Kaboom.js, it contains all the information we needed to put stuff on screen and how they works, more will be explained later. Try run the game now! There'll now be a player in the middle of the screen!"),
+p("note that when you call `sprite()`, the game object is not added to the scene yet, everything gets added to scene when `start()` gets called, we're only describing what objects to add to scene in the scene description process, so that we can easily manage which scenes contain which objects"),
 p("now let's make the player move around with our keys!"),
 // -------------------------------------------------------------
 c([
 n(`
-init({
-	width: 640,
-	height: 480,
-});
-
-loadSprite("guy", "guy.png");
-
 scene("main");
 
 const player = sprite("guy", {
@@ -191,7 +187,7 @@ keyDown("up", () => {
 	player.move(vec2(0, speed));
 });
 
-keyDown("right", () => {
+keyDown("down", () => {
 	player.move(vec2(0, -speed));
 });
 `),
@@ -205,13 +201,6 @@ p("you might have noticed something now... our player is weak! yeah sure he can 
 // -------------------------------------------------------------
 c([
 n(`
-init({
-	width: 640,
-	height: 480,
-});
-
-loadSprite("guy", "guy.png");
-
 scene("main");
 
 const player = sprite("guy", {
@@ -222,7 +211,7 @@ const speed = 320;
 a(`
 const bulletSpeed = 960;
 
-keyPress("space", () => {
+keyPress(" ", () => {
 	rect(5, 5, {
 		pos: player.pos,
 		tags: [ "bullet", ],
@@ -233,33 +222,217 @@ sup("bullet", (b) => {
 	b.move(vec2(bulletSpeed, 0));
 });
 `),
-n(`
-
-keyDown("left", () => {
-	player.move(vec2(-speed, 0));
-});
-
-keyDown("right", () => {
-	player.move(vec2(speed, 0));
-});
-
-keyDown("up", () => {
-	player.move(vec2(0, speed));
-});
-
-keyDown("right", () => {
-	player.move(vec2(0, -speed));
-});
-
-start();
-`),
 ]),
 // -------------------------------------------------------------
 p("ok a lot to explain here. `keyPress()` register a key press event which is different from the `keyDown()` above, `keyPress` would run only once when the player presses the key, while `keyDown` runs every frame when the player is holding down the keys, so `keyPress` is good for one shot events like firing bullets."),
-p("`rect()` is similar to `sprite()`, it creates a rectangle and adds to the game scene"),
-p("`sup()` is asking the bullet, 'sup bullet?', and they're supposed to respond what they're doing at the moment (the behavior every frame, in this case it's moving `vec2(bulletSoeed, 0))`"),
-p("if you run the game now, there'll be a bullet shooting out of the player's stomach everytime you press space, but yeah you might have noticed again, this bullet thing, is clearly not threatening enough.. it's *WHITE* and *FIXED SIZED*, which is the worse thing that can happen to a bullet, we just need to change that before this game becomes a complete bore"),
+p("`rect()` is similar to `sprite()`, it creates a rectangle and adds to the game scene. We give it a 'bullet' tag so we can easily define behavior of a specific tag group, see functions `hi()`, `bye()`, `sup()` and `ouch()`"),
+p("`sup(\"bullet\", ..)` is like asking, 'what's up! every object with tag \"bullet\"?' every frame, and they're supposed to respond what they're doing at the moment (the behavior every frame, in this case it's moving `vec2(bulletSpeed, 0)`)"),
+p("if you run the game now, there'll be a bullet shooting out of the player's stomach everytime you press space, but yeah you might have noticed again, this bullet, is clearly not threatening enough.. it's *white* and *fixed sized*, which is the worse thing that can happen to a bullet, we need to change that!"),
 // -------------------------------------------------------------
+c([
+n(`
+sup("bullet", (b) => {
+	b.move(vec2(bulletSpeed, 0));
+`),
+a(`
+	b.color = rand(color(0, 0, 0), color(1, 1, 1)),,
+	b.width = rand(4, 8);
+	b.height = rand(4, 8);
+`),
+n(`
+});
+`),
+]),
+// -------------------------------------------------------------
+p("here, we added variants to the bullets' appearance so it looks more threatening"),
+p("let's add the enemies! normally enemies might have fancy AI to make them look natural, but that's lame, there's too much logic in the world already, let's just make it easy and just and make them spawn every 1s and follow the player relentlessly"),
+// -------------------------------------------------------------
+c([
+a(`
+const enemySpeed = 80;
+
+function addEnemy() {
+	sprite("guy", {
+		// random position on screen
+		pos: rand(vec2(-width() / 2, -height() / 2), vec2(width() / 2, height() / 2)),
+		tags: [ "enemy", ],
+		color: color(0, 0, 1),
+		speed: 48,
+	});
+}
+
+loop(1, () => {
+	addEnemy();
+});
+`),
+]),
+// -------------------------------------------------------------
+p("here we created a function `addEnemy()` that helps us create a new sprite and add it to the world, give them a tag \"enemy\" for describing their behavior later, and give them a `color(0, 0, 1)` cuz bad guys are all blue. Use `loop(t)` to make them appear every `t` second. Now the enemy behavior:"),
+// -------------------------------------------------------------
+c([
+a(`
+sup("enemy", (e) => {
+	// direction vector between player and enemy
+	const dir = player.pos.sub(e.pos).unit();
+	// move towards the player
+	e.move(dir.scale(enemySpeed));
+});
+
+ouch("enemy", "bullet", (e, b) => {
+	destroy(e);
+	destroy(b);
+});
+
+// jump to "die" scene after player touches enemy
+player.ouch("enemy", (e) => {
+	go("start");
+});
+`)
+]),
+// -------------------------------------------------------------
+p("`sup()`, like above, describes the behavior of objects with tag \"enemy\" every frame. Here we want our enemies to constantly move towards the player, so we calculate the directional vector between the enemy and the player, then move towards it. `sub()`, `unit()`, `add()`, and `scale()` are all methods under `vec2`. They're not that readable cuz JavaScrit doesn't have operator overloading"),
+p("`ouch()` is similar to `sup()`, it describes the behavior when certain object collides, in this case we want enemy to die when they're hit by objects with tag \"bullet\", so `destroy()` them in the callback. You can also define all these event methods on a single game object too, in this case we defined it for `player` and call `go(\"start\")`, which goes to the \"start\" scene when an enemy touches the player. We don't have the \"start\" scene yet, let's define it now!"),
+// -------------------------------------------------------------
+c([
+n(`
+// jump to "die" scene after player touches enemy
+player.ouch("enemy", (e) => {
+	go("start");
+});
+
+`),
+a(`
+scene("start");
+
+text("press space to start!", {
+	size: 16,
+});
+
+keyPress(" ", () => {
+	reload("main");
+	go("main");
+});
+`),
+d(`
+start("main");
+`),
+a(`
+start("start");
+`),
+]),
+// -------------------------------------------------------------
+p("we add another `scene()` call after we're done with the \"main\" scene, add a simple text and a space key trigger to reload and go to the game scene again. `reload()` does what it says and reinitialize everything in the specified scene, return all the object states to the initial states described."),
+p("Awesome! Now we have a basic game loop and some basic gameplay. Full code:"),
+// -------------------------------------------------------------
+c([
+n(`
+init({
+    width: 640,
+    height: 480,
+});
+
+loadSprite("guy", "guy.png");
+
+ready(() => {
+
+	scene("main");
+
+	const player = sprite("guy", {
+		pos: vec2(0, 0),
+	});
+	// put stuff in "main" scene here
+
+	const speed = 320;
+
+	keyDown("left", () => {
+		player.move(vec2(-speed, 0));
+	});
+
+	keyDown("right", () => {
+		player.move(vec2(speed, 0));
+	});
+
+	keyDown("up", () => {
+		player.move(vec2(0, speed));
+	});
+
+	keyDown("down", () => {
+		player.move(vec2(0, -speed));
+	});
+
+	const bulletSpeed = 960;
+
+	keyPress(" ", () => {
+		rect(5, 5, {
+			pos: player.pos,
+			tags: [ "bullet", ],
+		});
+	});
+
+	sup("bullet", (b) => {
+		b.move(vec2(bulletSpeed, 0));
+		b.color = rand(color(0, 0, 0), color(1, 1, 1)),
+		b.width = rand(4, 8);
+		b.height = rand(4, 8);
+	});
+
+	const enemySpeed = 80;
+
+	function addEnemy() {
+		sprite("guy", {
+			// random position on screen
+			pos: rand(vec2(-width() / 2, -height() / 2), vec2(width() / 2, height() / 2)),
+			tags: [ "enemy", ],
+			color: color(0, 0, 1),
+			speed: 48,
+		});
+	}
+
+	loop(1, () => {
+		addEnemy();
+	});
+
+	sup("enemy", (e) => {
+		// direction vector between player and enemy
+		const dir = player.pos.sub(e.pos).unit();
+		// move towards the player
+		e.move(dir.scale(enemySpeed));
+	});
+
+	ouch("enemy", "bullet", (e, b) => {
+		destroy(e);
+		destroy(b);
+	});
+
+	// jump to "die" scene after player touches enemy
+	player.ouch("enemy", (e) => {
+		go("start");
+	});
+
+	scene("start");
+
+	text("press space to start!", {
+		size: 16,
+	});
+
+	keyPress(" ", () => {
+		reload("main");
+		go("main");
+	});
+
+	start("start");
+
+});
+`),
+]),
+// -------------------------------------------------------------
+p("Now, I challenge you to:"),
+t("li", {}, "make the player shoot bullet at the direction they're facing!"),
+t("li", {}, "make enemies spawn far away from player, so there won't be instant death!"),
+t("li", {}, "use your own assets!"),
+t("li", {}, "add visual and audio feedbacks to make the game more responsive!"),
+t("li", {}, "add powerups!"),
+t("li", {}, "add more enemy types!"),
 ];
 
 const page = t("html", {}, [

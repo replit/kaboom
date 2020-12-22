@@ -160,7 +160,7 @@ function addEnemy() {
 
 addEnemy();
 
-loop(0.7, () => {
+loop(1, () => {
 	addEnemy();
 });
 

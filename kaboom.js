@@ -826,6 +826,10 @@ function isVec2(p) {
 	return p !== undefined && p.x !== undefined && p.y !== undefined;
 }
 
+function isColor(c) {
+	return c !== undefined && c.r !== undefined && c.g !== undefined && c.b !== undefined && c.a !== undefined;
+}
+
 function color(r, g, b, a) {
 
 	if (arguments.length === 0) {
@@ -1123,6 +1127,13 @@ function rng(seed) {
 					this.gen(a.x, b.x),
 					this.gen(a.y, b.y),
 				);
+			} else if (isColor(a) && isColor(b)) {
+				return color(
+					this.gen(a.r, b.r),
+					this.gen(a.g, b.g),
+					this.gen(a.b, b.b),
+					this.gen(a.a, b.a),
+				);
 			} else if (a !== undefined) {
 				if (b === undefined) {
 					return this.gen() * a;
@@ -1303,6 +1314,10 @@ function scene(name) {
 
 // switch to a scene
 function go(name) {
+	if (!game.scenes[name]) {
+		console.error(`no such scene: ${name}`);
+		return;
+	}
 	game.curScene = name;
 }
 

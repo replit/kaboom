@@ -47,7 +47,7 @@ const styles2 = {
 
 	"#sidebar": {
 
-		"width": "220px",
+		"width": "232px",
 
 		"@media": {
 			"screen and (max-width: 640px)": {
@@ -69,31 +69,37 @@ const styles2 = {
 				"font-size": "18px",
 				"font-weight": "bold",
 				"margin-top": "16px",
-				"margin-bottom": "12px",
+				"margin-bottom": "6px",
 			},
 
 		},
 
-		".entry": {
+		".link": {
+
 			"font-size": "16px",
 			"display": "table",
 			"color": "#0080ff",
 			"text-decoration": "none",
+			"border-radius": "6px",
+			"padding": "2px 6px",
+
 			":hover": {
 				"background": "#0080ff",
 				"color": "#ffffff !important",
 				"cursor": "pointer",
 			},
+
 			":visited": {
 				"color": "#0080ff",
 			},
+
 		},
 
 	},
 
 	"#content": {
 
-		"width": "calc(100% - 220px - 32px)",
+		"width": "calc(100% - 232px - 16px)",
 
 		"@media": {
 			"screen and (max-width: 640px)": {
@@ -133,7 +139,7 @@ const styles2 = {
 			},
 
 			".desc": {
-				"font-size": "16px",
+				"font-size": "18px",
 			},
 
 		},
@@ -157,14 +163,14 @@ const page = t("html", {}, [
 		t("div", { id: "main", }, [
 			t("div", { id: "sidebar", class: "panel", }, [
 				t("img", { id: "logo", src: "data:image/png;base64," + fs.readFileSync(`${__dirname}/res/kaboom.png`, "base64") }),
-				t("a", { class: "entry", href: "#about", }, "about"),
-				t("a", { class: "entry", href: "/guide", }, "guide"),
-				t("a", { class: "entry", href: "/download", }, "download"),
+				t("a", { class: "link", href: "/guide", }, "guide"),
+				t("a", { class: "link", href: "https://github.com/replit/kaboom", }, "github"),
+				t("a", { class: "link", href: "https://raw.githubusercontent.com/replit/kaboom/master/kaboom.js?token=ACLYGM7RNUP5F2K6YZXWGCC75NMHE", }, "download"),
 				...api.map((sec) => {
 					return t("div", { class: "section", }, [
 						t("p", { class: "title", }, sec.name),
 						t("div", {}, sec.functions.map((f) => {
-							return t("a", { class: "entry", href: `#${f.name}`, }, `${f.name}()`);
+							return t("a", { class: "link", href: `#${f.name}`, }, `${f.name}()`);
 						})),
 					]);
 				})
