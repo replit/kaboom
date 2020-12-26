@@ -655,13 +655,11 @@ function fmtText(text, conf) {
 const audio = {};
 
 function audioInit() {
-
 	audio.sounds = {};
 	audio.ctx = new (window.AudioContext || window.webkitAudioContext)();
 	audio.gainNode = audio.ctx.createGain();
 	audio.gainNode.gain.value = 1;
 	audio.gainNode.connect(audio.ctx.destination);
-
 }
 
 // TODO: move this to game system
@@ -2291,8 +2289,11 @@ function objCount() {
 
 const lib = {};
 
-// asset load
+// life cycle
 lib.init = init;
+lib.start = start;
+
+// asset load
 lib.loadSprite = loadSprite;
 lib.loadSound = loadSound;
 
@@ -2324,6 +2325,7 @@ lib.aloha = aloha;
 lib.ouch = ouch;
 lib.click = click;
 
+// access
 lib.get = get;
 lib.every = every;
 
@@ -2352,9 +2354,6 @@ lib.wait = wait;
 lib.play = play;
 lib.volume = volume;
 
-// start
-lib.start = start;
-
 // math
 lib.rng = rng;
 lib.rand = rand;
@@ -2371,6 +2370,7 @@ lib.showStats = showStats;
 lib.drawBBox = drawBBox;
 lib.objCount = objCount;
 
+// make everything global
 lib.import = () => {
 	for (const k in lib) {
 		if (k !== "import") {

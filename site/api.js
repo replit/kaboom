@@ -395,7 +395,7 @@ rand(vec2(0), vec2(100)) // => vec2(29, 73)
 		desc: "debug utils",
 		functions: [
 			f("drawBBox", [
-				a("switch", "switch"),
+				a("[switch]", "switch"),
 			], null, "draw object bounding boxes"),
 			f("objCount", [
 			], null, "current object counts in the scene"),

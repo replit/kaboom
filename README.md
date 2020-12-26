@@ -10,14 +10,14 @@ kaboom.js is a JavaScript library that helps you make games fast and fun!
 
 1. download `kaboom.js` and
 
-```
+```html
 <script src="kaboom.js"></script>
 ```
 
 2. use CDN
 
-```
-<script src="https://cdn.jsdelivr.net/gh/replit/kaboom/kaboom.js"></script>
+```html
+<script src="https://cdn.jsdelivr.net/gh/replit/kaboom@latest/kaboom.min.js"></script>
 ```
 
 ### Example
