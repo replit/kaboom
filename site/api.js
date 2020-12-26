@@ -19,8 +19,68 @@ function a(name, desc) {
 
 module.exports = [
 	{
+		name: "Lifecycle",
+		desc: "application lifecycle methods",
+		functions: [
+			f("init", [
+				a("conf", "config")
+			], null, "initialize context", `
+// create canvas
+init({
+	width: 480,
+	height: 480,
+});
+
+// use existing canvas
+init({
+	canvas: document.getElementById("game"),
+});
+			`),
+			f("start", [
+				a("scene", "name of scene")
+			], null, "start the game loop with specified scene", `
+scene("game", () => {/* .. */});
+scene("menu", () => {/* .. */});
+scene("lose", () => {/* .. */});
+start("game")
+			`),
+		],
+	},
+	{
+		name: "Scene",
+		desc: "Scenes are the different stages of a game, like different levels, menu screen, and start screen etc. Everything should belong to a scene.",
+		functions: [
+			f("scene", [
+				a("name", "name of scene")
+			], null, "start a scene block", `
+scene("game", () => {
+	sprite(/* ... */);
+	keyPress(/* ... */);
+	action(/* ... */);
+});
+
+scene("menu", () => {
+	text(/* ... */);
+});
+			`),
+			f("go", [
+				a("name", "name of scene")
+			], null, "switch to a scene", `
+// go to "paused" scene when pressed "p"
+keyPress("p", () => {
+	// by default go() continues off the previous scene state, unless explicitly call reload()
+	reload("menu");
+	go("menu");
+});
+			`),
+			f("reload", [
+				a("name", "name of scene")
+			], null, "reload a scene and reinitialize all states"),
+		],
+	},
+	{
 		name: "Asset Loading",
-		desc: "load assets into asset manager",
+		desc: "Load assets into asset manager. These should be at application top.",
 		functions: [
 			f("loadSprite", [
 				a("name", "name of sprite"),
@@ -56,49 +116,6 @@ loadSprite("shoot", "shoot.ogg");
 			f("time", [], "time", "current game time"),
 			f("dt", [], "dt", "delta time since last frame"),
 			f("mousePos", [], "mousePos", "current mouse position"),
-		],
-	},
-	{
-		name: "Scene",
-		desc: "Scenes are the different stages of a game, like different levels, menu screen, and start screen etc. Everything should belong to a scene.",
-		functions: [
-			f("scene", [
-				a("name", "name of scene")
-			], null, "start a scene block", `
-scene("main", () => {
-	// anything related to "main" scene
-	sprite(/* ... */);
-	keyPress(/* ... */);
-	action(/* ... */);
-});
-			`),
-			f("go", [
-				a("name", "name of scene")
-			], null, "switch to a scene", `
-// go to "paused" scene when pressed "p"
-keyPress("p", () => {
-	// by default go() continues off the previous scene state, unless explicitly call reload()
-	reload("menu");
-	go("menu");
-});
-			`),
-			f("reload", [
-				a("name", "name of scene")
-			], null, "reload a scene and reinitialize all states"),
-		],
-	},
-	{
-		name: "Control",
-		desc: "application lifecycle methods",
-		functions: [
-			f("start", [
-				a("scene", "name of scene")
-			], null, "start the game loop with specified scene", `
-scene("main", () => {/* .. */});
-scene("menu", () => {/* .. */});
-scene("lose", () => {/* .. */});
-start("main")
-			`),
 		],
 	},
 	{

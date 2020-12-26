@@ -1,0 +1,10 @@
+{
+	"name": "@replit/kaboom",
+	"version": "0.2.0",
+	"main": "kaboom.js",
+	"homepage": "https://doc.gameenv.repl.co/",
+	"repository": "github:replit/kaboom",
+	"scripts": {
+		"site": "node site/serve.js"
+	}
+}

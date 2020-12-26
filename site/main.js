@@ -166,6 +166,7 @@ const page = t("html", {}, [
 				t("a", { class: "link", href: "/guide", }, "guide"),
 				t("a", { class: "link", href: "https://github.com/replit/kaboom", }, "github"),
 				t("a", { class: "link", href: "https://raw.githubusercontent.com/replit/kaboom/master/kaboom.js", }, "download"),
+				t("a", { class: "link", href: "https://repl.it/@slmjkdbtl/KaBoomjs-Template#game.js", }, "try on replit"),
 				...api.map((sec) => {
 					return t("div", { class: "section", }, [
 						t("p", { class: "title", }, sec.name),
@@ -176,7 +177,7 @@ const page = t("html", {}, [
 				})
 			]),
 			t("div", { id: "content", class: "panel", }, [
-				t("p", { id: "about", }, "kaboom.js is a JavaScript library that helps you make games!"),
+				t("p", { id: "about", }, "kaboom.js is a JavaScript library that helps you make games fast and fun!"),
 				...api.map((sec) => {
 					return t("div", {}, [
 						t("p", { class: "title", }, sec.name),
