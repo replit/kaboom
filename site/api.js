@@ -19,11 +19,26 @@ function a(name, desc) {
 
 module.exports = [
 	{
+		name: "Import",
+		desc: "All functions are under a global object 'kaboom', but you can also choose to import all functions into global domain.",
+		functions: [
+			f("kaboom.import", [], null, "import all kaboom functions into global namespace", `
+// 1) import everything to global
+kaboom.import();
+init();
+
+// 2) use kaboom prefix (or use a shorthand alias)
+const k = kaboom;
+k.init();
+			`),
+		],
+	},
+	{
 		name: "Lifecycle",
-		desc: "application lifecycle methods",
+		desc: "Application Lifecycle Methods",
 		functions: [
 			f("init", [
-				a("conf", "config")
+				a("[conf]", "config")
 			], null, "initialize context", `
 // create canvas
 init({
@@ -64,7 +79,8 @@ scene("menu", () => {
 });
 			`),
 			f("go", [
-				a("name", "name of scene")
+				a("name", "name of scene"),
+				a("[opt]", "forward arguments"),
 			], null, "switch to a scene", `
 // go to "paused" scene when pressed "p"
 keyPress("p", () => {
@@ -85,6 +101,7 @@ keyPress("p", () => {
 			f("loadSprite", [
 				a("name", "name of sprite"),
 				a("src", "image source"),
+				a("[conf]", "optional config"),
 			], null, "load a sprite", `
 loadSprite("froggy", "froggy.png");
 
@@ -102,6 +119,7 @@ loadSprite("froggy", "froggy.png", {
 			f("loadSound", [
 				a("name", "name of sound"),
 				a("src", "sound source"),
+				a("[conf]", "optional config"),
 			], null, "load a sound", `
 loadSprite("shoot", "shoot.ogg");
 			`),
@@ -124,7 +142,7 @@ loadSprite("shoot", "shoot.ogg");
 		functions: [
 			f("sprite", [
 				a("id", "sprite id in the asset manager"),
-				a("conf", "additional obj conf"),
+				a("[conf]", "additional obj conf"),
 			], "the object", "add a sprite to scene", `
 // add a sprite with sprite id "froggy" (loaded with loadSprite()) to scene, with optional params
 const froggy = sprite("froggy", {
@@ -143,7 +161,7 @@ froggy.play("walk");
 			f("rect", [
 				a("width", "width of rect"),
 				a("height", "height of rect"),
-				a("conf", "additional obj conf"),
+				a("[conf]", "additional obj conf"),
 			], "the object", "add a rect to scene", `
 // add a sprite with 12x2 rect to scene, accepts optional params like above
 const r = rect(12, 2, {
@@ -158,7 +176,7 @@ r.height = 20;
 			`),
 			f("text", [
 				a("str", "the text string"),
-				a("conf", "additional obj conf"),
+				a("[conf]", "additional obj conf"),
 			], "the object", "add a rect to scene", `
 // add text "oh hi" to scene, accepts optional params like above
 const score = text("0", {
@@ -171,9 +189,6 @@ score.text = "1";
 			f("destroy", [
 				a("obj", "the obj to destroy"),
 			], null, "remote an obj from scene"),
-			f("destroyAll", [
-				a("tag", "the tags to destroy"),
-			], null, "destroy all objects that has the specified tag"),
 			f("destroyAll", [
 				a("tag", "the tags to destroy"),
 			], null, "destroy all objects that has the specified tag"),
@@ -311,7 +326,7 @@ loop(0.5, () => {
 		functions: [
 			f("play", [
 				a("id", "sound id"),
-				a("conf", "configuration"),
+				a("[conf]", "optional config"),
 			], null, "plays a sound", `
 bye("enemy", (e) => {
 	play("explode", {
@@ -388,10 +403,10 @@ rand(vec2(0), vec2(100)) // => vec2(29, 73)
 	},
 	{
 		name: "Platformer",
-		desc: "the platformer.js kit allows you to make platformer even easier with kaboom.js!",
+		desc: "kit/platformer.js allows you to make platformer even easier with kaboom.js!",
 		functions: [
 			f("initWorld", [
-				a("conf", "config"),
+				a("[conf]", "optional config"),
 			], null, "init the platformer physics world", `
 initWorld({
 	gravity: 9.8,

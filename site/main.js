@@ -10,8 +10,8 @@ const t = www.tag;
 const styles2 = {
 
 	"body": {
-// 		"background": "#0080ff",
-		"background": "#80ffff",
+		"background": "#0080ff",
+// 		"background": "#80ffff",
 	},
 
 	"#main": {
@@ -121,12 +121,12 @@ const styles2 = {
 			"border-radius": "6px",
 			"display": "table",
 			"margin-left": "-6px",
-			"margin-top": "12px",
+			"margin-top": "32px",
 		},
 
 		".desc": {
 			"font-size": "20px",
-			"margin-bottom": "24px",
+			"margin-bottom": "12px",
 			"color": "#666666",
 		},
 
@@ -140,6 +140,7 @@ const styles2 = {
 
 			".desc": {
 				"font-size": "18px",
+				"margin-bottom": "24px",
 			},
 
 		},
@@ -166,6 +167,7 @@ const page = t("html", {}, [
 				t("a", { class: "link", href: "/guide", }, "guide"),
 				t("a", { class: "link", href: "https://github.com/replit/kaboom", }, "github"),
 				t("a", { class: "link", href: "https://raw.githubusercontent.com/replit/kaboom/master/kaboom.js", }, "download"),
+				t("a", { class: "link", href: "https://cdn.jsdelivr.net/gh/replit/kaboom/kaboom.js", }, "cdn"),
 				t("a", { class: "link", href: "https://repl.it/@slmjkdbtl/KaBoomjs-Template#game.js", }, "try on replit"),
 				...api.map((sec) => {
 					return t("div", { class: "section", }, [

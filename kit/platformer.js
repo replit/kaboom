@@ -1,5 +1,6 @@
 (() => {
 
+const k = kaboom;
 const world = {};
 
 function initWorld(conf) {
@@ -9,7 +10,7 @@ function initWorld(conf) {
 
 function addPlayer(conf) {
 
-	const player = sprite("guy", {
+	const player = k.sprite("guy", {
 		pos: conf.pos,
 		velY: 0,
 		jumpForce: conf.jumpForce === undefined ? 640 : conf.jumpForce,
@@ -18,8 +19,8 @@ function addPlayer(conf) {
 
 	player.action(() => {
 		if (!player.platform) {
-			player.velY -= world.gravity * world.acc * dt();
-			const res = player.move(vec2(0, player.velY));
+			player.velY -= world.gravity * world.acc * k.dt();
+			const res = player.move(k.vec2(0, player.velY));
 			if (res) {
 				player.velY = 0;
 				if (res.edge === "bottom") {
@@ -48,17 +49,8 @@ function addPlayer(conf) {
 
 }
 
-const lib = {};
-
-lib.initWorld = initWorld;
-lib.addPlayer = addPlayer;
-
-for (const k in lib) {
-	Object.defineProperty(window, k, {
-		value: lib[k],
-		writable: false,
-	});
-}
+kaboom.initWorld = initWorld;
+kaboom.addPlayer = addPlayer;
 
 })();
 

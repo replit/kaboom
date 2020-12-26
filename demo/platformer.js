@@ -1,3 +1,5 @@
+kaboom.import();
+
 init();
 loadSprite("guy", "guy.png");
 

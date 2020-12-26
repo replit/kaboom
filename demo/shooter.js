@@ -1,3 +1,5 @@
+kaboom.import();
+
 init();
 loadSprite("guy", "guy.png");
 loadSound("shoot", "shoot.ogg");
@@ -75,7 +77,7 @@ scene("main", () => {
 		}
 
 		reload("death");
-		go("death");
+		go("death", score.value);
 
 	});
 

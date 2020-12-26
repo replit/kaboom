@@ -1,5 +1,5 @@
 // kaboom.js
-// v0.2.0
+// v0.3.0
 
 (() => {
 
@@ -223,13 +223,13 @@ function gfxInit() {
 	gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
 	const lid = newLoader();
 	loadImg("data:image/png;base64," + fontImgData, (img) => {
-		loaded(lid);
 		gfx.defFont = makeFont(
 			makeTex(img),
 			8,
 			8,
 			" !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~"
 		);
+		loadComplete(lid);
 	});
 }
 
@@ -678,7 +678,7 @@ function loadSound(name, src, conf) {
 				audio.ctx.decodeAudioData(data, (buf) => {
 					audio.sounds[name] = buf;
 				});
-				loaded(lid);
+				loadComplete(lid);
 			});
 	}
 }
@@ -1141,7 +1141,6 @@ function choose(list) {
 // Game Systems
 
 const game = {
-	running: false,
 	loaded: false,
 	curScene: undefined,
 	scenes: {},
@@ -1155,17 +1154,13 @@ const game = {
 };
 
 function newLoader() {
-	if (game.loaded) {
-		console.error("cannot load more when game is fully loaded");
-		return;
-	}
 	const id = game.lastLoaderID;
 	game.loaders[id] = false;
 	game.lastLoaderID++;
 	return id;
 }
 
-function loaded(id) {
+function loadComplete(id) {
 	game.loaders[id] = true;
 }
 
@@ -1178,7 +1173,7 @@ function loadSprite(name, src, conf) {
 		const lid = newLoader();
 		loadImg(src, (img) => {
 			loadSprite(name, img, conf);
-			loaded(lid);
+			loadComplete(lid);
 		});
 		return;
 	}
@@ -1204,7 +1199,7 @@ function loadSprite(name, src, conf) {
 					dir: anim.direction,
 				};
 			}
-			loaded(lid);
+			loadComplete(lid);
 		});
 	}
 
@@ -1220,11 +1215,6 @@ function loadSprite(name, src, conf) {
 
 // start describing a scene (this should be called before start())
 function scene(name, cb) {
-
-	if (game.running) {
-		console.error("'scene' can only be called at init");
-		return;
-	}
 
 	game.scenes[name] = {
 
@@ -1256,7 +1246,7 @@ function scene(name, cb) {
 }
 
 // switch to a scene
-function go(name) {
+function go(name, ...args) {
 	const scene = game.scenes[name];
 	if (!scene) {
 		console.error(`no such scene: ${name}`);
@@ -1264,7 +1254,7 @@ function go(name) {
 	}
 	game.curScene = name;
 	if (!scene.initialized) {
-		scene.init();
+		scene.init(...args);
 		scene.initialized = true;
 	}
 }
@@ -2023,12 +2013,8 @@ function get(t) {
 
 // apply a function to all objects currently in scene with tag t
 function every(t, f) {
-	const scene = game.scenes[game.curScene];
-	for (const id in scene.objs) {
-		const obj = scene.objs[id];
-		if (obj.is(t)) {
-			f(obj);
-		}
+	for (const obj of get(t)) {
+		f(obj);
 	}
 }
 
@@ -2059,36 +2045,29 @@ function destroyAll(t) {
 	});
 }
 
-// TODO: a "loading" text?
-function ready(f) {
-	const check = () => {
-		let loaded = true;
-		for (const id in game.loaders) {
-			if (!game.loaders[id]) {
-				loaded = false;
-				break;
-			}
-		}
-		if (!loaded) {
-			requestAnimationFrame(check);
-		} else {
-			game.loaded = true;
-			f();
-		}
-	};
-	check();
-}
-
 // TODO: on screen error message?
 // start the game with a scene
 function start(name) {
 
-	ready(() => {
+	const frame = (t) => {
 
-		game.running = true;
-		go(name);
+		if (!game.loaded) {
 
-		const frame = ((t) => {
+			let loaded = true;
+
+			for (const id in game.loaders) {
+				if (!game.loaders[id]) {
+					loaded = false;
+					break;
+				}
+			}
+
+			if (loaded) {
+				game.loaded = true;
+				go(name);
+			}
+
+		} else {
 
 			app.dt = t / 1000 - app.time;
 			app.time += app.dt;
@@ -2281,13 +2260,13 @@ function start(name) {
 
 			app.mouseState = processBtnState(app.mouseState);
 
-			requestAnimationFrame(frame);
-
-		});
+		}
 
 		requestAnimationFrame(frame);
 
-	});
+	};
+
+	requestAnimationFrame(frame);
 
 }
 
@@ -2307,10 +2286,6 @@ function showStats(b) {
 
 function objCount() {
 	const scene = game.scenes[game.curScene];
-	if (!scene) {
-		console.error("game's not running yet");
-		return 0;
-	}
 	return Object.keys(scene.objs).length;
 }
 
@@ -2396,12 +2371,18 @@ lib.showStats = showStats;
 lib.drawBBox = drawBBox;
 lib.objCount = objCount;
 
-for (const k in lib) {
-	Object.defineProperty(window, k, {
-		value: lib[k],
-		writable: false,
-	});
-}
+lib.import = () => {
+	for (const k in lib) {
+		if (k !== "import") {
+			Object.defineProperty(window, k, {
+				value: lib[k],
+				writable: false,
+			});
+		}
+	}
+};
+
+window.kaboom = lib;
 
 })();
 

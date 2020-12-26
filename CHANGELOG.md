@@ -1,3 +1,8 @@
+## v0.3.0
+
+- added `kaboom.import()`, requires explicit call to import functions to global
+- forward args from `go(name, ...)` to `scene(name, (...) => {})`
+
 ## v0.2.0
 
 - changed
