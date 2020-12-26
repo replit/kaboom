@@ -165,7 +165,7 @@ const page = t("html", {}, [
 				t("img", { id: "logo", src: "data:image/png;base64," + fs.readFileSync(`${__dirname}/res/kaboom.png`, "base64") }),
 				t("a", { class: "link", href: "/guide", }, "guide"),
 				t("a", { class: "link", href: "https://github.com/replit/kaboom", }, "github"),
-				t("a", { class: "link", href: "https://raw.githubusercontent.com/replit/kaboom/master/kaboom.js?token=ACLYGM7RNUP5F2K6YZXWGCC75NMHE", }, "download"),
+				t("a", { class: "link", href: "https://raw.githubusercontent.com/replit/kaboom/master/kaboom.js", }, "download"),
 				...api.map((sec) => {
 					return t("div", { class: "section", }, [
 						t("p", { class: "title", }, sec.name),

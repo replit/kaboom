@@ -2,8 +2,6 @@ init();
 loadSprite("guy", "guy.png");
 loadSound("shoot", "shoot.ogg");
 
-window.onload = () => {
-
 volume(0);
 
 const powerTime = 4;
@@ -39,259 +37,257 @@ function randOnRect(p1, p2) {
 	}
 }
 
-// ------------------------------------
-// Main Scene
-scene("main");
+scene("main", () => {
 
-// player
-const player = sprite("guy", {
-	pos: vec2(0),
-	power: 0,
-	dir: "up",
-	speed: 480,
-});
+	// player
+	const player = sprite("guy", {
+		pos: vec2(0),
+		power: 0,
+		dir: "up",
+		speed: 480,
+	});
 
-// action runs every frame
-player.sup(() => {
+	// action runs every frame
+	player.action(() => {
 
-	player.wrap(vec2(-width() / 2, -height() / 2), vec2(width() / 2, height() / 2));
+		player.wrap(vec2(-width() / 2, -height() / 2), vec2(width() / 2, height() / 2));
 
-	if (player.power > 0) {
+		if (player.power > 0) {
 
-		player.color = randColor();
-		player.power -= dt();
-		player.scale = wave(1, 1.5, 10);
+			player.color = randColor();
+			player.power -= dt();
+			player.scale = wave(1, 1.5, 10);
 
-		if (player.power <= 0) {
-			player.power = 0;
-			player.color = color(1, 1, 1);
-			player.scale = 1;
+			if (player.power <= 0) {
+				player.power = 0;
+				player.color = color(1, 1, 1);
+				player.scale = 1;
+			}
+
+		}
+
+	});
+
+	player.ouch("enemy", (e) => {
+
+		if (player.power > 0) {
+			return;
+		}
+
+		reload("death");
+		go("death");
+
+	});
+
+	player.ouch("candy", (p) => {
+		destroy(p);
+		player.power = powerTime;
+	});
+
+	for (const dir of [ "left", "right", "up", "down", ]) {
+		keyDown(dir, () => {
+			player.move(velMap[dir].scale(player.speed));
+			player.dir = dir;
+		});
+	}
+
+	keyPress(" ", () => {
+
+		play("shoot", {
+			detune: rand(-600, 600),
+		});
+
+		rect(rand(12, 16), rand(12, 16), {
+			pos: player.pos,
+			speed: 1280,
+			tags: [ "bullet", ],
+			dir: player.dir,
+			color: randColor(),
+		});
+
+	});
+
+	// power mode timer UI
+	const powerBar = rect(0, 48, {
+		pos: vec2(0, -height() / 2),
+		color: randColor(),
+	});
+
+	powerBar.action(() => {
+		powerBar.width = player.power / powerTime * width();
+		powerBar.color = randColor();
+	});
+
+	// score UI
+	const score = text("0", {
+		value: 0,
+		pos: vec2(0),
+		size: 256,
+		color: color(1, 1, 1, 0.03),
+	});
+
+	score.action(() => {
+		score.scale = lerp(score.scale, 1, 2);
+	});
+
+	function addScore() {
+
+		score.value++;
+		score.text = `${score.value}`;
+		score.scale = score.scale * 1.2;
+
+		if (score.value % 10 == 0) {
+			addCandy();
+			destroyAll("enemy");
+			addBoss();
 		}
 
 	}
 
-});
-
-player.ouch("enemy", (e) => {
-
-	if (player.power > 0) {
-		return;
+	function addEnemy() {
+		sprite("guy", {
+			pos: randOnRect(vec2(-width() / 2, -height() / 2), vec2(width() / 2, height() / 2)),
+			tags: [ "enemy", ],
+			color: color(0, 0, 1),
+			speed: 80,
+			life: 1,
+		});
 	}
 
-	reload("death");
-	go("death");
-
-});
-
-player.ouch("candy", (p) => {
-	destroy(p);
-	player.power = powerTime;
-});
-
-for (const dir of [ "left", "right", "up", "down", ]) {
-	keyDown(dir, () => {
-		player.move(velMap[dir].scale(player.speed));
-		player.dir = dir;
-	});
-}
-
-keyPress(" ", () => {
-
-	play("shoot", {
-		detune: rand(-600, 600),
-	});
-
-	rect(rand(12, 16), rand(12, 16), {
-		pos: player.pos,
-		speed: 1280,
-		tags: [ "bullet", ],
-		dir: player.dir,
-		color: randColor(),
-	});
-
-});
-
-// power mode timer UI
-const powerBar = rect(0, 48, {
-	pos: vec2(0, -height() / 2),
-	color: randColor(),
-});
-
-powerBar.sup(() => {
-	powerBar.width = player.power / powerTime * width();
-	powerBar.color = randColor();
-});
-
-// score UI
-const score = text("0", {
-	value: 0,
-	pos: vec2(0),
-	size: 256,
-	color: color(1, 1, 1, 0.03),
-});
-
-score.sup(() => {
-	score.scale = lerp(score.scale, 1, 2);
-});
-
-function addScore() {
-
-	score.value++;
-	score.text = `${score.value}`;
-	score.scale = score.scale * 1.2;
-
-	if (score.value % 10 == 0) {
-		addCandy();
-		destroyAll("enemy");
-		addBoss();
-	}
-
-}
-
-function addEnemy() {
-	sprite("guy", {
-		pos: randOnRect(vec2(-width() / 2, -height() / 2), vec2(width() / 2, height() / 2)),
-		tags: [ "enemy", ],
-		color: color(0, 0, 1),
-		speed: 80,
-		life: 1,
-	});
-}
-
-addEnemy();
-
-loop(1, () => {
 	addEnemy();
-});
 
-function addBoss() {
-	sprite("guy", {
-		pos: randOnRect(vec2(-width() / 2, -height() / 2), vec2(width() / 2, height() / 2)),
-		tags: [ "enemy", ],
-		color: color(0, 0, 1),
-		speed: 80,
-		scale: 8,
-		life: 20,
+	loop(1, () => {
+		addEnemy();
 	});
-}
 
-function addCandy() {
-	rect(16, 16, {
-		pos: rand(vec2(-width() / 2, -height() / 2), vec2(width() / 2, height() / 2)),
-		color: randColor(),
-		tags: [ "candy", ],
+	function addBoss() {
+		sprite("guy", {
+			pos: randOnRect(vec2(-width() / 2, -height() / 2), vec2(width() / 2, height() / 2)),
+			tags: [ "enemy", ],
+			color: color(0, 0, 1),
+			speed: 80,
+			scale: 8,
+			life: 20,
+		});
+	}
+
+	function addCandy() {
+		rect(16, 16, {
+			pos: rand(vec2(-width() / 2, -height() / 2), vec2(width() / 2, height() / 2)),
+			color: randColor(),
+			tags: [ "candy", ],
+		});
+	}
+
+	action("candy", (c) => {
+		c.color = randColor();
 	});
-}
 
-sup("candy", (c) => {
-	c.color = randColor();
-});
+	action("bullet", (b) => {
 
-sup("bullet", (b) => {
+		b.move(velMap[b.dir].scale(b.speed));
+		b.color = randColor();
+		b.width = rand(4, 8);
+		b.height = rand(4, 8);
 
-	b.move(velMap[b.dir].scale(b.speed));
-	b.color = randColor();
-	b.width = rand(4, 8);
-	b.height = rand(4, 8);
+		if (b.pos.x <= -1200 || b.pos.x >= 1200 || b.pos.y <= -1200 || b.pos.y >= 1200) {
+			destroy(b);
+		}
 
-	if (b.pos.x <= -1200 || b.pos.x >= 1200 || b.pos.y <= -1200 || b.pos.y >= 1200) {
+	});
+
+	action("enemy", (e) => {
+		const dir = player.pos.sub(e.pos).unit();
+		e.pos = e.pos.add(dir.scale(e.speed * dt()));
+	});
+
+	ouch("bullet", "enemy", (b, e) => {
+
+		rect(0, 0, {
+			pos: b.pos,
+			color: randColor(),
+			lifespan: 0.05,
+			tags: [ "explosion", ],
+		});
+
+		e.life--;
 		destroy(b);
-	}
+
+		if (e.life <= 0) {
+			destroy(e);
+			addScore();
+		}
+
+	});
+
+	bye("enemy", (e) => {
+
+		rect(0, 0, {
+			pos: e.pos,
+			color: randColor(),
+			lifespan: 0.1,
+			tags: [ "explosion", ],
+		});
+
+		play("shoot", {
+			speed: 3.0,
+			detune: 1200,
+		});
+
+	});
+
+	action("explosion", (e) => {
+		e.width += 800 * dt();
+		e.height += 800 * dt();
+		e.color = randColor();
+	});
+
+	keyPress("p", () => {
+		go("menu");
+	});
 
 });
 
-sup("enemy", (e) => {
-	const dir = player.pos.sub(e.pos).unit();
-	e.pos = e.pos.add(dir.scale(e.speed * dt()));
-});
+scene("death", () => {
 
-ouch("bullet", "enemy", (b, e) => {
-
-	rect(0, 0, {
-		pos: b.pos,
+	const death = rect(width(), height(), {
 		color: randColor(),
-		lifespan: 0.05,
-		tags: [ "explosion", ],
 	});
 
-	e.life--;
-	destroy(b);
-
-	if (e.life <= 0) {
-		destroy(e);
-		addScore();
-	}
-
-});
-
-bye("enemy", (e) => {
-
-	rect(0, 0, {
-		pos: e.pos,
-		color: randColor(),
-		lifespan: 0.1,
-		tags: [ "explosion", ],
+	wait(0.1, () => {
+		go("start");
 	});
 
-	play("shoot", {
-		speed: 3.0,
-		detune: 1200,
+	death.action(() => {
+		death.color = randColor();
 	});
 
 });
 
-sup("explosion", (e) => {
-	e.width += 800 * dt();
-	e.height += 800 * dt();
-	e.color = randColor();
+scene("menu", () => {
+
+	text("paused", {
+		size: 24,
+	});
+
+	keyPress("p", () => {
+		go("main");
+	});
+
 });
 
-keyPress("p", () => {
-	go("menu");
-});
+scene("start", () => {
 
-// ------------------------------------
-// Death Scene
-scene("death");
+	text("Press Spacebar to Start", {
+		size: 24,
+	});
 
-const death = rect(width(), height(), {
-	color: randColor(),
-});
+	keyPress(" ", () => {
+		reload("main");
+		go("main");
+	});
 
-wait(0.1, () => {
-	go("start");
-});
-
-death.sup(() => {
-	death.color = randColor();
-});
-
-// ------------------------------------
-// Menu Scene
-scene("menu");
-
-text("paused", {
-	size: 24,
-});
-
-keyPress("p", () => {
-	go("main");
-});
-
-// ------------------------------------
-// Start Scene
-scene("start");
-
-text("Press Spacebar to Start", {
-	size: 24,
-});
-
-keyPress(" ", () => {
-	reload("main");
-	go("main");
 });
 
 start("start");
-
-};
 

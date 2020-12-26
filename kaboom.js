@@ -144,34 +144,6 @@ function init(conf) {
 		app.keyStates[k] = "released";
 	});
 
-	scene("main");
-
-}
-
-// starts main loop
-function startLoop(f) {
-
-	const frame = ((t) => {
-
-		app.dt = t / 1000 - app.time;
-		app.time += app.dt;
-
-		gfxFrameStart();
-		f();
-		gfxFrameEnd();
-
-		for (const k in app.keyStates) {
-			app.keyStates[k] = processBtnState(app.keyStates[k]);
-		}
-
-		app.mouseState = processBtnState(app.mouseState);
-
-		requestAnimationFrame(frame);
-
-	});
-
-	requestAnimationFrame(frame);
-
 }
 
 function processBtnState(s) {
@@ -246,7 +218,9 @@ function gfxInit() {
 	gl.clearColor(0.0, 0.0, 0.0, 1.0);
 	gl.enable(gl.BLEND);
 	gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+	const lid = newLoader();
 	loadImg("data:image/png;base64," + fontImgData, (img) => {
+		loaded(lid);
 		gfx.defFont = makeFont(
 			makeTex(img),
 			8,
@@ -679,10 +653,8 @@ const audio = {};
 
 function audioInit() {
 
-	const AudioContext = window.AudioContext || window.webkitAudioContext;
-
 	audio.sounds = {};
-	audio.ctx = new AudioContext();
+	audio.ctx = new (window.AudioContext || window.webkitAudioContext)();
 	audio.gainNode = audio.ctx.createGain();
 	audio.gainNode.gain.value = 1;
 	audio.gainNode.connect(audio.ctx.destination);
@@ -1166,14 +1138,13 @@ function choose(list) {
 // Game Systems
 
 const game = {
-	curDescScene: "main",
-	curScene: "main",
+	running: false,
+	loaded: false,
+	curScene: undefined,
 	scenes: {},
 	sprites: {},
-	running: false,
 	loaders: {},
 	lastLoaderID: 0,
-	loaded: false,
 	debug: {
 		drawBBox: false,
 		showStats: false,
@@ -1244,111 +1215,86 @@ function loadSprite(name, src, conf) {
 
 }
 
-// TODO: a "loading" text?
-function ready(f) {
-	const check = () => {
-		let loaded = true;
-		for (const id in game.loaders) {
-			if (!game.loaders[id]) {
-				loaded = false;
-				break;
-			}
-		}
-		if (!loaded) {
-			requestAnimationFrame(check);
-		} else {
-			game.loaded = true;
-			f();
-		}
-	};
-	check();
-}
-
 // start describing a scene (this should be called before start())
-function scene(name) {
+function scene(name, cb) {
 
 	if (game.running) {
 		console.error("'scene' can only be called at init");
 		return;
 	}
 
-	if (!game.scenes[name]) {
+	game.scenes[name] = {
 
-		game.scenes[name] = {
+		init: cb,
+		initialized: false,
 
-			initialized: false,
+		// event callbacks
+		events: {
+			hi: [],
+			action: [],
+			bye: [],
+			keyDown: [],
+			keyPress: [],
+			keyPressRep: [],
+			keyRelease: [],
+			mousePress: [],
+			mouseRelease: [],
+			mouseDown: [],
+		},
 
-			// init lists
-			init: {
-				objs: [],
-				timers: [],
-			},
+		// in game pool
+		objs: {},
+		lastID: 0,
+		timers: {},
+		lastTimerID: 0,
 
-			// event callbacks
-			events: {
-				hi: [],
-				sup: [],
-				bye: [],
-				keyDown: [],
-				keyPress: [],
-				keyPressRep: [],
-				keyRelease: [],
-				mousePress: [],
-				mouseRelease: [],
-				mouseDown: [],
-			},
-
-			// in game pool
-			objs: {},
-			lastID: 0,
-			timers: {},
-			lastTimerID: 0,
-
-		};
-
-	}
-
-	game.curDescScene = name;
+	};
 
 }
 
 // switch to a scene
 function go(name) {
-	if (!game.scenes[name]) {
+	const scene = game.scenes[name];
+	if (!scene) {
 		console.error(`no such scene: ${name}`);
 		return;
 	}
 	game.curScene = name;
+	if (!scene.initialized) {
+		scene.init();
+		scene.initialized = true;
+	}
 }
 
-// TODO: needs more review
 // reload a scene, reset all objs to their init states
 function reload(name) {
 
-	const scene = game.scenes[name];
+	game.scenes[name] = {
 
-	if (!scene.initialized) {
-		return;
-	}
+		init: game.scenes[name].init,
+		initialized: false,
 
-	scene.initialized = false;
+		// event callbacks
+		events: {
+			hi: [],
+			action: [],
+			bye: [],
+			keyDown: [],
+			keyPress: [],
+			keyPressRep: [],
+			keyRelease: [],
+			mousePress: [],
+			mouseRelease: [],
+			mouseDown: [],
+		},
 
-	for (const id in scene.objs) {
-		scene.objs[id].id = undefined;
-	}
+		// in game pool
+		objs: {},
+		lastID: 0,
+		timers: {},
+		lastTimerID: 0,
 
-	for (const obj of scene.init.objs) {
-		for (const k in obj) {
-			if (k !== "initState") {
-				obj[k] = deepCopy(obj.initState[k]);
-			}
-		}
-	}
-
-	scene.objs = {};
-	scene.lastID = 0;
-	scene.timers = {};
-	scene.lastTimerID = 0;
+	};
 
 }
 
@@ -1449,7 +1395,7 @@ function add(props) {
 		// action lists
 		events: {
 			hi: [],
-			sup: [],
+			action: [],
 			bye: [],
 		},
 
@@ -1461,8 +1407,8 @@ function add(props) {
 		},
 
 		// runs every frame
-		sup(f) {
-			this.events.sup.push(f);
+		action(f) {
+			this.events.action.push(f);
 		},
 
 		// runs when the obj is destroyed
@@ -1472,7 +1418,7 @@ function add(props) {
 
 		// add callback that runs when the obj has collided with other objs with tag t
 		ouch(t, f) {
-			this.sup(() => {
+			this.action(() => {
 				every(t, (obj) => {
 					if (this !== obj && this.intersects(obj)) {
 						f(obj);
@@ -1482,8 +1428,8 @@ function add(props) {
 		},
 
 		// add callback that runs when the obj is clicked
-		huh(f) {
-			this.sup(() => {
+		click(f) {
+			this.action(() => {
 				if (this.isClicked()) {
 					f();
 				}
@@ -1655,7 +1601,7 @@ function add(props) {
 
 		// if obj currently exists in the scene
 		exists() {
-			return this.id !== undefined;
+			return this.sceneID !== undefined;
 		},
 
 		state(name) {
@@ -1711,7 +1657,7 @@ function add(props) {
 				},
 
 				during(state, f) {
-					obj.sup(() => {
+					obj.action(() => {
 						if (this.state === state) {
 							f();
 						}
@@ -1808,7 +1754,7 @@ function add(props) {
 	// sprite anim
 	if (obj.type === "sprite") {
 
-		obj.sup(() => {
+		obj.action(() => {
 
 			if (!obj.curAnim) {
 				return;
@@ -1840,7 +1786,7 @@ function add(props) {
 
 	// ephemeral objs
 	if (obj.lifespan !== undefined) {
-		obj.sup(() => {
+		obj.action(() => {
 			obj.lifespan -= dt();
 			if (obj.lifespan <= 0) {
 				destroy(obj);
@@ -1848,16 +1794,24 @@ function add(props) {
 		});
 	}
 
-	// if game is running, add obj to the current scene
-	if (game.running) {
-		addToScene(game.scenes[game.curScene], obj);
-	// if not, add obj to the init obj list of the current scene describing
-	} else {
-		const scene = game.scenes[game.curDescScene];
-		scene.init.objs.push(obj);
+	const scene = game.scenes[game.curScene];
+
+	scene.objs[scene.lastID] = obj;
+	obj.sceneID = scene.lastID;
+	scene.lastID++;
+
+	// TODO: won't run, should add objects to scene once scene.init() is over
+	for (const cb of obj.events.hi) {
+		cb(obj);
 	}
 
-	// return the shared referenced obj
+	for (const e of scene.events.hi) {
+		if (obj.is(e.tag)) {
+			e.cb(obj);
+		}
+	}
+
+	// return the obj reference
 	return obj;
 
 }
@@ -1920,11 +1874,7 @@ function circle(center, radius, props) {
 
 // add an event that runs when objs with tag t is added to scene
 function hi(t, f) {
-	if (game.running) {
-		console.error("'hi' can only be called at init");
-		return;
-	}
-	const scene = game.scenes[game.curDescScene];
+	const scene = game.scenes[game.curScene];
 	scene.events.hi.push({
 		tag: t,
 		cb: f,
@@ -1932,13 +1882,9 @@ function hi(t, f) {
 }
 
 // add an event that runs every frame for objs with tag t
-function sup(t, f) {
-	if (game.running) {
-		console.error("'sup' can only be called at init");
-		return;
-	}
-	const scene = game.scenes[game.curDescScene];
-	scene.events.sup.push({
+function action(t, f) {
+	const scene = game.scenes[game.curScene];
+	scene.events.action.push({
 		tag: t,
 		cb: f,
 	});
@@ -1946,11 +1892,7 @@ function sup(t, f) {
 
 // add an event that runs when objs with tag t is destroyed
 function bye(t, f) {
-	if (game.running) {
-		console.error("'bye' can only be called at init");
-		return;
-	}
-	const scene = game.scenes[game.curDescScene];
+	const scene = game.scenes[game.curScene];
 	scene.events.bye.push({
 		tag: t,
 		cb: f,
@@ -1965,11 +1907,7 @@ function aloha(tag, cb) {
 
 // add an event that runs with objs with t1 collides with objs with t2
 function ouch(t1, t2, f) {
-	if (game.running) {
-		console.error("'ouch' can only be called at init");
-		return;
-	}
-	sup(t1, (o1) => {
+	action(t1, (o1) => {
 		every(t2, (o2) => {
 			if (o1 !== o2) {
 				if (o1.intersects(o2)) {
@@ -1981,12 +1919,8 @@ function ouch(t1, t2, f) {
 }
 
 // add an event that runs when objs with tag t is clicked
-function huh(t, f) {
-	if (game.running) {
-		console.error("'huh' can only be called at init");
-		return;
-	}
-	sup(t, (o) => {
+function click(t, f) {
+	action(t, (o) => {
 		if (o.isClicked()) {
 			f(o);
 		}
@@ -1996,22 +1930,12 @@ function huh(t, f) {
 // add an event that'd be run after t
 function wait(t, f) {
 	if (f) {
-		// after start(), start the timer immediately
-		if (game.running) {
-			const scene = game.scenes[game.curScene];
-			scene.timers[scene.lastTimerID] = {
-				time: t,
-				cb: f,
-			};
-			scene.lastTimerID++;
-		// before start(), run the timer when the scene is loaded
-		} else {
-			const scene = game.scenes[game.curDescScene];
-			scene.init.timers.push({
-				time: t,
-				cb: f,
-			});
-		}
+		const scene = game.scenes[game.curScene];
+		scene.timers[scene.lastTimerID] = {
+			time: t,
+			cb: f,
+		};
+		scene.lastTimerID++;
 	} else {
 		return new Promise(r => wait(t, r));
 	}
@@ -2029,7 +1953,7 @@ function loop(t, f) {
 
 // input callbacks
 function keyDown(k, f) {
-	const scene = game.scenes[game.curDescScene];
+	const scene = game.scenes[game.curScene];
 	scene.events.keyDown.push({
 		key: k,
 		cb: f,
@@ -2037,7 +1961,7 @@ function keyDown(k, f) {
 }
 
 function keyPress(k, f) {
-	const scene = game.scenes[game.curDescScene];
+	const scene = game.scenes[game.curScene];
 	scene.events.keyPress.push({
 		key: k,
 		cb: f,
@@ -2045,7 +1969,7 @@ function keyPress(k, f) {
 }
 
 function keyPressRep(k, f) {
-	const scene = game.scenes[game.curDescScene];
+	const scene = game.scenes[game.curScene];
 	scene.events.keyPressRep.push({
 		key: k,
 		cb: f,
@@ -2053,7 +1977,7 @@ function keyPressRep(k, f) {
 }
 
 function keyRelease(k, f) {
-	const scene = game.scenes[game.curDescScene];
+	const scene = game.scenes[game.curScene];
 	scene.events.keyRelease.push({
 		key: k,
 		cb: f,
@@ -2061,21 +1985,21 @@ function keyRelease(k, f) {
 }
 
 function mouseDown(f) {
-	const scene = game.scenes[game.curDescScene];
+	const scene = game.scenes[game.curScene];
 	scene.events.mouseDown.push({
 		cb: f,
 	});
 }
 
 function mousePress(f) {
-	const scene = game.scenes[game.curDescScene];
+	const scene = game.scenes[game.curScene];
 	scene.events.mousePress.push({
 		cb: f,
 	});
 }
 
 function mouseRelease(f) {
-	const scene = game.scenes[game.curDescScene];
+	const scene = game.scenes[game.curScene];
 	scene.events.mouseRelease.push({
 		cb: f,
 	});
@@ -2107,20 +2031,21 @@ function every(t, f) {
 
 // destroy an obj
 function destroy(obj) {
+	if (!obj.exists()) {
+		return;
+	}
 	const scene = game.scenes[game.curScene];
-	if (obj.id !== undefined) {
-		if (scene) {
-			for (const cb of obj.events.bye) {
-				cb(obj);
-			}
-			for (const e of scene.events.bye) {
-				if (obj.is(e.tag)) {
-					e.cb(obj);
-				}
-			}
-			delete scene.objs[obj.id];
-			delete obj.id;
+	if (scene) {
+		for (const cb of obj.events.bye) {
+			cb(obj);
 		}
+		for (const e of scene.events.bye) {
+			if (obj.is(e.tag)) {
+				e.cb(obj);
+			}
+		}
+		delete scene.objs[obj.sceneID];
+		delete obj.sceneID;
 	}
 }
 
@@ -2131,245 +2056,233 @@ function destroyAll(t) {
 	});
 }
 
-function addToScene(scene, obj) {
-
-	scene.objs[scene.lastID] = obj;
-	obj.id = scene.lastID;
-	scene.lastID++;
-
-	for (const cb of obj.events.hi) {
-		cb(obj);
-	}
-
-	for (const e of scene.events.hi) {
-		if (obj.is(e.tag)) {
-			e.cb(obj);
+// TODO: a "loading" text?
+function ready(f) {
+	const check = () => {
+		let loaded = true;
+		for (const id in game.loaders) {
+			if (!game.loaders[id]) {
+				loaded = false;
+				break;
+			}
 		}
-	}
-
+		if (!loaded) {
+			requestAnimationFrame(check);
+		} else {
+			game.loaded = true;
+			f();
+		}
+	};
+	check();
 }
 
 // TODO: on screen error message?
-// end the scene describing phase, start the main loop with the provided scene
+// start the game with a scene
 function start(name) {
 
-	if (name) {
-		if (game.scenes[name]) {
-			game.curScene = name;
-		} else {
-			console.error(`scene '${name}' not found`);
-			return;
-		}
-	}
-
-	// store obj init states in memory by deep copying the states before
-	// game loop, for reloading states
-	for (const name in game.scenes) {
-		for (const obj of game.scenes[name].init.objs) {
-			obj.initState = deepCopy(obj);
-		}
-	}
-
-	startLoop(() => {
+	ready(() => {
 
 		game.running = true;
+		go(name);
 
-		const scene = game.scenes[game.curScene];
+		const frame = ((t) => {
 
-		if (!scene) {
-			console.error(`scene not found: '${game.curScene}'`);
-			return;
-		}
+			app.dt = t / 1000 - app.time;
+			app.time += app.dt;
 
-		// if scene is not initialized, add all objs and timers in init lists
-		// to the actual pool
-		if (!scene.initialized) {
+			gfxFrameStart();
 
-			for (const obj of scene.init.objs) {
-				addToScene(scene, obj);
+			const scene = game.scenes[game.curScene];
+
+			if (!scene) {
+				console.error(`scene not found: '${game.curScene}'`);
+				return;
 			}
 
-			for (const timer of scene.init.timers) {
-				scene.timers[scene.lastTimerID] = timer;
-				scene.lastTimerID++;
+			// TODO: repetitive
+			// run input checks & callbacks
+			for (const e of scene.events.keyDown) {
+				if (keyIsDown(e.key)) {
+					e.cb();
+				}
 			}
 
-			scene.initialized = true;
-
-		}
-
-		// TODO: repetitive
-		// run input checks & callbacks
-		for (const e of scene.events.keyDown) {
-			if (keyIsDown(e.key)) {
-				e.cb();
-			}
-		}
-
-		for (const e of scene.events.keyPress) {
-			if (keyIsPressed(e.key)) {
-				e.cb();
-			}
-		}
-
-		for (const e of scene.events.keyPressRep) {
-			if (keyIsPressedRep(e.key)) {
-				e.cb();
-			}
-		}
-
-		for (const e of scene.events.keyRelease) {
-			if (keyIsReleased(e.key)) {
-				e.cb();
-			}
-		}
-
-		for (const e of scene.events.mouseDown) {
-			if (mouseIsDown()) {
-				e.cb();
-			}
-		}
-
-		for (const e of scene.events.mousePress) {
-			if (mouseIsPressed()) {
-				e.cb();
-			}
-		}
-
-		for (const e of scene.events.mouseRelease) {
-			if (mouseIsReleased()) {
-				e.cb();
-			}
-		}
-
-		// update timers
-		for (const id in scene.timers) {
-			const t = scene.timers[id];
-			t.time -= dt();
-			if (t.time <= 0) {
-				t.cb();
-				delete scene.timers[id];
-			}
-		}
-
-		// objs
-		for (const id in scene.objs) {
-
-			const obj = scene.objs[id];
-
-			if (!obj) {
-				continue;
+			for (const e of scene.events.keyPress) {
+				if (keyIsPressed(e.key)) {
+					e.cb();
+				}
 			}
 
-			// update obj
-			if (!obj.paused) {
+			for (const e of scene.events.keyPressRep) {
+				if (keyIsPressedRep(e.key)) {
+					e.cb();
+				}
+			}
 
-				for (const f of obj.events.sup) {
-					f(obj);
+			for (const e of scene.events.keyRelease) {
+				if (keyIsReleased(e.key)) {
+					e.cb();
+				}
+			}
+
+			for (const e of scene.events.mouseDown) {
+				if (mouseIsDown()) {
+					e.cb();
+				}
+			}
+
+			for (const e of scene.events.mousePress) {
+				if (mouseIsPressed()) {
+					e.cb();
+				}
+			}
+
+			for (const e of scene.events.mouseRelease) {
+				if (mouseIsReleased()) {
+					e.cb();
+				}
+			}
+
+			// update timers
+			for (const id in scene.timers) {
+				const t = scene.timers[id];
+				t.time -= dt();
+				if (t.time <= 0) {
+					t.cb();
+					delete scene.timers[id];
+				}
+			}
+
+			// objs
+			for (const id in scene.objs) {
+
+				const obj = scene.objs[id];
+
+				if (!obj) {
+					continue;
 				}
 
-				for (const e of scene.events.sup) {
-					if (obj.is(e.tag)) {
-						e.cb(obj);
+				// update obj
+				if (!obj.paused) {
+
+					for (const f of obj.events.action) {
+						f(obj);
 					}
-				}
 
-			}
-
-			// draw obj
-			if (!obj.hidden) {
-
-				// perform different draw op depending on the type
-				switch (obj.type) {
-
-					case "sprite":
-
-						const spr = game.sprites[obj.sprite];
-
-						if (obj.sprite && !spr) {
-							console.error(`sprite not found: "${obj.sprite}"`);
-							break;
+					for (const e of scene.events.action) {
+						if (obj.is(e.tag)) {
+							e.cb(obj);
 						}
+					}
 
-						const q = spr.frames[obj.frame];
+				}
 
-						drawRect({
-							tex: spr.tex,
-							pos: obj.pos,
-							scale: obj.scale,
-							rot: obj.rot,
-							color: obj.color,
-							width: obj.width / q.w,
-							height: obj.height / q.h,
-							quad: q,
-						});
+				// draw obj
+				if (!obj.hidden) {
 
-						break;
+					// perform different draw op depending on the type
+					switch (obj.type) {
 
-					case "rect":
+						case "sprite":
 
-						drawRect({
-							pos: obj.pos,
-							scale: obj.scale,
-							rot: obj.rot,
-							color: obj.color,
-							width: obj.width,
-							height: obj.height,
-							quad: quad(0, 0, 1, 1),
-						});
+							const spr = game.sprites[obj.sprite];
 
-						break;
+							if (obj.sprite && !spr) {
+								console.error(`sprite not found: "${obj.sprite}"`);
+								break;
+							}
 
-					case "text":
+							const q = spr.frames[obj.frame];
 
-						drawText({
-							text: obj.text,
-							size: obj.size,
-							pos: obj.pos,
-							scale: obj.scale,
-							rot: obj.rot,
-							color: obj.color,
-							font: obj.font,
-							origin: obj.origin,
-						});
+							drawRect({
+								tex: spr.tex,
+								pos: obj.pos,
+								scale: obj.scale,
+								rot: obj.rot,
+								color: obj.color,
+								width: obj.width / q.w,
+								height: obj.height / q.h,
+								quad: q,
+							});
 
-						break;
+							break;
 
-					case "line":
+						case "rect":
 
-						drawLine({
-							p1: obj.p1,
-							p2: obj.p2,
-							pos: obj.pos,
-							scale: obj.scale,
-							rot: obj.rot,
-							color: obj.color,
-							width: obj.width || 1,
-						});
+							drawRect({
+								pos: obj.pos,
+								scale: obj.scale,
+								rot: obj.rot,
+								color: obj.color,
+								width: obj.width,
+								height: obj.height,
+								quad: quad(0, 0, 1, 1),
+							});
 
-						break;
+							break;
 
-					case "circle":
+						case "text":
 
-						drawCircle({
-							pos: obj.pos,
-							radius: obj.radius,
-							scale: obj.scale,
-							color: obj.color,
-						});
+							drawText({
+								text: obj.text,
+								size: obj.size,
+								pos: obj.pos,
+								scale: obj.scale,
+								rot: obj.rot,
+								color: obj.color,
+								font: obj.font,
+								origin: obj.origin,
+							});
 
-						break;
+							break;
 
-					default:
-						break;
+						case "line":
+
+							drawLine({
+								p1: obj.p1,
+								p2: obj.p2,
+								pos: obj.pos,
+								scale: obj.scale,
+								rot: obj.rot,
+								color: obj.color,
+								width: obj.width || 1,
+							});
+
+							break;
+
+						case "circle":
+
+							drawCircle({
+								pos: obj.pos,
+								radius: obj.radius,
+								scale: obj.scale,
+								color: obj.color,
+							});
+
+							break;
+
+						default:
+							break;
+
+					}
 
 				}
 
 			}
 
-		}
+			gfxFrameEnd();
 
-		// TODO: draw debug stuff
+			for (const k in app.keyStates) {
+				app.keyStates[k] = processBtnState(app.keyStates[k]);
+			}
+
+			app.mouseState = processBtnState(app.mouseState);
+
+			requestAnimationFrame(frame);
+
+		});
+
+		requestAnimationFrame(frame);
 
 	});
 
@@ -2426,12 +2339,12 @@ lib.destroy = destroy;
 lib.destroyAll = destroyAll;
 
 // group events
-lib.sup = sup;
+lib.action = action;
 lib.bye = bye;
 lib.hi = hi;
 lib.aloha = aloha;
 lib.ouch = ouch;
-lib.huh = huh;
+lib.click = click;
 
 lib.get = get;
 lib.every = every;
@@ -2462,7 +2375,6 @@ lib.play = play;
 lib.volume = volume;
 
 // start
-lib.ready = ready;
 lib.start = start;
 
 // math

@@ -60,56 +60,43 @@ loadSprite("shoot", "shoot.ogg");
 	},
 	{
 		name: "Scene",
-		desc: "KaBoom is almost a scene description DSL, you describe what objects to add in the scene when the scene starts, and describe the behavior of those objects, with functions in Objects & Event below",
+		desc: "Scenes are the different stages of a game, like different levels, menu screen, and start screen etc. Everything should belong to a scene.",
 		functions: [
 			f("scene", [
 				a("name", "name of scene")
-			], null, "start describing a scene", `
-scene("main");
-// describe "main" scene here (add objects, defined events)
-scene("paused");
-// describe "paused" scene here
+			], null, "start a scene block", `
+scene("main", () => {
+	// anything related to "main" scene
+	sprite(/* ... */);
+	keyPress(/* ... */);
+	action(/* ... */);
+});
 			`),
 			f("go", [
 				a("name", "name of scene")
 			], null, "switch to a scene", `
 // go to "paused" scene when pressed "p"
 keyPress("p", () => {
-	go("end");
+	// by default go() continues off the previous scene state, unless explicitly call reload()
+	reload("menu");
+	go("menu");
 });
 			`),
 			f("reload", [
 				a("name", "name of scene")
-			], null, "reload a scene, reinitialize all states"),
+			], null, "reload a scene and reinitialize all states"),
 		],
 	},
 	{
-		name: "Lifecycle",
+		name: "Control",
 		desc: "application lifecycle methods",
 		functions: [
-			f("ready", [
-				a("cb", "callback")
-			], null, "runs when all resources are loaded", `
-loadSprite(/* .. */);
-loadSound(/* .. */);
-
-// make sure we have all the asset information before scene description (image sizes and stuff)
-ready(() => {
-	scene(/* .. */);
-	scene(/* .. */);
-	start(/* .. */);
-})
-			`),
 			f("start", [
 				a("scene", "name of scene")
-			], null, "start the game loop with scene", `
-scene("main");
-// ...
-scene("paused");
-// ...
-scene("scoreboard");
-// ...
-// done describing scenes and starts the game loop
+			], null, "start the game loop with specified scene", `
+scene("main", () => {/* .. */});
+scene("menu", () => {/* .. */});
+scene("lose", () => {/* .. */});
 start("main")
 			`),
 		],
@@ -142,24 +129,34 @@ froggy.play("walk");
 				a("conf", "additional obj conf"),
 			], "the object", "add a rect to scene", `
 // add a sprite with 12x2 rect to scene, accepts optional params like above
-rect(12, 2, {
+const r = rect(12, 2, {
 	pos: froggy.pos,
 	tags: [ "bullet", ],
 	// ...
 });
+
+// update rect size
+r.width = 120;
+r.height = 20;
 			`),
 			f("text", [
 				a("str", "the text string"),
 				a("conf", "additional obj conf"),
 			], "the object", "add a rect to scene", `
 // add text "oh hi" to scene, accepts optional params like above
-text("oh hi", {
+const score = text("0", {
 	size: 64,
 });
+
+// update by modifing the 'text' field
+score.text = "1";
 			`),
 			f("destroy", [
 				a("obj", "the obj to destroy"),
 			], null, "remote an obj from scene"),
+			f("destroyAll", [
+				a("tag", "the tags to destroy"),
+			], null, "destroy all objects that has the specified tag"),
 			f("destroyAll", [
 				a("tag", "the tags to destroy"),
 			], null, "destroy all objects that has the specified tag"),
@@ -195,12 +192,12 @@ bye("enemy", (e) => {
 	score++;
 });
 			`),
-			f("sup", [
+			f("action", [
 				a("tag", "tag selector"),
 				a("cb", "the callback"),
 			], null, "calls every frame", `
 // every frame move objs with tag "bullet" up with speed of 100
-sup("bullet", (b) => {
+action("bullet", (b) => {
 	b.move(vec2(0, 100));
 });
 			`),
@@ -217,16 +214,16 @@ ouch("enemy", "bullet", (e, b) => {
 	}
 });
 			`),
-			f("huh", [
+			f("click", [
 				a("tag", "tag selector"),
 				a("cb", "the callback"),
 			], null, "calls when object is clicked", `
 // drag n' drop
-huh("draggable", (obj) => {
+click("draggable", (obj) => {
 	dragging = obj;
 });
 
-sup("draggable", (obj) => {
+action("draggable", (obj) => {
 	if (obj === dragging) {
 		obj.pos = mousePos();
 	}
@@ -394,6 +391,12 @@ const player = addPlayer({
 keyPress("up", () => {
 	player.jump();
 });
+			`),
+			f("obj.grounded", [
+			], null, "checks if grounded", `
+if (player.grounded()) {
+	console.log("grounded");
+}
 			`),
 		],
 	},

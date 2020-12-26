@@ -16,7 +16,7 @@ function addPlayer(conf) {
 		platform: undefined,
 	});
 
-	player.sup(() => {
+	player.action(() => {
 		if (!player.platform) {
 			player.velY -= world.gravity * world.acc * dt();
 			const res = player.move(vec2(0, player.velY));
