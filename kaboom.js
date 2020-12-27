@@ -208,11 +208,15 @@ function time() {
 // Rendering
 
 // gfx system init
-const gfx = {};
+const gfx = {
+	drawCalls: 0,
+	cam: vec2(0, 0),
+	transform: mat4(),
+	transformStack: [],
+};
 
 function gfxInit() {
-	gfx.drawCalls = 0;
-	gfx.cam = vec2(0, 0);
+
 	gfx.mesh = makeBatchedMesh(65536, 65536);
 	gfx.prog = makeProgram(defVertSrc, defFragSrc);
 	gfx.defTex = makeTex(
@@ -221,7 +225,9 @@ function gfxInit() {
 	gl.clearColor(0.0, 0.0, 0.0, 1.0);
 	gl.enable(gl.BLEND);
 	gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+
 	const lid = newLoader();
+
 	loadImg("data:image/png;base64," + fontImgData, (img) => {
 		gfx.defFont = makeFont(
 			makeTex(img),
@@ -231,6 +237,7 @@ function gfxInit() {
 		);
 		loadComplete(lid);
 	});
+
 }
 
 function loadImg(src, f) {
@@ -274,10 +281,42 @@ function flush() {
 function gfxFrameStart() {
 	gl.clear(gl.COLOR_BUFFER_BIT);
 	gfx.drawCalls = 0;
+	gfx.transformStack = [];
+	gfx.transform = mat4();
 }
 
 function gfxFrameEnd() {
 	flush();
+}
+
+function translate(p) {
+	gfx.transform = gfx.transform.translate(p);
+}
+
+function scale(p) {
+	gfx.transform = gfx.transform.scale(p);
+}
+
+function rotateX(a) {
+	gfx.transform = gfx.transform.rotateX(a);
+}
+
+function rotateY(a) {
+	gfx.transform = gfx.transform.rotateY(a);
+}
+
+function rotateZ(a) {
+	gfx.transform = gfx.transform.rotateZ(a);
+}
+
+function pushTransform() {
+	gfx.transformStack.push(gfx.transform.clone());
+}
+
+function popTransform() {
+	if (gfx.transformStack.length > 0) {
+		gfx.transform = gfx.transformStack.pop();
+	}
 }
 
 function makeBatchedMesh(vcount, icount) {
@@ -481,6 +520,7 @@ function makeFont(tex, gw, gh, chars) {
 
 }
 
+// TODO: clean
 // draw a textured rectangle
 function drawRect(conf) {
 
@@ -490,7 +530,8 @@ function drawRect(conf) {
 
 	const tex = conf.tex || gfx.defTex;
 
-	if (gfx.curTex != tex) {
+	// flush on texture change
+	if (gfx.curTex !== tex) {
 		flush();
 		gfx.curTex = tex;
 	}
@@ -509,22 +550,30 @@ function drawRect(conf) {
 	const scale = conf.scale === undefined ? vec2(1, 1) : vec2(conf.scale);
 	const rot = conf.rot || 0;
 	const q = conf.quad || quad(0, 0, 1, 1);
-	w = w * q.w * scale.x / width();
-	h = h * q.h * scale.y / height();
-	const x = pos.x / width() * 2;
-	const y = pos.y / height() * 2;
-	// TODO: rotation
-	const rx = Math.cos(rot) - Math.sin(rot);
-	const ry = Math.sin(rot) + Math.cos(rot);
+
+	w = w * q.w * scale.x;
+	h = h * q.h * scale.y;
+
+	pushTransform();
+
+	const proj = vec2(2 / width(), 2 / height());
+	translate(pos);
+	rotateZ(rot);
+	const p1 = gfx.transform.multVec2(vec2(-w / 2, -h / 2)).dot(proj);
+	const p2 = gfx.transform.multVec2(vec2(-w / 2, h / 2)).dot(proj);
+	const p3 = gfx.transform.multVec2(vec2(w / 2, h / 2)).dot(proj);
+	const p4 = gfx.transform.multVec2(vec2(w / 2, -h / 2)).dot(proj);
 	const { r, g, b, a, } = conf.color;
 
 	gfx.mesh.push([
-		// pos			// uv				  // color
-		-w + x, -h + y, q.x, q.y + q.h,		  r, g, b, a,
-		-w + x,  h + y, q.x, q.y,			  r, g, b, a,
-		 w + x,  h + y, q.x + q.w, q.y,		  r, g, b, a,
-		 w + x, -h + y, q.x + q.w, q.y + q.h, r, g, b, a,
+		// pos      // uv                 // color
+		p1.x, p1.y, q.x,       q.y + q.h, r, g, b, a,
+		p2.x, p2.y, q.x,       q.y,       r, g, b, a,
+		p3.x, p3.y, q.x + q.w, q.y,       r, g, b, a,
+		p4.x, p4.y, q.x + q.w, q.y + q.h, r, g, b, a,
 	], [ 0, 1, 2, 0, 2, 3, ]);
+
+	popTransform();
 
 }
 
@@ -965,6 +1014,38 @@ function mat4(m) {
 
 		},
 
+		multVec4(p) {
+			return {
+				x: p.x * this.m[0] + p.y * this.m[4] + p.z * this.m[8] + p.w * this.m[12],
+				y: p.x * this.m[1] + p.y * this.m[5] + p.z * this.m[9] + p.w * this.m[13],
+				z: p.x * this.m[2] + p.y * this.m[6] + p.z * this.m[10] + p.w * this.m[14],
+				w: p.x * this.m[3] + p.y * this.m[7] + p.z * this.m[11] + p.w * this.m[15]
+			};
+		},
+
+		multVec3(p) {
+			const p4 = this.multVec4({
+				x: p.x,
+				y: p.y,
+				z: p.z,
+				w: 1.0,
+			});
+			return {
+				x: p4.x,
+				y: p4.y,
+				z: p4.z,
+			};
+		},
+
+		multVec2(p) {
+			const p3 = this.multVec3({
+				x: p.x,
+				y: p.y,
+				z: 0.0,
+			});
+			return vec2(p3.x, p3.y);
+		},
+
 		scale(s) {
 			return this.mult(mat4([
 				s.x, 0, 0, 0,
@@ -1145,6 +1226,7 @@ const game = {
 	sprites: {},
 	loaders: {},
 	lastLoaderID: 0,
+	loadRoot: "",
 	debug: {
 		drawBBox: false,
 		showStats: false,
@@ -1162,11 +1244,17 @@ function loadComplete(id) {
 	game.loaders[id] = true;
 }
 
+// global load path prefix
+function loadRoot(path) {
+	if (path) {
+		game.loadRoot = path;
+	}
+}
+
 // load a sprite to asset manager
 function loadSprite(name, src, conf) {
 
-	// TODO: might have incorrect loader logic here
-
+	// TODO: just assign the .tex field
 	if (typeof(src) === "string") {
 		const lid = newLoader();
 		loadImg(src, (img) => {
@@ -1408,7 +1496,7 @@ function add(props) {
 		},
 
 		// add callback that runs when the obj has collided with other objs with tag t
-		ouch(t, f) {
+		collide(t, f) {
 			this.action(() => {
 				every(t, (obj) => {
 					if (this !== obj && this.intersects(obj)) {
@@ -1897,7 +1985,7 @@ function aloha(tag, cb) {
 }
 
 // add an event that runs with objs with t1 collides with objs with t2
-function ouch(t1, t2, f) {
+function collide(t1, t2, f) {
 	action(t1, (o1) => {
 		every(t2, (o2) => {
 			if (o1 !== o2) {
@@ -2294,6 +2382,7 @@ lib.init = init;
 lib.start = start;
 
 // asset load
+lib.loadRoot = loadRoot;
 lib.loadSprite = loadSprite;
 lib.loadSound = loadSound;
 
@@ -2322,7 +2411,7 @@ lib.action = action;
 lib.bye = bye;
 lib.hi = hi;
 lib.aloha = aloha;
-lib.ouch = ouch;
+lib.collide = collide;
 lib.click = click;
 
 // access

@@ -13,7 +13,7 @@
 		"kit/*.js"
 	],
 	"scripts": {
-		"demo": "node demo.js",
+		"demo": "node run.js",
 		"site": "node site/serve.js"
 	}
 }

@@ -151,8 +151,9 @@ const froggy = sprite("froggy", {
 	rot: 0,
 	tags: [ "player", "frog", ],
 	color: color(0, 0, 1, 1),
-	paused: false,
-	hidden: false,
+	paused: false, // if draw
+	hidden: false, // if update (if action() will run)
+	solid: false, // if an object is solid, it can't be moved across by other obj with move()
 });
 
 // play an animation

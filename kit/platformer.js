@@ -8,6 +8,7 @@ function initWorld(conf) {
 	world.acc = conf.acc === undefined ? 160 : conf.acc;
 }
 
+// TODO: a component-based plugin system?
 function addPlayer(conf) {
 
 	const player = k.sprite("guy", {
@@ -49,8 +50,8 @@ function addPlayer(conf) {
 
 }
 
-kaboom.initWorld = initWorld;
-kaboom.addPlayer = addPlayer;
+k.initWorld = initWorld;
+k.addPlayer = addPlayer;
 
 })();
 

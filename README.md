@@ -6,6 +6,19 @@ kaboom.js is a JavaScript library that helps you make games fast and fun!
 
 [try on replit](https://repl.it/@slmjkdbtl/KaBoomjs-Template#game.js)
 
+### Example
+
+```js
+kaboom.import();
+init();
+
+scene("main", () => {
+	text("oh hi");
+});
+
+start("main");
+```
+
 ### Usage
 
 1. download `kaboom.js` and
@@ -20,16 +33,13 @@ kaboom.js is a JavaScript library that helps you make games fast and fun!
 <script src="https://cdn.jsdelivr.net/gh/replit/kaboom@latest/kaboom.min.js"></script>
 ```
 
-### Example
+### Dev
 
-```js
-kaboom.import();
-init();
+```sh
+# lib
+$ npm run demo
 
-scene("main", () => {
-	text("oh hi");
-});
-
-start("main");
+# doc
+$ npm run site
 ```
 

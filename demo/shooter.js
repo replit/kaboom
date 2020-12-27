@@ -70,7 +70,7 @@ scene("main", () => {
 
 	});
 
-	player.ouch("enemy", (e) => {
+	player.collide("enemy", (e) => {
 
 		if (player.power > 0) {
 			return;
@@ -81,7 +81,7 @@ scene("main", () => {
 
 	});
 
-	player.ouch("candy", (p) => {
+	player.collide("candy", (p) => {
 		destroy(p);
 		player.power = powerTime;
 	});
@@ -203,7 +203,7 @@ scene("main", () => {
 		e.pos = e.pos.add(dir.scale(e.speed * dt()));
 	});
 
-	ouch("bullet", "enemy", (b, e) => {
+	collide("bullet", "enemy", (b, e) => {
 
 		rect(0, 0, {
 			pos: b.pos,
