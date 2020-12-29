@@ -283,6 +283,7 @@ function gfxFrameStart() {
 	gfx.drawCalls = 0;
 	gfx.transformStack = [];
 	gfx.transform = mat4();
+	scale(vec2(2 / width(), 2 / height()));
 }
 
 function gfxFrameEnd() {
@@ -520,6 +521,19 @@ function makeFont(tex, gw, gh, chars) {
 
 }
 
+function drawSprite(name, conf) {
+
+	const spr = game.sprites[name];
+	const tex = spr !== undefined ? spr.tex : gfx.defTex;
+
+	// flush on texture change
+	if (gfx.curTex !== tex) {
+		flush();
+		gfx.curTex = tex;
+	}
+
+}
+
 // TODO: clean
 // draw a textured rectangle
 function drawRect(conf) {
@@ -556,13 +570,12 @@ function drawRect(conf) {
 
 	pushTransform();
 
-	const proj = vec2(2 / width(), 2 / height());
 	translate(pos);
 	rotateZ(rot);
-	const p1 = gfx.transform.multVec2(vec2(-w / 2, -h / 2)).dot(proj);
-	const p2 = gfx.transform.multVec2(vec2(-w / 2, h / 2)).dot(proj);
-	const p3 = gfx.transform.multVec2(vec2(w / 2, h / 2)).dot(proj);
-	const p4 = gfx.transform.multVec2(vec2(w / 2, -h / 2)).dot(proj);
+	const p1 = gfx.transform.multVec2(vec2(-w / 2, -h / 2));
+	const p2 = gfx.transform.multVec2(vec2(-w / 2, h / 2));
+	const p3 = gfx.transform.multVec2(vec2(w / 2, h / 2));
+	const p4 = gfx.transform.multVec2(vec2(w / 2, -h / 2));
 	const { r, g, b, a, } = conf.color;
 
 	gfx.mesh.push([
@@ -1037,6 +1050,7 @@ function mat4(m) {
 			};
 		},
 
+		// TODO: remove intermediate calls for perf?
 		multVec2(p) {
 			const p3 = this.multVec3({
 				x: p.x,
@@ -1311,6 +1325,7 @@ function scene(name, cb) {
 		events: {
 			hi: [],
 			action: [],
+			render: [],
 			bye: [],
 			keyDown: [],
 			keyPress: [],
@@ -1347,34 +1362,7 @@ function go(name, ...args) {
 
 // reload a scene, reset all objs to their init states
 function reload(name) {
-
-	game.scenes[name] = {
-
-		init: game.scenes[name].init,
-		initialized: false,
-
-		// event callbacks
-		events: {
-			hi: [],
-			action: [],
-			bye: [],
-			keyDown: [],
-			keyPress: [],
-			keyPressRep: [],
-			keyRelease: [],
-			mousePress: [],
-			mouseRelease: [],
-			mouseDown: [],
-		},
-
-		// in game pool
-		objs: {},
-		lastID: 0,
-		timers: {},
-		lastTimerID: 0,
-
-	};
-
+	scene(name, game.scenes[name].init);
 }
 
 function aabb(r1, r2, dx, dy) {
@@ -1471,10 +1459,11 @@ function add(props) {
 		layer: props.layer || 0,
 		tags: props.tags ? [...props.tags] : [],
 
-		// action lists
+		// events
 		events: {
 			hi: [],
 			action: [],
+			render: [],
 			bye: [],
 		},
 
@@ -1488,6 +1477,10 @@ function add(props) {
 		// runs every frame
 		action(f) {
 			this.events.action.push(f);
+		},
+
+		render(f) {
+			this.events.render.push(f);
 		},
 
 		// runs when the obj is destroyed
@@ -1779,7 +1772,6 @@ function add(props) {
 
 	};
 
-	// figure out obj size
 	switch (obj.type) {
 
 		case "sprite":
@@ -1806,60 +1798,134 @@ function add(props) {
 				obj.height = props.height;
 			}
 
+			obj.render(() => {
+
+				const spr = game.sprites[obj.sprite];
+
+				if (obj.sprite && !spr) {
+					console.error(`sprite not found: "${obj.sprite}"`);
+					return;
+				}
+
+				const q = spr.frames[obj.frame];
+
+				drawRect({
+					tex: spr.tex,
+					pos: obj.pos,
+					scale: obj.scale,
+					rot: obj.rot,
+					color: obj.color,
+					width: obj.width / q.w,
+					height: obj.height / q.h,
+					quad: q,
+				});
+
+			});
+
+			obj.action(() => {
+
+				if (!obj.curAnim) {
+					return;
+				}
+
+				const spr = game.sprites[obj.sprite];
+				const speed = obj.animSpeed || 0.1;
+				const anim = spr.anims[obj.curAnim];
+
+				obj.timer += dt();
+
+				if (obj.timer >= obj.animSpeed) {
+					// TODO: anim dir
+					obj.frame++;
+					if (obj.frame > anim.to) {
+						if (obj.looping) {
+							obj.frame = anim.from;
+						} else {
+							obj.frame--;
+							obj.curAnim = undefined;
+						}
+					}
+					obj.timer -= obj.animSpeed;
+				}
+
+			});
+
 			break;
 
 		case "rect":
+
 			obj.width = props.width;
 			obj.height = props.height;
+
+			obj.render(() => {
+				drawRect({
+					pos: obj.pos,
+					scale: obj.scale,
+					rot: obj.rot,
+					color: obj.color,
+					width: obj.width,
+					height: obj.height,
+					quad: quad(0, 0, 1, 1),
+				});
+			});
+
 			break;
 
 		case "text":
+
 			const ftext = fmtText(obj.text, obj);
+
 			obj.width = ftext.tw;
 			obj.height = ftext.th;
+
+			obj.render(() => {
+
+				drawText({
+					text: obj.text,
+					size: obj.size,
+					pos: obj.pos,
+					scale: obj.scale,
+					rot: obj.rot,
+					color: obj.color,
+					font: obj.font,
+					origin: obj.origin,
+				});
+
+			});
+
 			break;
 
 		case "line":
-			// TODO
+
+			obj.render(() => {
+				drawLine({
+					p1: obj.p1,
+					p2: obj.p2,
+					pos: obj.pos,
+					scale: obj.scale,
+					rot: obj.rot,
+					color: obj.color,
+					width: obj.width || 1,
+				});
+			});
+
 			break;
 
 		case "circle":
+
 			obj.width = obj.radius * 2;
 			obj.height = obj.radius * 2;
+
+			obj.render(() => {
+				drawCircle({
+					pos: obj.pos,
+					radius: obj.radius,
+					scale: obj.scale,
+					color: obj.color,
+				});
+			});
+
 			break;
-
-	}
-
-	// sprite anim
-	if (obj.type === "sprite") {
-
-		obj.action(() => {
-
-			if (!obj.curAnim) {
-				return;
-			}
-
-			const spr = game.sprites[obj.sprite];
-			const speed = obj.animSpeed || 0.1;
-			const anim = spr.anims[obj.curAnim];
-
-			obj.timer += dt();
-
-			if (obj.timer >= obj.animSpeed) {
-				// TODO: anim dir
-				obj.frame++;
-				if (obj.frame > anim.to) {
-					if (obj.looping) {
-						obj.frame = anim.from;
-					} else {
-						obj.frame--;
-						obj.curAnim = undefined;
-					}
-				}
-				obj.timer -= obj.animSpeed;
-			}
-
-		});
 
 	}
 
@@ -1964,6 +2030,15 @@ function hi(t, f) {
 function action(t, f) {
 	const scene = game.scenes[game.curScene];
 	scene.events.action.push({
+		tag: t,
+		cb: f,
+	});
+}
+
+// add an event that runs every frame for objs with tag t
+function render(t, f) {
+	const scene = game.scenes[game.curScene];
+	scene.events.render.push({
 		tag: t,
 		cb: f,
 	});
@@ -2248,90 +2323,14 @@ function start(name) {
 				// draw obj
 				if (!obj.hidden) {
 
-					// perform different draw op depending on the type
-					switch (obj.type) {
+					for (const f of obj.events.render) {
+						f(obj);
+					}
 
-						case "sprite":
-
-							const spr = game.sprites[obj.sprite];
-
-							if (obj.sprite && !spr) {
-								console.error(`sprite not found: "${obj.sprite}"`);
-								break;
-							}
-
-							const q = spr.frames[obj.frame];
-
-							drawRect({
-								tex: spr.tex,
-								pos: obj.pos,
-								scale: obj.scale,
-								rot: obj.rot,
-								color: obj.color,
-								width: obj.width / q.w,
-								height: obj.height / q.h,
-								quad: q,
-							});
-
-							break;
-
-						case "rect":
-
-							drawRect({
-								pos: obj.pos,
-								scale: obj.scale,
-								rot: obj.rot,
-								color: obj.color,
-								width: obj.width,
-								height: obj.height,
-								quad: quad(0, 0, 1, 1),
-							});
-
-							break;
-
-						case "text":
-
-							drawText({
-								text: obj.text,
-								size: obj.size,
-								pos: obj.pos,
-								scale: obj.scale,
-								rot: obj.rot,
-								color: obj.color,
-								font: obj.font,
-								origin: obj.origin,
-							});
-
-							break;
-
-						case "line":
-
-							drawLine({
-								p1: obj.p1,
-								p2: obj.p2,
-								pos: obj.pos,
-								scale: obj.scale,
-								rot: obj.rot,
-								color: obj.color,
-								width: obj.width || 1,
-							});
-
-							break;
-
-						case "circle":
-
-							drawCircle({
-								pos: obj.pos,
-								radius: obj.radius,
-								scale: obj.scale,
-								color: obj.color,
-							});
-
-							break;
-
-						default:
-							break;
-
+					for (const e of scene.events.render) {
+						if (obj.is(e.tag)) {
+							e.cb(obj);
+						}
 					}
 
 				}
