@@ -1323,10 +1323,10 @@ function scene(name, cb) {
 
 		// event callbacks
 		events: {
-			add: [],
-			update: [],
-			draw: [],
-			destroy: [],
+			hi: [],
+			action: [],
+			render: [],
+			bye: [],
 			keyDown: [],
 			keyPress: [],
 			keyPressRep: [],
@@ -1365,66 +1365,229 @@ function reload(name) {
 	scene(name, game.scenes[name].init);
 }
 
-function add(comps) {
+function aabb(r1, r2, dx, dy) {
+
+	const normal = vec2(0, 0);
+	let xInvEntry, yInvEntry;
+	let xInvExit, yInvExit;
+
+	if (dx > 0) {
+		xInvEntry = r2.p1.x - r1.p2.x;
+		xInvExit = r2.p2.x - r1.p1.x;
+	} else {
+		xInvEntry = r2.p2.x - r1.p1.x;
+		xInvExit = r2.p1.x - r1.p2.x;
+	}
+
+	if (dy > 0) {
+		yInvEntry = r2.p1.y - r1.p2.y;
+		yInvExit = r2.p2.y - r1.p1.y;
+	} else {
+		yInvEntry = r2.p2.y - r1.p1.y;
+		yInvExit = r2.p1.y - r1.p2.y;
+	}
+
+	let xEntry, yEntry;
+	let xExit, yExit;
+
+	if (dx === 0) {
+		xEntry = -Infinity;
+		xExit = Infinity;
+	} else {
+		xEntry = xInvEntry / dx;
+		xExit = xInvExit / dx;
+	}
+
+	if (dy === 0) {
+		yEntry = -Infinity;
+		yExit = Infinity;
+	} else {
+		yEntry = yInvEntry / dy;
+		yExit = yInvExit / dy;
+	}
+
+	const entryTime = Math.max(xEntry, yEntry);
+	const exitTime = Math.min(xExit, yExit);
+
+	if (entryTime > exitTime || xEntry < 0 && yEntry < 0 || xEntry > 1 || yEntry > 1) {
+		return {
+			normal: normal,
+			t: 1,
+		};
+	} else {
+		if (xEntry > yEntry) {
+			if (xInvEntry < 0) {
+				normal.x = 1;
+				normal.y = 0;
+			} else {
+				normal.x = -1;
+				normal.y = 0;
+			}
+		} else {
+			if (yInvEntry < 0) {
+				normal.x = 0;
+				normal.y = 1;
+			} else {
+				normal.x = 0;
+				normal.y = -1;
+			}
+		}
+		return {
+			normal: normal,
+			t: entryTime,
+		};
+	}
+
+};
+
+// adds an obj to the current scene
+function add(props) {
 
 	const obj = {
 
-		hidden: false,
-		paused: false,
-		tags: [],
+		// copy all the custom attrs
+		...props,
+		props: props,
 
+		// setting / resolving general props
+		pos: props.pos ? vec2(props.pos) : vec2(0),
+		scale: props.scale === undefined ? 1 : props.scale,
+		rot: props.rot || 0,
+		color: props.color || color(1, 1, 1, 1),
+		hidden: props.hidden === undefined ? false : props.hidden,
+		paused: props.paused === undefined ? false : props.paused,
+		layer: props.layer || 0,
+		tags: props.tags ? [...props.tags] : [],
+
+		// events
 		events: {
-			add: [],
-			update: [],
-			draw: [],
-			destroy: [],
+			hi: [],
+			action: [],
+			render: [],
+			bye: [],
 		},
 
-		// use a comp
-		use(comp) {
+		states: {},
 
-			const type = typeof(comp);
+		// runs when the obj is added to scene
+		hi(f) {
+			this.events.hi.push(f);
+		},
 
-			// tags
-			if (type === "string") {
-				this.tags.push(comp);
-				return;
-			}
+		// runs every frame
+		action(f) {
+			this.events.action.push(f);
+		},
 
-			if (type !== "object") {
-				console.error(`invalid comp type: ${type}`);
-				return;
-			}
+		render(f) {
+			this.events.render.push(f);
+		},
 
-			for (const k in comp) {
+		// runs when the obj is destroyed
+		bye(f) {
+			this.events.bye.push(f);
+		},
 
-				// overlapping
-				if (this[k]) {
-					console.warn(`obj already has prop '${k}'`);
-					continue;
-				}
-
-				// event / custom method
-				if (typeof(comp[k]) === "function") {
-					if (this.events[k]) {
-						this.events[k].push(comp[k].bind(this));
-					} else {
-						this[k] = comp[k].bind(this);
+		// add callback that runs when the obj has collided with other objs with tag t
+		collide(t, f) {
+			this.action(() => {
+				every(t, (obj) => {
+					if (this !== obj && this.intersects(obj)) {
+						f(obj);
 					}
-					continue;
-				}
-
-				// TODO: deal with getter / setters
-				// fields
-				this[k] = comp[k];
-
-			}
-
+				});
+			});
 		},
 
-		// if obj is current in scene
-		exists() {
-			return this._sceneID !== undefined;
+		// add callback that runs when the obj is clicked
+		click(f) {
+			this.action(() => {
+				if (this.isClicked()) {
+					f();
+				}
+			});
+		},
+
+		// move and resolve for collision
+		move(p) {
+
+			const dx = p.x * dt();
+			const dy = p.y * dt();
+
+			const scene = game.scenes[game.curScene];
+
+			// TODO: spatial hashing
+			// TODO: try resolve base on normal
+
+//			let t = 1;
+
+//			for (const id in scene.objs) {
+//				const obj = scene.objs[id];
+//				if (obj.solid) {
+//					const res = aabb(this.area(), obj.area(), dx, dy);
+//					if (res.t < t) {
+//						t = res.t;
+//					}
+//				}
+//			}
+
+//			this.pos.x += dx * t;
+//			this.pos.y += dy * t;
+
+			let res = undefined;
+
+			if (dx !== 0) {
+				this.onEdgeX = undefined;
+				this.pos.x += dx;
+				for (const id in scene.objs) {
+					if (this.onEdgeY === id) {
+						continue;
+					}
+					const obj = scene.objs[id];
+					if (obj.solid) {
+						if (this.intersects(obj)) {
+							this.pos.x +=
+								(	Math.sign(dx)
+									* (obj.pos.x - this.pos.x)
+									- (this.width + obj.width) / 2
+								) * Math.sign(dx);
+							this.onEdgeX = id;
+							res = {
+								edge: dx < 0 ? "left" : "right",
+								obj: obj,
+							};
+						}
+					}
+				}
+			}
+
+			if (dy !== 0) {
+				this.onEdgeY = undefined;
+				this.pos.y += dy;
+				for (const id in scene.objs) {
+					if (this.onEdgeX === id) {
+						continue;
+					}
+					const obj = scene.objs[id];
+					if (obj.solid) {
+						if (this.intersects(obj)) {
+							this.pos.y +=
+								(	Math.sign(dy)
+									* (obj.pos.y - this.pos.y)
+									- (this.height + obj.height) / 2
+								) * Math.sign(dy);
+							this.onEdgeY = id;
+							res = {
+								edge: dy < 0 ? "bottom" : "top",
+								obj: obj,
+							};
+						}
+					}
+				}
+			}
+
+			return res;
+
 		},
 
 		// if obj has certain tag
@@ -1440,208 +1603,464 @@ function add(comps) {
 			return this.tags.includes(tag);
 		},
 
-		onAdd(f) {
-			this.events.add.push(f);
+		// TODO: respect offset
+		// TODO: support custom bounding box
+		// get obj visual bounding box
+		area() {
+
+			const s = vec2(this.scale);
+			const p1 = this.pos.sub(vec2(this.width * s.x / 2, this.height * s.x / 2));
+			const p2 = this.pos.add(vec2(this.width * s.y / 2, this.height * s.y / 2));
+
+			return area(p1, p2);
+
 		},
 
-		onUpdate(f) {
-			this.events.update.push(f);
+		// if obj is hovered by mouse
+		isHovered() {
+			return this.area().hasPt(mousePos());
 		},
 
-		onDraw(f) {
-			this.events.draw.push(f);
+		// if obj is clicked this frame
+		isClicked() {
+			return mouseIsPressed() && this.isHovered();
 		},
 
-		onDestroy(f) {
-			this.events.destroy.push(f);
+		// wrap obj in a rectangle area
+		wrap(p1, p2) {
+			if (this.pos.x < p1.x) {
+				this.pos.x = p2.x;
+			} else if (this.pos.x > p2.x) {
+				this.pos.x = p1.x;
+			}
+			if (this.pos.y < p1.y) {
+				this.pos.y = p2.y;
+			} else if (this.pos.y > p2.y) {
+				this.pos.y = p1.y;
+			}
 		},
 
-	};
+		// if obj intersects with another obj
+		intersects(other) {
 
-	for (const c of comps) {
-		obj.use(c);
-	}
+			// TODO: messy!
+			const lineTypes = ["line"];
+			const rectTypes = ["sprite", "rect", "circle", "text"];
 
-	const scene = game.scenes[game.curScene];
-
-	scene.objs[scene.lastID] = obj;
-	obj._sceneID = scene.lastID;
-	scene.lastID++;
-
-	for (const cb of obj.events.add) {
-		cb();
-	}
-
-	return obj;
-
-}
-
-function pos(...args) {
-	return {
-		pos: vec2(...args),
-	};
-}
-
-function rotate(r) {
-	return {
-		rotate: r,
-	};
-}
-
-function sprite(id) {
-
-	return {
-
-		_spriteID: id,
-		_animTimer: 0,
-		_curAnim: undefined,
-		_animLooping: false,
-		animSpeed: 0.1,
-		frame: 0,
-
-		draw() {
-
-			const spr = game.sprites[this._spriteID];
-
-			if (!spr) {
-				console.error(`sprite not found: "${this._spriteID}"`);
-				return;
+			if (lineTypes.includes(this.type) && lineTypes.includes(other.type)) {
+				return colLineLine(
+					makeLine(this.p1, this.p2),
+					makeLine(other.p1, other.p2)
+				);
+			} else if (lineTypes.includes(this.type) && rectTypes.includes(other.type)) {
+				return colRectLine(
+					other.area(),
+					makeLine(this.p1.add(this.pos), this.p2.add(this.pos))
+				);
+			} else if (rectTypes.includes(this.type) && lineTypes.includes(other.type)) {
+				return colRectLine(
+					this.area(),
+					makeLine(other.p1.add(other.pos), other.p2.add(other.pos))
+				);
+			} else if (rectTypes.includes(this.type) && rectTypes.includes(other.type)) {
+				return colRectRect(
+					this.area(),
+					other.area()
+				);
 			}
 
-			const q = spr.frames[this.frame];
-
-			drawRect({
-				tex: spr.tex,
-				pos: this.pos,
-				scale: this.scale,
-				rot: this.rotate,
-				color: this.color || color(),
-				width: spr.tex.width * q.w,
-				height: spr.tex.height * q.h,
-				quad: q,
-			});
-
 		},
 
-		update() {
+		// if obj currently exists in the scene
+		exists() {
+			return this.sceneID !== undefined;
+		},
 
-			if (!this._curAnim) {
-				return;
-			}
+		state(name) {
+			return this.states[name];
+		},
 
-			const spr = game.sprites[this._spriteID];
-			const speed = this.animSpeed;
-			const anim = spr.anims[this._curAnim];
+		addState(name) {
 
-			this._animTimer += dt();
+			const obj = this;
 
-			if (this._animTimer >= this.animSpeed) {
-				// TODO: anim dir
-				this.frame++;
-				if (this.frame > anim.to) {
-					if (this._animLooping) {
-						this.frame = anim.from;
-					} else {
-						this.frame--;
-						this.curAnim = undefined;
+			this.states[name] = {
+
+				state: undefined,
+				events: {},
+
+				enter(state, ...args) {
+					if (!obj.exists()) {
+						return;
 					}
-				}
-				this._animTimer -= this.animSpeed;
-			}
+					if (state === this.state) {
+						return;
+					}
+					const prevState = this.state;
+					if (this.events[prevState]) {
+						if (this.events[prevState].leave) {
+							this.events[prevState].leave();
+						}
+					}
+					this.state = state;
+					if (this.events[state]) {
+						if (this.events[state].on) {
+							this.events[state].on(...args);
+						}
+					}
+				},
+
+				is(state) {
+					return this.state == state;
+				},
+
+				on(state, f) {
+					if (!this.events[state]) {
+						this.events[state] = {};
+					}
+					this.events[state].on = f;
+				},
+
+				leave(state, f) {
+					if (!this.events[state]) {
+						this.events[state] = {};
+					}
+					this.events[state].leave = f;
+				},
+
+				during(state, f) {
+					obj.action(() => {
+						if (this.state === state) {
+							f();
+						}
+					});
+				},
+
+			};
+
+			return this.states[name];
 
 		},
 
 		play(name, loop) {
 
-			const anim = game.sprites[this._spriteID].anims[name];
+			if (this.type !== "sprite") {
+				console.error(`play() is only available for sprites, not ${this.type}`);
+				return;
+			}
+
+			const anim = game.sprites[obj.sprite].anims[name];
 
 			if (!anim) {
 				console.error(`anim not found: ${name}`);
 				return;
 			}
 
-			this._curAnim = name;
+			this.curAnim = name;
 			this.frame = anim.from;
-			this._animLooping = loop === undefined ? true : loop;
+			this.looping = loop === undefined ? true : loop;
 
 		},
 
 		stop() {
-			this._curAnim = undefined;
+			if (this.type !== "sprite") {
+				console.error(`stop() is only available for sprites, not ${this.type}`);
+				return;
+			}
+			this.curAnim = undefined;
 		},
 
 	};
+
+	switch (obj.type) {
+
+		case "sprite":
+
+			if (!game.sprites[obj.sprite]) {
+				console.error(`sprite ${obj.sprite} not found`);
+				break;
+			}
+
+			const data = game.sprites[obj.sprite];
+			const tw = data.tex.width * data.frames[0].w;
+			const th = data.tex.height * data.frames[0].h;
+			obj.width = tw;
+			obj.height = th;
+
+			if (props.width && props.height) {
+				obj.width = props.width;
+				obj.height = props.height;
+			} else if (props.width && !props.height) {
+				obj.width = props.width;
+				obj.height = props.width / tw * th;
+			} else if (!props.width && props.height) {
+				obj.width = props.height / th * tw;
+				obj.height = props.height;
+			}
+
+			obj.render(() => {
+
+				const spr = game.sprites[obj.sprite];
+
+				if (obj.sprite && !spr) {
+					console.error(`sprite not found: "${obj.sprite}"`);
+					return;
+				}
+
+				const q = spr.frames[obj.frame];
+
+				drawRect({
+					tex: spr.tex,
+					pos: obj.pos,
+					scale: obj.scale,
+					rot: obj.rot,
+					color: obj.color,
+					width: obj.width / q.w,
+					height: obj.height / q.h,
+					quad: q,
+				});
+
+			});
+
+			obj.action(() => {
+
+				if (!obj.curAnim) {
+					return;
+				}
+
+				const spr = game.sprites[obj.sprite];
+				const speed = obj.animSpeed || 0.1;
+				const anim = spr.anims[obj.curAnim];
+
+				obj.timer += dt();
+
+				if (obj.timer >= obj.animSpeed) {
+					// TODO: anim dir
+					obj.frame++;
+					if (obj.frame > anim.to) {
+						if (obj.looping) {
+							obj.frame = anim.from;
+						} else {
+							obj.frame--;
+							obj.curAnim = undefined;
+						}
+					}
+					obj.timer -= obj.animSpeed;
+				}
+
+			});
+
+			break;
+
+		case "rect":
+
+			obj.width = props.width;
+			obj.height = props.height;
+
+			obj.render(() => {
+				drawRect({
+					pos: obj.pos,
+					scale: obj.scale,
+					rot: obj.rot,
+					color: obj.color,
+					width: obj.width,
+					height: obj.height,
+					quad: quad(0, 0, 1, 1),
+				});
+			});
+
+			break;
+
+		case "text":
+
+			const ftext = fmtText(obj.text, obj);
+
+			obj.width = ftext.tw;
+			obj.height = ftext.th;
+
+			obj.render(() => {
+
+				drawText({
+					text: obj.text,
+					size: obj.size,
+					pos: obj.pos,
+					scale: obj.scale,
+					rot: obj.rot,
+					color: obj.color,
+					font: obj.font,
+					origin: obj.origin,
+				});
+
+			});
+
+			break;
+
+		case "line":
+
+			obj.render(() => {
+				drawLine({
+					p1: obj.p1,
+					p2: obj.p2,
+					pos: obj.pos,
+					scale: obj.scale,
+					rot: obj.rot,
+					color: obj.color,
+					width: obj.width || 1,
+				});
+			});
+
+			break;
+
+		case "circle":
+
+			obj.width = obj.radius * 2;
+			obj.height = obj.radius * 2;
+
+			obj.render(() => {
+				drawCircle({
+					pos: obj.pos,
+					radius: obj.radius,
+					scale: obj.scale,
+					color: obj.color,
+				});
+			});
+
+			break;
+
+	}
+
+	// ephemeral objs
+	if (obj.lifespan !== undefined) {
+		obj.action(() => {
+			obj.lifespan -= dt();
+			if (obj.lifespan <= 0) {
+				destroy(obj);
+			}
+		});
+	}
+
+	const scene = game.scenes[game.curScene];
+
+	scene.objs[scene.lastID] = obj;
+	obj.sceneID = scene.lastID;
+	scene.lastID++;
+
+	// TODO: won't run, should add objects to scene once scene.init() is over
+	for (const cb of obj.events.hi) {
+		cb(obj);
+	}
+
+	for (const e of scene.events.hi) {
+		if (obj.is(e.tag)) {
+			e.cb(obj);
+		}
+	}
+
+	// return the obj reference
+	return obj;
 
 }
 
-function text(t, size, conf) {
+// add() a sprite obj
+function sprite(id, props) {
+	props = props || {};
+	return add({
+		...props,
+		type: "sprite",
+		sprite: id,
+		timer: 0,
+		frame: 0,
+	});
+}
 
-	conf = conf || {};
+// add() a rect obj
+function rect(w, h, props) {
+	props = props || {};
+	return add({
+		...props,
+		type: "rect",
+		width: w,
+		height: h,
+	});
+}
 
-	return {
+// add() a text obj
+function text(str, props) {
+	props = props || {};
+	return add({
+		...props,
+		type: "text",
+		text: str,
+		origin: props.origin || "center",
+	});
+}
 
-		text: t,
-		textSize: size,
-		textOrigin: conf.origin || "center",
+// add() a line obj
+function line(p1, p2, props) {
+	props = props || {};
+	return add({
+		...props,
+		type: "line",
+		p1: p1,
+		p2: p2,
+	});
+}
 
-		draw() {
-
-			const ftext = fmtText(this.text, {
-				pos: this.pos,
-				size: this.textSize,
-				origin: this.textOrigin,
-				color: this.color,
-			});
-
-			this.width = ftext.tw;
-			this.height = ftext.th;
-
-			drawFChars(ftext.chars);
-
-		},
-
-	};
-
+// add() a circle obj
+function circle(center, radius, props) {
+	props = props || {};
+	return add({
+		...props,
+		type: "circle",
+		pos: center,
+		radius: radius,
+	});
 }
 
 // add an event that runs when objs with tag t is added to scene
-function onAdd(t, f) {
+function hi(t, f) {
 	const scene = game.scenes[game.curScene];
-	scene.events.add.push({
+	scene.events.hi.push({
 		tag: t,
 		cb: f,
 	});
 }
 
 // add an event that runs every frame for objs with tag t
-function onUpdate(t, f) {
+function action(t, f) {
 	const scene = game.scenes[game.curScene];
-	scene.events.update.push({
+	scene.events.action.push({
 		tag: t,
 		cb: f,
 	});
 }
 
 // add an event that runs every frame for objs with tag t
-function onDraw(t, f) {
+function render(t, f) {
 	const scene = game.scenes[game.curScene];
-	scene.events.draw.push({
+	scene.events.render.push({
 		tag: t,
 		cb: f,
 	});
 }
 
 // add an event that runs when objs with tag t is destroyed
-function onDestroy(t, f) {
+function bye(t, f) {
 	const scene = game.scenes[game.curScene];
-	scene.events.destroy.push({
+	scene.events.bye.push({
 		tag: t,
 		cb: f,
 	});
 }
 
+// aloha!
+function aloha(tag, cb) {
+	hi(tag, cb);
+	bye(tag, cb);
+}
+
 // add an event that runs with objs with t1 collides with objs with t2
-function onCollide(t1, t2, f) {
+function collide(t1, t2, f) {
 	action(t1, (o1) => {
 		every(t2, (o2) => {
 			if (o1 !== o2) {
@@ -1654,7 +2073,7 @@ function onCollide(t1, t2, f) {
 }
 
 // add an event that runs when objs with tag t is clicked
-function onClick(t, f) {
+function click(t, f) {
 	action(t, (o) => {
 		if (o.isClicked()) {
 			f(o);
@@ -1762,30 +2181,22 @@ function every(t, f) {
 
 // destroy an obj
 function destroy(obj) {
-
 	if (!obj.exists()) {
 		return;
 	}
-
 	const scene = game.scenes[game.curScene];
-
-	if (!scene) {
-		return;
-	}
-
-	for (const cb of obj.events.destroy) {
-		cb(obj);
-	}
-
-	for (const e of scene.events.destroy) {
-		if (obj.is(e.tag)) {
-			e.cb(obj);
+	if (scene) {
+		for (const cb of obj.events.bye) {
+			cb(obj);
 		}
+		for (const e of scene.events.bye) {
+			if (obj.is(e.tag)) {
+				e.cb(obj);
+			}
+		}
+		delete scene.objs[obj.sceneID];
+		delete obj.sceneID;
 	}
-
-	delete scene.objs[obj._sceneID];
-	delete obj._sceneID;
-
 }
 
 // destroy all obj with the tag
@@ -1897,11 +2308,11 @@ function start(name) {
 				// update obj
 				if (!obj.paused) {
 
-					for (const f of obj.events.update) {
+					for (const f of obj.events.action) {
 						f(obj);
 					}
 
-					for (const e of scene.events.update) {
+					for (const e of scene.events.action) {
 						if (obj.is(e.tag)) {
 							e.cb(obj);
 						}
@@ -1912,11 +2323,11 @@ function start(name) {
 				// draw obj
 				if (!obj.hidden) {
 
-					for (const f of obj.events.draw) {
+					for (const f of obj.events.render) {
 						f(obj);
 					}
 
-					for (const e of scene.events.draw) {
+					for (const e of scene.events.render) {
 						if (obj.is(e.tag)) {
 							e.cb(obj);
 						}
@@ -1985,26 +2396,26 @@ lib.scene = scene;
 lib.go = go;
 lib.reload = reload;
 
-// obj
-lib.add = add;
+// object creation
+lib.sprite = sprite;
+lib.rect = rect;
+lib.text = text;
+lib.line = line;
+lib.circle = circle;
 lib.destroy = destroy;
 lib.destroyAll = destroyAll;
-lib.get = get;
-lib.every = every;
-
-// comps
-lib.sprite = sprite;
-lib.text = text;
-lib.pos = pos;
-lib.rotate = rotate;
 
 // group events
-lib.onAdd = onAdd;
-lib.onUpdate = onUpdate;
-lib.onDraw = onDraw;
-lib.onDestroy = onDestroy;
-lib.onCollide = onCollide;
-lib.onClick = onClick;
+lib.action = action;
+lib.bye = bye;
+lib.hi = hi;
+lib.aloha = aloha;
+lib.collide = collide;
+lib.click = click;
+
+// access
+lib.get = get;
+lib.every = every;
 
 // input
 lib.keyDown = keyDown;
