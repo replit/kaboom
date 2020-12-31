@@ -521,22 +521,19 @@ function makeFont(tex, gw, gh, chars) {
 
 }
 
-function drawSprite(name, conf) {
-
-	const spr = game.sprites[name];
-	const tex = spr !== undefined ? spr.tex : gfx.defTex;
-
-	// flush on texture change
-	if (gfx.curTex !== tex) {
-		flush();
-		gfx.curTex = tex;
-	}
-
-}
-
 // TODO: clean
-// draw a textured rectangle
-function drawRect(conf) {
+// draw a textured quad
+function drawQuad(conf) {
+
+	// conf: {
+	//     width,
+	//     height,
+	//     pos,
+	//     scale,
+	//     rot,
+	//     tex,
+	//     quad,
+	// }
 
 	if (!conf.tex && !(conf.width && conf.height)) {
 		return;
@@ -576,7 +573,7 @@ function drawRect(conf) {
 	const p2 = gfx.transform.multVec2(vec2(-w / 2, h / 2));
 	const p3 = gfx.transform.multVec2(vec2(w / 2, h / 2));
 	const p4 = gfx.transform.multVec2(vec2(w / 2, -h / 2));
-	const { r, g, b, a, } = conf.color;
+	const { r, g, b, a, } = conf.color || color();
 
 	gfx.mesh.push([
 		// pos      // uv                 // color
@@ -590,51 +587,95 @@ function drawRect(conf) {
 
 }
 
-function drawLine(conf) {
+// TODO: param vs table?
+function drawSprite(name, conf) {
 
-	if (gfx.curTex != gfx.defTex) {
-		flush();
-		gfx.curTex = gfx.defTex;
+	const spr = game.sprites[name];
+	conf = conf || {};
+
+	if (!spr) {
+		return;
 	}
 
-	let p1 = conf.p1;
-	let p2 = conf.p2;
+	drawQuad({
+		tex: spr.tex,
+		quad: conf.quad,
+		width: conf.width,
+		height: conf.height,
+		pos: conf.pos,
+		scale: conf.scale,
+		rot: conf.rot,
+		color: conf.color,
+	});
 
-	if (conf.pos) {
-		p1 = p1.add(conf.pos);
-		p2 = p2.add(conf.pos);
+}
+
+function drawRect(pos, w, h, conf) {
+
+	conf = conf || {};
+
+	if (conf.stroke) {
+
+		const conf2 = {
+			color: conf.color,
+			width: conf.stroke,
+		};
+
+		const p1 = vec2(pos.add(vec2(-w / 2, -h / 2)));
+		const p2 = vec2(pos.add(vec2(-w / 2,  h / 2)));
+		const p3 = vec2(pos.add(vec2( w / 2,  h / 2)));
+		const p4 = vec2(pos.add(vec2( w / 2, -h / 2)));
+
+		drawLine(p1, p2, conf2);
+		drawLine(p2, p3, conf2);
+		drawLine(p3, p4, conf2);
+		drawLine(p4, p1, conf2);
+
 	}
 
-	const w = width();
-	const h = height();
-	const dpos1 = p2.sub(p1).normal().unit().scale(conf.width / 2.0);
-	const dpos2 = p1.sub(p2).normal().unit().scale(conf.width / 2.0);
-	const cp1 = p1.sub(dpos1).dot(vec2(2 / w, 2 / h));
-	const cp2 = p1.add(dpos1).dot(vec2(2 / w, 2 / h));
-	const cp3 = p2.sub(dpos2).dot(vec2(2 / w, 2 / h));
-	const cp4 = p2.add(dpos2).dot(vec2(2 / w, 2 / h));
-	const { r, g, b, a, } = conf.color;
-
-	gfx.mesh.push([
-		cp1.x, cp1.y, 0.0, 0.0, r, g, b, a,
-		cp2.x, cp2.y, 0.0, 0.0, r, g, b, a,
-		cp3.x, cp3.y, 0.0, 0.0, r, g, b, a,
-		cp4.x, cp4.y, 0.0, 0.0, r, g, b, a,
-	], [0, 1, 2, 0, 2, 3]);
+	if (conf.fill === undefined || conf.fill === true) {
+		drawQuad({
+			pos: pos,
+			width: w,
+			height: h,
+			scale: conf.scale,
+			rot: conf.rot,
+			color: conf.color,
+		});
+	}
 
 }
 
-function drawCircle(conf) {
-	// TODO
+function drawLine(p1, p2, conf) {
+
+	p1 = vec2(p1);
+	p2 = vec2(p2);
+	conf = conf || {};
+
+	const w = conf.width || 1;
+	const h = p1.dist(p2);
+	const rot = Math.PI / 2 - p1.angle(p2);
+
+	drawQuad({
+		pos: p1.add(p2).scale(0.5),
+		width: w,
+		height: h,
+		rot: rot,
+		color: conf.color,
+	});
+
 }
 
-function drawText(conf) {
-	drawFChars(fmtText(conf.text, conf).chars);
+function drawText(txt, conf) {
+	conf = conf || {};
+	const ftxt = fmtText(txt, conf);
+	drawFChars(ftxt.chars);
 }
 
+// TODO: rotation
 function drawFChars(fchars) {
 	for (const ch of fchars) {
-		drawRect({
+		drawQuad({
 			tex: ch.tex,
 			pos: ch.pos,
 			scale: ch.scale,
@@ -644,16 +685,22 @@ function drawFChars(fchars) {
 	}
 }
 
-// TODO: draw circle
+function drawPoly(conf) {
+	// TODO
+}
+
+function drawCircle(conf) {
+	// TODO
+}
 
 // get current canvas width
 function width() {
-	return	gl.drawingBufferWidth;
+	return gl.drawingBufferWidth;
 }
 
 // get current canvas height
 function height() {
-	return	gl.drawingBufferHeight;
+	return gl.drawingBufferHeight;
 }
 
 function originPt(orig) {
@@ -671,23 +718,26 @@ function originPt(orig) {
 }
 
 // TODO: line break
+// TODO: clean
 function fmtText(text, conf) {
 
+	conf = conf || {};
 	const font = gfx.defFont;
 	const chars = (text + "").split("");
 	const gw = font.qw * font.tex.width;
 	const gh = font.qh * font.tex.height;
 	const size = conf.size || gh;
-	const scale = vec2(size / gh).dot(vec2(conf.scale));
+	const scale = vec2(size / gh).dot(vec2(conf.scale || 1));
 	const cw = scale.x * gw;
 	const tw = cw * chars.length;
 	const th = scale.y * gh;
 	const fchars = [];
-	const offset = originPt(conf.origin).dot(vec2(tw, th)).scale(-0.5);
+	const offset = originPt(conf.origin || "center").dot(vec2(tw, th)).scale(-0.5);
 	const ox = cw / 2 - tw / 2 + offset.x;
 	const oy = offset.y;
-	let x = conf.pos.x + ox;
-	let y = conf.pos.y + oy;
+	const pos = vec2(conf.pos);
+	let x = pos.x + ox;
+	let y = pos.y + oy;
 
 	for (const ch of chars) {
 		const qpos = font.map[ch];
@@ -1441,19 +1491,19 @@ function add(comps) {
 		},
 
 		onAdd(f) {
-			this.events.add.push(f);
+			this.events.add.push(f.bind(this));
 		},
 
 		onUpdate(f) {
-			this.events.update.push(f);
+			this.events.update.push(f.bind(this));
 		},
 
 		onDraw(f) {
-			this.events.draw.push(f);
+			this.events.draw.push(f.bind(this));
 		},
 
 		onDestroy(f) {
-			this.events.destroy.push(f);
+			this.events.destroy.push(f.bind(this));
 		},
 
 	};
@@ -1510,12 +1560,12 @@ function sprite(id) {
 
 			const q = spr.frames[this.frame];
 
-			drawRect({
+			drawQuad({
 				tex: spr.tex,
 				pos: this.pos,
 				scale: this.scale,
 				rot: this.rotate,
-				color: this.color || color(),
+				color: this.color,
 				width: spr.tex.width * q.w,
 				height: spr.tex.height * q.h,
 				quad: q,
@@ -2041,6 +2091,14 @@ lib.chance = chance;
 lib.lerp = lerp;
 lib.map = map;
 lib.wave = wave;
+
+// raw draw
+lib.drawSprite = drawSprite;
+lib.drawText = drawText;
+lib.drawRect = drawRect;
+lib.drawLine = drawLine;
+lib.drawPoly = drawPoly;
+lib.drawCircle = drawCircle;
 
 // debug
 lib.showStats = showStats;

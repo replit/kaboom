@@ -1,3 +1,4 @@
+kaboom.import();
 init();
 loadSprite("guy", "guy.png");
 loadSound("shoot", "shoot.ogg");

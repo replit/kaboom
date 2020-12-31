@@ -30,7 +30,7 @@ start("main");
 2. use CDN
 
 ```html
-<script src="https://cdn.jsdelivr.net/gh/replit/kaboom@latest/kaboom.min.js"></script>
+<!-- TODO -->
 ```
 
 ### Dev
