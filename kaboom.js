@@ -164,7 +164,7 @@ function mousePos() {
 	return app.mousePos.clone();
 }
 
-function mouseIsPressed() {
+function mouseIsClicked() {
 	return app.mouseState === "pressed";
 }
 
@@ -573,7 +573,7 @@ function drawQuad(conf) {
 	const p2 = gfx.transform.multVec2(vec2(-w / 2, h / 2));
 	const p3 = gfx.transform.multVec2(vec2(w / 2, h / 2));
 	const p4 = gfx.transform.multVec2(vec2(w / 2, -h / 2));
-	const { r, g, b, a, } = conf.color || color();
+	const { r, g, b, a, } = conf.color || rgba();
 
 	gfx.mesh.push([
 		// pos      // uv                 // color
@@ -587,7 +587,6 @@ function drawQuad(conf) {
 
 }
 
-// TODO: param vs table?
 function drawSprite(name, conf) {
 
 	const spr = game.sprites[name];
@@ -915,10 +914,10 @@ function isColor(c) {
 	return c !== undefined && c.r !== undefined && c.g !== undefined && c.b !== undefined && c.a !== undefined;
 }
 
-function color(r, g, b, a) {
+function rgba(r, g, b, a) {
 
 	if (arguments.length === 0) {
-		return color(1, 1, 1, 1);
+		return rgba(1, 1, 1, 1);
 	}
 
 	return {
@@ -927,10 +926,10 @@ function color(r, g, b, a) {
 		b: b,
 		a: a === undefined ? 1 : a,
 		clone() {
-			return color(this.r, this.g, this.b, this.a);
+			return rgba(this.r, this.g, this.b, this.a);
 		},
 		lighten(a) {
-			return color(this.r + a, this.g + a, this.b + a, this.a);
+			return rgba(this.r + a, this.g + a, this.b + a, this.a);
 		},
 		darken(a) {
 			return this.lighten(-a);
@@ -1021,25 +1020,6 @@ function makeLine(p1, p2) {
 		p2: p2.clone(),
 		clone() {
 			return makeLine(this.p1, this.p2);
-		},
-	};
-}
-
-function area(p1, p2) {
-	return {
-		p1: p1.clone(),
-		p2: p2.clone(),
-		clone() {
-			return area(this.p1, this.p2);
-		},
-		hasPt(pt) {
-			return colRectPt(this, pt);
-		},
-		intersects(other) {
-			return colRectRect(this, other);
-		},
-		eq(other) {
-			return this.p1.eq(other.p1) && this.p2.eq(other.p2);
 		},
 	};
 }
@@ -1246,7 +1226,7 @@ function rng(seed) {
 					this.gen(a.y, b.y),
 				);
 			} else if (isColor(a) && isColor(b)) {
-				return color(
+				return rgba(
 					this.gen(a.r, b.r),
 					this.gen(a.g, b.g),
 					this.gen(a.b, b.b),
@@ -1381,7 +1361,7 @@ function scene(name, cb) {
 			keyPress: [],
 			keyPressRep: [],
 			keyRelease: [],
-			mousePress: [],
+			mouseClick: [],
 			mouseRelease: [],
 			mouseDown: [],
 		},
@@ -1392,6 +1372,9 @@ function scene(name, cb) {
 		timers: {},
 		lastTimerID: 0,
 
+		// misc
+		camera: vec2(0),
+
 	};
 
 }
@@ -1400,7 +1383,7 @@ function scene(name, cb) {
 function go(name, ...args) {
 	const scene = game.scenes[name];
 	if (!scene) {
-		console.error(`no such scene: ${name}`);
+		console.error(`scene not found: ${name}`);
 		return;
 	}
 	game.curScene = name;
@@ -1412,6 +1395,10 @@ function go(name, ...args) {
 
 // reload a scene, reset all objs to their init states
 function reload(name) {
+	if (!game.scenes[name]) {
+		console.error(`scene not found: ${name}`);
+		return;
+	}
 	scene(name, game.scenes[name].init);
 }
 
@@ -1446,12 +1433,20 @@ function add(comps) {
 				return;
 			}
 
+			// accessory comps
+			if (Array.isArray(comp)) {
+				for (const c of comp) {
+					this.use(c);
+				}
+				return;
+			}
+
 			for (const k in comp) {
 
 				// overlapping
+				// TODO: don't warn for overlapping for accessory comps
 				if (this[k]) {
-					console.warn(`obj already has prop '${k}'`);
-					continue;
+					console.warn(`overwriting prop: '${k}'`);
 				}
 
 				// event / custom method
@@ -1523,134 +1518,6 @@ function add(comps) {
 	}
 
 	return obj;
-
-}
-
-function pos(...args) {
-	return {
-		pos: vec2(...args),
-	};
-}
-
-function rotate(r) {
-	return {
-		rotate: r,
-	};
-}
-
-function sprite(id) {
-
-	return {
-
-		_spriteID: id,
-		_animTimer: 0,
-		_curAnim: undefined,
-		_animLooping: false,
-		animSpeed: 0.1,
-		frame: 0,
-
-		draw() {
-
-			const spr = game.sprites[this._spriteID];
-
-			if (!spr) {
-				console.error(`sprite not found: "${this._spriteID}"`);
-				return;
-			}
-
-			const q = spr.frames[this.frame];
-
-			drawQuad({
-				tex: spr.tex,
-				pos: this.pos,
-				scale: this.scale,
-				rot: this.rotate,
-				color: this.color,
-				width: spr.tex.width * q.w,
-				height: spr.tex.height * q.h,
-				quad: q,
-			});
-
-		},
-
-		update() {
-
-			if (!this._curAnim) {
-				return;
-			}
-
-			const spr = game.sprites[this._spriteID];
-			const speed = this.animSpeed;
-			const anim = spr.anims[this._curAnim];
-
-			this._animTimer += dt();
-
-			if (this._animTimer >= this.animSpeed) {
-				// TODO: anim dir
-				this.frame++;
-				if (this.frame > anim.to) {
-					if (this._animLooping) {
-						this.frame = anim.from;
-					} else {
-						this.frame--;
-						this.curAnim = undefined;
-					}
-				}
-				this._animTimer -= this.animSpeed;
-			}
-
-		},
-
-		play(name, loop) {
-
-			const anim = game.sprites[this._spriteID].anims[name];
-
-			if (!anim) {
-				console.error(`anim not found: ${name}`);
-				return;
-			}
-
-			this._curAnim = name;
-			this.frame = anim.from;
-			this._animLooping = loop === undefined ? true : loop;
-
-		},
-
-		stop() {
-			this._curAnim = undefined;
-		},
-
-	};
-
-}
-
-function text(t, size, conf) {
-
-	conf = conf || {};
-
-	return {
-
-		text: t,
-		textSize: size,
-		textOrigin: conf.origin || "center",
-
-		draw() {
-
-			const ftext = fmtText(this.text, {
-				pos: this.pos,
-				size: this.textSize,
-				origin: this.textOrigin,
-				color: this.color,
-			});
-
-			this.width = ftext.tw;
-			this.height = ftext.th;
-
-			drawFChars(ftext.chars);
-
-		},
-
-	};
 
 }
 
@@ -1776,9 +1643,9 @@ function mouseDown(f) {
 	});
 }
 
-function mousePress(f) {
+function mouseClick(f) {
 	const scene = game.scenes[game.curScene];
-	scene.events.mousePress.push({
+	scene.events.mouseClick.push({
 		cb: f,
 	});
 }
@@ -1913,8 +1780,8 @@ function start(name) {
 				}
 			}
 
-			for (const e of scene.events.mousePress) {
-				if (mouseIsPressed()) {
+			for (const e of scene.events.mouseClick) {
+				if (mouseIsClicked()) {
 					e.cb();
 				}
 			}
@@ -1994,130 +1861,391 @@ function start(name) {
 
 }
 
-function drawBBox(b) {
-	if (b !== undefined) {
-		game.debug.drawBBox = b;
-	}
-	return game.debug.drawBBox;
+// --------------------------------
+// Comps
+
+function pos(...args) {
+	return {
+		pos: vec2(...args),
+	};
 }
 
-function showStats(b) {
-	if (b !== undefined) {
-		game.debug.showStats = b;
-	}
-	return game.debug.showStats;
+// TODO: why naming scale breaks things
+function scal(s) {
+	return {
+		scale: s,
+	};
 }
+
+function rotate(r) {
+	return {
+		rotate: r,
+	};
+}
+
+function color(...args) {
+	const c = rgba(...args);
+	return {
+		color: c,
+	};
+}
+
+// TODO: account for scale and rot
+function area(type, data) {
+
+	return {
+
+		area: {
+			type: type,
+			data: data,
+		},
+
+		isClicked() {
+			return mouseIsClicked() && this.isHovered();
+		},
+
+		isHovered() {
+
+			const a = this.area;
+			const pos = this.pos || vec2(0);
+			const mpos = mousePos();
+
+			switch (a.type) {
+				case "rect":
+					const w = a.data.width;
+					const h = a.data.height;
+					return colRectPt({
+						p1: pos.add(vec2(-w / 2, -h / 2)),
+						p2: pos.add(vec2(w / 2, h / 2)),
+					}, mpos);
+				case "point":
+					return a.data.pt.eq(mpos);
+				case "circle":
+					// TODO
+					return false;
+				case "polygon":
+					// TODO
+					return false;
+				default:
+					return false;
+			}
+
+		},
+
+		onCollide(t, f) {
+			this.onUpdate(() => {
+				every(t, (o) => {
+					if (this.isCollided(o)) {
+						f();
+					}
+				});
+			});
+		},
+
+		isCollided(other) {
+
+			if (!other.area) {
+				return false;
+			}
+
+			const a = this.area;
+			const a2 = other.area;
+			const pos = this.pos || vec2(0);
+			const pos2 = other.pos || vec2(0);
+
+			switch (a.type) {
+
+				case "rect":
+
+					const w = a.data.width;
+					const h = a.data.height;
+					const p1 = pos.add(vec2(-w / 2, -h / 2));
+					const p2 = pos.add(vec2(w / 2, h / 2));
+
+					switch (a2.type) {
+						case "rect":
+							const w2 = a2.data.width;
+							const h2 = a2.data.height;
+							return colRectRect({
+								p1: p1,
+								p2: p2,
+							}, {
+								p1: pos2.add(vec2(-w2 / 2, -h2 / 2)),
+								p2: pos2.add(vec2(w2 / 2, h2 / 2)),
+							});
+						case "point":
+							// TODO
+							return false;
+						case "circle":
+							// TODO
+							return false;
+						case "polygon":
+							// TODO
+							return false;
+						default:
+							return false;
+					}
+
+				case "point":
+					// TODO
+					return false;
+				case "circle":
+					// TODO
+					return false;
+				case "polygon":
+					// TODO
+					return false;
+				default:
+					return false;
+
+			}
+
+		},
+
+	};
+
+}
+
+function sprite(id) {
+
+	const spr = game.sprites[id];
+
+	if (!spr) {
+		console.error(`sprite not found: "${this._spriteID}"`);
+		return;
+	}
+
+	const q = spr.frames[0];
+	const w = spr.tex.width * q.w;
+	const h = spr.tex.height * q.h;
+
+	return [{
+
+		_spriteID: id,
+		_animTimer: 0,
+		_curAnim: undefined,
+		_animLooping: false,
+		animSpeed: 0.1,
+		frame: 0,
+
+		draw() {
+
+			const q = spr.frames[this.frame];
+
+			drawQuad({
+				tex: spr.tex,
+				pos: this.pos,
+				scale: this.scale,
+				rot: this.rotate,
+				color: this.color,
+				width: spr.tex.width * q.w,
+				height: spr.tex.height * q.h,
+				quad: q,
+			});
+
+		},
+
+		update() {
+
+			if (!this._curAnim) {
+				return;
+			}
+
+			const speed = this.animSpeed;
+			const anim = spr.anims[this._curAnim];
+
+			this._animTimer += dt();
+
+			if (this._animTimer >= this.animSpeed) {
+				// TODO: anim dir
+				this.frame++;
+				if (this.frame > anim.to) {
+					if (this._animLooping) {
+						this.frame = anim.from;
+					} else {
+						this.frame--;
+						this.curAnim = undefined;
+					}
+				}
+				this._animTimer -= this.animSpeed;
+			}
+
+		},
+
+		play(name, loop) {
+
+			const anim = game.sprites[this._spriteID].anims[name];
+
+			if (!anim) {
+				console.error(`anim not found: ${name}`);
+				return;
+			}
+
+			this._curAnim = name;
+			this.frame = anim.from;
+			this._animLooping = loop === undefined ? true : loop;
+
+		},
+
+		stop() {
+			this._curAnim = undefined;
+		},
+
+	}, area("rect", {
+		width: w,
+		height: h,
+	})];
+
+}
+
+function text(t, size, orig) {
+
+	return {
+
+		text: t,
+		textSize: size,
+		textOrigin: orig,
+
+		draw() {
+
+			const ftext = fmtText(this.text, {
+				pos: this.pos,
+				scale: this.scale,
+				size: this.textSize,
+				origin: this.textOrigin,
+				color: this.color,
+			});
+
+			this.width = ftext.tw;
+			this.height = ftext.th;
+
+			drawFChars(ftext.chars);
+
+		},
+
+	};
+
+}
+
+function body() {
+	// TODO
+}
+
+// --------------------------------
+// Debug
 
 function objCount() {
 	const scene = game.scenes[game.curScene];
 	return Object.keys(scene.objs).length;
 }
 
-const lib = {};
+const k = {};
 
 // life cycle
-lib.init = init;
-lib.start = start;
+k.init = init;
+k.start = start;
 
 // asset load
-lib.loadRoot = loadRoot;
-lib.loadSprite = loadSprite;
-lib.loadSound = loadSound;
+k.loadRoot = loadRoot;
+k.loadSprite = loadSprite;
+k.loadSound = loadSound;
 
 // query
-lib.width = width;
-lib.height = height;
-lib.dt = dt;
-lib.time = time;
+k.width = width;
+k.height = height;
+k.dt = dt;
+k.time = time;
 
 // scene
-lib.scene = scene;
-lib.go = go;
-lib.reload = reload;
+k.scene = scene;
+k.go = go;
+k.reload = reload;
 
 // obj
-lib.add = add;
-lib.destroy = destroy;
-lib.destroyAll = destroyAll;
-lib.get = get;
-lib.every = every;
+k.add = add;
+k.destroy = destroy;
+k.destroyAll = destroyAll;
+k.get = get;
+k.every = every;
 
 // comps
-lib.sprite = sprite;
-lib.text = text;
-lib.pos = pos;
-lib.rotate = rotate;
+k.pos = pos;
+k.scal = scal;
+k.rotate = rotate;
+k.color = color;
+k.area = area;
+k.sprite = sprite;
+k.text = text;
+k.body = body;
 
 // group events
-lib.onAdd = onAdd;
-lib.onUpdate = onUpdate;
-lib.onDraw = onDraw;
-lib.onDestroy = onDestroy;
-lib.onCollide = onCollide;
-lib.onClick = onClick;
+k.onAdd = onAdd;
+k.onUpdate = onUpdate;
+k.onDraw = onDraw;
+k.onDestroy = onDestroy;
+k.onCollide = onCollide;
+k.onClick = onClick;
 
 // input
-lib.keyDown = keyDown;
-lib.keyPress = keyPress;
-lib.keyPressRep = keyPressRep;
-lib.keyRelease = keyRelease;
-lib.mouseDown = mouseDown;
-lib.mousePress = mousePress;
-lib.mouseRelease = mouseRelease;
-lib.mousePos = mousePos;
-lib.keyIsDown = keyIsDown;
-lib.keyIsPressed = keyIsPressed;
-lib.keyIsPressedRep = keyIsPressedRep;
-lib.keyIsReleased = keyIsReleased;
-lib.mouseIsDown = mouseIsDown;
-lib.mouseIsPressed = mouseIsPressed;
-lib.mouseIsReleased = mouseIsReleased;
+k.keyDown = keyDown;
+k.keyPress = keyPress;
+k.keyPressRep = keyPressRep;
+k.keyRelease = keyRelease;
+k.mouseDown = mouseDown;
+k.mouseClick = mouseClick;
+k.mouseRelease = mouseRelease;
+k.mousePos = mousePos;
+k.keyIsDown = keyIsDown;
+k.keyIsPressed = keyIsPressed;
+k.keyIsPressedRep = keyIsPressedRep;
+k.keyIsReleased = keyIsReleased;
+k.mouseIsDown = mouseIsDown;
+k.mouseIsClicked = mouseIsClicked;
+k.mouseIsReleased = mouseIsReleased;
 
 // timer
-lib.loop = loop;
-lib.wait = wait;
+k.loop = loop;
+k.wait = wait;
 
 // audio
-lib.play = play;
-lib.volume = volume;
+k.play = play;
+k.volume = volume;
 
 // math
-lib.rng = rng;
-lib.rand = rand;
-lib.vec2 = vec2;
-lib.color = color;
-lib.choose = choose;
-lib.chance = chance;
-lib.lerp = lerp;
-lib.map = map;
-lib.wave = wave;
+k.rng = rng;
+k.rand = rand;
+k.vec2 = vec2;
+k.rgba = rgba;
+k.choose = choose;
+k.chance = chance;
+k.lerp = lerp;
+k.map = map;
+k.wave = wave;
 
 // raw draw
-lib.drawSprite = drawSprite;
-lib.drawText = drawText;
-lib.drawRect = drawRect;
-lib.drawLine = drawLine;
-lib.drawPoly = drawPoly;
-lib.drawCircle = drawCircle;
+k.drawSprite = drawSprite;
+k.drawText = drawText;
+k.drawRect = drawRect;
+k.drawLine = drawLine;
+k.drawPoly = drawPoly;
+k.drawCircle = drawCircle;
 
 // debug
-lib.showStats = showStats;
-lib.drawBBox = drawBBox;
-lib.objCount = objCount;
+k.objCount = objCount;
 
 // make everything global
-lib.import = () => {
-	for (const k in lib) {
-		if (k !== "import") {
-			Object.defineProperty(window, k, {
-				value: lib[k],
+k.import = () => {
+	for (const func in k) {
+		if (func !== "import") {
+			Object.defineProperty(window, func, {
+				value: k[func],
 				writable: false,
 			});
 		}
 	}
 };
 
-window.kaboom = lib;
+window.kaboom = k;
 
 })();
 
