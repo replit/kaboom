@@ -1,10 +1,12 @@
-kaboom.import();
+const k = kaboom;
+k.init();
 
-init();
-
-scene("main", () => {
-	text("oh hi");
+k.scene("main", () => {
+	k.add([
+		k.pos(0, 0),
+		k.text("oh hi", 24),
+	]);
 });
 
-start("main");
+k.start("main");
 

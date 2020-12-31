@@ -2,6 +2,9 @@ kaboom.import();
 init();
 loadSprite("guy", "guy.png");
 
+kaboom.debug.showArea = true;
+kaboom.debug.showInfo = true;
+
 scene("main", () => {
 
 	const player = add([
@@ -16,7 +19,7 @@ scene("main", () => {
 
 	const enemy = add([
 		sprite("guy"),
-		pos(60, 0),
+		pos(120),
 		color(0, 0, 1, 1),
 		"enemy",
 	]);
@@ -30,6 +33,10 @@ scene("main", () => {
 			value: 0,
 		},
 	]);
+
+	player.onCollide("enemy", () => {
+		// TODO
+	});
 
 	onUpdate("shrink", (o) => {
 		o.scale = lerp(o.scale, 1, 2);
@@ -50,7 +57,7 @@ scene("main", () => {
 
 	for (const dir of [ "left", "right", "up", "down", ]) {
 		keyDown(dir, () => {
-			player.pos = player.pos.add(velMap[dir].scale(player.speed * dt()));
+			player.move(velMap[dir].scale(player.speed));
 			player.dir = dir;
 		});
 	}
@@ -62,3 +69,4 @@ scene("main", () => {
 });
 
 start("main");
+

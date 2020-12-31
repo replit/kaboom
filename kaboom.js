@@ -3,6 +3,14 @@
 
 (() => {
 
+const k = {};
+
+k.debug = {
+	showArea: false,
+	showLog: false,
+	showInfo: false,
+};
+
 // --------------------------------
 // Resources
 
@@ -609,6 +617,7 @@ function drawSprite(name, conf) {
 
 }
 
+// TODO: allow define different color for stroke and fill
 function drawRect(pos, w, h, conf) {
 
 	conf = conf || {};
@@ -667,13 +676,12 @@ function drawLine(p1, p2, conf) {
 
 function drawText(txt, conf) {
 	conf = conf || {};
-	const ftxt = fmtText(txt, conf);
-	drawFChars(ftxt.chars);
+	drawFormattedText(fmtText(txt, conf));
 }
 
 // TODO: rotation
-function drawFChars(fchars) {
-	for (const ch of fchars) {
+function drawFormattedText(ftext) {
+	for (const ch of ftext.chars) {
 		drawQuad({
 			tex: ch.tex,
 			pos: ch.pos,
@@ -752,8 +760,8 @@ function fmtText(text, conf) {
 	}
 
 	return {
-		tw: tw,
-		th: th,
+		width: tw,
+		height: th,
 		chars: fchars,
 	};
 
@@ -1415,6 +1423,7 @@ function add(comps) {
 			update: [],
 			draw: [],
 			destroy: [],
+			debug: [],
 		},
 
 		// use a comp
@@ -1442,12 +1451,6 @@ function add(comps) {
 			}
 
 			for (const k in comp) {
-
-				// overlapping
-				// TODO: don't warn for overlapping for accessory comps
-				if (this[k]) {
-					console.warn(`overwriting prop: '${k}'`);
-				}
 
 				// event / custom method
 				if (typeof(comp[k]) === "function") {
@@ -1865,9 +1868,29 @@ function start(name) {
 // Comps
 
 function pos(...args) {
+
 	return {
+
 		pos: vec2(...args),
+
+		move(p) {
+			if (this.area) {
+				this.pos.x += p.x * dt();
+				this.pos.y += p.y * dt();
+			} else {
+				this.pos.x += p.x * dt();
+				this.pos.y += p.y * dt();
+			}
+		},
+
+		debug() {
+			return {
+				pos: `(${~~this.pos.x}, ${~~this.pos.y})`,
+			};
+		},
+
 	};
+
 }
 
 // TODO: why naming scale breaks things
@@ -1900,8 +1923,127 @@ function area(type, data) {
 			data: data,
 		},
 
+		draw() {
+
+			const showArea = k.debug.showArea;
+			const showInfo = k.debug.showInfo;
+
+			if (!showArea) {
+				return;
+			}
+
+			let width = showArea.width || 2;
+			const color = showArea.color || rgba(0, 1, 1, 1);
+			const hovered = this.isHovered();
+
+			if (showInfo) {
+				if (hovered) {
+					width += 2;
+				}
+			}
+
+			const a = this.area;
+			const pos = this.pos || vec2(0);
+
+			switch (a.type) {
+				case "rect":
+					const w = a.data.width;
+					const h = a.data.height;
+					drawRect(pos, w, h, {
+						stroke: width,
+						color: color,
+						fill: false,
+					});
+				case "point":
+					// TODO
+					break;
+				case "circle":
+					// TODO
+					break;
+				case "polygon":
+					// TODO
+					break;
+				default:
+					break;
+			}
+
+			if (showInfo) {
+
+				if (hovered) {
+
+					const padding = vec2(6, 6);
+					let bw = 0;
+					let bh = 0;
+					const lines = [];
+
+					const addLine = (txt) => {
+						const ftxt = fmtText(txt, {
+							size: 12,
+							pos: mousePos().add(vec2(padding.x, -padding.y - bh)),
+							origin: "topleft",
+						});
+						lines.push(ftxt);
+						bw = ftxt.width > bw ? ftxt.width : bw;
+						bh += ftxt.height;
+					};
+
+					for (const tag of this.tags) {
+						addLine(`"${tag}"`);
+					}
+
+					for (const debug of this.events.debug) {
+
+						const info = debug();
+
+						for (const field in info) {
+							addLine(`${field}: ${info[field]}`);
+						}
+
+					}
+
+					bw += padding.x * 2;
+					bh += padding.y * 2;
+
+					// TODO: merge into one call
+					// background
+					drawRect(mousePos().add(vec2(bw / 2, -bh / 2)), bw, bh, {
+						color: rgba(0, 0, 0, 1),
+					});
+
+					drawRect(mousePos().add(vec2(bw / 2, -bh / 2)), bw, bh, {
+						stroke: width - 2,
+						color: rgba(0, 1, 1, 1),
+						fill: false,
+					});
+
+					for (const line of lines) {
+						drawFormattedText(line);
+					}
+
+				}
+
+			}
+
+		},
+
+		onClick(f) {
+			this.onUpdate(() => {
+				if (this.isClicked()) {
+					f();
+				}
+			});
+		},
+
 		isClicked() {
 			return mouseIsClicked() && this.isHovered();
+		},
+
+		onHover(f) {
+			this.onUpdate(() => {
+				if (this.isHovered()) {
+					f();
+				}
+			});
 		},
 
 		isHovered() {
@@ -2119,7 +2261,7 @@ function text(t, size, orig) {
 			this.width = ftext.tw;
 			this.height = ftext.th;
 
-			drawFChars(ftext.chars);
+			drawFormattedText(ftext);
 
 		},
 
@@ -2134,12 +2276,34 @@ function body() {
 // --------------------------------
 // Debug
 
+function pause() {
+	// TODO
+}
+
+function resume() {
+	// TODO
+}
+
+function paused() {
+	// TODO
+}
+
+function fps() {
+	return 1.0 / dt();
+}
+
 function objCount() {
 	const scene = game.scenes[game.curScene];
 	return Object.keys(scene.objs).length;
 }
 
-const k = {};
+function error(msg) {
+	console.log(msg);
+}
+
+function log(msg) {
+	console.log(msg);
+}
 
 // life cycle
 k.init = init;
@@ -2232,16 +2396,22 @@ k.drawCircle = drawCircle;
 
 // debug
 k.objCount = objCount;
+k.fps = fps;
+k.pause = pause;
 
-// make everything global
+// make every function global
 k.import = () => {
 	for (const func in k) {
-		if (func !== "import") {
-			Object.defineProperty(window, func, {
-				value: k[func],
-				writable: false,
-			});
+		if (typeof(k[func]) !== "function") {
+			continue;
 		}
+		if (func === "import") {
+			continue;
+		}
+		Object.defineProperty(window, func, {
+			value: k[func],
+			writable: false,
+		});
 	}
 };
 

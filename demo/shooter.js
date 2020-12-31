@@ -38,25 +38,6 @@ function randOnRect(p1, p2) {
 	}
 }
 
-/*
-
-const player = add([
-	// components
-	sprite("guy"),
-	pos(100, 200),
-	area(),
-	jumper(),
-	// tags
-	"player",
-	// custom fields
-	{
-		speed: 480,
-		power: 0,
-	}
-]);
-
-*/
-
 scene("main", () => {
 
 	// player
