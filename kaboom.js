@@ -17,7 +17,7 @@ k.debug = {
 const fontImgData = "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";
 
 const defVertSrc = `
-attribute vec2 a_pos;
+attribute vec3 a_pos;
 attribute vec2 a_uv;
 attribute vec4 a_color;
 varying vec2 v_uv;
@@ -25,7 +25,7 @@ varying vec4 v_color;
 void main() {
 	v_uv = a_uv;
 	v_color = a_color;
-	gl_Position = vec4(a_pos, 0.0, 1.0);
+	gl_Position = vec4(a_pos, 1.0);
 }
 `;
 
@@ -41,6 +41,8 @@ void main() {
 	}
 }
 `;
+
+const STRIDE = 9;
 
 // --------------------------------
 // Utils
@@ -114,9 +116,9 @@ function init(conf) {
 
 	gl = canvas
 		.getContext("webgl", {
-			antialias: false,
-			depth: false,
-			stencil: false,
+			antialias: true,
+			depth: true,
+			stencil: true,
 			alpha: true,
 		});
 
@@ -231,7 +233,10 @@ function gfxInit() {
 		new ImageData(new Uint8ClampedArray([ 255, 255, 255, 255, ]), 1, 1)
 	);
 	gl.clearColor(0.0, 0.0, 0.0, 1.0);
+	gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+	gl.enable(gl.DEPTH_TEST);
 	gl.enable(gl.BLEND);
+	gl.depthFunc(gl.LEQUAL);
 	gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
 
 	const lid = newLoader();
@@ -270,11 +275,11 @@ function flush() {
 	gfx.prog.bind();
 	gfx.curTex.bind();
 
-	gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 32, 0);
+	gl.vertexAttribPointer(0, 3, gl.FLOAT, false, STRIDE * 4, 0);
 	gl.enableVertexAttribArray(0);
-	gl.vertexAttribPointer(1, 2, gl.FLOAT, false, 32, 8);
+	gl.vertexAttribPointer(1, 2, gl.FLOAT, false, STRIDE * 4, 12);
 	gl.enableVertexAttribArray(1);
-	gl.vertexAttribPointer(2, 4, gl.FLOAT, false, 32, 16);
+	gl.vertexAttribPointer(2, 4, gl.FLOAT, false, STRIDE * 4, 20);
 	gl.enableVertexAttribArray(2);
 
 	gl.drawElements(gl.TRIANGLES, gfx.mesh.count(), gl.UNSIGNED_SHORT, 0);
@@ -287,7 +292,7 @@ function flush() {
 }
 
 function gfxFrameStart() {
-	gl.clear(gl.COLOR_BUFFER_BIT);
+	gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 	gfx.drawCalls = 0;
 	gfx.transformStack = [];
 	gfx.transform = mat4();
@@ -351,9 +356,9 @@ function makeBatchedMesh(vcount, icount) {
 		numIndices: 0,
 
 		push(verts, indices) {
-			// TODO: overflow
+			// TODO: deal with overflow
 			indices = indices.map((i) => {
-				return i + this.vqueue.length / 8;
+				return i + this.vqueue.length / STRIDE;
 			});
 			this.vqueue = this.vqueue.concat(verts);
 			this.iqueue = this.iqueue.concat(indices);
@@ -569,6 +574,7 @@ function drawQuad(conf) {
 	const scale = conf.scale === undefined ? vec2(1, 1) : vec2(conf.scale);
 	const rot = conf.rot || 0;
 	const q = conf.quad || quad(0, 0, 1, 1);
+	const z = conf.z === undefined ? 1 : 1 - conf.z;
 
 	w = w * q.w * scale.x;
 	h = h * q.h * scale.y;
@@ -584,11 +590,11 @@ function drawQuad(conf) {
 	const { r, g, b, a, } = conf.color || rgba();
 
 	gfx.mesh.push([
-		// pos      // uv                 // color
-		p1.x, p1.y, q.x,       q.y + q.h, r, g, b, a,
-		p2.x, p2.y, q.x,       q.y,       r, g, b, a,
-		p3.x, p3.y, q.x + q.w, q.y,       r, g, b, a,
-		p4.x, p4.y, q.x + q.w, q.y + q.h, r, g, b, a,
+		// pos         // uv                 // color
+		p1.x, p1.y, z, q.x,       q.y + q.h, r, g, b, a,
+		p2.x, p2.y, z, q.x,       q.y,       r, g, b, a,
+		p3.x, p3.y, z, q.x + q.w, q.y,       r, g, b, a,
+		p4.x, p4.y, z, q.x + q.w, q.y + q.h, r, g, b, a,
 	], [ 0, 1, 2, 0, 2, 3, ]);
 
 	popTransform();
@@ -613,6 +619,7 @@ function drawSprite(name, conf) {
 		scale: conf.scale,
 		rot: conf.rot,
 		color: conf.color,
+		z: conf.z,
 	});
 
 }
@@ -627,6 +634,7 @@ function drawRect(pos, w, h, conf) {
 		const conf2 = {
 			color: conf.color,
 			width: conf.stroke,
+			z: conf.z,
 		};
 
 		const p1 = vec2(pos.add(vec2(-w / 2, -h / 2)));
@@ -649,6 +657,7 @@ function drawRect(pos, w, h, conf) {
 			scale: conf.scale,
 			rot: conf.rot,
 			color: conf.color,
+			z: conf.z,
 		});
 	}
 
@@ -670,6 +679,7 @@ function drawLine(p1, p2, conf) {
 		height: h,
 		rot: rot,
 		color: conf.color,
+		z: conf.z,
 	});
 
 }
@@ -688,6 +698,7 @@ function drawFormattedText(ftext) {
 			scale: ch.scale,
 			color: ch.color,
 			quad: ch.quad,
+			z: ch.z,
 		});
 	}
 }
@@ -755,6 +766,7 @@ function fmtText(text, conf) {
 			pos: vec2(x, y),
 			color: conf.color,
 			scale: scale,
+			z: conf.z,
 		});
 		x += cw;
 	}
@@ -1381,6 +1393,7 @@ function scene(name, cb) {
 		lastTimerID: 0,
 
 		// misc
+		layers: {},
 		camera: vec2(0),
 
 	};
@@ -1410,6 +1423,22 @@ function reload(name) {
 	scene(name, game.scenes[name].init);
 }
 
+function layers(list) {
+
+	const scene = game.scenes[game.curScene];
+
+	if (!scene) {
+		return;
+	}
+
+	const each = 0.5 / list.length;
+
+	list.forEach((name, i) => {
+		scene.layers[name] = 0.5 + each * i;
+	});
+
+}
+
 function add(comps) {
 
 	const obj = {
@@ -1423,7 +1452,7 @@ function add(comps) {
 			update: [],
 			draw: [],
 			destroy: [],
-			debug: [],
+			debugInfo: [],
 		},
 
 		// use a comp
@@ -1883,7 +1912,7 @@ function pos(...args) {
 			}
 		},
 
-		debug() {
+		debugInfo() {
 			return {
 				pos: `(${~~this.pos.x}, ${~~this.pos.y})`,
 			};
@@ -1913,6 +1942,17 @@ function color(...args) {
 	};
 }
 
+function layer(z) {
+	return {
+		layer: z,
+		debugInfo() {
+			return {
+				layer: this.layer,
+			};
+		},
+	};
+}
+
 // TODO: account for scale and rot
 function area(type, data) {
 
@@ -1936,10 +1976,8 @@ function area(type, data) {
 			const color = showArea.color || rgba(0, 1, 1, 1);
 			const hovered = this.isHovered();
 
-			if (showInfo) {
-				if (hovered) {
-					width += 2;
-				}
+			if (showInfo && hovered) {
+				width += 2;
 			}
 
 			const a = this.area;
@@ -1953,6 +1991,7 @@ function area(type, data) {
 						stroke: width,
 						color: color,
 						fill: false,
+						z: 0.9,
 					});
 				case "point":
 					// TODO
@@ -1967,59 +2006,58 @@ function area(type, data) {
 					break;
 			}
 
-			if (showInfo) {
+			if (showInfo && hovered) {
 
-				if (hovered) {
+				const padding = vec2(6, 6);
+				let bw = 0;
+				let bh = 0;
+				const lines = [];
 
-					const padding = vec2(6, 6);
-					let bw = 0;
-					let bh = 0;
-					const lines = [];
-
-					const addLine = (txt) => {
-						const ftxt = fmtText(txt, {
-							size: 12,
-							pos: mousePos().add(vec2(padding.x, -padding.y - bh)),
-							origin: "topleft",
-						});
-						lines.push(ftxt);
-						bw = ftxt.width > bw ? ftxt.width : bw;
-						bh += ftxt.height;
-					};
-
-					for (const tag of this.tags) {
-						addLine(`"${tag}"`);
-					}
-
-					for (const debug of this.events.debug) {
-
-						const info = debug();
-
-						for (const field in info) {
-							addLine(`${field}: ${info[field]}`);
-						}
-
-					}
-
-					bw += padding.x * 2;
-					bh += padding.y * 2;
-
-					// TODO: merge into one call
-					// background
-					drawRect(mousePos().add(vec2(bw / 2, -bh / 2)), bw, bh, {
-						color: rgba(0, 0, 0, 1),
+				const addLine = (txt) => {
+					const ftxt = fmtText(txt, {
+						size: 12,
+						pos: mousePos().add(vec2(padding.x, -padding.y - bh)),
+						origin: "topleft",
+						z: 1,
 					});
+					lines.push(ftxt);
+					bw = ftxt.width > bw ? ftxt.width : bw;
+					bh += ftxt.height;
+				};
 
-					drawRect(mousePos().add(vec2(bw / 2, -bh / 2)), bw, bh, {
-						stroke: width - 2,
-						color: rgba(0, 1, 1, 1),
-						fill: false,
-					});
+				for (const tag of this.tags) {
+					addLine(`"${tag}"`);
+				}
 
-					for (const line of lines) {
-						drawFormattedText(line);
+				for (const debugInfo of this.events.debugInfo) {
+
+					const info = debugInfo();
+
+					for (const field in info) {
+						addLine(`${field}: ${info[field]}`);
 					}
 
+				}
+
+				bw += padding.x * 2;
+				bh += padding.y * 2;
+
+				// TODO: merge into one call
+				// background
+				drawRect(mousePos().add(vec2(bw / 2, -bh / 2)), bw, bh, {
+					color: rgba(0, 0, 0, 1),
+					z: 1,
+				});
+
+				drawRect(mousePos().add(vec2(bw / 2, -bh / 2)), bw, bh, {
+					stroke: width - 2,
+					color: rgba(0, 1, 1, 1),
+					fill: false,
+					z: 1,
+				});
+
+				for (const line of lines) {
+					drawFormattedText(line);
 				}
 
 			}
@@ -2172,8 +2210,10 @@ function sprite(id) {
 
 		draw() {
 
+			const scene = game.scenes[game.curScene];
 			const q = spr.frames[this.frame];
 
+			// TODO: use drawSprite()
 			drawQuad({
 				tex: spr.tex,
 				pos: this.pos,
@@ -2183,6 +2223,7 @@ function sprite(id) {
 				width: spr.tex.width * q.w,
 				height: spr.tex.height * q.h,
 				quad: q,
+				z: scene.layers[this.layer],
 			});
 
 		},
@@ -2233,6 +2274,14 @@ function sprite(id) {
 			this._curAnim = undefined;
 		},
 
+		debugInfo() {
+			const info = {};
+			if (this._curAnim) {
+				info.curAnim = `${this._curAnim}`;
+			}
+			return info;
+		},
+
 	}, area("rect", {
 		width: w,
 		height: h,
@@ -2250,12 +2299,15 @@ function text(t, size, orig) {
 
 		draw() {
 
+			const scene = game.scenes[game.curScene];
+
 			const ftext = fmtText(this.text, {
 				pos: this.pos,
 				scale: this.scale,
 				size: this.textSize,
 				origin: this.textOrigin,
 				color: this.color,
+				z: scene.layers[this.layer],
 			});
 
 			this.width = ftext.tw;
@@ -2325,6 +2377,9 @@ k.scene = scene;
 k.go = go;
 k.reload = reload;
 
+// misc
+k.layers = layers;
+
 // obj
 k.add = add;
 k.destroy = destroy;
@@ -2337,6 +2392,7 @@ k.pos = pos;
 k.scal = scal;
 k.rotate = rotate;
 k.color = color;
+k.layer = layer;
 k.area = area;
 k.sprite = sprite;
 k.text = text;

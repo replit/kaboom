@@ -7,9 +7,15 @@ kaboom.debug.showInfo = true;
 
 scene("main", () => {
 
+	layers([
+		"background",
+		"field",
+	]);
+
 	const player = add([
 		sprite("guy"),
 		pos(0, 0),
+		layer("field"),
 		"player",
 		{
 			speed: 240,
@@ -20,33 +26,34 @@ scene("main", () => {
 	const enemy = add([
 		sprite("guy"),
 		pos(120),
+		layer("background"),
 		color(0, 0, 1, 1),
 		"enemy",
+		"bad",
 	]);
 
-	const score = add([
-		text("0", 256),
-		color(1, 1, 1, 0.03),
-		scal(1),
-		"shrink",
-		{
-			value: 0,
-		},
-	]);
+// 	const score = add([
+// 		text("0", 256),
+// 		color(1, 1, 1, 0.03),
+// 		scal(1),
+// 		"shrink",
+// 		{
+// 			value: 0,
+// 		},
+// 	]);
 
-	player.onCollide("enemy", () => {
-		// TODO
-	});
+// 	player.onCollide("enemy", () => {
+// 	});
 
-	onUpdate("shrink", (o) => {
-		o.scale = lerp(o.scale, 1, 2);
-	});
+// 	onUpdate("shrink", (o) => {
+// 		o.scale = lerp(o.scale, 1, 2);
+// 	});
 
-	function addScore() {
-		score.value++;
-		score.text = `${score.value}`;
-		score.scale = score.scale * 1.2;
-	}
+// 	function addScore() {
+// 		score.value++;
+// 		score.text = `${score.value}`;
+// 		score.scale = score.scale * 1.2;
+// 	}
 
 	const velMap = {
 		left: vec2(-1, 0),
@@ -62,9 +69,9 @@ scene("main", () => {
 		});
 	}
 
-	keyPress(" ", () => {
-		addScore();
-	});
+// 	keyPress(" ", () => {
+// 		addScore();
+// 	});
 
 });
 
