@@ -4,11 +4,6 @@ loadSprite("guy", "guy.png");
 
 scene("main", () => {
 
-	layers([
-		"background",
-		"field",
-	]);
-
 	const player = add([
 		sprite("guy"),
 		pos(0, 0),

@@ -7,6 +7,10 @@ function initWorld(conf) {
 	world.gravity = conf.gravity === undefined ? 9.8 : conf.gravity;
 }
 
+function fall() {
+	// ...
+}
+
 function jumper(force) {
 
 	return {
@@ -21,13 +25,15 @@ function jumper(force) {
 				this.velY -= world.gravity * k.dt();
 				const res = this.move(k.vec2(0, this.velY));
 				if (res) {
-					this.velY = 0;
 					if (res.edge === "bottom") {
 						this.curPlatform = res.obj;
+						this.velY = 0
+					} else if (res.edge === "top") {
+						this.velY = 0
 					}
 				}
 			} else {
-				if (!this.intersects(this.curPlatform)) {
+				if (!this.isCollided(this.curPlatform)) {
 					this.curPlatform = undefined;
 				}
 			}
@@ -41,7 +47,7 @@ function jumper(force) {
 		jump() {
 			if (this.curPlatform) {
 				this.curPlatform = undefined;
-				this.velY = player.jumpForce;
+				this.velY = this.jumpForce;
 			}
 		},
 

@@ -93,9 +93,7 @@ const preventDefaultKeys = [
 // TODO: make this not global?
 let gl;
 
-function init(conf) {
-
-	conf = conf || {};
+function init(conf = {}) {
 
 	let canvas = conf.canvas;
 
@@ -122,8 +120,8 @@ function init(conf) {
 			alpha: true,
 		});
 
-	gfxInit();
-	audioInit();
+	gfxInit(conf);
+	audioInit(conf);
 
 	canvas.addEventListener("mousemove", (e) => {
 		app.mousePos = vec2(
@@ -225,14 +223,15 @@ const gfx = {
 	transformStack: [],
 };
 
-function gfxInit() {
+function gfxInit(conf = {}) {
 
 	gfx.mesh = makeBatchedMesh(65536, 65536);
 	gfx.prog = makeProgram(defVertSrc, defFragSrc);
 	gfx.defTex = makeTex(
 		new ImageData(new Uint8ClampedArray([ 255, 255, 255, 255, ]), 1, 1)
 	);
-	gl.clearColor(0.0, 0.0, 0.0, 1.0);
+	const c = conf.clearColor || rgba(0, 0, 0, 1);
+	gl.clearColor(c.r, c.g, c.b, c.a);
 	gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 	gl.enable(gl.DEPTH_TEST);
 	gl.enable(gl.BLEND);
@@ -536,7 +535,7 @@ function makeFont(tex, gw, gh, chars) {
 
 // TODO: clean
 // draw a textured quad
-function drawQuad(conf) {
+function drawQuad(conf = {}) {
 
 	// conf: {
 	//     width,
@@ -601,10 +600,9 @@ function drawQuad(conf) {
 
 }
 
-function drawSprite(name, conf) {
+function drawSprite(name, conf = {}) {
 
 	const spr = game.sprites[name];
-	conf = conf || {};
 
 	if (!spr) {
 		return;
@@ -625,9 +623,7 @@ function drawSprite(name, conf) {
 }
 
 // TODO: allow define different color for stroke and fill
-function drawRect(pos, w, h, conf) {
-
-	conf = conf || {};
+function drawRect(pos, w, h, conf = {}) {
 
 	if (conf.stroke) {
 
@@ -663,11 +659,10 @@ function drawRect(pos, w, h, conf) {
 
 }
 
-function drawLine(p1, p2, conf) {
+function drawLine(p1, p2, conf = {}) {
 
 	p1 = vec2(p1);
 	p2 = vec2(p2);
-	conf = conf || {};
 
 	const w = conf.width || 1;
 	const h = p1.dist(p2);
@@ -684,8 +679,7 @@ function drawLine(p1, p2, conf) {
 
 }
 
-function drawText(txt, conf) {
-	conf = conf || {};
+function drawText(txt, conf = {}) {
 	drawFormattedText(fmtText(txt, conf));
 }
 
@@ -703,11 +697,11 @@ function drawFormattedText(ftext) {
 	}
 }
 
-function drawPoly(conf) {
+function drawPoly(conf = {}) {
 	// TODO
 }
 
-function drawCircle(conf) {
+function drawCircle(conf = {}) {
 	// TODO
 }
 
@@ -737,9 +731,8 @@ function originPt(orig) {
 
 // TODO: line break
 // TODO: clean
-function fmtText(text, conf) {
+function fmtText(text, conf = {}) {
 
-	conf = conf || {};
 	const font = gfx.defFont;
 	const chars = (text + "").split("");
 	const gw = font.qw * font.tex.width;
@@ -795,7 +788,7 @@ function audioInit() {
 
 // TODO: move this to game system
 // load a sound to asset manager
-function loadSound(name, src, conf) {
+function loadSound(name, src, conf = {}) {
 	if (typeof(src === "string")) {
 		const lid = newLoader();
 		fetch(src)
@@ -822,7 +815,7 @@ function volume(v) {
 
 // TODO: return control handle
 // plays a sound, returns a control handle
-function play(id, conf) {
+function play(id, conf = {}) {
 
 	const sound = audio.sounds[id];
 
@@ -831,7 +824,6 @@ function play(id, conf) {
 		return;
 	}
 
-	conf = conf || {};
 	const srcNode = audio.ctx.createBufferSource();
 
 	srcNode.buffer = sound;
@@ -1316,7 +1308,7 @@ function loadRoot(path) {
 }
 
 // load a sprite to asset manager
-function loadSprite(name, src, conf) {
+function loadSprite(name, src, conf = {}) {
 
 	// TODO: just assign the .tex field
 	if (typeof(src) === "string") {
@@ -1328,7 +1320,7 @@ function loadSprite(name, src, conf) {
 		return;
 	}
 
-	if (conf && conf.aseSpriteSheet) {
+	if (conf.aseSpriteSheet) {
 		const lid = newLoader();
 		fetch(conf.aseSpriteSheet).then((res) => {
 			return res.json();
@@ -1896,6 +1888,11 @@ function start(name) {
 // --------------------------------
 // Comps
 
+// function rayRect(orig, dir, rpos, rw, rh) {
+// 	let tnear = rpos.sub(vec2(rw / 2, rh / 2)).sub(orig).dot(vec2(1 / dir.x, 1 / dir.y));
+// 	let tfar = rpos.add(vec2(rw / 2, rh / 2)).sub(orig).dot(vec2(1 / dir.x, 1 / dir.y));
+// }
+
 function pos(...args) {
 
 	return {
@@ -1903,13 +1900,111 @@ function pos(...args) {
 		pos: vec2(...args),
 
 		move(p) {
-			if (this.area) {
-				this.pos.x += p.x * dt();
-				this.pos.y += p.y * dt();
-			} else {
-				this.pos.x += p.x * dt();
-				this.pos.y += p.y * dt();
+
+			const dx = p.x * dt();
+			const dy = p.y * dt();
+
+			if (!this.area) {
+				this.pos.x += dx;
+				this.pos.y += dy;
+				return;
 			}
+
+			const scene = game.scenes[game.curScene];
+			let res = undefined;
+			const p1 = this.pos;
+			const w1 = this.areaWidth();
+			const h1 = this.areaHeight();
+
+			// TODO: can't believe this works
+			if (dx !== 0) {
+				p1.x += dx;
+				for (const id in scene.objs) {
+					if (id == this._sceneID) {
+						continue;
+					}
+					const obj = scene.objs[id];
+					if (obj.solid) {
+						if (this.isCollided(obj)) {
+							let disx = 0;
+							let disy = 0;
+							const p2 = obj.pos;
+							const w2 = obj.areaWidth();
+							const h2 = obj.areaHeight();
+							if (dx < 0) {
+								disx = (p1.x - w1 / 2) - (p2.x + w2 / 2);
+							} else if (dx > 0) {
+								disx = (p2.x - w2 / 2) - (p1.x + w1 / 2);
+							}
+							if (p1.y > p2.y) {
+								disy = (p1.y - h1 / 2) - (p2.y + h2 / 2);
+							} else {
+								disy = (p2.y - h2 / 2) - (p1.y + h1 / 2);
+							}
+							if (disx < 0) {
+								if (disy !== 0) {
+									this.pos.x += Math.sign(dx) * disx;
+									res = {
+										edge: dx < 0 ? "left" : "right",
+										obj: obj,
+									};
+								} else {
+									res = {
+										edge: p1.y > p2.y ? "bottom" : "top",
+										obj: obj,
+									};
+								}
+							}
+						}
+					}
+				}
+			}
+
+			if (dy !== 0) {
+				p1.y += dy;
+				for (const id in scene.objs) {
+					if (id == this._sceneID) {
+						continue;
+					}
+					const obj = scene.objs[id];
+					if (obj.solid) {
+						if (this.isCollided(obj)) {
+							let disx = 0;
+							let disy = 0;
+							const p2 = obj.pos;
+							const w2 = obj.areaWidth();
+							const h2 = obj.areaHeight();
+							if (p1.x > p2.x) {
+								disx = (p1.x - w1 / 2) - (p2.x + w2 / 2);
+							} else {
+								disx = (p2.x - w2 / 2) - (p1.x + w1 / 2);
+							}
+							if (dy < 0) {
+								disy = (p1.y - h1 / 2) - (p2.y + h2 / 2);
+							} else if (dy > 0) {
+								disy = (p2.y - h2 / 2) - (p1.y + h1 / 2);
+							}
+							if (disy < 0) {
+								if (disx !== 0) {
+									this.pos.y += Math.sign(dy) * disy;
+									res = {
+										edge: dy < 0 ? "bottom" : "top",
+										obj: obj,
+									};
+								} else {
+									res = {
+										edge: p1.x > p2.x ? "left" : "right",
+										obj: obj,
+									};
+								}
+							}
+						}
+					}
+				}
+			}
+
+			return res;
+
 		},
 
 		debugInfo() {
@@ -1953,6 +2048,13 @@ function layer(z) {
 	};
 }
 
+function solid() {
+	return {
+		solid: true,
+	};
+}
+
+// TODO: listen attribute change?
 // TODO: account for scale and rot
 function area(type, data) {
 
@@ -1961,6 +2063,38 @@ function area(type, data) {
 		area: {
 			type: type,
 			data: data,
+		},
+
+		areaWidth() {
+			const a = this.area;
+			switch (a.type) {
+				case "rect":
+					return a.data.width;
+				case "point":
+					return 0;
+				case "circle":
+					return 0;
+				case "polygon":
+					return 0;
+				default:
+					return 0;
+			}
+		},
+
+		areaHeight() {
+			const a = this.area;
+			switch (a.type) {
+				case "rect":
+					return a.data.height;
+				case "point":
+					return 0;
+				case "circle":
+					return 0;
+				case "polygon":
+					return 0;
+				default:
+					return 0;
+			}
 		},
 
 		draw() {
@@ -2304,6 +2438,7 @@ function text(t, size, orig) {
 			const ftext = fmtText(this.text, {
 				pos: this.pos,
 				scale: this.scale,
+				rot: this.rot,
 				size: this.textSize,
 				origin: this.textOrigin,
 				color: this.color,
@@ -2321,8 +2456,31 @@ function text(t, size, orig) {
 
 }
 
-function body() {
-	// TODO
+function rect(w, h) {
+
+	return [{
+
+		width: w,
+		height: h,
+
+		draw() {
+
+			const scene = game.scenes[game.curScene];
+
+			drawRect(this.pos, this.width, this.height, {
+				scale: this.scale,
+				rot: this.rot,
+				color: this.color,
+				z: scene.layers[this.layer],
+			});
+
+		},
+
+	}, area("rect", {
+		width: w,
+		height: h,
+	})];
+
 }
 
 // --------------------------------
@@ -2394,9 +2552,10 @@ k.rotate = rotate;
 k.color = color;
 k.layer = layer;
 k.area = area;
+k.solid = solid;
 k.sprite = sprite;
 k.text = text;
-k.body = body;
+k.rect = rect;
 
 // group events
 k.onAdd = onAdd;

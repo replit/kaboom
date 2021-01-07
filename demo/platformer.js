@@ -6,33 +6,33 @@ loadSprite("guy", "guy.png");
 scene("main", () => {
 
 	initWorld({
-		gravity: 9.8,
-		acc: 120,
+		gravity: 9.8 * 120,
 	});
 
-	initLevel([
-		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-		0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0,
-		0, 0, 0, 0, 0, 1, 1, 2, 0, 0, 1, 0, 0, 0, 0, 0,
-		1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-	], {
-		"1": () => {
-			return sprite("block", {
-				solid: true,
-			});
-		},
-		"2": () => {
-			return sprite("enemy");
-		},
-	});
+// 	initLevel([
+// 		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+// 		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+// 		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+// 		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+// 		0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0,
+// 		0, 0, 0, 0, 0, 1, 1, 2, 0, 0, 1, 0, 0, 0, 0, 0,
+// 		1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+// 	], {
+// 		"1": () => {
+// 			return sprite("block", {
+// 				solid: true,
+// 			});
+// 		},
+// 		"2": () => {
+// 			return sprite("enemy");
+// 		},
+// 	});
 
-	const player = addPlayer({
-		pos: vec2(0, 320),
-		jumpForce: 560,
-	});
+	const player = add([
+		sprite("guy"),
+		pos(0, 0),
+		jumper(560),
+	]);
 
 	keyPress("up", () => {
 		player.jump();
@@ -46,24 +46,44 @@ scene("main", () => {
 		player.move(vec2(320, 0));
 	});
 
-	rect(width(), 4, {
-		pos: vec2(0, -120),
-		solid: true,
+	add([
+		rect(width(), 4),
+		pos(0, -120),
+		{
+			solid: true,
+		},
+	]);
+
+	add([
+		rect(128, 4),
+		pos(-120, 0),
+		{
+			solid: true,
+		},
+	]);
+
+	add([
+		rect(128, 4),
+		pos(120, 0),
+		{
+			solid: true,
+		},
+	]);
+
+	add([
+		rect(32, 32),
+		pos(120, -80),
+		{
+			solid: true,
+		},
+	]);
+
+	keyPress("F1", () => {
+		kaboom.debug.showArea = !kaboom.debug.showArea;
 	});
 
-	rect(128, 4, {
-		pos: vec2(-120, 0),
-		solid: true,
-	});
-
-	rect(128, 4, {
-		pos: vec2(120, 0),
-		solid: true,
-	});
-
-	rect(32, 32, {
-		pos: vec2(120, -80),
-		solid: true,
+	keyPress("F2", () => {
+		kaboom.debug.showInfo = !kaboom.debug.showInfo;
 	});
 
 });
