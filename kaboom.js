@@ -73,6 +73,7 @@ const app = {
 	mousePos: vec2(0, 0),
 	time: 0.0,
 	dt: 0.0,
+	scale: 1,
 };
 
 const keyMap = {
@@ -80,6 +81,7 @@ const keyMap = {
 	"ArrowRight": "right",
 	"ArrowUp": "up",
 	"ArrowDown": "down",
+	" ": "space",
 };
 
 const preventDefaultKeys = [
@@ -112,6 +114,8 @@ function init(conf = {}) {
 
 	}
 
+	app.scale = conf.scale || 1;
+
 	gl = canvas
 		.getContext("webgl", {
 			antialias: true,
@@ -125,8 +129,8 @@ function init(conf = {}) {
 
 	canvas.addEventListener("mousemove", (e) => {
 		app.mousePos = vec2(
-			e.offsetX - gl.drawingBufferWidth / 2,
-			gl.drawingBufferHeight / 2 - e.offsetY
+			(e.offsetX - gl.drawingBufferWidth / 2) / app.scale,
+			(gl.drawingBufferHeight / 2 - e.offsetY) / app.scale
 		);
 	});
 
@@ -295,30 +299,30 @@ function gfxFrameStart() {
 	gfx.drawCalls = 0;
 	gfx.transformStack = [];
 	gfx.transform = mat4();
-	scale(vec2(2 / width(), 2 / height()));
+	pushScale(vec2(2 / width(), 2 / height()));
 }
 
 function gfxFrameEnd() {
 	flush();
 }
 
-function translate(p) {
+function pushTranslate(p) {
 	gfx.transform = gfx.transform.translate(p);
 }
 
-function scale(p) {
+function pushScale(p) {
 	gfx.transform = gfx.transform.scale(p);
 }
 
-function rotateX(a) {
+function pushRotateX(a) {
 	gfx.transform = gfx.transform.rotateX(a);
 }
 
-function rotateY(a) {
+function pushRotateY(a) {
 	gfx.transform = gfx.transform.rotateY(a);
 }
 
-function rotateZ(a) {
+function pushRotateZ(a) {
 	gfx.transform = gfx.transform.rotateZ(a);
 }
 
@@ -580,8 +584,8 @@ function drawQuad(conf = {}) {
 
 	pushTransform();
 
-	translate(pos);
-	rotateZ(rot);
+	pushTranslate(pos);
+	pushRotateZ(rot);
 	const p1 = gfx.transform.multVec2(vec2(-w / 2, -h / 2));
 	const p2 = gfx.transform.multVec2(vec2(-w / 2, h / 2));
 	const p3 = gfx.transform.multVec2(vec2(w / 2, h / 2));
@@ -707,12 +711,12 @@ function drawCircle(conf = {}) {
 
 // get current canvas width
 function width() {
-	return gl.drawingBufferWidth;
+	return gl.drawingBufferWidth / app.scale;
 }
 
 // get current canvas height
 function height() {
-	return gl.drawingBufferHeight;
+	return gl.drawingBufferHeight / app.scale;
 }
 
 function originPt(orig) {
@@ -1219,7 +1223,7 @@ function mat4(m) {
 }
 
 // easy sine wave
-function wave(a, b, t) {
+function wave(a, b, t = 1) {
 	return a + (Math.sin(time() * t) + 1) / 2 * (b - a);
 }
 
@@ -1463,7 +1467,7 @@ function add(comps) {
 				return;
 			}
 
-			// accessory comps
+			// multi comps
 			if (Array.isArray(comp)) {
 				for (const c of comp) {
 					this.use(c);
@@ -1525,11 +1529,24 @@ function add(comps) {
 			this.events.destroy.push(f.bind(this));
 		},
 
+		on(event, f) {
+			if (!this.events[event]) {
+				this.events[event] = [];
+			}
+			this.events[event].push(f);
+		},
+
+		trigger(event, ...args) {
+			if (this.events[event]) {
+				for (const f of this.events[event]) {
+					f(...args);
+				}
+			}
+		},
+
 	};
 
-	for (const c of comps) {
-		obj.use(c);
-	}
+	obj.use(comps);
 
 	const scene = game.scenes[game.curScene];
 
@@ -1583,10 +1600,10 @@ function onDestroy(t, f) {
 
 // add an event that runs with objs with t1 collides with objs with t2
 function onCollide(t1, t2, f) {
-	action(t1, (o1) => {
+	onUpdate(t1, (o1) => {
 		every(t2, (o2) => {
 			if (o1 !== o2) {
-				if (o1.intersects(o2)) {
+				if (o1.isCollided(o2)) {
 					f(o1, o2);
 				}
 			}
@@ -1596,7 +1613,7 @@ function onCollide(t1, t2, f) {
 
 // add an event that runs when objs with tag t is clicked
 function onClick(t, f) {
-	action(t, (o) => {
+	onUpdate(t, (o) => {
 		if (o.isClicked()) {
 			f(o);
 		}
@@ -1627,37 +1644,35 @@ function loop(t, f) {
 	wait(t, newF);
 }
 
+function pushKeyEvent(e, k, f) {
+	if (Array.isArray(k)) {
+		for (const key of k) {
+			pushKeyEvent(e, key, f);
+		}
+	} else {
+		const scene = game.scenes[game.curScene];
+		scene.events[e].push({
+			key: k,
+			cb: f,
+		});
+	}
+}
+
 // input callbacks
 function keyDown(k, f) {
-	const scene = game.scenes[game.curScene];
-	scene.events.keyDown.push({
-		key: k,
-		cb: f,
-	});
+	pushKeyEvent("keyDown", k, f);
 }
 
 function keyPress(k, f) {
-	const scene = game.scenes[game.curScene];
-	scene.events.keyPress.push({
-		key: k,
-		cb: f,
-	});
+	pushKeyEvent("keyPress", k, f);
 }
 
 function keyPressRep(k, f) {
-	const scene = game.scenes[game.curScene];
-	scene.events.keyPressRep.push({
-		key: k,
-		cb: f,
-	});
+	pushKeyEvent("keyPressRep", k, f);
 }
 
 function keyRelease(k, f) {
-	const scene = game.scenes[game.curScene];
-	scene.events.keyRelease.push({
-		key: k,
-		cb: f,
-	});
+	pushKeyEvent("keyRelease", k, f);
 }
 
 function mouseDown(f) {
@@ -1899,8 +1914,9 @@ function pos(...args) {
 
 		pos: vec2(...args),
 
-		move(p) {
+		move(...args) {
 
+			const p = vec2(...args);
 			const dx = p.x * dt();
 			const dy = p.y * dt();
 
@@ -2017,10 +2033,13 @@ function pos(...args) {
 
 }
 
-// TODO: why naming scale breaks things
-function scal(s) {
+// TODO: name collision
+function scale(...args) {
 	return {
-		scale: s,
+		scale: vec2(...args),
+		flipX(s) {
+			this.scale.x = Math.sign(s) * Math.abs(this.scale.x);
+		},
 	};
 }
 
@@ -2122,7 +2141,7 @@ function area(type, data) {
 					const w = a.data.width;
 					const h = a.data.height;
 					drawRect(pos, w, h, {
-						stroke: width,
+						stroke: width / app.scale,
 						color: color,
 						fill: false,
 						z: 0.9,
@@ -2142,14 +2161,14 @@ function area(type, data) {
 
 			if (showInfo && hovered) {
 
-				const padding = vec2(6, 6);
+				const padding = vec2(6, 6).scale(1 / app.scale);
 				let bw = 0;
 				let bh = 0;
 				const lines = [];
 
 				const addLine = (txt) => {
 					const ftxt = fmtText(txt, {
-						size: 12,
+						size: 12 / app.scale,
 						pos: mousePos().add(vec2(padding.x, -padding.y - bh)),
 						origin: "topleft",
 						z: 1,
@@ -2184,7 +2203,7 @@ function area(type, data) {
 				});
 
 				drawRect(mousePos().add(vec2(bw / 2, -bh / 2)), bw, bh, {
-					stroke: width - 2,
+					stroke: (width - 2) / app.scale,
 					color: rgba(0, 1, 1, 1),
 					fill: false,
 					z: 1,
@@ -2250,7 +2269,7 @@ function area(type, data) {
 			this.onUpdate(() => {
 				every(t, (o) => {
 					if (this.isCollided(o)) {
-						f();
+						f(o);
 					}
 				});
 			});
@@ -2325,7 +2344,7 @@ function sprite(id) {
 	const spr = game.sprites[id];
 
 	if (!spr) {
-		console.error(`sprite not found: "${this._spriteID}"`);
+		console.error(`sprite not found: "${id}"`);
 		return;
 	}
 
@@ -2337,7 +2356,7 @@ function sprite(id) {
 
 		_spriteID: id,
 		_animTimer: 0,
-		_curAnim: undefined,
+		curAnim: undefined,
 		_animLooping: false,
 		animSpeed: 0.1,
 		frame: 0,
@@ -2354,8 +2373,8 @@ function sprite(id) {
 				scale: this.scale,
 				rot: this.rotate,
 				color: this.color,
-				width: spr.tex.width * q.w,
-				height: spr.tex.height * q.h,
+				width: spr.tex.width,
+				height: spr.tex.height,
 				quad: q,
 				z: scene.layers[this.layer],
 			});
@@ -2364,12 +2383,12 @@ function sprite(id) {
 
 		update() {
 
-			if (!this._curAnim) {
+			if (!this.curAnim) {
 				return;
 			}
 
 			const speed = this.animSpeed;
-			const anim = spr.anims[this._curAnim];
+			const anim = spr.anims[this.curAnim];
 
 			this._animTimer += dt();
 
@@ -2398,20 +2417,20 @@ function sprite(id) {
 				return;
 			}
 
-			this._curAnim = name;
+			this.curAnim = name;
 			this.frame = anim.from;
 			this._animLooping = loop === undefined ? true : loop;
 
 		},
 
 		stop() {
-			this._curAnim = undefined;
+			this.curAnim = undefined;
 		},
 
 		debugInfo() {
 			const info = {};
-			if (this._curAnim) {
-				info.curAnim = `${this._curAnim}`;
+			if (this.curAnim) {
+				info.curAnim = `${this.curAnim}`;
 			}
 			return info;
 		},
@@ -2547,7 +2566,7 @@ k.every = every;
 
 // comps
 k.pos = pos;
-k.scal = scal;
+k.scale = scale;
 k.rotate = rotate;
 k.color = color;
 k.layer = layer;

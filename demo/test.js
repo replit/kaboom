@@ -32,7 +32,7 @@ scene("main", () => {
 	const score = add([
 		text("0", 256),
 		color(1, 1, 1, 0.03),
-		scal(1),
+		scale(1),
 		layer("background"),
 		"shrink",
 		{
