@@ -307,22 +307,37 @@ function gfxFrameEnd() {
 }
 
 function pushTranslate(p) {
+	if (!p || (p.x === 0 && p.y === 0)) {
+		return;
+	}
 	gfx.transform = gfx.transform.translate(p);
 }
 
 function pushScale(p) {
+	if (!p || (p.x === 0 && p.y === 0)) {
+		return;
+	}
 	gfx.transform = gfx.transform.scale(p);
 }
 
 function pushRotateX(a) {
+	if (!a) {
+		return;
+	}
 	gfx.transform = gfx.transform.rotateX(a);
 }
 
 function pushRotateY(a) {
+	if (!a) {
+		return;
+	}
 	gfx.transform = gfx.transform.rotateY(a);
 }
 
 function pushRotateZ(a) {
+	if (!a) {
+		return;
+	}
 	gfx.transform = gfx.transform.rotateZ(a);
 }
 
@@ -538,6 +553,7 @@ function makeFont(tex, gw, gh, chars) {
 }
 
 // TODO: clean
+// TODO: accept (p1, p2) instead of (w, h)
 // draw a textured quad
 function drawQuad(conf = {}) {
 
@@ -563,24 +579,16 @@ function drawQuad(conf = {}) {
 		gfx.curTex = tex;
 	}
 
-	let w, h;
-
-	if (conf.tex) {
-		w = conf.width || conf.tex.width;
-		h = conf.height || conf.tex.height;
-	} else {
-		w = conf.width;
-		h = conf.height;
-	}
-
+	let w = conf.width;
+	let h = conf.height;
 	const pos = conf.pos || vec2(0, 0);
 	const scale = conf.scale === undefined ? vec2(1, 1) : vec2(conf.scale);
 	const rot = conf.rot || 0;
 	const q = conf.quad || quad(0, 0, 1, 1);
 	const z = conf.z === undefined ? 1 : 1 - conf.z;
 
-	w = w * q.w * scale.x;
-	h = h * q.h * scale.y;
+	w = w * scale.x;
+	h = h * scale.y;
 
 	pushTransform();
 
@@ -612,11 +620,15 @@ function drawSprite(name, conf = {}) {
 		return;
 	}
 
+	const q = spr.frames[conf.frame || 0];
+	const w = spr.tex.width * q.w;
+	const h = spr.tex.height * q.h;
+
 	drawQuad({
 		tex: spr.tex,
-		quad: conf.quad,
-		width: conf.width,
-		height: conf.height,
+		quad: q,
+		width: w,
+		height: h,
 		pos: conf.pos,
 		scale: conf.scale,
 		rot: conf.rot,
@@ -663,10 +675,8 @@ function drawRect(pos, w, h, conf = {}) {
 
 }
 
+// TODO: slow
 function drawLine(p1, p2, conf = {}) {
-
-	p1 = vec2(p1);
-	p2 = vec2(p2);
 
 	const w = conf.width || 1;
 	const h = p1.dist(p2);
@@ -692,6 +702,8 @@ function drawFormattedText(ftext) {
 	for (const ch of ftext.chars) {
 		drawQuad({
 			tex: ch.tex,
+			width: ch.tex.width * ch.quad.w,
+			height: ch.tex.height * ch.quad.h,
 			pos: ch.pos,
 			scale: ch.scale,
 			color: ch.color,
@@ -928,6 +940,10 @@ function isVec2(p) {
 
 function isColor(c) {
 	return c !== undefined && c.r !== undefined && c.g !== undefined && c.b !== undefined && c.a !== undefined;
+}
+
+function rgb(r, g, b) {
+	return rgba(r, g, b, 1);
 }
 
 function rgba(r, g, b, a) {
@@ -1266,6 +1282,10 @@ function rng(seed) {
 
 function rand(a, b) {
 	return defRNG.gen(a, b);
+}
+
+function randl(list) {
+	return list[Math.floor(Math.random() * list.length)];
 }
 
 function chance(p) {
@@ -1903,11 +1923,6 @@ function start(name) {
 // --------------------------------
 // Comps
 
-// function rayRect(orig, dir, rpos, rw, rh) {
-// 	let tnear = rpos.sub(vec2(rw / 2, rh / 2)).sub(orig).dot(vec2(1 / dir.x, 1 / dir.y));
-// 	let tfar = rpos.add(vec2(rw / 2, rh / 2)).sub(orig).dot(vec2(1 / dir.x, 1 / dir.y));
-// }
-
 function pos(...args) {
 
 	return {
@@ -1920,106 +1935,8 @@ function pos(...args) {
 			const dx = p.x * dt();
 			const dy = p.y * dt();
 
-			if (!this.area) {
-				this.pos.x += dx;
-				this.pos.y += dy;
-				return;
-			}
-
-			const scene = game.scenes[game.curScene];
-			let res = undefined;
-			const p1 = this.pos;
-			const w1 = this.areaWidth();
-			const h1 = this.areaHeight();
-
-			// TODO: can't believe this works
-			if (dx !== 0) {
-				p1.x += dx;
-				for (const id in scene.objs) {
-					if (id == this._sceneID) {
-						continue;
-					}
-					const obj = scene.objs[id];
-					if (obj.solid) {
-						if (this.isCollided(obj)) {
-							let disx = 0;
-							let disy = 0;
-							const p2 = obj.pos;
-							const w2 = obj.areaWidth();
-							const h2 = obj.areaHeight();
-							if (dx < 0) {
-								disx = (p1.x - w1 / 2) - (p2.x + w2 / 2);
-							} else if (dx > 0) {
-								disx = (p2.x - w2 / 2) - (p1.x + w1 / 2);
-							}
-							if (p1.y > p2.y) {
-								disy = (p1.y - h1 / 2) - (p2.y + h2 / 2);
-							} else {
-								disy = (p2.y - h2 / 2) - (p1.y + h1 / 2);
-							}
-							if (disx < 0) {
-								if (disy !== 0) {
-									this.pos.x += Math.sign(dx) * disx;
-									res = {
-										edge: dx < 0 ? "left" : "right",
-										obj: obj,
-									};
-								} else {
-									res = {
-										edge: p1.y > p2.y ? "bottom" : "top",
-										obj: obj,
-									};
-								}
-							}
-						}
-					}
-				}
-			}
-
-			if (dy !== 0) {
-				p1.y += dy;
-				for (const id in scene.objs) {
-					if (id == this._sceneID) {
-						continue;
-					}
-					const obj = scene.objs[id];
-					if (obj.solid) {
-						if (this.isCollided(obj)) {
-							let disx = 0;
-							let disy = 0;
-							const p2 = obj.pos;
-							const w2 = obj.areaWidth();
-							const h2 = obj.areaHeight();
-							if (p1.x > p2.x) {
-								disx = (p1.x - w1 / 2) - (p2.x + w2 / 2);
-							} else {
-								disx = (p2.x - w2 / 2) - (p1.x + w1 / 2);
-							}
-							if (dy < 0) {
-								disy = (p1.y - h1 / 2) - (p2.y + h2 / 2);
-							} else if (dy > 0) {
-								disy = (p2.y - h2 / 2) - (p1.y + h1 / 2);
-							}
-							if (disy < 0) {
-								if (disx !== 0) {
-									this.pos.y += Math.sign(dy) * disy;
-									res = {
-										edge: dy < 0 ? "bottom" : "top",
-										obj: obj,
-									};
-								} else {
-									res = {
-										edge: p1.x > p2.x ? "left" : "right",
-										obj: obj,
-									};
-								}
-							}
-						}
-					}
-				}
-			}
-
-			return res;
+			this.pos.x += dx;
+			this.pos.y += dy;
 
 		},
 
@@ -2033,12 +1950,15 @@ function pos(...args) {
 
 }
 
-// TODO: name collision
+// TODO: allow single number assignment
 function scale(...args) {
 	return {
 		scale: vec2(...args),
 		flipX(s) {
 			this.scale.x = Math.sign(s) * Math.abs(this.scale.x);
+		},
+		flipY(s) {
+			this.scale.y = Math.sign(s) * Math.abs(this.scale.y);
 		},
 	};
 }
@@ -2050,9 +1970,8 @@ function rotate(r) {
 }
 
 function color(...args) {
-	const c = rgba(...args);
 	return {
-		color: c,
+		color: rgba(...args),
 	};
 }
 
@@ -2067,53 +1986,24 @@ function layer(z) {
 	};
 }
 
-function solid() {
-	return {
-		solid: true,
-	};
-}
-
 // TODO: listen attribute change?
-// TODO: account for scale and rot
-function area(type, data) {
+function area(p1, p2) {
 
 	return {
 
 		area: {
-			type: type,
-			data: data,
+			p1: vec2(Math.min(p1.x, p2.x), Math.min(p1.y, p2.y)),
+			p2: vec2(Math.max(p1.x, p2.x), Math.max(p1.y, p2.y)),
 		},
 
 		areaWidth() {
 			const a = this.area;
-			switch (a.type) {
-				case "rect":
-					return a.data.width;
-				case "point":
-					return 0;
-				case "circle":
-					return 0;
-				case "polygon":
-					return 0;
-				default:
-					return 0;
-			}
+			return a.p2.x - a.p1.x;
 		},
 
 		areaHeight() {
 			const a = this.area;
-			switch (a.type) {
-				case "rect":
-					return a.data.height;
-				case "point":
-					return 0;
-				case "circle":
-					return 0;
-				case "polygon":
-					return 0;
-				default:
-					return 0;
-			}
+			return a.p2.y - a.p1.y;
 		},
 
 		draw() {
@@ -2134,30 +2024,16 @@ function area(type, data) {
 			}
 
 			const a = this.area;
-			const pos = this.pos || vec2(0);
+			const pos = (this.pos || vec2(0)).add(vec2((a.p1.x + a.p2.x) / 2, (a.p1.y + a.p2.y) / 2));
+			const w = a.p2.x - a.p1.x;
+			const h = a.p2.y - a.p1.y;
 
-			switch (a.type) {
-				case "rect":
-					const w = a.data.width;
-					const h = a.data.height;
-					drawRect(pos, w, h, {
-						stroke: width / app.scale,
-						color: color,
-						fill: false,
-						z: 0.9,
-					});
-				case "point":
-					// TODO
-					break;
-				case "circle":
-					// TODO
-					break;
-				case "polygon":
-					// TODO
-					break;
-				default:
-					break;
-			}
+			drawRect(pos, w, h, {
+				stroke: width / app.scale,
+				color: color,
+				fill: false,
+				z: 0.9,
+			});
 
 			if (showInfo && hovered) {
 
@@ -2237,32 +2113,21 @@ function area(type, data) {
 			});
 		},
 
-		isHovered() {
+		hasPt(pt) {
 
 			const a = this.area;
 			const pos = this.pos || vec2(0);
 			const mpos = mousePos();
 
-			switch (a.type) {
-				case "rect":
-					const w = a.data.width;
-					const h = a.data.height;
-					return colRectPt({
-						p1: pos.add(vec2(-w / 2, -h / 2)),
-						p2: pos.add(vec2(w / 2, h / 2)),
-					}, mpos);
-				case "point":
-					return a.data.pt.eq(mpos);
-				case "circle":
-					// TODO
-					return false;
-				case "polygon":
-					// TODO
-					return false;
-				default:
-					return false;
-			}
+			return colRectPt({
+				p1: pos.add(a.p1),
+				p2: pos.add(a.p2),
+			}, pt);
 
+		},
+
+		isHovered() {
+			return this.hasPt(mousePos());
 		},
 
 		onCollide(t, f) {
@@ -2281,57 +2146,18 @@ function area(type, data) {
 				return false;
 			}
 
-			const a = this.area;
+			const a1 = this.area;
 			const a2 = other.area;
-			const pos = this.pos || vec2(0);
+			const pos1 = this.pos || vec2(0);
 			const pos2 = other.pos || vec2(0);
 
-			switch (a.type) {
-
-				case "rect":
-
-					const w = a.data.width;
-					const h = a.data.height;
-					const p1 = pos.add(vec2(-w / 2, -h / 2));
-					const p2 = pos.add(vec2(w / 2, h / 2));
-
-					switch (a2.type) {
-						case "rect":
-							const w2 = a2.data.width;
-							const h2 = a2.data.height;
-							return colRectRect({
-								p1: p1,
-								p2: p2,
-							}, {
-								p1: pos2.add(vec2(-w2 / 2, -h2 / 2)),
-								p2: pos2.add(vec2(w2 / 2, h2 / 2)),
-							});
-						case "point":
-							// TODO
-							return false;
-						case "circle":
-							// TODO
-							return false;
-						case "polygon":
-							// TODO
-							return false;
-						default:
-							return false;
-					}
-
-				case "point":
-					// TODO
-					return false;
-				case "circle":
-					// TODO
-					return false;
-				case "polygon":
-					// TODO
-					return false;
-				default:
-					return false;
-
-			}
+			return colRectRect({
+				p1: pos1.add(a1.p1),
+				p2: pos1.add(a1.p2),
+			}, {
+				p1: pos2.add(a2.p1),
+				p2: pos2.add(a2.p2),
+			});
 
 		},
 
@@ -2366,17 +2192,12 @@ function sprite(id) {
 			const scene = game.scenes[game.curScene];
 			const q = spr.frames[this.frame];
 
-			// TODO: use drawSprite()
-			drawQuad({
-				tex: spr.tex,
+			drawSprite(this._spriteID, {
 				pos: this.pos,
 				scale: this.scale,
 				rot: this.rotate,
 				color: this.color,
-				width: spr.tex.width,
-				height: spr.tex.height,
-				quad: q,
-				z: scene.layers[this.layer],
+				frame: this.frame,
 			});
 
 		},
@@ -2435,13 +2256,14 @@ function sprite(id) {
 			return info;
 		},
 
-	}, area("rect", {
-		width: w,
-		height: h,
-	})];
+	}, area(
+		vec2(-w / 2, -h / 2),
+		vec2(w / 2, h / 2),
+	)];
 
 }
 
+// TODO: add area
 function text(t, size, orig) {
 
 	return {
@@ -2495,10 +2317,10 @@ function rect(w, h) {
 
 		},
 
-	}, area("rect", {
-		width: w,
-		height: h,
-	})];
+	}, area(
+		vec2(-w / 2, -h / 2),
+		vec2(w / 2, h / 2),
+	)];
 
 }
 
@@ -2571,7 +2393,6 @@ k.rotate = rotate;
 k.color = color;
 k.layer = layer;
 k.area = area;
-k.solid = solid;
 k.sprite = sprite;
 k.text = text;
 k.rect = rect;
@@ -2612,7 +2433,9 @@ k.volume = volume;
 // math
 k.rng = rng;
 k.rand = rand;
+k.randl = randl;
 k.vec2 = vec2;
+k.rgb = rgb;
 k.rgba = rgba;
 k.choose = choose;
 k.chance = chance;
