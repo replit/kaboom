@@ -7,8 +7,10 @@ k.scene("main", () => {
 	k.add([{
 		draw() {
 			k.drawSprite("car", {
-				pos: k.vec2(-60, 30),
+				pos: k.vec2(100),
 				scale: 3,
+				rot: k.time(),
+				frame: 0,
 			});
 			k.drawRect(k.vec2(100), 20, 50);
 			k.drawLine(k.vec2(0), k.mousePos(), {
@@ -17,8 +19,9 @@ k.scene("main", () => {
 				z: 0.5,
 			});
 			k.drawText("hi", {
-				pos: k.vec2(-120),
+				pos: k.mousePos(),
 				size: 64,
+				origin: "topleft",
 			});
 		},
 	}]);

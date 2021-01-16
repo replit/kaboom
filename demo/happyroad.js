@@ -1,4 +1,5 @@
 kaboom.import();
+loadRoot("happyroad/");
 loadSprite("sky", "sky.png");
 loadSprite("road", "road.png");
 loadSprite("car", "car.png", {
@@ -21,34 +22,38 @@ scene("main", () => {
 		"ui",
 	]);
 
-	const upBound = 20;
-	const lowBound = -height() / 2 + 6;
+	const upBound = 40;
+	const lowBound = height() - 6;
 	const speed = 90;
 	let speedMod = 1;
 
 	add([
 		sprite("sky"),
+		origin("topleft"),
 		layer("bg"),
 	]);
 
-	// scrolling road
+	// TODO: make helper for inf scroll backgrounds
+	// scrolling road (2 sprites cycling)
 	add([
 		sprite("road"),
-		pos(width() / 2, 0),
+		origin("topleft"),
+		pos(0, 0),
 		layer("bg"),
 		"road",
 	]);
 
 	add([
 		sprite("road"),
-		pos(width() / 2 + width() * 2, 0),
+		origin("topleft"),
+		pos(width() * 2, 0),
 		layer("bg"),
 		"road",
 	]);
 
 	onUpdate("road", (r) => {
 		r.move(-speed * speedMod, 0);
-		if (r.pos.x <= -width() - width() / 2) {
+		if (r.pos.x <= -width() * 2) {
 			r.pos.x += width() * 4;
 		}
 	});
@@ -56,10 +61,10 @@ scene("main", () => {
 	// player
 	const car = add([
 		sprite("car"),
-		pos(-width() / 2 + 24, 0),
+		pos(24, height() / 2),
 		color(),
 		layer("car"),
-		area(vec2(-12, -10), vec2(12, 0)),
+		area(vec2(-12, 0), vec2(12, 10)),
 		{
 			speed: 120,
 		},
@@ -79,7 +84,7 @@ scene("main", () => {
 			"obj",
 			layer("obj"),
 			obj,
-			pos(width() / 2, rand(lowBound, upBound)),
+			pos(width(), rand(lowBound, upBound)),
 		]);
 	});
 
@@ -107,9 +112,10 @@ scene("main", () => {
 
 	// happiness counter
 	const happiness = add([
-		text("0", 4, "topleft"),
-		pos(-width() / 2 + 4, height() / 2 - 4),
+		text("0", 4),
+		pos(4, 4),
 		layer("ui"),
+		origin("topleft"),
 		{
 			value: 0,
 		},
@@ -126,14 +132,14 @@ scene("main", () => {
 
 	// input
 	keyDown("up", () => {
-		if (car.pos.y < upBound) {
-			car.move(0, car.speed);
+		if (car.pos.y > upBound) {
+			car.move(0, -car.speed);
 		}
 	});
 
 	keyDown("down", () => {
-		if (car.pos.y > lowBound) {
-			car.move(0, -car.speed);
+		if (car.pos.y < lowBound) {
+			car.move(0, car.speed);
 		}
 	});
 

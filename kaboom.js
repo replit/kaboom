@@ -101,9 +101,10 @@ function init(conf = {}) {
 
 	if (!canvas) {
 
+		const scale = conf.scale || 1;
 		canvas = document.createElement("canvas");
-		canvas.width = conf.width || 640;
-		canvas.height = conf.height || 480;
+		canvas.width = (conf.width || 640) * scale;
+		canvas.height = (conf.height || 480) * scale;
 
 		if (conf.crisp) {
 			canvas.style = "image-rendering: pixelated; image-rendering: crisp-edges;";
@@ -128,10 +129,7 @@ function init(conf = {}) {
 	audioInit(conf);
 
 	canvas.addEventListener("mousemove", (e) => {
-		app.mousePos = vec2(
-			(e.offsetX - gl.drawingBufferWidth / 2) / app.scale,
-			(gl.drawingBufferHeight / 2 - e.offsetY) / app.scale
-		);
+		app.mousePos = vec2(e.offsetX, e.offsetY).scale(1 / app.scale);
 	});
 
 	canvas.addEventListener("mousedown", (e) => {
@@ -299,7 +297,14 @@ function gfxFrameStart() {
 	gfx.drawCalls = 0;
 	gfx.transformStack = [];
 	gfx.transform = mat4();
-	pushScale(vec2(2 / width(), 2 / height()));
+// 	pushScale(vec2(2 / width(), 2 / height()));
+}
+
+function toNDC(pt) {
+	return vec2(
+		pt.x / width() * 2 - 1,
+		-pt.y / height() * 2 + 1,
+	);
 }
 
 function gfxFrameEnd() {
@@ -552,24 +557,32 @@ function makeFont(tex, gw, gh, chars) {
 
 }
 
-// TODO: clean
-// TODO: accept (p1, p2) instead of (w, h)
+// TODO: texture and texture flush logic here
+function drawRaw(verts, indices) {
+	verts = verts.map((v) => {
+		const pt = toNDC(gfx.transform.multVec2(v.pos));
+		return [
+			pt.x, pt.y, v.pos.z,
+			v.uv.x, v.uv.y,
+			v.color.r, v.color.g, v.color.b, v.color.a
+		];
+	}).flat();
+	gfx.mesh.push(verts, indices);
+}
+
 // draw a textured quad
 function drawQuad(conf = {}) {
 
 	// conf: {
+	//     pos,
 	//     width,
 	//     height,
-	//     pos,
 	//     scale,
 	//     rot,
+	//     origin,
 	//     tex,
 	//     quad,
 	// }
-
-	if (!conf.tex && !(conf.width && conf.height)) {
-		return;
-	}
 
 	const tex = conf.tex || gfx.defTex;
 
@@ -579,44 +592,58 @@ function drawQuad(conf = {}) {
 		gfx.curTex = tex;
 	}
 
-	let w = conf.width;
-	let h = conf.height;
+	const w = conf.width || 0;
+	const h = conf.height || 0;
 	const pos = conf.pos || vec2(0, 0);
+	const origin = conf.origin === undefined ? vec2(0, 0) : (typeof(conf.origin) === "string" ? originPt(conf.origin) : conf.origin);
+	const offset = origin.dot(vec2(w, h).scale(-0.5));
 	const scale = conf.scale === undefined ? vec2(1, 1) : vec2(conf.scale);
 	const rot = conf.rot || 0;
 	const q = conf.quad || quad(0, 0, 1, 1);
 	const z = conf.z === undefined ? 1 : 1 - conf.z;
+	const color = conf.color || rgba();
 
-	w = w * scale.x;
-	h = h * scale.y;
-
+	// TODO: (maybe) not use matrix transform here?
 	pushTransform();
-
 	pushTranslate(pos);
+	pushScale(scale);
 	pushRotateZ(rot);
-	const p1 = gfx.transform.multVec2(vec2(-w / 2, -h / 2));
-	const p2 = gfx.transform.multVec2(vec2(-w / 2, h / 2));
-	const p3 = gfx.transform.multVec2(vec2(w / 2, h / 2));
-	const p4 = gfx.transform.multVec2(vec2(w / 2, -h / 2));
-	const { r, g, b, a, } = conf.color || rgba();
+	pushTranslate(offset);
 
-	gfx.mesh.push([
-		// pos         // uv                 // color
-		p1.x, p1.y, z, q.x,       q.y + q.h, r, g, b, a,
-		p2.x, p2.y, z, q.x,       q.y,       r, g, b, a,
-		p3.x, p3.y, z, q.x + q.w, q.y,       r, g, b, a,
-		p4.x, p4.y, z, q.x + q.w, q.y + q.h, r, g, b, a,
-	], [ 0, 1, 2, 0, 2, 3, ]);
+	drawRaw([
+		{
+			pos: vec3(-w / 2, h / 2, z),
+			uv: vec2(q.x, q.y + q.h),
+			color: color,
+		},
+		{
+			pos: vec3(-w / 2, -h / 2, z),
+			uv: vec2(q.x, q.y),
+			color: color,
+		},
+		{
+			pos: vec3(w / 2, -h / 2, z),
+			uv: vec2(q.x + q.w, q.y),
+			color: color,
+		},
+		{
+			pos: vec3(w / 2, h / 2, z),
+			uv: vec2(q.x + q.w, q.y + q.h),
+			color: color,
+		},
+	], [0, 1, 3, 1, 2, 3]);
 
 	popTransform();
 
 }
 
+// TODO: (maybe) more low level and accept tex instead of sprite id
 function drawSprite(name, conf = {}) {
 
 	const spr = game.sprites[name];
 
 	if (!spr) {
+		console.warn(`sprite not found: ${name}`);
 		return;
 	}
 
@@ -633,49 +660,40 @@ function drawSprite(name, conf = {}) {
 		scale: conf.scale,
 		rot: conf.rot,
 		color: conf.color,
+		origin: conf.origin,
 		z: conf.z,
 	});
 
 }
 
-// TODO: allow define different color for stroke and fill
-function drawRect(pos, w, h, conf = {}) {
+function drawRectStroke(pos, w, h, conf = {}) {
 
-	if (conf.stroke) {
+	const p1 = vec2(pos.add(vec2(-w / 2, -h / 2)));
+	const p2 = vec2(pos.add(vec2(-w / 2,  h / 2)));
+	const p3 = vec2(pos.add(vec2( w / 2,  h / 2)));
+	const p4 = vec2(pos.add(vec2( w / 2, -h / 2)));
 
-		const conf2 = {
-			color: conf.color,
-			width: conf.stroke,
-			z: conf.z,
-		};
-
-		const p1 = vec2(pos.add(vec2(-w / 2, -h / 2)));
-		const p2 = vec2(pos.add(vec2(-w / 2,  h / 2)));
-		const p3 = vec2(pos.add(vec2( w / 2,  h / 2)));
-		const p4 = vec2(pos.add(vec2( w / 2, -h / 2)));
-
-		drawLine(p1, p2, conf2);
-		drawLine(p2, p3, conf2);
-		drawLine(p3, p4, conf2);
-		drawLine(p4, p1, conf2);
-
-	}
-
-	if (conf.fill === undefined || conf.fill === true) {
-		drawQuad({
-			pos: pos,
-			width: w,
-			height: h,
-			scale: conf.scale,
-			rot: conf.rot,
-			color: conf.color,
-			z: conf.z,
-		});
-	}
+	drawLine(p1, p2, conf);
+	drawLine(p2, p3, conf);
+	drawLine(p3, p4, conf);
+	drawLine(p4, p1, conf);
 
 }
 
-// TODO: slow
+function drawRect(pos, w, h, conf = {}) {
+	drawQuad({
+		pos: pos,
+		width: w,
+		height: h,
+		scale: conf.scale,
+		rot: conf.rot,
+		color: conf.color,
+		origin: conf.origin,
+		z: conf.z,
+	});
+}
+
+// TODO: slow, use drawRaw() calc coords
 function drawLine(p1, p2, conf = {}) {
 
 	const w = conf.width || 1;
@@ -733,15 +751,15 @@ function height() {
 
 function originPt(orig) {
 	switch (orig) {
-		case "topleft": return vec2(-1, 1);
-		case "top": return vec2(0, 1);
-		case "topright": return vec2(1, 1);
+		case "topleft": return vec2(-1, -1);
+		case "top": return vec2(0, -1);
+		case "topright": return vec2(1, -1);
 		case "left": return vec2(-1, 0);
 		case "center": return vec2(0, 0);
 		case "right": return vec2(1, 0);
-		case "botleft": return vec2(-1, -1);
-		case "bot": return vec2(0, -1);
-		case "botright": return vec2(1, -1);
+		case "botleft": return vec2(-1, 1);
+		case "bot": return vec2(0, 1);
+		case "botright": return vec2(1, 1);
 	}
 }
 
@@ -774,6 +792,7 @@ function fmtText(text, conf = {}) {
 			ch: ch,
 			pos: vec2(x, y),
 			color: conf.color,
+			origin: conf.origin,
 			scale: scale,
 			z: conf.z,
 		});
@@ -807,15 +826,22 @@ function audioInit() {
 function loadSound(name, src, conf = {}) {
 	if (typeof(src === "string")) {
 		const lid = newLoader();
-		fetch(src)
+		fetch(game.loadRoot + src)
 			.then((res) => {
 				return res.arrayBuffer();
 			})
 			.then((data) => {
 				// TODO: doesn't work on safari
 				audio.ctx.decodeAudioData(data, (buf) => {
+					loadComplete(lid);
 					audio.sounds[name] = buf;
+				}, (err) => {
+					console.error(`failed to decode audio: ${name}`);
+					loadComplete(lid);
 				});
+			})
+			.catch((err) => {
+				console.error(`failed to load audio: ${name}`);
 				loadComplete(lid);
 			});
 	}
@@ -881,6 +907,14 @@ function lerp(a, b, t) {
 
 function map(v, l1, h1, l2, h2) {
 	return l2 + (v - l1) / (h1 - l1) * (h2 - l2);
+}
+
+function vec3(x, y, z) {
+	return {
+		x: x,
+		y: y,
+		z: z,
+	};
 }
 
 function vec2(x, y) {
@@ -1331,22 +1365,28 @@ function loadRoot(path) {
 	}
 }
 
+// TODO: put this in gfx module?
 // load a sprite to asset manager
 function loadSprite(name, src, conf = {}) {
 
 	// TODO: just assign the .tex field
 	if (typeof(src) === "string") {
 		const lid = newLoader();
-		loadImg(src, (img) => {
+		const img = loadImg(game.loadRoot + src);
+		img.onload = () => {
 			loadSprite(name, img, conf);
 			loadComplete(lid);
-		});
+		};
+		img.onerror = () => {
+			console.error(`failed to load image: ${name}`);
+			loadComplete(lid);
+		};
 		return;
 	}
 
 	if (conf.aseSpriteSheet) {
 		const lid = newLoader();
-		fetch(conf.aseSpriteSheet).then((res) => {
+		fetch(game.loadRoot + conf.aseSpriteSheet).then((res) => {
 			return res.json();
 		}).then((data) => {
 			const size = data.meta.size;
@@ -1418,6 +1458,7 @@ function scene(name, cb) {
 
 // switch to a scene
 function go(name, ...args) {
+	reload(name);
 	const scene = game.scenes[name];
 	if (!scene) {
 		console.error(`scene not found: ${name}`);
@@ -1533,27 +1574,15 @@ function add(comps) {
 			return this.tags.includes(tag);
 		},
 
-		onAdd(f) {
-			this.events.add.push(f.bind(this));
-		},
-
-		onUpdate(f) {
-			this.events.update.push(f.bind(this));
-		},
-
-		onDraw(f) {
-			this.events.draw.push(f.bind(this));
-		},
-
-		onDestroy(f) {
-			this.events.destroy.push(f.bind(this));
-		},
-
-		on(event, f) {
+		on(event, cb) {
 			if (!this.events[event]) {
 				this.events[event] = [];
 			}
-			this.events[event].push(f);
+			this.events[event].push(cb);
+		},
+
+		update(cb) {
+			this.on("update", cb);
 		},
 
 		trigger(event, ...args) {
@@ -1574,53 +1603,29 @@ function add(comps) {
 	obj._sceneID = scene.lastID;
 	scene.lastID++;
 
-	for (const cb of obj.events.add) {
-		cb();
-	}
+	obj.trigger("add");
 
 	return obj;
 
 }
 
-// add an event that runs when objs with tag t is added to scene
-function onAdd(t, f) {
+// add an event to a tag
+function on(event, tag, cb) {
 	const scene = game.scenes[game.curScene];
-	scene.events.add.push({
-		tag: t,
-		cb: f,
+	scene.events[event].push({
+		tag: tag,
+		cb: cb,
 	});
 }
 
-// add an event that runs every frame for objs with tag t
-function onUpdate(t, f) {
-	const scene = game.scenes[game.curScene];
-	scene.events.update.push({
-		tag: t,
-		cb: f,
-	});
-}
-
-// add an event that runs every frame for objs with tag t
-function onDraw(t, f) {
-	const scene = game.scenes[game.curScene];
-	scene.events.draw.push({
-		tag: t,
-		cb: f,
-	});
-}
-
-// add an event that runs when objs with tag t is destroyed
-function onDestroy(t, f) {
-	const scene = game.scenes[game.curScene];
-	scene.events.destroy.push({
-		tag: t,
-		cb: f,
-	});
+// add an event to a tag
+function update(tag, cb) {
+	on("update", tag, cb);
 }
 
 // add an event that runs with objs with t1 collides with objs with t2
-function onCollide(t1, t2, f) {
-	onUpdate(t1, (o1) => {
+function collides(t1, t2, f) {
+	on("update", t1, (o1) => {
 		every(t2, (o2) => {
 			if (o1 !== o2) {
 				if (o1.isCollided(o2)) {
@@ -1632,8 +1637,8 @@ function onCollide(t1, t2, f) {
 }
 
 // add an event that runs when objs with tag t is clicked
-function onClick(t, f) {
-	onUpdate(t, (o) => {
+function clicks(t, f) {
+	on("update", t, (o) => {
 		if (o.isClicked()) {
 			f(o);
 		}
@@ -1661,7 +1666,7 @@ function loop(t, f) {
 		f();
 		wait(t, newF);
 	};
-	wait(t, newF);
+	newF();
 }
 
 function pushKeyEvent(e, k, f) {
@@ -1749,9 +1754,7 @@ function destroy(obj) {
 		return;
 	}
 
-	for (const cb of obj.events.destroy) {
-		cb(obj);
-	}
+	obj.trigger("destroy");
 
 	for (const e of scene.events.destroy) {
 		if (obj.is(e.tag)) {
@@ -1873,9 +1876,7 @@ function start(name) {
 				// update obj
 				if (!obj.paused) {
 
-					for (const f of obj.events.update) {
-						f(obj);
-					}
+					obj.trigger("update");
 
 					for (const e of scene.events.update) {
 						if (obj.is(e.tag)) {
@@ -1888,9 +1889,7 @@ function start(name) {
 				// draw obj
 				if (!obj.hidden) {
 
-					for (const f of obj.events.draw) {
-						f(obj);
-					}
+					obj.trigger("draw");
 
 					for (const e of scene.events.draw) {
 						if (obj.is(e.tag)) {
@@ -1975,6 +1974,12 @@ function color(...args) {
 	};
 }
 
+function origin(o) {
+	return {
+		origin: o,
+	};
+}
+
 function layer(z) {
 	return {
 		layer: z,
@@ -1997,12 +2002,12 @@ function area(p1, p2) {
 		},
 
 		areaWidth() {
-			const a = this.area;
+			const a = this._worldArea();
 			return a.p2.x - a.p1.x;
 		},
 
 		areaHeight() {
-			const a = this.area;
+			const a = this._worldArea();
 			return a.p2.y - a.p1.y;
 		},
 
@@ -2023,15 +2028,14 @@ function area(p1, p2) {
 				width += 2;
 			}
 
-			const a = this.area;
-			const pos = (this.pos || vec2(0)).add(vec2((a.p1.x + a.p2.x) / 2, (a.p1.y + a.p2.y) / 2));
+			const a = this._worldArea();
+			const pos = vec2((a.p1.x + a.p2.x) / 2, (a.p1.y + a.p2.y) / 2);
 			const w = a.p2.x - a.p1.x;
 			const h = a.p2.y - a.p1.y;
 
-			drawRect(pos, w, h, {
-				stroke: width / app.scale,
+			drawRectStroke(pos, w, h, {
+				width: width / app.scale,
 				color: color,
-				fill: false,
 				z: 0.9,
 			});
 
@@ -2045,7 +2049,7 @@ function area(p1, p2) {
 				const addLine = (txt) => {
 					const ftxt = fmtText(txt, {
 						size: 12 / app.scale,
-						pos: mousePos().add(vec2(padding.x, -padding.y - bh)),
+						pos: mousePos().add(vec2(padding.x, padding.y + bh)),
 						origin: "topleft",
 						z: 1,
 					});
@@ -2071,17 +2075,15 @@ function area(p1, p2) {
 				bw += padding.x * 2;
 				bh += padding.y * 2;
 
-				// TODO: merge into one call
 				// background
-				drawRect(mousePos().add(vec2(bw / 2, -bh / 2)), bw, bh, {
+				drawRect(mousePos().add(vec2(bw / 2, bh / 2)), bw, bh, {
 					color: rgba(0, 0, 0, 1),
 					z: 1,
 				});
 
-				drawRect(mousePos().add(vec2(bw / 2, -bh / 2)), bw, bh, {
-					stroke: (width - 2) / app.scale,
+				drawRectStroke(mousePos().add(vec2(bw / 2, bh / 2)), bw, bh, {
+					width: (width - 2) / app.scale,
 					color: rgba(0, 1, 1, 1),
-					fill: false,
 					z: 1,
 				});
 
@@ -2093,8 +2095,8 @@ function area(p1, p2) {
 
 		},
 
-		onClick(f) {
-			this.onUpdate(() => {
+		clicks(f) {
+			this.on("update", () => {
 				if (this.isClicked()) {
 					f();
 				}
@@ -2106,7 +2108,7 @@ function area(p1, p2) {
 		},
 
 		onHover(f) {
-			this.onUpdate(() => {
+			this.on("update", () => {
 				if (this.isHovered()) {
 					f();
 				}
@@ -2115,7 +2117,7 @@ function area(p1, p2) {
 
 		hasPt(pt) {
 
-			const a = this.area;
+			const a = this._worldArea();
 			const pos = this.pos || vec2(0);
 			const mpos = mousePos();
 
@@ -2130,8 +2132,8 @@ function area(p1, p2) {
 			return this.hasPt(mousePos());
 		},
 
-		onCollide(t, f) {
-			this.onUpdate(() => {
+		collides(t, f) {
+			this.on("update", () => {
 				every(t, (o) => {
 					if (this.isCollided(o)) {
 						f(o);
@@ -2140,24 +2142,33 @@ function area(p1, p2) {
 			});
 		},
 
+		_worldArea() {
+
+			const a = this.area;
+			const pos = this.pos || vec2(0);
+			const scale = this.scale || vec2(1);
+			const w = (a.p2.x - a.p1.x) * scale.x;
+			const h = (a.p2.y - a.p1.y) * scale.y;
+			const origin = this.origin === undefined ? vec2(0, 0) : (typeof(this.origin) === "string" ? originPt(this.origin) : this.origin);
+			const offset = origin.dot(vec2(w, h).scale(-0.5));
+
+			return {
+				p1: pos.add(a.p1).add(offset),
+				p2: pos.add(a.p2).add(offset),
+			};
+
+		},
+
 		isCollided(other) {
 
 			if (!other.area) {
 				return false;
 			}
 
-			const a1 = this.area;
-			const a2 = other.area;
-			const pos1 = this.pos || vec2(0);
-			const pos2 = other.pos || vec2(0);
+			const a1 = this._worldArea();
+			const a2 = other._worldArea();
 
-			return colRectRect({
-				p1: pos1.add(a1.p1),
-				p2: pos1.add(a1.p2),
-			}, {
-				p1: pos2.add(a2.p1),
-				p2: pos2.add(a2.p2),
-			});
+			return colRectRect(a1, a2);
 
 		},
 
@@ -2198,6 +2209,8 @@ function sprite(id) {
 				rot: this.rotate,
 				color: this.color,
 				frame: this.frame,
+				origin: this.origin,
+				z: scene.layers[this.layer],
 			});
 
 		},
@@ -2251,7 +2264,7 @@ function sprite(id) {
 		debugInfo() {
 			const info = {};
 			if (this.curAnim) {
-				info.curAnim = `${this.curAnim}`;
+				info.curAnim = `"${this.curAnim}"`;
 			}
 			return info;
 		},
@@ -2264,24 +2277,23 @@ function sprite(id) {
 }
 
 // TODO: add area
-function text(t, size, orig) {
+function text(t, size) {
 
 	return {
 
 		text: t,
 		textSize: size,
-		textOrigin: orig,
 
 		draw() {
 
 			const scene = game.scenes[game.curScene];
 
-			const ftext = fmtText(this.text, {
+			const ftext = fmtText(this.text + "", {
 				pos: this.pos,
 				scale: this.scale,
 				rot: this.rot,
 				size: this.textSize,
-				origin: this.textOrigin,
+				origin: this.origin,
 				color: this.color,
 				z: scene.layers[this.layer],
 			});
@@ -2312,6 +2324,7 @@ function rect(w, h) {
 				scale: this.scale,
 				rot: this.rot,
 				color: this.color,
+				origin: this.origin,
 				z: scene.layers[this.layer],
 			});
 
@@ -2374,7 +2387,7 @@ k.time = time;
 // scene
 k.scene = scene;
 k.go = go;
-k.reload = reload;
+// k.reload = reload;
 
 // misc
 k.layers = layers;
@@ -2391,6 +2404,7 @@ k.pos = pos;
 k.scale = scale;
 k.rotate = rotate;
 k.color = color;
+k.origin = origin;
 k.layer = layer;
 k.area = area;
 k.sprite = sprite;
@@ -2398,12 +2412,10 @@ k.text = text;
 k.rect = rect;
 
 // group events
-k.onAdd = onAdd;
-k.onUpdate = onUpdate;
-k.onDraw = onDraw;
-k.onDestroy = onDestroy;
-k.onCollide = onCollide;
-k.onClick = onClick;
+k.on = on;
+k.update = update;
+k.collides = collides;
+k.clicks = clicks;
 
 // input
 k.keyDown = keyDown;
@@ -2447,6 +2459,7 @@ k.wave = wave;
 k.drawSprite = drawSprite;
 k.drawText = drawText;
 k.drawRect = drawRect;
+k.drawRectStroke = drawRectStroke;
 k.drawLine = drawLine;
 k.drawPoly = drawPoly;
 k.drawCircle = drawCircle;

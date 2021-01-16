@@ -7,16 +7,12 @@ function initWorld(conf) {
 	world.gravity = conf.gravity === undefined ? 9.8 : conf.gravity;
 }
 
-function fall() {
-	// ...
-}
-
-function jumper(force) {
+function body(conf = {}) {
 
 	return {
 
 		velY: 0,
-		jumpForce: force !== undefined ? force : 640,
+		jumpForce: conf.jumpForce !== undefined ? conf.jumpForce : 640,
 		curPlatform: undefined,
 
 		update() {
@@ -25,15 +21,27 @@ function jumper(force) {
 				this.velY -= world.gravity * k.dt();
 				const res = this.move(k.vec2(0, this.velY));
 				if (res) {
-					if (res.edge === "bottom") {
-						this.curPlatform = res.obj;
-						this.velY = 0
-					} else if (res.edge === "top") {
-						this.velY = 0
+					// TODO: clean this seriously
+					if (world.gravity < 0) {
+						if (res.edge === "bottom") {
+							this.velY = 0;
+						} else if (res.edge === "top") {
+							this.curPlatform = res.obj;
+							this.trigger("grounded");
+							this.velY = 0;
+						}
+					} else {
+						if (res.edge === "bottom") {
+							this.curPlatform = res.obj;
+							this.trigger("grounded");
+							this.velY = 0;
+						} else if (res.edge === "top") {
+							this.velY = 0;
+						}
 					}
 				}
 			} else {
-				if (!this.isCollided(this.curPlatform)) {
+				if (!this.isCollided(this.curPlatform) || !this.curPlatform.exists()) {
 					this.curPlatform = undefined;
 				}
 			}
@@ -44,10 +52,10 @@ function jumper(force) {
 			return this.curPlatform !== undefined;
 		},
 
-		jump() {
+		jump(force) {
 			if (this.curPlatform) {
 				this.curPlatform = undefined;
-				this.velY = this.jumpForce;
+				this.velY = force || this.jumpForce;
 			}
 		},
 
@@ -56,7 +64,7 @@ function jumper(force) {
 }
 
 k.initWorld = initWorld;
-k.jumper = jumper;
+k.body = body;
 
 })();
 
