@@ -1581,7 +1581,7 @@ function add(comps) {
 			this.events[event].push(cb);
 		},
 
-		update(cb) {
+		action(cb) {
 			this.on("update", cb);
 		},
 
@@ -1619,13 +1619,13 @@ function on(event, tag, cb) {
 }
 
 // add an event to a tag
-function update(tag, cb) {
+function action(tag, cb) {
 	on("update", tag, cb);
 }
 
 // add an event that runs with objs with t1 collides with objs with t2
 function collides(t1, t2, f) {
-	on("update", t1, (o1) => {
+	action(t1, (o1) => {
 		every(t2, (o2) => {
 			if (o1 !== o2) {
 				if (o1.isCollided(o2)) {
@@ -1638,7 +1638,7 @@ function collides(t1, t2, f) {
 
 // add an event that runs when objs with tag t is clicked
 function clicks(t, f) {
-	on("update", t, (o) => {
+	action(t, (o) => {
 		if (o.isClicked()) {
 			f(o);
 		}
@@ -1736,8 +1736,15 @@ function get(t) {
 
 // apply a function to all objects currently in scene with tag t
 function every(t, f) {
-	for (const obj of get(t)) {
-		f(obj);
+	if (typeof(t) === "function" && f === undefined) {
+		const scene = game.scenes[game.curScene];
+		for (const id in scene.objs) {
+			t(scene.objs[id]);
+		}
+	} else {
+		for (const obj of get(t)) {
+			f(obj);
+		}
 	}
 }
 
@@ -2096,7 +2103,7 @@ function area(p1, p2) {
 		},
 
 		clicks(f) {
-			this.on("update", () => {
+			this.action(() => {
 				if (this.isClicked()) {
 					f();
 				}
@@ -2108,7 +2115,7 @@ function area(p1, p2) {
 		},
 
 		onHover(f) {
-			this.on("update", () => {
+			this.action(() => {
 				if (this.isHovered()) {
 					f();
 				}
@@ -2132,8 +2139,71 @@ function area(p1, p2) {
 			return this.hasPt(mousePos());
 		},
 
+		resolve() {
+
+			const targets = [];
+
+			every((o) => {
+
+				if (!o.solid) {
+					return;
+				}
+
+				if (!o.area) {
+					return;
+				}
+
+				const a1 = this._worldArea();
+				const a2 = o._worldArea();
+
+				if (!colRectRect(a1, a2)) {
+					return;
+				}
+
+				const disLeft = a1.p2.x - a2.p1.x;
+				const disRight = a2.p2.x - a1.p1.x;
+				const disTop = a1.p2.y - a2.p1.y;
+				const disBottom = a2.p2.y - a1.p1.y;
+				const min = Math.min(disLeft, disRight, disTop, disBottom);
+
+				if (min === 0) {
+					return;
+				}
+
+				let side;
+
+				switch (min) {
+					case disLeft:
+						this.pos.x -= disLeft;
+						side = "right";
+						break;
+					case disRight:
+						this.pos.x += disRight;
+						side = "left";
+						break;
+					case disTop:
+						this.pos.y -= disTop;
+						side = "bottom";
+						break;
+					case disBottom:
+						this.pos.y += disBottom;
+						side = "top";
+						break;
+				}
+
+				targets.push({
+					obj: o,
+					side: side,
+				});
+
+			});
+
+			return targets;
+
+		},
+
 		collides(t, f) {
-			this.on("update", () => {
+			this.action(() => {
 				every(t, (o) => {
 					if (this.isCollided(o)) {
 						f(o);
@@ -2142,6 +2212,7 @@ function area(p1, p2) {
 			});
 		},
 
+		// TODO: use matrix mult for more accuracy and rotation?
 		_worldArea() {
 
 			const a = this.area;
@@ -2197,6 +2268,8 @@ function sprite(id) {
 		_animLooping: false,
 		animSpeed: 0.1,
 		frame: 0,
+		width: w,
+		height: h,
 
 		draw() {
 
@@ -2337,6 +2410,12 @@ function rect(w, h) {
 
 }
 
+function solid() {
+	return {
+		solid: true,
+	};
+}
+
 // --------------------------------
 // Debug
 
@@ -2410,10 +2489,11 @@ k.area = area;
 k.sprite = sprite;
 k.text = text;
 k.rect = rect;
+k.solid = solid;
 
 // group events
 k.on = on;
-k.update = update;
+k.action = action;
 k.collides = collides;
 k.clicks = clicks;
 

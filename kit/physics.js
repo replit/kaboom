@@ -1,10 +1,12 @@
 (() => {
 
 const k = kaboom;
-const world = {};
+const world = {
+	gravity: 980,
+};
 
-function initWorld(conf) {
-	world.gravity = conf.gravity === undefined ? 9.8 : conf.gravity;
+function gravity(g) {
+	world.gravity = g;
 }
 
 function body(conf = {}) {
@@ -18,26 +20,16 @@ function body(conf = {}) {
 		update() {
 
 			if (!this.curPlatform) {
-				this.velY -= world.gravity * k.dt();
-				const res = this.move(k.vec2(0, this.velY));
-				if (res) {
-					// TODO: clean this seriously
-					if (world.gravity < 0) {
-						if (res.edge === "bottom") {
-							this.velY = 0;
-						} else if (res.edge === "top") {
-							this.curPlatform = res.obj;
-							this.trigger("grounded");
-							this.velY = 0;
-						}
-					} else {
-						if (res.edge === "bottom") {
-							this.curPlatform = res.obj;
-							this.trigger("grounded");
-							this.velY = 0;
-						} else if (res.edge === "top") {
-							this.velY = 0;
-						}
+				this.velY += world.gravity * k.dt();
+				this.move(0, this.velY);
+				const targets = this.resolve();
+				for (const target of targets) {
+					if (target.side === "bottom" && this.velY > 0) {
+						this.curPlatform = target.obj;
+						this.trigger("ground");
+						this.velY = 0;
+					} else if (target.side === "top" && this.velY < 0) {
+						this.velY = 0;
 					}
 				}
 			} else {
@@ -53,17 +45,15 @@ function body(conf = {}) {
 		},
 
 		jump(force) {
-			if (this.curPlatform) {
-				this.curPlatform = undefined;
-				this.velY = force || this.jumpForce;
-			}
+			this.curPlatform = undefined;
+			this.velY = -force || -this.jumpForce;
 		},
 
 	};
 
 }
 
-k.initWorld = initWorld;
+k.gravity = gravity;
 k.body = body;
 
 })();
