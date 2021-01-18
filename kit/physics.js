@@ -19,10 +19,11 @@ function body(conf = {}) {
 
 		update() {
 
+			this.move(0, this.velY);
+			const targets = this.resolve();
+
 			if (!this.curPlatform) {
 				this.velY += world.gravity * k.dt();
-				this.move(0, this.velY);
-				const targets = this.resolve();
 				for (const target of targets) {
 					if (target.side === "bottom" && this.velY > 0) {
 						this.curPlatform = target.obj;

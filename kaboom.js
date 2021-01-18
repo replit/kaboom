@@ -1515,6 +1515,10 @@ function add(comps) {
 		// use a comp
 		use(comp) {
 
+			if (comp === undefined) {
+				return;
+			}
+
 			const type = typeof(comp);
 
 			// tags

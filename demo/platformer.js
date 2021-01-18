@@ -1,68 +1,46 @@
 kaboom.import();
 
 init();
-loadSprite("guy", "guy.png");
 
 scene("main", () => {
-
-	initWorld({
-		gravity: 9.8 * 160,
-	});
-
+	const SPEED = 320;
+	gravity(1600);
 	const player = add([
-		sprite("guy"),
-		pos(0, 0),
-		jumper(560),
+		rect(32, 64),
+		pos(100, 100),
+		body(),
 	]);
-
-	keyPress("up", () => {
-		player.jump();
+	keyPress("space", () => {
+		if (player.grounded()) {
+			player.jump(540);
+		}
 	});
-
 	keyDown("left", () => {
-		player.move(vec2(-320, 0));
+		player.move(-SPEED, 0);
 	});
-
 	keyDown("right", () => {
-		player.move(vec2(320, 0));
+		player.move(SPEED, 0);
 	});
-
 	add([
-		rect(width(), 4),
-		pos(0, -120),
-		{
-			solid: true,
-		},
+		rect(width(), 6),
+		pos(0, 400),
+		solid(),
+		origin("topleft"),
 	]);
-
 	add([
-		rect(128, 4),
-		pos(-120, 0),
-		{
-			solid: true,
-		},
-	]);
-
-	add([
-		rect(128, 4),
-		pos(120, 0),
+		rect(120, 6),
+		pos(240, 320),
 		solid(),
 	]);
-
 	add([
 		rect(32, 32),
-		pos(120, -80),
+		pos(160, 360),
 		solid(),
 	]);
-
 	keyPress("F1", () => {
 		kaboom.debug.showArea = !kaboom.debug.showArea;
-	});
-
-	keyPress("F2", () => {
 		kaboom.debug.showInfo = !kaboom.debug.showInfo;
 	});
-
 });
 
 start("main");

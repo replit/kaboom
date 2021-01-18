@@ -1,6 +1,6 @@
 kaboom.import();
 
-loadRoot("flappy/");
+loadRoot("res/");
 loadSprite("bg", "bg.png");
 loadSprite("birdy", "birdy.png");
 loadSprite("pipo", "pipo.png");
