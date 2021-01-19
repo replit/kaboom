@@ -27,7 +27,7 @@ function body(conf = {}) {
 				for (const target of targets) {
 					if (target.side === "bottom" && this.velY > 0) {
 						this.curPlatform = target.obj;
-						this.trigger("ground");
+						this.trigger("grounded");
 						this.velY = 0;
 					} else if (target.side === "top" && this.velY < 0) {
 						this.velY = 0;

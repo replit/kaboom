@@ -40,15 +40,15 @@ k.init();
 			f("init", [
 				a("[conf]", "config")
 			], null, "initialize context", `
-// create canvas
-init({
-	width: 480,
-	height: 480,
-});
+// quickly create a 640x480 canvas and get going
+init();
 
-// use existing canvas
+// (all fields are options)
 init({
-	canvas: document.getElementById("game"),
+	width: 480, // width of canvas
+	height: 480, // height of canvas
+	canvas: document.getElementById("game"), // use custom canvas
+	scale: 2 // pixel scale (for pixelated games you might want small canvas + scale)
 });
 			`),
 			f("start", [
@@ -68,14 +68,20 @@ start("game")
 			f("scene", [
 				a("name", "name of scene")
 			], null, "start a scene block", `
-scene("game", () => {
-	sprite(/* ... */);
-	keyPress(/* ... */);
-	action(/* ... */);
+scene("level1", () => {
+	// game scene for level 1
+	add(/* ... */)
+	// all events are bound to a scene
+	keyPress(/* ... */)
 });
 
-scene("menu", () => {
-	text(/* ... */);
+scene("level2", () => {
+	// game scene for level 2
+	add(/* ... */)
+});
+
+scene("scoreboard", () => {
+	// displaying score
 });
 			`),
 			f("go", [
@@ -83,15 +89,43 @@ scene("menu", () => {
 				a("[opt]", "forward arguments"),
 			], null, "switch to a scene", `
 // go to "paused" scene when pressed "p"
-keyPress("p", () => {
-	// by default go() continues off the previous scene state, unless explicitly call reload()
-	reload("menu");
-	go("menu");
+scene("game", () => {
+	collides("player", "bullet", () => {
+		go("death", score);
+	});
+});
+
+scene("death", (score) => {
+	add([
+		text(score),
+	]);
 });
 			`),
-			f("reload", [
-				a("name", "name of scene")
-			], null, "reload a scene and reinitialize all states"),
+			f("layers", [
+				a("layers", "list of layers with order"),
+			], null, "define the draw layers of the scene", `
+// draw background on the bottom, ui on top
+layers([
+	"bg",
+	"game",
+	"ui",
+]);
+
+const player = add([
+	sprite("froggy"),
+	layer("game"),
+]);
+
+const score = add([
+	text("0"),
+	layer("ui"),
+]);
+			`),
+			f("camera", [
+				a("pos", "position"),
+			], null, "set the camera position", `
+camera(vec2(0, 100));
+			`),
 		],
 	},
 	{
@@ -107,13 +141,7 @@ loadSprite("froggy", "froggy.png");
 
 // load with config
 loadSprite("froggy", "froggy.png", {
-	frames: 4,
-	anims: {
-		walk: {
-			from: 0,
-			to: 3,
-		},
-	}
+	aseSpriteSheet: "froggy.json", // use spritesheet exported from aseprite
 });
 			`),
 			f("loadSound", [
@@ -126,144 +154,295 @@ loadSprite("shoot", "shoot.ogg");
 		],
 	},
 	{
-		name: "Query",
-		desc: "information about current window and input states",
+		name: "Objects",
+		desc: "Game Object is the basic unit of Kaboom, each game object uses component to compose their data and behavior.",
 		functions: [
-			f("width", [], "width", "canvas width"),
-			f("height", [], "height", "canvas height"),
-			f("time", [], "time", "current game time"),
-			f("dt", [], "dt", "delta time since last frame"),
-			f("mousePos", [], "mousePos", "current mouse position"),
+			f("add", [
+				a("comps", "list of components"),
+			], "obj", "add a game object to scene", `
+// composing game objects from components
+const player = add([
+	// a 'sprite'component gives it the render ability
+	sprite('froggy',
+	// a 'pos'component gives it a position
+	pos(100, 100),
+	// a 'body'component makes it fall and gives it jump()
+	body(),
+	// raw strings are tags
+	"player",
+]);
+
+add([
+	sprite("badboi"),
+	pos(rand(width()), 0),
+	color(0, 0, 1),
+	body(),
+	"enemy",
+	"killable",
+]);
+
+// provided by 'sprite()'
+player.play("jump"); // play a spritesheet animation
+console.log(player.frame); // get current frame
+
+// provided by 'pos()'
+player.move(100, 20);
+console.log(player.pos);
+
+// provided by 'body()'
+player.jump(320); // make player jump
+			`),
+			f("destroy", [
+				a("obj", "the object to destroy"),
+			], "obj", "remove a game object from scene", `
+collides("bullet", "killable", (b, k) => {
+	// remove both the bullet and the thing bullet hit with tag "killable" from scene
+	destroy(b);
+	destroy(k);
+	score++;
+});
+			`),
+			f("obj.use", [
+				a("comp", "the component to add"),
+			], null, "add a component to a game object", `
+// define a custom component
+function ohhi(name) {
+	return {
+		draw() {
+			drawText(\`oh hi \${name}\`, {
+				pos: this.pos,
+			});
+		},
+		update() {
+			console.log(oh hi \`\${name}\`);
+		},
+	};
+}
+
+// rarely needed since you usually specify all comps in the 'add()' step
+obj.use(scale(2, 2));
+			`),
+			f("obj.exists", [
+			], "if exists", "check if obj exists in scene", `
+// sometimes you might keep a reference of an object that's already 'destroy()'ed, use exists() to check if they were
+if (obj.exists()) {
+	child.pos = obj.pos.clone();
+}
+			`),
+			f("obj.is", [
+				a("tag", "tag name"),
+			], "if is", "if obj has certain tag(s)", `
+if (obj.is("killable")) {
+	destroy(obj);
+}
+			`),
+			f("obj.on", [
+				a("event", "the name of event"),
+				a("cb", "callback"),
+			], null, "listen to an event", `
+// when obj is 'destroy()'ed
+obj.on("destroy", () => {
+	add([
+		sprite("explosion"),
+	]);
+});
+
+// runs every frame when obj exists
+obj.on("update", () => {});
+
+// custom event from comp 'body()'
+obj.on("grounded", () => {});
+			`),
+			f("obj.trigger", [
+				a("event", "the name of event"),
+			], null, "trigger an event (triggers 'on')", `
+obj.on("grounded", () => {
+	obj.jump();
+});
+
+// mainly for custom components defining custom events
+obj.trigger("grounded");
+			`),
 		],
 	},
 	{
-		name: "Objects",
-		desc: "Game object is the basic unit of kaboom, functions below creates or destroy game objects in the scene.",
+		name: "Components",
+		desc: "Built-in components",
 		functions: [
-			f("sprite", [
-				a("id", "sprite id in the asset manager"),
-				a("[conf]", "additional obj conf"),
-			], "the object", "add a sprite to scene", `
-// add a sprite with sprite id "froggy" (loaded with loadSprite()) to scene, with optional params
-const froggy = sprite("froggy", {
-	pos: vec2(0, 100),
-	scale: 1,
-	rot: 0,
-	tags: [ "player", "frog", ],
-	color: color(0, 0, 1, 1),
-	paused: false, // if draw
-	hidden: false, // if update (if action() will run)
-	solid: false, // if an object is solid, it can't be moved across by other obj with move()
-});
+			f("pos", [
+				a("x", "x"),
+				a("y", "y"),
+			], null, "position", `
+const obj = add([
+	pos(0, 50),
+]);
 
-// play an animation
-froggy.play("walk");
+console.log(obj.pos);
+obj.move(100, 100);
 			`),
-			f("rect", [
-				a("width", "width of rect"),
-				a("height", "height of rect"),
-				a("[conf]", "additional obj conf"),
-			], "the object", "add a rect to scene", `
-// add a sprite with 12x2 rect to scene, accepts optional params like above
-const r = rect(12, 2, {
-	pos: froggy.pos,
-	tags: [ "bullet", ],
-	// ...
-});
+			f("scale", [
+				a("x", "x"),
+				a("y", "y"),
+			], null, "scale", `
+const obj = add([
+	scale(2),
+]);
 
-// update rect size
-r.width = 120;
-r.height = 20;
+obj.scale = vec2(3);
+			`),
+			f("color", [
+				a("r", "red"),
+				a("g", "green"),
+				a("b", "blue"),
+				a("[a]", "opacity"),
+			], null, "color", `
+const obj = add([
+	sprite("froggy"),
+	// give it a blue tint
+	color(0, 0, 1),
+]);
+
+obj.color = rgb(1, 0, 0); // make it red instead
+			`),
+			f("sprite", [
+				a("id", "sprite id"),
+			], null, "sprite", `
+// note: this automatically gives the obj an 'area()' component
+const obj = add([
+	// loadSprite("froggy", pathToFroggy) above
+	sprite("froggy"),
+]);
+
+console.log(obj.frame);
+obj.play("jumpo"); // plays the anim if has it
+obj.stop(); // stop the anim
 			`),
 			f("text", [
-				a("str", "the text string"),
-				a("[conf]", "additional obj conf"),
-			], "the object", "add a rect to scene", `
-// add text "oh hi" to scene, accepts optional params like above
-const score = text("0", {
-	size: 64,
+				a("txt", "the text to draw"),
+			], null, "sprite", `
+// note: this automatically gives the obj an 'area()' component
+const obj = add([
+	// content, size
+	text("oh hi", 64),
+]);
+
+obj.text = "oh hi mark"; // update the content
+			`),
+			f("rect", [
+				a("w", "width"),
+				a("h", "height"),
+			], null, "sprite", `
+// note: this automatically gives the obj an 'area()' component
+const obj = add([
+	rect(50, 75),
+	pos(25, 25),
+	color(0, 1, 1),
+]);
+
+console.log(obj.width);
+			`),
+			f("text", [
+				a("txt", "the text to draw"),
+			], null, "sprite", `
+// note: this automatically gives the obj an 'area()' component
+const obj = add([
+	// content, size
+	text("oh hi", 64),
+]);
+
+obj.text = "oh hi mark"; // update the content
+			`),
+			f("area", [
+				a("p1", "p1"),
+				a("p2", "p2"),
+			], null, "a rectangular area for collision checking", `
+// 'area()' is given automatically by 'sprite()' and 'rect()', but you can override it
+const obj = add([
+	sprite("froggy"),
+	// override to a smaller region
+	area(vec2(-9, 3), vec2(9, 6)),
+]);
+
+// callback when collides with a certain tag
+obj.collides("collectable", (c) => {
+	destroy(c);
+	score++;
 });
 
-// update by modifing the 'text' field
-score.text = "1";
+obj.isCollided(obj2);
+obj.clicks(() => {});
+obj.isClicked();
+obj.hovers(() => {});
+obj.isHovered();
+obj.hasPt();
+obj.resolve(); // resolve all collisions with objects with 'solid'
 			`),
-			f("destroy", [
-				a("obj", "the obj to destroy"),
-			], null, "remote an obj from scene"),
-			f("destroyAll", [
-				a("tag", "the tags to destroy"),
-			], null, "destroy all objects that has the specified tag"),
-			f("obj.move", [
-				a("delta", "move value"),
-			], null, "move object and check for collision"),
-			f("obj.is", [
-				a("tag", "tags"),
-			], null, "check if obj has specified tags"),
-			f("obj.exists", [
-			], null, "check if obj is currently in scene"),
+			f("origin", [
+				a("orig", "origin pt"),
+			], null, "the origin to draw the object (default center)", `
+const obj = add([
+	sprite("froggy"),
+
+	origin("topleft"),
+	origin("top"),
+	origin("topright"),
+	origin("left"),
+	origin("center"), // default
+	origin("right"),
+	origin("botleft"),
+	origin("bot"),
+	origin("botright"),
+	origin(vec2(0, 0.25)), // custom
+]);
+			`),
+			f("layer", [
+				a("name", "layer name"),
+			], null, "the layer to draw on", `
+layers([
+	"bg",
+	"game",
+	"ui",
+]);
+
+const obj = add([
+	sprite("froggy"),
+	layer("game"),
+]);
+
+const score = add([
+	text("0"),
+	layer("ui"),
+]);
+			`),
 		],
 	},
 	{
 		name: "Events",
 		desc: "kaboom uses tags to group objects and describe their behaviors, functions below all accepts the tag as first arguments, following a callback",
 		functions: [
-			f("hi", [
-				a("tag", "tag selector"),
-				a("cb", "the callback"),
-			], null, "calls when object is added to scene", `
-// every time an object with tag "bullet" is added to scene, play a sound with id "shoot"
-hi("bullet", (b) => {
-	play("shoot");
-});
-			`),
-			f("bye", [
-				a("tag", "tag selector"),
-				a("cb", "the callback"),
-			], null, "calls when object is removed from scene", `
-// every objects with tag "enemy" gets destroyed, increment score by 1
-bye("enemy", (e) => {
-	score++;
-});
-			`),
 			f("action", [
 				a("tag", "tag selector"),
 				a("cb", "the callback"),
-			], null, "calls every frame", `
+			], null, "calls every frame for a certain tag", `
 // every frame move objs with tag "bullet" up with speed of 100
 action("bullet", (b) => {
 	b.move(vec2(0, 100));
 });
+
+action("flashy", (f) => {
+	f.color = rand(rgb(0, 0, 0), rgb(1, 1, 1));
+});
 			`),
-			f("ouch", [
+			f("collides", [
 				a("tag", "tag selector"),
 				a("cb", "the callback"),
 			], null, "calls when objects collides with others", `
-// every objects with tag "enemy" and objects with tag "bullet" collides, destroy bullet, decrement enemy's life attribute, if enemy life goes below 0, destroy enemy from scene
 ouch("enemy", "bullet", (e, b) => {
 	destroy(b);
 	e.life--;
 	if (e.life <= 0) {
 		destroy(e);
 	}
-});
-			`),
-			f("click", [
-				a("tag", "tag selector"),
-				a("cb", "the callback"),
-			], null, "calls when object is clicked", `
-// drag n' drop
-click("draggable", (obj) => {
-	dragging = obj;
-});
-
-action("draggable", (obj) => {
-	if (obj === dragging) {
-		obj.pos = mousePos();
-	}
-});
-
-mouseRelease(() => {
-	dragging = undefined;
 });
 			`),
 		],
@@ -287,12 +466,23 @@ mouseRelease(() => {
 			f("mouseDown", [
 				a("cb", "callback"),
 			], null, "runs every frame when left mouse is being pressed"),
-			f("mousePress", [
+			f("mouseClick", [
 				a("cb", "callback"),
-			], null, "runs once when left mouse is just pressed"),
+			], null, "runs once when left mouse is just clicked"),
 			f("mouseRelease", [
 				a("cb", "callback"),
 			], null, "runs once when left mouse is just released"),
+		],
+	},
+	{
+		name: "Query",
+		desc: "information about current window and input states",
+		functions: [
+			f("width", [], "width", "canvas width"),
+			f("height", [], "height", "canvas height"),
+			f("time", [], "time", "current game time"),
+			f("dt", [], "dt", "delta time since last frame"),
+			f("mousePos", [], "mousePos", "current mouse position"),
 		],
 	},
 	{
@@ -392,44 +582,114 @@ rand(vec2(0), vec2(100)) // => vec2(29, 73)
 		],
 	},
 	{
-		name: "Debug",
-		desc: "debug utils",
+		name: "Draw",
+		desc: "Raw immediate drawing functions (you prob won't need these)",
 		functions: [
-			f("drawBBox", [
-				a("[switch]", "switch"),
-			], null, "draw object bounding boxes"),
-			f("objCount", [
-			], null, "current object counts in the scene"),
+			f("drawRect", [
+				a("pos", "position"),
+				a("w", "width"),
+				a("h", "height"),
+			], null, "draw a rectangle", `
+drawRect(vec2(100, 200), 50, 75);
+			`),
 		],
 	},
 	{
-		name: "Platformer",
-		desc: "kit/platformer.js allows you to make platformer even easier with kaboom.js!",
+		name: "Physics",
+		desc: "kit/phhysics.js allows you to make 2d physics games (e.g. platformers) even easier!",
 		functions: [
-			f("initWorld", [
-				a("[conf]", "optional config"),
-			], null, "init the platformer physics world", `
-initWorld({
-	gravity: 9.8,
-	acc: 120,
-});
+			f("gravity", [
+				a("value", "gravity value"),
+			], null, "set the gravity value (defaults to 980)", `
+// (pixel per sec.)
+gravity(1600);
+			`),
+			f("body", [
+			], null, "component for falling / jumping", `
+const player = add([
+	pos(0, 0),
+	// now player will fall in this gravity world
+	body(),
+]);
 			`),
 			f("obj.jump", [
 			], null, "makes an object jump", `
-// TODO
-const player = addPlayer({
-	jumpForce: 360,
-});
+const player = add([
+	pos(0, 0),
+	body(),
+]);
 
 keyPress("up", () => {
-	player.jump();
+	player.jump(JUMP_FORCE);
 });
 			`),
 			f("obj.grounded", [
 			], null, "checks if grounded", `
+// only jump when grounded
 if (player.grounded()) {
-	console.log("grounded");
+	player.jump(JUMP_FORCE);
 }
+			`),
+		],
+	},
+	{
+		name: "Map",
+		desc: "kit/map.js provides helper functions for tile map based games!",
+		functions: [
+			f("addMap", [
+				a("map", "2d array map"),
+			], null, "add a map to scene", `
+addMap([
+	// draw the map with custom keys
+	[0, 0, 0, 1],
+	[0, 1, 0, 0],
+	[0, 0, 2, 0],
+	[0, 0, 0, 0],
+], {
+	// tile size
+	width: 12,
+	height: 12,
+	// what each value above represents
+	"0": [
+		sprite("dirt"),
+	],
+	"1": [
+		sprite("grass"),
+	],
+	"2": [
+		sprite("flower"),
+		"collectable",
+	],
+});
+			`),
+		],
+	},
+	{
+		name: "Starter",
+		desc: "kit/starter.js abstracts away from the component system",
+		functions: [
+			f("addSprite", [
+				a("id", "sprite name"),
+				a("[conf]", "config"),
+			], null, "add a sprite to scene", `
+addSprite("froggy", {
+	pos: vec2(0, 100),
+	origin: "topleft",
+	tags: [
+		"goodboi",
+		"animal",
+	],
+});
+
+// is equivalent to ..
+
+add([
+	sprite("froggy"),
+	pos(0, 100),
+	origin("topleft"),
+	"goodboi",
+	"animal",
+]);
 			`),
 		],
 	},
