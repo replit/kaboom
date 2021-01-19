@@ -2,7 +2,7 @@
 
 const k = kaboom;
 
-function initLevel(arr, conf = {}) {
+function addMap(arr, conf = {}) {
 
 	const surface = {};
 
@@ -32,7 +32,8 @@ function initLevel(arr, conf = {}) {
 
 	return {
 		arr: arr,
-		getPos(p) {
+		getPos(...pos) {
+			const p = vec2(...pos);
 			return k.vec2(
 				conf.pos.x + p.x * conf.width,
 				conf.pos.y + p.y * conf.height
@@ -45,7 +46,7 @@ function initLevel(arr, conf = {}) {
 
 }
 
-k.initLevel = initLevel;
+k.addMap = addMap;
 
 })();
 

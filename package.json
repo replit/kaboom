@@ -13,7 +13,7 @@
 		"kit/*.js"
 	],
 	"scripts": {
-		"demo": "node run.js",
+		"demo": "python3 -m http.server",
 		"site": "node site/serve.js"
 	}
 }

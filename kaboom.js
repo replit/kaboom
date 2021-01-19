@@ -297,7 +297,6 @@ function gfxFrameStart() {
 	gfx.drawCalls = 0;
 	gfx.transformStack = [];
 	gfx.transform = mat4();
-// 	pushScale(vec2(2 / width(), 2 / height()));
 }
 
 function toNDC(pt) {
@@ -557,8 +556,13 @@ function makeFont(tex, gw, gh, chars) {
 
 }
 
-// TODO: texture and texture flush logic here
-function drawRaw(verts, indices) {
+// TODO: put texture and texture flush logic here
+function drawRaw(verts, indices, tex = gfx.defTex) {
+	// flush on texture change
+	if (gfx.curTex !== tex) {
+		flush();
+		gfx.curTex = tex;
+	}
 	verts = verts.map((v) => {
 		const pt = toNDC(gfx.transform.multVec2(v.pos));
 		return [
@@ -583,14 +587,6 @@ function drawQuad(conf = {}) {
 	//     tex,
 	//     quad,
 	// }
-
-	const tex = conf.tex || gfx.defTex;
-
-	// flush on texture change
-	if (gfx.curTex !== tex) {
-		flush();
-		gfx.curTex = tex;
-	}
 
 	const w = conf.width || 0;
 	const h = conf.height || 0;
@@ -631,7 +627,7 @@ function drawQuad(conf = {}) {
 			uv: vec2(q.x + q.w, q.y + q.h),
 			color: color,
 		},
-	], [0, 1, 3, 1, 2, 3]);
+	], [0, 1, 3, 1, 2, 3], conf.tex);
 
 	popTransform();
 
@@ -1442,6 +1438,9 @@ function scene(name, cb) {
 			mouseDown: [],
 		},
 
+		action: [],
+		render: [],
+
 		// in game pool
 		objs: {},
 		lastID: 0,
@@ -1450,7 +1449,7 @@ function scene(name, cb) {
 
 		// misc
 		layers: {},
-		camera: vec2(0),
+		camera: vec2(0, 0),
 
 	};
 
@@ -1494,6 +1493,10 @@ function layers(list) {
 		scene.layers[name] = 0.5 + each * i;
 	});
 
+}
+
+function camera(pos) {
+	game.scenes[game.curScene].camera = pos;
 }
 
 function add(comps) {
@@ -1567,6 +1570,9 @@ function add(comps) {
 
 		// if obj has certain tag
 		is(tag) {
+			if (tag === "*") {
+				return true;
+			}
 			if (Array.isArray(tag)) {
 				for (const t of tag) {
 					if (!this.tags.includes(t)) {
@@ -1622,9 +1628,22 @@ function on(event, tag, cb) {
 	});
 }
 
-// add an event to a tag
+// add update event to a tag or global update
 function action(tag, cb) {
-	on("update", tag, cb);
+	if (typeof(tag) === "function" && cb === undefined) {
+		game.scenes[game.curScene].action.push(tag);
+	} else {
+		on("update", tag, cb);
+	}
+}
+
+// add draw event to a tag or global draw
+function render(tag, cb) {
+	if (typeof(tag) === "function" && cb === undefined) {
+		game.scenes[game.curScene].render.push(tag);
+	} else {
+		on("update", tag, cb);
+	}
 }
 
 // add an event that runs with objs with t1 collides with objs with t2
@@ -1897,6 +1916,9 @@ function start(name) {
 
 				}
 
+				pushTransform();
+				pushTranslate(scene.camera);
+
 				// draw obj
 				if (!obj.hidden) {
 
@@ -1910,6 +1932,16 @@ function start(name) {
 
 				}
 
+				popTransform();
+
+			}
+
+			for (const f of scene.action) {
+				f();
+			}
+
+			for (const f of scene.render) {
+				f();
 			}
 
 			gfxFrameEnd();
@@ -1933,6 +1965,7 @@ function start(name) {
 // --------------------------------
 // Comps
 
+// TODO: have velocity here?
 function pos(...args) {
 
 	return {
@@ -2002,7 +2035,7 @@ function layer(z) {
 	};
 }
 
-// TODO: listen attribute change?
+// TODO: update area when eg. rect size change?
 function area(p1, p2) {
 
 	return {
@@ -2127,16 +2160,11 @@ function area(p1, p2) {
 		},
 
 		hasPt(pt) {
-
 			const a = this._worldArea();
-			const pos = this.pos || vec2(0);
-			const mpos = mousePos();
-
 			return colRectPt({
-				p1: pos.add(a.p1),
-				p2: pos.add(a.p2),
+				p1: a.p1,
+				p2: a.p2,
 			}, pt);
-
 		},
 
 		isHovered() {
@@ -2423,18 +2451,6 @@ function solid() {
 // --------------------------------
 // Debug
 
-function pause() {
-	// TODO
-}
-
-function resume() {
-	// TODO
-}
-
-function paused() {
-	// TODO
-}
-
 function fps() {
 	return 1.0 / dt();
 }
@@ -2470,10 +2486,10 @@ k.time = time;
 // scene
 k.scene = scene;
 k.go = go;
-// k.reload = reload;
 
 // misc
 k.layers = layers;
+k.camera = camera;
 
 // obj
 k.add = add;
@@ -2498,6 +2514,7 @@ k.solid = solid;
 // group events
 k.on = on;
 k.action = action;
+k.render = render;
 k.collides = collides;
 k.clicks = clicks;
 
@@ -2551,7 +2568,6 @@ k.drawCircle = drawCircle;
 // debug
 k.objCount = objCount;
 k.fps = fps;
-k.pause = pause;
 
 // make every function global
 k.import = () => {

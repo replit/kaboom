@@ -22,7 +22,7 @@ scene("main", () => {
 
 	gravity(980);
 
-	const level = initLevel([
+	const map = addMap([
 		[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
 		[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
 		[0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 2, 1, 2, 1, 1, 1, 0, 0, 0],
@@ -49,23 +49,19 @@ scene("main", () => {
 		"1": [
 			sprite("steel"),
 			solid(),
-			origin("topleft"),
 		],
 		"2": [
 			sprite("grass"),
 			solid(),
-			origin("topleft"),
 		],
 		"3": [
 			sprite("jumpy"),
 			solid(),
-			origin("topleft"),
 			"jumpy",
 		],
 		"4": [
 			sprite("spike"),
 			body(),
-			origin("topleft"),
 			"hurt",
 		],
 		"5": makePassenger,
@@ -98,14 +94,14 @@ scene("main", () => {
 		destroy(p);
 		add([
 			sprite("flag"),
-			pos(level.getPos(level.getRandSurface(1))),
+			pos(map.getPos(map.getRandSurface(1))),
 			"flag",
 		]);
 	});
 
 	player.collides("flag", (f) => {
 		destroy(f);
-		add(makePassenger(pos(level.getPos(level.getRandSurface(1)))));
+		add(makePassenger(pos(map.getPos(map.getRandSurface(1)))));
 	});
 
 	player.collides("hurt", () => {
