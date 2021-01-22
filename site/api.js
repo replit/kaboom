@@ -48,7 +48,8 @@ init({
 	width: 480, // width of canvas
 	height: 480, // height of canvas
 	canvas: document.getElementById("game"), // use custom canvas
-	scale: 2 // pixel scale (for pixelated games you might want small canvas + scale)
+	scale: 2, // pixel scale (for pixelated games you might want small canvas + scale)
+	clearColor: rgb(0, 0, 1), // background color (default black)
 });
 			`),
 			f("start", [
@@ -155,7 +156,7 @@ loadSprite("shoot", "shoot.ogg");
 	},
 	{
 		name: "Objects",
-		desc: "Game Object is the basic unit of Kaboom, each game object uses component to compose their data and behavior.",
+		desc: "Game Object is the basic unit of Kaboom, each game object uses components to compose their data and behavior.",
 		functions: [
 			f("add", [
 				a("comps", "list of components"),
@@ -163,7 +164,7 @@ loadSprite("shoot", "shoot.ogg");
 // composing game objects from components
 const player = add([
 	// a 'sprite'component gives it the render ability
-	sprite('froggy',
+	sprite('froggy'),
 	// a 'pos'component gives it a position
 	pos(100, 100),
 	// a 'body'component makes it fall and gives it jump()
@@ -200,6 +201,13 @@ collides("bullet", "killable", (b, k) => {
 	destroy(b);
 	destroy(k);
 	score++;
+});
+			`),
+			f("obj.action", [
+				a("cb", "callback"),
+			], null, "run the callback every frame", `
+player.action(() => {
+	player.move(SPEED, 0);
 });
 			`),
 			f("obj.use", [
@@ -595,8 +603,18 @@ drawRect(vec2(100, 200), 50, 75);
 		],
 	},
 	{
+		name: "Debug",
+		desc: "debug utilities",
+		functions: [
+			f("fps", [], null, "current frames per second", ""),
+			f("objCount", [], null, "current number of objects in scene", ""),
+			f("pause", [], null, "pause the game", ""),
+			f("unpause", [], null, "unpause the game", ""),
+		],
+	},
+	{
 		name: "Physics",
-		desc: "kit/phhysics.js allows you to make 2d physics games (e.g. platformers) even easier!",
+		desc: "kit/physics.js allows you to make 2d physics games (e.g. platformers) even easier!",
 		functions: [
 			f("gravity", [
 				a("value", "gravity value"),

@@ -1,9 +1,12 @@
 kaboom.import();
 
-loadRoot("res/");
+loadRoot("assets/");
 loadSprite("bg", "bg.png");
 loadSprite("birdy", "birdy.png");
 loadSprite("pipo", "pipo.png");
+loadSound("score", "score.ogg");
+loadSound("wooosh", "wooosh.ogg");
+loadSound("hit", "hit.ogg");
 
 init({
 	width: 240,
@@ -16,7 +19,7 @@ scene("main", () => {
 
 	const PIPO_OPEN = 80;
 	const PIPO_MIN_HEIGHT = 16;
-	const JUMP_FORCE = 360;
+	const JUMP_FORCE = 320;
 	const SPEED = 120;
 
 	// define gravity
@@ -59,6 +62,7 @@ scene("main", () => {
 	// jump
 	keyPress("space", () => {
 		birdy.jump(JUMP_FORCE);
+		play("wooosh");
 	});
 
 	function spawnPipo() {
@@ -92,6 +96,7 @@ scene("main", () => {
 	// callback when birdy collides with objects with tag "pipo"
 	birdy.collides("pipo", () => {
 		go("death", score.value);
+		play("hit");
 	});
 
 	// per frame event for all objects with tag 'pipo'
@@ -128,6 +133,7 @@ scene("main", () => {
 	function addScore() {
 		score.value++;
 		score.text = score.value;
+		play("score");
 	}
 
 });

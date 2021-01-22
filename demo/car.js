@@ -1,6 +1,6 @@
 kaboom.import();
 
-loadRoot("res/");
+loadRoot("assets/");
 loadSprite("car", "car.png", {
 	aseSpriteSheet: "car.json",
 });

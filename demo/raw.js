@@ -1,7 +1,7 @@
 const k = kaboom;
 
 k.init();
-k.loadRoot("res/");
+k.loadRoot("assets/");
 k.loadSprite("car", "car.png");
 
 k.scene("main", () => {

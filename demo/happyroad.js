@@ -1,5 +1,5 @@
 kaboom.import();
-loadRoot("res/");
+loadRoot("assets/");
 loadSprite("sky", "sky.png");
 loadSprite("road", "road.png");
 loadSprite("car", "car.png", {

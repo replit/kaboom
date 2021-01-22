@@ -85,7 +85,7 @@ const keyMap = {
 };
 
 const preventDefaultKeys = [
-	" ",
+	"space",
 	"left",
 	"right",
 	"up",
@@ -232,7 +232,7 @@ function gfxInit(conf = {}) {
 	gfx.defTex = makeTex(
 		new ImageData(new Uint8ClampedArray([ 255, 255, 255, 255, ]), 1, 1)
 	);
-	const c = conf.clearColor || rgba(0, 0, 0, 1);
+	const c = conf.clearColor || rgb(0, 0, 0);
 	gl.clearColor(c.r, c.g, c.b, c.a);
 	gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 	gl.enable(gl.DEPTH_TEST);
@@ -1337,6 +1337,8 @@ const game = {
 	loaders: {},
 	lastLoaderID: 0,
 	loadRoot: "",
+	paused: false,
+	pauseAction: undefined,
 	debug: {
 		drawBBox: false,
 		showStats: false,
@@ -1449,7 +1451,9 @@ function scene(name, cb) {
 
 		// misc
 		layers: {},
-		camera: vec2(0, 0),
+		camera: {
+			pos: vec2(0, 0),
+		},
 
 	};
 
@@ -1495,8 +1499,8 @@ function layers(list) {
 
 }
 
-function camera(pos) {
-	game.scenes[game.curScene].camera = pos;
+function campos(pos) {
+	game.scenes[game.curScene].camera.pos = pos;
 }
 
 function add(comps) {
@@ -1505,9 +1509,9 @@ function add(comps) {
 
 		hidden: false,
 		paused: false,
-		tags: [],
+		_tags: [],
 
-		events: {
+		_events: {
 			add: [],
 			update: [],
 			draw: [],
@@ -1526,7 +1530,7 @@ function add(comps) {
 
 			// tags
 			if (type === "string") {
-				this.tags.push(comp);
+				this._tags.push(comp);
 				return;
 			}
 
@@ -1547,8 +1551,8 @@ function add(comps) {
 
 				// event / custom method
 				if (typeof(comp[k]) === "function") {
-					if (this.events[k]) {
-						this.events[k].push(comp[k].bind(this));
+					if (this._events[k]) {
+						this._events[k].push(comp[k].bind(this));
 					} else {
 						this[k] = comp[k].bind(this);
 					}
@@ -1575,20 +1579,20 @@ function add(comps) {
 			}
 			if (Array.isArray(tag)) {
 				for (const t of tag) {
-					if (!this.tags.includes(t)) {
+					if (!this._tags.includes(t)) {
 						return false;
 					}
 				}
 				return true;
 			}
-			return this.tags.includes(tag);
+			return this._tags.includes(tag);
 		},
 
 		on(event, cb) {
-			if (!this.events[event]) {
-				this.events[event] = [];
+			if (!this._events[event]) {
+				this._events[event] = [];
 			}
-			this.events[event].push(cb);
+			this._events[event].push(cb);
 		},
 
 		action(cb) {
@@ -1596,8 +1600,8 @@ function add(comps) {
 		},
 
 		trigger(event, ...args) {
-			if (this.events[event]) {
-				for (const f of this.events[event]) {
+			if (this._events[event]) {
+				for (const f of this._events[event]) {
 					f(...args);
 				}
 			}
@@ -1804,6 +1808,134 @@ function destroyAll(t) {
 	});
 }
 
+function frame() {
+
+	app.dt = t / 1000 - app.time;
+	app.time += app.dt;
+
+	gfxFrameStart();
+
+	const scene = game.scenes[game.curScene];
+
+	if (!scene) {
+		console.error(`scene not found: '${game.curScene}'`);
+		return;
+	}
+
+	// TODO: repetitive
+	// run input checks & callbacks
+	for (const e of scene.events.keyDown) {
+		if (keyIsDown(e.key)) {
+			e.cb();
+		}
+	}
+
+	for (const e of scene.events.keyPress) {
+		if (keyIsPressed(e.key)) {
+			e.cb();
+		}
+	}
+
+	for (const e of scene.events.keyPressRep) {
+		if (keyIsPressedRep(e.key)) {
+			e.cb();
+		}
+	}
+
+	for (const e of scene.events.keyRelease) {
+		if (keyIsReleased(e.key)) {
+			e.cb();
+		}
+	}
+
+	for (const e of scene.events.mouseDown) {
+		if (mouseIsDown()) {
+			e.cb();
+		}
+	}
+
+	for (const e of scene.events.mouseClick) {
+		if (mouseIsClicked()) {
+			e.cb();
+		}
+	}
+
+	for (const e of scene.events.mouseRelease) {
+		if (mouseIsReleased()) {
+			e.cb();
+		}
+	}
+
+	// update timers
+	for (const id in scene.timers) {
+		const t = scene.timers[id];
+		t.time -= dt();
+		if (t.time <= 0) {
+			t.cb();
+			delete scene.timers[id];
+		}
+	}
+
+	// objs
+	for (const id in scene.objs) {
+
+		const obj = scene.objs[id];
+
+		if (!obj) {
+			continue;
+		}
+
+		// update obj
+		if (!obj.paused) {
+
+			obj.trigger("update");
+
+			for (const e of scene.events.update) {
+				if (obj.is(e.tag)) {
+					e.cb(obj);
+				}
+			}
+
+		}
+
+		pushTransform();
+		pushTranslate(scene.camera.pos);
+
+		// draw obj
+		if (!obj.hidden) {
+
+			obj.trigger("draw");
+
+			for (const e of scene.events.draw) {
+				if (obj.is(e.tag)) {
+					e.cb(obj);
+				}
+			}
+
+		}
+
+		popTransform();
+
+	}
+
+	for (const f of scene.action) {
+		f();
+	}
+
+	for (const f of scene.render) {
+		f();
+	}
+
+	gfxFrameEnd();
+
+	for (const k in app.keyStates) {
+		app.keyStates[k] = processBtnState(app.keyStates[k]);
+	}
+
+	app.mouseState = processBtnState(app.mouseState);
+
+}
+
 // TODO: on screen error message?
 // start the game with a scene
 function start(name) {
@@ -1831,126 +1963,134 @@ function start(name) {
 			app.dt = t / 1000 - app.time;
 			app.time += app.dt;
 
-			gfxFrameStart();
-
-			const scene = game.scenes[game.curScene];
-
-			if (!scene) {
-				console.error(`scene not found: '${game.curScene}'`);
-				return;
-			}
-
-			// TODO: repetitive
-			// run input checks & callbacks
-			for (const e of scene.events.keyDown) {
-				if (keyIsDown(e.key)) {
-					e.cb();
+			if (game.paused) {
+				if (typeof(game.pauseAction) === "function") {
+					game.pauseAction();
 				}
-			}
+			} else {
 
-			for (const e of scene.events.keyPress) {
-				if (keyIsPressed(e.key)) {
-					e.cb();
-				}
-			}
+				gfxFrameStart();
 
-			for (const e of scene.events.keyPressRep) {
-				if (keyIsPressedRep(e.key)) {
-					e.cb();
-				}
-			}
+				const scene = game.scenes[game.curScene];
 
-			for (const e of scene.events.keyRelease) {
-				if (keyIsReleased(e.key)) {
-					e.cb();
-				}
-			}
-
-			for (const e of scene.events.mouseDown) {
-				if (mouseIsDown()) {
-					e.cb();
-				}
-			}
-
-			for (const e of scene.events.mouseClick) {
-				if (mouseIsClicked()) {
-					e.cb();
-				}
-			}
-
-			for (const e of scene.events.mouseRelease) {
-				if (mouseIsReleased()) {
-					e.cb();
-				}
-			}
-
-			// update timers
-			for (const id in scene.timers) {
-				const t = scene.timers[id];
-				t.time -= dt();
-				if (t.time <= 0) {
-					t.cb();
-					delete scene.timers[id];
-				}
-			}
-
-			// objs
-			for (const id in scene.objs) {
-
-				const obj = scene.objs[id];
-
-				if (!obj) {
-					continue;
+				if (!scene) {
+					console.error(`scene not found: '${game.curScene}'`);
+					return;
 				}
 
-				// update obj
-				if (!obj.paused) {
+				// TODO: repetitive
+				// run input checks & callbacks
+				for (const e of scene.events.keyDown) {
+					if (keyIsDown(e.key)) {
+						e.cb();
+					}
+				}
 
-					obj.trigger("update");
+				for (const e of scene.events.keyPress) {
+					if (keyIsPressed(e.key)) {
+						e.cb();
+					}
+				}
 
-					for (const e of scene.events.update) {
-						if (obj.is(e.tag)) {
-							e.cb(obj);
-						}
+				for (const e of scene.events.keyPressRep) {
+					if (keyIsPressedRep(e.key)) {
+						e.cb();
+					}
+				}
+
+				for (const e of scene.events.keyRelease) {
+					if (keyIsReleased(e.key)) {
+						e.cb();
+					}
+				}
+
+				for (const e of scene.events.mouseDown) {
+					if (mouseIsDown()) {
+						e.cb();
+					}
+				}
+
+				for (const e of scene.events.mouseClick) {
+					if (mouseIsClicked()) {
+						e.cb();
+					}
+				}
+
+				for (const e of scene.events.mouseRelease) {
+					if (mouseIsReleased()) {
+						e.cb();
+					}
+				}
+
+				// update timers
+				for (const id in scene.timers) {
+					const t = scene.timers[id];
+					t.time -= dt();
+					if (t.time <= 0) {
+						t.cb();
+						delete scene.timers[id];
+					}
+				}
+
+				// objs
+				for (const id in scene.objs) {
+
+					const obj = scene.objs[id];
+
+					if (!obj) {
+						continue;
 					}
 
-				}
+					// update obj
+					if (!obj.paused) {
 
-				pushTransform();
-				pushTranslate(scene.camera);
+						obj.trigger("update");
 
-				// draw obj
-				if (!obj.hidden) {
-
-					obj.trigger("draw");
-
-					for (const e of scene.events.draw) {
-						if (obj.is(e.tag)) {
-							e.cb(obj);
+						for (const e of scene.events.update) {
+							if (obj.is(e.tag)) {
+								e.cb(obj);
+							}
 						}
+
 					}
 
+					pushTransform();
+					pushTranslate(scene.camera.pos);
+
+					// draw obj
+					if (!obj.hidden) {
+
+						obj.trigger("draw");
+
+						for (const e of scene.events.draw) {
+							if (obj.is(e.tag)) {
+								e.cb(obj);
+							}
+						}
+
+					}
+
+					popTransform();
+
 				}
 
-				popTransform();
+				for (const f of scene.action) {
+					f();
+				}
+
+				for (const f of scene.render) {
+					f();
+				}
+
+				gfxFrameEnd();
+
+				for (const k in app.keyStates) {
+					app.keyStates[k] = processBtnState(app.keyStates[k]);
+				}
+
+				app.mouseState = processBtnState(app.mouseState);
 
 			}
-
-			for (const f of scene.action) {
-				f();
-			}
-
-			for (const f of scene.render) {
-				f();
-			}
-
-			gfxFrameEnd();
-
-			for (const k in app.keyStates) {
-				app.keyStates[k] = processBtnState(app.keyStates[k]);
-			}
-
-			app.mouseState = processBtnState(app.mouseState);
 
 		}
 
@@ -2102,7 +2242,7 @@ function area(p1, p2) {
 					bh += ftxt.height;
 				};
 
-				for (const tag of this.tags) {
+				for (const tag of this._tags) {
 					addLine(`"${tag}"`);
 				}
 
@@ -2320,6 +2460,7 @@ function sprite(id) {
 
 		},
 
+		// TODO: don't have this if no anim
 		update() {
 
 			if (!this.curAnim) {
@@ -2460,6 +2601,16 @@ function objCount() {
 	return Object.keys(scene.objs).length;
 }
 
+function pause(action) {
+	game.paused = true;
+	game.pauseAction = action;
+}
+
+function unpause() {
+	game.paused = false;
+	game.pauseAction = undefined;
+}
+
 function error(msg) {
 	console.log(msg);
 }
@@ -2489,7 +2640,7 @@ k.go = go;
 
 // misc
 k.layers = layers;
-k.camera = camera;
+k.campos = campos;
 
 // obj
 k.add = add;
@@ -2568,6 +2719,8 @@ k.drawCircle = drawCircle;
 // debug
 k.objCount = objCount;
 k.fps = fps;
+k.pause = pause;
+k.unpause = unpause;
 
 // make every function global
 k.import = () => {

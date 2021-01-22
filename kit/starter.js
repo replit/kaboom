@@ -2,15 +2,15 @@
 
 const k = kaboom;
 
-function addSprite() {
+function addSprite(id, conf = {}) {
 	// ...
 }
 
-function addText() {
+function addText(txt, conf = {}) {
 	// ...
 }
 
-function addRect() {
+function addRect(w, h, conf = {}) {
 	// ...
 }
 
