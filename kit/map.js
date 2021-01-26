@@ -1,5 +1,9 @@
 (() => {
 
+if (!kaboom) {
+	console.error("oh no kaboom not found!");
+}
+
 const k = kaboom;
 
 function addMap(arr, conf = {}) {

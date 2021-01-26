@@ -1,6 +1,11 @@
 (() => {
 
+if (!kaboom) {
+	console.error("oh no kaboom not found!");
+}
+
 const k = kaboom;
+
 const world = {
 	gravity: 980,
 };

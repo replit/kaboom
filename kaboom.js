@@ -2246,7 +2246,7 @@ function area(p1, p2) {
 					addLine(`"${tag}"`);
 				}
 
-				for (const debugInfo of this.events.debugInfo) {
+				for (const debugInfo of this._events.debugInfo) {
 
 					const info = debugInfo();
 
@@ -2315,18 +2315,22 @@ function area(p1, p2) {
 
 			const targets = [];
 
-			every((o) => {
+			every((other) => {
 
-				if (!o.solid) {
+				if (!other.solid) {
 					return;
 				}
 
-				if (!o.area) {
+				if (!other.area) {
+					return;
+				}
+
+				if (this.layer !== other.layer) {
 					return;
 				}
 
 				const a1 = this._worldArea();
-				const a2 = o._worldArea();
+				const a2 = other._worldArea();
 
 				if (!colRectRect(a1, a2)) {
 					return;
@@ -2364,7 +2368,7 @@ function area(p1, p2) {
 				}
 
 				targets.push({
-					obj: o,
+					obj: other,
 					side: side,
 				});
 
@@ -2405,6 +2409,10 @@ function area(p1, p2) {
 		isCollided(other) {
 
 			if (!other.area) {
+				return false;
+			}
+
+			if (this.layer !== other.layer) {
 				return false;
 			}
 

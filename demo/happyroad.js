@@ -10,6 +10,8 @@ loadSprite("pineapple", "pineapple.png");
 loadSprite("goo", "goo.png");
 
 init({
+	width: 160,
+	height: 120,
 	scale: 4,
 });
 
@@ -51,7 +53,7 @@ scene("main", () => {
 		"road",
 	]);
 
-	onUpdate("road", (r) => {
+	action("road", (r) => {
 		r.move(-speed * speedMod, 0);
 		if (r.pos.x <= -width() * 2) {
 			r.pos.x += width() * 4;
@@ -88,7 +90,7 @@ scene("main", () => {
 		]);
 	});
 
-	onUpdate("obj", (o) => {
+	action("obj", (o) => {
 		o.move(-speed * speedMod, 0);
 		if (o.pos.x <= -width()) {
 			destroy(o);
@@ -96,17 +98,17 @@ scene("main", () => {
 	});
 
 	// collision resolution
-	car.onCollide("apple", (a) => {
+	car.collides("apple", (a) => {
 		destroy(a);
 		happiness.value += 50;
 	});
 
-	car.onCollide("pineapple", (a) => {
+	car.collides("pineapple", (a) => {
 		destroy(a);
 		happiness.value += 100;
 	});
 
-	car.onCollide("goo", (a) => {
+	car.collides("goo", (a) => {
 		car.color = rgb(0.5, 0.5, 1);
 	});
 
@@ -121,7 +123,7 @@ scene("main", () => {
 		},
 	]);
 
-	happiness.onUpdate(() => {
+	happiness.action(() => {
 		if (speedMod < 1) {
 			happiness.value -= 2;
 		} else if (speedMod > 1) {
