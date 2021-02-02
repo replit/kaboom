@@ -13,6 +13,7 @@ function genericComps(conf = {}) {
 		rotate(conf.rotate || 0),
 		layer(conf.layer || undefined),
 		solid(conf.solid || false),
+		...conf.tags,
 	];
 }
 

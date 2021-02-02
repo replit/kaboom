@@ -7,7 +7,9 @@ const port = process.env.PORT || 8000;
 
 const mimes = {
 	".js": "text/javascript",
+	".json": "application/json",
 	".png": "image/png",
+	".pix": "application/json",
 	".ogg": "audio/ogg",
 };
 
@@ -42,23 +44,40 @@ const template = `
 
 `;
 
-const server = http.createServer((req, res) => {
+const server = http.createServer();
+
+server.on("request", async (req, res) => {
 
 	if (req.url === "/") {
 
 		res.setHeader("Content-Type", "text/html; charset=utf-8");
 		res.writeHead(200);
 
-		const dir = fs.readdirSync(".");
-		const includeStr = [];
+		const codeDir = fs.readdirSync("code");
+		const spritesDir = fs.readdirSync("sprites");
+		const soundsDir = fs.readdirSync("sounds");
+		let includeStr = "";
 
-		for (let file of dir) {
-			if (path.extname(file) === ".js" && file !== "index.js") {
-				includeStr.push(`<script src=${file}></script>`);
+		// load assets
+		includeStr += "<script>\n";
+		for (const file of spritesDir) {
+			const name = path.basename(file, path.extname(file));
+			includeStr += `loadSprite("${name}", "sprites/${file}");\n`;
+		}
+		for (const file of soundsDir) {
+			const name = path.basename(file, path.extname(file));
+			includeStr += `loadSound("${name}", "sprites/${file}");\n`;
+		}
+		includeStr += "</script>\n";
+
+		// include code
+		for (const file of codeDir) {
+			if (path.extname(file) === ".js" && `${__dirname}/${file}` !== __filename) {
+				includeStr += `<script src=code/${file}></script>\n`;
 			}
 		}
 
-		const html = template.replace("{{include}}", includeStr.join("\n"));
+		const html = template.replace("{{include}}", includeStr);
 
 		res.end(html);
 
@@ -85,5 +104,6 @@ const server = http.createServer((req, res) => {
 
 });
 
+console.log(`http://localhost:${port}`);
 server.listen(port);
 
