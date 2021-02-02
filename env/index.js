@@ -19,7 +19,7 @@ const template = `
 <html>
 
 <head>
-	<title>game</title>
+	<title>kaboom</title>
 	<meta charset="utf-8">
 	<style>
 		* {
@@ -66,7 +66,7 @@ server.on("request", async (req, res) => {
 		}
 		for (const file of soundsDir) {
 			const name = path.basename(file, path.extname(file));
-			includeStr += `loadSound("${name}", "sprites/${file}");\n`;
+			includeStr += `loadSound("${name}", "sounds/${file}");\n`;
 		}
 		includeStr += "</script>\n";
 
@@ -104,6 +104,5 @@ server.on("request", async (req, res) => {
 
 });
 
-console.log(`http://localhost:${port}`);
 server.listen(port);
 
