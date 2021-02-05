@@ -18,6 +18,12 @@ scene("main", () => {
 	keyDown("left", () => {
 		player.move(-SPEED, 0);
 	});
+	keyPress("p", () => {
+		pause(!paused());
+	});
+	keyPress("s", () => {
+		stepFrame();
+	});
 	keyDown("right", () => {
 		player.move(SPEED, 0);
 	});

@@ -1339,7 +1339,7 @@ const game = {
 	lastLoaderID: 0,
 	loadRoot: "",
 	paused: false,
-	pauseAction: undefined,
+	stepFrame: false,
 	debug: {
 		drawBBox: false,
 		showStats: false,
@@ -1809,131 +1809,6 @@ function destroyAll(t) {
 	});
 }
 
-function gameFrame() {
-
-	gfxFrameStart();
-
-	const scene = game.scenes[game.curScene];
-
-	if (!scene) {
-		console.error(`scene not found: '${game.curScene}'`);
-		return;
-	}
-
-	// TODO: repetitive
-	// run input checks & callbacks
-	for (const e of scene.events.keyDown) {
-		if (keyIsDown(e.key)) {
-			e.cb();
-		}
-	}
-
-	for (const e of scene.events.keyPress) {
-		if (keyIsPressed(e.key)) {
-			e.cb();
-		}
-	}
-
-	for (const e of scene.events.keyPressRep) {
-		if (keyIsPressedRep(e.key)) {
-			e.cb();
-		}
-	}
-
-	for (const e of scene.events.keyRelease) {
-		if (keyIsReleased(e.key)) {
-			e.cb();
-		}
-	}
-
-	for (const e of scene.events.mouseDown) {
-		if (mouseIsDown()) {
-			e.cb();
-		}
-	}
-
-	for (const e of scene.events.mouseClick) {
-		if (mouseIsClicked()) {
-			e.cb();
-		}
-	}
-
-	for (const e of scene.events.mouseRelease) {
-		if (mouseIsReleased()) {
-			e.cb();
-		}
-	}
-
-	// update timers
-	for (const id in scene.timers) {
-		const t = scene.timers[id];
-		t.time -= dt();
-		if (t.time <= 0) {
-			t.cb();
-			delete scene.timers[id];
-		}
-	}
-
-	// objs
-	for (const id in scene.objs) {
-
-		const obj = scene.objs[id];
-
-		if (!obj) {
-			continue;
-		}
-
-		// update obj
-		if (!obj.paused) {
-
-			obj.trigger("update");
-
-			for (const e of scene.events.update) {
-				if (obj.is(e.tag)) {
-					e.cb(obj);
-				}
-			}
-
-		}
-
-		pushTransform();
-		pushTranslate(scene.camera.pos);
-
-		// draw obj
-		if (!obj.hidden) {
-
-			obj.trigger("draw");
-
-			for (const e of scene.events.draw) {
-				if (obj.is(e.tag)) {
-					e.cb(obj);
-				}
-			}
-
-		}
-
-		popTransform();
-
-	}
-
-	for (const f of scene.action) {
-		f();
-	}
-
-	for (const f of scene.render) {
-		f();
-	}
-
-	gfxFrameEnd();
-
-	for (const k in app.keyStates) {
-		app.keyStates[k] = processBtnState(app.keyStates[k]);
-	}
-
-	app.mouseState = processBtnState(app.mouseState);
-
-}
-
 // TODO: on screen error message?
 // start the game with a scene
 function start(name) {
@@ -1965,13 +1840,133 @@ function start(name) {
 			app.dt = realDt * kaboom.debug.timeScale;
 			app.time += app.dt;
 
-			if (game.paused) {
-				if (typeof(game.pauseAction) === "function") {
-					game.pauseAction();
-				}
-			} else {
-				gameFrame();
+			const scene = game.scenes[game.curScene];
+
+			if (!scene) {
+				console.error(`scene not found: '${game.curScene}'`);
+				return;
 			}
+
+			// TODO: repetitive
+			// run input checks & callbacks
+			for (const e of scene.events.keyDown) {
+				if (keyIsDown(e.key)) {
+					e.cb();
+				}
+			}
+
+			for (const e of scene.events.keyPress) {
+				if (keyIsPressed(e.key)) {
+					e.cb();
+				}
+			}
+
+			for (const e of scene.events.keyPressRep) {
+				if (keyIsPressedRep(e.key)) {
+					e.cb();
+				}
+			}
+
+			for (const e of scene.events.keyRelease) {
+				if (keyIsReleased(e.key)) {
+					e.cb();
+				}
+			}
+
+			for (const e of scene.events.mouseDown) {
+				if (mouseIsDown()) {
+					e.cb();
+				}
+			}
+
+			for (const e of scene.events.mouseClick) {
+				if (mouseIsClicked()) {
+					e.cb();
+				}
+			}
+
+			for (const e of scene.events.mouseRelease) {
+				if (mouseIsReleased()) {
+					e.cb();
+				}
+			}
+
+			const doUpdate = game.stepFrame || !game.paused;
+
+			if (doUpdate) {
+				// update timers
+				for (const id in scene.timers) {
+					const t = scene.timers[id];
+					t.time -= dt();
+					if (t.time <= 0) {
+						t.cb();
+						delete scene.timers[id];
+					}
+				}
+			}
+
+			gfxFrameStart();
+
+			// objs
+			for (const id in scene.objs) {
+
+				const obj = scene.objs[id];
+
+				if (!obj) {
+					continue;
+				}
+
+				// update obj
+				if (!obj.paused && doUpdate) {
+
+					obj.trigger("update");
+
+					for (const e of scene.events.update) {
+						if (obj.is(e.tag)) {
+							e.cb(obj);
+						}
+					}
+
+				}
+
+				pushTransform();
+				pushTranslate(scene.camera.pos);
+
+				// draw obj
+				if (!obj.hidden) {
+
+					obj.trigger("draw");
+
+					for (const e of scene.events.draw) {
+						if (obj.is(e.tag)) {
+							e.cb(obj);
+						}
+					}
+
+				}
+
+				popTransform();
+
+			}
+
+			if (doUpdate) {
+				for (const f of scene.action) {
+					f();
+				}
+			}
+
+			for (const f of scene.render) {
+				f();
+			}
+
+			gfxFrameEnd();
+
+			for (const k in app.keyStates) {
+				app.keyStates[k] = processBtnState(app.keyStates[k]);
+			}
+
+			app.mouseState = processBtnState(app.mouseState);
+			game.stepFrame = false;
 
 		}
 
@@ -2490,22 +2485,20 @@ function objCount() {
 	return Object.keys(scene.objs).length;
 }
 
-function pause(action) {
-	game.paused = true;
-	game.pauseAction = action;
+function pause(b) {
+	game.paused = b === undefined ? true : b;
 }
 
-function unpause() {
-	game.paused = false;
-	game.pauseAction = undefined;
+function paused() {
+	return game.paused;
+}
+
+function stepFrame() {
+	game.stepFrame = true;
 }
 
 function error(msg) {
 	console.log(msg);
-}
-
-function stepFrame() {
-	gameFrame();
 }
 
 function log(msg) {
@@ -2613,7 +2606,7 @@ k.drawCircle = drawCircle;
 k.objCount = objCount;
 k.fps = fps;
 k.pause = pause;
-k.unpause = unpause;
+k.paused = paused;
 k.stepFrame = stepFrame;
 
 // make every function global
