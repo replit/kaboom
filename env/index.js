@@ -41,7 +41,6 @@ const template = `
 	</body>
 
 </html>
-
 `;
 
 const server = http.createServer();
@@ -73,7 +72,7 @@ server.on("request", async (req, res) => {
 		// include code
 		for (const file of codeDir) {
 			if (path.extname(file) === ".js" && `${__dirname}/${file}` !== __filename) {
-				includeStr += `<script src=code/${file}></script>\n`;
+				includeStr += `<script src=scenes/${file}></script>\n`;
 			}
 		}
 

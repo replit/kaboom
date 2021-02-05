@@ -1,14 +1,14 @@
 // kaboom.js
-// v0.3.0
 
 (() => {
 
 const k = {};
 
 k.debug = {
+	timeScale: 1,
 	showArea: false,
 	showLog: false,
-	showInfo: false,
+	hoverInfo: false,
 };
 
 // --------------------------------
@@ -72,6 +72,7 @@ const app = {
 	mouseState: "up",
 	mousePos: vec2(0, 0),
 	time: 0.0,
+	realTime: 0.0,
 	dt: 0.0,
 	scale: 1,
 };
@@ -1269,8 +1270,8 @@ function mat4(m) {
 }
 
 // easy sine wave
-function wave(a, b, t = 1) {
-	return a + (Math.sin(time() * t) + 1) / 2 * (b - a);
+function wave(a, b, t = 1, off = 0) {
+	return a + (Math.sin(time() * t + off) + 1) / 2 * (b - a);
 }
 
 const A = 1103515245;
@@ -1808,10 +1809,7 @@ function destroyAll(t) {
 	});
 }
 
-function frame() {
-
-	app.dt = t / 1000 - app.time;
-	app.time += app.dt;
+function gameFrame() {
 
 	gfxFrameStart();
 
@@ -1960,7 +1958,11 @@ function start(name) {
 
 		} else {
 
-			app.dt = t / 1000 - app.time;
+			const realTime = t / 1000;
+			const realDt = realTime - app.realTime;
+
+			app.realTime = realTime;
+			app.dt = realDt * kaboom.debug.timeScale;
 			app.time += app.dt;
 
 			if (game.paused) {
@@ -1968,128 +1970,7 @@ function start(name) {
 					game.pauseAction();
 				}
 			} else {
-
-				gfxFrameStart();
-
-				const scene = game.scenes[game.curScene];
-
-				if (!scene) {
-					console.error(`scene not found: '${game.curScene}'`);
-					return;
-				}
-
-				// TODO: repetitive
-				// run input checks & callbacks
-				for (const e of scene.events.keyDown) {
-					if (keyIsDown(e.key)) {
-						e.cb();
-					}
-				}
-
-				for (const e of scene.events.keyPress) {
-					if (keyIsPressed(e.key)) {
-						e.cb();
-					}
-				}
-
-				for (const e of scene.events.keyPressRep) {
-					if (keyIsPressedRep(e.key)) {
-						e.cb();
-					}
-				}
-
-				for (const e of scene.events.keyRelease) {
-					if (keyIsReleased(e.key)) {
-						e.cb();
-					}
-				}
-
-				for (const e of scene.events.mouseDown) {
-					if (mouseIsDown()) {
-						e.cb();
-					}
-				}
-
-				for (const e of scene.events.mouseClick) {
-					if (mouseIsClicked()) {
-						e.cb();
-					}
-				}
-
-				for (const e of scene.events.mouseRelease) {
-					if (mouseIsReleased()) {
-						e.cb();
-					}
-				}
-
-				// update timers
-				for (const id in scene.timers) {
-					const t = scene.timers[id];
-					t.time -= dt();
-					if (t.time <= 0) {
-						t.cb();
-						delete scene.timers[id];
-					}
-				}
-
-				// objs
-				for (const id in scene.objs) {
-
-					const obj = scene.objs[id];
-
-					if (!obj) {
-						continue;
-					}
-
-					// update obj
-					if (!obj.paused) {
-
-						obj.trigger("update");
-
-						for (const e of scene.events.update) {
-							if (obj.is(e.tag)) {
-								e.cb(obj);
-							}
-						}
-
-					}
-
-					pushTransform();
-					pushTranslate(scene.camera.pos);
-
-					// draw obj
-					if (!obj.hidden) {
-
-						obj.trigger("draw");
-
-						for (const e of scene.events.draw) {
-							if (obj.is(e.tag)) {
-								e.cb(obj);
-							}
-						}
-
-					}
-
-					popTransform();
-
-				}
-
-				for (const f of scene.action) {
-					f();
-				}
-
-				for (const f of scene.render) {
-					f();
-				}
-
-				gfxFrameEnd();
-
-				for (const k in app.keyStates) {
-					app.keyStates[k] = processBtnState(app.keyStates[k]);
-				}
-
-				app.mouseState = processBtnState(app.mouseState);
-
+				gameFrame();
 			}
 
 		}
@@ -2198,7 +2079,7 @@ function area(p1, p2) {
 		draw() {
 
 			const showArea = k.debug.showArea;
-			const showInfo = k.debug.showInfo;
+			const hoverInfo = k.debug.hoverInfo;
 
 			if (!showArea) {
 				return;
@@ -2208,7 +2089,7 @@ function area(p1, p2) {
 			const color = showArea.color || rgba(0, 1, 1, 1);
 			const hovered = this.isHovered();
 
-			if (showInfo && hovered) {
+			if (hoverInfo && hovered) {
 				width += 2;
 			}
 
@@ -2223,7 +2104,7 @@ function area(p1, p2) {
 				z: 0.9,
 			});
 
-			if (showInfo && hovered) {
+			if (hoverInfo && hovered) {
 
 				const padding = vec2(6, 6).scale(1 / app.scale);
 				let bw = 0;
@@ -2623,6 +2504,10 @@ function error(msg) {
 	console.log(msg);
 }
 
+function stepFrame() {
+	gameFrame();
+}
+
 function log(msg) {
 	console.log(msg);
 }
@@ -2729,6 +2614,7 @@ k.objCount = objCount;
 k.fps = fps;
 k.pause = pause;
 k.unpause = unpause;
+k.stepFrame = stepFrame;
 
 // make every function global
 k.import = () => {
