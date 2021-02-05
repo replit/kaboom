@@ -1339,7 +1339,6 @@ const game = {
 	lastLoaderID: 0,
 	loadRoot: "",
 	paused: false,
-	stepFrame: false,
 	debug: {
 		drawBBox: false,
 		showStats: false,
@@ -1809,6 +1808,87 @@ function destroyAll(t) {
 	});
 }
 
+function gameFrame(ignorePause) {
+
+	const scene = game.scenes[game.curScene];
+
+	if (!scene) {
+		console.error(`scene not found: '${game.curScene}'`);
+		return;
+	}
+
+	const doUpdate = ignorePause || !game.paused;
+
+	if (doUpdate) {
+		// update timers
+		for (const id in scene.timers) {
+			const t = scene.timers[id];
+			t.time -= dt();
+			if (t.time <= 0) {
+				t.cb();
+				delete scene.timers[id];
+			}
+		}
+	}
+
+	gfxFrameStart();
+
+	// objs
+	for (const id in scene.objs) {
+
+		const obj = scene.objs[id];
+
+		if (!obj) {
+			continue;
+		}
+
+		// update obj
+		if (!obj.paused && doUpdate) {
+
+			obj.trigger("update");
+
+			for (const e of scene.events.update) {
+				if (obj.is(e.tag)) {
+					e.cb(obj);
+				}
+			}
+
+		}
+
+		pushTransform();
+		pushTranslate(scene.camera.pos);
+
+		// draw obj
+		if (!obj.hidden) {
+
+			obj.trigger("draw");
+
+			for (const e of scene.events.draw) {
+				if (obj.is(e.tag)) {
+					e.cb(obj);
+				}
+			}
+
+		}
+
+		popTransform();
+
+	}
+
+	if (doUpdate) {
+		for (const f of scene.action) {
+			f();
+		}
+	}
+
+	for (const f of scene.render) {
+		f();
+	}
+
+	gfxFrameEnd();
+
+}
+
 // TODO: on screen error message?
 // start the game with a scene
 function start(name) {
@@ -1891,82 +1971,13 @@ function start(name) {
 				}
 			}
 
-			const doUpdate = game.stepFrame || !game.paused;
-
-			if (doUpdate) {
-				// update timers
-				for (const id in scene.timers) {
-					const t = scene.timers[id];
-					t.time -= dt();
-					if (t.time <= 0) {
-						t.cb();
-						delete scene.timers[id];
-					}
-				}
-			}
-
-			gfxFrameStart();
-
-			// objs
-			for (const id in scene.objs) {
-
-				const obj = scene.objs[id];
-
-				if (!obj) {
-					continue;
-				}
-
-				// update obj
-				if (!obj.paused && doUpdate) {
-
-					obj.trigger("update");
-
-					for (const e of scene.events.update) {
-						if (obj.is(e.tag)) {
-							e.cb(obj);
-						}
-					}
-
-				}
-
-				pushTransform();
-				pushTranslate(scene.camera.pos);
-
-				// draw obj
-				if (!obj.hidden) {
-
-					obj.trigger("draw");
-
-					for (const e of scene.events.draw) {
-						if (obj.is(e.tag)) {
-							e.cb(obj);
-						}
-					}
-
-				}
-
-				popTransform();
-
-			}
-
-			if (doUpdate) {
-				for (const f of scene.action) {
-					f();
-				}
-			}
-
-			for (const f of scene.render) {
-				f();
-			}
-
-			gfxFrameEnd();
+			gameFrame();
 
 			for (const k in app.keyStates) {
 				app.keyStates[k] = processBtnState(app.keyStates[k]);
 			}
 
 			app.mouseState = processBtnState(app.mouseState);
-			game.stepFrame = false;
 
 		}
 
@@ -2494,7 +2505,7 @@ function paused() {
 }
 
 function stepFrame() {
-	game.stepFrame = true;
+	gameFrame(true);
 }
 
 function error(msg) {
