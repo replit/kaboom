@@ -2349,8 +2349,8 @@ function area(p1, p2) {
 			const offset = origin.dot(vec2(w, h).scale(-0.5));
 
 			return {
-				p1: pos.add(a.p1).add(offset),
-				p2: pos.add(a.p2).add(offset),
+				p1: pos.add(a.p1.scale(scale.x)).add(offset),
+				p2: pos.add(a.p2.scale(scale.y)).add(offset),
 			};
 
 		},
