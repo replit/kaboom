@@ -1,5 +1,7 @@
 // kaboom.js
 
+// TODO: no global state?
+
 (() => {
 
 const k = {};
@@ -579,14 +581,14 @@ function drawRaw(verts, indices, tex = gfx.defTex) {
 function drawQuad(conf = {}) {
 
 	// conf: {
-	//     pos,
-	//     width,
-	//     height,
-	//     scale,
-	//     rot,
-	//     origin,
-	//     tex,
-	//     quad,
+	//	   pos,
+	//	   width,
+	//	   height,
+	//	   scale,
+	//	   rot,
+	//	   origin,
+	//	   tex,
+	//	   quad,
 	// }
 
 	const w = conf.width || 0;
@@ -838,9 +840,10 @@ function loadSound(name, src, conf = {}) {
 				});
 			})
 			.catch((err) => {
-				console.error(`failed to load audio: ${name}`);
+				console.error(`failed to load sound '${name}' from '${src}'`);
 				loadComplete(lid);
-			});
+			})
+			;
 	}
 }
 
@@ -1363,48 +1366,107 @@ function loadRoot(path) {
 	}
 }
 
+function isURL(string) {
+
+	let url;
+
+	try {
+		url = new URL(string);
+	} catch (_) {
+		return false;
+	}
+
+	return url.protocol === "http:" || url.protocol === "https:";
+
+}
+
 // TODO: put this in gfx module?
 // load a sprite to asset manager
+// src can be:
+// 1. everything that can be directly fed to texImage2D()
+// 2. string urls that need some work to be fed to texImage2D()
 function loadSprite(name, src, conf = {}) {
 
 	// TODO: just assign the .tex field
 	if (typeof(src) === "string") {
-		const lid = newLoader();
-		const img = loadImg(game.loadRoot + src);
-		img.onload = () => {
-			loadSprite(name, img, conf);
-			loadComplete(lid);
-		};
-		img.onerror = () => {
-			console.error(`failed to load image: ${name}`);
-			loadComplete(lid);
-		};
+
+		if (src.match(/\.kbmsprite$/)) {
+
+			// from replit kaboom workspace sprite editor
+			const lid = newLoader();
+
+			fetch(game.loadRoot + src)
+				.then((res) => {
+					return res.json();
+				})
+				.then((data) => {
+
+					// TODO: support multiple frames and anims
+					const frames = data.frames;
+					const img = new ImageData(
+						new Uint8ClampedArray(frames[0].pixels),
+						frames[0].width,
+						frames[0].height
+					);
+
+					loadSprite(name, img, conf);
+					loadComplete(lid);
+
+				})
+				.catch(() => {
+					console.error(`failed to load sprite '${name}' from '${src}'`);
+				})
+				;
+
+		} else {
+
+			// any other url
+			const lid = newLoader();
+			const img = loadImg(game.loadRoot + src);
+
+			img.onload = () => {
+				loadSprite(name, img, conf);
+				loadComplete(lid);
+			};
+
+			img.onerror = () => {
+				console.error(`failed to load sprite '${name}' from '${src}'`);
+				loadComplete(lid);
+			};
+
+		}
+
 		return;
+
 	}
 
 	if (conf.aseSpriteSheet) {
+
 		const lid = newLoader();
-		fetch(game.loadRoot + conf.aseSpriteSheet).then((res) => {
-			return res.json();
-		}).then((data) => {
-			const size = data.meta.size;
-			game.sprites[name].frames = data.frames.map((f) => {
-				return quad(
-					f.frame.x / size.w,
-					f.frame.y / size.h,
-					f.frame.w / size.w,
-					f.frame.h / size.h,
-				);
+
+		fetch(game.loadRoot + conf.aseSpriteSheet)
+			.then((res) => {
+				return res.json();
+			})
+			.then((data) => {
+				const size = data.meta.size;
+				game.sprites[name].frames = data.frames.map((f) => {
+					return quad(
+						f.frame.x / size.w,
+						f.frame.y / size.h,
+						f.frame.w / size.w,
+						f.frame.h / size.h,
+					);
+				});
+				for (const anim of data.meta.frameTags) {
+					game.sprites[name].anims[anim.name] = {
+						from: anim.from,
+						to: anim.to,
+						dir: anim.direction,
+					};
+				}
+				loadComplete(lid);
 			});
-			for (const anim of data.meta.frameTags) {
-				game.sprites[name].anims[anim.name] = {
-					from: anim.from,
-					to: anim.to,
-					dir: anim.direction,
-				};
-			}
-			loadComplete(lid);
-		});
 	}
 
 	game.sprites[name] = {
@@ -1462,12 +1524,12 @@ function scene(name, cb) {
 // switch to a scene
 function go(name, ...args) {
 	reload(name);
+	game.curScene = name;
 	const scene = game.scenes[name];
 	if (!scene) {
-		console.error(`scene not found: ${name}`);
+		console.error(`scene not found: '${name}'`);
 		return;
 	}
-	game.curScene = name;
 	if (!scene.initialized) {
 		scene.init(...args);
 		scene.initialized = true;
@@ -1477,7 +1539,7 @@ function go(name, ...args) {
 // reload a scene, reset all objs to their init states
 function reload(name) {
 	if (!game.scenes[name]) {
-		console.error(`scene not found: ${name}`);
+		console.error(`scene not found: '${name}'`);
 		return;
 	}
 	scene(name, game.scenes[name].init);
@@ -2432,7 +2494,7 @@ function text(t, size) {
 			const ftext = fmtText(this.text + "", {
 				pos: this.pos,
 				scale: this.scale,
-				rot: this.rot,
+				rot: this.rotate,
 				size: this.textSize,
 				origin: this.origin,
 				color: this.color,
@@ -2463,7 +2525,7 @@ function rect(w, h) {
 
 			drawRect(this.pos, this.width, this.height, {
 				scale: this.scale,
-				rot: this.rot,
+				rot: this.rotate,
 				color: this.color,
 				origin: this.origin,
 				z: scene.layers[this.layer],
