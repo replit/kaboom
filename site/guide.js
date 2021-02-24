@@ -1,6 +1,5 @@
 // guide page
 
-const fs = require("fs");
 const dofile = require("./dofile");
 const www = dofile("./www");
 const styles = dofile("./styles");
@@ -434,14 +433,14 @@ const page = t("html", {}, [
 		t("meta", { charset: "utf-8", }),
 		t("style", {}, www.style(styles)),
 		t("style", {}, www.style(styles2)),
-		t("style", {}, fs.readFileSync(`${__dirname}/lib/highlight.css`, "utf-8")),
-		t("script", {}, fs.readFileSync(`${__dirname}/lib/highlight.js`, "utf-8")),
+		t("link", { rel: "stylesheet", href: "/pub/lib/highlight.css", }),
+		t("script", { src: "/pub/lib/highlight.js", }, ""),
 		t("script", {}, "hljs.initHighlightingOnLoad();"),
 		t("script", {}, "hljs.configure({tabReplace: \"    \"});"),
 	]),
 	t("body", {}, [
 		t("div", { id: "main", }, [
-			t("img", { id: "logo", src: "data:image/png;base64," + fs.readFileSync(`${__dirname}/res/kaboom.png`, "base64") }),
+			t("img", { id: "logo", src: "/pub/img/kaboom.svg", }),
 			...guide,
 		]),
 	]),

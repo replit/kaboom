@@ -1,6 +1,5 @@
 // reference page
 
-const fs = require("fs");
 const dofile = require("./dofile");
 const www = dofile("./www");
 const api = dofile("./api");
@@ -155,15 +154,16 @@ const page = t("html", {}, [
 		t("meta", { charset: "utf-8", }),
 		t("style", {}, www.style(styles)),
 		t("style", {}, www.style(styles2)),
-		t("style", {}, fs.readFileSync(`${__dirname}/lib/highlight.css`, "utf-8")),
-		t("script", {}, fs.readFileSync(`${__dirname}/lib/highlight.js`, "utf-8")),
+		t("link", { rel: "stylesheet", href: "/pub/lib/highlight.css", }),
+		t("script", { src: "/pub/lib/highlight.js", }, ""),
+		t("script", { src: "/pub/js/main.js", }, ""),
 		t("script", {}, "hljs.initHighlightingOnLoad();"),
 		t("script", {}, "hljs.configure({tabReplace: \"    \"});"),
 	]),
 	t("body", {}, [
 		t("div", { id: "main", }, [
 			t("div", { id: "sidebar", class: "panel", }, [
-				t("img", { id: "logo", src: "data:image/png;base64," + fs.readFileSync(`${__dirname}/res/kaboom.png`, "base64") }),
+				t("img", { id: "logo", src: "/pub/img/kaboom.svg", }),
 				t("a", { class: "link", href: "/guide", }, "guide"),
 // 				t("a", { class: "link", href: "https://github.com/replit/kaboom", }, "github"),
 // 				t("a", { class: "link", href: "https://raw.githubusercontent.com/replit/kaboom/master/kaboom.js", }, "download"),

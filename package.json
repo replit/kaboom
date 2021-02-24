@@ -1,7 +1,7 @@
 {
 	"name": "@replit/kaboom",
 	"description": "kaboom.js is a JavaScript library that helps you make games fast and fun!",
-	"version": "0.3.0",
+	"version": "0.0.0",
 	"homepage": "https://doc.gameenv.repl.co/",
 	"repository": "github:replit/kaboom",
 	"keywords": [
@@ -13,7 +13,7 @@
 		"kit/*.js"
 	],
 	"scripts": {
-		"demo": "python3 -m http.server",
-		"site": "node site/serve.js"
+		"demo": "node scripts/rundemo.js",
+		"site": "cd site; node ."
 	}
 }

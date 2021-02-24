@@ -25,7 +25,7 @@ function tag(tag, attrs, children) {
 		}
 	}
 
-	if (children) {
+	if (children !== undefined && children !== null) {
 		text += `</${tag}>`;
 	}
 
@@ -33,7 +33,7 @@ function tag(tag, attrs, children) {
 
 }
 
-// sass-like css processor
+// sass-like css preprocessor
 function style(list) {
 
 	let text = "";
