@@ -1,5 +1,6 @@
 // serve http
 
+const fs = require("fs");
 const http = require("http");
 const dofile = require("./dofile");
 const serveFs = require("./serveFs");
@@ -24,6 +25,7 @@ const server = http.createServer((req, res) => {
 				res.setHeader("Content-Type", "text/html; charset=utf-8");
 				res.writeHead(200);
 				res.end(content);
+				return;
 			}
 		}
 
@@ -31,7 +33,20 @@ const server = http.createServer((req, res) => {
 		serveFs("/lib", "lib")(req, res);
 
 		if (req.url === "/libdata") {
-			// ...
+
+			const versions = fs
+				.readdirSync("lib")
+				.filter(p => !p.startsWith("."))
+				;
+
+			res.setHeader("Content-Type", "application/json");
+			res.writeHead(200);
+			res.end(JSON.stringify({
+				versions: versions,
+			}));
+
+			return;
+
 		}
 
 		if (res.finished) {

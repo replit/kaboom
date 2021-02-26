@@ -1,4 +1,4 @@
-// live reload
+// cacheless import
 
 module.exports = function(mod) {
 	delete require.cache[require.resolve(mod)];

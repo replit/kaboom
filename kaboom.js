@@ -1387,6 +1387,10 @@ function isURL(string) {
 // 2. string urls that need some work to be fed to texImage2D()
 function loadSprite(name, src, conf = {}) {
 
+	// sliceX: num,
+	// sliceY: num,
+	// anims: { str: [num, num] }
+
 	// TODO: just assign the .tex field
 	if (typeof(src) === "string") {
 
@@ -1401,15 +1405,27 @@ function loadSprite(name, src, conf = {}) {
 				})
 				.then((data) => {
 
-					// TODO: support multiple frames and anims
 					const frames = data.frames;
+
+					const pixels = frames
+						.map(f => f.pixels)
+						.flat()
+						;
+
+					const w = frames[0].width;
+					const h = frames[0].height;
+
 					const img = new ImageData(
-						new Uint8ClampedArray(frames[0].pixels),
-						frames[0].width,
-						frames[0].height
+						new Uint8ClampedArray(pixels),
+						w,
+						h * frames.length,
 					);
 
-					loadSprite(name, img, conf);
+					loadSprite(name, img, {
+						sliceY: frames.length,
+						anims: conf.anims,
+					});
+
 					loadComplete(lid);
 
 				})
@@ -1440,6 +1456,7 @@ function loadSprite(name, src, conf = {}) {
 
 	}
 
+	// TODO: translate use to generic conf
 	if (conf.aseSpriteSheet) {
 
 		const lid = newLoader();
@@ -1469,12 +1486,28 @@ function loadSprite(name, src, conf = {}) {
 			});
 	}
 
+	const frames = [];
+	const tex = makeTex(src);
+	const sliceX = conf.sliceX || 1;
+	const sliceY = conf.sliceY || 1;
+	const qw = 1 / sliceX;
+	const qh = 1 / sliceY;
+
+	for (let i = 0; i < sliceX; i++) {
+		for (let j = 0; j < sliceY; j++) {
+			frames.push(quad(
+				i * qw,
+				j * qh,
+				qw,
+				qh,
+			));
+		}
+	}
+
 	game.sprites[name] = {
-		tex: makeTex(src),
-		frames: [
-			quad(0, 0, 1, 1),
-		],
-		anims: {},
+		tex: tex,
+		frames: frames,
+		anims: conf.anims || {},
 	};
 
 }

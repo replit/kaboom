@@ -2,10 +2,10 @@
 
 const dofile = require("./dofile");
 const www = dofile("./www");
-const styles = dofile("./styles");
+const gstyle = dofile("./gstyle");
 const t = www.tag;
 
-const styles2 = {
+const styles = {
 	"#main": {
 		"width": "720px",
 		"margin": "64px auto",
@@ -431,8 +431,8 @@ const page = t("html", {}, [
 	t("head", {}, [
 		t("title", {}, "KaBoom.js: Let's Make a Shooter Game!"),
 		t("meta", { charset: "utf-8", }),
+		t("style", {}, www.style(gstyle)),
 		t("style", {}, www.style(styles)),
-		t("style", {}, www.style(styles2)),
 		t("link", { rel: "stylesheet", href: "/pub/lib/highlight.css", }),
 		t("script", { src: "/pub/lib/highlight.js", }, ""),
 		t("script", {}, "hljs.initHighlightingOnLoad();"),

@@ -3,10 +3,10 @@
 const dofile = require("./dofile");
 const www = dofile("./www");
 const api = dofile("./api");
-const styles = dofile("./styles");
+const gstyle = dofile("./gstyle");
 const t = www.tag;
 
-const styles2 = {
+const style = {
 
 	"body": {
 		"background": "#0080ff",
@@ -152,8 +152,8 @@ const page = t("html", {}, [
 	t("head", {}, [
 		t("title", {}, "KaBoom!!!"),
 		t("meta", { charset: "utf-8", }),
-		t("style", {}, www.style(styles)),
-		t("style", {}, www.style(styles2)),
+		t("style", {}, www.style(gstyle)),
+		t("style", {}, www.style(style)),
 		t("link", { rel: "stylesheet", href: "/pub/lib/highlight.css", }),
 		t("script", { src: "/pub/lib/highlight.js", }, ""),
 		t("script", { src: "/pub/js/main.js", }, ""),
