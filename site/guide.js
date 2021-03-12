@@ -79,7 +79,8 @@ const style = {
 			"outline": "none",
 		},
 		"&:active": {
-			"background": "#cccccc",
+			"background": "black",
+			"color": "white",
 		},
 	},
 	"#logo": {
@@ -115,6 +116,29 @@ const style = {
 	},
 	".del": {
 		"background": "rgba(255, 0, 0, 0.05)",
+	},
+	"#mark": {
+		"position": "absolute",
+		"left": "24px",
+		"bottom": "24px",
+		"z-index": "100",
+		"width": "120px",
+		"height": "120px",
+		"image-rendering": "crisp-edges",
+		"image-rendering": "pixelated",
+	},
+	"#bubble": {
+		"position": "absolute",
+		"z-index": "200",
+		"left": "160px",
+		"bottom": "120px",
+		"padding": "12px",
+		"font-size": "24px",
+		"background": "white",
+		"border-radius": "12px",
+		"border": "3px solid black",
+		"white-space": "pre-line",
+		"max-width": "360px",
 	},
 	"@keyframes": {
 		"flash": {
@@ -154,12 +178,16 @@ const page = t("html", {}, [
 				t("button", { onclick: "run()", }, "run"),
 			]),
 			t("div", { class: "subhead", }, [
+				t("label", { for: "liveupdate", }, "live update"),
+				t("input", { id: "liveupdate", name: "liveupdate", type: "checkbox", }),
 			]),
 		]),
 		t("div", { id: "box", }, [
 			t("div", { id: "editor", }, []),
 			t("iframe", { id: "gameview", }, []),
 		]),
+		t("img", { id: "mark", src: "/pub/img/mark.png", }),
+		t("div", { id: "bubble", }, "1231"),
 		t("script", { src: "/pub/js/guide.js", type: "module", }, ""),
 	]),
 ]);

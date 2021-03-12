@@ -79,7 +79,8 @@ const style = {
 			"outline": "none",
 		},
 		"&:active": {
-			"background": "#cccccc",
+			"background": "black",
+			"color": "white",
 		},
 	},
 	"#logo": {

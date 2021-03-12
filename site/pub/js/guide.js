@@ -1,16 +1,36 @@
 import genGame from "./genGame.js";
 
+const liveupdate = document.querySelector("#liveupdate");
 const gameview = document.querySelector("#gameview");
-const totalSteps = 4;
+const bubble = document.querySelector("#bubble");
+const totalSteps = 5;
 let guides = [];
 let curStep = 0;
+let curTalk = 0;
 
 Promise.all(Array(totalSteps).fill().map((_, i) => {
 	return fetch(`/pub/guide/${i}.js`).then((res) => {
 		return res.text();
 	});
 })).then((res) => {
-	guides = res;
+	guides = res.map((doc) => {
+		const lines = doc.split("\n");
+		const talk = [];
+		let i = 0;
+		const talkPrefix = "// TALK: "
+		for (i; i < lines.length; i++) {
+			if (lines[i].startsWith(talkPrefix)) {
+				talk.push(lines[i].replace(talkPrefix, ""));
+			} else if (lines[i].length > 0) {
+				break;
+			}
+		}
+		const code = lines.slice(i).join("\n").trim();
+		return {
+			talk: talk,
+			code: code,
+		};
+	});
 	update();
 });
 
@@ -24,8 +44,18 @@ const editor = CodeMirror(document.querySelector("#editor"), {
 	styleSelectedText: true
 });
 
+editor.on("change", () => {
+	if (liveupdate.checked) {
+		run();
+	}
+});
+
+function updateTalk() {
+	bubble.innerHTML = guides[curStep].talk[curTalk] || "";
+}
+
 function update() {
-	const diffs = Diff.diffLines(guides[curStep - 1] || "", guides[curStep]);
+	const diffs = Diff.diffLines(guides[curStep - 1]?.code || "", guides[curStep].code);
 	const content = diffs
 		.filter(d => !d.removed)
 		.map(d => d.value)
@@ -41,6 +71,7 @@ function update() {
 		}
 	}
 	run();
+	updateTalk();
 }
 
 function run() {
@@ -48,16 +79,29 @@ function run() {
 }
 
 function prev() {
-	if (curStep > 0) {
-		curStep--;
-		update();
+	if (curTalk > 0) {
+		curTalk--;
+		updateTalk();
+	} else {
+		if (curStep > 0) {
+			curStep--;
+			curTalk = guides[curStep].talk.length - 1;
+			update();
+		}
 	}
 }
 
+
 function next() {
-	if (curStep < guides.length - 1) {
-		curStep++;
-		update();
+	if (curTalk < guides[curStep].talk.length - 1) {
+		curTalk++;
+		updateTalk();
+	} else {
+		if (curStep < guides.length - 1) {
+			curStep++;
+			curTalk = 0;
+			update();
+		}
 	}
 }
 

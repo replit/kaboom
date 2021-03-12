@@ -1,12 +1,11 @@
-loadSprite("mark", "/pub/img/mark.png");
+// TALK: then let's create a scene
+// TALK: every thing in kaboom belongs to a scene
+// TALK: a black screen is boring, let's draw something on it!
 
 init();
 
 scene("main", () => {
-	const mark = add([
-		sprite("mark"),
-		pos(100, 100),
-	]);
+	// ...
 });
 
 start("main");
