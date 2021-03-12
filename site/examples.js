@@ -1,4 +1,4 @@
-// guide page
+// examples page
 
 const fs = require("fs");
 const path = require("path");
@@ -132,11 +132,11 @@ const page = t("html", {}, [
 					id: "select",
 					name: "example",
 					value: "hi",
-					onchange: "updateExample()",
+					onchange: "update()",
 				}, fs.readdirSync("./pub/examples").map((file) => {
 					return t("option", { selected: file === "hi.js" }, path.basename(file, ".js"));
 				})),
-				t("button", { id: "run", onclick: "run()", }, "run"),
+				t("button", { onclick: "run()", }, "run"),
 			]),
 			t("div", { class: "subhead", }, [
 				t("label", { for: "liveupdate", }, "live update"),
@@ -147,7 +147,7 @@ const page = t("html", {}, [
 			t("div", { id: "editor", }, []),
 			t("iframe", { id: "gameview", }, []),
 		]),
-		t("script", { src: "/pub/js/examples.js", }, ""),
+		t("script", { src: "/pub/js/examples.js", type: "module", }, ""),
 	]),
 ]);
 

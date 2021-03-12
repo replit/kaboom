@@ -1,6 +1,9 @@
 loadSprite("mark", "/pub/img/mark.png");
 
-init();
+init({
+	fullscreen: true,
+	scale: 2,
+});
 
 scene("main", () => {
 	const mark = add([

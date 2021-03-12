@@ -1,5 +1,7 @@
 // guide page
 
+const fs = require("fs");
+const path = require("path");
 const dofile = require("./dofile");
 const www = dofile("./www");
 const gstyle = dofile("./gstyle");
@@ -9,99 +11,156 @@ const style = {
 	"*": {
 		"margin": "0",
 		"padding": "0",
-		"font-family": "Consolas, Monospace, Courier",
+		"font-family": "Monospace",
 		"box-sizing": "border-box",
 	},
 	"html": {
 		"width": "100%",
+		"height": "100%",
 	},
 	"body": {
 		"width": "100%",
+		"height": "100%",
+		"overflow": "hidden",
 	},
-	".content": {
-		"margin": "64px auto",
-		"width": "640px",
-		"> *": {
-			"margin-bottom": "32px",
-		},
+	"label": {
+		"user-select": "none",
 	},
-	".desc": {
-		"font-size": "20px",
-		"color": "#333333",
-	},
-	".example": {
+	"#head": {
+		"width": "100%",
+		"height": "48px",
+		"background": "rgb(30, 32, 44)",
+		"color": "white",
 		"display": "flex",
-		"flex-direction": "column",
+		"justify-content": "space-between",
+		"align-items": "center",
+		"overflow": "hidden",
+		"padding": "0 12px",
 	},
-	".editor": {
-		"width": "100%",
-	},
-	".CodeMirror": {
-		"width": "100%",
-		"height": "100% !important",
-		"border-top-left-radius": "8px",
-		"border-top-right-radius": "8px",
-	},
-	".runbtn": {
-		"border-radius": "8px",
-		"background": "#dddddd",
-		"font-size": "20px",
-		"color": "#333333",
-		"border": "solid 2px #bbbbbb",
-		"padding": "0 8px",
-		"margin-bottom": "12px",
-		"&:active": {
-			"background": "#cccccc",
+	".subhead": {
+		"height": "100%",
+		"display": "flex",
+		"align-items": "center",
+		":first-child": {
+			"> *": {
+				"margin-right": "12px",
+			}
 		},
+		":last-child": {
+			"> *": {
+				"margin-left": "12px",
+			}
+		},
+	},
+	"input[type=checkbox]": {
+		"width": "16px",
+		"height": "16px",
+	},
+	"select": {
+		"font-size": "20px",
+		"border-radius": "4px",
+		"border": "none",
+		"background": "#ffffff",
+		"padding": "0 8px",
 		"&:focus": {
 			"outline": "none",
 		},
 	},
-	".gameview": {
-		"width": "640px",
-		"height": "640px",
-		"background": "black",
+	"button": {
+		"padding": "0 8px",
 		"border": "none",
-		"border-bottom-left-radius": "8px",
-		"border-bottom-right-radius": "8px",
+		"background": "#ffffff",
+		"border-radius": "4px",
+		"font-size": "20px",
+		"&:hover": {
+			"cursor": "pointer",
+		},
+		"&:focus": {
+			"outline": "none",
+		},
+		"&:active": {
+			"background": "#cccccc",
+		},
 	},
+	"#logo": {
+		"width": "auto",
+		"height": "160%",
+		"> img": {
+			"width": "auto",
+			"height": "100%",
+		},
+	},
+	"#box": {
+		"width": "100%",
+		"height": "calc(100% - 48px)",
+		"display": "flex",
+	},
+	"#editor": {
+		"width": "50%",
+		"height": "100%",
+		"font-size": "24px",
+		"> *": {
+			"width": "100%",
+			"height": "100%",
+		},
+	},
+	"#gameview": {
+		"width": "50%",
+		"height": "100%",
+		"border": "none",
+	},
+	".add": {
+		"background": "rgba(0, 255, 255, 0.1)",
+		"animation": "infinite flash 2s",
+	},
+	".del": {
+		"background": "rgba(255, 0, 0, 0.05)",
+	},
+	"@keyframes": {
+		"flash": {
+			"0%": {
+				"background": "rgba(0, 255, 255, 0.05)",
+			},
+			"50%": {
+				"background": "rgba(0, 255, 255, 0.1)",
+			},
+			"100%": {
+				"background": "rgba(0, 255, 255, 0.05)",
+			},
+		},
+	}
 };
-
-function example(code) {
-	return t("div", {}, [
-		t("button", { class: "runbtn", }, "run"),
-		t("div", { class: "example", }, [
-			t("textarea", { class: "editor", }, code.trim()),
-		]),
-	]);
-}
-
-const guide = [
-	t("p", {}, "Let's learn kaboom!"),
-	example(`
-add([
-	text("ohhimark"),
-	pos(100, 100),
-]);
-	`),
-	t("p", {}, "make stuff move"),
-	example(`
-	`),
-];
 
 const page = t("html", {}, [
 	t("head", {}, [
-		t("title", {}, "KaBoom!!!"),
+		t("title", {}, "KaBoom Examples"),
 		t("meta", { charset: "utf-8", }),
 		t("style", {}, www.style(style)),
 		t("link", { rel: "stylesheet", href: "/pub/lib/codemirror/codemirror.css", }),
 		t("link", { rel: "stylesheet", href: "/pub/lib/codemirror/themes/dracula.css", }),
+		t("script", { src: "/pub/lib/diff.js", }, ""),
 		t("script", { src: "/pub/lib/codemirror/codemirror.js", }, ""),
 		t("script", { src: "/pub/lib/codemirror/modes/javascript.js", }, ""),
+		t("script", { src: "/pub/lib/codemirror/addons/mark-selection.js", }, ""),
 	]),
 	t("body", {}, [
-		t("div", { class: "content", }, guide),
-		t("script", { src: "/pub/js/guide.js", }, ""),
+		t("div", { id: "head", }, [
+			t("div", { class: "subhead", }, [
+				t("a", { href: "/", id: "logo", }, [
+					t("img", { src: "/pub/img/kaboom.svg", }),
+				]),
+				t("button", { onclick: "prev()", }, "prev"),
+				t("button", { onclick: "next()", }, "next"),
+				t("button", { onclick: "run()", }, "run"),
+			]),
+			t("div", { class: "subhead", }, [
+			]),
+		]),
+		t("div", { id: "box", }, [
+			t("div", { id: "editor", }, []),
+			t("iframe", { id: "gameview", }, []),
+		]),
+		t("script", { src: "/pub/js/guide.js", type: "module", }, ""),
 	]),
 ]);
 
