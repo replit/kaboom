@@ -3,7 +3,11 @@
 const fs = require("fs");
 const http = require("http");
 const dofile = require("./dofile");
-const serveFs = require("./serveFs");
+
+const {
+	serveFs,
+} = require("./www");
+
 const port = process.env.PORT || 8000;
 
 const pages = {
@@ -12,6 +16,9 @@ const pages = {
 	},
 	"/guide": () => {
 		return dofile("./guide");
+	},
+	"/examples": () => {
+		return dofile("./examples");
 	},
 };
 

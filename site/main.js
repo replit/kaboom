@@ -1,4 +1,4 @@
-// reference page
+// mian page
 
 const dofile = require("./dofile");
 const www = dofile("./www");
@@ -11,6 +11,33 @@ const style = {
 	"body": {
 		"background": "#0080ff",
 // 		"background": "#80ffff",
+	},
+
+	"#game-view": {
+		"width": "100%",
+		"height": "100%",
+		"position": "fixed",
+		"top": "0",
+		"left": "0",
+		"z-index": "-100",
+		"border": "none",
+	},
+
+	"#editor-view": {
+
+		"width": "100%",
+		"height": "50%",
+		"position": "fixed",
+		"bottom": "0",
+		"left": "0",
+		"z-index": "100",
+		"background": "white",
+
+		"#editor": {
+			"width": "100%",
+			"height": "100%",
+		},
+
 	},
 
 	"#main": {
@@ -156,7 +183,6 @@ const page = t("html", {}, [
 		t("style", {}, www.style(style)),
 		t("link", { rel: "stylesheet", href: "/pub/lib/highlight.css", }),
 		t("script", { src: "/pub/lib/highlight.js", }, ""),
-		t("script", { src: "/pub/js/main.js", }, ""),
 		t("script", {}, "hljs.initHighlightingOnLoad();"),
 		t("script", {}, "hljs.configure({tabReplace: \"    \"});"),
 	]),
@@ -165,14 +191,13 @@ const page = t("html", {}, [
 			t("div", { id: "sidebar", class: "panel", }, [
 				t("img", { id: "logo", src: "/pub/img/kaboom.svg", }),
 				t("a", { class: "link", href: "/guide", }, "guide"),
+				t("a", { class: "link", href: "/examples", }, "examples"),
 // 				t("a", { class: "link", href: "https://github.com/replit/kaboom", }, "github"),
-// 				t("a", { class: "link", href: "https://raw.githubusercontent.com/replit/kaboom/master/kaboom.js", }, "download"),
-// 				t("a", { class: "link", href: "https://cdn.jsdelivr.net/gh/replit/kaboom@latest/kaboom.min.js", }, "cdn"),
-				t("a", { class: "link", href: "https://repl.it/@slmjkdbtl/KaBoomjs-Template#game.js", }, "try on replit"),
+				t("a", { class: "link", href: "https://replit.com/@slmjkdbtl/flappymark", }, "try on replit"),
 				...api.map((sec) => {
 					return t("div", { class: "section", }, [
 						t("p", { class: "title", }, sec.name),
-						t("div", {}, sec.functions.map((f) => {
+						t("div", {}, sec.entries.map((f) => {
 							return t("a", { class: "link", href: `#${f.name}`, }, `${f.name}()`);
 						})),
 					]);
@@ -184,7 +209,7 @@ const page = t("html", {}, [
 					return t("div", {}, [
 						t("p", { class: "title", }, sec.name),
 						t("p", { class: "desc", }, sec.desc),
-						...sec.functions.map((f) => {
+						...sec.entries.map((f) => {
 							let paren = "(";
 							f.args.forEach((arg, i) => {
 								paren += arg.name + (i === f.args.length - 1 ? "" : ", ");

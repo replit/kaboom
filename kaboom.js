@@ -1,6 +1,7 @@
 // kaboom.js
 
 // TODO: no global state?
+// TODO: init() fullscreen flag
 
 (() => {
 
@@ -102,12 +103,20 @@ function init(conf = {}) {
 
 	let canvas = conf.canvas;
 
+	k.conf = conf;
+
 	if (!canvas) {
 
 		const scale = conf.scale || 1;
 		canvas = document.createElement("canvas");
-		canvas.width = (conf.width || 640) * scale;
-		canvas.height = (conf.height || 480) * scale;
+
+		if (conf.fullscreen) {
+			canvas.width = window.innerWidth;
+			canvas.height = window.innerHeight;
+		} else {
+			canvas.width = (conf.width || 640) * scale;
+			canvas.height = (conf.height || 480) * scale;
+		}
 
 		if (conf.crisp) {
 			canvas.style = "image-rendering: pixelated; image-rendering: crisp-edges;";
@@ -259,6 +268,7 @@ function gfxInit(conf = {}) {
 
 function loadImg(src, f) {
 	const img = new Image();
+	img.crossOrigin = "";
 	img.src = src;
 	if (f) {
 		img.onload = f.bind(null, img);
@@ -1382,14 +1392,11 @@ function isURL(string) {
 
 // TODO: put this in gfx module?
 // load a sprite to asset manager
-// src can be:
-// 1. everything that can be directly fed to texImage2D()
-// 2. string urls that need some work to be fed to texImage2D()
 function loadSprite(name, src, conf = {}) {
 
 	// sliceX: num,
 	// sliceY: num,
-	// anims: { str: [num, num] }
+	// anims: { name: [num, num] }
 
 	// TODO: just assign the .tex field
 	if (typeof(src) === "string") {
@@ -1476,11 +1483,7 @@ function loadSprite(name, src, conf = {}) {
 					);
 				});
 				for (const anim of data.meta.frameTags) {
-					game.sprites[name].anims[anim.name] = {
-						from: anim.from,
-						to: anim.to,
-						dir: anim.direction,
-					};
+					game.sprites[name].anims[anim.name] = [anim.from. anim.to];
 				}
 				loadComplete(lid);
 			});
@@ -2130,7 +2133,7 @@ function scale(...args) {
 
 function rotate(r) {
 	return {
-		rotate: r,
+		angle: r,
 	};
 }
 
@@ -2382,8 +2385,8 @@ function area(p1, p2) {
 			const offset = origin.dot(vec2(w, h).scale(-0.5));
 
 			return {
-				p1: pos.add(a.p1.scale(scale.x)).add(offset),
-				p2: pos.add(a.p2.scale(scale.y)).add(offset),
+				p1: pos.add(a.p1.scale(Math.abs(scale.x))).add(offset),
+				p2: pos.add(a.p2.scale(Math.abs(scale.y))).add(offset),
 			};
 
 		},
@@ -2409,7 +2412,7 @@ function area(p1, p2) {
 
 }
 
-function sprite(id) {
+function sprite(id, conf = {}) {
 
 	const spr = game.sprites[id];
 
@@ -2428,8 +2431,8 @@ function sprite(id) {
 		_animTimer: 0,
 		curAnim: undefined,
 		_animLooping: false,
-		animSpeed: 0.1,
-		frame: 0,
+		animSpeed: conf.animSpeed || 0.1,
+		frame: conf.frame || 0,
 		width: w,
 		height: h,
 
@@ -2441,7 +2444,7 @@ function sprite(id) {
 			drawSprite(this._spriteID, {
 				pos: this.pos,
 				scale: this.scale,
-				rot: this.rotate,
+				rot: this.angle,
 				color: this.color,
 				frame: this.frame,
 				origin: this.origin,
@@ -2527,7 +2530,7 @@ function text(t, size) {
 			const ftext = fmtText(this.text + "", {
 				pos: this.pos,
 				scale: this.scale,
-				rot: this.rotate,
+				rot: this.angle,
 				size: this.textSize,
 				origin: this.origin,
 				color: this.color,
@@ -2558,7 +2561,7 @@ function rect(w, h) {
 
 			drawRect(this.pos, this.width, this.height, {
 				scale: this.scale,
-				rot: this.rotate,
+				rot: this.angle,
 				color: this.color,
 				origin: this.origin,
 				z: scene.layers[this.layer],
@@ -2576,6 +2579,15 @@ function rect(w, h) {
 function solid() {
 	return {
 		solid: true,
+	};
+}
+
+function timer() {
+	return {
+		time: 0,
+		update() {
+			this.time += dt();
+		},
 	};
 }
 
@@ -2653,6 +2665,7 @@ k.sprite = sprite;
 k.text = text;
 k.rect = rect;
 k.solid = solid;
+k.timer = timer;
 
 // group events
 k.on = on;

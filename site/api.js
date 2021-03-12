@@ -2,26 +2,26 @@
 
 function f(name, args, ret, desc, example) {
 	return {
-		name: name,
-		args: args,
-		ret: ret,
-		desc: desc,
-		example: example,
+		name,
+		args,
+		ret,
+		desc,
+		example,
 	};
 }
 
 function a(name, desc) {
 	return {
-		name: name,
-		desc: desc,
+		name,
+		desc,
 	};
 }
 
-module.exports = [
+const api = [
 	{
 		name: "Import",
 		desc: "All functions are under a global object 'kaboom', but you can also choose to import all functions into global domain.",
-		functions: [
+		entries: [
 			f("kaboom.import", [], null, "import all kaboom functions into global namespace", `
 // 1) import everything to global
 kaboom.import();
@@ -36,19 +36,19 @@ k.init();
 	{
 		name: "Lifecycle",
 		desc: "Application Lifecycle Methods",
-		functions: [
+		entries: [
 			f("init", [
 				a("[conf]", "config")
 			], null, "initialize context", `
 // quickly create a 640x480 canvas and get going
 init();
 
-// (all fields are options)
+// options
 init({
 	width: 480, // width of canvas
 	height: 480, // height of canvas
 	canvas: document.getElementById("game"), // use custom canvas
-	scale: 2, // pixel scale (for pixelated games you might want small canvas + scale)
+	scale: 2, // pixel size (for pixelated games you might want small canvas + scale)
 	clearColor: rgb(0, 0, 1), // background color (default black)
 });
 			`),
@@ -58,52 +58,55 @@ init({
 scene("game", () => {/* .. */});
 scene("menu", () => {/* .. */});
 scene("lose", () => {/* .. */});
-start("game")
+start("game");
 			`),
 		],
 	},
 	{
 		name: "Scene",
-		desc: "Scenes are the different stages of a game, like different levels, menu screen, and start screen etc. Everything should belong to a scene.",
-		functions: [
+		desc: "Scenes are the different stages of a game, like different levels, menu screen, and start screen etc. Everything belongs to a scene.",
+		entries: [
 			f("scene", [
 				a("name", "name of scene")
-			], null, "start a scene block", `
+			], null, "describe a scene", `
 scene("level1", () => {
-	// game scene for level 1
+	// all objs are bound to a scene
 	add(/* ... */)
 	// all events are bound to a scene
 	keyPress(/* ... */)
 });
 
 scene("level2", () => {
-	// game scene for level 2
 	add(/* ... */)
 });
 
-scene("scoreboard", () => {
-	// displaying score
+scene("gameover", () => {
+	add(/* ... */)
 });
+
+start("level1");
 			`),
 			f("go", [
 				a("name", "name of scene"),
-				a("[opt]", "forward arguments"),
+				a("[args]", "forward arguments"),
 			], null, "switch to a scene", `
 // go to "paused" scene when pressed "p"
-scene("game", () => {
-	collides("player", "bullet", () => {
-		go("death", score);
-	});
+scene("main", () => {
+	let score = 0;
+	keyPress("p", () => {
+		go("gameover", score);
+	})
 });
 
-scene("death", (score) => {
+scene("gameover", (score) => {
+	// display score passed by scene "main"
 	add([
 		text(score),
 	]);
 });
 			`),
 			f("layers", [
-				a("layers", "list of layers with order"),
+				a("names", "list of layers with order"),
 			], null, "define the draw layers of the scene", `
 // draw background on the bottom, ui on top
 layers([
@@ -132,15 +135,26 @@ camera(vec2(0, 100));
 	{
 		name: "Asset Loading",
 		desc: "Load assets into asset manager. These should be at application top.",
-		functions: [
+		entries: [
 			f("loadSprite", [
 				a("name", "name of sprite"),
 				a("src", "image source"),
 				a("[conf]", "optional config"),
 			], null, "load a sprite", `
 loadSprite("froggy", "froggy.png");
+loadSprite("froggy", "https://replit.com/public/images/mark.png");
 
-// load with config
+// slice a spritesheet and add anims manually
+loadSprite("froggy", "froggy.png", {
+	sliceX: 4,
+	sliceY: 1,
+	anims: {
+		run: [0, 2],
+		jump: [3],
+	},
+});
+
+// load with aseprite spritesheet
 loadSprite("froggy", "froggy.png", {
 	aseSpriteSheet: "froggy.json", // use spritesheet exported from aseprite
 });
@@ -150,21 +164,21 @@ loadSprite("froggy", "froggy.png", {
 				a("src", "sound source"),
 				a("[conf]", "optional config"),
 			], null, "load a sound", `
-loadSprite("shoot", "shoot.ogg");
+loadSound("shoot", "shoot.ogg");
 			`),
 		],
 	},
 	{
 		name: "Objects",
 		desc: "Game Object is the basic unit of Kaboom, each game object uses components to compose their data and behavior.",
-		functions: [
+		entries: [
 			f("add", [
 				a("comps", "list of components"),
 			], "obj", "add a game object to scene", `
-// composing game objects from components
+// compose a game object from components
 const player = add([
 	// a 'sprite'component gives it the render ability
-	sprite('froggy'),
+	sprite("froggy"),
 	// a 'pos'component gives it a position
 	pos(100, 100),
 	// a 'body'component makes it fall and gives it jump()
@@ -205,7 +219,7 @@ collides("bullet", "killable", (b, k) => {
 			`),
 			f("obj.action", [
 				a("cb", "callback"),
-			], null, "run the callback every frame", `
+			], null, "update the object, the callback is run every frame", `
 player.action(() => {
 	player.move(SPEED, 0);
 });
@@ -213,20 +227,6 @@ player.action(() => {
 			f("obj.use", [
 				a("comp", "the component to add"),
 			], null, "add a component to a game object", `
-// define a custom component
-function ohhi(name) {
-	return {
-		draw() {
-			drawText(\`oh hi \${name}\`, {
-				pos: this.pos,
-			});
-		},
-		update() {
-			console.log(oh hi \`\${name}\`);
-		},
-	};
-}
-
 // rarely needed since you usually specify all comps in the 'add()' step
 obj.use(scale(2, 2));
 			`),
@@ -256,10 +256,14 @@ obj.on("destroy", () => {
 });
 
 // runs every frame when obj exists
-obj.on("update", () => {});
+obj.on("update", () => {
+	// ...
+});
 
 // custom event from comp 'body()'
-obj.on("grounded", () => {});
+obj.on("grounded", () => {
+	// ...
+});
 			`),
 			f("obj.trigger", [
 				a("event", "the name of event"),
@@ -275,17 +279,20 @@ obj.trigger("grounded");
 	},
 	{
 		name: "Components",
-		desc: "Built-in components",
-		functions: [
+		desc: "Built-in components. Each component will give the object some methods and fields.",
+		entries: [
 			f("pos", [
 				a("x", "x"),
 				a("y", "y"),
-			], null, "position", `
+			], null, "object's position in the world", `
 const obj = add([
 	pos(0, 50),
 ]);
 
+// get the current position in vec2
 console.log(obj.pos);
+
+// move an object by a speed (dt will be multiplied)
 obj.move(100, 100);
 			`),
 			f("scale", [
@@ -296,7 +303,19 @@ const obj = add([
 	scale(2),
 ]);
 
-obj.scale = vec2(3);
+// get the current scale in vec2
+console.log(obj.scale);
+			`),
+			f("rotate", [
+				a("angle", "angle"),
+			], null, "scale", `
+const obj = add([
+	rotate(2),
+]);
+
+obj.action(() => {
+	obj.angle += dt();
+});
 			`),
 			f("color", [
 				a("r", "red"),
@@ -317,13 +336,18 @@ obj.color = rgb(1, 0, 0); // make it red instead
 			], null, "sprite", `
 // note: this automatically gives the obj an 'area()' component
 const obj = add([
-	// loadSprite("froggy", pathToFroggy) above
+	// sprite is loaded by loadSprite("froggy", src)
 	sprite("froggy"),
 ]);
 
+// get current frame
 console.log(obj.frame);
-obj.play("jumpo"); // plays the anim if has it
-obj.stop(); // stop the anim
+
+// play animation
+obj.play("jump");
+
+// stop the anim
+obj.stop();
 			`),
 			f("text", [
 				a("txt", "the text to draw"),
@@ -334,7 +358,8 @@ const obj = add([
 	text("oh hi", 64),
 ]);
 
-obj.text = "oh hi mark"; // update the content
+// update the content
+obj.text = "oh hi mark";
 			`),
 			f("rect", [
 				a("w", "width"),
@@ -342,12 +367,15 @@ obj.text = "oh hi mark"; // update the content
 			], null, "sprite", `
 // note: this automatically gives the obj an 'area()' component
 const obj = add([
+	// width, height
 	rect(50, 75),
 	pos(25, 25),
 	color(0, 1, 1),
 ]);
 
-console.log(obj.width);
+// update size
+obj.width = 75;
+obj.height = 75;
 			`),
 			f("text", [
 				a("txt", "the text to draw"),
@@ -377,13 +405,36 @@ obj.collides("collectable", (c) => {
 	score++;
 });
 
-obj.isCollided(obj2);
-obj.clicks(() => {});
-obj.isClicked();
-obj.hovers(() => {});
-obj.isHovered();
+// checks if the obj is collided with another
+if (obj.isCollided(obj2)) {
+	// ...
+}
+
+// register an onClick callback
+obj.clicks(() => {
+	// ...
+});
+
+// if the obj is clicked last frame
+if (obj.isClicked()) {
+	// ...
+}
+
+// register an onHover callback
+obj.hovers(() => {
+	// ...
+});
+
+// if the obj is currently hovered
+if (obj.isHovered()) {
+	// ...
+}
+
+// check if a point is inside the obj area
 obj.hasPt();
-obj.resolve(); // resolve all collisions with objects with 'solid'
+
+// resolve all collisions with objects with 'solid'
+obj.resolve();
 			`),
 			f("origin", [
 				a("orig", "origin pt"),
@@ -391,11 +442,13 @@ obj.resolve(); // resolve all collisions with objects with 'solid'
 const obj = add([
 	sprite("froggy"),
 
+	// defaults to center
+	origin("center"),
+	// other options
 	origin("topleft"),
 	origin("top"),
 	origin("topright"),
 	origin("left"),
-	origin("center"), // default
 	origin("right"),
 	origin("botleft"),
 	origin("bot"),
@@ -422,12 +475,32 @@ const score = add([
 	layer("ui"),
 ]);
 			`),
+			f("Custom Components", [], null, "", `
+// define a custom component
+function ohhi(name) {
+	return {
+		draw() {
+			// using kaboom immediate drawing api
+			drawText(\`oh hi \${name}\`, {
+				pos: this.pos,
+			});
+		},
+		update() {
+			console.log(oh hi \`\${name}\`);
+		},
+	};
+}
+
+add([
+	ohhi("mark"),
+]);
+			`)
 		],
 	},
 	{
 		name: "Events",
 		desc: "kaboom uses tags to group objects and describe their behaviors, functions below all accepts the tag as first arguments, following a callback",
-		functions: [
+		entries: [
 			f("action", [
 				a("tag", "tag selector"),
 				a("cb", "the callback"),
@@ -445,7 +518,7 @@ action("flashy", (f) => {
 				a("tag", "tag selector"),
 				a("cb", "the callback"),
 			], null, "calls when objects collides with others", `
-ouch("enemy", "bullet", (e, b) => {
+collides("enemy", "bullet", (e, b) => {
 	destroy(b);
 	e.life--;
 	if (e.life <= 0) {
@@ -458,7 +531,7 @@ ouch("enemy", "bullet", (e, b) => {
 	{
 		name: "Input",
 		desc: "input events",
-		functions: [
+		entries: [
 			f("keyDown", [
 				a("key", "key"),
 				a("cb", "callback"),
@@ -485,7 +558,7 @@ ouch("enemy", "bullet", (e, b) => {
 	{
 		name: "Query",
 		desc: "information about current window and input states",
-		functions: [
+		entries: [
 			f("width", [], "width", "canvas width"),
 			f("height", [], "height", "canvas height"),
 			f("time", [], "time", "current game time"),
@@ -496,7 +569,7 @@ ouch("enemy", "bullet", (e, b) => {
 	{
 		name: "Timer",
 		desc: "timed events",
-		functions: [
+		entries: [
 			f("wait", [
 				a("time", "wait time"),
 				a("cb", "callback"),
@@ -522,7 +595,7 @@ loop(0.5, () => {
 	{
 		name: "Audio",
 		desc: "yeah",
-		functions: [
+		entries: [
 			f("play", [
 				a("id", "sound id"),
 				a("[conf]", "optional config"),
@@ -543,7 +616,7 @@ bye("enemy", (e) => {
 	{
 		name: "Math",
 		desc: "math types & utils",
-		functions: [
+		entries: [
 			f("vec2", [
 				a("x", "x"),
 				a("y", "y"),
@@ -592,7 +665,7 @@ rand(vec2(0), vec2(100)) // => vec2(29, 73)
 	{
 		name: "Draw",
 		desc: "Raw immediate drawing functions (you prob won't need these)",
-		functions: [
+		entries: [
 			f("drawRect", [
 				a("pos", "position"),
 				a("w", "width"),
@@ -605,7 +678,7 @@ drawRect(vec2(100, 200), 50, 75);
 	{
 		name: "Debug",
 		desc: "debug utilities",
-		functions: [
+		entries: [
 			f("fps", [], null, "current frames per second", ""),
 			f("objCount", [], null, "current number of objects in scene", ""),
 			f("pause", [], null, "pause the game", ""),
@@ -615,7 +688,7 @@ drawRect(vec2(100, 200), 50, 75);
 	{
 		name: "Physics",
 		desc: "kit/physics.js allows you to make 2d physics games (e.g. platformers) even easier!",
-		functions: [
+		entries: [
 			f("gravity", [
 				a("value", "gravity value"),
 			], null, "set the gravity value (defaults to 980)", `
@@ -651,13 +724,13 @@ if (player.grounded()) {
 		],
 	},
 	{
-		name: "Map",
-		desc: "kit/map.js provides helper functions for tile map based games!",
-		functions: [
-			f("addMap", [
-				a("map", "2d array map"),
-			], null, "add a map to scene", `
-addMap([
+		name: "Level",
+		desc: "kit/level.js provides helper functions for tile map based games!",
+		entries: [
+			f("addLevel", [
+				a("level", "2d array map"),
+			], null, "add a level to scene", `
+addLevel([
 	// draw the map with custom keys
 	[0, 0, 0, 1],
 	[0, 1, 0, 0],
@@ -685,7 +758,7 @@ addMap([
 	{
 		name: "Starter",
 		desc: "kit/starter.js abstracts away from the component system",
-		functions: [
+		entries: [
 			f("addSprite", [
 				a("id", "sprite name"),
 				a("[conf]", "config"),
@@ -712,4 +785,6 @@ add([
 		],
 	},
 ];
+
+module.exports = api;
 

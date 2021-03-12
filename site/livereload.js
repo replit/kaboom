@@ -1,1 +1,0 @@
-const injection = "location.reload();";
