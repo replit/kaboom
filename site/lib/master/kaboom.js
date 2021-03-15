@@ -879,6 +879,7 @@ function play(id, conf = {}) {
 	const srcNode = audio.ctx.createBufferSource();
 
 	srcNode.buffer = sound;
+	srcNode.loop = conf.loop ? true : false;
 
 	if (conf.detune) {
 		srcNode.detune.value = conf.detune;
@@ -897,6 +898,15 @@ function play(id, conf = {}) {
 	srcNode.connect(gainNode);
 	gainNode.connect(audio.gainNode);
 	srcNode.start();
+
+	return {
+		resume() {
+			srcNode.start();
+		},
+		pause() {
+			srcNode.stop(0);
+		},
+	};
 
 }
 
@@ -1714,7 +1724,9 @@ function add(comps) {
 
 		removeTag(t) {
 			const idx = this._tags.indexOf(t);
-			this._tags.splice(t, 1);
+			if (idx > -1) {
+				this._tags.splice(idx, 1);
+			}
 		},
 
 	};
