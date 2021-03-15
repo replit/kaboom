@@ -175,6 +175,12 @@ const style = {
 
 };
 
+function code(c, lang) {
+	return t("pre", {}, [
+		t("code", { class: lang || "javascript", }, www.escapeHTML(c.trim())),
+	]);
+}
+
 const page = t("html", {}, [
 	t("head", {}, [
 		t("title", {}, "KaBoom!!!"),
@@ -192,8 +198,9 @@ const page = t("html", {}, [
 				t("img", { id: "logo", src: "/pub/img/kaboom.svg", }),
 				t("a", { class: "link", href: "/guide", }, "guide"),
 				t("a", { class: "link", href: "/examples", }, "examples"),
+				t("a", { class: "link", href: "/lib/master", }, "download"),
 // 				t("a", { class: "link", href: "https://github.com/replit/kaboom", }, "github"),
-				t("a", { class: "link", href: "https://replit.com/@slmjkdbtl/flappymark", }, "try on replit"),
+				t("a", { class: "link", href: "https://replit.com/new/kaboom", }, "try on replit"),
 				...api.map((sec) => {
 					return t("div", { class: "section", }, [
 						t("p", { class: "title", }, sec.name),
@@ -204,7 +211,18 @@ const page = t("html", {}, [
 				})
 			]),
 			t("div", { id: "content", class: "panel", }, [
-				t("p", { id: "about", }, "kaboom.js is a JavaScript library that helps you make games fast and fun!"),
+				t("p", { id: "about", }, "kaboom.js (beta) is a JavaScript library that helps you make games fast and fun!"),
+				t("p", { class: "title", }, "Usage"),
+				t("p", { class: "desc", }, "base lib"),
+				code(`
+<script src="https://kaboomjs.com/lib/master/kaboom.js"></script>
+				`, "html"),
+				t("p", { class: "desc", }, "kits"),
+				code(`
+<script src="https://kaboomjs.com/lib/master/kit/physics.js"></script>
+<script src="https://kaboomjs.com/lib/master/kit/starter.js"></script>
+<script src="https://kaboomjs.com/lib/master/kit/level.js"></script>
+				`, "html"),
 				...api.map((sec) => {
 					return t("div", {}, [
 						t("p", { class: "title", }, sec.name),

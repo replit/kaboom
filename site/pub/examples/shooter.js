@@ -35,6 +35,19 @@ scene("main", () => {
 		]);
 	});
 
+	keyPress("j", () => {
+		console.log(player._tags)
+		player.addTag("test");
+	});
+
+	keyPress("k", () => {
+		player.removeTag("test");
+	});
+
+	action("test", (obj) => {
+		obj.move(0, -120);
+	});
+
 	// run this callback every frame for all objects with tag "bullet"
 	action("bullet", (b) => {
 		b.move(0, -BULLET_SPEED);

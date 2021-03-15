@@ -3,6 +3,15 @@
 const fs = require("fs");
 const path = require("path");
 
+function escapeHTML(unsafe) {
+	return unsafe
+		.replace(/&/g, "&amp;")
+		.replace(/</g, "&lt;")
+		.replace(/>/g, "&gt;")
+		.replace(/"/g, "&quot;")
+		.replace(/'/g, "&#039;");
+}
+
 // html builder
 function tag(tagname, attrs, children) {
 
@@ -190,5 +199,6 @@ module.exports = {
 	tag,
 	style,
 	serveFs,
+	escapeHTML,
 };
 

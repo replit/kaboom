@@ -119,7 +119,7 @@ const style = {
 	},
 	"#mark": {
 		"position": "absolute",
-		"left": "24px",
+		"right": "24px",
 		"bottom": "24px",
 		"z-index": "100",
 		"width": "120px",
@@ -130,10 +130,10 @@ const style = {
 	"#bubble": {
 		"position": "absolute",
 		"z-index": "200",
-		"left": "160px",
+		"right": "160px",
 		"bottom": "120px",
 		"padding": "12px",
-		"font-size": "24px",
+		"font-size": "20px",
 		"background": "white",
 		"border-radius": "12px",
 		"border": "3px solid black",

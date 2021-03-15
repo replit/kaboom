@@ -1705,6 +1705,18 @@ function add(comps) {
 			}
 		},
 
+		addTag(t) {
+			if (this.is(t)) {
+				return;
+			}
+			this._tags.push(t);
+		},
+
+		removeTag(t) {
+			const idx = this._tags.indexOf(t);
+			this._tags.splice(t, 1);
+		},
+
 	};
 
 	obj.use(comps);

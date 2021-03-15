@@ -1,0 +1,42 @@
+{ "frames": [
+   {
+    "filename": "car 0.ase",
+    "frame": { "x": 0, "y": 0, "w": 27, "h": 21 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 27, "h": 21 },
+    "sourceSize": { "w": 27, "h": 21 },
+    "duration": 100
+   },
+   {
+    "filename": "car 1.ase",
+    "frame": { "x": 27, "y": 0, "w": 27, "h": 21 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 27, "h": 21 },
+    "sourceSize": { "w": 27, "h": 21 },
+    "duration": 100
+   },
+   {
+    "filename": "car 2.ase",
+    "frame": { "x": 54, "y": 0, "w": 27, "h": 21 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 27, "h": 21 },
+    "sourceSize": { "w": 27, "h": 21 },
+    "duration": 100
+   }
+ ],
+ "meta": {
+  "app": "http://www.aseprite.org/",
+  "version": "1.2.25",
+  "image": "car.png",
+  "format": "RGBA8888",
+  "size": { "w": 81, "h": 21 },
+  "scale": "1",
+  "frameTags": [
+   { "name": "move", "from": 0, "to": 1, "direction": "forward" },
+   { "name": "idle", "from": 2, "to": 2, "direction": "forward" }
+  ]
+ }
+}

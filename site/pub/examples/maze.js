@@ -19,21 +19,29 @@ scene("main", () => {
 		[1, 1, 1, 1, 1, 1],
 	];
 
+	const mazeMap = {
+		"1": (x, y) => {
+			return [
+				sprite("notmark"),
+				pos(100 + SIZE * x, 100 + SIZE * y),
+				"wall",
+			];
+		},
+		"2": (x, y) => {
+			return [
+				sprite("mark"),
+				pos(100 + SIZE * x, 100 + SIZE * y),
+				"prize",
+				color(0, 0, 1),
+			];
+		},
+	};
+
 	for (let y = 0; y < maze.length; y++) {
 		for (let x = 0; x < maze[y].length; x++) {
-			if (maze[y][x] === 1) {
-				add([
-					sprite("notmark"),
-					pos(100 + SIZE * x, 100 + SIZE * y),
-					"wall",
-				]);
-			} else if (maze[y][x] === 2) {
-				add([
-					sprite("mark"),
-					pos(100 + SIZE * x, 100 + SIZE * y),
-					"prize",
-					color(0, 0, 1),
-				]);
+			const type = maze[y][x];
+			if (mazeMap[type]) {
+				add(mazeMap[type](x, y));
 			}
 		}
 	}

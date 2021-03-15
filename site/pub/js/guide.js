@@ -3,10 +3,17 @@ import genGame from "./genGame.js";
 const liveupdate = document.querySelector("#liveupdate");
 const gameview = document.querySelector("#gameview");
 const bubble = document.querySelector("#bubble");
-const totalSteps = 5;
+const totalSteps = 12;
 let guides = [];
-let curStep = 0;
 let curTalk = 0;
+let curStep = 0;
+
+if (window.location.hash) {
+	const n = parseInt(window.location.hash.substring(1), 10);
+	if (n) {
+		curStep = n;
+	}
+}
 
 Promise.all(Array(totalSteps).fill().map((_, i) => {
 	return fetch(`/pub/guide/${i}.js`).then((res) => {
@@ -78,13 +85,18 @@ function run() {
 	gameview.srcdoc = genGame(editor.getValue());
 }
 
+function toStep(n) {
+	curStep = n;
+	window.location.hash = `${curStep}`;
+}
+
 function prev() {
 	if (curTalk > 0) {
 		curTalk--;
 		updateTalk();
 	} else {
 		if (curStep > 0) {
-			curStep--;
+			toStep(curStep - 1);
 			curTalk = guides[curStep].talk.length - 1;
 			update();
 		}
@@ -98,7 +110,7 @@ function next() {
 		updateTalk();
 	} else {
 		if (curStep < guides.length - 1) {
-			curStep++;
+			toStep(curStep + 1);
 			curTalk = 0;
 			update();
 		}

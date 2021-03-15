@@ -20,7 +20,7 @@ function a(name, desc) {
 const api = [
 	{
 		name: "Import",
-		desc: "All functions are under a global object 'kaboom', but you can also choose to import all functions into global domain.",
+		desc: "All functions are under a global object 'kaboom', but you can also choose to import all functions into global namespace.",
 		entries: [
 			f("kaboom.import", [], null, "import all kaboom functions into global namespace", `
 // 1) import everything to global
@@ -377,17 +377,6 @@ const obj = add([
 obj.width = 75;
 obj.height = 75;
 			`),
-			f("text", [
-				a("txt", "the text to draw"),
-			], null, "sprite", `
-// note: this automatically gives the obj an 'area()' component
-const obj = add([
-	// content, size
-	text("oh hi", 64),
-]);
-
-obj.text = "oh hi mark"; // update the content
-			`),
 			f("area", [
 				a("p1", "p1"),
 				a("p2", "p2"),
@@ -666,12 +655,56 @@ rand(vec2(0), vec2(100)) // => vec2(29, 73)
 		name: "Draw",
 		desc: "Raw immediate drawing functions (you prob won't need these)",
 		entries: [
+			f("render", [
+				a("cb", "callback"),
+			], null, "use a generic draw loop for custom drawing", `
+scene("draw", () => {
+	render(() => {
+		drawSprite(...);
+		drawRect(...);
+		drawLine(...);
+	});
+});
+			`),
+			f("drawSprite", [
+				a("name", "position"),
+				a("[conf]", "conf"),
+			], null, "draw a sprite", `
+drawSprite("car", {
+	pos: vec2(100),
+	scale: 3,
+	rot: time(),
+	frame: 0,
+});
+			`),
 			f("drawRect", [
 				a("pos", "position"),
 				a("w", "width"),
 				a("h", "height"),
+				a("[conf]", "conf"),
 			], null, "draw a rectangle", `
-drawRect(vec2(100, 200), 50, 75);
+drawRect(vec2(100), 20, 50);
+			`),
+			f("drawLine", [
+				a("p1", "p1"),
+				a("p2", "p2"),
+				a("[conf]", "conf"),
+			], null, "draw a rectangle", `
+drawLine(vec2(0), mousePos(), {
+	width: 2,
+	color: rgba(0, 0, 1, 1),
+	z: 0.5,
+});
+			`),
+			f("drawText", [
+				a("text", "text"),
+				a("[conf]", "conf"),
+			], null, "draw a rectangle", `
+drawText("hi", {
+	size: 64,
+	pos: mousePos(),
+	origin: "topleft",
+});
 			`),
 		],
 	},
@@ -683,6 +716,16 @@ drawRect(vec2(100, 200), 50, 75);
 			f("objCount", [], null, "current number of objects in scene", ""),
 			f("pause", [], null, "pause the game", ""),
 			f("unpause", [], null, "unpause the game", ""),
+			f("kaboom.debug", [], null, "debug flags", `
+// scale the time
+kaboom.debug.timeScale = 0.5;
+
+// show the bounding box of objects with area()
+kaboom.debug.showArea = true;
+
+// hover to inspect objects (needs showArea checked)
+kaboom.debug.hoverInfo = true;
+			`),
 		],
 	},
 	{
@@ -727,32 +770,6 @@ if (player.grounded()) {
 		name: "Level",
 		desc: "kit/level.js provides helper functions for tile map based games!",
 		entries: [
-			f("addLevel", [
-				a("level", "2d array map"),
-			], null, "add a level to scene", `
-addLevel([
-	// draw the map with custom keys
-	[0, 0, 0, 1],
-	[0, 1, 0, 0],
-	[0, 0, 2, 0],
-	[0, 0, 0, 0],
-], {
-	// tile size
-	width: 12,
-	height: 12,
-	// what each value above represents
-	"0": [
-		sprite("dirt"),
-	],
-	"1": [
-		sprite("grass"),
-	],
-	"2": [
-		sprite("flower"),
-		"collectable",
-	],
-});
-			`),
 		],
 	},
 	{
