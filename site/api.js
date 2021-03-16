@@ -107,19 +107,21 @@ scene("gameover", (score) => {
 			`),
 			f("layers", [
 				a("names", "list of layers with order"),
+				a("[default]", "default layer"),
 			], null, "define the draw layers of the scene", `
-// draw background on the bottom, ui on top
+// draw background on the bottom, ui on top, layer "obj" is default
 layers([
 	"bg",
-	"game",
+	"obj",
 	"ui",
-]);
+], "obj");
 
+// this will be added to the "obj" layer since it's defined as default above
 const player = add([
 	sprite("froggy"),
-	layer("game"),
 ]);
 
+// this will be added to the "ui" layer cuz it's specified by the layer() component
 const score = add([
 	text("0"),
 	layer("ui"),

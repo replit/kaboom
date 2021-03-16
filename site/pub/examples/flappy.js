@@ -26,7 +26,7 @@ scene("main", () => {
 		"bg",
 		"obj",
 		"ui",
-	]);
+	], "obj");
 
 	// background image
 	add([
@@ -42,8 +42,6 @@ scene("main", () => {
 		sprite("birdy"),
 		// give it a position
 		pos(120, 0),
-		// add it to the "obj" layer
-		layer("obj"),
 		// body component enables it to fall and jump in a gravity world
 		body(),
 	]);
@@ -72,7 +70,6 @@ scene("main", () => {
 			sprite("pipo"),
 			origin("botleft"),
 			pos(width(), h1),
-			layer("obj"),
 			// give it tags to easier define behaviors see below
 			"pipo",
 		]);
@@ -81,7 +78,6 @@ scene("main", () => {
 			sprite("pipo"),
 			origin("botleft"),
 			scale(1, -1),
-			layer("obj"),
 			pos(width(), h2),
 			"pipo",
 			// raw table just assigns every field to the game obj

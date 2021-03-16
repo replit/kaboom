@@ -1,9 +1,11 @@
+// TODO: scroll to first added line
+
 import genGame from "./genGame.js";
 
 const liveupdate = document.querySelector("#liveupdate");
 const gameview = document.querySelector("#gameview");
 const bubble = document.querySelector("#bubble");
-const totalSteps = 12;
+const totalSteps = 17;
 let guides = [];
 let curTalk = 0;
 let curStep = 0;

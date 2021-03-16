@@ -17,12 +17,15 @@ export default function genGame(code) {
 			height: 100%;
 			overflow: hidden;
 		}
-		canvas {
+		#game {
 			display: block;
+			position: absolute;
 		}
 		#log {
 			color: white;
 			font-family: Monospace;
+			position: absolute;
+			z-index: 100;
 		}
 		.log {
 			color: white;

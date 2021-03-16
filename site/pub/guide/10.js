@@ -20,8 +20,10 @@ scene("main", () => {
 		body(),
 	]);
 
+	const JUMP_FORCE = 320;
+
 	keyPress("space", () => {
-		birdy.jump();
+		birdy.jump(JUMP_FORCE);
 	});
 
 	add([

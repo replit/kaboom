@@ -899,8 +899,11 @@ function play(id, conf = {}) {
 	gainNode.connect(audio.gainNode);
 	srcNode.start();
 
+	let paused = false;
+
 	return {
 		resume() {
+			gainNode.connect(audio.gainNode);
 			srcNode.start();
 		},
 		pause() {
@@ -1591,7 +1594,7 @@ function reload(name) {
 	scene(name, game.scenes[name].init);
 }
 
-function layers(list) {
+function layers(list, def) {
 
 	const scene = game.scenes[game.curScene];
 
@@ -1604,6 +1607,10 @@ function layers(list) {
 	list.forEach((name, i) => {
 		scene.layers[name] = 0.5 + each * i;
 	});
+
+	if (def) {
+		scene.defLayer = def;
+	}
 
 }
 
@@ -2472,7 +2479,7 @@ function sprite(id, conf = {}) {
 				color: this.color,
 				frame: this.frame,
 				origin: this.origin,
-				z: scene.layers[this.layer],
+				z: scene.layers[this.layer || scene.defLayer],
 			});
 
 		},
@@ -2558,7 +2565,7 @@ function text(t, size) {
 				size: this.textSize,
 				origin: this.origin,
 				color: this.color,
-				z: scene.layers[this.layer],
+				z: scene.layers[this.layer || scene.defLayer],
 			});
 
 			this.width = ftext.tw;
@@ -2588,7 +2595,7 @@ function rect(w, h) {
 				rot: this.angle,
 				color: this.color,
 				origin: this.origin,
-				z: scene.layers[this.layer],
+				z: scene.layers[this.layer || scene.defLayer],
 			});
 
 		},
