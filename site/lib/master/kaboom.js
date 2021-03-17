@@ -1575,6 +1575,7 @@ function scene(name, cb) {
 		layers: {},
 		camera: {
 			pos: vec2(0, 0),
+			scale: vec2(1, 1),
 		},
 
 	};
@@ -1625,8 +1626,12 @@ function layers(list, def) {
 
 }
 
-function campos(pos) {
-	game.scenes[game.curScene].camera.pos = pos;
+function campos(...pos) {
+	game.scenes[game.curScene].camera.pos = vec2(...pos);
+}
+
+function camscale(...scale) {
+	game.scenes[game.curScene].camera.scale = vec2(...scale);
 }
 
 function add(comps) {
@@ -1996,7 +2001,8 @@ function gameFrame(ignorePause) {
 		}
 
 		pushTransform();
-		pushTranslate(scene.camera.pos.scale(-1).add(vec2(width() / 2, height() / 2)));
+		pushScale(scene.camera.scale);
+		pushTranslate(scene.camera.pos);
 
 		// draw obj
 		if (!obj.hidden) {
@@ -2704,6 +2710,7 @@ k.go = go;
 // misc
 k.layers = layers;
 k.campos = campos;
+k.camscale = camscale;
 
 // obj
 k.add = add;

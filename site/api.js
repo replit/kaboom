@@ -131,6 +131,11 @@ const score = add([
 				a("pos", "position"),
 			], null, "set the camera position", `
 campos(vec2(0, 100));
+
+// center camera to player
+player.action(() => {
+	campos(player.pos);
+});
 			`),
 		],
 	},

@@ -37,6 +37,14 @@ function addMap(arr, conf = {}) {
 				conf.pos.y + p.y * conf.height
 			);
 		},
+		width() {
+			return arr[0].length * conf.width;
+		},
+		height() {
+			console.log(arr.length);
+			console.log(arr[0].length);
+			return arr.length * conf.height;
+		},
 	};
 
 }
