@@ -17,7 +17,7 @@ export default function genGame(code) {
 			height: 100%;
 			overflow: hidden;
 		}
-		#game {
+		canvas {
 			display: block;
 			position: absolute;
 		}

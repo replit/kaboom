@@ -1,6 +1,7 @@
 // kaboom.js
 
 // TODO: no global state?
+// TODO: mouse pos with camera pos
 
 (() => {
 
@@ -71,6 +72,7 @@ function deepCopy(input) {
 // app system init
 const app = {
 	keyStates: {},
+	charInputted: [],
 	mouseState: "up",
 	mousePos: vec2(0, 0),
 	time: 0.0,
@@ -105,26 +107,32 @@ function init(conf = {}) {
 	k.conf = conf;
 
 	if (!canvas) {
-
-		const scale = conf.scale || 1;
 		canvas = document.createElement("canvas");
-
-		if (conf.fullscreen) {
-			canvas.width = window.innerWidth;
-			canvas.height = window.innerHeight;
-		} else {
-			canvas.width = (conf.width || 640) * scale;
-			canvas.height = (conf.height || 480) * scale;
-		}
-
-		if (conf.crisp) {
-			canvas.style = "image-rendering: pixelated; image-rendering: crisp-edges;";
-		}
-
 		const root = conf.root || document.body;
 		root.appendChild(canvas);
-
 	}
+
+	const scale = conf.scale || 1;
+
+	if (conf.fullscreen) {
+		canvas.width = window.innerWidth;
+		canvas.height = window.innerHeight;
+	} else {
+		canvas.width = (conf.width || 640) * scale;
+		canvas.height = (conf.height || 480) * scale;
+	}
+
+	const styles = [
+		"outline: none",
+	];
+
+	if (conf.crisp) {
+		styles.push("image-rendering: pixelated");
+		styles.push("image-rendering: crisp-edges");
+	}
+
+	canvas.style = styles.join(";");
+	canvas.setAttribute("tabindex", "0");
 
 	app.scale = conf.scale || 1;
 
@@ -151,10 +159,16 @@ function init(conf = {}) {
 		app.mouseState = "released";
 	});
 
-	document.addEventListener("keydown", (e) => {
-		const k = keyMap[e.key] || e.key;
+	canvas.addEventListener("keydown", (e) => {
+		const k = keyMap[e.key] || e.key.toLowerCase();
 		if (preventDefaultKeys.includes(k)) {
 			e.preventDefault();
+		}
+		if (k.length === 1) {
+			app.charInputted.push(k);
+		}
+		if (k === "space") {
+			app.charInputted.push(" ");
 		}
 		if (e.repeat) {
 			app.keyStates[k] = "rpressed";
@@ -163,7 +177,7 @@ function init(conf = {}) {
 		}
 	});
 
-	document.addEventListener("keyup", (e) => {
+	canvas.addEventListener("keyup", (e) => {
 		const k = keyMap[e.key] || e.key;
 		app.keyStates[k] = "released";
 	});
@@ -215,6 +229,10 @@ function keyIsReleased(k) {
 	return app.keyStates[k] === "released";
 }
 
+function charInputted() {
+	return app.charInputted;
+}
+
 // get delta time between last frame
 function dt() {
 	return app.dt;
@@ -260,6 +278,7 @@ function gfxInit(conf = {}) {
 			8,
 			" !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~"
 		);
+		gfx.curFont = gfx.defFont;
 		loadComplete(lid);
 	});
 
@@ -771,42 +790,71 @@ function originPt(orig) {
 	}
 }
 
-// TODO: wrap
-// TODO: line break
-// TODO: clean
 function fmtText(text, conf = {}) {
 
-	const font = gfx.defFont;
+	const font = gfx.curFont;
 	const chars = (text + "").split("");
 	const gw = font.qw * font.tex.width;
 	const gh = font.qh * font.tex.height;
 	const size = conf.size || gh;
 	const scale = vec2(size / gh).dot(vec2(conf.scale || 1));
 	const cw = scale.x * gw;
-	const tw = cw * chars.length;
-	const th = scale.y * gh;
-	const fchars = [];
-	const offset = originPt(conf.origin || "center").dot(vec2(tw, th)).scale(-0.5);
-	const ox = cw / 2 - tw / 2 + offset.x;
-	const oy = offset.y;
-	const pos = vec2(conf.pos);
-	let x = pos.x + ox;
-	let y = pos.y + oy;
+	const ch = scale.y * gh;
+	let curX = 0;
+	let th = ch;
+	let tw = 0;
+	const flines = [[]];
 
-	for (const ch of chars) {
-		const qpos = font.map[ch];
-		fchars.push({
-			tex: gfx.defFont.tex,
-			quad: quad(qpos.x, qpos.y, font.qw, font.qh),
-			ch: ch,
-			pos: vec2(x, y),
-			color: conf.color,
-			origin: conf.origin,
-			scale: scale,
-			z: conf.z,
-		});
-		x += cw;
+	// check new lines and calc area size
+	for (const char of chars) {
+		// go new line if \n or exceeds wrap value
+		if (char === "\n" || (conf.width ? (curX > conf.width) : false)) {
+			th += ch;
+			curX = 0;
+			flines.push([]);
+		} else {
+			curX += cw;
+		}
+		if (char !== "\n") {
+			flines[flines.length - 1].push(char);
+		}
+		tw = Math.max(tw, curX);
 	}
+
+	if (conf.width) {
+		tw = conf.width;
+	}
+
+	// whole text offset
+	const fchars = [];
+	const pos = vec2(conf.pos);
+	const offset = originPt(conf.origin || "center").scale(-0.5);
+	const ox = offset.x * cw + (offset.x - 0.5) * tw;
+	const oy = offset.y * ch;
+
+	flines.forEach((line, ln) => {
+
+		// line offset
+		const oxl = (line.length * cw - tw) * (offset.x - 0.5);
+
+		line.forEach((char, cn) => {
+			const qpos = font.map[char];
+			const x = cn * cw;
+			const y = ln * ch;
+			if (qpos) {
+				fchars.push({
+					tex: gfx.defFont.tex,
+					quad: quad(qpos.x, qpos.y, font.qw, font.qh),
+					ch: char,
+					pos: vec2(pos.x + x + ox + oxl, pos.y + y + oy),
+					color: conf.color,
+					origin: conf.origin,
+					scale: scale,
+					z: conf.z,
+				});
+			}
+		});
+	});
 
 	return {
 		width: tw,
@@ -1174,16 +1222,6 @@ function mat4(m) {
 				z: p4.z,
 			};
 		},
-
-		// TODO: remove intermediate calls for perf?
-// 		multVec2(p) {
-// 			const p3 = this.multVec3({
-// 				x: p.x,
-// 				y: p.y,
-// 				z: 0.0,
-// 			});
-// 			return vec2(p3.x, p3.y);
-// 		},
 
 		scale(s) {
 			return this.mult(mat4([
@@ -1561,6 +1599,7 @@ function scene(name, cb) {
 			mouseClick: [],
 			mouseRelease: [],
 			mouseDown: [],
+			charInput: [],
 		},
 
 		action: [],
@@ -1873,6 +1912,13 @@ function keyRelease(k, f) {
 	pushKeyEvent("keyRelease", k, f);
 }
 
+function charInput(f) {
+	const scene = game.scenes[game.curScene];
+	scene.events.charInput.push({
+		cb: f,
+	});
+}
+
 function mouseDown(f) {
 	const scene = game.scenes[game.curScene];
 	scene.events.mouseDown.push({
@@ -2074,7 +2120,10 @@ function start(name) {
 				return;
 			}
 
-			// TODO: repetitive
+			for (const e of scene.events.charInput) {
+				charInputted().forEach(e.cb);
+			}
+
 			// run input checks & callbacks
 			for (const e of scene.events.keyDown) {
 				if (keyIsDown(e.key)) {
@@ -2125,6 +2174,7 @@ function start(name) {
 			}
 
 			app.mouseState = processBtnState(app.mouseState);
+			app.charInputted = [];
 
 		}
 
@@ -2582,7 +2632,7 @@ function sprite(id, conf = {}) {
 }
 
 // TODO: add area
-function text(t, size) {
+function text(t, size, conf = {}) {
 
 	return {
 
@@ -2600,6 +2650,7 @@ function text(t, size) {
 				size: this.textSize,
 				origin: this.origin,
 				color: this.color,
+				width: conf.width,
 				z: scene.layers[this.layer || scene.defLayer],
 			});
 
@@ -2746,6 +2797,7 @@ k.keyDown = keyDown;
 k.keyPress = keyPress;
 k.keyPressRep = keyPressRep;
 k.keyRelease = keyRelease;
+k.charInput = charInput;
 k.mouseDown = mouseDown;
 k.mouseClick = mouseClick;
 k.mouseRelease = mouseRelease;
