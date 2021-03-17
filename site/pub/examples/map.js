@@ -84,7 +84,6 @@ scene("main", () => {
 	]);
 
 	player.action(() => {
-// 		campos(100, 0);
 		campos(player.pos.scale(-1).add(vec2(width() / 4, height() / 4)));
 		camscale(2);
 	});

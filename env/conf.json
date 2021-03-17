@@ -1,8 +1,0 @@
-{
-	"fullscreen": true,
-	"width": 240,
-	"height": 240,
-	"scale": 2,
-	"startScene": "main",
-	"version": "master"
-}

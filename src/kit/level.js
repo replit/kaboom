@@ -38,11 +38,12 @@ function addMap(arr, conf = {}) {
 			);
 		},
 		width() {
-			return arr[0].length * conf.width;
+			const longRow = arr.reduce((a, b) => {
+				return a.length > b.length ? a.length : b.length;
+			}, 0);
+			return longRow * conf.width;
 		},
 		height() {
-			console.log(arr.length);
-			console.log(arr[0].length);
 			return arr.length * conf.height;
 		},
 	};

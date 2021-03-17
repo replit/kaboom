@@ -2,19 +2,17 @@
 	"name": "@replit/kaboom",
 	"description": "kaboom.js is a JavaScript library that helps you make games fast and fun!",
 	"version": "0.0.0",
-	"homepage": "https://doc.gameenv.repl.co/",
+	"homepage": "https://kaboomjs.com/",
 	"repository": "github:replit/kaboom",
 	"keywords": [
 		"game"
 	],
-	"browser": "kaboom.js",
+	"browser": "src/kaboom.js",
 	"files": [
-		"kaboom.js",
-		"kit/*.js"
+		"src/*"
 	],
 	"scripts": {
-		"demo": "node scripts/rundemo.js",
-		"site": "cd site; node .",
-		"pub": "cp kaboom.js site/lib/master; cp kit/*.js site/lib/master/kit"
+		"site": "cd site; NODE_ENV=dev node .",
+		"cpy": "cp -R src/* site/lib/master"
 	}
 }
