@@ -6,11 +6,14 @@ if (!kaboom) {
 
 const k = kaboom;
 
-function addMap(arr, conf = {}) {
+function addLevel(arr, conf = {}) {
 
-	const surface = {};
+	const objs = [];
 
 	arr.forEach((row, i) => {
+		if (typeof(row) === "string") {
+			row = row.split("");
+		}
 		row.forEach((tile, j) => {
 			if (conf[tile]) {
 				let comps = [];
@@ -23,7 +26,7 @@ function addMap(arr, conf = {}) {
 					conf.pos.x + j * conf.width,
 					conf.pos.y + i * conf.height
 				));
-				add(comps);
+				objs.push(add(comps));
 			}
 		});
 	});
@@ -46,11 +49,17 @@ function addMap(arr, conf = {}) {
 		height() {
 			return arr.length * conf.height;
 		},
+		destroy() {
+			for (const obj of objs) {
+				destroy(obj);
+			}
+		},
 	};
 
 }
 
-k.addMap = addMap;
+k.addMap = addLevel;
+k.addLevel = addLevel;
 
 })();
 

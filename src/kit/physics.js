@@ -39,7 +39,7 @@ function body(conf = {}) {
 					}
 				}
 			} else {
-				if (!this.isCollided(this.curPlatform) || !this.curPlatform.exists()) {
+				if (!this.curPlatform.exists() || !this.isCollided(this.curPlatform)) {
 					this.curPlatform = undefined;
 				}
 			}
