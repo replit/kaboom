@@ -1,9 +1,7 @@
-// TALK: next let's make a losing scene instead of restarting the game every time
-// TALK: we here define another scene called "gameover" and make falling / collision go here instead
-// TALK: and add a keyPress event to go back to main scene again
-// TALK: now we can finally get back to a major issue
-// TALK: there's only 1 set of pipes! that's not really that fun
-// TALK: we gotta make some pipe generation mechanism
+// TALK: we can use the loop() function, to add new pipes to the scene every 1.5 seconds!
+// TALK: we just move the pipe add() functions into the loop() callback
+// TALK: but you may have noticed all pipes have the same position which is no fun
+// TALK: gotta make those random man
 
 loadSprite("bg", "/pub/img/bg.png");
 loadSprite("birdy", "/pub/img/birdy.png");
@@ -48,20 +46,24 @@ scene("main", () => {
 	const PIPE_OPEN = 120;
 	const PIPE_SPEED = 90;
 
-	add([
-		sprite("pipe"),
-		origin("bot"),
-		pos(width(), 120),
-		"pipe",
-	]);
+	loop(1.5, () => {
 
-	add([
-		sprite("pipe"),
-		pos(width(), 120 + PIPE_OPEN),
-		scale(1, -1),
-		origin("bot"),
-		"pipe",
-	]);
+		add([
+			sprite("pipe"),
+			origin("bot"),
+			pos(width(), 120),
+			"pipe",
+		]);
+
+		add([
+			sprite("pipe"),
+			pos(width(), 120 + PIPE_OPEN),
+			scale(1, -1),
+			origin("bot"),
+			"pipe",
+		]);
+
+	});
 
 	action("pipe", (pipe) => {
 		pipe.move(-PIPE_SPEED, 0);

@@ -1,7 +1,6 @@
 // kaboom.js
 
 // TODO: no global state?
-// TODO: init() fullscreen flag
 
 (() => {
 
@@ -903,11 +902,10 @@ function play(id, conf = {}) {
 
 	return {
 		resume() {
-			gainNode.connect(audio.gainNode);
-			srcNode.start();
+			// TODO
 		},
 		pause() {
-			srcNode.stop(0);
+			// TODO
 		},
 	};
 
@@ -1057,6 +1055,13 @@ function colRectRect(r1, r2) {
 		&& r1.p1.y <= r2.p2.y;
 }
 
+function overlapRectRect(r1, r2) {
+	return r1.p2.x > r2.p1.x
+		&& r1.p1.x < r2.p2.x
+		&& r1.p2.y > r2.p1.y
+		&& r1.p1.y < r2.p2.y;
+}
+
 function colLineLine(l1, l2) {
 	const a =
 		(
@@ -1090,7 +1095,7 @@ function colLineLine(l1, l2) {
 }
 
 function colRectLine(r, l) {
-	if (colRectPt(r, l.p1) || colRectPt(r, l.p2, )) {
+	if (colRectPt(r, l.p1) || colRectPt(r, l.p2)) {
 		return true;
 	}
 	return colLineLine(l, makeLine(r.p1, vec2(r.p2.x, r.p1.y)))
@@ -1300,6 +1305,7 @@ function wave(a, b, t = 1, off = 0) {
 	return a + (Math.sin(time() * t + off) + 1) / 2 * (b - a);
 }
 
+// basic ANSI C LCG
 const A = 1103515245;
 const C = 12345;
 const M = 2147483648;
@@ -1403,6 +1409,11 @@ function isURL(string) {
 
 }
 
+// load a bitmap font to asset manager
+function loadFont(name, src, gw, gh, chars) {
+	// TODO
+}
+
 // TODO: put this in gfx module?
 // load a sprite to asset manager
 function loadSprite(name, src, conf = {}) {
@@ -1496,7 +1507,7 @@ function loadSprite(name, src, conf = {}) {
 					);
 				});
 				for (const anim of data.meta.frameTags) {
-					game.sprites[name].anims[anim.name] = [anim.from. anim.to];
+					game.sprites[name].anims[anim.name] = [anim.from, anim.to];
 				}
 				loadComplete(lid);
 			});
@@ -1509,8 +1520,8 @@ function loadSprite(name, src, conf = {}) {
 	const qw = 1 / sliceX;
 	const qh = 1 / sliceY;
 
-	for (let i = 0; i < sliceX; i++) {
-		for (let j = 0; j < sliceY; j++) {
+	for (let j = 0; j < sliceY; j++) {
+		for (let i = 0; i < sliceX; i++) {
 			frames.push(quad(
 				i * qw,
 				j * qh,
@@ -1985,7 +1996,7 @@ function gameFrame(ignorePause) {
 		}
 
 		pushTransform();
-		pushTranslate(scene.camera.pos);
+		pushTranslate(scene.camera.pos.scale(-1).add(vec2(width() / 2, height() / 2)));
 
 		// draw obj
 		if (!obj.hidden) {
@@ -2439,6 +2450,23 @@ function area(p1, p2) {
 
 		},
 
+		isOverlapped(other) {
+
+			if (!other.area) {
+				return false;
+			}
+
+			if (this.layer !== other.layer) {
+				return false;
+			}
+
+			const a1 = this._worldArea();
+			const a2 = other._worldArea();
+
+			return overlapRectRect(a1, a2);
+
+		},
+
 	};
 
 }
@@ -2499,9 +2527,9 @@ function sprite(id, conf = {}) {
 			if (this._animTimer >= this.animSpeed) {
 				// TODO: anim dir
 				this.frame++;
-				if (this.frame > anim.to) {
+				if (this.frame > anim[1]) {
 					if (this._animLooping) {
-						this.frame = anim.from;
+						this.frame = anim[0];
 					} else {
 						this.frame--;
 						this.curAnim = undefined;
@@ -2522,7 +2550,7 @@ function sprite(id, conf = {}) {
 			}
 
 			this.curAnim = name;
-			this.frame = anim.from;
+			this.frame = anim[0];
 			this._animLooping = loop === undefined ? true : loop;
 
 		},

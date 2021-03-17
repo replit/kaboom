@@ -127,10 +127,10 @@ const score = add([
 	layer("ui"),
 ]);
 			`),
-			f("camera", [
+			f("campos", [
 				a("pos", "position"),
 			], null, "set the camera position", `
-camera(vec2(0, 100));
+campos(vec2(0, 100));
 			`),
 		],
 	},

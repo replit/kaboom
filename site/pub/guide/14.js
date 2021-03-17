@@ -38,7 +38,7 @@ scene("main", () => {
 	});
 
 	const PIPE_OPEN = 120;
-	const PIPE_SPEED = 60;
+	const PIPE_SPEED = 90;
 
 	add([
 		sprite("pipe"),

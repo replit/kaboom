@@ -24,12 +24,6 @@ function addMap(arr, conf = {}) {
 					conf.pos.y + i * conf.height
 				));
 				add(comps);
-// 				if (arr[i - 1][j] === 0) {
-// 					if (!surface[tile]) {
-// 						surface[tile] = [];
-// 					}
-// 					surface[tile].push(k.vec2(j, i));
-// 				}
 			}
 		});
 	});
@@ -42,9 +36,6 @@ function addMap(arr, conf = {}) {
 				conf.pos.x + p.x * conf.width,
 				conf.pos.y + p.y * conf.height
 			);
-		},
-		getRandSurface(tile) {
-			return surface[tile][~~k.rand(surface[tile].length)].sub(vec2(0, 1));
 		},
 	};
 
