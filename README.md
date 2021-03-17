@@ -36,11 +36,9 @@ k.start("main");
 
 ### Dev
 
-```sh
-# lib
-$ npm run demo
+use examples to test / add features
 
-# doc
-$ npm run site
-```
+1. `npm run site`
+1. go to http://localhost:8000/examples
+1. edit examples in `site/pub/examples/`
 

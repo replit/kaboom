@@ -13,6 +13,10 @@
 	],
 	"scripts": {
 		"site": "cd site; NODE_ENV=dev node .",
-		"cpy": "cp -R src/* site/lib/master"
+		"cpy": "cp -R src/* site/lib/master",
+		"build": "esbuild src/kaboom.js --bundle --minify --outfile=dist/kaboom.min.js"
+	},
+	"devDependencies": {
+		"esbuild": "^0.9.3"
 	}
 }

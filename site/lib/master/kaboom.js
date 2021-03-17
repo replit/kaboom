@@ -771,6 +771,7 @@ function originPt(orig) {
 	}
 }
 
+// TODO: wrap
 // TODO: line break
 // TODO: clean
 function fmtText(text, conf = {}) {
@@ -1175,14 +1176,14 @@ function mat4(m) {
 		},
 
 		// TODO: remove intermediate calls for perf?
-		multVec2(p) {
-			const p3 = this.multVec3({
-				x: p.x,
-				y: p.y,
-				z: 0.0,
-			});
-			return vec2(p3.x, p3.y);
-		},
+// 		multVec2(p) {
+// 			const p3 = this.multVec3({
+// 				x: p.x,
+// 				y: p.y,
+// 				z: 0.0,
+// 			});
+// 			return vec2(p3.x, p3.y);
+// 		},
 
 		scale(s) {
 			return this.mult(mat4([
