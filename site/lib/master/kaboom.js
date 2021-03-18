@@ -830,6 +830,7 @@ function fmtText(text, conf = {}) {
 	const fchars = [];
 	const pos = vec2(conf.pos);
 	const offset = originPt(conf.origin || "center").scale(0.5);
+	// this math is complicated i forgot how it works instantly
 	const ox = -offset.x * cw - (offset.x + 0.5) * (tw - cw);
 	const oy = -offset.y * ch - (offset.y + 0.5) * (th - ch);
 
@@ -1386,6 +1387,10 @@ function makeRng(seed) {
 			}
 		},
 	};
+}
+
+function randSeed(seed) {
+	defRNG.seed = seed;
 }
 
 function rand(a, b) {
@@ -2833,6 +2838,7 @@ k.volume = volume;
 // math
 k.makeRng = makeRng;
 k.rand = rand;
+k.randSeed = randSeed;
 k.randl = randl;
 k.vec2 = vec2;
 k.rgb = rgb;

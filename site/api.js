@@ -642,13 +642,13 @@ p.unit(); // => vec2(0.43, 0.86)
 p.dot(vec2(2, 1)); // => vec2(10, 10)
 p.angle(); // => 1.1
 			`),
-			f("rgb", [
+			f("rgba", [
 				a("r", "red"),
 				a("g", "green"),
 				a("b", "blue"),
 				a("a", "alpha"),
 			], null, "creates a color", `
-const c = rgb(0, 0, 1); // blue
+const c = rgba(0, 0, 1, 1); // blue
 
 p.r // 0
 p.g // 0
@@ -657,6 +657,12 @@ p.a // 1
 
 c.clone(); // => rgba(0, 0, 1, 1)
 			`),
+			f("rgb", [
+				a("r", "red"),
+				a("g", "green"),
+				a("b", "blue"),
+				a("a", "alpha"),
+			], null, "shorthand for rgba() with a = 1", ``),
 			f("rand", [
 				a("a", "a"),
 				a("b", "b"),
@@ -665,6 +671,11 @@ rand() // 0.0 - 1.0
 rand(1, 4) // 1.0 - 4.0
 rand(vec2(0), vec2(100)) // => vec2(29, 73)
 rand(rgb(0, 0, 0.5), rgb(1, 1, 1)) // => rgba(0.3, 0.6, 0.9, 1)
+			`),
+			f("randSeed", [
+				a("seed", "seed"),
+			], null, "set seed for rand generator", `
+randSeed(Date.now());
 			`),
 			f("makeRng", [
 				a("seed", "rng seed"),
