@@ -25,9 +25,15 @@ function body(conf = {}) {
 		update() {
 
 			this.move(0, this.velY);
-			const targets = this.resolve();
+
+			if (this.curPlatform) {
+				if (!this.curPlatform.exists() || !this.isCollided(this.curPlatform)) {
+					this.curPlatform = undefined;
+				}
+			}
 
 			if (!this.curPlatform) {
+				const targets = this.resolve();
 				this.velY += world.gravity * k.dt();
 				for (const target of targets) {
 					if (target.side === "bottom" && this.velY > 0) {
@@ -37,10 +43,6 @@ function body(conf = {}) {
 					} else if (target.side === "top" && this.velY < 0) {
 						this.velY = 0;
 					}
-				}
-			} else {
-				if (!this.curPlatform.exists() || !this.isCollided(this.curPlatform)) {
-					this.curPlatform = undefined;
 				}
 			}
 

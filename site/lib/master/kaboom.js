@@ -1804,6 +1804,12 @@ function add(comps) {
 
 	obj.trigger("add");
 
+	for (const e of scene.events.add) {
+		if (obj.is(e.tag)) {
+			e.cb(obj);
+		}
+	}
+
 	return obj;
 
 }
@@ -2425,10 +2431,6 @@ function area(p1, p2) {
 				const disTop = a1.p2.y - a2.p1.y;
 				const disBottom = a2.p2.y - a1.p1.y;
 				const min = Math.min(disLeft, disRight, disTop, disBottom);
-
-				if (min === 0) {
-					return;
-				}
 
 				let side;
 

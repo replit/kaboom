@@ -1,3 +1,5 @@
+// TODO: don't check for collisions for inside blocks
+
 (() => {
 
 if (!kaboom) {

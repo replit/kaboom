@@ -522,6 +522,30 @@ collides("enemy", "bullet", (e, b) => {
 	}
 });
 			`),
+			f("on", [
+				a("event", "event name"),
+				a("tag", "tag selector"),
+				a("cb", "the callback"),
+			], null, "add lifecycle events to a tag group", `
+on("add", "enemy", (e) => {
+	console.log("run!!");
+});
+
+// per frame
+// action() is actually an alias to this
+on("update", "bullet", (b) => {
+	b.move(100, 0);
+});
+
+// per frame but drawing phase
+on("draw", "bullet", (e) => {
+	drawSprite(...);
+});
+
+on("destroy", "bullet", (e) => {
+	play("explosion");
+});
+			`),
 		],
 	},
 	{
@@ -777,6 +801,53 @@ if (player.grounded()) {
 		name: "Level",
 		desc: "kit/level.js provides helper functions for tile map based games!",
 		entries: [
+			f("addLevel", [
+				a("map", ""),
+				a("ref", ""),
+			], null, "takes a level drawing and turn them into game objects according to the ref map", `
+const map = addLevel([
+	"                   ",
+	"                ===",
+	"   ?       *       ",
+	"         ====  ^^  ",
+	"===================",
+], {
+	width: 11,
+	height: 11,
+	pos: vec2(0, 0),
+	// every "=" on the map above will be turned to a game object with following comps
+	"=": [
+		sprite("ground"),
+		solid(),
+	],
+	"*": [
+		sprite("coin"),
+		solid(),
+	],
+	// use a callback for dynamic evauations per block
+	"?": () => {
+		return [
+			sprite("prize"),
+			color(0, 1, rand(0, 1)),
+		];
+	},
+	"^": [
+		sprite("spike"),
+		solid(),
+		"spike",
+	],
+});
+
+// query size
+map.width();
+map.height();
+
+// get screen pos through map index
+map.getPos(x, y);
+
+// destroy all
+map.destroy()
+			`),
 		],
 	},
 	{
