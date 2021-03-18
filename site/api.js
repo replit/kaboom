@@ -50,6 +50,8 @@ init({
 	canvas: document.getElementById("game"), // use custom canvas
 	scale: 2, // pixel size (for pixelated games you might want small canvas + scale)
 	clearColor: rgb(0, 0, 1), // background color (default black)
+	fullscreen: true, // if fullscreen
+	crisp: true, // if pixel crisp (for sharp pixelated games)
 });
 			`),
 			f("start", [
@@ -471,26 +473,6 @@ const score = add([
 	layer("ui"),
 ]);
 			`),
-			f("Custom Components", [], null, "", `
-// define a custom component
-function ohhi(name) {
-	return {
-		draw() {
-			// using kaboom immediate drawing api
-			drawText(\`oh hi \${name}\`, {
-				pos: this.pos,
-			});
-		},
-		update() {
-			console.log(oh hi \`\${name}\`);
-		},
-	};
-}
-
-add([
-	ohhi("mark"),
-]);
-			`)
 		],
 	},
 	{
@@ -527,21 +509,22 @@ collides("enemy", "bullet", (e, b) => {
 				a("tag", "tag selector"),
 				a("cb", "the callback"),
 			], null, "add lifecycle events to a tag group", `
+// called when objs with tag "enemy" is added to scene
 on("add", "enemy", (e) => {
 	console.log("run!!");
 });
 
-// per frame
-// action() is actually an alias to this
+// per frame (action() is actually an alias to this)
 on("update", "bullet", (b) => {
 	b.move(100, 0);
 });
 
-// per frame but drawing phase
+// per frame but drawing phase if you want custom drawing
 on("draw", "bullet", (e) => {
 	drawSprite(...);
 });
 
+// when objs gets destroy() ed
 on("destroy", "bullet", (e) => {
 	play("explosion");
 });
@@ -620,7 +603,7 @@ loop(0.5, () => {
 				a("id", "sound id"),
 				a("[conf]", "optional config"),
 			], null, "plays a sound", `
-bye("enemy", (e) => {
+on("destroy", "enemy", (e) => {
 	play("explode", {
 		volume: 2.0,
 		speed: 0.8,
@@ -644,13 +627,36 @@ bye("enemy", (e) => {
 vec2() // => { x: 0, y: 0 }
 vec2(1) // => { x: 1, y: 1 }
 vec2(10, 5) // => { x: 10, y: 5 }
+
+const p = vec2(5, 10);
+
+p.x // 5
+p.y // 10
+p.clone(); // => vec2(5, 10)
+p.add(vec2(10, 10)); // => vec2(15, 20)
+p.sub(vec2(5, 5)); // => vec2(0, 5)
+p.scale(2); // => vec2(10, 20)
+p.dist(vec2(15, 10)); // => 10
+p.len(); // => 11.58
+p.unit(); // => vec2(0.43, 0.86)
+p.dot(vec2(2, 1)); // => vec2(10, 10)
+p.angle(); // => 1.1
 			`),
-			f("color", [
+			f("rgb", [
 				a("r", "red"),
 				a("g", "green"),
 				a("b", "blue"),
 				a("a", "alpha"),
-			], null, "creates a color"),
+			], null, "creates a color", `
+const c = rgb(0, 0, 1); // blue
+
+p.r // 0
+p.g // 0
+p.b // 1
+p.a // 1
+
+c.clone(); // => rgba(0, 0, 1, 1)
+			`),
 			f("rand", [
 				a("a", "a"),
 				a("b", "b"),
@@ -658,10 +664,15 @@ vec2(10, 5) // => { x: 10, y: 5 }
 rand() // 0.0 - 1.0
 rand(1, 4) // 1.0 - 4.0
 rand(vec2(0), vec2(100)) // => vec2(29, 73)
+rand(rgb(0, 0, 0.5), rgb(1, 1, 1)) // => rgba(0.3, 0.6, 0.9, 1)
 			`),
-			f("rng", [
+			f("makeRng", [
 				a("seed", "rng seed"),
-			], null, "random number generator"),
+			], null, "create a seedable random number generator", `
+const rng = makeRng(Date.now());
+
+rng.gen(); // works the same as rand()
+			`),
 			f("choose", [
 				a("arr", "the list to choose from"),
 			], null, "get random element from array"),

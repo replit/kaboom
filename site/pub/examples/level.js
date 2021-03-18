@@ -1,14 +1,16 @@
-loadRoot("/pub/img/");
-loadSprite("car", "car.png", {
-	aseSpriteSheet: "car.json",
+loadRoot("/pub/");
+
+loadSprite("car", "/img/car.png", {
+	aseSpriteSheet: "/img/car.json",
 });
 
-loadSprite("steel", "steel.png");
-loadSprite("grass", "grass.png");
-loadSprite("jumpy", "jumpy.png");
-loadSprite("spike", "spike.png");
-loadSprite("flag", "flag.png");
-loadSprite("passenger", "passenger.png");
+loadSprite("steel", "/img/steel.png");
+loadSprite("grass", "/img/grass.png");
+loadSprite("jumpy", "/img/jumpy.png");
+loadSprite("spike", "/img/spike.png");
+loadSprite("coin", "/img/coin.png");
+
+loadSound("coin", "/sounds/coin.ogg");
 
 init({
 	fullscreen: 2,
@@ -20,15 +22,18 @@ scene("main", () => {
 	gravity(980);
 
 	const map = addLevel([
-		"  ++++==^=+=             ",
+		"                         ",
+		"                         ",
+		"          ooo            ",
+		"     ^+++====+=          ",
 		"                         ",
 		"                         ",
 		"                         ",
 		"                         ",
-		"             =++===      ",
+		"               =++===    ",
 		"                         ",
-		"                         ",
-		"           **            ",
+		"                    oo   ",
+		"        =====      +++   ",
 		"==========++===+=^====+++",
 	], {
 		width: 11,
@@ -52,20 +57,16 @@ scene("main", () => {
 			body(),
 			"hurt",
 		],
-		"5": makePassenger,
+		"o": [
+			sprite("coin"),
+			body(),
+			"coin",
+		],
 	});
-
-	function makePassenger(pos) {
-		return [
-			sprite("passenger"),
-			"passenger",
-			pos,
-		];
-	}
 
 	const player = add([
 		sprite("car"),
-		pos(0, 0),
+		pos(20, 0),
 		scale(1),
 		body(),
 		{
@@ -75,7 +76,7 @@ scene("main", () => {
 	]);
 
 	player.action(() => {
-		campos(player.pos.scale(-1).add(vec2(width() / 2, height() / 2)));
+		campos(player.pos.scale(-1).add(width() / 2, height() / 2));
 	});
 
 	// TODO: only touch on bottom edge jumps
@@ -83,22 +84,13 @@ scene("main", () => {
 		player.jump(player.jumpForce * 2);
 	});
 
-	player.collides("passenger", (p) => {
-		destroy(p);
-		add([
-			sprite("flag"),
-			pos(map.getPos(map.getRandSurface(1))),
-			"flag",
-		]);
-	});
-
-	player.collides("flag", (f) => {
-		destroy(f);
-		add(makePassenger(pos(map.getPos(map.getRandSurface(1)))));
-	});
-
 	player.collides("hurt", () => {
 		respawn();
+	});
+
+	player.collides("coin", (c) => {
+		destroy(c);
+		play("coin");
 	});
 
 	keyPress("space", () => {
@@ -121,19 +113,19 @@ scene("main", () => {
 
 	keyDown("left", () => {
 		player.flipX(-1);
-		player.move(vec2(-player.speed, 0));
+		player.move(-player.speed, 0);
 	});
 
 	keyDown("right", () => {
 		player.flipX(1);
-		player.move(vec2(player.speed, 0));
+		player.move(player.speed, 0);
 	});
 
 	function respawn() {
 		player.pos = vec2(0, 0);
 	}
 
-	player.on("update", () => {
+	player.action(() => {
 		if (player.pos.y <= -240) {
 			respawn();
 		}

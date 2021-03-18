@@ -1,7 +1,7 @@
 loadRoot("/pub/");
 loadSprite("bg", "img/bg.png");
 loadSprite("birdy", "img/birdy.png");
-loadSprite("pipo", "img/pipo.png");
+loadSprite("pipe", "img/pipe.png");
 loadSound("score", "sounds/score.ogg");
 loadSound("wooosh", "sounds/wooosh.ogg");
 loadSound("hit", "sounds/hit.ogg");
@@ -13,8 +13,8 @@ init({
 
 scene("main", () => {
 
-	const PIPO_OPEN = 80;
-	const PIPO_MIN_HEIGHT = 16;
+	const PIPE_OPEN = 80;
+	const PIPE_MIN_HEIGHT = 16;
 	const JUMP_FORCE = 320;
 	const SPEED = 120;
 
@@ -60,40 +60,40 @@ scene("main", () => {
 		play("wooosh");
 	});
 
-	function spawnPipo() {
+	function spawnPipe() {
 
 		// calculate pipe positions
-		const h1 = rand(PIPO_MIN_HEIGHT, height() - PIPO_MIN_HEIGHT - PIPO_OPEN);
-		const h2 = h1 + PIPO_OPEN;
+		const h1 = rand(PIPE_MIN_HEIGHT, height() - PIPE_MIN_HEIGHT - PIPE_OPEN);
+		const h2 = h1 + PIPE_OPEN;
 
 		add([
-			sprite("pipo"),
+			sprite("pipe"),
 			origin("botleft"),
 			pos(width(), h1),
 			// give it tags to easier define behaviors see below
-			"pipo",
+			"pipe",
 		]);
 
 		add([
-			sprite("pipo"),
+			sprite("pipe"),
 			origin("botleft"),
 			scale(1, -1),
 			pos(width(), h2),
-			"pipo",
+			"pipe",
 			// raw table just assigns every field to the game obj
 			{ passed: false, },
 		]);
 
 	}
 
-	// callback when birdy collides with objects with tag "pipo"
-	birdy.collides("pipo", () => {
+	// callback when birdy collides with objects with tag "pipe"
+	birdy.collides("pipe", () => {
 		go("death", score.value);
 		play("hit");
 	});
 
-	// per frame event for all objects with tag 'pipo'
-	action("pipo", (p) => {
+	// per frame event for all objects with tag 'pipe'
+	action("pipe", (p) => {
 		// move left
 		p.move(-SPEED, 0);
 		// check if birdy passed the pipe
@@ -107,9 +107,9 @@ scene("main", () => {
 		}
 	});
 
-	// spawn a pipo every 1 sec
+	// spawn a pipe every 1 sec
 	loop(1, () => {
-		spawnPipo();
+		spawnPipe();
 	});
 
 	// display score

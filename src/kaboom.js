@@ -182,6 +182,8 @@ function init(conf = {}) {
 		app.keyStates[k] = "released";
 	});
 
+	canvas.focus();
+
 }
 
 function processBtnState(s) {
@@ -999,16 +1001,19 @@ function vec2(x, y) {
 		clone() {
 			return vec2(this.x, this.y);
 		},
-		add(p2) {
+		add(...p2) {
+			p2 = vec2(...p2);
 			return vec2(this.x + p2.x, this.y + p2.y);
 		},
-		sub(p2) {
+		sub(...p2) {
+			p2 = vec2(...p2);
 			return vec2(this.x - p2.x, this.y - p2.y);
 		},
 		scale(s) {
 			return vec2(this.x * s, this.y * s);
 		},
-		dist(p2) {
+		dist(...p2) {
+			p2 = vec2(...p2);
 			return Math.sqrt(
 				(this.x - p2.x) * (this.x - p2.x)
 				+ (this.y - p2.y) * (this.y - p2.y)
@@ -1023,10 +1028,12 @@ function vec2(x, y) {
 		normal() {
 			return vec2(this.y, -this.x);
 		},
-		dot(p2) {
+		dot(...p2) {
+			p2 = vec2(...p2);
 			return vec2(this.x * p2.x, this.y * p2.y);
 		},
-		angle(p2) {
+		angle(...p2) {
+			p2 = vec2(...p2);
 			return Math.atan2(this.y - p2.y, this.x - p2.x);
 		},
 		lerp(p2, t) {
@@ -1348,9 +1355,9 @@ function wave(a, b, t = 1, off = 0) {
 const A = 1103515245;
 const C = 12345;
 const M = 2147483648;
-const defRNG = rng(new Date().getTime());
+const defRNG = makeRng(Date.now());
 
-function rng(seed) {
+function makeRng(seed) {
 	return {
 		seed: seed,
 		gen(a, b) {
@@ -1526,11 +1533,11 @@ function loadSprite(name, src, conf = {}) {
 
 	}
 
-	// TODO: translate use to generic conf
 	if (conf.aseSpriteSheet) {
 
 		const lid = newLoader();
 
+		// TODO: loadRoot might be changed already
 		fetch(game.loadRoot + conf.aseSpriteSheet)
 			.then((res) => {
 				return res.json();
@@ -1576,6 +1583,10 @@ function loadSprite(name, src, conf = {}) {
 		anims: conf.anims || {},
 	};
 
+}
+
+function getSprite(name) {
+	// TODO
 }
 
 // start describing a scene (this should be called before start())
@@ -2821,7 +2832,7 @@ k.play = play;
 k.volume = volume;
 
 // math
-k.rng = rng;
+k.makeRng = makeRng;
 k.rand = rand;
 k.randl = randl;
 k.vec2 = vec2;
