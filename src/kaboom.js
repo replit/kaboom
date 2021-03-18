@@ -810,15 +810,14 @@ function fmtText(text, conf = {}) {
 	// check new lines and calc area size
 	for (const char of chars) {
 		// go new line if \n or exceeds wrap value
-		if (char === "\n" || (conf.width ? (curX > conf.width) : false)) {
+		if (char === "\n" || (conf.width ? (curX + cw > conf.width) : false)) {
 			th += ch;
 			curX = 0;
 			flines.push([]);
-		} else {
-			curX += cw;
 		}
 		if (char !== "\n") {
 			flines[flines.length - 1].push(char);
+			curX += cw;
 		}
 		tw = Math.max(tw, curX);
 	}
@@ -830,14 +829,14 @@ function fmtText(text, conf = {}) {
 	// whole text offset
 	const fchars = [];
 	const pos = vec2(conf.pos);
-	const offset = originPt(conf.origin || "center").scale(-0.5);
-	const ox = offset.x * cw + (offset.x - 0.5) * tw;
-	const oy = offset.y * ch;
+	const offset = originPt(conf.origin || "center").scale(0.5);
+	const ox = -offset.x * cw - (offset.x + 0.5) * (tw - cw);
+	const oy = -offset.y * ch - (offset.y + 0.5) * (th - ch);
 
 	flines.forEach((line, ln) => {
 
 		// line offset
-		const oxl = (line.length * cw - tw) * (offset.x - 0.5);
+		const oxl = (tw - line.length * cw) * (offset.x + 0.5);
 
 		line.forEach((char, cn) => {
 			const qpos = font.map[char];

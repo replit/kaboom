@@ -66,7 +66,7 @@ scene("main", () => {
 
 	const player = add([
 		sprite("car"),
-		pos(20, 0),
+		pos(map.getPos(1, 1)),
 		scale(1),
 		body(),
 		{

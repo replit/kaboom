@@ -6,14 +6,9 @@ init({
 scene("main", () => {
 
 	const input = add([
-		text("123abc", 8, { width: 120, }),
-// 		pos(width() / 2, height() / 2),
+		text("123abc", 24, { width: width(), }),
 		origin("topleft"),
 	]);
-
-	input.action(() => {
-		input.pos = mousePos();
-	});
 
 	charInput((ch) => {
 		input.text += ch;
