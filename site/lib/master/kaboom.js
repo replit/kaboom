@@ -147,6 +147,8 @@ function init(conf = {}) {
 	gfxInit(conf);
 	audioInit(conf);
 
+	loadFont("unscii", "data:image/png;base64," + fontImgData, 8, 8);
+
 	canvas.addEventListener("mousemove", (e) => {
 		app.mousePos = vec2(e.offsetX, e.offsetY).scale(1 / app.scale);
 	});
@@ -270,19 +272,6 @@ function gfxInit(conf = {}) {
 	gl.enable(gl.BLEND);
 	gl.depthFunc(gl.LEQUAL);
 	gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
-
-	const lid = newLoader();
-
-	loadImg("data:image/png;base64," + fontImgData, (img) => {
-		gfx.defFont = makeFont(
-			makeTex(img),
-			8,
-			8,
-			" !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~"
-		);
-		gfx.curFont = gfx.defFont;
-		loadComplete(lid);
-	});
 
 }
 
@@ -794,7 +783,7 @@ function originPt(orig) {
 
 function fmtText(text, conf = {}) {
 
-	const font = gfx.curFont;
+	const font = game.fonts[conf.font || "unscii"];
 	const chars = (text + "").split("");
 	const gw = font.qw * font.tex.width;
 	const gh = font.qh * font.tex.height;
@@ -845,7 +834,7 @@ function fmtText(text, conf = {}) {
 			const y = ln * ch;
 			if (qpos) {
 				fchars.push({
-					tex: gfx.defFont.tex,
+					tex: font.tex,
 					quad: quad(qpos.x, qpos.y, font.qw, font.qh),
 					ch: char,
 					pos: vec2(pos.x + x + ox + oxl, pos.y + y + oy),
@@ -1446,23 +1435,18 @@ function loadRoot(path) {
 	}
 }
 
-function isURL(string) {
-
-	let url;
-
-	try {
-		url = new URL(string);
-	} catch (_) {
-		return false;
-	}
-
-	return url.protocol === "http:" || url.protocol === "https:";
-
-}
+const ASCII_CHARS = " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~";
 
 // load a bitmap font to asset manager
 function loadFont(name, src, gw, gh, chars) {
-	// TODO
+
+	const lid = newLoader();
+
+	loadImg(src, (img) => {
+		game.fonts[name] = makeFont(makeTex(img), gw, gh, chars || ASCII_CHARS);
+		loadComplete(lid);
+	});
+
 }
 
 // TODO: put this in gfx module?
@@ -2340,6 +2324,7 @@ function layer(z) {
 	};
 }
 
+// TODO: active
 // TODO: update area when eg. rect size change?
 function area(p1, p2) {
 
@@ -2743,6 +2728,7 @@ function text(t, size, conf = {}) {
 
 		text: t,
 		textSize: size,
+		font: conf.font || "unscii",
 
 		draw() {
 
@@ -2755,6 +2741,7 @@ function text(t, size, conf = {}) {
 				size: this.textSize,
 				origin: this.origin,
 				color: this.color,
+				font: this.font,
 				width: conf.width,
 				z: scene.layers[this.layer || scene.defLayer],
 			});
@@ -2853,6 +2840,7 @@ k.start = start;
 k.loadRoot = loadRoot;
 k.loadSprite = loadSprite;
 k.loadSound = loadSound;
+k.loadFont = loadFont;
 k.getSprite = getSprite;
 
 // query

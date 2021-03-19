@@ -1,3 +1,5 @@
+loadFont("04b03", "/pub/img/04b03.png", 6, 8);
+
 init({
 	fullscreen: true,
 	scale: 2,
@@ -6,7 +8,7 @@ init({
 scene("main", () => {
 
 	const input = add([
-		text("123abc", 24, { width: width(), }),
+		text("123abc", 72, { width: width(), font: "04b03", }),
 		origin("topleft"),
 	]);
 

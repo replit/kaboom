@@ -163,7 +163,7 @@ loadSprite("froggy", "froggy.png", {
 	},
 });
 
-// load with aseprite spritesheet
+// load with aseprite sprite sheet
 loadSprite("froggy", "froggy.png", {
 	aseSpriteSheet: "froggy.json", // use spritesheet exported from aseprite
 });
@@ -174,6 +174,23 @@ loadSprite("froggy", "froggy.png", {
 				a("[conf]", "optional config"),
 			], null, "load a sound", `
 loadSound("shoot", "shoot.ogg");
+			`),
+			f("loadFont", [
+				a("name", "name of font"),
+				a("src", "font image source"),
+				a("charWidth", "width of each char on img"),
+				a("charHeight", "height of each char on img"),
+				a("[chars]", "character map of img (defaults to ASCII 32-126)"),
+			], null, "load a font", `
+
+// default character mappings: (ASCII 32 - 126)
+// const ASCII_CHARS = " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_\`abcdefghijklmnopqrstuvwxyz{|}~";
+
+// load a bitmap font called "04b03", with bitmap "04b03.png", each character on bitmap has a size of (6, 8), and contains default ASCII_CHARS
+loadFont("04b03", "04b03.png", 6, 8);
+
+// load a font with custom characters
+loadFont("04b03", "04b03.png", 6, 8, "123abc");
 			`),
 		],
 	},
@@ -367,11 +384,19 @@ obj.color = rgb(1, 0, 0); // make it red instead
 			`),
 			f("sprite", [
 				a("id", "sprite id"),
+				a("[conf]", "sprite config"),
 			], null, "sprite", `
 // note: this automatically gives the obj an 'area()' component
 const obj = add([
 	// sprite is loaded by loadSprite("froggy", src)
 	sprite("froggy"),
+]);
+
+const obj = add([
+	sprite("froggy", {
+		animSpeed: 0.3, // time per frame (defaults to 0.1)
+		frame: 2, // start frame (defaults to 0)
+	}),
 ]);
 
 // get current frame
@@ -382,15 +407,27 @@ obj.play("jump");
 
 // stop the anim
 obj.stop();
+
+obj.onAnimEnd("jump", () => {
+	obj.play("fall");
+});
 			`),
 			f("text", [
 				a("txt", "the text to draw"),
 				a("size", "the text to draw"),
+				a("[conf]", "text configs"),
 			], null, "sprite", `
 // note: this automatically gives the obj an 'area()' component
 const obj = add([
 	// content, size
 	text("oh hi", 64),
+]);
+
+const obj = add([
+	text("oh hi", 64, {
+		width: 120, // wrap when exceeds this width (defaults to 0 no wrap)
+		font: "proggy", // font to use (defaults to "unscii")
+	}),
 ]);
 
 // update the content
