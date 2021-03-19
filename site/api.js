@@ -190,7 +190,7 @@ loadSound("shoot", "shoot.ogg");
 loadFont("04b03", "04b03.png", 6, 8);
 
 // load a font with custom characters
-loadFont("04b03", "04b03.png", 6, 8, "123abc");
+loadFont("CP437", "CP437.png", 6, 8, "☺☻♥♦♣♠");
 			`),
 		],
 	},
@@ -904,22 +904,26 @@ const map = addLevel([
 	"=": [
 		sprite("ground"),
 		solid(),
+		"block",
 	],
 	"*": [
 		sprite("coin"),
 		solid(),
+		"block",
 	],
 	// use a callback for dynamic evauations per block
 	"?": () => {
 		return [
 			sprite("prize"),
 			color(0, 1, rand(0, 1)),
+			"block",
 		];
 	},
 	"^": [
 		sprite("spike"),
 		solid(),
 		"spike",
+		"block",
 	],
 });
 
@@ -931,7 +935,12 @@ map.height();
 map.getPos(x, y);
 
 // destroy all
-map.destroy()
+map.destroy();
+
+// there's no spatial hashing yet, if too many blocks causing lag, consider hard disabling collision resolution from blocks far away by turning off 'solid'
+action("block", (b) => {
+	b.solid = player.pos.dist(b.pos) <= 20;
+});
 			`),
 		],
 	},
