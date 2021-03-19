@@ -205,6 +205,14 @@ add([
 	"killable",
 ]);
 
+player.hidden = false; // if this obj renders
+player.paused = true // if this obj updates
+
+// runs every frame as long as player is not destroy() ed
+player.action(() => {
+	player.move(100, 0);
+});
+
 // provided by 'sprite()'
 player.play("jump"); // play a spritesheet animation
 console.log(player.frame); // get current frame
@@ -284,6 +292,23 @@ obj.on("grounded", () => {
 // mainly for custom components defining custom events
 obj.trigger("grounded");
 			`),
+			f("get", [
+				a("tag", "tag"),
+			], null, "get a list of obj reference with a certain tag", `
+const enemies = get("enemy");
+			`),
+			f("every", [
+				a("tag", "tag"),
+				a("cb", "cb"),
+			], null, "run a callback on every obj with a certain tag", `
+// equivalent to destroyAll("enemy")
+every("enemy", (obj) => {
+	destroy(obj);
+});
+			`),
+			f("destroyAll", [
+				a("tag", "tag"),
+			], null, "destroy every obj with a certain tag", ``),
 		],
 	},
 	{
@@ -360,6 +385,7 @@ obj.stop();
 			`),
 			f("text", [
 				a("txt", "the text to draw"),
+				a("size", "the text to draw"),
 			], null, "sprite", `
 // note: this automatically gives the obj an 'area()' component
 const obj = add([

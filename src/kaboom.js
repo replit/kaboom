@@ -1417,6 +1417,7 @@ const game = {
 	curScene: undefined,
 	scenes: {},
 	sprites: {},
+	fonts: {},
 	loaders: {},
 	lastLoaderID: 0,
 	loadRoot: "",
@@ -1589,8 +1590,67 @@ function loadSprite(name, src, conf = {}) {
 
 }
 
+// TODO
 function getSprite(name) {
-	// TODO
+	const sprite = game.sprites[name];
+	if (!sprite) {
+		console.error(`sprite not found: '${name}'`);
+	}
+	return {
+
+		width() {
+			return sprite.tex.width;
+		},
+
+		height() {
+			return sprite.tex.height;
+		},
+
+		useAseSpriteSheet(path) {
+			fetch(game.loadRoot + path)
+				.then((res) => {
+					return res.json();
+				})
+				.then((data) => {
+					const size = data.meta.size;
+					sprite.frames = data.frames.map((f) => {
+						return quad(
+							f.frame.x / size.w,
+							f.frame.y / size.h,
+							f.frame.w / size.w,
+							f.frame.h / size.h,
+						);
+					});
+					for (const anim of data.meta.frameTags) {
+						sprite.anims[anim.name] = [anim.from, anim.to];
+					}
+				});
+		},
+
+		slice(x, y) {
+
+			x = x || 1;
+			y = y || 1;
+			const qw = 1 / x;
+			const qh = 1 / y;
+
+			sprite.frames = [];
+
+			for (let j = 0; j < y; j++) {
+				for (let i = 0; i < x; i++) {
+					sprite.frames.push(quad(
+						i * qw,
+						j * qh,
+						qw,
+						qh,
+					));
+				}
+			}
+
+		},
+
+	};
+
 }
 
 // start describing a scene (this should be called before start())
@@ -2568,6 +2628,7 @@ function sprite(id, conf = {}) {
 		frame: conf.frame || 0,
 		width: w,
 		height: h,
+		_animEvents: {},
 
 		draw() {
 
@@ -2586,7 +2647,6 @@ function sprite(id, conf = {}) {
 
 		},
 
-		// TODO: don't have this if no anim
 		update() {
 
 			if (!this.curAnim) {
@@ -2606,7 +2666,7 @@ function sprite(id, conf = {}) {
 						this.frame = anim[0];
 					} else {
 						this.frame--;
-						this.curAnim = undefined;
+						this.stop();
 					}
 				}
 				this._animTimer -= this.animSpeed;
@@ -2623,14 +2683,42 @@ function sprite(id, conf = {}) {
 				return;
 			}
 
+			if (this.curAnim) {
+				this.stop();
+			}
+
 			this.curAnim = name;
 			this.frame = anim[0];
 			this._animLooping = loop === undefined ? true : loop;
 
+			if (this._animEvents[name]?.play) {
+				this._animEvents[name].play();
+			}
+
 		},
 
 		stop() {
+			if (!this.curAnim) {
+				return;
+			}
+			if (this._animEvents[this.curAnim]?.end) {
+				this._animEvents[this.curAnim].end();
+			}
 			this.curAnim = undefined;
+		},
+
+		onAnimPlay(name, cb) {
+			if (!this._animEvents[name]) {
+				this._animEvents[name] = {};
+			}
+			this._animEvents[name].play = cb;
+		},
+
+		onAnimEnd(name, cb) {
+			if (!this._animEvents[name]) {
+				this._animEvents[name] = {};
+			}
+			this._animEvents[name].end = cb;
 		},
 
 		debugInfo() {
@@ -2765,6 +2853,7 @@ k.start = start;
 k.loadRoot = loadRoot;
 k.loadSprite = loadSprite;
 k.loadSound = loadSound;
+k.getSprite = getSprite;
 
 // query
 k.width = width;

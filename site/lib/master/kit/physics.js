@@ -6,8 +6,12 @@ if (!kaboom) {
 
 const k = kaboom;
 
+const DEF_GRAVITY = 980;
+const DEF_JUMP_FORCE = 480;
+const DEF_MAX_VEL = 960;
+
 const world = {
-	gravity: 980,
+	gravity: DEF_GRAVITY,
 };
 
 function gravity(g) {
@@ -19,7 +23,8 @@ function body(conf = {}) {
 	return {
 
 		velY: 0,
-		jumpForce: conf.jumpForce !== undefined ? conf.jumpForce : 640,
+		jumpForce: conf.jumpForce !== undefined ? conf.jumpForce : DEF_JUMP_FORCE,
+		maxVel: conf.maxVel || DEF_MAX_VEL,
 		curPlatform: undefined,
 
 		update() {
@@ -35,7 +40,7 @@ function body(conf = {}) {
 			}
 
 			if (!this.curPlatform) {
-				this.velY += world.gravity * k.dt();
+				this.velY = Math.min(this.velY + world.gravity * k.dt(), this.maxVel);
 				for (const target of targets) {
 					if (target.side === "bottom" && this.velY > 0) {
 						this.curPlatform = target.obj;
