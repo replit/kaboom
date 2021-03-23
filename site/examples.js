@@ -132,10 +132,10 @@ const page = t("html", {}, [
 				t("select", {
 					id: "select",
 					name: "example",
-					value: "hi",
+					value: "level",
 					onchange: "update()",
 				}, fs.readdirSync("./pub/examples").map((file) => {
-					return t("option", { selected: file === "hi.js" }, path.basename(file, ".js"));
+					return t("option", { selected: file === "level.js" }, path.basename(file, ".js"));
 				})),
 				t("button", { onclick: "run()", }, "run"),
 			]),

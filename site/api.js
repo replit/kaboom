@@ -201,26 +201,28 @@ loadFont("CP437", "CP437.png", 6, 8, "☺☻♥♦♣♠");
 			f("add", [
 				a("comps", "list of components"),
 			], "obj", "add a game object to scene", `
-// compose a game object from components
+// a game object consists of a list of components
 const player = add([
-	// a 'sprite'component gives it the render ability
+	// a 'sprite' component gives it the render ability
 	sprite("froggy"),
-	// a 'pos'component gives it a position
+	// a 'pos' component gives it a position
 	pos(100, 100),
-	// a 'body'component makes it fall and gives it jump()
+	// a 'body' component makes it fall and gives it jump()
 	body(),
 	// raw strings are tags
 	"player",
+	"killable",
+	// custom fields are assigned directly to the returned obj ref
+	{
+		dir: vec2(-1, 0),
+		dead: false,
+		speed: 240,
+	},
 ]);
 
-add([
-	sprite("badboi"),
-	pos(rand(width()), 0),
-	color(0, 0, 1),
-	body(),
-	"enemy",
-	"killable",
-]);
+player.action(() => {
+	player.move(player.dir.scale(player.speed));
+});
 
 player.hidden = false; // if this obj renders
 player.paused = true // if this obj updates
@@ -330,7 +332,7 @@ every("enemy", (obj) => {
 	},
 	{
 		name: "Components",
-		desc: "Built-in components. Each component will give the object some methods and fields.",
+		desc: "Built-in components. Each component gives the game object certain data / behaviors.",
 		entries: [
 			f("pos", [
 				a("x", "x"),
@@ -385,7 +387,7 @@ obj.color = rgb(1, 0, 0); // make it red instead
 			f("sprite", [
 				a("id", "sprite id"),
 				a("[conf]", "sprite config"),
-			], null, "sprite", `
+			], null, "draw sprite", `
 // note: this automatically gives the obj an 'area()' component
 const obj = add([
 	// sprite is loaded by loadSprite("froggy", src)
@@ -416,7 +418,7 @@ obj.onAnimEnd("jump", () => {
 				a("txt", "the text to draw"),
 				a("size", "the text to draw"),
 				a("[conf]", "text configs"),
-			], null, "sprite", `
+			], null, "draw text", `
 // note: this automatically gives the obj an 'area()' component
 const obj = add([
 	// content, size
@@ -436,7 +438,7 @@ obj.text = "oh hi mark";
 			f("rect", [
 				a("w", "width"),
 				a("h", "height"),
-			], null, "sprite", `
+			], null, "draw rectangle", `
 // note: this automatically gives the obj an 'area()' component
 const obj = add([
 	// width, height
@@ -495,7 +497,20 @@ if (obj.isHovered()) {
 obj.hasPt();
 
 // resolve all collisions with objects with 'solid'
+// for now this checks against all solid objs in the scene, costly
 obj.resolve();
+			`),
+			f("solid", [
+			], null, "mark the obj so other objects can't move past it if they have an area and resolve()", `
+const obj = add([
+	sprite("wall"),
+	solid(),
+]);
+
+// need to call resolve() (provided by 'area') to make sure they cannot move past solid objs
+player.action(() => {
+	player.resolve();
+});
 			`),
 			f("origin", [
 				a("orig", "origin pt"),
@@ -519,16 +534,21 @@ const obj = add([
 			`),
 			f("layer", [
 				a("name", "layer name"),
-			], null, "the layer to draw on", `
+			], null, "specify the layer to draw on", `
 layers([
 	"bg",
 	"game",
 	"ui",
+], "game");
+
+add([
+	sprite("sky"),
+	layer("bg"),
 ]);
 
-const obj = add([
+// we specified "game" to be default layer above, so a manual layer() comp is not needed
+const player = add([
 	sprite("froggy"),
-	layer("game"),
 ]);
 
 const score = add([
@@ -861,6 +881,16 @@ const player = add([
 	// now player will fall in this gravity world
 	body(),
 ]);
+
+const player = add([
+	pos(0, 0),
+	body({
+		// force of .jump()
+		jumpForce: 640,
+		// maximum fall velocity
+		maxVel: 2400,
+	}),
+]);
 			`),
 			f("obj.jump", [
 			], null, "makes an object jump", `
@@ -976,4 +1006,3 @@ add([
 ];
 
 module.exports = api;
-

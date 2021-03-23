@@ -223,6 +223,20 @@ const page = t("html", {}, [
 <script src="https://kaboomjs.com/lib/master/kit/starter.js"></script>
 <script src="https://kaboomjs.com/lib/master/kit/level.js"></script>
 				`, "html"),
+				t("p", { class: "desc", }, "quick start"),
+				code(`
+kaboom.import();
+init();
+
+scene("main", () => {
+	add([
+		text("ohhimark"),
+		pos(100, 100),
+	]);
+});
+
+start("main");
+				`),
 				...api.map((sec) => {
 					return t("div", {}, [
 						t("p", { class: "title", }, sec.name),

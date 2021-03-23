@@ -684,6 +684,7 @@ function drawSprite(name, conf = {}) {
 
 }
 
+// TODO: origin won't work
 function drawRectStroke(pos, w, h, conf = {}) {
 
 	const p1 = vec2(pos.add(vec2(-w / 2, -h / 2)));
@@ -783,7 +784,18 @@ function originPt(orig) {
 
 function fmtText(text, conf = {}) {
 
-	const font = game.fonts[conf.font || "unscii"];
+	const fontName = conf.font || "unscii";
+	const font = game.fonts[fontName];
+
+	if (!font) {
+		console.error(`font not found: '${fontName}'`);
+		return {
+			width: 0,
+			height: 0,
+			chars: [],
+		};
+	}
+
 	const chars = (text + "").split("");
 	const gw = font.qw * font.tex.width;
 	const gh = font.qh * font.tex.height;
@@ -1590,6 +1602,10 @@ function getSprite(name) {
 			return sprite.tex.height;
 		},
 
+		addAnim(name, range) {
+			sprite.anims[name] = range;
+		},
+
 		useAseSpriteSheet(path) {
 			fetch(game.loadRoot + path)
 				.then((res) => {
@@ -1905,8 +1921,10 @@ function collides(t1, t2, f) {
 	action(t1, (o1) => {
 		every(t2, (o2) => {
 			if (o1 !== o2) {
-				if (o1.isCollided(o2)) {
-					f(o1, o2);
+				if (o1.area) {
+					if (o1.isCollided(o2)) {
+						f(o1, o2);
+					}
 				}
 			}
 		});
@@ -2153,30 +2171,46 @@ function start(name) {
 
 	const frame = (t) => {
 
+		const realTime = t / 1000;
+		const realDt = realTime - app.realTime;
+
+		app.realTime = realTime;
+		app.dt = realDt * kaboom.debug.timeScale;
+		app.time += app.dt;
+
 		if (!game.loaded) {
 
-			let loaded = true;
+			let finished = true;
+			let total = 0;
+			let loaded = 0;
 
 			for (const id in game.loaders) {
+				total += 1;
 				if (!game.loaders[id]) {
-					loaded = false;
-					break;
+					finished = false;
+				} else {
+					loaded += 1;
 				}
 			}
 
-			if (loaded) {
+			gfxFrameStart();
+
+			const w = width() / 2;
+			const h = 12;
+			const ratio = loaded / total;
+			const pos = vec2(width() / 2, height() / 2);
+
+			gfxFrameStart();
+			drawRectStroke(pos, w, h, { width: 2, });
+			drawRect(pos.sub(vec2(w * (1 - ratio) / 2, 0)), w * ratio, h);
+			gfxFrameEnd();
+
+			if (finished) {
 				game.loaded = true;
 				go(name);
 			}
 
 		} else {
-
-			const realTime = t / 1000;
-			const realDt = realTime - app.realTime;
-
-			app.realTime = realTime;
-			app.dt = realDt * kaboom.debug.timeScale;
-			app.time += app.dt;
 
 			const scene = game.scenes[game.curScene];
 
@@ -2825,7 +2859,7 @@ function stepFrame() {
 }
 
 function error(msg) {
-	console.log(msg);
+	console.error(msg);
 }
 
 function log(msg) {

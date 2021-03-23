@@ -13,7 +13,7 @@ loadSprite("coin", "/img/coin.png");
 loadSound("coin", "/sounds/coin.ogg");
 
 init({
-	fullscreen: 2,
+	fullscreen: true,
 	scale: 2,
 });
 
@@ -33,7 +33,7 @@ scene("main", () => {
 		"               =++===    ",
 		"                         ",
 		"                    oo   ",
-		"        =====      +++   ",
+		"        =====      +++ **",
 		"==========++===+=^====+++",
 	], {
 		width: 11,
@@ -66,7 +66,7 @@ scene("main", () => {
 
 	const player = add([
 		sprite("car"),
-		pos(map.getPos(1, 1)),
+		pos(map.getPos(1, 0)),
 		scale(1),
 		body(),
 		{
