@@ -1,7 +1,7 @@
 (() => {
 
 if (!kaboom) {
-	console.error("oh no kaboom not found!");
+	console.error("kaboom not found!");
 }
 
 const k = kaboom;

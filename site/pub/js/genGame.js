@@ -62,6 +62,7 @@ const _console = { ...console, };
 	<script src="/lib/master/kit/physics.js"></script>
 	<script src="/lib/master/kit/starter.js"></script>
 	<script src="/lib/master/kit/level.js"></script>
+	<script src="/lib/master/kit/dyntext.js"></script>
 	<script>kaboom.import();</script>
 	<script>
 ${code}

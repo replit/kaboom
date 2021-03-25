@@ -1,11 +1,20 @@
 const esbuild = require("esbuild");
-
-console.log("dist/kaboom.min.js");
+const devDir = "src";
 
 esbuild.buildSync({
 	entryPoints: ["src/kaboom.js"],
 	bundle: true,
-	minify: true,
 	sourcemap: true,
-	outfile: "dist/kaboom.min.js",
+	format: "iife",
+	watch: {
+		onRebuild(err, res) {
+			if (err) {
+				console.error(err);
+			} else {
+				console.log(res);
+			}
+		},
+	},
+	outfile: "dist/kaboom.js",
 });
+

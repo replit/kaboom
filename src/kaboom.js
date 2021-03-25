@@ -180,7 +180,7 @@ function init(conf = {}) {
 	});
 
 	canvas.addEventListener("keyup", (e) => {
-		const k = keyMap[e.key] || e.key;
+		const k = keyMap[e.key] || e.key.toLowerCase();
 		app.keyStates[k] = "released";
 	});
 
@@ -1919,14 +1919,8 @@ function render(tag, cb) {
 // add an event that runs with objs with t1 collides with objs with t2
 function collides(t1, t2, f) {
 	action(t1, (o1) => {
-		every(t2, (o2) => {
-			if (o1 !== o2) {
-				if (o1.area) {
-					if (o1.isCollided(o2)) {
-						f(o1, o2);
-					}
-				}
-			}
+		o1._checkCollisions(t2, (o2) => {
+			f(o1, o2)
 		});
 	});
 }
@@ -2167,7 +2161,7 @@ function gameFrame(ignorePause) {
 
 // TODO: on screen error message?
 // start the game with a scene
-function start(name) {
+function start(name, ...args) {
 
 	const frame = (t) => {
 
@@ -2207,7 +2201,7 @@ function start(name) {
 
 			if (finished) {
 				game.loaded = true;
-				go(name);
+				go(name, ...args);
 			}
 
 		} else {
@@ -2368,6 +2362,8 @@ function area(p1, p2) {
 			p1: vec2(Math.min(p1.x, p2.x), Math.min(p1.y, p2.y)),
 			p2: vec2(Math.max(p1.x, p2.x), Math.max(p1.y, p2.y)),
 		},
+
+		_colliding: {},
 
 		areaWidth() {
 			const a = this._worldArea();
@@ -2558,13 +2554,33 @@ function area(p1, p2) {
 
 		},
 
-		collides(t, f) {
+		_checkCollisions(tag, f) {
+
+			every(tag, (obj) => {
+				if (this === obj) {
+					return;
+				}
+				if (this._colliding[obj._sceneID]) {
+					return;
+				}
+				if (this.isCollided(obj)) {
+					f(obj);
+					this._colliding[obj._sceneID] = obj;
+				}
+			});
+
+			for (const id in this._colliding) {
+				const obj = this._colliding[id];
+				if (!this.isCollided(obj)) {
+					delete this._colliding[id];
+				}
+			}
+
+		},
+
+		collides(tag, f) {
 			this.action(() => {
-				every(t, (o) => {
-					if (this.isCollided(o)) {
-						f(o);
-					}
-				});
+				this._checkCollisions(tag, f);
 			});
 		},
 
