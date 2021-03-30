@@ -24,7 +24,6 @@ scene("main", () => {
 			width: width(),
 			font: fonts[curFont],
 		}),
-		origin("topleft"),
 	]);
 
 	charInput((ch) => {

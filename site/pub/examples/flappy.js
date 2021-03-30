@@ -33,7 +33,6 @@ scene("main", () => {
 		sprite("bg"),
 		scale(width() / 240, height() / 240),
 		layer("bg"),
-		origin("topleft"),
 	]);
 
 	// a game object consists of a list of components and tags
@@ -115,7 +114,6 @@ scene("main", () => {
 	// display score
 	const score = add([
 		text("0", 16),
-		origin("topleft"),
 		layer("ui"),
 		pos(9, 9),
 		{
@@ -135,6 +133,7 @@ scene("death", (score) => {
 	add([
 		text(`${score}`, 64),
 		pos(width() / 2, height() / 2),
+		origin("center"),
 	]);
 	keyPress("space", () => {
 		go("main");

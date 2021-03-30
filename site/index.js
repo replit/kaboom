@@ -11,15 +11,9 @@ const {
 const port = process.env.PORT || 8000;
 
 const pages = {
-	"/": () => {
-		return dofile("./main");
-	},
-	"/guide": () => {
-		return dofile("./guide");
-	},
-	"/examples": () => {
-		return dofile("./examples");
-	},
+	"/": () => dofile("./doc"),
+	"/guide": () => dofile("./guide"),
+	"/examples": () => dofile("./examples"),
 };
 
 const server = http.createServer((req, res) => {
@@ -85,4 +79,3 @@ for (const target in pages) {
 }
 
 server.listen(port);
-

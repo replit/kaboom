@@ -134,8 +134,11 @@ const page = t("html", {}, [
 					name: "example",
 					value: "level",
 					onchange: "update()",
-				}, fs.readdirSync("./pub/examples").map((file) => {
-					return t("option", { selected: file === "level.js" }, path.basename(file, ".js"));
+				}, fs
+					.readdirSync("./pub/examples")
+					.filter(f => !f.startsWith("."))
+					.map(f => {
+					return t("option", { selected: f === "level.js" }, path.basename(f, ".js"));
 				})),
 				t("button", { onclick: "run()", }, "run"),
 			]),
@@ -153,4 +156,3 @@ const page = t("html", {}, [
 ]);
 
 module.exports = "<!DOCTYPE html>" + page;
-

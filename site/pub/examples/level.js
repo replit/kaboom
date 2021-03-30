@@ -69,6 +69,7 @@ scene("main", () => {
 		pos(map.getPos(1, 0)),
 		scale(1),
 		body(),
+		origin("center"),
 		{
 			speed: 160,
 			jumpForce: 320,

@@ -12,6 +12,7 @@ scene("main", () => {
 		pos(width() / 2, height() / 2),
 		scale(10),
 		rotate(0),
+		origin("center"),
 	]);
 
 	mark.action(() => {

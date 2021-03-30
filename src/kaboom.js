@@ -1,6 +1,6 @@
 // kaboom.js
 
-// TODO: no global state?
+// TODO: no global state, return a kaboom instance from init()?
 // TODO: mouse pos with camera pos
 
 (() => {
@@ -17,7 +17,7 @@ k.debug = {
 // --------------------------------
 // Resources
 
-const fontImgData = "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";
+const fontImgData = "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";
 
 const defVertSrc = `
 attribute vec3 a_pos;
@@ -46,6 +46,9 @@ void main() {
 `;
 
 const STRIDE = 9;
+const DEF_GRAVITY = 980;
+const DEF_JUMP_FORCE = 480;
+const DEF_MAX_VEL = 960;
 
 // --------------------------------
 // Utils
@@ -613,7 +616,7 @@ function drawQuad(conf = {}) {
 	const w = conf.width || 0;
 	const h = conf.height || 0;
 	const pos = conf.pos || vec2(0, 0);
-	const origin = conf.origin === undefined ? vec2(0, 0) : (typeof(conf.origin) === "string" ? originPt(conf.origin) : conf.origin);
+	const origin = originPt(conf.origin || "topleft");
 	const offset = origin.dot(vec2(w, h).scale(-0.5));
 	const scale = conf.scale === undefined ? vec2(1, 1) : vec2(conf.scale);
 	const rot = conf.rot || 0;
@@ -655,7 +658,6 @@ function drawQuad(conf = {}) {
 
 }
 
-// TODO: (maybe) more low level and accept tex instead of sprite id
 function drawSprite(name, conf = {}) {
 
 	const spr = game.sprites[name];
@@ -684,13 +686,13 @@ function drawSprite(name, conf = {}) {
 
 }
 
-// TODO: origin won't work
 function drawRectStroke(pos, w, h, conf = {}) {
 
-	const p1 = vec2(pos.add(vec2(-w / 2, -h / 2)));
-	const p2 = vec2(pos.add(vec2(-w / 2,  h / 2)));
-	const p3 = vec2(pos.add(vec2( w / 2,  h / 2)));
-	const p4 = vec2(pos.add(vec2( w / 2, -h / 2)));
+	const offset = originPt(conf.origin || "topleft").dot(w, h).scale(0.5);
+	const p1 = pos.add(vec2(-w / 2, -h / 2)).sub(offset);
+	const p2 = pos.add(vec2(-w / 2,  h / 2)).sub(offset);
+	const p3 = pos.add(vec2( w / 2,  h / 2)).sub(offset);
+	const p4 = pos.add(vec2( w / 2, -h / 2)).sub(offset);
 
 	drawLine(p1, p2, conf);
 	drawLine(p2, p3, conf);
@@ -724,6 +726,7 @@ function drawLine(p1, p2, conf = {}) {
 		width: w,
 		height: h,
 		rot: rot,
+		origin: "center",
 		color: conf.color,
 		z: conf.z,
 	});
@@ -731,11 +734,11 @@ function drawLine(p1, p2, conf = {}) {
 }
 
 function drawText(txt, conf = {}) {
-	drawFormattedText(fmtText(txt, conf));
+	drawFmtText(fmtText(txt, conf));
 }
 
 // TODO: rotation
-function drawFormattedText(ftext) {
+function drawFmtText(ftext) {
 	for (const ch of ftext.chars) {
 		drawQuad({
 			tex: ch.tex,
@@ -745,6 +748,8 @@ function drawFormattedText(ftext) {
 			scale: ch.scale,
 			color: ch.color,
 			quad: ch.quad,
+			// TODO: topleft
+			origin: "center",
 			z: ch.z,
 		});
 	}
@@ -830,7 +835,7 @@ function fmtText(text, conf = {}) {
 	// whole text offset
 	const fchars = [];
 	const pos = vec2(conf.pos);
-	const offset = originPt(conf.origin || "center").scale(0.5);
+	const offset = originPt(conf.origin || "topleft").scale(0.5);
 	// this math is complicated i forgot how it works instantly
 	const ox = -offset.x * cw - (offset.x + 0.5) * (tw - cw);
 	const oy = -offset.y * ch - (offset.y + 0.5) * (th - ch);
@@ -1692,6 +1697,7 @@ function scene(name, cb) {
 			pos: vec2(0, 0),
 			scale: vec2(1, 1),
 		},
+		gravity: DEF_GRAVITY,
 
 	};
 
@@ -2192,11 +2198,11 @@ function start(name, ...args) {
 			const w = width() / 2;
 			const h = 12;
 			const ratio = loaded / total;
-			const pos = vec2(width() / 2, height() / 2);
+			const pos = vec2(width() / 2, height() / 2).sub(vec2(w / 2, h / 2));
 
 			gfxFrameStart();
 			drawRectStroke(pos, w, h, { width: 2, });
-			drawRect(pos.sub(vec2(w * (1 - ratio) / 2, 0)), w * ratio, h);
+			drawRect(pos, w * ratio, h);
 			gfxFrameEnd();
 
 			if (finished) {
@@ -2397,7 +2403,7 @@ function area(p1, p2) {
 			const w = a.p2.x - a.p1.x;
 			const h = a.p2.y - a.p1.y;
 
-			drawRectStroke(pos, w, h, {
+			drawRectStroke(a.p1, a.p2.x - a.p1.x, a.p2.y - a.p1.y, {
 				width: width / app.scale,
 				color: color,
 				z: 0.9,
@@ -2440,19 +2446,19 @@ function area(p1, p2) {
 				bh += padding.y * 2;
 
 				// background
-				drawRect(mousePos().add(vec2(bw / 2, bh / 2)), bw, bh, {
+				drawRect(mousePos(), bw, bh, {
 					color: rgba(0, 0, 0, 1),
 					z: 1,
 				});
 
-				drawRectStroke(mousePos().add(vec2(bw / 2, bh / 2)), bw, bh, {
+				drawRectStroke(mousePos(), bw, bh, {
 					width: (width - 2) / app.scale,
 					color: rgba(0, 1, 1, 1),
 					z: 1,
 				});
 
 				for (const line of lines) {
-					drawFormattedText(line);
+					drawFmtText(line);
 				}
 
 			}
@@ -2592,8 +2598,7 @@ function area(p1, p2) {
 			const scale = this.scale || vec2(1);
 			const w = (a.p2.x - a.p1.x) * scale.x;
 			const h = (a.p2.y - a.p1.y) * scale.y;
-			const origin = this.origin === undefined ? vec2(0, 0) : (typeof(this.origin) === "string" ? originPt(this.origin) : this.origin);
-			const offset = origin.dot(vec2(w, h).scale(-0.5));
+			const offset = originPt(this.origin || "topleft").dot(vec2(w, h).scale(-0.5));
 
 			return {
 				p1: pos.add(a.p1.scale(Math.abs(scale.x))).add(offset),
@@ -2799,7 +2804,7 @@ function text(t, size, conf = {}) {
 			this.width = ftext.tw;
 			this.height = ftext.th;
 
-			drawFormattedText(ftext);
+			drawFmtText(ftext);
 
 		},
 
@@ -2850,6 +2855,55 @@ function timer() {
 	};
 }
 
+function body(conf = {}) {
+
+	return {
+
+		velY: 0,
+		jumpForce: conf.jumpForce !== undefined ? conf.jumpForce : DEF_JUMP_FORCE,
+		maxVel: conf.maxVel || DEF_MAX_VEL,
+		curPlatform: undefined,
+
+		update() {
+
+			this.move(0, this.velY);
+
+			const targets = this.resolve();
+
+			if (this.curPlatform) {
+				if (!this.curPlatform.exists() || !this.isCollided(this.curPlatform)) {
+					this.curPlatform = undefined;
+				}
+			}
+
+			if (!this.curPlatform) {
+				this.velY = Math.min(this.velY + gravity() * k.dt(), this.maxVel);
+				for (const target of targets) {
+					if (target.side === "bottom" && this.velY > 0) {
+						this.curPlatform = target.obj;
+						this.trigger("grounded");
+						this.velY = 0;
+					} else if (target.side === "top" && this.velY < 0) {
+						this.velY = 0;
+					}
+				}
+			}
+
+		},
+
+		grounded() {
+			return this.curPlatform !== undefined;
+		},
+
+		jump(force) {
+			this.curPlatform = undefined;
+			this.velY = -force || -this.jumpForce;
+		},
+
+	};
+
+}
+
 // --------------------------------
 // Debug
 
@@ -2882,6 +2936,79 @@ function log(msg) {
 	console.log(msg);
 }
 
+function gravity(g) {
+	const scene = game.scenes[game.curScene]
+	if (g !== undefined) {
+		scene.gravity = g;
+	}
+	return scene.gravity;
+}
+
+function addLevel(arr, conf = {}) {
+
+	const objs = [];
+	const pos = k.vec2(conf.pos);
+	let longRow = 0;
+
+	arr.forEach((row, i) => {
+
+		if (typeof(row) === "string") {
+			row = row.split("");
+		}
+
+		longRow = Math.max(row.length, longRow);
+
+		row.forEach((tile, j) => {
+
+			const comps = (() => {
+				if (conf[tile]) {
+					if (typeof(conf[tile]) === "function") {
+						return conf[tile]();
+					} else if (Array.isArray(conf[tile])) {
+						return [...conf[tile]];
+					}
+				} else if (conf.any) {
+					return conf.any(tile);
+				}
+			})();
+
+			if (comps) {
+				comps.push(k.pos(
+					pos.x + j * conf.width,
+					pos.y + i * conf.height
+				));
+				objs.push(add(comps));
+			}
+
+		});
+
+	});
+
+	return {
+		getPos(...p) {
+			p = vec2(...p);
+			return k.vec2(
+				pos.x + p.x * conf.width,
+				pos.y + p.y * conf.height
+			);
+		},
+		width() {
+			return longRow * conf.width;
+		},
+		height() {
+			return arr.length * conf.height;
+		},
+		destroy() {
+			for (const obj of objs) {
+				destroy(obj);
+			}
+		},
+	};
+
+}
+
+k.addLevel = addLevel;
+
 // life cycle
 k.init = init;
 k.start = start;
@@ -2907,6 +3034,7 @@ k.go = go;
 k.layers = layers;
 k.campos = campos;
 k.camscale = camscale;
+k.gravity = gravity;
 
 // obj
 k.add = add;
@@ -2928,6 +3056,7 @@ k.text = text;
 k.rect = rect;
 k.solid = solid;
 k.timer = timer;
+k.body = body;
 
 // group events
 k.on = on;

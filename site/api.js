@@ -730,7 +730,7 @@ p.angle(); // => 1.1
 				a("g", "green"),
 				a("b", "blue"),
 				a("a", "alpha"),
-			], null, "creates a color", `
+			], null, "creates a color from red, green, blue and alpha values (note: values are 0 - 1 not 0 - 255)", `
 const c = rgba(0, 0, 1, 1); // blue
 
 p.r // 0

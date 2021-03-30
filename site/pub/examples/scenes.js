@@ -3,21 +3,23 @@ init({
 	scale: 2,
 });
 
-scene("game", () => {
-	keyPress("space", () => {
-		go("score", Math.ceil(rand(0, 10)));
-	});
-});
-
-scene("score", (score) => {
+scene("1", () => {
 	add([
-		text(score),
-		pos(width() / 2, height() / 2),
+		text("scene1"),
 	]);
 	keyPress("space", () => {
-		go("game");
+		go("2", Math.ceil(rand(0, 10)));
 	});
 });
 
-start("game");
+scene("2", (score) => {
+	add([
+		text("scene2"),
+	]);
+	keyPress("space", () => {
+		go("1");
+	});
+});
+
+start("1");
 

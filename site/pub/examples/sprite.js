@@ -9,11 +9,13 @@ loadSprite("mark", "/pub/img/mark.png");
 scene("main", () => {
 	add([
 		sprite("mark"),
-		// make it center on screen
-		pos(width() / 2, height() / 2),
 		// BIGMARK
 		scale(10),
 	]);
+	keyPress("f1", () => {
+		kaboom.debug.showArea = !kaboom.debug.showArea;
+		kaboom.debug.hoverInfo = !kaboom.debug.hoverInfo;
+	});
 });
 
 start("main");

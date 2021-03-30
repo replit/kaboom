@@ -16,6 +16,7 @@ scene("main", () => {
 		sprite("mark"),
 		pos(width() / 2, height()),
 		scale(3),
+		origin("center"),
 	]);
 
 	keyDown("left", () => {
