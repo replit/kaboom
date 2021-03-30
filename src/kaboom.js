@@ -775,6 +775,9 @@ function height() {
 }
 
 function originPt(orig) {
+	if (isVec2(orig)) {
+		return orig;
+	}
 	switch (orig) {
 		case "topleft": return vec2(-1, -1);
 		case "top": return vec2(0, -1);

@@ -460,7 +460,7 @@ obj.height = 75;
 const obj = add([
 	sprite("froggy"),
 	// override to a smaller region
-	area(vec2(-9, 3), vec2(9, 6)),
+	area(vec2(6), vec2(24)),
 ]);
 
 // callback when collides with a certain tag
@@ -519,13 +519,13 @@ player.action(() => {
 const obj = add([
 	sprite("froggy"),
 
-	// defaults to center
-	origin("center"),
-	// other options
+	// defaults to "topleft"
 	origin("topleft"),
+	// other options
 	origin("top"),
 	origin("topright"),
 	origin("left"),
+	origin("center"),
 	origin("right"),
 	origin("botleft"),
 	origin("bot"),
