@@ -77,7 +77,7 @@ scene("main", () => {
 	]);
 
 	player.action(() => {
-		campos(player.pos.scale(-1).add(width() / 2, height() / 2));
+		campos(player.pos);
 	});
 
 	// TODO: only touch on bottom edge jumps

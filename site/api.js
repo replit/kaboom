@@ -133,12 +133,19 @@ const score = add([
 			f("campos", [
 				a("pos", "position"),
 			], null, "set the camera position", `
-campos(vec2(0, 100));
-
-// center camera to player
+// camera position follow player
 player.action(() => {
 	campos(player.pos);
 });
+			`),
+			f("camscale", [
+				a("scale", "scale"),
+			], null, "set the camera scale", `
+if (win) {
+	campos(player.pos);
+	// get a close up shot of the player
+	camscale(3);
+}
 			`),
 		],
 	},

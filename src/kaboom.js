@@ -6,18 +6,25 @@ modules:
 
 - assets
   assets loader / manager
+
 - app
   manages canvas DOM and inputs
+
 - gfx
   everything visual
+
 - audio
   everything audio
+
 - game
   scene management, component system
+
 - comps
   built-in components
+
 - math
   math utils
+
 - utils
   misc utils
 
@@ -296,6 +303,36 @@ function getSprite(name) {
 
 	};
 
+}
+
+// load a sound to asset manager
+function loadSound(name, src, conf = {}) {
+
+	if (typeof(src) === "string") {
+
+		const loader = newLoader();
+
+		fetch(assets.loadRoot + src)
+			.then((res) => {
+				return res.arrayBuffer();
+			})
+			.then((data) => {
+				// TODO: doesn't work on safari
+				audio.ctx.decodeAudioData(data, (buf) => {
+					loader.done();
+					audio.sounds[name] = buf;
+				}, (err) => {
+					console.error(`failed to decode audio: ${name}`);
+					loader.done();
+				});
+			})
+			.catch((err) => {
+				console.error(`failed to load sound '${name}' from '${src}'`);
+				loader.done();
+			})
+			;
+
+	}
 }
 
 // ------------------------------------------------------------
@@ -1145,33 +1182,6 @@ function audioInit() {
 	audio.gainNode.connect(audio.ctx.destination);
 }
 
-// TODO: move this to assets module
-// load a sound to asset manager
-function loadSound(name, src, conf = {}) {
-	if (typeof(src === "string")) {
-		const loader = newLoader();
-		fetch(assets.loadRoot + src)
-			.then((res) => {
-				return res.arrayBuffer();
-			})
-			.then((data) => {
-				// TODO: doesn't work on safari
-				audio.ctx.decodeAudioData(data, (buf) => {
-					loader.done();
-					audio.sounds[name] = buf;
-				}, (err) => {
-					console.error(`failed to decode audio: ${name}`);
-					loader.done();
-				});
-			})
-			.catch((err) => {
-				console.error(`failed to load sound '${name}' from '${src}'`);
-				loader.done();
-			})
-			;
-	}
-}
-
 // get / set master volume
 function volume(v) {
 	if (v !== undefined) {
@@ -1696,6 +1706,10 @@ function deepCopy(input) {
 // ------------------------------------------------------------
 // game
 
+// TODO: custom scene store
+// TODO: comp registry?
+// TODO: avoid comp fields direct assign / collision
+
 const DEF_GRAVITY = 980;
 const DEF_JUMP_FORCE = 480;
 const DEF_MAX_VEL = 960;
@@ -1744,7 +1758,7 @@ function scene(name, cb) {
 		// misc
 		layers: {},
 		camera: {
-			pos: vec2(0, 0),
+			pos: vec2(width() / 2, height() / 2),
 			scale: vec2(1, 1),
 		},
 		gravity: DEF_GRAVITY,
@@ -1798,11 +1812,19 @@ function layers(list, def) {
 }
 
 function campos(...pos) {
-	game.scenes[game.curScene].camera.pos = vec2(...pos);
+	const cam = game.scenes[game.curScene].camera;
+	if (pos) {
+		cam.pos = vec2(...pos);
+	}
+	return cam.pos;
 }
 
 function camscale(...scale) {
-	game.scenes[game.curScene].camera.scale = vec2(...scale);
+	const cam = game.scenes[game.curScene].camera;
+	if (scale) {
+		cam.scale = vec2(...scale);
+	}
+	return cam.scale;
 }
 
 function add(comps) {
@@ -2180,9 +2202,13 @@ function gameFrame(ignorePause) {
 
 		}
 
+		const size = vec2(width(), height());
+
 		pushTransform();
+		pushTranslate(size.scale(0.5));
 		pushScale(scene.camera.scale);
-		pushTranslate(scene.camera.pos);
+		pushTranslate(size.scale(-0.5));
+		pushTranslate(scene.camera.pos.scale(-1).add(size.scale(0.5)));
 
 		// draw obj
 		if (!obj.hidden) {
