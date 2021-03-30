@@ -1,7 +1,27 @@
 // kaboom.js
 
-// TODO: no global state, return a kaboom instance from init()?
-// TODO: mouse pos with camera pos
+/*
+
+modules:
+
+- assets
+  assets loader / manager
+- app
+  manages canvas DOM and inputs
+- gfx
+  everything visual
+- audio
+  everything audio
+- game
+  scene management, component system
+- comps
+  built-in components
+- math
+  math utils
+- utils
+  misc utils
+
+*/
 
 (() => {
 
@@ -14,64 +34,272 @@ k.debug = {
 	hoverInfo: false,
 };
 
-// --------------------------------
-// Resources
+// ------------------------------------------------------------
+// assets
 
-const fontImgData = "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";
+const ASCII_CHARS = " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~";
 
-const defVertSrc = `
-attribute vec3 a_pos;
-attribute vec2 a_uv;
-attribute vec4 a_color;
-varying vec2 v_uv;
-varying vec4 v_color;
-void main() {
-	v_uv = a_uv;
-	v_color = a_color;
-	gl_Position = vec4(a_pos, 1.0);
+const assets = {
+	lastLoaderID: 0,
+	loadRoot: "",
+	loaders: {},
+	sprites: {},
+	sounds: {},
+	fonts: {},
+};
+
+function assetsInit(conf = {}) {
+	// default font unscii http://pelulamu.net/unscii/
+	loadFont(
+		"unscii",
+		"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAvgAAAAICAYAAACML4vTAAAAAXNSR0IArs4c6QAABo1JREFUeJzdW9uO5SgMJKv9/1/OPnQnDabKVQb6zGgtjeYkvmJsYwh9tQLc931//7yu63retdba+/4hTZ6ZDMQ3wHVdPe1kXk/60He2D/J7HLMhGyOwHQKji/o/BYmv40DecRq+cfgr8l8dhBfRLPF3v6F9Cu/ObwFPYxRBFptE7mA/wQ2yWMwI/1r+y3Bq/h4H3TwJ3fl16xcz4UfQPB+oplF9QJ7id+SjMVjz/wf5e5rK+hKfB9+a86PsZTIm+7P6942jufsqSvg7/END5WSg6ojLt7uurcjL6v8pfQ4doinIL9v+f4HTMfQ3gopR5gOQ+6jviPj7EfLvqQGsQFiXb/B7KMBGc/rQ3x1ONuHmBmOQfd93XwDVguPI/3Uw/fc8Dz5s4/xMogU/xScNKILJb4W5Q/YyXtt+IWcyF+GzMajY7ehZbCK5vf2sGczmJ+J6O6J8pT8dB5HPwPU706/knsjfVRlxvhje0Zn5H+F/m/+kf6uA1oxqPVD1Jeqj+kHuRr5x0ZzzU8nJANrCalDS5A54xV9Ynyd+p/6bNXSiBfY5Dk1pkPyObzI0s10ceFr+3+FXsMq/qk+BM97TusU6bIvp+Flf1ufuy/OJBh817s/vlcKOaOHgRBOeyu0nppt4uIEA+gcboLLv96oIu18IFLhfSRooMh19hsvkKyNjkCo6R+fXC3ya/ddAdjrekxH2i8VmiH23oGTNYy+n2iBHyPhYjtWV8IJtyz38BW6a42JMKuJtn30IfgJT+PdkziayaP1W+OpX6J6HyJ+ac8MXaJEvNfnGGheVow34neAn/tag30aByRfI5PDBlZ9tzNghHuJDMnZpGO37rMam/L/Jj2w6wY/8TH1gPCNfQ3zxAJTZ3wPKkS9EIS9bm3OfbDonof9YWgw7gCJ0uqF+390/JIs1QZE+yhjkKOcifMKDdMX3kYbxKB3xn8fsNZEPPm2SBQ7KD/OkkgXZfYV/PV/U/+rok0IswDH+HDyCmAcuXs1LHP8gBzTyd487dIrgAPPfC489wK6K/GwjouYoo6nmZQXUHCtA9RThd+yX87fIn9X3T8Kkl2yC3zlS+NZK9XUClruFjU3093IcBFui8U79Zfg74Flj7dRHJJ/1Hq58xAs3JAdgNb9QDxHB9f8JfgSV+c96QaVnCcRhzx3+r+hXY9qtq1HmKy+up3Ft3T7BN06gWVDGZhI5JL4b6Mh9yolu5T6iukMN7M4KQqWZ/SKYP9+lYJyAOYtPveMy5IPdZja//XPVnkw+tBHdPe35w8kWs3UX+tjNrtggvpWvM3H8Lihi5f/dE1kVD068PL7O+Fc2z65eNseuDEfHKoxFpx4fjm9bS+LjFyEu4F8P4gras1geqq8QzK9wlJ3IWYJk3TtS8zbvV8MN2qGvaxQOXt3YafKe2NjN8U8A2hzGDQpdg37xqzurObB3dOY9uyYG8nG37pXjp9rg7wQm+v0A201GvGqUd4KfFlejgUobxCDjixAXod3NiWVfRaa6YsT0hitIWWAqXyr+JdhYBDJbSg32Y8fOFZvVDdziBq/cABPY8WEKpxf31fgnMM2xq681u9HYagAM/6mxDmM0eXaBNhCELgKt36Z+Vf9GYoDLrsg496TZ8yFg629dEL+D7sDq4FB8bIF7xTaxI2X8Q9dJWf7Y/ks2iPYGf2HsWf5HnOovUH2m4896Q9JDDs+rV7TduKs2+EcLNdnhvM/f+MqCEp8tO437h9C2YEP2nL7/5WR2G79sgYwGqo1ElJHu4F9msAkC84Lscxd4Bg5/ansGhVOAKf7MAuBu4NC8seJ1mQ0lku/okM090M/iS8HuAq/ivxJ/To1RMrDg/G8OTuVHub4e1j/wg9xBuF5fbPJVTlTsdOaPrmdiHVqK3UN/w+Xmz2r+K/mQf6G5RnauwDuHm80oGwCLkZMbHLYB/nkYm9Md/yF6NDa3SR9sNPM/0rD+cpgf8ws+qifOGN35XK2bHznBj3xWEKHTy+QT5HYiGJ83kW3lP5ZI4MTmKU1a9rcFbNyFT76OzVC+olP2tQYLEJNfGmO2iVs4AU/nd/PzejrHiM58z/BWvjnzs+J7QEvxzlcQgFupJxXfVuSjuFP11NFp4bI76IVnpZ/a7cxfRkNiIxtL9n41f1yayhrngmrG5LwYdWkp/x35h9Yg1WC6vlYNuStvKeZW+h9zfR/eIboHxD12Bml87PYgiCZZP5Z81fI5lrm5k0fxfWVj+x9lSgjp7YOOoAAAAABJRU5ErkJggg==",
+		8,
+		8
+	);
 }
-`;
 
-const defFragSrc = `
-precision mediump float;
-varying vec2 v_uv;
-varying vec4 v_color;
-uniform sampler2D u_tex;
-void main() {
-	gl_FragColor = v_color * texture2D(u_tex, v_uv);
-	if (gl_FragColor.a == 0.0) {
-		discard;
-	}
+// make a new load tracker
+function newLoader() {
+	const id = assets.lastLoaderID;
+	assets.loaders[id] = false;
+	assets.lastLoaderID++;
+	return {
+		done() {
+			assets.loaders[id] = true;
+		},
+	};
 }
-`;
 
-const STRIDE = 9;
-const DEF_GRAVITY = 980;
-const DEF_JUMP_FORCE = 480;
-const DEF_MAX_VEL = 960;
-const DEF_ORIGIN = "topleft";
+// get current load progress
+function loadProgress() {
 
-// --------------------------------
-// Utils
+	let total = 0;
+	let loaded = 0;
 
-function deepCopy(input) {
-
-	if (typeof(input) !== "object" || input === null) {
-		return input;
+	for (const id in assets.loaders) {
+		total += 1;
+		if (assets.loaders[id]) {
+			loaded += 1;
+		}
 	}
 
-	const out = Array.isArray(input) ? [] : {};
-
-	for (const key in input) {
-		out[key] = deepCopy(input[key]);
-	}
-
-	return out;
+	return loaded / total;
 
 }
 
-// --------------------------------
-// Application Lifecycle & Input
+// global load path prefix
+function loadRoot(path) {
+	if (path) {
+		assets.loadRoot = path;
+	}
+	return assets.loadRoot;
+}
+
+// load a bitmap font to asset manager
+function loadFont(name, src, gw, gh, chars) {
+
+	const loader = newLoader();
+
+	loadImg(src, (img) => {
+		assets.fonts[name] = makeFont(makeTex(img), gw, gh, chars || ASCII_CHARS);
+		loader.done();
+	});
+
+}
+
+// TODO: use getSprite() functions for async settings
+// load a sprite to asset manager
+function loadSprite(name, src, conf = {}) {
+
+	// sliceX: num,
+	// sliceY: num,
+	// anims: { name: [num, num] }
+
+	if (typeof(src) === "string") {
+
+		if (src.match(/\.kbmsprite$/)) {
+
+			// from replit kaboom workspace sprite editor
+			const loader = newLoader();
+
+			fetch(assets.loadRoot + src)
+				.then((res) => {
+					return res.json();
+				})
+				.then((data) => {
+
+					const frames = data.frames;
+
+					const pixels = frames
+						.map(f => f.pixels)
+						.flat()
+						;
+
+					const w = frames[0].width;
+					const h = frames[0].height;
+
+					const img = new ImageData(
+						new Uint8ClampedArray(pixels),
+						w,
+						h * frames.length,
+					);
+
+					loadSprite(name, img, {
+						sliceY: frames.length,
+						anims: conf.anims,
+					});
+
+					loader.done();
+
+				})
+				.catch(() => {
+					console.error(`failed to load sprite '${name}' from '${src}'`);
+				})
+				;
+
+		} else {
+
+			// any other url
+			const loader = newLoader();
+			const img = loadImg(assets.loadRoot + src);
+
+			img.onload = () => {
+				loadSprite(name, img, conf);
+				loader.done();
+			};
+
+			img.onerror = () => {
+				console.error(`failed to load sprite '${name}' from '${src}'`);
+				loader.done();
+			};
+
+		}
+
+		return;
+
+	}
+
+	if (conf.aseSpriteSheet) {
+
+		const loader = newLoader();
+
+		// TODO: loadRoot might be changed already
+		fetch(assets.loadRoot + conf.aseSpriteSheet)
+			.then((res) => {
+				return res.json();
+			})
+			.then((data) => {
+				const size = data.meta.size;
+				assets.sprites[name].frames = data.frames.map((f) => {
+					return quad(
+						f.frame.x / size.w,
+						f.frame.y / size.h,
+						f.frame.w / size.w,
+						f.frame.h / size.h,
+					);
+				});
+				for (const anim of data.meta.frameTags) {
+					assets.sprites[name].anims[anim.name] = [anim.from, anim.to];
+				}
+				loader.done();
+			});
+	}
+
+	const frames = [];
+	const tex = makeTex(src);
+	const sliceX = conf.sliceX || 1;
+	const sliceY = conf.sliceY || 1;
+	const qw = 1 / sliceX;
+	const qh = 1 / sliceY;
+
+	for (let j = 0; j < sliceY; j++) {
+		for (let i = 0; i < sliceX; i++) {
+			frames.push(quad(
+				i * qw,
+				j * qh,
+				qw,
+				qh,
+			));
+		}
+	}
+
+	assets.sprites[name] = {
+		tex: tex,
+		frames: frames,
+		anims: conf.anims || {},
+	};
+
+}
+
+// get sprite asset settings
+function getSprite(name) {
+	const sprite = assets.sprites[name];
+	if (!sprite) {
+		console.error(`sprite not found: '${name}'`);
+	}
+	return {
+
+		width() {
+			return sprite.tex.width;
+		},
+
+		height() {
+			return sprite.tex.height;
+		},
+
+		addAnim(name, range) {
+			sprite.anims[name] = range;
+		},
+
+		useAseSpriteSheet(path) {
+			return fetch(assets.loadRoot + path)
+				.then((res) => {
+					return res.json();
+				})
+				.then((data) => {
+					const size = data.meta.size;
+					sprite.frames = data.frames.map((f) => {
+						return quad(
+							f.frame.x / size.w,
+							f.frame.y / size.h,
+							f.frame.w / size.w,
+							f.frame.h / size.h,
+						);
+					});
+					for (const anim of data.meta.frameTags) {
+						sprite.anims[anim.name] = [anim.from, anim.to];
+					}
+				});
+		},
+
+		slice(x, y) {
+
+			x = x || 1;
+			y = y || 1;
+			const qw = 1 / x;
+			const qh = 1 / y;
+
+			sprite.frames = [];
+
+			for (let j = 0; j < y; j++) {
+				for (let i = 0; i < x; i++) {
+					sprite.frames.push(quad(
+						i * qw,
+						j * qh,
+						qw,
+						qh,
+					));
+				}
+			}
+
+		},
+
+	};
+
+}
+
+// ------------------------------------------------------------
+// app
 
 // app system init
 const app = {
@@ -150,8 +378,7 @@ function init(conf = {}) {
 
 	gfxInit(conf);
 	audioInit(conf);
-
-	loadFont("unscii", "data:image/png;base64," + fontImgData, 8, 8);
+	assetsInit(conf);
 
 	canvas.addEventListener("mousemove", (e) => {
 		app.mousePos = vec2(e.offsetX, e.offsetY).scale(1 / app.scale);
@@ -202,6 +429,7 @@ function processBtnState(s) {
 	return s;
 }
 
+// TODO: a variant with camera transforms
 // check input state last frame
 function mousePos() {
 	return app.mousePos.clone();
@@ -251,10 +479,37 @@ function time() {
 	return app.time;
 }
 
-// --------------------------------
-// Rendering
+// ------------------------------------------------------------
+// gfx
 
-// gfx system init
+const defVertSrc = `
+attribute vec3 a_pos;
+attribute vec2 a_uv;
+attribute vec4 a_color;
+varying vec2 v_uv;
+varying vec4 v_color;
+void main() {
+	v_uv = a_uv;
+	v_color = a_color;
+	gl_Position = vec4(a_pos, 1.0);
+}
+`;
+
+const defFragSrc = `
+precision mediump float;
+varying vec2 v_uv;
+varying vec4 v_color;
+uniform sampler2D u_tex;
+void main() {
+	gl_FragColor = v_color * texture2D(u_tex, v_uv);
+	if (gl_FragColor.a == 0.0) {
+		discard;
+	}
+}
+`;
+
+const STRIDE = 9;
+
 const gfx = {
 	drawCalls: 0,
 	cam: vec2(0, 0),
@@ -661,7 +916,7 @@ function drawQuad(conf = {}) {
 
 function drawSprite(name, conf = {}) {
 
-	const spr = game.sprites[name];
+	const spr = assets.sprites[name];
 
 	if (!spr) {
 		console.warn(`sprite not found: ${name}`);
@@ -794,7 +1049,7 @@ function originPt(orig) {
 function fmtText(text, conf = {}) {
 
 	const fontName = conf.font || "unscii";
-	const font = game.fonts[fontName];
+	const font = assets.fonts[fontName];
 
 	if (!font) {
 		console.error(`font not found: '${fontName}'`);
@@ -876,8 +1131,8 @@ function fmtText(text, conf = {}) {
 
 }
 
-// --------------------------------
-// Audio Playback
+// ------------------------------------------------------------
+// audio
 
 // audio system init
 const audio = {};
@@ -890,28 +1145,28 @@ function audioInit() {
 	audio.gainNode.connect(audio.ctx.destination);
 }
 
-// TODO: move this to game system
+// TODO: move this to assets module
 // load a sound to asset manager
 function loadSound(name, src, conf = {}) {
 	if (typeof(src === "string")) {
-		const lid = newLoader();
-		fetch(game.loadRoot + src)
+		const loader = newLoader();
+		fetch(assets.loadRoot + src)
 			.then((res) => {
 				return res.arrayBuffer();
 			})
 			.then((data) => {
 				// TODO: doesn't work on safari
 				audio.ctx.decodeAudioData(data, (buf) => {
-					loadComplete(lid);
+					loader.done();
 					audio.sounds[name] = buf;
 				}, (err) => {
 					console.error(`failed to decode audio: ${name}`);
-					loadComplete(lid);
+					loader.done();
 				});
 			})
 			.catch((err) => {
 				console.error(`failed to load sound '${name}' from '${src}'`);
-				loadComplete(lid);
+				loader.done();
 			})
 			;
 	}
@@ -972,8 +1227,8 @@ function play(id, conf = {}) {
 
 }
 
-// --------------------------------
-// Math Utils
+// ------------------------------------------------------------
+// math
 
 Math.radians = function(degrees) {
 	return degrees * Math.PI / 180;
@@ -1419,248 +1674,39 @@ function choose(list) {
 	return list[Math.floor(rand(0, list.length))];
 }
 
-// --------------------------------
-// Game Systems
+// ------------------------------------------------------------
+// utils
+
+function deepCopy(input) {
+
+	if (typeof(input) !== "object" || input === null) {
+		return input;
+	}
+
+	const out = Array.isArray(input) ? [] : {};
+
+	for (const key in input) {
+		out[key] = deepCopy(input[key]);
+	}
+
+	return out;
+
+}
+
+// ------------------------------------------------------------
+// game
+
+const DEF_GRAVITY = 980;
+const DEF_JUMP_FORCE = 480;
+const DEF_MAX_VEL = 960;
+const DEF_ORIGIN = "topleft";
 
 const game = {
 	loaded: false,
 	curScene: undefined,
-	scenes: {},
-	sprites: {},
-	fonts: {},
-	loaders: {},
-	lastLoaderID: 0,
-	loadRoot: "",
 	paused: false,
-	debug: {
-		drawBBox: false,
-		showStats: false,
-	},
+	scenes: {},
 };
-
-function newLoader() {
-	const id = game.lastLoaderID;
-	game.loaders[id] = false;
-	game.lastLoaderID++;
-	return id;
-}
-
-function loadComplete(id) {
-	game.loaders[id] = true;
-}
-
-// global load path prefix
-function loadRoot(path) {
-	if (path) {
-		game.loadRoot = path;
-	}
-}
-
-const ASCII_CHARS = " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~";
-
-// load a bitmap font to asset manager
-function loadFont(name, src, gw, gh, chars) {
-
-	const lid = newLoader();
-
-	loadImg(src, (img) => {
-		game.fonts[name] = makeFont(makeTex(img), gw, gh, chars || ASCII_CHARS);
-		loadComplete(lid);
-	});
-
-}
-
-// TODO: put this in gfx module?
-// load a sprite to asset manager
-function loadSprite(name, src, conf = {}) {
-
-	// sliceX: num,
-	// sliceY: num,
-	// anims: { name: [num, num] }
-
-	// TODO: just assign the .tex field
-	if (typeof(src) === "string") {
-
-		if (src.match(/\.kbmsprite$/)) {
-
-			// from replit kaboom workspace sprite editor
-			const lid = newLoader();
-
-			fetch(game.loadRoot + src)
-				.then((res) => {
-					return res.json();
-				})
-				.then((data) => {
-
-					const frames = data.frames;
-
-					const pixels = frames
-						.map(f => f.pixels)
-						.flat()
-						;
-
-					const w = frames[0].width;
-					const h = frames[0].height;
-
-					const img = new ImageData(
-						new Uint8ClampedArray(pixels),
-						w,
-						h * frames.length,
-					);
-
-					loadSprite(name, img, {
-						sliceY: frames.length,
-						anims: conf.anims,
-					});
-
-					loadComplete(lid);
-
-				})
-				.catch(() => {
-					console.error(`failed to load sprite '${name}' from '${src}'`);
-				})
-				;
-
-		} else {
-
-			// any other url
-			const lid = newLoader();
-			const img = loadImg(game.loadRoot + src);
-
-			img.onload = () => {
-				loadSprite(name, img, conf);
-				loadComplete(lid);
-			};
-
-			img.onerror = () => {
-				console.error(`failed to load sprite '${name}' from '${src}'`);
-				loadComplete(lid);
-			};
-
-		}
-
-		return;
-
-	}
-
-	if (conf.aseSpriteSheet) {
-
-		const lid = newLoader();
-
-		// TODO: loadRoot might be changed already
-		fetch(game.loadRoot + conf.aseSpriteSheet)
-			.then((res) => {
-				return res.json();
-			})
-			.then((data) => {
-				const size = data.meta.size;
-				game.sprites[name].frames = data.frames.map((f) => {
-					return quad(
-						f.frame.x / size.w,
-						f.frame.y / size.h,
-						f.frame.w / size.w,
-						f.frame.h / size.h,
-					);
-				});
-				for (const anim of data.meta.frameTags) {
-					game.sprites[name].anims[anim.name] = [anim.from, anim.to];
-				}
-				loadComplete(lid);
-			});
-	}
-
-	const frames = [];
-	const tex = makeTex(src);
-	const sliceX = conf.sliceX || 1;
-	const sliceY = conf.sliceY || 1;
-	const qw = 1 / sliceX;
-	const qh = 1 / sliceY;
-
-	for (let j = 0; j < sliceY; j++) {
-		for (let i = 0; i < sliceX; i++) {
-			frames.push(quad(
-				i * qw,
-				j * qh,
-				qw,
-				qh,
-			));
-		}
-	}
-
-	game.sprites[name] = {
-		tex: tex,
-		frames: frames,
-		anims: conf.anims || {},
-	};
-
-}
-
-// TODO
-function getSprite(name) {
-	const sprite = game.sprites[name];
-	if (!sprite) {
-		console.error(`sprite not found: '${name}'`);
-	}
-	return {
-
-		width() {
-			return sprite.tex.width;
-		},
-
-		height() {
-			return sprite.tex.height;
-		},
-
-		addAnim(name, range) {
-			sprite.anims[name] = range;
-		},
-
-		useAseSpriteSheet(path) {
-			fetch(game.loadRoot + path)
-				.then((res) => {
-					return res.json();
-				})
-				.then((data) => {
-					const size = data.meta.size;
-					sprite.frames = data.frames.map((f) => {
-						return quad(
-							f.frame.x / size.w,
-							f.frame.y / size.h,
-							f.frame.w / size.w,
-							f.frame.h / size.h,
-						);
-					});
-					for (const anim of data.meta.frameTags) {
-						sprite.anims[anim.name] = [anim.from, anim.to];
-					}
-				});
-		},
-
-		slice(x, y) {
-
-			x = x || 1;
-			y = y || 1;
-			const qw = 1 / x;
-			const qh = 1 / y;
-
-			sprite.frames = [];
-
-			for (let j = 0; j < y; j++) {
-				for (let i = 0; i < x; i++) {
-					sprite.frames.push(quad(
-						i * qw,
-						j * qh,
-						qw,
-						qh,
-					));
-				}
-			}
-
-		},
-
-	};
-
-}
 
 // start describing a scene (this should be called before start())
 function scene(name, cb) {
@@ -2184,34 +2230,28 @@ function start(name, ...args) {
 
 		if (!game.loaded) {
 
-			let finished = true;
-			let total = 0;
-			let loaded = 0;
+			// if assets are not fully loaded, draw a progress bar
 
-			for (const id in game.loaders) {
-				total += 1;
-				if (!game.loaders[id]) {
-					finished = false;
-				} else {
-					loaded += 1;
-				}
-			}
+			const progress = loadProgress();
 
-			gfxFrameStart();
+			if (progress === 1) {
 
-			const w = width() / 2;
-			const h = 12;
-			const ratio = loaded / total;
-			const pos = vec2(width() / 2, height() / 2).sub(vec2(w / 2, h / 2));
-
-			gfxFrameStart();
-			drawRectStroke(pos, w, h, { width: 2, });
-			drawRect(pos, w * ratio, h);
-			gfxFrameEnd();
-
-			if (finished) {
 				game.loaded = true;
 				go(name, ...args);
+
+			} else {
+
+				gfxFrameStart();
+
+				const w = width() / 2;
+				const h = 12;
+				const pos = vec2(width() / 2, height() / 2).sub(vec2(w / 2, h / 2));
+
+				gfxFrameStart();
+				drawRectStroke(pos, w, h, { width: 2, });
+				drawRect(pos, w * progress, h);
+				gfxFrameEnd();
+
 			}
 
 		} else {
@@ -2290,7 +2330,7 @@ function start(name, ...args) {
 }
 
 // --------------------------------
-// Comps
+// comps
 
 // TODO: have velocity here?
 function pos(...args) {
@@ -2369,20 +2409,20 @@ function area(p1, p2) {
 	return {
 
 		area: {
-			p1: vec2(Math.min(p1.x, p2.x), Math.min(p1.y, p2.y)),
-			p2: vec2(Math.max(p1.x, p2.x), Math.max(p1.y, p2.y)),
+			p1: p1,
+			p2: p2,
 		},
 
 		_colliding: {},
 
 		areaWidth() {
-			const a = this._worldArea();
-			return a.p2.x - a.p1.x;
+			const { p1, p2 } = this._worldArea();
+			return p2.x - p1.x;
 		},
 
 		areaHeight() {
-			const a = this._worldArea();
-			return a.p2.y - a.p1.y;
+			const { p1, p2 } = this._worldArea();
+			return p2.y - p1.y;
 		},
 
 		draw() {
@@ -2593,22 +2633,33 @@ function area(p1, p2) {
 			});
 		},
 
+		// TODO: cache
 		// TODO: use matrix mult for more accuracy and rotation?
 		_worldArea() {
+
+// 			const curFrame = time();
+
+// 			if (this._worldAreaCache?.frame === curFrame) {
+// 				return this._worldAreaCache.value;
+// 			}
 
 			const a = this.area;
 			const pos = this.pos || vec2(0);
 			const scale = this.scale || vec2(1);
-			const w = a.p2.x - a.p1.x;
-			const h = a.p2.y - a.p1.y;
-			const offset = originPt(this.origin || DEF_ORIGIN).add(vec2(1, 1)).dot(w, h).scale(-0.5);
-			const p1 = a.p1.dot(scale);
-			const p2 = a.p2.dot(scale);
+			const p1 = pos.add(a.p1.dot(scale));
+			const p2 = pos.add(a.p2.dot(scale));
 
-			return {
-				p1: pos.add(p1).add(offset),
-				p2: pos.add(p2).add(offset),
+			const area = {
+				p1: vec2(Math.min(p1.x, p2.x), Math.min(p1.y, p2.y)),
+				p2: vec2(Math.max(p1.x, p2.x), Math.max(p1.y, p2.y)),
 			};
+
+// 			this._worldAreaCache = {
+// 				frame: curFrame,
+// 				value: area,
+// 			};
+
+			return area;
 
 		},
 
@@ -2650,9 +2701,18 @@ function area(p1, p2) {
 
 }
 
+function getAreaFromSize(w, h, o) {
+	const size = vec2(w, h);
+	const offset = originPt(o || DEF_ORIGIN).dot(size).scale(-0.5);
+	return area(
+		offset.sub(size.scale(0.5)),
+		offset.add(size.scale(0.5)),
+	);
+}
+
 function sprite(id, conf = {}) {
 
-	const spr = game.sprites[id];
+	const spr = assets.sprites[id];
 
 	if (!spr) {
 		console.error(`sprite not found: "${id}"`);
@@ -2663,7 +2723,7 @@ function sprite(id, conf = {}) {
 	const w = spr.tex.width * q.w;
 	const h = spr.tex.height * q.h;
 
-	return [{
+	return {
 
 		_spriteID: id,
 		_animTimer: 0,
@@ -2674,6 +2734,13 @@ function sprite(id, conf = {}) {
 		width: w,
 		height: h,
 		_animEvents: {},
+
+		add() {
+			// add default area
+			if (!this.area) {
+				this.use(getAreaFromSize(this.width, this.height, this.origin));
+			}
+		},
 
 		draw() {
 
@@ -2721,7 +2788,7 @@ function sprite(id, conf = {}) {
 
 		play(name, loop) {
 
-			const anim = game.sprites[this._spriteID].anims[name];
+			const anim = assets.sprites[this._spriteID].anims[name];
 
 			if (!anim) {
 				console.error(`anim not found: ${name}`);
@@ -2774,10 +2841,7 @@ function sprite(id, conf = {}) {
 			return info;
 		},
 
-	}, area(
-		vec2(0),
-		vec2(w, h),
-	)];
+	};
 
 }
 
@@ -2819,10 +2883,17 @@ function text(t, size, conf = {}) {
 
 function rect(w, h) {
 
-	return [{
+	return {
 
 		width: w,
 		height: h,
+
+		add() {
+			// add default area
+			if (!this.area) {
+				this.use(getAreaFromSize(this.width, this.height, this.origin));
+			}
+		},
 
 		draw() {
 
@@ -2838,10 +2909,7 @@ function rect(w, h) {
 
 		},
 
-	}, area(
-		vec2(0),
-		vec2(w, h),
-	)];
+	};
 
 }
 

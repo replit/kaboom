@@ -21,8 +21,8 @@ scene("main", () => {
 		"ui",
 	], "game");
 
-	const upBound = 32;
-	const lowBound = height() - 16;
+	const upBound = 40;
+	const lowBound = height() - 12;
 	const speed = 90;
 	let speedMod = 1;
 
@@ -59,6 +59,8 @@ scene("main", () => {
 		sprite("car"),
 		pos(24, height() / 2),
 		color(),
+		origin("center"),
+		area(vec2(-12, -6), vec2(12, 8)),
 		{
 			speed: 120,
 		},
