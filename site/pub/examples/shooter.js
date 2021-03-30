@@ -57,7 +57,6 @@ scene("main", () => {
 		pos(12, 12),
 		text(0),
 		// all objects defaults origin to center, we want score text to be top left
-		origin("topleft"),
 		// plain objects becomes fields of score
 		{
 			value: 0,

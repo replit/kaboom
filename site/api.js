@@ -55,7 +55,8 @@ init({
 });
 			`),
 			f("start", [
-				a("scene", "name of scene")
+				a("scene", "name of scene"),
+				a("[...args]", "forward args"),
 			], null, "start the game loop with specified scene", `
 scene("game", () => {/* .. */});
 scene("menu", () => {/* .. */});
@@ -90,7 +91,7 @@ start("level1");
 			`),
 			f("go", [
 				a("name", "name of scene"),
-				a("[args]", "forward arguments"),
+				a("[...args]", "forward args"),
 			], null, "switch to a scene", `
 // go to "paused" scene when pressed "p"
 scene("main", () => {

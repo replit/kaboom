@@ -49,6 +49,7 @@ const STRIDE = 9;
 const DEF_GRAVITY = 980;
 const DEF_JUMP_FORCE = 480;
 const DEF_MAX_VEL = 960;
+const DEF_ORIGIN = "topleft";
 
 // --------------------------------
 // Utils
@@ -616,7 +617,7 @@ function drawQuad(conf = {}) {
 	const w = conf.width || 0;
 	const h = conf.height || 0;
 	const pos = conf.pos || vec2(0, 0);
-	const origin = originPt(conf.origin || "topleft");
+	const origin = originPt(conf.origin || DEF_ORIGIN);
 	const offset = origin.dot(vec2(w, h).scale(-0.5));
 	const scale = conf.scale === undefined ? vec2(1, 1) : vec2(conf.scale);
 	const rot = conf.rot || 0;
@@ -688,7 +689,7 @@ function drawSprite(name, conf = {}) {
 
 function drawRectStroke(pos, w, h, conf = {}) {
 
-	const offset = originPt(conf.origin || "topleft").dot(w, h).scale(0.5);
+	const offset = originPt(conf.origin || DEF_ORIGIN).dot(w, h).scale(0.5);
 	const p1 = pos.add(vec2(-w / 2, -h / 2)).sub(offset);
 	const p2 = pos.add(vec2(-w / 2,  h / 2)).sub(offset);
 	const p3 = pos.add(vec2( w / 2,  h / 2)).sub(offset);
@@ -835,7 +836,7 @@ function fmtText(text, conf = {}) {
 	// whole text offset
 	const fchars = [];
 	const pos = vec2(conf.pos);
-	const offset = originPt(conf.origin || "topleft").scale(0.5);
+	const offset = originPt(conf.origin || DEF_ORIGIN).scale(0.5);
 	// this math is complicated i forgot how it works instantly
 	const ox = -offset.x * cw - (offset.x + 0.5) * (tw - cw);
 	const oy = -offset.y * ch - (offset.y + 0.5) * (th - ch);
@@ -2420,7 +2421,6 @@ function area(p1, p2) {
 					const ftxt = fmtText(txt, {
 						size: 12 / app.scale,
 						pos: mousePos().add(vec2(padding.x, padding.y + bh)),
-						origin: "topleft",
 						z: 1,
 					});
 					lines.push(ftxt);
@@ -2596,13 +2596,15 @@ function area(p1, p2) {
 			const a = this.area;
 			const pos = this.pos || vec2(0);
 			const scale = this.scale || vec2(1);
-			const w = (a.p2.x - a.p1.x) * scale.x;
-			const h = (a.p2.y - a.p1.y) * scale.y;
-			const offset = originPt(this.origin || "topleft").dot(vec2(w, h).scale(-0.5));
+			const w = a.p2.x - a.p1.x;
+			const h = a.p2.y - a.p1.y;
+			const offset = originPt(this.origin || DEF_ORIGIN).add(vec2(1, 1)).dot(w, h).scale(-0.5);
+			const p1 = a.p1.dot(scale);
+			const p2 = a.p2.dot(scale);
 
 			return {
-				p1: pos.add(a.p1.scale(Math.abs(scale.x))).add(offset),
-				p2: pos.add(a.p2.scale(Math.abs(scale.y))).add(offset),
+				p1: pos.add(p1).add(offset),
+				p2: pos.add(p2).add(offset),
 			};
 
 		},
@@ -2770,8 +2772,8 @@ function sprite(id, conf = {}) {
 		},
 
 	}, area(
-		vec2(-w / 2, -h / 2),
-		vec2(w / 2, h / 2),
+		vec2(0),
+		vec2(w, h),
 	)];
 
 }
@@ -2834,8 +2836,8 @@ function rect(w, h) {
 		},
 
 	}, area(
-		vec2(-w / 2, -h / 2),
-		vec2(w / 2, h / 2),
+		vec2(0),
+		vec2(w, h),
 	)];
 
 }

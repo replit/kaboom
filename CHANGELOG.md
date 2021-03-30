@@ -5,3 +5,4 @@ origin("center")
 ```
 - integrated `kit/physics` and `kit/level` to main lib
 - added an arg field to `start(scene, ...)` to forward args to start scene
+- makes `collides()` only run on first collision, not run every frame during the same collision

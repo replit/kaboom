@@ -102,7 +102,6 @@ scene("main", (levelIdx) => {
 	function talk(msg) {
 		talking = add([
 			text(msg),
-			origin("topleft"),
 		]);
 	}
 

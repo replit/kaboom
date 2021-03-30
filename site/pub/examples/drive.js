@@ -6,13 +6,11 @@ loadSprite("car", "car.png", {
 });
 loadSprite("apple", "apple.png");
 loadSprite("pineapple", "pineapple.png");
-loadSprite("goo", "goo.png");
 
 init({
 	width: 160,
 	height: 120,
 	scale: 4,
-// 	fullscreen: true,
 });
 
 scene("main", () => {
@@ -23,14 +21,13 @@ scene("main", () => {
 		"ui",
 	], "game");
 
-	const upBound = 48;
-	const lowBound = height() - 6;
+	const upBound = 32;
+	const lowBound = height() - 16;
 	const speed = 90;
 	let speedMod = 1;
 
 	add([
 		sprite("sky"),
-		origin("topleft"),
 		layer("bg"),
 	]);
 
@@ -38,7 +35,6 @@ scene("main", () => {
 	// scrolling road (2 sprites cycling)
 	add([
 		sprite("road"),
-		origin("topleft"),
 		pos(0, 0),
 		layer("bg"),
 		"road",
@@ -46,7 +42,6 @@ scene("main", () => {
 
 	add([
 		sprite("road"),
-		origin("topleft"),
 		pos(width() * 2, 0),
 		layer("bg"),
 		"road",
@@ -64,7 +59,6 @@ scene("main", () => {
 		sprite("car"),
 		pos(24, height() / 2),
 		color(),
-		area(vec2(-12, 0), vec2(12, 10)),
 		{
 			speed: 120,
 		},
@@ -77,7 +71,6 @@ scene("main", () => {
 		const obj = randl([
 			"apple",
 			"pineapple",
-			"goo",
 		]);
 		add([
 			sprite(obj),
@@ -105,16 +98,11 @@ scene("main", () => {
 		happiness.value += 100;
 	});
 
-	car.collides("goo", (a) => {
-		car.color = rgb(0.5, 0.5, 1);
-	});
-
 	// happiness counter
 	const happiness = add([
 		text("0", 4),
 		pos(4, 4),
 		layer("ui"),
-		origin("topleft"),
 		{
 			value: 0,
 		},
@@ -157,7 +145,7 @@ scene("main", () => {
 		car.animSpeed = 0.1 / speedMod;
 	});
 
-	keyPress("F1", () => {
+	keyPress("f1", () => {
 		kaboom.debug.showArea = !kaboom.debug.showArea;
 		kaboom.debug.showInfo = !kaboom.debug.showInfo;
 	});

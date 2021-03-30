@@ -25,7 +25,6 @@ scene("main", () => {
 		drawText("hi", {
 			pos: mousePos(),
 			size: 64,
-			origin: "topleft",
 		});
 	});
 });
