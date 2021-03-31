@@ -627,11 +627,6 @@ function gfxFrameEnd() {
 	flush();
 }
 
-// TODO: don't use push as prefix for these
-function pushMatrix(m) {
-	gfx.transform = m.clone();
-}
-
 function pushTranslate(p) {
 	if (!p || (p.x === 0 && p.y === 0)) {
 		return;
@@ -677,7 +672,6 @@ function popTransform() {
 	}
 }
 
-// the batch renderer
 function makeBatchedMesh(vcount, icount) {
 
 	const vbuf = gl.createBuffer();
@@ -881,14 +875,11 @@ function makeFont(tex, gw, gh, chars) {
 
 // TODO: put texture and texture flush logic here
 function drawRaw(verts, indices, tex = gfx.defTex) {
-
 	// flush on texture change
 	if (gfx.curTex !== tex) {
 		flush();
 		gfx.curTex = tex;
 	}
-
-	// update vertices to current transform matrix
 	verts = verts.map((v) => {
 		const pt = toNDC(gfx.transform.multVec2(v.pos));
 		return [
@@ -897,9 +888,7 @@ function drawRaw(verts, indices, tex = gfx.defTex) {
 			v.color.r, v.color.g, v.color.b, v.color.a
 		];
 	}).flat();
-
 	gfx.mesh.push(verts, indices);
-
 }
 
 // draw a textured quad
@@ -1770,8 +1759,6 @@ function scene(name, cb) {
 		camera: {
 			pos: vec2(width() / 2, height() / 2),
 			scale: vec2(1, 1),
-			angle: 0,
-			ignore: [],
 		},
 		gravity: DEF_GRAVITY,
 
@@ -1823,33 +1810,20 @@ function layers(list, def) {
 
 }
 
-function camPos(...pos) {
+function campos(...pos) {
 	const cam = game.scenes[game.curScene].camera;
-	if (pos.length > 0) {
+	if (pos) {
 		cam.pos = vec2(...pos);
 	}
-	return cam.pos.clone();
+	return cam.pos;
 }
 
-function camScale(...scale) {
+function camscale(...scale) {
 	const cam = game.scenes[game.curScene].camera;
-	if (scale.length > 0) {
+	if (scale) {
 		cam.scale = vec2(...scale);
 	}
-	return cam.scale.clone();
-}
-
-function camRot(angle) {
-	const cam = game.scenes[game.curScene].camera;
-	if (angle !== undefined) {
-		cam.angle = angle;
-	}
-	return cam.angle;
-}
-
-function camIgnore(layers) {
-	const cam = game.scenes[game.curScene].camera;
-	cam.ignore = layers;
+	return cam.scale;
 }
 
 function add(comps) {
@@ -2229,24 +2203,15 @@ function gameFrame(ignorePause) {
 		}
 
 		const size = vec2(width(), height());
-		const cam = scene.camera;
 
-		const camMat = mat4()
-			.translate(size.scale(0.5))
-			.scale(cam.scale)
-			.rotateZ(cam.angle)
-			.translate(size.scale(-0.5))
-			.translate(cam.pos.scale(-1).add(size.scale(0.5)))
-			;
+		pushTransform();
+		pushTranslate(size.scale(0.5));
+		pushScale(scene.camera.scale);
+		pushTranslate(size.scale(-0.5));
+		pushTranslate(scene.camera.pos.scale(-1).add(size.scale(0.5)));
 
 		// draw obj
 		if (!obj.hidden) {
-
-			pushTransform();
-
-			if (!cam.ignore.includes(obj.layer)) {
-				pushMatrix(camMat);
-			}
 
 			obj.trigger("draw");
 
@@ -2256,9 +2221,9 @@ function gameFrame(ignorePause) {
 				}
 			}
 
-			popTransform();
-
 		}
+
+		popTransform();
 
 	}
 
@@ -2582,7 +2547,7 @@ function area(p1, p2) {
 			return mouseIsClicked() && this.isHovered();
 		},
 
-		hovers(f) {
+		onHover(f) {
 			this.action(() => {
 				if (this.isHovered()) {
 					f();
@@ -3142,6 +3107,8 @@ function addLevel(arr, conf = {}) {
 
 }
 
+kaboom.addLevel = addLevel;
+
 // life cycle
 kaboom.init = init;
 kaboom.start = start;
@@ -3165,10 +3132,8 @@ kaboom.go = go;
 
 // misc
 kaboom.layers = layers;
-kaboom.camPos = camPos;
-kaboom.camScale = camScale;
-kaboom.camRot = camRot;
-kaboom.camIgnore = camIgnore;
+kaboom.campos = campos;
+kaboom.camscale = camscale;
 kaboom.gravity = gravity;
 
 // obj
@@ -3256,9 +3221,6 @@ kaboom.pause = pause;
 kaboom.paused = paused;
 kaboom.stepFrame = stepFrame;
 
-// level
-kaboom.addLevel = addLevel;
-
 // make every function global
 kaboom.import = () => {
 	for (const func in kaboom) {
@@ -3276,3 +3238,4 @@ kaboom.import = () => {
 };
 
 export default kaboom;
+

@@ -21,6 +21,13 @@ scene("main", () => {
 
 	gravity(980);
 
+	layers([
+		"game",
+		"ui",
+	], "game");
+
+	camIgnore([ "ui", ]);
+
 	const map = addLevel([
 		"                         ",
 		"                         ",
@@ -77,7 +84,7 @@ scene("main", () => {
 	]);
 
 	player.action(() => {
-		campos(player.pos);
+		camPos(player.pos);
 	});
 
 	// TODO: only touch on bottom edge jumps
@@ -92,6 +99,8 @@ scene("main", () => {
 	player.collides("coin", (c) => {
 		destroy(c);
 		play("coin");
+		score.value += 1;
+		score.text = score.value;
 	});
 
 	keyPress("space", () => {
@@ -122,6 +131,14 @@ scene("main", () => {
 		player.move(player.speed, 0);
 	});
 
+	keyDown("up", () => {
+		camScale(camScale().add(vec2(dt())));
+	});
+
+	keyDown("down", () => {
+		camScale(camScale().sub(vec2(dt())));
+	});
+
 	function respawn() {
 		player.pos = vec2(0, 0);
 	}
@@ -131,6 +148,13 @@ scene("main", () => {
 			respawn();
 		}
 	});
+
+	const score = add([
+		text("0"),
+		pos(12, 12),
+		layer("ui"),
+		{ value: 0, },
+	]);
 
 	keyPress("f1", () => {
 		kaboom.debug.showArea = !kaboom.debug.showArea;

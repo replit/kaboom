@@ -12,9 +12,7 @@
 		"src/*"
 	],
 	"scripts": {
-		"site": "cd site; NODE_ENV=dev node .",
-		"cpy": "cp -R src/* site/lib/master",
-		"build": "node scripts/build.js"
+		"site": "cd site; NODE_ENV=dev node ."
 	},
 	"devDependencies": {
 		"esbuild": "^0.9.3"

@@ -186,6 +186,7 @@ function serveFs(urlPrefix, dirPrefix) {
 				res.setHeader("Content-Type", mime);
 			}
 
+			res.setHeader("Access-Control-Allow-Origin", "*");
 			res.writeHead(200);
 			res.end(fs.readFileSync(p));
 

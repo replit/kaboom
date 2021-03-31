@@ -33,7 +33,7 @@ const server = http.createServer((req, res) => {
 		serveFs("/pub", "pub")(req, res);
 
 		if (process.env.NODE_ENV === "dev") {
-			serveFs("/lib/master", "../src")(req, res);
+			serveFs("/lib/dev", "../src")(req, res);
 		} else {
 			serveFs("/lib", "lib")(req, res);
 		}

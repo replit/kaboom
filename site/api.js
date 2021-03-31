@@ -130,22 +130,33 @@ const score = add([
 	layer("ui"),
 ]);
 			`),
-			f("campos", [
+			f("camPos", [
 				a("pos", "position"),
 			], null, "set the camera position", `
 // camera position follow player
 player.action(() => {
-	campos(player.pos);
+	camPos(player.pos);
 });
 			`),
-			f("camscale", [
+			f("camScale", [
 				a("scale", "scale"),
 			], null, "set the camera scale", `
 if (win) {
-	campos(player.pos);
+	camPos(player.pos);
 	// get a close up shot of the player
-	camscale(3);
+	camScale(3);
 }
+			`),
+			f("camRot", [
+				a("angle", "angle"),
+			], null, "set the camera angle", `
+camRot(0.1);
+			`),
+			f("camIgnore", [
+				a("layers", "angle"),
+			], null, "make camera don't affect certain layers", `
+// make camera not affect objects on layer "ui" and "bg"
+camIgnore(["bg", "ui"]);
 			`),
 		],
 	},

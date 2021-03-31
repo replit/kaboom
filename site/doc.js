@@ -10,7 +10,6 @@ const style = {
 
 	"body": {
 		"background": "#0080ff",
-// 		"background": "#80ffff",
 	},
 
 	"#game-view": {
@@ -83,9 +82,23 @@ const style = {
 
 		"#logo": {
 			"width": "100%",
+			"display": "flex",
+			"height": "108px",
 			"margin-bottom": "12px",
+			"position": "relative",
 			":hover": {
 				"cursor": "pointer",
+				"#ka": {
+					"transform": "scale(1.1) rotate(0)",
+				},
+				"#boom": {
+					"transform": "scale(1.05) rotate(-3deg)",
+				},
+			},
+			"img": {
+				"width": "100%",
+				"transition": "0.5s",
+				"position": "absolute",
 			},
 		},
 
@@ -189,17 +202,20 @@ const page = t("html", {}, [
 		t("style", {}, www.style(style)),
 		t("link", { rel: "stylesheet", href: "/pub/lib/highlight.css", }),
 		t("script", { src: "/pub/lib/highlight.js", }, ""),
-		t("script", {}, "hljs.initHighlightingOnLoad();"),
+		t("script", {}, "hljs.highlightAll();"),
 		t("script", {}, "hljs.configure({tabReplace: \"    \"});"),
 	]),
 	t("body", {}, [
 		t("div", { id: "main", }, [
 			t("div", { id: "sidebar", class: "panel", }, [
-				t("img", { id: "logo", src: "/pub/img/kaboom.svg", }),
+				t("div", { id: "logo", }, [
+					t("img", { id: "boom", src: "/pub/img/boom.svg", }),
+					t("img", { id: "ka", src: "/pub/img/ka.svg", }),
+				]),
 				t("a", { class: "link", href: "/guide", }, "guide"),
 				t("a", { class: "link", href: "/examples", }, "examples"),
-				t("a", { class: "link", href: "/lib/master", }, "download"),
-// 				t("a", { class: "link", href: "https://github.com/replit/kaboom", }, "github"),
+				t("a", { class: "link", href: "/lib", }, "download"),
+				t("a", { class: "link", href: "https://github.com/replit/kaboom", }, "github"),
 				t("a", { class: "link", href: "https://replit.com/new/kaboom", }, "try on replit"),
 				...api.map((sec) => {
 					return t("div", { class: "section", }, [
@@ -213,30 +229,27 @@ const page = t("html", {}, [
 			t("div", { id: "content", class: "panel", }, [
 				t("p", { id: "about", }, "kaboom.js (beta) is a JavaScript library that helps you make games fast and fun!"),
 				t("p", { class: "title", }, "Usage"),
-				t("p", { class: "desc", }, "base lib"),
-				code(`
-<script src="https://kaboomjs.com/lib/master/kaboom.js"></script>
-				`, "html"),
-				t("p", { class: "desc", }, "kits"),
-				code(`
-<script src="https://kaboomjs.com/lib/master/kit/physics.js"></script>
-<script src="https://kaboomjs.com/lib/master/kit/starter.js"></script>
-<script src="https://kaboomjs.com/lib/master/kit/level.js"></script>
-				`, "html"),
 				t("p", { class: "desc", }, "quick start"),
 				code(`
+<script type="module">
+
+import kaboom from "https://kaboomjs.com/lib/dev/kaboom.js";
+
 kaboom.import();
+
 init();
 
 scene("main", () => {
-	add([
-		text("ohhimark"),
-		pos(100, 100),
-	]);
+    add([
+        text("ohhimark"),
+        pos(100, 100),
+    ]);
 });
 
 start("main");
-				`),
+
+</script>
+				`, "html"),
 				...api.map((sec) => {
 					return t("div", {}, [
 						t("p", { class: "title", }, sec.name),

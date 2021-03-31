@@ -58,9 +58,9 @@ const _console = { ...console, };
 	}
 });
 	</script>
-	<script src="/lib/master/kaboom.js"></script>
-	<script>kaboom.import();</script>
-	<script>
+	<script type="module">
+import kaboom from "/lib/dev/kaboom.js";
+kaboom.import();
 ${code}
 	</script>
 </body>
