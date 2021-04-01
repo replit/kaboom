@@ -5,7 +5,7 @@ loadSprite("ch2", "ch2.png");
 loadSprite("grass", "grass.png");
 loadSprite("door", "door.png");
 loadSprite("key", "key.png");
-loadSprite("passenger", "passenger.png");
+loadSprite("guy", "guy.png");
 
 init({
 	fullscreen: true,
@@ -65,7 +65,7 @@ scene("main", (levelIdx) => {
 			"key",
 		],
 		"@": [
-			sprite("passenger"),
+			sprite("guy"),
 			"player",
 		],
 		"|": [
@@ -89,12 +89,6 @@ scene("main", (levelIdx) => {
 	});
 
 	const player = get("player")[0];
-	const SPEED = 120;
-
-	player.action(() => {
-		// make player not go through solid() objs
-		player.resolve();
-	});
 
 	let hasKey = false;
 	let talking = null;
@@ -105,12 +99,12 @@ scene("main", (levelIdx) => {
 		]);
 	}
 
-	player.collides("key", (key) => {
+	player.overlaps("key", (key) => {
 		destroy(key);
 		hasKey = true;
 	});
 
-	player.collides("door", () => {
+	player.overlaps("door", () => {
 		if (hasKey) {
 			if (levelIdx + 1 < levels.length) {
 				go("main", levelIdx + 1);
@@ -122,7 +116,7 @@ scene("main", (levelIdx) => {
 		}
 	});
 
-	player.collides("character", (ch) => {
+	player.overlaps("character", (ch) => {
 		talk(ch.msg);
 	});
 
@@ -133,28 +127,20 @@ scene("main", (levelIdx) => {
 		}
 	});
 
-	keyDown("left", () => {
-		if (!talking) {
-			player.move(-SPEED, 0);
-		}
+	keyPress("left", () => {
+		player.moveLeft();
 	});
 
-	keyDown("right", () => {
-		if (!talking) {
-			player.move(SPEED, 0);
-		}
+	keyPress("right", () => {
+		player.moveRight();
 	});
 
-	keyDown("up", () => {
-		if (!talking) {
-			player.move(0, -SPEED);
-		}
+	keyPress("up", () => {
+		player.moveUp();
 	});
 
-	keyDown("down", () => {
-		if (!talking) {
-			player.move(0, SPEED);
-		}
+	keyPress("down", () => {
+		player.moveDown();
 	});
 
 });

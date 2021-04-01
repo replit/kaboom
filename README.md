@@ -6,32 +6,25 @@ kaboom.js is a JavaScript library that helps you make games fast and fun!
 
 ### Example
 
-```js
-const k = kaboom;
-k.init();
+```html
+<script type="module">
 
-k.scene("main", () => {
-	k.add([
-		k.pos(0, 0),
-		k.text("oh hi", 24),
-	]);
+import kaboom from "https://kaboomjs.com/lib/dev/kaboom.js";
+
+kaboom.import();
+
+init();
+
+scene("main", () => {
+    add([
+        text("ohhimark"),
+        pos(100, 100),
+    ]);
 });
 
-k.start("main");
-```
+start("main");
 
-### Usage
-
-1. download `kaboom.js` and
-
-```html
-<script src="kaboom.js"></script>
-```
-
-2. use CDN
-
-```html
-<!-- TODO -->
+</script>
 ```
 
 ### Dev
@@ -41,4 +34,3 @@ use examples to test / add features
 1. `npm run site`
 1. go to http://localhost:8000/examples
 1. edit examples in `site/pub/examples/`
-

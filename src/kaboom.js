@@ -1847,6 +1847,11 @@ function camRot(angle) {
 	return cam.angle;
 }
 
+// TODO
+function camShake(intensity) {
+	// ...
+}
+
 function camIgnore(layers) {
 	const cam = game.scenes[game.curScene].camera;
 	cam.ignore = layers;
@@ -2023,6 +2028,15 @@ function render(tag, cb) {
 function collides(t1, t2, f) {
 	action(t1, (o1) => {
 		o1._checkCollisions(t2, (o2) => {
+			f(o1, o2)
+		});
+	});
+}
+
+// add an event that runs with objs with t1 overlaps with objs with t2
+function overlaps(t1, t2, f) {
+	action(t1, (o1) => {
+		o1._checkOverlaps(t2, (o2) => {
 			f(o1, o2)
 		});
 	});
@@ -2278,6 +2292,7 @@ function gameFrame(ignorePause) {
 
 // TODO: on screen error message?
 // start the game with a scene
+// put main event loop in app module
 function start(name, ...args) {
 
 	const frame = (t) => {
@@ -2476,6 +2491,7 @@ function area(p1, p2) {
 		},
 
 		_colliding: {},
+		_overlapping: {},
 
 		areaWidth() {
 			const { p1, p2 } = this._worldArea();
@@ -2602,6 +2618,7 @@ function area(p1, p2) {
 			return this.hasPt(mousePos());
 		},
 
+		// push object out of other solid objects
 		resolve() {
 
 			const targets = [];
@@ -2692,6 +2709,37 @@ function area(p1, p2) {
 		collides(tag, f) {
 			this.action(() => {
 				this._checkCollisions(tag, f);
+			});
+		},
+
+		// TODO: repetitive with collides
+		_checkOverlaps(tag, f) {
+
+			every(tag, (obj) => {
+				if (this === obj) {
+					return;
+				}
+				if (this._overlapping[obj._sceneID]) {
+					return;
+				}
+				if (this.isOverlapped(obj)) {
+					f(obj);
+					this._overlapping[obj._sceneID] = obj;
+				}
+			});
+
+			for (const id in this._overlapping) {
+				const obj = this._overlapping[id];
+				if (!this.isOverlapped(obj)) {
+					delete this._overlapping[id];
+				}
+			}
+
+		},
+
+		overlaps(tag, f) {
+			this.action(() => {
+				this._checkOverlaps(tag, f);
 			});
 		},
 
@@ -3108,24 +3156,62 @@ function addLevel(arr, conf = {}) {
 			})();
 
 			if (comps) {
+
 				comps.push(pos(
 					offset.x + j * conf.width,
 					offset.y + i * conf.height
 				));
-				objs.push(add(comps));
+
+				const obj = add(comps);
+
+				objs.push(obj);
+
+				obj.use({
+
+					gridPos: vec2(j, i),
+
+					setGridPos(p) {
+						this.gridPos = p.clone();
+						this.pos = vec2(
+							offset.x + this.gridPos.x * conf.width,
+							offset.y + this.gridPos.y * conf.height
+						);
+					},
+
+					moveLeft() {
+						this.setGridPos(this.gridPos.add(vec2(-1, 0)));
+					},
+
+					moveRight() {
+						this.setGridPos(this.gridPos.add(vec2(1, 0)));
+					},
+
+					moveUp() {
+						this.setGridPos(this.gridPos.add(vec2(0, -1)));
+					},
+
+					moveDown() {
+						this.setGridPos(this.gridPos.add(vec2(0, 1)));
+					},
+
+				});
+
 			}
 
 		});
 
 	});
 
-	return {
+	const level = {
 		getPos(...p) {
 			p = vec2(...p);
 			return vec2(
 				offset.x + p.x * conf.width,
 				offset.y + p.y * conf.height
 			);
+		},
+		getObj() {
+			// ...
 		},
 		width() {
 			return longRow * conf.width;
@@ -3139,6 +3225,8 @@ function addLevel(arr, conf = {}) {
 			}
 		},
 	};
+
+	return level;
 
 }
 
@@ -3198,6 +3286,7 @@ kaboom.on = on;
 kaboom.action = action;
 kaboom.render = render;
 kaboom.collides = collides;
+kaboom.overlaps = overlaps;
 kaboom.clicks = clicks;
 
 // input

@@ -1,21 +1,48 @@
 init({
 	fullscreen: true,
-	scale: 2,
+	scale: 4,
 });
 
-loadSprite("mark", "/pub/img/mark.png");
-loadSprite("notmark", "/pub/img/notmark.png");
+loadSprite("nightsky", "/pub/img/nightsky.png");
+loadSprite("stars", "/pub/img/stars.png");
+loadSprite("ship", "/pub/img/ship.png");
+loadSprite("apple", "/pub/img/apple.png");
 
 scene("main", () => {
 
-	const BULLET_SPEED = 1200;
+	const BULLET_SPEED = 640;
 	const ENEMY_SPEED = 60;
 	const PLAYER_SPEED = 120;
 
+	add([
+		sprite("nightsky"),
+		scale(width() / 240, height() / 240),
+	]);
+
+	add([
+		sprite("stars"),
+		scale(width() / 240, height() / 240),
+		pos(0, 0),
+		"stars",
+	]);
+
+	add([
+		sprite("stars"),
+		scale(width() / 240, height() / 240),
+		pos(0, -height()),
+		"stars",
+	]);
+
+	action("stars", (r) => {
+		r.move(0, 32);
+		if (r.pos.y >= height()) {
+			r.pos.y -= height() * 2;
+		}
+	});
+
 	const player = add([
-		sprite("mark"),
-		pos(width() / 2, height()),
-		scale(3),
+		sprite("ship"),
+		pos(width() / 2, height() - 16),
 		origin("center"),
 	]);
 
@@ -27,13 +54,20 @@ scene("main", () => {
 		player.move(PLAYER_SPEED, 0);
 	});
 
-	keyPress("space", () => {
+	function spawnBullet(p) {
 		add([
-			sprite("mark"),
-			pos(player.pos),
+			rect(2, 6),
+			pos(p),
+			origin("center"),
+			color(0.5, 0.5, 1),
 			// strings here means a tag
 			"bullet",
 		]);
+	}
+
+	keyPress(["space", "up"], () => {
+		spawnBullet(player.pos.sub(4, 0));
+		spawnBullet(player.pos.add(4, 0));
 	});
 
 	// run this callback every frame for all objects with tag "bullet"
@@ -47,7 +81,7 @@ scene("main", () => {
 
 	function spawnEnemy() {
 		return add([
-			sprite("notmark"),
+			sprite("apple"),
 			pos(rand(0, width()), 0),
 			"enemy",
 		]);
@@ -79,7 +113,7 @@ scene("main", () => {
 	});
 
 	// spawn an enemy every 1 second
-	loop(1, spawnEnemy);
+	loop(0.5, spawnEnemy);
 
 });
 
