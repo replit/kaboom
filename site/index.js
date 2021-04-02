@@ -30,30 +30,24 @@ const server = http.createServer((req, res) => {
 			}
 		}
 
-		serveFs("/pub", "pub")(req, res);
+		const versions = fs
+			.readdirSync("lib")
+			.filter(p => !p.startsWith("."))
+			;
 
-		if (process.env.NODE_ENV === "dev") {
-			serveFs("/lib/dev", "../src")(req, res);
-		} else {
-			serveFs("/lib", "lib")(req, res);
-		}
-
-		if (req.url === "/libdata") {
-
-			const versions = fs
-				.readdirSync("lib")
-				.filter(p => !p.startsWith("."))
-				;
-
+		if (req.url === "/versions") {
 			res.setHeader("Content-Type", "application/json");
+			res.setHeader("Access-Control-Allow-Origin", "*");
 			res.writeHead(200);
-			res.end(JSON.stringify({
-				versions: versions,
-			}));
-
+			res.end(JSON.stringify([ ...versions, "dev", ]));
 			return;
-
 		}
+
+		serveFs("/pub", "pub")(req, res);
+		serveFs(`/lib`, `lib`)(req, res);
+		serveFs("/lib/dev", "../src")(req, res);
+		// TODO: deprecate
+		serveFs("/lib/master", "lib/0.0.0")(req, res);
 
 		if (res.finished) {
 			return;

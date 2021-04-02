@@ -9,15 +9,15 @@ kaboom.js is a JavaScript library that helps you make games fast and fun!
 ```html
 <script type="module">
 
-import kaboom from "https://kaboomjs.com/lib/dev/kaboom.js";
+await import("https://kaboomjs.com/lib/dev/kaboom.js");
 
-kaboom.import();
+kaboom.global();
 
 init();
 
 scene("main", () => {
     add([
-        text("ohhimark"),
+        text("ohhimark", 32),
         pos(100, 100),
     ]);
 });

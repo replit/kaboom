@@ -1,4 +1,5 @@
 // kaboom.js
+// v0.1.0
 
 /*
 
@@ -29,6 +30,8 @@ modules:
   misc utils
 
 */
+
+(() => {
 
 const kaboom = {};
 
@@ -3349,7 +3352,7 @@ kaboom.stepFrame = stepFrame;
 kaboom.addLevel = addLevel;
 
 // make every function global
-kaboom.import = () => {
+kaboom.global = () => {
 	for (const func in kaboom) {
 		if (typeof(kaboom[func]) !== "function") {
 			continue;
@@ -3364,4 +3367,6 @@ kaboom.import = () => {
 	}
 };
 
-export default kaboom;
+window.kaboom = kaboom;
+
+})();

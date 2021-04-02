@@ -3,7 +3,7 @@
 const fs = require("fs");
 const path = require("path");
 const dofile = require("./dofile");
-const www = dofile("./www");
+const www = require("./www");
 const gstyle = dofile("./gstyle");
 const t = www.tag;
 
@@ -157,7 +157,7 @@ const style = {
 
 const page = t("html", {}, [
 	t("head", {}, [
-		t("title", {}, "KaBoom Examples"),
+		t("title", {}, "Kaboom Examples"),
 		t("meta", { charset: "utf-8", }),
 		t("style", {}, www.style(style)),
 		t("link", { rel: "stylesheet", href: "/pub/lib/codemirror/codemirror.css", }),

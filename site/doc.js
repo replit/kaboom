@@ -1,7 +1,7 @@
 // mian page
 
 const dofile = require("./dofile");
-const www = dofile("./www");
+const www = require("./www");
 const api = dofile("./api");
 const gstyle = dofile("./gstyle");
 const t = www.tag;
@@ -233,15 +233,15 @@ const page = t("html", {}, [
 				code(`
 <script type="module">
 
-import kaboom from "https://kaboomjs.com/lib/dev/kaboom.js";
+await import("https://kaboomjs.com/lib/dev/kaboom.js");
 
-kaboom.import();
+kaboom.global();
 
 init();
 
 scene("main", () => {
     add([
-        text("ohhimark"),
+        text("ohhimark", 32),
         pos(100, 100),
     ]);
 });

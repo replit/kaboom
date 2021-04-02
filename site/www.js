@@ -161,6 +161,13 @@ function serveFs(urlPrefix, dirPrefix) {
 			return;
 		}
 
+		const ext = path.extname(p).substring(1);
+		const mime = mimes[ext];
+
+		if (mime) {
+			res.setHeader("Content-Type", mime);
+		}
+
 		const stat = fs.statSync(p);
 
 		if (stat.isDirectory(p)) {

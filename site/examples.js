@@ -3,7 +3,7 @@
 const fs = require("fs");
 const path = require("path");
 const dofile = require("./dofile");
-const www = dofile("./www");
+const www = require("./www");
 const gstyle = dofile("./gstyle");
 const t = www.tag;
 

@@ -1,4 +1,5 @@
 // kaboom.js
+// v0.1.0
 
 /*
 
@@ -29,6 +30,8 @@ modules:
   misc utils
 
 */
+
+(() => {
 
 const kaboom = {};
 
@@ -627,6 +630,11 @@ function gfxFrameEnd() {
 	flush();
 }
 
+// TODO: don't use push as prefix for these
+function pushMatrix(m) {
+	gfx.transform = m.clone();
+}
+
 function pushTranslate(p) {
 	if (!p || (p.x === 0 && p.y === 0)) {
 		return;
@@ -672,6 +680,7 @@ function popTransform() {
 	}
 }
 
+// the batch renderer
 function makeBatchedMesh(vcount, icount) {
 
 	const vbuf = gl.createBuffer();
@@ -875,11 +884,14 @@ function makeFont(tex, gw, gh, chars) {
 
 // TODO: put texture and texture flush logic here
 function drawRaw(verts, indices, tex = gfx.defTex) {
+
 	// flush on texture change
 	if (gfx.curTex !== tex) {
 		flush();
 		gfx.curTex = tex;
 	}
+
+	// update vertices to current transform matrix
 	verts = verts.map((v) => {
 		const pt = toNDC(gfx.transform.multVec2(v.pos));
 		return [
@@ -888,7 +900,9 @@ function drawRaw(verts, indices, tex = gfx.defTex) {
 			v.color.r, v.color.g, v.color.b, v.color.a
 		];
 	}).flat();
+
 	gfx.mesh.push(verts, indices);
+
 }
 
 // draw a textured quad
@@ -1759,6 +1773,8 @@ function scene(name, cb) {
 		camera: {
 			pos: vec2(width() / 2, height() / 2),
 			scale: vec2(1, 1),
+			angle: 0,
+			ignore: [],
 		},
 		gravity: DEF_GRAVITY,
 
@@ -1810,20 +1826,38 @@ function layers(list, def) {
 
 }
 
-function campos(...pos) {
+function camPos(...pos) {
 	const cam = game.scenes[game.curScene].camera;
-	if (pos) {
+	if (pos.length > 0) {
 		cam.pos = vec2(...pos);
 	}
-	return cam.pos;
+	return cam.pos.clone();
 }
 
-function camscale(...scale) {
+function camScale(...scale) {
 	const cam = game.scenes[game.curScene].camera;
-	if (scale) {
+	if (scale.length > 0) {
 		cam.scale = vec2(...scale);
 	}
-	return cam.scale;
+	return cam.scale.clone();
+}
+
+function camRot(angle) {
+	const cam = game.scenes[game.curScene].camera;
+	if (angle !== undefined) {
+		cam.angle = angle;
+	}
+	return cam.angle;
+}
+
+// TODO
+function camShake(intensity) {
+	// ...
+}
+
+function camIgnore(layers) {
+	const cam = game.scenes[game.curScene].camera;
+	cam.ignore = layers;
 }
 
 function add(comps) {
@@ -1997,6 +2031,15 @@ function render(tag, cb) {
 function collides(t1, t2, f) {
 	action(t1, (o1) => {
 		o1._checkCollisions(t2, (o2) => {
+			f(o1, o2)
+		});
+	});
+}
+
+// add an event that runs with objs with t1 overlaps with objs with t2
+function overlaps(t1, t2, f) {
+	action(t1, (o1) => {
+		o1._checkOverlaps(t2, (o2) => {
 			f(o1, o2)
 		});
 	});
@@ -2203,15 +2246,24 @@ function gameFrame(ignorePause) {
 		}
 
 		const size = vec2(width(), height());
+		const cam = scene.camera;
 
-		pushTransform();
-		pushTranslate(size.scale(0.5));
-		pushScale(scene.camera.scale);
-		pushTranslate(size.scale(-0.5));
-		pushTranslate(scene.camera.pos.scale(-1).add(size.scale(0.5)));
+		const camMat = mat4()
+			.translate(size.scale(0.5))
+			.scale(cam.scale)
+			.rotateZ(cam.angle)
+			.translate(size.scale(-0.5))
+			.translate(cam.pos.scale(-1).add(size.scale(0.5)))
+			;
 
 		// draw obj
 		if (!obj.hidden) {
+
+			pushTransform();
+
+			if (!cam.ignore.includes(obj.layer)) {
+				pushMatrix(camMat);
+			}
 
 			obj.trigger("draw");
 
@@ -2221,9 +2273,9 @@ function gameFrame(ignorePause) {
 				}
 			}
 
-		}
+			popTransform();
 
-		popTransform();
+		}
 
 	}
 
@@ -2243,6 +2295,7 @@ function gameFrame(ignorePause) {
 
 // TODO: on screen error message?
 // start the game with a scene
+// put main event loop in app module
 function start(name, ...args) {
 
 	const frame = (t) => {
@@ -2441,6 +2494,7 @@ function area(p1, p2) {
 		},
 
 		_colliding: {},
+		_overlapping: {},
 
 		areaWidth() {
 			const { p1, p2 } = this._worldArea();
@@ -2547,7 +2601,7 @@ function area(p1, p2) {
 			return mouseIsClicked() && this.isHovered();
 		},
 
-		onHover(f) {
+		hovers(f) {
 			this.action(() => {
 				if (this.isHovered()) {
 					f();
@@ -2567,6 +2621,7 @@ function area(p1, p2) {
 			return this.hasPt(mousePos());
 		},
 
+		// push object out of other solid objects
 		resolve() {
 
 			const targets = [];
@@ -2657,6 +2712,37 @@ function area(p1, p2) {
 		collides(tag, f) {
 			this.action(() => {
 				this._checkCollisions(tag, f);
+			});
+		},
+
+		// TODO: repetitive with collides
+		_checkOverlaps(tag, f) {
+
+			every(tag, (obj) => {
+				if (this === obj) {
+					return;
+				}
+				if (this._overlapping[obj._sceneID]) {
+					return;
+				}
+				if (this.isOverlapped(obj)) {
+					f(obj);
+					this._overlapping[obj._sceneID] = obj;
+				}
+			});
+
+			for (const id in this._overlapping) {
+				const obj = this._overlapping[id];
+				if (!this.isOverlapped(obj)) {
+					delete this._overlapping[id];
+				}
+			}
+
+		},
+
+		overlaps(tag, f) {
+			this.action(() => {
+				this._checkOverlaps(tag, f);
 			});
 		},
 
@@ -3073,24 +3159,62 @@ function addLevel(arr, conf = {}) {
 			})();
 
 			if (comps) {
+
 				comps.push(pos(
 					offset.x + j * conf.width,
 					offset.y + i * conf.height
 				));
-				objs.push(add(comps));
+
+				const obj = add(comps);
+
+				objs.push(obj);
+
+				obj.use({
+
+					gridPos: vec2(j, i),
+
+					setGridPos(p) {
+						this.gridPos = p.clone();
+						this.pos = vec2(
+							offset.x + this.gridPos.x * conf.width,
+							offset.y + this.gridPos.y * conf.height
+						);
+					},
+
+					moveLeft() {
+						this.setGridPos(this.gridPos.add(vec2(-1, 0)));
+					},
+
+					moveRight() {
+						this.setGridPos(this.gridPos.add(vec2(1, 0)));
+					},
+
+					moveUp() {
+						this.setGridPos(this.gridPos.add(vec2(0, -1)));
+					},
+
+					moveDown() {
+						this.setGridPos(this.gridPos.add(vec2(0, 1)));
+					},
+
+				});
+
 			}
 
 		});
 
 	});
 
-	return {
+	const level = {
 		getPos(...p) {
 			p = vec2(...p);
 			return vec2(
 				offset.x + p.x * conf.width,
 				offset.y + p.y * conf.height
 			);
+		},
+		getObj() {
+			// ...
 		},
 		width() {
 			return longRow * conf.width;
@@ -3105,9 +3229,9 @@ function addLevel(arr, conf = {}) {
 		},
 	};
 
-}
+	return level;
 
-kaboom.addLevel = addLevel;
+}
 
 // life cycle
 kaboom.init = init;
@@ -3132,8 +3256,10 @@ kaboom.go = go;
 
 // misc
 kaboom.layers = layers;
-kaboom.campos = campos;
-kaboom.camscale = camscale;
+kaboom.camPos = camPos;
+kaboom.camScale = camScale;
+kaboom.camRot = camRot;
+kaboom.camIgnore = camIgnore;
 kaboom.gravity = gravity;
 
 // obj
@@ -3163,6 +3289,7 @@ kaboom.on = on;
 kaboom.action = action;
 kaboom.render = render;
 kaboom.collides = collides;
+kaboom.overlaps = overlaps;
 kaboom.clicks = clicks;
 
 // input
@@ -3221,8 +3348,11 @@ kaboom.pause = pause;
 kaboom.paused = paused;
 kaboom.stepFrame = stepFrame;
 
+// level
+kaboom.addLevel = addLevel;
+
 // make every function global
-kaboom.import = () => {
+kaboom.global = () => {
 	for (const func in kaboom) {
 		if (typeof(kaboom[func]) !== "function") {
 			continue;
@@ -3237,5 +3367,6 @@ kaboom.import = () => {
 	}
 };
 
-export default kaboom;
+window.kaboom = kaboom;
 
+})();
