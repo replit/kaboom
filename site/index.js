@@ -3,6 +3,7 @@
 const fs = require("fs");
 const http = require("http");
 const dofile = require("./dofile");
+const utils = require("./utils");
 
 const {
 	serveFs,
@@ -35,11 +36,21 @@ const server = http.createServer((req, res) => {
 			.filter(p => !p.startsWith("."))
 			;
 
+		const latestVer = versions.reduce(utils.cmpSemVer);
+
 		if (req.url === "/versions") {
 			res.setHeader("Content-Type", "application/json");
 			res.setHeader("Access-Control-Allow-Origin", "*");
 			res.writeHead(200);
 			res.end(JSON.stringify([ ...versions, "dev", ]));
+			return;
+		}
+
+		if (req.url === "/latest") {
+			res.setHeader("Content-Type", "application/json");
+			res.setHeader("Access-Control-Allow-Origin", "*");
+			res.writeHead(200);
+			res.end(JSON.stringify(latestVer));
 			return;
 		}
 

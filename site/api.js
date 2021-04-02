@@ -130,6 +130,12 @@ const score = add([
 	layer("ui"),
 ]);
 			`),
+			f("gravity", [
+				a("value", "gravity value"),
+			], null, "set the gravity value (defaults to 980)", `
+// (pixel per sec.)
+gravity(1600);
+			`),
 			f("camPos", [
 				a("pos", "position"),
 			], null, "set the camera position", `
@@ -487,8 +493,18 @@ obj.collides("collectable", (c) => {
 	score++;
 });
 
+// similar to collides(), but doesn't pass if 2 objects are just touching each other (checks for distance < 0 instead of distance <= 0)
+obj.overlaps("collectable", (c) => {
+	destroy(c);
+	score++;
+});
+
 // checks if the obj is collided with another
 if (obj.isCollided(obj2)) {
+	// ...
+}
+
+if (obj.isOverlapped(obj2)) {
 	// ...
 }
 
@@ -516,8 +532,39 @@ if (obj.isHovered()) {
 obj.hasPt();
 
 // resolve all collisions with objects with 'solid'
-// for now this checks against all solid objs in the scene, costly
+// for now this checks against all solid objs in the scene (this is costly now)
 obj.resolve();
+			`),
+			f("body", [
+				a("[conf]", "optional config")
+			], null, "component for falling / jumping", `
+const player = add([
+	pos(0, 0),
+	// now player will fall in this gravity world
+	body(),
+]);
+
+const player = add([
+	pos(0, 0),
+	body({
+		// force of .jump()
+		jumpForce: 640,
+		// maximum fall velocity
+		maxVel: 2400,
+	}),
+]);
+
+// body() gives obj jump() and grounded() methods
+keyPress("up", () => {
+	if (player.grounded()) {
+		player.jump(JUMP_FORCE);
+	}
+});
+
+// and a "grounded" event
+player.on("grounded", () => {
+	console.log("horray!");
+});
 			`),
 			f("solid", [
 			], null, "mark the obj so other objects can't move past it if they have an area and resolve()", `
@@ -599,6 +646,19 @@ action("flashy", (f) => {
 				a("cb", "the callback"),
 			], null, "calls when objects collides with others", `
 collides("enemy", "bullet", (e, b) => {
+	destroy(b);
+	e.life--;
+	if (e.life <= 0) {
+		destroy(e);
+	}
+});
+			`),
+			f("overlaps", [
+				a("tag", "tag selector"),
+				a("cb", "the callback"),
+			], null, "calls when objects collides with others", `
+// similar to collides(), but doesn't pass if 2 objects are just touching each other (checks for distance < 0 instead of distance <= 0)
+overlaps("enemy", "bullet", (e, b) => {
 	destroy(b);
 	e.life--;
 	if (e.life <= 0) {
@@ -864,83 +924,22 @@ drawText("hi", {
 		],
 	},
 	{
-		name: "Debug",
-		desc: "debug utilities",
-		entries: [
-			f("fps", [], null, "current frames per second", ""),
-			f("objCount", [], null, "current number of objects in scene", ""),
-			f("pause", [], null, "pause the game", ""),
-			f("unpause", [], null, "unpause the game", ""),
-			f("kaboom.debug", [], null, "debug flags", `
-// scale the time
-kaboom.debug.timeScale = 0.5;
-
-// show the bounding box of objects with area()
-kaboom.debug.showArea = true;
-
-// hover to inspect objects (needs showArea checked)
-kaboom.debug.hoverInfo = true;
-			`),
-		],
-	},
-	{
-		name: "Physics",
-		desc: "kit/physics.js allows you to make 2d physics games (e.g. platformers) even easier!",
-		entries: [
-			f("gravity", [
-				a("value", "gravity value"),
-			], null, "set the gravity value (defaults to 980)", `
-// (pixel per sec.)
-gravity(1600);
-			`),
-			f("body", [
-			], null, "component for falling / jumping", `
-const player = add([
-	pos(0, 0),
-	// now player will fall in this gravity world
-	body(),
-]);
-
-const player = add([
-	pos(0, 0),
-	body({
-		// force of .jump()
-		jumpForce: 640,
-		// maximum fall velocity
-		maxVel: 2400,
-	}),
-]);
-			`),
-			f("obj.jump", [
-			], null, "makes an object jump", `
-const player = add([
-	pos(0, 0),
-	body(),
-]);
-
-keyPress("up", () => {
-	player.jump(JUMP_FORCE);
-});
-			`),
-			f("obj.grounded", [
-			], null, "checks if grounded", `
-// only jump when grounded
-if (player.grounded()) {
-	player.jump(JUMP_FORCE);
-}
-			`),
-		],
-	},
-	{
 		name: "Level",
-		desc: "kit/level.js provides helper functions for tile map based games!",
+		desc: "helpers on building tiled maps",
 		entries: [
 			f("addLevel", [
 				a("map", ""),
 				a("ref", ""),
 			], null, "takes a level drawing and turn them into game objects according to the ref map", `
+const characters = {
+	"a": {
+		sprite: "ch1",
+		msg: "ohhi how are you",
+	},
+};
+
 const map = addLevel([
-	"                   ",
+	"                 a ",
 	"                ===",
 	"   ?       *       ",
 	"         ====  ^^  ",
@@ -974,6 +973,19 @@ const map = addLevel([
 		"spike",
 		"block",
 	],
+	// any catches anything that's not defined by the mappings above, good for more dynamic stuff like this
+	any(ch) {
+		if (characters[ch]) {
+			return [
+				sprite(char.sprite),
+				solid(),
+				"character",
+				{
+					msg: characters[ch],
+				},
+			];
+		}
+	},
 });
 
 // query size
@@ -994,31 +1006,22 @@ action("block", (b) => {
 		],
 	},
 	{
-		name: "Starter",
-		desc: "kit/starter.js abstracts away from the component system",
+		name: "Debug",
+		desc: "debug utilities",
 		entries: [
-			f("addSprite", [
-				a("id", "sprite name"),
-				a("[conf]", "config"),
-			], null, "add a sprite to scene", `
-addSprite("froggy", {
-	pos: vec2(0, 100),
-	origin: "topleft",
-	tags: [
-		"goodboi",
-		"animal",
-	],
-});
+			f("fps", [], null, "current frames per second", ""),
+			f("objCount", [], null, "current number of objects in scene", ""),
+			f("pause", [], null, "pause the game", ""),
+			f("unpause", [], null, "unpause the game", ""),
+			f("kaboom.debug", [], null, "debug flags", `
+// scale the time
+kaboom.debug.timeScale = 0.5;
 
-// is equivalent to ..
+// show the bounding box of objects with area()
+kaboom.debug.showArea = true;
 
-add([
-	sprite("froggy"),
-	pos(0, 100),
-	origin("topleft"),
-	"goodboi",
-	"animal",
-]);
+// hover to inspect objects (needs showArea checked)
+kaboom.debug.hoverInfo = true;
 			`),
 		],
 	},
