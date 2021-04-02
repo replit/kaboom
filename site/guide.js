@@ -193,4 +193,3 @@ const page = t("html", {}, [
 ]);
 
 module.exports = "<!DOCTYPE html>" + page;
-

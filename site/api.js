@@ -22,12 +22,12 @@ const api = [
 		name: "Import",
 		desc: "All functions are under a global object 'kaboom', but you can also choose to import all functions into global namespace.",
 		entries: [
-			f("kaboom.import", [], null, "import all kaboom functions into global namespace", `
+			f("kaboom.global", [], null, "import all kaboom functions into global namespace", `
 // 1) import everything to global
-kaboom.import();
+kaboom.global();
 init();
 
-// 2) use kaboom prefix (or use a shorthand alias)
+// 2) keep them under kaboom namespace to prevent any collision
 const k = kaboom;
 k.init();
 			`),

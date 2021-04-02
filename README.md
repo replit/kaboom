@@ -7,23 +7,28 @@ kaboom.js is a JavaScript library that helps you make games fast and fun!
 ### Example
 
 ```html
+<script src="https://kaboomjs.com/lib/dev/kaboom.js"></script>
 <script type="module">
 
-await import("https://kaboomjs.com/lib/dev/kaboom.js");
-
+// make kaboom functions global
 kaboom.global();
 
+// init kaboom context
 init();
 
+// define a scene
 scene("main", () => {
-    add([
-        text("ohhimark", 32),
-        pos(100, 100),
-    ]);
+
+	// add a text at position (100, 100)
+	add([
+		text("ohhimark", 32),
+		pos(100, 100),
+	]);
+
 });
 
+// start the game
 start("main");
-
 </script>
 ```
 

@@ -1782,6 +1782,10 @@ function scene(name, cb) {
 
 }
 
+function curScene() {
+	return game.scenes[game.curScene];
+}
+
 // switch to a scene
 function go(name, ...args) {
 	reload(name);
@@ -1808,7 +1812,7 @@ function reload(name) {
 
 function layers(list, def) {
 
-	const scene = game.scenes[game.curScene];
+	const scene = curScene();
 
 	if (!scene) {
 		return;
@@ -1827,7 +1831,7 @@ function layers(list, def) {
 }
 
 function camPos(...pos) {
-	const cam = game.scenes[game.curScene].camera;
+	const cam = curScene().camera;
 	if (pos.length > 0) {
 		cam.pos = vec2(...pos);
 	}
@@ -1835,7 +1839,7 @@ function camPos(...pos) {
 }
 
 function camScale(...scale) {
-	const cam = game.scenes[game.curScene].camera;
+	const cam = curScene().camera;
 	if (scale.length > 0) {
 		cam.scale = vec2(...scale);
 	}
@@ -1843,7 +1847,7 @@ function camScale(...scale) {
 }
 
 function camRot(angle) {
-	const cam = game.scenes[game.curScene].camera;
+	const cam = curScene().camera;
 	if (angle !== undefined) {
 		cam.angle = angle;
 	}
@@ -1856,7 +1860,7 @@ function camShake(intensity) {
 }
 
 function camIgnore(layers) {
-	const cam = game.scenes[game.curScene].camera;
+	const cam = curScene().camera;
 	cam.ignore = layers;
 }
 
@@ -1982,7 +1986,7 @@ function add(comps) {
 
 	obj.use(comps);
 
-	const scene = game.scenes[game.curScene];
+	const scene = curScene();
 
 	scene.objs[scene.lastID] = obj;
 	obj._sceneID = scene.lastID;
@@ -2002,7 +2006,7 @@ function add(comps) {
 
 // add an event to a tag
 function on(event, tag, cb) {
-	const scene = game.scenes[game.curScene];
+	const scene = curScene();
 	scene.events[event].push({
 		tag: tag,
 		cb: cb,
@@ -2012,7 +2016,7 @@ function on(event, tag, cb) {
 // add update event to a tag or global update
 function action(tag, cb) {
 	if (typeof(tag) === "function" && cb === undefined) {
-		game.scenes[game.curScene].action.push(tag);
+		curScene().action.push(tag);
 	} else {
 		on("update", tag, cb);
 	}
@@ -2021,7 +2025,7 @@ function action(tag, cb) {
 // add draw event to a tag or global draw
 function render(tag, cb) {
 	if (typeof(tag) === "function" && cb === undefined) {
-		game.scenes[game.curScene].render.push(tag);
+		curScene().render.push(tag);
 	} else {
 		on("update", tag, cb);
 	}
@@ -2057,7 +2061,7 @@ function clicks(t, f) {
 // add an event that'd be run after t
 function wait(t, f) {
 	if (f) {
-		const scene = game.scenes[game.curScene];
+		const scene = curScene();
 		scene.timers[scene.lastTimerID] = {
 			time: t,
 			cb: f,
@@ -2084,7 +2088,7 @@ function pushKeyEvent(e, k, f) {
 			pushKeyEvent(e, key, f);
 		}
 	} else {
-		const scene = game.scenes[game.curScene];
+		const scene = curScene();
 		scene.events[e].push({
 			key: k,
 			cb: f,
@@ -2110,28 +2114,28 @@ function keyRelease(k, f) {
 }
 
 function charInput(f) {
-	const scene = game.scenes[game.curScene];
+	const scene = curScene();
 	scene.events.charInput.push({
 		cb: f,
 	});
 }
 
 function mouseDown(f) {
-	const scene = game.scenes[game.curScene];
+	const scene = curScene();
 	scene.events.mouseDown.push({
 		cb: f,
 	});
 }
 
 function mouseClick(f) {
-	const scene = game.scenes[game.curScene];
+	const scene = curScene();
 	scene.events.mouseClick.push({
 		cb: f,
 	});
 }
 
 function mouseRelease(f) {
-	const scene = game.scenes[game.curScene];
+	const scene = curScene();
 	scene.events.mouseRelease.push({
 		cb: f,
 	});
@@ -2139,7 +2143,7 @@ function mouseRelease(f) {
 
 // get all objects with tag
 function get(t) {
-	const scene = game.scenes[game.curScene];
+	const scene = curScene();
 	const list = [];
 	for (const id in scene.objs) {
 		const obj = scene.objs[id];
@@ -2153,7 +2157,7 @@ function get(t) {
 // apply a function to all objects currently in scene with tag t
 function every(t, f) {
 	if (typeof(t) === "function" && f === undefined) {
-		const scene = game.scenes[game.curScene];
+		const scene = curScene();
 		for (const id in scene.objs) {
 			t(scene.objs[id]);
 		}
@@ -2171,7 +2175,7 @@ function destroy(obj) {
 		return;
 	}
 
-	const scene = game.scenes[game.curScene];
+	const scene = curScene();
 
 	if (!scene) {
 		return;
@@ -2200,7 +2204,7 @@ function destroyAll(t) {
 // TODO: cleaner pause logic
 function gameFrame(ignorePause) {
 
-	const scene = game.scenes[game.curScene];
+	const scene = curScene();
 
 	if (!scene) {
 		console.error(`scene not found: '${game.curScene}'`);
@@ -2335,7 +2339,7 @@ function start(name, ...args) {
 
 		} else {
 
-			const scene = game.scenes[game.curScene];
+			const scene = curScene();
 
 			if (!scene) {
 				console.error(`scene not found: '${game.curScene}'`);
@@ -2857,7 +2861,7 @@ function sprite(id, conf = {}) {
 
 		draw() {
 
-			const scene = game.scenes[game.curScene];
+			const scene = curScene();
 			const q = spr.frames[this.frame];
 
 			drawSprite(this._spriteID, {
@@ -2969,7 +2973,7 @@ function text(t, size, conf = {}) {
 
 		draw() {
 
-			const scene = game.scenes[game.curScene];
+			const scene = curScene();
 
 			const ftext = fmtText(this.text + "", {
 				pos: this.pos,
@@ -3010,7 +3014,7 @@ function rect(w, h) {
 
 		draw() {
 
-			const scene = game.scenes[game.curScene];
+			const scene = curScene();
 
 			drawRect(this.pos, this.width, this.height, {
 				scale: this.scale,
@@ -3098,7 +3102,7 @@ function fps() {
 }
 
 function objCount() {
-	const scene = game.scenes[game.curScene];
+	const scene = curScene();
 	return Object.keys(scene.objs).length;
 }
 
@@ -3123,7 +3127,7 @@ function log(msg) {
 }
 
 function gravity(g) {
-	const scene = game.scenes[game.curScene]
+	const scene = curScene()
 	if (g !== undefined) {
 		scene.gravity = g;
 	}
