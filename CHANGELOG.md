@@ -7,3 +7,4 @@
 - added an arg field to `start(scene, ...)` to forward args to start scene
 - added `camScale()`, `camRot()` and `camIgnore()`
 - added `obj.overlaps()` by `area()`, and `overlaps()`
+- added 3 ext fonts under `ext/fonts`
