@@ -56,6 +56,7 @@ const server = http.createServer((req, res) => {
 
 		serveFs("/pub", "pub")(req, res);
 		serveFs(`/lib`, `lib`)(req, res);
+		serveFs("/lib/latest", `lib/${latestVer}`)(req, res);
 		serveFs("/lib/dev", "../src")(req, res);
 		// TODO: deprecate
 		serveFs("/lib/master", "lib/0.0.0")(req, res);
