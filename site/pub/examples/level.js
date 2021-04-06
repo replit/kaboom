@@ -62,6 +62,7 @@ scene("main", () => {
 		"*": [
 			sprite("spike"),
 			body(),
+			area(vec2(0, 6), vec2(11, 11)),
 			"hurt",
 		],
 		"o": [

@@ -21,8 +21,10 @@ const server = http.createServer((req, res) => {
 
 	try {
 
+		const path = req.url.split("?")[0];
+
 		for (const target in pages) {
-			if (req.url === target) {
+			if (path === target) {
 				const content = pages[target]();
 				res.setHeader("Content-Type", "text/html; charset=utf-8");
 				res.writeHead(200);
@@ -38,7 +40,7 @@ const server = http.createServer((req, res) => {
 
 		const latestVer = versions.reduce(utils.cmpSemVer);
 
-		if (req.url === "/versions") {
+		if (path === "/versions") {
 			res.setHeader("Content-Type", "application/json");
 			res.setHeader("Access-Control-Allow-Origin", "*");
 			res.writeHead(200);
@@ -46,7 +48,7 @@ const server = http.createServer((req, res) => {
 			return;
 		}
 
-		if (req.url === "/latest") {
+		if (path === "/latest") {
 			res.setHeader("Content-Type", "application/json");
 			res.setHeader("Access-Control-Allow-Origin", "*");
 			res.writeHead(200);

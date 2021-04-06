@@ -56,6 +56,11 @@ const style = {
 
 	},
 
+	"#chill": {
+		"width": "100%",
+		"border-radius": "9px",
+	},
+
 	"code": {
 		// TODO: why it has so much space above
 		"margin-top": "-12px",
@@ -256,6 +261,7 @@ start("main");
 
 </script>
 				`, "html"),
+				t("img", { id: "chill", src: "/pub/img/chill.png", }),
 				...api.map((sec) => {
 					return t("div", {}, [
 						t("p", { class: "title", }, sec.name),
