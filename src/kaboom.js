@@ -2664,6 +2664,10 @@ function area(p1, p2) {
 
 			every((other) => {
 
+				if (other === this) {
+					return;
+				}
+
 				if (!other.solid) {
 					return;
 				}
