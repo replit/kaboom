@@ -2516,15 +2516,21 @@ function layer(z) {
 // TODO: dynamic update when size change
 function area(p1, p2) {
 
+	const cache = {
+		frame: time(),
+		resolveMap: {},
+		worldArea: null,
+	};
+
+	const colliding = {};
+	const overlapping = {};
+
 	return {
 
 		area: {
 			p1: p1,
 			p2: p2,
 		},
-
-		_colliding: {},
-		_overlapping: {},
 
 		areaWidth() {
 			const { p1, p2 } = this._worldArea();
@@ -2721,19 +2727,19 @@ function area(p1, p2) {
 				if (this === obj) {
 					return;
 				}
-				if (this._colliding[obj._sceneID]) {
+				if (colliding[obj._sceneID]) {
 					return;
 				}
 				if (this.isCollided(obj)) {
 					f(obj);
-					this._colliding[obj._sceneID] = obj;
+					colliding[obj._sceneID] = obj;
 				}
 			});
 
-			for (const id in this._colliding) {
-				const obj = this._colliding[id];
+			for (const id in colliding) {
+				const obj = colliding[id];
 				if (!this.isCollided(obj)) {
-					delete this._colliding[id];
+					delete colliding[id];
 				}
 			}
 
@@ -2752,19 +2758,19 @@ function area(p1, p2) {
 				if (this === obj) {
 					return;
 				}
-				if (this._overlapping[obj._sceneID]) {
+				if (overlapping[obj._sceneID]) {
 					return;
 				}
 				if (this.isOverlapped(obj)) {
 					f(obj);
-					this._overlapping[obj._sceneID] = obj;
+					overlapping[obj._sceneID] = obj;
 				}
 			});
 
-			for (const id in this._overlapping) {
-				const obj = this._overlapping[id];
+			for (const id in overlapping) {
+				const obj = overlapping[id];
 				if (!this.isOverlapped(obj)) {
-					delete this._overlapping[id];
+					delete overlapping[id];
 				}
 			}
 
@@ -2782,8 +2788,8 @@ function area(p1, p2) {
 
 // 			const curFrame = time();
 
-// 			if (this._worldAreaCache?.frame === curFrame) {
-// 				return this._worldAreaCache.value;
+// 			if (cache.frame === curFrame && cache.worldArea) {
+// 				return cache.worldArea;
 // 			}
 
 			const a = this.area;
@@ -2797,10 +2803,8 @@ function area(p1, p2) {
 				p2: vec2(Math.max(p1.x, p2.x), Math.max(p1.y, p2.y)),
 			};
 
-// 			this._worldAreaCache = {
-// 				frame: curFrame,
-// 				value: area,
-// 			};
+// 			cache.worldArea = area;
+// 			cache.frame = curFrame;
 
 			return area;
 
