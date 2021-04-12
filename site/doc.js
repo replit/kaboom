@@ -1,9 +1,8 @@
 // mian page
 
-const dofile = require("./dofile");
 const www = require("./www");
-const api = dofile("./api");
-const gstyle = dofile("./gstyle");
+const api = require("./api");
+const gstyle = require("./gstyle");
 const t = www.tag;
 
 const style = {
@@ -58,6 +57,7 @@ const style = {
 
 	"#chill": {
 		"width": "100%",
+		"outline": "none",
 		"border-radius": "9px",
 	},
 
@@ -221,6 +221,7 @@ const page = t("html", {}, [
 				t("a", { class: "link", href: "/examples", }, "examples"),
 				t("a", { class: "link", href: "/lib", }, "download"),
 				t("a", { class: "link", href: "https://github.com/replit/kaboom", }, "github"),
+				t("a", { class: "link", href: "https://twitter.com/Kaboomjs", }, "twitter"),
 				t("a", { class: "link", href: "https://replit.com/new/kaboom", }, "try on replit"),
 				...api.map((sec) => {
 					return t("div", { class: "section", }, [
@@ -233,6 +234,19 @@ const page = t("html", {}, [
 			]),
 			t("div", { id: "content", class: "panel", }, [
 				t("p", { id: "about", }, "kaboom.js (beta) is a JavaScript library that helps you make games fast and fun!"),
+// 				t("img", { id: "chill", src: "/pub/img/chill.png", }),
+				t("video", {
+					id: "chill",
+					poster: "/pub/img/chill2.png",
+					controls: true,
+				}, [
+					t("source", { src: "https://cms.replit.com/assets/kaboom/kaboom.mp4", type: "video/mp4", }),
+				]),
+				t("p", {}, [
+					"also check out the ",
+					t("a", { href: "https://replit.com/kaboom", target: "_blank", }, "kaboom environment"),
+					" on replit.com!",
+				]),
 				t("p", { class: "title", }, "Usage"),
 				t("p", { class: "desc", }, "quick start"),
 				code(`
@@ -261,7 +275,6 @@ start("main");
 
 </script>
 				`, "html"),
-				t("img", { id: "chill", src: "/pub/img/chill.png", }),
 				...api.map((sec) => {
 					return t("div", {}, [
 						t("p", { class: "title", }, sec.name),

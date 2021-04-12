@@ -2,9 +2,8 @@
 
 const fs = require("fs");
 const path = require("path");
-const dofile = require("./dofile");
 const www = require("./www");
-const gstyle = dofile("./gstyle");
+const gstyle = require("./gstyle");
 const t = www.tag;
 
 const style = {

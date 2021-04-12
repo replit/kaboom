@@ -1,3 +1,8 @@
+# 0.2.0
+- added `level.spawn()`
+- added area component generation for `text()`
+- added `noArea` to conf field of `sprite()`, `rect()` and `text()`, allowing to disable auto area component generation
+
 # 0.1.0
 - (**BREAK**) changed default origin point to `"topleft"`, so if you want object origin point to be at center you'll need to manual `origin("center")`
 - (**BREAK**) integrated `kit/physics` and `kit/level` to main lib

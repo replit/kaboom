@@ -444,6 +444,7 @@ function init(conf = {}) {
 		app.mouseState = "pressed";
 	});
 
+	// TODO: on mobile this is fired at the same frame as "mousedown" which cancels out
 	canvas.addEventListener("mouseup", (e) => {
 		app.mouseState = "released";
 	});
@@ -496,7 +497,7 @@ function mouseIsClicked() {
 }
 
 function mouseIsDown() {
-	return app.mouseState == "pressed" || app.mouseState === "down";
+	return app.mouseState === "pressed" || app.mouseState === "down";
 }
 
 function mouseIsReleased() {
@@ -2856,22 +2857,22 @@ function sprite(id, conf = {}) {
 	const q = spr.frames[0];
 	const w = spr.tex.width * q.w;
 	const h = spr.tex.height * q.h;
+	let timer = 0;
+	let looping = false;
+	const events = {};
 
 	return {
 
-		_spriteID: id,
-		_animTimer: 0,
+		spriteID: id,
 		curAnim: undefined,
-		_animLooping: false,
 		animSpeed: conf.animSpeed || 0.1,
 		frame: conf.frame || 0,
 		width: w,
 		height: h,
-		_animEvents: {},
 
 		add() {
 			// add default area
-			if (!this.area) {
+			if (!this.area && !conf.noArea) {
 				this.use(getAreaFromSize(this.width, this.height, this.origin));
 			}
 		},
@@ -2881,7 +2882,7 @@ function sprite(id, conf = {}) {
 			const scene = curScene();
 			const q = spr.frames[this.frame];
 
-			drawSprite(this._spriteID, {
+			drawSprite(this.spriteID, {
 				pos: this.pos,
 				scale: this.scale,
 				rot: this.angle,
@@ -2902,27 +2903,27 @@ function sprite(id, conf = {}) {
 			const speed = this.animSpeed;
 			const anim = spr.anims[this.curAnim];
 
-			this._animTimer += dt();
+			timer += dt();
 
-			if (this._animTimer >= this.animSpeed) {
+			if (timer >= this.animSpeed) {
 				// TODO: anim dir
 				this.frame++;
 				if (this.frame > anim[1]) {
-					if (this._animLooping) {
+					if (looping) {
 						this.frame = anim[0];
 					} else {
 						this.frame--;
 						this.stop();
 					}
 				}
-				this._animTimer -= this.animSpeed;
+				timer -= this.animSpeed;
 			}
 
 		},
 
 		play(name, loop) {
 
-			const anim = assets.sprites[this._spriteID].anims[name];
+			const anim = assets.sprites[this.spriteID].anims[name];
 
 			if (!anim) {
 				console.error(`anim not found: ${name}`);
@@ -2935,10 +2936,10 @@ function sprite(id, conf = {}) {
 
 			this.curAnim = name;
 			this.frame = anim[0];
-			this._animLooping = loop === undefined ? true : loop;
+			looping = loop === undefined ? true : loop;
 
-			if (this._animEvents[name]?.play) {
-				this._animEvents[name].play();
+			if (events[name]?.play) {
+				events[name].play();
 			}
 
 		},
@@ -2947,24 +2948,24 @@ function sprite(id, conf = {}) {
 			if (!this.curAnim) {
 				return;
 			}
-			if (this._animEvents[this.curAnim]?.end) {
-				this._animEvents[this.curAnim].end();
+			if (events[this.curAnim]?.end) {
+				events[this.curAnim].end();
 			}
 			this.curAnim = undefined;
 		},
 
 		onAnimPlay(name, cb) {
-			if (!this._animEvents[name]) {
-				this._animEvents[name] = {};
+			if (!events[name]) {
+				events[name] = {};
 			}
-			this._animEvents[name].play = cb;
+			events[name].play = cb;
 		},
 
 		onAnimEnd(name, cb) {
-			if (!this._animEvents[name]) {
-				this._animEvents[name] = {};
+			if (!events[name]) {
+				events[name] = {};
 			}
-			this._animEvents[name].end = cb;
+			events[name].end = cb;
 		},
 
 		debugInfo() {
@@ -2987,6 +2988,27 @@ function text(t, size, conf = {}) {
 		text: t,
 		textSize: size,
 		font: conf.font,
+
+		add() {
+			// add default area
+			if (!this.area && !conf.noArea) {
+				const scene = curScene();
+				const ftext = fmtText(this.text + "", {
+					pos: this.pos,
+					scale: this.scale,
+					rot: this.angle,
+					size: this.textSize,
+					origin: this.origin,
+					color: this.color,
+					font: this.font,
+					width: conf.width,
+					z: scene.layers[this.layer || scene.defLayer],
+				});
+				this.width = ftext.width / (this.scale?.x || 1);
+				this.height = ftext.height / (this.scale?.y || 1);
+				this.use(getAreaFromSize(this.width, this.height, this.origin));
+			}
+		},
 
 		draw() {
 
@@ -3015,7 +3037,7 @@ function text(t, size, conf = {}) {
 
 }
 
-function rect(w, h) {
+function rect(w, h, conf = {}) {
 
 	return {
 
@@ -3024,7 +3046,7 @@ function rect(w, h) {
 
 		add() {
 			// add default area
-			if (!this.area) {
+			if (!this.area && !conf.noArea) {
 				this.use(getAreaFromSize(this.width, this.height, this.origin));
 			}
 		},
@@ -3157,33 +3179,37 @@ function addLevel(arr, conf = {}) {
 	const offset = vec2(conf.pos);
 	let longRow = 0;
 
-	arr.forEach((row, i) => {
+	const level = {
 
-		if (typeof(row) === "string") {
-			row = row.split("");
-		}
+		getPos(...p) {
+			p = vec2(...p);
+			return vec2(
+				offset.x + p.x * conf.width,
+				offset.y + p.y * conf.height
+			);
+		},
 
-		longRow = Math.max(row.length, longRow);
-
-		row.forEach((tile, j) => {
+		spawn(sym, p) {
 
 			const comps = (() => {
-				if (conf[tile]) {
-					if (typeof(conf[tile]) === "function") {
-						return conf[tile]();
-					} else if (Array.isArray(conf[tile])) {
-						return [...conf[tile]];
+				if (Array.isArray(sym)) {
+					return sym;
+				} else if (conf[sym]) {
+					if (typeof(conf[sym]) === "function") {
+						return conf[sym]();
+					} else if (Array.isArray(conf[sym])) {
+						return [...conf[sym]];
 					}
 				} else if (conf.any) {
-					return conf.any(tile);
+					return conf.any(sym);
 				}
 			})();
 
 			if (comps) {
 
 				comps.push(pos(
-					offset.x + j * conf.width,
-					offset.y + i * conf.height
+					offset.x + p.x * conf.width,
+					offset.y + p.y * conf.height
 				));
 
 				const obj = add(comps);
@@ -3192,7 +3218,7 @@ function addLevel(arr, conf = {}) {
 
 				obj.use({
 
-					gridPos: vec2(j, i),
+					gridPos: p.clone(),
 
 					setGridPos(p) {
 						this.gridPos = p.clone();
@@ -3222,33 +3248,37 @@ function addLevel(arr, conf = {}) {
 
 			}
 
-		});
-
-	});
-
-	const level = {
-		getPos(...p) {
-			p = vec2(...p);
-			return vec2(
-				offset.x + p.x * conf.width,
-				offset.y + p.y * conf.height
-			);
 		},
-		getObj() {
-			// ...
-		},
+
 		width() {
 			return longRow * conf.width;
 		},
+
 		height() {
 			return arr.length * conf.height;
 		},
+
 		destroy() {
 			for (const obj of objs) {
 				destroy(obj);
 			}
 		},
+
 	};
+
+	arr.forEach((row, i) => {
+
+		if (typeof(row) === "string") {
+			row = row.split("");
+		}
+
+		longRow = Math.max(row.length, longRow);
+
+		row.forEach((sym, j) => {
+			level.spawn(sym, vec2(j, i));
+		});
+
+	});
 
 	return level;
 

@@ -2,7 +2,6 @@
 
 const fs = require("fs");
 const http = require("http");
-const dofile = require("./dofile");
 const utils = require("./utils");
 
 const {
@@ -12,9 +11,9 @@ const {
 const port = process.env.PORT || 8000;
 
 const pages = {
-	"/": () => dofile("./doc"),
-	"/guide": () => dofile("./guide"),
-	"/examples": () => dofile("./examples"),
+	"/": () => require("./doc"),
+	"/guide": () => require("./guide"),
+	"/examples": () => require("./examples"),
 };
 
 const server = http.createServer((req, res) => {
