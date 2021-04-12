@@ -1,3 +1,5 @@
+kaboom.global();
+
 init({
 	fullscreen: true,
 	scale: 4,

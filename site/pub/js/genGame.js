@@ -41,26 +41,8 @@ export default function genGame(code) {
 
 <body>
 	<div id="log"></div>
-	<script>
-const logger = document.querySelector("#log");
-const _console = { ...console, };
-[
-	"log",
-	"warn",
-	"error",
-].forEach((lt) => {
-	console[lt] = (msg) => {
-		_console[lt](msg);
-		const msgEl = document.createElement("p");
-		msgEl.innerHTML = msg;
-		msgEl.className = lt;
-		logger.appendChild(msgEl);
-	}
-});
-	</script>
 	<script src="/lib/dev/kaboom.js"></script>
 	<script>
-kaboom.global();
 ${code}
 	</script>
 </body>

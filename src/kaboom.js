@@ -991,7 +991,15 @@ function drawSprite(name, conf = {}) {
 		return;
 	}
 
-	const q = spr.frames[conf.frame || 0];
+	const q = { ...spr.frames[conf.frame || 0] };
+
+	if (conf.quad) {
+		q.x += conf.quad.x * q.w;
+		q.y += conf.quad.y * q.h;
+		q.w *= conf.quad.w;
+		q.h *= conf.quad.h;
+	}
+
 	const w = spr.tex.width * q.w;
 	const h = spr.tex.height * q.h;
 
@@ -2854,7 +2862,15 @@ function sprite(id, conf = {}) {
 		return;
 	}
 
-	const q = spr.frames[0];
+	const q = { ...spr.frames[0] };
+
+	if (conf.quad) {
+		q.x += conf.quad.x * q.w;
+		q.y += conf.quad.y * q.h;
+		q.w *= conf.quad.w;
+		q.h *= conf.quad.h;
+	}
+
 	const w = spr.tex.width * q.w;
 	const h = spr.tex.height * q.h;
 	let timer = 0;
@@ -2869,6 +2885,7 @@ function sprite(id, conf = {}) {
 		frame: conf.frame || 0,
 		width: w,
 		height: h,
+		quad: conf.quad || quad(0, 0, 1, 1),
 
 		add() {
 			// add default area
@@ -2889,6 +2906,7 @@ function sprite(id, conf = {}) {
 				color: this.color,
 				frame: this.frame,
 				origin: this.origin,
+				quad: this.quad,
 				z: scene.layers[this.layer || scene.defLayer],
 			});
 
@@ -3377,6 +3395,7 @@ kaboom.randl = randl;
 kaboom.vec2 = vec2;
 kaboom.rgb = rgb;
 kaboom.rgba = rgba;
+kaboom.quad = quad;
 kaboom.choose = choose;
 kaboom.chance = chance;
 kaboom.lerp = lerp;

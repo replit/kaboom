@@ -1,3 +1,5 @@
+kaboom.global();
+
 loadRoot("/pub/img/");
 loadSprite("steel", "steel.png");
 loadSprite("ch1", "ch1.png");

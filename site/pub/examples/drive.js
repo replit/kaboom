@@ -1,3 +1,5 @@
+kaboom.global();
+
 loadRoot("/pub/img/");
 loadSprite("sky", "sky.png");
 loadSprite("road", "road.png");

@@ -1,3 +1,5 @@
+kaboom.global();
+
 loadRoot("/pub/");
 loadSprite("bg", "img/bg.png");
 loadSprite("birdy", "img/birdy.png");

@@ -2,6 +2,7 @@
 - added `level.spawn()`
 - added area component generation for `text()`
 - added `noArea` to conf field of `sprite()`, `rect()` and `text()`, allowing to disable auto area component generation
+- added a `quad` field to sprite comp creation config `sprite(id, { quad: quad(0, 0, 0.5, 0.5) })`
 
 # 0.1.0
 - (**BREAK**) changed default origin point to `"topleft"`, so if you want object origin point to be at center you'll need to manual `origin("center")`

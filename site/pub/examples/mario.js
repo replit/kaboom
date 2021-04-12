@@ -1,3 +1,5 @@
+kaboom.global();
+
 // load assets
 loadRoot("/pub/");
 loadSprite("guy", "/img/guy.png");
