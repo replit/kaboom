@@ -2907,7 +2907,7 @@ function sprite(id, conf = {}) {
 			if (this._animTimer >= this.animSpeed) {
 				// TODO: anim dir
 				this.frame++;
-				if (this.frame > anim[1]) {
+				if (this.frame > anim[anim.length - 1]) {
 					if (this._animLooping) {
 						this.frame = anim[0];
 					} else {
