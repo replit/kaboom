@@ -10,14 +10,14 @@ loadSprite("mark", "/pub/img/mark.png");
 
 scene("main", () => {
 
-	const p1 = add([
-		pos(0, 0),
+	const p2 = add([
+		pos(100, 100),
 		rect(24, 24),
 		solid(),
 	]);
 
-	const p2 = add([
-		pos(100, 100),
+	const p1 = add([
+		pos(0, 0),
 		rect(24, 24),
 		solid(),
 	]);
@@ -26,41 +26,41 @@ scene("main", () => {
 
 	keyDown("w", () => {
 		p1.move(0, -SPEED);
+		p1.resolve();
 	});
 
 	keyDown("s", () => {
 		p1.move(0, SPEED);
+		p1.resolve();
 	});
 
 	keyDown("a", () => {
 		p1.move(-SPEED, 0);
+		p1.resolve();
 	});
 
 	keyDown("d", () => {
 		p1.move(SPEED, 0);
-	});
-
-	keyDown("up", () => {
-		p1.move(0, -SPEED);
-	});
-
-	keyDown("down", () => {
-		p1.move(0, SPEED);
-	});
-
-	keyDown("left", () => {
-		p1.move(-SPEED, 0);
-	});
-
-	keyDown("right", () => {
-		p1.move(SPEED, 0);
-	});
-
-	p1.action(() => {
 		p1.resolve();
 	});
 
-	p2.action(() => {
+	keyDown("up", () => {
+		p2.move(0, -SPEED);
+		p2.resolve();
+	});
+
+	keyDown("down", () => {
+		p2.move(0, SPEED);
+		p2.resolve();
+	});
+
+	keyDown("left", () => {
+		p2.move(-SPEED, 0);
+		p2.resolve();
+	});
+
+	keyDown("right", () => {
+		p2.move(SPEED, 0);
 		p2.resolve();
 	});
 

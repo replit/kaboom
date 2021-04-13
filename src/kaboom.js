@@ -1,7 +1,7 @@
 /*
 
 kaboom.js
-v0.1.0
+v0.2.0
 
 a JavaScript game programming library
 
@@ -486,10 +486,17 @@ function processBtnState(s) {
 	return s;
 }
 
-// TODO: a variant with camera transforms
 // check input state last frame
-function mousePos() {
-	return app.mousePos.clone();
+function mousePos(layer) {
+
+	const scene = curScene();
+
+	if (!layer) {
+		return app.mousePos.clone();
+	} else {
+		return scene.cam.ignore.includes(layer) ? mousePos() : scene.camMousePos;
+	}
+
 }
 
 function mouseIsClicked() {
@@ -1620,25 +1627,25 @@ function mat4(m) {
 			const f17 = this.m[4] * this.m[10] - this.m[8] * this.m[6];
 			const f18 = this.m[4] * this.m[9] - this.m[8] * this.m[5];
 
-			out.m[0] = this.m[5] * f00 - this.m[6] * f01 + this.m[7] * f02;
-			out.m[4] = -(this.m[4] * f00 - this.m[6] * f03 + this.m[7] * f04);
-			out.m[8] = this.m[4] * f01 - this.m[5] * f03 + this.m[7] * f05;
-			out.m[12] = -(this.m[4] * f02 - this.m[5] * f04 + this.m[6] * f05);
+			out[0] = this.m[5] * f00 - this.m[6] * f01 + this.m[7] * f02;
+			out[4] = -(this.m[4] * f00 - this.m[6] * f03 + this.m[7] * f04);
+			out[8] = this.m[4] * f01 - this.m[5] * f03 + this.m[7] * f05;
+			out[12] = -(this.m[4] * f02 - this.m[5] * f04 + this.m[6] * f05);
 
-			out.m[1] = -(this.m[1] * f00 - this.m[2] * f01 + this.m[3] * f02);
-			out.m[5] = this.m[0] * f00 - this.m[2] * f03 + this.m[3] * f04;
-			out.m[9] = -(this.m[0] * f01 - this.m[1] * f03 + this.m[3] * f05);
-			out.m[13] = this.m[0] * f02 - this.m[1] * f04 + this.m[2] * f05;
+			out[1] = -(this.m[1] * f00 - this.m[2] * f01 + this.m[3] * f02);
+			out[5] = this.m[0] * f00 - this.m[2] * f03 + this.m[3] * f04;
+			out[9] = -(this.m[0] * f01 - this.m[1] * f03 + this.m[3] * f05);
+			out[13] = this.m[0] * f02 - this.m[1] * f04 + this.m[2] * f05;
 
-			out.m[2] = this.m[1] * f06 - this.m[2] * f07 + this.m[3] * f08;
-			out.m[6] = -(this.m[0] * f06 - this.m[2] * f09 + this.m[3] * f10);
-			out.m[10] = this.m[0] * f11 - this.m[1] * f09 + this.m[3] * f12;
-			out.m[14] = -(this.m[0] * f08 - this.m[1] * f10 + this.m[2] * f12);
+			out[2] = this.m[1] * f06 - this.m[2] * f07 + this.m[3] * f08;
+			out[6] = -(this.m[0] * f06 - this.m[2] * f09 + this.m[3] * f10);
+			out[10] = this.m[0] * f11 - this.m[1] * f09 + this.m[3] * f12;
+			out[14] = -(this.m[0] * f08 - this.m[1] * f10 + this.m[2] * f12);
 
-			out.m[3] = -(this.m[1] * f13 - this.m[2] * f14 + this.m[3] * f15);
-			out.m[7] = this.m[0] * f13 - this.m[2] * f16 + this.m[3] * f17;
-			out.m[11] = -(this.m[0] * f14 - this.m[1] * f16 + this.m[3] * f18);
-			out.m[15] = this.m[0] * f15 - this.m[1] * f17 + this.m[2] * f18;
+			out[3] = -(this.m[1] * f13 - this.m[2] * f14 + this.m[3] * f15);
+			out[7] = this.m[0] * f13 - this.m[2] * f16 + this.m[3] * f17;
+			out[11] = -(this.m[0] * f14 - this.m[1] * f16 + this.m[3] * f18);
+			out[15] = this.m[0] * f15 - this.m[1] * f17 + this.m[2] * f18;
 
 			const det =
 				this.m[0] * out[0] +
@@ -1796,13 +1803,14 @@ function scene(name, cb) {
 
 		// misc
 		layers: {},
-		camera: {
+		cam: {
 			pos: vec2(width() / 2, height() / 2),
 			scale: vec2(1, 1),
 			angle: 0,
 			ignore: [],
 		},
 		gravity: DEF_GRAVITY,
+		camMousePos: vec2(0),
 
 	};
 
@@ -1857,7 +1865,7 @@ function layers(list, def) {
 }
 
 function camPos(...pos) {
-	const cam = curScene().camera;
+	const cam = curScene().cam;
 	if (pos.length > 0) {
 		cam.pos = vec2(...pos);
 	}
@@ -1865,7 +1873,7 @@ function camPos(...pos) {
 }
 
 function camScale(...scale) {
-	const cam = curScene().camera;
+	const cam = curScene().cam;
 	if (scale.length > 0) {
 		cam.scale = vec2(...scale);
 	}
@@ -1873,7 +1881,7 @@ function camScale(...scale) {
 }
 
 function camRot(angle) {
-	const cam = curScene().camera;
+	const cam = curScene().cam;
 	if (angle !== undefined) {
 		cam.angle = angle;
 	}
@@ -1886,7 +1894,7 @@ function camShake(intensity) {
 }
 
 function camIgnore(layers) {
-	const cam = curScene().camera;
+	const cam = curScene().cam;
 	cam.ignore = layers;
 }
 
@@ -2276,7 +2284,7 @@ function gameFrame(ignorePause) {
 		}
 
 		const size = vec2(width(), height());
-		const cam = scene.camera;
+		const cam = scene.cam;
 
 		const camMat = mat4()
 			.translate(size.scale(0.5))
@@ -2285,6 +2293,8 @@ function gameFrame(ignorePause) {
 			.translate(size.scale(-0.5))
 			.translate(cam.pos.scale(-1).add(size.scale(0.5)))
 			;
+
+		scene.camMousePos = camMat.invert().multVec2(mousePos());
 
 		// draw obj
 		if (!obj.hidden) {
@@ -2516,12 +2526,6 @@ function layer(z) {
 // TODO: dynamic update when size change
 function area(p1, p2) {
 
-	const cache = {
-		frame: time(),
-		resolveMap: {},
-		worldArea: null,
-	};
-
 	const colliding = {};
 	const overlapping = {};
 
@@ -2570,6 +2574,8 @@ function area(p1, p2) {
 				z: 0.9,
 			});
 
+			const mpos = mousePos(this.layer || curScene().defLayer);
+
 			if (hoverInfo && hovered) {
 
 				const padding = vec2(6, 6).scale(1 / app.scale);
@@ -2580,7 +2586,7 @@ function area(p1, p2) {
 				const addLine = (txt) => {
 					const ftxt = fmtText(txt, {
 						size: 12 / app.scale,
-						pos: mousePos().add(vec2(padding.x, padding.y + bh)),
+						pos: mpos.add(vec2(padding.x, padding.y + bh)),
 						z: 1,
 					});
 					lines.push(ftxt);
@@ -2606,12 +2612,12 @@ function area(p1, p2) {
 				bh += padding.y * 2;
 
 				// background
-				drawRect(mousePos(), bw, bh, {
+				drawRect(mpos, bw, bh, {
 					color: rgba(0, 0, 0, 1),
 					z: 1,
 				});
 
-				drawRectStroke(mousePos(), bw, bh, {
+				drawRectStroke(mpos, bw, bh, {
 					width: (width - 2) / app.scale,
 					color: rgba(0, 1, 1, 1),
 					z: 1,
@@ -2654,7 +2660,7 @@ function area(p1, p2) {
 		},
 
 		isHovered() {
-			return this.hasPt(mousePos());
+			return this.hasPt(mousePos(this.layer || curScene().defLayer));
 		},
 
 		// push object out of other solid objects
@@ -2790,12 +2796,6 @@ function area(p1, p2) {
 		// TODO: use matrix mult for more accuracy and rotation?
 		_worldArea() {
 
-// 			const curFrame = time();
-
-// 			if (cache.frame === curFrame && cache.worldArea) {
-// 				return cache.worldArea;
-// 			}
-
 			const a = this.area;
 			const pos = this.pos || vec2(0);
 			const scale = this.scale || vec2(1);
@@ -2806,9 +2806,6 @@ function area(p1, p2) {
 				p1: vec2(Math.min(p1.x, p2.x), Math.min(p1.y, p2.y)),
 				p2: vec2(Math.max(p1.x, p2.x), Math.max(p1.y, p2.y)),
 			};
-
-// 			cache.worldArea = area;
-// 			cache.frame = curFrame;
 
 			return area;
 
