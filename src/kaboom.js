@@ -2261,42 +2261,35 @@ function gameFrame(ignorePause) {
 
 	gfxFrameStart();
 
-	// objs
-	for (const id in scene.objs) {
-
-		const obj = scene.objs[id];
-
-		if (!obj) {
-			continue;
-		}
-
-		// update obj
+	// update every obj
+	every((obj) => {
 		if (!obj.paused && doUpdate) {
-
 			obj.trigger("update");
-
 			for (const e of scene.events.update) {
 				if (obj.is(e.tag)) {
 					e.cb(obj);
 				}
 			}
-
 		}
+	});
 
-		const size = vec2(width(), height());
-		const cam = scene.cam;
+	// calculate camera matrix
+	const size = vec2(width(), height());
+	const cam = scene.cam;
 
-		const camMat = mat4()
-			.translate(size.scale(0.5))
-			.scale(cam.scale)
-			.rotateZ(cam.angle)
-			.translate(size.scale(-0.5))
-			.translate(cam.pos.scale(-1).add(size.scale(0.5)))
-			;
+	const camMat = mat4()
+		.translate(size.scale(0.5))
+		.scale(cam.scale)
+		.rotateZ(cam.angle)
+		.translate(size.scale(-0.5))
+		.translate(cam.pos.scale(-1).add(size.scale(0.5)))
+		;
 
-		scene.camMousePos = camMat.invert().multVec2(mousePos());
+	scene.camMousePos = camMat.invert().multVec2(mousePos());
 
-		// draw obj
+	// draw every obj
+	every((obj) => {
+
 		if (!obj.hidden) {
 
 			pushTransform();
@@ -2317,7 +2310,7 @@ function gameFrame(ignorePause) {
 
 		}
 
-	}
+	});
 
 	if (doUpdate) {
 		for (const f of scene.action) {
@@ -2514,8 +2507,9 @@ function layer(z) {
 	return {
 		layer: z,
 		debugInfo() {
+			const scene = curScene();
 			return {
-				layer: this.layer,
+				layer: this.layer || scene.defLayer,
 			};
 		},
 	};
