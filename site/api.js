@@ -823,7 +823,6 @@ c.clone(); // => rgba(0, 0, 1, 1)
 				a("r", "red"),
 				a("g", "green"),
 				a("b", "blue"),
-				a("a", "alpha"),
 			], null, "shorthand for rgba() with a = 1", ``),
 			f("rand", [
 				a("a", "a"),
