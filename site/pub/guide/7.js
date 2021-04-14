@@ -3,6 +3,8 @@
 // TALK: but we don't want the birdy to keep falling
 // TALK: let's make a temporary platform for the bird to stay on
 
+kaboom.global();
+
 loadSprite("birdy", "/pub/img/birdy.png");
 
 init({

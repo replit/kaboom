@@ -3,6 +3,8 @@
 // TALK: kaboom! the game instantly becomes fun!
 // TALK: next let's add a score counter
 
+kaboom.global();
+
 loadSprite("bg", "/pub/img/bg.png");
 loadSprite("birdy", "/pub/img/birdy.png");
 loadSprite("pipe", "/pub/img/pipe.png");

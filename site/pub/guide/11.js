@@ -2,6 +2,8 @@
 // TALK: and make the image origin point top left (it defaults to center, so you only see 1/4 of it before)
 // TALK: then let's make the pipes!
 
+kaboom.global();
+
 loadSprite("bg", "/pub/img/bg.png");
 loadSprite("birdy", "/pub/img/birdy.png");
 

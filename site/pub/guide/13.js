@@ -4,6 +4,8 @@
 // TALK: in this case we make them move left every frame by PIPE_SPEED
 // TALK: now we have moving pipes, let's complete this mechanism by making the bird actually have to jump over it!
 
+kaboom.global();
+
 loadSprite("bg", "/pub/img/bg.png");
 loadSprite("birdy", "/pub/img/birdy.png");
 loadSprite("pipe", "/pub/img/pipe.png");

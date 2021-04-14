@@ -5,6 +5,8 @@
 // TALK: there's only 1 set of pipes! that's not really that fun
 // TALK: we gotta make some pipe generation mechanism
 
+kaboom.global();
+
 loadSprite("bg", "/pub/img/bg.png");
 loadSprite("birdy", "/pub/img/birdy.png");
 loadSprite("pipe", "/pub/img/pipe.png");

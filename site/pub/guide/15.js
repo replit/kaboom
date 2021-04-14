@@ -2,6 +2,8 @@
 // TALK: we do this by calling birdy.collides() which checks for collision between birdy and all objects with a certain tag
 // TALK: then we have our basic mechanics!
 
+kaboom.global();
+
 loadSprite("bg", "/pub/img/bg.png");
 loadSprite("birdy", "/pub/img/birdy.png");
 loadSprite("pipe", "/pub/img/pipe.png");

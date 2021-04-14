@@ -2,6 +2,8 @@
 // TALK: but the birdy still looks weird...
 // TALK: it's floating in the air! that's not right!
 
+kaboom.global();
+
 loadSprite("birdy", "/pub/img/birdy.png");
 
 init({
