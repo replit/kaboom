@@ -137,7 +137,6 @@ scene("main", () => {
 	player.collides("prize", (j) => {
 		// TODO: provide which edge collided instead of loosly checking position
 		if (j.pos.y <= player.pos.y) {
-			// TODO: the apple spawned here seem to be affected by camera 1 frame late
 			level.spawn("#", j.gridPos.sub(0, 1));
 		}
 	});
