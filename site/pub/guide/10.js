@@ -1,5 +1,7 @@
 // TALK: let's add a background image
 
+kaboom.global();
+
 loadSprite("bg", "/pub/img/bg.png");
 loadSprite("birdy", "/pub/img/birdy.png");
 

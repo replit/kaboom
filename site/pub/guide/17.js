@@ -3,6 +3,8 @@
 // TALK: but you may have noticed all pipes have the same position which is no fun
 // TALK: gotta make those random man
 
+kaboom.global();
+
 loadSprite("bg", "/pub/img/bg.png");
 loadSprite("birdy", "/pub/img/birdy.png");
 loadSprite("pipe", "/pub/img/pipe.png");
