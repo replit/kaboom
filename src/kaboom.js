@@ -720,13 +720,14 @@ function makeBatchedMesh(vcount, icount) {
 	gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, icount * 2, gl.DYNAMIC_DRAW);
 	gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
 
+	let numIndices = 0;
+
 	return {
 
 		vbuf: vbuf,
 		ibuf: ibuf,
 		vqueue: [],
 		iqueue: [],
-		numIndices: 0,
 
 		push(verts, indices) {
 			// TODO: deal with overflow
@@ -747,7 +748,7 @@ function makeBatchedMesh(vcount, icount) {
 			gl.bufferSubData(gl.ELEMENT_ARRAY_BUFFER, 0, new Uint16Array(this.iqueue));
 			gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
 
-			this.numIndices = this.iqueue.length;
+			numIndices = this.iqueue.length;
 
 			this.iqueue = [];
 			this.vqueue = [];
@@ -765,7 +766,7 @@ function makeBatchedMesh(vcount, icount) {
 		},
 
 		count() {
-			return this.numIndices;
+			return numIndices;
 		},
 
 	};
@@ -1273,6 +1274,9 @@ function play(id, conf = {}) {
 	let paused = false;
 
 	return {
+		stop() {
+			srcNode.stop();
+		},
 		resume() {
 			// TODO
 		},

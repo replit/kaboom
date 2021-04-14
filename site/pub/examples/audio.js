@@ -6,17 +6,18 @@ init({
 });
 
 loadSound("wooosh", "/pub/sounds/wooosh.ogg");
+loadSound("loopdigga", "/pub/sounds/loopdigga.mp3");
 
 scene("main", () => {
 
-	const music = play("wooosh", { loop: true, });
+	let music = play("loopdigga", { loop: true, });
 
 	keyPress("j", () => {
-		music.resume();
+		music.stop();
 	});
 
 	keyPress("k", () => {
-		music.pause();
+		music = play("loopdigga");
 	});
 
 });
