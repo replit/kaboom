@@ -50,6 +50,7 @@ scene("main", () => {
 			sprite("mark"),
 			pos(rand(width()), rand(height())),
 			scale(5),
+			origin("center"),
 			drag(),
 			i !== 0 ? color(1, 1, 1) : color(1, 0, 1),
 		]);
