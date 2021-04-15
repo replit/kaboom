@@ -2545,25 +2545,25 @@ function start(name, ...args) {
 			// run input checks & callbacks
 			for (const e of scene.events.keyDown) {
 				if (keyIsDown(e.key)) {
-					e.cb();
+					e.cb(e.key);
 				}
 			}
 
 			for (const e of scene.events.keyPress) {
 				if (keyIsPressed(e.key)) {
-					e.cb();
+					e.cb(e.key);
 				}
 			}
 
 			for (const e of scene.events.keyPressRep) {
 				if (keyIsPressedRep(e.key)) {
-					e.cb();
+					e.cb(e.key);
 				}
 			}
 
 			for (const e of scene.events.keyRelease) {
 				if (keyIsReleased(e.key)) {
-					e.cb();
+					e.cb(e.key);
 				}
 			}
 
