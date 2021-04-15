@@ -700,15 +700,33 @@ on("destroy", "bullet", (e) => {
 			f("keyDown", [
 				a("key", "key"),
 				a("cb", "callback"),
-			], null, "runs every frame when specified key is being pressed"),
+			], null, "runs every frame when specified key is being pressed", `
+// trigger this every frame the user is holding the "up" key
+keyPress("up", () => {
+	player.move(0, -SPEED);
+});
+			`),
 			f("keyPress", [
 				a("key", "key"),
 				a("cb", "callback"),
-			], null, "runs once when specified key is just pressed"),
+			], null, "runs once when specified key is just pressed", `
+// only trigger once when the user presses
+keyPress("space", () => {
+	player.jump();
+});
+			`),
 			f("keyRelease", [
 				a("key", "key"),
 				a("cb", "callback"),
 			], null, "runs once when specified key is just released"),
+			f("charInput", [
+				a("cb", "callback"),
+			], null, "runs when user inputs text", `
+// similar to keyPress, but focused on text input
+charInput((ch) => {
+	input.text += ch;
+});
+			`),
 			f("mouseDown", [
 				a("cb", "callback"),
 			], null, "runs every frame when left mouse is being pressed"),
