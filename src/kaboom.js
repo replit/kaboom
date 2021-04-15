@@ -1946,7 +1946,7 @@ function scene(name, cb) {
 		render: [],
 
 		// in game pool
-		objs: {},
+		objs: new Map(),
 		lastID: 0,
 		timers: {},
 		lastTimerID: 0,
@@ -2173,7 +2173,7 @@ function add(comps) {
 
 	const scene = curScene();
 
-	scene.objs[scene.lastID] = obj;
+	scene.objs.set(scene.lastID, obj);
 	obj._sceneID = scene.lastID;
 	scene.lastID++;
 
@@ -2184,6 +2184,23 @@ function add(comps) {
 			e.cb(obj);
 		}
 	}
+
+	return obj;
+
+}
+
+function readd(obj) {
+
+	if (!obj.exists()) {
+		return;
+	}
+
+	const scene = curScene();
+
+	scene.objs.delete(obj._sceneID);
+	scene.objs.set(scene.lastID, obj);
+	obj._sceneID = scene.lastID;
+	scene.lastID++;
 
 	return obj;
 
@@ -2328,28 +2345,33 @@ function mouseRelease(f) {
 
 // get all objects with tag
 function get(t) {
+
 	const scene = curScene();
-	const list = [];
-	for (const id in scene.objs) {
-		const obj = scene.objs[id];
-		if (obj.is(t)) {
-			list.push(obj);
-		}
+	const objs = [...scene.objs.values()];
+
+	if (!t) {
+		return objs;
+	} else {
+		return objs.filter(obj => obj.is(t));
 	}
-	return list;
+
 }
 
 // apply a function to all objects currently in scene with tag t
 function every(t, f) {
 	if (typeof(t) === "function" && f === undefined) {
-		const scene = curScene();
-		for (const id in scene.objs) {
-			t(scene.objs[id]);
-		}
+		get().forEach(t);
 	} else {
-		for (const obj of get(t)) {
-			f(obj);
-		}
+		get(t).forEach(f);
+	}
+}
+
+// every but in reverse order
+function revery(t, f) {
+	if (typeof(t) === "function" && f === undefined) {
+		get().reverse().forEach(t);
+	} else {
+		get(t).reverse().forEach(f);
 	}
 }
 
@@ -2374,7 +2396,7 @@ function destroy(obj) {
 		}
 	}
 
-	delete scene.objs[obj._sceneID];
+	scene.objs.delete(obj._sceneID);
 	delete obj._sceneID;
 
 }
@@ -2422,7 +2444,7 @@ function gameFrame(ignorePause) {
 	gfxFrameStart();
 
 	// update every obj
-	every((obj) => {
+	revery((obj) => {
 		if (!obj.paused && doUpdate) {
 			obj.trigger("update");
 			for (const e of scene.events.update) {
@@ -3367,7 +3389,7 @@ function fps() {
 
 function objCount() {
 	const scene = curScene();
-	return Object.keys(scene.objs).length;
+	return scene.objs.size;
 }
 
 function pause(b) {
@@ -3552,6 +3574,7 @@ kaboom.gravity = gravity;
 
 // obj
 kaboom.add = add;
+kaboom.readd = readd;
 kaboom.destroy = destroy;
 kaboom.destroyAll = destroyAll;
 kaboom.get = get;

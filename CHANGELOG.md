@@ -7,8 +7,10 @@
 - `mousePos()` accepts a layer argument, which returns the mouse position affected by camera transform if that layer is not `camIgnore()`-ed
 - fixed camera position getting calculated before completing every object's update
 - added `pause()`, `resume()` and `stop()` method to the handle returned by `play()`
-- added `camShake()`
+- added `camShake()` for built in camera shake
 - fixed some cases `on("grounded", f)` called multiple times when moving on a smooth platform
+- added `revery()` to iterate objects in reverse order
+- added `readd()` to re-add an object to the scene without triggering events
 
 # 0.1.0
 - (**BREAK**) changed default origin point to `"topleft"`, so if you want object origin point to be at center you'll need to manual `origin("center")`

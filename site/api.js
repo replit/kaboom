@@ -278,6 +278,12 @@ collides("bullet", "killable", (b, k) => {
 	score++;
 });
 			`),
+			f("readd", [
+				a("obj", "the object to readd"),
+			], "obj", "re-add an object to the scene", `
+// remove and add froggy to the scene without triggering events tied to "add" or "destroy", so it'll be drawn on the top of the layer it belongs to
+readd(froggy);
+			`),
 			f("obj.action", [
 				a("cb", "callback"),
 			], null, "update the object, the callback is run every frame", `
@@ -340,6 +346,7 @@ obj.trigger("grounded");
 				a("tag", "tag"),
 			], null, "get a list of obj reference with a certain tag", `
 const enemies = get("enemy");
+const allObjs = get();
 			`),
 			f("every", [
 				a("tag", "tag"),
@@ -349,7 +356,16 @@ const enemies = get("enemy");
 every("enemy", (obj) => {
 	destroy(obj);
 });
+
+// without tag iterate every object
+every((obj) => {
+	// ...
+});
 			`),
+			f("revery", [
+				a("tag", "tag"),
+				a("cb", "cb"),
+			], null, "like every but runs in reversed order"),
 			f("destroyAll", [
 				a("tag", "tag"),
 			], null, "destroy every obj with a certain tag", ``),
