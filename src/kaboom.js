@@ -5,6 +5,11 @@ v0.2.0
 
 a JavaScript game programming library
 
+= Author
+tga <tga@space55.xyz>
+
+= License
+
 Copyright (C) 2021 Replit
 
 This program is free software: you can redistribute it and/or modify
@@ -20,31 +25,53 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-modules:
+= Index
 
-- assets
-  assets loader / manager
+(use the number at top border for quick search-jump)
 
-- app
-  manages canvas DOM and inputs
+*11111111*
+| assets |
+*--------*
+assets loader / manager
 
-- gfx
-  everything visual
+*22222*
+| app |
+*-----*
+manages canvas DOM and inputs
 
-- audio
-  everything audio
+*33333*
+| gfx |
+*-----*
+everything visual
 
-- game
-  scene management, component system
+*4444444*
+| audio |
+*-------*
+everything audio
 
-- comps
-  built-in components
+*555555*
+| math |
+*------*
+math utils
 
-- math
-  math utils
+*666666*
+| game |
+*------*
+scene management, component system
 
-- utils
-  misc utils
+*7777777*
+| comps |
+*-------*
+built-in components
+
+*8888888*
+| debug |
+*-------*
+debug utils
+
+*99999999*
+| helper |
+*--------*
 
 */
 
@@ -59,8 +86,24 @@ kaboom.debug = {
 	hoverInfo: false,
 };
 
-// ------------------------------------------------------------
-// assets
+/*
+
+*11111111*
+
+assets     *                     .            ~       +    .
+    .           .            ~          +
+            +          .                          .
+              .                      .
+ @      .        ~           .                 @            +
+                                       +
+     .                                                 ~
+         ~            +           +
+              +                .      .               +
+      ~                   .                 +               ~
+   .       @        .                   ~           .
+                               .                           .
+
+*/
 
 const DEF_FONT = "unscii";
 const ASCII_CHARS = " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~";
@@ -354,8 +397,24 @@ function loadSound(name, src, conf = {}) {
 	}
 }
 
-// ------------------------------------------------------------
-// app
+/*
+
+*22222*
+
+app        *                     .            ~       +    .
+    .           .            ~          +
+            +          .                          .
+              .                      .
+ @      .        ~           .                 @            +
+                                       +
+     .                                                 ~
+         ~            +           +
+              +                .      .               +
+      ~                   .                 +               ~
+   .       @        .                   ~           .
+                               .                           .
+
+*/
 
 // app system init
 const app = {
@@ -543,8 +602,24 @@ function time() {
 	return app.time;
 }
 
-// ------------------------------------------------------------
-// gfx
+/*
+
+*33333*
+
+gfx        *                     .            ~       +    .
+    .           .            ~          +
+            +          .                          .
+              .                      .
+ @      .        ~           .                 @            +
+                                       +
+     .                                                 ~
+         ~            +           +
+              +                .      .               +
+      ~                   .                 +               ~
+   .       @        .                   ~           .
+                               .                           .
+
+*/
 
 const defVertSrc = `
 attribute vec3 a_pos;
@@ -1215,8 +1290,24 @@ function fmtText(text, conf = {}) {
 
 }
 
-// ------------------------------------------------------------
-// audio
+/*
+
+*4444444*
+
+audio      *                     .            ~       +    .
+    .           .            ~          +
+            +          .                          .
+              .                      .
+ @      .        ~           .                 @            +
+                                       +
+     .                                                 ~
+         ~            +           +
+              +                .      .               +
+      ~                   .                 +               ~
+   .       @        .                   ~           .
+                               .                           .
+
+*/
 
 // audio system init
 const audio = {};
@@ -1309,8 +1400,24 @@ function play(id, conf = {}) {
 
 }
 
-// ------------------------------------------------------------
-// math
+/*
+
+*555555*
+
+math       *                     .            ~       +    .
+    .           .            ~          +
+            +          .                          .
+              .                      .
+ @      .        ~           .                 @            +
+                                       +
+     .                                                 ~
+         ~            +           +
+              +                .      .               +
+      ~                   .                 +               ~
+   .       @        .                   ~           .
+                               .                           .
+
+*/
 
 Math.radians = function(degrees) {
 	return degrees * Math.PI / 180;
@@ -1761,9 +1868,6 @@ function choose(list) {
 	return list[Math.floor(rand(0, list.length))];
 }
 
-// ------------------------------------------------------------
-// utils
-
 function deepCopy(input) {
 
 	if (typeof(input) !== "object" || input === null) {
@@ -1780,12 +1884,29 @@ function deepCopy(input) {
 
 }
 
-// ------------------------------------------------------------
-// game
+/*
+
+*666666*
+
+game       *                     .            ~       +    .
+    .           .            ~          +
+            +          .                          .
+              .                      .
+ @      .        ~           .                 @            +
+                                       +
+     .                                                 ~
+         ~            +           +
+              +                .      .               +
+      ~                   .                 +               ~
+   .       @        .                   ~           .
+                               .                           .
+
+*/
 
 // TODO: custom scene store
 // TODO: comp registry?
 // TODO: avoid comp fields direct assign / collision
+// TODO: in-source doc on the component system
 
 const DEF_GRAVITY = 980;
 const DEF_ORIGIN = "topleft";
@@ -2265,6 +2386,15 @@ function destroyAll(t) {
 	});
 }
 
+// get / set gravity
+function gravity(g) {
+	const scene = curScene()
+	if (g !== undefined) {
+		scene.gravity = g;
+	}
+	return scene.gravity;
+}
+
 // TODO: cleaner pause logic
 function gameFrame(ignorePause) {
 
@@ -2474,8 +2604,24 @@ function start(name, ...args) {
 
 }
 
-// --------------------------------
-// comps
+/*
+
+*7777777*
+
+comps      *                     .            ~       +    .
+    .           .            ~          +
+            +          .                          .
+              .                      .
+ @      .        ~           .                 @            +
+                                       +
+     .                                                 ~
+         ~            +           +
+              +                .      .               +
+      ~                   .                 +               ~
+   .       @        .                   ~           .
+                               .                           .
+
+*/
 
 // TODO: have velocity here?
 function pos(...args) {
@@ -3196,8 +3342,24 @@ function body(conf = {}) {
 
 }
 
-// --------------------------------
-// Debug
+/*
+
+*8888888*
+
+debug     *                     .            ~       +    .
+    .           .            ~          +
+            +          .                          .
+              .                      .
+ @      .        ~           .                 @            +
+                                       +
+     .                                                 ~
+         ~            +           +
+              +                .      .               +
+      ~                   .                 +               ~
+   .       @        .                   ~           .
+                               .                           .
+
+*/
 
 function fps() {
 	return 1.0 / dt();
@@ -3228,13 +3390,24 @@ function log(msg) {
 	console.log(msg);
 }
 
-function gravity(g) {
-	const scene = curScene()
-	if (g !== undefined) {
-		scene.gravity = g;
-	}
-	return scene.gravity;
-}
+/*
+
+*99999999*
+
+helper    *                     .            ~       +    .
+    .           .            ~          +
+            +          .                          .
+              .                      .
+ @      .        ~           .                 @            +
+                                       +
+     .                                                 ~
+         ~            +           +
+              +                .      .               +
+      ~                   .                 +               ~
+   .       @        .                   ~           .
+                               .                           .
+
+*/
 
 function addLevel(arr, conf = {}) {
 
