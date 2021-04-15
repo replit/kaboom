@@ -8,6 +8,7 @@
 - fixed camera position getting calculated before completing every object's update
 - added `pause()`, `resume()` and `stop()` method to the handle returned by `play()`
 - added `camShake()`
+- fixed some cases `on("grounded", f)` called multiple times when moving on a smooth platform
 
 # 0.1.0
 - (**BREAK**) changed default origin point to `"topleft"`, so if you want object origin point to be at center you'll need to manual `origin("center")`

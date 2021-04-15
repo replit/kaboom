@@ -1788,8 +1788,6 @@ function deepCopy(input) {
 // TODO: avoid comp fields direct assign / collision
 
 const DEF_GRAVITY = 980;
-const DEF_JUMP_FORCE = 480;
-const DEF_MAX_VEL = 960;
 const DEF_ORIGIN = "topleft";
 
 const game = {
@@ -3136,48 +3134,61 @@ function timer() {
 	};
 }
 
+// maximum y velocity with body()
+const DEF_MAX_VEL = 960;
+const DEF_JUMP_FORCE = 480;
+
 function body(conf = {}) {
 
 	return {
 
 		velY: 0,
-		jumpForce: conf.jumpForce !== undefined ? conf.jumpForce : DEF_JUMP_FORCE,
+		jumpForce: conf.jumpForce !== null ? conf.jumpForce : DEF_JUMP_FORCE,
 		maxVel: conf.maxVel || DEF_MAX_VEL,
-		curPlatform: undefined,
+		curPlatform: null,
 
 		update() {
 
 			this.move(0, this.velY);
 
 			const targets = this.resolve();
+			let justOff = false;
 
+			// check if loses current platform
 			if (this.curPlatform) {
 				if (!this.curPlatform.exists() || !this.isCollided(this.curPlatform)) {
-					this.curPlatform = undefined;
+					this.curPlatform = null;
+					justOff = true;
 				}
 			}
 
 			if (!this.curPlatform) {
+
 				this.velY = Math.min(this.velY + gravity() * dt(), this.maxVel);
+
+				// check if grounded to a new platform
 				for (const target of targets) {
 					if (target.side === "bottom" && this.velY > 0) {
 						this.curPlatform = target.obj;
-						this.trigger("grounded");
+						if (!justOff) {
+							this.trigger("grounded");
+						}
 						this.velY = 0;
 					} else if (target.side === "top" && this.velY < 0) {
 						this.velY = 0;
 					}
 				}
+
 			}
 
 		},
 
 		grounded() {
-			return this.curPlatform !== undefined;
+			return this.curPlatform !== null;
 		},
 
 		jump(force) {
-			this.curPlatform = undefined;
+			this.curPlatform = null;
 			this.velY = -force || -this.jumpForce;
 		},
 
