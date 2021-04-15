@@ -1392,6 +1392,11 @@ function vec2(x, y) {
 	};
 }
 
+// TODO: terrible name
+function vec2FromAngle(a) {
+	return vec2(Math.cos(a), Math.sin(a));
+}
+
 function isVec2(p) {
 	return p !== undefined && p.x !== undefined && p.y !== undefined;
 }
@@ -1833,6 +1838,7 @@ function scene(name, cb) {
 			pos: vec2(width() / 2, height() / 2),
 			scale: vec2(1, 1),
 			angle: 0,
+			shake: 0,
 			ignore: [],
 		},
 		gravity: DEF_GRAVITY,
@@ -1914,9 +1920,9 @@ function camRot(angle) {
 	return cam.angle;
 }
 
-// TODO
 function camShake(intensity) {
-	// ...
+	const cam = curScene().cam;
+	cam.shake = intensity;
 }
 
 function camIgnore(layers) {
@@ -2302,13 +2308,16 @@ function gameFrame(ignorePause) {
 	// calculate camera matrix
 	const size = vec2(width(), height());
 	const cam = scene.cam;
+	const shake = vec2FromAngle(rand(0, Math.PI * 2)).scale(cam.shake);
+
+	cam.shake = lerp(cam.shake, 0, 5);
 
 	const camMat = mat4()
 		.translate(size.scale(0.5))
 		.scale(cam.scale)
 		.rotateZ(cam.angle)
 		.translate(size.scale(-0.5))
-		.translate(cam.pos.scale(-1).add(size.scale(0.5)))
+		.translate(cam.pos.scale(-1).add(size.scale(0.5)).add(shake))
 		;
 
 	scene.camMousePos = camMat.invert().multVec2(mousePos());
@@ -3353,6 +3362,7 @@ kaboom.layers = layers;
 kaboom.camPos = camPos;
 kaboom.camScale = camScale;
 kaboom.camRot = camRot;
+kaboom.camShake = camShake;
 kaboom.camIgnore = camIgnore;
 kaboom.gravity = gravity;
 

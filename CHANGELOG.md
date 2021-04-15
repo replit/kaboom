@@ -6,7 +6,8 @@
 - fixed `resolve()` not working if the obj also has `solid`, so it does not check for itself
 - `mousePos()` accepts a layer argument, which returns the mouse position affected by camera transform if that layer is not `camIgnore()`-ed
 - fixed camera position getting calculated before completing every object's update
-- add `pause()`, `resume()` and `stop()` method to the handle returned by `play()`
+- added `pause()`, `resume()` and `stop()` method to the handle returned by `play()`
+- added `camShake()`
 
 # 0.1.0
 - (**BREAK**) changed default origin point to `"topleft"`, so if you want object origin point to be at center you'll need to manual `origin("center")`
