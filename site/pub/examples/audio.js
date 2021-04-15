@@ -10,14 +10,28 @@ loadSound("loopdigga", "/pub/sounds/loopdigga.mp3");
 
 scene("main", () => {
 
-	let music = play("loopdigga", { loop: true, });
+	const music = play("loopdigga", { loop: true, });
 
-	keyPress("j", () => {
-		music.stop();
+	const label = add([
+		text("playing"),
+	]);
+
+	keyPress("space", () => {
+
+		if (music.paused()) {
+			music.resume();
+		} else {
+			music.pause();
+		}
+
+		label.text = music.paused() ? "paused" : "playing";
+		play("wooosh");
+
 	});
 
-	keyPress("k", () => {
-		music = play("loopdigga");
+	keyPress("escape", () => {
+		music.stop();
+		label.text = music.paused() ? "paused" : "playing";
 	});
 
 });

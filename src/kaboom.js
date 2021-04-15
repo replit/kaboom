@@ -1257,9 +1257,7 @@ function play(id, conf = {}) {
 		srcNode.detune.value = conf.detune;
 	}
 
-	if (conf.speed) {
-		srcNode.playbackRate.value = conf.speed;
-	}
+	srcNode.playbackRate.value = conf.speed || 1;
 
 	const gainNode = audio.ctx.createGain();
 
@@ -1271,18 +1269,42 @@ function play(id, conf = {}) {
 	gainNode.connect(audio.gainNode);
 	srcNode.start();
 
-	let paused = false;
+	let playing = true;
+	let stopped = false;
 
 	return {
+
 		stop() {
 			srcNode.stop();
+			playing = false;
+			stopped = true;
 		},
+
 		resume() {
-			// TODO
+			if (stopped) {
+				console.error(`sound ${id} is already stopped`);
+				return;
+			}
+			if (!playing) {
+				srcNode.playbackRate.value = conf.speed || 1;
+				playing = true;
+			}
 		},
+
 		pause() {
-			// TODO
+			if (stopped) {
+				console.error(`sound ${id} is already stopped`);
+				return;
+			}
+			// TODO: is this alright?
+			srcNode.playbackRate.value = 0;
+			playing = false;
 		},
+
+		paused() {
+			return !playing;
+		},
+
 	};
 
 }

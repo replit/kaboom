@@ -772,6 +772,12 @@ on("destroy", "enemy", (e) => {
 		detune: 1200,
 	});
 });
+
+const music = play("mysong");
+
+music.pause();
+music.resume();
+music.stop();
 			`),
 			f("volume", [
 				a("volume", "volume value"),
