@@ -13,5 +13,5 @@
 	],
 	"scripts": {
 		"site": "cd site; NODE_ENV=dev node ."
-	},
+	}
 }
