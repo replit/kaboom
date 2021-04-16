@@ -2,7 +2,7 @@
 
 kaboom.js is a JavaScript library that helps you make games fast and fun!
 
-[doc](https://kaboomjs.com/)
+[website](https://kaboomjs.com/)
 
 ### Example
 
@@ -32,6 +32,19 @@ start("main");
 
 </script>
 ```
+
+### Usage
+
+the recommended way is to download a local copy of the library and use it directly, the source should be easy to read and modify (still in progress of documenting the source)
+
+you can also use CDN
+
+```html
+<script src="https://kaboomjs.com/lib/@version/kaboom.js"></script>
+```
+
+all available version tags can be found in CHANGELOG.md, or github releases
+there's also a special version tag called `dev` which gives you the current master version with the newest unreleased features / fixes, but not guaranteed to be stable.
 
 ### Dev
 
