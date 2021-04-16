@@ -1,5 +1,5 @@
 // TALK: try hitting that space button!
-// TALK: we register a keyPress event that get's called everytime player presses the "space" key
+// TALK: we register a keyPress event that gets called everytime the player presses the "space" key
 // TALK: then we call method jump() provided by body() component to make it jump
 
 kaboom.global();

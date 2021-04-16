@@ -1,4 +1,4 @@
-// TALK: next let's make a losing scene instead of restarting the game every time
+// TALK: next, let's make a losing scene instead of restarting the game every time
 // TALK: we here define another scene called "gameover" and make falling / collision go here instead
 // TALK: and add a keyPress event to go back to main scene again
 // TALK: now we can finally get back to a major issue

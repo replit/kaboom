@@ -1,7 +1,7 @@
 // TALK: as usual we load the sprite, and add 2 pipe objects to the right side of the screen
 // TALK: we scale the second one to scale(1, -1) to invert it on the Y axis
 // TALK: we use a const PIPE_OPEN to define the distance between 2 pipes, we give it a generous 120 for now
-// TALK: next step we'll make the core mechanism of the game: make the pipe move towards the player (yes in flappy birds it's the pipes moving not the bird!)
+// TALK: next, we'll make the core mechanism of the game: make the pipe move towards the player (yes in flappy birds it's the pipes moving not the bird!)
 
 kaboom.global();
 

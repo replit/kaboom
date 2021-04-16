@@ -1,4 +1,4 @@
-// TALK: first let's load a sprite by loadSprite(), passing in the sprite name, and the sprite url
+// TALK: first, let's load a sprite by loadSprite(), passing in the sprite name, and the sprite url
 
 kaboom.global();
 
