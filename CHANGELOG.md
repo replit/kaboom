@@ -1,3 +1,7 @@
+# 0.3.0
+- (**BREAK**) changed `curAnim`, `width` and `height` by `sprite()` are changed to methods `curAnim()`, `width()` and `height()`
+- (**BREAK**) removed `velY`, `curPlatform` and `maxVel` fields by `body()`
+
 # 0.2.0
 - (**BREAK**) removed `aseSpriteSheet` conf field from `loadSprite(name, src, conf)`
 - added `loadAseprite(name, imgSrc, jsonSrc)`

@@ -761,7 +761,7 @@ function flush() {
 
 	gfx.prog.unbind();
 	gfx.mesh.unbind();
-	gfx.curTex = undefined;
+	gfx.curTex = null;
 
 }
 
@@ -3151,26 +3151,24 @@ function sprite(id, conf = {}) {
 		q.h *= conf.quad.h;
 	}
 
-	const w = spr.tex.width * q.w;
-	const h = spr.tex.height * q.h;
+	const width = spr.tex.width * q.w;
+	const height = spr.tex.height * q.h;
 	let timer = 0;
 	let looping = false;
+	let curAnim = null;
 	const events = {};
 
 	return {
 
 		spriteID: id,
-		curAnim: undefined,
 		animSpeed: conf.animSpeed || 0.1,
 		frame: conf.frame || 0,
-		width: w,
-		height: h,
 		quad: conf.quad || quad(0, 0, 1, 1),
 
 		add() {
 			// add default area
 			if (!this.area && !conf.noArea) {
-				this.use(getAreaFromSize(this.width, this.height, this.origin));
+				this.use(getAreaFromSize(width, height, this.origin));
 			}
 		},
 
@@ -3194,12 +3192,12 @@ function sprite(id, conf = {}) {
 
 		update() {
 
-			if (!this.curAnim) {
+			if (!curAnim) {
 				return;
 			}
 
 			const speed = this.animSpeed;
-			const anim = spr.anims[this.curAnim];
+			const anim = spr.anims[curAnim];
 
 			timer += dt();
 
@@ -3228,11 +3226,11 @@ function sprite(id, conf = {}) {
 				return;
 			}
 
-			if (this.curAnim) {
+			if (curAnim) {
 				this.stop();
 			}
 
-			this.curAnim = name;
+			curAnim = name;
 			this.frame = anim[0];
 			looping = loop === undefined ? true : loop;
 
@@ -3243,13 +3241,25 @@ function sprite(id, conf = {}) {
 		},
 
 		stop() {
-			if (!this.curAnim) {
+			if (!curAnim) {
 				return;
 			}
-			if (events[this.curAnim]?.end) {
-				events[this.curAnim].end();
+			if (events[curAnim]?.end) {
+				events[curAnim].end();
 			}
-			this.curAnim = undefined;
+			curAnim = null;
+		},
+
+		curAnim() {
+			return curAnim;
+		},
+
+		width() {
+			return width;
+		},
+
+		height() {
+			return height;
 		},
 
 		onAnimPlay(name, cb) {
@@ -3268,8 +3278,8 @@ function sprite(id, conf = {}) {
 
 		debugInfo() {
 			const info = {};
-			if (this.curAnim) {
-				info.curAnim = `"${this.curAnim}"`;
+			if (curAnim) {
+				info.curAnim = `"${curAnim}"`;
 			}
 			return info;
 		},
@@ -3388,42 +3398,43 @@ const DEF_JUMP_FORCE = 480;
 
 function body(conf = {}) {
 
+	let velY = 0;
+	let curPlatform = null;
+	const maxVel = conf.maxVel || DEF_MAX_VEL;
+
 	return {
 
-		velY: 0,
-		jumpForce: conf.jumpForce !== null ? conf.jumpForce : DEF_JUMP_FORCE,
-		maxVel: conf.maxVel || DEF_MAX_VEL,
-		curPlatform: null,
+		jumpForce: conf.jumpForce !== undefined ? conf.jumpForce : DEF_JUMP_FORCE,
 
 		update() {
 
-			this.move(0, this.velY);
+			this.move(0, velY);
 
 			const targets = this.resolve();
 			let justOff = false;
 
 			// check if loses current platform
-			if (this.curPlatform) {
-				if (!this.curPlatform.exists() || !this.isCollided(this.curPlatform)) {
-					this.curPlatform = null;
+			if (curPlatform) {
+				if (!curPlatform.exists() || !this.isCollided(curPlatform)) {
+					curPlatform = null;
 					justOff = true;
 				}
 			}
 
-			if (!this.curPlatform) {
+			if (!curPlatform) {
 
-				this.velY = Math.min(this.velY + gravity() * dt(), this.maxVel);
+				velY = Math.min(velY + gravity() * dt(), maxVel);
 
 				// check if grounded to a new platform
 				for (const target of targets) {
-					if (target.side === "bottom" && this.velY > 0) {
-						this.curPlatform = target.obj;
+					if (target.side === "bottom" && velY > 0) {
+						curPlatform = target.obj;
 						if (!justOff) {
 							this.trigger("grounded");
 						}
-						this.velY = 0;
-					} else if (target.side === "top" && this.velY < 0) {
-						this.velY = 0;
+						velY = 0;
+					} else if (target.side === "top" && velY < 0) {
+						velY = 0;
 					}
 				}
 
@@ -3432,12 +3443,12 @@ function body(conf = {}) {
 		},
 
 		grounded() {
-			return this.curPlatform !== null;
+			return curPlatform !== null;
 		},
 
 		jump(force) {
-			this.curPlatform = null;
-			this.velY = -force || -this.jumpForce;
+			curPlatform = null;
+			velY = -force || -this.jumpForce;
 		},
 
 	};
