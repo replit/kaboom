@@ -37,7 +37,7 @@ paste this directly into an `html` file and start playing around!
 
 ### Usage
 
-the recommended way is to ![download](https://kaboomjs.com/lib/latest/kaboom.js) a local copy of the library and use it directly, the source should be easy to read and modify (still in progress of documenting the source)
+the recommended way is to [download](https://kaboomjs.com/lib/latest/kaboom.js) a local copy of the library and use it directly, the source should be easy to read and modify (still in progress of documenting the source)
 
 you can also use CDN
 
