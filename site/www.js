@@ -65,7 +65,7 @@ function style(list) {
 
 	let text = "";
 
-	function handle_sheet(s) {
+	function handleSheet(s) {
 		let t = "{";
 		for (const k in s) {
 			t += k + ":" + s[k] + ";";
@@ -74,7 +74,7 @@ function style(list) {
 		return t;
 	}
 
-	function handle_sheet_ex(sel, sheet) {
+	function handleSheetEx(sel, sheet) {
 		let t = sel + " {";
 		let post = "";
 		for (const key in sheet) {
@@ -82,17 +82,17 @@ function style(list) {
 			// media
 			if (key === "@media") {
 				for (const cond in val) {
-					post += "@media " + cond + "{" + sel + handle_sheet(val[cond]) + "}";
+					post += "@media " + cond + "{" + sel + handleSheet(val[cond]) + "}";
 				}
 			// pseudo class
 			} else if (key[0] === ":") {
-				post += handle_sheet_ex(sel + key, val);
+				post += handleSheetEx(sel + key, val);
 			// self
 			} else if (key[0] === "&") {
-				post += handle_sheet_ex(sel + key.substring(1), val);
+				post += handleSheetEx(sel + key.substring(1), val);
 			// nesting child
 			} else if (typeof(val) === "object") {
-				post += handle_sheet_ex(sel + " " + key, val);
+				post += handleSheetEx(sel + " " + key, val);
 			} else {
 				t += key + ":" + val + ";";
 			}
@@ -108,12 +108,12 @@ function style(list) {
 				const map = sheet[name];
 				text += "@keyframes " + name + "{";
 				for (const time in map) {
-					text += time + handle_sheet(map[time]);
+					text += time + handleSheet(map[time]);
 				}
 				text += "}";
 			}
 		} else {
-			text += handle_sheet_ex(sel, sheet);
+			text += handleSheetEx(sel, sheet);
 		}
 	}
 
