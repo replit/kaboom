@@ -5,9 +5,6 @@ init({
 	scale: 2,
 });
 
-// gotta load the image first
-loadSprite("mark", "/pub/img/mark.png");
-
 scene("main", () => {
 
 	const p2 = add([

@@ -158,6 +158,12 @@ if (win) {
 			], null, "set the camera angle", `
 camRot(0.1);
 			`),
+			f("camShake", [
+				a("intensity", "intensity"),
+			], null, "shake the camera", `
+// dramatic screen shake
+camShake(12);
+			`),
 			f("camIgnore", [
 				a("layers", "angle"),
 			], null, "make camera don't affect certain layers", `
@@ -655,6 +661,28 @@ action("bullet", (b) => {
 
 action("flashy", (f) => {
 	f.color = rand(rgb(0, 0, 0), rgb(1, 1, 1));
+});
+
+// plain action() just runs every frame not tying to any object
+action(() => {
+	console.log("oh hi")
+});
+			`),
+			f("render", [
+				a("tag", "tag selector"),
+				a("cb", "the callback"),
+			], null, "calls every frame for a certain tag (after update)", `
+// every frame move objs with tag "bullet" up with speed of 100
+render("weirdo", (b) => {
+	drawSprite(...);
+	drawRect(...);
+	drawText(...);
+});
+
+// plain render() just runs every frame
+// with plain action() and render() you can opt out of the component / obj system and use you own loop
+render(() => {
+	drawSprite(...);
 });
 			`),
 			f("collides", [

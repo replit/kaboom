@@ -110,7 +110,7 @@ scene("main", () => {
 	});
 
 	keyDown(["left", "right"], () => {
-		if (player.grounded() && player.curAnim !== "move") {
+		if (player.grounded() && player.curAnim() !== "move") {
 			player.play("move");
 		}
 	});

@@ -2535,6 +2535,12 @@ function gameFrame(ignorePause) {
 		}
 	});
 
+	if (doUpdate) {
+		for (const f of scene.action) {
+			f();
+		}
+	}
+
 	// calculate camera matrix
 	const size = vec2(width(), height());
 	const cam = scene.cam;
@@ -2576,12 +2582,6 @@ function gameFrame(ignorePause) {
 		}
 
 	});
-
-	if (doUpdate) {
-		for (const f of scene.action) {
-			f();
-		}
-	}
 
 	for (const f of scene.render) {
 		f();
