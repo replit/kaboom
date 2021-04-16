@@ -37,7 +37,7 @@ paste this directly into an `html` file and start playing around!
 
 ### Usage
 
-the recommended way is to download a local copy of the library and use it directly, the source should be easy to read and modify (still in progress of documenting the source)
+the recommended way is to ![download](https://kaboomjs.com/lib/latest/kaboom.js) a local copy of the library and use it directly, the source should be easy to read and modify (still in progress of documenting the source)
 
 you can also use CDN
 
@@ -47,12 +47,18 @@ you can also use CDN
 
 all available version tags can be found in CHANGELOG.md, or github releases
 
-there's also a special version tag called `dev` which gives you the current master version with the newest unreleased features / fixes, but not guaranteed to be stable.
+special version tags:
+- `dev`: current master with the newest unreleased features / fixes, but not guaranteed to be stable
+- `latest`: latest release
 
-by including the script there'll be a `window.kaboom`, you can either do
+the script will expose a `window.kaboom` containing all the kaboom functions, you can either do
 
 ```js
 kaboom.global();
+
+init();
+scene(...);
+start(...);
 ```
 
 to import all kaboom functions to global namespace, or use namespaced kaboom functions to avoid any naming collision
@@ -62,6 +68,7 @@ const k = kaboom;
 
 k.init();
 k.scene(...);
+k.start(...);
 ```
 
 ### Dev
