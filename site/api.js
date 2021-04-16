@@ -809,9 +809,21 @@ on("destroy", "enemy", (e) => {
 
 const music = play("mysong");
 
-music.pause();
-music.resume();
+keyPress("space", () => {
+	if (music.paused()) {
+		music.resume();
+	} else {
+		music.pause();
+	}
+});
+
 music.stop();
+music.stopped();
+music.volume(2.0);
+music.detune(-200);
+music.speed(1.5);
+music.loop();
+music.unloop();
 			`),
 			f("volume", [
 				a("volume", "volume value"),
