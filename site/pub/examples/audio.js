@@ -6,12 +6,12 @@ init({
 });
 
 loadSound("wooosh", "/pub/sounds/wooosh.ogg");
-loadSound("loopdigga", "/pub/sounds/loopdigga.mp3");
+loadSound("OtherworldlyFoe", "/pub/sounds/OtherworldlyFoe.mp3");
 
 scene("main", () => {
 
 	// the music might not autoplay cuz some browser won't allow audio start before any user interaction
-	const music = play("loopdigga", { loop: true, });
+	const music = play("OtherworldlyFoe", { loop: true, });
 
 	const label = add([
 		text(),

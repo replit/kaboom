@@ -556,21 +556,27 @@ function init(conf = {}) {
 	});
 
 	canvas.addEventListener("keydown", (e) => {
+
 		const k = keyMap[e.key] || e.key.toLowerCase();
+
 		if (preventDefaultKeys.includes(k)) {
 			e.preventDefault();
 		}
+
 		if (k.length === 1) {
 			app.charInputted.push(k);
 		}
+
 		if (k === "space") {
 			app.charInputted.push(" ");
 		}
+
 		if (e.repeat) {
 			app.keyStates[k] = "rpressed";
 		} else {
 			app.keyStates[k] = "pressed";
 		}
+
 	});
 
 	canvas.addEventListener("keyup", (e) => {
