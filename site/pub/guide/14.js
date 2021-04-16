@@ -1,5 +1,5 @@
-// TALK: first let's remove the baby platform, and make the game restart when player falls
-// TALK: we do this by giving birdy an action to run every frame, to check if it's position is out of screen
+// TALK: first, let's remove the baby platform, and make the game restart when player falls
+// TALK: we do this by giving birdy an action to run every frame, to check if its position is out of screen
 
 kaboom.global();
 

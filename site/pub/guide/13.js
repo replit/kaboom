@@ -1,6 +1,6 @@
 // TALK: to accomplish this, we are going to use one of the core function of kaboom: action()
-// TALK: first we give 2 pipes "pipe" tags, by giving direct strings to the component list
-// TALK: then we use action("pipe", ...) to give all objects with tag "pipe" something to run every frame
+// TALK: first, we give 2 pipes "pipe" tags, by giving direct strings to the component list
+// TALK: then, we use action("pipe", ...) to give all objects with tag "pipe" something to run every frame
 // TALK: in this case we make them move left every frame by PIPE_SPEED
 // TALK: now we have moving pipes, let's complete this mechanism by making the bird actually have to jump over it!
 
