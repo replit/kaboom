@@ -134,10 +134,9 @@ scene("main", () => {
 	});
 
 	// grow a mushroom if player collideds "prize" object it from bottom
-	player.collides("prize", (j) => {
-		// TODO: provide which edge collided instead of loosly checking position
-		if (j.pos.y <= player.pos.y) {
-			level.spawn("#", j.gridPos.sub(0, 1));
+	player.on("headbump", (obj) => {
+		if (obj.is("prize")) {
+			level.spawn("#", obj.gridPos.sub(0, 1));
 		}
 	});
 

@@ -3442,12 +3442,13 @@ function body(conf = {}) {
 				for (const target of targets) {
 					if (target.side === "bottom" && velY > 0) {
 						curPlatform = target.obj;
-						if (!justOff) {
-							this.trigger("grounded");
-						}
 						velY = 0;
+						if (!justOff) {
+							this.trigger("grounded", curPlatform);
+						}
 					} else if (target.side === "top" && velY < 0) {
 						velY = 0;
+						this.trigger("headbump", target.obj);
 					}
 				}
 
