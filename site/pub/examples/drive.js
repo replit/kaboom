@@ -3,9 +3,7 @@ kaboom.global();
 loadRoot("/pub/img/");
 loadSprite("sky", "sky.png");
 loadSprite("road", "road.png");
-loadSprite("car", "car.png", {
-	aseSpriteSheet: "car.json",
-});
+loadAseprite("car", "car.png", "car.json");
 loadSprite("apple", "apple.png");
 loadSprite("pineapple", "pineapple.png");
 
