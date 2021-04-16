@@ -471,6 +471,7 @@ const app = {
 	mousePos: vec2(0, 0),
 	time: 0.0,
 	realTime: 0.0,
+	skipTime: false,
 	dt: 0.0,
 	scale: 1,
 };
@@ -585,6 +586,13 @@ function init(conf = {}) {
 	});
 
 	canvas.focus();
+
+	// prevent a surge of dt() when switch back after the tab being hidden for a while
+	document.addEventListener("visibilitychange", () => {
+		if (document.visibilityState === "visible") {
+			app.skipTime = true;
+		}
+	});
 
 }
 
@@ -2602,8 +2610,13 @@ function start(name, ...args) {
 		const realDt = realTime - app.realTime;
 
 		app.realTime = realTime;
-		app.dt = realDt * kaboom.debug.timeScale;
-		app.time += app.dt;
+
+		if (!app.skipTime) {
+			app.dt = realDt * kaboom.debug.timeScale;
+			app.time += app.dt;
+		}
+
+		app.skipTime = false;
 
 		if (!game.loaded) {
 
