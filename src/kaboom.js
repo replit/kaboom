@@ -167,11 +167,17 @@ function loadRoot(path) {
 // load a bitmap font to asset manager
 function loadFont(name, src, gw, gh, chars) {
 
-	const loader = newLoader();
+	return new Promise((resolve, reject) => {
 
-	loadImg(src, (img) => {
-		assets.fonts[name] = makeFont(makeTex(img), gw, gh, chars || ASCII_CHARS);
-		loader.done();
+		const loader = newLoader();
+
+		loadImg(src, (img) => {
+			const font = makeFont(makeTex(img), gw, gh, chars || ASCII_CHARS);
+			loader.done();
+			assets.fonts[name] = font;
+			resolve(font);
+		});
+
 	});
 
 }
@@ -184,76 +190,130 @@ function loadSprite(name, src, conf = {}) {
 	// sliceY: num,
 	// anims: { name: [num, num] }
 
-	if (typeof(src) === "string") {
+	// synchronously load sprite from local pixel data
+	//
+	// src could be either
+	//   - HTMLImageElement
+	//   - HTMLCanvasElement
+	//   - ImageData
+	//   - ImageBitmap
+	function loadRawSprite(name, src, conf = {}) {
 
-		if (src.match(/\.kbmsprite$/)) {
+		const frames = [];
+		const tex = makeTex(src);
+		const sliceX = conf.sliceX || 1;
+		const sliceY = conf.sliceY || 1;
+		const qw = 1 / sliceX;
+		const qh = 1 / sliceY;
 
-			// from replit kaboom workspace sprite editor
-			const loader = newLoader();
-
-			fetch(assets.loadRoot + src)
-				.then((res) => {
-					return res.json();
-				})
-				.then((data) => {
-
-					const frames = data.frames;
-
-					const pixels = frames
-						.map(f => f.pixels)
-						.flat()
-						;
-
-					const w = frames[0].width;
-					const h = frames[0].height;
-
-					const img = new ImageData(
-						new Uint8ClampedArray(pixels),
-						w,
-						h * frames.length,
-					);
-
-					loadSprite(name, img, {
-						sliceY: frames.length,
-						anims: conf.anims,
-					});
-
-					loader.done();
-
-				})
-				.catch(() => {
-					console.error(`failed to load sprite '${name}' from '${src}'`);
-				})
-				;
-
-		} else {
-
-			// any other url
-			const loader = newLoader();
-			const img = loadImg(assets.loadRoot + src);
-
-			img.onload = () => {
-				loadSprite(name, img, conf);
-				loader.done();
-			};
-
-			img.onerror = () => {
-				console.error(`failed to load sprite '${name}' from '${src}'`);
-				loader.done();
-			};
-
+		for (let j = 0; j < sliceY; j++) {
+			for (let i = 0; i < sliceX; i++) {
+				frames.push(quad(
+					i * qw,
+					j * qh,
+					qw,
+					qh,
+				));
+			}
 		}
 
-		return;
+		const sprite = {
+			tex: tex,
+			frames: frames,
+			anims: conf.anims || {},
+		};
+
+		assets.sprites[name] = sprite;
+
+		return sprite;
 
 	}
 
-	if (conf.aseSpriteSheet) {
+	return new Promise((resolve, reject) => {
+
+		// from url
+		if (typeof(src) === "string") {
+
+			// from replit kaboom workspace sprite editor
+			if (src.match(/\.kbmsprite$/)) {
+
+				const loader = newLoader();
+
+				fetch(assets.loadRoot + src)
+					.then((res) => {
+						return res.json();
+					})
+					.then((data) => {
+
+						const frames = data.frames;
+
+						const pixels = frames
+							.map(f => f.pixels)
+							.flat()
+							;
+
+						const w = frames[0].width;
+						const h = frames[0].height;
+
+						const img = new ImageData(
+							new Uint8ClampedArray(pixels),
+							w,
+							h * frames.length,
+						);
+
+						const sprite = loadRawSprite(name, img, {
+							sliceY: frames.length,
+							anims: conf.anims,
+						});
+
+						loader.done();
+						resolve(sprite);
+
+					})
+					.catch(() => {
+						console.error(`failed to load sprite '${name}' from '${src}'`);
+					})
+					;
+
+			// any other url
+			} else {
+
+				const loader = newLoader();
+				const img = loadImg(assets.loadRoot + src);
+
+				img.onload = () => {
+					const sprite = loadRawSprite(name, img, conf);
+					loader.done();
+					resolve(sprite);
+				};
+
+				img.onerror = () => {
+					console.error(`failed to load sprite '${name}' from '${src}'`);
+					loader.done();
+				};
+
+			}
+
+			return;
+
+		} else {
+
+			resolve(loadRawSprite(name, src, conf));
+
+		}
+
+	});
+
+}
+
+function loadAseprite(name, imgSrc, jsonSrc) {
+
+	return loadSprite(name, imgSrc).then(() => {
 
 		const loader = newLoader();
 
 		// TODO: loadRoot might be changed already
-		fetch(assets.loadRoot + conf.aseSpriteSheet)
+		fetch(assets.loadRoot + jsonSrc)
 			.then((res) => {
 				return res.json();
 			})
@@ -272,34 +332,12 @@ function loadSprite(name, src, conf = {}) {
 				}
 				loader.done();
 			});
-	}
 
-	const frames = [];
-	const tex = makeTex(src);
-	const sliceX = conf.sliceX || 1;
-	const sliceY = conf.sliceY || 1;
-	const qw = 1 / sliceX;
-	const qh = 1 / sliceY;
-
-	for (let j = 0; j < sliceY; j++) {
-		for (let i = 0; i < sliceX; i++) {
-			frames.push(quad(
-				i * qw,
-				j * qh,
-				qw,
-				qh,
-			));
-		}
-	}
-
-	assets.sprites[name] = {
-		tex: tex,
-		frames: frames,
-		anims: conf.anims || {},
-	};
+	});
 
 }
 
+// TODO: finalize interface
 // get sprite asset settings
 function getSprite(name) {
 	const sprite = assets.sprites[name];
@@ -370,31 +408,38 @@ function getSprite(name) {
 // load a sound to asset manager
 function loadSound(name, src, conf = {}) {
 
-	if (typeof(src) === "string") {
+	return new Promise((resolve, reject) => {
 
-		const loader = newLoader();
+		// from url
+		if (typeof(src) === "string") {
 
-		fetch(assets.loadRoot + src)
-			.then((res) => {
-				return res.arrayBuffer();
-			})
-			.then((data) => {
-				// TODO: doesn't work on safari
-				audio.ctx.decodeAudioData(data, (buf) => {
+			const loader = newLoader();
+
+			fetch(assets.loadRoot + src)
+				.then((res) => {
+					return res.arrayBuffer();
+				})
+				.then((data) => {
+					// TODO: doesn't work on safari
+					audio.ctx.decodeAudioData(data, (buf) => {
+						loader.done();
+						audio.sounds[name] = buf;
+						resolve(buf);
+					}, (err) => {
+						console.error(`failed to decode audio: ${name}`);
+						loader.done();
+					});
+				})
+				.catch((err) => {
+					console.error(`failed to load sound '${name}' from '${src}'`);
 					loader.done();
-					audio.sounds[name] = buf;
-				}, (err) => {
-					console.error(`failed to decode audio: ${name}`);
-					loader.done();
-				});
-			})
-			.catch((err) => {
-				console.error(`failed to load sound '${name}' from '${src}'`);
-				loader.done();
-			})
-			;
+				})
+				;
 
-	}
+		}
+
+	});
+
 }
 
 /*
@@ -1205,6 +1250,7 @@ function originPt(orig) {
 	}
 }
 
+// format text and return a list of chars with their calculated position
 function fmtText(text, conf = {}) {
 
 	const fontName = conf.font || DEF_FONT;
@@ -1344,59 +1390,82 @@ function play(id, conf = {}) {
 	srcNode.buffer = sound;
 	srcNode.loop = conf.loop ? true : false;
 
-	if (conf.detune) {
-		srcNode.detune.value = conf.detune;
-	}
-
-	srcNode.playbackRate.value = conf.speed || 1;
-
 	const gainNode = audio.ctx.createGain();
-
-	if (conf.volume !== undefined) {
-		gainNode.gain.value = conf.volume;
-	}
 
 	srcNode.connect(gainNode);
 	gainNode.connect(audio.gainNode);
 	srcNode.start();
 
-	let playing = true;
+	let paused = false;
 	let stopped = false;
+	let speed = 1;
 
-	return {
+	const handle = {
 
 		stop() {
 			srcNode.stop();
-			playing = false;
 			stopped = true;
 		},
 
 		resume() {
-			if (stopped) {
-				console.error(`sound ${id} is already stopped`);
-				return;
-			}
-			if (!playing) {
-				srcNode.playbackRate.value = conf.speed || 1;
-				playing = true;
+			if (paused) {
+				srcNode.playbackRate.value = speed;
+				paused = false;
 			}
 		},
 
 		pause() {
-			if (stopped) {
-				console.error(`sound ${id} is already stopped`);
-				return;
-			}
-			// TODO: is this alright?
 			srcNode.playbackRate.value = 0;
-			playing = false;
+			paused = true;
 		},
 
 		paused() {
-			return !playing;
+			return paused;
+		},
+
+		stopped() {
+			return stopped;
+		},
+
+		speed(val) {
+			if (val !== undefined) {
+				speed = Math.clamp(val, 0, 2);
+				if (!paused) {
+					srcNode.playbackRate.value = speed;
+				}
+			}
+			return speed;
+		},
+
+		detune(val) {
+			if (val !== undefined) {
+				srcNode.detune.value = Math.clamp(val, -1200, 1200);
+			}
+			return srcNode.detune.value;
+		},
+
+		volume(val) {
+			if (val !== undefined) {
+				gainNode.gain.value = Math.clamp(val, 0, 3);
+			}
+			return gainNode.gain.value;
+		},
+
+		loop() {
+			srcNode.loop = true;
+		},
+
+		unloop() {
+			srcNode.loop = false;
 		},
 
 	};
+
+	handle.speed(conf.speed);
+	handle.detune(conf.detune);
+	handle.volume(conf.volume);
+
+	return handle;
 
 }
 
@@ -1425,6 +1494,10 @@ Math.radians = function(degrees) {
 
 Math.degrees = function(radians) {
 	return radians * 180 / Math.PI;
+};
+
+Math.clamp = function(val, min, max) {
+	return Math.min(Math.max(val, min), max);
 };
 
 function lerp(a, b, t) {
@@ -3549,6 +3622,7 @@ kaboom.start = start;
 // asset load
 kaboom.loadRoot = loadRoot;
 kaboom.loadSprite = loadSprite;
+kaboom.loadAseprite = loadAseprite;
 kaboom.loadSound = loadSound;
 kaboom.loadFont = loadFont;
 kaboom.getSprite = getSprite;

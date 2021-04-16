@@ -10,11 +10,22 @@ loadSound("loopdigga", "/pub/sounds/loopdigga.mp3");
 
 scene("main", () => {
 
+	// the music might not autoplay cuz some browser won't allow audio start before any user interaction
 	const music = play("loopdigga", { loop: true, });
 
 	const label = add([
-		text("playing"),
+		text(),
 	]);
+
+	function updateText() {
+		label.text = `
+${music.paused() ? "paused" : "playing"}
+volume: ${music.volume()}
+detune: ${music.detune()}
+		`.trim();
+	}
+
+	updateText();
 
 	keyPress("space", () => {
 
@@ -24,14 +35,34 @@ scene("main", () => {
 			music.pause();
 		}
 
-		label.text = music.paused() ? "paused" : "playing";
+		updateText();
 		play("wooosh");
 
 	});
 
+	keyPress("down", () => {
+		music.volume(music.volume() - 0.1);
+		updateText();
+	});
+
+	keyPress("up", () => {
+		music.volume(music.volume() + 0.1);
+		updateText();
+	});
+
+	keyPress("left", () => {
+		music.detune(music.detune() - 100);
+		updateText();
+	});
+
+	keyPress("right", () => {
+		music.detune(music.detune() + 100);
+		updateText();
+	});
+
 	keyPress("escape", () => {
 		music.stop();
-		label.text = music.paused() ? "paused" : "playing";
+		updateText();
 	});
 
 });
