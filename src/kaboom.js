@@ -158,10 +158,7 @@ function loadProgress() {
 
 // global load path prefix
 function loadRoot(path) {
-	if (path) {
-		assets.loadRoot = path;
-	}
-	return assets.loadRoot;
+	assets.loadRoot = path;
 }
 
 // load a bitmap font to asset manager
@@ -189,6 +186,8 @@ function loadSprite(name, src, conf = {}) {
 	// sliceX: num,
 	// sliceY: num,
 	// anims: { name: [num, num] }
+
+	const curRoot = assets.loadRoot;
 
 	// synchronously load sprite from local pixel data
 	//
@@ -239,7 +238,7 @@ function loadSprite(name, src, conf = {}) {
 
 				const loader = newLoader();
 
-				fetch(assets.loadRoot + src)
+				fetch(curRoot + src)
 					.then((res) => {
 						return res.json();
 					})
@@ -279,7 +278,7 @@ function loadSprite(name, src, conf = {}) {
 			} else {
 
 				const loader = newLoader();
-				const img = loadImg(assets.loadRoot + src);
+				const img = loadImg(curRoot + src);
 
 				img.onload = () => {
 					const sprite = loadRawSprite(name, img, conf);
@@ -308,12 +307,13 @@ function loadSprite(name, src, conf = {}) {
 
 function loadAseprite(name, imgSrc, jsonSrc) {
 
+	const curRoot = assets.loadRoot;
+
 	return loadSprite(name, imgSrc).then(() => {
 
 		const loader = newLoader();
 
-		// TODO: loadRoot might be changed already
-		fetch(assets.loadRoot + jsonSrc)
+		fetch(curRoot + jsonSrc)
 			.then((res) => {
 				return res.json();
 			})
@@ -408,6 +408,8 @@ function getSprite(name) {
 // load a sound to asset manager
 function loadSound(name, src, conf = {}) {
 
+	const curRoot = assets.loadRoot;
+
 	return new Promise((resolve, reject) => {
 
 		// from url
@@ -415,7 +417,7 @@ function loadSound(name, src, conf = {}) {
 
 			const loader = newLoader();
 
-			fetch(assets.loadRoot + src)
+			fetch(curRoot + src)
 				.then((res) => {
 					return res.arrayBuffer();
 				})
@@ -1374,7 +1376,6 @@ function volume(v) {
 	return audio.gainNode.gain.value;
 }
 
-// TODO: return control handle
 // plays a sound, returns a control handle
 function play(id, conf = {}) {
 

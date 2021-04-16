@@ -1,15 +1,15 @@
 kaboom.global();
 
-loadRoot("/pub/");
+loadRoot("/pub/img/");
+loadAseprite("car", "car.png", "car.json");
+loadSprite("steel", "steel.png");
+loadSprite("grass", "grass.png");
+loadSprite("jumpy", "jumpy.png");
+loadSprite("spike", "spike.png");
+loadSprite("coin", "coin.png");
 
-loadAseprite("car", "/img/car.png", "/img/car.json");
-loadSprite("steel", "/img/steel.png");
-loadSprite("grass", "/img/grass.png");
-loadSprite("jumpy", "/img/jumpy.png");
-loadSprite("spike", "/img/spike.png");
-loadSprite("coin", "/img/coin.png");
-
-loadSound("coin", "/sounds/coin.ogg");
+loadRoot("/pub/sounds/");
+loadSound("coin", "coin.ogg");
 
 init({
 	fullscreen: true,
