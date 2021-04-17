@@ -38,7 +38,7 @@ scene("main", () => {
 	const BOSS_SPEED = 12;
 	const PLAYER_SPEED = 120;
 	const STAR_SPEED = 32;
-	const BOSS_HEALTH = 1200;
+	const BOSS_HEALTH = 1000;
 	const OBJ_HEALTH = 4;
 
 	const bossName = choose(objs);
@@ -256,6 +256,12 @@ space: shoot
 		]);
 	}
 
+	action("bullet", (b) => {
+		if (insaneMode) {
+			b.color = rand(rgb(0, 0, 0), rgb(1, 1, 1));
+		}
+	});
+
 	keyPress("space", () => {
 		spawnBullet(player.pos.sub(4, 0));
 		spawnBullet(player.pos.add(4, 0));
@@ -332,7 +338,7 @@ space: shoot
 
 	collides("bullet", "enemy", (b, e) => {
 		destroy(b);
-		e.hurt(insaneMode ? 6 : 1);
+		e.hurt(insaneMode ? 10 : 1);
 		makeExplosion(b.pos, 1, 6, 1);
 	});
 
