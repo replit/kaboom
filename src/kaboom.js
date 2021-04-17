@@ -587,10 +587,16 @@ function init(conf = {}) {
 
 	canvas.focus();
 
-	// prevent a surge of dt() when switch back after the tab being hidden for a while
-	document.addEventListener("visibilitychange", () => {
-		if (document.visibilityState === "visible") {
-			app.skipTime = true;
+	document.addEventListener("visibilitychange", (e) => {
+		switch (document.visibilityState) {
+			case "visible":
+				// prevent a surge of dt() when switch back after the tab being hidden for a while
+				app.skipTime = true;
+				audio.ctx.resume();
+				break;
+			case "hidden":
+				audio.ctx.suspend();
+				break;
 		}
 	});
 

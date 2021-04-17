@@ -2,6 +2,7 @@
 - (**BREAK**) changed `curAnim`, `width` and `height` by `sprite()` are changed to methods `curAnim()`, `width()` and `height()`
 - (**BREAK**) removed `velY`, `curPlatform` and `maxVel` fields by `body()`
 - fixed `dt()` surge on page visibility change (#20)
+- pause audio when page is not visible
 
 # 0.2.0
 - (**BREAK**) removed `aseSpriteSheet` conf field from `loadSprite(name, src, conf)`
