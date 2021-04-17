@@ -2239,6 +2239,15 @@ function add(comps) {
 					f(...args);
 				}
 			}
+			const scene = curScene();
+			const events = scene.events[event];
+			if (events) {
+				for (const ev of events) {
+					if (this.is(ev.tag)) {
+						ev.cb(this);
+					}
+				}
+			}
 		},
 
 		addTag(t) {
@@ -2297,6 +2306,9 @@ function readd(obj) {
 // add an event to a tag
 function on(event, tag, cb) {
 	const scene = curScene();
+	if (!scene.events[event]) {
+		scene.events[event] = [];
+	}
 	scene.events[event].push({
 		tag: tag,
 		cb: cb,
@@ -2535,11 +2547,6 @@ function gameFrame(ignorePause) {
 	revery((obj) => {
 		if (!obj.paused && doUpdate) {
 			obj.trigger("update");
-			for (const e of scene.events.update) {
-				if (obj.is(e.tag)) {
-					e.cb(obj);
-				}
-			}
 		}
 	});
 
@@ -2578,12 +2585,6 @@ function gameFrame(ignorePause) {
 			}
 
 			obj.trigger("draw");
-
-			for (const e of scene.events.draw) {
-				if (obj.is(e.tag)) {
-					e.cb(obj);
-				}
-			}
 
 			popTransform();
 
