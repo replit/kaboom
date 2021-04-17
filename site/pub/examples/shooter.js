@@ -5,28 +5,43 @@ init({
 	scale: 4,
 });
 
+const objs = [
+	"apple",
+	"guy",
+	"birdy",
+	"pipe",
+	"key",
+	"car2",
+	"door",
+	"pineapple",
+];
+
 loadRoot("/pub/img/");
 loadSprite("stars", "stars.png");
 loadSprite("ship", "ship.png");
-loadSprite("apple", "apple.png");
-loadSprite("guy", "guy.png");
-loadSprite("birdy", "birdy.png");
-loadSprite("pipe", "pipe.png");
-loadSprite("key", "key.png");
-loadSprite("pineapple", "pineapple.png");
+
+for (const obj of objs) {
+	loadSprite(obj, `${obj}.png`);
+}
 
 loadRoot("/pub/sounds/");
 loadSound("hit", "hit.ogg");
 loadSound("shoot", "shoot.ogg");
+loadSound("explosion", "explosion.ogg");
 loadSound("OtherworldlyFoe", "OtherworldlyFoe.mp3");
+loadSound("Burp", "Burp.mp3");
 
 scene("main", () => {
 
 	const BULLET_SPEED = 320;
 	const TRASH_SPEED = 48;
-	const PINEAPPLE_SPEED = 12;
+	const BOSS_SPEED = 12;
 	const PLAYER_SPEED = 120;
 	const STAR_SPEED = 32;
+	const BOSS_HEALTH = 1200;
+	const OBJ_HEALTH = 4;
+
+	const bossName = choose(objs);
 
 	let insaneMode = false;
 
@@ -36,6 +51,8 @@ scene("main", () => {
 		"game",
 		"ui",
 	], "game");
+
+	camIgnore("ui");
 
 	function health(hp) {
 		return {
@@ -77,6 +94,59 @@ scene("main", () => {
 			},
 		};
 	}
+
+	function late(t) {
+		let timer = 0;
+		return {
+			add() {
+				this.hidden = true;
+			},
+			update() {
+				timer += dt();
+				if (timer >= t) {
+					this.hidden = false;
+				}
+			},
+		}
+	}
+
+	add([
+		text("KILL",24),
+		pos(width() / 2, height() / 2),
+		origin("center"),
+		lifespan(1),
+		layer("ui"),
+	]);
+
+	add([
+		text("THE", 12),
+		pos(width() / 2, height() / 2),
+		origin("center"),
+		lifespan(2),
+		late(1),
+		layer("ui"),
+	]);
+
+	add([
+		text(bossName.toUpperCase(), 18),
+		pos(width() / 2, height() / 2),
+		origin("center"),
+		lifespan(4),
+		late(2),
+		layer("ui"),
+	]);
+
+	add([
+		text(`
+up:    insane mode
+left:  move left
+right: move right
+space: shoot
+		`.trim(), 4),
+		origin("botleft"),
+		pos(4, height() - 4),
+		layer("ui"),
+	]);
 
 	const sky = add([
 		rect(width(), height()),
@@ -123,10 +193,16 @@ scene("main", () => {
 
 	keyDown("left", () => {
 		player.move(-PLAYER_SPEED, 0);
+		if (player.pos.x < 0) {
+			player.pos.x = width();
+		}
 	});
 
 	keyDown("right", () => {
 		player.move(PLAYER_SPEED, 0);
+		if (player.pos.x > width()) {
+			player.pos.x = 0;
+		}
 	});
 
 	keyPress("up", () => {
@@ -141,9 +217,11 @@ scene("main", () => {
 
 	player.collides("enemy", (e) => {
 		destroy(e);
-		camShake(120);
-		makeExplosion(vec2(width() / 2, height() / 2), 12, 120, 30);
 		destroy(player);
+		camShake(120);
+		play("explosion");
+		music.detune(-1200);
+		makeExplosion(vec2(width() / 2, height() / 2), 12, 120, 30);
 		wait(1, () => {
 			music.stop();
 			go("main");
@@ -196,36 +274,28 @@ scene("main", () => {
 		}
 	});
 
-	const trashes = {
-		apple: 3,
-		guy: 2,
-		birdy: 6,
-		pipe: 12,
-		key: 1,
-	};
-
 	function spawnTrash() {
-		const trash = choose(Object.keys(trashes));
-		return add([
-			sprite(trash),
+		const name = choose(objs.filter(n => n != bossName));
+		add([
+			sprite(name),
 			pos(rand(0, width()), 0),
-			health(trashes[trash]),
+			health(OBJ_HEALTH),
 			origin("bot"),
 			"trash",
 			"enemy",
 			{
-				value: trashes[trash],
 				speed: rand(TRASH_SPEED * 0.5, TRASH_SPEED * 1.5),
 			},
 		]);
+		wait(insaneMode ? 0.1 : 0.3, spawnTrash);
 	}
 
 	const boss = add([
-		sprite("pineapple"),
-		pos(width() / 2, 32),
-		health(1600),
+		sprite(bossName),
+		pos(width() / 2, 48),
+		health(BOSS_HEALTH),
 		scale(3),
-		origin("center"),
+		origin("bot"),
 		"enemy",
 		{
 			dir: 1,
@@ -239,7 +309,6 @@ scene("main", () => {
 	});
 
 	on("hurt", "enemy", (e) => {
-		makeExplosion(e.pos, 1, 6, 1);
 		camShake(1);
 		play("hit", {
 			detune: rand(-1200, 1200),
@@ -249,7 +318,7 @@ scene("main", () => {
 
 	const timer = add([
 		text(0),
-		pos(6, 6),
+		pos(2, 10),
 		layer("ui"),
 		{
 			time: 0,
@@ -263,23 +332,19 @@ scene("main", () => {
 
 	collides("bullet", "enemy", (b, e) => {
 		destroy(b);
-		e.hurt(insaneMode ? 5 : 1);
+		e.hurt(insaneMode ? 6 : 1);
+		makeExplosion(b.pos, 1, 6, 1);
 	});
 
 	action("trash", (t) => {
-		t.move(0, t.speed * (insaneMode ? 3 : 1));
+		t.move(0, t.speed * (insaneMode ? 5 : 1));
 		if (t.pos.y - t.height() > height()) {
 			destroy(t);
 		}
 	});
 
-	// "death" event triggered by health() component
-	on("death", "trash", (t) => {
-		timer.time -= t.value / (insaneMode ? 3 : 6);
-	});
-
 	boss.action((p) => {
-		boss.move(PINEAPPLE_SPEED * boss.dir * (insaneMode ? 3 : 1), 0);
+		boss.move(BOSS_SPEED * boss.dir * (insaneMode ? 3 : 1), 0);
 		if (boss.dir === 1 && boss.pos.x >= width() - 20) {
 			boss.dir = -1;
 		}
@@ -289,7 +354,15 @@ scene("main", () => {
 	});
 
 	boss.on("hurt", () => {
-		healthbar.width = width() * boss.hp() / 1600;
+		healthbar.set(boss.hp());
+	});
+
+	boss.on("death", () => {
+		music.stop();
+		go("win", {
+			time: timer.time,
+			boss: bossName,
+		});
 	});
 
 	const healthbar = add([
@@ -297,10 +370,51 @@ scene("main", () => {
 		pos(0, 0),
 		color(0.5, 1, 0.5),
 		layer("ui"),
+		{
+			max: BOSS_HEALTH,
+			set(hp) {
+				this.width = width() * hp / this.max;
+				this.flash = true;
+			},
+		},
 	]);
 
-	// spawn a trash every 0.5 second
-	loop(0.5, spawnTrash);
+	healthbar.action(() => {
+		if (healthbar.flash) {
+			healthbar.color = rgb(1, 1, 1);
+			healthbar.flash = false;
+		} else {
+			healthbar.color = rgb(0.5, 1, 0.5);
+		}
+	});
+
+	spawnTrash();
+
+});
+
+scene("win", ({ time, boss }) => {
+
+	const burp = play("Burp", {
+		loop: true,
+	});
+
+	loop(0.5, () => {
+		burp.detune(rand(-1200, 1200));
+	});
+
+	add([
+		sprite(boss),
+		color(1, 0, 0),
+		origin("center"),
+		scale(12),
+		pos(width() / 2, height() / 2),
+	]);
+
+	add([
+		text(time.toFixed(2), 24),
+		origin("center"),
+		pos(width() / 2, height() / 2),
+	]);
 
 });
 
