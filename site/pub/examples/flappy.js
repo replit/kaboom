@@ -11,6 +11,7 @@ loadSound("hit", "sounds/hit.ogg");
 init({
 	scale: 2,
 	fullscreen: true,
+	debug: true,
 });
 
 scene("main", () => {

@@ -3,6 +3,15 @@
 - (**BREAK**) removed `velY`, `curPlatform` and `maxVel` fields by `body()`
 - fixed `dt()` surge on page visibility change (#20)
 - pause audio when page is not visible
+- added built in debug control with `init({ debug: true, })`
+  - `` ` ``: toggle `showLog` (default on with `debug: true`)
+  - `f1`: toggle `showArea`
+  - `f2`: toggle `hoverInfo`
+  - `f8`: toggle `pause()`
+  - `f7`: decrease `timeScale`
+  - `f9`: increase `timeScale`
+  - `f10`: `stepFrame()`
+- added on screen logging with `log()` and `error()`
 
 # 0.2.0
 - (**BREAK**) removed `aseSpriteSheet` conf field from `loadSprite(name, src, conf)`
