@@ -196,7 +196,7 @@ function matchUrl(pat, url) {
 	const matches = reg.exec(url);
 
 	if (matches) {
-		return {...matches?.groups};
+		return { ...matches.groups };
 	} else {
 		return null;
 	}
