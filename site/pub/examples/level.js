@@ -145,7 +145,7 @@ scene("main", () => {
 	}
 
 	player.action(() => {
-		if (player.pos.y <= -240) {
+		if (player.pos.y >= 320) {
 			respawn();
 		}
 	});
