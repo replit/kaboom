@@ -12,16 +12,17 @@ const port = process.env.PORT || 8000;
 const server = makeServer();
 
 const pages = {
-	"/": require("./doc"),
-	"/guide": require("./guide"),
-	"/examples": require("./examples"),
+	"/": () => require("./doc"),
+	"/guide": () => require("./guide"),
+	"/examples": () => require("./examples"),
+	"/example/:name": (req, res, match) => require("./example")(match.name),
 };
 
 for (const path in pages) {
-	server.match(path, (req, res) => {
+	server.match(path, (req, res, match) => {
 		res.setHeader("Content-Type", "text/html; charset=utf-8");
 		res.writeHead(200);
-		res.end(pages[path]);
+		res.end(pages[path](req, res, match));
 	});
 }
 
