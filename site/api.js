@@ -616,7 +616,7 @@ player.action(() => {
 			`),
 			f("origin", [
 				a("orig", "origin pt"),
-			], null, "the origin to draw the object (default center)", `
+			], null, "the origin to draw the object (default topleft)", `
 const obj = add([
 	sprite("froggy"),
 
