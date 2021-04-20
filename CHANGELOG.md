@@ -1,7 +1,7 @@
 # v0.3.0 (wip)
-- (**BREAK**) changed `curAnim`, `width` and `height` by `sprite()` are changed to methods `curAnim()`, `width()` and `height()`
-- (**BREAK**) removed `velY`, `curPlatform` and `maxVel` fields by `body()`
 - (**BREAK**) removed `pause()` and `paused()` in favor to `kaboom.debug.paused`
+- (**BREAK**) removed `velY`, `curPlatform` and `maxVel` fields by `body()`
+- (**BREAK**) changed `curAnim` by `sprite()` to method `curAnim()`
 - fixed `dt()` surge on page visibility change (#20)
 - pause audio when page is not visible
 - added built in debug control with `init({ debug: true, })`
@@ -16,9 +16,9 @@
 - fixed `loadRoot()` sometimes doesn't work in async tasks
 
 # v0.2.0 "Hear the Tremble"
+- (**BREAK**) removed `aseSpriteSheet` conf field from `loadSprite(name, src, conf)`
 - added `pause()`, `resume()`, `stop()`, `loop()`, `unloop()`, `volume()`, `detune()`, `speed()` methods to the handle returned by `play()`
 - added `camShake()` for built in camera shake
-- (**BREAK**) removed `aseSpriteSheet` conf field from `loadSprite(name, src, conf)`
 - added `loadAseprite(name, imgSrc, jsonSrc)`
 - added area component generation for `text()`
 - added `noArea` to conf field of `sprite()`, `rect()` and `text()`, allowing to disable auto area component generation

@@ -471,6 +471,10 @@ obj.play("jump");
 // stop the anim
 obj.stop();
 
+console.log(obj.curAnim());
+console.log(obj.width);
+console.log(obj.height);
+
 obj.onAnimEnd("jump", () => {
 	obj.play("fall");
 });

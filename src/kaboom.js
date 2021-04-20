@@ -3284,6 +3284,8 @@ function sprite(id, conf = {}) {
 	return {
 
 		spriteID: id,
+		width: width,
+		height: height,
 		animSpeed: conf.animSpeed || 0.1,
 		frame: conf.frame || 0,
 		quad: conf.quad || quad(0, 0, 1, 1),
@@ -3291,7 +3293,7 @@ function sprite(id, conf = {}) {
 		add() {
 			// add default area
 			if (!this.area && !conf.noArea) {
-				this.use(getAreaFromSize(width, height, this.origin));
+				this.use(getAreaFromSize(this.width, this.height, this.origin));
 			}
 		},
 
@@ -3375,14 +3377,6 @@ function sprite(id, conf = {}) {
 
 		curAnim() {
 			return curAnim;
-		},
-
-		width() {
-			return width;
-		},
-
-		height() {
-			return height;
 		},
 
 		onAnimPlay(name, cb) {
