@@ -11,6 +11,7 @@ init({
 	width: 160,
 	height: 120,
 	scale: 4,
+	debug: true,
 });
 
 scene("main", () => {
@@ -145,11 +146,6 @@ scene("main", () => {
 	keyRelease(["left", "right"], () => {
 		speedMod = 1;
 		car.animSpeed = 0.1 / speedMod;
-	});
-
-	keyPress("f1", () => {
-		kaboom.debug.showArea = !kaboom.debug.showArea;
-		kaboom.debug.showInfo = !kaboom.debug.showInfo;
 	});
 
 });

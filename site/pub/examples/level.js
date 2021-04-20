@@ -9,11 +9,12 @@ loadSprite("spike", "spike.png");
 loadSprite("coin", "coin.png");
 
 loadRoot("/pub/sounds/");
-loadSound("coin", "coin.ogg");
+loadSound("coin", "coin.mp3");
 
 init({
 	fullscreen: true,
 	scale: 2,
+	debug: true,
 });
 
 scene("main", () => {
@@ -150,16 +151,10 @@ scene("main", () => {
 	});
 
 	const score = add([
-		text("0"),
 		pos(12, 12),
 		layer("ui"),
 		{ value: 0, },
 	]);
-
-	keyPress("f1", () => {
-		kaboom.debug.showArea = !kaboom.debug.showArea;
-		kaboom.debug.hoverInfo = !kaboom.debug.hoverInfo;
-	});
 
 });
 

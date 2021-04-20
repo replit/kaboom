@@ -1,7 +1,7 @@
 /*
 
 kaboom.js
-v0.2.0
+v0.3.0
 
 a JavaScript game programming library
 
@@ -82,8 +82,10 @@ const kaboom = {};
 kaboom.debug = {
 	timeScale: 1,
 	showArea: false,
-	showLog: false,
 	hoverInfo: false,
+	showLog: false,
+	logTime: 6,
+	logMax: 32,
 };
 
 /*
@@ -270,7 +272,7 @@ function loadSprite(name, src, conf = {}) {
 
 					})
 					.catch(() => {
-						console.error(`failed to load sprite '${name}' from '${src}'`);
+						error(`failed to load sprite '${name}' from '${src}'`);
 					})
 					;
 
@@ -287,7 +289,7 @@ function loadSprite(name, src, conf = {}) {
 				};
 
 				img.onerror = () => {
-					console.error(`failed to load sprite '${name}' from '${src}'`);
+					error(`failed to load sprite '${name}' from '${src}'`);
 					loader.done();
 				};
 
@@ -342,7 +344,7 @@ function loadAseprite(name, imgSrc, jsonSrc) {
 function getSprite(name) {
 	const sprite = assets.sprites[name];
 	if (!sprite) {
-		console.error(`sprite not found: '${name}'`);
+		error(`sprite not found: '${name}'`);
 	}
 	return {
 
@@ -428,12 +430,12 @@ function loadSound(name, src, conf = {}) {
 						audio.sounds[name] = buf;
 						resolve(buf);
 					}, (err) => {
-						console.error(`failed to decode audio: ${name}`);
+						error(`failed to decode audio: ${name}`);
 						loader.done();
 					});
 				})
 				.catch((err) => {
-					console.error(`failed to load sound '${name}' from '${src}'`);
+					error(`failed to load sound '${name}' from '${src}'`);
 					loader.done();
 				})
 				;
@@ -490,11 +492,14 @@ const preventDefaultKeys = [
 	"right",
 	"up",
 	"down",
+	"f7",
+	"f8",
 ];
 
 // TODO: make this not global?
 let gl;
 
+// TODO: separate lower-level appInit() and exposed init()
 function init(conf = {}) {
 
 	let canvas = conf.canvas;
@@ -587,12 +592,22 @@ function init(conf = {}) {
 
 	canvas.focus();
 
-	// prevent a surge of dt() when switch back after the tab being hidden for a while
-	document.addEventListener("visibilitychange", () => {
-		if (document.visibilityState === "visible") {
-			app.skipTime = true;
+	document.addEventListener("visibilitychange", (e) => {
+		switch (document.visibilityState) {
+			case "visible":
+				// prevent a surge of dt() when switch back after the tab being hidden for a while
+				app.skipTime = true;
+				audio.ctx.resume();
+				break;
+			case "hidden":
+				audio.ctx.suspend();
+				break;
 		}
 	});
+
+	if (conf.debug) {
+		kaboom.debug.showLog = true;
+	}
 
 }
 
@@ -945,7 +960,7 @@ function makeProgram(vertSrc, fragSrc) {
 	var msg = gl.getShaderInfoLog(vertShader);
 
 	if (msg) {
-		console.error(msg);
+		error(msg);
 	}
 
 	const fragShader = gl.createShader(gl.FRAGMENT_SHADER);
@@ -956,7 +971,7 @@ function makeProgram(vertSrc, fragSrc) {
 	var msg = gl.getShaderInfoLog(fragShader);
 
 	if (msg) {
-		console.error(msg);
+		error(msg);
 	}
 
 	const id = gl.createProgram();
@@ -973,7 +988,7 @@ function makeProgram(vertSrc, fragSrc) {
 	var msg = gl.getProgramInfoLog(id);
 
 	if (msg) {
-		console.error(msg);
+		error(msg);
 	}
 
 	return {
@@ -1273,7 +1288,7 @@ function fmtText(text, conf = {}) {
 	const font = assets.fonts[fontName];
 
 	if (!font) {
-		console.error(`font not found: '${fontName}'`);
+		error(`font not found: '${fontName}'`);
 		return {
 			width: 0,
 			height: 0,
@@ -1396,7 +1411,7 @@ function play(id, conf = {}) {
 	const sound = audio.sounds[id];
 
 	if (!sound) {
-		console.error(`sound not found: "${id}"`);
+		error(`sound not found: "${id}"`);
 		return;
 	}
 
@@ -1453,6 +1468,9 @@ function play(id, conf = {}) {
 		},
 
 		detune(val) {
+			if (!srcNode.detune) {
+				return 0;
+			}
 			if (val !== undefined) {
 				srcNode.detune.value = Math.clamp(val, -1200, 1200);
 			}
@@ -1930,7 +1948,7 @@ function makeRng(seed) {
 				this.seed = (A * this.seed + C) % M;
 				return this.seed / M;
 			} else {
-				console.error("invalid param to rand()");
+				error("invalid param to rand()");
 			}
 		},
 	};
@@ -2004,6 +2022,7 @@ const game = {
 	curScene: undefined,
 	paused: false,
 	scenes: {},
+	log: [],
 };
 
 // start describing a scene (this should be called before start())
@@ -2059,17 +2078,62 @@ function curScene() {
 	return game.scenes[game.curScene];
 }
 
+// register inputs for controlling debug features
+function regDebugInputs() {
+
+	const dbg = kaboom.debug;
+
+	keyPress("`", () => {
+		dbg.showLog = !dbg.showLog;
+		log(`show log: ${dbg.showLog ? "on" : "off"}`);
+	});
+
+	keyPress("f1", () => {
+		dbg.showArea = !dbg.showArea;
+		log(`show area: ${dbg.showArea ? "on" : "off"}`);
+	});
+
+	keyPress("f2", () => {
+		dbg.hoverInfo = !dbg.hoverInfo;
+		log(`hover info: ${dbg.hoverInfo ? "on" : "off"}`);
+	});
+
+	keyPress("f8", () => {
+		pause(!paused());
+		log(`${paused() ? "paused" : "unpaused"}`);
+	});
+
+	keyPress("f7", () => {
+		dbg.timeScale = Math.clamp(dbg.timeScale - 0.2, 0, 2);
+		log(`time scale: ${dbg.timeScale.toFixed(1)}`);
+	});
+
+	keyPress("f9", () => {
+		dbg.timeScale = Math.clamp(dbg.timeScale + 0.2, 0, 2);
+		log(`time scale: ${dbg.timeScale.toFixed(1)}`);
+	});
+
+	keyPress("f10", () => {
+		stepFrame();
+		log(`stepped frame`);
+	});
+
+}
+
 // switch to a scene
 function go(name, ...args) {
 	reload(name);
 	game.curScene = name;
 	const scene = game.scenes[name];
 	if (!scene) {
-		console.error(`scene not found: '${name}'`);
+		error(`scene not found: '${name}'`);
 		return;
 	}
 	if (!scene.initialized) {
 		scene.init(...args);
+		if (kaboom.conf.debug) {
+			regDebugInputs();
+		}
 		scene.initialized = true;
 	}
 }
@@ -2077,7 +2141,7 @@ function go(name, ...args) {
 // reload a scene, reset all objs to their init states
 function reload(name) {
 	if (!game.scenes[name]) {
-		console.error(`scene not found: '${name}'`);
+		error(`scene not found: '${name}'`);
 		return;
 	}
 	scene(name, game.scenes[name].init);
@@ -2169,7 +2233,7 @@ function add(comps) {
 			}
 
 			if (type !== "object") {
-				console.error(`invalid comp type: ${type}`);
+				error(`invalid comp type: ${type}`);
 				return;
 			}
 
@@ -2239,6 +2303,15 @@ function add(comps) {
 					f(...args);
 				}
 			}
+			const scene = curScene();
+			const events = scene.events[event];
+			if (events) {
+				for (const ev of events) {
+					if (this.is(ev.tag)) {
+						ev.cb(this);
+					}
+				}
+			}
 		},
 
 		addTag(t) {
@@ -2297,6 +2370,9 @@ function readd(obj) {
 // add an event to a tag
 function on(event, tag, cb) {
 	const scene = curScene();
+	if (!scene.events[event]) {
+		scene.events[event] = [];
+	}
 	scene.events[event].push({
 		tag: tag,
 		cb: cb,
@@ -2505,13 +2581,15 @@ function gravity(g) {
 	return scene.gravity;
 }
 
+const LOG_TIME = 6;
+
 // TODO: cleaner pause logic
 function gameFrame(ignorePause) {
 
 	const scene = curScene();
 
 	if (!scene) {
-		console.error(`scene not found: '${game.curScene}'`);
+		error(`scene not found: '${game.curScene}'`);
 		return;
 	}
 
@@ -2535,11 +2613,6 @@ function gameFrame(ignorePause) {
 	revery((obj) => {
 		if (!obj.paused && doUpdate) {
 			obj.trigger("update");
-			for (const e of scene.events.update) {
-				if (obj.is(e.tag)) {
-					e.cb(obj);
-				}
-			}
 		}
 	});
 
@@ -2579,12 +2652,6 @@ function gameFrame(ignorePause) {
 
 			obj.trigger("draw");
 
-			for (const e of scene.events.draw) {
-				if (obj.is(e.tag)) {
-					e.cb(obj);
-				}
-			}
-
 			popTransform();
 
 		}
@@ -2593,6 +2660,48 @@ function gameFrame(ignorePause) {
 
 	for (const f of scene.render) {
 		f();
+	}
+
+	// TODO: make log and progress bar fixed size independent of global scale
+	// draw log
+	game.log = game.log.filter(l => l.timer < kaboom.debug.logTime);
+
+	if (game.log.length > kaboom.debug.logMax) {
+		game.log = game.log.slice(0, kaboom.debug.logMax);
+	}
+
+	const pos = vec2(0, height());
+
+	if (kaboom.debug.showLog) {
+
+		game.log.forEach((log, i) => {
+
+			const col = (() => {
+				switch (log.type) {
+					case "log": return rgb(1, 1, 1);
+					case "error": return rgb(1, 0, 0.5);
+				}
+			})();
+
+			const ftext = fmtText(log.msg, {
+				pos: pos,
+				origin: "botleft",
+				color: col,
+				z: 1,
+			});
+
+			drawRect(pos, ftext.width, ftext.height, {
+				origin: "botleft",
+				color: rgba(0, 0, 0, 0.5),
+				z: 1,
+			});
+
+			drawFmtText(ftext);
+			log.timer += dt();
+			pos.y -= ftext.height;
+
+		});
+
 	}
 
 	gfxFrameEnd();
@@ -2649,7 +2758,7 @@ function start(name, ...args) {
 			const scene = curScene();
 
 			if (!scene) {
-				console.error(`scene not found: '${game.curScene}'`);
+				error(`scene not found: '${game.curScene}'`);
 				return;
 			}
 
@@ -3151,7 +3260,7 @@ function sprite(id, conf = {}) {
 	const spr = assets.sprites[id];
 
 	if (!spr) {
-		console.error(`sprite not found: "${id}"`);
+		error(`sprite not found: "${id}"`);
 		return;
 	}
 
@@ -3235,7 +3344,7 @@ function sprite(id, conf = {}) {
 			const anim = assets.sprites[this.spriteID].anims[name];
 
 			if (!anim) {
-				console.error(`anim not found: ${name}`);
+				error(`anim not found: ${name}`);
 				return;
 			}
 
@@ -3511,10 +3620,20 @@ function stepFrame() {
 
 function error(msg) {
 	console.error(msg);
+	game.log.unshift({
+		type: "error",
+		msg: msg,
+		timer: 0,
+	});
 }
 
 function log(msg) {
 	console.log(msg);
+	game.log.unshift({
+		type: "log",
+		msg: msg,
+		timer: 0,
+	});
 }
 
 /*
@@ -3765,6 +3884,8 @@ kaboom.fps = fps;
 kaboom.pause = pause;
 kaboom.paused = paused;
 kaboom.stepFrame = stepFrame;
+kaboom.log = log;
+kaboom.error = error;
 
 // level
 kaboom.addLevel = addLevel;

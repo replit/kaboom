@@ -45,14 +45,25 @@ init();
 
 // options
 init({
-	width: 480, // width of canvas
+	width: 640, // width of canvas
 	height: 480, // height of canvas
 	canvas: document.getElementById("game"), // use custom canvas
 	scale: 2, // pixel size (for pixelated games you might want small canvas + scale)
-	clearColor: rgb(0, 0, 1), // background color (default black)
+	clearColor: rgb(0, 0, 0), // background color (default black)
 	fullscreen: true, // if fullscreen
 	crisp: true, // if pixel crisp (for sharp pixelated games)
+	debug: false, // debug mode
 });
+
+// if "debug" is enabled, your game gets some special key bindings
+// - \`: toggle kaboom.debug.showLog
+// - f1: toggle kaboom.debug.showArea
+// - f2: toggle kaboom.debug.hoverInfo
+// - f8: pause() / unpause()
+// - f7: decrease kaboom.debug.timeScale
+// - f9: increase kaboom.debug.timeScale
+// - f10: stepFrame()
+// see more in the debug section below
 			`),
 			f("start", [
 				a("scene", "name of scene"),
@@ -1095,6 +1106,8 @@ action("block", (b) => {
 			f("objCount", [], null, "current number of objects in scene", ""),
 			f("pause", [], null, "pause the game", ""),
 			f("unpause", [], null, "unpause the game", ""),
+			f("log", [], null, "log a message on screen if kaboom.debug.showLog is enabled", ""),
+			f("error", [], null, "log an error message on screen if kaboom.debug.showLog is enabled", ""),
 			f("kaboom.debug", [], null, "debug flags", `
 // scale the time
 kaboom.debug.timeScale = 0.5;
@@ -1104,6 +1117,15 @@ kaboom.debug.showArea = true;
 
 // hover to inspect objects (needs showArea checked)
 kaboom.debug.hoverInfo = true;
+
+// if show on screen logs
+kaboom.debug.showLog = true;
+
+// log decay time
+kaboom.debug.logTime = 32;
+
+// log stack count max
+kaboom.debug.logMax = 6;
 			`),
 		],
 	},

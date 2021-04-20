@@ -21,21 +21,6 @@ export default function genGame(code) {
 			display: block;
 			position: absolute;
 		}
-		#log {
-			color: white;
-			font-family: Monospace;
-			position: absolute;
-			z-index: 100;
-		}
-		.log {
-			color: white;
-		}
-		.warn {
-			color: yellow;
-		}
-		.error {
-			color: red;
-		}
 	</style>
 </head>
 

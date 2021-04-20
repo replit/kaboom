@@ -13,8 +13,5 @@
 	],
 	"scripts": {
 		"site": "cd site; NODE_ENV=dev node ."
-	},
-	"devDependencies": {
-		"esbuild": "^0.11.6"
 	}
 }

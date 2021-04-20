@@ -133,7 +133,7 @@ scene("main", () => {
 		go("lose", { score: score.value, });
 	});
 
-	// grow a mushroom if player collideds "prize" object it from bottom
+	// grow an apple if player's head bumps into an obj with "prize" tag
 	player.on("headbump", (obj) => {
 		if (obj.is("prize")) {
 			level.spawn("#", obj.gridPos.sub(0, 1));

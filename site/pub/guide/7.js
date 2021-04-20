@@ -1,5 +1,5 @@
 // TALK: let's make it fall
-// TALK: the body() component tells kaboom this birdy applies to gravity
+// TALK: the body() component tells kaboom gravity applies to this birdy
 // TALK: but we don't want the birdy to keep falling
 // TALK: let's make a temporary platform for the bird to stay on
 

@@ -4,13 +4,14 @@ loadRoot("/pub/");
 loadSprite("bg", "img/bg.png");
 loadSprite("birdy", "img/birdy.png");
 loadSprite("pipe", "img/pipe.png");
-loadSound("score", "sounds/score.ogg");
-loadSound("wooosh", "sounds/wooosh.ogg");
-loadSound("hit", "sounds/hit.ogg");
+loadSound("score", "sounds/score.mp3");
+loadSound("wooosh", "sounds/wooosh.mp3");
+loadSound("hit", "sounds/hit.mp3");
 
 init({
 	scale: 2,
 	fullscreen: true,
+	debug: true,
 });
 
 scene("main", () => {
