@@ -6,7 +6,7 @@ init({
 });
 
 loadRoot("/pub/sounds/");
-loadSound("wooosh", "wooosh.ogg");
+loadSound("wooosh", "wooosh.mp3");
 loadSound("OtherworldlyFoe", "OtherworldlyFoe.mp3");
 
 scene("main", () => {

@@ -25,9 +25,9 @@ for (const obj of objs) {
 }
 
 loadRoot("/pub/sounds/");
-loadSound("hit", "hit.ogg");
-loadSound("shoot", "shoot.ogg");
-loadSound("explosion", "explosion.ogg");
+loadSound("hit", "hit.mp3");
+loadSound("shoot", "shoot.mp3");
+loadSound("explosion", "explosion.mp3");
 loadSound("OtherworldlyFoe", "OtherworldlyFoe.mp3");
 loadSound("Burp", "Burp.mp3");
 

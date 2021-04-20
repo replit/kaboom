@@ -9,7 +9,7 @@ loadSprite("spike", "spike.png");
 loadSprite("coin", "coin.png");
 
 loadRoot("/pub/sounds/");
-loadSound("coin", "coin.ogg");
+loadSound("coin", "coin.mp3");
 
 init({
 	fullscreen: true,
