@@ -1468,6 +1468,9 @@ function play(id, conf = {}) {
 		},
 
 		detune(val) {
+			if (!srcNode.detune) {
+				return 0;
+			}
 			if (val !== undefined) {
 				srcNode.detune.value = Math.clamp(val, -1200, 1200);
 			}
