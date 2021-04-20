@@ -152,7 +152,7 @@ function makeServer() {
 					return;
 				}
 				const stat = fs.statSync(p);
-				const handler = stat.isDirectory(p) ? serveDir(p, prefix) : serveFile(p);
+				const handler = stat.isDirectory(p) ? serveDir(p) : serveFile(p);
 				handler(req, res);
 			});
 		},
@@ -250,7 +250,7 @@ function serveFile(p) {
 
 }
 
-function serveDir(p, root) {
+function serveDir(p) {
 
 	return (req, res) => {
 

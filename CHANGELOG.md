@@ -1,13 +1,14 @@
 # v0.3.0 (wip)
 - (**BREAK**) changed `curAnim`, `width` and `height` by `sprite()` are changed to methods `curAnim()`, `width()` and `height()`
 - (**BREAK**) removed `velY`, `curPlatform` and `maxVel` fields by `body()`
+- (**BREAK**) removed `pause()` and `paused()` in favor to `kaboom.debug.paused`
 - fixed `dt()` surge on page visibility change (#20)
 - pause audio when page is not visible
 - added built in debug control with `init({ debug: true, })`
   - `` ` ``: toggle `showLog` (default on with `debug: true`)
   - `f1`: toggle `showArea`
   - `f2`: toggle `hoverInfo`
-  - `f8`: toggle `pause()`
+  - `f8`: toggle `paused`
   - `f7`: decrease `timeScale`
   - `f9`: increase `timeScale`
   - `f10`: `stepFrame()`

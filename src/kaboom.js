@@ -80,6 +80,7 @@ debug utils
 const kaboom = {};
 
 kaboom.debug = {
+	paused: false,
 	timeScale: 1,
 	showArea: false,
 	hoverInfo: false,
@@ -2099,8 +2100,8 @@ function regDebugInputs() {
 	});
 
 	keyPress("f8", () => {
-		pause(!paused());
-		log(`${paused() ? "paused" : "unpaused"}`);
+		dbg.paused = !dbg.paused;
+		log(`${dbg.paused ? "paused" : "unpaused"}`);
 	});
 
 	keyPress("f7", () => {
@@ -2593,7 +2594,7 @@ function gameFrame(ignorePause) {
 		return;
 	}
 
-	const doUpdate = ignorePause || !game.paused;
+	const doUpdate = ignorePause || !kaboom.debug.paused;
 
 	if (doUpdate) {
 		// update timers
@@ -3606,14 +3607,6 @@ function objCount() {
 	return scene.objs.size;
 }
 
-function pause(b) {
-	game.paused = b === undefined ? true : b;
-}
-
-function paused() {
-	return game.paused;
-}
-
 function stepFrame() {
 	gameFrame(true);
 }
@@ -3881,8 +3874,6 @@ kaboom.drawCircle = drawCircle;
 // debug
 kaboom.objCount = objCount;
 kaboom.fps = fps;
-kaboom.pause = pause;
-kaboom.paused = paused;
 kaboom.stepFrame = stepFrame;
 kaboom.log = log;
 kaboom.error = error;

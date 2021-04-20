@@ -59,7 +59,7 @@ init({
 // - \`: toggle kaboom.debug.showLog
 // - f1: toggle kaboom.debug.showArea
 // - f2: toggle kaboom.debug.hoverInfo
-// - f8: pause() / unpause()
+// - f8: toggle kaboom.debug.paused
 // - f7: decrease kaboom.debug.timeScale
 // - f9: increase kaboom.debug.timeScale
 // - f10: stepFrame()
@@ -1104,11 +1104,12 @@ action("block", (b) => {
 		entries: [
 			f("fps", [], null, "current frames per second", ""),
 			f("objCount", [], null, "current number of objects in scene", ""),
-			f("pause", [], null, "pause the game", ""),
-			f("unpause", [], null, "unpause the game", ""),
 			f("log", [], null, "log a message on screen if kaboom.debug.showLog is enabled", ""),
 			f("error", [], null, "log an error message on screen if kaboom.debug.showLog is enabled", ""),
 			f("kaboom.debug", [], null, "debug flags", `
+// pause the game (events are still been listened)
+kaboom.debug.paused = true;
+
 // scale the time
 kaboom.debug.timeScale = 0.5;
 
