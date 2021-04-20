@@ -1,88 +1,66 @@
 // serve http
 
 const fs = require("fs");
-const http = require("http");
 const utils = require("./utils");
 
 const {
-	serveFs,
+	makeServer,
 } = require("./www");
 
 const port = process.env.PORT || 8000;
 
+const server = makeServer();
+
 const pages = {
-	"/": () => require("./doc"),
-	"/guide": () => require("./guide"),
-	"/examples": () => require("./examples"),
+	"/": require("./doc"),
+	"/guide": require("./guide"),
+	"/examples": require("./examples"),
 };
 
-const server = http.createServer((req, res) => {
-
-	try {
-
-		const path = req.url.split("?")[0];
-
-		for (const target in pages) {
-			if (path === target) {
-				const content = pages[target]();
-				res.setHeader("Content-Type", "text/html; charset=utf-8");
-				res.writeHead(200);
-				res.end(content);
-				return;
-			}
-		}
-
-		const versions = fs
-			.readdirSync("lib")
-			.filter(p => !p.startsWith("."))
-			;
-
-		const latestVer = versions.reduce(utils.cmpSemVer);
-
-		if (path === "/versions") {
-			res.setHeader("Content-Type", "application/json");
-			res.setHeader("Access-Control-Allow-Origin", "*");
-			res.writeHead(200);
-			res.end(JSON.stringify([ ...versions, "dev", ]));
-			return;
-		}
-
-		if (path === "/latest") {
-			res.setHeader("Content-Type", "application/json");
-			res.setHeader("Access-Control-Allow-Origin", "*");
-			res.writeHead(200);
-			res.end(JSON.stringify(latestVer));
-			return;
-		}
-
-		serveFs("/pub", "pub")(req, res);
-		serveFs(`/lib`, `lib`)(req, res);
-		serveFs("/lib/latest", `lib/${latestVer}`)(req, res);
-		serveFs("/lib/dev", "../src")(req, res);
-		// TODO: deprecate
-		serveFs("/lib/master", "lib/0.0.0")(req, res);
-
-		if (res.finished) {
-			return;
-		}
-
-		res.setHeader("Content-Type", "text/plain");
-		res.writeHead(404);
-		res.end("nope");
-
-	} catch (e) {
-
-		console.error(e);
+for (const path in pages) {
+	server.match(path, (req, res) => {
 		res.setHeader("Content-Type", "text/html; charset=utf-8");
-		res.writeHead(500);
-		res.end(`<pre>${e.stack}</pre>`);
+		res.writeHead(200);
+		res.end(pages[path]);
+	});
+}
 
-	}
+const versions = fs
+	.readdirSync("lib")
+	.filter(p => !p.startsWith("."))
+	;
 
+const latestVer = versions.reduce(utils.cmpSemVer);
+
+server.fs("/pub", "pub");
+server.fs("/lib", "lib");
+server.fs("/lib/latest", `lib/${latestVer}`);
+server.fs("/lib/dev", "../src");
+// TODO: deprecate
+server.fs("/lib/master", "lib/0.0.0");
+
+server.match("/versions", (req, res) => {
+	res.setHeader("Content-Type", "application/json");
+	res.setHeader("Access-Control-Allow-Origin", "*");
+	res.writeHead(200);
+	res.end(JSON.stringify([ "latest", ...versions, "dev", ]));
+});
+
+server.match("/latest", (req, res) => {
+	res.setHeader("Content-Type", "application/json");
+	res.setHeader("Access-Control-Allow-Origin", "*");
+	res.writeHead(200);
+	res.end(JSON.stringify(latestVer));
+});
+
+server.handle((req, res) => {
+	res.setHeader("Content-Type", "text/plain");
+	res.writeHead(404);
+	res.end("nope");
 });
 
 for (const target in pages) {
 	console.log(`http://localhost:${port}${target}`);
 }
 
-server.listen(port);
+server.serve(port);

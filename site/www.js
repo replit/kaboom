@@ -1,5 +1,6 @@
 // helpers for the world wide web
 
+const http = require("http");
 const fs = require("fs");
 const path = require("path");
 
@@ -121,6 +122,87 @@ function style(list) {
 
 }
 
+function makeServer() {
+
+	const handlers = [];
+
+	return {
+
+		handle(cb) {
+			handlers.push(cb);
+		},
+
+		match(pat, cb) {
+			this.handle((req, res) => {
+				const match = matchUrl(pat, req.url);
+				if (match) {
+					cb(req, res, match);
+				}
+			});
+		},
+
+		fs(prefix, root) {
+			this.handle((req, res) => {
+				const url = req.url.split("?")[0];
+				if (!url.startsWith(prefix)) {
+					return;
+				}
+				const p = root + "/" + url.replace(new RegExp(`^${prefix}`), "");
+				if (!fs.existsSync(p)) {
+					return;
+				}
+				const stat = fs.statSync(p);
+				const handler = stat.isDirectory(p) ? serveDir(p, prefix) : serveFile(p);
+				handler(req, res);
+			});
+		},
+
+		serve(port) {
+			http.createServer((req, res) => {
+				for (const handler of handlers) {
+					handler(req, res);
+					if (res.finished) {
+						return;
+					}
+				}
+			}).listen(port);
+		},
+
+	};
+
+}
+
+function matchUrl(pat, url) {
+
+	pat = pat.replace(/\/$/, "");
+	url = url.split("?")[0];
+	url = url.replace(/\/$/, "");
+
+	if (pat === url) {
+		return {};
+	}
+
+	const vars = pat.match(/:[^\/]+/g) || [];
+	let regStr = pat;
+
+	for (const v of vars) {
+		const name = v.substring(1);
+		regStr = regStr.replace(v, `(?<${name}>[^\/]+)`);
+	}
+
+	regStr = "^" + regStr + "$";
+
+	const reg = new RegExp(regStr);
+	const matches = reg.exec(url);
+
+	if (matches) {
+		return {...matches?.groups};
+	} else {
+		return null;
+	}
+
+}
+
 const mimes = {
 	"html": "text/html",
 	"css": "text/css",
@@ -145,17 +227,9 @@ const mimes = {
 	"pdf": "application/pdf",
 };
 
-function serveFs(urlPrefix, dirPrefix) {
-
-	const pat = new RegExp(`^${urlPrefix}`);
+function serveFile(p) {
 
 	return (req, res) => {
-
-		if (!req.url.match(pat)) {
-			return;
-		}
-
-		const p = (dirPrefix + req.url.replace(pat, "")) || ".";
 
 		if (!fs.existsSync(p)) {
 			return;
@@ -168,36 +242,33 @@ function serveFs(urlPrefix, dirPrefix) {
 			res.setHeader("Content-Type", mime);
 		}
 
-		const stat = fs.statSync(p);
+		res.setHeader("Access-Control-Allow-Origin", "*");
+		res.writeHead(200);
+		res.end(fs.readFileSync(p));
 
-		if (stat.isDirectory(p)) {
+	};
 
-			const entries = fs
-				.readdirSync(p)
-				.filter(p => !p.startsWith("."));
+}
 
-			const page = entries
-				.map(e => `<a href="/${p}/${e}">${e}</a><br>`)
-				.join("");
+function serveDir(p, root) {
 
-			res.setHeader("Content-Type", "text/html; charset=utf-8");
-			res.writeHead(200);
-			res.end(page);
+	return (req, res) => {
 
-		} else {
-
-			const ext = path.extname(p).substring(1);
-			const mime = mimes[ext];
-
-			if (mime) {
-				res.setHeader("Content-Type", mime);
-			}
-
-			res.setHeader("Access-Control-Allow-Origin", "*");
-			res.writeHead(200);
-			res.end(fs.readFileSync(p));
-
+		if (!fs.existsSync(p)) {
+			return;
 		}
+
+		const entries = fs
+			.readdirSync(p)
+			.filter(p => !p.startsWith("."));
+
+		const page = entries
+			.map(e => `<a href="${req.url}/${e}">${e}</a><br>`)
+			.join("");
+
+		res.setHeader("Content-Type", "text/html; charset=utf-8");
+		res.writeHead(200);
+		res.end(page);
 
 	};
 
@@ -206,6 +277,6 @@ function serveFs(urlPrefix, dirPrefix) {
 module.exports = {
 	tag,
 	style,
-	serveFs,
 	escapeHTML,
+	makeServer,
 };
