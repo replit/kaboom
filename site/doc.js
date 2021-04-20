@@ -250,7 +250,7 @@ const page = t("html", {}, [
 				t("p", { class: "title", }, "Usage"),
 				t("p", { class: "desc", }, "quick start"),
 				code(`
-<script src="https://kaboomjs.com/lib/0.2.0/kaboom.js"></script>
+<script src="https://kaboomjs.com/lib/0.3.0/kaboom.js"></script>
 <script type="module">
 
 // make kaboom functions global
