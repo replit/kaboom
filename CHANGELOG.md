@@ -1,4 +1,4 @@
-# v0.3.0 "King Dedede...Bug!" (unreleased)
+# v0.3.0 "King Dedede...Bug!"
 - (**BREAK**) removed `pause()` and `paused()` in favor to `kaboom.debug.paused`
 - (**BREAK**) removed `velY`, `curPlatform` and `maxVel` fields by `body()`
 - (**BREAK**) changed `curAnim` by `sprite()` to method `curAnim()`
