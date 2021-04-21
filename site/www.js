@@ -122,6 +122,30 @@ function style(list) {
 
 }
 
+const mimes = {
+	"html": "text/html",
+	"css": "text/css",
+	"js": "text/javascript",
+	"json": "application/json",
+	"png": "image/png",
+	"jpg": "image/jpeg",
+	"jpeg": "image/jpeg",
+	"gif": "image/gif",
+	"svg": "image/svg+xml",
+	"mp4": "video/mp4",
+	"ogg": "audio/ogg",
+	"wav": "audio/wav",
+	"mp3": "audio/mpeg",
+	"aac": "audio/aac",
+	"otf": "font/otf",
+	"ttf": "font/ttf",
+	"woff": "text/woff",
+	"woff2": "text/woff2",
+	"txt": "text/plain",
+	"zip": "application/zip",
+	"pdf": "application/pdf",
+};
+
 function makeServer() {
 
 	const handlers = [];
@@ -136,7 +160,10 @@ function makeServer() {
 			this.handle((req, res) => {
 				const match = matchUrl(pat, req.url);
 				if (match) {
-					cb(req, res, match);
+					cb({
+						...req,
+						params: match,
+					}, res);
 				}
 			});
 		},
@@ -152,19 +179,104 @@ function makeServer() {
 					return;
 				}
 				const stat = fs.statSync(p);
-				const handler = stat.isDirectory(p) ? serveDir(p) : serveFile(p);
-				handler(req, res);
+				if (stat.isDirectory(p)) {
+					res.dir(p);
+				} else {
+					res.file(p);
+				}
 			});
 		},
 
 		serve(port) {
+
 			http.createServer((req, res) => {
+
 				for (const handler of handlers) {
-					handler(req, res);
+
+					handler({
+						headers: req.headers,
+						url: req.url,
+					}, {
+
+						header(k, v) {
+							res.setHeader(k, v);
+						},
+
+						cors() {
+							this.header("Access-Control-Allow-Origin", "*");
+						},
+
+						status(code) {
+							this.statusCode = code;
+						},
+
+						text(txt) {
+							res.setHeader("Content-Type", "text/plain");
+							res.writeHead(this.statusCode || 200);
+							res.end(txt);
+						},
+
+						html(code) {
+							res.setHeader("Content-Type", "text/html; charset=utf-8");
+							res.writeHead(this.statusCode || 200);
+							res.end(code);
+						},
+
+						json(data) {
+							res.setHeader("Content-Type", "application/json");
+							res.writeHead(this.statusCode || 200);
+							res.end(JSON.stringify(data));
+						},
+
+						raw(data) {
+							res.writeHead(this.statusCode || 200);
+							res.end(data);
+						},
+
+						file(p) {
+
+							if (!fs.existsSync(p)) {
+								return;
+							}
+
+							const ext = path.extname(p).substring(1);
+							const mime = mimes[ext];
+
+							if (mime) {
+								this.header("Content-Type", mime);
+							}
+
+							this.cors();
+							this.raw(fs.readFileSync(p));
+
+						},
+
+						dir(p) {
+
+							if (!fs.existsSync(p)) {
+								return;
+							}
+
+							const entries = fs
+								.readdirSync(p)
+								.filter(p => !p.startsWith("."));
+
+							const page = entries
+								.map(e => `<a href="${req.url}/${e}">${e}</a><br>`)
+								.join("");
+
+							this.html(page);
+
+						},
+
+					});
+
 					if (res.finished) {
 						return;
 					}
+
 				}
+
 			}).listen(port);
 		},
 
@@ -200,77 +312,6 @@ function matchUrl(pat, url) {
 	} else {
 		return null;
 	}
-
-}
-
-const mimes = {
-	"html": "text/html",
-	"css": "text/css",
-	"js": "text/javascript",
-	"json": "application/json",
-	"png": "image/png",
-	"jpg": "image/jpeg",
-	"jpeg": "image/jpeg",
-	"gif": "image/gif",
-	"svg": "image/svg+xml",
-	"mp4": "video/mp4",
-	"ogg": "audio/ogg",
-	"wav": "audio/wav",
-	"mp3": "audio/mpeg",
-	"aac": "audio/aac",
-	"otf": "font/otf",
-	"ttf": "font/ttf",
-	"woff": "text/woff",
-	"woff2": "text/woff2",
-	"txt": "text/plain",
-	"zip": "application/zip",
-	"pdf": "application/pdf",
-};
-
-function serveFile(p) {
-
-	return (req, res) => {
-
-		if (!fs.existsSync(p)) {
-			return;
-		}
-
-		const ext = path.extname(p).substring(1);
-		const mime = mimes[ext];
-
-		if (mime) {
-			res.setHeader("Content-Type", mime);
-		}
-
-		res.setHeader("Access-Control-Allow-Origin", "*");
-		res.writeHead(200);
-		res.end(fs.readFileSync(p));
-
-	};
-
-}
-
-function serveDir(p) {
-
-	return (req, res) => {
-
-		if (!fs.existsSync(p)) {
-			return;
-		}
-
-		const entries = fs
-			.readdirSync(p)
-			.filter(p => !p.startsWith("."));
-
-		const page = entries
-			.map(e => `<a href="${req.url}/${e}">${e}</a><br>`)
-			.join("");
-
-		res.setHeader("Content-Type", "text/html; charset=utf-8");
-		res.writeHead(200);
-		res.end(page);
-
-	};
 
 }
 

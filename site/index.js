@@ -15,14 +15,12 @@ const pages = {
 	"/": () => require("./doc"),
 	"/guide": () => require("./guide"),
 	"/examples": () => require("./examples"),
-	"/example/:name": (req, res, match) => require("./example")(match.name),
+	"/example/:name": (req, res) => require("./example")(req.params.name),
 };
 
 for (const path in pages) {
-	server.match(path, (req, res, match) => {
-		res.setHeader("Content-Type", "text/html; charset=utf-8");
-		res.writeHead(200);
-		res.end(pages[path](req, res, match));
+	server.match(path, (req, res) => {
+		res.html(pages[path](req, res));
 	});
 }
 
@@ -41,23 +39,18 @@ server.fs("/lib/dev", "../src");
 server.fs("/lib/master", "lib/0.0.0");
 
 server.match("/versions", (req, res) => {
-	res.setHeader("Content-Type", "application/json");
-	res.setHeader("Access-Control-Allow-Origin", "*");
-	res.writeHead(200);
-	res.end(JSON.stringify([ "latest", ...versions, "dev", ]));
+	res.cors();
+	res.json([ "latest", ...versions, "dev", ]);
 });
 
 server.match("/latest", (req, res) => {
-	res.setHeader("Content-Type", "application/json");
-	res.setHeader("Access-Control-Allow-Origin", "*");
-	res.writeHead(200);
-	res.end(JSON.stringify(latestVer));
+	res.cors();
+	res.json(latestVer);
 });
 
 server.handle((req, res) => {
-	res.setHeader("Content-Type", "text/plain");
-	res.writeHead(404);
-	res.end("nope");
+	res.status(404);
+	res.text("nope");
 });
 
 for (const target in pages) {
