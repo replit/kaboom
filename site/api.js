@@ -181,6 +181,11 @@ camShake(12);
 // make camera not affect objects on layer "ui" and "bg"
 camIgnore(["bg", "ui"]);
 			`),
+			f("sceneData", [
+			], null, "custom scene data kv store", `
+// could be used for custom components registering "global" data
+sceneData().gravity = 123;
+			`),
 		],
 	},
 	{

@@ -1,7 +1,7 @@
 /*
 
 kaboom.js
-v0.3.0
+v0.4.0
 
 a JavaScript game programming library
 
@@ -2059,17 +2059,22 @@ function scene(name, cb) {
 		timers: {},
 		lastTimerID: 0,
 
-		// misc
-		layers: {},
+		// cam
 		cam: {
 			pos: vec2(width() / 2, height() / 2),
 			scale: vec2(1, 1),
 			angle: 0,
 			shake: 0,
 			ignore: [],
+			mpos: vec2(0),
 		},
-		gravity: DEF_GRAVITY,
+
 		camMousePos: vec2(0),
+
+		// misc
+		layers: {},
+		gravity: DEF_GRAVITY,
+		data: {},
 
 	};
 
@@ -2077,6 +2082,11 @@ function scene(name, cb) {
 
 function curScene() {
 	return game.scenes[game.curScene];
+}
+
+// custom data kv store for scene
+function sceneData() {
+	return curScene().data;
 }
 
 // register inputs for controlling debug features
@@ -3774,6 +3784,7 @@ kaboom.time = time;
 // scene
 kaboom.scene = scene;
 kaboom.go = go;
+kaboom.sceneData = sceneData;
 
 // misc
 kaboom.layers = layers;
