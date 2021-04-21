@@ -259,9 +259,6 @@ const page = t("html", {}, [
 // make kaboom functions global
 const k = kaboom();
 
-// init kaboom context
-k.init();
-
 // define a scene
 k.scene("main", () => {
 

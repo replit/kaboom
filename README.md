@@ -13,9 +13,6 @@ kaboom.js is a JavaScript library that helps you make games fast and fun!
 // make kaboom functions global
 const k = kaboom();
 
-// init kaboom context
-k.init();
-
 // define a scene
 k.scene("main", () => {
 
