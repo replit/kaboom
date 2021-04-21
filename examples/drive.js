@@ -162,7 +162,6 @@ scene("death", (score) => {
 	]);
 
 	keyPress("space", () => {
-		reload("main");
 		go("main");
 	});
 
