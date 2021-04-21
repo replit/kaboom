@@ -191,90 +191,113 @@ function makeServer() {
 
 			http.createServer((req, res) => {
 
+				const req2 = {
+					headers: req.headers,
+					url: req.url,
+				};
+
+				let status = 200;
+				let headers = {};
+				let body = null;
+
+				function send() {
+					for (const k in headers) {
+						res.setHeader(k, headers[k]);
+					}
+					res.writeHead(status);
+					res.end(body);
+				}
+
+				const res2 = {
+
+					header(k, v) {
+						headers[k] = v;
+					},
+
+					cors() {
+						this.header("Access-Control-Allow-Origin", "*");
+					},
+
+					status(code) {
+						status = code;
+					},
+
+					text(txt) {
+						this.header("Content-Type", "text/plain");
+						this.status(status || 200);
+						body = txt;
+						send();
+					},
+
+					html(code) {
+						this.header("Content-Type", "text/html; charset=utf-8");
+						this.status(status || 200);
+						body = code;
+						send();
+					},
+
+					json(data) {
+						this.header("Content-Type", "application/json");
+						this.status(status || 200);
+						body = JSON.stringify(data);
+						send();
+					},
+
+					raw(data) {
+						this.status(status || 200);
+						body = data;
+						send();
+					},
+
+					redirect(to) {
+						this.header("Location", to);
+						this.status(307);
+						send();
+					},
+
+					file(p) {
+
+						if (!fs.existsSync(p)) {
+							return;
+						}
+
+						const ext = path.extname(p).substring(1);
+						const mime = mimes[ext];
+
+						if (mime) {
+							this.header("Content-Type", mime);
+						}
+
+						this.cors();
+						this.raw(fs.readFileSync(p));
+
+					},
+
+					dir(p) {
+
+						if (!fs.existsSync(p)) {
+							return;
+						}
+
+						const entries = fs
+							.readdirSync(p)
+							.filter(p => !p.startsWith("."));
+
+						const page = entries
+							.map(e => `<a href="${req.url}/${e}">${e}</a><br>`)
+							.join("");
+
+						this.html(page);
+
+					},
+
+				};
+
 				for (const handler of handlers) {
-
-					handler({
-						headers: req.headers,
-						url: req.url,
-					}, {
-
-						header(k, v) {
-							res.setHeader(k, v);
-						},
-
-						cors() {
-							this.header("Access-Control-Allow-Origin", "*");
-						},
-
-						status(code) {
-							this.statusCode = code;
-						},
-
-						text(txt) {
-							res.setHeader("Content-Type", "text/plain");
-							res.writeHead(this.statusCode || 200);
-							res.end(txt);
-						},
-
-						html(code) {
-							res.setHeader("Content-Type", "text/html; charset=utf-8");
-							res.writeHead(this.statusCode || 200);
-							res.end(code);
-						},
-
-						json(data) {
-							res.setHeader("Content-Type", "application/json");
-							res.writeHead(this.statusCode || 200);
-							res.end(JSON.stringify(data));
-						},
-
-						raw(data) {
-							res.writeHead(this.statusCode || 200);
-							res.end(data);
-						},
-
-						file(p) {
-
-							if (!fs.existsSync(p)) {
-								return;
-							}
-
-							const ext = path.extname(p).substring(1);
-							const mime = mimes[ext];
-
-							if (mime) {
-								this.header("Content-Type", mime);
-							}
-
-							this.cors();
-							this.raw(fs.readFileSync(p));
-
-						},
-
-						dir(p) {
-
-							if (!fs.existsSync(p)) {
-								return;
-							}
-
-							const entries = fs
-								.readdirSync(p)
-								.filter(p => !p.startsWith("."));
-
-							const page = entries
-								.map(e => `<a href="${req.url}/${e}">${e}</a><br>`)
-								.join("");
-
-							this.html(page);
-
-						},
-
-					});
-
+					handler(req2, res2);
 					if (res.finished) {
 						return;
 					}
-
 				}
 
 			}).listen(port);
