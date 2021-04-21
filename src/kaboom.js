@@ -704,8 +704,8 @@ function gfxInit() {
 	gfx.defTex = makeTex(
 		new ImageData(new Uint8ClampedArray([ 255, 255, 255, 255, ]), 1, 1)
 	);
-	const c = gconf.clearColor || rgb(0, 0, 0);
-	gl.clearColor(c.r, c.g, c.b, c.a);
+	const c = gconf.clearColor || [0, 0, 0, 1];
+	gl.clearColor(c[0], c[1], c[2], c[3]);
 	gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 	gl.enable(gl.DEPTH_TEST);
 	gl.enable(gl.BLEND);
