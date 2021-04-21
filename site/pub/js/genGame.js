@@ -23,7 +23,6 @@ export default function genGame(code) {
 </head>
 
 <body>
-	<div id="log"></div>
 	<script src="/lib/dev/kaboom.js"></script>
 	<script>
 ${code}
