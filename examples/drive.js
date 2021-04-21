@@ -1,4 +1,10 @@
-kaboom.global();
+kaboom({
+	global: true,
+	width: 160,
+	height: 120,
+	scale: 4,
+	debug: true,
+});
 
 loadRoot("/pub/examples/");
 loadAseprite("car", "img/car.png", "img/car.json");
@@ -6,13 +12,6 @@ loadSprite("sky", "img/sky.png");
 loadSprite("road", "img/road.png");
 loadSprite("apple", "img/apple.png");
 loadSprite("pineapple", "img/pineapple.png");
-
-init({
-	width: 160,
-	height: 120,
-	scale: 4,
-	debug: true,
-});
 
 scene("main", () => {
 

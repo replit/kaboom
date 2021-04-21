@@ -1,4 +1,8 @@
-kaboom.global();
+kaboom({
+	global: true,
+	fullscreen: true,
+	scale: 4,
+});
 
 loadRoot("/pub/examples/");
 loadSprite("steel", "img/steel.png");
@@ -8,11 +12,6 @@ loadSprite("grass", "img/grass.png");
 loadSprite("door", "img/door.png");
 loadSprite("key", "img/key.png");
 loadSprite("guy", "img/guy.png");
-
-init({
-	fullscreen: true,
-	scale: 4,
-});
 
 scene("main", (levelIdx) => {
 

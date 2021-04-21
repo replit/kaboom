@@ -1,6 +1,5 @@
-kaboom.global();
-
-init({
+kaboom({
+	global: true,
 	fullscreen: true,
 	scale: 2,
 });

@@ -3,14 +3,14 @@
 // TALK: but we don't want the birdy to keep falling
 // TALK: let's make a temporary platform for the bird to stay on
 
-kaboom.global();
-
-loadSprite("birdy", "/pub/img/birdy.png");
-
-init({
+kaboom({
+	global: true,
 	fullscreen: true,
 	scale: 2,
 });
+
+loadRoot("/pub/examples/");
+loadSprite("birdy", "img/birdy.png");
 
 scene("main", () => {
 

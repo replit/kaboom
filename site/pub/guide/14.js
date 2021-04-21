@@ -1,16 +1,16 @@
 // TALK: first, let's remove the baby platform, and make the game restart when player falls
 // TALK: we do this by giving birdy an action to run every frame, to check if its position is out of screen
 
-kaboom.global();
-
-loadSprite("bg", "/pub/img/bg.png");
-loadSprite("birdy", "/pub/img/birdy.png");
-loadSprite("pipe", "/pub/img/pipe.png");
-
-init({
+kaboom({
+	global: true,
 	fullscreen: true,
 	scale: 2,
 });
+
+loadRoot("/pub/examples/");
+loadSprite("birdy", "img/birdy.png");
+loadSprite("bg", "img/bg.png");
+loadSprite("pipe", "img/pipe.png");
 
 scene("main", () => {
 

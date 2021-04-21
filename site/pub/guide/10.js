@@ -1,14 +1,14 @@
 // TALK: let's add a background image
 
-kaboom.global();
-
-loadSprite("bg", "/pub/img/bg.png");
-loadSprite("birdy", "/pub/img/birdy.png");
-
-init({
+kaboom({
+	global: true,
 	fullscreen: true,
 	scale: 2,
 });
+
+loadRoot("/pub/examples/");
+loadSprite("birdy", "img/birdy.png");
+loadSprite("bg", "img/bg.png");
 
 scene("main", () => {
 

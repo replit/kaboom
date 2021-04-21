@@ -253,28 +253,28 @@ const page = t("html", {}, [
 				t("p", { class: "title", }, "Usage"),
 				t("p", { class: "desc", }, "quick start"),
 				code(`
-<script src="https://kaboomjs.com/lib/${versions.latest}/kaboom.js"></script>
+<script src="https://kaboomjs.com/lib/dev/kaboom.js"></script>
 <script type="module">
 
 // make kaboom functions global
-kaboom.global();
+const k = kaboom();
 
 // init kaboom context
-init();
+k.init();
 
 // define a scene
-scene("main", () => {
+k.scene("main", () => {
 
 	// add a text at position (100, 100)
-	add([
-		text("ohhimark", 32),
-		pos(100, 100),
+	k.add([
+		k.text("ohhimark", 32),
+		k.pos(100, 100),
 	]);
 
 });
 
 // start the game
-start("main");
+k.start("main");
 
 </script>
 				`, "html"),

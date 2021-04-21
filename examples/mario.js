@@ -1,4 +1,8 @@
-kaboom.global();
+kaboom({
+	global: true,
+	fullscreen: true,
+	scale: 2,
+});
 
 // load assets
 loadRoot("/pub/examples/");
@@ -8,11 +12,6 @@ loadSprite("steel", "img/steel.png");
 loadSprite("prize", "img/jumpy.png");
 loadSprite("apple", "img/apple.png");
 loadSprite("coin", "img/coin.png");
-
-init({
-	fullscreen: true,
-	scale: 2,
-});
 
 scene("main", () => {
 

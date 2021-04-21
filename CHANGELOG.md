@@ -1,4 +1,20 @@
 # v0.4.0 (unreleased)
+- (**BREAK**) removed `init()` and `kaboom.global()`, in favor of `kaboom()`, also allows multiple kaboom games on one page
+```js
+// replaces init(), and added a 'global' flag for previous kaboom.global()
+kaboom({
+	global: true,
+	width: 480,
+	height: 480,
+});
+```
+or not global
+```js
+const k = kaboom();
+k.scene();
+k.start();
+k.vec2();
+```
 - added `sceneData()` for custom scene data kv store
 - fixed `mouseClick` doesn't work on mobile
 - disables context menu on canvas

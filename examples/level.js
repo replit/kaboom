@@ -1,4 +1,9 @@
-kaboom.global();
+kaboom({
+	global: true,
+	fullscreen: true,
+	scale: 2,
+	debug: true,
+});
 
 loadRoot("/pub/examples/");
 
@@ -10,12 +15,6 @@ loadSprite("spike", "img/spike.png");
 loadSprite("coin", "img/coin.png");
 
 loadSound("coin", "sounds/coin.mp3");
-
-init({
-	fullscreen: true,
-	scale: 2,
-	debug: true,
-});
 
 scene("main", () => {
 

@@ -2,14 +2,14 @@
 // TALK: but the birdy still looks weird...
 // TALK: it's floating in the air! that's not right!
 
-kaboom.global();
-
-loadSprite("birdy", "/pub/img/birdy.png");
-
-init({
+kaboom({
+	global: true,
 	fullscreen: true,
 	scale: 2,
 });
+
+loadRoot("/pub/examples/");
+loadSprite("birdy", "img/birdy.png");
 
 scene("main", () => {
 

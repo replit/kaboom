@@ -7,28 +7,28 @@ kaboom.js is a JavaScript library that helps you make games fast and fun!
 ### Example
 
 ```html
-<script src="https://kaboomjs.com/lib/0.3.0/kaboom.js"></script>
+<script src="https://kaboomjs.com/lib/dev/kaboom.js"></script>
 <script type="module">
 
 // make kaboom functions global
-kaboom.global();
+const k = kaboom();
 
 // init kaboom context
-init();
+k.init();
 
 // define a scene
-scene("main", () => {
+k.scene("main", () => {
 
 	// add a text at position (100, 100)
-	add([
-		text("ohhimark", 32),
-		pos(100, 100),
+	k.add([
+		k.text("ohhimark", 32),
+		k.pos(100, 100),
 	]);
 
 });
 
 // start the game
-start("main");
+k.start("main");
 
 </script>
 ```
@@ -51,24 +51,26 @@ special version tags:
 - `dev`: current master with the newest unreleased features / fixes, but not guaranteed to be stable
 - `latest`: latest release
 
-the script will expose a `window.kaboom` containing all the kaboom functions, you can either do
+the script will expose a `window.kaboom` function to initialize a kaboom context, returning an object containing
 
 ```js
-kaboom.global();
-
-init();
-scene(...);
-start(...);
-```
-
-to import all kaboom functions to global namespace, or use namespaced kaboom functions to avoid any naming collision
-
-```js
-const k = kaboom;
+const k = kaboom();
 
 k.init();
 k.scene(...);
 k.start(...);
+```
+
+you can also import all functions to global namespace by giving a `global` flag
+
+```js
+kaboom({
+	global: true,
+});
+
+init();
+scene(...);
+start(...);
 ```
 
 ### Dev

@@ -1,6 +1,5 @@
-kaboom.global();
-
-init({
+kaboom({
+	global: true,
 	fullscreen: true,
 	scale: 4,
 });
@@ -16,20 +15,19 @@ const objs = [
 	"pineapple",
 ];
 
-loadRoot("/pub/img/");
-loadSprite("stars", "stars.png");
-loadSprite("ship", "ship.png");
+loadRoot("/pub/examples/");
+loadSprite("stars", "img/stars.png");
+loadSprite("ship", "img/ship.png");
 
 for (const obj of objs) {
-	loadSprite(obj, `${obj}.png`);
+	loadSprite(obj, `img/${obj}.png`);
 }
 
-loadRoot("/pub/sounds/");
-loadSound("hit", "hit.mp3");
-loadSound("shoot", "shoot.mp3");
-loadSound("explosion", "explosion.mp3");
-loadSound("OtherworldlyFoe", "OtherworldlyFoe.mp3");
-loadSound("Burp", "Burp.mp3");
+loadSound("hit", "sounds/hit.mp3");
+loadSound("shoot", "sounds/shoot.mp3");
+loadSound("explosion", "sounds/explosion.mp3");
+loadSound("OtherworldlyFoe", "sounds/OtherworldlyFoe.mp3");
+loadSound("Burp", "sounds/Burp.mp3");
 
 scene("main", () => {
 

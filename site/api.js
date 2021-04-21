@@ -19,32 +19,24 @@ function a(name, desc) {
 
 const api = [
 	{
-		name: "Import",
-		desc: "All functions are under a global object 'kaboom', but you can also choose to import all functions into global namespace.",
-		entries: [
-			f("kaboom.global", [], null, "import all kaboom functions into global namespace", `
-// 1) import everything to global
-kaboom.global();
-init();
-
-// 2) keep them under kaboom namespace to prevent any collision
-const k = kaboom;
-k.init();
-			`),
-		],
-	},
-	{
 		name: "Lifecycle",
 		desc: "Application Lifecycle Methods",
 		entries: [
-			f("init", [
+			f("kaboom", [
 				a("[conf]", "config")
-			], null, "initialize context", `
-// quickly create a 640x480 canvas and get going
-init();
+			], null, "initialize a kaboom game", `
+// quickly create a 640x480 canvas, returning a handle containing all kaboom functions
+const k = kaboom();
+
+// all kaboom functions are on this handle now
+k.vec2();
+k.start();
+k.scene();
+k.add();
 
 // options
-init({
+kaboom({
+	global: true, // import all kaboom functions to global namespace
 	width: 640, // width of canvas
 	height: 480, // height of canvas
 	canvas: document.getElementById("game"), // use custom canvas
@@ -54,6 +46,12 @@ init({
 	crisp: true, // if pixel crisp (for sharp pixelated games)
 	debug: false, // debug mode
 });
+
+// with 'global' flag, all kaboom functions are in global namespace
+vec2();
+start();
+scene();
+add();
 
 // if "debug" is enabled, your game gets some special key bindings
 // - \`: toggle kaboom.debug.showLog

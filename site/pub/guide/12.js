@@ -3,16 +3,16 @@
 // TALK: we use a const PIPE_OPEN to define the distance between 2 pipes, we give it a generous 120 for now
 // TALK: next, we'll make the core mechanism of the game: make the pipe move towards the player (yes in flappy birds it's the pipes moving not the bird!)
 
-kaboom.global();
-
-loadSprite("bg", "/pub/img/bg.png");
-loadSprite("birdy", "/pub/img/birdy.png");
-loadSprite("pipe", "/pub/img/pipe.png");
-
-init({
+kaboom({
+	global: true,
 	fullscreen: true,
 	scale: 2,
 });
+
+loadRoot("/pub/examples/");
+loadSprite("birdy", "img/birdy.png");
+loadSprite("bg", "img/bg.png");
+loadSprite("pipe", "img/pipe.png");
 
 scene("main", () => {
 

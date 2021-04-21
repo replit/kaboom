@@ -2,14 +2,14 @@
 // TALK: we register a keyPress event that gets called everytime the player presses the "space" key
 // TALK: then we call method jump() provided by body() component to make it jump
 
-kaboom.global();
-
-loadSprite("birdy", "/pub/img/birdy.png");
-
-init({
+kaboom({
+	global: true,
 	fullscreen: true,
 	scale: 2,
 });
+
+loadRoot("/pub/examples/");
+loadSprite("birdy", "img/birdy.png");
 
 scene("main", () => {
 

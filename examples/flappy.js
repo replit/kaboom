@@ -1,4 +1,9 @@
-kaboom.global();
+kaboom({
+	global: true,
+	scale: 2,
+	fullscreen: true,
+	debug: true,
+});
 
 loadRoot("/pub/examples/");
 loadSprite("bg", "img/bg.png");
@@ -8,11 +13,6 @@ loadSound("score", "sounds/score.mp3");
 loadSound("wooosh", "sounds/wooosh.mp3");
 loadSound("hit", "sounds/hit.mp3");
 
-init({
-	scale: 2,
-	fullscreen: true,
-	debug: true,
-});
 
 scene("main", () => {
 

@@ -1,36 +1,34 @@
-kaboom.global();
-
-init({
+const k = kaboom({
 	fullscreen: true,
 	scale: 2,
 });
 
-loadRoot("/pub/examples/");
+k.loadRoot("/pub/examples/");
 
-loadSprite("car", "img/car.png", {
+k.loadSprite("car", "img/car.png", {
 	sliceX: 3,
 });
 
-scene("main", () => {
-	render(() => {
-		drawSprite("car", {
-			pos: vec2(50),
+k.scene("main", () => {
+	k.render(() => {
+		k.drawSprite("car", {
+			pos: k.vec2(50),
 			scale: 3,
-			rot: time(),
-			frame: ~~time() % 3,
+			rot: k.time(),
+			frame: ~~k.time() % 3,
 			origin: "center",
 		});
-		drawRect(vec2(50), 20, 50);
-		drawLine(vec2(0), mousePos(), {
+		k.drawRect(k.vec2(50), 20, 50);
+		k.drawLine(k.vec2(0), k.mousePos(), {
 			width: 2,
-			color: rgba(0, 0, 1, 1),
+			color: k.rgba(0, 0, 1, 1),
 			z: 0.5,
 		});
-		drawText("hi", {
-			pos: mousePos(),
+		k.drawText("hi", {
+			pos: k.mousePos(),
 			size: 64,
 		});
 	});
 });
 
-start("main");
+k.start("main");

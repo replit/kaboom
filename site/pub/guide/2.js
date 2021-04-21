@@ -2,9 +2,9 @@
 // TALK: everything in kaboom belongs to a scene
 // TALK: a black screen is boring, let's draw something on it!
 
-kaboom.global();
-
-init();
+kaboom({
+	global: true,
+});
 
 scene("main", () => {
 	// ...
