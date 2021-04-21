@@ -446,9 +446,11 @@ const preventDefaultKeys = [
 	"right",
 	"up",
 	"down",
-	"f7",
-	"f8",
+	"tab",
+	...[...Array(12)].map((_, i) => `f${i + 1}`),
 ];
+
+console.log(preventDefaultKeys);
 
 let gl;
 
