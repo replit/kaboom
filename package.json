@@ -12,6 +12,6 @@
 		"src/*"
 	],
 	"scripts": {
-		"site": "cd site; NODE_ENV=dev node ."
+		"site": "cd site; node live.js ."
 	}
 }

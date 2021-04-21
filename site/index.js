@@ -53,8 +53,6 @@ server.handle((req, res) => {
 	res.text("nope");
 });
 
-for (const target in pages) {
-	console.log(`http://localhost:${port}${target}`);
-}
+console.log(`http://localhost:${port}`);
 
 server.serve(port);
