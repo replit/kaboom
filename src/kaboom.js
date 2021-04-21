@@ -450,8 +450,6 @@ const preventDefaultKeys = [
 	...[...Array(12)].map((_, i) => `f${i + 1}`),
 ];
 
-console.log(preventDefaultKeys);
-
 let gl;
 
 function appInit() {
