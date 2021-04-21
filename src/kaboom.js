@@ -130,6 +130,24 @@ function assetsInit(conf = {}) {
 	);
 }
 
+function loadImg(src) {
+
+	const img = new Image();
+
+	img.crossOrigin = "";
+	img.src = src;
+
+	return new Promise((resolve, reject) => {
+		img.onload = () => {
+			resolve(img);
+		};
+		img.onerror = () => {
+			reject();
+		};
+	});
+
+}
+
 // make a new load tracker
 function newLoader() {
 	const id = assets.lastLoaderID;
@@ -171,12 +189,16 @@ function loadFont(name, src, gw, gh, chars) {
 
 		const loader = newLoader();
 
-		loadImg(src, (img) => {
-			const font = makeFont(makeTex(img), gw, gh, chars || ASCII_CHARS);
-			loader.done();
-			assets.fonts[name] = font;
-			resolve(font);
-		});
+		loadImg(src)
+			.then((img) => {
+				assets.fonts[name] = makeFont(makeTex(img), gw, gh, chars || ASCII_CHARS);
+			})
+			.catch(() => {
+				error(`failed to load font '${name}' from '${src}'`);
+			})
+			.finally(() => {
+				loader.done();
+			});
 
 	});
 
@@ -189,8 +211,6 @@ function loadSprite(name, src, conf = {}) {
 	// sliceX: num,
 	// sliceY: num,
 	// anims: { name: [num, num] }
-
-	const curRoot = assets.loadRoot;
 
 	// synchronously load sprite from local pixel data
 	//
@@ -241,7 +261,7 @@ function loadSprite(name, src, conf = {}) {
 
 				const loader = newLoader();
 
-				fetch(curRoot + src)
+				fetch(assets.loadRoot + src)
 					.then((res) => {
 						return res.json();
 					})
@@ -268,31 +288,31 @@ function loadSprite(name, src, conf = {}) {
 							anims: conf.anims,
 						});
 
-						loader.done();
 						resolve(sprite);
 
 					})
 					.catch(() => {
 						error(`failed to load sprite '${name}' from '${src}'`);
 					})
-					;
+					.finally(() => {
+						loader.done();
+					});
 
 			// any other url
 			} else {
 
 				const loader = newLoader();
-				const img = loadImg(curRoot + src);
 
-				img.onload = () => {
-					const sprite = loadRawSprite(name, img, conf);
-					loader.done();
-					resolve(sprite);
-				};
-
-				img.onerror = () => {
-					error(`failed to load sprite '${name}' from '${src}'`);
-					loader.done();
-				};
+				loadImg(assets.loadRoot + src)
+					.then((img) => {
+						resolve(loadRawSprite(name, img, conf));
+					})
+					.catch(() => {
+						error(`failed to load sprite '${name}' from '${src}'`);
+					})
+					.finally(() => {
+						loader.done();
+					});
 
 			}
 
@@ -310,13 +330,13 @@ function loadSprite(name, src, conf = {}) {
 
 function loadAseprite(name, imgSrc, jsonSrc) {
 
-	const curRoot = assets.loadRoot;
+	const jsonPath = assets.loadRoot + jsonSrc;
 
 	return loadSprite(name, imgSrc).then(() => {
 
 		const loader = newLoader();
 
-		fetch(curRoot + jsonSrc)
+		fetch(jsonPath)
 			.then((res) => {
 				return res.json();
 			})
@@ -333,6 +353,11 @@ function loadAseprite(name, imgSrc, jsonSrc) {
 				for (const anim of data.meta.frameTags) {
 					assets.sprites[name].anims[anim.name] = [anim.from, anim.to];
 				}
+			})
+			.catch(() => {
+				error(`failed to load ${jsonPath}`);
+			})
+			.finally(() => {
 				loader.done();
 			});
 
@@ -411,8 +436,6 @@ function getSprite(name) {
 // load a sound to asset manager
 function loadSound(name, src, conf = {}) {
 
-	const curRoot = assets.loadRoot;
-
 	return new Promise((resolve, reject) => {
 
 		// from url
@@ -420,26 +443,28 @@ function loadSound(name, src, conf = {}) {
 
 			const loader = newLoader();
 
-			fetch(curRoot + src)
+			fetch(assets.loadRoot + src)
 				.then((res) => {
 					return res.arrayBuffer();
 				})
 				.then((data) => {
-					// TODO: doesn't work on safari
-					audio.ctx.decodeAudioData(data, (buf) => {
-						loader.done();
-						audio.sounds[name] = buf;
-						resolve(buf);
-					}, (err) => {
-						error(`failed to decode audio: ${name}`);
-						loader.done();
+					return new Promise((resolve2, reject2) => {
+						audio.ctx.decodeAudioData(data, (buf) => {
+							resolve2(buf);
+						}, (err) => {
+							reject2();
+						});
 					});
 				})
-				.catch((err) => {
-					error(`failed to load sound '${name}' from '${src}'`);
-					loader.done();
+				.then((buf) => {
+					audio.sounds[name] = buf;
 				})
-				;
+				.catch(() => {
+					error(`failed to load sound '${name}' from '${src}'`);
+				})
+				.finally(() => {
+					loader.done();
+				});
 
 		}
 
@@ -767,16 +792,6 @@ function gfxInit(conf = {}) {
 	gl.depthFunc(gl.LEQUAL);
 	gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
 
-}
-
-function loadImg(src, f) {
-	const img = new Image();
-	img.crossOrigin = "";
-	img.src = src;
-	if (f) {
-		img.onload = f.bind(null, img);
-	}
-	return img;
 }
 
 // draw all cached vertices in the batched renderer

@@ -344,7 +344,7 @@ space: shoot
 
 	action("trash", (t) => {
 		t.move(0, t.speed * (insaneMode ? 5 : 1));
-		if (t.pos.y - t.height() > height()) {
+		if (t.pos.y - t.height > height()) {
 			destroy(t);
 		}
 	});
