@@ -8,19 +8,9 @@ const cmd = process.argv[3];
 const args = process.argv.slice(4);
 
 function start() {
-
-	const proc = cp.spawn(cmd, args);
-
-	proc.stdout.on("data", (data) => {
-		process.stdout.write(data);
+	return cp.spawn(cmd, args, {
+		stdio: "inherit",
 	});
-
-	proc.stderr.on("data", (data) => {
-		process.stderr.write(data);
-	});
-
-	return proc;
-
 }
 
 let proc = start();
@@ -29,7 +19,7 @@ fs.watch(target, {
 	recursive: true,
 }, (ev, fname) => {
 	if (fs.existsSync(fname)) {
-		proc.kill("SIGINT");
+		proc.kill();
 		proc = start();
 	}
 });
