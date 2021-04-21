@@ -15,6 +15,7 @@ k.scene();
 k.start();
 k.vec2();
 ```
+- (**BREAK**) changed `clearColor` on `kaboom(conf)` to accept a 4 number array instead of `rgba()`
 - added `sceneData()` for custom scene data kv store
 - fixed `mouseClick` doesn't work on mobile
 - disables context menu on canvas

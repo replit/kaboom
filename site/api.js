@@ -41,7 +41,7 @@ kaboom({
 	height: 480, // height of canvas
 	canvas: document.getElementById("game"), // use custom canvas
 	scale: 2, // pixel size (for pixelated games you might want small canvas + scale)
-	clearColor: rgb(0, 0, 0), // background color (default black)
+	clearColor: [0, 0, 1, 1], // background color (default black [0, 0, 0, 1])
 	fullscreen: true, // if fullscreen
 	crisp: true, // if pixel crisp (for sharp pixelated games)
 	debug: false, // debug mode
