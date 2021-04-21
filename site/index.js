@@ -53,5 +53,6 @@ server.errhand((req, res, e) => {
 });
 
 console.log(`http://localhost:${port}`);
+console.log(`http://localhost:${port}/examples`);
 
 server.serve(port);
