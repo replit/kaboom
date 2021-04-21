@@ -2,14 +2,11 @@
 
 const fs = require("fs");
 const utils = require("./utils");
-
-const {
-	makeServer,
-} = require("./www");
+const www = require("./ext/www");
 
 const port = process.env.PORT || 8000;
 
-const server = makeServer();
+const server = www.makeServer();
 
 const pages = {
 	"/": () => require("./doc"),

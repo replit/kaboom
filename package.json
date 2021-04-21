@@ -13,6 +13,6 @@
 	],
 	"scripts": {
 		"site": "cd site; node .",
-		"site:dev": "cd site; node live.js ."
+		"site:dev": "cd site; node ext/watch.js . node ."
 	}
 }

@@ -1,4 +1,4 @@
-const www = require("./www");
+const www = require("./ext/www");
 const gstyle = require("./gstyle");
 const t = www.tag;
 

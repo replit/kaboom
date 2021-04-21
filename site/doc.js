@@ -1,6 +1,6 @@
 // mian page
 
-const www = require("./www");
+const www = require("./ext/www");
 const api = require("./api");
 const gstyle = require("./gstyle");
 const t = www.tag;
