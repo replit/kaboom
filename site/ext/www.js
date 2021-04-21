@@ -149,7 +149,10 @@ const mimes = {
 function makeServer() {
 
 	const handlers = [];
-	let errhand = () => {};
+
+	let errhand = (req, res, e) => {
+		console.error(e);
+	};
 
 	return {
 
