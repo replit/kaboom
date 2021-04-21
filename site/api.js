@@ -693,7 +693,7 @@ action(() => {
 				a("tag", "tag selector"),
 				a("cb", "the callback"),
 			], null, "calls every frame for a certain tag (after update)", `
-// every frame move objs with tag "bullet" up with speed of 100
+// define custom drawing for objects with tag "weirdo"
 render("weirdo", (b) => {
 	drawSprite(...);
 	drawRect(...);
