@@ -1985,16 +1985,12 @@ function rand(a, b) {
 	return defRNG.gen(a, b);
 }
 
-function randl(list) {
-	return list[Math.floor(Math.random() * list.length)];
-}
-
 function chance(p) {
 	return rand(0, 1) <= p;
 }
 
 function choose(list) {
-	return list[Math.floor(rand(0, list.length))];
+	return list[Math.floor(rand(list.length))];
 }
 
 function deepCopy(input) {
@@ -2032,7 +2028,6 @@ game       *                     .            ~       +    .
 
 */
 
-// TODO: custom scene store
 // TODO: comp registry?
 // TODO: avoid comp fields direct assign / collision
 // TODO: in-source doc on the component system
@@ -3878,7 +3873,6 @@ kaboom.volume = volume;
 kaboom.makeRng = makeRng;
 kaboom.rand = rand;
 kaboom.randSeed = randSeed;
-kaboom.randl = randl;
 kaboom.vec2 = vec2;
 kaboom.rgb = rgb;
 kaboom.rgba = rgba;

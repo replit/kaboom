@@ -71,7 +71,7 @@ scene("main", () => {
 
 	// obj spawn
 	loop(0.4, () => {
-		const obj = randl([
+		const obj = choose([
 			"apple",
 			"pineapple",
 		]);

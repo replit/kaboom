@@ -183,7 +183,7 @@ camIgnore(["bg", "ui"]);
 			`),
 			f("sceneData", [
 			], null, "custom scene data kv store", `
-// could be used for custom components registering "global" data
+// could be used for custom components registering scene-wide "global" data
 sceneData().gravity = 123;
 			`),
 		],
