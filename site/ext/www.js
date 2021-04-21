@@ -149,8 +149,13 @@ const mimes = {
 function makeServer() {
 
 	const handlers = [];
+	let errhand = () => {};
 
 	return {
+
+		errhand(f) {
+			errhand = f;
+		},
 
 		handle(cb) {
 			handlers.push(cb);
@@ -294,10 +299,17 @@ function makeServer() {
 				};
 
 				for (const handler of handlers) {
-					handler(req2, res2);
+
+					try {
+						handler(req2, res2);
+					} catch (e) {
+						errhand(req2, res2, e);
+					}
+
 					if (res.finished) {
 						return;
 					}
+
 				}
 
 			}).listen(port);

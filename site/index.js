@@ -21,33 +21,34 @@ for (const path in pages) {
 	});
 }
 
-const versions = fs
-	.readdirSync("lib")
-	.filter(p => !p.startsWith("."))
-	;
-
-const latestVer = versions.reduce(utils.cmpSemVer);
+const versions = utils.versions();
 
 server.fs("/pub", "pub");
 server.fs("/lib", "lib");
-server.fs("/lib/latest", `lib/${latestVer}`);
+server.fs("/lib/latest", `lib/${versions.latest}`);
 server.fs("/lib/dev", "../src");
 // TODO: deprecate
 server.fs("/lib/master", "lib/0.0.0");
 
 server.match("/versions", (req, res) => {
 	res.cors();
-	res.json([ "latest", ...versions, "dev", ]);
+	res.json([ "latest", ...versions.list, "dev", ]);
 });
 
 server.match("/latest", (req, res) => {
 	res.cors();
-	res.json(latestVer);
+	res.json(versions.latest);
 });
 
 server.handle((req, res) => {
 	res.status(404);
 	res.text("nope");
+});
+
+server.errhand((req, res, e) => {
+	console.error(e);
+	res.status(500);
+	res.html(`<pre>${e.stack}</pre>`);
 });
 
 console.log(`http://localhost:${port}`);
