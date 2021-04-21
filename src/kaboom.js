@@ -557,9 +557,19 @@ function init(conf = {}) {
 		app.mouseState = "pressed";
 	});
 
-	// TODO: on mobile this is fired at the same frame as "mousedown" which cancels out
 	canvas.addEventListener("mouseup", (e) => {
 		app.mouseState = "released";
+	});
+
+	canvas.addEventListener("touchstart", (e) => {
+		const t = e.touches[0];
+		app.mousePos = vec2(t.clientX, t.clientY).scale(1 / app.scale);
+		app.mouseState = "pressed";
+	});
+
+	canvas.addEventListener("touchmove", (e) => {
+		const t = e.touches[0];
+		app.mousePos = vec2(t.clientX, t.clientY).scale(1 / app.scale);
 	});
 
 	canvas.addEventListener("keydown", (e) => {
@@ -1602,6 +1612,9 @@ function vec2(x, y) {
 		},
 		eq(other) {
 			return this.x === other.x && this.y === other.y;
+		},
+		str() {
+			return `(${this.x}, ${this.y})`
 		},
 	};
 }

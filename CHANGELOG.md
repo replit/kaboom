@@ -1,5 +1,6 @@
 # v0.4.0 (unreleased)
 - added `sceneData()` for custom scene data kv store
+- fixed `mouseClick` doesn't work on mobile
 
 # v0.3.0 "King Dedede...Bug!"
 - (**BREAK**) removed `pause()` and `paused()` in favor to `kaboom.debug.paused`
