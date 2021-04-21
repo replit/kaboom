@@ -477,6 +477,7 @@ const app = {
 	skipTime: false,
 	dt: 0.0,
 	scale: 1,
+	isTouch: false,
 };
 
 const keyMap = {
@@ -548,6 +549,14 @@ function init(conf = {}) {
 	gfxInit(conf);
 	audioInit(conf);
 	assetsInit(conf);
+
+	app.isTouch = ("ontouchstart" in window) ||
+		(navigator.maxTouchPoints > 0) ||
+		(navigator.msMaxTouchPoints > 0);
+
+	canvas.addEventListener("contextmenu", (e) => {
+		e.preventDefault();
+	});
 
 	canvas.addEventListener("mousemove", (e) => {
 		app.mousePos = vec2(e.offsetX, e.offsetY).scale(1 / app.scale);
@@ -627,7 +636,7 @@ function processBtnState(s) {
 		return "down";
 	}
 	if (s === "released") {
-		return "idle";
+		return "up";
 	}
 	return s;
 }
