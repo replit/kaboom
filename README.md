@@ -75,6 +75,6 @@ k.start(...);
 
 use examples to test / add features
 
-1. `npm run site`
+1. `npm run dev`
 1. go to http://localhost:8000/examples
 1. edit examples in `examples/`

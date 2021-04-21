@@ -12,7 +12,6 @@
 		"src/*"
 	],
 	"scripts": {
-		"dev": "cd site; node .",
-		"site": "cd site; node ext/watch.js . node ."
+		"dev": "cd site; node ext/watch.js . node ."
 	}
 }
