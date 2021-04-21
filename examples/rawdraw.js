@@ -5,7 +5,9 @@ init({
 	scale: 2,
 });
 
-loadSprite("car", "/pub/img/car.png", {
+loadRoot("/pub/examples/");
+
+loadSprite("car", "img/car.png", {
 	sliceX: 3,
 });
 

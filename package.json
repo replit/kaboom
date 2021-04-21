@@ -12,7 +12,7 @@
 		"src/*"
 	],
 	"scripts": {
-		"site": "cd site; node .",
-		"site:dev": "cd site; node ext/watch.js . node ."
+		"dev": "cd site; node .",
+		"site": "cd site; node ext/watch.js . node ."
 	}
 }

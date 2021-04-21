@@ -5,7 +5,8 @@ init({
 	scale: 2,
 });
 
-loadSprite("mark", "/pub/img/mark.png");
+loadRoot("/pub/examples/");
+loadSprite("mark", "img/mark.png");
 
 scene("main", () => {
 

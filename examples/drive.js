@@ -1,11 +1,11 @@
 kaboom.global();
 
-loadRoot("/pub/img/");
-loadSprite("sky", "sky.png");
-loadSprite("road", "road.png");
-loadAseprite("car", "car.png", "car.json");
-loadSprite("apple", "apple.png");
-loadSprite("pineapple", "pineapple.png");
+loadRoot("/pub/examples/");
+loadAseprite("car", "img/car.png", "img/car.json");
+loadSprite("sky", "img/sky.png");
+loadSprite("road", "img/road.png");
+loadSprite("apple", "img/apple.png");
+loadSprite("pineapple", "img/pineapple.png");
 
 init({
 	width: 160,

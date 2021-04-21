@@ -1,13 +1,13 @@
 kaboom.global();
 
-loadRoot("/pub/img/");
-loadSprite("steel", "steel.png");
-loadSprite("ch1", "ch1.png");
-loadSprite("ch2", "ch2.png");
-loadSprite("grass", "grass.png");
-loadSprite("door", "door.png");
-loadSprite("key", "key.png");
-loadSprite("guy", "guy.png");
+loadRoot("/pub/examples/");
+loadSprite("steel", "img/steel.png");
+loadSprite("ch1", "img/ch1.png");
+loadSprite("ch2", "img/ch2.png");
+loadSprite("grass", "img/grass.png");
+loadSprite("door", "img/door.png");
+loadSprite("key", "img/key.png");
+loadSprite("guy", "img/guy.png");
 
 init({
 	fullscreen: true,

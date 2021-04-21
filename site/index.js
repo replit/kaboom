@@ -24,6 +24,7 @@ for (const path in pages) {
 const versions = utils.versions();
 
 server.fs("/pub", "pub");
+server.fs("/pub/examples", "../examples");
 server.fs("/lib", "lib");
 server.fs("/lib/latest", `lib/${versions.latest}`);
 server.fs("/lib/dev", "../src");

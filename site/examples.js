@@ -134,8 +134,8 @@ const page = t("html", {}, [
 					value: "level",
 					onchange: "update()",
 				}, fs
-					.readdirSync("./pub/examples")
-					.filter(f => !f.startsWith("."))
+					.readdirSync("../examples")
+					.filter(f => !f.startsWith(".") && fs.statSync(`../examples/${f}`).isFile())
 					.map(f => {
 					return t("option", { selected: f === "level.js" }, path.basename(f, ".js"));
 				})),

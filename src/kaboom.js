@@ -182,14 +182,19 @@ function loadRoot(path) {
 	assets.loadRoot = path;
 }
 
+function isBase64Url(src) {
+	return src.startsWith("data:");
+}
+
 // load a bitmap font to asset manager
 function loadFont(name, src, gw, gh, chars) {
 
 	return new Promise((resolve, reject) => {
 
 		const loader = newLoader();
+		const path = isBase64Url(src) ? src : assets.loadRoot + src;
 
-		loadImg(src)
+		loadImg(path)
 			.then((img) => {
 				assets.fonts[name] = makeFont(makeTex(img), gw, gh, chars || ASCII_CHARS);
 			})
@@ -302,8 +307,9 @@ function loadSprite(name, src, conf = {}) {
 			} else {
 
 				const loader = newLoader();
+				const path = isBase64Url(src) ? src : assets.loadRoot + src;
 
-				loadImg(assets.loadRoot + src)
+				loadImg(path)
 					.then((img) => {
 						resolve(loadRawSprite(name, img, conf));
 					})
@@ -3737,7 +3743,6 @@ kaboom.loadSprite = loadSprite;
 kaboom.loadAseprite = loadAseprite;
 kaboom.loadSound = loadSound;
 kaboom.loadFont = loadFont;
-kaboom.getSprite = getSprite;
 
 // query
 kaboom.width = width;

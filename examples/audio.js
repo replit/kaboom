@@ -5,9 +5,9 @@ init({
 	scale: 2,
 });
 
-loadRoot("/pub/sounds/");
-loadSound("wooosh", "wooosh.mp3");
-loadSound("OtherworldlyFoe", "OtherworldlyFoe.mp3");
+loadRoot("/pub/examples/");
+loadSound("wooosh", "sounds/wooosh.mp3");
+loadSound("OtherworldlyFoe", "sounds/OtherworldlyFoe.mp3");
 
 scene("main", () => {
 
