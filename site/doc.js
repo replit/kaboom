@@ -256,7 +256,7 @@ const page = t("html", {}, [
 <script src="https://kaboomjs.com/lib/dev/kaboom.js"></script>
 <script type="module">
 
-// make kaboom functions global
+// initialize kaboom context
 const k = kaboom();
 
 // define a scene
