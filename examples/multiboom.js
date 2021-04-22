@@ -11,54 +11,42 @@ function spinPlugin(k) {
 	};
 }
 
-const k1 = kaboom({
-	clearColor: [1, 0, 1, 1],
-	width: 320,
-	height: 320,
-	plugins: [ spinPlugin, ],
-});
+const clearColors = [
+	[1, 0, 1, 1],
+	[0, 0, 1, 1],
+];
 
-k1.loadRoot("/pub/examples/");
-k1.loadSprite("mark", "img/mark.png");
+const sprites = [
+	"mark",
+	"notmark",
+];
 
-k1.scene("main", () => {
-	k1.add([
-		k1.sprite("mark"),
-		k1.pos(k1.width() / 2, k1.height() / 2),
-		k1.scale(12),
-		k1.rotate(0),
-		k1.spin(),
-		k1.origin("center"),
-	]);
-	k1.add([
-		k1.text("kaboom #1", 24),
-	]);
-});
+for (let i = 0; i < 2; i++) {
 
-k1.start("main");
+	const k = kaboom({
+		clearColor: clearColors[i],
+		width: 320,
+		height: 320,
+		plugins: [ spinPlugin, ],
+	});
 
-const k2 = kaboom({
-	clearColor: [0, 0, 1, 1],
-	width: 320,
-	height: 320,
-	plugins: [ spinPlugin, ],
-});
+	k.loadRoot("/pub/examples/");
+	k.loadSprite(sprites[i], `img/${sprites[i]}.png`);
 
-k2.loadRoot("/pub/examples/");
-k2.loadSprite("notmark", "img/notmark.png");
+	k.scene("main", () => {
+		k.add([
+			k.sprite(sprites[i]),
+			k.pos(k.width() / 2, k.height() / 2),
+			k.scale(12),
+			k.rotate(0),
+			k.spin(),
+			k.origin("center"),
+		]);
+		k.add([
+			k.text(`kaboom #${i}`, 24),
+		]);
+	});
 
-k2.scene("main", () => {
-	k2.add([
-		k2.sprite("notmark"),
-		k2.pos(k2.width() / 2, k2.height() / 2),
-		k2.scale(12),
-		k2.rotate(0),
-		k2.spin(),
-		k2.origin("center"),
-	]);
-	k2.add([
-		k2.text("kaboom #2", 24),
-	]);
-});
+	k.start("main");
 
-k2.start("main");
+}
