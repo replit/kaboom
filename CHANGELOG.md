@@ -21,6 +21,7 @@ k.vec2();
 - disabled context menu on canvas
 - prevented default behavior for 'tab' and function keys
 - removed `loadAseprite()` and back to `loadSprite(name, src, { aseSpriteSheet: path, })`
+- supports newer version of pedit
 
 # v0.3.0 "King Dedede...Bug!"
 - (**BREAK**) removed `pause()` and `paused()` in favor to `kaboom.debug.paused`

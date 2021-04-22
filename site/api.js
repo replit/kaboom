@@ -206,15 +206,8 @@ loadSprite("froggy", "froggy.png", {
 		run: [0, 2],
 		jump: [3],
 	},
+	aseSpriteSheet: "froggy.json", // use the spritesheet json exported from aseprite (remember to choose "Array" over "Hash")
 });
-			`),
-			f("loadAseprite", [
-				a("name", "name of sprite"),
-				a("imgSrc", "image source"),
-				a("jsonSrc", "use spritesheet exported from aseprite"),
-			], null, "load an Aseprite sprite sheet", `
-// use spritesheet json exported from aseprite
-loadAseprite("froggy", "froggy.png", "froggy.json")
 			`),
 			f("loadSound", [
 				a("name", "name of sound"),

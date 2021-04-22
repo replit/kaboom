@@ -294,8 +294,8 @@ function loadSprite(name, src, conf = {}) {
 		// from url
 		if (typeof(src) === "string") {
 
-			// from replit kaboom workspace sprite editor
-			if (src.match(/\.kbmsprite$/)) {
+			// from pedit
+			if (src.endsWith(".pedit")) {
 
 				const loader = newLoader();
 
@@ -303,31 +303,24 @@ function loadSprite(name, src, conf = {}) {
 					.then((res) => {
 						return res.json();
 					})
-					.then((data) => {
+					.then(async (data) => {
+						const images = await Promise.all(data.frames.map(loadImg));
+						const canvas = document.createElement("canvas");
+						canvas.width = data.width;
+						canvas.height = data.height * data.frames.length;
 
-						const frames = data.frames;
+						const ctx = canvas.getContext("2d");
 
-						const pixels = frames
-							.map(f => f.pixels)
-							.flat()
-							;
+						images.forEach((img, i) => {
+							ctx.drawImage(img, 0, i * data.height);
+						});
 
-						const w = frames[0].width;
-						const h = frames[0].height;
-
-						const img = new ImageData(
-							new Uint8ClampedArray(pixels),
-							w,
-							h * frames.length,
-						);
-
-						const sprite = loadRawSprite(name, img, {
-							sliceY: frames.length,
-							anims: conf.anims,
+						const sprite = loadRawSprite(name, canvas, {
+							sliceY: data.frames.length,
+							anims: data.anims,
 						});
 
 						resolve(sprite);
-
 					})
 					.catch(() => {
 						error(`failed to load sprite '${name}' from '${src}'`);
