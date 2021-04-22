@@ -20,7 +20,7 @@ k.vec2();
 - fixed `mouseClick` doesn't work on mobile
 - disabled context menu on canvas
 - prevented default behavior for 'tab' and function keys
-- removed `loadAseprite()` and back to `loadSprite(name, src, { aseSpriteSheet: path, })`
+- removed `loadAseprite()` and made it an external plugin under `plugins/aseprite.js`
 - supports newer version of pedit
 - added a simple plugin system, see the `multiboom` example
 

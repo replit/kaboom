@@ -294,7 +294,68 @@ k.start("main");
 							]);
 						}),
 					]);
-				})
+				}),
+				t("div", {}, [
+					t("p", { class: "title", }, "Custom Component"),
+					t("p", { class: "desc", }, "a component describes a single unit of data / behavior"),
+					code(`
+// create a custom component that handles health
+function health(hp) {
+	return {
+		hurt(n) {
+			hp -= (n === undefined ? 1 : n);
+			this.trigger("hurt");
+			if (hp <= 0) {
+				// trigger a custom event
+				this.trigger("death");
+			}
+		},
+		heal(n) {
+			hp += (n === undefined ? 1 : n);
+			this.trigger("heal");
+		},
+		hp() {
+			return hp;
+		},
+	};
+}
+
+const enemy = add([
+	health(3),
+]);
+
+enemy.on("death", () => {
+	makeExplosion();
+	wait(1, () => {
+		destroy(enemy);
+	});
+});
+					`),
+				]),
+				t("div", {}, [
+					t("p", { class: "title", }, "Plugin System"),
+					t("p", { class: "desc", }, "how to make / use plugins"),
+					code(`
+// create a function that takes in the kaboom context handle, and return an object, the entries of the returned object will get assigned to the kaboom context
+function testPlugin(k) {
+	return {
+		timePlusOne() {
+			return k.time() + 1;
+		},
+	};
+}
+
+const k = kaboom({
+	global: true,
+	plugins: [ testPlugin, ],
+});
+
+// it gets assigned to the kaboom context handle
+k.timePlusOne();
+// it also works with global flag
+timePlusOne();
+					`),
+				]),
 			]),
 		]),
 	]),

@@ -50,7 +50,7 @@ k2.loadSprite("notmark", "img/notmark.png");
 k2.scene("main", () => {
 	k2.add([
 		k2.sprite("notmark"),
-		k1.pos(k1.width() / 2, k1.height() / 2),
+		k2.pos(k2.width() / 2, k2.height() / 2),
 		k2.scale(12),
 		k2.rotate(0),
 		k2.spin(),
