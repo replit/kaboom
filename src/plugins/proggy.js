@@ -1,4 +1,7 @@
-window.proggyPlugin = function(k) {
+// font proggy
+// http://upperbounds.net/
+
+window.proggyPlugin = (k) => {
 
 function loadProggy() {
 	return k.loadFont(

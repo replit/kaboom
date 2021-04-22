@@ -21,6 +21,11 @@ export default function genGame(code) {
 
 <body>
 	<script src="/lib/dev/kaboom.js"></script>
+	<script src="/lib/dev/plugins/aseprite.js"></script>
+	<script src="/lib/dev/plugins/pedit.js"></script>
+	<script src="/lib/dev/plugins/04b03.js"></script>
+	<script src="/lib/dev/plugins/cp437.js"></script>
+	<script src="/lib/dev/plugins/proggy.js"></script>
 	<script>
 ${code}
 	</script>

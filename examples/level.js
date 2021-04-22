@@ -3,11 +3,12 @@ kaboom({
 	fullscreen: true,
 	scale: 2,
 	debug: true,
+	plugins: [ asepritePlugin, ],
 });
 
 loadRoot("/pub/examples/");
 
-loadSprite("car", "img/car.png", { aseSpriteSheet: "img/car.json" });
+loadAseprite("car", "img/car.png", "img/car.json");
 loadSprite("steel", "img/steel.png");
 loadSprite("grass", "img/grass.png");
 loadSprite("jumpy", "img/jumpy.png");

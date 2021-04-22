@@ -1,4 +1,6 @@
-window.b03Plugin = function(k) {
+// font 04b03
+
+window["04b03Plugin"] = (k) => {
 
 function load04b03() {
 	k.loadFont(

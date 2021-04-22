@@ -75,7 +75,7 @@ debug utils
 
 */
 
-window.kaboom = function(gconf = {}) {
+window.kaboom = (gconf = {}) => {
 
 /*
 
@@ -138,6 +138,7 @@ function loadImg(src) {
 }
 
 // make a new load tracker
+// the game starts after all trackers are done()
 function newLoader() {
 	const id = assets.lastLoaderID;
 	assets.loaders[id] = false;
@@ -168,7 +169,10 @@ function loadProgress() {
 
 // global load path prefix
 function loadRoot(path) {
-	assets.loadRoot = path;
+	if (path) {
+		assets.loadRoot = path;
+	}
+	return assets.loadRoot;
 }
 
 function isDataUrl(src) {
@@ -247,108 +251,25 @@ function loadSprite(name, src, conf = {}) {
 
 	}
 
-	if (conf.aseSpriteSheet) {
-
-		return new Promise((resolve, reject) => {
-
-			const jsonPath = assets.loadRoot + conf.aseSpriteSheet;
-			const loader = newLoader();
-
-			loadSprite(name, src).then((sprite) => {
-
-				fetch(jsonPath)
-					.then((res) => {
-						return res.json();
-					})
-					.then((data) => {
-						const size = data.meta.size;
-						sprite.frames = data.frames.map((f) => {
-							return quad(
-								f.frame.x / size.w,
-								f.frame.y / size.h,
-								f.frame.w / size.w,
-								f.frame.h / size.h,
-							);
-						});
-						for (const anim of data.meta.frameTags) {
-							sprite.anims[anim.name] = [anim.from, anim.to];
-						}
-						resolve(sprite);
-					})
-					.catch(() => {
-						error(`failed to load ${jsonPath}`);
-						reject();
-					})
-					.finally(() => {
-						loader.done();
-					});
-
-			});
-
-		});
-
-	}
-
 	return new Promise((resolve, reject) => {
 
 		// from url
 		if (typeof(src) === "string") {
 
-			// from pedit
-			if (src.endsWith(".pedit")) {
+			const loader = newLoader();
+			const path = isDataUrl(src) ? src : assets.loadRoot + src;
 
-				const loader = newLoader();
-
-				fetch(assets.loadRoot + src)
-					.then((res) => {
-						return res.json();
-					})
-					.then(async (data) => {
-						const images = await Promise.all(data.frames.map(loadImg));
-						const canvas = document.createElement("canvas");
-						canvas.width = data.width;
-						canvas.height = data.height * data.frames.length;
-
-						const ctx = canvas.getContext("2d");
-
-						images.forEach((img, i) => {
-							ctx.drawImage(img, 0, i * data.height);
-						});
-
-						const sprite = loadRawSprite(name, canvas, {
-							sliceY: data.frames.length,
-							anims: data.anims,
-						});
-
-						resolve(sprite);
-					})
-					.catch(() => {
-						error(`failed to load sprite '${name}' from '${src}'`);
-						reject();
-					})
-					.finally(() => {
-						loader.done();
-					});
-
-			// any other url
-			} else {
-
-				const loader = newLoader();
-				const path = isDataUrl(src) ? src : assets.loadRoot + src;
-
-				loadImg(path)
-					.then((img) => {
-						resolve(loadRawSprite(name, img, conf));
-					})
-					.catch(() => {
-						error(`failed to load sprite '${name}' from '${src}'`);
-						reject();
-					})
-					.finally(() => {
-						loader.done();
-					});
-
-			}
+			loadImg(path)
+				.then((img) => {
+					resolve(loadRawSprite(name, img, conf));
+				})
+				.catch(() => {
+					error(`failed to load sprite '${name}' from '${src}'`);
+					reject();
+				})
+				.finally(() => {
+					loader.done();
+				});
 
 			return;
 
@@ -3749,6 +3670,7 @@ const lib = {
 	loadSprite,
 	loadSound,
 	loadFont,
+	newLoader,
 	// query
 	width,
 	height,
