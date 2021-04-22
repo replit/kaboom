@@ -16,9 +16,6 @@ export default function genGame(code) {
 			width: 100%;
 			height: 100%;
 		}
-		canvas {
-			display: block;
-		}
 	</style>
 </head>
 
