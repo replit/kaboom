@@ -1,4 +1,4 @@
-# v0.4.0 (unreleased)
+# v0.4.0 "Multiboom" (wip)
 - (**BREAK**) removed `init()` and `kaboom.global()`, in favor of `kaboom()`, also allows multiple kaboom games on one page
 ```js
 // replaces init(), and added a 'global' flag for previous kaboom.global()
