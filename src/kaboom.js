@@ -171,7 +171,7 @@ function loadRoot(path) {
 	assets.loadRoot = path;
 }
 
-function isBase64Url(src) {
+function isDataUrl(src) {
 	return src.startsWith("data:");
 }
 
@@ -181,7 +181,7 @@ function loadFont(name, src, gw, gh, chars) {
 	return new Promise((resolve, reject) => {
 
 		const loader = newLoader();
-		const path = isBase64Url(src) ? src : assets.loadRoot + src;
+		const path = isDataUrl(src) ? src : assets.loadRoot + src;
 
 		loadImg(path)
 			.then((img) => {
@@ -245,6 +245,47 @@ function loadSprite(name, src, conf = {}) {
 
 	}
 
+	if (conf.aseSpriteSheet) {
+
+		return new Promise((resolve, reject) => {
+
+			const jsonPath = assets.loadRoot + conf.aseSpriteSheet;
+			const loader = newLoader();
+
+			loadSprite(name, src).then((sprite) => {
+
+				fetch(jsonPath)
+					.then((res) => {
+						return res.json();
+					})
+					.then((data) => {
+						const size = data.meta.size;
+						sprite.frames = data.frames.map((f) => {
+							return quad(
+								f.frame.x / size.w,
+								f.frame.y / size.h,
+								f.frame.w / size.w,
+								f.frame.h / size.h,
+							);
+						});
+						for (const anim of data.meta.frameTags) {
+							sprite.anims[anim.name] = [anim.from, anim.to];
+						}
+						resolve(sprite);
+					})
+					.catch(() => {
+						error(`failed to load ${jsonPath}`);
+					})
+					.finally(() => {
+						loader.done();
+					});
+
+			});
+
+		});
+
+	}
+
 	return new Promise((resolve, reject) => {
 
 		// from url
@@ -296,7 +337,7 @@ function loadSprite(name, src, conf = {}) {
 			} else {
 
 				const loader = newLoader();
-				const path = isBase64Url(src) ? src : assets.loadRoot + src;
+				const path = isDataUrl(src) ? src : assets.loadRoot + src;
 
 				loadImg(path)
 					.then((img) => {
@@ -318,43 +359,6 @@ function loadSprite(name, src, conf = {}) {
 			resolve(loadRawSprite(name, src, conf));
 
 		}
-
-	});
-
-}
-
-function loadAseprite(name, imgSrc, jsonSrc) {
-
-	const jsonPath = assets.loadRoot + jsonSrc;
-
-	return loadSprite(name, imgSrc).then(() => {
-
-		const loader = newLoader();
-
-		fetch(jsonPath)
-			.then((res) => {
-				return res.json();
-			})
-			.then((data) => {
-				const size = data.meta.size;
-				assets.sprites[name].frames = data.frames.map((f) => {
-					return quad(
-						f.frame.x / size.w,
-						f.frame.y / size.h,
-						f.frame.w / size.w,
-						f.frame.h / size.h,
-					);
-				});
-				for (const anim of data.meta.frameTags) {
-					assets.sprites[name].anims[anim.name] = [anim.from, anim.to];
-				}
-			})
-			.catch(() => {
-				error(`failed to load ${jsonPath}`);
-			})
-			.finally(() => {
-				loader.done();
-			});
 
 	});
 
@@ -3734,7 +3738,6 @@ const lib = {
 	// asset load
 	loadRoot,
 	loadSprite,
-	loadAseprite,
 	loadSound,
 	loadFont,
 	// query
