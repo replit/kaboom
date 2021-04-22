@@ -301,18 +301,17 @@ k.start("main");
 					code(`
 // create a custom component that handles health
 function health(hp) {
+	// these functions will directly assign to the game object
 	return {
 		hurt(n) {
-			hp -= (n === undefined ? 1 : n);
-			this.trigger("hurt");
+			hp -= n;
 			if (hp <= 0) {
 				// trigger a custom event
 				this.trigger("death");
 			}
 		},
 		heal(n) {
-			hp += (n === undefined ? 1 : n);
-			this.trigger("heal");
+			hp += n;
 		},
 		hp() {
 			return hp;
@@ -320,16 +319,49 @@ function health(hp) {
 	};
 }
 
-const enemy = add([
-	health(3),
+const boss = add([
+	health(12),
 ]);
 
-enemy.on("death", () => {
+boss.collides("bullet", () => {
+	boss.hurt(1);
+});
+
+boss.on("death", () => {
 	makeExplosion();
 	wait(1, () => {
 		destroy(enemy);
 	});
 });
+
+// lifecycle methods
+function drag() {
+
+	// private states
+	let draggin = false;
+
+	return {
+
+		// called when the object is add()-ed
+		add() {
+			this.clicks(() => {
+				draggin = true;
+			});
+			mouseRelease(() => {
+				draggin = false;
+			});
+		},
+
+		// called every frame
+		update() {
+			if (draggin) {
+				this.pos = mousePos();
+			}
+		},
+
+	};
+
+}
 					`),
 				]),
 				t("div", {}, [
