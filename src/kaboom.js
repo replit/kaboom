@@ -186,9 +186,11 @@ function loadFont(name, src, gw, gh, chars) {
 		loadImg(path)
 			.then((img) => {
 				assets.fonts[name] = makeFont(makeTex(img), gw, gh, chars || ASCII_CHARS);
+				resolve(assets.fonts[name]);
 			})
 			.catch(() => {
 				error(`failed to load font '${name}' from '${src}'`);
+				reject();
 			})
 			.finally(() => {
 				loader.done();
@@ -275,6 +277,7 @@ function loadSprite(name, src, conf = {}) {
 					})
 					.catch(() => {
 						error(`failed to load ${jsonPath}`);
+						reject();
 					})
 					.finally(() => {
 						loader.done();
@@ -328,6 +331,7 @@ function loadSprite(name, src, conf = {}) {
 					})
 					.catch(() => {
 						error(`failed to load sprite '${name}' from '${src}'`);
+						reject();
 					})
 					.finally(() => {
 						loader.done();
@@ -345,6 +349,7 @@ function loadSprite(name, src, conf = {}) {
 					})
 					.catch(() => {
 						error(`failed to load sprite '${name}' from '${src}'`);
+						reject();
 					})
 					.finally(() => {
 						loader.done();
@@ -392,6 +397,7 @@ function loadSound(name, src, conf = {}) {
 				})
 				.catch(() => {
 					error(`failed to load sound '${name}' from '${src}'`);
+					reject();
 				})
 				.finally(() => {
 					loader.done();
