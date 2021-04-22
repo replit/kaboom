@@ -1,7 +1,7 @@
 /*
 
 kaboom.js
-v0.3.0
+v0.3.0 "King Dedede...Bug!"
 
 a JavaScript game programming library
 

@@ -1,21 +1,23 @@
-function loadExt(k) {
-	k.spin = () => {
-		return {
-			update() {
-				this.scale = Math.sin(k.time()) * 24;
-				this.angle += k.dt();
-			},
-		};
-	}
+function spinPlugin(k) {
+	return {
+		spin() {
+			return {
+				update() {
+					this.scale = Math.sin(k.time()) * 24;
+					this.angle = k.time();
+				},
+			};
+		},
+	};
 }
 
 const k1 = kaboom({
 	clearColor: [1, 0, 1, 1],
 	width: 320,
 	height: 320,
+	plugins: [ spinPlugin, ],
 });
 
-loadExt(k1);
 k1.loadRoot("/pub/examples/");
 k1.loadSprite("mark", "img/mark.png");
 
@@ -39,9 +41,9 @@ const k2 = kaboom({
 	clearColor: [0, 0, 1, 1],
 	width: 320,
 	height: 320,
+	plugins: [ spinPlugin, ],
 });
 
-loadExt(k2);
 k2.loadRoot("/pub/examples/");
 k2.loadSprite("notmark", "img/notmark.png");
 

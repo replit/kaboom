@@ -1,7 +1,7 @@
 /*
 
 kaboom.js
-v0.4.0
+v0.4.0 "Multiboom"
 
 a JavaScript game programming library
 
@@ -3848,6 +3848,15 @@ const lib = {
 	// level
 	addLevel,
 };
+
+if (gconf.plugins) {
+	for (const src of gconf.plugins) {
+		const map = src(lib);
+		for (const k in map) {
+			lib[k] = map[k];
+		}
+	}
+}
 
 if (gconf.global) {
 	for (const k in lib) {

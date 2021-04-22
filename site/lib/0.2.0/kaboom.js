@@ -1,7 +1,7 @@
 /*
 
 kaboom.js
-v0.2.0
+v0.2.0 "Hear the Tremble"
 
 a JavaScript game programming library
 

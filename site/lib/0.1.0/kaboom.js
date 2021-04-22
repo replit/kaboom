@@ -1,7 +1,7 @@
 /*
 
 kaboom.js
-v0.1.0
+v0.1.0 "Oh Hi Mark"
 
 a JavaScript game programming library
 
