@@ -387,22 +387,22 @@ const preventDefaultKeys = [
 let gl;
 
 function appInit() {
-	let canvas = gconf.canvas;
+	app.canvas = gconf.canvas;
 
-	if (!canvas) {
-		canvas = document.createElement("canvas");
+	if (!app.canvas) {
+		app.canvas = document.createElement("canvas");
 		const root = gconf.root || document.body;
-		root.appendChild(canvas);
+		root.appendChild(app.canvas);
 	}
 
 	app.scale = gconf.scale || 1;
 
 	if (gconf.fullscreen) {
-		canvas.width = window.innerWidth;
-		canvas.height = window.innerHeight;
+		app.canvas.width = window.innerWidth;
+		app.canvas.height = window.innerHeight;
 	} else {
-		canvas.width = (gconf.width || 640) * app.scale;
-		canvas.height = (gconf.height || 480) * app.scale;
+		app.canvas.width = (gconf.width || 640) * app.scale;
+		app.canvas.height = (gconf.height || 480) * app.scale;
 	}
 
 	const styles = [
@@ -414,15 +414,16 @@ function appInit() {
 		styles.push("image-rendering: crisp-edges");
 	}
 
-	canvas.style = styles.join(";");
-	canvas.setAttribute("tabindex", "0");
+	app.canvas.style = styles.join(";");
+	app.canvas.setAttribute("tabindex", "0");
 
-	gl = canvas
+	gl = app.canvas
 		.getContext("webgl", {
 			antialias: true,
 			depth: true,
 			stencil: true,
 			alpha: true,
+			preserveDrawingBuffer: true,
 		});
 
 	gfxInit();
@@ -433,34 +434,34 @@ function appInit() {
 		(navigator.maxTouchPoints > 0) ||
 		(navigator.msMaxTouchPoints > 0);
 
-	canvas.addEventListener("contextmenu", (e) => {
+	app.canvas.addEventListener("contextmenu", (e) => {
 		e.preventDefault();
 	});
 
-	canvas.addEventListener("mousemove", (e) => {
+	app.canvas.addEventListener("mousemove", (e) => {
 		app.mousePos = vec2(e.offsetX, e.offsetY).scale(1 / app.scale);
 	});
 
-	canvas.addEventListener("mousedown", (e) => {
+	app.canvas.addEventListener("mousedown", (e) => {
 		app.mouseState = "pressed";
 	});
 
-	canvas.addEventListener("mouseup", (e) => {
+	app.canvas.addEventListener("mouseup", (e) => {
 		app.mouseState = "released";
 	});
 
-	canvas.addEventListener("touchstart", (e) => {
+	app.canvas.addEventListener("touchstart", (e) => {
 		const t = e.touches[0];
 		app.mousePos = vec2(t.clientX, t.clientY).scale(1 / app.scale);
 		app.mouseState = "pressed";
 	});
 
-	canvas.addEventListener("touchmove", (e) => {
+	app.canvas.addEventListener("touchmove", (e) => {
 		const t = e.touches[0];
 		app.mousePos = vec2(t.clientX, t.clientY).scale(1 / app.scale);
 	});
 
-	canvas.addEventListener("keydown", (e) => {
+	app.canvas.addEventListener("keydown", (e) => {
 
 		const k = keyMap[e.key] || e.key.toLowerCase();
 
@@ -484,12 +485,12 @@ function appInit() {
 
 	});
 
-	canvas.addEventListener("keyup", (e) => {
+	app.canvas.addEventListener("keyup", (e) => {
 		const k = keyMap[e.key] || e.key.toLowerCase();
 		app.keyStates[k] = "released";
 	});
 
-	canvas.focus();
+	app.canvas.focus();
 
 	document.addEventListener("visibilitychange", (e) => {
 		switch (document.visibilityState) {
@@ -575,6 +576,11 @@ function dt() {
 // get current running time
 function time() {
 	return app.time;
+}
+
+// get a base64 png image of canvas
+function screenShot() {
+	return app.canvas.toDataURL();
 }
 
 /*
@@ -3680,6 +3686,7 @@ const lib = {
 	height,
 	dt,
 	time,
+	screenShot,
 	// scene
 	scene,
 	go,
