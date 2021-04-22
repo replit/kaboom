@@ -45,6 +45,7 @@ kaboom({
 	fullscreen: true, // if fullscreen
 	crisp: true, // if pixel crisp (for sharp pixelated games)
 	debug: false, // debug mode
+	plugins: [ asepritePlugin, ], // load plugins
 });
 
 // with 'global' flag, all kaboom functions are in global namespace
@@ -206,7 +207,6 @@ loadSprite("froggy", "froggy.png", {
 		run: [0, 2],
 		jump: [3],
 	},
-	aseSpriteSheet: "froggy.json", // use the spritesheet json exported from aseprite (remember to choose "Array" over "Hash")
 });
 			`),
 			f("loadSound", [
