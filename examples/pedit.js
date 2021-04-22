@@ -10,18 +10,17 @@ loadRoot("/pub/examples/");
 loadPedit("test", "img/test.pedit");
 
 scene("main", () => {
+
 	const spr = add([
 		sprite("test"),
 	]);
-	keyPress("1", () => {
-		spr.frame = 0;
-	});
-	keyPress("2", () => {
-		spr.frame = 1;
-	});
-	keyPress("3", () => {
-		spr.frame = 2;
-	});
+
+	for (let i = 0; i < spr.numFrames(); i++) {
+		keyPress(`${i + 1}`, () => {
+			spr.frame = i;
+		});
+	}
+
 });
 
 start("main");

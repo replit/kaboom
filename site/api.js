@@ -458,8 +458,8 @@ const obj = add([
 	}),
 ]);
 
-// get current frame
-console.log(obj.frame);
+// get / set current frame
+obj.frame = obj.numFrames() - 1;
 
 // play animation
 obj.play("jump");

@@ -3240,7 +3240,7 @@ function sprite(id, conf = {}) {
 
 		play(name, loop) {
 
-			const anim = assets.sprites[this.spriteID].anims[name];
+			const anim = spr[this.spriteID].anims[name];
 
 			if (!anim) {
 				error(`anim not found: ${name}`);
@@ -3269,6 +3269,10 @@ function sprite(id, conf = {}) {
 				events[curAnim].end();
 			}
 			curAnim = null;
+		},
+
+		numFrames() {
+			return spr.frames.length;
 		},
 
 		curAnim() {

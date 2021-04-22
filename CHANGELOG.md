@@ -22,7 +22,8 @@ k.vec2();
 - prevented default behavior for 'tab' and function keys
 - removed `loadAseprite()` and made it an external plugin under `plugins/aseprite.js`
 - supports newer version of pedit
-- added a simple plugin system, see the `multiboom` example
+- added a plugin system, see the `multiboom` example and `src/plugins`
+- added `numFrames()` by `sprite()`
 
 # v0.3.0 "King Dedede...Bug!"
 - (**BREAK**) removed `pause()` and `paused()` in favor to `kaboom.debug.paused`
