@@ -24,7 +24,7 @@ k.vec2();
 - added a plugin system, see the `multiboom` example and `src/plugins`
 - (**BREAK**) removed support for `.kbmsprite`, supports newer version of `.pedit` through pedit plugin
 - added `numFrames()` by `sprite()`
-- added `screenShot()` that returns of a png base64 data url for a screenshot
+- added `screenshot()` that returns of a png base64 data url for a screenshot
 
 # v0.3.0 "King Dedede...Bug!"
 - (**BREAK**) removed `pause()` and `paused()` in favor to `kaboom.debug.paused`

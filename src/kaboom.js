@@ -579,7 +579,7 @@ function time() {
 }
 
 // get a base64 png image of canvas
-function screenShot() {
+function screenshot() {
 	return app.canvas.toDataURL();
 }
 
@@ -3686,7 +3686,7 @@ const lib = {
 	height,
 	dt,
 	time,
-	screenShot,
+	screenshot,
 	// scene
 	scene,
 	go,

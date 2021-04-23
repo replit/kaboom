@@ -805,7 +805,7 @@ charInput((ch) => {
 			f("time", [], "time", "current game time"),
 			f("dt", [], "dt", "delta time since last frame"),
 			f("mousePos", [], "mousePos", "current mouse position"),
-			f("screenShot", [], "data url", "returns of a png base64 data url for a screenshot"),
+			f("screenshot", [], "data url", "returns of a png base64 data url for a screenshot"),
 		],
 	},
 	{
