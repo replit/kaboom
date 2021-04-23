@@ -253,7 +253,7 @@ const page = t("html", {}, [
 				t("p", { class: "title", }, "Usage"),
 				t("p", { class: "desc", }, "quick start"),
 				code(`
-<script src="https://kaboomjs.com/lib/dev/kaboom.js"></script>
+<script src="https://kaboomjs.com/lib/${versions.latest}/kaboom.js"></script>
 <script type="module">
 
 // initialize kaboom context

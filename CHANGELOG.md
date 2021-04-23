@@ -1,4 +1,4 @@
-# v0.4.0 "Multiboom" (wip)
+# v0.4.0 "Multiboom"
 - (**BREAK**) removed `init()` and `kaboom.global()`, in favor of `kaboom()`, also allows multiple kaboom games on one page
 ```js
 // replaces init(), and added a 'global' flag for previous kaboom.global()
@@ -16,13 +16,13 @@ k.start();
 k.vec2();
 ```
 - (**BREAK**) changed `clearColor` on `kaboom(conf)` to accept a 4 number array instead of `rgba()`
+- added a plugin system, see the `multiboom` example and `src/plugins`
+- (**BREAK**) removed support for `.kbmsprite`, supports newer version of `.pedit` through pedit plugin
+- (**BREAK**) `loadAseprite()` and made it an external plugin under `plugins/aseprite.js`
 - added `sceneData()` for custom scene data kv store
 - fixed `mouseClick` doesn't work on mobile
 - disabled context menu on canvas
 - prevented default behavior for 'tab' and function keys
-- removed `loadAseprite()` and made it an external plugin under `plugins/aseprite.js`
-- added a plugin system, see the `multiboom` example and `src/plugins`
-- (**BREAK**) removed support for `.kbmsprite`, supports newer version of `.pedit` through pedit plugin
 - added `numFrames()` by `sprite()`
 - added `screenshot()` that returns of a png base64 data url for a screenshot
 
