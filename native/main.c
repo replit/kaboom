@@ -1,44 +1,15 @@
+#include "utils.h"
+
 #include <stdlib.h>
 #include <string.h>
 
 #include <quickjs.h>
-#define SOKOL_GLCORE33
-#define SOKOL_NO_ENTRY
-#define SOKOL_APP_IMPL
-#include <sokol_app.h>
-#include <OpenGL/gl.h>
 
-static void init() {
-}
+JSValue app_init(JSContext *ctx);
+JSValue gl_init(JSContext *ctx);
+JSValue console_init(JSContext *ctx);
 
-static void frame() {
-}
-
-static void event(const sapp_event *ev) {
-}
-
-static void cleanup() {
-}
-
-static JSValue app_init(JSContext *ctx, JSValueConst this, int argc, JSValueConst *argv) {
-
-	sapp_run(&(sapp_desc) {
-		.width = 640,
-		.height = 480,
-		.window_title = "kaboom",
-		.init_cb = init,
-		.frame_cb = frame,
-		.cleanup_cb = cleanup,
-		.event_cb = event,
-	});
-
-	return JS_UNDEFINED;
-
-}
-
-JSValue init_gl(JSContext *ctx);
-
-static char *read_file(const char *path) {
+char *read_file(const char *path) {
 
 	FILE *file = fopen(path, "r");
 
@@ -93,11 +64,12 @@ int main(int argc, char **argv) {
 	char *code = read_file(path);
 
 	JSValue gobj = JS_GetGlobalObject(ctx);
-    JS_SetPropertyStr(ctx, gobj, "appInit", JS_NewCFunction(ctx, app_init, "appInit", 0));
 
-    JS_SetPropertyStr(ctx, gobj, "gl", init_gl(ctx));
+	JS_SetPropertyStr(ctx, gobj, "app", app_init(ctx));
+	JS_SetPropertyStr(ctx, gobj, "gl", gl_init(ctx));
+	JS_SetPropertyStr(ctx, gobj, "console", console_init(ctx));
 
-	JSValue result = JS_Eval(ctx, code, strlen(code), "test.js", JS_EVAL_TYPE_GLOBAL);
+	JSValue result = JS_Eval(ctx, code, strlen(code), path, JS_EVAL_TYPE_GLOBAL);
 
 	if (JS_IsException(result)) {
 		fprintf(stderr, "%s\n", JS_ToCString(ctx, JS_GetException(ctx)));
