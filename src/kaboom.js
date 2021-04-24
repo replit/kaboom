@@ -2456,13 +2456,6 @@ function destroy(obj) {
 	}
 
 	obj.trigger("destroy");
-
-	for (const e of scene.events.destroy) {
-		if (obj.is(e.tag)) {
-			e.cb(obj);
-		}
-	}
-
 	scene.objs.delete(obj._sceneID);
 	delete obj._sceneID;
 
