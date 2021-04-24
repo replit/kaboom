@@ -1,0 +1,2 @@
+appInit();
+gl.clearColor();
