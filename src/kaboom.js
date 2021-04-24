@@ -3202,6 +3202,7 @@ function sprite(id, conf = {}) {
 		draw() {
 
 			const scene = curScene();
+			const spr = assets.sprites[this.spriteID];
 			const q = spr.frames[this.frame];
 
 			drawSprite(this.spriteID, {
@@ -3224,6 +3225,7 @@ function sprite(id, conf = {}) {
 			}
 
 			const speed = this.animSpeed;
+			const spr = assets.sprites[this.spriteID];
 			const anim = spr.anims[curAnim];
 
 			timer += dt();
@@ -3246,7 +3248,8 @@ function sprite(id, conf = {}) {
 
 		play(name, loop) {
 
-			const anim = spr[this.spriteID].anims[name];
+			const spr = assets.sprites[this.spriteID];
+			const anim = spr.anims[name];
 
 			if (!anim) {
 				error(`anim not found: ${name}`);
@@ -3278,6 +3281,7 @@ function sprite(id, conf = {}) {
 		},
 
 		numFrames() {
+			const spr = assets.sprites[this.spriteID];
 			return spr.frames.length;
 		},
 
