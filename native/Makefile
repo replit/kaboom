@@ -2,6 +2,7 @@ CC := cc
 
 CFLAGS += -Iext
 CFLAGS += -ObjC
+
 LDFLAGS += -Lext
 LDFLAGS += -lquickjs
 LDFLAGS += -framework Cocoa

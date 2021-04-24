@@ -1,3 +1,6 @@
+# v0.5.0 (wip)
+- fixed `on("destroy")` handler getting called twice
+
 # v0.4.0 "Multiboom"
 - (**BREAK**) removed `init()` and `kaboom.global()`, in favor of `kaboom()`, also allows multiple kaboom games on one page
 ```js
