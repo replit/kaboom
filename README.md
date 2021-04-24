@@ -8,6 +8,8 @@ kaboom.js is a JavaScript library that helps you make games fast and fun!
 
 ```html
 <script type="module">
+	
+// Import kaboomjs
 import "https://kaboomjs.com/lib/0.4.0/kaboom.js";
 
 // initialize kaboom context
