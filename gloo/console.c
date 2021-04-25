@@ -6,7 +6,7 @@
 static JSValue js_print(
 	JSContext *ctx,
 	int argc,
-	JSValueConst *argv,
+	JSValue *argv,
 	FILE *output
 ) {
 
@@ -31,18 +31,18 @@ static JSValue js_print(
 
 static JSValue console_log(
 	JSContext *ctx,
-	JSValueConst this_val,
+	JSValue this_val,
 	int argc,
-	JSValueConst *argv
+	JSValue *argv
 ) {
 	return js_print(ctx, argc, argv, stdout);
 }
 
 static JSValue console_error(
 	JSContext *ctx,
-	JSValueConst this_val,
+	JSValue this_val,
 	int argc,
-	JSValueConst *argv
+	JSValue *argv
 ) {
 	return js_print(ctx, argc, argv, stderr);
 }

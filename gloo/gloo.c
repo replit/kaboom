@@ -23,9 +23,9 @@ typedef enum {
 typedef struct {
 	// TODO: not great
 	JSContext *js_ctx;
-	JSValueConst js_frame;
-	JSValueConst js_init;
-	JSValueConst g;
+	JSValue js_frame;
+	JSValue js_init;
+	JSValue g;
 	btn_state key_states[NUM_KEYS];
 	btn_state mouse_state;
 	struct timeval start_time;
@@ -48,12 +48,12 @@ static btn_state process_btn(btn_state b) {
 
 static void init() {
 	gettimeofday(&gctx.start_time, NULL);
-	JS_Call(gctx.js_ctx, gctx.js_init, JS_UNDEFINED, 1, &gctx.g);
+	JS_ECall(gctx.js_ctx, gctx.js_init, JS_UNDEFINED, 1, &gctx.g);
 }
 
 static void frame() {
 
-	JS_Call(gctx.js_ctx, gctx.js_frame, JS_UNDEFINED, 1, &gctx.g);
+	JS_ECall(gctx.js_ctx, gctx.js_frame, JS_UNDEFINED, 1, &gctx.g);
 
 	struct timeval time;
 
@@ -188,9 +188,9 @@ static sapp_keycode str_to_sapp_keycode(const char *k) {
 
 static JSValue gloo_key_pressed(
 	JSContext *ctx,
-	JSValueConst this,
+	JSValue this,
 	int argc,
-	JSValueConst *argv
+	JSValue *argv
 ) {
 	sapp_keycode key = str_to_sapp_keycode(JS_ToCString(ctx, argv[0]));
 	btn_state state = gctx.key_states[key];
@@ -202,9 +202,9 @@ static JSValue gloo_key_pressed(
 
 static JSValue gloo_key_pressed_rep(
 	JSContext *ctx,
-	JSValueConst this,
+	JSValue this,
 	int argc,
-	JSValueConst *argv
+	JSValue *argv
 ) {
 	sapp_keycode key = str_to_sapp_keycode(JS_ToCString(ctx, argv[0]));
 	btn_state state = gctx.key_states[key];
@@ -216,9 +216,9 @@ static JSValue gloo_key_pressed_rep(
 
 static JSValue gloo_key_down(
 	JSContext *ctx,
-	JSValueConst this,
+	JSValue this,
 	int argc,
-	JSValueConst *argv
+	JSValue *argv
 ) {
 	sapp_keycode key = str_to_sapp_keycode(JS_ToCString(ctx, argv[0]));
 	btn_state state = gctx.key_states[key];
@@ -230,9 +230,9 @@ static JSValue gloo_key_down(
 
 static JSValue gloo_key_released(
 	JSContext *ctx,
-	JSValueConst this,
+	JSValue this,
 	int argc,
-	JSValueConst *argv
+	JSValue *argv
 ) {
 	sapp_keycode key = str_to_sapp_keycode(JS_ToCString(ctx, argv[0]));
 	btn_state state = gctx.key_states[key];
@@ -244,9 +244,9 @@ static JSValue gloo_key_released(
 
 static JSValue gloo_mouse_pressed(
 	JSContext *ctx,
-	JSValueConst this,
+	JSValue this,
 	int argc,
-	JSValueConst *argv
+	JSValue *argv
 ) {
 	if (gctx.mouse_state == BTN_PRESSED) {
 		return JS_TRUE;
@@ -256,9 +256,9 @@ static JSValue gloo_mouse_pressed(
 
 static JSValue gloo_mouse_down(
 	JSContext *ctx,
-	JSValueConst this,
+	JSValue this,
 	int argc,
-	JSValueConst *argv
+	JSValue *argv
 ) {
 	if (gctx.mouse_state == BTN_PRESSED || gctx.mouse_state == BTN_DOWN) {
 		return JS_TRUE;
@@ -268,9 +268,9 @@ static JSValue gloo_mouse_down(
 
 static JSValue gloo_mouse_released(
 	JSContext *ctx,
-	JSValueConst this,
+	JSValue this,
 	int argc,
-	JSValueConst *argv
+	JSValue *argv
 ) {
 	if (gctx.mouse_state == BTN_RELEASED) {
 		return JS_TRUE;
@@ -280,63 +280,63 @@ static JSValue gloo_mouse_released(
 
 static JSValue gloo_time(
 	JSContext *ctx,
-	JSValueConst this,
+	JSValue this,
 	int argc,
-	JSValueConst *argv
+	JSValue *argv
 ) {
 	return JS_NewFloat64(ctx, gctx.time);
 }
 
 static JSValue gloo_dt(
 	JSContext *ctx,
-	JSValueConst this,
+	JSValue this,
 	int argc,
-	JSValueConst *argv
+	JSValue *argv
 ) {
 	return JS_NewFloat64(ctx, gctx.dt);
 }
 
 static JSValue gloo_mouse_x(
 	JSContext *ctx,
-	JSValueConst this,
+	JSValue this,
 	int argc,
-	JSValueConst *argv
+	JSValue *argv
 ) {
 	return JS_NewFloat64(ctx, gctx.mouse_x);
 }
 
 static JSValue gloo_mouse_y(
 	JSContext *ctx,
-	JSValueConst this,
+	JSValue this,
 	int argc,
-	JSValueConst *argv
+	JSValue *argv
 ) {
 	return JS_NewFloat64(ctx, gctx.mouse_y);
 }
 
 static JSValue gloo_width(
 	JSContext *ctx,
-	JSValueConst this,
+	JSValue this,
 	int argc,
-	JSValueConst *argv
+	JSValue *argv
 ) {
 	return JS_NewInt32(ctx, sapp_width());
 }
 
 static JSValue gloo_height(
 	JSContext *ctx,
-	JSValueConst this,
+	JSValue this,
 	int argc,
-	JSValueConst *argv
+	JSValue *argv
 ) {
 	return JS_NewInt32(ctx, sapp_height());
 }
 
 static JSValue gloo_quit(
 	JSContext *ctx,
-	JSValueConst this,
+	JSValue this,
 	int argc,
-	JSValueConst *argv
+	JSValue *argv
 ) {
 	sapp_quit();
 	return JS_UNDEFINED;
@@ -361,9 +361,9 @@ static const JSCFunctionListEntry gloo_fields[] = {
 
 JSValue gloo(
 	JSContext *ctx,
-	JSValueConst this,
+	JSValue this,
 	int argc,
-	JSValueConst *argv
+	JSValue *argv
 ) {
 
 	gctx.js_ctx = ctx;

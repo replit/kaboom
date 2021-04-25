@@ -8,5 +8,5 @@ LDFLAGS += -lquickjs
 LDFLAGS += -framework Cocoa
 LDFLAGS += -framework OpenGL
 
-gloo: main.c gloo.c gl.c console.c
+gloo: main.c gloo.c gl.c console.c utils.c
 	$(CC) $(CFLAGS) $(LDFLAGS) $^ -o $@

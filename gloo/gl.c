@@ -8,10 +8,13 @@
 
 static JSValue gl_clear_color(
 	JSContext *ctx,
-	JSValueConst this,
-	int argc,
-	JSValueConst *argv
+	JSValue this,
+	int nargs,
+	JSValue *argv
 ) {
+	if (!JS_CheckNargs(ctx, 4, nargs)) {
+		return JS_EXCEPTION;
+	}
 	double r, g, b, a;
 	JS_ToFloat64(ctx, &r, argv[0]);
 	JS_ToFloat64(ctx, &g, argv[1]);
@@ -23,10 +26,13 @@ static JSValue gl_clear_color(
 
 static JSValue gl_clear(
 	JSContext *ctx,
-	JSValueConst this,
-	int argc,
-	JSValueConst *argv
+	JSValue this,
+	int nargs,
+	JSValue *argv
 ) {
+	if (!JS_CheckNargs(ctx, 1, nargs)) {
+		return JS_EXCEPTION;
+	}
 	GLuint flag;
 	JS_ToUint32(ctx, &flag, argv[0]);
 	glClear(flag);
@@ -35,10 +41,13 @@ static JSValue gl_clear(
 
 static JSValue gl_enable(
 	JSContext *ctx,
-	JSValueConst this,
-	int argc,
-	JSValueConst *argv
+	JSValue this,
+	int nargs,
+	JSValue *argv
 ) {
+	if (!JS_CheckNargs(ctx, 1, nargs)) {
+		return JS_EXCEPTION;
+	}
 	GLenum flag;
 	JS_ToUint32(ctx, &flag, argv[0]);
 	glEnable(flag);
@@ -47,10 +56,13 @@ static JSValue gl_enable(
 
 static JSValue gl_depth_func(
 	JSContext *ctx,
-	JSValueConst this,
-	int argc,
-	JSValueConst *argv
+	JSValue this,
+	int nargs,
+	JSValue *argv
 ) {
+	if (!JS_CheckNargs(ctx, 1, nargs)) {
+		return JS_EXCEPTION;
+	}
 	GLenum func;
 	JS_ToUint32(ctx, &func, argv[0]);
 	glDepthFunc(func);
@@ -59,10 +71,13 @@ static JSValue gl_depth_func(
 
 static JSValue gl_blend_func(
 	JSContext *ctx,
-	JSValueConst this,
-	int argc,
-	JSValueConst *argv
+	JSValue this,
+	int nargs,
+	JSValue *argv
 ) {
+	if (!JS_CheckNargs(ctx, 2, nargs)) {
+		return JS_EXCEPTION;
+	}
 	GLenum src;
 	GLenum dest;
 	JS_ToUint32(ctx, &src, argv[0]);
@@ -73,10 +88,13 @@ static JSValue gl_blend_func(
 
 static JSValue gl_create_buffer(
 	JSContext *ctx,
-	JSValueConst this,
-	int argc,
-	JSValueConst *argv
+	JSValue this,
+	int nargs,
+	JSValue *argv
 ) {
+	if (!JS_CheckNargs(ctx, 0, nargs)) {
+		return JS_EXCEPTION;
+	}
 	GLuint buf;
 	glGenBuffers(1, &buf);
 	return JS_NewUint32(ctx, buf);
@@ -84,10 +102,13 @@ static JSValue gl_create_buffer(
 
 static JSValue gl_bind_buffer(
 	JSContext *ctx,
-	JSValueConst this,
-	int argc,
-	JSValueConst *argv
+	JSValue this,
+	int nargs,
+	JSValue *argv
 ) {
+	if (!JS_CheckNargs(ctx, 2, nargs)) {
+		return JS_EXCEPTION;
+	}
 	GLenum target;
 	GLuint id;
 	JS_ToUint32(ctx, &target, argv[0]);
@@ -98,27 +119,47 @@ static JSValue gl_bind_buffer(
 
 static JSValue gl_buffer_data(
 	JSContext *ctx,
-	JSValueConst this,
-	int argc,
-	JSValueConst *argv
+	JSValue this,
+	int nargs,
+	JSValue *argv
 ) {
+
 	GLenum target;
-	GLuint size;
 	GLenum usage;
+
+	if (!JS_CheckNargs(ctx, 3, nargs)) {
+		return JS_EXCEPTION;
+	}
+
 	JS_ToUint32(ctx, &target, argv[0]);
-	JS_ToUint32(ctx, &size, argv[1]);
 	JS_ToUint32(ctx, &usage, argv[2]);
-	// TODO: support data
-	glBufferData(target, size, NULL, usage);
+
+	if (JS_IsNumber(argv[1])) {
+		GLuint size;
+		JS_ToUint32(ctx, &size, argv[1]);
+		glBufferData(target, size, NULL, usage);
+	} else if (JS_IsObject(argv[1])) {
+		size_t size;
+		uint8_t *buf = JS_GetArrayBuffer(ctx, &size, argv[2]);
+		glBufferData(target, size, buf, usage);
+	} else {
+		JS_ThrowTypeError(ctx, "expected ArrayBuffer or Number");
+		return JS_EXCEPTION;
+	}
+
 	return JS_UNDEFINED;
+
 }
 
 static JSValue gl_buffer_sub_data(
 	JSContext *ctx,
-	JSValueConst this,
-	int argc,
-	JSValueConst *argv
+	JSValue this,
+	int nargs,
+	JSValue *argv
 ) {
+	if (!JS_CheckNargs(ctx, 3, nargs)) {
+		return JS_EXCEPTION;
+	}
 	GLenum target;
 	GLuint offset;
 	JS_ToUint32(ctx, &target, argv[0]);
@@ -131,10 +172,13 @@ static JSValue gl_buffer_sub_data(
 
 static JSValue gl_create_texture(
 	JSContext *ctx,
-	JSValueConst this,
-	int argc,
-	JSValueConst *argv
+	JSValue this,
+	int nargs,
+	JSValue *argv
 ) {
+	if (!JS_CheckNargs(ctx, 0, nargs)) {
+		return JS_EXCEPTION;
+	}
 	GLuint tex;
 	glGenTextures(1, &tex);
 	return JS_NewUint32(ctx, tex);
@@ -142,10 +186,13 @@ static JSValue gl_create_texture(
 
 static JSValue gl_create_shader(
 	JSContext *ctx,
-	JSValueConst this,
-	int argc,
-	JSValueConst *argv
+	JSValue this,
+	int nargs,
+	JSValue *argv
 ) {
+	if (!JS_CheckNargs(ctx, 1, nargs)) {
+		return JS_EXCEPTION;
+	}
 	GLenum type;
 	JS_ToUint32(ctx, &type, argv[0]);
 	GLuint shader = glCreateShader(type);

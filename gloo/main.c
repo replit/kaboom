@@ -8,36 +8,6 @@
 void console_init(JSContext *ctx);
 void gloo_init(JSContext *ctx);
 
-char *read_file(const char *path) {
-
-	FILE *file = fopen(path, "r");
-
-	if (!file) {
-		fprintf(stderr, "failed to read: '%s'\n", path);
-		return NULL;
-	}
-
-	fseek(file, 0, SEEK_END);
-	size_t size = ftell(file);
-	fseek(file, 0, SEEK_SET);
-
-	char *buffer = malloc(size + 1);
-	size_t r_size = fread(buffer, 1, size, file);
-
-	buffer[size] = '\0';
-
-	if (r_size != size) {
-		free(buffer);
-		fprintf(stderr, "failed to read: '%s'\n", path);
-		return NULL;
-	}
-
-	fclose(file);
-
-	return buffer;
-
-}
-
 int main(int argc, char **argv) {
 
 	if (argc < 2) {
