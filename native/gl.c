@@ -234,7 +234,7 @@ static const JSCFunctionListEntry gl_fields[] = {
 	JS_PROP_INT32_DEF("FRAGMENT_SHADER", GL_FRAGMENT_SHADER, 0),
 };
 
-JSValue gl_init(JSContext *ctx) {
+JSValue gl_mod(JSContext *ctx) {
 	JSValue gl = JS_NewObject(ctx);
 	JS_SetPropertyFunctionList(ctx, gl, gl_fields, countof(gl_fields));
 	return gl;

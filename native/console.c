@@ -52,12 +52,8 @@ static const JSCFunctionListEntry console_fields[] = {
 	JS_CFUNC_DEF("error", 1, console_error),
 };
 
-JSValue console_init(JSContext *ctx) {
-
+JSValue console_mod(JSContext *ctx) {
 	JSValue console = JS_NewObject(ctx);
-
 	JS_SetPropertyFunctionList(ctx, console, console_fields, countof(console_fields));
-
 	return console;
-
 }
