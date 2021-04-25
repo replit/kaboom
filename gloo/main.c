@@ -5,8 +5,8 @@
 
 #include <quickjs.h>
 
-JSValue app_mod(JSContext *ctx);
-JSValue console_mod(JSContext *ctx);
+void console_init(JSContext *ctx);
+void gloo_init(JSContext *ctx);
 
 char *read_file(const char *path) {
 
@@ -62,10 +62,8 @@ int main(int argc, char **argv) {
 	char *path = argv[1];
 	char *code = read_file(path);
 
-	JSValue gobj = JS_GetGlobalObject(ctx);
-
-	JS_SetPropertyStr(ctx, gobj, "app", app_mod(ctx));
-	JS_SetPropertyStr(ctx, gobj, "console", console_mod(ctx));
+	gloo_init(ctx);
+	console_init(ctx);
 
 	JSValue result = JS_Eval(ctx, code, strlen(code), path, JS_EVAL_TYPE_GLOBAL);
 
