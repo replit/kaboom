@@ -1,7 +1,7 @@
 {
 	"name": "kaboomjs",
 	"description": "kaboom.js is a JavaScript library that helps you make games fast and fun!",
-	"version": "0.4.0",
+	"version": "0.4.1",
 	"homepage": "https://kaboomjs.com/",
 	"repository": "github:replit/kaboom",
 	"keywords": [

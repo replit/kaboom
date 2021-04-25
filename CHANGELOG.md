@@ -1,5 +1,6 @@
-# v0.5.0 (wip)
+# v0.4.1
 - fixed `on("destroy")` handler getting called twice
+- fixed sprite `play()` not playing
 
 # v0.4.0 "Multiboom"
 - (**BREAK**) removed `init()` and `kaboom.global()`, in favor of `kaboom()`, also allows multiple kaboom games on one page
