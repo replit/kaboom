@@ -1,3 +1,5 @@
+// implements WebGL interface in OpenGL
+
 #include "utils.h"
 
 #include <quickjs.h>
@@ -111,6 +113,22 @@ static JSValue gl_buffer_data(
 	return JS_UNDEFINED;
 }
 
+static JSValue gl_buffer_sub_data(
+	JSContext *ctx,
+	JSValueConst this,
+	int argc,
+	JSValueConst *argv
+) {
+	GLenum target;
+	GLuint offset;
+	JS_ToUint32(ctx, &target, argv[0]);
+	JS_ToUint32(ctx, &offset, argv[1]);
+	size_t size;
+	uint8_t *buf = JS_GetArrayBuffer(ctx, &size, argv[2]);
+	glBufferSubData(target, offset, size, buf);
+	return JS_UNDEFINED;
+}
+
 static JSValue gl_create_texture(
 	JSContext *ctx,
 	JSValueConst this,
@@ -144,6 +162,8 @@ static const JSCFunctionListEntry gl_fields[] = {
 	// buffer
 	JS_CFUNC_DEF("createBuffer", 0, gl_create_buffer),
 	JS_CFUNC_DEF("bindBuffer", 2, gl_bind_buffer),
+	JS_CFUNC_DEF("bufferData", 3, gl_buffer_data),
+	JS_CFUNC_DEF("bufferSubData", 3, gl_buffer_sub_data),
 	// texture
 	JS_CFUNC_DEF("createTexture", 0, gl_create_texture),
 	// shader

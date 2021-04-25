@@ -384,9 +384,9 @@ static const JSCFunctionListEntry app_fields[] = {
 	JS_CFUNC_DEF("keyPressedRep", 1, app_key_pressed_rep),
 	JS_CFUNC_DEF("keyDown", 1, app_key_down),
 	JS_CFUNC_DEF("keyReleased", 1, app_key_released),
-	JS_CFUNC_DEF("mousePressed", 1, app_mouse_pressed),
-	JS_CFUNC_DEF("mouseDown", 1, app_mouse_down),
-	JS_CFUNC_DEF("mouseReleased", 1, app_mouse_released),
+	JS_CFUNC_DEF("mousePressed", 0, app_mouse_pressed),
+	JS_CFUNC_DEF("mouseDown", 0, app_mouse_down),
+	JS_CFUNC_DEF("mouseReleased", 0, app_mouse_released),
 };
 
 JSValue app_mod(JSContext *ctx) {
