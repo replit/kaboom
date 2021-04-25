@@ -5,7 +5,9 @@
 #define SOKOL_NO_ENTRY
 #define SOKOL_APP_IMPL
 #include <sokol_app.h>
+#include <sys/time.h>
 
+// TODO
 #define NUM_KEYS SAPP_KEYCODE_MENU
 
 JSValue gl_mod(JSContext *ctx);
@@ -24,6 +26,12 @@ typedef struct {
 	JSValueConst js_frame;
 	JSValueConst js_init;
 	btn_state key_states[NUM_KEYS];
+	btn_state mouse_state;
+	struct timeval start_time;
+	float time;
+	float dt;
+	float mouse_x;
+	float mouse_y;
 } app_ctx_t;
 
 static app_ctx_t app_ctx;
@@ -38,14 +46,30 @@ static btn_state process_btn(btn_state b) {
 }
 
 static void init() {
+	gettimeofday(&app_ctx.start_time, NULL);
 	JS_Call(app_ctx.js_ctx, app_ctx.js_init, JS_UNDEFINED, 0, NULL);
 }
 
 static void frame() {
+
 	JS_Call(app_ctx.js_ctx, app_ctx.js_frame, JS_UNDEFINED, 0, NULL);
+
+	struct timeval time;
+
+	gettimeofday(&time, NULL);
+
+	float t =
+		(float)(time.tv_sec - app_ctx.start_time.tv_sec)
+		+ (float)(time.tv_usec - app_ctx.start_time.tv_usec) / 1000000.0;
+	app_ctx.dt = t - app_ctx.time;
+	app_ctx.time = t;
+
 	for (int i = 0; i < NUM_KEYS; i++) {
 		app_ctx.key_states[i] = process_btn(app_ctx.key_states[i]);
 	}
+
+	app_ctx.mouse_state = process_btn(app_ctx.mouse_state);
+
 }
 
 static void event(const sapp_event *ev) {
@@ -58,15 +82,23 @@ static void event(const sapp_event *ev) {
 			}
 			break;
 		case SAPP_EVENTTYPE_KEY_UP:
-// 			app_ctx.key_states[ev->key_code] = BTN_RELEASED;
+			app_ctx.key_states[ev->key_code] = BTN_RELEASED;
 			break;
 		case SAPP_EVENTTYPE_CHAR:
 			break;
 		case SAPP_EVENTTYPE_MOUSE_DOWN:
+			if (ev->mouse_button == SAPP_MOUSEBUTTON_LEFT) {
+				app_ctx.mouse_state = BTN_PRESSED;
+			}
 			break;
 		case SAPP_EVENTTYPE_MOUSE_UP:
+			if (ev->mouse_button == SAPP_MOUSEBUTTON_LEFT) {
+				app_ctx.mouse_state = BTN_RELEASED;
+			}
 			break;
 		case SAPP_EVENTTYPE_MOUSE_MOVE:
+			app_ctx.mouse_x = ev->mouse_x;
+			app_ctx.mouse_y = ev->mouse_y;
 			break;
 		default:
 			break;
@@ -239,12 +271,122 @@ static JSValue app_key_released(
 	return JS_FALSE;
 }
 
+static JSValue app_mouse_pressed(
+	JSContext *ctx,
+	JSValueConst this,
+	int argc,
+	JSValueConst *argv
+) {
+	if (app_ctx.mouse_state == BTN_PRESSED) {
+		return JS_TRUE;
+	}
+	return JS_FALSE;
+}
+
+static JSValue app_mouse_down(
+	JSContext *ctx,
+	JSValueConst this,
+	int argc,
+	JSValueConst *argv
+) {
+	if (app_ctx.mouse_state == BTN_PRESSED || app_ctx.mouse_state == BTN_DOWN) {
+		return JS_TRUE;
+	}
+	return JS_FALSE;
+}
+
+static JSValue app_mouse_released(
+	JSContext *ctx,
+	JSValueConst this,
+	int argc,
+	JSValueConst *argv
+) {
+	if (app_ctx.mouse_state == BTN_RELEASED) {
+		return JS_TRUE;
+	}
+	return JS_FALSE;
+}
+
+static JSValue app_time(
+	JSContext *ctx,
+	JSValueConst this,
+	int argc,
+	JSValueConst *argv
+) {
+	return JS_NewFloat64(ctx, app_ctx.time);
+}
+
+static JSValue app_dt(
+	JSContext *ctx,
+	JSValueConst this,
+	int argc,
+	JSValueConst *argv
+) {
+	return JS_NewFloat64(ctx, app_ctx.dt);
+}
+
+static JSValue app_mouse_x(
+	JSContext *ctx,
+	JSValueConst this,
+	int argc,
+	JSValueConst *argv
+) {
+	return JS_NewFloat64(ctx, app_ctx.mouse_x);
+}
+
+static JSValue app_mouse_y(
+	JSContext *ctx,
+	JSValueConst this,
+	int argc,
+	JSValueConst *argv
+) {
+	return JS_NewFloat64(ctx, app_ctx.mouse_y);
+}
+
+static JSValue app_width(
+	JSContext *ctx,
+	JSValueConst this,
+	int argc,
+	JSValueConst *argv
+) {
+	return JS_NewInt32(ctx, sapp_width());
+}
+
+static JSValue app_height(
+	JSContext *ctx,
+	JSValueConst this,
+	int argc,
+	JSValueConst *argv
+) {
+	return JS_NewInt32(ctx, sapp_height());
+}
+
+static JSValue app_quit(
+	JSContext *ctx,
+	JSValueConst this,
+	int argc,
+	JSValueConst *argv
+) {
+	sapp_quit();
+	return JS_UNDEFINED;
+}
+
 static const JSCFunctionListEntry app_fields[] = {
 	JS_CFUNC_DEF("run", 0, app_run),
+	JS_CFUNC_DEF("quit", 0, app_quit),
+	JS_CFUNC_DEF("time", 0, app_time),
+	JS_CFUNC_DEF("dt", 0, app_dt),
+	JS_CFUNC_DEF("mouseX", 0, app_mouse_x),
+	JS_CFUNC_DEF("mouseY", 0, app_mouse_y),
+	JS_CFUNC_DEF("width", 0, app_width),
+	JS_CFUNC_DEF("height", 0, app_height),
 	JS_CFUNC_DEF("keyPressed", 1, app_key_pressed),
 	JS_CFUNC_DEF("keyPressedRep", 1, app_key_pressed_rep),
 	JS_CFUNC_DEF("keyDown", 1, app_key_down),
 	JS_CFUNC_DEF("keyReleased", 1, app_key_released),
+	JS_CFUNC_DEF("mousePressed", 1, app_mouse_pressed),
+	JS_CFUNC_DEF("mouseDown", 1, app_mouse_down),
+	JS_CFUNC_DEF("mouseReleased", 1, app_mouse_released),
 };
 
 JSValue app_mod(JSContext *ctx) {
