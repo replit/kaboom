@@ -33,13 +33,24 @@ char *read_file(const char *path) {
 }
 
 static void JS_Dump(JSContext *ctx, FILE *f, JSValue val) {
-	const char *msg = JS_ToCString(ctx, val);
-	if (msg) {
-		fprintf(stderr, "%s\n", msg);
-		JS_FreeCString(ctx, msg);
+	const char *str = JS_ToCString(ctx, val);
+	if (str) {
+		fprintf(f, "%s\n", str);
+		JS_FreeCString(ctx, str);
 	} else {
-		fprintf(stderr, "failed to dump val\n");
+		fprintf(f, "failed to dump val\n");
 	}
+}
+
+void JS_DumpErr(JSContext *ctx) {
+	JSValue err = JS_GetException(ctx);
+	JS_Dump(ctx, stderr, err);
+	JSValue stack = JS_GetPropertyStr(ctx, err, "stack");
+	if (!JS_IsUndefined(stack)) {
+		JS_Dump(ctx, stderr, stack);
+	}
+	// TODO: is this necessary?
+	JS_FreeValue(ctx, stack);
 }
 
 JSValue JS_ECall(
@@ -49,21 +60,25 @@ JSValue JS_ECall(
 	int nargs,
 	JSValueConst *argv
 ) {
-
 	JSValue res = JS_Call(ctx, func, this, nargs, argv);
-
 	if (JS_IsException(res)) {
-		JSValue err = JS_GetException(ctx);
-		JS_Dump(ctx, stderr, err);
-		JSValue stack = JS_GetPropertyStr(ctx, err, "stack");
-		if (!JS_IsUndefined(stack)) {
-			JS_Dump(ctx, stderr, stack);
-		}
-		JS_FreeValue(ctx, stack);
+		JS_DumpErr(ctx);
 	}
-
 	return res;
+}
 
+JSValue JS_EEval(
+	JSContext *ctx,
+	const char *code,
+	size_t code_len,
+	const char *fname,
+	int flags
+) {
+	JSValue res = JS_Eval(ctx, code, code_len, fname, flags);
+	if (JS_IsException(res)) {
+		JS_DumpErr(ctx);
+	}
+	return res;
 }
 
 bool JS_CheckNargs(

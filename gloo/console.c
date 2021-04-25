@@ -14,12 +14,11 @@ static JSValue js_print(
 		if (i != 0) {
 			fprintf(output, " ");
 		}
-		size_t len;
-		const char *str = JS_ToCStringLen(ctx, &len, argv[i]);
+		const char *str = JS_ToCString(ctx, argv[i]);
 		if (!str) {
 			return JS_EXCEPTION;
 		}
-		fprintf(output, "%.*s", (int)len, str);
+		fprintf(output, "%s", str);
 		JS_FreeCString(ctx, str);
 	}
 

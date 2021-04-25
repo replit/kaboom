@@ -192,8 +192,9 @@ static JSValue gloo_key_pressed(
 	int argc,
 	JSValue *argv
 ) {
-	sapp_keycode key = str_to_sapp_keycode(JS_ToCString(ctx, argv[0]));
-	btn_state state = gctx.key_states[key];
+	const char *key = JS_ToCString(ctx, argv[0]);
+	btn_state state = gctx.key_states[str_to_sapp_keycode(key)];
+	JS_FreeCString(ctx, key);
 	if (state == BTN_PRESSED) {
 		return JS_TRUE;
 	}
@@ -206,8 +207,9 @@ static JSValue gloo_key_pressed_rep(
 	int argc,
 	JSValue *argv
 ) {
-	sapp_keycode key = str_to_sapp_keycode(JS_ToCString(ctx, argv[0]));
-	btn_state state = gctx.key_states[key];
+	const char *key = JS_ToCString(ctx, argv[0]);
+	btn_state state = gctx.key_states[str_to_sapp_keycode(key)];
+	JS_FreeCString(ctx, key);
 	if (state == BTN_PRESSED || state == BTN_RPRESSED) {
 		return JS_TRUE;
 	}
@@ -220,8 +222,9 @@ static JSValue gloo_key_down(
 	int argc,
 	JSValue *argv
 ) {
-	sapp_keycode key = str_to_sapp_keycode(JS_ToCString(ctx, argv[0]));
-	btn_state state = gctx.key_states[key];
+	const char *key = JS_ToCString(ctx, argv[0]);
+	btn_state state = gctx.key_states[str_to_sapp_keycode(key)];
+	JS_FreeCString(ctx, key);
 	if (state == BTN_PRESSED || state == BTN_RPRESSED || state == BTN_DOWN) {
 		return JS_TRUE;
 	}
@@ -234,8 +237,9 @@ static JSValue gloo_key_released(
 	int argc,
 	JSValue *argv
 ) {
-	sapp_keycode key = str_to_sapp_keycode(JS_ToCString(ctx, argv[0]));
-	btn_state state = gctx.key_states[key];
+	const char *key = JS_ToCString(ctx, argv[0]);
+	btn_state state = gctx.key_states[str_to_sapp_keycode(key)];
+	JS_FreeCString(ctx, key);
 	if (state == BTN_RELEASED) {
 		return JS_TRUE;
 	}
@@ -391,6 +395,8 @@ JSValue gloo(
 		.frame_cb = frame,
 		.event_cb = event,
 	});
+
+	JS_FreeCString(ctx, title);
 
 	return gctx.g;
 

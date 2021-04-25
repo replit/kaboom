@@ -35,13 +35,11 @@ int main(int argc, char **argv) {
 	gloo_init(ctx);
 	console_init(ctx);
 
-	JSValue result = JS_Eval(ctx, code, strlen(code), path, JS_EVAL_TYPE_GLOBAL);
-
-	if (JS_IsException(result)) {
-		fprintf(stderr, "%s\n", JS_ToCString(ctx, JS_GetException(ctx)));
-	}
+	JS_EEval(ctx, code, strlen(code), path, JS_EVAL_TYPE_GLOBAL);
 
 	free(code);
+	JS_FreeContext(ctx);
+	JS_FreeRuntime(rt);
 
 	return EXIT_SUCCESS;
 
