@@ -7,7 +7,6 @@ kaboom.js is a JavaScript library that helps you make games fast and fun!
 ### Example
 
 ```html
-<script src="https://kaboomjs.com/lib/0.4.0/kaboom.js"></script>
 <script src="https://kaboomjs.com/lib/0.4.1/kaboom.js"></script>
 <script type="module">
 
@@ -59,7 +58,7 @@ k.scene(...);
 k.start(...);
 ```
 
-you can also import all functions to global namespace by giving a `global` flag
+You can also import all functions to global namespace by giving a `global` flag
 
 ```js
 kaboom({
@@ -80,6 +79,13 @@ However, it is possible to use a module version of kaboomjs.
 `script.js`:
 ```js
 import kaboom from "https://kaboomjs.com/lib/0.4.1/kaboom.mjs";
+
+const k = kaboom();
+
+k.init();
+k.scene(...);
+k.start(...);
+
 ```
 
 Using the module version means that there will be no `window.kaboom` available and kaboom must be imported.
