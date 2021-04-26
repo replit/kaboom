@@ -77,3 +77,7 @@ use examples to test / add features
 1. `npm run dev`
 1. go to http://localhost:8000/examples
 1. edit examples in `examples/`
+
+### Misc
+
+featured on [Console 50](https://console.substack.com/p/console-50)
