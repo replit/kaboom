@@ -1,32 +1,56 @@
 #include <sys/time.h>
-
 #include <quickjs.h>
 #define SOKOL_GLCORE33
 #define SOKOL_NO_ENTRY
-#define SOKOL_APP_IMPL
+#define SOKOL_IMPL
 #include <sokol_app.h>
+#include <sokol_audio.h>
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
+#include <minimp3.h>
 #include <OpenGL/gl.h>
 
 #define countof(x) (sizeof(x) / sizeof((x)[0]))
 
-static void JS_Dump(JSContext *ctx, FILE *f, JSValue val) {
+// TODO
+#define NUM_KEYS SAPP_KEYCODE_MENU
+
+typedef enum {
+	BTN_IDLE,
+	BTN_PRESSED,
+	BTN_RPRESSED,
+	BTN_RELEASED,
+	BTN_DOWN,
+} btn_state;
+
+typedef struct {
+	JSContext *js_ctx;
+	JSValue js_frame;
+	JSValue js_init;
+	JSValue g;
+	btn_state key_states[NUM_KEYS];
+	btn_state mouse_state;
+	struct timeval start_time;
+	float time;
+	float dt;
+	float mouse_x;
+	float mouse_y;
+} gctx_t;
+
+gctx_t gctx;
+
+void JS_PrintVal(JSContext *ctx, FILE *f, JSValue val) {
 	const char *str = JS_ToCString(ctx, val);
-	if (str) {
-		fprintf(f, "%s\n", str);
-		JS_FreeCString(ctx, str);
-	} else {
-		fprintf(f, "failed to dump val\n");
-	}
+	fprintf(f, "%s", str);
+	JS_FreeCString(ctx, str);
 }
 
 void JS_DumpErr(JSContext *ctx) {
 	JSValue err = JS_GetException(ctx);
-	JS_Dump(ctx, stderr, err);
+	JS_PrintVal(ctx, stderr, err);
 	JSValue stack = JS_GetPropertyStr(ctx, err, "stack");
 	if (!JS_IsUndefined(stack)) {
-		JS_Dump(ctx, stderr, stack);
+		JS_PrintVal(ctx, stderr, stack);
 	}
 	// TODO: is this necessary?
 	JS_FreeValue(ctx, stack);
@@ -46,20 +70,6 @@ JSValue JS_ECall(
 	return res;
 }
 
-JSValue JS_EEval(
-	JSContext *ctx,
-	const char *code,
-	size_t code_len,
-	const char *fname,
-	int flags
-) {
-	JSValue res = JS_Eval(ctx, code, code_len, fname, flags);
-	if (JS_IsException(res)) {
-		JS_DumpErr(ctx);
-	}
-	return res;
-}
-
 bool JS_CheckNargs(
 	JSContext *ctx,
 	int expected,
@@ -72,7 +82,7 @@ bool JS_CheckNargs(
 	return true;
 }
 
-static JSValue gl_clear_color(
+JSValue gl_clear_color(
 	JSContext *ctx,
 	JSValue this,
 	int nargs,
@@ -90,7 +100,7 @@ static JSValue gl_clear_color(
 	return JS_UNDEFINED;
 }
 
-static JSValue gl_clear(
+JSValue gl_clear(
 	JSContext *ctx,
 	JSValue this,
 	int nargs,
@@ -105,7 +115,7 @@ static JSValue gl_clear(
 	return JS_UNDEFINED;
 }
 
-static JSValue gl_viewport(
+JSValue gl_viewport(
 	JSContext *ctx,
 	JSValue this,
 	int nargs,
@@ -123,7 +133,7 @@ static JSValue gl_viewport(
 	return JS_UNDEFINED;
 }
 
-static JSValue gl_enable(
+JSValue gl_enable(
 	JSContext *ctx,
 	JSValue this,
 	int nargs,
@@ -138,7 +148,7 @@ static JSValue gl_enable(
 	return JS_UNDEFINED;
 }
 
-static JSValue gl_depth_func(
+JSValue gl_depth_func(
 	JSContext *ctx,
 	JSValue this,
 	int nargs,
@@ -153,7 +163,7 @@ static JSValue gl_depth_func(
 	return JS_UNDEFINED;
 }
 
-static JSValue gl_blend_func(
+JSValue gl_blend_func(
 	JSContext *ctx,
 	JSValue this,
 	int nargs,
@@ -170,7 +180,7 @@ static JSValue gl_blend_func(
 	return JS_UNDEFINED;
 }
 
-static JSValue gl_create_buffer(
+JSValue gl_create_buffer(
 	JSContext *ctx,
 	JSValue this,
 	int nargs,
@@ -184,7 +194,7 @@ static JSValue gl_create_buffer(
 	return JS_NewUint32(ctx, buf);
 }
 
-static JSValue gl_bind_buffer(
+JSValue gl_bind_buffer(
 	JSContext *ctx,
 	JSValue this,
 	int nargs,
@@ -201,7 +211,7 @@ static JSValue gl_bind_buffer(
 	return JS_UNDEFINED;
 }
 
-static JSValue gl_buffer_data(
+JSValue gl_buffer_data(
 	JSContext *ctx,
 	JSValue this,
 	int nargs,
@@ -243,7 +253,7 @@ static JSValue gl_buffer_data(
 
 }
 
-static JSValue gl_buffer_sub_data(
+JSValue gl_buffer_sub_data(
 	JSContext *ctx,
 	JSValue this,
 	int nargs,
@@ -266,7 +276,7 @@ static JSValue gl_buffer_sub_data(
 	return JS_UNDEFINED;
 }
 
-static JSValue gl_create_texture(
+JSValue gl_create_texture(
 	JSContext *ctx,
 	JSValue this,
 	int nargs,
@@ -280,7 +290,7 @@ static JSValue gl_create_texture(
 	return JS_NewUint32(ctx, tex);
 }
 
-static JSValue gl_bind_texture(
+JSValue gl_bind_texture(
 	JSContext *ctx,
 	JSValue this,
 	int nargs,
@@ -297,7 +307,7 @@ static JSValue gl_bind_texture(
 	return JS_UNDEFINED;
 }
 
-static JSValue gl_tex_image_2d(
+JSValue gl_tex_image_2d(
 	JSContext *ctx,
 	JSValue this,
 	int nargs,
@@ -336,7 +346,7 @@ static JSValue gl_tex_image_2d(
 	return JS_UNDEFINED;
 }
 
-static JSValue gl_tex_parameter_i(
+JSValue gl_tex_parameter_i(
 	JSContext *ctx,
 	JSValue this,
 	int nargs,
@@ -355,7 +365,7 @@ static JSValue gl_tex_parameter_i(
 	return JS_UNDEFINED;
 }
 
-static JSValue gl_create_shader(
+JSValue gl_create_shader(
 	JSContext *ctx,
 	JSValue this,
 	int nargs,
@@ -369,7 +379,7 @@ static JSValue gl_create_shader(
 	return JS_NewUint32(ctx, glCreateShader(type));
 }
 
-static JSValue gl_shader_source(
+JSValue gl_shader_source(
 	JSContext *ctx,
 	JSValue this,
 	int nargs,
@@ -386,7 +396,7 @@ static JSValue gl_shader_source(
 	return JS_UNDEFINED;
 }
 
-static JSValue gl_compile_shader(
+JSValue gl_compile_shader(
 	JSContext *ctx,
 	JSValue this,
 	int nargs,
@@ -402,9 +412,9 @@ static JSValue gl_compile_shader(
 }
 
 #define INFO_LOG_LEN 512
-static char info_log[INFO_LOG_LEN];
+char info_log[INFO_LOG_LEN];
 
-static JSValue gl_get_shader_info_log(
+JSValue gl_get_shader_info_log(
 	JSContext *ctx,
 	JSValue this,
 	int nargs,
@@ -424,7 +434,7 @@ static JSValue gl_get_shader_info_log(
 	}
 }
 
-static JSValue gl_create_program(
+JSValue gl_create_program(
 	JSContext *ctx,
 	JSValue this,
 	int nargs,
@@ -436,7 +446,7 @@ static JSValue gl_create_program(
 	return JS_NewUint32(ctx, glCreateProgram());
 }
 
-static JSValue gl_attach_shader(
+JSValue gl_attach_shader(
 	JSContext *ctx,
 	JSValue this,
 	int nargs,
@@ -453,7 +463,7 @@ static JSValue gl_attach_shader(
 	return JS_UNDEFINED;
 }
 
-static JSValue gl_link_program(
+JSValue gl_link_program(
 	JSContext *ctx,
 	JSValue this,
 	int nargs,
@@ -468,7 +478,7 @@ static JSValue gl_link_program(
 	return JS_UNDEFINED;
 }
 
-static JSValue gl_use_program(
+JSValue gl_use_program(
 	JSContext *ctx,
 	JSValue this,
 	int nargs,
@@ -483,7 +493,7 @@ static JSValue gl_use_program(
 	return JS_UNDEFINED;
 }
 
-static JSValue gl_get_uniform_location(
+JSValue gl_get_uniform_location(
 	JSContext *ctx,
 	JSValue this,
 	int nargs,
@@ -500,7 +510,7 @@ static JSValue gl_get_uniform_location(
 	return JS_NewInt32(ctx, loc);
 }
 
-static JSValue gl_uniform_1f(
+JSValue gl_uniform_1f(
 	JSContext *ctx,
 	JSValue this,
 	int nargs,
@@ -517,7 +527,7 @@ static JSValue gl_uniform_1f(
 	return JS_UNDEFINED;
 }
 
-static JSValue gl_uniform_2f(
+JSValue gl_uniform_2f(
 	JSContext *ctx,
 	JSValue this,
 	int nargs,
@@ -536,7 +546,7 @@ static JSValue gl_uniform_2f(
 	return JS_UNDEFINED;
 }
 
-static JSValue gl_uniform_3f(
+JSValue gl_uniform_3f(
 	JSContext *ctx,
 	JSValue this,
 	int nargs,
@@ -557,7 +567,7 @@ static JSValue gl_uniform_3f(
 	return JS_UNDEFINED;
 }
 
-static JSValue gl_uniform_4f(
+JSValue gl_uniform_4f(
 	JSContext *ctx,
 	JSValue this,
 	int nargs,
@@ -580,7 +590,7 @@ static JSValue gl_uniform_4f(
 	return JS_UNDEFINED;
 }
 
-static JSValue gl_uniform_matrix4_fv(
+JSValue gl_uniform_matrix4_fv(
 	JSContext *ctx,
 	JSValue this,
 	int nargs,
@@ -603,7 +613,7 @@ static JSValue gl_uniform_matrix4_fv(
 	return JS_UNDEFINED;
 }
 
-static JSValue gl_bind_attrib_location(
+JSValue gl_bind_attrib_location(
 	JSContext *ctx,
 	JSValue this,
 	int nargs,
@@ -622,7 +632,7 @@ static JSValue gl_bind_attrib_location(
 	return JS_UNDEFINED;
 }
 
-static JSValue gl_vertex_attrib_pointer(
+JSValue gl_vertex_attrib_pointer(
 	JSContext *ctx,
 	JSValue this,
 	int nargs,
@@ -645,7 +655,7 @@ static JSValue gl_vertex_attrib_pointer(
 	return JS_UNDEFINED;
 }
 
-static JSValue gl_enable_vertex_attrib_array(
+JSValue gl_enable_vertex_attrib_array(
 	JSContext *ctx,
 	JSValue this,
 	int nargs,
@@ -660,7 +670,7 @@ static JSValue gl_enable_vertex_attrib_array(
 	return JS_UNDEFINED;
 }
 
-static JSValue gl_draw_elements(
+JSValue gl_draw_elements(
 	JSContext *ctx,
 	JSValue this,
 	int nargs,
@@ -682,7 +692,7 @@ static JSValue gl_draw_elements(
 	return JS_UNDEFINED;
 }
 
-static JSValue gl_draw_arrays(
+JSValue gl_draw_arrays(
 	JSContext *ctx,
 	JSValue this,
 	int nargs,
@@ -701,7 +711,7 @@ static JSValue gl_draw_arrays(
 	return JS_UNDEFINED;
 }
 
-static const JSCFunctionListEntry gl_fields[] = {
+const JSCFunctionListEntry gl_fields[] = {
 	// common
 	JS_CFUNC_DEF("clearColor", 4, gl_clear_color),
 	JS_CFUNC_DEF("clear", 1, gl_clear),
@@ -828,35 +838,7 @@ static const JSCFunctionListEntry gl_fields[] = {
 	JS_PROP_INT32_DEF("FRAGMENT_SHADER", GL_FRAGMENT_SHADER, 0),
 };
 
-// TODO
-#define NUM_KEYS SAPP_KEYCODE_MENU
-
-typedef enum {
-	BTN_IDLE,
-	BTN_PRESSED,
-	BTN_RPRESSED,
-	BTN_RELEASED,
-	BTN_DOWN,
-} btn_state;
-
-typedef struct {
-	// TODO: not great
-	JSContext *js_ctx;
-	JSValue js_frame;
-	JSValue js_init;
-	JSValue g;
-	btn_state key_states[NUM_KEYS];
-	btn_state mouse_state;
-	struct timeval start_time;
-	float time;
-	float dt;
-	float mouse_x;
-	float mouse_y;
-} gctx_t;
-
-static gctx_t gctx;
-
-static btn_state process_btn(btn_state b) {
+btn_state process_btn(btn_state b) {
 	if (b == BTN_PRESSED || b == BTN_RPRESSED) {
 		return BTN_DOWN;
 	} else if (b == BTN_RELEASED) {
@@ -865,12 +847,12 @@ static btn_state process_btn(btn_state b) {
 	return b;
 }
 
-static void init() {
+void init() {
 	gettimeofday(&gctx.start_time, NULL);
 	JS_ECall(gctx.js_ctx, gctx.js_init, JS_UNDEFINED, 1, &gctx.g);
 }
 
-static void frame() {
+void frame() {
 
 	JS_ECall(gctx.js_ctx, gctx.js_frame, JS_UNDEFINED, 1, &gctx.g);
 
@@ -892,7 +874,7 @@ static void frame() {
 
 }
 
-static void event(const sapp_event *ev) {
+void event(const sapp_event *ev) {
 	switch (ev->type) {
 		case SAPP_EVENTTYPE_KEY_DOWN:
 			if (ev->key_repeat) {
@@ -929,7 +911,7 @@ bool streq(const char *s1, const char *s2) {
 	return strcmp(s1, s2) == 0;
 }
 
-static sapp_keycode str_to_sapp_keycode(const char *k) {
+sapp_keycode str_to_sapp_keycode(const char *k) {
 	if      (streq(k, "a")) return SAPP_KEYCODE_A;
 	else if (streq(k, "b")) return SAPP_KEYCODE_B;
 	else if (streq(k, "c")) return SAPP_KEYCODE_C;
@@ -1005,7 +987,7 @@ static sapp_keycode str_to_sapp_keycode(const char *k) {
 	else return SAPP_KEYCODE_INVALID;
 }
 
-static JSValue gloo_key_pressed(
+JSValue gloo_key_pressed(
 	JSContext *ctx,
 	JSValue this,
 	int argc,
@@ -1020,7 +1002,7 @@ static JSValue gloo_key_pressed(
 	return JS_FALSE;
 }
 
-static JSValue gloo_key_pressed_rep(
+JSValue gloo_key_pressed_rep(
 	JSContext *ctx,
 	JSValue this,
 	int argc,
@@ -1035,7 +1017,7 @@ static JSValue gloo_key_pressed_rep(
 	return JS_FALSE;
 }
 
-static JSValue gloo_key_down(
+JSValue gloo_key_down(
 	JSContext *ctx,
 	JSValue this,
 	int argc,
@@ -1050,7 +1032,7 @@ static JSValue gloo_key_down(
 	return JS_FALSE;
 }
 
-static JSValue gloo_key_released(
+JSValue gloo_key_released(
 	JSContext *ctx,
 	JSValue this,
 	int argc,
@@ -1065,7 +1047,7 @@ static JSValue gloo_key_released(
 	return JS_FALSE;
 }
 
-static JSValue gloo_mouse_pressed(
+JSValue gloo_mouse_pressed(
 	JSContext *ctx,
 	JSValue this,
 	int argc,
@@ -1077,7 +1059,7 @@ static JSValue gloo_mouse_pressed(
 	return JS_FALSE;
 }
 
-static JSValue gloo_mouse_down(
+JSValue gloo_mouse_down(
 	JSContext *ctx,
 	JSValue this,
 	int argc,
@@ -1089,7 +1071,7 @@ static JSValue gloo_mouse_down(
 	return JS_FALSE;
 }
 
-static JSValue gloo_mouse_released(
+JSValue gloo_mouse_released(
 	JSContext *ctx,
 	JSValue this,
 	int argc,
@@ -1101,7 +1083,7 @@ static JSValue gloo_mouse_released(
 	return JS_FALSE;
 }
 
-static JSValue gloo_time(
+JSValue gloo_time(
 	JSContext *ctx,
 	JSValue this,
 	int argc,
@@ -1110,7 +1092,7 @@ static JSValue gloo_time(
 	return JS_NewFloat64(ctx, gctx.time);
 }
 
-static JSValue gloo_dt(
+JSValue gloo_dt(
 	JSContext *ctx,
 	JSValue this,
 	int argc,
@@ -1119,7 +1101,7 @@ static JSValue gloo_dt(
 	return JS_NewFloat64(ctx, gctx.dt);
 }
 
-static JSValue gloo_mouse_x(
+JSValue gloo_mouse_x(
 	JSContext *ctx,
 	JSValue this,
 	int argc,
@@ -1128,7 +1110,7 @@ static JSValue gloo_mouse_x(
 	return JS_NewFloat64(ctx, gctx.mouse_x);
 }
 
-static JSValue gloo_mouse_y(
+JSValue gloo_mouse_y(
 	JSContext *ctx,
 	JSValue this,
 	int argc,
@@ -1137,7 +1119,7 @@ static JSValue gloo_mouse_y(
 	return JS_NewFloat64(ctx, gctx.mouse_y);
 }
 
-static JSValue gloo_width(
+JSValue gloo_width(
 	JSContext *ctx,
 	JSValue this,
 	int argc,
@@ -1146,7 +1128,7 @@ static JSValue gloo_width(
 	return JS_NewInt32(ctx, sapp_width());
 }
 
-static JSValue gloo_height(
+JSValue gloo_height(
 	JSContext *ctx,
 	JSValue this,
 	int argc,
@@ -1155,7 +1137,7 @@ static JSValue gloo_height(
 	return JS_NewInt32(ctx, sapp_height());
 }
 
-static JSValue gloo_quit(
+JSValue gloo_quit(
 	JSContext *ctx,
 	JSValue this,
 	int argc,
@@ -1165,7 +1147,7 @@ static JSValue gloo_quit(
 	return JS_UNDEFINED;
 }
 
-static const JSCFunctionListEntry gloo_fields[] = {
+const JSCFunctionListEntry gctx_fields[] = {
 	JS_CFUNC_DEF("quit", 0, gloo_quit),
 	JS_CFUNC_DEF("time", 0, gloo_time),
 	JS_CFUNC_DEF("dt", 0, gloo_dt),
@@ -1182,7 +1164,7 @@ static const JSCFunctionListEntry gloo_fields[] = {
 	JS_CFUNC_DEF("mouseReleased", 0, gloo_mouse_released),
 };
 
-JSValue gloo(
+JSValue gloo_run(
 	JSContext *ctx,
 	JSValue this,
 	int argc,
@@ -1196,7 +1178,7 @@ JSValue gloo(
 	JSValue gl = JS_NewObject(ctx);
 	JS_SetPropertyFunctionList(ctx, gl, gl_fields, countof(gl_fields));
 	JS_SetPropertyStr(ctx, gctx.g, "gl", gl);
-	JS_SetPropertyFunctionList(ctx, gctx.g, gloo_fields, countof(gloo_fields));
+	JS_SetPropertyFunctionList(ctx, gctx.g, gctx_fields, countof(gctx_fields));
 
 	JSValue conf = argv[0];
 	gctx.js_init = JS_GetPropertyStr(ctx, conf, "init");
@@ -1223,55 +1205,52 @@ JSValue gloo(
 
 }
 
-static JSValue js_print(
+JSValue console_print(
 	JSContext *ctx,
 	int argc,
 	JSValue *argv,
-	FILE *output
+	FILE *f
 ) {
-
 	for(int i = 0; i < argc; i++) {
 		if (i != 0) {
-			fprintf(output, " ");
+			fprintf(f, " ");
 		}
-		const char *str = JS_ToCString(ctx, argv[i]);
-		if (!str) {
-			return JS_EXCEPTION;
-		}
-		fprintf(output, "%s", str);
-		JS_FreeCString(ctx, str);
+		JS_PrintVal(ctx, f, argv[i]);
 	}
-
-	fprintf(output, "\n");
-
+	fprintf(f, "\n");
 	return JS_UNDEFINED;
-
 }
 
-static JSValue console_log(
+JSValue console_log(
 	JSContext *ctx,
 	JSValue this_val,
 	int argc,
 	JSValue *argv
 ) {
-	return js_print(ctx, argc, argv, stdout);
+	return console_print(ctx, argc, argv, stdout);
 }
 
-static JSValue console_error(
+JSValue console_error(
 	JSContext *ctx,
 	JSValue this_val,
 	int argc,
 	JSValue *argv
 ) {
-	return js_print(ctx, argc, argv, stderr);
+	return console_print(ctx, argc, argv, stderr);
 }
 
-static const JSCFunctionListEntry console_fields[] = {
+const JSCFunctionListEntry console_fields[] = {
 	JS_CFUNC_DEF("log", 1, console_log),
 	JS_CFUNC_DEF("error", 1, console_error),
 };
 
-char *read_file(const char *path) {
+// TODO
+void load_img(uint8_t *bytes, int size) {
+	int w, h;
+	uint8_t *data = stbi_load_from_memory(bytes, size, &w, &h, NULL, 4);
+}
+
+char *read_text(const char *path) {
 
 	FILE *file = fopen(path, "r");
 
@@ -1301,10 +1280,41 @@ char *read_file(const char *path) {
 
 }
 
+uint8_t *read_bytes(const char *path, size_t *osize) {
+
+	FILE *file = fopen(path, "rb");
+
+	if (!file) {
+		return NULL;
+	}
+
+	fseek(file, 0, SEEK_END);
+	size_t size = ftell(file);
+	fseek(file, 0, SEEK_SET);
+
+	uint8_t *buffer = malloc(size);
+	size_t r_size = fread(buffer, 1, size, file);
+
+	if (r_size != size) {
+		free(buffer);
+		return NULL;
+	}
+
+	fclose(file);
+	*osize = size;
+
+	return buffer;
+
+}
+
+const JSCFunctionListEntry gloo_fields[] = {
+	JS_CFUNC_DEF("run", 1, gloo_run),
+};
+
 int main(int argc, char **argv) {
 
 	if (argc < 2) {
-		fprintf(stderr, "nope\n");
+		fprintf(stderr, "what file?\n");
 		return EXIT_FAILURE;
 	}
 
@@ -1323,10 +1333,19 @@ int main(int argc, char **argv) {
 	}
 
 	char *path = argv[1];
-	char *code = read_file(path);
+	char *code = read_text(path);
+
+	if (!code) {
+		fprintf(stderr, "failed to read %s", path);
+		return EXIT_FAILURE;
+	}
 
 	JSValue gobj = JS_GetGlobalObject(ctx);
-	JS_SetPropertyStr(ctx, gobj, "gloo", JS_NewCFunction(ctx, gloo, "gloo", 1));
+
+	JSValue gloo = JS_NewObject(ctx);
+	JS_SetPropertyFunctionList(ctx, gloo, gloo_fields, countof(gloo_fields));
+	JS_SetPropertyStr(ctx, gobj, "gloo", gloo);
+
 	JSValue console = JS_NewObject(ctx);
 	JS_SetPropertyFunctionList(ctx, console, console_fields, countof(console_fields));
 	JS_SetPropertyStr(ctx, gobj, "console", console);

@@ -7,6 +7,7 @@ LDFLAGS += -Lext
 LDFLAGS += -lquickjs
 LDFLAGS += -framework Cocoa
 LDFLAGS += -framework OpenGL
+LDFLAGS += -framework AudioToolbox
 
 gloo: gloo.c
 	$(CC) $(CFLAGS) $(LDFLAGS) $^ -o $@

@@ -8,34 +8,34 @@ const indices = [
 	0, 1, 2,
 ];
 
+const vertCode = `
+${gloo.web ? "" : "#version 120"}
+attribute vec2 a_pos;
+
+void main(void) {
+	gl_Position = vec4(a_pos, 0.0, 1.0);
+}
+`;
+
+const fragCode = `
+${gloo.web ? "" : "#version 120"}
+void main(void) {
+	gl_FragColor = vec4(1.0, 0.5, 1.0, 1.0);
+}
+`;
+
 let t = 0;
 let prog = 0;
 let vbuf = 0;
 let ibuf = 0;
 
-gloo({
+gloo.run({
 
 	title: "kaboom",
 	width: 640,
 	height: 480,
 
 	init(g) {
-
-		const vertCode = `
-${g.web ? "" : "#version 120"}
-attribute vec2 a_pos;
-
-void main(void) {
-	gl_Position = vec4(a_pos, 0.0, 1.0);
-}
-		`;
-
-		const fragCode = `
-${g.web ? "" : "#version 120"}
-void main(void) {
-	gl_FragColor = vec4(1.0, 0.5, 1.0, 1.0);
-}
-		`;
 
 		const gl = g.gl;
 
