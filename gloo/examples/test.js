@@ -29,6 +29,8 @@ let prog = 0;
 let vbuf = 0;
 let ibuf = 0;
 
+// gloo.loadImg("wizard.png");
+
 gloo.run({
 
 	title: "kaboom",

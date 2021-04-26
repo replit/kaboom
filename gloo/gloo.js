@@ -257,9 +257,37 @@ function run(gconf) {
 
 }
 
+function loadImg(src) {
+
+	if (typeof src === "string") {
+
+		const img = new Image();
+
+		img.src = src;
+
+		return new Promise((resolve, reject) => {
+			img.onload = () => {
+				resolve({
+					domImg: img,
+				});
+			};
+			img.onerror = () => {
+				reject(`failed to load img from ${src}`);
+			};
+		});
+
+	}
+
+	return new Promise((resolve, reject) => {
+		reject(`unrecognized img src ${src}`);
+	});
+
+}
+
 window.gloo = {
-	run,
 	web: true,
+	run,
+	loadImg,
 };
 
 })();

@@ -1205,6 +1205,29 @@ JSValue gloo_run(
 
 }
 
+// TODO
+void load_img_from_bytes(uint8_t *bytes, int size) {
+	int w, h;
+	uint8_t *data = stbi_load_from_memory(bytes, size, &w, &h, NULL, 4);
+}
+
+JSValue gloo_load_img(
+	JSContext *ctx,
+	JSValue this,
+	int argc,
+	JSValue *argv
+) {
+	const char *src = JS_ToCString(ctx, argv[0]);
+	// TODO
+	JS_FreeCString(ctx, src);
+	return JS_UNDEFINED;
+}
+
+const JSCFunctionListEntry gloo_fields[] = {
+	JS_CFUNC_DEF("run", 1, gloo_run),
+	JS_CFUNC_DEF("loadImg", 1, gloo_load_img),
+};
+
 JSValue console_print(
 	JSContext *ctx,
 	int argc,
@@ -1243,12 +1266,6 @@ const JSCFunctionListEntry console_fields[] = {
 	JS_CFUNC_DEF("log", 1, console_log),
 	JS_CFUNC_DEF("error", 1, console_error),
 };
-
-// TODO
-void load_img(uint8_t *bytes, int size) {
-	int w, h;
-	uint8_t *data = stbi_load_from_memory(bytes, size, &w, &h, NULL, 4);
-}
 
 char *read_text(const char *path) {
 
@@ -1306,10 +1323,6 @@ uint8_t *read_bytes(const char *path, size_t *osize) {
 	return buffer;
 
 }
-
-const JSCFunctionListEntry gloo_fields[] = {
-	JS_CFUNC_DEF("run", 1, gloo_run),
-};
 
 int main(int argc, char **argv) {
 
