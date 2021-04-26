@@ -3463,6 +3463,10 @@ function body(conf = {}) {
 
 		},
 
+		curPlatform() {
+			return curPlatform;
+		},
+
 		grounded() {
 			return curPlatform !== null;
 		},

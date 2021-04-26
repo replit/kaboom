@@ -1,3 +1,6 @@
+# (wip)
+- added `curPlatform()` by `body()`
+
 # v0.4.1
 - fixed `on("destroy")` handler getting called twice
 - fixed sprite `play()` not playing
