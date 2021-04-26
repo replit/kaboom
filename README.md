@@ -8,12 +8,8 @@ kaboom.js is a JavaScript library that helps you make games fast and fun!
 
 ```html
 <script src="https://kaboomjs.com/lib/0.4.0/kaboom.js"></script>
+<script src="https://kaboomjs.com/lib/0.4.1/kaboom.js"></script>
 <script type="module">
-	
-/*
-If you wanted to use the module version of the script, you can import this file instead directly from the javascript also remove the script tag with kaboomjs from the html
-import kaboom from "https://kaboomjs.com/lib/0.4.0/kaboom.mjs";
-*/
 
 // initialize kaboom context
 const k = kaboom();
@@ -74,6 +70,19 @@ init();
 scene(...);
 start(...);
 ```
+
+However, it is possible to use a module version of kaboomjs.
+
+```html
+<script type="module" src="script.js"></script>
+```
+
+`script.js`:
+```js
+import kaboom from "https://kaboomjs.com/lib/0.4.1/kaboom.mjs";
+```
+
+Using the module version means that there will be no `window.kaboom` available and kaboom must be imported.
 
 ### Dev
 
