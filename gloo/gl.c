@@ -39,6 +39,24 @@ static JSValue gl_clear(
 	return JS_UNDEFINED;
 }
 
+static JSValue gl_viewport(
+	JSContext *ctx,
+	JSValue this,
+	int nargs,
+	JSValue *argv
+) {
+	if (!JS_CheckNargs(ctx, 4, nargs)) {
+		return JS_EXCEPTION;
+	}
+	int x, y, w, h;
+	JS_ToInt32(ctx, &x, argv[0]);
+	JS_ToInt32(ctx, &y, argv[1]);
+	JS_ToInt32(ctx, &w, argv[2]);
+	JS_ToInt32(ctx, &h, argv[3]);
+	glViewport(x, y, w, h);
+	return JS_UNDEFINED;
+}
+
 static JSValue gl_enable(
 	JSContext *ctx,
 	JSValue this,
@@ -140,7 +158,12 @@ static JSValue gl_buffer_data(
 		glBufferData(target, size, NULL, usage);
 	} else if (JS_IsObject(argv[1])) {
 		size_t size;
-		uint8_t *buf = JS_GetArrayBuffer(ctx, &size, argv[2]);
+		JSValue arrbuf = JS_GetTypedArrayBuffer(ctx, argv[1], NULL, NULL, NULL);
+		uint8_t *buf = JS_GetArrayBuffer(ctx, &size, arrbuf);
+		if (!buf) {
+			JS_ThrowInternalError(ctx, "failed to get ArrayBuffer");
+			return JS_EXCEPTION;
+		}
 		glBufferData(target, size, buf, usage);
 	} else {
 		JS_ThrowTypeError(ctx, "expected ArrayBuffer or Number");
@@ -195,14 +218,203 @@ static JSValue gl_create_shader(
 	}
 	GLenum type;
 	JS_ToUint32(ctx, &type, argv[0]);
-	GLuint shader = glCreateShader(type);
-	return JS_NewUint32(ctx, shader);
+	return JS_NewUint32(ctx, glCreateShader(type));
+}
+
+static JSValue gl_shader_source(
+	JSContext *ctx,
+	JSValue this,
+	int nargs,
+	JSValue *argv
+) {
+	if (!JS_CheckNargs(ctx, 2, nargs)) {
+		return JS_EXCEPTION;
+	}
+	GLuint id;
+	JS_ToUint32(ctx, &id, argv[0]);
+	const char *code = JS_ToCString(ctx, argv[1]);
+	glShaderSource(id, 1, &code, 0);
+	JS_FreeCString(ctx, code);
+	return JS_UNDEFINED;
+}
+
+static JSValue gl_compile_shader(
+	JSContext *ctx,
+	JSValue this,
+	int nargs,
+	JSValue *argv
+) {
+	if (!JS_CheckNargs(ctx, 1, nargs)) {
+		return JS_EXCEPTION;
+	}
+	GLuint id;
+	JS_ToUint32(ctx, &id, argv[0]);
+	glCompileShader(id);
+	return JS_UNDEFINED;
+}
+
+static JSValue gl_create_program(
+	JSContext *ctx,
+	JSValue this,
+	int nargs,
+	JSValue *argv
+) {
+	if (!JS_CheckNargs(ctx, 0, nargs)) {
+		return JS_EXCEPTION;
+	}
+	return JS_NewUint32(ctx, glCreateProgram());
+}
+
+static JSValue gl_attach_shader(
+	JSContext *ctx,
+	JSValue this,
+	int nargs,
+	JSValue *argv
+) {
+	if (!JS_CheckNargs(ctx, 2, nargs)) {
+		return JS_EXCEPTION;
+	}
+	GLuint program;
+	GLuint shader;
+	JS_ToUint32(ctx, &program, argv[0]);
+	JS_ToUint32(ctx, &shader, argv[1]);
+	glAttachShader(program, shader);
+	return JS_UNDEFINED;
+}
+
+static JSValue gl_link_program(
+	JSContext *ctx,
+	JSValue this,
+	int nargs,
+	JSValue *argv
+) {
+	if (!JS_CheckNargs(ctx, 1, nargs)) {
+		return JS_EXCEPTION;
+	}
+	GLuint program;
+	JS_ToUint32(ctx, &program, argv[0]);
+	glLinkProgram(program);
+	return JS_UNDEFINED;
+}
+
+static JSValue gl_use_program(
+	JSContext *ctx,
+	JSValue this,
+	int nargs,
+	JSValue *argv
+) {
+	if (!JS_CheckNargs(ctx, 1, nargs)) {
+		return JS_EXCEPTION;
+	}
+	GLuint program;
+	JS_ToUint32(ctx, &program, argv[0]);
+	glUseProgram(program);
+	return JS_UNDEFINED;
+}
+
+static JSValue gl_bind_attrib_location(
+	JSContext *ctx,
+	JSValue this,
+	int nargs,
+	JSValue *argv
+) {
+	if (!JS_CheckNargs(ctx, 3, nargs)) {
+		return JS_EXCEPTION;
+	}
+	GLuint prog;
+	GLuint idx;
+	JS_ToUint32(ctx, &prog, argv[0]);
+	JS_ToUint32(ctx, &idx, argv[1]);
+	const char *name = JS_ToCString(ctx, argv[2]);
+	glBindAttribLocation(prog, idx, name);
+	JS_FreeCString(ctx, name);
+	return JS_UNDEFINED;
+}
+
+static JSValue gl_vertex_attrib_pointer(
+	JSContext *ctx,
+	JSValue this,
+	int nargs,
+	JSValue *argv
+) {
+	if (!JS_CheckNargs(ctx, 6, nargs)) {
+		return JS_EXCEPTION;
+	}
+	GLuint idx;
+	GLint size;
+	GLenum type;
+	GLsizei stride;
+	JS_ToUint32(ctx, &idx, argv[0]);
+	JS_ToInt32(ctx, &size, argv[1]);
+	JS_ToUint32(ctx, &type, argv[2]);
+	bool normalized = JS_ToBool(ctx, argv[3]);
+	JS_ToInt32(ctx, &stride, argv[4]);
+	// TODO: last param ptr
+	glVertexAttribPointer(idx, size, type, normalized, stride, 0);
+	return JS_UNDEFINED;
+}
+
+static JSValue gl_enable_vertex_attrib_array(
+	JSContext *ctx,
+	JSValue this,
+	int nargs,
+	JSValue *argv
+) {
+	if (!JS_CheckNargs(ctx, 1, nargs)) {
+		return JS_EXCEPTION;
+	}
+	GLuint idx;
+	JS_ToUint32(ctx, &idx, argv[0]);
+	glEnableVertexAttribArray(idx);
+	return JS_UNDEFINED;
+}
+
+static JSValue gl_draw_elements(
+	JSContext *ctx,
+	JSValue this,
+	int nargs,
+	JSValue *argv
+) {
+	if (!JS_CheckNargs(ctx, 4, nargs)) {
+		return JS_EXCEPTION;
+	}
+	GLenum prim;
+	GLsizei count;
+	GLenum type;
+	GLuint offset;
+	JS_ToUint32(ctx, &prim, argv[0]);
+	JS_ToInt32(ctx, &count, argv[1]);
+	JS_ToUint32(ctx, &type, argv[2]);
+	JS_ToUint32(ctx, &offset, argv[3]);
+	// TODO
+	glDrawElements(prim, count, type, 0);
+	return JS_UNDEFINED;
+}
+
+static JSValue gl_draw_arrays(
+	JSContext *ctx,
+	JSValue this,
+	int nargs,
+	JSValue *argv
+) {
+	if (!JS_CheckNargs(ctx, 4, nargs)) {
+		return JS_EXCEPTION;
+	}
+	GLenum prim;
+	GLint first;
+	GLsizei count;
+	JS_ToUint32(ctx, &prim, argv[0]);
+	JS_ToInt32(ctx, &first, argv[1]);
+	JS_ToInt32(ctx, &count, argv[2]);
+	glDrawArrays(prim, first, count);
+	return JS_UNDEFINED;
 }
 
 static const JSCFunctionListEntry gl_fields[] = {
 	// common
 	JS_CFUNC_DEF("clearColor", 4, gl_clear_color),
 	JS_CFUNC_DEF("clear", 1, gl_clear),
+	JS_CFUNC_DEF("viewport", 4, gl_viewport),
 	JS_CFUNC_DEF("enable", 1, gl_enable),
 	JS_CFUNC_DEF("blendFunc", 2, gl_blend_func),
 	JS_CFUNC_DEF("depthFunc", 1, gl_depth_func),
@@ -215,6 +427,19 @@ static const JSCFunctionListEntry gl_fields[] = {
 	JS_CFUNC_DEF("createTexture", 0, gl_create_texture),
 	// shader
 	JS_CFUNC_DEF("createShader", 1, gl_create_shader),
+	JS_CFUNC_DEF("shaderSource", 2, gl_shader_source),
+	JS_CFUNC_DEF("compileShader", 1, gl_compile_shader),
+	JS_CFUNC_DEF("createProgram", 0, gl_create_program),
+	JS_CFUNC_DEF("attachShader", 2, gl_attach_shader),
+	JS_CFUNC_DEF("linkProgram", 1, gl_link_program),
+	JS_CFUNC_DEF("useProgram", 1, gl_use_program),
+	// attrib
+	JS_CFUNC_DEF("bindAttribLocation", 3, gl_bind_attrib_location),
+	JS_CFUNC_DEF("vertexAttribPointer", 6, gl_vertex_attrib_pointer),
+	JS_CFUNC_DEF("enableVertexAttribArray", 1, gl_enable_vertex_attrib_array),
+	// draw
+	JS_CFUNC_DEF("drawElements", 4, gl_draw_elements),
+	JS_CFUNC_DEF("drawArrays", 3, gl_draw_arrays),
 	// clear bit
 	JS_PROP_INT32_DEF("COLOR_BUFFER_BIT", GL_COLOR_BUFFER_BIT, 0),
 	JS_PROP_INT32_DEF("COLOR_BUFFER_BIT", GL_COLOR_BUFFER_BIT, 0),
