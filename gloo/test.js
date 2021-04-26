@@ -4,21 +4,9 @@ const verts = [
 	0.5, -0.5,
 ];
 
-const indices = [0, 1, 2];
-
-const vertCode = `
-attribute vec2 a_pos;
-
-void main(void) {
-	gl_Position = vec4(a_pos, 0.0, 1.0);
-}
-`;
-
-const fragCode = `
-void main(void) {
-	gl_FragColor = vec4(1.0, 0.5, 1.0, 1.0);
-}
-`;
+const indices = [
+	0, 1, 2,
+];
 
 let t = 0;
 let prog = 0;
@@ -33,7 +21,29 @@ gloo({
 
 	init(g) {
 
+		const vertCode = `
+${g.web ? "" : "#version 120"}
+attribute vec2 a_pos;
+
+void main(void) {
+	gl_Position = vec4(a_pos, 0.0, 1.0);
+}
+		`;
+
+		const fragCode = `
+${g.web ? "" : "#version 120"}
+void main(void) {
+	gl_FragColor = vec4(1.0, 0.5, 1.0, 1.0);
+}
+		`;
+
 		const gl = g.gl;
+
+		gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+		gl.enable(gl.DEPTH_TEST);
+		gl.enable(gl.BLEND);
+		gl.depthFunc(gl.LEQUAL);
+		gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
 
 		vbuf = gl.createBuffer();
 
@@ -52,10 +62,18 @@ gloo({
 		gl.shaderSource(vertShader, vertCode);
 		gl.compileShader(vertShader);
 
+		if (gl.getShaderInfoLog(vertShader)) {
+			console.log(gl.getShaderInfoLog(vertShader));
+		}
+
 		const fragShader = gl.createShader(gl.FRAGMENT_SHADER);
 
 		gl.shaderSource(fragShader, fragCode);
 		gl.compileShader(fragShader);
+
+		if (gl.getShaderInfoLog(vertShader)) {
+			console.log(gl.getShaderInfoLog(vertShader));
+		}
 
 		prog = gl.createProgram();
 

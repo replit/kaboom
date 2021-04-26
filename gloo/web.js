@@ -190,6 +190,7 @@ function keyReleased(k) {
 }
 
 const g = {
+	web: true,
 	gl,
 	keyPressed,
 	keyPressedRep,

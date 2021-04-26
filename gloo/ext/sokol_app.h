@@ -3120,7 +3120,7 @@ _SOKOL_PRIVATE void _sapp_macos_frame(void) {
         int i = 0;
         attrs[i++] = NSOpenGLPFAAccelerated;
         attrs[i++] = NSOpenGLPFADoubleBuffer;
-        attrs[i++] = NSOpenGLPFAOpenGLProfile; attrs[i++] = NSOpenGLProfileVersion3_2Core;
+        attrs[i++] = NSOpenGLPFAOpenGLProfile; attrs[i++] = NSOpenGLProfileVersionLegacy;
         attrs[i++] = NSOpenGLPFAColorSize; attrs[i++] = 24;
         attrs[i++] = NSOpenGLPFAAlphaSize; attrs[i++] = 8;
         attrs[i++] = NSOpenGLPFADepthSize; attrs[i++] = 24;

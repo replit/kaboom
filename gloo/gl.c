@@ -188,7 +188,8 @@ static JSValue gl_buffer_sub_data(
 	JS_ToUint32(ctx, &target, argv[0]);
 	JS_ToUint32(ctx, &offset, argv[1]);
 	size_t size;
-	uint8_t *buf = JS_GetArrayBuffer(ctx, &size, argv[2]);
+	JSValue arrbuf = JS_GetTypedArrayBuffer(ctx, argv[2], NULL, NULL, NULL);
+	uint8_t *buf = JS_GetArrayBuffer(ctx, &size, arrbuf);
 	glBufferSubData(target, offset, size, buf);
 	return JS_UNDEFINED;
 }
@@ -253,6 +254,29 @@ static JSValue gl_compile_shader(
 	return JS_UNDEFINED;
 }
 
+#define INFO_LOG_LEN 512
+static char info_log[INFO_LOG_LEN];
+
+static JSValue gl_get_shader_info_log(
+	JSContext *ctx,
+	JSValue this,
+	int nargs,
+	JSValue *argv
+) {
+	if (!JS_CheckNargs(ctx, 1, nargs)) {
+		return JS_EXCEPTION;
+	}
+	GLuint id;
+	JS_ToUint32(ctx, &id, argv[0]);
+	GLsizei len;
+	glGetShaderInfoLog(id, INFO_LOG_LEN, &len, info_log);
+	if (len) {
+		return JS_NewStringLen(ctx, info_log, len);
+	} else {
+		return JS_UNDEFINED;
+	}
+}
+
 static JSValue gl_create_program(
 	JSContext *ctx,
 	JSValue this,
@@ -291,9 +315,9 @@ static JSValue gl_link_program(
 	if (!JS_CheckNargs(ctx, 1, nargs)) {
 		return JS_EXCEPTION;
 	}
-	GLuint program;
-	JS_ToUint32(ctx, &program, argv[0]);
-	glLinkProgram(program);
+	GLuint prog;
+	JS_ToUint32(ctx, &prog, argv[0]);
+	glLinkProgram(prog);
 	return JS_UNDEFINED;
 }
 
@@ -306,9 +330,9 @@ static JSValue gl_use_program(
 	if (!JS_CheckNargs(ctx, 1, nargs)) {
 		return JS_EXCEPTION;
 	}
-	GLuint program;
-	JS_ToUint32(ctx, &program, argv[0]);
-	glUseProgram(program);
+	GLuint prog;
+	JS_ToUint32(ctx, &prog, argv[0]);
+	glUseProgram(prog);
 	return JS_UNDEFINED;
 }
 
@@ -429,6 +453,7 @@ static const JSCFunctionListEntry gl_fields[] = {
 	JS_CFUNC_DEF("createShader", 1, gl_create_shader),
 	JS_CFUNC_DEF("shaderSource", 2, gl_shader_source),
 	JS_CFUNC_DEF("compileShader", 1, gl_compile_shader),
+	JS_CFUNC_DEF("getShaderInfoLog", 1, gl_get_shader_info_log),
 	JS_CFUNC_DEF("createProgram", 0, gl_create_program),
 	JS_CFUNC_DEF("attachShader", 2, gl_attach_shader),
 	JS_CFUNC_DEF("linkProgram", 1, gl_link_program),
