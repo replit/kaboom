@@ -158,8 +158,11 @@ static JSValue gl_buffer_data(
 		glBufferData(target, size, NULL, usage);
 	} else if (JS_IsObject(argv[1])) {
 		size_t size;
-		JSValue arrbuf = JS_GetTypedArrayBuffer(ctx, argv[1], NULL, NULL, NULL);
-		uint8_t *buf = JS_GetArrayBuffer(ctx, &size, arrbuf);
+		uint8_t *buf = JS_GetArrayBuffer(
+			ctx,
+			&size,
+			JS_GetTypedArrayBuffer(ctx, argv[1], NULL, NULL, NULL)
+		);
 		if (!buf) {
 			JS_ThrowInternalError(ctx, "failed to get ArrayBuffer");
 			return JS_EXCEPTION;
@@ -188,8 +191,11 @@ static JSValue gl_buffer_sub_data(
 	JS_ToUint32(ctx, &target, argv[0]);
 	JS_ToUint32(ctx, &offset, argv[1]);
 	size_t size;
-	JSValue arrbuf = JS_GetTypedArrayBuffer(ctx, argv[2], NULL, NULL, NULL);
-	uint8_t *buf = JS_GetArrayBuffer(ctx, &size, arrbuf);
+	uint8_t *buf = JS_GetArrayBuffer(
+		ctx,
+		&size,
+		JS_GetTypedArrayBuffer(ctx, argv[2], NULL, NULL, NULL)
+	);
 	glBufferSubData(target, offset, size, buf);
 	return JS_UNDEFINED;
 }
@@ -206,6 +212,81 @@ static JSValue gl_create_texture(
 	GLuint tex;
 	glGenTextures(1, &tex);
 	return JS_NewUint32(ctx, tex);
+}
+
+static JSValue gl_bind_texture(
+	JSContext *ctx,
+	JSValue this,
+	int nargs,
+	JSValue *argv
+) {
+	if (!JS_CheckNargs(ctx, 0, nargs)) {
+		return JS_EXCEPTION;
+	}
+	GLenum target;
+	GLuint id;
+	JS_ToUint32(ctx, &target, argv[0]);
+	JS_ToUint32(ctx, &id, argv[1]);
+	glBindTexture(target, id);
+	return JS_UNDEFINED;
+}
+
+static JSValue gl_tex_image_2d(
+	JSContext *ctx,
+	JSValue this,
+	int nargs,
+	JSValue *argv
+) {
+	if (!JS_CheckNargs(ctx, 9, nargs)) {
+		return JS_EXCEPTION;
+	}
+	GLenum target;
+	GLint level;
+	GLint iformat;
+	GLsizei width;
+	GLsizei height;
+	GLint border;
+	GLenum format;
+	GLenum type;
+	JS_ToUint32(ctx, &target, argv[0]);
+	JS_ToInt32(ctx, &level, argv[1]);
+	JS_ToInt32(ctx, &iformat, argv[2]);
+	JS_ToInt32(ctx, &width, argv[3]);
+	JS_ToInt32(ctx, &height, argv[4]);
+	JS_ToInt32(ctx, &border, argv[5]);
+	JS_ToUint32(ctx, &format, argv[6]);
+	JS_ToUint32(ctx, &type, argv[7]);
+	size_t size;
+	uint8_t *buf = JS_GetArrayBuffer(
+		ctx,
+		&size,
+		JS_GetTypedArrayBuffer(ctx, argv[8], NULL, NULL, NULL)
+	);
+	if (!buf) {
+		JS_ThrowInternalError(ctx, "failed to get ArrayBuffer");
+		return JS_EXCEPTION;
+	}
+	glTexImage2D(type, level, iformat, width, height, border, format, type, buf);
+	return JS_UNDEFINED;
+}
+
+static JSValue gl_tex_parameter_i(
+	JSContext *ctx,
+	JSValue this,
+	int nargs,
+	JSValue *argv
+) {
+	if (!JS_CheckNargs(ctx, 3, nargs)) {
+		return JS_EXCEPTION;
+	}
+	GLenum target;
+	GLenum prop;
+	GLint val;
+	JS_ToUint32(ctx, &target, argv[0]);
+	JS_ToUint32(ctx, &prop, argv[1]);
+	JS_ToInt32(ctx, &val, argv[2]);
+	glTexParameteri(target, prop, val);
+	return JS_UNDEFINED;
 }
 
 static JSValue gl_create_shader(
@@ -336,6 +417,126 @@ static JSValue gl_use_program(
 	return JS_UNDEFINED;
 }
 
+static JSValue gl_get_uniform_location(
+	JSContext *ctx,
+	JSValue this,
+	int nargs,
+	JSValue *argv
+) {
+	if (!JS_CheckNargs(ctx, 2, nargs)) {
+		return JS_EXCEPTION;
+	}
+	GLuint prog;
+	JS_ToUint32(ctx, &prog, argv[0]);
+	const char *name = JS_ToCString(ctx, argv[1]);
+	GLint loc = glGetUniformLocation(prog, name);
+	JS_FreeCString(ctx, name);
+	return JS_NewInt32(ctx, loc);
+}
+
+static JSValue gl_uniform_1f(
+	JSContext *ctx,
+	JSValue this,
+	int nargs,
+	JSValue *argv
+) {
+	if (!JS_CheckNargs(ctx, 2, nargs)) {
+		return JS_EXCEPTION;
+	}
+	GLint loc;
+	double f1;
+	JS_ToInt32(ctx, &loc, argv[0]);
+	JS_ToFloat64(ctx, &f1, argv[1]);
+	glUniform1f(loc, f1);
+	return JS_UNDEFINED;
+}
+
+static JSValue gl_uniform_2f(
+	JSContext *ctx,
+	JSValue this,
+	int nargs,
+	JSValue *argv
+) {
+	if (!JS_CheckNargs(ctx, 3, nargs)) {
+		return JS_EXCEPTION;
+	}
+	GLint loc;
+	double f1;
+	double f2;
+	JS_ToInt32(ctx, &loc, argv[0]);
+	JS_ToFloat64(ctx, &f1, argv[1]);
+	JS_ToFloat64(ctx, &f2, argv[2]);
+	glUniform2f(loc, f1, f2);
+	return JS_UNDEFINED;
+}
+
+static JSValue gl_uniform_3f(
+	JSContext *ctx,
+	JSValue this,
+	int nargs,
+	JSValue *argv
+) {
+	if (!JS_CheckNargs(ctx, 4, nargs)) {
+		return JS_EXCEPTION;
+	}
+	GLint loc;
+	double f1;
+	double f2;
+	double f3;
+	JS_ToInt32(ctx, &loc, argv[0]);
+	JS_ToFloat64(ctx, &f1, argv[1]);
+	JS_ToFloat64(ctx, &f2, argv[2]);
+	JS_ToFloat64(ctx, &f3, argv[3]);
+	glUniform3f(loc, f1, f2, f3);
+	return JS_UNDEFINED;
+}
+
+static JSValue gl_uniform_4f(
+	JSContext *ctx,
+	JSValue this,
+	int nargs,
+	JSValue *argv
+) {
+	if (!JS_CheckNargs(ctx, 5, nargs)) {
+		return JS_EXCEPTION;
+	}
+	GLint loc;
+	double f1;
+	double f2;
+	double f3;
+	double f4;
+	JS_ToInt32(ctx, &loc, argv[0]);
+	JS_ToFloat64(ctx, &f1, argv[1]);
+	JS_ToFloat64(ctx, &f2, argv[2]);
+	JS_ToFloat64(ctx, &f3, argv[3]);
+	JS_ToFloat64(ctx, &f4, argv[4]);
+	glUniform4f(loc, f1, f2, f3, f4);
+	return JS_UNDEFINED;
+}
+
+static JSValue gl_uniform_matrix4_fv(
+	JSContext *ctx,
+	JSValue this,
+	int nargs,
+	JSValue *argv
+) {
+	if (!JS_CheckNargs(ctx, 3, nargs)) {
+		return JS_EXCEPTION;
+	}
+	GLint loc;
+	JS_ToInt32(ctx, &loc, argv[0]);
+	bool transpose = JS_ToBool(ctx, argv[1]);
+	size_t size;
+	uint8_t *buf = JS_GetArrayBuffer(
+		ctx,
+		&size,
+		JS_GetTypedArrayBuffer(ctx, argv[2], NULL, NULL, NULL)
+	);
+	// TODO: test cast
+	glUniformMatrix4fv(loc, 0, transpose, (GLfloat*)buf);
+	return JS_UNDEFINED;
+}
+
 static JSValue gl_bind_attrib_location(
 	JSContext *ctx,
 	JSValue this,
@@ -449,6 +650,9 @@ static const JSCFunctionListEntry gl_fields[] = {
 	JS_CFUNC_DEF("bufferSubData", 3, gl_buffer_sub_data),
 	// texture
 	JS_CFUNC_DEF("createTexture", 0, gl_create_texture),
+	JS_CFUNC_DEF("bindTexture", 2, gl_bind_texture),
+	JS_CFUNC_DEF("texImage2D", 9, gl_tex_image_2d),
+	JS_CFUNC_DEF("texParameteri", 3, gl_tex_parameter_i),
 	// shader
 	JS_CFUNC_DEF("createShader", 1, gl_create_shader),
 	JS_CFUNC_DEF("shaderSource", 2, gl_shader_source),
@@ -458,6 +662,13 @@ static const JSCFunctionListEntry gl_fields[] = {
 	JS_CFUNC_DEF("attachShader", 2, gl_attach_shader),
 	JS_CFUNC_DEF("linkProgram", 1, gl_link_program),
 	JS_CFUNC_DEF("useProgram", 1, gl_use_program),
+	// uniform
+	JS_CFUNC_DEF("getUniformLocation", 2, gl_get_uniform_location),
+	JS_CFUNC_DEF("uniform1f", 2, gl_uniform_1f),
+	JS_CFUNC_DEF("uniform2f", 3, gl_uniform_2f),
+	JS_CFUNC_DEF("uniform3f", 4, gl_uniform_3f),
+	JS_CFUNC_DEF("uniform4f", 5, gl_uniform_4f),
+	JS_CFUNC_DEF("uniformMatrix4fv", 3, gl_uniform_matrix4_fv),
 	// attrib
 	JS_CFUNC_DEF("bindAttribLocation", 3, gl_bind_attrib_location),
 	JS_CFUNC_DEF("vertexAttribPointer", 6, gl_vertex_attrib_pointer),
