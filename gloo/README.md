@@ -1,5 +1,8 @@
-gloo is a cross-platform + web-native JavaScript multimedia library
-use the same JS code to run graphics applications / games on natively in your browser, also natively on your OS (macOS, Windows, Linux, iOS, Android)
+# gloo
+
+a cross-platform + web-native JavaScript multimedia library
+
+use the same JS code to run graphics applications / games natively in your browser, also natively on your OS (macOS, Windows, Linux, iOS, Android)
 
 ## example
 ```js
