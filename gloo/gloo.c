@@ -1272,7 +1272,88 @@ JSValue gloo_run(
 
 }
 
-// TODO: support base64
+// http://web.mit.edu/freebsd/head/contrib/wpa/src/utils/base64.c
+char base64_table[65] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+
+uint8_t *base64_decode(
+	const char *src,
+	size_t len,
+	size_t *out_len
+) {
+
+	unsigned char dtable[256], *out, *pos, block[4], tmp;
+	size_t i, count, olen;
+	int pad = 0;
+
+	memset(dtable, 0x80, 256);
+
+	for (i = 0; i < sizeof(base64_table) - 1; i++) {
+		dtable[base64_table[i]] = (unsigned char) i;
+	}
+
+	dtable['='] = 0;
+
+	count = 0;
+
+	for (i = 0; i < len; i++) {
+		if (dtable[src[i]] != 0x80) {
+			count++;
+		}
+	}
+
+	if (count == 0 || count % 4) {
+		return NULL;
+	}
+
+	olen = count / 4 * 3;
+	pos = out = malloc(olen);
+
+	if (out == NULL) {
+		return NULL;
+	}
+
+	count = 0;
+
+	for (i = 0; i < len; i++) {
+
+		tmp = dtable[src[i]];
+
+		if (tmp == 0x80) {
+			continue;
+		}
+
+		if (src[i] == '=') {
+			pad++;
+		}
+
+		block[count] = tmp;
+		count++;
+
+		if (count == 4) {
+			*pos++ = (block[0] << 2) | (block[1] >> 4);
+			*pos++ = (block[1] << 4) | (block[2] >> 2);
+			*pos++ = (block[2] << 6) | block[3];
+			count = 0;
+			if (pad) {
+				if (pad == 1)
+					pos--;
+				else if (pad == 2)
+					pos -= 2;
+				else {
+					free(out);
+					return NULL;
+				}
+				break;
+			}
+		}
+	}
+
+	*out_len = pos - out;
+
+	return out;
+
+}
+
 JSValue gloo_load_img(
 	JSContext *ctx,
 	JSValue this,
@@ -1283,10 +1364,22 @@ JSValue gloo_load_img(
 	JSValue pfuncs[2];
 	JSValue promise = JS_NewPromiseCapability(ctx, pfuncs);
 
-	const char *src = JS_ToCString(ctx, argv[0]);
+	size_t src_len;
+	const char *src = JS_ToCStringLen(ctx, &src_len, argv[0]);
 
+	const char *dataurl_prefix = "data:";
+	uint8_t *bytes;
 	size_t size;
-	uint8_t *bytes = read_bytes(src, &size);
+
+	if (strncmp(src, dataurl_prefix, strlen(dataurl_prefix)) == 0) {
+		// base64
+		const char *data_start = strchr(src, ',');
+		bytes = base64_decode(data_start, src_len - (data_start - src), &size);
+	} else {
+		// file path
+		bytes = read_bytes(src, &size);
+	}
+
 	JS_FreeCString(ctx, src);
 
 	if (!bytes) {
@@ -1296,6 +1389,7 @@ JSValue gloo_load_img(
 
 	int w, h;
 	uint8_t *data = stbi_load_from_memory(bytes, size, &w, &h, NULL, 4);
+	free(bytes);
 
 	if (!data) {
 		JS_Call(ctx, pfuncs[1], JS_UNDEFINED, 0, NULL);

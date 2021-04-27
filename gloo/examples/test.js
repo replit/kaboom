@@ -1,3 +1,5 @@
+const imgDataURL = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAAXNSR0IArs4c6QAAAXdJREFUWIXdVlsSwyAIhE5v1BwwB2zPRD+sRRAQNdOPOpPJQ91dFtQA/EGjncm3fXLaEoEXkGuoKcxVB4i6mAlW3JgVQDa5HsJqrhRALS5ihJ93I5svWq+zuDZGAkjcthqafBMOGI/eYCqwfZp6ESvLMFDAXUQI2KMvO2Cy0anAzm7MEH9zIwJwRKRxVwVkqjKFfV8jr/wI5ykt0O+jNutAgpz7M/gzAibIBXzIkd2Kw52QyV/9tEG9ZBzojt0aPbtQ+6uAh0Vjco0cUOQcYSF/Qm5B+E5EDjjkRwNqRVy+ER1qK7Zd8BxwyB8gj3pttfxWzwQW3LtgCQjI51r8z/AZE5NXAYW8HDBWvyWwXRFtn0yF8igm/05CXfWWAN1f2yF42xSg1CMnV9KMrVKUFvYEaCK1VgHxwCjvOjpZfL5QmQKrCLFcBz+6q9VafijuEbknQAmplydGusSpMiCMSGaO42ay9rfdlL6/YqmDbuePSCu4GvM37Q3cgJEgEzPFTgAAAABJRU5ErkJggg==";
+
 const verts = [
 	-0.5, -0.5, 0, 1,
 	-0.5, 0.5, 0, 0,
@@ -100,7 +102,8 @@ gloo.run({
 
 		gl.linkProgram(prog);
 
-		gloo.loadImg("wizard.png").then((img) => {
+// 		gloo.loadImg("wizard.png").then((img) => {
+		gloo.loadImg(imgDataURL).then((img) => {
 			tex = gl.createTexture();
 			gl.bindTexture(gl.TEXTURE_2D, tex);
 			gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, img);
