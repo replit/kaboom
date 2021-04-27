@@ -2562,11 +2562,8 @@ function gameFrame(ignorePause) {
 
 }
 
+// TODO: make log and progress bar fixed size independent of global scale
 function drawLog() {
-
-	// TODO: make log and progress bar fixed size independent of global scale
-	// draw log
-	game.log = game.log.filter(l => l.timer < debug.logTime);
 
 	if (game.log.length > debug.logMax) {
 		game.log = game.log.slice(0, debug.logMax);
@@ -2575,36 +2572,46 @@ function drawLog() {
 	const pos = vec2(0, height());
 
 	if (debug.showLog) {
+		// ...
+	}
 
-		game.log.forEach((log, i) => {
+	const showingLogs = game.log.filter((log) => {
+		if (debug.showLog) {
+			return true;
+		} else {
+			return log.type === "error";
+		}
+	})
 
-			const col = (() => {
-				switch (log.type) {
-					case "log": return rgb(1, 1, 1);
-					case "error": return rgb(1, 0, 0.5);
-				}
-			})();
+	showingLogs.forEach((log, i) => {
 
-			const ftext = fmtText(log.msg, {
-				pos: pos,
-				origin: "botleft",
-				color: col,
-				z: 1,
-			});
+		const alpha = map(i, 0, debug.logMax, 1, 0.2);
+		const alpha2 = map(i, 0, debug.logMax, 0.7, 0.2);
 
-			drawRect(pos, ftext.width, ftext.height, {
-				origin: "botleft",
-				color: rgba(0, 0, 0, 0.5),
-				z: 1,
-			});
+		const col = (() => {
+			switch (log.type) {
+				case "log": return rgba(1, 1, 1, alpha);
+				case "error": return rgba(1, 0, 0.5, alpha);
+			}
+		})();
 
-			drawFmtText(ftext);
-			log.timer += dt();
-			pos.y -= ftext.height;
-
+		const ftext = fmtText(log.msg, {
+			pos: pos,
+			origin: "botleft",
+			color: col,
+			z: 1,
 		});
 
-	}
+		drawRect(pos, ftext.width, ftext.height, {
+			origin: "botleft",
+			color: rgba(0, 0, 0, alpha2),
+			z: 1,
+		});
+
+		drawFmtText(ftext);
+		pos.y -= ftext.height;
+
+	});
 
 }
 
@@ -3520,8 +3527,7 @@ const debug = {
 	showArea: false,
 	hoverInfo: false,
 	showLog: false,
-	logTime: 6,
-	logMax: 32,
+	logMax: 8,
 };
 
 function dbg() {

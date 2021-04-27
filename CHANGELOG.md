@@ -1,5 +1,7 @@
 ## (wip)
 - added `curPlatform()` by `body()`
+- on screen log now catches all kinds of errors
+- (**BREAK**) removed `dbg().logTime`
 
 ## v0.4.1
 - fixed `on("destroy")` handler getting called twice
