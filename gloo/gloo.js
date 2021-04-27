@@ -267,9 +267,7 @@ function loadImg(src) {
 
 		return new Promise((resolve, reject) => {
 			img.onload = () => {
-				resolve({
-					domImg: img,
-				});
+				resolve(img);
 			};
 			img.onerror = () => {
 				reject(`failed to load img from ${src}`);

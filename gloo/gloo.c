@@ -39,6 +39,61 @@ typedef struct {
 
 gctx_t gctx;
 
+char *read_text(const char *path) {
+
+	FILE *file = fopen(path, "r");
+
+	if (!file) {
+		return NULL;
+	}
+
+	fseek(file, 0, SEEK_END);
+	size_t size = ftell(file);
+	fseek(file, 0, SEEK_SET);
+
+	char *buffer = malloc(size + 1);
+	size_t r_size = fread(buffer, 1, size, file);
+
+	buffer[size] = '\0';
+
+	if (r_size != size) {
+		free(buffer);
+		return NULL;
+	}
+
+	fclose(file);
+
+	return buffer;
+
+}
+
+uint8_t *read_bytes(const char *path, size_t *osize) {
+
+	FILE *file = fopen(path, "rb");
+
+	if (!file) {
+		return NULL;
+	}
+
+	fseek(file, 0, SEEK_END);
+	size_t size = ftell(file);
+	fseek(file, 0, SEEK_SET);
+
+	uint8_t *buffer = malloc(size);
+	size_t r_size = fread(buffer, 1, size, file);
+
+	if (r_size != size) {
+		free(buffer);
+		return NULL;
+	}
+
+	fclose(file);
+	*osize = size;
+
+	return buffer;
+
+}
+
 void JS_PrintVal(JSContext *ctx, FILE *f, JSValue val) {
 	const char *str = JS_ToCString(ctx, val);
 	fprintf(f, "%s", str);
@@ -296,7 +351,7 @@ JSValue gl_bind_texture(
 	int nargs,
 	JSValue *argv
 ) {
-	if (!JS_CheckNargs(ctx, 0, nargs)) {
+	if (!JS_CheckNargs(ctx, 2, nargs)) {
 		return JS_EXCEPTION;
 	}
 	GLenum target;
@@ -313,7 +368,8 @@ JSValue gl_tex_image_2d(
 	int nargs,
 	JSValue *argv
 ) {
-	if (!JS_CheckNargs(ctx, 9, nargs)) {
+	// TODO: support full arg version
+	if (!JS_CheckNargs(ctx, 6, nargs)) {
 		return JS_EXCEPTION;
 	}
 	GLenum target;
@@ -321,28 +377,23 @@ JSValue gl_tex_image_2d(
 	GLint iformat;
 	GLsizei width;
 	GLsizei height;
-	GLint border;
 	GLenum format;
 	GLenum type;
 	JS_ToUint32(ctx, &target, argv[0]);
 	JS_ToInt32(ctx, &level, argv[1]);
 	JS_ToInt32(ctx, &iformat, argv[2]);
-	JS_ToInt32(ctx, &width, argv[3]);
-	JS_ToInt32(ctx, &height, argv[4]);
-	JS_ToInt32(ctx, &border, argv[5]);
-	JS_ToUint32(ctx, &format, argv[6]);
-	JS_ToUint32(ctx, &type, argv[7]);
+	JS_ToUint32(ctx, &format, argv[3]);
+	JS_ToUint32(ctx, &type, argv[4]);
+	JSValue img = argv[5];
+	JS_ToInt32(ctx, &width, JS_GetPropertyStr(ctx, img, "width"));
+	JS_ToInt32(ctx, &height, JS_GetPropertyStr(ctx, img, "height"));
 	size_t size;
 	uint8_t *buf = JS_GetArrayBuffer(
 		ctx,
 		&size,
-		JS_GetTypedArrayBuffer(ctx, argv[8], NULL, NULL, NULL)
+		JS_GetPropertyStr(ctx, img, "data")
 	);
-	if (!buf) {
-		JS_ThrowInternalError(ctx, "failed to get ArrayBuffer");
-		return JS_EXCEPTION;
-	}
-	glTexImage2D(type, level, iformat, width, height, border, format, type, buf);
+	glTexImage2D(target, level, iformat, width, height, 0, format, type, buf);
 	return JS_UNDEFINED;
 }
 
@@ -645,13 +696,15 @@ JSValue gl_vertex_attrib_pointer(
 	GLint size;
 	GLenum type;
 	GLsizei stride;
+	int64_t offset;
 	JS_ToUint32(ctx, &idx, argv[0]);
 	JS_ToInt32(ctx, &size, argv[1]);
 	JS_ToUint32(ctx, &type, argv[2]);
 	bool normalized = JS_ToBool(ctx, argv[3]);
 	JS_ToInt32(ctx, &stride, argv[4]);
+	JS_ToInt64(ctx, &offset, argv[5]);
 	// TODO: last param ptr
-	glVertexAttribPointer(idx, size, type, normalized, stride, 0);
+	glVertexAttribPointer(idx, size, type, normalized, stride, (void*)offset);
 	return JS_UNDEFINED;
 }
 
@@ -727,7 +780,7 @@ const JSCFunctionListEntry gl_fields[] = {
 	// texture
 	JS_CFUNC_DEF("createTexture", 0, gl_create_texture),
 	JS_CFUNC_DEF("bindTexture", 2, gl_bind_texture),
-	JS_CFUNC_DEF("texImage2D", 9, gl_tex_image_2d),
+	JS_CFUNC_DEF("texImage2D", 6, gl_tex_image_2d),
 	JS_CFUNC_DEF("texParameteri", 3, gl_tex_parameter_i),
 	// shader
 	JS_CFUNC_DEF("createShader", 1, gl_create_shader),
@@ -871,6 +924,10 @@ void frame() {
 	}
 
 	gctx.mouse_state = process_btn(gctx.mouse_state);
+
+	// TODO: not here
+	JSContext *ctx2;
+	JS_ExecutePendingJob(JS_GetRuntime(gctx.js_ctx), &ctx2);
 
 }
 
@@ -1205,22 +1262,46 @@ JSValue gloo_run(
 
 }
 
-// TODO
-void load_img_from_bytes(uint8_t *bytes, int size) {
-	int w, h;
-	uint8_t *data = stbi_load_from_memory(bytes, size, &w, &h, NULL, 4);
-}
-
 JSValue gloo_load_img(
 	JSContext *ctx,
 	JSValue this,
 	int argc,
 	JSValue *argv
 ) {
+
+	JSValue pfuncs[2];
+	JSValue promise = JS_NewPromiseCapability(ctx, pfuncs);
+
 	const char *src = JS_ToCString(ctx, argv[0]);
-	// TODO
+
+	size_t size;
+	uint8_t *bytes = read_bytes(src, &size);
 	JS_FreeCString(ctx, src);
-	return JS_UNDEFINED;
+
+	if (!bytes) {
+		JS_Call(ctx, pfuncs[1], JS_UNDEFINED, 0, NULL);
+		return promise;
+	}
+
+	int w, h;
+	uint8_t *data = stbi_load_from_memory(bytes, size, &w, &h, NULL, 4);
+
+	if (!data) {
+		JS_Call(ctx, pfuncs[1], JS_UNDEFINED, 0, NULL);
+		return promise;
+	}
+
+	JSValue buf = JS_NewArrayBufferCopy(ctx, data, w * h * 4);
+	free(data);
+
+	JSValue img = JS_NewObject(ctx);
+	JS_SetPropertyStr(ctx, img, "width", JS_NewInt32(ctx, w));
+	JS_SetPropertyStr(ctx, img, "height", JS_NewInt32(ctx, h));
+	JS_SetPropertyStr(ctx, img, "data", buf);
+	JS_Call(ctx, pfuncs[0], JS_UNDEFINED, 1, &img);
+
+	return promise;
+
 }
 
 const JSCFunctionListEntry gloo_fields[] = {
@@ -1267,63 +1348,6 @@ const JSCFunctionListEntry console_fields[] = {
 	JS_CFUNC_DEF("error", 1, console_error),
 };
 
-char *read_text(const char *path) {
-
-	FILE *file = fopen(path, "r");
-
-	if (!file) {
-		fprintf(stderr, "failed to read: '%s'\n", path);
-		return NULL;
-	}
-
-	fseek(file, 0, SEEK_END);
-	size_t size = ftell(file);
-	fseek(file, 0, SEEK_SET);
-
-	char *buffer = malloc(size + 1);
-	size_t r_size = fread(buffer, 1, size, file);
-
-	buffer[size] = '\0';
-
-	if (r_size != size) {
-		free(buffer);
-		fprintf(stderr, "failed to read: '%s'\n", path);
-		return NULL;
-	}
-
-	fclose(file);
-
-	return buffer;
-
-}
-
-uint8_t *read_bytes(const char *path, size_t *osize) {
-
-	FILE *file = fopen(path, "rb");
-
-	if (!file) {
-		return NULL;
-	}
-
-	fseek(file, 0, SEEK_END);
-	size_t size = ftell(file);
-	fseek(file, 0, SEEK_SET);
-
-	uint8_t *buffer = malloc(size);
-	size_t r_size = fread(buffer, 1, size, file);
-
-	if (r_size != size) {
-		free(buffer);
-		return NULL;
-	}
-
-	fclose(file);
-	*osize = size;
-
-	return buffer;
-
-}
-
 int main(int argc, char **argv) {
 
 	if (argc < 2) {
@@ -1349,7 +1373,7 @@ int main(int argc, char **argv) {
 	char *code = read_text(path);
 
 	if (!code) {
-		fprintf(stderr, "failed to read %s", path);
+		fprintf(stderr, "failed to read %s\n", path);
 		return EXIT_FAILURE;
 	}
 
