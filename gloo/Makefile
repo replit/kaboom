@@ -11,3 +11,7 @@ LDFLAGS += -framework AudioToolbox
 
 gloo: gloo.c
 	$(CC) $(CFLAGS) $(LDFLAGS) $^ -o $@
+
+.PHONY: run
+run: gloo
+	cd examples && ./../gloo test.js

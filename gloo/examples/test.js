@@ -100,7 +100,7 @@ gloo.run({
 
 		gl.linkProgram(prog);
 
-		gloo.loadImg("examples/wizard.png").then((img) => {
+		gloo.loadImg("wizard.png").then((img) => {
 			tex = gl.createTexture();
 			gl.bindTexture(gl.TEXTURE_2D, tex);
 			gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, img);

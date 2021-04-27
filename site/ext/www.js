@@ -176,13 +176,17 @@ function makeServer() {
 			});
 		},
 
-		fs(prefix, root) {
+		fs(mnt, root) {
 			this.handle((req, res) => {
 				const url = req.url.split("?")[0];
-				if (!url.startsWith(prefix)) {
+				if (!url.startsWith(mnt)) {
 					return;
 				}
-				const p = root + "/" + url.replace(new RegExp(`^${prefix}`), "");
+				let p = root || ".";
+				const child = url.replace(new RegExp(`^${mnt}`), "");
+				if (child) {
+					p += "/" + child;
+				}
 				if (!fs.existsSync(p)) {
 					return;
 				}
@@ -291,8 +295,12 @@ function makeServer() {
 							.readdirSync(p)
 							.filter(p => !p.startsWith("."));
 
+						const parent = req.url === "/" ? "" : req.url;
+
 						const page = entries
-							.map(e => `<a href="${req.url}/${e}">${e}</a><br>`)
+							.map((e) => tag("a", {
+								href: `${parent}/${e}`,
+							}, e) + tag("br"))
 							.join("");
 
 						this.html(page);

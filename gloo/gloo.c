@@ -1272,6 +1272,7 @@ JSValue gloo_run(
 
 }
 
+// TODO: support base64
 JSValue gloo_load_img(
 	JSContext *ctx,
 	JSValue this,
