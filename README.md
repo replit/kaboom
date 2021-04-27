@@ -1,8 +1,8 @@
-![logo](misc/kaboom.png)
+![Kaboom Logo](misc/kaboom.png)
 
-kaboom.js is a JavaScript library that helps you make games fast and fun!
+Kaboom.js is a JavaScript library that helps you make games fast and fun!
 
-[website](https://kaboomjs.com/)
+Check out our official [website](https://kaboomjs.com/)!
 
 ### Example
 
@@ -30,25 +30,25 @@ k.start("main");
 </script>
 ```
 
-paste this directly into an `html` file and start playing around!
+You can paste this directly into an `html` file and start playing around!
 
 ### Usage
 
-the recommended way is to [download](https://kaboomjs.com/lib/latest/kaboom.js) a local copy of the library and use it directly, the source should be easy to read and modify (still in progress of documenting the source)
+We recommend [downloading](https://kaboomjs.com/lib/latest/kaboom.js) the script and use it directly, the source should be easy to read and modify (documentation is still in progress).
 
-you can also use CDN
+You can also use CDN
 
 ```html
 <script src="https://kaboomjs.com/lib/@version/kaboom.js"></script>
 ```
 
-all available version tags can be found in CHANGELOG.md, or github releases
+All available version tags can be found in CHANGELOG.md, or Github releases.
 
-special version tags:
+Special Version Tags:
 - `dev`: current master with the newest unreleased features / fixes, but not guaranteed to be stable
 - `latest`: latest release
 
-the script will expose a `window.kaboom` function to initialize a kaboom context, returning an object containing
+The script will expose a `window.kaboom` function to initialize a kaboom context, returning an object containing
 
 ```js
 const k = kaboom();
@@ -92,7 +92,7 @@ Using the module version means that there will be no `window.kaboom` available a
 
 ### Dev
 
-use examples to test / add features
+Use examples to test / add features
 
 1. `npm run dev`
 1. go to http://localhost:8000/examples
@@ -100,4 +100,4 @@ use examples to test / add features
 
 ### Misc
 
-featured on [Console 50](https://console.substack.com/p/console-50)
+Featured on [Console 50](https://console.substack.com/p/console-50)
