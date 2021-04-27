@@ -1354,6 +1354,75 @@ uint8_t *base64_decode(
 
 }
 
+JSValue gloo_read_text(
+	JSContext *ctx,
+	JSValue this,
+	int argc,
+	JSValue *argv
+) {
+
+	JSValue pfuncs[2];
+	JSValue promise = JS_NewPromiseCapability(ctx, pfuncs);
+
+	const char *src = JS_ToCString(ctx, argv[0]);
+
+	if (!src) {
+		// TODO: err msg
+		JS_Call(ctx, pfuncs[1], JS_UNDEFINED, 0, NULL);
+		return promise;
+	}
+
+	char *content = read_text(src);
+
+	if (!content) {
+		// TODO: err msg
+		JS_Call(ctx, pfuncs[1], JS_UNDEFINED, 0, NULL);
+		return promise;
+	}
+
+	JSValue ret = JS_NewString(ctx, content);
+	free(content);
+	JS_Call(ctx, pfuncs[0], JS_UNDEFINED, 1, &ret);
+
+	return promise;
+
+}
+
+JSValue gloo_read_bytes(
+	JSContext *ctx,
+	JSValue this,
+	int argc,
+	JSValue *argv
+) {
+
+	JSValue pfuncs[2];
+	JSValue promise = JS_NewPromiseCapability(ctx, pfuncs);
+
+	const char *src = JS_ToCString(ctx, argv[0]);
+
+	if (!src) {
+		// TODO: err msg
+		JS_Call(ctx, pfuncs[1], JS_UNDEFINED, 0, NULL);
+		return promise;
+	}
+
+	size_t size;
+	uint8_t *bytes = read_bytes(src, &size);
+
+	if (!bytes) {
+		// TODO: err msg
+		JS_Call(ctx, pfuncs[1], JS_UNDEFINED, 0, NULL);
+		return promise;
+	}
+
+	JSValue buf = JS_NewArrayBufferCopy(ctx, bytes, size);
+	free(bytes);
+	JS_Call(ctx, pfuncs[0], JS_UNDEFINED, 1, &buf);
+
+	return promise;
+
+}
+
 JSValue gloo_load_img(
 	JSContext *ctx,
 	JSValue this,
@@ -1366,6 +1435,12 @@ JSValue gloo_load_img(
 
 	size_t src_len;
 	const char *src = JS_ToCStringLen(ctx, &src_len, argv[0]);
+
+	if (!src) {
+		// TODO: err msg
+		JS_Call(ctx, pfuncs[1], JS_UNDEFINED, 0, NULL);
+		return promise;
+	}
 
 	const char *dataurl_prefix = "data:";
 	uint8_t *bytes;
@@ -1383,6 +1458,7 @@ JSValue gloo_load_img(
 	JS_FreeCString(ctx, src);
 
 	if (!bytes) {
+		// TODO: err msg
 		JS_Call(ctx, pfuncs[1], JS_UNDEFINED, 0, NULL);
 		return promise;
 	}
@@ -1392,6 +1468,7 @@ JSValue gloo_load_img(
 	free(bytes);
 
 	if (!data) {
+		// TODO: err msg
 		JS_Call(ctx, pfuncs[1], JS_UNDEFINED, 0, NULL);
 		return promise;
 	}
@@ -1412,6 +1489,8 @@ JSValue gloo_load_img(
 const JSCFunctionListEntry gloo_fields[] = {
 	JS_CFUNC_DEF("run", 1, gloo_run),
 	JS_CFUNC_DEF("loadImg", 1, gloo_load_img),
+	JS_CFUNC_DEF("readText", 1, gloo_read_text),
+	JS_CFUNC_DEF("readBytes", 1, gloo_read_bytes),
 };
 
 JSValue console_print(

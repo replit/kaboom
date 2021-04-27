@@ -282,10 +282,20 @@ function loadImg(src) {
 
 }
 
+function readText(src) {
+	return fetch(src).then((res) => res.text());
+}
+
+function readBytes(src) {
+	return fetch(src).then((res) => res.arrayBuffer());
+}
+
 window.gloo = {
 	web: true,
 	run,
 	loadImg,
+	readText,
+	readBytes,
 };
 
 })();
