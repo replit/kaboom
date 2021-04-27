@@ -58,7 +58,7 @@ k.scene(...);
 k.start(...);
 ```
 
-you can also import all functions to global namespace by giving a `global` flag
+You can also import all functions to global namespace by giving a `global` flag
 
 ```js
 kaboom({
@@ -69,6 +69,26 @@ init();
 scene(...);
 start(...);
 ```
+
+However, it is possible to use a module version of kaboomjs.
+
+```html
+<script type="module" src="script.js"></script>
+```
+
+`script.js`:
+```js
+import kaboom from "https://kaboomjs.com/lib/0.4.1/kaboom.mjs";
+
+const k = kaboom();
+
+k.init();
+k.scene(...);
+k.start(...);
+
+```
+
+Using the module version means that there will be no `window.kaboom` available and kaboom must be imported.
 
 ### Dev
 
