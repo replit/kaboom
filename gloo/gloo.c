@@ -777,7 +777,7 @@ JSValue gl_draw_arrays(
 	return JS_UNDEFINED;
 }
 
-const JSCFunctionListEntry gl_fields[] = {
+const JSCFunctionListEntry gl_members[] = {
 	// common
 	JS_CFUNC_DEF("clearColor", 4, gl_clear_color),
 	JS_CFUNC_DEF("clear", 1, gl_clear),
@@ -1214,7 +1214,7 @@ JSValue gloo_quit(
 	return JS_UNDEFINED;
 }
 
-const JSCFunctionListEntry gctx_fields[] = {
+const JSCFunctionListEntry gctx_members[] = {
 	JS_CFUNC_DEF("quit", 0, gloo_quit),
 	JS_CFUNC_DEF("time", 0, gloo_time),
 	JS_CFUNC_DEF("dt", 0, gloo_dt),
@@ -1243,9 +1243,9 @@ JSValue gloo_run(
 	gctx.g = JS_NewObject(ctx);
 
 	JSValue gl = JS_NewObject(ctx);
-	JS_SetPropertyFunctionList(ctx, gl, gl_fields, countof(gl_fields));
+	JS_SetPropertyFunctionList(ctx, gl, gl_members, countof(gl_members));
 	JS_SetPropertyStr(ctx, gctx.g, "gl", gl);
-	JS_SetPropertyFunctionList(ctx, gctx.g, gctx_fields, countof(gctx_fields));
+	JS_SetPropertyFunctionList(ctx, gctx.g, gctx_members, countof(gctx_members));
 
 	JSValue conf = argv[0];
 	gctx.js_init = JS_GetPropertyStr(ctx, conf, "init");
@@ -1423,6 +1423,7 @@ JSValue gloo_read_bytes(
 
 }
 
+// TODO: port window.ImageData?
 JSValue gloo_load_img(
 	JSContext *ctx,
 	JSValue this,
@@ -1486,9 +1487,59 @@ JSValue gloo_load_img(
 
 }
 
-const JSCFunctionListEntry gloo_fields[] = {
+// TODO: port window.AudioBuffer?
+JSValue gloo_load_audio(
+	JSContext *ctx,
+	JSValue this,
+	int argc,
+	JSValue *argv
+) {
+
+	JSValue pfuncs[2];
+	JSValue promise = JS_NewPromiseCapability(ctx, pfuncs);
+
+	size_t src_len;
+	const char *src = JS_ToCStringLen(ctx, &src_len, argv[0]);
+
+	if (!src) {
+		// TODO: err msg
+		JS_Call(ctx, pfuncs[1], JS_UNDEFINED, 0, NULL);
+		return promise;
+	}
+
+	const char *dataurl_prefix = "data:";
+	uint8_t *bytes;
+	size_t size;
+
+	if (strncmp(src, dataurl_prefix, strlen(dataurl_prefix)) == 0) {
+		// base64
+		const char *data_start = strchr(src, ',');
+		bytes = base64_decode(data_start, src_len - (data_start - src), &size);
+	} else {
+		// file path
+		bytes = read_bytes(src, &size);
+	}
+
+	JS_FreeCString(ctx, src);
+
+	if (!bytes) {
+		// TODO: err msg
+		JS_Call(ctx, pfuncs[1], JS_UNDEFINED, 0, NULL);
+		return promise;
+	}
+
+	// TODO: parse
+
+	JS_Call(ctx, pfuncs[0], JS_UNDEFINED, 0, NULL);
+
+	return promise;
+
+}
+
+const JSCFunctionListEntry gloo_members[] = {
 	JS_CFUNC_DEF("run", 1, gloo_run),
 	JS_CFUNC_DEF("loadImg", 1, gloo_load_img),
+	JS_CFUNC_DEF("loadAudio", 1, gloo_load_audio),
 	JS_CFUNC_DEF("readText", 1, gloo_read_text),
 	JS_CFUNC_DEF("readBytes", 1, gloo_read_bytes),
 };
@@ -1527,7 +1578,7 @@ JSValue console_error(
 	return console_print(ctx, argc, argv, stderr);
 }
 
-const JSCFunctionListEntry console_fields[] = {
+const JSCFunctionListEntry console_members[] = {
 	JS_CFUNC_DEF("log", 1, console_log),
 	JS_CFUNC_DEF("error", 1, console_error),
 };
@@ -1564,11 +1615,11 @@ int main(int argc, char **argv) {
 	JSValue gobj = JS_GetGlobalObject(ctx);
 
 	JSValue gloo = JS_NewObject(ctx);
-	JS_SetPropertyFunctionList(ctx, gloo, gloo_fields, countof(gloo_fields));
+	JS_SetPropertyFunctionList(ctx, gloo, gloo_members, countof(gloo_members));
 	JS_SetPropertyStr(ctx, gobj, "gloo", gloo);
 
 	JSValue console = JS_NewObject(ctx);
-	JS_SetPropertyFunctionList(ctx, console, console_fields, countof(console_fields));
+	JS_SetPropertyFunctionList(ctx, console, console_members, countof(console_members));
 	JS_SetPropertyStr(ctx, gobj, "console", console);
 
 	JSValue res = JS_Eval(ctx, code, strlen(code), path, JS_EVAL_TYPE_GLOBAL);

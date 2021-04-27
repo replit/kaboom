@@ -1498,7 +1498,7 @@ function vec2(x, y) {
 			return this.x === other.x && this.y === other.y;
 		},
 		str() {
-			return `(${this.x}, ${this.y})`
+			return `(${this.x}, ${this.y})`;
 		},
 	};
 }
@@ -2308,7 +2308,7 @@ function render(tag, cb) {
 function collides(t1, t2, f) {
 	action(t1, (o1) => {
 		o1._checkCollisions(t2, (o2) => {
-			f(o1, o2)
+			f(o1, o2);
 		});
 	});
 }
@@ -2317,7 +2317,7 @@ function collides(t1, t2, f) {
 function overlaps(t1, t2, f) {
 	action(t1, (o1) => {
 		o1._checkOverlaps(t2, (o2) => {
-			f(o1, o2)
+			f(o1, o2);
 		});
 	});
 }
@@ -2474,7 +2474,7 @@ function destroyAll(t) {
 
 // get / set gravity
 function gravity(g) {
-	const scene = curScene()
+	const scene = curScene();
 	if (g !== undefined) {
 		scene.gravity = g;
 	}
@@ -2581,7 +2581,7 @@ function drawLog() {
 		} else {
 			return log.type === "error";
 		}
-	})
+	});
 
 	showingLogs.forEach((log, i) => {
 

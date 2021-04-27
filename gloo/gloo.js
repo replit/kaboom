@@ -257,31 +257,6 @@ function run(gconf) {
 
 }
 
-function loadImg(src) {
-
-	if (typeof src === "string") {
-
-		const img = new Image();
-
-		img.src = src;
-
-		return new Promise((resolve, reject) => {
-			img.onload = () => {
-				resolve(img);
-			};
-			img.onerror = () => {
-				reject(`failed to load img from ${src}`);
-			};
-		});
-
-	}
-
-	return new Promise((resolve, reject) => {
-		reject(`unrecognized img src ${src}`);
-	});
-
-}
-
 function readText(src) {
 	return fetch(src).then((res) => res.text());
 }
@@ -290,12 +265,30 @@ function readBytes(src) {
 	return fetch(src).then((res) => res.arrayBuffer());
 }
 
+function loadImg(src) {
+	const img = new Image();
+	img.src = src;
+	return new Promise((resolve, reject) => {
+		img.onload = () => {
+			resolve(img);
+		};
+		img.onerror = () => {
+			reject(`failed to load img from ${src}`);
+		};
+	});
+}
+
+function loadAudio(src) {
+	return loadBytes(src).then(audioCtx.decodeAudioData);
+}
+
 window.gloo = {
 	web: true,
 	run,
-	loadImg,
 	readText,
 	readBytes,
+	loadImg,
+	loadAudio,
 };
 
 })();
