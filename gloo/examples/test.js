@@ -126,17 +126,17 @@ gloo.run({
 		gl.clearColor(0, (Math.cos(t) + 1) / 2, (Math.sin(t) + 1) / 2, 1);
 		gl.clear(gl.COLOR_BUFFER_BIT);
 
-		gl.useProgram(prog);
 		if (tex) {
+			gl.useProgram(prog);
 			gl.bindTexture(gl.TEXTURE_2D, tex);
+			gl.bindBuffer(gl.ARRAY_BUFFER, vbuf);
+			gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, ibuf);
+			gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 16, 0);
+			gl.enableVertexAttribArray(0);
+			gl.vertexAttribPointer(1, 2, gl.FLOAT, false, 16, 8);
+			gl.enableVertexAttribArray(1);
+			gl.drawElements(gl.TRIANGLES, indices.length, gl.UNSIGNED_SHORT, 0);
 		}
-		gl.bindBuffer(gl.ARRAY_BUFFER, vbuf);
-		gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, ibuf);
-		gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 16, 0);
-		gl.enableVertexAttribArray(0);
-		gl.vertexAttribPointer(1, 2, gl.FLOAT, false, 16, 8);
-		gl.enableVertexAttribArray(1);
-		gl.drawElements(gl.TRIANGLES, indices.length, gl.UNSIGNED_SHORT, 0);
 
 	},
 

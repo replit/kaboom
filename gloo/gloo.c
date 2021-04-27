@@ -111,6 +111,19 @@ void JS_DumpErr(JSContext *ctx) {
 	JS_FreeValue(ctx, stack);
 }
 
+void JS_HandleTasks(JSContext *ctx) {
+	JSContext *ctx2;
+	while (1) {
+		int err = JS_ExecutePendingJob(JS_GetRuntime(ctx), &ctx2);
+		if (err <= 0) {
+			if (err < 0) {
+				JS_DumpErr(ctx2);
+			}
+			break;
+		}
+	}
+}
+
 JSValue JS_ECall(
 	JSContext *ctx,
 	JSValue func,
@@ -907,6 +920,7 @@ void init() {
 
 void frame() {
 
+	JS_HandleTasks(gctx.js_ctx);
 	JS_ECall(gctx.js_ctx, gctx.js_frame, JS_UNDEFINED, 1, &gctx.g);
 
 	struct timeval time;
@@ -924,10 +938,6 @@ void frame() {
 	}
 
 	gctx.mouse_state = process_btn(gctx.mouse_state);
-
-	// TODO: not here
-	JSContext *ctx2;
-	JS_ExecutePendingJob(JS_GetRuntime(gctx.js_ctx), &ctx2);
 
 }
 
@@ -1394,9 +1404,7 @@ int main(int argc, char **argv) {
 		return EXIT_FAILURE;
 	}
 
-	free(code);
-	JS_FreeContext(ctx);
-	JS_FreeRuntime(rt);
+	JS_HandleTasks(ctx);
 
 	return EXIT_SUCCESS;
 
