@@ -2033,7 +2033,11 @@ function go(name, ...args) {
 		return;
 	}
 	if (!scene.initialized) {
-		scene.init(...args);
+		try {
+			scene.init(...args);
+		} catch (e) {
+			error(e.stack);
+		}
 		if (gconf.debug) {
 			regDebugInputs();
 		}
@@ -2503,8 +2507,6 @@ function gameFrame(ignorePause) {
 		}
 	}
 
-	gfxFrameStart();
-
 	// update every obj
 	revery((obj) => {
 		if (!obj.paused && doUpdate) {
@@ -2558,6 +2560,10 @@ function gameFrame(ignorePause) {
 		f();
 	}
 
+}
+
+function drawLog() {
+
 	// TODO: make log and progress bar fixed size independent of global scale
 	// draw log
 	game.log = game.log.filter(l => l.timer < debug.logTime);
@@ -2600,8 +2606,6 @@ function gameFrame(ignorePause) {
 
 	}
 
-	gfxFrameEnd();
-
 }
 
 // TODO: on screen error message?
@@ -2609,8 +2613,11 @@ function gameFrame(ignorePause) {
 // put main event loop in app module
 function start(name, ...args) {
 
+	let loopID;
+
 	const frame = (t) => {
 
+		let stopped = false;
 		const realTime = t / 1000;
 		const realDt = realTime - app.realTime;
 
@@ -2622,6 +2629,7 @@ function start(name, ...args) {
 		}
 
 		app.skipTime = false;
+		gfxFrameStart();
 
 		if (!game.loaded) {
 
@@ -2636,16 +2644,12 @@ function start(name, ...args) {
 
 			} else {
 
-				gfxFrameStart();
-
 				const w = width() / 2;
 				const h = 12;
 				const pos = vec2(width() / 2, height() / 2).sub(vec2(w / 2, h / 2));
 
-				gfxFrameStart();
 				drawRectStroke(pos, w, h, { width: 2, });
 				drawRect(pos, w * progress, h);
-				gfxFrameEnd();
 
 			}
 
@@ -2705,7 +2709,14 @@ function start(name, ...args) {
 				}
 			}
 
-			gameFrame();
+			try {
+				gameFrame();
+			} catch (e) {
+				error(e.stack);
+				stopped = true;
+			}
+
+			drawLog();
 
 			for (const k in app.keyStates) {
 				app.keyStates[k] = processBtnState(app.keyStates[k]);
@@ -2716,7 +2727,11 @@ function start(name, ...args) {
 
 		}
 
-		requestAnimationFrame(frame);
+		gfxFrameEnd();
+
+		if (!stopped) {
+			requestAnimationFrame(frame);
+		}
 
 	};
 

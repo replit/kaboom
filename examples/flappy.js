@@ -13,7 +13,6 @@ loadSound("score", "sounds/score.mp3");
 loadSound("wooosh", "sounds/wooosh.mp3");
 loadSound("hit", "sounds/hit.mp3");
 
-
 scene("main", () => {
 
 	const PIPE_OPEN = 80;
