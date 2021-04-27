@@ -12,7 +12,7 @@ compile and use the `gloo` binary
 
 ```sh
 $ make
-$ ./gloo examples/test.js
+$ ./gloo game.js
 ```
 
 ### browser
@@ -21,11 +21,7 @@ import `gloo.js` to your project
 
 ```html
 <script src="gloo.js"></script>
-<script>
-gloo.run({
-	// ...
-});
-</script>
+<script src="game.js"></script>
 ```
 (you do need to have a HTTP file server running to load files)
 
@@ -43,4 +39,4 @@ to run on browser:
 $ python3 -m http.server
 ```
 (or any other static serv)
-then open http://localhost:8000/examples/test.html
+then open http://localhost:8000/examples
