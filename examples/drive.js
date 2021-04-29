@@ -4,6 +4,7 @@ kaboom({
 	height: 120,
 	scale: 4,
 	debug: true,
+	plugins: [ asepritePlugin, ],
 });
 
 loadRoot("/pub/examples/");
