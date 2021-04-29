@@ -2305,18 +2305,18 @@ function render(tag, cb) {
 }
 
 // add an event that runs with objs with t1 collides with objs with t2
-function collides(t1, t2, f) {
+function collides(t1, t2, al, f) {
 	action(t1, (o1) => {
-		o1._checkCollisions(t2, (o2) => {
+		o1._checkCollisions(t2, al, (o2) => {
 			f(o1, o2);
 		});
 	});
 }
 
 // add an event that runs with objs with t1 overlaps with objs with t2
-function overlaps(t1, t2, f) {
+function overlaps(t1, t2, al, f) {
 	action(t1, (o1) => {
-		o1._checkOverlaps(t2, (o2) => {
+		o1._checkOverlaps(t2, al, (o2) => {
 			f(o1, o2);
 		});
 	});
@@ -3046,7 +3046,7 @@ function area(p1, p2) {
 
 		},
 
-		_checkCollisions(tag, f) {
+		_checkCollisions(tag, al, f) {
 
 			every(tag, (obj) => {
 				if (this === obj) {
@@ -3055,7 +3055,7 @@ function area(p1, p2) {
 				if (colliding[obj._sceneID]) {
 					return;
 				}
-				if (this.isCollided(obj)) {
+				if (this.isCollided(obj, al)) {
 					f(obj);
 					colliding[obj._sceneID] = obj;
 				}
@@ -3063,21 +3063,21 @@ function area(p1, p2) {
 
 			for (const id in colliding) {
 				const obj = colliding[id];
-				if (!this.isCollided(obj)) {
+				if (!this.isCollided(obj, al)) {
 					delete colliding[id];
 				}
 			}
 
 		},
 
-		collides(tag, f) {
+		collides(tag, al, f) {
 			this.action(() => {
-				this._checkCollisions(tag, f);
+				this._checkCollisions(tag, al, f);
 			});
 		},
 
 		// TODO: repetitive with collides
-		_checkOverlaps(tag, f) {
+		_checkOverlaps(tag, al, f) {
 
 			every(tag, (obj) => {
 				if (this === obj) {
@@ -3086,7 +3086,7 @@ function area(p1, p2) {
 				if (overlapping[obj._sceneID]) {
 					return;
 				}
-				if (this.isOverlapped(obj)) {
+				if (this.isOverlapped(obj, al)) {
 					f(obj);
 					overlapping[obj._sceneID] = obj;
 				}
@@ -3094,16 +3094,16 @@ function area(p1, p2) {
 
 			for (const id in overlapping) {
 				const obj = overlapping[id];
-				if (!this.isOverlapped(obj)) {
+				if (!this.isOverlapped(obj, al)) {
 					delete overlapping[id];
 				}
 			}
 
 		},
 
-		overlaps(tag, f) {
+		overlaps(tag, al, f) {
 			this.action(() => {
-				this._checkOverlaps(tag, f);
+				this._checkOverlaps(tag, al, f);
 			});
 		},
 
@@ -3126,13 +3126,13 @@ function area(p1, p2) {
 
 		},
 
-		isCollided(other) {
+		isCollided(other, al) {
 
 			if (!other.area) {
 				return false;
 			}
 
-			if (this.layer !== other.layer) {
+			if(!al.includes(this.layer) || !al.includes(other.layer)) {
 				return false;
 			}
 
@@ -3143,13 +3143,13 @@ function area(p1, p2) {
 
 		},
 
-		isOverlapped(other) {
+		isOverlapped(other, al) {
 
 			if (!other.area) {
 				return false;
 			}
 
-			if (this.layer !== other.layer) {
+			if(!al.includes(this.layer) || !al.includes(other.layer)) {
 				return false;
 			}
 
