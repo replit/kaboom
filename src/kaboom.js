@@ -3458,15 +3458,6 @@ function solid() {
 	};
 }
 
-function timer() {
-	return {
-		time: 0,
-		update() {
-			this.time += dt();
-		},
-	};
-}
-
 // maximum y velocity with body()
 const DEF_MAX_VEL = 960;
 const DEF_JUMP_FORCE = 480;
@@ -3773,7 +3764,6 @@ const lib = {
 	text,
 	rect,
 	solid,
-	timer,
 	body,
 	// group events
 	on,

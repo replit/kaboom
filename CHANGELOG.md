@@ -5,6 +5,7 @@
 - added `changeSprite()` by `sprite()`
 - fixed unable to play another anim in `onAnimEnd()`
 - defer scene switches to happen only on frame end
+- (**BREAK**) removed `timer()` component
 
 ## v0.4.1
 - fixed `on("destroy")` handler getting called twice
