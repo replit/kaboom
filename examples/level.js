@@ -84,6 +84,10 @@ scene("main", () => {
 		},
 	]);
 
+	player.onAnimEnd("move", () => {
+		player.play("idle");
+	});
+
 	player.action(() => {
 		camPos(player.pos);
 	});

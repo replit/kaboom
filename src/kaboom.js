@@ -1038,7 +1038,7 @@ function drawQuad(conf = {}) {
 
 function drawSprite(name, conf = {}) {
 
-	const spr = assets.sprites[name];
+	const spr = typeof name === "string" ? assets.sprites[name] : name;
 
 	if (!spr) {
 		console.warn(`sprite not found: ${name}`);
@@ -3175,7 +3175,7 @@ function getAreaFromSize(w, h, o) {
 
 function sprite(id, conf = {}) {
 
-	const spr = assets.sprites[id];
+	let spr = assets.sprites[id];
 
 	if (!spr) {
 		error(`sprite not found: "${id}"`);
@@ -3193,14 +3193,11 @@ function sprite(id, conf = {}) {
 
 	const width = spr.tex.width * q.w;
 	const height = spr.tex.height * q.h;
-	let timer = 0;
-	let looping = false;
 	let curAnim = null;
 	const events = {};
 
 	return {
 
-		spriteID: id,
 		width: width,
 		height: height,
 		animSpeed: conf.animSpeed || 0.1,
@@ -3217,10 +3214,9 @@ function sprite(id, conf = {}) {
 		draw() {
 
 			const scene = curScene();
-			const spr = assets.sprites[this.spriteID];
 			const q = spr.frames[this.frame];
 
-			drawSprite(this.spriteID, {
+			drawSprite(spr, {
 				pos: this.pos,
 				scale: this.scale,
 				rot: this.angle,
@@ -3240,30 +3236,28 @@ function sprite(id, conf = {}) {
 			}
 
 			const speed = this.animSpeed;
-			const spr = assets.sprites[this.spriteID];
-			const anim = spr.anims[curAnim];
+			const anim = spr.anims[curAnim.name];
 
-			timer += dt();
+			curAnim.timer += dt();
 
-			if (timer >= this.animSpeed) {
+			if (curAnim.timer >= this.animSpeed) {
 				// TODO: anim dir
 				this.frame++;
 				if (this.frame > anim[1]) {
-					if (looping) {
+					if (curAnim.loop) {
 						this.frame = anim[0];
 					} else {
 						this.frame--;
 						this.stop();
 					}
 				}
-				timer -= this.animSpeed;
+				curAnim.timer -= this.animSpeed;
 			}
 
 		},
 
-		play(name, loop) {
+		play(name, looping) {
 
-			const spr = assets.sprites[this.spriteID];
 			const anim = spr.anims[name];
 
 			if (!anim) {
@@ -3275,9 +3269,13 @@ function sprite(id, conf = {}) {
 				this.stop();
 			}
 
-			curAnim = name;
+			curAnim = {
+				name: name,
+				loop: looping === undefined ? true : loop,
+				timer: 0,
+			};
+
 			this.frame = anim[0];
-			looping = loop === undefined ? true : loop;
 
 			if (events[name]?.play) {
 				events[name].play();
@@ -3289,19 +3287,42 @@ function sprite(id, conf = {}) {
 			if (!curAnim) {
 				return;
 			}
-			if (events[curAnim]?.end) {
-				events[curAnim].end();
-			}
+			const cb = events[curAnim.name]?.end;
 			curAnim = null;
+			cb && cb();
+		},
+
+		changeSprite(id) {
+
+			spr = assets.sprites[id];
+
+			const q = { ...spr.frames[0] };
+
+			if (conf.quad) {
+				q.x += conf.quad.x * q.w;
+				q.y += conf.quad.y * q.h;
+				q.w *= conf.quad.w;
+				q.h *= conf.quad.h;
+			}
+
+			this.width = spr.tex.width * q.w;
+			this.height = spr.tex.height * q.h;
+
+			if (this.area && !conf.noArea) {
+				this.use(getAreaFromSize(this.width, this.height, this.origin));
+			}
+
+			curAnim = null;
+			this.frame = 0;
+
 		},
 
 		numFrames() {
-			const spr = assets.sprites[this.spriteID];
 			return spr.frames.length;
 		},
 
 		curAnim() {
-			return curAnim;
+			return curAnim?.name;
 		},
 
 		onAnimPlay(name, cb) {
@@ -3321,7 +3342,7 @@ function sprite(id, conf = {}) {
 		debugInfo() {
 			const info = {};
 			if (curAnim) {
-				info.curAnim = `"${curAnim}"`;
+				info.curAnim = `"${curAnim.name}"`;
 			}
 			return info;
 		},

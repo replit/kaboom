@@ -2,6 +2,8 @@
 - added `curPlatform()` by `body()`
 - on screen log now catches all kinds of errors
 - (**BREAK**) removed `dbg().logTime`
+- added `changeSprite()` by `sprite()`
+- fixed unable to play another anim in `onAnimEnd()`
 
 ## v0.4.1
 - fixed `on("destroy")` handler getting called twice
