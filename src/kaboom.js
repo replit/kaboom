@@ -1912,9 +1912,10 @@ const DEF_ORIGIN = "topleft";
 
 const game = {
 	loaded: false,
-	curScene: undefined,
 	paused: false,
 	scenes: {},
+	curScene: null,
+	nextScene: null,
 	log: [],
 };
 
@@ -2023,8 +2024,15 @@ function regDebugInputs() {
 
 }
 
-// switch to a scene
+// schedule to switch to a scene
 function go(name, ...args) {
+	game.nextScene = {
+		name: name,
+		args: [...args],
+	};
+}
+
+function goSync(name, ...args) {
 	reload(name);
 	game.curScene = name;
 	const scene = game.scenes[name];
@@ -2647,7 +2655,7 @@ function start(name, ...args) {
 			if (progress === 1) {
 
 				game.loaded = true;
-				go(name, ...args);
+				goSync(name, ...args);
 
 			} else {
 
@@ -2731,6 +2739,11 @@ function start(name, ...args) {
 
 			app.mouseState = processBtnState(app.mouseState);
 			app.charInputted = [];
+
+			if (game.nextScene) {
+				goSync.apply(null, [ game.nextScene.name, ...game.nextScene.args, ]);
+				game.nextScene = null;
+			}
 
 		}
 
@@ -3235,7 +3248,6 @@ function sprite(id, conf = {}) {
 				return;
 			}
 
-			const speed = this.animSpeed;
 			const anim = spr.anims[curAnim.name];
 
 			curAnim.timer += dt();
@@ -3256,7 +3268,7 @@ function sprite(id, conf = {}) {
 
 		},
 
-		play(name, looping) {
+		play(name, loop = true) {
 
 			const anim = spr.anims[name];
 
@@ -3271,7 +3283,7 @@ function sprite(id, conf = {}) {
 
 			curAnim = {
 				name: name,
-				loop: looping === undefined ? true : loop,
+				loop: loop,
 				timer: 0,
 			};
 

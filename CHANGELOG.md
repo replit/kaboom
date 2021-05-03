@@ -4,6 +4,7 @@
 - (**BREAK**) removed `dbg().logTime`
 - added `changeSprite()` by `sprite()`
 - fixed unable to play another anim in `onAnimEnd()`
+- defer scene switches to happen only on frame end
 
 ## v0.4.1
 - fixed `on("destroy")` handler getting called twice
