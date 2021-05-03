@@ -13,5 +13,8 @@
 	],
 	"scripts": {
 		"dev": "cd site; node ext/watch.js . node ."
+	},
+	"devDependencies": {
+		"esbuild": "^0.11.18"
 	}
 }
