@@ -75,7 +75,34 @@ debug utils
 
 */
 
-module.exports = (gconf = {}) => {
+// TODO
+type KaboomCtx = {
+};
+
+type KaboomConf = {
+	width?: number,
+	height?: number,
+	scale?: number,
+	fullscreen?: boolean,
+	debug?: boolean,
+	crisp?: boolean,
+	canvas?: HTMLCanvasElement,
+	root?: HTMLElement,
+	clearColor?: number[],
+	global?: boolean,
+	plugins?: Array<(KaboomCtx) => Record<string, any>>,
+};
+
+module.exports = (gconf: KaboomConf = {
+	width: 640,
+	height: 480,
+	scale: 1,
+	fullscreen: false,
+	debug: false,
+	crisp: false,
+	canvas: null,
+	root: document.body,
+}) => {
 
 /*
 
@@ -96,11 +123,111 @@ assets     *                     .            ~       +    .
 
 */
 
+type Vec2 = {
+	x: number,
+	y: number,
+	clone: () => Vec2,
+	add: (p: Vec2) => Vec2,
+	sub: (p: Vec2) => Vec2,
+	scale: (s: number) => Vec2,
+	dot: (p: Vec2) => Vec2,
+	dist: (p: Vec2) => number,
+	len: () => number,
+	unit: () => Vec2,
+	normal: () => Vec2,
+	angle: (p: Vec2) => number,
+	lerp: (p: Vec2, t: number) => number,
+	eq: (p: Vec2) => boolean,
+	str: () => string,
+};
+
+type Vec3 = {
+	x: number,
+	y: number,
+	z: number,
+	xy: () => Vec2,
+};
+
+type Vec4 = {
+	x: number,
+	y: number,
+	z: number,
+	w: number,
+};
+
+type Mat4 = {
+	m: number[],
+	clone: () => Mat4,
+	mult: (m: Mat4) => Mat4,
+	multVec4: (m: Vec4) => Vec4,
+	multVec3: (m: Vec3) => Vec3,
+	multVec2: (m: Vec2) => Vec2,
+	scale: (s: Vec2) => Mat4,
+	translate: (p: Vec2) => Mat4,
+	rotateX: (a: number) => Mat4,
+	rotateY: (a: number) => Mat4,
+	rotateZ: (a: number) => Mat4,
+	invert: () => Mat4,
+};
+
+type Color = {
+	r: number,
+	g: number,
+	b: number,
+	a: number,
+	clone: () => Color,
+	lighten: (n: number) => Color,
+	darken: (n: number) => Color,
+	eq: (c: Color) => boolean,
+};
+
+type Quad = {
+	x: number,
+	y: number,
+	w: number,
+	h: number,
+};
+
 const ASCII_CHARS = " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~";
 const DEF_FONT = "unscii";
 const UNSCII_SRC = require("./unscii_8x8.png");
 
-const assets = {
+type SpriteAnim = {
+	start: number,
+	end: number,
+};
+
+type SpriteLoadConf = {
+	sliceX?: number,
+	sliceY?: number,
+	anims?: Record<string, SpriteAnim>,
+};
+
+type SpriteLoadSrc = string | GfxTextureData;
+
+type LoadTracker = {
+	done: () => void,
+};
+
+type SpriteData = {
+	tex: GfxTexture,
+	frames: Quad[],
+	anims: Record<string, SpriteAnim>,
+};
+
+type SoundData = AudioBuffer;
+type FontData = GfxFont;
+
+type AssetCtx = {
+	lastLoaderID: number,
+	loadRoot: string,
+	loaders: Record<number, boolean>,
+	sprites: Record<string, SpriteData>,
+	sounds: Record<string, SoundData>,
+	fonts: Record<string, FontData>,
+}
+
+const assets: AssetCtx = {
 	lastLoaderID: 0,
 	loadRoot: "",
 	loaders: {},
@@ -119,7 +246,7 @@ function assetsInit() {
 	);
 }
 
-function loadImg(src) {
+function loadImg(src): Promise<HTMLImageElement> {
 
 	const img = new Image();
 
@@ -139,7 +266,7 @@ function loadImg(src) {
 
 // make a new load tracker
 // the game starts after all trackers are done()
-function newLoader() {
+function newLoader(): LoadTracker {
 	const id = assets.lastLoaderID;
 	assets.loaders[id] = false;
 	assets.lastLoaderID++;
@@ -151,7 +278,7 @@ function newLoader() {
 }
 
 // get current load progress
-function loadProgress() {
+function loadProgress(): number {
 
 	let total = 0;
 	let loaded = 0;
@@ -168,19 +295,25 @@ function loadProgress() {
 }
 
 // global load path prefix
-function loadRoot(path) {
+function loadRoot(path: string): string {
 	if (path) {
 		assets.loadRoot = path;
 	}
 	return assets.loadRoot;
 }
 
-function isDataUrl(src) {
+function isDataUrl(src: string) {
 	return src.startsWith("data:");
 }
 
 // load a bitmap font to asset manager
-function loadFont(name, src, gw, gh, chars) {
+function loadFont(
+	name: string,
+	src: string,
+	gw: number,
+	gh: number,
+	chars: string = ASCII_CHARS
+): Promise<FontData> {
 
 	return new Promise((resolve, reject) => {
 
@@ -189,7 +322,7 @@ function loadFont(name, src, gw, gh, chars) {
 
 		loadImg(path)
 			.then((img) => {
-				assets.fonts[name] = makeFont(makeTex(img), gw, gh, chars || ASCII_CHARS);
+				assets.fonts[name] = makeFont(makeTex(img), gw, gh, chars);
 				resolve(assets.fonts[name]);
 			})
 			.catch(() => {
@@ -206,20 +339,26 @@ function loadFont(name, src, gw, gh, chars) {
 
 // TODO: use getSprite() functions for async settings
 // load a sprite to asset manager
-function loadSprite(name, src, conf = {}) {
-
-	// sliceX: num,
-	// sliceY: num,
-	// anims: { name: [num, num] }
+function loadSprite(
+	name: string,
+	src: SpriteLoadSrc,
+	conf: SpriteLoadConf = {
+		sliceX: 1,
+		sliceY: 1,
+		anims: {},
+	},
+): Promise<SpriteData> {
 
 	// synchronously load sprite from local pixel data
-	//
-	// src could be either
-	//   - HTMLImageElement
-	//   - HTMLCanvasElement
-	//   - ImageData
-	//   - ImageBitmap
-	function loadRawSprite(name, src, conf = {}) {
+	function loadRawSprite(
+		name: string,
+		src: GfxTextureData,
+		conf: SpriteLoadConf = {
+			sliceX: 1,
+			sliceY: 1,
+			anims: {},
+		},
+	) {
 
 		const frames = [];
 		const tex = makeTex(src);
@@ -284,7 +423,10 @@ function loadSprite(name, src, conf = {}) {
 }
 
 // load a sound to asset manager
-function loadSound(name, src, conf = {}) {
+function loadSound(
+	name: string,
+	src: string,
+): Promise<SoundData> {
 
 	return new Promise((resolve, reject) => {
 
@@ -307,7 +449,7 @@ function loadSound(name, src, conf = {}) {
 					});
 				})
 				.then((buf) => {
-					audio.sounds[name] = buf;
+					assets.sounds[name] = buf;
 				})
 				.catch(() => {
 					error(`failed to load sound '${name}' from '${src}'`);
@@ -342,14 +484,36 @@ app        *                     .            ~       +    .
 
 */
 
+type ButtonState =
+	"up"
+	| "pressed"
+	| "rpressed"
+	| "down"
+	| "released"
+	;
+
+type AppCtx = {
+	canvas: HTMLCanvasElement,
+	mousePos: Vec2,
+	mouseState: ButtonState,
+	keyStates: Record<string, ButtonState>,
+	charInputted: string[],
+	time: number,
+	dt: number,
+	realTime: number,
+	skipTime: boolean,
+	scale: number,
+	isTouch: boolean,
+};
+
 // app system init
-const app = {
+const app: AppCtx = {
 	keyStates: {},
 	charInputted: [],
 	mouseState: "up",
 	mousePos: vec2(0, 0),
-	time: 0.0,
-	realTime: 0.0,
+	time: 0,
+	realTime: 0,
 	skipTime: false,
 	dt: 0.0,
 	scale: 1,
@@ -387,6 +551,7 @@ const preventDefaultKeys = [
 let gl;
 
 function appInit() {
+
 	app.canvas = gconf.canvas;
 
 	if (!app.canvas) {
@@ -522,14 +687,14 @@ function processBtnState(s) {
 }
 
 // check input state last frame
-function mousePos(layer) {
+function mousePos(layer?: string) {
 
 	const scene = curScene();
 
 	if (!layer) {
 		return app.mousePos.clone();
 	} else {
-		return scene.cam.ignore.includes(layer) ? mousePos() : scene.camMousePos;
+		return scene.cam.ignore.includes(layer) ? mousePos() : scene.cam.mpos;
 	}
 
 }
@@ -606,9 +771,50 @@ const STRIDE = 9;
 const defVertSrc = require("./vert.glsl");
 const defFragSrc = require("./frag.glsl");
 
-const gfx = {
+type GfxBatchedMesh = {
+	vbuf: WebGLBuffer,
+	ibuf: WebGLBuffer,
+	vqueue: number[],
+	iqueue: number[],
+	push: (verts: number[], indices: number[]) => void,
+	flush: () => void,
+	bind: () => void,
+	unbind: () => void,
+	count: () => number,
+};
+
+type GfxProgram = {
+	id: WebGLProgram,
+	bind: () => void,
+	unbind: () => void,
+	sendFloat: (name: string, val: number) => void,
+	sendVec2: (name: string, x: number, y: number) => void,
+	sendVec3: (name: string, x: number, y: number, z: number) => void,
+	sendVec4: (name: string, x: number, y: number, z: number, w: number) => void,
+	sendMat4: (name: string, m: number[]) => void,
+}
+
+type GfxTexture = {
+	id: WebGLTexture,
+	width: number,
+	height: number,
+	bind: () => void,
+	unbind: () => void,
+};
+
+type GfxCtx = {
+	drawCalls: number,
+	mesh: GfxBatchedMesh,
+	defProg: GfxProgram,
+	defTex: GfxTexture,
+	curTex: GfxTexture | null,
+	transform: Mat4,
+	transformStack: Mat4[],
+};
+
+const gfx: GfxCtx = {
 	drawCalls: 0,
-	cam: vec2(0, 0),
+	curTex: null,
 	transform: mat4(),
 	transformStack: [],
 };
@@ -616,11 +822,11 @@ const gfx = {
 function gfxInit() {
 
 	gfx.mesh = makeBatchedMesh(65536, 65536);
-	gfx.prog = makeProgram(defVertSrc, defFragSrc);
+	gfx.defProg = makeProgram(defVertSrc, defFragSrc);
 	gfx.defTex = makeTex(
 		new ImageData(new Uint8ClampedArray([ 255, 255, 255, 255, ]), 1, 1)
 	);
-	const c = gconf.clearColor || [0, 0, 0, 1];
+	const c = gconf.clearColor ?? [0, 0, 0, 1];
 	gl.clearColor(c[0], c[1], c[2], c[3]);
 	gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 	gl.enable(gl.DEPTH_TEST);
@@ -640,7 +846,7 @@ function flush() {
 	}
 
 	gfx.mesh.bind();
-	gfx.prog.bind();
+	gfx.defProg.bind();
 	gfx.curTex.bind();
 
 	gl.vertexAttribPointer(0, 3, gl.FLOAT, false, STRIDE * 4, 0);
@@ -653,7 +859,7 @@ function flush() {
 	gl.drawElements(gl.TRIANGLES, gfx.mesh.count(), gl.UNSIGNED_SHORT, 0);
 	gfx.drawCalls++;
 
-	gfx.prog.unbind();
+	gfx.defProg.unbind();
 	gfx.mesh.unbind();
 	gfx.curTex = null;
 
@@ -666,7 +872,7 @@ function gfxFrameStart() {
 	gfx.transform = mat4();
 }
 
-function toNDC(pt) {
+function toNDC(pt: Vec2): Vec2 {
 	return vec2(
 		pt.x / width() * 2 - 1,
 		-pt.y / height() * 2 + 1,
@@ -678,39 +884,39 @@ function gfxFrameEnd() {
 }
 
 // TODO: don't use push as prefix for these
-function pushMatrix(m) {
+function pushMatrix(m: Mat4) {
 	gfx.transform = m.clone();
 }
 
-function pushTranslate(p) {
+function pushTranslate(p: Vec2) {
 	if (!p || (p.x === 0 && p.y === 0)) {
 		return;
 	}
 	gfx.transform = gfx.transform.translate(p);
 }
 
-function pushScale(p) {
+function pushScale(p: Vec2) {
 	if (!p || (p.x === 0 && p.y === 0)) {
 		return;
 	}
 	gfx.transform = gfx.transform.scale(p);
 }
 
-function pushRotateX(a) {
+function pushRotateX(a: number) {
 	if (!a) {
 		return;
 	}
 	gfx.transform = gfx.transform.rotateX(a);
 }
 
-function pushRotateY(a) {
+function pushRotateY(a: number) {
 	if (!a) {
 		return;
 	}
 	gfx.transform = gfx.transform.rotateY(a);
 }
 
-function pushRotateZ(a) {
+function pushRotateZ(a: number) {
 	if (!a) {
 		return;
 	}
@@ -728,7 +934,7 @@ function popTransform() {
 }
 
 // the batch renderer
-function makeBatchedMesh(vcount, icount) {
+function makeBatchedMesh(vcount: number, icount: number): GfxBatchedMesh {
 
 	const vbuf = gl.createBuffer();
 
@@ -795,7 +1001,14 @@ function makeBatchedMesh(vcount, icount) {
 
 }
 
-function makeTex(data) {
+type GfxTextureData =
+	HTMLImageElement
+	| HTMLCanvasElement
+	| ImageData
+	| ImageBitmap
+	;
+
+function makeTex(data: GfxTextureData): GfxTexture {
 
 	const id = gl.createTexture();
 
@@ -821,7 +1034,10 @@ function makeTex(data) {
 
 }
 
-function makeProgram(vertSrc, fragSrc) {
+function makeProgram(
+	vertSrc: string,
+	fragSrc: string
+): GfxProgram {
 
 	const vertShader = gl.createShader(gl.VERTEX_SHADER);
 
@@ -903,7 +1119,19 @@ function makeProgram(vertSrc, fragSrc) {
 
 }
 
-function makeFont(tex, gw, gh, chars) {
+type GfxFont = {
+	tex: GfxTexture,
+	map: Record<string, Vec2>,
+	qw: number,
+	qh: number,
+};
+
+function makeFont(
+	tex: GfxTexture,
+	gw: number,
+	gh: number,
+	chars: string,
+): GfxFont {
 
 	const cols = tex.width / gw;
 	const rows = tex.height / gh;
@@ -911,10 +1139,9 @@ function makeFont(tex, gw, gh, chars) {
 	const qw = 1.0 / cols;
 	const qh = 1.0 / rows;
 	const map = {};
+	const charMap = chars.split("").entries();
 
-	chars = chars.split("");
-
-	for (const [i, ch] of chars.entries()) {
+	for (const [i, ch] of charMap) {
 		map[ch] = vec2(
 			(i % cols) * qw,
 			Math.floor(i / cols) * qh,
@@ -930,8 +1157,17 @@ function makeFont(tex, gw, gh, chars) {
 
 }
 
-// TODO: put texture and texture flush logic here
-function drawRaw(verts, indices, tex = gfx.defTex) {
+type Vertex = {
+	pos: Vec3,
+	uv: Vec2,
+	color: Color,
+};
+
+function drawRaw(
+	verts: Vertex[],
+	indices: number[],
+	tex: GfxTexture = gfx.defTex
+) {
 
 	// flush on texture change
 	if (gfx.curTex !== tex) {
@@ -940,8 +1176,8 @@ function drawRaw(verts, indices, tex = gfx.defTex) {
 	}
 
 	// update vertices to current transform matrix
-	verts = verts.map((v) => {
-		const pt = toNDC(gfx.transform.multVec2(v.pos));
+	const nVerts = verts.map((v) => {
+		const pt = toNDC(gfx.transform.multVec2(v.pos.xy()));
 		return [
 			pt.x, pt.y, v.pos.z,
 			v.uv.x, v.uv.y,
@@ -949,23 +1185,25 @@ function drawRaw(verts, indices, tex = gfx.defTex) {
 		];
 	}).flat();
 
-	gfx.mesh.push(verts, indices);
+	gfx.mesh.push(nVerts, indices);
 
 }
 
-// draw a textured quad
-function drawQuad(conf = {}) {
+type DrawQuadConf = {
+	pos?: Vec2,
+	width?: number,
+	height?: number,
+	scale?: Vec2 | number,
+	rot?: number,
+	color?: Color,
+	origin?: string,
+	tex?: GfxTexture,
+	quad?: Quad,
+	z?: number,
+};
 
-	// conf: {
-	//	   pos,
-	//	   width,
-	//	   height,
-	//	   scale,
-	//	   rot,
-	//	   origin,
-	//	   tex,
-	//	   quad,
-	// }
+// draw a textured quad
+function drawQuad(conf: DrawQuadConf = {}) {
 
 	const w = conf.width || 0;
 	const h = conf.height || 0;
@@ -976,7 +1214,7 @@ function drawQuad(conf = {}) {
 	const rot = conf.rot || 0;
 	const q = conf.quad || quad(0, 0, 1, 1);
 	const z = 1 - (conf.z ?? 0);
-	const color = conf.color || rgba();
+	const color = conf.color || rgba(1, 1, 1, 1);
 
 	// TODO: (maybe) not use matrix transform here?
 	pushTransform();
@@ -1012,7 +1250,21 @@ function drawQuad(conf = {}) {
 
 }
 
-function drawSprite(name, conf = {}) {
+type DrawSpriteConf = {
+	frame?: number,
+	pos?: Vec2,
+	scale?: Vec2 | number,
+	rot?: number,
+	color?: Color,
+	origin?: string,
+	quad?: Quad,
+	z?: number,
+};
+
+function drawSprite(
+	name: string | SpriteData,
+	conf: DrawSpriteConf = {}
+) {
 
 	const spr = typeof name === "string" ? assets.sprites[name] : name;
 
@@ -1065,14 +1317,10 @@ function drawRectStroke(pos, w, h, conf = {}) {
 
 function drawRect(pos, w, h, conf = {}) {
 	drawQuad({
+		...conf,
 		pos: pos,
 		width: w,
 		height: h,
-		scale: conf.scale,
-		rot: conf.rot,
-		color: conf.color,
-		origin: conf.origin,
-		z: conf.z,
 	});
 }
 
@@ -1084,13 +1332,12 @@ function drawLine(p1, p2, conf = {}) {
 	const rot = Math.PI / 2 - p1.angle(p2);
 
 	drawQuad({
+		...conf,
 		pos: p1.add(p2).scale(0.5),
 		width: w,
 		height: h,
 		rot: rot,
 		origin: "center",
-		color: conf.color,
-		z: conf.z,
 	});
 
 }
@@ -1257,29 +1504,54 @@ audio      *                     .            ~       +    .
 
 */
 
+type AudioCtx = {
+	ctx: AudioContext,
+	masterGain: GainNode,
+};
+
 // audio system init
-const audio = {};
+const audio: AudioCtx = (() => {
+	const ctx = new (window.AudioContext || window.webkitAudioContext)();
+	const masterGain = ctx.createGain();
+	return {
+		ctx,
+		masterGain,
+	};
+})();
 
 function audioInit() {
-	audio.sounds = {};
-	audio.ctx = new (window.AudioContext || window.webkitAudioContext)();
-	audio.gainNode = audio.ctx.createGain();
-	audio.gainNode.gain.value = 1;
-	audio.gainNode.connect(audio.ctx.destination);
+	audio.masterGain = audio.ctx.createGain();
+	audio.masterGain.gain.value = 1;
+	audio.masterGain.connect(audio.ctx.destination);
 }
 
 // get / set master volume
-function volume(v) {
+function volume(v?: number): number {
 	if (v !== undefined) {
-		audio.gainNode.gain.value = v;
+		audio.masterGain.gain.value = v;
 	}
-	return audio.gainNode.gain.value;
+	return audio.masterGain.gain.value;
 }
 
-// plays a sound, returns a control handle
-function play(id, conf = {}) {
+type AudioPlayConf = {
+	loop?: boolean,
+	volume?: number,
+	speed?: number,
+	detune?: number,
+};
 
-	const sound = audio.sounds[id];
+// plays a sound, returns a control handle
+function play(
+	id,
+	conf: AudioPlayConf = {
+		loop: false,
+		volume: 1,
+		speed: 1,
+		detune: 0,
+	},
+) {
+
+	const sound = assets.sounds[id];
 
 	if (!sound) {
 		error(`sound not found: "${id}"`);
@@ -1294,7 +1566,7 @@ function play(id, conf = {}) {
 	const gainNode = audio.ctx.createGain();
 
 	srcNode.connect(gainNode);
-	gainNode.connect(audio.gainNode);
+	gainNode.connect(audio.masterGain);
 	srcNode.start();
 
 	let paused = false;
@@ -1330,7 +1602,7 @@ function play(id, conf = {}) {
 
 		speed(val) {
 			if (val !== undefined) {
-				speed = Math.clamp(val, 0, 2);
+				speed = clamp(val, 0, 2);
 				if (!paused) {
 					srcNode.playbackRate.value = speed;
 				}
@@ -1343,14 +1615,14 @@ function play(id, conf = {}) {
 				return 0;
 			}
 			if (val !== undefined) {
-				srcNode.detune.value = Math.clamp(val, -1200, 1200);
+				srcNode.detune.value = clamp(val, -1200, 1200);
 			}
 			return srcNode.detune.value;
 		},
 
 		volume(val) {
 			if (val !== undefined) {
-				gainNode.gain.value = Math.clamp(val, 0, 3);
+				gainNode.gain.value = clamp(val, 0, 3);
 			}
 			return gainNode.gain.value;
 		},
@@ -1392,35 +1664,52 @@ math       *                     .            ~       +    .
 
 */
 
-Math.radians = function(degrees) {
+function deg2rad(degrees: number): number {
 	return degrees * Math.PI / 180;
 };
 
-Math.degrees = function(radians) {
+function rad2deg(radians: number): number {
 	return radians * 180 / Math.PI;
 };
 
-Math.clamp = function(val, min, max) {
+function clamp(
+	val: number,
+	min: number,
+	max: number,
+): number {
 	return Math.min(Math.max(val, min), max);
 };
 
-function lerp(a, b, t) {
+function lerp(
+	a: number,
+	b: number,
+	t: number,
+): number {
 	return a + (b - a) * t * dt();
 }
 
-function map(v, l1, h1, l2, h2) {
+function map(
+	v: number,
+	l1: number,
+	h1: number,
+	l2: number,
+	h2: number,
+): number {
 	return l2 + (v - l1) / (h1 - l1) * (h2 - l2);
 }
 
-function vec3(x, y, z) {
+function vec3(x: number, y: number, z: number): Vec3 {
 	return {
 		x: x,
 		y: y,
 		z: z,
+		xy() {
+			return vec2(this.x, this.y);
+		},
 	};
 }
 
-function vec2(x, y) {
+function vec2(x?: number | Vec2, y?: number): Vec2 {
 
 	if (isVec2(x) && y === undefined) {
 		return vec2(x.x, x.y);
@@ -1484,19 +1773,19 @@ function vec2FromAngle(a) {
 	return vec2(Math.cos(a), Math.sin(a));
 }
 
-function isVec2(p) {
+function isVec2(p: any): boolean {
 	return p !== undefined && p.x !== undefined && p.y !== undefined;
 }
 
-function isColor(c) {
+function isColor(c: any): boolean {
 	return c !== undefined && c.r !== undefined && c.g !== undefined && c.b !== undefined && c.a !== undefined;
 }
 
-function rgb(r, g, b) {
+function rgb(r, g, b): Color {
 	return rgba(r, g, b, 1);
 }
 
-function rgba(r, g, b, a) {
+function rgba(r: number, g: number, b: number, a: number = 1): Color {
 
 	if (arguments.length === 0) {
 		return rgba(1, 1, 1, 1);
@@ -1613,7 +1902,7 @@ function makeLine(p1, p2) {
 	};
 }
 
-function mat4(m) {
+function mat4(m?: number[]): Mat4 {
 
 	return {
 
@@ -1624,7 +1913,7 @@ function mat4(m) {
 			0, 0, 0, 1,
 		],
 
-		clone() {
+		clone(): Mat4 {
 			return mat4(this.m);
 		},
 
@@ -1796,10 +2085,21 @@ const C = 12345;
 const M = 2147483648;
 const defRNG = makeRng(Date.now());
 
-function makeRng(seed) {
+type RNGValue =
+	number
+	| Vec2
+	| Color
+	;
+
+type RNG = {
+	seed: number,
+	gen: (a?: RNGValue, b?: RNGValue) => RNGValue,
+};
+
+function makeRng(seed): RNG {
 	return {
 		seed: seed,
-		gen(a, b) {
+		gen(a?: RNGValue, b?: RNGValue): RNGValue {
 			if (isVec2(a) && isVec2(b)) {
 				return vec2(
 					this.gen(a.x, b.x),
@@ -1828,19 +2128,19 @@ function makeRng(seed) {
 	};
 }
 
-function randSeed(seed) {
+function randSeed(seed: number) {
 	defRNG.seed = seed;
 }
 
-function rand(a, b) {
+function rand(a?: RNGValue, b?: RNGValue): RNGValue {
 	return defRNG.gen(a, b);
 }
 
-function chance(p) {
+function chance(p: number): boolean {
 	return rand(0, 1) <= p;
 }
 
-function choose(list) {
+function choose<T>(list: T[]): T {
 	return list[Math.floor(rand(list.length))];
 }
 
@@ -1886,9 +2186,63 @@ game       *                     .            ~       +    .
 const DEF_GRAVITY = 980;
 const DEF_ORIGIN = "topleft";
 
-const game = {
+type Game = {
+	loaded: boolean,
+	scenes: Record<string, Scene>,
+	curScene: string | null,
+	nextScene: SceneSwitch | null,
+	log: Log[],
+};
+
+type Log = {
+	type: "log" | "error",
+	msg: string,
+}
+
+type SceneSwitch = {
+	name: string,
+	args: any[],
+};
+
+// TODO
+type GameObj = {
+	hidden: boolean,
+	paused: boolean,
+};
+
+type Timer = {
+	time: number,
+	cb: () => void,
+};
+
+type Camera = {
+	pos: Vec2,
+	scale: Vec2,
+	angle: number,
+	shake: number,
+	ignore: string[],
+	mpos: Vec2,
+};
+
+type Scene = {
+	init: (...args) => void,
+	initialized: boolean,
+	events: Record<string, Array<() => void>>,
+	action: Array<() => void>,
+	render: Array<() => void>,
+	objs: Map<number, GameObj>,
+	lastID: number,
+	timers: Record<number, Timer>,
+	lastTimerID: number,
+	cam: Camera,
+	gravity: number,
+	layers: Record<string, number>,
+	defLayer: string | null,
+	data: any,
+};
+
+const game: Game = {
 	loaded: false,
-	paused: false,
 	scenes: {},
 	curScene: null,
 	nextScene: null,
@@ -1938,10 +2292,9 @@ function scene(name, cb) {
 			mpos: vec2(0),
 		},
 
-		camMousePos: vec2(0),
-
 		// misc
 		layers: {},
+		defLayer: null,
 		gravity: DEF_GRAVITY,
 		data: {},
 
@@ -1949,12 +2302,12 @@ function scene(name, cb) {
 
 }
 
-function curScene() {
+function curScene(): Scene {
 	return game.scenes[game.curScene];
 }
 
 // custom data kv store for scene
-function sceneData() {
+function sceneData(): any {
 	return curScene().data;
 }
 
@@ -1984,12 +2337,12 @@ function regDebugInputs() {
 	});
 
 	keyPress("f7", () => {
-		dbg.timeScale = Math.clamp(dbg.timeScale - 0.2, 0, 2);
+		dbg.timeScale = clamp(dbg.timeScale - 0.2, 0, 2);
 		log(`time scale: ${dbg.timeScale.toFixed(1)}`);
 	});
 
 	keyPress("f9", () => {
-		dbg.timeScale = Math.clamp(dbg.timeScale + 0.2, 0, 2);
+		dbg.timeScale = clamp(dbg.timeScale + 0.2, 0, 2);
 		log(`time scale: ${dbg.timeScale.toFixed(1)}`);
 	});
 
@@ -2001,14 +2354,14 @@ function regDebugInputs() {
 }
 
 // schedule to switch to a scene
-function go(name, ...args) {
+function go(name: string, ...args) {
 	game.nextScene = {
 		name: name,
 		args: [...args],
 	};
 }
 
-function goSync(name, ...args) {
+function goSync(name: string, ...args) {
 	reload(name);
 	game.curScene = name;
 	const scene = game.scenes[name];
@@ -2030,7 +2383,7 @@ function goSync(name, ...args) {
 }
 
 // reload a scene, reset all objs to their init states
-function reload(name) {
+function reload(name: string) {
 	if (!game.scenes[name]) {
 		error(`scene not found: '${name}'`);
 		return;
@@ -2399,7 +2752,7 @@ function mouseRelease(f) {
 }
 
 // get all objects with tag
-function get(t) {
+function get(t?: string) {
 
 	const scene = curScene();
 	const objs = [...scene.objs.values()];
@@ -2457,7 +2810,7 @@ function destroyAll(t) {
 }
 
 // get / set gravity
-function gravity(g) {
+function gravity(g?: number): number {
 	const scene = curScene();
 	if (g !== undefined) {
 		scene.gravity = g;
@@ -2519,7 +2872,7 @@ function gameFrame(ignorePause) {
 		.translate(cam.pos.scale(-1).add(size.scale(0.5)).add(shake))
 		;
 
-	scene.camMousePos = camMat.invert().multVec2(mousePos());
+	cam.mpos = camMat.invert().multVec2(mousePos());
 
 	// draw every obj
 	every((obj) => {
@@ -3552,7 +3905,6 @@ function error(msg) {
 	game.log.unshift({
 		type: "error",
 		msg: msg,
-		timer: 0,
 	});
 }
 
@@ -3561,7 +3913,6 @@ function log(msg) {
 	game.log.unshift({
 		type: "log",
 		msg: msg,
-		timer: 0,
 	});
 }
 
