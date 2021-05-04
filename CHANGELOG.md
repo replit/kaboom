@@ -9,6 +9,7 @@
 - source moved to TypeScript
 - added `duration()` and `time()` for the handle returned by `play()`
 - added optional `seek` field to the audio play conf `play([conf])`
+- `removeTag()` renamed to `rmTag()`
 
 ## v0.4.1
 - fixed `on("destroy")` handler getting called twice

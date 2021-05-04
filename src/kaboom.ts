@@ -75,10 +75,6 @@ debug utils
 
 */
 
-// TODO
-type KaboomCtx = {
-};
-
 type KaboomConf = {
 	width?: number,
 	height?: number,
@@ -136,7 +132,7 @@ type Vec2 = {
 	unit: () => Vec2,
 	normal: () => Vec2,
 	angle: (p: Vec2) => number,
-	lerp: (p: Vec2, t: number) => number,
+	lerp: (p: Vec2, t: number) => Vec2,
 	eq: (p: Vec2) => boolean,
 	str: () => string,
 };
@@ -448,7 +444,7 @@ function loadSound(
 						});
 					});
 				})
-				.then((buf) => {
+				.then((buf: AudioBuffer) => {
 					assets.sounds[name] = buf;
 				})
 				.catch(() => {
@@ -1300,7 +1296,21 @@ function drawSprite(
 
 }
 
-function drawRectStroke(pos, w, h, conf = {}) {
+type DrawRectStrokeConf = {
+	width?: number,
+	scale?: Vec2 | number,
+	rot?: number,
+	color?: Color,
+	origin?: string,
+	z?: number,
+};
+
+function drawRectStroke(
+	pos: Vec2,
+	w: number,
+	h: number,
+	conf: DrawRectStrokeConf = {}
+) {
 
 	const offset = originPt(conf.origin || DEF_ORIGIN).dot(w, h).scale(0.5);
 	const p1 = pos.add(vec2(-w / 2, -h / 2)).sub(offset);
@@ -1315,7 +1325,20 @@ function drawRectStroke(pos, w, h, conf = {}) {
 
 }
 
-function drawRect(pos, w, h, conf = {}) {
+type DrawRectConf = {
+	scale?: Vec2 | number,
+	rot?: number,
+	color?: Color,
+	origin?: string,
+	z?: number,
+};
+
+function drawRect(
+	pos: Vec2,
+	w: number,
+	h: number,
+	conf: DrawRectConf = {}
+) {
 	drawQuad({
 		...conf,
 		pos: pos,
@@ -1324,8 +1347,18 @@ function drawRect(pos, w, h, conf = {}) {
 	});
 }
 
+type DrawLineConf = {
+	width?: number,
+	color?: Color,
+	z?: number,
+};
+
 // TODO: slow, use drawRaw() calc coords
-function drawLine(p1, p2, conf = {}) {
+function drawLine(
+	p1: Vec2,
+	p2: Vec2,
+	conf: DrawLineConf = {},
+) {
 
 	const w = conf.width || 1;
 	const h = p1.dist(p2);
@@ -1777,7 +1810,7 @@ function vec3(x: number, y: number, z: number): Vec3 {
 	};
 }
 
-function vec2(x?: number | Vec2, y?: number): Vec2 {
+function vec2(x?: any, y?: any): Vec2 {
 
 	if (isVec2(x) && y === undefined) {
 		return vec2(x.x, x.y);
@@ -1789,19 +1822,19 @@ function vec2(x?: number | Vec2, y?: number): Vec2 {
 		clone() {
 			return vec2(this.x, this.y);
 		},
-		add(...p2) {
-			p2 = vec2(...p2);
+		add(...args) {
+			const p2 = vec2(...args);
 			return vec2(this.x + p2.x, this.y + p2.y);
 		},
-		sub(...p2) {
-			p2 = vec2(...p2);
+		sub(...args) {
+			const p2 = vec2(...args);
 			return vec2(this.x - p2.x, this.y - p2.y);
 		},
 		scale(s) {
 			return vec2(this.x * s, this.y * s);
 		},
-		dist(...p2) {
-			p2 = vec2(...p2);
+		dist(...args) {
+			const p2 = vec2(...args);
 			return Math.sqrt(
 				(this.x - p2.x) * (this.x - p2.x)
 				+ (this.y - p2.y) * (this.y - p2.y)
@@ -1816,12 +1849,12 @@ function vec2(x?: number | Vec2, y?: number): Vec2 {
 		normal() {
 			return vec2(this.y, -this.x);
 		},
-		dot(...p2) {
-			p2 = vec2(...p2);
+		dot(...args) {
+			const p2 = vec2(...args);
 			return vec2(this.x * p2.x, this.y * p2.y);
 		},
-		angle(...p2) {
-			p2 = vec2(...p2);
+		angle(...args) {
+			const p2 = vec2(...args);
 			return Math.atan2(this.y - p2.y, this.x - p2.x);
 		},
 		lerp(p2, t) {
@@ -1837,7 +1870,7 @@ function vec2(x?: number | Vec2, y?: number): Vec2 {
 }
 
 // TODO: terrible name
-function vec2FromAngle(a) {
+function vec2FromAngle(a: number): Vec2 {
 	return vec2(Math.cos(a), Math.sin(a));
 }
 
@@ -1853,17 +1886,19 @@ function rgb(r, g, b): Color {
 	return rgba(r, g, b, 1);
 }
 
-function rgba(r: number, g: number, b: number, a: number = 1): Color {
+function rgba(...args): Color {
 
-	if (arguments.length === 0) {
+	args = [...args];
+
+	if (args.length === 0) {
 		return rgba(1, 1, 1, 1);
 	}
 
 	return {
-		r: r,
-		g: g,
-		b: b,
-		a: a === undefined ? 1 : a,
+		r: args[0],
+		g: args[1],
+		b: args[2],
+		a: args[3] ?? 1,
 		clone() {
 			return rgba(this.r, this.g, this.b, this.a);
 		},
@@ -1880,6 +1915,7 @@ function rgba(r: number, g: number, b: number, a: number = 1): Color {
 				&& this.a === other.a;
 		},
 	};
+
 }
 
 function quad(x, y, w, h) {
@@ -1985,7 +2021,7 @@ function mat4(m?: number[]): Mat4 {
 			return mat4(this.m);
 		},
 
-		mult(other) {
+		mult(other: Mat4): Mat4 {
 
 			const out = [];
 
@@ -2003,7 +2039,7 @@ function mat4(m?: number[]): Mat4 {
 
 		},
 
-		multVec4(p) {
+		multVec4(p: Vec4): Vec4 {
 			return {
 				x: p.x * this.m[0] + p.y * this.m[4] + p.z * this.m[8] + p.w * this.m[12],
 				y: p.x * this.m[1] + p.y * this.m[5] + p.z * this.m[9] + p.w * this.m[13],
@@ -2012,30 +2048,24 @@ function mat4(m?: number[]): Mat4 {
 			};
 		},
 
-		multVec3(p) {
+		multVec3(p: Vec3): Vec3 {
 			const p4 = this.multVec4({
 				x: p.x,
 				y: p.y,
 				z: p.z,
 				w: 1.0,
 			});
-			return {
-				x: p4.x,
-				y: p4.y,
-				z: p4.z,
-			};
+			return vec3(p4.x, p4.y, p4.z);
 		},
 
-		scale(s) {
-			return this.mult(mat4([
-				s.x, 0, 0, 0,
-				0, s.y, 0, 0,
-				0, 0, 1, 0,
-				0, 0, 0, 1,
-			]));
+		multVec2(p: Vec2): Vec2 {
+			return vec2(
+				p.x * this.m[0] + p.y * this.m[4] + 0 * this.m[8] + 1 * this.m[12],
+				p.x * this.m[1] + p.y * this.m[5] + 0 * this.m[9] + 1 * this.m[13],
+			);
 		},
 
-		translate(p) {
+		translate(p: Vec2) {
 			return this.mult(mat4([
 				1, 0, 0, 0,
 				0, 1, 0, 0,
@@ -2044,7 +2074,16 @@ function mat4(m?: number[]): Mat4 {
 			]));
 		},
 
-		rotateX(a) {
+		scale(s: Vec2) {
+			return this.mult(mat4([
+				s.x, 0, 0, 0,
+				0, s.y, 0, 0,
+				0, 0, 1, 0,
+				0, 0, 0, 1,
+			]));
+		},
+
+		rotateX(a: number) {
 			return this.mult(mat4([
 				1, 0, 0, 0,
 				0, Math.cos(a), -Math.sin(a), 0,
@@ -2053,7 +2092,7 @@ function mat4(m?: number[]): Mat4 {
 			]));
 		},
 
-		rotateY(a) {
+		rotateY(a: number) {
 			return this.mult(mat4([
 				Math.cos(a), 0, -Math.sin(a), 0,
 				0, 1, 0, 0,
@@ -2062,7 +2101,7 @@ function mat4(m?: number[]): Mat4 {
 			]));
 		},
 
-		rotateZ(a) {
+		rotateZ(a: number) {
 			return this.mult(mat4([
 				Math.cos(a), -Math.sin(a), 0, 0,
 				Math.sin(a), Math.cos(a), 0, 0,
@@ -2071,14 +2110,7 @@ function mat4(m?: number[]): Mat4 {
 			]));
 		},
 
-		multVec2(p) {
-			return vec2(
-				p.x * this.m[0] + p.y * this.m[4] + 0 * this.m[8] + 1 * this.m[12],
-				p.x * this.m[1] + p.y * this.m[5] + 0 * this.m[9] + 1 * this.m[13],
-			);
-		},
-
-		invert() {
+		invert(): Mat4 {
 
 			const out = [];
 
@@ -2157,6 +2189,7 @@ type RNGValue =
 	number
 	| Vec2
 	| Color
+	| any
 	;
 
 type RNG = {
@@ -2272,10 +2305,26 @@ type SceneSwitch = {
 	args: any[],
 };
 
-// TODO
 type GameObj = {
 	hidden: boolean,
 	paused: boolean,
+	exists: () => boolean,
+	is: (tag: string | string[]) => boolean,
+	use: (comp: any) => void,
+	action: (cb: () => void) => void,
+	on: (ev: string, cb: () => void) => void,
+	trigger: (ev: string, ...args) => void,
+	addTag: (t: string) => void,
+	rmTag: (t: string) => void,
+	_sceneID: number | null,
+	_tags: string[],
+	_events: {
+		add: [],
+		update: [],
+		draw: [],
+		destroy: [],
+		debugInfo: [],
+	},
 };
 
 type Timer = {
@@ -2292,10 +2341,42 @@ type Camera = {
 	mpos: Vec2,
 };
 
+type TaggedEvent = {
+	tag: string,
+	cb: (...args) => void,
+};
+
+type KeyInputEvent = {
+	key: string,
+	cb: () => void,
+};
+
+type MouseInputEvent = {
+	cb: () => void,
+};
+
+type CharInputEvent = {
+	cb: (ch: string) => void,
+};
+
+
 type Scene = {
 	init: (...args) => void,
 	initialized: boolean,
-	events: Record<string, Array<() => void>>,
+	events: {
+		add: TaggedEvent[],
+		update: TaggedEvent[],
+		draw: TaggedEvent[],
+		destroy: TaggedEvent[],
+		keyDown: KeyInputEvent[],
+		keyPress: KeyInputEvent[],
+		keyPressRep: KeyInputEvent[],
+		keyRelease: KeyInputEvent[],
+		mouseClick: MouseInputEvent[],
+		mouseRelease: MouseInputEvent[],
+		mouseDown: MouseInputEvent[],
+		charInput: CharInputEvent[],
+	},
 	action: Array<() => void>,
 	render: Array<() => void>,
 	objs: Map<number, GameObj>,
@@ -2513,13 +2594,14 @@ function camIgnore(layers: string[]) {
 	cam.ignore = layers;
 }
 
-function add(comps) {
+function add(comps: any[]): GameObj {
 
-	const obj = {
+	const obj: GameObj = {
 
 		hidden: false,
 		paused: false,
 		_tags: [],
+		_sceneID: null,
 
 		_events: {
 			add: [],
@@ -2633,7 +2715,7 @@ function add(comps) {
 			this._tags.push(t);
 		},
 
-		removeTag(t) {
+		rmTag(t) {
 			const idx = this._tags.indexOf(t);
 			if (idx > -1) {
 				this._tags.splice(idx, 1);
@@ -2662,7 +2744,7 @@ function add(comps) {
 
 }
 
-function readd(obj) {
+function readd(obj: GameObj) {
 
 	if (!obj.exists()) {
 		return;
@@ -2760,7 +2842,7 @@ function loop(t, f) {
 	newF();
 }
 
-function pushKeyEvent(e, k, f) {
+function pushKeyEvent(e: string, k: string, f: () => void) {
 	if (Array.isArray(k)) {
 		for (const key of k) {
 			pushKeyEvent(e, key, f);
@@ -2775,23 +2857,23 @@ function pushKeyEvent(e, k, f) {
 }
 
 // input callbacks
-function keyDown(k, f) {
+function keyDown(k: string, f: () => void) {
 	pushKeyEvent("keyDown", k, f);
 }
 
-function keyPress(k, f) {
+function keyPress(k: string, f: () => void) {
 	pushKeyEvent("keyPress", k, f);
 }
 
-function keyPressRep(k, f) {
+function keyPressRep(k: string, f: () => void) {
 	pushKeyEvent("keyPressRep", k, f);
 }
 
-function keyRelease(k, f) {
+function keyRelease(k: string, f: () => void) {
 	pushKeyEvent("keyRelease", k, f);
 }
 
-function charInput(f) {
+function charInput(f: (string) => void) {
 	const scene = curScene();
 	scene.events.charInput.push({
 		cb: f,
@@ -2834,7 +2916,7 @@ function get(t?: string) {
 }
 
 // apply a function to all objects currently in scene with tag t
-function every(t, f) {
+function every(t: string | ((GameObj) => void), f?: (GameObj) => void) {
 	if (typeof(t) === "function" && f === undefined) {
 		get().forEach(t);
 	} else {
@@ -2843,7 +2925,7 @@ function every(t, f) {
 }
 
 // every but in reverse order
-function revery(t, f) {
+function revery(t: string | ((GameObj) => void), f?: (GameObj) => void) {
 	if (typeof(t) === "function" && f === undefined) {
 		get().reverse().forEach(t);
 	} else {
@@ -2889,7 +2971,7 @@ function gravity(g?: number): number {
 const LOG_TIME = 6;
 
 // TODO: cleaner pause logic
-function gameFrame(ignorePause) {
+function gameFrame(ignorePause?: boolean) {
 
 	const scene = curScene();
 
@@ -3081,25 +3163,25 @@ function start(name, ...args) {
 			// run input checks & callbacks
 			for (const e of scene.events.keyDown) {
 				if (keyIsDown(e.key)) {
-					e.cb(e.key);
+					e.cb();
 				}
 			}
 
 			for (const e of scene.events.keyPress) {
 				if (keyIsPressed(e.key)) {
-					e.cb(e.key);
+					e.cb();
 				}
 			}
 
 			for (const e of scene.events.keyPressRep) {
 				if (keyIsPressedRep(e.key)) {
-					e.cb(e.key);
+					e.cb();
 				}
 			}
 
 			for (const e of scene.events.keyRelease) {
 				if (keyIsReleased(e.key)) {
-					e.cb(e.key);
+					e.cb();
 				}
 			}
 
@@ -3280,8 +3362,8 @@ function area(p1, p2) {
 				return;
 			}
 
-			let width = showArea.width || 2;
-			const color = showArea.color || rgba(0, 1, 1, 1);
+			let width = 2;
+			const color = rgba(0, 1, 1, 1);
 			const hovered = this.isHovered();
 
 			if (hoverInfo && hovered) {
@@ -3611,6 +3693,11 @@ type SpriteComp = {
 	curAnim: () => string,
 	onAnimPlay: (name: string, cb: () => void) => void,
 	onAnimEnd: (name: string, cb: () => void) => void,
+	debugInfo: () => SpriteCompDebugInfo,
+};
+
+type SpriteCompDebugInfo = {
+	curAnim?: string,
 };
 
 function sprite(id: string, conf: SpriteCompConf = {}): SpriteComp {
@@ -3778,8 +3865,8 @@ function sprite(id: string, conf: SpriteCompConf = {}): SpriteComp {
 			events[name].end = cb;
 		},
 
-		debugInfo() {
-			const info = {};
+		debugInfo(): SpriteCompDebugInfo {
+			const info: SpriteCompDebugInfo = {};
 			if (curAnim) {
 				info.curAnim = `"${curAnim.name}"`;
 			}
@@ -4108,8 +4195,8 @@ function addLevel(map: string[], conf: LevelConf): Level {
 
 	const level = {
 
-		getPos(...p) {
-			p = vec2(...p);
+		getPos(...args) {
+			const p = vec2(...args);
 			return vec2(
 				offset.x + p.x * conf.width,
 				offset.y + p.y * conf.height
