@@ -1570,6 +1570,7 @@ type AudioPlayConf = {
 	volume?: number,
 	speed?: number,
 	detune?: number,
+	seek?: number,
 };
 
 type AudioPlay = {
@@ -1595,6 +1596,7 @@ function play(
 		volume: 1,
 		speed: 1,
 		detune: 0,
+		seek: 0,
 	},
 ): AudioPlay {
 
@@ -1614,14 +1616,16 @@ function play(
 
 	srcNode.connect(gainNode);
 	gainNode.connect(audio.masterGain);
-	srcNode.start();
 
+	let seek = conf.seek ?? 0;
 	let paused = false;
 	let stopped = false;
 	let speed = 1;
 	let startTime = audio.ctx.currentTime;
 	let stoppedTime = null;
 	let emptyTime = 0;
+
+	srcNode.start(0, seek);
 
 	const handle = {
 
@@ -1648,15 +1652,15 @@ function play(
 			stoppedTime = audio.ctx.currentTime;
 		},
 
-		paused() {
+		paused(): boolean {
 			return paused;
 		},
 
-		stopped() {
+		stopped(): boolean {
 			return stopped;
 		},
 
-		speed(val) {
+		speed(val: number): number {
 			if (val !== undefined) {
 				speed = clamp(val, 0, 2);
 				if (!paused) {
@@ -1666,7 +1670,7 @@ function play(
 			return speed;
 		},
 
-		detune(val) {
+		detune(val: number): number {
 			if (!srcNode.detune) {
 				return 0;
 			}
@@ -1676,7 +1680,7 @@ function play(
 			return srcNode.detune.value;
 		},
 
-		volume(val) {
+		volume(val: number): number {
 			if (val !== undefined) {
 				gainNode.gain.value = clamp(val, 0, 3);
 			}
@@ -1691,12 +1695,12 @@ function play(
 			srcNode.loop = false;
 		},
 
-		duration() {
+		duration(): number {
 			return sound.duration;
 		},
 
-		time() {
-			return (stoppedTime ?? audio.ctx.currentTime) - startTime - emptyTime;
+		time(): number {
+			return (stoppedTime ?? audio.ctx.currentTime) - startTime - emptyTime + seek;
 		},
 
 	};
