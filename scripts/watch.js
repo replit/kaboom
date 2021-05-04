@@ -3,7 +3,7 @@
 const cp = require("child_process");
 const fs = require("fs");
 
-const target = process.argv[2];
+const dir = process.argv[2];
 const cmd = process.argv[3];
 const args = process.argv.slice(4);
 
@@ -15,10 +15,10 @@ function start() {
 
 let proc = start();
 
-fs.watch(target, {
+fs.watch(dir, {
 	recursive: true,
 }, (ev, fname) => {
-	if (fs.existsSync(fname)) {
+	if (fs.existsSync(`${dir}/${fname}`)) {
 		proc.kill();
 		proc = start();
 	}

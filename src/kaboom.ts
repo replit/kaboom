@@ -75,7 +75,7 @@ debug utils
 
 */
 
-window.kaboom = (gconf = {}) => {
+module.exports = (gconf = {}) => {
 
 /*
 
@@ -98,7 +98,7 @@ assets     *                     .            ~       +    .
 
 const ASCII_CHARS = " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~";
 const DEF_FONT = "unscii";
-const UNSCII_SRC = "data:image/png;base64,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";
+const UNSCII_SRC = require("./unscii_8x8.png");
 
 const assets = {
 	lastLoaderID: 0,
@@ -602,33 +602,9 @@ gfx        *                     .            ~       +    .
 
 */
 
-const defVertSrc = `
-attribute vec3 a_pos;
-attribute vec2 a_uv;
-attribute vec4 a_color;
-varying vec2 v_uv;
-varying vec4 v_color;
-void main() {
-	v_uv = a_uv;
-	v_color = a_color;
-	gl_Position = vec4(a_pos, 1.0);
-}
-`;
-
-const defFragSrc = `
-precision mediump float;
-varying vec2 v_uv;
-varying vec4 v_color;
-uniform sampler2D u_tex;
-void main() {
-	gl_FragColor = v_color * texture2D(u_tex, v_uv);
-	if (gl_FragColor.a == 0.0) {
-		discard;
-	}
-}
-`;
-
 const STRIDE = 9;
+const defVertSrc = require("./vert.glsl");
+const defFragSrc = require("./frag.glsl");
 
 const gfx = {
 	drawCalls: 0,
@@ -996,10 +972,10 @@ function drawQuad(conf = {}) {
 	const pos = conf.pos || vec2(0, 0);
 	const origin = originPt(conf.origin || DEF_ORIGIN);
 	const offset = origin.dot(vec2(w, h).scale(-0.5));
-	const scale = conf.scale === undefined ? vec2(1, 1) : vec2(conf.scale);
+	const scale = vec2(conf.scale ?? 1);
 	const rot = conf.rot || 0;
 	const q = conf.quad || quad(0, 0, 1, 1);
-	const z = conf.z === undefined ? 1 : 1 - conf.z;
+	const z = 1 - (conf.z ?? 0);
 	const color = conf.color || rgba();
 
 	// TODO: (maybe) not use matrix transform here?
@@ -1451,8 +1427,8 @@ function vec2(x, y) {
 	}
 
 	return {
-		x: x !== undefined ? x : 0,
-		y: y !== undefined ? y : (x !== undefined ? x : 0),
+		x: x ?? 0,
+		y: y ?? (x ?? 0),
 		clone() {
 			return vec2(this.x, this.y);
 		},

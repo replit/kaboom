@@ -1,6 +1,6 @@
 // load aseprite spritesheet
 
-window.asepritePlugin = (k) => {
+module.exports = (k) => {
 
 function loadAseprite(name, imgSrc, jsonSrc) {
 

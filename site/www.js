@@ -126,6 +126,8 @@ const mimes = {
 	"html": "text/html",
 	"css": "text/css",
 	"js": "text/javascript",
+	"mjs": "text/javascript",
+	"cjs": "text/javascript",
 	"json": "application/json",
 	"png": "image/png",
 	"jpg": "image/jpeg",
@@ -191,7 +193,7 @@ function makeServer() {
 					return;
 				}
 				const stat = fs.statSync(p);
-				if (stat.isDirectory(p)) {
+				if (stat.isDirectory()) {
 					res.dir(p);
 				} else {
 					res.file(p);
@@ -298,9 +300,13 @@ function makeServer() {
 						const parent = req.url === "/" ? "" : req.url;
 
 						const page = entries
-							.map((e) => tag("a", {
-								href: `${parent}/${e}`,
-							}, e) + tag("br"))
+							.map((e) => {
+								const stat = fs.statSync(`${p}/${e}`);
+								const name = e + (stat.isDirectory() ? "/" : "");
+								return tag("a", {
+									href: `${parent}/${e}`,
+								}, name) + tag("br");
+							})
 							.join("");
 
 						this.html(page);

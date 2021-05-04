@@ -2,7 +2,7 @@
 
 const fs = require("fs");
 const utils = require("./utils");
-const www = require("./ext/www");
+const www = require("./www");
 
 const port = process.env.PORT || 8000;
 
@@ -27,7 +27,7 @@ server.fs("/pub", "pub");
 server.fs("/pub/examples", "../examples");
 server.fs("/lib", "lib");
 server.fs("/lib/latest", `lib/${versions.latest}`);
-server.fs("/lib/dev", "../src");
+server.fs("/lib/dev", "../dist");
 // TODO: deprecate
 server.fs("/lib/master", "lib/0.0.0");
 

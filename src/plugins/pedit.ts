@@ -1,7 +1,7 @@
 // load pedit
 // https://github.com/slmjkdbtl/pedit.js
 
-window.peditPlugin = (k) => {
+module.exports = (k) => {
 
 function loadImg(src) {
 
@@ -69,4 +69,3 @@ return {
 };
 
 };
-
