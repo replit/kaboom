@@ -5,6 +5,7 @@ const common = {
 	bundle: true,
 	sourcemap: true,
 	target: "es6",
+	minify: true,
 	loader: {
 		".png": "dataurl",
 		".glsl": "text",
@@ -29,36 +30,18 @@ const files = [
 	{ entry: "plugins/proggy.ts",   global: "proggyPlugin",   },
 ];
 
-function build(src, dist, cfg) {
-	console.log(`${src} -> ${dist}`);
-	esbuild.buildSync({
-		...cfg,
-		entryPoints: [ src, ],
-		outfile: dist,
-	});
-}
-
 files.forEach((file) => {
 	fmts.forEach((fmt) => {
 		const base = file.entry.replace(/\.ts$/, "");
-		const cfg = {
+		const srcPath = `${srcDir}/${file.entry}`;
+		const distPath = `${distDir}/${base}.${fmt.ext}`;
+		console.log(`${srcPath} -> ${distPath}`);
+		esbuild.buildSync({
 			...common,
-			entryPoints: [  ],
+			entryPoints: [srcPath],
 			globalName: file.global,
 			format: fmt.format,
-		};
-		build(
-			`${srcDir}/${file.entry}`,
-			`${distDir}/${base}.${fmt.ext}`,
-			cfg,
-		);
-		build(
-			`${srcDir}/${file.entry}`,
-			`${distDir}/${base}.min.${fmt.ext}`,
-			{
-				...cfg,
-				minify: true,
-			},
-		);
+			outfile: distPath,
+		});
 	});
 });

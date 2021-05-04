@@ -34,10 +34,6 @@ You can paste this directly into an `html` file and start playing around!
 
 ### Usage
 
-We recommend [downloading](https://kaboomjs.com/lib/latest/kaboom.js) the script and use it directly, the source should be easy to read and modify (documentation is still in progress).
-
-You can also use CDN
-
 ```html
 <script src="https://kaboomjs.com/lib/@version/kaboom.js"></script>
 ```
@@ -70,31 +66,18 @@ scene(...);
 start(...);
 ```
 
-However, it is possible to use a module version of kaboomjs.
+Kaboom also provide ES module and commonJS module exports with `.mjs` and `.cjs`, e.g,
 
-```html
-<script type="module" src="script.js"></script>
-```
-
-`script.js`:
 ```js
-import kaboom from "https://kaboomjs.com/lib/0.4.1/kaboom.mjs";
-
-const k = kaboom();
-
-k.init();
-k.scene(...);
-k.start(...);
-
+import kaboom from "https://kaboomjs.com/lib/dev/kaboom.mjs";
 ```
-
-Using the module version means that there will be no `window.kaboom` available and kaboom must be imported.
 
 ### Dev
 
 Use examples to test / add features
 
-1. `npm run dev`
+1. `npm run dev` to watch & build lib
+1. `npm run site` to run site
 1. go to http://localhost:8000/examples
 1. edit examples in `examples/`
 
