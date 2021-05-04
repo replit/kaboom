@@ -117,6 +117,7 @@ const page = t("html", {}, [
 		t("title", {}, "KaBoom Examples"),
 		t("meta", { charset: "utf-8", }),
 		t("style", {}, www.style(style)),
+    		t("link", { rel: "icon", href: "/pub/img/kaboom.png"}),
 		t("link", { rel: "stylesheet", href: "/pub/lib/codemirror/codemirror.css", }),
 		t("link", { rel: "stylesheet", href: "/pub/lib/codemirror/themes/dracula.css", }),
 		t("script", { src: "/pub/lib/codemirror/codemirror.js", }, ""),

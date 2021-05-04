@@ -208,6 +208,7 @@ const page = t("html", {}, [
 		t("meta", { charset: "utf-8", }),
 		t("style", {}, www.style(gstyle)),
 		t("style", {}, www.style(style)),
+    		t("link", { rel: "icon", href: "/pub/img/kaboom.png"}),
 		t("link", { rel: "stylesheet", href: "/pub/lib/highlight.css", }),
 		t("script", { src: "/pub/lib/highlight.js", }, ""),
 		t("script", {}, "hljs.highlightAll();"),
