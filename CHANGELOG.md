@@ -6,6 +6,7 @@
 - fixed unable to play another anim in `onAnimEnd()`
 - defer scene switches to happen only on frame end
 - (**BREAK**) removed `timer()` component
+- source moved to TypeScript
 
 ## v0.4.1
 - fixed `on("destroy")` handler getting called twice

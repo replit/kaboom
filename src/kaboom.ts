@@ -1399,8 +1399,40 @@ function originPt(orig) {
 	}
 }
 
+type TextFmtConf = {
+	font?: string,
+	size?: number,
+	pos?: Vec2,
+	scale?: Vec2 | number,
+	rot?: number,
+	color?: Color,
+	origin?: string,
+	width?: number,
+	z?: number,
+};
+
+type FormattedChar = {
+	tex: GfxTexture,
+	quad: Quad,
+	ch: string,
+	pos: Vec2,
+	scale: Vec2,
+	color: Color,
+	origin: string,
+	z: number,
+};
+
+type FormattedText = {
+	width: number,
+	height: number,
+	chars: FormattedChar[],
+};
+
 // format text and return a list of chars with their calculated position
-function fmtText(text, conf = {}) {
+function fmtText(
+	text: string,
+	conf: TextFmtConf = {}
+): FormattedText {
 
 	const fontName = conf.font || DEF_FONT;
 	const font = assets.fonts[fontName];
@@ -2391,7 +2423,7 @@ function reload(name: string) {
 	scene(name, game.scenes[name].init);
 }
 
-function layers(list, def) {
+function layers(list: string[], def?: string) {
 
 	const scene = curScene();
 
@@ -2411,7 +2443,7 @@ function layers(list, def) {
 
 }
 
-function camPos(...pos) {
+function camPos(...pos): Vec2 {
 	const cam = curScene().cam;
 	if (pos.length > 0) {
 		cam.pos = vec2(...pos);
@@ -2419,7 +2451,7 @@ function camPos(...pos) {
 	return cam.pos.clone();
 }
 
-function camScale(...scale) {
+function camScale(...scale): Vec2 {
 	const cam = curScene().cam;
 	if (scale.length > 0) {
 		cam.scale = vec2(...scale);
@@ -2427,7 +2459,7 @@ function camScale(...scale) {
 	return cam.scale.clone();
 }
 
-function camRot(angle) {
+function camRot(angle: number): number {
 	const cam = curScene().cam;
 	if (angle !== undefined) {
 		cam.angle = angle;
@@ -2435,12 +2467,12 @@ function camRot(angle) {
 	return cam.angle;
 }
 
-function camShake(intensity) {
+function camShake(intensity: number) {
 	const cam = curScene().cam;
 	cam.shake = intensity;
 }
 
-function camIgnore(layers) {
+function camIgnore(layers: string[]) {
 	const cam = curScene().cam;
 	cam.ignore = layers;
 }
@@ -3515,7 +3547,37 @@ function getAreaFromSize(w, h, o) {
 	);
 }
 
-function sprite(id, conf = {}) {
+type SpriteCompConf = {
+	noArea?: boolean,
+	quad?: Quad,
+	frame?: number,
+	animSpeed?: number,
+};
+
+type AddEvent = () => void;
+type DrawEvent = () => void;
+type UpdateEvent = () => void;
+type DestroyEvent = () => void;
+
+type SpriteComp = {
+	add: AddEvent,
+	draw: DrawEvent,
+	update: UpdateEvent,
+	width: number,
+	height: number,
+	animSpeed: number,
+	frame: number,
+	quad: Quad,
+	play: (anim: string, loop?: boolean) => void,
+	stop: () => void,
+	changeSprite: (id: string) => void,
+	numFrames: () => number,
+	curAnim: () => string,
+	onAnimPlay: (name: string, cb: () => void) => void,
+	onAnimEnd: (name: string, cb: () => void) => void,
+};
+
+function sprite(id: string, conf: SpriteCompConf = {}): SpriteComp {
 
 	let spr = assets.sprites[id];
 
@@ -3692,14 +3754,33 @@ function sprite(id, conf = {}) {
 
 }
 
+type TextComp = {
+	add: AddEvent,
+	draw: DrawEvent,
+	text: string,
+	textSize: number,
+	font: string,
+	width: number,
+	height: number,
+};
+
+type TextCompConf = {
+	noArea?: boolean,
+	font?: string,
+	width?: number,
+};
+
 // TODO: add area
-function text(t, size, conf = {}) {
+function text(t: string, size: number, conf: TextCompConf = {}): TextComp {
 
 	return {
 
 		text: t,
 		textSize: size,
 		font: conf.font,
+		// TODO: calc these at init
+		width: 0,
+		height: 0,
 
 		add() {
 			// add default area
@@ -3738,8 +3819,8 @@ function text(t, size, conf = {}) {
 				z: scene.layers[this.layer || scene.defLayer],
 			});
 
-			this.width = ftext.tw;
-			this.height = ftext.th;
+			this.width = ftext.width;
+			this.height = ftext.height;
 
 			drawFmtText(ftext);
 
@@ -3749,7 +3830,22 @@ function text(t, size, conf = {}) {
 
 }
 
-function rect(w, h, conf = {}) {
+type RectComp = {
+	add: AddEvent,
+	draw: DrawEvent,
+	width: number,
+	height: number,
+};
+
+type RectCompConf = {
+	noArea?: boolean,
+};
+
+function rect(
+	w: number,
+	h: number,
+	conf: RectCompConf = {}
+): RectComp {
 
 	return {
 
@@ -3781,7 +3877,11 @@ function rect(w, h, conf = {}) {
 
 }
 
-function solid() {
+type SolidComp = {
+	solid: boolean,
+};
+
+function solid(): SolidComp {
 	return {
 		solid: true,
 	};
@@ -3791,15 +3891,20 @@ function solid() {
 const DEF_MAX_VEL = 960;
 const DEF_JUMP_FORCE = 480;
 
-function body(conf = {}) {
+type BodyCompConf = {
+	jumpForce?: number,
+	maxVel?: number,
+};
+
+function body(conf: BodyCompConf = {}) {
 
 	let velY = 0;
 	let curPlatform = null;
-	const maxVel = conf.maxVel || DEF_MAX_VEL;
+	const maxVel = conf.maxVel ?? DEF_MAX_VEL;
 
 	return {
 
-		jumpForce: conf.jumpForce !== undefined ? conf.jumpForce : DEF_JUMP_FORCE,
+		jumpForce: conf.jumpForce ?? DEF_JUMP_FORCE,
 
 		update() {
 
@@ -3874,7 +3979,16 @@ debug     *                     .            ~       +    .
 
 */
 
-const debug = {
+type DebugState = {
+	paused: boolean,
+	timeScale: number,
+	showArea: boolean,
+	hoverInfo: boolean,
+	showLog: boolean,
+	logMax: number,
+};
+
+const debug: DebugState = {
 	paused: false,
 	timeScale: 1,
 	showArea: false,
@@ -3883,15 +3997,15 @@ const debug = {
 	logMax: 8,
 };
 
-function dbg() {
+function dbg(): DebugState {
 	return debug;
 }
 
-function fps() {
+function fps(): number {
 	return 1.0 / dt();
 }
 
-function objCount() {
+function objCount(): number {
 	const scene = curScene();
 	return scene.objs.size;
 }
@@ -3900,7 +4014,7 @@ function stepFrame() {
 	gameFrame(true);
 }
 
-function error(msg) {
+function error(msg: string) {
 	console.error(msg);
 	game.log.unshift({
 		type: "error",
@@ -3908,7 +4022,7 @@ function error(msg) {
 	});
 }
 
-function log(msg) {
+function log(msg: string) {
 	console.log(msg);
 	game.log.unshift({
 		type: "log",
@@ -3935,7 +4049,22 @@ helper    *                     .            ~       +    .
 
 */
 
-function addLevel(arr, conf = {}) {
+type LevelConf = {
+	width: number,
+	height: number,
+	pos?: Vec2,
+	any: (s: string) => void,
+};
+
+type Level = {
+	getPos: (p: Vec2) => Vec2,
+	spawn: (sym: string, p: Vec2) => void,
+	width: () => number,
+	height: () => number,
+	destroy: () => void,
+};
+
+function addLevel(map: string[], conf: LevelConf): Level {
 
 	const objs = [];
 	const offset = vec2(conf.pos);
@@ -3951,7 +4080,7 @@ function addLevel(arr, conf = {}) {
 			);
 		},
 
-		spawn(sym, p) {
+		spawn(sym: string, p: Vec2) {
 
 			const comps = (() => {
 				if (Array.isArray(sym)) {
@@ -4017,7 +4146,7 @@ function addLevel(arr, conf = {}) {
 		},
 
 		height() {
-			return arr.length * conf.height;
+			return map.length * conf.height;
 		},
 
 		destroy() {
@@ -4028,15 +4157,13 @@ function addLevel(arr, conf = {}) {
 
 	};
 
-	arr.forEach((row, i) => {
+	map.forEach((row, i) => {
 
-		if (typeof(row) === "string") {
-			row = row.split("");
-		}
+		const syms = row.split("");
 
-		longRow = Math.max(row.length, longRow);
+		longRow = Math.max(syms.length, longRow);
 
-		row.forEach((sym, j) => {
+		syms.forEach((sym, j) => {
 			level.spawn(sym, vec2(j, i));
 		});
 
