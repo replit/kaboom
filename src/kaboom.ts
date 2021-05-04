@@ -1572,6 +1572,21 @@ type AudioPlayConf = {
 	detune?: number,
 };
 
+type AudioPlay = {
+	stop: () => void,
+	resume: () => void,
+	pause: () => void,
+	paused: () => boolean,
+	stopped: () => boolean,
+	speed: (s: number) => number,
+	detune: (d: number) => number,
+	volume: (v: number) => number,
+	time: () => number,
+	duration: () => number,
+	loop: () => void,
+	unloop: () => void,
+};
+
 // plays a sound, returns a control handle
 function play(
 	id,
@@ -1581,7 +1596,7 @@ function play(
 		speed: 1,
 		detune: 0,
 	},
-) {
+): AudioPlay {
 
 	const sound = assets.sounds[id];
 
@@ -1604,24 +1619,33 @@ function play(
 	let paused = false;
 	let stopped = false;
 	let speed = 1;
+	let startTime = audio.ctx.currentTime;
+	let stoppedTime = null;
+	let emptyTime = 0;
 
 	const handle = {
 
 		stop() {
 			srcNode.stop();
 			stopped = true;
+			stoppedTime = audio.ctx.currentTime;
 		},
 
 		resume() {
 			if (paused) {
 				srcNode.playbackRate.value = speed;
 				paused = false;
+				if (stoppedTime) {
+					emptyTime += audio.ctx.currentTime - stoppedTime;
+					stoppedTime = null;
+				}
 			}
 		},
 
 		pause() {
 			srcNode.playbackRate.value = 0;
 			paused = true;
+			stoppedTime = audio.ctx.currentTime;
 		},
 
 		paused() {
@@ -1665,6 +1689,14 @@ function play(
 
 		unloop() {
 			srcNode.loop = false;
+		},
+
+		duration() {
+			return sound.duration;
+		},
+
+		time() {
+			return (stoppedTime ?? audio.ctx.currentTime) - startTime - emptyTime;
 		},
 
 	};

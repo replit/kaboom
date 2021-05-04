@@ -50,6 +50,7 @@ scene("main", () => {
 		"ui",
 	], "game");
 
+	volume(0.5);
 	camIgnore("ui");
 
 	function health(hp) {
