@@ -1,32 +1,3 @@
-/*
-
-kaboom.js
-v0.4.1 "Multiboom"
-
-a JavaScript game programming library
-
-= Author
-tga <tga@space55.xyz>
-
-= License
-
-Copyright (C) 2021 Replit
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program. If not, see <https://www.gnu.org/licenses/>.
-
-*/
-
 type KaboomPlugin = (k: KaboomCtx) => Record<string, any>;
 
 type KaboomConf = {
@@ -90,6 +61,10 @@ import {
 } from "./game";
 
 import {
+	loggerInit,
+} from "./logger";
+
+import {
 	deepCopy,
 } from "./utils";
 
@@ -133,12 +108,17 @@ const debug: DebugState = {
 	timeScale: 1,
 	showArea: false,
 	hoverInfo: false,
-	showLog: false,
+	showLog: true,
 	logMax: 8,
 };
 
 // app system init
 const app: AppCtx = {
+	canvas: gconf.canvas ?? (() => {
+		const canvas = document.createElement("canvas");
+		(gconf.root ?? document.body).appendChild(canvas);
+		return canvas;
+	})(),
 	keyStates: {},
 	charInputted: [],
 	mouseState: "up",
@@ -147,7 +127,7 @@ const app: AppCtx = {
 	realTime: 0,
 	skipTime: false,
 	dt: 0.0,
-	scale: 1,
+	scale: gconf.scale ?? 1,
 	isTouch: false,
 };
 
@@ -178,16 +158,6 @@ const preventDefaultKeys = [
 	"f10",
 	"f11",
 ];
-
-app.canvas = gconf.canvas;
-
-if (!app.canvas) {
-	app.canvas = document.createElement("canvas");
-	const root = gconf.root || document.body;
-	root.appendChild(app.canvas);
-}
-
-app.scale = gconf.scale || 1;
 
 if (gconf.fullscreen) {
 	app.canvas.width = window.innerWidth;
@@ -297,9 +267,15 @@ if (gconf.debug) {
 	debug.showLog = true;
 }
 
-const gfx = gfxInit(gconf, gl);
+const gfx = gfxInit(gl, {
+	clearColor: ((c) => rgba(c[0], c[1], c[2], c[3]))(gconf.clearColor ?? [0, 0, 0, 1]),
+	scale: gconf.scale,
+});
 const audio = audioInit();
 const assets = assetsInit(gfx, audio);
+const logger = loggerInit(gfx, assets, {
+	max: debug.logMax,
+});
 
 function play(id: string, conf: AudioPlayConf = {}): AudioPlay {
 	const sound = assets.sounds[id];
@@ -445,13 +421,7 @@ type Game = {
 	scenes: Record<string, Scene>,
 	curScene: string | null,
 	nextScene: SceneSwitch | null,
-	log: Log[],
 };
-
-type Log = {
-	type: "log" | "error",
-	msg: string,
-}
 
 type SceneSwitch = {
 	name: string,
@@ -526,7 +496,6 @@ const game: Game = {
 	scenes: {},
 	curScene: null,
 	nextScene: null,
-	log: [],
 };
 
 // start describing a scene (this should be called before start())
@@ -598,37 +567,37 @@ function regDebugInputs() {
 
 	keyPress("`", () => {
 		dbg.showLog = !dbg.showLog;
-		log(`show log: ${dbg.showLog ? "on" : "off"}`);
+		logger.info(`show log: ${dbg.showLog ? "on" : "off"}`);
 	});
 
 	keyPress("f1", () => {
 		dbg.showArea = !dbg.showArea;
-		log(`show area: ${dbg.showArea ? "on" : "off"}`);
+		logger.info(`show area: ${dbg.showArea ? "on" : "off"}`);
 	});
 
 	keyPress("f2", () => {
 		dbg.hoverInfo = !dbg.hoverInfo;
-		log(`hover info: ${dbg.hoverInfo ? "on" : "off"}`);
+		logger.info(`hover info: ${dbg.hoverInfo ? "on" : "off"}`);
 	});
 
 	keyPress("f8", () => {
 		dbg.paused = !dbg.paused;
-		log(`${dbg.paused ? "paused" : "unpaused"}`);
+		logger.info(`${dbg.paused ? "paused" : "unpaused"}`);
 	});
 
 	keyPress("f7", () => {
 		dbg.timeScale = clamp(dbg.timeScale - 0.2, 0, 2);
-		log(`time scale: ${dbg.timeScale.toFixed(1)}`);
+		logger.info(`time scale: ${dbg.timeScale.toFixed(1)}`);
 	});
 
 	keyPress("f9", () => {
 		dbg.timeScale = clamp(dbg.timeScale + 0.2, 0, 2);
-		log(`time scale: ${dbg.timeScale.toFixed(1)}`);
+		logger.info(`time scale: ${dbg.timeScale.toFixed(1)}`);
 	});
 
 	keyPress("f10", () => {
 		stepFrame();
-		log(`stepped frame`);
+		logger.info(`stepped frame`);
 	});
 
 }
@@ -647,13 +616,12 @@ function goSync(name: string, ...args) {
 	const scene = game.scenes[name];
 	if (!scene) {
 		throw new Error(`scene not found: '${name}'`);
-		return;
 	}
 	if (!scene.initialized) {
 		try {
 			scene.init(...args);
 		} catch (e) {
-			error(e.stack);
+			logger.error(e.stack);
 		}
 		if (gconf.debug) {
 			regDebugInputs();
@@ -666,7 +634,6 @@ function goSync(name: string, ...args) {
 function reload(name: string) {
 	if (!game.scenes[name]) {
 		throw new Error(`scene not found: '${name}'`);
-		return;
 	}
 	scene(name, game.scenes[name].init);
 }
@@ -761,7 +728,6 @@ function add(comps: CompList): GameObj {
 
 			if (type !== "object") {
 				throw new Error(`invalid comp type: ${type}`);
-				return;
 			}
 
 			// multi comps
@@ -1111,8 +1077,6 @@ function gravity(g?: number): number {
 	return scene.gravity;
 }
 
-const LOG_TIME = 6;
-
 // TODO: cleaner pause logic
 function gameFrame(ignorePause?: boolean) {
 
@@ -1120,7 +1084,6 @@ function gameFrame(ignorePause?: boolean) {
 
 	if (!scene) {
 		throw new Error(`scene not found: '${game.curScene}'`);
-		return;
 	}
 
 	const doUpdate = ignorePause || !debug.paused;
@@ -1191,60 +1154,6 @@ function gameFrame(ignorePause?: boolean) {
 
 }
 
-// TODO: make log and progress bar fixed size independent of global scale
-function drawLog() {
-
-	if (game.log.length > debug.logMax) {
-		game.log = game.log.slice(0, debug.logMax);
-	}
-
-	const pos = vec2(0, height());
-
-	if (debug.showLog) {
-		// ...
-	}
-
-	const showingLogs = game.log.filter((log) => {
-		if (debug.showLog) {
-			return true;
-		} else {
-			return log.type === "error";
-		}
-	});
-
-	showingLogs.forEach((log, i) => {
-
-		const alpha = map(i, 0, debug.logMax, 1, 0.2);
-		const alpha2 = map(i, 0, debug.logMax, 0.7, 0.2);
-
-		const col = (() => {
-			switch (log.type) {
-				case "log": return rgba(1, 1, 1, alpha);
-				case "error": return rgba(1, 0, 0.5, alpha);
-			}
-		})();
-
-		const font = assets.fonts[DEF_FONT];
-		const ftext = gfx.fmtText(log.msg, font, {
-			pos: pos,
-			origin: "botleft",
-			color: col,
-			z: 1,
-		});
-
-		gfx.drawRect(pos, ftext.width, ftext.height, {
-			origin: "botleft",
-			color: rgba(0, 0, 0, alpha2),
-			z: 1,
-		});
-
-		gfx.drawFmtText(ftext);
-		pos.y -= ftext.height;
-
-	});
-
-}
-
 // TODO: put main event loop in app module
 // start the game with a scene
 function start(name: string, ...args) {
@@ -1295,7 +1204,6 @@ function start(name: string, ...args) {
 
 			if (!scene) {
 				throw new Error(`scene not found: '${game.curScene}'`);
-				return;
 			}
 
 			for (const e of scene.events.charInput) {
@@ -1348,11 +1256,11 @@ function start(name: string, ...args) {
 			try {
 				gameFrame();
 			} catch (e) {
-				error(e.stack);
+				logger.error(e.stack);
 				stopped = true;
 			}
 
-			drawLog();
+			logger.draw();
 
 			for (const k in app.keyStates) {
 				app.keyStates[k] = processBtnState(app.keyStates[k]);
@@ -1495,7 +1403,7 @@ function area(p1, p2) {
 				return;
 			}
 
-			const font = assets.fonts[DEF_FONT];
+			const font = assets.defFont();
 			let width = 2;
 			const color = rgba(0, 1, 1, 1);
 			const hovered = this.isHovered();
@@ -1840,7 +1748,6 @@ function sprite(id: string, conf: SpriteCompConf = {}): SpriteComp {
 
 	if (!spr) {
 		throw new Error(`sprite not found: "${id}"`);
-		return;
 	}
 
 	const q = { ...spr.frames[0] };
@@ -1922,7 +1829,6 @@ function sprite(id: string, conf: SpriteCompConf = {}): SpriteComp {
 
 			if (!anim) {
 				throw new Error(`anim not found: ${name}`);
-				return;
 			}
 
 			if (curAnim) {
@@ -2251,22 +2157,6 @@ function stepFrame() {
 	gameFrame(true);
 }
 
-function error(msg: string) {
-	console.error(msg);
-	game.log.unshift({
-		type: "error",
-		msg: msg,
-	});
-}
-
-function log(msg: string) {
-	console.log(msg);
-	game.log.unshift({
-		type: "log",
-		msg: msg,
-	});
-}
-
 type LevelConf = {
 	width: number,
 	height: number,
@@ -2493,8 +2383,8 @@ const lib: KaboomCtx = {
 	objCount,
 	fps,
 	stepFrame,
-	log,
-	error,
+	log: logger.info,
+	error: logger.error,
 	// level
 	addLevel,
 };

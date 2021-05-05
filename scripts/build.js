@@ -6,6 +6,7 @@ const common = {
 	sourcemap: true,
 	target: "es6",
 	minify: true,
+	keepNames: true,
 	loader: {
 		".png": "dataurl",
 		".glsl": "text",

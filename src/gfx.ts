@@ -181,7 +181,12 @@ function originPt(orig: Origin | Vec2): Vec2 {
 	}
 }
 
-type GfxMod = {
+type GfxConf = {
+	clearColor?: Color,
+	scale?: number,
+};
+
+type Gfx = {
 	width: () => number,
 	height: () => number,
 	makeTex: (data: GfxTextureData) => GfxTexture,
@@ -230,7 +235,7 @@ type GfxMod = {
 	pushMatrix: (m: Mat4) => void,
 };
 
-function gfxInit(gconf: KaboomConf, gl: WebGLRenderingContext): GfxMod {
+function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 
 	const mesh = makeBatchedMesh(65536, 65536);
 	const defProg = makeProgram(defVertSrc, defFragSrc);
@@ -248,9 +253,8 @@ function gfxInit(gconf: KaboomConf, gl: WebGLRenderingContext): GfxMod {
 		transformStack: [],
 	};
 
-	const c = gconf.clearColor ?? [0, 0, 0, 1];
-
-	gl.clearColor(c[0], c[1], c[2], c[3]);
+	const c = gconf.clearColor ?? rgba(0, 0, 0, 0);
+	gl.clearColor(c.r, c.g, c.b, c.a);
 	gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 	gl.enable(gl.DEPTH_TEST);
 	gl.enable(gl.BLEND);
@@ -855,12 +859,13 @@ function gfxInit(gconf: KaboomConf, gl: WebGLRenderingContext): GfxMod {
 }
 
 export {
+	Gfx,
+	GfxConf,
 	Vertex,
 	GfxFont,
 	GfxTexture,
 	GfxTextureData,
 	DrawTextureConf,
-	GfxMod,
 	Origin,
 	originPt,
 	gfxInit,

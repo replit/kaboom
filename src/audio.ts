@@ -25,13 +25,13 @@ type AudioPlay = {
 	unloop: () => void,
 };
 
-type AudioMod = {
+type Audio = {
 	ctx: () => AudioContext,
 	volume: (v: number) => number,
 	play: (sound: AudioBuffer, conf?: AudioPlayConf) => AudioPlay,
 };
 
-function audioInit(): AudioMod {
+function audioInit(): Audio {
 
 	const ctx = new (window.AudioContext || window.webkitAudioContext)();
 	const masterGain = ctx.createGain();
@@ -176,7 +176,7 @@ function audioInit(): AudioMod {
 }
 
 export {
-	AudioMod,
+	Audio,
 	AudioPlayConf,
 	AudioPlay,
 	audioInit,

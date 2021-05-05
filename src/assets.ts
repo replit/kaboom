@@ -4,14 +4,14 @@ import {
 } from "./math";
 
 import {
-	GfxMod,
+	Gfx,
 	GfxFont,
 	GfxTexture,
 	GfxTextureData,
 } from "./gfx";
 
 import {
-	AudioMod,
+	Audio,
 } from "./audio";
 
 import unsciiSrc from "./unscii_8x8.png";
@@ -38,6 +38,32 @@ type SpriteData = {
 type SoundData = AudioBuffer;
 type FontData = GfxFont;
 
+type Assets = {
+	loadRoot: (path: string) => string,
+	loadSprite: (
+		name: string,
+		src: SpriteLoadSrc,
+		conf?: SpriteLoadConf,
+	) => Promise<SpriteData>,
+	loadSound: (
+		name: string,
+		src: string,
+	) => Promise<SoundData>,
+	loadFont: (
+		name: string,
+		src: string,
+		gw: number,
+		gh: number,
+		chars?: string,
+	) => Promise<FontData>,
+	loadProgress: () => number,
+	addLoader: (prom: Promise<any>) => void,
+	defFont: () => FontData,
+	sprites: Record<string, SpriteData>,
+	fonts: Record<string, FontData>,
+	sounds: Record<string, SoundData>,
+};
+
 const ASCII_CHARS = " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~";
 const DEF_FONT = "unscii";
 
@@ -58,7 +84,7 @@ function isDataUrl(src: string): boolean {
 	return src.startsWith("data:");
 }
 
-function assetsInit(gfx: GfxMod, audio: AudioMod) {
+function assetsInit(gfx: Gfx, audio: Audio): Assets {
 
 	let lastLoaderID = 0;
 	let root = "";
@@ -264,6 +290,10 @@ function assetsInit(gfx: GfxMod, audio: AudioMod) {
 
 	}
 
+	function defFont(): FontData {
+		return fonts[DEF_FONT];
+	}
+
 	// default font unscii http://pelulamu.net/unscii/
 	loadFont(
 		DEF_FONT,
@@ -279,6 +309,7 @@ function assetsInit(gfx: GfxMod, audio: AudioMod) {
 		loadFont,
 		loadProgress,
 		addLoader,
+		defFont,
 		sprites,
 		fonts,
 		sounds,
@@ -287,6 +318,7 @@ function assetsInit(gfx: GfxMod, audio: AudioMod) {
 }
 
 export {
+	Assets,
 	SpriteLoadSrc,
 	SpriteLoadConf,
 	SpriteData,
