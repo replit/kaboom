@@ -84,6 +84,7 @@ type KaboomCtx = {
 	camShake: (n: number) => void,
 	camIgnore: (layers: string[]) => void,
 	gravity: (g: number) => number,
+	sync: (obj: GameObj) => void,
 	sceneData: () => any,
 	// comps
 	pos,

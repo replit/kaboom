@@ -50,6 +50,12 @@ import {
 
 import KaboomCtx from "./ctx";
 
+// TODO
+type LogLevel =
+	"info"
+	| "error"
+	;
+
 type KaboomPlugin = (k: KaboomCtx) => Record<string, any>;
 
 type KaboomConf = {
@@ -63,6 +69,8 @@ type KaboomConf = {
 	root?: HTMLElement,
 	clearColor?: number[],
 	logMax?: number,
+	logLevel?: LogLevel,
+	socket?: string,
 	global?: boolean,
 	plugins?: Array<KaboomPlugin>,
 };
@@ -75,6 +83,7 @@ module.exports = (gconf: KaboomConf = {
 	debug: false,
 	crisp: false,
 	canvas: null,
+	socket: null,
 	root: document.body,
 }): KaboomCtx => {
 
@@ -167,6 +176,7 @@ function drawText(
 }
 
 // TODO: comp registry?
+// TODO: comps assert required other comps
 // TODO: in-source doc on the component system
 
 const DEF_GRAVITY = 980;
@@ -468,6 +478,25 @@ function camIgnore(layers: string[]) {
 	cam.ignore = layers;
 }
 
+//  type CompDef = {
+//  	id: string,
+//  	require: string[],
+//  	def: () => Comp,
+//  };
+
+//  const compReg: Record<string, CompDef> = {};
+
+//  function defComp(id: string, require: string[], def: () => Comp) {
+//  	if (compReg[id]) {
+//  		throw new Error(`comp already exists: ${id}`);
+//  	}
+//  	compReg[id] = {
+//  		id: id,
+//  		require,
+//  		def,
+//  	};
+//  }
+
 function add(comps: Comp[]): GameObj {
 
 	const obj: GameObj = {
@@ -565,20 +594,24 @@ function add(comps: Comp[]): GameObj {
 		},
 
 		trigger(event, ...args) {
+
 			if (this._events[event]) {
 				for (const f of this._events[event]) {
-					f(...args);
+					f.call(this, ...args);
 				}
 			}
+
 			const scene = curScene();
 			const events = scene.events[event];
+
 			if (events) {
 				for (const ev of events) {
 					if (this.is(ev.tag)) {
-						ev.cb(this);
+						ev.cb(this, ...args);
 					}
 				}
 			}
+
 		},
 
 		rmTag(t) {
@@ -1055,6 +1088,36 @@ function start(name: string, ...args: any[]) {
 
 	});
 
+}
+
+let net: WebSocket | null = null;
+
+if (gconf.socket) {
+	net = new WebSocket(gconf.socket);
+	net.onopen = () => {
+		logger.info(`connected to ${gconf.socket}`);
+	};
+	net.onerror = () => {
+		logger.error(`failed to connect to ${gconf.socket}`)
+	};
+	net.onmessage = (e) => {
+		const msg = JSON.parse(e.data);
+		switch (msg.type) {
+			case "SYNC_OBJ":
+				// TODO
+				break;
+		}
+	};
+}
+
+function sync(obj: GameObj) {
+	if (!net) {
+		throw new Error("not connected to a network");
+	}
+	net.send(JSON.stringify({
+		type: "SYNC_OBJ",
+		data: obj,
+	}));
 }
 
 type AddEvent = () => void;
@@ -2107,6 +2170,7 @@ const lib: KaboomCtx = {
 	get,
 	every,
 	revery,
+	sync,
 	// comps
 	pos,
 	scale,
