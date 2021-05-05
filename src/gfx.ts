@@ -549,7 +549,7 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 		const rows = tex.height / gh;
 		const qw = 1.0 / cols;
 		const qh = 1.0 / rows;
-		const map = {};
+		const map: Record<string, Vec2> = {};
 		const charMap = chars.split("").entries();
 
 		for (const [i, ch] of charMap) {

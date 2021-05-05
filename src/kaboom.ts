@@ -179,7 +179,7 @@ type GameObj = {
 	paused: boolean,
 	exists: () => boolean,
 	is: (tag: string | string[]) => boolean,
-	use: (comp: Comp | Comp[] | string) => void,
+	use: (comp: Comp) => void,
 	action: (cb: () => void) => void,
 	on: (ev: string, cb: () => void) => void,
 	trigger: (ev: string, ...args: any[]) => void,
@@ -386,7 +386,7 @@ function go(name: string, ...args) {
 	};
 }
 
-function goSync(name: string, ...args) {
+function goSync(name: string, ...args: any[]) {
 	reload(name);
 	game.curScene = name;
 	const scene = game.scenes[name];
@@ -486,7 +486,7 @@ function add(comps: Comp[]): GameObj {
 		},
 
 		// use a comp
-		use(comp: Comp | Comp[] | string) {
+		use(comp: Comp) {
 
 			if (comp === undefined) {
 				return;
@@ -994,7 +994,7 @@ function handleEvents() {
 
 // TODO: put main event loop in app module
 // start the game with a scene
-function start(name: string, ...args) {
+function start(name: string, ...args: any[]) {
 
 	app.run(() => {
 
@@ -1137,7 +1137,7 @@ function layer(z) {
 		debugInfo() {
 			const scene = curScene();
 			return {
-				layer: this.layer || scene.defLayer,
+				layer: this.layer ?? scene.defLayer,
 			};
 		},
 	};
@@ -1175,6 +1175,11 @@ type AreaComp = {
 	resolve: () => void,
 };
 
+function isSameLayer(o1: GameObj, o2: GameObj): boolean {
+	const scene = curScene();
+	return (o1.layer ?? scene.defLayer) === (o2.layer ?? scene.defLayer);
+}
+
 // TODO: active flag
 // TODO: tell which size collides
 // TODO: dynamic update when size change
@@ -1191,6 +1196,8 @@ function area(p1: Vec2, p2: Vec2): AreaComp {
 		},
 
 		draw() {
+
+			// TODO: put this to higher level
 
 			if (!debug.inspect) {
 				return;
@@ -1215,7 +1222,7 @@ function area(p1: Vec2, p2: Vec2): AreaComp {
 				z: 0.9,
 			});
 
-			const mpos = mousePos(this.layer || curScene().defLayer);
+			const mpos = mousePos(this.layer ?? curScene().defLayer);
 
 			if (hovered) {
 
@@ -1287,7 +1294,7 @@ function area(p1: Vec2, p2: Vec2): AreaComp {
 		},
 
 		isHovered() {
-			return this.hasPt(mousePos(this.layer || curScene().defLayer));
+			return this.hasPt(mousePos(this.layer ?? curScene().defLayer));
 		},
 
 		isCollided(other) {
@@ -1296,7 +1303,7 @@ function area(p1: Vec2, p2: Vec2): AreaComp {
 				return false;
 			}
 
-			if (this.layer !== other.layer) {
+			if (!isSameLayer(this, other)) {
 				return false;
 			}
 
@@ -1313,7 +1320,7 @@ function area(p1: Vec2, p2: Vec2): AreaComp {
 				return false;
 			}
 
-			if (this.layer !== other.layer) {
+			if (!isSameLayer(this, other)) {
 				return false;
 			}
 
@@ -1379,7 +1386,7 @@ function area(p1: Vec2, p2: Vec2): AreaComp {
 					return;
 				}
 
-				if (this.layer !== other.layer) {
+				if (!isSameLayer(this, other)) {
 					return;
 				}
 
@@ -1588,7 +1595,7 @@ function sprite(id: string, conf: SpriteCompConf = {}): SpriteComp {
 				frame: this.frame,
 				origin: this.origin,
 				quad: this.quad,
-				z: scene.layers[this.layer || scene.defLayer],
+				z: scene.layers[this.layer ?? scene.defLayer],
 			});
 
 		},
@@ -1737,7 +1744,7 @@ function text(t: string, size: number, conf: TextCompConf = {}): TextComp {
 					origin: this.origin,
 					color: this.color,
 					width: conf.width,
-					z: scene.layers[this.layer || scene.defLayer],
+					z: scene.layers[this.layer ?? scene.defLayer],
 				});
 				this.width = ftext.width / (this.scale?.x || 1);
 				this.height = ftext.height / (this.scale?.y || 1);
@@ -1758,7 +1765,7 @@ function text(t: string, size: number, conf: TextCompConf = {}): TextComp {
 				origin: this.origin,
 				color: this.color,
 				width: conf.width,
-				z: scene.layers[this.layer || scene.defLayer],
+				z: scene.layers[this.layer ?? scene.defLayer],
 			});
 
 			this.width = ftext.width;
@@ -1810,7 +1817,7 @@ function rect(
 				rot: this.angle,
 				color: this.color,
 				origin: this.origin,
-				z: scene.layers[this.layer || scene.defLayer],
+				z: scene.layers[this.layer ?? scene.defLayer],
 			});
 
 		},

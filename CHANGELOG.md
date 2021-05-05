@@ -17,6 +17,7 @@
 - (**BREAK**) merged `debug.hoverInfo` and `debug.showArea` into `debug.inspect`
 - (**BREAK**) removed `sound.resume()` in favor of `sound.play()`
 - fixed `sound.pause()` to work on firefox
+- fixed collisions not treating explicit default layer the same as implicit default layer
 
 ## v0.4.1
 - fixed `on("destroy")` handler getting called twice
