@@ -68,7 +68,7 @@ type Vertex = {
 	color: Color,
 };
 
-type GfxState = {
+type GfxCtx = {
 	drawCalls: number,
 	mesh: GfxBatchedMesh,
 	defProg: GfxProgram,
@@ -241,7 +241,7 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 		new ImageData(new Uint8ClampedArray([ 255, 255, 255, 255, ]), 1, 1)
 	);
 
-	const gfx: GfxState = {
+	const gfx: GfxCtx = {
 		drawCalls: 0,
 		mesh: mesh,
 		defProg: defProg,

@@ -37,7 +37,7 @@ detune: ${music.detune()}
 	keyPress("space", () => {
 
 		if (music.paused()) {
-			music.resume();
+			music.play();
 		} else {
 			music.pause();
 		}

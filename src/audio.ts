@@ -11,8 +11,8 @@ type AudioPlayConf = {
 };
 
 type AudioPlay = {
+	play: (seek?: number) => void,
 	stop: () => void,
-	resume: () => void,
 	pause: () => void,
 	paused: () => boolean,
 	stopped: () => boolean,
@@ -58,7 +58,8 @@ function audioInit(): Audio {
 		},
 	): AudioPlay {
 
-		const srcNode = ctx.createBufferSource();
+		let stopped = false;
+		let srcNode = ctx.createBufferSource();
 
 		srcNode.buffer = sound;
 		srcNode.loop = conf.loop ? true : false;
@@ -68,44 +69,55 @@ function audioInit(): Audio {
 		srcNode.connect(gainNode);
 		gainNode.connect(masterGain);
 
-		const seek = conf.seek ?? 0;
-		let paused = false;
-		let stopped = false;
-		let speed = 1;
-		const startTime = ctx.currentTime;
-		let stoppedTime = null;
-		let emptyTime = 0;
+		const pos = conf.seek ?? 0;
 
-		srcNode.start(0, seek);
+		srcNode.start(0, pos);
+
+		let startTime = ctx.currentTime - pos;
+		let stopTime: number | null = null;
 
 		const handle = {
 
 			stop() {
 				srcNode.stop();
 				stopped = true;
-				stoppedTime = ctx.currentTime;
+				stopTime = ctx.currentTime;
 			},
 
-			resume() {
-				if (paused) {
-					srcNode.playbackRate.value = speed;
-					paused = false;
-					if (stoppedTime) {
-						emptyTime += ctx.currentTime - stoppedTime;
-						stoppedTime = null;
-					}
+			play(seek?: number) {
+
+				if (!stopped) {
+					return;
 				}
+
+				const oldNode = srcNode;
+
+				srcNode = ctx.createBufferSource();
+				srcNode.buffer = oldNode.buffer;
+				srcNode.loop = oldNode.loop;
+				srcNode.playbackRate.value = oldNode.playbackRate.value;
+
+				if (srcNode.detune) {
+					srcNode.detune.value = oldNode.detune.value;
+				}
+
+				srcNode.connect(gainNode);
+
+				const pos = seek ?? this.time();
+
+				srcNode.start(0, pos);
+				startTime = ctx.currentTime - pos;
+				stopped = false;
+				stopTime = null;
+
 			},
 
 			pause() {
-				// TODO: doesn't work on FireFox
-				srcNode.playbackRate.value = 0;
-				paused = true;
-				stoppedTime = ctx.currentTime;
+				this.stop();
 			},
 
 			paused(): boolean {
-				return paused;
+				return stopped;
 			},
 
 			stopped(): boolean {
@@ -114,12 +126,9 @@ function audioInit(): Audio {
 
 			speed(val?: number): number {
 				if (val !== undefined) {
-					speed = clamp(val, 0, 2);
-					if (!paused) {
-						srcNode.playbackRate.value = speed;
-					}
+					srcNode.playbackRate.value = clamp(val, 0, 2);
 				}
-				return speed;
+				return srcNode.playbackRate.value;
 			},
 
 			detune(val?: number): number {
@@ -152,7 +161,11 @@ function audioInit(): Audio {
 			},
 
 			time(): number {
-				return (stoppedTime ?? ctx.currentTime) - startTime - emptyTime + seek;
+				if (stopped && stopTime) {
+					return stopTime - startTime;
+				} else {
+					return ctx.currentTime - startTime;
+				}
 			},
 
 		};

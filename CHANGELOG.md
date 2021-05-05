@@ -15,6 +15,8 @@
 - (**BREAK**) removed `onAnimPlay()` and `onAnimEnd()` in favor of generic event `on("animEnd", (anim: string) => {})`
 - (**BREAK**) removed `obj.addTag()` in favor of `obj.use()`
 - (**BREAK**) merged `debug.hoverInfo` and `debug.showArea` into `debug.inspect`
+- (**BREAK**) removed `sound.resume()` in favor of `sound.play()`
+- fixed `sound.pause()` to work on firefox
 
 ## v0.4.1
 - fixed `on("destroy")` handler getting called twice
