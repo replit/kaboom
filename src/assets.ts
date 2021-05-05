@@ -17,8 +17,8 @@ import {
 import unsciiSrc from "./unscii_8x8.png";
 
 type SpriteAnim = {
-	start: number,
-	end: number,
+	from: number,
+	to: number,
 };
 
 type SpriteLoadConf = {
@@ -70,7 +70,7 @@ const DEF_FONT = "unscii";
 function loadImg(src: string): Promise<HTMLImageElement> {
 	const img = new Image();
 	img.src = src;
-	return new Promise((resolve, reject) => {
+	return new Promise<HTMLImageElement>((resolve, reject) => {
 		img.onload = () => {
 			resolve(img);
 		};
@@ -140,14 +140,15 @@ function assetsInit(gfx: Gfx, audio: Audio): Assets {
 		chars: string = ASCII_CHARS,
 	): Promise<FontData> {
 
-		const loader = new Promise((resolve, reject) => {
+		const loader = new Promise<FontData>((resolve, reject) => {
 
 			const path = isDataUrl(src) ? src : root + src;
 
 			loadImg(path)
 				.then((img) => {
-					fonts[name] = gfx.makeFont(gfx.makeTex(img), gw, gh, chars);
-					resolve(fonts[name]);
+					const font = gfx.makeFont(gfx.makeTex(img), gw, gh, chars);
+					fonts[name] = font;
+					resolve(font);
 				})
 				.catch(() => {
 					reject(`failed to load font '${name}' from '${src}'`);
@@ -215,7 +216,7 @@ function assetsInit(gfx: Gfx, audio: Audio): Assets {
 
 		}
 
-		const loader = new Promise((resolve, reject) => {
+		const loader = new Promise<SpriteData>((resolve, reject) => {
 
 			// from url
 			if (typeof(src) === "string") {
@@ -234,9 +235,7 @@ function assetsInit(gfx: Gfx, audio: Audio): Assets {
 				return;
 
 			} else {
-
 				resolve(loadRawSprite(name, src, conf));
-
 			}
 
 		});
@@ -253,7 +252,7 @@ function assetsInit(gfx: Gfx, audio: Audio): Assets {
 		src: string,
 	): Promise<SoundData> {
 
-		const loader = new Promise((resolve, reject) => {
+		const loader = new Promise<SoundData>((resolve, reject) => {
 
 			// from url
 			if (typeof(src) === "string") {

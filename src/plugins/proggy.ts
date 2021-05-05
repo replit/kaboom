@@ -4,6 +4,10 @@
 import KaboomCtx from "../ctx";
 import proggySrc from "./proggy_7x13.png";
 
+import {
+	FontData,
+} from "../assets";
+
 module.exports = (k: KaboomCtx) => {
 
 function loadProggy(): Promise<FontData> {

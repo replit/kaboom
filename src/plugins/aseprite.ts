@@ -1,13 +1,16 @@
 // load aseprite spritesheet
 
 import KaboomCtx from "../ctx";
-import SpriteData from "../assets";
+
+import {
+	SpriteData,
+} from "../assets";
 
 module.exports = (k: KaboomCtx) => {
 
 function loadAseprite(name: string, imgSrc: string, jsonSrc: string) {
 
-	const loader = new Promise((resolve, reject) => {
+	const loader = new Promise<SpriteData>((resolve, reject) => {
 
 			const jsonPath = k.loadRoot() + jsonSrc;
 
@@ -28,7 +31,10 @@ function loadAseprite(name: string, imgSrc: string, jsonSrc: string) {
 								);
 							});
 							for (const anim of data.meta.frameTags) {
-								sprite.anims[anim.name] = [anim.from, anim.to];
+								sprite.anims[anim.name] = {
+									from: anim.from,
+									to: anim.to,
+								};
 							}
 							resolve(sprite);
 						})

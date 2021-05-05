@@ -10,6 +10,8 @@
 - added `duration()` and `time()` for the handle returned by `play()`
 - added optional `seek` field to the audio play conf `play([conf])`
 - (**BREAK**) `removeTag()` renamed to `rmTag()`
+- added `LoopHandle` returned by `loop()` that has a `stop()`
+- (**BREAK**) changed `SpriteAnim` from `[ from, to ]` to `{ from: number, to: number }`
 
 ## v0.4.1
 - fixed `on("destroy")` handler getting called twice

@@ -4,6 +4,10 @@
 import KaboomCtx from "../ctx";
 import cp437Src from "./CP437_9x16.png";
 
+import {
+	FontData,
+} from "../assets";
+
 module.exports = (k: KaboomCtx) => {
 
 function loadCP437(): Promise<FontData> {

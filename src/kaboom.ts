@@ -357,14 +357,6 @@ function screenshot(): string {
 	return app.canvas.toDataURL();
 }
 
-function width(): number {
-	return gfx.width();
-}
-
-function height(): number {
-	return gfx.height();
-}
-
 type DrawSpriteConf = {
 	frame?: number,
 	pos?: Vec2,
@@ -533,7 +525,7 @@ function scene(name: string, cb: (...args) => void) {
 
 		// cam
 		cam: {
-			pos: vec2(width() / 2, height() / 2),
+			pos: vec2(gfx.width() / 2, gfx.height() / 2),
 			scale: vec2(1, 1),
 			angle: 0,
 			shake: 0,
@@ -941,14 +933,32 @@ function wait(t: number, f?: () => void): Promise<null> {
 	});
 }
 
+type LoopHandle = {
+	stop: () => void,
+};
+
 // TODO: return control handle
 // add an event that's run every t seconds
-function loop(t: number, f: () => void) {
+function loop(t: number, f: () => void): LoopHandle {
+
+	let stopped = false;
+
 	const newF = () => {
+		if (stopped) {
+			return;
+		}
 		f();
 		wait(t, newF);
 	};
+
 	newF();
+
+	return {
+		stop() {
+			stopped = true;
+		},
+	};
+
 }
 
 function pushKeyEvent(e: string, k: string, f: () => void) {
@@ -1114,7 +1124,7 @@ function gameFrame(ignorePause?: boolean) {
 	}
 
 	// calculate camera matrix
-	const size = vec2(width(), height());
+	const size = vec2(gfx.width(), gfx.height());
 	const cam = scene.cam;
 	const shake = vec2FromAngle(rand(0, Math.PI * 2)).scale(cam.shake);
 
@@ -1189,9 +1199,9 @@ function start(name: string, ...args) {
 
 			} else {
 
-				const w = width() / 2;
+				const w = gfx.width() / 2;
 				const h = 12;
-				const pos = vec2(width() / 2, height() / 2).sub(vec2(w / 2, h / 2));
+				const pos = vec2(gfx.width() / 2, gfx.height() / 2).sub(vec2(w / 2, h / 2));
 
 				gfx.drawRectStroke(pos, w, h, { width: 2, });
 				gfx.drawRect(pos, w * progress, h);
@@ -1719,6 +1729,12 @@ type SpriteCompConf = {
 	animSpeed?: number,
 };
 
+type SpriteCompCurAnim = {
+	name: string,
+	loop: boolean,
+	timer: number,
+};
+
 type SpriteComp = {
 	add: AddEvent,
 	draw: DrawEvent,
@@ -1761,7 +1777,7 @@ function sprite(id: string, conf: SpriteCompConf = {}): SpriteComp {
 
 	const width = spr.tex.width * q.w;
 	const height = spr.tex.height * q.h;
-	let curAnim = null;
+	let curAnim: SpriteCompCurAnim | null = null;
 	const events = {};
 
 	return {
@@ -1810,9 +1826,9 @@ function sprite(id: string, conf: SpriteCompConf = {}): SpriteComp {
 			if (curAnim.timer >= this.animSpeed) {
 				// TODO: anim dir
 				this.frame++;
-				if (this.frame > anim[1]) {
+				if (this.frame > anim.to) {
 					if (curAnim.loop) {
-						this.frame = anim[0];
+						this.frame = anim.from;
 					} else {
 						this.frame--;
 						this.stop();
@@ -2291,8 +2307,8 @@ const lib: KaboomCtx = {
 	loadFont: assets.loadFont,
 	addLoader: assets.addLoader,
 	// query
-	width,
-	height,
+	width: gfx.width,
+	height: gfx.height,
 	dt,
 	time,
 	screenshot,

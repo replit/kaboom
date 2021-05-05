@@ -2,14 +2,17 @@
 // https://github.com/slmjkdbtl/pedit.js
 
 import KaboomCtx from "../ctx";
-import SpriteData from "../assets";
+
+import {
+	SpriteData,
+} from "../assets";
 
 module.exports = (k: KaboomCtx) => {
 
 function loadImg(src: string): Promise<HTMLImageElement> {
 	const img = new Image();
 	img.src = src;
-	return new Promise((resolve, reject) => {
+	return new Promise<HTMLImageElement>((resolve, reject) => {
 		img.onload = () => {
 			resolve(img);
 		};
@@ -21,7 +24,7 @@ function loadImg(src: string): Promise<HTMLImageElement> {
 
 function loadPedit(name: string, src: string): Promise<SpriteData> {
 
-	const loader = new Promise((resolve, reject) => {
+	const loader = new Promise<SpriteData>((resolve, reject) => {
 
 		fetch(k.loadRoot() + src)
 			.then((res) => {
@@ -36,7 +39,7 @@ function loadPedit(name: string, src: string): Promise<SpriteData> {
 
 				const ctx = canvas.getContext("2d");
 
-				images.forEach((img, i) => {
+				images.forEach((img: HTMLImageElement, i) => {
 					ctx.drawImage(img, 0, i * data.height);
 				});
 
