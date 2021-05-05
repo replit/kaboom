@@ -5,9 +5,9 @@
 	"homepage": "https://kaboomjs.com/",
 	"repository": "github:replit/kaboom",
 	"keywords": [
-		"game"
+		"game",
+		"gamedev"
 	],
-	"browser": "src/kaboom.js",
 	"files": [
 		"dist/*"
 	],
@@ -15,7 +15,7 @@
 		"dev": "node scripts/watch.js src node scripts/build.js",
 		"site": "cd site; node ../scripts/watch.js . node .",
 		"build": "node scripts/build.js",
-		"check": "tsc src/**/*.ts --noEmit --target esnext"
+		"check": "tsc --noEmit"
 	},
 	"devDependencies": {
 		"esbuild": "^0.11.18",
