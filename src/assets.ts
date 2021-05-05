@@ -303,7 +303,7 @@ function assetsInit(gfx: Gfx, audio: Audio, gconf: AssetsConf = {}): Assets {
 	}
 
 	function defFont(): FontData {
-		return fonts[DEF_FONT];
+		return assets.fonts[DEF_FONT];
 	}
 
 	// default font unscii http://pelulamu.net/unscii/
