@@ -61,11 +61,20 @@ type Assets = {
 		chars?: string,
 	) => Promise<FontData>,
 	loadProgress: () => number,
-	addLoader: (prom: Promise<any>) => void,
+	addLoader: <T>(prom: Promise<T>) => void,
 	defFont: () => FontData,
 	sprites: Record<string, SpriteData>,
 	fonts: Record<string, FontData>,
 	sounds: Record<string, SoundData>,
+};
+
+type AssetsCtx = {
+	lastLoaderID: number,
+	loadRoot: string,
+	loaders: Record<number, boolean>,
+	sprites: Record<string, SpriteData>,
+	sounds: Record<string, SoundData>,
+	fonts: Record<string, FontData>,
 };
 
 const ASCII_CHARS = " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~";
@@ -90,21 +99,23 @@ function isDataUrl(src: string): boolean {
 
 function assetsInit(gfx: Gfx, audio: Audio, gconf: AssetsConf = {}): Assets {
 
-	let lastLoaderID = 0;
-	let root = "";
-	const loaders: Record<number, boolean> = {};
-	const sprites: Record<string, SpriteData>= {};
-	const sounds: Record<string, SoundData> = {};
-	const fonts: Record<string, FontData> = {};
+	const assets: AssetsCtx = {
+		lastLoaderID: 0,
+		loadRoot: "",
+		loaders: {},
+		sprites: {},
+		sounds: {},
+		fonts: {},
+	};
 
 	function addLoader<T>(prom: Promise<T>) {
-		const id = lastLoaderID;
-		loaders[id] = false;
-		lastLoaderID++;
+		const id = assets.lastLoaderID;
+		assets.loaders[id] = false;
+		assets.lastLoaderID++;
 		prom
 			.catch(gconf.errHandler ?? console.error)
 			.finally(() => {
-				loaders[id] = true;
+				assets.loaders[id] = true;
 			});
 	}
 
@@ -114,9 +125,9 @@ function assetsInit(gfx: Gfx, audio: Audio, gconf: AssetsConf = {}): Assets {
 		let total = 0;
 		let loaded = 0;
 
-		for (const id in loaders) {
+		for (const id in assets.loaders) {
 			total += 1;
-			if (loaders[id]) {
+			if (assets.loaders[id]) {
 				loaded += 1;
 			}
 		}
@@ -128,9 +139,9 @@ function assetsInit(gfx: Gfx, audio: Audio, gconf: AssetsConf = {}): Assets {
 	// global load path prefix
 	function loadRoot(path: string): string {
 		if (path) {
-			root = path;
+			assets.loadRoot = path;
 		}
-		return root;
+		return assets.loadRoot;
 	}
 
 	// load a bitmap font to asset manager
@@ -144,12 +155,12 @@ function assetsInit(gfx: Gfx, audio: Audio, gconf: AssetsConf = {}): Assets {
 
 		const loader = new Promise<FontData>((resolve, reject) => {
 
-			const path = isDataUrl(src) ? src : root + src;
+			const path = isDataUrl(src) ? src : assets.loadRoot + src;
 
 			loadImg(path)
 				.then((img) => {
 					const font = gfx.makeFont(gfx.makeTex(img), gw, gh, chars);
-					fonts[name] = font;
+					assets.fonts[name] = font;
 					resolve(font);
 				})
 				.catch(() => {
@@ -212,7 +223,7 @@ function assetsInit(gfx: Gfx, audio: Audio, gconf: AssetsConf = {}): Assets {
 				anims: conf.anims || {},
 			};
 
-			sprites[name] = sprite;
+			assets.sprites[name] = sprite;
 
 			return sprite;
 
@@ -223,7 +234,7 @@ function assetsInit(gfx: Gfx, audio: Audio, gconf: AssetsConf = {}): Assets {
 			// from url
 			if (typeof(src) === "string") {
 
-				const path = isDataUrl(src) ? src : root + src;
+				const path = isDataUrl(src) ? src : assets.loadRoot + src;
 
 				loadImg(path)
 					.then((img) => {
@@ -259,7 +270,7 @@ function assetsInit(gfx: Gfx, audio: Audio, gconf: AssetsConf = {}): Assets {
 			// from url
 			if (typeof(src) === "string") {
 
-				fetch(root + src)
+				fetch(assets.loadRoot + src)
 					.then((res) => {
 						return res.arrayBuffer();
 					})
@@ -273,7 +284,7 @@ function assetsInit(gfx: Gfx, audio: Audio, gconf: AssetsConf = {}): Assets {
 						});
 					})
 					.then((buf: AudioBuffer) => {
-						sounds[name] = buf;
+						assets.sounds[name] = buf;
 						resolve(buf);
 					})
 					.catch(() => {
@@ -311,9 +322,9 @@ function assetsInit(gfx: Gfx, audio: Audio, gconf: AssetsConf = {}): Assets {
 		loadProgress,
 		addLoader,
 		defFont,
-		sprites,
-		fonts,
-		sounds,
+		sprites: assets.sprites,
+		fonts: assets.fonts,
+		sounds: assets.sounds,
 	};
 
 }

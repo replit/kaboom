@@ -16,6 +16,8 @@ import defFragSrc from "./frag.glsl";
 
 const DEF_ORIGIN = "topleft";
 const STRIDE = 9;
+const MAX_VERTS = 65536;
+const MAX_INDICES = 65536;
 
 type GfxBatchedMesh = {
 	vbuf: WebGLBuffer,
@@ -235,29 +237,34 @@ type Gfx = {
 
 function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 
-	const mesh = makeBatchedMesh(65536, 65536);
-	const defProg = makeProgram(defVertSrc, defFragSrc);
-	const emptyTex = makeTex(
-		new ImageData(new Uint8ClampedArray([ 255, 255, 255, 255, ]), 1, 1)
-	);
+	const gfx: GfxCtx = (() => {
 
-	const gfx: GfxCtx = {
-		drawCalls: 0,
-		mesh: mesh,
-		defProg: defProg,
-		defTex: emptyTex,
-		curTex: emptyTex,
-		transform: mat4(),
-		transformStack: [],
-	};
+		const mesh = makeBatchedMesh(MAX_VERTS, MAX_INDICES);
+		const defProg = makeProgram(defVertSrc, defFragSrc);
+		const emptyTex = makeTex(
+			new ImageData(new Uint8ClampedArray([ 255, 255, 255, 255, ]), 1, 1)
+		);
 
-	const c = gconf.clearColor ?? rgba(0, 0, 0, 0);
-	gl.clearColor(c.r, c.g, c.b, c.a);
-	gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-	gl.enable(gl.DEPTH_TEST);
-	gl.enable(gl.BLEND);
-	gl.depthFunc(gl.LEQUAL);
-	gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+		const c = gconf.clearColor ?? rgba(0, 0, 0, 0);
+
+		gl.clearColor(c.r, c.g, c.b, c.a);
+		gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+		gl.enable(gl.DEPTH_TEST);
+		gl.enable(gl.BLEND);
+		gl.depthFunc(gl.LEQUAL);
+		gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+
+		return {
+			drawCalls: 0,
+			mesh: mesh,
+			defProg: defProg,
+			defTex: emptyTex,
+			curTex: emptyTex,
+			transform: mat4(),
+			transformStack: [],
+		};
+
+	})();
 
 	// draw all cached vertices in the batched renderer
 	function flush() {

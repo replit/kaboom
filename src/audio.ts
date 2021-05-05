@@ -25,25 +25,49 @@ type AudioPlay = {
 	unloop: () => void,
 };
 
+type AudioCtx = {
+	ctx: AudioContext,
+	gainNode: GainNode,
+	masterNode: AudioNode,
+};
+
 type Audio = {
 	ctx: () => AudioContext,
 	volume: (v: number) => number,
 	play: (sound: AudioBuffer, conf?: AudioPlayConf) => AudioPlay,
 };
 
+const MIN_GAIN = 0;
+const MAX_GAIN = 3;
+const MIN_SPEED = 0;
+const MAX_SPEED = 3;
+const MIN_DETUNE = -1200;
+const MAX_DETUNE = 1200;
+
 function audioInit(): Audio {
 
-	const ctx = new (window.AudioContext || window.webkitAudioContext)();
-	const masterGain = ctx.createGain();
+	const audio: AudioCtx = (() => {
 
-	masterGain.connect(ctx.destination);
+		const ctx = new (window.AudioContext || window.webkitAudioContext)();
+		const gainNode = ctx.createGain();
+		const masterNode = gainNode;
+
+		masterNode.connect(ctx.destination);
+
+		return {
+			ctx,
+			gainNode,
+			masterNode,
+		};
+
+	})();
 
 	// get / set master volume
 	function volume(v?: number): number {
 		if (v !== undefined) {
-			masterGain.gain.value = v;
+			audio.gainNode.gain.value = clamp(v, MIN_GAIN, MAX_GAIN);
 		}
-		return masterGain.gain.value;
+		return audio.gainNode.gain.value;
 	}
 
 	// plays a sound, returns a control handle
@@ -59,21 +83,21 @@ function audioInit(): Audio {
 	): AudioPlay {
 
 		let stopped = false;
-		let srcNode = ctx.createBufferSource();
+		let srcNode = audio.ctx.createBufferSource();
 
 		srcNode.buffer = sound;
 		srcNode.loop = conf.loop ? true : false;
 
-		const gainNode = ctx.createGain();
+		const gainNode = audio.ctx.createGain();
 
 		srcNode.connect(gainNode);
-		gainNode.connect(masterGain);
+		gainNode.connect(audio.masterNode);
 
 		const pos = conf.seek ?? 0;
 
 		srcNode.start(0, pos);
 
-		let startTime = ctx.currentTime - pos;
+		let startTime = audio.ctx.currentTime - pos;
 		let stopTime: number | null = null;
 
 		const handle = {
@@ -81,7 +105,7 @@ function audioInit(): Audio {
 			stop() {
 				srcNode.stop();
 				stopped = true;
-				stopTime = ctx.currentTime;
+				stopTime = audio.ctx.currentTime;
 			},
 
 			play(seek?: number) {
@@ -92,7 +116,7 @@ function audioInit(): Audio {
 
 				const oldNode = srcNode;
 
-				srcNode = ctx.createBufferSource();
+				srcNode = audio.ctx.createBufferSource();
 				srcNode.buffer = oldNode.buffer;
 				srcNode.loop = oldNode.loop;
 				srcNode.playbackRate.value = oldNode.playbackRate.value;
@@ -106,7 +130,7 @@ function audioInit(): Audio {
 				const pos = seek ?? this.time();
 
 				srcNode.start(0, pos);
-				startTime = ctx.currentTime - pos;
+				startTime = audio.ctx.currentTime - pos;
 				stopped = false;
 				stopTime = null;
 
@@ -124,9 +148,10 @@ function audioInit(): Audio {
 				return stopped;
 			},
 
+			// TODO: affect time()
 			speed(val?: number): number {
 				if (val !== undefined) {
-					srcNode.playbackRate.value = clamp(val, 0, 2);
+					srcNode.playbackRate.value = clamp(val, MIN_SPEED, MAX_SPEED);
 				}
 				return srcNode.playbackRate.value;
 			},
@@ -136,14 +161,14 @@ function audioInit(): Audio {
 					return 0;
 				}
 				if (val !== undefined) {
-					srcNode.detune.value = clamp(val, -1200, 1200);
+					srcNode.detune.value = clamp(val, MIN_DETUNE, MAX_DETUNE);
 				}
 				return srcNode.detune.value;
 			},
 
 			volume(val?: number): number {
 				if (val !== undefined) {
-					gainNode.gain.value = clamp(val, 0, 3);
+					gainNode.gain.value = clamp(val, MIN_GAIN, MAX_GAIN);
 				}
 				return gainNode.gain.value;
 			},
@@ -164,7 +189,7 @@ function audioInit(): Audio {
 				if (stopped && stopTime) {
 					return stopTime - startTime;
 				} else {
-					return ctx.currentTime - startTime;
+					return audio.ctx.currentTime - startTime;
 				}
 			},
 
@@ -178,10 +203,12 @@ function audioInit(): Audio {
 
 	}
 
+	function ctx(): AudioContext {
+		return audio.ctx;
+	}
+
 	return {
-		ctx() {
-			return ctx;
-		},
+		ctx,
 		volume,
 		play,
 	};
