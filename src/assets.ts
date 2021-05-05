@@ -38,6 +38,10 @@ type SpriteData = {
 type SoundData = AudioBuffer;
 type FontData = GfxFont;
 
+type AssetsConf = {
+	errHandler?: (err: string) => void,
+};
+
 type Assets = {
 	loadRoot: (path: string) => string,
 	loadSprite: (
@@ -84,7 +88,7 @@ function isDataUrl(src: string): boolean {
 	return src.startsWith("data:");
 }
 
-function assetsInit(gfx: Gfx, audio: Audio): Assets {
+function assetsInit(gfx: Gfx, audio: Audio, gconf: AssetsConf = {}): Assets {
 
 	let lastLoaderID = 0;
 	let root = "";
@@ -93,14 +97,12 @@ function assetsInit(gfx: Gfx, audio: Audio): Assets {
 	const sounds: Record<string, SoundData> = {};
 	const fonts: Record<string, FontData> = {};
 
-	function addLoader(prom: Promise<any>) {
+	function addLoader<T>(prom: Promise<T>) {
 		const id = lastLoaderID;
 		loaders[id] = false;
 		lastLoaderID++;
 		prom
-			.catch((err) => {
-				console.error(err);
-			})
+			.catch(gconf.errHandler ?? console.error)
 			.finally(() => {
 				loaders[id] = true;
 			});

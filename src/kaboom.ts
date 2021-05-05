@@ -29,6 +29,10 @@ import {
 } from "./gfx";
 
 import {
+	appInit,
+} from "./app";
+
+import {
 	AudioPlayConf,
 	AudioPlay,
 	audioInit,
@@ -39,10 +43,6 @@ import {
 	assetsInit,
 	DEF_FONT,
 } from "./assets";
-
-import {
-	GameObj,
-} from "./game";
 
 import {
 	loggerInit,
@@ -62,6 +62,7 @@ type KaboomConf = {
 	canvas?: HTMLCanvasElement,
 	root?: HTMLElement,
 	clearColor?: number[],
+	logMax?: number,
 	global?: boolean,
 	plugins?: Array<KaboomPlugin>,
 };
@@ -77,200 +78,30 @@ module.exports = (gconf: KaboomConf = {
 	root: document.body,
 }): KaboomCtx => {
 
-type ButtonState =
-	"up"
-	| "pressed"
-	| "rpressed"
-	| "down"
-	| "released"
-	;
-
-type AppCtx = {
-	canvas: HTMLCanvasElement,
-	mousePos: Vec2,
-	mouseState: ButtonState,
-	keyStates: Record<string, ButtonState>,
-	charInputted: string[],
-	time: number,
-	dt: number,
-	realTime: number,
-	skipTime: boolean,
-	scale: number,
-	isTouch: boolean,
-};
-
-const debug: DebugState = {
-	paused: false,
-	timeScale: 1,
-	showArea: false,
-	hoverInfo: false,
-	showLog: true,
-	logMax: 8,
-};
-
-// app system init
-const app: AppCtx = {
-	canvas: gconf.canvas ?? (() => {
-		const canvas = document.createElement("canvas");
-		(gconf.root ?? document.body).appendChild(canvas);
-		return canvas;
-	})(),
-	keyStates: {},
-	charInputted: [],
-	mouseState: "up",
-	mousePos: vec2(0, 0),
-	time: 0,
-	realTime: 0,
-	skipTime: false,
-	dt: 0.0,
-	scale: gconf.scale ?? 1,
-	isTouch: false,
-};
-
-const keyMap = {
-	"ArrowLeft": "left",
-	"ArrowRight": "right",
-	"ArrowUp": "up",
-	"ArrowDown": "down",
-	" ": "space",
-};
-
-const preventDefaultKeys = [
-	"space",
-	"left",
-	"right",
-	"up",
-	"down",
-	"tab",
-	"f1",
-	"f2",
-	"f3",
-	"f4",
-	"f5",
-	"f6",
-	"f7",
-	"f8",
-	"f9",
-	"f10",
-	"f11",
-];
-
-if (gconf.fullscreen) {
-	app.canvas.width = window.innerWidth;
-	app.canvas.height = window.innerHeight;
-} else {
-	app.canvas.width = (gconf.width || 640) * app.scale;
-	app.canvas.height = (gconf.height || 480) * app.scale;
-}
-
-const styles = [
-	"outline: none",
-];
-
-if (gconf.crisp) {
-	styles.push("image-rendering: pixelated");
-	styles.push("image-rendering: crisp-edges");
-}
-
-app.canvas.style = styles.join(";");
-app.canvas.setAttribute("tabindex", "0");
-
-const gl = app.canvas
-	.getContext("webgl", {
-		antialias: true,
-		depth: true,
-		stencil: true,
-		alpha: true,
-		preserveDrawingBuffer: true,
-	});
-
-app.isTouch = ("ontouchstart" in window) ||
-	(navigator.maxTouchPoints > 0) ||
-	(navigator.msMaxTouchPoints > 0);
-
-app.canvas.addEventListener("contextmenu", (e) => {
-	e.preventDefault();
+const app = appInit({
+	width: gconf.width,
+	height: gconf.height,
+	scale: gconf.scale,
+	fullscreen: gconf.fullscreen,
+	crisp: gconf.crisp,
+	canvas: gconf.canvas,
+	root: gconf.root,
 });
 
-app.canvas.addEventListener("mousemove", (e) => {
-	app.mousePos = vec2(e.offsetX, e.offsetY).scale(1 / app.scale);
-});
-
-app.canvas.addEventListener("mousedown", () => {
-	app.mouseState = "pressed";
-});
-
-app.canvas.addEventListener("mouseup", () => {
-	app.mouseState = "released";
-});
-
-app.canvas.addEventListener("touchstart", (e) => {
-	const t = e.touches[0];
-	app.mousePos = vec2(t.clientX, t.clientY).scale(1 / app.scale);
-	app.mouseState = "pressed";
-});
-
-app.canvas.addEventListener("touchmove", (e) => {
-	const t = e.touches[0];
-	app.mousePos = vec2(t.clientX, t.clientY).scale(1 / app.scale);
-});
-
-app.canvas.addEventListener("keydown", (e) => {
-
-	const k = keyMap[e.key] || e.key.toLowerCase();
-
-	if (preventDefaultKeys.includes(k)) {
-		e.preventDefault();
-	}
-
-	if (k.length === 1) {
-		app.charInputted.push(k);
-	}
-
-	if (k === "space") {
-		app.charInputted.push(" ");
-	}
-
-	if (e.repeat) {
-		app.keyStates[k] = "rpressed";
-	} else {
-		app.keyStates[k] = "pressed";
-	}
-
-});
-
-app.canvas.addEventListener("keyup", (e) => {
-	const k = keyMap[e.key] || e.key.toLowerCase();
-	app.keyStates[k] = "released";
-});
-
-app.canvas.focus();
-
-document.addEventListener("visibilitychange", () => {
-	switch (document.visibilityState) {
-		case "visible":
-			// prevent a surge of dt() when switch back after the tab being hidden for a while
-			app.skipTime = true;
-			audio.ctx().resume();
-			break;
-		case "hidden":
-			audio.ctx().suspend();
-			break;
-	}
-});
-
-if (gconf.debug) {
-	debug.showLog = true;
-}
-
-const gfx = gfxInit(gl, {
+const gfx = gfxInit(app.gl, {
 	clearColor: ((c) => rgba(c[0], c[1], c[2], c[3]))(gconf.clearColor ?? [0, 0, 0, 1]),
 	scale: gconf.scale,
 });
+
 const audio = audioInit();
-const assets = assetsInit(gfx, audio);
+const assets = assetsInit(gfx, audio, {
+	errHandler: (err: string) => {
+		logger.error(err);
+	},
+});
+
 const logger = loggerInit(gfx, assets, {
-	max: debug.logMax,
+	max: gconf.logMax,
 });
 
 function play(id: string, conf: AudioPlayConf = {}): AudioPlay {
@@ -281,76 +112,14 @@ function play(id: string, conf: AudioPlayConf = {}): AudioPlay {
 	return audio.play(sound, conf);
 }
 
-function processBtnState(s: ButtonState): ButtonState {
-	if (s === "pressed" || s === "rpressed") {
-		return "down";
-	}
-	if (s === "released") {
-		return "up";
-	}
-	return s;
-}
-
 // check input state last frame
 function mousePos(layer?: string): Vec2 {
-
 	const scene = curScene();
-
 	if (!layer) {
-		return app.mousePos.clone();
+		return app.mousePos();
 	} else {
 		return scene.cam.ignore.includes(layer) ? mousePos() : scene.cam.mpos;
 	}
-
-}
-
-function mouseIsClicked(): boolean {
-	return app.mouseState === "pressed";
-}
-
-function mouseIsDown(): boolean {
-	return app.mouseState === "pressed" || app.mouseState === "down";
-}
-
-function mouseIsReleased(): boolean {
-	return app.mouseState === "released";
-}
-
-function keyIsPressed(k: string): boolean {
-	return app.keyStates[k] === "pressed";
-}
-
-function keyIsPressedRep(k: string): boolean {
-	return app.keyStates[k] === "pressed" || app.keyStates[k] === "rpressed";
-}
-
-function keyIsDown(k: string): boolean {
-	return app.keyStates[k] === "pressed"
-		|| app.keyStates[k] === "rpressed"
-		|| app.keyStates[k] === "down";
-}
-
-function keyIsReleased(k: string): boolean {
-	return app.keyStates[k] === "released";
-}
-
-function charInputted(): string[] {
-	return app.charInputted;
-}
-
-// get delta time between last frame
-function dt(): number {
-	return app.dt;
-}
-
-// get current running time
-function time(): number {
-	return app.time;
-}
-
-// get a base64 png image of canvas
-function screenshot(): string {
-	return app.canvas.toDataURL();
 }
 
 type DrawSpriteConf = {
@@ -398,12 +167,33 @@ function drawText(
 }
 
 // TODO: comp registry?
-// TODO: avoid comp fields direct assign / collision
 // TODO: in-source doc on the component system
 
 const DEF_GRAVITY = 980;
 const DEF_ORIGIN = "topleft";
 
+type Comp = any;
+
+type GameObj = {
+	hidden: boolean,
+	paused: boolean,
+	exists: () => boolean,
+	is: (tag: string | string[]) => boolean,
+	use: (comp: Comp | Comp[] | string) => void,
+	action: (cb: () => void) => void,
+	on: (ev: string, cb: () => void) => void,
+	trigger: (ev: string, ...args: any[]) => void,
+	rmTag: (t: string) => void,
+	_sceneID: number | null,
+	_tags: string[],
+	_events: {
+		add: [],
+		update: [],
+		draw: [],
+		destroy: [],
+		debugInfo: [],
+	},
+};
 type Game = {
 	loaded: boolean,
 	scenes: Record<string, Scene>,
@@ -447,7 +237,6 @@ type MouseInputEvent = {
 type CharInputEvent = {
 	cb: (ch: string) => void,
 };
-
 
 type Scene = {
 	init: (...args) => void,
@@ -559,13 +348,12 @@ function regDebugInputs() {
 	});
 
 	keyPress("f1", () => {
-		dbg.showArea = !dbg.showArea;
-		logger.info(`show area: ${dbg.showArea ? "on" : "off"}`);
+		dbg.inspect = !dbg.inspect;
+		logger.info(`inspect: ${dbg.inspect ? "on" : "off"}`);
 	});
 
 	keyPress("f2", () => {
-		dbg.hoverInfo = !dbg.hoverInfo;
-		logger.info(`hover info: ${dbg.hoverInfo ? "on" : "off"}`);
+		logger.clear();
 	});
 
 	keyPress("f8", () => {
@@ -680,9 +468,7 @@ function camIgnore(layers: string[]) {
 	cam.ignore = layers;
 }
 
-type CompList = any[];
-
-function add(comps: CompList): GameObj {
+function add(comps: Comp[]): GameObj {
 
 	const obj: GameObj = {
 
@@ -700,7 +486,7 @@ function add(comps: CompList): GameObj {
 		},
 
 		// use a comp
-		use(comp) {
+		use(comp: Comp | Comp[] | string) {
 
 			if (comp === undefined) {
 				return;
@@ -793,13 +579,6 @@ function add(comps: CompList): GameObj {
 					}
 				}
 			}
-		},
-
-		addTag(t) {
-			if (this.is(t)) {
-				return;
-			}
-			this._tags.push(t);
 		},
 
 		rmTag(t) {
@@ -1098,7 +877,7 @@ function gameFrame(ignorePause?: boolean) {
 		// update timers
 		for (const id in scene.timers) {
 			const t = scene.timers[id];
-			t.time -= dt();
+			t.time -= app.dt();
 			if (t.time <= 0) {
 				t.cb();
 				delete scene.timers[id];
@@ -1124,7 +903,7 @@ function gameFrame(ignorePause?: boolean) {
 	const cam = scene.cam;
 	const shake = vec2FromAngle(rand(0, Math.PI * 2)).scale(cam.shake);
 
-	cam.shake = lerp(cam.shake, 0, 5 * dt());
+	cam.shake = lerp(cam.shake, 0, 5 * app.dt());
 
 	const camMat = mat4()
 		.translate(size.scale(0.5))
@@ -1160,26 +939,65 @@ function gameFrame(ignorePause?: boolean) {
 
 }
 
+function handleEvents() {
+
+	const scene = curScene();
+
+	for (const e of scene.events.charInput) {
+		app.charInputted().forEach(e.cb);
+	}
+
+	// run input checks & callbacks
+	for (const e of scene.events.keyDown) {
+		if (app.keyDown(e.key)) {
+			e.cb();
+		}
+	}
+
+	for (const e of scene.events.keyPress) {
+		if (app.keyPressed(e.key)) {
+			e.cb();
+		}
+	}
+
+	for (const e of scene.events.keyPressRep) {
+		if (app.keyPressedRep(e.key)) {
+			e.cb();
+		}
+	}
+
+	for (const e of scene.events.keyRelease) {
+		if (app.keyReleased(e.key)) {
+			e.cb();
+		}
+	}
+
+	for (const e of scene.events.mouseDown) {
+		if (app.mouseDown()) {
+			e.cb();
+		}
+	}
+
+	for (const e of scene.events.mouseClick) {
+		if (app.mouseClicked()) {
+			e.cb();
+		}
+	}
+
+	for (const e of scene.events.mouseRelease) {
+		if (app.mouseReleased()) {
+			e.cb();
+		}
+	}
+
+}
+
 // TODO: put main event loop in app module
 // start the game with a scene
 function start(name: string, ...args) {
 
-	let loopID;
+	app.run(() => {
 
-	const frame = (t) => {
-
-		let stopped = false;
-		const realTime = t / 1000;
-		const realDt = realTime - app.realTime;
-
-		app.realTime = realTime;
-
-		if (!app.skipTime) {
-			app.dt = realDt * debug.timeScale;
-			app.time += app.dt;
-		}
-
-		app.skipTime = false;
 		gfx.frameStart();
 
 		if (!game.loaded) {
@@ -1206,74 +1024,25 @@ function start(name: string, ...args) {
 
 		} else {
 
-			const scene = curScene();
-
-			if (!scene) {
-				throw new Error(`scene not found: '${game.curScene}'`);
-			}
-
-			for (const e of scene.events.charInput) {
-				charInputted().forEach(e.cb);
-			}
-
-			// run input checks & callbacks
-			for (const e of scene.events.keyDown) {
-				if (keyIsDown(e.key)) {
-					e.cb();
-				}
-			}
-
-			for (const e of scene.events.keyPress) {
-				if (keyIsPressed(e.key)) {
-					e.cb();
-				}
-			}
-
-			for (const e of scene.events.keyPressRep) {
-				if (keyIsPressedRep(e.key)) {
-					e.cb();
-				}
-			}
-
-			for (const e of scene.events.keyRelease) {
-				if (keyIsReleased(e.key)) {
-					e.cb();
-				}
-			}
-
-			for (const e of scene.events.mouseDown) {
-				if (mouseIsDown()) {
-					e.cb();
-				}
-			}
-
-			for (const e of scene.events.mouseClick) {
-				if (mouseIsClicked()) {
-					e.cb();
-				}
-			}
-
-			for (const e of scene.events.mouseRelease) {
-				if (mouseIsReleased()) {
-					e.cb();
-				}
-			}
-
 			try {
+
+				if (!curScene()) {
+					throw new Error(`scene not found: '${game.curScene}'`);
+				}
+
+				handleEvents();
 				gameFrame();
+
 			} catch (e) {
+
 				logger.error(e.stack);
-				stopped = true;
+				app.quit();
+
 			}
 
-			logger.draw();
-
-			for (const k in app.keyStates) {
-				app.keyStates[k] = processBtnState(app.keyStates[k]);
+			if (debug.showLog) {
+				logger.draw();
 			}
-
-			app.mouseState = processBtnState(app.mouseState);
-			app.charInputted = [];
 
 			if (game.nextScene) {
 				goSync.apply(null, [ game.nextScene.name, ...game.nextScene.args, ]);
@@ -1284,13 +1053,7 @@ function start(name: string, ...args) {
 
 		gfx.frameEnd();
 
-		if (!stopped) {
-			loopID = requestAnimationFrame(frame);
-		}
-
-	};
-
-	loopID = requestAnimationFrame(frame);
+	});
 
 }
 
@@ -1319,8 +1082,8 @@ function pos(...args): PosComp {
 		move(...args) {
 
 			const p = vec2(...args);
-			const dx = p.x * dt();
-			const dy = p.y * dt();
+			const dx = p.x * app.dt();
+			const dy = p.y * app.dt();
 
 			this.pos.x += dx;
 			this.pos.y += dy;
@@ -1429,10 +1192,7 @@ function area(p1: Vec2, p2: Vec2): AreaComp {
 
 		draw() {
 
-			const showArea = debug.showArea;
-			const hoverInfo = debug.hoverInfo;
-
-			if (!showArea) {
+			if (!debug.inspect) {
 				return;
 			}
 
@@ -1441,7 +1201,7 @@ function area(p1: Vec2, p2: Vec2): AreaComp {
 			const color = rgba(0, 1, 1, 1);
 			const hovered = this.isHovered();
 
-			if (hoverInfo && hovered) {
+			if (hovered) {
 				width += 2;
 			}
 
@@ -1450,23 +1210,23 @@ function area(p1: Vec2, p2: Vec2): AreaComp {
 			const h = a.p2.y - a.p1.y;
 
 			gfx.drawRectStroke(a.p1, w, h, {
-				width: width / app.scale,
+				width: width / (gconf.scale ?? 1),
 				color: color,
 				z: 0.9,
 			});
 
 			const mpos = mousePos(this.layer || curScene().defLayer);
 
-			if (hoverInfo && hovered) {
+			if (hovered) {
 
-				const padding = vec2(6, 6).scale(1 / app.scale);
+				const padding = vec2(6, 6).scale(1 / (gconf.scale ?? 1));
 				let bw = 0;
 				let bh = 0;
 				const lines = [];
 
 				const addLine = (txt) => {
 					const ftxt = gfx.fmtText(txt, font, {
-						size: 12 / app.scale,
+						size: 12 / (gconf.scale ?? 1),
 						pos: mpos.add(vec2(padding.x, padding.y + bh)),
 						z: 1,
 					});
@@ -1499,7 +1259,7 @@ function area(p1: Vec2, p2: Vec2): AreaComp {
 				});
 
 				gfx.drawRectStroke(mpos, bw, bh, {
-					width: (width - 2) / app.scale,
+					width: (width - 2) / (gconf.scale ?? 1),
 					color: rgba(0, 1, 1, 1),
 					z: 1,
 				});
@@ -1523,7 +1283,7 @@ function area(p1: Vec2, p2: Vec2): AreaComp {
 		},
 
 		isClicked(): boolean {
-			return mouseIsClicked() && this.isHovered();
+			return app.mouseClicked() && this.isHovered();
 		},
 
 		isHovered() {
@@ -1841,7 +1601,7 @@ function sprite(id: string, conf: SpriteCompConf = {}): SpriteComp {
 
 			const anim = spr.anims[curAnim.name];
 
-			curAnim.timer += dt();
+			curAnim.timer += app.dt();
 
 			if (curAnim.timer >= this.animSpeed) {
 				// TODO: anim dir
@@ -2113,7 +1873,7 @@ function body(conf: BodyCompConf = {}): BodyComp {
 
 			if (!curPlatform) {
 
-				velY = Math.min(velY + gravity() * dt(), maxVel);
+				velY = Math.min(velY + gravity() * app.dt(), maxVel);
 
 				// check if grounded to a new platform
 				for (const target of targets) {
@@ -2152,11 +1912,16 @@ function body(conf: BodyCompConf = {}): BodyComp {
 
 type DebugState = {
 	paused: boolean,
+	inspect: boolean,
 	timeScale: number,
-	showArea: boolean,
-	hoverInfo: boolean,
 	showLog: boolean,
-	logMax: number,
+};
+
+const debug: DebugState = {
+	paused: false,
+	inspect: false,
+	timeScale: 1,
+	showLog: true,
 };
 
 function dbg(): DebugState {
@@ -2164,7 +1929,7 @@ function dbg(): DebugState {
 }
 
 function fps(): number {
-	return 1.0 / dt();
+	return 1.0 / app.dt();
 }
 
 function objCount(): number {
@@ -2181,7 +1946,7 @@ type LevelConf = {
 	height: number,
 	pos?: Vec2,
 	any: (s: string) => void,
-//  	[sym: string]: CompList | (() => CompList),
+//  	[sym: string]: Comp[] | (() => Comp[]),
 };
 
 type Level = {
@@ -2312,9 +2077,9 @@ const lib: KaboomCtx = {
 	// query
 	width: gfx.width,
 	height: gfx.height,
-	dt,
-	time,
-	screenshot,
+	dt: app.dt,
+	time: app.time,
+	screenshot: app.screenshot,
 	// scene
 	scene,
 	go,
@@ -2365,13 +2130,13 @@ const lib: KaboomCtx = {
 	mouseClick,
 	mouseRelease,
 	mousePos,
-	keyIsDown,
-	keyIsPressed,
-	keyIsPressedRep,
-	keyIsReleased,
-	mouseIsDown,
-	mouseIsClicked,
-	mouseIsReleased,
+	keyIsDown: app.keyDown,
+	keyIsPressed: app.keyPressed,
+	keyIsPressedRep: app.keyPressedRep,
+	keyIsReleased: app.keyReleased,
+	mouseIsDown: app.mouseDown,
+	mouseIsClicked: app.mouseClicked,
+	mouseIsReleased: app.mouseReleased,
 	// timer
 	loop,
 	wait,

@@ -13,6 +13,8 @@
 - added `LoopHandle` returned by `loop()` that has a `stop()`
 - (**BREAK**) changed `SpriteAnim` from `[ from, to ]` to `{ from: number, to: number }`
 - (**BREAK**) removed `onAnimPlay()` and `onAnimEnd()` in favor of generic event `on("animEnd", (anim: string) => {})`
+- (**BREAK**) removed `obj.addTag()` in favor of `obj.use()`
+- (**BREAK**) merged `debug.hoverInfo` and `debug.showArea` into `debug.inspect`
 
 ## v0.4.1
 - fixed `on("destroy")` handler getting called twice
