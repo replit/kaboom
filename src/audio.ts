@@ -16,16 +16,22 @@ type AudioPlay = {
 	pause: () => void,
 	paused: () => boolean,
 	stopped: () => boolean,
-	speed: (s: number) => number,
-	detune: (d: number) => number,
-	volume: (v: number) => number,
+	speed: (s?: number) => number,
+	detune: (d?: number) => number,
+	volume: (v?: number) => number,
 	time: () => number,
 	duration: () => number,
 	loop: () => void,
 	unloop: () => void,
 };
 
-function audioInit() {
+type AudioMod = {
+	ctx: () => AudioContext,
+	volume: (v: number) => number,
+	play: (sound: AudioBuffer, conf?: AudioPlayConf) => AudioPlay,
+};
+
+function audioInit(): AudioMod {
 
 	const ctx = new (window.AudioContext || window.webkitAudioContext)();
 	const masterGain = ctx.createGain();
@@ -62,11 +68,11 @@ function audioInit() {
 		srcNode.connect(gainNode);
 		gainNode.connect(masterGain);
 
-		let seek = conf.seek ?? 0;
+		const seek = conf.seek ?? 0;
 		let paused = false;
 		let stopped = false;
 		let speed = 1;
-		let startTime = ctx.currentTime;
+		const startTime = ctx.currentTime;
 		let stoppedTime = null;
 		let emptyTime = 0;
 
@@ -106,7 +112,7 @@ function audioInit() {
 				return stopped;
 			},
 
-			speed(val: number): number {
+			speed(val?: number): number {
 				if (val !== undefined) {
 					speed = clamp(val, 0, 2);
 					if (!paused) {
@@ -116,7 +122,7 @@ function audioInit() {
 				return speed;
 			},
 
-			detune(val: number): number {
+			detune(val?: number): number {
 				if (!srcNode.detune) {
 					return 0;
 				}
@@ -126,7 +132,7 @@ function audioInit() {
 				return srcNode.detune.value;
 			},
 
-			volume(val: number): number {
+			volume(val?: number): number {
 				if (val !== undefined) {
 					gainNode.gain.value = clamp(val, 0, 3);
 				}
@@ -170,6 +176,7 @@ function audioInit() {
 }
 
 export {
+	AudioMod,
 	AudioPlayConf,
 	AudioPlay,
 	audioInit,

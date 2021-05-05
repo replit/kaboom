@@ -87,7 +87,7 @@ type DrawQuadConf = {
 	scale?: Vec2 | number,
 	rot?: number,
 	color?: Color,
-	origin?: Origin,
+	origin?: Origin | Vec2,
 	tex?: GfxTexture,
 	quad?: Quad,
 	z?: number,
@@ -98,7 +98,7 @@ type DrawTextureConf = {
 	scale?: Vec2 | number,
 	rot?: number,
 	color?: Color,
-	origin?: Origin,
+	origin?: Origin | Vec2,
 	quad?: Quad,
 	z?: number,
 };
@@ -108,7 +108,7 @@ type DrawRectStrokeConf = {
 	scale?: Vec2 | number,
 	rot?: number,
 	color?: Color,
-	origin?: Origin,
+	origin?: Origin | Vec2,
 	z?: number,
 };
 
@@ -116,7 +116,7 @@ type DrawRectConf = {
 	scale?: Vec2 | number,
 	rot?: number,
 	color?: Color,
-	origin?: Origin,
+	origin?: Origin | Vec2,
 	z?: number,
 };
 
@@ -126,14 +126,13 @@ type DrawLineConf = {
 	z?: number,
 };
 
-type TextFmtConf = {
-	font?: GfxFont,
+type DrawTextConf = {
 	size?: number,
 	pos?: Vec2,
 	scale?: Vec2 | number,
 	rot?: number,
 	color?: Color,
-	origin?: Origin,
+	origin?: Origin | Vec2,
 	width?: number,
 	z?: number,
 };
@@ -165,13 +164,9 @@ type Origin =
 	| "botleft"
 	| "bot"
 	| "botright"
-	| Vec2
 	;
 
-function originPt(orig: Origin): Vec2 {
-	if (isVec2(orig)) {
-		return orig;
-	}
+function originPt(orig: Origin | Vec2): Vec2 {
 	switch (orig) {
 		case "topleft": return vec2(-1, -1);
 		case "top": return vec2(0, -1);
@@ -182,88 +177,60 @@ function originPt(orig: Origin): Vec2 {
 		case "botleft": return vec2(-1, 1);
 		case "bot": return vec2(0, 1);
 		case "botright": return vec2(1, 1);
+		default: return orig;
 	}
 }
 
-// format text and return a list of chars with their calculated position
-function fmtText(
-	text: string,
-	font: GfxFont,
-	conf: TextFmtConf = {}
-): FormattedText {
+type GfxMod = {
+	width: () => number,
+	height: () => number,
+	makeTex: (data: GfxTextureData) => GfxTexture,
+	makeFont: (
+		tex: GfxTexture,
+		gw: number,
+		gh: number,
+		chars: string,
+	) => GfxFont,
+	drawTexture: (
+		tex: GfxTexture,
+		conf?: DrawTextureConf,
+	) => void,
+	drawText: (
+		txt: string,
+		font: GfxFont,
+		conf?: DrawTextConf,
+	) => void,
+	drawFmtText: (ftext: FormattedText) => void,
+	fmtText: (
+		txt: string,
+		font: GfxFont,
+		conf?: DrawTextConf,
+	) => FormattedText,
+	drawRect: (
+		pos: Vec2,
+		w: number,
+		h: number,
+		conf?: DrawRectConf,
+	) => void,
+	drawRectStroke: (
+		pos: Vec2,
+		w: number,
+		h: number,
+		conf?: DrawRectStrokeConf,
+	) => void,
+	drawLine: (
+		p1: Vec2,
+		p2: Vec2,
+		conf: DrawLineConf,
+	) => void,
+	frameStart: () => void,
+	frameEnd: () => void,
+	pushTransform: () => void,
+	popTransform: () => void,
+	pushMatrix: (m: Mat4) => void,
+};
 
-	const chars = (text + "").split("");
-	const gw = font.qw * font.tex.width;
-	const gh = font.qh * font.tex.height;
-	const size = conf.size || gh;
-	const scale = vec2(size / gh).dot(vec2(conf.scale || 1));
-	const cw = scale.x * gw;
-	const ch = scale.y * gh;
-	let curX = 0;
-	let th = ch;
-	let tw = 0;
-	const flines = [[]];
-
-	// check new lines and calc area size
-	for (const char of chars) {
-		// go new line if \n or exceeds wrap value
-		if (char === "\n" || (conf.width ? (curX + cw > conf.width) : false)) {
-			th += ch;
-			curX = 0;
-			flines.push([]);
-		}
-		if (char !== "\n") {
-			flines[flines.length - 1].push(char);
-			curX += cw;
-		}
-		tw = Math.max(tw, curX);
-	}
-
-	if (conf.width) {
-		tw = conf.width;
-	}
-
-	// whole text offset
-	const fchars = [];
-	const pos = vec2(conf.pos);
-	const offset = originPt(conf.origin || DEF_ORIGIN).scale(0.5);
-	// this math is complicated i forgot how it works instantly
-	const ox = -offset.x * cw - (offset.x + 0.5) * (tw - cw);
-	const oy = -offset.y * ch - (offset.y + 0.5) * (th - ch);
-
-	flines.forEach((line, ln) => {
-
-		// line offset
-		const oxl = (tw - line.length * cw) * (offset.x + 0.5);
-
-		line.forEach((char, cn) => {
-			const qpos = font.map[char];
-			const x = cn * cw;
-			const y = ln * ch;
-			if (qpos) {
-				fchars.push({
-					tex: font.tex,
-					quad: quad(qpos.x, qpos.y, font.qw, font.qh),
-					ch: char,
-					pos: vec2(pos.x + x + ox + oxl, pos.y + y + oy),
-					color: conf.color,
-					origin: conf.origin,
-					scale: scale,
-					z: conf.z,
-				});
-			}
-		});
-	});
-
-	return {
-		width: tw,
-		height: th,
-		chars: fchars,
-	};
-
-}
-
-function gfxInit(gconf: KaboomConf, gl: WebGLRenderingContext) {
+function gfxInit(gconf: KaboomConf, gl: WebGLRenderingContext): GfxMod {
 
 	const mesh = makeBatchedMesh(65536, 65536);
 	const defProg = makeProgram(defVertSrc, defFragSrc);
@@ -695,6 +662,20 @@ function gfxInit(gconf: KaboomConf, gl: WebGLRenderingContext) {
 
 	}
 
+	function drawRect(
+		pos: Vec2,
+		w: number,
+		h: number,
+		conf: DrawRectConf = {}
+	) {
+		drawQuad({
+			...conf,
+			pos: pos,
+			width: w,
+			height: h,
+		});
+	}
+
 	function drawRectStroke(
 		pos: Vec2,
 		w: number,
@@ -713,20 +694,6 @@ function gfxInit(gconf: KaboomConf, gl: WebGLRenderingContext) {
 		drawLine(p3, p4, conf);
 		drawLine(p4, p1, conf);
 
-	}
-
-	function drawRect(
-		pos: Vec2,
-		w: number,
-		h: number,
-		conf: DrawRectConf = {}
-	) {
-		drawQuad({
-			...conf,
-			pos: pos,
-			width: w,
-			height: h,
-		});
 	}
 
 	// TODO: slow, use drawRaw() calc coords
@@ -751,6 +718,84 @@ function gfxInit(gconf: KaboomConf, gl: WebGLRenderingContext) {
 
 	}
 
+	// format text and return a list of chars with their calculated position
+	function fmtText(
+		text: string,
+		font: GfxFont,
+		conf: DrawTextConf = {}
+	): FormattedText {
+
+		const chars = (text + "").split("");
+		const gw = font.qw * font.tex.width;
+		const gh = font.qh * font.tex.height;
+		const size = conf.size || gh;
+		const scale = vec2(size / gh).dot(vec2(conf.scale || 1));
+		const cw = scale.x * gw;
+		const ch = scale.y * gh;
+		let curX = 0;
+		let th = ch;
+		let tw = 0;
+		const flines = [[]];
+
+		// check new lines and calc area size
+		for (const char of chars) {
+			// go new line if \n or exceeds wrap value
+			if (char === "\n" || (conf.width ? (curX + cw > conf.width) : false)) {
+				th += ch;
+				curX = 0;
+				flines.push([]);
+			}
+			if (char !== "\n") {
+				flines[flines.length - 1].push(char);
+				curX += cw;
+			}
+			tw = Math.max(tw, curX);
+		}
+
+		if (conf.width) {
+			tw = conf.width;
+		}
+
+		// whole text offset
+		const fchars = [];
+		const pos = vec2(conf.pos);
+		const offset = originPt(conf.origin || DEF_ORIGIN).scale(0.5);
+		// this math is complicated i forgot how it works instantly
+		const ox = -offset.x * cw - (offset.x + 0.5) * (tw - cw);
+		const oy = -offset.y * ch - (offset.y + 0.5) * (th - ch);
+
+		flines.forEach((line, ln) => {
+
+			// line offset
+			const oxl = (tw - line.length * cw) * (offset.x + 0.5);
+
+			line.forEach((char, cn) => {
+				const qpos = font.map[char];
+				const x = cn * cw;
+				const y = ln * ch;
+				if (qpos) {
+					fchars.push({
+						tex: font.tex,
+						quad: quad(qpos.x, qpos.y, font.qw, font.qh),
+						ch: char,
+						pos: vec2(pos.x + x + ox + oxl, pos.y + y + oy),
+						color: conf.color,
+						origin: conf.origin,
+						scale: scale,
+						z: conf.z,
+					});
+				}
+			});
+		});
+
+		return {
+			width: tw,
+			height: th,
+			chars: fchars,
+		};
+
+	}
+
 	function drawText(
 		txt: string,
 		font: GfxFont,
@@ -760,7 +805,7 @@ function gfxInit(gconf: KaboomConf, gl: WebGLRenderingContext) {
 	}
 
 	// TODO: rotation
-	function drawFmtText(ftext) {
+	function drawFmtText(ftext: FormattedText) {
 		for (const ch of ftext.chars) {
 			drawQuad({
 				tex: ch.tex,
@@ -815,8 +860,8 @@ export {
 	GfxTexture,
 	GfxTextureData,
 	DrawTextureConf,
+	GfxMod,
 	Origin,
 	originPt,
 	gfxInit,
-	fmtText,
 };

@@ -417,8 +417,8 @@ function mat4(m?: number[]): Mat4 {
 }
 
 // easy sine wave
-function wave(a, b, t) {
-	return a + (Math.sin(t) + 1) / 2 * (b - a);
+function wave(lo: number, hi: number, t: number): number {
+	return lo + (Math.sin(t) + 1) / 2 * (hi - lo);
 }
 
 // basic ANSI C LCG
@@ -427,7 +427,7 @@ const C = 12345;
 const M = 2147483648;
 const defRNG = makeRng(Date.now());
 
-function makeRng(seed): RNG {
+function makeRng(seed: number): RNG {
 	return {
 		seed: seed,
 		gen(a?: RNGValue, b?: RNGValue): RNGValue {
@@ -558,6 +558,8 @@ export {
 	Quad,
 	Color,
 	Mat4,
+	RNG,
+	RNGValue,
 	vec2,
 	vec3,
 	mat4,

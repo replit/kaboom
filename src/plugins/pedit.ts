@@ -1,15 +1,14 @@
 // load pedit
 // https://github.com/slmjkdbtl/pedit.js
 
-module.exports = (k) => {
+import KaboomCtx from "../ctx";
+import SpriteData from "../assets";
 
-function loadImg(src) {
+module.exports = (k: KaboomCtx) => {
 
+function loadImg(src: string): Promise<HTMLImageElement> {
 	const img = new Image();
-
-	img.crossOrigin = "";
 	img.src = src;
-
 	return new Promise((resolve, reject) => {
 		img.onload = () => {
 			resolve(img);
@@ -18,14 +17,11 @@ function loadImg(src) {
 			reject();
 		};
 	});
-
 }
 
-function loadPedit(name, src) {
+function loadPedit(name: string, src: string): Promise<SpriteData> {
 
-	const loader = k.newLoader();
-
-	return new Promise((resolve, reject) => {
+	const loader = new Promise((resolve, reject) => {
 
 		fetch(k.loadRoot() + src)
 			.then((res) => {
@@ -53,14 +49,15 @@ function loadPedit(name, src) {
 				resolve(sprite);
 			})
 			.catch(() => {
-				error(`failed to load sprite '${name}' from '${src}'`);
-				reject();
+				reject(`failed to load sprite '${name}' from '${src}'`);
 			})
-			.finally(() => {
-				loader.done();
-			});
+			;
 
 	});
+
+	k.addLoader(loader);
+
+	return loader;
 
 }
 

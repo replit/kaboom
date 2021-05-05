@@ -27,6 +27,8 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 */
 
+type KaboomPlugin = (k: KaboomCtx) => Record<string, any>;
+
 type KaboomConf = {
 	width?: number,
 	height?: number,
@@ -38,17 +40,14 @@ type KaboomConf = {
 	root?: HTMLElement,
 	clearColor?: number[],
 	global?: boolean,
-	plugins?: Array<(KaboomCtx) => Record<string, any>>,
+	plugins?: Array<KaboomPlugin>,
 };
 
 import {
 	Vec2,
-	Vec3,
 	Quad,
 	Color,
-	Mat4,
 	vec2,
-	vec3,
 	mat4,
 	quad,
 	rgba,
@@ -62,26 +61,15 @@ import {
 	lerp,
 	map,
 	wave,
-	deg2rad,
-	rad2deg,
 	colRectRect,
 	overlapRectRect,
-	colLineLine,
-	colRectLine,
 	colRectPt,
 	vec2FromAngle,
-	isVec2,
-	isColor,
 } from "./math";
 
 import {
-	Vertex,
-	GfxFont,
-	GfxTexture,
-	GfxTextureData,
 	Origin,
 	originPt,
-	fmtText,
 	gfxInit,
 } from "./gfx";
 
@@ -93,15 +81,19 @@ import {
 
 import {
 	SpriteData,
-	SoundData,
-	FontData,
 	assetsInit,
 	DEF_FONT,
 } from "./assets";
 
 import {
+	GameObj,
+} from "./game";
+
+import {
 	deepCopy,
 } from "./utils";
+
+import KaboomCtx from "./ctx";
 
 module.exports = (gconf: KaboomConf = {
 	width: 640,
@@ -112,7 +104,7 @@ module.exports = (gconf: KaboomConf = {
 	crisp: false,
 	canvas: null,
 	root: document.body,
-}) => {
+}): KaboomCtx => {
 
 type ButtonState =
 	"up"
@@ -309,39 +301,10 @@ const gfx = gfxInit(gconf, gl);
 const audio = audioInit();
 const assets = assetsInit(gfx, audio);
 
-function loadRoot(...args) {
-	return assets.loadRoot(...args);
-}
-
-function loadSprite(...args) {
-	return assets.loadSprite(...args);
-}
-
-function loadSound(...args) {
-	return assets.loadSound(...args);
-}
-
-function loadFont(...args) {
-	return assets.loadFont(...args);
-}
-
-function newLoader(...args) {
-	return assets.newLoader(...args);
-}
-
-function loadProgress(...args) {
-	return assets.loadProgress(...args);
-}
-
-function volume(v?: number): number {
-	return audio.volume(v);
-}
-
 function play(id: string, conf: AudioPlayConf = {}): AudioPlay {
 	const sound = assets.sounds[id];
 	if (!sound) {
 		throw new Error(`sound not found: "${id}"`);
-		return;
 	}
 	return audio.play(sound, conf);
 }
@@ -369,60 +332,60 @@ function mousePos(layer?: string): Vec2 {
 
 }
 
-function mouseIsClicked() {
+function mouseIsClicked(): boolean {
 	return app.mouseState === "pressed";
 }
 
-function mouseIsDown() {
+function mouseIsDown(): boolean {
 	return app.mouseState === "pressed" || app.mouseState === "down";
 }
 
-function mouseIsReleased() {
+function mouseIsReleased(): boolean {
 	return app.mouseState === "released";
 }
 
-function keyIsPressed(k) {
+function keyIsPressed(k: string): boolean {
 	return app.keyStates[k] === "pressed";
 }
 
-function keyIsPressedRep(k) {
+function keyIsPressedRep(k: string): boolean {
 	return app.keyStates[k] === "pressed" || app.keyStates[k] === "rpressed";
 }
 
-function keyIsDown(k) {
+function keyIsDown(k: string): boolean {
 	return app.keyStates[k] === "pressed"
 		|| app.keyStates[k] === "rpressed"
 		|| app.keyStates[k] === "down";
 }
 
-function keyIsReleased(k) {
+function keyIsReleased(k: string): boolean {
 	return app.keyStates[k] === "released";
 }
 
-function charInputted() {
+function charInputted(): string[] {
 	return app.charInputted;
 }
 
 // get delta time between last frame
-function dt() {
+function dt(): number {
 	return app.dt;
 }
 
 // get current running time
-function time() {
+function time(): number {
 	return app.time;
 }
 
 // get a base64 png image of canvas
-function screenshot() {
+function screenshot(): string {
 	return app.canvas.toDataURL();
 }
 
-function width() {
+function width(): number {
 	return gfx.width();
 }
 
-function height() {
+function height(): number {
 	return gfx.height();
 }
 
@@ -460,26 +423,14 @@ function drawSprite(
 
 function drawText(
 	txt: string,
-	conf: {},
+	conf?: DrawTextConf,
 ) {
-	const font = assets.fonts[conf.font ?? DEF_FONT];
+	const fid = conf.font ?? DEF_FONT;
+	const font = assets.fonts[fid];
+	if (!font) {
+		throw new Error(`font not found: ${fid}`);
+	}
 	gfx.drawText(txt, font, conf);
-}
-
-function drawFmtText(...args) {
-	gfx.drawFmtText(...args);
-}
-
-function drawRect(...args) {
-	gfx.drawRect(...args);
-}
-
-function drawRectStroke(...args) {
-	gfx.drawRectStroke(...args);
-}
-
-function drawLine(...args) {
-	gfx.drawLine(...args);
 }
 
 // TODO: comp registry?
@@ -505,28 +456,6 @@ type Log = {
 type SceneSwitch = {
 	name: string,
 	args: any[],
-};
-
-type GameObj = {
-	hidden: boolean,
-	paused: boolean,
-	exists: () => boolean,
-	is: (tag: string | string[]) => boolean,
-	use: (comp: any) => void,
-	action: (cb: () => void) => void,
-	on: (ev: string, cb: () => void) => void,
-	trigger: (ev: string, ...args) => void,
-	addTag: (t: string) => void,
-	rmTag: (t: string) => void,
-	_sceneID: number | null,
-	_tags: string[],
-	_events: {
-		add: [],
-		update: [],
-		draw: [],
-		destroy: [],
-		debugInfo: [],
-	},
 };
 
 type Timer = {
@@ -601,7 +530,7 @@ const game: Game = {
 };
 
 // start describing a scene (this should be called before start())
-function scene(name, cb) {
+function scene(name: string, cb: (...args) => void) {
 
 	game.scenes[name] = {
 
@@ -796,7 +725,9 @@ function camIgnore(layers: string[]) {
 	cam.ignore = layers;
 }
 
-function add(comps: any[]): GameObj {
+type CompList = any[];
+
+function add(comps: CompList): GameObj {
 
 	const obj: GameObj = {
 
@@ -820,7 +751,7 @@ function add(comps: any[]): GameObj {
 				return;
 			}
 
-			const type = typeof(comp);
+			const type = typeof comp;
 
 			// tags
 			if (type === "string") {
@@ -844,7 +775,7 @@ function add(comps: any[]): GameObj {
 			for (const k in comp) {
 
 				// event / custom method
-				if (typeof(comp[k]) === "function") {
+				if (typeof comp[k] === "function") {
 					if (this._events[k]) {
 						this._events[k].push(comp[k].bind(this));
 					} else {
@@ -946,7 +877,7 @@ function add(comps: any[]): GameObj {
 
 }
 
-function readd(obj: GameObj) {
+function readd(obj: GameObj): GameObj {
 
 	if (!obj.exists()) {
 		return;
@@ -964,7 +895,7 @@ function readd(obj: GameObj) {
 }
 
 // add an event to a tag
-function on(event, tag, cb) {
+function on(event: string, tag: string, cb: (obj: GameObj) => void) {
 	const scene = curScene();
 	if (!scene.events[event]) {
 		scene.events[event] = [];
@@ -976,25 +907,29 @@ function on(event, tag, cb) {
 }
 
 // add update event to a tag or global update
-function action(tag, cb) {
-	if (typeof(tag) === "function" && cb === undefined) {
+function action(tag: string | (() => void), cb?: (obj: GameObj) => void) {
+	if (typeof tag === "function" && cb === undefined) {
 		curScene().action.push(tag);
-	} else {
+	} else if (typeof tag === "string") {
 		on("update", tag, cb);
 	}
 }
 
 // add draw event to a tag or global draw
-function render(tag, cb) {
-	if (typeof(tag) === "function" && cb === undefined) {
+function render(tag: string | (() => void), cb?: (obj: GameObj) => void) {
+	if (typeof tag === "function" && cb === undefined) {
 		curScene().render.push(tag);
-	} else {
+	} else if (typeof tag === "string") {
 		on("update", tag, cb);
 	}
 }
 
 // add an event that runs with objs with t1 collides with objs with t2
-function collides(t1, t2, f) {
+function collides(
+	t1: string,
+	t2: string,
+	f: (a: GameObj, b: GameObj) => void,
+) {
 	action(t1, (o1) => {
 		o1._checkCollisions(t2, (o2) => {
 			f(o1, o2);
@@ -1003,7 +938,11 @@ function collides(t1, t2, f) {
 }
 
 // add an event that runs with objs with t1 overlaps with objs with t2
-function overlaps(t1, t2, f) {
+function overlaps(
+	t1: string,
+	t2: string,
+	f: (a: GameObj, b: GameObj) => void,
+) {
 	action(t1, (o1) => {
 		o1._checkOverlaps(t2, (o2) => {
 			f(o1, o2);
@@ -1012,7 +951,7 @@ function overlaps(t1, t2, f) {
 }
 
 // add an event that runs when objs with tag t is clicked
-function clicks(t, f) {
+function clicks(t: string, f: (obj: GameObj) => void) {
 	action(t, (o) => {
 		if (o.isClicked()) {
 			f(o);
@@ -1021,22 +960,24 @@ function clicks(t, f) {
 }
 
 // add an event that'd be run after t
-function wait(t, f) {
-	if (f) {
+function wait(t: number, f?: () => void): Promise<null> {
+	return new Promise((resolve) => {
 		const scene = curScene();
-		scene.timers[scene.lastTimerID] = {
+		scene.timers[scene.lastTimerID++] = {
 			time: t,
-			cb: f,
+			cb: () => {
+				if (f) {
+					f();
+				}
+				resolve(null);
+			},
 		};
-		scene.lastTimerID++;
-	} else {
-		return new Promise(r => wait(t, r));
-	}
+	});
 }
 
 // TODO: return control handle
 // add an event that's run every t seconds
-function loop(t, f) {
+function loop(t: number, f: () => void) {
 	const newF = () => {
 		f();
 		wait(t, newF);
@@ -1082,21 +1023,21 @@ function charInput(f: (string) => void) {
 	});
 }
 
-function mouseDown(f) {
+function mouseDown(f: () => void) {
 	const scene = curScene();
 	scene.events.mouseDown.push({
 		cb: f,
 	});
 }
 
-function mouseClick(f) {
+function mouseClick(f: () => void) {
 	const scene = curScene();
 	scene.events.mouseClick.push({
 		cb: f,
 	});
 }
 
-function mouseRelease(f) {
+function mouseRelease(f: () => void) {
 	const scene = curScene();
 	scene.events.mouseRelease.push({
 		cb: f,
@@ -1104,7 +1045,7 @@ function mouseRelease(f) {
 }
 
 // get all objects with tag
-function get(t?: string) {
+function get(t?: string): GameObj[] {
 
 	const scene = curScene();
 	const objs = [...scene.objs.values()];
@@ -1118,8 +1059,8 @@ function get(t?: string) {
 }
 
 // apply a function to all objects currently in scene with tag t
-function every(t: string | ((GameObj) => void), f?: (GameObj) => void) {
-	if (typeof(t) === "function" && f === undefined) {
+function every(t: string | ((obj: GameObj) => void), f?: (obj: GameObj) => void) {
+	if (typeof t === "function" && f === undefined) {
 		get().forEach(t);
 	} else if (typeof t === "string") {
 		get(t).forEach(f);
@@ -1127,8 +1068,8 @@ function every(t: string | ((GameObj) => void), f?: (GameObj) => void) {
 }
 
 // every but in reverse order
-function revery(t: string | ((GameObj) => void), f?: (GameObj) => void) {
-	if (typeof(t) === "function" && f === undefined) {
+function revery(t: string | ((obj: GameObj) => void), f?: (obj: GameObj) => void) {
+	if (typeof t === "function" && f === undefined) {
 		get().reverse().forEach(t);
 	} else if (typeof t === "string") {
 		get(t).reverse().forEach(f);
@@ -1136,7 +1077,7 @@ function revery(t: string | ((GameObj) => void), f?: (GameObj) => void) {
 }
 
 // destroy an obj
-function destroy(obj) {
+function destroy(obj: GameObj) {
 
 	if (!obj.exists()) {
 		return;
@@ -1155,7 +1096,7 @@ function destroy(obj) {
 }
 
 // destroy all obj with the tag
-function destroyAll(t) {
+function destroyAll(t: string) {
 	every(t, (obj) => {
 		destroy(obj);
 	});
@@ -1284,30 +1225,29 @@ function drawLog() {
 		})();
 
 		const font = assets.fonts[DEF_FONT];
-		const ftext = fmtText(log.msg, font, {
+		const ftext = gfx.fmtText(log.msg, font, {
 			pos: pos,
 			origin: "botleft",
 			color: col,
 			z: 1,
 		});
 
-		drawRect(pos, ftext.width, ftext.height, {
+		gfx.drawRect(pos, ftext.width, ftext.height, {
 			origin: "botleft",
 			color: rgba(0, 0, 0, alpha2),
 			z: 1,
 		});
 
-		drawFmtText(ftext);
+		gfx.drawFmtText(ftext);
 		pos.y -= ftext.height;
 
 	});
 
 }
 
-// TODO: on screen error message?
+// TODO: put main event loop in app module
 // start the game with a scene
-// put main event loop in app module
-function start(name, ...args) {
+function start(name: string, ...args) {
 
 	let loopID;
 
@@ -1331,7 +1271,7 @@ function start(name, ...args) {
 
 			// if assets are not fully loaded, draw a progress bar
 
-			const progress = loadProgress();
+			const progress = assets.loadProgress();
 
 			if (progress === 1) {
 
@@ -1344,8 +1284,8 @@ function start(name, ...args) {
 				const h = 12;
 				const pos = vec2(width() / 2, height() / 2).sub(vec2(w / 2, h / 2));
 
-				drawRectStroke(pos, w, h, { width: 2, });
-				drawRect(pos, w * progress, h);
+				gfx.drawRectStroke(pos, w, h, { width: 2, });
+				gfx.drawRect(pos, w * progress, h);
 
 			}
 
@@ -1440,8 +1380,18 @@ function start(name, ...args) {
 
 }
 
+type PosCompDebugInfo = {
+	pos: string,
+};
+
+type PosComp = {
+	pos: Vec2,
+	move: (...args) => void,
+	debugInfo: () => PosCompDebugInfo,
+};
+
 // TODO: have velocity here?
-function pos(...args) {
+function pos(...args): PosComp {
 
 	return {
 
@@ -1559,7 +1509,7 @@ function area(p1, p2) {
 			const w = a.p2.x - a.p1.x;
 			const h = a.p2.y - a.p1.y;
 
-			drawRectStroke(a.p1, a.p2.x - a.p1.x, a.p2.y - a.p1.y, {
+			gfx.drawRectStroke(a.p1, a.p2.x - a.p1.x, a.p2.y - a.p1.y, {
 				width: width / app.scale,
 				color: color,
 				z: 0.9,
@@ -1575,7 +1525,7 @@ function area(p1, p2) {
 				const lines = [];
 
 				const addLine = (txt) => {
-					const ftxt = fmtText(txt, font, {
+					const ftxt = gfx.fmtText(txt, font, {
 						size: 12 / app.scale,
 						pos: mpos.add(vec2(padding.x, padding.y + bh)),
 						z: 1,
@@ -1603,19 +1553,19 @@ function area(p1, p2) {
 				bh += padding.y * 2;
 
 				// background
-				drawRect(mpos, bw, bh, {
+				gfx.drawRect(mpos, bw, bh, {
 					color: rgba(0, 0, 0, 1),
 					z: 1,
 				});
 
-				drawRectStroke(mpos, bw, bh, {
+				gfx.drawRectStroke(mpos, bw, bh, {
 					width: (width - 2) / app.scale,
 					color: rgba(0, 1, 1, 1),
 					z: 1,
 				});
 
 				for (const line of lines) {
-					drawFmtText(line);
+					gfx.drawFmtText(line);
 				}
 
 			}
@@ -2094,14 +2044,13 @@ function text(t: string, size: number, conf: TextCompConf = {}): TextComp {
 			if (!this.area && !conf.noArea) {
 				const scene = curScene();
 				const font = assets.fonts[this.font ?? DEF_FONT];
-				const ftext = fmtText(this.text + "", font, {
+				const ftext = gfx.fmtText(this.text + "", font, {
 					pos: this.pos,
 					scale: this.scale,
 					rot: this.angle,
 					size: this.textSize,
 					origin: this.origin,
 					color: this.color,
-					font: this.font,
 					width: conf.width,
 					z: scene.layers[this.layer || scene.defLayer],
 				});
@@ -2116,14 +2065,13 @@ function text(t: string, size: number, conf: TextCompConf = {}): TextComp {
 			const scene = curScene();
 			const font = assets.fonts[this.font ?? DEF_FONT];
 
-			const ftext = fmtText(this.text + "", font, {
+			const ftext = gfx.fmtText(this.text + "", font, {
 				pos: this.pos,
 				scale: this.scale,
 				rot: this.angle,
 				size: this.textSize,
 				origin: this.origin,
 				color: this.color,
-				font: this.font,
 				width: conf.width,
 				z: scene.layers[this.layer || scene.defLayer],
 			});
@@ -2131,7 +2079,7 @@ function text(t: string, size: number, conf: TextCompConf = {}): TextComp {
 			this.width = ftext.width;
 			this.height = ftext.height;
 
-			drawFmtText(ftext);
+			gfx.drawFmtText(ftext);
 
 		},
 
@@ -2172,7 +2120,7 @@ function rect(
 
 			const scene = curScene();
 
-			drawRect(this.pos, this.width, this.height, {
+			gfx.drawRect(this.pos, this.width, this.height, {
 				scale: this.scale,
 				rot: this.angle,
 				color: this.color,
@@ -2324,6 +2272,7 @@ type LevelConf = {
 	height: number,
 	pos?: Vec2,
 	any: (s: string) => void,
+//  	[sym: string]: CompList | (() => CompList),
 };
 
 type Level = {
@@ -2336,7 +2285,7 @@ type Level = {
 
 function addLevel(map: string[], conf: LevelConf): Level {
 
-	const objs = [];
+	const objs: GameObj[] = [];
 	const offset = vec2(conf.pos);
 	let longRow = 0;
 
@@ -2356,7 +2305,7 @@ function addLevel(map: string[], conf: LevelConf): Level {
 				if (Array.isArray(sym)) {
 					return sym;
 				} else if (conf[sym]) {
-					if (typeof(conf[sym]) === "function") {
+					if (typeof conf[sym] === "function") {
 						return conf[sym]();
 					} else if (Array.isArray(conf[sym])) {
 						return [...conf[sym]];
@@ -2381,7 +2330,7 @@ function addLevel(map: string[], conf: LevelConf): Level {
 
 					gridPos: p.clone(),
 
-					setGridPos(p) {
+					setGridPos(p: Vec2) {
 						this.gridPos = p.clone();
 						this.pos = vec2(
 							offset.x + this.gridPos.x * conf.width,
@@ -2443,14 +2392,14 @@ function addLevel(map: string[], conf: LevelConf): Level {
 
 }
 
-const lib = {
+const lib: KaboomCtx = {
 	start,
 	// asset load
-	loadRoot,
-	loadSprite,
-	loadSound,
-	loadFont,
-	newLoader,
+	loadRoot: assets.loadRoot,
+	loadSprite: assets.loadSprite,
+	loadSound: assets.loadSound,
+	loadFont: assets.loadFont,
+	addLoader: assets.addLoader,
 	// query
 	width,
 	height,
@@ -2476,6 +2425,7 @@ const lib = {
 	destroyAll,
 	get,
 	every,
+	revery,
 	// comps
 	pos,
 	scale,
@@ -2518,7 +2468,7 @@ const lib = {
 	wait,
 	// audio
 	play,
-	volume,
+	volume: audio.volume,
 	// math
 	makeRng,
 	rand,
@@ -2535,9 +2485,9 @@ const lib = {
 	// raw draw
 	drawSprite,
 	drawText,
-	drawRect,
-	drawRectStroke,
-	drawLine,
+	drawRect: gfx.drawRect,
+	drawRectStroke: gfx.drawRectStroke,
+	drawLine: gfx.drawLine,
 	// debug
 	dbg,
 	objCount,

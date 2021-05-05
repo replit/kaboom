@@ -1,4 +1,4 @@
-function deepCopy<T>(input: any): any {
+function deepCopy(input: any): any {
 
 	if (typeof(input) !== "object" || input === null) {
 		return input;

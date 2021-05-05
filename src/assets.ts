@@ -1,13 +1,18 @@
 import {
 	Quad,
+	quad,
 } from "./math";
 
 import {
+	GfxMod,
 	GfxFont,
 	GfxTexture,
 	GfxTextureData,
-	makeFont,
 } from "./gfx";
+
+import {
+	AudioMod,
+} from "./audio";
 
 import unsciiSrc from "./unscii_8x8.png";
 
@@ -33,10 +38,6 @@ type SpriteData = {
 type SoundData = AudioBuffer;
 type FontData = GfxFont;
 
-type LoadTracker = {
-	done: () => void,
-};
-
 const ASCII_CHARS = " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~";
 const DEF_FONT = "unscii";
 
@@ -57,26 +58,26 @@ function isDataUrl(src: string): boolean {
 	return src.startsWith("data:");
 }
 
-function assetsInit(gfx, audio) {
+function assetsInit(gfx: GfxMod, audio: AudioMod) {
 
 	let lastLoaderID = 0;
-	let _loadRoot = "";
-	const loaders = {};
-	const sprites = {};
-	const sounds = {};
-	const fonts = {};
+	let root = "";
+	const loaders: Record<number, boolean> = {};
+	const sprites: Record<string, SpriteData>= {};
+	const sounds: Record<string, SoundData> = {};
+	const fonts: Record<string, FontData> = {};
 
-	// make a new load tracker
-	// the game starts after all trackers are done()
-	function newLoader(): LoadTracker {
+	function addLoader(prom: Promise<any>) {
 		const id = lastLoaderID;
 		loaders[id] = false;
 		lastLoaderID++;
-		return {
-			done() {
+		prom
+			.catch((err) => {
+				console.error(err);
+			})
+			.finally(() => {
 				loaders[id] = true;
-			},
-		};
+			});
 	}
 
 	// get current load progress
@@ -99,9 +100,9 @@ function assetsInit(gfx, audio) {
 	// global load path prefix
 	function loadRoot(path: string): string {
 		if (path) {
-			_loadRoot = path;
+			root = path;
 		}
-		return _loadRoot;
+		return root;
 	}
 
 	// load a bitmap font to asset manager
@@ -110,13 +111,12 @@ function assetsInit(gfx, audio) {
 		src: string,
 		gw: number,
 		gh: number,
-		chars: string = ASCII_CHARS
+		chars: string = ASCII_CHARS,
 	): Promise<FontData> {
 
-		return new Promise((resolve, reject) => {
+		const loader = new Promise((resolve, reject) => {
 
-			const loader = newLoader();
-			const path = isDataUrl(src) ? src : _loadRoot + src;
+			const path = isDataUrl(src) ? src : root + src;
 
 			loadImg(path)
 				.then((img) => {
@@ -126,11 +126,13 @@ function assetsInit(gfx, audio) {
 				.catch(() => {
 					reject(`failed to load font '${name}' from '${src}'`);
 				})
-				.finally(() => {
-					loader.done();
-				});
+				;
 
 		});
+
+		addLoader(loader);
+
+		return loader;
 
 	}
 
@@ -187,25 +189,21 @@ function assetsInit(gfx, audio) {
 
 		}
 
-		return new Promise((resolve, reject) => {
+		const loader = new Promise((resolve, reject) => {
 
 			// from url
 			if (typeof(src) === "string") {
 
-				const loader = newLoader();
-				const path = isDataUrl(src) ? src : _loadRoot + src;
+				const path = isDataUrl(src) ? src : root + src;
 
 				loadImg(path)
 					.then((img) => {
 						resolve(loadRawSprite(name, img, conf));
 					})
 					.catch(() => {
-						error(`failed to load sprite '${name}' from '${src}'`);
-						reject();
+						reject(`failed to load sprite '${name}' from '${src}'`);
 					})
-					.finally(() => {
-						loader.done();
-					});
+					;
 
 				return;
 
@@ -217,6 +215,10 @@ function assetsInit(gfx, audio) {
 
 		});
 
+		addLoader(loader);
+
+		return loader;
+
 	}
 
 	// load a sound to asset manager
@@ -225,39 +227,40 @@ function assetsInit(gfx, audio) {
 		src: string,
 	): Promise<SoundData> {
 
-		return new Promise((resolve, reject) => {
+		const loader = new Promise((resolve, reject) => {
 
 			// from url
 			if (typeof(src) === "string") {
 
-				const loader = newLoader();
-
-				fetch(_loadRoot + src)
+				fetch(root + src)
 					.then((res) => {
 						return res.arrayBuffer();
 					})
 					.then((data) => {
 						return new Promise((resolve2, reject2) => {
-							audio.ctx().decodeAudioData(data, (buf) => {
+							audio.ctx().decodeAudioData(data, (buf: AudioBuffer) => {
 								resolve2(buf);
-							}, (err) => {
+							}, () => {
 								reject2();
 							});
 						});
 					})
 					.then((buf: AudioBuffer) => {
 						sounds[name] = buf;
+						resolve(buf);
 					})
 					.catch(() => {
 						reject(`failed to load sound '${name}' from '${src}'`);
 					})
-					.finally(() => {
-						loader.done();
-					});
+					;
 
 			}
 
 		});
+
+		addLoader(loader);
+
+		return loader;
 
 	}
 
@@ -274,8 +277,8 @@ function assetsInit(gfx, audio) {
 		loadSprite,
 		loadSound,
 		loadFont,
-		newLoader,
 		loadProgress,
+		addLoader,
 		sprites,
 		fonts,
 		sounds,
@@ -284,6 +287,8 @@ function assetsInit(gfx, audio) {
 }
 
 export {
+	SpriteLoadSrc,
+	SpriteLoadConf,
 	SpriteData,
 	SoundData,
 	FontData,
