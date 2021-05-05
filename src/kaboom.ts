@@ -1294,6 +1294,11 @@ function start(name: string, ...args) {
 
 }
 
+type AddEvent = () => void;
+type DrawEvent = () => void;
+type UpdateEvent = () => void;
+type DestroyEvent = () => void;
+
 type PosCompDebugInfo = {
 	pos: string,
 };
@@ -1375,10 +1380,42 @@ function layer(z) {
 	};
 }
 
+type RectSide =
+	"top"
+	| "bottom"
+	| "left"
+	| "right"
+	;
+
+type CollisionResolve = {
+	obj: GameObj,
+	side: RectSide,
+}
+
+type AreaComp = {
+	area: {
+		p1: Vec2,
+		p2: Vec2,
+	},
+	draw: DrawEvent,
+	areaWidth: () => number,
+	areaHeight: () => number,
+	isClicked: () => boolean,
+	isHovered: () => boolean,
+	isCollided: (o: GameObj) => boolean,
+	isOverlapped: (o: GameObj) => boolean,
+	clicks: (f: () => void) => void,
+	hovers: (f: () => void) => void,
+	collides: (tag: string, f: (o: GameObj) => void) => void,
+	overlaps: (tag: string, f: (o: GameObj) => void) => void,
+	hasPt: (p: Vec2) => boolean,
+	resolve: () => void,
+};
+
 // TODO: active flag
 // TODO: tell which size collides
 // TODO: dynamic update when size change
-function area(p1, p2) {
+function area(p1: Vec2, p2: Vec2): AreaComp {
 
 	const colliding = {};
 	const overlapping = {};
@@ -1388,16 +1425,6 @@ function area(p1, p2) {
 		area: {
 			p1: p1,
 			p2: p2,
-		},
-
-		areaWidth() {
-			const { p1, p2 } = this._worldArea();
-			return p2.x - p1.x;
-		},
-
-		areaHeight() {
-			const { p1, p2 } = this._worldArea();
-			return p2.y - p1.y;
 		},
 
 		draw() {
@@ -1485,184 +1512,22 @@ function area(p1, p2) {
 
 		},
 
-		clicks(f) {
-			this.action(() => {
-				if (this.isClicked()) {
-					f();
-				}
-			});
+		areaWidth(): number {
+			const { p1, p2 } = this._worldArea();
+			return p2.x - p1.x;
 		},
 
-		isClicked() {
+		areaHeight(): number {
+			const { p1, p2 } = this._worldArea();
+			return p2.y - p1.y;
+		},
+
+		isClicked(): boolean {
 			return mouseIsClicked() && this.isHovered();
-		},
-
-		hovers(f) {
-			this.action(() => {
-				if (this.isHovered()) {
-					f();
-				}
-			});
-		},
-
-		hasPt(pt) {
-			const a = this._worldArea();
-			return colRectPt({
-				p1: a.p1,
-				p2: a.p2,
-			}, pt);
 		},
 
 		isHovered() {
 			return this.hasPt(mousePos(this.layer || curScene().defLayer));
-		},
-
-		// push object out of other solid objects
-		resolve() {
-
-			const targets = [];
-
-			every((other) => {
-
-				if (other === this) {
-					return;
-				}
-
-				if (!other.solid) {
-					return;
-				}
-
-				if (!other.area) {
-					return;
-				}
-
-				if (this.layer !== other.layer) {
-					return;
-				}
-
-				const a1 = this._worldArea();
-				const a2 = other._worldArea();
-
-				if (!colRectRect(a1, a2)) {
-					return;
-				}
-
-				const disLeft = a1.p2.x - a2.p1.x;
-				const disRight = a2.p2.x - a1.p1.x;
-				const disTop = a1.p2.y - a2.p1.y;
-				const disBottom = a2.p2.y - a1.p1.y;
-				const min = Math.min(disLeft, disRight, disTop, disBottom);
-
-				let side;
-
-				switch (min) {
-					case disLeft:
-						this.pos.x -= disLeft;
-						side = "right";
-						break;
-					case disRight:
-						this.pos.x += disRight;
-						side = "left";
-						break;
-					case disTop:
-						this.pos.y -= disTop;
-						side = "bottom";
-						break;
-					case disBottom:
-						this.pos.y += disBottom;
-						side = "top";
-						break;
-				}
-
-				targets.push({
-					obj: other,
-					side: side,
-				});
-
-			});
-
-			return targets;
-
-		},
-
-		_checkCollisions(tag, f) {
-
-			every(tag, (obj) => {
-				if (this === obj) {
-					return;
-				}
-				if (colliding[obj._sceneID]) {
-					return;
-				}
-				if (this.isCollided(obj)) {
-					f(obj);
-					colliding[obj._sceneID] = obj;
-				}
-			});
-
-			for (const id in colliding) {
-				const obj = colliding[id];
-				if (!this.isCollided(obj)) {
-					delete colliding[id];
-				}
-			}
-
-		},
-
-		collides(tag, f) {
-			this.action(() => {
-				this._checkCollisions(tag, f);
-			});
-		},
-
-		// TODO: repetitive with collides
-		_checkOverlaps(tag, f) {
-
-			every(tag, (obj) => {
-				if (this === obj) {
-					return;
-				}
-				if (overlapping[obj._sceneID]) {
-					return;
-				}
-				if (this.isOverlapped(obj)) {
-					f(obj);
-					overlapping[obj._sceneID] = obj;
-				}
-			});
-
-			for (const id in overlapping) {
-				const obj = overlapping[id];
-				if (!this.isOverlapped(obj)) {
-					delete overlapping[id];
-				}
-			}
-
-		},
-
-		overlaps(tag, f) {
-			this.action(() => {
-				this._checkOverlaps(tag, f);
-			});
-		},
-
-		// TODO: cache
-		// TODO: use matrix mult for more accuracy and rotation?
-		_worldArea() {
-
-			const a = this.area;
-			const pos = this.pos || vec2(0);
-			const scale = this.scale || vec2(1);
-			const p1 = pos.add(a.p1.dot(scale));
-			const p2 = pos.add(a.p2.dot(scale));
-
-			const area = {
-				p1: vec2(Math.min(p1.x, p2.x), Math.min(p1.y, p2.y)),
-				p2: vec2(Math.max(p1.x, p2.x), Math.max(p1.y, p2.y)),
-			};
-
-			return area;
-
 		},
 
 		isCollided(other) {
@@ -1699,6 +1564,174 @@ function area(p1, p2) {
 
 		},
 
+		clicks(f: () => void) {
+			this.action(() => {
+				if (this.isClicked()) {
+					f();
+				}
+			});
+		},
+
+		hovers(f: () => void) {
+			this.action(() => {
+				if (this.isHovered()) {
+					f();
+				}
+			});
+		},
+
+		collides(tag: string, f: (o: GameObj) => void) {
+			this.action(() => {
+				this._checkCollisions(tag, f);
+			});
+		},
+
+		overlaps(tag: string, f: (o: GameObj) => void) {
+			this.action(() => {
+				this._checkOverlaps(tag, f);
+			});
+		},
+
+		hasPt(pt: Vec2): boolean {
+			const a = this._worldArea();
+			return colRectPt({
+				p1: a.p1,
+				p2: a.p2,
+			}, pt);
+		},
+
+		// push object out of other solid objects
+		resolve(): CollisionResolve[] {
+
+			const targets: CollisionResolve[] = [];
+
+			every((other) => {
+
+				if (other === this) {
+					return;
+				}
+
+				if (!other.solid) {
+					return;
+				}
+
+				if (!other.area) {
+					return;
+				}
+
+				if (this.layer !== other.layer) {
+					return;
+				}
+
+				const a1 = this._worldArea();
+				const a2 = other._worldArea();
+
+				if (!colRectRect(a1, a2)) {
+					return;
+				}
+
+				const disLeft = a1.p2.x - a2.p1.x;
+				const disRight = a2.p2.x - a1.p1.x;
+				const disTop = a1.p2.y - a2.p1.y;
+				const disBottom = a2.p2.y - a1.p1.y;
+				const min = Math.min(disLeft, disRight, disTop, disBottom);
+
+				const side = (() => {
+					switch (min) {
+						case disLeft:
+							this.pos.x -= disLeft;
+							return "right";
+						case disRight:
+							this.pos.x += disRight;
+							return "left";
+						case disTop:
+							this.pos.y -= disTop;
+							return "bottom";
+						case disBottom:
+							this.pos.y += disBottom;
+							return "top";
+					}
+				})();
+
+				targets.push({
+					obj: other,
+					side: side,
+				});
+
+			});
+
+			return targets;
+
+		},
+
+		_checkCollisions(tag, f) {
+
+			every(tag, (obj) => {
+				if (this === obj) {
+					return;
+				}
+				if (colliding[obj._sceneID]) {
+					return;
+				}
+				if (this.isCollided(obj)) {
+					f(obj);
+					colliding[obj._sceneID] = obj;
+				}
+			});
+
+			for (const id in colliding) {
+				const obj = colliding[id];
+				if (!this.isCollided(obj)) {
+					delete colliding[id];
+				}
+			}
+
+		},
+
+		// TODO: repetitive with collides
+		_checkOverlaps(tag, f) {
+
+			every(tag, (obj) => {
+				if (this === obj) {
+					return;
+				}
+				if (overlapping[obj._sceneID]) {
+					return;
+				}
+				if (this.isOverlapped(obj)) {
+					f(obj);
+					overlapping[obj._sceneID] = obj;
+				}
+			});
+
+			for (const id in overlapping) {
+				const obj = overlapping[id];
+				if (!this.isOverlapped(obj)) {
+					delete overlapping[id];
+				}
+			}
+
+		},
+
+		// TODO: cache
+		// TODO: use matrix mult for more accuracy and rotation?
+		_worldArea() {
+
+			const a = this.area;
+			const pos = this.pos || vec2(0);
+			const scale = this.scale || vec2(1);
+			const p1 = pos.add(a.p1.dot(scale));
+			const p2 = pos.add(a.p2.dot(scale));
+
+			const area = {
+				p1: vec2(Math.min(p1.x, p2.x), Math.min(p1.y, p2.y)),
+				p2: vec2(Math.max(p1.x, p2.x), Math.max(p1.y, p2.y)),
+			};
+
+			return area;
+
+		},
+
 	};
 
 }
@@ -1711,11 +1744,6 @@ function getAreaFromSize(w, h, o) {
 		offset.add(size.scale(0.5)),
 	);
 }
-
-type AddEvent = () => void;
-type DrawEvent = () => void;
-type UpdateEvent = () => void;
-type DestroyEvent = () => void;
 
 type SpriteCompConf = {
 	noArea?: boolean,
@@ -2048,7 +2076,7 @@ const DEF_JUMP_FORCE = 480;
 type BodyComp = {
 	update: UpdateEvent,
 	jumpForce: number,
-	curPlatform: () => GameObj | undefined,
+	curPlatform: () => GameObj | null,
 	grounded: () => boolean,
 	jump: (f: number) => void,
 };
@@ -2061,7 +2089,7 @@ type BodyCompConf = {
 function body(conf: BodyCompConf = {}): BodyComp {
 
 	let velY = 0;
-	let curPlatform = null;
+	let curPlatform: GameObj | null = null;
 	const maxVel = conf.maxVel ?? DEF_MAX_VEL;
 
 	return {
@@ -2105,15 +2133,15 @@ function body(conf: BodyCompConf = {}): BodyComp {
 
 		},
 
-		curPlatform() {
+		curPlatform(): GameObj | null {
 			return curPlatform;
 		},
 
-		grounded() {
+		grounded(): boolean {
 			return curPlatform !== null;
 		},
 
-		jump(force) {
+		jump(force: number) {
 			curPlatform = null;
 			velY = -force || -this.jumpForce;
 		},
