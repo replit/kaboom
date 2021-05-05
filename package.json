@@ -18,7 +18,6 @@
 		"check": "tsc src/**/*.ts --noEmit --target esnext"
 	},
 	"devDependencies": {
-		"@types/node": "^15.0.1",
 		"esbuild": "^0.11.18",
 		"typescript": "^4.2.4"
 	}

@@ -12,7 +12,6 @@ import {
 	isVec2,
 } from "./math";
 
-import KaboomConf from "./conf";
 import defVertSrc from "./vert.glsl";
 import defFragSrc from "./frag.glsl";
 
@@ -462,9 +461,9 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 		gl.shaderSource(vertShader, vertSrc);
 		gl.compileShader(vertShader);
 
-		var msg = gl.getShaderInfoLog(vertShader);
+		let msg;
 
-		if (msg) {
+		if ((msg = gl.getShaderInfoLog(vertShader))) {
 			throw new Error(msg);
 		}
 
@@ -473,9 +472,7 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 		gl.shaderSource(fragShader, fragSrc);
 		gl.compileShader(fragShader);
 
-		var msg = gl.getShaderInfoLog(fragShader);
-
-		if (msg) {
+		if ((msg = gl.getShaderInfoLog(fragShader))) {
 			throw new Error(msg);
 		}
 
@@ -490,9 +487,7 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 
 		gl.linkProgram(id);
 
-		var msg = gl.getProgramInfoLog(id);
-
-		if (msg) {
+		if ((msg = gl.getProgramInfoLog(id))) {
 			throw new Error(msg);
 		}
 
@@ -546,7 +541,6 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 
 		const cols = tex.width / gw;
 		const rows = tex.height / gh;
-		const count = cols * rows;
 		const qw = 1.0 / cols;
 		const qh = 1.0 / rows;
 		const map = {};

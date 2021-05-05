@@ -79,11 +79,11 @@ type RNG = {
 
 function deg2rad(degrees: number): number {
 	return degrees * Math.PI / 180;
-};
+}
 
 function rad2deg(radians: number): number {
 	return radians * 180 / Math.PI;
-};
+}
 
 function clamp(
 	val: number,
@@ -91,7 +91,7 @@ function clamp(
 	max: number,
 ): number {
 	return Math.min(Math.max(val, min), max);
-};
+}
 
 function lerp(
 	a: number,
@@ -459,7 +459,7 @@ function makeRng(seed: number): RNG {
 	};
 }
 
-function randSeed(seed: number) {
+function randSeed(seed: number): void {
 	defRNG.seed = seed;
 }
 
@@ -492,7 +492,7 @@ function colRectRect(r1: Rect, r2: Rect): boolean {
 		&& r1.p1.y <= r2.p2.y;
 }
 
-function overlapRectRect(r1: Rect, r2: Rect) {
+function overlapRectRect(r1: Rect, r2: Rect): boolean {
 	return r1.p2.x > r2.p1.x
 		&& r1.p1.x < r2.p2.x
 		&& r1.p2.y > r2.p1.y

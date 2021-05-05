@@ -1,19 +1,3 @@
-type KaboomPlugin = (k: KaboomCtx) => Record<string, any>;
-
-type KaboomConf = {
-	width?: number,
-	height?: number,
-	scale?: number,
-	fullscreen?: boolean,
-	debug?: boolean,
-	crisp?: boolean,
-	canvas?: HTMLCanvasElement,
-	root?: HTMLElement,
-	clearColor?: number[],
-	global?: boolean,
-	plugins?: Array<KaboomPlugin>,
-};
-
 import {
 	Vec2,
 	Quad,
@@ -64,11 +48,23 @@ import {
 	loggerInit,
 } from "./logger";
 
-import {
-	deepCopy,
-} from "./utils";
-
 import KaboomCtx from "./ctx";
+
+type KaboomPlugin = (k: KaboomCtx) => Record<string, any>;
+
+type KaboomConf = {
+	width?: number,
+	height?: number,
+	scale?: number,
+	fullscreen?: boolean,
+	debug?: boolean,
+	crisp?: boolean,
+	canvas?: HTMLCanvasElement,
+	root?: HTMLElement,
+	clearColor?: number[],
+	global?: boolean,
+	plugins?: Array<KaboomPlugin>,
+};
 
 module.exports = (gconf: KaboomConf = {
 	width: 640,
@@ -200,11 +196,11 @@ app.canvas.addEventListener("mousemove", (e) => {
 	app.mousePos = vec2(e.offsetX, e.offsetY).scale(1 / app.scale);
 });
 
-app.canvas.addEventListener("mousedown", (e) => {
+app.canvas.addEventListener("mousedown", () => {
 	app.mouseState = "pressed";
 });
 
-app.canvas.addEventListener("mouseup", (e) => {
+app.canvas.addEventListener("mouseup", () => {
 	app.mouseState = "released";
 });
 
@@ -250,7 +246,7 @@ app.canvas.addEventListener("keyup", (e) => {
 
 app.canvas.focus();
 
-document.addEventListener("visibilitychange", (e) => {
+document.addEventListener("visibilitychange", () => {
 	switch (document.visibilityState) {
 		case "visible":
 			// prevent a surge of dt() when switch back after the tab being hidden for a while
@@ -1289,12 +1285,12 @@ function start(name: string, ...args) {
 		gfx.frameEnd();
 
 		if (!stopped) {
-			requestAnimationFrame(frame);
+			loopID = requestAnimationFrame(frame);
 		}
 
 	};
 
-	requestAnimationFrame(frame);
+	loopID = requestAnimationFrame(frame);
 
 }
 
@@ -1423,11 +1419,10 @@ function area(p1, p2) {
 			}
 
 			const a = this._worldArea();
-			const pos = vec2((a.p1.x + a.p2.x) / 2, (a.p1.y + a.p2.y) / 2);
 			const w = a.p2.x - a.p1.x;
 			const h = a.p2.y - a.p1.y;
 
-			gfx.drawRectStroke(a.p1, a.p2.x - a.p1.x, a.p2.y - a.p1.y, {
+			gfx.drawRectStroke(a.p1, w, h, {
 				width: width / app.scale,
 				color: color,
 				z: 0.9,
@@ -1749,8 +1744,6 @@ type SpriteComp = {
 	changeSprite: (id: string) => void,
 	numFrames: () => number,
 	curAnim: () => string,
-	onAnimPlay: (name: string, cb: () => void) => void,
-	onAnimEnd: (name: string, cb: () => void) => void,
 	debugInfo: () => SpriteCompDebugInfo,
 };
 
@@ -1778,7 +1771,6 @@ function sprite(id: string, conf: SpriteCompConf = {}): SpriteComp {
 	const width = spr.tex.width * q.w;
 	const height = spr.tex.height * q.h;
 	let curAnim: SpriteCompCurAnim | null = null;
-	const events = {};
 
 	return {
 
@@ -1857,11 +1849,8 @@ function sprite(id: string, conf: SpriteCompConf = {}): SpriteComp {
 				timer: 0,
 			};
 
-			this.frame = anim[0];
-
-			if (events[name]?.play) {
-				events[name].play();
-			}
+			this.frame = anim.from;
+			this.trigger("animPlay", name);
 
 		},
 
@@ -1869,9 +1858,9 @@ function sprite(id: string, conf: SpriteCompConf = {}): SpriteComp {
 			if (!curAnim) {
 				return;
 			}
-			const cb = events[curAnim.name]?.end;
+			const prevAnim = curAnim.name;
 			curAnim = null;
-			cb && cb();
+			this.trigger("animEnd", prevAnim);
 		},
 
 		changeSprite(id) {
@@ -1905,20 +1894,6 @@ function sprite(id: string, conf: SpriteCompConf = {}): SpriteComp {
 
 		curAnim() {
 			return curAnim?.name;
-		},
-
-		onAnimPlay(name, cb) {
-			if (!events[name]) {
-				events[name] = {};
-			}
-			events[name].play = cb;
-		},
-
-		onAnimEnd(name, cb) {
-			if (!events[name]) {
-				events[name] = {};
-			}
-			events[name].end = cb;
 		},
 
 		debugInfo(): SpriteCompDebugInfo {

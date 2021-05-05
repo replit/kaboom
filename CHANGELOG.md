@@ -12,6 +12,7 @@
 - (**BREAK**) `removeTag()` renamed to `rmTag()`
 - added `LoopHandle` returned by `loop()` that has a `stop()`
 - (**BREAK**) changed `SpriteAnim` from `[ from, to ]` to `{ from: number, to: number }`
+- (**BREAK**) removed `onAnimPlay()` and `onAnimEnd()` in favor of generic event `on("animEnd", (anim: string) => {})`
 
 ## v0.4.1
 - fixed `on("destroy")` handler getting called twice
