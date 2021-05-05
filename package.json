@@ -12,8 +12,8 @@
 		"dist/*"
 	],
 	"scripts": {
-		"dev": "node scripts/watch.js src node scripts/build.js",
-		"site": "cd site; node ../scripts/watch.js . node .",
+		"dev": "node scripts/dev.js",
+		"site": "cd site; node .",
 		"build": "node scripts/build.js",
 		"check": "tsc --noEmit"
 	},

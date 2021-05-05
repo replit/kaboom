@@ -9,7 +9,6 @@ import {
 	quad,
 	rgba,
 	mat4,
-	isVec2,
 } from "./math";
 
 import defVertSrc from "./vert.glsl";

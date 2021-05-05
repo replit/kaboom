@@ -12,6 +12,16 @@ function ansi(n, str) {
 	return `\x1b[${n}m${str}\x1b[0m`;
 }
 
+if (!dir) {
+	console.log(ansi(31, "dir required"));
+	process.exit();
+}
+
+if (!cmd) {
+	console.log(ansi(31, "cmd required"));
+	process.exit();
+}
+
 console.log(ansi(33, `watching ${cwd}...`));
 
 function start() {
@@ -27,7 +37,7 @@ fs.watch(dir, {
 	recursive: true,
 }, (ev, fname) => {
 	if (fs.existsSync(`${dir}/${fname}`)) {
-		console.log(ansi(33, `${new Date().toLocaleTimeString()} ${fname}`));
+		console.log(ansi(33, `(${new Date().toLocaleTimeString()}) ${fname}`));
 		proc.kill();
 		proc = start();
 	}

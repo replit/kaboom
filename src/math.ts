@@ -459,7 +459,7 @@ function makeRng(seed: number): RNG {
 	};
 }
 
-function randSeed(seed: number): void {
+function randSeed(seed: number) {
 	defRNG.seed = seed;
 }
 

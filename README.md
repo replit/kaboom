@@ -74,12 +74,10 @@ import kaboom from "https://kaboomjs.com/lib/dev/kaboom.mjs";
 
 ### Dev
 
-Use examples to test / add features
-
 1. `npm run dev` to watch & build lib
-1. `npm run site` to run site
 1. go to http://localhost:8000/examples
-1. edit examples in `examples/`
+1. edit examples in `examples/` to test
+1. make sure not breaking any existing examples
 
 ### Misc
 
