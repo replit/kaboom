@@ -121,11 +121,7 @@ const logger = loggerInit(gfx, assets, {
 
 const net: Net | null = (() => {
 	if (gconf.connect) {
-		return netInit(gconf.connect, {
-			errHandler: (err: string) => {
-				logger.error(err);
-			},
-		});
+		return netInit(gconf.connect);
 	}
 	return null;
 })();
@@ -134,7 +130,13 @@ function recv(type: string, handler: MsgHandler) {
 	if (!net) {
 		throw new Error("not connected to any websockets");
 	}
-	net.recv(type, handler);
+	net.recv(type, (data: any, id: number) => {
+		try {
+			handler(data, id);
+		} catch (err) {
+			logger.error(err);
+		}
+	});
 }
 
 function send(type: string, data: any) {
@@ -1074,7 +1076,7 @@ function start(name: string, ...args: any[]) {
 				game.loaded = true;
 				goSync(name, ...args);
 				if (net) {
-					net.connect();
+					net.connect().catch(logger.error);
 				}
 			} else {
 				const w = gfx.width() / 2;

@@ -189,6 +189,7 @@ type GfxConf = {
 type Gfx = {
 	width: () => number,
 	height: () => number,
+	scale: () => number,
 	makeTex: (data: GfxTextureData) => GfxTexture,
 	makeFont: (
 		tex: GfxTexture,
@@ -828,18 +829,23 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 
 	// get current canvas width
 	function width(): number {
-		return gl.drawingBufferWidth / (gconf.scale ?? 1);
+		return gl.drawingBufferWidth / scale();
 	}
 
 	// get current canvas height
 	function height(): number {
-		return gl.drawingBufferHeight / (gconf.scale ?? 1);
+		return gl.drawingBufferHeight / scale();
+	}
+
+	function scale(): number {
+		return gconf.scale ?? 1;
 	}
 
 	// TODO: type this
 	return {
 		width,
 		height,
+		scale,
 		makeTex,
 		makeFont,
 		drawTexture,

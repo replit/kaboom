@@ -1,21 +1,17 @@
 type MsgHandler = (data: any, id: number) => void;
 
-type NetConf = {
-	errHandler?: (err: string) => void,
-};
-
 type Net = {
-	connect: () => void,
+	connect: () => Promise<WebSocket>,
+	close: () => void,
 	connected: () => boolean,
 	recv: (type: string, handler: MsgHandler) => void,
 	send: (type: string, data: any) => void,
 };
 
-function netInit(url: string, gconf: NetConf = {}): Net {
+function netInit(url: string): Net {
 
 	const handlers: Record<string, MsgHandler[]> = {};
 	const sendQueue: string[] = [];
-	const handleErr = gconf.errHandler ?? console.error;
 
 	let socket: WebSocket | null = null;
 
@@ -23,32 +19,34 @@ function netInit(url: string, gconf: NetConf = {}): Net {
 		return socket !== null && socket.readyState === 1;
 	}
 
-	function connect() {
+	function connect(): Promise<WebSocket> {
 
-		socket = new WebSocket(url);
+		const ws = new WebSocket(url);
 
-		socket.onopen = () => {
-			for (const msg of sendQueue) {
-				socket.send(msg);
-			}
-		};
+		return new Promise<WebSocket>((resolve, reject) => {
 
-		socket.onerror = () => {
-			handleErr(`failed to connect to ${url}`)
-		};
+			ws.onopen = () => {
+				resolve(ws);
+				socket = ws;
+				for (const msg of sendQueue) {
+					ws.send(msg);
+				}
+			};
 
-		socket.onmessage = (e) => {
-			const msg = JSON.parse(e.data);
-			if (handlers[msg.type]) {
-				for (const handler of handlers[msg.type]) {
-					try {
+			ws.onerror = () => {
+				reject(`failed to connect to ${url}`)
+			};
+
+			ws.onmessage = (e) => {
+				const msg = JSON.parse(e.data);
+				if (handlers[msg.type]) {
+					for (const handler of handlers[msg.type]) {
 						handler(msg.data, msg.id);
-					} catch (e) {
-						handleErr(e);
 					}
 				}
-			}
-		};
+			};
+
+		});
 
 	}
 
@@ -71,8 +69,15 @@ function netInit(url: string, gconf: NetConf = {}): Net {
 		}
 	}
 
+	function close() {
+		if (socket) {
+			socket.close();
+		}
+	}
+
 	return {
 		connect,
+		close,
 		connected,
 		recv,
 		send,

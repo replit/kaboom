@@ -48,6 +48,10 @@ server.on("connection", (conn) => {
 
 	conn.on("close", (data) => {
 		delete players[id];
+		broadcast({
+			type: "REMOVE_PLAYER",
+			data: id,
+		});
 	});
 
 });

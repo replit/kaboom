@@ -61,6 +61,8 @@ function loggerInit(gfx: Gfx, assets: Assets, conf: LoggerConf = {
 				origin: "botleft",
 				color: col,
 				z: 1,
+				size: 16 / gfx.scale(),
+				width: gfx.width(),
 			});
 
 			gfx.drawRect(pos, ftext.width, ftext.height, {
