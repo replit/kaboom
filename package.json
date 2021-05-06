@@ -14,7 +14,6 @@
 	],
 	"scripts": {
 		"dev": "node scripts/dev.js",
-		"net": "node examples/net/broadcast.js",
 		"site": "cd site; node .",
 		"build": "node scripts/build.js",
 		"check": "tsc --noEmit"

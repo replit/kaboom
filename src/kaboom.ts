@@ -130,18 +130,18 @@ const net: Net | null = (() => {
 	return null;
 })();
 
-function recv(handler: MsgHandler) {
+function recv(type: string, handler: MsgHandler) {
 	if (!net) {
 		throw new Error("not connected to any websockets");
 	}
-	net.recv(handler);
+	net.recv(type, handler);
 }
 
-function send(data: any) {
+function send(type: string, data: any) {
 	if (!net) {
 		throw new Error("not connected to any websockets");
 	}
-	net.send(data);
+	net.send(type, data);
 }
 
 function play(id: string, conf: AudioPlayConf = {}): AudioPlay {
@@ -1071,9 +1071,10 @@ function start(name: string, ...args: any[]) {
 			const progress = assets.loadProgress();
 
 			if (progress === 1) {
-				if (!net || (net && net.connected())) {
-					game.loaded = true;
-					goSync(name, ...args);
+				game.loaded = true;
+				goSync(name, ...args);
+				if (net) {
+					net.connect();
 				}
 			} else {
 				const w = gfx.width() / 2;

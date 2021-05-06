@@ -90,8 +90,8 @@ type KaboomCtx = {
 	gravity: (g: number) => number,
 	sceneData: () => any,
 	// net
-	recv: (handler: MsgHandler) => void,
-	send: (data: any) => void,
+	recv: (type: string, handler: MsgHandler) => void,
+	send: (type: string, data: any) => void,
 	// comps
 	pos,
 	scale,
