@@ -1067,7 +1067,7 @@ function start(name: string, ...args: any[]) {
 			const progress = assets.loadProgress();
 
 			if (progress === 1) {
-				if (net && net.connected()) {
+				if (!net || (net && net.connected())) {
 					game.loaded = true;
 					goSync(name, ...args);
 				}
