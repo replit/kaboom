@@ -48,6 +48,12 @@ import {
 	loggerInit,
 } from "./logger";
 
+import {
+	MsgHandler,
+	Net,
+	netInit,
+} from "./net";
+
 import KaboomCtx from "./ctx";
 
 // TODO
@@ -70,7 +76,7 @@ type KaboomConf = {
 	clearColor?: number[],
 	logMax?: number,
 	logLevel?: LogLevel,
-	socket?: string,
+	connect?: string,
 	global?: boolean,
 	plugins?: Array<KaboomPlugin>,
 };
@@ -83,7 +89,7 @@ module.exports = (gconf: KaboomConf = {
 	debug: false,
 	crisp: false,
 	canvas: null,
-	socket: null,
+	connect: null,
 	root: document.body,
 }): KaboomCtx => {
 
@@ -112,6 +118,27 @@ const assets = assetsInit(gfx, audio, {
 const logger = loggerInit(gfx, assets, {
 	max: gconf.logMax,
 });
+
+let net: Net | null = (() => {
+	if (gconf.connect) {
+		return netInit(gconf.connect);
+	}
+	return null;
+})();
+
+function recv(handler: MsgHandler) {
+	if (!net) {
+		throw new Error("not connected to any websockets");
+	}
+	net.recv(handler);
+}
+
+function send(data: any) {
+	if (!net) {
+		throw new Error("not connected to any websockets");
+	}
+	net.send(data);
+}
 
 function play(id: string, conf: AudioPlayConf = {}): AudioPlay {
 	const sound = assets.sounds[id];
@@ -1040,19 +1067,16 @@ function start(name: string, ...args: any[]) {
 			const progress = assets.loadProgress();
 
 			if (progress === 1) {
-
-				game.loaded = true;
-				goSync(name, ...args);
-
+				if (net && net.connected()) {
+					game.loaded = true;
+					goSync(name, ...args);
+				}
 			} else {
-
 				const w = gfx.width() / 2;
 				const h = 12;
 				const pos = vec2(gfx.width() / 2, gfx.height() / 2).sub(vec2(w / 2, h / 2));
-
 				gfx.drawRectStroke(pos, w, h, { width: 2, });
 				gfx.drawRect(pos, w * progress, h);
-
 			}
 
 		} else {
@@ -1088,36 +1112,6 @@ function start(name: string, ...args: any[]) {
 
 	});
 
-}
-
-let net: WebSocket | null = null;
-
-if (gconf.socket) {
-	net = new WebSocket(gconf.socket);
-	net.onopen = () => {
-		logger.info(`connected to ${gconf.socket}`);
-	};
-	net.onerror = () => {
-		logger.error(`failed to connect to ${gconf.socket}`)
-	};
-	net.onmessage = (e) => {
-		const msg = JSON.parse(e.data);
-		switch (msg.type) {
-			case "SYNC_OBJ":
-				// TODO
-				break;
-		}
-	};
-}
-
-function sync(obj: GameObj) {
-	if (!net) {
-		throw new Error("not connected to a network");
-	}
-	net.send(JSON.stringify({
-		type: "SYNC_OBJ",
-		data: obj,
-	}));
 }
 
 type AddEvent = () => void;
@@ -2170,7 +2164,9 @@ const lib: KaboomCtx = {
 	get,
 	every,
 	revery,
-	sync,
+	// net
+	send,
+	recv,
 	// comps
 	pos,
 	scale,

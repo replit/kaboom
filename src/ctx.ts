@@ -20,6 +20,10 @@ import {
 } from "./audio";
 
 import {
+	MsgHandler,
+} from "./net";
+
+import {
 	GameObj,
 } from "./game";
 
@@ -84,8 +88,10 @@ type KaboomCtx = {
 	camShake: (n: number) => void,
 	camIgnore: (layers: string[]) => void,
 	gravity: (g: number) => number,
-	sync: (obj: GameObj) => void,
 	sceneData: () => any,
+	// net
+	recv: (handler: MsgHandler) => void,
+	send: (data: any) => void,
 	// comps
 	pos,
 	scale,

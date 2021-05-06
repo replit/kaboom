@@ -9,7 +9,8 @@
 		"gamedev"
 	],
 	"files": [
-		"dist/*"
+		"src/",
+		"dist/"
 	],
 	"scripts": {
 		"dev": "node scripts/dev.js",

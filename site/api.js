@@ -139,6 +139,8 @@ const score = add([
 	text("0"),
 	layer("ui"),
 ]);
+
+// NOTE: Objects on different won't collide! Collision handlers won't pick them up.
 			`),
 			f("gravity", [
 				a("value", "gravity value"),
@@ -710,6 +712,8 @@ collides("enemy", "bullet", (e, b) => {
 		destroy(e);
 	}
 });
+
+// NOTE: Objects on different won't collide! Collision handlers won't pick them up.
 			`),
 			f("overlaps", [
 				a("tag", "tag selector"),
