@@ -119,9 +119,13 @@ const logger = loggerInit(gfx, assets, {
 	max: gconf.logMax,
 });
 
-let net: Net | null = (() => {
+const net: Net | null = (() => {
 	if (gconf.connect) {
-		return netInit(gconf.connect);
+		return netInit(gconf.connect, {
+			errHandler: (err: string) => {
+				logger.error(err);
+			},
+		});
 	}
 	return null;
 })();
@@ -827,7 +831,7 @@ function keyRelease(k: string, f: () => void) {
 	pushKeyEvent("keyRelease", k, f);
 }
 
-function charInput(f: (string) => void) {
+function charInput(f: (ch: string) => void) {
 	const scene = curScene();
 	scene.events.charInput.push({
 		cb: f,
@@ -1097,15 +1101,15 @@ function start(name: string, ...args: any[]) {
 
 			}
 
-			if (debug.showLog) {
-				logger.draw();
-			}
-
 			if (game.nextScene) {
 				goSync.apply(null, [ game.nextScene.name, ...game.nextScene.args, ]);
 				game.nextScene = null;
 			}
 
+		}
+
+		if (debug.showLog) {
+			logger.draw();
 		}
 
 		gfx.frameEnd();
