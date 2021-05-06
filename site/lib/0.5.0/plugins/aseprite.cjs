@@ -1,0 +1,2 @@
+var l=Object.defineProperty;var f=(a,n)=>l(a,"name",{value:n,configurable:!0});module.exports=a=>{function n(c,h,d){let m=new Promise((p,s)=>{let i=a.loadRoot()+d;a.loadSprite(c,h).then(o=>{fetch(i).then(r=>r.json()).then(r=>{let e=r.meta.size;o.frames=r.frames.map(t=>a.quad(t.frame.x/e.w,t.frame.y/e.h,t.frame.w/e.w,t.frame.h/e.h));for(let t of r.meta.frameTags)o.anims[t.name]={from:t.from,to:t.to};p(o)}).catch(()=>{s(`failed to load ${i}`)})}).catch(o=>s(o))});return a.addLoader(m),m}return f(n,"loadAseprite"),{loadAseprite:n}};
+//# sourceMappingURL=aseprite.cjs.map

@@ -1,4 +1,4 @@
-## (wip)
+## v0.5.0 "Type! Type! Type!"
 - added `curPlatform()` by `body()`
 - on screen log now catches all kinds of errors
 - (**BREAK**) removed `dbg().logTime`

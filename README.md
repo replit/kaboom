@@ -7,7 +7,7 @@ Check out our official [website](https://kaboomjs.com/)!
 ### Example
 
 ```html
-<script src="https://kaboomjs.com/lib/0.4.1/kaboom.js"></script>
+<script src="https://kaboomjs.com/lib/0.5.0/kaboom.js"></script>
 <script type="module">
 
 // initialize kaboom context
