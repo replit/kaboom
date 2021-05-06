@@ -228,7 +228,7 @@ type GameObj = {
 		update: [],
 		draw: [],
 		destroy: [],
-		debugInfo: [],
+		inspect: [],
 	},
 };
 type Game = {
@@ -377,39 +377,37 @@ function sceneData(): any {
 // register inputs for controlling debug features
 function regDebugInputs() {
 
-	const dbg = debug;
-
 	keyPress("`", () => {
-		dbg.showLog = !dbg.showLog;
-		logger.info(`show log: ${dbg.showLog ? "on" : "off"}`);
+		debug.showLog = !debug.showLog;
+		logger.info(`show log: ${debug.showLog ? "on" : "off"}`);
 	});
 
 	keyPress("f1", () => {
-		dbg.inspect = !dbg.inspect;
-		logger.info(`inspect: ${dbg.inspect ? "on" : "off"}`);
+		debug.inspect = !debug.inspect;
+		logger.info(`inspect: ${debug.inspect ? "on" : "off"}`);
 	});
 
 	keyPress("f2", () => {
-		logger.clear();
+		debug.clearLog();
 	});
 
 	keyPress("f8", () => {
-		dbg.paused = !dbg.paused;
-		logger.info(`${dbg.paused ? "paused" : "unpaused"}`);
+		debug.paused = !debug.paused;
+		logger.info(`${debug.paused ? "paused" : "unpaused"}`);
 	});
 
 	keyPress("f7", () => {
-		dbg.timeScale = clamp(dbg.timeScale - 0.2, 0, 2);
-		logger.info(`time scale: ${dbg.timeScale.toFixed(1)}`);
+		debug.timeScale = clamp(debug.timeScale - 0.2, 0, 2);
+		logger.info(`time scale: ${debug.timeScale.toFixed(1)}`);
 	});
 
 	keyPress("f9", () => {
-		dbg.timeScale = clamp(dbg.timeScale + 0.2, 0, 2);
-		logger.info(`time scale: ${dbg.timeScale.toFixed(1)}`);
+		debug.timeScale = clamp(debug.timeScale + 0.2, 0, 2);
+		logger.info(`time scale: ${debug.timeScale.toFixed(1)}`);
 	});
 
 	keyPress("f10", () => {
-		stepFrame();
+		debug.stepFrame();
 		logger.info(`stepped frame`);
 	});
 
@@ -538,7 +536,7 @@ function add(comps: Comp[]): GameObj {
 			update: [],
 			draw: [],
 			destroy: [],
-			debugInfo: [],
+			inspect: [],
 		},
 
 		// use a comp
@@ -1120,14 +1118,14 @@ type DrawEvent = () => void;
 type UpdateEvent = () => void;
 type DestroyEvent = () => void;
 
-type PosCompDebugInfo = {
+type PosCompInspect = {
 	pos: string,
 };
 
 type PosComp = {
 	pos: Vec2,
 	move: (...args) => void,
-	debugInfo: () => PosCompDebugInfo,
+	inspect: () => PosCompInspect,
 };
 
 // TODO: have velocity here?
@@ -1148,7 +1146,7 @@ function pos(...args): PosComp {
 
 		},
 
-		debugInfo() {
+		inspect() {
 			return {
 				pos: `(${~~this.pos.x}, ${~~this.pos.y})`,
 			};
@@ -1192,7 +1190,7 @@ function origin(o) {
 function layer(z) {
 	return {
 		layer: z,
-		debugInfo() {
+		inspect() {
 			const scene = curScene();
 			return {
 				layer: this.layer ?? scene.defLayer,
@@ -1304,9 +1302,9 @@ function area(p1: Vec2, p2: Vec2): AreaComp {
 					addLine(`"${tag}"`);
 				}
 
-				for (const debugInfo of this._events.debugInfo) {
+				for (const inspect of this._events.inspect) {
 
-					const info = debugInfo();
+					const info = inspect();
 
 					for (const field in info) {
 						addLine(`${field}: ${info[field]}`);
@@ -1597,10 +1595,10 @@ type SpriteComp = {
 	changeSprite: (id: string) => void,
 	numFrames: () => number,
 	curAnim: () => string,
-	debugInfo: () => SpriteCompDebugInfo,
+	inspect: () => SpriteCompInspect,
 };
 
-type SpriteCompDebugInfo = {
+type SpriteCompInspect = {
 	curAnim?: string,
 };
 
@@ -1753,8 +1751,8 @@ function sprite(id: string, conf: SpriteCompConf = {}): SpriteComp {
 			return curAnim?.name;
 		},
 
-		debugInfo(): SpriteCompDebugInfo {
-			const info: SpriteCompDebugInfo = {};
+		inspect(): SpriteCompInspect {
+			const info: SpriteCompInspect = {};
 			if (curAnim) {
 				info.curAnim = `"${curAnim.name}"`;
 			}
@@ -1979,36 +1977,38 @@ function body(conf: BodyCompConf = {}): BodyComp {
 
 }
 
-type DebugState = {
+type Debug = {
 	paused: boolean,
 	inspect: boolean,
 	timeScale: number,
 	showLog: boolean,
+	fps: () => number,
+	objCount: () => number,
+	stepFrame: () => void,
+	clearLog: () => void,
+	log: (msg: string) => void,
+	error: (msg: string) => void,
 };
 
-const debug: DebugState = {
+const debug: Debug = {
 	paused: false,
 	inspect: false,
 	timeScale: 1,
 	showLog: true,
+	fps(): number {
+		return 1.0 / app.dt();
+	},
+	objCount(): number {
+		return curScene().objs.size;
+	},
+	stepFrame() {
+		gameFrame(true);
+	},
+	clearLog: logger.clear,
+	log: logger.info,
+	error: logger.error,
 };
 
-function dbg(): DebugState {
-	return debug;
-}
-
-function fps(): number {
-	return 1.0 / app.dt();
-}
-
-function objCount(): number {
-	const scene = curScene();
-	return scene.objs.size;
-}
-
-function stepFrame() {
-	gameFrame(true);
-}
 
 type LevelConf = {
 	width: number,
@@ -2235,12 +2235,7 @@ const lib: KaboomCtx = {
 	drawRectStroke: gfx.drawRectStroke,
 	drawLine: gfx.drawLine,
 	// debug
-	dbg,
-	objCount,
-	fps,
-	stepFrame,
-	log: logger.info,
-	error: logger.error,
+	debug,
 	// level
 	addLevel,
 };

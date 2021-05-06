@@ -153,12 +153,7 @@ type KaboomCtx = {
 	drawRectStroke,
 	drawLine,
 	// dbg
-	dbg,
-	objCount,
-	fps,
-	stepFrame,
-	log,
-	error,
+	debug: Debug,
 	// helpers
 	addLevel,
 };

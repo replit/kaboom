@@ -1,7 +1,10 @@
 ## v0.5.0 "Type! Type! Type!"
 - added `curPlatform()` by `body()`
 - on screen log now catches all kinds of errors
-- (**BREAK**) removed `dbg().logTime`
+- (**BREAK**) changed `dbg()` to plain `debug` object
+- (**BREAK**) moved `fps()`, `objCount()`, `stepFrame()`, `log()`, `error()` under `debug`
+- (**BREAK**) removed `debug.logTime`
+- (**BREAK**) changed component `debugInfo()` hook to `inspect()`
 - added `changeSprite()` by `sprite()`
 - fixed unable to play another anim in `onAnimEnd()`
 - defer scene switches to happen only on frame end

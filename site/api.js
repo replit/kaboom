@@ -55,13 +55,13 @@ scene();
 add();
 
 // if "debug" is enabled, your game gets some special key bindings
-// - \`: toggle kaboom.debug.showLog
-// - f1: toggle kaboom.debug.showArea
-// - f2: toggle kaboom.debug.hoverInfo
-// - f8: toggle kaboom.debug.paused
-// - f7: decrease kaboom.debug.timeScale
-// - f9: increase kaboom.debug.timeScale
-// - f10: stepFrame()
+// - \`: toggle debug.showLog
+// - f1: toggle debug.inspect
+// - f2: debug.clearLog()
+// - f8: toggle debug.paused
+// - f7: decrease debug.timeScale
+// - f9: increase debug.timeScale
+// - f10: debug.stepFrame()
 // see more in the debug section below
 			`),
 			f("start", [
@@ -473,9 +473,14 @@ console.log(obj.curAnim());
 console.log(obj.width);
 console.log(obj.height);
 
-obj.onAnimEnd("jump", () => {
-	obj.play("fall");
+obj.on("animEnd", (anim) => {
+	if (anim === "jump") {
+		obj.play("fall");
+	}
 });
+
+// could change prite for anim if you don't use spritesheet
+obj.changeSprite("froggy_left");
 			`),
 			f("text", [
 				a("txt", "the text to draw"),
@@ -858,7 +863,7 @@ const music = play("mysong");
 
 keyPress("space", () => {
 	if (music.paused()) {
-		music.resume();
+		music.play();
 	} else {
 		music.pause();
 	}
@@ -1107,31 +1112,39 @@ action("block", (b) => {
 		name: "Debug",
 		desc: "debug utilities",
 		entries: [
-			f("fps", [], null, "current frames per second", ""),
-			f("objCount", [], null, "current number of objects in scene", ""),
-			f("log", [], null, "log a message on screen if kaboom.debug.showLog is enabled", ""),
-			f("error", [], null, "log an error message on screen if kaboom.debug.showLog is enabled", ""),
-			f("kaboom.debug", [], null, "debug flags", `
+			f("debug", [], null, "debug flags / actions", `
 // pause the game (events are still been listened)
-kaboom.debug.paused = true;
+debug.paused = true;
+
+// show the bounding box of objects with area() and hover to inspect properties
+debug.inspect = true;
 
 // scale the time
-kaboom.debug.timeScale = 0.5;
-
-// show the bounding box of objects with area()
-kaboom.debug.showArea = true;
-
-// hover to inspect objects (needs showArea checked)
-kaboom.debug.hoverInfo = true;
+debug.timeScale = 0.5;
 
 // if show on screen logs
-kaboom.debug.showLog = true;
-
-// log decay time
-kaboom.debug.logTime = 32;
+debug.showLog = true;
 
 // log stack count max
-kaboom.debug.logMax = 6;
+debug.logMax = 6;
+
+// get current fps
+debug.fps();
+
+// get object count in current scene
+debug.objCount();
+
+// step to the next frame
+debug.stepFrame();
+
+// clear log
+debug.clearLog();
+
+// log an on screen message
+debug.log("oh hi");
+
+// log an on screen error message
+debug.error("oh no");
 			`),
 		],
 	},
