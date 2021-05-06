@@ -62,6 +62,13 @@ for (let i = 0; i < 4; i++) {
 			}
 		});
 
+		k.recv("REMOVE_PLAYER", (data, id) => {
+			if (players[id]) {
+				k.destroy(players[id]);
+				delete players[id];
+			}
+		});
+
 		function sendUpdate() {
 			k.send("UPDATE_PLAYER", {
 				pos: player.pos,

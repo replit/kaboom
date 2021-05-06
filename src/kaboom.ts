@@ -56,12 +56,6 @@ import {
 
 import KaboomCtx from "./ctx";
 
-// TODO
-type LogLevel =
-	"info"
-	| "error"
-	;
-
 type KaboomPlugin = (k: KaboomCtx) => Record<string, any>;
 
 type KaboomConf = {
@@ -75,7 +69,6 @@ type KaboomConf = {
 	root?: HTMLElement,
 	clearColor?: number[],
 	logMax?: number,
-	logLevel?: LogLevel,
 	connect?: string,
 	global?: boolean,
 	plugins?: Array<KaboomPlugin>,
@@ -90,6 +83,7 @@ module.exports = (gconf: KaboomConf = {
 	crisp: false,
 	canvas: null,
 	connect: null,
+	logMax: 8,
 	root: document.body,
 }): KaboomCtx => {
 
@@ -1725,6 +1719,10 @@ function sprite(id: string, conf: SpriteCompConf = {}): SpriteComp {
 		changeSprite(id) {
 
 			spr = assets.sprites[id];
+
+			if (!spr) {
+				throw new Error(`sprite not found: "${id}"`);
+			}
 
 			const q = { ...spr.frames[0] };
 
