@@ -1,5 +1,7 @@
 import {
 	Vec2,
+	Vec3,
+	Mat4,
 	Quad,
 	Color,
 	vec2,
@@ -192,7 +194,7 @@ function drawSprite(
 
 function drawText(
 	txt: string,
-	conf?: DrawTextConf,
+	conf = {},
 ) {
 	const fid = conf.font ?? DEF_FONT;
 	const font = assets.fonts[fid];
@@ -1096,15 +1098,15 @@ function start(name: string, ...args: any[]) {
 
 			}
 
+			if (debug.showLog) {
+				logger.draw();
+			}
+
 			if (game.nextScene) {
 				goSync.apply(null, [ game.nextScene.name, ...game.nextScene.args, ]);
 				game.nextScene = null;
 			}
 
-		}
-
-		if (debug.showLog) {
-			logger.draw();
 		}
 
 		gfx.frameEnd();
@@ -1977,6 +1979,31 @@ function body(conf: BodyCompConf = {}): BodyComp {
 
 }
 
+type ShaderComp = {
+	sendVec2: (name: string, p: Vec2) => void,
+	sendVec3: (name: string, p: Vec3) => void,
+	sendColor: (name: string, p: Color) => void,
+	sendMat4: (name: string, m: Mat4) => void,
+};
+
+function shader(id: string): ShaderComp {
+	const prog = assets.shaders[id];
+	return {
+		sendVec2(name: string, p: Vec2) {
+			prog.sendVec2(name, p);
+		},
+		sendVec3(name: string, p: Vec3) {
+			prog.sendVec3(name, p);
+		},
+		sendColor(name: string, c: Color) {
+			prog.sendColor(name, c);
+		},
+		sendMat4(name: string, m: Mat4) {
+			prog.sendMat4(name, m);
+		},
+	};
+}
+
 type Debug = {
 	paused: boolean,
 	inspect: boolean,
@@ -2144,6 +2171,7 @@ const lib: KaboomCtx = {
 	loadSprite: assets.loadSprite,
 	loadSound: assets.loadSound,
 	loadFont: assets.loadFont,
+	loadShader: assets.loadShader,
 	addLoader: assets.addLoader,
 	// query
 	width: gfx.width,
@@ -2187,6 +2215,7 @@ const lib: KaboomCtx = {
 	rect,
 	solid,
 	body,
+	shader,
 	// group events
 	on,
 	action,

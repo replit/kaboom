@@ -12,12 +12,21 @@ const pages = {
 	"/": () => require("./doc"),
 	"/guide": () => require("./guide"),
 	"/examples": () => require("./examples"),
-	"/example/:name": (req, res) => require("./example")(req.params.name),
+	"/example/:name": (req, res) => {
+		const name = req.params.name;
+		const path = `../examples/${name}.js`;
+		if (fs.existsSync(path)) {
+			return require("./example")(name);
+		}
+	},
 };
 
 for (const path in pages) {
 	server.match(path, (req, res) => {
-		res.html(pages[path](req, res));
+		const result = pages[path](req, res);
+		if (result) {
+			res.html(result);
+		}
 	});
 }
 

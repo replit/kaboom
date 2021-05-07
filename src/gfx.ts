@@ -21,6 +21,7 @@ attribute vec3 a_pos;
 attribute vec2 a_uv;
 attribute vec4 a_color;
 
+varying vec3 v_pos;
 varying vec2 v_uv;
 varying vec4 v_color;
 
@@ -31,7 +32,8 @@ vec4 def_vert() {
 {{user}}
 
 void main() {
-	vec4 pos = vert();
+	vec4 pos = vert(a_pos, a_uv, a_color);
+	v_pos = a_pos;
 	v_uv = a_uv;
 	v_color = a_color;
 	gl_Position = pos;
@@ -41,6 +43,7 @@ void main() {
 const FRAG_TEMPLATE = `
 precision mediump float;
 
+varying vec3 v_pos;
 varying vec2 v_uv;
 varying vec4 v_color;
 
@@ -53,8 +56,7 @@ vec4 def_frag() {
 {{user}}
 
 void main() {
-	vec4 color = frag();
-	gl_FragColor = color;
+	gl_FragColor = frag(v_pos, v_uv, v_color, u_tex);
 	if (gl_FragColor.a == 0.0) {
 		discard;
 	}
@@ -62,19 +64,18 @@ void main() {
 `;
 
 const DEF_VERT = `
-vec4 vert() {
+vec4 vert(vec3 pos, vec2 uv, vec4 color) {
 	return def_vert();
 }
 `;
 
 const DEF_FRAG = `
-vec4 frag() {
+vec4 frag(vec3 pos, vec2 uv, vec4 color, sampler2D tex) {
 	return def_frag();
 }
 `;
 
 type GfxProgram = {
-	id: WebGLProgram,
 	bind: () => void,
 	unbind: () => void,
 	bindAttribs: () => void,
@@ -86,7 +87,6 @@ type GfxProgram = {
 }
 
 type GfxTexture = {
-	id: WebGLTexture,
 	width: number,
 	height: number,
 	bind: () => void,
@@ -135,9 +135,10 @@ type DrawQuadConf = {
 	rot?: number,
 	color?: Color,
 	origin?: Origin | Vec2,
-	tex?: GfxTexture,
 	quad?: Quad,
 	z?: number,
+	tex?: GfxTexture,
+	prog?: GfxProgram,
 };
 
 type DrawTextureConf = {
@@ -148,6 +149,7 @@ type DrawTextureConf = {
 	origin?: Origin | Vec2,
 	quad?: Quad,
 	z?: number,
+	prog?: GfxProgram,
 };
 
 type DrawRectStrokeConf = {
@@ -157,6 +159,7 @@ type DrawRectStrokeConf = {
 	color?: Color,
 	origin?: Origin | Vec2,
 	z?: number,
+	prog?: GfxProgram,
 };
 
 type DrawRectConf = {
@@ -165,12 +168,14 @@ type DrawRectConf = {
 	color?: Color,
 	origin?: Origin | Vec2,
 	z?: number,
+	prog?: GfxProgram,
 };
 
 type DrawLineConf = {
 	width?: number,
 	color?: Color,
 	z?: number,
+	prog?: GfxProgram,
 };
 
 type DrawTextConf = {
@@ -182,6 +187,7 @@ type DrawTextConf = {
 	origin?: Origin | Vec2,
 	width?: number,
 	z?: number,
+	prog?: GfxProgram,
 };
 
 type FormattedChar = {
@@ -238,6 +244,7 @@ type Gfx = {
 	height: () => number,
 	scale: () => number,
 	makeTex: (data: GfxTextureData) => GfxTexture,
+	makeProgram: (vert: string, frag: string) => GfxProgram,
 	makeFont: (
 		tex: GfxTexture,
 		gw: number,
@@ -343,11 +350,10 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 		gl.bindTexture(gl.TEXTURE_2D, null);
 
 		return {
-			id: id,
 			width: data.width,
 			height: data.height,
 			bind() {
-				gl.bindTexture(gl.TEXTURE_2D, this.id);
+				gl.bindTexture(gl.TEXTURE_2D, id);
 			},
 			unbind() {
 				gl.bindTexture(gl.TEXTURE_2D, null);
@@ -357,25 +363,24 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 	}
 
 	function makeProgram(
-		vertSrc: string,
-		fragSrc: string
+		vertSrc: string | null = DEF_VERT,
+		fragSrc: string | null = DEF_FRAG,
 	): GfxProgram {
 
-		const vertShader = gl.createShader(gl.VERTEX_SHADER);
-
-		gl.shaderSource(vertShader, VERT_TEMPLATE.replace("{{user}}", vertSrc));
-		gl.compileShader(vertShader);
-
 		let msg;
+		const vcode = VERT_TEMPLATE.replace("{{user}}", vertSrc ?? DEF_VERT);
+		const fcode = FRAG_TEMPLATE.replace("{{user}}", fragSrc ?? DEF_FRAG);
+		const vertShader = gl.createShader(gl.VERTEX_SHADER);
+		const fragShader = gl.createShader(gl.FRAGMENT_SHADER);
+
+		gl.shaderSource(vertShader, vcode);
+		gl.shaderSource(fragShader, fcode);
+		gl.compileShader(vertShader);
+		gl.compileShader(fragShader);
 
 		if ((msg = gl.getShaderInfoLog(vertShader))) {
 			throw new Error(msg);
 		}
-
-		const fragShader = gl.createShader(gl.FRAGMENT_SHADER);
-
-		gl.shaderSource(fragShader, FRAG_TEMPLATE.replace("{{user}}", fragSrc));
-		gl.compileShader(fragShader);
 
 		if ((msg = gl.getShaderInfoLog(fragShader))) {
 			throw new Error(msg);
@@ -392,16 +397,15 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 
 		gl.linkProgram(id);
 
+		// TODO: fails on safari with no msg
 		if ((msg = gl.getProgramInfoLog(id))) {
 			throw new Error(msg);
 		}
 
 		return {
 
-			id: id,
-
 			bind() {
-				gl.useProgram(this.id);
+				gl.useProgram(id);
 			},
 
 			unbind() {
@@ -418,27 +422,27 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 			},
 
 			sendFloat(name: string, f: number) {
-				const loc = gl.getUniformLocation(this.id, name);
+				const loc = gl.getUniformLocation(id, name);
 				gl.uniform1f(loc, f);
 			},
 
 			sendVec2(name: string, p: Vec2) {
-				const loc = gl.getUniformLocation(this.id, name);
+				const loc = gl.getUniformLocation(id, name);
 				gl.uniform2f(loc, p.x, p.y);
 			},
 
 			sendVec3(name: string, p: Vec3) {
-				const loc = gl.getUniformLocation(this.id, name);
+				const loc = gl.getUniformLocation(id, name);
 				gl.uniform3f(loc, p.x, p.y, p.z);
 			},
 
 			sendColor(name: string, c: Color) {
-				const loc = gl.getUniformLocation(this.id, name);
+				const loc = gl.getUniformLocation(id, name);
 				gl.uniform4f(loc, c.r, c.g, c.b, c.a);
 			},
 
 			sendMat4(name: string, m: Mat4) {
-				const loc = gl.getUniformLocation(this.id, name);
+				const loc = gl.getUniformLocation(id, name);
 				gl.uniformMatrix4fv(loc, false, new Float32Array(m.m));
 			},
 
@@ -855,6 +859,7 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 		height,
 		scale,
 		makeTex,
+		makeProgram,
 		makeFont,
 		drawTexture,
 		drawText,
@@ -882,6 +887,7 @@ export {
 	GfxTexture,
 	GfxTextureData,
 	DrawTextureConf,
+	DrawTextConf,
 	Origin,
 	originPt,
 	gfxInit,

@@ -11,6 +11,7 @@ import {
 	SpriteLoadConf,
 	SpriteData,
 	FontData,
+	ShaderData,
 	SoundData,
 } from "./assets";
 
@@ -46,6 +47,12 @@ type KaboomCtx = {
 		gh: number,
 		chars?: string,
 	) => Promise<FontData>,
+	loadShader: (
+		name: string,
+		vert?: string,
+		frag?: string,
+		isUrl?: boolean,
+	) => Promise<ShaderData>,
 	addLoader: (l: Promise<any>) => void,
 	// game
 	start: (scene: string, ...args: any[]) => void,
@@ -105,6 +112,7 @@ type KaboomCtx = {
 	rect,
 	solid,
 	body,
+	shader,
 	// inputs
 	cursor: (c: string) => void,
 	mousePos: (layer?: string) => Vec2,

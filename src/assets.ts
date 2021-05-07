@@ -62,12 +62,19 @@ type Assets = {
 		gh: number,
 		chars?: string,
 	) => Promise<FontData>,
+	loadShader: (
+		name: string,
+		vert?: string,
+		frag?: string,
+		isUrl?: boolean,
+	) => Promise<ShaderData>,
 	loadProgress: () => number,
 	addLoader: <T>(prom: Promise<T>) => void,
 	defFont: () => FontData,
 	sprites: Record<string, SpriteData>,
 	fonts: Record<string, FontData>,
 	sounds: Record<string, SoundData>,
+	shaders: Record<string, ShaderData>,
 };
 
 type AssetsCtx = {
@@ -77,6 +84,7 @@ type AssetsCtx = {
 	sprites: Record<string, SpriteData>,
 	sounds: Record<string, SoundData>,
 	fonts: Record<string, FontData>,
+	shaders: Record<string, ShaderData>,
 };
 
 const ASCII_CHARS = " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~";
@@ -234,6 +242,10 @@ function assetsInit(gfx: Gfx, audio: Audio, gconf: AssetsConf = {}): Assets {
 
 		const loader = new Promise<SpriteData>((resolve, reject) => {
 
+			if (!src) {
+				reject(`failed to load sprite '${name}' from '${src}'`);
+			}
+
 			// from url
 			if (typeof(src) === "string") {
 
@@ -264,14 +276,62 @@ function assetsInit(gfx: Gfx, audio: Audio, gconf: AssetsConf = {}): Assets {
 
 	function loadShader(
 		name: string,
-		vertSrc?: string,
-		fragSrc?: string,
+		vert?: string,
+		frag?: string,
 		isUrl: boolean = false,
 	): Promise<ShaderData> {
+
+		function loadRawShader(
+			name: string,
+			vert: string | null,
+			frag: string | null,
+		): ShaderData {
+			const shader = gfx.makeProgram(vert, frag);
+			assets.shaders[name] = shader;
+			return shader;
+		}
+
 		const loader = new Promise<ShaderData>((resolve, reject) => {
-			// ...
+
+			if (!vert && !frag) {
+				return reject("no shader");
+			}
+
+			function resolveUrl(url?: string) {
+				return url ?
+					fetch(assets.loadRoot + url)
+						.then((r) => {
+							if (r.ok) {
+								return r.text();
+							} else {
+								throw new Error(`failed to fetch ${url}`)
+							}
+						})
+						.catch(reject)
+					: new Promise((r) => r(null));
+			}
+
+			if (isUrl) {
+
+				Promise.all([resolveUrl(vert), resolveUrl(frag)])
+					.then(([vcode, fcode]: [string | null, string | null]) => {
+						resolve(loadRawShader(name, vcode, fcode));
+					})
+					.catch(reject);
+			} else {
+				try {
+					resolve(loadRawShader(name, vert, frag));
+				} catch (err) {
+					reject(err);
+				}
+			}
+
 		});
+
+		addLoader(loader);
+
 		return loader;
+
 	}
 
 	// load a sound to asset manager
@@ -286,9 +346,7 @@ function assetsInit(gfx: Gfx, audio: Audio, gconf: AssetsConf = {}): Assets {
 			if (typeof(src) === "string") {
 
 				fetch(assets.loadRoot + src)
-					.then((res) => {
-						return res.arrayBuffer();
-					})
+					.then((res) => res.arrayBuffer())
 					.then((data) => {
 						return new Promise((resolve2, reject2) => {
 							audio.ctx().decodeAudioData(data, (buf: AudioBuffer) => {
@@ -334,12 +392,14 @@ function assetsInit(gfx: Gfx, audio: Audio, gconf: AssetsConf = {}): Assets {
 		loadSprite,
 		loadSound,
 		loadFont,
+		loadShader,
 		loadProgress,
 		addLoader,
 		defFont,
 		sprites: assets.sprites,
 		fonts: assets.fonts,
 		sounds: assets.sounds,
+		shaders: assets.shaders,
 	};
 
 }
@@ -351,6 +411,7 @@ export {
 	SpriteData,
 	SoundData,
 	FontData,
+	ShaderData,
 	assetsInit,
 	DEF_FONT,
 };
