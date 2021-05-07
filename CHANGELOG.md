@@ -2,7 +2,7 @@
 - added `loadShader(id, vert, frag, isUrl)`
 - added `shader()` comp for attaching custom shader to an obj
 
-## v0.5.0 "Type! Type! Type!"
+## v0.5.0 "Sticky Type"
 - moved to TypeScript
 - improved graphics performance
 - improved inspect drawing performance
