@@ -1184,15 +1184,15 @@ function start(name: string, ...args: any[]) {
 					drawInspect();
 				}
 
-				if (debug.showLog) {
-					logger.draw();
-				}
-
 			} catch (e) {
 
 				logger.error(e.stack);
 				app.quit();
 
+			}
+
+			if (debug.showLog) {
+				logger.draw();
 			}
 
 			if (game.nextScene) {
