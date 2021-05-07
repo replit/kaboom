@@ -93,7 +93,7 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 			new ImageData(new Uint8ClampedArray([ 255, 255, 255, 255, ]), 1, 1)
 		);
 
-		const c = gconf.clearColor ?? rgba(0, 0, 0, 0);
+		const c = gconf.clearColor ?? rgba(0, 0, 0, 1);
 
 		gl.clearColor(c.r, c.g, c.b, c.a);
 		gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
@@ -126,6 +126,7 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 			iqueue: [],
 			transform: mat4(),
 			transformStack: [],
+			clearColor: c,
 		};
 
 	})();
@@ -666,6 +667,10 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 		return gconf.scale ?? 1;
 	}
 
+	function clearColor(): Color {
+		return gfx.clearColor.clone();
+	}
+
 	// TODO: type this
 	return {
 		width,
@@ -687,6 +692,7 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 		popTransform,
 		pushMatrix,
 		drawCalls,
+		clearColor,
 	};
 
 }

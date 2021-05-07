@@ -132,16 +132,25 @@ function rgba(...args): Color {
 		g: args[1],
 		b: args[2],
 		a: args[3] ?? 1,
-		clone() {
+		clone(): Color {
 			return rgba(this.r, this.g, this.b, this.a);
 		},
-		lighten(a) {
+		lighten(a): Color {
 			return rgba(this.r + a, this.g + a, this.b + a, this.a);
 		},
-		darken(a) {
+		darken(a: number): Color {
 			return this.lighten(-a);
 		},
-		eq(other) {
+		invert(): Color {
+			return rgba(1 - this.r, 1 - this.g, 1 - this.b, this.a);
+		},
+		isDark(p: number = 0.5): boolean {
+			return this.r + this.g + this.b < 3 * p;
+		},
+		isLight(p: number = 0.5): boolean {
+			return this.r + this.g + this.b > 3 * p;
+		},
+		eq(other: Color): boolean {
 			return this.r === other.r
 				&& this.g === other.g
 				&& this.b === other.g

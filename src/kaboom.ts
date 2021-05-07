@@ -126,12 +126,15 @@ function play(id: string, conf: AudioPlayConf = {}): AudioPlay {
 
 // check input state last frame
 function mousePos(layer?: string): Vec2 {
+
 	const scene = curScene();
-	if (!layer) {
-		return app.mousePos();
+
+	if (Object.keys(scene.layers).length === 0) {
+		return scene.cam.mpos;
 	} else {
-		return scene.cam.ignore.includes(layer) ? mousePos() : scene.cam.mpos;
+		return scene.cam.ignore.includes(layer ?? scene.defLayer) ? app.mousePos() : scene.cam.mpos;
 	}
+
 }
 
 function drawSprite(
@@ -838,7 +841,7 @@ function gameFrame(ignorePause?: boolean) {
 		.translate(cam.pos.scale(-1).add(size.scale(0.5)).add(shake))
 		;
 
-	cam.mpos = cam.matrix.invert().multVec2(mousePos());
+	cam.mpos = cam.matrix.invert().multVec2(app.mousePos());
 
 	// draw every obj
 	every((obj) => {
@@ -953,7 +956,7 @@ function drawInspect() {
 
 		if (hovered) {
 
-			const mpos = mousePos(obj.layer ?? scene.defLayer);
+			const mpos = mousePos(obj.layer);
 			const padding = vec2(6, 6).scale(1 / gfx.scale());
 			let bw = 0;
 			let bh = 0;
@@ -1029,8 +1032,9 @@ function start(name: string, ...args: any[]) {
 				const w = gfx.width() / 2;
 				const h = 12;
 				const pos = vec2(gfx.width() / 2, gfx.height() / 2).sub(vec2(w / 2, h / 2));
-				gfx.drawRectStroke(pos, w, h, { width: 2, });
-				gfx.drawRect(pos, w * progress, h);
+				const color = gfx.clearColor().isDark(0.7) ? rgb(1, 1, 1) : rgb(0, 0, 0);
+				gfx.drawRectStroke(pos, w, h, { width: 2, color: color, });
+				gfx.drawRect(pos, w * progress, h, { color: color, });
 			}
 
 		} else {
@@ -1178,7 +1182,7 @@ function area(p1: Vec2, p2: Vec2): AreaComp {
 		},
 
 		isHovered() {
-			return this.hasPt(mousePos(this.layer ?? curScene().defLayer));
+			return this.hasPt(mousePos(this.layer));
 		},
 
 		isCollided(other) {

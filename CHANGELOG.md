@@ -14,11 +14,13 @@
 - added `duration()` and `time()` for the handle returned by `play()`
 - added optional `seek` field to the audio play conf `play([conf])`
 - added `LoopHandle` returned by `loop()` that has a `stop()`
+- added basic color contrast detection when drawing loading bar
 - fixed `sound.pause()` to work on firefox
 - fixed collisions not treating explicit default layer the same as implicit default layer
 - fixed unable to play another anim in `onAnimEnd()`
 - fixed scene switches happen in the middle of a frame
 - fixed `scale(0)` not working
+- fixed `mosuePos()` not returning the camera affected pos with no layers
 - (**BREAK**) changed `dbg()` to plain `debug` object
 - (**BREAK**) moved `fps()`, `objCount()`, `stepFrame()`, `log()`, `error()` under `debug`
 - (**BREAK**) removed `debug.logTime`

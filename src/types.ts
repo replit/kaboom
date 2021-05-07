@@ -361,6 +361,7 @@ type GfxCtx = {
 	ibuf: WebGLBuffer,
 	vqueue: number[],
 	iqueue: number[],
+	clearColor: Color,
 	drawCalls: number,
 	defProg: GfxProgram,
 	curProg: GfxProgram,
@@ -471,6 +472,7 @@ type Gfx = {
 	width: () => number,
 	height: () => number,
 	scale: () => number,
+	clearColor: () => Color,
 	makeTex: (data: GfxTextureData) => GfxTexture,
 	makeProgram: (vert: string, frag: string) => GfxProgram,
 	makeFont: (
@@ -603,6 +605,9 @@ type Color = {
 	clone: () => Color,
 	lighten: (n: number) => Color,
 	darken: (n: number) => Color,
+	invert: () => Color,
+	isDark: (p?: number) => boolean,
+	isLight: (p?: number) => boolean,
 	eq: (c: Color) => boolean,
 };
 
