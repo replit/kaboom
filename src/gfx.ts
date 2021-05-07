@@ -11,35 +11,78 @@ import {
 	mat4,
 } from "./math";
 
-import defVertSrc from "./vert.glsl";
-import defFragSrc from "./frag.glsl";
-
 const DEF_ORIGIN = "topleft";
 const STRIDE = 9;
 const MAX_VERTS = 65536;
 const MAX_INDICES = 65536;
 
-type GfxBatchedMesh = {
-	vbuf: WebGLBuffer,
-	ibuf: WebGLBuffer,
-	vqueue: number[],
-	iqueue: number[],
-	push: (verts: number[], indices: number[]) => void,
-	flush: () => void,
-	bind: () => void,
-	unbind: () => void,
-	count: () => number,
-};
+const VERT_TEMPLATE = `
+attribute vec3 a_pos;
+attribute vec2 a_uv;
+attribute vec4 a_color;
+
+varying vec2 v_uv;
+varying vec4 v_color;
+
+vec4 def_vert() {
+	return vec4(a_pos, 1.0);
+}
+
+{{user}}
+
+void main() {
+	vec4 pos = vert();
+	v_uv = a_uv;
+	v_color = a_color;
+	gl_Position = pos;
+}
+`;
+
+const FRAG_TEMPLATE = `
+precision mediump float;
+
+varying vec2 v_uv;
+varying vec4 v_color;
+
+uniform sampler2D u_tex;
+
+vec4 def_frag() {
+	return v_color * texture2D(u_tex, v_uv);
+}
+
+{{user}}
+
+void main() {
+	vec4 color = frag();
+	gl_FragColor = color;
+	if (gl_FragColor.a == 0.0) {
+		discard;
+	}
+}
+`;
+
+const DEF_VERT = `
+vec4 vert() {
+	return def_vert();
+}
+`;
+
+const DEF_FRAG = `
+vec4 frag() {
+	return def_frag();
+}
+`;
 
 type GfxProgram = {
 	id: WebGLProgram,
 	bind: () => void,
 	unbind: () => void,
+	bindAttribs: () => void,
 	sendFloat: (name: string, val: number) => void,
-	sendVec2: (name: string, x: number, y: number) => void,
-	sendVec3: (name: string, x: number, y: number, z: number) => void,
-	sendVec4: (name: string, x: number, y: number, z: number, w: number) => void,
-	sendMat4: (name: string, m: number[]) => void,
+	sendVec2: (name: string, p: Vec2) => void,
+	sendVec3: (name: string, p: Vec3) => void,
+	sendColor: (name: string, p: Color) => void,
+	sendMat4: (name: string, m: Mat4) => void,
 }
 
 type GfxTexture = {
@@ -71,11 +114,15 @@ type Vertex = {
 };
 
 type GfxCtx = {
+	vbuf: WebGLBuffer,
+	ibuf: WebGLBuffer,
+	vqueue: number[],
+	iqueue: number[],
 	drawCalls: number,
-	mesh: GfxBatchedMesh,
 	defProg: GfxProgram,
+	curProg: GfxProgram,
 	defTex: GfxTexture,
-	curTex: GfxTexture | null,
+	curTex: GfxTexture,
 	transform: Mat4,
 	transformStack: Mat4[],
 };
@@ -234,14 +281,14 @@ type Gfx = {
 	pushTransform: () => void,
 	popTransform: () => void,
 	pushMatrix: (m: Mat4) => void,
+	drawCalls: () => number,
 };
 
 function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 
 	const gfx: GfxCtx = (() => {
 
-		const mesh = makeBatchedMesh(MAX_VERTS, MAX_INDICES);
-		const defProg = makeProgram(defVertSrc, defFragSrc);
+		const defProg = makeProgram(DEF_VERT, DEF_FRAG);
 		const emptyTex = makeTex(
 			new ImageData(new Uint8ClampedArray([ 255, 255, 255, 255, ]), 1, 1)
 		);
@@ -255,44 +302,232 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 		gl.depthFunc(gl.LEQUAL);
 		gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
 
+		const vbuf = gl.createBuffer();
+
+		gl.bindBuffer(gl.ARRAY_BUFFER, vbuf);
+		gl.bufferData(gl.ARRAY_BUFFER, MAX_VERTS, gl.DYNAMIC_DRAW);
+		gl.bindBuffer(gl.ARRAY_BUFFER, null);
+
+		const ibuf = gl.createBuffer();
+
+		gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, ibuf);
+		gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, MAX_INDICES, gl.DYNAMIC_DRAW);
+		gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
+
 		return {
 			drawCalls: 0,
-			mesh: mesh,
 			defProg: defProg,
+			curProg: defProg,
 			defTex: emptyTex,
 			curTex: emptyTex,
+			vbuf: vbuf,
+			ibuf: ibuf,
+			vqueue: [],
+			iqueue: [],
 			transform: mat4(),
 			transformStack: [],
 		};
 
 	})();
 
-	// draw all cached vertices in the batched renderer
+	function makeTex(data: GfxTextureData): GfxTexture {
+
+		const id = gl.createTexture();
+
+		gl.bindTexture(gl.TEXTURE_2D, id);
+		gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, data);
+		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+		gl.bindTexture(gl.TEXTURE_2D, null);
+
+		return {
+			id: id,
+			width: data.width,
+			height: data.height,
+			bind() {
+				gl.bindTexture(gl.TEXTURE_2D, this.id);
+			},
+			unbind() {
+				gl.bindTexture(gl.TEXTURE_2D, null);
+			},
+		};
+
+	}
+
+	function makeProgram(
+		vertSrc: string,
+		fragSrc: string
+	): GfxProgram {
+
+		const vertShader = gl.createShader(gl.VERTEX_SHADER);
+
+		gl.shaderSource(vertShader, VERT_TEMPLATE.replace("{{user}}", vertSrc));
+		gl.compileShader(vertShader);
+
+		let msg;
+
+		if ((msg = gl.getShaderInfoLog(vertShader))) {
+			throw new Error(msg);
+		}
+
+		const fragShader = gl.createShader(gl.FRAGMENT_SHADER);
+
+		gl.shaderSource(fragShader, FRAG_TEMPLATE.replace("{{user}}", fragSrc));
+		gl.compileShader(fragShader);
+
+		if ((msg = gl.getShaderInfoLog(fragShader))) {
+			throw new Error(msg);
+		}
+
+		const id = gl.createProgram();
+
+		gl.attachShader(id, vertShader);
+		gl.attachShader(id, fragShader);
+
+		gl.bindAttribLocation(id, 0, "a_pos");
+		gl.bindAttribLocation(id, 1, "a_uv");
+		gl.bindAttribLocation(id, 2, "a_color");
+
+		gl.linkProgram(id);
+
+		if ((msg = gl.getProgramInfoLog(id))) {
+			throw new Error(msg);
+		}
+
+		return {
+
+			id: id,
+
+			bind() {
+				gl.useProgram(this.id);
+			},
+
+			unbind() {
+				gl.useProgram(null);
+			},
+
+			bindAttribs() {
+				gl.vertexAttribPointer(0, 3, gl.FLOAT, false, STRIDE * 4, 0);
+				gl.enableVertexAttribArray(0);
+				gl.vertexAttribPointer(1, 2, gl.FLOAT, false, STRIDE * 4, 12);
+				gl.enableVertexAttribArray(1);
+				gl.vertexAttribPointer(2, 4, gl.FLOAT, false, STRIDE * 4, 20);
+				gl.enableVertexAttribArray(2);
+			},
+
+			sendFloat(name: string, f: number) {
+				const loc = gl.getUniformLocation(this.id, name);
+				gl.uniform1f(loc, f);
+			},
+
+			sendVec2(name: string, p: Vec2) {
+				const loc = gl.getUniformLocation(this.id, name);
+				gl.uniform2f(loc, p.x, p.y);
+			},
+
+			sendVec3(name: string, p: Vec3) {
+				const loc = gl.getUniformLocation(this.id, name);
+				gl.uniform3f(loc, p.x, p.y, p.z);
+			},
+
+			sendColor(name: string, c: Color) {
+				const loc = gl.getUniformLocation(this.id, name);
+				gl.uniform4f(loc, c.r, c.g, c.b, c.a);
+			},
+
+			sendMat4(name: string, m: Mat4) {
+				const loc = gl.getUniformLocation(this.id, name);
+				gl.uniformMatrix4fv(loc, false, new Float32Array(m.m));
+			},
+
+		};
+
+	}
+
+	function makeFont(
+		tex: GfxTexture,
+		gw: number,
+		gh: number,
+		chars: string,
+	): GfxFont {
+
+		const cols = tex.width / gw;
+		const rows = tex.height / gh;
+		const qw = 1.0 / cols;
+		const qh = 1.0 / rows;
+		const map: Record<string, Vec2> = {};
+		const charMap = chars.split("").entries();
+
+		for (const [i, ch] of charMap) {
+			map[ch] = vec2(
+				(i % cols) * qw,
+				Math.floor(i / cols) * qh,
+			);
+		}
+
+		return {
+			tex: tex,
+			map: map,
+			qw: qw,
+			qh: qh,
+		};
+
+	}
+
+	// TODO: expose
+	function drawRaw(
+		verts: Vertex[],
+		indices: number[],
+		tex: GfxTexture = gfx.defTex,
+		prog: GfxProgram = gfx.defProg,
+	) {
+		if (tex !== gfx.curTex || prog !== gfx.curProg) {
+			flush();
+			gfx.curTex = tex;
+			gfx.curProg = prog;
+		}
+		// TODO: deal with overflow
+		indices = indices.map((i) => {
+			return i + gfx.vqueue.length / STRIDE;
+		});
+		gfx.vqueue = gfx.vqueue.concat(verts.map((v) => {
+			const pt = toNDC(gfx.transform.multVec2(v.pos.xy()));
+			return [
+				pt.x, pt.y, v.pos.z,
+				v.uv.x, v.uv.y,
+				v.color.r, v.color.g, v.color.b, v.color.a
+			];
+		}).flat());
+		gfx.iqueue = gfx.iqueue.concat(indices);
+	}
+
 	function flush() {
 
-		gfx.mesh.flush();
-
-		if (!gfx.curTex) {
+		if (!gfx.curTex || !gfx.curProg) {
 			return;
 		}
 
-		gfx.mesh.bind();
-		gfx.defProg.bind();
+		gl.bindBuffer(gl.ARRAY_BUFFER, gfx.vbuf);
+		gl.bufferSubData(gl.ARRAY_BUFFER, 0, new Float32Array(gfx.vqueue));
+
+		gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, gfx.ibuf);
+		gl.bufferSubData(gl.ELEMENT_ARRAY_BUFFER, 0, new Uint16Array(gfx.iqueue));
+
+		gfx.curProg.bind();
 		gfx.curTex.bind();
+		gfx.curProg.bindAttribs();
+		gl.drawElements(gl.TRIANGLES, gfx.iqueue.length, gl.UNSIGNED_SHORT, 0);
+		gfx.curProg.unbind();
+		gfx.curTex.unbind();
+		gl.bindBuffer(gl.ARRAY_BUFFER, null);
+		gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
 
-		gl.vertexAttribPointer(0, 3, gl.FLOAT, false, STRIDE * 4, 0);
-		gl.enableVertexAttribArray(0);
-		gl.vertexAttribPointer(1, 2, gl.FLOAT, false, STRIDE * 4, 12);
-		gl.enableVertexAttribArray(1);
-		gl.vertexAttribPointer(2, 4, gl.FLOAT, false, STRIDE * 4, 20);
-		gl.enableVertexAttribArray(2);
+		gfx.iqueue = [];
+		gfx.vqueue = [];
 
-		gl.drawElements(gl.TRIANGLES, gfx.mesh.count(), gl.UNSIGNED_SHORT, 0);
 		gfx.drawCalls++;
-
-		gfx.defProg.unbind();
-		gfx.mesh.unbind();
-		gfx.curTex = null;
 
 	}
 
@@ -305,6 +540,10 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 
 	function frameEnd() {
 		flush();
+	}
+
+	function drawCalls() {
+		return gfx.drawCalls;
 	}
 
 	function toNDC(pt: Vec2): Vec2 {
@@ -362,237 +601,6 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 		if (gfx.transformStack.length > 0) {
 			gfx.transform = gfx.transformStack.pop();
 		}
-	}
-
-	// the batch renderer
-	function makeBatchedMesh(vcount: number, icount: number): GfxBatchedMesh {
-
-		const vbuf = gl.createBuffer();
-
-		gl.bindBuffer(gl.ARRAY_BUFFER, vbuf);
-		gl.bufferData(gl.ARRAY_BUFFER, vcount * 32, gl.DYNAMIC_DRAW);
-		gl.bindBuffer(gl.ARRAY_BUFFER, null);
-
-		const ibuf = gl.createBuffer();
-
-		gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, ibuf);
-		gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, icount * 2, gl.DYNAMIC_DRAW);
-		gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
-
-		let numIndices = 0;
-
-		return {
-
-			vbuf: vbuf,
-			ibuf: ibuf,
-			vqueue: [],
-			iqueue: [],
-
-			push(verts, indices) {
-				// TODO: deal with overflow
-				indices = indices.map((i) => {
-					return i + this.vqueue.length / STRIDE;
-				});
-				this.vqueue = this.vqueue.concat(verts);
-				this.iqueue = this.iqueue.concat(indices);
-			},
-
-			flush() {
-
-				gl.bindBuffer(gl.ARRAY_BUFFER, this.vbuf);
-				gl.bufferSubData(gl.ARRAY_BUFFER, 0, new Float32Array(this.vqueue));
-				gl.bindBuffer(gl.ARRAY_BUFFER, null);
-
-				gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.ibuf);
-				gl.bufferSubData(gl.ELEMENT_ARRAY_BUFFER, 0, new Uint16Array(this.iqueue));
-				gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
-
-				numIndices = this.iqueue.length;
-
-				this.iqueue = [];
-				this.vqueue = [];
-
-			},
-
-			bind() {
-				gl.bindBuffer(gl.ARRAY_BUFFER, this.vbuf);
-				gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.ibuf);
-			},
-
-			unbind() {
-				gl.bindBuffer(gl.ARRAY_BUFFER, null);
-				gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
-			},
-
-			count() {
-				return numIndices;
-			},
-
-		};
-
-	}
-
-	function makeTex(data: GfxTextureData): GfxTexture {
-
-		const id = gl.createTexture();
-
-		gl.bindTexture(gl.TEXTURE_2D, id);
-		gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, data);
-		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-		gl.bindTexture(gl.TEXTURE_2D, null);
-
-		return {
-			id: id,
-			width: data.width,
-			height: data.height,
-			bind() {
-				gl.bindTexture(gl.TEXTURE_2D, this.id);
-			},
-			unbind() {
-				gl.bindTexture(gl.TEXTURE_2D, null);
-			},
-		};
-
-	}
-
-	function makeProgram(
-		vertSrc: string,
-		fragSrc: string
-	): GfxProgram {
-
-		const vertShader = gl.createShader(gl.VERTEX_SHADER);
-
-		gl.shaderSource(vertShader, vertSrc);
-		gl.compileShader(vertShader);
-
-		let msg;
-
-		if ((msg = gl.getShaderInfoLog(vertShader))) {
-			throw new Error(msg);
-		}
-
-		const fragShader = gl.createShader(gl.FRAGMENT_SHADER);
-
-		gl.shaderSource(fragShader, fragSrc);
-		gl.compileShader(fragShader);
-
-		if ((msg = gl.getShaderInfoLog(fragShader))) {
-			throw new Error(msg);
-		}
-
-		const id = gl.createProgram();
-
-		gl.attachShader(id, vertShader);
-		gl.attachShader(id, fragShader);
-
-		gl.bindAttribLocation(id, 0, "a_pos");
-		gl.bindAttribLocation(id, 1, "a_uv");
-		gl.bindAttribLocation(id, 2, "a_color");
-
-		gl.linkProgram(id);
-
-		if ((msg = gl.getProgramInfoLog(id))) {
-			throw new Error(msg);
-		}
-
-		return {
-
-			id: id,
-
-			bind() {
-				gl.useProgram(this.id);
-			},
-
-			unbind() {
-				gl.useProgram(null);
-			},
-
-			sendFloat(name, val) {
-				const loc = gl.getUniformLocation(this.id, name);
-				gl.uniform1f(loc, val);
-			},
-
-			sendVec2(name, x, y) {
-				const loc = gl.getUniformLocation(this.id, name);
-				gl.uniform2f(loc, x, y);
-			},
-
-			sendVec3(name, x, y, z) {
-				const loc = gl.getUniformLocation(this.id, name);
-				gl.uniform3f(loc, x, y, z);
-			},
-
-			sendVec4(name, x, y, z, w) {
-				const loc = gl.getUniformLocation(this.id, name);
-				gl.uniform4f(loc, x, y, z, w);
-			},
-
-			sendMat4(name, m) {
-				const loc = gl.getUniformLocation(this.id, name);
-				gl.uniformMatrix4fv(loc, false, new Float32Array(m));
-			},
-
-		};
-
-	}
-
-	function makeFont(
-		tex: GfxTexture,
-		gw: number,
-		gh: number,
-		chars: string,
-	): GfxFont {
-
-		const cols = tex.width / gw;
-		const rows = tex.height / gh;
-		const qw = 1.0 / cols;
-		const qh = 1.0 / rows;
-		const map: Record<string, Vec2> = {};
-		const charMap = chars.split("").entries();
-
-		for (const [i, ch] of charMap) {
-			map[ch] = vec2(
-				(i % cols) * qw,
-				Math.floor(i / cols) * qh,
-			);
-		}
-
-		return {
-			tex: tex,
-			map: map,
-			qw: qw,
-			qh: qh,
-		};
-
-	}
-
-	function drawRaw(
-		verts: Vertex[],
-		indices: number[],
-		tex: GfxTexture = gfx.defTex,
-	) {
-
-		// flush on texture change
-		if (gfx.curTex !== tex) {
-			flush();
-			gfx.curTex = tex;
-		}
-
-		// update vertices to current transform matrix
-		const nVerts = verts.map((v) => {
-			const pt = toNDC(gfx.transform.multVec2(v.pos.xy()));
-			return [
-				pt.x, pt.y, v.pos.z,
-				v.uv.x, v.uv.y,
-				v.color.r, v.color.g, v.color.b, v.color.a
-			];
-		}).flat();
-
-		gfx.mesh.push(nVerts, indices);
-
 	}
 
 	// draw a textured quad
@@ -860,6 +868,7 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 		pushTransform,
 		popTransform,
 		pushMatrix,
+		drawCalls,
 	};
 
 }
@@ -869,6 +878,7 @@ export {
 	GfxConf,
 	Vertex,
 	GfxFont,
+	GfxProgram,
 	GfxTexture,
 	GfxTextureData,
 	DrawTextureConf,

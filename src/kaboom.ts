@@ -1984,6 +1984,7 @@ type Debug = {
 	showLog: boolean,
 	fps: () => number,
 	objCount: () => number,
+	drawCalls: () => number,
 	stepFrame: () => void,
 	clearLog: () => void,
 	log: (msg: string) => void,
@@ -2004,6 +2005,7 @@ const debug: Debug = {
 	stepFrame() {
 		gameFrame(true);
 	},
+	drawCalls: gfx.drawCalls,
 	clearLog: logger.clear,
 	log: logger.info,
 	error: logger.error,
@@ -2202,6 +2204,7 @@ const lib: KaboomCtx = {
 	mouseClick,
 	mouseRelease,
 	mousePos,
+	cursor: app.cursor,
 	keyIsDown: app.keyDown,
 	keyIsPressed: app.keyPressed,
 	keyIsPressedRep: app.keyPressedRep,

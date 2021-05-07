@@ -28,6 +28,8 @@ type Logger = {
 	clear: () => void,
 };
 
+const LOG_SIZE = 16;
+
 function loggerInit(gfx: Gfx, assets: Assets, conf: LoggerConf = {
 	max: 8,
 }): Logger {
@@ -47,7 +49,7 @@ function loggerInit(gfx: Gfx, assets: Assets, conf: LoggerConf = {
 		logs.forEach((log, i) => {
 
 			const alpha = map(i, 0, max, 1, 0.2);
-			const alpha2 = map(i, 0, max, 0.7, 0.2);
+			const alpha2 = map(i, 0, max, 0.8, 0.2);
 
 			const col = (() => {
 				switch (log.type) {
@@ -61,7 +63,7 @@ function loggerInit(gfx: Gfx, assets: Assets, conf: LoggerConf = {
 				origin: "botleft",
 				color: col,
 				z: 1,
-				size: 16 / gfx.scale(),
+				size: LOG_SIZE / gfx.scale(),
 				width: gfx.width(),
 			});
 

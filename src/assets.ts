@@ -6,6 +6,7 @@ import {
 import {
 	Gfx,
 	GfxFont,
+	GfxProgram,
 	GfxTexture,
 	GfxTextureData,
 } from "./gfx";
@@ -37,6 +38,7 @@ type SpriteData = {
 
 type SoundData = AudioBuffer;
 type FontData = GfxFont;
+type ShaderData = GfxProgram;
 
 type AssetsConf = {
 	errHandler?: (err: string) => void,
@@ -106,6 +108,7 @@ function assetsInit(gfx: Gfx, audio: Audio, gconf: AssetsConf = {}): Assets {
 		sprites: {},
 		sounds: {},
 		fonts: {},
+		shaders: {},
 	};
 
 	function addLoader<T>(prom: Promise<T>) {
@@ -257,6 +260,18 @@ function assetsInit(gfx: Gfx, audio: Audio, gconf: AssetsConf = {}): Assets {
 
 		return loader;
 
+	}
+
+	function loadShader(
+		name: string,
+		vertSrc?: string,
+		fragSrc?: string,
+		isUrl: boolean = false,
+	): Promise<ShaderData> {
+		const loader = new Promise<ShaderData>((resolve, reject) => {
+			// ...
+		});
+		return loader;
 	}
 
 	// load a sound to asset manager

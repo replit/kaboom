@@ -106,6 +106,7 @@ type KaboomCtx = {
 	solid,
 	body,
 	// inputs
+	cursor: (c: string) => void,
 	mousePos: (layer?: string) => Vec2,
 	keyDown: (k: string, f: () => void) => void,
 	keyPress: (k: string, f: () => void) => void,

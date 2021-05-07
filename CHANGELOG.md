@@ -1,3 +1,6 @@
+### (wip)
+- added `cursor()`
+
 ## v0.5.0 "Type! Type! Type!"
 - added `curPlatform()` by `body()`
 - on screen log now catches all kinds of errors
@@ -22,7 +25,7 @@
 - fixed `sound.pause()` to work on firefox
 - fixed collisions not treating explicit default layer the same as implicit default layer
 
-## v0.4.1
+### v0.4.1
 - fixed `on("destroy")` handler getting called twice
 - fixed sprite `play()` not playing
 

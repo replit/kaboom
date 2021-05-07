@@ -48,6 +48,7 @@ type App = {
 	mouseClicked: () => boolean,
 	mouseReleased: () => boolean,
 	charInputted: () => string[],
+	cursor: (c: string) => void,
 	dt: () => number,
 	time: () => number,
 	screenshot: () => string,
@@ -272,6 +273,13 @@ function appInit(gconf: AppConf = {}): App {
 		return app.canvas.toDataURL();
 	}
 
+	function cursor(c: string) {
+		if (c) {
+			app.canvas.style.cursor = c ?? "auto";
+		}
+		return app.canvas.style.cursor;
+	}
+
 	function run(f: () => void) {
 
 		const frame = (t: number) => {
@@ -323,6 +331,7 @@ function appInit(gconf: AppConf = {}): App {
 		mouseClicked,
 		mouseReleased,
 		charInputted,
+		cursor,
 		dt,
 		time,
 		screenshot,
