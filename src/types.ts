@@ -82,7 +82,6 @@ type KaboomCtx = {
 	rect: (w: number, h: number, conf?: RectCompConf) => RectComp,
 	solid: () => SolidComp,
 	body: (conf?: BodyCompConf) => BodyComp,
-	sticky: () => StickyComp,
 	shader: (id: string) => ShaderComp,
 	// inputs
 	cursor: (c: string) => void,
@@ -902,10 +901,6 @@ type Debug = {
 	clearLog: () => void,
 	log: (msg: string) => void,
 	error: (msg: string) => void,
-};
-
-type StickyComp = {
-	sticky: boolean,
 };
 
 type ShaderComp = {

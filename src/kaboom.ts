@@ -1682,7 +1682,7 @@ function body(conf: BodyCompConf = {}): BodyComp {
 					lastPlatformPos = null;
 					justOff = true;
 				} else {
-					if (curPlatform.sticky && lastPlatformPos) {
+					if (lastPlatformPos) {
 						this.pos = this.pos.add(curPlatform.pos.sub(lastPlatformPos));
 						lastPlatformPos = curPlatform.pos.clone();
 					}
@@ -1698,9 +1698,7 @@ function body(conf: BodyCompConf = {}): BodyComp {
 					if (target.side === "bottom" && velY > 0) {
 						curPlatform = target.obj;
 						velY = 0;
-						if (curPlatform.sticky) {
-							lastPlatformPos = curPlatform.pos.clone();
-						}
+						lastPlatformPos = curPlatform.pos.clone();
 						if (!justOff) {
 							this.trigger("grounded", curPlatform);
 						}
@@ -1729,12 +1727,6 @@ function body(conf: BodyCompConf = {}): BodyComp {
 
 	};
 
-}
-
-function sticky(): StickyComp {
-	return {
-		sticky: true,
-	};
 }
 
 function shader(id: string): ShaderComp {
@@ -1935,7 +1927,6 @@ const ctx: KaboomCtx = {
 	rect,
 	solid,
 	body,
-	sticky,
 	shader,
 	// group events
 	on,

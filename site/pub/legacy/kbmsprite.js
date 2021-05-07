@@ -7,9 +7,7 @@ window.kbmspritePlugin = (k) => {
 			const loader = new Promise((resolve, reject) => {
 
 				fetch(k.loadRoot() + src)
-					.then((res) => {
-						return res.json();
-					})
+					.then((res) => res.json())
 					.then((data) => {
 
 						const frames = data.frames;

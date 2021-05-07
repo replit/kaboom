@@ -3,32 +3,32 @@
 - added `shader()` comp for attaching custom shader to an obj
 
 ## v0.5.0 "Sticky Type"
+- platforms are sticky
 - moved to TypeScript
 - improved graphics performance
 - improved inspect drawing performance
+- added on-screen log that catches all kinds of errors
 - added `cursor()`
-- added `sticky()` comp for sticky platforms
 - added `curPlatform()` by `body()`
-- on screen log now catches all kinds of errors
+- added `changeSprite()` by `sprite()`
+- added `duration()` and `time()` for the handle returned by `play()`
+- added optional `seek` field to the audio play conf `play([conf])`
+- added `LoopHandle` returned by `loop()` that has a `stop()`
+- fixed `sound.pause()` to work on firefox
+- fixed collisions not treating explicit default layer the same as implicit default layer
+- fixed unable to play another anim in `onAnimEnd()`
+- fixed scene switches happen in the middle of a frame
 - (**BREAK**) changed `dbg()` to plain `debug` object
 - (**BREAK**) moved `fps()`, `objCount()`, `stepFrame()`, `log()`, `error()` under `debug`
 - (**BREAK**) removed `debug.logTime`
 - (**BREAK**) changed component `debugInfo()` hook to `inspect()`
-- added `changeSprite()` by `sprite()`
-- fixed unable to play another anim in `onAnimEnd()`
-- defer scene switches to happen only on frame end
 - (**BREAK**) removed `timer()` component
-- added `duration()` and `time()` for the handle returned by `play()`
-- added optional `seek` field to the audio play conf `play([conf])`
 - (**BREAK**) renamed `removeTag()` to `rmTag()`
-- added `LoopHandle` returned by `loop()` that has a `stop()`
 - (**BREAK**) changed `SpriteAnim` from `[ from, to ]` to `{ from: number, to: number }`
 - (**BREAK**) removed `onAnimPlay()` and `onAnimEnd()` in favor of generic event `on("animEnd", (anim: string) => {})`
 - (**BREAK**) removed `obj.addTag()` in favor of `obj.use()`
 - (**BREAK**) merged `debug.hoverInfo` and `debug.showArea` into `debug.inspect`
 - (**BREAK**) removed `sound.resume()` in favor of `sound.play()`
-- fixed `sound.pause()` to work on firefox
-- fixed collisions not treating explicit default layer the same as implicit default layer
 
 ### v0.4.1
 - fixed `on("destroy")` handler getting called twice

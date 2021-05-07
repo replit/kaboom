@@ -21,9 +21,7 @@ function loadPedit(name: string, src: string): Promise<SpriteData> {
 	const loader = new Promise<SpriteData>((resolve, reject) => {
 
 		fetch(k.loadRoot() + src)
-			.then((res) => {
-				return res.json();
-			})
+			.then((res) => res.json())
 			.then(async (data) => {
 
 				const images = await Promise.all(data.frames.map(loadImg));

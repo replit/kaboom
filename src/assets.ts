@@ -211,7 +211,7 @@ function assetsInit(gfx: Gfx, audio: Audio, gconf: AssetsConf = {}): Assets {
 							if (r.ok) {
 								return r.text();
 							} else {
-								throw new Error(`failed to fetch ${url}`)
+								throw new Error(`failed to load ${url}`)
 							}
 						})
 						.catch(reject)
