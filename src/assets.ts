@@ -15,7 +15,7 @@ function loadImg(src: string): Promise<HTMLImageElement> {
 			resolve(img);
 		};
 		img.onerror = () => {
-			reject();
+			reject(`failed to load ${src}`);
 		};
 	});
 }
@@ -91,9 +91,7 @@ function assetsInit(gfx: Gfx, audio: Audio, gconf: AssetsConf = {}): Assets {
 					assets.fonts[name] = font;
 					resolve(font);
 				})
-				.catch(() => {
-					reject(`failed to load font '${name}' from '${src}'`);
-				})
+				.catch(reject)
 				;
 
 		});
@@ -159,10 +157,6 @@ function assetsInit(gfx: Gfx, audio: Audio, gconf: AssetsConf = {}): Assets {
 
 		const loader = new Promise<SpriteData>((resolve, reject) => {
 
-			if (!src) {
-				reject(`failed to load sprite '${name}' from '${src}'`);
-			}
-
 			// from url
 			if (typeof(src) === "string") {
 
@@ -172,9 +166,7 @@ function assetsInit(gfx: Gfx, audio: Audio, gconf: AssetsConf = {}): Assets {
 					.then((img) => {
 						resolve(loadRawSprite(name, img, conf));
 					})
-					.catch(() => {
-						reject(`failed to load sprite '${name}' from '${src}'`);
-					})
+					.catch(reject)
 					;
 
 				return;
@@ -257,29 +249,31 @@ function assetsInit(gfx: Gfx, audio: Audio, gconf: AssetsConf = {}): Assets {
 		src: string,
 	): Promise<SoundData> {
 
+		const url = assets.loadRoot + src;
+
 		const loader = new Promise<SoundData>((resolve, reject) => {
 
 			// from url
 			if (typeof(src) === "string") {
 
-				fetch(assets.loadRoot + src)
-					.then((res) => res.arrayBuffer())
+				fetch(url)
+					.then((res) => {
+						if (res.ok) {
+							return res.arrayBuffer();
+						} else {
+							throw new Error(`failed to load ${url}`);
+						}
+					})
 					.then((data) => {
 						return new Promise((resolve2, reject2) => {
-							audio.ctx().decodeAudioData(data, (buf: AudioBuffer) => {
-								resolve2(buf);
-							}, () => {
-								reject2();
-							});
+							audio.ctx().decodeAudioData(data, resolve2, reject2);
 						});
 					})
 					.then((buf: AudioBuffer) => {
 						assets.sounds[name] = buf;
 						resolve(buf);
 					})
-					.catch(() => {
-						reject(`failed to load sound '${name}' from '${src}'`);
-					})
+					.catch(reject)
 					;
 
 			}

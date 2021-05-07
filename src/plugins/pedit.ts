@@ -11,7 +11,7 @@ function loadImg(src: string): Promise<HTMLImageElement> {
 			resolve(img);
 		};
 		img.onerror = () => {
-			reject();
+			reject(`failed to load ${src}`);
 		};
 	});
 }
@@ -42,12 +42,8 @@ function loadPedit(name: string, src: string): Promise<SpriteData> {
 					anims: data.anims,
 				});
 			})
-			.then((sprite) => {
-				resolve(sprite);
-			})
-			.catch(() => {
-				reject(`failed to load sprite '${name}' from '${src}'`);
-			})
+			.then(resolve)
+			.catch(reject)
 			;
 
 	});

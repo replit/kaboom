@@ -1761,13 +1761,13 @@ const debug: Debug = {
 
 function addLevel(map: string[], conf: LevelConf): Level {
 
-	const objs: GameObj[] = [];
+	const pool: GameObj[] = [];
 	const offset = vec2(conf.pos);
 	let longRow = 0;
 
 	const level = {
 
-		getPos(...args) {
+		getPos(...args: any[]): Vec2 {
 			const p = vec2(...args);
 			return vec2(
 				offset.x + p.x * conf.width,
@@ -1775,7 +1775,7 @@ function addLevel(map: string[], conf: LevelConf): Level {
 			);
 		},
 
-		spawn(sym: string, p: Vec2) {
+		spawn(sym: string, p: Vec2): GameObj {
 
 			const comps = (() => {
 				if (Array.isArray(sym)) {
@@ -1788,51 +1788,51 @@ function addLevel(map: string[], conf: LevelConf): Level {
 					}
 				} else if (conf.any) {
 					return conf.any(sym);
+				} else {
+					return [];
 				}
 			})();
 
-			if (comps) {
+			comps.push(pos(
+				offset.x + p.x * conf.width,
+				offset.y + p.y * conf.height
+			));
 
-				comps.push(pos(
-					offset.x + p.x * conf.width,
-					offset.y + p.y * conf.height
-				));
+			const obj = add(comps);
 
-				const obj = add(comps);
+			pool.push(obj);
 
-				objs.push(obj);
+			obj.use({
 
-				obj.use({
+				gridPos: p.clone(),
 
-					gridPos: p.clone(),
+				setGridPos(p: Vec2) {
+					this.gridPos = p.clone();
+					this.pos = vec2(
+						offset.x + this.gridPos.x * conf.width,
+						offset.y + this.gridPos.y * conf.height
+					);
+				},
 
-					setGridPos(p: Vec2) {
-						this.gridPos = p.clone();
-						this.pos = vec2(
-							offset.x + this.gridPos.x * conf.width,
-							offset.y + this.gridPos.y * conf.height
-						);
-					},
+				moveLeft() {
+					this.setGridPos(this.gridPos.add(vec2(-1, 0)));
+				},
 
-					moveLeft() {
-						this.setGridPos(this.gridPos.add(vec2(-1, 0)));
-					},
+				moveRight() {
+					this.setGridPos(this.gridPos.add(vec2(1, 0)));
+				},
 
-					moveRight() {
-						this.setGridPos(this.gridPos.add(vec2(1, 0)));
-					},
+				moveUp() {
+					this.setGridPos(this.gridPos.add(vec2(0, -1)));
+				},
 
-					moveUp() {
-						this.setGridPos(this.gridPos.add(vec2(0, -1)));
-					},
+				moveDown() {
+					this.setGridPos(this.gridPos.add(vec2(0, 1)));
+				},
 
-					moveDown() {
-						this.setGridPos(this.gridPos.add(vec2(0, 1)));
-					},
+			});
 
-				});
-
-			}
+			return obj;
 
 		},
 
@@ -1845,7 +1845,7 @@ function addLevel(map: string[], conf: LevelConf): Level {
 		},
 
 		destroy() {
-			for (const obj of objs) {
+			for (const obj of pool) {
 				destroy(obj);
 			}
 		},
@@ -1868,7 +1868,7 @@ function addLevel(map: string[], conf: LevelConf): Level {
 
 }
 
-const lib: KaboomCtx = {
+const ctx: KaboomCtx = {
 	start,
 	// asset load
 	loadRoot: assets.loadRoot,
@@ -1978,19 +1978,19 @@ const lib: KaboomCtx = {
 
 if (gconf.plugins) {
 	for (const src of gconf.plugins) {
-		const map = src(lib);
+		const map = src(ctx);
 		for (const k in map) {
-			lib[k] = map[k];
+			ctx[k] = map[k];
 		}
 	}
 }
 
 if (gconf.global) {
-	for (const k in lib) {
-		window[k] = lib[k];
+	for (const k in ctx) {
+		window[k] = ctx[k];
 	}
 }
 
-return lib;
+return ctx;
 
 };

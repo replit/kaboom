@@ -883,7 +883,7 @@ type LevelConf = {
 
 type Level = {
 	getPos: (p: Vec2) => Vec2,
-	spawn: (sym: string, p: Vec2) => void,
+	spawn: (sym: string, p: Vec2) => GameObj,
 	width: () => number,
 	height: () => number,
 	destroy: () => void,
