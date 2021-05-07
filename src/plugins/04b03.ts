@@ -1,7 +1,9 @@
 // font 04b03
 
+// @ts-ignore
 import b04b03Src from "./04b03_6x8.png";
 
+// @ts-ignore
 module.exports = (k: KaboomCtx) => {
 
 function load04b03(): Promise<FontData> {

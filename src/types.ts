@@ -138,6 +138,28 @@ type KaboomCtx = {
 	addLevel: (map: string[], conf: LevelConf) => Level,
 };
 
+type GameObj = {
+	hidden: boolean,
+	paused: boolean,
+	exists: () => boolean,
+	is: (tag: string | string[]) => boolean,
+	use: (comp: Comp) => void,
+	action: (cb: () => void) => void,
+	on: (ev: string, cb: () => void) => void,
+	trigger: (ev: string, ...args: any[]) => void,
+	rmTag: (t: string) => void,
+	_sceneID: number | null,
+	_tags: string[],
+	_events: {
+		add: (() => void)[],
+		update: (() => void)[],
+		draw: (() => void)[],
+		destroy: (() => void)[],
+		inspect: (() => {})[],
+	},
+	[custom: string]: any,
+};
+
 type SpriteAnim = {
 	from: number,
 	to: number,
@@ -643,26 +665,6 @@ type Logger = {
 
 type Comp = any;
 
-type GameObj = {
-	hidden: boolean,
-	paused: boolean,
-	exists: () => boolean,
-	is: (tag: string | string[]) => boolean,
-	use: (comp: Comp) => void,
-	action: (cb: () => void) => void,
-	on: (ev: string, cb: () => void) => void,
-	trigger: (ev: string, ...args: any[]) => void,
-	rmTag: (t: string) => void,
-	_sceneID: number | null,
-	_tags: string[],
-	_events: {
-		add: (() => void)[],
-		update: (() => void)[],
-		draw: (() => void)[],
-		destroy: (() => void)[],
-		inspect: (() => {})[],
-	},
-};
 type Game = {
 	loaded: boolean,
 	scenes: Record<string, Scene>,
@@ -793,11 +795,7 @@ type CollisionResolve = {
 }
 
 type AreaComp = {
-	area: {
-		p1: Vec2,
-		p2: Vec2,
-	},
-	draw: DrawEvent,
+	area: Rect,
 	areaWidth: () => number,
 	areaHeight: () => number,
 	isClicked: () => boolean,
@@ -810,6 +808,9 @@ type AreaComp = {
 	overlaps: (tag: string, f: (o: GameObj) => void) => void,
 	hasPt: (p: Vec2) => boolean,
 	resolve: () => void,
+	_worldArea: () => Rect;
+	_checkCollisions: (tag: string, f: (obj: GameObj) => void) => void;
+	_checkOverlaps: (tag: string, f: (obj: GameObj) => void) => void;
 };
 
 type SpriteCompConf = {

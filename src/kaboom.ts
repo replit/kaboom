@@ -45,6 +45,7 @@ import {
 	netInit,
 } from "./net";
 
+// @ts-ignore
 module.exports = (gconf: KaboomConf = {
 	width: 640,
 	height: 480,
@@ -155,6 +156,7 @@ function drawText(
 	txt: string,
 	conf = {},
 ) {
+	// @ts-ignore
 	const fid = conf.font ?? DEF_FONT;
 	const font = assets.fonts[fid];
 	if (!font) {
@@ -1309,7 +1311,7 @@ function area(p1: Vec2, p2: Vec2): AreaComp {
 
 		},
 
-		_checkCollisions(tag, f) {
+		_checkCollisions(tag: string, f: (obj: GameObj) => void) {
 
 			every(tag, (obj) => {
 				if (this === obj) {
@@ -1334,7 +1336,7 @@ function area(p1: Vec2, p2: Vec2): AreaComp {
 		},
 
 		// TODO: repetitive with collides
-		_checkOverlaps(tag, f) {
+		_checkOverlaps(tag: string, f: (obj: GameObj) => void) {
 
 			every(tag, (obj) => {
 				if (this === obj) {
@@ -1360,7 +1362,7 @@ function area(p1: Vec2, p2: Vec2): AreaComp {
 
 		// TODO: cache
 		// TODO: use matrix mult for more accuracy and rotation?
-		_worldArea() {
+		_worldArea(): Rect {
 
 			const a = this.area;
 			const pos = this.pos || vec2(0);

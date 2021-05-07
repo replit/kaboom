@@ -1,6 +1,7 @@
 // load pedit
 // https://github.com/slmjkdbtl/pedit.js
 
+// @ts-ignore
 module.exports = (k: KaboomCtx) => {
 
 function loadImg(src: string): Promise<HTMLImageElement> {

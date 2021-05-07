@@ -13,6 +13,7 @@ function audioInit(): Audio {
 
 	const audio: AudioCtx = (() => {
 
+		// @ts-ignore
 		const ctx = new (window.AudioContext || window.webkitAudioContext)();
 		const gainNode = ctx.createGain();
 		const masterNode = gainNode;

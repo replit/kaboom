@@ -80,6 +80,7 @@ function appInit(gconf: AppConf = {}): App {
 		styles.push("image-rendering: crisp-edges");
 	}
 
+	// @ts-ignore
 	app.canvas.style = styles.join(";");
 	app.canvas.setAttribute("tabindex", "0");
 

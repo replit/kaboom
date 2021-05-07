@@ -1,8 +1,10 @@
 // CP437 font
 // https://en.wikipedia.org/wiki/Code_page_437
 
+// @ts-ignore
 import cp437Src from "./CP437_9x16.png";
 
+// @ts-ignore
 module.exports = (k: KaboomCtx) => {
 
 function loadCP437(): Promise<FontData> {

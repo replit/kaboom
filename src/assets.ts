@@ -2,6 +2,7 @@ import {
 	quad,
 } from "./math";
 
+// @ts-ignore
 import unsciiSrc from "./assets/unscii_8x8.png";
 
 const ASCII_CHARS = " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~";
