@@ -91,8 +91,7 @@ function assetsInit(gfx: Gfx, audio: Audio, gconf: AssetsConf = {}): Assets {
 					assets.fonts[name] = font;
 					resolve(font);
 				})
-				.catch(reject)
-				;
+				.catch(reject);
 
 		});
 
@@ -166,8 +165,7 @@ function assetsInit(gfx: Gfx, audio: Audio, gconf: AssetsConf = {}): Assets {
 					.then((img) => {
 						resolve(loadRawSprite(name, img, conf));
 					})
-					.catch(reject)
-					;
+					.catch(reject);
 
 				return;
 
@@ -273,8 +271,7 @@ function assetsInit(gfx: Gfx, audio: Audio, gconf: AssetsConf = {}): Assets {
 						assets.sounds[name] = buf;
 						resolve(buf);
 					})
-					.catch(reject)
-					;
+					.catch(reject);
 
 			}
 
