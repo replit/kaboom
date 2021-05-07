@@ -2,41 +2,6 @@ import {
 	clamp,
 } from "./math";
 
-type AudioPlayConf = {
-	loop?: boolean,
-	volume?: number,
-	speed?: number,
-	detune?: number,
-	seek?: number,
-};
-
-type AudioPlay = {
-	play: (seek?: number) => void,
-	stop: () => void,
-	pause: () => void,
-	paused: () => boolean,
-	stopped: () => boolean,
-	speed: (s?: number) => number,
-	detune: (d?: number) => number,
-	volume: (v?: number) => number,
-	time: () => number,
-	duration: () => number,
-	loop: () => void,
-	unloop: () => void,
-};
-
-type AudioCtx = {
-	ctx: AudioContext,
-	gainNode: GainNode,
-	masterNode: AudioNode,
-};
-
-type Audio = {
-	ctx: () => AudioContext,
-	volume: (v: number) => number,
-	play: (sound: AudioBuffer, conf?: AudioPlayConf) => AudioPlay,
-};
-
 const MIN_GAIN = 0;
 const MAX_GAIN = 3;
 const MIN_SPEED = 0;
@@ -216,8 +181,5 @@ function audioInit(): Audio {
 }
 
 export {
-	Audio,
-	AudioPlayConf,
-	AudioPlay,
 	audioInit,
 };

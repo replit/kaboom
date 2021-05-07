@@ -1,60 +1,6 @@
 import {
-	Vec2,
 	vec2,
 } from "./math";
-
-type ButtonState =
-	"up"
-	| "pressed"
-	| "rpressed"
-	| "down"
-	| "released"
-	;
-
-type AppConf = {
-	width?: number,
-	height?: number,
-	scale?: number,
-	fullscreen?: boolean,
-	crisp?: boolean,
-	canvas?: HTMLCanvasElement,
-	root?: HTMLElement,
-};
-
-type AppCtx = {
-	canvas: HTMLCanvasElement,
-	mousePos: Vec2,
-	mouseState: ButtonState,
-	keyStates: Record<string, ButtonState>,
-	charInputted: string[],
-	time: number,
-	dt: number,
-	realTime: number,
-	skipTime: boolean,
-	scale: number,
-	isTouch: boolean,
-	loopID: number | null,
-	stopped: boolean,
-};
-
-type App = {
-	gl: WebGLRenderingContext,
-	mousePos: () => Vec2,
-	keyDown: (k: string) => boolean,
-	keyPressed: (k: string) => boolean,
-	keyPressedRep: (k: string) => boolean,
-	keyReleased: (k: string) => boolean,
-	mouseDown: () => boolean,
-	mouseClicked: () => boolean,
-	mouseReleased: () => boolean,
-	charInputted: () => string[],
-	cursor: (c: string) => void,
-	dt: () => number,
-	time: () => number,
-	screenshot: () => string,
-	run: (f: () => void) => void,
-	quit: () => void,
-};
 
 function processBtnState(s: ButtonState): ButtonState {
 	if (s === "pressed" || s === "rpressed") {
@@ -343,6 +289,5 @@ function appInit(gconf: AppConf = {}): App {
 }
 
 export {
-	App,
 	appInit,
 };

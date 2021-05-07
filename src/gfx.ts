@@ -1,9 +1,4 @@
 import {
-	Vec2,
-	Vec3,
-	Color,
-	Mat4,
-	Quad,
 	vec2,
 	vec3,
 	quad,
@@ -74,150 +69,6 @@ vec4 frag(vec3 pos, vec2 uv, vec4 color, sampler2D tex) {
 }
 `;
 
-type GfxProgram = {
-	bind: () => void,
-	unbind: () => void,
-	bindAttribs: () => void,
-	sendFloat: (name: string, val: number) => void,
-	sendVec2: (name: string, p: Vec2) => void,
-	sendVec3: (name: string, p: Vec3) => void,
-	sendColor: (name: string, p: Color) => void,
-	sendMat4: (name: string, m: Mat4) => void,
-}
-
-type GfxTexture = {
-	width: number,
-	height: number,
-	bind: () => void,
-	unbind: () => void,
-};
-
-type GfxTextureData =
-	HTMLImageElement
-	| HTMLCanvasElement
-	| ImageData
-	| ImageBitmap
-	;
-
-type GfxFont = {
-	tex: GfxTexture,
-	map: Record<string, Vec2>,
-	qw: number,
-	qh: number,
-};
-
-type Vertex = {
-	pos: Vec3,
-	uv: Vec2,
-	color: Color,
-};
-
-type GfxCtx = {
-	vbuf: WebGLBuffer,
-	ibuf: WebGLBuffer,
-	vqueue: number[],
-	iqueue: number[],
-	drawCalls: number,
-	defProg: GfxProgram,
-	curProg: GfxProgram,
-	defTex: GfxTexture,
-	curTex: GfxTexture,
-	transform: Mat4,
-	transformStack: Mat4[],
-};
-
-type DrawQuadConf = {
-	pos?: Vec2,
-	width?: number,
-	height?: number,
-	scale?: Vec2 | number,
-	rot?: number,
-	color?: Color,
-	origin?: Origin | Vec2,
-	z?: number,
-	tex?: GfxTexture,
-	quad?: Quad,
-	prog?: GfxProgram,
-};
-
-type DrawTextureConf = {
-	pos?: Vec2,
-	scale?: Vec2 | number,
-	rot?: number,
-	color?: Color,
-	origin?: Origin | Vec2,
-	quad?: Quad,
-	z?: number,
-	prog?: GfxProgram,
-};
-
-type DrawRectStrokeConf = {
-	width?: number,
-	scale?: Vec2 | number,
-	rot?: number,
-	color?: Color,
-	origin?: Origin | Vec2,
-	z?: number,
-	prog?: GfxProgram,
-};
-
-type DrawRectConf = {
-	scale?: Vec2 | number,
-	rot?: number,
-	color?: Color,
-	origin?: Origin | Vec2,
-	z?: number,
-	prog?: GfxProgram,
-};
-
-type DrawLineConf = {
-	width?: number,
-	color?: Color,
-	z?: number,
-	prog?: GfxProgram,
-};
-
-type DrawTextConf = {
-	size?: number,
-	pos?: Vec2,
-	scale?: Vec2 | number,
-	rot?: number,
-	color?: Color,
-	origin?: Origin | Vec2,
-	width?: number,
-	z?: number,
-	prog?: GfxProgram,
-};
-
-type FormattedChar = {
-	tex: GfxTexture,
-	quad: Quad,
-	ch: string,
-	pos: Vec2,
-	scale: Vec2,
-	color: Color,
-	origin: string,
-	z: number,
-};
-
-type FormattedText = {
-	width: number,
-	height: number,
-	chars: FormattedChar[],
-};
-
-type Origin =
-	"topleft"
-	| "top"
-	| "topright"
-	| "left"
-	| "center"
-	| "right"
-	| "botleft"
-	| "bot"
-	| "botright"
-	;
-
 function originPt(orig: Origin | Vec2): Vec2 {
 	switch (orig) {
 		case "topleft": return vec2(-1, -1);
@@ -232,63 +83,6 @@ function originPt(orig: Origin | Vec2): Vec2 {
 		default: return orig;
 	}
 }
-
-type GfxConf = {
-	clearColor?: Color,
-	scale?: number,
-};
-
-type Gfx = {
-	width: () => number,
-	height: () => number,
-	scale: () => number,
-	makeTex: (data: GfxTextureData) => GfxTexture,
-	makeProgram: (vert: string, frag: string) => GfxProgram,
-	makeFont: (
-		tex: GfxTexture,
-		gw: number,
-		gh: number,
-		chars: string,
-	) => GfxFont,
-	drawTexture: (
-		tex: GfxTexture,
-		conf?: DrawTextureConf,
-	) => void,
-	drawText: (
-		txt: string,
-		font: GfxFont,
-		conf?: DrawTextConf,
-	) => void,
-	drawFmtText: (ftext: FormattedText) => void,
-	fmtText: (
-		txt: string,
-		font: GfxFont,
-		conf?: DrawTextConf,
-	) => FormattedText,
-	drawRect: (
-		pos: Vec2,
-		w: number,
-		h: number,
-		conf?: DrawRectConf,
-	) => void,
-	drawRectStroke: (
-		pos: Vec2,
-		w: number,
-		h: number,
-		conf?: DrawRectStrokeConf,
-	) => void,
-	drawLine: (
-		p1: Vec2,
-		p2: Vec2,
-		conf: DrawLineConf,
-	) => void,
-	frameStart: () => void,
-	frameEnd: () => void,
-	pushTransform: () => void,
-	popTransform: () => void,
-	pushMatrix: (m: Mat4) => void,
-	drawCalls: () => number,
-};
 
 function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 
@@ -642,7 +436,6 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 		const z = 1 - (conf.z ?? 0);
 		const color = conf.color || rgba(1, 1, 1, 1);
 
-		// TODO: (maybe) not use matrix transform here?
 		pushTransform();
 		pushTranslate(pos);
 		pushScale(scale);
@@ -676,7 +469,6 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 
 	}
 
-	// TODO: remove
 	function drawTexture(
 		tex: GfxTexture,
 		conf: DrawTextureConf = {},
@@ -900,16 +692,6 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 }
 
 export {
-	Gfx,
-	GfxConf,
-	Vertex,
-	GfxFont,
-	GfxProgram,
-	GfxTexture,
-	GfxTextureData,
-	DrawTextureConf,
-	DrawTextConf,
-	Origin,
 	originPt,
 	gfxInit,
 };

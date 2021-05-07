@@ -1,12 +1,7 @@
 // CP437 font
 // https://en.wikipedia.org/wiki/Code_page_437
 
-import KaboomCtx from "../ctx";
 import cp437Src from "./CP437_9x16.png";
-
-import {
-	FontData,
-} from "../assets";
 
 module.exports = (k: KaboomCtx) => {
 

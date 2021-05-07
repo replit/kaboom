@@ -1,12 +1,7 @@
 // font proggy
 // http://upperbounds.net/
 
-import KaboomCtx from "../ctx";
 import proggySrc from "./proggy_7x13.png";
-
-import {
-	FontData,
-} from "../assets";
 
 module.exports = (k: KaboomCtx) => {
 

@@ -1,91 +1,8 @@
 import {
-	Quad,
 	quad,
 } from "./math";
 
-import {
-	Gfx,
-	GfxFont,
-	GfxProgram,
-	GfxTexture,
-	GfxTextureData,
-} from "./gfx";
-
-import {
-	Audio,
-} from "./audio";
-
-import unsciiSrc from "./unscii_8x8.png";
-
-type SpriteAnim = {
-	from: number,
-	to: number,
-};
-
-type SpriteLoadConf = {
-	sliceX?: number,
-	sliceY?: number,
-	anims?: Record<string, SpriteAnim>,
-};
-
-type SpriteLoadSrc = string | GfxTextureData;
-
-type SpriteData = {
-	tex: GfxTexture,
-	frames: Quad[],
-	anims: Record<string, SpriteAnim>,
-};
-
-type SoundData = AudioBuffer;
-type FontData = GfxFont;
-type ShaderData = GfxProgram;
-
-type AssetsConf = {
-	errHandler?: (err: string) => void,
-};
-
-type Assets = {
-	loadRoot: (path: string) => string,
-	loadSprite: (
-		name: string,
-		src: SpriteLoadSrc,
-		conf?: SpriteLoadConf,
-	) => Promise<SpriteData>,
-	loadSound: (
-		name: string,
-		src: string,
-	) => Promise<SoundData>,
-	loadFont: (
-		name: string,
-		src: string,
-		gw: number,
-		gh: number,
-		chars?: string,
-	) => Promise<FontData>,
-	loadShader: (
-		name: string,
-		vert?: string,
-		frag?: string,
-		isUrl?: boolean,
-	) => Promise<ShaderData>,
-	loadProgress: () => number,
-	addLoader: <T>(prom: Promise<T>) => void,
-	defFont: () => FontData,
-	sprites: Record<string, SpriteData>,
-	fonts: Record<string, FontData>,
-	sounds: Record<string, SoundData>,
-	shaders: Record<string, ShaderData>,
-};
-
-type AssetsCtx = {
-	lastLoaderID: number,
-	loadRoot: string,
-	loaders: Record<number, boolean>,
-	sprites: Record<string, SpriteData>,
-	sounds: Record<string, SoundData>,
-	fonts: Record<string, FontData>,
-	shaders: Record<string, ShaderData>,
-};
+import unsciiSrc from "./assets/unscii_8x8.png";
 
 const ASCII_CHARS = " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~";
 const DEF_FONT = "unscii";
@@ -405,13 +322,6 @@ function assetsInit(gfx: Gfx, audio: Audio, gconf: AssetsConf = {}): Assets {
 }
 
 export {
-	Assets,
-	SpriteLoadSrc,
-	SpriteLoadConf,
-	SpriteData,
-	SoundData,
-	FontData,
-	ShaderData,
 	assetsInit,
 	DEF_FONT,
 };

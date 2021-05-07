@@ -1,13 +1,3 @@
-type MsgHandler = (data: any, id: number) => void;
-
-type Net = {
-	connect: () => Promise<WebSocket>,
-	close: () => void,
-	connected: () => boolean,
-	recv: (type: string, handler: MsgHandler) => void,
-	send: (type: string, data: any) => void,
-};
-
 function netInit(url: string): Net {
 
 	const handlers: Record<string, MsgHandler[]> = {};
@@ -86,7 +76,5 @@ function netInit(url: string): Net {
 }
 
 export {
-	MsgHandler,
-	Net,
 	netInit,
 };

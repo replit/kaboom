@@ -1,11 +1,5 @@
 // load aseprite spritesheet
 
-import KaboomCtx from "../ctx";
-
-import {
-	SpriteData,
-} from "../assets";
-
 module.exports = (k: KaboomCtx) => {
 
 function loadAseprite(name: string, imgSrc: string, jsonSrc: string) {

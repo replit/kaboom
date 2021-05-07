@@ -1,82 +1,3 @@
-type Vec2 = {
-	x: number,
-	y: number,
-	clone: () => Vec2,
-	add: (p: Vec2) => Vec2,
-	sub: (p: Vec2) => Vec2,
-	scale: (s: number) => Vec2,
-	dot: (p: Vec2) => Vec2,
-	dist: (p: Vec2) => number,
-	len: () => number,
-	unit: () => Vec2,
-	normal: () => Vec2,
-	angle: (p: Vec2) => number,
-	lerp: (p: Vec2, t: number) => Vec2,
-	eq: (p: Vec2) => boolean,
-	str: () => string,
-};
-
-type Vec3 = {
-	x: number,
-	y: number,
-	z: number,
-	xy: () => Vec2,
-};
-
-type Vec4 = {
-	x: number,
-	y: number,
-	z: number,
-	w: number,
-};
-
-type Mat4 = {
-	m: number[],
-	clone: () => Mat4,
-	mult: (m: Mat4) => Mat4,
-	multVec4: (m: Vec4) => Vec4,
-	multVec3: (m: Vec3) => Vec3,
-	multVec2: (m: Vec2) => Vec2,
-	scale: (s: Vec2) => Mat4,
-	translate: (p: Vec2) => Mat4,
-	rotateX: (a: number) => Mat4,
-	rotateY: (a: number) => Mat4,
-	rotateZ: (a: number) => Mat4,
-	invert: () => Mat4,
-};
-
-type Color = {
-	r: number,
-	g: number,
-	b: number,
-	a: number,
-	clone: () => Color,
-	lighten: (n: number) => Color,
-	darken: (n: number) => Color,
-	eq: (c: Color) => boolean,
-};
-
-type Quad = {
-	x: number,
-	y: number,
-	w: number,
-	h: number,
-	clone: () => Quad,
-	eq: (q: Quad) => boolean,
-};
-
-type RNGValue =
-	number
-	| Vec2
-	| Color
-	| any
-	;
-
-type RNG = {
-	seed: number,
-	gen: (a?: RNGValue, b?: RNGValue) => RNGValue,
-};
-
 function deg2rad(degrees: number): number {
 	return degrees * Math.PI / 180;
 }
@@ -475,16 +396,6 @@ function choose<T>(list: T[]): T {
 	return list[Math.floor(rand(list.length))];
 }
 
-type Rect = {
-	p1: Vec2,
-	p2: Vec2,
-};
-
-type Line = {
-	p1: Vec2,
-	p2: Vec2,
-};
-
 function colRectRect(r1: Rect, r2: Rect): boolean {
 	return r1.p2.x >= r2.p1.x
 		&& r1.p1.x <= r2.p2.x
@@ -553,13 +464,6 @@ function makeLine(p1: Vec2, p2: Vec2): Line {
 }
 
 export {
-	Vec2,
-	Vec3,
-	Quad,
-	Color,
-	Mat4,
-	RNG,
-	RNGValue,
 	vec2,
 	vec3,
 	mat4,

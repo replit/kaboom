@@ -1,12 +1,6 @@
 // load pedit
 // https://github.com/slmjkdbtl/pedit.js
 
-import KaboomCtx from "../ctx";
-
-import {
-	SpriteData,
-} from "../assets";
-
 module.exports = (k: KaboomCtx) => {
 
 function loadImg(src: string): Promise<HTMLImageElement> {

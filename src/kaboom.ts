@@ -1,9 +1,4 @@
 import {
-	Vec2,
-	Vec3,
-	Mat4,
-	Quad,
-	Color,
 	vec2,
 	mat4,
 	quad,
@@ -25,7 +20,6 @@ import {
 } from "./math";
 
 import {
-	Origin,
 	originPt,
 	gfxInit,
 } from "./gfx";
@@ -35,13 +29,10 @@ import {
 } from "./app";
 
 import {
-	AudioPlayConf,
-	AudioPlay,
 	audioInit,
 } from "./audio";
 
 import {
-	SpriteData,
 	assetsInit,
 	DEF_FONT,
 } from "./assets";
@@ -51,30 +42,8 @@ import {
 } from "./logger";
 
 import {
-	MsgHandler,
-	Net,
 	netInit,
 } from "./net";
-
-import KaboomCtx from "./ctx";
-
-type KaboomPlugin = (k: KaboomCtx) => Record<string, any>;
-
-type KaboomConf = {
-	width?: number,
-	height?: number,
-	scale?: number,
-	fullscreen?: boolean,
-	debug?: boolean,
-	crisp?: boolean,
-	canvas?: HTMLCanvasElement,
-	root?: HTMLElement,
-	clearColor?: number[],
-	logMax?: number,
-	connect?: string,
-	global?: boolean,
-	plugins?: Array<KaboomPlugin>,
-};
 
 module.exports = (gconf: KaboomConf = {
 	width: 640,
@@ -160,17 +129,6 @@ function mousePos(layer?: string): Vec2 {
 	}
 }
 
-type DrawSpriteConf = {
-	frame?: number,
-	pos?: Vec2,
-	scale?: Vec2 | number,
-	rot?: number,
-	color?: Color,
-	origin?: Origin,
-	quad?: Quad,
-	z?: number,
-};
-
 function drawSprite(
 	id: string | SpriteData,
 	conf: DrawSpriteConf = {},
@@ -192,6 +150,7 @@ function drawSprite(
 	});
 }
 
+// TODO: DrawTextComf
 function drawText(
 	txt: string,
 	conf = {},
@@ -210,103 +169,6 @@ function drawText(
 
 const DEF_GRAVITY = 980;
 const DEF_ORIGIN = "topleft";
-
-type Comp = any;
-
-type GameObj = {
-	hidden: boolean,
-	paused: boolean,
-	exists: () => boolean,
-	is: (tag: string | string[]) => boolean,
-	use: (comp: Comp) => void,
-	action: (cb: () => void) => void,
-	on: (ev: string, cb: () => void) => void,
-	trigger: (ev: string, ...args: any[]) => void,
-	rmTag: (t: string) => void,
-	_sceneID: number | null,
-	_tags: string[],
-	_events: {
-		add: (() => void)[],
-		update: (() => void)[],
-		draw: (() => void)[],
-		destroy: (() => void)[],
-		inspect: (() => {})[],
-	},
-};
-type Game = {
-	loaded: boolean,
-	scenes: Record<string, Scene>,
-	curScene: string | null,
-	nextScene: SceneSwitch | null,
-};
-
-type SceneSwitch = {
-	name: string,
-	args: any[],
-};
-
-type Timer = {
-	time: number,
-	cb: () => void,
-};
-
-type Camera = {
-	pos: Vec2,
-	scale: Vec2,
-	angle: number,
-	shake: number,
-	ignore: string[],
-	mpos: Vec2,
-	matrix: Mat4,
-};
-
-type TaggedEvent = {
-	tag: string,
-	cb: (...args) => void,
-};
-
-type KeyInputEvent = {
-	key: string,
-	cb: () => void,
-};
-
-type MouseInputEvent = {
-	cb: () => void,
-};
-
-type CharInputEvent = {
-	cb: (ch: string) => void,
-};
-
-type Scene = {
-	init: (...args) => void,
-	initialized: boolean,
-	events: {
-		add: TaggedEvent[],
-		update: TaggedEvent[],
-		draw: TaggedEvent[],
-		destroy: TaggedEvent[],
-		keyDown: KeyInputEvent[],
-		keyPress: KeyInputEvent[],
-		keyPressRep: KeyInputEvent[],
-		keyRelease: KeyInputEvent[],
-		mouseClick: MouseInputEvent[],
-		mouseRelease: MouseInputEvent[],
-		mouseDown: MouseInputEvent[],
-		charInput: CharInputEvent[],
-	},
-	action: Array<() => void>,
-	render: Array<() => void>,
-	objs: Map<number, GameObj>,
-	lastID: number,
-	timers: Record<number, Timer>,
-	lastTimerID: number,
-	cam: Camera,
-	gravity: number,
-	layers: Record<string, number>,
-	defLayer: string | null,
-	data: any,
-};
 
 const game: Game = {
 	loaded: false,
@@ -770,10 +632,6 @@ function wait(t: number, f?: () => void): Promise<null> {
 	});
 }
 
-type LoopHandle = {
-	stop: () => void,
-};
-
 // TODO: return control handle
 // add an event that's run every t seconds
 function loop(t: number, f: () => void): LoopHandle {
@@ -1208,21 +1066,6 @@ function start(name: string, ...args: any[]) {
 
 }
 
-type AddEvent = () => void;
-type DrawEvent = () => void;
-type UpdateEvent = () => void;
-type DestroyEvent = () => void;
-
-type PosCompInspect = {
-	pos: string,
-};
-
-type PosComp = {
-	pos: Vec2,
-	move: (...args) => void,
-	inspect: () => PosCompInspect,
-};
-
 // TODO: have velocity here?
 function pos(...args): PosComp {
 
@@ -1252,40 +1095,40 @@ function pos(...args): PosComp {
 }
 
 // TODO: allow single number assignment
-function scale(...args) {
+function scale(...args: any[]): ScaleComp {
 	return {
 		scale: vec2(...args),
-		flipX(s) {
+		flipX(s: number) {
 			this.scale.x = Math.sign(s) * Math.abs(this.scale.x);
 		},
-		flipY(s) {
+		flipY(s: number) {
 			this.scale.y = Math.sign(s) * Math.abs(this.scale.y);
 		},
 	};
 }
 
-function rotate(r) {
+function rotate(r: number): RotateComp {
 	return {
 		angle: r,
 	};
 }
 
-function color(...args) {
+function color(...args: any[]): ColorComp {
 	return {
 		color: rgba(...args),
 	};
 }
 
-function origin(o) {
+function origin(o: Origin | Vec2): OriginComp {
 	return {
 		origin: o,
 	};
 }
 
-function layer(z) {
+function layer(z: string): LayerComp {
 	return {
 		layer: z,
-		inspect() {
+		inspect(): LayerCompInspect {
 			const scene = curScene();
 			return {
 				layer: this.layer ?? scene.defLayer,
@@ -1293,38 +1136,6 @@ function layer(z) {
 		},
 	};
 }
-
-type RectSide =
-	"top"
-	| "bottom"
-	| "left"
-	| "right"
-	;
-
-type CollisionResolve = {
-	obj: GameObj,
-	side: RectSide,
-}
-
-type AreaComp = {
-	area: {
-		p1: Vec2,
-		p2: Vec2,
-	},
-	draw: DrawEvent,
-	areaWidth: () => number,
-	areaHeight: () => number,
-	isClicked: () => boolean,
-	isHovered: () => boolean,
-	isCollided: (o: GameObj) => boolean,
-	isOverlapped: (o: GameObj) => boolean,
-	clicks: (f: () => void) => void,
-	hovers: (f: () => void) => void,
-	collides: (tag: string, f: (o: GameObj) => void) => void,
-	overlaps: (tag: string, f: (o: GameObj) => void) => void,
-	hasPt: (p: Vec2) => boolean,
-	resolve: () => void,
-};
 
 function isSameLayer(o1: GameObj, o2: GameObj): boolean {
 	const scene = curScene();
@@ -1579,40 +1390,6 @@ function getAreaFromSize(w, h, o) {
 	);
 }
 
-type SpriteCompConf = {
-	noArea?: boolean,
-	quad?: Quad,
-	frame?: number,
-	animSpeed?: number,
-};
-
-type SpriteCompCurAnim = {
-	name: string,
-	loop: boolean,
-	timer: number,
-};
-
-type SpriteComp = {
-	add: AddEvent,
-	draw: DrawEvent,
-	update: UpdateEvent,
-	width: number,
-	height: number,
-	animSpeed: number,
-	frame: number,
-	quad: Quad,
-	play: (anim: string, loop?: boolean) => void,
-	stop: () => void,
-	changeSprite: (id: string) => void,
-	numFrames: () => number,
-	curAnim: () => string,
-	inspect: () => SpriteCompInspect,
-};
-
-type SpriteCompInspect = {
-	curAnim?: string,
-};
-
 function sprite(id: string, conf: SpriteCompConf = {}): SpriteComp {
 
 	let spr = assets.sprites[id];
@@ -1774,22 +1551,6 @@ function sprite(id: string, conf: SpriteCompConf = {}): SpriteComp {
 
 }
 
-type TextComp = {
-	add: AddEvent,
-	draw: DrawEvent,
-	text: string,
-	textSize: number,
-	font: string,
-	width: number,
-	height: number,
-};
-
-type TextCompConf = {
-	noArea?: boolean,
-	font?: string,
-	width?: number,
-};
-
 // TODO: add area
 function text(t: string, size: number, conf: TextCompConf = {}): TextComp {
 
@@ -1850,17 +1611,6 @@ function text(t: string, size: number, conf: TextCompConf = {}): TextComp {
 
 }
 
-type RectComp = {
-	add: AddEvent,
-	draw: DrawEvent,
-	width: number,
-	height: number,
-};
-
-type RectCompConf = {
-	noArea?: boolean,
-};
-
 function rect(
 	w: number,
 	h: number,
@@ -1897,10 +1647,6 @@ function rect(
 
 }
 
-type SolidComp = {
-	solid: boolean,
-};
-
 function solid(): SolidComp {
 	return {
 		solid: true,
@@ -1910,19 +1656,6 @@ function solid(): SolidComp {
 // maximum y velocity with body()
 const DEF_MAX_VEL = 960;
 const DEF_JUMP_FORCE = 480;
-
-type BodyComp = {
-	update: UpdateEvent,
-	jumpForce: number,
-	curPlatform: () => GameObj | null,
-	grounded: () => boolean,
-	jump: (f: number) => void,
-};
-
-type BodyCompConf = {
-	jumpForce?: number,
-	maxVel?: number,
-};
 
 function body(conf: BodyCompConf = {}): BodyComp {
 
@@ -1988,13 +1721,6 @@ function body(conf: BodyCompConf = {}): BodyComp {
 
 }
 
-type ShaderComp = {
-	sendVec2: (name: string, p: Vec2) => void,
-	sendVec3: (name: string, p: Vec3) => void,
-	sendColor: (name: string, p: Color) => void,
-	sendMat4: (name: string, m: Mat4) => void,
-};
-
 function shader(id: string): ShaderComp {
 	const prog = assets.shaders[id];
 	return {
@@ -2012,20 +1738,6 @@ function shader(id: string): ShaderComp {
 		},
 	};
 }
-
-type Debug = {
-	paused: boolean,
-	inspect: boolean,
-	timeScale: number,
-	showLog: boolean,
-	fps: () => number,
-	objCount: () => number,
-	drawCalls: () => number,
-	stepFrame: () => void,
-	clearLog: () => void,
-	log: (msg: string) => void,
-	error: (msg: string) => void,
-};
 
 const debug: Debug = {
 	paused: false,
@@ -2045,23 +1757,6 @@ const debug: Debug = {
 	clearLog: logger.clear,
 	log: logger.info,
 	error: logger.error,
-};
-
-
-type LevelConf = {
-	width: number,
-	height: number,
-	pos?: Vec2,
-	any: (s: string) => void,
-//  	[sym: string]: Comp[] | (() => Comp[]),
-};
-
-type Level = {
-	getPos: (p: Vec2) => Vec2,
-	spawn: (sym: string, p: Vec2) => void,
-	width: () => number,
-	height: () => number,
-	destroy: () => void,
 };
 
 function addLevel(map: string[], conf: LevelConf): Level {
