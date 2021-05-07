@@ -13,8 +13,7 @@ import {
 
 const DEF_ORIGIN = "topleft";
 const STRIDE = 9;
-const MAX_VERTS = 65536;
-const MAX_INDICES = 65536;
+const QUEUE_COUNT = 65536;
 
 const VERT_TEMPLATE = `
 attribute vec3 a_pos;
@@ -135,9 +134,9 @@ type DrawQuadConf = {
 	rot?: number,
 	color?: Color,
 	origin?: Origin | Vec2,
-	quad?: Quad,
 	z?: number,
 	tex?: GfxTexture,
+	quad?: Quad,
 	prog?: GfxProgram,
 };
 
@@ -312,13 +311,13 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 		const vbuf = gl.createBuffer();
 
 		gl.bindBuffer(gl.ARRAY_BUFFER, vbuf);
-		gl.bufferData(gl.ARRAY_BUFFER, MAX_VERTS, gl.DYNAMIC_DRAW);
+		gl.bufferData(gl.ARRAY_BUFFER, QUEUE_COUNT * 4, gl.DYNAMIC_DRAW);
 		gl.bindBuffer(gl.ARRAY_BUFFER, null);
 
 		const ibuf = gl.createBuffer();
 
 		gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, ibuf);
-		gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, MAX_INDICES, gl.DYNAMIC_DRAW);
+		gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, QUEUE_COUNT * 2, gl.DYNAMIC_DRAW);
 		gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
 
 		return {
@@ -487,44 +486,62 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 		tex: GfxTexture = gfx.defTex,
 		prog: GfxProgram = gfx.defProg,
 	) {
-		if (tex !== gfx.curTex || prog !== gfx.curProg) {
+
+		// flush on texture / shader change and overflow
+		if (
+			tex !== gfx.curTex
+			|| prog !== gfx.curProg
+			|| gfx.vqueue.length + verts.length * STRIDE > QUEUE_COUNT
+			|| gfx.iqueue.length + indices.length > QUEUE_COUNT
+		) {
 			flush();
-			gfx.curTex = tex;
-			gfx.curProg = prog;
 		}
-		// TODO: deal with overflow
-		indices = indices.map((i) => {
-			return i + gfx.vqueue.length / STRIDE;
-		});
-		gfx.vqueue = gfx.vqueue.concat(verts.map((v) => {
-			const pt = toNDC(gfx.transform.multVec2(v.pos.xy()));
-			return [
-				pt.x, pt.y, v.pos.z,
-				v.uv.x, v.uv.y,
-				v.color.r, v.color.g, v.color.b, v.color.a
-			];
-		}).flat());
-		gfx.iqueue = gfx.iqueue.concat(indices);
+
+		gfx.curTex = tex;
+		gfx.curProg = prog;
+
+		const nIndices = indices
+			.map((i) => {
+				return i + gfx.vqueue.length / STRIDE;
+			});
+
+		const nVerts = verts
+			.map((v) => {
+				const pt = toNDC(gfx.transform.multVec2(v.pos.xy()));
+				return [
+					pt.x, pt.y, v.pos.z,
+					v.uv.x, v.uv.y,
+					v.color.r, v.color.g, v.color.b, v.color.a
+				];
+			})
+			.flat();
+
+		nIndices.forEach((i) => gfx.iqueue.push(i));
+		nVerts.forEach((v) => gfx.vqueue.push(v));
+
 	}
 
 	function flush() {
 
-		if (!gfx.curTex || !gfx.curProg) {
+		if (
+			!gfx.curTex
+			|| !gfx.curProg
+			|| gfx.vqueue.length === 0
+			|| gfx.iqueue.length === 0
+		) {
 			return;
 		}
 
 		gl.bindBuffer(gl.ARRAY_BUFFER, gfx.vbuf);
 		gl.bufferSubData(gl.ARRAY_BUFFER, 0, new Float32Array(gfx.vqueue));
-
 		gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, gfx.ibuf);
 		gl.bufferSubData(gl.ELEMENT_ARRAY_BUFFER, 0, new Uint16Array(gfx.iqueue));
-
 		gfx.curProg.bind();
-		gfx.curTex.bind();
 		gfx.curProg.bindAttribs();
+		gfx.curTex.bind();
 		gl.drawElements(gl.TRIANGLES, gfx.iqueue.length, gl.UNSIGNED_SHORT, 0);
-		gfx.curProg.unbind();
 		gfx.curTex.unbind();
+		gfx.curProg.unbind();
 		gl.bindBuffer(gl.ARRAY_BUFFER, null);
 		gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
 
@@ -655,6 +672,7 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 
 	}
 
+	// TODO: remove
 	function drawTexture(
 		tex: GfxTexture,
 		conf: DrawTextureConf = {},
