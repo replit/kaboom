@@ -126,6 +126,7 @@ function appInit(gconf: AppConf = {}): App {
 
 	const styles = [
 		"outline: none",
+		"cursor: default",
 	];
 
 	if (gconf.crisp) {
@@ -275,7 +276,7 @@ function appInit(gconf: AppConf = {}): App {
 
 	function cursor(c: string) {
 		if (c) {
-			app.canvas.style.cursor = c ?? "auto";
+			app.canvas.style.cursor = c ?? "default";
 		}
 		return app.canvas.style.cursor;
 	}

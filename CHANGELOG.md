@@ -1,11 +1,10 @@
 ### (wip) "Shade on You!"
-- added `cursor()`
 - added `loadShader(id, vert, frag, isUrl)`
 - added `shader()` comp for attaching custom shader to an obj
-- improved graphics performance
-- improved inspect drawing performance
 
 ## v0.5.0 "Type! Type! Type!"
+- improved graphics performance
+- improved inspect drawing performance
 - added `curPlatform()` by `body()`
 - on screen log now catches all kinds of errors
 - (**BREAK**) changed `dbg()` to plain `debug` object
@@ -28,6 +27,7 @@
 - (**BREAK**) removed `sound.resume()` in favor of `sound.play()`
 - fixed `sound.pause()` to work on firefox
 - fixed collisions not treating explicit default layer the same as implicit default layer
+- added `cursor()`
 
 ### v0.4.1
 - fixed `on("destroy")` handler getting called twice
