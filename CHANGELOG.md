@@ -3,6 +3,7 @@
 - added `loadShader(id, vert, frag, isUrl)`
 - added `shader()` comp for attaching custom shader to an obj
 - improved graphics performance
+- improved inspect drawing performance
 
 ## v0.5.0 "Type! Type! Type!"
 - added `curPlatform()` by `body()`

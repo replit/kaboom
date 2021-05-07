@@ -487,6 +487,9 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 		prog: GfxProgram = gfx.defProg,
 	) {
 
+		tex = tex ?? gfx.defTex;
+		prog = prog ?? gfx.defProg;
+
 		// flush on texture / shader change and overflow
 		if (
 			tex !== gfx.curTex
@@ -624,6 +627,7 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 		}
 	}
 
+	// TODO: clean
 	// draw a textured quad
 	function drawQuad(conf: DrawQuadConf = {}) {
 
@@ -731,7 +735,6 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 
 	}
 
-	// TODO: slow, use drawRaw() calc coords
 	function drawLine(
 		p1: Vec2,
 		p2: Vec2,

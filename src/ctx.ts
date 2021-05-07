@@ -24,10 +24,6 @@ import {
 	MsgHandler,
 } from "./net";
 
-import {
-	GameObj,
-} from "./game";
-
 type KaboomCtx = {
 	// assets
 	loadRoot: (path?: string) => string,

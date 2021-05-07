@@ -226,11 +226,11 @@ type GameObj = {
 	_sceneID: number | null,
 	_tags: string[],
 	_events: {
-		add: [],
-		update: [],
-		draw: [],
-		destroy: [],
-		inspect: [],
+		add: (() => void)[],
+		update: (() => void)[],
+		draw: (() => void)[],
+		destroy: (() => void)[],
+		inspect: (() => {})[],
 	},
 };
 type Game = {
@@ -257,6 +257,7 @@ type Camera = {
 	shake: number,
 	ignore: string[],
 	mpos: Vec2,
+	matrix: Mat4,
 };
 
 type TaggedEvent = {
@@ -355,6 +356,7 @@ function scene(name: string, cb: (...args) => void) {
 			shake: 0,
 			ignore: [],
 			mpos: vec2(0),
+			matrix: mat4(),
 		},
 
 		// misc
@@ -964,8 +966,7 @@ function gameFrame(ignorePause?: boolean) {
 	const shake = vec2FromAngle(rand(0, Math.PI * 2)).scale(cam.shake);
 
 	cam.shake = lerp(cam.shake, 0, 5 * app.dt());
-
-	const camMat = mat4()
+	cam.matrix = mat4()
 		.translate(size.scale(0.5))
 		.scale(cam.scale)
 		.rotateZ(cam.angle)
@@ -973,7 +974,7 @@ function gameFrame(ignorePause?: boolean) {
 		.translate(cam.pos.scale(-1).add(size.scale(0.5)).add(shake))
 		;
 
-	cam.mpos = camMat.invert().multVec2(mousePos());
+	cam.mpos = cam.matrix.invert().multVec2(mousePos());
 
 	// draw every obj
 	every((obj) => {
@@ -983,7 +984,7 @@ function gameFrame(ignorePause?: boolean) {
 			gfx.pushTransform();
 
 			if (!cam.ignore.includes(obj.layer)) {
-				gfx.pushMatrix(camMat);
+				gfx.pushMatrix(cam.matrix);
 			}
 
 			obj.trigger("draw");
@@ -1052,6 +1053,94 @@ function handleEvents() {
 
 }
 
+function drawInspect() {
+
+	every((obj) => {
+
+		if (!obj.area) {
+			return;
+		}
+
+		if (obj.hidden) {
+			return;
+		}
+
+		gfx.pushTransform();
+
+		const scene = curScene();
+
+		if (!scene.cam.ignore.includes(obj.layer)) {
+			gfx.pushMatrix(scene.cam.matrix);
+		}
+
+		const font = assets.defFont();
+		const color = rgba(0, 1, 1, 1);
+		const hovered = obj.isHovered();
+		const width = (hovered ? 4 : 2) / gfx.scale();
+		const a = obj._worldArea();
+		const w = a.p2.x - a.p1.x;
+		const h = a.p2.y - a.p1.y;
+
+		gfx.drawRectStroke(a.p1, w, h, {
+			width: width,
+			color: color,
+			z: 0.9,
+		});
+
+		if (hovered) {
+
+			const mpos = mousePos(obj.layer ?? scene.defLayer);
+			const padding = vec2(6, 6).scale(1 / gfx.scale());
+			let bw = 0;
+			let bh = 0;
+			const lines = [];
+
+			const addLine = (txt) => {
+				const ftxt = gfx.fmtText(txt, font, {
+					size: 12 / (gconf.scale ?? 1),
+					pos: mpos.add(vec2(padding.x, padding.y + bh)),
+					z: 1,
+				});
+				lines.push(ftxt);
+				bw = ftxt.width > bw ? ftxt.width : bw;
+				bh += ftxt.height;
+			};
+
+			for (const tag of obj._tags) {
+				addLine(`"${tag}"`);
+			}
+
+			for (const inspect of obj._events.inspect) {
+
+				const info = inspect();
+
+				for (const field in info) {
+					addLine(`${field}: ${info[field]}`);
+				}
+
+			}
+
+			bw += padding.x * 2;
+			bh += padding.y * 2;
+
+			// background
+			gfx.drawRect(mpos, bw, bh, {
+				color: rgba(0, 0, 0, 1),
+				z: 1,
+			});
+
+			for (const line of lines) {
+				gfx.drawFmtText(line);
+			}
+
+		}
+
+		gfx.popTransform();
+
+	});
+
+}
+
 // TODO: put main event loop in app module
 // start the game with a scene
 function start(name: string, ...args: any[]) {
@@ -1091,15 +1180,19 @@ function start(name: string, ...args: any[]) {
 				handleEvents();
 				gameFrame();
 
+				if (debug.inspect) {
+					drawInspect();
+				}
+
+				if (debug.showLog) {
+					logger.draw();
+				}
+
 			} catch (e) {
 
 				logger.error(e.stack);
 				app.quit();
 
-			}
-
-			if (debug.showLog) {
-				logger.draw();
 			}
 
 			if (game.nextScene) {
@@ -1251,90 +1344,6 @@ function area(p1: Vec2, p2: Vec2): AreaComp {
 		area: {
 			p1: p1,
 			p2: p2,
-		},
-
-		draw() {
-
-			// TODO: put this to higher level
-
-			if (!debug.inspect) {
-				return;
-			}
-
-			const font = assets.defFont();
-			let width = 2;
-			const color = rgba(0, 1, 1, 1);
-			const hovered = this.isHovered();
-
-			if (hovered) {
-				width += 2;
-			}
-
-			const a = this._worldArea();
-			const w = a.p2.x - a.p1.x;
-			const h = a.p2.y - a.p1.y;
-
-			gfx.drawRectStroke(a.p1, w, h, {
-				width: width / (gconf.scale ?? 1),
-				color: color,
-				z: 0.9,
-			});
-
-			const mpos = mousePos(this.layer ?? curScene().defLayer);
-
-			if (hovered) {
-
-				const padding = vec2(6, 6).scale(1 / (gconf.scale ?? 1));
-				let bw = 0;
-				let bh = 0;
-				const lines = [];
-
-				const addLine = (txt) => {
-					const ftxt = gfx.fmtText(txt, font, {
-						size: 12 / (gconf.scale ?? 1),
-						pos: mpos.add(vec2(padding.x, padding.y + bh)),
-						z: 1,
-					});
-					lines.push(ftxt);
-					bw = ftxt.width > bw ? ftxt.width : bw;
-					bh += ftxt.height;
-				};
-
-				for (const tag of this._tags) {
-					addLine(`"${tag}"`);
-				}
-
-				for (const inspect of this._events.inspect) {
-
-					const info = inspect();
-
-					for (const field in info) {
-						addLine(`${field}: ${info[field]}`);
-					}
-
-				}
-
-				bw += padding.x * 2;
-				bh += padding.y * 2;
-
-				// background
-				gfx.drawRect(mpos, bw, bh, {
-					color: rgba(0, 0, 0, 1),
-					z: 1,
-				});
-
-				gfx.drawRectStroke(mpos, bw, bh, {
-					width: (width - 2) / (gconf.scale ?? 1),
-					color: rgba(0, 1, 1, 1),
-					z: 1,
-				});
-
-				for (const line of lines) {
-					gfx.drawFmtText(line);
-				}
-
-			}
-
 		},
 
 		areaWidth(): number {
