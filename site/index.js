@@ -40,6 +40,14 @@ server.fs("/lib/dev", "../dist");
 // TODO: deprecate
 server.fs("/lib/master", "lib/0.0.0");
 
+server.match("/changelog", (req, res) => {
+	res.file("../CHANGELOG.md");
+});
+
+server.match("/readme", (req, res) => {
+	res.file("../README.md");
+});
+
 server.match("/versions", (req, res) => {
 	res.cors();
 	res.json([ "latest", ...versions.list, "dev", ]);
