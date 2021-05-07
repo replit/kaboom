@@ -384,7 +384,7 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 	}
 
 	function pushScale(p: Vec2) {
-		if (!p || (p.x === 0 && p.y === 0)) {
+		if (!p || (p.x === 1 && p.y === 1)) {
 			return;
 		}
 		gfx.transform = gfx.transform.scale(p);

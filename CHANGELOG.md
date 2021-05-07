@@ -18,6 +18,7 @@
 - fixed collisions not treating explicit default layer the same as implicit default layer
 - fixed unable to play another anim in `onAnimEnd()`
 - fixed scene switches happen in the middle of a frame
+- fixed `scale(0)` not working
 - (**BREAK**) changed `dbg()` to plain `debug` object
 - (**BREAK**) moved `fps()`, `objCount()`, `stepFrame()`, `log()`, `error()` under `debug`
 - (**BREAK**) removed `debug.logTime`

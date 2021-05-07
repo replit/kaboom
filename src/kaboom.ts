@@ -112,6 +112,10 @@ function send(type: string, data: any) {
 	net.send(type, data);
 }
 
+function dt() {
+	return app.dt() * debug.timeScale;
+}
+
 function play(id: string, conf: AudioPlayConf = {}): AudioPlay {
 	const sound = assets.sounds[id];
 	if (!sound) {
@@ -799,7 +803,7 @@ function gameFrame(ignorePause?: boolean) {
 		// update timers
 		for (const id in scene.timers) {
 			const t = scene.timers[id];
-			t.time -= app.dt();
+			t.time -= dt();
 			if (t.time <= 0) {
 				t.cb();
 				delete scene.timers[id];
@@ -825,7 +829,7 @@ function gameFrame(ignorePause?: boolean) {
 	const cam = scene.cam;
 	const shake = vec2FromAngle(rand(0, Math.PI * 2)).scale(cam.shake);
 
-	cam.shake = lerp(cam.shake, 0, 5 * app.dt());
+	cam.shake = lerp(cam.shake, 0, 5 * dt());
 	cam.matrix = mat4()
 		.translate(size.scale(0.5))
 		.scale(cam.scale)
@@ -1078,8 +1082,8 @@ function pos(...args): PosComp {
 		move(...args) {
 
 			const p = vec2(...args);
-			const dx = p.x * app.dt();
-			const dy = p.y * app.dt();
+			const dx = p.x * dt();
+			const dy = p.y * dt();
 
 			this.pos.x += dx;
 			this.pos.y += dy;
@@ -1454,7 +1458,7 @@ function sprite(id: string, conf: SpriteCompConf = {}): SpriteComp {
 
 			const anim = spr.anims[curAnim.name];
 
-			curAnim.timer += app.dt();
+			curAnim.timer += dt();
 
 			if (curAnim.timer >= this.animSpeed) {
 				// TODO: anim dir
@@ -1693,7 +1697,7 @@ function body(conf: BodyCompConf = {}): BodyComp {
 
 			if (!curPlatform) {
 
-				velY = Math.min(velY + gravity() * app.dt(), maxVel);
+				velY = Math.min(velY + gravity() * dt(), maxVel);
 
 				// check if grounded to a new platform
 				for (const target of targets) {
@@ -1890,7 +1894,7 @@ const ctx: KaboomCtx = {
 	// query
 	width: gfx.width,
 	height: gfx.height,
-	dt: app.dt,
+	dt: dt,
 	time: app.time,
 	screenshot: app.screenshot,
 	// scene
