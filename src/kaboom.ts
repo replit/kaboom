@@ -625,7 +625,7 @@ function clicks(t: string, f: (obj: GameObj) => void) {
 }
 
 // add an event that'd be run after t
-function wait(t: number, f?: () => void): Promise<null> {
+function wait(t: number, f?: () => void): Promise<void> {
 	return new Promise((resolve) => {
 		const scene = curScene();
 		scene.timers[scene.lastTimerID++] = {
@@ -634,7 +634,7 @@ function wait(t: number, f?: () => void): Promise<null> {
 				if (f) {
 					f();
 				}
-				resolve(null);
+				resolve();
 			},
 		};
 	});

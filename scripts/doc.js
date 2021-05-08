@@ -1,6 +1,8 @@
 const fs = require("fs");
 const ts = require("typescript");
 
+const dest = "site/types.json";
+
 const f = ts.createSourceFile(
 	"types.ts",
 	fs.readFileSync("src/types.ts", "utf-8"),
@@ -44,15 +46,32 @@ const stmts = transform(f.statements, (k, v) => {
 	})();
 });
 
-const types = {};
+const doc = {
+	types: {},
+	funcs: {},
+	interfaces: {},
+};
 
-stmts.forEach((stmt) => {
-	if (stmt.kind === "TypeAliasDeclaration") {
-		types[stmt.name] = stmt.type;
+stmts.filter((stmt) => {
+	return stmt.modifiers && stmt.modifiers.some((mod) => {
+		return mod.kind === "ExportKeyword";
+	});
+}).forEach((stmt) => {
+	switch (stmt.kind) {
+		case "TypeAliasDeclaration":
+			doc.types[stmt.name] = stmt;
+			break;
+		case "FunctionDeclaration":
+			doc.funcs[stmt.name] = stmt;
+			break;
+		case "InterfaceDeclaration":
+			doc.interfaces[stmt.name] = stmt;
+			break;
+		default:
+			console.warn(`unhandled stmt type: ${stmt.kind}`);
+			break;
 	}
 });
 
-const dest = "site/types.json";
-
-fs.writeFileSync(dest, JSON.stringify(types, null, 4));
+fs.writeFileSync(dest, JSON.stringify(doc, null, 4));
 console.log(`written to ${dest}`);
