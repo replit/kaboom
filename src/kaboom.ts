@@ -1804,10 +1804,12 @@ function addLevel(map: string[], conf: LevelConf): Level {
 					}
 				} else if (conf.any) {
 					return conf.any(sym);
-				} else {
-					return [];
 				}
 			})();
+
+			if (!comps) {
+				return;
+			}
 
 			comps.push(pos(
 				offset.x + p.x * conf.width,
