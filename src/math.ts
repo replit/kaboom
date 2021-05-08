@@ -108,11 +108,37 @@ function vec3(x: number, y: number, z: number): Vec3 {
 }
 
 function isVec2(p: any): boolean {
-	return p !== undefined && p.x !== undefined && p.y !== undefined;
+	return p !== undefined
+		&& p.x !== undefined
+		&& p.y !== undefined
+		;
+}
+
+function isVec3(p: any): boolean {
+	return p !== undefined
+		&& p.x !== undefined
+		&& p.y !== undefined
+		&& p.z !== undefined
+		;
 }
 
 function isColor(c: any): boolean {
-	return c !== undefined && c.r !== undefined && c.g !== undefined && c.b !== undefined && c.a !== undefined;
+	return c !== undefined
+		&& c.r !== undefined
+		&& c.g !== undefined
+		&& c.b !== undefined
+		&& c.a !== undefined
+		;
+}
+
+function isMat4(m: any): Mat4 {
+	if (
+		m !== undefined
+		&& Array.isArray(m.m)
+		&& m.m.length === 16
+	) {
+		return m;
+	}
 }
 
 function rgb(r: number, g: number, b: number): Color {
@@ -497,5 +523,7 @@ export {
 	colRectPt,
 	vec2FromAngle,
 	isVec2,
+	isVec3,
 	isColor,
+	isMat4,
 };

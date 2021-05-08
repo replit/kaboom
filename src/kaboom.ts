@@ -1449,6 +1449,8 @@ function sprite(id: string, conf: SpriteCompConf = {}): SpriteComp {
 				frame: this.frame,
 				origin: this.origin,
 				quad: this.quad,
+				prog: assets.shaders[this.shader],
+				uniform: this.uniform,
 				z: scene.layers[this.layer ?? scene.defLayer],
 			});
 
@@ -1649,6 +1651,8 @@ function rect(
 				color: this.color,
 				origin: this.origin,
 				z: scene.layers[this.layer ?? scene.defLayer],
+				prog: assets.shaders[this.shader],
+				uniform: this.uniform,
 			});
 
 		},
@@ -1743,21 +1747,11 @@ function body(conf: BodyCompConf = {}): BodyComp {
 
 }
 
-function shader(id: string): ShaderComp {
+function shader(id: string, uniform: Uniform = {}): ShaderComp {
 	const prog = assets.shaders[id];
 	return {
-		sendVec2(name: string, p: Vec2) {
-			prog.sendVec2(name, p);
-		},
-		sendVec3(name: string, p: Vec3) {
-			prog.sendVec3(name, p);
-		},
-		sendColor(name: string, c: Color) {
-			prog.sendColor(name, c);
-		},
-		sendMat4(name: string, m: Mat4) {
-			prog.sendMat4(name, m);
-		},
+		shader: id,
+		uniform: uniform,
 	};
 }
 

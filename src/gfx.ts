@@ -4,6 +4,10 @@ import {
 	quad,
 	rgba,
 	mat4,
+	isVec2,
+	isVec3,
+	isColor,
+	isMat4,
 } from "./math";
 
 const DEF_ORIGIN = "topleft";
@@ -116,10 +120,12 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 
 		return {
 			drawCalls: 0,
+			lastDrawCalls: 0,
 			defProg: defProg,
 			curProg: defProg,
 			defTex: emptyTex,
 			curTex: emptyTex,
+			curUniform: {},
 			vbuf: vbuf,
 			ibuf: ibuf,
 			vqueue: [],
@@ -215,29 +221,28 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 				gl.enableVertexAttribArray(2);
 			},
 
-			sendFloat(name: string, f: number) {
-				const loc = gl.getUniformLocation(id, name);
-				gl.uniform1f(loc, f);
-			},
-
-			sendVec2(name: string, p: Vec2) {
-				const loc = gl.getUniformLocation(id, name);
-				gl.uniform2f(loc, p.x, p.y);
-			},
-
-			sendVec3(name: string, p: Vec3) {
-				const loc = gl.getUniformLocation(id, name);
-				gl.uniform3f(loc, p.x, p.y, p.z);
-			},
-
-			sendColor(name: string, c: Color) {
-				const loc = gl.getUniformLocation(id, name);
-				gl.uniform4f(loc, c.r, c.g, c.b, c.a);
-			},
-
-			sendMat4(name: string, m: Mat4) {
-				const loc = gl.getUniformLocation(id, name);
-				gl.uniformMatrix4fv(loc, false, new Float32Array(m.m));
+			send(uniform: Uniform) {
+				this.bind();
+				for (const name in uniform) {
+					const val = uniform[name];
+					const loc = gl.getUniformLocation(id, name);
+					if (typeof val === "number") {
+						gl.uniform1f(loc, val);
+					} else if (isMat4(val)) {
+						// @ts-ignore
+						gl.uniformMatrix4fv(loc, false, new Float32Array(val.m));
+					} else if (isColor(val)) {
+						// @ts-ignore
+						gl.uniform4f(loc, val.r, val.g, val.b, val.a);
+					} else if (isVec3(val)) {
+						// @ts-ignore
+						gl.uniform3f(loc, val.x, val.y, val.z);
+					} else if (isVec2(val)) {
+						// @ts-ignore
+						gl.uniform2f(loc, val.x, val.y);
+					}
+				}
+				this.unbind();
 			},
 
 		};
@@ -274,12 +279,41 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 
 	}
 
+	function deepEq(o1: any, o2: any): boolean {
+		const t1 = typeof o1;
+		const t2 = typeof o2;
+		if (t1 !== t2) {
+			return false;
+		}
+		if (t1 === "object" && t2 === "object") {
+			const k1 = Object.keys(o1);
+			const k2 = Object.keys(o2);
+			if (k1.length !== k2.length) {
+				return false;
+			}
+			for (const k of k1) {
+				const v1 = o1[k];
+				const v2 = o2[k];
+				if (typeof v1 === "function" && typeof v2 === "function") {
+
+				} else {
+					if (!deepEq(v1, v2)) {
+						return false;
+					}
+				}
+			}
+			return true;
+		}
+		return o1 === o2;
+	}
+
 	// TODO: expose
 	function drawRaw(
 		verts: Vertex[],
 		indices: number[],
 		tex: GfxTexture = gfx.defTex,
 		prog: GfxProgram = gfx.defProg,
+		uniform: Uniform = {},
 	) {
 
 		tex = tex ?? gfx.defTex;
@@ -289,6 +323,7 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 		if (
 			tex !== gfx.curTex
 			|| prog !== gfx.curProg
+			|| !deepEq(gfx.curUniform, uniform)
 			|| gfx.vqueue.length + verts.length * STRIDE > QUEUE_COUNT
 			|| gfx.iqueue.length + indices.length > QUEUE_COUNT
 		) {
@@ -297,6 +332,7 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 
 		gfx.curTex = tex;
 		gfx.curProg = prog;
+		gfx.curUniform = uniform;
 
 		const nIndices = indices
 			.map((i) => {
@@ -330,6 +366,8 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 			return;
 		}
 
+		gfx.curProg.send(gfx.curUniform);
+
 		gl.bindBuffer(gl.ARRAY_BUFFER, gfx.vbuf);
 		gl.bufferSubData(gl.ARRAY_BUFFER, 0, new Float32Array(gfx.vqueue));
 		gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, gfx.ibuf);
@@ -359,10 +397,11 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 
 	function frameEnd() {
 		flush();
+		gfx.lastDrawCalls = gfx.drawCalls;
 	}
 
 	function drawCalls() {
-		return gfx.drawCalls;
+		return gfx.lastDrawCalls;
 	}
 
 	function toNDC(pt: Vec2): Vec2 {
@@ -464,7 +503,7 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 				uv: vec2(q.x + q.w, q.y + q.h),
 				color: color,
 			},
-		], [0, 1, 3, 1, 2, 3], conf.tex);
+		], [0, 1, 3, 1, 2, 3], conf.tex, conf.prog, conf.uniform);
 
 		popTransform();
 
@@ -480,16 +519,11 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 		const h = tex.height * q.h;
 
 		drawQuad({
+			...conf,
 			tex: tex,
 			quad: q,
 			width: w,
 			height: h,
-			pos: conf.pos,
-			scale: conf.scale,
-			rot: conf.rot,
-			color: conf.color,
-			origin: conf.origin,
-			z: conf.z,
 		});
 
 	}

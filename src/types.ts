@@ -322,11 +322,7 @@ type GfxProgram = {
 	bind: () => void,
 	unbind: () => void,
 	bindAttribs: () => void,
-	sendFloat: (name: string, val: number) => void,
-	sendVec2: (name: string, p: Vec2) => void,
-	sendVec3: (name: string, p: Vec3) => void,
-	sendColor: (name: string, p: Color) => void,
-	sendMat4: (name: string, m: Mat4) => void,
+	send: (uniform: Uniform) => void,
 }
 
 type GfxTexture = {
@@ -362,13 +358,15 @@ type GfxCtx = {
 	vqueue: number[],
 	iqueue: number[],
 	clearColor: Color,
-	drawCalls: number,
 	defProg: GfxProgram,
 	curProg: GfxProgram,
 	defTex: GfxTexture,
 	curTex: GfxTexture,
+	curUniform: Uniform,
 	transform: Mat4,
 	transformStack: Mat4[],
+	drawCalls: number,
+	lastDrawCalls: number,
 };
 
 type DrawQuadConf = {
@@ -383,6 +381,7 @@ type DrawQuadConf = {
 	tex?: GfxTexture,
 	quad?: Quad,
 	prog?: GfxProgram,
+	uniform?: Uniform,
 };
 
 type DrawTextureConf = {
@@ -394,6 +393,7 @@ type DrawTextureConf = {
 	quad?: Quad,
 	z?: number,
 	prog?: GfxProgram,
+	uniform?: Uniform,
 };
 
 type DrawRectStrokeConf = {
@@ -413,6 +413,7 @@ type DrawRectConf = {
 	origin?: Origin | Vec2,
 	z?: number,
 	prog?: GfxProgram,
+	uniform?: Uniform,
 };
 
 type DrawLineConf = {
@@ -547,6 +548,8 @@ type DrawSpriteConf = {
 	color?: Color,
 	origin?: Origin,
 	quad?: Quad,
+	prog?: ShaderData,
+	uniform?: Uniform,
 	z?: number,
 };
 
@@ -909,11 +912,18 @@ type Debug = {
 	error: (msg: string) => void,
 };
 
+type UniformValue =
+	Vec2
+	| Vec3
+	| Color
+	| Mat4
+	;
+
+type Uniform = Record<string, UniformValue>;
+
 type ShaderComp = {
-	sendVec2: (name: string, p: Vec2) => void,
-	sendVec3: (name: string, p: Vec3) => void,
-	sendColor: (name: string, p: Color) => void,
-	sendMat4: (name: string, m: Mat4) => void,
+	uniform: Uniform,
+	shader: string,
 };
 
 type BodyComp = {

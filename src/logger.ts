@@ -13,6 +13,7 @@ function loggerInit(gfx: Gfx, assets: Assets, conf: LoggerConf = {
 	let logs: Log[] = [];
 	const max = conf.max ?? 8;
 
+	// TODO: draw rects first to reduce draw calls
 	// TODO: make log and progress bar fixed size independent of global scale
 	function draw() {
 
@@ -65,7 +66,6 @@ function loggerInit(gfx: Gfx, assets: Assets, conf: LoggerConf = {
 	}
 
 	function info(msg: string) {
-		console.log(msg);
 		logs.unshift({
 			type: "info",
 			msg: msg,

@@ -157,19 +157,18 @@ function assetsInit(gfx: Gfx, audio: Audio, gconf: AssetsConf = {}): Assets {
 
 		const loader = new Promise<SpriteData>((resolve, reject) => {
 
+			if (!src) {
+				return reject(`expected sprite src for "${name}"`);
+			}
+
 			// from url
 			if (typeof(src) === "string") {
-
 				const path = isDataUrl(src) ? src : assets.loadRoot + src;
-
 				loadImg(path)
 					.then((img) => {
 						resolve(loadRawSprite(name, img, conf));
 					})
 					.catch(reject);
-
-				return;
-
 			} else {
 				resolve(loadRawSprite(name, src, conf));
 			}
@@ -251,6 +250,10 @@ function assetsInit(gfx: Gfx, audio: Audio, gconf: AssetsConf = {}): Assets {
 		const url = assets.loadRoot + src;
 
 		const loader = new Promise<SoundData>((resolve, reject) => {
+
+			if (!src) {
+				return reject(`expected sound src for "${name}"`);
+			}
 
 			// from url
 			if (typeof(src) === "string") {
