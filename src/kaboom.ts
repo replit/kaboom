@@ -1730,6 +1730,10 @@ function body(conf: BodyCompConf = {}): BodyComp {
 			return curPlatform !== null;
 		},
 
+		falling(): boolean {
+			return velY > 0;
+		},
+
 		jump(force: number) {
 			curPlatform = null;
 			velY = -force || -this.jumpForce;

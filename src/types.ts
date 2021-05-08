@@ -921,6 +921,7 @@ type BodyComp = {
 	jumpForce: number,
 	curPlatform: () => GameObj | null,
 	grounded: () => boolean,
+	falling: () => boolean,
 	jump: (f: number) => void,
 };
 

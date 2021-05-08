@@ -10,6 +10,7 @@
 - added on-screen log that catches all kinds of errors
 - added `cursor()`
 - added `curPlatform()` by `body()`
+- added `falling()` by `body()`
 - added `changeSprite()` by `sprite()`
 - added `duration()` and `time()` for the handle returned by `play()`
 - added optional `seek` field to the audio play conf `play([conf])`
