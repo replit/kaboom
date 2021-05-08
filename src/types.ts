@@ -702,7 +702,7 @@ type Camera = {
 
 type TaggedEvent = {
 	tag: string,
-	cb: (...args) => void,
+	cb: (...args: any[]) => void,
 };
 
 type KeyInputEvent = {
@@ -719,7 +719,7 @@ type CharInputEvent = {
 };
 
 type Scene = {
-	init: (...args) => void,
+	init: (...args: any[]) => void,
 	initialized: boolean,
 	events: {
 		add: TaggedEvent[],
@@ -759,7 +759,7 @@ type PosCompInspect = {
 
 type PosComp = {
 	pos: Vec2,
-	move: (...args) => void,
+	move: (...args: any[]) => void,
 	inspect: () => PosCompInspect,
 };
 

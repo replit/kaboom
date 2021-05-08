@@ -17,6 +17,7 @@
 		"dev": "node scripts/dev.js",
 		"site": "cd site; node .",
 		"build": "node scripts/build.js",
+		"doc": "node scripts/doc.js",
 		"check": "tsc --noEmit"
 	},
 	"devDependencies": {

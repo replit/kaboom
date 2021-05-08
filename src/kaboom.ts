@@ -174,7 +174,6 @@ function drawText(
 
 // TODO: comp registry?
 // TODO: comps assert required other comps
-// TODO: in-source doc on the component system
 
 const DEF_GRAVITY = 980;
 const DEF_ORIGIN = "topleft";
