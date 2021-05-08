@@ -1,6 +1,6 @@
-export declare function kaboom(conf?: KaboomConf): KaboomCtx;
+declare function kaboom(conf?: KaboomConf): KaboomCtx;
 
-export type KaboomCtx = {
+type KaboomCtx = {
 	// assets
 	loadRoot(path?: string): string,
 	loadSprite(
@@ -154,7 +154,7 @@ export type KaboomCtx = {
 	addLevel(map: string[], conf: LevelConf): Level,
 };
 
-export type KaboomConf = {
+type KaboomConf = {
 	width?: number,
 	height?: number,
 	scale?: number,
@@ -170,7 +170,7 @@ export type KaboomConf = {
 	plugins?: KaboomPlugin[],
 };
 
-export type GameObj = {
+type GameObj = {
 	hidden: boolean,
 	paused: boolean,
 	exists(): boolean,

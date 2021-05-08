@@ -4,12 +4,17 @@ const www = require("./www");
 const api = require("./api");
 const gstyle = require("./gstyle");
 const utils = require("./utils");
+const types = require("./genTypes")();
 const t = www.tag;
 
 const style = {
 
 	"body": {
 		"background": "#0080ff",
+	},
+
+	"a": {
+		"color": "#0080ff",
 	},
 
 	"#game-view": {
@@ -237,7 +242,7 @@ const page = t("html", {}, [
 				})
 			]),
 			t("div", { id: "content", class: "panel", }, [
-				t("p", { id: "about", }, "kaboom.js (beta) is a JavaScript library that helps you make games fast and fun!"),
+				t("p", { id: "about", }, "kaboom.js is a JavaScript library that helps you make games fast and fun!"),
 // 				t("img", { id: "chill", src: "/pub/img/chill.png", }),
 				t("video", {
 					id: "chill",
@@ -281,13 +286,8 @@ k.start("main");
 						t("p", { class: "title", }, sec.name),
 						t("p", { class: "desc", }, sec.desc),
 						...sec.entries.map((f) => {
-							let paren = "(";
-							f.args.forEach((arg, i) => {
-								paren += arg.name + (i === f.args.length - 1 ? "" : ", ");
-							});
-							paren += ")";
 							return t("div", { id: f.name, class: "entry", }, [
-								t("p", { class: "name", }, f.name + paren),
+								t("p", { class: "name", }, types[f.name]),
 								t("p", { class: "desc", }, f.desc),
 								f.example ? t("pre", {}, [
 									t("code", { class: "javascript", }, f.example.trim()),

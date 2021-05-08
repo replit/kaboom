@@ -1,10 +1,8 @@
 // api desc
 
-function f(name, args, ret, desc, example) {
+function f(name, desc, example) {
 	return {
 		name,
-		args,
-		ret,
 		desc,
 		example,
 	};
@@ -22,9 +20,7 @@ const api = [
 		name: "Lifecycle",
 		desc: "Application Lifecycle Methods",
 		entries: [
-			f("kaboom", [
-				a("[conf]", "config")
-			], null, "initialize a kaboom game", `
+			f("kaboom", "initialize a kaboom game", `
 // quickly create a 640x480 canvas, returning a handle containing all kaboom functions
 const k = kaboom();
 
@@ -64,10 +60,7 @@ add();
 // - f10: debug.stepFrame()
 // see more in the debug section below
 			`),
-			f("start", [
-				a("scene", "name of scene"),
-				a("[...args]", "forward args"),
-			], null, "start the game loop with specified scene", `
+			f("start", "start the game loop with specified scene", `
 scene("game", () => {/* .. */});
 scene("menu", () => {/* .. */});
 scene("lose", () => {/* .. */});
@@ -79,9 +72,7 @@ start("game");
 		name: "Scene",
 		desc: "Scenes are the different stages of a game, like different levels, menu screen, and start screen etc. Everything belongs to a scene.",
 		entries: [
-			f("scene", [
-				a("name", "name of scene")
-			], null, "describe a scene", `
+			f("scene", "describe a scene", `
 scene("level1", () => {
 	// all objs are bound to a scene
 	add(/* ... */)
@@ -99,10 +90,7 @@ scene("gameover", () => {
 
 start("level1");
 			`),
-			f("go", [
-				a("name", "name of scene"),
-				a("[...args]", "forward args"),
-			], null, "switch to a scene", `
+			f("go", "switch to a scene", `
 // go to "paused" scene when pressed "p"
 scene("main", () => {
 	let score = 0;
@@ -118,10 +106,7 @@ scene("gameover", (score) => {
 	]);
 });
 			`),
-			f("layers", [
-				a("names", "list of layers with order"),
-				a("[default]", "default layer"),
-			], null, "define the draw layers of the scene", `
+			f("layers", "define the draw layers of the scene", `
 // draw background on the bottom, ui on top, layer "obj" is default
 layers([
 	"bg",
@@ -142,48 +127,35 @@ const score = add([
 
 // NOTE: Objects on different won't collide! Collision handlers won't pick them up.
 			`),
-			f("gravity", [
-				a("value", "gravity value"),
-			], null, "set the gravity value (defaults to 980)", `
+			f("gravity", "set the gravity value (defaults to 980)", `
 // (pixel per sec.)
 gravity(1600);
 			`),
-			f("camPos", [
-				a("pos", "position"),
-			], null, "set the camera position", `
+			f("camPos", "set the camera position", `
 // camera position follow player
 player.action(() => {
 	camPos(player.pos);
 });
 			`),
-			f("camScale", [
-				a("scale", "scale"),
-			], null, "set the camera scale", `
+			f("camScale", "set the camera scale", `
 if (win) {
 	camPos(player.pos);
 	// get a close up shot of the player
 	camScale(3);
 }
 			`),
-			f("camRot", [
-				a("angle", "angle"),
-			], null, "set the camera angle", `
+			f("camRot", "set the camera angle", `
 camRot(0.1);
 			`),
-			f("camShake", [
-				a("intensity", "intensity"),
-			], null, "shake the camera", `
+			f("camShake", "shake the camera", `
 // dramatic screen shake
 camShake(12);
 			`),
-			f("camIgnore", [
-				a("layers", "angle"),
-			], null, "make camera don't affect certain layers", `
+			f("camIgnore", "make camera don't affect certain layers", `
 // make camera not affect objects on layer "ui" and "bg"
 camIgnore(["bg", "ui"]);
 			`),
-			f("sceneData", [
-			], null, "custom scene data kv store", `
+			f("sceneData", "custom scene data kv store", `
 // could be used for custom components registering scene-wide "global" data
 sceneData().gravity = 123;
 			`),
@@ -193,11 +165,7 @@ sceneData().gravity = 123;
 		name: "Asset Loading",
 		desc: "Load assets into asset manager. These should be at application top.",
 		entries: [
-			f("loadSprite", [
-				a("name", "name of sprite"),
-				a("src", "image source"),
-				a("[conf]", "optional config"),
-			], null, "load a sprite", `
+			f("loadSprite", "load a sprite", `
 loadSprite("froggy", "froggy.png");
 loadSprite("froggy", "https://replit.com/public/images/mark.png");
 
@@ -211,20 +179,10 @@ loadSprite("froggy", "froggy.png", {
 	},
 });
 			`),
-			f("loadSound", [
-				a("name", "name of sound"),
-				a("src", "sound source"),
-				a("[conf]", "optional config"),
-			], null, "load a sound", `
+			f("loadSound", "load a sound", `
 loadSound("shoot", "shoot.ogg");
 			`),
-			f("loadFont", [
-				a("name", "name of font"),
-				a("src", "font image source"),
-				a("charWidth", "width of each char on img"),
-				a("charHeight", "height of each char on img"),
-				a("[chars]", "character map of img (defaults to ASCII 32-126)"),
-			], null, "load a font", `
+			f("loadFont", "load a font", `
 
 // default character mappings: (ASCII 32 - 126)
 // const ASCII_CHARS = " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_\`abcdefghijklmnopqrstuvwxyz{|}~";
@@ -241,9 +199,7 @@ loadFont("CP437", "CP437.png", 6, 8, "☺☻♥♦♣♠");
 		name: "Objects",
 		desc: "Game Object is the basic unit of Kaboom, each game object uses components to compose their data and behavior.",
 		entries: [
-			f("add", [
-				a("comps", "list of components"),
-			], "obj", "add a game object to scene", `
+			f("add", "add a game object to scene", `
 // a game object consists of a list of components
 const player = add([
 	// a 'sprite' component gives it the render ability
@@ -286,9 +242,7 @@ console.log(player.pos);
 // provided by 'body()'
 player.jump(320); // make player jump
 			`),
-			f("destroy", [
-				a("obj", "the object to destroy"),
-			], "obj", "remove a game object from scene", `
+			f("destroy", "remove a game object from scene", `
 collides("bullet", "killable", (b, k) => {
 	// remove both the bullet and the thing bullet hit with tag "killable" from scene
 	destroy(b);
@@ -296,43 +250,31 @@ collides("bullet", "killable", (b, k) => {
 	score++;
 });
 			`),
-			f("readd", [
-				a("obj", "the object to readd"),
-			], "obj", "re-add an object to the scene", `
+			f("readd", "re-add an object to the scene", `
 // remove and add froggy to the scene without triggering events tied to "add" or "destroy", so it'll be drawn on the top of the layer it belongs to
 readd(froggy);
 			`),
-			f("obj.action", [
-				a("cb", "callback"),
-			], null, "update the object, the callback is run every frame", `
+			f("obj.action", "update the object, the callback is run every frame", `
 player.action(() => {
 	player.move(SPEED, 0);
 });
 			`),
-			f("obj.use", [
-				a("comp", "the component to add"),
-			], null, "add a component to a game object", `
+			f("obj.use", "add a component to a game object", `
 // rarely needed since you usually specify all comps in the 'add()' step
 obj.use(scale(2, 2));
 			`),
-			f("obj.exists", [
-			], "if exists", "check if obj exists in scene", `
+			f("obj.exists", "check if obj exists in scene", `
 // sometimes you might keep a reference of an object that's already 'destroy()'ed, use exists() to check if they were
 if (obj.exists()) {
 	child.pos = obj.pos.clone();
 }
 			`),
-			f("obj.is", [
-				a("tag", "tag name"),
-			], "if is", "if obj has certain tag(s)", `
+			f("obj.is", "if obj has certain tag(s)", `
 if (obj.is("killable")) {
 	destroy(obj);
 }
 			`),
-			f("obj.on", [
-				a("event", "the name of event"),
-				a("cb", "callback"),
-			], null, "listen to an event", `
+			f("obj.on", "listen to an event", `
 // when obj is 'destroy()'ed
 obj.on("destroy", () => {
 	add([
@@ -350,9 +292,7 @@ obj.on("grounded", () => {
 	// ...
 });
 			`),
-			f("obj.trigger", [
-				a("event", "the name of event"),
-			], null, "trigger an event (triggers 'on')", `
+			f("obj.trigger", "trigger an event (triggers 'on')", `
 obj.on("grounded", () => {
 	obj.jump();
 });
@@ -360,16 +300,11 @@ obj.on("grounded", () => {
 // mainly for custom components defining custom events
 obj.trigger("grounded");
 			`),
-			f("get", [
-				a("tag", "tag"),
-			], null, "get a list of obj reference with a certain tag", `
+			f("get", "get a list of obj reference with a certain tag", `
 const enemies = get("enemy");
 const allObjs = get();
 			`),
-			f("every", [
-				a("tag", "tag"),
-				a("cb", "cb"),
-			], null, "run a callback on every obj with a certain tag", `
+			f("every", "run a callback on every obj with a certain tag", `
 // equivalent to destroyAll("enemy")
 every("enemy", (obj) => {
 	destroy(obj);
@@ -380,23 +315,15 @@ every((obj) => {
 	// ...
 });
 			`),
-			f("revery", [
-				a("tag", "tag"),
-				a("cb", "cb"),
-			], null, "like every but runs in reversed order"),
-			f("destroyAll", [
-				a("tag", "tag"),
-			], null, "destroy every obj with a certain tag", ``),
+			f("revery", "like every but runs in reversed order"),
+			f("destroyAll", "destroy every obj with a certain tag", ``),
 		],
 	},
 	{
 		name: "Components",
 		desc: "Built-in components. Each component gives the game object certain data / behaviors.",
 		entries: [
-			f("pos", [
-				a("x", "x"),
-				a("y", "y"),
-			], null, "object's position in the world", `
+			f("pos", "object's position in the world", `
 const obj = add([
 	pos(0, 50),
 ]);
@@ -407,10 +334,7 @@ console.log(obj.pos);
 // move an object by a speed (dt will be multiplied)
 obj.move(100, 100);
 			`),
-			f("scale", [
-				a("x", "x"),
-				a("y", "y"),
-			], null, "scale", `
+			f("scale", "scale", `
 const obj = add([
 	scale(2),
 ]);
@@ -418,9 +342,7 @@ const obj = add([
 // get the current scale in vec2
 console.log(obj.scale);
 			`),
-			f("rotate", [
-				a("angle", "angle"),
-			], null, "scale", `
+			f("rotate", "scale", `
 const obj = add([
 	rotate(2),
 ]);
@@ -429,12 +351,7 @@ obj.action(() => {
 	obj.angle += dt();
 });
 			`),
-			f("color", [
-				a("r", "red"),
-				a("g", "green"),
-				a("b", "blue"),
-				a("[a]", "opacity"),
-			], null, "color", `
+			f("color", "color", `
 const obj = add([
 	sprite("froggy"),
 	// give it a blue tint
@@ -443,10 +360,7 @@ const obj = add([
 
 obj.color = rgb(1, 0, 0); // make it red instead
 			`),
-			f("sprite", [
-				a("id", "sprite id"),
-				a("[conf]", "sprite config"),
-			], null, "draw sprite", `
+			f("sprite", "draw sprite", `
 // note: this automatically gives the obj an 'area()' component
 const obj = add([
 	// sprite is loaded by loadSprite("froggy", src)
@@ -482,11 +396,7 @@ obj.on("animEnd", (anim) => {
 // could change prite for anim if you don't use spritesheet
 obj.changeSprite("froggy_left");
 			`),
-			f("text", [
-				a("txt", "the text to draw"),
-				a("size", "the text to draw"),
-				a("[conf]", "text configs"),
-			], null, "draw text", `
+			f("text", "draw text", `
 // note: this automatically gives the obj an 'area()' component
 const obj = add([
 	// content, size
@@ -503,10 +413,7 @@ const obj = add([
 // update the content
 obj.text = "oh hi mark";
 			`),
-			f("rect", [
-				a("w", "width"),
-				a("h", "height"),
-			], null, "draw rectangle", `
+			f("rect", "draw rectangle", `
 // note: this automatically gives the obj an 'area()' component
 const obj = add([
 	// width, height
@@ -519,10 +426,7 @@ const obj = add([
 obj.width = 75;
 obj.height = 75;
 			`),
-			f("area", [
-				a("p1", "p1"),
-				a("p2", "p2"),
-			], null, "a rectangular area for collision checking", `
+			f("area", "a rectangular area for collision checking", `
 // 'area()' is given automatically by 'sprite()' and 'rect()', but you can override it
 const obj = add([
 	sprite("froggy"),
@@ -578,9 +482,7 @@ obj.hasPt();
 // for now this checks against all solid objs in the scene (this is costly now)
 obj.resolve();
 			`),
-			f("body", [
-				a("[conf]", "optional config")
-			], null, "component for falling / jumping", `
+			f("body", "component for falling / jumping", `
 const player = add([
 	pos(0, 0),
 	// now player will fall in this gravity world
@@ -609,8 +511,7 @@ player.on("grounded", () => {
 	console.log("horray!");
 });
 			`),
-			f("solid", [
-			], null, "mark the obj so other objects can't move past it if they have an area and resolve()", `
+			f("solid", "mark the obj so other objects can't move past it if they have an area and resolve()", `
 const obj = add([
 	sprite("wall"),
 	solid(),
@@ -621,9 +522,7 @@ player.action(() => {
 	player.resolve();
 });
 			`),
-			f("origin", [
-				a("orig", "origin pt"),
-			], null, "the origin to draw the object (default topleft)", `
+			f("origin", "the origin to draw the object (default topleft)", `
 const obj = add([
 	sprite("froggy"),
 
@@ -641,9 +540,7 @@ const obj = add([
 	origin(vec2(0, 0.25)), // custom
 ]);
 			`),
-			f("layer", [
-				a("name", "layer name"),
-			], null, "specify the layer to draw on", `
+			f("layer", "specify the layer to draw on", `
 layers([
 	"bg",
 	"game",
@@ -671,10 +568,7 @@ const score = add([
 		name: "Events",
 		desc: "kaboom uses tags to group objects and describe their behaviors, functions below all accepts the tag as first arguments, following a callback",
 		entries: [
-			f("action", [
-				a("tag", "tag selector"),
-				a("cb", "the callback"),
-			], null, "calls every frame for a certain tag", `
+			f("action", "calls every frame for a certain tag", `
 // every frame move objs with tag "bullet" up with speed of 100
 action("bullet", (b) => {
 	b.move(vec2(0, 100));
@@ -689,10 +583,7 @@ action(() => {
 	console.log("oh hi")
 });
 			`),
-			f("render", [
-				a("tag", "tag selector"),
-				a("cb", "the callback"),
-			], null, "calls every frame for a certain tag (after update)", `
+			f("render", "calls every frame for a certain tag (after update)", `
 // define custom drawing for objects with tag "weirdo"
 render("weirdo", (b) => {
 	drawSprite(...);
@@ -706,10 +597,7 @@ render(() => {
 	drawSprite(...);
 });
 			`),
-			f("collides", [
-				a("tag", "tag selector"),
-				a("cb", "the callback"),
-			], null, "calls when objects collides with others", `
+			f("collides", "calls when objects collides with others", `
 collides("enemy", "bullet", (e, b) => {
 	destroy(b);
 	e.life--;
@@ -720,10 +608,7 @@ collides("enemy", "bullet", (e, b) => {
 
 // NOTE: Objects on different won't collide! Collision handlers won't pick them up.
 			`),
-			f("overlaps", [
-				a("tag", "tag selector"),
-				a("cb", "the callback"),
-			], null, "calls when objects collides with others", `
+			f("overlaps", "calls when objects collides with others", `
 // similar to collides(), but doesn't pass if 2 objects are just touching each other (checks for distance < 0 instead of distance <= 0)
 overlaps("enemy", "bullet", (e, b) => {
 	destroy(b);
@@ -733,11 +618,7 @@ overlaps("enemy", "bullet", (e, b) => {
 	}
 });
 			`),
-			f("on", [
-				a("event", "event name"),
-				a("tag", "tag selector"),
-				a("cb", "the callback"),
-			], null, "add lifecycle events to a tag group", `
+			f("on", "add lifecycle events to a tag group", `
 // called when objs with tag "enemy" is added to scene
 on("add", "enemy", (e) => {
 	console.log("run!!");
@@ -764,67 +645,47 @@ on("destroy", "bullet", (e) => {
 		name: "Input",
 		desc: "input events",
 		entries: [
-			f("keyDown", [
-				a("key", "key"),
-				a("cb", "callback"),
-			], null, "runs every frame when specified key is being pressed", `
+			f("keyDown", "runs every frame when specified key is being pressed", `
 // trigger this every frame the user is holding the "up" key
 keyPress("up", () => {
 	player.move(0, -SPEED);
 });
 			`),
-			f("keyPress", [
-				a("key", "key"),
-				a("cb", "callback"),
-			], null, "runs once when specified key is just pressed", `
+			f("keyPress", "runs once when specified key is just pressed", `
 // only trigger once when the user presses
 keyPress("space", () => {
 	player.jump();
 });
 			`),
-			f("keyRelease", [
-				a("key", "key"),
-				a("cb", "callback"),
-			], null, "runs once when specified key is just released"),
-			f("charInput", [
-				a("cb", "callback"),
-			], null, "runs when user inputs text", `
+			f("keyRelease", "runs once when specified key is just released"),
+			f("charInput", "runs when user inputs text", `
 // similar to keyPress, but focused on text input
 charInput((ch) => {
 	input.text += ch;
 });
 			`),
-			f("mouseDown", [
-				a("cb", "callback"),
-			], null, "runs every frame when left mouse is being pressed"),
-			f("mouseClick", [
-				a("cb", "callback"),
-			], null, "runs once when left mouse is just clicked"),
-			f("mouseRelease", [
-				a("cb", "callback"),
-			], null, "runs once when left mouse is just released"),
+			f("mouseDown", "runs every frame when left mouse is being pressed"),
+			f("mouseClick", "runs once when left mouse is just clicked"),
+			f("mouseRelease", "runs once when left mouse is just released"),
 		],
 	},
 	{
 		name: "Query",
 		desc: "information about current window and input states",
 		entries: [
-			f("width", [], "width", "canvas width"),
-			f("height", [], "height", "canvas height"),
-			f("time", [], "time", "current game time"),
-			f("dt", [], "dt", "delta time since last frame"),
-			f("mousePos", [], "mousePos", "current mouse position"),
-			f("screenshot", [], "data url", "returns of a png base64 data url for a screenshot"),
+			f("width", "canvas width"),
+			f("height", "canvas height"),
+			f("time", "current game time"),
+			f("dt", "delta time since last frame"),
+			f("mousePos", "current mouse position"),
+			f("screenshot", "returns of a png base64 data url for a screenshot"),
 		],
 	},
 	{
 		name: "Timer",
 		desc: "timed events",
 		entries: [
-			f("wait", [
-				a("time", "wait time"),
-				a("cb", "callback"),
-			], null, "runs the callback after time seconds", `
+			f("wait", "runs the callback after time seconds", `
 wait(3, () => {
 	destroy(froggy);
 });
@@ -833,10 +694,7 @@ wait(3, () => {
 await wait(3);
 destroy(froggy);
 			`),
-			f("loop", [
-				a("time", "wait time"),
-				a("cb", "callback"),
-			], null, "runs the callback every time seconds", `
+			f("loop", "runs the callback every time seconds", `
 loop(0.5, () => {
 	console.log("just like setInterval");
 });
@@ -847,10 +705,7 @@ loop(0.5, () => {
 		name: "Audio",
 		desc: "yeah",
 		entries: [
-			f("play", [
-				a("id", "sound id"),
-				a("[conf]", "optional config"),
-			], null, "plays a sound", `
+			f("play", "plays a sound", `
 on("destroy", "enemy", (e) => {
 	play("explode", {
 		volume: 2.0,
@@ -877,19 +732,14 @@ music.speed(1.5);
 music.loop();
 music.unloop();
 			`),
-			f("volume", [
-				a("volume", "volume value"),
-			], null, "set the master volume"),
+			f("volume", "set the master volume"),
 		],
 	},
 	{
 		name: "Math",
 		desc: "math types & utils",
 		entries: [
-			f("vec2", [
-				a("x", "x"),
-				a("y", "y"),
-			], null, "creates a vector 2", `
+			f("vec2", "creates a vector 2", `
 vec2() // => { x: 0, y: 0 }
 vec2(1) // => { x: 1, y: 1 }
 vec2(10, 5) // => { x: 10, y: 5 }
@@ -908,12 +758,7 @@ p.unit(); // => vec2(0.43, 0.86)
 p.dot(vec2(2, 1)); // => vec2(10, 10)
 p.angle(); // => 1.1
 			`),
-			f("rgba", [
-				a("r", "red"),
-				a("g", "green"),
-				a("b", "blue"),
-				a("a", "alpha"),
-			], null, "creates a color from red, green, blue and alpha values (note: values are 0 - 1 not 0 - 255)", `
+			f("rgba", "creates a color from red, green, blue and alpha values (note: values are 0 - 1 not 0 - 255)", `
 const c = rgba(0, 0, 1, 1); // blue
 
 p.r // 0
@@ -923,59 +768,32 @@ p.a // 1
 
 c.clone(); // => rgba(0, 0, 1, 1)
 			`),
-			f("rgb", [
-				a("r", "red"),
-				a("g", "green"),
-				a("b", "blue"),
-			], null, "shorthand for rgba() with a = 1", ``),
-			f("rand", [
-				a("a", "a"),
-				a("b", "b"),
-			], null, "generate random value", `
+			f("rgb", "shorthand for rgba() with a = 1", ``),
+			f("rand", "generate random value", `
 rand() // 0.0 - 1.0
 rand(1, 4) // 1.0 - 4.0
 rand(vec2(0), vec2(100)) // => vec2(29, 73)
 rand(rgb(0, 0, 0.5), rgb(1, 1, 1)) // => rgba(0.3, 0.6, 0.9, 1)
 			`),
-			f("randSeed", [
-				a("seed", "seed"),
-			], null, "set seed for rand generator", `
+			f("randSeed", "set seed for rand generator", `
 randSeed(Date.now());
 			`),
-			f("makeRng", [
-				a("seed", "rng seed"),
-			], null, "create a seedable random number generator", `
+			f("makeRng", "create a seedable random number generator", `
 const rng = makeRng(Date.now());
 
 rng.gen(); // works the same as rand()
 			`),
-			f("choose", [
-				a("arr", "the list to choose from"),
-			], null, "get random element from array"),
-			f("chance", [
-				a("p", "probability"),
-			], null, "rand(0, 1) <= p"),
-			f("lerp", [
-				a("a", "a"),
-				a("b", "b"),
-				a("t", "t"),
-			], null, "linear interpolation"),
-			f("map", [
-				a("a", "a"),
-				a("b", "b"),
-				a("x", "x"),
-				a("y", "y"),
-				a("t", "t"),
-			], null, "map number to another range"),
+			f("choose", "get random element from array"),
+			f("chance", "rand(0, 1) <= p"),
+			f("lerp", "linear interpolation"),
+			f("map", "map number to another range"),
 		],
 	},
 	{
 		name: "Draw",
 		desc: "Raw immediate drawing functions (you prob won't need these)",
 		entries: [
-			f("render", [
-				a("cb", "callback"),
-			], null, "use a generic draw loop for custom drawing", `
+			f("render","use a generic draw loop for custom drawing", `
 scene("draw", () => {
 	render(() => {
 		drawSprite(...);
@@ -984,10 +802,7 @@ scene("draw", () => {
 	});
 });
 			`),
-			f("drawSprite", [
-				a("name", "position"),
-				a("[conf]", "conf"),
-			], null, "draw a sprite", `
+			f("drawSprite", "draw a sprite", `
 drawSprite("car", {
 	pos: vec2(100),
 	scale: 3,
@@ -995,29 +810,17 @@ drawSprite("car", {
 	frame: 0,
 });
 			`),
-			f("drawRect", [
-				a("pos", "position"),
-				a("w", "width"),
-				a("h", "height"),
-				a("[conf]", "conf"),
-			], null, "draw a rectangle", `
+			f("drawRect", "draw a rectangle", `
 drawRect(vec2(100), 20, 50);
 			`),
-			f("drawLine", [
-				a("p1", "p1"),
-				a("p2", "p2"),
-				a("[conf]", "conf"),
-			], null, "draw a rectangle", `
+			f("drawLine", "draw a rectangle", `
 drawLine(vec2(0), mousePos(), {
 	width: 2,
 	color: rgba(0, 0, 1, 1),
 	z: 0.5,
 });
 			`),
-			f("drawText", [
-				a("text", "text"),
-				a("[conf]", "conf"),
-			], null, "draw a rectangle", `
+			f("drawText", "draw a rectangle", `
 drawText("hi", {
 	size: 64,
 	pos: mousePos(),
@@ -1030,10 +833,7 @@ drawText("hi", {
 		name: "Level",
 		desc: "helpers on building tiled maps",
 		entries: [
-			f("addLevel", [
-				a("map", ""),
-				a("ref", ""),
-			], null, "takes a level drawing and turn them into game objects according to the ref map", `
+			f("addLevel", "takes a level drawing and turn them into game objects according to the ref map", `
 const characters = {
 	"a": {
 		sprite: "ch1",
@@ -1112,7 +912,7 @@ action("block", (b) => {
 		name: "Debug",
 		desc: "debug utilities",
 		entries: [
-			f("debug", [], null, "debug flags / actions", `
+			f("debug", "debug flags / actions", `
 // pause the game (events are still been listened)
 debug.paused = true;
 

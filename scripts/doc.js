@@ -53,9 +53,10 @@ const doc = {
 };
 
 stmts.filter((stmt) => {
-	return stmt.modifiers && stmt.modifiers.some((mod) => {
-		return mod.kind === "ExportKeyword";
-	});
+	return true;
+// 	return stmt.modifiers && stmt.modifiers.some((mod) => {
+// 		return mod.kind === "ExportKeyword";
+// 	});
 }).forEach((stmt) => {
 	switch (stmt.kind) {
 		case "TypeAliasDeclaration":

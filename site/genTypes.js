@@ -38,9 +38,7 @@ function renderTypeSig(type) {
 	})();
 
 	if (type.typeArguments) {
-		return tname + `<${type.typeArguments.map((arg, idx) => {
-			return renderTypeSig(arg) + (idx === type.typeArguments.length - 1 ? "" : ", ");
-		})}>`;
+		return tname + `&lt;${type.typeArguments.map(renderTypeSig).join(", ")}&gt;`;
 	}
 
 	return tname;
@@ -71,17 +69,38 @@ function renderTypeAlias(type) {
 			return `${type.name} {${t("br")}${typeLiteralEntries(type.type.members).map((entry) => "&nbsp;".repeat(8) + entry).join(t("br"))}${t("br")}}`;
 		case "TypeReference":
 		case "UnionType":
+		case "FunctionType":
 			return `${type.name} = ${renderTypeSig(type.type)}`;
 	}
 }
 
-function genDoc() {
-// 	return renderNamedFunc(types.funcs["kaboom"]);
-	return Object.entries(types.types).map(([k, v]) => {
-		return t("div", { id: k, }, renderTypeAlias(v));
-	}).join("");
+function genTypes() {
+
+	const sigs = {};
+
+	sigs["kaboom"] = renderNamedFunc(types.funcs["kaboom"]);
+
+	const ctxEntries = types.types["KaboomCtx"].type.members;
+
+	typeLiteralEntries(ctxEntries).forEach((entry, idx) => {
+		sigs[ctxEntries[idx].name] = entry;
+	});
+
+// 	const entries = types.types["KaboomCtx"].type.members;
+
+// 	const b = typeLiteralEntries(entries).map((entry, idx) => {
+// 		return t("div", { id: entries[idx].name, }, entry);
+// 	}).join("");
+
+// 	const c = Object.entries(types.types).map(([k, v]) => {
+// 		if (k === "KaboomCtx") {
+// 			return "";
+// 		}
+// 		return t("div", { id: k, }, renderTypeAlias(v));
+// 	}).join("");
+
+	return sigs;
+
 }
 
-console.log(genDoc());
-
-module.exports = genDoc;
+module.exports = genTypes;
