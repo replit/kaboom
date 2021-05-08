@@ -141,16 +141,24 @@ function isMat4(m: any): Mat4 {
 	}
 }
 
-function rgb(r: number, g: number, b: number): Color {
-	return rgba(r, g, b, 1);
+function rgb(...args): Color {
+	if (args.length === 0) {
+		return rgba();
+	}
+	if (isColor(args[0]) && args.length === 1) {
+		return rgba(args[0]);
+	}
+	return rgba(args[0], args[1], args[2], 1);
 }
 
 function rgba(...args): Color {
 
-	args = [...args];
-
 	if (args.length === 0) {
 		return rgba(1, 1, 1, 1);
+	}
+
+	if (isColor(args[0]) && args.length === 1) {
+		return rgba(args[0].r, args[0].g, args[0].b, args[0].a);
 	}
 
 	return {

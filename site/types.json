@@ -1254,6 +1254,15 @@
                     },
                     {
                         "kind": "MethodSignature",
+                        "name": "color",
+                        "parameters": [],
+                        "type": {
+                            "kind": "TypeReference",
+                            "typeName": "ColorComp"
+                        }
+                    },
+                    {
+                        "kind": "MethodSignature",
                         "name": "origin",
                         "parameters": [
                             {

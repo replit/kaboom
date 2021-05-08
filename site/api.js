@@ -8,13 +8,6 @@ function f(name, desc, example) {
 	};
 }
 
-function a(name, desc) {
-	return {
-		name,
-		desc,
-	};
-}
-
 const api = [
 	{
 		name: "Lifecycle",
@@ -323,9 +316,11 @@ every((obj) => {
 		name: "Components",
 		desc: "Built-in components. Each component gives the game object certain data / behaviors.",
 		entries: [
-			f("pos", "object's position in the world", `
+			f("pos", "object's position", `
 const obj = add([
 	pos(0, 50),
+	// also accepts Vec2
+	// pos(vec2(0, 50)),
 ]);
 
 // get the current position in vec2
@@ -337,12 +332,14 @@ obj.move(100, 100);
 			f("scale", "scale", `
 const obj = add([
 	scale(2),
+	// also accepts Vec2
+	// scale(vec2(2, 2)),
 ]);
 
 // get the current scale in vec2
 console.log(obj.scale);
 			`),
-			f("rotate", "scale", `
+			f("rotate", "rotate", `
 const obj = add([
 	rotate(2),
 ]);
@@ -356,11 +353,13 @@ const obj = add([
 	sprite("froggy"),
 	// give it a blue tint
 	color(0, 0, 1),
+	// also accepts Color
+	// color(rgba(0, 0, 1, 0.5))
 ]);
 
 obj.color = rgb(1, 0, 0); // make it red instead
 			`),
-			f("sprite", "draw sprite", `
+			f("sprite", "sprite rendering component", `
 // note: this automatically gives the obj an 'area()' component
 const obj = add([
 	// sprite is loaded by loadSprite("froggy", src)
@@ -396,7 +395,7 @@ obj.on("animEnd", (anim) => {
 // could change prite for anim if you don't use spritesheet
 obj.changeSprite("froggy_left");
 			`),
-			f("text", "draw text", `
+			f("text", "text rendering component", `
 // note: this automatically gives the obj an 'area()' component
 const obj = add([
 	// content, size
@@ -413,7 +412,7 @@ const obj = add([
 // update the content
 obj.text = "oh hi mark";
 			`),
-			f("rect", "draw rectangle", `
+			f("rect", "rect rendering component", `
 // note: this automatically gives the obj an 'area()' component
 const obj = add([
 	// width, height
@@ -677,7 +676,13 @@ charInput((ch) => {
 			f("height", "canvas height"),
 			f("time", "current game time"),
 			f("dt", "delta time since last frame"),
-			f("mousePos", "current mouse position"),
+			f("mousePos", "get mouse position of a layer", `
+// by default it returns the mouse position of the default layer, if that layer is not camIgnore()-ed, it'll return the mouse position processed by the camera transform
+const mpos = mousePos();
+
+// if you pass in a layer that's camIgnore()-ed or the default layer is camIgnore()-ed, it'll return the mouse position unaffected by the camera
+const mpos = mousePos("ui");
+			`),
 			f("screenshot", "returns of a png base64 data url for a screenshot"),
 		],
 	},

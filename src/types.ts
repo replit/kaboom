@@ -87,6 +87,7 @@ type KaboomCtx = {
 	rotate(a: number): RotateComp,
 	color(r: number, g: number, b: number, a?: number): ColorComp,
 	color(c: Color): ColorComp,
+	color(): ColorComp,
 	origin(o: Origin | Vec2): OriginComp,
 	layer(l: string): LayerComp,
 	area(p1: Vec2, p2: Vec2): AreaComp,
