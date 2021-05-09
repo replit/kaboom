@@ -12,6 +12,7 @@ import {
 	clamp,
 	lerp,
 	map,
+	mapc,
 	wave,
 	colRectRect,
 	overlapRectRect,
@@ -74,6 +75,7 @@ const app = appInit({
 const gfx = gfxInit(app.gl, {
 	clearColor: rgba(gconf.clearColor ?? [0, 0, 0, 1]),
 	scale: gconf.scale,
+	texFilter: gconf.texFilter,
 });
 
 const audio = audioInit();
@@ -1991,6 +1993,7 @@ const ctx: KaboomCtx = {
 	chance,
 	lerp,
 	map,
+	mapc,
 	wave,
 	deg2rad,
 	rad2deg,

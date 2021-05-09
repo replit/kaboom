@@ -32,6 +32,16 @@ function map(
 	return l2 + (v - l1) / (h1 - l1) * (h2 - l2);
 }
 
+function mapc(
+	v: number,
+	l1: number,
+	h1: number,
+	l2: number,
+	h2: number,
+): number {
+	return clamp(map(v, l1, h1, l2, h2), l2, h2);
+}
+
 function vec2(...args): Vec2 {
 
 	if (args.length === 0) {
@@ -535,6 +545,7 @@ export {
 	clamp,
 	lerp,
 	map,
+	mapc,
 	wave,
 	deg2rad,
 	rad2deg,

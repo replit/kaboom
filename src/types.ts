@@ -141,6 +141,13 @@ type KaboomCtx = {
 		l2: number,
 		h2: number,
 	): number,
+	mapc(
+		v: number,
+		l1: number,
+		h1: number,
+		l2: number,
+		h2: number,
+	): number,
 	wave(lo: number, hi: number, t: number): number,
 	deg2rad(degrees: number): number,
 	rad2deg(degrees: number): number,
@@ -168,6 +175,7 @@ type KaboomConf = {
 	root?: HTMLElement,
 	clearColor?: number[],
 	inspectColor?: number[],
+	texFilter: TexFilter,
 	logMax?: number,
 	connect?: string,
 	global?: boolean,
@@ -388,6 +396,8 @@ type Vertex = {
 	color: Color,
 };
 
+type TexFilter = "nearest" | "linear";
+
 type GfxCtx = {
 	vbuf: WebGLBuffer,
 	ibuf: WebGLBuffer,
@@ -503,6 +513,7 @@ type Origin =
 type GfxConf = {
 	clearColor?: Color,
 	scale?: number,
+	texFilter?: TexFilter,
 };
 
 type Gfx = {

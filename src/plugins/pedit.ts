@@ -7,6 +7,7 @@ module.exports = (k: KaboomCtx) => {
 function loadImg(src: string): Promise<HTMLImageElement> {
 	const img = new Image();
 	img.src = src;
+	img.crossOrigin = "anonymous";
 	return new Promise<HTMLImageElement>((resolve, reject) => {
 		img.onload = () => {
 			resolve(img);

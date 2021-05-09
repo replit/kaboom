@@ -235,18 +235,6 @@ console.log(player.pos);
 // provided by 'body()'
 player.jump(320); // make player jump
 			`),
-			f("destroy", "remove a game object from scene", `
-collides("bullet", "killable", (b, k) => {
-	// remove both the bullet and the thing bullet hit with tag "killable" from scene
-	destroy(b);
-	destroy(k);
-	score++;
-});
-			`),
-			f("readd", "re-add an object to the scene", `
-// remove and add froggy to the scene without triggering events tied to "add" or "destroy", so it'll be drawn on the top of the layer it belongs to
-readd(froggy);
-			`),
 			f("obj.action", "update the object, the callback is run every frame", `
 player.action(() => {
 	player.move(SPEED, 0);
@@ -293,6 +281,14 @@ obj.on("grounded", () => {
 // mainly for custom components defining custom events
 obj.trigger("grounded");
 			`),
+			f("destroy", "remove a game object from scene", `
+collides("bullet", "killable", (b, k) => {
+	// remove both the bullet and the thing bullet hit with tag "killable" from scene
+	destroy(b);
+	destroy(k);
+	score++;
+});
+			`),
 			f("get", "get a list of obj reference with a certain tag", `
 const enemies = get("enemy");
 const allObjs = get();
@@ -309,7 +305,13 @@ every((obj) => {
 });
 			`),
 			f("revery", "like every but runs in reversed order"),
-			f("destroyAll", "destroy every obj with a certain tag", ``),
+			f("destroyAll", "destroy every obj with a certain tag", `
+destroyAll("enemy");
+			`),
+			f("readd", "re-add an object to the scene", `
+// remove and add froggy to the scene without triggering events tied to "add" or "destroy", so it'll be drawn on the top of the layer it belongs to
+readd(froggy);
+			`),
 		],
 	},
 	{
