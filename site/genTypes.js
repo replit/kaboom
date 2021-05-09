@@ -6,7 +6,9 @@ function renderParams(params) {
 	return params.map((p) => {
 		return p.name
 			+ (p.questionToken ? "?" : "")
-			+ ": " + (p.dotDotDotToken ? "..." : renderTypeSig(p.type))
+			+ ": " + (p.dotDotDotToken ? "..." : t("span", {
+				style: "color: #999999",
+			}, renderTypeSig(p.type)))
 			;
 	}).join(", ");
 }
@@ -32,6 +34,7 @@ function renderTypeSig(type) {
 			case "FunctionType": return `(${renderParams(type.parameters)}) => ${renderTypeSig(type.type)}`;
 			case "TypeReference": return typeExists(type.typeName) ? t("a", {
 				href: `#${type.typeName}`,
+				style: "color: #999999",
 			}, type.typeName) : type.typeName;
 			default: return "";
 		}
@@ -46,7 +49,9 @@ function renderTypeSig(type) {
 }
 
 function renderNamedFunc(type) {
-	return `${type.name}(${renderParams(type.parameters)}): ${renderTypeSig(type.type)}`;
+	return `${type.name}(${renderParams(type.parameters)})${t("span", {
+		style: "color: #999999",
+	}, ": " + renderTypeSig(type.type))}`;
 }
 
 function typeLiteralEntries(members) {
