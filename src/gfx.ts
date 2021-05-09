@@ -17,6 +17,7 @@ import {
 const DEF_ORIGIN = "topleft";
 const STRIDE = 9;
 const QUEUE_COUNT = 65536;
+const BG_GRID_SIZE = 64;
 
 const VERT_TEMPLATE = `
 attribute vec3 a_pos;
@@ -130,6 +131,15 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 		gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, QUEUE_COUNT * 2, gl.DYNAMIC_DRAW);
 		gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
 
+		const bgTex = makeTex(
+			new ImageData(new Uint8ClampedArray([
+				128, 128, 128, 255,
+				190, 190, 190, 255,
+				190, 190, 190, 255,
+				128, 128, 128, 255,
+			]), 2, 2)
+		);
+
 		return {
 			drawCalls: 0,
 			lastDrawCalls: 0,
@@ -145,9 +155,14 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 			transform: mat4(),
 			transformStack: [],
 			clearColor: c,
+			bgTex: bgTex,
 		};
 
 	})();
+
+	function powerOfTwo(n) {
+		return (Math.log(n) / Math.log(2)) % 1 === 0;
+	}
 
 	function makeTex(data: GfxTextureData): GfxTexture {
 
@@ -157,8 +172,17 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 		gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, data);
 		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, texFilter);
 		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, texFilter);
-		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+
+		const wrap = (() => {
+			if (powerOfTwo(data.width) && powerOfTwo(data.height)) {
+				return gl.REPEAT;
+			} else {
+				return gl.CLAMP_TO_EDGE;
+			}
+		})();
+
+		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, wrap);
+		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, wrap);
 		gl.bindTexture(gl.TEXTURE_2D, null);
 
 		return {
@@ -373,10 +397,27 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 	}
 
 	function frameStart() {
+
 		gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+//  		if (!gconf.clearColor) {
+//  			drawQuad({
+//  				width: width(),
+//  				height: height(),
+//  				quad: quad(
+//  					0,
+//  					0,
+//  					width() * scale() / BG_GRID_SIZE,
+//  					height() * scale() / BG_GRID_SIZE,
+//  				),
+//  				tex: gfx.bgTex,
+//  			})
+//  		}
+
 		gfx.drawCalls = 0;
 		gfx.transformStack = [];
 		gfx.transform = mat4();
+
 	}
 
 	function frameEnd() {
@@ -607,7 +648,7 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 
 		// whole text offset
 		const fchars = [];
-		const pos = vec2(conf.pos);
+		const pos = vec2(conf.pos || 0);
 		const offset = originPt(conf.origin || DEF_ORIGIN).scale(0.5);
 		// this math is complicated i forgot how it works instantly
 		const ox = -offset.x * cw - (offset.x + 0.5) * (tw - cw);

@@ -1,7 +1,6 @@
 kaboom({
 	global: true,
 	fullscreen: true,
-	scale: 2,
 	debug: true,
 	plugins: [ peditPlugin, ],
 });
@@ -13,6 +12,7 @@ scene("main", () => {
 
 	const spr = add([
 		sprite("test"),
+		scale(12),
 	]);
 
 	for (let i = 0; i < spr.numFrames(); i++) {

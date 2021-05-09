@@ -408,6 +408,7 @@ type GfxCtx = {
 	curProg: GfxProgram,
 	defTex: GfxTexture,
 	curTex: GfxTexture,
+	bgTex: GfxTexture,
 	curUniform: Uniform,
 	transform: Mat4,
 	transformStack: Mat4[],

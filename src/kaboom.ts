@@ -73,7 +73,7 @@ const app = appInit({
 });
 
 const gfx = gfxInit(app.gl, {
-	clearColor: rgba(gconf.clearColor ?? [0, 0, 0, 1]),
+	clearColor: gconf.clearColor ? rgba(gconf.clearColor) : undefined,
 	scale: gconf.scale,
 	texFilter: gconf.texFilter,
 });
@@ -1575,7 +1575,6 @@ function sprite(id: string, conf: SpriteCompConf = {}): SpriteComp {
 
 }
 
-// TODO: add area
 function text(t: string, size: number, conf: TextCompConf = {}): TextComp {
 
 	return {
@@ -1709,6 +1708,7 @@ function body(conf: BodyCompConf = {}): BodyComp {
 					justOff = true;
 				} else {
 					if (lastPlatformPos) {
+						// sticky platform
 						this.pos = this.pos.add(curPlatform.pos.sub(lastPlatformPos));
 						lastPlatformPos = curPlatform.pos.clone();
 					}
