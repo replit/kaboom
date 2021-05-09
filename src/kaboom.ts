@@ -1790,7 +1790,7 @@ const debug: Debug = {
 function addLevel(map: string[], conf: LevelConf): Level {
 
 	const pool: GameObj[] = [];
-	const offset = vec2(conf.pos);
+	const offset = vec2(conf.pos || 0);
 	let longRow = 0;
 
 	const level = {
