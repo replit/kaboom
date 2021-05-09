@@ -18,6 +18,7 @@ for (let i = 0; i < 4; i++) {
 		clearColor: clearColors[i],
 		width: 320,
 		height: 320,
+		debug: true,
 		connect: "ws://localhost:7000",
 	});
 
@@ -58,7 +59,7 @@ for (let i = 0; i < 4; i++) {
 
 		k.recv("UPDATE_PLAYER", (data, id) => {
 			if (players[id]) {
-				players[id].pos = data.pos;
+				players[id].pos = k.vec2(data.pos);
 			}
 		});
 

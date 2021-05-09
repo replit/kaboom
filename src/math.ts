@@ -1,9 +1,9 @@
-function deg2rad(degrees: number): number {
-	return degrees * Math.PI / 180;
+function deg2rad(deg: number): number {
+	return deg * Math.PI / 180;
 }
 
-function rad2deg(radians: number): number {
-	return radians * 180 / Math.PI;
+function rad2deg(rad: number): number {
+	return rad * 180 / Math.PI;
 }
 
 function clamp(
@@ -32,15 +32,25 @@ function map(
 	return l2 + (v - l1) / (h1 - l1) * (h2 - l2);
 }
 
-function vec2(x?: any, y?: any): Vec2 {
+function vec2(...args): Vec2 {
 
-	if (isVec2(x) && y === undefined) {
-		return vec2(x.x, x.y);
+	if (args.length === 0) {
+		return vec2(0, 0);
+	}
+
+	if (args.length === 1) {
+		if (typeof args[0] === "number") {
+			return vec2(args[0], args[0]);
+		} else if (isVec2(args[0])) {
+			return vec2(args[0].x, args[0].y);
+		} else if (Array.isArray(args[0]) && args[0].length === 2) {
+			return vec2.apply(null, args[0]);
+		}
 	}
 
 	return {
-		x: x ?? 0,
-		y: y ?? (x ?? 0),
+		x: args[0],
+		y: args[1],
 		clone() {
 			return vec2(this.x, this.y);
 		},
@@ -91,7 +101,6 @@ function vec2(x?: any, y?: any): Vec2 {
 	};
 }
 
-// TODO: terrible name
 function vec2FromAngle(a: number): Vec2 {
 	return vec2(Math.cos(a), Math.sin(a));
 }
@@ -144,9 +153,12 @@ function isMat4(m: any): Mat4 {
 function rgb(...args): Color {
 	if (args.length === 0) {
 		return rgba();
-	}
-	if (isColor(args[0]) && args.length === 1) {
-		return rgba(args[0]);
+	} else if (args.length === 1) {
+		if (isColor(args[0])) {
+			return rgba(args[0]);
+		} else if (Array.isArray(args[0]) && args[0].length === 3) {
+			return rgb.apply(null, args[0])
+		}
 	}
 	return rgba(args[0], args[1], args[2], 1);
 }
@@ -155,10 +167,12 @@ function rgba(...args): Color {
 
 	if (args.length === 0) {
 		return rgba(1, 1, 1, 1);
-	}
-
-	if (isColor(args[0]) && args.length === 1) {
-		return rgba(args[0].r, args[0].g, args[0].b, args[0].a);
+	} else if (args.length === 1) {
+		if (isColor(args[0])) {
+			return rgba(args[0].r, args[0].g, args[0].b, args[0].a);
+		} else if (Array.isArray(args[0]) && args[0].length === 4) {
+			return rgba.apply(null, args[0]);
+		}
 	}
 
 	return {

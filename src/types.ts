@@ -142,6 +142,8 @@ type KaboomCtx = {
 		h2: number,
 	): number,
 	wave(lo: number, hi: number, t: number): number,
+	deg2rad(degrees: number): number,
+	rad2deg(degrees: number): number,
 	// draw
 	drawSprite(id: string | SpriteData, conf?: DrawSpriteConf): void,
 	// TODO: conf type
@@ -165,6 +167,7 @@ type KaboomConf = {
 	canvas?: HTMLCanvasElement,
 	root?: HTMLElement,
 	clearColor?: number[],
+	inspectColor?: number[],
 	logMax?: number,
 	connect?: string,
 	global?: boolean,
@@ -221,32 +224,32 @@ type AssetsConf = {
 };
 
 type Assets = {
-	loadRoot: (path: string) => string,
-	loadSprite: (
+	loadRoot(path: string): string,
+	loadSprite(
 		name: string,
 		src: SpriteLoadSrc,
 		conf?: SpriteLoadConf,
-	) => Promise<SpriteData>,
-	loadSound: (
+	): Promise<SpriteData>,
+	loadSound(
 		name: string,
 		src: string,
-	) => Promise<SoundData>,
-	loadFont: (
+	): Promise<SoundData>,
+	loadFont(
 		name: string,
 		src: string,
 		gw: number,
 		gh: number,
 		chars?: string,
-	) => Promise<FontData>,
-	loadShader: (
+	): Promise<FontData>,
+	loadShader(
 		name: string,
 		vert?: string,
 		frag?: string,
 		isUrl?: boolean,
-	) => Promise<ShaderData>,
-	loadProgress: () => number,
-	addLoader: <T>(prom: Promise<T>) => void,
-	defFont: () => FontData,
+	): Promise<ShaderData>,
+	loadProgress(): number,
+	addLoader<T>(prom: Promise<T>): void,
+	defFont(): FontData,
 	sprites: Record<string, SpriteData>,
 	fonts: Record<string, FontData>,
 	sounds: Record<string, SoundData>,
@@ -299,21 +302,21 @@ type AppCtx = {
 
 type App = {
 	gl: WebGLRenderingContext,
-	mousePos: () => Vec2,
-	keyDown: (k: string) => boolean,
-	keyPressed: (k: string) => boolean,
-	keyPressedRep: (k: string) => boolean,
-	keyReleased: (k: string) => boolean,
-	mouseDown: () => boolean,
-	mouseClicked: () => boolean,
-	mouseReleased: () => boolean,
-	charInputted: () => string[],
-	cursor: (c: string) => void,
-	dt: () => number,
-	time: () => number,
-	screenshot: () => string,
-	run: (f: () => void) => void,
-	quit: () => void,
+	mousePos(): Vec2,
+	keyDown(k: string): boolean,
+	keyPressed(k: string): boolean,
+	keyPressedRep(k: string): boolean,
+	keyReleased(k: string): boolean,
+	mouseDown(): boolean,
+	mouseClicked(): boolean,
+	mouseReleased(): boolean,
+	charInputted(): string[],
+	cursor(c: string): void,
+	dt(): number,
+	time(): number,
+	screenshot(): string,
+	run(f: () => void): void,
+	quit(): void,
 };
 
 type AudioPlayConf = {
@@ -326,17 +329,17 @@ type AudioPlayConf = {
 
 type AudioPlay = {
 	play: (seek?: number) => void,
-	stop: () => void,
-	pause: () => void,
-	paused: () => boolean,
-	stopped: () => boolean,
+	stop(): void,
+	pause(): void,
+	paused(): boolean,
+	stopped(): boolean,
 	speed: (s?: number) => number,
 	detune: (d?: number) => number,
 	volume: (v?: number) => number,
-	time: () => number,
-	duration: () => number,
-	loop: () => void,
-	unloop: () => void,
+	time(): number,
+	duration(): number,
+	loop(): void,
+	unloop(): void,
 };
 
 type AudioCtx = {
@@ -346,23 +349,23 @@ type AudioCtx = {
 };
 
 type Audio = {
-	ctx: () => AudioContext,
+	ctx(): AudioContext,
 	volume: (v: number) => number,
 	play: (sound: AudioBuffer, conf?: AudioPlayConf) => AudioPlay,
 };
 
 type GfxProgram = {
-	bind: () => void,
-	unbind: () => void,
-	bindAttribs: () => void,
+	bind(): void,
+	unbind(): void,
+	bindAttribs(): void,
 	send: (uniform: Uniform) => void,
 }
 
 type GfxTexture = {
 	width: number,
 	height: number,
-	bind: () => void,
-	unbind: () => void,
+	bind(): void,
+	unbind(): void,
 };
 
 type GfxTextureData =
@@ -503,10 +506,10 @@ type GfxConf = {
 };
 
 type Gfx = {
-	width: () => number,
-	height: () => number,
-	scale: () => number,
-	clearColor: () => Color,
+	width(): number,
+	height(): number,
+	scale(): number,
+	clearColor(): Color,
 	makeTex: (data: GfxTextureData) => GfxTexture,
 	makeProgram: (vert: string, frag: string) => GfxProgram,
 	makeFont: (
@@ -547,12 +550,12 @@ type Gfx = {
 		p2: Vec2,
 		conf?: DrawLineConf,
 	) => void,
-	frameStart: () => void,
-	frameEnd: () => void,
-	pushTransform: () => void,
-	popTransform: () => void,
+	frameStart(): void,
+	frameEnd(): void,
+	pushTransform(): void,
+	popTransform(): void,
 	pushMatrix: (m: Mat4) => void,
-	drawCalls: () => number,
+	drawCalls(): number,
 };
 
 type KaboomPlugin = (k: KaboomCtx) => Record<string, any>;
@@ -573,26 +576,26 @@ type DrawSpriteConf = {
 type Vec2 = {
 	x: number,
 	y: number,
-	clone: () => Vec2,
+	clone(): Vec2,
 	add: (p: Vec2) => Vec2,
 	sub: (p: Vec2) => Vec2,
 	scale: (s: number) => Vec2,
 	dot: (p: Vec2) => Vec2,
 	dist: (p: Vec2) => number,
-	len: () => number,
-	unit: () => Vec2,
-	normal: () => Vec2,
+	len(): number,
+	unit(): Vec2,
+	normal(): Vec2,
 	angle: (p: Vec2) => number,
 	lerp: (p: Vec2, t: number) => Vec2,
 	eq: (p: Vec2) => boolean,
-	str: () => string,
+	str(): string,
 };
 
 type Vec3 = {
 	x: number,
 	y: number,
 	z: number,
-	xy: () => Vec2,
+	xy(): Vec2,
 };
 
 type Vec4 = {
@@ -604,7 +607,7 @@ type Vec4 = {
 
 type Mat4 = {
 	m: number[],
-	clone: () => Mat4,
+	clone(): Mat4,
 	mult: (m: Mat4) => Mat4,
 	multVec4: (m: Vec4) => Vec4,
 	multVec3: (m: Vec3) => Vec3,
@@ -614,7 +617,7 @@ type Mat4 = {
 	rotateX: (a: number) => Mat4,
 	rotateY: (a: number) => Mat4,
 	rotateZ: (a: number) => Mat4,
-	invert: () => Mat4,
+	invert(): Mat4,
 };
 
 type Color = {
@@ -622,10 +625,10 @@ type Color = {
 	g: number,
 	b: number,
 	a: number,
-	clone: () => Color,
+	clone(): Color,
 	lighten: (n: number) => Color,
 	darken: (n: number) => Color,
-	invert: () => Color,
+	invert(): Color,
 	isDark: (p?: number) => boolean,
 	isLight: (p?: number) => boolean,
 	eq: (c: Color) => boolean,
@@ -636,7 +639,7 @@ type Quad = {
 	y: number,
 	w: number,
 	h: number,
-	clone: () => Quad,
+	clone(): Quad,
 	eq: (q: Quad) => boolean,
 };
 
@@ -649,7 +652,7 @@ type RNGValue =
 
 type RNG = {
 	seed: number,
-	gen: (a?: RNGValue, b?: RNGValue) => RNGValue,
+	gen(a?: RNGValue, b?: RNGValue): RNGValue,
 };
 
 type Rect = {
@@ -663,11 +666,11 @@ type Line = {
 };
 
 type Net = {
-	connect: () => Promise<WebSocket>,
-	close: () => void,
-	connected: () => boolean,
-	recv: (type: string, handler: MsgHandler) => void,
-	send: (type: string, data: any) => void,
+	connect(): Promise<WebSocket>,
+	close(): void,
+	connected(): boolean,
+	recv(type: string, handler: MsgHandler): void,
+	send(type: string, data: any): void,
 };
 
 type MsgHandler = (data: any, id: number) => void;
@@ -682,10 +685,10 @@ type LoggerConf = {
 };
 
 type Logger = {
-	draw: () => void,
-	info: (msg: string) => void,
-	error: (msg: string) => void,
-	clear: () => void,
+	draw(): void,
+	info(msg: string): void,
+	error(msg: string): void,
+	clear(): void,
 };
 
 type Comp = any;
@@ -704,7 +707,7 @@ type SceneSwitch = {
 
 type Timer = {
 	time: number,
-	cb: () => void,
+	cb(): void,
 };
 
 type Camera = {
@@ -724,11 +727,11 @@ type TaggedEvent = {
 
 type KeyInputEvent = {
 	key: string,
-	cb: () => void,
+	cb(): void,
 };
 
 type MouseInputEvent = {
-	cb: () => void,
+	cb(): void,
 };
 
 type CharInputEvent = {
@@ -776,14 +779,15 @@ type PosCompInspect = {
 
 type PosComp = {
 	pos: Vec2,
-	move: (...args: any[]) => void,
-	inspect: () => PosCompInspect,
+	move(x: number, y: number): void,
+	move(p: Vec2): void,
+	inspect(): PosCompInspect,
 };
 
 type ScaleComp = {
 	scale: Vec2,
-	flipX: (s: number) => void,
-	flipY: (s: number) => void,
+	flipX(s: number): void,
+	flipY(s: number): void,
 };
 
 type RotateComp = {
@@ -804,7 +808,7 @@ type LayerCompInspect = {
 
 type LayerComp = {
 	layer: string,
-	inspect: () => LayerCompInspect,
+	inspect(): LayerCompInspect,
 };
 
 type RectSide =
@@ -821,21 +825,21 @@ type CollisionResolve = {
 
 type AreaComp = {
 	area: Rect,
-	areaWidth: () => number,
-	areaHeight: () => number,
-	isClicked: () => boolean,
-	isHovered: () => boolean,
-	isCollided: (o: GameObj) => boolean,
-	isOverlapped: (o: GameObj) => boolean,
-	clicks: (f: () => void) => void,
-	hovers: (f: () => void) => void,
-	collides: (tag: string, f: (o: GameObj) => void) => void,
-	overlaps: (tag: string, f: (o: GameObj) => void) => void,
-	hasPt: (p: Vec2) => boolean,
-	resolve: () => void,
-	_worldArea: () => Rect;
-	_checkCollisions: (tag: string, f: (obj: GameObj) => void) => void;
-	_checkOverlaps: (tag: string, f: (obj: GameObj) => void) => void;
+	areaWidth(): number,
+	areaHeight(): number,
+	isClicked(): boolean,
+	isHovered(): boolean,
+	isCollided(o: GameObj): boolean,
+	isOverlapped(o: GameObj): boolean,
+	clicks(f: () => void): void,
+	hovers(f: () => void): void,
+	collides(tag: string, f: (o: GameObj) => void): void,
+	overlaps(tag: string, f: (o: GameObj) => void): void,
+	hasPt(p: Vec2): boolean,
+	resolve(): void,
+	_worldArea(): Rect;
+	_checkCollisions(tag: string, f: (obj: GameObj) => void): void;
+	_checkOverlaps(tag: string, f: (obj: GameObj) => void): void;
 };
 
 type SpriteCompConf = {
@@ -860,12 +864,12 @@ type SpriteComp = {
 	animSpeed: number,
 	frame: number,
 	quad: Quad,
-	play: (anim: string, loop?: boolean) => void,
-	stop: () => void,
-	changeSprite: (id: string) => void,
-	numFrames: () => number,
-	curAnim: () => string,
-	inspect: () => SpriteCompInspect,
+	play(anim: string, loop?: boolean): void,
+	stop(): void,
+	changeSprite(id: string): void,
+	numFrames(): number,
+	curAnim(): string,
+	inspect(): SpriteCompInspect,
 };
 
 type SpriteCompInspect = {
@@ -903,17 +907,17 @@ type LevelConf = {
 	width: number,
 	height: number,
 	pos?: Vec2,
-	any: (s: string) => void,
+	any(s: string): Comp[] | undefined,
 	[sym: string]: any,
 //  	[sym: string]: Comp[] | (() => Comp[]),
 };
 
 type Level = {
-	getPos: (p: Vec2) => Vec2,
-	spawn: (sym: string, p: Vec2) => GameObj,
-	width: () => number,
-	height: () => number,
-	destroy: () => void,
+	getPos(p: Vec2): Vec2,
+	spawn(sym: string, p: Vec2): GameObj,
+	width(): number,
+	height(): number,
+	destroy(): void,
 };
 
 type Debug = {
@@ -921,13 +925,13 @@ type Debug = {
 	inspect: boolean,
 	timeScale: number,
 	showLog: boolean,
-	fps: () => number,
-	objCount: () => number,
-	drawCalls: () => number,
-	stepFrame: () => void,
-	clearLog: () => void,
-	log: (msg: string) => void,
-	error: (msg: string) => void,
+	fps(): number,
+	objCount(): number,
+	drawCalls(): number,
+	stepFrame(): void,
+	clearLog(): void,
+	log(msg: string): void,
+	error(msg: string): void,
 };
 
 type UniformValue =
@@ -947,9 +951,9 @@ type ShaderComp = {
 type BodyComp = {
 	update: UpdateEvent,
 	jumpForce: number,
-	curPlatform: () => GameObj | null,
-	grounded: () => boolean,
-	falling: () => boolean,
+	curPlatform(): GameObj | null,
+	grounded(): boolean,
+	falling(): boolean,
 	jump: (f: number) => void,
 };
 
@@ -963,5 +967,5 @@ type SolidComp = {
 };
 
 type LoopHandle = {
-	stop: () => void,
+	stop(): void,
 };

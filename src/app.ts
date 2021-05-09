@@ -97,10 +97,6 @@ function appInit(gconf: AppConf = {}): App {
 		(navigator.maxTouchPoints > 0) ||
 		(navigator.msMaxTouchPoints > 0);
 
-	app.canvas.addEventListener("contextmenu", (e) => {
-		e.preventDefault();
-	});
-
 	app.canvas.addEventListener("mousemove", (e) => {
 		app.mousePos = vec2(e.offsetX, e.offsetY).scale(1 / app.scale);
 	});

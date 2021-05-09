@@ -17,6 +17,8 @@ import {
 	overlapRectRect,
 	colRectPt,
 	vec2FromAngle,
+	deg2rad,
+	rad2deg,
 } from "./math";
 
 import {
@@ -70,7 +72,7 @@ const app = appInit({
 });
 
 const gfx = gfxInit(app.gl, {
-	clearColor: ((c) => rgba(c[0], c[1], c[2], c[3]))(gconf.clearColor ?? [0, 0, 0, 1]),
+	clearColor: rgba(gconf.clearColor ?? [0, 0, 0, 1]),
 	scale: gconf.scale,
 });
 
@@ -921,7 +923,15 @@ function handleEvents() {
 
 function drawInspect() {
 
-	every((obj) => {
+	const scene = curScene();
+	let hasHovered = false;
+	const scale = gfx.scale() * ((scene.cam.scale.x + scene.cam.scale.y) / 2);
+	const font = assets.defFont();
+	const color = rgba(gconf.inspectColor ?? [0, 1, 1, 1]);
+	const padding = vec2(6, 6).scale(1 / scale);
+	const textSize = 12;
+
+	revery((obj) => {
 
 		if (!obj.area) {
 			return;
@@ -933,22 +943,24 @@ function drawInspect() {
 
 		gfx.pushTransform();
 
-		const scene = curScene();
-
 		if (!scene.cam.ignore.includes(obj.layer)) {
 			gfx.pushMatrix(scene.cam.matrix);
 		}
 
-		const font = assets.defFont();
-		const color = rgba(0, 1, 1, 1);
-		const hovered = obj.isHovered();
-		const width = (hovered ? 4 : 2) / gfx.scale();
+		let hovered = false;
+
+		if (obj.isHovered() && !hasHovered) {
+			hovered = true;
+			hasHovered = true;
+		}
+
+		const lwidth = (hovered ? 6 : 2) / scale;
 		const a = obj._worldArea();
 		const w = a.p2.x - a.p1.x;
 		const h = a.p2.y - a.p1.y;
 
 		gfx.drawRectStroke(a.p1, w, h, {
-			width: width,
+			width: lwidth,
 			color: color,
 			z: 0.9,
 		});
@@ -956,14 +968,13 @@ function drawInspect() {
 		if (hovered) {
 
 			const mpos = mousePos(obj.layer);
-			const padding = vec2(6, 6).scale(1 / gfx.scale());
 			let bw = 0;
 			let bh = 0;
 			const lines = [];
 
 			const addLine = (txt) => {
 				const ftxt = gfx.fmtText(txt, font, {
-					size: 12 / (gconf.scale ?? 1),
+					size: textSize / scale,
 					pos: mpos.add(vec2(padding.x, padding.y + bh)),
 					z: 1,
 				});
@@ -1981,6 +1992,8 @@ const ctx: KaboomCtx = {
 	lerp,
 	map,
 	wave,
+	deg2rad,
+	rad2deg,
 	// raw draw
 	drawSprite,
 	drawText,
