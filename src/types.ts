@@ -192,9 +192,9 @@ type GameObj = {
 	use(comp: Comp): void,
 	action(cb: () => void): void,
 	on(ev: string, cb: () => void): void,
-	trigger(ev: string, ...args: any[]): void,
+	trigger(ev: string, ...args): void,
 	rmTag(t: string): void,
-	_sceneID: number | null,
+	_id: GameObjID | null,
 	_tags: string[],
 	_events: {
 		add: (() => void)[],
@@ -266,8 +266,10 @@ type Assets = {
 	shaders: Record<string, ShaderData>,
 };
 
+type LoaderID = number;
+
 type AssetsCtx = {
-	lastLoaderID: number,
+	lastLoaderID: LoaderID,
 	loadRoot: string,
 	loaders: Record<number, boolean>,
 	sprites: Record<string, SpriteData>,
@@ -338,14 +340,14 @@ type AudioPlayConf = {
 };
 
 type AudioPlay = {
-	play: (seek?: number) => void,
+	play(seek?: number): void,
 	stop(): void,
 	pause(): void,
 	paused(): boolean,
 	stopped(): boolean,
-	speed: (s?: number) => number,
-	detune: (d?: number) => number,
-	volume: (v?: number) => number,
+	speed(s?: number): number,
+	detune(d?: number): number,
+	volume(v?: number): number,
 	time(): number,
 	duration(): number,
 	loop(): void,
@@ -360,15 +362,15 @@ type AudioCtx = {
 
 type Audio = {
 	ctx(): AudioContext,
-	volume: (v: number) => number,
-	play: (sound: AudioBuffer, conf?: AudioPlayConf) => AudioPlay,
+	volume(v: number): number,
+	play(sound: AudioBuffer, conf?: AudioPlayConf): AudioPlay,
 };
 
 type GfxProgram = {
 	bind(): void,
 	unbind(): void,
 	bindAttribs(): void,
-	send: (uniform: Uniform) => void,
+	send(uniform: Uniform): void,
 }
 
 type GfxTexture = {
@@ -524,51 +526,51 @@ type Gfx = {
 	height(): number,
 	scale(): number,
 	clearColor(): Color,
-	makeTex: (data: GfxTextureData) => GfxTexture,
-	makeProgram: (vert: string, frag: string) => GfxProgram,
-	makeFont: (
+	makeTex(data: GfxTextureData): GfxTexture,
+	makeProgram(vert: string, frag: string): GfxProgram,
+	makeFont(
 		tex: GfxTexture,
 		gw: number,
 		gh: number,
 		chars: string,
-	) => GfxFont,
-	drawTexture: (
+	): GfxFont,
+	drawTexture(
 		tex: GfxTexture,
 		conf?: DrawTextureConf,
-	) => void,
-	drawText: (
+	): void,
+	drawText(
 		txt: string,
 		font: GfxFont,
 		conf?: DrawTextConf,
-	) => void,
-	drawFmtText: (ftext: FormattedText) => void,
-	fmtText: (
+	): void,
+	drawFmtText(ftext: FormattedText): void,
+	fmtText(
 		txt: string,
 		font: GfxFont,
 		conf?: DrawTextConf,
-	) => FormattedText,
-	drawRect: (
+	): FormattedText,
+	drawRect(
 		pos: Vec2,
 		w: number,
 		h: number,
 		conf?: DrawRectConf,
-	) => void,
-	drawRectStroke: (
+	): void,
+	drawRectStroke(
 		pos: Vec2,
 		w: number,
 		h: number,
 		conf?: DrawRectStrokeConf,
-	) => void,
-	drawLine: (
+	): void,
+	drawLine(
 		p1: Vec2,
 		p2: Vec2,
 		conf?: DrawLineConf,
-	) => void,
+	): void,
 	frameStart(): void,
 	frameEnd(): void,
 	pushTransform(): void,
 	popTransform(): void,
-	pushMatrix: (m: Mat4) => void,
+	pushMatrix(m: Mat4): void,
 	drawCalls(): number,
 };
 
@@ -591,17 +593,17 @@ type Vec2 = {
 	x: number,
 	y: number,
 	clone(): Vec2,
-	add: (p: Vec2) => Vec2,
-	sub: (p: Vec2) => Vec2,
-	scale: (s: number) => Vec2,
-	dot: (p: Vec2) => Vec2,
-	dist: (p: Vec2) => number,
+	add(p: Vec2): Vec2,
+	sub(p: Vec2): Vec2,
+	scale(s: number): Vec2,
+	dot(p: Vec2): Vec2,
+	dist(p: Vec2): number,
 	len(): number,
 	unit(): Vec2,
 	normal(): Vec2,
-	angle: (p: Vec2) => number,
-	lerp: (p: Vec2, t: number) => Vec2,
-	eq: (p: Vec2) => boolean,
+	angle(p: Vec2): number,
+	lerp(p: Vec2, t: number): Vec2,
+	eq(p: Vec2): boolean,
 	str(): string,
 };
 
@@ -622,15 +624,15 @@ type Vec4 = {
 type Mat4 = {
 	m: number[],
 	clone(): Mat4,
-	mult: (m: Mat4) => Mat4,
-	multVec4: (m: Vec4) => Vec4,
-	multVec3: (m: Vec3) => Vec3,
-	multVec2: (m: Vec2) => Vec2,
-	scale: (s: Vec2) => Mat4,
-	translate: (p: Vec2) => Mat4,
-	rotateX: (a: number) => Mat4,
-	rotateY: (a: number) => Mat4,
-	rotateZ: (a: number) => Mat4,
+	mult(m: Mat4): Mat4,
+	multVec4(m: Vec4): Vec4,
+	multVec3(m: Vec3): Vec3,
+	multVec2(m: Vec2): Vec2,
+	scale(s: Vec2): Mat4,
+	translate(p: Vec2): Mat4,
+	rotateX(a: number): Mat4,
+	rotateY(a: number): Mat4,
+	rotateZ(a: number): Mat4,
 	invert(): Mat4,
 };
 
@@ -640,12 +642,12 @@ type Color = {
 	b: number,
 	a: number,
 	clone(): Color,
-	lighten: (n: number) => Color,
-	darken: (n: number) => Color,
+	lighten(n: number): Color,
+	darken(n: number): Color,
 	invert(): Color,
-	isDark: (p?: number) => boolean,
-	isLight: (p?: number) => boolean,
-	eq: (c: Color) => boolean,
+	isDark(p?: number): boolean,
+	isLight(p?: number): boolean,
+	eq(c: Color): boolean,
 };
 
 type Quad = {
@@ -654,7 +656,7 @@ type Quad = {
 	w: number,
 	h: number,
 	clone(): Quad,
-	eq: (q: Quad) => boolean,
+	eq(q: Quad): boolean,
 };
 
 type RNGValue =
@@ -737,7 +739,7 @@ type Camera = {
 
 type TaggedEvent = {
 	tag: string,
-	cb: (...args: any[]) => void,
+	cb: (...args) => void,
 };
 
 type KeyInputEvent = {
@@ -753,8 +755,11 @@ type CharInputEvent = {
 	cb: (ch: string) => void,
 };
 
+type GameObjID = number;
+type TimerID = number;
+
 type Scene = {
-	init: (...args: any[]) => void,
+	init: (...args) => void,
 	initialized: boolean,
 	events: {
 		add: TaggedEvent[],
@@ -772,10 +777,10 @@ type Scene = {
 	},
 	action: Array<() => void>,
 	render: Array<() => void>,
-	objs: Map<number, GameObj>,
-	lastID: number,
-	timers: Record<number, Timer>,
-	lastTimerID: number,
+	objs: Map<GameObjID, GameObj>,
+	lastObjID: GameObjID,
+	timers: Record<TimerID, Timer>,
+	lastTimerID: TimerID,
 	cam: Camera,
 	gravity: number,
 	layers: Record<string, number>,
@@ -969,7 +974,7 @@ type BodyComp = {
 	curPlatform(): GameObj | null,
 	grounded(): boolean,
 	falling(): boolean,
-	jump: (f: number) => void,
+	jump(f: number): void,
 };
 
 type BodyCompConf = {

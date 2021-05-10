@@ -4,17 +4,29 @@ const www = require("./www");
 const api = require("./api");
 const gstyle = require("./gstyle");
 const utils = require("./utils");
-const types = require("./genTypes")();
+const typeData = require("./typeData");
 const t = www.tag;
 
 const style = {
 
 	"body": {
 		"background": "#0080ff",
+		"position": "relative",
+		"padding": "1px",
 	},
 
 	"a": {
 		"color": "#0080ff",
+	},
+
+	"#typebox": {
+		"background": "white",
+		"position": "absolute",
+		"z-index": "100",
+		"border-radius": "12px",
+		"border": "black solid 2px",
+		"padding": "12px",
+		"font-size": "16px",
 	},
 
 	"#game-view": {
@@ -79,6 +91,19 @@ const style = {
 		"border": "solid 3px #000000",
 		"margin-bottom": "32px",
 		"border-radius": "24px",
+	},
+
+	".typesig": {
+		"color": "#999999",
+	},
+
+	".typeref": {
+		"color": "#999999",
+		"text-decoration": "underline",
+		"cursor": "pointer",
+		":hover": {
+			"color": "#666666",
+		},
 	},
 
 	"#sidebar": {
@@ -207,6 +232,100 @@ function code(c, lang) {
 
 const versions = utils.versions();
 
+function renderParams(params) {
+	return params.map((p) => {
+		return p.name
+			+ (p.questionToken ? "?" : "")
+			+ ": " + (p.dotDotDotToken ? "..." : t("span", {
+				class: "typesig",
+			}, renderTypeSig(p.type)))
+			;
+	}).join(", ");
+}
+
+function typeExists(name) {
+	return typeData.types[name] || typeData.interfaces[name];
+}
+
+function renderTypeSig(type) {
+
+	const tname = (() => {
+		switch (type.kind) {
+			case "StringKeyword": return "string";
+			case "NumberKeyword": return "number";
+			case "BooleanKeyword": return "boolean";
+			case "VoidKeyword": return "void";
+			case "AnyKeyword": return "any";
+			case "ArrayType": return `${renderTypeSig(type.elementType)}[]`;
+			case "ParenthesizedType": return `(${renderTypeSig(type.type)})`;
+			case "UnionType": return type.types.map(renderTypeSig).join(" | ");
+			case "LiteralType": return renderTypeSig(type.literal);
+			case "StringLiteral": return `"${type.text}"`;
+			case "FunctionType": return `(${renderParams(type.parameters)}) => ${renderTypeSig(type.type)}`;
+			case "TypeReference": return typeExists(type.typeName) ? t("a", {
+				class: "typeref",
+			}, type.typeName) : type.typeName;
+			default: return "";
+		}
+	})();
+
+	if (type.typeArguments) {
+		return tname + `&lt;${type.typeArguments.map(renderTypeSig).join(", ")}&gt;`;
+	}
+
+	return tname;
+
+}
+
+function renderNamedFunc(type) {
+	return `${type.name}(${renderParams(type.parameters)})${t("span", {
+		class: "typesig",
+	}, " => " + renderTypeSig(type.type))}`;
+}
+
+function renderMember(m) {
+	switch (m.kind) {
+		case "MethodSignature":
+			return renderNamedFunc(m);
+		case "PropertySignature":
+			return m.name
+				+ (m.questionToken ? "?" : "")
+				+ ": "
+				+ t("span", {
+					class: "typesig",
+				}, renderTypeSig(m.type));
+	}
+}
+
+function renderTypeAlias(type) {
+	switch (type.type.kind) {
+		case "TypeLiteral":
+			const memberList = type.type.members
+				.map(renderMember)
+				.map((entry) => "&nbsp;".repeat(4) + entry)
+				.join(t("br"));
+			return `${type.name} {${t("br")}${memberList}${t("br")}}`;
+		case "TypeReference":
+		case "UnionType":
+		case "FunctionType":
+			return `${type.name} = ${renderTypeSig(type.type)}`;
+	}
+}
+
+const renderedTypes = {};
+
+renderedTypes["kaboom"] = renderNamedFunc(typeData.funcs["kaboom"]);
+
+typeData.types["KaboomCtx"].type.members.forEach((m) => {
+	renderedTypes[m.name] = renderMember(m);
+});
+
+Object.values(typeData.types).forEach((t) => {
+	if (t.name !== "KaboomCtx") {
+		renderedTypes[t.name] = renderTypeAlias(t);
+	}
+});
+
 const page = t("html", {}, [
 	t("head", {}, [
 		t("title", {}, "KaBoom!!!"),
@@ -231,6 +350,7 @@ const page = t("html", {}, [
 				t("a", { class: "link", href: "/lib", }, "download"),
 				t("a", { class: "link", href: "https://github.com/replit/kaboom", }, "github"),
 				t("a", { class: "link", href: "https://twitter.com/Kaboomjs", }, "twitter"),
+				t("a", { class: "link", href: "/changelog", }, "changelog"),
 				t("a", { class: "link", href: "https://replit.com/new/kaboom", }, "try on replit"),
 				...api.map((sec) => {
 					return t("div", { class: "section", }, [
@@ -239,7 +359,7 @@ const page = t("html", {}, [
 							return t("a", { class: "link", href: `#${f.name}`, }, `${f.name}()`);
 						})),
 					]);
-				})
+				}),
 			]),
 			t("div", { id: "content", class: "panel", }, [
 				t("p", { id: "about", }, "kaboom.js is a JavaScript library that helps you make games fast and fun!"),
@@ -287,7 +407,7 @@ k.start("main");
 						t("p", { class: "desc", }, sec.desc),
 						...sec.entries.map((f) => {
 							return t("div", { id: f.name, class: "entry", }, [
-								t("p", { class: "name", }, types[f.name]),
+								t("p", { class: "name", }, renderedTypes[f.name] || ""),
 								t("p", { class: "desc", }, f.desc),
 								f.example ? t("pre", {}, [
 									t("code", { class: "javascript", }, f.example.trim()),
@@ -391,6 +511,9 @@ timePlusOne();
 				]),
 			]),
 		]),
+		t("div", { id: "typebox", }, ""),
+		t("script", {}, `window.renderedTypes = ${JSON.stringify(renderedTypes)}`),
+		t("script", { src: "/pub/js/doc.js", }, ""),
 	]),
 ]);
 

@@ -2880,12 +2880,6 @@
                             {
                                 "kind": "Parameter",
                                 "name": "args",
-                                "type": {
-                                    "kind": "ArrayType",
-                                    "elementType": {
-                                        "kind": "AnyKeyword"
-                                    }
-                                },
                                 "dotDotDotToken": {
                                     "kind": "DotDotDotToken"
                                 }
@@ -2913,12 +2907,13 @@
                     },
                     {
                         "kind": "PropertySignature",
-                        "name": "_sceneID",
+                        "name": "_id",
                         "type": {
                             "kind": "UnionType",
                             "types": [
                                 {
-                                    "kind": "NumberKeyword"
+                                    "kind": "TypeReference",
+                                    "typeName": "GameObjID"
                                 },
                                 {
                                     "kind": "LiteralType",
@@ -3540,6 +3535,13 @@
                 ]
             }
         },
+        "LoaderID": {
+            "kind": "TypeAliasDeclaration",
+            "name": "LoaderID",
+            "type": {
+                "kind": "NumberKeyword"
+            }
+        },
         "AssetsCtx": {
             "kind": "TypeAliasDeclaration",
             "name": "AssetsCtx",
@@ -3550,7 +3552,8 @@
                         "kind": "PropertySignature",
                         "name": "lastLoaderID",
                         "type": {
-                            "kind": "NumberKeyword"
+                            "kind": "TypeReference",
+                            "typeName": "LoaderID"
                         }
                     },
                     {
@@ -4139,23 +4142,20 @@
                 "kind": "TypeLiteral",
                 "members": [
                     {
-                        "kind": "PropertySignature",
+                        "kind": "MethodSignature",
                         "name": "play",
-                        "type": {
-                            "kind": "FunctionType",
-                            "parameters": [
-                                {
-                                    "kind": "Parameter",
-                                    "name": "seek",
-                                    "type": {
-                                        "kind": "NumberKeyword"
-                                    },
-                                    "questionToken": true
-                                }
-                            ],
-                            "type": {
-                                "kind": "VoidKeyword"
+                        "parameters": [
+                            {
+                                "kind": "Parameter",
+                                "name": "seek",
+                                "type": {
+                                    "kind": "NumberKeyword"
+                                },
+                                "questionToken": true
                             }
+                        ],
+                        "type": {
+                            "kind": "VoidKeyword"
                         }
                     },
                     {
@@ -4191,63 +4191,54 @@
                         }
                     },
                     {
-                        "kind": "PropertySignature",
+                        "kind": "MethodSignature",
                         "name": "speed",
-                        "type": {
-                            "kind": "FunctionType",
-                            "parameters": [
-                                {
-                                    "kind": "Parameter",
-                                    "name": "s",
-                                    "type": {
-                                        "kind": "NumberKeyword"
-                                    },
-                                    "questionToken": true
-                                }
-                            ],
-                            "type": {
-                                "kind": "NumberKeyword"
+                        "parameters": [
+                            {
+                                "kind": "Parameter",
+                                "name": "s",
+                                "type": {
+                                    "kind": "NumberKeyword"
+                                },
+                                "questionToken": true
                             }
+                        ],
+                        "type": {
+                            "kind": "NumberKeyword"
                         }
                     },
                     {
-                        "kind": "PropertySignature",
+                        "kind": "MethodSignature",
                         "name": "detune",
-                        "type": {
-                            "kind": "FunctionType",
-                            "parameters": [
-                                {
-                                    "kind": "Parameter",
-                                    "name": "d",
-                                    "type": {
-                                        "kind": "NumberKeyword"
-                                    },
-                                    "questionToken": true
-                                }
-                            ],
-                            "type": {
-                                "kind": "NumberKeyword"
+                        "parameters": [
+                            {
+                                "kind": "Parameter",
+                                "name": "d",
+                                "type": {
+                                    "kind": "NumberKeyword"
+                                },
+                                "questionToken": true
                             }
+                        ],
+                        "type": {
+                            "kind": "NumberKeyword"
                         }
                     },
                     {
-                        "kind": "PropertySignature",
+                        "kind": "MethodSignature",
                         "name": "volume",
-                        "type": {
-                            "kind": "FunctionType",
-                            "parameters": [
-                                {
-                                    "kind": "Parameter",
-                                    "name": "v",
-                                    "type": {
-                                        "kind": "NumberKeyword"
-                                    },
-                                    "questionToken": true
-                                }
-                            ],
-                            "type": {
-                                "kind": "NumberKeyword"
+                        "parameters": [
+                            {
+                                "kind": "Parameter",
+                                "name": "v",
+                                "type": {
+                                    "kind": "NumberKeyword"
+                                },
+                                "questionToken": true
                             }
+                        ],
+                        "type": {
+                            "kind": "NumberKeyword"
                         }
                     },
                     {
@@ -4334,52 +4325,46 @@
                         }
                     },
                     {
-                        "kind": "PropertySignature",
+                        "kind": "MethodSignature",
                         "name": "volume",
-                        "type": {
-                            "kind": "FunctionType",
-                            "parameters": [
-                                {
-                                    "kind": "Parameter",
-                                    "name": "v",
-                                    "type": {
-                                        "kind": "NumberKeyword"
-                                    }
+                        "parameters": [
+                            {
+                                "kind": "Parameter",
+                                "name": "v",
+                                "type": {
+                                    "kind": "NumberKeyword"
                                 }
-                            ],
-                            "type": {
-                                "kind": "NumberKeyword"
                             }
+                        ],
+                        "type": {
+                            "kind": "NumberKeyword"
                         }
                     },
                     {
-                        "kind": "PropertySignature",
+                        "kind": "MethodSignature",
                         "name": "play",
-                        "type": {
-                            "kind": "FunctionType",
-                            "parameters": [
-                                {
-                                    "kind": "Parameter",
-                                    "name": "sound",
-                                    "type": {
-                                        "kind": "TypeReference",
-                                        "typeName": "AudioBuffer"
-                                    }
-                                },
-                                {
-                                    "kind": "Parameter",
-                                    "name": "conf",
-                                    "type": {
-                                        "kind": "TypeReference",
-                                        "typeName": "AudioPlayConf"
-                                    },
-                                    "questionToken": true
+                        "parameters": [
+                            {
+                                "kind": "Parameter",
+                                "name": "sound",
+                                "type": {
+                                    "kind": "TypeReference",
+                                    "typeName": "AudioBuffer"
                                 }
-                            ],
-                            "type": {
-                                "kind": "TypeReference",
-                                "typeName": "AudioPlay"
+                            },
+                            {
+                                "kind": "Parameter",
+                                "name": "conf",
+                                "type": {
+                                    "kind": "TypeReference",
+                                    "typeName": "AudioPlayConf"
+                                },
+                                "questionToken": true
                             }
+                        ],
+                        "type": {
+                            "kind": "TypeReference",
+                            "typeName": "AudioPlay"
                         }
                     }
                 ]
@@ -4416,23 +4401,20 @@
                         }
                     },
                     {
-                        "kind": "PropertySignature",
+                        "kind": "MethodSignature",
                         "name": "send",
-                        "type": {
-                            "kind": "FunctionType",
-                            "parameters": [
-                                {
-                                    "kind": "Parameter",
-                                    "name": "uniform",
-                                    "type": {
-                                        "kind": "TypeReference",
-                                        "typeName": "Uniform"
-                                    }
+                        "parameters": [
+                            {
+                                "kind": "Parameter",
+                                "name": "uniform",
+                                "type": {
+                                    "kind": "TypeReference",
+                                    "typeName": "Uniform"
                                 }
-                            ],
-                            "type": {
-                                "kind": "VoidKeyword"
                             }
+                        ],
+                        "type": {
+                            "kind": "VoidKeyword"
                         }
                     }
                 ]
@@ -5556,338 +5538,308 @@
                         }
                     },
                     {
-                        "kind": "PropertySignature",
+                        "kind": "MethodSignature",
                         "name": "makeTex",
-                        "type": {
-                            "kind": "FunctionType",
-                            "parameters": [
-                                {
-                                    "kind": "Parameter",
-                                    "name": "data",
-                                    "type": {
-                                        "kind": "TypeReference",
-                                        "typeName": "GfxTextureData"
-                                    }
+                        "parameters": [
+                            {
+                                "kind": "Parameter",
+                                "name": "data",
+                                "type": {
+                                    "kind": "TypeReference",
+                                    "typeName": "GfxTextureData"
                                 }
-                            ],
-                            "type": {
-                                "kind": "TypeReference",
-                                "typeName": "GfxTexture"
                             }
+                        ],
+                        "type": {
+                            "kind": "TypeReference",
+                            "typeName": "GfxTexture"
                         }
                     },
                     {
-                        "kind": "PropertySignature",
+                        "kind": "MethodSignature",
                         "name": "makeProgram",
-                        "type": {
-                            "kind": "FunctionType",
-                            "parameters": [
-                                {
-                                    "kind": "Parameter",
-                                    "name": "vert",
-                                    "type": {
-                                        "kind": "StringKeyword"
-                                    }
-                                },
-                                {
-                                    "kind": "Parameter",
-                                    "name": "frag",
-                                    "type": {
-                                        "kind": "StringKeyword"
-                                    }
+                        "parameters": [
+                            {
+                                "kind": "Parameter",
+                                "name": "vert",
+                                "type": {
+                                    "kind": "StringKeyword"
                                 }
-                            ],
-                            "type": {
-                                "kind": "TypeReference",
-                                "typeName": "GfxProgram"
+                            },
+                            {
+                                "kind": "Parameter",
+                                "name": "frag",
+                                "type": {
+                                    "kind": "StringKeyword"
+                                }
                             }
+                        ],
+                        "type": {
+                            "kind": "TypeReference",
+                            "typeName": "GfxProgram"
                         }
                     },
                     {
-                        "kind": "PropertySignature",
+                        "kind": "MethodSignature",
                         "name": "makeFont",
-                        "type": {
-                            "kind": "FunctionType",
-                            "parameters": [
-                                {
-                                    "kind": "Parameter",
-                                    "name": "tex",
-                                    "type": {
-                                        "kind": "TypeReference",
-                                        "typeName": "GfxTexture"
-                                    }
-                                },
-                                {
-                                    "kind": "Parameter",
-                                    "name": "gw",
-                                    "type": {
-                                        "kind": "NumberKeyword"
-                                    }
-                                },
-                                {
-                                    "kind": "Parameter",
-                                    "name": "gh",
-                                    "type": {
-                                        "kind": "NumberKeyword"
-                                    }
-                                },
-                                {
-                                    "kind": "Parameter",
-                                    "name": "chars",
-                                    "type": {
-                                        "kind": "StringKeyword"
-                                    }
+                        "parameters": [
+                            {
+                                "kind": "Parameter",
+                                "name": "tex",
+                                "type": {
+                                    "kind": "TypeReference",
+                                    "typeName": "GfxTexture"
                                 }
-                            ],
-                            "type": {
-                                "kind": "TypeReference",
-                                "typeName": "GfxFont"
+                            },
+                            {
+                                "kind": "Parameter",
+                                "name": "gw",
+                                "type": {
+                                    "kind": "NumberKeyword"
+                                }
+                            },
+                            {
+                                "kind": "Parameter",
+                                "name": "gh",
+                                "type": {
+                                    "kind": "NumberKeyword"
+                                }
+                            },
+                            {
+                                "kind": "Parameter",
+                                "name": "chars",
+                                "type": {
+                                    "kind": "StringKeyword"
+                                }
                             }
+                        ],
+                        "type": {
+                            "kind": "TypeReference",
+                            "typeName": "GfxFont"
                         }
                     },
                     {
-                        "kind": "PropertySignature",
+                        "kind": "MethodSignature",
                         "name": "drawTexture",
-                        "type": {
-                            "kind": "FunctionType",
-                            "parameters": [
-                                {
-                                    "kind": "Parameter",
-                                    "name": "tex",
-                                    "type": {
-                                        "kind": "TypeReference",
-                                        "typeName": "GfxTexture"
-                                    }
-                                },
-                                {
-                                    "kind": "Parameter",
-                                    "name": "conf",
-                                    "type": {
-                                        "kind": "TypeReference",
-                                        "typeName": "DrawTextureConf"
-                                    },
-                                    "questionToken": true
+                        "parameters": [
+                            {
+                                "kind": "Parameter",
+                                "name": "tex",
+                                "type": {
+                                    "kind": "TypeReference",
+                                    "typeName": "GfxTexture"
                                 }
-                            ],
-                            "type": {
-                                "kind": "VoidKeyword"
+                            },
+                            {
+                                "kind": "Parameter",
+                                "name": "conf",
+                                "type": {
+                                    "kind": "TypeReference",
+                                    "typeName": "DrawTextureConf"
+                                },
+                                "questionToken": true
                             }
+                        ],
+                        "type": {
+                            "kind": "VoidKeyword"
                         }
                     },
                     {
-                        "kind": "PropertySignature",
+                        "kind": "MethodSignature",
                         "name": "drawText",
-                        "type": {
-                            "kind": "FunctionType",
-                            "parameters": [
-                                {
-                                    "kind": "Parameter",
-                                    "name": "txt",
-                                    "type": {
-                                        "kind": "StringKeyword"
-                                    }
-                                },
-                                {
-                                    "kind": "Parameter",
-                                    "name": "font",
-                                    "type": {
-                                        "kind": "TypeReference",
-                                        "typeName": "GfxFont"
-                                    }
-                                },
-                                {
-                                    "kind": "Parameter",
-                                    "name": "conf",
-                                    "type": {
-                                        "kind": "TypeReference",
-                                        "typeName": "DrawTextConf"
-                                    },
-                                    "questionToken": true
+                        "parameters": [
+                            {
+                                "kind": "Parameter",
+                                "name": "txt",
+                                "type": {
+                                    "kind": "StringKeyword"
                                 }
-                            ],
-                            "type": {
-                                "kind": "VoidKeyword"
+                            },
+                            {
+                                "kind": "Parameter",
+                                "name": "font",
+                                "type": {
+                                    "kind": "TypeReference",
+                                    "typeName": "GfxFont"
+                                }
+                            },
+                            {
+                                "kind": "Parameter",
+                                "name": "conf",
+                                "type": {
+                                    "kind": "TypeReference",
+                                    "typeName": "DrawTextConf"
+                                },
+                                "questionToken": true
                             }
+                        ],
+                        "type": {
+                            "kind": "VoidKeyword"
                         }
                     },
                     {
-                        "kind": "PropertySignature",
+                        "kind": "MethodSignature",
                         "name": "drawFmtText",
-                        "type": {
-                            "kind": "FunctionType",
-                            "parameters": [
-                                {
-                                    "kind": "Parameter",
-                                    "name": "ftext",
-                                    "type": {
-                                        "kind": "TypeReference",
-                                        "typeName": "FormattedText"
-                                    }
+                        "parameters": [
+                            {
+                                "kind": "Parameter",
+                                "name": "ftext",
+                                "type": {
+                                    "kind": "TypeReference",
+                                    "typeName": "FormattedText"
                                 }
-                            ],
-                            "type": {
-                                "kind": "VoidKeyword"
                             }
+                        ],
+                        "type": {
+                            "kind": "VoidKeyword"
                         }
                     },
                     {
-                        "kind": "PropertySignature",
+                        "kind": "MethodSignature",
                         "name": "fmtText",
-                        "type": {
-                            "kind": "FunctionType",
-                            "parameters": [
-                                {
-                                    "kind": "Parameter",
-                                    "name": "txt",
-                                    "type": {
-                                        "kind": "StringKeyword"
-                                    }
-                                },
-                                {
-                                    "kind": "Parameter",
-                                    "name": "font",
-                                    "type": {
-                                        "kind": "TypeReference",
-                                        "typeName": "GfxFont"
-                                    }
-                                },
-                                {
-                                    "kind": "Parameter",
-                                    "name": "conf",
-                                    "type": {
-                                        "kind": "TypeReference",
-                                        "typeName": "DrawTextConf"
-                                    },
-                                    "questionToken": true
+                        "parameters": [
+                            {
+                                "kind": "Parameter",
+                                "name": "txt",
+                                "type": {
+                                    "kind": "StringKeyword"
                                 }
-                            ],
-                            "type": {
-                                "kind": "TypeReference",
-                                "typeName": "FormattedText"
+                            },
+                            {
+                                "kind": "Parameter",
+                                "name": "font",
+                                "type": {
+                                    "kind": "TypeReference",
+                                    "typeName": "GfxFont"
+                                }
+                            },
+                            {
+                                "kind": "Parameter",
+                                "name": "conf",
+                                "type": {
+                                    "kind": "TypeReference",
+                                    "typeName": "DrawTextConf"
+                                },
+                                "questionToken": true
                             }
+                        ],
+                        "type": {
+                            "kind": "TypeReference",
+                            "typeName": "FormattedText"
                         }
                     },
                     {
-                        "kind": "PropertySignature",
+                        "kind": "MethodSignature",
                         "name": "drawRect",
-                        "type": {
-                            "kind": "FunctionType",
-                            "parameters": [
-                                {
-                                    "kind": "Parameter",
-                                    "name": "pos",
-                                    "type": {
-                                        "kind": "TypeReference",
-                                        "typeName": "Vec2"
-                                    }
-                                },
-                                {
-                                    "kind": "Parameter",
-                                    "name": "w",
-                                    "type": {
-                                        "kind": "NumberKeyword"
-                                    }
-                                },
-                                {
-                                    "kind": "Parameter",
-                                    "name": "h",
-                                    "type": {
-                                        "kind": "NumberKeyword"
-                                    }
-                                },
-                                {
-                                    "kind": "Parameter",
-                                    "name": "conf",
-                                    "type": {
-                                        "kind": "TypeReference",
-                                        "typeName": "DrawRectConf"
-                                    },
-                                    "questionToken": true
+                        "parameters": [
+                            {
+                                "kind": "Parameter",
+                                "name": "pos",
+                                "type": {
+                                    "kind": "TypeReference",
+                                    "typeName": "Vec2"
                                 }
-                            ],
-                            "type": {
-                                "kind": "VoidKeyword"
+                            },
+                            {
+                                "kind": "Parameter",
+                                "name": "w",
+                                "type": {
+                                    "kind": "NumberKeyword"
+                                }
+                            },
+                            {
+                                "kind": "Parameter",
+                                "name": "h",
+                                "type": {
+                                    "kind": "NumberKeyword"
+                                }
+                            },
+                            {
+                                "kind": "Parameter",
+                                "name": "conf",
+                                "type": {
+                                    "kind": "TypeReference",
+                                    "typeName": "DrawRectConf"
+                                },
+                                "questionToken": true
                             }
+                        ],
+                        "type": {
+                            "kind": "VoidKeyword"
                         }
                     },
                     {
-                        "kind": "PropertySignature",
+                        "kind": "MethodSignature",
                         "name": "drawRectStroke",
-                        "type": {
-                            "kind": "FunctionType",
-                            "parameters": [
-                                {
-                                    "kind": "Parameter",
-                                    "name": "pos",
-                                    "type": {
-                                        "kind": "TypeReference",
-                                        "typeName": "Vec2"
-                                    }
-                                },
-                                {
-                                    "kind": "Parameter",
-                                    "name": "w",
-                                    "type": {
-                                        "kind": "NumberKeyword"
-                                    }
-                                },
-                                {
-                                    "kind": "Parameter",
-                                    "name": "h",
-                                    "type": {
-                                        "kind": "NumberKeyword"
-                                    }
-                                },
-                                {
-                                    "kind": "Parameter",
-                                    "name": "conf",
-                                    "type": {
-                                        "kind": "TypeReference",
-                                        "typeName": "DrawRectStrokeConf"
-                                    },
-                                    "questionToken": true
+                        "parameters": [
+                            {
+                                "kind": "Parameter",
+                                "name": "pos",
+                                "type": {
+                                    "kind": "TypeReference",
+                                    "typeName": "Vec2"
                                 }
-                            ],
-                            "type": {
-                                "kind": "VoidKeyword"
+                            },
+                            {
+                                "kind": "Parameter",
+                                "name": "w",
+                                "type": {
+                                    "kind": "NumberKeyword"
+                                }
+                            },
+                            {
+                                "kind": "Parameter",
+                                "name": "h",
+                                "type": {
+                                    "kind": "NumberKeyword"
+                                }
+                            },
+                            {
+                                "kind": "Parameter",
+                                "name": "conf",
+                                "type": {
+                                    "kind": "TypeReference",
+                                    "typeName": "DrawRectStrokeConf"
+                                },
+                                "questionToken": true
                             }
+                        ],
+                        "type": {
+                            "kind": "VoidKeyword"
                         }
                     },
                     {
-                        "kind": "PropertySignature",
+                        "kind": "MethodSignature",
                         "name": "drawLine",
-                        "type": {
-                            "kind": "FunctionType",
-                            "parameters": [
-                                {
-                                    "kind": "Parameter",
-                                    "name": "p1",
-                                    "type": {
-                                        "kind": "TypeReference",
-                                        "typeName": "Vec2"
-                                    }
-                                },
-                                {
-                                    "kind": "Parameter",
-                                    "name": "p2",
-                                    "type": {
-                                        "kind": "TypeReference",
-                                        "typeName": "Vec2"
-                                    }
-                                },
-                                {
-                                    "kind": "Parameter",
-                                    "name": "conf",
-                                    "type": {
-                                        "kind": "TypeReference",
-                                        "typeName": "DrawLineConf"
-                                    },
-                                    "questionToken": true
+                        "parameters": [
+                            {
+                                "kind": "Parameter",
+                                "name": "p1",
+                                "type": {
+                                    "kind": "TypeReference",
+                                    "typeName": "Vec2"
                                 }
-                            ],
-                            "type": {
-                                "kind": "VoidKeyword"
+                            },
+                            {
+                                "kind": "Parameter",
+                                "name": "p2",
+                                "type": {
+                                    "kind": "TypeReference",
+                                    "typeName": "Vec2"
+                                }
+                            },
+                            {
+                                "kind": "Parameter",
+                                "name": "conf",
+                                "type": {
+                                    "kind": "TypeReference",
+                                    "typeName": "DrawLineConf"
+                                },
+                                "questionToken": true
                             }
+                        ],
+                        "type": {
+                            "kind": "VoidKeyword"
                         }
                     },
                     {
@@ -5923,23 +5875,20 @@
                         }
                     },
                     {
-                        "kind": "PropertySignature",
+                        "kind": "MethodSignature",
                         "name": "pushMatrix",
-                        "type": {
-                            "kind": "FunctionType",
-                            "parameters": [
-                                {
-                                    "kind": "Parameter",
-                                    "name": "m",
-                                    "type": {
-                                        "kind": "TypeReference",
-                                        "typeName": "Mat4"
-                                    }
+                        "parameters": [
+                            {
+                                "kind": "Parameter",
+                                "name": "m",
+                                "type": {
+                                    "kind": "TypeReference",
+                                    "typeName": "Mat4"
                                 }
-                            ],
-                            "type": {
-                                "kind": "VoidKeyword"
                             }
+                        ],
+                        "type": {
+                            "kind": "VoidKeyword"
                         }
                     },
                     {
@@ -6116,106 +6065,91 @@
                         }
                     },
                     {
-                        "kind": "PropertySignature",
+                        "kind": "MethodSignature",
                         "name": "add",
-                        "type": {
-                            "kind": "FunctionType",
-                            "parameters": [
-                                {
-                                    "kind": "Parameter",
-                                    "name": "p",
-                                    "type": {
-                                        "kind": "TypeReference",
-                                        "typeName": "Vec2"
-                                    }
+                        "parameters": [
+                            {
+                                "kind": "Parameter",
+                                "name": "p",
+                                "type": {
+                                    "kind": "TypeReference",
+                                    "typeName": "Vec2"
                                 }
-                            ],
-                            "type": {
-                                "kind": "TypeReference",
-                                "typeName": "Vec2"
                             }
+                        ],
+                        "type": {
+                            "kind": "TypeReference",
+                            "typeName": "Vec2"
                         }
                     },
                     {
-                        "kind": "PropertySignature",
+                        "kind": "MethodSignature",
                         "name": "sub",
-                        "type": {
-                            "kind": "FunctionType",
-                            "parameters": [
-                                {
-                                    "kind": "Parameter",
-                                    "name": "p",
-                                    "type": {
-                                        "kind": "TypeReference",
-                                        "typeName": "Vec2"
-                                    }
+                        "parameters": [
+                            {
+                                "kind": "Parameter",
+                                "name": "p",
+                                "type": {
+                                    "kind": "TypeReference",
+                                    "typeName": "Vec2"
                                 }
-                            ],
-                            "type": {
-                                "kind": "TypeReference",
-                                "typeName": "Vec2"
                             }
+                        ],
+                        "type": {
+                            "kind": "TypeReference",
+                            "typeName": "Vec2"
                         }
                     },
                     {
-                        "kind": "PropertySignature",
+                        "kind": "MethodSignature",
                         "name": "scale",
-                        "type": {
-                            "kind": "FunctionType",
-                            "parameters": [
-                                {
-                                    "kind": "Parameter",
-                                    "name": "s",
-                                    "type": {
-                                        "kind": "NumberKeyword"
-                                    }
+                        "parameters": [
+                            {
+                                "kind": "Parameter",
+                                "name": "s",
+                                "type": {
+                                    "kind": "NumberKeyword"
                                 }
-                            ],
-                            "type": {
-                                "kind": "TypeReference",
-                                "typeName": "Vec2"
                             }
+                        ],
+                        "type": {
+                            "kind": "TypeReference",
+                            "typeName": "Vec2"
                         }
                     },
                     {
-                        "kind": "PropertySignature",
+                        "kind": "MethodSignature",
                         "name": "dot",
-                        "type": {
-                            "kind": "FunctionType",
-                            "parameters": [
-                                {
-                                    "kind": "Parameter",
-                                    "name": "p",
-                                    "type": {
-                                        "kind": "TypeReference",
-                                        "typeName": "Vec2"
-                                    }
+                        "parameters": [
+                            {
+                                "kind": "Parameter",
+                                "name": "p",
+                                "type": {
+                                    "kind": "TypeReference",
+                                    "typeName": "Vec2"
                                 }
-                            ],
-                            "type": {
-                                "kind": "TypeReference",
-                                "typeName": "Vec2"
                             }
+                        ],
+                        "type": {
+                            "kind": "TypeReference",
+                            "typeName": "Vec2"
                         }
                     },
                     {
-                        "kind": "PropertySignature",
+                        "kind": "MethodSignature",
                         "name": "dist",
-                        "type": {
-                            "kind": "FunctionType",
-                            "parameters": [
-                                {
-                                    "kind": "Parameter",
-                                    "name": "p",
-                                    "type": {
-                                        "kind": "TypeReference",
-                                        "typeName": "Vec2"
-                                    }
+                        "parameters": [
+                            {
+                                "kind": "Parameter",
+                                "name": "p",
+                                "type": {
+                                    "kind": "TypeReference",
+                                    "typeName": "Vec2"
                                 }
-                            ],
-                            "type": {
-                                "kind": "NumberKeyword"
                             }
+                        ],
+                        "type": {
+                            "kind": "NumberKeyword"
                         }
                     },
                     {
@@ -6245,71 +6179,62 @@
                         }
                     },
                     {
-                        "kind": "PropertySignature",
+                        "kind": "MethodSignature",
                         "name": "angle",
-                        "type": {
-                            "kind": "FunctionType",
-                            "parameters": [
-                                {
-                                    "kind": "Parameter",
-                                    "name": "p",
-                                    "type": {
-                                        "kind": "TypeReference",
-                                        "typeName": "Vec2"
-                                    }
+                        "parameters": [
+                            {
+                                "kind": "Parameter",
+                                "name": "p",
+                                "type": {
+                                    "kind": "TypeReference",
+                                    "typeName": "Vec2"
                                 }
-                            ],
-                            "type": {
-                                "kind": "NumberKeyword"
                             }
+                        ],
+                        "type": {
+                            "kind": "NumberKeyword"
                         }
                     },
                     {
-                        "kind": "PropertySignature",
+                        "kind": "MethodSignature",
                         "name": "lerp",
-                        "type": {
-                            "kind": "FunctionType",
-                            "parameters": [
-                                {
-                                    "kind": "Parameter",
-                                    "name": "p",
-                                    "type": {
-                                        "kind": "TypeReference",
-                                        "typeName": "Vec2"
-                                    }
-                                },
-                                {
-                                    "kind": "Parameter",
-                                    "name": "t",
-                                    "type": {
-                                        "kind": "NumberKeyword"
-                                    }
+                        "parameters": [
+                            {
+                                "kind": "Parameter",
+                                "name": "p",
+                                "type": {
+                                    "kind": "TypeReference",
+                                    "typeName": "Vec2"
                                 }
-                            ],
-                            "type": {
-                                "kind": "TypeReference",
-                                "typeName": "Vec2"
+                            },
+                            {
+                                "kind": "Parameter",
+                                "name": "t",
+                                "type": {
+                                    "kind": "NumberKeyword"
+                                }
                             }
+                        ],
+                        "type": {
+                            "kind": "TypeReference",
+                            "typeName": "Vec2"
                         }
                     },
                     {
-                        "kind": "PropertySignature",
+                        "kind": "MethodSignature",
                         "name": "eq",
-                        "type": {
-                            "kind": "FunctionType",
-                            "parameters": [
-                                {
-                                    "kind": "Parameter",
-                                    "name": "p",
-                                    "type": {
-                                        "kind": "TypeReference",
-                                        "typeName": "Vec2"
-                                    }
+                        "parameters": [
+                            {
+                                "kind": "Parameter",
+                                "name": "p",
+                                "type": {
+                                    "kind": "TypeReference",
+                                    "typeName": "Vec2"
                                 }
-                            ],
-                            "type": {
-                                "kind": "BooleanKeyword"
                             }
+                        ],
+                        "type": {
+                            "kind": "BooleanKeyword"
                         }
                     },
                     {
@@ -6425,189 +6350,162 @@
                         }
                     },
                     {
-                        "kind": "PropertySignature",
+                        "kind": "MethodSignature",
                         "name": "mult",
-                        "type": {
-                            "kind": "FunctionType",
-                            "parameters": [
-                                {
-                                    "kind": "Parameter",
-                                    "name": "m",
-                                    "type": {
-                                        "kind": "TypeReference",
-                                        "typeName": "Mat4"
-                                    }
+                        "parameters": [
+                            {
+                                "kind": "Parameter",
+                                "name": "m",
+                                "type": {
+                                    "kind": "TypeReference",
+                                    "typeName": "Mat4"
                                 }
-                            ],
-                            "type": {
-                                "kind": "TypeReference",
-                                "typeName": "Mat4"
                             }
+                        ],
+                        "type": {
+                            "kind": "TypeReference",
+                            "typeName": "Mat4"
                         }
                     },
                     {
-                        "kind": "PropertySignature",
+                        "kind": "MethodSignature",
                         "name": "multVec4",
-                        "type": {
-                            "kind": "FunctionType",
-                            "parameters": [
-                                {
-                                    "kind": "Parameter",
-                                    "name": "m",
-                                    "type": {
-                                        "kind": "TypeReference",
-                                        "typeName": "Vec4"
-                                    }
+                        "parameters": [
+                            {
+                                "kind": "Parameter",
+                                "name": "m",
+                                "type": {
+                                    "kind": "TypeReference",
+                                    "typeName": "Vec4"
                                 }
-                            ],
-                            "type": {
-                                "kind": "TypeReference",
-                                "typeName": "Vec4"
                             }
+                        ],
+                        "type": {
+                            "kind": "TypeReference",
+                            "typeName": "Vec4"
                         }
                     },
                     {
-                        "kind": "PropertySignature",
+                        "kind": "MethodSignature",
                         "name": "multVec3",
-                        "type": {
-                            "kind": "FunctionType",
-                            "parameters": [
-                                {
-                                    "kind": "Parameter",
-                                    "name": "m",
-                                    "type": {
-                                        "kind": "TypeReference",
-                                        "typeName": "Vec3"
-                                    }
+                        "parameters": [
+                            {
+                                "kind": "Parameter",
+                                "name": "m",
+                                "type": {
+                                    "kind": "TypeReference",
+                                    "typeName": "Vec3"
                                 }
-                            ],
-                            "type": {
-                                "kind": "TypeReference",
-                                "typeName": "Vec3"
                             }
+                        ],
+                        "type": {
+                            "kind": "TypeReference",
+                            "typeName": "Vec3"
                         }
                     },
                     {
-                        "kind": "PropertySignature",
+                        "kind": "MethodSignature",
                         "name": "multVec2",
-                        "type": {
-                            "kind": "FunctionType",
-                            "parameters": [
-                                {
-                                    "kind": "Parameter",
-                                    "name": "m",
-                                    "type": {
-                                        "kind": "TypeReference",
-                                        "typeName": "Vec2"
-                                    }
+                        "parameters": [
+                            {
+                                "kind": "Parameter",
+                                "name": "m",
+                                "type": {
+                                    "kind": "TypeReference",
+                                    "typeName": "Vec2"
                                 }
-                            ],
-                            "type": {
-                                "kind": "TypeReference",
-                                "typeName": "Vec2"
                             }
+                        ],
+                        "type": {
+                            "kind": "TypeReference",
+                            "typeName": "Vec2"
                         }
                     },
                     {
-                        "kind": "PropertySignature",
+                        "kind": "MethodSignature",
                         "name": "scale",
-                        "type": {
-                            "kind": "FunctionType",
-                            "parameters": [
-                                {
-                                    "kind": "Parameter",
-                                    "name": "s",
-                                    "type": {
-                                        "kind": "TypeReference",
-                                        "typeName": "Vec2"
-                                    }
+                        "parameters": [
+                            {
+                                "kind": "Parameter",
+                                "name": "s",
+                                "type": {
+                                    "kind": "TypeReference",
+                                    "typeName": "Vec2"
                                 }
-                            ],
-                            "type": {
-                                "kind": "TypeReference",
-                                "typeName": "Mat4"
                             }
+                        ],
+                        "type": {
+                            "kind": "TypeReference",
+                            "typeName": "Mat4"
                         }
                     },
                     {
-                        "kind": "PropertySignature",
+                        "kind": "MethodSignature",
                         "name": "translate",
-                        "type": {
-                            "kind": "FunctionType",
-                            "parameters": [
-                                {
-                                    "kind": "Parameter",
-                                    "name": "p",
-                                    "type": {
-                                        "kind": "TypeReference",
-                                        "typeName": "Vec2"
-                                    }
+                        "parameters": [
+                            {
+                                "kind": "Parameter",
+                                "name": "p",
+                                "type": {
+                                    "kind": "TypeReference",
+                                    "typeName": "Vec2"
                                 }
-                            ],
-                            "type": {
-                                "kind": "TypeReference",
-                                "typeName": "Mat4"
                             }
+                        ],
+                        "type": {
+                            "kind": "TypeReference",
+                            "typeName": "Mat4"
                         }
                     },
                     {
-                        "kind": "PropertySignature",
+                        "kind": "MethodSignature",
                         "name": "rotateX",
-                        "type": {
-                            "kind": "FunctionType",
-                            "parameters": [
-                                {
-                                    "kind": "Parameter",
-                                    "name": "a",
-                                    "type": {
-                                        "kind": "NumberKeyword"
-                                    }
+                        "parameters": [
+                            {
+                                "kind": "Parameter",
+                                "name": "a",
+                                "type": {
+                                    "kind": "NumberKeyword"
                                 }
-                            ],
-                            "type": {
-                                "kind": "TypeReference",
-                                "typeName": "Mat4"
                             }
+                        ],
+                        "type": {
+                            "kind": "TypeReference",
+                            "typeName": "Mat4"
                         }
                     },
                     {
-                        "kind": "PropertySignature",
+                        "kind": "MethodSignature",
                         "name": "rotateY",
-                        "type": {
-                            "kind": "FunctionType",
-                            "parameters": [
-                                {
-                                    "kind": "Parameter",
-                                    "name": "a",
-                                    "type": {
-                                        "kind": "NumberKeyword"
-                                    }
+                        "parameters": [
+                            {
+                                "kind": "Parameter",
+                                "name": "a",
+                                "type": {
+                                    "kind": "NumberKeyword"
                                 }
-                            ],
-                            "type": {
-                                "kind": "TypeReference",
-                                "typeName": "Mat4"
                             }
+                        ],
+                        "type": {
+                            "kind": "TypeReference",
+                            "typeName": "Mat4"
                         }
                     },
                     {
-                        "kind": "PropertySignature",
+                        "kind": "MethodSignature",
                         "name": "rotateZ",
-                        "type": {
-                            "kind": "FunctionType",
-                            "parameters": [
-                                {
-                                    "kind": "Parameter",
-                                    "name": "a",
-                                    "type": {
-                                        "kind": "NumberKeyword"
-                                    }
+                        "parameters": [
+                            {
+                                "kind": "Parameter",
+                                "name": "a",
+                                "type": {
+                                    "kind": "NumberKeyword"
                                 }
-                            ],
-                            "type": {
-                                "kind": "TypeReference",
-                                "typeName": "Mat4"
                             }
+                        ],
+                        "type": {
+                            "kind": "TypeReference",
+                            "typeName": "Mat4"
                         }
                     },
                     {
@@ -6666,43 +6564,37 @@
                         }
                     },
                     {
-                        "kind": "PropertySignature",
+                        "kind": "MethodSignature",
                         "name": "lighten",
-                        "type": {
-                            "kind": "FunctionType",
-                            "parameters": [
-                                {
-                                    "kind": "Parameter",
-                                    "name": "n",
-                                    "type": {
-                                        "kind": "NumberKeyword"
-                                    }
+                        "parameters": [
+                            {
+                                "kind": "Parameter",
+                                "name": "n",
+                                "type": {
+                                    "kind": "NumberKeyword"
                                 }
-                            ],
-                            "type": {
-                                "kind": "TypeReference",
-                                "typeName": "Color"
                             }
+                        ],
+                        "type": {
+                            "kind": "TypeReference",
+                            "typeName": "Color"
                         }
                     },
                     {
-                        "kind": "PropertySignature",
+                        "kind": "MethodSignature",
                         "name": "darken",
-                        "type": {
-                            "kind": "FunctionType",
-                            "parameters": [
-                                {
-                                    "kind": "Parameter",
-                                    "name": "n",
-                                    "type": {
-                                        "kind": "NumberKeyword"
-                                    }
+                        "parameters": [
+                            {
+                                "kind": "Parameter",
+                                "name": "n",
+                                "type": {
+                                    "kind": "NumberKeyword"
                                 }
-                            ],
-                            "type": {
-                                "kind": "TypeReference",
-                                "typeName": "Color"
                             }
+                        ],
+                        "type": {
+                            "kind": "TypeReference",
+                            "typeName": "Color"
                         }
                     },
                     {
@@ -6715,63 +6607,54 @@
                         }
                     },
                     {
-                        "kind": "PropertySignature",
+                        "kind": "MethodSignature",
                         "name": "isDark",
-                        "type": {
-                            "kind": "FunctionType",
-                            "parameters": [
-                                {
-                                    "kind": "Parameter",
-                                    "name": "p",
-                                    "type": {
-                                        "kind": "NumberKeyword"
-                                    },
-                                    "questionToken": true
-                                }
-                            ],
-                            "type": {
-                                "kind": "BooleanKeyword"
+                        "parameters": [
+                            {
+                                "kind": "Parameter",
+                                "name": "p",
+                                "type": {
+                                    "kind": "NumberKeyword"
+                                },
+                                "questionToken": true
                             }
+                        ],
+                        "type": {
+                            "kind": "BooleanKeyword"
                         }
                     },
                     {
-                        "kind": "PropertySignature",
+                        "kind": "MethodSignature",
                         "name": "isLight",
-                        "type": {
-                            "kind": "FunctionType",
-                            "parameters": [
-                                {
-                                    "kind": "Parameter",
-                                    "name": "p",
-                                    "type": {
-                                        "kind": "NumberKeyword"
-                                    },
-                                    "questionToken": true
-                                }
-                            ],
-                            "type": {
-                                "kind": "BooleanKeyword"
+                        "parameters": [
+                            {
+                                "kind": "Parameter",
+                                "name": "p",
+                                "type": {
+                                    "kind": "NumberKeyword"
+                                },
+                                "questionToken": true
                             }
+                        ],
+                        "type": {
+                            "kind": "BooleanKeyword"
                         }
                     },
                     {
-                        "kind": "PropertySignature",
+                        "kind": "MethodSignature",
                         "name": "eq",
-                        "type": {
-                            "kind": "FunctionType",
-                            "parameters": [
-                                {
-                                    "kind": "Parameter",
-                                    "name": "c",
-                                    "type": {
-                                        "kind": "TypeReference",
-                                        "typeName": "Color"
-                                    }
+                        "parameters": [
+                            {
+                                "kind": "Parameter",
+                                "name": "c",
+                                "type": {
+                                    "kind": "TypeReference",
+                                    "typeName": "Color"
                                 }
-                            ],
-                            "type": {
-                                "kind": "BooleanKeyword"
                             }
+                        ],
+                        "type": {
+                            "kind": "BooleanKeyword"
                         }
                     }
                 ]
@@ -6821,23 +6704,20 @@
                         }
                     },
                     {
-                        "kind": "PropertySignature",
+                        "kind": "MethodSignature",
                         "name": "eq",
-                        "type": {
-                            "kind": "FunctionType",
-                            "parameters": [
-                                {
-                                    "kind": "Parameter",
-                                    "name": "q",
-                                    "type": {
-                                        "kind": "TypeReference",
-                                        "typeName": "Quad"
-                                    }
+                        "parameters": [
+                            {
+                                "kind": "Parameter",
+                                "name": "q",
+                                "type": {
+                                    "kind": "TypeReference",
+                                    "typeName": "Quad"
                                 }
-                            ],
-                            "type": {
-                                "kind": "BooleanKeyword"
                             }
+                        ],
+                        "type": {
+                            "kind": "BooleanKeyword"
                         }
                     }
                 ]
@@ -7443,12 +7323,6 @@
                                 {
                                     "kind": "Parameter",
                                     "name": "args",
-                                    "type": {
-                                        "kind": "ArrayType",
-                                        "elementType": {
-                                            "kind": "AnyKeyword"
-                                        }
-                                    },
                                     "dotDotDotToken": {
                                         "kind": "DotDotDotToken"
                                     }
@@ -7531,6 +7405,20 @@
                 ]
             }
         },
+        "GameObjID": {
+            "kind": "TypeAliasDeclaration",
+            "name": "GameObjID",
+            "type": {
+                "kind": "NumberKeyword"
+            }
+        },
+        "TimerID": {
+            "kind": "TypeAliasDeclaration",
+            "name": "TimerID",
+            "type": {
+                "kind": "NumberKeyword"
+            }
+        },
         "Scene": {
             "kind": "TypeAliasDeclaration",
             "name": "Scene",
@@ -7546,12 +7434,6 @@
                                 {
                                     "kind": "Parameter",
                                     "name": "args",
-                                    "type": {
-                                        "kind": "ArrayType",
-                                        "elementType": {
-                                            "kind": "AnyKeyword"
-                                        }
-                                    },
                                     "dotDotDotToken": {
                                         "kind": "DotDotDotToken"
                                     }
@@ -7752,7 +7634,8 @@
                             "typeName": "Map",
                             "typeArguments": [
                                 {
-                                    "kind": "NumberKeyword"
+                                    "kind": "TypeReference",
+                                    "typeName": "GameObjID"
                                 },
                                 {
                                     "kind": "TypeReference",
@@ -7763,9 +7646,10 @@
                     },
                     {
                         "kind": "PropertySignature",
-                        "name": "lastID",
+                        "name": "lastObjID",
                         "type": {
-                            "kind": "NumberKeyword"
+                            "kind": "TypeReference",
+                            "typeName": "GameObjID"
                         }
                     },
                     {
@@ -7776,7 +7660,8 @@
                             "typeName": "Record",
                             "typeArguments": [
                                 {
-                                    "kind": "NumberKeyword"
+                                    "kind": "TypeReference",
+                                    "typeName": "TimerID"
                                 },
                                 {
                                     "kind": "TypeReference",
@@ -7789,7 +7674,8 @@
                         "kind": "PropertySignature",
                         "name": "lastTimerID",
                         "type": {
-                            "kind": "NumberKeyword"
+                            "kind": "TypeReference",
+                            "typeName": "TimerID"
                         }
                     },
                     {
@@ -9257,22 +9143,19 @@
                         }
                     },
                     {
-                        "kind": "PropertySignature",
+                        "kind": "MethodSignature",
                         "name": "jump",
-                        "type": {
-                            "kind": "FunctionType",
-                            "parameters": [
-                                {
-                                    "kind": "Parameter",
-                                    "name": "f",
-                                    "type": {
-                                        "kind": "NumberKeyword"
-                                    }
+                        "parameters": [
+                            {
+                                "kind": "Parameter",
+                                "name": "f",
+                                "type": {
+                                    "kind": "NumberKeyword"
                                 }
-                            ],
-                            "type": {
-                                "kind": "VoidKeyword"
                             }
+                        ],
+                        "type": {
+                            "kind": "VoidKeyword"
                         }
                     }
                 ]

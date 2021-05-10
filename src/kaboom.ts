@@ -218,7 +218,7 @@ function scene(name: string, cb: (...args) => void) {
 
 		// in game pool
 		objs: new Map(),
-		lastID: 0,
+		lastObjID: 0,
 		timers: {},
 		lastTimerID: 0,
 
@@ -407,7 +407,7 @@ function add(comps: Comp[]): GameObj {
 		hidden: false,
 		paused: false,
 		_tags: [],
-		_sceneID: null,
+		_id: null,
 
 		_events: {
 			add: [],
@@ -466,7 +466,7 @@ function add(comps: Comp[]): GameObj {
 
 		// if obj is current in scene
 		exists() {
-			return this._sceneID !== undefined;
+			return this._id !== undefined;
 		},
 
 		// if obj has certain tag
@@ -529,10 +529,10 @@ function add(comps: Comp[]): GameObj {
 	obj.use(comps);
 
 	const scene = curScene();
+	const id = scene.lastObjID++;
 
-	scene.objs.set(scene.lastID, obj);
-	obj._sceneID = scene.lastID;
-	scene.lastID++;
+	scene.objs.set(id, obj);
+	obj._id = id;
 
 	obj.trigger("add");
 
@@ -554,10 +554,10 @@ function readd(obj: GameObj): GameObj {
 
 	const scene = curScene();
 
-	scene.objs.delete(obj._sceneID);
-	scene.objs.set(scene.lastID, obj);
-	obj._sceneID = scene.lastID;
-	scene.lastID++;
+	scene.objs.delete(obj._id);
+	const id = scene.lastObjID++;
+	scene.objs.set(id, obj);
+	obj._id = id;
 
 	return obj;
 
@@ -644,7 +644,6 @@ function wait(t: number, f?: () => void): Promise<void> {
 	});
 }
 
-// TODO: return control handle
 // add an event that's run every t seconds
 function loop(t: number, f: () => void): LoopHandle {
 
@@ -773,8 +772,8 @@ function destroy(obj: GameObj) {
 	}
 
 	obj.trigger("destroy");
-	scene.objs.delete(obj._sceneID);
-	delete obj._sceneID;
+	scene.objs.delete(obj._id);
+	delete obj._id;
 
 }
 
@@ -1020,7 +1019,6 @@ function drawInspect() {
 
 }
 
-// TODO: put main event loop in app module
 // start the game with a scene
 function start(name: string, ...args: any[]) {
 
@@ -1031,7 +1029,6 @@ function start(name: string, ...args: any[]) {
 		if (!game.loaded) {
 
 			// if assets are not fully loaded, draw a progress bar
-
 			const progress = assets.loadProgress();
 
 			if (progress === 1) {
@@ -1042,11 +1039,11 @@ function start(name: string, ...args: any[]) {
 				}
 			} else {
 				const w = gfx.width() / 2;
-				const h = 12;
+				const h = 24 / gfx.scale();
 				const pos = vec2(gfx.width() / 2, gfx.height() / 2).sub(vec2(w / 2, h / 2));
-				const color = gfx.clearColor().isDark(0.7) ? rgb(1, 1, 1) : rgb(0, 0, 0);
-				gfx.drawRectStroke(pos, w, h, { width: 2, color: color, });
-				gfx.drawRect(pos, w * progress, h, { color: color, });
+				gfx.drawRect(vec2(0), gfx.width(), gfx.height(), { color: rgb(0, 0, 0), });
+				gfx.drawRectStroke(pos, w, h, { width: 4 / gfx.scale(), });
+				gfx.drawRect(pos, w * progress, h);
 			}
 
 		} else {
@@ -1267,6 +1264,7 @@ function area(p1: Vec2, p2: Vec2): AreaComp {
 			}, pt);
 		},
 
+		// TODO: make overlap events still trigger
 		// push object out of other solid objects
 		resolve(): CollisionResolve[] {
 
@@ -1337,12 +1335,12 @@ function area(p1: Vec2, p2: Vec2): AreaComp {
 				if (this === obj) {
 					return;
 				}
-				if (colliding[obj._sceneID]) {
+				if (colliding[obj._id]) {
 					return;
 				}
 				if (this.isCollided(obj)) {
 					f(obj);
-					colliding[obj._sceneID] = obj;
+					colliding[obj._id] = obj;
 				}
 			});
 
@@ -1362,12 +1360,12 @@ function area(p1: Vec2, p2: Vec2): AreaComp {
 				if (this === obj) {
 					return;
 				}
-				if (overlapping[obj._sceneID]) {
+				if (overlapping[obj._id]) {
 					return;
 				}
 				if (this.isOverlapped(obj)) {
 					f(obj);
-					overlapping[obj._sceneID] = obj;
+					overlapping[obj._id] = obj;
 				}
 			});
 

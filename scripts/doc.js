@@ -1,7 +1,7 @@
 const fs = require("fs");
 const ts = require("typescript");
 
-const dest = "site/types.json";
+const dest = "site/typeData.json";
 
 const f = ts.createSourceFile(
 	"types.ts",
