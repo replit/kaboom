@@ -1,0 +1,2 @@
+module.exports=r=>{function m(s,f,h){return new Promise((c,i)=>{let t=r.loadRoot()+h,l=r.newLoader();r.loadSprite(s,f).then(a=>{fetch(t).then(o=>o.json()).then(o=>{let n=o.meta.size;a.frames=o.frames.map(e=>r.quad(e.frame.x/n.w,e.frame.y/n.h,e.frame.w/n.w,e.frame.h/n.h));for(let e of o.meta.frameTags)a.anims[e.name]=[e.from,e.to];c(a)}).catch(()=>{error(`failed to load ${t}`),i()}).finally(()=>{l.done()})})})}return{loadAseprite:m}};
+//# sourceMappingURL=aseprite.min.cjs.map

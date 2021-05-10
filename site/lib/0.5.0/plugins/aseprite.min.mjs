@@ -1,0 +1,2 @@
+var u=(o,r)=>()=>(r||o((r={exports:{}}).exports,r),r.exports);var w=u((p,f)=>{f.exports=o=>{function r(m,h,c){return new Promise((i,l)=>{let s=o.loadRoot()+c,d=o.newLoader();o.loadSprite(m,h).then(t=>{fetch(s).then(n=>n.json()).then(n=>{let a=n.meta.size;t.frames=n.frames.map(e=>o.quad(e.frame.x/a.w,e.frame.y/a.h,e.frame.w/a.w,e.frame.h/a.h));for(let e of n.meta.frameTags)t.anims[e.name]=[e.from,e.to];i(t)}).catch(()=>{error(`failed to load ${s}`),l()}).finally(()=>{d.done()})})})}return{loadAseprite:r}}});export default w();
+//# sourceMappingURL=aseprite.min.mjs.map
