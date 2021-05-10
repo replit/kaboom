@@ -402,19 +402,19 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 
 		gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-//  		if (!gconf.clearColor) {
-//  			drawQuad({
-//  				width: width(),
-//  				height: height(),
-//  				quad: quad(
-//  					0,
-//  					0,
-//  					width() * scale() / BG_GRID_SIZE,
-//  					height() * scale() / BG_GRID_SIZE,
-//  				),
-//  				tex: gfx.bgTex,
-//  			})
-//  		}
+		if (!gconf.clearColor) {
+			drawQuad({
+				width: width(),
+				height: height(),
+				quad: quad(
+					0,
+					0,
+					width() * scale() / BG_GRID_SIZE,
+					height() * scale() / BG_GRID_SIZE,
+				),
+				tex: gfx.bgTex,
+			})
+		}
 
 		gfx.drawCalls = 0;
 		gfx.transformStack = [];

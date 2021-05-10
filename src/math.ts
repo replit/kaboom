@@ -418,30 +418,35 @@ const defRNG = makeRng(Date.now());
 function makeRng(seed: number): RNG {
 	return {
 		seed: seed,
-		gen(a?: RNGValue, b?: RNGValue): RNGValue {
-			if (isVec2(a) && isVec2(b)) {
-				return vec2(
-					this.gen(a.x, b.x),
-					this.gen(a.y, b.y),
-				);
-			} else if (isColor(a) && isColor(b)) {
-				return rgba(
-					this.gen(a.r, b.r),
-					this.gen(a.g, b.g),
-					this.gen(a.b, b.b),
-					this.gen(a.a, b.a),
-				);
-			} else if (a !== undefined) {
-				if (b === undefined) {
-					return this.gen() * a;
-				} else {
-					return this.gen() * (b - a) + a;
-				}
-			} else if (a === undefined && b === undefined) {
+		gen(...args) {
+			if (args.length === 0) {
+				// generate 0 - 1
 				this.seed = (A * this.seed + C) % M;
 				return this.seed / M;
-			} else {
-				throw new Error("invalid param to rand()");
+			} else if (args.length === 1) {
+				if (typeof args[0] === "number") {
+					return this.gen(0, args[0]);
+				} else if (isVec2(args[0])) {
+					return this.gen(vec2(0, 0), args[0]);
+				} else if (isColor(args[0])) {
+					return this.gen(rgba(0, 0, 0, 0), args[0]);
+				}
+			} else if (args.length === 2) {
+				if (typeof args[0] === "number" && typeof args[1] === "number") {
+					return this.gen() * (args[1] - args[0]) + args[0];
+				} else if (isVec2(args[0]) && isVec2(args[1])) {
+					return vec2(
+						this.gen(args[0].x, args[1].x),
+						this.gen(args[0].y, args[1].y),
+					);
+				} else if (isColor(args[0]) && isColor(args[1])) {
+					return rgba(
+						this.gen(args[0].r, args[1].r),
+						this.gen(args[0].g, args[1].g),
+						this.gen(args[0].b, args[1].b),
+						this.gen(args[0].a, args[1].a),
+					);
+				}
 			}
 		},
 	};
@@ -451,12 +456,13 @@ function randSeed(seed: number) {
 	defRNG.seed = seed;
 }
 
-function rand(a?: RNGValue, b?: RNGValue): RNGValue {
-	return defRNG.gen(a, b);
+function rand(...args) {
+	// @ts-ignore
+	return defRNG.gen(...args);
 }
 
 function chance(p: number): boolean {
-	return rand(0, 1) <= p;
+	return rand() <= p;
 }
 
 function choose<T>(list: T[]): T {

@@ -51,7 +51,7 @@ function renderTypeSig(type) {
 function renderNamedFunc(type) {
 	return `${type.name}(${renderParams(type.parameters)})${t("span", {
 		style: "color: #999999",
-	}, ": " + renderTypeSig(type.type))}`;
+	}, " => " + renderTypeSig(type.type))}`;
 }
 
 function typeLiteralEntries(members) {

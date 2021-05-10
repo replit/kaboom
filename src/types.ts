@@ -122,7 +122,9 @@ type KaboomCtx = {
 	volume(v?: number): number,
 	// math
 	makeRng(seed: number): RNG,
-	rand(a?: RNGValue, b?: RNGValue): RNGValue,
+	rand(): number,
+	rand<T extends RNGValue>(n: T): T,
+	rand<T extends RNGValue>(a: T, b: T): T,
 	randSeed(seed: number): void,
 	vec2(x: number, y: number): Vec2,
 	vec2(p: Vec2): Vec2,
@@ -659,12 +661,13 @@ type RNGValue =
 	number
 	| Vec2
 	| Color
-	| any
 	;
 
 type RNG = {
 	seed: number,
-	gen(a?: RNGValue, b?: RNGValue): RNGValue,
+	gen(): number,
+	gen<T extends RNGValue>(n: T): T,
+	gen<T extends RNGValue>(a: T, b: T): T,
 };
 
 type Rect = {

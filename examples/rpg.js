@@ -2,6 +2,7 @@ kaboom({
 	global: true,
 	fullscreen: true,
 	scale: 4,
+	clearColor: [0, 0, 0, 1],
 });
 
 loadRoot("/pub/examples/");
