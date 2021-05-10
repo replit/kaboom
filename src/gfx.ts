@@ -233,9 +233,11 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 
 		gl.linkProgram(id);
 
-		// TODO: fails on safari with no msg
 		if ((msg = gl.getProgramInfoLog(id))) {
-			throw new Error(msg);
+			// for some reason on safari it always has a "\n" msg
+			if (msg !== "\n") {
+				throw new Error(msg);
+			}
 		}
 
 		return {
