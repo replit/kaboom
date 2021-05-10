@@ -1,7 +1,0 @@
-{
-  "version": 3,
-  "sources": ["../../src/plugins/proggy.ts"],
-  "sourcesContent": ["// font proggy\n// http://upperbounds.net/\n\nmodule.exports = (k) => {\n\nfunction loadProggy() {\n\treturn k.loadFont(\n\t\t\"proggy\",\n\t\trequire(\"./proggy_7x13.png\"),\n\t\t7,\n\t\t13\n\t);\n}\n\nreturn {\n\tloadProggy,\n};\n\n};\n"],
-  "mappings": "uyFAGA,OAAO,QAAU,AAAC,GAAM,CAExB,YAAsB,CACrB,MAAO,GAAE,SACR,SACA,IACA,EACA,IAIF,MAAO,CACN",
-  "names": []
-}

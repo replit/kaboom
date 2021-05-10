@@ -1,7 +1,0 @@
-{
-  "version": 3,
-  "sources": ["../../src/plugins/04b03.ts"],
-  "sourcesContent": ["// font 04b03\n\nmodule.exports = (k) => {\n\nfunction load04b03() {\n\tk.loadFont(\n\t\t\"04b03\",\n\t\trequire(\"./04b03_6x8.png\"),\n\t\t6,\n\t\t8\n\t);\n}\n\nreturn {\n\tload04b03,\n};\n\n};\n"],
-  "mappings": "+sCAAA,gBAEA,EAAO,QAAU,AAAC,GAAM,CAExB,YAAqB,CACpB,EAAE,SACD,QACA,IACA,EACA,GAIF,MAAO,CACN",
-  "names": []
-}
