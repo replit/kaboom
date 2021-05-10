@@ -1,3 +1,4 @@
+const fs = require("fs");
 const path = require("path");
 const esbuild = require("esbuild");
 
@@ -45,4 +46,8 @@ files.forEach((file) => {
 			outfile: distPath,
 		});
 	});
+});
+
+fs.copyFile(`${srcDir}/types.ts`, `${distDir}/kaboom.d.ts`, () => {
+	console.log(`${srcDir}/types.ts -> ${distDir}/kaboom.d.ts`);
 });
