@@ -81,4 +81,5 @@ import kaboom from "https://kaboomjs.com/lib/dev/kaboom.mjs";
 
 ### Misc
 
-Featured on [Console 50](https://console.substack.com/p/console-50)
+- Featured on [Console 50](https://console.substack.com/p/console-50)
+- Shoutout to [Umayr](https://umayrshahid.com/) for kindly offering the "kaboom" npm package name
