@@ -36,7 +36,7 @@ type KaboomCtx = {
 	time(): number,
 	screenshot(): string,
 	// scene / obj
-	add(comps: any[]): GameObj,
+	add(comps: Comp[]): GameObj,
 	readd(obj: GameObj): GameObj,
 	destroy(obj: GameObj): void,
 	destroyAll(tag: string): void,

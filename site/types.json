@@ -352,7 +352,8 @@
                                 "type": {
                                     "kind": "ArrayType",
                                     "elementType": {
-                                        "kind": "AnyKeyword"
+                                        "kind": "TypeReference",
+                                        "typeName": "Comp"
                                     }
                                 }
                             }
