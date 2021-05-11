@@ -15,7 +15,7 @@
 - added `duration()` and `time()` for the handle returned by `play()`
 - added optional `seek` field to the audio play conf `play([conf])`
 - added `LoopHandle` returned by `loop()` that has a `stop()`
-- added basic color contrast detection when drawing loading bar
+- added a default background (can be dismissed by setting `clearColor`)
 - fixed `sound.pause()` to work on firefox
 - fixed collisions not treating explicit default layer the same as implicit default layer
 - fixed unable to play another anim in `onAnimEnd()`

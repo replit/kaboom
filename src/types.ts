@@ -98,7 +98,7 @@ type KaboomCtx = {
 	body(conf?: BodyCompConf): BodyComp,
 	shader(id: string): ShaderComp,
 	// inputs
-	cursor(c: string): void,
+	cursor(c?: string): void,
 	mousePos(layer?: string): Vec2,
 	keyDown(k: string, f: () => void): void,
 	keyPress(k: string, f: () => void): void,
@@ -151,8 +151,8 @@ type KaboomCtx = {
 		h2: number,
 	): number,
 	wave(lo: number, hi: number, t: number): number,
-	deg2rad(degrees: number): number,
-	rad2deg(degrees: number): number,
+	deg2rad(deg: number): number,
+	rad2deg(rad: number): number,
 	// draw
 	drawSprite(id: string | SpriteData, conf?: DrawSpriteConf): void,
 	// TODO: conf type
@@ -387,12 +387,6 @@ type Origin =
 	| "botright"
 	;
 
-type GfxConf = {
-	clearColor?: Color,
-	scale?: number,
-	texFilter?: TexFilter,
-};
-
 type DrawSpriteConf = {
 	frame?: number,
 	pos?: Vec2,
@@ -499,31 +493,7 @@ type Line = {
 	p2: Vec2,
 };
 
-type Net = {
-	connect(): Promise<WebSocket>,
-	close(): void,
-	connected(): boolean,
-	recv(type: string, handler: MsgHandler): void,
-	send(type: string, data: any): void,
-};
-
 type MsgHandler = (data: any, id: number) => void;
-
-type Log = {
-	type: "info" | "error",
-	msg: string,
-};
-
-type LoggerConf = {
-	max?: number,
-};
-
-type Logger = {
-	draw(): void,
-	info(msg: string): void,
-	error(msg: string): void,
-	clear(): void,
-};
 
 type Comp = any;
 

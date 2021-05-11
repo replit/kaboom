@@ -47,7 +47,3 @@ files.forEach((file) => {
 		});
 	});
 });
-
-fs.copyFile(`${srcDir}/types.ts`, `${distDir}/kaboom.d.ts`, () => {
-	console.log(`${srcDir}/types.ts -> ${distDir}/kaboom.d.ts`);
-});

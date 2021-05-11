@@ -190,7 +190,6 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 		const c = gconf.clearColor ?? rgba(0, 0, 0, 1);
 
 		gl.clearColor(c.r, c.g, c.b, c.a);
-		gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 		gl.enable(gl.DEPTH_TEST);
 		gl.enable(gl.BLEND);
 		gl.depthFunc(gl.LEQUAL);
@@ -236,6 +235,9 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 		};
 
 	})();
+
+	frameStart();
+	frameEnd();
 
 	function powerOfTwo(n) {
 		return (Math.log(n) / Math.log(2)) % 1 === 0;

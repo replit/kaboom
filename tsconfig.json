@@ -1,7 +1,6 @@
 {
 	"compilerOptions": {
-		"target": "esnext",
-		"typeRoots": ["./src/types.ts"]
+		"target": "esnext"
 	},
 	"include": [
 		"src/**/*.ts"
