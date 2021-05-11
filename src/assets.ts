@@ -122,14 +122,16 @@ function assetsInit(gfx: Gfx, audio: Audio, gconf: AssetsConf = {}): Assets {
 			conf: SpriteLoadConf = {
 				sliceX: 1,
 				sliceY: 1,
+				gridWidth: 0,
+				gridHeight: 0,
 				anims: {},
 			},
 		) {
 
 			const frames = [];
 			const tex = gfx.makeTex(src);
-			const sliceX = conf.sliceX || 1;
-			const sliceY = conf.sliceY || 1;
+			const sliceX = conf.sliceX || tex.width / (conf.gridWidth || tex.width);
+			const sliceY = conf.sliceY || tex.height / (conf.gridHeight || tex.height);
 			const qw = 1 / sliceX;
 			const qh = 1 / sliceY;
 

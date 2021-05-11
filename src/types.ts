@@ -214,6 +214,8 @@ type SpriteAnim = {
 type SpriteLoadConf = {
 	sliceX?: number,
 	sliceY?: number,
+	gridWidth?: number,
+	gridHeight?: number,
 	anims?: Record<string, SpriteAnim>,
 };
 

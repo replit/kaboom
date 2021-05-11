@@ -128,17 +128,14 @@ function play(id: string, conf: AudioPlayConf = {}): AudioPlay {
 	return audio.play(sound, conf);
 }
 
+function isCamLayer(layer?: string): boolean {
+	const scene = curScene();
+	return !scene.cam.ignore.includes(layer ?? scene.defLayer);
+}
+
 // check input state last frame
 function mousePos(layer?: string): Vec2 {
-
-	const scene = curScene();
-
-	if (Object.keys(scene.layers).length === 0) {
-		return scene.cam.mpos;
-	} else {
-		return scene.cam.ignore.includes(layer ?? scene.defLayer) ? app.mousePos() : scene.cam.mpos;
-	}
-
+	return isCamLayer(layer) ? curScene().cam.mpos : app.mousePos();
 }
 
 function drawSprite(
@@ -380,25 +377,6 @@ function camIgnore(layers: string[]) {
 	const cam = curScene().cam;
 	cam.ignore = layers;
 }
-
-//  type CompDef = {
-//  	id: string,
-//  	require: string[],
-//  	def: () => Comp,
-//  };
-
-//  const compReg: Record<string, CompDef> = {};
-
-//  function defComp(id: string, require: string[], def: () => Comp) {
-//  	if (compReg[id]) {
-//  		throw new Error(`comp already exists: ${id}`);
-//  	}
-//  	compReg[id] = {
-//  		id: id,
-//  		require,
-//  		def,
-//  	};
-//  }
 
 function add(comps: Comp[]): GameObj {
 
@@ -852,7 +830,7 @@ function gameFrame(ignorePause?: boolean) {
 
 			gfx.pushTransform();
 
-			if (!cam.ignore.includes(obj.layer)) {
+			if (isCamLayer(obj.layer)) {
 				gfx.pushMatrix(cam.matrix);
 			}
 
@@ -926,13 +904,15 @@ function drawInspect() {
 
 	const scene = curScene();
 	let hasHovered = false;
-	const scale = gfx.scale() * ((scene.cam.scale.x + scene.cam.scale.y) / 2);
 	const font = assets.defFont();
 	const color = rgba(gconf.inspectColor ?? [0, 1, 1, 1]);
-	const padding = vec2(6, 6).scale(1 / scale);
 	const textSize = 12;
 
 	revery((obj) => {
+
+		const isCam = isCamLayer(obj.layer);
+		const scale = gfx.scale() * (isCam ? (scene.cam.scale.x + scene.cam.scale.y) / 2 : 1);
+		const padding = vec2(4).scale(1 / scale);
 
 		if (!obj.area) {
 			return;
@@ -944,7 +924,7 @@ function drawInspect() {
 
 		gfx.pushTransform();
 
-		if (!scene.cam.ignore.includes(obj.layer)) {
+		if (isCam) {
 			gfx.pushMatrix(scene.cam.matrix);
 		}
 
@@ -1487,7 +1467,9 @@ function sprite(id: string, conf: SpriteCompConf = {}): SpriteComp {
 						this.stop();
 					}
 				}
-				curAnim.timer -= this.animSpeed;
+				if (curAnim) {
+					curAnim.timer -= this.animSpeed;
+				}
 			}
 
 		},
