@@ -152,6 +152,7 @@ scene("main", () => {
 	});
 
 	const score = add([
+		text(0),
 		pos(12, 12),
 		layer("ui"),
 		{ value: 0, },

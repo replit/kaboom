@@ -497,16 +497,6 @@ type MsgHandler = (data: any, id: number) => void;
 
 type Comp = any;
 
-type Camera = {
-	pos: Vec2,
-	scale: Vec2,
-	angle: number,
-	shake: number,
-	ignore: string[],
-	mpos: Vec2,
-	matrix: Mat4,
-};
-
 type GameObjID = number;
 type AddEvent = () => void;
 type DrawEvent = () => void;

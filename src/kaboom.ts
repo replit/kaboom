@@ -133,7 +133,7 @@ function play(id: string, conf: AudioPlayConf = {}): AudioPlay {
 
 function isCamLayer(layer?: string): boolean {
 	const scene = curScene();
-	return !scene.cam.ignore.includes(layer ?? scene.defLayer);
+	return !scene.layers[layer ?? scene.defLayer]?.noCam;
 }
 
 // check input state last frame
@@ -224,10 +224,25 @@ type Scene = {
 	lastTimerID: TimerID,
 	cam: Camera,
 	gravity: number,
-	layers: Record<string, number>,
+	layers: Record<string, Layer>,
 	defLayer: string | null,
 	data: any,
 };
+
+type Camera = {
+	pos: Vec2,
+	scale: Vec2,
+	angle: number,
+	shake: number,
+	mpos: Vec2,
+	matrix: Mat4,
+};
+
+type Layer = {
+	order: number,
+	noCam: boolean,
+	alpha: number,
+}
 
 type TaggedEvent = {
 	tag: string,
@@ -293,7 +308,6 @@ function scene(name: string, cb: (...args) => void) {
 			scale: vec2(1, 1),
 			angle: 0,
 			shake: 0,
-			ignore: [],
 			mpos: vec2(0),
 			matrix: mat4(),
 		},
@@ -400,10 +414,12 @@ function layers(list: string[], def?: string) {
 		return;
 	}
 
-	const each = 0.5 / list.length;
-
-	list.forEach((name, i) => {
-		scene.layers[name] = 0.5 + each * i;
+	list.forEach((name, idx) => {
+		scene.layers[name] = {
+			alpha: 1,
+			order: idx,
+			noCam: false,
+		};
 	});
 
 	if (def) {
@@ -442,8 +458,12 @@ function camShake(intensity: number) {
 }
 
 function camIgnore(layers: string[]) {
-	const cam = curScene().cam;
-	cam.ignore = layers;
+	const scene = curScene();
+	layers.forEach((name) => {
+		if (scene.layers[name]) {
+			scene.layers[name].noCam = true;
+		}
+	})
 }
 
 function add(comps: Comp[]): GameObj {
@@ -772,11 +792,16 @@ function mouseRelease(f: () => void) {
 	});
 }
 
+// TODO: cache sorted list
 // get all objects with tag
 function get(t?: string): GameObj[] {
 
 	const scene = curScene();
-	const objs = [...scene.objs.values()];
+	const objs = [...scene.objs.values()].sort((o1, o2) => {
+		const l1 = scene.layers[o1.layer ?? scene.defLayer]?.order ?? 0;
+		const l2 = scene.layers[o2.layer ?? scene.defLayer]?.order ?? 0;
+		return l1 >= l2 ? 1 : -1;
+	});
 
 	if (!t) {
 		return objs;
@@ -1509,7 +1534,6 @@ function sprite(id: string, conf: SpriteCompConf = {}): SpriteComp {
 				quad: this.quad,
 				prog: assets.shaders[this.shader],
 				uniform: this.uniform,
-				z: scene.layers[this.layer ?? scene.defLayer],
 			});
 
 		},
@@ -1647,7 +1671,6 @@ function text(t: string, size: number, conf: TextCompConf = {}): TextComp {
 					origin: this.origin,
 					color: this.color,
 					width: conf.width,
-					z: scene.layers[this.layer ?? scene.defLayer],
 				});
 				this.width = ftext.width / (this.scale?.x || 1);
 				this.height = ftext.height / (this.scale?.y || 1);
@@ -1668,7 +1691,6 @@ function text(t: string, size: number, conf: TextCompConf = {}): TextComp {
 				origin: this.origin,
 				color: this.color,
 				width: conf.width,
-				z: scene.layers[this.layer ?? scene.defLayer],
 			});
 
 			this.width = ftext.width;
@@ -1709,7 +1731,6 @@ function rect(
 				rot: this.angle,
 				color: this.color,
 				origin: this.origin,
-				z: scene.layers[this.layer ?? scene.defLayer],
 				prog: assets.shaders[this.shader],
 				uniform: this.uniform,
 			});
