@@ -49,13 +49,13 @@ function loggerInit(gfx: Gfx, assets: Assets, conf: LoggerConf = {
 
 		logs.forEach((log, i) => {
 
-			const alpha = map(i, 0, max, 1, 0.2);
-			const alpha2 = map(i, 0, max, 0.8, 0.2);
+			const txtAlpha = map(i, 0, max, 1, 0.5);
+			const bgAlpha = map(i, 0, max, 0.8, 0.2);
 
 			const col = (() => {
 				switch (log.type) {
-					case "info": return rgba(1, 1, 1, alpha);
-					case "error": return rgba(1, 0, 0.5, alpha);
+					case "info": return rgba(1, 1, 1, txtAlpha);
+					case "error": return rgba(1, 0, 0.5, txtAlpha);
 				}
 			})();
 
@@ -70,7 +70,7 @@ function loggerInit(gfx: Gfx, assets: Assets, conf: LoggerConf = {
 
 			gfx.drawRect(pos, ftext.width, ftext.height, {
 				origin: "botleft",
-				color: rgba(0, 0, 0, alpha2),
+				color: rgba(0, 0, 0, bgAlpha),
 				z: 1,
 			});
 
