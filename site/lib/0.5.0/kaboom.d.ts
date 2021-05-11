@@ -497,16 +497,6 @@ export type MsgHandler = (data: any, id: number) => void;
 
 export type Comp = any;
 
-export type Camera = {
-	pos: Vec2,
-	scale: Vec2,
-	angle: number,
-	shake: number,
-	ignore: string[],
-	mpos: Vec2,
-	matrix: Mat4,
-};
-
 export type GameObjID = number;
 export type AddEvent = () => void;
 export type DrawEvent = () => void;

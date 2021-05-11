@@ -81,6 +81,9 @@ function audioInit(): Audio {
 		const handle = {
 
 			stop() {
+				if (stopped) {
+					return;
+				}
 				this.pause();
 				startTime = audio.ctx.currentTime;
 			},
@@ -114,6 +117,9 @@ function audioInit(): Audio {
 			},
 
 			pause() {
+				if (stopped) {
+					return;
+				}
 				srcNode.stop();
 				stopped = true;
 				stopTime = audio.ctx.currentTime;

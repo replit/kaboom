@@ -417,7 +417,7 @@ function layers(list: string[], def?: string) {
 	list.forEach((name, idx) => {
 		scene.layers[name] = {
 			alpha: 1,
-			order: idx,
+			order: idx + 1,
 			noCam: false,
 		};
 	});
@@ -798,9 +798,9 @@ function get(t?: string): GameObj[] {
 
 	const scene = curScene();
 	const objs = [...scene.objs.values()].sort((o1, o2) => {
-		const l1 = scene.layers[o1.layer ?? scene.defLayer]?.order ?? 0;
+		const l1 = scene.layers[o1.layer ?? scene.defLayer]?.order ?? 0;;
 		const l2 = scene.layers[o2.layer ?? scene.defLayer]?.order ?? 0;
-		return l1 >= l2 ? 1 : -1;
+		return l1 - l2;
 	});
 
 	if (!t) {
