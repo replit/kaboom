@@ -165,7 +165,7 @@ function audioInit(): Audio {
 			},
 
 			time(): number {
-				if (stopped && stopTime) {
+				if (stopped) {
 					return stopTime - startTime;
 				} else {
 					return audio.ctx.currentTime - startTime;
