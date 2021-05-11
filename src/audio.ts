@@ -2,6 +2,18 @@ import {
 	clamp,
 } from "./math";
 
+type AudioCtx = {
+	ctx: AudioContext,
+	gainNode: GainNode,
+	masterNode: AudioNode,
+};
+
+type Audio = {
+	ctx(): AudioContext,
+	volume(v: number): number,
+	play(sound: AudioBuffer, conf?: AudioPlayConf): AudioPlay,
+};
+
 const MIN_GAIN = 0;
 const MAX_GAIN = 3;
 const MIN_SPEED = 0;
@@ -183,5 +195,6 @@ function audioInit(): Audio {
 }
 
 export {
+	Audio,
 	audioInit,
 };

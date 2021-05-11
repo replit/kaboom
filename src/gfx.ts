@@ -14,6 +14,83 @@ import {
 	deepEq,
 } from "./utils";
 
+type GfxCtx = {
+	vbuf: WebGLBuffer,
+	ibuf: WebGLBuffer,
+	vqueue: number[],
+	iqueue: number[],
+	clearColor: Color,
+	defProg: GfxProgram,
+	curProg: GfxProgram,
+	defTex: GfxTexture,
+	curTex: GfxTexture,
+	bgTex: GfxTexture,
+	curUniform: Uniform,
+	transform: Mat4,
+	transformStack: Mat4[],
+	drawCalls: number,
+	lastDrawCalls: number,
+};
+
+type GfxConf = {
+	clearColor?: Color,
+	scale?: number,
+	texFilter?: TexFilter,
+};
+
+type Gfx = {
+	width(): number,
+	height(): number,
+	scale(): number,
+	clearColor(): Color,
+	makeTex(data: GfxTextureData): GfxTexture,
+	makeProgram(vert: string, frag: string): GfxProgram,
+	makeFont(
+		tex: GfxTexture,
+		gw: number,
+		gh: number,
+		chars: string,
+	): GfxFont,
+	drawTexture(
+		tex: GfxTexture,
+		conf?: DrawTextureConf,
+	): void,
+	drawText(
+		txt: string,
+		font: GfxFont,
+		conf?: DrawTextConf,
+	): void,
+	drawFmtText(ftext: FormattedText): void,
+	fmtText(
+		txt: string,
+		font: GfxFont,
+		conf?: DrawTextConf,
+	): FormattedText,
+	drawRect(
+		pos: Vec2,
+		w: number,
+		h: number,
+		conf?: DrawRectConf,
+	): void,
+	drawRectStroke(
+		pos: Vec2,
+		w: number,
+		h: number,
+		conf?: DrawRectStrokeConf,
+	): void,
+	drawLine(
+		p1: Vec2,
+		p2: Vec2,
+		conf?: DrawLineConf,
+	): void,
+	frameStart(): void,
+	frameEnd(): void,
+	pushTransform(): void,
+	popTransform(): void,
+	pushMatrix(m: Mat4): void,
+	drawCalls(): number,
+};
+
 const DEF_ORIGIN = "topleft";
 const STRIDE = 9;
 const QUEUE_COUNT = 65536;
@@ -759,6 +836,7 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 }
 
 export {
+	Gfx,
 	originPt,
 	gfxInit,
 };

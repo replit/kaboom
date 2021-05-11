@@ -6,6 +6,10 @@
 	"repository": "github:replit/kaboom",
 	"browser": "dist/kaboom.js",
 	"types": "dist/kaboom.d.ts",
+	"exports": {
+		"import": "./dist/kaboom.mjs",
+		"require": "./dist/kaboom.cjs"
+	},
 	"keywords": [
 		"game",
 		"gamedev"

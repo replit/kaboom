@@ -4,6 +4,30 @@ import {
 	map,
 } from "./math";
 
+import {
+	Assets,
+} from "./assets";
+
+import {
+	Gfx,
+} from "./gfx";
+
+type Log = {
+	type: "info" | "error",
+	msg: string,
+};
+
+type LoggerConf = {
+	max?: number,
+};
+
+type Logger = {
+	draw(): void,
+	info(msg: string): void,
+	error(msg: string): void,
+	clear(): void,
+};
+
 const LOG_SIZE = 16;
 
 function loggerInit(gfx: Gfx, assets: Assets, conf: LoggerConf = {

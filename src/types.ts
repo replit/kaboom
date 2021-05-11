@@ -92,7 +92,7 @@ type KaboomCtx = {
 	layer(l: string): LayerComp,
 	area(p1: Vec2, p2: Vec2): AreaComp,
 	sprite(id: string, conf?: SpriteCompConf): SpriteComp,
-	text(t: string, size: number, conf?: TextCompConf): TextComp,
+	text(t: string, size?: number, conf?: TextCompConf): TextComp,
 	rect(w: number, h: number, conf?: RectCompConf): RectComp,
 	solid(): SolidComp,
 	body(conf?: BodyCompConf): BodyComp,
@@ -211,6 +211,8 @@ type SpriteAnim = {
 	to: number,
 };
 
+type KaboomPlugin = (k: KaboomCtx) => Record<string, any>;
+
 type SpriteLoadConf = {
 	sliceX?: number,
 	sliceY?: number,
@@ -230,108 +232,6 @@ type SpriteData = {
 type SoundData = AudioBuffer;
 type FontData = GfxFont;
 type ShaderData = GfxProgram;
-
-type AssetsConf = {
-	errHandler?: (err: string) => void,
-};
-
-type Assets = {
-	loadRoot(path: string): string,
-	loadSprite(
-		name: string,
-		src: SpriteLoadSrc,
-		conf?: SpriteLoadConf,
-	): Promise<SpriteData>,
-	loadSound(
-		name: string,
-		src: string,
-	): Promise<SoundData>,
-	loadFont(
-		name: string,
-		src: string,
-		gw: number,
-		gh: number,
-		chars?: string,
-	): Promise<FontData>,
-	loadShader(
-		name: string,
-		vert?: string,
-		frag?: string,
-		isUrl?: boolean,
-	): Promise<ShaderData>,
-	loadProgress(): number,
-	addLoader<T>(prom: Promise<T>): void,
-	defFont(): FontData,
-	sprites: Record<string, SpriteData>,
-	fonts: Record<string, FontData>,
-	sounds: Record<string, SoundData>,
-	shaders: Record<string, ShaderData>,
-};
-
-type LoaderID = number;
-
-type AssetsCtx = {
-	lastLoaderID: LoaderID,
-	loadRoot: string,
-	loaders: Record<number, boolean>,
-	sprites: Record<string, SpriteData>,
-	sounds: Record<string, SoundData>,
-	fonts: Record<string, FontData>,
-	shaders: Record<string, ShaderData>,
-};
-
-type ButtonState =
-	"up"
-	| "pressed"
-	| "rpressed"
-	| "down"
-	| "released"
-	;
-
-type AppConf = {
-	width?: number,
-	height?: number,
-	scale?: number,
-	fullscreen?: boolean,
-	crisp?: boolean,
-	canvas?: HTMLCanvasElement,
-	root?: HTMLElement,
-};
-
-type AppCtx = {
-	canvas: HTMLCanvasElement,
-	mousePos: Vec2,
-	mouseState: ButtonState,
-	keyStates: Record<string, ButtonState>,
-	charInputted: string[],
-	time: number,
-	dt: number,
-	realTime: number,
-	skipTime: boolean,
-	scale: number,
-	isTouch: boolean,
-	loopID: number | null,
-	stopped: boolean,
-};
-
-type App = {
-	gl: WebGLRenderingContext,
-	mousePos(): Vec2,
-	keyDown(k: string): boolean,
-	keyPressed(k: string): boolean,
-	keyPressedRep(k: string): boolean,
-	keyReleased(k: string): boolean,
-	mouseDown(): boolean,
-	mouseClicked(): boolean,
-	mouseReleased(): boolean,
-	charInputted(): string[],
-	cursor(c: string): void,
-	dt(): number,
-	time(): number,
-	screenshot(): string,
-	run(f: () => void): void,
-	quit(): void,
-};
 
 type AudioPlayConf = {
 	loop?: boolean,
@@ -354,18 +254,6 @@ type AudioPlay = {
 	duration(): number,
 	loop(): void,
 	unloop(): void,
-};
-
-type AudioCtx = {
-	ctx: AudioContext,
-	gainNode: GainNode,
-	masterNode: AudioNode,
-};
-
-type Audio = {
-	ctx(): AudioContext,
-	volume(v: number): number,
-	play(sound: AudioBuffer, conf?: AudioPlayConf): AudioPlay,
 };
 
 type GfxProgram = {
@@ -403,24 +291,6 @@ type Vertex = {
 };
 
 type TexFilter = "nearest" | "linear";
-
-type GfxCtx = {
-	vbuf: WebGLBuffer,
-	ibuf: WebGLBuffer,
-	vqueue: number[],
-	iqueue: number[],
-	clearColor: Color,
-	defProg: GfxProgram,
-	curProg: GfxProgram,
-	defTex: GfxTexture,
-	curTex: GfxTexture,
-	bgTex: GfxTexture,
-	curUniform: Uniform,
-	transform: Mat4,
-	transformStack: Mat4[],
-	drawCalls: number,
-	lastDrawCalls: number,
-};
 
 type DrawQuadConf = {
 	pos?: Vec2,
@@ -522,61 +392,6 @@ type GfxConf = {
 	scale?: number,
 	texFilter?: TexFilter,
 };
-
-type Gfx = {
-	width(): number,
-	height(): number,
-	scale(): number,
-	clearColor(): Color,
-	makeTex(data: GfxTextureData): GfxTexture,
-	makeProgram(vert: string, frag: string): GfxProgram,
-	makeFont(
-		tex: GfxTexture,
-		gw: number,
-		gh: number,
-		chars: string,
-	): GfxFont,
-	drawTexture(
-		tex: GfxTexture,
-		conf?: DrawTextureConf,
-	): void,
-	drawText(
-		txt: string,
-		font: GfxFont,
-		conf?: DrawTextConf,
-	): void,
-	drawFmtText(ftext: FormattedText): void,
-	fmtText(
-		txt: string,
-		font: GfxFont,
-		conf?: DrawTextConf,
-	): FormattedText,
-	drawRect(
-		pos: Vec2,
-		w: number,
-		h: number,
-		conf?: DrawRectConf,
-	): void,
-	drawRectStroke(
-		pos: Vec2,
-		w: number,
-		h: number,
-		conf?: DrawRectStrokeConf,
-	): void,
-	drawLine(
-		p1: Vec2,
-		p2: Vec2,
-		conf?: DrawLineConf,
-	): void,
-	frameStart(): void,
-	frameEnd(): void,
-	pushTransform(): void,
-	popTransform(): void,
-	pushMatrix(m: Mat4): void,
-	drawCalls(): number,
-};
-
-type KaboomPlugin = (k: KaboomCtx) => Record<string, any>;
 
 type DrawSpriteConf = {
 	frame?: number,
@@ -712,23 +527,6 @@ type Logger = {
 
 type Comp = any;
 
-type Game = {
-	loaded: boolean,
-	scenes: Record<string, Scene>,
-	curScene: string | null,
-	nextScene: SceneSwitch | null,
-};
-
-type SceneSwitch = {
-	name: string,
-	args: any[],
-};
-
-type Timer = {
-	time: number,
-	cb(): void,
-};
-
 type Camera = {
 	pos: Vec2,
 	scale: Vec2,
@@ -739,57 +537,7 @@ type Camera = {
 	matrix: Mat4,
 };
 
-type TaggedEvent = {
-	tag: string,
-	cb: (...args) => void,
-};
-
-type KeyInputEvent = {
-	key: string,
-	cb(): void,
-};
-
-type MouseInputEvent = {
-	cb(): void,
-};
-
-type CharInputEvent = {
-	cb: (ch: string) => void,
-};
-
 type GameObjID = number;
-type TimerID = number;
-
-type Scene = {
-	init: (...args) => void,
-	initialized: boolean,
-	events: {
-		add: TaggedEvent[],
-		update: TaggedEvent[],
-		draw: TaggedEvent[],
-		destroy: TaggedEvent[],
-		keyDown: KeyInputEvent[],
-		keyPress: KeyInputEvent[],
-		keyPressRep: KeyInputEvent[],
-		keyRelease: KeyInputEvent[],
-		mouseClick: MouseInputEvent[],
-		mouseRelease: MouseInputEvent[],
-		mouseDown: MouseInputEvent[],
-		charInput: CharInputEvent[],
-	},
-	action: Array<() => void>,
-	render: Array<() => void>,
-	objs: Map<GameObjID, GameObj>,
-	lastObjID: GameObjID,
-	timers: Record<TimerID, Timer>,
-	lastTimerID: TimerID,
-	cam: Camera,
-	gravity: number,
-	layers: Record<string, number>,
-	defLayer: string | null,
-	data: any,
-};
-
 type AddEvent = () => void;
 type DrawEvent = () => void;
 type UpdateEvent = () => void;

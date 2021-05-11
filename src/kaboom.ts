@@ -45,8 +45,11 @@ import {
 } from "./logger";
 
 import {
+	Net,
 	netInit,
 } from "./net";
+
+type TimerID = number;
 
 // @ts-ignore
 module.exports = (gconf: KaboomConf = {
@@ -178,6 +181,71 @@ function drawText(
 
 const DEF_GRAVITY = 980;
 const DEF_ORIGIN = "topleft";
+
+type Timer = {
+	time: number,
+	cb(): void,
+};
+
+type Game = {
+	loaded: boolean,
+	scenes: Record<string, Scene>,
+	curScene: string | null,
+	nextScene: SceneSwitch | null,
+};
+
+type SceneSwitch = {
+	name: string,
+	args: any[],
+};
+
+type Scene = {
+	init: (...args) => void,
+	initialized: boolean,
+	events: {
+		add: TaggedEvent[],
+		update: TaggedEvent[],
+		draw: TaggedEvent[],
+		destroy: TaggedEvent[],
+		keyDown: KeyInputEvent[],
+		keyPress: KeyInputEvent[],
+		keyPressRep: KeyInputEvent[],
+		keyRelease: KeyInputEvent[],
+		mouseClick: MouseInputEvent[],
+		mouseRelease: MouseInputEvent[],
+		mouseDown: MouseInputEvent[],
+		charInput: CharInputEvent[],
+	},
+	action: Array<() => void>,
+	render: Array<() => void>,
+	objs: Map<GameObjID, GameObj>,
+	lastObjID: GameObjID,
+	timers: Record<TimerID, Timer>,
+	lastTimerID: TimerID,
+	cam: Camera,
+	gravity: number,
+	layers: Record<string, number>,
+	defLayer: string | null,
+	data: any,
+};
+
+type TaggedEvent = {
+	tag: string,
+	cb: (...args) => void,
+};
+
+type KeyInputEvent = {
+	key: string,
+	cb(): void,
+};
+
+type MouseInputEvent = {
+	cb(): void,
+};
+
+type CharInputEvent = {
+	cb: (ch: string) => void,
+};
 
 const game: Game = {
 	loaded: false,

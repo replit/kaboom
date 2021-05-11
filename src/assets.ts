@@ -2,8 +2,65 @@ import {
 	quad,
 } from "./math";
 
+import {
+	Audio,
+} from "./audio";
+
+import {
+	Gfx,
+} from "./gfx";
+
 // @ts-ignore
 import unsciiSrc from "./assets/unscii_8x8.png";
+
+type AssetsConf = {
+	errHandler?: (err: string) => void,
+};
+
+type LoaderID = number;
+
+type AssetsCtx = {
+	lastLoaderID: LoaderID,
+	loadRoot: string,
+	loaders: Record<number, boolean>,
+	sprites: Record<string, SpriteData>,
+	sounds: Record<string, SoundData>,
+	fonts: Record<string, FontData>,
+	shaders: Record<string, ShaderData>,
+};
+
+type Assets = {
+	loadRoot(path: string): string,
+	loadSprite(
+		name: string,
+		src: SpriteLoadSrc,
+		conf?: SpriteLoadConf,
+	): Promise<SpriteData>,
+	loadSound(
+		name: string,
+		src: string,
+	): Promise<SoundData>,
+	loadFont(
+		name: string,
+		src: string,
+		gw: number,
+		gh: number,
+		chars?: string,
+	): Promise<FontData>,
+	loadShader(
+		name: string,
+		vert?: string,
+		frag?: string,
+		isUrl?: boolean,
+	): Promise<ShaderData>,
+	loadProgress(): number,
+	addLoader<T>(prom: Promise<T>): void,
+	defFont(): FontData,
+	sprites: Record<string, SpriteData>,
+	fonts: Record<string, FontData>,
+	sounds: Record<string, SoundData>,
+	shaders: Record<string, ShaderData>,
+};
 
 const ASCII_CHARS = " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~";
 const DEF_FONT = "unscii";
@@ -320,6 +377,8 @@ function assetsInit(gfx: Gfx, audio: Audio, gconf: AssetsConf = {}): Assets {
 }
 
 export {
+	AssetsConf,
+	Assets,
 	assetsInit,
 	DEF_FONT,
 };
