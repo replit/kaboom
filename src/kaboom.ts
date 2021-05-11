@@ -996,16 +996,41 @@ function handleEvents() {
 function drawInspect() {
 
 	const scene = curScene();
-	let hasHovered = false;
+	let inspecting = null;
 	const font = assets.defFont();
-	const color = rgba(gconf.inspectColor ?? [0, 1, 1, 1]);
-	const textSize = 12;
+	const lcolor = rgba(gconf.inspectColor ?? [0, 1, 1, 1]);
 
-	revery((obj) => {
+	function drawInspectTxt(pos, txt, scale) {
 
+		const pad = vec2(4).scale(1 / scale);
+
+		const ftxt = gfx.fmtText(txt, font, {
+			size: 12 / scale,
+			pos: pos.add(vec2(pad.x, pad.y)),
+		});
+
+		gfx.drawRect(pos, ftxt.width + pad.x * 2, ftxt.height + pad.x * 2, {
+			color: rgba(0, 0, 0, 1),
+		});
+
+		gfx.drawFmtText(ftxt);
+
+	}
+
+	function drawObj(obj, f) {
 		const isCam = isCamLayer(obj.layer);
 		const scale = gfx.scale() * (isCam ? (scene.cam.scale.x + scene.cam.scale.y) / 2 : 1);
-		const padding = vec2(4).scale(1 / scale);
+		if (isCam) {
+			gfx.pushTransform();
+			gfx.pushMatrix(scene.cam.matrix);
+		}
+		f(scale);
+		if (isCam) {
+			gfx.popTransform();
+		}
+	}
+
+	revery((obj) => {
 
 		if (!obj.area) {
 			return;
@@ -1015,80 +1040,53 @@ function drawInspect() {
 			return;
 		}
 
-		gfx.pushTransform();
+		drawObj(obj, (scale) => {
 
-		if (isCam) {
-			gfx.pushMatrix(scene.cam.matrix);
-		}
-
-		let hovered = false;
-
-		if (obj.isHovered() && !hasHovered) {
-			hovered = true;
-			hasHovered = true;
-		}
-
-		const lwidth = (hovered ? 6 : 2) / scale;
-		const a = obj._worldArea();
-		const w = a.p2.x - a.p1.x;
-		const h = a.p2.y - a.p1.y;
-
-		gfx.drawRectStroke(a.p1, w, h, {
-			width: lwidth,
-			color: color,
-			z: 0.9,
-		});
-
-		if (hovered) {
-
-			const mpos = mousePos(obj.layer);
-			let bw = 0;
-			let bh = 0;
-			const lines = [];
-
-			const addLine = (txt) => {
-				const ftxt = gfx.fmtText(txt, font, {
-					size: textSize / scale,
-					pos: mpos.add(vec2(padding.x, padding.y + bh)),
-					z: 1,
-				});
-				lines.push(ftxt);
-				bw = ftxt.width > bw ? ftxt.width : bw;
-				bh += ftxt.height;
-			};
-
-			for (const tag of obj._tags) {
-				addLine(`"${tag}"`);
-			}
-
-			for (const inspect of obj._events.inspect) {
-
-				const info = inspect();
-
-				for (const field in info) {
-					addLine(`${field}: ${info[field]}`);
+			if (!inspecting) {
+				if (obj.isHovered()) {
+					inspecting = obj;
 				}
-
 			}
 
-			bw += padding.x * 2;
-			bh += padding.y * 2;
+			const lwidth = (inspecting === obj ? 6 : 2) / scale;
+			const a = obj._worldArea();
+			const w = a.p2.x - a.p1.x;
+			const h = a.p2.y - a.p1.y;
 
-			// background
-			gfx.drawRect(mpos, bw, bh, {
-				color: rgba(0, 0, 0, 1),
-				z: 1,
+			gfx.drawRectStroke(a.p1, w, h, {
+				width: lwidth,
+				color: lcolor,
 			});
 
-			for (const line of lines) {
-				gfx.drawFmtText(line);
-			}
-
-		}
-
-		gfx.popTransform();
+		});
 
 	});
+
+	if (inspecting) {
+
+		drawObj(inspecting, (scale) => {
+
+			const mpos = mousePos(inspecting.layer);
+			const lines = [];
+
+			for (const tag of inspecting._tags) {
+				lines.push(`"${tag}"`);
+			}
+
+			for (const inspect of inspecting._events.inspect) {
+				const info = inspect();
+				for (const field in info) {
+					lines.push(`${field}: ${info[field]}`);
+				}
+			}
+
+			drawInspectTxt(mpos, lines.join("\n"), scale);
+
+		});
+
+	}
+
+	drawInspectTxt(vec2(0), app.fps() + "", gfx.scale());
 
 }
 
@@ -1217,9 +1215,9 @@ function origin(o: Origin | Vec2): OriginComp {
 	};
 }
 
-function layer(z: string): LayerComp {
+function layer(l: string): LayerComp {
 	return {
-		layer: z,
+		layer: l,
 		inspect(): LayerCompInspect {
 			const scene = curScene();
 			return {
@@ -1841,9 +1839,7 @@ const debug: Debug = {
 	inspect: false,
 	timeScale: 1,
 	showLog: true,
-	fps(): number {
-		return 1.0 / app.dt();
-	},
+	fps: app.fps,
 	objCount(): number {
 		return curScene().objs.size;
 	},

@@ -34,6 +34,9 @@ type AppCtx = {
 	isTouch: boolean,
 	loopID: number | null,
 	stopped: boolean,
+	fps: number,
+	fpsBuf: number[],
+	fpsTimer: number,
 };
 
 type App = {
@@ -49,6 +52,7 @@ type App = {
 	charInputted(): string[],
 	cursor(c?: string): void,
 	dt(): number,
+	fps(): number,
 	time(): number,
 	screenshot(): string,
 	run(f: () => void): void,
@@ -85,6 +89,9 @@ function appInit(gconf: AppConf = {}): App {
 		isTouch: false,
 		loopID: null,
 		stopped: false,
+		fps: 0,
+		fpsBuf: [],
+		fpsTimer: 0,
 	};
 
 	const keyMap = {
@@ -265,6 +272,10 @@ function appInit(gconf: AppConf = {}): App {
 		return app.time;
 	}
 
+	function fps(): number {
+		return app.fps;
+	}
+
 	// get a base64 png image of canvas
 	function screenshot(): string {
 		return app.canvas.toDataURL();
@@ -289,6 +300,13 @@ function appInit(gconf: AppConf = {}): App {
 			if (!app.skipTime) {
 				app.dt = realDt;
 				app.time += app.dt;
+				app.fpsBuf.push(1 / app.dt);
+				app.fpsTimer += app.dt;
+				if (app.fpsTimer >= 1) {
+					app.fpsTimer = 0;
+					app.fps = Math.round(app.fpsBuf.reduce((a, b) => a + b) / app.fpsBuf.length);
+					app.fpsBuf = [];
+				}
 			}
 
 			app.skipTime = false;
@@ -331,6 +349,7 @@ function appInit(gconf: AppConf = {}): App {
 		cursor,
 		dt,
 		time,
+		fps,
 		screenshot,
 		run,
 		quit,

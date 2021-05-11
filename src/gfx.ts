@@ -190,9 +190,7 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 		const c = gconf.clearColor ?? rgba(0, 0, 0, 1);
 
 		gl.clearColor(c.r, c.g, c.b, c.a);
-		gl.enable(gl.DEPTH_TEST);
 		gl.enable(gl.BLEND);
-		gl.depthFunc(gl.LEQUAL);
 		gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
 
 		const vbuf = gl.createBuffer();
