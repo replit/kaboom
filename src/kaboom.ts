@@ -378,7 +378,7 @@ function go(name: string, ...args) {
 	};
 }
 
-function goSync(name: string, ...args: any[]) {
+function goSync(name: string, ...args) {
 	reload(name);
 	game.curScene = name;
 	const scene = game.scenes[name];
@@ -1091,7 +1091,7 @@ function drawInspect() {
 }
 
 // start the game with a scene
-function start(name: string, ...args: any[]) {
+function start(name: string, ...args) {
 
 	app.run(() => {
 
@@ -1185,7 +1185,10 @@ function pos(...args): PosComp {
 }
 
 // TODO: allow single number assignment
-function scale(...args: any[]): ScaleComp {
+function scale(...args): ScaleComp {
+	if (args.length === 0) {
+		return scale(1);
+	}
 	return {
 		scale: vec2(...args),
 		flipX(s: number) {
@@ -1199,11 +1202,11 @@ function scale(...args: any[]): ScaleComp {
 
 function rotate(r: number): RotateComp {
 	return {
-		angle: r,
+		angle: r ?? 0,
 	};
 }
 
-function color(...args: any[]): ColorComp {
+function color(...args): ColorComp {
 	return {
 		color: rgba(...args),
 	};
@@ -1860,7 +1863,7 @@ function addLevel(map: string[], conf: LevelConf): Level {
 
 	const level = {
 
-		getPos(...args: any[]): Vec2 {
+		getPos(...args): Vec2 {
 			const p = vec2(...args);
 			return vec2(
 				offset.x + p.x * conf.width,
