@@ -89,6 +89,8 @@ scene("main", () => {
 		]);
 	}
 
+	car.pos = get("platform")[0].pos.sub(0, car.height);
+
 	function genCoin() {
 		const plat = choose(get("platform"));
 		add([
