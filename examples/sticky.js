@@ -10,6 +10,7 @@ loadSprite("car", "img/car2.png");
 loadSprite("coin", "img/coin.png");
 loadSprite("grass", "img/grass.png");
 loadSprite("spike", "img/spike2.png");
+loadSound("coin", "sounds/coin.mp3");
 
 const PLAYER_SPEED = 120;
 const JUMP_FORCE = 240;
@@ -116,11 +117,12 @@ scene("main", () => {
 	}
 
 	car.collides("danger", () => {
-		throw new Error("you died! (yes we have on screen error message now)");
+		go("main");
 	});
 
 	car.collides("coin", (c) => {
 		destroy(c);
+		play("coin");
 		score.value += 1;
 		score.text = score.value;
 		genCoin();
