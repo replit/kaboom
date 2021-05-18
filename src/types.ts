@@ -177,7 +177,7 @@ type KaboomConf = {
 	root?: HTMLElement,
 	clearColor?: number[],
 	inspectColor?: number[],
-	texFilter: TexFilter,
+	texFilter?: TexFilter,
 	logMax?: number,
 	connect?: string,
 	global?: boolean,

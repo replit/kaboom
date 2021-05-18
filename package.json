@@ -7,8 +7,14 @@
 	"browser": "dist/kaboom.js",
 	"types": "dist/kaboom.d.ts",
 	"exports": {
-		"import": "./dist/kaboom.mjs",
-		"require": "./dist/kaboom.cjs"
+		".": {
+			"import": "./dist/kaboom.mjs",
+			"require": "./dist/kaboom.cjs"
+		},
+		"./*": {
+			"import": "./dist/plugins/*.mjs",
+			"require": "./dist/plugins/*.cjs"
+		}
 	},
 	"keywords": [
 		"game",
