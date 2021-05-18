@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["../../src/plugins/proggy.ts"],
+  "sourcesContent": ["// font proggy\n// http://upperbounds.net/\n\n// @ts-ignore\nimport proggySrc from \"./proggy_7x13.png\";\n\n// @ts-ignore\nmodule.exports = (k: KaboomCtx) => {\n\nfunction loadProggy(): Promise<FontData> {\n\treturn k.loadFont(\n\t\t\"proggy\",\n\t\tproggySrc,\n\t\t7,\n\t\t13\n\t);\n}\n\nreturn {\n\tloadProggy,\n};\n\n};\n"],
+  "mappings": "44FAAA,gBAIA,IAGA,EAAO,QAAU,AAAC,GAAiB,CAEnC,YAAyC,CACxC,MAAO,GAAE,SACR,SACA,EACA,EACA,IALO,yBASF,CACN",
+  "names": []
+}
