@@ -4,11 +4,22 @@ kaboom({
 	height: 120,
 	scale: 4,
 	debug: true,
-	plugins: [ asepritePlugin, ],
 });
 
 loadRoot("/pub/examples/");
-loadAseprite("car", "img/car.png", "img/car.json");
+loadSprite("car", "img/car.png", {
+	sliceX: 3,
+	anims: {
+		move: {
+			from: 0,
+			to: 1,
+		},
+		idle: {
+			from: 2,
+			to: 2,
+		},
+	},
+});
 loadSprite("sky", "img/sky.png");
 loadSprite("road", "img/road.png");
 loadSprite("apple", "img/apple.png");

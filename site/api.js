@@ -167,8 +167,14 @@ loadSprite("froggy", "froggy.png", {
 	sliceX: 4,
 	sliceY: 1,
 	anims: {
-		run: [0, 2],
-		jump: [3],
+		run: {
+			from: 0,
+			to: 3,
+		},
+		jump: {
+			from: 3,
+			to: 3,
+		},
 	},
 });
 			`),
