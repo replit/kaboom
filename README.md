@@ -4,10 +4,10 @@ Kaboom.js is a JavaScript library that helps you make games fast and fun!
 
 Check out our official [website](https://kaboomjs.com/)!
 
-### Example
+## Example
 
 ```html
-<script src="https://kaboomjs.com/lib/0.5.0/kaboom.js"></script>
+<script src="https://kaboomjs.com/lib/0.5.1/kaboom.js"></script>
 <script type="module">
 
 // initialize kaboom context
@@ -32,10 +32,14 @@ k.start("main");
 
 You can paste this directly into an `html` file and start playing around!
 
-### Usage
+## Usage
+
+### cdn
+
+1. self hosted
 
 ```html
-<script src="https://kaboomjs.com/lib/@version/kaboom.js"></script>
+<script src="https://kaboomjs.com/lib/0.5.1/kaboom.js"></script>
 ```
 
 All available version tags can be found in CHANGELOG.md, or Github releases.
@@ -44,7 +48,16 @@ Special Version Tags:
 - `dev`: current master with the newest unreleased features / fixes, but not guaranteed to be stable
 - `latest`: latest release
 
-The script will expose a `window.kaboom` function to initialize a kaboom context, returning an object containing
+2. third party
+
+kaboom is on npm thus supported by most js lib CDN providers
+
+```html
+<script src="https://unpkg.com/kaboom@0.5.1/dist/kaboom.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/kaboom@0.5.0/dist/kaboom.js"></script>
+```
+
+When imported in browser, the script will expose a global `kaboom` function to initialize a kaboom context, returning an object containing all the functions
 
 ```js
 const k = kaboom();
@@ -69,10 +82,39 @@ start(...);
 Kaboom also provide ES module and commonJS module exports with `.mjs` and `.cjs`, e.g,
 
 ```js
-import kaboom from "https://kaboomjs.com/lib/dev/kaboom.mjs";
+import kaboom from "https://kaboomjs.com/lib/0.5.1/kaboom.mjs";
 ```
 
-### Dev
+### npm package
+
+```
+$ npm install kaboom
+```
+
+```ts
+// main.ts
+import kaboom, { Vec2, GameObj, } from "kaboom";
+import asepritePlugin from "kaboom/plugins/aseprite";
+
+const k = kaboom({
+	plugins: [ asepritePlugin, ],
+});
+
+function spawnBullet(p: Vec2): GameObj {
+	return k.add([
+		k.pos(p),
+		k.sprite("bullet"),
+	]);
+}
+```
+
+also works with cjs
+
+```js
+const kaboom = require("kaboom");
+```
+
+## Dev
 
 1. `npm run dev` to watch & build lib
 1. go to http://localhost:8000/examples

@@ -2,6 +2,9 @@
 - added `loadShader(id, vert, frag, isUrl)`
 - added `shader()` comp for attaching custom shader to an obj
 
+### v0.5.1
+- added plugins npm package support e.g. `import asepritePlugin from "kaboom/plugins/aseprite"`
+
 # v0.5.0 "Sticky Type"
 - platforms are now sticky
 - moved to TypeScript
