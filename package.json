@@ -11,7 +11,7 @@
 			"import": "./dist/kaboom.mjs",
 			"require": "./dist/kaboom.cjs"
 		},
-		"./*": {
+		"./plugins/*": {
 			"import": "./dist/plugins/*.mjs",
 			"require": "./dist/plugins/*.cjs"
 		}
