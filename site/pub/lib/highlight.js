@@ -147,7 +147,7 @@ this.unknownLanguage=!0,r(this.code);let t={}
 ;return this.autoDetect?(t=e.highlightAuto(this.code),
 this.detectedLanguage=t.language):(t=e.highlight(this.language,this.code,this.ignoreIllegals),
 this.detectedLanguage=this.language),t.value},autoDetect(){
-return!(this.language&&(e=this.autodetect,!e&&""!==e));var e},
+var e;return!(this.language&&(e=this.autodetect,!e&&""!==e));},
 ignoreIllegals:()=>!0},render(e){return e("pre",{},[e("code",{
 class:this.className,domProps:{innerHTML:this.highlighted}})])}};return{
 Component:t,VuePlugin:{install(e){e.component("highlightjs",t)}}}}const P={
@@ -271,10 +271,10 @@ e[n]&&e[n](t)}))}
 "undefined"!=typeof window&&window.addEventListener&&window.addEventListener("DOMContentLoaded",(()=>{
 N=!0,w&&y()}),!1),Object.assign(e,{highlight:h,highlightAuto:p,highlightAll:y,
 fixMarkup:e=>{
-return $("10.2.0","fixMarkup will be removed entirely in v11.0"),$("10.2.0","Please see https://github.com/highlightjs/highlight.js/issues/2534"),
+var t;return $("10.2.0","fixMarkup will be removed entirely in v11.0"),$("10.2.0","Please see https://github.com/highlightjs/highlight.js/issues/2534"),
 t=e,
 g.tabReplace||g.useBR?t.replace(o,(e=>"\n"===e?g.useBR?"<br>":e:g.tabReplace?e.replace(/\t/g,g.tabReplace):e)):t
-;var t},highlightBlock:E,configure:e=>{
+;},highlightBlock:E,configure:e=>{
 e.useBR&&($("10.3.0","'useBR' will be removed entirely in v11.0"),
 $("10.3.0","Please see https://github.com/highlightjs/highlight.js/issues/2559")),
 g=K(g,e)},initHighlighting:v,initHighlightingOnLoad:()=>{
@@ -324,7 +324,7 @@ contains:[{className:"name",begin:t,relevance:0},{begin:/>/,relevance:0}]}]}}
 })());hljs.registerLanguage("javascript",(()=>{"use strict"
 ;const e="[A-Za-z$_][0-9A-Za-z$_]*",n=["as","in","of","if","for","while","finally","var","new","function","do","return","void","else","break","catch","instanceof","with","throw","case","default","try","switch","continue","typeof","delete","let","yield","const","class","debugger","async","await","static","import","from","export","extends"],a=["true","false","null","undefined","NaN","Infinity"],s=[].concat(["setInterval","setTimeout","clearInterval","clearTimeout","require","exports","eval","isFinite","isNaN","parseFloat","parseInt","decodeURI","decodeURIComponent","encodeURI","encodeURIComponent","escape","unescape"],["arguments","this","super","console","window","document","localStorage","module","global"],["Intl","DataView","Number","Math","Date","String","RegExp","Object","Function","Boolean","Error","Symbol","Set","Map","WeakSet","WeakMap","Proxy","Reflect","JSON","Promise","Float64Array","Int16Array","Int32Array","Int8Array","Uint16Array","Uint32Array","Float32Array","Array","Uint8Array","Uint8ClampedArray","ArrayBuffer"],["EvalError","InternalError","RangeError","ReferenceError","SyntaxError","TypeError","URIError"])
 ;function r(e){return t("(?=",e,")")}function t(...e){return e.map((e=>{
-return(n=e)?"string"==typeof n?n:n.source:null;var n})).join("")}return i=>{
+var n;return(n=e)?"string"==typeof n?n:n.source:null;})).join("")}return i=>{
 const c=e,o={begin:/<[A-Za-z0-9\\._:-]+/,end:/\/[A-Za-z0-9\\._:-]+>|\/>/,
 isTrulyOpeningTag:(e,n)=>{const a=e[0].length+e.index,s=e.input[a]
 ;"<"!==s?">"===s&&(((e,{after:n})=>{const a="</"+e[0].slice(1)
