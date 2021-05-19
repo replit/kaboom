@@ -57,7 +57,7 @@ kaboom is on npm thus supported by most js lib CDN providers
 <script src="https://cdn.jsdelivr.net/npm/kaboom@0.5.0/dist/kaboom.js"></script>
 ```
 
-When imported in browser, the script will expose a global `kaboom` function to initialize a kaboom context, returning an object containing all the functions
+When imported in the browser, the script will expose a global `kaboom` function to initialize a kaboom context, returning an object containing all the functions
 
 ```js
 const k = kaboom();
@@ -67,7 +67,7 @@ k.scene(...);
 k.start(...);
 ```
 
-You can also import all functions to global namespace by giving a `global` flag
+You can also import all functions to the global namespace by giving a `global` flag
 
 ```js
 kaboom({
@@ -119,7 +119,7 @@ const kaboom = require("kaboom");
 1. `npm run dev` to watch & build lib
 1. go to http://localhost:8000/examples
 1. edit examples in `examples/` to test
-1. make sure not breaking any existing examples
+1. make sure not to break any existing examples
 
 ### Misc
 
