@@ -991,9 +991,84 @@
                     {
                         "kind": "MethodSignature",
                         "name": "sceneData",
-                        "parameters": [],
+                        "parameters": [
+                            {
+                                "kind": "Parameter",
+                                "name": "id",
+                                "type": {
+                                    "kind": "StringKeyword"
+                                }
+                            },
+                            {
+                                "kind": "Parameter",
+                                "name": "val",
+                                "type": {
+                                    "kind": "AnyKeyword"
+                                },
+                                "questionToken": true
+                            }
+                        ],
                         "type": {
                             "kind": "AnyKeyword"
+                        }
+                    },
+                    {
+                        "kind": "MethodSignature",
+                        "name": "defComp",
+                        "parameters": [
+                            {
+                                "kind": "Parameter",
+                                "name": "id",
+                                "type": {
+                                    "kind": "StringKeyword"
+                                }
+                            },
+                            {
+                                "kind": "Parameter",
+                                "name": "requires",
+                                "type": {
+                                    "kind": "ArrayType",
+                                    "elementType": {
+                                        "kind": "StringKeyword"
+                                    }
+                                }
+                            },
+                            {
+                                "kind": "Parameter",
+                                "name": "cb",
+                                "type": {
+                                    "kind": "FunctionType",
+                                    "parameters": [
+                                        {
+                                            "kind": "Parameter",
+                                            "name": "args",
+                                            "dotDotDotToken": {
+                                                "kind": "DotDotDotToken"
+                                            }
+                                        }
+                                    ],
+                                    "type": {
+                                        "kind": "TypeReference",
+                                        "typeName": "Comp"
+                                    }
+                                }
+                            }
+                        ],
+                        "type": {
+                            "kind": "FunctionType",
+                            "parameters": [
+                                {
+                                    "kind": "Parameter",
+                                    "name": "args",
+                                    "dotDotDotToken": {
+                                        "kind": "DotDotDotToken"
+                                    }
+                                }
+                            ],
+                            "type": {
+                                "kind": "TypeReference",
+                                "typeName": "Comp"
+                            }
                         }
                     },
                     {
@@ -1002,7 +1077,7 @@
                         "parameters": [
                             {
                                 "kind": "Parameter",
-                                "name": "type",
+                                "name": "ty",
                                 "type": {
                                     "kind": "StringKeyword"
                                 }
@@ -1026,7 +1101,7 @@
                         "parameters": [
                             {
                                 "kind": "Parameter",
-                                "name": "type",
+                                "name": "ty",
                                 "type": {
                                     "kind": "StringKeyword"
                                 }
@@ -2708,7 +2783,8 @@
                         "type": {
                             "kind": "TypeReference",
                             "typeName": "TexFilter"
-                        }
+                        },
+                        "questionToken": true
                     },
                     {
                         "kind": "PropertySignature",
@@ -5377,71 +5453,6 @@
                 "kind": "AnyKeyword"
             }
         },
-        "Camera": {
-            "kind": "TypeAliasDeclaration",
-            "name": "Camera",
-            "type": {
-                "kind": "TypeLiteral",
-                "members": [
-                    {
-                        "kind": "PropertySignature",
-                        "name": "pos",
-                        "type": {
-                            "kind": "TypeReference",
-                            "typeName": "Vec2"
-                        }
-                    },
-                    {
-                        "kind": "PropertySignature",
-                        "name": "scale",
-                        "type": {
-                            "kind": "TypeReference",
-                            "typeName": "Vec2"
-                        }
-                    },
-                    {
-                        "kind": "PropertySignature",
-                        "name": "angle",
-                        "type": {
-                            "kind": "NumberKeyword"
-                        }
-                    },
-                    {
-                        "kind": "PropertySignature",
-                        "name": "shake",
-                        "type": {
-                            "kind": "NumberKeyword"
-                        }
-                    },
-                    {
-                        "kind": "PropertySignature",
-                        "name": "ignore",
-                        "type": {
-                            "kind": "ArrayType",
-                            "elementType": {
-                                "kind": "StringKeyword"
-                            }
-                        }
-                    },
-                    {
-                        "kind": "PropertySignature",
-                        "name": "mpos",
-                        "type": {
-                            "kind": "TypeReference",
-                            "typeName": "Vec2"
-                        }
-                    },
-                    {
-                        "kind": "PropertySignature",
-                        "name": "matrix",
-                        "type": {
-                            "kind": "TypeReference",
-                            "typeName": "Mat4"
-                        }
-                    }
-                ]
-            }
-        },
         "GameObjID": {
             "kind": "TypeAliasDeclaration",
             "name": "GameObjID",
@@ -5561,6 +5572,15 @@
                         ],
                         "type": {
                             "kind": "VoidKeyword"
+                        }
+                    },
+                    {
+                        "kind": "MethodSignature",
+                        "name": "screenPos",
+                        "parameters": [],
+                        "type": {
+                            "kind": "TypeReference",
+                            "typeName": "Vec2"
                         }
                     },
                     {
@@ -6609,6 +6629,31 @@
                         "parameters": [],
                         "type": {
                             "kind": "NumberKeyword"
+                        }
+                    },
+                    {
+                        "kind": "MethodSignature",
+                        "name": "gridWidth",
+                        "parameters": [],
+                        "type": {
+                            "kind": "NumberKeyword"
+                        }
+                    },
+                    {
+                        "kind": "MethodSignature",
+                        "name": "gridHeight",
+                        "parameters": [],
+                        "type": {
+                            "kind": "NumberKeyword"
+                        }
+                    },
+                    {
+                        "kind": "MethodSignature",
+                        "name": "offset",
+                        "parameters": [],
+                        "type": {
+                            "kind": "TypeReference",
+                            "typeName": "Vec2"
                         }
                     },
                     {

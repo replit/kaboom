@@ -77,11 +77,10 @@ scene("main", () => {
 		sprite("car"),
 		pos(map.getPos(1, 0)),
 		scale(1),
-		body(),
+		body({ jumpForce: 320, }),
 		origin("center"),
 		{
 			speed: 160,
-			jumpForce: 320,
 		},
 	]);
 

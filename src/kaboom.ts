@@ -192,6 +192,7 @@ type Game = {
 	scenes: Record<string, Scene>,
 	curScene: string | null,
 	nextScene: SceneSwitch | null,
+	compReg: Record<string, () => Comp>,
 };
 
 type SceneSwitch = {
@@ -267,6 +268,7 @@ const game: Game = {
 	scenes: {},
 	curScene: null,
 	nextScene: null,
+	compReg: {},
 };
 
 // start describing a scene (this should be called before start())
@@ -328,8 +330,11 @@ function curScene(): Scene {
 }
 
 // custom data kv store for scene
-function sceneData(): any {
-	return curScene().data;
+function sceneData(id: string, val?: any): any {
+	if (val) {
+		curScene().data[id]
+	}
+	return curScene().data[id];
 }
 
 // register inputs for controlling debug features
@@ -467,7 +472,39 @@ function camIgnore(layers: string[]) {
 	})
 }
 
+// define a component with its dependencies and state builder
+function defComp(
+	id: string,
+	deps: string[],
+	cb: (...args) => Comp
+): (...args) => Comp {
+	const comp = (...args) => {
+		const state = cb(...args);
+		return {
+			...state,
+			add() {
+				// TODO: sprite(), rect(), and text() adds area() also on add(), which we can't catch here and will result in error if they're defined after this comp
+				// check comp depsments
+				for (const dep of deps) {
+					if (!this.c(dep)) {
+						throw new Error(`comp '${id}' requires comp '${dep}'`);
+					}
+				}
+				if (typeof state.add === "function") {
+					state.add.call(this);
+				}
+			},
+			_id: id,
+		};
+	};
+	game.compReg[id] = comp;
+	return comp;
+}
+
 function add(comps: Comp[]): GameObj {
+
+	const compStates = {};
+	const selfState = {};
 
 	const obj: GameObj = {
 
@@ -491,6 +528,14 @@ function add(comps: Comp[]): GameObj {
 				return;
 			}
 
+			// multi comps
+			if (Array.isArray(comp)) {
+				for (const c of comp) {
+					this.use(c);
+				}
+				return;
+			}
+
 			const type = typeof comp;
 
 			// tags
@@ -503,32 +548,47 @@ function add(comps: Comp[]): GameObj {
 				throw new Error(`invalid comp type: ${type}`);
 			}
 
-			// multi comps
-			if (Array.isArray(comp)) {
-				for (const c of comp) {
-					this.use(c);
-				}
-				return;
+			let stateContainer = selfState;
+
+			if (comp._id) {
+				compStates[comp._id] = {};
+				stateContainer = compStates[comp._id];
 			}
 
 			for (const k in comp) {
+
+				if (k === "_id") {
+					continue;
+				}
 
 				// event / custom method
 				if (typeof comp[k] === "function") {
 					if (this._events[k]) {
 						this._events[k].push(comp[k].bind(this));
+						continue;
 					} else {
-						this[k] = comp[k].bind(this);
+						stateContainer[k] = comp[k].bind(this);
 					}
-					continue;
+				} else {
+					stateContainer[k] = comp[k];
 				}
 
-				// TODO: deal with getter / setters
 				// fields
-				this[k] = comp[k];
+				Object.defineProperty(this, k, {
+					get() {
+						return stateContainer[k];
+					},
+					set(val) {
+						stateContainer[k] = val;
+					},
+				});
 
 			}
 
+		},
+
+		c(id: string): Comp {
+			return compStates[id];
 		},
 
 		// if obj is current in scene
@@ -1158,7 +1218,7 @@ function start(name: string, ...args) {
 }
 
 // TODO: have velocity here?
-function pos(...args): PosComp {
+const pos = defComp("pos", [], (...args) => {
 
 	return {
 
@@ -1188,10 +1248,10 @@ function pos(...args): PosComp {
 
 	};
 
-}
+});
 
 // TODO: allow single number assignment
-function scale(...args): ScaleComp {
+const scale = defComp("scale", [], (...args) => {
 	if (args.length === 0) {
 		return scale(1);
 	}
@@ -1204,27 +1264,27 @@ function scale(...args): ScaleComp {
 			this.scale.y = Math.sign(s) * Math.abs(this.scale.y);
 		},
 	};
-}
+});
 
-function rotate(r: number): RotateComp {
+const rotate = defComp("rotate", [], (r: number) => {
 	return {
 		angle: r ?? 0,
 	};
-}
+});
 
-function color(...args): ColorComp {
+const color = defComp("color", [], (...args) => {
 	return {
 		color: rgba(...args),
 	};
-}
+});
 
-function origin(o: Origin | Vec2): OriginComp {
+const origin = defComp("origin", [], (o: Origin | Vec2) => {
 	return {
 		origin: o,
 	};
-}
+});
 
-function layer(l: string): LayerComp {
+const layer = defComp("layer", [], (l: string) => {
 	return {
 		layer: l,
 		inspect(): LayerCompInspect {
@@ -1234,7 +1294,7 @@ function layer(l: string): LayerComp {
 			};
 		},
 	};
-}
+});
 
 function isSameLayer(o1: GameObj, o2: GameObj): boolean {
 	const scene = curScene();
@@ -1244,7 +1304,7 @@ function isSameLayer(o1: GameObj, o2: GameObj): boolean {
 // TODO: active flag
 // TODO: tell which size collides
 // TODO: dynamic update when size change
-function area(p1: Vec2, p2: Vec2): AreaComp {
+const area = defComp("area", [], (p1: Vec2, p2: Vec2) => {
 
 	const colliding = {};
 	const overlapping = {};
@@ -1479,7 +1539,7 @@ function area(p1: Vec2, p2: Vec2): AreaComp {
 
 	};
 
-}
+});
 
 function getAreaFromSize(w, h, o) {
 	const size = vec2(w, h);
@@ -1490,7 +1550,10 @@ function getAreaFromSize(w, h, o) {
 	);
 }
 
-function sprite(id: string, conf: SpriteCompConf = {}): SpriteComp {
+const sprite = defComp("sprite", [], (
+	id: string,
+	conf: SpriteCompConf = {}
+) => {
 
 	let spr = assets.sprites[id];
 
@@ -1652,9 +1715,13 @@ function sprite(id: string, conf: SpriteCompConf = {}): SpriteComp {
 
 	};
 
-}
+});
 
-function text(t: string, size: number, conf: TextCompConf = {}): TextComp {
+const text = defComp("text", [], (
+	t: string,
+	size: number,
+	conf: TextCompConf = {}
+) => {
 
 	return {
 
@@ -1709,13 +1776,13 @@ function text(t: string, size: number, conf: TextCompConf = {}): TextComp {
 
 	};
 
-}
+});
 
-function rect(
+const rect = defComp("rect", [], (
 	w: number,
 	h: number,
 	conf: RectCompConf = {},
-): RectComp {
+) => {
 
 	return {
 
@@ -1746,19 +1813,24 @@ function rect(
 
 	};
 
-}
+});
 
-function solid(): SolidComp {
+const solid = defComp("solid", [], () => {
 	return {
 		solid: true,
 	};
-}
+});
 
 // maximum y velocity with body()
 const DEF_MAX_VEL = 960;
 const DEF_JUMP_FORCE = 480;
 
-function body(conf: BodyCompConf = {}): BodyComp {
+const body = defComp("body", [
+	"pos",
+	"area",
+], (
+	conf: BodyCompConf = {},
+) => {
 
 	let velY = 0;
 	let curPlatform: GameObj | null = null;
@@ -1833,7 +1905,7 @@ function body(conf: BodyCompConf = {}): BodyComp {
 
 	};
 
-}
+});
 
 function shader(id: string, uniform: Uniform = {}): ShaderComp {
 	const prog = assets.shaders[id];
@@ -1861,6 +1933,40 @@ const debug: Debug = {
 	error: logger.error,
 };
 
+const gridder = defComp("gridder", [], (level: Level, p: Vec2) => {
+
+	return {
+
+		gridPos: p.clone(),
+
+		setGridPos(p: Vec2) {
+			this.gridPos = p.clone();
+			this.pos = vec2(
+				level.offset().x + this.gridPos.x * level.gridWidth(),
+				level.offset().y + this.gridPos.y * level.gridHeight()
+			);
+		},
+
+		moveLeft() {
+			this.setGridPos(this.gridPos.add(vec2(-1, 0)));
+		},
+
+		moveRight() {
+			this.setGridPos(this.gridPos.add(vec2(1, 0)));
+		},
+
+		moveUp() {
+			this.setGridPos(this.gridPos.add(vec2(0, -1)));
+		},
+
+		moveDown() {
+			this.setGridPos(this.gridPos.add(vec2(0, 1)));
+		},
+
+	};
+
+});
+
 function addLevel(map: string[], conf: LevelConf): Level {
 
 	const pool: GameObj[] = [];
@@ -1868,6 +1974,18 @@ function addLevel(map: string[], conf: LevelConf): Level {
 	let longRow = 0;
 
 	const level = {
+
+		offset() {
+			return offset.clone();
+		},
+
+		gridWidth() {
+			return conf.width;
+		},
+
+		gridHeight() {
+			return conf.height;
+		},
 
 		getPos(...args): Vec2 {
 			const p = vec2(...args);
@@ -1906,35 +2024,7 @@ function addLevel(map: string[], conf: LevelConf): Level {
 
 			pool.push(obj);
 
-			obj.use({
-
-				gridPos: p.clone(),
-
-				setGridPos(p: Vec2) {
-					this.gridPos = p.clone();
-					this.pos = vec2(
-						offset.x + this.gridPos.x * conf.width,
-						offset.y + this.gridPos.y * conf.height
-					);
-				},
-
-				moveLeft() {
-					this.setGridPos(this.gridPos.add(vec2(-1, 0)));
-				},
-
-				moveRight() {
-					this.setGridPos(this.gridPos.add(vec2(1, 0)));
-				},
-
-				moveUp() {
-					this.setGridPos(this.gridPos.add(vec2(0, -1)));
-				},
-
-				moveDown() {
-					this.setGridPos(this.gridPos.add(vec2(0, 1)));
-				},
-
-			});
+			obj.use(gridder(this, p));
 
 			return obj;
 
@@ -2007,6 +2097,7 @@ const ctx: KaboomCtx = {
 	get,
 	every,
 	revery,
+	defComp,
 	// net
 	send,
 	recv,

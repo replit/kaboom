@@ -71,7 +71,8 @@ type KaboomCtx = {
 	camShake(n: number): void,
 	camIgnore(layers: string[]): void,
 	gravity(g: number): number,
-	sceneData(): any,
+	sceneData(id: string, val?: any): any,
+	defComp(id: string, requires: string[], cb: (...args) => Comp): (...args) => Comp,
 	// net
 	recv(ty: string, handler: MsgHandler): void,
 	send(ty: string, data: any): void,
@@ -648,6 +649,9 @@ type Level = {
 	spawn(sym: string, p: Vec2): GameObj,
 	width(): number,
 	height(): number,
+	gridWidth(): number,
+	gridHeight(): number,
+	offset(): Vec2,
 	destroy(): void,
 };
 

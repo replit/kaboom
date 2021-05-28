@@ -1,6 +1,24 @@
 ### (wip) "Shade on You!"
 - added `loadShader(id, vert, frag, isUrl)`
 - added `shader()` comp for attaching custom shader to an obj
+- (**BREAK**) added `defComp()` and refactored the component system, making it possible to declare comp dependencies
+```js
+// define a comp with id "drag", and depend on comps with id "pos" and "area"
+const drag = defComp("drag", [ "pos", "area", ], () => {
+	// normal component definition
+	return {
+		update() {
+			// ...
+		},
+	};
+});
+
+add([
+	sprite("mark"),
+	// will throw error here since this object doesn't have a pos()
+	drag(),
+])
+```
 
 ### v0.5.1
 - added plugins npm package support e.g. `import asepritePlugin from "kaboom/plugins/aseprite"`

@@ -15,6 +15,7 @@ scene("main", () => {
 			color(1, 1, 1),
 		]);
 
+		// TODO: text() and rect() both have 'width'
 		add([
 			text(txt),
 			pos(p),

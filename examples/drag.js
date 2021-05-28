@@ -8,41 +8,41 @@ loadRoot("/pub/examples/");
 // gotta load the image first
 loadSprite("mark", "img/mark.png");
 
+// a custom component handling drag
+const drag = defComp("drag", [ "pos", "area", ], () => {
+
+	let offset = vec2(0);
+
+	return {
+		// "add" is a special lifecycle method gets called when the obj is added to scene
+		add() {
+			// "this" in all methods refer to the obj
+			this.clicks(() => {
+				if (sceneData("curDraggin")) {
+					return;
+				}
+				sceneData("curDraggin", this);
+				offset = mousePos().sub(this.pos);
+				readd(this);
+			});
+		},
+		// "update" is a special lifecycle method gets called every frame the obj is in scene
+		update() {
+			if (sceneData("curDraggin") === this) {
+				this.pos = mousePos().sub(offset);
+			}
+		},
+	};
+
+});
+
 scene("main", () => {
 
 	// there should only be one that's currently being dragged
-	let curDraggin = null;
-
-	// a custom component handling drag
-	function drag() {
-
-		let offset = vec2(0);
-
-		return {
-			// "add" is a special lifecycle method gets called when the obj is added to scene
-			add() {
-				// "this" in all methods refer to the obj
-				this.clicks(() => {
-					if (curDraggin) {
-						return;
-					}
-					curDraggin = this;
-					offset = mousePos().sub(this.pos);
-					readd(this);
-				});
-			},
-			// "update" is a special lifecycle method gets called every frame the obj is in scene
-			update() {
-				if (curDraggin === this) {
-					this.pos = mousePos().sub(offset);
-				}
-			},
-		};
-
-	}
+	sceneData("curDraggin", null);
 
 	mouseRelease(() => {
-		curDraggin = null;
+		sceneData("curDraggin", null);
 	});
 
 	for (let i = 0; i < 64; i++) {

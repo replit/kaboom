@@ -97,8 +97,8 @@ scene("main", () => {
 		add([
 			pos(plat.pos.sub(0, 12)),
 			origin("center"),
-			body(),
 			sprite("coin"),
+			body(),
 			"coin",
 		]);
 	}
