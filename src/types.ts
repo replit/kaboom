@@ -71,8 +71,9 @@ type KaboomCtx = {
 	camShake(n: number): void,
 	camIgnore(layers: string[]): void,
 	gravity(g: number): number,
-	sceneData(id: string, val?: any): any,
 	defComp(id: string, requires: string[], cb: (...args) => Comp): (...args) => Comp,
+	sceneGet(id: string): any,
+	sceneSet(id: string, val: any),
 	// net
 	recv(ty: string, handler: MsgHandler): void,
 	send(ty: string, data: any): void,

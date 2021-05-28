@@ -330,11 +330,12 @@ function curScene(): Scene {
 }
 
 // custom data kv store for scene
-function sceneData(id: string, val?: any): any {
-	if (val) {
-		curScene().data[id]
-	}
+function sceneGet(id: string): any {
 	return curScene().data[id];
+}
+
+function sceneSet(id: string, val: any) {
+	curScene().data[id] = val;
 }
 
 // register inputs for controlling debug features
@@ -2080,7 +2081,8 @@ const ctx: KaboomCtx = {
 	// scene
 	scene,
 	go,
-	sceneData,
+	sceneGet,
+	sceneSet,
 	// misc
 	layers,
 	camPos,

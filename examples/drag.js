@@ -18,17 +18,17 @@ const drag = defComp("drag", [ "pos", "area", ], () => {
 		add() {
 			// "this" in all methods refer to the obj
 			this.clicks(() => {
-				if (sceneData("curDraggin")) {
+				if (sceneGet("curDraggin")) {
 					return;
 				}
-				sceneData("curDraggin", this);
+				sceneSet("curDraggin", this);
 				offset = mousePos().sub(this.pos);
 				readd(this);
 			});
 		},
 		// "update" is a special lifecycle method gets called every frame the obj is in scene
 		update() {
-			if (sceneData("curDraggin") === this) {
+			if (sceneGet("curDraggin") === this) {
 				this.pos = mousePos().sub(offset);
 			}
 		},
@@ -39,10 +39,10 @@ const drag = defComp("drag", [ "pos", "area", ], () => {
 scene("main", () => {
 
 	// there should only be one that's currently being dragged
-	sceneData("curDraggin", null);
+	sceneSet("curDraggin", null);
 
 	mouseRelease(() => {
-		sceneData("curDraggin", null);
+		sceneSet("curDraggin", null);
 	});
 
 	for (let i = 0; i < 64; i++) {

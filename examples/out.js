@@ -8,25 +8,25 @@ loadRoot("/pub/examples/");
 // gotta load the image first
 loadSprite("mark", "img/mark.png");
 
+const out = defComp("out", ["pos"], () => {
+	return {
+		update() {
+			const spos = this.screenPos();
+			if (
+				spos.x < 0 ||
+				spos.x > width() ||
+				spos.y < 0 ||
+				spos.y > height()
+			) {
+				this.trigger("out");
+			}
+		},
+	};
+});
+
 scene("main", () => {
 
 	const SPEED = 320;
-
-	function out() {
-		return {
-			update() {
-				const spos = this.screenPos();
-				if (
-					spos.x < 0 ||
-					spos.x > width() ||
-					spos.y < 0 ||
-					spos.y > height()
-				) {
-					this.trigger("out");
-				}
-			},
-		};
-	}
 
 	mouseClick(() => {
 		const center = vec2(width() / 2, height() / 2);

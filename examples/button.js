@@ -1,3 +1,5 @@
+// TODO: fix
+
 kaboom({
 	global: true,
 	fullscreen: true,

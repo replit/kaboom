@@ -1,7 +1,7 @@
 ### (wip) "Shade on You!"
 - added `loadShader(id, vert, frag, isUrl)`
 - added `shader()` comp for attaching custom shader to an obj
-- (**BREAK**) added `defComp()` and refactored the component system, making it possible to declare comp dependencies
+- (**BREAK**) added `defComp()` and refactored the component system, making it possible to declare comp dependencies. The old comp definition still works, but will result in error if there're overlapping fields now, thus breakable.
 ```js
 // define a comp with id "drag", and depend on comps with id "pos" and "area"
 const drag = defComp("drag", [ "pos", "area", ], () => {
@@ -19,6 +19,7 @@ add([
 	drag(),
 ])
 ```
+- (**BREAK**) removed `sceneData()`, added `sceneGet()` and `sceneSet()` for custom scene-scoped kv store
 
 ### v0.5.1
 - added plugins npm package support e.g. `import asepritePlugin from "kaboom/plugins/aseprite"`
