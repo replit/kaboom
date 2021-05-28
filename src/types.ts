@@ -71,9 +71,8 @@ type KaboomCtx = {
 	camShake(n: number): void,
 	camIgnore(layers: string[]): void,
 	gravity(g: number): number,
-	defComp(id: string, requires: string[], cb: (...args) => Comp): (...args) => Comp,
-	sceneGet(id: string): any,
-	sceneSet(id: string, val: any),
+	defComp(id: CompID, requires: CompID[], cb: CompBuilder): CompBuilder,
+	sceneData(): any,
 	// net
 	recv(ty: string, handler: MsgHandler): void,
 	send(ty: string, data: any): void,
@@ -498,8 +497,9 @@ type Line = {
 type MsgHandler = (data: any, id: number) => void;
 
 type Comp = any;
-
+type CompBuilder = (...args) => Comp;
 type GameObjID = number;
+type CompID = string;
 type AddEvent = () => void;
 type DrawEvent = () => void;
 type UpdateEvent = () => void;

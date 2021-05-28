@@ -278,9 +278,9 @@ function renderTypeSig(type) {
 }
 
 function renderNamedFunc(type) {
-	return `${type.name}(${renderParams(type.parameters)})${t("span", {
+	return `${type.name}(${renderParams(type.parameters)})${type.type ? t("span", {
 		class: "typesig",
-	}, " => " + renderTypeSig(type.type))}`;
+	}, " => " + renderTypeSig(type.type)) : ""}`;
 }
 
 function renderMember(m) {
@@ -321,9 +321,9 @@ typeData.types["KaboomCtx"].type.members.forEach((m) => {
 });
 
 Object.values(typeData.types).forEach((t) => {
-	if (t.name !== "KaboomCtx") {
+// 	if (t.name !== "KaboomCtx") {
 		renderedTypes[t.name] = renderTypeAlias(t);
-	}
+// 	}
 });
 
 const page = t("html", {}, [

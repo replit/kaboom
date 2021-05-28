@@ -12,23 +12,24 @@ loadSprite("mark", "img/mark.png");
 const drag = defComp("drag", [ "pos", "area", ], () => {
 
 	let offset = vec2(0);
+	const sdata = sceneData();
 
 	return {
 		// "add" is a special lifecycle method gets called when the obj is added to scene
 		add() {
 			// "this" in all methods refer to the obj
 			this.clicks(() => {
-				if (sceneGet("curDraggin")) {
+				if (sdata.curDraggin) {
 					return;
 				}
-				sceneSet("curDraggin", this);
+				sdata.curDraggin = this;
 				offset = mousePos().sub(this.pos);
 				readd(this);
 			});
 		},
 		// "update" is a special lifecycle method gets called every frame the obj is in scene
 		update() {
-			if (sceneGet("curDraggin") === this) {
+			if (sdata.curDraggin === this) {
 				this.pos = mousePos().sub(offset);
 			}
 		},
@@ -38,11 +39,13 @@ const drag = defComp("drag", [ "pos", "area", ], () => {
 
 scene("main", () => {
 
+	const sdata = sceneData();
+
 	// there should only be one that's currently being dragged
-	sceneSet("curDraggin", null);
+	sdata.curDraggin = null;
 
 	mouseRelease(() => {
-		sceneSet("curDraggin", null);
+		sdata.curDraggin = null;
 	});
 
 	for (let i = 0; i < 64; i++) {

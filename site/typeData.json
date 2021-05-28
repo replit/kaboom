@@ -990,37 +990,14 @@
                     },
                     {
                         "kind": "MethodSignature",
-                        "name": "sceneData",
-                        "parameters": [
-                            {
-                                "kind": "Parameter",
-                                "name": "id",
-                                "type": {
-                                    "kind": "StringKeyword"
-                                }
-                            },
-                            {
-                                "kind": "Parameter",
-                                "name": "val",
-                                "type": {
-                                    "kind": "AnyKeyword"
-                                },
-                                "questionToken": true
-                            }
-                        ],
-                        "type": {
-                            "kind": "AnyKeyword"
-                        }
-                    },
-                    {
-                        "kind": "MethodSignature",
                         "name": "defComp",
                         "parameters": [
                             {
                                 "kind": "Parameter",
                                 "name": "id",
                                 "type": {
-                                    "kind": "StringKeyword"
+                                    "kind": "TypeReference",
+                                    "typeName": "CompID"
                                 }
                             },
                             {
@@ -1029,7 +1006,8 @@
                                 "type": {
                                     "kind": "ArrayType",
                                     "elementType": {
-                                        "kind": "StringKeyword"
+                                        "kind": "TypeReference",
+                                        "typeName": "CompID"
                                     }
                                 }
                             },
@@ -1037,38 +1015,22 @@
                                 "kind": "Parameter",
                                 "name": "cb",
                                 "type": {
-                                    "kind": "FunctionType",
-                                    "parameters": [
-                                        {
-                                            "kind": "Parameter",
-                                            "name": "args",
-                                            "dotDotDotToken": {
-                                                "kind": "DotDotDotToken"
-                                            }
-                                        }
-                                    ],
-                                    "type": {
-                                        "kind": "TypeReference",
-                                        "typeName": "Comp"
-                                    }
+                                    "kind": "TypeReference",
+                                    "typeName": "CompBuilder"
                                 }
                             }
                         ],
                         "type": {
-                            "kind": "FunctionType",
-                            "parameters": [
-                                {
-                                    "kind": "Parameter",
-                                    "name": "args",
-                                    "dotDotDotToken": {
-                                        "kind": "DotDotDotToken"
-                                    }
-                                }
-                            ],
-                            "type": {
-                                "kind": "TypeReference",
-                                "typeName": "Comp"
-                            }
+                            "kind": "TypeReference",
+                            "typeName": "CompBuilder"
+                        }
+                    },
+                    {
+                        "kind": "MethodSignature",
+                        "name": "sceneData",
+                        "parameters": [],
+                        "type": {
+                            "kind": "AnyKeyword"
                         }
                     },
                     {
@@ -5453,11 +5415,38 @@
                 "kind": "AnyKeyword"
             }
         },
+        "CompBuilder": {
+            "kind": "TypeAliasDeclaration",
+            "name": "CompBuilder",
+            "type": {
+                "kind": "FunctionType",
+                "parameters": [
+                    {
+                        "kind": "Parameter",
+                        "name": "args",
+                        "dotDotDotToken": {
+                            "kind": "DotDotDotToken"
+                        }
+                    }
+                ],
+                "type": {
+                    "kind": "TypeReference",
+                    "typeName": "Comp"
+                }
+            }
+        },
         "GameObjID": {
             "kind": "TypeAliasDeclaration",
             "name": "GameObjID",
             "type": {
                 "kind": "NumberKeyword"
+            }
+        },
+        "CompID": {
+            "kind": "TypeAliasDeclaration",
+            "name": "CompID",
+            "type": {
+                "kind": "StringKeyword"
             }
         },
         "AddEvent": {

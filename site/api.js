@@ -151,6 +151,7 @@ camIgnore(["bg", "ui"]);
 			f("sceneData", "custom scene data kv store", `
 // could be used for custom components registering scene-wide "global" data
 sceneData().gravity = 123;
+sceneData().curDraggin = obj;
 			`),
 		],
 	},

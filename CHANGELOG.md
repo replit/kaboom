@@ -19,7 +19,12 @@ add([
 	drag(),
 ])
 ```
-- (**BREAK**) removed `sceneData()`, added `sceneGet()` and `sceneSet()` for custom scene-scoped kv store
+- added `obj.c()` for getting a specific comp's state (by default all comps' states are mounted to the obj by `Object.defineProperty`)
+```js
+// both works
+obj.play("anim");
+obj.c("sprite").play("anim");
+```
 
 ### v0.5.1
 - added plugins npm package support e.g. `import asepritePlugin from "kaboom/plugins/aseprite"`
