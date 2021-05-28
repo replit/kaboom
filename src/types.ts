@@ -73,8 +73,8 @@ type KaboomCtx = {
 	gravity(g: number): number,
 	sceneData(): any,
 	// net
-	recv(type: string, handler: MsgHandler): void,
-	send(type: string, data: any): void,
+	recv(ty: string, handler: MsgHandler): void,
+	send(ty: string, data: any): void,
 	// comps
 	pos(x: number, y: number): PosComp,
 	pos(xy: number): PosComp,
@@ -511,6 +511,7 @@ type PosComp = {
 	pos: Vec2,
 	move(x: number, y: number): void,
 	move(p: Vec2): void,
+	screenPos(): Vec2,
 	inspect(): PosCompInspect,
 };
 

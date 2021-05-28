@@ -47,3 +47,9 @@ files.forEach((file) => {
 		});
 	});
 });
+
+// TODO: haven't figured out how to generate the desired .d.ts with tsc
+const types = fs.readFileSync(`${srcDir}/types.ts`, "utf-8")
+	.replace(/type/g, "export type")
+	.replace(/declare/g, "export default");
+fs.writeFileSync(`${distDir}/kaboom.d.ts`, types);

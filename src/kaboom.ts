@@ -138,7 +138,7 @@ function isCamLayer(layer?: string): boolean {
 
 // check input state last frame
 function mousePos(layer?: string): Vec2 {
-	return isCamLayer(layer) ? curScene().cam.mpos : app.mousePos();
+	return isCamLayer(layer) ? curScene().camMousePos : app.mousePos();
 }
 
 function drawSprite(
@@ -223,6 +223,8 @@ type Scene = {
 	timers: Record<TimerID, Timer>,
 	lastTimerID: TimerID,
 	cam: Camera,
+	camMousePos: Vec2,
+	camMatrix: Mat4,
 	gravity: number,
 	layers: Record<string, Layer>,
 	defLayer: string | null,
@@ -234,8 +236,6 @@ type Camera = {
 	scale: Vec2,
 	angle: number,
 	shake: number,
-	mpos: Vec2,
-	matrix: Mat4,
 };
 
 type Layer = {
@@ -308,9 +308,10 @@ function scene(name: string, cb: (...args) => void) {
 			scale: vec2(1, 1),
 			angle: 0,
 			shake: 0,
-			mpos: vec2(0),
-			matrix: mat4(),
 		},
+
+		camMousePos: vec2(0),
+		camMatrix: mat4(),
 
 		// misc
 		layers: {},
@@ -906,7 +907,7 @@ function gameFrame(ignorePause?: boolean) {
 	const shake = vec2FromAngle(rand(0, Math.PI * 2)).scale(cam.shake);
 
 	cam.shake = lerp(cam.shake, 0, 5 * dt());
-	cam.matrix = mat4()
+	scene.camMatrix = mat4()
 		.translate(size.scale(0.5))
 		.scale(cam.scale)
 		.rotateZ(cam.angle)
@@ -914,7 +915,7 @@ function gameFrame(ignorePause?: boolean) {
 		.translate(cam.pos.scale(-1).add(size.scale(0.5)).add(shake))
 		;
 
-	cam.mpos = cam.matrix.invert().multVec2(app.mousePos());
+	scene.camMousePos = scene.camMatrix.invert().multVec2(app.mousePos());
 
 	// draw every obj
 	every((obj) => {
@@ -924,7 +925,7 @@ function gameFrame(ignorePause?: boolean) {
 			gfx.pushTransform();
 
 			if (isCamLayer(obj.layer)) {
-				gfx.pushMatrix(cam.matrix);
+				gfx.pushMatrix(scene.camMatrix);
 			}
 
 			obj.trigger("draw");
@@ -1022,7 +1023,7 @@ function drawInspect() {
 		const scale = gfx.scale() * (isCam ? (scene.cam.scale.x + scene.cam.scale.y) / 2 : 1);
 		if (isCam) {
 			gfx.pushTransform();
-			gfx.pushMatrix(scene.cam.matrix);
+			gfx.pushMatrix(scene.camMatrix);
 		}
 		f(scale);
 		if (isCam) {
@@ -1172,6 +1173,11 @@ function pos(...args): PosComp {
 			this.pos.x += dx;
 			this.pos.y += dy;
 
+		},
+
+		screenPos(): Vec2 {
+			const scene = curScene();
+			return scene.camMatrix.multVec2(this.pos);
 		},
 
 		inspect() {
