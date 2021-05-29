@@ -42,12 +42,20 @@ for (let i = 0; i < 4; i++) {
 
 		const players = {};
 
+		k.render(() => {
+			if (k.focused()) {
+				k.drawRectStroke(k.vec2(0), k.width(), k.height(), {
+					width: 24,
+				});
+			}
+		});
+
 		k.send("ADD_PLAYER", {
 			pos: player.pos,
 			sprite: sprites[i],
 		});
 
-		k.recv("ADD_PLAYER", (data, id) => {
+		k.recv("ADD_PLAYER", (id, data) => {
 			players[id] = k.add([
 				k.sprite(data.sprite),
 				k.pos(data.pos),
@@ -57,13 +65,13 @@ for (let i = 0; i < 4; i++) {
 			]);
 		});
 
-		k.recv("UPDATE_PLAYER", (data, id) => {
+		k.recv("UPDATE_PLAYER", (id, data) => {
 			if (players[id]) {
 				players[id].pos = k.vec2(data.pos);
 			}
 		});
 
-		k.recv("REMOVE_PLAYER", (data, id) => {
+		k.recv("REMOVE_PLAYER", (id, data) => {
 			if (players[id]) {
 				k.destroy(players[id]);
 				delete players[id];

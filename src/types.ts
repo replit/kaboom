@@ -35,6 +35,8 @@ type KaboomCtx = {
 	dt(): number,
 	time(): number,
 	screenshot(): string,
+	focused(): boolean,
+	focus(): void,
 	// scene / obj
 	add(comps: Comp[]): GameObj,
 	readd(obj: GameObj): GameObj,
@@ -71,9 +73,10 @@ type KaboomCtx = {
 	camShake(n: number): void,
 	camIgnore(layers: string[]): void,
 	gravity(g: number): number,
-	defComp(id: CompID, requires: CompID[], cb: CompBuilder): CompBuilder,
+	defComp(id: CompID, requires: CompID[], builder: CompBuilder): CompBuilder,
 	sceneData(): any,
 	// net
+	sync(obj: GameObj): void,
 	recv(ty: string, handler: MsgHandler): void,
 	send(ty: string, data: any): void,
 	// comps
@@ -126,7 +129,7 @@ type KaboomCtx = {
 	rand(): number,
 	rand<T extends RNGValue>(n: T): T,
 	rand<T extends RNGValue>(a: T, b: T): T,
-	randSeed(seed: number): void,
+	randSeed(seed: number): number,
 	vec2(x: number, y: number): Vec2,
 	vec2(p: Vec2): Vec2,
 	vec2(xy: number): Vec2,
@@ -204,6 +207,7 @@ type GameObj = {
 		destroy: (() => void)[],
 		inspect: (() => {})[],
 	},
+	_client: ClientID | null,
 	[custom: string]: any,
 };
 
@@ -407,14 +411,15 @@ type Vec2 = {
 	clone(): Vec2,
 	add(p: Vec2): Vec2,
 	sub(p: Vec2): Vec2,
-	scale(s: number): Vec2,
-	dot(p: Vec2): Vec2,
+	scale(...args): Vec2,
+	dot(p: Vec2): number,
 	dist(p: Vec2): number,
 	len(): number,
 	unit(): Vec2,
 	normal(): Vec2,
 	angle(p: Vec2): number,
 	lerp(p: Vec2, t: number): Vec2,
+	toFixed(n: number): Vec2,
 	eq(p: Vec2): boolean,
 	str(): string,
 };
@@ -494,7 +499,8 @@ type Line = {
 	p2: Vec2,
 };
 
-type MsgHandler = (data: any, id: number) => void;
+type ClientID = number;
+type MsgHandler = (id: ClientID, data: any) => void;
 
 type Comp = any;
 type CompBuilder = (...args) => Comp;

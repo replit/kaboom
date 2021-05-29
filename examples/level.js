@@ -5,6 +5,7 @@ kaboom({
 	debug: true,
 	clearColor: [0, 0, 0, 1],
 	plugins: [ asepritePlugin, ],
+// 	connect: "ws://localhost:7000",
 });
 
 loadRoot("/pub/examples/");
@@ -83,6 +84,8 @@ scene("main", () => {
 			speed: 160,
 		},
 	]);
+
+// 	sync(player);
 
 	player.action(() => {
 		camPos(player.pos);

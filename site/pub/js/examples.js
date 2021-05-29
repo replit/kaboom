@@ -41,6 +41,10 @@ function run() {
 	gameview.srcdoc = genGame(editor.getValue());
 }
 
+function replit() {
+	window.open(`https://replit.com/@slmjkdbtl/kaboom-example-${select.value}`);
+}
+
 if (window.location.hash) {
 	select.value = window.location.hash.substring(1);
 }
@@ -48,4 +52,5 @@ if (window.location.hash) {
 update();
 
 window.run = run;
+window.replit = replit;
 window.update = update;

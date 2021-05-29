@@ -39,7 +39,7 @@ function netInit(url: string): Net {
 				const msg = JSON.parse(e.data);
 				if (handlers[msg.type]) {
 					for (const handler of handlers[msg.type]) {
-						handler(msg.data, msg.id);
+						handler(msg.id, msg.data);
 					}
 				}
 			};

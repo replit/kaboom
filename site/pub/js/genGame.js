@@ -10,6 +10,7 @@ export default function genGame(code) {
 	<style>
 		* {
 			margin: 0;
+			padding: 0;
 		}
 		html,
 		body {

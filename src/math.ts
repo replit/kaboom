@@ -64,51 +64,54 @@ function vec2(...args): Vec2 {
 	return {
 		x: args[0],
 		y: args[1],
-		clone() {
+		clone(): Vec2 {
 			return vec2(this.x, this.y);
 		},
-		add(...args) {
+		add(...args): Vec2 {
 			const p2 = vec2(...args);
 			return vec2(this.x + p2.x, this.y + p2.y);
 		},
-		sub(...args) {
+		sub(...args): Vec2 {
 			const p2 = vec2(...args);
 			return vec2(this.x - p2.x, this.y - p2.y);
 		},
-		scale(s) {
-			return vec2(this.x * s, this.y * s);
+		scale(...args): Vec2 {
+			const s = vec2(...args);
+			return vec2(this.x * s.x, this.y * s.y);
 		},
-		dist(...args) {
+		dist(...args): number {
 			const p2 = vec2(...args);
 			return Math.sqrt(
 				(this.x - p2.x) * (this.x - p2.x)
 				+ (this.y - p2.y) * (this.y - p2.y)
 			);
 		},
-		len() {
+		len(): number {
 			return this.dist(vec2(0, 0));
 		},
-		unit() {
+		unit(): Vec2 {
 			return this.scale(1 / this.len());
 		},
-		normal() {
+		normal(): Vec2 {
 			return vec2(this.y, -this.x);
 		},
-		dot(...args) {
-			const p2 = vec2(...args);
-			return vec2(this.x * p2.x, this.y * p2.y);
+		dot(p2: Vec2): number {
+			return this.x * p2.x + this.y + p2.y;
 		},
-		angle(...args) {
+		angle(...args): number {
 			const p2 = vec2(...args);
 			return Math.atan2(this.y - p2.y, this.x - p2.x);
 		},
-		lerp(p2, t) {
+		lerp(p2: Vec2, t: number): Vec2 {
 			return vec2(lerp(this.x, p2.x, t), lerp(this.y, p2.y, t));
 		},
-		eq(other) {
+		toFixed(n: number): Vec2 {
+			return vec2(this.x.toFixed(n), this.y.toFixed(n));
+		},
+		eq(other: Vec2): boolean {
 			return this.x === other.x && this.y === other.y;
 		},
-		str() {
+		str(): string {
 			return `(${this.x}, ${this.y})`;
 		},
 	};
@@ -123,7 +126,7 @@ function vec3(x: number, y: number, z: number): Vec3 {
 		x: x,
 		y: y,
 		z: z,
-		xy() {
+		xy(): Vec2 {
 			return vec2(this.x, this.y);
 		},
 	};
@@ -227,10 +230,10 @@ function quad(x: number, y: number, w: number, h: number): Quad {
 		y: y,
 		w: w,
 		h: h,
-		clone() {
+		clone(): Quad {
 			return quad(this.x, this.y, this.w, this.h);
 		},
-		eq(other) {
+		eq(other: Quad): boolean {
 			return this.x === other.x
 				&& this.y === other.y
 				&& this.w === other.w
@@ -298,7 +301,7 @@ function mat4(m?: number[]): Mat4 {
 			);
 		},
 
-		translate(p: Vec2) {
+		translate(p: Vec2): Mat4 {
 			return this.mult(mat4([
 				1, 0, 0, 0,
 				0, 1, 0, 0,
@@ -307,7 +310,7 @@ function mat4(m?: number[]): Mat4 {
 			]));
 		},
 
-		scale(s: Vec2) {
+		scale(s: Vec2): Mat4 {
 			return this.mult(mat4([
 				s.x, 0, 0, 0,
 				0, s.y, 0, 0,
@@ -316,7 +319,7 @@ function mat4(m?: number[]): Mat4 {
 			]));
 		},
 
-		rotateX(a: number) {
+		rotateX(a: number): Mat4 {
 			return this.mult(mat4([
 				1, 0, 0, 0,
 				0, Math.cos(a), -Math.sin(a), 0,
@@ -325,7 +328,7 @@ function mat4(m?: number[]): Mat4 {
 			]));
 		},
 
-		rotateY(a: number) {
+		rotateY(a: number): Mat4 {
 			return this.mult(mat4([
 				Math.cos(a), 0, -Math.sin(a), 0,
 				0, 1, 0, 0,
@@ -334,7 +337,7 @@ function mat4(m?: number[]): Mat4 {
 			]));
 		},
 
-		rotateZ(a: number) {
+		rotateZ(a: number): Mat4 {
 			return this.mult(mat4([
 				Math.cos(a), -Math.sin(a), 0, 0,
 				Math.sin(a), Math.cos(a), 0, 0,
@@ -455,8 +458,11 @@ function makeRng(seed: number): RNG {
 	};
 }
 
-function randSeed(seed: number) {
-	defRNG.seed = seed;
+function randSeed(seed: number): number {
+	if (seed != null) {
+		defRNG.seed = seed;
+	}
+	return defRNG.seed;
 }
 
 function rand(...args) {

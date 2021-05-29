@@ -573,7 +573,7 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 		const h = conf.height || 0;
 		const pos = conf.pos || vec2(0, 0);
 		const origin = originPt(conf.origin || DEF_ORIGIN);
-		const offset = origin.dot(vec2(w, h).scale(-0.5));
+		const offset = origin.scale(vec2(w, h).scale(-0.5));
 		const scale = vec2(conf.scale ?? 1);
 		const rot = conf.rot || 0;
 		const q = conf.quad || quad(0, 0, 1, 1);
@@ -653,7 +653,7 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 		conf: DrawRectStrokeConf = {}
 	) {
 
-		const offset = originPt(conf.origin || DEF_ORIGIN).dot(vec2(w, h)).scale(0.5);
+		const offset = originPt(conf.origin || DEF_ORIGIN).scale(vec2(w, h)).scale(0.5);
 		const p1 = pos.add(vec2(-w / 2, -h / 2)).sub(offset);
 		const p2 = pos.add(vec2(-w / 2,  h / 2)).sub(offset);
 		const p3 = pos.add(vec2( w / 2,  h / 2)).sub(offset);
@@ -698,7 +698,7 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 		const gw = font.qw * font.tex.width;
 		const gh = font.qh * font.tex.height;
 		const size = conf.size || gh;
-		const scale = vec2(size / gh).dot(vec2(conf.scale || 1));
+		const scale = vec2(size / gh).scale(vec2(conf.scale || 1));
 		const cw = scale.x * gw;
 		const ch = scale.y * gh;
 		let curX = 0;

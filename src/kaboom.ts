@@ -92,18 +92,65 @@ const logger = loggerInit(gfx, assets, {
 	max: gconf.logMax,
 });
 
-const net: Net | null = (() => {
-	if (gconf.connect) {
-		return netInit(gconf.connect);
-	}
-	return null;
-})();
+const net = gconf.connect ? netInit(gconf.connect) : null;
 
-function recv(type: string, handler: MsgHandler) {
+enum NetMsg {
+	AddObj = "ADD_OBJ",
+	UpdateObj = "UPDATE_OBJ",
+	DestroyObj = "DESTROY_OBJ",
+	Disconnect = "DISCONNECT",
+}
+
+function sync(obj: GameObj) {
 	if (!net) {
 		throw new Error("not connected to any websockets");
 	}
-	net.recv(type, (data: any, id: number) => {
+	const scene = curScene();
+	scene.travelers.push(obj._id);
+	send(NetMsg.AddObj, obj._data());
+}
+
+if (net) {
+
+	recv(NetMsg.AddObj, (id, data) => {
+		const scene = curScene();
+		if (!scene.visitors[id]) {
+			scene.visitors[id] = {};
+		}
+		// TODO: reconstruct
+//  		const obj = add(data);
+//  		scene.visitors[id][data.id] = obj._id;
+	});
+
+	recv(NetMsg.DestroyObj, (id, data) => {
+		const scene = curScene();
+		if (!scene.visitors[id]) {
+			return;
+		}
+		const oid = scene.visitors[id][data.id];
+		if (oid != null) {
+			destroy(scene.objs.get(oid));
+			delete scene.visitors[id][data.id];
+		}
+	});
+
+	recv(NetMsg.Disconnect, (id, data) => {
+		const scene = curScene();
+		if (scene.visitors[id]) {
+			for (const oid of Object.values(scene.visitors[id])) {
+				destroy(scene.objs.get(oid));
+			}
+			delete scene.visitors[id];
+		}
+	});
+
+}
+
+function recv(ty: string, handler: MsgHandler) {
+	if (!net) {
+		throw new Error("not connected to any websockets");
+	}
+	net.recv(ty, (data: any, id: number) => {
 		try {
 			handler(data, id);
 		} catch (err) {
@@ -112,11 +159,11 @@ function recv(type: string, handler: MsgHandler) {
 	});
 }
 
-function send(type: string, data: any) {
+function send(ty: string, data: any) {
 	if (!net) {
 		throw new Error("not connected to any websockets");
 	}
-	net.send(type, data);
+	net.send(ty, data);
 }
 
 function dt() {
@@ -192,7 +239,7 @@ type Game = {
 	scenes: Record<string, Scene>,
 	curScene: string | null,
 	nextScene: SceneSwitch | null,
-	compReg: Record<string, () => Comp>,
+	compReg: Record<string, CompBuilder>,
 };
 
 type SceneSwitch = {
@@ -229,6 +276,8 @@ type Scene = {
 	gravity: number,
 	layers: Record<string, Layer>,
 	defLayer: string | null,
+	travelers: GameObjID[],
+	visitors: Record<ClientID, Record<GameObjID, GameObjID>>,
 	data: any,
 };
 
@@ -321,6 +370,10 @@ function scene(name: string, cb: (...args) => void) {
 		gravity: DEF_GRAVITY,
 		data: {},
 
+		// net
+		travelers: [],
+		visitors: {},
+
 	};
 
 }
@@ -381,7 +434,7 @@ function go(name: string, ...args) {
 	};
 }
 
-function goSync(name: string, ...args) {
+function switchScene(name: string, ...args) {
 	reload(name);
 	game.curScene = name;
 	const scene = game.scenes[name];
@@ -473,10 +526,10 @@ function camIgnore(layers: string[]) {
 function defComp(
 	id: string,
 	deps: string[],
-	cb: (...args) => Comp
+	builder: (...args) => Comp
 ): (...args) => Comp {
 	const comp = (...args) => {
-		const state = cb(...args);
+		const state = builder(...args);
 		return {
 			...state,
 			add() {
@@ -498,10 +551,17 @@ function defComp(
 	return comp;
 }
 
+function makeComp(id: string, ...args): Comp {
+	if (!game.compReg[id]) {
+		throw new Error(`comp not found: ${id}`);
+	}
+	return game.compReg[id](...args);
+}
+
 function add(comps: Comp[]): GameObj {
 
 	const compStates = {};
-	const selfState = {};
+	const customState = {};
 
 	const obj: GameObj = {
 
@@ -509,6 +569,7 @@ function add(comps: Comp[]): GameObj {
 		paused: false,
 		_tags: [],
 		_id: null,
+		_client: null,
 
 		_events: {
 			add: [],
@@ -545,7 +606,7 @@ function add(comps: Comp[]): GameObj {
 				throw new Error(`invalid comp type: ${type}`);
 			}
 
-			let stateContainer = selfState;
+			let stateContainer = customState;
 
 			if (comp._id) {
 				compStates[comp._id] = {};
@@ -646,6 +707,18 @@ function add(comps: Comp[]): GameObj {
 			if (idx > -1) {
 				this._tags.splice(idx, 1);
 			}
+		},
+
+		// data to send over the net for reconstruction
+		_data() {
+			return {
+				hidden: this.hidden,
+				paused: this.paused,
+				tags: this._tags,
+				id: this._id,
+				comps: compStates,
+				custom: customState,
+			};
 		},
 
 	};
@@ -1162,7 +1235,7 @@ function start(name: string, ...args) {
 
 			if (progress === 1) {
 				game.loaded = true;
-				goSync(name, ...args);
+				switchScene(name, ...args);
 				if (net) {
 					net.connect().catch(logger.error);
 				}
@@ -1202,7 +1275,7 @@ function start(name: string, ...args) {
 			}
 
 			if (game.nextScene) {
-				goSync.apply(null, [ game.nextScene.name, ...game.nextScene.args, ]);
+				switchScene.apply(null, [ game.nextScene.name, ...game.nextScene.args, ]);
 				game.nextScene = null;
 			}
 
@@ -1522,8 +1595,8 @@ const area = defComp("area", [], (p1: Vec2, p2: Vec2) => {
 			const a = this.area;
 			const pos = this.pos || vec2(0);
 			const scale = this.scale || vec2(1);
-			const p1 = pos.add(a.p1.dot(scale));
-			const p2 = pos.add(a.p2.dot(scale));
+			const p1 = pos.add(a.p1.scale(scale));
+			const p2 = pos.add(a.p2.scale(scale));
 
 			const area = {
 				p1: vec2(Math.min(p1.x, p2.x), Math.min(p1.y, p2.y)),
@@ -1540,7 +1613,7 @@ const area = defComp("area", [], (p1: Vec2, p2: Vec2) => {
 
 function getAreaFromSize(w, h, o) {
 	const size = vec2(w, h);
-	const offset = originPt(o || DEF_ORIGIN).dot(size).scale(-0.5);
+	const offset = originPt(o || DEF_ORIGIN).scale(size).scale(-0.5);
 	return area(
 		offset.sub(size.scale(0.5)),
 		offset.add(size.scale(0.5)),
@@ -2074,6 +2147,8 @@ const ctx: KaboomCtx = {
 	dt: dt,
 	time: app.time,
 	screenshot: app.screenshot,
+	focused: app.focused,
+	focus: app.focus,
 	// scene
 	scene,
 	go,
@@ -2096,6 +2171,7 @@ const ctx: KaboomCtx = {
 	revery,
 	defComp,
 	// net
+	sync,
 	send,
 	recv,
 	// comps

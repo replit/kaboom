@@ -57,6 +57,8 @@ type App = {
 	screenshot(): string,
 	run(f: () => void): void,
 	quit(): void,
+	focused(): boolean,
+	focus(): void,
 };
 
 function processBtnState(s: ButtonState): ButtonState {
@@ -335,6 +337,14 @@ function appInit(gconf: AppConf = {}): App {
 		app.stopped = true;
 	}
 
+	function focused() {
+		return document.activeElement === app.canvas;
+	}
+
+	function focus() {
+		app.canvas.focus();
+	}
+
 	return {
 		gl,
 		mousePos,
@@ -353,6 +363,8 @@ function appInit(gconf: AppConf = {}): App {
 		screenshot,
 		run,
 		quit,
+		focused,
+		focus,
 	};
 
 }
