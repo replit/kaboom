@@ -161,21 +161,4 @@ scene("main", () => {
 
 });
 
-scene("death", (score) => {
-
-	add([
-		text(score, 24),
-	]);
-
-	add([
-		text("press spacebar to play again", 5),
-		pos(0, -20),
-	]);
-
-	keyPress("space", () => {
-		go("main");
-	});
-
-});
-
 start("main");

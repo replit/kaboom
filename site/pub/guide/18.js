@@ -80,6 +80,7 @@ scene("gameover", () => {
 	add([
 		text("you lose!", 24),
 		pos(width() / 2, height() / 2),
+		origin("center"),
 	]);
 
 	keyPress("space", () => {
