@@ -1,7 +1,7 @@
 // TALK: we used to just hardcode them to appear at 120
 // TALK: but let's use function rand() to generate a random position now
 // TALK: kaboom! the game instantly becomes fun!
-// TALK: next, let's add a score counter
+// TALK: Coming soon: let's add a score counter
 
 kaboom({
 	global: true,
