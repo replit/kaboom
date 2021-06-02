@@ -5,7 +5,7 @@ import genGame from "./genGame.js";
 const liveupdate = document.querySelector("#liveupdate");
 const gameview = document.querySelector("#gameview");
 const bubble = document.querySelector("#bubble");
-const totalSteps = 19;
+const totalSteps = 24;
 let guides = [];
 let curTalk = 0;
 let curStep = 0;
