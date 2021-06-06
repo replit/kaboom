@@ -112,13 +112,13 @@ const player = add([
 	sprite("froggy"),
 ]);
 
-// this will be added to the "ui" layer cuz it's specified by the layer() component
+// this will be added to the "ui" layer because it's specified by the layer() component
 const score = add([
 	text("0"),
 	layer("ui"),
 ]);
 
-// NOTE: Objects on different won't collide! Collision handlers won't pick them up.
+// NOTE: Objects on different layers won't collide! Collision handlers won't pick them up.
 			`),
 			f("gravity", "set the gravity value (defaults to 980)", `
 // (pixel per sec.)
@@ -187,7 +187,8 @@ loadSound("shoot", "shoot.ogg");
 // default character mappings: (ASCII 32 - 126)
 // const ASCII_CHARS = " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_\`abcdefghijklmnopqrstuvwxyz{|}~";
 
-// load a bitmap font called "04b03", with bitmap "04b03.png", each character on bitmap has a size of (6, 8), and contains default ASCII_CHARS
+// load a bitmap font called "04b03", with bitmap "04b03.png"
+// each character on bitmap has a size of (6, 8), and contains default ASCII_CHARS
 loadFont("04b03", "04b03.png", 6, 8);
 
 // load a font with custom characters
@@ -226,7 +227,7 @@ player.action(() => {
 player.hidden = false; // if this obj renders
 player.paused = true // if this obj updates
 
-// runs every frame as long as player is not destroy() ed
+// runs every frame as long as player is not 'destroy()'ed
 player.action(() => {
 	player.move(100, 0);
 });
@@ -252,7 +253,8 @@ player.action(() => {
 obj.use(scale(2, 2));
 			`),
 			f("obj.exists", "check if obj exists in scene", `
-// sometimes you might keep a reference of an object that's already 'destroy()'ed, use exists() to check if they were
+// sometimes you might keep a reference of an object that's already 'destroy()'ed 
+// use exists() to check if they were
 if (obj.exists()) {
 	child.pos = obj.pos.clone();
 }
@@ -316,7 +318,8 @@ every((obj) => {
 destroyAll("enemy");
 			`),
 			f("readd", "re-add an object to the scene", `
-// remove and add froggy to the scene without triggering events tied to "add" or "destroy", so it'll be drawn on the top of the layer it belongs to
+// remove and add froggy to the scene without triggering events tied to "add" or "destroy" 
+// so it'll be drawn on the top of the layer it belongs to
 readd(froggy);
 			`),
 		],
@@ -401,7 +404,7 @@ obj.on("animEnd", (anim) => {
 	}
 });
 
-// could change prite for anim if you don't use spritesheet
+// could change sprite for anim if you don't use spritesheet
 obj.changeSprite("froggy_left");
 			`),
 			f("text", "text rendering component", `
@@ -413,7 +416,7 @@ const obj = add([
 
 const obj = add([
 	text("oh hi", 64, {
-		width: 120, // wrap when exceeds this width (defaults to 0 no wrap)
+		width: 120, // wrap when exceeds this width (defaults to 0 - no wrap)
 		font: "proggy", // font to use (defaults to "unscii")
 	}),
 ]);
@@ -442,7 +445,7 @@ const obj = add([
 	area(vec2(6), vec2(24)),
 ]);
 
-// callback when collides with a certain tag
+// callback when it collides with a certain tag
 obj.collides("collectable", (c) => {
 	destroy(c);
 	score++;
@@ -586,7 +589,7 @@ action("flashy", (f) => {
 	f.color = rand(rgb(0, 0, 0), rgb(1, 1, 1));
 });
 
-// plain action() just runs every frame not tying to any object
+// plain action() just runs every frame not tied to any object
 action(() => {
 	console.log("oh hi")
 });
@@ -614,7 +617,7 @@ collides("enemy", "bullet", (e, b) => {
 	}
 });
 
-// NOTE: Objects on different won't collide! Collision handlers won't pick them up.
+// NOTE: Objects on different layers won't collide! Collision handlers won't pick them up.
 			`),
 			f("overlaps", "calls when objects collides with others", `
 // similar to collides(), but doesn't pass if 2 objects are just touching each other (checks for distance < 0 instead of distance <= 0)
@@ -642,7 +645,7 @@ on("draw", "bullet", (e) => {
 	drawSprite(...);
 });
 
-// when objs gets destroy() ed
+// when objs get 'destroy()'ed
 on("destroy", "bullet", (e) => {
 	play("explosion");
 });
@@ -654,7 +657,7 @@ on("destroy", "bullet", (e) => {
 		desc: "input events",
 		entries: [
 			f("keyDown", "runs every frame when specified key is being pressed", `
-// trigger this every frame the user is holding the "up" key
+// trigger this every frame when the user is holding the "up" key
 keyPress("up", () => {
 	player.move(0, -SPEED);
 });
@@ -686,7 +689,8 @@ charInput((ch) => {
 			f("time", "current game time"),
 			f("dt", "delta time since last frame"),
 			f("mousePos", "get mouse position of a layer", `
-// by default it returns the mouse position of the default layer, if that layer is not camIgnore()-ed, it'll return the mouse position processed by the camera transform
+// by default it returns the mouse position of the default layer 
+// if that layer is not camIgnore()-ed, it'll return the mouse position processed by the camera transform
 const mpos = mousePos();
 
 // if you pass in a layer that's camIgnore()-ed or the default layer is camIgnore()-ed, it'll return the mouse position unaffected by the camera
@@ -847,7 +851,7 @@ drawText("hi", {
 		name: "Level",
 		desc: "helpers on building tiled maps",
 		entries: [
-			f("addLevel", "takes a level drawing and turn them into game objects according to the ref map", `
+			f("addLevel", "takes a level drawing and turns them into game objects according to the ref map", `
 const characters = {
 	"a": {
 		sprite: "ch1",
@@ -927,7 +931,7 @@ action("block", (b) => {
 		desc: "debug utilities",
 		entries: [
 			f("debug", "debug flags / actions", `
-// pause the game (events are still been listened)
+// pause the game (events are still being listened to)
 debug.paused = true;
 
 // show the bounding box of objects with area() and hover to inspect properties
@@ -936,7 +940,7 @@ debug.inspect = true;
 // scale the time
 debug.timeScale = 0.5;
 
-// if show on screen logs
+// if 'true' show on screen logs
 debug.showLog = true;
 
 // log stack count max
@@ -945,7 +949,7 @@ debug.logMax = 6;
 // get current fps
 debug.fps();
 
-// get object count in current scene
+// get object count in the current scene
 debug.objCount();
 
 // step to the next frame
