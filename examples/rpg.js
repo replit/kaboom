@@ -14,6 +14,8 @@ loadSprite("door", "img/door.png");
 loadSprite("key", "img/key.png");
 loadSprite("guy", "img/guy.png");
 
+const SPEED = 80;
+
 scene("main", (levelIdx) => {
 
 	const characters = {
@@ -122,27 +124,27 @@ scene("main", (levelIdx) => {
 		talk(ch.msg);
 	});
 
-	keyPress(["left", "right", "up", "down"], () => {
-		if (talking) {
-			destroy(talking);
-			talking = null;
-		}
-	});
+	const dirs = {
+		"left": vec2(-1, 0),
+		"right": vec2(1, 0),
+		"up": vec2(0, -1),
+		"down": vec2(0, 1),
+	};
 
-	keyPress("left", () => {
-		player.moveLeft();
-	});
+	for (const dir in dirs) {
+		keyPress(dir, () => {
+			if (talking) {
+				destroy(talking);
+				talking = null;
+			}
+		});
+		keyDown(dir, () => {
+			player.move(dirs[dir].scale(SPEED));
+		});
+	}
 
-	keyPress("right", () => {
-		player.moveRight();
-	});
-
-	keyPress("up", () => {
-		player.moveUp();
-	});
-
-	keyPress("down", () => {
-		player.moveDown();
+	player.action(() => {
+		player.resolve();
 	});
 
 });
