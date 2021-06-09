@@ -1948,7 +1948,7 @@ const body = defComp("body", [
 						}
 					} else if (target.side === "top" && velY < 0) {
 						velY = 0;
-						this.trigger("headbump", target.obj);
+						this.trigger("headbutt", target.obj);
 					}
 				}
 

@@ -134,7 +134,7 @@ scene("main", () => {
 	});
 
 	// grow an apple if player's head bumps into an obj with "prize" tag
-	player.on("headbump", (obj) => {
+	player.on("headbutt", (obj) => {
 		if (obj.is("prize")) {
 			level.spawn("#", obj.gridPos.sub(0, 1));
 		}
