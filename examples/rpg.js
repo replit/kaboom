@@ -14,9 +14,9 @@ loadSprite("door", "img/door.png");
 loadSprite("key", "img/key.png");
 loadSprite("guy", "img/guy.png");
 
-const SPEED = 80;
-
 scene("main", (levelIdx) => {
+
+	const SPEED = 80;
 
 	const characters = {
 		"a": {

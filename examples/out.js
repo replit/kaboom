@@ -8,8 +8,10 @@ loadRoot("/pub/examples/");
 // gotta load the image first
 loadSprite("mark", "img/mark.png");
 
-const out = defComp("out", ["pos"], () => {
+function out() {
 	return {
+		id: "out",
+		require: [ "pos" ],
 		update() {
 			const spos = this.screenPos();
 			if (
@@ -22,7 +24,7 @@ const out = defComp("out", ["pos"], () => {
 			}
 		},
 	};
-});
+}
 
 scene("main", () => {
 

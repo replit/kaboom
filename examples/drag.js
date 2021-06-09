@@ -8,13 +8,14 @@ loadRoot("/pub/examples/");
 // gotta load the image first
 loadSprite("mark", "img/mark.png");
 
-// a custom component handling drag
-const drag = defComp("drag", [ "pos", "area", ], () => {
+function drag() {
 
 	let offset = vec2(0);
 	const sdata = sceneData();
 
 	return {
+		id: "drag",
+		require: [ "pos", "area", ],
 		// "add" is a special lifecycle method gets called when the obj is added to scene
 		add() {
 			// "this" in all methods refer to the obj
@@ -35,7 +36,7 @@ const drag = defComp("drag", [ "pos", "area", ], () => {
 		},
 	};
 
-});
+}
 
 scene("main", () => {
 
