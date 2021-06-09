@@ -26,7 +26,7 @@ scene("main", () => {
 		{
 			update() {
 				this.uniform["u_time"] = time();
-				this.uniform["u_mpos"] = mousePos().dot(1 / width(), 1 / height());
+				this.uniform["u_mpos"] = mousePos().scale(1 / width(), 1 / height());
 			},
 		}
 	]);

@@ -1,4 +1,4 @@
-### (wip) "Shade on You!"
+### (wip)
 - added `loadShader(id, vert, frag, isUrl)`
 - added `shader()` comp for attaching custom shader to an obj
 - (**BREAK**) added `defComp()` and refactored the component system, making it possible to declare comp dependencies. The old comp definition still works, but will result in error if there're overlapping fields now, thus breakable.
@@ -25,6 +25,7 @@ add([
 obj.play("anim");
 obj.c("sprite").play("anim");
 ```
+- (**BREAK**) changed event `headbump` to `headbutt`
 
 ### v0.5.1
 - added plugins npm package support e.g. `import asepritePlugin from "kaboom/plugins/aseprite"`
