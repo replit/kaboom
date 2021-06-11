@@ -657,8 +657,8 @@ on("destroy", "bullet", (e) => {
 		desc: "input events",
 		entries: [
 			f("keyDown", "runs every frame when specified key is being pressed", `
-// trigger this every frame when the user is holding the "up" key
-keyPress("up", () => {
+// trigger this every frame the user is holding the "up" key
+keyDown("up", () => {
 	player.move(0, -SPEED);
 });
 			`),

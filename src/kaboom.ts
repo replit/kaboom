@@ -525,26 +525,14 @@ function camIgnore(layers: string[]) {
 // define a component with its dependencies and state builder
 function defComp(
 	id: string,
-	deps: string[],
-	builder: (...args) => Comp
-): (...args) => Comp {
+	require: string[],
+	builder: CompBuilder,
+): CompBuilder {
 	const comp = (...args) => {
-		const state = builder(...args);
 		return {
-			...state,
-			add() {
-				// TODO: sprite(), rect(), and text() adds area() also on add(), which we can't catch here and will result in error if they're defined after this comp
-				// check comp depsments
-				for (const dep of deps) {
-					if (!this.c(dep)) {
-						throw new Error(`comp '${id}' requires comp '${dep}'`);
-					}
-				}
-				if (typeof state.add === "function") {
-					state.add.call(this);
-				}
-			},
-			_id: id,
+			...builder(...args),
+			id: id,
+			require: require,
 		};
 	};
 	game.compReg[id] = comp;
@@ -558,6 +546,7 @@ function makeComp(id: string, ...args): Comp {
 	return game.compReg[id](...args);
 }
 
+// TODO: make tags also comp?
 function add(comps: Comp[]): GameObj {
 
 	const compStates = {};
@@ -586,36 +575,28 @@ function add(comps: Comp[]): GameObj {
 				return;
 			}
 
-			// multi comps
-			if (Array.isArray(comp)) {
-				for (const c of comp) {
-					this.use(c);
-				}
-				return;
-			}
-
-			const type = typeof comp;
+			const ty = typeof comp;
 
 			// tags
-			if (type === "string") {
+			if (ty === "string") {
 				this._tags.push(comp);
 				return;
 			}
 
-			if (type !== "object") {
-				throw new Error(`invalid comp type: ${type}`);
+			if (ty !== "object") {
+				throw new Error(`invalid comp type: ${ty}`);
 			}
 
 			let stateContainer = customState;
 
-			if (comp._id) {
-				compStates[comp._id] = {};
-				stateContainer = compStates[comp._id];
+			if (comp.id) {
+				compStates[comp.id] = {};
+				stateContainer = compStates[comp.id];
 			}
 
 			for (const k in comp) {
 
-				if (k === "_id") {
+				if (k === "id") {
 					continue;
 				}
 
@@ -629,6 +610,10 @@ function add(comps: Comp[]): GameObj {
 					}
 				} else {
 					stateContainer[k] = comp[k];
+				}
+
+				if (k === "require") {
+					continue;
 				}
 
 				// fields
@@ -723,7 +708,9 @@ function add(comps: Comp[]): GameObj {
 
 	};
 
-	obj.use(comps);
+	for (const comp of comps) {
+		obj.use(comp);
+	}
 
 	const scene = curScene();
 	const id = scene.lastObjID++;
@@ -733,9 +720,14 @@ function add(comps: Comp[]): GameObj {
 
 	obj.trigger("add");
 
-	for (const e of scene.events.add) {
-		if (obj.is(e.tag)) {
-			e.cb(obj);
+	// check comp dependencies
+	for (const id in compStates) {
+		const comp = compStates[id];
+		const deps = comp.require || [];
+		for (const dep of deps) {
+			if (!obj.c(dep)) {
+				throw new Error(`comp '${id}' requires comp '${dep}'`);
+			}
 		}
 	}
 
@@ -1948,7 +1940,7 @@ const body = defComp("body", [
 						}
 					} else if (target.side === "top" && velY < 0) {
 						velY = 0;
-						this.trigger("headbump", target.obj);
+						this.trigger("headbutt", target.obj);
 					}
 				}
 
@@ -1977,13 +1969,13 @@ const body = defComp("body", [
 
 });
 
-function shader(id: string, uniform: Uniform = {}): ShaderComp {
+const shader = defComp("shader", [], (id: string, uniform: Uniform = {}) => {
 	const prog = assets.shaders[id];
 	return {
 		shader: id,
 		uniform: uniform,
 	};
-}
+});
 
 const debug: Debug = {
 	paused: false,

@@ -338,6 +338,7 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 
 			send(uniform: Uniform) {
 				this.bind();
+				// TODO: slow for vec2
 				for (const name in uniform) {
 					const val = uniform[name];
 					const loc = gl.getUniformLocation(id, name);

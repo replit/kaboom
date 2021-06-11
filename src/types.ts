@@ -502,20 +502,33 @@ type Line = {
 type ClientID = number;
 type MsgHandler = (id: ClientID, data: any) => void;
 
-type Comp = any;
-type CompBuilder = (...args) => Comp;
+type Comp = {
+	id?: CompID,
+	require?: CompID[],
+	add?: AddEvent,
+	update?: UpdateEvent,
+	draw?: DrawEvent,
+	destroy?: DestroyEvent,
+	inspect?: InspectEvent,
+	[custom: string]: any,
+};
+
+type CompBuilder = any;
+// TODO: doesn't work
+// type CompBuilder = (...args) => Comp;
 type GameObjID = number;
 type CompID = string;
 type AddEvent = () => void;
 type DrawEvent = () => void;
 type UpdateEvent = () => void;
 type DestroyEvent = () => void;
+type InspectEvent = () => any;
 
 type PosCompInspect = {
 	pos: string,
 };
 
-type PosComp = {
+type PosComp = Comp & {
 	pos: Vec2,
 	move(x: number, y: number): void,
 	move(p: Vec2): void,
@@ -523,21 +536,21 @@ type PosComp = {
 	inspect(): PosCompInspect,
 };
 
-type ScaleComp = {
+type ScaleComp = Comp & {
 	scale: Vec2,
 	flipX(s: number): void,
 	flipY(s: number): void,
 };
 
-type RotateComp = {
+type RotateComp = Comp & {
 	angle: number,
 };
 
-type ColorComp = {
+type ColorComp = Comp & {
 	color: Color,
 };
 
-type OriginComp = {
+type OriginComp = Comp & {
 	origin: Origin | Vec2,
 };
 
@@ -545,7 +558,7 @@ type LayerCompInspect = {
 	layer: string,
 };
 
-type LayerComp = {
+type LayerComp = Comp & {
 	layer: string,
 	inspect(): LayerCompInspect,
 };
@@ -562,7 +575,7 @@ type CollisionResolve = {
 	side: RectSide,
 }
 
-type AreaComp = {
+type AreaComp = Comp & {
 	area: Rect,
 	areaWidth(): number,
 	areaHeight(): number,
@@ -594,7 +607,7 @@ type SpriteCompCurAnim = {
 	timer: number,
 };
 
-type SpriteComp = {
+type SpriteComp = Comp & {
 	add: AddEvent,
 	draw: DrawEvent,
 	update: UpdateEvent,
@@ -615,7 +628,7 @@ type SpriteCompInspect = {
 	curAnim?: string,
 };
 
-type TextComp = {
+type TextComp = Comp & {
 	add: AddEvent,
 	draw: DrawEvent,
 	text: string,
@@ -631,7 +644,7 @@ type TextCompConf = {
 	width?: number,
 };
 
-type RectComp = {
+type RectComp = Comp & {
 	add: AddEvent,
 	draw: DrawEvent,
 	width: number,
@@ -685,12 +698,12 @@ type UniformValue =
 
 type Uniform = Record<string, UniformValue>;
 
-type ShaderComp = {
+type ShaderComp = Comp & {
 	uniform: Uniform,
 	shader: string,
 };
 
-type BodyComp = {
+type BodyComp = Comp & {
 	update: UpdateEvent,
 	jumpForce: number,
 	curPlatform(): GameObj | null,
@@ -704,7 +717,7 @@ type BodyCompConf = {
 	maxVel?: number,
 };
 
-type SolidComp = {
+type SolidComp = Comp & {
 	solid: boolean,
 };
 
