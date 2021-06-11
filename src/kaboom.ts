@@ -731,12 +731,6 @@ function add(comps: Comp[]): GameObj {
 		}
 	}
 
-	for (const e of scene.events.add) {
-		if (obj.is(e.tag)) {
-			e.cb(obj);
-		}
-	}
-
 	return obj;
 
 }
