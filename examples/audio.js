@@ -1,3 +1,4 @@
+// Initializing kaboom
 kaboom({
 	global: true,
 	fullscreen: true,
@@ -5,16 +6,18 @@ kaboom({
 	clearColor: [0, 0, 0, 1],
 });
 
+// Loading Assets
 loadRoot("/pub/examples/");
 loadSound("wooosh", "sounds/wooosh.mp3");
 loadSound("OtherworldlyFoe", "sounds/OtherworldlyFoe.mp3");
 
+// Creating Scene
 scene("main", () => {
-
-	// the music might not autoplay cuz some browser won't allow audio start before any user interaction
-	const music = play("OtherworldlyFoe", { loop: true, });
-
-	volume(0.5);
+	
+	// The music might not autoplay because some browser won't allow audio start before any user interaction
+	const music = play("OtherworldlyFoe", { loop: true, }); // For documentation of play function visit "https://kaboomjs.com/#play"
+	
+	volume(0.5); // For documentation of volume function visit "https://kaboomjs.com/#play "https://kaboomjs.com/#volume"
 
 	const label = add([
 		text(),
@@ -22,11 +25,11 @@ scene("main", () => {
 
 	function updateText() {
 		label.text = `
-${music.paused() ? "paused" : "playing"}
-time: ${music.time().toFixed(2)}
-volume: ${music.volume()}
-detune: ${music.detune()}
-		`.trim();
+			${music.paused() ? "paused" : "playing"}
+			time: ${music.time().toFixed(2)}
+			volume: ${music.volume()}
+			detune: ${music.detune()}
+					`.trim();
 	}
 
 	updateText();
