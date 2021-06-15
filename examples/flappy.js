@@ -38,6 +38,14 @@ scene("main", () => {
 		layer("bg"),
 	]);
 
+	// ceiling
+	add([
+		rect(640, .001),
+		pos(0, 0),
+		color(0, 0, 1, 0),
+		solid()
+	]);
+
 	// a game object consists of a list of components and tags
 	const birdy = add([
 		// sprite() means it's drawn with a sprite of name "birdy" (defined above in 'loadSprite')
