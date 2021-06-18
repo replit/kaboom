@@ -935,20 +935,20 @@ function get(t?: string): GameObj[] {
 }
 
 // apply a function to all objects currently in scene with tag t
-function every(t: string | ((obj: GameObj) => void), f?: (obj: GameObj) => void) {
+function every<T>(t: string | ((obj: GameObj) => T), f?: (obj: GameObj) => T): T[] {
 	if (typeof t === "function" && f === undefined) {
-		get().forEach(t);
+		return get().map(t);
 	} else if (typeof t === "string") {
-		get(t).forEach(f);
+		return get(t).map(f);
 	}
 }
 
 // every but in reverse order
-function revery(t: string | ((obj: GameObj) => void), f?: (obj: GameObj) => void) {
+function revery<T>(t: string | ((obj: GameObj) => T), f?: (obj: GameObj) => T): T[] {
 	if (typeof t === "function" && f === undefined) {
-		get().reverse().forEach(t);
+		return get().reverse().map(t);
 	} else if (typeof t === "string") {
-		get(t).reverse().forEach(f);
+		return get(t).reverse().map(f);
 	}
 }
 
@@ -1280,7 +1280,7 @@ function start(name: string, ...args) {
 }
 
 // TODO: have velocity here?
-const pos = defComp("pos", [], (...args) => {
+const pos = defComp("pos", [], (...args): PosComp => {
 
 	return {
 
@@ -1313,7 +1313,7 @@ const pos = defComp("pos", [], (...args) => {
 });
 
 // TODO: allow single number assignment
-const scale = defComp("scale", [], (...args) => {
+const scale = defComp("scale", [], (...args): ScaleComp => {
 	if (args.length === 0) {
 		return scale(1);
 	}
@@ -1328,25 +1328,25 @@ const scale = defComp("scale", [], (...args) => {
 	};
 });
 
-const rotate = defComp("rotate", [], (r: number) => {
+const rotate = defComp("rotate", [], (r: number): RotateComp => {
 	return {
 		angle: r ?? 0,
 	};
 });
 
-const color = defComp("color", [], (...args) => {
+const color = defComp("color", [], (...args): ColorComp => {
 	return {
 		color: rgba(...args),
 	};
 });
 
-const origin = defComp("origin", [], (o: Origin | Vec2) => {
+const origin = defComp("origin", [], (o: Origin | Vec2): OriginComp => {
 	return {
 		origin: o,
 	};
 });
 
-const layer = defComp("layer", [], (l: string) => {
+const layer = defComp("layer", [], (l: string): LayerComp => {
 	return {
 		layer: l,
 		inspect(): LayerCompInspect {
@@ -1366,7 +1366,7 @@ function isSameLayer(o1: GameObj, o2: GameObj): boolean {
 // TODO: active flag
 // TODO: tell which size collides
 // TODO: dynamic update when size change
-const area = defComp("area", [], (p1: Vec2, p2: Vec2) => {
+const area = defComp("area", [], (p1: Vec2, p2: Vec2): AreaComp => {
 
 	const colliding = {};
 	const overlapping = {};
@@ -1467,68 +1467,73 @@ const area = defComp("area", [], (p1: Vec2, p2: Vec2) => {
 		},
 
 		// TODO: make overlap events still trigger
+		// push an obj out of another if they're overlapped
+		pushOut(obj: GameObj): PushOut | null {
+
+			if (obj === this) {
+				return null;
+			}
+
+			if (!obj.area) {
+				return null;
+			}
+
+			if (!isSameLayer(this, obj)) {
+				return null;
+			}
+
+			const a1 = this._worldArea();
+			const a2 = obj._worldArea();
+
+			if (!colRectRect(a1, a2)) {
+				return null;
+			}
+
+			const disLeft = a1.p2.x - a2.p1.x;
+			const disRight = a2.p2.x - a1.p1.x;
+			const disTop = a1.p2.y - a2.p1.y;
+			const disBottom = a2.p2.y - a1.p1.y;
+			const min = Math.min(disLeft, disRight, disTop, disBottom);
+
+			switch (min) {
+				case disLeft:
+					this.pos.x -= disLeft;
+					return {
+						obj: obj,
+						side: "right",
+						dis: -disLeft,
+					};
+				case disRight:
+					this.pos.x += disRight;
+					return {
+						obj: obj,
+						side: "left",
+						dis: disRight,
+					};
+				case disTop:
+					this.pos.y -= disTop;
+					return {
+						obj: obj,
+						side: "bottom",
+						dis: -disTop,
+					};
+				case disBottom:
+					this.pos.y += disBottom;
+					return {
+						obj: obj,
+						side: "top",
+						dis: disBottom,
+					};
+			}
+
+			return null;
+
+		},
+
 		// push object out of other solid objects
-		resolve(): CollisionResolve[] {
-
-			const targets: CollisionResolve[] = [];
-
-			every((other) => {
-
-				if (other === this) {
-					return;
-				}
-
-				if (!other.solid) {
-					return;
-				}
-
-				if (!other.area) {
-					return;
-				}
-
-				if (!isSameLayer(this, other)) {
-					return;
-				}
-
-				const a1 = this._worldArea();
-				const a2 = other._worldArea();
-
-				if (!colRectRect(a1, a2)) {
-					return;
-				}
-
-				const disLeft = a1.p2.x - a2.p1.x;
-				const disRight = a2.p2.x - a1.p1.x;
-				const disTop = a1.p2.y - a2.p1.y;
-				const disBottom = a2.p2.y - a1.p1.y;
-				const min = Math.min(disLeft, disRight, disTop, disBottom);
-
-				const side = (() => {
-					switch (min) {
-						case disLeft:
-							this.pos.x -= disLeft;
-							return "right";
-						case disRight:
-							this.pos.x += disRight;
-							return "left";
-						case disTop:
-							this.pos.y -= disTop;
-							return "bottom";
-						case disBottom:
-							this.pos.y += disBottom;
-							return "top";
-					}
-				})();
-
-				targets.push({
-					obj: other,
-					side: side,
-				});
-
-			});
-
-			return targets;
-
+		pushOutAll(): PushOut[] {
+			return every((other) => this.pushOut(other))
+				.filter((res) => res != null);
 		},
 
 		_checkCollisions(tag: string, f: (obj: GameObj) => void) {
@@ -1615,7 +1620,7 @@ function getAreaFromSize(w, h, o) {
 const sprite = defComp("sprite", [], (
 	id: string,
 	conf: SpriteCompConf = {}
-) => {
+): SpriteComp => {
 
 	let spr = assets.sprites[id];
 
@@ -1783,7 +1788,7 @@ const text = defComp("text", [], (
 	t: string,
 	size: number,
 	conf: TextCompConf = {}
-) => {
+): TextComp => {
 
 	return {
 
@@ -1844,7 +1849,7 @@ const rect = defComp("rect", [], (
 	w: number,
 	h: number,
 	conf: RectCompConf = {},
-) => {
+): RectComp => {
 
 	return {
 
@@ -1877,7 +1882,7 @@ const rect = defComp("rect", [], (
 
 });
 
-const solid = defComp("solid", [], () => {
+const solid = defComp("solid", [], (): SolidComp => {
 	return {
 		solid: true,
 	};
@@ -1892,7 +1897,7 @@ const body = defComp("body", [
 	"area",
 ], (
 	conf: BodyCompConf = {},
-) => {
+): BodyComp => {
 
 	let velY = 0;
 	let curPlatform: GameObj | null = null;
@@ -1907,7 +1912,7 @@ const body = defComp("body", [
 
 			this.move(0, velY);
 
-			const targets = this.resolve();
+			const targets = this.pushOutAll();
 			let justOff = false;
 
 			// check if loses current platform
@@ -1969,7 +1974,10 @@ const body = defComp("body", [
 
 });
 
-const shader = defComp("shader", [], (id: string, uniform: Uniform = {}) => {
+const shader = defComp("shader", [], (
+	id: string,
+	uniform: Uniform = {},
+): ShaderComp => {
 	const prog = assets.shaders[id];
 	return {
 		shader: id,

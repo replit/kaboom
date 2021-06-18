@@ -26,6 +26,9 @@ obj.play("anim");
 obj.c("sprite").play("anim");
 ```
 - (**BREAK**) changed event `headbump` to `headbutt`
+- fixed `"add"` event getting called twice for tagged objs
+- (**BREAK**) renamed `resolve()` to `pushOutAll()` on `area` comp
+- added `pushOut()` for pushing a single object out from another to `area` comp
 
 ### v0.5.1
 - added plugins npm package support e.g. `import asepritePlugin from "kaboom/plugins/aseprite"`

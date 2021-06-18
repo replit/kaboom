@@ -43,10 +43,10 @@ type KaboomCtx = {
 	destroy(obj: GameObj): void,
 	destroyAll(tag: string): void,
 	get(tag?: string): GameObj[],
-	every(t: string, f: (obj: GameObj) => void): void,
-	every(f: (obj: GameObj) => void): void,
-	revery(t: string, f: (obj: GameObj) => void): void,
-	revery(f: (obj: GameObj) => void): void,
+	every<T>(t: string, f: (obj: GameObj) => T): T[],
+	every<T>(f: (obj: GameObj) => T): T[],
+	revery<T>(t: string, f: (obj: GameObj) => T): T[],
+	revery<T>(f: (obj: GameObj) => T): T[],
 	layers(list: string[], def?: string): void,
 	on(event: string, tag: string, cb: (obj: GameObj) => void): void,
 	action(tag: string, cb: (obj: GameObj) => void): void,
@@ -570,9 +570,10 @@ type RectSide =
 	| "right"
 	;
 
-type CollisionResolve = {
+type PushOut = {
 	obj: GameObj,
 	side: RectSide,
+	dis: number,
 }
 
 type AreaComp = Comp & {
@@ -588,7 +589,8 @@ type AreaComp = Comp & {
 	collides(tag: string, f: (o: GameObj) => void): void,
 	overlaps(tag: string, f: (o: GameObj) => void): void,
 	hasPt(p: Vec2): boolean,
-	resolve(): void,
+	pushOut(obj: GameObj): PushOut | null,
+	pushOutAll(): PushOut[],
 	_worldArea(): Rect;
 	_checkCollisions(tag: string, f: (obj: GameObj) => void): void;
 	_checkOverlaps(tag: string, f: (obj: GameObj) => void): void;
