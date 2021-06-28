@@ -1533,7 +1533,7 @@ const area = defComp("area", [], (p1: Vec2, p2: Vec2): AreaComp => {
 
 		// push object out of other solid objects
 		pushOutAll(): PushOut[] {
-			return every((other) => this.pushOut(other))
+			return every((other) => other.solid ? this.pushOut(other) : null)
 				.filter((res) => res != null);
 		},
 
@@ -1940,6 +1940,7 @@ const body = defComp("body", [
 					if (target.side === "bottom" && velY > 0) {
 						curPlatform = target.obj;
 						velY = 0;
+						// TODO: might not have pos
 						lastPlatformPos = curPlatform.pos.clone();
 						if (!justOff) {
 							this.trigger("grounded", curPlatform);
