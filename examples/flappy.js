@@ -20,7 +20,7 @@ scene("main", () => {
 	const PIPE_MIN_HEIGHT = 16;
 	const JUMP_FORCE = 320;
 	const SPEED = 120;
-	const MAX_HEIGHT = -60;
+	const CEILING = -60;
 
 	// define gravity
 	gravity(1200);
@@ -51,7 +51,7 @@ scene("main", () => {
 
 	// check for fall death
 	birdy.action(() => {
-		if (birdy.pos.y >= height() || birdy.pos.y <= -MAX_HEIGHT) {
+		if (birdy.pos.y >= height() || birdy.pos.y <= CEILING) {
 			// switch to "death" scene
 			go("death", score.value);
 		}
