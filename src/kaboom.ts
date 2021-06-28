@@ -1286,6 +1286,7 @@ const pos = defComp("pos", [], (...args): PosComp => {
 
 		pos: vec2(...args),
 
+		// TODO: check physics here?
 		move(...args) {
 
 			const p = vec2(...args);
