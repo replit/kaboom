@@ -5,6 +5,8 @@
 	"homepage": "https://kaboomjs.com/",
 	"repository": "github:replit/kaboom",
 	"browser": "dist/kaboom.js",
+	"main": "dist/kaboom.cjs",
+	"module": "dist/kaboom.mjs",
 	"types": "dist/kaboom.d.ts",
 	"exports": {
 		".": {
