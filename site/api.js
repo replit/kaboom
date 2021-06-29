@@ -253,7 +253,7 @@ player.action(() => {
 obj.use(scale(2, 2));
 			`),
 			f("obj.exists", "check if obj exists in scene", `
-// sometimes you might keep a reference of an object that's already 'destroy()'ed 
+// sometimes you might keep a reference of an object that's already 'destroy()'ed
 // use exists() to check if they were
 if (obj.exists()) {
 	child.pos = obj.pos.clone();
@@ -318,7 +318,7 @@ every((obj) => {
 destroyAll("enemy");
 			`),
 			f("readd", "re-add an object to the scene", `
-// remove and add froggy to the scene without triggering events tied to "add" or "destroy" 
+// remove and add froggy to the scene without triggering events tied to "add" or "destroy"
 // so it'll be drawn on the top of the layer it belongs to
 readd(froggy);
 			`),
@@ -668,6 +668,7 @@ keyPress("space", () => {
 	player.jump();
 });
 			`),
+			f("keyPressRep", "runs once when specified key is just pressed (will trigger multiple time if it's being held depending on the system's keyboard timer)"),
 			f("keyRelease", "runs once when specified key is just released"),
 			f("charInput", "runs when user inputs text", `
 // similar to keyPress, but focused on text input
@@ -678,6 +679,28 @@ charInput((ch) => {
 			f("mouseDown", "runs every frame when left mouse is being pressed"),
 			f("mouseClick", "runs once when left mouse is just clicked"),
 			f("mouseRelease", "runs once when left mouse is just released"),
+			f("keyIsDown", "check if a key is being held down", `
+// trigger this every frame the user is holding the "up" key
+action(() => {
+	if (keyIsDown("w")) {
+		// TODO
+	}
+});
+
+keyPress("s", () => {
+	if (keyIsDown("meta")) {
+		// TODO
+	} else {
+		// TODO
+	}
+})
+			`),
+			f("keyIsPressed", "check if a key is just pressed last frame"),
+			f("keyIsPressedRep", "check if a key is just pressed last frame (will trigger multiple time if it's being held)"),
+			f("keyIsReleased", "check if a key is just released last frame"),
+			f("mouseIsDown", "check if mouse is being held down"),
+			f("mouseIsClicked", "check if mouse is just pressed last frame"),
+			f("mouseIsReleased", "check if mouse is just released last frame"),
 		],
 	},
 	{
@@ -689,7 +712,7 @@ charInput((ch) => {
 			f("time", "current game time"),
 			f("dt", "delta time since last frame"),
 			f("mousePos", "get mouse position of a layer", `
-// by default it returns the mouse position of the default layer 
+// by default it returns the mouse position of the default layer
 // if that layer is not camIgnore()-ed, it'll return the mouse position processed by the camera transform
 const mpos = mousePos();
 
