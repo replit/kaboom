@@ -5,6 +5,11 @@ const api = require("./api");
 const gstyle = require("./gstyle");
 const utils = require("./utils");
 const typeData = require("./typeData");
+const {
+	renderNamedFunc,
+	renderMember,
+	renderTypeAlias,
+} = require("./rendertype");
 const t = www.tag;
 
 const style = {
@@ -231,87 +236,6 @@ function code(c, lang) {
 }
 
 const versions = utils.versions();
-
-function renderParams(params) {
-	return params.map((p) => {
-		return p.name
-			+ (p.questionToken ? "?" : "")
-			+ ": " + (p.dotDotDotToken ? "..." : t("span", {
-				class: "typesig",
-			}, renderTypeSig(p.type)))
-			;
-	}).join(", ");
-}
-
-function typeExists(name) {
-	return typeData.types[name] || typeData.interfaces[name];
-}
-
-function renderTypeSig(type) {
-
-	const tname = (() => {
-		switch (type.kind) {
-			case "StringKeyword": return "string";
-			case "NumberKeyword": return "number";
-			case "BooleanKeyword": return "boolean";
-			case "VoidKeyword": return "void";
-			case "AnyKeyword": return "any";
-			case "ArrayType": return `${renderTypeSig(type.elementType)}[]`;
-			case "ParenthesizedType": return `(${renderTypeSig(type.type)})`;
-			case "UnionType": return type.types.map(renderTypeSig).join(" | ");
-			case "LiteralType": return renderTypeSig(type.literal);
-			case "StringLiteral": return `"${type.text}"`;
-			case "FunctionType": return `(${renderParams(type.parameters)}) => ${renderTypeSig(type.type)}`;
-			case "TypeReference": return typeExists(type.typeName) ? t("a", {
-				class: "typeref",
-			}, type.typeName) : type.typeName;
-			default: return "";
-		}
-	})();
-
-	if (type.typeArguments) {
-		return tname + `&lt;${type.typeArguments.map(renderTypeSig).join(", ")}&gt;`;
-	}
-
-	return tname;
-
-}
-
-function renderNamedFunc(type) {
-	return `${type.name}(${renderParams(type.parameters)})${type.type ? t("span", {
-		class: "typesig",
-	}, " => " + renderTypeSig(type.type)) : ""}`;
-}
-
-function renderMember(m) {
-	switch (m.kind) {
-		case "MethodSignature":
-			return renderNamedFunc(m);
-		case "PropertySignature":
-			return m.name
-				+ (m.questionToken ? "?" : "")
-				+ ": "
-				+ t("span", {
-					class: "typesig",
-				}, renderTypeSig(m.type));
-	}
-}
-
-function renderTypeAlias(type) {
-	switch (type.type.kind) {
-		case "TypeLiteral":
-			const memberList = type.type.members
-				.map(renderMember)
-				.map((entry) => "&nbsp;".repeat(4) + entry)
-				.join(t("br"));
-			return `${type.name} {${t("br")}${memberList}${t("br")}}`;
-		case "TypeReference":
-		case "UnionType":
-		case "FunctionType":
-			return `${type.name} = ${renderTypeSig(type.type)}`;
-	}
-}
-
 const renderedTypes = {};
 
 renderedTypes["kaboom"] = renderNamedFunc(typeData.funcs["kaboom"]);
@@ -321,9 +245,7 @@ typeData.types["KaboomCtx"].type.members.forEach((m) => {
 });
 
 Object.values(typeData.types).forEach((t) => {
-// 	if (t.name !== "KaboomCtx") {
-		renderedTypes[t.name] = renderTypeAlias(t);
-// 	}
+	renderedTypes[t.name] = renderTypeAlias(t);
 });
 
 const page = t("html", {}, [

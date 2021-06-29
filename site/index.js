@@ -19,6 +19,9 @@ const pages = {
 			return require("./example")(name);
 		}
 	},
+	"/type/:name": (req, res) => {
+		return require("./type")(req.params.name);
+	},
 };
 
 for (const path in pages) {
