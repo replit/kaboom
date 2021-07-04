@@ -1,5 +1,3 @@
-// TODO: fix
-
 kaboom({
 	global: true,
 	fullscreen: true,
@@ -17,11 +15,9 @@ scene("main", () => {
 			color(1, 1, 1),
 		]);
 
-		// TODO: text() and rect() both have 'width'
 		add([
 			text(txt),
 			pos(p),
-			rect(100, 100),
 			origin("center"),
 			color(0, 0, 0),
 		]);
