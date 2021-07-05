@@ -144,7 +144,7 @@ scene("main", (levelIdx) => {
 	}
 
 	player.action(() => {
-		player.resolve();
+		player.pushOutAll();
 	});
 
 });
