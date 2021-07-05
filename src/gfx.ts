@@ -705,22 +705,52 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 		let curX = 0;
 		let th = ch;
 		let tw = 0;
-		const flines = [[]];
+		const flines = [];
+		let curLine = [];
+		let lastSpace = null;
+		let cursor = 0;
 
-		// check new lines and calc area size
-		for (const char of chars) {
-			// go new line if \n or exceeds wrap value
-			if (char === "\n" || (conf.width ? (curX + cw > conf.width) : false)) {
+		while (cursor < chars.length) {
+
+			let char = chars[cursor];
+
+			// check new line
+			if (char === "\n") {
+				// always new line on '\n'
 				th += ch;
 				curX = 0;
-				flines.push([]);
+				lastSpace = null;
+				flines.push(curLine);
+				curLine = [];
+			} else if ((conf.width ? (curX + cw > conf.width) : false)) {
+				// new line on last word if width exceeds
+				th += ch;
+				curX = 0;
+				if (lastSpace != null) {
+					cursor -= curLine.length - lastSpace;
+					char = chars[cursor];
+					curLine = curLine.slice(0, lastSpace);
+				}
+				lastSpace = null;
+				flines.push(curLine);
+				curLine = [];
 			}
+
+			// push char
 			if (char !== "\n") {
-				flines[flines.length - 1].push(char);
+				curLine.push(char);
 				curX += cw;
+				if (char === " ") {
+					lastSpace = curLine.length;
+				}
 			}
+
 			tw = Math.max(tw, curX);
+			cursor++;
+
 		}
+
+		flines.push(curLine);
 
 		if (conf.width) {
 			tw = conf.width;
