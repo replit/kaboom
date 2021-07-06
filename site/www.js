@@ -318,6 +318,7 @@ function makeServer() {
 							})
 							.join("");
 
+						this.cors();
 						this.html(page);
 
 					},
@@ -332,6 +333,7 @@ function makeServer() {
 							.readdirSync(p)
 							.filter(p => !p.startsWith("."));
 
+						this.cors();
 						this.json(entries);
 
 					},
