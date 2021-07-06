@@ -2,6 +2,7 @@
 
 const http = require("http");
 const fs = require("fs");
+const url = require("url");
 const path = require("path");
 
 function escapeHTML(unsafe) {
@@ -168,7 +169,7 @@ function makeServer() {
 
 		match(pat, cb) {
 			this.handle((req, res) => {
-				const match = matchUrl(pat, req.url);
+				const match = matchUrl(pat, req.path);
 				if (match) {
 					cb({
 						...req,
@@ -180,12 +181,11 @@ function makeServer() {
 
 		fs(mnt, root) {
 			this.handle((req, res) => {
-				const url = req.url.split("?")[0];
-				if (!url.startsWith(mnt)) {
+				if (!req.path.startsWith(mnt)) {
 					return;
 				}
 				let p = root || ".";
-				const child = url.replace(new RegExp(`^${mnt}`), "");
+				const child = req.path.replace(new RegExp(`^${mnt}`), "");
 				if (child) {
 					p += "/" + child;
 				}
@@ -194,7 +194,11 @@ function makeServer() {
 				}
 				const stat = fs.statSync(p);
 				if (stat.isDirectory()) {
-					res.dir(p);
+					if (req.query.fmt === "json") {
+						res.dirjson(p);
+					} else {
+						res.dir(p);
+					}
 				} else {
 					res.file(p);
 				}
@@ -205,9 +209,14 @@ function makeServer() {
 
 			http.createServer((req, res) => {
 
+				// TODO: url.parse is deprecated
+				const requrl = url.parse(req.url, true);
+
 				const req2 = {
 					headers: req.headers,
 					url: req.url,
+					path: requrl.pathname,
+					query: requrl.query,
 				};
 
 				let status = 200;
@@ -297,7 +306,7 @@ function makeServer() {
 							.readdirSync(p)
 							.filter(p => !p.startsWith("."));
 
-						const parent = req.url === "/" ? "" : req.url;
+						const parent = req2.path === "/" ? "" : req2.path;
 
 						const page = entries
 							.map((e) => {
@@ -310,6 +319,20 @@ function makeServer() {
 							.join("");
 
 						this.html(page);
+
+					},
+
+					dirjson(p) {
+
+						if (!fs.existsSync(p)) {
+							return;
+						}
+
+						const entries = fs
+							.readdirSync(p)
+							.filter(p => !p.startsWith("."));
+
+						this.json(entries);
 
 					},
 
@@ -339,7 +362,6 @@ function makeServer() {
 function matchUrl(pat, url) {
 
 	pat = pat.replace(/\/$/, "");
-	url = url.split("?")[0];
 	url = url.replace(/\/$/, "");
 
 	if (pat === url) {

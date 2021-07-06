@@ -42,6 +42,7 @@ server.fs("/lib/latest", `lib/${versions.latest}`);
 server.fs("/lib/dev", "../dist");
 // TODO: deprecate
 server.fs("/lib/master", "lib/0.0.0");
+server.fs("/assets", "assets");
 
 server.match("/changelog", (req, res) => {
 	res.file("../CHANGELOG.md");

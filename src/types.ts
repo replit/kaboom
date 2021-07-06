@@ -596,14 +596,22 @@ type AreaComp = Comp & {
 	_checkOverlaps(tag: string, f: (obj: GameObj) => void): void;
 };
 
+type SpriteScaleMode =
+	"stretch"
+	| "tile"
+	;
+
 type SpriteCompConf = {
 	noArea?: boolean,
 	quad?: Quad,
 	frame?: number,
 	animSpeed?: number,
+	mode?: SpriteScaleMode,
+	width?: number,
+	height?: number,
 };
 
-type SpriteCompCurAnim = {
+type SpriteCurAnim = {
 	name: string,
 	loop: boolean,
 	timer: number,

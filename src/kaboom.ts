@@ -1638,9 +1638,10 @@ const sprite = defComp("sprite", [], (
 		q.h *= conf.quad.h;
 	}
 
+	// TODO: take conf.{width,height} if specified
 	const width = spr.tex.width * q.w;
 	const height = spr.tex.height * q.h;
-	let curAnim: SpriteCompCurAnim | null = null;
+	let curAnim: SpriteCurAnim | null = null;
 
 	return {
 
