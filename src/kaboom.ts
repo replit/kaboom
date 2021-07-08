@@ -205,7 +205,7 @@ function drawSprite(
 	const q = spr.frames[conf.frame ?? 0];
 	gfx.drawTexture(spr.tex, {
 		...conf,
-		quad: q,
+		quad: q.scale(conf.quad || quad(0, 0, 1, 1)),
 	});
 }
 
@@ -1618,6 +1618,7 @@ function getAreaFromSize(w, h, o) {
 	);
 }
 
+// TODO: clean
 const sprite = defComp("sprite", [], (
 	id: string,
 	conf: SpriteCompConf = {}
@@ -1629,13 +1630,10 @@ const sprite = defComp("sprite", [], (
 		throw new Error(`sprite not found: "${id}"`);
 	}
 
-	const q = { ...spr.frames[0] };
+	let q = { ...spr.frames[0] };
 
 	if (conf.quad) {
-		q.x += conf.quad.x * q.w;
-		q.y += conf.quad.y * q.h;
-		q.w *= conf.quad.w;
-		q.h *= conf.quad.h;
+		q = q.scale(conf.quad);
 	}
 
 	// TODO: take conf.{width,height} if specified
@@ -1645,6 +1643,7 @@ const sprite = defComp("sprite", [], (
 
 	return {
 
+		// TODO: allow update
 		width: width,
 		height: height,
 		animSpeed: conf.animSpeed || 0.1,
@@ -1659,10 +1658,6 @@ const sprite = defComp("sprite", [], (
 		},
 
 		draw() {
-
-			const scene = curScene();
-			const q = spr.frames[this.frame];
-
 			drawSprite(spr, {
 				pos: this.pos,
 				scale: this.scale,
@@ -1673,8 +1668,10 @@ const sprite = defComp("sprite", [], (
 				quad: this.quad,
 				prog: assets.shaders[this.shader],
 				uniform: this.uniform,
+				tiled: conf.tiled,
+				width: conf.width,
+				height: conf.height,
 			});
-
 		},
 
 		update() {

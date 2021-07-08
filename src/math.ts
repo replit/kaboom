@@ -230,6 +230,14 @@ function quad(x: number, y: number, w: number, h: number): Quad {
 		y: y,
 		w: w,
 		h: h,
+		scale(other: Quad): Quad {
+			return quad(
+				this.x + this.w * other.x,
+				this.y + this.h * other.y,
+				this.w * other.w,
+				this.h * other.h
+			);
+		},
 		clone(): Quad {
 			return quad(this.x, this.y, this.w, this.h);
 		},

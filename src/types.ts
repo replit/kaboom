@@ -301,7 +301,7 @@ type DrawQuadConf = {
 	pos?: Vec2,
 	width?: number,
 	height?: number,
-	scale?: Vec2 | number,
+	scale?: Vec2,
 	rot?: number,
 	color?: Color,
 	origin?: Origin | Vec2,
@@ -314,7 +314,10 @@ type DrawQuadConf = {
 
 type DrawTextureConf = {
 	pos?: Vec2,
-	scale?: Vec2 | number,
+	scale?: Vec2,
+	width?: number,
+	height?: number,
+	tiled?: boolean,
 	rot?: number,
 	color?: Color,
 	origin?: Origin | Vec2,
@@ -326,7 +329,7 @@ type DrawTextureConf = {
 
 type DrawRectStrokeConf = {
 	width?: number,
-	scale?: Vec2 | number,
+	scale?: Vec2,
 	rot?: number,
 	color?: Color,
 	origin?: Origin | Vec2,
@@ -335,7 +338,7 @@ type DrawRectStrokeConf = {
 };
 
 type DrawRectConf = {
-	scale?: Vec2 | number,
+	scale?: Vec2,
 	rot?: number,
 	color?: Color,
 	origin?: Origin | Vec2,
@@ -395,7 +398,10 @@ type Origin =
 type DrawSpriteConf = {
 	frame?: number,
 	pos?: Vec2,
-	scale?: Vec2 | number,
+	width?: number,
+	height?: number,
+	tiled?: boolean,
+	scale?: Vec2,
 	rot?: number,
 	color?: Color,
 	origin?: Origin,
@@ -472,6 +478,7 @@ type Quad = {
 	y: number,
 	w: number,
 	h: number,
+	scale(q: Quad): Quad,
 	clone(): Quad,
 	eq(q: Quad): boolean,
 };
@@ -596,17 +603,12 @@ type AreaComp = Comp & {
 	_checkOverlaps(tag: string, f: (obj: GameObj) => void): void;
 };
 
-type SpriteScaleMode =
-	"stretch"
-	| "tile"
-	;
-
 type SpriteCompConf = {
 	noArea?: boolean,
 	quad?: Quad,
 	frame?: number,
 	animSpeed?: number,
-	mode?: SpriteScaleMode,
+	tiled?: boolean,
 	width?: number,
 	height?: number,
 };

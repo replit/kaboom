@@ -29,6 +29,7 @@ obj.c("sprite").play("anim");
 - fixed `"add"` event getting called twice for tagged objs
 - (**BREAK**) renamed `resolve()` to `pushOutAll()` on `area` comp
 - added `pushOut()` for pushing a single object out from another to `area` comp
+- added `width`, `height`, and `tiled` attrib to `SpriteCompConf`, for better control over sprite size and tiled sprite support
 
 ### v0.5.1
 - added plugins npm package support e.g. `import asepritePlugin from "kaboom/plugins/aseprite"`

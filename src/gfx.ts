@@ -250,6 +250,7 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, texFilter);
 		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, texFilter);
 
+		// TODO
 		const wrap = (() => {
 			if (powerOfTwo(data.width) && powerOfTwo(data.height)) {
 				return gl.REPEAT;
@@ -583,8 +584,8 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 
 		pushTransform();
 		pushTranslate(pos);
-		pushScale(scale);
 		pushRotateZ(rot);
+		pushScale(scale);
 		pushTranslate(offset);
 
 		drawRaw([
@@ -622,14 +623,51 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 		const q = conf.quad ?? quad(0, 0, 1, 1);
 		const w = tex.width * q.w;
 		const h = tex.height * q.h;
+		const scale = vec2(1);
 
-		drawQuad({
-			...conf,
-			tex: tex,
-			quad: q,
-			width: w,
-			height: h,
-		});
+		if (conf.tiled) {
+
+			// TODO: draw fract
+			const repX = Math.ceil((conf.width || w) / w);
+			const repY = Math.ceil((conf.height || h) / h);
+			const origin = originPt(conf.origin || DEF_ORIGIN).add(vec2(1, 1)).scale(0.5);
+			const offset = origin.scale(repX * w, repY * h);
+
+			// TODO: rotation
+			for (let i = 0; i < repX; i++) {
+				for (let j = 0; j < repY; j++) {
+					drawQuad({
+						...conf,
+						pos: (conf.pos || vec2(0)).add(vec2(w * i, h * j)).sub(offset),
+						scale: scale.scale(conf.scale || vec2(1)),
+						tex: tex,
+						quad: q,
+						width: w,
+						height: h,
+						origin: "topleft",
+					});
+				}
+			}
+		} else {
+			if (conf.width && conf.height) {
+				scale.x = conf.width / w;
+				scale.y = conf.height / h;
+			} else if (conf.width) {
+				scale.x = conf.width / w;
+				scale.y = scale.x;
+			} else if (conf.height) {
+				scale.y = conf.height / h;
+				scale.x = scale.y;
+			}
+			drawQuad({
+				...conf,
+				scale: scale.scale(conf.scale || vec2(1)),
+				tex: tex,
+				quad: q,
+				width: w,
+				height: h,
+			});
+		}
 
 	}
 

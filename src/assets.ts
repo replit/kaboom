@@ -125,7 +125,7 @@ function assetsInit(gfx: Gfx, audio: Audio, gconf: AssetsConf = {}): Assets {
 
 	// global load path prefix
 	function loadRoot(path: string): string {
-		if (path) {
+		if (path !== undefined) {
 			assets.loadRoot = path;
 		}
 		return assets.loadRoot;
