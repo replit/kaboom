@@ -301,6 +301,7 @@ function assetsInit(gfx: Gfx, audio: Audio, gconf: AssetsConf = {}): Assets {
 
 	}
 
+	// TODO: accept dataurl
 	// load a sound to asset manager
 	function loadSound(
 		name: string,
@@ -317,7 +318,6 @@ function assetsInit(gfx: Gfx, audio: Audio, gconf: AssetsConf = {}): Assets {
 
 			// from url
 			if (typeof(src) === "string") {
-
 				fetch(url)
 					.then((res) => {
 						if (res.ok) {
@@ -336,7 +336,6 @@ function assetsInit(gfx: Gfx, audio: Audio, gconf: AssetsConf = {}): Assets {
 						resolve(buf);
 					})
 					.catch(reject);
-
 			}
 
 		});

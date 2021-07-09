@@ -124,6 +124,7 @@ type KaboomCtx = {
 	// audio
 	play(id: string, conf?: AudioPlayConf): AudioPlay,
 	volume(v?: number): number,
+	burp(): void,
 	// math
 	makeRng(seed: number): RNG,
 	rand(): number,

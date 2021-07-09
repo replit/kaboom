@@ -774,6 +774,7 @@ music.loop();
 music.unloop();
 			`),
 			f("volume", "set the master volume"),
+			f("burp", "make a burp sound"),
 		],
 	},
 	{

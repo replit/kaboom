@@ -2219,6 +2219,7 @@ const ctx: KaboomCtx = {
 	// audio
 	play,
 	volume: audio.volume,
+	burp: audio.burp,
 	// math
 	makeRng,
 	rand,

@@ -12,6 +12,7 @@ type Audio = {
 	ctx(): AudioContext,
 	volume(v: number): number,
 	play(sound: AudioBuffer, conf?: AudioPlayConf): AudioPlay,
+	burp(): void,
 };
 
 const MIN_GAIN = 0;
@@ -20,6 +21,9 @@ const MIN_SPEED = 0;
 const MAX_SPEED = 3;
 const MIN_DETUNE = -1200;
 const MAX_DETUNE = 1200;
+
+// @ts-ignore
+import burpSrc from "./assets/burp.mp3";
 
 function audioInit(): Audio {
 
@@ -39,6 +43,8 @@ function audioInit(): Audio {
 		};
 
 	})();
+
+	const burpSnd = new window.Audio(burpSrc);
 
 	// get / set master volume
 	function volume(v?: number): number {
@@ -192,10 +198,16 @@ function audioInit(): Audio {
 		return audio.ctx;
 	}
 
+	// TODO: use audio ctx
+	function burp() {
+		burpSnd.play();
+	}
+
 	return {
 		ctx,
 		volume,
 		play,
+		burp,
 	};
 
 }

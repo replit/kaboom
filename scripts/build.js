@@ -10,6 +10,7 @@ const common = {
 	keepNames: true,
 	loader: {
 		".png": "dataurl",
+		".mp3": "dataurl",
 		".glsl": "text",
 	},
 };
