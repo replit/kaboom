@@ -649,6 +649,8 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 				}
 			}
 		} else {
+
+			// TODO: does this ignore scale?
 			if (conf.width && conf.height) {
 				scale.x = conf.width / w;
 				scale.y = conf.height / h;
@@ -659,6 +661,7 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 				scale.y = conf.height / h;
 				scale.x = scale.y;
 			}
+
 			drawQuad({
 				...conf,
 				scale: scale.scale(conf.scale || vec2(1)),
@@ -667,6 +670,7 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 				width: w,
 				height: h,
 			});
+
 		}
 
 	}
