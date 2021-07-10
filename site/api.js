@@ -489,9 +489,9 @@ if (obj.isHovered()) {
 // check if a point is inside the obj area
 obj.hasPt();
 
-// resolve all collisions with objects with 'solid'
+// pushOutAll resolves all collisions with objects with 'solid'
 // for now this checks against all solid objs in the scene (this is costly now)
-obj.resolve();
+obj.pushOutAll();
 			`),
 			f("body", "component for falling / jumping", `
 const player = add([
@@ -522,15 +522,15 @@ player.on("grounded", () => {
 	console.log("horray!");
 });
 			`),
-			f("solid", "mark the obj so other objects can't move past it if they have an area and resolve()", `
+			f("solid", "mark the obj so other objects can't move past it if they have an area and pushOutAll()", `
 const obj = add([
 	sprite("wall"),
 	solid(),
 ]);
 
-// need to call resolve() (provided by 'area') to make sure they cannot move past solid objs
+// need to call pushOutAll() (provided by 'area') to make sure they cannot move past solid objs
 player.action(() => {
-	player.resolve();
+	player.pushOutAll();
 });
 			`),
 			f("origin", "the origin to draw the object (default topleft)", `
