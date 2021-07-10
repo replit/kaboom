@@ -489,7 +489,7 @@ if (obj.isHovered()) {
 // check if a point is inside the obj area
 obj.hasPt();
 
-// pushOutAll all collisions with objects with 'solid'
+// pushOutAll resolves all collisions with objects with 'solid'
 // for now this checks against all solid objs in the scene (this is costly now)
 obj.pushOutAll();
 			`),
