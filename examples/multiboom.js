@@ -33,20 +33,17 @@ for (let i = 0; i < 2; i++) {
 	k.loadRoot("/pub/examples/");
 	k.loadSprite(sprites[i], `img/${sprites[i]}.png`);
 
-	k.scene("main", () => {
-		k.add([
-			k.sprite(sprites[i]),
-			k.pos(k.width() / 2, k.height() / 2),
-			k.scale(12),
-			k.rotate(0),
-			k.spin(),
-			k.origin("center"),
-		]);
-		k.add([
-			k.text(`kaboom #${i}`, 24),
-		]);
-	});
+	k.add([
+		k.sprite(sprites[i]),
+		k.pos(k.width() / 2, k.height() / 2),
+		k.scale(12),
+		k.rotate(0),
+		k.spin(),
+		k.origin("center"),
+	]);
 
-	k.start("main");
+	k.add([
+		k.text(`kaboom #${i}`, 24),
+	]);
 
 }

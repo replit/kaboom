@@ -4,45 +4,39 @@ kaboom({
 	scale: 2,
 });
 
-scene("main", () => {
+function addButton(txt, p, f) {
 
-	function addButton(txt, p, f) {
+	const bg = add([
+		pos(p),
+		rect(60, 30),
+		origin("center"),
+		color(1, 1, 1),
+	]);
 
-		const bg = add([
-			pos(p),
-			rect(60, 30),
-			origin("center"),
-			color(1, 1, 1),
-		]);
+	add([
+		text(txt),
+		pos(p),
+		origin("center"),
+		color(0, 0, 0),
+	]);
 
-		add([
-			text(txt),
-			pos(p),
-			origin("center"),
-			color(0, 0, 0),
-		]);
-
-		bg.action(() => {
-			if (bg.isHovered()) {
-				bg.color = rgb(0.8, 0.8, 0.8);
-				if (mouseIsClicked()) {
-					f();
-				}
-			} else {
-				bg.color = rgb(1, 1, 1);
+	bg.action(() => {
+		if (bg.isHovered()) {
+			bg.color = rgb(0.8, 0.8, 0.8);
+			if (mouseIsClicked()) {
+				f();
 			}
-		});
-
-	}
-
-	addButton("start", vec2(100, 100), () => {
-		alert("oh hi");
+		} else {
+			bg.color = rgb(1, 1, 1);
+		}
 	});
 
-	addButton("quit", vec2(100, 150), () => {
-		alert("bye");
-	});
+}
 
+addButton("start", vec2(100, 100), () => {
+	alert("oh hi");
 });
 
-start("main");
+addButton("quit", vec2(100, 150), () => {
+	alert("bye");
+});

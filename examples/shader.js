@@ -19,17 +19,13 @@ vec4 frag(vec3 pos, vec2 uv, vec4 color, sampler2D tex) {
 }
 `);
 
-scene("main", () => {
-	add([
-		rect(width(), height()),
-		shader("test"),
-		{
-			update() {
-				this.uniform["u_time"] = time();
-				this.uniform["u_mpos"] = mousePos().scale(1 / width(), 1 / height());
-			},
-		}
-	]);
-});
-
-start("main");
+add([
+	rect(width(), height()),
+	shader("test"),
+	{
+		update() {
+			this.uniform["u_time"] = time();
+			this.uniform["u_mpos"] = mousePos().scale(1 / width(), 1 / height());
+		},
+	}
+]);

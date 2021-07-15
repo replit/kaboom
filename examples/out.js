@@ -4,9 +4,8 @@ kaboom({
 	scale: 2,
 });
 
-loadRoot("/pub/examples/");
-// gotta load the image first
-loadSprite("mark", "img/mark.png");
+loadRoot("/assets/");
+loadSprite("mark", "sprites/mark.png");
 
 function out() {
 	return {
@@ -26,34 +25,28 @@ function out() {
 	};
 }
 
-scene("main", () => {
+const SPEED = 320;
 
-	const SPEED = 320;
-
-	mouseClick(() => {
-		const center = vec2(width() / 2, height() / 2);
-		const mpos = mousePos();
-		add([
-			pos(center),
-			sprite("mark"),
-			origin("center"),
-			out(),
-			"mark",
-			{
-				dir: mpos.sub(center).unit(),
-			},
-		]);
-	});
-
-	action("mark", (m) => {
-		m.move(m.dir.scale(SPEED));
-	});
-
-	on("out", "mark", (m) => {
-		debug.log("out");
-		destroy(m);
-	});
-
+mouseClick(() => {
+	const center = vec2(width() / 2, height() / 2);
+	const mpos = mousePos();
+	add([
+		pos(center),
+		sprite("mark"),
+		origin("center"),
+		out(),
+		"mark",
+		{
+			dir: mpos.sub(center).unit(),
+		},
+	]);
 });
 
-start("main");
+action("mark", (m) => {
+	m.move(m.dir.scale(SPEED));
+});
+
+on("out", "mark", (m) => {
+	debug.log("out");
+	destroy(m);
+});

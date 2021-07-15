@@ -166,6 +166,7 @@ function dt() {
 	return app.dt() * debug.timeScale;
 }
 
+// TODO: how to make this work when not loaded
 function play(id: string, conf: AudioPlayConf = {}): AudioPlay {
 	const sound = assets.sounds[id];
 	if (!sound) {
@@ -1501,7 +1502,14 @@ const sprite = defComp("sprite", [], (
 
 		},
 
-		play(name, loop = true) {
+		play(name: string, loop = true) {
+
+			if (!spr) {
+				game.on("load", () => {
+					this.play(name, loop);
+				});
+				return;
+			}
 
 			const anim = spr.anims[name];
 
@@ -1533,7 +1541,14 @@ const sprite = defComp("sprite", [], (
 			this.trigger("animEnd", prevAnim);
 		},
 
-		changeSprite(id) {
+		changeSprite(id: string) {
+
+			if (!spr) {
+				game.on("load", () => {
+					this.changeSprite(id);
+				});
+				return;
+			}
 
 			spr = assets.sprites[id];
 
@@ -1563,6 +1578,9 @@ const sprite = defComp("sprite", [], (
 		},
 
 		numFrames() {
+			if (!spr) {
+				return 0;
+			}
 			return spr.frames.length;
 		},
 
@@ -1598,6 +1616,12 @@ const text = defComp("text", [], (
 		height: 0,
 
 		add() {
+			if (!this.area && !conf.noArea) {
+				this.use(area());
+			}
+		},
+
+		load() {
 			// add default area
 			if (!this.area && !conf.noArea) {
 				const font = assets.fonts[this.font ?? DEF_FONT];

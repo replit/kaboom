@@ -43,7 +43,6 @@ function spin(speed = 16) {
 			if (!spinning) {
 				return;
 			}
-			console.log(this.angle);
 			this.angle -= speed * dt();
 			if (this.angle <= -Math.PI * 2) {
 				spinning = false;
@@ -56,13 +55,13 @@ function spin(speed = 16) {
 	};
 }
 
-// const score = add([
-// 	text("0", 24),
-// 	pos(12, 12),
-// 	{
-// 		value: 0,
-// 	},
-// ]);
+const score = add([
+	text("0", 24),
+	pos(12, 12),
+	{
+		value: 0,
+	},
+]);
 
 const car = add([
 	sprite("car"),
@@ -121,8 +120,8 @@ car.collides("danger", () => {
 car.collides("coin", (c) => {
 	destroy(c);
 	play("coin");
-// 	score.value += 1;
-// 	score.text = score.value;
+	score.value += 1;
+	score.text = score.value;
 	genCoin();
 });
 
