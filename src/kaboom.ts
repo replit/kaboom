@@ -105,17 +105,15 @@ function sync(obj: GameObj) {
 	if (!net) {
 		throw new Error("not connected to any websockets");
 	}
-	const scene = curScene();
-	scene.travelers.push(obj._id);
+	game.travelers.push(obj._id);
 	send(NetMsg.AddObj, obj._data());
 }
 
 if (net) {
 
 	recv(NetMsg.AddObj, (id, data) => {
-		const scene = curScene();
-		if (!scene.visitors[id]) {
-			scene.visitors[id] = {};
+		if (!game.visitors[id]) {
+			game.visitors[id] = {};
 		}
 		// TODO: reconstruct
 //  		const obj = add(data);
@@ -123,24 +121,22 @@ if (net) {
 	});
 
 	recv(NetMsg.DestroyObj, (id, data) => {
-		const scene = curScene();
-		if (!scene.visitors[id]) {
+		if (!game.visitors[id]) {
 			return;
 		}
-		const oid = scene.visitors[id][data.id];
+		const oid = game.visitors[id][data.id];
 		if (oid != null) {
-			destroy(scene.objs.get(oid));
-			delete scene.visitors[id][data.id];
+			destroy(game.objs.get(oid));
+			delete game.visitors[id][data.id];
 		}
 	});
 
 	recv(NetMsg.Disconnect, (id, data) => {
-		const scene = curScene();
-		if (scene.visitors[id]) {
-			for (const oid of Object.values(scene.visitors[id])) {
-				destroy(scene.objs.get(oid));
+		if (game.visitors[id]) {
+			for (const oid of Object.values(game.visitors[id])) {
+				destroy(game.objs.get(oid));
 			}
-			delete scene.visitors[id];
+			delete game.visitors[id];
 		}
 	});
 
@@ -179,13 +175,12 @@ function play(id: string, conf: AudioPlayConf = {}): AudioPlay {
 }
 
 function isCamLayer(layer?: string): boolean {
-	const scene = curScene();
-	return !scene.layers[layer ?? scene.defLayer]?.noCam;
+	return !game.layers[layer ?? game.defLayer]?.noCam;
 }
 
 // check input state last frame
 function mousePos(layer?: string): Vec2 {
-	return isCamLayer(layer) ? curScene().camMousePos : app.mousePos();
+	return isCamLayer(layer) ? game.camMousePos : app.mousePos();
 }
 
 function drawSprite(
@@ -236,33 +231,25 @@ type Timer = {
 
 type Game = {
 	loaded: boolean,
-	scenes: Record<string, Scene>,
-	curScene: string | null,
-	nextScene: SceneSwitch | null,
 	compReg: Record<string, CompBuilder>,
-};
-
-type SceneSwitch = {
-	name: string,
-	args: any[],
-};
-
-type Scene = {
-	init: (...args) => void,
-	initialized: boolean,
 	events: {
+		load: LoadEvent[],
+		mouseClick: MouseEvent[],
+		mouseRelease: MouseEvent[],
+		mouseDown: MouseEvent[],
+		charInput: CharEvent[],
+	},
+	objEvents: {
 		add: TaggedEvent[],
 		update: TaggedEvent[],
 		draw: TaggedEvent[],
 		destroy: TaggedEvent[],
-		keyDown: KeyInputEvent[],
-		keyPress: KeyInputEvent[],
-		keyPressRep: KeyInputEvent[],
-		keyRelease: KeyInputEvent[],
-		mouseClick: MouseInputEvent[],
-		mouseRelease: MouseInputEvent[],
-		mouseDown: MouseInputEvent[],
-		charInput: CharInputEvent[],
+	},
+	keyEvents: {
+		down: KeyEvent[],
+		press: KeyEvent[],
+		pressRep: KeyEvent[],
+		release: KeyEvent[],
 	},
 	action: Array<() => void>,
 	render: Array<() => void>,
@@ -279,6 +266,8 @@ type Scene = {
 	travelers: GameObjID[],
 	visitors: Record<ClientID, Record<GameObjID, GameObjID>>,
 	data: any,
+	on<F>(ev: string, cb: F): void,
+	trigger(ev: string, ...args): void,
 };
 
 type Camera = {
@@ -299,7 +288,7 @@ type TaggedEvent = {
 	cb: (...args) => void,
 };
 
-type KeyInputEvent = {
+type KeyEvent = {
 	key: string,
 	cb(): void,
 };
@@ -308,170 +297,84 @@ type MouseInputEvent = {
 	cb(): void,
 };
 
-type CharInputEvent = {
-	cb: (ch: string) => void,
-};
+type LoadEvent = () => void;
+type MouseEvent = () => void;
+type CharEvent = (ch: string) => void;
 
 const game: Game = {
+
 	loaded: false,
-	scenes: {},
-	curScene: null,
-	nextScene: null,
 	compReg: {},
+
+	// event callbacks
+	events: {
+		load: [],
+		mouseClick: [],
+		mouseRelease: [],
+		mouseDown: [],
+		charInput: [],
+	},
+
+	objEvents: {
+		add: [],
+		update: [],
+		draw: [],
+		destroy: [],
+	},
+
+	keyEvents: {
+		down: [],
+		press: [],
+		pressRep: [],
+		release: [],
+	},
+
+	action: [],
+	render: [],
+
+	// in game pool
+	objs: new Map(),
+	lastObjID: 0,
+	timers: {},
+	lastTimerID: 0,
+
+	// cam
+	cam: {
+		pos: vec2(gfx.width() / 2, gfx.height() / 2),
+		scale: vec2(1, 1),
+		angle: 0,
+		shake: 0,
+	},
+
+	camMousePos: vec2(0),
+	camMatrix: mat4(),
+
+	// misc
+	layers: {},
+	defLayer: null,
+	gravity: DEF_GRAVITY,
+	data: {},
+
+	// net
+	travelers: [],
+	visitors: {},
+
+	on<F>(ev: string, cb: F) {
+		this.events[ev].push(cb);
+	},
+
+	trigger(ev: string, ...args) {
+		for (const cb of this.events[ev]) {
+			cb(...args);
+		}
+	},
+
 };
-
-// start describing a scene (this should be called before start())
-function scene(name: string, cb: (...args) => void) {
-
-	game.scenes[name] = {
-
-		init: cb,
-		initialized: false,
-
-		// event callbacks
-		events: {
-			add: [],
-			update: [],
-			draw: [],
-			destroy: [],
-			keyDown: [],
-			keyPress: [],
-			keyPressRep: [],
-			keyRelease: [],
-			mouseClick: [],
-			mouseRelease: [],
-			mouseDown: [],
-			charInput: [],
-		},
-
-		action: [],
-		render: [],
-
-		// in game pool
-		objs: new Map(),
-		lastObjID: 0,
-		timers: {},
-		lastTimerID: 0,
-
-		// cam
-		cam: {
-			pos: vec2(gfx.width() / 2, gfx.height() / 2),
-			scale: vec2(1, 1),
-			angle: 0,
-			shake: 0,
-		},
-
-		camMousePos: vec2(0),
-		camMatrix: mat4(),
-
-		// misc
-		layers: {},
-		defLayer: null,
-		gravity: DEF_GRAVITY,
-		data: {},
-
-		// net
-		travelers: [],
-		visitors: {},
-
-	};
-
-}
-
-function curScene(): Scene {
-	return game.scenes[game.curScene];
-}
-
-// custom data kv store for scene
-function sceneData(): any {
-	return curScene().data;
-}
-
-// register inputs for controlling debug features
-function regDebugInputs() {
-
-	keyPress("`", () => {
-		debug.showLog = !debug.showLog;
-		logger.info(`show log: ${debug.showLog ? "on" : "off"}`);
-	});
-
-	keyPress("f1", () => {
-		debug.inspect = !debug.inspect;
-		logger.info(`inspect: ${debug.inspect ? "on" : "off"}`);
-	});
-
-	keyPress("f2", () => {
-		debug.clearLog();
-	});
-
-	keyPress("f8", () => {
-		debug.paused = !debug.paused;
-		logger.info(`${debug.paused ? "paused" : "unpaused"}`);
-	});
-
-	keyPress("f7", () => {
-		debug.timeScale = clamp(debug.timeScale - 0.2, 0, 2);
-		logger.info(`time scale: ${debug.timeScale.toFixed(1)}`);
-	});
-
-	keyPress("f9", () => {
-		debug.timeScale = clamp(debug.timeScale + 0.2, 0, 2);
-		logger.info(`time scale: ${debug.timeScale.toFixed(1)}`);
-	});
-
-	keyPress("f10", () => {
-		debug.stepFrame();
-		logger.info(`stepped frame`);
-	});
-
-}
-
-// schedule to switch to a scene
-function go(name: string, ...args) {
-	game.nextScene = {
-		name: name,
-		args: [...args],
-	};
-}
-
-function switchScene(name: string, ...args) {
-	reload(name);
-	game.curScene = name;
-	const scene = game.scenes[name];
-	if (!scene) {
-		throw new Error(`scene not found: '${name}'`);
-	}
-	if (!scene.initialized) {
-		try {
-			scene.init(...args);
-		} catch (e) {
-			logger.error(e.stack);
-		}
-		if (gconf.debug) {
-			regDebugInputs();
-		}
-		scene.initialized = true;
-	}
-}
-
-// reload a scene, reset all objs to their init states
-function reload(name: string) {
-	if (!game.scenes[name]) {
-		throw new Error(`scene not found: '${name}'`);
-	}
-	scene(name, game.scenes[name].init);
-}
 
 function layers(list: string[], def?: string) {
 
-	const scene = curScene();
-
-	if (!scene) {
-		return;
-	}
-
 	list.forEach((name, idx) => {
-		scene.layers[name] = {
+		game.layers[name] = {
 			alpha: 1,
 			order: idx + 1,
 			noCam: false,
@@ -479,45 +382,40 @@ function layers(list: string[], def?: string) {
 	});
 
 	if (def) {
-		scene.defLayer = def;
+		game.defLayer = def;
 	}
 
 }
 
 function camPos(...pos): Vec2 {
-	const cam = curScene().cam;
 	if (pos.length > 0) {
-		cam.pos = vec2(...pos);
+		game.cam.pos = vec2(...pos);
 	}
-	return cam.pos.clone();
+	return game.cam.pos.clone();
 }
 
 function camScale(...scale): Vec2 {
-	const cam = curScene().cam;
 	if (scale.length > 0) {
-		cam.scale = vec2(...scale);
+		game.cam.scale = vec2(...scale);
 	}
-	return cam.scale.clone();
+	return game.cam.scale.clone();
 }
 
 function camRot(angle: number): number {
-	const cam = curScene().cam;
 	if (angle !== undefined) {
-		cam.angle = angle;
+		game.cam.angle = angle;
 	}
-	return cam.angle;
+	return game.cam.angle;
 }
 
 function camShake(intensity: number) {
-	const cam = curScene().cam;
-	cam.shake = intensity;
+	game.cam.shake = intensity;
 }
 
 function camIgnore(layers: string[]) {
-	const scene = curScene();
 	layers.forEach((name) => {
-		if (scene.layers[name]) {
-			scene.layers[name].noCam = true;
+		if (game.layers[name]) {
+			game.layers[name].noCam = true;
 		}
 	})
 }
@@ -556,12 +454,14 @@ function add(comps: Comp[]): GameObj {
 
 		hidden: false,
 		paused: false,
+		_children: [],
 		_tags: [],
 		_id: null,
 		_client: null,
 
 		_events: {
 			add: [],
+			load: [],
 			update: [],
 			draw: [],
 			destroy: [],
@@ -635,12 +535,12 @@ function add(comps: Comp[]): GameObj {
 		},
 
 		// if obj is current in scene
-		exists() {
+		exists(): boolean {
 			return this._id !== undefined;
 		},
 
 		// if obj has certain tag
-		is(tag) {
+		is(tag: string): boolean {
 			if (tag === "*") {
 				return true;
 			}
@@ -655,27 +555,26 @@ function add(comps: Comp[]): GameObj {
 			return this._tags.includes(tag);
 		},
 
-		on(event, cb) {
-			if (!this._events[event]) {
-				this._events[event] = [];
+		on(ev: string, cb): void {
+			if (!this._events[ev]) {
+				this._events[ev] = [];
 			}
-			this._events[event].push(cb);
+			this._events[ev].push(cb);
 		},
 
-		action(cb) {
+		action(cb: () => void): void {
 			this.on("update", cb);
 		},
 
-		trigger(event, ...args) {
+		trigger(ev: string, ...args): void {
 
-			if (this._events[event]) {
-				for (const f of this._events[event]) {
+			if (this._events[ev]) {
+				for (const f of this._events[ev]) {
 					f.call(this, ...args);
 				}
 			}
 
-			const scene = curScene();
-			const events = scene.events[event];
+			const events = game.events[ev];
 
 			if (events) {
 				for (const ev of events) {
@@ -687,23 +586,15 @@ function add(comps: Comp[]): GameObj {
 
 		},
 
-		rmTag(t) {
+		rmTag(t: string) {
 			const idx = this._tags.indexOf(t);
 			if (idx > -1) {
 				this._tags.splice(idx, 1);
 			}
 		},
 
-		// data to send over the net for reconstruction
-		_data() {
-			return {
-				hidden: this.hidden,
-				paused: this.paused,
-				tags: this._tags,
-				id: this._id,
-				comps: compStates,
-				custom: customState,
-			};
+		destroy() {
+			destroy(this);
 		},
 
 	};
@@ -712,13 +603,18 @@ function add(comps: Comp[]): GameObj {
 		obj.use(comp);
 	}
 
-	const scene = curScene();
-	const id = scene.lastObjID++;
+	const id = game.lastObjID++;
 
-	scene.objs.set(id, obj);
+	game.objs.set(id, obj);
 	obj._id = id;
 
 	obj.trigger("add");
+
+	if (!game.loaded) {
+		game.on("load", () => obj.trigger("load"));
+	} else {
+		obj.trigger("load");
+	}
 
 	// check comp dependencies
 	for (const id in compStates) {
@@ -741,11 +637,9 @@ function readd(obj: GameObj): GameObj {
 		return;
 	}
 
-	const scene = curScene();
-
-	scene.objs.delete(obj._id);
-	const id = scene.lastObjID++;
-	scene.objs.set(id, obj);
+	game.objs.delete(obj._id);
+	const id = game.lastObjID++;
+	game.objs.set(id, obj);
 	obj._id = id;
 
 	return obj;
@@ -754,11 +648,10 @@ function readd(obj: GameObj): GameObj {
 
 // add an event to a tag
 function on(event: string, tag: string, cb: (obj: GameObj) => void) {
-	const scene = curScene();
-	if (!scene.events[event]) {
-		scene.events[event] = [];
+	if (!game.events[event]) {
+		game.events[event] = [];
 	}
-	scene.events[event].push({
+	game.events[event].push({
 		tag: tag,
 		cb: cb,
 	});
@@ -767,7 +660,7 @@ function on(event: string, tag: string, cb: (obj: GameObj) => void) {
 // add update event to a tag or global update
 function action(tag: string | (() => void), cb?: (obj: GameObj) => void) {
 	if (typeof tag === "function" && cb === undefined) {
-		curScene().action.push(tag);
+		game.action.push(tag);
 	} else if (typeof tag === "string") {
 		on("update", tag, cb);
 	}
@@ -776,7 +669,7 @@ function action(tag: string | (() => void), cb?: (obj: GameObj) => void) {
 // add draw event to a tag or global draw
 function render(tag: string | (() => void), cb?: (obj: GameObj) => void) {
 	if (typeof tag === "function" && cb === undefined) {
-		curScene().render.push(tag);
+		game.render.push(tag);
 	} else if (typeof tag === "string") {
 		on("update", tag, cb);
 	}
@@ -820,8 +713,7 @@ function clicks(t: string, f: (obj: GameObj) => void) {
 // add an event that'd be run after t
 function wait(t: number, f?: () => void): Promise<void> {
 	return new Promise((resolve) => {
-		const scene = curScene();
-		scene.timers[scene.lastTimerID++] = {
+		game.timers[game.lastTimerID++] = {
 			time: t,
 			cb: () => {
 				if (f) {
@@ -862,8 +754,7 @@ function pushKeyEvent(e: string, k: string, f: () => void) {
 			pushKeyEvent(e, key, f);
 		}
 	} else {
-		const scene = curScene();
-		scene.events[e].push({
+		game.keyEvents[e].push({
 			key: k,
 			cb: f,
 		});
@@ -872,57 +763,44 @@ function pushKeyEvent(e: string, k: string, f: () => void) {
 
 // input callbacks
 function keyDown(k: string, f: () => void) {
-	pushKeyEvent("keyDown", k, f);
+	pushKeyEvent("down", k, f);
 }
 
 function keyPress(k: string, f: () => void) {
-	pushKeyEvent("keyPress", k, f);
+	pushKeyEvent("press", k, f);
 }
 
 function keyPressRep(k: string, f: () => void) {
-	pushKeyEvent("keyPressRep", k, f);
+	pushKeyEvent("pressRep", k, f);
 }
 
 function keyRelease(k: string, f: () => void) {
-	pushKeyEvent("keyRelease", k, f);
+	pushKeyEvent("release", k, f);
 }
 
 function charInput(f: (ch: string) => void) {
-	const scene = curScene();
-	scene.events.charInput.push({
-		cb: f,
-	});
+	game.events.charInput.push(f);
 }
 
 function mouseDown(f: () => void) {
-	const scene = curScene();
-	scene.events.mouseDown.push({
-		cb: f,
-	});
+	game.events.mouseDown.push(f);
 }
 
 function mouseClick(f: () => void) {
-	const scene = curScene();
-	scene.events.mouseClick.push({
-		cb: f,
-	});
+	game.events.mouseClick.push(f);
 }
 
 function mouseRelease(f: () => void) {
-	const scene = curScene();
-	scene.events.mouseRelease.push({
-		cb: f,
-	});
+	game.events.mouseRelease.push(f);
 }
 
 // TODO: cache sorted list
 // get all objects with tag
 function get(t?: string): GameObj[] {
 
-	const scene = curScene();
-	const objs = [...scene.objs.values()].sort((o1, o2) => {
-		const l1 = scene.layers[o1.layer ?? scene.defLayer]?.order ?? 0;;
-		const l2 = scene.layers[o2.layer ?? scene.defLayer]?.order ?? 0;
+	const objs = [...game.objs.values()].sort((o1, o2) => {
+		const l1 = game.layers[o1.layer ?? game.defLayer]?.order ?? 0;;
+		const l2 = game.layers[o2.layer ?? game.defLayer]?.order ?? 0;
 		return l1 - l2;
 	});
 
@@ -934,7 +812,7 @@ function get(t?: string): GameObj[] {
 
 }
 
-// apply a function to all objects currently in scene with tag t
+// apply a function to all objects currently in game with tag t
 function every<T>(t: string | ((obj: GameObj) => T), f?: (obj: GameObj) => T): T[] {
 	if (typeof t === "function" && f === undefined) {
 		return get().map(t);
@@ -959,14 +837,8 @@ function destroy(obj: GameObj) {
 		return;
 	}
 
-	const scene = curScene();
-
-	if (!scene) {
-		return;
-	}
-
 	obj.trigger("destroy");
-	scene.objs.delete(obj._id);
+	game.objs.delete(obj._id);
 	delete obj._id;
 
 }
@@ -980,32 +852,25 @@ function destroyAll(t: string) {
 
 // get / set gravity
 function gravity(g?: number): number {
-	const scene = curScene();
 	if (g !== undefined) {
-		scene.gravity = g;
+		game.gravity = g;
 	}
-	return scene.gravity;
+	return game.gravity;
 }
 
 // TODO: cleaner pause logic
 function gameFrame(ignorePause?: boolean) {
 
-	const scene = curScene();
-
-	if (!scene) {
-		throw new Error(`scene not found: '${game.curScene}'`);
-	}
-
 	const doUpdate = ignorePause || !debug.paused;
 
 	if (doUpdate) {
 		// update timers
-		for (const id in scene.timers) {
-			const t = scene.timers[id];
+		for (const id in game.timers) {
+			const t = game.timers[id];
 			t.time -= dt();
 			if (t.time <= 0) {
 				t.cb();
-				delete scene.timers[id];
+				delete game.timers[id];
 			}
 		}
 	}
@@ -1018,18 +883,18 @@ function gameFrame(ignorePause?: boolean) {
 	});
 
 	if (doUpdate) {
-		for (const f of scene.action) {
+		for (const f of game.action) {
 			f();
 		}
 	}
 
 	// calculate camera matrix
 	const size = vec2(gfx.width(), gfx.height());
-	const cam = scene.cam;
+	const cam = game.cam;
 	const shake = vec2FromAngle(rand(0, Math.PI * 2)).scale(cam.shake);
 
 	cam.shake = lerp(cam.shake, 0, 5 * dt());
-	scene.camMatrix = mat4()
+	game.camMatrix = mat4()
 		.translate(size.scale(0.5))
 		.scale(cam.scale)
 		.rotateZ(cam.angle)
@@ -1037,7 +902,7 @@ function gameFrame(ignorePause?: boolean) {
 		.translate(cam.pos.scale(-1).add(size.scale(0.5)).add(shake))
 		;
 
-	scene.camMousePos = scene.camMatrix.invert().multVec2(app.mousePos());
+	game.camMousePos = game.camMatrix.invert().multVec2(app.mousePos());
 
 	// draw every obj
 	every((obj) => {
@@ -1047,7 +912,7 @@ function gameFrame(ignorePause?: boolean) {
 			gfx.pushTransform();
 
 			if (isCamLayer(obj.layer)) {
-				gfx.pushMatrix(scene.camMatrix);
+				gfx.pushMatrix(game.camMatrix);
 			}
 
 			obj.trigger("draw");
@@ -1057,7 +922,7 @@ function gameFrame(ignorePause?: boolean) {
 
 	});
 
-	for (const f of scene.render) {
+	for (const f of game.render) {
 		f();
 	}
 
@@ -1065,60 +930,51 @@ function gameFrame(ignorePause?: boolean) {
 
 function handleEvents() {
 
-	const scene = curScene();
-
-	for (const e of scene.events.charInput) {
-		app.charInputted().forEach(e.cb);
+	for (const cb of game.events.charInput) {
+		app.charInputted().forEach(cb);
 	}
 
 	// run input checks & callbacks
-	for (const e of scene.events.keyDown) {
+	for (const e of game.keyEvents.down) {
 		if (app.keyDown(e.key)) {
 			e.cb();
 		}
 	}
 
-	for (const e of scene.events.keyPress) {
+	for (const e of game.keyEvents.press) {
 		if (app.keyPressed(e.key)) {
 			e.cb();
 		}
 	}
 
-	for (const e of scene.events.keyPressRep) {
+	for (const e of game.keyEvents.pressRep) {
 		if (app.keyPressedRep(e.key)) {
 			e.cb();
 		}
 	}
 
-	for (const e of scene.events.keyRelease) {
+	for (const e of game.keyEvents.release) {
 		if (app.keyReleased(e.key)) {
 			e.cb();
 		}
 	}
 
-	for (const e of scene.events.mouseDown) {
-		if (app.mouseDown()) {
-			e.cb();
-		}
+	if (app.mouseDown()) {
+		game.trigger("mouseDown");
 	}
 
-	for (const e of scene.events.mouseClick) {
-		if (app.mouseClicked()) {
-			e.cb();
-		}
+	if (app.mouseClicked()) {
+		game.trigger("mouseClick");
 	}
 
-	for (const e of scene.events.mouseRelease) {
-		if (app.mouseReleased()) {
-			e.cb();
-		}
+	if (app.mouseReleased()) {
+		game.trigger("mouseRelease");
 	}
 
 }
 
 function drawInspect() {
 
-	const scene = curScene();
 	let inspecting = null;
 	const font = assets.defFont();
 	const lcolor = rgba(gconf.inspectColor ?? [0, 1, 1, 1]);
@@ -1142,10 +998,10 @@ function drawInspect() {
 
 	function drawObj(obj, f) {
 		const isCam = isCamLayer(obj.layer);
-		const scale = gfx.scale() * (isCam ? (scene.cam.scale.x + scene.cam.scale.y) / 2 : 1);
+		const scale = gfx.scale() * (isCam ? (game.cam.scale.x + game.cam.scale.y) / 2 : 1);
 		if (isCam) {
 			gfx.pushTransform();
-			gfx.pushMatrix(scene.camMatrix);
+			gfx.pushMatrix(game.camMatrix);
 		}
 		f(scale);
 		if (isCam) {
@@ -1213,72 +1069,6 @@ function drawInspect() {
 
 }
 
-// start the game with a scene
-function start(name: string, ...args) {
-
-	app.run(() => {
-
-		gfx.frameStart();
-
-		if (!game.loaded) {
-
-			// if assets are not fully loaded, draw a progress bar
-			const progress = assets.loadProgress();
-
-			if (progress === 1) {
-				game.loaded = true;
-				switchScene(name, ...args);
-				if (net) {
-					net.connect().catch(logger.error);
-				}
-			} else {
-				const w = gfx.width() / 2;
-				const h = 24 / gfx.scale();
-				const pos = vec2(gfx.width() / 2, gfx.height() / 2).sub(vec2(w / 2, h / 2));
-				gfx.drawRect(vec2(0), gfx.width(), gfx.height(), { color: rgb(0, 0, 0), });
-				gfx.drawRectStroke(pos, w, h, { width: 4 / gfx.scale(), });
-				gfx.drawRect(pos, w * progress, h);
-			}
-
-		} else {
-
-			try {
-
-				if (!curScene()) {
-					throw new Error(`scene not found: '${game.curScene}'`);
-				}
-
-				handleEvents();
-				gameFrame();
-
-				if (debug.inspect) {
-					drawInspect();
-				}
-
-			} catch (e) {
-
-				logger.error(e.stack);
-				app.quit();
-
-			}
-
-			if (debug.showLog) {
-				logger.draw();
-			}
-
-			if (game.nextScene) {
-				switchScene.apply(null, [ game.nextScene.name, ...game.nextScene.args, ]);
-				game.nextScene = null;
-			}
-
-		}
-
-		gfx.frameEnd();
-
-	});
-
-}
-
 // TODO: have velocity here?
 const pos = defComp("pos", [], (...args): PosComp => {
 
@@ -1299,8 +1089,7 @@ const pos = defComp("pos", [], (...args): PosComp => {
 		},
 
 		screenPos(): Vec2 {
-			const scene = curScene();
-			return scene.camMatrix.multVec2(this.pos);
+			return game.camMatrix.multVec2(this.pos);
 		},
 
 		inspect() {
@@ -1351,17 +1140,15 @@ const layer = defComp("layer", [], (l: string): LayerComp => {
 	return {
 		layer: l,
 		inspect(): LayerCompInspect {
-			const scene = curScene();
 			return {
-				layer: this.layer ?? scene.defLayer,
+				layer: this.layer ?? game.defLayer,
 			};
 		},
 	};
 });
 
 function isSameLayer(o1: GameObj, o2: GameObj): boolean {
-	const scene = curScene();
-	return (o1.layer ?? scene.defLayer) === (o2.layer ?? scene.defLayer);
+	return (o1.layer ?? game.defLayer) === (o2.layer ?? game.defLayer);
 }
 
 // TODO: active flag
@@ -1624,28 +1411,14 @@ const sprite = defComp("sprite", [], (
 	conf: SpriteCompConf = {}
 ): SpriteComp => {
 
-	let spr = assets.sprites[id];
-
-	if (!spr) {
-		throw new Error(`sprite not found: "${id}"`);
-	}
-
-	let q = { ...spr.frames[0] };
-
-	if (conf.quad) {
-		q = q.scale(conf.quad);
-	}
-
-	// TODO: take conf.{width,height} if specified
-	const width = spr.tex.width * q.w;
-	const height = spr.tex.height * q.h;
+	let spr = null;
 	let curAnim: SpriteCurAnim | null = null;
 
 	return {
 
 		// TODO: allow update
-		width: width,
-		height: height,
+		width: 0,
+		height: 0,
 		animSpeed: conf.animSpeed || 0.1,
 		frame: conf.frame || 0,
 		quad: conf.quad || quad(0, 0, 1, 1),
@@ -1653,8 +1426,34 @@ const sprite = defComp("sprite", [], (
 		add() {
 			// add default area
 			if (!this.area && !conf.noArea) {
-				this.use(getAreaFromSize(this.width, this.height, this.origin));
+				this.use(area(vec2(0), vec2(0)));
 			}
+		},
+
+		load() {
+
+			spr = assets.sprites[id];
+
+			if (!spr) {
+				throw new Error(`sprite not found: "${id}"`);
+			}
+
+			let q = { ...spr.frames[0] };
+
+			if (conf.quad) {
+				q = q.scale(conf.quad);
+			}
+
+			// TODO: take conf.{width,height} if specified
+			this.width = spr.tex.width * q.w;
+			this.height = spr.tex.height * q.h;
+			if (this.area) {
+				// TODO
+				const a = getAreaFromSize(this.width, this.height, this.origin);
+				this.area.p1 = a.area.p1;
+				this.area.p2 = a.area.p2;
+			}
+
 		},
 
 		draw() {
@@ -1801,7 +1600,6 @@ const text = defComp("text", [], (
 		add() {
 			// add default area
 			if (!this.area && !conf.noArea) {
-				const scene = curScene();
 				const font = assets.fonts[this.font ?? DEF_FONT];
 				const ftext = gfx.fmtText(this.text + "", font, {
 					pos: this.pos,
@@ -1820,7 +1618,6 @@ const text = defComp("text", [], (
 
 		draw() {
 
-			const scene = curScene();
 			const font = assets.fonts[this.font ?? DEF_FONT];
 
 			const ftext = gfx.fmtText(this.text + "", font, {
@@ -1864,8 +1661,6 @@ const rect = defComp("rect", [], (
 
 		draw() {
 
-			const scene = curScene();
-
 			gfx.drawRect(this.pos, this.width, this.height, {
 				scale: this.scale,
 				rot: this.angle,
@@ -1892,8 +1687,8 @@ const DEF_MAX_VEL = 960;
 const DEF_JUMP_FORCE = 480;
 
 const body = defComp("body", [
-	"pos",
-	"area",
+//  	"pos",
+//  	"area",
 ], (
 	conf: BodyCompConf = {},
 ): BodyComp => {
@@ -1992,7 +1787,7 @@ const debug: Debug = {
 	showLog: true,
 	fps: app.fps,
 	objCount(): number {
-		return curScene().objs.size;
+		return game.objs.size;
 	},
 	stepFrame() {
 		gameFrame(true);
@@ -2132,8 +1927,32 @@ function addLevel(map: string[], conf: LevelConf): Level {
 
 }
 
+function commonProps(props: RenderProps) {
+	return [
+		pos(props.pos ?? vec2(0)),
+		scale(vec2(props.scale ?? 1)),
+		color(props.color ?? rgb(1, 1, 1)),
+		origin(props.origin),
+	];
+}
+
+function addSprite(name: string, conf: AddSpriteConf = {}) {
+	return add([
+		sprite(name, conf),
+		conf.body && body(),
+		...commonProps(conf),
+	]);
+}
+
+function addRect(w: number, h: number, conf: AddSpriteConf = {}) {
+	return add([
+		rect(w, h, conf),
+		conf.body && body(),
+		...commonProps(conf),
+	]);
+}
+
 const ctx: KaboomCtx = {
-	start,
 	// asset load
 	loadRoot: assets.loadRoot,
 	loadSprite: assets.loadSprite,
@@ -2149,10 +1968,6 @@ const ctx: KaboomCtx = {
 	screenshot: app.screenshot,
 	focused: app.focused,
 	focus: app.focus,
-	// scene
-	scene,
-	go,
-	sceneData,
 	// misc
 	layers,
 	camPos,
@@ -2242,10 +2057,14 @@ const ctx: KaboomCtx = {
 	drawRect: gfx.drawRect,
 	drawRectStroke: gfx.drawRectStroke,
 	drawLine: gfx.drawLine,
+	drawTri: gfx.drawTri,
 	// debug
 	debug,
 	// level
 	addLevel,
+	// helpers
+	addSprite,
+	addRect,
 };
 
 if (gconf.plugins) {
@@ -2261,6 +2080,96 @@ if (gconf.global) {
 	for (const k in ctx) {
 		window[k] = ctx[k];
 	}
+}
+
+app.run(() => {
+
+	gfx.frameStart();
+
+	if (!game.loaded) {
+
+		// if assets are not fully loaded, draw a progress bar
+		const progress = assets.loadProgress();
+
+		if (progress === 1) {
+			game.loaded = true;
+			game.trigger("load");
+			if (net) {
+				net.connect().catch(logger.error);
+			}
+		} else {
+			const w = gfx.width() / 2;
+			const h = 24 / gfx.scale();
+			const pos = vec2(gfx.width() / 2, gfx.height() / 2).sub(vec2(w / 2, h / 2));
+			gfx.drawRect(vec2(0), gfx.width(), gfx.height(), { color: rgb(0, 0, 0), });
+			gfx.drawRectStroke(pos, w, h, { width: 4 / gfx.scale(), });
+			gfx.drawRect(pos, w * progress, h);
+		}
+
+	} else {
+
+		try {
+
+			handleEvents();
+			gameFrame();
+
+			if (debug.inspect) {
+				drawInspect();
+			}
+
+		} catch (e) {
+
+			logger.error(e.stack);
+			app.quit();
+
+		}
+
+		if (debug.showLog) {
+			logger.draw();
+		}
+
+	}
+
+	gfx.frameEnd();
+
+});
+
+if (gconf.debug) {
+
+	keyPress("`", () => {
+		debug.showLog = !debug.showLog;
+		logger.info(`show log: ${debug.showLog ? "on" : "off"}`);
+	});
+
+	keyPress("f1", () => {
+		debug.inspect = !debug.inspect;
+		logger.info(`inspect: ${debug.inspect ? "on" : "off"}`);
+	});
+
+	keyPress("f2", () => {
+		debug.clearLog();
+	});
+
+	keyPress("f8", () => {
+		debug.paused = !debug.paused;
+		logger.info(`${debug.paused ? "paused" : "unpaused"}`);
+	});
+
+	keyPress("f7", () => {
+		debug.timeScale = clamp(debug.timeScale - 0.2, 0, 2);
+		logger.info(`time scale: ${debug.timeScale.toFixed(1)}`);
+	});
+
+	keyPress("f9", () => {
+		debug.timeScale = clamp(debug.timeScale + 0.2, 0, 2);
+		logger.info(`time scale: ${debug.timeScale.toFixed(1)}`);
+	});
+
+	keyPress("f10", () => {
+		debug.stepFrame();
+		logger.info(`stepped frame`);
+	});
+
 }
 
 return ctx;

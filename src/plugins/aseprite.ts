@@ -33,12 +33,10 @@ function loadAseprite(name: string, imgSrc: string, jsonSrc: string) {
 							}
 							resolve(sprite);
 						})
-						.catch(() => {
-							reject(`failed to load ${jsonPath}`);
-						})
+						.catch(reject)
 						;
 				})
-				.catch((err: any) => reject(err));
+				.catch(reject);
 
 		});
 

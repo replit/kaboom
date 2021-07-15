@@ -27,9 +27,6 @@ type KaboomCtx = {
 	): Promise<ShaderData>,
 	addLoader<T>(l: Promise<T>): void,
 	// game
-	start(scene: string, ...args): void,
-	scene(name: string, cb: (...args) => void): void,
-	go(name: string, ...args): void,
 	width(): number,
 	height(): number,
 	dt(): number,
@@ -74,7 +71,6 @@ type KaboomCtx = {
 	camIgnore(layers: string[]): void,
 	gravity(g: number): number,
 	defComp(id: CompID, requires: CompID[], builder: CompBuilder): CompBuilder,
-	sceneData(): any,
 	// net
 	sync(obj: GameObj): void,
 	recv(ty: string, handler: MsgHandler): void,
@@ -165,10 +161,13 @@ type KaboomCtx = {
 	drawRect(pos: Vec2, w: number, h: number, conf?: DrawRectConf): void,
 	drawRectStroke(pos: Vec2, w: number, h: number, conf?: DrawRectStrokeConf): void,
 	drawLine(p1: Vec2, p2: Vec2, conf?: DrawLineConf): void,
+	drawTri(p1: Vec2, p2: Vec2, p3: Vec2, conf?: DrawTriConf): void,
 	// dbg
 	debug: Debug,
 	// helpers
 	addLevel(map: string[], conf: LevelConf): Level,
+	addSprite(name: string, conf?: AddSpriteConf),
+	addRect(w: number, h: number, conf?: AddRectConf),
 };
 
 type KaboomConf = {
@@ -199,9 +198,12 @@ type GameObj = {
 	on(ev: string, cb: () => void): void,
 	trigger(ev: string, ...args): void,
 	rmTag(t: string): void,
+	destroy(): void,
 	_id: GameObjID | null,
+	_children: GameObj[],
 	_tags: string[],
 	_events: {
+		load: (() => void)[],
 		add: (() => void)[],
 		update: (() => void)[],
 		draw: (() => void)[],
@@ -353,6 +355,14 @@ type DrawLineConf = {
 	color?: Color,
 	z?: number,
 	prog?: GfxProgram,
+	uniform?: Uniform,
+};
+
+type DrawTriConf = {
+	color?: Color,
+	z?: number,
+	prog?: GfxProgram,
+	uniform?: Uniform,
 };
 
 type DrawTextConf = {
@@ -737,3 +747,14 @@ type SolidComp = Comp & {
 type LoopHandle = {
 	stop(): void,
 };
+
+type RenderProps = {
+	pos?: Vec2,
+	scale?: Vec2 | number,
+	rot?: number,
+	color?: Color,
+	origin?: Origin,
+};
+
+type AddSpriteConf = RenderProps & SpriteCompConf & { body?: boolean, };
+type AddRectConf = RenderProps & RectCompConf & { body?: boolean, };

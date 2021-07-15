@@ -2,6 +2,7 @@ import {
 	vec2,
 	vec3,
 	quad,
+	rgb,
 	rgba,
 	mat4,
 	isVec2,
@@ -81,6 +82,12 @@ type Gfx = {
 	drawLine(
 		p1: Vec2,
 		p2: Vec2,
+		conf?: DrawLineConf,
+	): void,
+	drawTri(
+		p1: Vec2,
+		p2: Vec2,
+		p3: Vec2,
 		conf?: DrawLineConf,
 	): void,
 	frameStart(): void,
@@ -730,6 +737,34 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 
 	}
 
+	// TODO: not drawing
+	function drawTri(
+		p1: Vec2,
+		p2: Vec2,
+		p3: Vec2,
+		conf: DrawTriConf = {},
+	) {
+		const z = conf.z;
+		const color = conf.color || rgb(1, 1, 1);
+		drawRaw([
+			{
+				pos: vec3(p1.x, p1.y, z),
+				uv: vec2(0, 0),
+				color: color,
+			},
+			{
+				pos: vec3(p2.x, p2.y, z),
+				uv: vec2(0, 0),
+				color: color,
+			},
+			{
+				pos: vec3(p3.x, p3.y, z),
+				uv: vec2(0, 0),
+				color: color,
+			},
+		], [0, 1, 2], gfx.defTex, conf.prog, conf.uniform);
+	}
+
 	// format text and return a list of chars with their calculated position
 	function fmtText(
 		text: string,
@@ -896,6 +931,7 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 		drawRect,
 		drawRectStroke,
 		drawLine,
+		drawTri,
 		fmtText,
 		frameStart,
 		frameEnd,
