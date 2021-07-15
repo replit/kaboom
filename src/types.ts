@@ -34,6 +34,7 @@ type KaboomCtx = {
 	screenshot(): string,
 	focused(): boolean,
 	focus(): void,
+	ready(cb: () => void): void,
 	// scene / obj
 	add(comps: Comp[]): GameObj,
 	readd(obj: GameObj): GameObj,

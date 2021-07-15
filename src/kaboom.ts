@@ -1976,6 +1976,10 @@ function addRect(w: number, h: number, conf: AddSpriteConf = {}) {
 	]);
 }
 
+function ready(cb: () => void): void {
+	game.on("load", cb);
+}
+
 const ctx: KaboomCtx = {
 	// asset load
 	loadRoot: assets.loadRoot,
@@ -1992,6 +1996,7 @@ const ctx: KaboomCtx = {
 	screenshot: app.screenshot,
 	focused: app.focused,
 	focus: app.focus,
+	ready,
 	// misc
 	layers,
 	camPos,
