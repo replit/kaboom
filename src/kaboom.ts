@@ -929,51 +929,6 @@ function gameFrame(ignorePause?: boolean) {
 
 }
 
-function handleEvents() {
-
-	for (const cb of game.events.charInput) {
-		app.charInputted().forEach(cb);
-	}
-
-	// run input checks & callbacks
-	for (const e of game.keyEvents.down) {
-		if (app.keyDown(e.key)) {
-			e.cb();
-		}
-	}
-
-	for (const e of game.keyEvents.press) {
-		if (app.keyPressed(e.key)) {
-			e.cb();
-		}
-	}
-
-	for (const e of game.keyEvents.pressRep) {
-		if (app.keyPressedRep(e.key)) {
-			e.cb();
-		}
-	}
-
-	for (const e of game.keyEvents.release) {
-		if (app.keyReleased(e.key)) {
-			e.cb();
-		}
-	}
-
-	if (app.mouseDown()) {
-		game.trigger("mouseDown");
-	}
-
-	if (app.mouseClicked()) {
-		game.trigger("mouseClick");
-	}
-
-	if (app.mouseReleased()) {
-		game.trigger("mouseRelease");
-	}
-
-}
-
 function drawInspect() {
 
 	let inspecting = null;
@@ -1954,25 +1909,37 @@ function addLevel(map: string[], conf: LevelConf): Level {
 function commonProps(props: RenderProps) {
 	return [
 		pos(props.pos ?? vec2(0)),
+		rotate(props.rot ?? 0),
 		scale(vec2(props.scale ?? 1)),
 		color(props.color ?? rgb(1, 1, 1)),
 		origin(props.origin),
 	];
 }
 
-function addSprite(name: string, conf: AddSpriteConf = {}) {
+function addSprite(name: string, props: AddSpriteConf = {}) {
 	return add([
-		sprite(name, conf),
-		conf.body && body(),
-		...commonProps(conf),
+		sprite(name, props),
+		props.body && body(),
+		...commonProps(props),
+		...(props.tags || []),
 	]);
 }
 
-function addRect(w: number, h: number, conf: AddSpriteConf = {}) {
+function addRect(w: number, h: number, props: AddSpriteConf = {}) {
 	return add([
-		rect(w, h, conf),
-		conf.body && body(),
-		...commonProps(conf),
+		rect(w, h, props),
+		props.body && body(),
+		...commonProps(props),
+		...(props.tags || []),
+	]);
+}
+
+function addText(txt: string, size: number, props: AddSpriteConf = {}) {
+	return add([
+		text(txt, size, props),
+		props.body && body(),
+		...commonProps(props),
+		...(props.tags || []),
 	]);
 }
 
@@ -2094,6 +2061,7 @@ const ctx: KaboomCtx = {
 	// helpers
 	addSprite,
 	addRect,
+	addText,
 };
 
 if (gconf.plugins) {
@@ -2139,7 +2107,47 @@ app.run(() => {
 
 		try {
 
-			handleEvents();
+			for (const cb of game.events.charInput) {
+				app.charInputted().forEach(cb);
+			}
+
+			// run input checks & callbacks
+			for (const e of game.keyEvents.down) {
+				if (app.keyDown(e.key)) {
+					e.cb();
+				}
+			}
+
+			for (const e of game.keyEvents.press) {
+				if (app.keyPressed(e.key)) {
+					e.cb();
+				}
+			}
+
+			for (const e of game.keyEvents.pressRep) {
+				if (app.keyPressedRep(e.key)) {
+					e.cb();
+				}
+			}
+
+			for (const e of game.keyEvents.release) {
+				if (app.keyReleased(e.key)) {
+					e.cb();
+				}
+			}
+
+			if (app.mouseDown()) {
+				game.trigger("mouseDown");
+			}
+
+			if (app.mouseClicked()) {
+				game.trigger("mouseClick");
+			}
+
+			if (app.mouseReleased()) {
+				game.trigger("mouseRelease");
+			}
+
 			gameFrame();
 
 			if (debug.inspect) {

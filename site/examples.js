@@ -143,6 +143,7 @@ const page = t("html", {}, [
 				t("button", { onclick: "run()", }, "run"),
 			]),
 			t("div", { class: "subhead", }, [
+				t("button", { onclick: "reset()", }, "reset"),
 				t("button", { onclick: "replit()", }, "fork on replit"),
 				t("label", { for: "liveupdate", }, "live update"),
 				t("input", { id: "liveupdate", name: "liveupdate", type: "checkbox", }),

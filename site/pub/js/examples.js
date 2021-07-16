@@ -2,11 +2,10 @@ import genGame from "./genGame.js";
 
 const gameview = document.querySelector("#gameview");
 const liveupdate = document.querySelector("#liveupdate");
-const history = false;
 
 function update() {
 	const name = select.value;
-	if (history && localStorage[name]) {
+	if (localStorage[name]) {
 		editor.setValue(localStorage[name]);
 		run();
 		window.location.hash = `#${name}`;
@@ -41,6 +40,11 @@ function run() {
 	gameview.srcdoc = genGame(editor.getValue());
 }
 
+function reset() {
+	delete localStorage[select.value];
+	update();
+}
+
 function replit() {
 	window.open(`https://replit.com/@slmjkdbtl/kaboom-example-${select.value}`);
 }
@@ -53,4 +57,5 @@ update();
 
 window.run = run;
 window.replit = replit;
+window.reset = reset;
 window.update = update;

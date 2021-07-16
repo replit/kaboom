@@ -1,15 +1,9 @@
-kaboom({
-	global: true,
-	fullscreen: true,
-	scale: 2,
-	debug: true,
-});
+kaboom({ global: true, });
+loadSprite("mark", "/assets/sprites/mark.png");
+addSprite("mark", { scale: 10, });
 
-loadRoot("/pub/examples/");
-loadSprite("mark", "img/mark.png");
-
-add([
-	sprite("mark"),
-	// BIGMARK
-	scale(10),
-]);
+// ^ is the shortcut of:
+// add([
+// 	sprite("mark"),
+// 	scale(10),
+// ]);

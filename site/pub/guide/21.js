@@ -1,6 +1,6 @@
 // TALK: also while we're here, let's remove the pipe from game when they're out of screen
 // TALK: so it won't lag our game after a period of time
-// TALK: you might noticed the score goes behind the pipe when new pipe spawns
+// TALK: you might have noticed the score goes behind the pipe when new pipe spawns
 // TALK: this is because they're added after the score label is added
 // TALK: we can make score always drawn on top by using layers
 

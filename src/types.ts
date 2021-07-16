@@ -169,6 +169,7 @@ type KaboomCtx = {
 	addLevel(map: string[], conf: LevelConf): Level,
 	addSprite(name: string, conf?: AddSpriteConf),
 	addRect(w: number, h: number, conf?: AddRectConf),
+	addText(txt: string, size: number, props: AddTextConf),
 };
 
 type KaboomConf = {
@@ -301,14 +302,17 @@ type Vertex = {
 
 type TexFilter = "nearest" | "linear";
 
-type DrawQuadConf = {
+type RenderProps = {
 	pos?: Vec2,
-	width?: number,
-	height?: number,
-	scale?: Vec2,
+	scale?: Vec2 | number,
 	rot?: number,
 	color?: Color,
 	origin?: Origin | Vec2,
+};
+
+type DrawQuadConf = RenderProps & {
+	width?: number,
+	height?: number,
 	z?: number,
 	tex?: GfxTexture,
 	quad?: Quad,
@@ -316,63 +320,44 @@ type DrawQuadConf = {
 	uniform?: Uniform,
 };
 
-type DrawTextureConf = {
-	pos?: Vec2,
-	scale?: Vec2,
+type DrawTextureConf = RenderProps & {
 	width?: number,
 	height?: number,
 	tiled?: boolean,
-	rot?: number,
-	color?: Color,
-	origin?: Origin | Vec2,
 	quad?: Quad,
 	z?: number,
 	prog?: GfxProgram,
 	uniform?: Uniform,
 };
 
-type DrawRectStrokeConf = {
+type DrawRectStrokeConf = RenderProps & {
 	width?: number,
-	scale?: Vec2,
-	rot?: number,
-	color?: Color,
-	origin?: Origin | Vec2,
-	z?: number,
-	prog?: GfxProgram,
-};
-
-type DrawRectConf = {
-	scale?: Vec2,
-	rot?: number,
-	color?: Color,
-	origin?: Origin | Vec2,
 	z?: number,
 	prog?: GfxProgram,
 	uniform?: Uniform,
 };
 
-type DrawLineConf = {
+type DrawRectConf = RenderProps & {
+	z?: number,
+	prog?: GfxProgram,
+	uniform?: Uniform,
+};
+
+type DrawLineConf = RenderProps & {
 	width?: number,
-	color?: Color,
 	z?: number,
 	prog?: GfxProgram,
 	uniform?: Uniform,
 };
 
-type DrawTriConf = {
-	color?: Color,
+type DrawTriConf = RenderProps & {
 	z?: number,
 	prog?: GfxProgram,
 	uniform?: Uniform,
 };
 
-type DrawTextConf = {
+type DrawTextConf = RenderProps & {
 	size?: number,
-	pos?: Vec2,
-	scale?: Vec2 | number,
-	rot?: number,
-	color?: Color,
-	origin?: Origin | Vec2,
 	width?: number,
 	z?: number,
 	prog?: GfxProgram,
@@ -407,16 +392,11 @@ type Origin =
 	| "botright"
 	;
 
-type DrawSpriteConf = {
+type DrawSpriteConf = RenderProps & {
 	frame?: number,
-	pos?: Vec2,
 	width?: number,
 	height?: number,
 	tiled?: boolean,
-	scale?: Vec2,
-	rot?: number,
-	color?: Color,
-	origin?: Origin,
 	quad?: Quad,
 	prog?: ShaderData,
 	uniform?: Uniform,
@@ -749,13 +729,11 @@ type LoopHandle = {
 	stop(): void,
 };
 
-type RenderProps = {
-	pos?: Vec2,
-	scale?: Vec2 | number,
-	rot?: number,
-	color?: Color,
-	origin?: Origin,
-};
+type HelperProps = {
+	body?: boolean,
+	tags?: string[],
+}
 
-type AddSpriteConf = RenderProps & SpriteCompConf & { body?: boolean, };
-type AddRectConf = RenderProps & RectCompConf & { body?: boolean, };
+type AddSpriteConf = RenderProps & HelperProps & SpriteCompConf;
+type AddRectConf = RenderProps & HelperProps & RectCompConf;
+type AddTextConf = RenderProps & HelperProps & TextCompConf;
