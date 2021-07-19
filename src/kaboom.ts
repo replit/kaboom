@@ -166,13 +166,24 @@ function dt() {
 	return app.dt() * debug.timeScale;
 }
 
-// TODO: how to make this work when not loaded
+// TODO: clean
 function play(id: string, conf: AudioPlayConf = {}): AudioPlay {
-	const sound = assets.sounds[id];
-	if (!sound) {
-		throw new Error(`sound not found: "${id}"`);
-	}
-	return audio.play(sound, conf);
+	const pb = audio.play(new AudioBuffer({
+		length: 1,
+		numberOfChannels: 1,
+		sampleRate: 44100
+	}));
+	ready(() => {
+		const sound = assets.sounds[id];
+		if (!sound) {
+			throw new Error(`sound not found: "${id}"`);
+		}
+		const pb2 = audio.play(sound, conf);
+		for (const k in pb2) {
+			pb[k] = pb2[k];
+		}
+	});
+	return pb;
 }
 
 function isCamLayer(layer?: string): boolean {
@@ -612,7 +623,7 @@ function add(comps: Comp[]): GameObj {
 	obj.trigger("add");
 
 	if (!game.loaded) {
-		game.on("load", () => obj.trigger("load"));
+		ready(() => obj.trigger("load"));
 	} else {
 		obj.trigger("load");
 	}
@@ -1460,7 +1471,7 @@ const sprite = defComp("sprite", [], (
 		play(name: string, loop = true) {
 
 			if (!spr) {
-				game.on("load", () => {
+				ready(() => {
 					this.play(name, loop);
 				});
 				return;
@@ -1499,7 +1510,7 @@ const sprite = defComp("sprite", [], (
 		changeSprite(id: string) {
 
 			if (!spr) {
-				game.on("load", () => {
+				ready(() => {
 					this.changeSprite(id);
 				});
 				return;
@@ -1944,7 +1955,11 @@ function addText(txt: string, size: number, props: AddSpriteConf = {}) {
 }
 
 function ready(cb: () => void): void {
-	game.on("load", cb);
+	if (game.loaded) {
+		cb();
+	} else {
+		game.on("load", cb);
+	}
 }
 
 const ctx: KaboomCtx = {

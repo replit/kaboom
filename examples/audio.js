@@ -28,10 +28,7 @@ detune: ${music.detune()}
 }
 
 updateText();
-
-action(() => {
-	updateText();
-});
+action(() => updateText());
 
 keyPress("space", () => {
 
