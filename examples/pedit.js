@@ -13,8 +13,10 @@ const spr = add([
 	scale(12),
 ]);
 
-for (let i = 0; i < spr.numFrames(); i++) {
-	keyPress(`${i + 1}`, () => {
-		spr.frame = i;
-	});
-}
+ready(() => {
+	for (let i = 0; i < spr.numFrames(); i++) {
+		keyPress(`${i + 1}`, () => {
+			spr.frame = i;
+		});
+	}
+});

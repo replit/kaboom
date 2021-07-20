@@ -54,7 +54,7 @@ type Assets = {
 		isUrl?: boolean,
 	): Promise<ShaderData>,
 	loadProgress(): number,
-	newLoader<T>(prom: Promise<T>): void,
+	addLoader<T>(prom: Promise<T>): void,
 	defFont(): FontData,
 	sprites: Record<string, SpriteData>,
 	fonts: Record<string, FontData>,
@@ -95,7 +95,7 @@ function assetsInit(gfx: Gfx, audio: Audio, gconf: AssetsConf = {}): Assets {
 		shaders: {},
 	};
 
-	function newLoader<T>(prom: Promise<T>) {
+	function addLoader<T>(prom: Promise<T>) {
 		const id = assets.lastLoaderID;
 		assets.loaders[id] = false;
 		assets.lastLoaderID++;
@@ -152,7 +152,7 @@ function assetsInit(gfx: Gfx, audio: Audio, gconf: AssetsConf = {}): Assets {
 
 		});
 
-		newLoader(loader);
+		addLoader(loader);
 
 		return loader;
 
@@ -233,7 +233,7 @@ function assetsInit(gfx: Gfx, audio: Audio, gconf: AssetsConf = {}): Assets {
 
 		});
 
-		newLoader(loader);
+		addLoader(loader);
 
 		return loader;
 
@@ -293,7 +293,7 @@ function assetsInit(gfx: Gfx, audio: Audio, gconf: AssetsConf = {}): Assets {
 
 		});
 
-		newLoader(loader);
+		addLoader(loader);
 
 		return loader;
 
@@ -338,7 +338,7 @@ function assetsInit(gfx: Gfx, audio: Audio, gconf: AssetsConf = {}): Assets {
 
 		});
 
-		newLoader(loader);
+		addLoader(loader);
 
 		return loader;
 
@@ -363,7 +363,7 @@ function assetsInit(gfx: Gfx, audio: Audio, gconf: AssetsConf = {}): Assets {
 		loadFont,
 		loadShader,
 		loadProgress,
-		newLoader,
+		addLoader,
 		defFont,
 		sprites: assets.sprites,
 		fonts: assets.fonts,

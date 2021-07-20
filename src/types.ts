@@ -25,7 +25,7 @@ type KaboomCtx = {
 		frag?: string,
 		isUrl?: boolean,
 	): Promise<ShaderData>,
-	newLoader<T>(l: Promise<T>): void,
+	addLoader<T>(l: Promise<T>): void,
 	// game
 	width(): number,
 	height(): number,

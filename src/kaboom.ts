@@ -2042,7 +2042,7 @@ const ctx: KaboomCtx = {
 	loadSound: assets.loadSound,
 	loadFont: assets.loadFont,
 	loadShader: assets.loadShader,
-	newLoader: assets.newLoader,
+	addLoader: assets.addLoader,
 	// query
 	width: gfx.width,
 	height: gfx.height,
