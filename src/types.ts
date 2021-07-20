@@ -25,7 +25,7 @@ type KaboomCtx = {
 		frag?: string,
 		isUrl?: boolean,
 	): Promise<ShaderData>,
-	addLoader<T>(l: Promise<T>): void,
+	newLoader<T>(l: Promise<T>): void,
 	// game
 	width(): number,
 	height(): number,
@@ -167,10 +167,16 @@ type KaboomCtx = {
 	debug: Debug,
 	// helpers
 	addLevel(map: string[], conf: LevelConf): Level,
-	addSprite(name: string, conf?: AddSpriteConf),
-	addRect(w: number, h: number, conf?: AddRectConf),
-	addText(txt: string, size: number, props: AddTextConf),
+	addSprite(name: string, conf?: AddSpriteConf): GameObj,
+	addRect(w: number, h: number, conf?: AddRectConf): GameObj,
+	addText(txt: string, size: number, props: AddTextConf): GameObj,
+	// scene
+	scene(id: SceneID, def: SceneDef),
+	go(id: SceneID, ...args),
 };
+
+type SceneID = string;
+type SceneDef = (...args) => void;
 
 type KaboomConf = {
 	width?: number,
@@ -201,6 +207,12 @@ type GameObj = {
 	trigger(ev: string, ...args): void,
 	rmTag(t: string): void,
 	destroy(): void,
+	c(id: string): Comp,
+//  	add(comps: Comp[]): GameObj,
+//  	addLevel(map: string[], conf: LevelConf): Level,
+//  	addSprite(name: string, conf?: AddSpriteConf): GameObj,
+//  	addRect(w: number, h: number, conf?: AddRectConf): GameObj,
+//  	addText(txt: string, size: number, props: AddTextConf): GameObj,
 	_id: GameObjID | null,
 	_children: GameObj[],
 	_tags: string[],

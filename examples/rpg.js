@@ -157,4 +157,4 @@ scene("win", () => {
 	]);
 });
 
-start("main", 0);
+go("main", 0);

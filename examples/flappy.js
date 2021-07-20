@@ -144,4 +144,4 @@ scene("death", (score) => {
 	});
 });
 
-start("main");
+go("main");

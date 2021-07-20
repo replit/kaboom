@@ -246,6 +246,7 @@ type Game = {
 	compReg: Record<string, CompBuilder>,
 	events: {
 		load: LoadEvent[],
+		nextFrame: NextFrameEvent[],
 		mouseClick: MouseEvent[],
 		mouseRelease: MouseEvent[],
 		mouseDown: MouseEvent[],
@@ -280,6 +281,7 @@ type Game = {
 	data: any,
 	on<F>(ev: string, cb: F): void,
 	trigger(ev: string, ...args): void,
+	scenes: Record<SceneID, SceneDef>,
 };
 
 type Camera = {
@@ -310,6 +312,7 @@ type MouseInputEvent = {
 };
 
 type LoadEvent = () => void;
+type NextFrameEvent = () => void;
 type MouseEvent = () => void;
 type CharEvent = (ch: string) => void;
 
@@ -321,6 +324,7 @@ const game: Game = {
 	// event callbacks
 	events: {
 		load: [],
+		nextFrame: [],
 		mouseClick: [],
 		mouseRelease: [],
 		mouseDown: [],
@@ -380,6 +384,8 @@ const game: Game = {
 			cb(...args);
 		}
 	},
+
+	scenes: {},
 
 };
 
@@ -508,7 +514,7 @@ function add(comps: Comp[]): GameObj {
 
 			for (const k in comp) {
 
-				if (k === "id") {
+				if (k === "id" || k === "require") {
 					continue;
 				}
 
@@ -524,19 +530,25 @@ function add(comps: Comp[]): GameObj {
 					stateContainer[k] = comp[k];
 				}
 
-				if (k === "require") {
-					continue;
-				}
-
 				// fields
-				Object.defineProperty(this, k, {
-					get() {
-						return stateContainer[k];
-					},
-					set(val) {
-						stateContainer[k] = val;
-					},
-				});
+				if (!this[k]) {
+					Object.defineProperty(this, k, {
+						get() {
+							if (comp.id) {
+								return compStates[comp.id][k];
+							} else {
+								return customState[k];
+							}
+						},
+						set(val) {
+							if (comp.id) {
+								compStates[comp.id][k] = val;
+							} else {
+								customState[k] = val;
+							}
+						},
+					});
+				}
 
 			}
 
@@ -937,6 +949,9 @@ function gameFrame(ignorePause?: boolean) {
 	for (const f of game.render) {
 		f();
 	}
+
+	game.trigger("nextFrame");
+	game.events.nextFrame = [];
 
 }
 
@@ -1391,8 +1406,7 @@ const sprite = defComp("sprite", [], (
 		quad: conf.quad || quad(0, 0, 1, 1),
 
 		add() {
-			// add default area
-			if (!this.area && !conf.noArea) {
+			if (!conf.noArea) {
 				this.use(area(vec2(0), vec2(0)));
 			}
 		},
@@ -1414,11 +1428,10 @@ const sprite = defComp("sprite", [], (
 			// TODO: take conf.{width,height} if specified
 			this.width = spr.tex.width * q.w;
 			this.height = spr.tex.height * q.h;
-			if (this.area) {
-				// TODO
-				const a = getAreaFromSize(this.width, this.height, this.origin);
-				this.area.p1 = a.area.p1;
-				this.area.p2 = a.area.p2;
+
+			if (!conf.noArea) {
+				// TODO: this could overwrite existing internal states
+				this.use(getAreaFromSize(this.width, this.height, this.origin));
 			}
 
 		},
@@ -1534,7 +1547,7 @@ const sprite = defComp("sprite", [], (
 			this.width = spr.tex.width * q.w;
 			this.height = spr.tex.height * q.h;
 
-			if (this.area && !conf.noArea) {
+			if (!conf.noArea) {
 				this.use(getAreaFromSize(this.width, this.height, this.origin));
 			}
 
@@ -1582,14 +1595,14 @@ const text = defComp("text", [], (
 		height: 0,
 
 		add() {
-			if (!this.area && !conf.noArea) {
-				this.use(area());
+			if (!conf.noArea) {
+				this.use(area(vec2(0), vec2(0)));
 			}
 		},
 
 		load() {
 			// add default area
-			if (!this.area && !conf.noArea) {
+			if (!conf.noArea) {
 				const font = assets.fonts[this.font ?? DEF_FONT];
 				const ftext = gfx.fmtText(this.text + "", font, {
 					pos: this.pos,
@@ -1962,6 +1975,66 @@ function ready(cb: () => void): void {
 	}
 }
 
+function scene(id: SceneID, def: SceneDef) {
+	game.scenes[id] = def;
+}
+
+function go(id: SceneID, ...args) {
+
+	game.on("nextFrame", () => {
+
+		game.events = {
+			load: [],
+			nextFrame: [],
+			mouseClick: [],
+			mouseRelease: [],
+			mouseDown: [],
+			charInput: [],
+		};
+
+		game.objEvents = {
+			add: [],
+			update: [],
+			draw: [],
+			destroy: [],
+		};
+
+		game.keyEvents = {
+			down: [],
+			press: [],
+			pressRep: [],
+			release: [],
+		};
+
+		game.action = [];
+		game.render = [];
+
+		game.objs = new Map();
+		game.lastObjID = 0;
+		game.timers = {};
+		game.lastTimerID = 0;
+
+		// cam
+		game.cam = {
+			pos: vec2(gfx.width() / 2, gfx.height() / 2),
+			scale: vec2(1, 1),
+			angle: 0,
+			shake: 0,
+		};
+
+		game.camMousePos = vec2(0);
+		game.camMatrix = mat4();
+
+		game.layers = {};
+		game.defLayer = null;
+		game.gravity =DEF_GRAVITY;
+
+		game.scenes[id](...args);
+
+	});
+
+}
+
 const ctx: KaboomCtx = {
 	// asset load
 	loadRoot: assets.loadRoot,
@@ -1969,7 +2042,7 @@ const ctx: KaboomCtx = {
 	loadSound: assets.loadSound,
 	loadFont: assets.loadFont,
 	loadShader: assets.loadShader,
-	addLoader: assets.addLoader,
+	newLoader: assets.newLoader,
 	// query
 	width: gfx.width,
 	height: gfx.height,
@@ -2077,6 +2150,9 @@ const ctx: KaboomCtx = {
 	addSprite,
 	addRect,
 	addText,
+	// scene
+	scene,
+	go,
 };
 
 if (gconf.plugins) {

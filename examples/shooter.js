@@ -425,4 +425,4 @@ scene("win", ({ time, boss }) => {
 
 });
 
-start("main");
+go("main");
