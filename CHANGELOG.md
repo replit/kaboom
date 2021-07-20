@@ -1,4 +1,6 @@
-### (wip)
+### v0.6 (title TBD)
+- `scene()` and `start()` (also removed in favor of `go()`) are optional now
+- (**BREAK**) removed `start()` in favor of just `go()`
 - added `loadShader(id, vert, frag, isUrl)`
 - added `shader()` comp for attaching custom shader to an obj
 - (**BREAK**) added `defComp()` and refactored the component system, making it possible to declare comp dependencies. The old comp definition still works, but will result in error if there're overlapping fields now, thus breakable.
@@ -26,12 +28,12 @@ obj.play("anim");
 obj.c("sprite").play("anim");
 ```
 - (**BREAK**) changed event `headbump` to `headbutt`
-- fixed `"add"` event getting called twice for tagged objs
 - (**BREAK**) renamed `resolve()` to `pushOutAll()` on `area` comp
+- fixed `"add"` event getting called twice for tagged objs
 - added `pushOut()` for pushing a single object out from another with `area` comp
 - added `width`, `height`, and `tiled` attrib to `SpriteCompConf`, for better control over sprite size and tiled sprite support
 - added `burp()`
-- added helpers `addSprite()`, `addText()`, `addRect()`
+- added helpers `addSprite()`, `addText()`, `addRect()` that abstracts away from the component syntax
 
 ### v0.5.1
 - added plugins npm package support e.g. `import asepritePlugin from "kaboom/plugins/aseprite"`
