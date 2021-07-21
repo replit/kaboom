@@ -2031,6 +2031,10 @@ function go(id: SceneID, ...args) {
 
 		game.scenes[id](...args);
 
+		if (gconf.debug) {
+			regDebugInput();
+		}
+
 	});
 
 }
@@ -2262,7 +2266,7 @@ app.run(() => {
 
 });
 
-if (gconf.debug) {
+function regDebugInput() {
 
 	keyPress("`", () => {
 		debug.showLog = !debug.showLog;
@@ -2298,6 +2302,10 @@ if (gconf.debug) {
 		logger.info(`stepped frame`);
 	});
 
+}
+
+if (gconf.debug) {
+	regDebugInput();
 }
 
 return ctx;
