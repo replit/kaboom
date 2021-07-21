@@ -1,6 +1,12 @@
 ### v0.6 burp()
 - added `burp()` for easy burping
-- `scene()` and `start()` (also removed in favor of `go()`) are optional now
+- added "mark" as a default sprite
+- `scene()` and `start()` (also removed in favor of `go()`) are optional now, if you don't need multiple scenes yet you can just go directly
+```js
+const k = kaboom();
+k.add(...);
+k.keyPress(...);
+```
 - (**BREAK**) removed `start()` in favor of just `go()`
 - added `loadShader(id, vert, frag, isUrl)`
 - added `shader()` comp for attaching custom shader to an obj

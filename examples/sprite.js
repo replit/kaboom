@@ -1,7 +1,5 @@
-kaboom({ global: true, });
-loadSprite("mark", "/assets/sprites/mark.png");
-
-addSprite("mark", { scale: 10, });
+const k = kaboom();
+k.addSprite("mark", { scale: 10, });
 
 // ^ is the shortcut of:
 // add([

@@ -14,7 +14,7 @@ loadSound("coin", "sounds/coin.mp3");
 
 const PLAYER_SPEED = 120;
 const JUMP_FORCE = 240;
-const NUM_PLATFORMS = 6;
+const NUM_PLATFORMS = 5;
 
 function doubleJump() {
 	let hasDouble = true;
@@ -114,7 +114,7 @@ for (let i = 0; i < width() / 11; i++) {
 }
 
 car.collides("danger", () => {
-	go("main");
+    car.pos = get("platform")[0].pos.sub(0, car.height);
 });
 
 car.collides("coin", (c) => {
