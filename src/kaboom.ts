@@ -1588,7 +1588,7 @@ const text = defComp("text", [], (
 	return {
 
 		text: t,
-		textSize: size,
+		textSize: size || 16,
 		font: conf.font,
 		// TODO: calc these at init
 		width: 0,

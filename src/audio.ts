@@ -23,7 +23,7 @@ const MIN_DETUNE = -1200;
 const MAX_DETUNE = 1200;
 
 // @ts-ignore
-import burpSrc from "./assets/burp.mp3";
+import burpBytes from "./assets/burp.mp3";
 
 function audioInit(): Audio {
 
@@ -44,7 +44,13 @@ function audioInit(): Audio {
 
 	})();
 
-	const burpSnd = new window.Audio(burpSrc);
+	let burpBuf;
+
+	audio.ctx.decodeAudioData(burpBytes.buffer, (buf) => {
+		burpBuf = buf;
+	}, () => {
+		throw new Error("failed to make burp")
+	});
 
 	// get / set master volume
 	function volume(v?: number): number {
@@ -198,9 +204,8 @@ function audioInit(): Audio {
 		return audio.ctx;
 	}
 
-	// TODO: use audio ctx
 	function burp() {
-		burpSnd.play();
+		return play(burpBuf);
 	}
 
 	return {

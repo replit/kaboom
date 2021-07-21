@@ -1,27 +1,39 @@
-### v0.6 (title TBD)
+### v0.6 burp()
+- added `burp()` for easy burping
 - `scene()` and `start()` (also removed in favor of `go()`) are optional now
 - (**BREAK**) removed `start()` in favor of just `go()`
 - added `loadShader(id, vert, frag, isUrl)`
 - added `shader()` comp for attaching custom shader to an obj
-- (**BREAK**) added `defComp()` and refactored the component system, making it possible to declare comp dependencies. The old comp definition still works, but will result in error if there're overlapping fields now, thus breakable.
+- (**BREAK**) changed default text size to `16`
+- (**BREAK**) added `id` and `require` on component definitions, making it possible to declare dependencies for components, e.g.
 ```js
-// define a comp with id "drag", and depend on comps with id "pos" and "area"
-const drag = defComp("drag", [ "pos", "area", ], () => {
-	// normal component definition
+function drag() {
 	return {
+		// the id of this component
+		id: "draggable",
+		// it'll throw error if the host object doesn't have these 2 components
+		require: [ "pos", "area", ],
+		add() {
+			// so you're guaranteed to use stuff from those components (like 'clicks()' from `area`)
+			this.clicks(() => {
+				if (curDraggin) {
+					return;
+				}
+				curDraggin = this;
+				offset = mousePos().sub(this.pos);
+				readd(this);
+			});
+		},
 		update() {
-			// ...
+			if (curDraggin === this) {
+				this.pos = mousePos().sub(offset);
+			}
 		},
 	};
-});
-
-add([
-	sprite("mark"),
-	// will throw error here since this object doesn't have a pos()
-	drag(),
-])
+}
 ```
-- added `obj.c()` for getting a specific comp's state (by default all comps' states are mounted to the obj by `Object.defineProperty`)
+this is breaking because now overlapping fields are not allowed, e.g. you can have a custom comp that has a `collides` field if it already have a `area` component, since it already has that
+- added `obj.c(id)` for getting a specific comp's state (by default all comps' states are mounted to the obj by `Object.defineProperty`)
 ```js
 // both works
 obj.play("anim");
@@ -32,8 +44,7 @@ obj.c("sprite").play("anim");
 - fixed `"add"` event getting called twice for tagged objs
 - added `pushOut()` for pushing a single object out from another with `area` comp
 - added `width`, `height`, and `tiled` attrib to `SpriteCompConf`, for better control over sprite size and tiled sprite support
-- added `burp()`
-- added helpers `addSprite()`, `addText()`, `addRect()` that abstracts away from the component syntax
+- added helpers `addSprite()`, `addText()`, `addRect()` that abstracts away from the component syntax, to reduce concepts for beginners
 
 ### v0.5.1
 - added plugins npm package support e.g. `import asepritePlugin from "kaboom/plugins/aseprite"`
