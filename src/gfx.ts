@@ -598,22 +598,22 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 		drawRaw([
 			{
 				pos: vec3(-w / 2, h / 2, z),
-				uv: vec2(q.x, q.y + q.h),
+				uv: vec2(conf.flipX ? q.x + q.w : q.x, conf.flipY ? q.y : q.y + q.h),
 				color: color,
 			},
 			{
 				pos: vec3(-w / 2, -h / 2, z),
-				uv: vec2(q.x, q.y),
+				uv: vec2(conf.flipX ? q.x + q.w : q.x, conf.flipY ? q.y + q.h : q.y),
 				color: color,
 			},
 			{
 				pos: vec3(w / 2, -h / 2, z),
-				uv: vec2(q.x + q.w, q.y),
+				uv: vec2(conf.flipX ? q.x : q.x + q.w, conf.flipY ? q.y + q.h : q.y),
 				color: color,
 			},
 			{
 				pos: vec3(w / 2, h / 2, z),
-				uv: vec2(q.x + q.w, q.y + q.h),
+				uv: vec2(conf.flipX ? q.x : q.x + q.w, conf.flipY ? q.y : q.y + q.h),
 				color: color,
 			},
 		], [0, 1, 3, 1, 2, 3], conf.tex, conf.prog, conf.uniform);
@@ -657,7 +657,7 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 			}
 		} else {
 
-			// TODO: does this ignore scale?
+			// TODO: should this ignore scale?
 			if (conf.width && conf.height) {
 				scale.x = conf.width / w;
 				scale.y = conf.height / h;

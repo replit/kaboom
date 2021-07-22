@@ -1,45 +1,36 @@
-// TALK: scale it to fit the whole screen
-// TALK: and make the image origin point top left (it defaults to center, so you only see 1/4 of it before)
-// TALK: then let's make the pipes!
+// TALK: Hell yeah
+// TALK: That's a fine piece of pipe
+// TALK: It really make me want to jump over it again and again
+// TALK: Can't do that unless we make it move
 
 kaboom({
 	global: true,
-	fullscreen: true,
 	scale: 2,
+	fullscreen: true,
 });
 
-loadRoot("/pub/examples/");
-loadSprite("birdy", "img/birdy.png");
-loadSprite("bg", "img/bg.png");
+loadSprite("bg", "/assets/sprites/bg.png");
+loadSprite("pipe", "/assets/sprites/pipe.png");
+loadSound("wooosh", "/assets/sounds/wooosh.mp3");
 
-scene("main", () => {
-
-	add([
-		sprite("bg"),
-		// TODO: query sprite size
-		scale(width() / 240, height() / 240),
-		origin("topleft"),
-	]);
-
-	const birdy = add([
-		sprite("birdy"),
-		pos(80, 80),
-		body(),
-	]);
-
-	const JUMP_FORCE = 320;
-
-	keyPress("space", () => {
-		birdy.jump(JUMP_FORCE);
-	});
-
-	add([
-		rect(width(), 12),
-		pos(0, 280),
-		origin("topleft"),
-		solid(),
-	]);
-
+addSprite("bg", {
+	width: width(),
+	height: height(),
 });
 
-start("main");
+const mark = addSprite("mark", {
+	pos: vec2(80, 80),
+	body: true,
+});
+
+addRect(width(), 20, {
+	pos: vec2(0, height() - 40),
+	solid: true,
+});
+
+addSprite("pipe");
+
+keyPress("space", () => {
+	mark.jump();
+	play("wooosh");
+});

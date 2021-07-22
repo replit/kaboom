@@ -1,88 +1,64 @@
-// TALK: next, let's make a losing scene instead of restarting the game every time
-// TALK: we here define another scene called "gameover" and make falling / collision go here instead
-// TALK: and add a keyPress event to go back to main scene again
-// TALK: now we can finally get back to a major issue
-// TALK: there's only 1 set of pipes! that's not really that fun
-// TALK: we gotta make some pipe generation mechanism
+// TALK: Define a `"gameover"` scene, and make it `go()` when we hit a pipe
+// TALK: Make it go back to `"game"` scene in `"gameover"` on key press for easy replay
+// TALK: With this we can also throw away our baby platform, just game over when fall
 
 kaboom({
 	global: true,
-	fullscreen: true,
 	scale: 2,
+	fullscreen: true,
+	debug: true,
 });
 
-loadRoot("/pub/examples/");
-loadSprite("birdy", "img/birdy.png");
-loadSprite("bg", "img/bg.png");
-loadSprite("pipe", "img/pipe.png");
+loadSprite("bg", "/assets/sprites/bg.png");
+loadSprite("pipe", "/assets/sprites/pipe.png");
+loadSound("wooosh", "/assets/sounds/wooosh.mp3");
 
-scene("main", () => {
+scene("game", () => {
 
-	add([
-		sprite("bg"),
-		// TODO: query sprite size
-		scale(width() / 240, height() / 240),
-		origin("topleft"),
-	]);
-
-	const birdy = add([
-		sprite("birdy"),
-		pos(80, 80),
-		body(),
-	]);
-
-	const JUMP_FORCE = 320;
-
-	keyPress("space", () => {
-		birdy.jump(JUMP_FORCE);
+	addSprite("bg", {
+		width: width(),
+		height: height(),
 	});
 
-	birdy.action(() => {
-		if (birdy.pos.y >= height()) {
-			go("gameover");
-		}
+	const mark = addSprite("mark", {
+		pos: vec2(80, 80),
+		body: true,
 	});
 
-	birdy.collides("pipe", () => {
+	addRect(width(), 20, {
+		pos: vec2(0, height() - 40),
+		solid: true,
+	});
+
+	const pipe = addSprite("pipe", {
+		pos: vec2(width(), height()),
+		origin: "botleft",
+		tags: [ "pipe" ],
+	});
+
+	mark.collides("pipe", () => {
 		go("gameover");
 	});
 
-	const PIPE_OPEN = 120;
-	const PIPE_SPEED = 90;
+	pipe.action(() => {
+		pipe.move(-60, 0);
+	});
 
-	add([
-		sprite("pipe"),
-		origin("bot"),
-		pos(width(), 120),
-		"pipe",
-	]);
-
-	add([
-		sprite("pipe"),
-		pos(width(), 120 + PIPE_OPEN),
-		scale(1, -1),
-		origin("bot"),
-		"pipe",
-	]);
-
-	action("pipe", (pipe) => {
-		pipe.move(-PIPE_SPEED, 0);
+	keyPress("space", () => {
+		mark.jump();
+		play("wooosh");
 	});
 
 });
 
 scene("gameover", () => {
 
-	add([
-		text("you lose!", 24),
-		pos(width() / 2, height() / 2),
-		origin("center"),
-	]);
+	addText("You lose!");
 
 	keyPress("space", () => {
-		go("main");
+		go("game");
 	});
 
 });
 
-start("main");
+go("game");

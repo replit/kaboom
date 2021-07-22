@@ -139,6 +139,12 @@ const style = {
 		"white-space": "pre-line",
 		"max-width": "360px",
 	},
+	"code": {
+		"font-weight": "bold",
+		"padding": "2px 8px",
+		"border-radius": "6px",
+		"background": "#eee",
+	},
 	"@keyframes": {
 		"flash": {
 			"0%": {
@@ -177,7 +183,8 @@ const page = t("html", {}, [
 				t("button", { onclick: "run()", }, "run"),
 			]),
 			t("div", { class: "subhead", }, [
-				t("label", { for: "liveupdate", }, "live update"),
+				t("button", { onclick: "toggle()", }, "Toggle Dialog"),
+				t("label", { for: "liveupdate", }, "Live Update"),
 				t("input", { id: "liveupdate", name: "liveupdate", type: "checkbox", }),
 			]),
 		]),
@@ -185,8 +192,10 @@ const page = t("html", {}, [
 			t("div", { id: "editor", }, []),
 			t("iframe", { id: "gameview", }, []),
 		]),
-		t("img", { id: "mark", src: "/pub/img/mark.png", }),
-		t("div", { id: "bubble", }, "1231"),
+		t("div", { id: "guide", }, [
+			t("img", { id: "mark", src: "/pub/img/mark.png", }),
+			t("div", { id: "bubble", }, "1231"),
+		]),
 		t("script", { src: "/pub/js/guide.js", type: "module", }, ""),
 	]),
 ]);

@@ -1,70 +1,47 @@
-// TALK: to accomplish this, we are going to use one of the core function of kaboom: action()
-// TALK: first, we give 2 pipes "pipe" tags, by giving direct strings to the component list
-// TALK: then, we use action("pipe", ...) to give all objects with tag "pipe" something to run every frame
-// TALK: in this case we make them move left every frame by PIPE_SPEED
-// TALK: now we have moving pipes, let's complete this mechanism by making the bird actually have to jump over it!
+// TALK: To do that, we can first give the pipe a `"pipe"` tag
+// TALK: Then use the function `collides()` on mark which runs whenever mark collides with another game object with a certain tag
+// TALK: In that we put a `debug.log()` which logs a message on screen
 
 kaboom({
 	global: true,
-	fullscreen: true,
 	scale: 2,
+	fullscreen: true,
 });
 
-loadRoot("/pub/examples/");
-loadSprite("birdy", "img/birdy.png");
-loadSprite("bg", "img/bg.png");
-loadSprite("pipe", "img/pipe.png");
+loadSprite("bg", "/assets/sprites/bg.png");
+loadSprite("pipe", "/assets/sprites/pipe.png");
+loadSound("wooosh", "/assets/sounds/wooosh.mp3");
 
-scene("main", () => {
-
-	add([
-		sprite("bg"),
-		// TODO: query sprite size
-		scale(width() / 240, height() / 240),
-		origin("topleft"),
-	]);
-
-	const birdy = add([
-		sprite("birdy"),
-		pos(80, 80),
-		body(),
-	]);
-
-	const JUMP_FORCE = 320;
-
-	keyPress("space", () => {
-		birdy.jump(JUMP_FORCE);
-	});
-
-	add([
-		rect(width(), 12),
-		pos(0, 280),
-		origin("topleft"),
-		solid(),
-	]);
-
-	const PIPE_OPEN = 120;
-	const PIPE_SPEED = 90;
-
-	add([
-		sprite("pipe"),
-		origin("bot"),
-		pos(width(), 120),
-		"pipe",
-	]);
-
-	add([
-		sprite("pipe"),
-		pos(width(), 120 + PIPE_OPEN),
-		scale(1, -1),
-		origin("bot"),
-		"pipe",
-	]);
-
-	action("pipe", (pipe) => {
-		pipe.move(-PIPE_SPEED, 0);
-	});
-
+addSprite("bg", {
+	width: width(),
+	height: height(),
 });
 
-start("main");
+const mark = addSprite("mark", {
+	pos: vec2(80, 80),
+	body: true,
+});
+
+addRect(width(), 20, {
+	pos: vec2(0, height() - 40),
+	solid: true,
+});
+
+const pipe = addSprite("pipe", {
+	pos: vec2(width(), height()),
+	origin: "botleft",
+	tags: [ "pipe" ],
+});
+
+mark.collides("pipe", () => {
+	debug.log("oh ho!");
+});
+
+pipe.action(() => {
+	pipe.move(-60, 0);
+});
+
+keyPress("space", () => {
+	mark.jump();
+	play("wooosh");
+});

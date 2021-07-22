@@ -230,9 +230,6 @@ function drawText(
 	gfx.drawText(txt, font, conf);
 }
 
-// TODO: comp registry?
-// TODO: comps assert required other comps
-
 const DEF_GRAVITY = 980;
 const DEF_ORIGIN = "topleft";
 
@@ -885,6 +882,9 @@ function gravity(g?: number): number {
 // TODO: cleaner pause logic
 function gameFrame(ignorePause?: boolean) {
 
+	game.trigger("nextFrame");
+	game.events.nextFrame = [];
+
 	const doUpdate = ignorePause || !debug.paused;
 
 	if (doUpdate) {
@@ -949,9 +949,6 @@ function gameFrame(ignorePause?: boolean) {
 	for (const f of game.render) {
 		f();
 	}
-
-	game.trigger("nextFrame");
-	game.events.nextFrame = [];
 
 }
 
@@ -1091,12 +1088,6 @@ const scale = defComp("scale", [], (...args): ScaleComp => {
 	}
 	return {
 		scale: vec2(...args),
-		flipX(s: number) {
-			this.scale.x = Math.sign(s) * Math.abs(this.scale.x);
-		},
-		flipY(s: number) {
-			this.scale.y = Math.sign(s) * Math.abs(this.scale.y);
-		},
 	};
 });
 
@@ -1396,6 +1387,21 @@ const sprite = defComp("sprite", [], (
 	let spr = null;
 	let curAnim: SpriteCurAnim | null = null;
 
+	function calcTexScale(tex: GfxTexture, q: Quad, w?: number, h?: number): Vec2 {
+		const scale = vec2(1, 1);
+		if (w && h) {
+			scale.x = w / (tex.width * q.w);
+			scale.y = h / (tex.height * q.h);
+		} else if (w) {
+			scale.x = w / (tex.width * q.w);
+			scale.y = scale.x;
+		} else if (h) {
+			scale.y = h / (tex.height * q.h);
+			scale.x = scale.y;
+		}
+		return scale;
+	}
+
 	return {
 
 		// TODO: allow update
@@ -1425,9 +1431,10 @@ const sprite = defComp("sprite", [], (
 				q = q.scale(conf.quad);
 			}
 
-			// TODO: take conf.{width,height} if specified
-			this.width = spr.tex.width * q.w;
-			this.height = spr.tex.height * q.h;
+			const scale = calcTexScale(spr.tex, q, conf.width, conf.height);
+
+			this.width = spr.tex.width * q.w * scale.x;
+			this.height = spr.tex.height * q.h * scale.y;
 
 			if (!conf.noArea) {
 				// TODO: this could overwrite existing internal states
@@ -1447,6 +1454,8 @@ const sprite = defComp("sprite", [], (
 				quad: this.quad,
 				prog: assets.shaders[this.shader],
 				uniform: this.uniform,
+				flipX: conf.flipX,
+				flipY: conf.flipY,
 				tiled: conf.tiled,
 				width: conf.width,
 				height: conf.height,
@@ -1565,6 +1574,14 @@ const sprite = defComp("sprite", [], (
 
 		curAnim() {
 			return curAnim?.name;
+		},
+
+		flipX(b: boolean) {
+			conf.flipX = b;
+		},
+
+		flipY(b: boolean) {
+			conf.flipY = b;
 		},
 
 		inspect(): SpriteCompInspect {
@@ -1944,6 +1961,9 @@ function addSprite(name: string, props: AddSpriteConf = {}) {
 	return add([
 		sprite(name, props),
 		props.body && body(),
+		props.solid && solid(),
+		props.layer && layer(props.layer),
+		props.origin && origin(props.origin),
 		...commonProps(props),
 		...(props.tags || []),
 	]);
@@ -1953,6 +1973,9 @@ function addRect(w: number, h: number, props: AddSpriteConf = {}) {
 	return add([
 		rect(w, h, props),
 		props.body && body(),
+		props.solid && solid(),
+		props.layer && layer(props.layer),
+		props.origin && origin(props.origin),
 		...commonProps(props),
 		...(props.tags || []),
 	]);
@@ -1962,6 +1985,9 @@ function addText(txt: string, size: number, props: AddSpriteConf = {}) {
 	return add([
 		text(txt, size, props),
 		props.body && body(),
+		props.solid && solid(),
+		props.layer && layer(props.layer),
+		props.origin && origin(props.origin),
 		...commonProps(props),
 		...(props.tags || []),
 	]);
@@ -2268,14 +2294,8 @@ app.run(() => {
 
 function regDebugInput() {
 
-	keyPress("`", () => {
-		debug.showLog = !debug.showLog;
-		logger.info(`show log: ${debug.showLog ? "on" : "off"}`);
-	});
-
 	keyPress("f1", () => {
 		debug.inspect = !debug.inspect;
-		logger.info(`inspect: ${debug.inspect ? "on" : "off"}`);
 	});
 
 	keyPress("f2", () => {

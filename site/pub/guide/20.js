@@ -1,107 +1,91 @@
-// TALK: we increment the score every time birdy passes a pipe
-// TALK: we do this by having a 'passed' attribute on each lower pipe
+// TALK: Just gotta add another pipe on top when we spawn pipes, and flip the image
+// TALK: The way we generate the position of the pipes is a bit more complicated
+// TALK: First we define some constants: `PIPE_OPEN` means the gap between 2 pipes, `PIPE_MARGIN` means the minimal length from pipe length from screen edge.
+// TALK: Then we generate a random point between the top edge and bottom edge minus the `PIPE_MARGIN` on both sides. That'll be the center point between 2 pipes
+// TALK: Then we calculate the position of each pipe, by taking that point and minus / add half the `PIPE_OPEN`
+// TALK: Yeah you might have noticed, the game is impossible! Gotta tweak some variables.
 
 kaboom({
 	global: true,
-	fullscreen: true,
 	scale: 2,
+	fullscreen: true,
+	debug: true,
 });
 
-loadRoot("/pub/examples/");
-loadSprite("birdy", "img/birdy.png");
-loadSprite("bg", "img/bg.png");
-loadSprite("pipe", "img/pipe.png");
+loadSprite("bg", "/assets/sprites/bg.png");
+loadSprite("pipe", "/assets/sprites/pipe.png");
+loadSound("wooosh", "/assets/sounds/wooosh.mp3");
+loadSound("scream", "/assets/sounds/scream6.mp3");
+loadSound("horn", "/assets/sounds/horn2.mp3");
+loadSound("horse", "/assets/sounds/horse.mp3");
 
-scene("main", () => {
+scene("game", () => {
 
-	add([
-		sprite("bg"),
-		// TODO: query sprite size
-		scale(width() / 240, height() / 240),
-		origin("topleft"),
-	]);
+	play("horse");
 
-	const birdy = add([
-		sprite("birdy"),
-		pos(80, 80),
-		body(),
-	]);
-
-	const JUMP_FORCE = 320;
-
-	keyPress("space", () => {
-		birdy.jump(JUMP_FORCE);
+	addSprite("bg", {
+		width: width(),
+		height: height(),
 	});
 
-	birdy.action(() => {
-		if (birdy.pos.y >= height()) {
+	const mark = addSprite("mark", {
+		pos: vec2(80, 80),
+		body: true,
+	});
+
+	mark.action(() => {
+		if (mark.pos.y >= height() + 24) {
+			play("scream");
 			go("gameover");
 		}
 	});
 
-	birdy.collides("pipe", () => {
+	const PIPE_MARGIN = 80;
+	const PIPE_OPEN = 120;
+
+	loop(2, () => {
+
+		const y = rand(PIPE_MARGIN, height() - PIPE_MARGIN);
+
+		addSprite("pipe", {
+			flipY: true,
+			pos: vec2(width(), y - PIPE_OPEN / 2),
+			origin: "botleft",
+			tags: [ "pipe" ],
+		});
+
+		addSprite("pipe", {
+			pos: vec2(width(), y + PIPE_OPEN / 2),
+			origin: "topleft",
+			tags: [ "pipe" ],
+		});
+
+	});
+
+	mark.collides("pipe", () => {
+		play("horn");
 		go("gameover");
 	});
 
-	const PIPE_OPEN = 120;
-	const PIPE_SPEED = 90;
-
-	loop(1.5, () => {
-
-		const pipePos = rand(0, height() - PIPE_OPEN);
-
-		add([
-			sprite("pipe"),
-			origin("bot"),
-			pos(width(), pipePos),
-			"pipe",
-		]);
-
-		add([
-			sprite("pipe"),
-			pos(width(), pipePos + PIPE_OPEN),
-			scale(1, -1),
-			origin("bot"),
-			"pipe",
-			{ passed: false, },
-		]);
-
-	});
-
 	action("pipe", (pipe) => {
-
-		pipe.move(-PIPE_SPEED, 0);
-
-		if (pipe.pos.x + pipe.width <= birdy.pos.x && !pipe.passed) {
-			score.value++;
-			score.text = score.value;
-			pipe.passed = true;
-		}
-
+		pipe.move(-60, 0);
 	});
 
-	const score = add([
-		pos(12, 12),
-		text("0", 32),
-		{
-			value: 0,
-		},
-	]);
+	keyPress("space", () => {
+		mark.jump();
+		play("wooosh");
+	});
 
 });
 
 scene("gameover", () => {
 
-	add([
-		text("you lose!", 24),
-		pos(width() / 2, height() / 2),
-		origin("center"),
-	]);
+	addText("You lose!");
 
 	keyPress("space", () => {
-		go("main");
+		go("game");
 	});
 
 });
 
-start("main");
+go("game");

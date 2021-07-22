@@ -1,62 +1,44 @@
-// TALK: as usual we load the sprite, and add 2 pipe objects to the right side of the screen
-// TALK: we scale the second one to scale(1, -1) to invert it on the Y axis
-// TALK: we use a const PIPE_OPEN to define the distance between 2 pipes, we give it a generous 120 for now
-// TALK: next, we'll make the core mechanism of the game: make the pipe move towards the player (yes in flappy birds it's the pipes moving not the bird!)
+// TALK: First we make it be on the bottom right side of the screen, by specifying the pos attribute
+// TALK: and the `'origin'` attribute, which means the `'pos'` we give will be the bottom left point of the image, instead the default top left
+// TALK: To make it come to us, we use the `action()` function, which accepts a callback that'll be called every frame (so ~60 times per second)
+// TALK: Inside the action() callback, we call the `move()` function, which makes it move left 60 pixels per second
+// TALK: It's quite boring to have it come to us but we can't interact with it. Let's add some collision detection
 
 kaboom({
 	global: true,
-	fullscreen: true,
 	scale: 2,
+	fullscreen: true,
 });
 
-loadRoot("/pub/examples/");
-loadSprite("birdy", "img/birdy.png");
-loadSprite("bg", "img/bg.png");
-loadSprite("pipe", "img/pipe.png");
+loadSprite("bg", "/assets/sprites/bg.png");
+loadSprite("pipe", "/assets/sprites/pipe.png");
+loadSound("wooosh", "/assets/sounds/wooosh.mp3");
 
-scene("main", () => {
-
-	add([
-		sprite("bg"),
-		// TODO: query sprite size
-		scale(width() / 240, height() / 240),
-		origin("topleft"),
-	]);
-
-	const birdy = add([
-		sprite("birdy"),
-		pos(80, 80),
-		body(),
-	]);
-
-	const JUMP_FORCE = 320;
-
-	keyPress("space", () => {
-		birdy.jump(JUMP_FORCE);
-	});
-
-	add([
-		rect(width(), 12),
-		pos(0, 280),
-		origin("topleft"),
-		solid(),
-	]);
-
-	const PIPE_OPEN = 120;
-
-	add([
-		sprite("pipe"),
-		origin("bot"),
-		pos(width(), 120),
-	]);
-
-	add([
-		sprite("pipe"),
-		pos(width(), 120 + PIPE_OPEN),
-		scale(1, -1),
-		origin("bot"),
-	]);
-
+addSprite("bg", {
+	width: width(),
+	height: height(),
 });
 
-start("main");
+const mark = addSprite("mark", {
+	pos: vec2(80, 80),
+	body: true,
+});
+
+addRect(width(), 20, {
+	pos: vec2(0, height() - 40),
+	solid: true,
+});
+
+const pipe = addSprite("pipe", {
+	pos: vec2(width(), height()),
+	origin: "botleft",
+});
+
+pipe.action(() => {
+	pipe.move(-60, 0);
+});
+
+keyPress("space", () => {
+	mark.jump();
+	play("wooosh");
+});

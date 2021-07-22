@@ -1,31 +1,24 @@
-// TALK: here we made a rectangle object with screen width and 12 height
-// TALK: and by giving it a solid() component, kaboom knows it's a solid physics object and things can't move through it!
-// TALK: now it's finally time to make it jump!
+// TALK: First we load the sound with `loadSound()`, specifying the name and the path to the file
+// TALK: Then we just call the function `play()` to play the sound with the name when I jump, easy
+// TALK: Next let's add a background image to make stuff look prettier
 
 kaboom({
 	global: true,
-	fullscreen: true,
-	scale: 2,
 });
 
-loadRoot("/pub/examples/");
-loadSprite("birdy", "img/birdy.png");
+loadSound("wooosh", "/assets/sounds/wooosh.mp3");
 
-scene("main", () => {
-
-	const birdy = add([
-		sprite("birdy"),
-		pos(80, 80),
-		body(),
-	]);
-
-	add([
-		rect(width(), 12),
-		pos(0, 280),
-		origin("topleft"),
-		solid(),
-	]);
-
+const mark = addSprite("mark", {
+	pos: vec2(80, 80),
+	body: true,
 });
 
-start("main");
+addRect(width(), 20, {
+	pos: vec2(0, height() - 40),
+	solid: true,
+});
+
+keyPress("space", () => {
+	mark.jump();
+	play("wooosh");
+});

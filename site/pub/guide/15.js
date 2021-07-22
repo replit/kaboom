@@ -1,71 +1,55 @@
-// TALK: then we make the game also restart if birdy collides with the pipes
-// TALK: we do this by calling birdy.collides() which checks for collision between birdy and all objects with a certain tag
-// TALK: then we have our basic mechanics!
+// TALK: To do that we can use the scene API kaboom provides.
+// TALK: All we need to do is take all code we have right now and put them inside a `scene()` block.
+// TALK: Then call `go()` to start the scene.
+// TALK: With this we can have multiple scenes in our game who are independent to each other. So let's make a game over scene.
 
 kaboom({
 	global: true,
-	fullscreen: true,
 	scale: 2,
+	fullscreen: true,
+	debug: true,
 });
 
-loadRoot("/pub/examples/");
-loadSprite("birdy", "img/birdy.png");
-loadSprite("bg", "img/bg.png");
-loadSprite("pipe", "img/pipe.png");
+loadSprite("bg", "/assets/sprites/bg.png");
+loadSprite("pipe", "/assets/sprites/pipe.png");
+loadSound("wooosh", "/assets/sounds/wooosh.mp3");
 
-scene("main", () => {
+scene("game", () => {
 
-	add([
-		sprite("bg"),
-		// TODO: query sprite size
-		scale(width() / 240, height() / 240),
-		origin("topleft"),
-	]);
+	addSprite("bg", {
+		width: width(),
+		height: height(),
+	});
 
-	const birdy = add([
-		sprite("birdy"),
-		pos(80, 80),
-		body(),
-	]);
+	const mark = addSprite("mark", {
+		pos: vec2(80, 80),
+		body: true,
+	});
 
-	const JUMP_FORCE = 320;
+	addRect(width(), 20, {
+		pos: vec2(0, height() - 40),
+		solid: true,
+	});
+
+	const pipe = addSprite("pipe", {
+		pos: vec2(width(), height()),
+		origin: "botleft",
+		tags: [ "pipe" ],
+	});
+
+	mark.collides("pipe", () => {
+		debug.log("oh ho!");
+	});
+
+	pipe.action(() => {
+		pipe.move(-60, 0);
+	});
 
 	keyPress("space", () => {
-		birdy.jump(JUMP_FORCE);
-	});
-
-	birdy.action(() => {
-		if (birdy.pos.y >= height()) {
-			go("main");
-		}
-	});
-
-	birdy.collides("pipe", () => {
-		go("main");
-	});
-
-	const PIPE_OPEN = 120;
-	const PIPE_SPEED = 90;
-
-	add([
-		sprite("pipe"),
-		origin("bot"),
-		pos(width(), 120),
-		"pipe",
-	]);
-
-	add([
-		sprite("pipe"),
-		pos(width(), 120 + PIPE_OPEN),
-		scale(1, -1),
-		origin("bot"),
-		"pipe",
-	]);
-
-	action("pipe", (pipe) => {
-		pipe.move(-PIPE_SPEED, 0);
+		mark.jump();
+		play("wooosh");
 	});
 
 });
 
-start("main");
+go("game");

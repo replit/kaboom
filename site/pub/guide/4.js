@@ -1,20 +1,10 @@
-// TALK: then we use add() to add the birdy to the scene
-// TALK: a game object in kaboom consists of a list of components, describing its behaviors
-// TALK: to make a birdy, we first give it a sprite("birdy") component so it knows what to draw
+// TALK: Now let's make me respond to physics by giving it a `'body'` property
 
 kaboom({
 	global: true,
 });
 
-loadRoot("/pub/examples/");
-loadSprite("birdy", "img/birdy.png");
-
-scene("main", () => {
-
-	const birdy = add([
-		sprite("birdy"),
-	]);
-
+addSprite("mark", {
+	pos: vec2(80, 80),
+	body: true,
 });
-
-start("main");

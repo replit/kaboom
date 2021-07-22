@@ -1,37 +1,28 @@
-// TALK: try hitting that space button!
-// TALK: we register a keyPress event that gets called everytime the player presses the "space" key
-// TALK: then we call method jump() provided by body() component to make it jump
+// TALK: Like `loadSound()`, we use `loadSprite()` to load the background image
+// TALK: Then another `addSprite()` to add that to the scene
+// TALK: We put it before adding the other sprites because we want it to be drawn first, so it'll be on the background
+// TALK: You might have noticed things are a bit small, let's deal with that then.
 
 kaboom({
 	global: true,
-	fullscreen: true,
-	scale: 2,
 });
 
-loadRoot("/pub/examples/");
-loadSprite("birdy", "img/birdy.png");
+loadSprite("bg", "/assets/sprites/bg.png");
+loadSound("wooosh", "/assets/sounds/wooosh.mp3");
 
-scene("main", () => {
+addSprite("bg");
 
-	const birdy = add([
-		sprite("birdy"),
-		pos(80, 80),
-		body(),
-	]);
-
-	const JUMP_FORCE = 320;
-
-	keyPress("space", () => {
-		birdy.jump(JUMP_FORCE);
-	});
-
-	add([
-		rect(width(), 12),
-		pos(0, 280),
-		origin("topleft"),
-		solid(),
-	]);
-
+const mark = addSprite("mark", {
+	pos: vec2(80, 80),
+	body: true,
 });
 
-start("main");
+addRect(width(), 20, {
+	pos: vec2(0, height() - 40),
+	solid: true,
+});
+
+keyPress("space", () => {
+	mark.jump();
+	play("wooosh");
+});

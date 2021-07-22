@@ -323,6 +323,8 @@ type RenderProps = {
 };
 
 type DrawQuadConf = RenderProps & {
+	flipX?: boolean,
+	flipY?: boolean,
 	width?: number,
 	height?: number,
 	z?: number,
@@ -333,6 +335,8 @@ type DrawQuadConf = RenderProps & {
 };
 
 type DrawTextureConf = RenderProps & {
+	flipX?: boolean,
+	flipY?: boolean,
 	width?: number,
 	height?: number,
 	tiled?: boolean,
@@ -409,6 +413,8 @@ type DrawSpriteConf = RenderProps & {
 	width?: number,
 	height?: number,
 	tiled?: boolean,
+	flipX?: boolean,
+	flipY?: boolean,
 	quad?: Quad,
 	prog?: ShaderData,
 	uniform?: Uniform,
@@ -615,6 +621,8 @@ type SpriteCompConf = {
 	tiled?: boolean,
 	width?: number,
 	height?: number,
+	flipX?: boolean,
+	flipY?: boolean,
 };
 
 type SpriteCurAnim = {
@@ -743,6 +751,9 @@ type LoopHandle = {
 
 type HelperProps = {
 	body?: boolean,
+	solid?: boolean,
+	layer?: string,
+	origin?: Origin | Vec2,
 	tags?: string[],
 }
 

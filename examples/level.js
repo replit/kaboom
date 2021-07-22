@@ -124,12 +124,12 @@ keyRelease(["left", "right"], () => {
 });
 
 keyDown("left", () => {
-	player.flipX(-1);
+	player.flipX(true);
 	player.move(-player.speed, 0);
 });
 
 keyDown("right", () => {
-	player.flipX(1);
+	player.flipX(false);
 	player.move(player.speed, 0);
 });
 

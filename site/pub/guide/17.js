@@ -1,90 +1,64 @@
-// TALK: we can use the loop() function, to add new pipes to the scene every 1.5 seconds!
-// TALK: we just move the pipe add() functions into the loop() callback
-// TALK: but you may have noticed all pipes have the same position which is no fun
-// TALK: gotta make those random man
+// TALK: Like this. Checking for my `y` position to decide if I'm too low
+// TALK: Time for game over sound effects.
 
 kaboom({
 	global: true,
-	fullscreen: true,
 	scale: 2,
+	fullscreen: true,
+	debug: true,
 });
 
-loadRoot("/pub/examples/");
-loadSprite("birdy", "img/birdy.png");
-loadSprite("bg", "img/bg.png");
-loadSprite("pipe", "img/pipe.png");
+loadSprite("bg", "/assets/sprites/bg.png");
+loadSprite("pipe", "/assets/sprites/pipe.png");
+loadSound("wooosh", "/assets/sounds/wooosh.mp3");
 
-scene("main", () => {
+scene("game", () => {
 
-	add([
-		sprite("bg"),
-		// TODO: query sprite size
-		scale(width() / 240, height() / 240),
-		origin("topleft"),
-	]);
-
-	const birdy = add([
-		sprite("birdy"),
-		pos(80, 80),
-		body(),
-	]);
-
-	const JUMP_FORCE = 320;
-
-	keyPress("space", () => {
-		birdy.jump(JUMP_FORCE);
+	addSprite("bg", {
+		width: width(),
+		height: height(),
 	});
 
-	birdy.action(() => {
-		if (birdy.pos.y >= height()) {
+	const mark = addSprite("mark", {
+		pos: vec2(80, 80),
+		body: true,
+	});
+
+	mark.action(() => {
+		if (mark.pos.y >= height() + 24) {
 			go("gameover");
 		}
 	});
 
-	birdy.collides("pipe", () => {
+	const pipe = addSprite("pipe", {
+		pos: vec2(width(), height()),
+		origin: "botleft",
+		tags: [ "pipe" ],
+	});
+
+	mark.collides("pipe", () => {
 		go("gameover");
 	});
 
-	const PIPE_OPEN = 120;
-	const PIPE_SPEED = 90;
-
-	loop(1.5, () => {
-
-		add([
-			sprite("pipe"),
-			origin("bot"),
-			pos(width(), 120),
-			"pipe",
-		]);
-
-		add([
-			sprite("pipe"),
-			pos(width(), 120 + PIPE_OPEN),
-			scale(1, -1),
-			origin("bot"),
-			"pipe",
-		]);
-
+	pipe.action(() => {
+		pipe.move(-60, 0);
 	});
 
-	action("pipe", (pipe) => {
-		pipe.move(-PIPE_SPEED, 0);
+	keyPress("space", () => {
+		mark.jump();
+		play("wooosh");
 	});
 
 });
 
 scene("gameover", () => {
 
-	add([
-		text("you lose!", 24),
-		pos(width() / 2, height() / 2),
-		origin("center"),
-	]);
+	addText("You lose!");
 
 	keyPress("space", () => {
-		go("main");
+		go("game");
 	});
 
 });
 
-start("main");
+go("game");

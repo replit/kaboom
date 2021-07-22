@@ -1,23 +1,20 @@
-// TALK: let's scale the whole canvas up 2x and make it fullscreen!
-// TALK: but the birdy still looks weird...
-// TALK: it's floating in the air! that's not right!
+// TALK: First let's store me (the game object) in a variable, which is returned by `addSprite()`
+// TALK: then we use the `keyPress()` function to register an event to be fired when user presses a certain key
+// TALK: and in that event callback function, we tell me to `.jump()`, which is a method available for any object with ``body`` component
+// TALK: Now slap that space key!
 
 kaboom({
 	global: true,
-	fullscreen: true,
-	scale: 2,
 });
 
-loadRoot("/pub/examples/");
-loadSprite("birdy", "img/birdy.png");
-
-scene("main", () => {
-
-	const birdy = add([
-		sprite("birdy"),
-		pos(80, 80),
-	]);
-
+const mark = addSprite("mark", {
+	pos: vec2(80, 80),
+	body: true,
 });
 
-start("main");
+addRect(width(), 20, {
+	pos: vec2(0, height() - 40),
+	solid: true,
+});
+
+keyPress("space", () => mark.jump());

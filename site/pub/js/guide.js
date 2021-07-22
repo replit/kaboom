@@ -5,6 +5,7 @@ import genGame from "./genGame.js";
 const liveupdate = document.querySelector("#liveupdate");
 const gameview = document.querySelector("#gameview");
 const bubble = document.querySelector("#bubble");
+const guide = document.querySelector("#guide");
 const totalSteps = 24;
 let guides = [];
 let curTalk = 0;
@@ -26,7 +27,7 @@ Promise.all(Array(totalSteps).fill().map((_, i) => {
 		const lines = doc.split("\n");
 		const talk = [];
 		let i = 0;
-		const talkPrefix = "// TALK: "
+		const talkPrefix = "// TALK: ";
 		for (i; i < lines.length; i++) {
 			if (lines[i].startsWith(talkPrefix)) {
 				talk.push(lines[i].replace(talkPrefix, ""));
@@ -59,8 +60,26 @@ editor.on("change", () => {
 	}
 });
 
+function compile(talk) {
+	let inside = false;
+	for (let i = 0; i < talk.length; i++) {
+		if (talk[i] === "`") {
+			if (inside) {
+				talk = talk.slice(0, i) + "</code>" + talk.slice(i + 1, talk.length);
+				i += 6;
+			} else {
+				talk = talk.slice(0, i) + "<code>" + talk.slice(i + 1, talk.length);
+				i += 5;
+			}
+			inside = !inside;
+		}
+	}
+	return talk;
+}
+
 function updateTalk() {
-	bubble.innerHTML = guides[curStep].talk[curTalk] || "";
+	bubble.innerHTML = compile(guides[curStep].talk[curTalk] || "");
+    guide.hidden = false;
 }
 
 function update() {
@@ -119,6 +138,11 @@ function next() {
 	}
 }
 
+function toggle() {
+    guide.hidden = !guide.hidden;
+}
+
 window.run = run;
 window.prev = prev;
 window.next = next;
+window.toggle = toggle;

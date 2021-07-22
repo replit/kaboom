@@ -1,92 +1,73 @@
-// TALK: we used to just hardcode them to appear at 120
-// TALK: but let's use function rand() to generate a random position now
-// TALK: kaboom! the game instantly becomes fun!
-// TALK: next, let's add a score counter
+// TALK: Definitely need screaming for fall death, I'm particularly fond with this scream6.mp3
+// TALK: For pipe death we need an alarming sound, I like this horn2.mp3
+// TALK: Also put a horse sound when game starts, for no reason
+// TALK: Finally it's time for more PIPES
 
 kaboom({
 	global: true,
-	fullscreen: true,
 	scale: 2,
+	fullscreen: true,
+	debug: true,
 });
 
-loadRoot("/pub/examples/");
-loadSprite("birdy", "img/birdy.png");
-loadSprite("bg", "img/bg.png");
-loadSprite("pipe", "img/pipe.png");
+loadSprite("bg", "/assets/sprites/bg.png");
+loadSprite("pipe", "/assets/sprites/pipe.png");
+loadSound("wooosh", "/assets/sounds/wooosh.mp3");
+loadSound("scream", "/assets/sounds/scream6.mp3");
+loadSound("horn", "/assets/sounds/horn2.mp3");
+loadSound("horse", "/assets/sounds/horse.mp3");
 
-scene("main", () => {
+scene("game", () => {
 
-	add([
-		sprite("bg"),
-		// TODO: query sprite size
-		scale(width() / 240, height() / 240),
-		origin("topleft"),
-	]);
+	play("horse");
 
-	const birdy = add([
-		sprite("birdy"),
-		pos(80, 80),
-		body(),
-	]);
-
-	const JUMP_FORCE = 320;
-
-	keyPress("space", () => {
-		birdy.jump(JUMP_FORCE);
+	addSprite("bg", {
+		width: width(),
+		height: height(),
 	});
 
-	birdy.action(() => {
-		if (birdy.pos.y >= height()) {
+	const mark = addSprite("mark", {
+		pos: vec2(80, 80),
+		body: true,
+	});
+
+	mark.action(() => {
+		if (mark.pos.y >= height() + 24) {
+			play("scream");
 			go("gameover");
 		}
 	});
 
-	birdy.collides("pipe", () => {
+	const pipe = addSprite("pipe", {
+		pos: vec2(width(), height()),
+		origin: "botleft",
+		tags: [ "pipe" ],
+	});
+
+	mark.collides("pipe", () => {
+		play("horn");
 		go("gameover");
 	});
 
-	const PIPE_OPEN = 120;
-	const PIPE_SPEED = 90;
-
-	loop(1.5, () => {
-
-		const pipePos = rand(0, height() - PIPE_OPEN);
-
-		add([
-			sprite("pipe"),
-			origin("bot"),
-			pos(width(), pipePos),
-			"pipe",
-		]);
-
-		add([
-			sprite("pipe"),
-			pos(width(), pipePos + PIPE_OPEN),
-			scale(1, -1),
-			origin("bot"),
-			"pipe",
-		]);
-
+	pipe.action(() => {
+		pipe.move(-60, 0);
 	});
 
-	action("pipe", (pipe) => {
-		pipe.move(-PIPE_SPEED, 0);
+	keyPress("space", () => {
+		mark.jump();
+		play("wooosh");
 	});
 
 });
 
 scene("gameover", () => {
 
-	add([
-		text("you lose!", 24),
-		pos(width() / 2, height() / 2),
-		origin("center"),
-	]);
+	addText("You lose!");
 
 	keyPress("space", () => {
-		go("main");
+		go("game");
 	});
 
 });
 
-start("main");
+go("game");

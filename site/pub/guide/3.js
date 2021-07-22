@@ -1,15 +1,12 @@
-// TALK: first, let's load a sprite by loadSprite(), passing in the sprite name, and the sprite url
-// TALK: we also use loadRoot() to specify the loader root directory, so we don't have to write long paths
+// TALK: We can add properties by passing the second argument
+// TALK: which is a table containing various settings
+// TALK: like in this case, we set the position of me to `vec2(80, 80)`
+// TALK: `vec2()` means a 2 dimentional vector, which is what kaboom uses to represent positions on canvas
 
 kaboom({
 	global: true,
 });
 
-loadRoot("/pub/examples/");
-loadSprite("birdy", "img/birdy.png");
-
-scene("main", () => {
-	// ...
+addSprite("mark", {
+	pos: vec2(80, 80),
 });
-
-start("main");
