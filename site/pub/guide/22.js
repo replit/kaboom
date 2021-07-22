@@ -1,8 +1,6 @@
-// TALK: 1. Let's make the gravity a bit higher with `gravity()` (default 980)
-// TALK: 2. Let's make the pipes move a bit faster, make a constant `SPEED` for it
-// TALK: 3. Let's make me jump a bit lower, by defining a `JUMP_FORCE` and pass it to `jump()`
-// TALK: 4. Now pipes are moving faster let's make them spawn more regular, spawn every 1 second
-// TALK: Here we have it, click "Toggle Dialog" and go nuts! (We'll add scores next)
+// TALK: First let's add the score label object, and a variable that represents the score number
+// TALK: So how can we detect if I have gone past a pipe and got a score?
+// TALK: We can store a boolean on each pipe to keep track of if I have moved passed the pipe, so we can tell if I did it for the first time
 
 kaboom({
 	global: true,
@@ -32,6 +30,12 @@ scene("game", () => {
 	addSprite("bg", {
 		width: width(),
 		height: height(),
+	});
+
+	let score = 0;
+
+	const scoreLabel = addText(score, 32, {
+		pos: vec2(12, 12),
 	});
 
 	const mark = addSprite("mark", {

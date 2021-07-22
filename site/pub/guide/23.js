@@ -1,8 +1,6 @@
-// TALK: 1. Let's make the gravity a bit higher with `gravity()` (default 980)
-// TALK: 2. Let's make the pipes move a bit faster, make a constant `SPEED` for it
-// TALK: 3. Let's make me jump a bit lower, by defining a `JUMP_FORCE` and pass it to `jump()`
-// TALK: 4. Now pipes are moving faster let's make them spawn more regular, spawn every 1 second
-// TALK: Here we have it, click "Toggle Dialog" and go nuts! (We'll add scores next)
+// TALK: To store custom data on a particular object, we can use the `data` field
+// TALK: Then we just put a conditional in the pipe's `action()`, to check every frame if they're left to me and haven't `passed` yet, if yes increment score, flip the switch and update score text
+// TALK: Before we learn to pass the score from `"game"` scene to `"gameover"`, we must first solve a crime.
 
 kaboom({
 	global: true,
@@ -34,6 +32,12 @@ scene("game", () => {
 		height: height(),
 	});
 
+	let score = 0;
+
+	const scoreLabel = addText(score, 32, {
+		pos: vec2(12, 12),
+	});
+
 	const mark = addSprite("mark", {
 		pos: vec2(80, 80),
 		body: true,
@@ -61,6 +65,9 @@ scene("game", () => {
 			pos: vec2(width(), y + PIPE_OPEN / 2),
 			origin: "topleft",
 			tags: [ "pipe" ],
+			data: {
+				passed: false,
+			},
 		});
 
 	});
@@ -72,6 +79,11 @@ scene("game", () => {
 
 	action("pipe", (pipe) => {
 		pipe.move(-SPEED, 0);
+		if (pipe.passed === false && pipe.pos.x <= mark.pos.x) {
+			pipe.passed = true;
+			score += 1;
+			scoreLabel.text = score;
+		}
 	});
 
 	keyPress("space", () => {

@@ -1,8 +1,5 @@
-// TALK: 1. Let's make the gravity a bit higher with `gravity()` (default 980)
-// TALK: 2. Let's make the pipes move a bit faster, make a constant `SPEED` for it
-// TALK: 3. Let's make me jump a bit lower, by defining a `JUMP_FORCE` and pass it to `jump()`
-// TALK: 4. Now pipes are moving faster let's make them spawn more regular, spawn every 1 second
-// TALK: Here we have it, click "Toggle Dialog" and go nuts! (We'll add scores next)
+// TALK: The crime of not having a sound effect on scoring
+// TALK: I like this 'whizz' sound
 
 kaboom({
 	global: true,
@@ -17,6 +14,7 @@ loadSound("wooosh", "/assets/sounds/wooosh.mp3");
 loadSound("scream", "/assets/sounds/scream6.mp3");
 loadSound("horn", "/assets/sounds/horn2.mp3");
 loadSound("horse", "/assets/sounds/horse.mp3");
+loadSound("whizz", "/assets/sounds/whizz.mp3");
 
 scene("game", () => {
 
@@ -32,6 +30,12 @@ scene("game", () => {
 	addSprite("bg", {
 		width: width(),
 		height: height(),
+	});
+
+	let score = 0;
+
+	const scoreLabel = addText(score, 32, {
+		pos: vec2(12, 12),
 	});
 
 	const mark = addSprite("mark", {
@@ -61,6 +65,9 @@ scene("game", () => {
 			pos: vec2(width(), y + PIPE_OPEN / 2),
 			origin: "topleft",
 			tags: [ "pipe" ],
+			data: {
+				passed: false,
+			},
 		});
 
 	});
@@ -72,6 +79,12 @@ scene("game", () => {
 
 	action("pipe", (pipe) => {
 		pipe.move(-SPEED, 0);
+		if (pipe.passed === false && pipe.pos.x <= mark.pos.x) {
+			pipe.passed = true;
+			score += 1;
+			scoreLabel.text = score;
+			play("whizz");
+		}
 	});
 
 	keyPress("space", () => {

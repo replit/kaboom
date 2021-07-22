@@ -1,14 +1,15 @@
-// TALK: 1. Let's make the gravity a bit higher with `gravity()` (default 980)
-// TALK: 2. Let's make the pipes move a bit faster, make a constant `SPEED` for it
-// TALK: 3. Let's make me jump a bit lower, by defining a `JUMP_FORCE` and pass it to `jump()`
-// TALK: 4. Now pipes are moving faster let's make them spawn more regular, spawn every 1 second
-// TALK: Here we have it, click "Toggle Dialog" and go nuts! (We'll add scores next)
+// TALK: You see, we spawn a lot of pipes, but we never collect the ones that are moved way out of the screen
+// TALK: If pipes keep piling up on that, that might be bad for traffic (performance)
+// TALK: We can solve this easily by just `destroy()` ing them when they're moved off screen
+// TALK: Now we can play the game forever and not worry about the game getting slow (it probably still will... depending on the browser's mood)
+// TALK: We're pretty much done with the basics, please stay if you're interested in learning more about kaboom
 
 kaboom({
 	global: true,
 	scale: 2,
 	fullscreen: true,
 	debug: true,
+	clearColor: [ 0, 0, 0, 1 ],
 });
 
 loadSprite("bg", "/assets/sprites/bg.png");
@@ -17,6 +18,7 @@ loadSound("wooosh", "/assets/sounds/wooosh.mp3");
 loadSound("scream", "/assets/sounds/scream6.mp3");
 loadSound("horn", "/assets/sounds/horn2.mp3");
 loadSound("horse", "/assets/sounds/horse.mp3");
+loadSound("whizz", "/assets/sounds/whizz.mp3");
 
 scene("game", () => {
 
@@ -34,6 +36,12 @@ scene("game", () => {
 		height: height(),
 	});
 
+	let score = 0;
+
+	const scoreLabel = addText(score, 32, {
+		pos: vec2(12, 12),
+	});
+
 	const mark = addSprite("mark", {
 		pos: vec2(80, 80),
 		body: true,
@@ -42,7 +50,7 @@ scene("game", () => {
 	mark.action(() => {
 		if (mark.pos.y >= height() + 24) {
 			play("scream");
-			go("gameover");
+			go("gameover", score);
 		}
 	});
 
@@ -61,17 +69,29 @@ scene("game", () => {
 			pos: vec2(width(), y + PIPE_OPEN / 2),
 			origin: "topleft",
 			tags: [ "pipe" ],
+			data: {
+				passed: false,
+			},
 		});
 
 	});
 
 	mark.collides("pipe", () => {
 		play("horn");
-		go("gameover");
+		go("gameover", score);
 	});
 
 	action("pipe", (pipe) => {
 		pipe.move(-SPEED, 0);
+		if (pipe.passed === false && pipe.pos.x <= mark.pos.x) {
+			pipe.passed = true;
+			score += 1;
+			scoreLabel.text = score;
+			play("whizz");
+		}
+		if (pipe.pos.x <= -120) {
+			destroy(pipe);
+		}
 	});
 
 	keyPress("space", () => {
@@ -81,9 +101,17 @@ scene("game", () => {
 
 });
 
-scene("gameover", () => {
+scene("gameover", (score) => {
 
-	addText("Game Over");
+	addText("Game Over", 16, {
+		pos: vec2(width() / 2, 120),
+		origin: "center",
+	});
+
+	addText(score, 48, {
+		pos: vec2(width() / 2, 180),
+		origin: "center",
+	});
 
 	keyPress("space", () => {
 		go("game");

@@ -1964,6 +1964,7 @@ function addSprite(name: string, props: AddSpriteConf = {}) {
 		props.solid && solid(),
 		props.layer && layer(props.layer),
 		props.origin && origin(props.origin),
+        props.data,
 		...commonProps(props),
 		...(props.tags || []),
 	]);
@@ -1976,6 +1977,7 @@ function addRect(w: number, h: number, props: AddSpriteConf = {}) {
 		props.solid && solid(),
 		props.layer && layer(props.layer),
 		props.origin && origin(props.origin),
+        props.data,
 		...commonProps(props),
 		...(props.tags || []),
 	]);
@@ -1988,6 +1990,7 @@ function addText(txt: string, size: number, props: AddSpriteConf = {}) {
 		props.solid && solid(),
 		props.layer && layer(props.layer),
 		props.origin && origin(props.origin),
+        props.data,
 		...commonProps(props),
 		...(props.tags || []),
 	]);

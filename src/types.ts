@@ -755,6 +755,7 @@ type HelperProps = {
 	layer?: string,
 	origin?: Origin | Vec2,
 	tags?: string[],
+    data?: any,
 }
 
 type AddSpriteConf = RenderProps & HelperProps & SpriteCompConf;

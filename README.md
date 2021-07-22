@@ -69,22 +69,25 @@ const player = k.add([
 // custom components are plain functions that return an object
 function health(hp) {
     return {
-        return {
-            hurt(n) {
-                hp -= n ?? 1;
-                this.trigger("hurt");
-                if (hp <= 0) {
-                    this.trigger("death");
-                }
-            },
-            heal(n) {
-                hp += n ?? 1;
-                this.trigger("heal");
-            },
-            hp() {
-                return hp;
-            },
-        };
+        // comp id
+        id: "health",
+        // comp dependencies
+        require: [],
+        // custom behaviors
+        hurt(n) {
+            hp -= n ?? 1;
+            this.trigger("hurt");
+            if (hp <= 0) {
+                this.trigger("death");
+            }
+        },
+        heal(n) {
+            hp += n ?? 1;
+            this.trigger("heal");
+        },
+        hp() {
+            return hp;
+        },
     };
 }
 
