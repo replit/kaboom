@@ -53,7 +53,7 @@ scene("game", () => {
 
 scene("gameover", () => {
 
-	addText("You lose!");
+	addText("Game Over");
 
 	keyPress("space", () => {
 		go("game");

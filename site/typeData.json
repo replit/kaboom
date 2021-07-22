@@ -223,87 +223,6 @@
                     },
                     {
                         "kind": "MethodSignature",
-                        "name": "start",
-                        "parameters": [
-                            {
-                                "kind": "Parameter",
-                                "name": "scene",
-                                "type": {
-                                    "kind": "StringKeyword"
-                                }
-                            },
-                            {
-                                "kind": "Parameter",
-                                "name": "args",
-                                "dotDotDotToken": {
-                                    "kind": "DotDotDotToken"
-                                }
-                            }
-                        ],
-                        "type": {
-                            "kind": "VoidKeyword"
-                        }
-                    },
-                    {
-                        "kind": "MethodSignature",
-                        "name": "scene",
-                        "parameters": [
-                            {
-                                "kind": "Parameter",
-                                "name": "name",
-                                "type": {
-                                    "kind": "StringKeyword"
-                                }
-                            },
-                            {
-                                "kind": "Parameter",
-                                "name": "cb",
-                                "type": {
-                                    "kind": "FunctionType",
-                                    "parameters": [
-                                        {
-                                            "kind": "Parameter",
-                                            "name": "args",
-                                            "dotDotDotToken": {
-                                                "kind": "DotDotDotToken"
-                                            }
-                                        }
-                                    ],
-                                    "type": {
-                                        "kind": "VoidKeyword"
-                                    }
-                                }
-                            }
-                        ],
-                        "type": {
-                            "kind": "VoidKeyword"
-                        }
-                    },
-                    {
-                        "kind": "MethodSignature",
-                        "name": "go",
-                        "parameters": [
-                            {
-                                "kind": "Parameter",
-                                "name": "name",
-                                "type": {
-                                    "kind": "StringKeyword"
-                                }
-                            },
-                            {
-                                "kind": "Parameter",
-                                "name": "args",
-                                "dotDotDotToken": {
-                                    "kind": "DotDotDotToken"
-                                }
-                            }
-                        ],
-                        "type": {
-                            "kind": "VoidKeyword"
-                        }
-                    },
-                    {
-                        "kind": "MethodSignature",
                         "name": "width",
                         "parameters": [],
                         "type": {
@@ -354,6 +273,26 @@
                         "kind": "MethodSignature",
                         "name": "focus",
                         "parameters": [],
+                        "type": {
+                            "kind": "VoidKeyword"
+                        }
+                    },
+                    {
+                        "kind": "MethodSignature",
+                        "name": "ready",
+                        "parameters": [
+                            {
+                                "kind": "Parameter",
+                                "name": "cb",
+                                "type": {
+                                    "kind": "FunctionType",
+                                    "parameters": [],
+                                    "type": {
+                                        "kind": "VoidKeyword"
+                                    }
+                                }
+                            }
+                        ],
                         "type": {
                             "kind": "VoidKeyword"
                         }
@@ -1083,14 +1022,6 @@
                         "type": {
                             "kind": "TypeReference",
                             "typeName": "CompBuilder"
-                        }
-                    },
-                    {
-                        "kind": "MethodSignature",
-                        "name": "sceneData",
-                        "parameters": [],
-                        "type": {
-                            "kind": "AnyKeyword"
                         }
                     },
                     {
@@ -2009,6 +1940,14 @@
                     },
                     {
                         "kind": "MethodSignature",
+                        "name": "burp",
+                        "parameters": [],
+                        "type": {
+                            "kind": "VoidKeyword"
+                        }
+                    },
+                    {
+                        "kind": "MethodSignature",
                         "name": "makeRng",
                         "parameters": [
                             {
@@ -2684,6 +2623,48 @@
                         }
                     },
                     {
+                        "kind": "MethodSignature",
+                        "name": "drawTri",
+                        "parameters": [
+                            {
+                                "kind": "Parameter",
+                                "name": "p1",
+                                "type": {
+                                    "kind": "TypeReference",
+                                    "typeName": "Vec2"
+                                }
+                            },
+                            {
+                                "kind": "Parameter",
+                                "name": "p2",
+                                "type": {
+                                    "kind": "TypeReference",
+                                    "typeName": "Vec2"
+                                }
+                            },
+                            {
+                                "kind": "Parameter",
+                                "name": "p3",
+                                "type": {
+                                    "kind": "TypeReference",
+                                    "typeName": "Vec2"
+                                }
+                            },
+                            {
+                                "kind": "Parameter",
+                                "name": "conf",
+                                "type": {
+                                    "kind": "TypeReference",
+                                    "typeName": "DrawTriConf"
+                                },
+                                "questionToken": true
+                            }
+                        ],
+                        "type": {
+                            "kind": "VoidKeyword"
+                        }
+                    },
+                    {
                         "kind": "PropertySignature",
                         "name": "debug",
                         "type": {
@@ -2718,8 +2699,168 @@
                             "kind": "TypeReference",
                             "typeName": "Level"
                         }
+                    },
+                    {
+                        "kind": "MethodSignature",
+                        "name": "addSprite",
+                        "parameters": [
+                            {
+                                "kind": "Parameter",
+                                "name": "name",
+                                "type": {
+                                    "kind": "StringKeyword"
+                                }
+                            },
+                            {
+                                "kind": "Parameter",
+                                "name": "conf",
+                                "type": {
+                                    "kind": "TypeReference",
+                                    "typeName": "AddSpriteConf"
+                                },
+                                "questionToken": true
+                            }
+                        ],
+                        "type": {
+                            "kind": "TypeReference",
+                            "typeName": "GameObj"
+                        }
+                    },
+                    {
+                        "kind": "MethodSignature",
+                        "name": "addRect",
+                        "parameters": [
+                            {
+                                "kind": "Parameter",
+                                "name": "w",
+                                "type": {
+                                    "kind": "NumberKeyword"
+                                }
+                            },
+                            {
+                                "kind": "Parameter",
+                                "name": "h",
+                                "type": {
+                                    "kind": "NumberKeyword"
+                                }
+                            },
+                            {
+                                "kind": "Parameter",
+                                "name": "conf",
+                                "type": {
+                                    "kind": "TypeReference",
+                                    "typeName": "AddRectConf"
+                                },
+                                "questionToken": true
+                            }
+                        ],
+                        "type": {
+                            "kind": "TypeReference",
+                            "typeName": "GameObj"
+                        }
+                    },
+                    {
+                        "kind": "MethodSignature",
+                        "name": "addText",
+                        "parameters": [
+                            {
+                                "kind": "Parameter",
+                                "name": "txt",
+                                "type": {
+                                    "kind": "StringKeyword"
+                                }
+                            },
+                            {
+                                "kind": "Parameter",
+                                "name": "size",
+                                "type": {
+                                    "kind": "NumberKeyword"
+                                }
+                            },
+                            {
+                                "kind": "Parameter",
+                                "name": "props",
+                                "type": {
+                                    "kind": "TypeReference",
+                                    "typeName": "AddTextConf"
+                                }
+                            }
+                        ],
+                        "type": {
+                            "kind": "TypeReference",
+                            "typeName": "GameObj"
+                        }
+                    },
+                    {
+                        "kind": "MethodSignature",
+                        "name": "scene",
+                        "parameters": [
+                            {
+                                "kind": "Parameter",
+                                "name": "id",
+                                "type": {
+                                    "kind": "TypeReference",
+                                    "typeName": "SceneID"
+                                }
+                            },
+                            {
+                                "kind": "Parameter",
+                                "name": "def",
+                                "type": {
+                                    "kind": "TypeReference",
+                                    "typeName": "SceneDef"
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "kind": "MethodSignature",
+                        "name": "go",
+                        "parameters": [
+                            {
+                                "kind": "Parameter",
+                                "name": "id",
+                                "type": {
+                                    "kind": "TypeReference",
+                                    "typeName": "SceneID"
+                                }
+                            },
+                            {
+                                "kind": "Parameter",
+                                "name": "args",
+                                "dotDotDotToken": {
+                                    "kind": "DotDotDotToken"
+                                }
+                            }
+                        ]
                     }
                 ]
+            }
+        },
+        "SceneID": {
+            "kind": "TypeAliasDeclaration",
+            "name": "SceneID",
+            "type": {
+                "kind": "StringKeyword"
+            }
+        },
+        "SceneDef": {
+            "kind": "TypeAliasDeclaration",
+            "name": "SceneDef",
+            "type": {
+                "kind": "FunctionType",
+                "parameters": [
+                    {
+                        "kind": "Parameter",
+                        "name": "args",
+                        "dotDotDotToken": {
+                            "kind": "DotDotDotToken"
+                        }
+                    }
+                ],
+                "type": {
+                    "kind": "VoidKeyword"
+                }
             }
         },
         "KaboomConf": {
@@ -3023,6 +3164,31 @@
                         }
                     },
                     {
+                        "kind": "MethodSignature",
+                        "name": "destroy",
+                        "parameters": [],
+                        "type": {
+                            "kind": "VoidKeyword"
+                        }
+                    },
+                    {
+                        "kind": "MethodSignature",
+                        "name": "c",
+                        "parameters": [
+                            {
+                                "kind": "Parameter",
+                                "name": "id",
+                                "type": {
+                                    "kind": "StringKeyword"
+                                }
+                            }
+                        ],
+                        "type": {
+                            "kind": "TypeReference",
+                            "typeName": "Comp"
+                        }
+                    },
+                    {
                         "kind": "PropertySignature",
                         "name": "_id",
                         "type": {
@@ -3043,6 +3209,17 @@
                     },
                     {
                         "kind": "PropertySignature",
+                        "name": "_children",
+                        "type": {
+                            "kind": "ArrayType",
+                            "elementType": {
+                                "kind": "TypeReference",
+                                "typeName": "GameObj"
+                            }
+                        }
+                    },
+                    {
+                        "kind": "PropertySignature",
                         "name": "_tags",
                         "type": {
                             "kind": "ArrayType",
@@ -3057,6 +3234,23 @@
                         "type": {
                             "kind": "TypeLiteral",
                             "members": [
+                                {
+                                    "kind": "PropertySignature",
+                                    "name": "load",
+                                    "type": {
+                                        "kind": "ArrayType",
+                                        "elementType": {
+                                            "kind": "ParenthesizedType",
+                                            "type": {
+                                                "kind": "FunctionType",
+                                                "parameters": [],
+                                                "type": {
+                                                    "kind": "VoidKeyword"
+                                                }
+                                            }
+                                        }
+                                    }
+                                },
                                 {
                                     "kind": "PropertySignature",
                                     "name": "add",
@@ -3789,9 +3983,9 @@
                 ]
             }
         },
-        "DrawQuadConf": {
+        "RenderProps": {
             "kind": "TypeAliasDeclaration",
-            "name": "DrawQuadConf",
+            "name": "RenderProps",
             "type": {
                 "kind": "TypeLiteral",
                 "members": [
@@ -3801,22 +3995,6 @@
                         "type": {
                             "kind": "TypeReference",
                             "typeName": "Vec2"
-                        },
-                        "questionToken": true
-                    },
-                    {
-                        "kind": "PropertySignature",
-                        "name": "width",
-                        "type": {
-                            "kind": "NumberKeyword"
-                        },
-                        "questionToken": true
-                    },
-                    {
-                        "kind": "PropertySignature",
-                        "name": "height",
-                        "type": {
-                            "kind": "NumberKeyword"
                         },
                         "questionToken": true
                     },
@@ -3871,50 +4049,100 @@
                             ]
                         },
                         "questionToken": true
+                    }
+                ]
+            }
+        },
+        "DrawQuadConf": {
+            "kind": "TypeAliasDeclaration",
+            "name": "DrawQuadConf",
+            "type": {
+                "kind": "IntersectionType",
+                "types": [
+                    {
+                        "kind": "TypeReference",
+                        "typeName": "RenderProps"
                     },
                     {
-                        "kind": "PropertySignature",
-                        "name": "z",
-                        "type": {
-                            "kind": "NumberKeyword"
-                        },
-                        "questionToken": true
-                    },
-                    {
-                        "kind": "PropertySignature",
-                        "name": "tex",
-                        "type": {
-                            "kind": "TypeReference",
-                            "typeName": "GfxTexture"
-                        },
-                        "questionToken": true
-                    },
-                    {
-                        "kind": "PropertySignature",
-                        "name": "quad",
-                        "type": {
-                            "kind": "TypeReference",
-                            "typeName": "Quad"
-                        },
-                        "questionToken": true
-                    },
-                    {
-                        "kind": "PropertySignature",
-                        "name": "prog",
-                        "type": {
-                            "kind": "TypeReference",
-                            "typeName": "GfxProgram"
-                        },
-                        "questionToken": true
-                    },
-                    {
-                        "kind": "PropertySignature",
-                        "name": "uniform",
-                        "type": {
-                            "kind": "TypeReference",
-                            "typeName": "Uniform"
-                        },
-                        "questionToken": true
+                        "kind": "TypeLiteral",
+                        "members": [
+                            {
+                                "kind": "PropertySignature",
+                                "name": "flipX",
+                                "type": {
+                                    "kind": "BooleanKeyword"
+                                },
+                                "questionToken": true
+                            },
+                            {
+                                "kind": "PropertySignature",
+                                "name": "flipY",
+                                "type": {
+                                    "kind": "BooleanKeyword"
+                                },
+                                "questionToken": true
+                            },
+                            {
+                                "kind": "PropertySignature",
+                                "name": "width",
+                                "type": {
+                                    "kind": "NumberKeyword"
+                                },
+                                "questionToken": true
+                            },
+                            {
+                                "kind": "PropertySignature",
+                                "name": "height",
+                                "type": {
+                                    "kind": "NumberKeyword"
+                                },
+                                "questionToken": true
+                            },
+                            {
+                                "kind": "PropertySignature",
+                                "name": "z",
+                                "type": {
+                                    "kind": "NumberKeyword"
+                                },
+                                "questionToken": true
+                            },
+                            {
+                                "kind": "PropertySignature",
+                                "name": "tex",
+                                "type": {
+                                    "kind": "TypeReference",
+                                    "typeName": "GfxTexture"
+                                },
+                                "questionToken": true
+                            },
+                            {
+                                "kind": "PropertySignature",
+                                "name": "quad",
+                                "type": {
+                                    "kind": "TypeReference",
+                                    "typeName": "Quad"
+                                },
+                                "questionToken": true
+                            },
+                            {
+                                "kind": "PropertySignature",
+                                "name": "prog",
+                                "type": {
+                                    "kind": "TypeReference",
+                                    "typeName": "GfxProgram"
+                                },
+                                "questionToken": true
+                            },
+                            {
+                                "kind": "PropertySignature",
+                                "name": "uniform",
+                                "type": {
+                                    "kind": "TypeReference",
+                                    "typeName": "Uniform"
+                                },
+                                "questionToken": true
+                            }
+                        ]
                     }
                 ]
             }
@@ -3923,103 +4151,91 @@
             "kind": "TypeAliasDeclaration",
             "name": "DrawTextureConf",
             "type": {
-                "kind": "TypeLiteral",
-                "members": [
+                "kind": "IntersectionType",
+                "types": [
                     {
-                        "kind": "PropertySignature",
-                        "name": "pos",
-                        "type": {
-                            "kind": "TypeReference",
-                            "typeName": "Vec2"
-                        },
-                        "questionToken": true
+                        "kind": "TypeReference",
+                        "typeName": "RenderProps"
                     },
                     {
-                        "kind": "PropertySignature",
-                        "name": "scale",
-                        "type": {
-                            "kind": "UnionType",
-                            "types": [
-                                {
-                                    "kind": "TypeReference",
-                                    "typeName": "Vec2"
+                        "kind": "TypeLiteral",
+                        "members": [
+                            {
+                                "kind": "PropertySignature",
+                                "name": "flipX",
+                                "type": {
+                                    "kind": "BooleanKeyword"
                                 },
-                                {
+                                "questionToken": true
+                            },
+                            {
+                                "kind": "PropertySignature",
+                                "name": "flipY",
+                                "type": {
+                                    "kind": "BooleanKeyword"
+                                },
+                                "questionToken": true
+                            },
+                            {
+                                "kind": "PropertySignature",
+                                "name": "width",
+                                "type": {
                                     "kind": "NumberKeyword"
-                                }
-                            ]
-                        },
-                        "questionToken": true
-                    },
-                    {
-                        "kind": "PropertySignature",
-                        "name": "rot",
-                        "type": {
-                            "kind": "NumberKeyword"
-                        },
-                        "questionToken": true
-                    },
-                    {
-                        "kind": "PropertySignature",
-                        "name": "color",
-                        "type": {
-                            "kind": "TypeReference",
-                            "typeName": "Color"
-                        },
-                        "questionToken": true
-                    },
-                    {
-                        "kind": "PropertySignature",
-                        "name": "origin",
-                        "type": {
-                            "kind": "UnionType",
-                            "types": [
-                                {
-                                    "kind": "TypeReference",
-                                    "typeName": "Origin"
                                 },
-                                {
+                                "questionToken": true
+                            },
+                            {
+                                "kind": "PropertySignature",
+                                "name": "height",
+                                "type": {
+                                    "kind": "NumberKeyword"
+                                },
+                                "questionToken": true
+                            },
+                            {
+                                "kind": "PropertySignature",
+                                "name": "tiled",
+                                "type": {
+                                    "kind": "BooleanKeyword"
+                                },
+                                "questionToken": true
+                            },
+                            {
+                                "kind": "PropertySignature",
+                                "name": "quad",
+                                "type": {
                                     "kind": "TypeReference",
-                                    "typeName": "Vec2"
-                                }
-                            ]
-                        },
-                        "questionToken": true
-                    },
-                    {
-                        "kind": "PropertySignature",
-                        "name": "quad",
-                        "type": {
-                            "kind": "TypeReference",
-                            "typeName": "Quad"
-                        },
-                        "questionToken": true
-                    },
-                    {
-                        "kind": "PropertySignature",
-                        "name": "z",
-                        "type": {
-                            "kind": "NumberKeyword"
-                        },
-                        "questionToken": true
-                    },
-                    {
-                        "kind": "PropertySignature",
-                        "name": "prog",
-                        "type": {
-                            "kind": "TypeReference",
-                            "typeName": "GfxProgram"
-                        },
-                        "questionToken": true
-                    },
-                    {
-                        "kind": "PropertySignature",
-                        "name": "uniform",
-                        "type": {
-                            "kind": "TypeReference",
-                            "typeName": "Uniform"
-                        },
-                        "questionToken": true
+                                    "typeName": "Quad"
+                                },
+                                "questionToken": true
+                            },
+                            {
+                                "kind": "PropertySignature",
+                                "name": "z",
+                                "type": {
+                                    "kind": "NumberKeyword"
+                                },
+                                "questionToken": true
+                            },
+                            {
+                                "kind": "PropertySignature",
+                                "name": "prog",
+                                "type": {
+                                    "kind": "TypeReference",
+                                    "typeName": "GfxProgram"
+                                },
+                                "questionToken": true
+                            },
+                            {
+                                "kind": "PropertySignature",
+                                "name": "uniform",
+                                "type": {
+                                    "kind": "TypeReference",
+                                    "typeName": "Uniform"
+                                },
+                                "questionToken": true
+                            }
+                        ]
                     }
                 ]
             }
@@ -4028,84 +4244,50 @@
             "kind": "TypeAliasDeclaration",
             "name": "DrawRectStrokeConf",
             "type": {
-                "kind": "TypeLiteral",
-                "members": [
+                "kind": "IntersectionType",
+                "types": [
                     {
-                        "kind": "PropertySignature",
-                        "name": "width",
-                        "type": {
-                            "kind": "NumberKeyword"
-                        },
-                        "questionToken": true
+                        "kind": "TypeReference",
+                        "typeName": "RenderProps"
                     },
                     {
-                        "kind": "PropertySignature",
-                        "name": "scale",
-                        "type": {
-                            "kind": "UnionType",
-                            "types": [
-                                {
-                                    "kind": "TypeReference",
-                                    "typeName": "Vec2"
-                                },
-                                {
+                        "kind": "TypeLiteral",
+                        "members": [
+                            {
+                                "kind": "PropertySignature",
+                                "name": "width",
+                                "type": {
                                     "kind": "NumberKeyword"
-                                }
-                            ]
-                        },
-                        "questionToken": true
-                    },
-                    {
-                        "kind": "PropertySignature",
-                        "name": "rot",
-                        "type": {
-                            "kind": "NumberKeyword"
-                        },
-                        "questionToken": true
-                    },
-                    {
-                        "kind": "PropertySignature",
-                        "name": "color",
-                        "type": {
-                            "kind": "TypeReference",
-                            "typeName": "Color"
-                        },
-                        "questionToken": true
-                    },
-                    {
-                        "kind": "PropertySignature",
-                        "name": "origin",
-                        "type": {
-                            "kind": "UnionType",
-                            "types": [
-                                {
-                                    "kind": "TypeReference",
-                                    "typeName": "Origin"
                                 },
-                                {
+                                "questionToken": true
+                            },
+                            {
+                                "kind": "PropertySignature",
+                                "name": "z",
+                                "type": {
+                                    "kind": "NumberKeyword"
+                                },
+                                "questionToken": true
+                            },
+                            {
+                                "kind": "PropertySignature",
+                                "name": "prog",
+                                "type": {
                                     "kind": "TypeReference",
-                                    "typeName": "Vec2"
-                                }
-                            ]
-                        },
-                        "questionToken": true
-                    },
-                    {
-                        "kind": "PropertySignature",
-                        "name": "z",
-                        "type": {
-                            "kind": "NumberKeyword"
-                        },
-                        "questionToken": true
-                    },
-                    {
-                        "kind": "PropertySignature",
-                        "name": "prog",
-                        "type": {
-                            "kind": "TypeReference",
-                            "typeName": "GfxProgram"
-                        },
-                        "questionToken": true
+                                    "typeName": "GfxProgram"
+                                },
+                                "questionToken": true
+                            },
+                            {
+                                "kind": "PropertySignature",
+                                "name": "uniform",
+                                "type": {
+                                    "kind": "TypeReference",
+                                    "typeName": "Uniform"
+                                },
+                                "questionToken": true
+                            }
+                        ]
                     }
                 ]
             }
@@ -4114,85 +4296,42 @@
             "kind": "TypeAliasDeclaration",
             "name": "DrawRectConf",
             "type": {
-                "kind": "TypeLiteral",
-                "members": [
+                "kind": "IntersectionType",
+                "types": [
                     {
-                        "kind": "PropertySignature",
-                        "name": "scale",
-                        "type": {
-                            "kind": "UnionType",
-                            "types": [
-                                {
-                                    "kind": "TypeReference",
-                                    "typeName": "Vec2"
-                                },
-                                {
+                        "kind": "TypeReference",
+                        "typeName": "RenderProps"
+                    },
+                    {
+                        "kind": "TypeLiteral",
+                        "members": [
+                            {
+                                "kind": "PropertySignature",
+                                "name": "z",
+                                "type": {
                                     "kind": "NumberKeyword"
-                                }
-                            ]
-                        },
-                        "questionToken": true
-                    },
-                    {
-                        "kind": "PropertySignature",
-                        "name": "rot",
-                        "type": {
-                            "kind": "NumberKeyword"
-                        },
-                        "questionToken": true
-                    },
-                    {
-                        "kind": "PropertySignature",
-                        "name": "color",
-                        "type": {
-                            "kind": "TypeReference",
-                            "typeName": "Color"
-                        },
-                        "questionToken": true
-                    },
-                    {
-                        "kind": "PropertySignature",
-                        "name": "origin",
-                        "type": {
-                            "kind": "UnionType",
-                            "types": [
-                                {
-                                    "kind": "TypeReference",
-                                    "typeName": "Origin"
                                 },
-                                {
+                                "questionToken": true
+                            },
+                            {
+                                "kind": "PropertySignature",
+                                "name": "prog",
+                                "type": {
                                     "kind": "TypeReference",
-                                    "typeName": "Vec2"
-                                }
-                            ]
-                        },
-                        "questionToken": true
-                    },
-                    {
-                        "kind": "PropertySignature",
-                        "name": "z",
-                        "type": {
-                            "kind": "NumberKeyword"
-                        },
-                        "questionToken": true
-                    },
-                    {
-                        "kind": "PropertySignature",
-                        "name": "prog",
-                        "type": {
-                            "kind": "TypeReference",
-                            "typeName": "GfxProgram"
-                        },
-                        "questionToken": true
-                    },
-                    {
-                        "kind": "PropertySignature",
-                        "name": "uniform",
-                        "type": {
-                            "kind": "TypeReference",
-                            "typeName": "Uniform"
-                        },
-                        "questionToken": true
+                                    "typeName": "GfxProgram"
+                                },
+                                "questionToken": true
+                            },
+                            {
+                                "kind": "PropertySignature",
+                                "name": "uniform",
+                                "type": {
+                                    "kind": "TypeReference",
+                                    "typeName": "Uniform"
+                                },
+                                "questionToken": true
+                            }
+                        ]
                     }
                 ]
             }
@@ -4201,41 +4340,94 @@
             "kind": "TypeAliasDeclaration",
             "name": "DrawLineConf",
             "type": {
-                "kind": "TypeLiteral",
-                "members": [
+                "kind": "IntersectionType",
+                "types": [
                     {
-                        "kind": "PropertySignature",
-                        "name": "width",
-                        "type": {
-                            "kind": "NumberKeyword"
-                        },
-                        "questionToken": true
+                        "kind": "TypeReference",
+                        "typeName": "RenderProps"
                     },
                     {
-                        "kind": "PropertySignature",
-                        "name": "color",
-                        "type": {
-                            "kind": "TypeReference",
-                            "typeName": "Color"
-                        },
-                        "questionToken": true
+                        "kind": "TypeLiteral",
+                        "members": [
+                            {
+                                "kind": "PropertySignature",
+                                "name": "width",
+                                "type": {
+                                    "kind": "NumberKeyword"
+                                },
+                                "questionToken": true
+                            },
+                            {
+                                "kind": "PropertySignature",
+                                "name": "z",
+                                "type": {
+                                    "kind": "NumberKeyword"
+                                },
+                                "questionToken": true
+                            },
+                            {
+                                "kind": "PropertySignature",
+                                "name": "prog",
+                                "type": {
+                                    "kind": "TypeReference",
+                                    "typeName": "GfxProgram"
+                                },
+                                "questionToken": true
+                            },
+                            {
+                                "kind": "PropertySignature",
+                                "name": "uniform",
+                                "type": {
+                                    "kind": "TypeReference",
+                                    "typeName": "Uniform"
+                                },
+                                "questionToken": true
+                            }
+                        ]
+                    }
+                ]
+            }
+        },
+        "DrawTriConf": {
+            "kind": "TypeAliasDeclaration",
+            "name": "DrawTriConf",
+            "type": {
+                "kind": "IntersectionType",
+                "types": [
+                    {
+                        "kind": "TypeReference",
+                        "typeName": "RenderProps"
                     },
                     {
-                        "kind": "PropertySignature",
-                        "name": "z",
-                        "type": {
-                            "kind": "NumberKeyword"
-                        },
-                        "questionToken": true
-                    },
-                    {
-                        "kind": "PropertySignature",
-                        "name": "prog",
-                        "type": {
-                            "kind": "TypeReference",
-                            "typeName": "GfxProgram"
-                        },
-                        "questionToken": true
+                        "kind": "TypeLiteral",
+                        "members": [
+                            {
+                                "kind": "PropertySignature",
+                                "name": "z",
+                                "type": {
+                                    "kind": "NumberKeyword"
+                                },
+                                "questionToken": true
+                            },
+                            {
+                                "kind": "PropertySignature",
+                                "name": "prog",
+                                "type": {
+                                    "kind": "TypeReference",
+                                    "typeName": "GfxProgram"
+                                },
+                                "questionToken": true
+                            },
+                            {
+                                "kind": "PropertySignature",
+                                "name": "uniform",
+                                "type": {
+                                    "kind": "TypeReference",
+                                    "typeName": "Uniform"
+                                },
+                                "questionToken": true
+                            }
+                        ]
                     }
                 ]
             }
@@ -4244,101 +4436,49 @@
             "kind": "TypeAliasDeclaration",
             "name": "DrawTextConf",
             "type": {
-                "kind": "TypeLiteral",
-                "members": [
+                "kind": "IntersectionType",
+                "types": [
                     {
-                        "kind": "PropertySignature",
-                        "name": "size",
-                        "type": {
-                            "kind": "NumberKeyword"
-                        },
-                        "questionToken": true
+                        "kind": "TypeReference",
+                        "typeName": "RenderProps"
                     },
                     {
-                        "kind": "PropertySignature",
-                        "name": "pos",
-                        "type": {
-                            "kind": "TypeReference",
-                            "typeName": "Vec2"
-                        },
-                        "questionToken": true
-                    },
-                    {
-                        "kind": "PropertySignature",
-                        "name": "scale",
-                        "type": {
-                            "kind": "UnionType",
-                            "types": [
-                                {
-                                    "kind": "TypeReference",
-                                    "typeName": "Vec2"
-                                },
-                                {
+                        "kind": "TypeLiteral",
+                        "members": [
+                            {
+                                "kind": "PropertySignature",
+                                "name": "size",
+                                "type": {
                                     "kind": "NumberKeyword"
-                                }
-                            ]
-                        },
-                        "questionToken": true
-                    },
-                    {
-                        "kind": "PropertySignature",
-                        "name": "rot",
-                        "type": {
-                            "kind": "NumberKeyword"
-                        },
-                        "questionToken": true
-                    },
-                    {
-                        "kind": "PropertySignature",
-                        "name": "color",
-                        "type": {
-                            "kind": "TypeReference",
-                            "typeName": "Color"
-                        },
-                        "questionToken": true
-                    },
-                    {
-                        "kind": "PropertySignature",
-                        "name": "origin",
-                        "type": {
-                            "kind": "UnionType",
-                            "types": [
-                                {
-                                    "kind": "TypeReference",
-                                    "typeName": "Origin"
                                 },
-                                {
+                                "questionToken": true
+                            },
+                            {
+                                "kind": "PropertySignature",
+                                "name": "width",
+                                "type": {
+                                    "kind": "NumberKeyword"
+                                },
+                                "questionToken": true
+                            },
+                            {
+                                "kind": "PropertySignature",
+                                "name": "z",
+                                "type": {
+                                    "kind": "NumberKeyword"
+                                },
+                                "questionToken": true
+                            },
+                            {
+                                "kind": "PropertySignature",
+                                "name": "prog",
+                                "type": {
                                     "kind": "TypeReference",
-                                    "typeName": "Vec2"
-                                }
-                            ]
-                        },
-                        "questionToken": true
-                    },
-                    {
-                        "kind": "PropertySignature",
-                        "name": "width",
-                        "type": {
-                            "kind": "NumberKeyword"
-                        },
-                        "questionToken": true
-                    },
-                    {
-                        "kind": "PropertySignature",
-                        "name": "z",
-                        "type": {
-                            "kind": "NumberKeyword"
-                        },
-                        "questionToken": true
-                    },
-                    {
-                        "kind": "PropertySignature",
-                        "name": "prog",
-                        "type": {
-                            "kind": "TypeReference",
-                            "typeName": "GfxProgram"
-                        },
-                        "questionToken": true
+                                    "typeName": "GfxProgram"
+                                },
+                                "questionToken": true
+                            }
+                        ]
                     }
                 ]
             }
@@ -4532,102 +4672,99 @@
             "kind": "TypeAliasDeclaration",
             "name": "DrawSpriteConf",
             "type": {
-                "kind": "TypeLiteral",
-                "members": [
+                "kind": "IntersectionType",
+                "types": [
                     {
-                        "kind": "PropertySignature",
-                        "name": "frame",
-                        "type": {
-                            "kind": "NumberKeyword"
-                        },
-                        "questionToken": true
+                        "kind": "TypeReference",
+                        "typeName": "RenderProps"
                     },
                     {
-                        "kind": "PropertySignature",
-                        "name": "pos",
-                        "type": {
-                            "kind": "TypeReference",
-                            "typeName": "Vec2"
-                        },
-                        "questionToken": true
-                    },
-                    {
-                        "kind": "PropertySignature",
-                        "name": "scale",
-                        "type": {
-                            "kind": "UnionType",
-                            "types": [
-                                {
-                                    "kind": "TypeReference",
-                                    "typeName": "Vec2"
-                                },
-                                {
+                        "kind": "TypeLiteral",
+                        "members": [
+                            {
+                                "kind": "PropertySignature",
+                                "name": "frame",
+                                "type": {
                                     "kind": "NumberKeyword"
-                                }
-                            ]
-                        },
-                        "questionToken": true
-                    },
-                    {
-                        "kind": "PropertySignature",
-                        "name": "rot",
-                        "type": {
-                            "kind": "NumberKeyword"
-                        },
-                        "questionToken": true
-                    },
-                    {
-                        "kind": "PropertySignature",
-                        "name": "color",
-                        "type": {
-                            "kind": "TypeReference",
-                            "typeName": "Color"
-                        },
-                        "questionToken": true
-                    },
-                    {
-                        "kind": "PropertySignature",
-                        "name": "origin",
-                        "type": {
-                            "kind": "TypeReference",
-                            "typeName": "Origin"
-                        },
-                        "questionToken": true
-                    },
-                    {
-                        "kind": "PropertySignature",
-                        "name": "quad",
-                        "type": {
-                            "kind": "TypeReference",
-                            "typeName": "Quad"
-                        },
-                        "questionToken": true
-                    },
-                    {
-                        "kind": "PropertySignature",
-                        "name": "prog",
-                        "type": {
-                            "kind": "TypeReference",
-                            "typeName": "ShaderData"
-                        },
-                        "questionToken": true
-                    },
-                    {
-                        "kind": "PropertySignature",
-                        "name": "uniform",
-                        "type": {
-                            "kind": "TypeReference",
-                            "typeName": "Uniform"
-                        },
-                        "questionToken": true
-                    },
-                    {
-                        "kind": "PropertySignature",
-                        "name": "z",
-                        "type": {
-                            "kind": "NumberKeyword"
-                        },
-                        "questionToken": true
+                                },
+                                "questionToken": true
+                            },
+                            {
+                                "kind": "PropertySignature",
+                                "name": "width",
+                                "type": {
+                                    "kind": "NumberKeyword"
+                                },
+                                "questionToken": true
+                            },
+                            {
+                                "kind": "PropertySignature",
+                                "name": "height",
+                                "type": {
+                                    "kind": "NumberKeyword"
+                                },
+                                "questionToken": true
+                            },
+                            {
+                                "kind": "PropertySignature",
+                                "name": "tiled",
+                                "type": {
+                                    "kind": "BooleanKeyword"
+                                },
+                                "questionToken": true
+                            },
+                            {
+                                "kind": "PropertySignature",
+                                "name": "flipX",
+                                "type": {
+                                    "kind": "BooleanKeyword"
+                                },
+                                "questionToken": true
+                            },
+                            {
+                                "kind": "PropertySignature",
+                                "name": "flipY",
+                                "type": {
+                                    "kind": "BooleanKeyword"
+                                },
+                                "questionToken": true
+                            },
+                            {
+                                "kind": "PropertySignature",
+                                "name": "quad",
+                                "type": {
+                                    "kind": "TypeReference",
+                                    "typeName": "Quad"
+                                },
+                                "questionToken": true
+                            },
+                            {
+                                "kind": "PropertySignature",
+                                "name": "prog",
+                                "type": {
+                                    "kind": "TypeReference",
+                                    "typeName": "ShaderData"
+                                },
+                                "questionToken": true
+                            },
+                            {
+                                "kind": "PropertySignature",
+                                "name": "uniform",
+                                "type": {
+                                    "kind": "TypeReference",
+                                    "typeName": "Uniform"
+                                },
+                                "questionToken": true
+                            },
+                            {
+                                "kind": "PropertySignature",
+                                "name": "z",
+                                "type": {
+                                    "kind": "NumberKeyword"
+                                },
+                                "questionToken": true
+                            }
+                        ]
                     }
                 ]
             }
@@ -5305,6 +5442,24 @@
                         "name": "h",
                         "type": {
                             "kind": "NumberKeyword"
+                        }
+                    },
+                    {
+                        "kind": "MethodSignature",
+                        "name": "scale",
+                        "parameters": [
+                            {
+                                "kind": "Parameter",
+                                "name": "q",
+                                "type": {
+                                    "kind": "TypeReference",
+                                    "typeName": "Quad"
+                                }
+                            }
+                        ],
+                        "type": {
+                            "kind": "TypeReference",
+                            "typeName": "Quad"
                         }
                     },
                     {
@@ -6442,13 +6597,53 @@
                             "kind": "NumberKeyword"
                         },
                         "questionToken": true
+                    },
+                    {
+                        "kind": "PropertySignature",
+                        "name": "tiled",
+                        "type": {
+                            "kind": "BooleanKeyword"
+                        },
+                        "questionToken": true
+                    },
+                    {
+                        "kind": "PropertySignature",
+                        "name": "width",
+                        "type": {
+                            "kind": "NumberKeyword"
+                        },
+                        "questionToken": true
+                    },
+                    {
+                        "kind": "PropertySignature",
+                        "name": "height",
+                        "type": {
+                            "kind": "NumberKeyword"
+                        },
+                        "questionToken": true
+                    },
+                    {
+                        "kind": "PropertySignature",
+                        "name": "flipX",
+                        "type": {
+                            "kind": "BooleanKeyword"
+                        },
+                        "questionToken": true
+                    },
+                    {
+                        "kind": "PropertySignature",
+                        "name": "flipY",
+                        "type": {
+                            "kind": "BooleanKeyword"
+                        },
+                        "questionToken": true
                     }
                 ]
             }
         },
-        "SpriteCompCurAnim": {
+        "SpriteCurAnim": {
             "kind": "TypeAliasDeclaration",
-            "name": "SpriteCompCurAnim",
+            "name": "SpriteCurAnim",
             "type": {
                 "kind": "TypeLiteral",
                 "members": [
@@ -7319,6 +7514,131 @@
                         "type": {
                             "kind": "VoidKeyword"
                         }
+                    }
+                ]
+            }
+        },
+        "HelperProps": {
+            "kind": "TypeAliasDeclaration",
+            "name": "HelperProps",
+            "type": {
+                "kind": "TypeLiteral",
+                "members": [
+                    {
+                        "kind": "PropertySignature",
+                        "name": "body",
+                        "type": {
+                            "kind": "BooleanKeyword"
+                        },
+                        "questionToken": true
+                    },
+                    {
+                        "kind": "PropertySignature",
+                        "name": "solid",
+                        "type": {
+                            "kind": "BooleanKeyword"
+                        },
+                        "questionToken": true
+                    },
+                    {
+                        "kind": "PropertySignature",
+                        "name": "layer",
+                        "type": {
+                            "kind": "StringKeyword"
+                        },
+                        "questionToken": true
+                    },
+                    {
+                        "kind": "PropertySignature",
+                        "name": "origin",
+                        "type": {
+                            "kind": "UnionType",
+                            "types": [
+                                {
+                                    "kind": "TypeReference",
+                                    "typeName": "Origin"
+                                },
+                                {
+                                    "kind": "TypeReference",
+                                    "typeName": "Vec2"
+                                }
+                            ]
+                        },
+                        "questionToken": true
+                    },
+                    {
+                        "kind": "PropertySignature",
+                        "name": "tags",
+                        "type": {
+                            "kind": "ArrayType",
+                            "elementType": {
+                                "kind": "StringKeyword"
+                            }
+                        },
+                        "questionToken": true
+                    }
+                ]
+            }
+        },
+        "AddSpriteConf": {
+            "kind": "TypeAliasDeclaration",
+            "name": "AddSpriteConf",
+            "type": {
+                "kind": "IntersectionType",
+                "types": [
+                    {
+                        "kind": "TypeReference",
+                        "typeName": "RenderProps"
+                    },
+                    {
+                        "kind": "TypeReference",
+                        "typeName": "HelperProps"
+                    },
+                    {
+                        "kind": "TypeReference",
+                        "typeName": "SpriteCompConf"
+                    }
+                ]
+            }
+        },
+        "AddRectConf": {
+            "kind": "TypeAliasDeclaration",
+            "name": "AddRectConf",
+            "type": {
+                "kind": "IntersectionType",
+                "types": [
+                    {
+                        "kind": "TypeReference",
+                        "typeName": "RenderProps"
+                    },
+                    {
+                        "kind": "TypeReference",
+                        "typeName": "HelperProps"
+                    },
+                    {
+                        "kind": "TypeReference",
+                        "typeName": "RectCompConf"
+                    }
+                ]
+            }
+        },
+        "AddTextConf": {
+            "kind": "TypeAliasDeclaration",
+            "name": "AddTextConf",
+            "type": {
+                "kind": "IntersectionType",
+                "types": [
+                    {
+                        "kind": "TypeReference",
+                        "typeName": "RenderProps"
+                    },
+                    {
+                        "kind": "TypeReference",
+                        "typeName": "HelperProps"
+                    },
+                    {
+                        "kind": "TypeReference",
+                        "typeName": "TextCompConf"
                     }
                 ]
             }

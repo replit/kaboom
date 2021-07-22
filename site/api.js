@@ -10,10 +10,10 @@ function f(name, desc, example) {
 
 const api = [
 	{
-		name: "Lifecycle",
-		desc: "Application Lifecycle Methods",
+		name: "Start",
+		desc: "Starting a kaboom game",
 		entries: [
-			f("kaboom", "initialize a kaboom game", `
+			f("kaboom", "initialize canvas and kaboom context", `
 // quickly create a 640x480 canvas, returning a handle containing all kaboom functions
 const k = kaboom();
 
@@ -29,8 +29,8 @@ kaboom({
 	width: 640, // width of canvas
 	height: 480, // height of canvas
 	canvas: document.getElementById("game"), // use custom canvas
-	scale: 2, // pixel size (for pixelated games you might want small canvas + scale)
-	clearColor: [0, 0, 1, 1], // background color (default black [0, 0, 0, 1])
+	scale: 2, // pixel size (for pixelated games you might want smaller size with scale)
+	clearColor: [0, 0, 1, 1], // background color (default is a checker board background)
 	fullscreen: true, // if fullscreen
 	crisp: true, // if pixel crisp (for sharp pixelated games)
 	debug: false, // debug mode
@@ -44,7 +44,6 @@ scene();
 add();
 
 // if "debug" is enabled, your game gets some special key bindings
-// - \`: toggle debug.showLog
 // - f1: toggle debug.inspect
 // - f2: debug.clearLog()
 // - f8: toggle debug.paused
@@ -53,115 +52,20 @@ add();
 // - f10: debug.stepFrame()
 // see more in the debug section below
 			`),
-			f("start", "start the game loop with specified scene", `
-scene("game", () => {/* .. */});
-scene("menu", () => {/* .. */});
-scene("lose", () => {/* .. */});
-start("game");
-			`),
-		],
-	},
-	{
-		name: "Scene",
-		desc: "Scenes are the different stages of a game, like different levels, menu screen, and start screen etc. Everything belongs to a scene.",
-		entries: [
-			f("scene", "describe a scene", `
-scene("level1", () => {
-	// all objs are bound to a scene
-	add(/* ... */)
-	// all events are bound to a scene
-	keyPress(/* ... */)
-});
-
-scene("level2", () => {
-	add(/* ... */)
-});
-
-scene("gameover", () => {
-	add(/* ... */)
-});
-
-start("level1");
-			`),
-			f("go", "switch to a scene", `
-// go to "paused" scene when pressed "p"
-scene("main", () => {
-	let score = 0;
-	keyPress("p", () => {
-		go("gameover", score);
-	})
-});
-
-scene("gameover", (score) => {
-	// display score passed by scene "main"
-	add([
-		text(score),
-	]);
-});
-			`),
-			f("layers", "define the draw layers of the scene", `
-// draw background on the bottom, ui on top, layer "obj" is default
-layers([
-	"bg",
-	"obj",
-	"ui",
-], "obj");
-
-// this will be added to the "obj" layer since it's defined as default above
-const player = add([
-	sprite("froggy"),
-]);
-
-// this will be added to the "ui" layer because it's specified by the layer() component
-const score = add([
-	text("0"),
-	layer("ui"),
-]);
-
-// NOTE: Objects on different layers won't collide! Collision handlers won't pick them up.
-			`),
-			f("gravity", "set the gravity value (defaults to 980)", `
-// (pixel per sec.)
-gravity(1600);
-			`),
-			f("camPos", "set the camera position", `
-// camera position follow player
-player.action(() => {
-	camPos(player.pos);
-});
-			`),
-			f("camScale", "set the camera scale", `
-if (win) {
-	camPos(player.pos);
-	// get a close up shot of the player
-	camScale(3);
-}
-			`),
-			f("camRot", "set the camera angle", `
-camRot(0.1);
-			`),
-			f("camShake", "shake the camera", `
-// dramatic screen shake
-camShake(12);
-			`),
-			f("camIgnore", "make camera don't affect certain layers", `
-// make camera not affect objects on layer "ui" and "bg"
-camIgnore(["bg", "ui"]);
-			`),
-			f("sceneData", "custom scene data kv store", `
-// could be used for custom components registering scene-wide "global" data
-sceneData().gravity = 123;
-sceneData().curDraggin = obj;
-			`),
 		],
 	},
 	{
 		name: "Asset Loading",
 		desc: "Load assets into asset manager. These should be at application top.",
 		entries: [
-			f("loadSprite", "load a sprite", `
+			f("loadSprite", "Load a sprite into the asset manager", `
+// due to browser policies you'll need a static file server to load local files, e.g.
+// - (with python) $ python3 -m http.server $PORT
+// - (with caddy) $ caddy file-server --browse --listen $PORT
+// - https://github.com/vercel/serve
+// - https://github.com/http-party/http-server
 loadSprite("froggy", "froggy.png");
-loadSprite("froggy", "https://replit.com/public/images/mark.png");
+loadSprite("froggy", "https://kaboomjs.com/assets/sprites/mark.png");
 
 // slice a spritesheet and add anims manually
 loadSprite("froggy", "froggy.png", {
@@ -179,11 +83,11 @@ loadSprite("froggy", "froggy.png", {
 	},
 });
 			`),
-			f("loadSound", "load a sound", `
-loadSound("shoot", "shoot.ogg");
+			f("loadSound", "Load a sound", `
+loadSound("shoot", "horse.ogg");
+loadSound("shoot", "https://kaboomjs.com/assets/sounds/scream6.mp3");
 			`),
-			f("loadFont", "load a font", `
-
+			f("loadFont", "Load a font", `
 // default character mappings: (ASCII 32 - 126)
 // const ASCII_CHARS = " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_\`abcdefghijklmnopqrstuvwxyz{|}~";
 
@@ -193,6 +97,20 @@ loadFont("04b03", "04b03.png", 6, 8);
 
 // load a font with custom characters
 loadFont("CP437", "CP437.png", 6, 8, "☺☻♥♦♣♠");
+			`),
+			f("loadShader", "Load a shader", `
+// load only a fragment shader from URL
+loadShader("outline", null, "/shaders/outline.glsl", true);
+
+// default shaders and custom shader format
+loadShader("outline",
+\`vec4 vert(vec3 pos, vec2 uv, vec4 color) {
+	// predefined functions to get the default value by kaboom
+	return def_vert();
+}\`,
+\`vec4 frag(vec3 pos, vec2 uv, vec4 color, sampler2D tex) {
+	return def_frag();
+}\`, true);
 			`),
 		],
 	},
@@ -282,7 +200,7 @@ obj.on("grounded", () => {
 	// ...
 });
 			`),
-			f("obj.trigger", "trigger an event (triggers 'on')", `
+			f("obj.trigger", "trigger an event", `
 obj.on("grounded", () => {
 	obj.jump();
 });
@@ -297,6 +215,9 @@ collides("bullet", "killable", (b, k) => {
 	destroy(k);
 	score++;
 });
+			`),
+			f("destroyAll", "destroy every obj with a certain tag", `
+destroyAll("enemy");
 			`),
 			f("get", "get a list of obj reference with a certain tag", `
 const enemies = get("enemy");
@@ -314,13 +235,50 @@ every((obj) => {
 });
 			`),
 			f("revery", "like every but runs in reversed order"),
-			f("destroyAll", "destroy every obj with a certain tag", `
-destroyAll("enemy");
-			`),
 			f("readd", "re-add an object to the scene", `
 // remove and add froggy to the scene without triggering events tied to "add" or "destroy"
 // so it'll be drawn on the top of the layer it belongs to
 readd(froggy);
+			`),
+			f("addSprite", "helper for adding a sprite", `
+addSprite("mark", {
+	pos: vec2(80, 80),
+	body: true,
+	origin: "center",
+	flipX: true,
+	tags: [ "player", "killable" ],
+});
+
+// is equivalent to
+
+add([
+	sprite({ flipX: true }),
+	body(),
+	origin("center"),
+	"player",
+	"killable",
+]);
+			`),
+			f("addText", "helper for adding a text", `
+addText("oh hi", 32 {
+	pos: vec2(80, 80),
+});
+
+// is equivalent to
+
+add([
+	text("oh hi", 32),
+	pos(80, 80),
+]);
+			`),
+			f("addRect", "helper for adding a rect", `
+addRect(100, 100);
+
+// is equivalent to
+
+add([
+	rect(32, 32),
+]);
 			`),
 		],
 	},
@@ -743,6 +701,67 @@ loop(0.5, () => {
 		],
 	},
 	{
+		name: "Misc",
+		desc: "yep",
+		entries: [
+			f("layers", "define the draw layers of the scene", `
+// draw background on the bottom, ui on top, layer "obj" is default
+layers([
+	"bg",
+	"obj",
+	"ui",
+], "obj");
+
+// this will be added to the "obj" layer since it's defined as default above
+const player = add([
+	sprite("froggy"),
+]);
+
+// this will be added to the "ui" layer because it's specified by the layer() component
+const score = add([
+	text("0"),
+	layer("ui"),
+]);
+
+// NOTE: Objects on different layers won't collide! Collision handlers won't pick them up.
+			`),
+			f("gravity", "set the gravity value (defaults to 980)", `
+// (pixel per sec.)
+gravity(1600);
+			`),
+		],
+	},
+	{
+		name: "Camera",
+		desc: "Camera operations",
+		entries: [
+			f("camPos", "set the camera position", `
+// camera position follow player
+player.action(() => {
+	camPos(player.pos);
+});
+			`),
+			f("camScale", "set the camera scale", `
+if (win) {
+	camPos(player.pos);
+	// get a close up shot of the player
+	camScale(3);
+}
+			`),
+			f("camRot", "set the camera angle", `
+camRot(0.1);
+			`),
+			f("camShake", "shake the camera", `
+// dramatic screen shake
+camShake(12);
+			`),
+			f("camIgnore", "make camera don't affect certain layers", `
+// make camera not affect objects on layer "ui" and "bg"
+camIgnore(["bg", "ui"]);
+			`),
+		],
+	},
+	{
 		name: "Audio",
 		desc: "yeah",
 		entries: [
@@ -946,6 +965,46 @@ map.destroy();
 // there's no spatial hashing yet, if too many blocks causing lag, consider hard disabling collision resolution from blocks far away by turning off 'solid'
 action("block", (b) => {
 	b.solid = player.pos.dist(b.pos) <= 20;
+});
+			`),
+		],
+	},
+	{
+		name: "Scene",
+		desc: "Use scenes to define different parts of a game, e.g. Game Scene, Start Scene, ",
+		entries: [
+			f("scene", "define a scene", `
+scene("level1", () => {
+	// all objs are bound to a scene
+	add(/* ... */)
+	// all events are bound to a scene
+	keyPress(/* ... */)
+});
+
+scene("level2", () => {
+	add(/* ... */)
+});
+
+scene("gameover", () => {
+	add(/* ... */)
+});
+
+start("level1");
+			`),
+			f("go", "switch to a scene", `
+// go to "paused" scene when pressed "p"
+scene("main", () => {
+	let score = 0;
+	keyPress("p", () => {
+		go("gameover", score);
+	})
+});
+
+scene("gameover", (score) => {
+	// display score passed by scene "main"
+	add([
+		text(score),
+	]);
 });
 			`),
 		],

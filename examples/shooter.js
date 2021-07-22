@@ -83,7 +83,7 @@ scene("main", () => {
 					destroy(this);
 				}
 			},
-		}
+		};
 	}
 
 	function grow(rate) {
@@ -108,7 +108,7 @@ scene("main", () => {
 					this.hidden = false;
 				}
 			},
-		}
+		};
 	}
 
 	add([
@@ -212,7 +212,7 @@ space: shoot
 	});
 
 	keyRelease("up", () => {
-		insaneMode = false
+		insaneMode = false;
 		music.speed(1);
 	});
 

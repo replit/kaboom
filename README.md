@@ -12,8 +12,17 @@ Check out our official [website](https://kaboomjs.com/)!
 <script src="https://kaboomjs.com/lib/0.6.0/kaboom.js"></script>
 <script type="module">
 
+// initialize kaboom context
 const k = kaboom();
-k.addText("123abc");
+
+// add a text of size 32 at position (100, 100)
+k.add([
+    k.text("oh hi", 32),
+    k.pos(100, 100),
+]);
+
+// or
+// k.addText("oh hi", 32, { pos: k.vec2(100, 100) });
 
 </script>
 ```
@@ -32,7 +41,7 @@ const birdy = k.addSprite("mark", { body: true, });
 k.keyPress("space", () => birdy.jump());
 ```
 
-the above is using helper functions (like `addSprite()`, `addText()`) as a syntax sugar for kaboom's powerful composable component system
+examples above are using helper functions (like `addSprite()`, `addText()`) as a syntax sugar for kaboom's powerful composable component system
 
 ```js
 // add an entity to the scene, with a list of component describing its behavior
@@ -45,10 +54,45 @@ const player = k.add([
     body(),
     // you can easily make custom components to encapsulate certain reusable logics
     doubleJump(),
+    health(8),
     // or give it tags for controlling grouped behaviors in a faster way
     "player",
     "friendly",
+    // custom fields
+    {
+        dir: vec2(-1, 0),
+        dead: false,
+        speed: 240,
+    },
 ]);
+
+// custom components are plain functions that return an object
+function health(hp) {
+    return {
+        return {
+            hurt(n) {
+                hp -= n ?? 1;
+                this.trigger("hurt");
+                if (hp <= 0) {
+                    this.trigger("death");
+                }
+            },
+            heal(n) {
+                hp += n ?? 1;
+                this.trigger("heal");
+            },
+            hp() {
+                return hp;
+            },
+        };
+    };
+}
+
+// listen to custom events from a custom component
+player.on("hurt", () => { ... });
+
+// decoupled discrete logic
+player.collides("enemy", () => player.hurt(1));
 ```
 
 blocky imperative syntax for describing behaviors
