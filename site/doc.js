@@ -399,6 +399,11 @@ function drag() {
 
 	return {
 
+		id: "drag",
+
+		// we need the 'pos' and 'click' methods from "pos" and "area" comps
+		require: [ "pos", "area" ],
+
 		// LIFE CYCLE, called when the object is add()-ed
 		add() {
 			this.clicks(() => {
