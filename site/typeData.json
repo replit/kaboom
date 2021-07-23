@@ -216,10 +216,7 @@
                                     ]
                                 }
                             }
-                        ],
-                        "type": {
-                            "kind": "VoidKeyword"
-                        }
+                        ]
                     },
                     {
                         "kind": "MethodSignature",
@@ -272,10 +269,7 @@
                     {
                         "kind": "MethodSignature",
                         "name": "focus",
-                        "parameters": [],
-                        "type": {
-                            "kind": "VoidKeyword"
-                        }
+                        "parameters": []
                     },
                     {
                         "kind": "MethodSignature",
@@ -292,10 +286,7 @@
                                     }
                                 }
                             }
-                        ],
-                        "type": {
-                            "kind": "VoidKeyword"
-                        }
+                        ]
                     },
                     {
                         "kind": "MethodSignature",
@@ -348,10 +339,7 @@
                                     "typeName": "GameObj"
                                 }
                             }
-                        ],
-                        "type": {
-                            "kind": "VoidKeyword"
-                        }
+                        ]
                     },
                     {
                         "kind": "MethodSignature",
@@ -364,10 +352,7 @@
                                     "kind": "StringKeyword"
                                 }
                             }
-                        ],
-                        "type": {
-                            "kind": "VoidKeyword"
-                        }
+                        ]
                     },
                     {
                         "kind": "MethodSignature",
@@ -586,10 +571,7 @@
                                 },
                                 "questionToken": true
                             }
-                        ],
-                        "type": {
-                            "kind": "VoidKeyword"
-                        }
+                        ]
                     },
                     {
                         "kind": "MethodSignature",
@@ -629,10 +611,7 @@
                                     }
                                 }
                             }
-                        ],
-                        "type": {
-                            "kind": "VoidKeyword"
-                        }
+                        ]
                     },
                     {
                         "kind": "MethodSignature",
@@ -665,10 +644,7 @@
                                     }
                                 }
                             }
-                        ],
-                        "type": {
-                            "kind": "VoidKeyword"
-                        }
+                        ]
                     },
                     {
                         "kind": "MethodSignature",
@@ -685,10 +661,7 @@
                                     }
                                 }
                             }
-                        ],
-                        "type": {
-                            "kind": "VoidKeyword"
-                        }
+                        ]
                     },
                     {
                         "kind": "MethodSignature",
@@ -721,10 +694,7 @@
                                     }
                                 }
                             }
-                        ],
-                        "type": {
-                            "kind": "VoidKeyword"
-                        }
+                        ]
                     },
                     {
                         "kind": "MethodSignature",
@@ -741,10 +711,7 @@
                                     }
                                 }
                             }
-                        ],
-                        "type": {
-                            "kind": "VoidKeyword"
-                        }
+                        ]
                     },
                     {
                         "kind": "MethodSignature",
@@ -792,10 +759,7 @@
                                     }
                                 }
                             }
-                        ],
-                        "type": {
-                            "kind": "VoidKeyword"
-                        }
+                        ]
                     },
                     {
                         "kind": "MethodSignature",
@@ -843,10 +807,7 @@
                                     }
                                 }
                             }
-                        ],
-                        "type": {
-                            "kind": "VoidKeyword"
-                        }
+                        ]
                     },
                     {
                         "kind": "MethodSignature",
@@ -879,10 +840,7 @@
                                     }
                                 }
                             }
-                        ],
-                        "type": {
-                            "kind": "VoidKeyword"
-                        }
+                        ]
                     },
                     {
                         "kind": "MethodSignature",
@@ -947,10 +905,7 @@
                                     "kind": "NumberKeyword"
                                 }
                             }
-                        ],
-                        "type": {
-                            "kind": "VoidKeyword"
-                        }
+                        ]
                     },
                     {
                         "kind": "MethodSignature",
@@ -966,10 +921,7 @@
                                     }
                                 }
                             }
-                        ],
-                        "type": {
-                            "kind": "VoidKeyword"
-                        }
+                        ]
                     },
                     {
                         "kind": "MethodSignature",
@@ -1036,10 +988,7 @@
                                     "typeName": "GameObj"
                                 }
                             }
-                        ],
-                        "type": {
-                            "kind": "VoidKeyword"
-                        }
+                        ]
                     },
                     {
                         "kind": "MethodSignature",
@@ -1060,10 +1009,7 @@
                                     "typeName": "MsgHandler"
                                 }
                             }
-                        ],
-                        "type": {
-                            "kind": "VoidKeyword"
-                        }
+                        ]
                     },
                     {
                         "kind": "MethodSignature",
@@ -1083,10 +1029,7 @@
                                     "kind": "AnyKeyword"
                                 }
                             }
-                        ],
-                        "type": {
-                            "kind": "VoidKeyword"
-                        }
+                        ]
                     },
                     {
                         "kind": "MethodSignature",
@@ -1527,10 +1470,7 @@
                                 },
                                 "questionToken": true
                             }
-                        ],
-                        "type": {
-                            "kind": "VoidKeyword"
-                        }
+                        ]
                     },
                     {
                         "kind": "MethodSignature",
@@ -1572,10 +1512,7 @@
                                     }
                                 }
                             }
-                        ],
-                        "type": {
-                            "kind": "VoidKeyword"
-                        }
+                        ]
                     },
                     {
                         "kind": "MethodSignature",
@@ -1599,10 +1536,7 @@
                                     }
                                 }
                             }
-                        ],
-                        "type": {
-                            "kind": "VoidKeyword"
-                        }
+                        ]
                     },
                     {
                         "kind": "MethodSignature",
@@ -1626,10 +1560,7 @@
                                     }
                                 }
                             }
-                        ],
-                        "type": {
-                            "kind": "VoidKeyword"
-                        }
+                        ]
                     },
                     {
                         "kind": "MethodSignature",
@@ -1653,10 +1584,7 @@
                                     }
                                 }
                             }
-                        ],
-                        "type": {
-                            "kind": "VoidKeyword"
-                        }
+                        ]
                     },
                     {
                         "kind": "MethodSignature",
@@ -1681,10 +1609,7 @@
                                     }
                                 }
                             }
-                        ],
-                        "type": {
-                            "kind": "VoidKeyword"
-                        }
+                        ]
                     },
                     {
                         "kind": "MethodSignature",
@@ -1701,10 +1626,7 @@
                                     }
                                 }
                             }
-                        ],
-                        "type": {
-                            "kind": "VoidKeyword"
-                        }
+                        ]
                     },
                     {
                         "kind": "MethodSignature",
@@ -1721,10 +1643,7 @@
                                     }
                                 }
                             }
-                        ],
-                        "type": {
-                            "kind": "VoidKeyword"
-                        }
+                        ]
                     },
                     {
                         "kind": "MethodSignature",
@@ -1741,10 +1660,7 @@
                                     }
                                 }
                             }
-                        ],
-                        "type": {
-                            "kind": "VoidKeyword"
-                        }
+                        ]
                     },
                     {
                         "kind": "MethodSignature",
@@ -1856,10 +1772,7 @@
                                     }
                                 }
                             }
-                        ],
-                        "type": {
-                            "kind": "VoidKeyword"
-                        }
+                        ]
                     },
                     {
                         "kind": "MethodSignature",
@@ -1941,10 +1854,7 @@
                     {
                         "kind": "MethodSignature",
                         "name": "burp",
-                        "parameters": [],
-                        "type": {
-                            "kind": "VoidKeyword"
-                        }
+                        "parameters": []
                     },
                     {
                         "kind": "MethodSignature",
@@ -2478,10 +2388,7 @@
                                 },
                                 "questionToken": true
                             }
-                        ],
-                        "type": {
-                            "kind": "VoidKeyword"
-                        }
+                        ]
                     },
                     {
                         "kind": "MethodSignature",
@@ -2503,10 +2410,7 @@
                                 },
                                 "questionToken": true
                             }
-                        ],
-                        "type": {
-                            "kind": "VoidKeyword"
-                        }
+                        ]
                     },
                     {
                         "kind": "MethodSignature",
@@ -2543,10 +2447,7 @@
                                 },
                                 "questionToken": true
                             }
-                        ],
-                        "type": {
-                            "kind": "VoidKeyword"
-                        }
+                        ]
                     },
                     {
                         "kind": "MethodSignature",
@@ -2583,10 +2484,7 @@
                                 },
                                 "questionToken": true
                             }
-                        ],
-                        "type": {
-                            "kind": "VoidKeyword"
-                        }
+                        ]
                     },
                     {
                         "kind": "MethodSignature",
@@ -2617,10 +2515,7 @@
                                 },
                                 "questionToken": true
                             }
-                        ],
-                        "type": {
-                            "kind": "VoidKeyword"
-                        }
+                        ]
                     },
                     {
                         "kind": "MethodSignature",
@@ -2659,10 +2554,7 @@
                                 },
                                 "questionToken": true
                             }
-                        ],
-                        "type": {
-                            "kind": "VoidKeyword"
-                        }
+                        ]
                     },
                     {
                         "kind": "PropertySignature",
@@ -2830,6 +2722,50 @@
                                 "name": "args",
                                 "dotDotDotToken": {
                                     "kind": "DotDotDotToken"
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "kind": "MethodSignature",
+                        "name": "getData",
+                        "parameters": [
+                            {
+                                "kind": "Parameter",
+                                "name": "key",
+                                "type": {
+                                    "kind": "StringKeyword"
+                                }
+                            },
+                            {
+                                "kind": "Parameter",
+                                "name": "def",
+                                "type": {
+                                    "kind": "AnyKeyword"
+                                },
+                                "questionToken": true
+                            }
+                        ],
+                        "type": {
+                            "kind": "AnyKeyword"
+                        }
+                    },
+                    {
+                        "kind": "MethodSignature",
+                        "name": "setData",
+                        "parameters": [
+                            {
+                                "kind": "Parameter",
+                                "name": "key",
+                                "type": {
+                                    "kind": "StringKeyword"
+                                }
+                            },
+                            {
+                                "kind": "Parameter",
+                                "name": "data",
+                                "type": {
+                                    "kind": "AnyKeyword"
                                 }
                             }
                         ]
@@ -3072,10 +3008,7 @@
                                     "typeName": "Comp"
                                 }
                             }
-                        ],
-                        "type": {
-                            "kind": "VoidKeyword"
-                        }
+                        ]
                     },
                     {
                         "kind": "MethodSignature",
@@ -3092,10 +3025,7 @@
                                     }
                                 }
                             }
-                        ],
-                        "type": {
-                            "kind": "VoidKeyword"
-                        }
+                        ]
                     },
                     {
                         "kind": "MethodSignature",
@@ -3119,10 +3049,7 @@
                                     }
                                 }
                             }
-                        ],
-                        "type": {
-                            "kind": "VoidKeyword"
-                        }
+                        ]
                     },
                     {
                         "kind": "MethodSignature",
@@ -3142,10 +3069,7 @@
                                     "kind": "DotDotDotToken"
                                 }
                             }
-                        ],
-                        "type": {
-                            "kind": "VoidKeyword"
-                        }
+                        ]
                     },
                     {
                         "kind": "MethodSignature",
@@ -3158,18 +3082,12 @@
                                     "kind": "StringKeyword"
                                 }
                             }
-                        ],
-                        "type": {
-                            "kind": "VoidKeyword"
-                        }
+                        ]
                     },
                     {
                         "kind": "MethodSignature",
                         "name": "destroy",
-                        "parameters": [],
-                        "type": {
-                            "kind": "VoidKeyword"
-                        }
+                        "parameters": []
                     },
                     {
                         "kind": "MethodSignature",
@@ -3640,26 +3558,17 @@
                                 },
                                 "questionToken": true
                             }
-                        ],
-                        "type": {
-                            "kind": "VoidKeyword"
-                        }
+                        ]
                     },
                     {
                         "kind": "MethodSignature",
                         "name": "stop",
-                        "parameters": [],
-                        "type": {
-                            "kind": "VoidKeyword"
-                        }
+                        "parameters": []
                     },
                     {
                         "kind": "MethodSignature",
                         "name": "pause",
-                        "parameters": [],
-                        "type": {
-                            "kind": "VoidKeyword"
-                        }
+                        "parameters": []
                     },
                     {
                         "kind": "MethodSignature",
@@ -3747,18 +3656,12 @@
                     {
                         "kind": "MethodSignature",
                         "name": "loop",
-                        "parameters": [],
-                        "type": {
-                            "kind": "VoidKeyword"
-                        }
+                        "parameters": []
                     },
                     {
                         "kind": "MethodSignature",
                         "name": "unloop",
-                        "parameters": [],
-                        "type": {
-                            "kind": "VoidKeyword"
-                        }
+                        "parameters": []
                     }
                 ]
             }
@@ -3772,26 +3675,17 @@
                     {
                         "kind": "MethodSignature",
                         "name": "bind",
-                        "parameters": [],
-                        "type": {
-                            "kind": "VoidKeyword"
-                        }
+                        "parameters": []
                     },
                     {
                         "kind": "MethodSignature",
                         "name": "unbind",
-                        "parameters": [],
-                        "type": {
-                            "kind": "VoidKeyword"
-                        }
+                        "parameters": []
                     },
                     {
                         "kind": "MethodSignature",
                         "name": "bindAttribs",
-                        "parameters": [],
-                        "type": {
-                            "kind": "VoidKeyword"
-                        }
+                        "parameters": []
                     },
                     {
                         "kind": "MethodSignature",
@@ -3805,10 +3699,7 @@
                                     "typeName": "Uniform"
                                 }
                             }
-                        ],
-                        "type": {
-                            "kind": "VoidKeyword"
-                        }
+                        ]
                     }
                 ]
             }
@@ -3836,18 +3727,12 @@
                     {
                         "kind": "MethodSignature",
                         "name": "bind",
-                        "parameters": [],
-                        "type": {
-                            "kind": "VoidKeyword"
-                        }
+                        "parameters": []
                     },
                     {
                         "kind": "MethodSignature",
                         "name": "unbind",
-                        "parameters": [],
-                        "type": {
-                            "kind": "VoidKeyword"
-                        }
+                        "parameters": []
                     }
                 ]
             }
@@ -5904,10 +5789,7 @@
                                             "kind": "NumberKeyword"
                                         }
                                     }
-                                ],
-                                "type": {
-                                    "kind": "VoidKeyword"
-                                }
+                                ]
                             },
                             {
                                 "kind": "MethodSignature",
@@ -5921,10 +5803,7 @@
                                             "typeName": "Vec2"
                                         }
                                     }
-                                ],
-                                "type": {
-                                    "kind": "VoidKeyword"
-                                }
+                                ]
                             },
                             {
                                 "kind": "MethodSignature",
@@ -5968,38 +5847,6 @@
                                 "type": {
                                     "kind": "TypeReference",
                                     "typeName": "Vec2"
-                                }
-                            },
-                            {
-                                "kind": "MethodSignature",
-                                "name": "flipX",
-                                "parameters": [
-                                    {
-                                        "kind": "Parameter",
-                                        "name": "s",
-                                        "type": {
-                                            "kind": "NumberKeyword"
-                                        }
-                                    }
-                                ],
-                                "type": {
-                                    "kind": "VoidKeyword"
-                                }
-                            },
-                            {
-                                "kind": "MethodSignature",
-                                "name": "flipY",
-                                "parameters": [
-                                    {
-                                        "kind": "Parameter",
-                                        "name": "s",
-                                        "type": {
-                                            "kind": "NumberKeyword"
-                                        }
-                                    }
-                                ],
-                                "type": {
-                                    "kind": "VoidKeyword"
                                 }
                             }
                         ]
@@ -6318,10 +6165,7 @@
                                             }
                                         }
                                     }
-                                ],
-                                "type": {
-                                    "kind": "VoidKeyword"
-                                }
+                                ]
                             },
                             {
                                 "kind": "MethodSignature",
@@ -6338,10 +6182,7 @@
                                             }
                                         }
                                     }
-                                ],
-                                "type": {
-                                    "kind": "VoidKeyword"
-                                }
+                                ]
                             },
                             {
                                 "kind": "MethodSignature",
@@ -6374,10 +6215,7 @@
                                             }
                                         }
                                     }
-                                ],
-                                "type": {
-                                    "kind": "VoidKeyword"
-                                }
+                                ]
                             },
                             {
                                 "kind": "MethodSignature",
@@ -6410,10 +6248,7 @@
                                             }
                                         }
                                     }
-                                ],
-                                "type": {
-                                    "kind": "VoidKeyword"
-                                }
+                                ]
                             },
                             {
                                 "kind": "MethodSignature",
@@ -6763,18 +6598,12 @@
                                         },
                                         "questionToken": true
                                     }
-                                ],
-                                "type": {
-                                    "kind": "VoidKeyword"
-                                }
+                                ]
                             },
                             {
                                 "kind": "MethodSignature",
                                 "name": "stop",
-                                "parameters": [],
-                                "type": {
-                                    "kind": "VoidKeyword"
-                                }
+                                "parameters": []
                             },
                             {
                                 "kind": "MethodSignature",
@@ -6787,10 +6616,7 @@
                                             "kind": "StringKeyword"
                                         }
                                     }
-                                ],
-                                "type": {
-                                    "kind": "VoidKeyword"
-                                }
+                                ]
                             },
                             {
                                 "kind": "MethodSignature",
@@ -6807,6 +6633,32 @@
                                 "type": {
                                     "kind": "StringKeyword"
                                 }
+                            },
+                            {
+                                "kind": "MethodSignature",
+                                "name": "flipX",
+                                "parameters": [
+                                    {
+                                        "kind": "Parameter",
+                                        "name": "b",
+                                        "type": {
+                                            "kind": "BooleanKeyword"
+                                        }
+                                    }
+                                ]
+                            },
+                            {
+                                "kind": "MethodSignature",
+                                "name": "flipY",
+                                "parameters": [
+                                    {
+                                        "kind": "Parameter",
+                                        "name": "b",
+                                        "type": {
+                                            "kind": "BooleanKeyword"
+                                        }
+                                    }
+                                ]
                             },
                             {
                                 "kind": "MethodSignature",
@@ -7174,10 +7026,7 @@
                     {
                         "kind": "MethodSignature",
                         "name": "destroy",
-                        "parameters": [],
-                        "type": {
-                            "kind": "VoidKeyword"
-                        }
+                        "parameters": []
                     }
                 ]
             }
@@ -7243,18 +7092,12 @@
                     {
                         "kind": "MethodSignature",
                         "name": "stepFrame",
-                        "parameters": [],
-                        "type": {
-                            "kind": "VoidKeyword"
-                        }
+                        "parameters": []
                     },
                     {
                         "kind": "MethodSignature",
                         "name": "clearLog",
-                        "parameters": [],
-                        "type": {
-                            "kind": "VoidKeyword"
-                        }
+                        "parameters": []
                     },
                     {
                         "kind": "MethodSignature",
@@ -7267,10 +7110,7 @@
                                     "kind": "StringKeyword"
                                 }
                             }
-                        ],
-                        "type": {
-                            "kind": "VoidKeyword"
-                        }
+                        ]
                     },
                     {
                         "kind": "MethodSignature",
@@ -7283,10 +7123,7 @@
                                     "kind": "StringKeyword"
                                 }
                             }
-                        ],
-                        "type": {
-                            "kind": "VoidKeyword"
-                        }
+                        ]
                     }
                 ]
             }
@@ -7441,10 +7278,7 @@
                                             "kind": "NumberKeyword"
                                         }
                                     }
-                                ],
-                                "type": {
-                                    "kind": "VoidKeyword"
-                                }
+                                ]
                             }
                         ]
                     }
@@ -7510,10 +7344,7 @@
                     {
                         "kind": "MethodSignature",
                         "name": "stop",
-                        "parameters": [],
-                        "type": {
-                            "kind": "VoidKeyword"
-                        }
+                        "parameters": []
                     }
                 ]
             }
@@ -7574,6 +7405,14 @@
                             "elementType": {
                                 "kind": "StringKeyword"
                             }
+                        },
+                        "questionToken": true
+                    },
+                    {
+                        "kind": "PropertySignature",
+                        "name": "data",
+                        "type": {
+                            "kind": "AnyKeyword"
                         },
                         "questionToken": true
                     }

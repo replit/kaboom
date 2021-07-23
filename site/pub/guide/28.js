@@ -124,7 +124,6 @@ scene("gameover", (score) => {
 		origin("center"),
 	]);
 
-
 	keyPress("space", () => {
 		go("game");
 	});

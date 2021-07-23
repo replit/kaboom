@@ -2068,6 +2068,23 @@ function go(id: SceneID, ...args) {
 
 }
 
+function getData(key: string, def?: any): any {
+	try {
+		return JSON.parse(window.localStorage[key]);
+	} catch {
+		if (def) {
+			setData(key, def);
+			return def;
+		} else {
+			return null;
+		}
+	}
+}
+
+function setData(key: string, data: any) {
+	window.localStorage[key] = JSON.stringify(data);
+}
+
 const ctx: KaboomCtx = {
 	// asset load
 	loadRoot: assets.loadRoot,
@@ -2186,6 +2203,9 @@ const ctx: KaboomCtx = {
 	// scene
 	scene,
 	go,
+	// storage
+	getData,
+	setData,
 };
 
 if (gconf.plugins) {

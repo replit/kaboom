@@ -974,22 +974,18 @@ action("block", (b) => {
 		desc: "Use scenes to define different parts of a game, e.g. Game Scene, Start Scene, ",
 		entries: [
 			f("scene", "define a scene", `
-scene("level1", () => {
+scene("main", () => {
 	// all objs are bound to a scene
 	add(/* ... */)
 	// all events are bound to a scene
 	keyPress(/* ... */)
 });
 
-scene("level2", () => {
-	add(/* ... */)
-});
-
 scene("gameover", () => {
 	add(/* ... */)
 });
 
-start("level1");
+go("main");
 			`),
 			f("go", "switch to a scene", `
 // go to "paused" scene when pressed "p"
@@ -1006,6 +1002,22 @@ scene("gameover", (score) => {
 		text(score),
 	]);
 });
+			`),
+		],
+	},
+	{
+		name: "Storage",
+		desc: "Get / set data in browser's localStorage",
+		entries: [
+			f("getData", "get data", `
+// get data "score", set to and return 0 if it doesn't exist
+let score = getData("score", 0);
+			`),
+			f("setData", "set data", `
+// update "score" if score is bigger than the stored "score"
+if (score > getData("score")) {
+	setData("score", score);
+}
 			`),
 		],
 	},

@@ -53,6 +53,7 @@ obj.c("sprite").play("anim");
 - added helpers `addSprite()`, `addText()`, `addRect()` that abstracts away from the component syntax, to reduce concepts for beginners
 - added `flipX` and `flipY` on `sprite()` comp configuration, and `flipX()` `flipY()` methods
 - (**BREAK**) remove `flipX()` and `flipY()` on `scale()` comp
+- added localStorage helper `getData(key, default?)` and `setData(key, data)`
 
 ### v0.5.1
 - added plugins npm package support e.g. `import asepritePlugin from "kaboom/plugins/aseprite"`

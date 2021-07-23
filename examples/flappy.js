@@ -53,7 +53,7 @@ scene("main", () => {
 	birdy.action(() => {
 		if (birdy.pos.y >= height() || birdy.pos.y <= CEILING) {
 			// switch to "death" scene
-			go("death", score.value);
+			go("death", score);
 		}
 	});
 
@@ -91,7 +91,7 @@ scene("main", () => {
 
 	// callback when birdy collides with objects with tag "pipe"
 	birdy.collides("pipe", () => {
-		go("death", score.value);
+		go("death", score);
 		play("hit");
 	});
 
@@ -115,19 +115,18 @@ scene("main", () => {
 		spawnPipe();
 	});
 
+	let score = 0;
+
 	// display score
-	const score = add([
-		text("0", 16),
+	const scoreLabel = add([
+		text(score, 16),
 		layer("ui"),
 		pos(9, 9),
-		{
-			value: 0,
-		},
 	]);
 
 	function addScore() {
-		score.value++;
-		score.text = score.value;
+		score++;
+		scoreLabel.text = score;
 		play("score");
 	}
 

@@ -25,7 +25,7 @@ type KaboomCtx = {
 		frag?: string,
 		isUrl?: boolean,
 	): Promise<ShaderData>,
-	addLoader<T>(l: Promise<T>): void,
+	addLoader<T>(l: Promise<T>),
 	// game
 	width(): number,
 	height(): number,
@@ -33,49 +33,49 @@ type KaboomCtx = {
 	time(): number,
 	screenshot(): string,
 	focused(): boolean,
-	focus(): void,
-	ready(cb: () => void): void,
+	focus(),
+	ready(cb: () => void),
 	// scene / obj
 	add(comps: Comp[]): GameObj,
 	readd(obj: GameObj): GameObj,
-	destroy(obj: GameObj): void,
-	destroyAll(tag: string): void,
+	destroy(obj: GameObj),
+	destroyAll(tag: string),
 	get(tag?: string): GameObj[],
 	every<T>(t: string, f: (obj: GameObj) => T): T[],
 	every<T>(f: (obj: GameObj) => T): T[],
 	revery<T>(t: string, f: (obj: GameObj) => T): T[],
 	revery<T>(f: (obj: GameObj) => T): T[],
-	layers(list: string[], def?: string): void,
-	on(event: string, tag: string, cb: (obj: GameObj) => void): void,
-	action(tag: string, cb: (obj: GameObj) => void): void,
-	action(cb: () => void): void,
-	render(tag: string, cb: (obj: GameObj) => void): void,
-	render(cb: () => void): void,
+	layers(list: string[], def?: string),
+	on(event: string, tag: string, cb: (obj: GameObj) => void),
+	action(tag: string, cb: (obj: GameObj) => void),
+	action(cb: () => void),
+	render(tag: string, cb: (obj: GameObj) => void),
+	render(cb: () => void),
 	collides(
 		t1: string,
 		t2: string,
 		f: (a: GameObj, b: GameObj) => void,
-	): void,
+	),
 	overlaps(
 		t1: string,
 		t2: string,
 		f: (a: GameObj, b: GameObj) => void,
-	): void,
+	),
 	clicks(
 		tag: string,
 		f: (a: GameObj) => void,
-	): void,
+	),
 	camPos(p: Vec2): Vec2,
 	camScale(p: Vec2): Vec2,
 	camRot(a: number): number,
-	camShake(n: number): void,
-	camIgnore(layers: string[]): void,
+	camShake(n: number),
+	camIgnore(layers: string[]),
 	gravity(g: number): number,
 	defComp(id: CompID, requires: CompID[], builder: CompBuilder): CompBuilder,
 	// net
-	sync(obj: GameObj): void,
-	recv(ty: string, handler: MsgHandler): void,
-	send(ty: string, data: any): void,
+	sync(obj: GameObj),
+	recv(ty: string, handler: MsgHandler),
+	send(ty: string, data: any),
 	// comps
 	pos(x: number, y: number): PosComp,
 	pos(xy: number): PosComp,
@@ -99,16 +99,16 @@ type KaboomCtx = {
 	body(conf?: BodyCompConf): BodyComp,
 	shader(id: string): ShaderComp,
 	// inputs
-	cursor(c?: string): void,
+	cursor(c?: string),
 	mousePos(layer?: string): Vec2,
-	keyDown(k: string, f: () => void): void,
-	keyPress(k: string, f: () => void): void,
-	keyPressRep(k: string, f: () => void): void,
-	keyRelease(k: string, f: () => void): void,
-	charInput(f: (ch: string) => void): void,
-	mouseDown(f: () => void): void,
-	mouseClick(f: () => void): void,
-	mouseRelease(f: () => void): void,
+	keyDown(k: string, f: () => void),
+	keyPress(k: string, f: () => void),
+	keyPressRep(k: string, f: () => void),
+	keyRelease(k: string, f: () => void),
+	charInput(f: (ch: string) => void),
+	mouseDown(f: () => void),
+	mouseClick(f: () => void),
+	mouseRelease(f: () => void),
 	keyIsDown(k: string): boolean,
 	keyIsPressed(k: string): boolean,
 	keyIsPressedRep(k: string): boolean,
@@ -116,12 +116,12 @@ type KaboomCtx = {
 	mouseIsDown(): boolean,
 	mouseIsClicked(): boolean,
 	mouseIsReleased(): boolean,
-	loop(t: number, f: () => void): void,
+	loop(t: number, f: () => void),
 	wait(t: number, f?: () => void): Promise<void>,
 	// audio
 	play(id: string, conf?: AudioPlayConf): AudioPlay,
 	volume(v?: number): number,
-	burp(): void,
+	burp(),
 	// math
 	makeRng(seed: number): RNG,
 	rand(): number,
@@ -156,13 +156,13 @@ type KaboomCtx = {
 	deg2rad(deg: number): number,
 	rad2deg(rad: number): number,
 	// draw
-	drawSprite(id: string | SpriteData, conf?: DrawSpriteConf): void,
+	drawSprite(id: string | SpriteData, conf?: DrawSpriteConf),
 	// TODO: conf type
-	drawText(txt: string, conf?: {}): void,
-	drawRect(pos: Vec2, w: number, h: number, conf?: DrawRectConf): void,
-	drawRectStroke(pos: Vec2, w: number, h: number, conf?: DrawRectStrokeConf): void,
-	drawLine(p1: Vec2, p2: Vec2, conf?: DrawLineConf): void,
-	drawTri(p1: Vec2, p2: Vec2, p3: Vec2, conf?: DrawTriConf): void,
+	drawText(txt: string, conf?: {}),
+	drawRect(pos: Vec2, w: number, h: number, conf?: DrawRectConf),
+	drawRectStroke(pos: Vec2, w: number, h: number, conf?: DrawRectStrokeConf),
+	drawLine(p1: Vec2, p2: Vec2, conf?: DrawLineConf),
+	drawTri(p1: Vec2, p2: Vec2, p3: Vec2, conf?: DrawTriConf),
 	// dbg
 	debug: Debug,
 	// helpers
@@ -173,6 +173,9 @@ type KaboomCtx = {
 	// scene
 	scene(id: SceneID, def: SceneDef),
 	go(id: SceneID, ...args),
+	// storage
+	getData(key: string, def?: any): any,
+	setData(key: string, data: any),
 };
 
 type SceneID = string;
@@ -201,12 +204,12 @@ type GameObj = {
 	paused: boolean,
 	exists(): boolean,
 	is(tag: string | string[]): boolean,
-	use(comp: Comp): void,
-	action(cb: () => void): void,
-	on(ev: string, cb: () => void): void,
-	trigger(ev: string, ...args): void,
-	rmTag(t: string): void,
-	destroy(): void,
+	use(comp: Comp),
+	action(cb: () => void),
+	on(ev: string, cb: () => void),
+	trigger(ev: string, ...args),
+	rmTag(t: string),
+	destroy(),
 	c(id: string): Comp,
 //  	add(comps: Comp[]): GameObj,
 //  	addLevel(map: string[], conf: LevelConf): Level,
@@ -264,9 +267,9 @@ type AudioPlayConf = {
 };
 
 type AudioPlay = {
-	play(seek?: number): void,
-	stop(): void,
-	pause(): void,
+	play(seek?: number),
+	stop(),
+	pause(),
 	paused(): boolean,
 	stopped(): boolean,
 	speed(s?: number): number,
@@ -274,22 +277,22 @@ type AudioPlay = {
 	volume(v?: number): number,
 	time(): number,
 	duration(): number,
-	loop(): void,
-	unloop(): void,
+	loop(),
+	unloop(),
 };
 
 type GfxProgram = {
-	bind(): void,
-	unbind(): void,
-	bindAttribs(): void,
-	send(uniform: Uniform): void,
+	bind(),
+	unbind(),
+	bindAttribs(),
+	send(uniform: Uniform),
 }
 
 type GfxTexture = {
 	width: number,
 	height: number,
-	bind(): void,
-	unbind(): void,
+	bind(),
+	unbind(),
 };
 
 type GfxTextureData =
@@ -547,16 +550,14 @@ type PosCompInspect = {
 
 type PosComp = Comp & {
 	pos: Vec2,
-	move(x: number, y: number): void,
-	move(p: Vec2): void,
+	move(x: number, y: number),
+	move(p: Vec2),
 	screenPos(): Vec2,
 	inspect(): PosCompInspect,
 };
 
 type ScaleComp = Comp & {
 	scale: Vec2,
-	flipX(s: number): void,
-	flipY(s: number): void,
 };
 
 type RotateComp = Comp & {
@@ -601,10 +602,10 @@ type AreaComp = Comp & {
 	isHovered(): boolean,
 	isCollided(o: GameObj): boolean,
 	isOverlapped(o: GameObj): boolean,
-	clicks(f: () => void): void,
-	hovers(f: () => void): void,
-	collides(tag: string, f: (o: GameObj) => void): void,
-	overlaps(tag: string, f: (o: GameObj) => void): void,
+	clicks(f: () => void),
+	hovers(f: () => void),
+	collides(tag: string, f: (o: GameObj) => void),
+	overlaps(tag: string, f: (o: GameObj) => void),
 	hasPt(p: Vec2): boolean,
 	pushOut(obj: GameObj): PushOut | null,
 	pushOutAll(): PushOut[],
@@ -640,11 +641,13 @@ type SpriteComp = Comp & {
 	animSpeed: number,
 	frame: number,
 	quad: Quad,
-	play(anim: string, loop?: boolean): void,
-	stop(): void,
-	changeSprite(id: string): void,
+	play(anim: string, loop?: boolean),
+	stop(),
+	changeSprite(id: string),
 	numFrames(): number,
 	curAnim(): string,
+	flipX(b: boolean),
+	flipY(b: boolean),
 	inspect(): SpriteCompInspect,
 };
 
@@ -696,7 +699,7 @@ type Level = {
 	gridWidth(): number,
 	gridHeight(): number,
 	offset(): Vec2,
-	destroy(): void,
+	destroy(),
 };
 
 type Debug = {
@@ -707,10 +710,10 @@ type Debug = {
 	fps(): number,
 	objCount(): number,
 	drawCalls(): number,
-	stepFrame(): void,
-	clearLog(): void,
-	log(msg: string): void,
-	error(msg: string): void,
+	stepFrame(),
+	clearLog(),
+	log(msg: string),
+	error(msg: string),
 };
 
 type UniformValue =
@@ -733,7 +736,7 @@ type BodyComp = Comp & {
 	curPlatform(): GameObj | null,
 	grounded(): boolean,
 	falling(): boolean,
-	jump(f: number): void,
+	jump(f: number),
 };
 
 type BodyCompConf = {
@@ -746,7 +749,7 @@ type SolidComp = Comp & {
 };
 
 type LoopHandle = {
-	stop(): void,
+	stop(),
 };
 
 type HelperProps = {
