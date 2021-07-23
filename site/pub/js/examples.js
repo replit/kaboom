@@ -5,11 +5,11 @@ const liveupdate = document.querySelector("#liveupdate");
 
 function update() {
 	const name = select.value;
-	if (localStorage[name]) {
-		editor.setValue(localStorage[name]);
-		run();
-		window.location.hash = `#${name}`;
-	} else {
+// 	if (localStorage[name]) {
+// 		editor.setValue(localStorage[name]);
+// 		run();
+// 		window.location.hash = `#${name}`;
+// 	} else {
 		fetch(`/pub/examples/${name}.js`).then((res) => {
 			return res.text();
 		}).then((code) => {
@@ -17,7 +17,7 @@ function update() {
 			run();
 			window.location.hash = `#${name}`;
 		});
-	}
+// 	}
 }
 
 const editor = CodeMirror(document.querySelector("#editor"), {

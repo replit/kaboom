@@ -240,7 +240,6 @@ type Timer = {
 
 type Game = {
 	loaded: boolean,
-	compReg: Record<string, CompBuilder>,
 	events: {
 		load: LoadEvent[],
 		nextFrame: NextFrameEvent[],
@@ -316,7 +315,6 @@ type CharEvent = (ch: string) => void;
 const game: Game = {
 
 	loaded: false,
-	compReg: {},
 
 	// event callbacks
 	events: {
@@ -433,30 +431,6 @@ function camIgnore(layers: string[]) {
 			game.layers[name].noCam = true;
 		}
 	})
-}
-
-// define a component with its dependencies and state builder
-function defComp(
-	id: string,
-	require: string[],
-	builder: CompBuilder,
-): CompBuilder {
-	const comp = (...args) => {
-		return {
-			...builder(...args),
-			id: id,
-			require: require,
-		};
-	};
-	game.compReg[id] = comp;
-	return comp;
-}
-
-function makeComp(id: string, ...args): Comp {
-	if (!game.compReg[id]) {
-		throw new Error(`comp not found: ${id}`);
-	}
-	return game.compReg[id](...args);
 }
 
 // TODO: make tags also comp?
@@ -1049,10 +1023,11 @@ function drawInspect() {
 }
 
 // TODO: have velocity here?
-const pos = defComp("pos", [], (...args): PosComp => {
+function pos(...args): PosComp {
 
 	return {
 
+		id: "pos",
 		pos: vec2(...args),
 
 		// TODO: check physics here?
@@ -1079,38 +1054,43 @@ const pos = defComp("pos", [], (...args): PosComp => {
 
 	};
 
-});
+};
 
 // TODO: allow single number assignment
-const scale = defComp("scale", [], (...args): ScaleComp => {
+function scale(...args): ScaleComp {
 	if (args.length === 0) {
 		return scale(1);
 	}
 	return {
+		id: "scale",
 		scale: vec2(...args),
 	};
-});
+}
 
-const rotate = defComp("rotate", [], (r: number): RotateComp => {
+function rotate(r: number): RotateComp {
 	return {
+		id: "rotate",
 		angle: r ?? 0,
 	};
-});
+}
 
-const color = defComp("color", [], (...args): ColorComp => {
+function color(...args): ColorComp {
 	return {
+		id: "color",
 		color: rgba(...args),
 	};
-});
+}
 
-const origin = defComp("origin", [], (o: Origin | Vec2): OriginComp => {
+function origin(o: Origin | Vec2): OriginComp {
 	return {
+		id: "origin",
 		origin: o,
 	};
-});
+}
 
-const layer = defComp("layer", [], (l: string): LayerComp => {
+function layer(l: string): LayerComp {
 	return {
+		id: "layer",
 		layer: l,
 		inspect(): LayerCompInspect {
 			return {
@@ -1118,7 +1098,7 @@ const layer = defComp("layer", [], (l: string): LayerComp => {
 			};
 		},
 	};
-});
+}
 
 function isSameLayer(o1: GameObj, o2: GameObj): boolean {
 	return (o1.layer ?? game.defLayer) === (o2.layer ?? game.defLayer);
@@ -1127,12 +1107,14 @@ function isSameLayer(o1: GameObj, o2: GameObj): boolean {
 // TODO: active flag
 // TODO: tell which size collides
 // TODO: dynamic update when size change
-const area = defComp("area", [], (p1: Vec2, p2: Vec2): AreaComp => {
+function area(p1: Vec2, p2: Vec2): AreaComp {
 
 	const colliding = {};
 	const overlapping = {};
 
 	return {
+
+		id: "area",
 
 		area: {
 			p1: p1,
@@ -1367,7 +1349,7 @@ const area = defComp("area", [], (p1: Vec2, p2: Vec2): AreaComp => {
 
 	};
 
-});
+}
 
 function getAreaFromSize(w, h, o) {
 	const size = vec2(w, h);
@@ -1379,10 +1361,7 @@ function getAreaFromSize(w, h, o) {
 }
 
 // TODO: clean
-const sprite = defComp("sprite", [], (
-	id: string,
-	conf: SpriteCompConf = {}
-): SpriteComp => {
+function sprite(id: string, conf: SpriteCompConf = {}): SpriteComp {
 
 	let spr = null;
 	let curAnim: SpriteCurAnim | null = null;
@@ -1404,6 +1383,7 @@ const sprite = defComp("sprite", [], (
 
 	return {
 
+		id: "sprite",
 		// TODO: allow update
 		width: 0,
 		height: 0,
@@ -1594,16 +1574,13 @@ const sprite = defComp("sprite", [], (
 
 	};
 
-});
+}
 
-const text = defComp("text", [], (
-	t: string,
-	size: number,
-	conf: TextCompConf = {}
-): TextComp => {
+function text(t: string, size: number, conf: TextCompConf = {}): TextComp {
 
 	return {
 
+		id: "text",
 		text: t,
 		textSize: size || 16,
 		font: conf.font,
@@ -1659,16 +1636,13 @@ const text = defComp("text", [], (
 
 	};
 
-});
+}
 
-const rect = defComp("rect", [], (
-	w: number,
-	h: number,
-	conf: RectCompConf = {},
-): RectComp => {
+function rect(w: number, h: number, conf: RectCompConf = {}): RectComp {
 
 	return {
 
+		id: "rect",
 		width: w,
 		height: h,
 
@@ -1694,24 +1668,20 @@ const rect = defComp("rect", [], (
 
 	};
 
-});
+}
 
-const solid = defComp("solid", [], (): SolidComp => {
+function solid(): SolidComp {
 	return {
+		id: "solid",
 		solid: true,
 	};
-});
+}
 
 // maximum y velocity with body()
 const DEF_MAX_VEL = 960;
 const DEF_JUMP_FORCE = 480;
 
-const body = defComp("body", [
-//  	"pos",
-//  	"area",
-], (
-	conf: BodyCompConf = {},
-): BodyComp => {
+function body(conf: BodyCompConf = {}): BodyComp {
 
 	let velY = 0;
 	let curPlatform: GameObj | null = null;
@@ -1720,6 +1690,7 @@ const body = defComp("body", [
 
 	return {
 
+		id: "body",
 		jumpForce: conf.jumpForce ?? DEF_JUMP_FORCE,
 
 		update() {
@@ -1787,18 +1758,16 @@ const body = defComp("body", [
 
 	};
 
-});
+}
 
-const shader = defComp("shader", [], (
-	id: string,
-	uniform: Uniform = {},
-): ShaderComp => {
+function shader(id: string, uniform: Uniform = {}): ShaderComp {
 	const prog = assets.shaders[id];
 	return {
+		id: "shader",
 		shader: id,
 		uniform: uniform,
 	};
-});
+}
 
 const debug: Debug = {
 	paused: false,
@@ -1818,10 +1787,11 @@ const debug: Debug = {
 	error: logger.error,
 };
 
-const gridder = defComp("gridder", [], (level: Level, p: Vec2) => {
+function gridder(level: Level, p: Vec2) {
 
 	return {
 
+		id: "gridder",
 		gridPos: p.clone(),
 
 		setGridPos(p: Vec2) {
@@ -1850,7 +1820,7 @@ const gridder = defComp("gridder", [], (level: Level, p: Vec2) => {
 
 	};
 
-});
+}
 
 function addLevel(map: string[], conf: LevelConf): Level {
 
@@ -2118,7 +2088,6 @@ const ctx: KaboomCtx = {
 	get,
 	every,
 	revery,
-	defComp,
 	// net
 	sync,
 	send,

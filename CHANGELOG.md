@@ -11,7 +11,7 @@ k.keyPress(...);
 - added `loadShader(id, vert, frag, isUrl)`
 - added `shader()` comp for attaching custom shader to an obj
 - (**BREAK**) changed default text size to `16`
-- (**BREAK**) added `id` and `require` on component definitions, making it possible to declare dependencies for components, e.g.
+- (**BREAK**) added `require` on component definitions, making it possible to declare dependencies for components, e.g.
 ```js
 function drag() {
 	return {

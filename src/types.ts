@@ -71,7 +71,6 @@ type KaboomCtx = {
 	camShake(n: number),
 	camIgnore(layers: string[]),
 	gravity(g: number): number,
-	defComp(id: CompID, requires: CompID[], builder: CompBuilder): CompBuilder,
 	// net
 	sync(obj: GameObj),
 	recv(ty: string, handler: MsgHandler),

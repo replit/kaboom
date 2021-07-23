@@ -941,43 +941,6 @@
                     },
                     {
                         "kind": "MethodSignature",
-                        "name": "defComp",
-                        "parameters": [
-                            {
-                                "kind": "Parameter",
-                                "name": "id",
-                                "type": {
-                                    "kind": "TypeReference",
-                                    "typeName": "CompID"
-                                }
-                            },
-                            {
-                                "kind": "Parameter",
-                                "name": "requires",
-                                "type": {
-                                    "kind": "ArrayType",
-                                    "elementType": {
-                                        "kind": "TypeReference",
-                                        "typeName": "CompID"
-                                    }
-                                }
-                            },
-                            {
-                                "kind": "Parameter",
-                                "name": "builder",
-                                "type": {
-                                    "kind": "TypeReference",
-                                    "typeName": "CompBuilder"
-                                }
-                            }
-                        ],
-                        "type": {
-                            "kind": "TypeReference",
-                            "typeName": "CompBuilder"
-                        }
-                    },
-                    {
-                        "kind": "MethodSignature",
                         "name": "sync",
                         "parameters": [
                             {
