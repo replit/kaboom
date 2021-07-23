@@ -254,7 +254,7 @@ const page = t("html", {}, [
 		t("meta", { charset: "utf-8", }),
 		t("style", {}, www.style(gstyle)),
 		t("style", {}, www.style(style)),
-    		t("link", { rel: "icon", href: "/pub/img/kaboom.png"}),
+			t("link", { rel: "icon", href: "/pub/img/kaboom.png"}),
 		t("link", { rel: "stylesheet", href: "/pub/lib/highlight.css", }),
 		t("script", { src: "/pub/lib/highlight.js", }, ""),
 		t("script", {}, "hljs.highlightAll();"),
@@ -285,7 +285,7 @@ const page = t("html", {}, [
 			]),
 			t("div", { id: "content", class: "panel", }, [
 				t("p", { id: "about", }, "kaboom.js is a JavaScript library that helps you make games fast and fun!"),
-// 				t("img", { id: "chill", src: "/pub/img/chill.png", }),
+//				t("img", { id: "chill", src: "/pub/img/chill.png", }),
 				t("video", {
 					id: "chill",
 					poster: "/pub/img/chill2.png",
@@ -337,25 +337,43 @@ k.add([
 					t("p", { class: "title", }, "Custom Component"),
 					t("p", { class: "desc", }, "a component describes a single unit of data / behavior"),
 					code(`
+const player = add([
+	sprite("froggy"),
+	// custom components are used just like other components
+	health(12),
+]);
+
 // create a custom component that handles health
 function health(hp) {
-	// these functions will directly assign to the game object
 	return {
+		// comp id (if not it'll be treated like custom fields on the game object)
+		id: "health",
+		// comp dependencies (will throw if the host object doesn't contain these components)
+		require: [],
+		// custom behaviors
 		hurt(n) {
-			hp -= n;
+			hp -= n ?? 1;
+			// trigger custom events
+			this.trigger("hurt");
 			if (hp <= 0) {
-				// trigger a custom event
 				this.trigger("death");
 			}
 		},
 		heal(n) {
-			hp += n;
+			hp += n ?? 1;
+			this.trigger("heal");
 		},
 		hp() {
 			return hp;
 		},
 	};
 }
+
+// listen to custom events from a custom component
+player.on("hurt", () => { ... });
+
+// decoupled discrete logic
+player.collides("enemy", () => player.hurt(1));
 
 const boss = add([
 	health(12),
@@ -372,34 +390,43 @@ boss.on("death", () => {
 	});
 });
 
-// lifecycle methods
+// another custom component that enables drag and drop
 function drag() {
 
 	// private states
 	let draggin = false;
+	let removeEvent;
 
 	return {
 
-		// called when the object is add()-ed
+		// LIFE CYCLE, called when the object is add()-ed
 		add() {
 			this.clicks(() => {
 				draggin = true;
 			});
-			mouseRelease(() => {
+			// TODO: remove this event when destroyed
+			removeEvent = mouseRelease(() => {
 				draggin = false;
 			});
 		},
 
-		// called every frame
+		// LIFE CYCLE, called every frame
 		update() {
 			if (draggin) {
 				this.pos = mousePos();
 			}
 		},
 
+		// LIFE CYCLE, called when object is destroy()-ed
+		destroy() {
+			removeEvent();
+		},
+
 	};
 
 }
+
+// for more custom component examples, look at the implementations of the built-in comps in kaboom.ts
 					`),
 				]),
 				t("div", {}, [
