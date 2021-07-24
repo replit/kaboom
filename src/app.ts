@@ -26,6 +26,7 @@ type AppCtx = {
 	mouseState: ButtonState,
 	keyStates: Record<string, ButtonState>,
 	charInputted: string[],
+	mouseMoved: boolean,
 	time: number,
 	dt: number,
 	realTime: number,
@@ -49,6 +50,7 @@ type App = {
 	mouseDown(): boolean,
 	mouseClicked(): boolean,
 	mouseReleased(): boolean,
+	mouseMoved(): boolean,
 	charInputted(): string[],
 	cursor(c?: string): void,
 	dt(): number,
@@ -81,6 +83,7 @@ function appInit(gconf: AppConf = {}): App {
 		})(),
 		keyStates: {},
 		charInputted: [],
+		mouseMoved: false,
 		mouseState: "up",
 		mousePos: vec2(0, 0),
 		time: 0,
@@ -161,6 +164,7 @@ function appInit(gconf: AppConf = {}): App {
 
 	app.canvas.addEventListener("mousemove", (e) => {
 		app.mousePos = vec2(e.offsetX, e.offsetY).scale(1 / app.scale);
+		app.mouseMoved = true;
 	});
 
 	app.canvas.addEventListener("mousedown", () => {
@@ -211,6 +215,10 @@ function appInit(gconf: AppConf = {}): App {
 		app.keyStates[k] = "released";
 	});
 
+	app.canvas.addEventListener("touchstart", (e) => {
+		// TODO
+	});
+
 	app.canvas.focus();
 
 	document.addEventListener("visibilitychange", () => {
@@ -240,6 +248,10 @@ function appInit(gconf: AppConf = {}): App {
 
 	function mouseReleased(): boolean {
 		return app.mouseState === "released";
+	}
+
+	function mouseMoved(): boolean {
+		return app.mouseMoved;
 	}
 
 	function keyPressed(k: string): boolean {
@@ -321,6 +333,7 @@ function appInit(gconf: AppConf = {}): App {
 
 			app.mouseState = processBtnState(app.mouseState);
 			app.charInputted = [];
+			app.mouseMoved = false;
 
 			if (!app.stopped) {
 				app.loopID = requestAnimationFrame(frame);
@@ -355,6 +368,7 @@ function appInit(gconf: AppConf = {}): App {
 		mouseDown,
 		mouseClicked,
 		mouseReleased,
+		mouseMoved,
 		charInputted,
 		cursor,
 		dt,

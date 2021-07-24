@@ -401,12 +401,12 @@ space: shoot
 
 scene("win", ({ time, boss }) => {
 
-	const burp = play("Burp", {
+	const b = burp({
 		loop: true,
 	});
 
 	loop(0.5, () => {
-		burp.detune(rand(-1200, 1200));
+		b.detune(rand(-1200, 1200));
 	});
 
 	add([

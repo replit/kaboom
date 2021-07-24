@@ -1,6 +1,7 @@
 declare function kaboom(conf?: KaboomConf): KaboomCtx;
 
 type KaboomCtx = {
+	burp(),
 	// assets
 	loadRoot(path?: string): string,
 	loadSprite(
@@ -46,25 +47,25 @@ type KaboomCtx = {
 	revery<T>(t: string, f: (obj: GameObj) => T): T[],
 	revery<T>(f: (obj: GameObj) => T): T[],
 	layers(list: string[], def?: string),
-	on(event: string, tag: string, cb: (obj: GameObj) => void),
-	action(tag: string, cb: (obj: GameObj) => void),
-	action(cb: () => void),
-	render(tag: string, cb: (obj: GameObj) => void),
-	render(cb: () => void),
+	on(event: string, tag: string, cb: (obj: GameObj) => void): EventCanceller,
+	action(tag: string, cb: (obj: GameObj) => void): EventCanceller,
+	action(cb: () => void): EventCanceller,
+	render(tag: string, cb: (obj: GameObj) => void): EventCanceller,
+	render(cb: () => void): EventCanceller,
 	collides(
 		t1: string,
 		t2: string,
 		f: (a: GameObj, b: GameObj) => void,
-	),
+	): EventCanceller,
 	overlaps(
 		t1: string,
 		t2: string,
 		f: (a: GameObj, b: GameObj) => void,
-	),
+	): EventCanceller,
 	clicks(
 		tag: string,
 		f: (a: GameObj) => void,
-	),
+	): EventCanceller,
 	camPos(p: Vec2): Vec2,
 	camScale(p: Vec2): Vec2,
 	camRot(a: number): number,
@@ -100,14 +101,15 @@ type KaboomCtx = {
 	// inputs
 	cursor(c?: string),
 	mousePos(layer?: string): Vec2,
-	keyDown(k: string, f: () => void),
-	keyPress(k: string, f: () => void),
-	keyPressRep(k: string, f: () => void),
-	keyRelease(k: string, f: () => void),
-	charInput(f: (ch: string) => void),
-	mouseDown(f: () => void),
-	mouseClick(f: () => void),
-	mouseRelease(f: () => void),
+	keyDown(k: string, f: () => void): EventCanceller,
+	keyPress(k: string, f: () => void): EventCanceller,
+	keyPressRep(k: string, f: () => void): EventCanceller,
+	keyRelease(k: string, f: () => void): EventCanceller,
+	charInput(f: (ch: string) => void): EventCanceller,
+	mouseDown(f: () => void): EventCanceller,
+	mouseClick(f: () => void): EventCanceller,
+	mouseRelease(f: () => void): EventCanceller,
+	mouseMove(f: () => void): EventCanceller,
 	keyIsDown(k: string): boolean,
 	keyIsPressed(k: string): boolean,
 	keyIsPressedRep(k: string): boolean,
@@ -115,12 +117,13 @@ type KaboomCtx = {
 	mouseIsDown(): boolean,
 	mouseIsClicked(): boolean,
 	mouseIsReleased(): boolean,
-	loop(t: number, f: () => void),
+	mouseIsMoved(): boolean,
+	// timers
+	loop(t: number, f: () => void): EventCanceller,
 	wait(t: number, f?: () => void): Promise<void>,
 	// audio
 	play(id: string, conf?: AudioPlayConf): AudioPlay,
 	volume(v?: number): number,
-	burp(),
 	// math
 	makeRng(seed: number): RNG,
 	rand(): number,
@@ -180,6 +183,8 @@ type KaboomCtx = {
 type SceneID = string;
 type SceneDef = (...args) => void;
 
+type EventCanceller = () => void;
+
 type KaboomConf = {
 	width?: number,
 	height?: number,
@@ -204,31 +209,16 @@ type GameObj = {
 	exists(): boolean,
 	is(tag: string | string[]): boolean,
 	use(comp: Comp),
-	action(cb: () => void),
-	on(ev: string, cb: () => void),
+	action(cb: () => void): EventCanceller,
+	on(ev: string, cb: () => void): EventCanceller,
 	trigger(ev: string, ...args),
 	rmTag(t: string),
 	destroy(),
 	c(id: string): Comp,
-//  	add(comps: Comp[]): GameObj,
-//  	addLevel(map: string[], conf: LevelConf): Level,
-//  	addSprite(name: string, conf?: AddSpriteConf): GameObj,
-//  	addRect(w: number, h: number, conf?: AddRectConf): GameObj,
-//  	addText(txt: string, size: number, props: AddTextConf): GameObj,
-	_id: GameObjID | null,
-	_children: GameObj[],
-	_tags: string[],
-	_events: {
-		load: (() => void)[],
-		add: (() => void)[],
-		update: (() => void)[],
-		draw: (() => void)[],
-		destroy: (() => void)[],
-		inspect: (() => {})[],
-	},
-	_client: ClientID | null,
 	[custom: string]: any,
 };
+
+type Fn = () => void;
 
 type SpriteAnim = {
 	from: number,
@@ -745,10 +735,6 @@ type BodyCompConf = {
 
 type SolidComp = Comp & {
 	solid: boolean,
-};
-
-type LoopHandle = {
-	stop(),
 };
 
 type HelperProps = {

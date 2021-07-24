@@ -14,7 +14,7 @@ function addButton(txt, p, f) {
 	]);
 
 	add([
-		text(txt),
+		text(txt, 8),
 		pos(p),
 		origin("center"),
 		color(0, 0, 0),

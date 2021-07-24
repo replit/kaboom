@@ -12,7 +12,7 @@ type Audio = {
 	ctx(): AudioContext,
 	volume(v: number): number,
 	play(sound: AudioBuffer, conf?: AudioPlayConf): AudioPlay,
-	burp(): void,
+	burp(conf?: AudioPlayConf): void,
 };
 
 const MIN_GAIN = 0;
@@ -46,7 +46,7 @@ function audioInit(): Audio {
 
 	let burpBuf;
 
-	audio.ctx.decodeAudioData(burpBytes.buffer, (buf) => {
+	audio.ctx.decodeAudioData(burpBytes.buffer.slice(0), (buf) => {
 		burpBuf = buf;
 	}, () => {
 		throw new Error("failed to make burp")
@@ -204,8 +204,8 @@ function audioInit(): Audio {
 		return audio.ctx;
 	}
 
-	function burp() {
-		return play(burpBuf);
+	function burp(conf?: AudioPlayConf) {
+		return play(burpBuf, conf);
 	}
 
 	return {

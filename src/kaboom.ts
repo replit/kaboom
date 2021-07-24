@@ -49,7 +49,25 @@ import {
 	netInit,
 } from "./net";
 
-type TimerID = number;
+type ID = number;
+
+class IDList<T> extends Map<ID, T> {
+	lastID: ID;
+	constructor(...args) {
+		super(...args);
+		this.lastID = 0;
+	}
+	push(v: T): ID {
+		const id = this.lastID;
+		this.set(id, v);
+		this.lastID++;
+		return id;
+	}
+	pushd(v: T): EventCanceller {
+		const id = this.push(v);
+		return () => this.delete(id);
+	}
+}
 
 // @ts-ignore
 module.exports = (gconf: KaboomConf = {
@@ -240,32 +258,12 @@ type Timer = {
 
 type Game = {
 	loaded: boolean,
-	events: {
-		load: LoadEvent[],
-		nextFrame: NextFrameEvent[],
-		mouseClick: MouseEvent[],
-		mouseRelease: MouseEvent[],
-		mouseDown: MouseEvent[],
-		charInput: CharEvent[],
-	},
-	objEvents: {
-		add: TaggedEvent[],
-		update: TaggedEvent[],
-		draw: TaggedEvent[],
-		destroy: TaggedEvent[],
-	},
-	keyEvents: {
-		down: KeyEvent[],
-		press: KeyEvent[],
-		pressRep: KeyEvent[],
-		release: KeyEvent[],
-	},
-	action: Array<() => void>,
-	render: Array<() => void>,
-	objs: Map<GameObjID, GameObj>,
-	lastObjID: GameObjID,
-	timers: Record<TimerID, Timer>,
-	lastTimerID: TimerID,
+	events: Record<string, IDList<() => void>>,
+	objEvents: Record<string, IDList<TaggedEvent>>,
+	actions: IDList<() => void>,
+	renders: IDList<() => void>,
+	objs: IDList<GameObj>,
+	timers: IDList<Timer>,
 	cam: Camera,
 	camMousePos: Vec2,
 	camMatrix: Mat4,
@@ -275,7 +273,7 @@ type Game = {
 	travelers: GameObjID[],
 	visitors: Record<ClientID, Record<GameObjID, GameObjID>>,
 	data: any,
-	on<F>(ev: string, cb: F): void,
+	on<F>(ev: string, cb: F): EventCanceller,
 	trigger(ev: string, ...args): void,
 	scenes: Record<SceneID, SceneDef>,
 };
@@ -317,37 +315,15 @@ const game: Game = {
 	loaded: false,
 
 	// event callbacks
-	events: {
-		load: [],
-		nextFrame: [],
-		mouseClick: [],
-		mouseRelease: [],
-		mouseDown: [],
-		charInput: [],
-	},
+	events: {},
+	objEvents: {},
 
-	objEvents: {
-		add: [],
-		update: [],
-		draw: [],
-		destroy: [],
-	},
-
-	keyEvents: {
-		down: [],
-		press: [],
-		pressRep: [],
-		release: [],
-	},
-
-	action: [],
-	render: [],
+	actions: new IDList(),
+	renders: new IDList(),
 
 	// in game pool
-	objs: new Map(),
-	lastObjID: 0,
-	timers: {},
-	lastTimerID: 0,
+	objs: new IDList(),
+	timers: new IDList(),
 
 	// cam
 	cam: {
@@ -370,13 +346,16 @@ const game: Game = {
 	travelers: [],
 	visitors: {},
 
-	on<F>(ev: string, cb: F) {
-		this.events[ev].push(cb);
+	on<F>(ev: string, cb: F): EventCanceller {
+		if (!this.events[ev]) {
+			this.events[ev] = new IDList();
+		}
+		return this.events[ev].pushd(cb);
 	},
 
 	trigger(ev: string, ...args) {
-		for (const cb of this.events[ev]) {
-			cb(...args);
+		if (this.events[ev]) {
+			this.events[ev].forEach((cb) => cb(...args));
 		}
 	},
 
@@ -433,29 +412,28 @@ function camIgnore(layers: string[]) {
 	})
 }
 
+const COMP_EVENTS = new Set([
+	"add",
+	"load",
+	"update",
+	"draw",
+	"destroy",
+	"inspect",
+]);
+
 // TODO: make tags also comp?
 function add(comps: Comp[]): GameObj {
 
 	const compStates = {};
 	const customState = {};
+	const events = {};
+	const tags = [];
 
 	const obj: GameObj = {
 
 		hidden: false,
 		paused: false,
-		_children: [],
-		_tags: [],
 		_id: null,
-		_client: null,
-
-		_events: {
-			add: [],
-			load: [],
-			update: [],
-			draw: [],
-			destroy: [],
-			inspect: [],
-		},
 
 		// use a comp
 		use(comp: Comp) {
@@ -468,7 +446,7 @@ function add(comps: Comp[]): GameObj {
 
 			// tags
 			if (ty === "string") {
-				this._tags.push(comp);
+				tags.push(comp);
 				return;
 			}
 
@@ -491,16 +469,18 @@ function add(comps: Comp[]): GameObj {
 
 				// event / custom method
 				if (typeof comp[k] === "function") {
-					if (this._events[k]) {
-						this._events[k].push(comp[k].bind(this));
+					const func = comp[k].bind(this);
+					if (COMP_EVENTS.has(k)) {
+						this.on(k, func);
 						continue;
 					} else {
-						stateContainer[k] = comp[k].bind(this);
+						stateContainer[k] = func;
 					}
 				} else {
 					stateContainer[k] = comp[k];
 				}
 
+				// TODO: slow?
 				// fields
 				if (!this[k]) {
 					Object.defineProperty(this, k, {
@@ -541,51 +521,66 @@ function add(comps: Comp[]): GameObj {
 			}
 			if (Array.isArray(tag)) {
 				for (const t of tag) {
-					if (!this._tags.includes(t)) {
+					if (!tags.includes(t)) {
 						return false;
 					}
 				}
 				return true;
 			}
-			return this._tags.includes(tag);
+			return tags.includes(tag);
 		},
 
-		on(ev: string, cb): void {
-			if (!this._events[ev]) {
-				this._events[ev] = [];
+		on(ev: string, cb): EventCanceller {
+			if (!events[ev]) {
+				events[ev] = new IDList();
 			}
-			this._events[ev].push(cb);
+			return events[ev].pushd(cb);
 		},
 
-		action(cb: () => void): void {
-			this.on("update", cb);
+		action(cb: () => void): EventCanceller {
+			return this.on("update", cb);
 		},
 
 		trigger(ev: string, ...args): void {
 
-			if (this._events[ev]) {
-				for (const f of this._events[ev]) {
-					f.call(this, ...args);
-				}
+			if (events[ev]) {
+				events[ev].forEach((cb) => cb.call(this, ...args));
 			}
 
-			const events = game.events[ev];
+			const gEvents = game.objEvents[ev];
 
-			if (events) {
-				for (const ev of events) {
-					if (this.is(ev.tag)) {
-						ev.cb(this, ...args);
+			if (gEvents) {
+				gEvents.forEach((e) => {
+					if (this.is(e.tag)) {
+						e.cb(this, ...args);
 					}
-				}
+				});
 			}
 
 		},
 
 		rmTag(t: string) {
-			const idx = this._tags.indexOf(t);
+			const idx = tags.indexOf(t);
 			if (idx > -1) {
-				this._tags.splice(idx, 1);
+				tags.splice(idx, 1);
 			}
+		},
+
+		_inspect() {
+
+			const info = [];
+
+			if (events["inspect"]) {
+				for (const inspect of events["inspect"].values()) {
+					info.push(inspect());
+				}
+			}
+
+			return {
+				tags: tags,
+				info: info,
+			};
+
 		},
 
 		destroy() {
@@ -598,18 +593,9 @@ function add(comps: Comp[]): GameObj {
 		obj.use(comp);
 	}
 
-	const id = game.lastObjID++;
-
-	game.objs.set(id, obj);
-	obj._id = id;
-
+	obj._id = game.objs.push(obj);
 	obj.trigger("add");
-
-	if (!game.loaded) {
-		ready(() => obj.trigger("load"));
-	} else {
-		obj.trigger("load");
-	}
+	ready(() => obj.trigger("load"));
 
 	// check comp dependencies
 	for (const id in compStates) {
@@ -633,8 +619,7 @@ function readd(obj: GameObj): GameObj {
 	}
 
 	game.objs.delete(obj._id);
-	const id = game.lastObjID++;
-	game.objs.set(id, obj);
+	const id = game.objs.push(obj);
 	obj._id = id;
 
 	return obj;
@@ -642,31 +627,31 @@ function readd(obj: GameObj): GameObj {
 }
 
 // add an event to a tag
-function on(event: string, tag: string, cb: (obj: GameObj) => void) {
-	if (!game.events[event]) {
-		game.events[event] = [];
+function on(event: string, tag: string, cb: (obj: GameObj) => void): EventCanceller {
+	if (!game.objEvents[event]) {
+		game.objEvents[event] = new IDList();
 	}
-	game.events[event].push({
+	return game.objEvents[event].pushd({
 		tag: tag,
 		cb: cb,
 	});
 }
 
 // add update event to a tag or global update
-function action(tag: string | (() => void), cb?: (obj: GameObj) => void) {
+function action(tag: string | (() => void), cb?: (obj: GameObj) => void): EventCanceller {
 	if (typeof tag === "function" && cb === undefined) {
-		game.action.push(tag);
+		return game.actions.pushd(tag);
 	} else if (typeof tag === "string") {
-		on("update", tag, cb);
+		return on("update", tag, cb);
 	}
 }
 
 // add draw event to a tag or global draw
 function render(tag: string | (() => void), cb?: (obj: GameObj) => void) {
 	if (typeof tag === "function" && cb === undefined) {
-		game.render.push(tag);
+		return game.renders.pushd(tag);
 	} else if (typeof tag === "string") {
-		on("update", tag, cb);
+		return on("update", tag, cb);
 	}
 }
 
@@ -675,8 +660,8 @@ function collides(
 	t1: string,
 	t2: string,
 	f: (a: GameObj, b: GameObj) => void,
-) {
-	action(t1, (o1) => {
+): EventCanceller {
+	return action(t1, (o1) => {
 		o1._checkCollisions(t2, (o2) => {
 			f(o1, o2);
 		});
@@ -688,8 +673,8 @@ function overlaps(
 	t1: string,
 	t2: string,
 	f: (a: GameObj, b: GameObj) => void,
-) {
-	action(t1, (o1) => {
+): EventCanceller {
+	return action(t1, (o1) => {
 		o1._checkOverlaps(t2, (o2) => {
 			f(o1, o2);
 		});
@@ -697,8 +682,8 @@ function overlaps(
 }
 
 // add an event that runs when objs with tag t is clicked
-function clicks(t: string, f: (obj: GameObj) => void) {
-	action(t, (o) => {
+function clicks(t: string, f: (obj: GameObj) => void): EventCanceller {
+	return action(t, (o) => {
 		if (o.isClicked()) {
 			f(o);
 		}
@@ -708,7 +693,7 @@ function clicks(t: string, f: (obj: GameObj) => void) {
 // add an event that'd be run after t
 function wait(t: number, f?: () => void): Promise<void> {
 	return new Promise((resolve) => {
-		game.timers[game.lastTimerID++] = {
+		game.timers.push({
 			time: t,
 			cb: () => {
 				if (f) {
@@ -716,12 +701,12 @@ function wait(t: number, f?: () => void): Promise<void> {
 				}
 				resolve();
 			},
-		};
+		});
 	});
 }
 
 // add an event that's run every t seconds
-function loop(t: number, f: () => void): LoopHandle {
+function loop(t: number, f: () => void): EventCanceller {
 
 	let stopped = false;
 
@@ -735,58 +720,65 @@ function loop(t: number, f: () => void): LoopHandle {
 
 	newF();
 
-	return {
-		stop() {
-			stopped = true;
-		},
-	};
+	return () => stopped = true;
 
-}
-
-function pushKeyEvent(e: string, k: string, f: () => void) {
-	if (Array.isArray(k)) {
-		for (const key of k) {
-			pushKeyEvent(e, key, f);
-		}
-	} else {
-		game.keyEvents[e].push({
-			key: k,
-			cb: f,
-		});
-	}
 }
 
 // input callbacks
-function keyDown(k: string, f: () => void) {
-	pushKeyEvent("down", k, f);
+function keyDown(k: string, f: () => void): EventCanceller {
+	if (Array.isArray(k)) {
+		const cancellers = k.map((key) => keyDown(key, f));
+		return () => cancellers.forEach((cb) => cb());
+	} else {
+		return game.on("input", () => app.keyDown(k) && f());
+	}
 }
 
-function keyPress(k: string, f: () => void) {
-	pushKeyEvent("press", k, f);
+function keyPress(k: string, f: () => void): EventCanceller {
+	if (Array.isArray(k)) {
+		const cancellers = k.map((key) => keyPress(key, f));
+		return () => cancellers.forEach((cb) => cb());
+	} else {
+		return game.on("input", () => app.keyPressed(k) && f());
+	}
 }
 
-function keyPressRep(k: string, f: () => void) {
-	pushKeyEvent("pressRep", k, f);
+function keyPressRep(k: string, f: () => void): EventCanceller {
+	if (Array.isArray(k)) {
+		const cancellers = k.map((key) => keyPressRep(key, f));
+		return () => cancellers.forEach((cb) => cb());
+	} else {
+		return game.on("input", () => app.keyPressedRep(k) && f());
+	}
 }
 
-function keyRelease(k: string, f: () => void) {
-	pushKeyEvent("release", k, f);
+function keyRelease(k: string, f: () => void): EventCanceller {
+	if (Array.isArray(k)) {
+		const cancellers = k.map((key) => keyRelease(key, f));
+		return () => cancellers.forEach((cb) => cb());
+	} else {
+		return game.on("input", () => app.keyReleased(k) && f());
+	}
 }
 
-function charInput(f: (ch: string) => void) {
-	game.events.charInput.push(f);
+function mouseDown(f: () => void): EventCanceller {
+	return game.on("input", () => app.mouseDown() && f());
 }
 
-function mouseDown(f: () => void) {
-	game.events.mouseDown.push(f);
+function mouseClick(f: () => void): EventCanceller {
+	return game.on("input", () => app.mouseClicked() && f());
 }
 
-function mouseClick(f: () => void) {
-	game.events.mouseClick.push(f);
+function mouseRelease(f: () => void): EventCanceller {
+	return game.on("input", () => app.mouseReleased() && f());
 }
 
-function mouseRelease(f: () => void) {
-	game.events.mouseRelease.push(f);
+function mouseMove(f: () => void): EventCanceller {
+	return game.on("input", () => app.mouseMoved() && f());
+}
+
+function charInput(f: (ch: string) => void): EventCanceller {
+	return game.on("input", () => app.charInputted().forEach((ch) => f(ch)));
 }
 
 // TODO: cache sorted list
@@ -857,20 +849,19 @@ function gravity(g?: number): number {
 function gameFrame(ignorePause?: boolean) {
 
 	game.trigger("nextFrame");
-	game.events.nextFrame = [];
+	delete game.events["nextFrame"];
 
 	const doUpdate = ignorePause || !debug.paused;
 
 	if (doUpdate) {
 		// update timers
-		for (const id in game.timers) {
-			const t = game.timers[id];
+		game.timers.forEach((t, id) => {
 			t.time -= dt();
 			if (t.time <= 0) {
 				t.cb();
-				delete game.timers[id];
+				game.timers.delete(id);
 			}
-		}
+		});
 	}
 
 	// update every obj
@@ -881,9 +872,7 @@ function gameFrame(ignorePause?: boolean) {
 	});
 
 	if (doUpdate) {
-		for (const f of game.action) {
-			f();
-		}
+		game.actions.forEach((a) => a());
 	}
 
 	// calculate camera matrix
@@ -920,9 +909,7 @@ function gameFrame(ignorePause?: boolean) {
 
 	});
 
-	for (const f of game.render) {
-		f();
-	}
+	game.renders.forEach((r) => r());
 
 }
 
@@ -1000,13 +987,13 @@ function drawInspect() {
 
 			const mpos = mousePos(inspecting.layer);
 			const lines = [];
+			const data = inspecting._inspect();
 
-			for (const tag of inspecting._tags) {
+			for (const tag of data.tags) {
 				lines.push(`"${tag}"`);
 			}
 
-			for (const inspect of inspecting._events.inspect) {
-				const info = inspect();
+			for (const info of data.info) {
 				for (const field in info) {
 					lines.push(`${field}: ${info[field]}`);
 				}
@@ -1824,7 +1811,7 @@ function gridder(level: Level, p: Vec2) {
 
 function addLevel(map: string[], conf: LevelConf): Level {
 
-	const pool: GameObj[] = [];
+	const objs: GameObj[] = [];
 	const offset = vec2(conf.pos || 0);
 	let longRow = 0;
 
@@ -1877,7 +1864,7 @@ function addLevel(map: string[], conf: LevelConf): Level {
 
 			const obj = add(comps);
 
-			pool.push(obj);
+			objs.push(obj);
 
 			obj.use(gridder(this, p));
 
@@ -1894,7 +1881,7 @@ function addLevel(map: string[], conf: LevelConf): Level {
 		},
 
 		destroy() {
-			for (const obj of pool) {
+			for (const obj of objs) {
 				destroy(obj);
 			}
 		},
@@ -1982,36 +1969,19 @@ function go(id: SceneID, ...args) {
 
 	game.on("nextFrame", () => {
 
-		game.events = {
-			load: [],
-			nextFrame: [],
-			mouseClick: [],
-			mouseRelease: [],
-			mouseDown: [],
-			charInput: [],
-		};
+		game.events = {};
 
 		game.objEvents = {
-			add: [],
-			update: [],
-			draw: [],
-			destroy: [],
+			add: new IDList(),
+			update: new IDList(),
+			draw: new IDList(),
+			destroy: new IDList(),
 		};
 
-		game.keyEvents = {
-			down: [],
-			press: [],
-			pressRep: [],
-			release: [],
-		};
-
-		game.action = [];
-		game.render = [];
-
-		game.objs = new Map();
-		game.lastObjID = 0;
-		game.timers = {};
-		game.lastTimerID = 0;
+		game.actions = new IDList();
+		game.renders = new IDList();
+		game.objs = new IDList();
+		game.timers = new IDList();
 
 		// cam
 		game.cam = {
@@ -2026,7 +1996,7 @@ function go(id: SceneID, ...args) {
 
 		game.layers = {};
 		game.defLayer = null;
-		game.gravity =DEF_GRAVITY;
+		game.gravity = DEF_GRAVITY;
 
 		game.scenes[id](...args);
 
@@ -2122,6 +2092,7 @@ const ctx: KaboomCtx = {
 	mouseDown,
 	mouseClick,
 	mouseRelease,
+	mouseMove,
 	mousePos,
 	cursor: app.cursor,
 	keyIsDown: app.keyDown,
@@ -2131,6 +2102,7 @@ const ctx: KaboomCtx = {
 	mouseIsDown: app.mouseDown,
 	mouseIsClicked: app.mouseClicked,
 	mouseIsReleased: app.mouseReleased,
+	mouseIsMoved: app.mouseMoved,
 	// timer
 	loop,
 	wait,
@@ -2220,47 +2192,7 @@ app.run(() => {
 
 		try {
 
-			for (const cb of game.events.charInput) {
-				app.charInputted().forEach(cb);
-			}
-
-			// run input checks & callbacks
-			for (const e of game.keyEvents.down) {
-				if (app.keyDown(e.key)) {
-					e.cb();
-				}
-			}
-
-			for (const e of game.keyEvents.press) {
-				if (app.keyPressed(e.key)) {
-					e.cb();
-				}
-			}
-
-			for (const e of game.keyEvents.pressRep) {
-				if (app.keyPressedRep(e.key)) {
-					e.cb();
-				}
-			}
-
-			for (const e of game.keyEvents.release) {
-				if (app.keyReleased(e.key)) {
-					e.cb();
-				}
-			}
-
-			if (app.mouseDown()) {
-				game.trigger("mouseDown");
-			}
-
-			if (app.mouseClicked()) {
-				game.trigger("mouseClick");
-			}
-
-			if (app.mouseReleased()) {
-				game.trigger("mouseRelease");
-			}
-
+			game.trigger("input");
 			gameFrame();
 
 			if (debug.inspect) {

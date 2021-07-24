@@ -1,5 +1,6 @@
 ### v0.6 burp()
 - added `burp()` for easy burping
+- added input events `touchStart()`, `mouseMove()`
 - added "mark" as a default sprite
 - `scene()` and `start()` (also removed in favor of `go()`) are optional now, if you don't need multiple scenes yet you can just go directly
 ```js
@@ -7,38 +8,27 @@ const k = kaboom();
 k.add(...);
 k.keyPress(...);
 ```
-- (**BREAK**) removed `start()` in favor of just `go()`
+- added localStorage helper `getData(key, default?)` and `setData(key, data)`
 - added `loadShader(id, vert, frag, isUrl)`
 - added `shader()` comp for attaching custom shader to an obj
-- (**BREAK**) changed default text size to `16`
-- (**BREAK**) added `require` on component definitions, making it possible to declare dependencies for components, e.g.
+- all event handlers like `keyPress()`, `mouseClick()`, `action()` now returns a function to cancel that listener
+- added helpers `addSprite()`, `addText()`, `addRect()` that abstracts away from the component syntax, to reduce concepts for beginners
+- added `require` on component definitions, making it possible to declare dependencies for components, e.g.
 ```js
-function drag() {
+function alwaysRight() {
 	return {
 		// the id of this component
-		id: "draggable",
-		// it'll throw error if the host object doesn't have these 2 components
-		require: [ "pos", "area", ],
-		add() {
-			// so you're guaranteed to use stuff from those components (like 'clicks()' from `area`)
-			this.clicks(() => {
-				if (curDraggin) {
-					return;
-				}
-				curDraggin = this;
-				offset = mousePos().sub(this.pos);
-				readd(this);
-			});
-		},
+		id: "alwaysRight",
+		// list of component ids that this requires
+		require: [ "pos", ],
 		update() {
-			if (curDraggin === this) {
-				this.pos = mousePos().sub(offset);
-			}
+			// so you can use `move()` from pos() component with no worry
+			this.move(100, 0);
 		},
 	};
 }
 ```
-this is breaking because now overlapping fields are not allowed, e.g. you can have a custom comp that has a `collides` field if it already have a `area` component, since it already has that
+- (**BREAK**) overlapping fields are not allowed, e.g. you can have a custom comp that has a `collides` field if it already have a `area` component, since it already has that
 - added `obj.c(id)` for getting a specific comp's state (by default all comps' states are mounted to the obj by `Object.defineProperty`)
 ```js
 // both works
@@ -46,14 +36,14 @@ obj.play("anim");
 obj.c("sprite").play("anim");
 ```
 - (**BREAK**) changed event `headbump` to `headbutt`
-- (**BREAK**) renamed `resolve()` to `pushOutAll()` on `area` comp
-- fixed `"add"` event getting called twice for tagged objs
-- added `pushOut()` for pushing a single object out from another with `area` comp
 - added `width`, `height`, and `tiled` attrib to `SpriteCompConf`, for better control over sprite size and tiled sprite support
-- added helpers `addSprite()`, `addText()`, `addRect()` that abstracts away from the component syntax, to reduce concepts for beginners
+- (**BREAK**) renamed `resolve()` to `pushOutAll()` on `area` comp
+- added `pushOut()` for pushing a single object out from another with `area` comp
+- fixed `"add"` event getting called twice for tagged objs
 - added `flipX` and `flipY` on `sprite()` comp configuration, and `flipX()` `flipY()` methods
 - (**BREAK**) remove `flipX()` and `flipY()` on `scale()` comp
-- added localStorage helper `getData(key, default?)` and `setData(key, data)`
+- (**BREAK**) removed `start()`
+- (**BREAK**) added a default text size `16`
 
 ### v0.5.1
 - added plugins npm package support e.g. `import asepritePlugin from "kaboom/plugins/aseprite"`

@@ -132,13 +132,13 @@ const page = t("html", {}, [
 				t("select", {
 					id: "select",
 					name: "example",
-					value: "level",
+					value: "sprite",
 					onchange: "update()",
 				}, fs
 					.readdirSync("../examples")
 					.filter(f => !f.startsWith(".") && fs.statSync(`../examples/${f}`).isFile())
 					.map(f => {
-					return t("option", { selected: f === "level.js" }, path.basename(f, ".js"));
+					return t("option", { selected: f === "sprite.js" }, path.basename(f, ".js"));
 				})),
 				t("button", { onclick: "run()", }, "run"),
 			]),

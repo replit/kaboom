@@ -8,6 +8,11 @@
                 "members": [
                     {
                         "kind": "MethodSignature",
+                        "name": "burp",
+                        "parameters": []
+                    },
+                    {
+                        "kind": "MethodSignature",
                         "name": "loadRoot",
                         "parameters": [
                             {
@@ -611,7 +616,11 @@
                                     }
                                 }
                             }
-                        ]
+                        ],
+                        "type": {
+                            "kind": "TypeReference",
+                            "typeName": "EventCanceller"
+                        }
                     },
                     {
                         "kind": "MethodSignature",
@@ -644,7 +653,11 @@
                                     }
                                 }
                             }
-                        ]
+                        ],
+                        "type": {
+                            "kind": "TypeReference",
+                            "typeName": "EventCanceller"
+                        }
                     },
                     {
                         "kind": "MethodSignature",
@@ -661,7 +674,11 @@
                                     }
                                 }
                             }
-                        ]
+                        ],
+                        "type": {
+                            "kind": "TypeReference",
+                            "typeName": "EventCanceller"
+                        }
                     },
                     {
                         "kind": "MethodSignature",
@@ -694,7 +711,11 @@
                                     }
                                 }
                             }
-                        ]
+                        ],
+                        "type": {
+                            "kind": "TypeReference",
+                            "typeName": "EventCanceller"
+                        }
                     },
                     {
                         "kind": "MethodSignature",
@@ -711,7 +732,11 @@
                                     }
                                 }
                             }
-                        ]
+                        ],
+                        "type": {
+                            "kind": "TypeReference",
+                            "typeName": "EventCanceller"
+                        }
                     },
                     {
                         "kind": "MethodSignature",
@@ -759,7 +784,11 @@
                                     }
                                 }
                             }
-                        ]
+                        ],
+                        "type": {
+                            "kind": "TypeReference",
+                            "typeName": "EventCanceller"
+                        }
                     },
                     {
                         "kind": "MethodSignature",
@@ -807,7 +836,11 @@
                                     }
                                 }
                             }
-                        ]
+                        ],
+                        "type": {
+                            "kind": "TypeReference",
+                            "typeName": "EventCanceller"
+                        }
                     },
                     {
                         "kind": "MethodSignature",
@@ -840,7 +873,11 @@
                                     }
                                 }
                             }
-                        ]
+                        ],
+                        "type": {
+                            "kind": "TypeReference",
+                            "typeName": "EventCanceller"
+                        }
                     },
                     {
                         "kind": "MethodSignature",
@@ -1475,7 +1512,11 @@
                                     }
                                 }
                             }
-                        ]
+                        ],
+                        "type": {
+                            "kind": "TypeReference",
+                            "typeName": "EventCanceller"
+                        }
                     },
                     {
                         "kind": "MethodSignature",
@@ -1499,7 +1540,11 @@
                                     }
                                 }
                             }
-                        ]
+                        ],
+                        "type": {
+                            "kind": "TypeReference",
+                            "typeName": "EventCanceller"
+                        }
                     },
                     {
                         "kind": "MethodSignature",
@@ -1523,7 +1568,11 @@
                                     }
                                 }
                             }
-                        ]
+                        ],
+                        "type": {
+                            "kind": "TypeReference",
+                            "typeName": "EventCanceller"
+                        }
                     },
                     {
                         "kind": "MethodSignature",
@@ -1547,7 +1596,11 @@
                                     }
                                 }
                             }
-                        ]
+                        ],
+                        "type": {
+                            "kind": "TypeReference",
+                            "typeName": "EventCanceller"
+                        }
                     },
                     {
                         "kind": "MethodSignature",
@@ -1572,7 +1625,11 @@
                                     }
                                 }
                             }
-                        ]
+                        ],
+                        "type": {
+                            "kind": "TypeReference",
+                            "typeName": "EventCanceller"
+                        }
                     },
                     {
                         "kind": "MethodSignature",
@@ -1589,7 +1646,11 @@
                                     }
                                 }
                             }
-                        ]
+                        ],
+                        "type": {
+                            "kind": "TypeReference",
+                            "typeName": "EventCanceller"
+                        }
                     },
                     {
                         "kind": "MethodSignature",
@@ -1606,7 +1667,11 @@
                                     }
                                 }
                             }
-                        ]
+                        ],
+                        "type": {
+                            "kind": "TypeReference",
+                            "typeName": "EventCanceller"
+                        }
                     },
                     {
                         "kind": "MethodSignature",
@@ -1623,7 +1688,11 @@
                                     }
                                 }
                             }
-                        ]
+                        ],
+                        "type": {
+                            "kind": "TypeReference",
+                            "typeName": "EventCanceller"
+                        }
                     },
                     {
                         "kind": "MethodSignature",
@@ -1735,7 +1804,11 @@
                                     }
                                 }
                             }
-                        ]
+                        ],
+                        "type": {
+                            "kind": "TypeReference",
+                            "typeName": "EventCanceller"
+                        }
                     },
                     {
                         "kind": "MethodSignature",
@@ -1813,11 +1886,6 @@
                         "type": {
                             "kind": "NumberKeyword"
                         }
-                    },
-                    {
-                        "kind": "MethodSignature",
-                        "name": "burp",
-                        "parameters": []
                     },
                     {
                         "kind": "MethodSignature",
@@ -2762,6 +2830,17 @@
                 }
             }
         },
+        "EventCanceller": {
+            "kind": "TypeAliasDeclaration",
+            "name": "EventCanceller",
+            "type": {
+                "kind": "FunctionType",
+                "parameters": [],
+                "type": {
+                    "kind": "VoidKeyword"
+                }
+            }
+        },
         "KaboomConf": {
             "kind": "TypeAliasDeclaration",
             "name": "KaboomConf",
@@ -2988,7 +3067,11 @@
                                     }
                                 }
                             }
-                        ]
+                        ],
+                        "type": {
+                            "kind": "TypeReference",
+                            "typeName": "EventCanceller"
+                        }
                     },
                     {
                         "kind": "MethodSignature",
@@ -3012,7 +3095,11 @@
                                     }
                                 }
                             }
-                        ]
+                        ],
+                        "type": {
+                            "kind": "TypeReference",
+                            "typeName": "EventCanceller"
+                        }
                     },
                     {
                         "kind": "MethodSignature",
@@ -3070,177 +3157,6 @@
                         }
                     },
                     {
-                        "kind": "PropertySignature",
-                        "name": "_id",
-                        "type": {
-                            "kind": "UnionType",
-                            "types": [
-                                {
-                                    "kind": "TypeReference",
-                                    "typeName": "GameObjID"
-                                },
-                                {
-                                    "kind": "LiteralType",
-                                    "literal": {
-                                        "kind": "NullKeyword"
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    {
-                        "kind": "PropertySignature",
-                        "name": "_children",
-                        "type": {
-                            "kind": "ArrayType",
-                            "elementType": {
-                                "kind": "TypeReference",
-                                "typeName": "GameObj"
-                            }
-                        }
-                    },
-                    {
-                        "kind": "PropertySignature",
-                        "name": "_tags",
-                        "type": {
-                            "kind": "ArrayType",
-                            "elementType": {
-                                "kind": "StringKeyword"
-                            }
-                        }
-                    },
-                    {
-                        "kind": "PropertySignature",
-                        "name": "_events",
-                        "type": {
-                            "kind": "TypeLiteral",
-                            "members": [
-                                {
-                                    "kind": "PropertySignature",
-                                    "name": "load",
-                                    "type": {
-                                        "kind": "ArrayType",
-                                        "elementType": {
-                                            "kind": "ParenthesizedType",
-                                            "type": {
-                                                "kind": "FunctionType",
-                                                "parameters": [],
-                                                "type": {
-                                                    "kind": "VoidKeyword"
-                                                }
-                                            }
-                                        }
-                                    }
-                                },
-                                {
-                                    "kind": "PropertySignature",
-                                    "name": "add",
-                                    "type": {
-                                        "kind": "ArrayType",
-                                        "elementType": {
-                                            "kind": "ParenthesizedType",
-                                            "type": {
-                                                "kind": "FunctionType",
-                                                "parameters": [],
-                                                "type": {
-                                                    "kind": "VoidKeyword"
-                                                }
-                                            }
-                                        }
-                                    }
-                                },
-                                {
-                                    "kind": "PropertySignature",
-                                    "name": "update",
-                                    "type": {
-                                        "kind": "ArrayType",
-                                        "elementType": {
-                                            "kind": "ParenthesizedType",
-                                            "type": {
-                                                "kind": "FunctionType",
-                                                "parameters": [],
-                                                "type": {
-                                                    "kind": "VoidKeyword"
-                                                }
-                                            }
-                                        }
-                                    }
-                                },
-                                {
-                                    "kind": "PropertySignature",
-                                    "name": "draw",
-                                    "type": {
-                                        "kind": "ArrayType",
-                                        "elementType": {
-                                            "kind": "ParenthesizedType",
-                                            "type": {
-                                                "kind": "FunctionType",
-                                                "parameters": [],
-                                                "type": {
-                                                    "kind": "VoidKeyword"
-                                                }
-                                            }
-                                        }
-                                    }
-                                },
-                                {
-                                    "kind": "PropertySignature",
-                                    "name": "destroy",
-                                    "type": {
-                                        "kind": "ArrayType",
-                                        "elementType": {
-                                            "kind": "ParenthesizedType",
-                                            "type": {
-                                                "kind": "FunctionType",
-                                                "parameters": [],
-                                                "type": {
-                                                    "kind": "VoidKeyword"
-                                                }
-                                            }
-                                        }
-                                    }
-                                },
-                                {
-                                    "kind": "PropertySignature",
-                                    "name": "inspect",
-                                    "type": {
-                                        "kind": "ArrayType",
-                                        "elementType": {
-                                            "kind": "ParenthesizedType",
-                                            "type": {
-                                                "kind": "FunctionType",
-                                                "parameters": [],
-                                                "type": {
-                                                    "kind": "TypeLiteral",
-                                                    "members": []
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    {
-                        "kind": "PropertySignature",
-                        "name": "_client",
-                        "type": {
-                            "kind": "UnionType",
-                            "types": [
-                                {
-                                    "kind": "TypeReference",
-                                    "typeName": "ClientID"
-                                },
-                                {
-                                    "kind": "LiteralType",
-                                    "literal": {
-                                        "kind": "NullKeyword"
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    {
                         "kind": "IndexSignature",
                         "parameters": [
                             {
@@ -3256,6 +3172,17 @@
                         }
                     }
                 ]
+            }
+        },
+        "Fn": {
+            "kind": "TypeAliasDeclaration",
+            "name": "Fn",
+            "type": {
+                "kind": "FunctionType",
+                "parameters": [],
+                "type": {
+                    "kind": "VoidKeyword"
+                }
             }
         },
         "SpriteAnim": {
@@ -7294,20 +7221,6 @@
                                 }
                             }
                         ]
-                    }
-                ]
-            }
-        },
-        "LoopHandle": {
-            "kind": "TypeAliasDeclaration",
-            "name": "LoopHandle",
-            "type": {
-                "kind": "TypeLiteral",
-                "members": [
-                    {
-                        "kind": "MethodSignature",
-                        "name": "stop",
-                        "parameters": []
                     }
                 ]
             }
