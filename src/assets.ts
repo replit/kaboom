@@ -56,7 +56,7 @@ type Assets = {
 		isUrl?: boolean,
 	): Promise<ShaderData>,
 	loadProgress(): number,
-	addLoader<T>(prom: Promise<T>): void,
+	addLoader<T>(prom: Promise<T>),
 	defFont(): FontData,
 	sprites: Record<string, SpriteData>,
 	fonts: Record<string, FontData>,

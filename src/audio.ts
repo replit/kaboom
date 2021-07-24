@@ -12,7 +12,7 @@ type Audio = {
 	ctx(): AudioContext,
 	volume(v: number): number,
 	play(sound: AudioBuffer, conf?: AudioPlayConf): AudioPlay,
-	burp(conf?: AudioPlayConf): void,
+	burp(conf?: AudioPlayConf): AudioPlay,
 };
 
 const MIN_GAIN = 0;

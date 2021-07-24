@@ -91,6 +91,7 @@ const app = appInit({
 	crisp: gconf.crisp,
 	canvas: gconf.canvas,
 	root: gconf.root,
+	touchToMouse: gconf.touchToMouse ?? true,
 });
 
 const gfx = gfxInit(app.gl, {
@@ -253,7 +254,7 @@ const DEF_ORIGIN = "topleft";
 
 type Timer = {
 	time: number,
-	cb(): void,
+	cb(),
 };
 
 type Game = {
@@ -274,7 +275,7 @@ type Game = {
 	visitors: Record<ClientID, Record<GameObjID, GameObjID>>,
 	data: any,
 	on<F>(ev: string, cb: F): EventCanceller,
-	trigger(ev: string, ...args): void,
+	trigger(ev: string, ...args),
 	scenes: Record<SceneID, SceneDef>,
 };
 
@@ -298,11 +299,11 @@ type TaggedEvent = {
 
 type KeyEvent = {
 	key: string,
-	cb(): void,
+	cb(),
 };
 
 type MouseInputEvent = {
-	cb(): void,
+	cb(),
 };
 
 type LoadEvent = () => void;
@@ -333,7 +334,7 @@ const game: Game = {
 		shake: 0,
 	},
 
-	camMousePos: vec2(0),
+	camMousePos: app.mousePos(),
 	camMatrix: mat4(),
 
 	// misc
@@ -779,6 +780,29 @@ function mouseMove(f: () => void): EventCanceller {
 
 function charInput(f: (ch: string) => void): EventCanceller {
 	return game.on("input", () => app.charInputted().forEach((ch) => f(ch)));
+
+}
+
+function touchStart(f: (id: TouchID, pos: Vec2) => void): EventCanceller {
+	return game.on("input", () => {
+		// TODO
+	});
+}
+
+function touchMove(f: (id: TouchID, pos: Vec2) => void): EventCanceller {
+	return game.on("input", () => {
+		// TODO
+	});
+}
+
+function touchEnd(f: (id: TouchID, pos: Vec2) => void): EventCanceller {
+	return game.on("input", () => {
+		// TODO
+	});
+}
+
+function touchIsActive(id: TouchID): boolean {
+	return false;
 }
 
 // TODO: cache sorted list
@@ -888,8 +912,6 @@ function gameFrame(ignorePause?: boolean) {
 		.translate(size.scale(-0.5))
 		.translate(cam.pos.scale(-1).add(size.scale(0.5)).add(shake))
 		;
-
-	game.camMousePos = game.camMatrix.invert().multVec2(app.mousePos());
 
 	// draw every obj
 	every((obj) => {
@@ -1991,7 +2013,7 @@ function go(id: SceneID, ...args) {
 			shake: 0,
 		};
 
-		game.camMousePos = vec2(0);
+		game.camMousePos = app.mousePos();
 		game.camMatrix = mat4();
 
 		game.layers = {};
@@ -2041,7 +2063,9 @@ const ctx: KaboomCtx = {
 	screenshot: app.screenshot,
 	focused: app.focused,
 	focus: app.focus,
+	cursor: app.cursor,
 	ready,
+	isTouch: app.isTouch,
 	// misc
 	layers,
 	camPos,
@@ -2088,13 +2112,16 @@ const ctx: KaboomCtx = {
 	keyPress,
 	keyPressRep,
 	keyRelease,
-	charInput,
 	mouseDown,
 	mouseClick,
 	mouseRelease,
 	mouseMove,
+	charInput,
+	touchStart,
+	touchMove,
+	touchEnd,
+	touchIsActive,
 	mousePos,
-	cursor: app.cursor,
 	keyIsDown: app.keyDown,
 	keyIsPressed: app.keyPressed,
 	keyIsPressedRep: app.keyPressedRep,
@@ -2192,6 +2219,8 @@ app.run(() => {
 
 		try {
 
+			// TODO: this gives the latest mousePos in input handlers but uses cam matrix from last frame
+			game.camMousePos = game.camMatrix.invert().multVec2(app.mousePos());
 			game.trigger("input");
 			gameFrame();
 

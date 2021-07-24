@@ -174,5 +174,4 @@ scene("lose", ({ score }) => {
 		origin("center"),
 		pos(width() / 2, height() / 2),
 	]);
-
 });

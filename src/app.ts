@@ -18,6 +18,7 @@ type AppConf = {
 	crisp?: boolean,
 	canvas?: HTMLCanvasElement,
 	root?: HTMLElement,
+	touchToMouse?: boolean,
 };
 
 type AppCtx = {
@@ -52,15 +53,17 @@ type App = {
 	mouseReleased(): boolean,
 	mouseMoved(): boolean,
 	charInputted(): string[],
-	cursor(c?: string): void,
+	cursor(c?: string),
 	dt(): number,
 	fps(): number,
 	time(): number,
 	screenshot(): string,
-	run(f: () => void): void,
-	quit(): void,
+	run(f: () => void),
+	quit(),
 	focused(): boolean,
-	focus(): void,
+	focus(),
+	canvas(): HTMLCanvasElement,
+	isTouch(): boolean,
 };
 
 function processBtnState(s: ButtonState): ButtonState {
@@ -176,14 +179,31 @@ function appInit(gconf: AppConf = {}): App {
 	});
 
 	app.canvas.addEventListener("touchstart", (e) => {
+		if (!gconf.touchToMouse) return;
+		// disable long tap context menu
+		e.preventDefault();
 		const t = e.touches[0];
 		app.mousePos = vec2(t.clientX, t.clientY).scale(1 / app.scale);
 		app.mouseState = "pressed";
 	});
 
 	app.canvas.addEventListener("touchmove", (e) => {
+		if (!gconf.touchToMouse) return;
+		// disable scrolling
+		e.preventDefault();
 		const t = e.touches[0];
 		app.mousePos = vec2(t.clientX, t.clientY).scale(1 / app.scale);
+		app.mouseMoved = true;
+	});
+
+	app.canvas.addEventListener("touchend", (e) => {
+		if (!gconf.touchToMouse) return;
+		app.mouseState = "released";
+	});
+
+	app.canvas.addEventListener("touchcancel", (e) => {
+		if (!gconf.touchToMouse) return;
+		app.mouseState = "released";
 	});
 
 	app.canvas.addEventListener("keydown", (e) => {
@@ -213,10 +233,6 @@ function appInit(gconf: AppConf = {}): App {
 	app.canvas.addEventListener("keyup", (e: KeyboardEvent) => {
 		const k = keyMap[e.key] || e.key.toLowerCase();
 		app.keyStates[k] = "released";
-	});
-
-	app.canvas.addEventListener("touchstart", (e) => {
-		// TODO
 	});
 
 	app.canvas.focus();
@@ -350,14 +366,6 @@ function appInit(gconf: AppConf = {}): App {
 		app.stopped = true;
 	}
 
-	function focused() {
-		return document.activeElement === app.canvas;
-	}
-
-	function focus() {
-		app.canvas.focus();
-	}
-
 	return {
 		gl,
 		mousePos,
@@ -377,8 +385,10 @@ function appInit(gconf: AppConf = {}): App {
 		screenshot,
 		run,
 		quit,
-		focused,
-		focus,
+		focused: () => document.activeElement === app.canvas,
+		focus: () => app.canvas.focus(),
+		canvas: () => app.canvas,
+		isTouch: () => app.isTouch,
 	};
 
 }

@@ -22,10 +22,10 @@ type LoggerConf = {
 };
 
 type Logger = {
-	draw(): void,
-	info(msg: string): void,
-	error(msg: string): void,
-	clear(): void,
+	draw(),
+	info(msg: string),
+	error(msg: string),
+	clear(),
 };
 
 const LOG_SIZE = 16;

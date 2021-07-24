@@ -36,6 +36,7 @@ type KaboomCtx = {
 	focused(): boolean,
 	focus(),
 	ready(cb: () => void),
+	isTouch(): boolean,
 	// scene / obj
 	add(comps: Comp[]): GameObj,
 	readd(obj: GameObj): GameObj,
@@ -110,6 +111,9 @@ type KaboomCtx = {
 	mouseClick(f: () => void): EventCanceller,
 	mouseRelease(f: () => void): EventCanceller,
 	mouseMove(f: () => void): EventCanceller,
+	touchStart(f: (id: TouchID, pos: Vec2) => void): EventCanceller,
+	touchMove(f: (id: TouchID, pos: Vec2) => void): EventCanceller,
+	touchEnd(f: (id: TouchID, pos: Vec2) => void): EventCanceller,
 	keyIsDown(k: string): boolean,
 	keyIsPressed(k: string): boolean,
 	keyIsPressedRep(k: string): boolean,
@@ -118,6 +122,7 @@ type KaboomCtx = {
 	mouseIsClicked(): boolean,
 	mouseIsReleased(): boolean,
 	mouseIsMoved(): boolean,
+	touchIsActive(id: TouchID): boolean
 	// timers
 	loop(t: number, f: () => void): EventCanceller,
 	wait(t: number, f?: () => void): Promise<void>,
@@ -183,6 +188,8 @@ type KaboomCtx = {
 type SceneID = string;
 type SceneDef = (...args) => void;
 
+type TouchID = number;
+
 type EventCanceller = () => void;
 
 type KaboomConf = {
@@ -199,6 +206,7 @@ type KaboomConf = {
 	texFilter?: TexFilter,
 	logMax?: number,
 	connect?: string,
+	touchToMouse?: boolean,
 	global?: boolean,
 	plugins?: KaboomPlugin[],
 };

@@ -1,6 +1,7 @@
 ### v0.6 burp()
 - added `burp()` for easy burping
 - added input events `touchStart()`, `mouseMove()`
+- added `touchIsMouse` to control if touch events should be translated to mouse events
 - added "mark" as a default sprite
 - `scene()` and `start()` (also removed in favor of `go()`) are optional now, if you don't need multiple scenes yet you can just go directly
 ```js
