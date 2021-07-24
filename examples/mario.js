@@ -167,3 +167,12 @@ keyDown("left", () => {
 keyDown("right", () => {
 	player.move(MOVE_SPEED, 0);
 });
+
+scene("lose", ({ score }) => {
+	add([
+		text("Score: " + score, 24),
+		origin("center"),
+		pos(width() / 2, height() / 2),
+	]);
+
+});
