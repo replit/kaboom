@@ -64,6 +64,7 @@ type App = {
 	focus(),
 	canvas(): HTMLCanvasElement,
 	isTouch(): boolean,
+	scale(): number,
 };
 
 function processBtnState(s: ButtonState): ButtonState {
@@ -178,34 +179,6 @@ function appInit(gconf: AppConf = {}): App {
 		app.mouseState = "released";
 	});
 
-	app.canvas.addEventListener("touchstart", (e) => {
-		if (!gconf.touchToMouse) return;
-		// disable long tap context menu
-		e.preventDefault();
-		const t = e.touches[0];
-		app.mousePos = vec2(t.clientX, t.clientY).scale(1 / app.scale);
-		app.mouseState = "pressed";
-	});
-
-	app.canvas.addEventListener("touchmove", (e) => {
-		if (!gconf.touchToMouse) return;
-		// disable scrolling
-		e.preventDefault();
-		const t = e.touches[0];
-		app.mousePos = vec2(t.clientX, t.clientY).scale(1 / app.scale);
-		app.mouseMoved = true;
-	});
-
-	app.canvas.addEventListener("touchend", (e) => {
-		if (!gconf.touchToMouse) return;
-		app.mouseState = "released";
-	});
-
-	app.canvas.addEventListener("touchcancel", (e) => {
-		if (!gconf.touchToMouse) return;
-		app.mouseState = "released";
-	});
-
 	app.canvas.addEventListener("keydown", (e) => {
 
 		const k = keyMap[e.key] || e.key.toLowerCase();
@@ -235,13 +208,40 @@ function appInit(gconf: AppConf = {}): App {
 		app.keyStates[k] = "released";
 	});
 
-	app.canvas.focus();
+	app.canvas.addEventListener("touchstart", (e) => {
+		if (!gconf.touchToMouse) return;
+		// disable long tap context menu
+		e.preventDefault();
+		const t = e.touches[0];
+		app.mousePos = vec2(t.clientX, t.clientY).scale(1 / app.scale);
+		app.mouseState = "pressed";
+	});
+
+	app.canvas.addEventListener("touchmove", (e) => {
+		if (!gconf.touchToMouse) return;
+		// disable scrolling
+		e.preventDefault();
+		const t = e.touches[0];
+		app.mousePos = vec2(t.clientX, t.clientY).scale(1 / app.scale);
+		app.mouseMoved = true;
+	});
+
+	app.canvas.addEventListener("touchend", (e) => {
+		if (!gconf.touchToMouse) return;
+		app.mouseState = "released";
+	});
+
+	app.canvas.addEventListener("touchcancel", (e) => {
+		if (!gconf.touchToMouse) return;
+		app.mouseState = "released";
+	});
 
 	document.addEventListener("visibilitychange", () => {
 		switch (document.visibilityState) {
 			case "visible":
 				// prevent a surge of dt() when switch back after the tab being hidden for a while
 				app.skipTime = true;
+				// TODO
 //  				audio.ctx().resume();
 				break;
 			case "hidden":
@@ -389,6 +389,7 @@ function appInit(gconf: AppConf = {}): App {
 		focus: () => app.canvas.focus(),
 		canvas: () => app.canvas,
 		isTouch: () => app.isTouch,
+		scale: () => app.scale,
 	};
 
 }

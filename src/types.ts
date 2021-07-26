@@ -107,10 +107,10 @@ type KaboomCtx = {
 	keyPressRep(k: string, f: () => void): EventCanceller,
 	keyRelease(k: string, f: () => void): EventCanceller,
 	charInput(f: (ch: string) => void): EventCanceller,
-	mouseDown(f: () => void): EventCanceller,
-	mouseClick(f: () => void): EventCanceller,
-	mouseRelease(f: () => void): EventCanceller,
-	mouseMove(f: () => void): EventCanceller,
+	mouseDown(f: (pos: Vec2) => void): EventCanceller,
+	mouseClick(f: (pos: Vec2) => void): EventCanceller,
+	mouseRelease(f: (pos: Vec2) => void): EventCanceller,
+	mouseMove(f: (pos: Vec2) => void): EventCanceller,
 	touchStart(f: (id: TouchID, pos: Vec2) => void): EventCanceller,
 	touchMove(f: (id: TouchID, pos: Vec2) => void): EventCanceller,
 	touchEnd(f: (id: TouchID, pos: Vec2) => void): EventCanceller,
@@ -122,7 +122,6 @@ type KaboomCtx = {
 	mouseIsClicked(): boolean,
 	mouseIsReleased(): boolean,
 	mouseIsMoved(): boolean,
-	touchIsActive(id: TouchID): boolean
 	// timers
 	loop(t: number, f: () => void): EventCanceller,
 	wait(t: number, f?: () => void): Promise<void>,
@@ -170,8 +169,6 @@ type KaboomCtx = {
 	drawRectStroke(pos: Vec2, w: number, h: number, conf?: DrawRectStrokeConf),
 	drawLine(p1: Vec2, p2: Vec2, conf?: DrawLineConf),
 	drawTri(p1: Vec2, p2: Vec2, p3: Vec2, conf?: DrawTriConf),
-	// dbg
-	debug: Debug,
 	// helpers
 	addLevel(map: string[], conf: LevelConf): Level,
 	addSprite(name: string, conf?: AddSpriteConf): GameObj,
@@ -183,6 +180,8 @@ type KaboomCtx = {
 	// storage
 	getData(key: string, def?: any): any,
 	setData(key: string, data: any),
+	// dbg
+	debug: Debug,
 };
 
 type SceneID = string;
@@ -663,7 +662,7 @@ type TextComp = Comp & {
 };
 
 type TextCompConf = {
-	noArea?: boolean,
+	area?: boolean,
 	font?: string,
 	width?: number,
 };

@@ -34,9 +34,9 @@ function addButton(txt, p, f) {
 }
 
 addButton("start", vec2(100, 100), () => {
-	alert("oh hi");
+	debug.log("oh hi");
 });
 
 addButton("quit", vec2(100, 150), () => {
-	alert("bye");
+	debug.log("bye");
 });

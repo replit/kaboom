@@ -432,9 +432,9 @@ function add(comps: Comp[]): GameObj {
 
 	const obj: GameObj = {
 
+		_id: null,
 		hidden: false,
 		paused: false,
-		_id: null,
 
 		// use a comp
 		use(comp: Comp) {
@@ -762,20 +762,22 @@ function keyRelease(k: string, f: () => void): EventCanceller {
 	}
 }
 
-function mouseDown(f: () => void): EventCanceller {
-	return game.on("input", () => app.mouseDown() && f());
+// TODO: these mousePos() are from last frame
+function mouseDown(f: (pos: Vec2) => void): EventCanceller {
+	return game.on("input", () => app.mouseDown() && f(mousePos()));
 }
 
-function mouseClick(f: () => void): EventCanceller {
-	return game.on("input", () => app.mouseClicked() && f());
+function mouseClick(f: (pos: Vec2) => void): EventCanceller {
+	return game.on("input", () => app.mouseClicked() && f(mousePos()));
 }
 
-function mouseRelease(f: () => void): EventCanceller {
-	return game.on("input", () => app.mouseReleased() && f());
+function mouseRelease(f: (pos: Vec2) => void): EventCanceller {
+	return game.on("input", () => app.mouseReleased() && f(mousePos()));
 }
 
-function mouseMove(f: () => void): EventCanceller {
-	return game.on("input", () => app.mouseMoved() && f());
+// TODO: pass delta pos
+function mouseMove(f: (pos: Vec2) => void): EventCanceller {
+	return game.on("input", () => app.mouseMoved() && f(mousePos()));
 }
 
 function charInput(f: (ch: string) => void): EventCanceller {
@@ -783,26 +785,35 @@ function charInput(f: (ch: string) => void): EventCanceller {
 
 }
 
-function touchStart(f: (id: TouchID, pos: Vec2) => void): EventCanceller {
-	return game.on("input", () => {
-		// TODO
+// TODO
+app.canvas().addEventListener("touchstart", (e) => {
+	[...e.changedTouches].forEach((t) => {
+		game.trigger("touchStart", t.identifier, vec2(t.clientX, t.clientY).scale(1 / app.scale()));
 	});
+});
+
+app.canvas().addEventListener("touchmove", (e) => {
+	[...e.changedTouches].forEach((t) => {
+		game.trigger("touchMove", t.identifier, vec2(t.clientX, t.clientY).scale(1 / app.scale()));
+	});
+});
+
+app.canvas().addEventListener("touchmove", (e) => {
+	[...e.changedTouches].forEach((t) => {
+		game.trigger("touchEnd", t.identifier, vec2(t.clientX, t.clientY).scale(1 / app.scale()));
+	});
+});
+
+function touchStart(f: (id: TouchID, pos: Vec2) => void): EventCanceller {
+	return game.on("touchStart", f);
 }
 
 function touchMove(f: (id: TouchID, pos: Vec2) => void): EventCanceller {
-	return game.on("input", () => {
-		// TODO
-	});
+	return game.on("touchMove", f);
 }
 
 function touchEnd(f: (id: TouchID, pos: Vec2) => void): EventCanceller {
-	return game.on("input", () => {
-		// TODO
-	});
-}
-
-function touchIsActive(id: TouchID): boolean {
-	return false;
+	return game.on("touchEnd", f);
 }
 
 // TODO: cache sorted list
@@ -1145,7 +1156,11 @@ function area(p1: Vec2, p2: Vec2): AreaComp {
 		},
 
 		isHovered() {
-			return this.hasPt(mousePos(this.layer));
+			if (app.isTouch()) {
+				return app.mouseDown() && this.hasPt(mousePos(this.layer));
+			} else {
+				return this.hasPt(mousePos(this.layer));
+			}
 		},
 
 		isCollided(other) {
@@ -1598,14 +1613,14 @@ function text(t: string, size: number, conf: TextCompConf = {}): TextComp {
 		height: 0,
 
 		add() {
-			if (!conf.noArea) {
+			if (conf.area) {
 				this.use(area(vec2(0), vec2(0)));
 			}
 		},
 
 		load() {
 			// add default area
-			if (!conf.noArea) {
+			if (conf.area) {
 				const font = assets.fonts[this.font ?? DEF_FONT];
 				const ftext = gfx.fmtText(this.text + "", font, {
 					pos: this.pos,
@@ -2120,7 +2135,6 @@ const ctx: KaboomCtx = {
 	touchStart,
 	touchMove,
 	touchEnd,
-	touchIsActive,
 	mousePos,
 	keyIsDown: app.keyDown,
 	keyIsPressed: app.keyPressed,
@@ -2280,6 +2294,8 @@ function regDebugInput() {
 if (gconf.debug) {
 	regDebugInput();
 }
+
+app.focus();
 
 return ctx;
 

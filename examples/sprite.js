@@ -1,8 +1,7 @@
 const k = kaboom();
 k.addSprite("mark", { scale: 10, });
 
-// k.touchStart(k.burp);
-// k.touchMove(k.burp);
+k.touchMove((id, pos) => console.log(id, pos));
 
 // ^ is the shortcut of:
 // add([

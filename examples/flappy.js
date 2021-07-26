@@ -1,6 +1,6 @@
 kaboom({
 	global: true,
-	scale: 2,
+	scale: 3,
 	fullscreen: true,
 	clearColor: [0, 0, 0, 1],
 	debug: true,
@@ -34,7 +34,7 @@ scene("main", () => {
 
 	// background image
 	add([
-		sprite("bg"),
+		sprite("bg", { noArea: true, }),
 		scale(width() / 240, height() / 240),
 		layer("bg"),
 	]);
@@ -44,7 +44,7 @@ scene("main", () => {
 		// sprite() means it's drawn with a sprite of name "birdy" (defined above in 'loadSprite')
 		sprite("birdy"),
 		// give it a position
-		pos(120, 0),
+		pos(width() / 4, 0),
 		// body component enables it to fall and jump in a gravity world
 		body(),
 	]);
@@ -59,6 +59,12 @@ scene("main", () => {
 
 	// jump
 	keyPress("space", () => {
+		birdy.jump(JUMP_FORCE);
+		play("wooosh");
+	});
+
+	// mobile
+	mouseClick(() => {
 		birdy.jump(JUMP_FORCE);
 		play("wooosh");
 	});
@@ -111,7 +117,7 @@ scene("main", () => {
 	});
 
 	// spawn a pipe every 1 sec
-	loop(1, () => {
+	loop(120 / SPEED, () => {
 		spawnPipe();
 	});
 
@@ -119,9 +125,10 @@ scene("main", () => {
 
 	// display score
 	const scoreLabel = add([
-		text(score, 16),
+		text(score, 24),
 		layer("ui"),
-		pos(9, 9),
+		origin("center"),
+		pos(width() / 2, 48),
 	]);
 
 	function addScore() {
@@ -138,9 +145,8 @@ scene("death", (score) => {
 		pos(width() / 2, height() / 2),
 		origin("center"),
 	]);
-	keyPress("space", () => {
-		go("main");
-	});
+	keyPress("space", () => go("main"));
+	mouseClick(() => go("main"));
 });
 
 go("main");
