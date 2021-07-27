@@ -24,6 +24,7 @@ type AppConf = {
 type AppCtx = {
 	canvas: HTMLCanvasElement,
 	mousePos: Vec2,
+	mouseDeltaPos: Vec2,
 	mouseState: ButtonState,
 	keyStates: Record<string, ButtonState>,
 	charInputted: string[],
@@ -44,6 +45,7 @@ type AppCtx = {
 type App = {
 	gl: WebGLRenderingContext,
 	mousePos(): Vec2,
+	mouseDeltaPos(): Vec2,
 	keyDown(k: string): boolean,
 	keyPressed(k: string): boolean,
 	keyPressedRep(k: string): boolean,
@@ -62,9 +64,9 @@ type App = {
 	quit(),
 	focused(): boolean,
 	focus(),
-	canvas(): HTMLCanvasElement,
-	isTouch(): boolean,
-	scale(): number,
+	canvas: HTMLCanvasElement,
+	isTouch: boolean,
+	scale: number,
 };
 
 function processBtnState(s: ButtonState): ButtonState {
@@ -90,6 +92,7 @@ function appInit(gconf: AppConf = {}): App {
 		mouseMoved: false,
 		mouseState: "up",
 		mousePos: vec2(0, 0),
+		mouseDeltaPos: vec2(0, 0),
 		time: 0,
 		realTime: 0,
 		skipTime: false,
@@ -168,6 +171,7 @@ function appInit(gconf: AppConf = {}): App {
 
 	app.canvas.addEventListener("mousemove", (e) => {
 		app.mousePos = vec2(e.offsetX, e.offsetY).scale(1 / app.scale);
+		app.mouseDeltaPos = vec2(e.movementX, e.movementY).scale(1 / app.scale);
 		app.mouseMoved = true;
 	});
 
@@ -252,6 +256,10 @@ function appInit(gconf: AppConf = {}): App {
 
 	function mousePos(): Vec2 {
 		return app.mousePos.clone();
+	}
+
+	function mouseDeltaPos(): Vec2 {
+		return app.mouseDeltaPos.clone();
 	}
 
 	function mouseClicked(): boolean {
@@ -369,6 +377,7 @@ function appInit(gconf: AppConf = {}): App {
 	return {
 		gl,
 		mousePos,
+		mouseDeltaPos,
 		keyDown,
 		keyPressed,
 		keyPressedRep,
@@ -387,9 +396,9 @@ function appInit(gconf: AppConf = {}): App {
 		quit,
 		focused: () => document.activeElement === app.canvas,
 		focus: () => app.canvas.focus(),
-		canvas: () => app.canvas,
-		isTouch: () => app.isTouch,
-		scale: () => app.scale,
+		canvas: app.canvas,
+		isTouch: app.isTouch,
+		scale: app.scale,
 	};
 
 }

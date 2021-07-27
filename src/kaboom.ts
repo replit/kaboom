@@ -776,31 +776,30 @@ function mouseRelease(f: (pos: Vec2) => void): EventCanceller {
 }
 
 // TODO: pass delta pos
-function mouseMove(f: (pos: Vec2) => void): EventCanceller {
-	return game.on("input", () => app.mouseMoved() && f(mousePos()));
+function mouseMove(f: (pos: Vec2, dpos: Vec2) => void): EventCanceller {
+	return game.on("input", () => app.mouseMoved() && f(mousePos(), app.mouseDeltaPos()));
 }
 
 function charInput(f: (ch: string) => void): EventCanceller {
 	return game.on("input", () => app.charInputted().forEach((ch) => f(ch)));
-
 }
 
 // TODO
-app.canvas().addEventListener("touchstart", (e) => {
+app.canvas.addEventListener("touchstart", (e) => {
 	[...e.changedTouches].forEach((t) => {
-		game.trigger("touchStart", t.identifier, vec2(t.clientX, t.clientY).scale(1 / app.scale()));
+		game.trigger("touchStart", t.identifier, vec2(t.clientX, t.clientY).scale(1 / app.scale));
 	});
 });
 
-app.canvas().addEventListener("touchmove", (e) => {
+app.canvas.addEventListener("touchmove", (e) => {
 	[...e.changedTouches].forEach((t) => {
-		game.trigger("touchMove", t.identifier, vec2(t.clientX, t.clientY).scale(1 / app.scale()));
+		game.trigger("touchMove", t.identifier, vec2(t.clientX, t.clientY).scale(1 / app.scale));
 	});
 });
 
-app.canvas().addEventListener("touchmove", (e) => {
+app.canvas.addEventListener("touchmove", (e) => {
 	[...e.changedTouches].forEach((t) => {
-		game.trigger("touchEnd", t.identifier, vec2(t.clientX, t.clientY).scale(1 / app.scale()));
+		game.trigger("touchEnd", t.identifier, vec2(t.clientX, t.clientY).scale(1 / app.scale));
 	});
 });
 
@@ -1156,7 +1155,7 @@ function area(p1: Vec2, p2: Vec2): AreaComp {
 		},
 
 		isHovered() {
-			if (app.isTouch()) {
+			if (app.isTouch) {
 				return app.mouseDown() && this.hasPt(mousePos(this.layer));
 			} else {
 				return this.hasPt(mousePos(this.layer));
@@ -2080,7 +2079,7 @@ const ctx: KaboomCtx = {
 	focus: app.focus,
 	cursor: app.cursor,
 	ready,
-	isTouch: app.isTouch,
+	isTouch: () => app.isTouch,
 	// misc
 	layers,
 	camPos,
@@ -2136,6 +2135,7 @@ const ctx: KaboomCtx = {
 	touchMove,
 	touchEnd,
 	mousePos,
+	mouseDeltaPos: app.mouseDeltaPos,
 	keyIsDown: app.keyDown,
 	keyIsPressed: app.keyPressed,
 	keyIsPressedRep: app.keyPressedRep,

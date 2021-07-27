@@ -102,6 +102,7 @@ type KaboomCtx = {
 	// inputs
 	cursor(c?: string),
 	mousePos(layer?: string): Vec2,
+	mouseDeltaPos(): Vec2,
 	keyDown(k: string, f: () => void): EventCanceller,
 	keyPress(k: string, f: () => void): EventCanceller,
 	keyPressRep(k: string, f: () => void): EventCanceller,
