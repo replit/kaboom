@@ -470,7 +470,7 @@ function add(comps: Comp[]): GameObj {
 
 				// event / custom method
 				if (typeof comp[k] === "function") {
-					const func = comp[k].bind(this);
+					const func = comp[k].bind(this, obj);
 					if (COMP_EVENTS.has(k)) {
 						this.on(k, func);
 						continue;
