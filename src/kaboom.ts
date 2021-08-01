@@ -422,15 +422,22 @@ const COMP_EVENTS = new Set([
 	"inspect",
 ]);
 
+type UnionToIntersection<U> =
+  (U extends any ? (k: U) => void : never) extends ((k: infer I) => void) ? I : never
+type Defined<T> = T extends any ? Pick<T, { [K in keyof T]-?: T[K] extends undefined ? never : K }[keyof T]> : never;
+type Expand<T> = T extends infer U ? { [K in keyof U]: U[K] } : never;
+
+type AddParameters = (PosComp | ScaleComp | RotateComp | ColorComp | OriginComp | LayerComp | AreaComp | SpriteComp | BodyComp | TextComp);
+
 // TODO: make tags also comp?
-function add(comps: Comp[]): GameObj {
+function add<T extends AddParameters>(comps: ReadonlyArray<T>): Expand<UnionToIntersection<Defined<T>>> & GameObj {
 
 	const compStates = {};
 	const customState = {};
 	const events = {};
 	const tags = [];
 
-	const obj: GameObj = {
+	const obj = {
 
 		_id: null,
 		hidden: false,
@@ -609,7 +616,7 @@ function add(comps: Comp[]): GameObj {
 		}
 	}
 
-	return obj;
+	return obj as unknown as Expand<UnionToIntersection<Defined<T>>> & GameObj;
 
 }
 
