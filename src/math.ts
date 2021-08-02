@@ -6,6 +6,20 @@ function rad2deg(rad: number): number {
 	return rad * 180 / Math.PI;
 }
 
+function rgb2Norm(args: number[]): number[] {
+	if (args.some(item => item < 0 || item > 1)) {
+		for (let i = 0; i < args.length; i++) {
+			if (args[i] < 0) args[i] = 0;
+			else if (args[i] > 255) args[i] = 1;
+			else if (args[i] === 0 || args[i] === 1) continue;
+			else if (args[i] > 1 && args[i] <= 255)
+				args[i] = parseFloat((args[i] / 255).toFixed(3));
+		}
+	}
+
+	return args;
+}
+
 function clamp(
 	val: number,
 	min: number,
@@ -173,6 +187,7 @@ function rgb(...args): Color {
 		if (isColor(args[0])) {
 			return rgba(args[0]);
 		} else if (Array.isArray(args[0]) && args[0].length === 3) {
+			rgb2Norm(args[0]);
 			return rgb.apply(null, args[0])
 		}
 	}
@@ -186,7 +201,10 @@ function rgba(...args): Color {
 	} else if (args.length === 1) {
 		if (isColor(args[0])) {
 			return rgba(args[0].r, args[0].g, args[0].b, args[0].a);
+		} else if (Array.isArray(args[0]) && args[0].length === 3) {
+			return rgb(...args);
 		} else if (Array.isArray(args[0]) && args[0].length === 4) {
+			rgb2Norm(args[0]);
 			return rgba.apply(null, args[0]);
 		}
 	}
