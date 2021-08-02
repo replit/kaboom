@@ -96,7 +96,7 @@ function vec2(...args): Vec2 {
 			return vec2(this.y, -this.x);
 		},
 		dot(p2: Vec2): number {
-			return this.x * p2.x + this.y + p2.y;
+			return this.x * p2.x + this.y * p2.y;
 		},
 		angle(...args): number {
 			const p2 = vec2(...args);
