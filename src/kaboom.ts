@@ -20,6 +20,7 @@ import {
 	vec2FromAngle,
 	deg2rad,
 	rad2deg,
+	rgb2Norm,
 } from "./math";
 
 import {
@@ -95,7 +96,7 @@ const app = appInit({
 });
 
 const gfx = gfxInit(app.gl, {
-	clearColor: gconf.clearColor ? rgba(gconf.clearColor) : undefined,
+	clearColor: gconf.clearColor ? rgba(rgb2Norm(gconf.clearColor)) : undefined,
 	scale: gconf.scale,
 	texFilter: gconf.texFilter,
 });

@@ -6,6 +6,20 @@ function rad2deg(rad: number): number {
 	return rad * 180 / Math.PI;
 }
 
+function rgb2Norm(args: number[]): number[] {
+	if (args.some(item => item < 0 || item > 1)) {
+		for (let i = 0; i < args.length; i++) {
+			if (args[i] < 0) args[i] = 0;
+			else if (args[i] > 255) args[i] = 1;
+			else if (args[i] === 0 || args[i] === 1) continue;
+			else if (args[i] > 1 && args[i] <= 255)
+				args[i] = parseFloat((args[i] / 255).toFixed(3));
+		}
+	}
+
+	return args;
+}
+
 function clamp(
 	val: number,
 	min: number,
@@ -572,6 +586,7 @@ export {
 	wave,
 	deg2rad,
 	rad2deg,
+	rgb2Norm,
 	colRectRect,
 	overlapRectRect,
 	colLineLine,
