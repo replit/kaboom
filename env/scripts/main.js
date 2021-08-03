@@ -1,0 +1,2 @@
+addSprite("mark");
+play("horse");
