@@ -187,6 +187,7 @@ function rgb(...args): Color {
 		if (isColor(args[0])) {
 			return rgba(args[0]);
 		} else if (Array.isArray(args[0]) && args[0].length === 3) {
+			rgb2Norm(args[0]);
 			return rgb.apply(null, args[0])
 		}
 	}
@@ -200,7 +201,10 @@ function rgba(...args): Color {
 	} else if (args.length === 1) {
 		if (isColor(args[0])) {
 			return rgba(args[0].r, args[0].g, args[0].b, args[0].a);
+		} else if (Array.isArray(args[0]) && args[0].length === 3) {
+			return rgb(...args);
 		} else if (Array.isArray(args[0]) && args[0].length === 4) {
+			rgb2Norm(args[0]);
 			return rgba.apply(null, args[0]);
 		}
 	}
