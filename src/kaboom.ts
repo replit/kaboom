@@ -2285,7 +2285,7 @@ if (gconf.debug) {
 app.focus();
 
 window.addEventListener("error", (e) => {
-	logger.error(e.error.stack);
+	logger.error(`Error: ${e.error.message}\n  (${e.filename.split("/").pop()}, line #${e.lineno})`);
 	app.quit();
 	app.run(() => {
 		if (assets.loadProgress() === 1) {

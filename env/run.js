@@ -68,8 +68,8 @@ kaboom({
 
 		code += "</script>\n";
 
-		fs.readdirSync("scripts").forEach((file) => {
-			code += `<script src="/scripts/${file}"></script>\n`;
+		fs.readdirSync("code").forEach((file) => {
+			code += `<script src="/code/${file}"></script>\n`;
 		});
 
 		res.setHeader("Content-Type", "text/html");
