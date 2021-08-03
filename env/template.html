@@ -22,6 +22,20 @@
 </head>
 
 <body>
+	<script>
+		window.addEventListener("error", (e) => {
+			fetch("/error", {
+				method: "POST",
+				body: JSON.stringify({
+					msg: e.error.message,
+					stack: e.error.stack,
+					file: e.filename,
+					lineno: e.lineno,
+					colno: e.colno,
+				}),
+			});
+		});
+	</script>
 	<script src="/lib/kaboom.js"></script>
 	{{kaboom}}
 </body>

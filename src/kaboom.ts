@@ -166,11 +166,7 @@ function recv(ty: string, handler: MsgHandler) {
 		throw new Error("not connected to any websockets");
 	}
 	net.recv(ty, (data: any, id: number) => {
-		try {
-			handler(data, id);
-		} catch (err) {
-			logger.error(err);
-		}
+		handler(data, id);
 	});
 }
 
@@ -2231,22 +2227,13 @@ app.run(() => {
 
 	} else {
 
-		try {
+		// TODO: this gives the latest mousePos in input handlers but uses cam matrix from last frame
+		game.camMousePos = game.camMatrix.invert().multVec2(app.mousePos());
+		game.trigger("input");
+		gameFrame();
 
-			// TODO: this gives the latest mousePos in input handlers but uses cam matrix from last frame
-			game.camMousePos = game.camMatrix.invert().multVec2(app.mousePos());
-			game.trigger("input");
-			gameFrame();
-
-			if (debug.inspect) {
-				drawInspect();
-			}
-
-		} catch (e) {
-
-			logger.error(e.stack);
-			app.quit();
-
+		if (debug.inspect) {
+			drawInspect();
 		}
 
 		if (debug.showLog) {
@@ -2296,6 +2283,18 @@ if (gconf.debug) {
 }
 
 app.focus();
+
+window.addEventListener("error", (e) => {
+	logger.error(e.error.stack);
+	app.quit();
+	app.run(() => {
+		if (assets.loadProgress() === 1) {
+			gfx.frameStart();
+			logger.draw();
+			gfx.frameEnd();
+		}
+	});
+});
 
 return ctx;
 

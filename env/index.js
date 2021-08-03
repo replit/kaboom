@@ -80,6 +80,20 @@ kaboom({
 
 	}
 
+	if (p === "error") {
+		let body = "";
+		req.on("data", chunk => {
+			body += chunk.toString();
+		});
+		req.on("end", () => {
+			const err = JSON.parse(body);
+			console.log(err.stack);
+			res.writeHead(200);
+			res.end();
+		});
+		return;
+	}
+
 	// serve static
 	if (!fs.existsSync(p)) {
 		return;

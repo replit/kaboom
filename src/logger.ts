@@ -80,7 +80,6 @@ function loggerInit(gfx: Gfx, assets: Assets, conf: LoggerConf = {
 	}
 
 	function error(msg: string) {
-		console.error(msg);
 		logs.unshift({
 			type: "error",
 			msg: msg,

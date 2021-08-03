@@ -358,13 +358,11 @@ function appInit(gconf: AppConf = {}): App {
 			app.mouseState = processBtnState(app.mouseState);
 			app.charInputted = [];
 			app.mouseMoved = false;
-
-			if (!app.stopped) {
-				app.loopID = requestAnimationFrame(frame);
-			}
+			app.loopID = requestAnimationFrame(frame);
 
 		};
 
+		app.stopped = false;
 		app.loopID = requestAnimationFrame(frame);
 
 	}
