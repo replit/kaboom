@@ -1,0 +1,6 @@
+{
+	"name": "kaboom-env",
+	"devDependencies": {
+		"esbuild": "^0.12.18"
+	}
+}

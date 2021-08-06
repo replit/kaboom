@@ -2,6 +2,7 @@ const http = require("http");
 const fs = require("fs");
 const url = require("url");
 const path = require("path");
+const esbuild = require("esbuild");
 const port = process.env.PORT || 8000;
 
 const mimes = {
@@ -30,54 +31,86 @@ const mimes = {
 	"pdf": "application/pdf",
 };
 
+function build() {
+
+	const template = fs.readFileSync("template.html", "utf-8");
+	const conf = JSON.parse(fs.readFileSync("conf.json", "utf-8"));
+	let code = "";
+
+	code += "<script>\n";
+
+	code += `
+kaboom({
+...${JSON.stringify(conf)},
+global: true,
+plugins: [ peditPlugin, asepritePlugin, ],
+});\n`;
+
+	fs.readdirSync("sprites").forEach((file) => {
+		const ext = path.extname(file);
+		const name = JSON.stringify(path.basename(file, ext));
+		const pp = JSON.stringify(`/sprites/${file}`);
+		if (ext === ".pedit") {
+			code += `loadPedit(${name}, ${pp});\n`;
+		} else {
+			code += `loadSprite(${name}, ${pp});\n`;
+		}
+	});
+
+	fs.readdirSync("sounds").forEach((file) => {
+		const name = JSON.stringify(path.basename(file, path.extname(file)));
+		const pp = JSON.stringify(`/sounds/${file}`);
+		code += `loadSound(${name}, ${pp});\n`;
+	});
+
+	code += "</script>\n";
+
+	esbuild.buildSync({
+		bundle: true,
+		sourcemap: true,
+		target: "es6",
+		minify: true,
+		keepNames: true,
+		entryPoints: fs.readdirSync("code").map((f) => `code/${f}`),
+		outdir: "dist",
+	});
+
+	fs.readdirSync("dist").forEach((file) => {
+		if (file.endsWith(".js")) {
+			code += `<script src="/dist/${file}"></script>\n`;
+		}
+	});
+
+	return template.replace("{{kaboom}}", code);
+
+}
+
 http.createServer((req, res) => {
 
 	const requrl = url.parse(req.url, true);
-	const p = requrl.pathname.substring(1);
+	const p = decodeURI(requrl.pathname.substring(1));
 
 	if (p === "") {
-
-		const template = fs.readFileSync("template.html", "utf-8");
-		const conf = JSON.parse(fs.readFileSync("conf.json", "utf-8"));
-		let code = "";
-
-		code += "<script>\n";
-
-		code += `
-kaboom({
-	...${JSON.stringify(conf)},
-	global: true,
-});\n`;
-
-		fs.readdirSync("sprites").forEach((file) => {
-			const ext = path.extname(file);
-			const name = JSON.stringify(path.basename(file, ext));
-			const pp = JSON.stringify(`/sprites/${file}`);
-			if (ext === ".pedit") {
-				code += `loadPedit(${name}, ${pp});\n`;
-			} else {
-				code += `loadSprite(${name}, ${pp});\n`;
+		if (process.env.NODE_ENV === "development") {
+			try {
+				const html = build();
+				fs.writeFileSync("dist/index.html", html);
+				res.setHeader("Content-Type", "text/html");
+				res.writeHead(200);
+				res.end(html);
+			} catch (e) {
+				console.error(e);
+				res.setHeader("Content-Type", "text/plain");
+				res.writeHead(500);
+				res.end(e + "");
 			}
-		});
-
-		fs.readdirSync("sounds").forEach((file) => {
-			const name = JSON.stringify(path.basename(file, path.extname(file)));
-			const pp = JSON.stringify(`/sounds/${file}`);
-			code += `loadSound(${name}, ${pp});\n`;
-		});
-
-		code += "</script>\n";
-
-		fs.readdirSync("code").forEach((file) => {
-			code += `<script src="/code/${file}"></script>\n`;
-		});
-
-		res.setHeader("Content-Type", "text/html");
-		res.writeHead(200);
-		res.end(template.replace("{{kaboom}}", code));
-
-		return;
-
+			return;
+		} else {
+			res.setHeader("Content-Type", "text/html");
+			res.writeHead(200);
+			res.end(fs.readFileSync("dist/index.html"));
+			return;
+		}
 	}
 
 	if (p === "error") {

@@ -409,6 +409,11 @@ function camIgnore(layers: string[]) {
 	})
 }
 
+const COMP_DESC = new Set([
+	"id",
+	"require",
+]);
+
 const COMP_EVENTS = new Set([
 	"add",
 	"load",
@@ -460,7 +465,7 @@ function add(comps: Comp[]): GameObj {
 
 			for (const k in comp) {
 
-				if (k === "id" || k === "require") {
+				if (COMP_DESC.has(k)) {
 					continue;
 				}
 
@@ -884,6 +889,7 @@ function gameFrame(ignorePause?: boolean) {
 	const doUpdate = ignorePause || !debug.paused;
 
 	if (doUpdate) {
+
 		// update timers
 		game.timers.forEach((t, id) => {
 			t.time -= dt();
@@ -892,17 +898,16 @@ function gameFrame(ignorePause?: boolean) {
 				game.timers.delete(id);
 			}
 		});
-	}
 
-	// update every obj
-	revery((obj) => {
-		if (!obj.paused && doUpdate) {
-			obj.trigger("update");
-		}
-	});
+		// update every obj
+		revery((obj) => {
+			if (!obj.paused) {
+				obj.trigger("update");
+			}
+		});
 
-	if (doUpdate) {
 		game.actions.forEach((a) => a());
+
 	}
 
 	// calculate camera matrix
@@ -2285,7 +2290,7 @@ if (gconf.debug) {
 app.focus();
 
 window.addEventListener("error", (e) => {
-	logger.error(`Error: ${e.error.message}\n  (${e.filename.split("/").pop()}, line #${e.lineno})`);
+	logger.error(`Error: ${e.error.message}`);
 	app.quit();
 	app.run(() => {
 		if (assets.loadProgress() === 1) {
