@@ -1,35 +1,9 @@
-const http = require("http");
 const fs = require("fs");
-const url = require("url");
 const path = require("path");
 const esbuild = require("esbuild");
+const express = require("express");
+const app = express();
 const port = process.env.PORT || 8000;
-
-const mimes = {
-	"html": "text/html",
-	"css": "text/css",
-	"js": "text/javascript",
-	"mjs": "text/javascript",
-	"cjs": "text/javascript",
-	"json": "application/json",
-	"png": "image/png",
-	"jpg": "image/jpeg",
-	"jpeg": "image/jpeg",
-	"gif": "image/gif",
-	"svg": "image/svg+xml",
-	"mp4": "video/mp4",
-	"ogg": "audio/ogg",
-	"wav": "audio/wav",
-	"mp3": "audio/mpeg",
-	"aac": "audio/aac",
-	"otf": "font/otf",
-	"ttf": "font/ttf",
-	"woff": "text/woff",
-	"woff2": "text/woff2",
-	"txt": "text/plain",
-	"zip": "application/zip",
-	"pdf": "application/pdf",
-};
 
 function build() {
 
@@ -37,8 +11,38 @@ function build() {
 	const conf = JSON.parse(fs.readFileSync("conf.json", "utf-8"));
 	let code = "";
 
+	// report error back to server to log
+	code += `<script>
+window.addEventListener("error", (e) => {
+	fetch("/error", {
+		method: "POST",
+		headers: {
+			"Content-Type": "application/json",
+		},
+		body: JSON.stringify({
+			msg: e.error.message,
+			stack: e.error.stack,
+			file: e.filename,
+			lineno: e.lineno,
+			colno: e.colno,
+		}),
+	});
+});
+</script>`;
+
+	const libFiles = [
+		"lib/kaboom.js",
+		"lib/plugins/pedit.js",
+		"lib/plugins/aseprite.js",
+	];
+
+	libFiles.forEach((f) => {
+		code += `<script src="/${f}"></script>\n`;
+	});
+
 	code += "<script>\n";
 
+	// kaboom init
 	code += `
 kaboom({
 ...${JSON.stringify(conf)},
@@ -46,6 +50,7 @@ global: true,
 plugins: [ peditPlugin, asepritePlugin, ],
 });\n`;
 
+	// assets loading
 	fs.readdirSync("sprites").forEach((file) => {
 		const ext = path.extname(file);
 		const name = JSON.stringify(path.basename(file, ext));
@@ -65,6 +70,7 @@ plugins: [ peditPlugin, asepritePlugin, ],
 
 	code += "</script>\n";
 
+	// build code
 	esbuild.buildSync({
 		bundle: true,
 		sourcemap: true,
@@ -81,68 +87,52 @@ plugins: [ peditPlugin, asepritePlugin, ],
 		}
 	});
 
-	return template.replace("{{kaboom}}", code);
+	fs.writeFileSync("dist/index.html", template.replace("{{kaboom}}", code));
 
 }
 
-http.createServer((req, res) => {
-
-	const requrl = url.parse(req.url, true);
-	const p = decodeURI(requrl.pathname.substring(1));
-
-	if (p === "") {
-		if (process.env.NODE_ENV === "development") {
-			try {
-				const html = build();
-				fs.writeFileSync("dist/index.html", html);
-				res.setHeader("Content-Type", "text/html");
-				res.writeHead(200);
-				res.end(html);
-			} catch (e) {
-				console.error(e);
-				res.setHeader("Content-Type", "text/plain");
-				res.writeHead(500);
-				res.end(e + "");
+function watch(paths) {
+	const getTimes = () => paths.map((p) => fs.statSync(p).mtime.getTime());
+	let times = getTimes();
+	return {
+		changed() {
+			const curTimes = getTimes();
+			for (let i = 0; i < times.length; i++) {
+				if (times[i] != curTimes[i]) {
+					return true;
+				}
 			}
-			return;
-		} else {
-			res.setHeader("Content-Type", "text/html");
-			res.writeHead(200);
-			res.end(fs.readFileSync("dist/index.html"));
-			return;
-		}
+			return false;
+		},
+		push() {
+			times = getTimes();
+		},
+	};
+}
+
+const watcher = watch([
+	"code",
+	"sprites",
+	"sounds",
+]);
+
+app.use(express.json());
+
+app.get("/", (req, res) => {
+	if (watcher.changed()) {
+		build();
+		watcher.push();
 	}
+	res.sendFile(__dirname + "/dist/index.html");
+});
 
-	if (p === "error") {
-		let body = "";
-		req.on("data", chunk => {
-			body += chunk.toString();
-		});
-		req.on("end", () => {
-			const err = JSON.parse(body);
-			console.log(err.stack);
-			res.writeHead(200);
-			res.end();
-		});
-		return;
-	}
+app.post("/error", (req, res) => {
+	console.error(req.body.stack);
+});
 
-	// serve static
-	if (!fs.existsSync(p)) {
-		return;
-	}
+app.use("/sprites", express.static("sprites"));
+app.use("/sounds", express.static("sounds"));
+app.use("/dist", express.static("dist"));
+app.use("/lib", express.static("lib"));
 
-	const stat = fs.statSync(p);
-
-	if (stat.isFile()) {
-		const ext = path.extname(p).substring(1);
-		const mime = mimes[ext];
-		if (mime) {
-			res.setHeader("Content-Type", mime);
-		}
-		res.writeHead(200);
-		res.end(fs.readFileSync(p));
-		return;
-	}
-
-}).listen(port);
+app.listen(port);
