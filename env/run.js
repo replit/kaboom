@@ -147,7 +147,7 @@ let anim = null;
 let anim2 = null;
 let err = null;
 const MAX_O = 32;
-const INC_SPEED = 10000;
+const INC_SPEED = 16000;
 const ROLL_SPEED_MIN = 200;
 const ROLL_SPEED_MAX = 50;
 
