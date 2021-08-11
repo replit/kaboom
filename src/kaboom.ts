@@ -83,6 +83,8 @@ module.exports = (gconf: KaboomConf = {
 	root: document.body,
 }): KaboomCtx => {
 
+const audio = audioInit();
+
 const app = appInit({
 	width: gconf.width,
 	height: gconf.height,
@@ -92,6 +94,7 @@ const app = appInit({
 	canvas: gconf.canvas,
 	root: gconf.root,
 	touchToMouse: gconf.touchToMouse ?? true,
+	audioCtx: audio.ctx(),
 });
 
 const gfx = gfxInit(app.gl, {
@@ -100,7 +103,6 @@ const gfx = gfxInit(app.gl, {
 	texFilter: gconf.texFilter,
 });
 
-const audio = audioInit();
 const assets = assetsInit(gfx, audio, {
 	errHandler: (err: string) => {
 		logger.error(err);

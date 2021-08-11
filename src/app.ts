@@ -19,6 +19,7 @@ type AppConf = {
 	canvas?: HTMLCanvasElement,
 	root?: HTMLElement,
 	touchToMouse?: boolean,
+	audioCtx?: AudioContext,
 };
 
 type AppCtx = {
@@ -245,11 +246,10 @@ function appInit(gconf: AppConf = {}): App {
 			case "visible":
 				// prevent a surge of dt() when switch back after the tab being hidden for a while
 				app.skipTime = true;
-				// TODO
-//  				audio.ctx().resume();
+				gconf.audioCtx?.resume();
 				break;
 			case "hidden":
-//  				audio.ctx().suspend();
+				gconf.audioCtx?.suspend();
 				break;
 		}
 	});
