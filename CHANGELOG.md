@@ -10,6 +10,7 @@ const k = kaboom();
 k.add(...);
 k.keyPress(...);
 ```
+- audio is now paused when you leave the tab
 - added localStorage helper `getData(key, default?)` and `setData(key, data)`
 - added `loadShader(id, vert, frag, isUrl)`
 - added `shader()` comp for attaching custom shader to an obj
