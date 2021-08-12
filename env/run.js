@@ -116,7 +116,7 @@ function buildHelper() {
 		target: "es6",
 		minify: true,
 		keepNames: true,
-		entryPoints: ["helper.ts"],
+		entryPoints: ["helper.js"],
 		outfile: "dist/helper.js",
 	});
 }
