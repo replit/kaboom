@@ -129,6 +129,7 @@ export type KaboomCtx = {
 	// audio
 	play(id: string, conf?: AudioPlayConf): AudioPlay,
 	volume(v?: number): number,
+	audioCtx(): AudioContext,
 	// math
 	makeRng(seed: number): RNG,
 	rand(): number,
@@ -181,8 +182,13 @@ export type KaboomCtx = {
 	// storage
 	getData(key: string, def?: any): any,
 	setData(key: string, data: any),
+	// plugin
+	plug(plugin: KaboomPlugin),
 	// dbg
 	debug: Debug,
+	// TODO: better way? this loses the export type safety from typos etc
+	// plugins
+	[key: string]: any;
 };
 
 export type SceneID = string;

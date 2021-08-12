@@ -2,7 +2,6 @@ kaboom({
 	global: true,
 	fullscreen: true,
 	debug: true,
-	plugins: [ peditPlugin, ],
 });
 
 loadRoot("/pub/examples/");

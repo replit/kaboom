@@ -39,6 +39,7 @@ function alwaysRight() {
 obj.play("anim");
 obj.c("sprite").play("anim");
 ```
+- pedit, aseprite, proggy, 04b03, cp437 plugins are now included by default
 - (**BREAK**) changed event `headbump` to `headbutt`
 - added `width`, `height`, and `tiled` attrib to `SpriteCompConf`, for better control over sprite size and tiled sprite support
 - (**BREAK**) renamed `resolve()` to `pushOutAll()` on `area` comp

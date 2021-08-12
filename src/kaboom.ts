@@ -49,6 +49,13 @@ import {
 	netInit,
 } from "./net";
 
+import markPlugin from "./plugins/mark";
+import peditPlugin from "./plugins/pedit";
+import asepritePlugin from "./plugins/aseprite";
+import f04b03Plugin from "./plugins/04b03";
+import cp437Plugin from "./plugins/cp437";
+import proggyPlugin from "./plugins/proggy";
+
 type ID = number;
 
 class IDList<T> extends Map<ID, T> {
@@ -2076,6 +2083,13 @@ function setData(key: string, data: any) {
 	window.localStorage[key] = JSON.stringify(data);
 }
 
+function plug(plugin: KaboomPlugin) {
+	const funcs = plugin(ctx);
+	for (const k in funcs) {
+		ctx[k] = funcs[k];
+	}
+}
+
 const ctx: KaboomCtx = {
 	// asset load
 	loadRoot: assets.loadRoot,
@@ -2166,6 +2180,7 @@ const ctx: KaboomCtx = {
 	play,
 	volume: audio.volume,
 	burp: audio.burp,
+	audioCtx: audio.ctx,
 	// math
 	makeRng,
 	rand,
@@ -2203,15 +2218,19 @@ const ctx: KaboomCtx = {
 	// storage
 	getData,
 	setData,
+	// plugin
+	plug,
 };
 
+plug(markPlugin);
+plug(peditPlugin);
+plug(asepritePlugin);
+plug(f04b03Plugin);
+plug(cp437Plugin);
+plug(proggyPlugin);
+
 if (gconf.plugins) {
-	for (const src of gconf.plugins) {
-		const map = src(ctx);
-		for (const k in map) {
-			ctx[k] = map[k];
-		}
-	}
+	gconf.plugins.forEach(plug);
 }
 
 if (gconf.global) {

@@ -2,7 +2,6 @@ kaboom({
 	global: true,
 	fullscreen: true,
 	scale: 2,
-	plugins: [ proggyPlugin, ],
 });
 
 loadRoot("/pub/examples/");

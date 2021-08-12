@@ -4,20 +4,19 @@
 // @ts-ignore
 import proggySrc from "./proggy_7x13.png";
 
-// @ts-ignore
-module.exports = (k: KaboomCtx) => {
+export default (k: KaboomCtx) => {
 
-function loadProggy(): Promise<FontData> {
-	return k.loadFont(
-		"proggy",
-		proggySrc,
-		7,
-		13
-	);
-}
+	function loadProggy(name: string = "proggy"): Promise<FontData> {
+		return k.loadFont(
+			name,
+			proggySrc,
+			7,
+			13
+		);
+	}
 
-return {
-	loadProggy,
-};
+	return {
+		loadProggy,
+	};
 
 };

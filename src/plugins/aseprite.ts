@@ -1,7 +1,6 @@
 // load aseprite spritesheet
 
-// @ts-ignore
-module.exports = (k: KaboomCtx) => {
+export default (k: KaboomCtx) => {
 
 function loadAseprite(name: string, imgSrc: string, jsonSrc: string) {
 

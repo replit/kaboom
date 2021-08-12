@@ -11,7 +11,6 @@ const common = {
 	loader: {
 		".png": "dataurl",
 		".glsl": "text",
-		// TODO: only for burp.mp3
 		".mp3": "binary",
 	},
 };
@@ -25,28 +24,16 @@ const fmts = [
 const srcDir = "src";
 const distDir = "dist";
 
-const files = [
-	{ entry: "kaboom.ts",           global: "kaboom",         },
-	{ entry: "plugins/aseprite.ts", global: "asepritePlugin", },
-	{ entry: "plugins/pedit.ts",    global: "peditPlugin",    },
-	{ entry: "plugins/04b03.ts",    global: "b04b03Plugin",    },
-	{ entry: "plugins/cp437.ts",    global: "cp437Plugin",    },
-	{ entry: "plugins/proggy.ts",   global: "proggyPlugin",   },
-];
-
-files.forEach((file) => {
-	fmts.forEach((fmt) => {
-		const base = file.entry.replace(/\.ts$/, "");
-		const srcPath = `${srcDir}/${file.entry}`;
-		const distPath = `${distDir}/${base}.${fmt.ext}`;
-		console.log(`${srcPath} -> ${distPath}`);
-		esbuild.buildSync({
-			...common,
-			entryPoints: [srcPath],
-			globalName: file.global,
-			format: fmt.format,
-			outfile: distPath,
-		});
+fmts.forEach((fmt) => {
+	const srcPath = "src/kaboom.ts";
+	const distPath = `dist/kaboom.${fmt.ext}`;
+	console.log(`${srcPath} -> ${distPath}`);
+	esbuild.buildSync({
+		...common,
+		entryPoints: [ "src/kaboom.ts" ],
+		globalName: "kaboom",
+		format: fmt.format,
+		outfile: distPath,
 	});
 });
 

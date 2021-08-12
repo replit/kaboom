@@ -23,7 +23,7 @@ const MIN_DETUNE = -1200;
 const MAX_DETUNE = 1200;
 
 // @ts-ignore
-import burpBytes from "./assets/burp.mp3";
+import burpBytes from "./burp.mp3";
 
 function audioInit(): Audio {
 

@@ -11,9 +11,7 @@ import {
 } from "./gfx";
 
 // @ts-ignore
-import unsciiSrc from "./assets/unscii_8x8.png";
-// @ts-ignore
-import markSrc from "./assets/mark.png";
+import unsciiSrc from "./unscii_8x8.png";
 
 type AssetsConf = {
 	errHandler?: (err: string) => void,
@@ -357,8 +355,6 @@ function assetsInit(gfx: Gfx, audio: Audio, gconf: AssetsConf = {}): Assets {
 		8,
 		8
 	);
-
-	loadSprite("mark", markSrc);
 
 	return {
 		loadRoot,

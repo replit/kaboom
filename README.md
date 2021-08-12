@@ -34,7 +34,10 @@ to make a flappy bird movement you only need 3 lines
 // init context
 const k = kaboom();
 
-// make the player game object ("mark" is a default sprite)
+// load a default sprite "mark"
+k.loadMark();
+
+// make the player game object
 const birdy = k.addSprite("mark", { body: true, });
 
 // press space to jump
