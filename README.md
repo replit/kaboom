@@ -211,11 +211,8 @@ $ npm install kaboom
 ```ts
 // main.ts
 import kaboom, { Vec2, GameObj, } from "kaboom";
-import asepritePlugin from "kaboom/plugins/aseprite";
 
-const k = kaboom({
-    plugins: [ asepritePlugin, ],
-});
+const k = kaboom();
 
 function spawnBullet(p: Vec2): GameObj {
     return k.add([
