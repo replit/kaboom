@@ -2,19 +2,6 @@ const fs = require("fs");
 const path = require("path");
 const esbuild = require("esbuild");
 
-const common = {
-	bundle: true,
-	sourcemap: true,
-	target: "es6",
-	minify: true,
-	keepNames: true,
-	loader: {
-		".png": "dataurl",
-		".glsl": "text",
-		".mp3": "binary",
-	},
-};
-
 const fmts = [
 	{ format: "iife", ext: "js",  },
 	{ format: "cjs",  ext: "cjs", },
@@ -25,16 +12,29 @@ const srcDir = "src";
 const distDir = "dist";
 
 fmts.forEach((fmt) => {
-	const srcPath = "src/kaboom.ts";
-	const distPath = `dist/kaboom.${fmt.ext}`;
+
+	const srcPath = `${srcDir}/kaboom.ts`;
+	const distPath = `${distDir}/kaboom.${fmt.ext}`;
+
 	console.log(`${srcPath} -> ${distPath}`);
+
 	esbuild.buildSync({
-		...common,
-		entryPoints: [ "src/kaboom.ts" ],
+		bundle: true,
+		sourcemap: true,
+		target: "es6",
+		minify: true,
+		keepNames: true,
+		loader: {
+			".png": "dataurl",
+			".glsl": "text",
+			".mp3": "binary",
+		},
+		entryPoints: [ srcPath ],
 		globalName: "kaboom",
 		format: fmt.format,
 		outfile: distPath,
 	});
+
 });
 
 // TODO: haven't figured out how to generate the desired .d.ts with tsc

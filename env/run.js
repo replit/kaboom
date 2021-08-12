@@ -2,11 +2,11 @@ const fs = require("fs");
 const path = require("path");
 const esbuild = require("esbuild");
 const express = require("express");
-const StackTrace = require("stacktrace-js");
 const app = express();
 const port = process.env.PORT || 8000;
 
-function build() {
+// build user game
+function buildGame() {
 
 	const template = fs.readFileSync("template.html", "utf-8");
 	const conf = JSON.parse(fs.readFileSync("conf.json", "utf-8"));
@@ -14,17 +14,14 @@ function build() {
 
 	// kaboom lib files
 	const libFiles = [
-		"lib/err.js",
-		"lib/kaboom.js",
-		"lib/plugins/pedit.js",
-		"lib/plugins/aseprite.js",
+		"dist/kaboom.js",
+		"dist/helper.js",
 	];
 
 	libFiles.forEach((f) => {
 		code += `<script src="/${f}"></script>\n`;
 	});
 
-	code += `<script src="/dist/lib.js"></script>\n`;
 	code += "<script>\n";
 
 	// kaboom init
@@ -32,7 +29,6 @@ function build() {
 kaboom({
 ...${JSON.stringify(conf)},
 global: true,
-plugins: [ peditPlugin, asepritePlugin, ],
 });\n`;
 
 	// assets loading
@@ -74,55 +70,97 @@ plugins: [ peditPlugin, asepritePlugin, ],
 
 }
 
-function buildPre() {
-	// build pre code
+// build kaboom library
+function buildKaboom() {
+
+	const fmts = [
+		{ format: "iife", ext: "js",  },
+		{ format: "cjs",  ext: "cjs", },
+		{ format: "esm",  ext: "mjs", },
+	];
+
+	const srcDir = "kaboom";
+	const distDir = "dist";
+
+	fmts.forEach((fmt) => {
+
+		const srcPath = `${srcDir}/kaboom.ts`;
+		const distPath = `${distDir}/kaboom.${fmt.ext}`;
+
+		esbuild.buildSync({
+			bundle: true,
+			sourcemap: true,
+			target: "es6",
+			minify: true,
+			keepNames: true,
+			loader: {
+				".png": "dataurl",
+				".glsl": "text",
+				".mp3": "binary",
+			},
+			entryPoints: [ srcPath ],
+			globalName: "kaboom",
+			format: fmt.format,
+			outfile: distPath,
+		});
+
+	});
+
+}
+
+// build kaboom env helper script
+function buildHelper() {
 	esbuild.buildSync({
 		bundle: true,
 		sourcemap: true,
 		target: "es6",
 		minify: true,
 		keepNames: true,
-		entryPoints: ["pre.js"],
-		outfile: "dist/lib.js",
+		entryPoints: ["helper.ts"],
+		outfile: "dist/helper.js",
 	});
 }
 
-function watch(paths) {
-	const getTimes = () => paths.map((p) => fs.statSync(p).mtime.getTime());
-	let times = getTimes();
-	return {
-		changed() {
-			const curTimes = getTimes();
-			for (let i = 0; i < times.length; i++) {
-				if (times[i] != curTimes[i]) {
-					return true;
-				}
+// returns a check function that executes the passed func if passed files are
+// modified since last check
+function watch(paths, exec) {
+	const getMtimes = () => paths.map((p) => fs.statSync(p).mtime.getTime());
+	let mtimes = getMtimes();
+	return () => {
+		const curMtimes = getMtimes();
+		for (let i = 0; i < mtimes.length; i++) {
+			if (mtimes[i] != curMtimes[i]) {
+				return exec();
 			}
-			return false;
-		},
-		push() {
-			times = getTimes();
-		},
+		}
+		mtimes = curMtimes;
+		return null;
 	};
 }
 
-const watcher = watch([
+const checkBuildGame = watch([
 	"code",
 	"sprites",
 	"sounds",
 	"template.html",
 	"conf.json",
-]);
+], buildGame);
 
-build();
-buildPre();
+const checkBuildKaboom = watch([
+	"kaboom",
+], buildKaboom);
+
+// initial build
+buildGame();
+buildHelper();
+buildKaboom();
+
+// server stuff
 app.use(express.json());
 
 app.get("/", (req, res) => {
-	if (watcher.changed()) {
-		build();
-		watcher.push();
-	}
+	checkBuildGame();
+	checkBuildKaboom();
 	res.sendFile(__dirname + "/dist/index.html");
 	reset();
 });

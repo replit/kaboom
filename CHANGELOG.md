@@ -3,7 +3,7 @@
 - added input events `touchStart(id, pos)`, `touchMove(id, pos)`, `touchEnd(id, pos)`, `mouseMove(pos)`
 - added `mouseDeltaPos()`
 - added `touchToMouse` to control if touch events should be translated to mouse events
-- added "mark" as a default sprite
+- added `loadMark()` to load `"mark"` as a default sprite
 - `scene()` and `start()` (also removed in favor of `go()`) are optional now, if you don't need multiple scenes yet you can just go directly
 ```js
 const k = kaboom();

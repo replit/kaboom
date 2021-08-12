@@ -1,6 +1,6 @@
-export default function kaboom(conf?: KaboomConf): KaboomCtx;
+declare function kaboom(conf?: KaboomConf): KaboomCtx;
 
-export type KaboomCtx = {
+type KaboomCtx = {
 	burp(),
 	// assets
 	loadRoot(path?: string): string,
@@ -165,7 +165,7 @@ export type KaboomCtx = {
 	rad2deg(rad: number): number,
 	// draw
 	drawSprite(id: string | SpriteData, conf?: DrawSpriteConf),
-	// TODO: conf export type
+	// TODO: conf type
 	drawText(txt: string, conf?: {}),
 	drawRect(pos: Vec2, w: number, h: number, conf?: DrawRectConf),
 	drawRectStroke(pos: Vec2, w: number, h: number, conf?: DrawRectStrokeConf),
@@ -186,19 +186,19 @@ export type KaboomCtx = {
 	plug(plugin: KaboomPlugin),
 	// dbg
 	debug: Debug,
-	// TODO: better way? this loses the export type safety from typos etc
+	// TODO: better way? this loses the type safety from typos etc
 	// plugins
 	[key: string]: any;
 };
 
-export type SceneID = string;
-export type SceneDef = (...args) => void;
+type SceneID = string;
+type SceneDef = (...args) => void;
 
-export type TouchID = number;
+type TouchID = number;
 
-export type EventCanceller = () => void;
+type EventCanceller = () => void;
 
-export type KaboomConf = {
+type KaboomConf = {
 	width?: number,
 	height?: number,
 	scale?: number,
@@ -217,7 +217,7 @@ export type KaboomConf = {
 	plugins?: KaboomPlugin[],
 };
 
-export type GameObj = {
+type GameObj = {
 	hidden: boolean,
 	paused: boolean,
 	exists(): boolean,
@@ -232,16 +232,16 @@ export type GameObj = {
 	[custom: string]: any,
 };
 
-export type Fn = () => void;
+type Fn = () => void;
 
-export type SpriteAnim = {
+type SpriteAnim = {
 	from: number,
 	to: number,
 };
 
-export type KaboomPlugin = (k: KaboomCtx) => Record<string, any>;
+type KaboomPlugin = (k: KaboomCtx) => Record<string, any>;
 
-export type SpriteLoadConf = {
+type SpriteLoadConf = {
 	sliceX?: number,
 	sliceY?: number,
 	gridWidth?: number,
@@ -249,19 +249,19 @@ export type SpriteLoadConf = {
 	anims?: Record<string, SpriteAnim>,
 };
 
-export type SpriteLoadSrc = string | GfxTextureData;
+type SpriteLoadSrc = string | GfxTextureData;
 
-export type SpriteData = {
+type SpriteData = {
 	tex: GfxTexture,
 	frames: Quad[],
 	anims: Record<string, SpriteAnim>,
 };
 
-export type SoundData = AudioBuffer;
-export type FontData = GfxFont;
-export type ShaderData = GfxProgram;
+type SoundData = AudioBuffer;
+type FontData = GfxFont;
+type ShaderData = GfxProgram;
 
-export type AudioPlayConf = {
+type AudioPlayConf = {
 	loop?: boolean,
 	volume?: number,
 	speed?: number,
@@ -269,7 +269,7 @@ export type AudioPlayConf = {
 	seek?: number,
 };
 
-export type AudioPlay = {
+type AudioPlay = {
 	play(seek?: number),
 	stop(),
 	pause(),
@@ -284,43 +284,43 @@ export type AudioPlay = {
 	unloop(),
 };
 
-export type GfxProgram = {
+type GfxProgram = {
 	bind(),
 	unbind(),
 	bindAttribs(),
 	send(uniform: Uniform),
 }
 
-export type GfxTexture = {
+type GfxTexture = {
 	width: number,
 	height: number,
 	bind(),
 	unbind(),
 };
 
-export type GfxTextureData =
+type GfxTextureData =
 	HTMLImageElement
 	| HTMLCanvasElement
 	| ImageData
 	| ImageBitmap
 	;
 
-export type GfxFont = {
+type GfxFont = {
 	tex: GfxTexture,
 	map: Record<string, Vec2>,
 	qw: number,
 	qh: number,
 };
 
-export type Vertex = {
+type Vertex = {
 	pos: Vec3,
 	uv: Vec2,
 	color: Color,
 };
 
-export type TexFilter = "nearest" | "linear";
+type TexFilter = "nearest" | "linear";
 
-export type RenderProps = {
+type RenderProps = {
 	pos?: Vec2,
 	scale?: Vec2 | number,
 	rot?: number,
@@ -328,7 +328,7 @@ export type RenderProps = {
 	origin?: Origin | Vec2,
 };
 
-export type DrawQuadConf = RenderProps & {
+type DrawQuadConf = RenderProps & {
 	flipX?: boolean,
 	flipY?: boolean,
 	width?: number,
@@ -340,7 +340,7 @@ export type DrawQuadConf = RenderProps & {
 	uniform?: Uniform,
 };
 
-export type DrawTextureConf = RenderProps & {
+type DrawTextureConf = RenderProps & {
 	flipX?: boolean,
 	flipY?: boolean,
 	width?: number,
@@ -352,40 +352,40 @@ export type DrawTextureConf = RenderProps & {
 	uniform?: Uniform,
 };
 
-export type DrawRectStrokeConf = RenderProps & {
+type DrawRectStrokeConf = RenderProps & {
 	width?: number,
 	z?: number,
 	prog?: GfxProgram,
 	uniform?: Uniform,
 };
 
-export type DrawRectConf = RenderProps & {
+type DrawRectConf = RenderProps & {
 	z?: number,
 	prog?: GfxProgram,
 	uniform?: Uniform,
 };
 
-export type DrawLineConf = RenderProps & {
+type DrawLineConf = RenderProps & {
 	width?: number,
 	z?: number,
 	prog?: GfxProgram,
 	uniform?: Uniform,
 };
 
-export type DrawTriConf = RenderProps & {
+type DrawTriConf = RenderProps & {
 	z?: number,
 	prog?: GfxProgram,
 	uniform?: Uniform,
 };
 
-export type DrawTextConf = RenderProps & {
+type DrawTextConf = RenderProps & {
 	size?: number,
 	width?: number,
 	z?: number,
 	prog?: GfxProgram,
 };
 
-export type FormattedChar = {
+type FormattedChar = {
 	tex: GfxTexture,
 	quad: Quad,
 	ch: string,
@@ -396,13 +396,13 @@ export type FormattedChar = {
 	z: number,
 };
 
-export type FormattedText = {
+type FormattedText = {
 	width: number,
 	height: number,
 	chars: FormattedChar[],
 };
 
-export type Origin =
+type Origin =
 	"topleft"
 	| "top"
 	| "topright"
@@ -414,7 +414,7 @@ export type Origin =
 	| "botright"
 	;
 
-export type DrawSpriteConf = RenderProps & {
+type DrawSpriteConf = RenderProps & {
 	frame?: number,
 	width?: number,
 	height?: number,
@@ -427,7 +427,7 @@ export type DrawSpriteConf = RenderProps & {
 	z?: number,
 };
 
-export type Vec2 = {
+type Vec2 = {
 	x: number,
 	y: number,
 	clone(): Vec2,
@@ -446,21 +446,21 @@ export type Vec2 = {
 	str(): string,
 };
 
-export type Vec3 = {
+type Vec3 = {
 	x: number,
 	y: number,
 	z: number,
 	xy(): Vec2,
 };
 
-export type Vec4 = {
+type Vec4 = {
 	x: number,
 	y: number,
 	z: number,
 	w: number,
 };
 
-export type Mat4 = {
+type Mat4 = {
 	m: number[],
 	clone(): Mat4,
 	mult(m: Mat4): Mat4,
@@ -475,7 +475,7 @@ export type Mat4 = {
 	invert(): Mat4,
 };
 
-export type Color = {
+type Color = {
 	r: number,
 	g: number,
 	b: number,
@@ -489,7 +489,7 @@ export type Color = {
 	eq(c: Color): boolean,
 };
 
-export type Quad = {
+type Quad = {
 	x: number,
 	y: number,
 	w: number,
@@ -499,33 +499,33 @@ export type Quad = {
 	eq(q: Quad): boolean,
 };
 
-export type RNGValue =
+type RNGValue =
 	number
 	| Vec2
 	| Color
 	;
 
-export type RNG = {
+type RNG = {
 	seed: number,
 	gen(): number,
 	gen<T extends RNGValue>(n: T): T,
 	gen<T extends RNGValue>(a: T, b: T): T,
 };
 
-export type Rect = {
+type Rect = {
 	p1: Vec2,
 	p2: Vec2,
 };
 
-export type Line = {
+type Line = {
 	p1: Vec2,
 	p2: Vec2,
 };
 
-export type ClientID = number;
-export type MsgHandler = (id: ClientID, data: any) => void;
+type ClientID = number;
+type MsgHandler = (id: ClientID, data: any) => void;
 
-export type Comp = {
+type Comp = {
 	id?: CompID,
 	require?: CompID[],
 	add?: AddEvent,
@@ -536,22 +536,22 @@ export type Comp = {
 	[custom: string]: any,
 };
 
-export type CompBuilder = any;
+type CompBuilder = any;
 // TODO: doesn't work
-// export type CompBuilder = (...args) => Comp;
-export type GameObjID = number;
-export type CompID = string;
-export type AddEvent = () => void;
-export type DrawEvent = () => void;
-export type UpdateEvent = () => void;
-export type DestroyEvent = () => void;
-export type InspectEvent = () => any;
+// type CompBuilder = (...args) => Comp;
+type GameObjID = number;
+type CompID = string;
+type AddEvent = () => void;
+type DrawEvent = () => void;
+type UpdateEvent = () => void;
+type DestroyEvent = () => void;
+type InspectEvent = () => any;
 
-export type PosCompInspect = {
+type PosCompInspect = {
 	pos: string,
 };
 
-export type PosComp = Comp & {
+type PosComp = Comp & {
 	pos: Vec2,
 	move(x: number, y: number),
 	move(p: Vec2),
@@ -559,45 +559,45 @@ export type PosComp = Comp & {
 	inspect(): PosCompInspect,
 };
 
-export type ScaleComp = Comp & {
+type ScaleComp = Comp & {
 	scale: Vec2,
 };
 
-export type RotateComp = Comp & {
+type RotateComp = Comp & {
 	angle: number,
 };
 
-export type ColorComp = Comp & {
+type ColorComp = Comp & {
 	color: Color,
 };
 
-export type OriginComp = Comp & {
+type OriginComp = Comp & {
 	origin: Origin | Vec2,
 };
 
-export type LayerCompInspect = {
+type LayerCompInspect = {
 	layer: string,
 };
 
-export type LayerComp = Comp & {
+type LayerComp = Comp & {
 	layer: string,
 	inspect(): LayerCompInspect,
 };
 
-export type RectSide =
+type RectSide =
 	"top"
 	| "bottom"
 	| "left"
 	| "right"
 	;
 
-export type PushOut = {
+type PushOut = {
 	obj: GameObj,
 	side: RectSide,
 	dis: number,
 }
 
-export type AreaComp = Comp & {
+type AreaComp = Comp & {
 	area: Rect,
 	areaWidth(): number,
 	areaHeight(): number,
@@ -617,7 +617,7 @@ export type AreaComp = Comp & {
 	_checkOverlaps(tag: string, f: (obj: GameObj) => void): void;
 };
 
-export type SpriteCompConf = {
+type SpriteCompConf = {
 	noArea?: boolean,
 	quad?: Quad,
 	frame?: number,
@@ -629,13 +629,13 @@ export type SpriteCompConf = {
 	flipY?: boolean,
 };
 
-export type SpriteCurAnim = {
+type SpriteCurAnim = {
 	name: string,
 	loop: boolean,
 	timer: number,
 };
 
-export type SpriteComp = Comp & {
+type SpriteComp = Comp & {
 	add: AddEvent,
 	draw: DrawEvent,
 	update: UpdateEvent,
@@ -654,11 +654,11 @@ export type SpriteComp = Comp & {
 	inspect(): SpriteCompInspect,
 };
 
-export type SpriteCompInspect = {
+type SpriteCompInspect = {
 	curAnim?: string,
 };
 
-export type TextComp = Comp & {
+type TextComp = Comp & {
 	add: AddEvent,
 	draw: DrawEvent,
 	text: string,
@@ -668,24 +668,24 @@ export type TextComp = Comp & {
 	height: number,
 };
 
-export type TextCompConf = {
+type TextCompConf = {
 	area?: boolean,
 	font?: string,
 	width?: number,
 };
 
-export type RectComp = Comp & {
+type RectComp = Comp & {
 	add: AddEvent,
 	draw: DrawEvent,
 	width: number,
 	height: number,
 };
 
-export type RectCompConf = {
+type RectCompConf = {
 	noArea?: boolean,
 };
 
-export type LevelConf = {
+type LevelConf = {
 	width: number,
 	height: number,
 	pos?: Vec2,
@@ -694,7 +694,7 @@ export type LevelConf = {
 //  	[sym: string]: Comp[] | (() => Comp[]),
 };
 
-export type Level = {
+type Level = {
 	getPos(p: Vec2): Vec2,
 	spawn(sym: string, p: Vec2): GameObj,
 	width(): number,
@@ -705,7 +705,7 @@ export type Level = {
 	destroy(),
 };
 
-export type Debug = {
+type Debug = {
 	paused: boolean,
 	inspect: boolean,
 	timeScale: number,
@@ -719,21 +719,21 @@ export type Debug = {
 	error(msg: string),
 };
 
-export type UniformValue =
+type UniformValue =
 	Vec2
 	| Vec3
 	| Color
 	| Mat4
 	;
 
-export type Uniform = Record<string, UniformValue>;
+type Uniform = Record<string, UniformValue>;
 
-export type ShaderComp = Comp & {
+type ShaderComp = Comp & {
 	uniform: Uniform,
 	shader: string,
 };
 
-export type BodyComp = Comp & {
+type BodyComp = Comp & {
 	update: UpdateEvent,
 	jumpForce: number,
 	curPlatform(): GameObj | null,
@@ -742,16 +742,16 @@ export type BodyComp = Comp & {
 	jump(f: number),
 };
 
-export type BodyCompConf = {
+type BodyCompConf = {
 	jumpForce?: number,
 	maxVel?: number,
 };
 
-export type SolidComp = Comp & {
+type SolidComp = Comp & {
 	solid: boolean,
 };
 
-export type HelperProps = {
+type HelperProps = {
 	body?: boolean,
 	solid?: boolean,
 	layer?: string,
@@ -760,6 +760,6 @@ export type HelperProps = {
     data?: any,
 }
 
-export type AddSpriteConf = RenderProps & HelperProps & SpriteCompConf;
-export type AddRectConf = RenderProps & HelperProps & RectCompConf;
-export type AddTextConf = RenderProps & HelperProps & TextCompConf;
+type AddSpriteConf = RenderProps & HelperProps & SpriteCompConf;
+type AddRectConf = RenderProps & HelperProps & RectCompConf;
+type AddTextConf = RenderProps & HelperProps & TextCompConf;

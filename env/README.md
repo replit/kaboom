@@ -102,7 +102,7 @@ As we said before, game objects are composed from components, each component wil
 
 ```js
 keyPress("space", () => {
-	debug.log("mom look im jumping");
+	debug.log("look mom im jumping");
 	burp();
 	player.jump();
 });
@@ -128,11 +128,41 @@ add([
 // listen to user key press
 keyPress("space", () => {
 	debug.log("mom look im jumping"); // log stuff to screen
-	burp();
-	player.jump();
+	burp(); // burp
+	// feel free to remove above 2 lines if they're annoying
+	player.jump(); // make player jump
 });
 ```
 
 > tip: you can use debug.clearLog() to clear logs, or press `F2`! (if you have "Debug" enabled in settings, which is expanded from the top ">" next to "Kaboom" on the top of the sidebar)
 
 > tip: since we're talking about debug stuff, try pressing `F1` and `F7` - `F10`
+
+There's another function provided by `body()` we can uses here:
+
+```js
+// only jump if player is grounded
+if (player.grounded()) {
+	player.jump(320); // can choose to give it a jump force
+}
+```
+
+`grounded()` checks if player is currently grounded or not, if player can jump infinitely they'll go out of control
+
+we also specified a jump force for `jump()` here, which will be 320 pixels per second on the initial burst
+
+Let's add some other interactions, like movements.
+
+```js
+keyDown("left", () => {
+	player.move(-100, 0);
+});
+
+keyDown("right", () => {
+	player.move(100, 0);
+});
+```
+
+`move(x, y)` is provided by the `pos()` component, which moves the player. It takes 2 parameters, which is the x and y speed (in pixels per second)
+
+> Alternatively you can choose to assign the `pos` field directly (which is also provided by the `pos()` component) like `player.pos = vec2(100, 100)` (`vec2()` constructs a 2 dimentional vector which is used to represent position in kaboom)
