@@ -275,6 +275,7 @@ type Game = {
 	on<F>(ev: string, cb: F): EventCanceller,
 	trigger(ev: string, ...args),
 	scenes: Record<SceneID, SceneDef>,
+	paused: boolean,
 };
 
 type Camera = {
@@ -359,6 +360,7 @@ const game: Game = {
 	},
 
 	scenes: {},
+	paused: false,
 
 };
 
@@ -1796,7 +1798,6 @@ function shader(id: string, uniform: Uniform = {}): ShaderComp {
 }
 
 const debug: Debug = {
-	paused: false,
 	inspect: false,
 	timeScale: 1,
 	showLog: true,
@@ -1811,6 +1812,17 @@ const debug: Debug = {
 	clearLog: logger.clear,
 	log: logger.info,
 	error: logger.error,
+	get paused() {
+		return game.paused;
+	},
+	set paused(v) {
+		game.paused = v;
+		if (v) {
+			audio.ctx().suspend();
+		} else {
+			audio.ctx().resume();
+		}
+	}
 };
 
 function gridder(level: Level, p: Vec2) {
