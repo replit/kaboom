@@ -1,11 +1,25 @@
 const cp = require("child_process");
 
-const t1 = cp.spawn("node", ["scripts/watch.js", "src", "node", "scripts/build.js"], {
+const t1 = cp.spawn("node", [
+	"scripts/watch.js", "src",
+	"npm", "--silent", "run", "build"
+], {
 	stdio: "inherit",
 	detached: true,
 });
 
-const t2 = cp.spawn("node", ["../scripts/watch.js", ".", "node", "."], {
+const t3 = cp.spawn("node", [
+	"scripts/watch.js", "src",
+	"npm", "--silent", "run", "cpenv"
+], {
+	stdio: "inherit",
+	detached: true,
+});
+
+const t2 = cp.spawn("node", [
+	"../scripts/watch.js", ".",
+	"node", "."
+], {
 	stdio: "inherit",
 	detached: true,
 	cwd: "site",
@@ -14,5 +28,6 @@ const t2 = cp.spawn("node", ["../scripts/watch.js", ".", "node", "."], {
 process.on("SIGINT", () => {
 	process.kill(-t1.pid);
 	process.kill(-t2.pid);
+	process.kill(-t3.pid);
 	process.exit();
 });
