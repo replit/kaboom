@@ -16,9 +16,12 @@ const PLAYER_SPEED = 120;
 const JUMP_FORCE = 240;
 const NUM_PLATFORMS = 5;
 
+// custom component to handle double jump
 function doubleJump() {
 	let hasDouble = true;
 	return {
+		id: "doubleJump",
+		require: [ "body", ],
 		add() {
 			this.on("grounded", () => {
 				hasDouble = true;

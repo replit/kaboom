@@ -1,9 +1,7 @@
 {
 	"name": "kaboom-env",
-	"devDependencies": {
-		"esbuild": "^0.12.18"
-	},
 	"dependencies": {
+		"esbuild": "^0.12.19",
 		"express": "^4.17.1",
 		"stacktrace-js": "^2.0.2"
 	}

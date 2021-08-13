@@ -38,6 +38,8 @@ import {
 import {
 	assetsInit,
 	DEF_FONT,
+	ASCII_CHARS,
+	CP437_CHARS,
 } from "./assets";
 
 import {
@@ -53,24 +55,22 @@ import markPlugin from "./plugins/mark";
 import peditPlugin from "./plugins/pedit";
 import asepritePlugin from "./plugins/aseprite";
 import f04b03Plugin from "./plugins/04b03";
-import cp437Plugin from "./plugins/cp437";
+import cgaPlugin from "./plugins/cga";
 import proggyPlugin from "./plugins/proggy";
 
-type ID = number;
-
-class IDList<T> extends Map<ID, T> {
-	lastID: ID;
+class IDList<T> extends Map<number, T> {
+	_lastID: number;
 	constructor(...args) {
 		super(...args);
-		this.lastID = 0;
+		this._lastID = 0;
 	}
-	push(v: T): ID {
-		const id = this.lastID;
+	push(v: T): number {
+		const id = this._lastID;
 		this.set(id, v);
-		this.lastID++;
+		this._lastID++;
 		return id;
 	}
-	pushd(v: T): EventCanceller {
+	pushd(v: T): () => void {
 		const id = this.push(v);
 		return () => this.delete(id);
 	}
@@ -2220,13 +2220,16 @@ const ctx: KaboomCtx = {
 	setData,
 	// plugin
 	plug,
+	// char sets
+	ASCII_CHARS,
+	CP437_CHARS,
 };
 
 plug(markPlugin);
 plug(peditPlugin);
 plug(asepritePlugin);
 plug(f04b03Plugin);
-plug(cp437Plugin);
+plug(cgaPlugin);
 plug(proggyPlugin);
 
 if (gconf.plugins) {

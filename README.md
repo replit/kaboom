@@ -9,7 +9,7 @@ Check out our official [website](https://kaboomjs.com/)!
 ## Examples
 
 ```html
-<script src="https://kaboomjs.com/lib/0.6.0/kaboom.js"></script>
+<script src="https://kaboomjs.com/lib/0.7.0/kaboom.js"></script>
 <script type="module">
 
 // initialize kaboom context
@@ -156,7 +156,7 @@ k.render(() => {
 1. self hosted
 
 ```html
-<script src="https://kaboomjs.com/lib/0.6.0/kaboom.js"></script>
+<script src="https://kaboomjs.com/lib/0.7.0/kaboom.js"></script>
 ```
 
 All available version tags can be found in CHANGELOG.md, or Github releases.
@@ -170,8 +170,8 @@ Special Version Tags:
 kaboom is on npm thus supported by most js lib CDN providers
 
 ```html
-<script src="https://unpkg.com/kaboom@0.6.0/dist/kaboom.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/kaboom@0.6.0/dist/kaboom.js"></script>
+<script src="https://unpkg.com/kaboom@0.7.0/dist/kaboom.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/kaboom@0.7.0/dist/kaboom.js"></script>
 ```
 
 When imported in the browser, the script will expose a global `kaboom` function to initialize a kaboom context, returning an object containing all the functions
@@ -199,7 +199,7 @@ scene(...);
 Kaboom also provide ES module and commonJS module exports with `.mjs` and `.cjs`, e.g,
 
 ```js
-import kaboom from "https://kaboomjs.com/lib/0.6.0/kaboom.mjs";
+import kaboom from "https://kaboomjs.com/lib/0.7.0/kaboom.mjs";
 ```
 
 ### npm package
@@ -237,5 +237,6 @@ const kaboom = require("kaboom");
 
 ### Misc
 
+- Find bitmap fonts: [Oldschool PC Font](https://int10h.org/oldschool-pc-fonts)
 - Featured on [Console 50](https://console.substack.com/p/console-50)
 - Shoutout to [Umayr](https://github.com/umayr) for kindly offering the "kaboom" npm package name

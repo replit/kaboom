@@ -1,4 +1,4 @@
-### v0.6 burp()
+### v0.7 burp()
 - added `burp()` for easy burping
 - added input events `touchStart(id, pos)`, `touchMove(id, pos)`, `touchEnd(id, pos)`, `mouseMove(pos)`
 - added `mouseDeltaPos()`
@@ -39,7 +39,7 @@ function alwaysRight() {
 obj.play("anim");
 obj.c("sprite").play("anim");
 ```
-- pedit, aseprite, proggy, 04b03, cp437 plugins are now included by default
+- pedit, aseprite, proggy, 04b03, cga plugins are now included by default
 - (**BREAK**) changed event `headbump` to `headbutt`
 - added `width`, `height`, and `tiled` attrib to `SpriteCompConf`, for better control over sprite size and tiled sprite support
 - (**BREAK**) renamed `resolve()` to `pushOutAll()` on `area` comp

@@ -186,6 +186,9 @@ type KaboomCtx = {
 	plug(plugin: KaboomPlugin),
 	// dbg
 	debug: Debug,
+	// char sets
+	ASCII_CHARS: string,
+	CP437_CHARS: string,
 	// TODO: better way? this loses the type safety from typos etc
 	// plugins
 	[key: string]: any;

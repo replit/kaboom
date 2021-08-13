@@ -5,9 +5,12 @@ kaboom({
 });
 
 loadRoot("/pub/examples/");
+// proggy is a default font
 loadProggy();
+// loadCGA();
+// load04b03();
 loadFont("04b03", "fonts/04b03_6x8.png", 6, 8);
-loadFont("CP437", "fonts/CP437_9x16.png", 9, 16, " ☺☻♥♦♣♠•◘○◙♂♀♪♫☼►◄↕‼¶§▬↨↑↓→←∟↔▲▼ !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~⌂ÇüéâäàåçêëèïîìÄÅÉæÆôöòûùÿÖÜ¢£¥₧ƒáíóúñÑªº¿⌐¬½¼¡«»░▒▓│┤╡╢╖╕╣║╗╝╜╛┐└┴┬├─┼╞╟╚╔╩╦╠═╬╧╨╤╥╙╘╒╓╫╪┘┌█▄▌▐▀αßΓπΣσµτΦΘΩδ∞φε∩≡±≥≤⌠⌡÷≈°∙·√ⁿ²■");
+loadFont("CP437", "fonts/CP437_9x16.png", 9, 16, CP437_CHARS);
 
 const fonts = [
 	"unscii",
