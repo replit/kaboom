@@ -1910,6 +1910,9 @@ function plug(plugin: KaboomPlugin) {
 	const funcs = plugin(ctx);
 	for (const k in funcs) {
 		ctx[k] = funcs[k];
+		if (gconf.global) {
+			window[k] = funcs[k];
+		}
 	}
 }
 
