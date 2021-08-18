@@ -172,10 +172,6 @@ type KaboomCtx = {
 	drawRectStroke(pos: Vec2, w: number, h: number, conf?: DrawRectStrokeConf),
 	drawLine(p1: Vec2, p2: Vec2, conf?: DrawLineConf),
 	drawTri(p1: Vec2, p2: Vec2, p3: Vec2, conf?: DrawTriConf),
-	// helpers
-	addSprite(name: string, conf?: AddSpriteConf): GameObj,
-	addRect(w: number, h: number, conf?: AddRectConf): GameObj,
-	addText(txt: string, size: number, props: AddTextConf): GameObj,
 	// scene
 	scene(id: SceneID, def: SceneDef),
 	go(id: SceneID, ...args),

@@ -58,6 +58,7 @@ import f04b03Plugin from "./plugins/04b03";
 import cgaPlugin from "./plugins/cga";
 import proggyPlugin from "./plugins/proggy";
 import levelPlugin from "./plugins/level";
+import easyPlugin from "./plugins/easy";
 
 class IDList<T> extends Map<number, T> {
 	_lastID: number;
@@ -2053,6 +2054,7 @@ plug(f04b03Plugin);
 plug(cgaPlugin);
 plug(proggyPlugin);
 plug(levelPlugin);
+plug(easyPlugin);
 
 if (gconf.plugins) {
 	gconf.plugins.forEach(plug);

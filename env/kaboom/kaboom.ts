@@ -58,6 +58,7 @@ import f04b03Plugin from "./plugins/04b03";
 import cgaPlugin from "./plugins/cga";
 import proggyPlugin from "./plugins/proggy";
 import levelPlugin from "./plugins/level";
+import easyPlugin from "./plugins/easy";
 
 class IDList<T> extends Map<number, T> {
 	_lastID: number;
@@ -1833,55 +1834,6 @@ const debug: Debug = {
 	}
 };
 
-function commonProps(props: RenderProps) {
-	return [
-		pos(props.pos ?? vec2(0)),
-		rotate(props.rot ?? 0),
-		scale(vec2(props.scale ?? 1)),
-		color(props.color ?? rgb(1, 1, 1)),
-		origin(props.origin),
-	];
-}
-
-function addSprite(name: string, props: AddSpriteConf = {}) {
-	return add([
-		sprite(name, props),
-		props.body && body(),
-		props.solid && solid(),
-		props.layer && layer(props.layer),
-		props.origin && origin(props.origin),
-        props.data,
-		...commonProps(props),
-		...(props.tags || []),
-	]);
-}
-
-function addRect(w: number, h: number, props: AddSpriteConf = {}) {
-	return add([
-		rect(w, h, props),
-		props.body && body(),
-		props.solid && solid(),
-		props.layer && layer(props.layer),
-		props.origin && origin(props.origin),
-        props.data,
-		...commonProps(props),
-		...(props.tags || []),
-	]);
-}
-
-function addText(txt: string, size: number, props: AddSpriteConf = {}) {
-	return add([
-		text(txt, size, props),
-		props.body && body(),
-		props.solid && solid(),
-		props.layer && layer(props.layer),
-		props.origin && origin(props.origin),
-        props.data,
-		...commonProps(props),
-		...(props.tags || []),
-	]);
-}
-
 function ready(cb: () => void): void {
 	if (game.loaded) {
 		cb();
@@ -2082,10 +2034,6 @@ const ctx: KaboomCtx = {
 	drawTri: gfx.drawTri,
 	// debug
 	debug,
-	// helpers
-	addSprite,
-	addRect,
-	addText,
 	// scene
 	scene,
 	go,
@@ -2106,6 +2054,7 @@ plug(f04b03Plugin);
 plug(cgaPlugin);
 plug(proggyPlugin);
 plug(levelPlugin);
+plug(easyPlugin);
 
 if (gconf.plugins) {
 	gconf.plugins.forEach(plug);
