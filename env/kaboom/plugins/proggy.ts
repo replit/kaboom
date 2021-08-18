@@ -1,4 +1,4 @@
-// font proggy
+// proggy font
 // http://upperbounds.net/
 
 // @ts-ignore

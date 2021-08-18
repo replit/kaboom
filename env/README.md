@@ -2,7 +2,9 @@
 
 This is a place where you can make games, with JavaScript and [Kaboom.js](https://kaboomjs.com/).
 
-This is an intro tutorial that will cover basic concepts of kaboom and make a very simple game.
+This is an intro tutorial that will cover basic concepts of kaboom and make a very simple chrome dinosaur-like game.
+
+(scroll to the end to see the full code if that's what you're looking for)
 
 You might already noticed you have this piece of code in the editor:
 
@@ -33,6 +35,8 @@ This function takes 1 argument, which is a list of (an array of) components that
 
 - our game object **has** `sprite`, the sprite name is `"mark"`
 - our game object **has** a `pos` (position) on screen, that position is `(40, 20)`
+
+![Kaboom's Coordinate System](learn/intro_coord.png)
 
 > Later on you might find this way of "composing" game objects really handy, especially when you're adding custom behaviors to your own game mechanics.
 
@@ -149,20 +153,147 @@ if (player.grounded()) {
 
 `grounded()` checks if player is currently grounded or not, if player can jump infinitely they'll go out of control
 
-we also specified a jump force for `jump()` here, which will be 320 pixels per second on the initial burst
+we also specified a jump force for `jump()` here, which will be 320 pixels per second on the initial burst.
 
-Let's add some other interactions, like movements.
+Now let's add something for the player to jump over!
 
 ```js
-keyDown("left", () => {
-	player.move(-100, 0);
-});
+add([
+	rect(12, rand(12, 32)),
+	pos(width(), height() - FLOOR_HEIGHT),
+	color(0.5, 0.5, 1), // has a blue-ish color
+	origin("botleft"), // set the render origin point to bottome left
+	"tree", // strings are tags!
+]);
 
-keyDown("right", () => {
-	player.move(100, 0);
+action("tree", (tree) => {
+	tree.move(-120, 0);
 });
 ```
 
-`move(x, y)` is provided by the `pos()` component, which moves the player. It takes 2 parameters, which is the x and y speed (in pixels per second)
+Some new stuff here:
+
+- `color()` sets the color of the render, it uses rgba and bound to 0.0 - 1.0 (so 0, 0, 1 is blue, 1, 1, 1 is white)
+- `origin()` sets the render origin point (the default is top left, see the coordinate image above)
+- `"tree"` all strings passed to the list are tags, which we can use to define group actions
+
+`action()` is a really important function to know! It passes some code to kaboom to run every frame (they'll be run every 0.016 second, hopefully). Video games are all about real time interations, we'll have a lot of these.
+
+In this case, we pass the tag `"tree"` as the first argument, telling that this will be an action for all objects with tag `"tree"` (we'll have a lot of them!). In the callback, we get the tree object from the callback argument, and call `.move()` on them, which is a method provided by `pos()` component, what it does is move the game object by a certain speed, in pixels per second.
 
 > Alternatively you can choose to assign the `pos` field directly (which is also provided by the `pos()` component) like `player.pos = vec2(100, 100)` (`vec2()` constructs a 2 dimentional vector which is used to represent position in kaboom)
+
+But it'll do us no good if it doesn't do anything when it hits the player! We need some way to detech if the tree collides with the player, and respond to it. Thankfully it's really easy to do in kaboom:
+
+```js
+player.collides("tree", () => {
+	debug.log("oops");
+});
+```
+
+We have an amazing function called `collides()` provided by the `area()` component, which receives 2 arguments, the first one is the tag group to check with, the second one is the action to take when the collision happens. So this piece of code means, everytime our `player` collides with an object with tag `"tree"`, we `debug.log()` something.
+
+The final full code of our game:
+
+```js
+const FLOOR_HEIGHT = 12;
+const TREE_SPEED = 120;
+
+// add the player character
+const player = add([
+	sprite("mark"), // it renders as the sprite "mark"
+	pos(40, 20), // it has a position on screen
+	body(), // it has a physical body
+]);
+
+// add the floor
+add([
+	rect(width(), FLOOR_HEIGHT), // it has a rectangular look
+	pos(0, height() - FLOOR_HEIGHT), // it has a position
+	solid(), // it has a solid body
+]);
+
+// listen to user key press
+keyPress("space", () => {
+	if (gameIsOver) {
+		reset();
+	} else {
+		if (player.grounded()) {
+			player.jump(320); // can choose to give it a jump force
+		}
+	}
+});
+
+let gameIsOver = false;
+let gameOverText = null;
+let score = 0;
+
+// text to display our scores
+const scoreText = add([
+	text(score),
+	pos(12, 12),
+]);
+
+// increment score every frame
+action(() => {
+	if (!gameIsOver) {
+		score += 1;
+		scoreText.text = score;
+	}
+});
+
+// reset the game to initial state
+function reset() {
+	score = 0;
+	gameIsOver = false;
+	player.paused = false;
+	destroyAll("tree");
+	destroy(gameOverText);
+}
+
+// enter game over state
+function gameOver() {
+	gameIsOver = true;
+	player.paused = true;
+	every("tree", (tree) => {
+		tree.paused = true;
+	});
+	gameOverText = add([
+		origin("center"),
+		pos(center()),
+		text("Game Over", 32),
+	]);
+}
+
+// if player collides with an object with tag "tree", game over!
+player.collides("tree", () => {
+	gameOver();
+});
+
+// every "tree" will move left, and get destroyed when it's out of screen
+action("tree", (tree) => {
+	tree.move(-TREE_SPEED, 0);
+	if (tree.pos.x < -120) {
+		destroy(tree);
+	}
+});
+
+// spawn a tree every rand(0.5, 2) seconds
+function spawnTree() {
+
+	if (!gameIsOver) {
+		add([
+			rect(12, rand(12, 32)),
+			color(0.5, 0.5, 1),
+			pos(width(), height() - FLOOR_HEIGHT),
+			origin("botleft"),
+			"tree",
+		]);
+	}
+
+	wait(rand(0.5, 2), spawnTree);
+
+}
+
+spawnTree();
+```

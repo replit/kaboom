@@ -1,4 +1,4 @@
-add([
-	pos(40, 20),
+const player = add([
 	sprite("mark"),
+	pos(40, 20),
 ]);

@@ -57,6 +57,7 @@ import asepritePlugin from "./plugins/aseprite";
 import f04b03Plugin from "./plugins/04b03";
 import cgaPlugin from "./plugins/cga";
 import proggyPlugin from "./plugins/proggy";
+import levelPlugin from "./plugins/level";
 
 class IDList<T> extends Map<number, T> {
 	_lastID: number;
@@ -1832,136 +1833,6 @@ const debug: Debug = {
 	}
 };
 
-function gridder(level: Level, p: Vec2) {
-
-	return {
-
-		id: "gridder",
-		gridPos: p.clone(),
-
-		setGridPos(p: Vec2) {
-			this.gridPos = p.clone();
-			this.pos = vec2(
-				level.offset().x + this.gridPos.x * level.gridWidth(),
-				level.offset().y + this.gridPos.y * level.gridHeight()
-			);
-		},
-
-		moveLeft() {
-			this.setGridPos(this.gridPos.add(vec2(-1, 0)));
-		},
-
-		moveRight() {
-			this.setGridPos(this.gridPos.add(vec2(1, 0)));
-		},
-
-		moveUp() {
-			this.setGridPos(this.gridPos.add(vec2(0, -1)));
-		},
-
-		moveDown() {
-			this.setGridPos(this.gridPos.add(vec2(0, 1)));
-		},
-
-	};
-
-}
-
-function addLevel(map: string[], conf: LevelConf): Level {
-
-	const objs: GameObj[] = [];
-	const offset = vec2(conf.pos || 0);
-	let longRow = 0;
-
-	const level = {
-
-		offset() {
-			return offset.clone();
-		},
-
-		gridWidth() {
-			return conf.width;
-		},
-
-		gridHeight() {
-			return conf.height;
-		},
-
-		getPos(...args): Vec2 {
-			const p = vec2(...args);
-			return vec2(
-				offset.x + p.x * conf.width,
-				offset.y + p.y * conf.height
-			);
-		},
-
-		spawn(sym: string, p: Vec2): GameObj {
-
-			const comps = (() => {
-				if (Array.isArray(sym)) {
-					return sym;
-				} else if (conf[sym]) {
-					if (typeof conf[sym] === "function") {
-						return conf[sym]();
-					} else if (Array.isArray(conf[sym])) {
-						return [...conf[sym]];
-					}
-				} else if (conf.any) {
-					return conf.any(sym);
-				}
-			})();
-
-			if (!comps) {
-				return;
-			}
-
-			comps.push(pos(
-				offset.x + p.x * conf.width,
-				offset.y + p.y * conf.height
-			));
-
-			const obj = add(comps);
-
-			objs.push(obj);
-
-			obj.use(gridder(this, p));
-
-			return obj;
-
-		},
-
-		width() {
-			return longRow * conf.width;
-		},
-
-		height() {
-			return map.length * conf.height;
-		},
-
-		destroy() {
-			for (const obj of objs) {
-				destroy(obj);
-			}
-		},
-
-	};
-
-	map.forEach((row, i) => {
-
-		const syms = row.split("");
-
-		longRow = Math.max(syms.length, longRow);
-
-		syms.forEach((sym, j) => {
-			level.spawn(sym, vec2(j, i));
-		});
-
-	});
-
-	return level;
-
-}
-
 function commonProps(props: RenderProps) {
 	return [
 		pos(props.pos ?? vec2(0)),
@@ -2090,6 +1961,10 @@ function plug(plugin: KaboomPlugin) {
 	}
 }
 
+function center(): Vec2 {
+	return vec2(gfx.width() / 2, gfx.height() / 2);
+}
+
 const ctx: KaboomCtx = {
 	// asset load
 	loadRoot: assets.loadRoot,
@@ -2101,6 +1976,7 @@ const ctx: KaboomCtx = {
 	// query
 	width: gfx.width,
 	height: gfx.height,
+	center: center,
 	dt: dt,
 	time: app.time,
 	screenshot: app.screenshot,
@@ -2206,8 +2082,6 @@ const ctx: KaboomCtx = {
 	drawTri: gfx.drawTri,
 	// debug
 	debug,
-	// level
-	addLevel,
 	// helpers
 	addSprite,
 	addRect,
@@ -2231,6 +2105,7 @@ plug(asepritePlugin);
 plug(f04b03Plugin);
 plug(cgaPlugin);
 plug(proggyPlugin);
+plug(levelPlugin);
 
 if (gconf.plugins) {
 	gconf.plugins.forEach(plug);

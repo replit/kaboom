@@ -30,6 +30,7 @@ type KaboomCtx = {
 	// game
 	width(): number,
 	height(): number,
+	center(): Vec2,
 	dt(): number,
 	time(): number,
 	screenshot(): string,
@@ -171,11 +172,6 @@ type KaboomCtx = {
 	drawRectStroke(pos: Vec2, w: number, h: number, conf?: DrawRectStrokeConf),
 	drawLine(p1: Vec2, p2: Vec2, conf?: DrawLineConf),
 	drawTri(p1: Vec2, p2: Vec2, p3: Vec2, conf?: DrawTriConf),
-	// helpers
-	addLevel(map: string[], conf: LevelConf): Level,
-	addSprite(name: string, conf?: AddSpriteConf): GameObj,
-	addRect(w: number, h: number, conf?: AddRectConf): GameObj,
-	addText(txt: string, size: number, props: AddTextConf): GameObj,
 	// scene
 	scene(id: SceneID, def: SceneDef),
 	go(id: SceneID, ...args),
@@ -686,26 +682,6 @@ type RectComp = Comp & {
 
 type RectCompConf = {
 	noArea?: boolean,
-};
-
-type LevelConf = {
-	width: number,
-	height: number,
-	pos?: Vec2,
-	any(s: string): Comp[] | undefined,
-	[sym: string]: any,
-//  	[sym: string]: Comp[] | (() => Comp[]),
-};
-
-type Level = {
-	getPos(p: Vec2): Vec2,
-	spawn(sym: string, p: Vec2): GameObj,
-	width(): number,
-	height(): number,
-	gridWidth(): number,
-	gridHeight(): number,
-	offset(): Vec2,
-	destroy(),
 };
 
 type Debug = {
