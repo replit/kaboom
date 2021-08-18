@@ -197,7 +197,7 @@ type TouchID = number;
 // TODO: enum
 type ScaleMode =
 	"stretch"
-//  	| "letterbox"
+	| "letterbox"
 	| "none"
 	;
 

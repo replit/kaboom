@@ -139,8 +139,8 @@ function appInit(gconf: AppConf = {}): App {
 		app.canvas.width = window.innerWidth;
 		app.canvas.height = window.innerHeight;
 	} else {
-		app.canvas.width = (gconf.width || 640) * app.scale;
-		app.canvas.height = (gconf.height || 480) * app.scale;
+		app.canvas.width = gconf.width * app.scale;
+		app.canvas.height = gconf.height * app.scale;
 	}
 
 	const styles = [

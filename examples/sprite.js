@@ -1,9 +1,10 @@
 const k = kaboom({
 	width: 120,
-	height: 120,
+	height: 60,
 // 	scale: 2,
 	fullscreen: true,
-// 	scaleMode: "letterbox",
+	scaleMode: "letterbox",
+// 	scaleMode: "stretch",
 });
 
 k.loadMark();

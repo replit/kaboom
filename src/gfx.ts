@@ -31,6 +31,8 @@ type GfxCtx = {
 	transformStack: Mat4[],
 	drawCalls: number,
 	lastDrawCalls: number,
+	width: number,
+	height: number,
 };
 
 type GfxConf = {
@@ -201,6 +203,7 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 
 		gl.clearColor(c.r, c.g, c.b, c.a);
 		gl.enable(gl.BLEND);
+		gl.enable(gl.SCISSOR_TEST);
 		gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
 
 		const vbuf = gl.createBuffer();
@@ -240,12 +243,11 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 			transformStack: [],
 			clearColor: c,
 			bgTex: bgTex,
+			width: gconf.width,
+			height: gconf.height,
 		};
 
 	})();
-
-	frameStart();
-	frameEnd();
 
 	function powerOfTwo(n) {
 		return (Math.log(n) / Math.log(2)) % 1 === 0;
@@ -902,30 +904,52 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 		}
 	}
 
-	// get game width
-	function width(): number {
+	function updateSize() {
 		switch (gconf.scaleMode) {
 			case "none":
-				return gl.drawingBufferWidth / scale();
-//  			case "letterbox":
-//  				return gconf.height;
+				gfx.width = gl.drawingBufferWidth / scale();
+				gfx.height = gl.drawingBufferHeight / scale();
+				break;
+			case "letterbox":
+				const r1 = gl.drawingBufferWidth / gl.drawingBufferHeight;
+				const r2 = gconf.width / gconf.height;
+				if (r1 > r2) {
+					gfx.width = gconf.height * r1;
+					gfx.height = gconf.height;
+					const sw = gl.drawingBufferHeight * r2;
+					const sh = gl.drawingBufferHeight;
+					const x = (gl.drawingBufferWidth - sw) / 2;
+					gl.scissor(x, 0, sw, sh);
+					gl.viewport(x, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
+				} else {
+					gfx.width = gconf.width;
+					gfx.height = gconf.width / r1;
+					const sw = gl.drawingBufferWidth;
+					const sh = gl.drawingBufferWidth / r2;
+					const y = (gl.drawingBufferHeight - sh) / 2;
+					gl.scissor(0, gl.drawingBufferHeight - sh - y, sw, sh);
+					gl.viewport(0, -y, gl.drawingBufferWidth, gl.drawingBufferHeight);
+				}
+				break;
 			case "stretch":
-				return gconf.width;
+				gfx.width = gconf.width;
+				gfx.height = gconf.height;
+				break;
+			default:
+				gfx.width = gconf.width;
+				gfx.height = gconf.height;
+				break;
 		}
-		throw new Error(`unsupported scale mode: ${gconf.scaleMode}`);
+	}
+
+	// get game width
+	function width(): number {
+		return gfx.width;
 	}
 
 	// get game height
 	function height(): number {
-		switch (gconf.scaleMode) {
-			case "none":
-				return gl.drawingBufferHeight / scale();
-//  			case "letterbox":
-//  				return gconf.height;
-			case "stretch":
-				return gconf.height;
-		}
-		throw new Error(`unsupported scale mode: ${gconf.scaleMode}`);
+		return gfx.height;
 	}
 
 	function scale(): number {
@@ -935,6 +959,10 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 	function clearColor(): Color {
 		return gfx.clearColor.clone();
 	}
+
+	updateSize();
+	frameStart();
+	frameEnd();
 
 	// TODO: type this
 	return {
