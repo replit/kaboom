@@ -192,8 +192,14 @@ type KaboomCtx = {
 
 type SceneID = string;
 type SceneDef = (...args) => void;
-
 type TouchID = number;
+
+// TODO: enum
+type ScaleMode =
+	"stretch"
+//  	| "letterbox"
+	| "none"
+	;
 
 type EventCanceller = () => void;
 
@@ -201,6 +207,7 @@ type KaboomConf = {
 	width?: number,
 	height?: number,
 	scale?: number,
+	scaleMode?: ScaleMode,
 	fullscreen?: boolean,
 	debug?: boolean,
 	crisp?: boolean,
@@ -401,6 +408,7 @@ type FormattedText = {
 	chars: FormattedChar[],
 };
 
+// TODO: enum
 type Origin =
 	"topleft"
 	| "top"

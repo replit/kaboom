@@ -108,7 +108,10 @@ const app = appInit({
 
 const gfx = gfxInit(app.gl, {
 	clearColor: gconf.clearColor ? rgba(gconf.clearColor) : undefined,
+	width: gconf.width || 640,
+	height: gconf.height || 480,
 	scale: gconf.scale,
+	scaleMode: gconf.scaleMode ?? "stretch",
 	texFilter: gconf.texFilter,
 });
 
@@ -1137,8 +1140,9 @@ function isSameLayer(o1: GameObj, o2: GameObj): boolean {
 	return (o1.layer ?? game.defLayer) === (o2.layer ?? game.defLayer);
 }
 
+// TODO: custom size doesn't work
 // TODO: active flag
-// TODO: tell which size collides
+// TODO: tell which side collides
 // TODO: dynamic update when size change
 function area(p1: Vec2, p2: Vec2): AreaComp {
 

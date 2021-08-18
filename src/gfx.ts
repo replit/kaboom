@@ -35,7 +35,10 @@ type GfxCtx = {
 
 type GfxConf = {
 	clearColor?: Color,
+	width?: number,
+	height?: number,
 	scale?: number,
+	scaleMode?: ScaleMode,
 	texFilter?: TexFilter,
 };
 
@@ -899,14 +902,30 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 		}
 	}
 
-	// get current canvas width
+	// get game width
 	function width(): number {
-		return gl.drawingBufferWidth / scale();
+		switch (gconf.scaleMode) {
+			case "none":
+				return gl.drawingBufferWidth / scale();
+//  			case "letterbox":
+//  				return gconf.height;
+			case "stretch":
+				return gconf.width;
+		}
+		throw new Error(`unsupported scale mode: ${gconf.scaleMode}`);
 	}
 
-	// get current canvas height
+	// get game height
 	function height(): number {
-		return gl.drawingBufferHeight / scale();
+		switch (gconf.scaleMode) {
+			case "none":
+				return gl.drawingBufferHeight / scale();
+//  			case "letterbox":
+//  				return gconf.height;
+			case "stretch":
+				return gconf.height;
+		}
+		throw new Error(`unsupported scale mode: ${gconf.scaleMode}`);
 	}
 
 	function scale(): number {
