@@ -39,7 +39,8 @@ type KaboomCtx = {
 	ready(cb: () => void),
 	isTouch(): boolean,
 	// scene / obj
-	add(comps: Comp[]): GameObj,
+//  	add(comps: Comp[]): GameObj,
+	add<T extends Comp>(comps: ReadonlyArray<T>): Omit<Expand<UnionToIntersection<Defined<T>>>, keyof Comp> & GameObj,
 	readd(obj: GameObj): GameObj,
 	destroy(obj: GameObj),
 	destroyAll(tag: string),
@@ -75,7 +76,6 @@ type KaboomCtx = {
 	camIgnore(layers: string[]),
 	gravity(g: number): number,
 	// net
-	sync(obj: GameObj),
 	recv(ty: string, handler: MsgHandler),
 	send(ty: string, data: any),
 	// comps
@@ -223,22 +223,25 @@ type KaboomConf = {
 	plugins?: KaboomPlugin[],
 };
 
-type GameObj = {
-	hidden: boolean,
-	paused: boolean,
-	exists(): boolean,
-	is(tag: string | string[]): boolean,
-	use(comp: Comp),
-	action(cb: () => void): EventCanceller,
-	on(ev: string, cb: () => void): EventCanceller,
-	trigger(ev: string, ...args),
-	rmTag(t: string),
-	destroy(),
-	c(id: string): Comp,
-	[custom: string]: any,
-};
+type UnionToIntersection<U> = (U extends any ? (k: U) => void : never) extends ((k: infer I) => void) ? I : never
+type Defined<T> = T extends any ? Pick<T, { [K in keyof T]-?: T[K] extends undefined ? never : K }[keyof T]> : never;
+type Expand<T> = T extends infer U ? { [K in keyof U]: U[K] } : never;
 
-type Fn = () => void;
+interface GameObj {
+	_id: number | null,
+	hidden: boolean;
+	paused: boolean;
+	exists(): boolean;
+	is(tag: string | string[]): boolean;
+	use(comp: Comp);
+	action(cb: () => void): EventCanceller;
+	on(ev: string, cb: () => void): EventCanceller;
+	trigger(ev: string, ...args);
+	rmTag(t: string);
+	destroy();
+	c(id: string): Comp;
+	[custom: string]: any;
+};
 
 type SpriteAnim = {
 	from: number,
@@ -532,15 +535,15 @@ type Line = {
 type ClientID = number;
 type MsgHandler = (id: ClientID, data: any) => void;
 
-type Comp = {
-	id?: CompID,
-	require?: CompID[],
-	add?: AddEvent,
-	update?: UpdateEvent,
-	draw?: DrawEvent,
-	destroy?: DestroyEvent,
-	inspect?: InspectEvent,
-	[custom: string]: any,
+interface Comp {
+	id?: CompID;
+	require?: CompID[];
+	add?: AddEvent;
+	update?: UpdateEvent;
+	draw?: DrawEvent;
+	destroy?: DestroyEvent;
+	inspect?: InspectEvent;
+	[custom: string]: any;
 };
 
 type CompBuilder = any;
@@ -558,37 +561,37 @@ type PosCompInspect = {
 	pos: string,
 };
 
-type PosComp = Comp & {
-	pos: Vec2,
-	move(x: number, y: number),
-	move(p: Vec2),
-	screenPos(): Vec2,
-	inspect(): PosCompInspect,
+interface PosComp extends Comp {
+	pos: Vec2;
+	move(x: number, y: number);
+	move(p: Vec2);
+	screenPos(): Vec2;
+	inspect(): PosCompInspect;
 };
 
-type ScaleComp = Comp & {
-	scale: Vec2,
+interface ScaleComp extends Comp {
+	scale: Vec2;
 };
 
-type RotateComp = Comp & {
-	angle: number,
+interface RotateComp extends Comp {
+	angle: number;
 };
 
-type ColorComp = Comp & {
-	color: Color,
+interface ColorComp extends Comp {
+	color: Color;
 };
 
-type OriginComp = Comp & {
-	origin: Origin | Vec2,
+interface OriginComp extends Comp {
+	origin: Origin | Vec2;
 };
 
 type LayerCompInspect = {
 	layer: string,
 };
 
-type LayerComp = Comp & {
-	layer: string,
-	inspect(): LayerCompInspect,
+interface LayerComp extends Comp {
+	layer: string;
+	inspect(): LayerCompInspect;
 };
 
 type RectSide =
@@ -604,8 +607,8 @@ type PushOut = {
 	dis: number,
 }
 
-type AreaComp = Comp & {
-	area: Rect,
+interface AreaComp extends Comp {
+	area: Rect;
 	areaWidth(): number,
 	areaHeight(): number,
 	isClicked(): boolean,
@@ -642,37 +645,37 @@ type SpriteCurAnim = {
 	timer: number,
 };
 
-type SpriteComp = Comp & {
-	add: AddEvent,
-	draw: DrawEvent,
-	update: UpdateEvent,
-	width: number,
-	height: number,
-	animSpeed: number,
-	frame: number,
-	quad: Quad,
-	play(anim: string, loop?: boolean),
-	stop(),
-	changeSprite(id: string),
-	numFrames(): number,
-	curAnim(): string,
-	flipX(b: boolean),
-	flipY(b: boolean),
-	inspect(): SpriteCompInspect,
+interface SpriteComp extends Comp {
+	add: AddEvent;
+	draw: DrawEvent;
+	update: UpdateEvent;
+	width: number;
+	height: number;
+	animSpeed: number;
+	frame: number;
+	quad: Quad;
+	play(anim: string, loop?: boolean);
+	stop();
+	changeSprite(id: string);
+	numFrames(): number;
+	curAnim(): string;
+	flipX(b: boolean);
+	flipY(b: boolean);
+	inspect(): SpriteCompInspect;
 };
 
 type SpriteCompInspect = {
 	curAnim?: string,
 };
 
-type TextComp = Comp & {
-	add: AddEvent,
-	draw: DrawEvent,
-	text: string,
-	textSize: number,
-	font: string,
-	width: number,
-	height: number,
+interface TextComp extends Comp {
+	add: AddEvent;
+	draw: DrawEvent;
+	text: string;
+	textSize: number;
+	font: string;
+	width: number;
+	height: number;
 };
 
 type TextCompConf = {
@@ -681,11 +684,11 @@ type TextCompConf = {
 	width?: number,
 };
 
-type RectComp = Comp & {
-	add: AddEvent,
-	draw: DrawEvent,
-	width: number,
-	height: number,
+interface RectComp extends Comp {
+	add: AddEvent;
+	draw: DrawEvent;
+	width: number;
+	height: number;
 };
 
 type RectCompConf = {
@@ -715,18 +718,18 @@ type UniformValue =
 
 type Uniform = Record<string, UniformValue>;
 
-type ShaderComp = Comp & {
-	uniform: Uniform,
-	shader: string,
+interface ShaderComp extends Comp {
+	uniform: Uniform;
+	shader: string;
 };
 
-type BodyComp = Comp & {
-	update: UpdateEvent,
-	jumpForce: number,
-	curPlatform(): GameObj | null,
-	grounded(): boolean,
-	falling(): boolean,
-	jump(f: number),
+interface BodyComp extends Comp {
+	update: UpdateEvent;
+	jumpForce: number;
+	curPlatform(): GameObj | null;
+	grounded(): boolean;
+	falling(): boolean;
+	jump(f: number);
 };
 
 type BodyCompConf = {
@@ -734,8 +737,8 @@ type BodyCompConf = {
 	maxVel?: number,
 };
 
-type SolidComp = Comp & {
-	solid: boolean,
+interface SolidComp extends Comp {
+	solid: boolean;
 };
 
 type HelperProps = {

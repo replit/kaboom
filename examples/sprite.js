@@ -1,12 +1,4 @@
-const k = kaboom({
-	width: 120,
-	height: 60,
-// 	scale: 2,
-	fullscreen: true,
-	scaleMode: "letterbox",
-// 	scaleMode: "stretch",
-});
-
+const k = kaboom();
 k.loadMark();
 k.addSprite("mark", { scale: 10, });
 

@@ -130,54 +130,6 @@ const logger = loggerInit(gfx, assets, {
 
 const net = gconf.connect ? netInit(gconf.connect) : null;
 
-enum NetMsg {
-	AddObj = "ADD_OBJ",
-	UpdateObj = "UPDATE_OBJ",
-	DestroyObj = "DESTROY_OBJ",
-	Disconnect = "DISCONNECT",
-}
-
-function sync(obj: GameObj) {
-	if (!net) {
-		throw new Error("not connected to any websockets");
-	}
-	game.travelers.push(obj._id);
-	send(NetMsg.AddObj, obj._data());
-}
-
-if (net) {
-
-	recv(NetMsg.AddObj, (id, data) => {
-		if (!game.visitors[id]) {
-			game.visitors[id] = {};
-		}
-		// TODO: reconstruct
-//  		const obj = add(data);
-//  		scene.visitors[id][data.id] = obj._id;
-	});
-
-	recv(NetMsg.DestroyObj, (id, data) => {
-		if (!game.visitors[id]) {
-			return;
-		}
-		const oid = game.visitors[id][data.id];
-		if (oid != null) {
-			destroy(game.objs.get(oid));
-			delete game.visitors[id][data.id];
-		}
-	});
-
-	recv(NetMsg.Disconnect, (id, data) => {
-		if (game.visitors[id]) {
-			for (const oid of Object.values(game.visitors[id])) {
-				destroy(game.objs.get(oid));
-			}
-			delete game.visitors[id];
-		}
-	});
-
-}
-
 function recv(ty: string, handler: MsgHandler) {
 	if (!net) {
 		throw new Error("not connected to any websockets");
@@ -442,15 +394,8 @@ const COMP_EVENTS = new Set([
 	"inspect",
 ]);
 
-type UnionToIntersection<U> =
-  (U extends any ? (k: U) => void : never) extends ((k: infer I) => void) ? I : never
-type Defined<T> = T extends any ? Pick<T, { [K in keyof T]-?: T[K] extends undefined ? never : K }[keyof T]> : never;
-type Expand<T> = T extends infer U ? { [K in keyof U]: U[K] } : never;
-
-type AddParameters = (PosComp | ScaleComp | RotateComp | ColorComp | OriginComp | LayerComp | AreaComp | SpriteComp | BodyComp | TextComp);
-
 // TODO: make tags also comp?
-function add<T extends AddParameters>(comps: ReadonlyArray<T>): Expand<UnionToIntersection<Defined<T>>> & GameObj {
+function add<T extends Comp>(comps: ReadonlyArray<T>): Omit<Expand<UnionToIntersection<Defined<T>>>, keyof Comp> & GameObj {
 
 	const compStates = {};
 	const customState = {};
@@ -636,7 +581,7 @@ function add<T extends AddParameters>(comps: ReadonlyArray<T>): Expand<UnionToIn
 		}
 	}
 
-	return obj as unknown as Expand<UnionToIntersection<Defined<T>>> & GameObj;
+	return obj as unknown as Omit<Expand<UnionToIntersection<Defined<T>>>, keyof Comp> & GameObj;
 
 }
 
@@ -689,7 +634,7 @@ function collides(
 	t2: string,
 	f: (a: GameObj, b: GameObj) => void,
 ): EventCanceller {
-	return action(t1, (o1) => {
+	return action(t1, (o1: GameObj & AreaComp) => {
 		o1._checkCollisions(t2, (o2) => {
 			f(o1, o2);
 		});
@@ -702,7 +647,7 @@ function overlaps(
 	t2: string,
 	f: (a: GameObj, b: GameObj) => void,
 ): EventCanceller {
-	return action(t1, (o1) => {
+	return action(t1, (o1: GameObj & AreaComp) => {
 		o1._checkOverlaps(t2, (o2) => {
 			f(o1, o2);
 		});
@@ -711,7 +656,7 @@ function overlaps(
 
 // add an event that runs when objs with tag t is clicked
 function clicks(t: string, f: (obj: GameObj) => void): EventCanceller {
-	return action(t, (o) => {
+	return action(t, (o: GameObj & AreaComp) => {
 		if (o.isClicked()) {
 			f(o);
 		}
@@ -1467,6 +1412,7 @@ function sprite(id: string, conf: SpriteCompConf = {}): SpriteComp {
 			this.width = spr.tex.width * q.w * scale.x;
 			this.height = spr.tex.height * q.h * scale.y;
 
+			// TODO: don't do if custom area
 			if (!conf.noArea) {
 				// TODO: this could overwrite existing internal states
 				this.use(getAreaFromSize(this.width, this.height, this.origin));
@@ -1920,14 +1866,17 @@ function setData(key: string, data: any) {
 	window.localStorage[key] = JSON.stringify(data);
 }
 
-function plug(plugin: KaboomPlugin) {
+
+function plug<T>(plugin: (KaboomCtx) => T): Expand<UnionToIntersection<Defined<T>>> & KaboomCtx {
 	const funcs = plugin(ctx);
 	for (const k in funcs) {
 		ctx[k] = funcs[k];
 		if (gconf.global) {
+			// @ts-ignore
 			window[k] = funcs[k];
 		}
 	}
+	return ctx as unknown as Expand<UnionToIntersection<Defined<T>>> & KaboomCtx;
 }
 
 function center(): Vec2 {
@@ -1971,7 +1920,6 @@ const ctx: KaboomCtx = {
 	every,
 	revery,
 	// net
-	sync,
 	send,
 	recv,
 	// comps
