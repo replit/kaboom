@@ -188,6 +188,7 @@ space: shoot
 
 	const player = add([
 		sprite("ship"),
+		area(),
 		pos(width() / 2, height() - 16),
 		origin("center"),
 	]);
@@ -249,6 +250,7 @@ space: shoot
 	function spawnBullet(p) {
 		add([
 			rect(2, 6),
+			area(),
 			pos(p),
 			origin("center"),
 			color(0.5, 0.5, 1),
@@ -285,6 +287,7 @@ space: shoot
 		const name = choose(objs.filter(n => n != bossName));
 		add([
 			sprite(name),
+			area(),
 			pos(rand(0, width()), 0),
 			health(OBJ_HEALTH),
 			origin("bot"),
@@ -299,6 +302,7 @@ space: shoot
 
 	const boss = add([
 		sprite(bossName),
+		area(),
 		pos(width() / 2, 48),
 		health(BOSS_HEALTH),
 		scale(3),

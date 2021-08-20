@@ -47,25 +47,30 @@ const map = addLevel([
 	pos: vec2(0, 0),
 	"+": [
 		sprite("steel"),
+		area(),
 		solid(),
 	],
 	"=": [
 		sprite("grass"),
+		area(),
 		solid(),
 	],
 	"^": [
 		sprite("jumpy"),
+		area(),
 		solid(),
 		"jumpy",
 	],
 	"*": [
 		sprite("spike"),
+		area(),
 		body(),
 		area(vec2(0, 6), vec2(11, 11)),
 		"hurt",
 	],
 	"o": [
 		sprite("coin"),
+		area(),
 		body(),
 		"coin",
 	],
@@ -73,6 +78,7 @@ const map = addLevel([
 
 const player = add([
 	sprite("car"),
+	area(),
 	pos(map.getPos(1, 0)),
 	scale(1),
 	body({ jumpForce: 320, }),

@@ -2,6 +2,7 @@ kaboom({
 	global: true,
 	fullscreen: true,
 	scale: 2,
+	debug: true,
 	clearColor: [0, 0, 0, 1],
 });
 
@@ -44,24 +45,29 @@ const level = addLevel([
 	// define each object as a list of components
 	"=": [
 		sprite("steel"),
+		area(),
 		solid(),
 	],
 	"$": [
 		sprite("coin"),
+		area(),
 		"coin",
 	],
 	"%": [
 		sprite("prize"),
+		area(),
 		solid(),
 		"prize",
 	],
 	"^": [
 		sprite("spike"),
 		area(vec2(0, 6), vec2(11, 11)),
+		area(),
 		"dangerous",
 	],
 	"#": [
 		sprite("apple"),
+		area(),
 		"apple",
 	],
 });
@@ -109,6 +115,7 @@ function big() {
 const player = add([
 	sprite("guy"),
 	pos(0, 0),
+	area(),
 	scale(1),
 	// makes it fall to gravity and jumpable
 	body(),

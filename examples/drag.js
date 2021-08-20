@@ -47,6 +47,7 @@ for (let i = 0; i < 64; i++) {
 	add([
 		sprite("mark"),
 		pos(rand(width()), rand(height())),
+		area(),
 		scale(5),
 		origin("center"),
 		drag(),

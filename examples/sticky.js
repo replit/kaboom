@@ -68,6 +68,7 @@ const score = add([
 
 const car = add([
 	sprite("car"),
+	area(),
 	origin("center"),
 	pos(0, 0),
 	body({ jumpForce: JUMP_FORCE, }),
@@ -79,6 +80,7 @@ const car = add([
 for (let i = 1; i < NUM_PLATFORMS; i++) {
 	add([
 		sprite("grass"),
+		area(),
 		pos(rand(0, width()), i * height() / NUM_PLATFORMS),
 		solid(),
 		origin("center"),
@@ -98,6 +100,7 @@ function genCoin() {
 		pos(plat.pos.sub(0, 12)),
 		origin("center"),
 		sprite("coin"),
+		area(),
 		body(),
 		"coin",
 	]);
@@ -109,6 +112,7 @@ for (let i = 0; i < width() / 11; i++) {
 	add([
 		pos(i * 11, height()),
 		sprite("spike"),
+		area(),
 		origin("bot"),
 		color(1, 0, 5),
 		scale(),

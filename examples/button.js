@@ -9,6 +9,7 @@ function addButton(txt, p, f) {
 	const bg = add([
 		pos(p),
 		rect(60, 30),
+		area(),
 		origin("center"),
 		color(1, 1, 1),
 	]);

@@ -62,18 +62,22 @@ scene("main", (levelIdx) => {
 		pos: vec2(20, 20),
 		"=": [
 			sprite("steel"),
+			area(),
 			solid(),
 		],
 		"$": [
 			sprite("key"),
+			area(),
 			"key",
 		],
 		"@": [
 			sprite("guy"),
+			area(),
 			"player",
 		],
 		"|": [
 			sprite("door"),
+			area(),
 			solid(),
 			"door",
 		],
@@ -82,6 +86,7 @@ scene("main", (levelIdx) => {
 			if (char) {
 				return [
 					sprite(char.sprite),
+					area(),
 					solid(),
 					"character",
 					{

@@ -95,7 +95,7 @@ type KaboomCtx = {
 	area(p1: Vec2, p2: Vec2): AreaComp,
 	sprite(id: string, conf?: SpriteCompConf): SpriteComp,
 	text(t: string, size?: number, conf?: TextCompConf): TextComp,
-	rect(w: number, h: number, conf?: RectCompConf): RectComp,
+	rect(w: number, h: number): RectComp,
 	solid(): SolidComp,
 	body(conf?: BodyCompConf): BodyComp,
 	shader(id: string): ShaderComp,
@@ -627,7 +627,6 @@ interface AreaComp extends Comp {
 };
 
 type SpriteCompConf = {
-	noArea?: boolean,
 	quad?: Quad,
 	frame?: number,
 	animSpeed?: number,
@@ -645,7 +644,6 @@ type SpriteCurAnim = {
 };
 
 interface SpriteComp extends Comp {
-	add: AddEvent;
 	draw: DrawEvent;
 	update: UpdateEvent;
 	width: number;
@@ -668,7 +666,6 @@ type SpriteCompInspect = {
 };
 
 interface TextComp extends Comp {
-	add: AddEvent;
 	draw: DrawEvent;
 	text: string;
 	textSize: number;
@@ -684,14 +681,9 @@ type TextCompConf = {
 };
 
 interface RectComp extends Comp {
-	add: AddEvent;
 	draw: DrawEvent;
 	width: number;
 	height: number;
-};
-
-type RectCompConf = {
-	noArea?: boolean,
 };
 
 type Debug = {
@@ -750,5 +742,5 @@ type HelperProps = {
 }
 
 type AddSpriteConf = RenderProps & HelperProps & SpriteCompConf;
-type AddRectConf = RenderProps & HelperProps & RectCompConf;
+type AddRectConf = RenderProps & HelperProps;
 type AddTextConf = RenderProps & HelperProps & TextCompConf;

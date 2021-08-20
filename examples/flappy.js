@@ -34,7 +34,7 @@ scene("main", () => {
 
 	// background image
 	add([
-		sprite("bg", { noArea: true, }),
+		sprite("bg"),
 		scale(width() / 240, height() / 240),
 		layer("bg"),
 	]);
@@ -45,6 +45,8 @@ scene("main", () => {
 		sprite("birdy"),
 		// give it a position
 		pos(width() / 4, 0),
+		// give it a collider
+		area(),
 		// body component enables it to fall and jump in a gravity world
 		body(),
 	]);
@@ -77,6 +79,7 @@ scene("main", () => {
 
 		add([
 			sprite("pipe"),
+			area(),
 			origin("botleft"),
 			pos(width(), h1),
 			// give it tags to easier define behaviors see below
@@ -85,6 +88,7 @@ scene("main", () => {
 
 		add([
 			sprite("pipe"),
+			area(),
 			origin("botleft"),
 			scale(1, -1),
 			pos(width(), h2),

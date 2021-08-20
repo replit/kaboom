@@ -545,7 +545,10 @@ function add<T extends Comp>(comps: ReadonlyArray<T>): MergeComps<T> & GameObj {
 
 			if (events["inspect"]) {
 				for (const inspect of events["inspect"].values()) {
-					info.push(inspect());
+					const data = inspect();
+					if (data) {
+						info.push(data);
+					}
 				}
 			}
 
@@ -993,6 +996,10 @@ function drawInspect() {
 			const lines = [];
 			const data = inspecting._inspect();
 
+			if (data.tags.length === 0 && data.info.length === 0) {
+				return;
+			}
+
 			for (const tag of data.tags) {
 				lines.push(`"${tag}"`);
 			}
@@ -1095,10 +1102,9 @@ function isSameLayer(o1: GameObj, o2: GameObj): boolean {
 	return (o1.layer ?? game.defLayer) === (o2.layer ?? game.defLayer);
 }
 
-// TODO: custom size doesn't work
+// TODO: accept scale
 // TODO: active flag
 // TODO: tell which side collides
-// TODO: dynamic update when size change
 function area(p1: Vec2, p2: Vec2): AreaComp {
 
 	const colliding = {};
@@ -1329,31 +1335,31 @@ function area(p1: Vec2, p2: Vec2): AreaComp {
 		_worldArea(): Rect {
 
 			const a = this.area;
+
+			if (!a.p1 && !a.p2 && this.width && this.height) {
+
+				const size = vec2(this.width, this.height);
+				const offset = originPt(this.origin || DEF_ORIGIN).scale(size).scale(-0.5);
+
+				a.p1 = offset.sub(size.scale(0.5));
+				a.p2 = offset.add(size.scale(0.5));
+
+			}
+
 			const pos = this.pos || vec2(0);
 			const scale = this.scale || vec2(1);
 			const p1 = pos.add(a.p1.scale(scale));
 			const p2 = pos.add(a.p2.scale(scale));
 
-			const area = {
+			return {
 				p1: vec2(Math.min(p1.x, p2.x), Math.min(p1.y, p2.y)),
 				p2: vec2(Math.max(p1.x, p2.x), Math.max(p1.y, p2.y)),
 			};
-
-			return area;
 
 		},
 
 	};
 
-}
-
-function getAreaFromSize(w, h, o) {
-	const size = vec2(w, h);
-	const offset = originPt(o || DEF_ORIGIN).scale(size).scale(-0.5);
-	return area(
-		offset.sub(size.scale(0.5)),
-		offset.add(size.scale(0.5)),
-	);
 }
 
 // TODO: clean
@@ -1387,12 +1393,6 @@ function sprite(id: string, conf: SpriteCompConf = {}): SpriteComp {
 		frame: conf.frame || 0,
 		quad: conf.quad || quad(0, 0, 1, 1),
 
-		add() {
-			if (!conf.noArea) {
-				this.use(area(vec2(0), vec2(0)));
-			}
-		},
-
 		load() {
 
 			spr = assets.sprites[id];
@@ -1411,12 +1411,6 @@ function sprite(id: string, conf: SpriteCompConf = {}): SpriteComp {
 
 			this.width = spr.tex.width * q.w * scale.x;
 			this.height = spr.tex.height * q.h * scale.y;
-
-			// TODO: don't do if custom area
-			if (!conf.noArea) {
-				// TODO: this could overwrite existing internal states
-				this.use(getAreaFromSize(this.width, this.height, this.origin));
-			}
 
 		},
 
@@ -1533,10 +1527,6 @@ function sprite(id: string, conf: SpriteCompConf = {}): SpriteComp {
 			this.width = spr.tex.width * q.w;
 			this.height = spr.tex.height * q.h;
 
-			if (!conf.noArea) {
-				this.use(getAreaFromSize(this.width, this.height, this.origin));
-			}
-
 			curAnim = null;
 			this.frame = 0;
 
@@ -1581,33 +1571,23 @@ function text(t: string, size: number, conf: TextCompConf = {}): TextComp {
 		text: t,
 		textSize: size || 16,
 		font: conf.font,
-		// TODO: calc these at init
 		width: 0,
 		height: 0,
 
-		add() {
-			if (conf.area) {
-				this.use(area(vec2(0), vec2(0)));
-			}
-		},
-
 		load() {
 			// add default area
-			if (conf.area) {
-				const font = assets.fonts[this.font ?? DEF_FONT];
-				const ftext = gfx.fmtText(this.text + "", font, {
-					pos: this.pos,
-					scale: this.scale,
-					rot: this.angle,
-					size: this.textSize,
-					origin: this.origin,
-					color: this.color,
-					width: conf.width,
-				});
-				this.width = ftext.width / (this.scale?.x || 1);
-				this.height = ftext.height / (this.scale?.y || 1);
-				this.use(getAreaFromSize(this.width, this.height, this.origin));
-			}
+			const font = assets.fonts[this.font ?? DEF_FONT];
+			const ftext = gfx.fmtText(this.text + "", font, {
+				pos: this.pos,
+				scale: this.scale,
+				rot: this.angle,
+				size: this.textSize,
+				origin: this.origin,
+				color: this.color,
+				width: conf.width,
+			});
+			this.width = ftext.width / (this.scale?.x || 1);
+			this.height = ftext.height / (this.scale?.y || 1);
 		},
 
 		draw() {
@@ -1635,23 +1615,12 @@ function text(t: string, size: number, conf: TextCompConf = {}): TextComp {
 
 }
 
-function rect(w: number, h: number, conf: RectCompConf = {}): RectComp {
-
+function rect(w: number, h: number): RectComp {
 	return {
-
 		id: "rect",
 		width: w,
 		height: h,
-
-		add() {
-			// add default area
-			if (!this.area && !conf.noArea) {
-				this.use(getAreaFromSize(this.width, this.height, this.origin));
-			}
-		},
-
 		draw() {
-
 			gfx.drawRect(this.pos, this.width, this.height, {
 				scale: this.scale,
 				rot: this.angle,
@@ -1660,11 +1629,8 @@ function rect(w: number, h: number, conf: RectCompConf = {}): RectComp {
 				prog: assets.shaders[this.shader],
 				uniform: this.uniform,
 			});
-
 		},
-
 	};
-
 }
 
 function solid(): SolidComp {

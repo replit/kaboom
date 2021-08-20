@@ -86,9 +86,10 @@ loop(0.4, () => {
 	]);
 	add([
 		sprite(obj),
+		area(),
+		pos(width(), rand(lowBound, upBound)),
 		"obj",
 		obj,
-		pos(width(), rand(lowBound, upBound)),
 	]);
 });
 
