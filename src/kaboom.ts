@@ -395,7 +395,7 @@ const COMP_EVENTS = new Set([
 ]);
 
 // TODO: make tags also comp?
-function add<T extends Comp>(comps: ReadonlyArray<T>): Omit<Expand<UnionToIntersection<Defined<T>>>, keyof Comp> & GameObj {
+function add<T extends Comp>(comps: ReadonlyArray<T>): MergeComps<T> & GameObj {
 
 	const compStates = {};
 	const customState = {};
@@ -581,7 +581,7 @@ function add<T extends Comp>(comps: ReadonlyArray<T>): Omit<Expand<UnionToInters
 		}
 	}
 
-	return obj as unknown as Omit<Expand<UnionToIntersection<Defined<T>>>, keyof Comp> & GameObj;
+	return obj as unknown as MergeComps<T> & GameObj;
 
 }
 
@@ -634,7 +634,7 @@ function collides(
 	t2: string,
 	f: (a: GameObj, b: GameObj) => void,
 ): EventCanceller {
-	return action(t1, (o1: GameObj & AreaComp) => {
+	return action(t1, (o1: GameObj) => {
 		o1._checkCollisions(t2, (o2) => {
 			f(o1, o2);
 		});
@@ -647,7 +647,7 @@ function overlaps(
 	t2: string,
 	f: (a: GameObj, b: GameObj) => void,
 ): EventCanceller {
-	return action(t1, (o1: GameObj & AreaComp) => {
+	return action(t1, (o1: GameObj) => {
 		o1._checkOverlaps(t2, (o2) => {
 			f(o1, o2);
 		});
@@ -656,7 +656,7 @@ function overlaps(
 
 // add an event that runs when objs with tag t is clicked
 function clicks(t: string, f: (obj: GameObj) => void): EventCanceller {
-	return action(t, (o: GameObj & AreaComp) => {
+	return action(t, (o: GameObj) => {
 		if (o.isClicked()) {
 			f(o);
 		}
@@ -1867,9 +1867,10 @@ function setData(key: string, data: any) {
 }
 
 
-function plug<T>(plugin: (KaboomCtx) => T): Expand<UnionToIntersection<Defined<T>>> & KaboomCtx {
+function plug<T>(plugin: KaboomPlugin<T>): MergeObj<T> & KaboomCtx {
 	const funcs = plugin(ctx);
 	for (const k in funcs) {
+		// @ts-ignore
 		ctx[k] = funcs[k];
 		if (gconf.global) {
 			// @ts-ignore

@@ -4,19 +4,27 @@
 - added `mouseDeltaPos()`
 - added `touchToMouse` to control if touch events should be translated to mouse events
 - added `loadMark()` to load `"mark"` as a default sprite
+- beter type support for components
 - `scene()` and `start()` (also removed in favor of `go()`) are optional now, if you don't need multiple scenes yet you can just go directly
 ```js
 const k = kaboom();
 k.add(...);
 k.keyPress(...);
 ```
+- (**BREAK**) `area()` is now not automatically added by `sprite()`, `rect()`, and `text()`, and removed each `noArea` or `area` config field
+```js
+add([
+	sprite("mark"),
+	area(), // empty area() will calc size from the sprite, but have to be after it
+]);
+```
 - audio is now paused when you leave the tab
 - audio is now paused on `debug.paused = true`
 - added localStorage helper `getData(key, default?)` and `setData(key, data)`
 - added `loadShader(id, vert, frag, isUrl)`
 - added `shader()` comp for attaching custom shader to an obj
-- all event handlers like `keyPress()`, `mouseClick()`, `action()` now returns a function to cancel that listener
-- added helpers `addSprite()`, `addText()`, `addRect()` that abstracts away from the component syntax, to reduce concepts for beginners
+- all event handlers like `keyPress()`, `mouseClick()`, `action()`, `collides()` now returns a function to cancel that listener
+- added helpers `addSprite()`, `addText()`, `addRect()` that abstracts away from the component syntax
 - added `require` on component definitions, making it possible to declare dependencies for components, e.g.
 ```js
 function alwaysRight() {
@@ -32,7 +40,7 @@ function alwaysRight() {
 	};
 }
 ```
-- (**BREAK**) overlapping fields are not allowed, e.g. you can have a custom comp that has a `collides` field if it already have a `area` component, since it already has that
+- (**BREAK**) overlapping component fields are not allowed, e.g. you can have a custom comp that has a `collides` field if it already have a `area` component, since it already has that
 - added `obj.c(id)` for getting a specific comp's state (by default all comps' states are mounted to the obj by `Object.defineProperty`)
 ```js
 // both works
@@ -47,7 +55,7 @@ obj.c("sprite").play("anim");
 - fixed `"add"` event getting called twice for tagged objs
 - added `flipX` and `flipY` on `sprite()` comp configuration, and `flipX()` `flipY()` methods
 - (**BREAK**) remove `flipX()` and `flipY()` on `scale()` comp
-- (**BREAK**) removed `start()`
+- (**BREAK**) removed `start()` in favor of `go()`
 - (**BREAK**) added a default text size `16`
 
 ### v0.5.1
