@@ -1603,8 +1603,8 @@ function text(t: string, size: number, conf: TextCompConf = {}): TextComp {
 				width: conf.width,
 			});
 
-			this.width = ftext.width;
-			this.height = ftext.height;
+			this.width = ftext.width / (this.scale?.x || 1);
+			this.height = ftext.height / (this.scale?.y || 1);
 
 			gfx.drawFmtText(ftext);
 
