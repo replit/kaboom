@@ -11,7 +11,7 @@ Check out our official [website](https://kaboomjs.com/)!
 ## Examples
 
 ```html
-<script src="https://unpkg.com/kaboom@0.8.0-beta.2/dist/kaboom.js"></script>
+<script src="https://unpkg.com/kaboom@next/dist/kaboom.js"></script>
 <script type="module">
 
 // initialize kaboom context
