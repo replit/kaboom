@@ -11,7 +11,7 @@ Check out our official [website](https://kaboomjs.com/)!
 ## Examples
 
 ```html
-<script src="https://kaboomjs.com/lib/0.8.0/kaboom.js"></script>
+<script src="https://unpkg.com/kaboom@0.8.0-beta.2/dist/kaboom.js"></script>
 <script type="module">
 
 // initialize kaboom context
@@ -154,28 +154,19 @@ k.render(() => {
 
 ## Usage
 
-### CDN
+### Browser CDN
 
-1. self hosted
-
+Beta releases (will be published frequently, more prune to break)
 ```html
-<script src="https://kaboomjs.com/lib/0.8.0/kaboom.js"></script>
+<script src="https://unpkg.com/kaboom@next/dist/kaboom.js"></script>
 ```
 
-All available version tags can be found in CHANGELOG.md, or Github releases.
-
-Special Version Tags:
-- `dev`: current master with the newest unreleased features / fixes, expect breaking changes
-- `latest`: latest release
-
-2. third party
-
-kaboom is on npm thus supported by most js lib CDN providers
-
+Latest release:
 ```html
-<script src="https://unpkg.com/kaboom@0.8.0/dist/kaboom.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/kaboom@0.8.0/dist/kaboom.js"></script>
+<script src="https://unpkg.com/kaboom@latest/dist/kaboom.js"></script>
 ```
+
+Also works with other CDNs like `jsdelivr` etc.
 
 When imported in the browser, the script will expose a global `kaboom` function to initialize a kaboom context, returning an object containing all the functions
 
@@ -202,13 +193,13 @@ scene(...);
 Kaboom also provide ES module and commonJS module exports with `.mjs` and `.cjs`, e.g,
 
 ```js
-import kaboom from "https://kaboomjs.com/lib/0.8.0/kaboom.mjs";
+import kaboom from "https://unpkg.com/kaboom@next/dist/kaboom.mjs";
 ```
 
-### npm package
+### NPM Package
 
 ```
-$ npm install kaboom
+$ npm install kaboom@next
 ```
 
 ```ts
