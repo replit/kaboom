@@ -313,9 +313,6 @@ k.add([
 	k.pos(100, 100),
 ]);
 
-// or
-// k.addText("oh hi", 32, { pos: k.vec2(100, 100) });
-
 </script>
 				`, "html"),
 				...api.map((sec) => {

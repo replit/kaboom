@@ -26,7 +26,7 @@ k.add([
 </script>
 ```
 
-You can paste this directly into an `html` file and start playing around!
+You can paste this directly into an `.html` file and start playing around!
 
 to make a flappy bird movement you only need a few lines
 ```js
@@ -39,6 +39,7 @@ k.loadMark();
 // make the player game object
 const birdy = k.add([
     k.sprite("mark"),
+    k.pos(20, 20),
     k.area(),
     k.body(),
 ]);

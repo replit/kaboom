@@ -1658,7 +1658,7 @@ function body(conf: BodyCompConf = {}): BodyComp {
 	return {
 
 		id: "body",
-		require: [ "area" ],
+		require: [ "area", "pos", ],
 		jumpForce: conf.jumpForce ?? DEF_JUMP_FORCE,
 
 		update() {
