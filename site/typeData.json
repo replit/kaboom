@@ -241,6 +241,15 @@
                     },
                     {
                         "kind": "MethodSignature",
+                        "name": "center",
+                        "parameters": [],
+                        "type": {
+                            "kind": "TypeReference",
+                            "typeName": "Vec2"
+                        }
+                    },
+                    {
+                        "kind": "MethodSignature",
                         "name": "dt",
                         "parameters": [],
                         "type": {
@@ -295,23 +304,59 @@
                     },
                     {
                         "kind": "MethodSignature",
+                        "name": "isTouch",
+                        "parameters": [],
+                        "type": {
+                            "kind": "BooleanKeyword"
+                        }
+                    },
+                    {
+                        "kind": "MethodSignature",
                         "name": "add",
+                        "typeParameters": [
+                            {
+                                "kind": "TypeParameter",
+                                "name": "T",
+                                "constraint": {
+                                    "kind": "TypeReference",
+                                    "typeName": "Comp"
+                                }
+                            }
+                        ],
                         "parameters": [
                             {
                                 "kind": "Parameter",
                                 "name": "comps",
                                 "type": {
-                                    "kind": "ArrayType",
-                                    "elementType": {
-                                        "kind": "TypeReference",
-                                        "typeName": "Comp"
-                                    }
+                                    "kind": "TypeReference",
+                                    "typeName": "ReadonlyArray",
+                                    "typeArguments": [
+                                        {
+                                            "kind": "TypeReference",
+                                            "typeName": "T"
+                                        }
+                                    ]
                                 }
                             }
                         ],
                         "type": {
-                            "kind": "TypeReference",
-                            "typeName": "GameObj"
+                            "kind": "IntersectionType",
+                            "types": [
+                                {
+                                    "kind": "TypeReference",
+                                    "typeName": "MergeComps",
+                                    "typeArguments": [
+                                        {
+                                            "kind": "TypeReference",
+                                            "typeName": "T"
+                                        }
+                                    ]
+                                },
+                                {
+                                    "kind": "TypeReference",
+                                    "typeName": "GameObj"
+                                }
+                            ]
                         }
                     },
                     {
@@ -933,19 +978,6 @@
                     },
                     {
                         "kind": "MethodSignature",
-                        "name": "camShake",
-                        "parameters": [
-                            {
-                                "kind": "Parameter",
-                                "name": "n",
-                                "type": {
-                                    "kind": "NumberKeyword"
-                                }
-                            }
-                        ]
-                    },
-                    {
-                        "kind": "MethodSignature",
                         "name": "camIgnore",
                         "parameters": [
                             {
@@ -956,6 +988,19 @@
                                     "elementType": {
                                         "kind": "StringKeyword"
                                     }
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "kind": "MethodSignature",
+                        "name": "shake",
+                        "parameters": [
+                            {
+                                "kind": "Parameter",
+                                "name": "n",
+                                "type": {
+                                    "kind": "NumberKeyword"
                                 }
                             }
                         ]
@@ -975,20 +1020,6 @@
                         "type": {
                             "kind": "NumberKeyword"
                         }
-                    },
-                    {
-                        "kind": "MethodSignature",
-                        "name": "sync",
-                        "parameters": [
-                            {
-                                "kind": "Parameter",
-                                "name": "obj",
-                                "type": {
-                                    "kind": "TypeReference",
-                                    "typeName": "GameObj"
-                                }
-                            }
-                        ]
                     },
                     {
                         "kind": "MethodSignature",
@@ -1397,15 +1428,6 @@
                                 "type": {
                                     "kind": "NumberKeyword"
                                 }
-                            },
-                            {
-                                "kind": "Parameter",
-                                "name": "conf",
-                                "type": {
-                                    "kind": "TypeReference",
-                                    "typeName": "RectCompConf"
-                                },
-                                "questionToken": true
                             }
                         ],
                         "type": {
@@ -1485,6 +1507,15 @@
                                 "questionToken": true
                             }
                         ],
+                        "type": {
+                            "kind": "TypeReference",
+                            "typeName": "Vec2"
+                        }
+                    },
+                    {
+                        "kind": "MethodSignature",
+                        "name": "mouseDeltaPos",
+                        "parameters": [],
                         "type": {
                             "kind": "TypeReference",
                             "typeName": "Vec2"
@@ -1640,7 +1671,16 @@
                                 "name": "f",
                                 "type": {
                                     "kind": "FunctionType",
-                                    "parameters": [],
+                                    "parameters": [
+                                        {
+                                            "kind": "Parameter",
+                                            "name": "pos",
+                                            "type": {
+                                                "kind": "TypeReference",
+                                                "typeName": "Vec2"
+                                            }
+                                        }
+                                    ],
                                     "type": {
                                         "kind": "VoidKeyword"
                                     }
@@ -1661,7 +1701,16 @@
                                 "name": "f",
                                 "type": {
                                     "kind": "FunctionType",
-                                    "parameters": [],
+                                    "parameters": [
+                                        {
+                                            "kind": "Parameter",
+                                            "name": "pos",
+                                            "type": {
+                                                "kind": "TypeReference",
+                                                "typeName": "Vec2"
+                                            }
+                                        }
+                                    ],
                                     "type": {
                                         "kind": "VoidKeyword"
                                     }
@@ -1682,7 +1731,160 @@
                                 "name": "f",
                                 "type": {
                                     "kind": "FunctionType",
-                                    "parameters": [],
+                                    "parameters": [
+                                        {
+                                            "kind": "Parameter",
+                                            "name": "pos",
+                                            "type": {
+                                                "kind": "TypeReference",
+                                                "typeName": "Vec2"
+                                            }
+                                        }
+                                    ],
+                                    "type": {
+                                        "kind": "VoidKeyword"
+                                    }
+                                }
+                            }
+                        ],
+                        "type": {
+                            "kind": "TypeReference",
+                            "typeName": "EventCanceller"
+                        }
+                    },
+                    {
+                        "kind": "MethodSignature",
+                        "name": "mouseMove",
+                        "parameters": [
+                            {
+                                "kind": "Parameter",
+                                "name": "f",
+                                "type": {
+                                    "kind": "FunctionType",
+                                    "parameters": [
+                                        {
+                                            "kind": "Parameter",
+                                            "name": "pos",
+                                            "type": {
+                                                "kind": "TypeReference",
+                                                "typeName": "Vec2"
+                                            }
+                                        }
+                                    ],
+                                    "type": {
+                                        "kind": "VoidKeyword"
+                                    }
+                                }
+                            }
+                        ],
+                        "type": {
+                            "kind": "TypeReference",
+                            "typeName": "EventCanceller"
+                        }
+                    },
+                    {
+                        "kind": "MethodSignature",
+                        "name": "touchStart",
+                        "parameters": [
+                            {
+                                "kind": "Parameter",
+                                "name": "f",
+                                "type": {
+                                    "kind": "FunctionType",
+                                    "parameters": [
+                                        {
+                                            "kind": "Parameter",
+                                            "name": "id",
+                                            "type": {
+                                                "kind": "TypeReference",
+                                                "typeName": "TouchID"
+                                            }
+                                        },
+                                        {
+                                            "kind": "Parameter",
+                                            "name": "pos",
+                                            "type": {
+                                                "kind": "TypeReference",
+                                                "typeName": "Vec2"
+                                            }
+                                        }
+                                    ],
+                                    "type": {
+                                        "kind": "VoidKeyword"
+                                    }
+                                }
+                            }
+                        ],
+                        "type": {
+                            "kind": "TypeReference",
+                            "typeName": "EventCanceller"
+                        }
+                    },
+                    {
+                        "kind": "MethodSignature",
+                        "name": "touchMove",
+                        "parameters": [
+                            {
+                                "kind": "Parameter",
+                                "name": "f",
+                                "type": {
+                                    "kind": "FunctionType",
+                                    "parameters": [
+                                        {
+                                            "kind": "Parameter",
+                                            "name": "id",
+                                            "type": {
+                                                "kind": "TypeReference",
+                                                "typeName": "TouchID"
+                                            }
+                                        },
+                                        {
+                                            "kind": "Parameter",
+                                            "name": "pos",
+                                            "type": {
+                                                "kind": "TypeReference",
+                                                "typeName": "Vec2"
+                                            }
+                                        }
+                                    ],
+                                    "type": {
+                                        "kind": "VoidKeyword"
+                                    }
+                                }
+                            }
+                        ],
+                        "type": {
+                            "kind": "TypeReference",
+                            "typeName": "EventCanceller"
+                        }
+                    },
+                    {
+                        "kind": "MethodSignature",
+                        "name": "touchEnd",
+                        "parameters": [
+                            {
+                                "kind": "Parameter",
+                                "name": "f",
+                                "type": {
+                                    "kind": "FunctionType",
+                                    "parameters": [
+                                        {
+                                            "kind": "Parameter",
+                                            "name": "id",
+                                            "type": {
+                                                "kind": "TypeReference",
+                                                "typeName": "TouchID"
+                                            }
+                                        },
+                                        {
+                                            "kind": "Parameter",
+                                            "name": "pos",
+                                            "type": {
+                                                "kind": "TypeReference",
+                                                "typeName": "Vec2"
+                                            }
+                                        }
+                                    ],
                                     "type": {
                                         "kind": "VoidKeyword"
                                     }
@@ -1777,6 +1979,14 @@
                     {
                         "kind": "MethodSignature",
                         "name": "mouseIsReleased",
+                        "parameters": [],
+                        "type": {
+                            "kind": "BooleanKeyword"
+                        }
+                    },
+                    {
+                        "kind": "MethodSignature",
+                        "name": "mouseIsMoved",
                         "parameters": [],
                         "type": {
                             "kind": "BooleanKeyword"
@@ -1885,6 +2095,15 @@
                         ],
                         "type": {
                             "kind": "NumberKeyword"
+                        }
+                    },
+                    {
+                        "kind": "MethodSignature",
+                        "name": "audioCtx",
+                        "parameters": [],
+                        "type": {
+                            "kind": "TypeReference",
+                            "typeName": "AudioContext"
                         }
                     },
                     {
@@ -2588,133 +2807,6 @@
                         ]
                     },
                     {
-                        "kind": "PropertySignature",
-                        "name": "debug",
-                        "type": {
-                            "kind": "TypeReference",
-                            "typeName": "Debug"
-                        }
-                    },
-                    {
-                        "kind": "MethodSignature",
-                        "name": "addLevel",
-                        "parameters": [
-                            {
-                                "kind": "Parameter",
-                                "name": "map",
-                                "type": {
-                                    "kind": "ArrayType",
-                                    "elementType": {
-                                        "kind": "StringKeyword"
-                                    }
-                                }
-                            },
-                            {
-                                "kind": "Parameter",
-                                "name": "conf",
-                                "type": {
-                                    "kind": "TypeReference",
-                                    "typeName": "LevelConf"
-                                }
-                            }
-                        ],
-                        "type": {
-                            "kind": "TypeReference",
-                            "typeName": "Level"
-                        }
-                    },
-                    {
-                        "kind": "MethodSignature",
-                        "name": "addSprite",
-                        "parameters": [
-                            {
-                                "kind": "Parameter",
-                                "name": "name",
-                                "type": {
-                                    "kind": "StringKeyword"
-                                }
-                            },
-                            {
-                                "kind": "Parameter",
-                                "name": "conf",
-                                "type": {
-                                    "kind": "TypeReference",
-                                    "typeName": "AddSpriteConf"
-                                },
-                                "questionToken": true
-                            }
-                        ],
-                        "type": {
-                            "kind": "TypeReference",
-                            "typeName": "GameObj"
-                        }
-                    },
-                    {
-                        "kind": "MethodSignature",
-                        "name": "addRect",
-                        "parameters": [
-                            {
-                                "kind": "Parameter",
-                                "name": "w",
-                                "type": {
-                                    "kind": "NumberKeyword"
-                                }
-                            },
-                            {
-                                "kind": "Parameter",
-                                "name": "h",
-                                "type": {
-                                    "kind": "NumberKeyword"
-                                }
-                            },
-                            {
-                                "kind": "Parameter",
-                                "name": "conf",
-                                "type": {
-                                    "kind": "TypeReference",
-                                    "typeName": "AddRectConf"
-                                },
-                                "questionToken": true
-                            }
-                        ],
-                        "type": {
-                            "kind": "TypeReference",
-                            "typeName": "GameObj"
-                        }
-                    },
-                    {
-                        "kind": "MethodSignature",
-                        "name": "addText",
-                        "parameters": [
-                            {
-                                "kind": "Parameter",
-                                "name": "txt",
-                                "type": {
-                                    "kind": "StringKeyword"
-                                }
-                            },
-                            {
-                                "kind": "Parameter",
-                                "name": "size",
-                                "type": {
-                                    "kind": "NumberKeyword"
-                                }
-                            },
-                            {
-                                "kind": "Parameter",
-                                "name": "props",
-                                "type": {
-                                    "kind": "TypeReference",
-                                    "typeName": "AddTextConf"
-                                }
-                            }
-                        ],
-                        "type": {
-                            "kind": "TypeReference",
-                            "typeName": "GameObj"
-                        }
-                    },
-                    {
                         "kind": "MethodSignature",
                         "name": "scene",
                         "parameters": [
@@ -2800,6 +2892,350 @@
                                 }
                             }
                         ]
+                    },
+                    {
+                        "kind": "MethodSignature",
+                        "name": "plug",
+                        "typeParameters": [
+                            {
+                                "kind": "TypeParameter",
+                                "name": "T"
+                            }
+                        ],
+                        "parameters": [
+                            {
+                                "kind": "Parameter",
+                                "name": "plugin",
+                                "type": {
+                                    "kind": "TypeReference",
+                                    "typeName": "KaboomPlugin",
+                                    "typeArguments": [
+                                        {
+                                            "kind": "TypeReference",
+                                            "typeName": "T"
+                                        }
+                                    ]
+                                }
+                            }
+                        ],
+                        "type": {
+                            "kind": "IntersectionType",
+                            "types": [
+                                {
+                                    "kind": "TypeReference",
+                                    "typeName": "MergeObj",
+                                    "typeArguments": [
+                                        {
+                                            "kind": "TypeReference",
+                                            "typeName": "T"
+                                        }
+                                    ]
+                                },
+                                {
+                                    "kind": "TypeReference",
+                                    "typeName": "KaboomCtx"
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "kind": "PropertySignature",
+                        "name": "debug",
+                        "type": {
+                            "kind": "TypeReference",
+                            "typeName": "Debug"
+                        }
+                    },
+                    {
+                        "kind": "PropertySignature",
+                        "name": "ASCII_CHARS",
+                        "type": {
+                            "kind": "StringKeyword"
+                        }
+                    },
+                    {
+                        "kind": "PropertySignature",
+                        "name": "CP437_CHARS",
+                        "type": {
+                            "kind": "StringKeyword"
+                        }
+                    }
+                ]
+            }
+        },
+        "UnionToIntersection": {
+            "kind": "TypeAliasDeclaration",
+            "name": "UnionToIntersection",
+            "typeParameters": [
+                {
+                    "kind": "TypeParameter",
+                    "name": "U"
+                }
+            ],
+            "type": {
+                "kind": "ConditionalType",
+                "checkType": {
+                    "kind": "ParenthesizedType",
+                    "type": {
+                        "kind": "ConditionalType",
+                        "checkType": {
+                            "kind": "TypeReference",
+                            "typeName": "U"
+                        },
+                        "extendsType": {
+                            "kind": "AnyKeyword"
+                        },
+                        "trueType": {
+                            "kind": "FunctionType",
+                            "parameters": [
+                                {
+                                    "kind": "Parameter",
+                                    "name": "k",
+                                    "type": {
+                                        "kind": "TypeReference",
+                                        "typeName": "U"
+                                    }
+                                }
+                            ],
+                            "type": {
+                                "kind": "VoidKeyword"
+                            }
+                        },
+                        "falseType": {
+                            "kind": "NeverKeyword"
+                        }
+                    }
+                },
+                "extendsType": {
+                    "kind": "ParenthesizedType",
+                    "type": {
+                        "kind": "FunctionType",
+                        "parameters": [
+                            {
+                                "kind": "Parameter",
+                                "name": "k",
+                                "type": {
+                                    "kind": "InferType",
+                                    "typeParameter": {
+                                        "kind": "TypeParameter",
+                                        "name": "I"
+                                    }
+                                }
+                            }
+                        ],
+                        "type": {
+                            "kind": "VoidKeyword"
+                        }
+                    }
+                },
+                "trueType": {
+                    "kind": "TypeReference",
+                    "typeName": "I"
+                },
+                "falseType": {
+                    "kind": "NeverKeyword"
+                }
+            }
+        },
+        "Defined": {
+            "kind": "TypeAliasDeclaration",
+            "name": "Defined",
+            "typeParameters": [
+                {
+                    "kind": "TypeParameter",
+                    "name": "T"
+                }
+            ],
+            "type": {
+                "kind": "ConditionalType",
+                "checkType": {
+                    "kind": "TypeReference",
+                    "typeName": "T"
+                },
+                "extendsType": {
+                    "kind": "AnyKeyword"
+                },
+                "trueType": {
+                    "kind": "TypeReference",
+                    "typeName": "Pick",
+                    "typeArguments": [
+                        {
+                            "kind": "TypeReference",
+                            "typeName": "T"
+                        },
+                        {
+                            "kind": "IndexedAccessType",
+                            "objectType": {
+                                "kind": "MappedType",
+                                "typeParameter": {
+                                    "kind": "TypeParameter",
+                                    "name": "K",
+                                    "constraint": {
+                                        "kind": "TypeOperator",
+                                        "operator": 138,
+                                        "type": {
+                                            "kind": "TypeReference",
+                                            "typeName": "T"
+                                        }
+                                    }
+                                },
+                                "questionToken": true,
+                                "type": {
+                                    "kind": "ConditionalType",
+                                    "checkType": {
+                                        "kind": "IndexedAccessType",
+                                        "objectType": {
+                                            "kind": "TypeReference",
+                                            "typeName": "T"
+                                        },
+                                        "indexType": {
+                                            "kind": "TypeReference",
+                                            "typeName": "K"
+                                        }
+                                    },
+                                    "extendsType": {
+                                        "kind": "UndefinedKeyword"
+                                    },
+                                    "trueType": {
+                                        "kind": "NeverKeyword"
+                                    },
+                                    "falseType": {
+                                        "kind": "TypeReference",
+                                        "typeName": "K"
+                                    }
+                                }
+                            },
+                            "indexType": {
+                                "kind": "TypeOperator",
+                                "operator": 138,
+                                "type": {
+                                    "kind": "TypeReference",
+                                    "typeName": "T"
+                                }
+                            }
+                        }
+                    ]
+                },
+                "falseType": {
+                    "kind": "NeverKeyword"
+                }
+            }
+        },
+        "Expand": {
+            "kind": "TypeAliasDeclaration",
+            "name": "Expand",
+            "typeParameters": [
+                {
+                    "kind": "TypeParameter",
+                    "name": "T"
+                }
+            ],
+            "type": {
+                "kind": "ConditionalType",
+                "checkType": {
+                    "kind": "TypeReference",
+                    "typeName": "T"
+                },
+                "extendsType": {
+                    "kind": "InferType",
+                    "typeParameter": {
+                        "kind": "TypeParameter",
+                        "name": "U"
+                    }
+                },
+                "trueType": {
+                    "kind": "MappedType",
+                    "typeParameter": {
+                        "kind": "TypeParameter",
+                        "name": "K",
+                        "constraint": {
+                            "kind": "TypeOperator",
+                            "operator": 138,
+                            "type": {
+                                "kind": "TypeReference",
+                                "typeName": "U"
+                            }
+                        }
+                    },
+                    "type": {
+                        "kind": "IndexedAccessType",
+                        "objectType": {
+                            "kind": "TypeReference",
+                            "typeName": "U"
+                        },
+                        "indexType": {
+                            "kind": "TypeReference",
+                            "typeName": "K"
+                        }
+                    }
+                },
+                "falseType": {
+                    "kind": "NeverKeyword"
+                }
+            }
+        },
+        "MergeObj": {
+            "kind": "TypeAliasDeclaration",
+            "name": "MergeObj",
+            "typeParameters": [
+                {
+                    "kind": "TypeParameter",
+                    "name": "T"
+                }
+            ],
+            "type": {
+                "kind": "TypeReference",
+                "typeName": "Expand",
+                "typeArguments": [
+                    {
+                        "kind": "TypeReference",
+                        "typeName": "UnionToIntersection",
+                        "typeArguments": [
+                            {
+                                "kind": "TypeReference",
+                                "typeName": "Defined",
+                                "typeArguments": [
+                                    {
+                                        "kind": "TypeReference",
+                                        "typeName": "T"
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                ]
+            }
+        },
+        "MergeComps": {
+            "kind": "TypeAliasDeclaration",
+            "name": "MergeComps",
+            "typeParameters": [
+                {
+                    "kind": "TypeParameter",
+                    "name": "T"
+                }
+            ],
+            "type": {
+                "kind": "TypeReference",
+                "typeName": "Omit",
+                "typeArguments": [
+                    {
+                        "kind": "TypeReference",
+                        "typeName": "MergeObj",
+                        "typeArguments": [
+                            {
+                                "kind": "TypeReference",
+                                "typeName": "T"
+                            }
+                        ]
+                    },
+                    {
+                        "kind": "TypeOperator",
+                        "operator": 138,
+                        "type": {
+                            "kind": "TypeReference",
+                            "typeName": "Comp"
+                        }
                     }
                 ]
             }
@@ -2828,6 +3264,46 @@
                 "type": {
                     "kind": "VoidKeyword"
                 }
+            }
+        },
+        "TouchID": {
+            "kind": "TypeAliasDeclaration",
+            "name": "TouchID",
+            "type": {
+                "kind": "NumberKeyword"
+            }
+        },
+        "ScaleMode": {
+            "kind": "TypeAliasDeclaration",
+            "name": "ScaleMode",
+            "type": {
+                "kind": "UnionType",
+                "types": [
+                    {
+                        "kind": "LiteralType",
+                        "literal": {
+                            "kind": "StringLiteral",
+                            "text": "stretch",
+                            "hasExtendedUnicodeEscape": false
+                        }
+                    },
+                    {
+                        "kind": "LiteralType",
+                        "literal": {
+                            "kind": "StringLiteral",
+                            "text": "letterbox",
+                            "hasExtendedUnicodeEscape": false
+                        }
+                    },
+                    {
+                        "kind": "LiteralType",
+                        "literal": {
+                            "kind": "StringLiteral",
+                            "text": "none",
+                            "hasExtendedUnicodeEscape": false
+                        }
+                    }
+                ]
             }
         },
         "EventCanceller": {
@@ -2868,6 +3344,15 @@
                         "name": "scale",
                         "type": {
                             "kind": "NumberKeyword"
+                        },
+                        "questionToken": true
+                    },
+                    {
+                        "kind": "PropertySignature",
+                        "name": "scaleMode",
+                        "type": {
+                            "kind": "TypeReference",
+                            "typeName": "ScaleMode"
                         },
                         "questionToken": true
                     },
@@ -2962,6 +3447,14 @@
                     },
                     {
                         "kind": "PropertySignature",
+                        "name": "touchToMouse",
+                        "type": {
+                            "kind": "BooleanKeyword"
+                        },
+                        "questionToken": true
+                    },
+                    {
+                        "kind": "PropertySignature",
                         "name": "global",
                         "type": {
                             "kind": "BooleanKeyword"
@@ -2975,214 +3468,17 @@
                             "kind": "ArrayType",
                             "elementType": {
                                 "kind": "TypeReference",
-                                "typeName": "KaboomPlugin"
+                                "typeName": "KaboomPlugin",
+                                "typeArguments": [
+                                    {
+                                        "kind": "AnyKeyword"
+                                    }
+                                ]
                             }
                         },
                         "questionToken": true
                     }
                 ]
-            }
-        },
-        "GameObj": {
-            "kind": "TypeAliasDeclaration",
-            "name": "GameObj",
-            "type": {
-                "kind": "TypeLiteral",
-                "members": [
-                    {
-                        "kind": "PropertySignature",
-                        "name": "hidden",
-                        "type": {
-                            "kind": "BooleanKeyword"
-                        }
-                    },
-                    {
-                        "kind": "PropertySignature",
-                        "name": "paused",
-                        "type": {
-                            "kind": "BooleanKeyword"
-                        }
-                    },
-                    {
-                        "kind": "MethodSignature",
-                        "name": "exists",
-                        "parameters": [],
-                        "type": {
-                            "kind": "BooleanKeyword"
-                        }
-                    },
-                    {
-                        "kind": "MethodSignature",
-                        "name": "is",
-                        "parameters": [
-                            {
-                                "kind": "Parameter",
-                                "name": "tag",
-                                "type": {
-                                    "kind": "UnionType",
-                                    "types": [
-                                        {
-                                            "kind": "StringKeyword"
-                                        },
-                                        {
-                                            "kind": "ArrayType",
-                                            "elementType": {
-                                                "kind": "StringKeyword"
-                                            }
-                                        }
-                                    ]
-                                }
-                            }
-                        ],
-                        "type": {
-                            "kind": "BooleanKeyword"
-                        }
-                    },
-                    {
-                        "kind": "MethodSignature",
-                        "name": "use",
-                        "parameters": [
-                            {
-                                "kind": "Parameter",
-                                "name": "comp",
-                                "type": {
-                                    "kind": "TypeReference",
-                                    "typeName": "Comp"
-                                }
-                            }
-                        ]
-                    },
-                    {
-                        "kind": "MethodSignature",
-                        "name": "action",
-                        "parameters": [
-                            {
-                                "kind": "Parameter",
-                                "name": "cb",
-                                "type": {
-                                    "kind": "FunctionType",
-                                    "parameters": [],
-                                    "type": {
-                                        "kind": "VoidKeyword"
-                                    }
-                                }
-                            }
-                        ],
-                        "type": {
-                            "kind": "TypeReference",
-                            "typeName": "EventCanceller"
-                        }
-                    },
-                    {
-                        "kind": "MethodSignature",
-                        "name": "on",
-                        "parameters": [
-                            {
-                                "kind": "Parameter",
-                                "name": "ev",
-                                "type": {
-                                    "kind": "StringKeyword"
-                                }
-                            },
-                            {
-                                "kind": "Parameter",
-                                "name": "cb",
-                                "type": {
-                                    "kind": "FunctionType",
-                                    "parameters": [],
-                                    "type": {
-                                        "kind": "VoidKeyword"
-                                    }
-                                }
-                            }
-                        ],
-                        "type": {
-                            "kind": "TypeReference",
-                            "typeName": "EventCanceller"
-                        }
-                    },
-                    {
-                        "kind": "MethodSignature",
-                        "name": "trigger",
-                        "parameters": [
-                            {
-                                "kind": "Parameter",
-                                "name": "ev",
-                                "type": {
-                                    "kind": "StringKeyword"
-                                }
-                            },
-                            {
-                                "kind": "Parameter",
-                                "name": "args",
-                                "dotDotDotToken": {
-                                    "kind": "DotDotDotToken"
-                                }
-                            }
-                        ]
-                    },
-                    {
-                        "kind": "MethodSignature",
-                        "name": "rmTag",
-                        "parameters": [
-                            {
-                                "kind": "Parameter",
-                                "name": "t",
-                                "type": {
-                                    "kind": "StringKeyword"
-                                }
-                            }
-                        ]
-                    },
-                    {
-                        "kind": "MethodSignature",
-                        "name": "destroy",
-                        "parameters": []
-                    },
-                    {
-                        "kind": "MethodSignature",
-                        "name": "c",
-                        "parameters": [
-                            {
-                                "kind": "Parameter",
-                                "name": "id",
-                                "type": {
-                                    "kind": "StringKeyword"
-                                }
-                            }
-                        ],
-                        "type": {
-                            "kind": "TypeReference",
-                            "typeName": "Comp"
-                        }
-                    },
-                    {
-                        "kind": "IndexSignature",
-                        "parameters": [
-                            {
-                                "kind": "Parameter",
-                                "name": "custom",
-                                "type": {
-                                    "kind": "StringKeyword"
-                                }
-                            }
-                        ],
-                        "type": {
-                            "kind": "AnyKeyword"
-                        }
-                    }
-                ]
-            }
-        },
-        "Fn": {
-            "kind": "TypeAliasDeclaration",
-            "name": "Fn",
-            "type": {
-                "kind": "FunctionType",
-                "parameters": [],
-                "type": {
-                    "kind": "VoidKeyword"
-                }
             }
         },
         "SpriteAnim": {
@@ -3211,6 +3507,12 @@
         "KaboomPlugin": {
             "kind": "TypeAliasDeclaration",
             "name": "KaboomPlugin",
+            "typeParameters": [
+                {
+                    "kind": "TypeParameter",
+                    "name": "T"
+                }
+            ],
             "type": {
                 "kind": "FunctionType",
                 "parameters": [
@@ -3225,15 +3527,7 @@
                 ],
                 "type": {
                     "kind": "TypeReference",
-                    "typeName": "Record",
-                    "typeArguments": [
-                        {
-                            "kind": "StringKeyword"
-                        },
-                        {
-                            "kind": "AnyKeyword"
-                        }
-                    ]
+                    "typeName": "T"
                 }
             }
         },
@@ -5458,96 +5752,6 @@
                 }
             }
         },
-        "Comp": {
-            "kind": "TypeAliasDeclaration",
-            "name": "Comp",
-            "type": {
-                "kind": "TypeLiteral",
-                "members": [
-                    {
-                        "kind": "PropertySignature",
-                        "name": "id",
-                        "type": {
-                            "kind": "TypeReference",
-                            "typeName": "CompID"
-                        },
-                        "questionToken": true
-                    },
-                    {
-                        "kind": "PropertySignature",
-                        "name": "require",
-                        "type": {
-                            "kind": "ArrayType",
-                            "elementType": {
-                                "kind": "TypeReference",
-                                "typeName": "CompID"
-                            }
-                        },
-                        "questionToken": true
-                    },
-                    {
-                        "kind": "PropertySignature",
-                        "name": "add",
-                        "type": {
-                            "kind": "TypeReference",
-                            "typeName": "AddEvent"
-                        },
-                        "questionToken": true
-                    },
-                    {
-                        "kind": "PropertySignature",
-                        "name": "update",
-                        "type": {
-                            "kind": "TypeReference",
-                            "typeName": "UpdateEvent"
-                        },
-                        "questionToken": true
-                    },
-                    {
-                        "kind": "PropertySignature",
-                        "name": "draw",
-                        "type": {
-                            "kind": "TypeReference",
-                            "typeName": "DrawEvent"
-                        },
-                        "questionToken": true
-                    },
-                    {
-                        "kind": "PropertySignature",
-                        "name": "destroy",
-                        "type": {
-                            "kind": "TypeReference",
-                            "typeName": "DestroyEvent"
-                        },
-                        "questionToken": true
-                    },
-                    {
-                        "kind": "PropertySignature",
-                        "name": "inspect",
-                        "type": {
-                            "kind": "TypeReference",
-                            "typeName": "InspectEvent"
-                        },
-                        "questionToken": true
-                    },
-                    {
-                        "kind": "IndexSignature",
-                        "parameters": [
-                            {
-                                "kind": "Parameter",
-                                "name": "custom",
-                                "type": {
-                                    "kind": "StringKeyword"
-                                }
-                            }
-                        ],
-                        "type": {
-                            "kind": "AnyKeyword"
-                        }
-                    }
-                ]
-            }
-        },
         "CompBuilder": {
             "kind": "TypeAliasDeclaration",
             "name": "CompBuilder",
@@ -5640,196 +5844,6 @@
                 ]
             }
         },
-        "PosComp": {
-            "kind": "TypeAliasDeclaration",
-            "name": "PosComp",
-            "type": {
-                "kind": "IntersectionType",
-                "types": [
-                    {
-                        "kind": "TypeReference",
-                        "typeName": "Comp"
-                    },
-                    {
-                        "kind": "TypeLiteral",
-                        "members": [
-                            {
-                                "kind": "PropertySignature",
-                                "name": "pos",
-                                "type": {
-                                    "kind": "TypeReference",
-                                    "typeName": "Vec2"
-                                }
-                            },
-                            {
-                                "kind": "MethodSignature",
-                                "name": "move",
-                                "parameters": [
-                                    {
-                                        "kind": "Parameter",
-                                        "name": "x",
-                                        "type": {
-                                            "kind": "NumberKeyword"
-                                        }
-                                    },
-                                    {
-                                        "kind": "Parameter",
-                                        "name": "y",
-                                        "type": {
-                                            "kind": "NumberKeyword"
-                                        }
-                                    }
-                                ]
-                            },
-                            {
-                                "kind": "MethodSignature",
-                                "name": "move",
-                                "parameters": [
-                                    {
-                                        "kind": "Parameter",
-                                        "name": "p",
-                                        "type": {
-                                            "kind": "TypeReference",
-                                            "typeName": "Vec2"
-                                        }
-                                    }
-                                ]
-                            },
-                            {
-                                "kind": "MethodSignature",
-                                "name": "screenPos",
-                                "parameters": [],
-                                "type": {
-                                    "kind": "TypeReference",
-                                    "typeName": "Vec2"
-                                }
-                            },
-                            {
-                                "kind": "MethodSignature",
-                                "name": "inspect",
-                                "parameters": [],
-                                "type": {
-                                    "kind": "TypeReference",
-                                    "typeName": "PosCompInspect"
-                                }
-                            }
-                        ]
-                    }
-                ]
-            }
-        },
-        "ScaleComp": {
-            "kind": "TypeAliasDeclaration",
-            "name": "ScaleComp",
-            "type": {
-                "kind": "IntersectionType",
-                "types": [
-                    {
-                        "kind": "TypeReference",
-                        "typeName": "Comp"
-                    },
-                    {
-                        "kind": "TypeLiteral",
-                        "members": [
-                            {
-                                "kind": "PropertySignature",
-                                "name": "scale",
-                                "type": {
-                                    "kind": "TypeReference",
-                                    "typeName": "Vec2"
-                                }
-                            }
-                        ]
-                    }
-                ]
-            }
-        },
-        "RotateComp": {
-            "kind": "TypeAliasDeclaration",
-            "name": "RotateComp",
-            "type": {
-                "kind": "IntersectionType",
-                "types": [
-                    {
-                        "kind": "TypeReference",
-                        "typeName": "Comp"
-                    },
-                    {
-                        "kind": "TypeLiteral",
-                        "members": [
-                            {
-                                "kind": "PropertySignature",
-                                "name": "angle",
-                                "type": {
-                                    "kind": "NumberKeyword"
-                                }
-                            }
-                        ]
-                    }
-                ]
-            }
-        },
-        "ColorComp": {
-            "kind": "TypeAliasDeclaration",
-            "name": "ColorComp",
-            "type": {
-                "kind": "IntersectionType",
-                "types": [
-                    {
-                        "kind": "TypeReference",
-                        "typeName": "Comp"
-                    },
-                    {
-                        "kind": "TypeLiteral",
-                        "members": [
-                            {
-                                "kind": "PropertySignature",
-                                "name": "color",
-                                "type": {
-                                    "kind": "TypeReference",
-                                    "typeName": "Color"
-                                }
-                            }
-                        ]
-                    }
-                ]
-            }
-        },
-        "OriginComp": {
-            "kind": "TypeAliasDeclaration",
-            "name": "OriginComp",
-            "type": {
-                "kind": "IntersectionType",
-                "types": [
-                    {
-                        "kind": "TypeReference",
-                        "typeName": "Comp"
-                    },
-                    {
-                        "kind": "TypeLiteral",
-                        "members": [
-                            {
-                                "kind": "PropertySignature",
-                                "name": "origin",
-                                "type": {
-                                    "kind": "UnionType",
-                                    "types": [
-                                        {
-                                            "kind": "TypeReference",
-                                            "typeName": "Origin"
-                                        },
-                                        {
-                                            "kind": "TypeReference",
-                                            "typeName": "Vec2"
-                                        }
-                                    ]
-                                }
-                            }
-                        ]
-                    }
-                ]
-            }
-        },
         "LayerCompInspect": {
             "kind": "TypeAliasDeclaration",
             "name": "LayerCompInspect",
@@ -5842,40 +5856,6 @@
                         "type": {
                             "kind": "StringKeyword"
                         }
-                    }
-                ]
-            }
-        },
-        "LayerComp": {
-            "kind": "TypeAliasDeclaration",
-            "name": "LayerComp",
-            "type": {
-                "kind": "IntersectionType",
-                "types": [
-                    {
-                        "kind": "TypeReference",
-                        "typeName": "Comp"
-                    },
-                    {
-                        "kind": "TypeLiteral",
-                        "members": [
-                            {
-                                "kind": "PropertySignature",
-                                "name": "layer",
-                                "type": {
-                                    "kind": "StringKeyword"
-                                }
-                            },
-                            {
-                                "kind": "MethodSignature",
-                                "name": "inspect",
-                                "parameters": [],
-                                "type": {
-                                    "kind": "TypeReference",
-                                    "typeName": "LayerCompInspect"
-                                }
-                            }
-                        ]
                     }
                 ]
             }
@@ -5953,351 +5933,12 @@
                 ]
             }
         },
-        "AreaComp": {
-            "kind": "TypeAliasDeclaration",
-            "name": "AreaComp",
-            "type": {
-                "kind": "IntersectionType",
-                "types": [
-                    {
-                        "kind": "TypeReference",
-                        "typeName": "Comp"
-                    },
-                    {
-                        "kind": "TypeLiteral",
-                        "members": [
-                            {
-                                "kind": "PropertySignature",
-                                "name": "area",
-                                "type": {
-                                    "kind": "TypeReference",
-                                    "typeName": "Rect"
-                                }
-                            },
-                            {
-                                "kind": "MethodSignature",
-                                "name": "areaWidth",
-                                "parameters": [],
-                                "type": {
-                                    "kind": "NumberKeyword"
-                                }
-                            },
-                            {
-                                "kind": "MethodSignature",
-                                "name": "areaHeight",
-                                "parameters": [],
-                                "type": {
-                                    "kind": "NumberKeyword"
-                                }
-                            },
-                            {
-                                "kind": "MethodSignature",
-                                "name": "isClicked",
-                                "parameters": [],
-                                "type": {
-                                    "kind": "BooleanKeyword"
-                                }
-                            },
-                            {
-                                "kind": "MethodSignature",
-                                "name": "isHovered",
-                                "parameters": [],
-                                "type": {
-                                    "kind": "BooleanKeyword"
-                                }
-                            },
-                            {
-                                "kind": "MethodSignature",
-                                "name": "isCollided",
-                                "parameters": [
-                                    {
-                                        "kind": "Parameter",
-                                        "name": "o",
-                                        "type": {
-                                            "kind": "TypeReference",
-                                            "typeName": "GameObj"
-                                        }
-                                    }
-                                ],
-                                "type": {
-                                    "kind": "BooleanKeyword"
-                                }
-                            },
-                            {
-                                "kind": "MethodSignature",
-                                "name": "isOverlapped",
-                                "parameters": [
-                                    {
-                                        "kind": "Parameter",
-                                        "name": "o",
-                                        "type": {
-                                            "kind": "TypeReference",
-                                            "typeName": "GameObj"
-                                        }
-                                    }
-                                ],
-                                "type": {
-                                    "kind": "BooleanKeyword"
-                                }
-                            },
-                            {
-                                "kind": "MethodSignature",
-                                "name": "clicks",
-                                "parameters": [
-                                    {
-                                        "kind": "Parameter",
-                                        "name": "f",
-                                        "type": {
-                                            "kind": "FunctionType",
-                                            "parameters": [],
-                                            "type": {
-                                                "kind": "VoidKeyword"
-                                            }
-                                        }
-                                    }
-                                ]
-                            },
-                            {
-                                "kind": "MethodSignature",
-                                "name": "hovers",
-                                "parameters": [
-                                    {
-                                        "kind": "Parameter",
-                                        "name": "f",
-                                        "type": {
-                                            "kind": "FunctionType",
-                                            "parameters": [],
-                                            "type": {
-                                                "kind": "VoidKeyword"
-                                            }
-                                        }
-                                    }
-                                ]
-                            },
-                            {
-                                "kind": "MethodSignature",
-                                "name": "collides",
-                                "parameters": [
-                                    {
-                                        "kind": "Parameter",
-                                        "name": "tag",
-                                        "type": {
-                                            "kind": "StringKeyword"
-                                        }
-                                    },
-                                    {
-                                        "kind": "Parameter",
-                                        "name": "f",
-                                        "type": {
-                                            "kind": "FunctionType",
-                                            "parameters": [
-                                                {
-                                                    "kind": "Parameter",
-                                                    "name": "o",
-                                                    "type": {
-                                                        "kind": "TypeReference",
-                                                        "typeName": "GameObj"
-                                                    }
-                                                }
-                                            ],
-                                            "type": {
-                                                "kind": "VoidKeyword"
-                                            }
-                                        }
-                                    }
-                                ]
-                            },
-                            {
-                                "kind": "MethodSignature",
-                                "name": "overlaps",
-                                "parameters": [
-                                    {
-                                        "kind": "Parameter",
-                                        "name": "tag",
-                                        "type": {
-                                            "kind": "StringKeyword"
-                                        }
-                                    },
-                                    {
-                                        "kind": "Parameter",
-                                        "name": "f",
-                                        "type": {
-                                            "kind": "FunctionType",
-                                            "parameters": [
-                                                {
-                                                    "kind": "Parameter",
-                                                    "name": "o",
-                                                    "type": {
-                                                        "kind": "TypeReference",
-                                                        "typeName": "GameObj"
-                                                    }
-                                                }
-                                            ],
-                                            "type": {
-                                                "kind": "VoidKeyword"
-                                            }
-                                        }
-                                    }
-                                ]
-                            },
-                            {
-                                "kind": "MethodSignature",
-                                "name": "hasPt",
-                                "parameters": [
-                                    {
-                                        "kind": "Parameter",
-                                        "name": "p",
-                                        "type": {
-                                            "kind": "TypeReference",
-                                            "typeName": "Vec2"
-                                        }
-                                    }
-                                ],
-                                "type": {
-                                    "kind": "BooleanKeyword"
-                                }
-                            },
-                            {
-                                "kind": "MethodSignature",
-                                "name": "pushOut",
-                                "parameters": [
-                                    {
-                                        "kind": "Parameter",
-                                        "name": "obj",
-                                        "type": {
-                                            "kind": "TypeReference",
-                                            "typeName": "GameObj"
-                                        }
-                                    }
-                                ],
-                                "type": {
-                                    "kind": "UnionType",
-                                    "types": [
-                                        {
-                                            "kind": "TypeReference",
-                                            "typeName": "PushOut"
-                                        },
-                                        {
-                                            "kind": "LiteralType",
-                                            "literal": {
-                                                "kind": "NullKeyword"
-                                            }
-                                        }
-                                    ]
-                                }
-                            },
-                            {
-                                "kind": "MethodSignature",
-                                "name": "pushOutAll",
-                                "parameters": [],
-                                "type": {
-                                    "kind": "ArrayType",
-                                    "elementType": {
-                                        "kind": "TypeReference",
-                                        "typeName": "PushOut"
-                                    }
-                                }
-                            },
-                            {
-                                "kind": "MethodSignature",
-                                "name": "_worldArea",
-                                "parameters": [],
-                                "type": {
-                                    "kind": "TypeReference",
-                                    "typeName": "Rect"
-                                }
-                            },
-                            {
-                                "kind": "MethodSignature",
-                                "name": "_checkCollisions",
-                                "parameters": [
-                                    {
-                                        "kind": "Parameter",
-                                        "name": "tag",
-                                        "type": {
-                                            "kind": "StringKeyword"
-                                        }
-                                    },
-                                    {
-                                        "kind": "Parameter",
-                                        "name": "f",
-                                        "type": {
-                                            "kind": "FunctionType",
-                                            "parameters": [
-                                                {
-                                                    "kind": "Parameter",
-                                                    "name": "obj",
-                                                    "type": {
-                                                        "kind": "TypeReference",
-                                                        "typeName": "GameObj"
-                                                    }
-                                                }
-                                            ],
-                                            "type": {
-                                                "kind": "VoidKeyword"
-                                            }
-                                        }
-                                    }
-                                ],
-                                "type": {
-                                    "kind": "VoidKeyword"
-                                }
-                            },
-                            {
-                                "kind": "MethodSignature",
-                                "name": "_checkOverlaps",
-                                "parameters": [
-                                    {
-                                        "kind": "Parameter",
-                                        "name": "tag",
-                                        "type": {
-                                            "kind": "StringKeyword"
-                                        }
-                                    },
-                                    {
-                                        "kind": "Parameter",
-                                        "name": "f",
-                                        "type": {
-                                            "kind": "FunctionType",
-                                            "parameters": [
-                                                {
-                                                    "kind": "Parameter",
-                                                    "name": "obj",
-                                                    "type": {
-                                                        "kind": "TypeReference",
-                                                        "typeName": "GameObj"
-                                                    }
-                                                }
-                                            ],
-                                            "type": {
-                                                "kind": "VoidKeyword"
-                                            }
-                                        }
-                                    }
-                                ],
-                                "type": {
-                                    "kind": "VoidKeyword"
-                                }
-                            }
-                        ]
-                    }
-                ]
-            }
-        },
         "SpriteCompConf": {
             "kind": "TypeAliasDeclaration",
             "name": "SpriteCompConf",
             "type": {
                 "kind": "TypeLiteral",
                 "members": [
-                    {
-                        "kind": "PropertySignature",
-                        "name": "noArea",
-                        "type": {
-                            "kind": "BooleanKeyword"
-                        },
-                        "questionToken": true
-                    },
                     {
                         "kind": "PropertySignature",
                         "name": "quad",
@@ -6396,174 +6037,6 @@
                 ]
             }
         },
-        "SpriteComp": {
-            "kind": "TypeAliasDeclaration",
-            "name": "SpriteComp",
-            "type": {
-                "kind": "IntersectionType",
-                "types": [
-                    {
-                        "kind": "TypeReference",
-                        "typeName": "Comp"
-                    },
-                    {
-                        "kind": "TypeLiteral",
-                        "members": [
-                            {
-                                "kind": "PropertySignature",
-                                "name": "add",
-                                "type": {
-                                    "kind": "TypeReference",
-                                    "typeName": "AddEvent"
-                                }
-                            },
-                            {
-                                "kind": "PropertySignature",
-                                "name": "draw",
-                                "type": {
-                                    "kind": "TypeReference",
-                                    "typeName": "DrawEvent"
-                                }
-                            },
-                            {
-                                "kind": "PropertySignature",
-                                "name": "update",
-                                "type": {
-                                    "kind": "TypeReference",
-                                    "typeName": "UpdateEvent"
-                                }
-                            },
-                            {
-                                "kind": "PropertySignature",
-                                "name": "width",
-                                "type": {
-                                    "kind": "NumberKeyword"
-                                }
-                            },
-                            {
-                                "kind": "PropertySignature",
-                                "name": "height",
-                                "type": {
-                                    "kind": "NumberKeyword"
-                                }
-                            },
-                            {
-                                "kind": "PropertySignature",
-                                "name": "animSpeed",
-                                "type": {
-                                    "kind": "NumberKeyword"
-                                }
-                            },
-                            {
-                                "kind": "PropertySignature",
-                                "name": "frame",
-                                "type": {
-                                    "kind": "NumberKeyword"
-                                }
-                            },
-                            {
-                                "kind": "PropertySignature",
-                                "name": "quad",
-                                "type": {
-                                    "kind": "TypeReference",
-                                    "typeName": "Quad"
-                                }
-                            },
-                            {
-                                "kind": "MethodSignature",
-                                "name": "play",
-                                "parameters": [
-                                    {
-                                        "kind": "Parameter",
-                                        "name": "anim",
-                                        "type": {
-                                            "kind": "StringKeyword"
-                                        }
-                                    },
-                                    {
-                                        "kind": "Parameter",
-                                        "name": "loop",
-                                        "type": {
-                                            "kind": "BooleanKeyword"
-                                        },
-                                        "questionToken": true
-                                    }
-                                ]
-                            },
-                            {
-                                "kind": "MethodSignature",
-                                "name": "stop",
-                                "parameters": []
-                            },
-                            {
-                                "kind": "MethodSignature",
-                                "name": "changeSprite",
-                                "parameters": [
-                                    {
-                                        "kind": "Parameter",
-                                        "name": "id",
-                                        "type": {
-                                            "kind": "StringKeyword"
-                                        }
-                                    }
-                                ]
-                            },
-                            {
-                                "kind": "MethodSignature",
-                                "name": "numFrames",
-                                "parameters": [],
-                                "type": {
-                                    "kind": "NumberKeyword"
-                                }
-                            },
-                            {
-                                "kind": "MethodSignature",
-                                "name": "curAnim",
-                                "parameters": [],
-                                "type": {
-                                    "kind": "StringKeyword"
-                                }
-                            },
-                            {
-                                "kind": "MethodSignature",
-                                "name": "flipX",
-                                "parameters": [
-                                    {
-                                        "kind": "Parameter",
-                                        "name": "b",
-                                        "type": {
-                                            "kind": "BooleanKeyword"
-                                        }
-                                    }
-                                ]
-                            },
-                            {
-                                "kind": "MethodSignature",
-                                "name": "flipY",
-                                "parameters": [
-                                    {
-                                        "kind": "Parameter",
-                                        "name": "b",
-                                        "type": {
-                                            "kind": "BooleanKeyword"
-                                        }
-                                    }
-                                ]
-                            },
-                            {
-                                "kind": "MethodSignature",
-                                "name": "inspect",
-                                "parameters": [],
-                                "type": {
-                                    "kind": "TypeReference",
-                                    "typeName": "SpriteCompInspect"
-                                }
-                            }
-                        ]
-                    }
-                ]
-            }
-        },
         "SpriteCompInspect": {
             "kind": "TypeAliasDeclaration",
             "name": "SpriteCompInspect",
@@ -6581,75 +6054,6 @@
                 ]
             }
         },
-        "TextComp": {
-            "kind": "TypeAliasDeclaration",
-            "name": "TextComp",
-            "type": {
-                "kind": "IntersectionType",
-                "types": [
-                    {
-                        "kind": "TypeReference",
-                        "typeName": "Comp"
-                    },
-                    {
-                        "kind": "TypeLiteral",
-                        "members": [
-                            {
-                                "kind": "PropertySignature",
-                                "name": "add",
-                                "type": {
-                                    "kind": "TypeReference",
-                                    "typeName": "AddEvent"
-                                }
-                            },
-                            {
-                                "kind": "PropertySignature",
-                                "name": "draw",
-                                "type": {
-                                    "kind": "TypeReference",
-                                    "typeName": "DrawEvent"
-                                }
-                            },
-                            {
-                                "kind": "PropertySignature",
-                                "name": "text",
-                                "type": {
-                                    "kind": "StringKeyword"
-                                }
-                            },
-                            {
-                                "kind": "PropertySignature",
-                                "name": "textSize",
-                                "type": {
-                                    "kind": "NumberKeyword"
-                                }
-                            },
-                            {
-                                "kind": "PropertySignature",
-                                "name": "font",
-                                "type": {
-                                    "kind": "StringKeyword"
-                                }
-                            },
-                            {
-                                "kind": "PropertySignature",
-                                "name": "width",
-                                "type": {
-                                    "kind": "NumberKeyword"
-                                }
-                            },
-                            {
-                                "kind": "PropertySignature",
-                                "name": "height",
-                                "type": {
-                                    "kind": "NumberKeyword"
-                                }
-                            }
-                        ]
-                    }
-                ]
-            }
-        },
         "TextCompConf": {
             "kind": "TypeAliasDeclaration",
             "name": "TextCompConf",
@@ -6658,7 +6062,7 @@
                 "members": [
                     {
                         "kind": "PropertySignature",
-                        "name": "noArea",
+                        "name": "area",
                         "type": {
                             "kind": "BooleanKeyword"
                         },
@@ -6679,244 +6083,6 @@
                             "kind": "NumberKeyword"
                         },
                         "questionToken": true
-                    }
-                ]
-            }
-        },
-        "RectComp": {
-            "kind": "TypeAliasDeclaration",
-            "name": "RectComp",
-            "type": {
-                "kind": "IntersectionType",
-                "types": [
-                    {
-                        "kind": "TypeReference",
-                        "typeName": "Comp"
-                    },
-                    {
-                        "kind": "TypeLiteral",
-                        "members": [
-                            {
-                                "kind": "PropertySignature",
-                                "name": "add",
-                                "type": {
-                                    "kind": "TypeReference",
-                                    "typeName": "AddEvent"
-                                }
-                            },
-                            {
-                                "kind": "PropertySignature",
-                                "name": "draw",
-                                "type": {
-                                    "kind": "TypeReference",
-                                    "typeName": "DrawEvent"
-                                }
-                            },
-                            {
-                                "kind": "PropertySignature",
-                                "name": "width",
-                                "type": {
-                                    "kind": "NumberKeyword"
-                                }
-                            },
-                            {
-                                "kind": "PropertySignature",
-                                "name": "height",
-                                "type": {
-                                    "kind": "NumberKeyword"
-                                }
-                            }
-                        ]
-                    }
-                ]
-            }
-        },
-        "RectCompConf": {
-            "kind": "TypeAliasDeclaration",
-            "name": "RectCompConf",
-            "type": {
-                "kind": "TypeLiteral",
-                "members": [
-                    {
-                        "kind": "PropertySignature",
-                        "name": "noArea",
-                        "type": {
-                            "kind": "BooleanKeyword"
-                        },
-                        "questionToken": true
-                    }
-                ]
-            }
-        },
-        "LevelConf": {
-            "kind": "TypeAliasDeclaration",
-            "name": "LevelConf",
-            "type": {
-                "kind": "TypeLiteral",
-                "members": [
-                    {
-                        "kind": "PropertySignature",
-                        "name": "width",
-                        "type": {
-                            "kind": "NumberKeyword"
-                        }
-                    },
-                    {
-                        "kind": "PropertySignature",
-                        "name": "height",
-                        "type": {
-                            "kind": "NumberKeyword"
-                        }
-                    },
-                    {
-                        "kind": "PropertySignature",
-                        "name": "pos",
-                        "type": {
-                            "kind": "TypeReference",
-                            "typeName": "Vec2"
-                        },
-                        "questionToken": true
-                    },
-                    {
-                        "kind": "MethodSignature",
-                        "name": "any",
-                        "parameters": [
-                            {
-                                "kind": "Parameter",
-                                "name": "s",
-                                "type": {
-                                    "kind": "StringKeyword"
-                                }
-                            }
-                        ],
-                        "type": {
-                            "kind": "UnionType",
-                            "types": [
-                                {
-                                    "kind": "ArrayType",
-                                    "elementType": {
-                                        "kind": "TypeReference",
-                                        "typeName": "Comp"
-                                    }
-                                },
-                                {
-                                    "kind": "UndefinedKeyword"
-                                }
-                            ]
-                        }
-                    },
-                    {
-                        "kind": "IndexSignature",
-                        "parameters": [
-                            {
-                                "kind": "Parameter",
-                                "name": "sym",
-                                "type": {
-                                    "kind": "StringKeyword"
-                                }
-                            }
-                        ],
-                        "type": {
-                            "kind": "AnyKeyword"
-                        }
-                    }
-                ]
-            }
-        },
-        "Level": {
-            "kind": "TypeAliasDeclaration",
-            "name": "Level",
-            "type": {
-                "kind": "TypeLiteral",
-                "members": [
-                    {
-                        "kind": "MethodSignature",
-                        "name": "getPos",
-                        "parameters": [
-                            {
-                                "kind": "Parameter",
-                                "name": "p",
-                                "type": {
-                                    "kind": "TypeReference",
-                                    "typeName": "Vec2"
-                                }
-                            }
-                        ],
-                        "type": {
-                            "kind": "TypeReference",
-                            "typeName": "Vec2"
-                        }
-                    },
-                    {
-                        "kind": "MethodSignature",
-                        "name": "spawn",
-                        "parameters": [
-                            {
-                                "kind": "Parameter",
-                                "name": "sym",
-                                "type": {
-                                    "kind": "StringKeyword"
-                                }
-                            },
-                            {
-                                "kind": "Parameter",
-                                "name": "p",
-                                "type": {
-                                    "kind": "TypeReference",
-                                    "typeName": "Vec2"
-                                }
-                            }
-                        ],
-                        "type": {
-                            "kind": "TypeReference",
-                            "typeName": "GameObj"
-                        }
-                    },
-                    {
-                        "kind": "MethodSignature",
-                        "name": "width",
-                        "parameters": [],
-                        "type": {
-                            "kind": "NumberKeyword"
-                        }
-                    },
-                    {
-                        "kind": "MethodSignature",
-                        "name": "height",
-                        "parameters": [],
-                        "type": {
-                            "kind": "NumberKeyword"
-                        }
-                    },
-                    {
-                        "kind": "MethodSignature",
-                        "name": "gridWidth",
-                        "parameters": [],
-                        "type": {
-                            "kind": "NumberKeyword"
-                        }
-                    },
-                    {
-                        "kind": "MethodSignature",
-                        "name": "gridHeight",
-                        "parameters": [],
-                        "type": {
-                            "kind": "NumberKeyword"
-                        }
-                    },
-                    {
-                        "kind": "MethodSignature",
-                        "name": "offset",
-                        "parameters": [],
-                        "type": {
-                            "kind": "TypeReference",
-                            "typeName": "Vec2"
-                        }
-                    },
-                    {
-                        "kind": "MethodSignature",
-                        "name": "destroy",
-                        "parameters": []
                     }
                 ]
             }
@@ -7060,121 +6226,6 @@
                 ]
             }
         },
-        "ShaderComp": {
-            "kind": "TypeAliasDeclaration",
-            "name": "ShaderComp",
-            "type": {
-                "kind": "IntersectionType",
-                "types": [
-                    {
-                        "kind": "TypeReference",
-                        "typeName": "Comp"
-                    },
-                    {
-                        "kind": "TypeLiteral",
-                        "members": [
-                            {
-                                "kind": "PropertySignature",
-                                "name": "uniform",
-                                "type": {
-                                    "kind": "TypeReference",
-                                    "typeName": "Uniform"
-                                }
-                            },
-                            {
-                                "kind": "PropertySignature",
-                                "name": "shader",
-                                "type": {
-                                    "kind": "StringKeyword"
-                                }
-                            }
-                        ]
-                    }
-                ]
-            }
-        },
-        "BodyComp": {
-            "kind": "TypeAliasDeclaration",
-            "name": "BodyComp",
-            "type": {
-                "kind": "IntersectionType",
-                "types": [
-                    {
-                        "kind": "TypeReference",
-                        "typeName": "Comp"
-                    },
-                    {
-                        "kind": "TypeLiteral",
-                        "members": [
-                            {
-                                "kind": "PropertySignature",
-                                "name": "update",
-                                "type": {
-                                    "kind": "TypeReference",
-                                    "typeName": "UpdateEvent"
-                                }
-                            },
-                            {
-                                "kind": "PropertySignature",
-                                "name": "jumpForce",
-                                "type": {
-                                    "kind": "NumberKeyword"
-                                }
-                            },
-                            {
-                                "kind": "MethodSignature",
-                                "name": "curPlatform",
-                                "parameters": [],
-                                "type": {
-                                    "kind": "UnionType",
-                                    "types": [
-                                        {
-                                            "kind": "TypeReference",
-                                            "typeName": "GameObj"
-                                        },
-                                        {
-                                            "kind": "LiteralType",
-                                            "literal": {
-                                                "kind": "NullKeyword"
-                                            }
-                                        }
-                                    ]
-                                }
-                            },
-                            {
-                                "kind": "MethodSignature",
-                                "name": "grounded",
-                                "parameters": [],
-                                "type": {
-                                    "kind": "BooleanKeyword"
-                                }
-                            },
-                            {
-                                "kind": "MethodSignature",
-                                "name": "falling",
-                                "parameters": [],
-                                "type": {
-                                    "kind": "BooleanKeyword"
-                                }
-                            },
-                            {
-                                "kind": "MethodSignature",
-                                "name": "jump",
-                                "parameters": [
-                                    {
-                                        "kind": "Parameter",
-                                        "name": "f",
-                                        "type": {
-                                            "kind": "NumberKeyword"
-                                        }
-                                    }
-                                ]
-                            }
-                        ]
-                    }
-                ]
-            }
-        },
         "BodyCompConf": {
             "kind": "TypeAliasDeclaration",
             "name": "BodyCompConf",
@@ -7196,164 +6247,6 @@
                             "kind": "NumberKeyword"
                         },
                         "questionToken": true
-                    }
-                ]
-            }
-        },
-        "SolidComp": {
-            "kind": "TypeAliasDeclaration",
-            "name": "SolidComp",
-            "type": {
-                "kind": "IntersectionType",
-                "types": [
-                    {
-                        "kind": "TypeReference",
-                        "typeName": "Comp"
-                    },
-                    {
-                        "kind": "TypeLiteral",
-                        "members": [
-                            {
-                                "kind": "PropertySignature",
-                                "name": "solid",
-                                "type": {
-                                    "kind": "BooleanKeyword"
-                                }
-                            }
-                        ]
-                    }
-                ]
-            }
-        },
-        "HelperProps": {
-            "kind": "TypeAliasDeclaration",
-            "name": "HelperProps",
-            "type": {
-                "kind": "TypeLiteral",
-                "members": [
-                    {
-                        "kind": "PropertySignature",
-                        "name": "body",
-                        "type": {
-                            "kind": "BooleanKeyword"
-                        },
-                        "questionToken": true
-                    },
-                    {
-                        "kind": "PropertySignature",
-                        "name": "solid",
-                        "type": {
-                            "kind": "BooleanKeyword"
-                        },
-                        "questionToken": true
-                    },
-                    {
-                        "kind": "PropertySignature",
-                        "name": "layer",
-                        "type": {
-                            "kind": "StringKeyword"
-                        },
-                        "questionToken": true
-                    },
-                    {
-                        "kind": "PropertySignature",
-                        "name": "origin",
-                        "type": {
-                            "kind": "UnionType",
-                            "types": [
-                                {
-                                    "kind": "TypeReference",
-                                    "typeName": "Origin"
-                                },
-                                {
-                                    "kind": "TypeReference",
-                                    "typeName": "Vec2"
-                                }
-                            ]
-                        },
-                        "questionToken": true
-                    },
-                    {
-                        "kind": "PropertySignature",
-                        "name": "tags",
-                        "type": {
-                            "kind": "ArrayType",
-                            "elementType": {
-                                "kind": "StringKeyword"
-                            }
-                        },
-                        "questionToken": true
-                    },
-                    {
-                        "kind": "PropertySignature",
-                        "name": "data",
-                        "type": {
-                            "kind": "AnyKeyword"
-                        },
-                        "questionToken": true
-                    }
-                ]
-            }
-        },
-        "AddSpriteConf": {
-            "kind": "TypeAliasDeclaration",
-            "name": "AddSpriteConf",
-            "type": {
-                "kind": "IntersectionType",
-                "types": [
-                    {
-                        "kind": "TypeReference",
-                        "typeName": "RenderProps"
-                    },
-                    {
-                        "kind": "TypeReference",
-                        "typeName": "HelperProps"
-                    },
-                    {
-                        "kind": "TypeReference",
-                        "typeName": "SpriteCompConf"
-                    }
-                ]
-            }
-        },
-        "AddRectConf": {
-            "kind": "TypeAliasDeclaration",
-            "name": "AddRectConf",
-            "type": {
-                "kind": "IntersectionType",
-                "types": [
-                    {
-                        "kind": "TypeReference",
-                        "typeName": "RenderProps"
-                    },
-                    {
-                        "kind": "TypeReference",
-                        "typeName": "HelperProps"
-                    },
-                    {
-                        "kind": "TypeReference",
-                        "typeName": "RectCompConf"
-                    }
-                ]
-            }
-        },
-        "AddTextConf": {
-            "kind": "TypeAliasDeclaration",
-            "name": "AddTextConf",
-            "type": {
-                "kind": "IntersectionType",
-                "types": [
-                    {
-                        "kind": "TypeReference",
-                        "typeName": "RenderProps"
-                    },
-                    {
-                        "kind": "TypeReference",
-                        "typeName": "HelperProps"
-                    },
-                    {
-                        "kind": "TypeReference",
-                        "typeName": "TextCompConf"
                     }
                 ]
             }
@@ -7385,5 +6278,1294 @@
             }
         }
     },
-    "interfaces": {}
+    "interfaces": {
+        "GameObj": {
+            "kind": "InterfaceDeclaration",
+            "name": "GameObj",
+            "members": [
+                {
+                    "kind": "PropertySignature",
+                    "name": "_id",
+                    "type": {
+                        "kind": "UnionType",
+                        "types": [
+                            {
+                                "kind": "NumberKeyword"
+                            },
+                            {
+                                "kind": "LiteralType",
+                                "literal": {
+                                    "kind": "NullKeyword"
+                                }
+                            }
+                        ]
+                    }
+                },
+                {
+                    "kind": "PropertySignature",
+                    "name": "hidden",
+                    "type": {
+                        "kind": "BooleanKeyword"
+                    }
+                },
+                {
+                    "kind": "PropertySignature",
+                    "name": "paused",
+                    "type": {
+                        "kind": "BooleanKeyword"
+                    }
+                },
+                {
+                    "kind": "MethodSignature",
+                    "name": "exists",
+                    "parameters": [],
+                    "type": {
+                        "kind": "BooleanKeyword"
+                    }
+                },
+                {
+                    "kind": "MethodSignature",
+                    "name": "is",
+                    "parameters": [
+                        {
+                            "kind": "Parameter",
+                            "name": "tag",
+                            "type": {
+                                "kind": "UnionType",
+                                "types": [
+                                    {
+                                        "kind": "StringKeyword"
+                                    },
+                                    {
+                                        "kind": "ArrayType",
+                                        "elementType": {
+                                            "kind": "StringKeyword"
+                                        }
+                                    }
+                                ]
+                            }
+                        }
+                    ],
+                    "type": {
+                        "kind": "BooleanKeyword"
+                    }
+                },
+                {
+                    "kind": "MethodSignature",
+                    "name": "use",
+                    "parameters": [
+                        {
+                            "kind": "Parameter",
+                            "name": "comp",
+                            "type": {
+                                "kind": "TypeReference",
+                                "typeName": "Comp"
+                            }
+                        }
+                    ]
+                },
+                {
+                    "kind": "MethodSignature",
+                    "name": "action",
+                    "parameters": [
+                        {
+                            "kind": "Parameter",
+                            "name": "cb",
+                            "type": {
+                                "kind": "FunctionType",
+                                "parameters": [],
+                                "type": {
+                                    "kind": "VoidKeyword"
+                                }
+                            }
+                        }
+                    ],
+                    "type": {
+                        "kind": "TypeReference",
+                        "typeName": "EventCanceller"
+                    }
+                },
+                {
+                    "kind": "MethodSignature",
+                    "name": "on",
+                    "parameters": [
+                        {
+                            "kind": "Parameter",
+                            "name": "ev",
+                            "type": {
+                                "kind": "StringKeyword"
+                            }
+                        },
+                        {
+                            "kind": "Parameter",
+                            "name": "cb",
+                            "type": {
+                                "kind": "FunctionType",
+                                "parameters": [],
+                                "type": {
+                                    "kind": "VoidKeyword"
+                                }
+                            }
+                        }
+                    ],
+                    "type": {
+                        "kind": "TypeReference",
+                        "typeName": "EventCanceller"
+                    }
+                },
+                {
+                    "kind": "MethodSignature",
+                    "name": "trigger",
+                    "parameters": [
+                        {
+                            "kind": "Parameter",
+                            "name": "ev",
+                            "type": {
+                                "kind": "StringKeyword"
+                            }
+                        },
+                        {
+                            "kind": "Parameter",
+                            "name": "args",
+                            "dotDotDotToken": {
+                                "kind": "DotDotDotToken"
+                            }
+                        }
+                    ]
+                },
+                {
+                    "kind": "MethodSignature",
+                    "name": "rmTag",
+                    "parameters": [
+                        {
+                            "kind": "Parameter",
+                            "name": "t",
+                            "type": {
+                                "kind": "StringKeyword"
+                            }
+                        }
+                    ]
+                },
+                {
+                    "kind": "MethodSignature",
+                    "name": "destroy",
+                    "parameters": []
+                },
+                {
+                    "kind": "MethodSignature",
+                    "name": "c",
+                    "parameters": [
+                        {
+                            "kind": "Parameter",
+                            "name": "id",
+                            "type": {
+                                "kind": "StringKeyword"
+                            }
+                        }
+                    ],
+                    "type": {
+                        "kind": "TypeReference",
+                        "typeName": "Comp"
+                    }
+                },
+                {
+                    "kind": "IndexSignature",
+                    "parameters": [
+                        {
+                            "kind": "Parameter",
+                            "name": "custom",
+                            "type": {
+                                "kind": "StringKeyword"
+                            }
+                        }
+                    ],
+                    "type": {
+                        "kind": "AnyKeyword"
+                    }
+                }
+            ]
+        },
+        "Comp": {
+            "kind": "InterfaceDeclaration",
+            "name": "Comp",
+            "members": [
+                {
+                    "kind": "PropertySignature",
+                    "name": "id",
+                    "type": {
+                        "kind": "TypeReference",
+                        "typeName": "CompID"
+                    },
+                    "questionToken": true
+                },
+                {
+                    "kind": "PropertySignature",
+                    "name": "require",
+                    "type": {
+                        "kind": "ArrayType",
+                        "elementType": {
+                            "kind": "TypeReference",
+                            "typeName": "CompID"
+                        }
+                    },
+                    "questionToken": true
+                },
+                {
+                    "kind": "PropertySignature",
+                    "name": "add",
+                    "type": {
+                        "kind": "TypeReference",
+                        "typeName": "AddEvent"
+                    },
+                    "questionToken": true
+                },
+                {
+                    "kind": "PropertySignature",
+                    "name": "update",
+                    "type": {
+                        "kind": "TypeReference",
+                        "typeName": "UpdateEvent"
+                    },
+                    "questionToken": true
+                },
+                {
+                    "kind": "PropertySignature",
+                    "name": "draw",
+                    "type": {
+                        "kind": "TypeReference",
+                        "typeName": "DrawEvent"
+                    },
+                    "questionToken": true
+                },
+                {
+                    "kind": "PropertySignature",
+                    "name": "destroy",
+                    "type": {
+                        "kind": "TypeReference",
+                        "typeName": "DestroyEvent"
+                    },
+                    "questionToken": true
+                },
+                {
+                    "kind": "PropertySignature",
+                    "name": "inspect",
+                    "type": {
+                        "kind": "TypeReference",
+                        "typeName": "InspectEvent"
+                    },
+                    "questionToken": true
+                },
+                {
+                    "kind": "IndexSignature",
+                    "parameters": [
+                        {
+                            "kind": "Parameter",
+                            "name": "custom",
+                            "type": {
+                                "kind": "StringKeyword"
+                            }
+                        }
+                    ],
+                    "type": {
+                        "kind": "AnyKeyword"
+                    }
+                }
+            ]
+        },
+        "PosComp": {
+            "kind": "InterfaceDeclaration",
+            "name": "PosComp",
+            "heritageClauses": [
+                {
+                    "kind": "HeritageClause",
+                    "token": 93,
+                    "types": [
+                        {
+                            "kind": "ExpressionWithTypeArguments",
+                            "expression": {
+                                "kind": "Identifier",
+                                "escapedText": "Comp"
+                            }
+                        }
+                    ]
+                }
+            ],
+            "members": [
+                {
+                    "kind": "PropertySignature",
+                    "name": "pos",
+                    "type": {
+                        "kind": "TypeReference",
+                        "typeName": "Vec2"
+                    }
+                },
+                {
+                    "kind": "MethodSignature",
+                    "name": "move",
+                    "parameters": [
+                        {
+                            "kind": "Parameter",
+                            "name": "x",
+                            "type": {
+                                "kind": "NumberKeyword"
+                            }
+                        },
+                        {
+                            "kind": "Parameter",
+                            "name": "y",
+                            "type": {
+                                "kind": "NumberKeyword"
+                            }
+                        }
+                    ]
+                },
+                {
+                    "kind": "MethodSignature",
+                    "name": "move",
+                    "parameters": [
+                        {
+                            "kind": "Parameter",
+                            "name": "p",
+                            "type": {
+                                "kind": "TypeReference",
+                                "typeName": "Vec2"
+                            }
+                        }
+                    ]
+                },
+                {
+                    "kind": "MethodSignature",
+                    "name": "screenPos",
+                    "parameters": [],
+                    "type": {
+                        "kind": "TypeReference",
+                        "typeName": "Vec2"
+                    }
+                },
+                {
+                    "kind": "MethodSignature",
+                    "name": "inspect",
+                    "parameters": [],
+                    "type": {
+                        "kind": "TypeReference",
+                        "typeName": "PosCompInspect"
+                    }
+                }
+            ]
+        },
+        "ScaleComp": {
+            "kind": "InterfaceDeclaration",
+            "name": "ScaleComp",
+            "heritageClauses": [
+                {
+                    "kind": "HeritageClause",
+                    "token": 93,
+                    "types": [
+                        {
+                            "kind": "ExpressionWithTypeArguments",
+                            "expression": {
+                                "kind": "Identifier",
+                                "escapedText": "Comp"
+                            }
+                        }
+                    ]
+                }
+            ],
+            "members": [
+                {
+                    "kind": "PropertySignature",
+                    "name": "scale",
+                    "type": {
+                        "kind": "TypeReference",
+                        "typeName": "Vec2"
+                    }
+                }
+            ]
+        },
+        "RotateComp": {
+            "kind": "InterfaceDeclaration",
+            "name": "RotateComp",
+            "heritageClauses": [
+                {
+                    "kind": "HeritageClause",
+                    "token": 93,
+                    "types": [
+                        {
+                            "kind": "ExpressionWithTypeArguments",
+                            "expression": {
+                                "kind": "Identifier",
+                                "escapedText": "Comp"
+                            }
+                        }
+                    ]
+                }
+            ],
+            "members": [
+                {
+                    "kind": "PropertySignature",
+                    "name": "angle",
+                    "type": {
+                        "kind": "NumberKeyword"
+                    }
+                }
+            ]
+        },
+        "ColorComp": {
+            "kind": "InterfaceDeclaration",
+            "name": "ColorComp",
+            "heritageClauses": [
+                {
+                    "kind": "HeritageClause",
+                    "token": 93,
+                    "types": [
+                        {
+                            "kind": "ExpressionWithTypeArguments",
+                            "expression": {
+                                "kind": "Identifier",
+                                "escapedText": "Comp"
+                            }
+                        }
+                    ]
+                }
+            ],
+            "members": [
+                {
+                    "kind": "PropertySignature",
+                    "name": "color",
+                    "type": {
+                        "kind": "TypeReference",
+                        "typeName": "Color"
+                    }
+                }
+            ]
+        },
+        "OriginComp": {
+            "kind": "InterfaceDeclaration",
+            "name": "OriginComp",
+            "heritageClauses": [
+                {
+                    "kind": "HeritageClause",
+                    "token": 93,
+                    "types": [
+                        {
+                            "kind": "ExpressionWithTypeArguments",
+                            "expression": {
+                                "kind": "Identifier",
+                                "escapedText": "Comp"
+                            }
+                        }
+                    ]
+                }
+            ],
+            "members": [
+                {
+                    "kind": "PropertySignature",
+                    "name": "origin",
+                    "type": {
+                        "kind": "UnionType",
+                        "types": [
+                            {
+                                "kind": "TypeReference",
+                                "typeName": "Origin"
+                            },
+                            {
+                                "kind": "TypeReference",
+                                "typeName": "Vec2"
+                            }
+                        ]
+                    }
+                }
+            ]
+        },
+        "LayerComp": {
+            "kind": "InterfaceDeclaration",
+            "name": "LayerComp",
+            "heritageClauses": [
+                {
+                    "kind": "HeritageClause",
+                    "token": 93,
+                    "types": [
+                        {
+                            "kind": "ExpressionWithTypeArguments",
+                            "expression": {
+                                "kind": "Identifier",
+                                "escapedText": "Comp"
+                            }
+                        }
+                    ]
+                }
+            ],
+            "members": [
+                {
+                    "kind": "PropertySignature",
+                    "name": "layer",
+                    "type": {
+                        "kind": "StringKeyword"
+                    }
+                },
+                {
+                    "kind": "MethodSignature",
+                    "name": "inspect",
+                    "parameters": [],
+                    "type": {
+                        "kind": "TypeReference",
+                        "typeName": "LayerCompInspect"
+                    }
+                }
+            ]
+        },
+        "AreaComp": {
+            "kind": "InterfaceDeclaration",
+            "name": "AreaComp",
+            "heritageClauses": [
+                {
+                    "kind": "HeritageClause",
+                    "token": 93,
+                    "types": [
+                        {
+                            "kind": "ExpressionWithTypeArguments",
+                            "expression": {
+                                "kind": "Identifier",
+                                "escapedText": "Comp"
+                            }
+                        }
+                    ]
+                }
+            ],
+            "members": [
+                {
+                    "kind": "PropertySignature",
+                    "name": "area",
+                    "type": {
+                        "kind": "TypeReference",
+                        "typeName": "Rect"
+                    }
+                },
+                {
+                    "kind": "MethodSignature",
+                    "name": "areaWidth",
+                    "parameters": [],
+                    "type": {
+                        "kind": "NumberKeyword"
+                    }
+                },
+                {
+                    "kind": "MethodSignature",
+                    "name": "areaHeight",
+                    "parameters": [],
+                    "type": {
+                        "kind": "NumberKeyword"
+                    }
+                },
+                {
+                    "kind": "MethodSignature",
+                    "name": "isClicked",
+                    "parameters": [],
+                    "type": {
+                        "kind": "BooleanKeyword"
+                    }
+                },
+                {
+                    "kind": "MethodSignature",
+                    "name": "isHovered",
+                    "parameters": [],
+                    "type": {
+                        "kind": "BooleanKeyword"
+                    }
+                },
+                {
+                    "kind": "MethodSignature",
+                    "name": "isCollided",
+                    "parameters": [
+                        {
+                            "kind": "Parameter",
+                            "name": "o",
+                            "type": {
+                                "kind": "TypeReference",
+                                "typeName": "GameObj"
+                            }
+                        }
+                    ],
+                    "type": {
+                        "kind": "BooleanKeyword"
+                    }
+                },
+                {
+                    "kind": "MethodSignature",
+                    "name": "isOverlapped",
+                    "parameters": [
+                        {
+                            "kind": "Parameter",
+                            "name": "o",
+                            "type": {
+                                "kind": "TypeReference",
+                                "typeName": "GameObj"
+                            }
+                        }
+                    ],
+                    "type": {
+                        "kind": "BooleanKeyword"
+                    }
+                },
+                {
+                    "kind": "MethodSignature",
+                    "name": "clicks",
+                    "parameters": [
+                        {
+                            "kind": "Parameter",
+                            "name": "f",
+                            "type": {
+                                "kind": "FunctionType",
+                                "parameters": [],
+                                "type": {
+                                    "kind": "VoidKeyword"
+                                }
+                            }
+                        }
+                    ]
+                },
+                {
+                    "kind": "MethodSignature",
+                    "name": "hovers",
+                    "parameters": [
+                        {
+                            "kind": "Parameter",
+                            "name": "f",
+                            "type": {
+                                "kind": "FunctionType",
+                                "parameters": [],
+                                "type": {
+                                    "kind": "VoidKeyword"
+                                }
+                            }
+                        }
+                    ]
+                },
+                {
+                    "kind": "MethodSignature",
+                    "name": "collides",
+                    "parameters": [
+                        {
+                            "kind": "Parameter",
+                            "name": "tag",
+                            "type": {
+                                "kind": "StringKeyword"
+                            }
+                        },
+                        {
+                            "kind": "Parameter",
+                            "name": "f",
+                            "type": {
+                                "kind": "FunctionType",
+                                "parameters": [
+                                    {
+                                        "kind": "Parameter",
+                                        "name": "o",
+                                        "type": {
+                                            "kind": "TypeReference",
+                                            "typeName": "GameObj"
+                                        }
+                                    }
+                                ],
+                                "type": {
+                                    "kind": "VoidKeyword"
+                                }
+                            }
+                        }
+                    ]
+                },
+                {
+                    "kind": "MethodSignature",
+                    "name": "overlaps",
+                    "parameters": [
+                        {
+                            "kind": "Parameter",
+                            "name": "tag",
+                            "type": {
+                                "kind": "StringKeyword"
+                            }
+                        },
+                        {
+                            "kind": "Parameter",
+                            "name": "f",
+                            "type": {
+                                "kind": "FunctionType",
+                                "parameters": [
+                                    {
+                                        "kind": "Parameter",
+                                        "name": "o",
+                                        "type": {
+                                            "kind": "TypeReference",
+                                            "typeName": "GameObj"
+                                        }
+                                    }
+                                ],
+                                "type": {
+                                    "kind": "VoidKeyword"
+                                }
+                            }
+                        }
+                    ]
+                },
+                {
+                    "kind": "MethodSignature",
+                    "name": "hasPt",
+                    "parameters": [
+                        {
+                            "kind": "Parameter",
+                            "name": "p",
+                            "type": {
+                                "kind": "TypeReference",
+                                "typeName": "Vec2"
+                            }
+                        }
+                    ],
+                    "type": {
+                        "kind": "BooleanKeyword"
+                    }
+                },
+                {
+                    "kind": "MethodSignature",
+                    "name": "pushOut",
+                    "parameters": [
+                        {
+                            "kind": "Parameter",
+                            "name": "obj",
+                            "type": {
+                                "kind": "TypeReference",
+                                "typeName": "GameObj"
+                            }
+                        }
+                    ],
+                    "type": {
+                        "kind": "UnionType",
+                        "types": [
+                            {
+                                "kind": "TypeReference",
+                                "typeName": "PushOut"
+                            },
+                            {
+                                "kind": "LiteralType",
+                                "literal": {
+                                    "kind": "NullKeyword"
+                                }
+                            }
+                        ]
+                    }
+                },
+                {
+                    "kind": "MethodSignature",
+                    "name": "pushOutAll",
+                    "parameters": [],
+                    "type": {
+                        "kind": "ArrayType",
+                        "elementType": {
+                            "kind": "TypeReference",
+                            "typeName": "PushOut"
+                        }
+                    }
+                },
+                {
+                    "kind": "MethodSignature",
+                    "name": "_worldArea",
+                    "parameters": [],
+                    "type": {
+                        "kind": "TypeReference",
+                        "typeName": "Rect"
+                    }
+                },
+                {
+                    "kind": "MethodSignature",
+                    "name": "_checkCollisions",
+                    "parameters": [
+                        {
+                            "kind": "Parameter",
+                            "name": "tag",
+                            "type": {
+                                "kind": "StringKeyword"
+                            }
+                        },
+                        {
+                            "kind": "Parameter",
+                            "name": "f",
+                            "type": {
+                                "kind": "FunctionType",
+                                "parameters": [
+                                    {
+                                        "kind": "Parameter",
+                                        "name": "obj",
+                                        "type": {
+                                            "kind": "TypeReference",
+                                            "typeName": "GameObj"
+                                        }
+                                    }
+                                ],
+                                "type": {
+                                    "kind": "VoidKeyword"
+                                }
+                            }
+                        }
+                    ],
+                    "type": {
+                        "kind": "VoidKeyword"
+                    }
+                },
+                {
+                    "kind": "MethodSignature",
+                    "name": "_checkOverlaps",
+                    "parameters": [
+                        {
+                            "kind": "Parameter",
+                            "name": "tag",
+                            "type": {
+                                "kind": "StringKeyword"
+                            }
+                        },
+                        {
+                            "kind": "Parameter",
+                            "name": "f",
+                            "type": {
+                                "kind": "FunctionType",
+                                "parameters": [
+                                    {
+                                        "kind": "Parameter",
+                                        "name": "obj",
+                                        "type": {
+                                            "kind": "TypeReference",
+                                            "typeName": "GameObj"
+                                        }
+                                    }
+                                ],
+                                "type": {
+                                    "kind": "VoidKeyword"
+                                }
+                            }
+                        }
+                    ],
+                    "type": {
+                        "kind": "VoidKeyword"
+                    }
+                }
+            ]
+        },
+        "SpriteComp": {
+            "kind": "InterfaceDeclaration",
+            "name": "SpriteComp",
+            "heritageClauses": [
+                {
+                    "kind": "HeritageClause",
+                    "token": 93,
+                    "types": [
+                        {
+                            "kind": "ExpressionWithTypeArguments",
+                            "expression": {
+                                "kind": "Identifier",
+                                "escapedText": "Comp"
+                            }
+                        }
+                    ]
+                }
+            ],
+            "members": [
+                {
+                    "kind": "PropertySignature",
+                    "name": "draw",
+                    "type": {
+                        "kind": "TypeReference",
+                        "typeName": "DrawEvent"
+                    }
+                },
+                {
+                    "kind": "PropertySignature",
+                    "name": "update",
+                    "type": {
+                        "kind": "TypeReference",
+                        "typeName": "UpdateEvent"
+                    }
+                },
+                {
+                    "kind": "PropertySignature",
+                    "name": "width",
+                    "type": {
+                        "kind": "NumberKeyword"
+                    }
+                },
+                {
+                    "kind": "PropertySignature",
+                    "name": "height",
+                    "type": {
+                        "kind": "NumberKeyword"
+                    }
+                },
+                {
+                    "kind": "PropertySignature",
+                    "name": "animSpeed",
+                    "type": {
+                        "kind": "NumberKeyword"
+                    }
+                },
+                {
+                    "kind": "PropertySignature",
+                    "name": "frame",
+                    "type": {
+                        "kind": "NumberKeyword"
+                    }
+                },
+                {
+                    "kind": "PropertySignature",
+                    "name": "quad",
+                    "type": {
+                        "kind": "TypeReference",
+                        "typeName": "Quad"
+                    }
+                },
+                {
+                    "kind": "MethodSignature",
+                    "name": "play",
+                    "parameters": [
+                        {
+                            "kind": "Parameter",
+                            "name": "anim",
+                            "type": {
+                                "kind": "StringKeyword"
+                            }
+                        },
+                        {
+                            "kind": "Parameter",
+                            "name": "loop",
+                            "type": {
+                                "kind": "BooleanKeyword"
+                            },
+                            "questionToken": true
+                        }
+                    ]
+                },
+                {
+                    "kind": "MethodSignature",
+                    "name": "stop",
+                    "parameters": []
+                },
+                {
+                    "kind": "MethodSignature",
+                    "name": "changeSprite",
+                    "parameters": [
+                        {
+                            "kind": "Parameter",
+                            "name": "id",
+                            "type": {
+                                "kind": "StringKeyword"
+                            }
+                        }
+                    ]
+                },
+                {
+                    "kind": "MethodSignature",
+                    "name": "numFrames",
+                    "parameters": [],
+                    "type": {
+                        "kind": "NumberKeyword"
+                    }
+                },
+                {
+                    "kind": "MethodSignature",
+                    "name": "curAnim",
+                    "parameters": [],
+                    "type": {
+                        "kind": "StringKeyword"
+                    }
+                },
+                {
+                    "kind": "MethodSignature",
+                    "name": "flipX",
+                    "parameters": [
+                        {
+                            "kind": "Parameter",
+                            "name": "b",
+                            "type": {
+                                "kind": "BooleanKeyword"
+                            }
+                        }
+                    ]
+                },
+                {
+                    "kind": "MethodSignature",
+                    "name": "flipY",
+                    "parameters": [
+                        {
+                            "kind": "Parameter",
+                            "name": "b",
+                            "type": {
+                                "kind": "BooleanKeyword"
+                            }
+                        }
+                    ]
+                },
+                {
+                    "kind": "MethodSignature",
+                    "name": "inspect",
+                    "parameters": [],
+                    "type": {
+                        "kind": "TypeReference",
+                        "typeName": "SpriteCompInspect"
+                    }
+                }
+            ]
+        },
+        "TextComp": {
+            "kind": "InterfaceDeclaration",
+            "name": "TextComp",
+            "heritageClauses": [
+                {
+                    "kind": "HeritageClause",
+                    "token": 93,
+                    "types": [
+                        {
+                            "kind": "ExpressionWithTypeArguments",
+                            "expression": {
+                                "kind": "Identifier",
+                                "escapedText": "Comp"
+                            }
+                        }
+                    ]
+                }
+            ],
+            "members": [
+                {
+                    "kind": "PropertySignature",
+                    "name": "draw",
+                    "type": {
+                        "kind": "TypeReference",
+                        "typeName": "DrawEvent"
+                    }
+                },
+                {
+                    "kind": "PropertySignature",
+                    "name": "text",
+                    "type": {
+                        "kind": "StringKeyword"
+                    }
+                },
+                {
+                    "kind": "PropertySignature",
+                    "name": "textSize",
+                    "type": {
+                        "kind": "NumberKeyword"
+                    }
+                },
+                {
+                    "kind": "PropertySignature",
+                    "name": "font",
+                    "type": {
+                        "kind": "StringKeyword"
+                    }
+                },
+                {
+                    "kind": "PropertySignature",
+                    "name": "width",
+                    "type": {
+                        "kind": "NumberKeyword"
+                    }
+                },
+                {
+                    "kind": "PropertySignature",
+                    "name": "height",
+                    "type": {
+                        "kind": "NumberKeyword"
+                    }
+                }
+            ]
+        },
+        "RectComp": {
+            "kind": "InterfaceDeclaration",
+            "name": "RectComp",
+            "heritageClauses": [
+                {
+                    "kind": "HeritageClause",
+                    "token": 93,
+                    "types": [
+                        {
+                            "kind": "ExpressionWithTypeArguments",
+                            "expression": {
+                                "kind": "Identifier",
+                                "escapedText": "Comp"
+                            }
+                        }
+                    ]
+                }
+            ],
+            "members": [
+                {
+                    "kind": "PropertySignature",
+                    "name": "draw",
+                    "type": {
+                        "kind": "TypeReference",
+                        "typeName": "DrawEvent"
+                    }
+                },
+                {
+                    "kind": "PropertySignature",
+                    "name": "width",
+                    "type": {
+                        "kind": "NumberKeyword"
+                    }
+                },
+                {
+                    "kind": "PropertySignature",
+                    "name": "height",
+                    "type": {
+                        "kind": "NumberKeyword"
+                    }
+                }
+            ]
+        },
+        "ShaderComp": {
+            "kind": "InterfaceDeclaration",
+            "name": "ShaderComp",
+            "heritageClauses": [
+                {
+                    "kind": "HeritageClause",
+                    "token": 93,
+                    "types": [
+                        {
+                            "kind": "ExpressionWithTypeArguments",
+                            "expression": {
+                                "kind": "Identifier",
+                                "escapedText": "Comp"
+                            }
+                        }
+                    ]
+                }
+            ],
+            "members": [
+                {
+                    "kind": "PropertySignature",
+                    "name": "uniform",
+                    "type": {
+                        "kind": "TypeReference",
+                        "typeName": "Uniform"
+                    }
+                },
+                {
+                    "kind": "PropertySignature",
+                    "name": "shader",
+                    "type": {
+                        "kind": "StringKeyword"
+                    }
+                }
+            ]
+        },
+        "BodyComp": {
+            "kind": "InterfaceDeclaration",
+            "name": "BodyComp",
+            "heritageClauses": [
+                {
+                    "kind": "HeritageClause",
+                    "token": 93,
+                    "types": [
+                        {
+                            "kind": "ExpressionWithTypeArguments",
+                            "expression": {
+                                "kind": "Identifier",
+                                "escapedText": "Comp"
+                            }
+                        }
+                    ]
+                }
+            ],
+            "members": [
+                {
+                    "kind": "PropertySignature",
+                    "name": "update",
+                    "type": {
+                        "kind": "TypeReference",
+                        "typeName": "UpdateEvent"
+                    }
+                },
+                {
+                    "kind": "PropertySignature",
+                    "name": "jumpForce",
+                    "type": {
+                        "kind": "NumberKeyword"
+                    }
+                },
+                {
+                    "kind": "MethodSignature",
+                    "name": "curPlatform",
+                    "parameters": [],
+                    "type": {
+                        "kind": "UnionType",
+                        "types": [
+                            {
+                                "kind": "TypeReference",
+                                "typeName": "GameObj"
+                            },
+                            {
+                                "kind": "LiteralType",
+                                "literal": {
+                                    "kind": "NullKeyword"
+                                }
+                            }
+                        ]
+                    }
+                },
+                {
+                    "kind": "MethodSignature",
+                    "name": "grounded",
+                    "parameters": [],
+                    "type": {
+                        "kind": "BooleanKeyword"
+                    }
+                },
+                {
+                    "kind": "MethodSignature",
+                    "name": "falling",
+                    "parameters": [],
+                    "type": {
+                        "kind": "BooleanKeyword"
+                    }
+                },
+                {
+                    "kind": "MethodSignature",
+                    "name": "jump",
+                    "parameters": [
+                        {
+                            "kind": "Parameter",
+                            "name": "f",
+                            "type": {
+                                "kind": "NumberKeyword"
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        "SolidComp": {
+            "kind": "InterfaceDeclaration",
+            "name": "SolidComp",
+            "heritageClauses": [
+                {
+                    "kind": "HeritageClause",
+                    "token": 93,
+                    "types": [
+                        {
+                            "kind": "ExpressionWithTypeArguments",
+                            "expression": {
+                                "kind": "Identifier",
+                                "escapedText": "Comp"
+                            }
+                        }
+                    ]
+                }
+            ],
+            "members": [
+                {
+                    "kind": "PropertySignature",
+                    "name": "solid",
+                    "type": {
+                        "kind": "BooleanKeyword"
+                    }
+                }
+            ]
+        }
+    }
 }

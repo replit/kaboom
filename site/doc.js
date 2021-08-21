@@ -9,6 +9,7 @@ const {
 	renderNamedFunc,
 	renderMember,
 	renderTypeAlias,
+	renderInterface,
 } = require("./rendertype");
 const t = www.tag;
 
@@ -246,6 +247,10 @@ typeData.types["KaboomCtx"].type.members.forEach((m) => {
 
 Object.values(typeData.types).forEach((t) => {
 	renderedTypes[t.name] = renderTypeAlias(t);
+});
+
+Object.values(typeData.interfaces).forEach((t) => {
+	renderedTypes[t.name] = renderInterface(t);
 });
 
 const page = t("html", {}, [

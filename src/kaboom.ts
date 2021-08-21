@@ -367,16 +367,16 @@ function camRot(angle: number): number {
 	return game.cam.angle;
 }
 
-function camShake(intensity: number) {
-	game.cam.shake = intensity;
-}
-
 function camIgnore(layers: string[]) {
 	layers.forEach((name) => {
 		if (game.layers[name]) {
 			game.layers[name].noCam = true;
 		}
 	})
+}
+
+function shake(intensity: number) {
+	game.cam.shake = intensity;
 }
 
 const COMP_DESC = new Set([
@@ -1884,7 +1884,7 @@ const ctx: KaboomCtx = {
 	camPos,
 	camScale,
 	camRot,
-	camShake,
+	shake,
 	camIgnore,
 	gravity,
 	// obj

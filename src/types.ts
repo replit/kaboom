@@ -71,8 +71,8 @@ type KaboomCtx = {
 	camPos(p: Vec2): Vec2,
 	camScale(p: Vec2): Vec2,
 	camRot(a: number): number,
-	camShake(n: number),
 	camIgnore(layers: string[]),
+	shake(n: number),
 	gravity(g: number): number,
 	// net
 	recv(ty: string, handler: MsgHandler),

@@ -749,13 +749,13 @@ if (win) {
 			f("camRot", "set the camera angle", `
 camRot(0.1);
 			`),
-			f("camShake", "shake the camera", `
-// dramatic screen shake
-camShake(12);
-			`),
 			f("camIgnore", "make camera don't affect certain layers", `
 // make camera not affect objects on layer "ui" and "bg"
 camIgnore(["bg", "ui"]);
+			`),
+			f("shake", "screen shake (camera shake)", `
+// dramatic screen shake
+shake(12);
 			`),
 		],
 	},

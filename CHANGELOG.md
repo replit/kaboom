@@ -53,6 +53,7 @@ obj.c("sprite").play("anim");
 - added `pushOut()` for pushing a single object out from another with `area` comp
 - fixed `"add"` event getting called twice for tagged objs
 - added `flipX` and `flipY` on `sprite()` comp configuration, and `flipX()` `flipY()` methods
+- (**BREAK**) renamed `camShake()` to `shake()`
 - (**BREAK**) remove `flipX()` and `flipY()` on `scale()` comp
 - (**BREAK**) removed `start()` in favor of `go()`
 - (**BREAK**) added a default text size `16`

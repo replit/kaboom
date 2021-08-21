@@ -84,10 +84,19 @@ function renderTypeAlias(type) {
 	}
 }
 
+function renderInterface(type) {
+	const memberList = type.members
+		.map(renderMember)
+		.map((entry) => "&nbsp;".repeat(4) + entry)
+		.join(t("br"));
+	return `${type.name} {${t("br")}${memberList}${t("br")}}`;
+}
+
 module.exports = {
 	renderParams,
 	renderTypeSig,
 	renderNamedFunc,
 	renderMember,
 	renderTypeAlias,
+	renderInterface,
 };
