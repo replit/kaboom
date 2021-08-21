@@ -46,11 +46,13 @@ Let's try some more built-in components:
 add([
 	sprite("mark"),
 	pos(40, 20),
+	area(),
 	body(),
 ]);
 ```
 
-Here's a `body()` component, which means
+Here's `area()` and `body()` component, which means
+- out game object **has** an `area`, which can respond to collisions (try pressing `F1` to inspect object areas!)
 - our game object **has** a `body`, it will respond to physics and fall due to gravity
 
 Run the game and see what happens! Yep, we're falling.
@@ -61,6 +63,7 @@ It's not good to let our player keep falling into oblivion, let's add another ga
 add([
 	rect(width(), 12),
 	pos(0, height() - 12),
+	area(),
 	solid(),
 ]);
 ```
@@ -98,6 +101,7 @@ So, how do we make something interactive with the player? First we have to get a
 const player = add([
 	sprite("mark"),
 	pos(40, 20),
+	area(),
 	body(),
 ]);
 ```
@@ -119,6 +123,7 @@ For reference, the code we have now should look like this:
 const player = add([
 	sprite("mark"), // it has a sprite look
 	pos(40, 20), // it has a position on screen
+	area(), // it has an area
 	body(), // it has a physical body
 ]);
 
@@ -126,6 +131,7 @@ const player = add([
 add([
 	rect(width(), 12), // it has a rectangular look
 	pos(0, height() - 12), // it has a position
+	area(), // it has an area
 	solid(), // it has a solid body
 ]);
 
@@ -161,6 +167,7 @@ Now let's add something for the player to jump over!
 add([
 	rect(12, rand(12, 32)),
 	pos(width(), height() - FLOOR_HEIGHT),
+	area(),
 	color(0.5, 0.5, 1), // has a blue-ish color
 	origin("botleft"), // set the render origin point to bottome left
 	"tree", // strings are tags!
@@ -203,6 +210,7 @@ const TREE_SPEED = 120;
 const player = add([
 	sprite("mark"), // it renders as the sprite "mark"
 	pos(40, 20), // it has a position on screen
+	area(), // it has an area
 	body(), // it has a physical body
 ]);
 
@@ -210,6 +218,7 @@ const player = add([
 add([
 	rect(width(), FLOOR_HEIGHT), // it has a rectangular look
 	pos(0, height() - FLOOR_HEIGHT), // it has a position
+	area(), // it has an area
 	solid(), // it has a solid body
 ]);
 
@@ -284,6 +293,7 @@ function spawnTree() {
 	if (!gameIsOver) {
 		add([
 			rect(12, rand(12, 32)),
+			area(), // it has an area
 			color(0.5, 0.5, 1),
 			pos(width(), height() - FLOOR_HEIGHT),
 			origin("botleft"),
