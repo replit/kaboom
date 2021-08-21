@@ -112,7 +112,6 @@ player.play("idle");
 // If player captures prize, restart level
 player.collides("prize", prize => {
 	destroy(prize);
-	go("main");
 });
 
 // jump with space
