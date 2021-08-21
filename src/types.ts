@@ -239,6 +239,7 @@ interface GameObj {
 	rmTag(t: string);
 	destroy();
 	c(id: string): Comp;
+	// TODO: remove this
 	[custom: string]: any;
 };
 
