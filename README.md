@@ -229,6 +229,10 @@ const kaboom = require("kaboom");
 1. edit examples in `examples/` to test
 1. make sure not to break any existing examples
 
+## Community
+
+[Github Discussions](https://github.com/replit/kaboom/discussions)
+
 ### Misc
 
 - Find bitmap fonts: [Oldschool PC Font](https://int10h.org/oldschool-pc-fonts)
