@@ -1,4 +1,4 @@
-### v0.8 burp()
+### v0.8 burp() (unreleased)
 - added `burp()` for easy burping
 - added input events `touchStart(id, pos)`, `touchMove(id, pos)`, `touchEnd(id, pos)`, `mouseMove(pos)`
 - added `mouseDeltaPos()`
@@ -57,6 +57,7 @@ obj.c("sprite").play("anim");
 - (**BREAK**) remove `flipX()` and `flipY()` on `scale()` comp
 - (**BREAK**) removed `start()` in favor of `go()`
 - (**BREAK**) added a default text size `16`
+- (**BREAK**) changed default jump force by `body()` to `320`
 
 ### v0.5.1
 - added plugins npm package support e.g. `import asepritePlugin from "kaboom/plugins/aseprite"`
