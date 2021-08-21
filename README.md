@@ -38,9 +38,9 @@ k.loadMark();
 
 // make the player game object
 const birdy = k.add([
-	sprite("mark"),
-	area(),
-	body(),
+    k.sprite("mark"),
+    k.area(),
+    k.body(),
 ]);
 
 // press space to jump
@@ -50,20 +50,22 @@ k.keyPress("space", () => birdy.jump());
 It's easy to make custom components to compose your game object behaviors:
 ```js
 // add an entity to the scene, with a list of component describing its behavior
-const player = k.add([
+const player = add([
     // it renders as a sprite
     sprite("mark"),
     // it has a position
     pos(100, 200),
-    // it is a physical body which will fall
+    // it has a collider
+    area(),
+    // it is a physical body which will respond to physics
     body(),
-    // you can easily make custom components to encapsulate certain reusable logics
+    // you can easily make custom components to encapsulate reusable logics
     doubleJump(),
     health(8),
-    // or give it tags for controlling grouped behaviors in a faster way
+    // or give it tags for controlling group behaviors
     "player",
     "friendly",
-    // custom fields
+    // custom fields are plain objects
     {
         dir: vec2(-1, 0),
         dead: false,
@@ -99,7 +101,7 @@ function health(hp) {
 // listen to custom events from a custom component
 player.on("hurt", () => { ... });
 
-// decoupled discrete logic
+// blocky imperative logic
 player.collides("enemy", () => player.hurt(1));
 ```
 
@@ -126,7 +128,6 @@ action("enemy", (e) => {
 keyPress("w", () => {
     player.move(vec2(0, 100)),
 });
-
 ```
 
 If you don't feel like using kaboom's abstraction systems, can use kaboom like a p5.js or love2d with immediate mode APIs
