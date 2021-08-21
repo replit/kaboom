@@ -1333,7 +1333,10 @@ function area(p1: Vec2, p2: Vec2): AreaComp {
 		// TODO: use matrix mult for more accuracy and rotation?
 		_worldArea(): Rect {
 
-			const a = this.area;
+			const a = {
+				p1: this.area.p1,
+				p2: this.area.p2,
+			};
 
 			if (!a.p1 && !a.p2 && this.width && this.height) {
 
@@ -1574,7 +1577,7 @@ function text(t: string, size: number, conf: TextCompConf = {}): TextComp {
 		height: 0,
 
 		load() {
-			// add default area
+
 			const font = assets.fonts[this.font ?? DEF_FONT];
 			const ftext = gfx.fmtText(this.text + "", font, {
 				pos: this.pos,
@@ -1585,14 +1588,15 @@ function text(t: string, size: number, conf: TextCompConf = {}): TextComp {
 				color: this.color,
 				width: conf.width,
 			});
+
 			this.width = ftext.width / (this.scale?.x || 1);
 			this.height = ftext.height / (this.scale?.y || 1);
+
 		},
 
 		draw() {
 
 			const font = assets.fonts[this.font ?? DEF_FONT];
-
 			const ftext = gfx.fmtText(this.text + "", font, {
 				pos: this.pos,
 				scale: this.scale,
