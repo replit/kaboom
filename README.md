@@ -4,9 +4,7 @@ Kaboom.js is a JavaScript library that helps you make games fast and fun!
 
 Check out our official [website](https://kaboomjs.com/)!
 
-(This README talks about kaboom v0.8, which will be released shortly. Code here won't work on previous versions. For old README look at commits before e19134e)
-
-**NOTE**: Kaboom is still in early active development, expect breaking changes and lots of new features.
+**NOTE**: Kaboom is still in early active development, expect breaking changes and lots of new features. This README talks about the latest beta version (`kaboom@next`)
 
 ## Examples
 
@@ -163,7 +161,7 @@ Beta releases (will be published frequently, more prune to break)
 <script src="https://unpkg.com/kaboom@next/dist/kaboom.js"></script>
 ```
 
-Latest release:
+Latest release
 ```html
 <script src="https://unpkg.com/kaboom@latest/dist/kaboom.js"></script>
 ```
