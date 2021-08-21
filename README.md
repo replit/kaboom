@@ -28,7 +28,8 @@ k.add([
 
 You can paste this directly into an `.html` file and start playing around!
 
-to make a flappy bird movement you only need a few lines
+Kaboom uses a powerful component system to compose game objects and behaviors.
+To make a flappy bird movement you only need a few lines
 ```js
 // init context
 const k = kaboom();
@@ -36,7 +37,7 @@ const k = kaboom();
 // load a default sprite "mark"
 k.loadMark();
 
-// make the player game object
+// compose the player game object from multiple built-in components
 const birdy = k.add([
     k.sprite("mark"),
     k.pos(20, 20),
@@ -44,7 +45,7 @@ const birdy = k.add([
     k.body(),
 ]);
 
-// press space to jump
+// press space to jump (jump behavior is provided by "body" component)
 k.keyPress("space", () => birdy.jump());
 ```
 
@@ -66,7 +67,7 @@ const player = add([
     // or give it tags for controlling group behaviors
     "player",
     "friendly",
-    // custom fields are plain objects
+    // plain objects fields are directly assigned to the game obj
     {
         dir: vec2(-1, 0),
         dead: false,
