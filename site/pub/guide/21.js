@@ -1,16 +1,15 @@
-// TALK: 1. Let's make the gravity a bit higher with `gravity()` (default 980)
-// TALK: 2. Let's make the pipes move a bit faster, make a constant `SPEED` for it
-// TALK: 3. Let's make me jump a bit lower, by defining a `JUMP_FORCE` and pass it to `jump()`
-// TALK: 4. Now pipes are moving faster let's make them spawn more regular, spawn every 1 second
-// TALK: Here we have it, click "Toggle Dialog" and go nuts! (We'll add scores next)
+// TALK: First let's declare a variable to store the score, a game object with `text()` component (with custom text size) to display the score on screen
+// TALK: So how can we detect if I have gone past a pipe and got a score?
+// TALK: We can store a boolean on each pipe to keep track of if I have moved passed the pipe, so we can tell if I did it for the first time
 
 kaboom({
 	global: true,
-	scale: 2,
-	fullscreen: true,
 	debug: true,
+	fullscreen: true,
+	scale: 2,
 });
 
+loadSprite("mark", "/assets/sprites/mark.png");
 loadSprite("bg", "/assets/sprites/bg.png");
 loadSprite("pipe", "/assets/sprites/pipe.png");
 loadSound("wooosh", "/assets/sounds/wooosh.mp3");
@@ -20,70 +19,87 @@ loadSound("horse", "/assets/sounds/horse.mp3");
 
 scene("game", () => {
 
-	const PIPE_MARGIN = 80;
+	const PIPE_MARGIN = 40;
 	const PIPE_OPEN = 120;
 	const SPEED = 120;
 	const JUMP_FORCE = 320;
 
 	gravity(1200);
 
-	play("horse");
+	// play("horse");
 
-	addSprite("bg", {
-		width: width(),
-		height: height(),
-	});
+	// background
+	add([
+		sprite("bg", { width: width(), height: height(), }),
+	]);
 
-	const mark = addSprite("mark", {
-		pos: vec2(80, 80),
-		body: true,
-	});
+	// player
+	const player = add([
+		sprite("mark"),
+		pos(80, 80),
+		area(),
+		body(),
+	]);
 
-	mark.action(() => {
-		if (mark.pos.y >= height() + 24) {
-			play("scream");
-			go("gameover");
-		}
-	});
+	let score = 0;
+
+	const scoreLabel = add([
+		text(score, 32),
+		pos(12, 12),
+	]);
 
 	loop(1, () => {
 
-		const y = rand(PIPE_MARGIN, height() - PIPE_MARGIN);
+		const center = rand(
+			PIPE_MARGIN + PIPE_OPEN / 2,
+			height() - PIPE_MARGIN - PIPE_OPEN / 2
+		);
 
-		addSprite("pipe", {
-			flipY: true,
-			pos: vec2(width(), y - PIPE_OPEN / 2),
-			origin: "botleft",
-			tags: [ "pipe" ],
-		});
+		add([
+			sprite("pipe", { flipY: true }),
+			pos(width(), center - PIPE_OPEN / 2),
+			origin("botleft"),
+			area(),
+			"pipe",
+		]);
 
-		addSprite("pipe", {
-			pos: vec2(width(), y + PIPE_OPEN / 2),
-			origin: "topleft",
-			tags: [ "pipe" ],
-		});
+		add([
+			sprite("pipe"),
+			pos(width(), center + PIPE_OPEN / 2),
+			area(),
+			"pipe",
+		]);
 
 	});
 
-	mark.collides("pipe", () => {
-		play("horn");
-		go("gameover");
+	keyPress("space", () => {
+		player.jump(JUMP_FORCE);
+		play("wooosh");
 	});
 
 	action("pipe", (pipe) => {
 		pipe.move(-SPEED, 0);
 	});
 
-	keyPress("space", () => {
-		mark.jump(JUMP_FORCE);
-		play("wooosh");
+	player.collides("pipe", () => {
+		go("lose");
+		play("horn");
+	});
+
+	player.action(() => {
+		if (player.pos.y > height()) {
+			go("lose");
+			// play("scream");
+		}
 	});
 
 });
 
-scene("gameover", () => {
+scene("lose", () => {
 
-	addText("Game Over");
+	add([
+		text("Game over"),
+	]);
 
 	keyPress("space", () => {
 		go("game");

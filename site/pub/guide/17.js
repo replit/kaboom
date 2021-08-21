@@ -1,59 +1,74 @@
-// TALK: Like this. Checking for my `y` position to decide if I'm too low
-// TALK: Time for game over sound effects.
+// TALK: Let's actually comment out the sounds for now they can be annoying while learning
 
 kaboom({
 	global: true,
-	scale: 2,
-	fullscreen: true,
 	debug: true,
+	fullscreen: true,
+	scale: 2,
 });
 
+loadSprite("mark", "/assets/sprites/mark.png");
 loadSprite("bg", "/assets/sprites/bg.png");
 loadSprite("pipe", "/assets/sprites/pipe.png");
 loadSound("wooosh", "/assets/sounds/wooosh.mp3");
+loadSound("scream", "/assets/sounds/scream6.mp3");
+loadSound("horn", "/assets/sounds/horn2.mp3");
+loadSound("horse", "/assets/sounds/horse.mp3");
 
 scene("game", () => {
 
-	addSprite("bg", {
-		width: width(),
-		height: height(),
-	});
+	// play("horse");
 
-	const mark = addSprite("mark", {
-		pos: vec2(80, 80),
-		body: true,
-	});
+	// background
+	add([
+		sprite("bg", { width: width(), height: height(), }),
+	]);
 
-	mark.action(() => {
-		if (mark.pos.y >= height() + 24) {
-			go("gameover");
-		}
-	});
+	// player
+	const player = add([
+		sprite("mark"),
+		pos(80, 80),
+		area(),
+		body(),
+	]);
 
-	const pipe = addSprite("pipe", {
-		pos: vec2(width(), height()),
-		origin: "botleft",
-		tags: [ "pipe" ],
-	});
+	// pipe
+	const pipe = add([
+		sprite("pipe"),
+		pos(width(), height()),
+		origin("botleft"),
+		area(),
+		"pipe",
+	]);
 
-	mark.collides("pipe", () => {
-		go("gameover");
+	keyPress("space", () => {
+		player.jump();
+		play("wooosh");
 	});
 
 	pipe.action(() => {
-		pipe.move(-60, 0);
+		pipe.move(-80, 0);
 	});
 
-	keyPress("space", () => {
-		mark.jump();
-		play("wooosh");
+	player.collides("pipe", () => {
+		go("lose");
+		play("horn");
+	});
+
+	player.action(() => {
+		if (player.pos.y > height()) {
+			go("lose");
+			// play("scream");
+		}
 	});
 
 });
 
-scene("gameover", () => {
+scene("lose", () => {
 
-	addText("Game Over");
+	add([
+		text("Game over"),
+	]);
 
 	keyPress("space", () => {
 		go("game");

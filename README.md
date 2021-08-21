@@ -4,12 +4,14 @@ Kaboom.js is a JavaScript library that helps you make games fast and fun!
 
 Check out our official [website](https://kaboomjs.com/)!
 
-(This README talks about kaboom v0.6, which will be released shortly. Code here won't work on previous versions. For old README look at commits before e19134e)
+(This README talks about kaboom v0.8, which will be released shortly. Code here won't work on previous versions. For old README look at commits before e19134e)
+
+**NOTE**: Kaboom is still in early active development, expect breaking changes and lots of new features.
 
 ## Examples
 
 ```html
-<script src="https://kaboomjs.com/lib/0.7.0/kaboom.js"></script>
+<script src="https://kaboomjs.com/lib/0.8.0/kaboom.js"></script>
 <script type="module">
 
 // initialize kaboom context
@@ -21,15 +23,12 @@ k.add([
     k.pos(100, 100),
 ]);
 
-// or
-// k.addText("oh hi", 32, { pos: k.vec2(100, 100) });
-
 </script>
 ```
 
 You can paste this directly into an `html` file and start playing around!
 
-to make a flappy bird movement you only need 3 lines
+to make a flappy bird movement you only need a few lines
 ```js
 // init context
 const k = kaboom();
@@ -38,14 +37,17 @@ const k = kaboom();
 k.loadMark();
 
 // make the player game object
-const birdy = k.addSprite("mark", { body: true, });
+const birdy = k.add([
+	sprite("mark"),
+	area(),
+	body(),
+]);
 
 // press space to jump
 k.keyPress("space", () => birdy.jump());
 ```
 
-examples above are using helper functions (like `addSprite()`, `addText()`) as a syntax sugar for kaboom's powerful composable component system
-
+It's easy to make custom components to compose your game object behaviors:
 ```js
 // add an entity to the scene, with a list of component describing its behavior
 const player = k.add([
@@ -101,7 +103,7 @@ player.on("hurt", () => { ... });
 player.collides("enemy", () => player.hurt(1));
 ```
 
-blocky imperative syntax for describing behaviors
+Blocky imperative syntax for describing behaviors
 ```js
 // check fall death
 player.action(() => {
@@ -127,7 +129,7 @@ keyPress("w", () => {
 
 ```
 
-if you don't feel like using kaboom's abstraction systems, can always use it like p5.js or love2d with stateless immediate mode APIs
+If you don't feel like using kaboom's abstraction systems, can use kaboom like a p5.js or love2d with immediate mode APIs
 
 ```js
 const k = kaboom();
@@ -151,12 +153,12 @@ k.render(() => {
 
 ## Usage
 
-### cdn
+### CDN
 
 1. self hosted
 
 ```html
-<script src="https://kaboomjs.com/lib/0.7.0/kaboom.js"></script>
+<script src="https://kaboomjs.com/lib/0.8.0/kaboom.js"></script>
 ```
 
 All available version tags can be found in CHANGELOG.md, or Github releases.
@@ -170,8 +172,8 @@ Special Version Tags:
 kaboom is on npm thus supported by most js lib CDN providers
 
 ```html
-<script src="https://unpkg.com/kaboom@0.7.0/dist/kaboom.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/kaboom@0.7.0/dist/kaboom.js"></script>
+<script src="https://unpkg.com/kaboom@0.8.0/dist/kaboom.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/kaboom@0.8.0/dist/kaboom.js"></script>
 ```
 
 When imported in the browser, the script will expose a global `kaboom` function to initialize a kaboom context, returning an object containing all the functions
@@ -199,7 +201,7 @@ scene(...);
 Kaboom also provide ES module and commonJS module exports with `.mjs` and `.cjs`, e.g,
 
 ```js
-import kaboom from "https://kaboomjs.com/lib/0.7.0/kaboom.mjs";
+import kaboom from "https://kaboomjs.com/lib/0.8.0/kaboom.mjs";
 ```
 
 ### npm package

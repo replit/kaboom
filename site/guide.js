@@ -194,7 +194,7 @@ const page = t("html", {}, [
 		]),
 		t("div", { id: "guide", }, [
 			t("img", { id: "mark", src: "/pub/img/mark.png", }),
-			t("div", { id: "bubble", }, "1231"),
+			t("div", { id: "bubble", }, ""),
 		]),
 		t("script", { src: "/pub/js/guide.js", type: "module", }, ""),
 	]),

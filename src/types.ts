@@ -731,16 +731,3 @@ type BodyCompConf = {
 interface SolidComp extends Comp {
 	solid: boolean;
 };
-
-type HelperProps = {
-	body?: boolean,
-	solid?: boolean,
-	layer?: string,
-	origin?: Origin | Vec2,
-	tags?: string[],
-    data?: any,
-}
-
-type AddSpriteConf = RenderProps & HelperProps & SpriteCompConf;
-type AddRectConf = RenderProps & HelperProps;
-type AddTextConf = RenderProps & HelperProps & TextCompConf;

@@ -1,34 +1,47 @@
-// TALK: Let's pass a scale property to our `kaboom()` initialization, to make every bigger and pixelly
-// TALK: and set the fullscreen property to make the canvas fill the page
-// TALK: Then we define the width and height properties of the background, making it to stretch to screen size
-// TALK: Finally we can properly enjoy the beautiful scenery! Like we're really there
-// TALK: Can't spell flappy bird without PIPE, let's get some pipes in there
+// TALK: Hell yeah
+// TALK: That's a fine piece of pipe
+// TALK: It really make me want to jump over it again and again
+// TALK: Can't do that unless we make it move
 
 kaboom({
 	global: true,
-	scale: 2,
+	debug: true,
 	fullscreen: true,
+	scale: 2,
 });
 
+loadSprite("mark", "/assets/sprites/mark.png");
 loadSprite("bg", "/assets/sprites/bg.png");
+loadSprite("pipe", "/assets/sprites/pipe.png");
 loadSound("wooosh", "/assets/sounds/wooosh.mp3");
 
-addSprite("bg", {
-	width: width(),
-	height: height(),
-});
+// background
+add([
+	sprite("bg", { width: width(), height: height(), }),
+]);
 
-const mark = addSprite("mark", {
-	pos: vec2(80, 80),
-	body: true,
-});
+// player
+const player = add([
+	sprite("mark"),
+	pos(80, 80),
+	area(),
+	body(),
+]);
 
-addRect(width(), 20, {
-	pos: vec2(0, height() - 40),
-	solid: true,
-});
+// platform
+add([
+	rect(width(), 20),
+	pos(0, height() - 40),
+	area(),
+	solid(),
+]);
+
+// pipe
+add([
+	sprite("pipe"),
+]);
 
 keyPress("space", () => {
-	mark.jump();
+	player.jump();
 	play("wooosh");
 });

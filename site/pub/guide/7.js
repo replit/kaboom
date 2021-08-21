@@ -1,23 +1,32 @@
-// TALK: First let's store me (the game object) in a variable, which is returned by `addSprite()`
-// TALK: then we use the `keyPress()` function to register an event to be fired when user presses a certain key
-// TALK: and in that event callback function, we tell me to `.jump()`, which is a method available for any object with `'body'` component
-// TALK: Now slap that space key!
-// TALK: Next up let's add sound sound effect when I jump
+// TALK: First we load the sound with `loadSound()`, specifying the name and the path to the file
+// TALK: Then we just call the function `play()` to play the sound with the name when I jump, easy
+// TALK: Next let's add a background image to make stuff look prettier
 
 kaboom({
 	global: true,
+	debug: true,
 });
 
-const mark = addSprite("mark", {
-	pos: vec2(80, 80),
-	body: true,
-});
+loadSprite("mark", "/assets/sprites/mark.png");
+loadSound("wooosh", "/assets/sounds/wooosh.mp3");
 
-addRect(width(), 20, {
-	pos: vec2(0, height() - 40),
-	solid: true,
-});
+// player
+const player = add([
+	sprite("mark"),
+	pos(80, 80),
+	area(),
+	body(),
+]);
+
+// platform
+add([
+	rect(width(), 20),
+	pos(0, height() - 40),
+	area(),
+	solid(),
+]);
 
 keyPress("space", () => {
-	mark.jump();
+	player.jump();
+	play("wooosh");
 });

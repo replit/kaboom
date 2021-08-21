@@ -330,7 +330,6 @@ const obj = add([
 obj.color = rgb(1, 0, 0); // make it red instead
 			`),
 			f("sprite", "sprite rendering component", `
-// note: this automatically gives the obj an 'area()' component
 const obj = add([
 	// sprite is loaded by loadSprite("froggy", src)
 	sprite("froggy"),
@@ -366,7 +365,6 @@ obj.on("animEnd", (anim) => {
 obj.changeSprite("froggy_left");
 			`),
 			f("text", "text rendering component", `
-// note: this automatically gives the obj an 'area()' component
 const obj = add([
 	// content, size
 	text("oh hi", 64),
@@ -383,7 +381,6 @@ const obj = add([
 obj.text = "oh hi mark";
 			`),
 			f("rect", "rect rendering component", `
-// note: this automatically gives the obj an 'area()' component
 const obj = add([
 	// width, height
 	rect(50, 75),
@@ -396,9 +393,10 @@ obj.width = 75;
 obj.height = 75;
 			`),
 			f("area", "a rectangular area for collision checking", `
-// 'area()' is given automatically by 'sprite()' and 'rect()', but you can override it
 const obj = add([
 	sprite("froggy"),
+	// empty area() will try to calculate area from visual components like sprite(), rect() and text()
+	area(),
 	// override to a smaller region
 	area(vec2(6), vec2(24)),
 ]);

@@ -1,47 +1,65 @@
-// TALK: To do that, we can first give the pipe a `"pipe"` tag
-// TALK: Then use the function `collides()` on mark which runs whenever mark collides with another game object with a certain tag
-// TALK: In that we put a `debug.log()` which logs a message on screen
+// TALK: Now let's add a lose scene if player hits a pipe.
+// TALK: Kaboom provides a simple scene abstraction that lets you define different scenes or stages of your game.
+// TALK: Let's wrap what we have right now to a scene and name it "game" scene.
+// TALK: To do that we'll use the `scene()` function, and wrap all game code into its callback, then call `go()` at the end to start this scene.
+// TALK: This shouldn't change anything yet.
 
 kaboom({
 	global: true,
-	scale: 2,
+	debug: true,
 	fullscreen: true,
+	scale: 2,
 });
 
+loadSprite("mark", "/assets/sprites/mark.png");
 loadSprite("bg", "/assets/sprites/bg.png");
 loadSprite("pipe", "/assets/sprites/pipe.png");
 loadSound("wooosh", "/assets/sounds/wooosh.mp3");
 
-addSprite("bg", {
-	width: width(),
-	height: height(),
+scene("game", () => {
+
+	// background
+	add([
+		sprite("bg", { width: width(), height: height(), }),
+	]);
+
+	// player
+	const player = add([
+		sprite("mark"),
+		pos(80, 80),
+		area(),
+		body(),
+	]);
+
+	// platform
+	add([
+		rect(width(), 20),
+		pos(0, height() - 40),
+		area(),
+		solid(),
+	]);
+
+	// pipe
+	const pipe = add([
+		sprite("pipe"),
+		pos(width(), 160),
+		area(),
+		"pipe",
+	]);
+
+	keyPress("space", () => {
+		player.jump();
+		play("wooosh");
+	});
+
+	pipe.action(() => {
+		pipe.move(-80, 0);
+	});
+
+	player.collides("pipe", () => {
+		debug.log("oh ho!");
+	});
+
 });
 
-const mark = addSprite("mark", {
-	pos: vec2(80, 80),
-	body: true,
-});
-
-addRect(width(), 20, {
-	pos: vec2(0, height() - 40),
-	solid: true,
-});
-
-const pipe = addSprite("pipe", {
-	pos: vec2(width(), height()),
-	origin: "botleft",
-	tags: [ "pipe" ],
-});
-
-mark.collides("pipe", () => {
-	debug.log("oh ho!");
-});
-
-pipe.action(() => {
-	pipe.move(-60, 0);
-});
-
-keyPress("space", () => {
-	mark.jump();
-	play("wooosh");
-});
+go("game");

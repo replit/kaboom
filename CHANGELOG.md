@@ -1,4 +1,4 @@
-### v0.7 burp()
+### v0.8 burp()
 - added `burp()` for easy burping
 - added input events `touchStart(id, pos)`, `touchMove(id, pos)`, `touchEnd(id, pos)`, `mouseMove(pos)`
 - added `mouseDeltaPos()`
@@ -11,11 +11,11 @@ const k = kaboom();
 k.add(...);
 k.keyPress(...);
 ```
-- (**BREAK**) `area()` is now not automatically added by `sprite()`, `rect()`, and `text()`, and removed each `noArea` or `area` config field
+- (**BREAK**) `area()` is now explicit and not automatically added by `sprite()`, `rect()`, and `text()`, removed each `noArea` or `area` config field
 ```js
 add([
 	sprite("mark"),
-	area(), // empty area() will calc size from the sprite, but have to be after it
+	area(), // empty area() will calc size from the sprite
 ]);
 ```
 - audio is now paused when you leave the tab
@@ -24,7 +24,6 @@ add([
 - added `loadShader(id, vert, frag, isUrl)`
 - added `shader()` comp for attaching custom shader to an obj
 - all event handlers like `keyPress()`, `mouseClick()`, `action()`, `collides()` now returns a function to cancel that listener
-- added helpers `addSprite()`, `addText()`, `addRect()` that abstracts away from the component syntax
 - added `require` on component definitions, making it possible to declare dependencies for components, e.g.
 ```js
 function alwaysRight() {

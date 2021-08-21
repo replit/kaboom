@@ -1,51 +1,76 @@
-// TALK: Here's a handy thing we can do. Add a `debug` property to `kaboom()`
-// TALK: Now try pressing `F1`, you can toggle the game to draw bounding boxes of everything with area
-// TALK: You can also hover over in game objects to inspect some of their properties in real time
-// TALK: There's also other interesting debug utilities, e.g.
-// TALK: `F8` to pause / unpause, `F7` and `F9` to slow down / pace up time, `F10` to step to next frame while pausing
-// TALK: Now let's get back to the game and add a lose scene if player hits a pipe.
+// TALK: Define a `"lose"` scene, and `go()` to that scene when we hit a pipe
+// TALK: In the lose scene we added a game object with `text()` component, which is responsible for displaying a piece of text on screen.
+// TALK: Also make it `go()` back to `"game"` scene on key press for easy replay
+// TALK: We now have a game loop! With this we can also throw away our baby platform, just game over when fall
 
 kaboom({
 	global: true,
-	scale: 2,
-	fullscreen: true,
 	debug: true,
+	fullscreen: true,
+	scale: 2,
 });
 
+loadSprite("mark", "/assets/sprites/mark.png");
 loadSprite("bg", "/assets/sprites/bg.png");
 loadSprite("pipe", "/assets/sprites/pipe.png");
 loadSound("wooosh", "/assets/sounds/wooosh.mp3");
 
-addSprite("bg", {
-	width: width(),
-	height: height(),
+scene("game", () => {
+
+	// background
+	add([
+		sprite("bg", { width: width(), height: height(), }),
+	]);
+
+	// player
+	const player = add([
+		sprite("mark"),
+		pos(80, 80),
+		area(),
+		body(),
+	]);
+
+	// platform
+	add([
+		rect(width(), 20),
+		pos(0, height() - 40),
+		area(),
+		solid(),
+	]);
+
+	// pipe
+	const pipe = add([
+		sprite("pipe"),
+		pos(width(), 160),
+		area(),
+		"pipe",
+	]);
+
+	keyPress("space", () => {
+		player.jump();
+		play("wooosh");
+	});
+
+	pipe.action(() => {
+		pipe.move(-80, 0);
+	});
+
+	player.collides("pipe", () => {
+		go("lose");
+	});
+
 });
 
-const mark = addSprite("mark", {
-	pos: vec2(80, 80),
-	body: true,
+scene("lose", () => {
+
+	add([
+		text("Game over"),
+	]);
+
+	keyPress("space", () => {
+		go("game");
+	});
+
 });
 
-addRect(width(), 20, {
-	pos: vec2(0, height() - 40),
-	solid: true,
-});
-
-const pipe = addSprite("pipe", {
-	pos: vec2(width(), height()),
-	origin: "botleft",
-	tags: [ "pipe" ],
-});
-
-mark.collides("pipe", () => {
-	debug.log("oh ho!");
-});
-
-pipe.action(() => {
-	pipe.move(-60, 0);
-});
-
-keyPress("space", () => {
-	mark.jump();
-	play("wooosh");
-});
+go("game");

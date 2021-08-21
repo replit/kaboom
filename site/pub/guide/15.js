@@ -1,53 +1,71 @@
-// TALK: To do that we can use the scene API kaboom provides.
-// TALK: All we need to do is take all code we have right now and put them inside a `scene()` block.
-// TALK: Then call `go()` to start the scene.
-// TALK: With this we can have multiple scenes in our game who are independent to each other. So let's make a game over scene.
+// TALK: Like `pipe.action()`, we'll use a `player.action()`
+// TALK: In that we check for `y` position every frame to decide if I'm too low
+// TALK: Time for game over sound effects.
 
 kaboom({
 	global: true,
-	scale: 2,
-	fullscreen: true,
 	debug: true,
+	fullscreen: true,
+	scale: 2,
 });
 
+loadSprite("mark", "/assets/sprites/mark.png");
 loadSprite("bg", "/assets/sprites/bg.png");
 loadSprite("pipe", "/assets/sprites/pipe.png");
 loadSound("wooosh", "/assets/sounds/wooosh.mp3");
 
 scene("game", () => {
 
-	addSprite("bg", {
-		width: width(),
-		height: height(),
-	});
+	// background
+	add([
+		sprite("bg", { width: width(), height: height(), }),
+	]);
 
-	const mark = addSprite("mark", {
-		pos: vec2(80, 80),
-		body: true,
-	});
+	// player
+	const player = add([
+		sprite("mark"),
+		pos(80, 80),
+		area(),
+		body(),
+	]);
 
-	addRect(width(), 20, {
-		pos: vec2(0, height() - 40),
-		solid: true,
-	});
+	// pipe
+	const pipe = add([
+		sprite("pipe"),
+		pos(width(), 160),
+		area(),
+		"pipe",
+	]);
 
-	const pipe = addSprite("pipe", {
-		pos: vec2(width(), height()),
-		origin: "botleft",
-		tags: [ "pipe" ],
-	});
-
-	mark.collides("pipe", () => {
-		debug.log("oh ho!");
+	keyPress("space", () => {
+		player.jump();
+		play("wooosh");
 	});
 
 	pipe.action(() => {
-		pipe.move(-60, 0);
+		pipe.move(-80, 0);
 	});
 
+	player.collides("pipe", () => {
+		go("lose");
+	});
+
+	player.action(() => {
+		if (player.pos.y > height()) {
+			go("lose");
+		}
+	});
+
+});
+
+scene("lose", () => {
+
+	add([
+		text("Game over"),
+	]);
+
 	keyPress("space", () => {
-		mark.jump();
-		play("wooosh");
+		go("game");
 	});
 
 });

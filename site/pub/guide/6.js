@@ -1,20 +1,33 @@
-// TALK: First let's store me (the game object) in a variable, which is returned by `addSprite()`
+// TALK: First let's store the player game object in a variable, which is returned by `add()`
 // TALK: then we use the `keyPress()` function to register an event to be fired when user presses a certain key
-// TALK: and in that event callback function, we tell me to `.jump()`, which is a method available for any object with ``body`` component
+// TALK: and in that event callback function, we `.jump()`, which is a method provided by the `body()` component.
+// TALK: Every component will give our game object certain powers (methods), we'll explore more of them as we go.
 // TALK: Now slap that space key!
+// TALK: Next up let's add sound sound effect when I jump
 
 kaboom({
 	global: true,
+	debug: true,
 });
 
-const mark = addSprite("mark", {
-	pos: vec2(80, 80),
-	body: true,
-});
+loadSprite("mark", "/assets/sprites/mark.png");
 
-addRect(width(), 20, {
-	pos: vec2(0, height() - 40),
-	solid: true,
-});
+// player
+const player = add([
+	sprite("mark"),
+	pos(80, 80),
+	area(),
+	body(),
+]);
 
-keyPress("space", () => mark.jump());
+// platform
+add([
+	rect(width(), 20),
+	pos(0, height() - 40),
+	area(),
+	solid(),
+]);
+
+keyPress("space", () => {
+	player.jump();
+});

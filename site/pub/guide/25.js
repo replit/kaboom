@@ -1,115 +1,127 @@
-// TALK: Extremely easy to pass the score to `"gameover"` scene to display it
-// TALK: Just need to pass it as arg to `go()` and pick it up there
-// TALK: Let's also take this chance to make the game over screen look nicer, by giving a background color and making stuff centered
-// TALK: There you go. Game basically done.
-// TALK: Except...
-// TALK: It NOT!
+// TALK: You see, we spawn a lot of pipes and we're updating and rendering all of them.
+// TALK: If they keep piling up it's bad for performance
+// TALK: We can solve this easily by just `destroy()` ing them when they're moved off screen
+// TALK: Now we can play the game forever and not worry about the game getting slow
+// TALK: There's still one problem left: the score is rendered behind the pipes
 
 kaboom({
 	global: true,
-	scale: 2,
-	fullscreen: true,
 	debug: true,
+	fullscreen: true,
+	scale: 2,
 	clearColor: [ 0, 0, 0, 1 ],
 });
 
+loadSprite("mark", "/assets/sprites/mark.png");
 loadSprite("bg", "/assets/sprites/bg.png");
 loadSprite("pipe", "/assets/sprites/pipe.png");
 loadSound("wooosh", "/assets/sounds/wooosh.mp3");
 loadSound("scream", "/assets/sounds/scream6.mp3");
 loadSound("horn", "/assets/sounds/horn2.mp3");
 loadSound("horse", "/assets/sounds/horse.mp3");
-loadSound("whizz", "/assets/sounds/whizz.mp3");
+loadSound("blip", "/assets/sounds/blip1.mp3");
 
 scene("game", () => {
 
-	const PIPE_MARGIN = 80;
+	const PIPE_MARGIN = 40;
 	const PIPE_OPEN = 120;
 	const SPEED = 120;
 	const JUMP_FORCE = 320;
 
 	gravity(1200);
 
-	play("horse");
+	// play("horse");
 
-	addSprite("bg", {
-		width: width(),
-		height: height(),
-	});
+	// background
+	add([
+		sprite("bg", { width: width(), height: height(), }),
+	]);
+
+	// player
+	const player = add([
+		sprite("mark"),
+		pos(80, 80),
+		area(),
+		body(),
+	]);
 
 	let score = 0;
 
-	const scoreLabel = addText(score, 32, {
-		pos: vec2(12, 12),
-	});
-
-	const mark = addSprite("mark", {
-		pos: vec2(80, 80),
-		body: true,
-	});
-
-	mark.action(() => {
-		if (mark.pos.y >= height() + 24) {
-			play("scream");
-			go("gameover", score);
-		}
-	});
+	const scoreLabel = add([
+		text(score, 32),
+		pos(12, 12),
+	]);
 
 	loop(1, () => {
 
-		const y = rand(PIPE_MARGIN, height() - PIPE_MARGIN);
+		const center = rand(
+			PIPE_MARGIN + PIPE_OPEN / 2,
+			height() - PIPE_MARGIN - PIPE_OPEN / 2
+		);
 
-		addSprite("pipe", {
-			flipY: true,
-			pos: vec2(width(), y - PIPE_OPEN / 2),
-			origin: "botleft",
-			tags: [ "pipe" ],
-		});
+		add([
+			sprite("pipe", { flipY: true }),
+			pos(width(), center - PIPE_OPEN / 2),
+			origin("botleft"),
+			area(),
+			"pipe",
+		]);
 
-		addSprite("pipe", {
-			pos: vec2(width(), y + PIPE_OPEN / 2),
-			origin: "topleft",
-			tags: [ "pipe" ],
-			data: {
-				passed: false,
-			},
-		});
+		add([
+			sprite("pipe"),
+			pos(width(), center + PIPE_OPEN / 2),
+			area(),
+			"pipe",
+			{ passed: false, }
+		]);
 
-	});
-
-	mark.collides("pipe", () => {
-		play("horn");
-		go("gameover", score);
-	});
-
-	action("pipe", (pipe) => {
-		pipe.move(-SPEED, 0);
-		if (pipe.passed === false && pipe.pos.x <= mark.pos.x) {
-			pipe.passed = true;
-			score += 1;
-			scoreLabel.text = score;
-			play("whizz");
-		}
 	});
 
 	keyPress("space", () => {
-		mark.jump(JUMP_FORCE);
+		player.jump(JUMP_FORCE);
 		play("wooosh");
+	});
+
+	action("pipe", (pipe) => {
+
+		pipe.move(-SPEED, 0);
+
+		// increment score if pipe move pass the player
+		if (pipe.passed === false && pipe.pos.x < player.pos.x) {
+			pipe.passed = true;
+			score += 1;
+			scoreLabel.text = score;
+			play("blip");
+		}
+
+		// destroy if it's out of view
+		if (pipe.pos.x < -pipe.width) {
+			destroy(pipe);
+		}
+
+	});
+
+	player.collides("pipe", () => {
+		go("lose", score);
+		play("horn");
+	});
+
+	player.action(() => {
+		if (player.pos.y > height()) {
+			go("lose", score);
+			// play("scream");
+		}
 	});
 
 });
 
-scene("gameover", (score) => {
+scene("lose", (score) => {
 
-	addText("Game Over", 16, {
-		pos: vec2(width() / 2, 120),
-		origin: "center",
-	});
-
-	addText(score, 48, {
-		pos: vec2(width() / 2, 180),
-		origin: "center",
-	});
+	add([
+		text(score, 64),
+		pos(center()),
+		origin("center"),
+	]);
 
 	keyPress("space", () => {
 		go("game");

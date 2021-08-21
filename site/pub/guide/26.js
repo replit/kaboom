@@ -1,117 +1,133 @@
-// TALK: You see, we spawn a lot of pipes, but we never collect the ones that are moved way out of the screen
-// TALK: If pipes keep piling up on that, that might be bad for traffic (performance)
-// TALK: We can solve this easily by just `destroy()` ing them when they're moved off screen
-// TALK: Now we can play the game forever and not worry about the game getting slow (it probably still will... depending on the browser's mood)
-// TALK: We're pretty much done with the basics, please stay if you're interested in learning more about kaboom
+// TALK: The cause is we're `add()` ing pipes after the score lable is `add()` ed. By default objects added later will appear on the top.
+// TALK: We can solve this by using the layer system
+// TALK: Define layers with `layers()`, we only need 2 layers here, a game layer and a UI layer, the second argument is the default layer.
+// TALK: To specify a game obj belongs to a certain layer, we use the `layer()` component. We only need to do this on the score label because we made `"game"` the default layer, so everything else will be on `"game"`.
 
 kaboom({
 	global: true,
-	scale: 2,
-	fullscreen: true,
 	debug: true,
+	fullscreen: true,
+	scale: 2,
 	clearColor: [ 0, 0, 0, 1 ],
 });
 
+loadSprite("mark", "/assets/sprites/mark.png");
 loadSprite("bg", "/assets/sprites/bg.png");
 loadSprite("pipe", "/assets/sprites/pipe.png");
 loadSound("wooosh", "/assets/sounds/wooosh.mp3");
 loadSound("scream", "/assets/sounds/scream6.mp3");
 loadSound("horn", "/assets/sounds/horn2.mp3");
 loadSound("horse", "/assets/sounds/horse.mp3");
-loadSound("whizz", "/assets/sounds/whizz.mp3");
+loadSound("blip", "/assets/sounds/blip1.mp3");
 
 scene("game", () => {
 
-	const PIPE_MARGIN = 80;
+	const PIPE_MARGIN = 40;
 	const PIPE_OPEN = 120;
 	const SPEED = 120;
 	const JUMP_FORCE = 320;
 
 	gravity(1200);
 
-	play("horse");
+	// define layers and the default layer
+	layers([
+		"game",
+		"ui",
+	], "game");
 
-	addSprite("bg", {
-		width: width(),
-		height: height(),
-	});
+	// play("horse");
+
+	// background
+	add([
+		sprite("bg", { width: width(), height: height(), }),
+	]);
+
+	// player
+	const player = add([
+		sprite("mark"),
+		pos(80, 80),
+		area(),
+		body(),
+	]);
 
 	let score = 0;
 
-	const scoreLabel = addText(score, 32, {
-		pos: vec2(12, 12),
-	});
-
-	const mark = addSprite("mark", {
-		pos: vec2(80, 80),
-		body: true,
-	});
-
-	mark.action(() => {
-		if (mark.pos.y >= height() + 24) {
-			play("scream");
-			go("gameover", score);
-		}
-	});
+	const scoreLabel = add([
+		text(score, 32),
+		pos(12, 12),
+		layer("ui"),
+	]);
 
 	loop(1, () => {
 
-		const y = rand(PIPE_MARGIN, height() - PIPE_MARGIN);
+		const center = rand(
+			PIPE_MARGIN + PIPE_OPEN / 2,
+			height() - PIPE_MARGIN - PIPE_OPEN / 2
+		);
 
-		addSprite("pipe", {
-			flipY: true,
-			pos: vec2(width(), y - PIPE_OPEN / 2),
-			origin: "botleft",
-			tags: [ "pipe" ],
-		});
+		add([
+			sprite("pipe", { flipY: true }),
+			pos(width(), center - PIPE_OPEN / 2),
+			origin("botleft"),
+			area(),
+			"pipe",
+		]);
 
-		addSprite("pipe", {
-			pos: vec2(width(), y + PIPE_OPEN / 2),
-			origin: "topleft",
-			tags: [ "pipe" ],
-			data: {
-				passed: false,
-			},
-		});
+		add([
+			sprite("pipe"),
+			pos(width(), center + PIPE_OPEN / 2),
+			area(),
+			"pipe",
+			{ passed: false, }
+		]);
 
-	});
-
-	mark.collides("pipe", () => {
-		play("horn");
-		go("gameover", score);
-	});
-
-	action("pipe", (pipe) => {
-		pipe.move(-SPEED, 0);
-		if (pipe.passed === false && pipe.pos.x <= mark.pos.x) {
-			pipe.passed = true;
-			score += 1;
-			scoreLabel.text = score;
-			play("whizz");
-		}
-		if (pipe.pos.x <= -120) {
-			destroy(pipe);
-		}
 	});
 
 	keyPress("space", () => {
-		mark.jump(JUMP_FORCE);
+		player.jump(JUMP_FORCE);
 		play("wooosh");
+	});
+
+	action("pipe", (pipe) => {
+
+		pipe.move(-SPEED, 0);
+
+		// increment score if pipe move pass the player
+		if (pipe.passed === false && pipe.pos.x < player.pos.x) {
+			pipe.passed = true;
+			score += 1;
+			scoreLabel.text = score;
+			play("blip");
+		}
+
+		// destroy if it's out of view
+		if (pipe.pos.x < -pipe.width) {
+			destroy(pipe);
+		}
+
+	});
+
+	player.collides("pipe", () => {
+		go("lose", score);
+		play("horn");
+	});
+
+	player.action(() => {
+		if (player.pos.y > height()) {
+			go("lose", score);
+			// play("scream");
+		}
 	});
 
 });
 
-scene("gameover", (score) => {
+scene("lose", (score) => {
 
-	addText("Game Over", 16, {
-		pos: vec2(width() / 2, 120),
-		origin: "center",
-	});
-
-	addText(score, 48, {
-		pos: vec2(width() / 2, 180),
-		origin: "center",
-	});
+	add([
+		text(score, 64),
+		pos(center()),
+		origin("center"),
+	]);
 
 	keyPress("space", () => {
 		go("game");

@@ -58,7 +58,6 @@ import f04b03Plugin from "./plugins/04b03";
 import cgaPlugin from "./plugins/cga";
 import proggyPlugin from "./plugins/proggy";
 import levelPlugin from "./plugins/level";
-import easyPlugin from "./plugins/easy";
 
 class IDList<T> extends Map<number, T> {
 	_lastID: number;
@@ -1636,13 +1635,14 @@ function rect(w: number, h: number): RectComp {
 function solid(): SolidComp {
 	return {
 		id: "solid",
+		require: [ "area", ],
 		solid: true,
 	};
 }
 
 // maximum y velocity with body()
 const DEF_MAX_VEL = 960;
-const DEF_JUMP_FORCE = 480;
+const DEF_JUMP_FORCE = 320;
 
 function body(conf: BodyCompConf = {}): BodyComp {
 
@@ -1654,6 +1654,7 @@ function body(conf: BodyCompConf = {}): BodyComp {
 	return {
 
 		id: "body",
+		require: [ "area" ],
 		jumpForce: conf.jumpForce ?? DEF_JUMP_FORCE,
 
 		update() {
@@ -1773,6 +1774,10 @@ function scene(id: SceneID, def: SceneDef) {
 }
 
 function go(id: SceneID, ...args) {
+
+	if (!game.scenes[id]) {
+		throw new Error(`scene not found: ${id}`);
+	}
 
 	game.on("nextFrame", () => {
 
@@ -1986,7 +1991,6 @@ plug(f04b03Plugin);
 plug(cgaPlugin);
 plug(proggyPlugin);
 plug(levelPlugin);
-plug(easyPlugin);
 
 if (gconf.plugins) {
 	gconf.plugins.forEach(plug);

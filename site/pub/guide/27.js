@@ -1,44 +1,60 @@
-// TALK: One thing we can do now, if you're comfortable with some concepts, we can turn our `addSprite()`s and `addText()`s to the lower level more expressive `add()`
-// TALK: So a kaboom game object is composed from components, each component controls a part of an object's behavior.
-// TALK: For example `sprite()` component defines the drawing hehavior. `body()` component defines the jumping and falling behavior
-// TALK: Functions like `addSprite()` basically just wraps `add()` with some default params
-// TALK: `add()` just takes in a list of components that describes the game object you're adding
-// TALK: it also accepts plain strings as `tags`, and plain objects as `data` like you'd see around the pipes code, which is cleaner than `addSprite()`
-// TALK: Another thing is, you might have noticed our score label is showing behind the pipes
-// TALK: We can solve this by defining some layers
+// TALK: Now we really are done. Thanks for going through this with me, here's some comments to review. Feel free to toggle off dialogs and enjoy!
 
+// initialize kaboom context
 kaboom({
+	// import every kaboom function into global namespace
 	global: true,
-	scale: 2,
-	fullscreen: true,
+	// debug mode (F1 to inspect, F8 to pause, F7 F9 to manipulate time, F10 to skip frame)
 	debug: true,
+	fullscreen: true,
+	// pixel scale
+	scale: 2,
+	// black background color
 	clearColor: [ 0, 0, 0, 1 ],
 });
 
+// load assets from url
+loadSprite("mark", "/assets/sprites/mark.png");
 loadSprite("bg", "/assets/sprites/bg.png");
 loadSprite("pipe", "/assets/sprites/pipe.png");
 loadSound("wooosh", "/assets/sounds/wooosh.mp3");
 loadSound("scream", "/assets/sounds/scream6.mp3");
 loadSound("horn", "/assets/sounds/horn2.mp3");
 loadSound("horse", "/assets/sounds/horse.mp3");
-loadSound("whizz", "/assets/sounds/whizz.mp3");
+loadSound("blip", "/assets/sounds/blip1.mp3");
 
+// defining a scene
 scene("game", () => {
 
-	const PIPE_MARGIN = 80;
+	// some constants
+	const PIPE_MARGIN = 40;
 	const PIPE_OPEN = 120;
 	const SPEED = 120;
 	const JUMP_FORCE = 320;
 
+	// set gravity
 	gravity(1200);
 
-	play("horse");
+	// define layers and the default layer
+	layers([
+		"game",
+		"ui",
+	], "game");
 
+	// play("horse");
+
+	// background
 	add([
-		sprite("bg", {
-			width: width(),
-			height: height(),
-		}),
+		sprite("bg", { width: width(), height: height(), }),
+	]);
+
+	// player
+	// each game object is composed from a list of components
+	const player = add([
+		sprite("mark"),
+		pos(80, 80),
+		area(),
+		body(),
 	]);
 
 	let score = 0;
@@ -46,78 +62,77 @@ scene("game", () => {
 	const scoreLabel = add([
 		text(score, 32),
 		pos(12, 12),
+		layer("ui"),
 	]);
-
-	const mark = add([
-		sprite("mark"),
-		pos(80, 80),
-		body(),
-	]);
-
-	mark.action(() => {
-		if (mark.pos.y >= height() + 24) {
-			play("scream");
-			go("gameover", score);
-		}
-	});
 
 	loop(1, () => {
 
-		const y = rand(PIPE_MARGIN, height() - PIPE_MARGIN);
+		const center = rand(
+			PIPE_MARGIN + PIPE_OPEN / 2,
+			height() - PIPE_MARGIN - PIPE_OPEN / 2
+		);
 
 		add([
-			sprite("pipe", { flipY: true, }),
-			pos(width(), y - PIPE_OPEN / 2),
+			sprite("pipe", { flipY: true }),
+			pos(width(), center - PIPE_OPEN / 2),
 			origin("botleft"),
+			area(),
 			"pipe",
 		]);
 
 		add([
 			sprite("pipe"),
-			pos(width(), y + PIPE_OPEN / 2),
-			origin("topleft"),
+			pos(width(), center + PIPE_OPEN / 2),
+			area(),
 			"pipe",
-			{ passed: false, },
+			{ passed: false, }
 		]);
 
 	});
 
-	mark.collides("pipe", () => {
-		play("horn");
-		go("gameover", score);
+	keyPress("space", () => {
+		player.jump(JUMP_FORCE);
+		play("wooosh");
 	});
 
 	action("pipe", (pipe) => {
+
 		pipe.move(-SPEED, 0);
-		if (pipe.passed === false && pipe.pos.x <= mark.pos.x) {
+
+		// increment score if pipe move pass the player
+		if (pipe.passed === false && pipe.pos.x < player.pos.x) {
 			pipe.passed = true;
 			score += 1;
 			scoreLabel.text = score;
-			play("whizz");
+			play("blip");
 		}
-		if (pipe.pos.x <= -120) {
+
+		// destroy if it's out of view
+		if (pipe.pos.x < -pipe.width) {
 			destroy(pipe);
 		}
+
 	});
 
-	keyPress("space", () => {
-		mark.jump(JUMP_FORCE);
-		play("wooosh");
+	player.collides("pipe", () => {
+		go("lose", score);
+		play("horn");
+	});
+
+	player.action(() => {
+		if (player.pos.y > height()) {
+			go("lose", score);
+			// play("scream");
+		}
 	});
 
 });
 
-scene("gameover", (score) => {
+scene("lose", (score) => {
 
 	add([
-		text("Game Over", 16),
-		pos(width() / 2, 120),
-		origin("center"),
-	]);
-
-	add([
-		text(score, 48),
-		pos(width() / 2, 180),
+		text(score, 64),
+		pos(center()),
 		origin("center"),
 	]);
 
@@ -128,3 +143,4 @@ scene("gameover", (score) => {
 });
 
 go("game");
+

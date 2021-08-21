@@ -1,15 +1,16 @@
-// TALK: Definitely need screaming for fall death, I'm particularly fond with this scream6.mp3
-// TALK: For pipe death we need an alarming sound, I like this horn2.mp3
-// TALK: Also put a horse sound when game starts, for no reason
-// TALK: Finally it's time for more PIPES
+// TALK: Let's spawn a pipe every 2 seconds, with `loop()`
+// TALK: Previously we used `pipe.action()` to describe behavior for a single pipe, now with multiple pipes, we change it to `action("pipe")` so it works for every object with tag `"pipe"`
+// TALK: Oh yes and also `rand()` for random `y` position for each pipe
+// TALK: Nice. Now the top row of pipes.
 
 kaboom({
 	global: true,
-	scale: 2,
-	fullscreen: true,
 	debug: true,
+	fullscreen: true,
+	scale: 2,
 });
 
+loadSprite("mark", "/assets/sprites/mark.png");
 loadSprite("bg", "/assets/sprites/bg.png");
 loadSprite("pipe", "/assets/sprites/pipe.png");
 loadSound("wooosh", "/assets/sounds/wooosh.mp3");
@@ -19,50 +20,58 @@ loadSound("horse", "/assets/sounds/horse.mp3");
 
 scene("game", () => {
 
-	play("horse");
+	// play("horse");
 
-	addSprite("bg", {
-		width: width(),
-		height: height(),
-	});
+	// background
+	add([
+		sprite("bg", { width: width(), height: height(), }),
+	]);
 
-	const mark = addSprite("mark", {
-		pos: vec2(80, 80),
-		body: true,
-	});
+	// player
+	const player = add([
+		sprite("mark"),
+		pos(80, 80),
+		area(),
+		body(),
+	]);
 
-	mark.action(() => {
-		if (mark.pos.y >= height() + 24) {
-			play("scream");
-			go("gameover");
-		}
-	});
-
-	const pipe = addSprite("pipe", {
-		pos: vec2(width(), height()),
-		origin: "botleft",
-		tags: [ "pipe" ],
-	});
-
-	mark.collides("pipe", () => {
-		play("horn");
-		go("gameover");
-	});
-
-	pipe.action(() => {
-		pipe.move(-60, 0);
+	loop(2, () => {
+		add([
+			sprite("pipe"),
+			pos(width(), rand(120, 240)),
+			area(),
+			"pipe",
+		]);
 	});
 
 	keyPress("space", () => {
-		mark.jump();
+		player.jump();
 		play("wooosh");
+	});
+
+	action("pipe", (pipe) => {
+		pipe.move(-80, 0);
+	});
+
+	player.collides("pipe", () => {
+		go("lose");
+		play("horn");
+	});
+
+	player.action(() => {
+		if (player.pos.y > height()) {
+			go("lose");
+			// play("scream");
+		}
 	});
 
 });
 
-scene("gameover", () => {
+scene("lose", () => {
 
-	addText("Game Over");
+	add([
+		text("Game over"),
+	]);
 
 	keyPress("space", () => {
 		go("game");
