@@ -565,6 +565,8 @@ interface PosComp extends Comp {
 	pos: Vec2;
 	move(x: number, y: number);
 	move(p: Vec2);
+	moveTo(x: number, y: number);
+	moveTo(p: Vec2);
 	screenPos(): Vec2;
 	inspect(): PosCompInspect;
 };

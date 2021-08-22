@@ -1039,6 +1039,10 @@ function pos(...args): PosComp {
 
 		},
 
+		moveTo(...args) {
+			this.pos = vec2(...args);
+		},
+
 		screenPos(): Vec2 {
 			return game.camMatrix.multVec2(this.pos);
 		},
