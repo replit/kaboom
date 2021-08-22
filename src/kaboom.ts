@@ -1113,6 +1113,10 @@ function area(p1: Vec2, p2: Vec2): AreaComp {
 	const colliding = {};
 	const overlapping = {};
 
+	if (typeof p1 === "number") {
+		// TODO: use as scale
+	}
+
 	return {
 
 		id: "area",
