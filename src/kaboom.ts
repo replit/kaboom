@@ -20,6 +20,7 @@ import {
 	vec2FromAngle,
 	deg2rad,
 	rad2deg,
+	isVec2,
 } from "./math";
 
 import {
@@ -1112,9 +1113,15 @@ function area(p1: Vec2, p2: Vec2): AreaComp {
 
 	const colliding = {};
 	const overlapping = {};
+	// TODO
+	const aScale = vec2(1);
 
 	if (typeof p1 === "number") {
-		// TODO: use as scale
+		aScale.x = p1;
+		aScale.y = p1;
+		if (typeof p2 === "number") {
+			aScale.y = p2;
+		}
 	}
 
 	return {
@@ -1122,8 +1129,8 @@ function area(p1: Vec2, p2: Vec2): AreaComp {
 		id: "area",
 
 		area: {
-			p1: p1,
-			p2: p2,
+			p1: isVec2(p1) ? p1 : null,
+			p2: isVec2(p2) ? p2 : null,
 		},
 
 		areaWidth(): number {
@@ -1348,7 +1355,7 @@ function area(p1: Vec2, p2: Vec2): AreaComp {
 
 			if (!a.p1 && !a.p2 && this.width && this.height) {
 
-				const size = vec2(this.width, this.height);
+				const size = vec2(this.width, this.height).scale(aScale);
 				const offset = originPt(this.origin || DEF_ORIGIN).scale(size).scale(-0.5);
 
 				a.p1 = offset.sub(size.scale(0.5));
