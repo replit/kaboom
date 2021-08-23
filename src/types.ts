@@ -184,7 +184,7 @@ type KaboomCtx = {
 	// char sets
 	ASCII_CHARS: string,
 	CP437_CHARS: string,
-};
+}
 
 type UnionToIntersection<U> = (U extends any ? (k: U) => void : never) extends ((k: infer I) => void) ? I : never
 type Defined<T> = T extends any ? Pick<T, { [K in keyof T]-?: T[K] extends undefined ? never : K }[keyof T]> : never;
@@ -224,7 +224,7 @@ type KaboomConf = {
 	touchToMouse?: boolean,
 	global?: boolean,
 	plugins?: KaboomPlugin<any>[],
-};
+}
 
 interface GameObj {
 	_id: number | null,
@@ -241,12 +241,12 @@ interface GameObj {
 	c(id: string): Comp;
 	// TODO: remove this
 	[custom: string]: any;
-};
+}
 
 type SpriteAnim = {
 	from: number,
 	to: number,
-};
+}
 
 type KaboomPlugin<T> = (k: KaboomCtx) => T;
 
@@ -256,7 +256,7 @@ type SpriteLoadConf = {
 	gridWidth?: number,
 	gridHeight?: number,
 	anims?: Record<string, SpriteAnim>,
-};
+}
 
 type SpriteLoadSrc = string | GfxTextureData;
 
@@ -264,7 +264,7 @@ type SpriteData = {
 	tex: GfxTexture,
 	frames: Quad[],
 	anims: Record<string, SpriteAnim>,
-};
+}
 
 type SoundData = AudioBuffer;
 type FontData = GfxFont;
@@ -276,7 +276,7 @@ type AudioPlayConf = {
 	speed?: number,
 	detune?: number,
 	seek?: number,
-};
+}
 
 type AudioPlay = {
 	play(seek?: number),
@@ -291,7 +291,7 @@ type AudioPlay = {
 	duration(): number,
 	loop(),
 	unloop(),
-};
+}
 
 type GfxProgram = {
 	bind(),
@@ -305,7 +305,7 @@ type GfxTexture = {
 	height: number,
 	bind(),
 	unbind(),
-};
+}
 
 type GfxTextureData =
 	HTMLImageElement
@@ -319,13 +319,13 @@ type GfxFont = {
 	map: Record<string, Vec2>,
 	qw: number,
 	qh: number,
-};
+}
 
 type Vertex = {
 	pos: Vec3,
 	uv: Vec2,
 	color: Color,
-};
+}
 
 type TexFilter = "nearest" | "linear";
 
@@ -335,7 +335,7 @@ type RenderProps = {
 	rot?: number,
 	color?: Color,
 	origin?: Origin | Vec2,
-};
+}
 
 type DrawQuadConf = RenderProps & {
 	flipX?: boolean,
@@ -347,7 +347,7 @@ type DrawQuadConf = RenderProps & {
 	quad?: Quad,
 	prog?: GfxProgram,
 	uniform?: Uniform,
-};
+}
 
 type DrawTextureConf = RenderProps & {
 	flipX?: boolean,
@@ -359,40 +359,40 @@ type DrawTextureConf = RenderProps & {
 	z?: number,
 	prog?: GfxProgram,
 	uniform?: Uniform,
-};
+}
 
 type DrawRectStrokeConf = RenderProps & {
 	width?: number,
 	z?: number,
 	prog?: GfxProgram,
 	uniform?: Uniform,
-};
+}
 
 type DrawRectConf = RenderProps & {
 	z?: number,
 	prog?: GfxProgram,
 	uniform?: Uniform,
-};
+}
 
 type DrawLineConf = RenderProps & {
 	width?: number,
 	z?: number,
 	prog?: GfxProgram,
 	uniform?: Uniform,
-};
+}
 
 type DrawTriConf = RenderProps & {
 	z?: number,
 	prog?: GfxProgram,
 	uniform?: Uniform,
-};
+}
 
 type DrawTextConf = RenderProps & {
 	size?: number,
 	width?: number,
 	z?: number,
 	prog?: GfxProgram,
-};
+}
 
 type FormattedChar = {
 	tex: GfxTexture,
@@ -403,13 +403,13 @@ type FormattedChar = {
 	color: Color,
 	origin: string,
 	z: number,
-};
+}
 
 type FormattedText = {
 	width: number,
 	height: number,
 	chars: FormattedChar[],
-};
+}
 
 // TODO: enum
 type Origin =
@@ -435,7 +435,7 @@ type DrawSpriteConf = RenderProps & {
 	prog?: ShaderData,
 	uniform?: Uniform,
 	z?: number,
-};
+}
 
 type Vec2 = {
 	x: number,
@@ -454,21 +454,21 @@ type Vec2 = {
 	toFixed(n: number): Vec2,
 	eq(p: Vec2): boolean,
 	str(): string,
-};
+}
 
 type Vec3 = {
 	x: number,
 	y: number,
 	z: number,
 	xy(): Vec2,
-};
+}
 
 type Vec4 = {
 	x: number,
 	y: number,
 	z: number,
 	w: number,
-};
+}
 
 type Mat4 = {
 	m: number[],
@@ -483,7 +483,7 @@ type Mat4 = {
 	rotateY(a: number): Mat4,
 	rotateZ(a: number): Mat4,
 	invert(): Mat4,
-};
+}
 
 type Color = {
 	r: number,
@@ -497,7 +497,7 @@ type Color = {
 	isDark(p?: number): boolean,
 	isLight(p?: number): boolean,
 	eq(c: Color): boolean,
-};
+}
 
 type Quad = {
 	x: number,
@@ -507,7 +507,7 @@ type Quad = {
 	scale(q: Quad): Quad,
 	clone(): Quad,
 	eq(q: Quad): boolean,
-};
+}
 
 type RNGValue =
 	number
@@ -520,17 +520,17 @@ type RNG = {
 	gen(): number,
 	gen<T extends RNGValue>(n: T): T,
 	gen<T extends RNGValue>(a: T, b: T): T,
-};
+}
 
 type Rect = {
 	p1: Vec2,
 	p2: Vec2,
-};
+}
 
 type Line = {
 	p1: Vec2,
 	p2: Vec2,
-};
+}
 
 type ClientID = number;
 type MsgHandler = (id: ClientID, data: any) => void;
@@ -544,7 +544,7 @@ interface Comp {
 	destroy?: DestroyEvent;
 	inspect?: InspectEvent;
 	[custom: string]: any;
-};
+}
 
 type CompBuilder = any;
 // TODO: doesn't work
@@ -559,7 +559,7 @@ type InspectEvent = () => any;
 
 type PosCompInspect = {
 	pos: string,
-};
+}
 
 interface PosComp extends Comp {
 	pos: Vec2;
@@ -569,32 +569,32 @@ interface PosComp extends Comp {
 	moveTo(p: Vec2);
 	screenPos(): Vec2;
 	inspect(): PosCompInspect;
-};
+}
 
 interface ScaleComp extends Comp {
 	scale: Vec2;
-};
+}
 
 interface RotateComp extends Comp {
 	angle: number;
-};
+}
 
 interface ColorComp extends Comp {
 	color: Color;
-};
+}
 
 interface OriginComp extends Comp {
 	origin: Origin | Vec2;
-};
+}
 
 type LayerCompInspect = {
 	layer: string,
-};
+}
 
 interface LayerComp extends Comp {
 	layer: string;
 	inspect(): LayerCompInspect;
-};
+}
 
 type RectSide =
 	"top"
@@ -627,7 +627,7 @@ interface AreaComp extends Comp {
 	_worldArea(): Rect;
 	_checkCollisions(tag: string, f: (obj: GameObj) => void): void;
 	_checkOverlaps(tag: string, f: (obj: GameObj) => void): void;
-};
+}
 
 type SpriteCompConf = {
 	quad?: Quad,
@@ -638,13 +638,13 @@ type SpriteCompConf = {
 	height?: number,
 	flipX?: boolean,
 	flipY?: boolean,
-};
+}
 
 type SpriteCurAnim = {
 	name: string,
 	loop: boolean,
 	timer: number,
-};
+}
 
 interface SpriteComp extends Comp {
 	draw: DrawEvent;
@@ -662,11 +662,11 @@ interface SpriteComp extends Comp {
 	flipX(b: boolean);
 	flipY(b: boolean);
 	inspect(): SpriteCompInspect;
-};
+}
 
 type SpriteCompInspect = {
 	curAnim?: string,
-};
+}
 
 interface TextComp extends Comp {
 	draw: DrawEvent;
@@ -675,19 +675,19 @@ interface TextComp extends Comp {
 	font: string;
 	width: number;
 	height: number;
-};
+}
 
 type TextCompConf = {
 	area?: boolean,
 	font?: string,
 	width?: number,
-};
+}
 
 interface RectComp extends Comp {
 	draw: DrawEvent;
 	width: number;
 	height: number;
-};
+}
 
 type Debug = {
 	paused: boolean,
@@ -701,7 +701,7 @@ type Debug = {
 	clearLog(),
 	log(msg: string),
 	error(msg: string),
-};
+}
 
 type UniformValue =
 	Vec2
@@ -715,7 +715,7 @@ type Uniform = Record<string, UniformValue>;
 interface ShaderComp extends Comp {
 	uniform: Uniform;
 	shader: string;
-};
+}
 
 interface BodyComp extends Comp {
 	update: UpdateEvent;
@@ -724,13 +724,13 @@ interface BodyComp extends Comp {
 	grounded(): boolean;
 	falling(): boolean;
 	jump(f: number);
-};
+}
 
 type BodyCompConf = {
 	jumpForce?: number,
 	maxVel?: number,
-};
+}
 
 interface SolidComp extends Comp {
 	solid: boolean;
-};
+}

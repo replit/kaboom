@@ -1106,14 +1106,14 @@ function isSameLayer(o1: GameObj, o2: GameObj): boolean {
 	return (o1.layer ?? game.defLayer) === (o2.layer ?? game.defLayer);
 }
 
-// TODO: accept scale
 // TODO: active flag
 // TODO: tell which side collides
 function area(p1: Vec2, p2: Vec2): AreaComp {
 
 	const colliding = {};
 	const overlapping = {};
-	// TODO
+
+	// scale for auto area
 	const aScale = vec2(1);
 
 	if (typeof p1 === "number") {
