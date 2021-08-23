@@ -9,7 +9,7 @@ type LevelConf = {
 
 type Level = {
 	getPos(p: Vec2): Vec2,
-	spawn(sym: string, p: Vec2): GameObj,
+	spawn(sym: string, p: Vec2): GameObj<any>,
 	width(): number,
 	height(): number,
 	gridWidth(): number,
@@ -57,7 +57,7 @@ export default (k: KaboomCtx) => {
 
 	function addLevel(map: string[], conf: LevelConf): Level {
 
-		const objs: GameObj[] = [];
+		const objs: GameObj<any>[] = [];
 		const offset = k.vec2(conf.pos || k.vec2(0));
 		let longRow = 0;
 
@@ -84,7 +84,7 @@ export default (k: KaboomCtx) => {
 				);
 			},
 
-			spawn(sym: string, p: Vec2): GameObj {
+			spawn(sym: string, p: Vec2): GameObj<any> {
 
 				const comps = (() => {
 					if (Array.isArray(sym)) {

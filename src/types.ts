@@ -39,34 +39,34 @@ type KaboomCtx = {
 	ready(cb: () => void),
 	isTouch(): boolean,
 	// scene / obj
-	add<T extends Comp>(comps: ReadonlyArray<T>): MergeComps<T> & GameObj,
-	readd(obj: GameObj): GameObj,
-	destroy(obj: GameObj),
+	add<T extends Comp>(comps: ReadonlyArray<T | Tag>): GameObj<T>,
+	readd(obj: GameObj<any>): GameObj<any>,
+	destroy(obj: GameObj<any>),
 	destroyAll(tag: string),
-	get(tag?: string): GameObj[],
-	every<T>(t: string, f: (obj: GameObj) => T): T[],
-	every<T>(f: (obj: GameObj) => T): T[],
-	revery<T>(t: string, f: (obj: GameObj) => T): T[],
-	revery<T>(f: (obj: GameObj) => T): T[],
+	get(tag?: string): GameObj<any>[],
+	every<T>(t: string, f: (obj: GameObj<any>) => T): T[],
+	every<T>(f: (obj: GameObj<any>) => T): T[],
+	revery<T>(t: string, f: (obj: GameObj<any>) => T): T[],
+	revery<T>(f: (obj: GameObj<any>) => T): T[],
 	layers(list: string[], def?: string),
-	on(event: string, tag: string, cb: (obj: GameObj) => void): EventCanceller,
-	action(tag: string, cb: (obj: GameObj) => void): EventCanceller,
+	on(event: string, tag: string, cb: (obj: GameObj<any>) => void): EventCanceller,
+	action(tag: string, cb: (obj: GameObj<any>) => void): EventCanceller,
 	action(cb: () => void): EventCanceller,
-	render(tag: string, cb: (obj: GameObj) => void): EventCanceller,
+	render(tag: string, cb: (obj: GameObj<any>) => void): EventCanceller,
 	render(cb: () => void): EventCanceller,
 	collides(
 		t1: string,
 		t2: string,
-		f: (a: GameObj, b: GameObj) => void,
+		f: (a: GameObj<any>, b: GameObj<any>) => void,
 	): EventCanceller,
 	overlaps(
 		t1: string,
 		t2: string,
-		f: (a: GameObj, b: GameObj) => void,
+		f: (a: GameObj<any>, b: GameObj<any>) => void,
 	): EventCanceller,
 	clicks(
 		tag: string,
-		f: (a: GameObj) => void,
+		f: (a: GameObj<any>) => void,
 	): EventCanceller,
 	camPos(p: Vec2): Vec2,
 	camScale(p: Vec2): Vec2,
@@ -92,6 +92,9 @@ type KaboomCtx = {
 	color(): ColorComp,
 	origin(o: Origin | Vec2): OriginComp,
 	layer(l: string): LayerComp,
+	area(): AreaComp,
+	area(scale: number): AreaComp,
+	area(sx: number, sy: number): AreaComp,
 	area(p1: Vec2, p2: Vec2): AreaComp,
 	sprite(id: string, conf?: SpriteCompConf): SpriteComp,
 	text(t: string, size?: number, conf?: TextCompConf): TextComp,
@@ -184,14 +187,31 @@ type KaboomCtx = {
 	// char sets
 	ASCII_CHARS: string,
 	CP437_CHARS: string,
+	// custom plugins
+	[custom: string]: any;
 }
+
+type Tag = string;
 
 type UnionToIntersection<U> = (U extends any ? (k: U) => void : never) extends ((k: infer I) => void) ? I : never
 type Defined<T> = T extends any ? Pick<T, { [K in keyof T]-?: T[K] extends undefined ? never : K }[keyof T]> : never;
 type Expand<T> = T extends infer U ? { [K in keyof U]: U[K] } : never;
 
 type MergeObj<T> = Expand<UnionToIntersection<Defined<T>>>;
-type MergeComps<T> = Omit<MergeObj<T>, keyof Comp>;
+type GameObj<T> = Omit<MergeObj<T>, keyof Comp> & {
+	_id: number | null,
+	hidden: boolean;
+	paused: boolean;
+	exists(): boolean;
+	is(tag: string | string[]): boolean;
+	use(comp: Comp);
+	action(cb: () => void): EventCanceller;
+	on(ev: string, cb: () => void): EventCanceller;
+	trigger(ev: string, ...args);
+	rmTag(t: string);
+	destroy();
+	c(id: string): Comp;
+};
 
 type SceneID = string;
 type SceneDef = (...args) => void;
@@ -224,23 +244,6 @@ type KaboomConf = {
 	touchToMouse?: boolean,
 	global?: boolean,
 	plugins?: KaboomPlugin<any>[],
-}
-
-interface GameObj {
-	_id: number | null,
-	hidden: boolean;
-	paused: boolean;
-	exists(): boolean;
-	is(tag: string | string[]): boolean;
-	use(comp: Comp);
-	action(cb: () => void): EventCanceller;
-	on(ev: string, cb: () => void): EventCanceller;
-	trigger(ev: string, ...args);
-	rmTag(t: string);
-	destroy();
-	c(id: string): Comp;
-	// TODO: remove this
-	[custom: string]: any;
 }
 
 type SpriteAnim = {
@@ -539,19 +542,18 @@ interface Comp {
 	id?: CompID;
 	require?: CompID[];
 	add?: AddEvent;
+	load?: LoadEvent;
 	update?: UpdateEvent;
 	draw?: DrawEvent;
 	destroy?: DestroyEvent;
 	inspect?: InspectEvent;
-	[custom: string]: any;
+//  	[custom: string]: any;
 }
 
-type CompBuilder = any;
-// TODO: doesn't work
-// type CompBuilder = (...args) => Comp;
 type GameObjID = number;
 type CompID = string;
 type AddEvent = () => void;
+type LoadEvent = () => void;
 type DrawEvent = () => void;
 type UpdateEvent = () => void;
 type DestroyEvent = () => void;
@@ -568,7 +570,6 @@ interface PosComp extends Comp {
 	moveTo(x: number, y: number);
 	moveTo(p: Vec2);
 	screenPos(): Vec2;
-	inspect(): PosCompInspect;
 }
 
 interface ScaleComp extends Comp {
@@ -593,7 +594,6 @@ type LayerCompInspect = {
 
 interface LayerComp extends Comp {
 	layer: string;
-	inspect(): LayerCompInspect;
 }
 
 type RectSide =
@@ -604,7 +604,7 @@ type RectSide =
 	;
 
 type PushOut = {
-	obj: GameObj,
+	obj: GameObj<any>,
 	side: RectSide,
 	dis: number,
 }
@@ -615,18 +615,18 @@ interface AreaComp extends Comp {
 	areaHeight(): number,
 	isClicked(): boolean,
 	isHovered(): boolean,
-	isCollided(o: GameObj): boolean,
-	isOverlapped(o: GameObj): boolean,
+	isCollided(o: GameObj<any>): boolean,
+	isOverlapped(o: GameObj<any>): boolean,
 	clicks(f: () => void),
 	hovers(f: () => void),
-	collides(tag: string, f: (o: GameObj) => void),
-	overlaps(tag: string, f: (o: GameObj) => void),
+	collides(tag: string, f: (o: GameObj<any>) => void),
+	overlaps(tag: string, f: (o: GameObj<any>) => void),
 	hasPt(p: Vec2): boolean,
-	pushOut(obj: GameObj): PushOut | null,
+	pushOut(obj: GameObj<any>): PushOut | null,
 	pushOutAll(): PushOut[],
 	_worldArea(): Rect;
-	_checkCollisions(tag: string, f: (obj: GameObj) => void): void;
-	_checkOverlaps(tag: string, f: (obj: GameObj) => void): void;
+	_checkCollisions(tag: string, f: (obj: GameObj<any>) => void): void;
+	_checkOverlaps(tag: string, f: (obj: GameObj<any>) => void): void;
 }
 
 type SpriteCompConf = {
@@ -647,8 +647,6 @@ type SpriteCurAnim = {
 }
 
 interface SpriteComp extends Comp {
-	draw: DrawEvent;
-	update: UpdateEvent;
 	width: number;
 	height: number;
 	animSpeed: number;
@@ -661,7 +659,6 @@ interface SpriteComp extends Comp {
 	curAnim(): string;
 	flipX(b: boolean);
 	flipY(b: boolean);
-	inspect(): SpriteCompInspect;
 }
 
 type SpriteCompInspect = {
@@ -669,7 +666,6 @@ type SpriteCompInspect = {
 }
 
 interface TextComp extends Comp {
-	draw: DrawEvent;
 	text: string;
 	textSize: number;
 	font: string;
@@ -684,7 +680,6 @@ type TextCompConf = {
 }
 
 interface RectComp extends Comp {
-	draw: DrawEvent;
 	width: number;
 	height: number;
 }
@@ -718,12 +713,11 @@ interface ShaderComp extends Comp {
 }
 
 interface BodyComp extends Comp {
-	update: UpdateEvent;
 	jumpForce: number;
-	curPlatform(): GameObj | null;
+	curPlatform(): GameObj<any> | null;
 	grounded(): boolean;
 	falling(): boolean;
-	jump(f: number);
+	jump(f?: number);
 }
 
 type BodyCompConf = {

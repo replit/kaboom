@@ -228,7 +228,7 @@ type Game = {
 	objEvents: Record<string, IDList<TaggedEvent>>,
 	actions: IDList<() => void>,
 	renders: IDList<() => void>,
-	objs: IDList<GameObj>,
+	objs: IDList<GameObj<any>>,
 	timers: IDList<Timer>,
 	cam: Camera,
 	camMousePos: Vec2,
@@ -394,8 +394,7 @@ const COMP_EVENTS = new Set([
 	"inspect",
 ]);
 
-// TODO: make tags also comp?
-function add<T extends Comp>(comps: ReadonlyArray<T>): MergeComps<T> & GameObj {
+function add<T extends Comp>(comps: ReadonlyArray<T | Tag>): GameObj<T> {
 
 	const compStates = {};
 	const customState = {};
@@ -408,23 +407,17 @@ function add<T extends Comp>(comps: ReadonlyArray<T>): MergeComps<T> & GameObj {
 		hidden: false,
 		paused: false,
 
-		// use a comp
-		use(comp: Comp) {
+		// use a comp, or tag
+		use(comp: Comp | string) {
 
-			if (comp === undefined) {
+			if (!comp) {
 				return;
 			}
-
-			const ty = typeof comp;
 
 			// tags
-			if (ty === "string") {
+			if (typeof comp === "string") {
 				tags.push(comp);
 				return;
-			}
-
-			if (ty !== "object") {
-				throw new Error(`invalid comp type: ${ty}`);
 			}
 
 			let stateContainer = customState;
@@ -584,11 +577,11 @@ function add<T extends Comp>(comps: ReadonlyArray<T>): MergeComps<T> & GameObj {
 		}
 	}
 
-	return obj as unknown as MergeComps<T> & GameObj;
+	return obj as unknown as GameObj<T>;
 
 }
 
-function readd(obj: GameObj): GameObj {
+function readd(obj: GameObj<any>): GameObj<any> {
 
 	if (!obj.exists()) {
 		return;
@@ -603,7 +596,7 @@ function readd(obj: GameObj): GameObj {
 }
 
 // add an event to a tag
-function on(event: string, tag: string, cb: (obj: GameObj) => void): EventCanceller {
+function on(event: string, tag: string, cb: (obj: GameObj<any>) => void): EventCanceller {
 	if (!game.objEvents[event]) {
 		game.objEvents[event] = new IDList();
 	}
@@ -614,7 +607,7 @@ function on(event: string, tag: string, cb: (obj: GameObj) => void): EventCancel
 }
 
 // add update event to a tag or global update
-function action(tag: string | (() => void), cb?: (obj: GameObj) => void): EventCanceller {
+function action(tag: string | (() => void), cb?: (obj: GameObj<any>) => void): EventCanceller {
 	if (typeof tag === "function" && cb === undefined) {
 		return game.actions.pushd(tag);
 	} else if (typeof tag === "string") {
@@ -623,7 +616,7 @@ function action(tag: string | (() => void), cb?: (obj: GameObj) => void): EventC
 }
 
 // add draw event to a tag or global draw
-function render(tag: string | (() => void), cb?: (obj: GameObj) => void) {
+function render(tag: string | (() => void), cb?: (obj: GameObj<any>) => void) {
 	if (typeof tag === "function" && cb === undefined) {
 		return game.renders.pushd(tag);
 	} else if (typeof tag === "string") {
@@ -635,9 +628,9 @@ function render(tag: string | (() => void), cb?: (obj: GameObj) => void) {
 function collides(
 	t1: string,
 	t2: string,
-	f: (a: GameObj, b: GameObj) => void,
+	f: (a: GameObj<any>, b: GameObj<any>) => void,
 ): EventCanceller {
-	return action(t1, (o1: GameObj) => {
+	return action(t1, (o1: GameObj<any>) => {
 		o1._checkCollisions(t2, (o2) => {
 			f(o1, o2);
 		});
@@ -648,9 +641,9 @@ function collides(
 function overlaps(
 	t1: string,
 	t2: string,
-	f: (a: GameObj, b: GameObj) => void,
+	f: (a: GameObj<any>, b: GameObj<any>) => void,
 ): EventCanceller {
-	return action(t1, (o1: GameObj) => {
+	return action(t1, (o1: GameObj<any>) => {
 		o1._checkOverlaps(t2, (o2) => {
 			f(o1, o2);
 		});
@@ -658,8 +651,8 @@ function overlaps(
 }
 
 // add an event that runs when objs with tag t is clicked
-function clicks(t: string, f: (obj: GameObj) => void): EventCanceller {
-	return action(t, (o: GameObj) => {
+function clicks(t: string, f: (obj: GameObj<any>) => void): EventCanceller {
+	return action(t, (o: GameObj<any>) => {
 		if (o.isClicked()) {
 			f(o);
 		}
@@ -792,7 +785,7 @@ function touchEnd(f: (id: TouchID, pos: Vec2) => void): EventCanceller {
 
 // TODO: cache sorted list
 // get all objects with tag
-function get(t?: string): GameObj[] {
+function get(t?: string): GameObj<any>[] {
 
 	const objs = [...game.objs.values()].sort((o1, o2) => {
 		const l1 = game.layers[o1.layer ?? game.defLayer]?.order ?? 0;;
@@ -809,7 +802,7 @@ function get(t?: string): GameObj[] {
 }
 
 // apply a function to all objects currently in game with tag t
-function every<T>(t: string | ((obj: GameObj) => T), f?: (obj: GameObj) => T): T[] {
+function every<T>(t: string | ((obj: GameObj<any>) => T), f?: (obj: GameObj<any>) => T): T[] {
 	if (typeof t === "function" && f === undefined) {
 		return get().map(t);
 	} else if (typeof t === "string") {
@@ -818,7 +811,7 @@ function every<T>(t: string | ((obj: GameObj) => T), f?: (obj: GameObj) => T): T
 }
 
 // every but in reverse order
-function revery<T>(t: string | ((obj: GameObj) => T), f?: (obj: GameObj) => T): T[] {
+function revery<T>(t: string | ((obj: GameObj<any>) => T), f?: (obj: GameObj<any>) => T): T[] {
 	if (typeof t === "function" && f === undefined) {
 		return get().reverse().map(t);
 	} else if (typeof t === "string") {
@@ -827,7 +820,7 @@ function revery<T>(t: string | ((obj: GameObj) => T), f?: (obj: GameObj) => T): 
 }
 
 // destroy an obj
-function destroy(obj: GameObj) {
+function destroy(obj: GameObj<any>) {
 
 	if (!obj.exists()) {
 		return;
@@ -1102,13 +1095,13 @@ function layer(l: string): LayerComp {
 	};
 }
 
-function isSameLayer(o1: GameObj, o2: GameObj): boolean {
+function isSameLayer(o1: GameObj<any>, o2: GameObj<any>): boolean {
 	return (o1.layer ?? game.defLayer) === (o2.layer ?? game.defLayer);
 }
 
 // TODO: active flag
 // TODO: tell which side collides
-function area(p1: Vec2, p2: Vec2): AreaComp {
+function area(p1?: Vec2 | number, p2?: Vec2 | number): AreaComp {
 
 	const colliding = {};
 	const overlapping = {};
@@ -1129,8 +1122,8 @@ function area(p1: Vec2, p2: Vec2): AreaComp {
 		id: "area",
 
 		area: {
-			p1: isVec2(p1) ? p1 : null,
-			p2: isVec2(p2) ? p2 : null,
+			p1: isVec2(p1) ? p1 as Vec2 : null,
+			p2: isVec2(p2) ? p2 as Vec2 : null,
 		},
 
 		areaWidth(): number {
@@ -1205,13 +1198,13 @@ function area(p1: Vec2, p2: Vec2): AreaComp {
 			});
 		},
 
-		collides(tag: string, f: (o: GameObj) => void) {
+		collides(tag: string, f: (o: GameObj<any>) => void) {
 			this.action(() => {
 				this._checkCollisions(tag, f);
 			});
 		},
 
-		overlaps(tag: string, f: (o: GameObj) => void) {
+		overlaps(tag: string, f: (o: GameObj<any>) => void) {
 			this.action(() => {
 				this._checkOverlaps(tag, f);
 			});
@@ -1227,7 +1220,7 @@ function area(p1: Vec2, p2: Vec2): AreaComp {
 
 		// TODO: make overlap events still trigger
 		// push an obj out of another if they're overlapped
-		pushOut(obj: GameObj): PushOut | null {
+		pushOut(obj: GameObj<any>): PushOut | null {
 
 			if (obj === this) {
 				return null;
@@ -1295,7 +1288,7 @@ function area(p1: Vec2, p2: Vec2): AreaComp {
 				.filter((res) => res != null);
 		},
 
-		_checkCollisions(tag: string, f: (obj: GameObj) => void) {
+		_checkCollisions(tag: string, f: (obj: GameObj<any>) => void) {
 
 			every(tag, (obj) => {
 				if (this === obj) {
@@ -1320,7 +1313,7 @@ function area(p1: Vec2, p2: Vec2): AreaComp {
 		},
 
 		// TODO: repetitive with collides
-		_checkOverlaps(tag: string, f: (obj: GameObj) => void) {
+		_checkOverlaps(tag: string, f: (obj: GameObj<any>) => void) {
 
 			every(tag, (obj) => {
 				if (this === obj) {
@@ -1666,7 +1659,7 @@ const DEF_JUMP_FORCE = 320;
 function body(conf: BodyCompConf = {}): BodyComp {
 
 	let velY = 0;
-	let curPlatform: GameObj | null = null;
+	let curPlatform: GameObj<any> | null = null;
 	let lastPlatformPos = null;
 	const maxVel = conf.maxVel ?? DEF_MAX_VEL;
 
@@ -1722,7 +1715,7 @@ function body(conf: BodyCompConf = {}): BodyComp {
 
 		},
 
-		curPlatform(): GameObj | null {
+		curPlatform(): GameObj<any> | null {
 			return curPlatform;
 		},
 
