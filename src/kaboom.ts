@@ -394,7 +394,8 @@ const COMP_EVENTS = new Set([
 	"inspect",
 ]);
 
-function add<T extends Comp>(comps: ReadonlyArray<T | Tag>): GameObj<T> {
+// TODO: type check won't work if pass CustomData
+function add<T extends Comp>(comps: ReadonlyArray<T | Tag | CustomData>): GameObj<T> {
 
 	const compStates = {};
 	const customState = {};
@@ -481,7 +482,7 @@ function add<T extends Comp>(comps: ReadonlyArray<T | Tag>): GameObj<T> {
 		},
 
 		// if obj has certain tag
-		is(tag: string): boolean {
+		is(tag: Tag | Tag[]): boolean {
 			if (tag === "*") {
 				return true;
 			}
@@ -525,7 +526,7 @@ function add<T extends Comp>(comps: ReadonlyArray<T | Tag>): GameObj<T> {
 
 		},
 
-		rmTag(t: string) {
+		rmTag(t: Tag) {
 			const idx = tags.indexOf(t);
 			if (idx > -1) {
 				tags.splice(idx, 1);

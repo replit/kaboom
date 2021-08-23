@@ -1,7 +1,7 @@
 declare function kaboom(conf?: KaboomConf): KaboomCtx;
 
 type KaboomCtx = {
-	burp(),
+	burp(conf?: AudioPlayConf): AudioPlay,
 	// assets
 	loadRoot(path?: string): string,
 	loadSprite(
@@ -26,7 +26,7 @@ type KaboomCtx = {
 		frag?: string,
 		isUrl?: boolean,
 	): Promise<ShaderData>,
-	addLoader<T>(l: Promise<T>),
+	addLoader<T>(l: Promise<T>): void,
 	// game
 	width(): number,
 	height(): number,
@@ -35,20 +35,20 @@ type KaboomCtx = {
 	time(): number,
 	screenshot(): string,
 	focused(): boolean,
-	focus(),
-	ready(cb: () => void),
+	focus(): void,
+	ready(cb: () => void): void,
 	isTouch(): boolean,
 	// scene / obj
-	add<T extends Comp>(comps: ReadonlyArray<T | Tag>): GameObj<T>,
+	add<T extends Comp>(comps: ReadonlyArray<T | Tag | CustomData>): GameObj<T>,
 	readd(obj: GameObj<any>): GameObj<any>,
-	destroy(obj: GameObj<any>),
-	destroyAll(tag: string),
+	destroy(obj: GameObj<any>): void,
+	destroyAll(tag: string): void,
 	get(tag?: string): GameObj<any>[],
 	every<T>(t: string, f: (obj: GameObj<any>) => T): T[],
 	every<T>(f: (obj: GameObj<any>) => T): T[],
 	revery<T>(t: string, f: (obj: GameObj<any>) => T): T[],
 	revery<T>(f: (obj: GameObj<any>) => T): T[],
-	layers(list: string[], def?: string),
+	layers(list: string[], def?: string): void,
 	on(event: string, tag: string, cb: (obj: GameObj<any>) => void): EventCanceller,
 	action(tag: string, cb: (obj: GameObj<any>) => void): EventCanceller,
 	action(cb: () => void): EventCanceller,
@@ -71,12 +71,12 @@ type KaboomCtx = {
 	camPos(p: Vec2): Vec2,
 	camScale(p: Vec2): Vec2,
 	camRot(a: number): number,
-	camIgnore(layers: string[]),
-	shake(n: number),
+	camIgnore(layers: string[]): void,
+	shake(n: number): void,
 	gravity(g: number): number,
 	// net
-	recv(ty: string, handler: MsgHandler),
-	send(ty: string, data: any),
+	recv(ty: string, handler: MsgHandler): void,
+	send(ty: string, data: any): void,
 	// comps
 	pos(x: number, y: number): PosComp,
 	pos(xy: number): PosComp,
@@ -103,7 +103,7 @@ type KaboomCtx = {
 	body(conf?: BodyCompConf): BodyComp,
 	shader(id: string): ShaderComp,
 	// inputs
-	cursor(c?: string),
+	cursor(c?: string): void,
 	mousePos(layer?: string): Vec2,
 	mouseDeltaPos(): Vec2,
 	keyDown(k: string, f: () => void): EventCanceller,
@@ -167,19 +167,19 @@ type KaboomCtx = {
 	deg2rad(deg: number): number,
 	rad2deg(rad: number): number,
 	// draw
-	drawSprite(id: string | SpriteData, conf?: DrawSpriteConf),
+	drawSprite(id: string | SpriteData, conf?: DrawSpriteConf): void,
 	// TODO: conf type
-	drawText(txt: string, conf?: {}),
-	drawRect(pos: Vec2, w: number, h: number, conf?: DrawRectConf),
-	drawRectStroke(pos: Vec2, w: number, h: number, conf?: DrawRectStrokeConf),
-	drawLine(p1: Vec2, p2: Vec2, conf?: DrawLineConf),
-	drawTri(p1: Vec2, p2: Vec2, p3: Vec2, conf?: DrawTriConf),
+	drawText(txt: string, conf?: {}): void,
+	drawRect(pos: Vec2, w: number, h: number, conf?: DrawRectConf): void,
+	drawRectStroke(pos: Vec2, w: number, h: number, conf?: DrawRectStrokeConf): void,
+	drawLine(p1: Vec2, p2: Vec2, conf?: DrawLineConf): void,
+	drawTri(p1: Vec2, p2: Vec2, p3: Vec2, conf?: DrawTriConf): void,
 	// scene
-	scene(id: SceneID, def: SceneDef),
-	go(id: SceneID, ...args),
+	scene(id: SceneID, def: SceneDef): void,
+	go(id: SceneID, ...args): void,
 	// storage
 	getData(key: string, def?: any): any,
-	setData(key: string, data: any),
+	setData(key: string, data: any): void,
 	// plugin
 	plug<T>(plugin: KaboomPlugin<T>): MergeObj<T> & KaboomCtx,
 	// dbg
@@ -192,23 +192,24 @@ type KaboomCtx = {
 }
 
 type Tag = string;
+type CustomData = Record<string, any>;
 
 type UnionToIntersection<U> = (U extends any ? (k: U) => void : never) extends ((k: infer I) => void) ? I : never
 type Defined<T> = T extends any ? Pick<T, { [K in keyof T]-?: T[K] extends undefined ? never : K }[keyof T]> : never;
 type Expand<T> = T extends infer U ? { [K in keyof U]: U[K] } : never;
-
 type MergeObj<T> = Expand<UnionToIntersection<Defined<T>>>;
+
 type GameObj<T> = Omit<MergeObj<T>, keyof Comp> & {
 	_id: number | null,
 	hidden: boolean;
 	paused: boolean;
 	exists(): boolean;
-	is(tag: string | string[]): boolean;
+	is(tag: Tag | Tag[]): boolean;
 	use(comp: Comp);
 	action(cb: () => void): EventCanceller;
 	on(ev: string, cb: () => void): EventCanceller;
 	trigger(ev: string, ...args);
-	rmTag(t: string);
+	rmTag(t: Tag);
 	destroy();
 	c(id: string): Comp;
 };
@@ -282,9 +283,9 @@ type AudioPlayConf = {
 }
 
 type AudioPlay = {
-	play(seek?: number),
-	stop(),
-	pause(),
+	play(seek?: number): void,
+	stop(): void,
+	pause(): void,
 	paused(): boolean,
 	stopped(): boolean,
 	speed(s?: number): number,
@@ -292,22 +293,22 @@ type AudioPlay = {
 	volume(v?: number): number,
 	time(): number,
 	duration(): number,
-	loop(),
-	unloop(),
+	loop(): void,
+	unloop(): void,
 }
 
 type GfxProgram = {
-	bind(),
-	unbind(),
-	bindAttribs(),
-	send(uniform: Uniform),
+	bind(): void,
+	unbind(): void,
+	bindAttribs(): void,
+	send(uniform: Uniform): void,
 }
 
 type GfxTexture = {
 	width: number,
 	height: number,
-	bind(),
-	unbind(),
+	bind(): void,
+	unbind(): void,
 }
 
 type GfxTextureData =
@@ -617,10 +618,10 @@ interface AreaComp extends Comp {
 	isHovered(): boolean,
 	isCollided(o: GameObj<any>): boolean,
 	isOverlapped(o: GameObj<any>): boolean,
-	clicks(f: () => void),
-	hovers(f: () => void),
-	collides(tag: string, f: (o: GameObj<any>) => void),
-	overlaps(tag: string, f: (o: GameObj<any>) => void),
+	clicks(f: () => void): void,
+	hovers(f: () => void): void,
+	collides(tag: string, f: (o: GameObj<any>) => void): void,
+	overlaps(tag: string, f: (o: GameObj<any>) => void): void,
 	hasPt(p: Vec2): boolean,
 	pushOut(obj: GameObj<any>): PushOut | null,
 	pushOutAll(): PushOut[],
@@ -692,10 +693,10 @@ type Debug = {
 	fps(): number,
 	objCount(): number,
 	drawCalls(): number,
-	stepFrame(),
-	clearLog(),
-	log(msg: string),
-	error(msg: string),
+	stepFrame(): void,
+	clearLog(): void,
+	log(msg: string): void,
+	error(msg: string): void,
 }
 
 type UniformValue =
