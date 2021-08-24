@@ -178,7 +178,7 @@ type KaboomCtx = {
 	scene(id: SceneID, def: SceneDef): void,
 	go(id: SceneID, ...args): void,
 	// storage
-	getData(key: string, def?: any): any,
+	getData<T>(key: string, def?: T): T,
 	setData(key: string, data: any): void,
 	// plugin
 	plug<T>(plugin: KaboomPlugin<T>): MergeObj<T> & KaboomCtx,
@@ -214,7 +214,7 @@ interface GameObjRaw {
 	action(cb: () => void): EventCanceller;
 	on(ev: string, cb: () => void): EventCanceller;
 	trigger(ev: string, ...args);
-	rmTag(t: Tag);
+	untag(t: Tag);
 	destroy();
 	c(id: string): Comp;
 }

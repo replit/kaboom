@@ -220,7 +220,7 @@ space: shoot
 	player.collides("enemy", (e) => {
 		destroy(e);
 		destroy(player);
-		camShake(120);
+		shake(120);
 		play("explosion");
 		music.detune(-1200);
 		makeExplosion(vec2(width() / 2, height() / 2), 12, 120, 30);
@@ -315,12 +315,12 @@ space: shoot
 
 	on("death", "enemy", (e) => {
 		destroy(e);
-		camShake(2);
+		shake(2);
 		makeExplosion(e.pos, 3, 6, 1);
 	});
 
 	on("hurt", "enemy", (e) => {
-		camShake(1);
+		shake(1);
 		play("hit", {
 			detune: rand(-1200, 1200),
 			speed: rand(0.2, 2),

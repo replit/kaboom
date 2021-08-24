@@ -63,7 +63,6 @@ const map = addLevel([
 	],
 	"*": [
 		sprite("spike"),
-		area(),
 		body(),
 		area(vec2(0, 6), vec2(11, 11)),
 		"hurt",
@@ -83,12 +82,8 @@ const player = add([
 	scale(1),
 	body({ jumpForce: 320, }),
 	origin("center"),
-	{
-		speed: 160,
-	},
+	{ speed: 160, },
 ]);
-
-// 	sync(player);
 
 player.action(() => {
 	camPos(player.pos);

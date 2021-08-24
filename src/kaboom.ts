@@ -421,25 +421,24 @@ function add<T extends Comp>(comps: ReadonlyArray<T | Tag | CustomData>): GameOb
 				return;
 			}
 
-			let stateContainer = customState;
-
-			// is comp or plain custom state
+			// clear if overwrite
 			if (comp.id) {
 				compStates[comp.id] = {};
-				stateContainer = compStates[comp.id];
 			}
 
-			// check for comp dependency
-			if (comp.require) {
-				this.on("add", () => {
-					for (const dep of comp.require) {
-						if (!obj.c(dep)) {
-							const name = comp.id || "unknown";
-							throw new Error(`comp '${name}' requires comp '${dep}'`);
-						}
+			// where to register states
+			const stateContainer = comp.id ? compStates[comp.id] : customState;
+
+			const checkDeps = () => {
+				if (!comp.require) {
+					return;
+				}
+				for (const dep of comp.require) {
+					if (!this.c(dep)) {
+						throw new Error(`comp '${comp.id}' requires comp '${dep}'`);
 					}
-				});
-			}
+				}
+			};
 
 			for (const k in comp) {
 
@@ -463,24 +462,33 @@ function add<T extends Comp>(comps: ReadonlyArray<T | Tag | CustomData>): GameOb
 				// TODO: slow?
 				// fields
 				if (!this[k]) {
-					Object.defineProperty(this, k, {
-						get() {
-							if (comp.id) {
-								return compStates[comp.id][k];
-							} else {
-								return customState[k];
-							}
-						},
-						set(val) {
-							if (comp.id) {
-								compStates[comp.id][k] = val;
-							} else {
-								customState[k] = val;
-							}
-						},
-					});
+					if (comp.id) {
+						Object.defineProperty(this, k, {
+							get: () => compStates[comp.id][k],
+							set: (val) => compStates[comp.id][k] = val,
+						});
+					} else {
+						Object.defineProperty(this, k, {
+							get: () => customState[k],
+							set: (val) => customState[k] = val,
+						});
+					}
 				}
 
+			}
+
+			// check deps or run add event
+			if (this.exists()) {
+				if (comp.add) {
+					comp.add.call(this);
+				}
+				checkDeps();
+			} else {
+				if (comp.require) {
+					this.on("add", () => {
+						checkDeps();
+					});
+				}
 			}
 
 		},
@@ -491,7 +499,7 @@ function add<T extends Comp>(comps: ReadonlyArray<T | Tag | CustomData>): GameOb
 
 		// if obj is current in scene
 		exists(): boolean {
-			return this._id !== undefined;
+			return this._id !== null;
 		},
 
 		// if obj has certain tag
@@ -539,7 +547,7 @@ function add<T extends Comp>(comps: ReadonlyArray<T | Tag | CustomData>): GameOb
 
 		},
 
-		rmTag(t: Tag) {
+		untag(t: Tag) {
 			const idx = tags.indexOf(t);
 			if (idx > -1) {
 				tags.splice(idx, 1);
@@ -591,8 +599,9 @@ function readd(obj: GameObj<any>): GameObj<any> {
 	}
 
 	game.objs.delete(obj._id);
-	const id = game.objs.push(obj);
-	obj._id = id;
+	obj._id = game.objs.push(obj);
+	obj.trigger("add");
+	ready(() => obj.trigger("load"));
 
 	return obj;
 
@@ -1835,7 +1844,7 @@ function go(id: SceneID, ...args) {
 
 }
 
-function getData(key: string, def?: any): any {
+function getData<T>(key: string, def?: T): T {
 	try {
 		return JSON.parse(window.localStorage[key]);
 	} catch {
