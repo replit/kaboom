@@ -1997,6 +1997,8 @@ const ctx: KaboomCtx = {
 	// char sets
 	ASCII_CHARS,
 	CP437_CHARS,
+	// dom
+	canvas: app.canvas,
 };
 
 plug(markPlugin);
@@ -2097,8 +2099,6 @@ function regDebugInput() {
 if (gconf.debug) {
 	regDebugInput();
 }
-
-app.focus();
 
 window.addEventListener("error", (e) => {
 	logger.error(`Error: ${e.error.message}`);

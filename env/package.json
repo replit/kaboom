@@ -4,7 +4,7 @@
 		"chokidar": "^3.5.2",
 		"esbuild": "^0.12.19",
 		"express": "^4.17.1",
-		"kaboom": "^0.8.0-beta.6",
+		"kaboom": "0.8.0-beta.7",
 		"stacktrace-js": "^2.0.2",
 		"ws": "^8.2.0"
 	}

@@ -187,6 +187,9 @@ type KaboomCtx = {
 	// char sets
 	ASCII_CHARS: string,
 	CP437_CHARS: string,
+	// dom
+	canvas: HTMLCanvasElement,
+	// TODO: remove
 	// custom plugins
 	[custom: string]: any;
 }
@@ -194,13 +197,14 @@ type KaboomCtx = {
 type Tag = string;
 type CustomData = Record<string, any>;
 
+// TODO: understand this
 type UnionToIntersection<U> = (U extends any ? (k: U) => void : never) extends ((k: infer I) => void) ? I : never
 type Defined<T> = T extends any ? Pick<T, { [K in keyof T]-?: T[K] extends undefined ? never : K }[keyof T]> : never;
 type Expand<T> = T extends infer U ? { [K in keyof U]: U[K] } : never;
 type MergeObj<T> = Expand<UnionToIntersection<Defined<T>>>;
 type MergeComps<T> = Omit<MergeObj<T>, keyof Comp>;
 
-type GameObj<T> = MergeComps<T> & {
+interface GameObjRaw {
 	_id: number | null,
 	hidden: boolean;
 	paused: boolean;
@@ -213,7 +217,9 @@ type GameObj<T> = MergeComps<T> & {
 	rmTag(t: Tag);
 	destroy();
 	c(id: string): Comp;
-};
+}
+
+type GameObj<T> = GameObjRaw & MergeComps<T>;
 
 type SceneID = string;
 type SceneDef = (...args) => void;
@@ -549,7 +555,6 @@ interface Comp {
 	draw?: DrawEvent;
 	destroy?: DestroyEvent;
 	inspect?: InspectEvent;
-//  	[custom: string]: any;
 }
 
 type GameObjID = number;

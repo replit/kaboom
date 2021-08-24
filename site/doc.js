@@ -276,9 +276,9 @@ const page = t("html", {}, [
 				t("a", { class: "link", href: "/examples", }, "examples"),
 				t("a", { class: "link", href: "/lib", }, "download"),
 				t("a", { class: "link", href: "https://github.com/replit/kaboom", }, "github"),
+				t("a", { class: "link", href: "https://github.com/replit/kaboom/discussions", }, "forum"),
 				t("a", { class: "link", href: "https://twitter.com/Kaboomjs", }, "twitter"),
 				t("a", { class: "link", href: "/changelog", }, "changelog"),
-				t("a", { class: "link", href: "https://replit.com/new/kaboom", }, "try on replit"),
 				...api.map((sec) => {
 					return t("div", { class: "section", }, [
 						t("p", { class: "title", }, sec.name),

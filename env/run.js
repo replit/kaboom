@@ -201,13 +201,22 @@ const yellow = (msg) => `\x1b[33m${msg}\x1b[0m`;
 const dim = (msg) => `\x1b[2m${msg}\x1b[0m`;
 
 function render() {
+
+	// kaboooooom!
 	process.stdout.write("\x1b[H");
 	process.stdout.write("kab");
+
 	for (let i = 0; i < numO; i++) {
 		process.stdout.write(i === curO ? "O" : "o");
 	}
+
 	process.stdout.write("m!\n");
-	console.log(dim("\n(tip: try use the webview refresh button instead of header run button to preview change)"));
+
+	if (!conf.liveReload) {
+		console.log(dim("\n(tip: try use the webview refresh button instead of header run button to view change)"));
+	}
+
+	// error stack trace
 	if (err) {
 		console.log("");
 		console.error(red(`ERROR: ${err.msg}`));
@@ -220,4 +229,5 @@ function render() {
 			console.error(`    ${trace.fileName}:${trace.lineNumber}:${trace.columnNumber}`);
 		});
 	}
+
 }
