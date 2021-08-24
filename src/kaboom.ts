@@ -409,7 +409,7 @@ function add<T extends Comp>(comps: ReadonlyArray<T | Tag | CustomData>): GameOb
 		paused: false,
 
 		// use a comp, or tag
-		use(comp: Comp | string) {
+		use(comp: Comp | Tag) {
 
 			if (!comp) {
 				return;
@@ -423,9 +423,22 @@ function add<T extends Comp>(comps: ReadonlyArray<T | Tag | CustomData>): GameOb
 
 			let stateContainer = customState;
 
+			// is comp or plain custom state
 			if (comp.id) {
 				compStates[comp.id] = {};
 				stateContainer = compStates[comp.id];
+			}
+
+			// check for comp dependency
+			if (comp.require) {
+				this.on("add", () => {
+					for (const dep of comp.require) {
+						if (!obj.c(dep)) {
+							const name = comp.id || "unknown";
+							throw new Error(`comp '${name}' requires comp '${dep}'`);
+						}
+					}
+				});
 			}
 
 			for (const k in comp) {
@@ -566,17 +579,6 @@ function add<T extends Comp>(comps: ReadonlyArray<T | Tag | CustomData>): GameOb
 	obj._id = game.objs.push(obj);
 	obj.trigger("add");
 	ready(() => obj.trigger("load"));
-
-	// check comp dependencies
-	for (const id in compStates) {
-		const comp = compStates[id];
-		const deps = comp.require || [];
-		for (const dep of deps) {
-			if (!obj.c(dep)) {
-				throw new Error(`comp '${id}' requires comp '${dep}'`);
-			}
-		}
-	}
 
 	return obj as unknown as GameObj<T>;
 
