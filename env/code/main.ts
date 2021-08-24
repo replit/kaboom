@@ -1,4 +1,5 @@
 const player = add([
 	sprite("mark"),
-	pos(40, 20),
+	pos(60, 20),
+	area(),
 ]);

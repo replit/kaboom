@@ -198,8 +198,9 @@ type UnionToIntersection<U> = (U extends any ? (k: U) => void : never) extends (
 type Defined<T> = T extends any ? Pick<T, { [K in keyof T]-?: T[K] extends undefined ? never : K }[keyof T]> : never;
 type Expand<T> = T extends infer U ? { [K in keyof U]: U[K] } : never;
 type MergeObj<T> = Expand<UnionToIntersection<Defined<T>>>;
+type MergeComps<T> = Omit<MergeObj<T>, keyof Comp>;
 
-type GameObj<T> = Omit<MergeObj<T>, keyof Comp> & {
+type GameObj<T> = MergeComps<T> & {
 	_id: number | null,
 	hidden: boolean;
 	paused: boolean;

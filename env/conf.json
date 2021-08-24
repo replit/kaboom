@@ -4,5 +4,6 @@
 	"height": 240,
 	"scale": 2,
 	"debug": true,
-	"clearColor": null
+	"clearColor": null,
+	"liveReload": true
 }

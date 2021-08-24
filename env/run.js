@@ -2,8 +2,14 @@ const fs = require("fs");
 const path = require("path");
 const esbuild = require("esbuild");
 const express = require("express");
+const chokidar = require("chokidar");
+const ws = require("ws");
+const http = require("http");
 const app = express();
+const server = http.createServer(app);
+const wsServer = new ws.Server({ server: server, path: "/ws" });
 const port = process.env.PORT || 8000;
+const conf = JSON.parse(fs.readFileSync("conf.json"));
 
 // build user game
 function buildGame() {
@@ -12,15 +18,7 @@ function buildGame() {
 	const conf = JSON.parse(fs.readFileSync("conf.json", "utf-8"));
 	let code = "";
 
-	// kaboom lib files
-	const libFiles = [
-		"dist/kaboom.js",
-		"dist/helper.js",
-	];
-
-	libFiles.forEach((f) => {
-		code += `<script src="/${f}"></script>\n`;
-	});
+	code += `<script src="/dist/helper.js"></script>\n`;
 
 	code += "<script>\n";
 
@@ -59,52 +57,12 @@ global: true,
 		minify: true,
 		keepNames: true,
 		entryPoints: fs.readdirSync("code").map((f) => `code/${f}`),
-		outdir: "dist",
+		outfile: "dist/game.js",
 	});
 
-	fs.readdirSync("code").forEach((file) => {
-		code += `<script src="/dist/${file}"></script>\n`;
-	});
+	code += `<script src="/dist/game.js"></script>\n`;
 
 	fs.writeFileSync("dist/index.html", template.replace("{{kaboom}}", code));
-
-}
-
-// build kaboom library
-function buildKaboom() {
-
-	const fmts = [
-		{ format: "iife", ext: "js",  },
-		{ format: "cjs",  ext: "cjs", },
-		{ format: "esm",  ext: "mjs", },
-	];
-
-	const srcDir = "kaboom";
-	const distDir = "dist";
-
-	fmts.forEach((fmt) => {
-
-		const srcPath = `${srcDir}/kaboom.ts`;
-		const distPath = `${distDir}/kaboom.${fmt.ext}`;
-
-		esbuild.buildSync({
-			bundle: true,
-			sourcemap: true,
-			target: "es6",
-			minify: true,
-			keepNames: true,
-			loader: {
-				".png": "dataurl",
-				".glsl": "text",
-				".mp3": "binary",
-			},
-			entryPoints: [ srcPath ],
-			globalName: "kaboom",
-			format: fmt.format,
-			outfile: distPath,
-		});
-
-	});
 
 }
 
@@ -146,21 +104,20 @@ const checkBuildGame = watch([
 	"conf.json",
 ], buildGame);
 
-const checkBuildKaboom = watch([
-	"kaboom",
-], buildKaboom);
+const checkBuildHelper = watch([
+	"helper.js",
+], buildHelper);
 
 // initial build
-buildGame();
 buildHelper();
-buildKaboom();
+buildGame();
 
 // server stuff
 app.use(express.json());
 
 app.get("/", (req, res) => {
 	checkBuildGame();
-	checkBuildKaboom();
+	checkBuildHelper();
 	res.sendFile(__dirname + "/dist/index.html");
 	reset();
 });
@@ -176,7 +133,25 @@ app.use("/sounds", express.static("sounds"));
 app.use("/dist", express.static("dist"));
 app.use("/lib", express.static("lib"));
 
-app.listen(port, reset);
+if (conf.liveReload) {
+	chokidar.watch([
+		"code",
+		"sprites",
+		"sounds",
+		"template.html",
+		"conf.json",
+	]).on("all", () => {
+		buildHelper();
+		buildGame();
+		wsServer.clients.forEach((client) => {
+			if (client.readyState === ws.OPEN) {
+				client.send(JSON.stringify("REFRESH"));
+			}
+		});
+	});
+}
+
+server.listen(port);
 
 // term output
 let numO = 2;
@@ -223,6 +198,7 @@ function roll() {
 const map = (v, a1, b1, a2, b2) => a2 + (v - a1) / (b1 - a1) * (b2 - a2);
 const red = (msg) => `\x1b[31m${msg}\x1b[0m`;
 const yellow = (msg) => `\x1b[33m${msg}\x1b[0m`;
+const dim = (msg) => `\x1b[2m${msg}\x1b[0m`;
 
 function render() {
 	process.stdout.write("\x1b[H");
@@ -231,6 +207,7 @@ function render() {
 		process.stdout.write(i === curO ? "O" : "o");
 	}
 	process.stdout.write("m!\n");
+	console.log(dim("\n(tip: try use the webview refresh button instead of header run button to preview change)"));
 	if (err) {
 		console.log("");
 		console.error(red(`ERROR: ${err.msg}`));
