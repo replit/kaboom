@@ -415,7 +415,7 @@ function add<T extends Comp>(comps: ReadonlyArray<T | Tag | CustomData>): GameOb
 				return;
 			}
 
-			// tags
+			// tag
 			if (typeof comp === "string") {
 				tags.push(comp);
 				return;
@@ -426,19 +426,8 @@ function add<T extends Comp>(comps: ReadonlyArray<T | Tag | CustomData>): GameOb
 				compStates[comp.id] = {};
 			}
 
-			// where to register states
+			// state source location
 			const stateContainer = comp.id ? compStates[comp.id] : customState;
-
-			const checkDeps = () => {
-				if (!comp.require) {
-					return;
-				}
-				for (const dep of comp.require) {
-					if (!this.c(dep)) {
-						throw new Error(`comp '${comp.id}' requires comp '${dep}'`);
-					}
-				}
-			};
 
 			for (const k in comp) {
 
@@ -459,23 +448,26 @@ function add<T extends Comp>(comps: ReadonlyArray<T | Tag | CustomData>): GameOb
 					stateContainer[k] = comp[k];
 				}
 
-				// TODO: slow?
-				// fields
-				if (!this[k]) {
-					if (comp.id) {
-						Object.defineProperty(this, k, {
-							get: () => compStates[comp.id][k],
-							set: (val) => compStates[comp.id][k] = val,
-						});
-					} else {
-						Object.defineProperty(this, k, {
-							get: () => customState[k],
-							set: (val) => customState[k] = val,
-						});
-					}
-				}
+				// assign comp fields to game obj
+				Object.defineProperty(this, k, {
+					get: () => stateContainer[k],
+					set: (val) => stateContainer[k] = val,
+					configurable: true,
+					enumerable: true,
+				});
 
 			}
+
+			const checkDeps = () => {
+				if (!comp.require) {
+					return;
+				}
+				for (const dep of comp.require) {
+					if (!this.c(dep)) {
+						throw new Error(`comp '${comp.id}' requires comp '${dep}'`);
+					}
+				}
+			};
 
 			// check deps or run add event
 			if (this.exists()) {
@@ -554,6 +546,10 @@ function add<T extends Comp>(comps: ReadonlyArray<T | Tag | CustomData>): GameOb
 			}
 		},
 
+		destroy() {
+			destroy(this);
+		},
+
 		_inspect() {
 
 			const info = [];
@@ -572,10 +568,6 @@ function add<T extends Comp>(comps: ReadonlyArray<T | Tag | CustomData>): GameOb
 				info: info,
 			};
 
-		},
-
-		destroy() {
-			destroy(this);
 		},
 
 	};
