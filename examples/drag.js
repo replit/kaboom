@@ -1,3 +1,5 @@
+// drag & drop interaction
+
 kaboom({
 	global: true,
 	fullscreen: true,
@@ -5,19 +7,22 @@ kaboom({
 });
 
 loadRoot("/pub/examples/");
-// gotta load the image first
 loadSprite("mark", "img/mark.png");
 
 let curDraggin = null;
 
+// custom component for handling drag & drop behavior
 function drag() {
 
+	// the difference between object pos and mouse pos
 	let offset = vec2(0);
 
 	return {
+		// name of the component
 		id: "drag",
+		// it requires the "pos" and "area" component
 		require: [ "pos", "area", ],
-		// "add" is a special lifecycle method gets called when the obj is added to scene
+		// "add" is a lifecycle method gets called when the obj is added to scene
 		add() {
 			// "this" in all methods refer to the obj
 			this.clicks(() => {
@@ -29,7 +34,7 @@ function drag() {
 				readd(this);
 			});
 		},
-		// "update" is a special lifecycle method gets called every frame the obj is in scene
+		// "update" is a lifecycle method gets called every frame the obj is in scene
 		update() {
 			if (curDraggin === this) {
 				this.pos = mousePos().sub(offset);
@@ -39,10 +44,10 @@ function drag() {
 
 }
 
-mouseRelease(() => {
-	curDraggin = null;
-});
+// drop
+mouseRelease(() => curDraggin = null);
 
+// adding dragable objects
 for (let i = 0; i < 64; i++) {
 	add([
 		sprite("mark"),
@@ -50,6 +55,7 @@ for (let i = 0; i < 64; i++) {
 		area(),
 		scale(5),
 		origin("center"),
+		// using our custom component here
 		drag(),
 		i !== 0 ? color(1, 1, 1) : color(1, 0, 1),
 	]);

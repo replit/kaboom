@@ -1,3 +1,5 @@
+// kaboom as pure rendering lib (no component / game obj etc.)
+
 const k = kaboom({
 	fullscreen: true,
 	scale: 2,

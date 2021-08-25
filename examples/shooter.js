@@ -1,3 +1,5 @@
+// TODO: document
+
 kaboom({
 	global: true,
 	fullscreen: true,

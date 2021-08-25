@@ -1,3 +1,5 @@
+// simple rpg style walk and talk
+
 kaboom({
 	global: true,
 	fullscreen: true,
@@ -18,6 +20,7 @@ scene("main", (levelIdx) => {
 
 	const SPEED = 80;
 
+	// character dialog data
 	const characters = {
 		"a": {
 			sprite: "ch1",
@@ -29,6 +32,7 @@ scene("main", (levelIdx) => {
 		},
 	};
 
+	// level layouts
 	const levels = [
 		[
 			"=======|==",
@@ -81,6 +85,9 @@ scene("main", (levelIdx) => {
 			solid(),
 			"door",
 		],
+		// any() is a special function that gets called everytime there's a
+		// symbole not defined above and is supposed to return what that symbol
+		// means
 		any(ch) {
 			const char = characters[ch];
 			if (char) {
@@ -89,14 +96,13 @@ scene("main", (levelIdx) => {
 					area(),
 					solid(),
 					"character",
-					{
-						msg: char.msg,
-					},
+					{ msg: char.msg, },
 				];
 			}
 		},
 	});
 
+	// get the player game obj by tag
 	const player = get("player")[0];
 
 	let hasKey = false;
@@ -108,6 +114,9 @@ scene("main", (levelIdx) => {
 		]);
 	}
 
+	// overlaps vs collide:
+	// overlaps: a < b
+	// collides: a <= b
 	player.overlaps("key", (key) => {
 		destroy(key);
 		hasKey = true;
@@ -125,6 +134,7 @@ scene("main", (levelIdx) => {
 		}
 	});
 
+	// talk on touch
 	player.overlaps("character", (ch) => {
 		talk(ch.msg);
 	});

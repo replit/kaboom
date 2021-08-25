@@ -87,6 +87,11 @@ function big() {
 	let timer = 0;
 	let isBig = false;
 	return {
+		// component id / name
+		id: "big",
+		// it requires the scale component
+		require: [ "scale" ],
+		// this runs every frame
 		update() {
 			if (isBig) {
 				timer -= dt();
@@ -95,6 +100,7 @@ function big() {
 				}
 			}
 		},
+		// custom methods
 		isBig() {
 			return isBig;
 		},
@@ -119,7 +125,7 @@ const player = add([
 	scale(1),
 	// makes it fall to gravity and jumpable
 	body(),
-	// as we defined above
+	// the custom component we defined above
 	big(),
 ]);
 

@@ -1,3 +1,5 @@
+// simple UI
+
 kaboom({
 	global: true,
 	fullscreen: true,
@@ -34,10 +36,5 @@ function addButton(txt, p, f) {
 
 }
 
-addButton("start", vec2(100, 100), () => {
-	debug.log("oh hi");
-});
-
-addButton("quit", vec2(100, 150), () => {
-	debug.log("bye");
-});
+addButton("start", vec2(100, 100), () => debug.log("oh hi"));
+addButton("quit", vec2(100, 150), () => debug.log("bye"));

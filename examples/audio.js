@@ -1,3 +1,5 @@
+// audio playback & control
+
 kaboom({
 	global: true,
 	fullscreen: true,

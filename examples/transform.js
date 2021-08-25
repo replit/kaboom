@@ -17,5 +17,6 @@ const mark = add([
 
 mark.action(() => {
 	mark.scale = Math.sin(time()) * 10;
+	// angle is in radians
 	mark.angle += dt();
 });

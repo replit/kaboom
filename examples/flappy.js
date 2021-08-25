@@ -154,3 +154,6 @@ scene("death", (score) => {
 });
 
 go("main");
+
+// move input focus to canvas on start
+focus();

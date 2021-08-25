@@ -17,11 +17,13 @@ const JUMP_FORCE = 240;
 const NUM_PLATFORMS = 5;
 
 // custom component to handle double jump
-function doubleJump() {
+function djump() {
 	let hasDouble = true;
 	return {
-		id: "doubleJump",
+		id: "djump",
+		// requires the "body" component
 		require: [ "body", ],
+		// runs once on add
 		add() {
 			this.on("grounded", () => {
 				hasDouble = true;
@@ -33,12 +35,14 @@ function doubleJump() {
 			} else if (hasDouble) {
 				hasDouble = false;
 				this.jump(...args);
-				this.trigger("doubleJump");
+				// triggers a custom event
+				this.trigger("djump");
 			}
 		},
 	};
 }
 
+// a spinning component for fun
 function spin(speed = 16) {
 	let spinning = false;
 	return {
@@ -73,7 +77,7 @@ const car = add([
 	pos(0, 0),
 	body({ jumpForce: JUMP_FORCE, }),
 	rotate(0),
-	doubleJump(),
+	djump(),
 	spin(),
 ]);
 
@@ -92,6 +96,7 @@ for (let i = 1; i < NUM_PLATFORMS; i++) {
 	]);
 }
 
+// go to the first platform
 car.pos = get("platform")[0].pos.sub(0, car.height);
 
 function genCoin() {
@@ -132,7 +137,8 @@ car.collides("coin", (c) => {
 	genCoin();
 });
 
-car.on("doubleJump", () => {
+// spin on double jump
+car.on("djump", () => {
 	car.spin();
 });
 
@@ -147,6 +153,7 @@ keyPress("space", () => {
 	car.djump();
 });
 
+// both keys will trigger
 keyDown(["a", "left"], () => {
 	car.move(-PLAYER_SPEED, 0);
 });

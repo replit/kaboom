@@ -7,6 +7,8 @@ kaboom({
 });
 
 loadRoot("/pub/examples/");
+
+// manually slicing a sprite to frames and anims
 loadSprite("car", "img/car.png", {
 	sliceX: 3,
 	anims: {
@@ -20,11 +22,13 @@ loadSprite("car", "img/car.png", {
 		},
 	},
 });
+
 loadSprite("sky", "img/sky.png");
 loadSprite("road", "img/road.png");
 loadSprite("apple", "img/apple.png");
 loadSprite("pineapple", "img/pineapple.png");
 
+// 3 layers, "ui" on top and "bg" on bottom, "game" by default
 layers([
 	"bg",
 	"game",
@@ -36,6 +40,7 @@ const lowBound = height() - 12;
 const speed = 90;
 let speedMod = 1;
 
+// background img
 add([
 	sprite("sky"),
 	layer("bg"),
@@ -76,6 +81,7 @@ const car = add([
 	},
 ]);
 
+// play an anim on start
 car.play("move");
 
 // obj spawn
@@ -93,6 +99,7 @@ loop(0.4, () => {
 	]);
 });
 
+// object all move left and destroy when they're out of screen for performance
 action("obj", (o) => {
 	o.move(-speed * speedMod, 0);
 	if (o.pos.x <= -width()) {

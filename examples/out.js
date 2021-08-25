@@ -7,6 +7,7 @@ kaboom({
 loadRoot("/assets/");
 loadSprite("mark", "sprites/mark.png");
 
+// custom component to detect if obj is out of screen
 function out() {
 	return {
 		id: "out",
@@ -19,6 +20,7 @@ function out() {
 				spos.y < 0 ||
 				spos.y > height()
 			) {
+				// triggers a custom event
 				this.trigger("out");
 			}
 		},
@@ -46,6 +48,7 @@ action("mark", (m) => {
 	m.move(m.dir.scale(SPEED));
 });
 
+// binds a custom event "out" to tag group "mark"
 on("out", "mark", (m) => {
 	debug.log("out");
 	destroy(m);

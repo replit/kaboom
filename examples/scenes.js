@@ -1,25 +1,37 @@
+// basic multi scene setup
+
 kaboom({
 	global: true,
 	fullscreen: true,
 	scale: 2,
 });
 
-scene("1", () => {
+scene("game", () => {
+
 	add([
-		text("scene1"),
+		text("Press space to view score", 16, { width: width() }),
 	]);
+
 	keyPress("space", () => {
-		go("2", Math.ceil(rand(0, 10)));
+		// passing custom data to another scene
+		go("score", ~~rand(100));
 	});
+
 });
 
-scene("2", (score) => {
+scene("score", (score) => {
+
+	// receives score and display it
 	add([
-		text("scene2"),
+		text("Score: " + score),
 	]);
+
+	// go back to game scene on key press
 	keyPress("space", () => {
-		go("1");
+		go("game");
 	});
+
 });
 
-go("1");
+go("game");
+focus();

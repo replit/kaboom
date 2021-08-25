@@ -1,3 +1,4 @@
+// custom shader component
 kaboom({
 	global: true,
 	fullscreen: true,

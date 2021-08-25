@@ -28,12 +28,15 @@ const input = add([
 	}),
 ]);
 
+// listen to text input
 charInput((ch) => {
 	input.text += ch;
 	curFont = (curFont + 1) % fonts.length;
 	input.font = fonts[curFont];
 });
 
+// like keyPress() but will retrigger when key is being held (which is similar
+// to text input behavior)
 keyPressRep("enter", () => {
 	input.text += "\n";
 });
