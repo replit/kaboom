@@ -58,6 +58,10 @@ add();
 		name: "Asset Loading",
 		desc: "Load assets into asset manager. These should be at application top.",
 		entries: [
+			f("loadRoot", "Set the url loader root", `
+loadRoot("/assets/");
+loadSprite("froggy", "sprites/froggy.png"); // will resolve to "/assets/sprites/froggy.png"
+			`),
 			f("loadSprite", "Load a sprite into the asset manager", `
 // due to browser policies you'll need a static file server to load local files, e.g.
 // - (with python) $ python3 -m http.server $PORT
