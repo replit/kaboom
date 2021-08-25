@@ -423,6 +423,9 @@ function add<T extends Comp>(comps: ReadonlyArray<T | Tag | CustomData>): GameOb
 
 			// clear if overwrite
 			if (comp.id) {
+				for (const k in compStates[comp.id]) {
+					delete compStates[comp.id][k];
+				}
 				compStates[comp.id] = {};
 			}
 
@@ -448,13 +451,15 @@ function add<T extends Comp>(comps: ReadonlyArray<T | Tag | CustomData>): GameOb
 					stateContainer[k] = comp[k];
 				}
 
-				// assign comp fields to game obj
-				Object.defineProperty(this, k, {
-					get: () => stateContainer[k],
-					set: (val) => stateContainer[k] = val,
-					configurable: true,
-					enumerable: true,
-				});
+				if (this[k] === undefined) {
+					// assign comp fields to game obj
+					Object.defineProperty(this, k, {
+						get: () => stateContainer[k],
+						set: (val) => stateContainer[k] = val,
+						configurable: true,
+						enumerable: true,
+					});
+				}
 
 			}
 
@@ -1103,7 +1108,6 @@ function isSameLayer(o1: GameObj<any>, o2: GameObj<any>): boolean {
 	return (o1.layer ?? game.defLayer) === (o2.layer ?? game.defLayer);
 }
 
-// TODO: active flag
 // TODO: tell which side collides
 function area(p1?: Vec2 | number, p2?: Vec2 | number): AreaComp {
 
@@ -1864,7 +1868,7 @@ function plug<T>(plugin: KaboomPlugin<T>): MergeObj<T> & KaboomCtx {
 			window[k] = funcs[k];
 		}
 	}
-	return ctx as unknown as Expand<UnionToIntersection<Defined<T>>> & KaboomCtx;
+	return ctx as unknown as MergeObj<T> & KaboomCtx;
 }
 
 function center(): Vec2 {
