@@ -1044,6 +1044,7 @@ function pos(...args): PosComp {
 		pos: vec2(...args),
 
 		// TODO: check physics here?
+		// move with velocity (pixels per second)
 		move(...args) {
 
 			const p = vec2(...args);
@@ -1055,10 +1056,22 @@ function pos(...args): PosComp {
 
 		},
 
-		moveTo(...args) {
-			this.pos = vec2(...args);
+		// move to a destination, with optional speed
+		moveTo(dest: Vec2, speed?: number) {
+			if (speed === undefined) {
+				this.pos = vec2(dest);
+				return;
+			}
+			const diff = dest.sub(this.pos);
+			if (diff.len() <= speed) {
+				this.pos = vec2(dest);
+				return;
+			}
+			this.pos = this.pos.add(diff.unit().scale(speed));
 		},
 
+		// TODO: check if on cam ignored layer
+		// get the screen position (transformed by camera)
 		screenPos(): Vec2 {
 			return game.camMatrix.multVec2(this.pos);
 		},

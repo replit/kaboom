@@ -1,6 +1,7 @@
 {
 	"name": "kaboom-env",
 	"dependencies": {
+		"@replit/database": "^2.0.1",
 		"chokidar": "^3.5.2",
 		"esbuild": "^0.12.19",
 		"express": "^4.17.1",

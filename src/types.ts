@@ -573,10 +573,9 @@ type PosCompInspect = {
 
 interface PosComp extends Comp {
 	pos: Vec2;
-	move(x: number, y: number);
-	move(p: Vec2);
-	moveTo(x: number, y: number);
-	moveTo(p: Vec2);
+	move(xVel: number, yVel: number);
+	move(vel: Vec2);
+	moveTo(dest: Vec2, speed?: number);
 	screenPos(): Vec2;
 }
 

@@ -1,3 +1,3 @@
 ### Build a Shooter Game in Kaboom
 
-todo
+coming soon

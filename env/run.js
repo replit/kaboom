@@ -1,3 +1,5 @@
+// kaboom dev server
+
 const fs = require("fs");
 const path = require("path");
 const esbuild = require("esbuild");
@@ -5,21 +7,32 @@ const express = require("express");
 const chokidar = require("chokidar");
 const ws = require("ws");
 const http = require("http");
+const Database = require("@replit/database");
+const db = new Database();
 const app = express();
 const server = http.createServer(app);
 const wsServer = new ws.Server({ server: server, path: "/ws" });
 const port = process.env.PORT || 8000;
-const conf = JSON.parse(fs.readFileSync("conf.json"));
+let conf = JSON.parse(fs.readFileSync("conf.json", "utf-8"));
+let err = null;
+
+const userFiles = [
+	"code",
+	"sprites",
+	"sounds",
+	"template.html",
+	"conf.json",
+];
 
 // build user game
 function buildGame() {
 
+	conf = JSON.parse(fs.readFileSync("conf.json", "utf-8"));
+
 	const template = fs.readFileSync("template.html", "utf-8");
-	const conf = JSON.parse(fs.readFileSync("conf.json", "utf-8"));
 	let code = "";
 
 	code += `<script src="/dist/helper.js"></script>\n`;
-
 	code += "<script>\n";
 
 	// kaboom init
@@ -49,16 +62,31 @@ global: true,
 
 	code += "</script>\n";
 
-	// build user code
-	esbuild.buildSync({
-		bundle: true,
-		sourcemap: true,
-		target: "es6",
-		minify: true,
-		keepNames: true,
-		entryPoints: fs.readdirSync("code").map((f) => `code/${f}`),
-		outfile: "dist/game.js",
-	});
+	try {
+		// build user code
+		esbuild.buildSync({
+			bundle: true,
+			sourcemap: true,
+			target: "es6",
+			minify: true,
+			keepNames: true,
+			logLevel: "silent",
+			entryPoints: ["code/main.js"],
+			outfile: "dist/game.js",
+		});
+	} catch (e) {
+		const loc = e.errors[0].location;
+		err = {
+			msg: e.errors[0].text,
+			stack: [
+				{
+					line: loc.line,
+					col: loc.column,
+					file: loc.file,
+				},
+			],
+		};
+	}
 
 	code += `<script src="/dist/game.js"></script>\n`;
 
@@ -96,52 +124,47 @@ function watch(paths, exec) {
 	};
 }
 
-const checkBuildGame = watch([
-	"code",
-	"sprites",
-	"sounds",
-	"template.html",
-	"conf.json",
-], buildGame);
-
-const checkBuildHelper = watch([
-	"helper.js",
-], buildHelper);
+const checkBuildGame = watch(userFiles, buildGame);
 
 // initial build
 buildHelper();
 buildGame();
 
 // server stuff
-app.use(express.json());
+app.use(express.json({ strict: false }));
 
 app.get("/", (req, res) => {
-	checkBuildGame();
-	checkBuildHelper();
-	res.sendFile(__dirname + "/dist/index.html");
 	reset();
+	checkBuildGame();
+	res.sendFile(__dirname + "/dist/index.html");
+	render();
 });
 
 app.post("/error", (req, res) => {
-	const url = req.protocol + "://" + req.get("host") + "/";
 	err = req.body;
 	render();
 });
 
+app.get("/db/:item", (req, res) => {
+	db.get(req.params.item).then((val) => {
+		res.json(val);
+	})
+});
+
+app.post("/db/:item", (req, res) => {
+	db.set(req.params.item, req.body);
+});
+
 app.use("/sprites", express.static("sprites"));
 app.use("/sounds", express.static("sounds"));
+app.use("/code", express.static("code"));
 app.use("/dist", express.static("dist"));
-app.use("/lib", express.static("lib"));
 
 if (conf.liveReload) {
-	chokidar.watch([
-		"code",
-		"sprites",
-		"sounds",
-		"template.html",
-		"conf.json",
-	]).on("all", () => {
-		buildHelper();
+	chokidar.watch(userFiles).on("all", () => {
+		if (!conf.liveReload) {
+			return;
+		}
 		buildGame();
 		wsServer.clients.forEach((client) => {
 			if (client.readyState === ws.OPEN) {
@@ -158,7 +181,6 @@ let numO = 2;
 let curO = null;
 let anim = null;
 let anim2 = null;
-let err = null;
 const MAX_O = 32;
 const INC_SPEED = 16000;
 const ROLL_SPEED_MIN = 200;
@@ -171,7 +193,6 @@ function reset() {
 	err = null;
 	anim = setTimeout(next, INC_SPEED);
 	process.stdout.write("\x1b[2J");
-	render();
 }
 
 function next() {
@@ -220,14 +241,11 @@ function render() {
 	if (err) {
 		console.log("");
 		console.error(red(`ERROR: ${err.msg}`));
-		err.stack.forEach((trace) => {
-			if (trace.functionName) {
-				console.error(`  -> ${yellow(`${trace.functionName}()`)}`);
-			} else {
-				console.error(`  -> ${yellow("<root>")}`);
-			}
-			console.error(`    ${trace.fileName}:${trace.lineNumber}:${trace.columnNumber}`);
-		});
+		if (err.stack) {
+			err.stack.forEach((trace) => {
+				console.error(`    -> ${trace.file}:${trace.line}:${trace.col}`);
+			});
+		}
 	}
 
 }

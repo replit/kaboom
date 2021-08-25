@@ -17,7 +17,9 @@ window.addEventListener("error", (e) => {
 					stack: stack.slice(0, 4).map((step) => {
 						return {
 							...step,
-							fileName: step.fileName.replace(location.origin + "/", ""),
+							file: step.fileName.replace(location.origin + "/", ""),
+							line: step.lineNumber,
+							col: step.columnNumber,
 						};
 					}),
 				}),
@@ -26,8 +28,8 @@ window.addEventListener("error", (e) => {
 		.catch(() => console.error("failed to parse err"));
 });
 
-// const ws = new WebSocket("wss://" + location.host + "/ws");
-const ws = new WebSocket("ws://localhost:8000/ws");
+const wsp = location.protocol === "https:" ? "wss" : "ws";
+const ws = new WebSocket(`${wsp}://${location.host}/ws`);
 
 ws.onmessage = (e) => {
 	const msg = JSON.parse(e.data);
