@@ -3057,6 +3057,12 @@
                     {
                         "kind": "MethodSignature",
                         "name": "getData",
+                        "typeParameters": [
+                            {
+                                "kind": "TypeParameter",
+                                "name": "T"
+                            }
+                        ],
                         "parameters": [
                             {
                                 "kind": "Parameter",
@@ -3069,13 +3075,15 @@
                                 "kind": "Parameter",
                                 "name": "def",
                                 "type": {
-                                    "kind": "AnyKeyword"
+                                    "kind": "TypeReference",
+                                    "typeName": "T"
                                 },
                                 "questionToken": true
                             }
                         ],
                         "type": {
-                            "kind": "AnyKeyword"
+                            "kind": "TypeReference",
+                            "typeName": "T"
                         }
                     },
                     {
@@ -6705,6 +6713,20 @@
                 },
                 {
                     "kind": "MethodSignature",
+                    "name": "unuse",
+                    "parameters": [
+                        {
+                            "kind": "Parameter",
+                            "name": "comp",
+                            "type": {
+                                "kind": "TypeReference",
+                                "typeName": "CompID"
+                            }
+                        }
+                    ]
+                },
+                {
+                    "kind": "MethodSignature",
                     "name": "action",
                     "parameters": [
                         {
@@ -6774,7 +6796,7 @@
                 },
                 {
                     "kind": "MethodSignature",
-                    "name": "rmTag",
+                    "name": "untag",
                     "parameters": [
                         {
                             "kind": "Parameter",
@@ -7610,19 +7632,6 @@
                     "kind": "MethodSignature",
                     "name": "stop",
                     "parameters": []
-                },
-                {
-                    "kind": "MethodSignature",
-                    "name": "changeSprite",
-                    "parameters": [
-                        {
-                            "kind": "Parameter",
-                            "name": "id",
-                            "type": {
-                                "kind": "StringKeyword"
-                            }
-                        }
-                    ]
                 },
                 {
                     "kind": "MethodSignature",

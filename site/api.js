@@ -669,6 +669,7 @@ keyPress("s", () => {
 		entries: [
 			f("width", "canvas width"),
 			f("height", "canvas height"),
+			f("center", "center position of screen"),
 			f("time", "current game time"),
 			f("dt", "delta time since last frame"),
 			f("mousePos", "get mouse position of a layer", `
