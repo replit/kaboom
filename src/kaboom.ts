@@ -423,14 +423,14 @@ function add<T extends Comp>(comps: ReadonlyArray<T | Tag | CustomData>): GameOb
 
 			// clear if overwrite
 			if (comp.id) {
-				for (const k in compStates[comp.id]) {
-					delete compStates[comp.id][k];
-				}
+				this.unuse(comp.id);
 				compStates[comp.id] = {};
 			}
 
 			// state source location
 			const stateContainer = comp.id ? compStates[comp.id] : customState;
+
+			stateContainer.cleanups = [];
 
 			for (const k in comp) {
 
@@ -442,7 +442,7 @@ function add<T extends Comp>(comps: ReadonlyArray<T | Tag | CustomData>): GameOb
 				if (typeof comp[k] === "function") {
 					const func = comp[k].bind(this);
 					if (COMP_EVENTS.has(k)) {
-						this.on(k, func);
+						stateContainer.cleanups.push(this.on(k, func));
 						continue;
 					} else {
 						stateContainer[k] = func;
@@ -479,15 +479,28 @@ function add<T extends Comp>(comps: ReadonlyArray<T | Tag | CustomData>): GameOb
 				if (comp.add) {
 					comp.add.call(this);
 				}
+				if (comp.load) {
+					ready(() => comp.load.call(this));
+				}
 				checkDeps();
 			} else {
 				if (comp.require) {
-					this.on("add", () => {
+					stateContainer.cleanups.push(this.on("add", () => {
 						checkDeps();
-					});
+					}));
 				}
 			}
 
+		},
+
+		unuse(comp: CompID) {
+			if (compStates[comp]) {
+				compStates[comp].cleanups.forEach((f) => f());
+				for (const k in compStates[comp]) {
+					delete compStates[comp][k];
+				}
+			}
+			compStates[comp] = {};
 		},
 
 		c(id: string): Comp {
@@ -1516,38 +1529,6 @@ function sprite(id: string, conf: SpriteCompConf = {}): SpriteComp {
 			const prevAnim = curAnim.name;
 			curAnim = null;
 			this.trigger("animEnd", prevAnim);
-		},
-
-		changeSprite(id: string) {
-
-			if (!spr) {
-				ready(() => {
-					this.changeSprite(id);
-				});
-				return;
-			}
-
-			spr = assets.sprites[id];
-
-			if (!spr) {
-				throw new Error(`sprite not found: "${id}"`);
-			}
-
-			const q = { ...spr.frames[0] };
-
-			if (conf.quad) {
-				q.x += conf.quad.x * q.w;
-				q.y += conf.quad.y * q.h;
-				q.w *= conf.quad.w;
-				q.h *= conf.quad.h;
-			}
-
-			this.width = spr.tex.width * q.w;
-			this.height = spr.tex.height * q.h;
-
-			curAnim = null;
-			this.frame = 0;
-
 		},
 
 		numFrames() {

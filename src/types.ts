@@ -211,6 +211,7 @@ interface GameObjRaw {
 	exists(): boolean;
 	is(tag: Tag | Tag[]): boolean;
 	use(comp: Comp);
+	unuse(comp: CompID);
 	action(cb: () => void): EventCanceller;
 	on(ev: string, cb: () => void): EventCanceller;
 	trigger(ev: string, ...args);
@@ -661,7 +662,6 @@ interface SpriteComp extends Comp {
 	quad: Quad;
 	play(anim: string, loop?: boolean);
 	stop();
-	changeSprite(id: string);
 	numFrames(): number;
 	curAnim(): string;
 	flipX(b: boolean);

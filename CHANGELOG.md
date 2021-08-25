@@ -58,6 +58,8 @@ obj.c("sprite").play("anim");
 - (**BREAK**) removed `start()` in favor of `go()`
 - (**BREAK**) added a default text size `16`
 - (**BREAK**) changed default jump force by `body()` to `320`
+- (**BREAK**) removed `changeSprite()` in favor of `use(sprite("newsprite"))`
+- (**BREAK**) renamed `rmTag()` to `untag()`
 
 ### v0.5.1
 - added plugins npm package support e.g. `import asepritePlugin from "kaboom/plugins/aseprite"`
