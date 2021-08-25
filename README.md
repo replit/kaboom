@@ -4,7 +4,7 @@ Kaboom.js is a JavaScript library that helps you make games fast and fun!
 
 Check out our official [website](https://kaboomjs.com/)!
 
-**NOTE**: Kaboom is still in early active development, expect breaking changes and lots of new features. This README talks about the latest beta version (`kaboom@next`)
+**NOTE**: Kaboom is still in early active development, expect breaking changes and lots of new features (check out `CHANGELOG.md` for these). This README talks about the latest beta version (`kaboom@next`).
 
 ## Examples
 
