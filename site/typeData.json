@@ -6946,14 +6946,14 @@
                     "parameters": [
                         {
                             "kind": "Parameter",
-                            "name": "x",
+                            "name": "xVel",
                             "type": {
                                 "kind": "NumberKeyword"
                             }
                         },
                         {
                             "kind": "Parameter",
-                            "name": "y",
+                            "name": "yVel",
                             "type": {
                                 "kind": "NumberKeyword"
                             }
@@ -6966,7 +6966,7 @@
                     "parameters": [
                         {
                             "kind": "Parameter",
-                            "name": "p",
+                            "name": "vel",
                             "type": {
                                 "kind": "TypeReference",
                                 "typeName": "Vec2"
@@ -6980,31 +6980,19 @@
                     "parameters": [
                         {
                             "kind": "Parameter",
-                            "name": "x",
+                            "name": "dest",
                             "type": {
-                                "kind": "NumberKeyword"
+                                "kind": "TypeReference",
+                                "typeName": "Vec2"
                             }
                         },
                         {
                             "kind": "Parameter",
-                            "name": "y",
+                            "name": "speed",
                             "type": {
                                 "kind": "NumberKeyword"
-                            }
-                        }
-                    ]
-                },
-                {
-                    "kind": "MethodSignature",
-                    "name": "moveTo",
-                    "parameters": [
-                        {
-                            "kind": "Parameter",
-                            "name": "p",
-                            "type": {
-                                "kind": "TypeReference",
-                                "typeName": "Vec2"
-                            }
+                            },
+                            "questionToken": true
                         }
                     ]
                 },

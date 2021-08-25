@@ -300,8 +300,14 @@ const obj = add([
 // get the current position in vec2
 console.log(obj.pos);
 
-// move an object by a speed (dt will be multiplied)
+// move by velocity (pixels per second, dt() is multiplied)
 obj.move(100, 100);
+
+// move to a destination 10 pixels per second
+obj.moveTo(vec2(120), 10);
+
+// teleport to destination
+obj.moveTo(vec2(120));
 			`),
 			f("scale", "scale", `
 const obj = add([
