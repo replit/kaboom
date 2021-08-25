@@ -54,6 +54,7 @@ obj.c("sprite").play("anim");
 - fixed `"add"` event getting called twice for tagged objs
 - added `flipX` and `flipY` on `sprite()` comp configuration, and `flipX()` `flipY()` methods
 - added `moveTo(dest: Vec2, speed?: number)` to `pos()` comp
+- added `keyPress()` (and all other key events) with no arg to check for any key
 - (**BREAK**) renamed `camShake()` to `shake()`
 - (**BREAK**) remove `flipX()` and `flipY()` on `scale()` comp
 - (**BREAK**) removed `start()` in favor of `go()`

@@ -278,7 +278,8 @@ function appInit(gconf: AppConf = {}): App {
 		return app.mouseMoved;
 	}
 
-	function keyPressed(k: string): boolean {
+	// TODO: check for any
+	function keyPressed(k?: string): boolean {
 		return app.keyStates[k] === "pressed";
 	}
 

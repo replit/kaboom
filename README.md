@@ -2,9 +2,13 @@
 
 [**Kaboom.js**](https://kaboomjs.com/) is a JavaScript library that helps you make games fast and fun!
 
-**NOTE**: Kaboom is still in early active development, expect breaking changes and lots of new features (check out `CHANGELOG.md` for these). This README talks about the latest beta version (`kaboom@next`).
+**NOTE**: still in early active development, expect breaking changes and lots of new features (check out `CHANGELOG.md` for these).
 
 ## Examples
+
+(these are for the newest beta version or `kaboom@next`)
+
+Lots of iteractive examples [here](https://kaboomjs.com/examples)
 
 ```html
 <script src="https://unpkg.com/kaboom@next/dist/kaboom.js"></script>
@@ -154,7 +158,7 @@ k.render(() => {
 
 ### Browser CDN
 
-Beta releases (will be published frequently, more prune to break)
+Beta release (published frequently)
 ```html
 <script src="https://unpkg.com/kaboom@next/dist/kaboom.js"></script>
 ```
@@ -164,7 +168,7 @@ Latest release
 <script src="https://unpkg.com/kaboom@latest/dist/kaboom.js"></script>
 ```
 
-Also works with other CDNs like `jsdelivr` etc.
+Also works with other CDNs like `jsdelivr` who works with NPM packages.
 
 When imported in the browser, the script will expose a global `kaboom` function to initialize a kaboom context, returning an object containing all the functions
 
@@ -210,6 +214,7 @@ function spawnBullet(p: Vec2): GameObj {
     return k.add([
         k.pos(p),
         k.sprite("bullet"),
+        k.area(),
     ]);
 }
 ```
