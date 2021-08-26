@@ -19,7 +19,7 @@ const k = kaboom();
 
 // all kaboom functions are on this handle now
 k.vec2();
-k.start();
+k.go();
 k.scene();
 k.add();
 
@@ -39,7 +39,7 @@ kaboom({
 
 // with 'global' flag, all kaboom functions are in global namespace
 vec2();
-start();
+go();
 scene();
 add();
 
