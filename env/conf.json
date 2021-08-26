@@ -5,5 +5,5 @@
 	"scale": 2,
 	"debug": true,
 	"clearColor": null,
-	"liveReload": true
+	"liveReload": false
 }

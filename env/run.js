@@ -11,18 +11,10 @@ const Database = require("@replit/database");
 const db = new Database();
 const app = express();
 const server = http.createServer(app);
-const wsServer = new ws.Server({ server: server, path: "/ws" });
+const wsServer = new ws.Server({ server: server, path: "/devws" });
 const port = process.env.PORT || 8000;
 let conf = JSON.parse(fs.readFileSync("conf.json", "utf-8"));
 let err = null;
-
-const userFiles = [
-	"code",
-	"sprites",
-	"sounds",
-	"template.html",
-	"conf.json",
-];
 
 // build user game
 function buildGame() {
@@ -38,8 +30,8 @@ function buildGame() {
 	// kaboom init
 	code += `
 kaboom({
-...${JSON.stringify(conf)},
-global: true,
+	...${JSON.stringify(conf)},
+	global: true,
 });\n`;
 
 	// assets loading
@@ -63,6 +55,7 @@ global: true,
 	code += "</script>\n";
 
 	try {
+
 		// build user code
 		esbuild.buildSync({
 			bundle: true,
@@ -74,6 +67,17 @@ global: true,
 			entryPoints: ["code/main.js"],
 			outfile: "dist/game.js",
 		});
+
+		esbuild.buildSync({
+			bundle: true,
+			sourcemap: true,
+			target: "es6",
+			minify: true,
+			keepNames: true,
+			entryPoints: ["helper.js"],
+			outfile: "dist/helper.js",
+		});
+
 	} catch (e) {
 		const loc = e.errors[0].location;
 		err = {
@@ -94,48 +98,12 @@ global: true,
 
 }
 
-// build kaboom env helper script
-function buildHelper() {
-	esbuild.buildSync({
-		bundle: true,
-		sourcemap: true,
-		target: "es6",
-		minify: true,
-		keepNames: true,
-		entryPoints: ["helper.js"],
-		outfile: "dist/helper.js",
-	});
-}
-
-// returns a check function that executes the passed func if passed files are
-// modified since last check
-function watch(paths, exec) {
-	const getMtimes = () => paths.map((p) => fs.statSync(p).mtime.getTime());
-	let mtimes = getMtimes();
-	return () => {
-		const curMtimes = getMtimes();
-		for (let i = 0; i < mtimes.length; i++) {
-			if (mtimes[i] != curMtimes[i]) {
-				return exec();
-			}
-		}
-		mtimes = curMtimes;
-		return null;
-	};
-}
-
-const checkBuildGame = watch(userFiles, buildGame);
-
-// initial build
-buildHelper();
-buildGame();
-
 // server stuff
 app.use(express.json({ strict: false }));
 
 app.get("/", (req, res) => {
 	reset();
-	checkBuildGame();
+	buildGame();
 	res.sendFile(__dirname + "/dist/index.html");
 	render();
 });
@@ -145,14 +113,41 @@ app.post("/error", (req, res) => {
 	render();
 });
 
-app.get("/db/:item", (req, res) => {
-	db.get(req.params.item).then((val) => {
-		res.json(val);
-	})
+app.get("/user", (req, res) => {
+	if (req.headers["x-replit-user-id"]) {
+		res.json({
+			id: req.headers["x-replit-user-id"] || null,
+			name: req.headers["x-replit-user-name"] || null,
+		});
+	} else {
+		res.json(null);
+	}
 });
 
-app.post("/db/:item", (req, res) => {
-	db.set(req.params.item, req.body);
+// TODO: authed user level abstraction?
+app.get("/db", async (req, res) => {
+	try {
+		res.json(await db.list());
+	} catch (e) {
+		res.sendStatus(500);
+	}
+});
+
+app.get("/db/:item", async (req, res) => {
+	try {
+		res.json(await db.get(req.params.item));
+	} catch (e) {
+		res.sendStatus(500);
+	}
+});
+
+app.post("/db/:item", async (req, res) => {
+	try {
+		db.set(req.params.item, req.body);
+		res.sendStatus(200);
+	} catch (e) {
+		res.sendStatus(500);
+	}
 });
 
 app.use("/sprites", express.static("sprites"));
@@ -161,11 +156,16 @@ app.use("/code", express.static("code"));
 app.use("/dist", express.static("dist"));
 
 if (conf.liveReload) {
-	chokidar.watch(userFiles).on("all", () => {
+	chokidar.watch([
+		"code",
+		"sprites",
+		"sounds",
+		"template.html",
+		"conf.json",
+	]).on("all", () => {
 		if (!conf.liveReload) {
 			return;
 		}
-		buildGame();
 		wsServer.clients.forEach((client) => {
 			if (client.readyState === ws.OPEN) {
 				client.send(JSON.stringify("REFRESH"));

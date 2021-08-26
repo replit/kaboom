@@ -240,4 +240,4 @@ const kaboom = require("kaboom");
 
 - Find bitmap fonts: [Oldschool PC Font](https://int10h.org/oldschool-pc-fonts)
 - Featured on [Console 50](https://console.substack.com/p/console-50)
-- Shoutout to [Umayr](https://github.com/umayr) for kindly offering the "kaboom" npm package name
+- Thanks to [Umayr](https://github.com/umayr) for kindly offering the "kaboom" npm package name

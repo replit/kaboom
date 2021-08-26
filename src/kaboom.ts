@@ -1851,7 +1851,6 @@ function setData(key: string, data: any) {
 	window.localStorage[key] = JSON.stringify(data);
 }
 
-
 function plug<T>(plugin: KaboomPlugin<T>): MergeObj<T> & KaboomCtx {
 	const funcs = plugin(ctx);
 	for (const k in funcs) {
@@ -1876,7 +1875,7 @@ const ctx: KaboomCtx = {
 	loadSound: assets.loadSound,
 	loadFont: assets.loadFont,
 	loadShader: assets.loadShader,
-	addLoader: assets.addLoader,
+	load: assets.load,
 	// query
 	width: gfx.width,
 	height: gfx.height,
