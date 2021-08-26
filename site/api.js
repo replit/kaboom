@@ -857,6 +857,9 @@ rng.gen(); // works the same as rand()
 			f("chance", "rand(0, 1) <= p"),
 			f("lerp", "linear interpolation"),
 			f("map", "map number to another range"),
+			f("wave", "sin motion between 2 numbers"),
+			f("rad2deg", "convert radians to degrees"),
+			f("deg2rad", "convert degrees to radians"),
 		],
 	},
 	{
