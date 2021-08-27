@@ -186,6 +186,7 @@ $ npm install kaboom@next
 // main.ts
 import kaboom, { Vec2, GameObj, } from "kaboom";
 
+// currently you'll have to use the handle to get auto complete / type checks etc.
 const k = kaboom();
 
 function spawnBullet(p: Vec2): GameObj {
