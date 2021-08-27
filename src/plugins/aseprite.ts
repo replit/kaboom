@@ -39,7 +39,7 @@ function loadAseprite(name: string, imgSrc: string, jsonSrc: string) {
 
 		});
 
-	k.addLoader(loader);
+	k.load(loader);
 
 	return loader;
 

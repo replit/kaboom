@@ -47,7 +47,7 @@ export default (k: KaboomCtx) => {
 
 		});
 
-		k.addLoader(loader);
+		k.load(loader);
 
 		return loader;
 
