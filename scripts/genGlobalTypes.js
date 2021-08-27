@@ -25,7 +25,7 @@ declare global {
 `;
 
 
-// Since TS has function overloading and such, however we only want to declare the global variable once.
+// We might get duplicate keys, however we only want to declare the global variable once.
 // The TS type for this is `Record<string, [name: string, comment?: string]>`
 const uniqueKeys = {};
 
