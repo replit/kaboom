@@ -99,7 +99,7 @@ type KaboomCtx = {
 	sprite(id: string, conf?: SpriteCompConf): SpriteComp,
 	text(t: string, size?: number, conf?: TextCompConf): TextComp,
 	rect(w: number, h: number): RectComp,
-	outline(color?: Color, width?: number): OutlineComp,
+	outline(width?: number, color?: Color): OutlineComp,
 	solid(): SolidComp,
 	body(conf?: BodyCompConf): BodyComp,
 	shader(id: string): ShaderComp,

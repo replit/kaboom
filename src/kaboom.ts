@@ -1644,7 +1644,7 @@ function rect(w: number, h: number): RectComp {
 	};
 }
 
-function outline(color: Color = rgb(0, 0, 0), width: number = 1): OutlineComp {
+function outline(width: number = 1, color: Color = rgb(0, 0, 0)): OutlineComp {
 
 	return {
 
