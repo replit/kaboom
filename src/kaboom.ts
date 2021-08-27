@@ -1696,6 +1696,7 @@ function solid(): SolidComp {
 const DEF_MAX_VEL = 960;
 const DEF_JUMP_FORCE = 480;
 
+// TODO: gravity scale
 function body(conf: BodyCompConf = {}): BodyComp {
 
 	let velY = 0;

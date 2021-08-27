@@ -21,12 +21,12 @@ This should give you a blank canvas with a nice checkerboard pattern like this
 Then let's add some stuff to screen, like an image.
 
 ```js
-// load a default sprite "mark"
-loadMark()
+// load a sprite "bean" from an image
+loadSprite("bean", "sprites/bean.png")
 
 // add it to screen
 add([
-    sprite("mark"),
+    sprite("bean"),
     pos(80, 40),
 ])
 ```
@@ -38,7 +38,7 @@ Before explaining what this does, let's try adding some more stuff to it and see
 ```js
 // add it to screen
 add([
-    sprite("mark"),
+    sprite("bean"),
     pos(80, 40),
     scale(3),
     area(),
@@ -64,7 +64,7 @@ In kaboom different components provides different functionalities (properties, m
 
 ```js
 add([
-    sprite("mark"),
+    sprite("bean"),
     pos(80, 40),
     scale(3),
     area(),
