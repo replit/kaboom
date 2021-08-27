@@ -1694,7 +1694,7 @@ function solid(): SolidComp {
 
 // maximum y velocity with body()
 const DEF_MAX_VEL = 960;
-const DEF_JUMP_FORCE = 320;
+const DEF_JUMP_FORCE = 480;
 
 function body(conf: BodyCompConf = {}): BodyComp {
 

@@ -61,7 +61,6 @@ obj.c("sprite").play("anim");
 - (**BREAK**) remove `flipX()` and `flipY()` on `scale()` comp
 - (**BREAK**) removed `start()` in favor of `go()`
 - (**BREAK**) added a default text size `16`
-- (**BREAK**) changed default jump force by `body()` to `320`
 - (**BREAK**) removed `changeSprite()` in favor of `use(sprite("newsprite"))`
 - (**BREAK**) renamed `rmTag()` to `untag()`
 
