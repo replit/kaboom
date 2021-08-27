@@ -1,6 +1,9 @@
 declare function kaboom(conf?: KaboomConf): KaboomCtx;
 
-type KaboomCtx = {
+interface KaboomCtx {
+	/**
+	 * yep
+	 */
 	burp(conf?: AudioPlayConf): AudioPlay,
 	/**
 	 * sets the root for all subsequent resource urls
@@ -475,7 +478,7 @@ type KaboomCtx = {
 	 * the canvas DOM kaboom is currently using
 	 */
 	canvas: HTMLCanvasElement,
-	[custom: string]: any;
+	[custom: string]: any,
 }
 
 type Tag = string;
