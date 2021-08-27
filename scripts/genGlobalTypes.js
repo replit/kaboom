@@ -50,4 +50,4 @@ for (const [name, comment] of Object.values(uniqueKeys)) {
 
 str += "}\n";
 
-writeFileSync("../dist/global.d.ts", str);
+writeFileSync(path.resolve(__dirname, "../dist/global.d.ts"), str);
