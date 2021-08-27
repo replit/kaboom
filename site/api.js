@@ -14,34 +14,43 @@ const api = [
 		desc: "Starting a kaboom game",
 		entries: [
 			f("kaboom", "initialize canvas and kaboom context", `
-// quickly create a 640x480 canvas, returning a handle containing all kaboom functions
-const k = kaboom();
+// options
+kaboom({
+	// width of game
+	width: 640,
+	// height of game (if size not specified will default stretch to container)
+	height: 480,
+	// use custom canvas
+	canvas: document.getElementById("game"),
+	// background color (default is a checker board background)
+	clearColor: [0, 0, 1, 1],
+	// stretch content to container size
+	stretch: false,
+	// stretch content but keep aspect ratio and leaves black bars if necessary
+	letterbox: false,
+	// if pixel crisp (for sharp pixelated games)
+	crisp: true,
+	// debug mode
+	debug: false,
+	// pixel size (for pixelated games you might want smaller size with scale, have no effect if stretch or letterbox is on since they'll handle scale)
+	scale: 2,
+	plugins: [ asepritePlugin, ], // load plugins
+});
 
-// all kaboom functions are on this handle now
+// all kaboom functions are in global namespace by default
+add()
+action()
+vec2()
+
+// can use noGlobal flag to not export functions to global and use a ctx handle
+const k = kaboom({
+	noGlobal: true,
+});
+
 k.vec2();
 k.go();
 k.scene();
 k.add();
-
-// options
-kaboom({
-	width: 640, // width of canvas
-	height: 480, // height of canvas
-	canvas: document.getElementById("game"), // use custom canvas
-	scale: 2, // pixel size (for pixelated games you might want smaller size with scale)
-	clearColor: [0, 0, 1, 1], // background color (default is a checker board background)
-	fullscreen: true, // if fullscreen
-	crisp: true, // if pixel crisp (for sharp pixelated games)
-	debug: false, // debug mode
-	noGlobal: true, // don't import kaboom functions into global namespace and use the context handle returned
-	plugins: [ asepritePlugin, ], // load plugins
-});
-
-// with 'global' flag, all kaboom functions are in global namespace
-vec2();
-go();
-scene();
-add();
 
 // if "debug" is enabled, your game gets some special key bindings
 // - f1: toggle debug.inspect
