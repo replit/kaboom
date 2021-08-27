@@ -1,10 +1,10 @@
-const k = kaboom();
+kaboom();
 
 // load mark sprite
-k.loadMark();
+loadMark();
 
 // add to screen
-k.add([
-	k.sprite("mark"),
-	k.scale(10),
+add([
+	sprite("mark"),
+	scale(10),
 ]);

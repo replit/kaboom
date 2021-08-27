@@ -100,8 +100,6 @@ window.replit = {
 
 };
 
-// TODO: score board abstraction
-
 // replit db
 window.db = {
 
@@ -109,6 +107,7 @@ window.db = {
 		return fetch(`/db/${key}`)
 			.then((res) => res.json())
 			.then((val) => {
+				// set default value if empty
 				if (val == null && def !== undefined) {
 					return this.setData(key, def);
 				}
@@ -124,34 +123,6 @@ window.db = {
 			},
 			body: JSON.stringify(val),
 		}).then(() => Promise.resolve(val));
-	},
-
-	getUserData(key, def) {
-		if (!replit.authed()) {
-			return Promise.reject();
-		}
-		return this.getData(key, {})
-			.then((val) => {
-				if (val[replit.user.id] == null && def !== undefined) {
-					return this.setUserData(key, def);
-				}
-				return Promise.resolve(val[replit.user.id].data);
-			});
-	},
-
-	setUserData(key, val) {
-		if (!replit.authed()) {
-			return Promise.reject();
-		}
-		return this.getData(key, {})
-			.then((table) => {
-				table[replit.user.id] = {
-					user: replit.user,
-					data: val,
-				};
-				return this.setData(key, table)
-					.then(() => Promise.resolve(val));
-			});
 	},
 
 };

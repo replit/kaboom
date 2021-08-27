@@ -458,6 +458,9 @@ const k = kaboom({
 k.timePlusOne();
 // it also works with global flag
 timePlusOne();
+
+// or use plug() who have the same effect
+plug(testPlugin);
 					`),
 				]),
 			]),

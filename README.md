@@ -15,12 +15,12 @@ Lots of iteractive examples [here](https://kaboomjs.com/examples)
 <script type="module">
 
 // initialize kaboom context
-const k = kaboom();
+kaboom();
 
 // add a text of size 32 at position (100, 100)
-k.add([
-    k.text("oh hi", 32),
-    k.pos(100, 100),
+add([
+    text("oh hi", 32),
+    pos(100, 100),
 ]);
 
 </script>
@@ -32,21 +32,21 @@ Kaboom uses a powerful component system to compose game objects and behaviors.
 To make a flappy bird movement you only need a few lines
 ```js
 // init context
-const k = kaboom();
+kaboom();
 
 // load a default sprite "mark"
-k.loadMark();
+loadMark();
 
 // compose the player game object from multiple built-in components
-const birdy = k.add([
-    k.sprite("mark"),
-    k.pos(20, 20),
-    k.area(),
-    k.body(),
+const birdy = add([
+    sprite("mark"),
+    pos(20, 20),
+    area(),
+    body(),
 ]);
 
 // press space to jump (jump behavior is provided by "body" component)
-k.keyPress("space", () => birdy.jump());
+keyPress("space", () => birdy.jump());
 ```
 
 It's easy to make custom components to compose your game object behaviors:
@@ -135,22 +135,22 @@ keyPress("w", () => {
 If you don't feel like using kaboom's abstraction systems, can use kaboom like a p5.js or love2d with immediate mode APIs
 
 ```js
-const k = kaboom();
+kaboom();
 
 // runs every frame
-k.action(() => {
+action(() => {
     // checks if is pressed last frame only
-    if (k.keyIsPressed("space")) {
+    if (keyIsPressed("space")) {
         doSomeThing();
     }
 });
 
 // runs every frame after update
-k.render(() => {
+render(() => {
     // immediate drawing functions
-    k.drawSprite("birdy");
-    k.drawText("123abc");
-    k.drawRect(100, 300);
+    drawSprite("birdy");
+    drawText("123abc");
+    drawRect(100, 300);
 });
 ```
 
@@ -169,28 +169,6 @@ Latest release
 ```
 
 Also works with other CDNs like `jsdelivr` who works with NPM packages.
-
-When imported in the browser, the script will expose a global `kaboom` function to initialize a kaboom context, returning an object containing all the functions
-
-```js
-const k = kaboom();
-
-k.add();
-k.keyPress(...);
-k.scene(...);
-```
-
-You can also import all functions to the global namespace by giving a `global` flag
-
-```js
-kaboom({
-    global: true,
-});
-
-add();
-keyPress(...);
-scene(...);
-```
 
 Kaboom also provide ES module and commonJS module exports with `.mjs` and `.cjs`, e.g,
 

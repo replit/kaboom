@@ -251,7 +251,7 @@ type KaboomConf = {
 	logMax?: number,
 	connect?: string,
 	touchToMouse?: boolean,
-	global?: boolean,
+	noGlobal?: boolean,
 	plugins?: KaboomPlugin<any>[],
 }
 

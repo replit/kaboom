@@ -1,21 +1,21 @@
-const k = kaboom();
+kaboom();
 
 // load mark sprite
-k.loadMark();
+loadMark();
 
 // add to screen
-const player = k.add([
-	k.sprite("mark"),
-	k.pos(),
-	k.origin("center"),
+const player = add([
+	sprite("mark"),
+	pos(),
+	origin("center"),
 ]);
 
-let dest = k.vec2(0);
+let dest = vec2(0);
 
 player.action(() => {
 	player.moveTo(dest, 10);
 });
 
-k.mouseClick(() => {
-	dest = k.mousePos();
+mouseClick(() => {
+	dest = mousePos();
 });

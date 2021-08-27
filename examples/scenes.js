@@ -1,7 +1,6 @@
 // basic multi scene setup
 
 kaboom({
-	global: true,
 	fullscreen: true,
 	scale: 2,
 });

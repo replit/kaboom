@@ -1856,7 +1856,7 @@ function plug<T>(plugin: KaboomPlugin<T>): MergeObj<T> & KaboomCtx {
 	for (const k in funcs) {
 		// @ts-ignore
 		ctx[k] = funcs[k];
-		if (gconf.global) {
+		if (!gconf.noGlobal) {
 			// @ts-ignore
 			window[k] = funcs[k];
 		}
@@ -2011,7 +2011,7 @@ if (gconf.plugins) {
 	gconf.plugins.forEach(plug);
 }
 
-if (gconf.global) {
+if (!gconf.noGlobal) {
 	for (const k in ctx) {
 		window[k] = ctx[k];
 	}

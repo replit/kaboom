@@ -1,7 +1,6 @@
 // simple rpg style walk and talk
 
 kaboom({
-	global: true,
 	fullscreen: true,
 	scale: 4,
 	clearColor: [0, 0, 0, 1],

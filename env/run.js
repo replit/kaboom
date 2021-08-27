@@ -25,34 +25,6 @@ function buildGame() {
 	let code = "";
 
 	code += `<script src="/dist/helper.js"></script>\n`;
-	code += "<script>\n";
-
-	// kaboom init
-	code += `
-kaboom({
-	...${JSON.stringify(conf)},
-	global: true,
-});\n`;
-
-	// assets loading
-	fs.readdirSync("sprites").forEach((file) => {
-		const ext = path.extname(file);
-		const name = JSON.stringify(path.basename(file, ext));
-		const pp = JSON.stringify(`/sprites/${file}`);
-		if (ext === ".pedit") {
-			code += `loadPedit(${name}, ${pp});\n`;
-		} else {
-			code += `loadSprite(${name}, ${pp});\n`;
-		}
-	});
-
-	fs.readdirSync("sounds").forEach((file) => {
-		const name = JSON.stringify(path.basename(file, path.extname(file)));
-		const pp = JSON.stringify(`/sounds/${file}`);
-		code += `loadSound(${name}, ${pp});\n`;
-	});
-
-	code += "</script>\n";
 
 	try {
 

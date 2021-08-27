@@ -1,5 +1,4 @@
 kaboom({
-	global: true,
 	width: 160,
 	height: 120,
 	scale: 4,

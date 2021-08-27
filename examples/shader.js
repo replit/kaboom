@@ -1,6 +1,5 @@
 // custom shader component
 kaboom({
-	global: true,
 	fullscreen: true,
 	scale: 2,
 });

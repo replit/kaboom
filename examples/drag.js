@@ -1,7 +1,6 @@
 // drag & drop interaction
 
 kaboom({
-	global: true,
 	fullscreen: true,
 	scale: 2,
 });

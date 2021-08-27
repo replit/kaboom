@@ -1,5 +1,4 @@
 kaboom({
-	global: true,
 	scale: 4,
 	fullscreen: true,
 	debug: true,
