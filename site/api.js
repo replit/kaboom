@@ -25,7 +25,6 @@ k.add();
 
 // options
 kaboom({
-	global: true, // import all kaboom functions to global namespace
 	width: 640, // width of canvas
 	height: 480, // height of canvas
 	canvas: document.getElementById("game"), // use custom canvas
@@ -34,6 +33,7 @@ kaboom({
 	fullscreen: true, // if fullscreen
 	crisp: true, // if pixel crisp (for sharp pixelated games)
 	debug: false, // debug mode
+	noGlobal: true, // don't import kaboom functions into global namespace and use the context handle returned
 	plugins: [ asepritePlugin, ], // load plugins
 });
 

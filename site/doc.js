@@ -310,12 +310,12 @@ const page = t("html", {}, [
 <script type="module">
 
 // initialize kaboom context
-const k = kaboom();
+kaboom();
 
 // add a text of size 32 at position (100, 100)
-k.add([
-	k.text("oh hi", 32),
-	k.pos(100, 100),
+add([
+	text("oh hi", 32),
+	pos(100, 100),
 ]);
 
 </script>
@@ -449,14 +449,11 @@ function testPlugin(k) {
 	};
 }
 
-const k = kaboom({
-	global: true,
+kaboom({
 	plugins: [ testPlugin, ],
 });
 
-// it gets assigned to the kaboom context handle
-k.timePlusOne();
-// it also works with global flag
+// use it like a kaboom function
 timePlusOne();
 
 // or use plug() who have the same effect
