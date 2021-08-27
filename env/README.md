@@ -85,7 +85,6 @@ kaboom();
 
 // load assets
 loadSprite("bean", "sprites/bean.png");
-loadSound("horse", "sounds/horse.mp3");
 
 scene("game", () => {
 
@@ -157,6 +156,7 @@ scene("game", () => {
 	player.collides("tree", () => {
 		// go to "lose" scene and pass the score
 		go("lose", score);
+		burp();
 	});
 
 	// keep track of score

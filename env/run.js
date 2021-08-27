@@ -74,7 +74,7 @@ function buildGame() {
 app.use(express.json({ strict: false }));
 
 app.get("/", (req, res) => {
-	reset();
+	err = null;
 	buildGame();
 	res.sendFile(__dirname + "/dist/index.html");
 	render();
@@ -149,61 +149,15 @@ if (conf.liveReload) {
 server.listen(port);
 
 // term output
-let numO = 2;
-let curO = null;
-let anim = null;
-let anim2 = null;
-const MAX_O = 32;
-const INC_SPEED = 16000;
-const ROLL_SPEED_MIN = 200;
-const ROLL_SPEED_MAX = 50;
-
-function reset() {
-	clearTimeout(anim);
-	clearTimeout(anim2);
-	curO = null;
-	err = null;
-	anim = setTimeout(next, INC_SPEED);
-	process.stdout.write("\x1b[2J");
-}
-
-function next() {
-	curO = 0;
-	render();
-	anim2 = setTimeout(roll, ROLL_SPEED_MIN);
-}
-
-function roll() {
-	curO += 1;
-	if (curO >= numO) {
-		if (numO < MAX_O) {
-			numO += 1;
-		}
-		curO = null;
-		clearInterval(anim2);
-		anim = setTimeout(next, INC_SPEED);
-	} else {
-		anim2 = setTimeout(roll, map(curO, 0, numO, ROLL_SPEED_MIN, ROLL_SPEED_MAX));
-	}
-	render();
-}
-
-const map = (v, a1, b1, a2, b2) => a2 + (v - a1) / (b1 - a1) * (b2 - a2);
 const red = (msg) => `\x1b[31m${msg}\x1b[0m`;
-const yellow = (msg) => `\x1b[33m${msg}\x1b[0m`;
 const dim = (msg) => `\x1b[2m${msg}\x1b[0m`;
 
 function render() {
 
 	// kaboooooom!
+	process.stdout.write("\x1b[2J");
 	process.stdout.write("\x1b[H");
-	process.stdout.write("kab");
-
-	for (let i = 0; i < numO; i++) {
-		process.stdout.write(i === curO ? "O" : "o");
-	}
-
-	process.stdout.write("m!\n");
+	process.stdout.write("kaboom!\n");
 
 	if (!conf.liveReload) {
 		console.log(dim("\n(tip: try use the webview refresh button instead of header run button to view change)"));
