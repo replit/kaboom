@@ -2,15 +2,14 @@
 kaboom();
 
 // load assets
-loadSprite("mark", "sprites/mark.png");
+loadSprite("bean", "sprites/bean.png");
 loadSound("horse", "sounds/horse.mp3");
 
 // add a game object to screen
 add([
 	// list of components
-	sprite("mark"),
+	sprite("bean"),
 	pos(80, 40),
-	scale(3),
 	area(),
 ]);
 
