@@ -2,7 +2,6 @@ declare function kaboom(conf?: KaboomConf): KaboomCtx;
 
 type KaboomCtx = {
 	burp(conf?: AudioPlayConf): AudioPlay,
-	// assets
 	/**
 	 * sets the root for all subsequent resource urls
 	 */
@@ -45,7 +44,6 @@ type KaboomCtx = {
 	 * add a new loader to wait for before starting the game
 	 */
 	load<T>(l: Promise<T>): void,
-	// game
 	/**
 	 * get the width of game
 	 */
@@ -86,9 +84,8 @@ type KaboomCtx = {
 	 * is currently on a touch screen device
 	 */
 	isTouch(): boolean,
-	// scene / obj
 	/**
-	 * assembles a game obj from list of components or tags and put it on screen
+	 * assembles a game obj from list of components or tags and add it to scene
 	 */
 	add<T extends Comp>(comps: ReadonlyArray<T | Tag | CustomData>): GameObj<T>,
 	/**
@@ -182,7 +179,6 @@ type KaboomCtx = {
 	 * get / set gravity
 	 */
 	gravity(g: number): number,
-	// comps
 	/**
 	 * (comp) position
 	 */
@@ -250,7 +246,6 @@ type KaboomCtx = {
 	 * (comp) custom shader
 	 */
 	shader(id: string): ShaderComp,
-	// inputs
 	/**
 	 * get / set the cursor (css)
 	 */
@@ -343,7 +338,6 @@ type KaboomCtx = {
 	 * if mouse moved last frame
 	 */
 	mouseIsMoved(): boolean,
-	// timers
 	/**
 	 * run the callback every n seconds
 	 */
@@ -352,7 +346,6 @@ type KaboomCtx = {
 	 * run the callback after n seconds
 	 */
 	wait(t: number, cb?: () => void): Promise<void>,
-	// audio
 	/**
 	 * play a piece of audio, returns a handle to control
 	 */
@@ -365,7 +358,6 @@ type KaboomCtx = {
 	 * get the underlying browser AudioContext
 	 */
 	audioCtx(): AudioContext,
-	// math
 	/**
 	 * make a new random number generator
 	 */
@@ -440,7 +432,6 @@ type KaboomCtx = {
 	 * convert radians to degrees
 	 */
 	rad2deg(rad: number): number,
-	// draw
 	drawSprite(id: string | SpriteData, conf?: DrawSpriteConf): void,
 	// TODO: conf type
 	drawText(txt: string, conf?: {}): void,
@@ -448,10 +439,14 @@ type KaboomCtx = {
 	drawRectStroke(pos: Vec2, w: number, h: number, conf?: DrawRectStrokeConf): void,
 	drawLine(p1: Vec2, p2: Vec2, conf?: DrawLineConf): void,
 	drawTri(p1: Vec2, p2: Vec2, p3: Vec2, conf?: DrawTriConf): void,
-	// scene
+	/**
+	 * define a scene
+	 */
 	scene(id: SceneID, def: SceneDef): void,
+	/**
+	 * go to a scene, passing all rest args to scene callback
+	 */
 	go(id: SceneID, ...args): void,
-	// storage
 	/**
 	 * get data from local storage, if not present can set to a default value
 	 */
@@ -460,17 +455,26 @@ type KaboomCtx = {
 	 * set data from local storage
 	 */
 	setData(key: string, data: any): void,
-	// plugin
+	/**
+	 * use a plugin
+	 */
 	plug<T>(plugin: KaboomPlugin<T>): MergeObj<T> & KaboomCtx,
-	// dbg
+	/**
+	 * debug stuff
+	 */
 	debug: Debug,
-	// char sets
+	/**
+	 * all chars in ascii
+	 */
 	ASCII_CHARS: string,
+	/**
+	 * all chars in cp437
+	 */
 	CP437_CHARS: string,
-	// dom
+	/**
+	 * the canvas DOM kaboom is currently using
+	 */
 	canvas: HTMLCanvasElement,
-	// TODO: remove
-	// custom plugins
 	[custom: string]: any;
 }
 
@@ -1037,8 +1041,17 @@ interface AreaComp extends Comp {
 
 type SpriteCompConf = {
 	quad?: Quad,
+	/**
+	 * initial frame
+	 */
 	frame?: number,
+	/**
+	 * how much time each frame should stay
+	 */
 	animSpeed?: number,
+	/**
+	 * if provided width and height, don't stretch but instead render tiled
+	 */
 	tiled?: boolean,
 	/**
 	 * stretch sprite to a certain width
@@ -1048,7 +1061,13 @@ type SpriteCompConf = {
 	 * stretch sprite to a certain height
 	 */
 	height?: number,
+	/**
+	 * flip texture horizontally
+	 */
 	flipX?: boolean,
+	/**
+	 * flip texture vertically
+	 */
 	flipY?: boolean,
 }
 
@@ -1133,8 +1152,13 @@ interface TextComp extends Comp {
 }
 
 type TextCompConf = {
-	area?: boolean,
+	/**
+	 * the font to use
+	 */
 	font?: string,
+	/**
+	 * wrap text to a certain width
+	 */
 	width?: number,
 }
 
@@ -1164,6 +1188,9 @@ type Debug = {
 	drawCalls(): number,
 	stepFrame(): void,
 	clearLog(): void,
+	/**
+	 * log some text to screen
+	 */
 	log(msg: string): void,
 	error(msg: string): void,
 }
@@ -1206,7 +1233,13 @@ interface BodyComp extends Comp {
 }
 
 type BodyCompConf = {
+	/**
+	 * initial speed in pixels per second for jump()
+	 */
 	jumpForce?: number,
+	/**
+	 * maximum velocity when falling
+	 */
 	maxVel?: number,
 }
 
