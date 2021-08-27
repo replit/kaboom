@@ -1,7 +1,6 @@
 // tiled sprite
 
 kaboom({
-	fullscreen: true,
 	scale: 2,
 });
 

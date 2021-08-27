@@ -1,8 +1,6 @@
 // bench marking sprite rendering performance
 
 const k = kaboom({
-	noGlobal: true,
-	fullscreen: true,
 	scale: 2,
 });
 

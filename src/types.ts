@@ -226,21 +226,14 @@ type SceneID = string;
 type SceneDef = (...args) => void;
 type TouchID = number;
 
-// TODO: enum
-type ScaleMode =
-	"stretch"
-	| "letterbox"
-	| "none"
-	;
-
 type EventCanceller = () => void;
 
 type KaboomConf = {
 	width?: number,
 	height?: number,
 	scale?: number,
-	scaleMode?: ScaleMode,
-	fullscreen?: boolean,
+	stretch?: boolean,
+	letterbox?: boolean,
 	debug?: boolean,
 	crisp?: boolean,
 	canvas?: HTMLCanvasElement,

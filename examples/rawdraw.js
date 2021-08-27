@@ -1,7 +1,6 @@
 // kaboom as pure rendering lib (no component / game obj etc.)
 
 kaboom({
-	fullscreen: true,
 	scale: 2,
 });
 

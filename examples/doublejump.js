@@ -1,6 +1,5 @@
 kaboom({
 	scale: 4,
-	fullscreen: true,
 	debug: true,
 });
 

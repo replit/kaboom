@@ -13,8 +13,8 @@ type ButtonState =
 type AppConf = {
 	width?: number,
 	height?: number,
+	stretch?: boolean,
 	scale?: number,
-	fullscreen?: boolean,
 	crisp?: boolean,
 	canvas?: HTMLCanvasElement,
 	root?: HTMLElement,
@@ -82,10 +82,12 @@ function processBtnState(s: ButtonState): ButtonState {
 
 function appInit(gconf: AppConf = {}): App {
 
+    const root = gconf.root ?? document.body;
+
 	const app: AppCtx = {
 		canvas: gconf.canvas ?? (() => {
 			const canvas = document.createElement("canvas");
-			(gconf.root ?? document.body).appendChild(canvas);
+			root.appendChild(canvas);
 			return canvas;
 		})(),
 		keyStates: {},
@@ -135,12 +137,12 @@ function appInit(gconf: AppConf = {}): App {
 		"f11",
 	];
 
-	if (gconf.fullscreen) {
-		app.canvas.width = window.innerWidth;
-		app.canvas.height = window.innerHeight;
-	} else {
+	if (gconf.width && gconf.height && !gconf.stretch) {
 		app.canvas.width = gconf.width * app.scale;
 		app.canvas.height = gconf.height * app.scale;
+	} else {
+		app.canvas.width = root.offsetWidth;
+		app.canvas.height = root.offsetHeight;
 	}
 
 	const styles = [

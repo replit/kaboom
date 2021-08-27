@@ -1,7 +1,6 @@
 // simple UI
 
 kaboom({
-	fullscreen: true,
 	scale: 2,
 });
 

@@ -1,7 +1,6 @@
 // TODO: document
 
 kaboom({
-	fullscreen: true,
 	clearColor: [0, 0, 0, 1],
 	scale: 4,
 	debug: true,

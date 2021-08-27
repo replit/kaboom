@@ -1,6 +1,5 @@
 // initialize context
 kaboom({
-	fullscreen: true,
 	scale: 2,
 });
 

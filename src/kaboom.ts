@@ -78,44 +78,42 @@ class IDList<T> extends Map<number, T> {
 	}
 }
 
-const DEF_WIDTH = 640;
-const DEF_HEIGHT = 480;
-
 // @ts-ignore
 module.exports = (gconf: KaboomConf = {
-	width: DEF_WIDTH,
-	height: DEF_HEIGHT,
+	width: null,
+	height: null,
 	scale: 1,
-	fullscreen: false,
 	debug: false,
 	crisp: false,
 	canvas: null,
 	connect: null,
 	logMax: 8,
 	root: document.body,
+	touchToMouse: true,
 }): KaboomCtx => {
 
 const audio = audioInit();
 
 const app = appInit({
-	width: gconf.width || DEF_WIDTH,
-	height: gconf.height || DEF_HEIGHT,
+	width: gconf.width,
+	height: gconf.height,
 	scale: gconf.scale,
-	fullscreen: gconf.fullscreen,
 	crisp: gconf.crisp,
 	canvas: gconf.canvas,
 	root: gconf.root,
+	stretch: gconf.stretch,
 	touchToMouse: gconf.touchToMouse ?? true,
 	audioCtx: audio.ctx(),
 });
 
 const gfx = gfxInit(app.gl, {
 	clearColor: gconf.clearColor ? rgba(gconf.clearColor) : undefined,
-	width: gconf.width || DEF_WIDTH,
-	height: gconf.height || DEF_HEIGHT,
+	width: gconf.width,
+	height: gconf.height,
 	scale: gconf.scale,
-	scaleMode: gconf.scaleMode ?? "none",
 	texFilter: gconf.texFilter,
+	stretch: gconf.stretch,
+	letterbox: gconf.letterbox,
 });
 
 const assets = assetsInit(gfx, audio, {

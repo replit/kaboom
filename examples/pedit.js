@@ -1,7 +1,6 @@
 // load pedit file
 
 kaboom({
-	fullscreen: true,
 	debug: true,
 });
 
