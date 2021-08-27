@@ -208,7 +208,7 @@ type KaboomCtx = {
 	color(c: Color): ColorComp,
 	color(): ColorComp,
 	/**
-	 * (comp) render origin (default "topleft")
+	 * (comp) origin point for render (default "topleft")
 	 */
 	origin(o: Origin | Vec2): OriginComp,
 	/**
@@ -485,19 +485,58 @@ type MergeObj<T> = Expand<UnionToIntersection<Defined<T>>>;
 type MergeComps<T> = Omit<MergeObj<T>, keyof Comp>;
 
 interface GameObjRaw {
+	/**
+	 * internal id
+	 */
 	_id: number | null,
+	/**
+	 * if draw the game obj (run "draw" event or not)
+	 */
 	hidden: boolean;
+	/**
+	 * if update the game obj (run "update" event or not)
+	 */
 	paused: boolean;
+	/**
+	 * if game obj exists in scene
+	 */
 	exists(): boolean;
+	/**
+	 * if there a certain tag on the game obj
+	 */
 	is(tag: Tag | Tag[]): boolean;
-	use(comp: Comp);
+	/**
+	 * add a component or tag
+	 */
+	use(comp: Comp | Tag);
+	/**
+	 * remove a component with its id
+	 */
 	unuse(comp: CompID);
+	/**
+	 * run something every frame for this game obj (sugar for on("update"))
+	 */
 	action(cb: () => void): EventCanceller;
+	/**
+	 * registers an event
+	 */
 	on(ev: string, cb: () => void): EventCanceller;
+	/**
+	 * triggers an event
+	 */
 	trigger(ev: string, ...args);
+	/**
+	 * removes a tag
+	 */
 	untag(t: Tag);
+	/**
+	 * remove the game obj from scene
+	 */
 	destroy();
-	c(id: string): Comp;
+	/**
+	 * get state for a specific comp
+	 */
+	c(id: CompID): Comp;
 }
 
 type GameObj<T> = GameObjRaw & MergeComps<T>;
@@ -821,13 +860,37 @@ type ClientID = number;
 type MsgHandler = (id: ClientID, data: any) => void;
 
 interface Comp {
+	/**
+	 * id for comp (if left out won't be treated as a comp)
+	 */
 	id?: CompID;
+	/**
+	 * what other comps this comp depends on
+	 */
 	require?: CompID[];
+	/**
+	 * event that runs when host game obj is added to scene
+	 */
 	add?: AddEvent;
+	/**
+	 * event that runs when host game obj is added to scene and game is loaded
+	 */
 	load?: LoadEvent;
+	/**
+	 * event that runs every frame
+	 */
 	update?: UpdateEvent;
+	/**
+	 * event that runs every frame
+	 */
 	draw?: DrawEvent;
+	/**
+	 * event that runs when obj is removed from scene
+	 */
 	destroy?: DestroyEvent;
+	/**
+	 * debug info for inspect mode
+	 */
 	inspect?: InspectEvent;
 }
 
@@ -846,9 +909,18 @@ type PosCompInspect = {
 
 interface PosComp extends Comp {
 	pos: Vec2;
+	/**
+	 * move how many pixels per second
+	 */
 	move(xVel: number, yVel: number);
 	move(vel: Vec2);
+	/**
+	 * move to a spot with a speed (pixels per second), teleports if speed is left out
+	 */
 	moveTo(dest: Vec2, speed?: number);
+	/**
+	 * get position on screen after camera transform
+	 */
 	screenPos(): Vec2;
 }
 
@@ -857,6 +929,9 @@ interface ScaleComp extends Comp {
 }
 
 interface RotateComp extends Comp {
+	/**
+	 * angle in radians
+	 */
 	angle: number;
 }
 
@@ -865,6 +940,9 @@ interface ColorComp extends Comp {
 }
 
 interface OriginComp extends Comp {
+	/**
+	 * origin point for render
+	 */
 	origin: Origin | Vec2;
 }
 
@@ -873,6 +951,9 @@ type LayerCompInspect = {
 }
 
 interface LayerComp extends Comp {
+	/**
+	 * which layer this game obj belongs to
+	 */
 	layer: string;
 }
 
@@ -890,21 +971,66 @@ type PushOut = {
 }
 
 interface AreaComp extends Comp {
+	/**
+	 * rectangular collider area
+	 */
 	area: Rect;
+	/**
+	 * get the width of collider area
+	 */
 	areaWidth(): number,
+	/**
+	 * get the height of collider area
+	 */
 	areaHeight(): number,
+	/**
+	 * if was just clicked on last frame
+	 */
 	isClicked(): boolean,
+	/**
+	 * if is being hovered on
+	 */
 	isHovered(): boolean,
+	/**
+	 * if is currently colliding with another game obj
+	 */
 	isCollided(o: GameObj<any>): boolean,
+	/**
+	 * if is currently overlapping with another game obj
+	 */
 	isOverlapped(o: GameObj<any>): boolean,
+	/**
+	 * registers an event runs when clicked
+	 */
 	clicks(f: () => void): void,
+	/**
+	 * registers an event runs when hovered
+	 */
 	hovers(f: () => void): void,
-	collides(tag: string, f: (o: GameObj<any>) => void): void,
-	overlaps(tag: string, f: (o: GameObj<any>) => void): void,
+	/**
+	 * registers an event runs when collides with another game obj with certain tag
+	 */
+	collides(tag: Tag, f: (o: GameObj<any>) => void): void,
+	/**
+	 * registers an event runs when overlaps with another game obj with certain tag
+	 */
+	overlaps(tag: Tag, f: (o: GameObj<any>) => void): void,
+	/**
+	 * if has a certain point inside collider
+	 */
 	hasPt(p: Vec2): boolean,
+	/**
+	 * push out from another solid game obj if currently overlapping
+	 */
 	pushOut(obj: GameObj<any>): PushOut | null,
+	/**
+	 * push out from all other solid game objs if currently overlapping
+	 */
 	pushOutAll(): PushOut[],
-	_worldArea(): Rect;
+	/**
+	 * get the geometry data for the collider in world coordinate space
+	 */
+	worldArea(): Rect;
 	_checkCollisions(tag: string, f: (obj: GameObj<any>) => void): void;
 	_checkOverlaps(tag: string, f: (obj: GameObj<any>) => void): void;
 }
@@ -914,7 +1040,13 @@ type SpriteCompConf = {
 	frame?: number,
 	animSpeed?: number,
 	tiled?: boolean,
+	/**
+	 * stretch sprite to a certain width
+	 */
 	width?: number,
+	/**
+	 * stretch sprite to a certain height
+	 */
 	height?: number,
 	flipX?: boolean,
 	flipY?: boolean,
@@ -927,16 +1059,49 @@ type SpriteCurAnim = {
 }
 
 interface SpriteComp extends Comp {
+	/**
+	 * width for sprite
+	 */
 	width: number;
+	/**
+	 * height for sprite
+	 */
 	height: number;
+	/**
+	 * how much time each frame should stay
+	 */
 	animSpeed: number;
+	/**
+	 * the current frame
+	 */
 	frame: number;
+	/**
+	 * the rectangular area to render
+	 */
 	quad: Quad;
+	/**
+	 * play a piece of anim
+	 */
 	play(anim: string, loop?: boolean);
+	/**
+	 * stop current anim
+	 */
 	stop();
+	/**
+	 * get total number of frames
+	 */
 	numFrames(): number;
+	/**
+	 * get current anim name
+	 */
 	curAnim(): string;
+	/**
+	 * flip texture horizontally
+	 */
 	flipX(b: boolean);
+	/**
+	 * flip texture vertically
+	 */
 	flipY(b: boolean);
 }
 
@@ -945,10 +1110,25 @@ type SpriteCompInspect = {
 }
 
 interface TextComp extends Comp {
+	/**
+	 * the text to render
+	 */
 	text: string;
+	/**
+	 * the text size
+	 */
 	textSize: number;
+	/**
+	 * the font to use
+	 */
 	font: string;
+	/**
+	 * width of text
+	 */
 	width: number;
+	/**
+	 * height of text
+	 */
 	height: number;
 }
 
@@ -959,7 +1139,13 @@ type TextCompConf = {
 }
 
 interface RectComp extends Comp {
+	/**
+	 * width of rect
+	 */
 	width: number;
+	/**
+	 * height of height
+	 */
 	height: number;
 }
 
@@ -997,10 +1183,25 @@ interface ShaderComp extends Comp {
 }
 
 interface BodyComp extends Comp {
+	/**
+	 * initial speed in pixels per second for jump()
+	 */
 	jumpForce: number;
+	/**
+	 * current platform landing on
+	 */
 	curPlatform(): GameObj<any> | null;
+	/**
+	 * if currently landing on a platform
+	 */
 	grounded(): boolean;
+	/**
+	 * if currently falling
+	 */
 	falling(): boolean;
+	/**
+	 * upwards thrust
+	 */
 	jump(f?: number);
 }
 

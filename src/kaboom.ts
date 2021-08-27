@@ -988,7 +988,7 @@ function drawInspect() {
 			}
 
 			const lwidth = (inspecting === obj ? 6 : 2) / scale;
-			const a = obj._worldArea();
+			const a = obj.worldArea();
 			const w = a.p2.x - a.p1.x;
 			const h = a.p2.y - a.p1.y;
 
@@ -1159,12 +1159,12 @@ function area(p1?: Vec2 | number, p2?: Vec2 | number): AreaComp {
 		},
 
 		areaWidth(): number {
-			const { p1, p2 } = this._worldArea();
+			const { p1, p2 } = this.worldArea();
 			return p2.x - p1.x;
 		},
 
 		areaHeight(): number {
-			const { p1, p2 } = this._worldArea();
+			const { p1, p2 } = this.worldArea();
 			return p2.y - p1.y;
 		},
 
@@ -1190,8 +1190,8 @@ function area(p1?: Vec2 | number, p2?: Vec2 | number): AreaComp {
 				return false;
 			}
 
-			const a1 = this._worldArea();
-			const a2 = other._worldArea();
+			const a1 = this.worldArea();
+			const a2 = other.worldArea();
 
 			return colRectRect(a1, a2);
 
@@ -1207,8 +1207,8 @@ function area(p1?: Vec2 | number, p2?: Vec2 | number): AreaComp {
 				return false;
 			}
 
-			const a1 = this._worldArea();
-			const a2 = other._worldArea();
+			const a1 = this.worldArea();
+			const a2 = other.worldArea();
 
 			return overlapRectRect(a1, a2);
 
@@ -1243,7 +1243,7 @@ function area(p1?: Vec2 | number, p2?: Vec2 | number): AreaComp {
 		},
 
 		hasPt(pt: Vec2): boolean {
-			const a = this._worldArea();
+			const a = this.worldArea();
 			return colRectPt({
 				p1: a.p1,
 				p2: a.p2,
@@ -1266,8 +1266,8 @@ function area(p1?: Vec2 | number, p2?: Vec2 | number): AreaComp {
 				return null;
 			}
 
-			const a1 = this._worldArea();
-			const a2 = obj._worldArea();
+			const a1 = this.worldArea();
+			const a2 = obj.worldArea();
 
 			if (!colRectRect(a1, a2)) {
 				return null;
@@ -1371,7 +1371,7 @@ function area(p1?: Vec2 | number, p2?: Vec2 | number): AreaComp {
 
 		// TODO: cache
 		// TODO: use matrix mult for more accuracy and rotation?
-		_worldArea(): Rect {
+		worldArea(): Rect {
 
 			const a = {
 				p1: this.area.p1,
@@ -1667,7 +1667,7 @@ function outline(width: number = 1, color: Color = rgb(0, 0, 0)): OutlineComp {
 
 			} else if (this.area) {
 
-				const a = this._worldArea();
+				const a = this.worldArea();
 				const w = a.p2.x - a.p1.x;
 				const h = a.p2.y - a.p1.y;
 
