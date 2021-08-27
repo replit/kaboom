@@ -99,6 +99,7 @@ type KaboomCtx = {
 	sprite(id: string, conf?: SpriteCompConf): SpriteComp,
 	text(t: string, size?: number, conf?: TextCompConf): TextComp,
 	rect(w: number, h: number): RectComp,
+	outline(color?: Color, width?: number): OutlineComp,
 	solid(): SolidComp,
 	body(conf?: BodyCompConf): BodyComp,
 	shader(id: string): ShaderComp,
@@ -681,6 +682,11 @@ type TextCompConf = {
 interface RectComp extends Comp {
 	width: number;
 	height: number;
+}
+
+interface OutlineComp extends Comp {
+	lineWidth: number;
+	lineColor: Color;
 }
 
 type Debug = {

@@ -1644,6 +1644,46 @@ function rect(w: number, h: number): RectComp {
 	};
 }
 
+function outline(color: Color = rgb(0, 0, 0), width: number = 1): OutlineComp {
+
+	return {
+
+		id: "outline",
+		lineWidth: width,
+		lineColor: color,
+
+		draw() {
+
+			if (this.width && this.height) {
+
+				gfx.drawRectStroke(this.pos || vec2(0), this.width, this.height, {
+					width: this.lineWidth,
+					color: this.lineColor,
+					scale: this.scale,
+					origin: this.origin,
+					prog: assets.shaders[this.shader],
+					uniform: this.uniform,
+				});
+
+			} else if (this.area) {
+
+				const a = this._worldArea();
+				const w = a.p2.x - a.p1.x;
+				const h = a.p2.y - a.p1.y;
+
+				gfx.drawRectStroke(a.p1, w, h, {
+					width: width,
+					color: color,
+				});
+
+			}
+
+		},
+
+	};
+
+}
+
 function solid(): SolidComp {
 	return {
 		id: "solid",
@@ -1916,6 +1956,7 @@ const ctx: KaboomCtx = {
 	sprite,
 	text,
 	rect,
+	outline,
 	solid,
 	body,
 	shader,

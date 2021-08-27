@@ -1,5 +1,6 @@
 ### v0.8 burp() (unreleased)
 - added `burp()` for easy burping
+- added `outline()` comp to draw a lil outline
 - kaboom functions all now global by default, toggle off by `kaboom({ noGlobal: true })`
 - added input events `touchStart(id, pos)`, `touchMove(id, pos)`, `touchEnd(id, pos)`, `mouseMove(pos)`
 - added `mouseDeltaPos()`

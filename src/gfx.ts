@@ -709,6 +709,13 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 		conf: DrawRectStrokeConf = {}
 	) {
 
+		if (conf.scale) {
+			const scale = vec2(conf.scale);
+			w = w * scale.x;
+			h = h * scale.y;
+			conf.scale = 1;
+		}
+
 		const offset = originPt(conf.origin || DEF_ORIGIN).scale(vec2(w, h)).scale(0.5);
 		const p1 = pos.add(vec2(-w / 2, -h / 2)).sub(offset);
 		const p2 = pos.add(vec2(-w / 2,  h / 2)).sub(offset);
