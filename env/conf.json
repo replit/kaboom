@@ -1,9 +1,3 @@
 {
-	"fullscreen": true,
-	"width": 320,
-	"height": 240,
-	"scale": 2,
-	"debug": true,
-	"clearColor": null,
 	"liveReload": false
 }

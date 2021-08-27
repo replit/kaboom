@@ -3,153 +3,414 @@ declare function kaboom(conf?: KaboomConf): KaboomCtx;
 type KaboomCtx = {
 	burp(conf?: AudioPlayConf): AudioPlay,
 	// assets
+	/**
+	 * sets the root for all subsequent resource urls
+	 */
 	loadRoot(path?: string): string,
+	/**
+	 * load a sprite into asset manager, with name and resource url and optional config
+	 */
 	loadSprite(
 		id: string,
 		src: SpriteLoadSrc,
 		conf?: SpriteLoadConf,
 	): Promise<SpriteData>,
+	/**
+	 * load a sound into asset manager, with name and resource url
+	 */
 	loadSound(
 		id: string,
 		src: string,
 	): Promise<SoundData>,
+	/**
+	 * load a bitmap font into asset manager, with name and resource url and infomation on the layout of the bitmap
+	 */
 	loadFont(
 		id: string,
 		src: string,
-		gw: number,
-		gh: number,
+		gridWidth: number,
+		gridHeight: number,
 		chars?: string,
 	): Promise<FontData>,
+	/**
+	 * load a shader into asset manager with vertex and fragment code / file url
+	 */
 	loadShader(
 		name: string,
 		vert?: string,
 		frag?: string,
 		isUrl?: boolean,
 	): Promise<ShaderData>,
+	/**
+	 * add a new loader to wait for before starting the game
+	 */
 	load<T>(l: Promise<T>): void,
 	// game
+	/**
+	 * get the width of game
+	 */
 	width(): number,
+	/**
+	 * get the height of game
+	 */
 	height(): number,
+	/**
+	 * get the center point of view
+	 */
 	center(): Vec2,
+	/**
+	 * get the delta time since last frame
+	 */
 	dt(): number,
+	/**
+	 * get the total time since beginning
+	 */
 	time(): number,
+	/**
+	 * take a screenshot and get the dataurl of the image
+	 */
 	screenshot(): string,
+	/**
+	 * if the game canvas is currently focused
+	 */
 	focused(): boolean,
+	/**
+	 * focus on the game canvas
+	 */
 	focus(): void,
+	/**
+	 * run something when assets finished loading
+	 */
 	ready(cb: () => void): void,
+	/**
+	 * is currently on a touch screen device
+	 */
 	isTouch(): boolean,
 	// scene / obj
+	/**
+	 * assembles a game obj from list of components or tags and put it on screen
+	 */
 	add<T extends Comp>(comps: ReadonlyArray<T | Tag | CustomData>): GameObj<T>,
+	/**
+	 * remove and re-add the game obj
+	 */
 	readd(obj: GameObj<any>): GameObj<any>,
+	/**
+	 * remove the game obj
+	 */
 	destroy(obj: GameObj<any>): void,
-	destroyAll(tag: string): void,
-	get(tag?: string): GameObj<any>[],
-	every<T>(t: string, f: (obj: GameObj<any>) => T): T[],
-	every<T>(f: (obj: GameObj<any>) => T): T[],
-	revery<T>(t: string, f: (obj: GameObj<any>) => T): T[],
-	revery<T>(f: (obj: GameObj<any>) => T): T[],
+	/**
+	 * remove all game objs with certain tag
+	 */
+	destroyAll(tag: Tag): void,
+	/**
+	 * get a list of all game objs with certain tag
+	 */
+	get(tag?: Tag): GameObj<any>[],
+	/**
+	 * run callback on every game obj with certain tag
+	 */
+	every<T>(t: Tag, cb: (obj: GameObj<any>) => T): T[],
+	every<T>(cb: (obj: GameObj<any>) => T): T[],
+	/**
+	 * run callback on every game obj with certain tag in reverse order
+	 */
+	revery<T>(t: Tag, cb: (obj: GameObj<any>) => T): T[],
+	revery<T>(cb: (obj: GameObj<any>) => T): T[],
+	/**
+	 * define layers (the last one will be on top)
+	 */
 	layers(list: string[], def?: string): void,
+	/**
+	 * register an event on all game objs with certain tag
+	 */
 	on(event: string, tag: string, cb: (obj: GameObj<any>) => void): EventCanceller,
+	/**
+	 * register "update" event (runs every frame) on all game objs with certain tag
+	 */
 	action(tag: string, cb: (obj: GameObj<any>) => void): EventCanceller,
 	action(cb: () => void): EventCanceller,
+	/**
+	 * register "draw" event (runs every frame) on all game objs with certain tag
+	 */
 	render(tag: string, cb: (obj: GameObj<any>) => void): EventCanceller,
 	render(cb: () => void): EventCanceller,
+	/**
+	 * register event when 2 game objs with certain tags collides
+	 */
 	collides(
 		t1: string,
 		t2: string,
-		f: (a: GameObj<any>, b: GameObj<any>) => void,
+		cb: (a: GameObj<any>, b: GameObj<any>) => void,
 	): EventCanceller,
+	/**
+	 * register event when 2 game objs with certain tags overlaps
+	 */
 	overlaps(
 		t1: string,
 		t2: string,
-		f: (a: GameObj<any>, b: GameObj<any>) => void,
+		cb: (a: GameObj<any>, b: GameObj<any>) => void,
 	): EventCanceller,
+	/**
+	 * register event when game objs with certain tags are clicked
+	 */
 	clicks(
 		tag: string,
-		f: (a: GameObj<any>) => void,
+		cb: (a: GameObj<any>) => void,
 	): EventCanceller,
-	camPos(p: Vec2): Vec2,
-	camScale(p: Vec2): Vec2,
-	camRot(a: number): number,
+	/**
+	 * get / set camera position
+	 */
+	camPos(pos: Vec2): Vec2,
+	/**
+	 * get / set camera scale
+	 */
+	camScale(scale: Vec2): Vec2,
+	/**
+	 * get / set camera rotation
+	 */
+	camRot(angle: number): number,
+	/**
+	 * tell camera to ignore certain layers
+	 */
 	camIgnore(layers: string[]): void,
-	shake(n: number): void,
+	/**
+	 * camera shake
+	 */
+	shake(intensity: number): void,
+	/**
+	 * get / set gravity
+	 */
 	gravity(g: number): number,
-	// net
-	recv(ty: string, handler: MsgHandler): void,
-	send(ty: string, data: any): void,
 	// comps
+	/**
+	 * (comp) position
+	 */
 	pos(x: number, y: number): PosComp,
 	pos(xy: number): PosComp,
 	pos(p: Vec2): PosComp,
 	pos(): PosComp,
+	/**
+	 * (comp) scale
+	 */
 	scale(x: number, y: number): ScaleComp,
 	scale(xy: number): ScaleComp,
-	scale(p: Vec2): ScaleComp,
+	scale(s: Vec2): ScaleComp,
 	scale(): ScaleComp,
+	/**
+	 * (comp) rotate (in radians)
+	 */
 	rotate(a: number): RotateComp,
+	/**
+	 * (comp) custom color (in 0-1 rgba)
+	 */
 	color(r: number, g: number, b: number, a?: number): ColorComp,
 	color(c: Color): ColorComp,
 	color(): ColorComp,
+	/**
+	 * (comp) render origin (default "topleft")
+	 */
 	origin(o: Origin | Vec2): OriginComp,
+	/**
+	 * (comp) which layer this object belongs to
+	 */
 	layer(l: string): LayerComp,
+	/**
+	 * (comp) collider
+	 */
 	area(): AreaComp,
 	area(scale: number): AreaComp,
 	area(sx: number, sy: number): AreaComp,
 	area(p1: Vec2, p2: Vec2): AreaComp,
+	/**
+	 * (comp) renders as sprite
+	 */
 	sprite(id: string, conf?: SpriteCompConf): SpriteComp,
+	/**
+	 * (comp) renders as text
+	 */
 	text(t: string, size?: number, conf?: TextCompConf): TextComp,
+	/**
+	 * (comp) renders as rect
+	 */
 	rect(w: number, h: number): RectComp,
+	/**
+	 * (comp) give obj an outline
+	 */
 	outline(width?: number, color?: Color): OutlineComp,
+	/**
+	 * (comp) make other objects cannot move pass
+	 */
 	solid(): SolidComp,
+	/**
+	 * (comp) physical body that responds to gravity
+	 */
 	body(conf?: BodyCompConf): BodyComp,
+	/**
+	 * (comp) custom shader
+	 */
 	shader(id: string): ShaderComp,
 	// inputs
+	/**
+	 * get / set the cursor (css)
+	 */
 	cursor(c?: string): void,
+	/**
+	 * get current mouse position (after camera transform, can pass a layer to see what's the mouse position on that layer)
+	 */
 	mousePos(layer?: string): Vec2,
+	/**
+	 * how much mouse moved last frame
+	 */
 	mouseDeltaPos(): Vec2,
-	keyDown(k: string, f: () => void): EventCanceller,
-	keyPress(k: string, f: () => void): EventCanceller,
-	keyPressRep(k: string, f: () => void): EventCanceller,
-	keyRelease(k: string, f: () => void): EventCanceller,
-	charInput(f: (ch: string) => void): EventCanceller,
-	mouseDown(f: (pos: Vec2) => void): EventCanceller,
-	mouseClick(f: (pos: Vec2) => void): EventCanceller,
-	mouseRelease(f: (pos: Vec2) => void): EventCanceller,
-	mouseMove(f: (pos: Vec2) => void): EventCanceller,
-	touchStart(f: (id: TouchID, pos: Vec2) => void): EventCanceller,
-	touchMove(f: (id: TouchID, pos: Vec2) => void): EventCanceller,
-	touchEnd(f: (id: TouchID, pos: Vec2) => void): EventCanceller,
+	/**
+	 * registers an event that runs every frame when a key is down
+	 */
+	keyDown(k: string, cb: () => void): EventCanceller,
+	/**
+	 * registers an event that runs when user presses certain key
+	 */
+	keyPress(k: string, cb: () => void): EventCanceller,
+	/**
+	 * registers an event that runs when user presses certain key (also fires repeatedly when they key is held)
+	 */
+	keyPressRep(k: string, cb: () => void): EventCanceller,
+	/**
+	 * registers an event that runs when user releases certain key
+	 */
+	keyRelease(k: string, cb: () => void): EventCanceller,
+	/**
+	 * registers an event that runs when user inputs text
+	 */
+	charInput(cb: (ch: string) => void): EventCanceller,
+	/**
+	 * registers an event that runs every frame when mouse button is down
+	 */
+	mouseDown(cb: (pos: Vec2) => void): EventCanceller,
+	/**
+	 * registers an event that runs when user clicks mouse
+	 */
+	mouseClick(cb: (pos: Vec2) => void): EventCanceller,
+	/**
+	 * registers an event that runs when user releases mouse
+	 */
+	mouseRelease(cb: (pos: Vec2) => void): EventCanceller,
+	/**
+	 * registers an event that runs whenever user move the mouse
+	 */
+	mouseMove(cb: (pos: Vec2) => void): EventCanceller,
+	/**
+	 * registers an event that runs when a touch starts
+	 */
+	touchStart(cb: (id: TouchID, pos: Vec2) => void): EventCanceller,
+	/**
+	 * registers an event that runs whenever touch moves
+	 */
+	touchMove(cb: (id: TouchID, pos: Vec2) => void): EventCanceller,
+	/**
+	 * registers an event that runs when a touch ends
+	 */
+	touchEnd(cb: (id: TouchID, pos: Vec2) => void): EventCanceller,
+	/**
+	 * if certain key is currently down
+	 */
 	keyIsDown(k: string): boolean,
+	/**
+	 * if certain key is just pressed last frame
+	 */
 	keyIsPressed(k: string): boolean,
+	/**
+	 * if certain key is just pressed last frame (accepts help down repeatedly)
+	 */
 	keyIsPressedRep(k: string): boolean,
+	/**
+	 * if certain key is just released last frame
+	 */
 	keyIsReleased(k: string): boolean,
+	/**
+	 * if certain mouse is currently down
+	 */
 	mouseIsDown(): boolean,
+	/**
+	 * if mouse is just clicked last frame
+	 */
 	mouseIsClicked(): boolean,
+	/**
+	 * if mouse is just released last frame
+	 */
 	mouseIsReleased(): boolean,
+	/**
+	 * if mouse moved last frame
+	 */
 	mouseIsMoved(): boolean,
 	// timers
-	loop(t: number, f: () => void): EventCanceller,
-	wait(t: number, f?: () => void): Promise<void>,
+	/**
+	 * run the callback every n seconds
+	 */
+	loop(t: number, cb: () => void): EventCanceller,
+	/**
+	 * run the callback after n seconds
+	 */
+	wait(t: number, cb?: () => void): Promise<void>,
 	// audio
+	/**
+	 * play a piece of audio, returns a handle to control
+	 */
 	play(id: string, conf?: AudioPlayConf): AudioPlay,
+	/**
+	 * sets global volume
+	 */
 	volume(v?: number): number,
+	/**
+	 * get the underlying browser AudioContext
+	 */
 	audioCtx(): AudioContext,
 	// math
+	/**
+	 * make a new random number generator
+	 */
 	makeRng(seed: number): RNG,
+	/**
+	 * get a random number (with optional bounds)
+	 */
 	rand(): number,
 	rand<T extends RNGValue>(n: T): T,
 	rand<T extends RNGValue>(a: T, b: T): T,
 	randSeed(seed: number): number,
+	/**
+	 * make a 2d vector
+	 */
 	vec2(x: number, y: number): Vec2,
 	vec2(p: Vec2): Vec2,
 	vec2(xy: number): Vec2,
 	vec2(): Vec2,
+	/**
+	 * make an opaque color from 0-1 rgb values
+	 */
 	rgb(r: number, g: number, b: number): Color,
+	/**
+	 * make a color from 0-1 rgba values
+	 */
 	rgba(r: number, g: number, b: number, a: number): Color,
+	/**
+	 * make a quad
+	 */
 	quad(x: number, y: number, w: number, h: number): Quad,
+	/**
+	 * choose a random item from a list
+	 */
 	choose<T>(lst: T[]): T,
+	/**
+	 * rand(1) <= p
+	 */
 	chance(p: number): boolean,
+	/**
+	 * linear interpolation
+	 */
 	lerp(from: number, to: number, t: number): number,
+	/**
+	 * map a value from one range to another range
+	 */
 	map(
 		v: number,
 		l1: number,
@@ -157,6 +418,9 @@ type KaboomCtx = {
 		l2: number,
 		h2: number,
 	): number,
+	/**
+	 * map a value from one range to another range, and clamp to the dest range
+	 */
 	mapc(
 		v: number,
 		l1: number,
@@ -164,8 +428,17 @@ type KaboomCtx = {
 		l2: number,
 		h2: number,
 	): number,
+	/**
+	 * sin() motion between 2 values
+	 */
 	wave(lo: number, hi: number, t: number): number,
+	/**
+	 * convert degrees to radians
+	 */
 	deg2rad(deg: number): number,
+	/**
+	 * convert radians to degrees
+	 */
 	rad2deg(rad: number): number,
 	// draw
 	drawSprite(id: string | SpriteData, conf?: DrawSpriteConf): void,
@@ -179,7 +452,13 @@ type KaboomCtx = {
 	scene(id: SceneID, def: SceneDef): void,
 	go(id: SceneID, ...args): void,
 	// storage
+	/**
+	 * get data from local storage, if not present can set to a default value
+	 */
 	getData<T>(key: string, def?: T): T,
+	/**
+	 * set data from local storage
+	 */
 	setData(key: string, data: any): void,
 	// plugin
 	plug<T>(plugin: KaboomPlugin<T>): MergeObj<T> & KaboomCtx,

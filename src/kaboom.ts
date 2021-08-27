@@ -1943,9 +1943,6 @@ const ctx: KaboomCtx = {
 	get,
 	every,
 	revery,
-	// net
-	send,
-	recv,
 	// comps
 	pos,
 	scale,
