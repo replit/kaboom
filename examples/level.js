@@ -1,32 +1,31 @@
 // initialize context
 kaboom({
-	scale: 2,
 	debug: true,
-	clearColor: [0, 0, 0, 1],
+	clearColor: [0.5, 1, 1, 1],
 // 	connect: "ws://localhost:7000",
 });
 
 // load assets
-loadRoot("/pub/examples/");
-loadAseprite("car", "img/car.png", "img/car.json");
-loadSprite("steel", "img/steel.png");
-loadSprite("grass", "img/grass.png");
-loadSprite("jumpy", "img/jumpy.png");
-loadSprite("spike", "img/spike.png");
-loadSprite("coin", "img/coin.png");
+loadSprite("car", "sprites/car.png");
+loadSprite("steel", "sprites/steel.png");
+loadSprite("grass", "sprites/grass.png");
+loadSprite("jumpy", "sprites/jumpy.png");
+loadSprite("spike", "sprites/spike.png");
+loadSprite("coin", "sprites/coin.png");
 loadSound("coin", "sounds/coin.mp3");
 
+const JUMP_FORCE = 1800;
+
+addSky();
+
 // set gravity
-gravity(980);
+gravity(4800);
 
 // "ui" layer will be rendered on top, with "game" being the default layer
 layers([
 	"game",
 	"ui",
 ], "game");
-
-// camera won't affect "ui" layer
-camIgnore([ "ui", ]);
 
 // add game objects using this layout
 const map = addLevel([
@@ -45,8 +44,8 @@ const map = addLevel([
 	"==========++===+=^====+++",
 ], {
 	// grid size will be 11x11
-	width: 11,
-	height: 11,
+	width: 64,
+	height: 64,
 	// the topleft position of the whole level
 	pos: vec2(0, 0),
 	// defining what each symbol means (what components they consists of)
@@ -96,11 +95,11 @@ const player = add([
 	// has scale
 	scale(1),
 	// has physical body that can fall and jump
-	body({ jumpForce: 320, }),
+	body(),
 	// sprite origin to center instead of top left
 	origin("center"),
 	// custom data
-	{ speed: 160, },
+	{ speed: 960, },
 ]);
 
 // center camera to player
@@ -111,7 +110,7 @@ player.action(() => {
 // trigger a big jump when player collide with a special tile
 // TODO: only jump when touch on bottom edge
 player.collides("jumpy", () => {
-	player.jump(player.jumpForce * 2);
+	player.jump(JUMP_FORCE * 2);
 });
 
 player.collides("hurt", () => {
@@ -128,19 +127,19 @@ player.collides("coin", (c) => {
 // binding some inputs
 keyPress("space", () => {
 	if (player.grounded()) {
-		player.jump(player.jumpForce);
+		player.jump(JUMP_FORCE);
 	}
 });
 
 keyDown(["left", "right"], () => {
 	if (player.grounded() && player.curAnim() !== "move") {
-		player.play("move");
+// 		player.play("move");
 	}
 });
 
 keyRelease(["left", "right"], () => {
 	if (!keyIsDown("right") && !keyIsDown("left")) {
-		player.play("idle");
+// 		player.play("idle");
 	}
 });
 
@@ -153,6 +152,8 @@ keyDown("right", () => {
 	player.flipX(false);
 	player.move(player.speed, 0);
 });
+
+camScale(0.5);
 
 keyDown("up", () => {
 	camScale(camScale().add(vec2(dt())));
@@ -167,7 +168,7 @@ function respawn() {
 }
 
 player.action(() => {
-	if (player.pos.y >= 320) {
+	if (player.pos.y >= 3200) {
 		respawn();
 	}
 });
@@ -177,5 +178,6 @@ const score = add([
 	text(0),
 	pos(12, 12),
 	layer("ui"),
+	fixed(),
 	{ value: 0, },
 ]);

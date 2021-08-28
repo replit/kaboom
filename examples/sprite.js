@@ -1,10 +1,10 @@
 kaboom();
 
-// load mark sprite
-loadMark();
+// load default sprite "bean"
+loadBean();
 
 // add to screen
 add([
-	sprite("mark"),
-	scale(10),
+	sprite("bean"),
+	pos(80, 40),
 ]);

@@ -37,6 +37,8 @@ const versions = utils.versions();
 
 server.fs("/pub", "pub");
 server.fs("/pub/examples", "../examples");
+server.fs("/sprites", "../sprites");
+server.fs("/sounds", "../sounds");
 server.fs("/lib", "lib");
 server.fs("/lib/latest", `lib/${versions.latest}`);
 server.fs("/lib/dev", "../dist");

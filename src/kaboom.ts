@@ -52,13 +52,14 @@ import {
 	netInit,
 } from "./net";
 
-import markPlugin from "./plugins/mark";
+import beanPlugin from "./plugins/bean";
 import peditPlugin from "./plugins/pedit";
 import asepritePlugin from "./plugins/aseprite";
 import f04b03Plugin from "./plugins/04b03";
 import cgaPlugin from "./plugins/cga";
 import proggyPlugin from "./plugins/proggy";
 import levelPlugin from "./plugins/level";
+import skyPlugin from "./plugins/sky";
 
 class IDList<T> extends Map<number, T> {
 	_lastID: number;
@@ -168,13 +169,12 @@ function play(id: string, conf: AudioPlayConf = {}): AudioPlay {
 	return pb;
 }
 
-function isCamLayer(layer?: string): boolean {
-	return !game.layers[layer ?? game.defLayer]?.noCam;
+function mousePos(): Vec2 {
+	return game.camMousePos;
 }
 
-// check input state last frame
-function mousePos(layer?: string): Vec2 {
-	return isCamLayer(layer) ? game.camMousePos : app.mousePos();
+function mousePosRaw(): Vec2 {
+	return app.mousePos();
 }
 
 function drawSprite(
@@ -252,7 +252,6 @@ type Camera = {
 
 type Layer = {
 	order: number,
-	noCam: boolean,
 	alpha: number,
 }
 
@@ -335,7 +334,6 @@ function layers(list: string[], def?: string) {
 		game.layers[name] = {
 			alpha: 1,
 			order: idx + 1,
-			noCam: false,
 		};
 	});
 
@@ -364,14 +362,6 @@ function camRot(angle: number): number {
 		game.cam.angle = angle;
 	}
 	return game.cam.angle;
-}
-
-function camIgnore(layers: string[]) {
-	layers.forEach((name) => {
-		if (game.layers[name]) {
-			game.layers[name].noCam = true;
-		}
-	})
 }
 
 function shake(intensity: number) {
@@ -918,7 +908,7 @@ function gameFrame(ignorePause?: boolean) {
 
 			gfx.pushTransform();
 
-			if (isCamLayer(obj.layer)) {
+			if (!obj.fixed) {
 				gfx.pushMatrix(game.camMatrix);
 			}
 
@@ -957,14 +947,13 @@ function drawInspect() {
 	}
 
 	function drawObj(obj, f) {
-		const isCam = isCamLayer(obj.layer);
-		const scale = gfx.scale() * (isCam ? (game.cam.scale.x + game.cam.scale.y) / 2 : 1);
-		if (isCam) {
+		const scale = gfx.scale() * (obj.fixed ? 1: (game.cam.scale.x + game.cam.scale.y) / 2);
+		if (!obj.fixed) {
 			gfx.pushTransform();
 			gfx.pushMatrix(game.camMatrix);
 		}
 		f(scale);
-		if (isCam) {
+		if (!obj.fixed) {
 			gfx.popTransform();
 		}
 	}
@@ -1692,8 +1681,15 @@ function solid(): SolidComp {
 	};
 }
 
+function fixed(): FixedComp {
+	return {
+		id: "fixed",
+		fixed: true,
+	};
+}
+
 // maximum y velocity with body()
-const DEF_MAX_VEL = 960;
+const DEF_MAX_VEL = 4800;
 const DEF_JUMP_FORCE = 480;
 
 // TODO: gravity scale
@@ -1933,7 +1929,6 @@ const ctx: KaboomCtx = {
 	camScale,
 	camRot,
 	shake,
-	camIgnore,
 	gravity,
 	// obj
 	add,
@@ -1956,6 +1951,7 @@ const ctx: KaboomCtx = {
 	rect,
 	outline,
 	solid,
+	fixed,
 	body,
 	shader,
 	// group events
@@ -1979,6 +1975,7 @@ const ctx: KaboomCtx = {
 	touchMove,
 	touchEnd,
 	mousePos,
+	mousePosRaw,
 	mouseDeltaPos: app.mouseDeltaPos,
 	keyIsDown: app.keyDown,
 	keyIsPressed: app.keyPressed,
@@ -2036,13 +2033,14 @@ const ctx: KaboomCtx = {
 	canvas: app.canvas,
 };
 
-plug(markPlugin);
+plug(beanPlugin);
 plug(peditPlugin);
 plug(asepritePlugin);
 plug(f04b03Plugin);
 plug(cgaPlugin);
 plug(proggyPlugin);
 plug(levelPlugin);
+plug(skyPlugin);
 
 if (gconf.plugins) {
 	gconf.plugins.forEach(plug);

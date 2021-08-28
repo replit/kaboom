@@ -1,14 +1,11 @@
 // tiled sprite
 
-kaboom({
-	scale: 2,
-});
+kaboom();
 
-loadRoot("/assets/");
-loadSprite("grass", "sprites/grass.png");
+loadSprite("steep", "sprites/steel.png");
 
 add([
-	sprite("grass", {
+	sprite("steep", {
 		width: width(),
 		height: height(),
 		tiled: true,

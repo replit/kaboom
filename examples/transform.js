@@ -1,20 +1,20 @@
-kaboom({
-	scale: 2,
-});
+kaboom();
 
-loadRoot("/assets/");
-loadSprite("mark", "sprites/mark.png");
+// load sprite
+loadSprite("kaboom", "sprites/kaboom.png");
 
-const mark = add([
-	sprite("mark"),
-	pos(width() / 2, height() / 2),
+// load sprite to screen
+const k = add([
+	sprite("kaboom"),
+	pos(center()),
 	scale(10),
 	rotate(0),
+	// center point of position and rotation (default "topleft")
 	origin("center"),
 ]);
 
-mark.action(() => {
-	mark.scale = Math.sin(time()) * 10;
-	// angle is in radians
-	mark.angle += dt();
+// change scale and rotation every frame
+k.action(() => {
+	k.scale = wave(-5, 5, time());
+	k.angle += dt();
 });

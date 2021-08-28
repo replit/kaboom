@@ -1,27 +1,25 @@
 // simple rpg style walk and talk
 
 kaboom({
-	scale: 4,
-	clearColor: [0, 0, 0, 1],
+	clearColor: [0.5, 1, 1, 1],
 });
 
-loadRoot("/pub/examples/");
-loadSprite("steel", "img/steel.png");
-loadSprite("ch1", "img/ch1.png");
-loadSprite("ch2", "img/ch2.png");
-loadSprite("grass", "img/grass.png");
-loadSprite("door", "img/door.png");
-loadSprite("key", "img/key.png");
-loadSprite("guy", "img/guy.png");
+loadSprite("steel", "sprites/steel.png");
+loadSprite("robot", "sprites/robot.png");
+loadSprite("ch2", "sprites/robot.png");
+loadSprite("grass", "sprites/grass.png");
+loadSprite("door", "sprites/door.png");
+loadSprite("key", "sprites/key.png");
+loadSprite("bean", "sprites/bean.png");
 
 scene("main", (levelIdx) => {
 
-	const SPEED = 80;
+	const SPEED = 320;
 
 	// character dialog data
 	const characters = {
 		"a": {
-			sprite: "ch1",
+			sprite: "robot",
 			msg: "ohhi how are you",
 		},
 		"b": {
@@ -33,35 +31,33 @@ scene("main", (levelIdx) => {
 	// level layouts
 	const levels = [
 		[
-			"=======|==",
-			"=        =",
-			"= a      =",
-			"=        =",
-			"=        =",
-			"=    $   =",
-			"=        =",
-			"=        =",
-			"=   @    =",
-			"==========",
+			"======|==",
+			"=       =",
+			"= a     =",
+			"=       =",
+			"=       =",
+			"=    $  =",
+			"=       =",
+			"=   @   =",
+			"=========",
 		],
 		[
-			"==========",
-			"=        =",
-			"=  $     =",
-			"=        =",
-			"|        =",
-			"=        =",
-			"=      b =",
-			"=        =",
-			"=   @    =",
-			"==========",
+			"=========",
+			"=       =",
+			"=       =",
+			"=  $    =",
+			"|       =",
+			"=       =",
+			"=     b =",
+			"=   @   =",
+			"=========",
 		],
 	];
 
 	addLevel(levels[levelIdx], {
-		width: 11,
-		height: 11,
-		pos: vec2(20, 20),
+		width: 64,
+		height: 64,
+		pos: vec2(64, 64),
 		"=": [
 			sprite("steel"),
 			area(),
@@ -73,7 +69,7 @@ scene("main", (levelIdx) => {
 			"key",
 		],
 		"@": [
-			sprite("guy"),
+			sprite("bean"),
 			area(),
 			"player",
 		],
@@ -108,7 +104,8 @@ scene("main", (levelIdx) => {
 
 	function talk(msg) {
 		talking = add([
-			text(msg),
+			text(msg, 32),
+			color(0, 0, 0),
 		]);
 	}
 

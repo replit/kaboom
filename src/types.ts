@@ -171,10 +171,6 @@ interface KaboomCtx {
 	 */
 	camRot(angle: number): number,
 	/**
-	 * tell camera to ignore certain layers
-	 */
-	camIgnore(layers: string[]): void,
-	/**
 	 * camera shake
 	 */
 	shake(intensity: number): void,
@@ -242,6 +238,10 @@ interface KaboomCtx {
 	 */
 	solid(): SolidComp,
 	/**
+	 * (comp) unaffected by camera
+	 */
+	fixed(): FixedComp,
+	/**
 	 * (comp) physical body that responds to gravity
 	 */
 	body(conf?: BodyCompConf): BodyComp,
@@ -254,9 +254,13 @@ interface KaboomCtx {
 	 */
 	cursor(c?: string): void,
 	/**
-	 * get current mouse position (after camera transform, can pass a layer to see what's the mouse position on that layer)
+	 * get current mouse position (after camera transform)
 	 */
-	mousePos(layer?: string): Vec2,
+	mousePos(): Vec2,
+	/**
+	 * get current mouse position (without camera transform)
+	 */
+	mousePosRaw(): Vec2,
 	/**
 	 * how much mouse moved last frame
 	 */
@@ -1248,4 +1252,8 @@ type BodyCompConf = {
 
 interface SolidComp extends Comp {
 	solid: boolean;
+}
+
+interface FixedComp extends Comp {
+	fixed: boolean;
 }

@@ -1,4 +1,4 @@
-![Kaboom Logo](misc/kaboom.png)
+![Kaboom Logo](sprites/kaboom.png)
 
 [**Kaboom.js**](https://kaboomjs.com/) is a JavaScript library that helps you make games fast and fun!
 
@@ -34,13 +34,13 @@ To make a flappy bird movement you only need a few lines
 // init context
 kaboom();
 
-// load a default sprite "mark"
-loadMark();
+// load a default sprite "bean"
+loadBean();
 
 // compose the player game object from multiple built-in components
 const birdy = add([
-    sprite("mark"),
-    pos(20, 20),
+    sprite("bean"),
+    pos(80, 40),
     area(),
     body(),
 ]);
