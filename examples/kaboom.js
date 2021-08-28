@@ -1,0 +1,2 @@
+kaboom();
+mouseClick(() => addKaboom(mousePos()));

@@ -1,5 +1,3 @@
-// TODO: loadSpriteRaw() to not insert to assets manager only return SpriteData
-
 import {
 	quad,
 } from "./math";
@@ -36,23 +34,23 @@ type AssetsCtx = {
 type Assets = {
 	loadRoot(path: string): string,
 	loadSprite(
-		name: string,
+		name: string | null,
 		src: SpriteLoadSrc,
 		conf?: SpriteLoadConf,
 	): Promise<SpriteData>,
 	loadSound(
-		name: string,
+		name: string | null,
 		src: string,
 	): Promise<SoundData>,
 	loadFont(
-		name: string,
+		name: string | null,
 		src: string,
 		gw: number,
 		gh: number,
 		chars?: string,
 	): Promise<FontData>,
 	loadShader(
-		name: string,
+		name: string | null,
 		vert?: string,
 		frag?: string,
 		isUrl?: boolean,
@@ -138,7 +136,7 @@ function assetsInit(gfx: Gfx, audio: Audio, gconf: AssetsConf = {}): Assets {
 
 	// load a bitmap font to asset manager
 	function loadFont(
-		name: string,
+		name: string | null,
 		src: string,
 		gw: number,
 		gh: number,
@@ -152,7 +150,9 @@ function assetsInit(gfx: Gfx, audio: Audio, gconf: AssetsConf = {}): Assets {
 			loadImg(path)
 				.then((img) => {
 					const font = gfx.makeFont(gfx.makeTex(img), gw, gh, chars);
-					assets.fonts[name] = font;
+					if (name) {
+						assets.fonts[name] = font;
+					}
 					resolve(font);
 				})
 				.catch(reject);
@@ -165,10 +165,9 @@ function assetsInit(gfx: Gfx, audio: Audio, gconf: AssetsConf = {}): Assets {
 
 	}
 
-	// TODO: use getSprite() functions for async settings
 	// load a sprite to asset manager
 	function loadSprite(
-		name: string,
+		name: string | null,
 		src: SpriteLoadSrc,
 		conf: SpriteLoadConf = {
 			sliceX: 1,
@@ -179,7 +178,7 @@ function assetsInit(gfx: Gfx, audio: Audio, gconf: AssetsConf = {}): Assets {
 
 		// synchronously load sprite from local pixel data
 		function loadRawSprite(
-			name: string,
+			name: string | null,
 			src: GfxTextureData,
 			conf: SpriteLoadConf = {
 				sliceX: 1,
@@ -214,7 +213,9 @@ function assetsInit(gfx: Gfx, audio: Audio, gconf: AssetsConf = {}): Assets {
 				anims: conf.anims || {},
 			};
 
-			assets.sprites[name] = sprite;
+			if (name) {
+				assets.sprites[name] = sprite;
+			}
 
 			return sprite;
 
@@ -247,19 +248,21 @@ function assetsInit(gfx: Gfx, audio: Audio, gconf: AssetsConf = {}): Assets {
 	}
 
 	function loadShader(
-		name: string,
+		name: string | null,
 		vert?: string,
 		frag?: string,
 		isUrl: boolean = false,
 	): Promise<ShaderData> {
 
 		function loadRawShader(
-			name: string,
+			name: string | null,
 			vert: string | null,
 			frag: string | null,
 		): ShaderData {
 			const shader = gfx.makeProgram(vert, frag);
-			assets.shaders[name] = shader;
+			if (name) {
+				assets.shaders[name] = shader;
+			}
 			return shader;
 		}
 
@@ -309,7 +312,7 @@ function assetsInit(gfx: Gfx, audio: Audio, gconf: AssetsConf = {}): Assets {
 	// TODO: accept dataurl
 	// load a sound to asset manager
 	function loadSound(
-		name: string,
+		name: string | null,
 		src: string,
 	): Promise<SoundData> {
 
@@ -337,7 +340,9 @@ function assetsInit(gfx: Gfx, audio: Audio, gconf: AssetsConf = {}): Assets {
 						});
 					})
 					.then((buf: AudioBuffer) => {
-						assets.sounds[name] = buf;
+						if (name) {
+							assets.sounds[name] = buf;
+						}
 						resolve(buf);
 					})
 					.catch(reject);

@@ -1,31 +1,34 @@
+/**
+ * Initialize kaboom context.
+ */
 declare function kaboom(conf?: KaboomConf): KaboomCtx;
 
 interface KaboomCtx {
 	/**
-	 * yep
+	 * Yep.
 	 */
 	burp(conf?: AudioPlayConf): AudioPlay,
 	/**
-	 * sets the root for all subsequent resource urls
+	 * Sets the root for all subsequent resource urls.
 	 */
 	loadRoot(path?: string): string,
 	/**
-	 * load a sprite into asset manager, with name and resource url and optional config
+	 * Load a sprite into asset manager, with name and resource url and optional config.
 	 */
 	loadSprite(
-		id: string,
+		id: string | null,
 		src: SpriteLoadSrc,
 		conf?: SpriteLoadConf,
 	): Promise<SpriteData>,
 	/**
-	 * load a sound into asset manager, with name and resource url
+	 * Load a sound into asset manager, with name and resource url.
 	 */
 	loadSound(
 		id: string,
 		src: string,
 	): Promise<SoundData>,
 	/**
-	 * load a bitmap font into asset manager, with name and resource url and infomation on the layout of the bitmap
+	 * Load a bitmap font into asset manager, with name and resource url and infomation on the layout of the bitmap.
 	 */
 	loadFont(
 		id: string,
@@ -35,7 +38,7 @@ interface KaboomCtx {
 		chars?: string,
 	): Promise<FontData>,
 	/**
-	 * load a shader into asset manager with vertex and fragment code / file url
+	 * Load a shader into asset manager with vertex and fragment code / file url.
 	 */
 	loadShader(
 		name: string,
@@ -44,99 +47,103 @@ interface KaboomCtx {
 		isUrl?: boolean,
 	): Promise<ShaderData>,
 	/**
-	 * add a new loader to wait for before starting the game
+	 * Add a new loader to wait for before starting the game.
 	 */
 	load<T>(l: Promise<T>): void,
 	/**
-	 * get the width of game
+	 * Get the width of game.
 	 */
 	width(): number,
 	/**
-	 * get the height of game
+	 * Get the height of game.
 	 */
 	height(): number,
 	/**
-	 * get the center point of view
+	 * Get the center point of view.
 	 */
 	center(): Vec2,
 	/**
-	 * get the delta time since last frame
+	 * Get the delta time since last frame.
 	 */
 	dt(): number,
 	/**
-	 * get the total time since beginning
+	 * Get the total time since beginning.
 	 */
 	time(): number,
 	/**
-	 * take a screenshot and get the dataurl of the image
+	 * Take a screenshot and get the dataurl of the image.
 	 */
 	screenshot(): string,
 	/**
-	 * if the game canvas is currently focused
+	 * If the game canvas is currently focused.
 	 */
 	focused(): boolean,
 	/**
-	 * focus on the game canvas
+	 * Focus on the game canvas.
 	 */
 	focus(): void,
 	/**
-	 * run something when assets finished loading
+	 * Run something when assets finished loading.
 	 */
 	ready(cb: () => void): void,
 	/**
-	 * is currently on a touch screen device
+	 * Is currently on a touch screen device.
 	 */
 	isTouch(): boolean,
 	/**
-	 * assembles a game obj from list of components or tags and add it to scene
+	 * Assembles a game obj from list of components or tags and add it to scene.
 	 */
-	add<T extends Comp>(comps: ReadonlyArray<T | Tag | CustomData>): GameObj<T>,
+	add<T extends Comp>(comps: CompList<T>): GameObj<T>,
 	/**
-	 * remove and re-add the game obj
+	 * Remove and re-add the game obj.
 	 */
 	readd(obj: GameObj<any>): GameObj<any>,
 	/**
-	 * remove the game obj
+	 * Get CompList<T> from DynCompList<T>.
+	 */
+	getComps<T extends Comp>(comps: DynCompList<T>, ...args): CompList<T>,
+	/**
+	 * Remove the game obj.
 	 */
 	destroy(obj: GameObj<any>): void,
 	/**
-	 * remove all game objs with certain tag
+	 * Remove all game objs with certain tag.
 	 */
 	destroyAll(tag: Tag): void,
 	/**
-	 * get a list of all game objs with certain tag
+	 * Get a list of all game objs with certain tag.
 	 */
 	get(tag?: Tag): GameObj<any>[],
 	/**
-	 * run callback on every game obj with certain tag
+	 * Run callback on every game obj with certain tag.
 	 */
 	every<T>(t: Tag, cb: (obj: GameObj<any>) => T): T[],
 	every<T>(cb: (obj: GameObj<any>) => T): T[],
 	/**
-	 * run callback on every game obj with certain tag in reverse order
+	 * Run callback on every game obj with certain tag in reverse order.
 	 */
 	revery<T>(t: Tag, cb: (obj: GameObj<any>) => T): T[],
 	revery<T>(cb: (obj: GameObj<any>) => T): T[],
 	/**
-	 * define layers (the last one will be on top)
+	 * Define layers (the last one will be on top).
 	 */
 	layers(list: string[], def?: string): void,
 	/**
-	 * register an event on all game objs with certain tag
+	 * Register an event on all game objs with certain tag.
 	 */
 	on(event: string, tag: string, cb: (obj: GameObj<any>) => void): EventCanceller,
 	/**
-	 * register "update" event (runs every frame) on all game objs with certain tag
+	 * Register "update" event (runs every frame) on all game objs with certain tag.
 	 */
 	action(tag: string, cb: (obj: GameObj<any>) => void): EventCanceller,
 	action(cb: () => void): EventCanceller,
 	/**
-	 * register "draw" event (runs every frame) on all game objs with certain tag
+	 * Register "draw" event (runs every frame) on all game objs with certain tag.
 	 */
 	render(tag: string, cb: (obj: GameObj<any>) => void): EventCanceller,
 	render(cb: () => void): EventCanceller,
 	/**
-	 * register event when 2 game objs with certain tags collides
+	 * Register event when 2 game objs with certain tags collides.
 	 */
 	collides(
 		t1: string,
@@ -144,7 +151,7 @@ interface KaboomCtx {
 		cb: (a: GameObj<any>, b: GameObj<any>) => void,
 	): EventCanceller,
 	/**
-	 * register event when 2 game objs with certain tags overlaps
+	 * Register event when 2 game objs with certain tags overlaps.
 	 */
 	overlaps(
 		t1: string,
@@ -152,251 +159,259 @@ interface KaboomCtx {
 		cb: (a: GameObj<any>, b: GameObj<any>) => void,
 	): EventCanceller,
 	/**
-	 * register event when game objs with certain tags are clicked
+	 * Register event when game objs with certain tags are clicked.
 	 */
 	clicks(
 		tag: string,
 		cb: (a: GameObj<any>) => void,
 	): EventCanceller,
 	/**
-	 * get / set camera position
+	 * Get / set camera position.
 	 */
 	camPos(pos: Vec2): Vec2,
 	/**
-	 * get / set camera scale
+	 * Get / set camera scale.
 	 */
 	camScale(scale: Vec2): Vec2,
 	/**
-	 * get / set camera rotation
+	 * Get / set camera rotation.
 	 */
 	camRot(angle: number): number,
 	/**
-	 * camera shake
+	 * Camera shake.
 	 */
 	shake(intensity: number): void,
 	/**
-	 * get / set gravity
+	 * Get / set gravity.
 	 */
 	gravity(g: number): number,
 	/**
-	 * (comp) position
+	 * <Comp> Position
 	 */
 	pos(x: number, y: number): PosComp,
 	pos(xy: number): PosComp,
 	pos(p: Vec2): PosComp,
 	pos(): PosComp,
 	/**
-	 * (comp) scale
+	 * <Comp> Scale.
 	 */
 	scale(x: number, y: number): ScaleComp,
 	scale(xy: number): ScaleComp,
 	scale(s: Vec2): ScaleComp,
 	scale(): ScaleComp,
 	/**
-	 * (comp) rotate (in radians)
+	 * <Comp> Rotate (in radians).
 	 */
 	rotate(a: number): RotateComp,
 	/**
-	 * (comp) custom color (in 0-1 rgba)
+	 * <Comp> Custom color (in 0-1 rgba).
 	 */
 	color(r: number, g: number, b: number, a?: number): ColorComp,
 	color(c: Color): ColorComp,
 	color(): ColorComp,
 	/**
-	 * (comp) origin point for render (default "topleft")
+	 * <Comp> Origin point for render (default "topleft").
 	 */
 	origin(o: Origin | Vec2): OriginComp,
 	/**
-	 * (comp) which layer this object belongs to
+	 * <Comp> Which layer this object belongs to.
 	 */
 	layer(l: string): LayerComp,
 	/**
-	 * (comp) collider
+	 * <Comp> Collider. Calculate from rendered dimension (e.g. from sprite, text, rect) if no params given.
 	 */
 	area(): AreaComp,
 	area(scale: number): AreaComp,
 	area(sx: number, sy: number): AreaComp,
 	area(p1: Vec2, p2: Vec2): AreaComp,
 	/**
-	 * (comp) renders as sprite
+	 * <Comp> Renders as sprite.
 	 */
-	sprite(id: string, conf?: SpriteCompConf): SpriteComp,
+	sprite(spr: string | SpriteData, conf?: SpriteCompConf): SpriteComp,
 	/**
-	 * (comp) renders as text
+	 * <Comp> Renders as text.
 	 */
 	text(t: string, conf?: TextCompConf): TextComp,
 	/**
-	 * (comp) renders as rect
+	 * <Comp> Renders as rect.
 	 */
 	rect(w: number, h: number): RectComp,
 	/**
-	 * (comp) give obj an outline
+	 * <Comp> Give obj an outline.
 	 */
 	outline(width?: number, color?: Color): OutlineComp,
 	/**
-	 * (comp) make other objects cannot move pass
-	 */
-	solid(): SolidComp,
-	/**
-	 * (comp) unaffected by camera
-	 */
-	fixed(): FixedComp,
-	/**
-	 * (comp) physical body that responds to gravity
+	 * <Comp> Physical body that responds to gravity.
 	 */
 	body(conf?: BodyCompConf): BodyComp,
 	/**
-	 * (comp) custom shader
+	 * <Comp> Custom shader.
 	 */
 	shader(id: string): ShaderComp,
 	/**
-	 * get / set the cursor (css)
+	 * <Comp> Run certain action after some time.
+	 */
+	timer(n?: number, action?: () => void): TimerComp,
+	/**
+	 * <Comp> Make other objects cannot move pass.
+	 */
+	solid(): SolidComp,
+	/**
+	 * <Comp> Unaffected by camera.
+	 */
+	fixed(): FixedComp,
+	/**
+	 * <Comp> Don't get destroyed on scene switch.
+	 */
+	stay(): StayComp,
+	/**
+	 * Get / set the cursor (css)
 	 */
 	cursor(c?: string): void,
 	/**
-	 * get current mouse position (after camera transform)
+	 * Get current mouse position (after camera transform)
 	 */
 	mousePos(): Vec2,
 	/**
-	 * get current mouse position (without camera transform)
+	 * Get current mouse position (without camera transform).
 	 */
 	mousePosRaw(): Vec2,
 	/**
-	 * how much mouse moved last frame
+	 * How much mouse moved last frame.
 	 */
 	mouseDeltaPos(): Vec2,
 	/**
-	 * registers an event that runs every frame when a key is down
+	 * Registers an event that runs every frame when a key is down.
 	 */
 	keyDown(k: string, cb: () => void): EventCanceller,
 	/**
-	 * registers an event that runs when user presses certain key
+	 * Registers an event that runs when user presses certain key.
 	 */
 	keyPress(k: string, cb: () => void): EventCanceller,
 	/**
-	 * registers an event that runs when user presses certain key (also fires repeatedly when they key is held)
+	 * Registers an event that runs when user presses certain key (also fires repeatedly when they key is held).
 	 */
 	keyPressRep(k: string, cb: () => void): EventCanceller,
 	/**
-	 * registers an event that runs when user releases certain key
+	 * Registers an event that runs when user releases certain key.
 	 */
 	keyRelease(k: string, cb: () => void): EventCanceller,
 	/**
-	 * registers an event that runs when user inputs text
+	 * Registers an event that runs when user inputs text.
 	 */
 	charInput(cb: (ch: string) => void): EventCanceller,
 	/**
-	 * registers an event that runs every frame when mouse button is down
+	 * Registers an event that runs every frame when mouse button is down.
 	 */
 	mouseDown(cb: (pos: Vec2) => void): EventCanceller,
 	/**
-	 * registers an event that runs when user clicks mouse
+	 * Registers an event that runs when user clicks mouse.
 	 */
 	mouseClick(cb: (pos: Vec2) => void): EventCanceller,
 	/**
-	 * registers an event that runs when user releases mouse
+	 * Registers an event that runs when user releases mouse.
 	 */
 	mouseRelease(cb: (pos: Vec2) => void): EventCanceller,
 	/**
-	 * registers an event that runs whenever user move the mouse
+	 * Registers an event that runs whenever user move the mouse.
 	 */
 	mouseMove(cb: (pos: Vec2) => void): EventCanceller,
 	/**
-	 * registers an event that runs when a touch starts
+	 * Registers an event that runs when a touch starts.
 	 */
 	touchStart(cb: (id: TouchID, pos: Vec2) => void): EventCanceller,
 	/**
-	 * registers an event that runs whenever touch moves
+	 * Registers an event that runs whenever touch moves.
 	 */
 	touchMove(cb: (id: TouchID, pos: Vec2) => void): EventCanceller,
 	/**
-	 * registers an event that runs when a touch ends
+	 * Registers an event that runs when a touch ends.
 	 */
 	touchEnd(cb: (id: TouchID, pos: Vec2) => void): EventCanceller,
 	/**
-	 * if certain key is currently down
+	 * If certain key is currently down.
 	 */
 	keyIsDown(k: string): boolean,
 	/**
-	 * if certain key is just pressed last frame
+	 * If certain key is just pressed last frame.
 	 */
 	keyIsPressed(k: string): boolean,
 	/**
-	 * if certain key is just pressed last frame (accepts help down repeatedly)
+	 * If certain key is just pressed last frame (accepts help down repeatedly).
 	 */
 	keyIsPressedRep(k: string): boolean,
 	/**
-	 * if certain key is just released last frame
+	 * If certain key is just released last frame.
 	 */
 	keyIsReleased(k: string): boolean,
 	/**
-	 * if certain mouse is currently down
+	 * If certain mouse is currently down.
 	 */
 	mouseIsDown(): boolean,
 	/**
-	 * if mouse is just clicked last frame
+	 * If mouse is just clicked last frame.
 	 */
 	mouseIsClicked(): boolean,
 	/**
-	 * if mouse is just released last frame
+	 * If mouse is just released last frame.
 	 */
 	mouseIsReleased(): boolean,
 	/**
-	 * if mouse moved last frame
+	 * If mouse moved last frame.
 	 */
 	mouseIsMoved(): boolean,
 	/**
-	 * run the callback every n seconds
+	 * Run the callback every n seconds.
 	 */
 	loop(t: number, cb: () => void): EventCanceller,
 	/**
-	 * run the callback after n seconds
+	 * Run the callback after n seconds.
 	 */
-	wait(t: number, cb?: () => void): Promise<void>,
+	wait(n: number, cb?: () => void): Promise<void>,
 	/**
-	 * play a piece of audio, returns a handle to control
+	 * Play a piece of audio, returns a handle to control.
 	 */
 	play(id: string, conf?: AudioPlayConf): AudioPlay,
 	/**
-	 * sets global volume
+	 * Sets global volume.
 	 */
 	volume(v?: number): number,
 	/**
-	 * get the underlying browser AudioContext
+	 * Get the underlying browser AudioContext.
 	 */
 	audioCtx(): AudioContext,
 	/**
-	 * make a new random number generator
+	 * Make a new random number generator.
 	 */
 	makeRng(seed: number): RNG,
 	/**
-	 * get a random number (with optional bounds)
+	 * Get a random number (with optional bounds).
 	 */
 	rand(): number,
 	rand<T extends RNGValue>(n: T): T,
 	rand<T extends RNGValue>(a: T, b: T): T,
 	randSeed(seed: number): number,
 	/**
-	 * make a 2d vector
+	 * Make a 2d vector.
 	 */
 	vec2(x: number, y: number): Vec2,
 	vec2(p: Vec2): Vec2,
 	vec2(xy: number): Vec2,
 	vec2(): Vec2,
 	/**
-	 * make an opaque color from 0-1 rgb values
+	 * Make an opaque color from 0-1 rgb values.
 	 */
 	rgb(r: number, g: number, b: number): Color,
 	/**
-	 * make a color from 0-1 rgba values
+	 * Make a color from 0-1 rgba values.
 	 */
 	rgba(r: number, g: number, b: number, a: number): Color,
 	/**
-	 * make a quad
+	 * Make a quad.
 	 */
 	quad(x: number, y: number, w: number, h: number): Quad,
 	/**
-	 * choose a random item from a list
+	 * Choose a random item from a list.
 	 */
 	choose<T>(lst: T[]): T,
 	/**
@@ -404,11 +419,11 @@ interface KaboomCtx {
 	 */
 	chance(p: number): boolean,
 	/**
-	 * linear interpolation
+	 * Linear interpolation.
 	 */
 	lerp(from: number, to: number, t: number): number,
 	/**
-	 * map a value from one range to another range
+	 * Map a value from one range to another range.
 	 */
 	map(
 		v: number,
@@ -418,7 +433,7 @@ interface KaboomCtx {
 		h2: number,
 	): number,
 	/**
-	 * map a value from one range to another range, and clamp to the dest range
+	 * Map a value from one range to another range, and clamp to the dest range.
 	 */
 	mapc(
 		v: number,
@@ -428,15 +443,15 @@ interface KaboomCtx {
 		h2: number,
 	): number,
 	/**
-	 * sin() motion between 2 values
+	 * Sin() motion between 2 values.
 	 */
 	wave(lo: number, hi: number, t: number): number,
 	/**
-	 * convert degrees to radians
+	 * Convert degrees to radians.
 	 */
 	deg2rad(deg: number): number,
 	/**
-	 * convert radians to degrees
+	 * Convert radians to degrees.
 	 */
 	rad2deg(rad: number): number,
 	drawSprite(id: string | SpriteData, conf?: DrawSpriteConf): void,
@@ -447,39 +462,39 @@ interface KaboomCtx {
 	drawLine(p1: Vec2, p2: Vec2, conf?: DrawLineConf): void,
 	drawTri(p1: Vec2, p2: Vec2, p3: Vec2, conf?: DrawTriConf): void,
 	/**
-	 * define a scene
+	 * Define a scene.
 	 */
 	scene(id: SceneID, def: SceneDef): void,
 	/**
-	 * go to a scene, passing all rest args to scene callback
+	 * Go to a scene, passing all rest args to scene callback.
 	 */
 	go(id: SceneID, ...args): void,
 	/**
-	 * get data from local storage, if not present can set to a default value
+	 * Get data from local storage, if not present can set to a default value.
 	 */
 	getData<T>(key: string, def?: T): T,
 	/**
-	 * set data from local storage
+	 * Set data from local storage.
 	 */
 	setData(key: string, data: any): void,
 	/**
-	 * use a plugin
+	 * Import a plugin.
 	 */
 	plug<T>(plugin: KaboomPlugin<T>): MergeObj<T> & KaboomCtx,
 	/**
-	 * debug stuff
+	 * Debug stuff.
 	 */
 	debug: Debug,
 	/**
-	 * all chars in ascii
+	 * All chars in ASCII.
 	 */
 	ASCII_CHARS: string,
 	/**
-	 * all chars in cp437
+	 * All chars in CP437.
 	 */
 	CP437_CHARS: string,
 	/**
-	 * the canvas DOM kaboom is currently using
+	 * The canvas DOM kaboom is currently using.
 	 */
 	canvas: HTMLCanvasElement,
 	[custom: string]: any,
@@ -495,57 +510,62 @@ type Expand<T> = T extends infer U ? { [K in keyof U]: U[K] } : never;
 type MergeObj<T> = Expand<UnionToIntersection<Defined<T>>>;
 type MergeComps<T> = Omit<MergeObj<T>, keyof Comp>;
 
+type CompList<T extends Comp> = Array<T | Tag | CustomData>;
+type DynCompList<T extends Comp> = CompList<T> | ((...args) => CompList<T>);
+
 interface GameObjRaw {
 	/**
-	 * internal id
+	 * Internal GameObj ID.
 	 */
 	_id: number | null,
 	/**
-	 * if draw the game obj (run "draw" event or not)
+	 * If draw the game obj (run "draw" event or not).
 	 */
 	hidden: boolean;
 	/**
-	 * if update the game obj (run "update" event or not)
+	 * If update the game obj (run "update" event or not).
 	 */
 	paused: boolean;
 	/**
-	 * if game obj exists in scene
+	 * If game obj exists in scene.
 	 */
 	exists(): boolean;
 	/**
-	 * if there a certain tag on the game obj
+	 * If there a certain tag on the game obj.
 	 */
 	is(tag: Tag | Tag[]): boolean;
+	// TODO: update the GameObj type info
 	/**
-	 * add a component or tag
+	 * Add a component or tag.
 	 */
-	use(comp: Comp | Tag);
+	use(comp: Comp | Tag | CustomData);
+	// TODO: update the GameObj type info
 	/**
-	 * remove a component with its id
+	 * Remove a component with its id.
 	 */
 	unuse(comp: CompID);
 	/**
-	 * run something every frame for this game obj (sugar for on("update"))
+	 * Run something every frame for this game obj (sugar for on("update")).
 	 */
 	action(cb: () => void): EventCanceller;
 	/**
-	 * registers an event
+	 * Registers an event.
 	 */
 	on(ev: string, cb: () => void): EventCanceller;
 	/**
-	 * triggers an event
+	 * Triggers an event.
 	 */
 	trigger(ev: string, ...args);
 	/**
-	 * removes a tag
+	 * Removes a tag.
 	 */
 	untag(t: Tag);
 	/**
-	 * remove the game obj from scene
+	 * Remove the game obj from scene.
 	 */
 	destroy();
 	/**
-	 * get state for a specific comp
+	 * Get state for a specific comp.
 	 */
 	c(id: CompID): Comp;
 }
@@ -872,11 +892,11 @@ type MsgHandler = (id: ClientID, data: any) => void;
 
 interface Comp {
 	/**
-	 * id for comp (if left out won't be treated as a comp)
+	 * Component ID (if left out won't be treated as a comp).
 	 */
 	id?: CompID;
 	/**
-	 * what other comps this comp depends on
+	 * What other comps this comp depends on.
 	 */
 	require?: CompID[];
 	/**
@@ -884,23 +904,23 @@ interface Comp {
 	 */
 	add?: AddEvent;
 	/**
-	 * event that runs when host game obj is added to scene and game is loaded
+	 * Event that runs when host game obj is added to scene and game is loaded.
 	 */
 	load?: LoadEvent;
 	/**
-	 * event that runs every frame
+	 * Event that runs every frame.
 	 */
 	update?: UpdateEvent;
 	/**
-	 * event that runs every frame
+	 * Event that runs every frame.
 	 */
 	draw?: DrawEvent;
 	/**
-	 * event that runs when obj is removed from scene
+	 * Event that runs when obj is removed from scene.
 	 */
 	destroy?: DestroyEvent;
 	/**
-	 * debug info for inspect mode
+	 * Debug info for inspect mode.
 	 */
 	inspect?: InspectEvent;
 }
@@ -921,16 +941,16 @@ type PosCompInspect = {
 interface PosComp extends Comp {
 	pos: Vec2;
 	/**
-	 * move how many pixels per second
+	 * Move how many pixels per second.
 	 */
 	move(xVel: number, yVel: number);
 	move(vel: Vec2);
 	/**
-	 * move to a spot with a speed (pixels per second), teleports if speed is left out
+	 * Move to a spot with a speed (pixels per second), teleports if speed is left out.
 	 */
 	moveTo(dest: Vec2, speed?: number);
 	/**
-	 * get position on screen after camera transform
+	 * Get position on screen after camera transform.
 	 */
 	screenPos(): Vec2;
 }
@@ -941,7 +961,7 @@ interface ScaleComp extends Comp {
 
 interface RotateComp extends Comp {
 	/**
-	 * angle in radians
+	 * Angle in radians.
 	 */
 	angle: number;
 }
@@ -952,7 +972,7 @@ interface ColorComp extends Comp {
 
 interface OriginComp extends Comp {
 	/**
-	 * origin point for render
+	 * Origin point for render.
 	 */
 	origin: Origin | Vec2;
 }
@@ -963,7 +983,7 @@ type LayerCompInspect = {
 
 interface LayerComp extends Comp {
 	/**
-	 * which layer this game obj belongs to
+	 * Which layer this game obj belongs to.
 	 */
 	layer: string;
 }
@@ -983,63 +1003,63 @@ type PushOut = {
 
 interface AreaComp extends Comp {
 	/**
-	 * rectangular collider area
+	 * Rectangular collider area.
 	 */
 	area: Rect;
 	/**
-	 * get the width of collider area
+	 * Get the width of collider area.
 	 */
 	areaWidth(): number,
 	/**
-	 * get the height of collider area
+	 * Get the height of collider area.
 	 */
 	areaHeight(): number,
 	/**
-	 * if was just clicked on last frame
+	 * If was just clicked on last frame.
 	 */
 	isClicked(): boolean,
 	/**
-	 * if is being hovered on
+	 * If is being hovered on.
 	 */
 	isHovered(): boolean,
 	/**
-	 * if is currently colliding with another game obj
+	 * If is currently colliding with another game obj.
 	 */
 	isCollided(o: GameObj<any>): boolean,
 	/**
-	 * if is currently overlapping with another game obj
+	 * If is currently overlapping with another game obj.
 	 */
 	isOverlapped(o: GameObj<any>): boolean,
 	/**
-	 * registers an event runs when clicked
+	 * Registers an event runs when clicked.
 	 */
 	clicks(f: () => void): void,
 	/**
-	 * registers an event runs when hovered
+	 * Registers an event runs when hovered.
 	 */
 	hovers(f: () => void): void,
 	/**
-	 * registers an event runs when collides with another game obj with certain tag
+	 * Registers an event runs when collides with another game obj with certain tag.
 	 */
 	collides(tag: Tag, f: (o: GameObj<any>) => void): void,
 	/**
-	 * registers an event runs when overlaps with another game obj with certain tag
+	 * Registers an event runs when overlaps with another game obj with certain tag.
 	 */
 	overlaps(tag: Tag, f: (o: GameObj<any>) => void): void,
 	/**
-	 * if has a certain point inside collider
+	 * If has a certain point inside collider.
 	 */
 	hasPt(p: Vec2): boolean,
 	/**
-	 * push out from another solid game obj if currently overlapping
+	 * Push out from another solid game obj if currently overlapping.
 	 */
 	pushOut(obj: GameObj<any>): PushOut | null,
 	/**
-	 * push out from all other solid game objs if currently overlapping
+	 * Push out from all other solid game objs if currently overlapping.
 	 */
 	pushOutAll(): PushOut[],
 	/**
-	 * get the geometry data for the collider in world coordinate space
+	 * Get the geometry data for the collider in world coordinate space.
 	 */
 	worldArea(): Rect;
 	_checkCollisions(tag: string, f: (obj: GameObj<any>) => void): void;
@@ -1049,31 +1069,31 @@ interface AreaComp extends Comp {
 type SpriteCompConf = {
 	quad?: Quad,
 	/**
-	 * initial frame
+	 * Initial frame.
 	 */
 	frame?: number,
 	/**
-	 * how much time each frame should stay
+	 * How much time each frame should stay.
 	 */
 	animSpeed?: number,
 	/**
-	 * if provided width and height, don't stretch but instead render tiled
+	 * If provided width and height, don't stretch but instead render tiled.
 	 */
 	tiled?: boolean,
 	/**
-	 * stretch sprite to a certain width
+	 * Stretch sprite to a certain width.
 	 */
 	width?: number,
 	/**
-	 * stretch sprite to a certain height
+	 * Stretch sprite to a certain height.
 	 */
 	height?: number,
 	/**
-	 * flip texture horizontally
+	 * Flip texture horizontally.
 	 */
 	flipX?: boolean,
 	/**
-	 * flip texture vertically
+	 * Flip texture vertically.
 	 */
 	flipY?: boolean,
 }
@@ -1086,15 +1106,15 @@ type SpriteCurAnim = {
 
 interface SpriteComp extends Comp {
 	/**
-	 * width for sprite
+	 * Width for sprite.
 	 */
 	width: number;
 	/**
-	 * height for sprite
+	 * Height for sprite.
 	 */
 	height: number;
 	/**
-	 * how much time each frame should stay
+	 * How much time each frame should stay.
 	 */
 	animSpeed: number;
 	/**
@@ -1102,31 +1122,31 @@ interface SpriteComp extends Comp {
 	 */
 	frame: number;
 	/**
-	 * the rectangular area to render
+	 * The rectangular area to render.
 	 */
 	quad: Quad;
 	/**
-	 * play a piece of anim
+	 * Play a piece of anim.
 	 */
 	play(anim: string, loop?: boolean);
 	/**
-	 * stop current anim
+	 * Stop current anim.
 	 */
 	stop();
 	/**
-	 * get total number of frames
+	 * Get total number of frames.
 	 */
 	numFrames(): number;
 	/**
-	 * get current anim name
+	 * Get current anim name.
 	 */
 	curAnim(): string;
 	/**
-	 * flip texture horizontally
+	 * Flip texture horizontally.
 	 */
 	flipX(b: boolean);
 	/**
-	 * flip texture vertically
+	 * Flip texture vertically.
 	 */
 	flipY(b: boolean);
 }
@@ -1137,49 +1157,49 @@ type SpriteCompInspect = {
 
 interface TextComp extends Comp {
 	/**
-	 * the text to render
+	 * The text to render.
 	 */
 	text: string;
 	/**
-	 * the text size
+	 * The text size.
 	 */
 	textSize: number;
 	/**
-	 * the font to use
+	 * The font to use.
 	 */
-	font: string;
+	font: string | FontData;
 	/**
-	 * width of text
+	 * Width of text.
 	 */
 	width: number;
 	/**
-	 * height of text
+	 * Height of text.
 	 */
 	height: number;
 }
 
 type TextCompConf = {
 	/**
-	 * height of text
+	 * Height of text.
 	 */
 	size?: number,
 	/**
-	 * the font to use
+	 * The font to use.
 	 */
-	font?: string,
+	font?: string | FontData,
 	/**
-	 * wrap text to a certain width
+	 * Wrap text to a certain width.
 	 */
 	width?: number,
 }
 
 interface RectComp extends Comp {
 	/**
-	 * width of rect
+	 * Width of rect.
 	 */
 	width: number;
 	/**
-	 * height of height
+	 * Height of height.
 	 */
 	height: number;
 }
@@ -1200,7 +1220,7 @@ type Debug = {
 	stepFrame(): void,
 	clearLog(): void,
 	/**
-	 * log some text to screen
+	 * Log some text to screen.
 	 */
 	log(msg: string): void,
 	error(msg: string): void,
@@ -1222,36 +1242,48 @@ interface ShaderComp extends Comp {
 
 interface BodyComp extends Comp {
 	/**
-	 * initial speed in pixels per second for jump()
+	 * Initial speed in pixels per second for jump().
 	 */
 	jumpForce: number;
 	/**
-	 * current platform landing on
+	 * Current platform landing on.
 	 */
 	curPlatform(): GameObj<any> | null;
 	/**
-	 * if currently landing on a platform
+	 * If currently landing on a platform.
 	 */
 	grounded(): boolean;
 	/**
-	 * if currently falling
+	 * If currently falling.
 	 */
 	falling(): boolean;
 	/**
-	 * upwards thrust
+	 * Upward thrust.
 	 */
 	jump(f?: number);
 }
 
 type BodyCompConf = {
 	/**
-	 * initial speed in pixels per second for jump()
+	 * Initial speed in pixels per second for jump().
 	 */
 	jumpForce?: number,
 	/**
-	 * maximum velocity when falling
+	 * Maximum velocity when falling.
 	 */
 	maxVel?: number,
+}
+
+type Timer = {
+	time: number,
+	action(): void,
+};
+
+interface TimerComp extends Comp {
+	/**
+	 * Run the callback after n seconds.
+	 */
+	wait(n: number, cb: () => void): EventCanceller,
 }
 
 interface SolidComp extends Comp {
@@ -1260,4 +1292,8 @@ interface SolidComp extends Comp {
 
 interface FixedComp extends Comp {
 	fixed: boolean;
+}
+
+interface StayComp extends Comp {
+	stay: boolean;
 }

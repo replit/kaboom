@@ -5,33 +5,43 @@ import cloudSrc from "./cloud.png";
 
 interface SkyConf {
 	/**
-	 * speed of cloud movement
+	 * Speed of cloud movement.
 	 */
 	speed?: number,
 	/**
-	 * speed of cloud generation
+	 * Speed of cloud generation.
 	 */
 	spawnSpeed?: number,
 	/**
-	 * background color
+	 * Background color.
 	 */
 	color?: Color,
 	/**
-	 * how much upper area to spawn clouds
+	 * How much upper area in pixels to spawn clouds.
 	 */
 	height?: number,
+	/**
+	 * Additional sky components.
+	 */
+	skyComps?: CompList<any>,
+	/**
+	 * Additional cloud components.
+	 */
+	cloudComps?: DynCompList<any>,
 }
 
 interface Sky {
 	/**
-	 * destroy and stop the sky
+	 * Remove the sky.
 	 */
 	destroy(): void,
 }
 
 export default (k: KaboomCtx) => {
 
-	k.loadSprite("cloud", cloudSrc);
+	let cloudSprite = null;
+
+	k.loadSprite(null, cloudSrc).then((spr) => cloudSprite = spr);
 
 	function addSky(conf: SkyConf = {}): Sky {
 
@@ -49,12 +59,18 @@ export default (k: KaboomCtx) => {
 
 		function spawnCloud() {
 
+			if (!cloudSprite) {
+				throw new Error("failed to load cloud sprite");
+				return;
+			}
+
 			const screenPos = k.vec2(k.width(), k.rand(0, height * k.height()));
 
 			const cloud = k.add([
-				k.sprite("cloud"),
+				k.sprite(cloudSprite),
 				k.pos(screenPos),
 				k.origin("left"),
+				...k.getComps(conf.cloudComps),
 			]);
 
 			const cspeed = k.rand(speed - 100, speed + 100);

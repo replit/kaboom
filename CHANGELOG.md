@@ -1,5 +1,6 @@
 ### v0.8 burp() (unreleased)
 - added `burp()` for easy burping
+- revamped visual style, changed default font and debug font
 - introducing new character "bean"
 ![bean](sprites/bean.png)
 - added `loadBean()` to `"bean"` as a default sprite
@@ -13,15 +14,16 @@
 - beter type support for components
 - `scene()` and `start()` (also removed in favor of `go()`) are optional now, if you don't need multiple scenes yet you can just go directly
 ```js
-const k = kaboom();
-k.add(...);
-k.keyPress(...);
+kaboom();
+// no mandatory scene() to start kabooming
+add(...);
+keyPress(...);
 ```
 - (**BREAK**) `area()` is now explicit and not automatically added by `sprite()`, `rect()`, and `text()`, removed each `noArea` or `area` config field
 ```js
 add([
-	sprite("mark"),
-	area(), // empty area() will calc size from the sprite
+    sprite("bean"),
+    area(), // empty area() will calc size from the sprite
 ]);
 ```
 - audio is now paused when you leave the tab
@@ -33,16 +35,16 @@ add([
 - added `require` on component definitions, making it possible to declare dependencies for components, e.g.
 ```js
 function alwaysRight() {
-	return {
-		// the id of this component
-		id: "alwaysRight",
-		// list of component ids that this requires
-		require: [ "pos", ],
-		update() {
-			// so you can use `move()` from pos() component with no worry
-			this.move(100, 0);
-		},
-	};
+    return {
+        // the id of this component
+        id: "alwaysRight",
+        // list of component ids that this requires
+        require: [ "pos", ],
+        update() {
+            // so you can use `move()` from pos() component with no worry
+            this.move(100, 0);
+        },
+    };
 }
 ```
 - (**BREAK**) overlapping component fields are not allowed, e.g. you can have a custom comp that has a `collides` field if it already have a `area` component, since it already has that
@@ -53,7 +55,10 @@ function alwaysRight() {
 obj.play("anim");
 obj.c("sprite").play("anim");
 ```
-- pedit, aseprite, proggy, 04b03, cga plugins are now included by default
+- pedit, aseprite, cga plugins are now included by default
+- added `addSky()`
+- added `addKaboom()`
+- `load*()` now accepts `null` as name and not load into assets manager, instead just return the resource data handle
 - (**BREAK**) changed event `headbump` to `headbutt`
 - added `width`, `height`, and `tiled` attrib to `SpriteCompConf`, for better control over sprite size and tiled sprite support
 - (**BREAK**) renamed `resolve()` to `pushOutAll()` on `area` comp
@@ -113,9 +118,9 @@ obj.c("sprite").play("anim");
 ```js
 // replaces init(), and added a 'global' flag for previous kaboom.global()
 kaboom({
-	global: true,
-	width: 480,
-	height: 480,
+    global: true,
+    width: 480,
+    height: 480,
 });
 ```
 or not global

@@ -55,11 +55,10 @@ import {
 import beanPlugin from "./plugins/bean";
 import peditPlugin from "./plugins/pedit";
 import asepritePlugin from "./plugins/aseprite";
-import f04b03Plugin from "./plugins/04b03";
 import cgaPlugin from "./plugins/cga";
-import proggyPlugin from "./plugins/proggy";
 import levelPlugin from "./plugins/level";
 import skyPlugin from "./plugins/sky";
+import kaboomPlugin from "./plugins/kaboom";
 
 class IDList<T> extends Map<number, T> {
 	_lastID: number;
@@ -218,11 +217,6 @@ function drawText(
 const DEF_GRAVITY = 980;
 const DEF_ORIGIN = "topleft";
 
-type Timer = {
-	time: number,
-	cb(),
-};
-
 type Game = {
 	loaded: boolean,
 	events: Record<string, IDList<() => void>>,
@@ -237,9 +231,6 @@ type Game = {
 	gravity: number,
 	layers: Record<string, Layer>,
 	defLayer: string | null,
-	travelers: GameObjID[],
-	visitors: Record<ClientID, Record<GameObjID, GameObjID>>,
-	data: any,
 	on<F>(ev: string, cb: F): EventCanceller,
 	trigger(ev: string, ...args),
 	scenes: Record<SceneID, SceneDef>,
@@ -307,11 +298,6 @@ const game: Game = {
 	layers: {},
 	defLayer: null,
 	gravity: DEF_GRAVITY,
-	data: {},
-
-	// net
-	travelers: [],
-	visitors: {},
 
 	on<F>(ev: string, cb: F): EventCanceller {
 		if (!this.events[ev]) {
@@ -386,7 +372,7 @@ const COMP_EVENTS = new Set([
 ]);
 
 // TODO: type check won't work if pass CustomData
-function add<T extends Comp>(comps: ReadonlyArray<T | Tag | CustomData>): GameObj<T> {
+function add<T extends Comp>(comps: CompList<T>): GameObj<T> {
 
 	const compStates = {};
 	const customState = {};
@@ -608,6 +594,10 @@ function readd(obj: GameObj<any>): GameObj<any> {
 
 }
 
+function getComps<T extends Comp>(comps: DynCompList<T>, ...args): CompList<T> {
+	return (typeof comps === "function" ? comps(...args) : comps) ?? [];
+}
+
 // add an event to a tag
 function on(event: string, tag: string, cb: (obj: GameObj<any>) => void): EventCanceller {
 	if (!game.objEvents[event]) {
@@ -677,7 +667,7 @@ function wait(t: number, f?: () => void): Promise<void> {
 	return new Promise((resolve) => {
 		game.timers.push({
 			time: t,
-			cb: () => {
+			action: () => {
 				if (f) {
 					f();
 				}
@@ -863,8 +853,8 @@ function gravity(g?: number): number {
 // TODO: cleaner pause logic
 function gameFrame(ignorePause?: boolean) {
 
-	game.trigger("nextFrame");
-	delete game.events["nextFrame"];
+	game.trigger("next");
+	delete game.events["next"];
 
 	const doUpdate = ignorePause || !debug.paused;
 
@@ -874,7 +864,7 @@ function gameFrame(ignorePause?: boolean) {
 		game.timers.forEach((t, id) => {
 			t.time -= dt();
 			if (t.time <= 0) {
-				t.cb();
+				t.action();
 				game.timers.delete(id);
 			}
 		});
@@ -882,7 +872,7 @@ function gameFrame(ignorePause?: boolean) {
 		// update every obj
 		revery((obj) => {
 			if (!obj.paused) {
-				obj.trigger("update");
+				obj.trigger("update", obj);
 			}
 		});
 
@@ -1398,7 +1388,7 @@ function area(p1?: Vec2 | number, p2?: Vec2 | number): AreaComp {
 }
 
 // TODO: clean
-function sprite(id: string, conf: SpriteCompConf = {}): SpriteComp {
+function sprite(id: string | SpriteData, conf: SpriteCompConf = {}): SpriteComp {
 
 	let spr = null;
 	let curAnim: SpriteCurAnim | null = null;
@@ -1430,7 +1420,11 @@ function sprite(id: string, conf: SpriteCompConf = {}): SpriteComp {
 
 		load() {
 
-			spr = assets.sprites[id];
+			if (typeof id === "string") {
+				spr = assets.sprites[id];
+			} else {
+				spr = id;
+			}
 
 			if (!spr) {
 				throw new Error(`sprite not found: "${id}"`);
@@ -1677,6 +1671,34 @@ function outline(width: number = 1, color: Color = rgb(0, 0, 0)): OutlineComp {
 
 }
 
+function timer(n?: number, action?: () => void): TimerComp {
+	const timers: IDList<Timer> = new IDList();
+	if (n && action) {
+		timers.pushd({
+			time: n,
+			action: action,
+		});
+	}
+	return {
+		id: "timer",
+		wait(n: number, action: () => void): EventCanceller {
+			return timers.pushd({
+				time: n,
+				action: action,
+			});
+		},
+		update() {
+			timers.forEach((timer, id) => {
+				timer.time -= dt();
+				if (timer.time <= 0) {
+					timer.action();
+					timers.delete(id);
+				}
+			});
+		},
+	};
+}
+
 function solid(): SolidComp {
 	return {
 		id: "solid",
@@ -1689,6 +1711,13 @@ function fixed(): FixedComp {
 	return {
 		id: "fixed",
 		fixed: true,
+	};
+}
+
+function stay(): StayComp {
+	return {
+		id: "stay",
+		stay: true,
 	};
 }
 
@@ -1832,7 +1861,7 @@ function go(id: SceneID, ...args) {
 		throw new Error(`scene not found: ${id}`);
 	}
 
-	game.on("nextFrame", () => {
+	game.on("next", () => {
 
 		game.events = {};
 
@@ -1845,12 +1874,18 @@ function go(id: SceneID, ...args) {
 
 		game.actions = new IDList();
 		game.renders = new IDList();
-		game.objs = new IDList();
+
+		game.objs.forEach((obj) => {
+			if (!obj.stay) {
+				destroy(obj);
+			}
+		});
+
 		game.timers = new IDList();
 
 		// cam
 		game.cam = {
-			pos: vec2(gfx.width() / 2, gfx.height() / 2),
+			pos: center(),
 			scale: vec2(1, 1),
 			angle: 0,
 			shake: 0,
@@ -1942,6 +1977,7 @@ const ctx: KaboomCtx = {
 	get,
 	every,
 	revery,
+	getComps,
 	// comps
 	pos,
 	scale,
@@ -1954,10 +1990,12 @@ const ctx: KaboomCtx = {
 	text,
 	rect,
 	outline,
-	solid,
-	fixed,
 	body,
 	shader,
+	timer,
+	solid,
+	fixed,
+	stay,
 	// group events
 	on,
 	action,
@@ -2040,11 +2078,10 @@ const ctx: KaboomCtx = {
 plug(beanPlugin);
 plug(peditPlugin);
 plug(asepritePlugin);
-plug(f04b03Plugin);
 plug(cgaPlugin);
-plug(proggyPlugin);
 plug(levelPlugin);
 plug(skyPlugin);
+plug(kaboomPlugin);
 
 if (gconf.plugins) {
 	gconf.plugins.forEach(plug);

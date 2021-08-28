@@ -84,6 +84,7 @@ scene("game", () => {
 		// go to "lose" scene and pass the score
 		go("lose", score);
 		burp();
+		addKaboom(player.pos);
 	});
 
 	// keep track of score
