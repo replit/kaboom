@@ -69,7 +69,7 @@ const map = addLevel([
 	"*": [
 		sprite("spike"),
 		body(),
-		area(vec2(0, 6), vec2(11, 11)),
+		area(),
 		"hurt",
 	],
 	// if you need any dynamic evaluation, can pass a function that returns the

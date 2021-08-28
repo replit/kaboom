@@ -1,43 +1,37 @@
 // TODO: document
 
 kaboom({
-	clearColor: [0, 0, 0, 1],
-	scale: 4,
 	debug: true,
 });
 
 const objs = [
 	"apple",
-	"guy",
-	"birdy",
-	"pipe",
+	"lightening",
+	"robot",
+	"coin",
+	"car",
 	"key",
-	"car2",
 	"door",
-	"pineapple",
+	"bomb",
 ];
 
-loadRoot("/pub/examples/");
-loadSprite("stars", "img/stars.png");
-loadSprite("ship", "img/ship.png");
-
 for (const obj of objs) {
-	loadSprite(obj, `img/${obj}.png`);
+	loadSprite(obj, `sprites/${obj}.png`);
 }
 
+loadBean();
 loadSound("hit", "sounds/hit.mp3");
 loadSound("shoot", "sounds/shoot.mp3");
 loadSound("explosion", "sounds/explosion.mp3");
 loadSound("OtherworldlyFoe", "sounds/OtherworldlyFoe.mp3");
-loadSound("Burp", "sounds/Burp.mp3");
 
 scene("main", () => {
 
-	const BULLET_SPEED = 320;
-	const TRASH_SPEED = 48;
-	const BOSS_SPEED = 12;
-	const PLAYER_SPEED = 120;
-	const STAR_SPEED = 32;
+	const BULLET_SPEED = 1200;
+	const TRASH_SPEED = 120;
+	const BOSS_SPEED = 48;
+	const PLAYER_SPEED = 480;
+	const STAR_SPEED = 120;
 	const BOSS_HEALTH = 1000;
 	const OBJ_HEALTH = 4;
 
@@ -53,7 +47,6 @@ scene("main", () => {
 	], "game");
 
 	volume(0.5);
-	camIgnore(["ui"]);
 
 	function health(hp) {
 		return {
@@ -112,10 +105,11 @@ scene("main", () => {
 	}
 
 	add([
-		text("KILL",24),
+		text("KILL", 24),
 		pos(width() / 2, height() / 2),
 		origin("center"),
 		lifespan(1),
+		fixed(),
 		layer("ui"),
 	]);
 
@@ -125,6 +119,7 @@ scene("main", () => {
 		origin("center"),
 		lifespan(2),
 		late(1),
+		fixed(),
 		layer("ui"),
 	]);
 
@@ -134,18 +129,7 @@ scene("main", () => {
 		origin("center"),
 		lifespan(4),
 		late(2),
-		layer("ui"),
-	]);
-
-	add([
-		text(`
-up:    insane mode
-left:  move left
-right: move right
-space: shoot
-		`.trim(), 4),
-		origin("botleft"),
-		pos(4, height() - 4),
+		fixed(),
 		layer("ui"),
 	]);
 
@@ -165,31 +149,31 @@ space: shoot
 		}
 	});
 
-	add([
-		sprite("stars"),
-		scale(width() / 240, height() / 240),
-		pos(0, 0),
-		"stars",
-	]);
+// 	add([
+// 		sprite("stars"),
+// 		scale(width() / 240, height() / 240),
+// 		pos(0, 0),
+// 		"stars",
+// 	]);
 
-	add([
-		sprite("stars"),
-		scale(width() / 240, height() / 240),
-		pos(0, -height()),
-		"stars",
-	]);
+// 	add([
+// 		sprite("stars"),
+// 		scale(width() / 240, height() / 240),
+// 		pos(0, -height()),
+// 		"stars",
+// 	]);
 
-	action("stars", (r) => {
-		r.move(0, STAR_SPEED * (insaneMode ? 10 : 1));
-		if (r.pos.y >= height()) {
-			r.pos.y -= height() * 2;
-		}
-	});
+// 	action("stars", (r) => {
+// 		r.move(0, STAR_SPEED * (insaneMode ? 10 : 1));
+// 		if (r.pos.y >= height()) {
+// 			r.pos.y -= height() * 2;
+// 		}
+// 	});
 
 	const player = add([
-		sprite("ship"),
+		sprite("bean"),
 		area(),
-		pos(width() / 2, height() - 16),
+		pos(width() / 2, height() - 64),
 		origin("center"),
 	]);
 
@@ -223,7 +207,7 @@ space: shoot
 		shake(120);
 		play("explosion");
 		music.detune(-1200);
-		makeExplosion(vec2(width() / 2, height() / 2), 12, 120, 30);
+		makeExplosion(center(), 12, 120, 30);
 		wait(1, () => {
 			music.stop();
 			go("main");
@@ -236,7 +220,8 @@ space: shoot
 				for (let i = 0; i < 2; i++) {
 					add([
 						pos(p.add(rand(vec2(-rad), vec2(rad)))),
-						rect(1, 1),
+						rect(4, 4),
+						outline(4),
 						scale(1 * size, 1 * size),
 						lifespan(0.1),
 						grow(rand(48, 72) * size),
@@ -249,11 +234,12 @@ space: shoot
 
 	function spawnBullet(p) {
 		add([
-			rect(2, 6),
+			rect(12, 48),
 			area(),
 			pos(p),
 			origin("center"),
 			color(0.5, 0.5, 1),
+			outline(4),
 			// strings here means a tag
 			"bullet",
 		]);
@@ -266,8 +252,8 @@ space: shoot
 	});
 
 	keyPress("space", () => {
-		spawnBullet(player.pos.sub(4, 0));
-		spawnBullet(player.pos.add(4, 0));
+		spawnBullet(player.pos.sub(16, 0));
+		spawnBullet(player.pos.add(16, 0));
 		play("shoot", {
 			volume: 0.3,
 			detune: rand(-1200, 1200),
@@ -303,10 +289,10 @@ space: shoot
 	const boss = add([
 		sprite(bossName),
 		area(),
-		pos(width() / 2, 48),
+		pos(width() / 2, 40),
 		health(BOSS_HEALTH),
 		scale(3),
-		origin("bot"),
+		origin("top"),
 		"enemy",
 		{
 			dir: 1,
@@ -316,7 +302,7 @@ space: shoot
 	on("death", "enemy", (e) => {
 		destroy(e);
 		shake(2);
-		makeExplosion(e.pos, 3, 6, 1);
+		makeExplosion(e.pos, 3, 24, 1);
 	});
 
 	on("hurt", "enemy", (e) => {
@@ -330,6 +316,7 @@ space: shoot
 	const timer = add([
 		text(0),
 		pos(2, 10),
+		fixed(),
 		layer("ui"),
 		{
 			time: 0,
@@ -344,7 +331,7 @@ space: shoot
 	collides("bullet", "enemy", (b, e) => {
 		destroy(b);
 		e.hurt(insaneMode ? 10 : 1);
-		makeExplosion(b.pos, 1, 6, 1);
+		makeExplosion(b.pos, 1, 24, 1);
 	});
 
 	action("trash", (t) => {
@@ -380,6 +367,7 @@ space: shoot
 		rect(width(), 6),
 		pos(0, 0),
 		color(0.5, 1, 0.5),
+		fixed(),
 		layer("ui"),
 		{
 			max: BOSS_HEALTH,

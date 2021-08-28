@@ -1,10 +1,8 @@
 // initialize context
-kaboom({
-	scale: 2,
-});
+kaboom();
 
-// add a piece of text on (100, 100)
+// add a piece of text on (20, 20)
 add([
 	text("ohhimark"),
-	pos(100, 100),
+	pos(20, 20),
 ]);

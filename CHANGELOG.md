@@ -6,6 +6,8 @@
 - added `mouseDeltaPos()`
 - added `touchToMouse` to control if touch events should be translated to mouse events
 - added `loadMark()` to load `"mark"` as a default sprite
+- added `fixed()` component to make an object unaffected by camera
+- added `mousePosRaw()` to get mouse position relative to screen (`mousePos()` is affected by camera)
 - beter type support for components
 - `scene()` and `start()` (also removed in favor of `go()`) are optional now, if you don't need multiple scenes yet you can just go directly
 ```js
@@ -42,6 +44,7 @@ function alwaysRight() {
 }
 ```
 - (**BREAK**) overlapping component fields are not allowed, e.g. you can have a custom comp that has a `collides` field if it already have a `area` component, since it already has that
+- (**BREAK**) changed `text(txt, size, conf)` to `text(txt, conf)` with `size` as a field
 - added `obj.c(id)` for getting a specific comp's state (by default all comps' states are mounted to the obj by `Object.defineProperty`)
 ```js
 // both works
@@ -60,9 +63,9 @@ obj.c("sprite").play("anim");
 - (**BREAK**) renamed `camShake()` to `shake()`
 - (**BREAK**) remove `flipX()` and `flipY()` on `scale()` comp
 - (**BREAK**) removed `start()` in favor of `go()`
-- (**BREAK**) added a default text size `16`
 - (**BREAK**) removed `changeSprite()` in favor of `use(sprite("newsprite"))`
 - (**BREAK**) renamed `rmTag()` to `untag()`
+- (**BREAK**) removed `camIgnore()` in favor of `fixed()`
 
 ### v0.5.1
 - added plugins npm package support e.g. `import asepritePlugin from "kaboom/plugins/aseprite"`

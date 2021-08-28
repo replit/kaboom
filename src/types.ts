@@ -224,7 +224,7 @@ interface KaboomCtx {
 	/**
 	 * (comp) renders as text
 	 */
-	text(t: string, size?: number, conf?: TextCompConf): TextComp,
+	text(t: string, conf?: TextCompConf): TextComp,
 	/**
 	 * (comp) renders as rect
 	 */
@@ -1159,6 +1159,10 @@ interface TextComp extends Comp {
 }
 
 type TextCompConf = {
+	/**
+	 * height of text
+	 */
+	size?: number,
 	/**
 	 * the font to use
 	 */

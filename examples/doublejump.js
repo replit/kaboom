@@ -1,18 +1,18 @@
 kaboom({
-	scale: 4,
 	debug: true,
 });
 
-loadRoot("/pub/examples/");
-loadSprite("car", "img/car2.png");
-loadSprite("coin", "img/coin.png");
-loadSprite("grass", "img/grass.png");
-loadSprite("spike", "img/spike2.png");
+loadSprite("car", "sprites/car.png");
+loadSprite("coin", "sprites/coin.png");
+loadSprite("grass", "sprites/grass.png");
+loadSprite("spike", "sprites/spike.png");
 loadSound("coin", "sounds/coin.mp3");
 
-const PLAYER_SPEED = 120;
-const JUMP_FORCE = 240;
+const PLAYER_SPEED = 640;
+const JUMP_FORCE = 1200;
 const NUM_PLATFORMS = 5;
+
+gravity(4000);
 
 // custom component to handle double jump
 function djump() {
@@ -88,7 +88,7 @@ for (let i = 1; i < NUM_PLATFORMS; i++) {
 		origin("center"),
 		"platform",
 		{
-			speed: rand(20, 60),
+			speed: rand(120, 320),
 			dir: choose([-1, 1]),
 		},
 	]);
@@ -111,13 +111,12 @@ function genCoin() {
 
 genCoin();
 
-for (let i = 0; i < width() / 11; i++) {
+for (let i = 0; i < width() / 64; i++) {
 	add([
-		pos(i * 11, height()),
+		pos(i * 64, height()),
 		sprite("spike"),
 		area(),
 		origin("bot"),
-		color(1, 0, 5),
 		scale(),
 		"danger",
 	]);

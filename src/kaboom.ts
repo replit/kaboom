@@ -927,7 +927,7 @@ function drawInspect() {
 
 	let inspecting = null;
 	const font = assets.defFont();
-	const lcolor = rgba(gconf.inspectColor ?? [0, 1, 1, 1]);
+	const lcolor = rgba(gconf.inspectColor ?? [0, 0, 1, 1]);
 
 	function drawInspectTxt(pos, txt, scale) {
 
@@ -976,7 +976,7 @@ function drawInspect() {
 				}
 			}
 
-			const lwidth = (inspecting === obj ? 6 : 2) / scale;
+			const lwidth = (inspecting === obj ? 8 : 4) / scale;
 			const a = obj.worldArea();
 			const w = a.p2.x - a.p1.x;
 			const h = a.p2.y - a.p1.y;
@@ -994,7 +994,7 @@ function drawInspect() {
 
 		drawObj(inspecting, (scale) => {
 
-			const mpos = mousePos(inspecting.layer);
+			const mpos = mousePos();
 			const lines = [];
 			const data = inspecting._inspect();
 
@@ -1162,10 +1162,11 @@ function area(p1?: Vec2 | number, p2?: Vec2 | number): AreaComp {
 		},
 
 		isHovered() {
+			const mposFunc = this.fixed ? mousePosRaw : mousePos;
 			if (app.isTouch) {
-				return app.mouseDown() && this.hasPt(mousePos(this.layer));
+				return app.mouseDown() && this.hasPt(mposFunc());
 			} else {
-				return this.hasPt(mousePos(this.layer));
+				return this.hasPt(mposFunc());
 			}
 		},
 
@@ -1562,13 +1563,13 @@ function sprite(id: string, conf: SpriteCompConf = {}): SpriteComp {
 
 }
 
-function text(t: string, size: number, conf: TextCompConf = {}): TextComp {
+function text(t: string, conf: TextCompConf = {}): TextComp {
 
 	return {
 
 		id: "text",
 		text: t,
-		textSize: size || 16,
+		textSize: conf.size,
 		font: conf.font,
 		width: 0,
 		height: 0,

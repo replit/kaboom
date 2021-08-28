@@ -31,17 +31,16 @@ interface Sky {
 
 export default (k: KaboomCtx) => {
 
+	k.loadSprite("cloud", cloudSrc);
+
 	function addSky(conf: SkyConf = {}): Sky {
 
 		const speed = conf.speed || 240;
 		const spawnSpeed = conf.spawnSpeed || 1;
-		const height = conf.spawnSpeed || 0.3;
-
-		k.loadSprite("cloud", cloudSrc);
+		const height = conf.spawnSpeed || 0.4;
 
 		const bg = k.add([
 			k.rect(k.width(), k.height()),
-			// @ts-ignore
 			k.color(conf.color || k.rgb(0.5, 1, 1)),
 			k.fixed(),
 		]);
@@ -53,8 +52,9 @@ export default (k: KaboomCtx) => {
 			const screenPos = k.vec2(k.width(), k.rand(0, height * k.height()));
 
 			const cloud = k.add([
-				k.pos(screenPos),
 				k.sprite("cloud"),
+				k.pos(screenPos),
+				k.origin("left"),
 			]);
 
 			const cspeed = k.rand(speed - 100, speed + 100);
@@ -64,7 +64,7 @@ export default (k: KaboomCtx) => {
 			});
 
 			if (!destroyed) {
-				k.wait(k.rand(1, 2), spawnCloud);
+				k.wait(k.rand(1.5, 3), spawnCloud);
 			}
 
 		}

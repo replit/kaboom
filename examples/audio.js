@@ -1,8 +1,6 @@
 // audio playback & control
 
-kaboom({
-	clearColor: [0, 0, 0, 1],
-});
+kaboom();
 
 loadRoot("/pub/examples/");
 loadSound("wooosh", "sounds/wooosh.mp3");

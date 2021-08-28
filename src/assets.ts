@@ -11,7 +11,7 @@ import {
 } from "./gfx";
 
 // @ts-ignore
-import unsciiSrc from "./unscii_8x8.png";
+import fontSrc from "./font.png";
 
 type AssetsConf = {
 	errHandler?: (err: string) => void,
@@ -64,7 +64,7 @@ type Assets = {
 
 const ASCII_CHARS = " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~";
 const CP437_CHARS = " ☺☻♥♦♣♠•◘○◙♂♀♪♫☼►◄↕‼¶§▬↨↑↓→←∟↔▲▼ !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~⌂ÇüéâäàåçêëèïîìÄÅÉæÆôöòûùÿÖÜ¢£¥₧ƒáíóúñÑªº¿⌐¬½¼¡«»░▒▓│┤╡╢╖╕╣║╗╝╜╛┐└┴┬├─┼╞╟╚╔╩╦╠═╬╧╨╤╥╙╘╒╓╫╪┘┌█▄▌▐▀αßΓπΣσµτΦΘΩδ∞φε∩≡±≥≤⌠⌡÷≈°∙·√ⁿ²■";
-const DEF_FONT = "unscii";
+const DEF_FONT = "kaboom";
 
 function loadImg(src: string): Promise<HTMLImageElement> {
 	const img = new Image();
@@ -349,12 +349,11 @@ function assetsInit(gfx: Gfx, audio: Audio, gconf: AssetsConf = {}): Assets {
 		return assets.fonts[DEF_FONT];
 	}
 
-	// default font unscii http://pelulamu.net/unscii/
 	loadFont(
 		DEF_FONT,
-		unsciiSrc,
-		8,
-		8
+		fontSrc,
+		48,
+		64
 	);
 
 	return {

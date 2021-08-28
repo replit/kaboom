@@ -1,7 +1,7 @@
 kaboom();
 
 add([
-	text("press 'b' to burp"),
+	text("press b to burp"),
 ]);
 
 keyPress("b", burp);

@@ -1,29 +1,26 @@
 // bench marking sprite rendering performance
 
-const k = kaboom({
-	scale: 2,
-});
+kaboom();
 
-k.loadRoot("/pub/examples/");
-k.loadSprite("mark", "img/mark.png");
+loadBean();
 
-k.render(() => {
+render(() => {
 
-	const w = k.width();
-	const h = k.height();
+	const w = width();
+	const h = height();
 
 	for (let i = 0; i < 3000; i++) {
-		k.drawSprite("mark", {
-			pos: k.vec2(k.rand(0, w), k.rand(0, h)),
+		drawSprite("bean", {
+			pos: vec2(rand(0, w), rand(0, h)),
 			origin: "center",
 		});
 	}
 
-	k.drawText(k.debug.fps().toFixed(0), {
-		pos: k.vec2(w / 2, h / 2),
+	drawText(debug.fps().toFixed(0), {
+		pos: vec2(w / 2, h / 2),
 		origin: "center",
 		size: 36,
-		color: k.rgb(1, 0.4, 1),
+		color: rgb(1, 0.4, 1),
 	});
 
 });

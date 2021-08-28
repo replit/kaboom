@@ -1,11 +1,8 @@
 // drag & drop interaction
 
-kaboom({
-	scale: 2,
-});
+kaboom();
 
-loadRoot("/pub/examples/");
-loadSprite("mark", "img/mark.png");
+loadSprite("mark", "sprites/bean.png");
 
 let curDraggin = null;
 
@@ -27,6 +24,7 @@ function drag() {
 				if (curDraggin) {
 					return;
 				}
+				cursor("move");
 				curDraggin = this;
 				offset = mousePos().sub(this.pos);
 				readd(this);
@@ -43,10 +41,13 @@ function drag() {
 }
 
 // drop
-mouseRelease(() => curDraggin = null);
+mouseRelease(() => {
+	curDraggin = null;
+	cursor("default");
+});
 
 // adding dragable objects
-for (let i = 0; i < 64; i++) {
+for (let i = 0; i < 48; i++) {
 	add([
 		sprite("mark"),
 		pos(rand(width()), rand(height())),
