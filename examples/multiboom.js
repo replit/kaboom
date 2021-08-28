@@ -9,7 +9,7 @@ for (let i = 0; i < 2; i++) {
 
 	const k = kaboom({
 		clearColor: clearColors[i],
-		noGlobal: true,
+		global: false,
 		width: 320,
 		height: 320,
 	});

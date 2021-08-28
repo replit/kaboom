@@ -28,7 +28,7 @@ type Logger = {
 	clear(),
 };
 
-const LOG_SIZE = 16;
+const LOG_SIZE = 26;
 
 function loggerInit(gfx: Gfx, assets: Assets, conf: LoggerConf = {
 	max: 8,
@@ -59,7 +59,7 @@ function loggerInit(gfx: Gfx, assets: Assets, conf: LoggerConf = {
 				}
 			})();
 
-			const ftext = gfx.fmtText(log.msg, assets.defFont(), {
+			const ftext = gfx.fmtText(log.msg, assets.dbgFont(), {
 				pos: pos,
 				origin: "botleft",
 				color: col,

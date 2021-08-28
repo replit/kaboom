@@ -1,12 +1,9 @@
-kaboom({
-	debug: true,
-	clearColor: [0, 0, 0, 1],
-});
+kaboom();
 
 // load assets
 loadSprite("bean", "sprites/bean.png");
 loadSprite("spike", "sprites/spike.png");
-loadSprite("steel", "sprites/steel.png");
+loadSprite("grass", "sprites/grass.png");
 loadSprite("prize", "sprites/jumpy.png");
 loadSprite("apple", "sprites/apple.png");
 loadSprite("coin", "sprites/coin.png");
@@ -33,7 +30,7 @@ const level = addLevel([
 	height: 64,
 	// define each object as a list of components
 	"=": [
-		sprite("steel"),
+		sprite("grass"),
 		area(),
 		solid(),
 		origin("bot"),

@@ -1,4 +1,4 @@
-// yep
+// animating sky background
 
 // @ts-ignore
 import cloudSrc from "./cloud.png";

@@ -3,7 +3,7 @@ const JUMP_FORCE = 800;
 const SPEED = 480;
 
 // initialize context
-kaboom({ debug: true });
+kaboom();
 
 // load assets
 loadSprite("bean", "sprites/bean.png");

@@ -84,7 +84,7 @@ module.exports = (gconf: KaboomConf = {
 	width: null,
 	height: null,
 	scale: 1,
-	debug: false,
+	debug: true,
 	crisp: false,
 	canvas: null,
 	connect: null,
@@ -929,7 +929,7 @@ function gameFrame(ignorePause?: boolean) {
 function drawInspect() {
 
 	let inspecting = null;
-	const font = assets.defFont();
+	const font = assets.dbgFont();
 	const lcolor = rgba(gconf.inspectColor ?? [0, 0, 1, 1]);
 
 	function drawInspectTxt(pos, txt, scale) {
@@ -937,7 +937,7 @@ function drawInspect() {
 		const pad = vec2(4).scale(1 / scale);
 
 		const ftxt = gfx.fmtText(txt, font, {
-			size: 12 / scale,
+			size: 26 / scale,
 			pos: pos.add(vec2(pad.x, pad.y)),
 		});
 
@@ -1865,7 +1865,7 @@ function go(id: SceneID, ...args) {
 
 		game.scenes[id](...args);
 
-		if (gconf.debug) {
+		if (gconf.debug !== false) {
 			regDebugInput();
 		}
 
@@ -1895,7 +1895,7 @@ function plug<T>(plugin: KaboomPlugin<T>): MergeObj<T> & KaboomCtx {
 	for (const k in funcs) {
 		// @ts-ignore
 		ctx[k] = funcs[k];
-		if (!gconf.noGlobal) {
+		if (gconf.global !== false) {
 			// @ts-ignore
 			window[k] = funcs[k];
 		}
@@ -2050,7 +2050,7 @@ if (gconf.plugins) {
 	gconf.plugins.forEach(plug);
 }
 
-if (!gconf.noGlobal) {
+if (gconf.global !== false) {
 	for (const k in ctx) {
 		window[k] = ctx[k];
 	}
@@ -2133,8 +2133,9 @@ function regDebugInput() {
 
 }
 
-if (gconf.debug) {
+if (gconf.debug !== false) {
 	regDebugInput();
+} else {
 }
 
 window.addEventListener("error", (e) => {

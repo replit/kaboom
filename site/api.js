@@ -42,9 +42,9 @@ add()
 action()
 vec2()
 
-// can use noGlobal flag to not export functions to global and use a ctx handle
+// can set global flag to false not export functions to global and use a ctx handle
 const k = kaboom({
-	noGlobal: true,
+	global: false,
 });
 
 k.vec2();

@@ -25,7 +25,7 @@ loadSound("shoot", "sounds/shoot.mp3");
 loadSound("explosion", "sounds/explosion.mp3");
 loadSound("OtherworldlyFoe", "sounds/OtherworldlyFoe.mp3");
 
-scene("main", () => {
+scene("battle", () => {
 
 	const BULLET_SPEED = 1200;
 	const TRASH_SPEED = 120;
@@ -105,7 +105,7 @@ scene("main", () => {
 	}
 
 	add([
-		text("KILL", 24),
+		text("KILL", { size: 160 }),
 		pos(width() / 2, height() / 2),
 		origin("center"),
 		lifespan(1),
@@ -114,7 +114,7 @@ scene("main", () => {
 	]);
 
 	add([
-		text("THE", 12),
+		text("THE", { size: 80 }),
 		pos(width() / 2, height() / 2),
 		origin("center"),
 		lifespan(2),
@@ -124,7 +124,7 @@ scene("main", () => {
 	]);
 
 	add([
-		text(bossName.toUpperCase(), 18),
+		text(bossName.toUpperCase(), { size: 120 }),
 		pos(width() / 2, height() / 2),
 		origin("center"),
 		lifespan(4),
@@ -210,7 +210,7 @@ scene("main", () => {
 		makeExplosion(center(), 12, 120, 30);
 		wait(1, () => {
 			music.stop();
-			go("main");
+			go("battle");
 		});
 	});
 
@@ -364,7 +364,7 @@ scene("main", () => {
 	});
 
 	const healthbar = add([
-		rect(width(), 6),
+		rect(width(), 24),
 		pos(0, 0),
 		color(0.5, 1, 0.5),
 		fixed(),
@@ -405,7 +405,7 @@ scene("win", ({ time, boss }) => {
 		sprite(boss),
 		color(1, 0, 0),
 		origin("center"),
-		scale(12),
+		scale(8),
 		pos(width() / 2, height() / 2),
 	]);
 
@@ -417,4 +417,4 @@ scene("win", ({ time, boss }) => {
 
 });
 
-go("main");
+go("battle");

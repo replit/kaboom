@@ -1,3 +1,5 @@
+// TODO: loadSpriteRaw() to not insert to assets manager only return SpriteData
+
 import {
 	quad,
 } from "./math";
@@ -12,6 +14,8 @@ import {
 
 // @ts-ignore
 import fontSrc from "./font.png";
+// @ts-ignore
+import proggySrc from "./proggy_7x13.png";
 
 type AssetsConf = {
 	errHandler?: (err: string) => void,
@@ -56,6 +60,7 @@ type Assets = {
 	loadProgress(): number,
 	load<T>(prom: Promise<T>),
 	defFont(): FontData,
+	dbgFont(): FontData,
 	sprites: Record<string, SpriteData>,
 	fonts: Record<string, FontData>,
 	sounds: Record<string, SoundData>,
@@ -65,6 +70,7 @@ type Assets = {
 const ASCII_CHARS = " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~";
 const CP437_CHARS = " ☺☻♥♦♣♠•◘○◙♂♀♪♫☼►◄↕‼¶§▬↨↑↓→←∟↔▲▼ !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~⌂ÇüéâäàåçêëèïîìÄÅÉæÆôöòûùÿÖÜ¢£¥₧ƒáíóúñÑªº¿⌐¬½¼¡«»░▒▓│┤╡╢╖╕╣║╗╝╜╛┐└┴┬├─┼╞╟╚╔╩╦╠═╬╧╨╤╥╙╘╒╓╫╪┘┌█▄▌▐▀αßΓπΣσµτΦΘΩδ∞φε∩≡±≥≤⌠⌡÷≈°∙·√ⁿ²■";
 const DEF_FONT = "kaboom";
+const DBG_FONT = "proggy";
 
 function loadImg(src: string): Promise<HTMLImageElement> {
 	const img = new Image();
@@ -349,11 +355,22 @@ function assetsInit(gfx: Gfx, audio: Audio, gconf: AssetsConf = {}): Assets {
 		return assets.fonts[DEF_FONT];
 	}
 
+	function dbgFont(): FontData {
+		return assets.fonts[DBG_FONT];
+	}
+
 	loadFont(
 		DEF_FONT,
 		fontSrc,
 		48,
 		64
+	);
+
+	loadFont(
+		DBG_FONT,
+		proggySrc,
+		7,
+		13
 	);
 
 	return {
@@ -365,6 +382,7 @@ function assetsInit(gfx: Gfx, audio: Audio, gconf: AssetsConf = {}): Assets {
 		loadProgress,
 		load,
 		defFont,
+		dbgFont,
 		sprites: assets.sprites,
 		fonts: assets.fonts,
 		sounds: assets.sounds,

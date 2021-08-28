@@ -4,7 +4,7 @@
 ![bean](sprites/bean.png)
 - added `loadBean()` to `"bean"` as a default sprite
 - added `outline()` comp to draw a lil outline
-- kaboom functions all now global by default, toggle off by `kaboom({ noGlobal: true })`
+- `global` and `debug` flag now are enabled by default, need to turn off manually if you don't want
 - added input events `touchStart(id, pos)`, `touchMove(id, pos)`, `touchEnd(id, pos)`, `mouseMove(pos)`
 - added `mouseDeltaPos()`
 - added `touchToMouse` to control if touch events should be translated to mouse events
