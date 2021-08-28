@@ -71,6 +71,7 @@ for (const stmt of f.statements) {
 			}
 			const name = mem.name.escapedText;
 			if (mem.jsDoc) {
+				// TODO: what is jsDoc when it has multiple members?
 				dts += `\t/**\n\t * ${mem.jsDoc[0].comment}\n\t */\n`;
 			}
 			if (overwrites.has(name)) {
