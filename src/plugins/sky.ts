@@ -47,7 +47,7 @@ export default (k: KaboomCtx) => {
 
 		const speed = conf.speed || 240;
 		const spawnSpeed = conf.spawnSpeed || 1;
-		const height = conf.spawnSpeed || 0.4;
+		const height = conf.height || 0.4;
 
 		const bg = k.add([
 			k.rect(k.width(), k.height()),
@@ -77,6 +77,9 @@ export default (k: KaboomCtx) => {
 
 			cloud.action(() => {
 				cloud.move(-speed, 0);
+				if (cloud.pos.x < -cloud.width) {
+					cloud.destroy();
+				}
 			});
 
 			if (!destroyed) {

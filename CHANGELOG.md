@@ -1,10 +1,12 @@
 ### v0.8 burp() (unreleased)
 - added `burp()` for easy burping
+- added decent typescript support
 - revamped visual style, changed default font and debug font
 - introducing new character "bean"
 ![bean](sprites/bean.png)
 - added `loadBean()` to `"bean"` as a default sprite
 - added `outline()` comp to draw a lil outline
+- added `timer()` comp to attach timers to game obj
 - `global` and `debug` flag now are enabled by default, need to turn off manually if you don't want
 - added input events `touchStart(id, pos)`, `touchMove(id, pos)`, `touchEnd(id, pos)`, `mouseMove(pos)`
 - added `mouseDeltaPos()`
@@ -56,8 +58,8 @@ obj.play("anim");
 obj.c("sprite").play("anim");
 ```
 - pedit, aseprite, cga plugins are now included by default
-- added `addSky()`
-- added `addKaboom()`
+- added `addSky()` for quick scrolling sky background
+- added `addKaboom()` for quick explosion
 - `load*()` now accepts `null` as name and not load into assets manager, instead just return the resource data handle
 - (**BREAK**) changed event `headbump` to `headbutt`
 - added `width`, `height`, and `tiled` attrib to `SpriteCompConf`, for better control over sprite size and tiled sprite support
@@ -73,6 +75,7 @@ obj.c("sprite").play("anim");
 - (**BREAK**) removed `changeSprite()` in favor of `use(sprite("newsprite"))`
 - (**BREAK**) renamed `rmTag()` to `untag()`
 - (**BREAK**) removed `camIgnore()` in favor of `fixed()`
+- (**BREAK**) changed color from 0-1 range to 0-255, angles from radians to degrees
 
 ### v0.5.1
 - added plugins npm package support e.g. `import asepritePlugin from "kaboom/plugins/aseprite"`

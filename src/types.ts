@@ -131,38 +131,38 @@ interface KaboomCtx {
 	/**
 	 * Register an event on all game objs with certain tag.
 	 */
-	on(event: string, tag: string, cb: (obj: GameObj<any>) => void): EventCanceller,
+	on(event: string, tag: Tag, cb: (obj: GameObj<any>) => void): EventCanceller,
 	/**
 	 * Register "update" event (runs every frame) on all game objs with certain tag.
 	 */
-	action(tag: string, cb: (obj: GameObj<any>) => void): EventCanceller,
+	action(tag: Tag, cb: (obj: GameObj<any>) => void): EventCanceller,
 	action(cb: () => void): EventCanceller,
 	/**
 	 * Register "draw" event (runs every frame) on all game objs with certain tag.
 	 */
-	render(tag: string, cb: (obj: GameObj<any>) => void): EventCanceller,
+	render(tag: Tag, cb: (obj: GameObj<any>) => void): EventCanceller,
 	render(cb: () => void): EventCanceller,
 	/**
 	 * Register event when 2 game objs with certain tags collides.
 	 */
 	collides(
-		t1: string,
-		t2: string,
+		t1: Tag,
+		t2: Tag,
 		cb: (a: GameObj<any>, b: GameObj<any>) => void,
 	): EventCanceller,
 	/**
 	 * Register event when 2 game objs with certain tags overlaps.
 	 */
 	overlaps(
-		t1: string,
-		t2: string,
+		t1: Tag,
+		t2: Tag,
 		cb: (a: GameObj<any>, b: GameObj<any>) => void,
 	): EventCanceller,
 	/**
 	 * Register event when game objs with certain tags are clicked.
 	 */
 	clicks(
-		tag: string,
+		tag: Tag,
 		cb: (a: GameObj<any>) => void,
 	): EventCanceller,
 	/**
@@ -267,6 +267,7 @@ interface KaboomCtx {
 	/**
 	 * Get / set the cursor (css)
 	 */
+	// TODO: enum
 	cursor(c?: string): void,
 	/**
 	 * Get current mouse position (after camera transform)
@@ -480,7 +481,7 @@ interface KaboomCtx {
 	/**
 	 * Import a plugin.
 	 */
-	plug<T>(plugin: KaboomPlugin<T>): MergeObj<T> & KaboomCtx,
+	plug<T>(plugin: Plugin<T>): MergeObj<T> & KaboomCtx,
 	/**
 	 * Debug stuff.
 	 */

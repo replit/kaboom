@@ -34,6 +34,10 @@ interface Kaboom {
 interface ExplodeComp extends Comp {
 }
 
+interface KaboomPlug {
+	addKaboom(pos: Vec2, conf?: BoomConf): Kaboom,
+}
+
 export default (k: KaboomCtx) => {
 
 	function explode(speed: number = 2, size: number = 1): ExplodeComp {

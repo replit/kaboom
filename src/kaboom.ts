@@ -542,7 +542,15 @@ function add<T extends Comp>(comps: CompList<T>): GameObj<T> {
 		},
 
 		destroy() {
-			destroy(this);
+
+			if (!this.exists()) {
+				return;
+			}
+
+			this.trigger("destroy");
+			game.objs.delete(this._id);
+			delete this._id;
+
 		},
 
 		_inspect() {
@@ -824,15 +832,7 @@ function revery<T>(t: string | ((obj: GameObj<any>) => T), f?: (obj: GameObj<any
 
 // destroy an obj
 function destroy(obj: GameObj<any>) {
-
-	if (!obj.exists()) {
-		return;
-	}
-
-	obj.trigger("destroy");
-	game.objs.delete(obj._id);
-	delete obj._id;
-
+	obj.destroy();
 }
 
 // destroy all obj with the tag
