@@ -54,8 +54,8 @@ function loggerInit(gfx: Gfx, assets: Assets, conf: LoggerConf = {
 
 			const col = (() => {
 				switch (log.type) {
-					case "info": return rgba(1, 1, 1, txtAlpha);
-					case "error": return rgba(1, 0, 0.5, txtAlpha);
+					case "info": return rgba(255, 255, 255, txtAlpha);
+					case "error": return rgba(255, 0, 127, txtAlpha);
 				}
 			})();
 

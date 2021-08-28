@@ -9,6 +9,7 @@
 - added `timer()` comp to attach timers to game obj
 - `global` and `debug` flag now are enabled by default, need to turn off manually if you don't want
 - added input events `touchStart(id, pos)`, `touchMove(id, pos)`, `touchEnd(id, pos)`, `mouseMove(pos)`
+- added `font` field in `KaboomConf` to set the default font
 - added `mouseDeltaPos()`
 - added `touchToMouse` to control if touch events should be translated to mouse events
 - added `fixed()` component to make an object unaffected by camera

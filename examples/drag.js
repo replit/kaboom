@@ -56,6 +56,6 @@ for (let i = 0; i < 48; i++) {
 		origin("center"),
 		// using our custom component here
 		drag(),
-		i !== 0 ? color(1, 1, 1) : color(1, 0, 1),
+		i !== 0 ? color(255, 255, 255) : color(255, 0, 255),
 	]);
 }

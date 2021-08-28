@@ -141,11 +141,11 @@ scene("battle", () => {
 	sky.action(() => {
 		if (insaneMode) {
 			sky.color.a = 1;
-			sky.color.r = wave(0, 0.2, 4, 0);
-			sky.color.g = wave(0, 0.2, 4, 1);
-			sky.color.b = wave(0, 0.2, 4, 2);
+			sky.color.r = wave(0, 50, 4, 0);
+			sky.color.g = wave(0, 50, 4, 1);
+			sky.color.b = wave(0, 50, 4, 2);
 		} else {
-			sky.color = rgba(0, 0, 1, 0);
+			sky.color = rgba(0, 0, 255, 0);
 		}
 	});
 
@@ -238,7 +238,7 @@ scene("battle", () => {
 			area(),
 			pos(p),
 			origin("center"),
-			color(0.5, 0.5, 1),
+			color(127, 127, 255),
 			outline(4),
 			// strings here means a tag
 			"bullet",
@@ -247,7 +247,7 @@ scene("battle", () => {
 
 	action("bullet", (b) => {
 		if (insaneMode) {
-			b.color = rand(rgb(0, 0, 0), rgb(1, 1, 1));
+			b.color = rand(rgb(0, 0, 0), rgb(255, 255, 255));
 		}
 	});
 
@@ -315,12 +315,10 @@ scene("battle", () => {
 
 	const timer = add([
 		text(0),
-		pos(2, 10),
+		pos(12, 32),
 		fixed(),
 		layer("ui"),
-		{
-			time: 0,
-		},
+		{ time: 0, },
 	]);
 
 	timer.action(() => {
@@ -366,7 +364,7 @@ scene("battle", () => {
 	const healthbar = add([
 		rect(width(), 24),
 		pos(0, 0),
-		color(0.5, 1, 0.5),
+		color(127, 255, 127),
 		fixed(),
 		layer("ui"),
 		{
@@ -380,10 +378,10 @@ scene("battle", () => {
 
 	healthbar.action(() => {
 		if (healthbar.flash) {
-			healthbar.color = rgb(1, 1, 1);
+			healthbar.color = rgb(255, 255, 255);
 			healthbar.flash = false;
 		} else {
-			healthbar.color = rgb(0.5, 1, 0.5);
+			healthbar.color = rgb(127, 255, 127);
 		}
 	});
 
@@ -403,7 +401,7 @@ scene("win", ({ time, boss }) => {
 
 	add([
 		sprite(boss),
-		color(1, 0, 0),
+		color(255, 127, 127),
 		origin("center"),
 		scale(8),
 		pos(width() / 2, height() / 2),

@@ -143,7 +143,7 @@ interface KaboomCtx {
 	render(tag: Tag, cb: (obj: GameObj<any>) => void): EventCanceller,
 	render(cb: () => void): EventCanceller,
 	/**
-	 * Register event when 2 game objs with certain tags collides.
+	 * Register event when 2 game objs with certain tags collides. This function spins off an action() when called, please put it at root level and never inside another action().
 	 */
 	collides(
 		t1: Tag,
@@ -151,7 +151,7 @@ interface KaboomCtx {
 		cb: (a: GameObj<any>, b: GameObj<any>) => void,
 	): EventCanceller,
 	/**
-	 * Register event when 2 game objs with certain tags overlaps.
+	 * Register event when 2 game objs with certain tags overlaps. This function spins off an action() when called, please put it at root level and never inside another action().
 	 */
 	overlaps(
 		t1: Tag,
@@ -159,7 +159,7 @@ interface KaboomCtx {
 		cb: (a: GameObj<any>, b: GameObj<any>) => void,
 	): EventCanceller,
 	/**
-	 * Register event when game objs with certain tags are clicked.
+	 * Register event when game objs with certain tags are clicked. This function spins off an action() when called, please put it at root level and never inside another action().
 	 */
 	clicks(
 		tag: Tag,
@@ -200,11 +200,11 @@ interface KaboomCtx {
 	scale(s: Vec2): ScaleComp,
 	scale(): ScaleComp,
 	/**
-	 * <Comp> Rotate (in radians).
+	 * <Comp> Rotate (in degrees).
 	 */
 	rotate(a: number): RotateComp,
 	/**
-	 * <Comp> Custom color (in 0-1 rgba).
+	 * <Comp> Custom color in RGBA (multiplied).
 	 */
 	color(r: number, g: number, b: number, a?: number): ColorComp,
 	color(c: Color): ColorComp,
@@ -236,6 +236,7 @@ interface KaboomCtx {
 	 * <Comp> Renders as rect.
 	 */
 	rect(w: number, h: number): RectComp,
+	rect(p1: Vec2, p2: Vec2): RectComp,
 	/**
 	 * <Comp> Give obj an outline.
 	 */
@@ -481,7 +482,7 @@ interface KaboomCtx {
 	/**
 	 * Import a plugin.
 	 */
-	plug<T>(plugin: Plugin<T>): MergeObj<T> & KaboomCtx,
+	plug<T>(plugin: KaboomPlugin<T>): MergeObj<T> & KaboomCtx,
 	/**
 	 * Debug stuff.
 	 */
@@ -586,6 +587,7 @@ type KaboomConf = {
 	stretch?: boolean,
 	letterbox?: boolean,
 	debug?: boolean,
+	font?: string,
 	crisp?: boolean,
 	canvas?: HTMLCanvasElement,
 	root?: HTMLElement,
@@ -962,7 +964,7 @@ interface ScaleComp extends Comp {
 
 interface RotateComp extends Comp {
 	/**
-	 * Angle in radians.
+	 * Angle in degrees.
 	 */
 	angle: number;
 }

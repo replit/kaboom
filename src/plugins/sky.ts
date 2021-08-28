@@ -45,13 +45,13 @@ export default (k: KaboomCtx) => {
 
 	function addSky(conf: SkyConf = {}): Sky {
 
-		const speed = conf.speed || 240;
+		const speed = conf.speed || 160;
 		const spawnSpeed = conf.spawnSpeed || 1;
 		const height = conf.height || 0.4;
 
 		const bg = k.add([
 			k.rect(k.width(), k.height()),
-			k.color(conf.color || k.rgb(0.5, 1, 1)),
+			k.color(conf.color || k.rgb(127, 255, 255)),
 			k.fixed(),
 		]);
 
@@ -59,8 +59,11 @@ export default (k: KaboomCtx) => {
 
 		function spawnCloud() {
 
+			if (!destroyed) {
+				k.wait(k.rand(1.5, 3), spawnCloud);
+			}
+
 			if (!cloudSprite) {
-				throw new Error("failed to load cloud sprite");
 				return;
 			}
 
@@ -81,10 +84,6 @@ export default (k: KaboomCtx) => {
 					cloud.destroy();
 				}
 			});
-
-			if (!destroyed) {
-				k.wait(k.rand(1.5, 3), spawnCloud);
-			}
 
 		}
 

@@ -41,15 +41,16 @@ function djump() {
 }
 
 // a spinning component for fun
-function spin(speed = 16) {
+function spin(speed = 800) {
 	let spinning = false;
 	return {
+		require: [ "rotate", ],
 		update() {
 			if (!spinning) {
 				return;
 			}
 			this.angle -= speed * dt();
-			if (this.angle <= -Math.PI * 2) {
+			if (this.angle <= -360) {
 				spinning = false;
 				this.angle = 0;
 			}

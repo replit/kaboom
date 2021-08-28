@@ -202,7 +202,7 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 
 		const c = gconf.clearColor ?? rgba(0, 0, 0, 1);
 
-		gl.clearColor(c.r, c.g, c.b, c.a);
+		gl.clearColor(c.r / 255, c.g / 255, c.b / 255, c.a);
 		gl.enable(gl.BLEND);
 		gl.enable(gl.SCISSOR_TEST);
 		gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
@@ -447,7 +447,7 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 				return [
 					pt.x, pt.y, v.pos.z,
 					v.uv.x, v.uv.y,
-					v.color.r, v.color.g, v.color.b, v.color.a
+					v.color.r / 255, v.color.g / 255, v.color.b / 255, v.color.a
 				];
 			})
 			.flat();
@@ -593,7 +593,7 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 		const rot = conf.rot || 0;
 		const q = conf.quad || quad(0, 0, 1, 1);
 		const z = 1 - (conf.z ?? 0);
-		const color = conf.color || rgba(1, 1, 1, 1);
+		const color = conf.color || rgb();
 
 		pushTransform();
 		pushTranslate(pos);
@@ -737,7 +737,7 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 
 		const w = conf.width || 1;
 		const h = p1.dist(p2);
-		const rot = Math.PI / 2 - p1.angle(p2);
+		const rot = 90 - p1.angle(p2);
 
 		drawQuad({
 			...conf,
@@ -758,7 +758,7 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 		conf: DrawTriConf = {},
 	) {
 		const z = conf.z;
-		const color = conf.color || rgb(1, 1, 1);
+		const color = conf.color || rgb();
 		drawRaw([
 			{
 				pos: vec3(p1.x, p1.y, z),

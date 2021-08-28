@@ -100,7 +100,7 @@ function vec2(...args): Vec2 {
 		},
 		angle(...args): number {
 			const p2 = vec2(...args);
-			return Math.atan2(this.y - p2.y, this.x - p2.x);
+			return rad2deg(Math.atan2(this.y - p2.y, this.x - p2.x));
 		},
 		lerp(p2: Vec2, t: number): Vec2 {
 			return vec2(lerp(this.x, p2.x, t), lerp(this.y, p2.y, t));
@@ -182,11 +182,11 @@ function rgb(...args): Color {
 function rgba(...args): Color {
 
 	if (args.length === 0) {
-		return rgba(1, 1, 1, 1);
+		return rgba(255, 255, 255, 1);
 	} else if (args.length === 1) {
 		if (isColor(args[0])) {
 			return rgba(args[0].r, args[0].g, args[0].b, args[0].a);
-		} else if (Array.isArray(args[0]) && args[0].length === 4) {
+		} else if (Array.isArray(args[0]) && args[0].length === 3 || args[0].length ===4) {
 			return rgba.apply(null, args[0]);
 		}
 	}
@@ -206,7 +206,7 @@ function rgba(...args): Color {
 			return this.lighten(-a);
 		},
 		invert(): Color {
-			return rgba(1 - this.r, 1 - this.g, 1 - this.b, this.a);
+			return rgba(255 - this.r, 255 - this.g, 255 - this.b, this.a);
 		},
 		isDark(p: number = 0.5): boolean {
 			return this.r + this.g + this.b < 3 * p;
@@ -328,6 +328,7 @@ function mat4(m?: number[]): Mat4 {
 		},
 
 		rotateX(a: number): Mat4 {
+			a = deg2rad(a);
 			return this.mult(mat4([
 				1, 0, 0, 0,
 				0, Math.cos(a), -Math.sin(a), 0,
@@ -337,6 +338,7 @@ function mat4(m?: number[]): Mat4 {
 		},
 
 		rotateY(a: number): Mat4 {
+			a = deg2rad(a);
 			return this.mult(mat4([
 				Math.cos(a), 0, -Math.sin(a), 0,
 				0, 1, 0, 0,
@@ -346,6 +348,7 @@ function mat4(m?: number[]): Mat4 {
 		},
 
 		rotateZ(a: number): Mat4 {
+			a = deg2rad(a);
 			return this.mult(mat4([
 				Math.cos(a), -Math.sin(a), 0, 0,
 				Math.sin(a), Math.cos(a), 0, 0,

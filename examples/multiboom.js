@@ -1,8 +1,8 @@
 // multiple kaboom contexts in one page
 
 const clearColors = [
-	[1, 0, 1, 1],
-	[0, 0, 1, 1],
+	[255, 0, 255],
+	[0, 0, 255],
 ];
 
 for (let i = 0; i < 2; i++) {
@@ -21,8 +21,8 @@ for (let i = 0; i < 2; i++) {
 		return {
 			id: "spin",
 			update() {
-				this.scale = Math.sin(k.time() + i) * 12;
-				this.angle = k.time();
+				this.scale = Math.sin(k.time() + i) * 9;
+				this.angle = k.time() * 60;
 			},
 		};
 	}

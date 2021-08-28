@@ -3,7 +3,6 @@
 kaboom();
 
 loadSprite("bean", "sprites/bean.png");
-loadSprite("kaboom", "sprites/kaboom.png");
 
 // custom comp
 function handleout() {
@@ -49,10 +48,6 @@ action("bean", (m) => {
 
 // binds a custom event "out" to tag group "bean"
 on("out", "bean", (m) => {
+	addKaboom(m.pos);
 	destroy(m);
-	add([
-		sprite("kaboom"),
-		origin("center"),
-		pos(m.pos),
-	]);
 });

@@ -1,27 +1,20 @@
-kaboom({
-	scale: 3,
-	clearColor: [0, 0, 0, 1],
-	debug: true,
-});
+kaboom();
 
-loadRoot("/pub/examples/");
-loadSprite("bg", "img/bg.png");
-loadSprite("birdy", "img/birdy.png");
-loadSprite("pipe", "img/pipe.png");
+loadSprite("bean", "sprites/bean.png");
 loadSound("score", "sounds/score.mp3");
 loadSound("wooosh", "sounds/wooosh.mp3");
 loadSound("hit", "sounds/hit.mp3");
 
-scene("main", () => {
+scene("game", () => {
 
-	const PIPE_OPEN = 80;
-	const PIPE_MIN_HEIGHT = 16;
-	const JUMP_FORCE = 320;
-	const SPEED = 120;
+	const PIPE_OPEN = 240;
+	const PIPE_MIN = 60;
+	const JUMP_FORCE = 800;
+	const SPEED = 320;
 	const CEILING = -60;
 
 	// define gravity
-	gravity(1200);
+	gravity(3200);
 
 	// define draw layers
 	layers([
@@ -30,17 +23,13 @@ scene("main", () => {
 		"ui",
 	], "obj");
 
-	// background image
-	add([
-		sprite("bg"),
-		scale(width() / 240, height() / 240),
-		layer("bg"),
-	]);
+	// background
+	addSky();
 
 	// a game object consists of a list of components and tags
-	const birdy = add([
-		// sprite() means it's drawn with a sprite of name "birdy" (defined above in 'loadSprite')
-		sprite("birdy"),
+	const bean = add([
+		// sprite() means it's drawn with a sprite of name "bean" (defined above in 'loadSprite')
+		sprite("bean"),
 		// give it a position
 		pos(width() / 4, 0),
 		// give it a collider
@@ -50,56 +39,58 @@ scene("main", () => {
 	]);
 
 	// check for fall death
-	birdy.action(() => {
-		if (birdy.pos.y >= height() || birdy.pos.y <= CEILING) {
-			// switch to "death" scene
-			go("death", score);
+	bean.action(() => {
+		if (bean.pos.y >= height() || bean.pos.y <= CEILING) {
+			// switch to "lose" scene
+			go("lose", score);
 		}
 	});
 
 	// jump
 	keyPress("space", () => {
-		birdy.jump(JUMP_FORCE);
+		bean.jump(JUMP_FORCE);
 		play("wooosh");
 	});
 
 	// mobile
 	mouseClick(() => {
-		birdy.jump(JUMP_FORCE);
+		bean.jump(JUMP_FORCE);
 		play("wooosh");
 	});
 
 	function spawnPipe() {
 
 		// calculate pipe positions
-		const h1 = rand(PIPE_MIN_HEIGHT, height() - PIPE_MIN_HEIGHT - PIPE_OPEN);
-		const h2 = h1 + PIPE_OPEN;
+		const h1 = rand(PIPE_MIN, height() - PIPE_MIN - PIPE_OPEN);
+		const h2 = height() - h1 - PIPE_OPEN;
 
 		add([
-			sprite("pipe"),
+			pos(width(), 0),
+			rect(64, h1),
+			color(0, 127, 255),
+			outline(4),
 			area(),
-			origin("botleft"),
-			pos(width(), h1),
 			// give it tags to easier define behaviors see below
 			"pipe",
 		]);
 
 		add([
-			sprite("pipe"),
+			pos(width(), h1 + PIPE_OPEN),
+			rect(64, h2),
+			color(0, 127, 255),
+			outline(4),
 			area(),
-			origin("botleft"),
-			scale(1, -1),
-			pos(width(), h2),
+			// give it tags to easier define behaviors see below
 			"pipe",
-			// raw table just assigns every field to the game obj
+			// raw obj just assigns every field to the game obj
 			{ passed: false, },
 		]);
 
 	}
 
-	// callback when birdy collides with objects with tag "pipe"
-	birdy.collides("pipe", () => {
-		go("death", score);
+	// callback when bean collides with objects with tag "pipe"
+	bean.collides("pipe", () => {
+		go("lose", score);
 		play("hit");
 	});
 
@@ -107,8 +98,8 @@ scene("main", () => {
 	action("pipe", (p) => {
 		// move left
 		p.move(-SPEED, 0);
-		// check if birdy passed the pipe
-		if (p.pos.x + p.width <= birdy.pos.x && p.passed === false) {
+		// check if bean passed the pipe
+		if (p.pos.x + p.width <= bean.pos.x && p.passed === false) {
 			addScore();
 			p.passed = true;
 		}
@@ -119,7 +110,7 @@ scene("main", () => {
 	});
 
 	// spawn a pipe every 1 sec
-	loop(120 / SPEED, () => {
+	loop(1, () => {
 		spawnPipe();
 	});
 
@@ -127,10 +118,10 @@ scene("main", () => {
 
 	// display score
 	const scoreLabel = add([
-		text(score, 24),
+		text(score),
 		layer("ui"),
 		origin("center"),
-		pos(width() / 2, 48),
+		pos(width() / 2, 80),
 	]);
 
 	function addScore() {
@@ -141,17 +132,30 @@ scene("main", () => {
 
 });
 
-scene("death", (score) => {
+scene("lose", (score) => {
+
 	add([
-		text(`${score}`, 64),
-		pos(center()),
+		sprite("bean"),
+		pos(width() / 2, height() / 2 - 108),
+		scale(3),
 		origin("center"),
 	]);
-	keyPress("space", () => go("main"));
-	mouseClick(() => go("main"));
+
+	// display score
+	add([
+		text(score),
+		pos(width() / 2, height() / 2 + 108),
+		scale(3),
+		origin("center"),
+	]);
+
+	// go back to game with space is pressed
+	keyPress("space", () => go("game"));
+	mouseClick(() => go("game"));
+
 });
 
-go("main");
+go("game");
 
 // move input focus to canvas on start
 focus();

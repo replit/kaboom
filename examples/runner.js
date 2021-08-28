@@ -32,7 +32,7 @@ scene("game", () => {
 		origin("botleft"),
 		area(),
 		solid(),
-		color(0.45, 0.75, 1),
+		color(127, 200, 255),
 	]);
 
 	function jump() {
@@ -54,7 +54,7 @@ scene("game", () => {
 			outline(4),
 			pos(width(), height() - FLOOR_HEIGHT),
 			origin("botleft"),
-			color(0.95, 0.55, 1),
+			color(250, 127, 255),
 			"tree",
 		]);
 

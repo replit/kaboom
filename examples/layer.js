@@ -13,7 +13,7 @@ add([
 	scale(5),
 	// specify layer with layer() component
 	layer("ui"),
-	color(0, 0, 1),
+	color(0, 0, 255),
 ]);
 
 // this obj doesn't have a layer() component, fallback on default "game" layer

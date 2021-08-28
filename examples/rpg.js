@@ -1,7 +1,7 @@
 // simple rpg style walk and talk
 
 kaboom({
-	clearColor: [0.5, 1, 1, 1],
+	clearColor: [127, 255, 255],
 });
 
 loadSprite("steel", "sprites/steel.png");

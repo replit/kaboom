@@ -920,19 +920,25 @@ function drawInspect() {
 
 	let inspecting = null;
 	const font = assets.dbgFont();
-	const lcolor = rgba(gconf.inspectColor ?? [0, 0, 1, 1]);
+	const lcolor = rgba(gconf.inspectColor ?? [0, 0, 255, 1]);
 
 	function drawInspectTxt(pos, txt, scale) {
 
-		const pad = vec2(4).scale(1 / scale);
+		const pad = vec2(12).scale(1 / scale);
 
 		const ftxt = gfx.fmtText(txt, font, {
 			size: 26 / scale,
 			pos: pos.add(vec2(pad.x, pad.y)),
+			color: rgb(0, 0, 0),
 		});
 
 		gfx.drawRect(pos, ftxt.width + pad.x * 2, ftxt.height + pad.x * 2, {
-			color: rgba(0, 0, 0, 1),
+			color: rgb(),
+		});
+
+		gfx.drawRectStroke(pos, ftxt.width + pad.x * 2, ftxt.height + pad.x * 2, {
+			width: 2 / scale,
+			color: rgb(0, 0, 0),
 		});
 
 		gfx.drawFmtText(ftxt);
@@ -1011,7 +1017,7 @@ function drawInspect() {
 
 	}
 
-	drawInspectTxt(vec2(0), app.fps() + "", gfx.scale());
+	drawInspectTxt(vec2(0), `FPS: ${app.fps()}`, gfx.scale());
 
 }
 
@@ -1361,7 +1367,11 @@ function area(p1?: Vec2 | number, p2?: Vec2 | number): AreaComp {
 				p2: this.area.p2,
 			};
 
-			if (!a.p1 && !a.p2 && this.width && this.height) {
+			if (!a.p1 && !a.p2) {
+
+				if (!this.width || !this.height) {
+					throw new Error("Auto area requires width and height from other comps (did you forget to add sprite / text / rect comp?)");
+				}
 
 				const size = vec2(this.width, this.height).scale(aScale);
 				const offset = originPt(this.origin || DEF_ORIGIN).scale(size).scale(-0.5);
@@ -1573,7 +1583,7 @@ function text(t: string, conf: TextCompConf = {}): TextComp {
 
 		load() {
 
-			const font = assets.fonts[this.font ?? DEF_FONT];
+			const font = assets.fonts[this.font ?? gconf.font ?? DEF_FONT];
 			const ftext = gfx.fmtText(this.text + "", font, {
 				pos: this.pos,
 				scale: this.scale,
@@ -1591,7 +1601,7 @@ function text(t: string, conf: TextCompConf = {}): TextComp {
 
 		draw() {
 
-			const font = assets.fonts[this.font ?? DEF_FONT];
+			const font = assets.fonts[this.font ?? gconf.font ?? DEF_FONT];
 			const ftext = gfx.fmtText(this.text + "", font, {
 				pos: this.pos,
 				scale: this.scale,
@@ -1604,7 +1614,6 @@ function text(t: string, conf: TextCompConf = {}): TextComp {
 
 			this.width = ftext.width / (this.scale?.x || 1);
 			this.height = ftext.height / (this.scale?.y || 1);
-
 			gfx.drawFmtText(ftext);
 
 		},
@@ -1613,6 +1622,7 @@ function text(t: string, conf: TextCompConf = {}): TextComp {
 
 }
 
+// TODO: accept p1: Vec2 p2: Vec2
 function rect(w: number, h: number): RectComp {
 	return {
 		id: "rect",

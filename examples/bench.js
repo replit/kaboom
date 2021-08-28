@@ -19,8 +19,7 @@ render(() => {
 	drawText(debug.fps().toFixed(0), {
 		pos: vec2(w / 2, h / 2),
 		origin: "center",
-		size: 36,
-		color: rgb(1, 0.4, 1),
+		color: rgb(255, 127, 255),
 	});
 
 });
