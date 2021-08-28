@@ -192,6 +192,9 @@ function drawSprite(
 		throw new Error(`sprite not found: "${id}"`);
 	}
 	const q = spr.frames[conf.frame ?? 0];
+	if (!q) {
+		throw new Error(`frame not found: ${conf.frame ?? 0}`);
+	}
 	gfx.drawTexture(spr.tex, {
 		...conf,
 		quad: q.scale(conf.quad || quad(0, 0, 1, 1)),

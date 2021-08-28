@@ -1,26 +1,18 @@
 // kaboom as pure rendering lib (no component / game obj etc.)
 
-kaboom({
-	scale: 2,
-});
+kaboom();
 
-loadRoot("/pub/examples/");
-
-loadSprite("car", "img/car.png", {
-	sliceX: 3,
-});
+loadSprite("car", "sprites/car.png");
 
 render(() => {
 	drawSprite("car", {
-		pos: vec2(50),
-		scale: 3,
+		pos: vec2(120),
 		rot: time(),
-		frame: ~~time() % 3,
 		origin: "center",
 	});
-	drawRect(vec2(50), 20, 50);
+	drawRect(vec2(50), 40, 100);
 	drawLine(vec2(0), mousePos(), {
-		width: 2,
+		width: 3,
 		color: rgba(0, 0, 1, 1),
 		z: 0.5,
 	});

@@ -1,11 +1,11 @@
 kaboom();
 
-// load mark sprite
-loadMark();
+// load bean sprite
+loadBean();
 
 // add to screen
 const player = add([
-	sprite("mark"),
+	sprite("bean"),
 	pos(),
 	origin("center"),
 ]);

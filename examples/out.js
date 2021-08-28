@@ -1,14 +1,14 @@
-kaboom({
-	scale: 2,
-});
+// detect if obj is out of screen
 
-loadRoot("/assets/");
-loadSprite("mark", "sprites/mark.png");
+kaboom();
 
-// custom component to detect if obj is out of screen
-function out() {
+loadSprite("bean", "sprites/bean.png");
+loadSprite("kaboom", "sprites/kaboom.png");
+
+// custom comp
+function handleout() {
 	return {
-		id: "out",
+		id: "handleout",
 		require: [ "pos" ],
 		update() {
 			const spos = this.screenPos();
@@ -18,36 +18,41 @@ function out() {
 				spos.y < 0 ||
 				spos.y > height()
 			) {
-				// triggers a custom event
+				// triggers a custom event when out
 				this.trigger("out");
 			}
 		},
 	};
 }
 
-const SPEED = 320;
+const SPEED = 640;
 
-mouseClick(() => {
+function shoot() {
 	const center = vec2(width() / 2, height() / 2);
 	const mpos = mousePos();
 	add([
 		pos(center),
-		sprite("mark"),
+		sprite("bean"),
 		origin("center"),
-		out(),
-		"mark",
-		{
-			dir: mpos.sub(center).unit(),
-		},
+		handleout(),
+		"bean",
+		{ dir: mpos.sub(center).unit(), },
 	]);
-});
+}
 
-action("mark", (m) => {
+keyPress("space", shoot);
+mouseClick(shoot);
+
+action("bean", (m) => {
 	m.move(m.dir.scale(SPEED));
 });
 
-// binds a custom event "out" to tag group "mark"
-on("out", "mark", (m) => {
-	debug.log("out");
+// binds a custom event "out" to tag group "bean"
+on("out", "bean", (m) => {
 	destroy(m);
+	add([
+		sprite("kaboom"),
+		origin("center"),
+		pos(m.pos),
+	]);
 });

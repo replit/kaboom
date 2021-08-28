@@ -1,13 +1,11 @@
 // basic multi scene setup
 
-kaboom({
-	scale: 2,
-});
+kaboom();
 
 scene("game", () => {
 
 	add([
-		text("Press space to view score", 16, { width: width() }),
+		text("Press space to view score", { width: width() }),
 	]);
 
 	keyPress("space", () => {

@@ -1,11 +1,13 @@
 ### v0.8 burp() (unreleased)
 - added `burp()` for easy burping
+- introducing new character "bean"
+![bean](sprites/bean.png)
+- added `loadBean()` to `"bean"` as a default sprite
 - added `outline()` comp to draw a lil outline
 - kaboom functions all now global by default, toggle off by `kaboom({ noGlobal: true })`
 - added input events `touchStart(id, pos)`, `touchMove(id, pos)`, `touchEnd(id, pos)`, `mouseMove(pos)`
 - added `mouseDeltaPos()`
 - added `touchToMouse` to control if touch events should be translated to mouse events
-- added `loadMark()` to load `"mark"` as a default sprite
 - added `fixed()` component to make an object unaffected by camera
 - added `mousePosRaw()` to get mouse position relative to screen (`mousePos()` is affected by camera)
 - beter type support for components
