@@ -57,7 +57,7 @@ app.use(files("/sprites", "../sprites"));
 app.use(files("/sounds", "../sounds"));
 app.use(files("/src", "../src"));
 app.use(files("/img", "img"));
-app.use(files("/lib", "lib"));
+app.use(files("/css", "src/css"));
 app.use(files("/js", "src/js"));
 
 app.listen(port);

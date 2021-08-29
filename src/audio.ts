@@ -206,7 +206,7 @@ function audioInit(): Audio {
 		return audio.ctx;
 	}
 
-	function burp(conf?: AudioPlayConf) {
+	function burp(conf?: AudioPlayConf): AudioPlay {
 		return play(burpBuf, conf);
 	}
 

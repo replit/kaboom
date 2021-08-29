@@ -107,7 +107,21 @@ function css(list) {
 
 }
 
+const space = (side, n = 12) => ({
+	"> *": {
+		[`margin-${side}`]: `${n}px`,
+		":last-child": {
+			[`margin-${side}`]: "0",
+		},
+	},
+});
+
+const vspace = (n) => space("bottom", n);
+const hspace = (n) => space("right", n);
+
 module.exports = {
 	tag,
 	css,
+	vspace,
+	hspace,
 };

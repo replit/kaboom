@@ -179,7 +179,14 @@
                 "jsDoc": [
                     {
                         "kind": "JSDocComment",
-                        "comment": "Load a sound into asset manager, with name and resource url."
+                        "comment": "Load a sound into asset manager, with name and resource url.",
+                        "tags": [
+                            {
+                                "kind": "FirstJSDocTagNode",
+                                "tagName": "example",
+                                "comment": "```js\nloadSound(\"shoot\", \"horse.ogg\");\nloadSound(\"shoot\", \"https://kaboomjs.com/sounds/scream6.mp3\");\n```"
+                            }
+                        ]
                     }
                 ]
             },
@@ -237,7 +244,14 @@
                 "jsDoc": [
                     {
                         "kind": "JSDocComment",
-                        "comment": "Load a bitmap font into asset manager, with name and resource url and infomation on the layout of the bitmap."
+                        "comment": "Load a bitmap font into asset manager, with name and resource url and infomation on the layout of the bitmap.",
+                        "tags": [
+                            {
+                                "kind": "FirstJSDocTagNode",
+                                "tagName": "example",
+                                "comment": "```js\n// load a bitmap font called \"04b03\", with bitmap \"fonts/04b03.png\"\n// each character on bitmap has a size of (6, 8), and contains default ASCII_CHARS\nloadFont(\"04b03\", \"fonts/04b03.png\", 6, 8);\n\n// load a font with custom characters\nloadFont(\"cp437\", \"cp437.png\", 6, 8, \"☺☻♥♦♣♠\");\n```"
+                            }
+                        ]
                     }
                 ]
             },
@@ -290,7 +304,14 @@
                 "jsDoc": [
                     {
                         "kind": "JSDocComment",
-                        "comment": "Load a shader into asset manager with vertex and fragment code / file url."
+                        "comment": "Load a shader into asset manager with vertex and fragment code / file url.",
+                        "tags": [
+                            {
+                                "kind": "FirstJSDocTagNode",
+                                "tagName": "example",
+                                "comment": "```js\n// load only a fragment shader from URL\nloadShader(\"outline\", null, \"/shaders/outline.glsl\", true);\n\n// default shaders and custom shader format\nloadShader(\"outline\",\n    `vec4 vert(vec3 pos, vec2 uv, vec4 color) {\n    // predefined functions to get the default value by kaboom\n    return def_vert();\n}`,\n`vec4 frag(vec3 pos, vec2 uv, vec4 color, sampler2D tex) {\n    // turn everything blue-ish\n    return def_frag() * vec4(0, 0, 1, 1);\n}`, true);\n```"
+                            }
+                        ]
                     }
                 ]
             },
@@ -325,7 +346,14 @@
                 "jsDoc": [
                     {
                         "kind": "JSDocComment",
-                        "comment": "Add a new loader to wait for before starting the game."
+                        "comment": "Add a new loader to wait for before starting the game.",
+                        "tags": [
+                            {
+                                "kind": "FirstJSDocTagNode",
+                                "tagName": "example",
+                                "comment": "```js\nload(new Promise((resolve, reject) => {\n    // anything you want to do that stalls the game in loading state\n    resolve(\"ok\");\n}));\n```"
+                            }
+                        ]
                     }
                 ]
             },
@@ -353,7 +381,14 @@
                 "jsDoc": [
                     {
                         "kind": "JSDocComment",
-                        "comment": "Get the height of game."
+                        "comment": "Get the height of game.",
+                        "tags": [
+                            {
+                                "kind": "FirstJSDocTagNode",
+                                "tagName": "example",
+                                "comment": "```js\n// add froggy to the center of the screen\nadd([\n    sprite(\"froggy\"),\n    pos(center()),\n    // ...\n]);\n```"
+                            }
+                        ]
                     }
                 ]
             },
@@ -368,7 +403,14 @@
                 "jsDoc": [
                     {
                         "kind": "JSDocComment",
-                        "comment": "Get the center point of view."
+                        "comment": "Get the center point of view.",
+                        "tags": [
+                            {
+                                "kind": "FirstJSDocTagNode",
+                                "tagName": "example",
+                                "comment": "```js\n// add froggy to the center of the screen\nadd([\n    sprite(\"froggy\"),\n    pos(center()),\n    // ...\n]);\n```"
+                            }
+                        ]
                     }
                 ]
             },
@@ -382,7 +424,14 @@
                 "jsDoc": [
                     {
                         "kind": "JSDocComment",
-                        "comment": "Get the delta time since last frame."
+                        "comment": "Get the delta time since last frame.",
+                        "tags": [
+                            {
+                                "kind": "FirstJSDocTagNode",
+                                "tagName": "example",
+                                "comment": "```js\n// rotate froggy 100 deg per second\nfroggy.action(() => {\n    froggy.angle += 100 * dt();\n});\n```"
+                            }
+                        ]
                     }
                 ]
             },
@@ -464,7 +513,14 @@
                 "jsDoc": [
                     {
                         "kind": "JSDocComment",
-                        "comment": "Run something when assets finished loading."
+                        "comment": "Run something when assets finished loading.",
+                        "tags": [
+                            {
+                                "kind": "FirstJSDocTagNode",
+                                "tagName": "example",
+                                "comment": "```js\nconst froggy = add([\n    // ...\n]);\n\n// certain assets related data are only available when the game finishes loading\nready(() => {\n    debug.log(froggy.numFrames());\n});\n```"
+                            }
+                        ]
                     }
                 ]
             },
@@ -524,7 +580,14 @@
                 "jsDoc": [
                     {
                         "kind": "JSDocComment",
-                        "comment": "Assembles a game obj from list of components or tags and add it to scene."
+                        "comment": "Assembles a game obj from list of components or tags and add it to scene.",
+                        "tags": [
+                            {
+                                "kind": "FirstJSDocTagNode",
+                                "tagName": "example",
+                                "comment": "```js\nconst player = add([\n    // it renders as a sprite\n    sprite(\"mark\"),\n    // it has a position\n    pos(100, 200),\n    // it has a collider\n    area(),\n    // it is a physical body which will respond to physics\n    body(),\n    // you can easily make custom components to encapsulate reusable logics\n    doubleJump(),\n    health(8),\n    // give it tags for controlling group behaviors\n    \"player\",\n    \"friendly\",\n    // plain objects fields are directly assigned to the game obj\n    {\n        dir: vec2(-1, 0),\n        dead: false,\n        speed: 240,\n    },\n]);\n```"
+                            }
+                        ]
                     }
                 ]
             },
@@ -558,7 +621,14 @@
                 "jsDoc": [
                     {
                         "kind": "JSDocComment",
-                        "comment": "Remove and re-add the game obj."
+                        "comment": "Remove and re-add the game obj.",
+                        "tags": [
+                            {
+                                "kind": "FirstJSDocTagNode",
+                                "tagName": "example",
+                                "comment": "```js\n// mainly useful when you want to make something to draw on top\nreadd(froggy);\n```"
+                            }
+                        ]
                     }
                 ]
             },
@@ -639,7 +709,14 @@
                 "jsDoc": [
                     {
                         "kind": "JSDocComment",
-                        "comment": "Remove the game obj."
+                        "comment": "Remove the game obj.",
+                        "tags": [
+                            {
+                                "kind": "FirstJSDocTagNode",
+                                "tagName": "example",
+                                "comment": "```js\n// every time froggy collides with anything with tag \"fruit\", remove it\nfroggy.collides(\"fruit\", (fruit) => {\n    destroy(fruit);\n});\n```"
+                            }
+                        ]
                     }
                 ]
             },
@@ -662,7 +739,14 @@
                 "jsDoc": [
                     {
                         "kind": "JSDocComment",
-                        "comment": "Remove all game objs with certain tag."
+                        "comment": "Remove all game objs with certain tag.",
+                        "tags": [
+                            {
+                                "kind": "FirstJSDocTagNode",
+                                "tagName": "example",
+                                "comment": "```js\n// destroy all objects with tag \"bomb\" when you click one\nclicks(\"bomb\", () => {\n    destroyAll(\"bomb\");\n});\n```"
+                            }
+                        ]
                     }
                 ]
             },
@@ -695,7 +779,14 @@
                 "jsDoc": [
                     {
                         "kind": "JSDocComment",
-                        "comment": "Get a list of all game objs with certain tag."
+                        "comment": "Get a list of all game objs with certain tag.",
+                        "tags": [
+                            {
+                                "kind": "FirstJSDocTagNode",
+                                "tagName": "example",
+                                "comment": "```js\n// get a list of all game objs with tag \"bomb\"\nconst allBombs = get(\"bomb\");\n\n// without args returns all current objs in the game\nconst allObjs = get();\n```"
+                            }
+                        ]
                     }
                 ]
             },
@@ -754,7 +845,14 @@
                 "jsDoc": [
                     {
                         "kind": "JSDocComment",
-                        "comment": "Run callback on every game obj with certain tag."
+                        "comment": "Run callback on every game obj with certain tag.",
+                        "tags": [
+                            {
+                                "kind": "FirstJSDocTagNode",
+                                "tagName": "example",
+                                "comment": "```js\n// how destroyAll() works\nevery(\"fruit\", destroy);\n```"
+                            }
+                        ]
                     }
                 ]
             },
@@ -936,7 +1034,14 @@
                 "jsDoc": [
                     {
                         "kind": "JSDocComment",
-                        "comment": "Define layers (the last one will be on top)."
+                        "comment": "Define layers (the last one will be on top).",
+                        "tags": [
+                            {
+                                "kind": "FirstJSDocTagNode",
+                                "tagName": "example",
+                                "comment": "```js\n// defining 3 layers, \"ui\" will be drawn on top most, with default layer being \"game\"\nlayers([\n    \"bg\",\n    \"game\",\n    \"ui\",\n], \"game\");\n\n// use layer() comp to define which layer an obj belongs to\nadd([\n    text(score),\n    layer(\"ui\"),\n    fixed(),\n]);\n\n// without layer() comp it'll fall back to default layer, which is \"game\"\nadd([\n    sprite(\"froggy\"),\n]);\n```"
+                            }
+                        ]
                     }
                 ]
             },
@@ -992,7 +1097,14 @@
                 "jsDoc": [
                     {
                         "kind": "JSDocComment",
-                        "comment": "Register an event on all game objs with certain tag."
+                        "comment": "Register an event on all game objs with certain tag.",
+                        "tags": [
+                            {
+                                "kind": "FirstJSDocTagNode",
+                                "tagName": "example",
+                                "comment": "```js\n// a custom event defined by body() comp\n// every time an obj with tag \"bomb\" hits the floor, destroy it and addKaboom()\non(\"grounded\", \"bomb\", (bomb) => {\n    destroy(bomb);\n    addKaboom();\n});\n```"
+                            }
+                        ]
                     }
                 ]
             },
@@ -1041,7 +1153,14 @@
                 "jsDoc": [
                     {
                         "kind": "JSDocComment",
-                        "comment": "Register \"update\" event (runs every frame) on all game objs with certain tag."
+                        "comment": "Register \"update\" event (runs every frame) on all game objs with certain tag.",
+                        "tags": [
+                            {
+                                "kind": "FirstJSDocTagNode",
+                                "tagName": "example",
+                                "comment": "```js\n// move every \"tree\" 120 pixels per second to the left, destroy it when it leaves screen\n// there'll be nothing to run if there's no \"tree\" obj in the scene\naction(\"tree\", (tree) => {\n    tree.move(-120, 0);\n    if (tree.pos.x < 0) {\n        destroy(tree);\n    }\n});\n\n// without tags it just runs it every frame\naction(() => {\n    debug.log(\"ohhi\");\n});\n```"
+                            }
+                        ]
                     }
                 ]
             },
@@ -1202,7 +1321,14 @@
                 "jsDoc": [
                     {
                         "kind": "JSDocComment",
-                        "comment": "Register event when 2 game objs with certain tags collides. This function spins off an action() when called, please put it at root level and never inside another action()."
+                        "comment": "Register event when 2 game objs with certain tags collides. This function spins off an action() when called, please put it at root level and never inside another action().",
+                        "tags": [
+                            {
+                                "kind": "FirstJSDocTagNode",
+                                "tagName": "example",
+                                "comment": "```js\ncollides(\"sperm\", \"uterus\", () => {\n    addBaby();\n});\n```"
+                            }
+                        ]
                     }
                 ]
             },
@@ -1345,7 +1471,14 @@
                 "jsDoc": [
                     {
                         "kind": "JSDocComment",
-                        "comment": "Get / set camera position."
+                        "comment": "Get / set camera position.",
+                        "tags": [
+                            {
+                                "kind": "FirstJSDocTagNode",
+                                "tagName": "example",
+                                "comment": "```js\n// camera follows player\nplayer.action(() => {\n    camPos(player.pos);\n});\n```"
+                            }
+                        ]
                     }
                 ]
             },
@@ -1413,7 +1546,14 @@
                 "jsDoc": [
                     {
                         "kind": "JSDocComment",
-                        "comment": "Camera shake."
+                        "comment": "Camera shake.",
+                        "tags": [
+                            {
+                                "kind": "FirstJSDocTagNode",
+                                "tagName": "example",
+                                "comment": "```js\n// shake intensively when froggy collides with a \"bomb\"\nfroggy.collides(\"bomb\", () => {\n    shake(120);\n});\n```"
+                            }
+                        ]
                     }
                 ]
             },
@@ -1651,7 +1791,14 @@
                 "jsDoc": [
                     {
                         "kind": "JSDocComment",
-                        "comment": "<Comp> Custom color in RGBA (multiplied)."
+                        "comment": "<Comp> Custom color in RGBA (0-255 rgb, 0-1 a, multiplied).",
+                        "tags": [
+                            {
+                                "kind": "FirstJSDocTagNode",
+                                "tagName": "example",
+                                "comment": "```js\n// blue frog\nadd([\n    sprite(\"froggy\"),\n    color(0, 0, 255)\n]);\n```"
+                            }
+                        ]
                     }
                 ]
             },
@@ -1711,7 +1858,14 @@
                 "jsDoc": [
                     {
                         "kind": "JSDocComment",
-                        "comment": "<Comp> Origin point for render (default \"topleft\")."
+                        "comment": "<Comp> Origin point for render (default \"topleft\").",
+                        "tags": [
+                            {
+                                "kind": "FirstJSDocTagNode",
+                                "tagName": "example",
+                                "comment": "```js\n// set origin to \"center\" so it'll rotate from center\nadd([\n    rect(40, 10),\n    rotate(45),\n    origin(\"center\"),\n]);\n```"
+                            }
+                        ]
                     }
                 ]
             },
@@ -1749,7 +1903,14 @@
                 "jsDoc": [
                     {
                         "kind": "JSDocComment",
-                        "comment": "<Comp> Collider. Calculate from rendered dimension (e.g. from sprite, text, rect) if no params given."
+                        "comment": "<Comp> Collider. Calculate from rendered dimension (e.g. from sprite, text, rect) if no params given.",
+                        "tags": [
+                            {
+                                "kind": "FirstJSDocTagNode",
+                                "tagName": "example",
+                                "comment": "```js\nadd([\n    sprite(\"froggy\"),\n    // without args it'll auto calculate from the data sprite comp provides\n    area(),\n]);\n\nadd([\n    sprite(\"froggy\"),\n    // when pass a single number it'll scale the auto calculated area by 0.6\n    area(0.6),\n]);\n\n// define custom area with topleft and botright point\nadd([\n    area(vec2(-10, -30), vec2(10, 60)),\n])\n```"
+                            }
+                        ]
                     }
                 ]
             },
@@ -1857,7 +2018,14 @@
                 "jsDoc": [
                     {
                         "kind": "JSDocComment",
-                        "comment": "<Comp> Renders as sprite."
+                        "comment": "<Comp> Renders as sprite.",
+                        "tags": [
+                            {
+                                "kind": "FirstJSDocTagNode",
+                                "tagName": "example",
+                                "comment": "```js\n// minimal setup\nadd([\n    sprite(\"froggy\"),\n]);\n\n// minimal setup\nconst froggy = add([\n    sprite(\"froggy\", {\n        // seconds per frame (default 0.1)\n        animSpeed: 0.2,\n        // start with frame 2\n        frame: 2,\n    }),\n]);\n\n// play an anim\nfroggy.play(\"jump\");\n```"
+                            }
+                        ]
                     }
                 ]
             },
@@ -3964,6 +4132,12 @@
                     "kind": "AnyKeyword"
                 }
             }
+        ],
+        "jsDoc": [
+            {
+                "kind": "JSDocComment",
+                "comment": "Context handle that contains every kaboom function."
+            }
         ]
     },
     "Tag": {
@@ -4380,79 +4554,6 @@
             }
         ]
     },
-    "GameObj": {
-        "kind": "TypeAliasDeclaration",
-        "name": "GameObj",
-        "typeParameters": [
-            {
-                "kind": "TypeParameter",
-                "name": "T"
-            }
-        ],
-        "type": {
-            "kind": "IntersectionType",
-            "types": [
-                {
-                    "kind": "TypeReference",
-                    "typeName": "GameObjRaw"
-                },
-                {
-                    "kind": "TypeReference",
-                    "typeName": "MergeComps",
-                    "typeArguments": [
-                        {
-                            "kind": "TypeReference",
-                            "typeName": "T"
-                        }
-                    ]
-                }
-            ]
-        }
-    },
-    "SceneID": {
-        "kind": "TypeAliasDeclaration",
-        "name": "SceneID",
-        "type": {
-            "kind": "StringKeyword"
-        }
-    },
-    "SceneDef": {
-        "kind": "TypeAliasDeclaration",
-        "name": "SceneDef",
-        "type": {
-            "kind": "FunctionType",
-            "parameters": [
-                {
-                    "kind": "Parameter",
-                    "name": "args",
-                    "dotDotDotToken": {
-                        "kind": "DotDotDotToken"
-                    }
-                }
-            ],
-            "type": {
-                "kind": "VoidKeyword"
-            }
-        }
-    },
-    "TouchID": {
-        "kind": "TypeAliasDeclaration",
-        "name": "TouchID",
-        "type": {
-            "kind": "NumberKeyword"
-        }
-    },
-    "EventCanceller": {
-        "kind": "TypeAliasDeclaration",
-        "name": "EventCanceller",
-        "type": {
-            "kind": "FunctionType",
-            "parameters": [],
-            "type": {
-                "kind": "VoidKeyword"
-            }
-        }
-    },
     "KaboomConf": {
         "kind": "InterfaceDeclaration",
         "name": "KaboomConf",
@@ -4619,7 +4720,86 @@
                 },
                 "questionToken": true
             }
+        ],
+        "jsDoc": [
+            {
+                "kind": "JSDocComment",
+                "comment": "Kaboom configurations."
+            }
         ]
+    },
+    "GameObj": {
+        "kind": "TypeAliasDeclaration",
+        "name": "GameObj",
+        "typeParameters": [
+            {
+                "kind": "TypeParameter",
+                "name": "T"
+            }
+        ],
+        "type": {
+            "kind": "IntersectionType",
+            "types": [
+                {
+                    "kind": "TypeReference",
+                    "typeName": "GameObjRaw"
+                },
+                {
+                    "kind": "TypeReference",
+                    "typeName": "MergeComps",
+                    "typeArguments": [
+                        {
+                            "kind": "TypeReference",
+                            "typeName": "T"
+                        }
+                    ]
+                }
+            ]
+        }
+    },
+    "SceneID": {
+        "kind": "TypeAliasDeclaration",
+        "name": "SceneID",
+        "type": {
+            "kind": "StringKeyword"
+        }
+    },
+    "SceneDef": {
+        "kind": "TypeAliasDeclaration",
+        "name": "SceneDef",
+        "type": {
+            "kind": "FunctionType",
+            "parameters": [
+                {
+                    "kind": "Parameter",
+                    "name": "args",
+                    "dotDotDotToken": {
+                        "kind": "DotDotDotToken"
+                    }
+                }
+            ],
+            "type": {
+                "kind": "VoidKeyword"
+            }
+        }
+    },
+    "TouchID": {
+        "kind": "TypeAliasDeclaration",
+        "name": "TouchID",
+        "type": {
+            "kind": "NumberKeyword"
+        }
+    },
+    "EventCanceller": {
+        "kind": "TypeAliasDeclaration",
+        "name": "EventCanceller",
+        "type": {
+            "kind": "FunctionType",
+            "parameters": [],
+            "type": {
+                "kind": "VoidKeyword"
+            }
+        }
     },
     "SpriteAnim": {
         "kind": "InterfaceDeclaration",

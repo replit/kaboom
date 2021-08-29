@@ -837,9 +837,7 @@ function destroy(obj: GameObj<any>) {
 
 // destroy all obj with the tag
 function destroyAll(t: string) {
-	every(t, (obj) => {
-		destroy(obj);
-	});
+	every(t, destroy);
 }
 
 // get / set gravity

@@ -3,6 +3,9 @@
  */
 declare function kaboom(conf?: KaboomConf): KaboomCtx;
 
+/**
+ * Context handle that contains every kaboom function.
+ */
 interface KaboomCtx {
 	/**
 	 * Yep.
@@ -51,6 +54,12 @@ interface KaboomCtx {
 	): Promise<SpriteData>,
 	/**
 	 * Load a sound into asset manager, with name and resource url.
+	 *
+	 * @example
+	 * ```js
+	 * loadSound("shoot", "horse.ogg");
+	 * loadSound("shoot", "https://kaboomjs.com/sounds/scream6.mp3");
+	 * ```
 	 */
 	loadSound(
 		id: string,
@@ -58,6 +67,16 @@ interface KaboomCtx {
 	): Promise<SoundData>,
 	/**
 	 * Load a bitmap font into asset manager, with name and resource url and infomation on the layout of the bitmap.
+	 *
+	 * @example
+	 * ```js
+	 * // load a bitmap font called "04b03", with bitmap "fonts/04b03.png"
+	 * // each character on bitmap has a size of (6, 8), and contains default ASCII_CHARS
+	 * loadFont("04b03", "fonts/04b03.png", 6, 8);
+	 *
+	 * // load a font with custom characters
+	 * loadFont("cp437", "cp437.png", 6, 8, "☺☻♥♦♣♠");
+	 * ```
 	 */
 	loadFont(
 		id: string,
@@ -68,6 +87,23 @@ interface KaboomCtx {
 	): Promise<FontData>,
 	/**
 	 * Load a shader into asset manager with vertex and fragment code / file url.
+	 *
+	 * @example
+	 * ```js
+	 * // load only a fragment shader from URL
+	 * loadShader("outline", null, "/shaders/outline.glsl", true);
+	 *
+	 * // default shaders and custom shader format
+	 * loadShader("outline",
+	 *     `vec4 vert(vec3 pos, vec2 uv, vec4 color) {
+	 *     // predefined functions to get the default value by kaboom
+	 *     return def_vert();
+	 * }`,
+	 * `vec4 frag(vec3 pos, vec2 uv, vec4 color, sampler2D tex) {
+	 *     // turn everything blue-ish
+	 *     return def_frag() * vec4(0, 0, 1, 1);
+	 * }`, true);
+	 * ```
 	 */
 	loadShader(
 		name: string,
@@ -77,6 +113,13 @@ interface KaboomCtx {
 	): Promise<ShaderData>,
 	/**
 	 * Add a new loader to wait for before starting the game.
+	 * @example
+	 * ```js
+	 * load(new Promise((resolve, reject) => {
+	 *     // anything you want to do that stalls the game in loading state
+	 *     resolve("ok");
+	 * }));
+	 * ```
 	 */
 	load<T>(l: Promise<T>): void,
 	/**
@@ -85,14 +128,41 @@ interface KaboomCtx {
 	width(): number,
 	/**
 	 * Get the height of game.
+	 * @example
+	 * ```js
+	 * // add froggy to the center of the screen
+	 * add([
+	 *     sprite("froggy"),
+	 *     pos(center()),
+	 *     // ...
+	 * ]);
+	 * ```
 	 */
 	height(): number,
 	/**
 	 * Get the center point of view.
+	 *
+	 * @example
+	 * ```js
+	 * // add froggy to the center of the screen
+	 * add([
+	 *     sprite("froggy"),
+	 *     pos(center()),
+	 *     // ...
+	 * ]);
+	 * ```
 	 */
 	center(): Vec2,
 	/**
 	 * Get the delta time since last frame.
+	 *
+	 * @example
+	 * ```js
+	 * // rotate froggy 100 deg per second
+	 * froggy.action(() => {
+	 *     froggy.angle += 100 * dt();
+	 * });
+	 * ```
 	 */
 	dt(): number,
 	/**
@@ -113,6 +183,18 @@ interface KaboomCtx {
 	focus(): void,
 	/**
 	 * Run something when assets finished loading.
+	 *
+	 * @example
+	 * ```js
+	 * const froggy = add([
+	 *     // ...
+	 * ]);
+	 *
+	 * // certain assets related data are only available when the game finishes loading
+	 * ready(() => {
+	 *     debug.log(froggy.numFrames());
+	 * });
+	 * ```
 	 */
 	ready(cb: () => void): void,
 	/**
@@ -121,10 +203,42 @@ interface KaboomCtx {
 	isTouch(): boolean,
 	/**
 	 * Assembles a game obj from list of components or tags and add it to scene.
+	 *
+	 * @example
+	 * ```js
+	 * const player = add([
+	 *     // it renders as a sprite
+	 *     sprite("mark"),
+	 *     // it has a position
+	 *     pos(100, 200),
+	 *     // it has a collider
+	 *     area(),
+	 *     // it is a physical body which will respond to physics
+	 *     body(),
+	 *     // you can easily make custom components to encapsulate reusable logics
+	 *     doubleJump(),
+	 *     health(8),
+	 *     // give it tags for controlling group behaviors
+	 *     "player",
+	 *     "friendly",
+	 *     // plain objects fields are directly assigned to the game obj
+	 *     {
+	 *         dir: vec2(-1, 0),
+	 *         dead: false,
+	 *         speed: 240,
+	 *     },
+	 * ]);
+	 * ```
 	 */
 	add<T extends Comp>(comps: CompList<T>): GameObj<T>,
 	/**
 	 * Remove and re-add the game obj.
+	 *
+	 * @example
+	 * ```js
+	 * // mainly useful when you want to make something to draw on top
+	 * readd(froggy);
+	 * ```
 	 */
 	readd(obj: GameObj<any>): GameObj<any>,
 	/**
@@ -133,18 +247,49 @@ interface KaboomCtx {
 	getComps<T extends Comp>(comps: DynCompList<T>, ...args): CompList<T>,
 	/**
 	 * Remove the game obj.
+	 *
+	 * @example
+	 * ```js
+	 * // every time froggy collides with anything with tag "fruit", remove it
+	 * froggy.collides("fruit", (fruit) => {
+	 *     destroy(fruit);
+	 * });
+	 * ```
 	 */
 	destroy(obj: GameObj<any>): void,
 	/**
 	 * Remove all game objs with certain tag.
+	 *
+	 * @example
+	 * ```js
+	 * // destroy all objects with tag "bomb" when you click one
+	 * clicks("bomb", () => {
+	 *     destroyAll("bomb");
+	 * });
+	 * ```
 	 */
 	destroyAll(tag: Tag): void,
 	/**
 	 * Get a list of all game objs with certain tag.
+	 *
+	 * @example
+	 * ```js
+	 * // get a list of all game objs with tag "bomb"
+	 * const allBombs = get("bomb");
+	 *
+	 * // without args returns all current objs in the game
+	 * const allObjs = get();
+	 * ```
 	 */
 	get(tag?: Tag): GameObj<any>[],
 	/**
 	 * Run callback on every game obj with certain tag.
+	 *
+	 * @example
+	 * ```js
+	 * // how destroyAll() works
+	 * every("fruit", destroy);
+	 * ```
 	 */
 	every<T>(t: Tag, cb: (obj: GameObj<any>) => T): T[],
 	every<T>(cb: (obj: GameObj<any>) => T): T[],
@@ -155,14 +300,63 @@ interface KaboomCtx {
 	revery<T>(cb: (obj: GameObj<any>) => T): T[],
 	/**
 	 * Define layers (the last one will be on top).
+	 *
+	 * @example
+	 * ```js
+	 * // defining 3 layers, "ui" will be drawn on top most, with default layer being "game"
+	 * layers([
+	 *     "bg",
+	 *     "game",
+	 *     "ui",
+	 * ], "game");
+	 *
+	 * // use layer() comp to define which layer an obj belongs to
+	 * add([
+	 *     text(score),
+	 *     layer("ui"),
+	 *     fixed(),
+	 * ]);
+	 *
+	 * // without layer() comp it'll fall back to default layer, which is "game"
+	 * add([
+	 *     sprite("froggy"),
+	 * ]);
+	 * ```
 	 */
 	layers(list: string[], def?: string): void,
 	/**
 	 * Register an event on all game objs with certain tag.
+	 *
+	 * @example
+	 * ```js
+	 * // a custom event defined by body() comp
+	 * // every time an obj with tag "bomb" hits the floor, destroy it and addKaboom()
+	 * on("grounded", "bomb", (bomb) => {
+	 *     destroy(bomb);
+	 *     addKaboom();
+	 * });
+	 * ```
 	 */
 	on(event: string, tag: Tag, cb: (obj: GameObj<any>) => void): EventCanceller,
 	/**
 	 * Register "update" event (runs every frame) on all game objs with certain tag.
+	 *
+	 * @example
+	 * ```js
+	 * // move every "tree" 120 pixels per second to the left, destroy it when it leaves screen
+	 * // there'll be nothing to run if there's no "tree" obj in the scene
+	 * action("tree", (tree) => {
+	 *     tree.move(-120, 0);
+	 *     if (tree.pos.x < 0) {
+	 *         destroy(tree);
+	 *     }
+	 * });
+	 *
+	 * // without tags it just runs it every frame
+	 * action(() => {
+	 *     debug.log("ohhi");
+	 * });
+	 * ```
 	 */
 	action(tag: Tag, cb: (obj: GameObj<any>) => void): EventCanceller,
 	action(cb: () => void): EventCanceller,
@@ -173,6 +367,13 @@ interface KaboomCtx {
 	render(cb: () => void): EventCanceller,
 	/**
 	 * Register event when 2 game objs with certain tags collides. This function spins off an action() when called, please put it at root level and never inside another action().
+	 *
+	 * @example
+	 * ```js
+	 * collides("sperm", "uterus", () => {
+	 *     addBaby();
+	 * });
+	 * ```
 	 */
 	collides(
 		t1: Tag,
@@ -196,6 +397,14 @@ interface KaboomCtx {
 	): EventCanceller,
 	/**
 	 * Get / set camera position.
+	 *
+	 * @example
+	 * ```js
+	 * // camera follows player
+	 * player.action(() => {
+	 *     camPos(player.pos);
+	 * });
+	 * ```
 	 */
 	camPos(pos: Vec2): Vec2,
 	/**
@@ -208,6 +417,14 @@ interface KaboomCtx {
 	camRot(angle: number): number,
 	/**
 	 * Camera shake.
+	 *
+	 * @example
+	 * ```js
+	 * // shake intensively when froggy collides with a "bomb"
+	 * froggy.collides("bomb", () => {
+	 *     shake(120);
+	 * });
+	 * ```
 	 */
 	shake(intensity: number): void,
 	/**
@@ -233,13 +450,32 @@ interface KaboomCtx {
 	 */
 	rotate(a: number): RotateComp,
 	/**
-	 * <Comp> Custom color in RGBA (multiplied).
+	 * <Comp> Custom color in RGBA (0-255 rgb, 0-1 a, multiplied).
+	 *
+	 * @example
+	 * ```js
+	 * // blue frog
+	 * add([
+	 *     sprite("froggy"),
+	 *     color(0, 0, 255)
+	 * ]);
+	 * ```
 	 */
 	color(r: number, g: number, b: number, a?: number): ColorComp,
 	color(c: Color): ColorComp,
 	color(): ColorComp,
 	/**
 	 * <Comp> Origin point for render (default "topleft").
+	 *
+	 * @example
+	 * ```js
+	 * // set origin to "center" so it'll rotate from center
+	 * add([
+	 *     rect(40, 10),
+	 *     rotate(45),
+	 *     origin("center"),
+	 * ]);
+	 * ```
 	 */
 	origin(o: Origin | Vec2): OriginComp,
 	/**
@@ -248,6 +484,26 @@ interface KaboomCtx {
 	layer(l: string): LayerComp,
 	/**
 	 * <Comp> Collider. Calculate from rendered dimension (e.g. from sprite, text, rect) if no params given.
+	 *
+	 * @example
+	 * ```js
+	 * add([
+	 *     sprite("froggy"),
+	 *     // without args it'll auto calculate from the data sprite comp provides
+	 *     area(),
+	 * ]);
+	 *
+	 * add([
+	 *     sprite("froggy"),
+	 *     // when pass a single number it'll scale the auto calculated area by 0.6
+	 *     area(0.6),
+	 * ]);
+	 *
+	 * // define custom area with topleft and botright point
+	 * add([
+	 *     area(vec2(-10, -30), vec2(10, 60)),
+	 * ])
+	 * ```
 	 */
 	area(): AreaComp,
 	area(scale: number): AreaComp,
@@ -255,6 +511,27 @@ interface KaboomCtx {
 	area(p1: Vec2, p2: Vec2): AreaComp,
 	/**
 	 * <Comp> Renders as sprite.
+	 *
+	 * @example
+	 * ```js
+	 * // minimal setup
+	 * add([
+	 *     sprite("froggy"),
+	 * ]);
+	 *
+	 * // minimal setup
+	 * const froggy = add([
+	 *     sprite("froggy", {
+	 *         // seconds per frame (default 0.1)
+	 *         animSpeed: 0.2,
+	 *         // start with frame 2
+	 *         frame: 2,
+	 *     }),
+	 * ]);
+	 *
+	 * // play an anim
+	 * froggy.play("jump");
+	 * ```
 	 */
 	sprite(spr: string | SpriteData, conf?: SpriteCompConf): SpriteComp,
 	/**
@@ -601,14 +878,9 @@ interface GameObjRaw {
 	c(id: CompID): Comp;
 }
 
-type GameObj<T> = GameObjRaw & MergeComps<T>;
-
-type SceneID = string;
-type SceneDef = (...args) => void;
-type TouchID = number;
-
-type EventCanceller = () => void;
-
+/**
+ * Kaboom configurations.
+ */
 interface KaboomConf {
 	width?: number,
 	height?: number,
@@ -629,6 +901,14 @@ interface KaboomConf {
 	global?: boolean,
 	plugins?: KaboomPlugin<any>[],
 }
+
+type GameObj<T> = GameObjRaw & MergeComps<T>;
+
+type SceneID = string;
+type SceneDef = (...args) => void;
+type TouchID = number;
+
+type EventCanceller = () => void;
 
 interface SpriteAnim {
 	from: number,
