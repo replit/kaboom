@@ -17,6 +17,15 @@ const t2 = cp.spawn("node", [
 	cwd: "site",
 });
 
+// const t2 = cp.spawn("node", [
+// 	"../scripts/watch.js", ".",
+// 	"node", "src/server.js"
+// ], {
+// 	stdio: "inherit",
+// 	detached: true,
+// 	cwd: "site2",
+// });
+
 process.on("SIGINT", () => {
 	process.kill(-t1.pid);
 	process.kill(-t2.pid);

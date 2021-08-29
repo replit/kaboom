@@ -10,10 +10,39 @@ interface KaboomCtx {
 	burp(conf?: AudioPlayConf): AudioPlay,
 	/**
 	 * Sets the root for all subsequent resource urls.
+	 *
+	 * @example
+	 * ```js
+	 * loadRoot("https://myassets.com/");
+	 * loadSprite("froggy", "sprites/froggy.png"); // will resolve to "https://myassets.com/sprites/frogg.png"
+	 * ```
 	 */
 	loadRoot(path?: string): string,
 	/**
 	 * Load a sprite into asset manager, with name and resource url and optional config.
+	 *
+	 * @example
+	 * ```js
+	 * // due to browser policies you'll need a static file server to load local files
+	 * loadSprite("froggy", "froggy.png");
+	 * loadSprite("apple", "https://kaboomjs.com/sprites/apple.png");
+	 *
+	 * // slice a spritesheet and add anims manually
+	 * loadSprite("froggy", "froggy.png", {
+	 *     sliceX: 4,
+	 *     sliceY: 1,
+	 *     anims: {
+	 *         run: {
+	 *             from: 0,
+	 *             to: 3,
+	 *         },
+	 *         jump: {
+	 *             from: 3,
+	 *             to: 3,
+	 *         },
+	 *     },
+	 * });
+	 * ```
 	 */
 	loadSprite(
 		id: string | null,
@@ -580,7 +609,7 @@ type TouchID = number;
 
 type EventCanceller = () => void;
 
-type KaboomConf = {
+interface KaboomConf {
 	width?: number,
 	height?: number,
 	scale?: number,
@@ -601,14 +630,14 @@ type KaboomConf = {
 	plugins?: KaboomPlugin<any>[],
 }
 
-type SpriteAnim = {
+interface SpriteAnim {
 	from: number,
 	to: number,
 }
 
 type KaboomPlugin<T> = (k: KaboomCtx) => T;
 
-type SpriteLoadConf = {
+interface SpriteLoadConf {
 	sliceX?: number,
 	sliceY?: number,
 	gridWidth?: number,
@@ -618,7 +647,7 @@ type SpriteLoadConf = {
 
 type SpriteLoadSrc = string | GfxTextureData;
 
-type SpriteData = {
+interface SpriteData {
 	tex: GfxTexture,
 	frames: Quad[],
 	anims: Record<string, SpriteAnim>,
@@ -628,7 +657,7 @@ type SoundData = AudioBuffer;
 type FontData = GfxFont;
 type ShaderData = GfxProgram;
 
-type AudioPlayConf = {
+interface AudioPlayConf {
 	loop?: boolean,
 	volume?: number,
 	speed?: number,
@@ -636,7 +665,7 @@ type AudioPlayConf = {
 	seek?: number,
 }
 
-type AudioPlay = {
+interface AudioPlay {
 	play(seek?: number): void,
 	stop(): void,
 	pause(): void,
@@ -651,14 +680,14 @@ type AudioPlay = {
 	unloop(): void,
 }
 
-type GfxProgram = {
+interface GfxProgram {
 	bind(): void,
 	unbind(): void,
 	bindAttribs(): void,
 	send(uniform: Uniform): void,
 }
 
-type GfxTexture = {
+interface GfxTexture {
 	width: number,
 	height: number,
 	bind(): void,
@@ -672,14 +701,14 @@ type GfxTextureData =
 	| ImageBitmap
 	;
 
-type GfxFont = {
+interface GfxFont {
 	tex: GfxTexture,
 	map: Record<string, Vec2>,
 	qw: number,
 	qh: number,
 }
 
-type Vertex = {
+interface Vertex {
 	pos: Vec3,
 	uv: Vec2,
 	color: Color,
@@ -687,7 +716,7 @@ type Vertex = {
 
 type TexFilter = "nearest" | "linear";
 
-type RenderProps = {
+interface RenderProps {
 	pos?: Vec2,
 	scale?: Vec2 | number,
 	rot?: number,
@@ -752,7 +781,7 @@ type DrawTextConf = RenderProps & {
 	prog?: GfxProgram,
 }
 
-type FormattedChar = {
+interface FormattedChar {
 	tex: GfxTexture,
 	quad: Quad,
 	ch: string,
@@ -763,13 +792,12 @@ type FormattedChar = {
 	z: number,
 }
 
-type FormattedText = {
+interface FormattedText {
 	width: number,
 	height: number,
 	chars: FormattedChar[],
 }
 
-// TODO: enum
 type Origin =
 	"topleft"
 	| "top"
@@ -795,7 +823,7 @@ type DrawSpriteConf = RenderProps & {
 	z?: number,
 }
 
-type Vec2 = {
+interface Vec2 {
 	x: number,
 	y: number,
 	clone(): Vec2,
@@ -814,21 +842,21 @@ type Vec2 = {
 	str(): string,
 }
 
-type Vec3 = {
+interface Vec3 {
 	x: number,
 	y: number,
 	z: number,
 	xy(): Vec2,
 }
 
-type Vec4 = {
+interface Vec4 {
 	x: number,
 	y: number,
 	z: number,
 	w: number,
 }
 
-type Mat4 = {
+interface Mat4 {
 	m: number[],
 	clone(): Mat4,
 	mult(m: Mat4): Mat4,
@@ -843,7 +871,7 @@ type Mat4 = {
 	invert(): Mat4,
 }
 
-type Color = {
+interface Color {
 	r: number,
 	g: number,
 	b: number,
@@ -857,7 +885,7 @@ type Color = {
 	eq(c: Color): boolean,
 }
 
-type Quad = {
+interface Quad {
 	x: number,
 	y: number,
 	w: number,
@@ -873,19 +901,19 @@ type RNGValue =
 	| Color
 	;
 
-type RNG = {
+interface RNG {
 	seed: number,
 	gen(): number,
 	gen<T extends RNGValue>(n: T): T,
 	gen<T extends RNGValue>(a: T, b: T): T,
 }
 
-type Rect = {
+interface Rect {
 	p1: Vec2,
 	p2: Vec2,
 }
 
-type Line = {
+interface Line {
 	p1: Vec2,
 	p2: Vec2,
 }
@@ -937,7 +965,7 @@ type UpdateEvent = () => void;
 type DestroyEvent = () => void;
 type InspectEvent = () => any;
 
-type PosCompInspect = {
+interface PosCompInspect {
 	pos: string,
 }
 
@@ -980,7 +1008,7 @@ interface OriginComp extends Comp {
 	origin: Origin | Vec2;
 }
 
-type LayerCompInspect = {
+interface LayerCompInspect {
 	layer: string,
 }
 
@@ -998,7 +1026,7 @@ type RectSide =
 	| "right"
 	;
 
-type PushOut = {
+interface PushOut {
 	obj: GameObj<any>,
 	side: RectSide,
 	dis: number,
@@ -1069,7 +1097,7 @@ interface AreaComp extends Comp {
 	_checkOverlaps(tag: string, f: (obj: GameObj<any>) => void): void;
 }
 
-type SpriteCompConf = {
+interface SpriteCompConf {
 	quad?: Quad,
 	/**
 	 * Initial frame.
@@ -1101,7 +1129,7 @@ type SpriteCompConf = {
 	flipY?: boolean,
 }
 
-type SpriteCurAnim = {
+interface SpriteCurAnim {
 	name: string,
 	loop: boolean,
 	timer: number,
@@ -1154,7 +1182,7 @@ interface SpriteComp extends Comp {
 	flipY(b: boolean);
 }
 
-type SpriteCompInspect = {
+interface SpriteCompInspect {
 	curAnim?: string,
 }
 
@@ -1181,7 +1209,7 @@ interface TextComp extends Comp {
 	height: number;
 }
 
-type TextCompConf = {
+interface TextCompConf {
 	/**
 	 * Height of text.
 	 */
@@ -1212,7 +1240,7 @@ interface OutlineComp extends Comp {
 	lineColor: Color;
 }
 
-type Debug = {
+interface Debug {
 	paused: boolean,
 	inspect: boolean,
 	timeScale: number,
@@ -1266,7 +1294,7 @@ interface BodyComp extends Comp {
 	jump(f?: number);
 }
 
-type BodyCompConf = {
+interface BodyCompConf {
 	/**
 	 * Initial speed in pixels per second for jump().
 	 */
@@ -1277,7 +1305,7 @@ type BodyCompConf = {
 	maxVel?: number,
 }
 
-type Timer = {
+interface Timer {
 	time: number,
 	action(): void,
 };

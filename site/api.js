@@ -72,13 +72,9 @@ loadRoot("/assets/");
 loadSprite("froggy", "sprites/froggy.png"); // will resolve to "/assets/sprites/froggy.png"
 			`),
 			f("loadSprite", "Load a sprite into the asset manager", `
-// due to browser policies you'll need a static file server to load local files, e.g.
-// - (with python) $ python3 -m http.server $PORT
-// - (with caddy) $ caddy file-server --browse --listen $PORT
-// - https://github.com/vercel/serve
-// - https://github.com/http-party/http-server
+// due to browser policies you'll need a static file server to load local files
 loadSprite("froggy", "froggy.png");
-loadSprite("froggy", "https://kaboomjs.com/assets/sprites/mark.png");
+loadSprite("apple", "https://kaboomjs.com/sprites/apple.png");
 
 // slice a spritesheet and add anims manually
 loadSprite("froggy", "froggy.png", {
@@ -98,7 +94,7 @@ loadSprite("froggy", "froggy.png", {
 			`),
 			f("loadSound", "Load a sound", `
 loadSound("shoot", "horse.ogg");
-loadSound("shoot", "https://kaboomjs.com/assets/sounds/scream6.mp3");
+loadSound("shoot", "https://kaboomjs.com/sounds/scream6.mp3");
 			`),
 			f("loadFont", "Load a font", `
 // default character mappings: (ASCII 32 - 126)

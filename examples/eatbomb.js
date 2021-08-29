@@ -4,8 +4,32 @@ kaboom({
 
 loadSprite("bean", "sprites/bean.png");
 loadSprite("apple", "sprites/apple.png");
+loadSprite("pineapple", "sprites/pineapple.png");
 loadSprite("bomb", "sprites/bomb.png");
 loadSound("bye", "sounds/bye.mp3");
+loadSound("gong", "sounds/gong.mp3");
+
+scene("start", () => {
+
+	play("gong");
+
+	add([
+		text("eat all"),
+		pos(center().sub(0, 100)),
+		scale(2),
+		origin("center"),
+	]);
+
+	add([
+		sprite("bomb"),
+		pos(center().add(0, 100)),
+		scale(2),
+		origin("center"),
+	]);
+
+	wait(1.5, () => go("game"));
+
+});
 
 // main game scene content
 scene("game", () => {
@@ -27,7 +51,7 @@ scene("game", () => {
 	});
 
 	// game over if player eats a fruit
-	player.collides("fruit", () => {
+	player.collides("fruit", (fruit) => {
 		go("lose", score);
 		play("bye");
 	});
@@ -44,6 +68,7 @@ scene("game", () => {
 		if (bomb.pos.x <= 0) {
 			go("lose", score);
 			play("bye");
+			addKaboom(bomb.pos);
 		}
 	});
 
@@ -62,7 +87,7 @@ scene("game", () => {
 		destroy(bomb);
 		scoreLabel.text = score;
 		burp();
-		shake(4);
+		shake(12);
 	});
 
 	// do this every 0.3 seconds
@@ -76,7 +101,7 @@ scene("game", () => {
 		const speed = rand(SPEED_MIN, SPEED_MAX);
 		// 50% percent chance is bomb
 		const isBomb = chance(0.5);
-		const spriteName = isBomb ? "bomb" : choose(["apple"]);
+		const spriteName = isBomb ? "bomb" : choose(["apple", "pineapple"]);
 
 		add([
 			sprite(spriteName),
@@ -111,10 +136,10 @@ scene("lose", (score) => {
 	]);
 
 	// go back to game with space is pressed
-	keyPress("space", () => go("game"));
-	mouseClick(() => go("game"));
+	keyPress("space", () => go("start"));
+	mouseClick(() => go("start"));
 
 });
 
 // start with the "game" scene
-go("game");
+go("start");

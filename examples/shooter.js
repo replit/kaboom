@@ -140,10 +140,11 @@ scene("battle", () => {
 
 	sky.action(() => {
 		if (insaneMode) {
+			const t = time() * 10;
 			sky.color.a = 1;
-			sky.color.r = wave(0, 50, 4, 0);
-			sky.color.g = wave(0, 50, 4, 1);
-			sky.color.b = wave(0, 50, 4, 2);
+			sky.color.r = wave(127, 255, t);
+			sky.color.g = wave(127, 255, t + 1);
+			sky.color.b = wave(127, 255, t + 2);
 		} else {
 			sky.color = rgba(0, 0, 255, 0);
 		}
@@ -207,14 +208,14 @@ scene("battle", () => {
 		shake(120);
 		play("explosion");
 		music.detune(-1200);
-		makeExplosion(center(), 12, 120, 30);
+		addExplode(center(), 12, 120, 30);
 		wait(1, () => {
 			music.stop();
 			go("battle");
 		});
 	});
 
-	function makeExplosion(p, n, rad, size) {
+	function addExplode(p, n, rad, size) {
 		for (let i = 0; i < n; i++) {
 			wait(rand(n * 0.1), () => {
 				for (let i = 0; i < 2; i++) {
@@ -302,7 +303,7 @@ scene("battle", () => {
 	on("death", "enemy", (e) => {
 		destroy(e);
 		shake(2);
-		makeExplosion(e.pos, 3, 24, 1);
+		addKaboom(e.pos);
 	});
 
 	on("hurt", "enemy", (e) => {
@@ -329,7 +330,7 @@ scene("battle", () => {
 	collides("bullet", "enemy", (b, e) => {
 		destroy(b);
 		e.hurt(insaneMode ? 10 : 1);
-		makeExplosion(b.pos, 1, 24, 1);
+		addExplode(b.pos, 1, 24, 1);
 	});
 
 	action("trash", (t) => {

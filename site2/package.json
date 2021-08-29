@@ -1,0 +1,8 @@
+{
+	"name": "kaboom-site",
+	"dependencies": {
+		"highlight.js": "^11.2.0",
+		"koa": "^2.13.1",
+		"marked": "^3.0.2"
+	}
+}
