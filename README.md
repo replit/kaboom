@@ -11,21 +11,23 @@
 Lots of iteractive examples [here](https://kaboomjs.com/examples)
 
 ```html
-<script src="https://unpkg.com/kaboom@next/dist/kaboom.js"></script>
 <script type="module">
+
+// import kaboom lib
+import kaboom from "https://cdn.skypack.dev/kaboom@next";
 
 // initialize kaboom context
 kaboom();
 
-// add a text of size 32 at position (100, 100)
+// add a text of size 32 at position (120, 80)
 add([
     text("oh hi", 32),
-    pos(100, 100),
+    pos(120, 80),
+    scale(3),
 ]);
 
 </script>
 ```
-
 You can paste this directly into an `.html` file and start playing around!
 
 Kaboom uses a powerful component system to compose game objects and behaviors.
@@ -38,7 +40,7 @@ kaboom();
 loadBean();
 
 // compose the player game object from multiple built-in components
-const birdy = add([
+const bean = add([
     sprite("bean"),
     pos(80, 40),
     area(),
@@ -173,7 +175,10 @@ Also works with other CDNs like `jsdelivr` who works with NPM packages.
 Kaboom also provide ES module and commonJS module exports with `.mjs` and `.cjs`, e.g,
 
 ```js
+// any one of these work
+import kaboom from "https://cdn.skypack.dev/kaboom@next";
 import kaboom from "https://unpkg.com/kaboom@next/dist/kaboom.mjs";
+import kaboom from "https://cdn.jsdelivr.net/npm/kaboom@next/dist/kaboom.mjs";
 ```
 
 ### NPM Package

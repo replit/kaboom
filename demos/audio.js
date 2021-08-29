@@ -2,7 +2,6 @@
 
 kaboom();
 
-loadRoot("/pub/examples/");
 loadSound("wooosh", "sounds/wooosh.mp3");
 loadSound("OtherworldlyFoe", "sounds/OtherworldlyFoe.mp3");
 

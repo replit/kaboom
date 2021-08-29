@@ -1,6 +1,7 @@
 const marked = require("marked");
 const hljs = require("highlight.js");
 const www = require("./www");
+const gstyle = require("./gstyle");
 const types = require("./../types");
 const t = www.tag;
 
@@ -127,23 +128,7 @@ function renderJSDoc(type) {
 }
 
 const css = {
-	"*": {
-		"padding": "0",
-		"margin": "0",
-		"box-sizing": "border-box",
-		"font-family": "inherit",
-		"color": "#333333",
-	},
-	"html": {
-		"width": "100%",
-		"height": "100%",
-		"font-family": "IBM Plex Sans",
-	},
-	"body": {
-		"width": "100%",
-		"height": "100%",
-		"display": "flex",
-	},
+	...gstyle,
 	"#sidebar": {
 		...www.vspace(12),
 		"background": "#f5f5f5",
@@ -246,7 +231,7 @@ const page = t("html", {}, [
 		t("style", {}, www.css(css)),
 		t("link", { rel: "icon", href: "/img/kaboom.png"}),
 		t("link", { rel: "stylesheet", href: "/css/paraiso.css"}),
-		t("script", { src: "/js/doc.js"}, ""),
+		t("script", { src: "/js/doc.js", }, ""),
 	]),
 	t("body", {}, [
 		t("div", { id: "sidebar", }, [

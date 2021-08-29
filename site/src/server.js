@@ -3,6 +3,7 @@ const fs = require("fs");
 const path = require("path");
 const port = process.env.PORT || 8000;
 const doc = require("./doc");
+const demos = require("./demos");
 const app = new Koa();
 
 function get(path, cb) {
@@ -49,9 +50,8 @@ function html(ctx, content) {
 	ctx.body = `<!DOCTYPE html>\n${content}`;
 }
 
-app.use(get("/", (ctx, next) => {
-	html(ctx, doc);
-}));
+app.use(get("/", (ctx, next) => html(ctx, doc)));
+app.use(get("/demos", (ctx, next) => html(ctx, demos)));
 
 app.use(files("/sprites", "../sprites"));
 app.use(files("/sounds", "../sounds"));
@@ -59,7 +59,7 @@ app.use(files("/src", "../src"));
 app.use(files("/img", "img"));
 app.use(files("/css", "src/css"));
 app.use(files("/js", "src/js"));
-app.use(files("/js", "src/js"));
+app.use(files("/lib/dev", "../dist"));
 
 app.listen(port);
 console.log(`http://localhost:${port}`);

@@ -21,6 +21,7 @@
 	"files": [
 		"dist/",
 		"src/",
+		"kaboom.png",
 		"CHANGELOG.md"
 	],
 	"scripts": {
