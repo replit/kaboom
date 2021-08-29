@@ -3,8 +3,6 @@ kaboom({
 	scale: 2,
 });
 
-loadRoot("/pub/examples/");
-loadSprite("mark", "img/mark.png");
 loadShader("test", null, `
 uniform float u_time;
 uniform vec2 u_mpos;

@@ -54,7 +54,7 @@ scene("game", () => {
 			outline(4),
 			pos(width(), height() - FLOOR_HEIGHT),
 			origin("botleft"),
-			color(250, 127, 255),
+			color(255, 180, 255),
 			"tree",
 		]);
 

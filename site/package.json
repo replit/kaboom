@@ -1,6 +1,13 @@
 {
 	"name": "kaboom-site",
 	"dependencies": {
+		"@codemirror/commands": "^0.19.2",
+		"@codemirror/highlight": "^0.19.2",
+		"@codemirror/history": "^0.19.0",
+		"@codemirror/lang-javascript": "^0.19.1",
+		"@codemirror/state": "^0.19.1",
+		"@codemirror/view": "^0.19.3",
+		"esbuild": "^0.12.24",
 		"highlight.js": "^11.2.0",
 		"koa": "^2.13.1",
 		"marked": "^3.0.2"

@@ -1,6 +1,7 @@
 const Koa = require("koa");
 const fs = require("fs");
 const path = require("path");
+const esbuild = require("esbuild");
 const port = process.env.PORT || 8000;
 const doc = require("./doc");
 const demos = require("./demos");
@@ -18,7 +19,7 @@ function get(path, cb) {
 	};
 }
 
-function files(mnt, dir) {
+function files(mnt, dir, handler) {
 	return (ctx, next) => {
 		if (ctx.method !== "GET") {
 			return next();
@@ -39,8 +40,12 @@ function files(mnt, dir) {
 			ctx.type = "json";
 			ctx.body = JSON.stringify(entries);
 		} else if (stat.isFile()) {
-			ctx.type = path.extname(p);
-			ctx.body = fs.readFileSync(p);
+			if (handler) {
+				handler(p)(ctx, next);
+			} else {
+				ctx.type = path.extname(p);
+				ctx.body = fs.readFileSync(p);
+			}
 		}
 	};
 }
@@ -58,7 +63,22 @@ app.use(files("/sounds", "../sounds"));
 app.use(files("/src", "../src"));
 app.use(files("/img", "img"));
 app.use(files("/css", "src/css"));
-app.use(files("/js", "src/js"));
+app.use(files("/js", "src/js", (p) => {
+	return (ctx, next) => {
+		const res = esbuild.buildSync({
+			bundle: true,
+			write: false,
+			entryPoints: [p],
+		});
+		const code = res?.outputFiles[0]?.text;
+		if (code) {
+			ctx.type = "js";
+			ctx.body = code;
+		} else {
+			next();
+		}
+	};
+}));
 app.use(files("/lib/dev", "../dist"));
 
 app.listen(port);

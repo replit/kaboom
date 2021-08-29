@@ -1,2 +1,0 @@
-var g=Object.defineProperty;var i=(a,o)=>g(a,"name",{value:o,configurable:!0});module.exports=a=>{function o(f,h,c){let m=new Promise((d,s)=>{let u=a.loadRoot()+c;a.loadSprite(f,h).then(n=>{fetch(u).then(e=>e.json()).then(e=>{let r=e.meta.size;n.frames=e.frames.map(t=>a.quad(t.frame.x/r.w,t.frame.y/r.h,t.frame.w/r.w,t.frame.h/r.h));for(let t of e.meta.frameTags)n.anims[t.name]={from:t.from,to:t.to};d(n)}).catch(s)}).catch(s)});return a.addLoader(m),m}return i(o,"loadAseprite"),{loadAseprite:o}};
-//# sourceMappingURL=aseprite.cjs.map
