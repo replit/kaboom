@@ -14,7 +14,7 @@ const t1 = cp.spawn("node", [
 // ], {
 // 	stdio: "inherit",
 // 	detached: true,
-// 	cwd: "site",
+// 	cwd: "oldsite",
 // });
 
 const t2 = cp.spawn("node", [
@@ -23,7 +23,7 @@ const t2 = cp.spawn("node", [
 ], {
 	stdio: "inherit",
 	detached: true,
-	cwd: "site2",
+	cwd: "site",
 });
 
 process.on("SIGINT", () => {

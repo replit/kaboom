@@ -151,4 +151,4 @@ if (!globalGenerated) {
 }
 
 fs.writeFileSync(`${distDir}/kaboom.d.ts`, dts);
-fs.writeFileSync("site2/types.json", JSON.stringify(types, null, 4));
+fs.writeFileSync("site/types.json", JSON.stringify(types, null, 4));

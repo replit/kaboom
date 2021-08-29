@@ -1,4 +1,4 @@
-![Kaboom Logo](sprites/kaboom.png)
+![Kaboom Logo](kaboom.png)
 
 [**Kaboom.js**](https://kaboomjs.com/) is a JavaScript library that helps you make games fast and fun!
 

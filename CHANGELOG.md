@@ -1,4 +1,4 @@
-### v0.8 burp() (unreleased)
+### v3000 kaboom3000 (unreleased)
 - added `burp()` for easy burping
 - added decent typescript support
 - revamped visual style, changed default font and debug font
@@ -7,6 +7,7 @@
 - added `loadBean()` to `"bean"` as a default sprite
 - added `outline()` comp to draw a lil outline
 - added `timer()` comp to attach timers to game obj
+- (**BREAK**) changed color from 0-1 range to 0-255, angles from radians to degrees
 - `global` and `debug` flag now are enabled by default, need to turn off manually if you don't want
 - added input events `touchStart(id, pos)`, `touchMove(id, pos)`, `touchEnd(id, pos)`, `mouseMove(pos)`
 - added `font` field in `KaboomConf` to set the default font
@@ -76,7 +77,6 @@ obj.c("sprite").play("anim");
 - (**BREAK**) removed `changeSprite()` in favor of `use(sprite("newsprite"))`
 - (**BREAK**) renamed `rmTag()` to `untag()`
 - (**BREAK**) removed `camIgnore()` in favor of `fixed()`
-- (**BREAK**) changed color from 0-1 range to 0-255, angles from radians to degrees
 
 ### v0.5.1
 - added plugins npm package support e.g. `import asepritePlugin from "kaboom/plugins/aseprite"`

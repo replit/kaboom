@@ -57,7 +57,11 @@ function renderTypeSig(type) {
 }
 
 function renderNamedFunc(func) {
-	return `${func.name}(${renderParams(func.parameters)}) => ${renderTypeSig(func.type)}`;
+	let code = `${func.name}(${renderParams(func.parameters)})`;
+	if (func.type?.kind !== "VoidKeyword") {
+		code += `=> ${renderTypeSig(func.type)}`;
+	}
+	return code;
 }
 
 function renderMember(m) {

@@ -59,6 +59,7 @@ app.use(files("/src", "../src"));
 app.use(files("/img", "img"));
 app.use(files("/css", "src/css"));
 app.use(files("/js", "src/js"));
+app.use(files("/js", "src/js"));
 
 app.listen(port);
 console.log(`http://localhost:${port}`);

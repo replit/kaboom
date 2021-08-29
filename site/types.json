@@ -663,6 +663,12 @@
                     {
                         "kind": "Parameter",
                         "name": "args",
+                        "type": {
+                            "kind": "ArrayType",
+                            "elementType": {
+                                "kind": "AnyKeyword"
+                            }
+                        },
                         "dotDotDotToken": {
                             "kind": "DotDotDotToken"
                         }
@@ -3930,6 +3936,12 @@
                     {
                         "kind": "Parameter",
                         "name": "args",
+                        "type": {
+                            "kind": "ArrayType",
+                            "elementType": {
+                                "kind": "AnyKeyword"
+                            }
+                        },
                         "dotDotDotToken": {
                             "kind": "DotDotDotToken"
                         }
@@ -4234,6 +4246,12 @@
                             {
                                 "kind": "Parameter",
                                 "name": "args",
+                                "type": {
+                                    "kind": "ArrayType",
+                                    "elementType": {
+                                        "kind": "AnyKeyword"
+                                    }
+                                },
                                 "dotDotDotToken": {
                                     "kind": "DotDotDotToken"
                                 }
@@ -4383,6 +4401,9 @@
                         }
                     }
                 ],
+                "type": {
+                    "kind": "VoidKeyword"
+                },
                 "jsDoc": [
                     {
                         "kind": "JSDocComment",
@@ -4403,6 +4424,9 @@
                         }
                     }
                 ],
+                "type": {
+                    "kind": "VoidKeyword"
+                },
                 "jsDoc": [
                     {
                         "kind": "JSDocComment",
@@ -4485,11 +4509,20 @@
                     {
                         "kind": "Parameter",
                         "name": "args",
+                        "type": {
+                            "kind": "ArrayType",
+                            "elementType": {
+                                "kind": "AnyKeyword"
+                            }
+                        },
                         "dotDotDotToken": {
                             "kind": "DotDotDotToken"
                         }
                     }
                 ],
+                "type": {
+                    "kind": "VoidKeyword"
+                },
                 "jsDoc": [
                     {
                         "kind": "JSDocComment",
@@ -4510,6 +4543,9 @@
                         }
                     }
                 ],
+                "type": {
+                    "kind": "VoidKeyword"
+                },
                 "jsDoc": [
                     {
                         "kind": "JSDocComment",
@@ -4521,6 +4557,9 @@
                 "kind": "MethodSignature",
                 "name": "destroy",
                 "parameters": [],
+                "type": {
+                    "kind": "VoidKeyword"
+                },
                 "jsDoc": [
                     {
                         "kind": "JSDocComment",
@@ -4773,6 +4812,12 @@
                 {
                     "kind": "Parameter",
                     "name": "args",
+                    "type": {
+                        "kind": "ArrayType",
+                        "elementType": {
+                            "kind": "AnyKeyword"
+                        }
+                    },
                     "dotDotDotToken": {
                         "kind": "DotDotDotToken"
                     }
@@ -6224,9 +6269,27 @@
                 "parameters": [
                     {
                         "kind": "Parameter",
-                        "name": "args",
-                        "dotDotDotToken": {
-                            "kind": "DotDotDotToken"
+                        "name": "p",
+                        "type": {
+                            "kind": "TypeReference",
+                            "typeName": "Vec2"
+                        }
+                    }
+                ],
+                "type": {
+                    "kind": "TypeReference",
+                    "typeName": "Vec2"
+                }
+            },
+            {
+                "kind": "MethodSignature",
+                "name": "scale",
+                "parameters": [
+                    {
+                        "kind": "Parameter",
+                        "name": "p",
+                        "type": {
+                            "kind": "NumberKeyword"
                         }
                     }
                 ],
@@ -7310,6 +7373,9 @@
                         }
                     }
                 ],
+                "type": {
+                    "kind": "VoidKeyword"
+                },
                 "jsDoc": [
                     {
                         "kind": "JSDocComment",
@@ -7329,7 +7395,10 @@
                             "typeName": "Vec2"
                         }
                     }
-                ]
+                ],
+                "type": {
+                    "kind": "VoidKeyword"
+                }
             },
             {
                 "kind": "MethodSignature",
@@ -7352,6 +7421,9 @@
                         "questionToken": true
                     }
                 ],
+                "type": {
+                    "kind": "VoidKeyword"
+                },
                 "jsDoc": [
                     {
                         "kind": "JSDocComment",
@@ -8352,6 +8424,9 @@
                         "questionToken": true
                     }
                 ],
+                "type": {
+                    "kind": "VoidKeyword"
+                },
                 "jsDoc": [
                     {
                         "kind": "JSDocComment",
@@ -8363,6 +8438,9 @@
                 "kind": "MethodSignature",
                 "name": "stop",
                 "parameters": [],
+                "type": {
+                    "kind": "VoidKeyword"
+                },
                 "jsDoc": [
                     {
                         "kind": "JSDocComment",
@@ -8410,6 +8488,9 @@
                         }
                     }
                 ],
+                "type": {
+                    "kind": "VoidKeyword"
+                },
                 "jsDoc": [
                     {
                         "kind": "JSDocComment",
@@ -8429,6 +8510,9 @@
                         }
                     }
                 ],
+                "type": {
+                    "kind": "VoidKeyword"
+                },
                 "jsDoc": [
                     {
                         "kind": "JSDocComment",
@@ -8981,6 +9065,9 @@
                         "questionToken": true
                     }
                 ],
+                "type": {
+                    "kind": "VoidKeyword"
+                },
                 "jsDoc": [
                     {
                         "kind": "JSDocComment",

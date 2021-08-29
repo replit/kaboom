@@ -244,7 +244,7 @@ interface KaboomCtx {
 	/**
 	 * Get CompList<T> from DynCompList<T>.
 	 */
-	getComps<T extends Comp>(comps: DynCompList<T>, ...args): CompList<T>,
+	getComps<T extends Comp>(comps: DynCompList<T>, ...args: any[]): CompList<T>,
 	/**
 	 * Remove the game obj.
 	 *
@@ -776,7 +776,7 @@ interface KaboomCtx {
 	/**
 	 * Go to a scene, passing all rest args to scene callback.
 	 */
-	go(id: SceneID, ...args): void,
+	go(id: SceneID, ...args: any[]): void,
 	/**
 	 * Get data from local storage, if not present can set to a default value.
 	 */
@@ -819,7 +819,7 @@ type MergeObj<T> = Expand<UnionToIntersection<Defined<T>>>;
 type MergeComps<T> = Omit<MergeObj<T>, keyof Comp>;
 
 type CompList<T extends Comp> = Array<T | Tag | CustomData>;
-type DynCompList<T extends Comp> = CompList<T> | ((...args) => CompList<T>);
+type DynCompList<T extends Comp> = CompList<T> | ((...args: any[]) => CompList<T>);
 
 interface GameObjRaw {
 	/**
@@ -846,12 +846,12 @@ interface GameObjRaw {
 	/**
 	 * Add a component or tag.
 	 */
-	use(comp: Comp | Tag | CustomData);
+	use(comp: Comp | Tag | CustomData): void;
 	// TODO: update the GameObj type info
 	/**
 	 * Remove a component with its id.
 	 */
-	unuse(comp: CompID);
+	unuse(comp: CompID): void;
 	/**
 	 * Run something every frame for this game obj (sugar for on("update")).
 	 */
@@ -863,15 +863,15 @@ interface GameObjRaw {
 	/**
 	 * Triggers an event.
 	 */
-	trigger(ev: string, ...args);
+	trigger(ev: string, ...args: any[]): void;
 	/**
 	 * Removes a tag.
 	 */
-	untag(t: Tag);
+	untag(t: Tag): void;
 	/**
 	 * Remove the game obj from scene.
 	 */
-	destroy();
+	destroy(): void;
 	/**
 	 * Get state for a specific comp.
 	 */
@@ -905,7 +905,7 @@ interface KaboomConf {
 type GameObj<T> = GameObjRaw & MergeComps<T>;
 
 type SceneID = string;
-type SceneDef = (...args) => void;
+type SceneDef = (...args: any[]) => void;
 type TouchID = number;
 
 type EventCanceller = () => void;
@@ -1109,7 +1109,8 @@ interface Vec2 {
 	clone(): Vec2,
 	add(p: Vec2): Vec2,
 	sub(p: Vec2): Vec2,
-	scale(...args): Vec2,
+	scale(p: Vec2): Vec2,
+	scale(p: number): Vec2,
 	dot(p: Vec2): number,
 	dist(p: Vec2): number,
 	len(): number,
@@ -1254,12 +1255,12 @@ interface PosComp extends Comp {
 	/**
 	 * Move how many pixels per second.
 	 */
-	move(xVel: number, yVel: number);
-	move(vel: Vec2);
+	move(xVel: number, yVel: number): void;
+	move(vel: Vec2): void;
 	/**
 	 * Move to a spot with a speed (pixels per second), teleports if speed is left out.
 	 */
-	moveTo(dest: Vec2, speed?: number);
+	moveTo(dest: Vec2, speed?: number): void;
 	/**
 	 * Get position on screen after camera transform.
 	 */
@@ -1439,11 +1440,11 @@ interface SpriteComp extends Comp {
 	/**
 	 * Play a piece of anim.
 	 */
-	play(anim: string, loop?: boolean);
+	play(anim: string, loop?: boolean): void;
 	/**
 	 * Stop current anim.
 	 */
-	stop();
+	stop(): void;
 	/**
 	 * Get total number of frames.
 	 */
@@ -1455,11 +1456,11 @@ interface SpriteComp extends Comp {
 	/**
 	 * Flip texture horizontally.
 	 */
-	flipX(b: boolean);
+	flipX(b: boolean): void;
 	/**
 	 * Flip texture vertically.
 	 */
-	flipY(b: boolean);
+	flipY(b: boolean): void;
 }
 
 interface SpriteCompInspect {
@@ -1571,7 +1572,7 @@ interface BodyComp extends Comp {
 	/**
 	 * Upward thrust.
 	 */
-	jump(f?: number);
+	jump(f?: number): void;
 }
 
 interface BodyCompConf {
