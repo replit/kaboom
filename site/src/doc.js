@@ -139,6 +139,12 @@ function renderJSDoc(type) {
 				case "example":
 					items.push(marked(tag.comment));
 					break;
+				case "deprecated":
+					// TODO
+					break;
+				default:
+// 					console.log(tag);
+					break;
 			}
 		}
 	}
@@ -191,14 +197,18 @@ const css = {
 		"padding": "48px",
 		"background": "#ffffff",
 		"flex": "1",
+		".block": {
+			...www.vspace(12),
+			"margin-bottom": "24px",
+		},
 		".title": {
-			"padding": "9px 12px",
+			"padding": "6px 12px",
 			"background": "#fff8bc",
 			"color": "#333333",
 			"font-size": "24px",
 			"font-weight": "bold",
 			"display": "inline-block",
-			"border-radius": "12px",
+			"border-radius": "6px",
 		},
 		".body": {
 			"font-size": "24px",
@@ -212,7 +222,7 @@ const css = {
 			"color": "#666666",
 		},
 		".section": {
-			...www.vspace(32),
+			...www.vspace(24),
 		},
 		".item": {
 			...www.vspace(12),
@@ -235,6 +245,13 @@ const css = {
 		},
 	},
 };
+
+function block(title, rest) {
+	return t("div", { class: "block", }, [
+		t("div", { class: "title", }, title),
+		...rest,
+	]);
+}
 
 const page = t("html", {}, [
 	t("head", {}, [
@@ -262,8 +279,12 @@ const page = t("html", {}, [
 			})),
 		]),
 		t("div", { id: "content", }, [
-			t("div", { class: "title", }, "Intro"),
-			t("div", { class: "body", }, "Kaboom.js is a JavaScript game programming library that helps you make games fast and fun!"),
+			block("Intro", [
+				t("div", { class: "body", }, "Kaboom.js is a JavaScript game programming library that helps you make games fast and fun!"),
+			]),
+			block("Quick Start", [
+				t("div", { class: "body", }, "Paste this code in an html file and you're good to go"),
+			]),
 			t("div", { class: "item name", id: "kaboom", }, renderNamedFunc(types["kaboom"])),
 			t("div", { class: "section", }, ctxMembers.map((mem) => {
 				if (!mem.name) {

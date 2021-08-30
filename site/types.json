@@ -30,31 +30,6 @@
         "members": [
             {
                 "kind": "MethodSignature",
-                "name": "burp",
-                "parameters": [
-                    {
-                        "kind": "Parameter",
-                        "name": "conf",
-                        "type": {
-                            "kind": "TypeReference",
-                            "typeName": "AudioPlayConf"
-                        },
-                        "questionToken": true
-                    }
-                ],
-                "type": {
-                    "kind": "TypeReference",
-                    "typeName": "AudioPlay"
-                },
-                "jsDoc": [
-                    {
-                        "kind": "JSDocComment",
-                        "comment": "Yep."
-                    }
-                ]
-            },
-            {
-                "kind": "MethodSignature",
                 "name": "loadRoot",
                 "parameters": [
                     {
@@ -74,6 +49,11 @@
                         "kind": "JSDocComment",
                         "comment": "Sets the root for all subsequent resource urls.",
                         "tags": [
+                            {
+                                "kind": "FirstJSDocTagNode",
+                                "tagName": "section",
+                                "comment": "Assets"
+                            },
                             {
                                 "kind": "FirstJSDocTagNode",
                                 "tagName": "example",
@@ -381,14 +361,7 @@
                 "jsDoc": [
                     {
                         "kind": "JSDocComment",
-                        "comment": "Get the height of game.",
-                        "tags": [
-                            {
-                                "kind": "FirstJSDocTagNode",
-                                "tagName": "example",
-                                "comment": "```js\n// add froggy to the center of the screen\nadd([\n    sprite(\"froggy\"),\n    pos(center()),\n    // ...\n]);\n```"
-                            }
-                        ]
+                        "comment": "Get the height of game."
                     }
                 ]
             },
@@ -584,8 +557,13 @@
                         "tags": [
                             {
                                 "kind": "FirstJSDocTagNode",
+                                "tagName": "section",
+                                "comment": "Game Obj"
+                            },
+                            {
+                                "kind": "FirstJSDocTagNode",
                                 "tagName": "example",
-                                "comment": "```js\nconst player = add([\n    // it renders as a sprite\n    sprite(\"mark\"),\n    // it has a position\n    pos(100, 200),\n    // it has a collider\n    area(),\n    // it is a physical body which will respond to physics\n    body(),\n    // you can easily make custom components to encapsulate reusable logics\n    doubleJump(),\n    health(8),\n    // give it tags for controlling group behaviors\n    \"player\",\n    \"friendly\",\n    // plain objects fields are directly assigned to the game obj\n    {\n        dir: vec2(-1, 0),\n        dead: false,\n        speed: 240,\n    },\n]);\n```"
+                                "comment": "```js\nconst player = add([\n    // it renders as a sprite\n    sprite(\"mark\"),\n    // it has a position\n    pos(100, 200),\n    // it has a collider\n    area(),\n    // it is a physical body which will respond to physics\n    body(),\n    // you can easily make custom components to encapsulate reusable logics\n    doubleJump(),\n    health(8),\n    // give it tags for controlling group behaviors\n    \"player\",\n    \"friendly\",\n    // plain objects fields are directly assigned to the game obj\n    {\n        dir: vec2(-1, 0),\n        dead: false,\n        speed: 240,\n    },\n]);\n\n// .jump is provided by body()\nplayer.jump();\n\n// .moveTo is provided by pos()\nplayer.moveTo(100, 200);\n\n// .collides is provided by area()\nplayer.collides(\"tree\", () => {\n    destroy(player);\n});\n\n// run this for all game objs with tag \"friendly\"\naction(\"friendly\", (friend) => {\n    // .hit is provided by health()\n    friend.hit();\n});\n```"
                             }
                         ]
                     }
@@ -2063,7 +2041,14 @@
                 "jsDoc": [
                     {
                         "kind": "JSDocComment",
-                        "comment": "<Comp> Renders as text."
+                        "comment": "<Comp> Renders as text.",
+                        "tags": [
+                            {
+                                "kind": "FirstJSDocTagNode",
+                                "tagName": "example",
+                                "comment": "```js\nadd([\n    text(\"ohhimark\"),\n    pos(80, 40),\n]);\n```"
+                            }
+                        ]
                     }
                 ]
             },
@@ -2293,13 +2278,15 @@
                         "kind": "Parameter",
                         "name": "c",
                         "type": {
-                            "kind": "StringKeyword"
+                            "kind": "TypeReference",
+                            "typeName": "Cursor"
                         },
                         "questionToken": true
                     }
                 ],
                 "type": {
-                    "kind": "VoidKeyword"
+                    "kind": "TypeReference",
+                    "typeName": "Cursor"
                 },
                 "jsDoc": [
                     {
@@ -2319,7 +2306,14 @@
                 "jsDoc": [
                     {
                         "kind": "JSDocComment",
-                        "comment": "Get current mouse position (after camera transform)"
+                        "comment": "Get current mouse position (after camera transform)",
+                        "tags": [
+                            {
+                                "kind": "FirstJSDocTagNode",
+                                "tagName": "section",
+                                "comment": "Input"
+                            }
+                        ]
                     }
                 ]
             },
@@ -3020,6 +3014,38 @@
             },
             {
                 "kind": "MethodSignature",
+                "name": "burp",
+                "parameters": [
+                    {
+                        "kind": "Parameter",
+                        "name": "conf",
+                        "type": {
+                            "kind": "TypeReference",
+                            "typeName": "AudioPlayConf"
+                        },
+                        "questionToken": true
+                    }
+                ],
+                "type": {
+                    "kind": "TypeReference",
+                    "typeName": "AudioPlay"
+                },
+                "jsDoc": [
+                    {
+                        "kind": "JSDocComment",
+                        "comment": "Try it.",
+                        "tags": [
+                            {
+                                "kind": "FirstJSDocTagNode",
+                                "tagName": "section",
+                                "comment": "Burp"
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
+                "kind": "MethodSignature",
                 "name": "play",
                 "parameters": [
                     {
@@ -3046,7 +3072,19 @@
                 "jsDoc": [
                     {
                         "kind": "JSDocComment",
-                        "comment": "Play a piece of audio, returns a handle to control."
+                        "comment": "Play a piece of audio, returns a handle to control.",
+                        "tags": [
+                            {
+                                "kind": "FirstJSDocTagNode",
+                                "tagName": "section",
+                                "comment": "Audio"
+                            },
+                            {
+                                "kind": "FirstJSDocTagNode",
+                                "tagName": "example",
+                                "comment": "```js\n// play a one off sound\nplay(\"wooosh\");\n\n// play a looping soundtrack (check out AudioPlayConf for more configs)\nconst music = play(\"OverworldlyFoe\", {\n    volume: 0.8,\n    loop: true\n});\n\n// using the handle to control (check out AudioPlay for more controls / info)\nmusic.pause();\nmusic.play();\n```"
+                            }
+                        ]
                     }
                 ]
             },
@@ -3069,7 +3107,14 @@
                 "jsDoc": [
                     {
                         "kind": "JSDocComment",
-                        "comment": "Sets global volume."
+                        "comment": "Sets global volume.",
+                        "tags": [
+                            {
+                                "kind": "FirstJSDocTagNode",
+                                "tagName": "example",
+                                "comment": "```js\n// makes everything quieter\nvolume(0.5);\n```"
+                            }
+                        ]
                     }
                 ]
             },
@@ -3090,29 +3135,6 @@
             },
             {
                 "kind": "MethodSignature",
-                "name": "makeRng",
-                "parameters": [
-                    {
-                        "kind": "Parameter",
-                        "name": "seed",
-                        "type": {
-                            "kind": "NumberKeyword"
-                        }
-                    }
-                ],
-                "type": {
-                    "kind": "TypeReference",
-                    "typeName": "RNG"
-                },
-                "jsDoc": [
-                    {
-                        "kind": "JSDocComment",
-                        "comment": "Make a new random number generator."
-                    }
-                ]
-            },
-            {
-                "kind": "MethodSignature",
                 "name": "rand",
                 "parameters": [],
                 "type": {
@@ -3121,7 +3143,14 @@
                 "jsDoc": [
                     {
                         "kind": "JSDocComment",
-                        "comment": "Get a random number (with optional bounds)."
+                        "comment": "Get a random number (with optional bounds).",
+                        "tags": [
+                            {
+                                "kind": "FirstJSDocTagNode",
+                                "tagName": "section",
+                                "comment": "Math"
+                            }
+                        ]
                     }
                 ]
             },
@@ -3672,6 +3701,29 @@
                     {
                         "kind": "JSDocComment",
                         "comment": "Convert radians to degrees."
+                    }
+                ]
+            },
+            {
+                "kind": "MethodSignature",
+                "name": "makeRng",
+                "parameters": [
+                    {
+                        "kind": "Parameter",
+                        "name": "seed",
+                        "type": {
+                            "kind": "NumberKeyword"
+                        }
+                    }
+                ],
+                "type": {
+                    "kind": "TypeReference",
+                    "typeName": "RNG"
+                },
+                "jsDoc": [
+                    {
+                        "kind": "JSDocComment",
+                        "comment": "Make a new random number generator."
                     }
                 ]
             },
@@ -6008,6 +6060,303 @@
             }
         ]
     },
+    "Cursor": {
+        "kind": "TypeAliasDeclaration",
+        "name": "Cursor",
+        "type": {
+            "kind": "UnionType",
+            "types": [
+                {
+                    "kind": "LiteralType",
+                    "literal": {
+                        "kind": "StringLiteral",
+                        "text": "auto",
+                        "hasExtendedUnicodeEscape": false
+                    }
+                },
+                {
+                    "kind": "LiteralType",
+                    "literal": {
+                        "kind": "StringLiteral",
+                        "text": "default",
+                        "hasExtendedUnicodeEscape": false
+                    }
+                },
+                {
+                    "kind": "LiteralType",
+                    "literal": {
+                        "kind": "StringLiteral",
+                        "text": "none",
+                        "hasExtendedUnicodeEscape": false
+                    }
+                },
+                {
+                    "kind": "LiteralType",
+                    "literal": {
+                        "kind": "StringLiteral",
+                        "text": "context-menu",
+                        "hasExtendedUnicodeEscape": false
+                    }
+                },
+                {
+                    "kind": "LiteralType",
+                    "literal": {
+                        "kind": "StringLiteral",
+                        "text": "help",
+                        "hasExtendedUnicodeEscape": false
+                    }
+                },
+                {
+                    "kind": "LiteralType",
+                    "literal": {
+                        "kind": "StringLiteral",
+                        "text": "pointer",
+                        "hasExtendedUnicodeEscape": false
+                    }
+                },
+                {
+                    "kind": "LiteralType",
+                    "literal": {
+                        "kind": "StringLiteral",
+                        "text": "progress",
+                        "hasExtendedUnicodeEscape": false
+                    }
+                },
+                {
+                    "kind": "LiteralType",
+                    "literal": {
+                        "kind": "StringLiteral",
+                        "text": "wait",
+                        "hasExtendedUnicodeEscape": false
+                    }
+                },
+                {
+                    "kind": "LiteralType",
+                    "literal": {
+                        "kind": "StringLiteral",
+                        "text": "cell",
+                        "hasExtendedUnicodeEscape": false
+                    }
+                },
+                {
+                    "kind": "LiteralType",
+                    "literal": {
+                        "kind": "StringLiteral",
+                        "text": "crosshair",
+                        "hasExtendedUnicodeEscape": false
+                    }
+                },
+                {
+                    "kind": "LiteralType",
+                    "literal": {
+                        "kind": "StringLiteral",
+                        "text": "text",
+                        "hasExtendedUnicodeEscape": false
+                    }
+                },
+                {
+                    "kind": "LiteralType",
+                    "literal": {
+                        "kind": "StringLiteral",
+                        "text": "vertical-text",
+                        "hasExtendedUnicodeEscape": false
+                    }
+                },
+                {
+                    "kind": "LiteralType",
+                    "literal": {
+                        "kind": "StringLiteral",
+                        "text": "alias",
+                        "hasExtendedUnicodeEscape": false
+                    }
+                },
+                {
+                    "kind": "LiteralType",
+                    "literal": {
+                        "kind": "StringLiteral",
+                        "text": "copy",
+                        "hasExtendedUnicodeEscape": false
+                    }
+                },
+                {
+                    "kind": "LiteralType",
+                    "literal": {
+                        "kind": "StringLiteral",
+                        "text": "move",
+                        "hasExtendedUnicodeEscape": false
+                    }
+                },
+                {
+                    "kind": "LiteralType",
+                    "literal": {
+                        "kind": "StringLiteral",
+                        "text": "no-drop",
+                        "hasExtendedUnicodeEscape": false
+                    }
+                },
+                {
+                    "kind": "LiteralType",
+                    "literal": {
+                        "kind": "StringLiteral",
+                        "text": "not-allowed",
+                        "hasExtendedUnicodeEscape": false
+                    }
+                },
+                {
+                    "kind": "LiteralType",
+                    "literal": {
+                        "kind": "StringLiteral",
+                        "text": "grab",
+                        "hasExtendedUnicodeEscape": false
+                    }
+                },
+                {
+                    "kind": "LiteralType",
+                    "literal": {
+                        "kind": "StringLiteral",
+                        "text": "grabbing",
+                        "hasExtendedUnicodeEscape": false
+                    }
+                },
+                {
+                    "kind": "LiteralType",
+                    "literal": {
+                        "kind": "StringLiteral",
+                        "text": "all-scroll",
+                        "hasExtendedUnicodeEscape": false
+                    }
+                },
+                {
+                    "kind": "LiteralType",
+                    "literal": {
+                        "kind": "StringLiteral",
+                        "text": "col-resize",
+                        "hasExtendedUnicodeEscape": false
+                    }
+                },
+                {
+                    "kind": "LiteralType",
+                    "literal": {
+                        "kind": "StringLiteral",
+                        "text": "row-resize",
+                        "hasExtendedUnicodeEscape": false
+                    }
+                },
+                {
+                    "kind": "LiteralType",
+                    "literal": {
+                        "kind": "StringLiteral",
+                        "text": "n-resize",
+                        "hasExtendedUnicodeEscape": false
+                    }
+                },
+                {
+                    "kind": "LiteralType",
+                    "literal": {
+                        "kind": "StringLiteral",
+                        "text": "e-resize",
+                        "hasExtendedUnicodeEscape": false
+                    }
+                },
+                {
+                    "kind": "LiteralType",
+                    "literal": {
+                        "kind": "StringLiteral",
+                        "text": "s-resize",
+                        "hasExtendedUnicodeEscape": false
+                    }
+                },
+                {
+                    "kind": "LiteralType",
+                    "literal": {
+                        "kind": "StringLiteral",
+                        "text": "w-resize",
+                        "hasExtendedUnicodeEscape": false
+                    }
+                },
+                {
+                    "kind": "LiteralType",
+                    "literal": {
+                        "kind": "StringLiteral",
+                        "text": "ne-resize",
+                        "hasExtendedUnicodeEscape": false
+                    }
+                },
+                {
+                    "kind": "LiteralType",
+                    "literal": {
+                        "kind": "StringLiteral",
+                        "text": "nw-resize",
+                        "hasExtendedUnicodeEscape": false
+                    }
+                },
+                {
+                    "kind": "LiteralType",
+                    "literal": {
+                        "kind": "StringLiteral",
+                        "text": "se-resize",
+                        "hasExtendedUnicodeEscape": false
+                    }
+                },
+                {
+                    "kind": "LiteralType",
+                    "literal": {
+                        "kind": "StringLiteral",
+                        "text": "sw-resize",
+                        "hasExtendedUnicodeEscape": false
+                    }
+                },
+                {
+                    "kind": "LiteralType",
+                    "literal": {
+                        "kind": "StringLiteral",
+                        "text": "ew-resize",
+                        "hasExtendedUnicodeEscape": false
+                    }
+                },
+                {
+                    "kind": "LiteralType",
+                    "literal": {
+                        "kind": "StringLiteral",
+                        "text": "ns-resize",
+                        "hasExtendedUnicodeEscape": false
+                    }
+                },
+                {
+                    "kind": "LiteralType",
+                    "literal": {
+                        "kind": "StringLiteral",
+                        "text": "nesw-resize",
+                        "hasExtendedUnicodeEscape": false
+                    }
+                },
+                {
+                    "kind": "LiteralType",
+                    "literal": {
+                        "kind": "StringLiteral",
+                        "text": "nwse-resize",
+                        "hasExtendedUnicodeEscape": false
+                    }
+                },
+                {
+                    "kind": "LiteralType",
+                    "literal": {
+                        "kind": "StringLiteral",
+                        "text": "zoom-int",
+                        "hasExtendedUnicodeEscape": false
+                    }
+                },
+                {
+                    "kind": "LiteralType",
+                    "literal": {
+                        "kind": "StringLiteral",
+                        "text": "zoom-out",
+                        "hasExtendedUnicodeEscape": false
+                    }
+                }
+            ]
+        }
+    },
     "Origin": {
         "kind": "TypeAliasDeclaration",
         "name": "Origin",
@@ -7420,6 +7769,37 @@
                         "comment": "Move to a spot with a speed (pixels per second), teleports if speed is left out."
                     }
                 ]
+            },
+            {
+                "kind": "MethodSignature",
+                "name": "moveTo",
+                "parameters": [
+                    {
+                        "kind": "Parameter",
+                        "name": "x",
+                        "type": {
+                            "kind": "NumberKeyword"
+                        }
+                    },
+                    {
+                        "kind": "Parameter",
+                        "name": "y",
+                        "type": {
+                            "kind": "NumberKeyword"
+                        }
+                    },
+                    {
+                        "kind": "Parameter",
+                        "name": "speed",
+                        "type": {
+                            "kind": "NumberKeyword"
+                        },
+                        "questionToken": true
+                    }
+                ],
+                "type": {
+                    "kind": "VoidKeyword"
+                }
             },
             {
                 "kind": "MethodSignature",

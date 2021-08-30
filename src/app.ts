@@ -56,7 +56,7 @@ type App = {
 	mouseReleased(): boolean,
 	mouseMoved(): boolean,
 	charInputted(): string[],
-	cursor(c?: string),
+	cursor(c?: Cursor): Cursor,
 	dt(): number,
 	fps(): number,
 	time(): number,
@@ -322,7 +322,7 @@ function appInit(gconf: AppConf = {}): App {
 		return app.canvas.toDataURL();
 	}
 
-	function cursor(c?: string) {
+	function cursor(c?: Cursor): Cursor {
 		if (c) {
 			app.canvas.style.cursor = c ?? "default";
 		}

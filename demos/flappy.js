@@ -92,6 +92,7 @@ scene("game", () => {
 	bean.collides("pipe", () => {
 		go("lose", score);
 		play("hit");
+		addKaboom(bean.pos);
 	});
 
 	// per frame event for all objects with tag 'pipe'

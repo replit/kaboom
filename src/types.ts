@@ -8,11 +8,9 @@ declare function kaboom(conf?: KaboomConf): KaboomCtx;
  */
 interface KaboomCtx {
 	/**
-	 * Yep.
-	 */
-	burp(conf?: AudioPlayConf): AudioPlay,
-	/**
 	 * Sets the root for all subsequent resource urls.
+	 *
+	 * @section Assets
 	 *
 	 * @example
 	 * ```js
@@ -113,6 +111,7 @@ interface KaboomCtx {
 	): Promise<ShaderData>,
 	/**
 	 * Add a new loader to wait for before starting the game.
+	 *
 	 * @example
 	 * ```js
 	 * load(new Promise((resolve, reject) => {
@@ -128,15 +127,6 @@ interface KaboomCtx {
 	width(): number,
 	/**
 	 * Get the height of game.
-	 * @example
-	 * ```js
-	 * // add froggy to the center of the screen
-	 * add([
-	 *     sprite("froggy"),
-	 *     pos(center()),
-	 *     // ...
-	 * ]);
-	 * ```
 	 */
 	height(): number,
 	/**
@@ -204,6 +194,8 @@ interface KaboomCtx {
 	/**
 	 * Assembles a game obj from list of components or tags and add it to scene.
 	 *
+	 * @section Game Obj
+	 *
 	 * @example
 	 * ```js
 	 * const player = add([
@@ -228,6 +220,23 @@ interface KaboomCtx {
 	 *         speed: 240,
 	 *     },
 	 * ]);
+	 *
+	 * // .jump is provided by body()
+	 * player.jump();
+
+	 * // .moveTo is provided by pos()
+	 * player.moveTo(100, 200);
+	 *
+	 * // .collides is provided by area()
+	 * player.collides("tree", () => {
+	 *     destroy(player);
+	 * });
+	 *
+	 * // run this for all game objs with tag "friendly"
+	 * action("friendly", (friend) => {
+	 *     // .hit is provided by health()
+	 *     friend.hit();
+	 * });
 	 * ```
 	 */
 	add<T extends Comp>(comps: CompList<T>): GameObj<T>,
@@ -536,6 +545,14 @@ interface KaboomCtx {
 	sprite(spr: string | SpriteData, conf?: SpriteCompConf): SpriteComp,
 	/**
 	 * <Comp> Renders as text.
+	 *
+	 * @example
+	 * ```js
+	 * add([
+	 *     text("ohhimark"),
+	 *     pos(80, 40),
+	 * ]);
+	 * ```
 	 */
 	text(t: string, conf?: TextCompConf): TextComp,
 	/**
@@ -574,10 +591,11 @@ interface KaboomCtx {
 	/**
 	 * Get / set the cursor (css)
 	 */
-	// TODO: enum
-	cursor(c?: string): void,
+	cursor(c?: Cursor): Cursor,
 	/**
 	 * Get current mouse position (after camera transform)
+	 *
+	 * @section Input
 	 */
 	mousePos(): Vec2,
 	/**
@@ -677,11 +695,41 @@ interface KaboomCtx {
 	 */
 	wait(n: number, cb?: () => void): Promise<void>,
 	/**
+	 * Try it.
+	 *
+	 * @section Burp
+	 */
+	burp(conf?: AudioPlayConf): AudioPlay,
+	/**
 	 * Play a piece of audio, returns a handle to control.
+	 *
+	 * @section Audio
+	 *
+	 * @example
+	 * ```js
+	 * // play a one off sound
+	 * play("wooosh");
+	 *
+	 * // play a looping soundtrack (check out AudioPlayConf for more configs)
+	 * const music = play("OverworldlyFoe", {
+	 *     volume: 0.8,
+	 *     loop: true
+	 * });
+	 *
+	 * // using the handle to control (check out AudioPlay for more controls / info)
+	 * music.pause();
+	 * music.play();
+	 * ```
 	 */
 	play(id: string, conf?: AudioPlayConf): AudioPlay,
 	/**
 	 * Sets global volume.
+	 *
+	 * @example
+	 * ```js
+	 * // makes everything quieter
+	 * volume(0.5);
+	 * ```
 	 */
 	volume(v?: number): number,
 	/**
@@ -689,11 +737,9 @@ interface KaboomCtx {
 	 */
 	audioCtx(): AudioContext,
 	/**
-	 * Make a new random number generator.
-	 */
-	makeRng(seed: number): RNG,
-	/**
 	 * Get a random number (with optional bounds).
+	 *
+	 * @section Math
 	 */
 	rand(): number,
 	rand<T extends RNGValue>(n: T): T,
@@ -762,6 +808,10 @@ interface KaboomCtx {
 	 * Convert radians to degrees.
 	 */
 	rad2deg(rad: number): number,
+	/**
+	 * Make a new random number generator.
+	 */
+	makeRng(seed: number): RNG,
 	drawSprite(id: string | SpriteData, conf?: DrawSpriteConf): void,
 	// TODO: conf type
 	drawText(txt: string, conf?: {}): void,
@@ -1081,6 +1131,45 @@ interface FormattedText {
 	chars: FormattedChar[],
 }
 
+type Cursor =
+	"auto"
+	| "default"
+	| "none"
+	| "context-menu"
+	| "help"
+	| "pointer"
+	| "progress"
+	| "wait"
+	| "cell"
+	| "crosshair"
+	| "text"
+	| "vertical-text"
+	| "alias"
+	| "copy"
+	| "move"
+	| "no-drop"
+	| "not-allowed"
+	| "grab"
+	| "grabbing"
+	| "all-scroll"
+	| "col-resize"
+	| "row-resize"
+	| "n-resize"
+	| "e-resize"
+	| "s-resize"
+	| "w-resize"
+	| "ne-resize"
+	| "nw-resize"
+	| "se-resize"
+	| "sw-resize"
+	| "ew-resize"
+	| "ns-resize"
+	| "nesw-resize"
+	| "nwse-resize"
+	| "zoom-int"
+	| "zoom-out"
+	;
+
 type Origin =
 	"topleft"
 	| "top"
@@ -1264,6 +1353,7 @@ interface PosComp extends Comp {
 	 * Move to a spot with a speed (pixels per second), teleports if speed is left out.
 	 */
 	moveTo(dest: Vec2, speed?: number): void;
+	moveTo(x: number, y: number, speed?: number): void;
 	/**
 	 * Get position on screen after camera transform.
 	 */
