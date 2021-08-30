@@ -1,11 +1,24 @@
 const Koa = require("koa");
 const fs = require("fs");
 const path = require("path");
+const marked = require("marked");
+const hljs = require("highlight.js");
 const esbuild = require("esbuild");
 const port = process.env.PORT || 8000;
 const doc = require("./doc");
 const demos = require("./demos");
+const gstyle = require("./gstyle");
+const www = require("./www");
+const t = www.tag;
 const app = new Koa();
+
+marked.setOptions({
+	highlight: (code, lang) => {
+		return hljs.highlight(code, {
+			language: lang,
+		}).value;
+	}
+});
 
 function get(path, cb) {
 	return (ctx, next) => {
@@ -19,7 +32,11 @@ function get(path, cb) {
 	};
 }
 
-function files(mnt, dir, handler) {
+function redirect(from, to) {
+	return get(from, (ctx) => ctx.redirect(to));
+}
+
+function files(mnt, dir, handler = {}) {
 	return (ctx, next) => {
 		if (ctx.method !== "GET") {
 			return next();
@@ -40,8 +57,9 @@ function files(mnt, dir, handler) {
 			ctx.type = "json";
 			ctx.body = JSON.stringify(entries);
 		} else if (stat.isFile()) {
-			if (handler) {
-				handler(p)(ctx, next);
+			const ext = path.extname(p).substring(1);
+			if (handler[ext]) {
+				handler[ext](p)(ctx, next);
 			} else {
 				ctx.type = path.extname(p);
 				ctx.body = fs.readFileSync(p);
@@ -50,20 +68,36 @@ function files(mnt, dir, handler) {
 	};
 }
 
-function html(ctx, content) {
-	ctx.type = "html";
-	ctx.body = `<!DOCTYPE html>\n${content}`;
+function html(content) {
+	return (ctx, next) => {
+		ctx.type = "html";
+		ctx.body = `<!DOCTYPE html>\n${content}`;
+	};
 }
 
-app.use(get("/", (ctx, next) => html(ctx, doc)));
-app.use(get("/demos", (ctx, next) => html(ctx, demos)));
+const mdstyle = {
+	"#content": {
+		"margin": "0 auto",
+		"max-width": "640px",
+		...www.vspace(24),
+	},
+};
 
-app.use(files("/sprites", "../sprites"));
-app.use(files("/sounds", "../sounds"));
-app.use(files("/src", "../src"));
-app.use(files("/img", "img"));
-app.use(files("/css", "src/css"));
-app.use(files("/js", "src/js", (p) => {
+function renderMD(p) {
+	return html(t("html", {}, [
+		t("head", {}, [
+			t("title", {}, path.basename(p)),
+			t("style", {}, www.css(gstyle)),
+			t("style", {}, www.css(mdstyle)),
+			t("link", { rel: "stylesheet", href: "/css/paraiso.css"}),
+		]),
+		t("body", {}, [
+			t("div", { id: "content", }, marked(fs.readFileSync(p, "utf-8"))),
+		]),
+	]));
+}
+
+function buildJS(p) {
 	return (ctx, next) => {
 		const res = esbuild.buildSync({
 			bundle: true,
@@ -78,8 +112,25 @@ app.use(files("/js", "src/js", (p) => {
 			next();
 		}
 	};
-}));
+}
+
+app.use(get("/", html(doc)));
+app.use(get("/demos", html(demos)));
+app.use(files("/sprites", "../sprites"));
+app.use(files("/sounds", "../sounds"));
+app.use(files("/src", "../src"));
+app.use(files("/img", "img"));
+app.use(files("/fonts", "fonts"));
+app.use(files("/css", "src/css"));
+app.use(files("/changelog", "../CHANGELOG.md", { md: renderMD, }));
+app.use(files("/readme", "../README.md", { md: renderMD, }));
+app.use(files("/tut", "../tut", { md: renderMD, }));
+app.use(files("/js", "src/js", { js: buildJS, }));
 app.use(files("/lib/dev", "../dist"));
+app.use(files("/kaboom.png", "kaboom.png"));
+app.use(redirect("/twitter", "https://twitter.com/Kaboomjs"));
+app.use(redirect("/github", "https://github.com/replit/kaboom"));
+app.use(redirect("/forum", "https://github.com/replit/kaboom/discussions"));
 
 app.listen(port);
 console.log(`http://localhost:${port}`);

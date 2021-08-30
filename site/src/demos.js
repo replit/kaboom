@@ -4,8 +4,9 @@ const www = require("./www");
 const gstyle = require("./gstyle");
 const t = www.tag;
 
+const horiAspect = "1/1";
+
 const css = {
-	...gstyle,
 	"body": {
 		"display": "flex",
 		"flex-direction": "column",
@@ -45,7 +46,7 @@ const css = {
 		"align-items": "center",
 		"padding": "0 16px",
 		"justify-content": "space-between",
-		"background": "#1e202b",
+		"background": "#eeeeee",
 		"> div": {
 			...www.hspace(16),
 			"display": "flex",
@@ -60,6 +61,11 @@ const css = {
 		"width": "100%",
 		"height": "calc(100% - 48px)",
 		"display": "flex",
+		"@media": {
+			[`(max-aspect-ratio: ${horiAspect})`]: {
+				"flex-direction": "column-reverse",
+			},
+		},
 	},
 	"#editor": {
 		"width": "50%",
@@ -67,13 +73,26 @@ const css = {
 		"overflow": "scroll",
 		"font-family": "IBM Plex Mono",
 		"font-size": "24px",
-		"padding": "12px",
+		"@media": {
+			[`(max-aspect-ratio: ${horiAspect})`]: {
+				"flex-order": "1",
+				"width": "100%",
+				"height": "50%",
+			},
+		},
 	},
 	"#view": {
 		"width": "50%",
 		"height": "100%",
 		"background": "black",
 		"border": "none",
+		"@media": {
+			[`(max-aspect-ratio: ${horiAspect})`]: {
+				"flex-order": "2",
+				"width": "100%",
+				"height": "50%",
+			},
+		},
 	},
 };
 
@@ -98,6 +117,7 @@ const page = t("html", {}, [
 	t("head", {}, [
 		t("title", {}, "Kaboom Demos"),
 		t("meta", { charset: "utf-8", }),
+		t("style", {}, www.css(gstyle)),
 		t("style", {}, www.css(css)),
 		t("link", { rel: "icon", href: "/img/kaboom.png"}),
 		t("script", {}, `window.demos = ${JSON.stringify(demos)}`),

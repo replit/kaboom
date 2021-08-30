@@ -60,7 +60,10 @@ function css(list) {
 		return t;
 	}
 
-	function handleSheetEx(sel, sheet) {
+	function handleSheetRec(sel, sheet) {
+		if (Array.isArray(sheet)) {
+			return sheet.map((s) => handleSheetRec(sel, s)).join("");
+		}
 		let t = sel + " {";
 		let post = "";
 		for (const key in sheet) {
@@ -72,13 +75,13 @@ function css(list) {
 				}
 			// pseudo class
 			} else if (key[0] === ":") {
-				post += handleSheetEx(sel + key, val);
+				post += handleSheetRec(sel + key, val);
 			// self
 			} else if (key[0] === "&") {
-				post += handleSheetEx(sel + key.substring(1), val);
+				post += handleSheetRec(sel + key.substring(1), val);
 			// nesting child
 			} else if (typeof(val) === "object") {
-				post += handleSheetEx(sel + " " + key, val);
+				post += handleSheetRec(sel + " " + key, val);
 			} else {
 				t += key + ":" + val + ";";
 			}
@@ -99,7 +102,7 @@ function css(list) {
 				css += "}";
 			}
 		} else {
-			css += handleSheetEx(sel, sheet);
+			css += handleSheetRec(sel, sheet);
 		}
 	}
 

@@ -6,7 +6,7 @@ const types = require("./../types");
 const t = www.tag;
 
 marked.setOptions({
-	highlight: function(code, lang) {
+	highlight: (code, lang) => {
 		return hljs.highlight(code, {
 			language: lang,
 		}).value;
@@ -128,7 +128,9 @@ function renderJSDoc(type) {
 }
 
 const css = {
-	...gstyle,
+	"body": {
+		"display": "flex",
+	},
 	"#sidebar": {
 		...www.vspace(12),
 		"background": "#f5f5f5",
@@ -213,14 +215,6 @@ const css = {
 				},
 			},
 		},
-		"pre": {
-			"overflow": "scroll",
-			"font-family": "IBM Plex Mono",
-			"background": "#fafafa",
-			"padding": "12px",
-			"border": "solid 2px #eaeaea",
-			"border-radius": "12px",
-		},
 	},
 };
 
@@ -228,6 +222,7 @@ const page = t("html", {}, [
 	t("head", {}, [
 		t("title", {}, "KaBoom!!!"),
 		t("meta", { charset: "utf-8", }),
+		t("style", {}, www.css(gstyle)),
 		t("style", {}, www.css(css)),
 		t("link", { rel: "icon", href: "/img/kaboom.png"}),
 		t("link", { rel: "stylesheet", href: "/css/paraiso.css"}),

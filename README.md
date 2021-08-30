@@ -183,7 +183,7 @@ import kaboom from "https://cdn.jsdelivr.net/npm/kaboom@next/dist/kaboom.mjs";
 
 ### NPM Package
 
-```
+```sh
 $ npm install kaboom@next
 ```
 

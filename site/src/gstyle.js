@@ -1,4 +1,14 @@
 module.exports = {
+	"@font-face": [
+		{
+			"font-family": "IBM Plex Sans",
+			"src": `url("/fonts/IBMPlexSans-Regular.ttf") format("truetype")`,
+		},
+		{
+			"font-family": "IBM Plex Mono",
+			"src": `url("/fonts/IBMPlexMono-Regular.ttf") format("truetype")`,
+		},
+	],
 	"*": {
 		"padding": "0",
 		"margin": "0",
@@ -14,6 +24,13 @@ module.exports = {
 	"body": {
 		"width": "100%",
 		"height": "100%",
-		"display": "flex",
+	},
+	"pre": {
+		"overflow": "scroll",
+		"font-family": "IBM Plex Mono",
+		"background": "#fafafa",
+		"padding": "12px",
+		"border": "solid 2px #eaeaea",
+		"border-radius": "12px",
 	},
 };

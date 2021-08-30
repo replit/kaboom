@@ -1,4 +1,5 @@
-### v3000 kaboom3000 (unreleased)
+### kaboom3000 (unreleased)
+- version jumped to v3000.0.0 (still semver, just big)
 - added `burp()` for easy burping
 - added decent typescript support
 - revamped visual style, changed default font and debug font
