@@ -51,12 +51,15 @@ function files(mnt, dir, handler = {}) {
 		}
 		const stat = fs.statSync(p);
 		if (stat.isDirectory()) {
-			renderDir(p)(ctx, next);
-// 			const entries = fs
-// 				.readdirSync(p)
-// 				.filter(p => !p.startsWith("."));
-// 			ctx.type = "json";
-// 			ctx.body = JSON.stringify(entries);
+			if (ctx.accepts("html")) {
+				renderDir(p)(ctx, next);
+			} else if (ctx.accepts("json")) {
+				const entries = fs
+					.readdirSync(p)
+					.filter(p => !p.startsWith("."));
+				ctx.type = "json";
+				ctx.body = JSON.stringify(entries);
+			}
 		} else if (stat.isFile()) {
 			const ext = path.extname(p).substring(1);
 			if (handler[ext]) {
