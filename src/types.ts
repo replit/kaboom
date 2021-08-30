@@ -788,7 +788,7 @@ interface KaboomCtx {
 	/**
 	 * Import a plugin.
 	 */
-	plug<T>(plugin: KaboomPlugin<T>): MergeObj<T> & KaboomCtx,
+	plug<T>(plugin: KaboomPlugin<T>): void,
 	/**
 	 * Debug stuff.
 	 */
@@ -908,6 +908,9 @@ type SceneID = string;
 type SceneDef = (...args: any[]) => void;
 type TouchID = number;
 
+/**
+ * Cancel the event.
+ */
 type EventCanceller = () => void;
 
 interface SpriteAnim {
@@ -1589,7 +1592,7 @@ interface BodyCompConf {
 interface Timer {
 	time: number,
 	action(): void,
-};
+}
 
 interface TimerComp extends Comp {
 	/**

@@ -51,11 +51,12 @@ function files(mnt, dir, handler = {}) {
 		}
 		const stat = fs.statSync(p);
 		if (stat.isDirectory()) {
-			const entries = fs
-				.readdirSync(p)
-				.filter(p => !p.startsWith("."));
-			ctx.type = "json";
-			ctx.body = JSON.stringify(entries);
+			renderDir(p)(ctx, next);
+// 			const entries = fs
+// 				.readdirSync(p)
+// 				.filter(p => !p.startsWith("."));
+// 			ctx.type = "json";
+// 			ctx.body = JSON.stringify(entries);
 		} else if (stat.isFile()) {
 			const ext = path.extname(p).substring(1);
 			if (handler[ext]) {
@@ -75,20 +76,47 @@ function html(content) {
 	};
 }
 
-const mdstyle = {
-	"#content": {
-		"margin": "0 auto",
-		"max-width": "640px",
-		...www.vspace(24),
-	},
-};
+function renderDir(dir) {
+	return (ctx, next) => {
+		return html(t("html", {}, [
+			t("head", {}, [
+				t("title", {}, path.basename(dir)),
+				t("style", {}, www.css(gstyle)),
+				t("style", {}, www.css({
+					"body": {
+						"padding": "24px",
+						"font-size": "32px",
+					},
+					"a": {
+						"display": "table",
+						":hover": {
+							"background": "#333333",
+							"color": "white",
+						},
+					},
+				})),
+				t("link", { rel: "icon", href: "/kaboom.png"}),
+			]),
+			t("body", {}, fs.readdirSync(dir).map((file) => {
+				return t("a", { href: `${ctx.path}/${file}`, }, file);
+			})),
+		]))(ctx, next);
+	}
+}
 
 function renderMD(p) {
 	return html(t("html", {}, [
 		t("head", {}, [
 			t("title", {}, path.basename(p)),
 			t("style", {}, www.css(gstyle)),
-			t("style", {}, www.css(mdstyle)),
+			t("style", {}, www.css({
+				"#content": {
+					"margin": "0 auto",
+					"max-width": "640px",
+					...www.vspace(24),
+				},
+			})),
+			t("link", { rel: "icon", href: "/kaboom.png"}),
 			t("link", { rel: "stylesheet", href: "/css/paraiso.css"}),
 		]),
 		t("body", {}, [
@@ -119,6 +147,7 @@ app.use(get("/demos", html(demos)));
 app.use(files("/sprites", "../sprites"));
 app.use(files("/sounds", "../sounds"));
 app.use(files("/src", "../src"));
+app.use(files("/dist", "../dist"));
 app.use(files("/img", "img"));
 app.use(files("/fonts", "fonts"));
 app.use(files("/css", "src/css"));

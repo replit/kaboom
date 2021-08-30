@@ -4050,23 +4050,7 @@
                     }
                 ],
                 "type": {
-                    "kind": "IntersectionType",
-                    "types": [
-                        {
-                            "kind": "TypeReference",
-                            "typeName": "MergeObj",
-                            "typeArguments": [
-                                {
-                                    "kind": "TypeReference",
-                                    "typeName": "T"
-                                }
-                            ]
-                        },
-                        {
-                            "kind": "TypeReference",
-                            "typeName": "KaboomCtx"
-                        }
-                    ]
+                    "kind": "VoidKeyword"
                 },
                 "jsDoc": [
                     {
@@ -4844,7 +4828,13 @@
             "type": {
                 "kind": "VoidKeyword"
             }
-        }
+        },
+        "jsDoc": [
+            {
+                "kind": "JSDocComment",
+                "comment": "Cancel the event."
+            }
+        ]
     },
     "SpriteAnim": {
         "kind": "InterfaceDeclaration",
@@ -9131,9 +9121,6 @@
                 }
             }
         ]
-    },
-    "undefined": {
-        "kind": "EmptyStatement"
     },
     "TimerComp": {
         "kind": "InterfaceDeclaration",

@@ -48,7 +48,9 @@ function renderTypeSig(type) {
 				href: `#${type.typeName}`,
 			}, type.typeName) : type.typeName;
 			case "FunctionType": return `(${renderParams(type.parameters)}) => ${renderTypeSig(type.type)}`;
-			default: return "";
+			default:
+// 				console.log(type);
+				return "";
 		}
 	})();
 	if (type.typeArguments) {
@@ -59,8 +61,8 @@ function renderTypeSig(type) {
 
 function renderNamedFunc(func) {
 	let code = `${func.name}(${renderParams(func.parameters)})`;
-	if (func.type?.kind !== "VoidKeyword") {
-		code += `=> ${renderTypeSig(func.type)}`;
+	if (func.type && func.type?.kind !== "VoidKeyword") {
+		code += ` => ${renderTypeSig(func.type)}`;
 	}
 	return code;
 }
@@ -74,21 +76,35 @@ function renderMember(m) {
 				+ (m.questionToken ? "?" : "")
 				+ ": "
 				+ renderTypeSig(m.type);
+		default:
+// 			console.log(m);
+			return "";
 	}
 }
 
 function renderTypeAlias(type) {
-	switch (type.type.kind) {
+	switch (type.kind) {
 		case "TypeLiteral":
-			const memberList = type.type.members
+			const memberList = type.members
 				.map(renderMember)
 				.map((entry) => "&nbsp;".repeat(4) + entry)
 				.join(t("br"));
 			return `{${t("br")}${memberList}${t("br")}}`;
 		case "TypeReference":
 		case "UnionType":
+		case "StringKeyword":
+		case "NumberKeyword":
+		case "BooleanKeyword":
+		case "VoidKeyword":
+		case "AnyKeyword":
+		case "NullKeyword":
 		case "FunctionType":
-			return `${renderTypeSig(type.type)}`;
+			return `${renderTypeSig(type)}`;
+		case "IntersectionType":
+			return type.types.map(renderTypeAlias).join(" & ");
+		default:
+// 			console.log(type);
+			return "";
 	}
 }
 
@@ -102,9 +118,11 @@ function renderInterface(type) {
 
 function renderStmt(stmt) {
 	switch (stmt.kind) {
-		case "TypeAliasDeclaration": return renderTypeAlias(stmt);
+		case "TypeAliasDeclaration": return renderTypeAlias(stmt.type);
 		case "InterfaceDeclaration": return renderInterface(stmt);
-		default: "";
+		default:
+// 			console.log(stmt);
+			return "";
 	}
 }
 
@@ -251,15 +269,11 @@ const page = t("html", {}, [
 				if (!mem.name) {
 					return;
 				}
-				let name = mem.name;
-				if (mem.kind === "MethodSignature") {
-					name += "()";
-				}
 				const doc = mem.jsDoc?.[0];
 				const items = [
 				];
 				return t("div", { id: mem.name, class: "item", }, [
-					t("div", { class: "name", }, mem.kind === "MethodSignature" ? renderNamedFunc(mem) : name),
+					t("div", { class: "name", }, renderMember(mem)),
 					...renderJSDoc(mem),
 				]);
 			})),
