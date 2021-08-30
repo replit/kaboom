@@ -75,7 +75,11 @@ function files(mnt, dir, handler = {}) {
 function html(content) {
 	return (ctx, next) => {
 		ctx.type = "html";
-		ctx.body = `<!DOCTYPE html>\n${content}`;
+		if (typeof content === "function") {
+			ctx.body = `<!DOCTYPE html>\n${content()}`;
+		} else {
+			ctx.body = `<!DOCTYPE html>\n${content}`;
+		}
 	};
 }
 

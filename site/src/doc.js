@@ -15,6 +15,24 @@ marked.setOptions({
 
 const entries = Object.keys(types);
 const ctxMembers = types["KaboomCtx"].members;
+const sections = [];
+let curSection = [];
+
+ctxMembers.forEach((mem) => {
+	const tags = mem.jsDoc?.[0].tags ?? [];
+	for (const tag of tags) {
+		if (tag.tagName === "section") {
+			const section = {
+				name: tag.comment,
+				entries: [],
+			};
+			sections.push(section);
+			curSection = section.entries;
+			break;
+		}
+	}
+	curSection.push(mem);
+});
 
 function renderParams(params) {
 	return params.map((p) => {
@@ -253,6 +271,18 @@ function block(title, rest) {
 	]);
 }
 
+function code(content, lang = "javascript") {
+	return t("pre", {}, [
+		t("code", {}, hljs.highlight(content.trim(), {
+			language: lang,
+		}).value),
+	]);
+}
+
+function txt(tx) {
+	return t("div", { class: "body", }, tx);
+}
+
 const page = t("html", {}, [
 	t("head", {}, [
 		t("title", {}, "KaBoom!!!"),
@@ -266,7 +296,6 @@ const page = t("html", {}, [
 	t("body", {}, [
 		t("div", { id: "sidebar", }, [
 			t("img", { id: "logo", src: "/img/kaboom.svg" }),
-			t("input", { id: "search", placeholder: "search in docs", }),
 			t("div", { id: "index", }, ctxMembers.map((mem) => {
 				if (!mem.name) {
 					return;
@@ -280,12 +309,34 @@ const page = t("html", {}, [
 		]),
 		t("div", { id: "content", }, [
 			block("Intro", [
-				t("div", { class: "body", }, "Kaboom.js is a JavaScript game programming library that helps you make games fast and fun!"),
+				txt("Kaboom.js is a JavaScript game programming library that helps you make games fast and fun!"),
 			]),
 			block("Quick Start", [
-				t("div", { class: "body", }, "Paste this code in an html file and you're good to go"),
+				txt("Paste this code in an html file and you're good to go"),
+				code(`
+<script type="module">
+
+// import kaboom lib
+import kaboom from "https://cdn.skypack.dev/kaboom@next";
+
+// initialize kaboom context
+kaboom();
+
+// add a text of size 32 at position (120, 80)
+add([
+    text("oh hi"),
+    pos(120, 80),
+    scale(3),
+]);
+
+</script>
+				`, "html"),
+				txt("It's recommended to code directly in browser with the Kaboom template on Replit.com"),
 			]),
-			t("div", { class: "item name", id: "kaboom", }, renderNamedFunc(types["kaboom"])),
+			t("div", { class: "item", id: "kaboom", }, [
+				t("div", { class: "name", }, renderNamedFunc(types["kaboom"])),
+				...renderJSDoc(types["kaboom"]),
+			]),
 			t("div", { class: "section", }, ctxMembers.map((mem) => {
 				if (!mem.name) {
 					return;

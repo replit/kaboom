@@ -211,6 +211,7 @@ const kaboom = require("kaboom");
 
 ## Dev
 
+1. `npm run setup` to setup first time (it just runs `npm install` in both root and `/site`)
 1. `npm run dev` to watch & build lib
 1. go to http://localhost:8000/examples
 1. edit examples in `examples/` to test

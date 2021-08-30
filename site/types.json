@@ -20,7 +20,14 @@
         "jsDoc": [
             {
                 "kind": "JSDocComment",
-                "comment": "Initialize kaboom context."
+                "comment": "Initialize kaboom context.",
+                "tags": [
+                    {
+                        "kind": "FirstJSDocTagNode",
+                        "tagName": "example",
+                        "comment": "```js\n// this will create a blank canvas and import all kaboom functions to global\nkaboom();\n```"
+                    }
+                ]
             }
         ]
     },
@@ -347,7 +354,14 @@
                 "jsDoc": [
                     {
                         "kind": "JSDocComment",
-                        "comment": "Get the width of game."
+                        "comment": "Get the width of game.",
+                        "tags": [
+                            {
+                                "kind": "FirstJSDocTagNode",
+                                "tagName": "section",
+                                "comment": "Info"
+                            }
+                        ]
                     }
                 ]
             },
@@ -1437,6 +1451,35 @@
             },
             {
                 "kind": "MethodSignature",
+                "name": "shake",
+                "parameters": [
+                    {
+                        "kind": "Parameter",
+                        "name": "intensity",
+                        "type": {
+                            "kind": "NumberKeyword"
+                        }
+                    }
+                ],
+                "type": {
+                    "kind": "VoidKeyword"
+                },
+                "jsDoc": [
+                    {
+                        "kind": "JSDocComment",
+                        "comment": "Camera shake.",
+                        "tags": [
+                            {
+                                "kind": "FirstJSDocTagNode",
+                                "tagName": "example",
+                                "comment": "```js\n// shake intensively when froggy collides with a \"bomb\"\nfroggy.collides(\"bomb\", () => {\n    shake(120);\n});\n```"
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
+                "kind": "MethodSignature",
                 "name": "camPos",
                 "parameters": [
                     {
@@ -1514,35 +1557,6 @@
             },
             {
                 "kind": "MethodSignature",
-                "name": "shake",
-                "parameters": [
-                    {
-                        "kind": "Parameter",
-                        "name": "intensity",
-                        "type": {
-                            "kind": "NumberKeyword"
-                        }
-                    }
-                ],
-                "type": {
-                    "kind": "VoidKeyword"
-                },
-                "jsDoc": [
-                    {
-                        "kind": "JSDocComment",
-                        "comment": "Camera shake.",
-                        "tags": [
-                            {
-                                "kind": "FirstJSDocTagNode",
-                                "tagName": "example",
-                                "comment": "```js\n// shake intensively when froggy collides with a \"bomb\"\nfroggy.collides(\"bomb\", () => {\n    shake(120);\n});\n```"
-                            }
-                        ]
-                    }
-                ]
-            },
-            {
-                "kind": "MethodSignature",
                 "name": "gravity",
                 "parameters": [
                     {
@@ -1589,7 +1603,14 @@
                 "jsDoc": [
                     {
                         "kind": "JSDocComment",
-                        "comment": "<Comp> Position"
+                        "comment": "<Comp> Position",
+                        "tags": [
+                            {
+                                "kind": "FirstJSDocTagNode",
+                                "tagName": "section",
+                                "comment": "Components"
+                            }
+                        ]
                     }
                 ]
             },
@@ -3014,38 +3035,6 @@
             },
             {
                 "kind": "MethodSignature",
-                "name": "burp",
-                "parameters": [
-                    {
-                        "kind": "Parameter",
-                        "name": "conf",
-                        "type": {
-                            "kind": "TypeReference",
-                            "typeName": "AudioPlayConf"
-                        },
-                        "questionToken": true
-                    }
-                ],
-                "type": {
-                    "kind": "TypeReference",
-                    "typeName": "AudioPlay"
-                },
-                "jsDoc": [
-                    {
-                        "kind": "JSDocComment",
-                        "comment": "Try it.",
-                        "tags": [
-                            {
-                                "kind": "FirstJSDocTagNode",
-                                "tagName": "section",
-                                "comment": "Burp"
-                            }
-                        ]
-                    }
-                ]
-            },
-            {
-                "kind": "MethodSignature",
                 "name": "play",
                 "parameters": [
                     {
@@ -3085,6 +3074,31 @@
                                 "comment": "```js\n// play a one off sound\nplay(\"wooosh\");\n\n// play a looping soundtrack (check out AudioPlayConf for more configs)\nconst music = play(\"OverworldlyFoe\", {\n    volume: 0.8,\n    loop: true\n});\n\n// using the handle to control (check out AudioPlay for more controls / info)\nmusic.pause();\nmusic.play();\n```"
                             }
                         ]
+                    }
+                ]
+            },
+            {
+                "kind": "MethodSignature",
+                "name": "burp",
+                "parameters": [
+                    {
+                        "kind": "Parameter",
+                        "name": "conf",
+                        "type": {
+                            "kind": "TypeReference",
+                            "typeName": "AudioPlayConf"
+                        },
+                        "questionToken": true
+                    }
+                ],
+                "type": {
+                    "kind": "TypeReference",
+                    "typeName": "AudioPlay"
+                },
+                "jsDoc": [
+                    {
+                        "kind": "JSDocComment",
+                        "comment": "Try it."
                     }
                 ]
             },

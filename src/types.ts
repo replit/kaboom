@@ -1,5 +1,11 @@
 /**
  * Initialize kaboom context.
+ *
+ * @example
+ * ```js
+ * // this will create a blank canvas and import all kaboom functions to global
+ * kaboom();
+ * ```
  */
 declare function kaboom(conf?: KaboomConf): KaboomCtx;
 
@@ -123,6 +129,8 @@ interface KaboomCtx {
 	load<T>(l: Promise<T>): void,
 	/**
 	 * Get the width of game.
+	 *
+	 * @section Info
 	 */
 	width(): number,
 	/**
@@ -405,6 +413,18 @@ interface KaboomCtx {
 		cb: (a: GameObj<any>) => void,
 	): EventCanceller,
 	/**
+	 * Camera shake.
+	 *
+	 * @example
+	 * ```js
+	 * // shake intensively when froggy collides with a "bomb"
+	 * froggy.collides("bomb", () => {
+	 *     shake(120);
+	 * });
+	 * ```
+	 */
+	shake(intensity: number): void,
+	/**
 	 * Get / set camera position.
 	 *
 	 * @example
@@ -425,23 +445,13 @@ interface KaboomCtx {
 	 */
 	camRot(angle: number): number,
 	/**
-	 * Camera shake.
-	 *
-	 * @example
-	 * ```js
-	 * // shake intensively when froggy collides with a "bomb"
-	 * froggy.collides("bomb", () => {
-	 *     shake(120);
-	 * });
-	 * ```
-	 */
-	shake(intensity: number): void,
-	/**
 	 * Get / set gravity.
 	 */
 	gravity(g: number): number,
 	/**
 	 * <Comp> Position
+	 *
+	 * @section Components
 	 */
 	pos(x: number, y: number): PosComp,
 	pos(xy: number): PosComp,
@@ -695,12 +705,6 @@ interface KaboomCtx {
 	 */
 	wait(n: number, cb?: () => void): Promise<void>,
 	/**
-	 * Try it.
-	 *
-	 * @section Burp
-	 */
-	burp(conf?: AudioPlayConf): AudioPlay,
-	/**
 	 * Play a piece of audio, returns a handle to control.
 	 *
 	 * @section Audio
@@ -722,6 +726,10 @@ interface KaboomCtx {
 	 * ```
 	 */
 	play(id: string, conf?: AudioPlayConf): AudioPlay,
+	/**
+	 * Try it.
+	 */
+	burp(conf?: AudioPlayConf): AudioPlay,
 	/**
 	 * Sets global volume.
 	 *

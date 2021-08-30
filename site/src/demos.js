@@ -96,56 +96,57 @@ const css = {
 	},
 };
 
-const demos = {};
-
-fs.readdirSync("../demos").forEach((file) => {
-	if (file.startsWith(".")) {
-		return;
-	}
-	const p = path.resolve("../demos", file);
-	const name = path.basename(file, path.extname(file));
-	const stat = fs.statSync(p);
-	if (!stat.isFile()) {
-		return;
-	}
-	demos[name] = fs.readFileSync(p, "utf-8");
-}, {});
-
 const DEF_DEMO = "runner";
 
-const page = t("html", {}, [
-	t("head", {}, [
-		t("title", {}, "Kaboom Demos"),
-		t("meta", { charset: "utf-8", }),
-		t("style", {}, www.css(gstyle)),
-		t("style", {}, www.css(css)),
-		t("link", { rel: "icon", href: "/kaboom.png"}),
-		t("script", {}, `window.demos = ${JSON.stringify(demos)}`),
-		t("script", { src: "/js/demos.js", type: "module" }, ""),
-	]),
-	t("body", {}, [
-		t("div", { id: "header", }, [
-			t("div", {}, [
-				t("a", { href: "/", }, [
-					t("img", { id: "logo", src: "/img/kaboom.svg", }),
-				]),
-				t("select", {
-					id: "selector",
-					name: "demo",
-				}, Object.keys(demos).map((name) => {
-					return t("option", { selected: name === DEF_DEMO, }, name);
-				})),
-				t("button", { id: "run", }, "Run"),
-			]),
-			t("div", {}, [
-				t("button", {}, "Reset"),
-			]),
-		]),
-		t("div", { id: "content", }, [
-			t("div", { id: "editor", }, []),
-			t("iframe", { id: "view", }, []),
-		]),
-	]),
-]);
+module.exports = () => {
 
-module.exports = page;
+	const demos = {};
+
+	fs.readdirSync("../demos").forEach((file) => {
+		if (file.startsWith(".")) {
+			return;
+		}
+		const p = path.resolve("../demos", file);
+		const name = path.basename(file, path.extname(file));
+		const stat = fs.statSync(p);
+		if (!stat.isFile()) {
+			return;
+		}
+		demos[name] = fs.readFileSync(p, "utf-8");
+	}, {});
+
+	return t("html", {}, [
+		t("head", {}, [
+			t("title", {}, "Kaboom Demos"),
+			t("meta", { charset: "utf-8", }),
+			t("style", {}, www.css(gstyle)),
+			t("style", {}, www.css(css)),
+			t("link", { rel: "icon", href: "/kaboom.png"}),
+			t("script", {}, `window.demos = ${JSON.stringify(demos)}`),
+			t("script", { src: "/js/demos.js", type: "module" }, ""),
+		]),
+		t("body", {}, [
+			t("div", { id: "header", }, [
+				t("div", {}, [
+					t("a", { href: "/", }, [
+						t("img", { id: "logo", src: "/img/kaboom.svg", }),
+					]),
+					t("select", {
+						id: "selector",
+						name: "demo",
+					}, Object.keys(demos).map((name) => {
+						return t("option", { selected: name === DEF_DEMO, }, name);
+					})),
+					t("button", { id: "run", }, "Run"),
+				]),
+				t("div", {}, [
+					t("button", {}, "Reset"),
+				]),
+			]),
+			t("div", { id: "content", }, [
+				t("div", { id: "editor", }, []),
+				t("iframe", { id: "view", }, []),
+			]),
+		]),
+	]);
+};

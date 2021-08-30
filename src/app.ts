@@ -326,7 +326,7 @@ function appInit(gconf: AppConf = {}): App {
 		if (c) {
 			app.canvas.style.cursor = c ?? "default";
 		}
-		return app.canvas.style.cursor;
+		return app.canvas.style.cursor as Cursor;
 	}
 
 	function run(f: () => void) {
