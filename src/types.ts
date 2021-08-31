@@ -649,7 +649,7 @@ interface KaboomCtx {
 	 * });
 	 * ```
 	 */
-	text(t: string, conf?: TextCompConf): TextComp,
+	text(txt: string, conf?: TextCompConf): TextComp,
 	/**
 	 * Renders as rect.
 	 *
@@ -1339,6 +1339,9 @@ interface RenderProps {
 	rot?: number,
 	color?: Color,
 	origin?: Origin | Vec2,
+	z?: number,
+	prog?: GfxProgram,
+	uniform?: Uniform,
 }
 
 type DrawQuadConf = RenderProps & {
@@ -1346,11 +1349,8 @@ type DrawQuadConf = RenderProps & {
 	flipY?: boolean,
 	width?: number,
 	height?: number,
-	z?: number,
 	tex?: GfxTexture,
 	quad?: Quad,
-	prog?: GfxProgram,
-	uniform?: Uniform,
 }
 
 type DrawTextureConf = RenderProps & {
@@ -1360,42 +1360,25 @@ type DrawTextureConf = RenderProps & {
 	height?: number,
 	tiled?: boolean,
 	quad?: Quad,
-	z?: number,
-	prog?: GfxProgram,
-	uniform?: Uniform,
 }
 
 type DrawRectStrokeConf = RenderProps & {
 	width?: number,
-	z?: number,
-	prog?: GfxProgram,
-	uniform?: Uniform,
 }
 
 type DrawRectConf = RenderProps & {
-	z?: number,
-	prog?: GfxProgram,
-	uniform?: Uniform,
 }
 
 type DrawLineConf = RenderProps & {
 	width?: number,
-	z?: number,
-	prog?: GfxProgram,
-	uniform?: Uniform,
 }
 
 type DrawTriConf = RenderProps & {
-	z?: number,
-	prog?: GfxProgram,
-	uniform?: Uniform,
 }
 
 type DrawTextConf = RenderProps & {
 	size?: number,
 	width?: number,
-	z?: number,
-	prog?: GfxProgram,
 }
 
 interface FormattedChar {
@@ -1476,7 +1459,6 @@ type DrawSpriteConf = RenderProps & {
 	quad?: Quad,
 	prog?: ShaderData,
 	uniform?: Uniform,
-	z?: number,
 }
 
 interface Vec2 {
@@ -2024,7 +2006,7 @@ interface DoubleJumpComp extends Comp {
 	/**
 	 * Performs double jump (the initial jump only happens if player is grounded).
 	 */
-	djump(...args): void;
+	djump(f?: number): void;
 }
 
 interface LifespanComp extends Comp {

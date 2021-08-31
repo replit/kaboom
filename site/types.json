@@ -2081,7 +2081,7 @@
                 "parameters": [
                     {
                         "kind": "Parameter",
-                        "name": "t",
+                        "name": "txt",
                         "type": {
                             "kind": "StringKeyword"
                         }
@@ -5711,6 +5711,32 @@
                     ]
                 },
                 "questionToken": true
+            },
+            {
+                "kind": "PropertySignature",
+                "name": "z",
+                "type": {
+                    "kind": "NumberKeyword"
+                },
+                "questionToken": true
+            },
+            {
+                "kind": "PropertySignature",
+                "name": "prog",
+                "type": {
+                    "kind": "TypeReference",
+                    "typeName": "GfxProgram"
+                },
+                "questionToken": true
+            },
+            {
+                "kind": "PropertySignature",
+                "name": "uniform",
+                "type": {
+                    "kind": "TypeReference",
+                    "typeName": "Uniform"
+                },
+                "questionToken": true
             }
         ]
     },
@@ -5761,14 +5787,6 @@
                         },
                         {
                             "kind": "PropertySignature",
-                            "name": "z",
-                            "type": {
-                                "kind": "NumberKeyword"
-                            },
-                            "questionToken": true
-                        },
-                        {
-                            "kind": "PropertySignature",
                             "name": "tex",
                             "type": {
                                 "kind": "TypeReference",
@@ -5782,24 +5800,6 @@
                             "type": {
                                 "kind": "TypeReference",
                                 "typeName": "Quad"
-                            },
-                            "questionToken": true
-                        },
-                        {
-                            "kind": "PropertySignature",
-                            "name": "prog",
-                            "type": {
-                                "kind": "TypeReference",
-                                "typeName": "GfxProgram"
-                            },
-                            "questionToken": true
-                        },
-                        {
-                            "kind": "PropertySignature",
-                            "name": "uniform",
-                            "type": {
-                                "kind": "TypeReference",
-                                "typeName": "Uniform"
                             },
                             "questionToken": true
                         }
@@ -5869,32 +5869,6 @@
                                 "typeName": "Quad"
                             },
                             "questionToken": true
-                        },
-                        {
-                            "kind": "PropertySignature",
-                            "name": "z",
-                            "type": {
-                                "kind": "NumberKeyword"
-                            },
-                            "questionToken": true
-                        },
-                        {
-                            "kind": "PropertySignature",
-                            "name": "prog",
-                            "type": {
-                                "kind": "TypeReference",
-                                "typeName": "GfxProgram"
-                            },
-                            "questionToken": true
-                        },
-                        {
-                            "kind": "PropertySignature",
-                            "name": "uniform",
-                            "type": {
-                                "kind": "TypeReference",
-                                "typeName": "Uniform"
-                            },
-                            "questionToken": true
                         }
                     ]
                 }
@@ -5921,32 +5895,6 @@
                                 "kind": "NumberKeyword"
                             },
                             "questionToken": true
-                        },
-                        {
-                            "kind": "PropertySignature",
-                            "name": "z",
-                            "type": {
-                                "kind": "NumberKeyword"
-                            },
-                            "questionToken": true
-                        },
-                        {
-                            "kind": "PropertySignature",
-                            "name": "prog",
-                            "type": {
-                                "kind": "TypeReference",
-                                "typeName": "GfxProgram"
-                            },
-                            "questionToken": true
-                        },
-                        {
-                            "kind": "PropertySignature",
-                            "name": "uniform",
-                            "type": {
-                                "kind": "TypeReference",
-                                "typeName": "Uniform"
-                            },
-                            "questionToken": true
                         }
                     ]
                 }
@@ -5965,34 +5913,7 @@
                 },
                 {
                     "kind": "TypeLiteral",
-                    "members": [
-                        {
-                            "kind": "PropertySignature",
-                            "name": "z",
-                            "type": {
-                                "kind": "NumberKeyword"
-                            },
-                            "questionToken": true
-                        },
-                        {
-                            "kind": "PropertySignature",
-                            "name": "prog",
-                            "type": {
-                                "kind": "TypeReference",
-                                "typeName": "GfxProgram"
-                            },
-                            "questionToken": true
-                        },
-                        {
-                            "kind": "PropertySignature",
-                            "name": "uniform",
-                            "type": {
-                                "kind": "TypeReference",
-                                "typeName": "Uniform"
-                            },
-                            "questionToken": true
-                        }
-                    ]
+                    "members": []
                 }
             ]
         }
@@ -6017,32 +5938,6 @@
                                 "kind": "NumberKeyword"
                             },
                             "questionToken": true
-                        },
-                        {
-                            "kind": "PropertySignature",
-                            "name": "z",
-                            "type": {
-                                "kind": "NumberKeyword"
-                            },
-                            "questionToken": true
-                        },
-                        {
-                            "kind": "PropertySignature",
-                            "name": "prog",
-                            "type": {
-                                "kind": "TypeReference",
-                                "typeName": "GfxProgram"
-                            },
-                            "questionToken": true
-                        },
-                        {
-                            "kind": "PropertySignature",
-                            "name": "uniform",
-                            "type": {
-                                "kind": "TypeReference",
-                                "typeName": "Uniform"
-                            },
-                            "questionToken": true
                         }
                     ]
                 }
@@ -6061,34 +5956,7 @@
                 },
                 {
                     "kind": "TypeLiteral",
-                    "members": [
-                        {
-                            "kind": "PropertySignature",
-                            "name": "z",
-                            "type": {
-                                "kind": "NumberKeyword"
-                            },
-                            "questionToken": true
-                        },
-                        {
-                            "kind": "PropertySignature",
-                            "name": "prog",
-                            "type": {
-                                "kind": "TypeReference",
-                                "typeName": "GfxProgram"
-                            },
-                            "questionToken": true
-                        },
-                        {
-                            "kind": "PropertySignature",
-                            "name": "uniform",
-                            "type": {
-                                "kind": "TypeReference",
-                                "typeName": "Uniform"
-                            },
-                            "questionToken": true
-                        }
-                    ]
+                    "members": []
                 }
             ]
         }
@@ -6119,23 +5987,6 @@
                             "name": "width",
                             "type": {
                                 "kind": "NumberKeyword"
-                            },
-                            "questionToken": true
-                        },
-                        {
-                            "kind": "PropertySignature",
-                            "name": "z",
-                            "type": {
-                                "kind": "NumberKeyword"
-                            },
-                            "questionToken": true
-                        },
-                        {
-                            "kind": "PropertySignature",
-                            "name": "prog",
-                            "type": {
-                                "kind": "TypeReference",
-                                "typeName": "GfxProgram"
                             },
                             "questionToken": true
                         }
@@ -6705,14 +6556,6 @@
                             "type": {
                                 "kind": "TypeReference",
                                 "typeName": "Uniform"
-                            },
-                            "questionToken": true
-                        },
-                        {
-                            "kind": "PropertySignature",
-                            "name": "z",
-                            "type": {
-                                "kind": "NumberKeyword"
                             },
                             "questionToken": true
                         }
@@ -10004,10 +9847,11 @@
                 "parameters": [
                     {
                         "kind": "Parameter",
-                        "name": "args",
-                        "dotDotDotToken": {
-                            "kind": "DotDotDotToken"
-                        }
+                        "name": "f",
+                        "type": {
+                            "kind": "NumberKeyword"
+                        },
+                        "questionToken": true
                     }
                 ],
                 "type": {

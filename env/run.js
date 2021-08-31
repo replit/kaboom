@@ -25,6 +25,7 @@ function buildGame() {
 	let code = "";
 
 	code += `<script src="/dist/helper.js"></script>\n`;
+	code += `<script src="/dist/game.js"></script>\n`;
 
 	try {
 
@@ -60,9 +61,18 @@ function buildGame() {
 				},
 			],
 		};
+		let msg = "";
+		msg += "<pre>";
+		msg += `ERROR: ${err.msg}\n`;
+		if (err.stack) {
+			err.stack.forEach((trace) => {
+				msg += `    -> ${trace.file}:${trace.line}:${trace.col}\n`;
+			});
+		}
+		msg += "</pre>";
+		fs.writeFileSync("dist/index.html", msg);
+		return;
 	}
-
-	code += `<script src="/dist/game.js"></script>\n`;
 
 	fs.writeFileSync("dist/index.html", template.replace("{{kaboom}}", code));
 

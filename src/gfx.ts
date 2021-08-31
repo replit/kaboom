@@ -652,6 +652,7 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 					drawQuad({
 						...conf,
 						pos: (conf.pos || vec2(0)).add(vec2(w * i, h * j)).sub(offset),
+						// @ts-ignore
 						scale: scale.scale(conf.scale || vec2(1)),
 						tex: tex,
 						quad: q,
@@ -677,6 +678,7 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 
 			drawQuad({
 				...conf,
+				// @ts-ignore
 				scale: scale.scale(conf.scale || vec2(1)),
 				tex: tex,
 				quad: q,
