@@ -371,8 +371,7 @@ const COMP_EVENTS = new Set([
 	"inspect",
 ]);
 
-// TODO: type check won't work if pass CustomData
-function make<T extends Comp>(comps: CompList<T>): GameObj<T> {
+function make<T>(comps: CompList<T>): GameObj<T> {
 
 	const compStates = {};
 	const customState = {};
@@ -583,7 +582,7 @@ function make<T extends Comp>(comps: CompList<T>): GameObj<T> {
 
 }
 
-function add<T extends Comp>(comps: CompList<T>): GameObj<T> {
+function add<T>(comps: CompList<T>): GameObj<T> {
 	const obj = make(comps);
 	obj._id = game.objs.push(obj);
 	obj.trigger("add");
@@ -592,7 +591,7 @@ function add<T extends Comp>(comps: CompList<T>): GameObj<T> {
 }
 
 // TODO
-function prepend<T extends Comp>(comps: CompList<T>): GameObj<T> {
+function prepend<T>(comps: CompList<T>): GameObj<T> {
 	const obj = make(comps);
 	obj._id = game.objs.push(obj);
 	obj.trigger("add");
@@ -1185,10 +1184,6 @@ function area(p1?: Vec2 | number, p2?: Vec2 | number): AreaComp {
 				return false;
 			}
 
-			if (!isSameLayer(this, other)) {
-				return false;
-			}
-
 			const a1 = this.worldArea();
 			const a2 = other.worldArea();
 
@@ -1199,10 +1194,6 @@ function area(p1?: Vec2 | number, p2?: Vec2 | number): AreaComp {
 		isOverlapped(other) {
 
 			if (!other.area) {
-				return false;
-			}
-
-			if (!isSameLayer(this, other)) {
 				return false;
 			}
 
@@ -1258,10 +1249,6 @@ function area(p1?: Vec2 | number, p2?: Vec2 | number): AreaComp {
 			}
 
 			if (!obj.area) {
-				return null;
-			}
-
-			if (!isSameLayer(this, obj)) {
 				return null;
 			}
 
@@ -1867,18 +1854,21 @@ function health(hp: number): HealthComp {
 	return {
 		id: "health",
 		hurt(n: number = 1) {
-			hp -= n;
+			this.setHP(hp - n);
 			this.trigger("hurt");
-			if (hp <= 0) {
-				this.trigger("death");
-			}
 		},
 		heal(n: number = 1) {
-			hp += n;
+			this.setHP(hp + n);
 			this.trigger("heal");
 		},
 		hp(): number {
 			return hp;
+		},
+		setHP(n: number) {
+			hp = n;
+			if (hp <= 0) {
+				this.trigger("death");
+			}
 		},
 	};
 }

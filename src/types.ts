@@ -273,7 +273,7 @@ interface KaboomCtx {
 	 * });
 	 * ```
 	 */
-	add<T extends Comp>(comps: CompList<T>): GameObj<T>,
+	add<T>(comps: CompList<T>): GameObj<T>,
 	/**
 	 * Remove the game obj.
 	 *
@@ -336,7 +336,7 @@ interface KaboomCtx {
 	 * readd(froggy);
 	 * ```
 	 */
-	prepend<T extends Comp>(comps: CompList<T>): GameObj<T>,
+	prepend<T>(comps: CompList<T>): GameObj<T>,
 	/**
 	 * Remove and re-add the game obj.
 	 *
@@ -350,7 +350,7 @@ interface KaboomCtx {
 	/**
 	 * Get CompList<T> from DynCompList<T>.
 	 */
-	getComps<T extends Comp>(comps: DynCompList<T>, ...args: any[]): CompList<T>,
+	getComps<T>(comps: DynCompList<T>, ...args: any[]): CompList<T>,
 	/**
 	 * Define layers (the last one will be on top).
 	 *
@@ -1144,7 +1144,6 @@ interface KaboomCtx {
 }
 
 type Tag = string;
-type CustomData = Record<string, any>;
 
 // TODO: understand this
 type UnionToIntersection<U> = (U extends any ? (k: U) => void : never) extends ((k: infer I) => void) ? I : never
@@ -1153,8 +1152,8 @@ type Expand<T> = T extends infer U ? { [K in keyof U]: U[K] } : never;
 type MergeObj<T> = Expand<UnionToIntersection<Defined<T>>>;
 type MergeComps<T> = Omit<MergeObj<T>, keyof Comp>;
 
-type CompList<T extends Comp> = Array<T | Tag | CustomData>;
-type DynCompList<T extends Comp> = CompList<T> | ((...args: any[]) => CompList<T>);
+type CompList<T> = Array<T | Tag>;
+type DynCompList<T> = CompList<T> | ((...args: any[]) => CompList<T>);
 
 interface GameObjRaw {
 	/**
@@ -1181,7 +1180,7 @@ interface GameObjRaw {
 	/**
 	 * Add a component or tag.
 	 */
-	use(comp: Comp | Tag | CustomData): void;
+	use(comp: Comp | Tag): void;
 	// TODO: update the GameObj type info
 	/**
 	 * Remove a component with its id.
@@ -1487,7 +1486,8 @@ interface Vec2 {
 	add(p: Vec2): Vec2,
 	sub(p: Vec2): Vec2,
 	scale(p: Vec2): Vec2,
-	scale(p: number): Vec2,
+	scale(s: number): Vec2,
+	scale(sx: number, sy: number): Vec2,
 	dot(p: Vec2): number,
 	dist(p: Vec2): number,
 	len(): number,
@@ -1812,7 +1812,7 @@ interface SpriteComp extends Comp {
 	 */
 	animSpeed: number;
 	/**
-	 * the current frame
+	 * Current frame.
 	 */
 	frame: number;
 	/**
@@ -1969,6 +1969,9 @@ interface BodyCompConf {
 }
 
 interface Timer {
+	/**
+	 * Timer left.
+	 */
 	time: number,
 	action(): void,
 }
@@ -1985,20 +1988,42 @@ interface SolidComp extends Comp {
 }
 
 interface FixedComp extends Comp {
+	/**
+	 * If the obj is unaffected by camera
+	 */
 	fixed: boolean;
 }
 
 interface StayComp extends Comp {
+	/**
+	 * If the obj should not be destroyed on scene switch.
+	 */
 	stay: boolean;
 }
 
 interface HealthComp extends Comp {
+	/**
+	 * Decrease HP by n (defaults to 1).
+	 */
 	hurt(n?: number): void,
+	/**
+	 * Increase HP by n (defaults to 1).
+	 */
 	heal(n?: number): void,
+	/**
+	 * Current health points.
+	 */
 	hp(): number,
+	/**
+	 * Set current health points.
+	 */
+	setHP(np: number),
 }
 
 interface DoubleJumpComp extends Comp {
+	/**
+	 * Performs double jump (the initial jump only happens if player is grounded).
+	 */
 	djump(...args): void;
 }
 

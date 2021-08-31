@@ -168,9 +168,7 @@ function appInit(gconf: AppConf = {}): App {
 			preserveDrawingBuffer: true,
 		});
 
-	app.isTouch = ("ontouchstart" in window) ||
-		(navigator.maxTouchPoints > 0) ||
-		(navigator.msMaxTouchPoints > 0);
+	app.isTouch = ("ontouchstart" in window) || navigator.maxTouchPoints > 0;
 
 	app.canvas.addEventListener("mousemove", (e) => {
 		app.mousePos = vec2(e.offsetX, e.offsetY).scale(1 / app.scale);

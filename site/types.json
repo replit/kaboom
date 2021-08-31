@@ -531,11 +531,7 @@
                 "typeParameters": [
                     {
                         "kind": "TypeParameter",
-                        "name": "T",
-                        "constraint": {
-                            "kind": "TypeReference",
-                            "typeName": "Comp"
-                        }
+                        "name": "T"
                     }
                 ],
                 "parameters": [
@@ -909,11 +905,7 @@
                 "typeParameters": [
                     {
                         "kind": "TypeParameter",
-                        "name": "T",
-                        "constraint": {
-                            "kind": "TypeReference",
-                            "typeName": "Comp"
-                        }
+                        "name": "T"
                     }
                 ],
                 "parameters": [
@@ -1003,11 +995,7 @@
                 "typeParameters": [
                     {
                         "kind": "TypeParameter",
-                        "name": "T",
-                        "constraint": {
-                            "kind": "TypeReference",
-                            "typeName": "Comp"
-                        }
+                        "name": "T"
                     }
                 ],
                 "parameters": [
@@ -4421,33 +4409,13 @@
             "kind": "StringKeyword"
         }
     },
-    "CustomData": {
-        "kind": "TypeAliasDeclaration",
-        "name": "CustomData",
-        "type": {
-            "kind": "TypeReference",
-            "typeName": "Record",
-            "typeArguments": [
-                {
-                    "kind": "StringKeyword"
-                },
-                {
-                    "kind": "AnyKeyword"
-                }
-            ]
-        }
-    },
     "CompList": {
         "kind": "TypeAliasDeclaration",
         "name": "CompList",
         "typeParameters": [
             {
                 "kind": "TypeParameter",
-                "name": "T",
-                "constraint": {
-                    "kind": "TypeReference",
-                    "typeName": "Comp"
-                }
+                "name": "T"
             }
         ],
         "type": {
@@ -4464,10 +4432,6 @@
                         {
                             "kind": "TypeReference",
                             "typeName": "Tag"
-                        },
-                        {
-                            "kind": "TypeReference",
-                            "typeName": "CustomData"
                         }
                     ]
                 }
@@ -4480,11 +4444,7 @@
         "typeParameters": [
             {
                 "kind": "TypeParameter",
-                "name": "T",
-                "constraint": {
-                    "kind": "TypeReference",
-                    "typeName": "Comp"
-                }
+                "name": "T"
             }
         ],
         "type": {
@@ -4654,10 +4614,6 @@
                                 {
                                     "kind": "TypeReference",
                                     "typeName": "Tag"
-                                },
-                                {
-                                    "kind": "TypeReference",
-                                    "typeName": "CustomData"
                                 }
                             ]
                         }
@@ -6852,7 +6808,31 @@
                 "parameters": [
                     {
                         "kind": "Parameter",
-                        "name": "p",
+                        "name": "s",
+                        "type": {
+                            "kind": "NumberKeyword"
+                        }
+                    }
+                ],
+                "type": {
+                    "kind": "TypeReference",
+                    "typeName": "Vec2"
+                }
+            },
+            {
+                "kind": "MethodSignature",
+                "name": "scale",
+                "parameters": [
+                    {
+                        "kind": "Parameter",
+                        "name": "sx",
+                        "type": {
+                            "kind": "NumberKeyword"
+                        }
+                    },
+                    {
+                        "kind": "Parameter",
+                        "name": "sy",
                         "type": {
                             "kind": "NumberKeyword"
                         }
@@ -8996,7 +8976,7 @@
                 "jsDoc": [
                     {
                         "kind": "JSDocComment",
-                        "comment": "the current frame"
+                        "comment": "Current frame."
                     }
                 ]
             },
@@ -9730,7 +9710,13 @@
                 "name": "time",
                 "type": {
                     "kind": "NumberKeyword"
-                }
+                },
+                "jsDoc": [
+                    {
+                        "kind": "JSDocComment",
+                        "comment": "Timer left."
+                    }
+                ]
             },
             {
                 "kind": "MethodSignature",
@@ -9849,7 +9835,13 @@
                 "name": "fixed",
                 "type": {
                     "kind": "BooleanKeyword"
-                }
+                },
+                "jsDoc": [
+                    {
+                        "kind": "JSDocComment",
+                        "comment": "If the obj is unaffected by camera"
+                    }
+                ]
             }
         ]
     },
@@ -9877,7 +9869,13 @@
                 "name": "stay",
                 "type": {
                     "kind": "BooleanKeyword"
-                }
+                },
+                "jsDoc": [
+                    {
+                        "kind": "JSDocComment",
+                        "comment": "If the obj should not be destroyed on scene switch."
+                    }
+                ]
             }
         ]
     },
@@ -9915,7 +9913,13 @@
                 ],
                 "type": {
                     "kind": "VoidKeyword"
-                }
+                },
+                "jsDoc": [
+                    {
+                        "kind": "JSDocComment",
+                        "comment": "Decrease HP by n (defaults to 1)."
+                    }
+                ]
             },
             {
                 "kind": "MethodSignature",
@@ -9932,7 +9936,13 @@
                 ],
                 "type": {
                     "kind": "VoidKeyword"
-                }
+                },
+                "jsDoc": [
+                    {
+                        "kind": "JSDocComment",
+                        "comment": "Increase HP by n (defaults to 1)."
+                    }
+                ]
             },
             {
                 "kind": "MethodSignature",
@@ -9940,7 +9950,32 @@
                 "parameters": [],
                 "type": {
                     "kind": "NumberKeyword"
-                }
+                },
+                "jsDoc": [
+                    {
+                        "kind": "JSDocComment",
+                        "comment": "Current health points."
+                    }
+                ]
+            },
+            {
+                "kind": "MethodSignature",
+                "name": "setHP",
+                "parameters": [
+                    {
+                        "kind": "Parameter",
+                        "name": "np",
+                        "type": {
+                            "kind": "NumberKeyword"
+                        }
+                    }
+                ],
+                "jsDoc": [
+                    {
+                        "kind": "JSDocComment",
+                        "comment": "Set current health points."
+                    }
+                ]
             }
         ]
     },
@@ -9977,7 +10012,13 @@
                 ],
                 "type": {
                     "kind": "VoidKeyword"
-                }
+                },
+                "jsDoc": [
+                    {
+                        "kind": "JSDocComment",
+                        "comment": "Performs double jump (the initial jump only happens if player is grounded)."
+                    }
+                ]
             }
         ]
     },
