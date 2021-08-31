@@ -69,7 +69,7 @@ export default (k: KaboomCtx) => {
 
 			const screenPos = k.vec2(k.width(), k.rand(0, height * k.height()));
 
-			const cloud = k.add([
+			const cloud = k.prepend([
 				k.sprite(cloudSprite),
 				k.pos(screenPos),
 				k.origin("left"),

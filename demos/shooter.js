@@ -48,37 +48,6 @@ scene("battle", () => {
 
 	volume(0.5);
 
-	function health(hp) {
-		return {
-			hurt(n) {
-				hp -= (n === undefined ? 1 : n);
-				this.trigger("hurt");
-				if (hp <= 0) {
-					this.trigger("death");
-				}
-			},
-			heal(n) {
-				hp += (n === undefined ? 1 : n);
-				this.trigger("heal");
-			},
-			hp() {
-				return hp;
-			},
-		};
-	}
-
-	function lifespan(time) {
-		let timer = 0;
-		return {
-			update() {
-				timer += dt();
-				if (timer >= time) {
-					destroy(this);
-				}
-			},
-		};
-	}
-
 	function grow(rate) {
 		return {
 			update() {

@@ -1,12 +1,5 @@
 import { EditorState } from "@codemirror/state";
-import {
-	EditorView,
-	keymap,
-	highlightSpecialChars,
-	highlightActiveLine,
-	drawSelection,
-	placeholder,
-} from "@codemirror/view";
+import { EditorView, keymap, highlightSpecialChars, highlightActiveLine, drawSelection, placeholder, } from "@codemirror/view";
 import { defaultHighlightStyle } from "@codemirror/highlight";
 import { defaultKeymap, indentWithTab } from "@codemirror/commands";
 import { indentUnit, indentOnInput } from "@codemirror/language";
@@ -17,10 +10,9 @@ import { closeBrackets } from "@codemirror/closebrackets";
 import { commentKeymap } from "@codemirror/comment";
 import { foldGutter } from "@codemirror/fold";
 import { searchKeymap, highlightSelectionMatches } from "@codemirror/search";
-// import { oneDark } from "@codemirror/theme-one-dark";
 import { javascript } from "@codemirror/lang-javascript";
+// import { oneDark } from "@codemirror/theme-one-dark";
 
-const entries = Object.keys(demos);
 const selector = document.getElementById("selector");
 const runbtn = document.getElementById("run");
 const gameview = document.getElementById("view");

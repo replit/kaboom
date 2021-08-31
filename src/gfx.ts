@@ -914,28 +914,30 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 
 	function updateSize() {
 		if (gconf.width && gconf.height && gconf.stretch) {
-			gfx.width = gconf.width;
-			gfx.height = gconf.height;
-		} else if (gconf.width && gconf.height && gconf.letterbox) {
-			// TODO: not working
-			const r1 = gl.drawingBufferWidth / gl.drawingBufferHeight;
-			const r2 = gconf.width / gconf.height;
-			if (r1 > r2) {
-				gfx.width = gconf.height * r1;
-				gfx.height = gconf.height;
-				const sw = gl.drawingBufferHeight * r2;
-				const sh = gl.drawingBufferHeight;
-				const x = (gl.drawingBufferWidth - sw) / 2;
-				gl.scissor(x, 0, sw, sh);
-				gl.viewport(x, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
+			if (gconf.letterbox) {
+				// TODO: not working
+				const r1 = gl.drawingBufferWidth / gl.drawingBufferHeight;
+				const r2 = gconf.width / gconf.height;
+				if (r1 > r2) {
+					gfx.width = gconf.height * r1;
+					gfx.height = gconf.height;
+					const sw = gl.drawingBufferHeight * r2;
+					const sh = gl.drawingBufferHeight;
+					const x = (gl.drawingBufferWidth - sw) / 2;
+					gl.scissor(x, 0, sw, sh);
+					gl.viewport(x, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
+				} else {
+					gfx.width = gconf.width;
+					gfx.height = gconf.width / r1;
+					const sw = gl.drawingBufferWidth;
+					const sh = gl.drawingBufferWidth / r2;
+					const y = (gl.drawingBufferHeight - sh) / 2;
+					gl.scissor(0, gl.drawingBufferHeight - sh - y, sw, sh);
+					gl.viewport(0, -y, gl.drawingBufferWidth, gl.drawingBufferHeight);
+				}
 			} else {
 				gfx.width = gconf.width;
-				gfx.height = gconf.width / r1;
-				const sw = gl.drawingBufferWidth;
-				const sh = gl.drawingBufferWidth / r2;
-				const y = (gl.drawingBufferHeight - sh) / 2;
-				gl.scissor(0, gl.drawingBufferHeight - sh - y, sw, sh);
-				gl.viewport(0, -y, gl.drawingBufferWidth, gl.drawingBufferHeight);
+				gfx.height = gconf.height;
 			}
 		} else {
 			gfx.width = gl.drawingBufferWidth / scale();

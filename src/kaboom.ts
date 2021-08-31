@@ -372,7 +372,7 @@ const COMP_EVENTS = new Set([
 ]);
 
 // TODO: type check won't work if pass CustomData
-function add<T extends Comp>(comps: CompList<T>): GameObj<T> {
+function make<T extends Comp>(comps: CompList<T>): GameObj<T> {
 
 	const compStates = {};
 	const customState = {};
@@ -579,27 +579,34 @@ function add<T extends Comp>(comps: CompList<T>): GameObj<T> {
 		obj.use(comp);
 	}
 
-	obj._id = game.objs.push(obj);
-	obj.trigger("add");
-	ready(() => obj.trigger("load"));
-
 	return obj as unknown as GameObj<T>;
 
 }
 
-function readd(obj: GameObj<any>): GameObj<any> {
-
-	if (!obj.exists()) {
-		return;
-	}
-
-	game.objs.delete(obj._id);
+function add<T extends Comp>(comps: CompList<T>): GameObj<T> {
+	const obj = make(comps);
 	obj._id = game.objs.push(obj);
 	obj.trigger("add");
 	ready(() => obj.trigger("load"));
-
 	return obj;
+}
 
+// TODO
+function prepend<T extends Comp>(comps: CompList<T>): GameObj<T> {
+	const obj = make(comps);
+	obj._id = game.objs.push(obj);
+	obj.trigger("add");
+	ready(() => obj.trigger("load"));
+	return obj;
+}
+
+function readd(obj: GameObj<any>): GameObj<any> {
+	if (!obj.exists()) {
+		return;
+	}
+	game.objs.delete(obj._id);
+	obj._id = game.objs.push(obj);
+	return obj;
 }
 
 function getComps<T extends Comp>(comps: DynCompList<T>, ...args): CompList<T> {
@@ -1041,7 +1048,12 @@ function pos(...args): PosComp {
 		},
 
 		// move to a destination, with optional speed
-		moveTo(dest: Vec2, speed?: number) {
+		moveTo(...args) {
+			if (typeof args[0] === "number" && typeof args[1] === "number") {
+				return this.moveTo(vec2(args[0], args[1]), args[2]);
+			}
+			const dest = args[0];
+			const speed = args[1];
 			if (speed === undefined) {
 				this.pos = vec2(dest);
 				return;
@@ -1699,7 +1711,7 @@ function timer(n?: number, action?: () => void): TimerComp {
 			timers.forEach((timer, id) => {
 				timer.time -= dt();
 				if (timer.time <= 0) {
-					timer.action();
+					timer.action.call(this);
 					timers.delete(id);
 				}
 			});
@@ -1707,30 +1719,7 @@ function timer(n?: number, action?: () => void): TimerComp {
 	};
 }
 
-function solid(): SolidComp {
-	return {
-		id: "solid",
-		require: [ "area", ],
-		solid: true,
-	};
-}
-
-function fixed(): FixedComp {
-	return {
-		id: "fixed",
-		fixed: true,
-	};
-}
-
-function stay(): StayComp {
-	return {
-		id: "stay",
-		stay: true,
-	};
-}
-
 // maximum y velocity with body()
-const DEF_MAX_VEL = 4800;
 const DEF_JUMP_FORCE = 480;
 
 // TODO: gravity scale
@@ -1739,7 +1728,6 @@ function body(conf: BodyCompConf = {}): BodyComp {
 	let velY = 0;
 	let curPlatform: GameObj<any> | null = null;
 	let lastPlatformPos = null;
-	const maxVel = conf.maxVel ?? DEF_MAX_VEL;
 
 	return {
 
@@ -1761,7 +1749,7 @@ function body(conf: BodyCompConf = {}): BodyComp {
 					lastPlatformPos = null;
 					justOff = true;
 				} else {
-					if (lastPlatformPos) {
+					if (lastPlatformPos && curPlatform.pos) {
 						// sticky platform
 						this.pos = this.pos.add(curPlatform.pos.sub(lastPlatformPos));
 						lastPlatformPos = curPlatform.pos.clone();
@@ -1771,15 +1759,20 @@ function body(conf: BodyCompConf = {}): BodyComp {
 
 			if (!curPlatform) {
 
-				velY = Math.min(velY + gravity() * dt(), maxVel);
+				velY += gravity() * dt();
+
+				if (conf.maxVel) {
+					velY = Math.min(velY, conf.maxVel);
+				}
 
 				// check if grounded to a new platform
 				for (const target of targets) {
 					if (target.side === "bottom" && velY > 0) {
 						curPlatform = target.obj;
 						velY = 0;
-						// TODO: might not have pos
-						lastPlatformPos = curPlatform.pos.clone();
+						if (curPlatform.pos) {
+							lastPlatformPos = curPlatform.pos.clone();
+						}
 						if (!justOff) {
 							this.trigger("grounded", curPlatform);
 						}
@@ -1814,12 +1807,98 @@ function body(conf: BodyCompConf = {}): BodyComp {
 
 }
 
+function djump(): DoubleJumpComp {
+	let hasDouble = true;
+	return {
+		id: "djump",
+		require: [ "body", ],
+		add() {
+			this.on("grounded", () => {
+				hasDouble = true;
+			});
+		},
+		djump(...args) {
+			if (this.grounded()) {
+				this.jump(...args);
+			} else if (hasDouble) {
+				hasDouble = false;
+				this.jump(...args);
+				this.trigger("djump");
+			}
+		},
+	};
+}
+
 function shader(id: string, uniform: Uniform = {}): ShaderComp {
 	const prog = assets.shaders[id];
 	return {
 		id: "shader",
 		shader: id,
 		uniform: uniform,
+	};
+}
+
+function solid(): SolidComp {
+	return {
+		id: "solid",
+		require: [ "area", ],
+		solid: true,
+	};
+}
+
+function fixed(): FixedComp {
+	return {
+		id: "fixed",
+		fixed: true,
+	};
+}
+
+function stay(): StayComp {
+	return {
+		id: "stay",
+		stay: true,
+	};
+}
+
+function health(hp: number): HealthComp {
+	if (hp == null) {
+		throw new Error("health() requires the initial amount of hp");
+	}
+	return {
+		id: "health",
+		hurt(n: number = 1) {
+			hp -= n;
+			this.trigger("hurt");
+			if (hp <= 0) {
+				this.trigger("death");
+			}
+		},
+		heal(n: number = 1) {
+			hp += n;
+			this.trigger("heal");
+		},
+		hp(): number {
+			return hp;
+		},
+	};
+}
+
+function lifespan(time: number, cb?: () => void): LifespanComp {
+	if (time == null) {
+		throw new Error("lifespan() requires time");
+	}
+	let timer = 0;
+	return {
+		id: "ilfespan",
+		update() {
+			timer += dt();
+			if (timer >= time) {
+				if (cb) {
+					cb.call(this);
+				}
+				this.destroy();
+			}
+		},
 	};
 }
 
@@ -1979,6 +2058,7 @@ const ctx: KaboomCtx = {
 	gravity,
 	// obj
 	add,
+	prepend,
 	readd,
 	destroy,
 	destroyAll,
@@ -2004,6 +2084,9 @@ const ctx: KaboomCtx = {
 	solid,
 	fixed,
 	stay,
+	health,
+	djump,
+	lifespan,
 	// group events
 	on,
 	action,

@@ -56,7 +56,7 @@ function files(mnt, dir, handler = {}) {
 			} else if (ctx.accepts("json")) {
 				const entries = fs
 					.readdirSync(p)
-					.filter(p => !p.startsWith("."));
+					.filter((p) => !p.startsWith("."));
 				ctx.type = "json";
 				ctx.body = JSON.stringify(entries);
 			}
@@ -104,11 +104,14 @@ function renderDir(dir) {
 				})),
 				t("link", { rel: "icon", href: "/kaboom.png"}),
 			]),
-			t("body", {}, fs.readdirSync(dir).map((file) => {
-				return t("a", { href: `${ctx.path}/${file}`, }, file);
-			})),
+			t("body", {}, fs
+				.readdirSync(dir)
+				.filter((p) => !p.startsWith("."))
+				.map((file) => {
+					return t("a", { href: `${ctx.path}/${file}`, }, file);
+				})),
 		]))(ctx, next);
-	}
+	};
 }
 
 function renderMD(p) {
@@ -163,6 +166,7 @@ app.use(files("/readme", "../README.md", { md: renderMD, }));
 app.use(files("/tut", "../tut", { md: renderMD, }));
 app.use(files("/js", "src/js", { js: buildJS, }));
 app.use(files("/lib/dev", "../dist"));
+app.use(files("/lib", "legacy/lib"));
 app.use(files("/kaboom.png", "kaboom.png"));
 app.use(redirect("/twitter", "https://twitter.com/Kaboomjs"));
 app.use(redirect("/github", "https://github.com/replit/kaboom"));

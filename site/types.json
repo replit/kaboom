@@ -20,12 +20,12 @@
         "jsDoc": [
             {
                 "kind": "JSDocComment",
-                "comment": "Initialize kaboom context.",
+                "comment": "Initialize kaboom context. The starting point of all kaboom games.",
                 "tags": [
                     {
                         "kind": "FirstJSDocTagNode",
                         "tagName": "example",
-                        "comment": "```js\n// this will create a blank canvas and import all kaboom functions to global\nkaboom();\n```"
+                        "comment": "```js\n// this will create a blank canvas and import all kaboom functions to global\nkaboom();\n\n// init with some configs (check out #KaboomConf for full config list)\n// create a game with custom dimension, but stretch to fit container, keeping aspect ratio, with a clear color\nkaboom({\n    width: 320,\n    height: 240,\n    stretch: true,\n    letterbox: true,\n    clearColor: [ 0, 0, 255, ],\n});\n```"
                     }
                 ]
             }
@@ -567,7 +567,7 @@
                 "jsDoc": [
                     {
                         "kind": "JSDocComment",
-                        "comment": "Assembles a game obj from list of components or tags and add it to scene.",
+                        "comment": "Create and add a game obj to the scene, from a list of components or tags. The added and returned game obj will contain all methods from each component.",
                         "tags": [
                             {
                                 "kind": "FirstJSDocTagNode",
@@ -577,109 +577,9 @@
                             {
                                 "kind": "FirstJSDocTagNode",
                                 "tagName": "example",
-                                "comment": "```js\nconst player = add([\n    // it renders as a sprite\n    sprite(\"mark\"),\n    // it has a position\n    pos(100, 200),\n    // it has a collider\n    area(),\n    // it is a physical body which will respond to physics\n    body(),\n    // you can easily make custom components to encapsulate reusable logics\n    doubleJump(),\n    health(8),\n    // give it tags for controlling group behaviors\n    \"player\",\n    \"friendly\",\n    // plain objects fields are directly assigned to the game obj\n    {\n        dir: vec2(-1, 0),\n        dead: false,\n        speed: 240,\n    },\n]);\n\n// .jump is provided by body()\nplayer.jump();\n\n// .moveTo is provided by pos()\nplayer.moveTo(100, 200);\n\n// .collides is provided by area()\nplayer.collides(\"tree\", () => {\n    destroy(player);\n});\n\n// run this for all game objs with tag \"friendly\"\naction(\"friendly\", (friend) => {\n    // .hit is provided by health()\n    friend.hit();\n});\n```"
+                                "comment": "```js\n// let's add our player character to the screen\n// we use a list of components to define who they are and how they actually work\nconst player = add([\n    // it renders as a sprite\n    sprite(\"mark\"),\n    // it has a position\n    pos(100, 200),\n    // it has a collider\n    area(),\n    // it is a physical body which will respond to physics\n    body(),\n    // you can easily make custom components to encapsulate reusable logics\n    doubleJump(),\n    health(8),\n    // give it tags for controlling group behaviors\n    \"player\",\n    \"friendly\",\n    // plain objects fields are directly assigned to the game obj\n    {\n        dir: vec2(-1, 0),\n        dead: false,\n        speed: 240,\n    },\n]);\n\n// .jump is provided by body()\nplayer.jump();\n\n// .moveTo is provided by pos()\nplayer.moveTo(100, 200);\n\n// run something every frame\n// player will constantly move towards player.dir, at player.speed per second\nplayer.action(() => {\n    player.move(player.dir.scale(player.speed));\n});\n\n// .collides is provided by area()\nplayer.collides(\"tree\", () => {\n    destroy(player);\n});\n\n// run this for all game objs with tag \"friendly\"\naction(\"friendly\", (friend) => {\n    // .hurt is provided by health()\n    friend.hurt();\n});\n```"
                             }
                         ]
-                    }
-                ]
-            },
-            {
-                "kind": "MethodSignature",
-                "name": "readd",
-                "parameters": [
-                    {
-                        "kind": "Parameter",
-                        "name": "obj",
-                        "type": {
-                            "kind": "TypeReference",
-                            "typeName": "GameObj",
-                            "typeArguments": [
-                                {
-                                    "kind": "AnyKeyword"
-                                }
-                            ]
-                        }
-                    }
-                ],
-                "type": {
-                    "kind": "TypeReference",
-                    "typeName": "GameObj",
-                    "typeArguments": [
-                        {
-                            "kind": "AnyKeyword"
-                        }
-                    ]
-                },
-                "jsDoc": [
-                    {
-                        "kind": "JSDocComment",
-                        "comment": "Remove and re-add the game obj.",
-                        "tags": [
-                            {
-                                "kind": "FirstJSDocTagNode",
-                                "tagName": "example",
-                                "comment": "```js\n// mainly useful when you want to make something to draw on top\nreadd(froggy);\n```"
-                            }
-                        ]
-                    }
-                ]
-            },
-            {
-                "kind": "MethodSignature",
-                "name": "getComps",
-                "typeParameters": [
-                    {
-                        "kind": "TypeParameter",
-                        "name": "T",
-                        "constraint": {
-                            "kind": "TypeReference",
-                            "typeName": "Comp"
-                        }
-                    }
-                ],
-                "parameters": [
-                    {
-                        "kind": "Parameter",
-                        "name": "comps",
-                        "type": {
-                            "kind": "TypeReference",
-                            "typeName": "DynCompList",
-                            "typeArguments": [
-                                {
-                                    "kind": "TypeReference",
-                                    "typeName": "T"
-                                }
-                            ]
-                        }
-                    },
-                    {
-                        "kind": "Parameter",
-                        "name": "args",
-                        "type": {
-                            "kind": "ArrayType",
-                            "elementType": {
-                                "kind": "AnyKeyword"
-                            }
-                        },
-                        "dotDotDotToken": {
-                            "kind": "DotDotDotToken"
-                        }
-                    }
-                ],
-                "type": {
-                    "kind": "TypeReference",
-                    "typeName": "CompList",
-                    "typeArguments": [
-                        {
-                            "kind": "TypeReference",
-                            "typeName": "T"
-                        }
-                    ]
-                },
-                "jsDoc": [
-                    {
-                        "kind": "JSDocComment",
-                        "comment": "Get CompList<T> from DynCompList<T>."
                     }
                 ]
             },
@@ -1002,6 +902,159 @@
                         "typeName": "T"
                     }
                 }
+            },
+            {
+                "kind": "MethodSignature",
+                "name": "prepend",
+                "typeParameters": [
+                    {
+                        "kind": "TypeParameter",
+                        "name": "T",
+                        "constraint": {
+                            "kind": "TypeReference",
+                            "typeName": "Comp"
+                        }
+                    }
+                ],
+                "parameters": [
+                    {
+                        "kind": "Parameter",
+                        "name": "comps",
+                        "type": {
+                            "kind": "TypeReference",
+                            "typeName": "CompList",
+                            "typeArguments": [
+                                {
+                                    "kind": "TypeReference",
+                                    "typeName": "T"
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "type": {
+                    "kind": "TypeReference",
+                    "typeName": "GameObj",
+                    "typeArguments": [
+                        {
+                            "kind": "TypeReference",
+                            "typeName": "T"
+                        }
+                    ]
+                },
+                "jsDoc": [
+                    {
+                        "kind": "JSDocComment",
+                        "comment": "Remove and re-add the game obj.",
+                        "tags": [
+                            {
+                                "kind": "FirstJSDocTagNode",
+                                "tagName": "example",
+                                "comment": "```js\n// mainly useful when you want to make something to draw on top\nreadd(froggy);\n```"
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
+                "kind": "MethodSignature",
+                "name": "readd",
+                "parameters": [
+                    {
+                        "kind": "Parameter",
+                        "name": "obj",
+                        "type": {
+                            "kind": "TypeReference",
+                            "typeName": "GameObj",
+                            "typeArguments": [
+                                {
+                                    "kind": "AnyKeyword"
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "type": {
+                    "kind": "TypeReference",
+                    "typeName": "GameObj",
+                    "typeArguments": [
+                        {
+                            "kind": "AnyKeyword"
+                        }
+                    ]
+                },
+                "jsDoc": [
+                    {
+                        "kind": "JSDocComment",
+                        "comment": "Remove and re-add the game obj.",
+                        "tags": [
+                            {
+                                "kind": "FirstJSDocTagNode",
+                                "tagName": "example",
+                                "comment": "```js\n// mainly useful when you want to make something to draw on top\nreadd(froggy);\n```"
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
+                "kind": "MethodSignature",
+                "name": "getComps",
+                "typeParameters": [
+                    {
+                        "kind": "TypeParameter",
+                        "name": "T",
+                        "constraint": {
+                            "kind": "TypeReference",
+                            "typeName": "Comp"
+                        }
+                    }
+                ],
+                "parameters": [
+                    {
+                        "kind": "Parameter",
+                        "name": "comps",
+                        "type": {
+                            "kind": "TypeReference",
+                            "typeName": "DynCompList",
+                            "typeArguments": [
+                                {
+                                    "kind": "TypeReference",
+                                    "typeName": "T"
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "kind": "Parameter",
+                        "name": "args",
+                        "type": {
+                            "kind": "ArrayType",
+                            "elementType": {
+                                "kind": "AnyKeyword"
+                            }
+                        },
+                        "dotDotDotToken": {
+                            "kind": "DotDotDotToken"
+                        }
+                    }
+                ],
+                "type": {
+                    "kind": "TypeReference",
+                    "typeName": "CompList",
+                    "typeArguments": [
+                        {
+                            "kind": "TypeReference",
+                            "typeName": "T"
+                        }
+                    ]
+                },
+                "jsDoc": [
+                    {
+                        "kind": "JSDocComment",
+                        "comment": "Get CompList<T> from DynCompList<T>."
+                    }
+                ]
             },
             {
                 "kind": "MethodSignature",
@@ -1603,7 +1656,7 @@
                 "jsDoc": [
                     {
                         "kind": "JSDocComment",
-                        "comment": "<Comp> Position",
+                        "comment": "Position",
                         "tags": [
                             {
                                 "kind": "FirstJSDocTagNode",
@@ -1684,7 +1737,7 @@
                 "jsDoc": [
                     {
                         "kind": "JSDocComment",
-                        "comment": "<Comp> Scale."
+                        "comment": "Scale."
                     }
                 ]
             },
@@ -1751,7 +1804,7 @@
                 "jsDoc": [
                     {
                         "kind": "JSDocComment",
-                        "comment": "<Comp> Rotate (in degrees)."
+                        "comment": "Rotate (in degrees)."
                     }
                 ]
             },
@@ -1796,7 +1849,7 @@
                 "jsDoc": [
                     {
                         "kind": "JSDocComment",
-                        "comment": "<Comp> Custom color in RGBA (0-255 rgb, 0-1 a, multiplied).",
+                        "comment": "Custom color in RGBA (0-255 rgb, 0-1 a, multiplied).",
                         "tags": [
                             {
                                 "kind": "FirstJSDocTagNode",
@@ -1863,7 +1916,7 @@
                 "jsDoc": [
                     {
                         "kind": "JSDocComment",
-                        "comment": "<Comp> Origin point for render (default \"topleft\").",
+                        "comment": "Origin point for render (default \"topleft\").",
                         "tags": [
                             {
                                 "kind": "FirstJSDocTagNode",
@@ -1893,7 +1946,7 @@
                 "jsDoc": [
                     {
                         "kind": "JSDocComment",
-                        "comment": "<Comp> Which layer this object belongs to."
+                        "comment": "Which layer this object belongs to."
                     }
                 ]
             },
@@ -1908,12 +1961,12 @@
                 "jsDoc": [
                     {
                         "kind": "JSDocComment",
-                        "comment": "<Comp> Collider. Calculate from rendered dimension (e.g. from sprite, text, rect) if no params given.",
+                        "comment": "Collider. Calculate from rendered dimension (e.g. from sprite, text, rect) if no params given.",
                         "tags": [
                             {
                                 "kind": "FirstJSDocTagNode",
                                 "tagName": "example",
-                                "comment": "```js\nadd([\n    sprite(\"froggy\"),\n    // without args it'll auto calculate from the data sprite comp provides\n    area(),\n]);\n\nadd([\n    sprite(\"froggy\"),\n    // when pass a single number it'll scale the auto calculated area by 0.6\n    area(0.6),\n]);\n\n// define custom area with topleft and botright point\nadd([\n    area(vec2(-10, -30), vec2(10, 60)),\n])\n```"
+                                "comment": "```js\nadd([\n    sprite(\"froggy\"),\n    // without args it'll auto calculate from the data sprite comp provides\n    area(),\n]);\n\nadd([\n    sprite(\"bomb\"),\n    // when pass a single number it'll scale the auto calculated area by 0.6\n    area(0.6),\n    // we want the scale to be calculated from the center\n    origin(\"center\"),\n]);\n\n// define custom area with topleft and botright point\nconst player = add([\n    sprite(\"froggy\"),\n    area(vec2(-10, -30), vec2(10, 60)),\n])\n\n// die if player collides with another game obj with tag \"tree\"\nplayer.collides(\"tree\", () => {\n    destroy(player);\n});\n\n// push player out of all other game obj with \"solid\" component\nplayer.action(() => {\n    player.pushOutAll();\n});\n\n// simple drag an drop\nlet draggin = false;\n\nplayer.clicks(() => {\n    draggin = true;\n});\n\nplayer.action(() => {\n    if (draggin) {\n        player.pos = mousePos();\n    }\n})\n\nmouseRelease(() => {\n    draggin = false;\n});\n\n// check for collision with another single game obj\nplayer.action(() => {\n    if (player.isCollided(bomb)) {\n        score += 1;\n    }\n});\n\n// for more methods check out AreaComp\n```"
                             }
                         ]
                     }
@@ -2023,12 +2076,12 @@
                 "jsDoc": [
                     {
                         "kind": "JSDocComment",
-                        "comment": "<Comp> Renders as sprite.",
+                        "comment": "Renders as sprite.",
                         "tags": [
                             {
                                 "kind": "FirstJSDocTagNode",
                                 "tagName": "example",
-                                "comment": "```js\n// minimal setup\nadd([\n    sprite(\"froggy\"),\n]);\n\n// minimal setup\nconst froggy = add([\n    sprite(\"froggy\", {\n        // seconds per frame (default 0.1)\n        animSpeed: 0.2,\n        // start with frame 2\n        frame: 2,\n    }),\n]);\n\n// play an anim\nfroggy.play(\"jump\");\n```"
+                                "comment": "```js\n// minimal setup\nadd([\n    sprite(\"froggy\"),\n]);\n\n// minimal setup\nconst froggy = add([\n    sprite(\"froggy\", {\n        // seconds per frame (default 0.1)\n        animSpeed: 0.2,\n        // start with frame 2\n        frame: 2,\n    }),\n]);\n\n// play an anim\nfroggy.play(\"jump\");\n\n// manually setting a frame\nfroggy.frame = 3;\n```"
                             }
                         ]
                     }
@@ -2062,12 +2115,12 @@
                 "jsDoc": [
                     {
                         "kind": "JSDocComment",
-                        "comment": "<Comp> Renders as text.",
+                        "comment": "Renders as text.",
                         "tags": [
                             {
                                 "kind": "FirstJSDocTagNode",
                                 "tagName": "example",
-                                "comment": "```js\nadd([\n    text(\"ohhimark\"),\n    pos(80, 40),\n]);\n```"
+                                "comment": "```js\n// a simple score counter\nconst score = add([\n    text(\"Score: 0\"),\n    pos(24, 24),\n    { value: 0 },\n]);\n\nplayer.collides(\"coin\", () => {\n    score.value += 1;\n    score.text = \"Score:\" + score.value;\n});\n```"
                             }
                         ]
                     }
@@ -2099,35 +2152,16 @@
                 "jsDoc": [
                     {
                         "kind": "JSDocComment",
-                        "comment": "<Comp> Renders as rect."
+                        "comment": "Renders as rect.",
+                        "tags": [
+                            {
+                                "kind": "FirstJSDocTagNode",
+                                "tagName": "example",
+                                "comment": "```js\n// i don't know, could be an obstacle or somethign\nadd([\n    rect(20, 40),\n    outline(4),\n    area(),\n]);\n```"
+                            }
+                        ]
                     }
                 ]
-            },
-            {
-                "kind": "MethodSignature",
-                "name": "rect",
-                "parameters": [
-                    {
-                        "kind": "Parameter",
-                        "name": "p1",
-                        "type": {
-                            "kind": "TypeReference",
-                            "typeName": "Vec2"
-                        }
-                    },
-                    {
-                        "kind": "Parameter",
-                        "name": "p2",
-                        "type": {
-                            "kind": "TypeReference",
-                            "typeName": "Vec2"
-                        }
-                    }
-                ],
-                "type": {
-                    "kind": "TypeReference",
-                    "typeName": "RectComp"
-                }
             },
             {
                 "kind": "MethodSignature",
@@ -2158,7 +2192,7 @@
                 "jsDoc": [
                     {
                         "kind": "JSDocComment",
-                        "comment": "<Comp> Give obj an outline."
+                        "comment": "Give obj an outline."
                     }
                 ]
             },
@@ -2183,7 +2217,14 @@
                 "jsDoc": [
                     {
                         "kind": "JSDocComment",
-                        "comment": "<Comp> Physical body that responds to gravity."
+                        "comment": "Physical body that responds to gravity.",
+                        "tags": [
+                            {
+                                "kind": "FirstJSDocTagNode",
+                                "tagName": "example",
+                                "comment": "```js\n// froggy jumpy\nconst froggy = add([\n    sprite(\"froggy\"),\n    // body() requires \"pos\" and \"area\" component\n    pos(),\n    area(),\n    body(),\n]);\n\n// when froggy is grounded, press space to jump\n// check out BodyComp for more methods\nkeyPress(\"space\", () => {\n    if (froggy.grounded()) {\n        froggy.jump();\n    }\n});\n\n// a custom event provided by \"body\"\nfroggy.on(\"grounded\", () => {\n    debug.log(\"oh no!\");\n});\n```"
+                            }
+                        ]
                     }
                 ]
             },
@@ -2206,7 +2247,7 @@
                 "jsDoc": [
                     {
                         "kind": "JSDocComment",
-                        "comment": "<Comp> Custom shader."
+                        "comment": "Custom shader."
                     }
                 ]
             },
@@ -2242,7 +2283,7 @@
                 "jsDoc": [
                     {
                         "kind": "JSDocComment",
-                        "comment": "<Comp> Run certain action after some time."
+                        "comment": "Run certain action after some time."
                     }
                 ]
             },
@@ -2257,7 +2298,7 @@
                 "jsDoc": [
                     {
                         "kind": "JSDocComment",
-                        "comment": "<Comp> Make other objects cannot move pass."
+                        "comment": "Make other objects cannot move pass."
                     }
                 ]
             },
@@ -2272,7 +2313,14 @@
                 "jsDoc": [
                     {
                         "kind": "JSDocComment",
-                        "comment": "<Comp> Unaffected by camera."
+                        "comment": "Unaffected by camera.",
+                        "tags": [
+                            {
+                                "kind": "FirstJSDocTagNode",
+                                "tagName": "example",
+                                "comment": "```js\n// this score counter better be fixed on top left and not affected by camera\nconst score = add([\n    text(0),\n    pos(12, 12),\n]);\n```"
+                            }
+                        ]
                     }
                 ]
             },
@@ -2287,7 +2335,108 @@
                 "jsDoc": [
                     {
                         "kind": "JSDocComment",
-                        "comment": "<Comp> Don't get destroyed on scene switch."
+                        "comment": "Don't get destroyed on scene switch.",
+                        "tags": [
+                            {
+                                "kind": "FirstJSDocTagNode",
+                                "tagName": "example",
+                                "comment": "```js\nplayer.collides(\"bomb\", () => {\n    // spawn an explosion and switch scene, but don't destroy the explosion game obj on scene switch\n    add([\n        sprite(\"explosion\", { anim: \"burst\", }),\n        stay(),\n        lifespan(2),\n    ]);\n    go(\"lose\", score);\n});\n```"
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
+                "kind": "MethodSignature",
+                "name": "health",
+                "parameters": [
+                    {
+                        "kind": "Parameter",
+                        "name": "hp",
+                        "type": {
+                            "kind": "NumberKeyword"
+                        }
+                    }
+                ],
+                "type": {
+                    "kind": "TypeReference",
+                    "typeName": "HealthComp"
+                },
+                "jsDoc": [
+                    {
+                        "kind": "JSDocComment",
+                        "comment": "Handles health related logic and events.",
+                        "tags": [
+                            {
+                                "kind": "FirstJSDocTagNode",
+                                "tagName": "example",
+                                "comment": "```js\nconst player = add([\n    health(3),\n]);\n\nplayer.collides(\"bad\", (bad) => {\n    player.hurt(1);\n    bad.hurt(1);\n});\n \nplayer.collides(\"apple\", () => {\n    player.heal(1);\n});\n\nplayer.on(\"hurt\", () => {\n    play(\"ouch\");\n});\n\n// triggers when hp reaches 0\nplayer.on(\"death\", () => {\n    destroy(player);\n    go(\"lose\");\n});\n```"
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
+                "kind": "MethodSignature",
+                "name": "djump",
+                "parameters": [],
+                "type": {
+                    "kind": "TypeReference",
+                    "typeName": "DoubleJumpComp"
+                },
+                "jsDoc": [
+                    {
+                        "kind": "JSDocComment",
+                        "comment": "Enables double jump.",
+                        "tags": [
+                            {
+                                "kind": "FirstJSDocTagNode",
+                                "tagName": "example",
+                                "comment": "```js\nconst player = add([\n    pos(80, 80),\n    area(),\n    body(),\n    djump(),\n]);\n\n// just replace .jump() with .djump()\n// also note .djump() will only launch initial jump when grounded\nkeyPress(\"space\", () => {\n    player.djump();\n});\n```"
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
+                "kind": "MethodSignature",
+                "name": "lifespan",
+                "parameters": [
+                    {
+                        "kind": "Parameter",
+                        "name": "time",
+                        "type": {
+                            "kind": "NumberKeyword"
+                        }
+                    },
+                    {
+                        "kind": "Parameter",
+                        "name": "action",
+                        "type": {
+                            "kind": "FunctionType",
+                            "parameters": [],
+                            "type": {
+                                "kind": "VoidKeyword"
+                            }
+                        },
+                        "questionToken": true
+                    }
+                ],
+                "type": {
+                    "kind": "TypeReference",
+                    "typeName": "LifespanComp"
+                },
+                "jsDoc": [
+                    {
+                        "kind": "JSDocComment",
+                        "comment": "Destroy the game obj after certain amount of time",
+                        "tags": [
+                            {
+                                "kind": "FirstJSDocTagNode",
+                                "tagName": "example",
+                                "comment": "```js\n// spawn an explosion, destroy after 2 seconds and the switch scene\nadd([\n    sprite(\"explosion\", { anim: \"burst\", }),\n    lifespan(2, () => go(\"lose\")),\n]);\n```"
+                            }
+                        ]
                     }
                 ]
             },
@@ -8648,6 +8797,20 @@
             },
             {
                 "kind": "PropertySignature",
+                "name": "anim",
+                "type": {
+                    "kind": "NumberKeyword"
+                },
+                "questionToken": true,
+                "jsDoc": [
+                    {
+                        "kind": "JSDocComment",
+                        "comment": "Play an anim on start."
+                    }
+                ]
+            },
+            {
+                "kind": "PropertySignature",
                 "name": "flipX",
                 "type": {
                     "kind": "BooleanKeyword"
@@ -9654,5 +9817,125 @@
                 }
             }
         ]
+    },
+    "HealthComp": {
+        "kind": "InterfaceDeclaration",
+        "name": "HealthComp",
+        "heritageClauses": [
+            {
+                "kind": "HeritageClause",
+                "token": 94,
+                "types": [
+                    {
+                        "kind": "ExpressionWithTypeArguments",
+                        "expression": {
+                            "kind": "Identifier",
+                            "escapedText": "Comp"
+                        }
+                    }
+                ]
+            }
+        ],
+        "members": [
+            {
+                "kind": "MethodSignature",
+                "name": "hurt",
+                "parameters": [
+                    {
+                        "kind": "Parameter",
+                        "name": "n",
+                        "type": {
+                            "kind": "NumberKeyword"
+                        },
+                        "questionToken": true
+                    }
+                ],
+                "type": {
+                    "kind": "VoidKeyword"
+                }
+            },
+            {
+                "kind": "MethodSignature",
+                "name": "heal",
+                "parameters": [
+                    {
+                        "kind": "Parameter",
+                        "name": "n",
+                        "type": {
+                            "kind": "NumberKeyword"
+                        },
+                        "questionToken": true
+                    }
+                ],
+                "type": {
+                    "kind": "VoidKeyword"
+                }
+            },
+            {
+                "kind": "MethodSignature",
+                "name": "hp",
+                "parameters": [],
+                "type": {
+                    "kind": "NumberKeyword"
+                }
+            }
+        ]
+    },
+    "DoubleJumpComp": {
+        "kind": "InterfaceDeclaration",
+        "name": "DoubleJumpComp",
+        "heritageClauses": [
+            {
+                "kind": "HeritageClause",
+                "token": 94,
+                "types": [
+                    {
+                        "kind": "ExpressionWithTypeArguments",
+                        "expression": {
+                            "kind": "Identifier",
+                            "escapedText": "Comp"
+                        }
+                    }
+                ]
+            }
+        ],
+        "members": [
+            {
+                "kind": "MethodSignature",
+                "name": "djump",
+                "parameters": [
+                    {
+                        "kind": "Parameter",
+                        "name": "args",
+                        "dotDotDotToken": {
+                            "kind": "DotDotDotToken"
+                        }
+                    }
+                ],
+                "type": {
+                    "kind": "VoidKeyword"
+                }
+            }
+        ]
+    },
+    "LifespanComp": {
+        "kind": "InterfaceDeclaration",
+        "name": "LifespanComp",
+        "heritageClauses": [
+            {
+                "kind": "HeritageClause",
+                "token": 94,
+                "types": [
+                    {
+                        "kind": "ExpressionWithTypeArguments",
+                        "expression": {
+                            "kind": "Identifier",
+                            "escapedText": "Comp"
+                        }
+                    }
+                ]
+            }
+        ],
+        "members": []
     }
 }

@@ -6,16 +6,21 @@
 - introducing new character "bean"
 ![bean](sprites/bean.png)
 - added `loadBean()` to `"bean"` as a default sprite
-- added `outline()` comp to draw a lil outline
-- added `timer()` comp to attach timers to game obj
+- added comp `health()` to manage health related logic
+- added comp `djump()` to manage double jumps
+- added comp `outline()` to draw a lil outline
+- added comp `timer()` to attach timers to a game obj
+- added comp `fixed()` to make a game obj unaffected by camera
+- added comp `stay()` to make a game obj stay after scene switch
+- added comp `lifespan()` to destroy game obj after certain amount of time
 - (**BREAK**) changed color from 0-1 range to 0-255, angles from radians to degrees
 - `global` and `debug` flag now are enabled by default, need to turn off manually if you don't want
 - added input events `touchStart(id, pos)`, `touchMove(id, pos)`, `touchEnd(id, pos)`, `mouseMove(pos)`
 - added `font` field in `KaboomConf` to set the default font
 - added `mouseDeltaPos()`
 - added `touchToMouse` to control if touch events should be translated to mouse events
-- added `fixed()` component to make an object unaffected by camera
 - added `mousePosRaw()` to get mouse position relative to screen (`mousePos()` is affected by camera)
+- added `anim` field in `SpriteCompConf` to play an anim on start
 - beter type support for components
 - `scene()` and `start()` (also removed in favor of `go()`) are optional now, if you don't need multiple scenes yet you can just go directly
 ```js

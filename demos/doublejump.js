@@ -14,32 +14,6 @@ const NUM_PLATFORMS = 5;
 
 gravity(4000);
 
-// custom component to handle double jump
-function djump() {
-	let hasDouble = true;
-	return {
-		id: "djump",
-		// requires the "body" component
-		require: [ "body", ],
-		// runs once on add
-		add() {
-			this.on("grounded", () => {
-				hasDouble = true;
-			});
-		},
-		djump(...args) {
-			if (this.grounded()) {
-				this.jump(...args);
-			} else if (hasDouble) {
-				hasDouble = false;
-				this.jump(...args);
-				// triggers a custom event
-				this.trigger("djump");
-			}
-		},
-	};
-}
-
 // a spinning component for fun
 function spin(speed = 800) {
 	let spinning = false;

@@ -128,3 +128,4 @@ scene("lose", (score) => {
 });
 
 go("game");
+focus();

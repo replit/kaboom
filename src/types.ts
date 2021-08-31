@@ -1,10 +1,20 @@
 /**
- * Initialize kaboom context.
+ * Initialize kaboom context. The starting point of all kaboom games.
  *
  * @example
  * ```js
  * // this will create a blank canvas and import all kaboom functions to global
  * kaboom();
+ *
+ * // init with some configs (check out #KaboomConf for full config list)
+ * // create a game with custom dimension, but stretch to fit container, keeping aspect ratio, with a clear color
+ * kaboom({
+ *     width: 320,
+ *     height: 240,
+ *     stretch: true,
+ *     letterbox: true,
+ *     clearColor: [ 0, 0, 255, ],
+ * });
  * ```
  */
 declare function kaboom(conf?: KaboomConf): KaboomCtx;
@@ -200,12 +210,14 @@ interface KaboomCtx {
 	 */
 	isTouch(): boolean,
 	/**
-	 * Assembles a game obj from list of components or tags and add it to scene.
+	 * Create and add a game obj to the scene, from a list of components or tags. The added and returned game obj will contain all methods from each component.
 	 *
 	 * @section Game Obj
 	 *
 	 * @example
 	 * ```js
+	 * // let's add our player character to the screen
+	 * // we use a list of components to define who they are and how they actually work
 	 * const player = add([
 	 *     // it renders as a sprite
 	 *     sprite("mark"),
@@ -235,6 +247,12 @@ interface KaboomCtx {
 	 * // .moveTo is provided by pos()
 	 * player.moveTo(100, 200);
 	 *
+	 * // run something every frame
+	 * // player will constantly move towards player.dir, at player.speed per second
+	 * player.action(() => {
+	 *     player.move(player.dir.scale(player.speed));
+	 * });
+	 *
 	 * // .collides is provided by area()
 	 * player.collides("tree", () => {
 	 *     destroy(player);
@@ -242,26 +260,12 @@ interface KaboomCtx {
 	 *
 	 * // run this for all game objs with tag "friendly"
 	 * action("friendly", (friend) => {
-	 *     // .hit is provided by health()
-	 *     friend.hit();
+	 *     // .hurt is provided by health()
+	 *     friend.hurt();
 	 * });
 	 * ```
 	 */
 	add<T extends Comp>(comps: CompList<T>): GameObj<T>,
-	/**
-	 * Remove and re-add the game obj.
-	 *
-	 * @example
-	 * ```js
-	 * // mainly useful when you want to make something to draw on top
-	 * readd(froggy);
-	 * ```
-	 */
-	readd(obj: GameObj<any>): GameObj<any>,
-	/**
-	 * Get CompList<T> from DynCompList<T>.
-	 */
-	getComps<T extends Comp>(comps: DynCompList<T>, ...args: any[]): CompList<T>,
 	/**
 	 * Remove the game obj.
 	 *
@@ -315,6 +319,30 @@ interface KaboomCtx {
 	 */
 	revery<T>(t: Tag, cb: (obj: GameObj<any>) => T): T[],
 	revery<T>(cb: (obj: GameObj<any>) => T): T[],
+	/**
+	 * Remove and re-add the game obj.
+	 *
+	 * @example
+	 * ```js
+	 * // mainly useful when you want to make something to draw on top
+	 * readd(froggy);
+	 * ```
+	 */
+	prepend<T extends Comp>(comps: CompList<T>): GameObj<T>,
+	/**
+	 * Remove and re-add the game obj.
+	 *
+	 * @example
+	 * ```js
+	 * // mainly useful when you want to make something to draw on top
+	 * readd(froggy);
+	 * ```
+	 */
+	readd(obj: GameObj<any>): GameObj<any>,
+	/**
+	 * Get CompList<T> from DynCompList<T>.
+	 */
+	getComps<T extends Comp>(comps: DynCompList<T>, ...args: any[]): CompList<T>,
 	/**
 	 * Define layers (the last one will be on top).
 	 *
@@ -449,7 +477,7 @@ interface KaboomCtx {
 	 */
 	gravity(g: number): number,
 	/**
-	 * <Comp> Position
+	 * Position
 	 *
 	 * @section Components
 	 */
@@ -458,18 +486,18 @@ interface KaboomCtx {
 	pos(p: Vec2): PosComp,
 	pos(): PosComp,
 	/**
-	 * <Comp> Scale.
+	 * Scale.
 	 */
 	scale(x: number, y: number): ScaleComp,
 	scale(xy: number): ScaleComp,
 	scale(s: Vec2): ScaleComp,
 	scale(): ScaleComp,
 	/**
-	 * <Comp> Rotate (in degrees).
+	 * Rotate (in degrees).
 	 */
 	rotate(a: number): RotateComp,
 	/**
-	 * <Comp> Custom color in RGBA (0-255 rgb, 0-1 a, multiplied).
+	 * Custom color in RGBA (0-255 rgb, 0-1 a, multiplied).
 	 *
 	 * @example
 	 * ```js
@@ -484,7 +512,7 @@ interface KaboomCtx {
 	color(c: Color): ColorComp,
 	color(): ColorComp,
 	/**
-	 * <Comp> Origin point for render (default "topleft").
+	 * Origin point for render (default "topleft").
 	 *
 	 * @example
 	 * ```js
@@ -498,11 +526,11 @@ interface KaboomCtx {
 	 */
 	origin(o: Origin | Vec2): OriginComp,
 	/**
-	 * <Comp> Which layer this object belongs to.
+	 * Which layer this object belongs to.
 	 */
 	layer(l: string): LayerComp,
 	/**
-	 * <Comp> Collider. Calculate from rendered dimension (e.g. from sprite, text, rect) if no params given.
+	 * Collider. Calculate from rendered dimension (e.g. from sprite, text, rect) if no params given.
 	 *
 	 * @example
 	 * ```js
@@ -513,15 +541,54 @@ interface KaboomCtx {
 	 * ]);
 	 *
 	 * add([
-	 *     sprite("froggy"),
+	 *     sprite("bomb"),
 	 *     // when pass a single number it'll scale the auto calculated area by 0.6
 	 *     area(0.6),
+	 *     // we want the scale to be calculated from the center
+	 *     origin("center"),
 	 * ]);
 	 *
 	 * // define custom area with topleft and botright point
-	 * add([
+	 * const player = add([
+	 *     sprite("froggy"),
 	 *     area(vec2(-10, -30), vec2(10, 60)),
 	 * ])
+	 *
+	 * // die if player collides with another game obj with tag "tree"
+	 * player.collides("tree", () => {
+	 *     destroy(player);
+	 * });
+	 *
+	 * // push player out of all other game obj with "solid" component
+	 * player.action(() => {
+	 *     player.pushOutAll();
+	 * });
+	 *
+	 * // simple drag an drop
+	 * let draggin = false;
+	 *
+	 * player.clicks(() => {
+	 *     draggin = true;
+	 * });
+	 *
+	 * player.action(() => {
+	 *     if (draggin) {
+	 *         player.pos = mousePos();
+	 *     }
+	 * })
+	 *
+	 * mouseRelease(() => {
+	 *     draggin = false;
+	 * });
+	 *
+	 * // check for collision with another single game obj
+	 * player.action(() => {
+	 *     if (player.isCollided(bomb)) {
+	 *         score += 1;
+	 *     }
+	 * });
+	 *
+	 * // for more methods check out AreaComp
 	 * ```
 	 */
 	area(): AreaComp,
@@ -529,7 +596,7 @@ interface KaboomCtx {
 	area(sx: number, sy: number): AreaComp,
 	area(p1: Vec2, p2: Vec2): AreaComp,
 	/**
-	 * <Comp> Renders as sprite.
+	 * Renders as sprite.
 	 *
 	 * @example
 	 * ```js
@@ -550,54 +617,183 @@ interface KaboomCtx {
 	 *
 	 * // play an anim
 	 * froggy.play("jump");
+	 *
+	 * // manually setting a frame
+	 * froggy.frame = 3;
 	 * ```
 	 */
 	sprite(spr: string | SpriteData, conf?: SpriteCompConf): SpriteComp,
 	/**
-	 * <Comp> Renders as text.
+	 * Renders as text.
 	 *
 	 * @example
 	 * ```js
-	 * add([
-	 *     text("ohhimark"),
-	 *     pos(80, 40),
+	 * // a simple score counter
+	 * const score = add([
+	 *     text("Score: 0"),
+	 *     pos(24, 24),
+	 *     { value: 0 },
 	 * ]);
+	 *
+	 * player.collides("coin", () => {
+	 *     score.value += 1;
+	 *     score.text = "Score:" + score.value;
+	 * });
 	 * ```
 	 */
 	text(t: string, conf?: TextCompConf): TextComp,
 	/**
-	 * <Comp> Renders as rect.
+	 * Renders as rect.
+	 *
+	 * @example
+	 * ```js
+	 * // i don't know, could be an obstacle or somethign
+	 * add([
+	 *     rect(20, 40),
+	 *     outline(4),
+	 *     area(),
+	 * ]);
+	 * ```
 	 */
 	rect(w: number, h: number): RectComp,
-	rect(p1: Vec2, p2: Vec2): RectComp,
 	/**
-	 * <Comp> Give obj an outline.
+	 * Give obj an outline.
 	 */
 	outline(width?: number, color?: Color): OutlineComp,
 	/**
-	 * <Comp> Physical body that responds to gravity.
+	 * Physical body that responds to gravity.
+	 *
+	 * @example
+	 * ```js
+	 * // froggy jumpy
+	 * const froggy = add([
+	 *     sprite("froggy"),
+	 *     // body() requires "pos" and "area" component
+	 *     pos(),
+	 *     area(),
+	 *     body(),
+	 * ]);
+	 *
+	 * // when froggy is grounded, press space to jump
+	 * // check out BodyComp for more methods
+	 * keyPress("space", () => {
+	 *     if (froggy.grounded()) {
+	 *         froggy.jump();
+	 *     }
+	 * });
+	 *
+	 * // a custom event provided by "body"
+	 * froggy.on("grounded", () => {
+	 *     debug.log("oh no!");
+	 * });
+	 * ```
 	 */
 	body(conf?: BodyCompConf): BodyComp,
 	/**
-	 * <Comp> Custom shader.
+	 * Custom shader.
 	 */
 	shader(id: string): ShaderComp,
 	/**
-	 * <Comp> Run certain action after some time.
+	 * Run certain action after some time.
 	 */
 	timer(n?: number, action?: () => void): TimerComp,
 	/**
-	 * <Comp> Make other objects cannot move pass.
+	 * Make other objects cannot move pass.
 	 */
 	solid(): SolidComp,
 	/**
-	 * <Comp> Unaffected by camera.
+	 * Unaffected by camera.
+	 *
+	 * @example
+	 * ```js
+	 * // this score counter better be fixed on top left and not affected by camera
+	 * const score = add([
+	 *     text(0),
+	 *     pos(12, 12),
+	 * ]);
+	 * ```
 	 */
 	fixed(): FixedComp,
 	/**
-	 * <Comp> Don't get destroyed on scene switch.
+	 * Don't get destroyed on scene switch.
+	 *
+	 * @example
+	 * ```js
+	 * player.collides("bomb", () => {
+	 *     // spawn an explosion and switch scene, but don't destroy the explosion game obj on scene switch
+	 *     add([
+	 *         sprite("explosion", { anim: "burst", }),
+	 *         stay(),
+	 *         lifespan(2),
+	 *     ]);
+	 *     go("lose", score);
+	 * });
+	 * ```
 	 */
 	stay(): StayComp,
+	/**
+	 * Handles health related logic and events.
+	 *
+	 * @example
+	 * ```js
+	 * const player = add([
+	 *     health(3),
+	 * ]);
+	 *
+	 * player.collides("bad", (bad) => {
+	 *     player.hurt(1);
+	 *     bad.hurt(1);
+	 * });
+     *
+	 * player.collides("apple", () => {
+	 *     player.heal(1);
+	 * });
+	 *
+	 * player.on("hurt", () => {
+	 *     play("ouch");
+	 * });
+	 *
+	 * // triggers when hp reaches 0
+	 * player.on("death", () => {
+	 *     destroy(player);
+	 *     go("lose");
+	 * });
+	 * ```
+	 */
+	health(hp: number): HealthComp,
+	/**
+	 * Enables double jump.
+	 *
+	 * @example
+	 * ```js
+	 * const player = add([
+	 *     pos(80, 80),
+	 *     area(),
+	 *     body(),
+	 *     djump(),
+	 * ]);
+	 *
+	 * // just replace .jump() with .djump()
+	 * // also note .djump() will only launch initial jump when grounded
+	 * keyPress("space", () => {
+	 *     player.djump();
+	 * });
+	 * ```
+	 */
+	djump(): DoubleJumpComp,
+	/**
+	 * Destroy the game obj after certain amount of time
+	 *
+	 * @example
+	 * ```js
+	 * // spawn an explosion, destroy after 2 seconds and the switch scene
+	 * add([
+	 *     sprite("explosion", { anim: "burst", }),
+	 *     lifespan(2, () => go("lose")),
+	 * ]);
+	 * ```
+	 */
+	lifespan(time: number, action?: () => void): LifespanComp,
 	/**
 	 * Get / set the cursor (css)
 	 */
@@ -1502,6 +1698,10 @@ interface SpriteCompConf {
 	 */
 	height?: number,
 	/**
+	 * Play an anim on start.
+	 */
+	anim?: number,
+	/**
 	 * Flip texture horizontally.
 	 */
 	flipX?: boolean,
@@ -1709,4 +1909,17 @@ interface FixedComp extends Comp {
 
 interface StayComp extends Comp {
 	stay: boolean;
+}
+
+interface HealthComp extends Comp {
+	hurt(n?: number): void,
+	heal(n?: number): void,
+	hp(): number,
+}
+
+interface DoubleJumpComp extends Comp {
+	djump(...args): void;
+}
+
+interface LifespanComp extends Comp {
 }
