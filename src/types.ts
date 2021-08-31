@@ -1660,6 +1660,13 @@ interface LayerComp extends Comp {
 	layer: string;
 }
 
+interface ZComp extends Comp {
+	/**
+	 * Defines the z-index of this game obj
+	 */
+	z: number;
+}
+
 type RectSide =
 	"top"
 	| "bottom"
