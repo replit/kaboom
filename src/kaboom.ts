@@ -807,7 +807,11 @@ function get(t?: string): GameObj<any>[] {
 	const objs = [...game.objs.values()].sort((o1, o2) => {
 		const l1 = game.layers[o1.layer ?? game.defLayer]?.order ?? 0;;
 		const l2 = game.layers[o2.layer ?? game.defLayer]?.order ?? 0;
-		return l1 - l2;
+
+		const diff = l1 - l2
+		if (l1 - l2 !== 0) return diff;
+
+		return (o1.z ?? 0) - (o2.z ?? 0);
 	});
 
 	if (!t) {
@@ -1122,6 +1126,13 @@ function layer(l: string): LayerComp {
 				layer: this.layer ?? game.defLayer,
 			};
 		},
+	};
+}
+
+function z(z: number): ZComp {
+	return {
+		id: "z",
+		z: z,
 	};
 }
 
@@ -2077,6 +2088,7 @@ const ctx: KaboomCtx = {
 	health,
 	djump,
 	lifespan,
+	z,
 	// group events
 	on,
 	action,
