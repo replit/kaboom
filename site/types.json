@@ -1877,158 +1877,6 @@
             },
             {
                 "kind": "MethodSignature",
-                "name": "origin",
-                "parameters": [
-                    {
-                        "kind": "Parameter",
-                        "name": "o",
-                        "type": {
-                            "kind": "UnionType",
-                            "types": [
-                                {
-                                    "kind": "TypeReference",
-                                    "typeName": "Origin"
-                                },
-                                {
-                                    "kind": "TypeReference",
-                                    "typeName": "Vec2"
-                                }
-                            ]
-                        }
-                    }
-                ],
-                "type": {
-                    "kind": "TypeReference",
-                    "typeName": "OriginComp"
-                },
-                "jsDoc": [
-                    {
-                        "kind": "JSDocComment",
-                        "comment": "Origin point for render (default \"topleft\").",
-                        "tags": [
-                            {
-                                "kind": "FirstJSDocTagNode",
-                                "tagName": "example",
-                                "comment": "```js\n// set origin to \"center\" so it'll rotate from center\nadd([\n    rect(40, 10),\n    rotate(45),\n    origin(\"center\"),\n]);\n```"
-                            }
-                        ]
-                    }
-                ]
-            },
-            {
-                "kind": "MethodSignature",
-                "name": "layer",
-                "parameters": [
-                    {
-                        "kind": "Parameter",
-                        "name": "l",
-                        "type": {
-                            "kind": "StringKeyword"
-                        }
-                    }
-                ],
-                "type": {
-                    "kind": "TypeReference",
-                    "typeName": "LayerComp"
-                },
-                "jsDoc": [
-                    {
-                        "kind": "JSDocComment",
-                        "comment": "Which layer this object belongs to."
-                    }
-                ]
-            },
-            {
-                "kind": "MethodSignature",
-                "name": "area",
-                "parameters": [],
-                "type": {
-                    "kind": "TypeReference",
-                    "typeName": "AreaComp"
-                },
-                "jsDoc": [
-                    {
-                        "kind": "JSDocComment",
-                        "comment": "Collider. Calculate from rendered dimension (e.g. from sprite, text, rect) if no params given.",
-                        "tags": [
-                            {
-                                "kind": "FirstJSDocTagNode",
-                                "tagName": "example",
-                                "comment": "```js\nadd([\n    sprite(\"froggy\"),\n    // without args it'll auto calculate from the data sprite comp provides\n    area(),\n]);\n\nadd([\n    sprite(\"bomb\"),\n    // when pass a single number it'll scale the auto calculated area by 0.6\n    area(0.6),\n    // we want the scale to be calculated from the center\n    origin(\"center\"),\n]);\n\n// define custom area with topleft and botright point\nconst player = add([\n    sprite(\"froggy\"),\n    area(vec2(-10, -30), vec2(10, 60)),\n])\n\n// die if player collides with another game obj with tag \"tree\"\nplayer.collides(\"tree\", () => {\n    destroy(player);\n});\n\n// push player out of all other game obj with \"solid\" component\nplayer.action(() => {\n    player.pushOutAll();\n});\n\n// simple drag an drop\nlet draggin = false;\n\nplayer.clicks(() => {\n    draggin = true;\n});\n\nplayer.action(() => {\n    if (draggin) {\n        player.pos = mousePos();\n    }\n})\n\nmouseRelease(() => {\n    draggin = false;\n});\n\n// check for collision with another single game obj\nplayer.action(() => {\n    if (player.isCollided(bomb)) {\n        score += 1;\n    }\n});\n\n// for more methods check out AreaComp\n```"
-                            }
-                        ]
-                    }
-                ]
-            },
-            {
-                "kind": "MethodSignature",
-                "name": "area",
-                "parameters": [
-                    {
-                        "kind": "Parameter",
-                        "name": "scale",
-                        "type": {
-                            "kind": "NumberKeyword"
-                        }
-                    }
-                ],
-                "type": {
-                    "kind": "TypeReference",
-                    "typeName": "AreaComp"
-                }
-            },
-            {
-                "kind": "MethodSignature",
-                "name": "area",
-                "parameters": [
-                    {
-                        "kind": "Parameter",
-                        "name": "sx",
-                        "type": {
-                            "kind": "NumberKeyword"
-                        }
-                    },
-                    {
-                        "kind": "Parameter",
-                        "name": "sy",
-                        "type": {
-                            "kind": "NumberKeyword"
-                        }
-                    }
-                ],
-                "type": {
-                    "kind": "TypeReference",
-                    "typeName": "AreaComp"
-                }
-            },
-            {
-                "kind": "MethodSignature",
-                "name": "area",
-                "parameters": [
-                    {
-                        "kind": "Parameter",
-                        "name": "p1",
-                        "type": {
-                            "kind": "TypeReference",
-                            "typeName": "Vec2"
-                        }
-                    },
-                    {
-                        "kind": "Parameter",
-                        "name": "p2",
-                        "type": {
-                            "kind": "TypeReference",
-                            "typeName": "Vec2"
-                        }
-                    }
-                ],
-                "type": {
-                    "kind": "TypeReference",
-                    "typeName": "AreaComp"
-                }
-            },
-            {
-                "kind": "MethodSignature",
                 "name": "sprite",
                 "parameters": [
                     {
@@ -2148,6 +1996,181 @@
                                 "comment": "```js\n// i don't know, could be an obstacle or somethign\nadd([\n    rect(20, 40),\n    outline(4),\n    area(),\n]);\n```"
                             }
                         ]
+                    }
+                ]
+            },
+            {
+                "kind": "MethodSignature",
+                "name": "area",
+                "parameters": [],
+                "type": {
+                    "kind": "TypeReference",
+                    "typeName": "AreaComp"
+                },
+                "jsDoc": [
+                    {
+                        "kind": "JSDocComment",
+                        "comment": "Collider. Calculate from rendered dimension (e.g. from sprite, text, rect) if no params given.",
+                        "tags": [
+                            {
+                                "kind": "FirstJSDocTagNode",
+                                "tagName": "example",
+                                "comment": "```js\nadd([\n    sprite(\"froggy\"),\n    // without args it'll auto calculate from the data sprite comp provides\n    area(),\n]);\n\nadd([\n    sprite(\"bomb\"),\n    // when pass a single number it'll scale the auto calculated area by 0.6\n    area(0.6),\n    // we want the scale to be calculated from the center\n    origin(\"center\"),\n]);\n\n// define custom area with topleft and botright point\nconst player = add([\n    sprite(\"froggy\"),\n    area(vec2(-10, -30), vec2(10, 60)),\n])\n\n// die if player collides with another game obj with tag \"tree\"\nplayer.collides(\"tree\", () => {\n    destroy(player);\n});\n\n// push player out of all other game obj with \"solid\" component\nplayer.action(() => {\n    player.pushOutAll();\n});\n\n// simple drag an drop\nlet draggin = false;\n\nplayer.clicks(() => {\n    draggin = true;\n});\n\nplayer.action(() => {\n    if (draggin) {\n        player.pos = mousePos();\n    }\n})\n\nmouseRelease(() => {\n    draggin = false;\n});\n\n// check for collision with another single game obj\nplayer.action(() => {\n    if (player.isCollided(bomb)) {\n        score += 1;\n    }\n});\n\n// for more methods check out AreaComp\n```"
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
+                "kind": "MethodSignature",
+                "name": "area",
+                "parameters": [
+                    {
+                        "kind": "Parameter",
+                        "name": "scale",
+                        "type": {
+                            "kind": "NumberKeyword"
+                        }
+                    }
+                ],
+                "type": {
+                    "kind": "TypeReference",
+                    "typeName": "AreaComp"
+                }
+            },
+            {
+                "kind": "MethodSignature",
+                "name": "area",
+                "parameters": [
+                    {
+                        "kind": "Parameter",
+                        "name": "sx",
+                        "type": {
+                            "kind": "NumberKeyword"
+                        }
+                    },
+                    {
+                        "kind": "Parameter",
+                        "name": "sy",
+                        "type": {
+                            "kind": "NumberKeyword"
+                        }
+                    }
+                ],
+                "type": {
+                    "kind": "TypeReference",
+                    "typeName": "AreaComp"
+                }
+            },
+            {
+                "kind": "MethodSignature",
+                "name": "area",
+                "parameters": [
+                    {
+                        "kind": "Parameter",
+                        "name": "p1",
+                        "type": {
+                            "kind": "TypeReference",
+                            "typeName": "Vec2"
+                        }
+                    },
+                    {
+                        "kind": "Parameter",
+                        "name": "p2",
+                        "type": {
+                            "kind": "TypeReference",
+                            "typeName": "Vec2"
+                        }
+                    }
+                ],
+                "type": {
+                    "kind": "TypeReference",
+                    "typeName": "AreaComp"
+                }
+            },
+            {
+                "kind": "MethodSignature",
+                "name": "origin",
+                "parameters": [
+                    {
+                        "kind": "Parameter",
+                        "name": "o",
+                        "type": {
+                            "kind": "UnionType",
+                            "types": [
+                                {
+                                    "kind": "TypeReference",
+                                    "typeName": "Origin"
+                                },
+                                {
+                                    "kind": "TypeReference",
+                                    "typeName": "Vec2"
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "type": {
+                    "kind": "TypeReference",
+                    "typeName": "OriginComp"
+                },
+                "jsDoc": [
+                    {
+                        "kind": "JSDocComment",
+                        "comment": "Origin point for render (default \"topleft\").",
+                        "tags": [
+                            {
+                                "kind": "FirstJSDocTagNode",
+                                "tagName": "example",
+                                "comment": "```js\n// set origin to \"center\" so it'll rotate from center\nadd([\n    rect(40, 10),\n    rotate(45),\n    origin(\"center\"),\n]);\n```"
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
+                "kind": "MethodSignature",
+                "name": "layer",
+                "parameters": [
+                    {
+                        "kind": "Parameter",
+                        "name": "l",
+                        "type": {
+                            "kind": "StringKeyword"
+                        }
+                    }
+                ],
+                "type": {
+                    "kind": "TypeReference",
+                    "typeName": "LayerComp"
+                },
+                "jsDoc": [
+                    {
+                        "kind": "JSDocComment",
+                        "comment": "Which layer this object belongs to."
+                    }
+                ]
+            },
+            {
+                "kind": "MethodSignature",
+                "name": "z",
+                "parameters": [
+                    {
+                        "kind": "Parameter",
+                        "name": "z",
+                        "type": {
+                            "kind": "NumberKeyword"
+                        }
+                    }
+                ],
+                "type": {
+                    "kind": "TypeReference",
+                    "typeName": "ZComp"
+                },
+                "jsDoc": [
+                    {
+                        "kind": "JSDocComment",
+                        "comment": "Determines the draw order for objects on the same layer. Object will be drawn on top if z value is bigger."
                     }
                 ]
             },
@@ -8045,6 +8068,40 @@
                     {
                         "kind": "JSDocComment",
                         "comment": "Which layer this game obj belongs to."
+                    }
+                ]
+            }
+        ]
+    },
+    "ZComp": {
+        "kind": "InterfaceDeclaration",
+        "name": "ZComp",
+        "heritageClauses": [
+            {
+                "kind": "HeritageClause",
+                "token": 94,
+                "types": [
+                    {
+                        "kind": "ExpressionWithTypeArguments",
+                        "expression": {
+                            "kind": "Identifier",
+                            "escapedText": "Comp"
+                        }
+                    }
+                ]
+            }
+        ],
+        "members": [
+            {
+                "kind": "PropertySignature",
+                "name": "z",
+                "type": {
+                    "kind": "NumberKeyword"
+                },
+                "jsDoc": [
+                    {
+                        "kind": "JSDocComment",
+                        "comment": "Defines the z-index of this game obj"
                     }
                 ]
             }

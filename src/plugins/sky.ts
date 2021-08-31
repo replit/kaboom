@@ -53,6 +53,7 @@ export default (k: KaboomCtx) => {
 			k.rect(k.width(), k.height()),
 			k.color(conf.color || k.rgb(127, 255, 255)),
 			k.fixed(),
+			k.z(-Number.MAX_SAFE_INTEGER),
 		]);
 
 		let destroyed = false;
@@ -73,6 +74,7 @@ export default (k: KaboomCtx) => {
 				k.sprite(cloudSprite),
 				k.pos(screenPos),
 				k.origin("left"),
+				k.z(-Number.MAX_SAFE_INTEGER + 1),
 				...k.getComps(conf.cloudComps),
 			]);
 

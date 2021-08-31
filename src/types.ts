@@ -520,23 +520,66 @@ interface KaboomCtx {
 	color(c: Color): ColorComp,
 	color(): ColorComp,
 	/**
-	 * Origin point for render (default "topleft").
+	 * Renders as sprite.
 	 *
 	 * @example
 	 * ```js
-	 * // set origin to "center" so it'll rotate from center
+	 * // minimal setup
 	 * add([
-	 *     rect(40, 10),
-	 *     rotate(45),
-	 *     origin("center"),
+	 *     sprite("froggy"),
+	 * ]);
+	 *
+	 * // minimal setup
+	 * const froggy = add([
+	 *     sprite("froggy", {
+	 *         // seconds per frame (default 0.1)
+	 *         animSpeed: 0.2,
+	 *         // start with frame 2
+	 *         frame: 2,
+	 *     }),
+	 * ]);
+	 *
+	 * // play an anim
+	 * froggy.play("jump");
+	 *
+	 * // manually setting a frame
+	 * froggy.frame = 3;
+	 * ```
+	 */
+	sprite(spr: string | SpriteData, conf?: SpriteCompConf): SpriteComp,
+	/**
+	 * Renders as text.
+	 *
+	 * @example
+	 * ```js
+	 * // a simple score counter
+	 * const score = add([
+	 *     text("Score: 0"),
+	 *     pos(24, 24),
+	 *     { value: 0 },
+	 * ]);
+	 *
+	 * player.collides("coin", () => {
+	 *     score.value += 1;
+	 *     score.text = "Score:" + score.value;
+	 * });
+	 * ```
+	 */
+	text(txt: string, conf?: TextCompConf): TextComp,
+	/**
+	 * Renders as rect.
+	 *
+	 * @example
+	 * ```js
+	 * // i don't know, could be an obstacle or somethign
+	 * add([
+	 *     rect(20, 40),
+	 *     outline(4),
+	 *     area(),
 	 * ]);
 	 * ```
 	 */
-	origin(o: Origin | Vec2): OriginComp,
-	/**
-	 * Which layer this object belongs to.
-	 */
-	layer(l: string): LayerComp,
+	rect(w: number, h: number): RectComp,
 	/**
 	 * Collider. Calculate from rendered dimension (e.g. from sprite, text, rect) if no params given.
 	 *
@@ -604,66 +647,27 @@ interface KaboomCtx {
 	area(sx: number, sy: number): AreaComp,
 	area(p1: Vec2, p2: Vec2): AreaComp,
 	/**
-	 * Renders as sprite.
+	 * Origin point for render (default "topleft").
 	 *
 	 * @example
 	 * ```js
-	 * // minimal setup
+	 * // set origin to "center" so it'll rotate from center
 	 * add([
-	 *     sprite("froggy"),
+	 *     rect(40, 10),
+	 *     rotate(45),
+	 *     origin("center"),
 	 * ]);
-	 *
-	 * // minimal setup
-	 * const froggy = add([
-	 *     sprite("froggy", {
-	 *         // seconds per frame (default 0.1)
-	 *         animSpeed: 0.2,
-	 *         // start with frame 2
-	 *         frame: 2,
-	 *     }),
-	 * ]);
-	 *
-	 * // play an anim
-	 * froggy.play("jump");
-	 *
-	 * // manually setting a frame
-	 * froggy.frame = 3;
 	 * ```
 	 */
-	sprite(spr: string | SpriteData, conf?: SpriteCompConf): SpriteComp,
+	origin(o: Origin | Vec2): OriginComp,
 	/**
-	 * Renders as text.
-	 *
-	 * @example
-	 * ```js
-	 * // a simple score counter
-	 * const score = add([
-	 *     text("Score: 0"),
-	 *     pos(24, 24),
-	 *     { value: 0 },
-	 * ]);
-	 *
-	 * player.collides("coin", () => {
-	 *     score.value += 1;
-	 *     score.text = "Score:" + score.value;
-	 * });
-	 * ```
+	 * Which layer this object belongs to.
 	 */
-	text(txt: string, conf?: TextCompConf): TextComp,
+	layer(l: string): LayerComp,
 	/**
-	 * Renders as rect.
-	 *
-	 * @example
-	 * ```js
-	 * // i don't know, could be an obstacle or somethign
-	 * add([
-	 *     rect(20, 40),
-	 *     outline(4),
-	 *     area(),
-	 * ]);
-	 * ```
+	 * Determines the draw order for objects on the same layer. Object will be drawn on top if z value is bigger.
 	 */
-	rect(w: number, h: number): RectComp,
+	z(z: number): ZComp,
 	/**
 	 * Give obj an outline.
 	 */

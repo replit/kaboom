@@ -805,13 +805,17 @@ function touchEnd(f: (id: TouchID, pos: Vec2) => void): EventCanceller {
 function get(t?: string): GameObj<any>[] {
 
 	const objs = [...game.objs.values()].sort((o1, o2) => {
-		const l1 = game.layers[o1.layer ?? game.defLayer]?.order ?? 0;;
+
+		const l1 = game.layers[o1.layer ?? game.defLayer]?.order ?? 0;
 		const l2 = game.layers[o2.layer ?? game.defLayer]?.order ?? 0;
 
-		const diff = l1 - l2
-		if (l1 - l2 !== 0) return diff;
+		// if on same layer, use "z" comp to decide which is on top, if given
+		if (l1 == l2) {
+			return (o1.z ?? 0) - (o2.z ?? 0);
+		} else {
+			return l1 - l2;
+		}
 
-		return (o1.z ?? 0) - (o2.z ?? 0);
 	});
 
 	if (!t) {
