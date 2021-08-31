@@ -33,4 +33,7 @@ module.exports = {
 		"border": "solid 2px #eaeaea",
 		"border-radius": "12px",
 	},
+	"code": {
+		"font-family": "IBM Plex Mono",
+	},
 };

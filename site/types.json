@@ -25,7 +25,7 @@
                     {
                         "kind": "FirstJSDocTagNode",
                         "tagName": "example",
-                        "comment": "```js\n// this will create a blank canvas and import all kaboom functions to global\nkaboom();\n\n// init with some configs (check out #KaboomConf for full config list)\n// create a game with custom dimension, but stretch to fit container, keeping aspect ratio, with a clear color\nkaboom({\n    width: 320,\n    height: 240,\n    stretch: true,\n    letterbox: true,\n    clearColor: [ 0, 0, 255, ],\n});\n```"
+                        "comment": "```js\n// this will create a blank canvas and import all kaboom functions to global\nkaboom();\n\n// init with some configs (check out #KaboomConf for full config list)\n// create a game with custom dimension, but stretch to fit container, keeping aspect ratio, with a clear color\nkaboom({\n    width: 320,\n    height: 240,\n    stretch: true,\n    letterbox: true,\n    clearColor: [ 0, 0, 255, ],\n});\n\n// can also prevent kaboom from importing all functions to global and use a context handle\nconst k = kaboom({ global: false });\n\nk.add(...);\nk.action(...);\nk.keyPress(...);\nk.vec2(...);\n```"
                     }
                 ]
             }
@@ -3247,7 +3247,7 @@
                 "jsDoc": [
                     {
                         "kind": "JSDocComment",
-                        "comment": "Try it."
+                        "comment": "Yep."
                     }
                 ]
             },
@@ -3312,6 +3312,11 @@
                                 "kind": "FirstJSDocTagNode",
                                 "tagName": "section",
                                 "comment": "Math"
+                            },
+                            {
+                                "kind": "FirstJSDocTagNode",
+                                "tagName": "example",
+                                "comment": "```js\n// a random number between 0 - 1\nrand();\n\n// a random number between 0 - 8\nrand(8);\n\n// a random number between 50 - 100\nrand(50, 100);\n\n// a random vec2 between vec2(0) and vec2(100)\nrand(vec2(0), vec2(100));\n\n// spawn something on the right side of the screen but with random y value within screen height\nadd([\n    pos(width(), rand(0, height())),\n]);\n```"
                             }
                         ]
                     }
@@ -3423,7 +3428,14 @@
                 "jsDoc": [
                     {
                         "kind": "JSDocComment",
-                        "comment": "Make a 2d vector."
+                        "comment": "Make a 2d vector.",
+                        "tags": [
+                            {
+                                "kind": "FirstJSDocTagNode",
+                                "tagName": "example",
+                                "comment": "```js\n// { x: 0, y: 0 }\nvec2();\n\n// { x: 10, y: 10 }\nvec2(10);\n\n// { x: 100, y: 80 }\nconst pos = vec2(100, 80);\n\n// move to 150 degrees direction with by length 10\npos = pos.add(dir(150).scale(10));\n```"
+                            }
+                        ]
                     }
                 ]
             },
@@ -3625,7 +3637,14 @@
                 "jsDoc": [
                     {
                         "kind": "JSDocComment",
-                        "comment": "Choose a random item from a list."
+                        "comment": "Choose a random item from a list.",
+                        "tags": [
+                            {
+                                "kind": "FirstJSDocTagNode",
+                                "tagName": "example",
+                                "comment": "```js\n// decide the best fruit randomly\nconst bestFruit = choose([\"apple\", \"banana\", \"pear\", \"watermelon\"]);\n```"
+                            }
+                        ]
                     }
                 ]
             },
@@ -3647,7 +3666,14 @@
                 "jsDoc": [
                     {
                         "kind": "JSDocComment",
-                        "comment": "rand(1) <= p"
+                        "comment": "rand(1) <= p",
+                        "tags": [
+                            {
+                                "kind": "FirstJSDocTagNode",
+                                "tagName": "example",
+                                "comment": "```js\n// every frame all objs with tag \"unlucky\" have 50% chance die\naction(\"unlucky\", (o) => {\n    if (chance(0.5)) {\n        destroy(o);\n    }\n});\n```"
+                            }
+                        ]
                     }
                 ]
             },
@@ -3789,6 +3815,36 @@
             },
             {
                 "kind": "MethodSignature",
+                "name": "dir",
+                "parameters": [
+                    {
+                        "kind": "Parameter",
+                        "name": "deg",
+                        "type": {
+                            "kind": "NumberKeyword"
+                        }
+                    }
+                ],
+                "type": {
+                    "kind": "TypeReference",
+                    "typeName": "Vec2"
+                },
+                "jsDoc": [
+                    {
+                        "kind": "JSDocComment",
+                        "comment": "Get directional vector from an angle",
+                        "tags": [
+                            {
+                                "kind": "FirstJSDocTagNode",
+                                "tagName": "example",
+                                "comment": "```js\n// move towards 80 deg direction at SPEED\nplayer.action(() => {\n    player.move(dir(80).scale(SPEED));\n});\n```"
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
+                "kind": "MethodSignature",
                 "name": "wave",
                 "parameters": [
                     {
@@ -3819,7 +3875,14 @@
                 "jsDoc": [
                     {
                         "kind": "JSDocComment",
-                        "comment": "Sin() motion between 2 values."
+                        "comment": "Sin() motion between 2 values.",
+                        "tags": [
+                            {
+                                "kind": "FirstJSDocTagNode",
+                                "tagName": "example",
+                                "comment": "```js\n// change color with sin() like motion\naction(\"colorful\", (c) => {\n    c.color.r = wave(0, 255, time());\n    c.color.g = wave(0, 255, time() + 1);\n    c.color.b = wave(0, 255, time() + 2);\n});\n```"
+                            }
+                        ]
                     }
                 ]
             },
@@ -3869,7 +3932,7 @@
             },
             {
                 "kind": "MethodSignature",
-                "name": "makeRng",
+                "name": "rng",
                 "parameters": [
                     {
                         "kind": "Parameter",

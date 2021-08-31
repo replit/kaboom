@@ -15,6 +15,14 @@
  *     letterbox: true,
  *     clearColor: [ 0, 0, 255, ],
  * });
+ *
+ * // can also prevent kaboom from importing all functions to global and use a context handle
+ * const k = kaboom({ global: false });
+ *
+ * k.add(...);
+ * k.action(...);
+ * k.keyPress(...);
+ * k.vec2(...);
  * ```
  */
 declare function kaboom(conf?: KaboomConf): KaboomCtx;
@@ -923,7 +931,7 @@ interface KaboomCtx {
 	 */
 	play(id: string, conf?: AudioPlayConf): AudioPlay,
 	/**
-	 * Try it.
+	 * Yep.
 	 */
 	burp(conf?: AudioPlayConf): AudioPlay,
 	/**
@@ -944,6 +952,26 @@ interface KaboomCtx {
 	 * Get a random number (with optional bounds).
 	 *
 	 * @section Math
+	 *
+	 * @example
+	 * ```js
+	 * // a random number between 0 - 1
+	 * rand();
+
+	 * // a random number between 0 - 8
+	 * rand(8);
+
+	 * // a random number between 50 - 100
+	 * rand(50, 100);
+	 *
+	 * // a random vec2 between vec2(0) and vec2(100)
+	 * rand(vec2(0), vec2(100));
+	 *
+	 * // spawn something on the right side of the screen but with random y value within screen height
+	 * add([
+	 *     pos(width(), rand(0, height())),
+	 * ]);
+	 * ```
 	 */
 	rand(): number,
 	rand<T extends RNGValue>(n: T): T,
@@ -951,6 +979,21 @@ interface KaboomCtx {
 	randSeed(seed: number): number,
 	/**
 	 * Make a 2d vector.
+	 *
+	 * @example
+	 * ```js
+	 * // { x: 0, y: 0 }
+	 * vec2();
+	 *
+	 * // { x: 10, y: 10 }
+	 * vec2(10);
+	 *
+	 * // { x: 100, y: 80 }
+	 * const pos = vec2(100, 80);
+	 *
+	 * // move to 150 degrees direction with by length 10
+	 * pos = pos.add(dir(150).scale(10));
+	 * ```
 	 */
 	vec2(x: number, y: number): Vec2,
 	vec2(p: Vec2): Vec2,
@@ -970,10 +1013,26 @@ interface KaboomCtx {
 	quad(x: number, y: number, w: number, h: number): Quad,
 	/**
 	 * Choose a random item from a list.
+	 *
+	 * @example
+	 * ```js
+	 * // decide the best fruit randomly
+	 * const bestFruit = choose(["apple", "banana", "pear", "watermelon"]);
+	 * ```
 	 */
 	choose<T>(lst: T[]): T,
 	/**
 	 * rand(1) <= p
+	 *
+	 * @example
+	 * ```js
+	 * // every frame all objs with tag "unlucky" have 50% chance die
+	 * action("unlucky", (o) => {
+	 *     if (chance(0.5)) {
+	 *         destroy(o);
+	 *     }
+	 * });
+	 * ```
 	 */
 	chance(p: number): boolean,
 	/**
@@ -1001,7 +1060,29 @@ interface KaboomCtx {
 		h2: number,
 	): number,
 	/**
+	 * Get directional vector from an angle
+	 *
+	 * @example
+	 * ```js
+	 * // move towards 80 deg direction at SPEED
+	 * player.action(() => {
+	 *     player.move(dir(80).scale(SPEED));
+	 * });
+	 * ```
+	 */
+	dir(deg: number): Vec2,
+	/**
 	 * Sin() motion between 2 values.
+	 *
+	 * @example
+	 * ```js
+	 * // change color with sin() like motion
+	 * action("colorful", (c) => {
+	 *     c.color.r = wave(0, 255, time());
+	 *     c.color.g = wave(0, 255, time() + 1);
+	 *     c.color.b = wave(0, 255, time() + 2);
+	 * });
+	 * ```
 	 */
 	wave(lo: number, hi: number, t: number): number,
 	/**
@@ -1015,7 +1096,7 @@ interface KaboomCtx {
 	/**
 	 * Make a new random number generator.
 	 */
-	makeRng(seed: number): RNG,
+	rng(seed: number): RNG,
 	drawSprite(id: string | SpriteData, conf?: DrawSpriteConf): void,
 	// TODO: conf type
 	drawText(txt: string, conf?: {}): void,

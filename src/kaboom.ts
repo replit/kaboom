@@ -4,7 +4,7 @@ import {
 	quad,
 	rgba,
 	rgb,
-	makeRng,
+	rng,
 	rand,
 	randSeed,
 	chance,
@@ -17,7 +17,7 @@ import {
 	colRectRect,
 	overlapRectRect,
 	colRectPt,
-	vec2FromAngle,
+	dir,
 	deg2rad,
 	rad2deg,
 	isVec2,
@@ -888,7 +888,7 @@ function gameFrame(ignorePause?: boolean) {
 	// calculate camera matrix
 	const size = vec2(gfx.width(), gfx.height());
 	const cam = game.cam;
-	const shake = vec2FromAngle(rand(0, Math.PI * 2)).scale(cam.shake);
+	const shake = dir(rand(0, 360)).scale(cam.shake);
 
 	cam.shake = lerp(cam.shake, 0, 5 * dt());
 	game.camMatrix = mat4()
@@ -2127,10 +2127,11 @@ const ctx: KaboomCtx = {
 	burp: audio.burp,
 	audioCtx: audio.ctx,
 	// math
-	makeRng,
+	rng,
 	rand,
 	randSeed,
 	vec2,
+	dir,
 	rgb,
 	rgba,
 	quad,

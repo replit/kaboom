@@ -112,13 +112,14 @@ function vec2(...args): Vec2 {
 			return this.x === other.x && this.y === other.y;
 		},
 		str(): string {
-			return `(${this.x}, ${this.y})`;
+			return `(${this.x.toFixed(2)}, ${this.y.toFixed(2)})`;
 		},
 	};
 }
 
-function vec2FromAngle(a: number): Vec2 {
-	return vec2(Math.cos(a), Math.sin(a));
+function dir(deg: number): Vec2 {
+	const angle = deg2rad(deg);
+	return vec2(Math.cos(angle), Math.sin(angle));
 }
 
 function vec3(x: number, y: number, z: number): Vec3 {
@@ -430,9 +431,10 @@ function wave(lo: number, hi: number, t: number): number {
 const A = 1103515245;
 const C = 12345;
 const M = 2147483648;
-const defRNG = makeRng(Date.now());
+// TODO: let user pass seed
+const defRNG = rng(Date.now());
 
-function makeRng(seed: number): RNG {
+function rng(seed: number): RNG {
 	return {
 		seed: seed,
 		gen(...args) {
@@ -563,7 +565,7 @@ export {
 	quad,
 	rgba,
 	rgb,
-	makeRng,
+	rng,
 	rand,
 	randSeed,
 	chance,
@@ -580,7 +582,7 @@ export {
 	colLineLine,
 	colRectLine,
 	colRectPt,
-	vec2FromAngle,
+	dir,
 	isVec2,
 	isVec3,
 	isColor,

@@ -13,6 +13,7 @@
 - added comp `fixed()` to make a game obj unaffected by camera
 - added comp `stay()` to make a game obj stay after scene switch
 - added comp `lifespan()` to destroy game obj after certain amount of time
+- added `dir()` to calculate directional vector from angle
 - (**BREAK**) changed color from 0-1 range to 0-255, angles from radians to degrees
 - `global` and `debug` flag now are enabled by default, need to turn off manually if you don't want
 - added input events `touchStart(id, pos)`, `touchMove(id, pos)`, `touchEnd(id, pos)`, `mouseMove(pos)`
@@ -83,6 +84,7 @@ obj.c("sprite").play("anim");
 - (**BREAK**) removed `changeSprite()` in favor of `use(sprite("newsprite"))`
 - (**BREAK**) renamed `rmTag()` to `untag()`
 - (**BREAK**) removed `camIgnore()` in favor of `fixed()`
+- (**BREAK**) renamed `makeRng()` to `rng()`
 
 ### v0.5.1
 - added plugins npm package support e.g. `import asepritePlugin from "kaboom/plugins/aseprite"`
