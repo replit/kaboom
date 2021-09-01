@@ -26,7 +26,6 @@ function addButton(txt, p, f) {
 				f();
 			}
 		} else {
-			cursor("default");
 			btn.scale = vec2(1);
 			btn.color = rgb();
 		}

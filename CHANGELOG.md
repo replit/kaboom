@@ -7,12 +7,14 @@
 ![bean](sprites/bean.png)
 - added `loadBean()` to `"bean"` as a default sprite
 - added comp `health()` to manage health related logic
-- added comp `djump()` to manage double jumps
 - added comp `outline()` to draw a lil outline
 - added comp `timer()` to attach timers to a game obj
 - added comp `fixed()` to make a game obj unaffected by camera
 - added comp `stay()` to make a game obj stay after scene switch
 - added comp `lifespan()` to destroy game obj after certain amount of time
+- added comp `z()` to define draw order for objs on the same layer
+- added `weight` to `BodyComp` and `BodyCompConf` to control the gravity multiplier
+- added `djump()` to `BodyComp` for double jump
 - added `dir()` to calculate directional vector from angle
 - (**BREAK**) changed color from 0-1 range to 0-255, angles from radians to degrees
 - `global` and `debug` flag now are enabled by default, need to turn off manually if you don't want
@@ -70,7 +72,8 @@ obj.c("sprite").play("anim");
 - added `addSky()` for quick scrolling sky background
 - added `addKaboom()` for quick explosion
 - `load*()` now accepts `null` as name and not load into assets manager, instead just return the resource data handle
-- (**BREAK**) changed event `headbump` to `headbutt`
+- (**BREAK**) renamed event `headbump` to `headbutt`
+- (**BREAK**) renamed event `grounded` to `ground`
 - added `width`, `height`, and `tiled` attrib to `SpriteCompConf`, for better control over sprite size and tiled sprite support
 - (**BREAK**) renamed `resolve()` to `pushOutAll()` on `area` comp
 - added `pushOut()` for pushing a single object out from another with `area` comp

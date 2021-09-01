@@ -936,10 +936,10 @@ function drawInspect() {
 
 	function drawInspectTxt(pos, txt, scale) {
 
-		const pad = vec2(12).scale(1 / scale);
+		const pad = vec2(6).scale(1 / scale);
 
 		const ftxt = gfx.fmtText(txt, font, {
-			size: 26 / scale,
+			size: 16 / scale,
 			pos: pos.add(vec2(pad.x, pad.y)),
 			color: rgb(0, 0, 0),
 		});
@@ -1724,18 +1724,22 @@ function timer(n?: number, action?: () => void): TimerComp {
 // maximum y velocity with body()
 const DEF_JUMP_FORCE = 480;
 
-// TODO: gravity scale
+// TODO: land on wall
 function body(conf: BodyCompConf = {}): BodyComp {
 
 	let velY = 0;
 	let curPlatform: GameObj<any> | null = null;
 	let lastPlatformPos = null;
+	let canDouble = true;
+//  	let hangTime = 0;
+//  	let hanging = false;
 
 	return {
 
 		id: "body",
 		require: [ "area", "pos", ],
 		jumpForce: conf.jumpForce ?? DEF_JUMP_FORCE,
+		weight: conf.weight ?? 1,
 
 		update() {
 
@@ -1743,6 +1747,15 @@ function body(conf: BodyCompConf = {}): BodyComp {
 
 			const targets = this.pushOutAll();
 			let justOff = false;
+
+//  			if (hanging && conf.hangTime) {
+//  				hangTime += dt();
+//  				if (hangTime >= conf.hangTime) {
+//  					curPlatform = null;
+//  					lastPlatformPos = null;
+//  					hanging = false;
+//  				}
+//  			}
 
 			// check if loses current platform
 			if (curPlatform) {
@@ -1761,7 +1774,7 @@ function body(conf: BodyCompConf = {}): BodyComp {
 
 			if (!curPlatform) {
 
-				velY += gravity() * dt();
+				velY += gravity() * this.weight * dt();
 
 				if (conf.maxVel) {
 					velY = Math.min(velY, conf.maxVel);
@@ -1776,11 +1789,26 @@ function body(conf: BodyCompConf = {}): BodyComp {
 							lastPlatformPos = curPlatform.pos.clone();
 						}
 						if (!justOff) {
-							this.trigger("grounded", curPlatform);
+							this.trigger("ground", curPlatform);
+							canDouble = true;
 						}
 					} else if (target.side === "top" && velY < 0) {
 						velY = 0;
 						this.trigger("headbutt", target.obj);
+//  					} else if (
+//  						(target.side === "left" || target.side === "right")
+//  						&& target.dis !== 0 && conf.hang
+//  					) {
+//  						curPlatform = target.obj;
+//  						velY = 0;
+//  						if (curPlatform.pos) {
+//  							lastPlatformPos = curPlatform.pos.clone();
+//  						}
+//  						if (!justOff) {
+//  							this.trigger("hang", curPlatform);
+//  							hangTime = 0;
+//  							hanging = true;
+//  						}
 					}
 				}
 
@@ -1802,33 +1830,22 @@ function body(conf: BodyCompConf = {}): BodyComp {
 
 		jump(force: number) {
 			curPlatform = null;
+			lastPlatformPos = null;
 			velY = -force || -this.jumpForce;
 		},
 
-	};
-
-}
-
-function djump(): DoubleJumpComp {
-	let hasDouble = true;
-	return {
-		id: "djump",
-		require: [ "body", ],
-		add() {
-			this.on("grounded", () => {
-				hasDouble = true;
-			});
-		},
-		djump(...args) {
+		djump(force: number) {
 			if (this.grounded()) {
-				this.jump(...args);
-			} else if (hasDouble) {
-				hasDouble = false;
-				this.jump(...args);
+				this.jump(force);
+			} else if (canDouble) {
+				canDouble = false;
+				this.jump(force);
 				this.trigger("djump");
 			}
 		},
+
 	};
+
 }
 
 function shader(id: string, uniform: Uniform = {}): ShaderComp {
@@ -2090,7 +2107,6 @@ const ctx: KaboomCtx = {
 	fixed,
 	stay,
 	health,
-	djump,
 	lifespan,
 	z,
 	// group events

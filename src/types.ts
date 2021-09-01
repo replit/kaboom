@@ -13,6 +13,7 @@
  *     height: 240,
  *     stretch: true,
  *     letterbox: true,
+ *     font: "unscii",
  *     clearColor: [ 0, 0, 255, ],
  * });
  *
@@ -384,7 +385,7 @@ interface KaboomCtx {
 	 * ```js
 	 * // a custom event defined by body() comp
 	 * // every time an obj with tag "bomb" hits the floor, destroy it and addKaboom()
-	 * on("grounded", "bomb", (bomb) => {
+	 * on("ground", "bomb", (bomb) => {
 	 *     destroy(bomb);
 	 *     addKaboom();
 	 * });
@@ -695,7 +696,7 @@ interface KaboomCtx {
 	 * });
 	 *
 	 * // a custom event provided by "body"
-	 * froggy.on("grounded", () => {
+	 * froggy.on("ground", () => {
 	 *     debug.log("oh no!");
 	 * });
 	 * ```
@@ -774,26 +775,6 @@ interface KaboomCtx {
 	 */
 	health(hp: number): HealthComp,
 	/**
-	 * Enables double jump.
-	 *
-	 * @example
-	 * ```js
-	 * const player = add([
-	 *     pos(80, 80),
-	 *     area(),
-	 *     body(),
-	 *     djump(),
-	 * ]);
-	 *
-	 * // just replace .jump() with .djump()
-	 * // also note .djump() will only launch initial jump when grounded
-	 * keyPress("space", () => {
-	 *     player.djump();
-	 * });
-	 * ```
-	 */
-	djump(): DoubleJumpComp,
-	/**
 	 * Destroy the game obj after certain amount of time
 	 *
 	 * @example
@@ -809,7 +790,7 @@ interface KaboomCtx {
 	/**
 	 * Get / set the cursor (css)
 	 */
-	cursor(c?: Cursor): Cursor,
+	cursor(c: Cursor),
 	/**
 	 * Get current mouse position (after camera transform)
 	 *
@@ -1220,23 +1201,77 @@ interface GameObjRaw {
  * Kaboom configurations.
  */
 interface KaboomConf {
+	/**
+	 * Width of game.
+	 */
 	width?: number,
+	/**
+	 * Height of game.
+	 */
 	height?: number,
+	/**
+	 * Pixel scale / size.
+	 */
 	scale?: number,
+	/**
+	 * If stretch canvas to container when width and height is specified
+	 */
 	stretch?: boolean,
+	/**
+	 * When stretching if keep aspect ratio and leave black bars on remaining spaces.
+	 */
 	letterbox?: boolean,
+	/**
+	 * If register debug buttons (default true)
+	 */
 	debug?: boolean,
+	/**
+	 * Default font (defaults to "kaboom", have "unscii" as another built-in option).
+	 */
 	font?: string,
+	/**
+	 * Disable antialias and enable crisp pixel rendering.
+	 */
 	crisp?: boolean,
+	/**
+	 * The canvas DOM element to use. If empty will create one.
+	 */
 	canvas?: HTMLCanvasElement,
+	/**
+	 * The container DOM element to insert the canvas if created. Defaults to document.body.
+	 */
 	root?: HTMLElement,
+	/**
+	 * Background color. E.g. [ 0, 0, 255 ] for solid blue background.
+	 */
 	clearColor?: number[],
+	/**
+	 * The color to draw collider boxes etc.
+	 */
 	inspectColor?: number[],
+	/**
+	 * Default texture filter.
+	 */
 	texFilter?: TexFilter,
+	/**
+	 * How many log messages can there be on one screen.
+	 */
 	logMax?: number,
+	/**
+	 * The websocket server to connect.
+	 */
 	connect?: string,
+	/**
+	 * If translate touch events as mouse clicks (default true).
+	 */
 	touchToMouse?: boolean,
+	/**
+	 * If import all kaboom functions to global (default true).
+	 */
 	global?: boolean,
+	/**
+	 * List of plugins to import.
+	 */
 	plugins?: KaboomPlugin<any>[],
 }
 
@@ -1933,6 +1968,10 @@ interface BodyComp extends Comp {
 	 */
 	jumpForce: number;
 	/**
+	 * Gravity multiplier.
+	 */
+	weight: number;
+	/**
 	 * Current platform landing on.
 	 */
 	curPlatform(): GameObj<any> | null;
@@ -1948,6 +1987,10 @@ interface BodyComp extends Comp {
 	 * Upward thrust.
 	 */
 	jump(f?: number): void;
+	/**
+	 * Performs double jump (the initial jump only happens if player is grounded).
+	 */
+	djump(f?: number): void;
 }
 
 interface BodyCompConf {
@@ -1959,6 +2002,22 @@ interface BodyCompConf {
 	 * Maximum velocity when falling.
 	 */
 	maxVel?: number,
+	/**
+	 * Gravity multiplier.
+	 */
+	weight?: number;
+	/**
+	 * Can you hang to a wall.
+	 */
+//  	hang?: boolean;
+	/**
+	 * How many seconds can you hang to a wall.
+	 */
+//  	hangTime?: number;
+	/**
+	 * How many pixels per second to glide down when hanging.
+	 */
+//  	hangGlide?: number;
 }
 
 interface Timer {
@@ -2010,14 +2069,7 @@ interface HealthComp extends Comp {
 	/**
 	 * Set current health points.
 	 */
-	setHP(np: number),
-}
-
-interface DoubleJumpComp extends Comp {
-	/**
-	 * Performs double jump (the initial jump only happens if player is grounded).
-	 */
-	djump(f?: number): void;
+	setHP(hp: number),
 }
 
 interface LifespanComp extends Comp {

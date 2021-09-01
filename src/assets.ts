@@ -13,7 +13,7 @@ import {
 // @ts-ignore
 import fontSrc from "./font.png";
 // @ts-ignore
-import proggySrc from "./proggy_7x13.png";
+import unsciiSrc from "./unscii_8x8.png";
 
 type AssetsConf = {
 	errHandler?: (err: string) => void,
@@ -68,7 +68,7 @@ type Assets = {
 const ASCII_CHARS = " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~";
 const CP437_CHARS = " ☺☻♥♦♣♠•◘○◙♂♀♪♫☼►◄↕‼¶§▬↨↑↓→←∟↔▲▼ !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~⌂ÇüéâäàåçêëèïîìÄÅÉæÆôöòûùÿÖÜ¢£¥₧ƒáíóúñÑªº¿⌐¬½¼¡«»░▒▓│┤╡╢╖╕╣║╗╝╜╛┐└┴┬├─┼╞╟╚╔╩╦╠═╬╧╨╤╥╙╘╒╓╫╪┘┌█▄▌▐▀αßΓπΣσµτΦΘΩδ∞φε∩≡±≥≤⌠⌡÷≈°∙·√ⁿ²■";
 const DEF_FONT = "kaboom";
-const DBG_FONT = "proggy";
+const DBG_FONT = "unscii";
 
 function loadImg(src: string): Promise<HTMLImageElement> {
 	const img = new Image();
@@ -373,9 +373,9 @@ function assetsInit(gfx: Gfx, audio: Audio, gconf: AssetsConf = {}): Assets {
 
 	loadFont(
 		DBG_FONT,
-		proggySrc,
-		7,
-		13
+		unsciiSrc,
+		8,
+		8
 	);
 
 	return {

@@ -108,16 +108,16 @@ scene("lose", (score) => {
 
 	add([
 		sprite("bean"),
-		pos(width() / 2, height() / 2 - 108),
-		scale(3),
+		pos(width() / 2, height() / 2 - 80),
+		scale(2),
 		origin("center"),
 	]);
 
 	// display score
 	add([
 		text(score),
-		pos(width() / 2, height() / 2 + 108),
-		scale(3),
+		pos(width() / 2, height() / 2 + 80),
+		scale(2),
 		origin("center"),
 	]);
 

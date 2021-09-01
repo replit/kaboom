@@ -320,16 +320,26 @@ function appInit(gconf: AppConf = {}): App {
 		return app.canvas.toDataURL();
 	}
 
-	function cursor(c?: Cursor): Cursor {
-		if (c) {
-			app.canvas.style.cursor = c ?? "default";
-		}
-		return app.canvas.style.cursor as Cursor;
+	// TODO: custom cursor
+	function cursor(c: Cursor) {
+		app.canvas.style.cursor = c;
 	}
 
 	function run(f: () => void) {
 
+//  		let lastWidth = app.canvas.parentElement.offsetWidth;
+//  		let lastHeight = app.canvas.parentElement.offsetHeight;
+
 		const frame = (t: number) => {
+
+			cursor("default");
+
+//  			if (app.canvas.parentElement.offsetWidth !== lastWidth || app.canvas.parentElement.offsetHeight !== lastHeight) {
+//  				lastWidth = app.canvas.parentElement.offsetWidth;
+//  				lastHeight = app.canvas.parentElement.offsetHeight;
+//  				app.canvas.width = lastWidth;
+//  				app.canvas.height = lastHeight;
+//  			}
 
 			const realTime = t / 1000;
 			const realDt = realTime - app.realTime;

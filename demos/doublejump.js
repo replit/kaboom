@@ -15,7 +15,7 @@ const NUM_PLATFORMS = 5;
 gravity(4000);
 
 // a spinning component for fun
-function spin(speed = 800) {
+function spin(speed = 1200) {
 	let spinning = false;
 	return {
 		require: [ "rotate", ],
@@ -50,7 +50,6 @@ const car = add([
 	pos(0, 0),
 	body({ jumpForce: JUMP_FORCE, }),
 	rotate(0),
-	djump(),
 	spin(),
 ]);
 

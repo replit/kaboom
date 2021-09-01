@@ -25,7 +25,7 @@
                     {
                         "kind": "FirstJSDocTagNode",
                         "tagName": "example",
-                        "comment": "```js\n// this will create a blank canvas and import all kaboom functions to global\nkaboom();\n\n// init with some configs (check out #KaboomConf for full config list)\n// create a game with custom dimension, but stretch to fit container, keeping aspect ratio, with a clear color\nkaboom({\n    width: 320,\n    height: 240,\n    stretch: true,\n    letterbox: true,\n    clearColor: [ 0, 0, 255, ],\n});\n\n// can also prevent kaboom from importing all functions to global and use a context handle\nconst k = kaboom({ global: false });\n\nk.add(...);\nk.action(...);\nk.keyPress(...);\nk.vec2(...);\n```"
+                        "comment": "```js\n// this will create a blank canvas and import all kaboom functions to global\nkaboom();\n\n// init with some configs (check out #KaboomConf for full config list)\n// create a game with custom dimension, but stretch to fit container, keeping aspect ratio, with a clear color\nkaboom({\n    width: 320,\n    height: 240,\n    stretch: true,\n    letterbox: true,\n    font: \"unscii\",\n    clearColor: [ 0, 0, 255, ],\n});\n\n// can also prevent kaboom from importing all functions to global and use a context handle\nconst k = kaboom({ global: false });\n\nk.add(...);\nk.action(...);\nk.keyPress(...);\nk.vec2(...);\n```"
                     }
                 ]
             }
@@ -1141,7 +1141,7 @@
                             {
                                 "kind": "FirstJSDocTagNode",
                                 "tagName": "example",
-                                "comment": "```js\n// a custom event defined by body() comp\n// every time an obj with tag \"bomb\" hits the floor, destroy it and addKaboom()\non(\"grounded\", \"bomb\", (bomb) => {\n    destroy(bomb);\n    addKaboom();\n});\n```"
+                                "comment": "```js\n// a custom event defined by body() comp\n// every time an obj with tag \"bomb\" hits the floor, destroy it and addKaboom()\non(\"ground\", \"bomb\", (bomb) => {\n    destroy(bomb);\n    addKaboom();\n});\n```"
                             }
                         ]
                     }
@@ -2233,7 +2233,7 @@
                             {
                                 "kind": "FirstJSDocTagNode",
                                 "tagName": "example",
-                                "comment": "```js\n// froggy jumpy\nconst froggy = add([\n    sprite(\"froggy\"),\n    // body() requires \"pos\" and \"area\" component\n    pos(),\n    area(),\n    body(),\n]);\n\n// when froggy is grounded, press space to jump\n// check out BodyComp for more methods\nkeyPress(\"space\", () => {\n    if (froggy.grounded()) {\n        froggy.jump();\n    }\n});\n\n// a custom event provided by \"body\"\nfroggy.on(\"grounded\", () => {\n    debug.log(\"oh no!\");\n});\n```"
+                                "comment": "```js\n// froggy jumpy\nconst froggy = add([\n    sprite(\"froggy\"),\n    // body() requires \"pos\" and \"area\" component\n    pos(),\n    area(),\n    body(),\n]);\n\n// when froggy is grounded, press space to jump\n// check out BodyComp for more methods\nkeyPress(\"space\", () => {\n    if (froggy.grounded()) {\n        froggy.jump();\n    }\n});\n\n// a custom event provided by \"body\"\nfroggy.on(\"ground\", () => {\n    debug.log(\"oh no!\");\n});\n```"
                             }
                         ]
                     }
@@ -2389,28 +2389,6 @@
             },
             {
                 "kind": "MethodSignature",
-                "name": "djump",
-                "parameters": [],
-                "type": {
-                    "kind": "TypeReference",
-                    "typeName": "DoubleJumpComp"
-                },
-                "jsDoc": [
-                    {
-                        "kind": "JSDocComment",
-                        "comment": "Enables double jump.",
-                        "tags": [
-                            {
-                                "kind": "FirstJSDocTagNode",
-                                "tagName": "example",
-                                "comment": "```js\nconst player = add([\n    pos(80, 80),\n    area(),\n    body(),\n    djump(),\n]);\n\n// just replace .jump() with .djump()\n// also note .djump() will only launch initial jump when grounded\nkeyPress(\"space\", () => {\n    player.djump();\n});\n```"
-                            }
-                        ]
-                    }
-                ]
-            },
-            {
-                "kind": "MethodSignature",
                 "name": "lifespan",
                 "parameters": [
                     {
@@ -2461,14 +2439,9 @@
                         "type": {
                             "kind": "TypeReference",
                             "typeName": "Cursor"
-                        },
-                        "questionToken": true
+                        }
                     }
                 ],
-                "type": {
-                    "kind": "TypeReference",
-                    "typeName": "Cursor"
-                },
                 "jsDoc": [
                     {
                         "kind": "JSDocComment",
@@ -4844,7 +4817,13 @@
                 "type": {
                     "kind": "NumberKeyword"
                 },
-                "questionToken": true
+                "questionToken": true,
+                "jsDoc": [
+                    {
+                        "kind": "JSDocComment",
+                        "comment": "Width of game."
+                    }
+                ]
             },
             {
                 "kind": "PropertySignature",
@@ -4852,7 +4831,13 @@
                 "type": {
                     "kind": "NumberKeyword"
                 },
-                "questionToken": true
+                "questionToken": true,
+                "jsDoc": [
+                    {
+                        "kind": "JSDocComment",
+                        "comment": "Height of game."
+                    }
+                ]
             },
             {
                 "kind": "PropertySignature",
@@ -4860,7 +4845,13 @@
                 "type": {
                     "kind": "NumberKeyword"
                 },
-                "questionToken": true
+                "questionToken": true,
+                "jsDoc": [
+                    {
+                        "kind": "JSDocComment",
+                        "comment": "Pixel scale / size."
+                    }
+                ]
             },
             {
                 "kind": "PropertySignature",
@@ -4868,7 +4859,13 @@
                 "type": {
                     "kind": "BooleanKeyword"
                 },
-                "questionToken": true
+                "questionToken": true,
+                "jsDoc": [
+                    {
+                        "kind": "JSDocComment",
+                        "comment": "If stretch canvas to container when width and height is specified"
+                    }
+                ]
             },
             {
                 "kind": "PropertySignature",
@@ -4876,7 +4873,13 @@
                 "type": {
                     "kind": "BooleanKeyword"
                 },
-                "questionToken": true
+                "questionToken": true,
+                "jsDoc": [
+                    {
+                        "kind": "JSDocComment",
+                        "comment": "When stretching if keep aspect ratio and leave black bars on remaining spaces."
+                    }
+                ]
             },
             {
                 "kind": "PropertySignature",
@@ -4884,7 +4887,13 @@
                 "type": {
                     "kind": "BooleanKeyword"
                 },
-                "questionToken": true
+                "questionToken": true,
+                "jsDoc": [
+                    {
+                        "kind": "JSDocComment",
+                        "comment": "If register debug buttons (default true)"
+                    }
+                ]
             },
             {
                 "kind": "PropertySignature",
@@ -4892,7 +4901,13 @@
                 "type": {
                     "kind": "StringKeyword"
                 },
-                "questionToken": true
+                "questionToken": true,
+                "jsDoc": [
+                    {
+                        "kind": "JSDocComment",
+                        "comment": "Default font (defaults to \"kaboom\", have \"unscii\" as another built-in option)."
+                    }
+                ]
             },
             {
                 "kind": "PropertySignature",
@@ -4900,7 +4915,13 @@
                 "type": {
                     "kind": "BooleanKeyword"
                 },
-                "questionToken": true
+                "questionToken": true,
+                "jsDoc": [
+                    {
+                        "kind": "JSDocComment",
+                        "comment": "Disable antialias and enable crisp pixel rendering."
+                    }
+                ]
             },
             {
                 "kind": "PropertySignature",
@@ -4909,7 +4930,13 @@
                     "kind": "TypeReference",
                     "typeName": "HTMLCanvasElement"
                 },
-                "questionToken": true
+                "questionToken": true,
+                "jsDoc": [
+                    {
+                        "kind": "JSDocComment",
+                        "comment": "The canvas DOM element to use. If empty will create one."
+                    }
+                ]
             },
             {
                 "kind": "PropertySignature",
@@ -4918,7 +4945,13 @@
                     "kind": "TypeReference",
                     "typeName": "HTMLElement"
                 },
-                "questionToken": true
+                "questionToken": true,
+                "jsDoc": [
+                    {
+                        "kind": "JSDocComment",
+                        "comment": "The container DOM element to insert the canvas if created. Defaults to document.body."
+                    }
+                ]
             },
             {
                 "kind": "PropertySignature",
@@ -4929,7 +4962,13 @@
                         "kind": "NumberKeyword"
                     }
                 },
-                "questionToken": true
+                "questionToken": true,
+                "jsDoc": [
+                    {
+                        "kind": "JSDocComment",
+                        "comment": "Background color. E.g. [ 0, 0, 255 ] for solid blue background."
+                    }
+                ]
             },
             {
                 "kind": "PropertySignature",
@@ -4940,7 +4979,13 @@
                         "kind": "NumberKeyword"
                     }
                 },
-                "questionToken": true
+                "questionToken": true,
+                "jsDoc": [
+                    {
+                        "kind": "JSDocComment",
+                        "comment": "The color to draw collider boxes etc."
+                    }
+                ]
             },
             {
                 "kind": "PropertySignature",
@@ -4949,7 +4994,13 @@
                     "kind": "TypeReference",
                     "typeName": "TexFilter"
                 },
-                "questionToken": true
+                "questionToken": true,
+                "jsDoc": [
+                    {
+                        "kind": "JSDocComment",
+                        "comment": "Default texture filter."
+                    }
+                ]
             },
             {
                 "kind": "PropertySignature",
@@ -4957,7 +5008,13 @@
                 "type": {
                     "kind": "NumberKeyword"
                 },
-                "questionToken": true
+                "questionToken": true,
+                "jsDoc": [
+                    {
+                        "kind": "JSDocComment",
+                        "comment": "How many log messages can there be on one screen."
+                    }
+                ]
             },
             {
                 "kind": "PropertySignature",
@@ -4965,7 +5022,13 @@
                 "type": {
                     "kind": "StringKeyword"
                 },
-                "questionToken": true
+                "questionToken": true,
+                "jsDoc": [
+                    {
+                        "kind": "JSDocComment",
+                        "comment": "The websocket server to connect."
+                    }
+                ]
             },
             {
                 "kind": "PropertySignature",
@@ -4973,7 +5036,13 @@
                 "type": {
                     "kind": "BooleanKeyword"
                 },
-                "questionToken": true
+                "questionToken": true,
+                "jsDoc": [
+                    {
+                        "kind": "JSDocComment",
+                        "comment": "If translate touch events as mouse clicks (default true)."
+                    }
+                ]
             },
             {
                 "kind": "PropertySignature",
@@ -4981,7 +5050,13 @@
                 "type": {
                     "kind": "BooleanKeyword"
                 },
-                "questionToken": true
+                "questionToken": true,
+                "jsDoc": [
+                    {
+                        "kind": "JSDocComment",
+                        "comment": "If import all kaboom functions to global (default true)."
+                    }
+                ]
             },
             {
                 "kind": "PropertySignature",
@@ -4998,7 +5073,13 @@
                         ]
                     }
                 },
-                "questionToken": true
+                "questionToken": true,
+                "jsDoc": [
+                    {
+                        "kind": "JSDocComment",
+                        "comment": "List of plugins to import."
+                    }
+                ]
             }
         ],
         "jsDoc": [
@@ -9484,6 +9565,19 @@
                 ]
             },
             {
+                "kind": "PropertySignature",
+                "name": "weight",
+                "type": {
+                    "kind": "NumberKeyword"
+                },
+                "jsDoc": [
+                    {
+                        "kind": "JSDocComment",
+                        "comment": "Gravity multiplier."
+                    }
+                ]
+            },
+            {
                 "kind": "MethodSignature",
                 "name": "curPlatform",
                 "parameters": [],
@@ -9564,6 +9658,29 @@
                         "comment": "Upward thrust."
                     }
                 ]
+            },
+            {
+                "kind": "MethodSignature",
+                "name": "djump",
+                "parameters": [
+                    {
+                        "kind": "Parameter",
+                        "name": "f",
+                        "type": {
+                            "kind": "NumberKeyword"
+                        },
+                        "questionToken": true
+                    }
+                ],
+                "type": {
+                    "kind": "VoidKeyword"
+                },
+                "jsDoc": [
+                    {
+                        "kind": "JSDocComment",
+                        "comment": "Performs double jump (the initial jump only happens if player is grounded)."
+                    }
+                ]
             }
         ]
     },
@@ -9596,6 +9713,20 @@
                     {
                         "kind": "JSDocComment",
                         "comment": "Maximum velocity when falling."
+                    }
+                ]
+            },
+            {
+                "kind": "PropertySignature",
+                "name": "weight",
+                "type": {
+                    "kind": "NumberKeyword"
+                },
+                "questionToken": true,
+                "jsDoc": [
+                    {
+                        "kind": "JSDocComment",
+                        "comment": "Gravity multiplier."
                     }
                 ]
             }
@@ -9864,7 +9995,7 @@
                 "parameters": [
                     {
                         "kind": "Parameter",
-                        "name": "np",
+                        "name": "hp",
                         "type": {
                             "kind": "NumberKeyword"
                         }
@@ -9874,50 +10005,6 @@
                     {
                         "kind": "JSDocComment",
                         "comment": "Set current health points."
-                    }
-                ]
-            }
-        ]
-    },
-    "DoubleJumpComp": {
-        "kind": "InterfaceDeclaration",
-        "name": "DoubleJumpComp",
-        "heritageClauses": [
-            {
-                "kind": "HeritageClause",
-                "token": 94,
-                "types": [
-                    {
-                        "kind": "ExpressionWithTypeArguments",
-                        "expression": {
-                            "kind": "Identifier",
-                            "escapedText": "Comp"
-                        }
-                    }
-                ]
-            }
-        ],
-        "members": [
-            {
-                "kind": "MethodSignature",
-                "name": "djump",
-                "parameters": [
-                    {
-                        "kind": "Parameter",
-                        "name": "f",
-                        "type": {
-                            "kind": "NumberKeyword"
-                        },
-                        "questionToken": true
-                    }
-                ],
-                "type": {
-                    "kind": "VoidKeyword"
-                },
-                "jsDoc": [
-                    {
-                        "kind": "JSDocComment",
-                        "comment": "Performs double jump (the initial jump only happens if player is grounded)."
                     }
                 ]
             }
