@@ -321,8 +321,11 @@ function appInit(gconf: AppConf = {}): App {
 	}
 
 	// TODO: custom cursor
-	function cursor(c: Cursor) {
-		app.canvas.style.cursor = c;
+	function cursor(c?: Cursor): Cursor {
+		if (c) {
+			app.canvas.style.cursor = c;
+		}
+		return app.canvas.style.cursor;
 	}
 
 	function run(f: () => void) {

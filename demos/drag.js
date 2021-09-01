@@ -24,7 +24,6 @@ function drag() {
 				if (curDraggin) {
 					return;
 				}
-				cursor("move");
 				curDraggin = this;
 				offset = mousePos().sub(this.pos);
 				readd(this);
@@ -33,6 +32,7 @@ function drag() {
 		// "update" is a lifecycle method gets called every frame the obj is in scene
 		update() {
 			if (curDraggin === this) {
+				cursor("move");
 				this.pos = mousePos().sub(offset);
 			}
 		},
@@ -43,7 +43,6 @@ function drag() {
 // drop
 mouseRelease(() => {
 	curDraggin = null;
-	cursor("default");
 });
 
 // adding dragable objects

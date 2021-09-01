@@ -676,6 +676,15 @@ function clicks(t: string, f: (obj: GameObj<any>) => void): EventCanceller {
 	});
 }
 
+// add an event that runs when objs with tag t is hovered
+function hovers(t: string, f: (obj: GameObj<any>) => void): EventCanceller {
+	return action(t, (o: GameObj<any>) => {
+		if (o.isHovered()) {
+			f(o);
+		}
+	});
+}
+
 // add an event that'd be run after t
 function wait(t: number, f?: () => void): Promise<void> {
 	return new Promise((resolve) => {
@@ -860,6 +869,10 @@ function gravity(g?: number): number {
 		game.gravity = g;
 	}
 	return game.gravity;
+}
+
+function regCursor(c: Cursor, draw: string | ((mpos: Vec2) => void)) {
+	// TODO
 }
 
 // TODO: cleaner pause logic
@@ -2069,6 +2082,7 @@ const ctx: KaboomCtx = {
 	focused: app.focused,
 	focus: app.focus,
 	cursor: app.cursor,
+	regCursor: regCursor,
 	ready,
 	isTouch: () => app.isTouch,
 	// misc
@@ -2116,6 +2130,7 @@ const ctx: KaboomCtx = {
 	collides,
 	overlaps,
 	clicks,
+	hovers,
 	// input
 	keyDown,
 	keyPress,

@@ -450,6 +450,13 @@ interface KaboomCtx {
 		cb: (a: GameObj<any>) => void,
 	): EventCanceller,
 	/**
+	 * Register event when game objs with certain tags are hovered. This function spins off an action() when called, please put it at root level and never inside another action().
+	 */
+	hovers(
+		tag: Tag,
+		cb: (a: GameObj<any>) => void,
+	): EventCanceller,
+	/**
 	 * Camera shake.
 	 *
 	 * @example
@@ -564,6 +571,9 @@ interface KaboomCtx {
 	 *     score.value += 1;
 	 *     score.text = "Score:" + score.value;
 	 * });
+	 *
+	 * // set to another default font on start up ("unscii" is a pixel font provided by default)
+	 * kaboom({ font: "unscii" });
 	 * ```
 	 */
 	text(txt: string, conf?: TextCompConf): TextComp,
@@ -788,9 +798,38 @@ interface KaboomCtx {
 	 */
 	lifespan(time: number, action?: () => void): LifespanComp,
 	/**
-	 * Get / set the cursor (css)
+	 * Get / set the cursor (css). Cursor will be reset to "default" every frame so use this in an per-frame action.
+	 *
+	 * @example
+	 * ```js
+	 * hovers("clickable", (c) => {
+	 *     cursor("pointer");
+	 * });
 	 */
-	cursor(c: Cursor),
+	cursor(c?: Cursor): Cursor,
+	/**
+	 * Load a cursor from a sprite, or custom drawing function.
+	 *
+	 * @example
+	 * ```js
+	 * loadSprite("froggy", "sprites/froggy.png");
+	 *
+	 * // use sprite as cursor
+	 * regCursor("default", "froggy");
+	 * regCursor("pointer", "apple");
+	 *
+	 * // use custom draw func as cursor
+	 * regCursor("crosshair", (pos) => {
+	 *     drawRect(pos, 12, 2);
+	 *     drawRect(pos, 2, 12);
+	 * });
+	 *
+	 * hovers("clickable", (c) => {
+	 *     cursor("pointer");
+	 * });
+	 * ```
+	 */
+	regCursor(c: string, draw: string | ((mpos: Vec2) => void)),
 	/**
 	 * Get current mouse position (after camera transform)
 	 *
@@ -807,14 +846,38 @@ interface KaboomCtx {
 	mouseDeltaPos(): Vec2,
 	/**
 	 * Registers an event that runs every frame when a key is down.
+	 *
+	 * @example
+	 * ```js
+	 * // move left by SPEED pixels per frame every frame when "left" is being held down
+	 * keyDown("left", () => {
+	 *     froggy.move(-SPEED, 0);
+	 * });
+	 * ```
 	 */
 	keyDown(k: string, cb: () => void): EventCanceller,
 	/**
 	 * Registers an event that runs when user presses certain key.
+	 *
+	 * @example
+	 * ```js
+	 * // .jump() once when "space" is just being pressed
+	 * keyPress("space", () => {
+	 *     froggy.jump();
+	 * });
+	 * ```
 	 */
 	keyPress(k: string, cb: () => void): EventCanceller,
 	/**
 	 * Registers an event that runs when user presses certain key (also fires repeatedly when they key is held).
+	 *
+	 * @example
+	 * ```js
+	 * // delete last character when "backspace" is being pressed and held
+	 * keyPressRep("backspace", () => {
+	 *     input.text = input.text.substring(0, input.text.length - 1);
+	 * });
+	 * ```
 	 */
 	keyPressRep(k: string, cb: () => void): EventCanceller,
 	/**
@@ -823,6 +886,14 @@ interface KaboomCtx {
 	keyRelease(k: string, cb: () => void): EventCanceller,
 	/**
 	 * Registers an event that runs when user inputs text.
+	 *
+	 * @example
+	 * ```js
+	 * // type into input
+	 * charInput((ch) => {
+	 *     input.text += ch;
+	 * });
+	 * ```
 	 */
 	charInput(cb: (ch: string) => void): EventCanceller,
 	/**
@@ -855,6 +926,16 @@ interface KaboomCtx {
 	touchEnd(cb: (id: TouchID, pos: Vec2) => void): EventCanceller,
 	/**
 	 * If certain key is currently down.
+	 *
+	 * @example
+	 * ```js
+	 * // almost equivalent to the keyPress() example above
+	 * action(() => {
+	 *     if (keyIsDown("left")) {
+	 *         froggy.move(-SPEED, 0);
+	 *     }
+	 * });
+	 * ```
 	 */
 	keyIsDown(k: string): boolean,
 	/**
@@ -887,6 +968,19 @@ interface KaboomCtx {
 	mouseIsMoved(): boolean,
 	/**
 	 * Run the callback every n seconds.
+	 *
+	 * @example
+	 * ```js
+	 * // spawn a bomb at random position every frame
+	 * loop(1, () => {
+	 *     add([
+	 *         sprite("bomb"),
+	 *         pos(rand(0, width()), rand(0, height())),
+	 *         area(),
+	 *         body(),
+	 *     ]);
+	 * });
+	 * ```
 	 */
 	loop(t: number, cb: () => void): EventCanceller,
 	/**
@@ -1474,6 +1568,7 @@ type Cursor =
 	| "nwse-resize"
 	| "zoom-int"
 	| "zoom-out"
+	| string
 	;
 
 type Origin =

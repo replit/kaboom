@@ -1492,6 +1492,55 @@
             },
             {
                 "kind": "MethodSignature",
+                "name": "hovers",
+                "parameters": [
+                    {
+                        "kind": "Parameter",
+                        "name": "tag",
+                        "type": {
+                            "kind": "TypeReference",
+                            "typeName": "Tag"
+                        }
+                    },
+                    {
+                        "kind": "Parameter",
+                        "name": "cb",
+                        "type": {
+                            "kind": "FunctionType",
+                            "parameters": [
+                                {
+                                    "kind": "Parameter",
+                                    "name": "a",
+                                    "type": {
+                                        "kind": "TypeReference",
+                                        "typeName": "GameObj",
+                                        "typeArguments": [
+                                            {
+                                                "kind": "AnyKeyword"
+                                            }
+                                        ]
+                                    }
+                                }
+                            ],
+                            "type": {
+                                "kind": "VoidKeyword"
+                            }
+                        }
+                    }
+                ],
+                "type": {
+                    "kind": "TypeReference",
+                    "typeName": "EventCanceller"
+                },
+                "jsDoc": [
+                    {
+                        "kind": "JSDocComment",
+                        "comment": "Register event when game objs with certain tags are hovered. This function spins off an action() when called, please put it at root level and never inside another action()."
+                    }
+                ]
+            },
+            {
+                "kind": "MethodSignature",
                 "name": "shake",
                 "parameters": [
                     {
@@ -1956,7 +2005,7 @@
                             {
                                 "kind": "FirstJSDocTagNode",
                                 "tagName": "example",
-                                "comment": "```js\n// a simple score counter\nconst score = add([\n    text(\"Score: 0\"),\n    pos(24, 24),\n    { value: 0 },\n]);\n\nplayer.collides(\"coin\", () => {\n    score.value += 1;\n    score.text = \"Score:\" + score.value;\n});\n```"
+                                "comment": "```js\n// a simple score counter\nconst score = add([\n    text(\"Score: 0\"),\n    pos(24, 24),\n    { value: 0 },\n]);\n\nplayer.collides(\"coin\", () => {\n    score.value += 1;\n    score.text = \"Score:\" + score.value;\n});\n\n// set to another default font on start up (\"unscii\" is a pixel font provided by default)\nkaboom({ font: \"unscii\" });\n```"
                             }
                         ]
                     }
@@ -2439,13 +2488,82 @@
                         "type": {
                             "kind": "TypeReference",
                             "typeName": "Cursor"
+                        },
+                        "questionToken": true
+                    }
+                ],
+                "type": {
+                    "kind": "TypeReference",
+                    "typeName": "Cursor"
+                },
+                "jsDoc": [
+                    {
+                        "kind": "JSDocComment",
+                        "comment": "Get / set the cursor (css). Cursor will be reset to \"default\" every frame so use this in an per-frame action.",
+                        "tags": [
+                            {
+                                "kind": "FirstJSDocTagNode",
+                                "tagName": "example",
+                                "comment": "```js\nhovers(\"clickable\", (c) => {\n    cursor(\"pointer\");\n});"
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
+                "kind": "MethodSignature",
+                "name": "regCursor",
+                "parameters": [
+                    {
+                        "kind": "Parameter",
+                        "name": "c",
+                        "type": {
+                            "kind": "StringKeyword"
+                        }
+                    },
+                    {
+                        "kind": "Parameter",
+                        "name": "draw",
+                        "type": {
+                            "kind": "UnionType",
+                            "types": [
+                                {
+                                    "kind": "StringKeyword"
+                                },
+                                {
+                                    "kind": "ParenthesizedType",
+                                    "type": {
+                                        "kind": "FunctionType",
+                                        "parameters": [
+                                            {
+                                                "kind": "Parameter",
+                                                "name": "mpos",
+                                                "type": {
+                                                    "kind": "TypeReference",
+                                                    "typeName": "Vec2"
+                                                }
+                                            }
+                                        ],
+                                        "type": {
+                                            "kind": "VoidKeyword"
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     }
                 ],
                 "jsDoc": [
                     {
                         "kind": "JSDocComment",
-                        "comment": "Get / set the cursor (css)"
+                        "comment": "Load a cursor from a sprite, or custom drawing function.",
+                        "tags": [
+                            {
+                                "kind": "FirstJSDocTagNode",
+                                "tagName": "example",
+                                "comment": "```js\nloadSprite(\"froggy\", \"sprites/froggy.png\");\n\n// use sprite as cursor\nregCursor(\"default\", \"froggy\");\nregCursor(\"pointer\", \"apple\");\n\n// use custom draw func as cursor\nregCursor(\"crosshair\", (pos) => {\n    drawRect(pos, 12, 2);\n    drawRect(pos, 2, 12);\n});\n\nhovers(\"clickable\", (c) => {\n    cursor(\"pointer\");\n});\n```"
+                            }
+                        ]
                     }
                 ]
             },
@@ -2531,7 +2649,14 @@
                 "jsDoc": [
                     {
                         "kind": "JSDocComment",
-                        "comment": "Registers an event that runs every frame when a key is down."
+                        "comment": "Registers an event that runs every frame when a key is down.",
+                        "tags": [
+                            {
+                                "kind": "FirstJSDocTagNode",
+                                "tagName": "example",
+                                "comment": "```js\n// move left by SPEED pixels per frame every frame when \"left\" is being held down\nkeyDown(\"left\", () => {\n    froggy.move(-SPEED, 0);\n});\n```"
+                            }
+                        ]
                     }
                 ]
             },
@@ -2565,7 +2690,14 @@
                 "jsDoc": [
                     {
                         "kind": "JSDocComment",
-                        "comment": "Registers an event that runs when user presses certain key."
+                        "comment": "Registers an event that runs when user presses certain key.",
+                        "tags": [
+                            {
+                                "kind": "FirstJSDocTagNode",
+                                "tagName": "example",
+                                "comment": "```js\n// .jump() once when \"space\" is just being pressed\nkeyPress(\"space\", () => {\n    froggy.jump();\n});\n```"
+                            }
+                        ]
                     }
                 ]
             },
@@ -2599,7 +2731,14 @@
                 "jsDoc": [
                     {
                         "kind": "JSDocComment",
-                        "comment": "Registers an event that runs when user presses certain key (also fires repeatedly when they key is held)."
+                        "comment": "Registers an event that runs when user presses certain key (also fires repeatedly when they key is held).",
+                        "tags": [
+                            {
+                                "kind": "FirstJSDocTagNode",
+                                "tagName": "example",
+                                "comment": "```js\n// delete last character when \"backspace\" is being pressed and held\nkeyPressRep(\"backspace\", () => {\n    input.text = input.text.substring(0, input.text.length - 1);\n});\n```"
+                            }
+                        ]
                     }
                 ]
             },
@@ -2668,7 +2807,14 @@
                 "jsDoc": [
                     {
                         "kind": "JSDocComment",
-                        "comment": "Registers an event that runs when user inputs text."
+                        "comment": "Registers an event that runs when user inputs text.",
+                        "tags": [
+                            {
+                                "kind": "FirstJSDocTagNode",
+                                "tagName": "example",
+                                "comment": "```js\n// export type into input\ncharInput((ch) => {\n    input.text += ch;\n});\n```"
+                            }
+                        ]
                     }
                 ]
             },
@@ -2966,7 +3112,14 @@
                 "jsDoc": [
                     {
                         "kind": "JSDocComment",
-                        "comment": "If certain key is currently down."
+                        "comment": "If certain key is currently down.",
+                        "tags": [
+                            {
+                                "kind": "FirstJSDocTagNode",
+                                "tagName": "example",
+                                "comment": "```js\n// almost equivalent to the keyPress() example above\naction(() => {\n    if (keyIsDown(\"left\")) {\n        froggy.move(-SPEED, 0);\n    }\n});\n```"
+                            }
+                        ]
                     }
                 ]
             },
@@ -3122,7 +3275,14 @@
                 "jsDoc": [
                     {
                         "kind": "JSDocComment",
-                        "comment": "Run the callback every n seconds."
+                        "comment": "Run the callback every n seconds.",
+                        "tags": [
+                            {
+                                "kind": "FirstJSDocTagNode",
+                                "tagName": "example",
+                                "comment": "```js\n// spawn a bomb at random position every frame\nloop(1, () => {\n    add([\n        sprite(\"bomb\"),\n        pos(rand(0, width()), rand(0, height())),\n        area(),\n        body(),\n    ]);\n});\n```"
+                            }
+                        ]
                     }
                 ]
             },
@@ -6490,6 +6650,9 @@
                         "text": "zoom-out",
                         "hasExtendedUnicodeEscape": false
                     }
+                },
+                {
+                    "kind": "StringKeyword"
                 }
             ]
         }
