@@ -677,10 +677,14 @@ function clicks(t: string, f: (obj: GameObj<any>) => void): EventCanceller {
 }
 
 // add an event that runs when objs with tag t is hovered
-function hovers(t: string, f: (obj: GameObj<any>) => void): EventCanceller {
+function hovers(t: string, onHover: (obj: GameObj<any>) => void, onNotHover?: (obj: GameObj<any>) => void): EventCanceller {
 	return action(t, (o: GameObj<any>) => {
 		if (o.isHovered()) {
-			f(o);
+			onHover(o);
+		} else {
+			if (onNotHover) {
+				onNotHover(o);
+			}
 		}
 	});
 }
@@ -1158,30 +1162,24 @@ function isSameLayer(o1: GameObj<any>, o2: GameObj<any>): boolean {
 }
 
 // TODO: tell which side collides
-function area(p1?: Vec2 | number, p2?: Vec2 | number): AreaComp {
+function area(conf: AreaCompConf = {}): AreaComp {
 
 	const colliding = {};
 	const overlapping = {};
-
-	// scale for auto area
-	const aScale = vec2(1);
-
-	if (typeof p1 === "number") {
-		aScale.x = p1;
-		aScale.y = p1;
-		if (typeof p2 === "number") {
-			aScale.y = p2;
-		}
-	}
 
 	return {
 
 		id: "area",
 
-		area: {
-			p1: isVec2(p1) ? p1 as Vec2 : null,
-			p2: isVec2(p2) ? p2 as Vec2 : null,
+		add() {
+			if (this.area.cursor) {
+				this.hovers(() => {
+					app.cursor(this.area.cursor);
+				});
+			}
 		},
+
+		area: conf,
 
 		areaWidth(): number {
 			const { p1, p2 } = this.worldArea();
@@ -1240,10 +1238,14 @@ function area(p1?: Vec2 | number, p2?: Vec2 | number): AreaComp {
 			});
 		},
 
-		hovers(f: () => void) {
+		hovers(onHover: () => void, onNotHover: () => void) {
 			this.action(() => {
 				if (this.isHovered()) {
-					f();
+					onHover();
+				} else {
+					if (onNotHover) {
+						onNotHover();
+					}
 				}
 			});
 		},
@@ -1394,11 +1396,14 @@ function area(p1?: Vec2 | number, p2?: Vec2 | number): AreaComp {
 
 			if (!a.p1 && !a.p2) {
 
-				if (!this.width || !this.height) {
+				const w = this.area.width ?? this.width;
+				const h = this.area.height ?? this.height;
+
+				if (!w || !h) {
 					throw new Error("Auto area requires width and height from other comps (did you forget to add sprite / text / rect comp?)");
 				}
 
-				const size = vec2(this.width, this.height).scale(aScale);
+				const size = vec2(w, h);
 				const offset = originPt(this.origin || DEF_ORIGIN).scale(size).scale(-0.5);
 
 				a.p1 = offset.sub(size.scale(0.5));
@@ -1407,7 +1412,7 @@ function area(p1?: Vec2 | number, p2?: Vec2 | number): AreaComp {
 			}
 
 			const pos = this.pos || vec2(0);
-			const scale = this.scale || vec2(1);
+			const scale = (this.scale || vec2(1)).scale((this.area.scale || vec2(1)));
 			const p1 = pos.add(a.p1.scale(scale));
 			const p2 = pos.add(a.p2.scale(scale));
 
@@ -1609,6 +1614,11 @@ function text(t: string, conf: TextCompConf = {}): TextComp {
 		load() {
 
 			const font = assets.fonts[this.font ?? gconf.font ?? DEF_FONT];
+
+			if (!font) {
+				throw new Error(`font not found: "${font}"`);
+			}
+
 			const ftext = gfx.fmtText(this.text + "", font, {
 				pos: this.pos,
 				scale: this.scale,
@@ -1627,6 +1637,11 @@ function text(t: string, conf: TextCompConf = {}): TextComp {
 		draw() {
 
 			const font = assets.fonts[this.font ?? gconf.font ?? DEF_FONT];
+
+			if (!font) {
+				throw new Error(`font not found: "${font}"`);
+			}
+
 			const ftext = gfx.fmtText(this.text + "", font, {
 				pos: this.pos,
 				scale: this.scale,

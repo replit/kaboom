@@ -91,13 +91,8 @@ const stmts = transform(f.statements, (k, v) => {
 	}
 });
 
-// map of types for docs
-const types = {};
-
 // check if global defs are being generated
 let globalGenerated = false;
-
-// over
 const dups = new Set();
 
 // window attribs to overwrite
@@ -106,22 +101,10 @@ const overwrites = new Set([
 	"focus",
 ]);
 
-// stuff to hide from generated doc
-const hiddenTypes = new Set([
-	"UnionToIntersection",
-	"Defined",
-	"Expand",
-	"MergeObj",
-	"MergeComps",
-]);
-
 // generate global decls for KaboomCtx members
 dts += "declare global {\n";
 
 for (const stmt of stmts) {
-	if (!hiddenTypes.has(stmt.name)) {
-		types[stmt.name] = stmt;
-	}
 	if (stmt.name === "KaboomCtx") {
 		if (stmt.kind !== "InterfaceDeclaration") {
 			throw new Error("KaboomCtx has to be an interface.");
@@ -151,4 +134,3 @@ if (!globalGenerated) {
 }
 
 fs.writeFileSync(`${distDir}/kaboom.d.ts`, dts);
-fs.writeFileSync("site/types.json", JSON.stringify(types, null, 4));

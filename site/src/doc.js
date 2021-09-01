@@ -1,8 +1,10 @@
+const fs = require("fs");
 const marked = require("marked");
 const hljs = require("highlight.js");
 const www = require("./www");
 const gstyle = require("./gstyle");
-const types = require("./../types");
+const getTypes = require("./getTypes");
+const types = getTypes(fs.readFileSync("./../dist/kaboom.d.ts", "utf-8"));
 const t = www.tag;
 
 marked.setOptions({

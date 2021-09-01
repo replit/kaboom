@@ -1,3 +1,6 @@
+// import kaboom package
+import kaboom from "kaboom";
+
 // initialize context
 kaboom();
 

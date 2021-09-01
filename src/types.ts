@@ -592,7 +592,7 @@ interface KaboomCtx {
 	 */
 	rect(w: number, h: number): RectComp,
 	/**
-	 * Collider. Calculate from rendered dimension (e.g. from sprite, text, rect) if no params given.
+	 * Collider. Will calculate from rendered comps (e.g. from sprite, text, rect) if no params given.
 	 *
 	 * @example
 	 * ```js
@@ -604,8 +604,8 @@ interface KaboomCtx {
 	 *
 	 * add([
 	 *     sprite("bomb"),
-	 *     // when pass a single number it'll scale the auto calculated area by 0.6
-	 *     area(0.6),
+	 *     // scale the auto calculated area by 0.6
+	 *     area({ scale: 0.6 }),
 	 *     // we want the scale to be calculated from the center
 	 *     origin("center"),
 	 * ]);
@@ -613,7 +613,7 @@ interface KaboomCtx {
 	 * // define custom area with topleft and botright point
 	 * const player = add([
 	 *     sprite("froggy"),
-	 *     area(vec2(-10, -30), vec2(10, 60)),
+	 *     area({ width: 20, height: 40. }),
 	 * ])
 	 *
 	 * // die if player collides with another game obj with tag "tree"
@@ -653,10 +653,7 @@ interface KaboomCtx {
 	 * // for more methods check out AreaComp
 	 * ```
 	 */
-	area(): AreaComp,
-	area(scale: number): AreaComp,
-	area(sx: number, sy: number): AreaComp,
-	area(p1: Vec2, p2: Vec2): AreaComp,
+	area(conf: AreaCompConf): AreaComp,
 	/**
 	 * Origin point for render (default "topleft").
 	 *
@@ -684,7 +681,7 @@ interface KaboomCtx {
 	 */
 	outline(width?: number, color?: Color): OutlineComp,
 	/**
-	 * Physical body that responds to gravity.
+	 * Physical body that responds to gravity. Requires "area" and "pos" comp.
 	 *
 	 * @example
 	 * ```js
@@ -721,7 +718,7 @@ interface KaboomCtx {
 	 */
 	timer(n?: number, action?: () => void): TimerComp,
 	/**
-	 * Make other objects cannot move pass.
+	 * Make other objects cannot move pass. Requires "area" comp.
 	 */
 	solid(): SolidComp,
 	/**
@@ -1532,7 +1529,8 @@ interface FormattedText {
 }
 
 type Cursor =
-	"auto"
+	string
+	| "auto"
 	| "default"
 	| "none"
 	| "context-menu"
@@ -1568,7 +1566,6 @@ type Cursor =
 	| "nwse-resize"
 	| "zoom-int"
 	| "zoom-out"
-	| string
 	;
 
 type Origin =
@@ -1814,11 +1811,38 @@ interface PushOut {
 	dis: number,
 }
 
+interface AreaCompConf {
+	/**
+	 * Width of area.
+	 */
+	width?: number,
+	/**
+	 * Height of area.
+	 */
+	height?: number,
+	/**
+	 * Area scale.
+	 */
+	scale?: number | Vec2,
+	/**
+	 * Top left point of area,
+	 */
+	p1?: Vec2,
+	/**
+	 * Bot right point of area.
+	 */
+	p2?: Vec2,
+	/**
+	 * Cursor on hover.
+	 */
+	cursor?: Cursor,
+}
+
 interface AreaComp extends Comp {
 	/**
-	 * Rectangular collider area.
+	 * Collider area info.
 	 */
-	area: Rect;
+	area: AreaCompConf;
 	/**
 	 * Get the width of collider area.
 	 */
@@ -1850,7 +1874,7 @@ interface AreaComp extends Comp {
 	/**
 	 * Registers an event runs when hovered.
 	 */
-	hovers(f: () => void): void,
+	hovers(onHover: () => void, onNotHover?: () => void): void,
 	/**
 	 * Registers an event runs when collides with another game obj with certain tag.
 	 */

@@ -1,7 +1,4 @@
 import StackTrace from "stacktrace-js";
-import kaboom from "kaboom";
-
-window.kaboom = kaboom;
 
 // report error to server
 window.addEventListener("error", (e) => {

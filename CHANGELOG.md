@@ -39,6 +39,7 @@ add([
     area(), // empty area() will calc size from the sprite
 ]);
 ```
+- (**BREAK**) `area()` now takes an `AreaCompConf`, where you can define the area points, size, scale, and hover cursor
 - audio is now paused when you leave the tab
 - audio is now paused on `debug.paused = true`
 - added localStorage helper `getData(key, default?)` and `setData(key, data)`
