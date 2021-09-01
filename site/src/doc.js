@@ -131,9 +131,8 @@ function renderTypeAlias(type) {
 function renderInterface(type) {
 	const memberList = type.members
 		.map(renderMember)
-		.map((entry) => "&nbsp;".repeat(4) + entry)
 		.join(t("br"));
-	return `{${t("br")}${memberList}${t("br")}}`;
+	return `${memberList}`;
 }
 
 function renderStmt(stmt) {

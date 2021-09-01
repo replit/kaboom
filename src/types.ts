@@ -17,6 +17,12 @@
  *     clearColor: [ 0, 0, 255, ],
  * });
  *
+ * // all kaboom functions are imported to global automatically
+ * add();
+ * action();
+ * keyPress();
+ * vec2();
+ *
  * // can also prevent kaboom from importing all functions to global and use a context handle
  * const k = kaboom({ global: false });
  *
@@ -1893,6 +1899,14 @@ interface AreaComp extends Comp {
 	pushOut(obj: GameObj<any>): PushOut | null,
 	/**
 	 * Push out from all other solid game objs if currently overlapping.
+	 *
+	 * @example
+	 * ```js
+	 * // make player won't move through solid() objs
+	 * player.action(() => {
+	 *     player.pushOutAll();
+	 * });
+	 * ```
 	 */
 	pushOutAll(): PushOut[],
 	/**
@@ -1904,6 +1918,9 @@ interface AreaComp extends Comp {
 }
 
 interface SpriteCompConf {
+	/**
+	 * Rectangular area to render.
+	 */
 	quad?: Quad,
 	/**
 	 * Initial frame.

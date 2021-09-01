@@ -14,7 +14,7 @@ function getTypes(dts) {
 	const types = {};
 
 	const f = ts.createSourceFile(
-		".ts",
+		"ts",
 		dts,
 		ts.ScriptTarget.Latest,
 		true

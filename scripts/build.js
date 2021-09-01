@@ -48,7 +48,7 @@ let dts = fs.readFileSync(`${srcDir}/types.ts`, "utf-8")
 	.replace(/declare/g, "export default");
 
 const f = ts.createSourceFile(
-	"types.ts",
+	"ts",
 	dts,
 	ts.ScriptTarget.Latest,
 	true
