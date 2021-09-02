@@ -79,6 +79,9 @@ const css = {
 				"width": "100%",
 				"height": "50%",
 			},
+			"(max-device-width: 640px)": {
+				"font-size": "48px",
+			},
 		},
 	},
 	"#view": {

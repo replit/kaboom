@@ -56,6 +56,7 @@ scene("game", () => {
 			pos(width(), height() - FLOOR_HEIGHT),
 			origin("botleft"),
 			color(255, 180, 255),
+			move(LEFT, SPEED),
 			"tree",
 		]);
 
@@ -66,19 +67,6 @@ scene("game", () => {
 
 	// start spawning trees
 	spawnTree();
-
-	// define action for every game obj with tag "tree"
-	action("tree", (tree) => {
-
-		// all trees will move by 'SPEED' pixels per second every frame
-		tree.move(-SPEED, 0);
-
-		// if tree goes out of screen, we remove it to save performance
-		if (tree.pos.x <= -tree.width) {
-			destroy(tree);
-		}
-
-	});
 
 	// lose if player collides with any game obj with tag "tree"
 	player.collides("tree", () => {

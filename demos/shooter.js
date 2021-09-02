@@ -210,6 +210,7 @@ scene("battle", () => {
 			origin("center"),
 			color(127, 127, 255),
 			outline(4),
+			move(UP, BULLET_SPEED),
 			// strings here means a tag
 			"bullet",
 		]);
@@ -230,15 +231,6 @@ scene("battle", () => {
 		});
 	});
 
-	// run this callback every frame for all objects with tag "bullet"
-	action("bullet", (b) => {
-		b.move(0, -BULLET_SPEED);
-		// remove the bullet if it's out of the scene for performance
-		if (b.pos.y < 0) {
-			destroy(b);
-		}
-	});
-
 	function spawnTrash() {
 		const name = choose(objs.filter(n => n != bossName));
 		add([
@@ -249,9 +241,7 @@ scene("battle", () => {
 			origin("bot"),
 			"trash",
 			"enemy",
-			{
-				speed: rand(TRASH_SPEED * 0.5, TRASH_SPEED * 1.5),
-			},
+			{ speed: rand(TRASH_SPEED * 0.5, TRASH_SPEED * 1.5) },
 		]);
 		wait(insaneMode ? 0.1 : 0.3, spawnTrash);
 	}

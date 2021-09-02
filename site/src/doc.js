@@ -356,6 +356,9 @@ add([
 					return;
 				}
 				const mem = types[name];
+				if (mem.kind === "ModuleDeclaration") {
+					return;
+				}
 				return t("div", { class: "item", id: name, }, [
 					t("div", { class: "name", }, name),
 					...renderJSDoc(mem),

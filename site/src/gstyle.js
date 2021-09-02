@@ -29,7 +29,7 @@ module.exports = {
 		"overflow": "scroll",
 		"font-family": "IBM Plex Mono",
 		"background": "#fafafa",
-		"padding": "12px",
+		"padding": "16px",
 		"border": "solid 2px #eaeaea",
 		"border-radius": "12px",
 	},

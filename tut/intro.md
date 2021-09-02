@@ -18,30 +18,31 @@ This should give you a blank canvas with a nice checkerboard pattern like this
 
 ![empty](empty.png)
 
-Then let's add some stuff to screen, like an image.
+Then let's add some stuff to screen, like an image. Copy this piece of code to your editor and see what happens when you run the game.
 
 ```js
 // load a sprite "bean" from an image
 loadSprite("bean", "sprites/bean.png")
 
-// add it to screen
+// add something to screen
 add([
-    sprite("bean"),
-    pos(80, 40),
+	sprite("bean"),
+	pos(80, 40),
 ])
 ```
 
-Go ahead and just paste this code and run it, you should see a yellow smily face on screen!
+Go ahead and just paste this code and run it, you should see a green smily face on screen!
 
 Before explaining what this does, let's try adding some more stuff to it and see what happens:
 
 ```js
-// add it to screen
+// add something to screen
 add([
-    sprite("bean"),
-    pos(80, 40),
-    scale(3),
-    area(),
+	sprite("bean"),
+	pos(80, 40),
+	scale(3),
+	rotate(30),
+	color(0, 0, 255),
 ])
 ```
 
@@ -58,6 +59,64 @@ Human are also composed from a list of components, each component provides diffe
 ![assemble](assemble.png)
 
 In kaboom different components provides different functionalities (properties, methods), for example, if you add a `body()` component, which makes the user respond to gravity, it also provides methods like `jump()`. Try this code:
+
+```js
+// add a game obj to the screen
+// composed from a list of components
+const froggy = add([
+	sprite("bean"),
+	pos(80, 40),
+	area(),
+	body(),
+])
+
+// .jump() when "space" key is pressed
+keyPress("space", () => {
+	froggy.jump()
+})
+```
+
+Now try run and slap the "space" key. See? Oh yeah our froggy is jumping now.
+
+`keyPress()` registers an event that runs every time a users presses a certain key (the space key in this case). In that callback we call the `.jump()` method on froggy, which is provided by the `body()` component.
+
+Let's not let froggy fall forever and add a solid surface to land on. Start by adding a rectangle to the screen:
+
+```js
+// add platform
+add([
+	rect(width(), 48),
+	pos(0, height() - 49),
+]);
+```
+
+Similar to `sprite()`, `rect()` is a component that handles rendering, but in this case it renders a rectangle. It receives 2 arguments, the width and height of rectangle. In this case we'll use the full game width (which is returned by function `width()`), and height of 48 pixels.
+
+We also gave it a `pos()` component
+
+```js
+// add solid surface
+add([
+	// renders as a rectangle, with width of screen width, and height of 48
+	rect(width(), 48),
+	// it has an black outline that's 4 pixels thick
+	outline(4),
+	// is has a position of x: 0, y: screen height
+	pos(0, height()),
+	// the position will be its bottom left point, instead of top left
+	origin("botleft"),
+	// it has a collider to check collisions with other objs
+	area(),
+	// it's a solid obj so other objs cannot move pass it
+	solid(),
+	// it has a blue-ish color with r: 127, g: 200 and b: 255
+	color(127, 200, 255),
+])
+```
+
+(wip)
+
+Full game code here:
 
 ```js
 const FLOOR_HEIGHT = 48;

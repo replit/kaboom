@@ -116,6 +116,11 @@ const gfx = gfxInit(app.gl, {
 	letterbox: gconf.letterbox,
 });
 
+const {
+	width,
+	height,
+} = gfx;
+
 const assets = assetsInit(gfx, audio, {
 	errHandler: (err: string) => {
 		logger.error(err);
@@ -217,7 +222,7 @@ function drawText(
 const DEF_GRAVITY = 980;
 const DEF_ORIGIN = "topleft";
 
-type Game = {
+interface Game {
 	loaded: boolean,
 	events: Record<string, IDList<() => void>>,
 	objEvents: Record<string, IDList<TaggedEvent>>,
@@ -229,7 +234,7 @@ type Game = {
 	camMousePos: Vec2,
 	camMatrix: Mat4,
 	gravity: number,
-	layers: Record<string, Layer>,
+	layers: Record<string, number>,
 	defLayer: string | null,
 	on<F>(ev: string, cb: F): EventCanceller,
 	trigger(ev: string, ...args),
@@ -246,7 +251,6 @@ type Camera = {
 
 type Layer = {
 	order: number,
-	alpha: number,
 }
 
 type TaggedEvent = {
@@ -285,7 +289,7 @@ const game: Game = {
 
 	// cam
 	cam: {
-		pos: vec2(gfx.width() / 2, gfx.height() / 2),
+		pos: vec2(width() / 2, height() / 2),
 		scale: vec2(1, 1),
 		angle: 0,
 		shake: 0,
@@ -320,10 +324,7 @@ const game: Game = {
 function layers(list: string[], def?: string) {
 
 	list.forEach((name, idx) => {
-		game.layers[name] = {
-			alpha: 1,
-			order: idx + 1,
-		};
+		game.layers[name] = idx + 1;
 	});
 
 	if (def) {
@@ -819,8 +820,8 @@ function get(t?: string): GameObj<any>[] {
 
 	const objs = [...game.objs.values()].sort((o1, o2) => {
 
-		const l1 = game.layers[o1.layer ?? game.defLayer]?.order ?? 0;
-		const l2 = game.layers[o2.layer ?? game.defLayer]?.order ?? 0;
+		const l1 = game.layers[o1.layer ?? game.defLayer] ?? 0;
+		const l2 = game.layers[o2.layer ?? game.defLayer] ?? 0;
 
 		// if on same layer, use "z" comp to decide which is on top, if given
 		if (l1 == l2) {
@@ -910,7 +911,7 @@ function gameFrame(ignorePause?: boolean) {
 	}
 
 	// calculate camera matrix
-	const size = vec2(gfx.width(), gfx.height());
+	const size = vec2(width(), height());
 	const cam = game.cam;
 	const shake = dir(rand(0, 360)).scale(cam.shake);
 
@@ -1090,10 +1091,13 @@ function pos(...args): PosComp {
 			this.pos = this.pos.add(diff.unit().scale(speed));
 		},
 
-		// TODO: check if on cam ignored layer
 		// get the screen position (transformed by camera)
 		screenPos(): Vec2 {
-			return game.camMatrix.multVec2(this.pos);
+			if (this.fixed) {
+				return this.pos;
+			} else {
+				return game.camMatrix.multVec2(this.pos);
+			}
 		},
 
 		inspect() {
@@ -1157,8 +1161,20 @@ function z(z: number): ZComp {
 	};
 }
 
-function isSameLayer(o1: GameObj<any>, o2: GameObj<any>): boolean {
-	return (o1.layer ?? game.defLayer) === (o2.layer ?? game.defLayer);
+function move(direction: number | Vec2, speed: number): MoveComp {
+	const d = typeof direction === "number" ? dir(direction) : direction.unit();
+	return {
+		id: "move",
+		require: [ "pos", "area", ],
+		update() {
+			this.move(d.scale(speed));
+			const pos = this.screenPos();
+			if (pos.x < 0 || pos.x > width() || pos.y < 0 || pos.y > height()) {
+				// TODO: use area
+				destroy(this);
+			}
+		},
+	};
 }
 
 // TODO: tell which side collides
@@ -1751,6 +1767,7 @@ function timer(n?: number, action?: () => void): TimerComp {
 
 // maximum y velocity with body()
 const DEF_JUMP_FORCE = 480;
+const MAX_VEL = 65536;
 
 // TODO: land on wall
 function body(conf: BodyCompConf = {}): BodyComp {
@@ -1803,10 +1820,7 @@ function body(conf: BodyCompConf = {}): BodyComp {
 			if (!curPlatform) {
 
 				velY += gravity() * this.weight * dt();
-
-				if (conf.maxVel) {
-					velY = Math.min(velY, conf.maxVel);
-				}
+				velY = Math.min(velY, conf.maxVel ?? MAX_VEL);
 
 				// check if grounded to a new platform
 				for (const target of targets) {
@@ -2076,7 +2090,7 @@ function plug<T>(plugin: KaboomPlugin<T>): MergeObj<T> & KaboomCtx {
 }
 
 function center(): Vec2 {
-	return vec2(gfx.width() / 2, gfx.height() / 2);
+	return vec2(width() / 2, height() / 2);
 }
 
 const ctx: KaboomCtx = {
@@ -2088,8 +2102,8 @@ const ctx: KaboomCtx = {
 	loadShader: assets.loadShader,
 	load: assets.load,
 	// query
-	width: gfx.width,
-	height: gfx.height,
+	width: width,
+	height: height,
 	center: center,
 	dt: dt,
 	time: app.time,
@@ -2138,6 +2152,7 @@ const ctx: KaboomCtx = {
 	health,
 	lifespan,
 	z,
+	move,
 	// group events
 	on,
 	action,
@@ -2215,6 +2230,11 @@ const ctx: KaboomCtx = {
 	// char sets
 	ASCII_CHARS,
 	CP437_CHARS,
+	// dirs
+	LEFT: vec2(-1, 0),
+	RIGHT: vec2(1, 0),
+	UP: vec2(0, -1),
+	DOWN: vec2(0, 1),
 	// dom
 	canvas: app.canvas,
 };
@@ -2253,10 +2273,10 @@ app.run(() => {
 				net.connect().catch(logger.error);
 			}
 		} else {
-			const w = gfx.width() / 2;
+			const w = width() / 2;
 			const h = 24 / gfx.scale();
-			const pos = vec2(gfx.width() / 2, gfx.height() / 2).sub(vec2(w / 2, h / 2));
-			gfx.drawRect(vec2(0), gfx.width(), gfx.height(), { color: rgb(0, 0, 0), });
+			const pos = vec2(width() / 2, height() / 2).sub(vec2(w / 2, h / 2));
+			gfx.drawRect(vec2(0), width(), height(), { color: rgb(0, 0, 0), });
 			gfx.drawRectStroke(pos, w, h, { width: 4 / gfx.scale(), });
 			gfx.drawRect(pos, w * progress, h);
 		}

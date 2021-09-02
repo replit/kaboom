@@ -6,7 +6,7 @@ const hljs = require("highlight.js");
 const esbuild = require("esbuild");
 const port = process.env.PORT || 8000;
 const doc = require("./doc");
-const demos = require("./demos");
+const demo = require("./demo");
 const gstyle = require("./gstyle");
 const www = require("./www");
 const t = www.tag;
@@ -121,9 +121,20 @@ function renderMD(p) {
 			t("style", {}, www.css(gstyle)),
 			t("style", {}, www.css({
 				"#content": {
-					"margin": "0 auto",
-					"max-width": "640px",
-					...www.vspace(24),
+					"font-size": "24px",
+					"margin": "32px auto",
+					"width": "800px",
+					"max-width": "90%",
+					...www.vspace(32),
+					"@media": {
+						"(max-device-width: 640px)": {
+							"width": "90%",
+							"font-size": "48px",
+						},
+					},
+				},
+				"*": {
+					"width": "100%",
 				},
 			})),
 			t("link", { rel: "icon", href: "/kaboom.png"}),
@@ -153,7 +164,7 @@ function buildJS(p) {
 }
 
 app.use(get("/", html(doc)));
-app.use(get("/demos", html(demos)));
+app.use(get("/demo", html(demo)));
 app.use(files("/sprites", "../sprites"));
 app.use(files("/sounds", "../sounds"));
 app.use(files("/src", "../src"));

@@ -683,6 +683,21 @@ interface KaboomCtx {
 	 */
 	z(z: number): ZComp,
 	/**
+	 * Move towards a direction infinitely, and destroys when it leaves game view. Requires "pos" comp.
+	 *
+	 * @example
+	 * ```js
+	 * // enemy throwing feces at player
+	 * const projectile = add([
+	 *     sprite("feces"),
+	 *     pos(player.pos),
+	 *     area(),
+	 *     move(player.pos.angle(enemy.pos), 1200),
+	 * ]);
+	 * ```
+	 */
+	move(direction: number | Vec2, speed: number): MoveComp,
+	/**
 	 * Give obj an outline.
 	 */
 	outline(width?: number, color?: Color): OutlineComp,
@@ -1218,6 +1233,22 @@ interface KaboomCtx {
 	 * All chars in CP437.
 	 */
 	CP437_CHARS: string,
+	/**
+	 * Left directional vector vec2(-1, 0).
+	 */
+	LEFT: Vec2,
+	/**
+	 * Right directional vector vec2(1, 0).
+	 */
+	RIGHT: Vec2,
+	/**
+	 * Up directional vector vec2(0, -1).
+	 */
+	UP: Vec2,
+	/**
+	 * Down directional vector vec2(0, 1).
+	 */
+	DOWN: Vec2,
 	/**
 	 * The canvas DOM kaboom is currently using.
 	 */
@@ -1802,6 +1833,9 @@ interface ZComp extends Comp {
 	 * Defines the z-index of this game obj
 	 */
 	z: number;
+}
+
+interface MoveComp extends Comp {
 }
 
 type RectSide =

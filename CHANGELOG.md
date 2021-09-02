@@ -1,12 +1,13 @@
 ### kaboom3000 (unreleased)
 - version jumped to v3000.0.0 (still semver, just big)
 - added `burp()` for easy burping
-- added decent typescript support
+- added decent typescript support and jsdocs
 - revamped visual style, changed default font and debug font
 - introducing new character "bean"
 ![bean](sprites/bean.png)
 - added `loadBean()` to `"bean"` as a default sprite
 - added comp `health()` to manage health related logic
+- added comp `move()` to manage projectile-like behavior
 - added comp `outline()` to draw a lil outline
 - added comp `timer()` to attach timers to a game obj
 - added comp `fixed()` to make a game obj unaffected by camera
@@ -16,6 +17,7 @@
 - added `weight` to `BodyComp` and `BodyCompConf` to control the gravity multiplier
 - added `djump()` to `BodyComp` for double jump
 - added `dir()` to calculate directional vector from angle
+- added constants `LEFT`, `RIGHT`, `UP`, `DOWN` for unit directional vector
 - (**BREAK**) changed color from 0-1 range to 0-255, angles from radians to degrees
 - `global` and `debug` flag now are enabled by default, need to turn off manually if you don't want
 - added input events `touchStart(id, pos)`, `touchMove(id, pos)`, `touchEnd(id, pos)`, `mouseMove(pos)`
