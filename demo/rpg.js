@@ -104,7 +104,7 @@ scene("main", (levelIdx) => {
 
 	function talk(msg) {
 		talking = add([
-			text(msg, { width: width(), }),
+			text(msg, { width: width(), size: 9, }),
 		]);
 	}
 
