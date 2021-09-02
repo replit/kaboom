@@ -4,7 +4,6 @@ const fs = require("fs");
 const path = require("path");
 const esbuild = require("esbuild");
 const express = require("express");
-const chokidar = require("chokidar");
 const ws = require("ws");
 const http = require("http");
 const Database = require("@replit/database");
@@ -13,13 +12,10 @@ const app = express();
 const server = http.createServer(app);
 const wsServer = new ws.Server({ server: server, path: "/devws" });
 const port = process.env.PORT || 8000;
-let conf = JSON.parse(fs.readFileSync("conf.json", "utf-8"));
 let err = null;
 
 // build user game
 function buildGame() {
-
-	conf = JSON.parse(fs.readFileSync("conf.json", "utf-8"));
 
 	const template = fs.readFileSync("template.html", "utf-8");
 	let code = "";
@@ -135,25 +131,6 @@ app.use("/sounds", express.static("sounds"));
 app.use("/code", express.static("code"));
 app.use("/dist", express.static("dist"));
 
-if (conf.liveReload) {
-	chokidar.watch([
-		"code",
-		"sprites",
-		"sounds",
-		"template.html",
-		"conf.json",
-	]).on("all", () => {
-		if (!conf.liveReload) {
-			return;
-		}
-		wsServer.clients.forEach((client) => {
-			if (client.readyState === ws.OPEN) {
-				client.send(JSON.stringify("REFRESH"));
-			}
-		});
-	});
-}
-
 server.listen(port);
 
 // term output
@@ -167,9 +144,7 @@ function render() {
 	process.stdout.write("\x1b[H");
 	process.stdout.write("kaboom!\n");
 
-	if (!conf.liveReload) {
-		console.log(dim("\n(tip: try use the webview refresh button instead of header run button to view change)"));
-	}
+	console.log(dim("\n(tip: try use the webview refresh button instead of header run button to view change)"));
 
 	// error stack trace
 	if (err) {

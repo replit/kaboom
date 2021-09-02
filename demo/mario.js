@@ -9,7 +9,7 @@ loadSprite("apple", "sprites/apple.png");
 loadSprite("coin", "sprites/coin.png");
 
 // define some constants
-const JUMP_FORCE = 1400;
+const JUMP_FORCE = 1440;
 const MOVE_SPEED = 480;
 const FALL_DEATH = 2400;
 
@@ -17,28 +17,11 @@ gravity(3200);
 
 // add level to scene
 const level = addLevel([
-// 	"           $    ",
-// 	"  %      ====   ",
-// 	"                ",
-// 	"                ",
-// 	"       ^^       ",
-// 	"===============",
-	" =    =         ",
-	" =    =         ",
-	" =    =         ",
-	" =    =         ",
-	" =    =         ",
-	" =    =         ",
-	" =    =         ",
-	" =    =         ",
-	" =    =         ",
-	" =    =         ",
-	" =    =         ",
-	" =    =         ",
-	" =    =         ",
-	" =    =         ",
-	" =    =         ",
-	" =    =         ",
+	"           $    ",
+	"  %      ====   ",
+	"                ",
+	"                ",
+	"       ^^       ",
 	"===============",
 ], {
 	// TODO: derive grid size from sprite size instead of hardcode
@@ -126,7 +109,7 @@ const player = add([
 	area(),
 	scale(1),
 	// makes it fall to gravity and jumpable
-	body({ hang: true, hangTime: 0.1, }),
+	body(),
 	// the custom component we defined above
 	big(),
 	origin("bot"),

@@ -849,15 +849,15 @@ interface KaboomCtx {
 	 */
 	regCursor(c: string, draw: string | ((mpos: Vec2) => void)),
 	/**
-	 * Get current mouse position (after camera transform)
+	 * Get current mouse position (without camera transform).
 	 *
 	 * @section Input
 	 */
 	mousePos(): Vec2,
 	/**
-	 * Get current mouse position (without camera transform).
+	 * Get current mouse position (after camera transform)
 	 */
-	mousePosRaw(): Vec2,
+	mouseWorldPos(): Vec2,
 	/**
 	 * How much mouse moved last frame.
 	 */
@@ -1634,7 +1634,9 @@ interface Vec2 {
 	y: number,
 	clone(): Vec2,
 	add(p: Vec2): Vec2,
+	add(x: number, y: number): Vec2,
 	sub(p: Vec2): Vec2,
+	sub(x: number, y: number): Vec2,
 	scale(p: Vec2): Vec2,
 	scale(s: number): Vec2,
 	scale(sx: number, sy: number): Vec2,
@@ -1947,6 +1949,10 @@ interface AreaComp extends Comp {
 	 * Get the geometry data for the collider in world coordinate space.
 	 */
 	worldArea(): Rect;
+	/**
+	 * Get the geometry data for the collider in screen coordinate space.
+	 */
+	screenArea(): Rect;
 	_checkCollisions(tag: string, f: (obj: GameObj<any>) => void): void;
 	_checkOverlaps(tag: string, f: (obj: GameObj<any>) => void): void;
 }

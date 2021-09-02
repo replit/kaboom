@@ -174,11 +174,11 @@ function play(id: string, conf: AudioPlayConf = {}): AudioPlay {
 }
 
 function mousePos(): Vec2 {
-	return game.camMousePos;
+	return app.mousePos();
 }
 
-function mousePosRaw(): Vec2 {
-	return app.mousePos();
+function mouseWorldPos(): Vec2 {
+	return game.camMousePos;
 }
 
 function drawSprite(
@@ -761,7 +761,6 @@ function keyRelease(k: string, f: () => void): EventCanceller {
 	}
 }
 
-// TODO: these mousePos() are from last frame
 function mouseDown(f: (pos: Vec2) => void): EventCanceller {
 	return game.on("input", () => app.mouseDown() && f(mousePos()));
 }
@@ -774,7 +773,6 @@ function mouseRelease(f: (pos: Vec2) => void): EventCanceller {
 	return game.on("input", () => app.mouseReleased() && f(mousePos()));
 }
 
-// TODO: pass delta pos
 function mouseMove(f: (pos: Vec2, dpos: Vec2) => void): EventCanceller {
 	return game.on("input", () => app.mouseMoved() && f(mousePos(), app.mouseDeltaPos()));
 }
@@ -812,6 +810,38 @@ function touchMove(f: (id: TouchID, pos: Vec2) => void): EventCanceller {
 
 function touchEnd(f: (id: TouchID, pos: Vec2) => void): EventCanceller {
 	return game.on("touchEnd", f);
+}
+
+function regDebugInput() {
+
+	keyPress("f1", () => {
+		debug.inspect = !debug.inspect;
+	});
+
+	keyPress("f2", () => {
+		debug.clearLog();
+	});
+
+	keyPress("f8", () => {
+		debug.paused = !debug.paused;
+		logger.info(`${debug.paused ? "paused" : "unpaused"}`);
+	});
+
+	keyPress("f7", () => {
+		debug.timeScale = clamp(debug.timeScale - 0.2, 0, 2);
+		logger.info(`time scale: ${debug.timeScale.toFixed(1)}`);
+	});
+
+	keyPress("f9", () => {
+		debug.timeScale = clamp(debug.timeScale + 0.2, 0, 2);
+		logger.info(`time scale: ${debug.timeScale.toFixed(1)}`);
+	});
+
+	keyPress("f10", () => {
+		debug.stepFrame();
+		logger.info(`stepped frame`);
+	});
+
 }
 
 // TODO: cache sorted list
@@ -1023,7 +1053,7 @@ function drawInspect() {
 
 		drawObj(inspecting, (scale) => {
 
-			const mpos = mousePos();
+			const mpos = inspecting.fixed ? mousePos() : mouseWorldPos();
 			const lines = [];
 			const data = inspecting._inspect();
 
@@ -1162,19 +1192,46 @@ function z(z: number): ZComp {
 }
 
 function move(direction: number | Vec2, speed: number): MoveComp {
+
 	const d = typeof direction === "number" ? dir(direction) : direction.unit();
+
+	function isOut(p: Vec2) {
+		return p.x < 0 || p.x > width() || p.y < 0 || p.y > height();
+	}
+
 	return {
+
 		id: "move",
-		require: [ "pos", "area", ],
+		require: [ "pos", ],
+
 		update() {
+
+			// move
 			this.move(d.scale(speed));
+
+			// check if out of screen
 			const pos = this.screenPos();
-			if (pos.x < 0 || pos.x > width() || pos.y < 0 || pos.y > height()) {
-				// TODO: use area
-				destroy(this);
+
+			if (isOut(pos)) {
+				if (this.width && this.height) {
+					const w = this.width;
+					const h = this.height;
+					const s = this.scale ?? vec2(1);
+					const orig = originPt(this.origin || DEF_ORIGIN);
+					const p1 = pos.sub(orig.sub(-1, -1).scale(0.5).scale(w, h).scale(s));
+					const p2 = pos.sub(orig.sub(1, 1).scale(0.5).scale(w, h).scale(s));
+					if (isOut(p1) && isOut(p2)) {
+						destroy(this);
+					}
+				} else {
+					destroy(this);
+				}
 			}
+
 		},
+
 	};
+
 }
 
 // TODO: tell which side collides
@@ -1212,11 +1269,11 @@ function area(conf: AreaCompConf = {}): AreaComp {
 		},
 
 		isHovered() {
-			const mposFunc = this.fixed ? mousePosRaw : mousePos;
+			const mpos = this.fixed ? mousePos() : mouseWorldPos();
 			if (app.isTouch) {
-				return app.mouseDown() && this.hasPt(mposFunc());
+				return app.mouseDown() && this.hasPt(mpos);
 			} else {
-				return this.hasPt(mposFunc());
+				return this.hasPt(mpos);
 			}
 		},
 
@@ -1439,6 +1496,18 @@ function area(conf: AreaCompConf = {}): AreaComp {
 
 		},
 
+		screenArea(): Rect {
+			const area = this.worldArea();
+			if (this.fixed) {
+				return area;
+			} else {
+				return {
+					p1: game.camMatrix.multVec2(area.p1),
+					p2: game.camMatrix.multVec2(area.p2),
+				};
+			}
+		},
+
 	};
 
 }
@@ -1618,6 +1687,31 @@ function sprite(id: string | SpriteData, conf: SpriteCompConf = {}): SpriteComp 
 
 function text(t: string, conf: TextCompConf = {}): TextComp {
 
+	function update() {
+
+		const font = assets.fonts[this.font ?? gconf.font ?? DEF_FONT];
+
+		if (!font) {
+			throw new Error(`font not found: "${font}"`);
+		}
+
+		const ftext = gfx.fmtText(this.text + "", font, {
+			pos: this.pos,
+			scale: this.scale,
+			rot: this.angle,
+			size: this.textSize,
+			origin: this.origin,
+			color: this.color,
+			width: conf.width,
+		});
+
+		this.width = ftext.width / (this.scale?.x || 1);
+		this.height = ftext.height / (this.scale?.y || 1);
+
+		return ftext;
+
+	};
+
 	return {
 
 		id: "text",
@@ -1628,50 +1722,12 @@ function text(t: string, conf: TextCompConf = {}): TextComp {
 		height: 0,
 
 		load() {
-
-			const font = assets.fonts[this.font ?? gconf.font ?? DEF_FONT];
-
-			if (!font) {
-				throw new Error(`font not found: "${font}"`);
-			}
-
-			const ftext = gfx.fmtText(this.text + "", font, {
-				pos: this.pos,
-				scale: this.scale,
-				rot: this.angle,
-				size: this.textSize,
-				origin: this.origin,
-				color: this.color,
-				width: conf.width,
-			});
-
-			this.width = ftext.width / (this.scale?.x || 1);
-			this.height = ftext.height / (this.scale?.y || 1);
-
+			update.call(this);
 		},
 
 		draw() {
-
-			const font = assets.fonts[this.font ?? gconf.font ?? DEF_FONT];
-
-			if (!font) {
-				throw new Error(`font not found: "${font}"`);
-			}
-
-			const ftext = gfx.fmtText(this.text + "", font, {
-				pos: this.pos,
-				scale: this.scale,
-				rot: this.angle,
-				size: this.textSize,
-				origin: this.origin,
-				color: this.color,
-				width: conf.width,
-			});
-
-			this.width = ftext.width / (this.scale?.x || 1);
-			this.height = ftext.height / (this.scale?.y || 1);
+			const ftext = update.call(this);
 			gfx.drawFmtText(ftext);
-
 		},
 
 	};
@@ -2175,7 +2231,7 @@ const ctx: KaboomCtx = {
 	touchMove,
 	touchEnd,
 	mousePos,
-	mousePosRaw,
+	mouseWorldPos,
 	mouseDeltaPos: app.mouseDeltaPos,
 	keyIsDown: app.keyDown,
 	keyIsPressed: app.keyPressed,
@@ -2302,41 +2358,10 @@ app.run(() => {
 
 });
 
-function regDebugInput() {
-
-	keyPress("f1", () => {
-		debug.inspect = !debug.inspect;
-	});
-
-	keyPress("f2", () => {
-		debug.clearLog();
-	});
-
-	keyPress("f8", () => {
-		debug.paused = !debug.paused;
-		logger.info(`${debug.paused ? "paused" : "unpaused"}`);
-	});
-
-	keyPress("f7", () => {
-		debug.timeScale = clamp(debug.timeScale - 0.2, 0, 2);
-		logger.info(`time scale: ${debug.timeScale.toFixed(1)}`);
-	});
-
-	keyPress("f9", () => {
-		debug.timeScale = clamp(debug.timeScale + 0.2, 0, 2);
-		logger.info(`time scale: ${debug.timeScale.toFixed(1)}`);
-	});
-
-	keyPress("f10", () => {
-		debug.stepFrame();
-		logger.info(`stepped frame`);
-	});
-
-}
+focus();
 
 if (gconf.debug !== false) {
 	regDebugInput();
-} else {
 }
 
 window.addEventListener("error", (e) => {

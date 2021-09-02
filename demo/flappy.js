@@ -70,6 +70,7 @@ scene("game", () => {
 			color(0, 127, 255),
 			outline(4),
 			area(),
+			move(LEFT, SPEED),
 			// give it tags to easier define behaviors see below
 			"pipe",
 		]);
@@ -80,6 +81,7 @@ scene("game", () => {
 			color(0, 127, 255),
 			outline(4),
 			area(),
+			move(LEFT, SPEED),
 			// give it tags to easier define behaviors see below
 			"pipe",
 			// raw obj just assigns every field to the game obj
@@ -97,16 +99,10 @@ scene("game", () => {
 
 	// per frame event for all objects with tag 'pipe'
 	action("pipe", (p) => {
-		// move left
-		p.move(-SPEED, 0);
 		// check if bean passed the pipe
 		if (p.pos.x + p.width <= bean.pos.x && p.passed === false) {
 			addScore();
 			p.passed = true;
-		}
-		// remove from scene when not seen
-		if (p.pos.x < -width() / 2) {
-			destroy(p);
 		}
 	});
 
@@ -157,6 +153,3 @@ scene("lose", (score) => {
 });
 
 go("game");
-
-// move input focus to canvas on start
-focus();

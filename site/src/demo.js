@@ -105,11 +105,11 @@ module.exports = () => {
 
 	const demos = {};
 
-	fs.readdirSync("../demos").forEach((file) => {
+	fs.readdirSync("../demo").forEach((file) => {
 		if (file.startsWith(".")) {
 			return;
 		}
-		const p = path.resolve("../demos", file);
+		const p = path.resolve("../demo", file);
 		const name = path.basename(file, path.extname(file));
 		const stat = fs.statSync(p);
 		if (!stat.isFile()) {

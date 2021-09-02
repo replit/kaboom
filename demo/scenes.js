@@ -30,4 +30,3 @@ scene("score", (score) => {
 });
 
 go("game");
-focus();
