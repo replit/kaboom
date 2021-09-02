@@ -13,7 +13,7 @@ import {
 // @ts-ignore
 import fontSrc from "./font.png";
 // @ts-ignore
-import unsciiSrc from "./unscii_8x8.png";
+import sinkSrc from "./sink.png";
 
 type AssetsConf = {
 	errHandler?: (err: string) => void,
@@ -68,7 +68,7 @@ type Assets = {
 const ASCII_CHARS = " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~";
 const CP437_CHARS = " ☺☻♥♦♣♠•◘○◙♂♀♪♫☼►◄↕‼¶§▬↨↑↓→←∟↔▲▼ !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~⌂ÇüéâäàåçêëèïîìÄÅÉæÆôöòûùÿÖÜ¢£¥₧ƒáíóúñÑªº¿⌐¬½¼¡«»░▒▓│┤╡╢╖╕╣║╗╝╜╛┐└┴┬├─┼╞╟╚╔╩╦╠═╬╧╨╤╥╙╘╒╓╫╪┘┌█▄▌▐▀αßΓπΣσµτΦΘΩδ∞φε∩≡±≥≤⌠⌡÷≈°∙·√ⁿ²■";
 const DEF_FONT = "kaboom";
-const DBG_FONT = "unscii";
+const DBG_FONT = "sink";
 
 function loadImg(src: string): Promise<HTMLImageElement> {
 	const img = new Image();
@@ -336,7 +336,7 @@ function assetsInit(gfx: Gfx, audio: Audio, gconf: AssetsConf = {}): Assets {
 					})
 					.then((data) => {
 						return new Promise((resolve2, reject2) => {
-							audio.ctx().decodeAudioData(data, resolve2, reject2);
+							audio.ctx.decodeAudioData(data, resolve2, reject2);
 						});
 					})
 					.then((buf: AudioBuffer) => {
@@ -373,9 +373,10 @@ function assetsInit(gfx: Gfx, audio: Audio, gconf: AssetsConf = {}): Assets {
 
 	loadFont(
 		DBG_FONT,
-		unsciiSrc,
+		sinkSrc,
+		6,
 		8,
-		8
+		`█☺☻♥♦♣♠●○▪□■◘♪♫≡►◄⌂ÞÀß×¥↑↓→←◌●▼▲ !"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_\`abcdefghijklmnopqrstuvwxyz{|}~Χ░▒▓ḀḁḂ│┬┤┌┐ḃḄ┼ḅḆḇḈḉḊḋḌ─├┴└┘ḍḎ⁞ḏḐḑḒḓḔḕḖḗḘ▄ḙḚḛḜ…ḝḞḟḠḡḢḣḤḥḦ▌▐ḧḨḩḪḫḬḭḮḯḰḱḲḳḴḵḶḷḸḹḺḻḼḽḾḿṀṁṂṃṄṅṆṇṈṉṊṋṌṍṎṏṐṑṒṓṔṕṖṗṘṙṚṛṜṝṞṟṠṡṢṣṤṥṦṧṨṩṪṫṬṭṮṯṰṱṲṳṴṵṶṷṸṹṺṻṼ`
 	);
 
 	return {

@@ -11,7 +11,7 @@ type AudioCtx = {
 };
 
 type Audio = {
-	ctx(): AudioContext,
+	ctx: AudioContext,
 	volume(v: number): number,
 	play(sound: AudioBuffer, conf?: AudioPlayConf): AudioPlay,
 	burp(conf?: AudioPlayConf): AudioPlay,
@@ -202,16 +202,12 @@ function audioInit(): Audio {
 
 	}
 
-	function ctx(): AudioContext {
-		return audio.ctx;
-	}
-
 	function burp(conf?: AudioPlayConf): AudioPlay {
 		return play(burpBuf, conf);
 	}
 
 	return {
-		ctx,
+		ctx: audio.ctx,
 		volume,
 		play,
 		burp,

@@ -194,7 +194,7 @@ function appInit(gconf: AppConf = {}): App {
 		}
 
 		if (k.length === 1) {
-			app.charInputted.push(k);
+			app.charInputted.push(e.key);
 		}
 
 		if (k === "space") {

@@ -20,7 +20,7 @@ scene("main", (levelIdx) => {
 	const characters = {
 		"a": {
 			sprite: "robot",
-			msg: "ohhi how are you",
+			msg: "ohhi how are you?",
 		},
 		"b": {
 			sprite: "ch2",
@@ -99,14 +99,47 @@ scene("main", (levelIdx) => {
 	// get the player game obj by tag
 	const player = get("player")[0];
 
-	let hasKey = false;
-	let talking = null;
-
-	function talk(msg) {
-		talking = add([
-			text(msg, { width: width(), }),
+	function addDialog() {
+		const h = 160;
+		const bg = add([
+			pos(0, height() - h),
+			rect(width(), h),
+			color(0, 0, 0),
+			z(100),
 		]);
+		const txt = add([
+			text("", { width: width(), }),
+			pos(0, height() - h),
+			z(100),
+		]);
+		bg.hidden = true;
+		txt.hidden = true;
+		return {
+			say(t) {
+				txt.text = t;
+				bg.hidden = false;
+				txt.hidden = false;
+			},
+			dismiss() {
+				if (!this.active()) {
+					return;
+				}
+				txt.text = "";
+				bg.hidden = true;
+				txt.hidden = true;
+			},
+			active() {
+				return !bg.hidden;
+			},
+			destroy() {
+				bg.destroy();
+				txt.destroy();
+			},
+		};
 	}
+
+	let hasKey = false;
+	const dialog = addDialog();
 
 	// overlaps vs collide:
 	// overlaps: a < b
@@ -124,13 +157,13 @@ scene("main", (levelIdx) => {
 				go("win");
 			}
 		} else {
-			talk("you got no key!");
+			dialog.say("you got no key!");
 		}
 	});
 
 	// talk on touch
 	player.overlaps("character", (ch) => {
-		talk(ch.msg);
+		dialog.say(ch.msg);
 	});
 
 	const dirs = {
@@ -142,10 +175,7 @@ scene("main", (levelIdx) => {
 
 	for (const dir in dirs) {
 		keyPress(dir, () => {
-			if (talking) {
-				destroy(talking);
-				talking = null;
-			}
+			dialog.dismiss();
 		});
 		keyDown(dir, () => {
 			player.move(dirs[dir].scale(SPEED));

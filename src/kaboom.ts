@@ -103,7 +103,7 @@ const app = appInit({
 	root: gconf.root,
 	stretch: gconf.stretch,
 	touchToMouse: gconf.touchToMouse ?? true,
-	audioCtx: audio.ctx(),
+	audioCtx: audio.ctx,
 });
 
 const gfx = gfxInit(app.gl, {
@@ -584,15 +584,6 @@ function make<T>(comps: CompList<T>): GameObj<T> {
 }
 
 function add<T>(comps: CompList<T>): GameObj<T> {
-	const obj = make(comps);
-	obj._id = game.objs.push(obj);
-	obj.trigger("add");
-	ready(() => obj.trigger("load"));
-	return obj;
-}
-
-// TODO
-function prepend<T>(comps: CompList<T>): GameObj<T> {
 	const obj = make(comps);
 	obj._id = game.objs.push(obj);
 	obj.trigger("add");
@@ -2044,9 +2035,9 @@ const debug: Debug = {
 	set paused(v) {
 		game.paused = v;
 		if (v) {
-			audio.ctx().suspend();
+			audio.ctx.suspend();
 		} else {
-			audio.ctx().resume();
+			audio.ctx.resume();
 		}
 	}
 };
@@ -2181,7 +2172,6 @@ const ctx: KaboomCtx = {
 	gravity,
 	// obj
 	add,
-	prepend,
 	readd,
 	destroy,
 	destroyAll,

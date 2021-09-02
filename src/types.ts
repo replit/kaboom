@@ -343,16 +343,6 @@ interface KaboomCtx {
 	 * readd(froggy);
 	 * ```
 	 */
-	prepend<T>(comps: CompList<T>): GameObj<T>,
-	/**
-	 * Remove and re-add the game obj.
-	 *
-	 * @example
-	 * ```js
-	 * // mainly useful when you want to make something to draw on top
-	 * readd(froggy);
-	 * ```
-	 */
 	readd(obj: GameObj<any>): GameObj<any>,
 	/**
 	 * Get CompList<T> from DynCompList<T>.
@@ -1056,7 +1046,7 @@ interface KaboomCtx {
 	/**
 	 * Get the underlying browser AudioContext.
 	 */
-	audioCtx(): AudioContext,
+	audioCtx: AudioContext,
 	/**
 	 * Get a random number (with optional bounds).
 	 *
