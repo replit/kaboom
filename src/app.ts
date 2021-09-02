@@ -57,6 +57,7 @@ type App = {
 	mouseMoved(): boolean,
 	charInputted(): string[],
 	cursor(c?: Cursor): Cursor,
+	fullscreen(f?: boolean): boolean,
 	dt(): number,
 	fps(): number,
 	time(): number,
@@ -328,6 +329,15 @@ function appInit(gconf: AppConf = {}): App {
 		return app.canvas.style.cursor;
 	}
 
+	function fullscreen(f?: boolean): boolean {
+		if (document.fullscreenElement) {
+			document.exitFullscreen();
+		} else {
+			app.canvas.requestFullscreen();
+		}
+		return document.fullscreenElement != null;
+	}
+
 	function run(f: () => void) {
 
 //  		let lastWidth = app.canvas.parentElement.offsetWidth;
@@ -411,6 +421,7 @@ function appInit(gconf: AppConf = {}): App {
 		canvas: app.canvas,
 		isTouch: app.isTouch,
 		scale: app.scale,
+		fullscreen,
 	};
 
 }

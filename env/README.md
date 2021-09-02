@@ -63,6 +63,8 @@ Human are also composed from a list of components, each component provides diffe
 In kaboom different components provides different functionalities (properties, methods), for example, if you add a `body()` component, which makes the user respond to gravity, it also provides methods like `jump()`. Try this code:
 
 ```js
+import kaboom from "kaboom";
+
 const FLOOR_HEIGHT = 48;
 const JUMP_FORCE = 800;
 const SPEED = 480;
@@ -121,6 +123,7 @@ scene("game", () => {
 			pos(width(), height() - FLOOR_HEIGHT),
 			origin("botleft"),
 			color(255, 180, 255),
+			move(LEFT, SPEED),
 			"tree",
 		]);
 
@@ -131,19 +134,6 @@ scene("game", () => {
 
 	// start spawning trees
 	spawnTree();
-
-	// define action for every game obj with tag "tree"
-	action("tree", (tree) => {
-
-		// all trees will move by 'SPEED' pixels per second every frame
-		tree.move(-SPEED, 0);
-
-		// if tree goes out of screen, we remove it to save performance
-		if (tree.pos.x <= -tree.width) {
-			destroy(tree);
-		}
-
-	});
 
 	// lose if player collides with any game obj with tag "tree"
 	player.collides("tree", () => {

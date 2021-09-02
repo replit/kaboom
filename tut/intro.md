@@ -31,7 +31,7 @@ add([
 ])
 ```
 
-Go ahead and just paste this code and run it, you should see a green smily face on screen!
+You should see a green smily face on screen!
 
 Before explaining what this does, let's try adding some more stuff to it and see what happens:
 
@@ -97,19 +97,12 @@ We also gave it a `pos()` component
 ```js
 // add solid surface
 add([
-	// renders as a rectangle, with width of screen width, and height of 48
 	rect(width(), 48),
-	// it has an black outline that's 4 pixels thick
 	outline(4),
-	// is has a position of x: 0, y: screen height
 	pos(0, height()),
-	// the position will be its bottom left point, instead of top left
 	origin("botleft"),
-	// it has a collider to check collisions with other objs
 	area(),
-	// it's a solid obj so other objs cannot move pass it
 	solid(),
-	// it has a blue-ish color with r: 127, g: 200 and b: 255
 	color(127, 200, 255),
 ])
 ```

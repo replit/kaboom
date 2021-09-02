@@ -144,7 +144,7 @@ function render() {
 	process.stdout.write("\x1b[H");
 	process.stdout.write("kaboom!\n");
 
-	console.log(dim("\n(tip: try use the webview refresh button instead of header run button to view change)"));
+	console.log(dim("\n(tip: Cmd + S in editor refresh webview)"));
 
 	// error stack trace
 	if (err) {

@@ -430,8 +430,8 @@ interface KaboomCtx {
 	 *
 	 * @example
 	 * ```js
-	 * collides("sperm", "uterus", () => {
-	 *     addBaby();
+	 * collides("sun", "earth", () => {
+	 *     addExplosion();
 	 * });
 	 * ```
 	 */
@@ -848,6 +848,18 @@ interface KaboomCtx {
 	 * ```
 	 */
 	regCursor(c: string, draw: string | ((mpos: Vec2) => void)),
+	/**
+	 * Enter / exit fullscreen mode.
+	 *
+	 * @example
+	 * ```js
+	 * // toggle fullscreen mode on "f"
+	 * keyPress("f", (c) => {
+	 *     fullscreen(!fullscreen());
+	 * });
+	 * ```
+	 */
+	fullscreen(f?: boolean): boolean,
 	/**
 	 * Get current mouse position (without camera transform).
 	 *

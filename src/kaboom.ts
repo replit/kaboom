@@ -1224,6 +1224,7 @@ function move(direction: number | Vec2, speed: number): MoveComp {
 						destroy(this);
 					}
 				} else {
+					// TODO: what to do in this case, this or throw error?
 					destroy(this);
 				}
 			}
@@ -2158,16 +2159,17 @@ const ctx: KaboomCtx = {
 	loadShader: assets.loadShader,
 	load: assets.load,
 	// query
-	width: width,
-	height: height,
-	center: center,
-	dt: dt,
+	width,
+	height,
+	center,
+	dt,
 	time: app.time,
 	screenshot: app.screenshot,
 	focused: app.focused,
 	focus: app.focus,
 	cursor: app.cursor,
-	regCursor: regCursor,
+	regCursor,
+	fullscreen: app.fullscreen,
 	ready,
 	isTouch: () => app.isTouch,
 	// misc

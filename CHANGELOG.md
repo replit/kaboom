@@ -1,5 +1,5 @@
-### kaboom3000 (unreleased)
-- version jumped to v3000.0.0 (still semver, just big)
+### kaboom2000 (unreleased)
+- version jumped to v2000.0.0 (still semver, just big)
 - added `burp()` for easy burping
 - added decent typescript support and jsdocs
 - revamped visual style, changed default font and debug font
@@ -18,6 +18,7 @@
 - added `djump()` to `BodyComp` for double jump
 - added `dir()` to calculate directional vector from angle
 - added constants `LEFT`, `RIGHT`, `UP`, `DOWN` for unit directional vector
+- added `fullscreen()` to enable real fullscreen mode
 - (**BREAK**) changed color from 0-1 range to 0-255, angles from radians to degrees
 - `global` and `debug` flag now are enabled by default, need to turn off manually if you don't want
 - added input events `touchStart(id, pos)`, `touchMove(id, pos)`, `touchEnd(id, pos)`, `mouseMove(pos)`
