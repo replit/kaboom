@@ -54,6 +54,7 @@ function setDemo(name) {
 				...commentKeymap,
 				...searchKeymap,
 				indentWithTab,
+				{ key: "Mod-s", run: run, preventDefault: true },
 			]),
 		],
 	}));
@@ -92,13 +93,12 @@ ${editor.state.doc.toString()}
 	`;
 }
 
-runbtn.addEventListener("click", run);
-
 function setDemoAndHash(name) {
 	setDemo(name);
 	window.location.hash = "#" + name;
 }
 
+runbtn.addEventListener("click", run);
 selector.addEventListener("change", () => setDemoAndHash(selector.value));
 
 setDemoAndHash(selector.value);

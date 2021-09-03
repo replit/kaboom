@@ -2,10 +2,11 @@
 - version jumped to v2000.0.0 (still semver, just big)
 - added `burp()` for easy burping
 - added decent typescript support and jsdocs
-- revamped visual style, changed default font and debug font
 - introducing new character "bean"
 ![bean](sprites/bean.png)
-- added `loadBean()` to `"bean"` as a default sprite
+- changed default font to [APL386](https://abrudz.github.io/APL386/), as `"apl386o"` (default outlined version) and `"apl386"`
+- included font [kitchen sink](https://polyducks.itch.io/kitchen-sink-textmode-font) as `"sinko"` (outlined version) and `"sink"` (standard version with extended characters for text-mode games)
+- added `loadBean()` to load `"bean"` as a default sprite
 - added comp `health()` to manage health related logic
 - added comp `move()` to manage projectile-like behavior
 - added comp `outline()` to draw a lil outline
@@ -47,8 +48,9 @@ add([
 - audio is now paused on `debug.paused = true`
 - added localStorage helper `getData(key, default?)` and `setData(key, data)`
 - added `loadShader(id, vert, frag, isUrl)`
-- **BREAK** changed last argument of `loadFont()` to `FontLoadConf`
 - added `shader()` comp for attaching custom shader to an obj
+- different layers do not prevent collisions now
+- **BREAK** changed last argument of `loadFont()` to `FontLoadConf`
 - all event handlers like `keyPress()`, `mouseClick()`, `action()`, `collides()` now returns a function to cancel that listener
 - added `require` on component definitions, making it possible to declare dependencies for components, e.g.
 ```js

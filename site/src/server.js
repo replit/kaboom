@@ -124,8 +124,11 @@ function renderMD(p) {
 					"font-size": "24px",
 					"margin": "32px auto",
 					"width": "800px",
-					"max-width": "90%",
+					"max-width": "80%",
 					...www.vspace(32),
+					"*": {
+						"max-width": "100%",
+					},
 					"@media": {
 						"(max-device-width: 640px)": {
 							"width": "90%",
