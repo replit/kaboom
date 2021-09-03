@@ -28,7 +28,7 @@ const player = add([
 ]);
 
 const counter = add([
-    text("0", { size: 50 }),
+    text("0", { size: 100 }),
     {
         value: 0
     }
