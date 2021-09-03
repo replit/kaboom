@@ -59,7 +59,7 @@ function loggerInit(gfx: Gfx, assets: Assets, conf: LoggerConf = {
 				}
 			})();
 
-			const ftext = gfx.fmtText(log.msg, assets.dbgFont(), {
+			const ftext = gfx.fmtText(log.msg, assets.fonts["sink"], {
 				pos: pos,
 				origin: "botleft",
 				color: col,

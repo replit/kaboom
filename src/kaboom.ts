@@ -38,7 +38,6 @@ import {
 
 import {
 	assetsInit,
-	DEF_FONT,
 	ASCII_CHARS,
 	CP437_CHARS,
 } from "./assets";
@@ -57,7 +56,6 @@ import peditPlugin from "./plugins/pedit";
 import asepritePlugin from "./plugins/aseprite";
 import cgaPlugin from "./plugins/cga";
 import levelPlugin from "./plugins/level";
-import skyPlugin from "./plugins/sky";
 import kaboomPlugin from "./plugins/kaboom";
 
 class IDList<T> extends Map<number, T> {
@@ -79,18 +77,7 @@ class IDList<T> extends Map<number, T> {
 }
 
 // @ts-ignore
-module.exports = (gconf: KaboomConf = {
-	width: null,
-	height: null,
-	scale: 1,
-	debug: true,
-	crisp: false,
-	canvas: null,
-	connect: null,
-	logMax: 8,
-	root: document.body,
-	touchToMouse: true,
-}): KaboomCtx => {
+module.exports = (gconf: KaboomConf = {}): KaboomCtx => {
 
 const audio = audioInit();
 
@@ -132,6 +119,9 @@ const logger = loggerInit(gfx, assets, {
 });
 
 const net = gconf.connect ? netInit(gconf.connect) : null;
+
+const DEF_FONT = "apl386o";
+const DBG_FONT = "sink";
 
 function recv(ty: string, handler: MsgHandler) {
 	if (!net) {
@@ -356,6 +346,14 @@ function camRot(angle: number): number {
 
 function shake(intensity: number) {
 	game.cam.shake = intensity;
+}
+
+function toScreen(p: Vec2): Vec2 {
+	return game.camMatrix.multVec2(p);
+}
+
+function toWorld(p: Vec2): Vec2 {
+	return game.camMatrix.invert().multVec2(p);
 }
 
 const COMP_DESC = new Set([
@@ -970,7 +968,7 @@ function gameFrame(ignorePause?: boolean) {
 function drawInspect() {
 
 	let inspecting = null;
-	const font = assets.dbgFont();
+	const font = assets.fonts[DBG_FONT];
 	const lcolor = rgba(gconf.inspectColor ?? [0, 0, 255, 1]);
 
 	function drawInspectTxt(pos, txt, scale) {
@@ -1117,7 +1115,7 @@ function pos(...args): PosComp {
 			if (this.fixed) {
 				return this.pos;
 			} else {
-				return game.camMatrix.multVec2(this.pos);
+				return toScreen(this.pos);
 			}
 		},
 
@@ -1185,9 +1183,23 @@ function z(z: number): ZComp {
 function move(direction: number | Vec2, speed: number): MoveComp {
 
 	const d = typeof direction === "number" ? dir(direction) : direction.unit();
+	let timeOut = 0;
+	// if it's not seen in 6 seconds, we destroy it
+	const maxTimeOut = 6;
 
 	function isOut(p: Vec2) {
-		return p.x < 0 || p.x > width() || p.y < 0 || p.y > height();
+		let is = false;
+		if (d.x < 0) {
+			is ||= p.x < 0;
+		} else if (d.x > 0) {
+			is ||= p.x > width();
+		}
+		if (d.y < 0) {
+			is ||= p.y < 0;
+		} else if (d.y > 0) {
+			is ||= p.y > width();
+		}
+		return is;
 	}
 
 	return {
@@ -1212,12 +1224,19 @@ function move(direction: number | Vec2, speed: number): MoveComp {
 					const p1 = pos.sub(orig.sub(-1, -1).scale(0.5).scale(w, h).scale(s));
 					const p2 = pos.sub(orig.sub(1, 1).scale(0.5).scale(w, h).scale(s));
 					if (isOut(p1) && isOut(p2)) {
-						destroy(this);
+						timeOut += dt();
+					} else {
+						timeOut = 0;
 					}
 				} else {
-					// TODO: what to do in this case, this or throw error?
-					destroy(this);
+					timeOut += dt();
 				}
+			} else {
+				timeOut = 0;
+			}
+
+			if (timeOut >= maxTimeOut) {
+				destroy(this);
 			}
 
 		},
@@ -1691,7 +1710,7 @@ function text(t: string, conf: TextCompConf = {}): TextComp {
 			pos: this.pos,
 			scale: this.scale,
 			rot: this.angle,
-			size: this.textSize,
+			size: conf.size,
 			origin: this.origin,
 			color: this.color,
 			width: conf.width,
@@ -1839,7 +1858,7 @@ function body(conf: BodyCompConf = {}): BodyComp {
 			this.move(0, velY);
 
 			const targets = this.pushOutAll();
-			let justOff = false;
+			let justFall = false;
 
 //  			if (hanging && conf.hangTime) {
 //  				hangTime += dt();
@@ -1853,9 +1872,10 @@ function body(conf: BodyCompConf = {}): BodyComp {
 			// check if loses current platform
 			if (curPlatform) {
 				if (!curPlatform.exists() || !this.isCollided(curPlatform)) {
+					this.trigger("fall", curPlatform);
 					curPlatform = null;
 					lastPlatformPos = null;
-					justOff = true;
+					justFall = true;
 				} else {
 					if (lastPlatformPos && curPlatform.pos) {
 						// sticky platform
@@ -1878,7 +1898,7 @@ function body(conf: BodyCompConf = {}): BodyComp {
 						if (curPlatform.pos) {
 							lastPlatformPos = curPlatform.pos.clone();
 						}
-						if (!justOff) {
+						if (!justFall) {
 							this.trigger("ground", curPlatform);
 							canDouble = true;
 						}
@@ -1894,7 +1914,7 @@ function body(conf: BodyCompConf = {}): BodyComp {
 //  						if (curPlatform.pos) {
 //  							lastPlatformPos = curPlatform.pos.clone();
 //  						}
-//  						if (!justOff) {
+//  						if (!justFall) {
 //  							this.trigger("hang", curPlatform);
 //  							hangTime = 0;
 //  							hanging = true;
@@ -2169,6 +2189,8 @@ const ctx: KaboomCtx = {
 	camScale,
 	camRot,
 	shake,
+	toScreen,
+	toWorld,
 	gravity,
 	// obj
 	add,
@@ -2292,7 +2314,6 @@ plug(peditPlugin);
 plug(asepritePlugin);
 plug(cgaPlugin);
 plug(levelPlugin);
-plug(skyPlugin);
 plug(kaboomPlugin);
 
 if (gconf.plugins) {

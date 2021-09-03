@@ -101,6 +101,7 @@ scene("main", (levelIdx) => {
 
 	function addDialog() {
 		const h = 160;
+		const pad = 16;
 		const bg = add([
 			pos(0, height() - h),
 			rect(width(), h),
@@ -108,8 +109,10 @@ scene("main", (levelIdx) => {
 			z(100),
 		]);
 		const txt = add([
-			text("", { width: width(), }),
-			pos(0, height() - h),
+			text("", {
+				width: width(),
+			}),
+			pos(0 + pad, height() - h + pad),
 			z(100),
 		]);
 		bg.hidden = true;
@@ -190,7 +193,7 @@ scene("main", (levelIdx) => {
 
 scene("win", () => {
 	add([
-		text("you win!"),
+		text("You Win!"),
 		pos(width() / 2, height() / 2),
 		origin("center"),
 	]);

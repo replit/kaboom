@@ -1,7 +1,7 @@
 // TODO: document
 
 kaboom({
-	debug: true,
+	texFilter: "linear",
 });
 
 const objs = [
@@ -345,6 +345,14 @@ scene("battle", () => {
 		}
 	});
 
+	volume(0);
+
+	add([
+		text("UP: insane mode", { width: width() / 2, size: 32 }),
+		origin("botleft"),
+		pos(24, height() - 24),
+	]);
+
 	spawnTrash();
 
 });
@@ -361,7 +369,7 @@ scene("win", ({ time, boss }) => {
 
 	add([
 		sprite(boss),
-		color(255, 127, 127),
+		color(255, 0, 0),
 		origin("center"),
 		scale(8),
 		pos(width() / 2, height() / 2),

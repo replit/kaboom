@@ -12,7 +12,7 @@ export default (k: KaboomCtx) => {
 			cgaSrc,
 			8,
 			8,
-			k.CP437_CHARS,
+			{ chars: k.CP437_CHARS, },
 		);
 	}
 

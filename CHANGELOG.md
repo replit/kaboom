@@ -19,13 +19,13 @@
 - added `dir()` to calculate directional vector from angle
 - added constants `LEFT`, `RIGHT`, `UP`, `DOWN` for unit directional vector
 - added `fullscreen()` to enable real fullscreen mode
-- (**BREAK**) changed color from 0-1 range to 0-255, angles from radians to degrees
+- **BREAK** changed color from 0-1 range to 0-255, angles from radians to degrees
 - `global` and `debug` flag now are enabled by default, need to turn off manually if you don't want
 - added input events `touchStart(id, pos)`, `touchMove(id, pos)`, `touchEnd(id, pos)`, `mouseMove(pos)`
 - added `font` field in `KaboomConf` to set the default font
 - added `mouseDeltaPos()`
 - added `touchToMouse` to control if touch events should be translated to mouse events
-- added `mousePosRaw()` to get mouse position relative to screen (`mousePos()` is affected by camera)
+- added `mousePos()` now gets the screen mouse pos, use `mouseWorldPos()` to get the mouse position affected by camera
 - added `anim` field in `SpriteCompConf` to play an anim on start
 - beter type support for components
 - `scene()` and `start()` (also removed in favor of `go()`) are optional now, if you don't need multiple scenes yet you can just go directly
@@ -35,14 +35,14 @@ kaboom();
 add(...);
 keyPress(...);
 ```
-- (**BREAK**) `area()` is now explicit and not automatically added by `sprite()`, `rect()`, and `text()`, removed each `noArea` or `area` config field
+- **BREAK** `area()` is now explicit and not automatically added by `sprite()`, `rect()`, and `text()`, removed each `noArea` or `area` config field
 ```js
 add([
     sprite("bean"),
     area(), // empty area() will calc size from the sprite
 ]);
 ```
-- (**BREAK**) `area()` now takes an `AreaCompConf`, where you can define the area points, size, scale, and hover cursor
+- **BREAK** `area()` now takes an `AreaCompConf`, where you can define the area points, size, scale, and hover cursor
 - audio is now paused when you leave the tab
 - audio is now paused on `debug.paused = true`
 - added localStorage helper `getData(key, default?)` and `setData(key, data)`
@@ -64,8 +64,8 @@ function alwaysRight() {
     };
 }
 ```
-- (**BREAK**) overlapping component fields are not allowed, e.g. you can have a custom comp that has a `collides` field if it already have a `area` component, since it already has that
-- (**BREAK**) changed `text(txt, size, conf)` to `text(txt, conf)` with `size` as a field
+- **BREAK** overlapping component fields are not allowed, e.g. you can have a custom comp that has a `collides` field if it already have a `area` component, since it already has that
+- **BREAK** changed `text(txt, size, conf)` to `text(txt, conf)` with `size` as a field
 - added `obj.c(id)` for getting a specific comp's state (by default all comps' states are mounted to the obj by `Object.defineProperty`)
 ```js
 // both works
@@ -73,25 +73,24 @@ obj.play("anim");
 obj.c("sprite").play("anim");
 ```
 - pedit, aseprite, cga plugins are now included by default
-- added `addSky()` for quick scrolling sky background
-- added `addKaboom()` for quick explosion
+- added `addKaboom()` for quick kaboom explosion
 - `load*()` now accepts `null` as name and not load into assets manager, instead just return the resource data handle
-- (**BREAK**) renamed event `headbump` to `headbutt`
-- (**BREAK**) renamed event `grounded` to `ground`
+- **BREAK** renamed event `headbump` to `headbutt`
+- **BREAK** renamed event `grounded` to `ground`
 - added `width`, `height`, and `tiled` attrib to `SpriteCompConf`, for better control over sprite size and tiled sprite support
-- (**BREAK**) renamed `resolve()` to `pushOutAll()` on `area` comp
+- **BREAK** renamed `resolve()` to `pushOutAll()` on `area` comp
 - added `pushOut()` for pushing a single object out from another with `area` comp
 - fixed `"add"` event getting called twice for tagged objs
 - added `flipX` and `flipY` on `sprite()` comp configuration, and `flipX()` `flipY()` methods
 - added `moveTo(dest: Vec2, speed?: number)` to `pos()` comp
 - added `keyPress()` (and all other key events) with no arg to check for any key
-- (**BREAK**) renamed `camShake()` to `shake()`
-- (**BREAK**) remove `flipX()` and `flipY()` on `scale()` comp
-- (**BREAK**) removed `start()` in favor of `go()`
-- (**BREAK**) removed `changeSprite()` in favor of `use(sprite("newsprite"))`
-- (**BREAK**) renamed `rmTag()` to `untag()`
-- (**BREAK**) removed `camIgnore()` in favor of `fixed()`
-- (**BREAK**) renamed `makeRng()` to `rng()`
+- **BREAK** renamed `camShake()` to `shake()`
+- **BREAK** remove `flipX()` and `flipY()` on `scale()` comp
+- **BREAK** removed `start()` in favor of `go()`
+- **BREAK** removed `changeSprite()` in favor of `use(sprite("newsprite"))`
+- **BREAK** renamed `rmTag()` to `untag()`
+- **BREAK** removed `camIgnore()` in favor of `fixed()`
+- **BREAK** renamed `makeRng()` to `rng()`
 
 ### v0.5.1
 - added plugins npm package support e.g. `import asepritePlugin from "kaboom/plugins/aseprite"`
@@ -116,24 +115,24 @@ obj.c("sprite").play("anim");
 - fixed scene switches happen in the middle of a frame
 - fixed `scale(0)` not working
 - fixed `mosuePos()` not returning the camera affected pos with no layers
-- (**BREAK**) changed `dbg()` to plain `debug` object
-- (**BREAK**) moved `fps()`, `objCount()`, `stepFrame()`, `log()`, `error()` under `debug`
-- (**BREAK**) removed `debug.logTime`
-- (**BREAK**) changed component `debugInfo()` hook to `inspect()`
-- (**BREAK**) removed `timer()` component
-- (**BREAK**) renamed `removeTag()` to `rmTag()`
-- (**BREAK**) changed `SpriteAnim` from `[ from, to ]` to `{ from: number, to: number }`
-- (**BREAK**) removed `onAnimPlay()` and `onAnimEnd()` in favor of generic event `on("animEnd", (anim: string) => {})`
-- (**BREAK**) removed `obj.addTag()` in favor of `obj.use()`
-- (**BREAK**) merged `debug.hoverInfo` and `debug.showArea` into `debug.inspect`
-- (**BREAK**) removed `sound.resume()` in favor of `sound.play()`
+- **BREAK** changed `dbg()` to plain `debug` object
+- **BREAK** moved `fps()`, `objCount()`, `stepFrame()`, `log()`, `error()` under `debug`
+- **BREAK** removed `debug.logTime`
+- **BREAK** changed component `debugInfo()` hook to `inspect()`
+- **BREAK** removed `timer()` component
+- **BREAK** renamed `removeTag()` to `rmTag()`
+- **BREAK** changed `SpriteAnim` from `[ from, to ]` to `{ from: number, to: number }`
+- **BREAK** removed `onAnimPlay()` and `onAnimEnd()` in favor of generic event `on("animEnd", (anim: string) => {})`
+- **BREAK** removed `obj.addTag()` in favor of `obj.use()`
+- **BREAK** merged `debug.hoverInfo` and `debug.showArea` into `debug.inspect`
+- **BREAK** removed `sound.resume()` in favor of `sound.play()`
 
 ### v0.4.1
 - fixed `on("destroy")` handler getting called twice
 - fixed sprite `play()` not playing
 
 # v0.4.0 "Multiboom"
-- (**BREAK**) removed `init()` and `kaboom.global()`, in favor of `kaboom()`, also allows multiple kaboom games on one page
+- **BREAK** removed `init()` and `kaboom.global()`, in favor of `kaboom()`, also allows multiple kaboom games on one page
 ```js
 // replaces init(), and added a 'global' flag for previous kaboom.global()
 kaboom({
@@ -149,10 +148,10 @@ k.scene();
 k.start();
 k.vec2();
 ```
-- (**BREAK**) changed `clearColor` on `kaboom(conf)` to accept a 4 number array instead of `rgba()`
+- **BREAK** changed `clearColor` on `kaboom(conf)` to accept a 4 number array instead of `rgba()`
 - added a plugin system, see the `multiboom` example and `src/plugins`
-- (**BREAK**) removed support for `.kbmsprite`, supports newer version of `.pedit` through pedit plugin
-- (**BREAK**) `loadAseprite()` and made it an external plugin under `plugins/aseprite.js`
+- **BREAK** removed support for `.kbmsprite`, supports newer version of `.pedit` through pedit plugin
+- **BREAK** `loadAseprite()` and made it an external plugin under `plugins/aseprite.js`
 - added `sceneData()` for custom scene data kv store
 - fixed `mouseClick` doesn't work on mobile
 - disabled context menu on canvas
@@ -161,9 +160,9 @@ k.vec2();
 - added `screenshot()` that returns of a png base64 data url for a screenshot
 
 # v0.3.0 "King Dedede...Bug!"
-- (**BREAK**) removed `pause()` and `paused()` in favor to `kaboom.debug.paused`
-- (**BREAK**) removed `velY`, `curPlatform` and `maxVel` fields by `body()`
-- (**BREAK**) changed `curAnim` by `sprite()` to method `curAnim()`
+- **BREAK** removed `pause()` and `paused()` in favor to `kaboom.debug.paused`
+- **BREAK** removed `velY`, `curPlatform` and `maxVel` fields by `body()`
+- **BREAK** changed `curAnim` by `sprite()` to method `curAnim()`
 - fixed `dt()` surge on page visibility change (#20)
 - pause audio when page is not visible
 - added built in debug control with `init({ debug: true, })`
@@ -178,7 +177,7 @@ k.vec2();
 - fixed `loadRoot()` sometimes doesn't work in async tasks
 
 # v0.2.0 "Hear the Tremble"
-- (**BREAK**) removed `aseSpriteSheet` conf field from `loadSprite(name, src, conf)`
+- **BREAK** removed `aseSpriteSheet` conf field from `loadSprite(name, src, conf)`
 - added `pause()`, `resume()`, `stop()`, `loop()`, `unloop()`, `volume()`, `detune()`, `speed()` methods to the handle returned by `play()`
 - added `camShake()` for built in camera shake
 - added `loadAseprite(name, imgSrc, jsonSrc)`
@@ -194,11 +193,11 @@ k.vec2();
 - added `level.spawn()`
 
 # v0.1.0 "Oh Hi Mark"
-- (**BREAK**) changed default origin point to `"topleft"`, so if you want object origin point to be at center you'll need to manual `origin("center")`
-- (**BREAK**) integrated `kit/physics` and `kit/level` to main lib
-- (**BREAK**) makes `collides()` only run on first collision, not run every frame during the same collision
-- (**BREAK**) `camPos()` by default focuses to center, so `camPos(player.pos)` puts player in the center of the screen
-- (**BREAK**) renamed `kaboom.import()` to `kaboom.global()`
+- **BREAK** changed default origin point to `"topleft"`, so if you want object origin point to be at center you'll need to manual `origin("center")`
+- **BREAK** integrated `kit/physics` and `kit/level` to main lib
+- **BREAK** makes `collides()` only run on first collision, not run every frame during the same collision
+- **BREAK** `camPos()` by default focuses to center, so `camPos(player.pos)` puts player in the center of the screen
+- **BREAK** renamed `kaboom.import()` to `kaboom.global()`
 - added an arg field to `start(scene, ...)` to forward args to start scene
 - added `camScale()`, `camRot()` and `camIgnore()`
 - added `obj.overlaps()` by `area()`, and `overlaps()`

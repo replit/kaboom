@@ -11,9 +11,13 @@ import {
 } from "./gfx";
 
 // @ts-ignore
-import fontSrc from "./font.png";
+import apl386Src from "./apl386.png";
+// @ts-ignore
+import apl386oSrc from "./apl386o.png";
 // @ts-ignore
 import sinkSrc from "./sink.png";
+// @ts-ignore
+import sinkoSrc from "./sinko.png";
 
 type AssetsConf = {
 	errHandler?: (err: string) => void,
@@ -47,7 +51,7 @@ type Assets = {
 		src: string,
 		gw: number,
 		gh: number,
-		chars?: string,
+		conf?: FontLoadConf,
 	): Promise<FontData>,
 	loadShader(
 		name: string | null,
@@ -57,8 +61,6 @@ type Assets = {
 	): Promise<ShaderData>,
 	loadProgress(): number,
 	load<T>(prom: Promise<T>),
-	defFont(): FontData,
-	dbgFont(): FontData,
 	sprites: Record<string, SpriteData>,
 	fonts: Record<string, FontData>,
 	sounds: Record<string, SoundData>,
@@ -67,8 +69,6 @@ type Assets = {
 
 const ASCII_CHARS = " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~";
 const CP437_CHARS = " ☺☻♥♦♣♠•◘○◙♂♀♪♫☼►◄↕‼¶§▬↨↑↓→←∟↔▲▼ !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~⌂ÇüéâäàåçêëèïîìÄÅÉæÆôöòûùÿÖÜ¢£¥₧ƒáíóúñÑªº¿⌐¬½¼¡«»░▒▓│┤╡╢╖╕╣║╗╝╜╛┐└┴┬├─┼╞╟╚╔╩╦╠═╬╧╨╤╥╙╘╒╓╫╪┘┌█▄▌▐▀αßΓπΣσµτΦΘΩδ∞φε∩≡±≥≤⌠⌡÷≈°∙·√ⁿ²■";
-const DEF_FONT = "kaboom";
-const DBG_FONT = "sink";
 
 function loadImg(src: string): Promise<HTMLImageElement> {
 	const img = new Image();
@@ -140,7 +140,7 @@ function assetsInit(gfx: Gfx, audio: Audio, gconf: AssetsConf = {}): Assets {
 		src: string,
 		gw: number,
 		gh: number,
-		chars: string = ASCII_CHARS,
+		conf: FontLoadConf = {},
 	): Promise<FontData> {
 
 		const loader = new Promise<FontData>((resolve, reject) => {
@@ -149,7 +149,7 @@ function assetsInit(gfx: Gfx, audio: Audio, gconf: AssetsConf = {}): Assets {
 
 			loadImg(path)
 				.then((img) => {
-					const font = gfx.makeFont(gfx.makeTex(img), gw, gh, chars);
+					const font = gfx.makeFont(gfx.makeTex(img, conf), gw, gh, conf.chars ?? ASCII_CHARS);
 					if (name) {
 						assets.fonts[name] = font;
 					}
@@ -179,7 +179,7 @@ function assetsInit(gfx: Gfx, audio: Audio, gconf: AssetsConf = {}): Assets {
 		// synchronously load sprite from local pixel data
 		function loadRawSprite(
 			name: string | null,
-			src: GfxTextureData,
+			src: GfxTexData,
 			conf: SpriteLoadConf = {
 				sliceX: 1,
 				sliceY: 1,
@@ -190,7 +190,7 @@ function assetsInit(gfx: Gfx, audio: Audio, gconf: AssetsConf = {}): Assets {
 		) {
 
 			const frames = [];
-			const tex = gfx.makeTex(src);
+			const tex = gfx.makeTex(src, conf);
 			const sliceX = conf.sliceX || tex.width / (conf.gridWidth || tex.width);
 			const sliceY = conf.sliceY || tex.height / (conf.gridHeight || tex.height);
 			const qw = 1 / sliceX;
@@ -356,27 +356,35 @@ function assetsInit(gfx: Gfx, audio: Audio, gconf: AssetsConf = {}): Assets {
 
 	}
 
-	function defFont(): FontData {
-		return assets.fonts[DEF_FONT];
-	}
-
-	function dbgFont(): FontData {
-		return assets.fonts[DBG_FONT];
-	}
-
 	loadFont(
-		DEF_FONT,
-		fontSrc,
-		48,
-		64
+		"apl386",
+		apl386Src,
+		45,
+		74,
 	);
 
 	loadFont(
-		DBG_FONT,
+		"apl386o",
+		apl386oSrc,
+		45,
+		74,
+	);
+
+	loadFont(
+		"sink",
 		sinkSrc,
 		6,
 		8,
-		`█☺☻♥♦♣♠●○▪□■◘♪♫≡►◄⌂ÞÀß×¥↑↓→←◌●▼▲ !"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_\`abcdefghijklmnopqrstuvwxyz{|}~Χ░▒▓ḀḁḂ│┬┤┌┐ḃḄ┼ḅḆḇḈḉḊḋḌ─├┴└┘ḍḎ⁞ḏḐḑḒḓḔḕḖḗḘ▄ḙḚḛḜ…ḝḞḟḠḡḢḣḤḥḦ▌▐ḧḨḩḪḫḬḭḮḯḰḱḲḳḴḵḶḷḸḹḺḻḼḽḾḿṀṁṂṃṄṅṆṇṈṉṊṋṌṍṎṏṐṑṒṓṔṕṖṗṘṙṚṛṜṝṞṟṠṡṢṣṤṥṦṧṨṩṪṫṬṭṮṯṰṱṲṳṴṵṶṷṸṹṺṻṼ`
+		{
+			chars: `█☺☻♥♦♣♠●○▪□■◘♪♫≡►◄⌂ÞÀß×¥↑↓→←◌●▼▲ !"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_\`abcdefghijklmnopqrstuvwxyz{|}~Χ░▒▓ḀḁḂ│┬┤┌┐ḃḄ┼ḅḆḇḈḉḊḋḌ─├┴└┘ḍḎ⁞ḏḐḑḒḓḔḕḖḗḘ▄ḙḚḛḜ…ḝḞḟḠḡḢḣḤḥḦ▌▐ḧḨḩḪḫḬḭḮḯḰḱḲḳḴḵḶḷḸḹḺḻḼḽḾḿṀṁṂṃṄṅṆṇṈṉṊṋṌṍṎṏṐṑṒṓṔṕṖṗṘṙṚṛṜṝṞṟṠṡṢṣṤṥṦṧṨṩṪṫṬṭṮṯṰṱṲṳṴṵṶṷṸṹṺṻṼ`,
+		}
+	);
+
+	loadFont(
+		"sinko",
+		sinkoSrc,
+		8,
+		10,
 	);
 
 	return {
@@ -387,8 +395,6 @@ function assetsInit(gfx: Gfx, audio: Audio, gconf: AssetsConf = {}): Assets {
 		loadShader,
 		loadProgress,
 		load,
-		defFont,
-		dbgFont,
 		sprites: assets.sprites,
 		fonts: assets.fonts,
 		sounds: assets.sounds,
@@ -401,7 +407,6 @@ export {
 	AssetsConf,
 	Assets,
 	assetsInit,
-	DEF_FONT,
 	ASCII_CHARS,
 	CP437_CHARS,
 };

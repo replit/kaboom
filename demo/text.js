@@ -1,11 +1,8 @@
-kaboom({
-	font: "sink",
-});
+kaboom();
 
 const input = add([
 	text("123abc", {
 		width: width(),
-		size: 48,
 	}),
 ]);
 

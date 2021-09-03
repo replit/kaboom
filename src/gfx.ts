@@ -50,7 +50,7 @@ type Gfx = {
 	height(): number,
 	scale(): number,
 	clearColor(): Color,
-	makeTex(data: GfxTextureData): GfxTexture,
+	makeTex(data: GfxTexData, conf?: GfxTexConf): GfxTexture,
 	makeProgram(vert: string, frag: string): GfxProgram,
 	makeFont(
 		tex: GfxTexture,
@@ -185,14 +185,6 @@ function originPt(orig: Origin | Vec2): Vec2 {
 
 function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 
-	const texFilter = (() => {
-		switch (gconf.texFilter) {
-			case "linear": return gl.LINEAR;
-			case "nearest": return gl.NEAREST;
-			default: return gl.NEAREST;
-		}
-	})();
-
 	const gfx: GfxCtx = (() => {
 
 		const defProg = makeProgram(DEF_VERT, DEF_FRAG);
@@ -225,7 +217,10 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 				190, 190, 190, 255,
 				190, 190, 190, 255,
 				128, 128, 128, 255,
-			]), 2, 2)
+			]), 2, 2), {
+				wrap: "repeat",
+				filter: "nearest",
+			},
 		);
 
 		return {
@@ -254,24 +249,31 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 		return (Math.log(n) / Math.log(2)) % 1 === 0;
 	}
 
-	function makeTex(data: GfxTextureData): GfxTexture {
+	function makeTex(data: GfxTexData, conf: GfxTexConf = {}): GfxTexture {
 
 		const id = gl.createTexture();
 
 		gl.bindTexture(gl.TEXTURE_2D, id);
 		gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, data);
-		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, texFilter);
-		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, texFilter);
 
-		// TODO
-		const wrap = (() => {
-			if (powerOfTwo(data.width) && powerOfTwo(data.height)) {
-				return gl.REPEAT;
-			} else {
-				return gl.CLAMP_TO_EDGE;
+		const filter = (() => {
+			switch (conf.filter ?? gconf.texFilter) {
+				case "linear": return gl.LINEAR;
+				case "nearest": return gl.NEAREST;
+				default: return gl.NEAREST;
 			}
 		})();
 
+		const wrap = (() => {
+			switch (conf.wrap) {
+				case "repeat": return gl.REPEAT;
+				case "clampToEdge": return gl.CLAMP_TO_EDGE;
+				default: return gl.CLAMP_TO_EDGE;
+			}
+		})();
+
+		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, filter);
+		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, filter);
 		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, wrap);
 		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, wrap);
 		gl.bindTexture(gl.TEXTURE_2D, null);

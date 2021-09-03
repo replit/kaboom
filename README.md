@@ -19,12 +19,21 @@ import kaboom from "https://cdn.skypack.dev/kaboom@next";
 // initialize kaboom context
 kaboom();
 
-// add a text of size 32 at position (120, 80)
-add([
-    text("oh hi", 32),
+// load the default sprite "bean"
+loadBean();
+
+// add a game obj to screen, from a list of components
+const froggy = add([
+    sprite("bean", 32),
     pos(120, 80),
-    scale(3),
+    area(),
+    body(),
 ]);
+
+// jump when user presses "space"
+keyPress("space", () => {
+    froggy.jump();
+});
 
 </script>
 ```
@@ -223,6 +232,7 @@ const kaboom = require("kaboom");
 
 ### Misc
 
+- Thanks to Polyducks for the amazing [kitchen sink](https://polyducks.itch.io/kitchen-sink-textmode-font) font
 - Find bitmap fonts: [Oldschool PC Font](https://int10h.org/oldschool-pc-fonts)
 - Featured on [Console 50](https://console.substack.com/p/console-50)
 - Thanks to [Umayr](https://github.com/umayr) for kindly offering the "kaboom" npm package name

@@ -112,7 +112,7 @@ interface KaboomCtx {
 		src: string,
 		gridWidth: number,
 		gridHeight: number,
-		chars?: string,
+		conf?: FontLoadConf,
 	): Promise<FontData>,
 	/**
 	 * Load a shader into asset manager with vertex and fragment code / file url.
@@ -484,6 +484,14 @@ interface KaboomCtx {
 	 * Get / set camera rotation.
 	 */
 	camRot(angle: number): number,
+	/**
+	 * Transform a point from world position to screen position.
+	 */
+	toScreen(p: Vec2): Vec2,
+	/**
+	 * Transform a point from screen position to world position.
+	 */
+	toWorld(p: Vec2): Vec2,
 	/**
 	 * Get / set gravity.
 	 */
@@ -1429,14 +1437,24 @@ interface SpriteLoadConf {
 	gridWidth?: number,
 	gridHeight?: number,
 	anims?: Record<string, SpriteAnim>,
+	filter?: TexFilter,
+	wrap?: TexWrap,
 }
 
-type SpriteLoadSrc = string | GfxTextureData;
+type SpriteLoadSrc = string | GfxTexData;
 
 interface SpriteData {
 	tex: GfxTexture,
 	frames: Quad[],
 	anims: Record<string, SpriteAnim>,
+	filter?: TexFilter,
+	wrap?: TexWrap,
+}
+
+interface FontLoadConf {
+	chars?: string,
+	filter?: TexFilter,
+	wrap?: TexWrap,
 }
 
 type SoundData = AudioBuffer;
@@ -1480,7 +1498,7 @@ interface GfxTexture {
 	unbind(): void,
 }
 
-type GfxTextureData =
+type GfxTexData =
 	HTMLImageElement
 	| HTMLCanvasElement
 	| ImageData
@@ -1501,6 +1519,12 @@ interface Vertex {
 }
 
 type TexFilter = "nearest" | "linear";
+type TexWrap = "repeat" | "clampToEdge";
+
+interface GfxTexConf {
+	filter?: TexFilter,
+	wrap?: TexWrap,
+}
 
 interface RenderProps {
 	pos?: Vec2,

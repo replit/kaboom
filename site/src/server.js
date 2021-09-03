@@ -133,9 +133,6 @@ function renderMD(p) {
 						},
 					},
 				},
-				"*": {
-					"width": "100%",
-				},
 			})),
 			t("link", { rel: "icon", href: "/kaboom.png"}),
 			t("link", { rel: "stylesheet", href: "/css/paraiso.css"}),

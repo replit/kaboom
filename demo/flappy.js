@@ -23,9 +23,6 @@ scene("game", () => {
 		"ui",
 	], "obj");
 
-	// background
-	addSky();
-
 	// a game object consists of a list of components and tags
 	const bean = add([
 		// sprite() means it's drawn with a sprite of name "bean" (defined above in 'loadSprite')

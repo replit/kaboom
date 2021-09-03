@@ -323,12 +323,21 @@ import kaboom from "https://cdn.skypack.dev/kaboom@next";
 // initialize kaboom context
 kaboom();
 
-// add a text of size 32 at position (120, 80)
-add([
-    text("oh hi"),
+// load the default sprite "bean"
+loadBean();
+
+// add a game obj to screen, with multiple components
+const froggy = add([
+    sprite("bean", 32),
     pos(120, 80),
-    scale(3),
+    area(),
+    body(),
 ]);
+
+// jump when user presses "space"
+keyPress("space", () => {
+    froggy.jump();
+});
 
 </script>
 				`, "html"),

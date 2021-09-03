@@ -1,7 +1,24 @@
 kaboom();
 
 // load assets
-loadSprite("bean", "sprites/bean.png");
+loadSprite("bean", "sprites/bean2.png", {
+	sliceX: 4,
+	anims: {
+		idle: {
+			from: 0,
+			to: 0,
+		},
+		move: {
+			from: 1,
+			to: 2,
+		},
+		jump: {
+			from: 3,
+			to: 3,
+		},
+	},
+});
+
 loadSprite("spike", "sprites/spike.png");
 loadSprite("grass", "sprites/grass.png");
 loadSprite("prize", "sprites/jumpy.png");
@@ -54,7 +71,7 @@ const level = addLevel([
 		area(),
 		body(),
 		origin("bot"),
-		"dangerous",
+		"danger",
 	],
 	"#": [
 		sprite("apple"),
@@ -125,8 +142,8 @@ player.action(() => {
 	}
 });
 
-// if player collides with any obj with "dangerous" tag, lose
-player.collides("dangerous", () => {
+// if player collides with any obj with "danger" tag, lose
+player.collides("danger", () => {
 	go("lose");
 });
 
@@ -154,6 +171,15 @@ keyPress("space", () => {
 	// these 2 functions are provided by body() component
 	if (player.grounded()) {
 		player.jump(JUMP_FORCE);
+		player.play("jump");
+	}
+});
+
+player.on("ground", () => {
+	if (keyIsDown("left") || keyIsDown("right")) {
+		player.play("move");
+	} else {
+		player.play("idle");
 	}
 });
 
@@ -163,6 +189,20 @@ keyDown("left", () => {
 
 keyDown("right", () => {
 	player.move(MOVE_SPEED, 0);
+});
+
+keyPress(["left", "right"], () => {
+	if (player.grounded()) {
+		player.play("move");
+	}
+});
+
+keyRelease(["left", "right"], () => {
+	if (player.grounded()) {
+		if (!keyIsDown("left") && !keyIsDown("right")) {
+			player.play("idle");
+		}
+	}
 });
 
 scene("lose", () => {

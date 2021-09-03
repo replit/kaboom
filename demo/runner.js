@@ -13,9 +13,6 @@ scene("game", () => {
 	// define gravity
 	gravity(2400);
 
-	// add background
-	addSky();
-
 	// add a game object to screen
 	const player = add([
 		// list of components
