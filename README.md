@@ -14,11 +14,12 @@ Lots of iteractive examples [here](https://kaboomjs.com/examples)
 <script type="module">
 
 // import kaboom lib
-import kaboom from "https://unpkg.com/kaboom@next/dist/kaboom.js";
+import kaboom from "https://unpkg.com/kaboom@next/dist/kaboom.mjs";
 
 // initialize kaboom context
 kaboom();
 
+// add a piece of text at position (120, 80)
 add([
     text("hello"),
     pos(120, 80),
@@ -45,8 +46,11 @@ const froggy = add([
     body(),
 ]);
 
-// press space to jump (.jump() is provided by "body" component)
-keyPress("space", () => froggy.jump());
+// press space to jump
+keyPress("space", () => {
+    // this method is provided by the "body" component above
+    froggy.jump();
+});
 ```
 
 It's easy to make custom components to compose your game object behaviors:
@@ -74,8 +78,9 @@ const player = add([
     },
 ]);
 
-// .collides() comes from "area" component, .hurt() comes from "health" component
+// .collides() comes from "area" component
 player.collides("enemy", () => {
+    // .hurt() comes from "health" component
     player.hurt(1)
 });
 ```
