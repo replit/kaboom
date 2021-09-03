@@ -26,8 +26,8 @@ loadSprite("bean", "sprites/bean.png")
 
 // add something to screen
 add([
-	sprite("bean"),
-	pos(80, 40),
+    sprite("bean"),
+    pos(80, 40),
 ])
 ```
 
@@ -40,11 +40,11 @@ Before explaining what this code does, let's try adding some more stuff to it an
 ```js
 // add something to screen
 add([
-	sprite("bean"),
-	pos(80, 40),
-	scale(3),
-	rotate(30),
-	color(0, 0, 255),
+    sprite("bean"),
+    pos(80, 40),
+    scale(3),
+    rotate(30),
+    color(0, 0, 255),
 ])
 ```
 
@@ -72,15 +72,15 @@ It's actually kinda like playing with lego pieces! Let's keep this in mind and s
 ```js
 // putting together our player character
 const bean = add([
-	sprite("bean"),
-	pos(80, 40),
-	area(),
-	body(),
+    sprite("bean"),
+    pos(80, 40),
+    area(),
+    body(),
 ])
 
 // .jump() when "space" key is pressed
 keyPress("space", () => {
-	bean.jump()
+    bean.jump()
 })
 ```
 
@@ -97,12 +97,12 @@ With the `body()` component, our Bean is going to keep falling into oblivion if 
 ```js
 // add platform
 add([
-	rect(width(), 48),
-	pos(0, height() - 48),
-	outline(4),
-	area(),
-	solid(),
-	color(127, 200, 255),
+    rect(width(), 48),
+    pos(0, height() - 48),
+    outline(4),
+    area(),
+    solid(),
+    color(127, 200, 255),
 ])
 ```
 
@@ -212,105 +212,105 @@ loadSprite("bean", "sprites/bean.png");
 
 scene("game", () => {
 
-	// define gravity
-	gravity(2400);
+    // define gravity
+    gravity(2400);
 
-	// add a game object to screen
-	const player = add([
-		// list of components
-		sprite("bean"),
-		pos(80, 40),
-		area(),
-		body(),
-	]);
+    // add a game object to screen
+    const player = add([
+        // list of components
+        sprite("bean"),
+        pos(80, 40),
+        area(),
+        body(),
+    ]);
 
-	// floor
-	add([
-		rect(width(), FLOOR_HEIGHT),
-		outline(4),
-		pos(0, height()),
-		origin("botleft"),
-		area(),
-		solid(),
-		color(127, 200, 255),
-	]);
+    // floor
+    add([
+        rect(width(), FLOOR_HEIGHT),
+        outline(4),
+        pos(0, height()),
+        origin("botleft"),
+        area(),
+        solid(),
+        color(127, 200, 255),
+    ]);
 
-	function jump() {
-		if (player.grounded()) {
-			player.jump(JUMP_FORCE);
-		}
-	}
+    function jump() {
+        if (player.grounded()) {
+            player.jump(JUMP_FORCE);
+        }
+    }
 
-	// jump when user press space
-	keyPress("space", jump);
-	mouseClick(jump);
+    // jump when user press space
+    keyPress("space", jump);
+    mouseClick(jump);
 
-	function spawnTree() {
+    function spawnTree() {
 
-		// add tree obj
-		add([
-			rect(48, rand(32, 96)),
-			area(),
-			outline(4),
-			pos(width(), height() - FLOOR_HEIGHT),
-			origin("botleft"),
-			color(255, 180, 255),
-			move(LEFT, SPEED),
-			"tree",
-		]);
+        // add tree obj
+        add([
+            rect(48, rand(32, 96)),
+            area(),
+            outline(4),
+            pos(width(), height() - FLOOR_HEIGHT),
+            origin("botleft"),
+            color(255, 180, 255),
+            move(LEFT, SPEED),
+            "tree",
+        ]);
 
-		// wait a random amount of time to spawn next tree
-		wait(rand(0.5, 1.5), spawnTree);
+        // wait a random amount of time to spawn next tree
+        wait(rand(0.5, 1.5), spawnTree);
 
-	}
+    }
 
-	// start spawning trees
-	spawnTree();
+    // start spawning trees
+    spawnTree();
 
-	// lose if player collides with any game obj with tag "tree"
-	player.collides("tree", () => {
-		// go to "lose" scene and pass the score
-		go("lose", score);
-		burp();
-		addKaboom(player.pos);
-	});
+    // lose if player collides with any game obj with tag "tree"
+    player.collides("tree", () => {
+        // go to "lose" scene and pass the score
+        go("lose", score);
+        burp();
+        addKaboom(player.pos);
+    });
 
-	// keep track of score
-	let score = 0;
+    // keep track of score
+    let score = 0;
 
-	const scoreLabel = add([
-		text(score),
-		pos(24, 24),
-	]);
+    const scoreLabel = add([
+        text(score),
+        pos(24, 24),
+    ]);
 
-	// increment score every frame
-	action(() => {
-		score++;
-		scoreLabel.text = score;
-	});
+    // increment score every frame
+    action(() => {
+        score++;
+        scoreLabel.text = score;
+    });
 
 });
 
 scene("lose", (score) => {
 
-	add([
-		sprite("bean"),
-		pos(width() / 2, height() / 2 - 80),
-		scale(2),
-		origin("center"),
-	]);
+    add([
+        sprite("bean"),
+        pos(width() / 2, height() / 2 - 80),
+        scale(2),
+        origin("center"),
+    ]);
 
-	// display score
-	add([
-		text(score),
-		pos(width() / 2, height() / 2 + 80),
-		scale(2),
-		origin("center"),
-	]);
+    // display score
+    add([
+        text(score),
+        pos(width() / 2, height() / 2 + 80),
+        scale(2),
+        origin("center"),
+    ]);
 
-	// go back to game with space is pressed
-	keyPress("space", () => go("game"));
-	mouseClick(() => go("game"));
+    // go back to game with space is pressed
+    keyPress("space", () => go("game"));
+    mouseClick(() => go("game"));
 
 });
 
