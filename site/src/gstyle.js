@@ -14,12 +14,12 @@ module.exports = {
 		"margin": "0",
 		"box-sizing": "border-box",
 		"font-family": "inherit",
-		"color": "#333333",
 	},
 	"html": {
 		"width": "100%",
 		"height": "100%",
 		"font-family": "IBM Plex Sans",
+		"color": "#333333",
 	},
 	"body": {
 		"width": "100%",
@@ -35,5 +35,10 @@ module.exports = {
 	},
 	"code": {
 		"font-family": "IBM Plex Mono",
+	},
+	"blockquote": {
+		"color": "#999999",
+		"padding-left": "24px",
+		"border-left": "solid 3px #cccccc",
 	},
 };

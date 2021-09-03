@@ -209,7 +209,7 @@ function drawText(
 	gfx.drawText(txt, font, conf);
 }
 
-const DEF_GRAVITY = 980;
+const DEF_GRAVITY = 1600;
 const DEF_ORIGIN = "topleft";
 
 interface Game {
@@ -344,7 +344,7 @@ function camRot(angle: number): number {
 	return game.cam.angle;
 }
 
-function shake(intensity: number) {
+function shake(intensity: number = 12) {
 	game.cam.shake = intensity;
 }
 
@@ -1833,7 +1833,7 @@ function timer(n?: number, action?: () => void): TimerComp {
 }
 
 // maximum y velocity with body()
-const DEF_JUMP_FORCE = 480;
+const DEF_JUMP_FORCE = 640;
 const MAX_VEL = 65536;
 
 // TODO: land on wall

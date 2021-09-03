@@ -318,7 +318,7 @@ const page = t("html", {}, [
 <script type="module">
 
 // import kaboom lib
-import kaboom from "https://cdn.skypack.dev/kaboom@next";
+import kaboom from "https://unpkg.com/kaboom@next/dist/kaboom.mjs";
 
 // initialize kaboom context
 kaboom();
