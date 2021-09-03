@@ -1,6 +1,4 @@
-kaboom({
-	clearColor: [ 127, 255, 255 ],
-});
+kaboom();
 
 loadSprite("bean", "sprites/bean.png");
 loadSprite("apple", "sprites/apple.png");
@@ -14,7 +12,7 @@ scene("start", () => {
 	play("gong");
 
 	add([
-		text("eat all"),
+		text("Eat All"),
 		pos(center().sub(0, 100)),
 		scale(2),
 		origin("center"),
@@ -41,7 +39,7 @@ scene("game", () => {
 	const player = add([
 		sprite("bean"),
 		pos(40, 20),
-		area(0.5),
+		area({ scale: 0.5 }),
 		origin("center"),
 	]);
 
@@ -106,7 +104,7 @@ scene("game", () => {
 		add([
 			sprite(spriteName),
 			pos(x, y),
-			area(0.5),
+			area({ scale: 0.5 }),
 			origin("center"),
 			"food",
 			isBomb ? "bomb" : "fruit",

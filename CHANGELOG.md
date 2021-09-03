@@ -47,6 +47,7 @@ add([
 - audio is now paused on `debug.paused = true`
 - added localStorage helper `getData(key, default?)` and `setData(key, data)`
 - added `loadShader(id, vert, frag, isUrl)`
+- **BREAK** changed last argument of `loadFont()` to `FontLoadConf`
 - added `shader()` comp for attaching custom shader to an obj
 - all event handlers like `keyPress()`, `mouseClick()`, `action()`, `collides()` now returns a function to cancel that listener
 - added `require` on component definitions, making it possible to declare dependencies for components, e.g.

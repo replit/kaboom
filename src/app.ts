@@ -136,6 +136,7 @@ function appInit(gconf: AppConf = {}): App {
 		"f9",
 		"f10",
 		"f11",
+		"s",
 	];
 
 	if (gconf.width && gconf.height && !gconf.stretch) {

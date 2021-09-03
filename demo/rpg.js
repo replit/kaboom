@@ -1,10 +1,7 @@
 // simple rpg style walk and talk
 
-kaboom({
-	clearColor: [127, 255, 255],
-});
+kaboom();
 
-loadSprite("steel", "sprites/steel.png");
 loadSprite("robot", "sprites/robot.png");
 loadSprite("ch2", "sprites/robot.png");
 loadSprite("grass", "sprites/grass.png");
@@ -59,7 +56,7 @@ scene("main", (levelIdx) => {
 		height: 64,
 		pos: vec2(64, 64),
 		"=": [
-			sprite("steel"),
+			sprite("grass"),
 			area(),
 			solid(),
 		],
