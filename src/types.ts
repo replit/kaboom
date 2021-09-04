@@ -1400,6 +1400,10 @@ interface KaboomConf {
 	 */
 	connect?: string,
 	/**
+	 * If focus user input to canvas on start.
+	 */
+	focus?: boolean,
+	/**
 	 * If translate touch events as mouse clicks (default true).
 	 */
 	touchToMouse?: boolean,
@@ -1466,6 +1470,9 @@ interface AudioPlayConf {
 	volume?: number,
 	speed?: number,
 	detune?: number,
+	/**
+	 * The start time, in seconds.
+	 */
 	seek?: number,
 }
 
@@ -1478,12 +1485,19 @@ interface AudioPlay {
 	speed(s?: number): number,
 	detune(d?: number): number,
 	volume(v?: number): number,
+	/**
+	 * The current playing time.
+	 */
 	time(): number,
+	/**
+	 * The total duration.
+	 */
 	duration(): number,
 	loop(): void,
 	unloop(): void,
 }
 
+// TODO: hide
 interface GfxProgram {
 	bind(): void,
 	unbind(): void,
@@ -1491,6 +1505,7 @@ interface GfxProgram {
 	send(uniform: Uniform): void,
 }
 
+// TODO: hide
 interface GfxTexture {
 	width: number,
 	height: number,
@@ -1508,6 +1523,9 @@ type GfxTexData =
 interface GfxFont {
 	tex: GfxTexture,
 	map: Record<string, Vec2>,
+	/**
+	 * The quad width of each character.
+	 */
 	qw: number,
 	qh: number,
 }
@@ -1518,6 +1536,9 @@ interface Vertex {
 	color: Color,
 }
 
+/**
+ * Texture scaling filter. "nearest" is mainly for sharp pixelated scaling, "linear" means linear interpolation.
+ */
 type TexFilter = "nearest" | "linear";
 type TexWrap = "repeat" | "clampToEdge";
 
@@ -1659,20 +1680,50 @@ interface Vec2 {
 	x: number,
 	y: number,
 	clone(): Vec2,
+	/**
+	 * Returns the addition with another vector.
+	 */
 	add(p: Vec2): Vec2,
 	add(x: number, y: number): Vec2,
+	/**
+	 * Returns the subtraction with another vector.
+	 */
 	sub(p: Vec2): Vec2,
 	sub(x: number, y: number): Vec2,
+	/**
+	 * Scale by another vector, or a single number.
+	 */
 	scale(p: Vec2): Vec2,
 	scale(s: number): Vec2,
 	scale(sx: number, sy: number): Vec2,
+	/**
+	 * Get the dot product with another vector.
+	 */
 	dot(p: Vec2): number,
+	/**
+	 * Get distance between another vector.
+	 */
 	dist(p: Vec2): number,
 	len(): number,
+	/**
+	 * Get the unit vector (length of 1).
+	 */
 	unit(): Vec2,
+	/**
+	 * Get the perpendicular vector.
+	 */
 	normal(): Vec2,
+	/**
+	 * Get the angle between another vector
+	 */
 	angle(p: Vec2): number,
+	/**
+	 * Linear interpolate to a destination vector
+	 */
 	lerp(p: Vec2, t: number): Vec2,
+	/**
+	 * To n precision floating point. 
+	 */
 	toFixed(n: number): Vec2,
 	eq(p: Vec2): boolean,
 	str(): string,
@@ -1707,17 +1758,36 @@ interface Mat4 {
 	invert(): Mat4,
 }
 
+/**
+ * 0-255 RGBA color.
+ */
 interface Color {
+	/**
+	 * Red (0-255).
+	 */
 	r: number,
+	/**
+	 * Green (0-255).
+	 */
 	g: number,
+	/**
+	 * Blue (0-255).
+	 */
 	b: number,
+	/**
+	 * Opacity (0-1).
+	 */
 	a: number,
 	clone(): Color,
+	/**
+	 * Lighten the color (adds RGB by n).
+	 */
 	lighten(n: number): Color,
+	/**
+	 * Darkens the color (subtracts RGB by n).
+	 */
 	darken(n: number): Color,
 	invert(): Color,
-	isDark(p?: number): boolean,
-	isLight(p?: number): boolean,
 	eq(c: Color): boolean,
 }
 
@@ -2271,7 +2341,7 @@ interface HealthComp extends Comp {
 	/**
 	 * Set current health points.
 	 */
-	setHP(hp: number),
+	setHP(hp: number): void,
 }
 
 interface LifespanComp extends Comp {

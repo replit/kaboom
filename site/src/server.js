@@ -51,6 +51,7 @@ function files(mnt, dir, handler = {}) {
 			return next();
 		}
 		const stat = fs.statSync(p);
+		ctx.set("Access-Control-Allow-Origin", "*");
 		if (stat.isDirectory()) {
 			if (ctx.accepts("html")) {
 				renderDir(p)(ctx, next);

@@ -85,6 +85,14 @@ function appInit(gconf: AppConf = {}): App {
 
     const root = gconf.root ?? document.body;
 
+	if (root === document.body) {
+		document.body.style["width"] = "100%";
+		document.body.style["height"] = "100%";
+		document.body.style["margin"] = "0px";
+		document.documentElement.style["width"] = "100%";
+		document.documentElement.style["height"] = "100%";
+	}
+
 	const app: AppCtx = {
 		canvas: gconf.canvas ?? (() => {
 			const canvas = document.createElement("canvas");

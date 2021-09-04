@@ -193,14 +193,14 @@ function rgba(...args): Color {
 	}
 
 	return {
-		r: args[0],
-		g: args[1],
-		b: args[2],
-		a: args[3] ?? 1,
+		r: clamp(args[0], 0, 255),
+		g: clamp(args[1], 0, 255),
+		b: clamp(args[2], 0, 255),
+		a: clamp(args[3], 0, 1) ?? 1,
 		clone(): Color {
 			return rgba(this.r, this.g, this.b, this.a);
 		},
-		lighten(a): Color {
+		lighten(a: number): Color {
 			return rgba(this.r + a, this.g + a, this.b + a, this.a);
 		},
 		darken(a: number): Color {
@@ -208,12 +208,6 @@ function rgba(...args): Color {
 		},
 		invert(): Color {
 			return rgba(255 - this.r, 255 - this.g, 255 - this.b, this.a);
-		},
-		isDark(p: number = 0.5): boolean {
-			return this.r + this.g + this.b < 3 * p;
-		},
-		isLight(p: number = 0.5): boolean {
-			return this.r + this.g + this.b > 3 * p;
 		},
 		eq(other: Color): boolean {
 			return this.r === other.r
