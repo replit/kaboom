@@ -1,9 +1,9 @@
 type Net = {
 	connect(): Promise<WebSocket>,
-	close(),
+	close(): void,
 	connected(): boolean,
-	recv(type: string, handler: MsgHandler),
-	send(type: string, data: any),
+	recv(type: string, handler: MsgHandler): void,
+	send(type: string, data: any): void,
 };
 
 function netInit(url: string): Net {

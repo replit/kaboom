@@ -1,12 +1,12 @@
 module.exports = {
 	"@font-face": [
 		{
-			"font-family": "IBM Plex Sans",
-			"src": `url("/fonts/IBMPlexSans-Regular.ttf") format("truetype")`,
-		},
-		{
 			"font-family": "IBM Plex Mono",
 			"src": `url("/fonts/IBMPlexMono-Regular.ttf") format("truetype")`,
+		},
+		{
+			"font-family": "Necto Mono",
+			"src": `url("/fonts/NectoMono-Regular.otf") format("opentype")`,
 		},
 	],
 	"*": {
@@ -18,7 +18,7 @@ module.exports = {
 	"html": {
 		"width": "100%",
 		"height": "100%",
-		"font-family": "IBM Plex Sans",
+		"font-family": "Necto Mono",
 		"color": "#333333",
 	},
 	"body": {

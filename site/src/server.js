@@ -5,6 +5,7 @@ const marked = require("marked");
 const hljs = require("highlight.js");
 const esbuild = require("esbuild");
 const port = process.env.PORT || 8000;
+const land = require("./land");
 const doc = require("./doc");
 const demo = require("./demo");
 const gstyle = require("./gstyle");
@@ -102,7 +103,7 @@ function renderDir(dir) {
 						},
 					},
 				})),
-				t("link", { rel: "icon", href: "/kaboom.png"}),
+				t("link", { rel: "icon", href: "/img/kaboom.png"}),
 			]),
 			t("body", {}, fs
 				.readdirSync(dir)
@@ -137,7 +138,7 @@ function renderMD(p) {
 					},
 				},
 			})),
-			t("link", { rel: "icon", href: "/kaboom.png"}),
+			t("link", { rel: "icon", href: "/img/kaboom.png"}),
 			t("link", { rel: "stylesheet", href: "/css/paraiso.css"}),
 		]),
 		t("body", {}, [
@@ -163,7 +164,8 @@ function buildJS(p) {
 	};
 }
 
-app.use(get("/", html(doc)));
+app.use(get("/", html(land)));
+app.use(get("/doc", html(doc)));
 app.use(get("/demo", html(demo)));
 app.use(files("/sprites", "../sprites"));
 app.use(files("/sounds", "../sounds"));

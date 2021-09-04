@@ -845,7 +845,7 @@ interface KaboomCtx {
 	 * });
 	 * ```
 	 */
-	regCursor(c: string, draw: string | ((mpos: Vec2) => void)),
+	regCursor(c: string, draw: string | ((mpos: Vec2) => void)): void,
 	/**
 	 * Enter / exit fullscreen mode.
 	 *

@@ -29,5 +29,5 @@ function addButton(txt, p, f) {
 
 }
 
-addButton("start", vec2(200, 100), () => debug.log("oh hi"));
-addButton("quit", vec2(200, 200), () => debug.log("bye"));
+addButton("Start", vec2(200, 100), () => debug.log("oh hi"));
+addButton("Quit", vec2(200, 200), () => debug.log("bye"));

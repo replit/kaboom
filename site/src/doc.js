@@ -195,7 +195,6 @@ const css = {
 			...www.vspace(4),
 			"a": {
 				"display": "table",
-				"font-family": "IBM Plex Mono",
 				"text-decoration": "none",
 				"color": "#333333",
 				"padding": "4px",
@@ -233,7 +232,6 @@ const css = {
 			"font-size": "24px",
 		},
 		".name": {
-			"font-family": "IBM Plex Mono",
 			"font-size": "32px",
 		},
 		".desc": {
@@ -247,7 +245,6 @@ const css = {
 			...www.vspace(12),
 		},
 		".type": {
-			"font-family": "IBM Plex Mono",
 			"font-size": "20px",
 		},
 		".typesig": {

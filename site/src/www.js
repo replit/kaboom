@@ -110,6 +110,14 @@ function css(list) {
 
 }
 
+function style(sheet) {
+	let code = "";
+	for (const k in sheet) {
+		code += `${k}:${sheet[k]};`;
+	}
+	return code;
+}
+
 const space = (side, n = 12) => ({
 	"> *": {
 		[`margin-${side}`]: `${n}px`,
@@ -122,9 +130,20 @@ const space = (side, n = 12) => ({
 const vspace = (n) => space("bottom", n);
 const hspace = (n) => space("right", n);
 
+const spacer = (n) => {
+	return tag("div", {
+		style: style({
+			"width": `${n}px`,
+			"height": `${n}px`,
+		}),
+	}, []);
+};
+
 module.exports = {
 	tag,
 	css,
+	style,
 	vspace,
 	hspace,
+	spacer,
 };
