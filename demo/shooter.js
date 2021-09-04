@@ -1,15 +1,13 @@
 // TODO: document
 
-kaboom({
-	texFilter: "linear",
-});
+kaboom();
 
 const objs = [
 	"apple",
 	"lightening",
 	"robot",
 	"coin",
-	"car",
+	"egg",
 	"key",
 	"door",
 	"bomb",
@@ -104,18 +102,20 @@ scene("battle", () => {
 
 	const sky = add([
 		rect(width(), height()),
-		color(0, 0, 0, 0),
+		color(0, 0, 0),
+		opacity(0),
 	]);
 
 	sky.action(() => {
 		if (insaneMode) {
 			const t = time() * 10;
-			sky.color.a = 1;
 			sky.color.r = wave(127, 255, t);
 			sky.color.g = wave(127, 255, t + 1);
 			sky.color.b = wave(127, 255, t + 2);
+			sky.opacity = 1;
 		} else {
-			sky.color = rgba(0, 0, 255, 0);
+			sky.color = rgb(0, 0, 0);
+			sky.opacity = 0;
 		}
 	});
 
@@ -344,8 +344,6 @@ scene("battle", () => {
 			healthbar.color = rgb(127, 255, 127);
 		}
 	});
-
-	volume(0);
 
 	add([
 		text("UP: insane mode", { width: width() / 2, size: 32 }),

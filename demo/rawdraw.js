@@ -13,7 +13,7 @@ render(() => {
 	drawRect(vec2(50), 40, 100);
 	drawLine(vec2(0), mousePos(), {
 		width: 3,
-		color: rgba(0, 0, 1, 1),
+		color: rgb(0, 0, 1),
 		z: 0.5,
 	});
 	drawText("hi", {

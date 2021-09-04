@@ -293,7 +293,9 @@ const page = t("html", {}, [
 	]),
 	t("body", {}, [
 		t("div", { id: "sidebar", }, [
-			t("img", { id: "logo", src: "/img/kaboom.svg" }),
+			t("a", { href: "/", }, [
+				t("img", { id: "logo", src: "/img/kaboom.svg" }),
+			]),
 			t("div", { id: "index", }, ctxMembers.map((mem) => {
 				if (!mem.name) {
 					return;

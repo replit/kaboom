@@ -1,12 +1,14 @@
 ### kaboom2000 (unreleased)
 - version jumped to v2000.0.0 (still semver, just big)
 - added `burp()` for easy burping
-- added decent typescript support and jsdocs
+- added decent typescript / autocomplete support and jsdocs
 - introducing new character "bean"
 ![bean](sprites/bean.png)
+- added `loadBean()` to load `"bean"` as a default sprite
 - changed default font to [APL386](https://abrudz.github.io/APL386/), as `"apl386o"` (default outlined version) and `"apl386"`
 - included font [kitchen sink](https://polyducks.itch.io/kitchen-sink-textmode-font) as `"sinko"` (outlined version) and `"sink"` (standard version with extended characters for text-mode games)
-- added `loadBean()` to load `"bean"` as a default sprite
+- added `font` field in `KaboomConf` to set the default font
+- added comp `opacity()` to set opacity
 - added comp `health()` to manage health related logic
 - added comp `move()` to manage projectile-like behavior
 - added comp `outline()` to draw a lil outline
@@ -20,10 +22,25 @@
 - added `dir()` to calculate directional vector from angle
 - added constants `LEFT`, `RIGHT`, `UP`, `DOWN` for unit directional vector
 - added `fullscreen()` to enable real fullscreen mode
+- **BREAK** separated color and opacity, removed `rgba()` in favor of `rgb`, use component `opacity()` to define opacity
 - **BREAK** changed color from 0-1 range to 0-255, angles from radians to degrees
+
+```js
+// before
+add([
+    rotate(Math.PI / 2),
+    color(0, 0.5, 1.0, 0.5),
+]);
+
+// after
+add([
+    rotate(90),
+    color(0, 127, 255),
+    opacity(0.5)
+]);
+```
 - `global` and `debug` flag now are enabled by default, need to turn off manually if you don't want
 - added input events `touchStart(id, pos)`, `touchMove(id, pos)`, `touchEnd(id, pos)`, `mouseMove(pos)`
-- added `font` field in `KaboomConf` to set the default font
 - added `mouseDeltaPos()`
 - added `touchToMouse` to control if touch events should be translated to mouse events
 - added `mousePos()` now gets the screen mouse pos, use `mouseWorldPos()` to get the mouse position affected by camera
@@ -37,16 +54,16 @@ add(...);
 keyPress(...);
 ```
 - **BREAK** `area()` is now explicit and not automatically added by `sprite()`, `rect()`, and `text()`, removed each `noArea` or `area` config field
+- **BREAK** `area()` now takes an `AreaCompConf`, where you can define the area points, size, scale, and hover cursor
 ```js
 add([
     sprite("bean"),
     area(), // empty area() will calc size from the sprite
 ]);
 ```
-- **BREAK** `area()` now takes an `AreaCompConf`, where you can define the area points, size, scale, and hover cursor
 - audio is now paused when you leave the tab
 - audio is now paused on `debug.paused = true`
-- added localStorage helper `getData(key, default?)` and `setData(key, data)`
+- added local storage helper `getData(key, default?)` and `setData(key, data)`
 - added `loadShader(id, vert, frag, isUrl)`
 - added `shader()` comp for attaching custom shader to an obj
 - different layers do not prevent collisions now
@@ -67,7 +84,7 @@ function alwaysRight() {
     };
 }
 ```
-- **BREAK** overlapping component fields are not allowed, e.g. you can have a custom comp that has a `collides` field if it already have a `area` component, since it already has that
+- **BREAK** overlapping component fields are not allowed, e.g. you can't have a custom comp that has a `collides` field if it already have a `area` component, since it already has that
 - **BREAK** changed `text(txt, size, conf)` to `text(txt, conf)` with `size` as a field
 - added `obj.c(id)` for getting a specific comp's state (by default all comps' states are mounted to the obj by `Object.defineProperty`)
 ```js
@@ -84,14 +101,15 @@ obj.c("sprite").play("anim");
 - **BREAK** renamed `resolve()` to `pushOutAll()` on `area` comp
 - added `pushOut()` for pushing a single object out from another with `area` comp
 - fixed `"add"` event getting called twice for tagged objs
-- added `flipX` and `flipY` on `sprite()` comp configuration, and `flipX()` `flipY()` methods
 - added `moveTo(dest: Vec2, speed?: number)` to `pos()` comp
 - added `keyPress()` (and all other key events) with no arg to check for any key
 - **BREAK** renamed `camShake()` to `shake()`
+- added `flipX` and `flipY` on `sprite()` comp configuration, and `flipX()` `flipY()` methods
 - **BREAK** remove `flipX()` and `flipY()` on `scale()` comp
 - **BREAK** removed `start()` in favor of `go()`
 - **BREAK** removed `changeSprite()` in favor of `use(sprite("newsprite"))`
-- **BREAK** renamed `rmTag()` to `untag()`
+- added `unuse()` to remove a component or tag
+- **BREAK** renamed `rmTag()` in favor of `unuse()`
 - **BREAK** removed `camIgnore()` in favor of `fixed()`
 - **BREAK** renamed `makeRng()` to `rng()`
 

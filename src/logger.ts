@@ -1,6 +1,6 @@
 import {
 	vec2,
-	rgba,
+	rgb,
 	map,
 } from "./math";
 
@@ -54,8 +54,8 @@ function loggerInit(gfx: Gfx, assets: Assets, conf: LoggerConf = {
 
 			const col = (() => {
 				switch (log.type) {
-					case "info": return rgba(255, 255, 255, txtAlpha);
-					case "error": return rgba(255, 0, 127, txtAlpha);
+					case "info": return rgb(255, 255, 255);
+					case "error": return rgb(255, 0, 127);
 				}
 			})();
 
@@ -65,11 +65,13 @@ function loggerInit(gfx: Gfx, assets: Assets, conf: LoggerConf = {
 				color: col,
 				size: LOG_SIZE / gfx.scale(),
 				width: gfx.width(),
+				opacity: txtAlpha,
 			});
 
 			gfx.drawRect(pos, ftext.width, ftext.height, {
 				origin: "botleft",
-				color: rgba(0, 0, 0, bgAlpha),
+				color: rgb(0, 0, 0),
+				opacity: bgAlpha,
 			});
 
 			gfx.drawFmtText(ftext);

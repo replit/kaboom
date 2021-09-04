@@ -153,7 +153,6 @@ function isColor(c: any): boolean {
 		&& c.r !== undefined
 		&& c.g !== undefined
 		&& c.b !== undefined
-		&& c.a !== undefined
 		;
 }
 
@@ -168,52 +167,41 @@ function isMat4(m: any): Mat4 {
 }
 
 function rgb(...args): Color {
+
 	if (args.length === 0) {
-		return rgba();
+		return rgb(255, 255, 255);
 	} else if (args.length === 1) {
 		if (isColor(args[0])) {
-			return rgba(args[0]);
+			return rgb(args[0].r, args[0].g, args[0].b);
 		} else if (Array.isArray(args[0]) && args[0].length === 3) {
-			return rgb.apply(null, args[0])
-		}
-	}
-	return rgba(args[0], args[1], args[2], 1);
-}
-
-function rgba(...args): Color {
-
-	if (args.length === 0) {
-		return rgba(255, 255, 255, 1);
-	} else if (args.length === 1) {
-		if (isColor(args[0])) {
-			return rgba(args[0].r, args[0].g, args[0].b, args[0].a);
-		} else if (Array.isArray(args[0]) && args[0].length === 3 || args[0].length ===4) {
-			return rgba.apply(null, args[0]);
+			return rgb.apply(null, args[0]);
 		}
 	}
 
 	return {
-		r: clamp(args[0], 0, 255),
-		g: clamp(args[1], 0, 255),
-		b: clamp(args[2], 0, 255),
-		a: clamp(args[3], 0, 1) ?? 1,
+		r: clamp(~~args[0], 0, 255),
+		g: clamp(~~args[1], 0, 255),
+		b: clamp(~~args[2], 0, 255),
 		clone(): Color {
-			return rgba(this.r, this.g, this.b, this.a);
+			return rgb(this.r, this.g, this.b);
 		},
 		lighten(a: number): Color {
-			return rgba(this.r + a, this.g + a, this.b + a, this.a);
+			return rgb(this.r + a, this.g + a, this.b + a);
 		},
 		darken(a: number): Color {
 			return this.lighten(-a);
 		},
 		invert(): Color {
-			return rgba(255 - this.r, 255 - this.g, 255 - this.b, this.a);
+			return rgb(255 - this.r, 255 - this.g, 255 - this.b);
 		},
 		eq(other: Color): boolean {
 			return this.r === other.r
 				&& this.g === other.g
 				&& this.b === other.g
-				&& this.a === other.a;
+				;
+		},
+		str(): string {
+			return `(${this.r}, ${this.g}, ${this.b})`;
 		},
 	};
 
@@ -221,10 +209,10 @@ function rgba(...args): Color {
 
 function quad(x: number, y: number, w: number, h: number): Quad {
 	return {
-		x: x,
-		y: y,
-		w: w,
-		h: h,
+		x: x ?? 0,
+		y: y ?? 0,
+		w: w ?? 1,
+		h: h ?? 1,
 		scale(other: Quad): Quad {
 			return quad(
 				this.x + this.w * other.x,
@@ -442,7 +430,7 @@ function rng(seed: number): RNG {
 				} else if (isVec2(args[0])) {
 					return this.gen(vec2(0, 0), args[0]);
 				} else if (isColor(args[0])) {
-					return this.gen(rgba(0, 0, 0, 0), args[0]);
+					return this.gen(rgb(0, 0, 0), args[0]);
 				}
 			} else if (args.length === 2) {
 				if (typeof args[0] === "number" && typeof args[1] === "number") {
@@ -453,11 +441,10 @@ function rng(seed: number): RNG {
 						this.gen(args[0].y, args[1].y),
 					);
 				} else if (isColor(args[0]) && isColor(args[1])) {
-					return rgba(
+					return rgb(
 						this.gen(args[0].r, args[1].r),
 						this.gen(args[0].g, args[1].g),
 						this.gen(args[0].b, args[1].b),
-						this.gen(args[0].a, args[1].a),
 					);
 				}
 			}
@@ -557,7 +544,6 @@ export {
 	vec3,
 	mat4,
 	quad,
-	rgba,
 	rgb,
 	rng,
 	rand,

@@ -2,7 +2,6 @@ import {
 	vec2,
 	mat4,
 	quad,
-	rgba,
 	rgb,
 	rng,
 	rand,
@@ -94,7 +93,7 @@ const app = appInit({
 });
 
 const gfx = gfxInit(app.gl, {
-	clearColor: gconf.clearColor ? rgba(gconf.clearColor) : undefined,
+	clearColor: gconf.clearColor ? rgb(gconf.clearColor) : undefined,
 	width: gconf.width,
 	height: gconf.height,
 	scale: gconf.scale,
@@ -375,7 +374,6 @@ function make<T>(comps: CompList<T>): GameObj<T> {
 	const compStates = {};
 	const customState = {};
 	const events = {};
-	const tags = [];
 
 	const obj = {
 
@@ -392,8 +390,9 @@ function make<T>(comps: CompList<T>): GameObj<T> {
 
 			// tag
 			if (typeof comp === "string") {
-				tags.push(comp);
-				return;
+				return this.use({
+					id: comp
+				});
 			}
 
 			// clear if overwrite
@@ -418,6 +417,7 @@ function make<T>(comps: CompList<T>): GameObj<T> {
 					const func = comp[k].bind(this);
 					if (COMP_EVENTS.has(k)) {
 						stateContainer.cleanups.push(this.on(k, func));
+						stateContainer[k] = func;
 						continue;
 					} else {
 						stateContainer[k] = func;
@@ -468,7 +468,7 @@ function make<T>(comps: CompList<T>): GameObj<T> {
 
 		},
 
-		unuse(comp: CompID) {
+		unuse(comp: Tag) {
 			if (compStates[comp]) {
 				compStates[comp].cleanups.forEach((f) => f());
 				for (const k in compStates[comp]) {
@@ -482,25 +482,24 @@ function make<T>(comps: CompList<T>): GameObj<T> {
 			return compStates[id];
 		},
 
-		// if obj is current in scene
 		exists(): boolean {
 			return this._id !== null;
 		},
 
-		// if obj has certain tag
 		is(tag: Tag | Tag[]): boolean {
 			if (tag === "*") {
 				return true;
 			}
 			if (Array.isArray(tag)) {
 				for (const t of tag) {
-					if (!tags.includes(t)) {
+					if (!this.c(tag)) {
 						return false;
 					}
 				}
 				return true;
+			} else {
+				return this.c(tag) != null;
 			}
-			return tags.includes(tag);
 		},
 
 		on(ev: string, cb): EventCanceller {
@@ -532,13 +531,6 @@ function make<T>(comps: CompList<T>): GameObj<T> {
 
 		},
 
-		untag(t: Tag) {
-			const idx = tags.indexOf(t);
-			if (idx > -1) {
-				tags.splice(idx, 1);
-			}
-		},
-
 		destroy() {
 
 			if (!this.exists()) {
@@ -553,21 +545,14 @@ function make<T>(comps: CompList<T>): GameObj<T> {
 
 		_inspect() {
 
-			const info = [];
+			const info = {};
 
-			if (events["inspect"]) {
-				for (const inspect of events["inspect"].values()) {
-					const data = inspect();
-					if (data) {
-						info.push(data);
-					}
-				}
+			for (const tag in compStates) {
+				const comp = compStates[tag];
+				info[tag] = comp.inspect ? comp.inspect() : null;
 			}
 
-			return {
-				tags: tags,
-				info: info,
-			};
+			return info;
 
 		},
 
@@ -714,37 +699,43 @@ function loop(t: number, f: () => void): EventCanceller {
 }
 
 // input callbacks
-function keyDown(k: string, f: () => void): EventCanceller {
+function keyDown(k: Key, f: () => void): EventCanceller {
 	if (Array.isArray(k)) {
 		const cancellers = k.map((key) => keyDown(key, f));
 		return () => cancellers.forEach((cb) => cb());
-	} else {
+	} {
 		return game.on("input", () => app.keyDown(k) && f());
 	}
 }
 
-function keyPress(k: string, f: () => void): EventCanceller {
+function keyPress(k: Key | (() => void), f?: () => void): EventCanceller {
 	if (Array.isArray(k)) {
 		const cancellers = k.map((key) => keyPress(key, f));
 		return () => cancellers.forEach((cb) => cb());
+	} else if (typeof k === "function") {
+		return game.on("input", () => app.keyPressed() && k());
 	} else {
 		return game.on("input", () => app.keyPressed(k) && f());
 	}
 }
 
-function keyPressRep(k: string, f: () => void): EventCanceller {
+function keyPressRep(k: Key | (() => void), f?: () => void): EventCanceller {
 	if (Array.isArray(k)) {
 		const cancellers = k.map((key) => keyPressRep(key, f));
 		return () => cancellers.forEach((cb) => cb());
+	} else if (typeof k === "function") {
+		return game.on("input", () => app.keyPressed() && k());
 	} else {
 		return game.on("input", () => app.keyPressedRep(k) && f());
 	}
 }
 
-function keyRelease(k: string, f: () => void): EventCanceller {
+function keyRelease(k: Key | (() => void), f?: () => void): EventCanceller {
 	if (Array.isArray(k)) {
 		const cancellers = k.map((key) => keyRelease(key, f));
 		return () => cancellers.forEach((cb) => cb());
+	} else if (typeof k === "function") {
+		return game.on("input", () => app.keyPressed() && k());
 	} else {
 		return game.on("input", () => app.keyReleased(k) && f());
 	}
@@ -969,7 +960,7 @@ function drawInspect() {
 
 	let inspecting = null;
 	const font = assets.fonts[DBG_FONT];
-	const lcolor = rgba(gconf.inspectColor ?? [0, 0, 255, 1]);
+	const lcolor = rgb(gconf.inspectColor ?? [0, 0, 255]);
 
 	function drawInspectTxt(pos, txt, scale) {
 
@@ -981,16 +972,30 @@ function drawInspect() {
 			color: rgb(0, 0, 0),
 		});
 
-		gfx.drawRect(pos, ftxt.width + pad.x * 2, ftxt.height + pad.x * 2, {
-			color: rgb(),
+		const bw = ftxt.width + pad.x * 2;
+		const bh = ftxt.height + pad.x * 2;
+
+		gfx.pushTransform();
+
+		if (pos.x + bw >= width()) {
+			gfx.pushTranslate(vec2(-bw, 0));
+		}
+
+		if (pos.y + bh >= height()) {
+			gfx.pushTranslate(vec2(0, -bh));
+		}
+
+		gfx.drawRect(pos, bw, bh, {
+			color: rgb(255, 255, 255),
 		});
 
-		gfx.drawRectStroke(pos, ftxt.width + pad.x * 2, ftxt.height + pad.x * 2, {
+		gfx.drawRectStroke(pos, bw, bh, {
 			width: 2 / scale,
 			color: rgb(0, 0, 0),
 		});
 
 		gfx.drawFmtText(ftxt);
+		gfx.popTransform();
 
 	}
 
@@ -1046,17 +1051,11 @@ function drawInspect() {
 			const lines = [];
 			const data = inspecting._inspect();
 
-			if (data.tags.length === 0 && data.info.length === 0) {
-				return;
-			}
-
-			for (const tag of data.tags) {
-				lines.push(`"${tag}"`);
-			}
-
-			for (const info of data.info) {
-				for (const field in info) {
-					lines.push(`${field}: ${info[field]}`);
+			for (const tag in data) {
+				if (data[tag]) {
+					lines.push(`${tag}: ${data[tag]}`);
+				} else {
+					lines.push(`${tag}`);
 				}
 			}
 
@@ -1120,9 +1119,7 @@ function pos(...args): PosComp {
 		},
 
 		inspect() {
-			return {
-				pos: `(${~~this.pos.x}, ${~~this.pos.y})`,
-			};
+			return `(${~~this.pos.x}, ${~~this.pos.y})`;
 		},
 
 	};
@@ -1137,6 +1134,9 @@ function scale(...args): ScaleComp {
 	return {
 		id: "scale",
 		scale: vec2(...args),
+		inspect() {
+			return `(${~~this.scale.x}, ${~~this.scale.y})`;
+		},
 	};
 }
 
@@ -1144,13 +1144,29 @@ function rotate(r: number): RotateComp {
 	return {
 		id: "rotate",
 		angle: r ?? 0,
+		inspect() {
+			return `${this.angle}`;
+		},
 	};
 }
 
 function color(...args): ColorComp {
 	return {
 		id: "color",
-		color: rgba(...args),
+		color: rgb(...args),
+		inspect() {
+			return this.color.str();
+		},
+	};
+}
+
+function opacity(a: number): OpacityComp {
+	return {
+		id: "opacity",
+		opacity: a ?? 1,
+		inspect() {
+			return `${this.opacity}`;
+		},
 	};
 }
 
@@ -1158,6 +1174,13 @@ function origin(o: Origin | Vec2): OriginComp {
 	return {
 		id: "origin",
 		origin: o,
+		inspect() {
+			if (typeof this.origin === "string") {
+				return this.origin;
+			} else {
+				return this.origin.str();
+			}
+		},
 	};
 }
 
@@ -1165,10 +1188,8 @@ function layer(l: string): LayerComp {
 	return {
 		id: "layer",
 		layer: l,
-		inspect(): LayerCompInspect {
-			return {
-				layer: this.layer ?? game.defLayer,
-			};
+		inspect() {
+			return this.layer ?? game.defLayer;
 		},
 	};
 }
@@ -1177,6 +1198,9 @@ function z(z: number): ZComp {
 	return {
 		id: "z",
 		z: z,
+		inspect() {
+			return `${this.z}`;
+		},
 	};
 }
 
@@ -1585,6 +1609,7 @@ function sprite(id: string | SpriteData, conf: SpriteCompConf = {}): SpriteComp 
 				scale: this.scale,
 				rot: this.angle,
 				color: this.color,
+				opacity: this.opacity,
 				frame: this.frame,
 				origin: this.origin,
 				quad: this.quad,
@@ -1684,12 +1709,14 @@ function sprite(id: string | SpriteData, conf: SpriteCompConf = {}): SpriteComp 
 			conf.flipY = b;
 		},
 
-		inspect(): SpriteCompInspect {
-			const info: SpriteCompInspect = {};
-			if (curAnim) {
-				info.curAnim = `"${curAnim.name}"`;
+		inspect() {
+			let msg = "";
+			if (typeof id === "string") {
+				msg += JSON.stringify(id);
+			} else {
+				msg += "[blob]";
 			}
-			return info;
+			return msg;
 		},
 
 	};
@@ -1713,6 +1740,7 @@ function text(t: string, conf: TextCompConf = {}): TextComp {
 			size: conf.size,
 			origin: this.origin,
 			color: this.color,
+			opacity: this.opacity,
 			width: conf.width,
 		});
 
@@ -1737,8 +1765,7 @@ function text(t: string, conf: TextCompConf = {}): TextComp {
 		},
 
 		draw() {
-			const ftext = update.call(this);
-			gfx.drawFmtText(ftext);
+			gfx.drawFmtText(update.call(this));
 		},
 
 	};
@@ -1756,10 +1783,14 @@ function rect(w: number, h: number): RectComp {
 				scale: this.scale,
 				rot: this.angle,
 				color: this.color,
+				opacity: this.opacity,
 				origin: this.origin,
 				prog: assets.shaders[this.shader],
 				uniform: this.uniform,
 			});
+		},
+		inspect() {
+			return `${this.width}, ${this.height}`;
 		},
 	};
 }
@@ -1780,6 +1811,7 @@ function outline(width: number = 1, color: Color = rgb(0, 0, 0)): OutlineComp {
 					width: this.lineWidth,
 					color: this.lineColor,
 					scale: this.scale,
+					opacity: this.opacity,
 					origin: this.origin,
 					prog: assets.shaders[this.shader],
 					uniform: this.uniform,
@@ -1794,6 +1826,7 @@ function outline(width: number = 1, color: Color = rgb(0, 0, 0)): OutlineComp {
 				gfx.drawRectStroke(a.p1, w, h, {
 					width: width,
 					color: color,
+					opacity: this.opacity,
 				});
 
 			}
@@ -2206,6 +2239,7 @@ const ctx: KaboomCtx = {
 	scale,
 	rotate,
 	color,
+	opacity,
 	origin,
 	layer,
 	area,
@@ -2270,7 +2304,6 @@ const ctx: KaboomCtx = {
 	vec2,
 	dir,
 	rgb,
-	rgba,
 	quad,
 	choose,
 	chance,

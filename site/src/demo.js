@@ -83,6 +83,9 @@ const css = {
 				"font-size": "48px",
 			},
 		},
+		".cm-focused": {
+			"outline": "none !important",
+		},
 	},
 	"#view": {
 		"width": "50%",

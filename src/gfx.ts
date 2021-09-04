@@ -3,7 +3,6 @@ import {
 	vec3,
 	quad,
 	rgb,
-	rgba,
 	mat4,
 	isVec2,
 	isVec3,
@@ -99,6 +98,7 @@ type Gfx = {
 	frameStart(),
 	frameEnd(),
 	pushTransform(),
+	pushTranslate(p: Vec2),
 	popTransform(),
 	pushMatrix(m: Mat4),
 	drawCalls(): number,
@@ -192,9 +192,9 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 			new ImageData(new Uint8ClampedArray([ 255, 255, 255, 255, ]), 1, 1)
 		);
 
-		const c = gconf.clearColor ?? rgba(0, 0, 0, 1);
+		const c = gconf.clearColor ?? rgb(0, 0, 0);
 
-		gl.clearColor(c.r / 255, c.g / 255, c.b / 255, c.a);
+		gl.clearColor(c.r / 255, c.g / 255, c.b / 255, 1);
 		gl.enable(gl.BLEND);
 		gl.enable(gl.SCISSOR_TEST);
 		gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
@@ -449,7 +449,7 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 				return [
 					pt.x, pt.y, v.pos.z,
 					v.uv.x, v.uv.y,
-					v.color.r / 255, v.color.g / 255, v.color.b / 255, v.color.a
+					v.color.r / 255, v.color.g / 255, v.color.b / 255, v.opacity
 				];
 			})
 			.flat();
@@ -608,21 +608,25 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 				pos: vec3(-w / 2, h / 2, z),
 				uv: vec2(conf.flipX ? q.x + q.w : q.x, conf.flipY ? q.y : q.y + q.h),
 				color: color,
+				opacity: conf.opacity ?? 1,
 			},
 			{
 				pos: vec3(-w / 2, -h / 2, z),
 				uv: vec2(conf.flipX ? q.x + q.w : q.x, conf.flipY ? q.y + q.h : q.y),
 				color: color,
+				opacity: conf.opacity ?? 1,
 			},
 			{
 				pos: vec3(w / 2, -h / 2, z),
 				uv: vec2(conf.flipX ? q.x : q.x + q.w, conf.flipY ? q.y + q.h : q.y),
 				color: color,
+				opacity: conf.opacity ?? 1,
 			},
 			{
 				pos: vec3(w / 2, h / 2, z),
 				uv: vec2(conf.flipX ? q.x : q.x + q.w, conf.flipY ? q.y : q.y + q.h),
 				color: color,
+				opacity: conf.opacity ?? 1,
 			},
 		], [0, 1, 3, 1, 2, 3], conf.tex, conf.prog, conf.uniform);
 
@@ -768,16 +772,19 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 				pos: vec3(p1.x, p1.y, z),
 				uv: vec2(0, 0),
 				color: color,
+				opacity: conf.opacity ?? 1,
 			},
 			{
 				pos: vec3(p2.x, p2.y, z),
 				uv: vec2(0, 0),
 				color: color,
+				opacity: conf.opacity ?? 1,
 			},
 			{
 				pos: vec3(p3.x, p3.y, z),
 				uv: vec2(0, 0),
 				color: color,
+				opacity: conf.opacity ?? 1,
 			},
 		], [0, 1, 2], gfx.defTex, conf.prog, conf.uniform);
 	}
@@ -873,10 +880,10 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 						quad: quad(qpos.x, qpos.y, font.qw, font.qh),
 						ch: char,
 						pos: vec2(pos.x + x + ox + oxl, pos.y + y + oy),
+						opacity: conf.opacity,
 						color: conf.color,
 						origin: conf.origin,
 						scale: scale,
-						z: conf.z,
 					});
 				}
 			});
@@ -908,10 +915,10 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 				pos: ch.pos,
 				scale: ch.scale,
 				color: ch.color,
+				opacity: ch.opacity,
 				quad: ch.quad,
 				// TODO: topleft
 				origin: "center",
-				z: ch.z,
 			});
 		}
 	}
@@ -989,6 +996,7 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 		fmtText,
 		frameStart,
 		frameEnd,
+		pushTranslate,
 		pushTransform,
 		popTransform,
 		pushMatrix,

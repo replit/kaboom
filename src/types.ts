@@ -517,7 +517,7 @@ interface KaboomCtx {
 	 */
 	rotate(a: number): RotateComp,
 	/**
-	 * Custom color in RGBA (0-255 rgb, 0-1 a, multiplied).
+	 * Sets color (rgb 0-255).
 	 *
 	 * @example
 	 * ```js
@@ -528,9 +528,13 @@ interface KaboomCtx {
 	 * ]);
 	 * ```
 	 */
-	color(r: number, g: number, b: number, a?: number): ColorComp,
+	color(r: number, g: number, b: number): ColorComp,
 	color(c: Color): ColorComp,
 	color(): ColorComp,
+	/**
+	 * Sets opacity (0.0 - 1.0).
+	 */
+	opacity(o?: number): OpacityComp,
 	/**
 	 * Renders as sprite.
 	 *
@@ -608,7 +612,7 @@ interface KaboomCtx {
 	 *
 	 * add([
 	 *     sprite("bomb"),
-	 *     // scale the auto calculated area by 0.6
+	 *     // scale to 0.6 of the sprite size
 	 *     area({ scale: 0.6 }),
 	 *     // we want the scale to be calculated from the center
 	 *     origin("center"),
@@ -883,7 +887,7 @@ interface KaboomCtx {
 	 * });
 	 * ```
 	 */
-	keyDown(k: string, cb: () => void): EventCanceller,
+	keyDown(k: Key, cb: () => void): EventCanceller,
 	/**
 	 * Registers an event that runs when user presses certain key.
 	 *
@@ -895,7 +899,8 @@ interface KaboomCtx {
 	 * });
 	 * ```
 	 */
-	keyPress(k: string, cb: () => void): EventCanceller,
+	keyPress(k: Key, cb: () => void): EventCanceller,
+	keyPress(cb: () => void): EventCanceller,
 	/**
 	 * Registers an event that runs when user presses certain key (also fires repeatedly when they key is held).
 	 *
@@ -907,11 +912,13 @@ interface KaboomCtx {
 	 * });
 	 * ```
 	 */
-	keyPressRep(k: string, cb: () => void): EventCanceller,
+	keyPressRep(k: Key, cb: () => void): EventCanceller,
+	keyPressRep(cb: () => void): EventCanceller,
 	/**
 	 * Registers an event that runs when user releases certain key.
 	 */
-	keyRelease(k: string, cb: () => void): EventCanceller,
+	keyRelease(k: Key, cb: () => void): EventCanceller,
+	keyRelease(cb: () => void): EventCanceller,
 	/**
 	 * Registers an event that runs when user inputs text.
 	 *
@@ -965,19 +972,19 @@ interface KaboomCtx {
 	 * });
 	 * ```
 	 */
-	keyIsDown(k: string): boolean,
+	keyIsDown(k: Key): boolean,
 	/**
 	 * If certain key is just pressed last frame.
 	 */
-	keyIsPressed(k: string): boolean,
+	keyIsPressed(k?: Key): boolean,
 	/**
 	 * If certain key is just pressed last frame (accepts help down repeatedly).
 	 */
-	keyIsPressedRep(k: string): boolean,
+	keyIsPressedRep(k?: Key): boolean,
 	/**
 	 * If certain key is just released last frame.
 	 */
-	keyIsReleased(k: string): boolean,
+	keyIsReleased(k?: Key): boolean,
 	/**
 	 * If certain mouse is currently down.
 	 */
@@ -1107,15 +1114,11 @@ interface KaboomCtx {
 	vec2(xy: number): Vec2,
 	vec2(): Vec2,
 	/**
-	 * Make an opaque color from 0-1 rgb values.
+	 * RGB color (0 - 255).
 	 */
 	rgb(r: number, g: number, b: number): Color,
 	/**
-	 * Make a color from 0-1 rgba values.
-	 */
-	rgba(r: number, g: number, b: number, a: number): Color,
-	/**
-	 * Make a quad.
+	 * Rectangle area (0.0 - 1.0).
 	 */
 	quad(x: number, y: number, w: number, h: number): Quad,
 	/**
@@ -1278,6 +1281,16 @@ type MergeComps<T> = Omit<MergeObj<T>, keyof Comp>;
 type CompList<T> = Array<T | Tag>;
 type DynCompList<T> = CompList<T> | ((...args: any[]) => CompList<T>);
 
+type Key =
+	| "f1" | "f2" | "f3" | "f4" | "f5" | "f6" | "f7" | "f8" | "f9" | "f10" | "f11" | "f12"
+	| "`" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9" | "0" | "-" | "="
+	| "q" | "w" | "e" | "r" | "t" | "y" | "u" | "i" | "o" | "p" | "[" | "]" | "\\"
+	| "a" | "s" | "d" | "f" | "g" | "h" | "j" | "k" | "l" | ";" | "'"
+	| "z" | "x" | "c" | "v" | "b" | "n" | "m" | "," | "." | "/"
+	| "backspace" | "enter" | "tab" | "space" | " "
+	| "left" | "right" | "up" | "down"
+	;
+
 interface GameObjRaw {
 	/**
 	 * Internal GameObj ID.
@@ -1306,9 +1319,9 @@ interface GameObjRaw {
 	use(comp: Comp | Tag): void;
 	// TODO: update the GameObj type info
 	/**
-	 * Remove a component with its id.
+	 * Remove a tag or a component with its id.
 	 */
-	unuse(comp: CompID): void;
+	unuse(comp: Tag): void;
 	/**
 	 * Run something every frame for this game obj (sugar for on("update")).
 	 */
@@ -1322,17 +1335,13 @@ interface GameObjRaw {
 	 */
 	trigger(ev: string, ...args: any[]): void;
 	/**
-	 * Removes a tag.
-	 */
-	untag(t: Tag): void;
-	/**
 	 * Remove the game obj from scene.
 	 */
 	destroy(): void;
 	/**
 	 * Get state for a specific comp.
 	 */
-	c(id: CompID): Comp;
+	c(id: Tag): Comp;
 }
 
 /**
@@ -1534,6 +1543,7 @@ interface Vertex {
 	pos: Vec3,
 	uv: Vec2,
 	color: Color,
+	opacity: number,
 }
 
 /**
@@ -1552,6 +1562,7 @@ interface RenderProps {
 	scale?: Vec2 | number,
 	rot?: number,
 	color?: Color,
+	opacity?: number,
 	origin?: Origin | Vec2,
 	z?: number,
 	prog?: GfxProgram,
@@ -1602,8 +1613,8 @@ interface FormattedChar {
 	pos: Vec2,
 	scale: Vec2,
 	color: Color,
+	opacity: number,
 	origin: string,
-	z: number,
 }
 
 interface FormattedText {
@@ -1722,7 +1733,7 @@ interface Vec2 {
 	 */
 	lerp(p: Vec2, t: number): Vec2,
 	/**
-	 * To n precision floating point. 
+	 * To n precision floating point.
 	 */
 	toFixed(n: number): Vec2,
 	eq(p: Vec2): boolean,
@@ -1774,10 +1785,6 @@ interface Color {
 	 * Blue (0-255).
 	 */
 	b: number,
-	/**
-	 * Opacity (0-1).
-	 */
-	a: number,
 	clone(): Color,
 	/**
 	 * Lighten the color (adds RGB by n).
@@ -1789,6 +1796,7 @@ interface Color {
 	darken(n: number): Color,
 	invert(): Color,
 	eq(c: Color): boolean,
+	str(): string,
 }
 
 interface Quad {
@@ -1831,11 +1839,11 @@ interface Comp {
 	/**
 	 * Component ID (if left out won't be treated as a comp).
 	 */
-	id?: CompID;
+	id?: Tag;
 	/**
 	 * What other comps this comp depends on.
 	 */
-	require?: CompID[];
+	require?: Tag[];
 	/**
 	 * event that runs when host game obj is added to scene
 	 */
@@ -1863,17 +1871,12 @@ interface Comp {
 }
 
 type GameObjID = number;
-type CompID = string;
 type AddEvent = () => void;
 type LoadEvent = () => void;
 type DrawEvent = () => void;
 type UpdateEvent = () => void;
 type DestroyEvent = () => void;
-type InspectEvent = () => any;
-
-interface PosCompInspect {
-	pos: string,
-}
+type InspectEvent = () => string;
 
 interface PosComp extends Comp {
 	pos: Vec2;
@@ -1908,15 +1911,15 @@ interface ColorComp extends Comp {
 	color: Color;
 }
 
+interface OpacityComp extends Comp {
+	opacity: number;
+}
+
 interface OriginComp extends Comp {
 	/**
 	 * Origin point for render.
 	 */
 	origin: Origin | Vec2;
-}
-
-interface LayerCompInspect {
-	layer: string,
 }
 
 interface LayerComp extends Comp {
@@ -2143,10 +2146,6 @@ interface SpriteComp extends Comp {
 	 * Flip texture vertically.
 	 */
 	flipY(b: boolean): void;
-}
-
-interface SpriteCompInspect {
-	curAnim?: string,
 }
 
 interface TextComp extends Comp {

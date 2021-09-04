@@ -41,16 +41,18 @@ type AppCtx = {
 	fps: number,
 	fpsBuf: number[],
 	fpsTimer: number,
+	keyPressed: boolean,
+	keyPressedRep: boolean,
 };
 
 type App = {
 	gl: WebGLRenderingContext,
 	mousePos(): Vec2,
 	mouseDeltaPos(): Vec2,
-	keyDown(k: string): boolean,
-	keyPressed(k: string): boolean,
-	keyPressedRep(k: string): boolean,
-	keyReleased(k: string): boolean,
+	keyDown(k?: Key): boolean,
+	keyPressed(k?: Key): boolean,
+	keyPressedRep(k?: Key): boolean,
+	keyReleased(k?: Key): boolean,
 	mouseDown(): boolean,
 	mouseClicked(): boolean,
 	mouseReleased(): boolean,
@@ -102,6 +104,8 @@ function appInit(gconf: AppConf = {}): App {
 		keyStates: {},
 		charInputted: [],
 		mouseMoved: false,
+		keyPressed: false,
+		keyPressedRep: false,
 		mouseState: "up",
 		mousePos: vec2(0, 0),
 		mouseDeltaPos: vec2(0, 0),
@@ -211,8 +215,10 @@ function appInit(gconf: AppConf = {}): App {
 		}
 
 		if (e.repeat) {
+			app.keyPressedRep = true;
 			app.keyStates[k] = "rpressed";
 		} else {
+			app.keyPressed = true;
 			app.keyStates[k] = "pressed";
 		}
 
@@ -288,13 +294,20 @@ function appInit(gconf: AppConf = {}): App {
 		return app.mouseMoved;
 	}
 
-	// TODO: check for any
 	function keyPressed(k?: string): boolean {
-		return app.keyStates[k] === "pressed";
+		if (k === undefined) {
+			return app.keyPressed;
+		} else {
+			return app.keyStates[k] === "pressed";
+		}
 	}
 
 	function keyPressedRep(k: string): boolean {
-		return app.keyStates[k] === "pressed" || app.keyStates[k] === "rpressed";
+		if (k === undefined) {
+			return app.keyPressedRep;
+		} else {
+			return app.keyStates[k] === "pressed" || app.keyStates[k] === "rpressed";
+		}
 	}
 
 	function keyDown(k: string): boolean {
@@ -391,6 +404,8 @@ function appInit(gconf: AppConf = {}): App {
 			app.mouseState = processBtnState(app.mouseState);
 			app.charInputted = [];
 			app.mouseMoved = false;
+			app.keyPressed = false;
+			app.keyPressedRep = false;
 			app.loopID = requestAnimationFrame(frame);
 
 		};
