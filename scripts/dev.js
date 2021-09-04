@@ -10,7 +10,7 @@ const t1 = cp.spawn("node", [
 
 const t2 = cp.spawn("node", [
 	"../scripts/watch.js", ".",
-	"node", "src/server.js"
+	"node", "server.js"
 ], {
 	stdio: "inherit",
 	detached: true,

@@ -2,11 +2,11 @@ module.exports = {
 	"@font-face": [
 		{
 			"font-family": "IBM Plex Mono",
-			"src": `url("/fonts/IBMPlexMono-Regular.ttf") format("truetype")`,
+			"src": `url("/site/fonts/IBMPlexMono-Regular.ttf") format("truetype")`,
 		},
 		{
 			"font-family": "Necto Mono",
-			"src": `url("/fonts/NectoMono-Regular.otf") format("opentype")`,
+			"src": `url("/site/fonts/NectoMono-Regular.otf") format("opentype")`,
 		},
 	],
 	"*": {

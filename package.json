@@ -1,7 +1,7 @@
 {
 	"name": "kaboom",
 	"description": "kaboom.js is a JavaScript library that helps you make games fast and fun!",
-	"version": "2000.0.0-beta.5",
+	"version": "2000.0.0-beta.7",
 	"license": "MIT",
 	"homepage": "https://kaboomjs.com/",
 	"repository": "github:replit/kaboom",
@@ -27,7 +27,7 @@
 	"scripts": {
 		"setup": "npm install && cd site; npm install",
 		"dev": "node scripts/dev.js",
-		"site": "cd site; node src/server.js",
+		"site": "cd site; node server.js",
 		"build": "node scripts/build.js",
 		"check": "tsc --noEmit",
 		"prepack": "npm run build"

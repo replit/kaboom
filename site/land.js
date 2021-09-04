@@ -7,7 +7,7 @@ const css = {
 		"font-size": "calc(0.5vw + 12px)",
 	},
 	"body": {
-		"background": `url("/img/bg.svg") repeat`,
+		"background": `url("/site/img/bg.svg") repeat`,
 		"padding": "48px",
 		"animation": "scroll linear 5s infinite",
 	},
@@ -136,14 +136,14 @@ const page = t("html", {}, [
 		t("title", {}, "Kaboom"),
 		t("style", {}, www.css(gstyle)),
 		t("style", {}, www.css(css)),
-		t("link", { rel: "icon", href: "/img/kaboom.png"}),
+		t("link", { rel: "icon", href: "/site/img/kaboom.png"}),
 		t("link", { rel: "stylesheet", href: "/css/paraiso.css"}),
 	]),
 	t("body", {}, [
 		t("div", { id: "content", }, [
 			t("div", { id: "logo", }, [
-				t("img", { id: "boom", src: "/img/boom.svg", }),
-				t("img", { id: "ka", src: "/img/ka.svg", }),
+				t("img", { id: "boom", src: "/site/img/boom.svg", }),
+				t("img", { id: "ka", src: "/site/img/ka.svg", }),
 			]),
 			www.spacer(24),
 			t("div", { id: "main", }, [
@@ -160,9 +160,9 @@ const page = t("html", {}, [
 					t("a", { href: "/github", }, "github"),
 					".",
 				]),
-				t("img", { id: "highlight", src: "/img/highlight.png", }),
-				t("img", { id: "outline", src: "/img/outline.png", }),
-				t("img", { id: "circle", src: "/img/circle.png", }),
+				t("img", { id: "highlight", src: "/site/img/highlight.png", }),
+				t("img", { id: "outline", src: "/site/img/outline.png", }),
+				t("img", { id: "circle", src: "/site/img/circle.png", }),
 			]),
 		]),
 		t("script", { src: "/js/land.js" }, ""),

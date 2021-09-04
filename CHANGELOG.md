@@ -92,7 +92,7 @@ function alwaysRight() {
 obj.play("anim");
 obj.c("sprite").play("anim");
 ```
-- pedit, aseprite, cga plugins are now included by default
+- pedit, aseprite plugins are now included by default
 - added `addKaboom()` for quick kaboom explosion
 - `load*()` now accepts `null` as name and not load into assets manager, instead just return the resource data handle
 - **BREAK** renamed event `headbump` to `headbutt`
@@ -108,6 +108,7 @@ obj.c("sprite").play("anim");
 - **BREAK** remove `flipX()` and `flipY()` on `scale()` comp
 - **BREAK** removed `start()` in favor of `go()`
 - **BREAK** removed `changeSprite()` in favor of `use(sprite("newsprite"))`
+- tags and components are converged, tags are just empty components now
 - added `unuse()` to remove a component or tag
 - **BREAK** renamed `rmTag()` in favor of `unuse()`
 - **BREAK** removed `camIgnore()` in favor of `fixed()`

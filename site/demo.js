@@ -127,15 +127,15 @@ module.exports = () => {
 			t("meta", { charset: "utf-8", }),
 			t("style", {}, www.css(gstyle)),
 			t("style", {}, www.css(css)),
-			t("link", { rel: "icon", href: "/img/kaboom.png"}),
+			t("link", { rel: "icon", href: "/site/img/kaboom.png"}),
 			t("script", {}, `window.demos = ${JSON.stringify(demos)}`),
-			t("script", { src: "/js/demos.js", type: "module" }, ""),
+			t("script", { src: "/site/js/demos.js", type: "module" }, ""),
 		]),
 		t("body", {}, [
 			t("div", { id: "header", }, [
 				t("div", {}, [
 					t("a", { href: "/", }, [
-						t("img", { id: "logo", src: "/img/kaboom.svg", }),
+						t("img", { id: "logo", src: "/site/img/kaboom.svg", }),
 					]),
 					t("select", {
 						id: "selector",

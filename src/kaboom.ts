@@ -53,7 +53,6 @@ import {
 import beanPlugin from "./plugins/bean";
 import peditPlugin from "./plugins/pedit";
 import asepritePlugin from "./plugins/aseprite";
-import cgaPlugin from "./plugins/cga";
 import levelPlugin from "./plugins/level";
 import kaboomPlugin from "./plugins/kaboom";
 
@@ -588,7 +587,7 @@ function getComps<T extends Comp>(comps: DynCompList<T>, ...args): CompList<T> {
 }
 
 // add an event to a tag
-function on(event: string, tag: string, cb: (obj: GameObj<any>) => void): EventCanceller {
+function on(event: string, tag: Tag, cb: (obj: GameObj<any>) => void): EventCanceller {
 	if (!game.objEvents[event]) {
 		game.objEvents[event] = new IDList();
 	}
@@ -599,7 +598,7 @@ function on(event: string, tag: string, cb: (obj: GameObj<any>) => void): EventC
 }
 
 // add update event to a tag or global update
-function action(tag: string | (() => void), cb?: (obj: GameObj<any>) => void): EventCanceller {
+function action(tag: Tag | (() => void), cb?: (obj: GameObj<any>) => void): EventCanceller {
 	if (typeof tag === "function" && cb === undefined) {
 		return game.actions.pushd(tag);
 	} else if (typeof tag === "string") {
@@ -608,7 +607,7 @@ function action(tag: string | (() => void), cb?: (obj: GameObj<any>) => void): E
 }
 
 // add draw event to a tag or global draw
-function render(tag: string | (() => void), cb?: (obj: GameObj<any>) => void) {
+function render(tag: Tag | (() => void), cb?: (obj: GameObj<any>) => void) {
 	if (typeof tag === "function" && cb === undefined) {
 		return game.renders.pushd(tag);
 	} else if (typeof tag === "string") {
@@ -2345,7 +2344,6 @@ const ctx: KaboomCtx = {
 plug(beanPlugin);
 plug(peditPlugin);
 plug(asepritePlugin);
-plug(cgaPlugin);
 plug(levelPlugin);
 plug(kaboomPlugin);
 

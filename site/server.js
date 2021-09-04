@@ -98,6 +98,9 @@ function renderDir(dir) {
 					},
 					"a": {
 						"display": "table",
+						"color": "#333333",
+						"border-radius": "12px",
+						"padding": "2px 4px",
 						":hover": {
 							"background": "#333333",
 							"color": "white",
@@ -170,15 +173,13 @@ app.use(get("/doc", html(doc)));
 app.use(get("/demo", html(demo)));
 app.use(files("/sprites", "../sprites"));
 app.use(files("/sounds", "../sounds"));
+app.use(files("/fonts", "../fonts"));
 app.use(files("/src", "../src"));
 app.use(files("/dist", "../dist"));
-app.use(files("/img", "img"));
-app.use(files("/fonts", "fonts"));
-app.use(files("/css", "src/css"));
+app.use(files("/site", ".", { js: buildJS, }));
 app.use(files("/changelog", "../CHANGELOG.md", { md: renderMD, }));
 app.use(files("/readme", "../README.md", { md: renderMD, }));
 app.use(files("/tut", "../tut", { md: renderMD, }));
-app.use(files("/js", "src/js", { js: buildJS, }));
 app.use(files("/lib/dev", "../dist"));
 app.use(files("/lib", "legacy/lib"));
 app.use(files("/kaboom.png", "kaboom.png"));

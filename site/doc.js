@@ -287,14 +287,14 @@ const page = t("html", {}, [
 		t("meta", { charset: "utf-8", }),
 		t("style", {}, www.css(gstyle)),
 		t("style", {}, www.css(css)),
-		t("link", { rel: "icon", href: "/img/kaboom.png"}),
-		t("link", { rel: "stylesheet", href: "/css/paraiso.css"}),
+		t("link", { rel: "icon", href: "/site/img/kaboom.png"}),
+		t("link", { rel: "stylesheet", href: "/site/css/paraiso.css"}),
 		t("script", { src: "/js/doc.js", }, ""),
 	]),
 	t("body", {}, [
 		t("div", { id: "sidebar", }, [
 			t("a", { href: "/", }, [
-				t("img", { id: "logo", src: "/img/kaboom.svg" }),
+				t("img", { id: "logo", src: "/site/img/kaboom.svg" }),
 			]),
 			t("div", { id: "index", }, ctxMembers.map((mem) => {
 				if (!mem.name) {
