@@ -6,6 +6,9 @@ const games = [
 	"https://lajbel.itch.io/monkeyrunps",
 	"https://lajbel.itch.io/purple-egg",
 	"https://freshjuices.itch.io/eggou",
+	"https://replit.com/@SixBeeps/Super-Pong",
+	"https://replit.com/@ritza/3d-space-shooter",
+	"https://replit.com/@theNvN/Satoshi-Run"
 ];
 
 fun.addEventListener("click", () => {
