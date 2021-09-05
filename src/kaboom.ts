@@ -543,7 +543,7 @@ function make<T>(comps: CompList<T>): GameObj<T> {
 
 		},
 
-		inspect() {
+		_inspect() {
 
 			const info = {};
 
@@ -961,12 +961,13 @@ function drawInspect() {
 	const font = assets.fonts[DBG_FONT];
 	const lcolor = rgb(gconf.inspectColor ?? [0, 0, 255]);
 
-	function drawInspectTxt(pos, txt, scale) {
+	function drawInspectTxt(pos, txt) {
 
-		const pad = vec2(6).scale(1 / scale);
+		const s = gfx.scale();
+		const pad = vec2(6).scale(1 / s);
 
 		const ftxt = gfx.fmtText(txt, font, {
-			size: 16 / scale,
+			size: 16 / s,
 			pos: pos.add(vec2(pad.x, pad.y)),
 			color: rgb(0, 0, 0),
 		});
@@ -989,7 +990,7 @@ function drawInspect() {
 		});
 
 		gfx.drawRectStroke(pos, bw, bh, {
-			width: 2 / scale,
+			width: 2 / s,
 			color: rgb(0, 0, 0),
 		});
 
@@ -998,18 +999,7 @@ function drawInspect() {
 
 	}
 
-	function drawObj(obj, f) {
-		const scale = gfx.scale() * (obj.fixed ? 1: (game.cam.scale.x + game.cam.scale.y) / 2);
-		if (!obj.fixed) {
-			gfx.pushTransform();
-			gfx.pushMatrix(game.camMatrix);
-		}
-		f(scale);
-		if (!obj.fixed) {
-			gfx.popTransform();
-		}
-	}
-
+	// draw area outline
 	revery((obj) => {
 
 		if (!obj.area) {
@@ -1020,51 +1010,53 @@ function drawInspect() {
 			return;
 		}
 
-		drawObj(obj, (scale) => {
+		const scale = gfx.scale() * (obj.fixed ? 1: (game.cam.scale.x + game.cam.scale.y) / 2);
 
-			if (!inspecting) {
-				if (obj.isHovered()) {
-					inspecting = obj;
-				}
+		if (!obj.fixed) {
+			gfx.pushTransform();
+			gfx.pushMatrix(game.camMatrix);
+		}
+
+		if (!inspecting) {
+			if (obj.isHovered()) {
+				inspecting = obj;
 			}
+		}
 
-			const lwidth = (inspecting === obj ? 8 : 4) / scale;
-			const a = obj.worldArea();
-			const w = a.p2.x - a.p1.x;
-			const h = a.p2.y - a.p1.y;
+		const lwidth = (inspecting === obj ? 8 : 4) / scale;
+		const a = obj.worldArea();
+		const w = a.p2.x - a.p1.x;
+		const h = a.p2.y - a.p1.y;
 
-			gfx.drawRectStroke(a.p1, w, h, {
-				width: lwidth,
-				color: lcolor,
-			});
-
+		gfx.drawRectStroke(a.p1, w, h, {
+			width: lwidth,
+			color: lcolor,
 		});
+
+		if (!obj.fixed) {
+			gfx.popTransform();
+		}
 
 	});
 
 	if (inspecting) {
 
-		drawObj(inspecting, (scale) => {
+		const lines = [];
+		const data = inspecting._inspect();
 
-			const mpos = inspecting.fixed ? mousePos() : mouseWorldPos();
-			const lines = [];
-			const data = inspecting.inspect();
-
-			for (const tag in data) {
-				if (data[tag]) {
-					lines.push(`${tag}: ${data[tag]}`);
-				} else {
-					lines.push(`${tag}`);
-				}
+		for (const tag in data) {
+			if (data[tag]) {
+				lines.push(`${tag}: ${data[tag]}`);
+			} else {
+				lines.push(`${tag}`);
 			}
+		}
 
-			drawInspectTxt(mpos, lines.join("\n"), scale);
-
-		});
+		drawInspectTxt(mousePos(), lines.join("\n"));
 
 	}
 
-	drawInspectTxt(vec2(0), `FPS: ${app.fps()}`, gfx.scale());
+	drawInspectTxt(vec2(0), `FPS: ${app.fps()}`);
 
 }
 
