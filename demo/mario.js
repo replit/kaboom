@@ -2,14 +2,16 @@ kaboom();
 
 // load assets
 loadSprite("bean", "sprites/bean.png");
+loadSprite("bag", "sprites/bag.png");
 loadSprite("spike", "sprites/spike.png");
 loadSprite("grass", "sprites/grass.png");
 loadSprite("prize", "sprites/jumpy.png");
 loadSprite("apple", "sprites/apple.png");
 loadSprite("coin", "sprites/coin.png");
+loadSound("coin", "sounds/coin.mp3");
 
 // define some constants
-const JUMP_FORCE = 1440;
+const JUMP_FORCE = 1320;
 const MOVE_SPEED = 480;
 const FALL_DEATH = 2400;
 
@@ -17,14 +19,18 @@ gravity(3200);
 
 // add level to scene
 const level = addLevel([
-	"           $$   ",
-	"  %      ====   ",
-	"                ",
-	"                ",
-	"       ^^       ",
-	"================",
+	"                         $ ",
+	"                         $ ",
+	"                         $ ",
+	"                         $ ",
+	"                         $ ",
+	"           $$         =  $ ",
+	"  %      ====         =  $ ",
+	"                      =  $ ",
+	"                      =  $ ",
+	"       ^^      = >    =  $ ",
+	"===========================",
 ], {
-	// TODO: derive grid size from sprite size instead of hardcode
 	// grid size
 	width: 64,
 	height: 64,
@@ -38,6 +44,7 @@ const level = addLevel([
 	"$": [
 		sprite("coin"),
 		area(),
+		pos(0, -9),
 		origin("bot"),
 		"coin",
 	],
@@ -63,7 +70,36 @@ const level = addLevel([
 		body(),
 		"apple",
 	],
+	">": [
+		sprite("bag"),
+		area(),
+		origin("bot"),
+		solid(),
+		body(),
+		patrol(),
+		"bag",
+	],
 });
+
+function patrol(speed = 60, dir = 1) {
+	return {
+		id: "patrol",
+		require: [ "pos", "area", ],
+		add() {
+			this.on("pushOut", ({ side }) => {
+				if (side === "right" || side === "left") {
+					dir = side === "right" ? -1 : 1;
+					if (this.c("sprite")) {
+						this.flipX(dir === -1);
+					}
+				}
+			});
+		},
+		update() {
+			this.move(speed * dir, 0);
+		},
+	};
+}
 
 // define a custom component that handles player grow big logic
 function big() {
@@ -130,6 +166,12 @@ player.collides("danger", () => {
 	go("lose");
 });
 
+player.on("ground", (l) => {
+	if (l.is("bag")) {
+		player.jump(JUMP_FORCE * 1.5);
+	}
+});
+
 // grow an apple if player's head bumps into an obj with "prize" tag
 player.on("headbutt", (obj) => {
 	if (obj.is("prize")) {
@@ -145,8 +187,13 @@ player.collides("apple", (a) => {
 	player.biggify(3);
 });
 
+collides("bag", "grass", (b) => {
+	console.log(123);
+});
+
 player.collides("coin", (c) => {
 	destroy(c);
+	play("coin");
 });
 
 // jump with space

@@ -2,12 +2,12 @@
 
 kaboom();
 
-loadSprite("car", "sprites/car.png");
+loadSprite("bean", "sprites/bean.png");
 
 render(() => {
-	drawSprite("car", {
+	drawSprite("bean", {
 		pos: vec2(120),
-		rot: time(),
+		rot: time() * 100,
 		origin: "center",
 	});
 	drawRect(vec2(50), 40, 100);

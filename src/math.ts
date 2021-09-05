@@ -532,6 +532,13 @@ function colRectPt(r: Rect, pt: Vec2): boolean {
 	return pt.x >= r.p1.x && pt.x <= r.p2.x && pt.y >= r.p1.y && pt.y < r.p2.y;
 }
 
+function mink(r1: Rect, r2: Rect): Rect {
+	return {
+		p1: vec2(r1.p1.x - r2.p2.x, r1.p1.y - r2.p2.y),
+		p2: vec2(r1.p2.x - r2.p1.x, r1.p2.y - r2.p1.y),
+	};
+}
+
 function makeLine(p1: Vec2, p2: Vec2): Line {
 	return {
 		p1: p1.clone(),

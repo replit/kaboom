@@ -104,16 +104,25 @@ export default (k: KaboomCtx) => {
 					return;
 				}
 
-				comps.push(k.pos(
+				const pos = k.vec2(
 					offset.x + p.x * conf.width,
 					offset.y + p.y * conf.height
-				));
+				);
+
+				for (const comp of comps) {
+					if (comp.id === "pos") {
+						pos.x += comp.pos.x;
+						pos.y += comp.pos.y;
+						break;
+					}
+				}
+
+				comps.push(k.pos(pos));
+				comps.push(grid(this, p));
 
 				const obj = k.add(comps);
 
 				objs.push(obj);
-
-				obj.use(grid(this, p));
 
 				return obj;
 

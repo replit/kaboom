@@ -1845,7 +1845,7 @@ interface Comp {
 	 */
 	require?: Tag[];
 	/**
-	 * event that runs when host game obj is added to scene
+	 * Event that runs when host game obj is added to scene.
 	 */
 	add?: AddEvent;
 	/**
@@ -1956,6 +1956,10 @@ interface AreaCompConf {
 	/**
 	 * Width of area.
 	 */
+	offset?: Vec2,
+	/**
+	 * Width of area.
+	 */
 	width?: number,
 	/**
 	 * Height of area.
@@ -1965,14 +1969,6 @@ interface AreaCompConf {
 	 * Area scale.
 	 */
 	scale?: number | Vec2,
-	/**
-	 * Top left point of area,
-	 */
-	p1?: Vec2,
-	/**
-	 * Bot right point of area.
-	 */
-	p2?: Vec2,
 	/**
 	 * Cursor on hover.
 	 */

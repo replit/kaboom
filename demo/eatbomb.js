@@ -1,8 +1,17 @@
 kaboom();
 
+const fruits = [
+	"apple",
+	"pineapple",
+	"grape",
+	"watermelon",
+];
+
+for (const fruit of fruits) {
+	loadSprite(fruit, `sprites/${fruit}.png`);
+}
+
 loadSprite("bean", "sprites/bean.png");
-loadSprite("apple", "sprites/apple.png");
-loadSprite("pineapple", "sprites/pineapple.png");
 loadSprite("bomb", "sprites/bomb.png");
 loadSound("bye", "sounds/bye.mp3");
 loadSound("gong", "sounds/gong.mp3");
@@ -99,7 +108,7 @@ scene("game", () => {
 		const speed = rand(SPEED_MIN, SPEED_MAX);
 		// 50% percent chance is bomb
 		const isBomb = chance(0.5);
-		const spriteName = isBomb ? "bomb" : choose(["apple", "pineapple"]);
+		const spriteName = isBomb ? "bomb" : choose(fruits);
 
 		add([
 			sprite(spriteName),

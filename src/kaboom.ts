@@ -370,7 +370,7 @@ const COMP_EVENTS = new Set([
 
 function make<T>(comps: CompList<T>): GameObj<T> {
 
-	const compStates = {};
+	const compStates = new Map();
 	const customState = {};
 	const events = {};
 
@@ -397,13 +397,13 @@ function make<T>(comps: CompList<T>): GameObj<T> {
 			// clear if overwrite
 			if (comp.id) {
 				this.unuse(comp.id);
-				compStates[comp.id] = {};
+				compStates.set(comp.id, {});
 			}
 
 			// state source location
-			const stateContainer = comp.id ? compStates[comp.id] : customState;
+			const state = comp.id ? compStates.get(comp.id) : customState;
 
-			stateContainer.cleanups = [];
+			state.cleanups = [];
 
 			for (const k in comp) {
 
@@ -415,21 +415,21 @@ function make<T>(comps: CompList<T>): GameObj<T> {
 				if (typeof comp[k] === "function") {
 					const func = comp[k].bind(this);
 					if (COMP_EVENTS.has(k)) {
-						stateContainer.cleanups.push(this.on(k, func));
-						stateContainer[k] = func;
+						state.cleanups.push(this.on(k, func));
+						state[k] = func;
 						continue;
 					} else {
-						stateContainer[k] = func;
+						state[k] = func;
 					}
 				} else {
-					stateContainer[k] = comp[k];
+					state[k] = comp[k];
 				}
 
 				if (this[k] === undefined) {
 					// assign comp fields to game obj
 					Object.defineProperty(this, k, {
-						get: () => stateContainer[k],
-						set: (val) => stateContainer[k] = val,
+						get: () => state[k],
+						set: (val) => state[k] = val,
 						configurable: true,
 						enumerable: true,
 					});
@@ -459,7 +459,7 @@ function make<T>(comps: CompList<T>): GameObj<T> {
 				checkDeps();
 			} else {
 				if (comp.require) {
-					stateContainer.cleanups.push(this.on("add", () => {
+					state.cleanups.push(this.on("add", () => {
 						checkDeps();
 					}));
 				}
@@ -467,18 +467,19 @@ function make<T>(comps: CompList<T>): GameObj<T> {
 
 		},
 
-		unuse(comp: Tag) {
-			if (compStates[comp]) {
-				compStates[comp].cleanups.forEach((f) => f());
-				for (const k in compStates[comp]) {
-					delete compStates[comp][k];
+		unuse(id: Tag) {
+			if (compStates.has(id)) {
+				const comp = compStates.get(id);
+				comp.cleanups.forEach((f) => f());
+				for (const k in comp) {
+					delete comp[k];
 				}
 			}
-			compStates[comp] = {};
+			compStates.delete(id);
 		},
 
-		c(id: string): Comp {
-			return compStates[id];
+		c(id: Tag): Comp {
+			return compStates.get(id);
 		},
 
 		exists(): boolean {
@@ -542,12 +543,11 @@ function make<T>(comps: CompList<T>): GameObj<T> {
 
 		},
 
-		_inspect() {
+		inspect() {
 
 			const info = {};
 
-			for (const tag in compStates) {
-				const comp = compStates[tag];
+			for (const [tag, comp] of compStates) {
 				info[tag] = comp.inspect ? comp.inspect() : null;
 			}
 
@@ -1048,7 +1048,7 @@ function drawInspect() {
 
 			const mpos = inspecting.fixed ? mousePos() : mouseWorldPos();
 			const lines = [];
-			const data = inspecting._inspect();
+			const data = inspecting.inspect();
 
 			for (const tag in data) {
 				if (data[tag]) {
@@ -1170,6 +1170,9 @@ function opacity(a: number): OpacityComp {
 }
 
 function origin(o: Origin | Vec2): OriginComp {
+	if (!o) {
+		throw new Error("please define an origin");
+	}
 	return {
 		id: "origin",
 		origin: o,
@@ -1286,7 +1289,13 @@ function area(conf: AreaCompConf = {}): AreaComp {
 			}
 		},
 
-		area: conf,
+		area: {
+			offset: conf.offset ?? vec2(0),
+			width: conf.width,
+			height: conf.height,
+			scale: conf.scale ?? vec2(1),
+			cursor: conf.cursor,
+		},
 
 		areaWidth(): number {
 			const { p1, p2 } = this.worldArea();
@@ -1432,15 +1441,18 @@ function area(conf: AreaCompConf = {}): AreaComp {
 						dis: disBottom,
 					};
 			}
-
 			return null;
 
 		},
 
 		// push object out of other solid objects
 		pushOutAll(): PushOut[] {
-			return every((other) => other.solid ? this.pushOut(other) : null)
+			const results = every((other) => other.solid ? this.pushOut(other) : null)
 				.filter((res) => res != null);
+			results.forEach((res) => {
+				this.trigger("pushOut", res);
+			});
+			return results;
 		},
 
 		_checkCollisions(tag: string, f: (obj: GameObj<any>) => void) {
@@ -1496,36 +1508,26 @@ function area(conf: AreaCompConf = {}): AreaComp {
 		// TODO: use matrix mult for more accuracy and rotation?
 		worldArea(): Rect {
 
-			const a = {
-				p1: this.area.p1,
-				p2: this.area.p2,
-			};
+			let w = this.area.width ?? this.width;
+			let h = this.area.height ?? this.height;
 
-			if (!a.p1 && !a.p2) {
-
-				const w = this.area.width ?? this.width;
-				const h = this.area.height ?? this.height;
-
-				if (!w || !h) {
-					throw new Error("Auto area requires width and height from other comps (did you forget to add sprite / text / rect comp?)");
-				}
-
-				const size = vec2(w, h);
-				const offset = originPt(this.origin || DEF_ORIGIN).scale(size).scale(-0.5);
-
-				a.p1 = offset.sub(size.scale(0.5));
-				a.p2 = offset.add(size.scale(0.5));
-
+			if (w == null || h == null) {
+				throw new Error("failed to get area dimension");
 			}
 
-			const pos = this.pos || vec2(0);
-			const scale = (this.scale || vec2(1)).scale((this.area.scale || vec2(1)));
-			const p1 = pos.add(a.p1.scale(scale));
-			const p2 = pos.add(a.p2.scale(scale));
+			const scale = (this.scale ?? vec2(1)).scale(this.area.scale);
+
+			w *= scale.x;
+			h *= scale.y;
+
+			const orig = originPt(this.origin || DEF_ORIGIN);
+			const pos = (this.pos ?? vec2(0))
+				.add(this.area.offset)
+				.sub(orig.add(1, 1).scale(0.5).scale(w, h));
 
 			return {
-				p1: vec2(Math.min(p1.x, p2.x), Math.min(p1.y, p2.y)),
-				p2: vec2(Math.max(p1.x, p2.x), Math.max(p1.y, p2.y)),
+				p1: pos,
+				p2: vec2(pos.x + w, pos.y + h),
 			};
 
 		},

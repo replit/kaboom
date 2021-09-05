@@ -2,21 +2,7 @@
 
 kaboom();
 
-loadSprite("bean", "sprites/bean2.png", {
-	sliceX: 4,
-	anims: {
-		idle: {
-			from: 0,
-			to: 0,
-		},
-		put: {
-			from: 3,
-			to: 3,
-		},
-	},
-});
-
-loadSprite("newbean", "sprites/bean.png");
+loadSprite("bean", "sprites/bean.png");
 loadSprite("egg", "sprites/egg.png");
 loadSprite("egg_crack", "sprites/egg_crack.png");
 
@@ -66,20 +52,13 @@ keyPress("space", () => {
 
 	add([
 		sprite("egg"),
-		pos(player.pos.x + rand(-10, 10), player.pos.y + rand(-10, 10)),
-		scale(1),
+		pos(player.pos.add(0, 24)),
 		rotate(0),
 		origin("bot"),
 		rock(),
 		"egg",
 		{ stage: 0 },
 	]);
-
-	counter.value += 1;
-	counter.text = counter.value;
-
-	player.play("put");
-	wait(0.2, () => player.play("idle"));
 
 });
 
@@ -92,8 +71,10 @@ keyPress("enter", () => {
 			e.use(sprite("egg_crack"));
 		} else if (e.stage === 1) {
 			e.stage = 2;
-			e.use(sprite("newbean"));
+			e.use(sprite("bean"));
 			addKaboom(e.pos.sub(0, e.height / 2));
+			counter.value += 1;
+			counter.text = counter.value;
 		}
 	});
 });
