@@ -1,3 +1,3 @@
 kaboom();
-keyPress("space", () => addKaboom(mousePos()));
+keyPress(() => addKaboom(mousePos()));
 mouseMove(() => addKaboom(mousePos()));

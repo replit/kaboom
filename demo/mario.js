@@ -1,24 +1,7 @@
 kaboom();
 
 // load assets
-loadSprite("bean", "sprites/bean2.png", {
-	sliceX: 4,
-	anims: {
-		idle: {
-			from: 0,
-			to: 0,
-		},
-		move: {
-			from: 1,
-			to: 2,
-		},
-		jump: {
-			from: 3,
-			to: 3,
-		},
-	},
-});
-
+loadSprite("bean", "sprites/bean.png");
 loadSprite("spike", "sprites/spike.png");
 loadSprite("grass", "sprites/grass.png");
 loadSprite("prize", "sprites/jumpy.png");
@@ -34,12 +17,12 @@ gravity(3200);
 
 // add level to scene
 const level = addLevel([
-	"           $    ",
+	"           $$   ",
 	"  %      ====   ",
 	"                ",
 	"                ",
 	"       ^^       ",
-	"===============",
+	"================",
 ], {
 	// TODO: derive grid size from sprite size instead of hardcode
 	// grid size
@@ -171,15 +154,6 @@ keyPress("space", () => {
 	// these 2 functions are provided by body() component
 	if (player.grounded()) {
 		player.jump(JUMP_FORCE);
-		player.play("jump");
-	}
-});
-
-player.on("ground", () => {
-	if (keyIsDown("left") || keyIsDown("right")) {
-		player.play("move");
-	} else {
-		player.play("idle");
 	}
 });
 
@@ -191,22 +165,8 @@ keyDown("right", () => {
 	player.move(MOVE_SPEED, 0);
 });
 
-keyPress(["left", "right"], () => {
-	if (player.grounded()) {
-		player.play("move");
-	}
-});
-
-keyRelease(["left", "right"], () => {
-	if (player.grounded()) {
-		if (!keyIsDown("left") && !keyIsDown("right")) {
-			player.play("idle");
-		}
-	}
-});
-
 scene("lose", () => {
 	add([
-		text("you lose"),
+		text("You Lose"),
 	]);
 });

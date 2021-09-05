@@ -2,9 +2,9 @@
 
 kaboom();
 
-loadSprite("robot", "sprites/robot.png");
-loadSprite("ch2", "sprites/robot.png");
+loadSprite("bag", "sprites/bag.png");
 loadSprite("grass", "sprites/grass.png");
+loadSprite("steel", "sprites/steel.png");
 loadSprite("door", "sprites/door.png");
 loadSprite("key", "sprites/key.png");
 loadSprite("bean", "sprites/bean.png");
@@ -16,11 +16,11 @@ scene("main", (levelIdx) => {
 	// character dialog data
 	const characters = {
 		"a": {
-			sprite: "robot",
+			sprite: "bag",
 			msg: "ohhi how are you?",
 		},
 		"b": {
-			sprite: "ch2",
+			sprite: "bag",
 			msg: "get out!",
 		},
 	};
@@ -39,15 +39,15 @@ scene("main", (levelIdx) => {
 			"=========",
 		],
 		[
-			"=========",
-			"=       =",
-			"=       =",
-			"=  $    =",
-			"|       =",
-			"=       =",
-			"=     b =",
-			"=   @   =",
-			"=========",
+			"---------",
+			"-       -",
+			"-       -",
+			"-  $    -",
+			"|       -",
+			"-       -",
+			"-     b -",
+			"-   @   -",
+			"---------",
 		],
 	];
 
@@ -57,6 +57,11 @@ scene("main", (levelIdx) => {
 		pos: vec2(64, 64),
 		"=": [
 			sprite("grass"),
+			area(),
+			solid(),
+		],
+		"-": [
+			sprite("steel"),
 			area(),
 			solid(),
 		],

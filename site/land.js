@@ -38,9 +38,11 @@ const css = {
 		"z-index": "1000",
 		"@media": {
 			"(max-width: 960px)": {
+				"height": "160px",
 				"transform": "scale(0.8)",
 			},
 			"(max-width: 640px)": {
+				"height": "100px",
 				"transform": "scale(0.5)",
 			},
 		},
@@ -165,7 +167,7 @@ const page = t("html", {}, [
 				t("img", { id: "circle", src: "/site/img/circle.png", }),
 			]),
 		]),
-		t("script", { src: "/js/land.js" }, ""),
+		t("script", { src: "/site/js/land.js" }, ""),
 	]),
 ]);
 

@@ -172,8 +172,9 @@ works all CDNs that supports NPM packages, e.g. jsdelivr, skypack
 
 ### Misc
 
-- Thanks to ![abrudz](https://github.com/abrudz) for the amazing [APL386 font](https://abrudz.github.io/APL386/)
-- Thanks to ![Polyducks](http://polyducks.co.uk/) for the amazing [kitchen sink font](https://polyducks.itch.io/kitchen-sink-textmode-font) font
+- Thanks to [abrudz](https://github.com/abrudz) for the amazing [APL386 font](https://abrudz.github.io/APL386/)
+- Thanks to [Polyducks](http://polyducks.co.uk/) for the amazing [kitchen sink font](https://polyducks.itch.io/kitchen-sink-textmode-font) font
 - Find bitmap fonts: [Oldschool PC Font](https://int10h.org/oldschool-pc-fonts)
 - Featured on [Console 50](https://console.substack.com/p/console-50)
 - Thanks to [Umayr](https://github.com/umayr) for kindly offering the "kaboom" npm package name
+- Please buy fireworks on [kaboom.com](http://www.kaboom.com/)
