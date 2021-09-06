@@ -3,7 +3,7 @@
 kaboom();
 
 loadSprite("bag", "sprites/bag.png");
-loadSprite("joey", "sprites/joey.png");
+loadSprite("googoly", "sprites/googoly.png");
 loadSprite("grass", "sprites/grass.png");
 loadSprite("steel", "sprites/steel.png");
 loadSprite("door", "sprites/door.png");
@@ -21,7 +21,7 @@ scene("main", (levelIdx) => {
 			msg: "ohhi how are you?",
 		},
 		"b": {
-			sprite: "joey",
+			sprite: "googoly",
 			msg: "get out!",
 		},
 	};

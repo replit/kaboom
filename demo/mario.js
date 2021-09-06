@@ -2,7 +2,7 @@ kaboom();
 
 // load assets
 loadSprite("bean", "sprites/bean.png");
-loadSprite("bag", "sprites/bag.png");
+loadSprite("googoly", "sprites/googoly.png");
 loadSprite("spike", "sprites/spike.png");
 loadSprite("grass", "sprites/grass.png");
 loadSprite("prize", "sprites/jumpy.png");
@@ -59,7 +59,7 @@ const level = addLevel([
 		sprite("spike"),
 		area(vec2(0, 6), vec2(11, 11)),
 		area(),
-// 		body(),
+		body(),
 		origin("bot"),
 		"danger",
 	],
@@ -67,16 +67,16 @@ const level = addLevel([
 		sprite("apple"),
 		area(),
 		origin("bot"),
-// 		body(),
+		body(),
 		"apple",
 	],
 	">": [
-		sprite("bag"),
+		sprite("googoly"),
 		area(),
 		origin("bot"),
-// 		body(),
+		body(),
 		patrol(),
-		"bag",
+		"enemy",
 	],
 });
 
@@ -89,9 +89,6 @@ function patrol(speed = 60, dir = 1) {
 			const colliding = this.move(vel, 0);
 			if (colliding) {
 				dir = vel > 0 ? -1 : 1;
-				if (this.c("sprite")) {
-					this.flipX(dir === -1);
-				}
 			}
 		},
 	};
@@ -110,7 +107,7 @@ function big() {
 		// this runs every frame
 		update() {
 			if (isBig) {
-// 				timer -= dt();
+				timer -= dt();
 				if (timer <= 0) {
 					this.smallify();
 				}
@@ -163,17 +160,20 @@ player.collides("danger", () => {
 });
 
 player.on("ground", (l) => {
-	if (l.is("bag")) {
+	if (l.is("enemy")) {
 		addKaboom(player.pos);
 		player.jump(JUMP_FORCE * 1.5);
 	}
 });
 
+let hasApple = false;
+
 // grow an apple if player's head bumps into an obj with "prize" tag
 player.on("headbutt", (obj) => {
-	if (obj.is("prize")) {
+	if (obj.is("prize") && !hasApple) {
 		const apple = level.spawn("#", obj.gridPos.sub(0, 1));
-// 		apple.jump();
+		apple.jump();
+		hasApple = true;
 	}
 });
 
@@ -182,6 +182,7 @@ player.collides("apple", (a) => {
 	destroy(a);
 	// as we defined in the big() component
 	player.biggify(3);
+	hasApple = false;
 });
 
 collides("bag", "grass", (b) => {

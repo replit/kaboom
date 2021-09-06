@@ -165,6 +165,22 @@ function assetsInit(gfx: Gfx, audio: Audio, gconf: AssetsConf = {}): Assets {
 
 	}
 
+	function getSprite(name: string): SpriteData | null {
+		return assets.sprites[name] ?? null;
+	}
+
+	function getSound(name: string): SoundData | null {
+		return assets.sounds[name] ?? null;
+	}
+
+	function getFont(name: string): FontData | null {
+		return assets.fonts[name] ?? null;
+	}
+
+	function getShader(name: string): ShaderData | null {
+		return assets.shaders[name] ?? null;
+	}
+
 	// load a sprite to asset manager
 	function loadSprite(
 		name: string | null,

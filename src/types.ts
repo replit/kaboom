@@ -2029,7 +2029,7 @@ interface AreaComp extends Comp {
 	/**
 	 * Push out from another solid game obj if currently overlapping.
 	 */
-	pushOut(obj: GameObj<any>): PushOut | null,
+	pushOut(obj: GameObj<any>): void,
 	/**
 	 * Push out from all other solid game objs if currently overlapping.
 	 *
@@ -2041,7 +2041,7 @@ interface AreaComp extends Comp {
 	 * });
 	 * ```
 	 */
-	pushOutAll(): PushOut[],
+	pushOutAll(): void,
 	/**
 	 * Get the geometry data for the collider in world coordinate space.
 	 */

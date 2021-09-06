@@ -13,7 +13,7 @@ const player = add([
 let dest = vec2(0);
 
 player.action(() => {
-	player.moveTo(dest, 10);
+	player.moveTo(dest, 480);
 });
 
 mouseClick(() => {

@@ -1072,30 +1072,59 @@ function pos(...args): PosComp {
 		id: "pos",
 		pos: vec2(...args),
 
-		// move with velocity (pixels per second)
-		move(...args) {
+		moveBy(...args) {
 
 			const p = vec2(...args);
-			let dx = p.x * dt();
-			let dy = p.y * dt();
+			let dx = p.x;
+			let dy = p.y;
 			let colliding = null;
 
 			if (this.solid) {
-				const a1 = this.worldArea();
+
+				let a1 = this.worldArea();
+
 				every((other) => {
+
+					// don't check with self
 					if (other === this) {
 						return;
 					}
+
+					// only solid objects responds to solid objects
 					if (!other.solid) {
 						return;
 					}
+
 					const a2 = other.worldArea();
 					let md = minkDiff(a2, a1);
+
+					// if they're already overlapping, push them away first
 					if (ovrRectPt(md, vec2(0))) {
-//  						debug.log(time().toFixed(2) + ": nope");
-						this.pushOut(other);
+
+						let dist = Math.min(
+							Math.abs(md.p1.x),
+							Math.abs(md.p2.x),
+							Math.abs(md.p1.y),
+							Math.abs(md.p2.y),
+						);
+
+						const res = (() => {
+							switch (dist) {
+								case Math.abs(md.p1.x): return vec2(dist, 0);
+								case Math.abs(md.p2.x): return vec2(-dist, 0);
+								case Math.abs(md.p1.y): return vec2(0, dist);
+								case Math.abs(md.p2.y): return vec2(0, -dist);
+							}
+						})();
+
+						this.pos = this.pos.sub(res);
+
+						// calculate new mink diff
+						a1 = this.worldArea();
 						md = minkDiff(a2, a1);
+
 					}
+
 					const ray = { p1: vec2(0), p2: vec2(dx, dy) };
 					let minT = 1;
 					const p1 = md.p1;
@@ -1108,8 +1137,8 @@ function pos(...args): PosComp {
 						{ p1: p3, p2: p4, },
 						{ p1: p4, p2: p1, },
 					];
-					const straight = dx === 0 || dy === 0;
 					let numCols = 0;
+
 					for (const line of lines) {
 						// if moving along a side, we forgive
 						if (
@@ -1126,16 +1155,18 @@ function pos(...args): PosComp {
 							minT = Math.min(minT, t);
 						}
 					}
+
 					// if moving away, we forgive
 					if (!(minT === 0 && numCols == 1 && !ovrRectPt(md, vec2(dx, dy)))) {
 						if (minT < 1) {
 							dx *= minT;
 							dy *= minT;
 							colliding = other;
-//  							debug.log(time().toFixed() + " : " + this.pos.str());
 						}
 					}
-				})
+
+				});
+
 			}
 
 			this.pos.x += dx;
@@ -1143,6 +1174,11 @@ function pos(...args): PosComp {
 
 			return colliding;
 
+		},
+
+		// move with velocity (pixels per second)
+		move(...args) {
+			return this.moveBy(vec2(...args).scale(dt()));
 		},
 
 		// move to a destination, with optional speed
@@ -1157,11 +1193,11 @@ function pos(...args): PosComp {
 				return;
 			}
 			const diff = dest.sub(this.pos);
-			if (diff.len() <= speed) {
+			if (diff.len() <= speed * dt()) {
 				this.pos = vec2(dest);
 				return;
 			}
-			this.pos = this.pos.add(diff.unit().scale(speed));
+			this.move(diff.unit().scale(speed));
 		},
 
 		// get the screen position (transformed by camera)
@@ -1444,7 +1480,7 @@ function area(conf: AreaCompConf = {}): AreaComp {
 
 		// TODO: make overlap events still trigger
 		// push an obj out of another if they're overlapped
-		pushOut(obj: GameObj<any>): PushOut | null {
+		pushOut(obj: GameObj<any>): Vec2 | null {
 
 			if (obj === this) {
 				return null;
@@ -1469,53 +1505,22 @@ function area(conf: AreaCompConf = {}): AreaComp {
 				Math.abs(md.p2.y),
 			);
 
-			let res = null;
+			const res = (() => {
+				switch (dist) {
+					case Math.abs(md.p1.x): return vec2(dist, 0);
+					case Math.abs(md.p2.x): return vec2(-dist, 0);
+					case Math.abs(md.p1.y): return vec2(0, dist);
+					case Math.abs(md.p2.y): return vec2(0, -dist);
+				}
+			})();
 
-			switch (dist) {
-				case Math.abs(md.p1.x):
-					this.pos.x += dist;
-					res = {
-						obj: obj,
-						side: "left",
-						dis: dist,
-					};
-					break;
-				case Math.abs(md.p2.x):
-					this.pos.x -= dist;
-					res = {
-						obj: obj,
-						side: "right",
-						dis: -dist,
-					};
-					break;
-				case Math.abs(md.p1.y):
-					this.pos.y += dist;
-					res = {
-						obj: obj,
-						side: "top",
-						dis: dist,
-					};
-					break;
-				case Math.abs(md.p2.y):
-					this.pos.y -= dist;
-					res = {
-						obj: obj,
-						side: "bottom",
-						dis: -dist,
-					};
-					break;
-			}
-
-			this.trigger("pushOut", res);
-
-			return res;
+			this.pos = this.pos.add(res);
 
 		},
 
 		// push object out of other solid objects
-		pushOutAll(): PushOut[] {
-			return every((other) => other.solid ? this.pushOut(other) : null)
-				.filter((res) => res != null);
+		pushOutAll() {
+			every((other) => this.pushOut(other));
 		},
 
 		_checkCollisions(tag: string, f: (obj: GameObj<any>) => void) {
