@@ -69,16 +69,16 @@ for (let i = 1; i < NUM_PLATFORMS; i++) {
 }
 
 // go to the first platform
-bean.pos = get("platform")[0].pos.sub(0, bean.height);
+bean.pos = get("platform")[0].pos.sub(0, 64);
 
 function genCoin() {
 	const plat = choose(get("platform"));
 	add([
-		pos(plat.pos.sub(0, 12)),
+		pos(),
 		origin("center"),
 		sprite("coin"),
 		area(),
-		body(),
+		follow(plat, vec2(0, -60)),
 		"coin",
 	]);
 }
@@ -97,7 +97,7 @@ for (let i = 0; i < width() / 64; i++) {
 }
 
 bean.collides("danger", () => {
-    bean.pos = get("platform")[0].pos.sub(0, bean.height);
+    bean.pos = get("platform")[0].pos.sub(0, 64);
 });
 
 bean.collides("coin", (c) => {

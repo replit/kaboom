@@ -700,11 +700,15 @@ interface KaboomCtx {
 	 */
 	move(direction: number | Vec2, speed: number): MoveComp,
 	/**
+	 * Follow another game obj's position.
+	 */
+	follow(obj: GameObj<any> | null, offset?: Vec2): FollowComp,
+	/**
 	 * Give obj an outline.
 	 */
 	outline(width?: number, color?: Color): OutlineComp,
 	/**
-	 * Physical body that responds to gravity. Requires "area" and "pos" comp.
+	 * Physical body that responds to gravity. Requires "area" and "pos" comp. This also makes the object "solid".
 	 *
 	 * @example
 	 * ```js
@@ -1941,6 +1945,13 @@ interface ZComp extends Comp {
 	 * Defines the z-index of this game obj
 	 */
 	z: number;
+}
+
+interface FollowComp extends Comp {
+	follow: {
+		obj: GameObj<any>,
+		offset: Vec2,
+	},
 }
 
 interface MoveComp extends Comp {

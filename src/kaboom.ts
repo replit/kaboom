@@ -1298,6 +1298,27 @@ function z(z: number): ZComp {
 	};
 }
 
+function follow(obj: GameObj<any>, offset?: Vec2): FollowComp {
+	return {
+		id: "follow",
+		require: [ "pos", ],
+		follow: {
+			obj: obj,
+			offset: offset ?? vec2(0),
+		},
+		add() {
+			if (obj.exists()) {
+				this.pos = obj.pos.add(this.follow.offset);
+			}
+		},
+		update() {
+			if (obj.exists()) {
+				this.pos = obj.pos.add(this.follow.offset);
+			}
+		}
+	};
+}
+
 function move(direction: number | Vec2, speed: number): MoveComp {
 
 	const d = typeof direction === "number" ? dir(direction) : direction.unit();
@@ -2302,6 +2323,7 @@ const ctx: KaboomCtx = {
 	lifespan,
 	z,
 	move,
+	follow,
 	// group events
 	on,
 	action,
