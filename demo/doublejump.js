@@ -2,7 +2,7 @@ kaboom({
 	debug: true,
 });
 
-loadSprite("car", "sprites/car.png");
+loadSprite("bean", "sprites/bean.png");
 loadSprite("coin", "sprites/coin.png");
 loadSprite("grass", "sprites/grass.png");
 loadSprite("spike", "sprites/spike.png");
@@ -43,8 +43,8 @@ const score = add([
 	},
 ]);
 
-const car = add([
-	sprite("car"),
+const bean = add([
+	sprite("bean"),
 	area(),
 	origin("center"),
 	pos(0, 0),
@@ -69,7 +69,7 @@ for (let i = 1; i < NUM_PLATFORMS; i++) {
 }
 
 // go to the first platform
-car.pos = get("platform")[0].pos.sub(0, car.height);
+bean.pos = get("platform")[0].pos.sub(0, bean.height);
 
 function genCoin() {
 	const plat = choose(get("platform"));
@@ -96,11 +96,11 @@ for (let i = 0; i < width() / 64; i++) {
 	]);
 }
 
-car.collides("danger", () => {
-    car.pos = get("platform")[0].pos.sub(0, car.height);
+bean.collides("danger", () => {
+    bean.pos = get("platform")[0].pos.sub(0, bean.height);
 });
 
-car.collides("coin", (c) => {
+bean.collides("coin", (c) => {
 	destroy(c);
 	play("coin");
 	score.value += 1;
@@ -109,8 +109,8 @@ car.collides("coin", (c) => {
 });
 
 // spin on double jump
-car.on("djump", () => {
-	car.spin();
+bean.on("djump", () => {
+	bean.spin();
 });
 
 action("platform", (p) => {
@@ -121,14 +121,14 @@ action("platform", (p) => {
 });
 
 keyPress("space", () => {
-	car.djump();
+	bean.djump();
 });
 
 // both keys will trigger
 keyDown(["a", "left"], () => {
-	car.move(-PLAYER_SPEED, 0);
+	bean.move(-PLAYER_SPEED, 0);
 });
 
 keyDown(["d", "right"], () => {
-	car.move(PLAYER_SPEED, 0);
+	bean.move(PLAYER_SPEED, 0);
 });

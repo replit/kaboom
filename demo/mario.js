@@ -59,7 +59,7 @@ const level = addLevel([
 		sprite("spike"),
 		area(vec2(0, 6), vec2(11, 11)),
 		area(),
-		body(),
+// 		body(),
 		origin("bot"),
 		"danger",
 	],
@@ -67,15 +67,14 @@ const level = addLevel([
 		sprite("apple"),
 		area(),
 		origin("bot"),
-		body(),
+// 		body(),
 		"apple",
 	],
 	">": [
 		sprite("bag"),
 		area(),
 		origin("bot"),
-		solid(),
-		body(),
+// 		body(),
 		patrol(),
 		"bag",
 	],
@@ -85,18 +84,15 @@ function patrol(speed = 60, dir = 1) {
 	return {
 		id: "patrol",
 		require: [ "pos", "area", ],
-		add() {
-			this.on("pushOut", ({ side }) => {
-				if (side === "right" || side === "left") {
-					dir = side === "right" ? -1 : 1;
-					if (this.c("sprite")) {
-						this.flipX(dir === -1);
-					}
-				}
-			});
-		},
 		update() {
-			this.move(speed * dir, 0);
+			const vel = speed * dir;
+			const colliding = this.move(vel, 0);
+			if (colliding) {
+				dir = vel > 0 ? -1 : 1;
+				if (this.c("sprite")) {
+					this.flipX(dir === -1);
+				}
+			}
 		},
 	};
 }
@@ -114,7 +110,7 @@ function big() {
 		// this runs every frame
 		update() {
 			if (isBig) {
-				timer -= dt();
+// 				timer -= dt();
 				if (timer <= 0) {
 					this.smallify();
 				}
@@ -168,6 +164,7 @@ player.collides("danger", () => {
 
 player.on("ground", (l) => {
 	if (l.is("bag")) {
+		addKaboom(player.pos);
 		player.jump(JUMP_FORCE * 1.5);
 	}
 });
@@ -176,7 +173,7 @@ player.on("ground", (l) => {
 player.on("headbutt", (obj) => {
 	if (obj.is("prize")) {
 		const apple = level.spawn("#", obj.gridPos.sub(0, 1));
-		apple.jump();
+// 		apple.jump();
 	}
 });
 

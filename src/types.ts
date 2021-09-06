@@ -1207,6 +1207,8 @@ interface KaboomCtx {
 	 * Make a new random number generator.
 	 */
 	rng(seed: number): RNG,
+	colLineLine(l1: Line, l2: Line): Vec2 | null,
+	colRectRect(r1: Rect, r2: Rect): boolean,
 	drawSprite(id: string | SpriteData, conf?: DrawSpriteConf): void,
 	// TODO: conf type
 	drawText(txt: string, conf?: {}): void,
@@ -2230,6 +2232,10 @@ interface ShaderComp extends Comp {
 }
 
 interface BodyComp extends Comp {
+	/**
+	 * If should collide with other solid objects.
+	 */
+	solid: boolean;
 	/**
 	 * Initial speed in pixels per second for jump().
 	 */

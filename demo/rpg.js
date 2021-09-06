@@ -3,6 +3,7 @@
 kaboom();
 
 loadSprite("bag", "sprites/bag.png");
+loadSprite("joey", "sprites/joey.png");
 loadSprite("grass", "sprites/grass.png");
 loadSprite("steel", "sprites/steel.png");
 loadSprite("door", "sprites/door.png");
@@ -20,13 +21,26 @@ scene("main", (levelIdx) => {
 			msg: "ohhi how are you?",
 		},
 		"b": {
-			sprite: "bag",
+			sprite: "joey",
 			msg: "get out!",
 		},
 	};
 
 	// level layouts
 	const levels = [
+// 		[
+// 			"=  @  =",
+// 		],
+// 		[
+// 			"=",
+// 			" ",
+// 			" ",
+// 			" ",
+// 			"@",
+// 			" ",
+// 			" ",
+// 			"=",
+// 		],
 		[
 			"======|==",
 			"=       =",
@@ -73,6 +87,7 @@ scene("main", (levelIdx) => {
 		"@": [
 			sprite("bean"),
 			area(),
+			solid(),
 			"player",
 		],
 		"|": [
@@ -149,12 +164,12 @@ scene("main", (levelIdx) => {
 	// overlaps vs collide:
 	// overlaps: a < b
 	// collides: a <= b
-	player.overlaps("key", (key) => {
+	player.collides("key", (key) => {
 		destroy(key);
 		hasKey = true;
 	});
 
-	player.overlaps("door", () => {
+	player.collides("door", () => {
 		if (hasKey) {
 			if (levelIdx + 1 < levels.length) {
 				go("main", levelIdx + 1);
@@ -167,15 +182,15 @@ scene("main", (levelIdx) => {
 	});
 
 	// talk on touch
-	player.overlaps("character", (ch) => {
+	player.collides("character", (ch) => {
 		dialog.say(ch.msg);
 	});
 
 	const dirs = {
-		"left": vec2(-1, 0),
-		"right": vec2(1, 0),
-		"up": vec2(0, -1),
-		"down": vec2(0, 1),
+		"left": LEFT,
+		"right": RIGHT,
+		"up": UP,
+		"down": DOWN,
 	};
 
 	for (const dir in dirs) {
@@ -187,9 +202,8 @@ scene("main", (levelIdx) => {
 		});
 	}
 
-	player.action(() => {
-		player.pushOutAll();
-	});
+// 	player.move(0, 32000);
+// 	player.move(-32000, 0);
 
 });
 

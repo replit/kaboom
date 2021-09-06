@@ -13,9 +13,13 @@ import {
 	map,
 	mapc,
 	wave,
+	colLineLine,
+	colLineLine2,
+	minkDiff,
 	colRectRect,
 	overlapRectRect,
 	colRectPt,
+	ovrRectPt,
 	dir,
 	deg2rad,
 	rad2deg,
@@ -1068,16 +1072,76 @@ function pos(...args): PosComp {
 		id: "pos",
 		pos: vec2(...args),
 
-		// TODO: check physics here?
 		// move with velocity (pixels per second)
 		move(...args) {
 
 			const p = vec2(...args);
-			const dx = p.x * dt();
-			const dy = p.y * dt();
+			let dx = p.x * dt();
+			let dy = p.y * dt();
+			let colliding = null;
+
+			if (this.solid) {
+				const a1 = this.worldArea();
+				every((other) => {
+					if (other === this) {
+						return;
+					}
+					if (!other.solid) {
+						return;
+					}
+					const a2 = other.worldArea();
+					let md = minkDiff(a2, a1);
+					if (ovrRectPt(md, vec2(0))) {
+//  						debug.log(time().toFixed(2) + ": nope");
+						this.pushOut(other);
+						md = minkDiff(a2, a1);
+					}
+					const ray = { p1: vec2(0), p2: vec2(dx, dy) };
+					let minT = 1;
+					const p1 = md.p1;
+					const p2 = vec2(md.p1.x, md.p2.y);
+					const p3 = md.p2;
+					const p4 = vec2(md.p2.x, md.p1.y);
+					const lines = [
+						{ p1: p1, p2: p2, },
+						{ p1: p2, p2: p3, },
+						{ p1: p3, p2: p4, },
+						{ p1: p4, p2: p1, },
+					];
+					const straight = dx === 0 || dy === 0;
+					let numCols = 0;
+					for (const line of lines) {
+						// if moving along a side, we forgive
+						if (
+							(dx === 0 && line.p1.x === 0 && line.p2.x === 0)
+							||
+							(dy === 0 && line.p1.y === 0 && line.p2.y === 0)
+						) {
+							minT = 1;
+							break;
+						}
+						const t = colLineLine2(ray, line);
+						if (t != null) {
+							numCols++;
+							minT = Math.min(minT, t);
+						}
+					}
+					// if moving away, we forgive
+					if (!(minT === 0 && numCols == 1 && !ovrRectPt(md, vec2(dx, dy)))) {
+						if (minT < 1) {
+							dx *= minT;
+							dy *= minT;
+							colliding = other;
+//  							debug.log(time().toFixed() + " : " + this.pos.str());
+						}
+					}
+				})
+			}
 
 			this.pos.x += dx;
 			this.pos.y += dy;
+
+			return colliding;
 
 		},
 
@@ -1392,59 +1456,66 @@ function area(conf: AreaCompConf = {}): AreaComp {
 
 			const a1 = this.worldArea();
 			const a2 = obj.worldArea();
+			const md = minkDiff(a1, a2);
 
-			if (!colRectRect(a1, a2)) {
+			if (!ovrRectPt(md, vec2(0))) {
 				return null;
 			}
 
-			const disLeft = a1.p2.x - a2.p1.x;
-			const disRight = a2.p2.x - a1.p1.x;
-			const disTop = a1.p2.y - a2.p1.y;
-			const disBottom = a2.p2.y - a1.p1.y;
-			const min = Math.min(disLeft, disRight, disTop, disBottom);
+			let dist = Math.min(
+				Math.abs(md.p1.x),
+				Math.abs(md.p2.x),
+				Math.abs(md.p1.y),
+				Math.abs(md.p2.y),
+			);
 
-			switch (min) {
-				case disLeft:
-					this.pos.x -= disLeft;
-					return {
-						obj: obj,
-						side: "right",
-						dis: -disLeft,
-					};
-				case disRight:
-					this.pos.x += disRight;
-					return {
+			let res = null;
+
+			switch (dist) {
+				case Math.abs(md.p1.x):
+					this.pos.x += dist;
+					res = {
 						obj: obj,
 						side: "left",
-						dis: disRight,
+						dis: dist,
 					};
-				case disTop:
-					this.pos.y -= disTop;
-					return {
+					break;
+				case Math.abs(md.p2.x):
+					this.pos.x -= dist;
+					res = {
 						obj: obj,
-						side: "bottom",
-						dis: -disTop,
+						side: "right",
+						dis: -dist,
 					};
-				case disBottom:
-					this.pos.y += disBottom;
-					return {
+					break;
+				case Math.abs(md.p1.y):
+					this.pos.y += dist;
+					res = {
 						obj: obj,
 						side: "top",
-						dis: disBottom,
+						dis: dist,
 					};
+					break;
+				case Math.abs(md.p2.y):
+					this.pos.y -= dist;
+					res = {
+						obj: obj,
+						side: "bottom",
+						dis: -dist,
+					};
+					break;
 			}
-			return null;
+
+			this.trigger("pushOut", res);
+
+			return res;
 
 		},
 
 		// push object out of other solid objects
 		pushOutAll(): PushOut[] {
-			const results = every((other) => other.solid ? this.pushOut(other) : null)
+			return every((other) => other.solid ? this.pushOut(other) : null)
 				.filter((res) => res != null);
-			results.forEach((res) => {
-				this.trigger("pushOut", res);
-			});
-			return results;
 		},
 
 		_checkCollisions(tag: string, f: (obj: GameObj<any>) => void) {
@@ -1869,8 +1940,6 @@ function body(conf: BodyCompConf = {}): BodyComp {
 	let curPlatform: GameObj<any> | null = null;
 	let lastPlatformPos = null;
 	let canDouble = true;
-//  	let hangTime = 0;
-//  	let hanging = false;
 
 	return {
 
@@ -1878,22 +1947,11 @@ function body(conf: BodyCompConf = {}): BodyComp {
 		require: [ "area", "pos", ],
 		jumpForce: conf.jumpForce ?? DEF_JUMP_FORCE,
 		weight: conf.weight ?? 1,
+		solid: true,
 
 		update() {
 
-			this.move(0, velY);
-
-			const targets = this.pushOutAll();
 			let justFall = false;
-
-//  			if (hanging && conf.hangTime) {
-//  				hangTime += dt();
-//  				if (hangTime >= conf.hangTime) {
-//  					curPlatform = null;
-//  					lastPlatformPos = null;
-//  					hanging = false;
-//  				}
-//  			}
 
 			// check if loses current platform
 			if (curPlatform) {
@@ -1913,40 +1971,31 @@ function body(conf: BodyCompConf = {}): BodyComp {
 
 			if (!curPlatform) {
 
-				velY += gravity() * this.weight * dt();
-				velY = Math.min(velY, conf.maxVel ?? MAX_VEL);
+				const colliding = this.move(0, velY);
 
 				// check if grounded to a new platform
-				for (const target of targets) {
-					if (target.side === "bottom" && velY > 0) {
-						curPlatform = target.obj;
+				if (colliding) {
+					if (velY > 0) {
+						curPlatform = colliding;
+						const oy = velY;
 						velY = 0;
 						if (curPlatform.pos) {
 							lastPlatformPos = curPlatform.pos.clone();
 						}
 						if (!justFall) {
+//  							debug.log(curPlatform + time().toFixed(2) + ": " + oy);
 							this.trigger("ground", curPlatform);
 							canDouble = true;
 						}
-					} else if (target.side === "top" && velY < 0) {
+					} else {
 						velY = 0;
-						this.trigger("headbutt", target.obj);
-//  					} else if (
-//  						(target.side === "left" || target.side === "right")
-//  						&& target.dis !== 0 && conf.hang
-//  					) {
-//  						curPlatform = target.obj;
-//  						velY = 0;
-//  						if (curPlatform.pos) {
-//  							lastPlatformPos = curPlatform.pos.clone();
-//  						}
-//  						if (!justFall) {
-//  							this.trigger("hang", curPlatform);
-//  							hangTime = 0;
-//  							hanging = true;
-//  						}
+//  						debug.log("headbutt" + time().toFixed(2));
+						this.trigger("headbutt", colliding);
 					}
 				}
+
+				velY += gravity() * this.weight * dt();
+				velY = Math.min(velY, conf.maxVel ?? MAX_VEL);
 
 			}
 
@@ -2306,6 +2355,8 @@ const ctx: KaboomCtx = {
 	wave,
 	deg2rad,
 	rad2deg,
+	colLineLine,
+	colRectRect,
 	// raw draw
 	drawSprite,
 	drawText,

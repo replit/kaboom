@@ -486,53 +486,79 @@ function overlapRectRect(r1: Rect, r2: Rect): boolean {
 		&& r1.p1.y < r2.p2.y;
 }
 
-function colLineLine(l1: Line, l2: Line): boolean {
-	const a =
-		(
-			(l2.p2.x - l2.p1.x)
-			* (l1.p1.y - l2.p1.y)
-			- (l2.p2.y - l2.p1.y)
-			* (l1.p1.x - l2.p1.x)
-		)
-		/
-		(
-			(l2.p2.y - l2.p1.y)
-			* (l1.p2.x - l1.p1.x)
-			- (l2.p2.x - l2.p1.x)
-			* (l1.p2.y - l1.p1.y)
-		);
-	const b =
-		(
-			(l1.p2.x - l1.p1.x)
-			* (l1.p1.y - l2.p1.y)
-			- (l1.p2.y - l1.p1.y)
-			* (l1.p1.x - l2.p1.x)
-		)
-		/
-		(
-			(l2.p2.y - l2.p1.y)
-			* (l1.p2.x - l1.p1.x)
-			- (l2.p2.x - l2.p1.x)
-			* (l1.p2.y - l1.p1.y)
-		);
-	return a >= 0.0 && a <= 1.0 && b >= 0.0 && b <= 1.0;
+function colLineLine2(l1: Line, l2: Line): number | null {
+
+	if ((l1.p1.x === l1.p2.x && l1.p1.y === l1.p2.y) || (l2.p1.x === l2.p2.x && l2.p1.y === l2.p2.y)) {
+		return null;
+	}
+
+	const denom = ((l2.p2.y - l2.p1.y) * (l1.p2.x - l1.p1.x) - (l2.p2.x - l2.p1.x) * (l1.p2.y - l1.p1.y));
+
+	// parallel
+	if (denom === 0) {
+		return null;
+	}
+
+	const ua = ((l2.p2.x - l2.p1.x) * (l1.p1.y - l2.p1.y) - (l2.p2.y - l2.p1.y) * (l1.p1.x - l2.p1.x)) / denom;
+	const ub = ((l1.p2.x - l1.p1.x) * (l1.p1.y - l2.p1.y) - (l1.p2.y - l1.p1.y) * (l1.p1.x - l2.p1.x)) / denom;
+
+	// is the intersection along the segments
+	if (ua < 0 || ua > 1 || ub < 0 || ub > 1) {
+		return null;
+	}
+
+	return ua;
+
+}
+
+function colLineLine(l1: Line, l2: Line): Vec2 | null {
+
+	if ((l1.p1.x === l1.p2.x && l1.p1.y === l1.p2.y) || (l2.p1.x === l2.p2.x && l2.p1.y === l2.p2.y)) {
+		return null;
+	}
+
+	const denom = ((l2.p2.y - l2.p1.y) * (l1.p2.x - l1.p1.x) - (l2.p2.x - l2.p1.x) * (l1.p2.y - l1.p1.y));
+
+	// parallel
+	if (denom === 0) {
+		return null;
+	}
+
+	const ua = ((l2.p2.x - l2.p1.x) * (l1.p1.y - l2.p1.y) - (l2.p2.y - l2.p1.y) * (l1.p1.x - l2.p1.x)) / denom;
+	const ub = ((l1.p2.x - l1.p1.x) * (l1.p1.y - l2.p1.y) - (l1.p2.y - l1.p1.y) * (l1.p1.x - l2.p1.x)) / denom;
+
+	// is the intersection along the segments
+	if (ua < 0 || ua > 1 || ub < 0 || ub > 1) {
+		return null;
+	}
+
+	// intersection point
+	return vec2(
+		l1.p1.x + ua * (l1.p2.x - l1.p1.x),
+		l1.p1.y + ua * (l1.p2.y - l1.p1.y),
+	);
+
 }
 
 function colRectLine(r: Rect, l: Line): boolean {
 	if (colRectPt(r, l.p1) || colRectPt(r, l.p2)) {
 		return true;
 	}
-	return colLineLine(l, makeLine(r.p1, vec2(r.p2.x, r.p1.y)))
-		|| colLineLine(l, makeLine(vec2(r.p2.x, r.p1.y), r.p2))
-		|| colLineLine(l, makeLine(r.p2, vec2(r.p1.x, r.p2.y)))
-		|| colLineLine(l, makeLine(vec2(r.p1.x, r.p2.y), r.p1));
+	return !!colLineLine(l, makeLine(r.p1, vec2(r.p2.x, r.p1.y)))
+		|| !!colLineLine(l, makeLine(vec2(r.p2.x, r.p1.y), r.p2))
+		|| !!colLineLine(l, makeLine(r.p2, vec2(r.p1.x, r.p2.y)))
+		|| !!colLineLine(l, makeLine(vec2(r.p1.x, r.p2.y), r.p1));
 }
 
 function colRectPt(r: Rect, pt: Vec2): boolean {
-	return pt.x >= r.p1.x && pt.x <= r.p2.x && pt.y >= r.p1.y && pt.y < r.p2.y;
+	return pt.x >= r.p1.x && pt.x <= r.p2.x && pt.y >= r.p1.y && pt.y <= r.p2.y;
 }
 
-function mink(r1: Rect, r2: Rect): Rect {
+function ovrRectPt(r: Rect, pt: Vec2): boolean {
+	return pt.x > r.p1.x && pt.x < r.p2.x && pt.y > r.p1.y && pt.y < r.p2.y;
+}
+
+function minkDiff(r1: Rect, r2: Rect): Rect {
 	return {
 		p1: vec2(r1.p1.x - r2.p2.x, r1.p1.y - r2.p2.y),
 		p2: vec2(r1.p2.x - r2.p1.x, r1.p2.y - r2.p1.y),
@@ -567,8 +593,11 @@ export {
 	colRectRect,
 	overlapRectRect,
 	colLineLine,
+	colLineLine2,
 	colRectLine,
 	colRectPt,
+	ovrRectPt,
+	minkDiff,
 	dir,
 	isVec2,
 	isVec3,

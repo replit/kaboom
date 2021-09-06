@@ -5,12 +5,13 @@ kaboom();
 const objs = [
 	"apple",
 	"lightening",
-	"robot",
 	"coin",
 	"egg",
 	"key",
 	"door",
 	"bomb",
+	"meat",
+	"mushroom",
 ];
 
 for (const obj of objs) {
