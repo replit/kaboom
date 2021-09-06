@@ -1083,6 +1083,7 @@ function pos(...args): PosComp {
 
 				let a1 = this.worldArea();
 
+				// TODO: definitely shouln't iterate through all solid objs
 				every((other) => {
 
 					// don't check with self
@@ -1226,7 +1227,7 @@ function scale(...args): ScaleComp {
 		id: "scale",
 		scale: vec2(...args),
 		inspect() {
-			return `(${~~this.scale.x}, ${~~this.scale.y})`;
+			return `(${this.scale.x.toFixed(2)}, ${this.scale.y.toFixed(2)})`;
 		},
 	};
 }
@@ -1308,12 +1309,12 @@ function follow(obj: GameObj<any>, offset?: Vec2): FollowComp {
 		},
 		add() {
 			if (obj.exists()) {
-				this.pos = obj.pos.add(this.follow.offset);
+				this.pos = this.follow.obj.pos.add(this.follow.offset);
 			}
 		},
 		update() {
 			if (obj.exists()) {
-				this.pos = obj.pos.add(this.follow.offset);
+				this.pos = this.follow.obj.pos.add(this.follow.offset);
 			}
 		}
 	};

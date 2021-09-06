@@ -270,6 +270,13 @@ function appInit(gconf: AppConf = {}): App {
 		}
 	});
 
+	window.addEventListener("resize", () => {
+		if (!(gconf.width && gconf.height && !gconf.stretch)) {
+			app.canvas.width = root.offsetWidth;
+			app.canvas.height = root.offsetHeight;
+		}
+	});
+
 	function mousePos(): Vec2 {
 		return app.mousePos.clone();
 	}
@@ -362,19 +369,9 @@ function appInit(gconf: AppConf = {}): App {
 
 	function run(f: () => void) {
 
-//  		let lastWidth = app.canvas.parentElement.offsetWidth;
-//  		let lastHeight = app.canvas.parentElement.offsetHeight;
-
 		const frame = (t: number) => {
 
 			cursor("default");
-
-//  			if (app.canvas.parentElement.offsetWidth !== lastWidth || app.canvas.parentElement.offsetHeight !== lastHeight) {
-//  				lastWidth = app.canvas.parentElement.offsetWidth;
-//  				lastHeight = app.canvas.parentElement.offsetHeight;
-//  				app.canvas.width = lastWidth;
-//  				app.canvas.height = lastHeight;
-//  			}
 
 			const realTime = t / 1000;
 			const realDt = realTime - app.realTime;

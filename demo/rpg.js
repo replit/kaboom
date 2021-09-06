@@ -28,21 +28,8 @@ scene("main", (levelIdx) => {
 
 	// level layouts
 	const levels = [
-// 		[
-// 			"=  @  =",
-// 		],
-// 		[
-// 			"=",
-// 			" ",
-// 			" ",
-// 			" ",
-// 			"@",
-// 			" ",
-// 			" ",
-// 			"=",
-// 		],
 		[
-			"======|==",
+			"=====|===",
 			"=       =",
 			"= a     =",
 			"=       =",
@@ -161,9 +148,6 @@ scene("main", (levelIdx) => {
 	let hasKey = false;
 	const dialog = addDialog();
 
-	// overlaps vs collide:
-	// overlaps: a < b
-	// collides: a <= b
 	player.collides("key", (key) => {
 		destroy(key);
 		hasKey = true;
@@ -201,9 +185,6 @@ scene("main", (levelIdx) => {
 			player.move(dirs[dir].scale(SPEED));
 		});
 	}
-
-// 	player.move(0, 32000);
-// 	player.move(-32000, 0);
 
 });
 

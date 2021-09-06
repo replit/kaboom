@@ -923,6 +923,8 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 		}
 	}
 
+	window.addEventListener("resize", updateSize);
+
 	function updateSize() {
 		if (gconf.width && gconf.height && gconf.stretch) {
 			if (gconf.letterbox) {
@@ -949,10 +951,12 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 			} else {
 				gfx.width = gconf.width;
 				gfx.height = gconf.height;
+				gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
 			}
 		} else {
 			gfx.width = gl.drawingBufferWidth / scale();
 			gfx.height = gl.drawingBufferHeight / scale();
+			gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
 		}
 	}
 

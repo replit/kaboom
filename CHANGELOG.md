@@ -8,6 +8,34 @@
 - changed default font to [APL386](https://abrudz.github.io/APL386/), as `"apl386o"` (default outlined version) and `"apl386"`
 - included font [kitchen sink](https://polyducks.itch.io/kitchen-sink-textmode-font) as `"sinko"` (outlined version) and `"sink"` (standard version with extended characters for text-mode games)
 - added `font` field in `KaboomConf` to set the default font
+- **BREAK** added continuous collision detection which checks collision in `move()` if 2 objects are both "solid"
+```js
+// instead of
+add([
+	sprite("player"),
+	area(),
+]);
+
+keyDown("left", () => {
+	player.move(-120, 0);
+});
+
+player.action(() => {
+	player.resolve(); // or pushOutAll() in beta versions
+});
+
+// you do
+const player = add([
+	sprite("player"),
+	area(),
+	solid(), // collision reso
+]);
+
+keyDown("left", () => {
+	// this will handle collision resolution for you, if the other obj is also "solid"
+	player.move(-120, 0);
+});
+```
 - added comp `opacity()` to set opacity
 - added comp `health()` to manage health related logic
 - added comp `move()` to manage projectile-like behavior

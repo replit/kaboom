@@ -1,4 +1,9 @@
-kaboom();
+kaboom({
+	width: 640,
+	height: 480,
+	stretch: true,
+	letterbox: true,
+});
 
 // load assets
 loadSprite("bean", "sprites/bean.png");
