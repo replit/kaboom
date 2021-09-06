@@ -1883,12 +1883,17 @@ type InspectEvent = () => string;
 interface PosComp extends Comp {
 	pos: Vec2;
 	/**
-	 * Move how many pixels per second.
+	 * Move how many pixels per second. If object is 'solid', it won't move into other 'solid' objects.
 	 */
 	move(xVel: number, yVel: number): void;
 	move(vel: Vec2): void;
 	/**
-	 * Move to a spot with a speed (pixels per second), teleports if speed is left out.
+	 * Move how many pixels, without multiplying dt, but still checking for 'solid'.
+	 */
+	moveBy(dx: number, dy: number): void;
+	moveBy(d: Vec2): void;
+	/**
+	 * Move to a spot with a speed (pixels per second), teleports if speed is not given.
 	 */
 	moveTo(dest: Vec2, speed?: number): void;
 	moveTo(x: number, y: number, speed?: number): void;

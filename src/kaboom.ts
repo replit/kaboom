@@ -543,7 +543,7 @@ function make<T>(comps: CompList<T>): GameObj<T> {
 
 			this.trigger("destroy");
 			game.objs.delete(this._id);
-			delete this._id;
+			this._id = null;
 
 		},
 
@@ -1988,13 +1988,11 @@ function body(conf: BodyCompConf = {}): BodyComp {
 							lastPlatformPos = curPlatform.pos.clone();
 						}
 						if (!justFall) {
-//  							debug.log(curPlatform + time().toFixed(2) + ": " + oy);
 							this.trigger("ground", curPlatform);
 							canDouble = true;
 						}
 					} else {
 						velY = 0;
-//  						debug.log("headbutt" + time().toFixed(2));
 						this.trigger("headbutt", colliding);
 					}
 				}
