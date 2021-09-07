@@ -42,6 +42,10 @@ type Assets = {
 		src: SpriteLoadSrc,
 		conf?: SpriteLoadConf,
 	): Promise<SpriteData>,
+	loadSpriteAtlas(
+		src: SpriteLoadSrc,
+		entries?: Record<string, SpriteAtlasEntry>,
+	): Promise<Record<string, SpriteData>>,
 	loadSound(
 		name: string | null,
 		src: string,
@@ -181,6 +185,45 @@ function assetsInit(gfx: Gfx, audio: Audio, gconf: AssetsConf = {}): Assets {
 		return assets.shaders[name] ?? null;
 	}
 
+	function slice(x = 1, y = 1, dx = 0, dy = 0, w = 1, h = 1): Quad[] {
+		const frames = [];
+		const qw = w / x;
+		const qh = h / y;
+		for (let j = 0; j < y; j++) {
+			for (let i = 0; i < x; i++) {
+				frames.push(quad(
+					dx + i * qw,
+					dy + j * qh,
+					qw,
+					qh,
+				));
+			}
+		}
+		return frames;
+	}
+
+	function loadSpriteAtlas(
+		src: SpriteLoadSrc,
+		entries: Record<string, SpriteAtlasEntry>
+	): Promise<Record<string, SpriteData>> {
+		return loadSprite(null, src).then((atlas) => {
+			const map = {};
+			const w = atlas.tex.width;
+			const h = atlas.tex.height;
+			for (const name in entries) {
+				const info = entries[name];
+				const spr = {
+					tex: atlas.tex,
+					frames: slice(info.sliceX, info.sliceY, info.x / w, info.y / h, info.width / w, info.height / h),
+					anims: info.anims,
+				}
+				assets.sprites[name] = spr;
+				map[name] = spr;
+			}
+			return map;
+		});
+	}
+
 	// load a sprite to asset manager
 	function loadSprite(
 		name: string | null,
@@ -199,29 +242,12 @@ function assetsInit(gfx: Gfx, audio: Audio, gconf: AssetsConf = {}): Assets {
 			conf: SpriteLoadConf = {
 				sliceX: 1,
 				sliceY: 1,
-				gridWidth: 0,
-				gridHeight: 0,
 				anims: {},
 			},
 		) {
 
-			const frames = [];
 			const tex = gfx.makeTex(src, conf);
-			const sliceX = conf.sliceX || tex.width / (conf.gridWidth || tex.width);
-			const sliceY = conf.sliceY || tex.height / (conf.gridHeight || tex.height);
-			const qw = 1 / sliceX;
-			const qh = 1 / sliceY;
-
-			for (let j = 0; j < sliceY; j++) {
-				for (let i = 0; i < sliceX; i++) {
-					frames.push(quad(
-						i * qw,
-						j * qh,
-						qw,
-						qh,
-					));
-				}
-			}
+			const frames = slice(conf.sliceX || 1, conf.sliceY || 1);
 
 			const sprite = {
 				tex: tex,
@@ -247,9 +273,7 @@ function assetsInit(gfx: Gfx, audio: Audio, gconf: AssetsConf = {}): Assets {
 			if (typeof(src) === "string") {
 				const path = isDataUrl(src) ? src : assets.loadRoot + src;
 				loadImg(path)
-					.then((img) => {
-						resolve(loadRawSprite(name, img, conf));
-					})
+					.then((img) => resolve(loadRawSprite(name, img, conf)))
 					.catch(reject);
 			} else {
 				resolve(loadRawSprite(name, src, conf));
@@ -406,6 +430,7 @@ function assetsInit(gfx: Gfx, audio: Audio, gconf: AssetsConf = {}): Assets {
 	return {
 		loadRoot,
 		loadSprite,
+		loadSpriteAtlas,
 		loadSound,
 		loadFont,
 		loadShader,

@@ -8,6 +8,7 @@
 - changed default font to [APL386](https://abrudz.github.io/APL386/), as `"apl386o"` (default outlined version) and `"apl386"`
 - included font [kitchen sink](https://polyducks.itch.io/kitchen-sink-textmode-font) as `"sinko"` (outlined version) and `"sink"` (standard version with extended characters for text-mode games)
 - added `font` field in `KaboomConf` to set the default font
+- added `loadSpriteAtlas(src, entries)` to load sprite atlas
 - **BREAK** added continuous collision detection which checks collision in `move()` if 2 objects are both "solid"
 ```js
 // instead of

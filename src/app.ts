@@ -262,6 +262,7 @@ function appInit(gconf: AppConf = {}): App {
 			case "visible":
 				// prevent a surge of dt() when switch back after the tab being hidden for a while
 				app.skipTime = true;
+				// TODO: don't resume if debug.paused
 				gconf.audioCtx?.resume();
 				break;
 			case "hidden":

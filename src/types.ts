@@ -81,6 +81,10 @@ interface KaboomCtx {
 		src: SpriteLoadSrc,
 		conf?: SpriteLoadConf,
 	): Promise<SpriteData>,
+	loadSpriteAtlas(
+		src: SpriteLoadSrc,
+		entries?: Record<string, SpriteAtlasEntry>,
+	): Promise<Record<string, SpriteData>>,
 	/**
 	 * Load a sound into asset manager, with name and resource url.
 	 *
@@ -1453,11 +1457,19 @@ type KaboomPlugin<T> = (k: KaboomCtx) => T;
 interface SpriteLoadConf {
 	sliceX?: number,
 	sliceY?: number,
-	gridWidth?: number,
-	gridHeight?: number,
 	anims?: Record<string, SpriteAnim>,
 	filter?: TexFilter,
 	wrap?: TexWrap,
+}
+
+interface SpriteAtlasEntry {
+	x: number,
+	y: number,
+	width: number,
+	height: number,
+	sliceX?: number,
+	sliceY?: number,
+	anims?: Record<string, SpriteAnim>,
 }
 
 type SpriteLoadSrc = string | GfxTexData;

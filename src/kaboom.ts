@@ -1237,7 +1237,7 @@ function rotate(r: number): RotateComp {
 		id: "rotate",
 		angle: r ?? 0,
 		inspect() {
-			return `${this.angle}`;
+			return `${~~this.angle}`;
 		},
 	};
 }
@@ -1316,7 +1316,7 @@ function follow(obj: GameObj<any>, offset?: Vec2): FollowComp {
 			if (obj.exists()) {
 				this.pos = this.follow.obj.pos.add(this.follow.offset);
 			}
-		}
+		},
 	};
 }
 
@@ -2265,6 +2265,7 @@ const ctx: KaboomCtx = {
 	// asset load
 	loadRoot: assets.loadRoot,
 	loadSprite: assets.loadSprite,
+	loadSpriteAtlas: assets.loadSpriteAtlas,
 	loadSound: assets.loadSound,
 	loadFont: assets.loadFont,
 	loadShader: assets.loadShader,
