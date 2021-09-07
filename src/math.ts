@@ -311,7 +311,7 @@ function mat4(m?: number[]): Mat4 {
 		},
 
 		rotateX(a: number): Mat4 {
-			a = deg2rad(a);
+			a = deg2rad(-a);
 			return this.mult(mat4([
 				1, 0, 0, 0,
 				0, Math.cos(a), -Math.sin(a), 0,
@@ -321,17 +321,17 @@ function mat4(m?: number[]): Mat4 {
 		},
 
 		rotateY(a: number): Mat4 {
-			a = deg2rad(a);
+			a = deg2rad(-a);
 			return this.mult(mat4([
-				Math.cos(a), 0, -Math.sin(a), 0,
+				Math.cos(a), 0, Math.sin(a), 0,
 				0, 1, 0, 0,
-				Math.sin(a), 0, Math.cos(a), 0,
+				-Math.sin(a), 0, Math.cos(a), 0,
 				0, 0, 0, 1,
 			]));
 		},
 
 		rotateZ(a: number): Mat4 {
-			a = deg2rad(a);
+			a = deg2rad(-a);
 			return this.mult(mat4([
 				Math.cos(a), -Math.sin(a), 0, 0,
 				Math.sin(a), Math.cos(a), 0, 0,

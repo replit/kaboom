@@ -25,10 +25,17 @@ function loadAseprite(name: string, imgSrc: string, jsonSrc: string) {
 								);
 							});
 							for (const anim of data.meta.frameTags) {
-								sprite.anims[anim.name] = {
-									from: anim.from,
-									to: anim.to,
-								};
+								if (anim.from === anim.to) {
+									sprite.anims[anim.name] = anim.from
+								} else {
+									sprite.anims[anim.name] = {
+										from: anim.from,
+										to: anim.to,
+										// TODO: let users define these
+										speed: 10,
+										loop: true,
+									};
+								}
 							}
 							resolve(sprite);
 						})

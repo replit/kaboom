@@ -10,6 +10,7 @@
 - added `font` field in `KaboomConf` to set the default font
 - added `loadSpriteAtlas(src, entries)` to load sprite atlas
 - **BREAK** added continuous collision detection which checks collision in `move()` if 2 objects are both "solid"
+
 ```js
 // instead of
 add([
@@ -76,6 +77,7 @@ add([
 - added `anim` field in `SpriteCompConf` to play an anim on start
 - beter type support for components
 - `scene()` and `start()` (also removed in favor of `go()`) are optional now, if you don't need multiple scenes yet you can just go directly
+
 ```js
 kaboom();
 // no mandatory scene() to start kabooming
@@ -84,6 +86,7 @@ keyPress(...);
 ```
 - **BREAK** `area()` is now explicit and not automatically added by `sprite()`, `rect()`, and `text()`, removed each `noArea` or `area` config field
 - **BREAK** `area()` now takes an `AreaCompConf`, where you can define the area points, size, scale, and hover cursor
+
 ```js
 add([
     sprite("bean"),

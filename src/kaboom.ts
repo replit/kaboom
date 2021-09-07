@@ -1638,6 +1638,11 @@ function area(conf: AreaCompConf = {}): AreaComp {
 
 }
 
+interface SpriteCurAnim {
+	name: string,
+	timer: number,
+}
+
 // TODO: clean
 function sprite(id: string | SpriteData, conf: SpriteCompConf = {}): SpriteComp {
 
@@ -1665,9 +1670,9 @@ function sprite(id: string | SpriteData, conf: SpriteCompConf = {}): SpriteComp 
 		// TODO: allow update
 		width: 0,
 		height: 0,
-		animSpeed: conf.animSpeed || 0.1,
 		frame: conf.frame || 0,
 		quad: conf.quad || quad(0, 0, 1, 1),
+		animSpeed: conf.animSpeed ?? 1,
 
 		load() {
 
@@ -1691,6 +1696,10 @@ function sprite(id: string | SpriteData, conf: SpriteCompConf = {}): SpriteComp 
 
 			this.width = spr.tex.width * q.w * scale.x;
 			this.height = spr.tex.height * q.h * scale.y;
+
+			if (conf.anim) {
+				this.play(conf.anim);
+			}
 
 		},
 
@@ -1722,21 +1731,39 @@ function sprite(id: string | SpriteData, conf: SpriteCompConf = {}): SpriteComp 
 
 			const anim = spr.anims[curAnim.name];
 
-			curAnim.timer += dt();
+			if (typeof anim === "number") {
+				return;
+			}
 
-			if (curAnim.timer >= this.animSpeed) {
-				// TODO: anim dir
-				this.frame++;
-				if (this.frame > anim.to) {
-					if (curAnim.loop) {
-						this.frame = anim.from;
-					} else {
-						this.frame--;
-						this.stop();
+			if (anim.speed === 0) {
+				throw new Error("sprite anim speed cannot be 0");
+			}
+
+			curAnim.timer += dt() * this.animSpeed;
+
+			if (curAnim.timer >= (1 / anim.speed)) {
+				curAnim.timer = 0;
+				// TODO: clean up
+				if (anim.from > anim.to) {
+					this.frame--;
+					if (this.frame < anim.to) {
+						if (anim.loop) {
+							this.frame = anim.from;
+						} else {
+							this.frame++;
+							this.stop();
+						}
 					}
-				}
-				if (curAnim) {
-					curAnim.timer -= this.animSpeed;
+				} else {
+					this.frame++;
+					if (this.frame > anim.to) {
+						if (anim.loop) {
+							this.frame = anim.from;
+						} else {
+							this.frame--;
+							this.stop();
+						}
+					}
 				}
 			}
 
@@ -1753,7 +1780,7 @@ function sprite(id: string | SpriteData, conf: SpriteCompConf = {}): SpriteComp 
 
 			const anim = spr.anims[name];
 
-			if (!anim) {
+			if (anim === undefined) {
 				throw new Error(`anim not found: ${name}`);
 			}
 
@@ -1763,7 +1790,6 @@ function sprite(id: string | SpriteData, conf: SpriteCompConf = {}): SpriteComp 
 
 			curAnim = {
 				name: name,
-				loop: loop,
 				timer: 0,
 			};
 

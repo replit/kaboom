@@ -11,9 +11,9 @@ loadSpriteAtlas("sprites/dungeon.png", {
 		height: 28,
 		sliceX: 9,
 		anims: {
-			idle: { from: 0, to: 3 },
-			run: { from: 4, to: 7 },
-			hit: { from: 8, to: 8 },
+			idle: { from: 0, to: 3, speed: 3, loop: true },
+			run: { from: 4, to: 7, speed: 10, loop: true, },
+			hit: 8,
 		},
 	},
 	"floor": {
@@ -31,8 +31,8 @@ loadSpriteAtlas("sprites/dungeon.png", {
 		height: 16,
 		sliceX: 3,
 		anims: {
-			open: { from: 0, to: 2, },
-			close: { from: 0, to: 0, },
+			open: { from: 0, to: 2, speed: 10, loop: false },
+			close: { from: 2, to: 0, speed: 10, loop: false },
 		},
 	},
 	"sword": {
@@ -91,8 +91,9 @@ loadSpriteAtlas("sprites/dungeon.png", {
 	},
 });
 
+// floor
 addLevel([
-	"xxxxxxxxxxx",
+	"xxxxxxxxxx",
 	"          ",
 	"          ",
 	"          ",
@@ -110,6 +111,7 @@ addLevel([
 	],
 });
 
+// objects
 const map = addLevel([
 	"tttttttttt",
 	"cwwwwwwwwd",
@@ -175,7 +177,7 @@ const map = addLevel([
 
 const player = add([
 	pos(map.getPos(2, 2)),
-	sprite("hero"),
+	sprite("hero", { anim: "idle" }),
 	area({ width: 12, height: 12, offset: vec2(0, 6) }),
 	solid(),
 	origin("center"),
@@ -196,8 +198,8 @@ function spin() {
 		id: "spin",
 		update() {
 			if (spinning) {
-				this.angle -= 1200 * dt();
-				if (this.angle <= -360) {
+				this.angle += 1200 * dt();
+				if (this.angle >= 360) {
 					this.angle = 0;
 					spinning = false;
 				}
@@ -214,10 +216,10 @@ keyPress("space", () => {
 	every("chest", (c) => {
 		if (player.isCollided(c)) {
 			if (c.opened) {
-				c.play("close", false);
+				c.play("close");
 				c.opened = false;
 			} else {
-				c.play("open", false);
+				c.play("open");
 				c.opened = true;
 			}
 			interacted = true;
@@ -227,9 +229,6 @@ keyPress("space", () => {
 		sword.spin();
 	}
 });
-
-player.animSpeed = 0.3;
-player.play("idle");
 
 const SPEED = 120;
 
@@ -268,7 +267,6 @@ keyDown("down", () => {
 
 keyPress(["left", "right", "up", "down"], () => {
 	player.play("run");
-	player.animSpeed = 0.1;
 });
 
 keyRelease(["left", "right", "up", "down"], () => {
@@ -279,6 +277,5 @@ keyRelease(["left", "right", "up", "down"], () => {
 		&& !keyIsDown("down")
 	) {
 		player.play("idle");
-		player.animSpeed = 0.3;
 	}
 });

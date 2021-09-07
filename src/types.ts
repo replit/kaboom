@@ -579,8 +579,6 @@ interface KaboomCtx {
 	 * // minimal setup
 	 * const froggy = add([
 	 *     sprite("froggy", {
-	 *         // seconds per frame (default 0.1)
-	 *         animSpeed: 0.2,
 	 *         // start with frame 2
 	 *         frame: 2,
 	 *     }),
@@ -1474,17 +1472,21 @@ type TouchID = number;
  */
 type EventCanceller = () => void;
 
-interface SpriteAnim {
+type SpriteAnim = number | {
 	from: number,
 	to: number,
+	loop: boolean,
+	speed: number,
 }
+
+type SpriteAnims = Record<string, SpriteAnim>
 
 type KaboomPlugin<T> = (k: KaboomCtx) => T;
 
 interface SpriteLoadConf {
 	sliceX?: number,
 	sliceY?: number,
-	anims?: Record<string, SpriteAnim>,
+	anims?: SpriteAnims,
 	filter?: TexFilter,
 	wrap?: TexWrap,
 }
@@ -1496,7 +1498,7 @@ interface SpriteAtlasEntry {
 	height: number,
 	sliceX?: number,
 	sliceY?: number,
-	anims?: Record<string, SpriteAnim>,
+	anims?: SpriteAnims,
 }
 
 type SpriteLoadSrc = string | GfxTexData;
@@ -1504,7 +1506,7 @@ type SpriteLoadSrc = string | GfxTexData;
 interface SpriteData {
 	tex: GfxTexture,
 	frames: Quad[],
-	anims: Record<string, SpriteAnim>,
+	anims: SpriteAnims,
 	filter?: TexFilter,
 	wrap?: TexWrap,
 }
@@ -2119,10 +2121,6 @@ interface SpriteCompConf {
 	 */
 	frame?: number,
 	/**
-	 * How much time each frame should stay.
-	 */
-	animSpeed?: number,
-	/**
 	 * If provided width and height, don't stretch but instead render tiled.
 	 */
 	tiled?: boolean,
@@ -2139,6 +2137,10 @@ interface SpriteCompConf {
 	 */
 	anim?: number,
 	/**
+	 * Frame animation speed scale multiplier.
+	 */
+	animSpeed?: number,
+	/**
 	 * Flip texture horizontally.
 	 */
 	flipX?: boolean,
@@ -2146,12 +2148,6 @@ interface SpriteCompConf {
 	 * Flip texture vertically.
 	 */
 	flipY?: boolean,
-}
-
-interface SpriteCurAnim {
-	name: string,
-	loop: boolean,
-	timer: number,
 }
 
 interface SpriteComp extends Comp {
@@ -2163,10 +2159,6 @@ interface SpriteComp extends Comp {
 	 * Height for sprite.
 	 */
 	height: number;
-	/**
-	 * How much time each frame should stay.
-	 */
-	animSpeed: number;
 	/**
 	 * Current frame.
 	 */
@@ -2191,6 +2183,10 @@ interface SpriteComp extends Comp {
 	 * Get current anim name.
 	 */
 	curAnim(): string;
+	/**
+	 * Frame animation speed scale multiplier.
+	 */
+	animSpeed: number,
 	/**
 	 * Flip texture horizontally.
 	 */
