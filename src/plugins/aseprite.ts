@@ -2,6 +2,7 @@
 
 export default (k: KaboomCtx) => {
 
+// TODO: allow define anim speeds and loop
 function loadAseprite(name: string, imgSrc: string, jsonSrc: string) {
 
 	const loader = new Promise<SpriteData>((resolve, reject) => {
@@ -11,9 +12,7 @@ function loadAseprite(name: string, imgSrc: string, jsonSrc: string) {
 			k.loadSprite(name, imgSrc)
 				.then((sprite: SpriteData) => {
 					fetch(jsonPath)
-						.then((res) => {
-							return res.json();
-						})
+						.then((res) => res.json())
 						.then((data) => {
 							const size = data.meta.size;
 							sprite.frames = data.frames.map((f: any) => {

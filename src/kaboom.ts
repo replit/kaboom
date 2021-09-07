@@ -632,19 +632,6 @@ function collides(
 	});
 }
 
-// add an event that runs with objs with t1 overlaps with objs with t2
-function overlaps(
-	t1: string,
-	t2: string,
-	f: (a: GameObj<any>, b: GameObj<any>) => void,
-): EventCanceller {
-	return action(t1, (o1: GameObj<any>) => {
-		o1._checkOverlaps(t2, (o2) => {
-			f(o1, o2);
-		});
-	});
-}
-
 // add an event that runs when objs with tag t is clicked
 function clicks(t: string, f: (obj: GameObj<any>) => void): EventCanceller {
 	return action(t, (o: GameObj<any>) => {
@@ -657,7 +644,7 @@ function clicks(t: string, f: (obj: GameObj<any>) => void): EventCanceller {
 // add an event that runs when objs with tag t is hovered
 function hovers(t: string, onHover: (obj: GameObj<any>) => void, onNotHover?: (obj: GameObj<any>) => void): EventCanceller {
 	return action(t, (o: GameObj<any>) => {
-		if (o.isHovered()) {
+		if (o.isHovering()) {
 			onHover(o);
 		} else {
 			if (onNotHover) {
@@ -764,7 +751,7 @@ function charInput(f: (ch: string) => void): EventCanceller {
 	return game.on("input", () => app.charInputted().forEach((ch) => f(ch)));
 }
 
-// TODO
+// TODO: put this in app.ts's and handle in game loop
 app.canvas.addEventListener("touchstart", (e) => {
 	[...e.changedTouches].forEach((t) => {
 		game.trigger("touchStart", t.identifier, vec2(t.clientX, t.clientY).scale(1 / app.scale));
@@ -854,20 +841,20 @@ function get(t?: string): GameObj<any>[] {
 }
 
 // apply a function to all objects currently in game with tag t
-function every<T>(t: string | ((obj: GameObj<any>) => T), f?: (obj: GameObj<any>) => T): T[] {
+function every<T>(t: string | ((obj: GameObj<any>) => T), f?: (obj: GameObj<any>) => T) {
 	if (typeof t === "function" && f === undefined) {
-		return get().map(t);
+		return get().forEach((obj) => obj.exists() && t(obj));
 	} else if (typeof t === "string") {
-		return get(t).map(f);
+		return get(t).forEach((obj) => obj.exists() && f(obj));
 	}
 }
 
 // every but in reverse order
-function revery<T>(t: string | ((obj: GameObj<any>) => T), f?: (obj: GameObj<any>) => T): T[] {
+function revery<T>(t: string | ((obj: GameObj<any>) => T), f?: (obj: GameObj<any>) => T) {
 	if (typeof t === "function" && f === undefined) {
-		return get().reverse().map(t);
+		return get().reverse().forEach((obj) => obj.exists() && t(obj));
 	} else if (typeof t === "string") {
-		return get(t).reverse().map(f);
+		return get(t).reverse().forEach((obj) => obj.exists() && f(obj));
 	}
 }
 
@@ -1022,7 +1009,7 @@ function drawInspect() {
 		}
 
 		if (!inspecting) {
-			if (obj.isHovered()) {
+			if (obj.isHovering()) {
 				inspecting = obj;
 			}
 		}
@@ -1072,12 +1059,13 @@ function pos(...args): PosComp {
 		id: "pos",
 		pos: vec2(...args),
 
+		// TODO: clean
 		moveBy(...args) {
 
 			const p = vec2(...args);
 			let dx = p.x;
 			let dy = p.y;
-			let colliding = null;
+			let col = null;
 
 			if (this.solid) {
 
@@ -1086,13 +1074,9 @@ function pos(...args): PosComp {
 				// TODO: definitely shouln't iterate through all solid objs
 				every((other) => {
 
-					// don't check with self
-					if (other === this) {
-						return;
-					}
-
-					// only solid objects responds to solid objects
-					if (!other.solid) {
+					// make sure we still exist, don't check with self, and only
+					// check with other solid objects
+					if (!this.exists() || other === this || !other.solid) {
 						return;
 					}
 
@@ -1128,19 +1112,21 @@ function pos(...args): PosComp {
 
 					const ray = { p1: vec2(0), p2: vec2(dx, dy) };
 					let minT = 1;
+					let minSide = "right";
 					const p1 = md.p1;
 					const p2 = vec2(md.p1.x, md.p2.y);
 					const p3 = md.p2;
 					const p4 = vec2(md.p2.x, md.p1.y);
-					const lines = [
-						{ p1: p1, p2: p2, },
-						{ p1: p2, p2: p3, },
-						{ p1: p3, p2: p4, },
-						{ p1: p4, p2: p1, },
-					];
 					let numCols = 0;
+					const lines = {
+						"right": { p1: p1, p2: p2, },
+						"top": { p1: p2, p2: p3, },
+						"left": { p1: p3, p2: p4, },
+						"bottom": { p1: p4, p2: p1, },
+					};
 
-					for (const line of lines) {
+					for (const s in lines) {
+						const line = lines[s];
 						// if moving along a side, we forgive
 						if (
 							(dx === 0 && line.p1.x === 0 && line.p2.x === 0)
@@ -1153,17 +1139,24 @@ function pos(...args): PosComp {
 						const t = colLineLine2(ray, line);
 						if (t != null) {
 							numCols++;
-							minT = Math.min(minT, t);
+							if (t < minT) {
+								minT = t;
+								minSide = s;
+							}
 						}
 					}
 
 					// if moving away, we forgive
-					if (!(minT === 0 && numCols == 1 && !ovrRectPt(md, vec2(dx, dy)))) {
-						if (minT < 1) {
-							dx *= minT;
-							dy *= minT;
-							colliding = other;
-						}
+					if (
+						minT < 1
+						&& !(minT === 0 && numCols == 1 && !ovrRectPt(md, vec2(dx, dy)))
+					) {
+						dx *= minT;
+						dy *= minT;
+						col = {
+							obj: other,
+							side: minSide,
+						};
 					}
 
 				});
@@ -1173,7 +1166,18 @@ function pos(...args): PosComp {
 			this.pos.x += dx;
 			this.pos.y += dy;
 
-			return colliding;
+			if (col) {
+				const opposite = {
+					"right": "left",
+					"left": "right",
+					"top": "bottom",
+					"bottom": "top",
+				};
+				this.trigger("collide", col.obj, col.side);
+				col.obj.trigger("collide", this, opposite[col.side]);
+			}
+
+			return col;
 
 		},
 
@@ -1389,7 +1393,6 @@ function move(direction: number | Vec2, speed: number): MoveComp {
 function area(conf: AreaCompConf = {}): AreaComp {
 
 	const colliding = {};
-	const overlapping = {};
 
 	return {
 
@@ -1422,10 +1425,10 @@ function area(conf: AreaCompConf = {}): AreaComp {
 		},
 
 		isClicked(): boolean {
-			return app.mouseClicked() && this.isHovered();
+			return app.mouseClicked() && this.isHovering();
 		},
 
-		isHovered() {
+		isHovering() {
 			const mpos = this.fixed ? mousePos() : mouseWorldPos();
 			if (app.isTouch) {
 				return app.mouseDown() && this.hasPt(mpos);
@@ -1434,43 +1437,35 @@ function area(conf: AreaCompConf = {}): AreaComp {
 			}
 		},
 
-		isCollided(other) {
-
+		isColliding(other) {
 			if (!other.area) {
 				return false;
 			}
-
 			const a1 = this.worldArea();
 			const a2 = other.worldArea();
-
-			return colRectRect(a1, a2);
-
-		},
-
-		isOverlapped(other) {
-
-			if (!other.area) {
-				return false;
-			}
-
-			const a1 = this.worldArea();
-			const a2 = other.worldArea();
-
 			return overlapRectRect(a1, a2);
-
 		},
 
-		clicks(f: () => void) {
-			this.action(() => {
+		isTouching(other) {
+			if (!other.area) {
+				return false;
+			}
+			const a1 = this.worldArea();
+			const a2 = other.worldArea();
+			return colRectRect(a1, a2);
+		},
+
+		clicks(f: () => void): EventCanceller {
+			return this.action(() => {
 				if (this.isClicked()) {
 					f();
 				}
 			});
 		},
 
-		hovers(onHover: () => void, onNotHover: () => void) {
-			this.action(() => {
-				if (this.isHovered()) {
+		hovers(onHover: () => void, onNotHover: () => void): EventCanceller {
+			return this.action(() => {
+				if (this.isHovering()) {
 					onHover();
 				} else {
 					if (onNotHover) {
@@ -1480,16 +1475,19 @@ function area(conf: AreaCompConf = {}): AreaComp {
 			});
 		},
 
-		collides(tag: string, f: (o: GameObj<any>) => void) {
-			this.action(() => {
+		collides(tag: Tag, f: (o: GameObj<any>, side?: RectSide) => void): EventCanceller {
+			const e1 = this.action(() => {
 				this._checkCollisions(tag, f);
 			});
-		},
-
-		overlaps(tag: string, f: (o: GameObj<any>) => void) {
-			this.action(() => {
-				this._checkOverlaps(tag, f);
+			const e2 = this.on("collide", (obj, side) => {
+				if (obj.is(tag)) {
+					f(obj, side);
+				}
 			});
+			return () => {
+				e1();
+				e2();
+			};
 		},
 
 		hasPt(pt: Vec2): boolean {
@@ -1500,7 +1498,6 @@ function area(conf: AreaCompConf = {}): AreaComp {
 			}, pt);
 		},
 
-		// TODO: make overlap events still trigger
 		// push an obj out of another if they're overlapped
 		pushOut(obj: GameObj<any>): Vec2 | null {
 
@@ -1545,50 +1542,26 @@ function area(conf: AreaCompConf = {}): AreaComp {
 			every((other) => this.pushOut(other));
 		},
 
-		_checkCollisions(tag: string, f: (obj: GameObj<any>) => void) {
+		_checkCollisions(tag: Tag) {
 
 			every(tag, (obj) => {
-				if (this === obj) {
+
+				if (this === obj || !this.exists() || colliding[obj._id]) {
 					return;
 				}
-				if (colliding[obj._id]) {
-					return;
-				}
-				if (this.isCollided(obj)) {
-					f(obj);
+
+				if (this.isColliding(obj)) {
+					// TODO: return side
+					this.trigger("collide", obj);
 					colliding[obj._id] = obj;
 				}
+
 			});
 
 			for (const id in colliding) {
 				const obj = colliding[id];
-				if (!this.isCollided(obj)) {
+				if (!this.isColliding(obj)) {
 					delete colliding[id];
-				}
-			}
-
-		},
-
-		// TODO: repetitive with collides
-		_checkOverlaps(tag: string, f: (obj: GameObj<any>) => void) {
-
-			every(tag, (obj) => {
-				if (this === obj) {
-					return;
-				}
-				if (overlapping[obj._id]) {
-					return;
-				}
-				if (this.isOverlapped(obj)) {
-					f(obj);
-					overlapping[obj._id] = obj;
-				}
-			});
-
-			for (const id in overlapping) {
-				const obj = overlapping[id];
-				if (!this.isOverlapped(obj)) {
-					delete overlapping[id];
 				}
 			}
 
@@ -2008,7 +1981,22 @@ function body(conf: BodyCompConf = {}): BodyComp {
 
 			// check if loses current platform
 			if (curPlatform) {
-				if (!curPlatform.exists() || !this.isCollided(curPlatform)) {
+
+				const a1 = this.worldArea();
+				const a2 = curPlatform.worldArea();
+				const y1 = a1.p2.y;
+				const y2 = a2.p1.y;
+				const x1 = a1.p1.x;
+				const x2 = a1.p2.x;
+				const x3 = a2.p1.x;
+				const x4 = a2.p2.x;
+
+				if (
+					!curPlatform.exists()
+					|| y1 !== y2
+					|| x2 < x3
+					|| x1 > x4
+				) {
 					this.trigger("fall", curPlatform);
 					curPlatform = null;
 					lastPlatformPos = null;
@@ -2024,12 +2012,12 @@ function body(conf: BodyCompConf = {}): BodyComp {
 
 			if (!curPlatform) {
 
-				const colliding = this.move(0, velY);
+				const col = this.move(0, velY);
 
 				// check if grounded to a new platform
-				if (colliding) {
-					if (velY > 0) {
-						curPlatform = colliding;
+				if (col) {
+					if (col.side === "bottom") {
+						curPlatform = col.obj;
 						const oy = velY;
 						velY = 0;
 						if (curPlatform.pos) {
@@ -2039,9 +2027,9 @@ function body(conf: BodyCompConf = {}): BodyComp {
 							this.trigger("ground", curPlatform);
 							canDouble = true;
 						}
-					} else {
+					} else if (col.side === "top") {
 						velY = 0;
-						this.trigger("headbutt", colliding);
+						this.trigger("headbutt", col.obj);
 					}
 				}
 
@@ -2357,7 +2345,6 @@ const ctx: KaboomCtx = {
 	action,
 	render,
 	collides,
-	overlaps,
 	clicks,
 	hovers,
 	// input
@@ -2455,8 +2442,15 @@ if (gconf.global !== false) {
 	}
 }
 
+let numFrames = 0;
+
+function frames() {
+	return numFrames;
+}
+
 app.run(() => {
 
+	numFrames++;
 	gfx.frameStart();
 
 	if (!game.loaded) {

@@ -4,7 +4,6 @@ type LevelConf = {
 	pos?: Vec2,
 	any(s: string): Comp[] | undefined,
 	[sym: string]: any,
-//  	[sym: string]: Comp[] | (() => Comp[]),
 };
 
 type Level = {
@@ -91,14 +90,11 @@ export default (k: KaboomCtx) => {
 			spawn(sym: string, p: Vec2): GameObj<any> {
 
 				const comps = (() => {
-					if (Array.isArray(sym)) {
-						return sym;
-					} else if (conf[sym]) {
-						if (typeof conf[sym] === "function") {
-							return conf[sym]();
-						} else if (Array.isArray(conf[sym])) {
-							return [...conf[sym]];
+					if (conf[sym]) {
+						if (typeof conf[sym] !== "function") {
+							throw new Error("level symbol def must be a function returning a component list");
 						}
+						return conf[sym]();
 					} else if (conf.any) {
 						return conf.any(sym);
 					}

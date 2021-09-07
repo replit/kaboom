@@ -358,13 +358,13 @@ interface KaboomCtx {
 	 * every("fruit", destroy);
 	 * ```
 	 */
-	every<T>(t: Tag, cb: (obj: GameObj<any>) => T): T[],
-	every<T>(cb: (obj: GameObj<any>) => T): T[],
+	every<T>(t: Tag, cb: (obj: GameObj<any>) => T): void,
+	every<T>(cb: (obj: GameObj<any>) => T): void,
 	/**
 	 * Run callback on every game obj with certain tag in reverse order.
 	 */
-	revery<T>(t: Tag, cb: (obj: GameObj<any>) => T): T[],
-	revery<T>(cb: (obj: GameObj<any>) => T): T[],
+	revery<T>(t: Tag, cb: (obj: GameObj<any>) => T): void,
+	revery<T>(cb: (obj: GameObj<any>) => T): void,
 	/**
 	 * Remove and re-add the game obj.
 	 *
@@ -459,15 +459,7 @@ interface KaboomCtx {
 	collides(
 		t1: Tag,
 		t2: Tag,
-		cb: (a: GameObj<any>, b: GameObj<any>) => void,
-	): EventCanceller,
-	/**
-	 * Register event when 2 game objs with certain tags overlaps. This function spins off an action() when called, please put it at root level and never inside another action().
-	 */
-	overlaps(
-		t1: Tag,
-		t2: Tag,
-		cb: (a: GameObj<any>, b: GameObj<any>) => void,
+		cb: (a: GameObj<any>, b: GameObj<any>, side?: RectSide) => void,
 	): EventCanceller,
 	/**
 	 * Register event when game objs with certain tags are clicked. This function spins off an action() when called, please put it at root level and never inside another action().
@@ -682,7 +674,7 @@ interface KaboomCtx {
 	 *
 	 * // check for collision with another single game obj
 	 * player.action(() => {
-	 *     if (player.isCollided(bomb)) {
+	 *     if (player.isColliding(bomb)) {
 	 *         score += 1;
 	 *     }
 	 * });
@@ -1452,6 +1444,10 @@ interface KaboomConf {
 	 */
 	touchToMouse?: boolean,
 	/**
+	 * If show the virtualDpad on touch devices.
+	 */
+	virtualDPad?: boolean,
+	/**
 	 * If import all kaboom functions to global (default true).
 	 */
 	global?: boolean,
@@ -1460,6 +1456,8 @@ interface KaboomConf {
 	 */
 	plugins?: KaboomPlugin<any>[],
 }
+
+type KaboomPlugin<T> = (k: KaboomCtx) => T;
 
 type GameObj<T> = GameObjRaw & MergeComps<T>;
 
@@ -1473,16 +1471,32 @@ type TouchID = number;
 type EventCanceller = () => void;
 
 type SpriteAnim = number | {
+	/**
+	 * The starting frame.
+	 */
 	from: number,
+	/**
+	 * The end frame.
+	 */
 	to: number,
+	/**
+	 * If this anim should be played in loop.
+	 */
 	loop: boolean,
+	/**
+	 * This anim's speed in frames per second.
+	 */
 	speed: number,
 }
 
+/**
+ * A dict of name <-> animation.
+ */
 type SpriteAnims = Record<string, SpriteAnim>
 
-type KaboomPlugin<T> = (k: KaboomCtx) => T;
-
+/**
+ * Sprite loading configuration.
+ */
 interface SpriteLoadConf {
 	sliceX?: number,
 	sliceY?: number,
@@ -1999,7 +2013,7 @@ interface MoveComp extends Comp {
 }
 
 type RectSide =
-	"top"
+	| "top"
 	| "bottom"
 	| "left"
 	| "right"
@@ -2054,15 +2068,15 @@ interface AreaComp extends Comp {
 	/**
 	 * If is being hovered on.
 	 */
-	isHovered(): boolean,
+	isHovering(): boolean,
 	/**
 	 * If is currently colliding with another game obj.
 	 */
-	isCollided(o: GameObj<any>): boolean,
+	isColliding(o: GameObj<any>): boolean,
 	/**
-	 * If is currently overlapping with another game obj.
+	 * If is currently touching another game obj.
 	 */
-	isOverlapped(o: GameObj<any>): boolean,
+	isTouching(o: GameObj<any>): boolean,
 	/**
 	 * Registers an event runs when clicked.
 	 */
@@ -2074,11 +2088,7 @@ interface AreaComp extends Comp {
 	/**
 	 * Registers an event runs when collides with another game obj with certain tag.
 	 */
-	collides(tag: Tag, f: (o: GameObj<any>) => void): void,
-	/**
-	 * Registers an event runs when overlaps with another game obj with certain tag.
-	 */
-	overlaps(tag: Tag, f: (o: GameObj<any>) => void): void,
+	collides(tag: Tag, f: (obj: GameObj<any>, side?: RectSide) => void): void,
 	/**
 	 * If has a certain point inside collider.
 	 */
@@ -2108,7 +2118,6 @@ interface AreaComp extends Comp {
 	 */
 	screenArea(): Rect;
 	_checkCollisions(tag: string, f: (obj: GameObj<any>) => void): void;
-	_checkOverlaps(tag: string, f: (obj: GameObj<any>) => void): void;
 }
 
 interface SpriteCompConf {
@@ -2164,7 +2173,7 @@ interface SpriteComp extends Comp {
 	 */
 	frame: number;
 	/**
-	 * The rectangular area to render.
+	 * The rectangular area of the texture to render.
 	 */
 	quad: Quad;
 	/**

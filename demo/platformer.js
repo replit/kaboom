@@ -9,7 +9,11 @@ loadSprite("prize", "sprites/jumpy.png");
 loadSprite("apple", "sprites/apple.png");
 loadSprite("portal", "sprites/portal.png");
 loadSprite("coin", "sprites/coin.png");
-loadSound("coin", "sounds/coin.mp3");
+loadSound("coin", "sounds/score.mp3");
+loadSound("powerup", "sounds/powerup.mp3");
+loadSound("blip", "sounds/blip.mp3");
+loadSound("hit", "sounds/hit.mp3");
+loadSound("portal", "sounds/portal.mp3");
 
 // custom component controlling enemy patrol movement
 function patrol(speed = 60, dir = 1) {
@@ -102,42 +106,41 @@ const levelConf = {
 	width: 64,
 	height: 64,
 	// define each object as a list of components
-	"=": [
+	"=": () => [
 		sprite("grass"),
 		area(),
 		solid(),
 		origin("bot"),
 	],
-	"$": [
+	"$": () => [
 		sprite("coin"),
 		area(),
 		pos(0, -9),
 		origin("bot"),
 		"coin",
 	],
-	"%": [
+	"%": () => [
 		sprite("prize"),
 		area(),
 		solid(),
 		origin("bot"),
 		"prize",
 	],
-	"^": [
+	"^": () => [
 		sprite("spike"),
-		area(vec2(0, 6), vec2(11, 11)),
 		area(),
-		body(),
+		solid(),
 		origin("bot"),
 		"danger",
 	],
-	"#": [
+	"#": () => [
 		sprite("apple"),
 		area(),
 		origin("bot"),
 		body(),
 		"apple",
 	],
-	">": [
+	">": () => [
 		sprite("googoly"),
 		area(),
 		origin("bot"),
@@ -145,7 +148,7 @@ const levelConf = {
 		patrol(),
 		"enemy",
 	],
-	"@": [
+	"@": () => [
 		sprite("portal"),
 		area({ scale: 0.5, }),
 		origin("bot"),
@@ -187,9 +190,11 @@ scene("game", ({ levelId, coins } = { levelId: 0, coins: 0 }) => {
 	// if player collides with any obj with "danger" tag, lose
 	player.collides("danger", () => {
 		go("lose");
+		play("hit");
 	});
 
 	player.collides("portal", () => {
+		play("portal");
 		if (levelId + 1 < LEVELS.length) {
 			go("game", {
 				levelId: levelId + 1,
@@ -202,8 +207,17 @@ scene("game", ({ levelId, coins } = { levelId: 0, coins: 0 }) => {
 
 	player.on("ground", (l) => {
 		if (l.is("enemy")) {
-			addKaboom(player.pos);
 			player.jump(JUMP_FORCE * 1.5);
+			destroy(l);
+			addKaboom(player.pos);
+			play("powerup");
+		}
+	});
+
+	player.collides("enemy", (e, side) => {
+		if (side !== "bottom") {
+			go("lose");
+			play("hit");
 		}
 	});
 
@@ -215,6 +229,7 @@ scene("game", ({ levelId, coins } = { levelId: 0, coins: 0 }) => {
 			const apple = level.spawn("#", obj.gridPos.sub(0, 1));
 			apple.jump();
 			hasApple = true;
+			play("blip");
 		}
 	});
 
@@ -224,10 +239,7 @@ scene("game", ({ levelId, coins } = { levelId: 0, coins: 0 }) => {
 		// as we defined in the big() component
 		player.biggify(3);
 		hasApple = false;
-	});
-
-	collides("bag", "grass", (b) => {
-		console.log(123);
+		play("powerup");
 	});
 
 	let coinPitch = 0;
@@ -268,6 +280,14 @@ scene("game", ({ levelId, coins } = { levelId: 0, coins: 0 }) => {
 
 	keyDown("right", () => {
 		player.move(MOVE_SPEED, 0);
+	});
+
+	keyPress("down", () => {
+		player.weight = 3;
+	});
+
+	keyRelease("down", () => {
+		player.weight = 1;
 	});
 
 });

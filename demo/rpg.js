@@ -56,28 +56,28 @@ scene("main", (levelIdx) => {
 		width: 64,
 		height: 64,
 		pos: vec2(64, 64),
-		"=": [
+		"=": () => [
 			sprite("grass"),
 			area(),
 			solid(),
 		],
-		"-": [
+		"-": () => [
 			sprite("steel"),
 			area(),
 			solid(),
 		],
-		"$": [
+		"$": () => [
 			sprite("key"),
 			area(),
 			"key",
 		],
-		"@": [
+		"@": () => [
 			sprite("bean"),
 			area(),
 			solid(),
 			"player",
 		],
-		"|": [
+		"|": () => [
 			sprite("door"),
 			area(),
 			solid(),

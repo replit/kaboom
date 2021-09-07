@@ -13,12 +13,12 @@ for (const fruit of fruits) {
 
 loadSprite("bean", "sprites/bean.png");
 loadSprite("bomb", "sprites/bomb.png");
-loadSound("bye", "sounds/bye.mp3");
-loadSound("gong", "sounds/gong.mp3");
+loadSound("hit", "sounds/hit.mp3");
+loadSound("wooosh", "sounds/wooosh.mp3");
 
 scene("start", () => {
 
-	play("gong");
+	play("wooosh");
 
 	add([
 		text("Eat All"),
@@ -60,7 +60,7 @@ scene("game", () => {
 	// game over if player eats a fruit
 	player.collides("fruit", (fruit) => {
 		go("lose", score);
-		play("bye");
+		play("hit");
 	});
 
 	// move the food every frame, destroy it if far outside of screen
@@ -74,7 +74,7 @@ scene("game", () => {
 	action("bomb", (bomb) => {
 		if (bomb.pos.x <= 0) {
 			go("lose", score);
-			play("bye");
+			play("hit");
 			addKaboom(bomb.pos);
 		}
 	});

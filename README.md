@@ -173,6 +173,7 @@ works all CDNs that supports NPM packages, e.g. jsdelivr, skypack
 ## License
 - **lib** MIT
 - **sprites/\*** CC BY-NC-SA 4.0 for everything with eyes, CC0 for everything else
+- **sounds/\***
 
 ### Misc
 

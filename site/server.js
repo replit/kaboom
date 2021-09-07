@@ -142,8 +142,8 @@ function renderMD(p) {
 					},
 				},
 			})),
-			t("link", { rel: "icon", href: "/img/kaboom.png"}),
-			t("link", { rel: "stylesheet", href: "/css/paraiso.css"}),
+			t("link", { rel: "icon", href: "/site/img/kaboom.png"}),
+			t("link", { rel: "stylesheet", href: "/site/css/paraiso.css"}),
 		]),
 		t("body", {}, [
 			t("div", { id: "content", }, marked(fs.readFileSync(p, "utf-8"))),

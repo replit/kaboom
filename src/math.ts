@@ -421,7 +421,6 @@ function rng(seed: number): RNG {
 		seed: seed,
 		gen(...args) {
 			if (args.length === 0) {
-				// generate 0 - 1
 				this.seed = (A * this.seed + C) % M;
 				return this.seed / M;
 			} else if (args.length === 1) {

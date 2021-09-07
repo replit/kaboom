@@ -3,7 +3,7 @@ kaboom({
 	clearColor: [0, 0, 0],
 });
 
-loadTileset("sprites/1bitplatformer.png", 20, 20, {
+loadSpriteSheet("sprites/1bitplatformer.png", 20, 20, {
 	"player": {
 		from: 300,
 		to: 305,

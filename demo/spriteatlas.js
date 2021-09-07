@@ -6,14 +6,25 @@ kaboom({
 loadSpriteAtlas("sprites/dungeon.png", {
 	"hero": {
 		x: 128,
-		y: 68,
+		y: 196,
 		width: 16 * 9,
 		height: 28,
 		sliceX: 9,
 		anims: {
 			idle: { from: 0, to: 3, speed: 3, loop: true },
-			run: { from: 4, to: 7, speed: 10, loop: true, },
+			run: { from: 4, to: 7, speed: 10, loop: true },
 			hit: 8,
+		},
+	},
+	"ogre": {
+		x: 16,
+		y: 320,
+		width: 32 * 8,
+		height: 32,
+		sliceX: 8,
+		anims: {
+			idle: { from: 0, to: 3, speed: 3, loop: true },
+			run: { from: 4, to: 7, speed: 10, loop: true },
 		},
 	},
 	"floor": {
@@ -88,42 +99,42 @@ const map = addLevel([
 		{ opened: false, },
 		"chest",
 	],
-	"a": [
+	"a": () => [
 		sprite("wall_botleft"),
 		area({ width: 4 }),
 		solid(),
 	],
-	"b": [
+	"b": () => [
 		sprite("wall_botright"),
 		area({ width: 4, offset: vec2(12, 0) }),
 		solid(),
 	],
-	"c": [
+	"c": () => [
 		sprite("wall_topleft"),
 		area(),
 		solid(),
 	],
-	"d": [
+	"d": () => [
 		sprite("wall_topright"),
 		area(),
 		solid(),
 	],
-	"w": [
+	"w": () => [
 		sprite("wall"),
 		area(),
 		solid(),
 	],
-	"t": [
+	"t": () => [
 		sprite("wall_top"),
 		area({ height: 4, offset: vec2(0, 12) }),
 		solid(),
 	],
-	"l": [
+	"l": () => [
 		sprite("wall_left"),
 		area({ width: 4, }),
 		solid(),
 	],
-	"r": [
+	"r": () => [
 		sprite("wall_right"),
 		area({ width: 4, offset: vec2(12, 0) }),
 		solid(),
@@ -136,6 +147,14 @@ const player = add([
 	area({ width: 12, height: 12, offset: vec2(0, 6) }),
 	solid(),
 	origin("center"),
+]);
+
+const ogre = add([
+	sprite("ogre"),
+	pos(map.getPos(4, 4)),
+	origin("bot"),
+	area({ scale: 0.5 }),
+	solid(),
 ]);
 
 const sword = add([
@@ -169,7 +188,7 @@ function spin() {
 keyPress("space", () => {
 	let interacted = false;
 	every("chest", (c) => {
-		if (player.isCollided(c)) {
+		if (player.isTouching(c)) {
 			if (c.opened) {
 				c.play("close");
 				c.opened = false;

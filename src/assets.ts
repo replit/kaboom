@@ -138,7 +138,7 @@ function assetsInit(gfx: Gfx, audio: Audio, gconf: AssetsConf = {}): Assets {
 		return assets.loadRoot;
 	}
 
-	// load a bitmap font to asset manager
+	// TODO: support SpriteLoadSrc
 	function loadFont(
 		name: string | null,
 		src: string,
@@ -202,6 +202,7 @@ function assetsInit(gfx: Gfx, audio: Audio, gconf: AssetsConf = {}): Assets {
 		return frames;
 	}
 
+	// TODO: accept json url for entries
 	function loadSpriteAtlas(
 		src: SpriteLoadSrc,
 		entries: Record<string, SpriteAtlasEntry>
