@@ -745,7 +745,7 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 
 		const w = conf.width || 1;
 		const h = p1.dist(p2);
-		const rot = 90 - p1.angle(p2);
+		const rot = p1.angle(p2) - 90;
 
 		drawQuad({
 			...conf,
