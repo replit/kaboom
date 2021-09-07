@@ -8,7 +8,8 @@ const games = [
 	"https://freshjuices.itch.io/eggou",
 	"https://replit.com/@SixBeeps/Super-Pong",
 	"https://replit.com/@ritza/3d-space-shooter",
-	"https://replit.com/@theNvN/Satoshi-Run"
+	"https://replit.com/@theNvN/Satoshi-Run",
+	"https://swilliamsio.itch.io/triple-threat"
 ];
 
 fun.addEventListener("click", () => {
