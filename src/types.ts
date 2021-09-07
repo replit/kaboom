@@ -81,6 +81,33 @@ interface KaboomCtx {
 		src: SpriteLoadSrc,
 		conf?: SpriteLoadConf,
 	): Promise<SpriteData>,
+	/**
+	 * Load sprites from a sprite atlas.
+	 *
+	 * @example
+	 * ```js
+	 * loadSpriteAtlas("sprites/dungeon.png", {
+	 *     "hero": {
+	 *         x: 128,
+	 *         y: 68,
+	 *         width: 144,
+	 *         height: 28,
+	 *         sliceX: 9,
+	 *         anims: {
+	 *             idle: { from: 0, to: 3 },
+	 *             run: { from: 4, to: 7 },
+	 *             hit: { from: 8, to: 8 },
+	 *         },
+	 *     },
+	 * });
+	 *
+	 * const player = add([
+	 *     sprite("hero"),
+	 * ]);
+	 *
+	 * player.play("run");
+	 * ```
+	 */
 	loadSpriteAtlas(
 		src: SpriteLoadSrc,
 		entries?: Record<string, SpriteAtlasEntry>,

@@ -57,6 +57,10 @@ export default (k: KaboomCtx) => {
 
 	function addLevel(map: string[], conf: LevelConf): Level {
 
+		if (!conf.width || !conf.height) {
+			throw new Error("Must provide level grid width & height.");
+		}
+
 		const objs: GameObj<any>[] = [];
 		const offset = k.vec2(conf.pos || k.vec2(0));
 		let longRow = 0;
