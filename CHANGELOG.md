@@ -9,13 +9,18 @@
 - included font [kitchen sink](https://polyducks.itch.io/kitchen-sink-textmode-font) as `"sinko"` (outlined version) and `"sink"` (standard version with extended characters for text-mode games)
 - added `font` field in `KaboomConf` to set the default font
 - added `loadSpriteAtlas(src, entries)` to load sprite atlas
-- **BREAK** added continuous collision detection which checks collision in `move()` if 2 objects are both "solid"
+- **BREAK** added continuous collision resolution which checks collision in `move()` if 2 objects are both "solid" (objects now won't pass through other solid object at high speed or low framerate)
 
 ```js
-// instead of
+// before
 add([
 	sprite("player"),
 	area(),
+]);
+
+add([
+	sprite("rock"),
+	solid(),
 ]);
 
 keyDown("left", () => {
@@ -26,11 +31,18 @@ player.action(() => {
 	player.resolve(); // or pushOutAll() in beta versions
 });
 
-// you do
+// after
 const player = add([
 	sprite("player"),
 	area(),
-	solid(), // collision reso
+	solid(),
+]);
+
+// both should be solid
+add([
+	sprite("rock"),
+	area(),
+	solid(),
 ]);
 
 keyDown("left", () => {
@@ -77,7 +89,6 @@ add([
 - added `anim` field in `SpriteCompConf` to play an anim on start
 - beter type support for components
 - `scene()` and `start()` (also removed in favor of `go()`) are optional now, if you don't need multiple scenes yet you can just go directly
-
 ```js
 kaboom();
 // no mandatory scene() to start kabooming
@@ -85,14 +96,19 @@ add(...);
 keyPress(...);
 ```
 - **BREAK** `area()` is now explicit and not automatically added by `sprite()`, `rect()`, and `text()`, removed each `noArea` or `area` config field
-- **BREAK** `area()` now takes an `AreaCompConf`, where you can define the area points, size, scale, and hover cursor
+- **BREAK** `area()` now takes an `AreaCompConf`, where you can define the area size, scale, and hover cursor
 
 ```js
 add([
     sprite("bean"),
-    area(), // empty area() will calc size from the sprite
+    area(), // empty area will derive from sprite size
+    area({ scale: 0.5, }), // 0.5x the sprite size
+    area({ offset: vec2(0, 12), width: 4, height: 12, }), // more control over the collider region
 ]);
 ```
+- **BREAK** renamed `isCollided()` to `isColliding()`, `isHovered()` to `isHovering()`
+- **BREAK** removed `overlaps()` and `isOverlapped()` and replaced with `isColliding()` and `collides()` only checks doesn't return true when 2 objects are just touching each other, use `isTouching()` to check if just touching
+- added `isTouching()` to check if 2 objects are collided or just touching other
 - audio is now paused when you leave the tab
 - audio is now paused on `debug.paused = true`
 - added local storage helper `getData(key, default?)` and `setData(key, data)`
@@ -142,7 +158,7 @@ obj.c("sprite").play("anim");
 - **BREAK** removed `changeSprite()` in favor of `use(sprite("newsprite"))`
 - tags and components are converged, tags are just empty components now
 - added `unuse()` to remove a component or tag
-- **BREAK** renamed `rmTag()` in favor of `unuse()`
+- **BREAK** removed `rmTag()` in favor of `unuse()`
 - **BREAK** removed `camIgnore()` in favor of `fixed()`
 - **BREAK** renamed `makeRng()` to `rng()`
 

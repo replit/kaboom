@@ -5,6 +5,7 @@ const t = www.tag;
 const css = {
 	"html": {
 		"font-size": "calc(0.5vw + 12px)",
+		"font-family": "Necto Mono",
 	},
 	"body": {
 		"background": `url("/site/img/bg.svg") repeat`,

@@ -68,6 +68,12 @@ function renderTypeSig(type) {
 				href: `#${type.typeName}`,
 			}, type.typeName) : type.typeName;
 			case "FunctionType": return `(${renderParams(type.parameters)}) => ${renderTypeSig(type.type)}`;
+			case "TypeLiteral":
+				const memberList = type.members
+					.map(renderMember)
+					.map((entry) => "&nbsp;".repeat(4) + entry)
+					.join(t("br"));
+				return `{${t("br")}${memberList}${t("br")}}`;
 			default:
 // 				console.log(type);
 				return "";
@@ -180,25 +186,23 @@ const css = {
 		"width": "240px",
 		"padding": "24px",
 		"overflow": "scroll",
+		"@media": {
+			"(max-width: 640px)": {
+				"display": "none",
+			},
+		},
 		"#logo": {
 			"width": "60%",
-		},
-		"#search": {
-			"padding": "8px 12px",
-			"outline": "none",
-			"border": "none",
-			"font-size": "16px",
-			"width": "100%",
-			"border-radius": "6px",
 		},
 		"#index": {
 			...www.vspace(4),
 			"a": {
+				"font-family": "IBM Plex Mono",
 				"display": "table",
 				"text-decoration": "none",
 				"color": "#333333",
-				"padding": "4px",
-				"border-radius": "4px",
+				"padding": "2px 6px",
+				"border-radius": "6px",
 				":hover": {
 					"color": "#ffffff !important",
 					"background": "#0080ff",
@@ -232,7 +236,8 @@ const css = {
 			"font-size": "24px",
 		},
 		".name": {
-			"font-size": "32px",
+			"font-family": "IBM Plex Mono",
+			"font-size": "30px",
 		},
 		".desc": {
 			"font-size": "24px",
@@ -246,9 +251,11 @@ const css = {
 		},
 		".type": {
 			"font-size": "20px",
+			"font-family": "IBM Plex Mono",
 		},
 		".typesig": {
 			"color": "#999999",
+			"font-family": "IBM Plex Mono",
 			"a": {
 				"color": "#999999",
 				":hover": {
