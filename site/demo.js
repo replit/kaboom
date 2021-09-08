@@ -1,7 +1,7 @@
 const path = require("path");
 const fs = require("fs");
 const www = require("./www");
-const gstyle = require("./gstyle");
+const global = require("./global");
 const t = www.tag;
 
 const horiAspect = "1/1";
@@ -123,11 +123,9 @@ module.exports = () => {
 
 	return t("html", {}, [
 		t("head", {}, [
+			...global.head,
 			t("title", {}, "Kaboom Demos"),
-			t("meta", { charset: "utf-8", }),
-			t("style", {}, www.css(gstyle)),
 			t("style", {}, www.css(css)),
-			t("link", { rel: "icon", href: "/site/img/kaboom.png"}),
 			t("script", {}, `window.demos = ${JSON.stringify(demos)}`),
 			t("script", { src: "/site/js/demos.js", type: "module" }, ""),
 		]),

@@ -9,6 +9,7 @@
 - included font [kitchen sink](https://polyducks.itch.io/kitchen-sink-textmode-font) as `"sinko"` (outlined version) and `"sink"` (standard version with extended characters for text-mode games)
 - added `font` field in `KaboomConf` to set the default font
 - added `loadSpriteAtlas(src, entries)` to load sprite atlas
+- inspect mode now displays every comp's state
 - **BREAK** added continuous collision resolution which checks collision in `move()` if 2 objects are both "solid" (objects now won't pass through other solid object at high speed or low framerate)
 
 ```js

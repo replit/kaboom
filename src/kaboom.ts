@@ -2003,6 +2003,7 @@ function body(conf: BodyCompConf = {}): BodyComp {
 					justFall = true;
 				} else {
 					if (lastPlatformPos && curPlatform.pos) {
+						// TODO: moveBy?
 						// sticky platform
 						this.pos = this.pos.add(curPlatform.pos.sub(lastPlatformPos));
 						lastPlatformPos = curPlatform.pos.clone();
@@ -2135,7 +2136,7 @@ function lifespan(time: number, cb?: () => void): LifespanComp {
 	}
 	let timer = 0;
 	return {
-		id: "ilfespan",
+		id: "lifespan",
 		update() {
 			timer += dt();
 			if (timer >= time) {

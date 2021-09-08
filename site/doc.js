@@ -2,7 +2,7 @@ const fs = require("fs");
 const marked = require("marked");
 const hljs = require("highlight.js");
 const www = require("./www");
-const gstyle = require("./gstyle");
+const global = require("./global");
 const getTypes = require("./getTypes");
 const types = getTypes(fs.readFileSync("./../dist/kaboom.d.ts", "utf-8"));
 const t = www.tag;
@@ -214,14 +214,13 @@ const css = {
 		}
 	},
 	"#content": {
-		...www.vspace(12),
 		"overflow": "scroll",
 		"padding": "48px",
 		"background": "#ffffff",
 		"flex": "1",
+		...www.vspace(24),
 		".block": {
 			...www.vspace(12),
-			"margin-bottom": "24px",
 		},
 		".title": {
 			"padding": "6px 12px",
@@ -242,9 +241,6 @@ const css = {
 		".desc": {
 			"font-size": "24px",
 			"color": "#666666",
-		},
-		".section": {
-			...www.vspace(24),
 		},
 		".item": {
 			...www.vspace(12),
@@ -290,13 +286,11 @@ function txt(tx) {
 
 const page = t("html", {}, [
 	t("head", {}, [
+		...global.head,
 		t("title", {}, "KaBoom!!!"),
-		t("meta", { charset: "utf-8", }),
-		t("style", {}, www.css(gstyle)),
 		t("style", {}, www.css(css)),
-		t("link", { rel: "icon", href: "/site/img/kaboom.png"}),
 		t("link", { rel: "stylesheet", href: "/site/css/paraiso.css"}),
-		t("script", { src: "/js/doc.js", }, ""),
+		t("script", { src: "/site/js/doc.js", }, ""),
 	]),
 	t("body", {}, [
 		t("div", { id: "sidebar", }, [
@@ -365,8 +359,7 @@ keyPress("space", () => {
 					...renderJSDoc(mem),
 				]);
 			})),
-			t("div", { class: "title", }, "Types"),
-			t("div", { class: "section", }, entries.map((name) => {
+			block("Types", entries.map((name) => {
 				if (name === "kaboom") {
 					return;
 				}
@@ -380,6 +373,8 @@ keyPress("space", () => {
 					name !== "KaboomCtx" && t("div", { class: "type", }, renderStmt(mem)),
 				]);
 			})),
+			block("Custom Component", [
+			]),
 		]),
 	]),
 ]);

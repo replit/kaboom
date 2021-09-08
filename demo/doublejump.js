@@ -1,6 +1,4 @@
-kaboom({
-	debug: true,
-});
+kaboom();
 
 loadSprite("bean", "sprites/bean.png");
 loadSprite("coin", "sprites/coin.png");
@@ -75,7 +73,7 @@ scene("game", () => {
 
 	function genCoin(avoid) {
 		const plats = get("platform");
-		let idx = rand(0, plats.length);
+		let idx = Math.floor(rand(0, plats.length));
 		// avoid the spawning on the same platforms
 		if (avoid != null) {
 			idx = choose([...plats.keys()].filter((i) => i !== avoid));

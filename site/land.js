@@ -1,5 +1,5 @@
 const www = require("./www");
-const gstyle = require("./gstyle");
+const global = require("./global");
 const t = www.tag;
 
 const css = {
@@ -136,10 +136,9 @@ const css = {
 
 const page = t("html", {}, [
 	t("head", {}, [
+		...global.head,
 		t("title", {}, "Kaboom"),
-		t("style", {}, www.css(gstyle)),
 		t("style", {}, www.css(css)),
-		t("link", { rel: "icon", href: "/site/img/kaboom.png"}),
 		t("link", { rel: "stylesheet", href: "/css/paraiso.css"}),
 	]),
 	t("body", {}, [

@@ -13,7 +13,7 @@
  *     height: 240,
  *     stretch: true,
  *     letterbox: true,
- *     font: "unscii",
+ *     font: "sinko",
  *     clearColor: [ 0, 0, 255, ],
  * });
  *
@@ -568,16 +568,17 @@ interface KaboomCtx {
 	 *     sprite("froggy"),
 	 * ]);
 	 *
-	 * // minimal setup
+	 * // with config
 	 * const froggy = add([
 	 *     sprite("froggy", {
-	 *         // start with frame 2
-	 *         frame: 2,
+	 *         // start with animation "idle"
+	 *         anim: "idle",
 	 *     }),
 	 * ]);
 	 *
-	 * // play an anim
+	 * // play / stop an anim
 	 * froggy.play("jump");
+	 * froggy.stop();
 	 *
 	 * // manually setting a frame
 	 * froggy.frame = 3;
@@ -601,8 +602,8 @@ interface KaboomCtx {
 	 *     score.text = "Score:" + score.value;
 	 * });
 	 *
-	 * // set to another default font on start up ("unscii" is a pixel font provided by default)
-	 * kaboom({ font: "unscii" });
+	 * // set to another default font on start up ("sink" is a pixel font provided by default)
+	 * kaboom({ font: "sink" });
 	 * ```
 	 */
 	text(txt: string, conf?: TextCompConf): TextComp,
@@ -1400,11 +1401,11 @@ interface KaboomConf {
 	 */
 	debug?: boolean,
 	/**
-	 * Default font (defaults to "kaboom", have "unscii" as another built-in option).
+	 * Default font (defaults to "apl386o", with "apl386", "sink", "sinko" as other built-in options).
 	 */
 	font?: string,
 	/**
-	 * Disable antialias and enable crisp pixel rendering.
+	 * Disable antialias and enable sharp pixel display.
 	 */
 	crisp?: boolean,
 	/**
@@ -1908,36 +1909,30 @@ interface Comp {
 	/**
 	 * Event that runs when host game obj is added to scene.
 	 */
-	add?: AddEvent;
+	add?: () => void;
 	/**
 	 * Event that runs when host game obj is added to scene and game is loaded.
 	 */
-	load?: LoadEvent;
+	load?: () => void;
 	/**
 	 * Event that runs every frame.
 	 */
-	update?: UpdateEvent;
+	update?: () => void;
 	/**
 	 * Event that runs every frame.
 	 */
-	draw?: DrawEvent;
+	draw?: () => void;
 	/**
 	 * Event that runs when obj is removed from scene.
 	 */
-	destroy?: DestroyEvent;
+	destroy?: () => void;
 	/**
 	 * Debug info for inspect mode.
 	 */
-	inspect?: InspectEvent;
+	inspect?: () => string;
 }
 
 type GameObjID = number;
-type AddEvent = () => void;
-type LoadEvent = () => void;
-type DrawEvent = () => void;
-type UpdateEvent = () => void;
-type DestroyEvent = () => void;
-type InspectEvent = () => string;
 
 interface PosComp extends Comp {
 	pos: Vec2;
@@ -2254,6 +2249,14 @@ interface RectComp extends Comp {
 	 */
 	height: number;
 }
+
+type AreaType =
+	| "rect"
+	| "line"
+	| "point"
+	| "circle"
+	| "polygon"
+	;
 
 interface OutlineComp extends Comp {
 	lineWidth: number;

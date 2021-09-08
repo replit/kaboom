@@ -1,4 +1,7 @@
-module.exports = {
+const www = require("./www");
+const t = www.tag;
+
+const css = {
 	"@font-face": [
 		{
 			"font-family": "IBM Plex Sans",
@@ -36,6 +39,7 @@ module.exports = {
 		"padding": "16px",
 		"border": "solid 2px #eaeaea",
 		"border-radius": "12px",
+		"tab-size": "4",
 		"> code": {
 			"background": "none",
 			"border": "none",
@@ -56,4 +60,15 @@ module.exports = {
 		"padding-left": "24px",
 		"border-left": "solid 3px #cccccc",
 	},
+};
+
+const head = [
+	t("meta", { charset: "utf-8", }),
+	t("style", {}, www.css(css)),
+	t("link", { rel: "icon", href: "/site/img/k.png"}),
+];
+
+module.exports = {
+	head,
+	css,
 };

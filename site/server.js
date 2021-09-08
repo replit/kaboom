@@ -8,7 +8,7 @@ const port = process.env.PORT || 8000;
 const land = require("./land");
 const doc = require("./doc");
 const demo = require("./demo");
-const gstyle = require("./gstyle");
+const global = require("./global");
 const www = require("./www");
 const t = www.tag;
 const app = new Koa();
@@ -89,8 +89,8 @@ function renderDir(dir) {
 	return (ctx, next) => {
 		return html(t("html", {}, [
 			t("head", {}, [
+				...global.head,
 				t("title", {}, path.basename(dir)),
-				t("style", {}, www.css(gstyle)),
 				t("style", {}, www.css({
 					"body": {
 						"padding": "24px",
@@ -107,7 +107,6 @@ function renderDir(dir) {
 						},
 					},
 				})),
-				t("link", { rel: "icon", href: "/img/kaboom.png"}),
 			]),
 			t("body", {}, fs
 				.readdirSync(dir)
@@ -122,8 +121,8 @@ function renderDir(dir) {
 function renderMD(p) {
 	return html(t("html", {}, [
 		t("head", {}, [
+			...global.head,
 			t("title", {}, path.basename(p)),
-			t("style", {}, www.css(gstyle)),
 			t("style", {}, www.css({
 				"#content": {
 					"font-size": "24px",
@@ -142,7 +141,6 @@ function renderMD(p) {
 					},
 				},
 			})),
-			t("link", { rel: "icon", href: "/site/img/kaboom.png"}),
 			t("link", { rel: "stylesheet", href: "/site/css/paraiso.css"}),
 		]),
 		t("body", {}, [
