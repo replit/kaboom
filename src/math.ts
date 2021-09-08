@@ -433,7 +433,7 @@ function rng(seed: number): RNG {
 				}
 			} else if (args.length === 2) {
 				if (typeof args[0] === "number" && typeof args[1] === "number") {
-					return this.gen() * (args[1] - args[0]) + args[0];
+					return Math.floor(this.gen() * (args[1] - args[0])) + args[0];
 				} else if (isVec2(args[0]) && isVec2(args[1])) {
 					return vec2(
 						this.gen(args[0].x, args[1].x),
@@ -468,7 +468,7 @@ function chance(p: number): boolean {
 }
 
 function choose<T>(list: T[]): T {
-	return list[Math.floor(rand(list.length))];
+	return list[rand(list.length)];
 }
 
 function colRectRect(r1: Rect, r2: Rect): boolean {
