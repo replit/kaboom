@@ -155,8 +155,8 @@ function appInit(gconf: AppConf = {}): App {
 		app.canvas.width = gconf.width * app.scale;
 		app.canvas.height = gconf.height * app.scale;
 	} else {
-		app.canvas.width = root.offsetWidth;
-		app.canvas.height = root.offsetHeight;
+		app.canvas.width = app.canvas.parentElement.offsetWidth;
+		app.canvas.height = app.canvas.parentElement.offsetHeight;
 	}
 
 	const styles = [
@@ -271,12 +271,13 @@ function appInit(gconf: AppConf = {}): App {
 		}
 	});
 
-	window.addEventListener("resize", () => {
-		if (!(gconf.width && gconf.height && !gconf.stretch)) {
-			app.canvas.width = root.offsetWidth;
-			app.canvas.height = root.offsetHeight;
-		}
-	});
+	// TODO: not quite working
+//  	window.addEventListener("resize", () => {
+//  		if (!(gconf.width && gconf.height && !gconf.stretch)) {
+//  			app.canvas.width = app.canvas.parentElement.offsetWidth;
+//  			app.canvas.height = app.canvas.parentElement.offsetHeight;
+//  		}
+//  	});
 
 	function mousePos(): Vec2 {
 		return app.mousePos.clone();

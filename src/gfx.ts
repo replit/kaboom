@@ -923,7 +923,7 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 		}
 	}
 
-	window.addEventListener("resize", updateSize);
+//  	window.addEventListener("resize", updateSize);
 
 	function updateSize() {
 		if (gconf.width && gconf.height && gconf.stretch) {

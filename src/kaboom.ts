@@ -1438,7 +1438,7 @@ function area(conf: AreaCompConf = {}): AreaComp {
 		},
 
 		isColliding(other) {
-			if (!other.area) {
+			if (!other.area || !other.exists()) {
 				return false;
 			}
 			const a1 = this.worldArea();
@@ -1447,7 +1447,7 @@ function area(conf: AreaCompConf = {}): AreaComp {
 		},
 
 		isTouching(other) {
-			if (!other.area) {
+			if (!other.area || !other.exists()) {
 				return false;
 			}
 			const a1 = this.worldArea();
@@ -1552,7 +1552,7 @@ function area(conf: AreaCompConf = {}): AreaComp {
 
 				if (this.isColliding(obj)) {
 					// TODO: return side
-					this.trigger("collide", obj);
+					this.trigger("collide", obj, null);
 					colliding[obj._id] = obj;
 				}
 

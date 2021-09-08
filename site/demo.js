@@ -22,7 +22,7 @@ const css = {
 		"cursor": "pointer",
 		"font-family": "IBM Plex Mono",
 		":active": {
-			"background": "black",
+			"background": "#333333",
 			"color": "white",
 		},
 	},

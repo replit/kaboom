@@ -42,8 +42,8 @@ loadSpriteAtlas("sprites/dungeon.png", {
 		height: 16,
 		sliceX: 3,
 		anims: {
-			open: { from: 0, to: 2, speed: 10, loop: false },
-			close: { from: 2, to: 0, speed: 10, loop: false },
+			open: { from: 0, to: 2, speed: 20, loop: false },
+			close: { from: 2, to: 0, speed: 20, loop: false },
 		},
 	},
 	"sword": { x: 322, y: 81, width: 12, height: 30 },
