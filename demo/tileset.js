@@ -1,3 +1,5 @@
+// TODO: placeholder, this doesn't work yet
+
 kaboom({
 	scale: 4,
 	clearColor: [0, 0, 0],
