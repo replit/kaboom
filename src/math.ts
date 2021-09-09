@@ -468,7 +468,7 @@ function chance(p: number): boolean {
 }
 
 function choose<T>(list: T[]): T {
-	return list[rand(list.length)];
+	return list[Math.floor(rand(list.length))];
 }
 
 function colRectRect(r1: Rect, r2: Rect): boolean {
