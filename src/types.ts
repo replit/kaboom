@@ -1437,10 +1437,6 @@ interface KaboomConf {
 	 */
 	connect?: string,
 	/**
-	 * If focus user input to canvas on start.
-	 */
-	focus?: boolean,
-	/**
 	 * If translate touch events as mouse clicks (default true).
 	 */
 	touchToMouse?: boolean,

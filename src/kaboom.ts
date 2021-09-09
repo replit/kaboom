@@ -2495,10 +2495,6 @@ app.run(() => {
 
 });
 
-if (gconf.focus !== false) {
-	focus();
-}
-
 if (gconf.debug !== false) {
 	regDebugInput();
 }
