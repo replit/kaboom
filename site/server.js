@@ -179,11 +179,14 @@ app.use(files("/changelog", "../CHANGELOG.md", { md: renderMD, }));
 app.use(files("/readme", "../README.md", { md: renderMD, }));
 app.use(files("/tut", "../tut", { md: renderMD, }));
 app.use(files("/lib/dev", "../dist"));
-app.use(files("/lib", "legacy/lib"));
 app.use(files("/kaboom.png", "kaboom.png"));
 app.use(redirect("/twitter", "https://twitter.com/Kaboomjs"));
 app.use(redirect("/github", "https://github.com/replit/kaboom"));
 app.use(redirect("/forum", "https://github.com/replit/kaboom/discussions"));
+
+// TODO: legacy
+app.use(files("/lib", "legacy/lib"));
+app.use(files("/pub/legacy", "legacy"));
 
 app.listen(port);
 console.log(`http://localhost:${port}`);
