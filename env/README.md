@@ -26,8 +26,8 @@ loadSprite("bean", "sprites/bean.png")
 
 // add something to screen
 add([
-    sprite("bean"),
-    pos(80, 40),
+	sprite("bean"),
+	pos(80, 40),
 ])
 ```
 
@@ -40,11 +40,11 @@ Before explaining what this code does, let's try adding some more stuff to it an
 ```js
 // add something to screen
 add([
-    sprite("bean"),
-    pos(80, 40),
-    scale(3),
-    rotate(30),
-    color(0, 0, 255),
+	sprite("bean"),
+	pos(80, 40),
+	scale(3),
+	rotate(30),
+	color(0, 0, 255),
 ])
 ```
 
@@ -72,15 +72,15 @@ It's actually kinda like playing with lego pieces! Let's keep this in mind and s
 ```js
 // putting together our player character
 const bean = add([
-    sprite("bean"),
-    pos(80, 40),
-    area(),
-    body(),
+	sprite("bean"),
+	pos(80, 40),
+	area(),
+	body(),
 ])
 
 // .jump() when "space" key is pressed
 keyPress("space", () => {
-    bean.jump()
+	bean.jump()
 })
 ```
 
@@ -97,12 +97,12 @@ With the `body()` component, our Bean is going to keep falling into oblivion if 
 ```js
 // add platform
 add([
-    rect(width(), 48),
-    pos(0, height() - 48),
-    outline(4),
-    area(),
-    solid(),
-    color(127, 200, 255),
+	rect(width(), 48),
+	pos(0, height() - 48),
+	outline(4),
+	area(),
+	solid(),
+	color(127, 200, 255),
 ])
 ```
 
@@ -123,9 +123,9 @@ Let's also make sure our Bean can only jump when grounded.
 
 ```js
 keyPress("space", () => {
-    if (bean.grounded()) {
-        bean.jump();
-    }
+	if (bean.grounded()) {
+		bean.jump();
+	}
 });
 ```
 
@@ -136,13 +136,13 @@ Bean loves challanges. Let's start adding in obstacles to jump over! Time to bui
 ```js
 // add tree
 add([
-    rect(48, 64),
-    area(),
-    outline(4),
-    pos(width(), height() - 48),
-    origin("botleft"),
-    color(255, 180, 255),
-    move(LEFT, 240),
+	rect(48, 64),
+	area(),
+	outline(4),
+	pos(width(), height() - 48),
+	origin("botleft"),
+	color(255, 180, 255),
+	move(LEFT, 240),
 ]);
 ```
 
@@ -163,14 +163,14 @@ First we'll need to give the tree a tag. Any game object can have any number of 
 ```js
 // add tree
 add([
-    rect(48, 64),
-    area(),
-    outline(4),
-    pos(width(), height() - 48),
-    origin("botleft"),
-    color(255, 180, 255),
-    move(LEFT, 240),
-    "tree", // add a tag here
+	rect(48, 64),
+	area(),
+	outline(4),
+	pos(width(), height() - 48),
+	origin("botleft"),
+	color(255, 180, 255),
+	move(LEFT, 240),
+	"tree", // add a tag here
 ]);
 ```
 
@@ -178,8 +178,8 @@ To add a tag we simply put a string in the component array. Then we can check fo
 
 ```js
 bean.collides("tree", () => {
-    addKaboom(bean.pos);
-    shake();
+	addKaboom(bean.pos);
+	shake();
 });
 ```
 
@@ -195,13 +195,142 @@ Here's a trick. Try pressing `F1` in the game. See all the blue outlines? This i
 
 ![inspect](learn/inspect.png)
 
+Now it's time to add more trees. How can we keep them spawning constantly?
+
+Let's try the `loop()` function, which performs an action every x seconds.
+
+```js
+loop(1, () => {
+	// add tree
+	add([
+		rect(48, 64),
+		area(),
+		outline(4),
+		pos(width(), height() - 48),
+		origin("botleft"),
+		color(255, 180, 255),
+		move(LEFT, 240),
+		"tree", // add a tag here
+	]);
+});
+```
+
+Let's just put the tree adding code inside a `loop()`. The first argument is the time in seconds here, so it'll spawn a tree every 1 seconds.
+
+Sick! Lots of trees coming to you now. Now we already have most of the game mechanics done. Some improvements we can make:
+
+1. It might be better if trees all have different random heights. We can use `rand()` to assign different value to the tree's rect height:
+
+```js
+rect(48, rand(24, 64)),
+```
+
+2. It'll be more fun if the trees spawn at different intervals. We cannot do that from `loop()`, but we can compose that with recursive `wait()`s, which waits for x seconds to execute some code.
+
+```js
+function spawnTree() {
+	add([
+		// the tree components
+	]);
+	wait(rand(0.5, 1.5), () => {
+		spawnTree();
+	});
+}
+
+spawnTree();
+```
+
+See? We're calling `spawnTree()` recursively / endlessly, with a random interval between 0.5 - 1.5 seconds each time.
+
+Before adding a score counter, let's actually complete the game loop first, by sending player to a gameover scene when they hit a tree. We can achieve this with kaboom's `scene()` system
+
+```js
+scene("game", () => {
+	add([
+		sprite("bean"),
+	])
+})
+
+scene("lose", () => {
+	add([
+		text("Game Over"),
+	])
+})
+
+go("game")
+```
+
+Consider this example above, we're declaring 2 scenes here, "game" and "lose". The function we pass to `scene()` is the function to run when this scene is activated (by `go()`). In this case, we want to add a "bean" sprite on "game" scene, and want to add a "Game Over" text on the "lose" scene.
+
+Let's first move everything game code we have into a scene.
+
+```js
+// don't move these init / loader functions
+kaboom()
+loadSprite("bean", "sprites/bean.png");
+
+scene("game", () => {
+	// add bean
+	// add platform
+	// spawn trees
+});
+
+go("game")
+```
+
+Try this, this shouldn't change any of your game's content.
+
+Then we can add a "lose" scene independent to your core game content here.
+
+```js
+scene("lose", () => {
+	add([
+		text("Game Over"),
+		pos(center()),
+		origin("center"),
+	])
+})
+```
+
+So in the "lose" scene, we'll add a piece of text in the center says "Game Over" (`text()` is a component that renders text). Go ahead and go to this scene when player collides with a tree:
+
+```js
+player.collides("tree", () => {
+	addKaboom(bean.pos);
+	shake();
+	go("lose"); // go to "lose" scene here
+});
+```
+
+Ok! Now we've arrived at the final part of our game: score counter.
+
+```js
+let score = 0;
+const scoreLabel = add([
+	text(score),
+	pos(24, 24)
+])
+```
+
+Here we've declared a number variable to store the score, and added a game obj with `text()` component to display the text.
+
+Let's keep it simple and just use time as score.
+
+```js
+// increment score every frame
+action(() => {
+	score++;
+	scoreLabel.text = score;
+});
+```
+
+We can use the `action()` function, which takes a function, and runs it every frame. In this case we're going to increment the score, and update the score label's text every frame.
+
 (todo)
 
 Full game code here:
 
 ```js
-import kaboom from "kaboom";
-
 const FLOOR_HEIGHT = 48;
 const JUMP_FORCE = 800;
 const SPEED = 480;
@@ -214,105 +343,105 @@ loadSprite("bean", "sprites/bean.png");
 
 scene("game", () => {
 
-    // define gravity
-    gravity(2400);
+	// define gravity
+	gravity(2400);
 
-    // add a game object to screen
-    const player = add([
-        // list of components
-        sprite("bean"),
-        pos(80, 40),
-        area(),
-        body(),
-    ]);
+	// add a game object to screen
+	const player = add([
+		// list of components
+		sprite("bean"),
+		pos(80, 40),
+		area(),
+		body(),
+	]);
 
-    // floor
-    add([
-        rect(width(), FLOOR_HEIGHT),
-        outline(4),
-        pos(0, height()),
-        origin("botleft"),
-        area(),
-        solid(),
-        color(127, 200, 255),
-    ]);
+	// floor
+	add([
+		rect(width(), FLOOR_HEIGHT),
+		outline(4),
+		pos(0, height()),
+		origin("botleft"),
+		area(),
+		solid(),
+		color(127, 200, 255),
+	]);
 
-    function jump() {
-        if (player.grounded()) {
-            player.jump(JUMP_FORCE);
-        }
-    }
+	function jump() {
+		if (player.grounded()) {
+			player.jump(JUMP_FORCE);
+		}
+	}
 
-    // jump when user press space
-    keyPress("space", jump);
-    mouseClick(jump);
+	// jump when user press space
+	keyPress("space", jump);
+	mouseClick(jump);
 
-    function spawnTree() {
+	function spawnTree() {
 
-        // add tree obj
-        add([
-            rect(48, rand(32, 96)),
-            area(),
-            outline(4),
-            pos(width(), height() - FLOOR_HEIGHT),
-            origin("botleft"),
-            color(255, 180, 255),
-            move(LEFT, SPEED),
-            "tree",
-        ]);
+		// add tree obj
+		add([
+			rect(48, rand(32, 96)),
+			area(),
+			outline(4),
+			pos(width(), height() - FLOOR_HEIGHT),
+			origin("botleft"),
+			color(255, 180, 255),
+			move(LEFT, SPEED),
+			"tree",
+		]);
 
-        // wait a random amount of time to spawn next tree
-        wait(rand(0.5, 1.5), spawnTree);
+		// wait a random amount of time to spawn next tree
+		wait(rand(0.5, 1.5), spawnTree);
 
-    }
+	}
 
-    // start spawning trees
-    spawnTree();
+	// start spawning trees
+	spawnTree();
 
-    // lose if player collides with any game obj with tag "tree"
-    player.collides("tree", () => {
-        // go to "lose" scene and pass the score
-        go("lose", score);
-        burp();
-        addKaboom(player.pos);
-    });
+	// lose if player collides with any game obj with tag "tree"
+	player.collides("tree", () => {
+		// go to "lose" scene and pass the score
+		go("lose", score);
+		burp();
+		addKaboom(player.pos);
+	});
 
-    // keep track of score
-    let score = 0;
+	// keep track of score
+	let score = 0;
 
-    const scoreLabel = add([
-        text(score),
-        pos(24, 24),
-    ]);
+	const scoreLabel = add([
+		text(score),
+		pos(24, 24),
+	]);
 
-    // increment score every frame
-    action(() => {
-        score++;
-        scoreLabel.text = score;
-    });
+	// increment score every frame
+	action(() => {
+		score++;
+		scoreLabel.text = score;
+	});
 
 });
 
 scene("lose", (score) => {
 
-    add([
-        sprite("bean"),
-        pos(width() / 2, height() / 2 - 80),
-        scale(2),
-        origin("center"),
-    ]);
+	add([
+		sprite("bean"),
+		pos(width() / 2, height() / 2 - 80),
+		scale(2),
+		origin("center"),
+	]);
 
-    // display score
-    add([
-        text(score),
-        pos(width() / 2, height() / 2 + 80),
-        scale(2),
-        origin("center"),
-    ]);
+	// display score
+	add([
+		text(score),
+		pos(width() / 2, height() / 2 + 80),
+		scale(2),
+		origin("center"),
+	]);
 
-    // go back to game with space is pressed
-    keyPress("space", () => go("game"));
-    mouseClick(() => go("game"));
+	// go back to game with space is pressed
+	keyPress("space", () => go("game"));
+	mouseClick(() => go("game"));
 
 });
 
