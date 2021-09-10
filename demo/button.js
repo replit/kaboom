@@ -31,3 +31,6 @@ function addButton(txt, p, f) {
 
 addButton("Start", vec2(200, 100), () => debug.log("oh hi"));
 addButton("Quit", vec2(200, 200), () => debug.log("bye"));
+
+// reset cursor to default at frame start for easier cursor management
+action(() => cursor("default"));

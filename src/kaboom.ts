@@ -218,8 +218,6 @@ interface Game {
 	loaded: boolean,
 	events: Record<string, IDList<() => void>>,
 	objEvents: Record<string, IDList<TaggedEvent>>,
-	actions: IDList<() => void>,
-	renders: IDList<() => void>,
 	objs: IDList<GameObj<any>>,
 	timers: IDList<Timer>,
 	cam: Camera,
@@ -271,9 +269,6 @@ const game: Game = {
 	// event callbacks
 	events: {},
 	objEvents: {},
-
-	actions: new IDList(),
-	renders: new IDList(),
 
 	// in game pool
 	objs: new IDList(),
@@ -604,8 +599,9 @@ function on(event: string, tag: Tag, cb: (obj: GameObj<any>) => void): EventCanc
 // add update event to a tag or global update
 function action(tag: Tag | (() => void), cb?: (obj: GameObj<any>) => void): EventCanceller {
 	if (typeof tag === "function" && cb === undefined) {
-		return game.actions.pushd(tag);
+		return add([{ update: tag, }]).destroy;
 	} else if (typeof tag === "string") {
+		// TODO add an empty game obj
 		return on("update", tag, cb);
 	}
 }
@@ -613,7 +609,7 @@ function action(tag: Tag | (() => void), cb?: (obj: GameObj<any>) => void): Even
 // add draw event to a tag or global draw
 function render(tag: Tag | (() => void), cb?: (obj: GameObj<any>) => void) {
 	if (typeof tag === "function" && cb === undefined) {
-		return game.renders.pushd(tag);
+		return add([{ draw: tag, }]).destroy;
 	} else if (typeof tag === "string") {
 		return on("update", tag, cb);
 	}
@@ -906,8 +902,6 @@ function gameFrame(ignorePause?: boolean) {
 			}
 		});
 
-		game.actions.forEach((a) => a());
-
 	}
 
 	// calculate camera matrix
@@ -941,8 +935,6 @@ function gameFrame(ignorePause?: boolean) {
 		}
 
 	});
-
-	game.renders.forEach((r) => r());
 
 }
 
@@ -991,7 +983,7 @@ function drawInspect() {
 	}
 
 	// draw area outline
-	revery((obj) => {
+	every((obj) => {
 
 		if (!obj.area) {
 			return;
@@ -2218,9 +2210,6 @@ function go(id: SceneID, ...args) {
 			draw: new IDList(),
 			destroy: new IDList(),
 		};
-
-		game.actions = new IDList();
-		game.renders = new IDList();
 
 		game.objs.forEach((obj) => {
 			if (!obj.stay) {

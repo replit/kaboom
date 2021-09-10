@@ -19,6 +19,7 @@ function drag() {
 		require: [ "pos", "area", ],
 		// "add" is a lifecycle method gets called when the obj is added to scene
 		add() {
+			// TODO: these need to be checked in reverse order
 			// "this" in all methods refer to the obj
 			this.clicks(() => {
 				if (curDraggin) {
@@ -58,3 +59,6 @@ for (let i = 0; i < 48; i++) {
 		i !== 0 ? color(255, 255, 255) : color(255, 0, 255),
 	]);
 }
+
+// reset cursor to default at frame start for easier cursor management
+action(() => cursor("default"));

@@ -373,8 +373,6 @@ function appInit(gconf: AppConf = {}): App {
 
 		const frame = (t: number) => {
 
-			cursor("default");
-
 			const realTime = t / 1000;
 			const realDt = realTime - app.realTime;
 
