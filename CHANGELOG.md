@@ -175,6 +175,26 @@ loadSprite("hero", "hero.png", {
 });
 ```
 - **BREAK** changed `.play(anim, ifLoop)` under `sprite()` to accept a dict of properties `.play(anim, { loop: true, speed: 60, pingpong: true })`
+- **BREAK** now every symbol definition in `addLevel()` should be a function returning the component list, to ensure there's no weird shared states
+
+```js
+addLevel([
+	"*    *",
+	"*    *",
+	"======",
+], {
+	"*": () => [
+		sprite("wall"),
+		area(),
+		solid(),
+	],
+	"=": () => [
+		sprite("floor"),
+		area(),
+		solid(),
+	],
+})
+```
 
 ### v0.5.1
 - added plugins npm package support e.g. `import asepritePlugin from "kaboom/plugins/aseprite"`
