@@ -162,6 +162,19 @@ obj.c("sprite").play("anim");
 - **BREAK** removed `rmTag()` in favor of `unuse()`
 - **BREAK** removed `camIgnore()` in favor of `fixed()`
 - **BREAK** renamed `makeRng()` to `rng()`
+- sprite animation now supports defining properties like loop and speed in load step and play step
+
+```js
+loadSprite("hero", "hero.png", {
+	sliceX: 9,
+	anims: {
+		idle: { from: 0, to: 3, speed: 3, loop: true },
+		run: { from: 4, to: 7, speed: 10, loop: true },
+		hit: 8,
+	},
+});
+```
+- **BREAK** changed `.play(anim, ifLoop)` under `sprite()` to accept a dict of properties `.play(anim, { loop: true, speed: 60, pingpong: true })`
 
 ### v0.5.1
 - added plugins npm package support e.g. `import asepritePlugin from "kaboom/plugins/aseprite"`

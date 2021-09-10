@@ -1614,6 +1614,9 @@ function area(conf: AreaCompConf = {}): AreaComp {
 interface SpriteCurAnim {
 	name: string,
 	timer: number,
+	loop: boolean,
+	speed: number,
+	pingpong: boolean,
 }
 
 // TODO: clean
@@ -1705,6 +1708,7 @@ function sprite(id: string | SpriteData, conf: SpriteCompConf = {}): SpriteComp 
 			const anim = spr.anims[curAnim.name];
 
 			if (typeof anim === "number") {
+				this.frame = anim;
 				return;
 			}
 
@@ -1714,13 +1718,13 @@ function sprite(id: string | SpriteData, conf: SpriteCompConf = {}): SpriteComp 
 
 			curAnim.timer += dt() * this.animSpeed;
 
-			if (curAnim.timer >= (1 / anim.speed)) {
+			if (curAnim.timer >= (1 / curAnim.speed)) {
 				curAnim.timer = 0;
 				// TODO: clean up
 				if (anim.from > anim.to) {
 					this.frame--;
 					if (this.frame < anim.to) {
-						if (anim.loop) {
+						if (curAnim.loop) {
 							this.frame = anim.from;
 						} else {
 							this.frame++;
@@ -1730,7 +1734,7 @@ function sprite(id: string | SpriteData, conf: SpriteCompConf = {}): SpriteComp 
 				} else {
 					this.frame++;
 					if (this.frame > anim.to) {
-						if (anim.loop) {
+						if (curAnim.loop) {
 							this.frame = anim.from;
 						} else {
 							this.frame--;
@@ -1742,18 +1746,19 @@ function sprite(id: string | SpriteData, conf: SpriteCompConf = {}): SpriteComp 
 
 		},
 
-		play(name: string, loop = true) {
+		// TODO: this conf should be used instead of the sprite data conf, if given
+		play(name: string, conf: SpriteAnimPlayConf = {}) {
 
 			if (!spr) {
 				ready(() => {
-					this.play(name, loop);
+					this.play(name);
 				});
 				return;
 			}
 
 			const anim = spr.anims[name];
 
-			if (anim === undefined) {
+			if (!anim) {
 				throw new Error(`anim not found: ${name}`);
 			}
 
@@ -1764,9 +1769,17 @@ function sprite(id: string | SpriteData, conf: SpriteCompConf = {}): SpriteComp 
 			curAnim = {
 				name: name,
 				timer: 0,
+				loop: conf.loop ?? anim.loop ?? false,
+				pingpong: conf.pingpong ?? anim.pingpong ?? false,
+				speed: conf.speed ?? anim.speed ?? 10,
 			};
 
-			this.frame = anim.from;
+			if (typeof anim === "number") {
+				this.frame = anim;
+			} else {
+				this.frame = anim.from;
+			}
+
 			this.trigger("animPlay", name);
 
 		},

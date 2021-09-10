@@ -1479,11 +1479,30 @@ type SpriteAnim = number | {
 	/**
 	 * If this anim should be played in loop.
 	 */
-	loop: boolean,
+	loop?: boolean,
+	/**
+	 * When looping should it move back instead of go to start frame again.
+	 */
+	pingpong?: boolean,
 	/**
 	 * This anim's speed in frames per second.
 	 */
-	speed: number,
+	speed?: number,
+}
+
+interface SpriteAnimPlayConf {
+	/**
+	 * If this anim should be played in loop.
+	 */
+	loop?: boolean,
+	/**
+	 * When looping should it move back instead of go to start frame again.
+	 */
+	pingpong?: boolean,
+	/**
+	 * This anim's speed in frames per second.
+	 */
+	speed?: number,
 }
 
 /**
@@ -2170,7 +2189,7 @@ interface SpriteComp extends Comp {
 	/**
 	 * Play a piece of anim.
 	 */
-	play(anim: string, loop?: boolean): void;
+	play(anim: string, conf?: SpriteAnimPlayConf): void;
 	/**
 	 * Stop current anim.
 	 */
