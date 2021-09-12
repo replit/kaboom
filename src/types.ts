@@ -1950,6 +1950,9 @@ interface Comp {
 type GameObjID = number;
 
 interface PosComp extends Comp {
+	/**
+	 * Object's current world position.
+	 */
 	pos: Vec2;
 	/**
 	 * Move how many pixels per second. If object is 'solid', it won't move into other 'solid' objects.
@@ -2028,12 +2031,6 @@ type RectSide =
 	| "left"
 	| "right"
 	;
-
-interface PushOut {
-	obj: GameObj<any>,
-	side: RectSide,
-	dis: number,
-}
 
 interface AreaCompConf {
 	/**
@@ -2154,7 +2151,7 @@ interface SpriteCompConf {
 	/**
 	 * Play an anim on start.
 	 */
-	anim?: number,
+	anim?: string,
 	/**
 	 * Frame animation speed scale multiplier.
 	 */
@@ -2279,19 +2276,49 @@ interface OutlineComp extends Comp {
 }
 
 interface Debug {
+	/**
+	 * Pause the whole game.
+	 */
 	paused: boolean,
+	/**
+	 * Draw bounding boxes of all objects with `area()` component, hover to inspect their states.
+	 */
 	inspect: boolean,
+	/**
+	 * Global time scale.
+	 */
 	timeScale: number,
+	/**
+	 * Show the debug log or not.
+	 */
 	showLog: boolean,
+	/**
+	 * Current frames per second.
+	 */
 	fps(): number,
+	/**
+	 * Number of all existing game objects.
+	 */
 	objCount(): number,
+	/**
+	 * Number of draw calls made last frame.
+	 */
 	drawCalls(): number,
+	/**
+	 * Step to the next frame. Useful with pausing.
+	 */
 	stepFrame(): void,
+	/**
+	 * Clear the debug log.
+	 */
 	clearLog(): void,
 	/**
-	 * Log some text to screen.
+	 * Log some text to on screen debug log.
 	 */
 	log(msg: string): void,
+	/**
+	 * Log an error message to on screen debug log.
+	 */
 	error(msg: string): void,
 }
 
@@ -2376,6 +2403,9 @@ interface Timer {
 	 * Timer left.
 	 */
 	time: number,
+	/**
+	 * The action to take after time is up.
+	 */
 	action(): void,
 }
 
@@ -2387,6 +2417,9 @@ interface TimerComp extends Comp {
 }
 
 interface SolidComp extends Comp {
+	/**
+	 * If should stop other solid objects from moving through.
+	 */
 	solid: boolean;
 }
 
