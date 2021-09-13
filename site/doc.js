@@ -359,6 +359,18 @@ keyPress("space", () => {
 					...renderJSDoc(mem),
 				]);
 			})),
+			block("Functions", ctxMembers.map((mem) => {
+				if (!mem.name) {
+					return;
+				}
+				const doc = mem.jsDoc?.[0];
+				const items = [
+				];
+				return t("div", { id: mem.name, class: "item", }, [
+					t("div", { class: "name", }, renderMember(mem)),
+					...renderJSDoc(mem),
+				]);
+			})),
 			block("Types", entries.map((name) => {
 				if (name === "kaboom") {
 					return;
