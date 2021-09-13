@@ -347,18 +347,6 @@ keyPress("space", () => {
 				t("div", { class: "name", }, renderNamedFunc(types["kaboom"])),
 				...renderJSDoc(types["kaboom"]),
 			]),
-			t("div", { class: "section", }, ctxMembers.map((mem) => {
-				if (!mem.name) {
-					return;
-				}
-				const doc = mem.jsDoc?.[0];
-				const items = [
-				];
-				return t("div", { id: mem.name, class: "item", }, [
-					t("div", { class: "name", }, renderMember(mem)),
-					...renderJSDoc(mem),
-				]);
-			})),
 			block("Functions", ctxMembers.map((mem) => {
 				if (!mem.name) {
 					return;
