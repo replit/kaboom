@@ -171,11 +171,6 @@ works all CDNs that supports NPM packages, e.g. jsdelivr, skypack
 [Github Discussions](https://github.com/replit/kaboom/discussions)
 [Discord](https://discord.gg/PCPMteZU)
 
-## License
-- **code** MIT
-- **sprites/** CC BY 4.0
-- **sounds/** CC0
-
 ### Misc
 
 - Thanks to [abrudz](https://github.com/abrudz) for the amazing [APL386 font](https://abrudz.github.io/APL386/)
