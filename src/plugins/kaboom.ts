@@ -17,11 +17,11 @@ interface BoomConf {
 	/**
 	 * Additional ka components.
 	 */
-	kaComps?: CompList<any>,
+	kaComps?: () => CompList<any>,
 	/**
 	 * Additional boom components.
 	 */
-	boomComps?: CompList<any>,
+	boomComps?: () => CompList<any>,
 }
 
 interface Kaboom {
@@ -74,7 +74,7 @@ export default (k: KaboomCtx) => {
 			k.stay(),
 			k.origin("center"),
 			explode(speed, scale),
-			...k.getComps(conf.boomComps),
+			...(conf.boomComps ?? (() => []))(),
 		]);
 
 		const ka = k.add([
@@ -84,7 +84,7 @@ export default (k: KaboomCtx) => {
 			k.stay(),
 			k.origin("center"),
 			k.timer(0.4 / speed, () => ka.use(explode(speed, scale))),
-			...k.getComps(conf.kaComps),
+			...(conf.kaComps ?? (() => []))(),
 		]);
 
 		return {

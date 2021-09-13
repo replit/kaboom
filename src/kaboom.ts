@@ -119,26 +119,8 @@ const logger = loggerInit(gfx, assets, {
 	max: gconf.logMax,
 });
 
-const net = gconf.connect ? netInit(gconf.connect) : null;
-
 const DEF_FONT = "apl386o";
 const DBG_FONT = "sink";
-
-function recv(ty: string, handler: MsgHandler) {
-	if (!net) {
-		throw new Error("not connected to any websockets");
-	}
-	net.recv(ty, (data: any, id: number) => {
-		handler(data, id);
-	});
-}
-
-function send(ty: string, data: any) {
-	if (!net) {
-		throw new Error("not connected to any websockets");
-	}
-	net.send(ty, data);
-}
 
 function dt() {
 	return app.dt() * debug.timeScale;
@@ -578,10 +560,6 @@ function readd(obj: GameObj<any>): GameObj<any> {
 	game.objs.delete(obj._id);
 	obj._id = game.objs.push(obj);
 	return obj;
-}
-
-function getComps<T extends Comp>(comps: DynCompList<T>, ...args): CompList<T> {
-	return (typeof comps === "function" ? comps(...args) : comps) ?? [];
 }
 
 // add an event to a tag
@@ -2458,7 +2436,6 @@ const ctx: KaboomCtx = {
 	get,
 	every,
 	revery,
-	getComps,
 	// comps
 	pos,
 	scale,
@@ -2605,9 +2582,6 @@ app.run(() => {
 		if (progress === 1) {
 			game.loaded = true;
 			game.trigger("load");
-			if (net) {
-				net.connect().catch(logger.error);
-			}
 		} else {
 			const w = width() / 2;
 			const h = 24 / gfx.scale();

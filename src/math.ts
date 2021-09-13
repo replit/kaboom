@@ -451,7 +451,7 @@ function rng(seed: number): RNG {
 	};
 }
 
-function randSeed(seed: number): number {
+function randSeed(seed?: number): number {
 	if (seed != null) {
 		defRNG.seed = seed;
 	}

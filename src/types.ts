@@ -39,6 +39,673 @@ declare function kaboom(conf?: KaboomConf): KaboomCtx;
  */
 interface KaboomCtx {
 	/**
+	 * Create and add a game obj to the scene, from a list of components or tags. The added and returned game obj will contain all methods from each component.
+	 *
+	 * @section Game Obj
+	 *
+	 * @example
+	 * ```js
+	 * // let's add our player character to the screen
+	 * // we use a list of components to define who they are and how they actually work
+	 * const player = add([
+	 *     // it renders as a sprite
+	 *     sprite("mark"),
+	 *     // it has a position
+	 *     pos(100, 200),
+	 *     // it has a collider
+	 *     area(),
+	 *     // it is a physical body which will respond to physics
+	 *     body(),
+	 *     // you can easily make custom components to encapsulate reusable logics
+	 *     doubleJump(),
+	 *     health(8),
+	 *     // give it tags for controlling group behaviors
+	 *     "player",
+	 *     "friendly",
+	 *     // plain objects fields are directly assigned to the game obj
+	 *     {
+	 *         dir: vec2(-1, 0),
+	 *         dead: false,
+	 *         speed: 240,
+	 *     },
+	 * ]);
+	 *
+	 * // .jump is provided by body()
+	 * player.jump();
+
+	 * // .moveTo is provided by pos()
+	 * player.moveTo(100, 200);
+	 *
+	 * // run something every frame
+	 * // player will constantly move towards player.dir, at player.speed per second
+	 * player.action(() => {
+	 *     player.move(player.dir.scale(player.speed));
+	 * });
+	 *
+	 * // .collides is provided by area()
+	 * player.collides("tree", () => {
+	 *     destroy(player);
+	 * });
+	 *
+	 * // run this for all game objs with tag "friendly"
+	 * action("friendly", (friend) => {
+	 *     // .hurt is provided by health()
+	 *     friend.hurt();
+	 * });
+	 *
+	 * // check out #GameObjRaw for stuff that exists for all game objects, independent of its components.
+	 * ```
+	 */
+	add<T>(comps: CompList<T>): GameObj<T>,
+	/**
+	 * Remove the game obj.
+	 *
+	 * @example
+	 * ```js
+	 * // every time froggy collides with anything with tag "fruit", remove it
+	 * froggy.collides("fruit", (fruit) => {
+	 *     destroy(fruit);
+	 * });
+	 * ```
+	 */
+	destroy(obj: GameObj<any>): void,
+	/**
+	 * Get a list of all game objs with certain tag.
+	 *
+	 * @example
+	 * ```js
+	 * // get a list of all game objs with tag "bomb"
+	 * const allBombs = get("bomb");
+	 *
+	 * // without args returns all current objs in the game
+	 * const allObjs = get();
+	 * ```
+	 */
+	get(tag?: Tag): GameObj<any>[],
+	/**
+	 * Run callback on every game obj with certain tag.
+	 *
+	 * @example
+	 * ```js
+	 * // how destroyAll() works
+	 * every("fruit", destroy);
+	 *
+	 * // without tag it runs through every game obj
+	 * every((obj) => {});
+	 * ```
+	 */
+	every<T>(t: Tag, cb: (obj: GameObj<any>) => T): void,
+	every<T>(cb: (obj: GameObj<any>) => T): void,
+	/**
+	 * Run callback on every game obj with certain tag in reverse order.
+	 */
+	revery<T>(t: Tag, cb: (obj: GameObj<any>) => T): void,
+	revery<T>(cb: (obj: GameObj<any>) => T): void,
+	/**
+	 * Remove and re-add the game obj.
+	 *
+	 * @example
+	 * ```js
+	 * // mainly useful when you want to make something to draw on top
+	 * readd(froggy);
+	 * ```
+	 */
+	readd(obj: GameObj<any>): GameObj<any>,
+	/**
+	 * Register an event on all game objs with certain tag.
+	 *
+	 * @example
+	 * ```js
+	 * // a custom event defined by body() comp
+	 * // every time an obj with tag "bomb" hits the floor, destroy it and addKaboom()
+	 * on("ground", "bomb", (bomb) => {
+	 *     destroy(bomb);
+	 *     addKaboom();
+	 * });
+	 * ```
+	 */
+	on(event: string, tag: Tag, cb: (obj: GameObj<any>) => void): EventCanceller,
+	/**
+	 * Register "update" event (runs every frame) on all game objs with certain tag.
+	 *
+	 * @example
+	 * ```js
+	 * // move every "tree" 120 pixels per second to the left, destroy it when it leaves screen
+	 * // there'll be nothing to run if there's no "tree" obj in the scene
+	 * action("tree", (tree) => {
+	 *     tree.move(-120, 0);
+	 *     if (tree.pos.x < 0) {
+	 *         destroy(tree);
+	 *     }
+	 * });
+	 *
+	 * // without tags it just runs it every frame
+	 * action(() => {
+	 *     debug.log("ohhi");
+	 * });
+	 * ```
+	 */
+	action(tag: Tag, cb: (obj: GameObj<any>) => void): EventCanceller,
+	action(cb: () => void): EventCanceller,
+	/**
+	 * Register "draw" event (runs every frame) on all game objs with certain tag. (This is the same as `action()`, but all draw events are run after updates)
+	 */
+	render(tag: Tag, cb: (obj: GameObj<any>) => void): EventCanceller,
+	render(cb: () => void): EventCanceller,
+	/**
+	 * Register event when 2 game objs with certain tags collides. This function spins off an action() when called, please put it at root level and never inside another action().
+	 *
+	 * @example
+	 * ```js
+	 * collides("sun", "earth", () => {
+	 *     addExplosion();
+	 * });
+	 * ```
+	 */
+	collides(
+		t1: Tag,
+		t2: Tag,
+		cb: (a: GameObj<any>, b: GameObj<any>, side?: RectSide) => void,
+	): EventCanceller,
+	/**
+	 * Register event when game objs with certain tags are clicked. This function spins off an action() when called, please put it at root level and never inside another action().
+	 */
+	clicks(
+		tag: Tag,
+		cb: (a: GameObj<any>) => void,
+	): EventCanceller,
+	/**
+	 * Register event when game objs with certain tags are hovered. This function spins off an action() when called, please put it at root level and never inside another action().
+	 */
+	hovers(
+		tag: Tag,
+		cb: (a: GameObj<any>) => void,
+	): EventCanceller,
+	/**
+	 * Remove all game objs with certain tag.
+	 *
+	 * @example
+	 * ```js
+	 * // destroy all objects with tag "bomb" when you click one
+	 * clicks("bomb", () => {
+	 *     destroyAll("bomb");
+	 * });
+	 * ```
+	 */
+	destroyAll(tag: Tag): void,
+	/**
+	 * Position
+	 *
+	 * @section Components
+	 *
+	 * @example
+	 * ```js
+	 * // this game obj will draw the "froggy" sprite at (100, 200)
+	 * add([
+	 *     pos(100, 200),
+	 *     sprite("froggy"),
+	 * ]);
+	 * ```
+	 */
+	pos(x: number, y: number): PosComp,
+	pos(xy: number): PosComp,
+	pos(p: Vec2): PosComp,
+	pos(): PosComp,
+	/**
+	 * Scale.
+	 */
+	scale(x: number, y: number): ScaleComp,
+	scale(xy: number): ScaleComp,
+	scale(s: Vec2): ScaleComp,
+	scale(): ScaleComp,
+	/**
+	 * Rotation (in degrees). (This doesn't work with the area() collider yet)
+	 */
+	rotate(a: number): RotateComp,
+	/**
+	 * Sets color (rgb 0-255).
+	 *
+	 * @example
+	 * ```js
+	 * // blue frog
+	 * add([
+	 *     sprite("froggy"),
+	 *     color(0, 0, 255)
+	 * ]);
+	 * ```
+	 */
+	color(r: number, g: number, b: number): ColorComp,
+	color(c: Color): ColorComp,
+	color(): ColorComp,
+	/**
+	 * Sets opacity (0.0 - 1.0).
+	 */
+	opacity(o?: number): OpacityComp,
+	/**
+	 * Renders as sprite.
+	 *
+	 * @example
+	 * ```js
+	 * // minimal setup
+	 * add([
+	 *     sprite("froggy"),
+	 * ]);
+	 *
+	 * // with config
+	 * const froggy = add([
+	 *     sprite("froggy", {
+	 *         // start with animation "idle"
+	 *         anim: "idle",
+	 *     }),
+	 * ]);
+	 *
+	 * // play / stop an anim
+	 * froggy.play("jump");
+	 * froggy.stop();
+	 *
+	 * // manually setting a frame
+	 * froggy.frame = 3;
+	 * ```
+	 */
+	sprite(spr: string | SpriteData, conf?: SpriteCompConf): SpriteComp,
+	/**
+	 * Renders as text.
+	 *
+	 * @example
+	 * ```js
+	 * // a simple score counter
+	 * const score = add([
+	 *     text("Score: 0"),
+	 *     pos(24, 24),
+	 *     { value: 0 },
+	 * ]);
+	 *
+	 * player.collides("coin", () => {
+	 *     score.value += 1;
+	 *     score.text = "Score:" + score.value;
+	 * });
+	 *
+	 * // set to another default font on start up ("sink" is a pixel font provided by default)
+	 * kaboom({ font: "sink" });
+	 * ```
+	 */
+	text(txt: string, conf?: TextCompConf): TextComp,
+	/**
+	 * Renders as rect.
+	 *
+	 * @example
+	 * ```js
+	 * // i don't know, could be an obstacle or somethign
+	 * add([
+	 *     rect(20, 40),
+	 *     outline(4),
+	 *     area(),
+	 * ]);
+	 * ```
+	 */
+	rect(w: number, h: number): RectComp,
+	/**
+	 * Collider. Will calculate from rendered comps (e.g. from sprite, text, rect) if no params given.
+	 *
+	 * @example
+	 * ```js
+	 * add([
+	 *     sprite("froggy"),
+	 *     // without args it'll auto calculate from the data sprite comp provides
+	 *     area(),
+	 * ]);
+	 *
+	 * add([
+	 *     sprite("bomb"),
+	 *     // scale to 0.6 of the sprite size
+	 *     area({ scale: 0.6 }),
+	 *     // we want the scale to be calculated from the center
+	 *     origin("center"),
+	 * ]);
+	 *
+	 * // define custom area with topleft and botright point
+	 * const player = add([
+	 *     sprite("froggy"),
+	 *     area({ width: 20, height: 40. }),
+	 * ])
+	 *
+	 * // die if player collides with another game obj with tag "tree"
+	 * player.collides("tree", () => {
+	 *     destroy(player);
+	 * });
+	 *
+	 * // push player out of all other game obj with "solid" component
+	 * player.action(() => {
+	 *     player.pushOutAll();
+	 * });
+	 *
+	 * // simple drag an drop
+	 * let draggin = false;
+	 *
+	 * player.clicks(() => {
+	 *     draggin = true;
+	 * });
+	 *
+	 * player.action(() => {
+	 *     if (draggin) {
+	 *         player.pos = mousePos();
+	 *     }
+	 * })
+	 *
+	 * mouseRelease(() => {
+	 *     draggin = false;
+	 * });
+	 *
+	 * // check for collision with another single game obj
+	 * player.action(() => {
+	 *     if (player.isColliding(bomb)) {
+	 *         score += 1;
+	 *     }
+	 * });
+	 *
+	 * // for more methods check out AreaComp
+	 * ```
+	 */
+	area(conf: AreaCompConf): AreaComp,
+	/**
+	 * Origin point for render (default "topleft").
+	 *
+	 * @example
+	 * ```js
+	 * // set origin to "center" so it'll rotate from center
+	 * add([
+	 *     rect(40, 10),
+	 *     rotate(45),
+	 *     origin("center"),
+	 * ]);
+	 * ```
+	 */
+	origin(o: Origin | Vec2): OriginComp,
+	/**
+	 * Which layer this object belongs to.
+	 */
+	layer(l: string): LayerComp,
+	/**
+	 * Determines the draw order for objects on the same layer. Object will be drawn on top if z value is bigger.
+	 */
+	z(z: number): ZComp,
+	/**
+	 * Give obj an outline.
+	 */
+	outline(width?: number, color?: Color): OutlineComp,
+	/**
+	 * Physical body that responds to gravity. Requires "area" and "pos" comp. This also makes the object "solid".
+	 *
+	 * @example
+	 * ```js
+	 * // froggy jumpy
+	 * const froggy = add([
+	 *     sprite("froggy"),
+	 *     // body() requires "pos" and "area" component
+	 *     pos(),
+	 *     area(),
+	 *     body(),
+	 * ]);
+	 *
+	 * // when froggy is grounded, press space to jump
+	 * // check out BodyComp for more methods
+	 * keyPress("space", () => {
+	 *     if (froggy.grounded()) {
+	 *         froggy.jump();
+	 *     }
+	 * });
+	 *
+	 * // a custom event provided by "body"
+	 * froggy.on("ground", () => {
+	 *     debug.log("oh no!");
+	 * });
+	 * ```
+	 */
+	body(conf?: BodyCompConf): BodyComp,
+	/**
+	 * Make other objects cannot move pass. Requires "area" comp.
+	 */
+	solid(): SolidComp,
+	/**
+	 * Move towards a direction infinitely, and destroys when it leaves game view. Requires "pos" comp.
+	 *
+	 * @example
+	 * ```js
+	 * // enemy throwing feces at player
+	 * const projectile = add([
+	 *     sprite("feces"),
+	 *     pos(player.pos),
+	 *     area(),
+	 *     move(player.pos.angle(enemy.pos), 1200),
+	 * ]);
+	 * ```
+	 */
+	move(direction: number | Vec2, speed: number): MoveComp,
+	/**
+	 * Follow another game obj's position.
+	 */
+	follow(obj: GameObj<any> | null, offset?: Vec2): FollowComp,
+	/**
+	 * Custom shader.
+	 */
+	shader(id: string): ShaderComp,
+	/**
+	 * Run certain action after some time.
+	 */
+	timer(n?: number, action?: () => void): TimerComp,
+	/**
+	 * Unaffected by camera.
+	 *
+	 * @example
+	 * ```js
+	 * // this score counter better be fixed on top left and not affected by camera
+	 * const score = add([
+	 *     text(0),
+	 *     pos(12, 12),
+	 * ]);
+	 * ```
+	 */
+	fixed(): FixedComp,
+	/**
+	 * Don't get destroyed on scene switch.
+	 *
+	 * @example
+	 * ```js
+	 * player.collides("bomb", () => {
+	 *     // spawn an explosion and switch scene, but don't destroy the explosion game obj on scene switch
+	 *     add([
+	 *         sprite("explosion", { anim: "burst", }),
+	 *         stay(),
+	 *         lifespan(2),
+	 *     ]);
+	 *     go("lose", score);
+	 * });
+	 * ```
+	 */
+	stay(): StayComp,
+	/**
+	 * Handles health related logic and events.
+	 *
+	 * @example
+	 * ```js
+	 * const player = add([
+	 *     health(3),
+	 * ]);
+	 *
+	 * player.collides("bad", (bad) => {
+	 *     player.hurt(1);
+	 *     bad.hurt(1);
+	 * });
+     *
+	 * player.collides("apple", () => {
+	 *     player.heal(1);
+	 * });
+	 *
+	 * player.on("hurt", () => {
+	 *     play("ouch");
+	 * });
+	 *
+	 * // triggers when hp reaches 0
+	 * player.on("death", () => {
+	 *     destroy(player);
+	 *     go("lose");
+	 * });
+	 * ```
+	 */
+	health(hp: number): HealthComp,
+	/**
+	 * Destroy the game obj after certain amount of time
+	 *
+	 * @example
+	 * ```js
+	 * // spawn an explosion, destroy after 2 seconds and the switch scene
+	 * add([
+	 *     sprite("explosion", { anim: "burst", }),
+	 *     lifespan(2, () => go("lose")),
+	 * ]);
+	 * ```
+	 */
+	lifespan(time: number, action?: () => void): LifespanComp,
+	/**
+	 * Get current mouse position (without camera transform).
+	 *
+	 * @section Input
+	 */
+	mousePos(): Vec2,
+	/**
+	 * Get current mouse position (after camera transform)
+	 */
+	mouseWorldPos(): Vec2,
+	/**
+	 * How much mouse moved last frame.
+	 */
+	mouseDeltaPos(): Vec2,
+	/**
+	 * Registers an event that runs every frame when a key is down.
+	 *
+	 * @example
+	 * ```js
+	 * // move left by SPEED pixels per frame every frame when "left" is being held down
+	 * keyDown("left", () => {
+	 *     froggy.move(-SPEED, 0);
+	 * });
+	 * ```
+	 */
+	keyDown(k: Key, cb: () => void): EventCanceller,
+	/**
+	 * Registers an event that runs when user presses certain key.
+	 *
+	 * @example
+	 * ```js
+	 * // .jump() once when "space" is just being pressed
+	 * keyPress("space", () => {
+	 *     froggy.jump();
+	 * });
+	 * ```
+	 */
+	keyPress(k: Key, cb: () => void): EventCanceller,
+	keyPress(cb: () => void): EventCanceller,
+	/**
+	 * Registers an event that runs when user presses certain key (also fires repeatedly when they key is held).
+	 *
+	 * @example
+	 * ```js
+	 * // delete last character when "backspace" is being pressed and held
+	 * keyPressRep("backspace", () => {
+	 *     input.text = input.text.substring(0, input.text.length - 1);
+	 * });
+	 * ```
+	 */
+	keyPressRep(k: Key, cb: () => void): EventCanceller,
+	keyPressRep(cb: () => void): EventCanceller,
+	/**
+	 * Registers an event that runs when user releases certain key.
+	 */
+	keyRelease(k: Key, cb: () => void): EventCanceller,
+	keyRelease(cb: () => void): EventCanceller,
+	/**
+	 * Registers an event that runs when user inputs text.
+	 *
+	 * @example
+	 * ```js
+	 * // type into input
+	 * charInput((ch) => {
+	 *     input.text += ch;
+	 * });
+	 * ```
+	 */
+	charInput(cb: (ch: string) => void): EventCanceller,
+	/**
+	 * Registers an event that runs every frame when mouse button is down.
+	 */
+	mouseDown(cb: (pos: Vec2) => void): EventCanceller,
+	/**
+	 * Registers an event that runs when user clicks mouse.
+	 */
+	mouseClick(cb: (pos: Vec2) => void): EventCanceller,
+	/**
+	 * Registers an event that runs when user releases mouse.
+	 */
+	mouseRelease(cb: (pos: Vec2) => void): EventCanceller,
+	/**
+	 * Registers an event that runs whenever user move the mouse.
+	 */
+	mouseMove(cb: (pos: Vec2) => void): EventCanceller,
+	/**
+	 * Registers an event that runs when a touch starts.
+	 */
+	touchStart(cb: (id: TouchID, pos: Vec2) => void): EventCanceller,
+	/**
+	 * Registers an event that runs whenever touch moves.
+	 */
+	touchMove(cb: (id: TouchID, pos: Vec2) => void): EventCanceller,
+	/**
+	 * Registers an event that runs when a touch ends.
+	 */
+	touchEnd(cb: (id: TouchID, pos: Vec2) => void): EventCanceller,
+	/**
+	 * If certain key is currently down.
+	 *
+	 * @example
+	 * ```js
+	 * // almost equivalent to the keyPress() example above
+	 * action(() => {
+	 *     if (keyIsDown("left")) {
+	 *         froggy.move(-SPEED, 0);
+	 *     }
+	 * });
+	 * ```
+	 */
+	keyIsDown(k: Key): boolean,
+	/**
+	 * If certain key is just pressed last frame.
+	 */
+	keyIsPressed(k?: Key): boolean,
+	/**
+	 * If certain key is just pressed last frame (accepts help down repeatedly).
+	 */
+	keyIsPressedRep(k?: Key): boolean,
+	/**
+	 * If certain key is just released last frame.
+	 */
+	keyIsReleased(k?: Key): boolean,
+	/**
+	 * If certain mouse is currently down.
+	 */
+	mouseIsDown(): boolean,
+	/**
+	 * If mouse is just clicked last frame.
+	 */
+	mouseIsClicked(): boolean,
+	/**
+	 * If mouse is just released last frame.
+	 */
+	mouseIsReleased(): boolean,
+	/**
+	 * If mouse moved last frame.
+	 */
+	mouseIsMoved(): boolean,
+	/**
 	 * Sets the root for all subsequent resource urls.
 	 *
 	 * @section Assets
@@ -256,226 +923,6 @@ interface KaboomCtx {
 	 */
 	isTouch(): boolean,
 	/**
-	 * Create and add a game obj to the scene, from a list of components or tags. The added and returned game obj will contain all methods from each component.
-	 *
-	 * @section Game Obj
-	 *
-	 * @example
-	 * ```js
-	 * // let's add our player character to the screen
-	 * // we use a list of components to define who they are and how they actually work
-	 * const player = add([
-	 *     // it renders as a sprite
-	 *     sprite("mark"),
-	 *     // it has a position
-	 *     pos(100, 200),
-	 *     // it has a collider
-	 *     area(),
-	 *     // it is a physical body which will respond to physics
-	 *     body(),
-	 *     // you can easily make custom components to encapsulate reusable logics
-	 *     doubleJump(),
-	 *     health(8),
-	 *     // give it tags for controlling group behaviors
-	 *     "player",
-	 *     "friendly",
-	 *     // plain objects fields are directly assigned to the game obj
-	 *     {
-	 *         dir: vec2(-1, 0),
-	 *         dead: false,
-	 *         speed: 240,
-	 *     },
-	 * ]);
-	 *
-	 * // .jump is provided by body()
-	 * player.jump();
-
-	 * // .moveTo is provided by pos()
-	 * player.moveTo(100, 200);
-	 *
-	 * // run something every frame
-	 * // player will constantly move towards player.dir, at player.speed per second
-	 * player.action(() => {
-	 *     player.move(player.dir.scale(player.speed));
-	 * });
-	 *
-	 * // .collides is provided by area()
-	 * player.collides("tree", () => {
-	 *     destroy(player);
-	 * });
-	 *
-	 * // run this for all game objs with tag "friendly"
-	 * action("friendly", (friend) => {
-	 *     // .hurt is provided by health()
-	 *     friend.hurt();
-	 * });
-	 * ```
-	 */
-	add<T>(comps: CompList<T>): GameObj<T>,
-	/**
-	 * Remove the game obj.
-	 *
-	 * @example
-	 * ```js
-	 * // every time froggy collides with anything with tag "fruit", remove it
-	 * froggy.collides("fruit", (fruit) => {
-	 *     destroy(fruit);
-	 * });
-	 * ```
-	 */
-	destroy(obj: GameObj<any>): void,
-	/**
-	 * Remove all game objs with certain tag.
-	 *
-	 * @example
-	 * ```js
-	 * // destroy all objects with tag "bomb" when you click one
-	 * clicks("bomb", () => {
-	 *     destroyAll("bomb");
-	 * });
-	 * ```
-	 */
-	destroyAll(tag: Tag): void,
-	/**
-	 * Get a list of all game objs with certain tag.
-	 *
-	 * @example
-	 * ```js
-	 * // get a list of all game objs with tag "bomb"
-	 * const allBombs = get("bomb");
-	 *
-	 * // without args returns all current objs in the game
-	 * const allObjs = get();
-	 * ```
-	 */
-	get(tag?: Tag): GameObj<any>[],
-	/**
-	 * Run callback on every game obj with certain tag.
-	 *
-	 * @example
-	 * ```js
-	 * // how destroyAll() works
-	 * every("fruit", destroy);
-	 * ```
-	 */
-	every<T>(t: Tag, cb: (obj: GameObj<any>) => T): void,
-	every<T>(cb: (obj: GameObj<any>) => T): void,
-	/**
-	 * Run callback on every game obj with certain tag in reverse order.
-	 */
-	revery<T>(t: Tag, cb: (obj: GameObj<any>) => T): void,
-	revery<T>(cb: (obj: GameObj<any>) => T): void,
-	/**
-	 * Remove and re-add the game obj.
-	 *
-	 * @example
-	 * ```js
-	 * // mainly useful when you want to make something to draw on top
-	 * readd(froggy);
-	 * ```
-	 */
-	readd(obj: GameObj<any>): GameObj<any>,
-	/**
-	 * Get CompList<T> from DynCompList<T>.
-	 */
-	getComps<T>(comps: DynCompList<T>, ...args: any[]): CompList<T>,
-	/**
-	 * Define layers (the last one will be on top).
-	 *
-	 * @example
-	 * ```js
-	 * // defining 3 layers, "ui" will be drawn on top most, with default layer being "game"
-	 * layers([
-	 *     "bg",
-	 *     "game",
-	 *     "ui",
-	 * ], "game");
-	 *
-	 * // use layer() comp to define which layer an obj belongs to
-	 * add([
-	 *     text(score),
-	 *     layer("ui"),
-	 *     fixed(),
-	 * ]);
-	 *
-	 * // without layer() comp it'll fall back to default layer, which is "game"
-	 * add([
-	 *     sprite("froggy"),
-	 * ]);
-	 * ```
-	 */
-	layers(list: string[], def?: string): void,
-	/**
-	 * Register an event on all game objs with certain tag.
-	 *
-	 * @example
-	 * ```js
-	 * // a custom event defined by body() comp
-	 * // every time an obj with tag "bomb" hits the floor, destroy it and addKaboom()
-	 * on("ground", "bomb", (bomb) => {
-	 *     destroy(bomb);
-	 *     addKaboom();
-	 * });
-	 * ```
-	 */
-	on(event: string, tag: Tag, cb: (obj: GameObj<any>) => void): EventCanceller,
-	/**
-	 * Register "update" event (runs every frame) on all game objs with certain tag.
-	 *
-	 * @example
-	 * ```js
-	 * // move every "tree" 120 pixels per second to the left, destroy it when it leaves screen
-	 * // there'll be nothing to run if there's no "tree" obj in the scene
-	 * action("tree", (tree) => {
-	 *     tree.move(-120, 0);
-	 *     if (tree.pos.x < 0) {
-	 *         destroy(tree);
-	 *     }
-	 * });
-	 *
-	 * // without tags it just runs it every frame
-	 * action(() => {
-	 *     debug.log("ohhi");
-	 * });
-	 * ```
-	 */
-	action(tag: Tag, cb: (obj: GameObj<any>) => void): EventCanceller,
-	action(cb: () => void): EventCanceller,
-	/**
-	 * Register "draw" event (runs every frame) on all game objs with certain tag.
-	 */
-	render(tag: Tag, cb: (obj: GameObj<any>) => void): EventCanceller,
-	render(cb: () => void): EventCanceller,
-	/**
-	 * Register event when 2 game objs with certain tags collides. This function spins off an action() when called, please put it at root level and never inside another action().
-	 *
-	 * @example
-	 * ```js
-	 * collides("sun", "earth", () => {
-	 *     addExplosion();
-	 * });
-	 * ```
-	 */
-	collides(
-		t1: Tag,
-		t2: Tag,
-		cb: (a: GameObj<any>, b: GameObj<any>, side?: RectSide) => void,
-	): EventCanceller,
-	/**
-	 * Register event when game objs with certain tags are clicked. This function spins off an action() when called, please put it at root level and never inside another action().
-	 */
-	clicks(
-		tag: Tag,
-		cb: (a: GameObj<any>) => void,
-	): EventCanceller,
-	/**
-	 * Register event when game objs with certain tags are hovered. This function spins off an action() when called, please put it at root level and never inside another action().
-	 */
-	hovers(
-		tag: Tag,
-		cb: (a: GameObj<any>) => void,
-	): EventCanceller,
-	/**
 	 * Camera shake.
 	 *
 	 * @example
@@ -520,513 +967,31 @@ interface KaboomCtx {
 	 */
 	gravity(g: number): number,
 	/**
-	 * Position
-	 *
-	 * @section Components
-	 */
-	pos(x: number, y: number): PosComp,
-	pos(xy: number): PosComp,
-	pos(p: Vec2): PosComp,
-	pos(): PosComp,
-	/**
-	 * Scale.
-	 */
-	scale(x: number, y: number): ScaleComp,
-	scale(xy: number): ScaleComp,
-	scale(s: Vec2): ScaleComp,
-	scale(): ScaleComp,
-	/**
-	 * Rotate (in degrees).
-	 */
-	rotate(a: number): RotateComp,
-	/**
-	 * Sets color (rgb 0-255).
+	 * Define layers (the last one will be on top).
 	 *
 	 * @example
 	 * ```js
-	 * // blue frog
+	 * // defining 3 layers, "ui" will be drawn on top most, with default layer being "game"
+	 * layers([
+	 *     "bg",
+	 *     "game",
+	 *     "ui",
+	 * ], "game");
+	 *
+	 * // use layer() comp to define which layer an obj belongs to
 	 * add([
-	 *     sprite("froggy"),
-	 *     color(0, 0, 255)
+	 *     text(score),
+	 *     layer("ui"),
+	 *     fixed(),
 	 * ]);
-	 * ```
-	 */
-	color(r: number, g: number, b: number): ColorComp,
-	color(c: Color): ColorComp,
-	color(): ColorComp,
-	/**
-	 * Sets opacity (0.0 - 1.0).
-	 */
-	opacity(o?: number): OpacityComp,
-	/**
-	 * Renders as sprite.
 	 *
-	 * @example
-	 * ```js
-	 * // minimal setup
+	 * // without layer() comp it'll fall back to default layer, which is "game"
 	 * add([
 	 *     sprite("froggy"),
 	 * ]);
-	 *
-	 * // with config
-	 * const froggy = add([
-	 *     sprite("froggy", {
-	 *         // start with animation "idle"
-	 *         anim: "idle",
-	 *     }),
-	 * ]);
-	 *
-	 * // play / stop an anim
-	 * froggy.play("jump");
-	 * froggy.stop();
-	 *
-	 * // manually setting a frame
-	 * froggy.frame = 3;
 	 * ```
 	 */
-	sprite(spr: string | SpriteData, conf?: SpriteCompConf): SpriteComp,
-	/**
-	 * Renders as text.
-	 *
-	 * @example
-	 * ```js
-	 * // a simple score counter
-	 * const score = add([
-	 *     text("Score: 0"),
-	 *     pos(24, 24),
-	 *     { value: 0 },
-	 * ]);
-	 *
-	 * player.collides("coin", () => {
-	 *     score.value += 1;
-	 *     score.text = "Score:" + score.value;
-	 * });
-	 *
-	 * // set to another default font on start up ("sink" is a pixel font provided by default)
-	 * kaboom({ font: "sink" });
-	 * ```
-	 */
-	text(txt: string, conf?: TextCompConf): TextComp,
-	/**
-	 * Renders as rect.
-	 *
-	 * @example
-	 * ```js
-	 * // i don't know, could be an obstacle or somethign
-	 * add([
-	 *     rect(20, 40),
-	 *     outline(4),
-	 *     area(),
-	 * ]);
-	 * ```
-	 */
-	rect(w: number, h: number): RectComp,
-	/**
-	 * Collider. Will calculate from rendered comps (e.g. from sprite, text, rect) if no params given.
-	 *
-	 * @example
-	 * ```js
-	 * add([
-	 *     sprite("froggy"),
-	 *     // without args it'll auto calculate from the data sprite comp provides
-	 *     area(),
-	 * ]);
-	 *
-	 * add([
-	 *     sprite("bomb"),
-	 *     // scale to 0.6 of the sprite size
-	 *     area({ scale: 0.6 }),
-	 *     // we want the scale to be calculated from the center
-	 *     origin("center"),
-	 * ]);
-	 *
-	 * // define custom area with topleft and botright point
-	 * const player = add([
-	 *     sprite("froggy"),
-	 *     area({ width: 20, height: 40. }),
-	 * ])
-	 *
-	 * // die if player collides with another game obj with tag "tree"
-	 * player.collides("tree", () => {
-	 *     destroy(player);
-	 * });
-	 *
-	 * // push player out of all other game obj with "solid" component
-	 * player.action(() => {
-	 *     player.pushOutAll();
-	 * });
-	 *
-	 * // simple drag an drop
-	 * let draggin = false;
-	 *
-	 * player.clicks(() => {
-	 *     draggin = true;
-	 * });
-	 *
-	 * player.action(() => {
-	 *     if (draggin) {
-	 *         player.pos = mousePos();
-	 *     }
-	 * })
-	 *
-	 * mouseRelease(() => {
-	 *     draggin = false;
-	 * });
-	 *
-	 * // check for collision with another single game obj
-	 * player.action(() => {
-	 *     if (player.isColliding(bomb)) {
-	 *         score += 1;
-	 *     }
-	 * });
-	 *
-	 * // for more methods check out AreaComp
-	 * ```
-	 */
-	area(conf: AreaCompConf): AreaComp,
-	/**
-	 * Origin point for render (default "topleft").
-	 *
-	 * @example
-	 * ```js
-	 * // set origin to "center" so it'll rotate from center
-	 * add([
-	 *     rect(40, 10),
-	 *     rotate(45),
-	 *     origin("center"),
-	 * ]);
-	 * ```
-	 */
-	origin(o: Origin | Vec2): OriginComp,
-	/**
-	 * Which layer this object belongs to.
-	 */
-	layer(l: string): LayerComp,
-	/**
-	 * Determines the draw order for objects on the same layer. Object will be drawn on top if z value is bigger.
-	 */
-	z(z: number): ZComp,
-	/**
-	 * Move towards a direction infinitely, and destroys when it leaves game view. Requires "pos" comp.
-	 *
-	 * @example
-	 * ```js
-	 * // enemy throwing feces at player
-	 * const projectile = add([
-	 *     sprite("feces"),
-	 *     pos(player.pos),
-	 *     area(),
-	 *     move(player.pos.angle(enemy.pos), 1200),
-	 * ]);
-	 * ```
-	 */
-	move(direction: number | Vec2, speed: number): MoveComp,
-	/**
-	 * Follow another game obj's position.
-	 */
-	follow(obj: GameObj<any> | null, offset?: Vec2): FollowComp,
-	/**
-	 * Give obj an outline.
-	 */
-	outline(width?: number, color?: Color): OutlineComp,
-	/**
-	 * Physical body that responds to gravity. Requires "area" and "pos" comp. This also makes the object "solid".
-	 *
-	 * @example
-	 * ```js
-	 * // froggy jumpy
-	 * const froggy = add([
-	 *     sprite("froggy"),
-	 *     // body() requires "pos" and "area" component
-	 *     pos(),
-	 *     area(),
-	 *     body(),
-	 * ]);
-	 *
-	 * // when froggy is grounded, press space to jump
-	 * // check out BodyComp for more methods
-	 * keyPress("space", () => {
-	 *     if (froggy.grounded()) {
-	 *         froggy.jump();
-	 *     }
-	 * });
-	 *
-	 * // a custom event provided by "body"
-	 * froggy.on("ground", () => {
-	 *     debug.log("oh no!");
-	 * });
-	 * ```
-	 */
-	body(conf?: BodyCompConf): BodyComp,
-	/**
-	 * Custom shader.
-	 */
-	shader(id: string): ShaderComp,
-	/**
-	 * Run certain action after some time.
-	 */
-	timer(n?: number, action?: () => void): TimerComp,
-	/**
-	 * Make other objects cannot move pass. Requires "area" comp.
-	 */
-	solid(): SolidComp,
-	/**
-	 * Unaffected by camera.
-	 *
-	 * @example
-	 * ```js
-	 * // this score counter better be fixed on top left and not affected by camera
-	 * const score = add([
-	 *     text(0),
-	 *     pos(12, 12),
-	 * ]);
-	 * ```
-	 */
-	fixed(): FixedComp,
-	/**
-	 * Don't get destroyed on scene switch.
-	 *
-	 * @example
-	 * ```js
-	 * player.collides("bomb", () => {
-	 *     // spawn an explosion and switch scene, but don't destroy the explosion game obj on scene switch
-	 *     add([
-	 *         sprite("explosion", { anim: "burst", }),
-	 *         stay(),
-	 *         lifespan(2),
-	 *     ]);
-	 *     go("lose", score);
-	 * });
-	 * ```
-	 */
-	stay(): StayComp,
-	/**
-	 * Handles health related logic and events.
-	 *
-	 * @example
-	 * ```js
-	 * const player = add([
-	 *     health(3),
-	 * ]);
-	 *
-	 * player.collides("bad", (bad) => {
-	 *     player.hurt(1);
-	 *     bad.hurt(1);
-	 * });
-     *
-	 * player.collides("apple", () => {
-	 *     player.heal(1);
-	 * });
-	 *
-	 * player.on("hurt", () => {
-	 *     play("ouch");
-	 * });
-	 *
-	 * // triggers when hp reaches 0
-	 * player.on("death", () => {
-	 *     destroy(player);
-	 *     go("lose");
-	 * });
-	 * ```
-	 */
-	health(hp: number): HealthComp,
-	/**
-	 * Destroy the game obj after certain amount of time
-	 *
-	 * @example
-	 * ```js
-	 * // spawn an explosion, destroy after 2 seconds and the switch scene
-	 * add([
-	 *     sprite("explosion", { anim: "burst", }),
-	 *     lifespan(2, () => go("lose")),
-	 * ]);
-	 * ```
-	 */
-	lifespan(time: number, action?: () => void): LifespanComp,
-	/**
-	 * Get / set the cursor (css). Cursor will be reset to "default" every frame so use this in an per-frame action.
-	 *
-	 * @example
-	 * ```js
-	 * hovers("clickable", (c) => {
-	 *     cursor("pointer");
-	 * });
-	 */
-	cursor(c?: Cursor): Cursor,
-	/**
-	 * Load a cursor from a sprite, or custom drawing function.
-	 *
-	 * @example
-	 * ```js
-	 * loadSprite("froggy", "sprites/froggy.png");
-	 *
-	 * // use sprite as cursor
-	 * regCursor("default", "froggy");
-	 * regCursor("pointer", "apple");
-	 *
-	 * // use custom draw func as cursor
-	 * regCursor("crosshair", (pos) => {
-	 *     drawRect(pos, 12, 2);
-	 *     drawRect(pos, 2, 12);
-	 * });
-	 *
-	 * hovers("clickable", (c) => {
-	 *     cursor("pointer");
-	 * });
-	 * ```
-	 */
-	regCursor(c: string, draw: string | ((mpos: Vec2) => void)): void,
-	/**
-	 * Enter / exit fullscreen mode.
-	 *
-	 * @example
-	 * ```js
-	 * // toggle fullscreen mode on "f"
-	 * keyPress("f", (c) => {
-	 *     fullscreen(!fullscreen());
-	 * });
-	 * ```
-	 */
-	fullscreen(f?: boolean): boolean,
-	/**
-	 * Get current mouse position (without camera transform).
-	 *
-	 * @section Input
-	 */
-	mousePos(): Vec2,
-	/**
-	 * Get current mouse position (after camera transform)
-	 */
-	mouseWorldPos(): Vec2,
-	/**
-	 * How much mouse moved last frame.
-	 */
-	mouseDeltaPos(): Vec2,
-	/**
-	 * Registers an event that runs every frame when a key is down.
-	 *
-	 * @example
-	 * ```js
-	 * // move left by SPEED pixels per frame every frame when "left" is being held down
-	 * keyDown("left", () => {
-	 *     froggy.move(-SPEED, 0);
-	 * });
-	 * ```
-	 */
-	keyDown(k: Key, cb: () => void): EventCanceller,
-	/**
-	 * Registers an event that runs when user presses certain key.
-	 *
-	 * @example
-	 * ```js
-	 * // .jump() once when "space" is just being pressed
-	 * keyPress("space", () => {
-	 *     froggy.jump();
-	 * });
-	 * ```
-	 */
-	keyPress(k: Key, cb: () => void): EventCanceller,
-	keyPress(cb: () => void): EventCanceller,
-	/**
-	 * Registers an event that runs when user presses certain key (also fires repeatedly when they key is held).
-	 *
-	 * @example
-	 * ```js
-	 * // delete last character when "backspace" is being pressed and held
-	 * keyPressRep("backspace", () => {
-	 *     input.text = input.text.substring(0, input.text.length - 1);
-	 * });
-	 * ```
-	 */
-	keyPressRep(k: Key, cb: () => void): EventCanceller,
-	keyPressRep(cb: () => void): EventCanceller,
-	/**
-	 * Registers an event that runs when user releases certain key.
-	 */
-	keyRelease(k: Key, cb: () => void): EventCanceller,
-	keyRelease(cb: () => void): EventCanceller,
-	/**
-	 * Registers an event that runs when user inputs text.
-	 *
-	 * @example
-	 * ```js
-	 * // type into input
-	 * charInput((ch) => {
-	 *     input.text += ch;
-	 * });
-	 * ```
-	 */
-	charInput(cb: (ch: string) => void): EventCanceller,
-	/**
-	 * Registers an event that runs every frame when mouse button is down.
-	 */
-	mouseDown(cb: (pos: Vec2) => void): EventCanceller,
-	/**
-	 * Registers an event that runs when user clicks mouse.
-	 */
-	mouseClick(cb: (pos: Vec2) => void): EventCanceller,
-	/**
-	 * Registers an event that runs when user releases mouse.
-	 */
-	mouseRelease(cb: (pos: Vec2) => void): EventCanceller,
-	/**
-	 * Registers an event that runs whenever user move the mouse.
-	 */
-	mouseMove(cb: (pos: Vec2) => void): EventCanceller,
-	/**
-	 * Registers an event that runs when a touch starts.
-	 */
-	touchStart(cb: (id: TouchID, pos: Vec2) => void): EventCanceller,
-	/**
-	 * Registers an event that runs whenever touch moves.
-	 */
-	touchMove(cb: (id: TouchID, pos: Vec2) => void): EventCanceller,
-	/**
-	 * Registers an event that runs when a touch ends.
-	 */
-	touchEnd(cb: (id: TouchID, pos: Vec2) => void): EventCanceller,
-	/**
-	 * If certain key is currently down.
-	 *
-	 * @example
-	 * ```js
-	 * // almost equivalent to the keyPress() example above
-	 * action(() => {
-	 *     if (keyIsDown("left")) {
-	 *         froggy.move(-SPEED, 0);
-	 *     }
-	 * });
-	 * ```
-	 */
-	keyIsDown(k: Key): boolean,
-	/**
-	 * If certain key is just pressed last frame.
-	 */
-	keyIsPressed(k?: Key): boolean,
-	/**
-	 * If certain key is just pressed last frame (accepts help down repeatedly).
-	 */
-	keyIsPressedRep(k?: Key): boolean,
-	/**
-	 * If certain key is just released last frame.
-	 */
-	keyIsReleased(k?: Key): boolean,
-	/**
-	 * If certain mouse is currently down.
-	 */
-	mouseIsDown(): boolean,
-	/**
-	 * If mouse is just clicked last frame.
-	 */
-	mouseIsClicked(): boolean,
-	/**
-	 * If mouse is just released last frame.
-	 */
-	mouseIsReleased(): boolean,
-	/**
-	 * If mouse moved last frame.
-	 */
-	mouseIsMoved(): boolean,
+	layers(list: string[], def?: string): void,
 	/**
 	 * Run the callback every n seconds.
 	 *
@@ -1048,6 +1013,42 @@ interface KaboomCtx {
 	 * Run the callback after n seconds.
 	 */
 	wait(n: number, cb?: () => void): Promise<void>,
+	/**
+	 * Get / set the cursor (css). Cursor will be reset to "default" every frame so use this in an per-frame action.
+	 *
+	 * @example
+	 * ```js
+	 * hovers("clickable", (c) => {
+	 *     cursor("pointer");
+	 * });
+	 * ```
+	 */
+	cursor(c?: Cursor): Cursor,
+	/**
+	 * Load a cursor from a sprite, or custom drawing function.
+	 *
+	 * @example
+	 * ```js
+	 * loadSprite("froggy", "sprites/froggy.png");
+	 *
+	 * // use sprite as cursor
+	 * regCursor("default", "froggy");
+	 * regCursor("pointer", "apple");
+	 * ```
+	 */
+	regCursor(c: string, draw: string | ((mpos: Vec2) => void)): void,
+	/**
+	 * Enter / exit fullscreen mode.
+	 *
+	 * @example
+	 * ```js
+	 * // toggle fullscreen mode on "f"
+	 * keyPress("f", (c) => {
+	 *     fullscreen(!fullscreen());
+	 * });
+	 * ```
+	 */
+	fullscreen(f?: boolean): boolean,
 	/**
 	 * Play a piece of audio, returns a handle to control.
 	 *
@@ -1116,7 +1117,7 @@ interface KaboomCtx {
 	rand(): number,
 	rand<T extends RNGValue>(n: T): T,
 	rand<T extends RNGValue>(a: T, b: T): T,
-	randSeed(seed: number): number,
+	randSeed(seed?: number): number,
 	/**
 	 * Make a 2d vector.
 	 *
@@ -1235,15 +1236,10 @@ interface KaboomCtx {
 	rng(seed: number): RNG,
 	colLineLine(l1: Line, l2: Line): Vec2 | null,
 	colRectRect(r1: Rect, r2: Rect): boolean,
-	drawSprite(id: string | SpriteData, conf?: DrawSpriteConf): void,
-	// TODO: conf type
-	drawText(txt: string, conf?: {}): void,
-	drawRect(pos: Vec2, w: number, h: number, conf?: DrawRectConf): void,
-	drawRectStroke(pos: Vec2, w: number, h: number, conf?: DrawRectStrokeConf): void,
-	drawLine(p1: Vec2, p2: Vec2, conf?: DrawLineConf): void,
-	drawTri(p1: Vec2, p2: Vec2, p3: Vec2, conf?: DrawTriConf): void,
 	/**
 	 * Define a scene.
+	 *
+	 * @section Scene
 	 */
 	scene(id: SceneID, def: SceneDef): void,
 	/**
@@ -1252,6 +1248,8 @@ interface KaboomCtx {
 	go(id: SceneID, ...args: any[]): void,
 	/**
 	 * Construct a level based on symbols.
+	 *
+	 * @section Level
 	 *
 	 * @example
 	 * ```js
@@ -1292,6 +1290,8 @@ interface KaboomCtx {
 	addLevel(map: string[], conf: LevelConf): Level,
 	/**
 	 * Get data from local storage, if not present can set to a default value.
+	 *
+	 * @section Data
 	 */
 	getData<T>(key: string, def?: T): T,
 	/**
@@ -1299,11 +1299,42 @@ interface KaboomCtx {
 	 */
 	setData(key: string, data: any): void,
 	/**
+	 * Draw a sprite.
+	 *
+	 * @section Render
+	 */
+	drawSprite(id: string | SpriteData, conf?: DrawSpriteConf): void,
+	// TODO: conf type
+	drawText(txt: string, conf?: {}): void,
+	drawRect(pos: Vec2, w: number, h: number, conf?: DrawRectConf): void,
+	drawRectStroke(pos: Vec2, w: number, h: number, conf?: DrawRectStrokeConf): void,
+	drawLine(p1: Vec2, p2: Vec2, conf?: DrawLineConf): void,
+	drawTri(p1: Vec2, p2: Vec2, p3: Vec2, conf?: DrawTriConf): void,
+	/**
 	 * Import a plugin.
 	 */
 	plug<T>(plugin: KaboomPlugin<T>): void,
 	/**
 	 * Debug stuff.
+	 *
+	 * @section Misc
+	 *
+	 * @example
+	 * ```js
+	 * // pause the whole game
+	 * debug.paused = true;
+	 *
+	 * // enter inspect mode
+	 * debug.inspect = true;
+	 *
+	 * // in debug mode (on by default, unless disabled by `debug: false` in KaboomConf), some keys are binded to toggle certain debug features:
+	 * // F1: toggle debug.inspect
+	 * // F2: call debug.clearLog()
+	 * // F8: toggle debug.pause
+	 * // F7: decrease debug.timeScale
+	 * // F9: increase debug.timeScale
+	 * // F10: call debug.stepFrame()
+	 * ```
 	 */
 	debug: Debug,
 	/**
@@ -1473,17 +1504,9 @@ interface KaboomConf {
 	 */
 	logMax?: number,
 	/**
-	 * The websocket server to connect.
-	 */
-	connect?: string,
-	/**
 	 * If translate touch events as mouse clicks (default true).
 	 */
 	touchToMouse?: boolean,
-	/**
-	 * If show the virtualDpad on touch devices.
-	 */
-	virtualDPad?: boolean,
 	/**
 	 * If import all kaboom functions to global (default true).
 	 */

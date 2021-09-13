@@ -194,8 +194,15 @@ const css = {
 		"#logo": {
 			"width": "60%",
 		},
+		".title": {
+			"font-weight": "bold",
+			"font-size": "24px",
+		},
 		"#index": {
-			...www.vspace(4),
+			...www.vspace(16),
+			".section": {
+				...www.vspace(8),
+			},
 			"a": {
 				"font-family": "IBM Plex Mono",
 				"display": "table",
@@ -297,15 +304,24 @@ const page = t("html", {}, [
 			t("a", { href: "/", }, [
 				t("img", { id: "logo", src: "/site/img/kaboom.svg" }),
 			]),
-			t("div", { id: "index", }, ctxMembers.map((mem) => {
-				if (!mem.name) {
-					return;
-				}
-				let name = mem.name;
-				if (mem.kind === "MethodSignature") {
-					name += "()";
-				}
-				return t("a", { href: `#${mem.name}`, }, name);
+			t("div", { id: "index" }, sections.map((sec) => {
+				const dups = new Set([]);
+				return t("div", {
+					class: "section",
+				}, [
+					t("div", { class: "title", }, sec.name),
+					t("div", {}, sec.entries.map((mem) => {
+						if (!mem.name || dups.has(mem.name)) {
+							return;
+						}
+						dups.add(mem.name);
+						let name = mem.name;
+						if (mem.kind === "MethodSignature") {
+							name += "()";
+						}
+						return t("a", { href: `#${mem.name}`, }, name);
+					})),
+				]);
 			})),
 		]),
 		t("div", { id: "content", }, [
@@ -343,11 +359,13 @@ keyPress("space", () => {
 				`, "html"),
 				txt("It's recommended to code directly in browser with the Kaboom template on Replit.com"),
 			]),
-			t("div", { class: "item", id: "kaboom", }, [
-				t("div", { class: "name", }, renderNamedFunc(types["kaboom"])),
-				...renderJSDoc(types["kaboom"]),
+			block("Init", [
+				t("div", { class: "item", id: "kaboom", }, [
+					t("div", { class: "name", }, renderNamedFunc(types["kaboom"])),
+					...renderJSDoc(types["kaboom"]),
+				]),
 			]),
-			block("Functions", ctxMembers.map((mem) => {
+			...sections.map((sec) => block(sec.name, sec.entries.map((mem) => {
 				if (!mem.name) {
 					return;
 				}
@@ -358,7 +376,7 @@ keyPress("space", () => {
 					t("div", { class: "name", }, renderMember(mem)),
 					...renderJSDoc(mem),
 				]);
-			})),
+			}))),
 			block("Types", entries.map((name) => {
 				if (name === "kaboom") {
 					return;
