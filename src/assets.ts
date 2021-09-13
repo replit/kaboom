@@ -18,6 +18,8 @@ import apl386oSrc from "./apl386o.png";
 import sinkSrc from "./sink.png";
 // @ts-ignore
 import sinkoSrc from "./sinko.png";
+// @ts-ignore
+import beanSrc from "./bean.png";
 
 type AssetsConf = {
 	errHandler?: (err: string) => void,
@@ -36,7 +38,7 @@ type AssetsCtx = {
 };
 
 type Assets = {
-	loadRoot(path: string): string,
+	loadRoot(path?: string): string,
 	loadSprite(
 		name: string | null,
 		src: SpriteLoadSrc,
@@ -46,6 +48,13 @@ type Assets = {
 		src: SpriteLoadSrc,
 		entries?: Record<string, SpriteAtlasEntry>,
 	): Promise<Record<string, SpriteData>>,
+	loadAseprite(
+		name: string,
+		imgSrc: SpriteLoadSrc,
+		jsonSrc: string
+	): Promise<SpriteData>,
+	loadPedit(name: string, src: string): Promise<SpriteData>,
+	loadBean(name?: string): Promise<SpriteData>,
 	loadSound(
 		name: string | null,
 		src: string,
@@ -131,7 +140,7 @@ function assetsInit(gfx: Gfx, audio: Audio, gconf: AssetsConf = {}): Assets {
 	}
 
 	// global load path prefix
-	function loadRoot(path: string): string {
+	function loadRoot(path?: string): string {
 		if (path !== undefined) {
 			assets.loadRoot = path;
 		}
@@ -288,6 +297,92 @@ function assetsInit(gfx: Gfx, audio: Audio, gconf: AssetsConf = {}): Assets {
 
 	}
 
+	// TODO: accept raw json
+	function loadPedit(name: string, src: string): Promise<SpriteData> {
+
+		const loader = new Promise<SpriteData>((resolve, reject) => {
+
+			fetch(loadRoot() + src)
+				.then((res) => res.json())
+				.then(async (data) => {
+
+					const images = await Promise.all(data.frames.map(loadImg));
+					const canvas = document.createElement("canvas");
+					canvas.width = data.width;
+					canvas.height = data.height * data.frames.length;
+
+					const ctx = canvas.getContext("2d");
+
+					images.forEach((img: HTMLImageElement, i) => {
+						ctx.drawImage(img, 0, i * data.height);
+					});
+
+					return loadSprite(name, canvas, {
+						sliceY: data.frames.length,
+						anims: data.anims,
+					});
+				})
+				.then(resolve)
+				.catch(reject)
+				;
+
+		});
+
+		load(loader);
+
+		return loader;
+
+	}
+
+	// TODO: accept raw json
+	function loadAseprite(name: string, imgSrc: SpriteLoadSrc, jsonSrc: string): Promise<SpriteData> {
+
+		const loader = new Promise<SpriteData>((resolve, reject) => {
+
+				const jsonPath = loadRoot() + jsonSrc;
+
+				loadSprite(name, imgSrc)
+					.then((sprite: SpriteData) => {
+						fetch(jsonPath)
+							.then((res) => res.json())
+							.then((data) => {
+								const size = data.meta.size;
+								sprite.frames = data.frames.map((f: any) => {
+									return quad(
+										f.frame.x / size.w,
+										f.frame.y / size.h,
+										f.frame.w / size.w,
+										f.frame.h / size.h,
+									);
+								});
+								for (const anim of data.meta.frameTags) {
+									if (anim.from === anim.to) {
+										sprite.anims[anim.name] = anim.from
+									} else {
+										sprite.anims[anim.name] = {
+											from: anim.from,
+											to: anim.to,
+											// TODO: let users define these
+											speed: 10,
+											loop: true,
+										};
+									}
+								}
+								resolve(sprite);
+							})
+							.catch(reject)
+							;
+					})
+					.catch(reject);
+
+			});
+
+		load(loader);
+
+		return loader;
+
+	}
+
 	function loadShader(
 		name: string | null,
 		vert?: string,
@@ -328,7 +423,6 @@ function assetsInit(gfx: Gfx, audio: Audio, gconf: AssetsConf = {}): Assets {
 			}
 
 			if (isUrl) {
-
 				Promise.all([resolveUrl(vert), resolveUrl(frag)])
 					.then(([vcode, fcode]: [string | null, string | null]) => {
 						resolve(loadRawShader(name, vcode, fcode));
@@ -397,6 +491,10 @@ function assetsInit(gfx: Gfx, audio: Audio, gconf: AssetsConf = {}): Assets {
 
 	}
 
+	function loadBean(name: string = "bean"): Promise<SpriteData> {
+		return loadSprite(name, beanSrc);
+	}
+
 	loadFont(
 		"apl386",
 		apl386Src,
@@ -432,6 +530,9 @@ function assetsInit(gfx: Gfx, audio: Audio, gconf: AssetsConf = {}): Assets {
 		loadRoot,
 		loadSprite,
 		loadSpriteAtlas,
+		loadPedit,
+		loadAseprite,
+		loadBean,
 		loadSound,
 		loadFont,
 		loadShader,

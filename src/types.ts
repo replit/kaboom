@@ -780,6 +780,30 @@ interface KaboomCtx {
 		entries?: Record<string, SpriteAtlasEntry>,
 	): Promise<Record<string, SpriteData>>,
 	/**
+	 * Load a sprite with aseprite spritesheet json.
+	 *
+	 * @example
+	 * ```js
+	 * loadAseprite("car", "sprites/car.png", "sprites/car.json");
+	 * ```
+	 */
+	loadAseprite(name: string, imgSrc: SpriteLoadSrc, jsonSrc: string): Promise<SpriteData>,
+	loadPedit(name: string, src: string): Promise<SpriteData>,
+	/**
+	 * Load default sprite "bean".
+	 *
+	 * @example
+	 * ```js
+	 * loadBean();
+	 *
+	 * // use it right away
+	 * add([
+	 *     sprite("bean"),
+	 * ]);
+	 * ```
+	 */
+	loadBean(name?: string): Promise<SpriteData>,
+	/**
 	 * Load a sound into asset manager, with name and resource url.
 	 *
 	 * @example

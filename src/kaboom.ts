@@ -54,9 +54,6 @@ import {
 	netInit,
 } from "./net";
 
-import beanPlugin from "./plugins/bean";
-import peditPlugin from "./plugins/pedit";
-import asepritePlugin from "./plugins/aseprite";
 import kaboomPlugin from "./plugins/kaboom";
 
 class IDList<T> extends Map<number, T> {
@@ -2404,6 +2401,9 @@ const ctx: KaboomCtx = {
 	loadSound: assets.loadSound,
 	loadFont: assets.loadFont,
 	loadShader: assets.loadShader,
+	loadAseprite: assets.loadAseprite,
+	loadPedit: assets.loadPedit,
+	loadBean: assets.loadBean,
 	load: assets.load,
 	// query
 	width,
@@ -2548,9 +2548,6 @@ const ctx: KaboomCtx = {
 	canvas: app.canvas,
 };
 
-plug(beanPlugin);
-plug(peditPlugin);
-plug(asepritePlugin);
 plug(kaboomPlugin);
 
 if (gconf.plugins) {

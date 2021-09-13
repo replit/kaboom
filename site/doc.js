@@ -342,7 +342,7 @@ kaboom();
 // load the default sprite "bean"
 loadBean();
 
-// add a game obj to screen, with multiple components
+// add a game obj to screen, from a list of components
 const froggy = add([
     sprite("bean", 32),
     pos(120, 80),
@@ -350,14 +350,35 @@ const froggy = add([
     body(),
 ]);
 
+// add a platform
+add([
+	pos(0, 480),
+	rect(width(), 48),
+	outline(4),
+	solid(),
+	area(),
+])
+
 // jump when user presses "space"
 keyPress("space", () => {
     froggy.jump();
 });
 
+// move input focus to the game
+focus();
+
 </script>
 				`, "html"),
-				txt("It's recommended to code directly in browser with the Kaboom template on Replit.com"),
+				txt(["It's recommended to code directly in browser with the Kaboom template on ", t("a", { href: "https://replit.com/@replit/Kaboom" }, "Replit.com")]),
+				txt("Also can be used with NPM"),
+				code(`
+$ npm install kaboom
+				`, "sh"),
+				code(`
+import kaboom from "kaboom";
+
+kaboom();
+				`),
 			]),
 			block("Init", [
 				t("div", { class: "item", id: "kaboom", }, [
