@@ -57,7 +57,6 @@ import {
 import beanPlugin from "./plugins/bean";
 import peditPlugin from "./plugins/pedit";
 import asepritePlugin from "./plugins/aseprite";
-import levelPlugin from "./plugins/level";
 import kaboomPlugin from "./plugins/kaboom";
 
 class IDList<T> extends Map<number, T> {
@@ -2278,6 +2277,147 @@ function center(): Vec2 {
 	return vec2(width() / 2, height() / 2);
 }
 
+function grid(level: Level, p: Vec2) {
+
+	return {
+
+		id: "grid",
+		gridPos: p.clone(),
+
+		setGridPos(p: Vec2) {
+			this.gridPos = p.clone();
+			this.pos = vec2(
+				level.offset().x + this.gridPos.x * level.gridWidth(),
+				level.offset().y + this.gridPos.y * level.gridHeight()
+			);
+		},
+
+		moveLeft() {
+			this.setGridPos(this.gridPos.add(vec2(-1, 0)));
+		},
+
+		moveRight() {
+			this.setGridPos(this.gridPos.add(vec2(1, 0)));
+		},
+
+		moveUp() {
+			this.setGridPos(this.gridPos.add(vec2(0, -1)));
+		},
+
+		moveDown() {
+			this.setGridPos(this.gridPos.add(vec2(0, 1)));
+		},
+
+	};
+
+}
+
+function addLevel(map: string[], conf: LevelConf): Level {
+
+	if (!conf.width || !conf.height) {
+		throw new Error("Must provide level grid width & height.");
+	}
+
+	const objs: GameObj<any>[] = [];
+	const offset = vec2(conf.pos || vec2(0));
+	let longRow = 0;
+
+	const level = {
+
+		offset() {
+			return offset.clone();
+		},
+
+		gridWidth() {
+			return conf.width;
+		},
+
+		gridHeight() {
+			return conf.height;
+		},
+
+		getPos(...args): Vec2 {
+			// @ts-ignore
+			const p = vec2(...args);
+			return vec2(
+				offset.x + p.x * conf.width,
+				offset.y + p.y * conf.height
+			);
+		},
+
+		spawn(sym: string, p: Vec2): GameObj<any> {
+
+			const comps = (() => {
+				if (conf[sym]) {
+					if (typeof conf[sym] !== "function") {
+						throw new Error("level symbol def must be a function returning a component list");
+					}
+					return conf[sym]();
+				} else if (conf.any) {
+					return conf.any(sym);
+				}
+			})();
+
+			if (!comps) {
+				return;
+			}
+
+			const posComp = vec2(
+				offset.x + p.x * conf.width,
+				offset.y + p.y * conf.height
+			);
+
+			for (const comp of comps) {
+				if (comp.id === "pos") {
+					posComp.x += comp.pos.x;
+					posComp.y += comp.pos.y;
+					break;
+				}
+			}
+
+			comps.push(pos(posComp));
+			comps.push(grid(this, p));
+
+			const obj = add(comps);
+
+			objs.push(obj);
+
+			return obj;
+
+		},
+
+		width() {
+			return longRow * conf.width;
+		},
+
+		height() {
+			return map.length * conf.height;
+		},
+
+		destroy() {
+			for (const obj of objs) {
+				destroy(obj);
+			}
+		},
+
+	};
+
+	map.forEach((row, i) => {
+
+		const syms = row.split("");
+
+		longRow = Math.max(syms.length, longRow);
+
+		syms.forEach((sym, j) => {
+			level.spawn(sym, vec2(j, i));
+		});
+
+	});
+
+	return level;
+
+}
+
 const ctx: KaboomCtx = {
 	// asset load
 	loadRoot: assets.loadRoot,
@@ -2412,6 +2552,8 @@ const ctx: KaboomCtx = {
 	// scene
 	scene,
 	go,
+	// level
+	addLevel,
 	// storage
 	getData,
 	setData,
@@ -2432,7 +2574,6 @@ const ctx: KaboomCtx = {
 plug(beanPlugin);
 plug(peditPlugin);
 plug(asepritePlugin);
-plug(levelPlugin);
 plug(kaboomPlugin);
 
 if (gconf.plugins) {

@@ -1251,6 +1251,46 @@ interface KaboomCtx {
 	 */
 	go(id: SceneID, ...args: any[]): void,
 	/**
+	 * Construct a level based on symbols.
+	 *
+	 * @example
+	 * ```js
+	 * // example from demo/platformer.js
+	 * addLevel([
+	 *     "                          $",
+	 *     "                          $",
+	 *     "                          $",
+	 *     "           $$         =   $",
+	 *     "  %      ====         =   $",
+	 *     "                      =   $",
+	 *     "                      =    ",
+	 *     "       ^^      = >    =   @",
+	 *     "===========================",
+	 * ], {
+	 *     // define the size of each block
+	 *     width: 32,
+	 *     height: 32,
+	 *     // define what each symbol means, by a function returning a comp list (what you'll pass to add())
+	 *     "=": () => [
+	 *         sprite("floor"),
+	 *         area(),
+	 *         solid(),
+	 *     ],
+	 *     "$": () => [
+	 *         sprite("coin"),
+	 *         area(),
+	 *         pos(0, -9),
+	 *     ],
+	 *     "^": () => [
+	 *         sprite("spike"),
+	 *         area(),
+	 *         "danger",
+	 *     ],
+	 * });
+	 * ```
+	 */
+	addLevel(map: string[], conf: LevelConf): Level,
+	/**
 	 * Get data from local storage, if not present can set to a default value.
 	 */
 	getData<T>(key: string, def?: T): T,
@@ -2457,4 +2497,36 @@ interface HealthComp extends Comp {
 }
 
 interface LifespanComp extends Comp {
+}
+
+interface LevelConf {
+	/**
+	 * Grid width (width of each block).
+	 */
+	width: number,
+	/**
+	 * Grid height (height of each block).
+	 */
+	height: number,
+	/**
+	 * Position of the first block.
+	 */
+	pos?: Vec2,
+	/**
+	 * Called when encountered an undefined symbol.
+	 */
+	any(s: string): CompList<any> | undefined,
+	// TODO: should return CompList<any>
+	[sym: string]: any,
+}
+
+interface Level {
+	getPos(p: Vec2): Vec2,
+	spawn(sym: string, p: Vec2): GameObj<any>,
+	width(): number,
+	height(): number,
+	gridWidth(): number,
+	gridHeight(): number,
+	offset(): Vec2,
+	destroy(),
 }
