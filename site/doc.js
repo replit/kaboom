@@ -357,6 +357,7 @@ add([
 	outline(4),
 	solid(),
 	area(),
+	color(127, 200, 255),
 ])
 
 // jump when user presses "space"
