@@ -172,9 +172,9 @@ works all CDNs that supports NPM packages, e.g. jsdelivr, skypack
 [Discord](https://discord.gg/PCPMteZU)
 
 ## License
-- **lib** MIT
-- **sprites/\*** CC BY-NC-SA 4.0 for everything with eyes, CC0 for everything else
-- **sounds/\***
+- **code** MIT
+- **sprites/** CC BY 4.0
+- **sounds/** CC0
 
 ### Misc
 
