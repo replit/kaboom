@@ -591,7 +591,7 @@ interface KaboomCtx {
 	 * });
 	 * ```
 	 */
-	keyDown(k: Key, cb: () => void): EventCanceller,
+	keyDown(k: Key | Key[], cb: () => void): EventCanceller,
 	/**
 	 * Registers an event that runs when user presses certain key.
 	 *
@@ -603,7 +603,7 @@ interface KaboomCtx {
 	 * });
 	 * ```
 	 */
-	keyPress(k: Key, cb: () => void): EventCanceller,
+	keyPress(k: Key | Key[], cb: () => void): EventCanceller,
 	keyPress(cb: () => void): EventCanceller,
 	/**
 	 * Registers an event that runs when user presses certain key (also fires repeatedly when they key is held).
@@ -616,12 +616,12 @@ interface KaboomCtx {
 	 * });
 	 * ```
 	 */
-	keyPressRep(k: Key, cb: () => void): EventCanceller,
+	keyPressRep(k: Key | Key[], cb: () => void): EventCanceller,
 	keyPressRep(cb: () => void): EventCanceller,
 	/**
 	 * Registers an event that runs when user releases certain key.
 	 */
-	keyRelease(k: Key, cb: () => void): EventCanceller,
+	keyRelease(k: Key | Key[], cb: () => void): EventCanceller,
 	keyRelease(cb: () => void): EventCanceller,
 	/**
 	 * Registers an event that runs when user inputs text.
