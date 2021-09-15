@@ -9,12 +9,11 @@ const t1 = cp.spawn("node", [
 });
 
 const t2 = cp.spawn("node", [
-	"../scripts/watch.js", ".",
-	"node", "server.js"
+	"scripts/watch.js", "site",
+	"npm", "--silent", "run", "site"
 ], {
 	stdio: "inherit",
 	detached: true,
-	cwd: "site",
 });
 
 process.on("SIGINT", () => {

@@ -46,7 +46,11 @@ type Assets = {
 	): Promise<SpriteData>,
 	loadSpriteAtlas(
 		src: SpriteLoadSrc,
-		entries?: Record<string, SpriteAtlasEntry>,
+		data: SpriteAtlasData,
+	): Promise<Record<string, SpriteData>>,
+	loadSpriteAtlas(
+		src: SpriteLoadSrc,
+		url: string,
 	): Promise<Record<string, SpriteData>>,
 	loadAseprite(
 		name: string,

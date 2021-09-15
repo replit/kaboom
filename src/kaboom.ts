@@ -520,16 +520,12 @@ function make<T>(comps: CompList<T>): GameObj<T> {
 
 		},
 
-		_inspect() {
-
+		inspect() {
 			const info = {};
-
 			for (const [tag, comp] of compStates) {
 				info[tag] = comp.inspect ? comp.inspect() : null;
 			}
-
 			return info;
-
 		},
 
 	};
@@ -560,7 +556,7 @@ function readd(obj: GameObj<any>): GameObj<any> {
 }
 
 // add an event to a tag
-function on(event: string, tag: Tag, cb: (obj: GameObj<any>) => void): EventCanceller {
+function on(event: string, tag: Tag, cb: (obj: GameObj<any>, ...args) => void): EventCanceller {
 	if (!game.objEvents[event]) {
 		game.objEvents[event] = new IDList();
 	}
@@ -591,15 +587,18 @@ function render(tag: Tag | (() => void), cb?: (obj: GameObj<any>) => void) {
 
 // add an event that runs with objs with t1 collides with objs with t2
 function collides(
-	t1: string,
-	t2: string,
+	t1: Tag,
+	t2: Tag,
 	f: (a: GameObj<any>, b: GameObj<any>) => void,
 ): EventCanceller {
-	return action(t1, (o1: GameObj<any>) => {
+	const e1 = on("collide", t1, (a, b, side) => b.is(t2) && f(a, b));
+	const e2 = on("collide", t1, (a, b, side) => b.is(t1) && f(b, a));
+	const e3 = action(t1, (o1: GameObj<any>) => {
 		o1._checkCollisions(t2, (o2) => {
 			f(o1, o2);
 		});
 	});
+	return () => [e1, e2, e3].forEach((f) => f());
 }
 
 // add an event that runs when objs with tag t is clicked
@@ -999,7 +998,7 @@ function drawInspect() {
 	if (inspecting) {
 
 		const lines = [];
-		const data = inspecting._inspect();
+		const data = inspecting.inspect();
 
 		for (const tag in data) {
 			if (data[tag]) {
@@ -1442,18 +1441,9 @@ function area(conf: AreaCompConf = {}): AreaComp {
 		},
 
 		collides(tag: Tag, f: (o: GameObj<any>, side?: RectSide) => void): EventCanceller {
-			const e1 = this.action(() => {
-				this._checkCollisions(tag, f);
-			});
-			const e2 = this.on("collide", (obj, side) => {
-				if (obj.is(tag)) {
-					f(obj, side);
-				}
-			});
-			return () => {
-				e1();
-				e2();
-			};
+			const e1 = this.action(() => this._checkCollisions(tag, f));
+			const e2 = this.on("collide", (obj, side) => obj.is(tag) && f(obj, side));
+			return () => [e1, e2].forEach((f) => f());
 		},
 
 		hasPt(pt: Vec2): boolean {

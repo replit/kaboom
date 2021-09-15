@@ -164,7 +164,7 @@ interface KaboomCtx {
 	 * });
 	 * ```
 	 */
-	on(event: string, tag: Tag, cb: (obj: GameObj<any>) => void): EventCanceller,
+	on(event: string, tag: Tag, cb: (obj: GameObj<any>, ...args) => void): EventCanceller,
 	/**
 	 * Register "update" event (runs every frame) on all game objs with certain tag.
 	 *
@@ -1476,6 +1476,10 @@ interface GameObjRaw {
 	 * Get state for a specific comp.
 	 */
 	c(id: Tag): Comp;
+	/**
+	 * Gather debug info of all comps.
+	 */
+	inspect(): Record<Tag, string | null>;
 }
 
 /**
