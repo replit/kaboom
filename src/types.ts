@@ -773,11 +773,18 @@ interface KaboomCtx {
 	 * ]);
 	 *
 	 * player.play("run");
+	 *
+	 * // or load from json file, see SpriteAtlasData type for format spec
+	 * loadSpriteAtlas("sprites/dungeon.png", "sprites/dungeon.json");
 	 * ```
 	 */
 	loadSpriteAtlas(
 		src: SpriteLoadSrc,
-		entries?: Record<string, SpriteAtlasEntry>,
+		data: SpriteAtlasData,
+	): Promise<Record<string, SpriteData>>,
+	loadSpriteAtlas(
+		src: SpriteLoadSrc,
+		url: string,
 	): Promise<Record<string, SpriteData>>,
 	/**
 	 * Load a sprite with aseprite spritesheet json.
@@ -787,7 +794,11 @@ interface KaboomCtx {
 	 * loadAseprite("car", "sprites/car.png", "sprites/car.json");
 	 * ```
 	 */
-	loadAseprite(name: string, imgSrc: SpriteLoadSrc, jsonSrc: string): Promise<SpriteData>,
+	loadAseprite(
+		name: string | null,
+		imgSrc: SpriteLoadSrc,
+		jsonSrc: string
+	): Promise<SpriteData>,
 	loadPedit(name: string, src: string): Promise<SpriteData>,
 	/**
 	 * Load default sprite "bean".
@@ -1597,6 +1608,7 @@ interface SpriteAnimPlayConf {
  */
 type SpriteAnims = Record<string, SpriteAnim>
 
+// TODO: support frameWidth and frameHeight as alternative to slice
 /**
  * Sprite loading configuration.
  */
@@ -1607,6 +1619,8 @@ interface SpriteLoadConf {
 	filter?: TexFilter,
 	wrap?: TexWrap,
 }
+
+type SpriteAtlasData = Record<string, SpriteAtlasEntry>;
 
 interface SpriteAtlasEntry {
 	x: number,

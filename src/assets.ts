@@ -113,13 +113,13 @@ function assetsInit(gfx: Gfx, audio: Audio, gconf: AssetsConf = {}): Assets {
 		shaders: {},
 	};
 
-	function load<T>(prom: Promise<T>) {
+	function load<T>(prom: Promise<T>): Promise<T> {
 		const id = assets.lastLoaderID;
 		assets.loaders[id] = false;
 		assets.lastLoaderID++;
-		prom
+		return prom
 			.catch(gconf.errHandler ?? console.error)
-			.finally(() => assets.loaders[id] = true);
+			.finally(() => assets.loaders[id] = true) as Promise<T>;
 	}
 
 	// get current load progress
@@ -155,11 +155,8 @@ function assetsInit(gfx: Gfx, audio: Audio, gconf: AssetsConf = {}): Assets {
 		gh: number,
 		conf: FontLoadConf = {},
 	): Promise<FontData> {
-
-		const loader = new Promise<FontData>((resolve, reject) => {
-
+		return load(new Promise<FontData>((resolve, reject) => {
 			const path = isDataUrl(src) ? src : assets.loadRoot + src;
-
 			loadImg(path)
 				.then((img) => {
 					const font = gfx.makeFont(gfx.makeTex(img, conf), gw, gh, conf.chars ?? ASCII_CHARS);
@@ -169,13 +166,7 @@ function assetsInit(gfx: Gfx, audio: Audio, gconf: AssetsConf = {}): Assets {
 					resolve(font);
 				})
 				.catch(reject);
-
-		});
-
-		load(loader);
-
-		return loader;
-
+		}));
 	}
 
 	function getSprite(name: string): SpriteData | null {
@@ -211,17 +202,21 @@ function assetsInit(gfx: Gfx, audio: Audio, gconf: AssetsConf = {}): Assets {
 		return frames;
 	}
 
-	// TODO: accept json url for entries
 	function loadSpriteAtlas(
 		src: SpriteLoadSrc,
-		entries: Record<string, SpriteAtlasEntry>
+		data: SpriteAtlasData | string
 	): Promise<Record<string, SpriteData>> {
-		return loadSprite(null, src).then((atlas) => {
+		if (typeof data === "string") {
+			return load(fetch(loadRoot() + data)
+				.then((res) => res.json())
+				.then((data2) => loadSpriteAtlas(src, data2)));
+		}
+		return load(loadSprite(null, src).then((atlas) => {
 			const map = {};
 			const w = atlas.tex.width;
 			const h = atlas.tex.height;
-			for (const name in entries) {
-				const info = entries[name];
+			for (const name in data) {
+				const info = data[name];
 				const spr = {
 					tex: atlas.tex,
 					frames: slice(info.sliceX, info.sliceY, info.x / w, info.y / h, info.width / w, info.height / h),
@@ -231,7 +226,7 @@ function assetsInit(gfx: Gfx, audio: Audio, gconf: AssetsConf = {}): Assets {
 				map[name] = spr;
 			}
 			return map;
-		});
+		}));
 	}
 
 	// load a sprite to asset manager
@@ -273,7 +268,7 @@ function assetsInit(gfx: Gfx, audio: Audio, gconf: AssetsConf = {}): Assets {
 
 		}
 
-		const loader = new Promise<SpriteData>((resolve, reject) => {
+		return load(new Promise<SpriteData>((resolve, reject) => {
 
 			if (!src) {
 				return reject(`expected sprite src for "${name}"`);
@@ -289,18 +284,14 @@ function assetsInit(gfx: Gfx, audio: Audio, gconf: AssetsConf = {}): Assets {
 				resolve(loadRawSprite(name, src, conf));
 			}
 
-		});
-
-		load(loader);
-
-		return loader;
+		}));
 
 	}
 
 	// TODO: accept raw json
 	function loadPedit(name: string, src: string): Promise<SpriteData> {
 
-		const loader = new Promise<SpriteData>((resolve, reject) => {
+		return load(new Promise<SpriteData>((resolve, reject) => {
 
 			fetch(loadRoot() + src)
 				.then((res) => res.json())
@@ -326,60 +317,56 @@ function assetsInit(gfx: Gfx, audio: Audio, gconf: AssetsConf = {}): Assets {
 				.catch(reject)
 				;
 
-		});
-
-		load(loader);
-
-		return loader;
+		}));
 
 	}
 
 	// TODO: accept raw json
-	function loadAseprite(name: string, imgSrc: SpriteLoadSrc, jsonSrc: string): Promise<SpriteData> {
+	function loadAseprite(
+		name: string | null,
+		imgSrc: SpriteLoadSrc,
+		jsonSrc: string
+	): Promise<SpriteData> {
 
-		const loader = new Promise<SpriteData>((resolve, reject) => {
+		return load(new Promise<SpriteData>((resolve, reject) => {
 
-				const jsonPath = loadRoot() + jsonSrc;
+			const jsonPath = loadRoot() + jsonSrc;
 
-				loadSprite(name, imgSrc)
-					.then((sprite: SpriteData) => {
-						fetch(jsonPath)
-							.then((res) => res.json())
-							.then((data) => {
-								const size = data.meta.size;
-								sprite.frames = data.frames.map((f: any) => {
-									return quad(
-										f.frame.x / size.w,
-										f.frame.y / size.h,
-										f.frame.w / size.w,
-										f.frame.h / size.h,
-									);
-								});
-								for (const anim of data.meta.frameTags) {
-									if (anim.from === anim.to) {
-										sprite.anims[anim.name] = anim.from
-									} else {
-										sprite.anims[anim.name] = {
-											from: anim.from,
-											to: anim.to,
-											// TODO: let users define these
-											speed: 10,
-											loop: true,
-										};
-									}
+			loadSprite(name, imgSrc)
+				.then((sprite: SpriteData) => {
+					fetch(jsonPath)
+						.then((res) => res.json())
+						.then((data) => {
+							const size = data.meta.size;
+							sprite.frames = data.frames.map((f: any) => {
+								return quad(
+									f.frame.x / size.w,
+									f.frame.y / size.h,
+									f.frame.w / size.w,
+									f.frame.h / size.h,
+								);
+							});
+							for (const anim of data.meta.frameTags) {
+								if (anim.from === anim.to) {
+									sprite.anims[anim.name] = anim.from
+								} else {
+									sprite.anims[anim.name] = {
+										from: anim.from,
+										to: anim.to,
+										// TODO: let users define these
+										speed: 10,
+										loop: true,
+									};
 								}
-								resolve(sprite);
-							})
-							.catch(reject)
-							;
-					})
-					.catch(reject);
+							}
+							resolve(sprite);
+						})
+						.catch(reject)
+						;
+				})
+				.catch(reject);
 
-			});
-
-		load(loader);
-
-		return loader;
+		}));
 
 	}
 
@@ -402,7 +389,7 @@ function assetsInit(gfx: Gfx, audio: Audio, gconf: AssetsConf = {}): Assets {
 			return shader;
 		}
 
-		const loader = new Promise<ShaderData>((resolve, reject) => {
+		return load(new Promise<ShaderData>((resolve, reject) => {
 
 			if (!vert && !frag) {
 				return reject("no shader");
@@ -436,11 +423,7 @@ function assetsInit(gfx: Gfx, audio: Audio, gconf: AssetsConf = {}): Assets {
 				}
 			}
 
-		});
-
-		load(loader);
-
-		return loader;
+		}));
 
 	}
 
@@ -453,7 +436,7 @@ function assetsInit(gfx: Gfx, audio: Audio, gconf: AssetsConf = {}): Assets {
 
 		const url = assets.loadRoot + src;
 
-		const loader = new Promise<SoundData>((resolve, reject) => {
+		return load(new Promise<SoundData>((resolve, reject) => {
 
 			if (!src) {
 				return reject(`expected sound src for "${name}"`);
@@ -483,11 +466,7 @@ function assetsInit(gfx: Gfx, audio: Audio, gconf: AssetsConf = {}): Assets {
 					.catch(reject);
 			}
 
-		});
-
-		load(loader);
-
-		return loader;
+		}));
 
 	}
 
