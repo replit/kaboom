@@ -658,7 +658,7 @@ function loop(t: number, f: () => void): EventCanceller {
 }
 
 // input callbacks
-function keyDown(k: Key, f: () => void): EventCanceller {
+function keyDown(k: Key | Key[], f: () => void): EventCanceller {
 	if (Array.isArray(k)) {
 		const cancellers = k.map((key) => keyDown(key, f));
 		return () => cancellers.forEach((cb) => cb());
@@ -667,7 +667,7 @@ function keyDown(k: Key, f: () => void): EventCanceller {
 	}
 }
 
-function keyPress(k: Key | (() => void), f?: () => void): EventCanceller {
+function keyPress(k: Key | Key[] | (() => void), f?: () => void): EventCanceller {
 	if (Array.isArray(k)) {
 		const cancellers = k.map((key) => keyPress(key, f));
 		return () => cancellers.forEach((cb) => cb());
@@ -678,7 +678,7 @@ function keyPress(k: Key | (() => void), f?: () => void): EventCanceller {
 	}
 }
 
-function keyPressRep(k: Key | (() => void), f?: () => void): EventCanceller {
+function keyPressRep(k: Key | Key[] | (() => void), f?: () => void): EventCanceller {
 	if (Array.isArray(k)) {
 		const cancellers = k.map((key) => keyPressRep(key, f));
 		return () => cancellers.forEach((cb) => cb());
@@ -689,7 +689,7 @@ function keyPressRep(k: Key | (() => void), f?: () => void): EventCanceller {
 	}
 }
 
-function keyRelease(k: Key | (() => void), f?: () => void): EventCanceller {
+function keyRelease(k: Key | Key[] | (() => void), f?: () => void): EventCanceller {
 	if (Array.isArray(k)) {
 		const cancellers = k.map((key) => keyRelease(key, f));
 		return () => cancellers.forEach((cb) => cb());
