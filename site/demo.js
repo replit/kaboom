@@ -103,52 +103,55 @@ const css = {
 };
 
 const DEF_DEMO = "runner";
-const demos = {};
 
-fs.readdirSync("../demo").forEach((file) => {
-	if (file.startsWith(".")) {
-		return;
-	}
-	const p = path.resolve("../demo", file);
-	const name = path.basename(file, path.extname(file));
-	const stat = fs.statSync(p);
-	if (!stat.isFile()) {
-		return;
-	}
-	demos[name] = fs.readFileSync(p, "utf-8");
-}, {});
+module.exports = () => {
 
-const page = t("html", {}, [
-	t("head", {}, [
-		...global.head,
-		t("title", {}, "Kaboom Demos"),
-		t("style", {}, www.css(css)),
-		t("script", {}, `window.demos = ${JSON.stringify(demos)}`),
-		t("script", { src: "/site/js/demos.js", type: "module" }, ""),
-	]),
-	t("body", {}, [
-		t("div", { id: "header", }, [
-			t("div", {}, [
-				t("a", { href: "/", }, [
-					t("img", { id: "logo", src: "/site/img/kaboom.svg", }),
+	const demos = {};
+
+	fs.readdirSync("../demo").forEach((file) => {
+		if (file.startsWith(".")) {
+			return;
+		}
+		const p = path.resolve("../demo", file);
+		const name = path.basename(file, path.extname(file));
+		const stat = fs.statSync(p);
+		if (!stat.isFile()) {
+			return;
+		}
+		demos[name] = fs.readFileSync(p, "utf-8");
+	}, {});
+
+	return t("html", {}, [
+		t("head", {}, [
+			...global.head,
+			t("title", {}, "Kaboom Demos"),
+			t("style", {}, www.css(css)),
+			t("script", {}, `window.demos = ${JSON.stringify(demos)}`),
+			t("script", { src: "/site/js/demos.js", type: "module" }, ""),
+		]),
+		t("body", {}, [
+			t("div", { id: "header", }, [
+				t("div", {}, [
+					t("a", { href: "/", }, [
+						t("img", { id: "logo", src: "/site/img/kaboom.svg", }),
+					]),
+					t("select", {
+						id: "selector",
+						name: "demo",
+					}, Object.keys(demos).map((name) => {
+						return t("option", { selected: name === DEF_DEMO, }, name);
+					})),
+					t("button", { id: "run", }, "Run"),
 				]),
-				t("select", {
-					id: "selector",
-					name: "demo",
-				}, Object.keys(demos).map((name) => {
-					return t("option", { selected: name === DEF_DEMO, }, name);
-				})),
-				t("button", { id: "run", }, "Run"),
+				t("div", {}, [
+					t("button", {}, "Reset"),
+				]),
 			]),
-			t("div", {}, [
-				t("button", {}, "Reset"),
+			t("div", { id: "content", }, [
+				t("div", { id: "editor", }, []),
+				t("iframe", { id: "view", }, []),
 			]),
 		]),
-		t("div", { id: "content", }, [
-			t("div", { id: "editor", }, []),
-			t("iframe", { id: "view", }, []),
-		]),
-	]),
-]);
+	]);
 
-module.exports = page;
+};
