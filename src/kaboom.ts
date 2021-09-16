@@ -1484,6 +1484,7 @@ function area(conf: AreaCompConf = {}): AreaComp {
 			every((other) => this.pushOut(other));
 		},
 
+		// @ts-ignore
 		_checkCollisions(tag: Tag) {
 
 			every(tag, (obj) => {

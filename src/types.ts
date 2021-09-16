@@ -2229,7 +2229,6 @@ interface AreaComp extends Comp {
 	 * Get the geometry data for the collider in screen coordinate space.
 	 */
 	screenArea(): Rect;
-	_checkCollisions(tag: string, f: (obj: GameObj<any>) => void): void;
 }
 
 interface SpriteCompConf {
