@@ -2289,7 +2289,6 @@ function addLevel(map: string[], conf: LevelConf): Level {
 		},
 
 		getPos(...args): Vec2 {
-			// @ts-ignore
 			const p = vec2(...args);
 			return vec2(
 				offset.x + p.x * conf.width,
@@ -2297,7 +2296,9 @@ function addLevel(map: string[], conf: LevelConf): Level {
 			);
 		},
 
-		spawn(sym: string, p: Vec2): GameObj<any> {
+		spawn(sym: string, ...args): GameObj<any> {
+
+			const p = vec2(...args);
 
 			const comps = (() => {
 				if (conf[sym]) {

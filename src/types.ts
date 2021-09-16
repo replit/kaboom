@@ -2586,7 +2586,9 @@ interface LevelConf {
 
 interface Level {
 	getPos(p: Vec2): Vec2,
+	getPos(x: number, y: number): Vec2,
 	spawn(sym: string, p: Vec2): GameObj<any>,
+	spawn(sym: string, x: number, y: number): GameObj<any>,
 	width(): number,
 	height(): number,
 	gridWidth(): number,
