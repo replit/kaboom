@@ -2055,6 +2055,7 @@ interface Comp {
 type GameObjID = number;
 
 interface PosComp extends Comp {
+	id: "pos",
 	/**
 	 * Object's current world position.
 	 */
@@ -2081,10 +2082,12 @@ interface PosComp extends Comp {
 }
 
 interface ScaleComp extends Comp {
+	id: "scale",
 	scale: Vec2;
 }
 
 interface RotateComp extends Comp {
+	id: "rotate",
 	/**
 	 * Angle in degrees.
 	 */
@@ -2092,14 +2095,17 @@ interface RotateComp extends Comp {
 }
 
 interface ColorComp extends Comp {
+	id: "color",
 	color: Color;
 }
 
 interface OpacityComp extends Comp {
+	id: "opacity",
 	opacity: number;
 }
 
 interface OriginComp extends Comp {
+	id: "origin",
 	/**
 	 * Origin point for render.
 	 */
@@ -2107,6 +2113,7 @@ interface OriginComp extends Comp {
 }
 
 interface LayerComp extends Comp {
+	id: "layer",
 	/**
 	 * Which layer this game obj belongs to.
 	 */
@@ -2114,6 +2121,7 @@ interface LayerComp extends Comp {
 }
 
 interface ZComp extends Comp {
+	id: "z",
 	/**
 	 * Defines the z-index of this game obj
 	 */
@@ -2121,6 +2129,7 @@ interface ZComp extends Comp {
 }
 
 interface FollowComp extends Comp {
+	id: "follow",
 	follow: {
 		obj: GameObj<any>,
 		offset: Vec2,
@@ -2128,6 +2137,7 @@ interface FollowComp extends Comp {
 }
 
 interface MoveComp extends Comp {
+	id: "move",
 }
 
 type RectSide =
@@ -2161,6 +2171,7 @@ interface AreaCompConf {
 }
 
 interface AreaComp extends Comp {
+	id: "area",
 	/**
 	 * Collider area info.
 	 */
@@ -2271,6 +2282,7 @@ interface SpriteCompConf {
 }
 
 interface SpriteComp extends Comp {
+	id: "sprite",
 	/**
 	 * Width for sprite.
 	 */
@@ -2318,6 +2330,7 @@ interface SpriteComp extends Comp {
 }
 
 interface TextComp extends Comp {
+	id: "text",
 	/**
 	 * The text to render.
 	 */
@@ -2356,6 +2369,7 @@ interface TextCompConf {
 }
 
 interface RectComp extends Comp {
+	id: "rect",
 	/**
 	 * Width of rect.
 	 */
@@ -2375,6 +2389,7 @@ type AreaType =
 	;
 
 interface OutlineComp extends Comp {
+	id: "outline",
 	lineWidth: number;
 	lineColor: Color;
 }
@@ -2436,11 +2451,13 @@ type UniformValue =
 type Uniform = Record<string, UniformValue>;
 
 interface ShaderComp extends Comp {
+	id: "shader",
 	uniform: Uniform;
 	shader: string;
 }
 
 interface BodyComp extends Comp {
+	id: "body",
 	/**
 	 * If should collide with other solid objects.
 	 */
@@ -2514,6 +2531,7 @@ interface Timer {
 }
 
 interface TimerComp extends Comp {
+	id: "timer",
 	/**
 	 * Run the callback after n seconds.
 	 */
@@ -2521,6 +2539,7 @@ interface TimerComp extends Comp {
 }
 
 interface SolidComp extends Comp {
+	id: "solid",
 	/**
 	 * If should stop other solid objects from moving through.
 	 */
@@ -2528,6 +2547,7 @@ interface SolidComp extends Comp {
 }
 
 interface FixedComp extends Comp {
+	id: "fixed",
 	/**
 	 * If the obj is unaffected by camera
 	 */
@@ -2535,6 +2555,7 @@ interface FixedComp extends Comp {
 }
 
 interface StayComp extends Comp {
+	id: "stay",
 	/**
 	 * If the obj should not be destroyed on scene switch.
 	 */
@@ -2542,6 +2563,7 @@ interface StayComp extends Comp {
 }
 
 interface HealthComp extends Comp {
+	id: "health",
 	/**
 	 * Decrease HP by n (defaults to 1).
 	 */
@@ -2561,6 +2583,7 @@ interface HealthComp extends Comp {
 }
 
 interface LifespanComp extends Comp {
+	id: "lifespan",
 }
 
 interface LevelConf {

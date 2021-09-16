@@ -21,7 +21,7 @@ for (const obj of objs) {
 loadBean();
 loadSound("hit", "sounds/hit.mp3");
 loadSound("shoot", "sounds/shoot.mp3");
-loadSound("explosion", "sounds/explosion.mp3");
+loadSound("explode", "sounds/explode.mp3");
 loadSound("OtherworldlyFoe", "sounds/OtherworldlyFoe.mp3");
 
 scene("battle", () => {
@@ -176,7 +176,7 @@ scene("battle", () => {
 		destroy(e);
 		destroy(player);
 		shake(120);
-		play("explosion");
+		play("explode");
 		music.detune(-1200);
 		addExplode(center(), 12, 120, 30);
 		wait(1, () => {

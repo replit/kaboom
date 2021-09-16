@@ -2083,6 +2083,9 @@ function health(hp: number): HealthComp {
 				this.trigger("death");
 			}
 		},
+		inspect() {
+			return `${hp}`;
+		},
 	};
 }
 
@@ -2236,7 +2239,8 @@ function grid(level: Level, p: Vec2) {
 		id: "grid",
 		gridPos: p.clone(),
 
-		setGridPos(p: Vec2) {
+		setGridPos(...args) {
+			const p = vec2(...args);
 			this.gridPos = p.clone();
 			this.pos = vec2(
 				level.offset().x + this.gridPos.x * level.gridWidth(),
