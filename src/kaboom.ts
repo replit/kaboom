@@ -54,25 +54,11 @@ import {
 	netInit,
 } from "./net";
 
-import kaboomPlugin from "./plugins/kaboom";
+import {
+	IDList,
+} from "./utils";
 
-class IDList<T> extends Map<number, T> {
-	_lastID: number;
-	constructor(...args) {
-		super(...args);
-		this._lastID = 0;
-	}
-	push(v: T): number {
-		const id = this._lastID;
-		this.set(id, v);
-		this._lastID++;
-		return id;
-	}
-	pushd(v: T): () => void {
-		const id = this.push(v);
-		return () => this.delete(id);
-	}
-}
+import kaboomPlugin from "./plugins/kaboom";
 
 // @ts-ignore
 module.exports = (gconf: KaboomConf = {}): KaboomCtx => {
@@ -1714,7 +1700,7 @@ function sprite(id: string | SpriteData, conf: SpriteCompConf = {}): SpriteComp 
 
 			const anim = spr.anims[name];
 
-			if (!anim) {
+			if (anim == null) {
 				throw new Error(`anim not found: ${name}`);
 			}
 

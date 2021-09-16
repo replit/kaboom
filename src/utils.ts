@@ -1,3 +1,21 @@
+class IDList<T> extends Map<number, T> {
+	_lastID: number;
+	constructor(...args) {
+		super(...args);
+		this._lastID = 0;
+	}
+	push(v: T): number {
+		const id = this._lastID;
+		this.set(id, v);
+		this._lastID++;
+		return id;
+	}
+	pushd(v: T): () => void {
+		const id = this.push(v);
+		return () => this.delete(id);
+	}
+}
+
 function deepEq(o1: any, o2: any): boolean {
 	const t1 = typeof o1;
 	const t2 = typeof o2;
@@ -26,4 +44,5 @@ function deepEq(o1: any, o2: any): boolean {
 
 export {
 	deepEq,
+	IDList,
 };
