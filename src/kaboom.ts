@@ -5,6 +5,7 @@ import {
 	rgb,
 	rng,
 	rand,
+	randi,
 	randSeed,
 	chance,
 	choose,
@@ -2484,6 +2485,7 @@ const ctx: KaboomCtx = {
 	// math
 	rng,
 	rand,
+	randi,
 	randSeed,
 	vec2,
 	dir,

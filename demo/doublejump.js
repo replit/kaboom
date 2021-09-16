@@ -73,7 +73,7 @@ scene("game", () => {
 
 	function genCoin(avoid) {
 		const plats = get("platform");
-		let idx = Math.floor(rand(0, plats.length));
+		let idx = randi(0, plats.length);
 		// avoid the spawning on the same platforms
 		if (avoid != null) {
 			idx = choose([...plats.keys()].filter((i) => i !== avoid));

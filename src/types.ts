@@ -1152,6 +1152,15 @@ interface KaboomCtx {
 	rand(): number,
 	rand<T extends RNGValue>(n: T): T,
 	rand<T extends RNGValue>(a: T, b: T): T,
+	/**
+	 * rand() but integer only.
+	 */
+	randi(): number,
+	randi<T extends RNGValue>(n: T): T,
+	randi<T extends RNGValue>(a: T, b: T): T,
+	/**
+	 * Get / set the random number generator seed.
+	 */
 	randSeed(seed?: number): number,
 	/**
 	 * Make a 2d vector.

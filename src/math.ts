@@ -463,12 +463,17 @@ function rand(...args) {
 	return defRNG.gen(...args);
 }
 
+// TODO: randi() to return 0 / 1?
+function randi(...args) {
+	return Math.floor(rand(...args));
+}
+
 function chance(p: number): boolean {
 	return rand() <= p;
 }
 
 function choose<T>(list: T[]): T {
-	return list[Math.floor(rand(list.length))];
+	return list[randi(list.length)];
 }
 
 function colRectRect(r1: Rect, r2: Rect): boolean {
@@ -579,6 +584,7 @@ export {
 	rgb,
 	rng,
 	rand,
+	randi,
 	randSeed,
 	chance,
 	choose,
