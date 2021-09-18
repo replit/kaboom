@@ -108,7 +108,7 @@ add([
 
 Woah! That looks like a lot, but it's actually really simple, let's look at each component
 
-- `rect()` renders a triangle. It accepts 2 arguments, the width and height, which we give it the game width (returned by `width()`) and height of 48 pixels
+- `rect()` renders a rectangle. It accepts 2 arguments, the width and height, which we give it the game width (returned by `width()`) and height of 48 pixels
 - `pos()` position. We give it a x: 0 and y: `height() - 48` so it sits right on the bottom of the screen
 - `outline()` renders an outline of `4` pixels
 - `area()` adds a collider to it
