@@ -1561,6 +1561,7 @@ interface SpriteCurAnim {
 	loop: boolean,
 	speed: number,
 	pingpong: boolean,
+	onEnd: () => void,
 }
 
 // TODO: clean
@@ -1673,6 +1674,7 @@ function sprite(id: string | SpriteData, conf: SpriteCompConf = {}): SpriteComp 
 						} else {
 							this.frame++;
 							this.stop();
+							curAnim.onEnd();
 						}
 					}
 				} else {
@@ -1683,6 +1685,7 @@ function sprite(id: string | SpriteData, conf: SpriteCompConf = {}): SpriteComp 
 						} else {
 							this.frame--;
 							this.stop();
+							curAnim.onEnd();
 						}
 					}
 				}
@@ -1716,6 +1719,7 @@ function sprite(id: string | SpriteData, conf: SpriteCompConf = {}): SpriteComp 
 				loop: conf.loop ?? anim.loop ?? false,
 				pingpong: conf.pingpong ?? anim.pingpong ?? false,
 				speed: conf.speed ?? anim.speed ?? 10,
+				onEnd: conf.onEnd ?? (() => {}),
 			};
 
 			if (typeof anim === "number") {

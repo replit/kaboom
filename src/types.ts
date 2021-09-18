@@ -1614,6 +1614,10 @@ interface SpriteAnimPlayConf {
 	 * This anim's speed in frames per second.
 	 */
 	speed?: number,
+	/**
+	 * Runs when this animation ends.
+	 */
+	onEnd?: () => void,
 }
 
 /**

@@ -19,6 +19,5 @@ const t2 = cp.spawn("node", [
 process.on("SIGINT", () => {
 	process.kill(-t1.pid);
 	process.kill(-t2.pid);
-	process.kill(-t3.pid);
 	process.exit();
 });
