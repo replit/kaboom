@@ -1415,7 +1415,6 @@ interface KaboomCtx {
 }
 
 type Tag = string;
-type CompID = string;
 
 // TODO: understand this
 type UnionToIntersection<U> = (U extends any ? (k: U) => void : never) extends ((k: infer I) => void) ? I : never
@@ -1460,30 +1459,22 @@ interface CharacterRaw {
 	is(tag: Tag | Tag[]): boolean;
 	// TODO: update the Character type info
 	/**
-	 * Add a component.
+	 * Add a component or tag.
 	 */
-	use(comp: Comp): void;
+	use(comp: Comp | Tag): void;
 	// TODO: update the Character type info
 	/**
-	 * Remove a component with its id.
+	 * Remove a tag or a component with its id.
 	 */
-	unuse(comp: CompID): void;
-	/**
-	 * Add a tag.
-	 */
-	tag(tag: Tag): void,
-	/**
-	 * Remove a tag.
-	 */
-	untag(tag: Tag): void,
-	/**
-	 * Registers an event.
-	 */
-	on(ev: string, cb: () => void): EventCanceller;
+	unuse(comp: Tag): void;
 	/**
 	 * Run something every frame for this game obj (sugar for on("update")).
 	 */
 	action(cb: () => void): EventCanceller;
+	/**
+	 * Registers an event.
+	 */
+	on(ev: string, cb: () => void): EventCanceller;
 	/**
 	 * Triggers an event.
 	 */
@@ -1495,17 +1486,14 @@ interface CharacterRaw {
 	/**
 	 * Get state for a specific comp.
 	 */
-	c(id: CompID): Comp;
+	c(id: Tag): Comp;
 	/**
 	 * Gather debug info of all comps.
 	 */
 	inspect(): CharacterInspect;
 }
 
-interface CharacterInspect {
-	tags: Tag[],
-	comps: Record<CompID, string | null>,
-}
+type CharacterInspect = Record<Tag, string | null>;
 
 /**
  * Kaboom configurations.
@@ -2050,11 +2038,11 @@ interface Comp {
 	/**
 	 * Component ID (if left out won't be treated as a comp).
 	 */
-	id?: CompID;
+	id?: Tag;
 	/**
 	 * What other comps this comp depends on.
 	 */
-	require?: CompID[];
+	require?: Tag[];
 	/**
 	 * Event that runs when host game obj is added to scene.
 	 */

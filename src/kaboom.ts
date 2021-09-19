@@ -337,7 +337,6 @@ function make<T>(comps: CompList<T>): Character<T> {
 	const compStates = new Map();
 	const customState = {};
 	const events = {};
-	const tags = new Set([]);
 
 	const obj: CharacterRaw = {
 
@@ -345,7 +344,19 @@ function make<T>(comps: CompList<T>): Character<T> {
 		hidden: false,
 		paused: false,
 
-		use(comp: Comp) {
+		// use a comp, or tag
+		use(comp: Comp | Tag) {
+
+			if (!comp) {
+				return;
+			}
+
+			// tag
+			if (typeof comp === "string") {
+				return this.use({
+					id: comp
+				});
+			}
 
 			// clear if overwrite
 			if (comp.id) {
@@ -420,7 +431,7 @@ function make<T>(comps: CompList<T>): Character<T> {
 
 		},
 
-		unuse(id: CompID) {
+		unuse(id: Tag) {
 			if (compStates.has(id)) {
 				const comp = compStates.get(id);
 				comp.cleanups.forEach((f) => f());
@@ -431,15 +442,7 @@ function make<T>(comps: CompList<T>): Character<T> {
 			compStates.delete(id);
 		},
 
-		tag(t: Tag) {
-			tags.add(t);
-		},
-
-		untag(t: Tag) {
-			tags.delete(t);
-		},
-
-		c(id: CompID): Comp {
+		c(id: Tag): Comp {
 			return compStates.get(id);
 		},
 
@@ -453,13 +456,13 @@ function make<T>(comps: CompList<T>): Character<T> {
 			}
 			if (Array.isArray(tag)) {
 				for (const t of tag) {
-					if (!tags.has(t)) {
+					if (!this.c(t)) {
 						return false;
 					}
 				}
 				return true;
 			} else {
-				return tags.has(tag);
+				return this.c(tag) != null;
 			}
 		},
 
@@ -505,24 +508,17 @@ function make<T>(comps: CompList<T>): Character<T> {
 		},
 
 		inspect() {
-			const comps = {};
-			for (const [id, comp] of compStates) {
-				comps[id] = comp.inspect ? comp.inspect() : null;
+			const info = {};
+			for (const [tag, comp] of compStates) {
+				info[tag] = comp.inspect ? comp.inspect() : null;
 			}
-			return {
-				tags: Array.from(tags),
-				comps: comps,
-			};
+			return info;
 		},
 
 	};
 
 	for (const comp of comps) {
-		if (typeof comp === "string") {
-			obj.tag(comp);
-		} else {
-			obj.use(comp);
-		}
+		obj.use(comp);
 	}
 
 	return obj as unknown as Character<T>;
@@ -992,15 +988,11 @@ function drawInspect() {
 		const lines = [];
 		const data = inspecting.inspect();
 
-		for (const tag of data.tags) {
-			lines.push(`"${tag}"`);
-		}
-
-		for (const id in data.comps) {
-			if (data.comps[id]) {
-				lines.push(`${id}: ${data.comps[id]}`);
+		for (const tag in data) {
+			if (data[tag]) {
+				lines.push(`${tag}: ${data[tag]}`);
 			} else {
-				lines.push(`${id}`);
+				lines.push(`${tag}`);
 			}
 		}
 
@@ -1176,7 +1168,7 @@ function pos(...args): PosComp {
 		},
 
 		inspect() {
-			return `(${Math.round(this.pos.x)}, ${Math.round(this.pos.y)})`;
+			return `(${~~this.pos.x}, ${~~this.pos.y})`;
 		},
 
 	};
@@ -1202,7 +1194,7 @@ function rotate(r: number): RotateComp {
 		id: "rotate",
 		angle: r ?? 0,
 		inspect() {
-			return `${Math.round(this.angle)}`;
+			return `${~~this.angle}`;
 		},
 	};
 }
@@ -1850,7 +1842,7 @@ function rect(w: number, h: number): RectComp {
 			});
 		},
 		inspect() {
-			return `(${Math.round(this.width)}, ${Math.round(this.height)})`;
+			return `${this.width}, ${this.height}`;
 		},
 	};
 }
