@@ -1499,7 +1499,12 @@ interface CharacterRaw {
 	/**
 	 * Gather debug info of all comps.
 	 */
-	inspect(): Record<CompID, string | null>;
+	inspect(): CharacterInspect;
+}
+
+interface CharacterInspect {
+	tags: Tag[],
+	comps: Record<CompID, string | null>,
 }
 
 /**

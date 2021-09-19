@@ -339,7 +339,7 @@ function make<T>(comps: CompList<T>): Character<T> {
 	const events = {};
 	const tags = new Set([]);
 
-	const obj = {
+	const obj: CharacterRaw = {
 
 		_id: null,
 		hidden: false,
@@ -505,11 +505,14 @@ function make<T>(comps: CompList<T>): Character<T> {
 		},
 
 		inspect() {
-			const info = {};
-			for (const [tag, comp] of compStates) {
-				info[tag] = comp.inspect ? comp.inspect() : null;
+			const comps = {};
+			for (const [id, comp] of compStates) {
+				comps[id] = comp.inspect ? comp.inspect() : null;
 			}
-			return info;
+			return {
+				tags: Array.from(tags),
+				comps: comps,
+			};
 		},
 
 	};
@@ -989,11 +992,15 @@ function drawInspect() {
 		const lines = [];
 		const data = inspecting.inspect();
 
-		for (const tag in data) {
-			if (data[tag]) {
-				lines.push(`${tag}: ${data[tag]}`);
+		for (const tag of data.tags) {
+			lines.push(`"${tag}"`);
+		}
+
+		for (const id in data.comps) {
+			if (data.comps[id]) {
+				lines.push(`${id}: ${data.comps[id]}`);
 			} else {
-				lines.push(`${tag}`);
+				lines.push(`${id}`);
 			}
 		}
 
@@ -1169,7 +1176,7 @@ function pos(...args): PosComp {
 		},
 
 		inspect() {
-			return `(${~~this.pos.x}, ${~~this.pos.y})`;
+			return `(${Math.round(this.pos.x)}, ${Math.round(this.pos.y)})`;
 		},
 
 	};
@@ -1195,7 +1202,7 @@ function rotate(r: number): RotateComp {
 		id: "rotate",
 		angle: r ?? 0,
 		inspect() {
-			return `${~~this.angle}`;
+			return `${Math.round(this.angle)}`;
 		},
 	};
 }
@@ -1843,7 +1850,7 @@ function rect(w: number, h: number): RectComp {
 			});
 		},
 		inspect() {
-			return `${this.width}, ${this.height}`;
+			return `(${Math.round(this.width)}, ${Math.round(this.height)})`;
 		},
 	};
 }
