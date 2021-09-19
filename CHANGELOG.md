@@ -1,6 +1,7 @@
 ### kaboom2000 (unreleased)
 - version jumped to v2000.0.0 (still semver, just big)
 - added `burp()` for easy burping
+- renamed GameObj to Character
 - added decent typescript / autocomplete support and jsdocs
 - introducing new character "bean"
 ![bean](sprites/bean.png)
@@ -157,9 +158,9 @@ obj.c("sprite").play("anim");
 - **BREAK** remove `flipX()` and `flipY()` on `scale()` comp
 - **BREAK** removed `start()` in favor of `go()`
 - **BREAK** removed `changeSprite()` in favor of `use(sprite("newsprite"))`
-- tags and components are converged, tags are just empty components now
 - added `unuse()` to remove a component or tag
-- **BREAK** removed `rmTag()` in favor of `unuse()`
+- **BREAK** added `.tag()` on `Character` to add a tag, `.use()` only accept components now
+- **BREAK** renamed `.rmTag()` to `.untag()`
 - **BREAK** removed `camIgnore()` in favor of `fixed()`
 - **BREAK** renamed `makeRng()` to `rng()`
 - sprite animation now supports defining properties like loop and speed in load step and play step
