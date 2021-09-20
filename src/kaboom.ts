@@ -185,7 +185,7 @@ interface Game {
 	loaded: boolean,
 	events: Record<string, IDList<() => void>>,
 	objEvents: Record<string, IDList<TaggedEvent>>,
-	objs: IDList<Character<any>>,
+	objs: IDList<Character>,
 	timers: IDList<Timer>,
 	cam: Camera,
 	camMousePos: Vec2,
@@ -535,7 +535,7 @@ function add<T>(comps: CompList<T>): Character<T> {
 	return obj;
 }
 
-function readd(obj: Character<any>): Character<any> {
+function readd(obj: Character): Character {
 	if (!obj.exists()) {
 		return;
 	}
@@ -545,7 +545,7 @@ function readd(obj: Character<any>): Character<any> {
 }
 
 // add an event to a tag
-function on(event: string, tag: Tag, cb: (obj: Character<any>, ...args) => void): EventCanceller {
+function on(event: string, tag: Tag, cb: (obj: Character, ...args) => void): EventCanceller {
 	if (!game.objEvents[event]) {
 		game.objEvents[event] = new IDList();
 	}
@@ -557,7 +557,7 @@ function on(event: string, tag: Tag, cb: (obj: Character<any>, ...args) => void)
 
 // TODO: detect if is currently in another action?
 // add update event to a tag or global update
-function action(tag: Tag | (() => void), cb?: (obj: Character<any>) => void): EventCanceller {
+function action(tag: Tag | (() => void), cb?: (obj: Character) => void): EventCanceller {
 	if (typeof tag === "function" && cb === undefined) {
 		return add([{ update: tag, }]).destroy;
 	} else if (typeof tag === "string") {
@@ -567,7 +567,7 @@ function action(tag: Tag | (() => void), cb?: (obj: Character<any>) => void): Ev
 }
 
 // add draw event to a tag or global draw
-function render(tag: Tag | (() => void), cb?: (obj: Character<any>) => void) {
+function render(tag: Tag | (() => void), cb?: (obj: Character) => void) {
 	if (typeof tag === "function" && cb === undefined) {
 		return add([{ draw: tag, }]).destroy;
 	} else if (typeof tag === "string") {
@@ -579,11 +579,11 @@ function render(tag: Tag | (() => void), cb?: (obj: Character<any>) => void) {
 function collides(
 	t1: Tag,
 	t2: Tag,
-	f: (a: Character<any>, b: Character<any>) => void,
+	f: (a: Character, b: Character) => void,
 ): EventCanceller {
 	const e1 = on("collide", t1, (a, b, side) => b.is(t2) && f(a, b));
 	const e2 = on("collide", t1, (a, b, side) => b.is(t1) && f(b, a));
-	const e3 = action(t1, (o1: Character<any>) => {
+	const e3 = action(t1, (o1: Character) => {
 		o1._checkCollisions(t2, (o2) => {
 			f(o1, o2);
 		});
@@ -592,8 +592,8 @@ function collides(
 }
 
 // add an event that runs when objs with tag t is clicked
-function clicks(t: string, f: (obj: Character<any>) => void): EventCanceller {
-	return action(t, (o: Character<any>) => {
+function clicks(t: string, f: (obj: Character) => void): EventCanceller {
+	return action(t, (o: Character) => {
 		if (o.isClicked()) {
 			f(o);
 		}
@@ -601,8 +601,8 @@ function clicks(t: string, f: (obj: Character<any>) => void): EventCanceller {
 }
 
 // add an event that runs when objs with tag t is hovered
-function hovers(t: string, onHover: (obj: Character<any>) => void, onNotHover?: (obj: Character<any>) => void): EventCanceller {
-	return action(t, (o: Character<any>) => {
+function hovers(t: string, onHover: (obj: Character) => void, onNotHover?: (obj: Character) => void): EventCanceller {
+	return action(t, (o: Character) => {
 		if (o.isHovering()) {
 			onHover(o);
 		} else {
@@ -775,7 +775,7 @@ function regDebugInput() {
 
 // TODO: cache sorted list
 // get all objects with tag
-function get(t?: string): Character<any>[] {
+function get(t?: string): Character[] {
 
 	const objs = [...game.objs.values()].sort((o1, o2) => {
 
@@ -800,7 +800,7 @@ function get(t?: string): Character<any>[] {
 }
 
 // apply a function to all objects currently in game with tag t
-function every<T>(t: string | ((obj: Character<any>) => T), f?: (obj: Character<any>) => T) {
+function every<T>(t: string | ((obj: Character) => T), f?: (obj: Character) => T) {
 	if (typeof t === "function" && f === undefined) {
 		return get().forEach((obj) => obj.exists() && t(obj));
 	} else if (typeof t === "string") {
@@ -809,7 +809,7 @@ function every<T>(t: string | ((obj: Character<any>) => T), f?: (obj: Character<
 }
 
 // every but in reverse order
-function revery<T>(t: string | ((obj: Character<any>) => T), f?: (obj: Character<any>) => T) {
+function revery<T>(t: string | ((obj: Character) => T), f?: (obj: Character) => T) {
 	if (typeof t === "function" && f === undefined) {
 		return get().reverse().forEach((obj) => obj.exists() && t(obj));
 	} else if (typeof t === "string") {
@@ -818,7 +818,7 @@ function revery<T>(t: string | ((obj: Character<any>) => T), f?: (obj: Character
 }
 
 // destroy an obj
-function destroy(obj: Character<any>) {
+function destroy(obj: Character) {
 	obj.destroy();
 }
 
@@ -1185,8 +1185,11 @@ function scale(...args): ScaleComp {
 	return {
 		id: "scale",
 		scale: vec2(...args),
+		scaleTo(...args) {
+			this.scale = vec2(...args);
+		},
 		inspect() {
-			return `(${this.scale.x.toFixed(2)}, ${this.scale.y.toFixed(2)})`;
+			return `(${toFixed(this.scale.x, 2)}, ${toFixed(this.scale.y, 2)})`;
 		},
 	};
 }
@@ -1196,7 +1199,7 @@ function rotate(r: number): RotateComp {
 		id: "rotate",
 		angle: r ?? 0,
 		inspect() {
-			return `${~~this.angle}`;
+			return `${Math.round(this.angle)}`;
 		},
 	};
 }
@@ -1211,12 +1214,16 @@ function color(...args): ColorComp {
 	};
 }
 
+function toFixed(n: number, f: number) {
+	return Number(n.toFixed(f));
+}
+
 function opacity(a: number): OpacityComp {
 	return {
 		id: "opacity",
 		opacity: a ?? 1,
 		inspect() {
-			return `${this.opacity}`;
+			return `${toFixed(this.opacity, 2)}`;
 		},
 	};
 }
@@ -1258,7 +1265,7 @@ function z(z: number): ZComp {
 	};
 }
 
-function follow(obj: Character<any>, offset?: Vec2): FollowComp {
+function follow(obj: Character, offset?: Vec2): FollowComp {
 	return {
 		id: "follow",
 		require: [ "pos", ],
@@ -1430,7 +1437,7 @@ function area(conf: AreaCompConf = {}): AreaComp {
 			});
 		},
 
-		collides(tag: Tag, f: (o: Character<any>, side?: RectSide) => void): EventCanceller {
+		collides(tag: Tag, f: (o: Character, side?: RectSide) => void): EventCanceller {
 			const e1 = this.action(() => this._checkCollisions(tag, f));
 			const e2 = this.on("collide", (obj, side) => obj.is(tag) && f(obj, side));
 			return () => [e1, e2].forEach((f) => f());
@@ -1445,7 +1452,7 @@ function area(conf: AreaCompConf = {}): AreaComp {
 		},
 
 		// push an obj out of another if they're overlapped
-		pushOut(obj: Character<any>): Vec2 | null {
+		pushOut(obj: Character): Vec2 | null {
 
 			if (obj === this) {
 				return null;
@@ -1927,7 +1934,7 @@ const MAX_VEL = 65536;
 function body(conf: BodyCompConf = {}): BodyComp {
 
 	let velY = 0;
-	let curPlatform: Character<any> | null = null;
+	let curPlatform: Character | null = null;
 	let lastPlatformPos = null;
 	let canDouble = true;
 
@@ -2005,7 +2012,7 @@ function body(conf: BodyCompConf = {}): BodyComp {
 
 		},
 
-		curPlatform(): Character<any> | null {
+		curPlatform(): Character | null {
 			return curPlatform;
 		},
 
@@ -2282,7 +2289,7 @@ function addLevel(map: string[], conf: LevelConf): Level {
 		throw new Error("Must provide level grid width & height.");
 	}
 
-	const objs: Character<any>[] = [];
+	const objs: Character[] = [];
 	const offset = vec2(conf.pos || vec2(0));
 	let longRow = 0;
 
@@ -2308,7 +2315,7 @@ function addLevel(map: string[], conf: LevelConf): Level {
 			);
 		},
 
-		spawn(sym: string, ...args): Character<any> {
+		spawn(sym: string, ...args): Character {
 
 			const p = vec2(...args);
 

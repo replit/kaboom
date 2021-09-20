@@ -290,6 +290,10 @@ scene("game", ({ levelId, coins } = { levelId: 0, coins: 0 }) => {
 		player.weight = 1;
 	});
 
+	keyPress("f", () => {
+		fullscreen(!fullscreen());
+	});
+
 });
 
 scene("lose", () => {

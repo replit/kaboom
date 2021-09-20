@@ -30,7 +30,9 @@ type LoaderID = number;
 type AssetsCtx = {
 	lastLoaderID: LoaderID,
 	loadRoot: string,
+	// TODO: just use a counter?
 	loaders: Record<number, boolean>,
+	// TODO: allow Promise<SoundData>?
 	sprites: Record<string, SpriteData>,
 	sounds: Record<string, SoundData>,
 	fonts: Record<string, FontData>,

@@ -93,7 +93,7 @@ interface KaboomCtx {
 	 *     friend.hurt();
 	 * });
 	 *
-	 * // check out #CharacterRaw for stuff that exists for all game objects, independent of its components.
+	 * // check out #Character for stuff that exists for all game objects, independent of its components.
 	 * ```
 	 */
 	add<T>(comps: CompList<T>): Character<T>,
@@ -109,7 +109,7 @@ interface KaboomCtx {
 	 * const allObjs = get();
 	 * ```
 	 */
-	get(tag?: Tag): Character<any>[],
+	get(tag?: Tag): Character[],
 	/**
 	 * Run callback on every game obj with certain tag.
 	 *
@@ -122,13 +122,13 @@ interface KaboomCtx {
 	 * every((obj) => {});
 	 * ```
 	 */
-	every<T>(t: Tag, cb: (obj: Character<any>) => T): void,
-	every<T>(cb: (obj: Character<any>) => T): void,
+	every<T>(t: Tag, cb: (obj: Character) => T): void,
+	every<T>(cb: (obj: Character) => T): void,
 	/**
 	 * Run callback on every game obj with certain tag in reverse order.
 	 */
-	revery<T>(t: Tag, cb: (obj: Character<any>) => T): void,
-	revery<T>(cb: (obj: Character<any>) => T): void,
+	revery<T>(t: Tag, cb: (obj: Character) => T): void,
+	revery<T>(cb: (obj: Character) => T): void,
 	/**
 	 * Remove and re-add the game obj.
 	 *
@@ -138,7 +138,7 @@ interface KaboomCtx {
 	 * readd(froggy);
 	 * ```
 	 */
-	readd(obj: Character<any>): Character<any>,
+	readd(obj: Character): Character,
 	/**
 	 * Remove the game obj.
 	 *
@@ -150,7 +150,7 @@ interface KaboomCtx {
 	 * });
 	 * ```
 	 */
-	destroy(obj: Character<any>): void,
+	destroy(obj: Character): void,
 	/**
 	 * Remove all game objs with certain tag.
 	 *
@@ -414,7 +414,7 @@ interface KaboomCtx {
 	/**
 	 * Follow another game obj's position.
 	 */
-	follow(obj: Character<any> | null, offset?: Vec2): FollowComp,
+	follow(obj: Character | null, offset?: Vec2): FollowComp,
 	/**
 	 * Custom shader.
 	 */
@@ -511,7 +511,7 @@ interface KaboomCtx {
 	 * });
 	 * ```
 	 */
-	on(event: string, tag: Tag, cb: (obj: Character<any>, ...args) => void): EventCanceller,
+	on(event: string, tag: Tag, cb: (obj: Character, ...args) => void): EventCanceller,
 	/**
 	 * Register "update" event (runs every frame) on all game objs with certain tag.
 	 *
@@ -532,12 +532,12 @@ interface KaboomCtx {
 	 * });
 	 * ```
 	 */
-	action(tag: Tag, cb: (obj: Character<any>) => void): EventCanceller,
+	action(tag: Tag, cb: (obj: Character) => void): EventCanceller,
 	action(cb: () => void): EventCanceller,
 	/**
 	 * Register "draw" event (runs every frame) on all game objs with certain tag. (This is the same as `action()`, but all draw events are run after updates)
 	 */
-	render(tag: Tag, cb: (obj: Character<any>) => void): EventCanceller,
+	render(tag: Tag, cb: (obj: Character) => void): EventCanceller,
 	render(cb: () => void): EventCanceller,
 	/**
 	 * Register event when 2 game objs with certain tags collides. This function spins off an action() when called, please put it at root level and never inside another action().
@@ -552,21 +552,21 @@ interface KaboomCtx {
 	collides(
 		t1: Tag,
 		t2: Tag,
-		cb: (a: Character<any>, b: Character<any>, side?: RectSide) => void,
+		cb: (a: Character, b: Character, side?: RectSide) => void,
 	): EventCanceller,
 	/**
 	 * Register event when game objs with certain tags are clicked. This function spins off an action() when called, please put it at root level and never inside another action().
 	 */
 	clicks(
 		tag: Tag,
-		cb: (a: Character<any>) => void,
+		cb: (a: Character) => void,
 	): EventCanceller,
 	/**
 	 * Register event when game objs with certain tags are hovered. This function spins off an action() when called, please put it at root level and never inside another action().
 	 */
 	hovers(
 		tag: Tag,
-		cb: (a: Character<any>) => void,
+		cb: (a: Character) => void,
 	): EventCanceller,
 	/**
 	 * Get current mouse position (without camera transform).
@@ -1436,63 +1436,6 @@ type Key =
 	| "left" | "right" | "up" | "down"
 	;
 
-interface CharacterRaw {
-	/**
-	 * Internal Character ID.
-	 */
-	_id: number | null,
-	/**
-	 * If draw the game obj (run "draw" event or not).
-	 */
-	hidden: boolean;
-	/**
-	 * If update the game obj (run "update" event or not).
-	 */
-	paused: boolean;
-	/**
-	 * If game obj exists in scene.
-	 */
-	exists(): boolean;
-	/**
-	 * If there a certain tag on the game obj.
-	 */
-	is(tag: Tag | Tag[]): boolean;
-	// TODO: update the Character type info
-	/**
-	 * Add a component or tag.
-	 */
-	use(comp: Comp | Tag): void;
-	// TODO: update the Character type info
-	/**
-	 * Remove a tag or a component with its id.
-	 */
-	unuse(comp: Tag): void;
-	/**
-	 * Run something every frame for this game obj (sugar for on("update")).
-	 */
-	action(cb: () => void): EventCanceller;
-	/**
-	 * Registers an event.
-	 */
-	on(ev: string, cb: () => void): EventCanceller;
-	/**
-	 * Triggers an event.
-	 */
-	trigger(ev: string, ...args: any[]): void;
-	/**
-	 * Remove the game obj from scene.
-	 */
-	destroy(): void;
-	/**
-	 * Get state for a specific comp.
-	 */
-	c(id: Tag): Comp;
-	/**
-	 * Gather debug info of all comps.
-	 */
-	inspect(): CharacterInspect;
-}
-
 /**
  * Inspect info for a character.
  */
@@ -1577,7 +1520,62 @@ type KaboomPlugin<T> = (k: KaboomCtx) => T;
 /**
  * A character in game. The basic unit of object in Kaboom. The player, a bullet, a tree, a piece of text, they're all characters!
  */
-type Character<T> = CharacterRaw & MergeComps<T>;
+type Character<T = any> = {
+	/**
+	 * Internal Character ID.
+	 */
+	_id: number | null,
+	/**
+	 * If draw the game obj (run "draw" event or not).
+	 */
+	hidden: boolean;
+	/**
+	 * If update the game obj (run "update" event or not).
+	 */
+	paused: boolean;
+	/**
+	 * If game obj exists in scene.
+	 */
+	exists(): boolean;
+	/**
+	 * If there a certain tag on the game obj.
+	 */
+	is(tag: Tag | Tag[]): boolean;
+	// TODO: update the Character type info
+	/**
+	 * Add a component or tag.
+	 */
+	use(comp: Comp | Tag): void;
+	// TODO: update the Character type info
+	/**
+	 * Remove a tag or a component with its id.
+	 */
+	unuse(comp: Tag): void;
+	/**
+	 * Run something every frame for this game obj (sugar for on("update")).
+	 */
+	action(cb: () => void): EventCanceller;
+	/**
+	 * Registers an event.
+	 */
+	on(ev: string, cb: () => void): EventCanceller;
+	/**
+	 * Triggers an event.
+	 */
+	trigger(ev: string, ...args: any[]): void;
+	/**
+	 * Remove the game obj from scene.
+	 */
+	destroy(): void;
+	/**
+	 * Get state for a specific comp.
+	 */
+	c(id: Tag): Comp;
+	/**
+	 * Gather debug info of all comps.
+	 */
+	inspect(): CharacterInspect;
+} & MergeComps<T>;
 
 type SceneID = string;
 type SceneDef = (...args: any[]) => void;
@@ -2143,7 +2141,10 @@ interface PosComp extends Comp {
 
 interface ScaleComp extends Comp {
 	id: "scale",
-	scale: Vec2;
+	scale: Vec2,
+	scaleTo(s: number): void,
+	scaleTo(s: Vec2): void,
+	scaleTo(sx: number, sy: number): void,
 }
 
 interface RotateComp extends Comp {
@@ -2151,17 +2152,17 @@ interface RotateComp extends Comp {
 	/**
 	 * Angle in degrees.
 	 */
-	angle: number;
+	angle: number,
 }
 
 interface ColorComp extends Comp {
 	id: "color",
-	color: Color;
+	color: Color,
 }
 
 interface OpacityComp extends Comp {
 	id: "opacity",
-	opacity: number;
+	opacity: number,
 }
 
 interface OriginComp extends Comp {
@@ -2169,7 +2170,7 @@ interface OriginComp extends Comp {
 	/**
 	 * Origin point for render.
 	 */
-	origin: Origin | Vec2;
+	origin: Origin | Vec2,
 }
 
 interface LayerComp extends Comp {
@@ -2177,7 +2178,7 @@ interface LayerComp extends Comp {
 	/**
 	 * Which layer this game obj belongs to.
 	 */
-	layer: string;
+	layer: string,
 }
 
 interface ZComp extends Comp {
@@ -2185,13 +2186,13 @@ interface ZComp extends Comp {
 	/**
 	 * Defines the z-index of this game obj
 	 */
-	z: number;
+	z: number,
 }
 
 interface FollowComp extends Comp {
 	id: "follow",
 	follow: {
-		obj: Character<any>,
+		obj: Character,
 		offset: Vec2,
 	},
 }
@@ -2235,7 +2236,7 @@ interface AreaComp extends Comp {
 	/**
 	 * Collider area info.
 	 */
-	area: AreaCompConf;
+	area: AreaCompConf,
 	/**
 	 * Get the width of collider area.
 	 */
@@ -2255,11 +2256,11 @@ interface AreaComp extends Comp {
 	/**
 	 * If is currently colliding with another game obj.
 	 */
-	isColliding(o: Character<any>): boolean,
+	isColliding(o: Character): boolean,
 	/**
 	 * If is currently touching another game obj.
 	 */
-	isTouching(o: Character<any>): boolean,
+	isTouching(o: Character): boolean,
 	/**
 	 * Registers an event runs when clicked.
 	 */
@@ -2271,7 +2272,7 @@ interface AreaComp extends Comp {
 	/**
 	 * Registers an event runs when collides with another game obj with certain tag.
 	 */
-	collides(tag: Tag, f: (obj: Character<any>, side?: RectSide) => void): void,
+	collides(tag: Tag, f: (obj: Character, side?: RectSide) => void): void,
 	/**
 	 * If has a certain point inside collider.
 	 */
@@ -2279,7 +2280,7 @@ interface AreaComp extends Comp {
 	/**
 	 * Push out from another solid game obj if currently overlapping.
 	 */
-	pushOut(obj: Character<any>): void,
+	pushOut(obj: Character): void,
 	/**
 	 * Push out from all other solid game objs if currently overlapping.
 	 *
@@ -2295,11 +2296,11 @@ interface AreaComp extends Comp {
 	/**
 	 * Get the geometry data for the collider in world coordinate space.
 	 */
-	worldArea(): Rect;
+	worldArea(): Rect,
 	/**
 	 * Get the geometry data for the collider in screen coordinate space.
 	 */
-	screenArea(): Rect;
+	screenArea(): Rect,
 }
 
 interface SpriteCompConf {
@@ -2346,35 +2347,35 @@ interface SpriteComp extends Comp {
 	/**
 	 * Width for sprite.
 	 */
-	width: number;
+	width: number,
 	/**
 	 * Height for sprite.
 	 */
-	height: number;
+	height: number,
 	/**
 	 * Current frame.
 	 */
-	frame: number;
+	frame: number,
 	/**
 	 * The rectangular area of the texture to render.
 	 */
-	quad: Quad;
+	quad: Quad,
 	/**
 	 * Play a piece of anim.
 	 */
-	play(anim: string, conf?: SpriteAnimPlayConf): void;
+	play(anim: string, conf?: SpriteAnimPlayConf): void,
 	/**
 	 * Stop current anim.
 	 */
-	stop(): void;
+	stop(): void,
 	/**
 	 * Get total number of frames.
 	 */
-	numFrames(): number;
+	numFrames(): number,
 	/**
 	 * Get current anim name.
 	 */
-	curAnim(): string;
+	curAnim(): string,
 	/**
 	 * Frame animation speed scale multiplier.
 	 */
@@ -2382,11 +2383,11 @@ interface SpriteComp extends Comp {
 	/**
 	 * Flip texture horizontally.
 	 */
-	flipX(b: boolean): void;
+	flipX(b: boolean): void,
 	/**
 	 * Flip texture vertically.
 	 */
-	flipY(b: boolean): void;
+	flipY(b: boolean): void,
 }
 
 interface TextComp extends Comp {
@@ -2394,23 +2395,23 @@ interface TextComp extends Comp {
 	/**
 	 * The text to render.
 	 */
-	text: string;
+	text: string,
 	/**
 	 * The text size.
 	 */
-	textSize: number;
+	textSize: number,
 	/**
 	 * The font to use.
 	 */
-	font: string | FontData;
+	font: string | FontData,
 	/**
 	 * Width of text.
 	 */
-	width: number;
+	width: number,
 	/**
 	 * Height of text.
 	 */
-	height: number;
+	height: number,
 }
 
 interface TextCompConf {
@@ -2433,11 +2434,11 @@ interface RectComp extends Comp {
 	/**
 	 * Width of rect.
 	 */
-	width: number;
+	width: number,
 	/**
 	 * Height of height.
 	 */
-	height: number;
+	height: number,
 }
 
 type AreaType =
@@ -2450,8 +2451,8 @@ type AreaType =
 
 interface OutlineComp extends Comp {
 	id: "outline",
-	lineWidth: number;
-	lineColor: Color;
+	lineWidth: number,
+	lineColor: Color,
 }
 
 interface Debug {
@@ -2512,8 +2513,8 @@ type Uniform = Record<string, UniformValue>;
 
 interface ShaderComp extends Comp {
 	id: "shader",
-	uniform: Uniform;
-	shader: string;
+	uniform: Uniform,
+	shader: string,
 }
 
 interface BodyComp extends Comp {
@@ -2521,35 +2522,35 @@ interface BodyComp extends Comp {
 	/**
 	 * If should collide with other solid objects.
 	 */
-	solid: boolean;
+	solid: boolean,
 	/**
 	 * Initial speed in pixels per second for jump().
 	 */
-	jumpForce: number;
+	jumpForce: number,
 	/**
 	 * Gravity multiplier.
 	 */
-	weight: number;
+	weight: number,
 	/**
 	 * Current platform landing on.
 	 */
-	curPlatform(): Character<any> | null;
+	curPlatform(): Character | null,
 	/**
 	 * If currently landing on a platform.
 	 */
-	grounded(): boolean;
+	grounded(): boolean,
 	/**
 	 * If currently falling.
 	 */
-	falling(): boolean;
+	falling(): boolean,
 	/**
 	 * Upward thrust.
 	 */
-	jump(f?: number): void;
+	jump(f?: number): void,
 	/**
 	 * Performs double jump (the initial jump only happens if player is grounded).
 	 */
-	djump(f?: number): void;
+	djump(f?: number): void,
 }
 
 interface BodyCompConf {
@@ -2564,19 +2565,19 @@ interface BodyCompConf {
 	/**
 	 * Gravity multiplier.
 	 */
-	weight?: number;
+	weight?: number,
 	/**
 	 * Can you hang to a wall.
 	 */
-//  	hang?: boolean;
+//  	hang?: boolean,
 	/**
 	 * How many seconds can you hang to a wall.
 	 */
-//  	hangTime?: number;
+//  	hangTime?: number,
 	/**
 	 * How many pixels per second to glide down when hanging.
 	 */
-//  	hangGlide?: number;
+//  	hangGlide?: number,
 }
 
 interface Timer {
@@ -2603,7 +2604,7 @@ interface SolidComp extends Comp {
 	/**
 	 * If should stop other solid objects from moving through.
 	 */
-	solid: boolean;
+	solid: boolean,
 }
 
 interface FixedComp extends Comp {
@@ -2611,7 +2612,7 @@ interface FixedComp extends Comp {
 	/**
 	 * If the obj is unaffected by camera
 	 */
-	fixed: boolean;
+	fixed: boolean,
 }
 
 interface StayComp extends Comp {
@@ -2619,7 +2620,7 @@ interface StayComp extends Comp {
 	/**
 	 * If the obj should not be destroyed on scene switch.
 	 */
-	stay: boolean;
+	stay: boolean,
 }
 
 interface HealthComp extends Comp {
@@ -2670,8 +2671,8 @@ interface LevelConf {
 interface Level {
 	getPos(p: Vec2): Vec2,
 	getPos(x: number, y: number): Vec2,
-	spawn(sym: string, p: Vec2): Character<any>,
-	spawn(sym: string, x: number, y: number): Character<any>,
+	spawn(sym: string, p: Vec2): Character,
+	spawn(sym: string, x: number, y: number): Character,
 	width(): number,
 	height(): number,
 	gridWidth(): number,
