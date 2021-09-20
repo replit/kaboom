@@ -13,7 +13,7 @@ type AudioCtx = {
 type Audio = {
 	ctx: AudioContext,
 	volume(v: number): number,
-	play(sound: AudioBuffer, conf?: AudioPlayConf): AudioPlay,
+	play(snd: SoundData, conf?: AudioPlayConf): AudioPlay,
 	burp(conf?: AudioPlayConf): AudioPlay,
 };
 
@@ -46,10 +46,16 @@ function audioInit(): Audio {
 
 	})();
 
-	let burpBuf;
+	const burpSnd = {
+		buf: new AudioBuffer({
+			length: 1,
+			numberOfChannels: 1,
+			sampleRate: 44100
+		}),
+	};
 
 	audio.ctx.decodeAudioData(burpBytes.buffer.slice(0), (buf) => {
-		burpBuf = buf;
+		burpSnd.buf = buf;
 	}, () => {
 		throw new Error("failed to make burp")
 	});
@@ -64,7 +70,7 @@ function audioInit(): Audio {
 
 	// plays a sound, returns a control handle
 	function play(
-		sound: AudioBuffer,
+		snd: SoundData,
 		conf: AudioPlayConf = {
 			loop: false,
 			volume: 1,
@@ -77,7 +83,7 @@ function audioInit(): Audio {
 		let stopped = false;
 		let srcNode = audio.ctx.createBufferSource();
 
-		srcNode.buffer = sound;
+		srcNode.buffer = snd.buf;
 		srcNode.loop = conf.loop ? true : false;
 
 		const gainNode = audio.ctx.createGain();
@@ -181,7 +187,7 @@ function audioInit(): Audio {
 			},
 
 			duration(): number {
-				return sound.duration;
+				return snd.buf.duration;
 			},
 
 			time(): number {
@@ -203,7 +209,7 @@ function audioInit(): Audio {
 	}
 
 	function burp(conf?: AudioPlayConf): AudioPlay {
-		return play(burpBuf, conf);
+		return play(burpSnd, conf);
 	}
 
 	return {

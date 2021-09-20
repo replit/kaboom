@@ -112,17 +112,19 @@ function dt() {
 
 // TODO: clean
 function play(id: string, conf: AudioPlayConf = {}): AudioPlay {
-	const pb = audio.play(new AudioBuffer({
-		length: 1,
-		numberOfChannels: 1,
-		sampleRate: 44100
-	}));
+	const pb = audio.play({
+		buf: new AudioBuffer({
+			length: 1,
+			numberOfChannels: 1,
+			sampleRate: 44100
+		}),
+	});
 	ready(() => {
-		const sound = assets.sounds[id];
-		if (!sound) {
+		const snd = assets.sounds[id];
+		if (!snd) {
 			throw new Error(`sound not found: "${id}"`);
 		}
-		const pb2 = audio.play(sound, conf);
+		const pb2 = audio.play(snd, conf);
 		for (const k in pb2) {
 			pb[k] = pb2[k];
 		}

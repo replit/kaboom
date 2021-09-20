@@ -463,10 +463,13 @@ function assetsInit(gfx: Gfx, audio: Audio, gconf: AssetsConf = {}): Assets {
 						});
 					})
 					.then((buf: AudioBuffer) => {
-						if (name) {
-							assets.sounds[name] = buf;
+						const snd = {
+							buf: buf,
 						}
-						resolve(buf);
+						if (name) {
+							assets.sounds[name] = snd;
+						}
+						resolve(snd);
 					})
 					.catch(reject);
 			}

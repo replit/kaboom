@@ -1493,6 +1493,9 @@ interface CharacterRaw {
 	inspect(): CharacterInspect;
 }
 
+/**
+ * Inspect info for a character.
+ */
 type CharacterInspect = Record<Tag, string | null>;
 
 /**
@@ -1571,6 +1574,9 @@ interface KaboomConf {
 
 type KaboomPlugin<T> = (k: KaboomCtx) => T;
 
+/**
+ * A character in game. The basic unit of object in Kaboom. The player, a bullet, a tree, a piece of text, they're all characters!
+ */
 type Character<T> = CharacterRaw & MergeComps<T>;
 
 type SceneID = string;
@@ -1582,6 +1588,9 @@ type TouchID = number;
  */
 type EventCanceller = () => void;
 
+/**
+ * Frame-based animation configuration.
+ */
 type SpriteAnim = number | {
 	/**
 	 * The starting frame.
@@ -1605,6 +1614,9 @@ type SpriteAnim = number | {
 	speed?: number,
 }
 
+/**
+ * Sprite animation configuration when playing.
+ */
 interface SpriteAnimPlayConf {
 	/**
 	 * If this anim should be played in loop.
@@ -1643,13 +1655,37 @@ interface SpriteLoadConf {
 
 type SpriteAtlasData = Record<string, SpriteAtlasEntry>;
 
+/**
+ * A sprite in a sprite atlas.
+ */
 interface SpriteAtlasEntry {
+	/**
+	 * X position of the top left corner.
+	 */
 	x: number,
+	/**
+	 * Y position of the top left corner.
+	 */
 	y: number,
+	/**
+	 * Sprite area width.
+	 */
 	width: number,
+	/**
+	 * Sprite area height.
+	 */
 	height: number,
+	/**
+	 * If the defined area contains multiple sprites, how many frames are in the area hozizontally.
+	 */
 	sliceX?: number,
+	/**
+	 * If the defined area contains multiple sprites, how many frames are in the area vertically.
+	 */
 	sliceY?: number,
+	/**
+	 * Animation configuration.
+	 */
 	anims?: SpriteAnims,
 }
 
@@ -1669,10 +1705,17 @@ interface FontLoadConf {
 	wrap?: TexWrap,
 }
 
-type SoundData = AudioBuffer;
+interface SoundData {
+	buf: AudioBuffer,
+}
+
 type FontData = GfxFont;
 type ShaderData = GfxProgram;
 
+// TODO: enable setting on load, make part of SoundData
+/**
+ * Audio play configurations.
+ */
 interface AudioPlayConf {
 	loop?: boolean,
 	volume?: number,
