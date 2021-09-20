@@ -9,7 +9,8 @@ const games = [
 	"https://replit.com/@SixBeeps/Super-Pong",
 	"https://replit.com/@ritza/3d-space-shooter",
 	"https://replit.com/@theNvN/Satoshi-Run",
-	"https://swilliamsio.itch.io/triple-threat"
+	"https://swilliamsio.itch.io/triple-threat",
+	"https://achtaitaipai.itch.io/dodog",
 ];
 
 fun.addEventListener("click", () => {
