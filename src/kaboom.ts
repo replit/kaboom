@@ -527,11 +527,13 @@ function make<T>(comps: CompList<T>): Character<T> {
 
 }
 
-function add<T>(comps: CompList<T>): Character<T> {
-	const obj = make(comps);
+function add<A extends unknown[]>(...comps: [...A]): Character<RecursiveElementType<A>> {
+	const flatComps = comps.flat(Infinity) as RecursiveElementType<A>[];
+	const obj = make(flatComps);
 	obj._id = game.objs.push(obj);
 	obj.trigger("add");
 	ready(() => obj.trigger("load"));
+
 	return obj;
 }
 

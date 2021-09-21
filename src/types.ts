@@ -1423,6 +1423,11 @@ type Expand<T> = T extends infer U ? { [K in keyof U]: U[K] } : never;
 type MergeObj<T> = Expand<UnionToIntersection<Defined<T>>>;
 type MergeComps<T> = Omit<MergeObj<T>, keyof Comp>;
 
+// Gets an element type from a recursive array type
+// https://www.typescriptlang.org/docs/handbook/release-notes/typescript-4-1.html#recursive-conditional-types
+type RecursiveElementType<T> = T extends ReadonlyArray<infer U> ? RecursiveElementType<U> : T;
+
+
 type CompList<T> = Array<T | Tag>;
 type DynCompList<T> = CompList<T> | ((...args: any[]) => CompList<T>);
 
