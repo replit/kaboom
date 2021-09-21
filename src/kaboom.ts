@@ -243,8 +243,8 @@ const game: Game = {
 
 	// cam
 	cam: {
-		pos: vec2(width() / 2, height() / 2),
-		scale: vec2(1, 1),
+		pos: center(),
+		scale: vec2(1),
 		angle: 0,
 		shake: 0,
 	},
@@ -340,7 +340,7 @@ function make<T>(comps: CompList<T>): Character<T> {
 	const customState = {};
 	const events = {};
 
-	const obj: CharacterRaw = {
+	const obj = {
 
 		_id: null,
 		hidden: false,
