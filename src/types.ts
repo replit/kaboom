@@ -1428,8 +1428,8 @@ type MergeComps<T> = Omit<MergeObj<T>, keyof Comp>;
 type RecursiveElementType<T> = T extends ReadonlyArray<infer U> ? RecursiveElementType<U> : T;
 
 
-type CompList<T> = Array<T | Tag>;
-type DynCompList<T> = CompList<T> | ((...args: any[]) => CompList<T>);
+type CompList<T> = Array<T | Tag | CompList<T>>;
+type FlatCompList<T> = Array<T | Tag>;
 
 type Key =
 	| "f1" | "f2" | "f3" | "f4" | "f5" | "f6" | "f7" | "f8" | "f9" | "f10" | "f11" | "f12"

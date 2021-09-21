@@ -334,7 +334,7 @@ const COMP_EVENTS = new Set([
 	"inspect",
 ]);
 
-function make<T>(comps: CompList<T>): Character<T> {
+function make<T>(comps: FlatCompList<T>): Character<T> {
 
 	const compStates = new Map();
 	const customState = {};
