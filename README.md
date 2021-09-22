@@ -149,7 +149,7 @@ kaboom();
 
 or use with es modules
 
-```js
+```html
 <script type="module">
 import kaboom from "https://unpkg.com/kaboom@next/dist/kaboom.mjs";
 kaboom();

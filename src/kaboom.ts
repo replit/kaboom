@@ -561,7 +561,6 @@ function action(tag: Tag | (() => void), cb?: (obj: Character) => void): EventCa
 	if (typeof tag === "function" && cb === undefined) {
 		return add([{ update: tag, }]).destroy;
 	} else if (typeof tag === "string") {
-		// TODO add an empty game obj
 		return on("update", tag, cb);
 	}
 }
@@ -571,7 +570,7 @@ function render(tag: Tag | (() => void), cb?: (obj: Character) => void) {
 	if (typeof tag === "function" && cb === undefined) {
 		return add([{ draw: tag, }]).destroy;
 	} else if (typeof tag === "string") {
-		return on("update", tag, cb);
+		return on("draw", tag, cb);
 	}
 }
 
@@ -1022,7 +1021,7 @@ function pos(...args): PosComp {
 			let dy = p.y;
 			let col = null;
 
-			if (this.solid) {
+			if (this.solid && this.area) {
 
 				let a1 = this.worldArea();
 
@@ -1941,10 +1940,10 @@ function body(conf: BodyCompConf = {}): BodyComp {
 	return {
 
 		id: "body",
-		require: [ "area", "pos", ],
+		require: [ "pos", ],
 		jumpForce: conf.jumpForce ?? DEF_JUMP_FORCE,
 		weight: conf.weight ?? 1,
-		solid: true,
+		solid: conf.solid ?? true,
 
 		update() {
 
@@ -2104,19 +2103,22 @@ function health(hp: number): HealthComp {
 	};
 }
 
-function lifespan(time: number, cb?: () => void): LifespanComp {
+function lifespan(time: number, conf: LifespanCompConf = {}): LifespanComp {
 	if (time == null) {
 		throw new Error("lifespan() requires time");
 	}
 	let timer = 0;
+	const fade = conf.fade ?? 0;
+	const startFade = Math.max((time - fade), 0);
 	return {
 		id: "lifespan",
 		update() {
 			timer += dt();
+			// TODO: don't assume 1 as start opacity
+			if (timer >= startFade) {
+				this.opacity = map(timer, startFade, time, 1, 0);
+			}
 			if (timer >= time) {
-				if (cb) {
-					cb.call(this);
-				}
 				this.destroy();
 			}
 		},

@@ -2650,6 +2650,13 @@ interface LifespanComp extends Comp {
 //  	id: "lifespan",
 }
 
+interface LifespanCompConf {
+	/**
+	 * Fade out duration (default 0 which is no fade out).
+	 */
+	fade?: number,
+}
+
 interface LevelConf {
 	/**
 	 * Grid width (width of each block).
