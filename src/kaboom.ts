@@ -1683,8 +1683,8 @@ function sprite(id: string | SpriteData, conf: SpriteCompConf = {}): SpriteComp 
 							this.frame = anim.from;
 						} else {
 							this.frame++;
-							this.stop();
 							curAnim.onEnd();
+							this.stop();
 						}
 					}
 				} else {
@@ -1694,8 +1694,8 @@ function sprite(id: string | SpriteData, conf: SpriteCompConf = {}): SpriteComp 
 							this.frame = anim.from;
 						} else {
 							this.frame--;
-							this.stop();
 							curAnim.onEnd();
+							this.stop();
 						}
 					}
 				}

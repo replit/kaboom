@@ -1424,7 +1424,6 @@ type MergeObj<T> = Expand<UnionToIntersection<Defined<T>>>;
 type MergeComps<T> = Omit<MergeObj<T>, keyof Comp>;
 
 type CompList<T> = Array<T | Tag>;
-type DynCompList<T> = CompList<T> | ((...args: any[]) => CompList<T>);
 
 type Key =
 	| "f1" | "f2" | "f3" | "f4" | "f5" | "f6" | "f7" | "f8" | "f9" | "f10" | "f11" | "f12"
@@ -2546,7 +2545,7 @@ interface BodyComp extends Comp {
 	/**
 	 * Upward thrust.
 	 */
-	jump(f?: number): void,
+	jump(force?: number): void,
 	/**
 	 * Performs double jump (the initial jump only happens if player is grounded).
 	 */
@@ -2566,6 +2565,10 @@ interface BodyCompConf {
 	 * Gravity multiplier.
 	 */
 	weight?: number,
+	/**
+	 * If should not move through other solid objects.
+	 */
+	solid?: boolean,
 	/**
 	 * Can you hang to a wall.
 	 */
