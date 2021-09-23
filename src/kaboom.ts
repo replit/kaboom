@@ -1286,68 +1286,36 @@ function follow(obj: Character, offset?: Vec2): FollowComp {
 }
 
 function move(direction: number | Vec2, speed: number): MoveComp {
-
 	const d = typeof direction === "number" ? dir(direction) : direction.unit();
-	let timeOut = 0;
-	// if it's not seen in 6 seconds, we destroy it
-	const maxTimeOut = 6;
-
-	function isOut(p: Vec2) {
-		let is = false;
-		if (d.x < 0) {
-			is ||= p.x < 0;
-		} else if (d.x > 0) {
-			is ||= p.x > width();
-		}
-		if (d.y < 0) {
-			is ||= p.y < 0;
-		} else if (d.y > 0) {
-			is ||= p.y > width();
-		}
-		return is;
-	}
-
 	return {
-
 		id: "move",
 		require: [ "pos", ],
-
 		update() {
-
-			// move
 			this.move(d.scale(speed));
-
-			// check if out of screen
-			const pos = this.screenPos();
-
-			if (isOut(pos)) {
-				if (this.width && this.height) {
-					const w = this.width;
-					const h = this.height;
-					const s = this.scale ?? vec2(1);
-					const orig = originPt(this.origin || DEF_ORIGIN);
-					const p1 = pos.sub(orig.sub(-1, -1).scale(0.5).scale(w, h).scale(s));
-					const p2 = pos.sub(orig.sub(1, 1).scale(0.5).scale(w, h).scale(s));
-					if (isOut(p1) && isOut(p2)) {
-						timeOut += dt();
-					} else {
-						timeOut = 0;
-					}
-				} else {
-					timeOut += dt();
-				}
-			} else {
-				timeOut = 0;
-			}
-
-			if (timeOut >= maxTimeOut) {
-				destroy(this);
-			}
-
 		},
-
 	};
+}
 
+function cleanup(time: number = 0): CleanupComp {
+	let timer = 0;
+	return {
+		id: "cleanup",
+		require: [ "pos", "area", ],
+		update() {
+			const screenRect = {
+				p1: vec2(0, 0),
+				p2: vec2(width(), height()),
+			}
+			if (colRectRect(this.screenArea(), screenRect)) {
+				timer = 0;
+			} else {
+				timer += dt();
+				if (timer >= time) {
+					this.destroy();
+				}
+			}
+		},
+	};
 }
 
 // TODO: tell which side collides
@@ -2458,6 +2426,7 @@ const ctx: KaboomCtx = {
 	lifespan,
 	z,
 	move,
+	cleanup,
 	follow,
 	// group events
 	on,

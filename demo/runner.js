@@ -54,6 +54,7 @@ scene("game", () => {
 			origin("botleft"),
 			color(255, 180, 255),
 			move(LEFT, SPEED),
+			cleanup(),
 			"tree",
 		]);
 

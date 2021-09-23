@@ -20,13 +20,15 @@ function patrol(speed = 60, dir = 1) {
 	return {
 		id: "patrol",
 		require: [ "pos", "area", ],
+		add() {
+			this.on("collide", (obj, side) => {
+				if (side === "left" || side === "right") {
+					dir = -dir;
+				}
+			});
+		},
 		update() {
-			const vel = speed * dir;
-			// if collides with something when it's moving, turn around
-			const colliding = this.move(vel, 0);
-			if (colliding) {
-				dir = vel > 0 ? -1 : 1;
-			}
+			this.move(speed * dir, 0);
 		},
 	};
 }
