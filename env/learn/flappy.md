@@ -1,4 +1,4 @@
-### Build a Flappy Bird in Kaboom
+# Build a Flappy Bird in Kaboom
 
 (tutorial coming soon)
 
@@ -26,9 +26,6 @@ scene("game", () => {
 		"obj",
 		"ui",
 	], "obj");
-
-	// background
-	addSky();
 
 	// a game object consists of a list of components and tags
 	const bean = add([
@@ -72,7 +69,10 @@ scene("game", () => {
 			color(0, 127, 255),
 			outline(4),
 			area(),
+			// move it towards the left SPEED pixels per second
 			move(LEFT, SPEED),
+			// auto removal when it's out of screen, for maintaining performance
+			cleanup(),
 			// give it tags to easier define behaviors see below
 			"pipe",
 		]);
@@ -84,7 +84,7 @@ scene("game", () => {
 			outline(4),
 			area(),
 			move(LEFT, SPEED),
-			// give it tags to easier define behaviors see below
+			cleanup(),
 			"pipe",
 			// raw obj just assigns every field to the game obj
 			{ passed: false, },
@@ -154,3 +154,4 @@ scene("lose", (score) => {
 
 go("game");
 ```
+

@@ -37,36 +37,44 @@ devws.onmessage = (e) => {
 	}
 };
 
-// replit auth
-window.replit = {
+interface User {
+	id: string,
+	name: string,
+}
 
-	user: null,
+interface Replit {
+	getUser(): Promise<User | null>,
+	auth(): Promise<User | null>,
+	getUserOrAuth(): Promise<User | null>,
+	getData<D = any>(key: string, def?: D): Promise<D>,
+	setData<D>(key: string, val: D): Promise<D>,
+	delData(key: string): Promise<void>,
+	listData(): Promise<string[]>,
+	clearData(): Promise<void>,
+}
 
-	getUser() {
+declare global {
+	const replit: Replit;
+}
+
+// replit auth & db integration
+const replit: Replit = {
+
+	getUser(): Promise<User | null> {
 		return fetch("/user")
 			.then((res) => res.json())
 			.then((user) => {
 				if (user) {
-					this.user = user;
-					return Promise.resolve(this.user);
+					return Promise.resolve(user);
 				} else {
 					return Promise.resolve(null);
 				}
 			});
 	},
 
-	authed() {
-		return this.user !== null;
-	},
-
-	auth() {
+	auth(): Promise<User | null> {
 
 		return new Promise((resolve, reject) => {
-
-			if (this.authed()) {
-				resolve(this.user);
-				return;
-			}
 
 			const authComplete = (e) => {
 				if (e.data !== "auth_complete") {
@@ -95,12 +103,21 @@ window.replit = {
 
 	},
 
-};
+	getUserOrAuth(): Promise<User | null> {
+		return new Promise((resolve, reject) => {
+			this.getUser().then((user) => {
+				if (user) {
+					resolve(user);
+				} else {
+					this.auth().then((user) => {
+						resolve(user);
+					})
+				}
+			})
+		});
+	},
 
-// replit db
-window.db = {
-
-	getData(key, def) {
+	getData<D = any>(key: string, def?: D): Promise<D> {
 		return fetch(`/db/${key}`)
 			.then((res) => res.json())
 			.then((val) => {
@@ -112,7 +129,7 @@ window.db = {
 			});
 	},
 
-	setData(key, val) {
+	setData<D>(key: string, val: D): Promise<D> {
 		return fetch(`/db/${key}`, {
 			method: "POST",
 			headers: {
@@ -122,6 +139,23 @@ window.db = {
 		}).then(() => Promise.resolve(val));
 	},
 
+	delData(key: string): Promise<void> {
+		return fetch(`/db/${key}`, {
+			method: "DELETE",
+		}).then(() => {});
+	},
+
+	listData(): Promise<string[]> {
+		return fetch(`/db`)
+			.then((res) => res.json());
+	},
+
+	clearData(): Promise<void> {
+		return fetch(`/db`, {
+			method: "DELETE",
+		}).then((res) => {});
+	},
+
 };
 
-replit.getUser();
+window.replit = replit;

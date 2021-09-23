@@ -41,7 +41,7 @@ function buildGame() {
 			sourcemap: true,
 			target: "es6",
 			keepNames: true,
-			entryPoints: ["helper.js"],
+			entryPoints: ["helper.ts"],
 			outfile: "dist/helper.js",
 		});
 
@@ -100,10 +100,18 @@ app.get("/user", (req, res) => {
 	}
 });
 
-// TODO: authed user level abstraction?
 app.get("/db", async (req, res) => {
 	try {
 		res.json(await db.list());
+	} catch (e) {
+		res.sendStatus(500);
+	}
+});
+
+app.delete("/db", async (req, res) => {
+	try {
+		await db.empty();
+		res.sendStatus(200);
 	} catch (e) {
 		res.sendStatus(500);
 	}
@@ -119,7 +127,16 @@ app.get("/db/:item", async (req, res) => {
 
 app.post("/db/:item", async (req, res) => {
 	try {
-		db.set(req.params.item, req.body);
+		await db.set(req.params.item, req.body);
+		res.sendStatus(200);
+	} catch (e) {
+		res.sendStatus(500);
+	}
+});
+
+app.delete("/db/:item", async (req, res) => {
+	try {
+		await db.delete(req.params.item);
 		res.sendStatus(200);
 	} catch (e) {
 		res.sendStatus(500);
