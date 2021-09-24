@@ -361,12 +361,39 @@ function appInit(gconf: AppConf = {}): App {
 	}
 
 	function fullscreen(f?: boolean): boolean {
-		if (document.fullscreenElement) {
-			document.exitFullscreen();
+		const enterFullscreen = (el: any) => {
+			if(el.mozRequestFullScreen) {
+				el.mozRequestFullScreen();
+			} else if (el.webkitRequestFullScreen) {
+				el.webkitRequestFullScreen();
+			} else {
+				el.requestFullscreen();
+			}
+		};
+		
+		const exitFullscreen = (doc: any) => {
+			if(doc.mozExitFullScreen) {
+				doc.mozExitFullScreen();
+			} else if(doc.webkitExitFullScreen) {
+				doc.webkitExitFullScreen();
+			} else {
+				doc.exitFullscreen();
+			}
+		};
+
+		const getFullscreenElement = (doc: any):HTMLElement => {
+			if(doc.mozFullscreenElement !== undefined) return doc.mozFullscreenElement;
+			if(doc.webkitFullscreenElement !== undefined) return doc.webkitFullscreenElement;
+			return doc.fullscreenElement;
+		};
+
+		if (getFullscreenElement(document)) {
+			exitFullscreen(document);
 		} else {
-			app.canvas.requestFullscreen();
+			enterFullscreen(app.canvas);
 		}
-		return document.fullscreenElement != null;
+
+		return !!getFullscreenElement(document);
 	}
 
 	function run(f: () => void) {
