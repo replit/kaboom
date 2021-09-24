@@ -183,3 +183,4 @@ works all CDNs that supports NPM packages, e.g. jsdelivr, skypack
 - Thanks to [Umayr](https://github.com/umayr) for kindly offering the "kaboom" npm package name
 - Please buy fireworks on [kaboom.com](http://www.kaboom.com/)
 - Old v5.0 website [here](https://kaboomold.slmjkdbtl.repl.co/)
+- [How to do a KABOOM on a Trampoline](https://www.youtube.com/watch?v=3CemcWdc_Hc)
