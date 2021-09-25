@@ -107,7 +107,7 @@ action("enemy", (e) => {
 
 // move up 100 pixels per second every frame when "w" key is held down
 keyDown("w", () => {
-    player.move(0, 100),
+    player.move(0, 100);
 });
 ```
 
