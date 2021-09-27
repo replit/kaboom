@@ -9,7 +9,7 @@ const css = {
 	},
 	"body": {
 		"padding": "48px",
-		"background": `var(--color-bg) url("/site/img/bg.svg") repeat`,
+		"background": "var(--color-bg) url(/site/img/bg.svg) repeat",
 		"animation": "scroll linear 5s infinite",
 	},
 	"a": {
