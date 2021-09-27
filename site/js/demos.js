@@ -27,9 +27,9 @@ const editor = new EditorView({
 	parent: document.getElementById("editor"),
 });
 
-function setDemo(name) {
+function setEditor(code) {
 	editor.setState(EditorState.create({
-		doc: demos[name],
+		doc: code,
 		extensions: [
 			getTheme() === "dark" && oneDark,
 			EditorState.tabSize.of(4),
@@ -59,6 +59,10 @@ function setDemo(name) {
 			]),
 		].filter((ext) => ext),
 	}));
+}
+
+function setDemo(name) {
+	setEditor(demos[name]);
 	run();
 }
 
@@ -101,7 +105,7 @@ function setDemoAndHash(name) {
 
 runbtn.addEventListener("click", run);
 selector.addEventListener("change", () => setDemoAndHash(selector.value));
-onThemeChange(() => setDemo(selector.value));
+onThemeChange(() => setEditor(editor.state.doc.toString()));
 setDemoAndHash(selector.value);
 setTheme(localStorage["theme"] || "dark");
 window.toggleTheme = toggleTheme;
