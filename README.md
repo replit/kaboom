@@ -136,6 +136,8 @@ also works with CJS
 const kaboom = require("kaboom");
 ```
 
+Note that you'll need to use a bundler like `esbuild` or `webpack` to use Kaboom with NPM
+
 ### Browser CDN
 
 This exports a global `kaboom` function
