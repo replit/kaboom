@@ -91,6 +91,11 @@ const css = {
 		"color": "var(--color-highlight)",
 	},
 	"ul": {
+		"margin-left": "32px",
+		...www.vspace(8),
+	},
+	"ol": {
+		"margin-left": "32px",
 		...www.vspace(8),
 	},
 	"button": {

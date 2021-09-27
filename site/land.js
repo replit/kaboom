@@ -157,7 +157,7 @@ const page = t("html", {}, [
 					", ",
 					t("a", { href: "/demo", }, "demos"),
 					", \n",
-					t("a", { href: "/tut/intro.md", }, "tutorial"),
+					t("a", { href: "/doc/intro.md", }, "tutorial"),
 					", and ",
 					t("a", { href: "/github", }, "github"),
 					".",

@@ -105,7 +105,7 @@ This is a complete package including
 - Assets Library
 - Replit DB & Auth integration
 
-![official template](/tut/replit.png)
+![official template](setup/replit.png)
 
 ### [Lighter Template](https://replit.com/@replit/Kaboom-light)
 
