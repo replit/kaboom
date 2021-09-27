@@ -311,26 +311,32 @@ const page = t("html", {}, [
 					t("div", { class: "ball", }, []),
 				]),
 			]),
-			www.spacer(12),
-			t("div", { id: "index" }, sections.map((sec) => {
-				const dups = new Set([]);
-				return t("div", {
-					class: "section",
-				}, [
-					t("div", { class: "title", }, sec.name),
-					t("div", {}, sec.entries.map((mem) => {
-						if (!mem.name || dups.has(mem.name)) {
-							return;
-						}
-						dups.add(mem.name);
-						let name = mem.name;
-						if (mem.kind === "MethodSignature") {
-							name += "()";
-						}
-						return t("a", { href: `#${mem.name}`, }, name);
-					})),
-				]);
-			})),
+			www.spacer(24),
+			t("div", { id: "index" }, [
+				t("div", { class: "section" }, [
+					t("div", { class: "title", }, "Tutorials"),
+					t("a", { href: "/doc/setup.md", }, "Setup"),
+					t("a", { href: "/doc/intro.md", }, "Intro"),
+					t("a", { href: "/doc/comp.md", }, "Component"),
+				]),
+				...sections.map((sec) => {
+					const dups = new Set([]);
+					return t("div", { class: "section", }, [
+						t("div", { class: "title", }, sec.name),
+						t("div", {}, sec.entries.map((mem) => {
+							if (!mem.name || dups.has(mem.name)) {
+								return;
+							}
+							dups.add(mem.name);
+							let name = mem.name;
+							if (mem.kind === "MethodSignature") {
+								name += "()";
+							}
+							return t("a", { href: `#${mem.name}`, }, name);
+						})),
+					]);
+				}),
+			]),
 		]),
 		t("div", { id: "content", }, [
 			block("Intro", [

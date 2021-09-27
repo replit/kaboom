@@ -43,7 +43,13 @@ module.exports = (p) => {
 			t("link", { rel: "stylesheet", href: "/site/css/paraiso.css"}),
 		]),
 		t("body", {}, [
-			t("div", { id: "content", }, marked(fs.readFileSync(p, "utf-8"))),
+			t("div", { id: "content", }, [
+				t("a", { href: "/doc", }, [
+					t("button", {}, "< Back to docs"),
+				]),
+				www.spacer(16),
+				marked(fs.readFileSync(p, "utf-8")),
+			]),
 			t("input", { id: "themeswitch", type: "checkbox", name: "themeswitch", style: "display: none" }, ""),
 			t("label", { for: "themeswitch", class: "switch theme", }, [
 				t("div", { class: "strip", }, [
