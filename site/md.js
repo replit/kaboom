@@ -26,18 +26,12 @@ module.exports = (p) => {
 				"#content": {
 					"font-size": "20px",
 					"line-height": "1.6",
-					"margin": "32px auto",
-					"width": "800px",
-					"max-width": "80%",
+					"margin": "64px auto",
+					"max-width": "800px",
+					"width": "90%",
 					...www.vspace(32),
 					"*": {
 						"max-width": "100%",
-					},
-					"@media": {
-						"(max-device-width: 640px)": {
-							"width": "90%",
-							"font-size": "48px",
-						},
 					},
 				},
 				"label[for='themeswitch']": {
@@ -56,6 +50,7 @@ module.exports = (p) => {
 					t("div", { class: "ball", }, []),
 				]),
 			]),
+			www.spacer(32),
 			t("script", { src: "/site/js/md.js", }, ""),
 		]),
 	]);

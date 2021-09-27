@@ -1,29 +1,6 @@
 # Setting up Kaboom Development
 
-## Using Replit
-
-Replit has templates that gets rid of manual setup. Fork from either of these 2 templates:
-
-### [Official Template](https://replit.com/@replit/Kaboom)
-
-This is a complete package including
-- In-editor tutorial
-- NPM / typescript support
-- Autocomplete
-- Assets Library
-- Replit DB & Auth integration
-
-![official template](/tut/replit.png)
-
-### [Lighter Template](https://replit.com/@replit/Kaboom-light)
-
-A lighter version that only contains the barebone HTML and JS file.
-
-## Local Development
-
-Developing Kaboom on your local machine requires a bit of setup.
-
-### Using CDN
+## Using CDN
 
 Getting the package from a CDN provider is the quickest and easiest way to start using Kaboom.
 
@@ -55,7 +32,7 @@ The example above is using Kaboom with es6 module, you can also just include it 
 <script src="https://unpkg.com/kaboom@next/dist/kaboom.js"></script>
 ```
 
-### Using NPM
+## Using NPM
 
 With NPM it's easier have some other packages and do version control, also it's easier to get typescript autocomplete support and stuff, but it requires a bit more setup.
 
@@ -86,7 +63,7 @@ $ esbuild game.js --bundle > build.js
 
 and it'll find the Kaboom package and include it in the built `build.js`, include `build.js` in your HTML and you're good to go. Feel free to automate this process.
 
-### Loading Assets
+## Loading Assets
 
 You might have encountered errors when trying to `loadSprite()` from local file system, that is because browser won't allow loading local files with JavaScript. To get around that you'll need to use a static file that serves the files through HTTP. There're a lot of programs that helps you to do that.
 
@@ -114,5 +91,24 @@ laodSound("horse", "sounds/horse.mp3");
 ```
 
 To learn more check out this [MDN doc](https://developer.mozilla.org/en-US/docs/Learn/Common_questions/set_up_a_local_testing_server).
+
+## Using Replit
+
+Replit has templates that gets rid of manual setup. Fork from either of these 2 templates:
+
+### [Official Template](https://replit.com/@replit/Kaboom)
+
+This is a complete package including
+- In-editor tutorial
+- NPM / typescript support
+- Autocomplete
+- Assets Library
+- Replit DB & Auth integration
+
+![official template](/tut/replit.png)
+
+### [Lighter Template](https://replit.com/@replit/Kaboom-light)
+
+A lighter version that only contains the barebone HTML and JS file.
 
 Cool! Now you should be all ready to start using Kaboom. Try this [intro tutorial](/tut/intro.md) if you don't know how to start.
