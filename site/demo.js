@@ -102,7 +102,6 @@ module.exports = () => {
 			t("title", {}, "Kaboom Demos"),
 			t("style", {}, www.css(css)),
 			t("script", {}, `window.demos = ${JSON.stringify(demos)}`),
-			t("script", { src: "/site/js/demos.js", type: "module" }, ""),
 		]),
 		t("body", {}, [
 			t("div", { id: "header", }, [
@@ -119,7 +118,12 @@ module.exports = () => {
 					t("button", { id: "run", }, "Run"),
 				]),
 				t("div", {}, [
-					t("button", { onclick: "toggleTheme()" }, "Toggle theme"),
+					t("input", { id: "themeswitch", type: "checkbox", name: "themeswitch", style: "display: none" }, ""),
+					t("label", { for: "themeswitch", class: "switch theme", }, [
+						t("div", { class: "strip", }, [
+							t("div", { class: "ball", }, []),
+						]),
+					]),
 					t("button", {}, "Reset"),
 				]),
 			]),
@@ -127,6 +131,7 @@ module.exports = () => {
 				t("div", { id: "editor", }, []),
 				t("iframe", { id: "view", }, []),
 			]),
+			t("script", { src: "/site/js/demo.js", type: "module" }, ""),
 		]),
 	]);
 

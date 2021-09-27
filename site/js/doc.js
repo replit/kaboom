@@ -1,8 +1,8 @@
-import { setTheme, toggleTheme } from "./theme";
+import { setTheme, initTheme,  patchToggle } from "./theme";
 
 window.addEventListener("hashchange", () => {
 	window.location.href = window.location.href;
 });
 
-setTheme(localStorage["theme"] || "dark");
-window.toggleTheme = toggleTheme;
+initTheme();
+patchToggle(document.querySelector("#themeswitch"));

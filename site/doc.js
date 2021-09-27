@@ -182,7 +182,6 @@ const css = {
 		"display": "flex",
 	},
 	"#sidebar": {
-		...www.vspace(12),
 		"background": "var(--color-bg2)",
 		"width": "240px",
 		"padding": "24px",
@@ -299,14 +298,20 @@ const page = t("html", {}, [
 		t("title", {}, "KaBoom!!!"),
 		t("style", {}, www.css(css)),
 		t("link", { rel: "stylesheet", href: "/site/css/paraiso.css"}),
-		t("script", { src: "/site/js/doc.js", }, ""),
 	]),
 	t("body", {}, [
 		t("div", { id: "sidebar", }, [
 			t("a", { href: "/" }, [
 				t("img", { id: "logo", src: "/site/img/kaboom.svg" }),
 			]),
-			t("button", { onclick: "toggleTheme()" }, "Toggle theme"),
+			www.spacer(12),
+			t("input", { id: "themeswitch", type: "checkbox", name: "themeswitch", style: "display: none" }, ""),
+			t("label", { for: "themeswitch", class: "switch theme", }, [
+				t("div", { class: "strip", }, [
+					t("div", { class: "ball", }, []),
+				]),
+			]),
+			www.spacer(12),
 			t("div", { id: "index" }, sections.map((sec) => {
 				const dups = new Set([]);
 				return t("div", {
@@ -419,6 +424,7 @@ kaboom();
 			block("Custom Component", [
 			]),
 		]),
+		t("script", { src: "/site/js/doc.js", }, ""),
 	]),
 ]);
 

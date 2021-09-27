@@ -12,7 +12,7 @@ import { foldGutter } from "@codemirror/fold";
 import { searchKeymap, highlightSelectionMatches } from "@codemirror/search";
 import { javascript } from "@codemirror/lang-javascript";
 import { oneDark } from "@codemirror/theme-one-dark";
-import { setTheme, getTheme, toggleTheme, onThemeChange } from "./theme";
+import { setTheme, getTheme, initTheme, patchToggle, onThemeChange } from "./theme";
 
 const selector = document.getElementById("selector");
 const runbtn = document.getElementById("run");
@@ -107,5 +107,5 @@ runbtn.addEventListener("click", run);
 selector.addEventListener("change", () => setDemoAndHash(selector.value));
 onThemeChange(() => setEditor(editor.state.doc.toString()));
 setDemoAndHash(selector.value);
-setTheme(localStorage["theme"] || "dark");
-window.toggleTheme = toggleTheme;
+initTheme();
+patchToggle(document.querySelector("#themeswitch"));
