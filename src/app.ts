@@ -370,7 +370,7 @@ function appInit(gconf: AppConf = {}): App {
 				el.requestFullscreen();
 			}
 		};
-		
+
 		const exitFullscreen = (doc: any) => {
 			if(doc.mozExitFullScreen) {
 				doc.mozExitFullScreen();

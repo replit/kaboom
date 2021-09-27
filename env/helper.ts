@@ -26,17 +26,6 @@ window.addEventListener("error", (e) => {
 		.catch(() => console.error("failed to parse err"));
 });
 
-// listen for live reload msg
-const wsp = location.protocol === "https:" ? "wss" : "ws";
-const devws = new WebSocket(`${wsp}://${location.host}/devws`);
-
-devws.onmessage = (e) => {
-	const msg = JSON.parse(e.data);
-	if (msg === "REFRESH") {
-		location.reload();
-	}
-};
-
 interface User {
 	id: string,
 	name: string,
