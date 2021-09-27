@@ -11,7 +11,8 @@ import { commentKeymap } from "@codemirror/comment";
 import { foldGutter } from "@codemirror/fold";
 import { searchKeymap, highlightSelectionMatches } from "@codemirror/search";
 import { javascript } from "@codemirror/lang-javascript";
-// import { oneDark } from "@codemirror/theme-one-dark";
+import { oneDark } from "@codemirror/theme-one-dark";
+import { setTheme, getTheme, toggleTheme, onThemeChange } from "./theme";
 
 const selector = document.getElementById("selector");
 const runbtn = document.getElementById("run");
@@ -30,10 +31,10 @@ function setDemo(name) {
 	editor.setState(EditorState.create({
 		doc: demos[name],
 		extensions: [
+			getTheme() === "dark" && oneDark,
 			EditorState.tabSize.of(4),
 			EditorState.allowMultipleSelections.of(true),
 			indentUnit.of("\t"),
-// 			oneDark,
 			javascript(),
 			lineNumbers(),
 			highlightSpecialChars(),
@@ -56,7 +57,7 @@ function setDemo(name) {
 				indentWithTab,
 				{ key: "Mod-s", run: run, preventDefault: true },
 			]),
-		],
+		].filter((ext) => ext),
 	}));
 	run();
 }
@@ -100,5 +101,7 @@ function setDemoAndHash(name) {
 
 runbtn.addEventListener("click", run);
 selector.addEventListener("change", () => setDemoAndHash(selector.value));
-
+onThemeChange(() => setDemo(selector.value));
 setDemoAndHash(selector.value);
+setTheme(localStorage["theme"] || "dark");
+window.toggleTheme = toggleTheme;
