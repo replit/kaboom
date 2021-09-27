@@ -46,7 +46,7 @@ function files(mnt, dir, handler = {}) {
 			return next();
 		}
 		const reqpath = ctx.path.replace(new RegExp(`^${mnt}`), "");
-		const p = path.resolve(dir + reqpath);
+		const p = path.resolve(__dirname, dir + reqpath);
 		if (!fs.existsSync(p)) {
 			return next();
 		}

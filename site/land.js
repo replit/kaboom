@@ -8,17 +8,17 @@ const css = {
 		"font-family": "Necto Mono",
 	},
 	"body": {
-		"background": `url("/site/img/bg.svg") repeat`,
 		"padding": "48px",
+		"background": `var(--color-bg) url("/site/img/bg.svg") repeat`,
 		"animation": "scroll linear 5s infinite",
 	},
 	"a": {
-		"color": "#333333",
+		"color": "var(--color-fg)",
 		"border-radius": "12px",
 		"padding": "2px 4px",
 		":hover": {
-			"background": "#333333",
-			"color": "white",
+			"background": "var(--color-fg)",
+			"color": "var(--color-bg)",
 		},
 	},
 	"#fun": {

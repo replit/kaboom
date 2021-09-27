@@ -2,7 +2,7 @@ const cp = require("child_process");
 
 const t1 = cp.spawn("node", [
 	"scripts/watch.js", "src",
-	"npm", "--silent", "run", "build"
+	"node", "scripts/build.js"
 ], {
 	stdio: "inherit",
 	detached: true,
@@ -10,7 +10,7 @@ const t1 = cp.spawn("node", [
 
 const t2 = cp.spawn("node", [
 	"scripts/watch.js", "site",
-	"npm", "--silent", "run", "site"
+	"node", "site/server.js"
 ], {
 	stdio: "inherit",
 	detached: true,

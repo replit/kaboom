@@ -11,7 +11,8 @@ import { commentKeymap } from "@codemirror/comment";
 import { foldGutter } from "@codemirror/fold";
 import { searchKeymap, highlightSelectionMatches } from "@codemirror/search";
 import { javascript } from "@codemirror/lang-javascript";
-// import { oneDark } from "@codemirror/theme-one-dark";
+import { oneDark } from "@codemirror/theme-one-dark";
+import { setTheme, getTheme, initTheme, patchToggle, onThemeChange } from "./theme";
 
 const selector = document.getElementById("selector");
 const runbtn = document.getElementById("run");
@@ -26,14 +27,14 @@ const editor = new EditorView({
 	parent: document.getElementById("editor"),
 });
 
-function setDemo(name) {
+function setEditor(code) {
 	editor.setState(EditorState.create({
-		doc: demos[name],
+		doc: code,
 		extensions: [
+			getTheme() === "dark" && oneDark,
 			EditorState.tabSize.of(4),
 			EditorState.allowMultipleSelections.of(true),
 			indentUnit.of("\t"),
-// 			oneDark,
 			javascript(),
 			lineNumbers(),
 			highlightSpecialChars(),
@@ -56,8 +57,12 @@ function setDemo(name) {
 				indentWithTab,
 				{ key: "Mod-s", run: run, preventDefault: true },
 			]),
-		],
+		].filter((ext) => ext),
 	}));
+}
+
+function setDemo(name) {
+	setEditor(demos[name]);
 	run();
 }
 
@@ -100,5 +105,7 @@ function setDemoAndHash(name) {
 
 runbtn.addEventListener("click", run);
 selector.addEventListener("change", () => setDemoAndHash(selector.value));
-
+onThemeChange(() => setEditor(editor.state.doc.toString()));
 setDemoAndHash(selector.value);
+initTheme();
+patchToggle(document.querySelector("#themeswitch"));

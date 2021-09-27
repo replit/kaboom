@@ -13,40 +13,15 @@ const css = {
 		"body": "100%",
 		"height": "100%",
 	},
-	"button": {
-		"padding": "0 8px",
-		"border": "none",
-		"background": "#ffffff",
-		"border-radius": "4px",
-		"font-size": "20px",
-		"cursor": "pointer",
-		"font-family": "IBM Plex Mono",
-		":active": {
-			"background": "#333333",
-			"color": "white",
-		},
-	},
-	"select": {
-		"font-family": "IBM Plex Mono",
-		"font-size": "20px",
-		"border-radius": "4px",
-		"border": "none",
-		"background": "#ffffff",
-		"padding": "0 8px",
-		":focus": {
-			"outline": "none",
-		},
-	},
 	"#header": {
 		"width": "100%",
 		"height": "48px",
-		"background": "red",
 		"overflow": "hidden",
 		"display": "flex",
 		"align-items": "center",
 		"padding": "0 16px",
 		"justify-content": "space-between",
-		"background": "#eeeeee",
+		"background": "var(--color-bg2)",
 		"> div": {
 			...www.hspace(16),
 			"display": "flex",
@@ -54,7 +29,7 @@ const css = {
 			"height": "100%",
 		},
 		"#logo": {
-			"height": "120px",
+			"height": "96px",
 		},
 	},
 	"#content": {
@@ -108,11 +83,11 @@ module.exports = () => {
 
 	const demos = {};
 
-	fs.readdirSync("../demo").forEach((file) => {
+	fs.readdirSync(path.resolve(__dirname, "../demo")).forEach((file) => {
 		if (file.startsWith(".")) {
 			return;
 		}
-		const p = path.resolve("../demo", file);
+		const p = path.resolve(__dirname, "../demo", file);
 		const name = path.basename(file, path.extname(file));
 		const stat = fs.statSync(p);
 		if (!stat.isFile()) {
@@ -127,7 +102,6 @@ module.exports = () => {
 			t("title", {}, "Kaboom Demos"),
 			t("style", {}, www.css(css)),
 			t("script", {}, `window.demos = ${JSON.stringify(demos)}`),
-			t("script", { src: "/site/js/demos.js", type: "module" }, ""),
 		]),
 		t("body", {}, [
 			t("div", { id: "header", }, [
@@ -144,6 +118,12 @@ module.exports = () => {
 					t("button", { id: "run", }, "Run"),
 				]),
 				t("div", {}, [
+					t("input", { id: "themeswitch", type: "checkbox", name: "themeswitch", style: "display: none" }, ""),
+					t("label", { for: "themeswitch", class: "switch theme", }, [
+						t("div", { class: "strip", }, [
+							t("div", { class: "ball", }, []),
+						]),
+					]),
 					t("button", {}, "Reset"),
 				]),
 			]),
@@ -151,6 +131,7 @@ module.exports = () => {
 				t("div", { id: "editor", }, []),
 				t("iframe", { id: "view", }, []),
 			]),
+			t("script", { src: "/site/js/demo.js", type: "module" }, ""),
 		]),
 	]);
 

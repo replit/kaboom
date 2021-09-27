@@ -1,10 +1,11 @@
 const fs = require("fs");
+const path = require("path");
 const marked = require("marked");
 const hljs = require("highlight.js");
 const www = require("./www");
 const global = require("./global");
 const getTypes = require("./getTypes");
-const types = getTypes(fs.readFileSync("./../dist/kaboom.d.ts", "utf-8"));
+const types = getTypes(fs.readFileSync(path.resolve(__dirname, "../dist/kaboom.d.ts"), "utf-8"));
 const t = www.tag;
 
 marked.setOptions({
@@ -181,8 +182,7 @@ const css = {
 		"display": "flex",
 	},
 	"#sidebar": {
-		...www.vspace(12),
-		"background": "#f5f5f5",
+		"background": "var(--color-bg2)",
 		"width": "240px",
 		"padding": "24px",
 		"overflow": "scroll",
@@ -192,11 +192,12 @@ const css = {
 			},
 		},
 		"#logo": {
-			"width": "60%",
+			"width": "70%",
 		},
 		".title": {
 			"font-weight": "bold",
 			"font-size": "24px",
+			"color": "var(--color-fg2)",
 		},
 		"#index": {
 			...www.vspace(16),
@@ -207,12 +208,12 @@ const css = {
 				"font-family": "IBM Plex Mono",
 				"display": "table",
 				"text-decoration": "none",
-				"color": "#333333",
+				"color": "var(--color-fg)",
 				"padding": "2px 6px",
 				"border-radius": "6px",
 				":hover": {
 					"color": "#ffffff !important",
-					"background": "#0080ff",
+					"background": "var(--color-highlight)",
 				},
 				":visited": {
 					"color": "inherit",
@@ -223,7 +224,7 @@ const css = {
 	"#content": {
 		"overflow": "scroll",
 		"padding": "48px",
-		"background": "#ffffff",
+		"background": "var(--color-bg)",
 		"flex": "1",
 		...www.vspace(24),
 		".block": {
@@ -231,8 +232,8 @@ const css = {
 		},
 		".title": {
 			"padding": "6px 12px",
-			"background": "#fff8bc",
-			"color": "#333333",
+			"background": "var(--color-title-bg)",
+			"color": "var(--color-fg)",
 			"font-size": "24px",
 			"font-weight": "bold",
 			"display": "inline-block",
@@ -247,7 +248,7 @@ const css = {
 		},
 		".desc": {
 			"font-size": "24px",
-			"color": "#666666",
+			"color": "var(--color-fg2)",
 		},
 		".item": {
 			...www.vspace(12),
@@ -257,15 +258,15 @@ const css = {
 			"font-family": "IBM Plex Mono",
 		},
 		".typesig": {
-			"color": "#999999",
+			"color": "var(--color-fg2)",
 			"font-family": "IBM Plex Mono",
 			"a": {
-				"color": "#999999",
+				"color": "var(--color-fg2)",
 				":hover": {
-					"color": "#666666 !important",
+					"color": "var(--color-fg3) !important",
 				},
 				":visited": {
-					"color": "#999999",
+					"color": "var(--color-fg2)",
 				},
 			},
 		},
@@ -297,13 +298,20 @@ const page = t("html", {}, [
 		t("title", {}, "KaBoom!!!"),
 		t("style", {}, www.css(css)),
 		t("link", { rel: "stylesheet", href: "/site/css/paraiso.css"}),
-		t("script", { src: "/site/js/doc.js", }, ""),
 	]),
 	t("body", {}, [
 		t("div", { id: "sidebar", }, [
-			t("a", { href: "/", }, [
+			t("a", { href: "/" }, [
 				t("img", { id: "logo", src: "/site/img/kaboom.svg" }),
 			]),
+			www.spacer(12),
+			t("input", { id: "themeswitch", type: "checkbox", name: "themeswitch", style: "display: none" }, ""),
+			t("label", { for: "themeswitch", class: "switch theme", }, [
+				t("div", { class: "strip", }, [
+					t("div", { class: "ball", }, []),
+				]),
+			]),
+			www.spacer(12),
 			t("div", { id: "index" }, sections.map((sec) => {
 				const dups = new Set([]);
 				return t("div", {
@@ -416,6 +424,7 @@ kaboom();
 			block("Custom Component", [
 			]),
 		]),
+		t("script", { src: "/site/js/doc.js", }, ""),
 	]),
 ]);
 
