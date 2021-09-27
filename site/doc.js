@@ -303,7 +303,7 @@ const page = t("html", {}, [
 	]),
 	t("body", {}, [
 		t("div", { id: "sidebar", }, [
-			t("a", { href: "/", style: "background: red" }, [
+			t("a", { href: "/" }, [
 				t("img", { id: "logo", src: "/site/img/kaboom.svg" }),
 			]),
 			t("button", { onclick: "toggleTheme()" }, "Toggle theme"),
