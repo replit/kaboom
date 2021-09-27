@@ -74,7 +74,6 @@ You might have encountered errors when trying to `loadSprite()` from local file 
 
 Let's say you have a folder structure like this:
 ```sh
-$ tree .
 .
 ├── sprites
 │   ├── froggy.png
