@@ -19,7 +19,7 @@ type GfxCtx = {
 	ibuf: WebGLBuffer,
 	vqueue: number[],
 	iqueue: number[],
-	clearColor: Color,
+	background: Color,
 	defProg: GfxProgram,
 	curProg: GfxProgram,
 	defTex: GfxTexture,
@@ -35,7 +35,7 @@ type GfxCtx = {
 };
 
 type GfxConf = {
-	clearColor?: Color,
+	background?: Color,
 	width?: number,
 	height?: number,
 	scale?: number,
@@ -48,7 +48,7 @@ type Gfx = {
 	width(): number,
 	height(): number,
 	scale(): number,
-	clearColor(): Color,
+	background(): Color,
 	makeTex(data: GfxTexData, conf?: GfxTexConf): GfxTexture,
 	makeProgram(vert: string, frag: string): GfxProgram,
 	makeFont(
@@ -192,7 +192,7 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 			new ImageData(new Uint8ClampedArray([ 255, 255, 255, 255, ]), 1, 1)
 		);
 
-		const c = gconf.clearColor ?? rgb(0, 0, 0);
+		const c = gconf.background ?? rgb(0, 0, 0);
 
 		gl.clearColor(c.r / 255, c.g / 255, c.b / 255, 1);
 		gl.enable(gl.BLEND);
@@ -237,7 +237,7 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 			iqueue: [],
 			transform: mat4(),
 			transformStack: [],
-			clearColor: c,
+			background: c,
 			bgTex: bgTex,
 			width: gconf.width,
 			height: gconf.height,
@@ -496,7 +496,7 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 
 		gl.clear(gl.COLOR_BUFFER_BIT);
 
-		if (!gconf.clearColor) {
+		if (!gconf.background) {
 			drawQuad({
 				width: width(),
 				height: height(),
@@ -974,8 +974,8 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 		return gconf.scale ?? 1;
 	}
 
-	function clearColor(): Color {
-		return gfx.clearColor.clone();
+	function background(): Color {
+		return gfx.background.clone();
 	}
 
 	updateSize();
@@ -1005,7 +1005,7 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 		popTransform,
 		pushMatrix,
 		drawCalls,
-		clearColor,
+		background,
 	};
 
 }
