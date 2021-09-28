@@ -196,6 +196,7 @@ addLevel([
 	],
 })
 ```
+- **BREAK** renamed `clearColor` to `background`
 
 ### v0.5.1
 - added plugins npm package support e.g. `import asepritePlugin from "kaboom/plugins/aseprite"`
