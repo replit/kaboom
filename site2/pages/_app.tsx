@@ -13,6 +13,10 @@ const App: React.FC<AppProps> = ({ Component, pageProps }) => (
 					font-family: IBM Plex Mono;
 					src: url(fonts/IBMPlexMono-Regular.ttf) format(truetype);
 				}
+				@font-face {
+					font-family: Necto Mono;
+					src: url(fonts/NectoMono-Regular.otf) format(opentype);
+				}
 				* {
 					margin: 0;
 					padding: 0;
@@ -24,6 +28,10 @@ const App: React.FC<AppProps> = ({ Component, pageProps }) => (
 					font-family: IBM Plex Sans;
 				}
 				body {
+					width: 100%;
+					height: 100%;
+				}
+				#__next {
 					width: 100%;
 					height: 100%;
 				}

@@ -75,17 +75,53 @@ const Logo: React.FC = () => (
 	</div>
 );
 
+const Info: React.FC = () => (
+	<div>
+		<Text
+			size="huge"
+			css={{
+				whiteSpace: "pre",
+				fontSize: "48px",
+ 			}}
+		>
+			Kaboom is a JavaScript{"\n"}game programming library{"\n"}that helps you make games{"\n"}fast and <span>fun</span>.
+		</Text>
+		<Space space={6} />
+		<Text
+			size="huge"
+			css={{
+				whiteSpace: "pre",
+				fontSize: "48px",
+ 			}}
+		>
+			Check out the <a href="/doc">docs</a>, <a href="">demos</a>,{"\n"}<a href="">tutorial</a>, and <a href="https://github.com/replit/kaboom">github</a>.
+		</Text>
+	</div>
+);
+
 const Home: React.FC = () => (
 	<div
 		css={{
-			margin: "0 auto",
-			width: "calc(600px + 30vw)",
-			maxWidth: "90%",
+			width: "100%",
+			height: "100%",
+			background: "url(/img/bg.svg) repeat",
+			animation: `${anims.scroll} 5s infinite linear`,
+			overflow: "scroll",
+			fontFamily: "Necto Mono",
 		}}
 	>
-		<Space space={6} />
-		<Logo />
-		<Space space={3} />
+		<div
+			css={{
+				margin: "0 auto",
+				width: "calc(600px + 30vw)",
+				maxWidth: "90%",
+			}}
+		>
+			<Space space={6} />
+			<Logo />
+			<Space space={3} />
+			<Info />
+		</div>
 	</div>
 );
 
