@@ -1,9 +1,12 @@
-export type Color =
-	| "bg"
+import * as React from "react";
+import { Global, css } from "@emotion/react"
+
+type Color =
+	| "bg1"
 	| "bg2"
 	| "bg3"
 	| "outline"
-	| "fg"
+	| "fg1"
 	| "fg2"
 	| "fg3"
 	| "fg4"
@@ -11,21 +14,21 @@ export type Color =
 	| "title-bg"
 	;
 
-export type ThemeName =
+type Theme =
 	| "light"
 	| "dark"
 	;
 
-export type FontSize =
+type FontSize =
 	| "small"
 	| "normal"
 	| "big"
 	| "huge"
 	;
 
-export type CSSVal = string;
-export type Theme = Record<Color, CSSVal>;
-export type ThemeBook = Record<ThemeName, Theme>;
+type CSSVal = string;
+type ThemeDef = Record<Color, CSSVal>;
+type ThemeBook = Record<Theme, ThemeDef>;
 
 const spaceUnit = 8;
 
@@ -38,11 +41,11 @@ const fontSizes: Record<FontSize, CSSVal> = {
 
 const themes: ThemeBook = {
 	"light": {
-		"bg": "#ffffff",
+		"bg1": "#ffffff",
 		"bg2": "#f8f8f8",
 		"bg3": "#eaeaea",
 		"outline": "#eaeaea",
-		"fg": "#333333",
+		"fg1": "#333333",
 		"fg2": "#666666",
 		"fg3": "#999999",
 		"fg4": "#cccccc",
@@ -50,11 +53,11 @@ const themes: ThemeBook = {
 		"title-bg": "#fff8bc",
 	},
 	"dark": {
-		"bg": "#111117",
+		"bg1": "#111117",
 		"bg2": "#15151f",
 		"bg3": "#21212f",
 		"outline": "#25252f",
-		"fg": "#dadada",
+		"fg1": "#dfdfdf",
 		"fg2": "#aaaaaa",
 		"fg3": "#7a7a7a",
 		"fg4": "#4a4a4a",
@@ -63,8 +66,165 @@ const themes: ThemeBook = {
 	},
 };
 
+const defTheme: Theme = "light";
+
+const vars = (() => {
+
+	const buildCSSVars = (prefix: string, map: Record<string, CSSVal>): string => {
+		let code = "";
+		for (const k in map) {
+			code += `--${prefix}-${k}: ${map[k]};`;
+		}
+		return code;
+	}
+
+	let code = `:root {${buildCSSVars("text", fontSizes)}${buildCSSVars("color", themes[defTheme])}}`;
+
+	for (const theme in themes) {
+		code += `.${theme} {${buildCSSVars("color", themes[theme])}}`;
+	}
+
+	return code;
+
+})();
+
+interface ViewProps {
+	bg?: number,
+	fg?: number,
+}
+
+const View: React.FC<ViewProps> = ({
+	bg,
+	fg,
+	children,
+	...args
+}) => (
+	<div
+		css={{
+			...bg ? {
+				background: `var(--color-bg${bg})`
+			} : {},
+			...fg ? {
+				color: `var(--color-fg${fg})`
+			} : {},
+		}}
+		{...args}
+	>
+		{children}
+	</div>
+);
+
+interface PageProps {
+	theme?: Theme,
+}
+
+const ThemeCtx = React.createContext<{
+	theme: Theme,
+	setTheme(theme: Theme): void,
+	nextTheme(): void,
+}>({
+	theme: defTheme,
+	setTheme: () => {},
+	nextTheme: () => {},
+});
+
+const Page: React.FC<PageProps> = ({
+	theme,
+	children,
+	...args
+} = {
+	theme: defTheme,
+}) => {
+
+	const [ curTheme, setCurTheme ] = React.useState<Theme>(theme ?? defTheme);
+
+	React.useEffect(() => {
+		if (theme) {
+			return;
+		}
+		if (localStorage["theme"]) {
+			setCurTheme(localStorage["theme"]);
+		}
+	}, [theme]);
+
+	React.useEffect(() => {
+		if (theme) {
+			return;
+		}
+		localStorage["theme"] = curTheme;
+	}, [curTheme, setCurTheme, theme]);
+
+	const nextTheme = React.useCallback(() => {
+		if (theme) {
+			return;
+		}
+		const options = Object.keys(themes) as Array<Theme>;
+		setCurTheme((prev: Theme) => {
+			const idx = options.indexOf(prev);
+			const nxt = (idx + 1) % options.length;
+			return options[nxt];
+		});
+	}, [setCurTheme]);
+
+	return (
+		<ThemeCtx.Provider value={{
+			theme: curTheme,
+			setTheme: setCurTheme,
+			nextTheme: nextTheme,
+		}}>
+			<div
+				className={curTheme}
+				css={{
+					background: `var(--color-bg1)`,
+					width: "100%",
+					height: "100%",
+					overflow: "scroll",
+				}}
+			>
+				<Global
+					styles={css`
+						@font-face {
+							font-family: IBM Plex Sans;
+							src: url(fonts/IBMPlexSans-Regular.ttf) format(truetype);
+						}
+						@font-face {
+							font-family: IBM Plex Mono;
+							src: url(fonts/IBMPlexMono-Regular.ttf) format(truetype);
+						}
+						@font-face {
+							font-family: Necto Mono;
+							src: url(fonts/NectoMono-Regular.otf) format(opentype);
+						}
+						* {
+							margin: 0;
+							padding: 0;
+							box-sizing: border-box;
+						}
+						html {
+							width: 100%;
+							height: 100%;
+							font-family: IBM Plex Sans;
+						}
+						body {
+							width: 100%;
+							height: 100%;
+						}
+						#__next {
+							width: 100%;
+							height: 100%;
+						}
+						${vars}
+					`}
+				/>
+				{children}
+			</div>
+		</ThemeCtx.Provider>
+	);
+
+};
+
 interface TextProps {
-	color?: Color,
+	color?: number,
 	size?: FontSize,
 }
 
@@ -74,13 +234,13 @@ const Text: React.FC<TextProps> = ({
 	children,
 	...args
 } = {
-	color: "fg",
+	color: 1,
 	size: "normal",
 }) => (
 	<div
 		css={{
-			fontSize: fontSizes[size ?? "normal"],
-			color: themes["light"][color ?? "fg"],
+			fontSize: `var(--text-${size ?? "normal"})`,
+			color: `var(--color-fg${color ?? "1"})`
 		}}
 		{...args}
 	>
@@ -88,26 +248,47 @@ const Text: React.FC<TextProps> = ({
 	</div>
 );
 
-export enum StackDir {
-	Hori = "row",
-	Verti = "column",
+type StackDir =
+	| "row"
+	| "column"
+	;
+
+type Align =
+	| "start"
+	| "end"
+	| "center"
+	| "stretch"
+	| "baseline"
+	;
+
+const toAlign = (a: Align) => {
+	switch (a) {
+		case "start": return "flex-start";
+		case "end": return "flex-end";
+		case "center": return "center";
+		case "stretch": return "stretch";
+		case "baseline": return "baseline";
+	}
 }
 
-export enum Align {
-	Start = "flex-start",
-	End = "flex-end",
-	Center = "center",
-	Stretch = "stretch",
-	Baseline = "baseline",
-}
+type Justify =
+	| "start"
+	| "end"
+	| "center"
+	| "between"
+	| "around"
+	| "even"
+	;
 
-export enum Justify {
-	Start = "flex-start",
-	End = "flex-end",
-	Center = "center",
-	Between = "space-between",
-	Around = "space-around",
-	Even = "space-evenly",
+const toJustify = (j: Justify) => {
+	switch (j) {
+		case "start": return "flex-start";
+		case "end": return "flex-end";
+		case "center": return "center";
+		case "between": return "space-between";
+		case "around": return "space-around";
+		case "even": return "space-evenly";
+	}
 }
 
 interface StackProps {
@@ -129,22 +310,22 @@ const Stack: React.FC<StackProps> = ({
 	children,
 	...args
 } = {
-	dir: StackDir.Verti,
+	dir: "column",
 	space: 0,
 	reverse: false,
 	wrap: true,
-	align: Align.Start,
-	justify: Justify.Start,
+	align: "start",
+	justify: "start",
 }) => {
-	const marginSide = dir === StackDir.Hori ? "marginRight" : "marginBottom";
+	const marginSide = dir === "row" ? "marginRight" : "marginBottom";
 	return (
 		<div
 			css={{
 				display: "flex",
-//  				flexDirection: (dir ?? StackDir.Verti) + reverse ? "-reverse" : "",
-				flexDirection: dir ?? StackDir.Verti,
-				alignItems: align ?? Align.Start,
-				justifyContent: align ?? Justify.Start,
+//  				flexDirection: (dir ?? "column") + (reverse ? "-reverse" : ""),
+				flexDirection: dir ?? "column",
+				alignItems: toAlign(align ?? "start"),
+				justifyContent: toJustify(justify ?? "start"),
 				flexWrap: wrap ? "wrap" : "nowrap",
 				"& > *": { [marginSide]: (space ?? 0) * spaceUnit, },
 				"& > *:last-child": { [marginSide]: 0, },
@@ -159,8 +340,8 @@ const Stack: React.FC<StackProps> = ({
 type VStackProps = Omit<StackProps, "dir">;
 type HStackProps = Omit<StackProps, "dir">;
 
-const VStack: React.FC<VStackProps> = ({...args}) => <Stack {...args} dir={StackDir.Verti} />;
-const HStack: React.FC<HStackProps> = ({...args}) => <Stack {...args} dir={StackDir.Hori} />;
+const VStack: React.FC<VStackProps> = ({...args}) => <Stack {...args} dir="column" />;
+const HStack: React.FC<HStackProps> = ({...args}) => <Stack {...args} dir="row" />;
 
 interface SpaceProps {
 	space?: number,
@@ -179,15 +360,108 @@ const Space: React.FC<SpaceProps> = ({
 				width: size,
 				height: size,
 			}}
+			{...args}
 		>
 		</div>
 	);
 };
 
+interface ToggleProps {
+	offIcon?: string,
+	onIcon?: string,
+	on?: boolean,
+	big?: boolean,
+	onChange: (on: boolean) => void,
+}
+
+const Toggle: React.FC<ToggleProps> = ({
+	on,
+	big,
+	offIcon,
+	onIcon,
+	onChange,
+	...args
+}) => {
+
+	const stripWidth = 56;
+	const size = 32;
+	const [ isOn, setIsOn ] = React.useState(on ?? false);
+
+	React.useEffect(() => {
+		if (on != null) {
+			setIsOn(on);
+		}
+	}, [on]);
+
+	return (
+		<div
+			css={{
+				width: stripWidth,
+				height: size,
+				borderRadius: size / 2,
+				background: "var(--color-bg3)",
+				position: "relative",
+				cursor: "pointer",
+			}}
+			onClick={() => {
+				onChange(!isOn);
+				setIsOn(!isOn);
+			}}
+			{...args}
+		>
+			<div
+				css={{
+					width: size,
+					height: size,
+					borderRadius: size / 2,
+					border: "solid 4px var(--color-bg3)",
+					position: "absolute",
+					background: "var(--color-bg1) no-repeat 50% 50%",
+					...((onIcon || offIcon) ? {
+						...(isOn ? {
+							backgroundImage: `url(${onIcon})`,
+						} : {
+							backgroundImage: `url(${offIcon})`,
+						})
+					} : {}),
+					backgroundSize: "60% 60%",
+					left: isOn ? 24 : 0,
+				}}
+			>
+			</div>
+		</div>
+	);
+
+};
+
+interface ThemeToggleProps {
+	big?: boolean,
+	onChange?: (on: boolean) => void,
+}
+
+const ThemeToggle: React.FC<ThemeToggleProps> = ({...args}) => (
+	<ThemeCtx.Consumer>
+		{({theme, nextTheme}) => (
+			<Toggle
+				on={theme === "dark"}
+				onChange={nextTheme}
+				offIcon="/img/sun.svg"
+				onIcon="/img/moon.svg"
+				{...args}
+			/>
+		)}
+	</ThemeCtx.Consumer>
+);
+
 export {
+	Page,
+	View,
 	Text,
 	Stack,
 	VStack,
 	HStack,
 	Space,
+	Toggle,
+	ThemeToggle,
+	ThemeCtx,
 };

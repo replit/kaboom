@@ -1,8 +1,9 @@
 import * as React from "react";
+import Link from "next/link";
 import Image from "next/image";
 import { keyframes } from '@emotion/react';
 
-import { Text, Space } from "./ui";
+import { Page, Text, Space, ThemeToggle } from "./ui";
 
 const anims = {
 	kaboom: keyframes(`
@@ -94,17 +95,17 @@ const Info: React.FC = () => (
 				fontSize: "48px",
  			}}
 		>
-			Check out the <a href="/doc">docs</a>, <a href="">demos</a>,{"\n"}<a href="">tutorial</a>, and <a href="https://github.com/replit/kaboom">github</a>.
+			Check out the <Link href="/doc">docs</Link>, <Link href="/demo">demos</Link>,{"\n"}<Link href="/doc/intro">tutorial</Link>, and <a href="https://github.com/replit/kaboom">github</a>.
 		</Text>
 	</div>
 );
 
 const Home: React.FC = () => (
-	<div
+	<Page
 		css={{
 			width: "100%",
 			height: "100%",
-			background: "url(/img/bg.svg) repeat",
+			background: "url(/img/bg.svg) repeat var(--color-bg1)",
 			animation: `${anims.scroll} 5s infinite linear`,
 			overflow: "scroll",
 			fontFamily: "Necto Mono",
@@ -122,7 +123,14 @@ const Home: React.FC = () => (
 			<Space space={3} />
 			<Info />
 		</div>
-	</div>
+		<ThemeToggle
+			css={{
+				position: "fixed",
+				bottom: "24px",
+				right: "24px",
+			}}
+		/>
+	</Page>
 );
 
 export default Home;
