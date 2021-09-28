@@ -169,9 +169,9 @@ function buildJS(p) {
 app.use(get("/", html(land)));
 app.use(get("/doc", html(doc)));
 app.use(get("/demo", html(demo)));
-app.use(files("/sprites", "../sprites"));
-app.use(files("/sounds", "../sounds"));
-app.use(files("/fonts", "../fonts"));
+app.use(files("/sprites", "../assets/sprites"));
+app.use(files("/sounds", "../assets/sounds"));
+app.use(files("/fonts", "../assets/fonts"));
 app.use(files("/src", "../src"));
 app.use(files("/dist", "../dist"));
 app.use(files("/site", ".", { js: buildJS, }));

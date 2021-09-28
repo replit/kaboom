@@ -1,3 +1,5 @@
+# Custom Component
+
 Kaboom uses a flexible component system that helps you compose game logic.
 
 Let's take a look at how the default component `lifespan()` is implemented.
@@ -20,7 +22,7 @@ function lifespan(time) {
 Components are just plain functions that returns an object. The return object will contain all the exposed states, methods, and event hooks of the component. In this case, the `lifespan()` component returns and `id`, which is a string which serves as an unique identification of the comp. There's also an `update()`, which is an event hook that'll run every frame. All `this` inside the component functions refer to the game obj it's attached to.
 
 All special fields:
-```
+```js
 function mycomp() {
 	// use closed local variable for internal data
 	let data = 123;
@@ -31,10 +33,6 @@ function mycomp() {
 		// runs when the obj is added to scene
 		add() {
 			debug.log("Hi! This should only be fire once.");
-		},
-		// runs when the obj is added && the game is loaded, use this if you need to access assets info
-		load() {
-			const spr = getSprite("bean");
 		},
 		// runs every frame
 		update() {
@@ -51,7 +49,7 @@ function mycomp() {
 		},
 		// what to display in inspect mode
 		inspect(): string {
-			return "some state that deserves to be inspected";
+			return "some state that deserves to be shown in inspect mode";
 		},
 	}
 }

@@ -164,7 +164,7 @@ const Page: React.FC<PageProps> = ({
 			const nxt = (idx + 1) % options.length;
 			return options[nxt];
 		});
-	}, [setCurTheme]);
+	}, [setCurTheme, theme]);
 
 	return (
 		<ThemeCtx.Provider value={{
@@ -180,6 +180,7 @@ const Page: React.FC<PageProps> = ({
 					height: "100%",
 					overflow: "scroll",
 				}}
+//  				{...args}
 			>
 				<Global
 					styles={css`

@@ -94,11 +94,21 @@ const stmts = transform(f.statements, (k, v) => {
 // check if global defs are being generated
 let globalGenerated = false;
 const dups = new Set();
+const types = {};
 
 // window attribs to overwrite
 const overwrites = new Set([
 	"origin",
 	"focus",
+]);
+
+// stuff to hide from generated doc
+const hiddenTypes = new Set([
+	"UnionToIntersection",
+	"Defined",
+	"Expand",
+	"MergeObj",
+	"MergeComps",
 ]);
 
 // generate global decls for KaboomCtx members
@@ -125,6 +135,9 @@ for (const stmt of stmts) {
 		}
 		globalGenerated = true;
 	}
+	if (!hiddenTypes.has(stmt.name)) {
+		types[stmt.name] = stmt;
+	}
 }
 
 dts += "}\n";
@@ -134,3 +147,5 @@ if (!globalGenerated) {
 }
 
 fs.writeFileSync(`${distDir}/kaboom.d.ts`, dts);
+fs.writeFileSync("site2/public/types.json", JSON.stringify(types));
+// TODO: copy to site2/public/dist
