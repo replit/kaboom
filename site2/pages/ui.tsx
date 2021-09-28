@@ -27,6 +27,8 @@ export type CSSVal = string;
 export type Theme = Record<Color, CSSVal>;
 export type ThemeBook = Record<ThemeName, Theme>;
 
+const spaceUnit = 8;
+
 const fontSizes: Record<FontSize, CSSVal> = {
 	"small": "16px",
 	"normal": "20px",
@@ -77,8 +79,8 @@ const Text: React.FC<TextProps> = ({
 }) => (
 	<div
 		css={{
-			fontSize: fontSizes[size],
-			color: themes["light"][color],
+			fontSize: fontSizes[size ?? "normal"],
+			color: themes["light"][color ?? "fg"],
 		}}
 		{...args}
 	>
@@ -86,47 +88,106 @@ const Text: React.FC<TextProps> = ({
 	</div>
 );
 
-enum StackDir {
-	Hori,
-	Verti,
+export enum StackDir {
+	Hori = "row",
+	Verti = "column",
+}
+
+export enum Align {
+	Start = "flex-start",
+	End = "flex-end",
+	Center = "center",
+	Stretch = "stretch",
+	Baseline = "baseline",
+}
+
+export enum Justify {
+	Start = "flex-start",
+	End = "flex-end",
+	Center = "center",
+	Between = "space-between",
+	Around = "space-around",
+	Even = "space-evenly",
 }
 
 interface StackProps {
 	dir?: StackDir,
 	space?: number,
-	reversed?: boolean,
+	reverse?: boolean,
+	wrap?: boolean,
+	align?: Align,
+	justify?: Justify,
 }
 
 const Stack: React.FC<StackProps> = ({
 	dir,
 	space,
+	reverse,
+	wrap,
+	align,
+	justify,
 	children,
 	...args
 } = {
 	dir: StackDir.Verti,
 	space: 0,
-	reversed: false,
-}) => (
-	<div
-		css={{
-			flexDirection: dir === StackDir.Hori ? "row" : "column",
-			"& > *": { marginBottom: space * 8, },
-			"& > *:last-child": { marginBottom: 0, },
-		}}
-		{...args}
-	>
-		{children}
-	</div>
-);
+	reverse: false,
+	wrap: true,
+	align: Align.Start,
+	justify: Justify.Start,
+}) => {
+	const marginSide = dir === StackDir.Hori ? "marginRight" : "marginBottom";
+	return (
+		<div
+			css={{
+				display: "flex",
+//  				flexDirection: (dir ?? StackDir.Verti) + reverse ? "-reverse" : "",
+				flexDirection: dir ?? StackDir.Verti,
+				alignItems: align ?? Align.Start,
+				justifyContent: align ?? Justify.Start,
+				flexWrap: wrap ? "wrap" : "nowrap",
+				"& > *": { [marginSide]: (space ?? 0) * spaceUnit, },
+				"& > *:last-child": { [marginSide]: 0, },
+			}}
+			{...args}
+		>
+			{children}
+		</div>
+	);
+};
 
 type VStackProps = Omit<StackProps, "dir">;
 type HStackProps = Omit<StackProps, "dir">;
 
 const VStack: React.FC<VStackProps> = ({...args}) => <Stack {...args} dir={StackDir.Verti} />;
-const HStack: React.FC<HStackProps> = ({...args}) => <Stack {...args} dir={StackDir.Verti} />;
+const HStack: React.FC<HStackProps> = ({...args}) => <Stack {...args} dir={StackDir.Hori} />;
+
+interface SpaceProps {
+	space?: number,
+}
+
+const Space: React.FC<SpaceProps> = ({
+	space,
+	...args
+} = {
+	space: 0,
+}) => {
+	const size = (space ?? 0) * spaceUnit;
+	return (
+		<div
+			css={{
+				width: size,
+				height: size,
+			}}
+		>
+		</div>
+	);
+};
 
 export {
 	Text,
+	Stack,
 	VStack,
 	HStack,
+	Space,
 };
