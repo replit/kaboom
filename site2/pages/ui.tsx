@@ -81,7 +81,7 @@ const vars = (() => {
 	let code = `:root {${buildCSSVars("text", fontSizes)}${buildCSSVars("color", themes[defTheme])}}`;
 
 	for (const theme in themes) {
-		code += `.${theme} {${buildCSSVars("color", themes[theme])}}`;
+		code += `.${theme} {${buildCSSVars("color", themes[theme as Theme])}}`;
 	}
 
 	return code;
@@ -344,11 +344,11 @@ type HStackProps = Omit<StackProps, "dir">;
 const VStack: React.FC<VStackProps> = ({...args}) => <Stack {...args} dir="column" />;
 const HStack: React.FC<HStackProps> = ({...args}) => <Stack {...args} dir="row" />;
 
-interface SpaceProps {
+interface SpacerProps {
 	space?: number,
 }
 
-const Space: React.FC<SpaceProps> = ({
+const Spacer: React.FC<SpacerProps> = ({
 	space,
 	...args
 } = {
@@ -365,6 +365,93 @@ const Space: React.FC<SpaceProps> = ({
 		>
 		</div>
 	);
+};
+
+interface ButtonProps {
+	text: string,
+	onClick?: () => void,
+}
+
+//  		"background": "var(--color-bg3)",
+//  		"color": "var(--color-fg)",
+//  		"padding": "4px 8px",
+//  		"border": "solid 2px var(--color-outline)",
+//  		"border-radius": "8px",
+//  		"font-size": "16px",
+//  		"cursor": "pointer",
+//  		":hover": {
+//  			"background": "var(--color-outline)",
+//  		},
+
+const Button: React.FC<ButtonProps> = ({
+	text,
+	onClick,
+	...args
+}) => (
+	<button
+		onClick={onClick ?? (() => {})}
+		css={{
+			background: "var(--color-bg3)",
+			color: "var(--color-fg1)",
+			padding: "4px 8px",
+			border: "solid 2px var(--color-outline)",
+			borderRadius: "8px",
+			fontSize: "var(--text-normal)",
+			cursor: "pointer",
+			":hover": {
+				background: "var(--color-outline)",
+			},
+		}}
+		{...args}
+	>
+		{text}
+	</button>
+);
+
+interface SelectProps {
+	options: string[],
+	selected: string,
+	onChange?: (item: string) => void,
+}
+
+const Select: React.FC<SelectProps> = ({
+	options,
+	selected,
+	onChange,
+	...args
+}) => {
+
+	if (options.length <= 0) {
+		throw new Error("empty options");
+	}
+
+	const [ curItem, setCurItem ] = React.useState(selected ?? options[0]);
+
+	return (
+		<select
+			css={{
+				background: "var(--color-bg3)",
+				color: "var(--color-fg1)",
+				padding: "4px 8px",
+				border: "solid 2px var(--color-outline)",
+				borderRadius: "8px",
+				fontSize: "var(--text-normal)",
+				cursor: "pointer",
+			}}
+			value={curItem}
+			onChange={(e) => {
+				// TODO: this is not running
+				onChange && onChange(e.target.value);
+				setCurItem(e.target.value);
+			}}
+			{...args}
+		>
+			{options.map((opt) => (
+				<option key={opt}>{opt}</option>
+			))}
+		</select>
+	);
+
 };
 
 interface ToggleProps {
@@ -461,7 +548,9 @@ export {
 	Stack,
 	VStack,
 	HStack,
-	Space,
+	Spacer,
+	Button,
+	Select,
 	Toggle,
 	ThemeToggle,
 	ThemeCtx,

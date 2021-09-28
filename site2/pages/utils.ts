@@ -27,7 +27,7 @@ const useFetch = <D>(url: string, parse: (res: Response) => D) => {
 			// TODO: cancel request on clean up?
 		};
 
-	}, [url]);
+	}, []);
 
 	return {
 		res,

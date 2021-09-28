@@ -1,6 +1,16 @@
 import * as React from "react";
-import { Page, Text, Space, VStack, HStack } from "./ui";
 import { useFetch } from "./utils";
+
+import {
+	Page,
+	Text,
+	Spacer,
+	Button,
+	Select,
+	ThemeToggle,
+	VStack,
+	HStack,
+} from "./ui";
 
 const Doc: React.FC = () => {
 
@@ -8,9 +18,12 @@ const Doc: React.FC = () => {
 
 	return (
 		<Page>
+			<Button text="2" onClick={() => {}} />
 			<Text size="huge">
 				yo
 			</Text>
+			<Select options={["123", "345"]} selected="123" onChange={console.log} />
+			<ThemeToggle />
 		</Page>
 	);
 };

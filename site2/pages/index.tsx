@@ -3,7 +3,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { keyframes } from '@emotion/react';
 
-import { Page, Text, Space, ThemeToggle } from "./ui";
+import { Page, Text, Spacer, ThemeToggle } from "./ui";
 
 const anims = {
 	kaboom: keyframes(`
@@ -87,7 +87,7 @@ const Info: React.FC = () => (
 		>
 			Kaboom is a JavaScript{"\n"}game programming library{"\n"}that helps you make games{"\n"}fast and <span>fun</span>.
 		</Text>
-		<Space space={6} />
+		<Spacer space={6} />
 		<Text
 			size="huge"
 			css={{
@@ -118,9 +118,9 @@ const Home: React.FC = () => (
 				maxWidth: "90%",
 			}}
 		>
-			<Space space={6} />
+			<Spacer space={6} />
 			<Logo />
-			<Space space={3} />
+			<Spacer space={3} />
 			<Info />
 		</div>
 		<ThemeToggle
