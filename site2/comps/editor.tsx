@@ -19,6 +19,27 @@ import View from "comps/view";
 import ThemeCtx from "comps/theme";
 import { GameViewRef } from "comps/gameview";
 
+//  let myTheme = EditorView.theme({
+//    "&": {
+//      color: "white",
+//      backgroundColor: "#034"
+//    },
+//    ".cm-content": {
+//      caretColor: "#0e9"
+//    },
+//    "&.cm-focused .cm-cursor": {
+//      borderLeftColor: "#0e9"
+//    },
+//    "&.cm-focused .cm-selectionBackground, ::selection": {
+//      backgroundColor: "#074"
+//    },
+//    ".cm-gutters": {
+//      backgroundColor: "#045",
+//      color: "#ddd",
+//      border: "none"
+//    }
+//  }, {dark: true})
+
 export interface EditorRef {
 	getContent: () => string | null,
 	getCodeMirror: () => EditorView | null,

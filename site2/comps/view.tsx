@@ -47,7 +47,7 @@ const toJustify = (j: Justify) => {
 
 interface ViewProps {
 	dir?: StackDir,
-	space?: number,
+	gap?: number,
 	reverse?: boolean,
 	wrap?: boolean,
 	align?: Align,
@@ -70,7 +70,7 @@ interface ViewProps {
 
 const View = React.forwardRef<HTMLDivElement, React.PropsWithChildren<ViewProps>>(({
 	dir,
-	space,
+	gap,
 	reverse,
 	wrap,
 	align,
@@ -118,9 +118,12 @@ const View = React.forwardRef<HTMLDivElement, React.PropsWithChildren<ViewProps>
 				paddingTop: `${py}px`,
 				paddingBottom: `${py}px`,
 				borderRadius: rounded ? 8 : 0,
-				outline: outlined ? "solid 2px var(--color-outline)" : "none",
-				"& > *": { [marginSide]: (space ?? 0) * spaceUnit, },
+				border: outlined ? "solid 2px var(--color-outline)" : "none",
+				"& > *": { [marginSide]: (gap ?? 0) * spaceUnit, },
 				"& > *:last-child": { [marginSide]: 0, },
+				":focus": {
+					border: "solid 2px var(--color-highlight)",
+				},
 			}}
 			{...props}
 		>

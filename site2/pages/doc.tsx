@@ -44,7 +44,7 @@ const IndexEntry: React.FC<IndexEntryProps> = ({
 const SideBar: React.FC = () => (
 	<View
 		dir="column"
-		space={3}
+		gap={3}
 		css={{
 			width: 240,
 			height: "100%",
@@ -72,7 +72,7 @@ const SideBar: React.FC = () => (
 const Content: React.FC = () => (
 	<View
 		dir="column"
-		space={3}
+		gap={3}
 		css={{
 			flex: "1",
 			height: "100%",

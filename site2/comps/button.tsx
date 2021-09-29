@@ -19,8 +19,8 @@ const Button: React.FC<ButtonProps> = ({
 		padX={1}
 		padY={0.5}
 		rounded
+		outlined
 		css={{
-			border: "solid 2px var(--color-outline)",
 			fontSize: "var(--text-normal)",
 			cursor: "pointer",
 			userSelect: "none",

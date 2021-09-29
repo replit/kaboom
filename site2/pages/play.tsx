@@ -155,17 +155,17 @@ const Demo: React.FC = () => {
 					dir="row"
 					align="center"
 					justify="between"
-					bg={2}
+					bg={1}
 					stretchX
 					height={64}
 					padX={2}
 				>
-					<View dir="row" space={2} align="center">
+					<View dir="row" gap={2} align="center">
 						<Link href="/">
 							<img
-								src="/img/kaboom.svg"
+								src="/img/k.png"
 								css={{
-									width: 160,
+									width: 48,
 									cursor: "pointer",
 								}}
 								alt="logo"
@@ -189,16 +189,21 @@ const Demo: React.FC = () => {
 							}}
 						/>
 					</View>
-					<View dir="row">
+					<View dir="row" gap={2} align="center">
+						<Button text="Download" onClick={() => {}} />
 						<ThemeToggle />
 					</View>
 				</View>
 				<View
 					dir="row"
+					gap={2}
 					stretchX
+					padX={2}
+					padY={2}
 					css={{
 						flex: "1",
 						overflow: "hidden",
+						paddingTop: 0,
 					}}
 				>
 					<Editor
@@ -210,7 +215,7 @@ const Demo: React.FC = () => {
 							gameviewRef.current.run(code);
 						}}
 						css={{
-							width: "50%",
+							width: "40%",
 							height: "100%",
 						}}
 					/>

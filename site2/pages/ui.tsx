@@ -13,36 +13,36 @@ import View from "comps/view";
 
 const UI: React.FC = () => (
 	<Page>
-		<View pad={4} dir="column" space={3}>
-			<View dir="column" space={1}>
+		<View pad={4} dir="column" gap={3}>
+			<View dir="column" gap={1}>
 				<Text>here{"'"}s a dropdown menu</Text>
 				<Select options={["Jack", "Panda", "Banana"]} onChange={() => {}} />
 			</View>
-			<View dir="column" space={1}>
+			<View dir="column" gap={1}>
 				<Text>here{"'"}s a toggle</Text>
 				<Toggle onChange={() => {}} />
 			</View>
-			<View dir="column" space={1}>
+			<View dir="column" gap={1}>
 				<Text>here{"'"}s a theme toggle</Text>
 				<ThemeToggle />
 			</View>
-			<View dir="column" space={1}>
+			<View dir="column" gap={1}>
 				<Text>here{"'"}s a text</Text>
 				<Text italic bold size="huge">oh hi mark</Text>
 			</View>
-			<View dir="column" space={1}>
+			<View dir="column" gap={1}>
 				<Text>here{"'"}s a button</Text>
 				<Button text="Run" onClick={() => {}} />
 			</View>
-			<View dir="column" space={1}>
+			<View dir="column" gap={1}>
 				<Text>here{"'"}s an editor</Text>
 				<Editor />
 			</View>
-			<View dir="column" space={1}>
+			<View dir="column" gap={1}>
 				<Text>here{"'"}s a game view</Text>
 				<GameView code="kaboom()" />
 			</View>
-			<View dir="column" space={1}>
+			<View dir="column" gap={1}>
 				<Text>here{"'"}s the code for this page</Text>
 				<a href="">Link</a>
 			</View>

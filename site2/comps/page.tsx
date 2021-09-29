@@ -102,9 +102,6 @@ const Page: React.FC<PageProps> = ({
 							width: 100%;
 							height: 100%;
 						}
-						.cm-focused {
-							outline: solid 2px var(--color-highlight) !important;
-						}
 					`}
 				/>
 				{children}

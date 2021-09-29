@@ -36,8 +36,8 @@ const Toggle: React.FC<ToggleProps> = ({
 			focusable
 			bg={3}
 			padX={0.5}
+			outlined
 			css={{
-				border: "solid 2px var(--color-outline)",
 				width: stripWidth,
 				height: size,
 				borderRadius: size / 2,
