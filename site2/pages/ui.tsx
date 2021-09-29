@@ -88,32 +88,6 @@ const vars = (() => {
 
 })();
 
-interface ViewProps {
-	bg?: number,
-	fg?: number,
-}
-
-const View: React.FC<ViewProps> = ({
-	bg,
-	fg,
-	children,
-	...args
-}) => (
-	<div
-		css={{
-			...bg ? {
-				background: `var(--color-bg${bg})`
-			} : {},
-			...fg ? {
-				color: `var(--color-fg${fg})`
-			} : {},
-		}}
-		{...args}
-	>
-		{children}
-	</div>
-);
-
 interface PageProps {
 	theme?: Theme,
 }
@@ -440,7 +414,6 @@ const Select: React.FC<SelectProps> = ({
 			}}
 			value={curItem}
 			onChange={(e) => {
-				// TODO: this is not running
 				onChange && onChange(e.target.value);
 				setCurItem(e.target.value);
 			}}
@@ -543,7 +516,6 @@ const ThemeToggle: React.FC<ThemeToggleProps> = ({...args}) => (
 
 export {
 	Page,
-	View,
 	Text,
 	Stack,
 	VStack,
