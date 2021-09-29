@@ -311,26 +311,32 @@ const page = t("html", {}, [
 					t("div", { class: "ball", }, []),
 				]),
 			]),
-			www.spacer(12),
-			t("div", { id: "index" }, sections.map((sec) => {
-				const dups = new Set([]);
-				return t("div", {
-					class: "section",
-				}, [
-					t("div", { class: "title", }, sec.name),
-					t("div", {}, sec.entries.map((mem) => {
-						if (!mem.name || dups.has(mem.name)) {
-							return;
-						}
-						dups.add(mem.name);
-						let name = mem.name;
-						if (mem.kind === "MethodSignature") {
-							name += "()";
-						}
-						return t("a", { href: `#${mem.name}`, }, name);
-					})),
-				]);
-			})),
+			www.spacer(24),
+			t("div", { id: "index" }, [
+				t("div", { class: "section" }, [
+					t("div", { class: "title", }, "Tutorials"),
+					t("a", { href: "/doc/setup.md", }, "Setup"),
+					t("a", { href: "/doc/intro.md", }, "Intro"),
+					t("a", { href: "/doc/comp.md", }, "Component"),
+				]),
+				...sections.map((sec) => {
+					const dups = new Set([]);
+					return t("div", { class: "section", }, [
+						t("div", { class: "title", }, sec.name),
+						t("div", {}, sec.entries.map((mem) => {
+							if (!mem.name || dups.has(mem.name)) {
+								return;
+							}
+							dups.add(mem.name);
+							let name = mem.name;
+							if (mem.kind === "MethodSignature") {
+								name += "()";
+							}
+							return t("a", { href: `#${mem.name}`, }, name);
+						})),
+					]);
+				}),
+			]),
 		]),
 		t("div", { id: "content", }, [
 			block("Intro", [
@@ -347,36 +353,14 @@ import kaboom from "https://unpkg.com/kaboom@next/dist/kaboom.mjs";
 // initialize kaboom context
 kaboom();
 
-// load the default sprite "bean"
-loadBean();
-
-// add a game obj to screen, from a list of components
-const froggy = add([
-    sprite("bean", 32),
+// add a piece of text at position (120, 80)
+add([
+    text("hello"),
     pos(120, 80),
-    area(),
-    body(),
 ]);
 
-// add a platform
-add([
-	pos(0, 480),
-	rect(width(), 48),
-	outline(4),
-	solid(),
-	area(),
-	color(127, 200, 255),
-])
-
-// jump when user presses "space"
-keyPress("space", () => {
-    froggy.jump();
-});
-
-// move input focus to the game
-focus();
-
 </script>
+
 				`, "html"),
 				txt(["It's recommended to code directly in browser with the Kaboom template on ", t("a", { href: "https://replit.com/@replit/Kaboom" }, "Replit.com")]),
 				txt("Also can be used with NPM"),
@@ -421,8 +405,6 @@ kaboom();
 					name !== "KaboomCtx" && t("div", { class: "type", }, renderStmt(mem)),
 				]);
 			})),
-			block("Custom Component", [
-			]),
 		]),
 		t("script", { src: "/site/js/doc.js", }, ""),
 	]),

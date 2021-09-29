@@ -1,10 +1,12 @@
-![kaboom](kaboom.png)
+# Intro to Kaboom
+
+![kaboom](intro/kaboom.png)
 
 Welcome! Kaboom is a JavaScript library that helps you make games fast and fun :D
 
-This is an intro tutorial that will cover the basic concepts and make a very simple [Chrome Dino](https://en.wikipedia.org/wiki/Dinosaur_Game) - ish game.
+This is an intro tutorial that will cover the basic concepts and make a very simple [Chrome Dino](https://en.wikipedia.org/wiki/Dinosaur_Game) - ish game. For setting up Kaboom development, see the [setup guide](/tut/setup.md).
 
-![game](game.png)
+![game](intro/game.png)
 
 (scroll to bottom to see / copy the full game code)
 
@@ -16,7 +18,7 @@ kaboom()
 
 This should give you a blank canvas with a nice checkerboard pattern like this
 
-![empty](empty.png)
+![empty](intro/empty.png)
 
 Then let's add some stuff to screen, like an image. Copy this piece of code to your editor and see what happens when you run the game.
 
@@ -33,7 +35,7 @@ add([
 
 Introducing Frog the "Bean"! A happy frog that enjoys life. You'll see Bean a lot around here.
 
-![bean](bean.png)
+![bean](intro/bean.png)
 
 Before explaining what this code does, let's try adding some more stuff to it and see what happens:
 
@@ -56,16 +58,16 @@ In Kaboom, each game object is composed from multiple components. Each component
 
 For example, some component might decide what's the shape, some components might decide if it should subject to gravity, some components might decide what color it is, some component might decide how long it can live.
 
-![comps](comps.png)
+![comps](intro/comps.png)
 
 
 If you're having trouble understanding, consider this Human Bean:
 
-![humanbean](humanbean.png)
+![humanbean](intro/humanbean.png)
 
 Human are also composed from a list of components, each component provides different functionalities, which is exactly what component means in Kaboom. `add()` is the function you use to assemble all the components into a game object in kaboom:
 
-![assemble](assemble.png)
+![assemble](intro/assemble.png)
 
 It's actually kinda like playing with lego pieces! Let's keep this in mind and start making the actual player character in our game:
 
@@ -117,7 +119,7 @@ Woah! That looks like a lot, but it's actually really simple, let's look at each
 
 Pretty straightforward! Refresh the game and you should see our Bean is now safely landed on a solid blue platform.
 
-![land](land.png)
+![land](intro/land.png)
 
 Let's also make sure our Bean can only jump when grounded.
 
@@ -150,7 +152,7 @@ A lot of these we have already seen you should know what they do, but some new o
 - `origin()` defines the origin point of positioning. By default `pos()` defines the top left point of the shape, here we change it to the bottom left point because we want it to be just above the platform, so we give it Y position of `height() - 48`
 - `move()` makes it move towards a direction infinitely. In this case we move towards the `LEFT` by `480` pixels per second
 
-![tree](tree.png)
+![tree](intro/tree.png)
 
 Challenger appears! Try jumping over it.
 
@@ -193,7 +195,7 @@ The second thing is `shake()`, which just shakes the screen,
 
 Here's a trick. Try pressing `F1` in the game. See all the blue outlines? This is inspect mode and it'll show all the bounding boxes of every game obj with `area()` component. Also try hovering over each game object to inspect its states like position and tags.
 
-![inspect](inspect.png)
+![inspect](intro/inspect.png)
 
 Now it's time to add more trees. How can we keep them spawning constantly?
 
