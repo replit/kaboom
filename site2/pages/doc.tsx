@@ -1,19 +1,16 @@
 import * as React from "react";
 import Link from "next/link";
-import { useFetch } from "./utils";
 
-import {
-	Page,
-	Text,
-	Spacer,
-	Button,
-	Select,
-	ThemeToggle,
-	VStack,
-	HStack,
-} from "./ui";
+import useFetch from "hooks/useFetch";
+import Page from "comps/page";
+import Text from "comps/text";
+import Spacer from "comps/spacer";
+import ThemeToggle from "comps/themetoggle";
+import Button from "comps/button";
+import Select from "comps/select";
+import { VStack, HStack } from "comps/stack";
 
-import Markdown from "./markdown";
+import Markdown from "comps/markdown";
 
 interface IndexSectionProps {
 	title: string,

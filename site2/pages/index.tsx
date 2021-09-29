@@ -3,7 +3,10 @@ import Link from "next/link";
 import Image from "next/image";
 import { keyframes } from '@emotion/react';
 
-import { Page, Text, Spacer, ThemeToggle } from "./ui";
+import Page from "comps/page";
+import Text from "comps/text";
+import Spacer from "comps/spacer";
+import ThemeToggle from "comps/themetoggle";
 
 const anims = {
 	kaboom: keyframes(`

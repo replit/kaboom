@@ -14,19 +14,8 @@ import { searchKeymap, highlightSelectionMatches } from "@codemirror/search";
 import { javascript } from "@codemirror/lang-javascript";
 import { oneDark } from "@codemirror/theme-one-dark";
 
-import {
-	Page,
-	Text,
-	Spacer,
-	Button,
-	Select,
-	ThemeToggle,
-	VStack,
-	HStack,
-	ThemeCtx,
-} from "./ui";
-
-import { useUpdateEffect } from "./utils";
+import useUpdateEffect from "hooks/useUpdateEffect";
+import ThemeCtx from "comps/theme";
 
 export interface EditorRef {
 	getContent: () => string | null,
@@ -35,12 +24,16 @@ export interface EditorRef {
 
 interface EditorProps {
 	content?: string,
-	onChange?: (content: string) => void,
+	onChange?: (code: string) => void,
+	onRun?: (code: string) => void,
+	ext?: [],
 };
 
+// TODO: use custom theme
 const Editor = React.forwardRef<EditorRef, EditorProps>(({
 	content,
 	onChange,
+	onRun,
 	...args
 }, ref) => {
 
@@ -105,9 +98,7 @@ const Editor = React.forwardRef<EditorRef, EditorProps>(({
 				defaultHighlightStyle,
 				EditorView.updateListener.of((update) => {
 					if (update.docChanged) {
-						if (onChange) {
-							onChange(update.state.doc.toString());
-						}
+						onChange && onChange(update.state.doc.toString());
 					}
 				}),
 				keymap.of([
@@ -116,11 +107,19 @@ const Editor = React.forwardRef<EditorRef, EditorProps>(({
 					...commentKeymap,
 					...searchKeymap,
 					indentWithTab,
+					{
+						key: "Mod-s",
+						run: () => {
+							onRun && onRun(cm.state.doc.toString());
+							return false;
+						},
+						preventDefault: true,
+					},
 				]),
 			].filter((ext) => ext),
 		}));
 
-	}, [ editorDOMRef ]);
+	}, []);
 
 	useUpdateEffect(() => {
 

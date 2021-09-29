@@ -1,12 +1,35 @@
 import * as React from "react";
 
-interface GameViewRef {
+export interface GameViewRef {
 	run: (code?: string) => void,
 }
 
 interface GameViewProps {
 	code?: string,
 }
+
+const wrapGame = (code: string) => `
+<!DOCTYPE html>
+<head>
+	<style>
+		* {
+			margin: 0;
+			padding: 0;
+		}
+		body,
+		html {
+			width: 100%;
+			height: 100%;
+		}
+	</style>
+</head>
+<body>
+	<script src="/dist/kaboom.js"></script>
+	<script>
+${code}
+	</script>
+</body>
+`;
 
 const GameView = React.forwardRef<GameViewRef, GameViewProps>(({
 	code,
@@ -21,7 +44,7 @@ const GameView = React.forwardRef<GameViewRef, GameViewProps>(({
 			if (code === undefined) {
 				iframeRef.current.srcdoc += "";
 			} else {
-				iframeRef.current.srcdoc = code;
+				iframeRef.current.srcdoc = wrapGame(code);
 			}
 		},
 	}));
@@ -33,28 +56,7 @@ const GameView = React.forwardRef<GameViewRef, GameViewProps>(({
 				border: "none",
 				background: "black",
 			}}
-			srcDoc={`
-	<!DOCTYPE html>
-	<head>
-		<style>
-			* {
-				margin: 0;
-				padding: 0;
-			}
-			body,
-			html {
-				width: 100%;
-				height: 100%;
-			}
-		</style>
-	</head>
-	<body>
-		<script src="/dist/kaboom.js"></script>
-		<script>
-	${code}
-		</script>
-	</body>
-			`}
+			srcDoc={wrapGame(code ?? "")}
 			{...args}
 		/>
 	);

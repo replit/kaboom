@@ -1,20 +1,13 @@
 import * as React from "react";
 import Link from "next/link";
-import Editor, { EditorRef } from "./editor";
-import GameView, { GameViewRef } from "./gameview";
-import { useFetch } from "./utils";
-
-import {
-	Page,
-	Text,
-	Spacer,
-	Button,
-	Select,
-	ThemeToggle,
-	VStack,
-	HStack,
-	ThemeCtx,
-} from "./ui";
+import Editor, { EditorRef } from "comps/editor";
+import GameView, { GameViewRef } from "comps/gameview";
+import useFetch from "hooks/useFetch";
+import Page from "comps/page";
+import Button from "comps/button";
+import ThemeToggle from "comps/themetoggle";
+import Select from "comps/select";
+import { VStack, HStack } from "comps/stack";
 
 const testCode: Record<string, string> = {
 	"sprite": `
@@ -212,6 +205,10 @@ const Demo: React.FC = () => {
 					<Editor
 						ref={editorRef}
 						content={code}
+						onRun={(code) => {
+							if (!gameviewRef.current) return;
+							gameviewRef.current.run(code);
+						}}
 						css={{
 							width: "50%",
 							height: "100%",

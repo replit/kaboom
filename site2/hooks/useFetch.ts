@@ -38,21 +38,5 @@ const useFetch = <D>(url: string, parse: (res: Response) => D) => {
 
 };
 
-const useUpdateEffect: typeof React.useEffect = (effect, deps) => {
+export default useFetch;
 
-	const isMountedRef = React.useRef(false);
-
-	React.useEffect(() => {
-		if (!isMountedRef.current) {
-			isMountedRef.current = true;
-		} else {
-			return effect();
-		}
-	}, deps);
-
-};
-
-export {
-	useFetch,
-	useUpdateEffect,
-};
