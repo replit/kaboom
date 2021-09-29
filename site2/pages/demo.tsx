@@ -1,9 +1,8 @@
 import * as React from "react";
 import Link from "next/link";
-import Editor from "./editor";
-import GameView from "./gameview";
+import Editor, { EditorRef } from "./editor";
+import GameView, { GameViewRef } from "./gameview";
 import { useFetch } from "./utils";
-import { EditorView } from "@codemirror/view";
 
 import {
 	Page,
@@ -153,7 +152,8 @@ go("game");
 const Demo: React.FC = () => {
 
 	const [ code, setCode ] = React.useState(testCode["sprite"]);
-	const cmRef = React.useRef<EditorView | null>(null);
+	const editorRef = React.useRef<EditorRef | null>(null);
+	const gameviewRef = React.useRef<GameViewRef | null>(null);
 
 	return (
 		<Page>
@@ -188,9 +188,13 @@ const Demo: React.FC = () => {
 						<Button
 							text="Run"
 							onClick={() => {
-								if (!cmRef.current) return;
-								const cm = cmRef.current;
-								setCode(cm.state.doc.toString());
+								if (!editorRef.current) return;
+								if (!gameviewRef.current) return;
+								const content = editorRef.current.getContent();
+								if (content) {
+									setCode(content);
+									gameviewRef.current.run();
+								}
 							}}
 						/>
 					</HStack>
@@ -206,14 +210,15 @@ const Demo: React.FC = () => {
 					}}
 				>
 					<Editor
+						ref={editorRef}
 						content={code}
-						cmRef={cmRef}
 						css={{
 							width: "50%",
 							height: "100%",
 						}}
 					/>
 					<GameView
+						ref={gameviewRef}
 						code={code}
 						css={{
 							flex: "1",

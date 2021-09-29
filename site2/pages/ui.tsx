@@ -158,6 +158,7 @@ const Page: React.FC<PageProps> = ({
 			>
 				<Global
 					styles={css`
+						${vars}
 						@font-face {
 							font-family: IBM Plex Sans;
 							src: url(fonts/IBMPlexSans-Regular.ttf) format(truetype);
@@ -181,6 +182,9 @@ const Page: React.FC<PageProps> = ({
 							height: 100%;
 							font-family: IBM Plex Sans;
 						}
+						h1,h2,h3,h4,h5,h6,p,pre,code,div {
+							color: var(--color-fg1);
+						}
 						body {
 							width: 100%;
 							height: 100%;
@@ -195,7 +199,6 @@ const Page: React.FC<PageProps> = ({
 							width: 100%;
 							height: 100%;
 						}
-						${vars}
 					`}
 				/>
 				{children}

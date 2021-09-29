@@ -13,6 +13,8 @@ import {
 	HStack,
 } from "./ui";
 
+import Markdown from "./markdown";
+
 interface IndexSectionProps {
 	title: string,
 }

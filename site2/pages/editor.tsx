@@ -28,23 +28,36 @@ import {
 
 import { useUpdateEffect } from "./utils";
 
+export interface EditorRef {
+	getContent: () => string | null,
+	getCodeMirror: () => EditorView | null,
+}
+
 interface EditorProps {
 	content?: string,
 	onChange?: (content: string) => void,
-	cmRef?: React.MutableRefObject<EditorView | null>,
 };
 
-const Editor: React.FC<EditorProps> = ({
+const Editor = React.forwardRef<EditorRef, EditorProps>(({
 	content,
 	onChange,
-	cmRef,
 	...args
-}) => {
+}, ref) => {
 
 	const editorDOMRef = React.useRef(null);
-	const editorCtxRef = React.useRef<EditorView | null>(null);
+	const cmRef = React.useRef<EditorView | null>(null);
 	const themeConfRef = React.useRef<Compartment | null>(null);
 	const { theme } = React.useContext(ThemeCtx);
+
+	React.useImperativeHandle(ref, () => ({
+		getContent() {
+			if (!cmRef.current) return null;
+			return cmRef.current.state.doc.toString();
+		},
+		getCodeMirror() {
+			return cmRef.current;
+		},
+	}));
 
 	React.useEffect(() => {
 
@@ -52,24 +65,24 @@ const Editor: React.FC<EditorProps> = ({
 			return;
 		}
 
-		if (editorCtxRef.current) {
+		if (cmRef.current) {
 			return;
 		}
 
-		const editor = new EditorView({
+		const cm = new EditorView({
 			parent: editorDOMRef.current,
 		});
 
 		const themeConf = new Compartment();
 
-		editorCtxRef.current = editor;
+		cmRef.current = cm;
 		themeConfRef.current = themeConf;
 
 		if (cmRef) {
-			cmRef.current = editor;
+			cmRef.current = cm;
 		}
 
-		editor.setState(EditorState.create({
+		cm.setState(EditorState.create({
 			doc: content ?? "",
 			extensions: [
 				themeConf.of(theme === "dark" ? oneDark : []),
@@ -111,14 +124,14 @@ const Editor: React.FC<EditorProps> = ({
 
 	useUpdateEffect(() => {
 
-		if (!editorCtxRef.current) return;
+		if (!cmRef.current) return;
 
-		const editor = editorCtxRef.current;
+		const cm = cmRef.current;
 
-		editor.dispatch({
+		cm.dispatch({
 			changes: {
 				from: 0,
-				to: editor.state.doc.length,
+				to: cm.state.doc.length,
 				insert: content,
 			},
 		});
@@ -127,13 +140,13 @@ const Editor: React.FC<EditorProps> = ({
 
 	useUpdateEffect(() => {
 
-		if (!editorCtxRef.current) return;
+		if (!cmRef.current) return;
 		if (!themeConfRef.current) return;
 
-		const editor = editorCtxRef.current;
+		const cm = cmRef.current;
 		const themeConf = themeConfRef.current;
 
-		editor.dispatch({
+		cm.dispatch({
 			effects: themeConf.reconfigure(theme === "dark" ? oneDark : [])
 		});
 
@@ -145,12 +158,12 @@ const Editor: React.FC<EditorProps> = ({
 			css={{
 				fontFamily: "IBM Plex Mono",
 				overflow: "scroll",
-				fontSize: "var(--text-normal)",
+				fontSize: "var(--text-big)",
 				background: "var(--color-bg1)",
 			}}
 			{...args}
 		/>
 	);
-};
+});
 
 export default Editor;
