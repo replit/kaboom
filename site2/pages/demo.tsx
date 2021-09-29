@@ -1,7 +1,9 @@
 import * as React from "react";
 import Link from "next/link";
 import Editor from "./editor";
+import GameView from "./gameview";
 import { useFetch } from "./utils";
+import { EditorView } from "@codemirror/view";
 
 import {
 	Page,
@@ -15,7 +17,20 @@ import {
 	ThemeCtx,
 } from "./ui";
 
-const testCode = `
+const testCode: Record<string, string> = {
+	"sprite": `
+kaboom();
+
+// load default sprite "bean"
+loadBean();
+
+// add to screen
+add([
+	sprite("bean"),
+	pos(80, 40),
+]);
+	`.trim(),
+	"runner": `
 const FLOOR_HEIGHT = 48;
 const JUMP_FORCE = 800;
 const SPEED = 480;
@@ -132,104 +147,84 @@ scene("lose", (score) => {
 });
 
 go("game");
-`.trim();
-
-const Header: React.FC = () => (
-	<HStack
-		align="center"
-		justify="between"
-		css={{
-			padding: "0 16px",
-			background: "var(--color-bg2)",
-			width: "100%",
-			height: "64px",
-			overflow: "hidden",
-		}}
-	>
-		<HStack space={2} align="center">
-			<Link href="/">
-				<img
-					src="/img/kaboom.svg"
-					css={{
-						width: 160,
-						cursor: "pointer",
-					}}
-					alt="logo"
-				/>
-			</Link>
-			<Select options={["sprite", "runner"]} selected="runner" />
-			<Button text="Run" />
-		</HStack>
-		<HStack>
-			<ThemeToggle />
-		</HStack>
-	</HStack>
-);
-
-interface GameViewProps {
-	code?: string,
-}
-
-const GameView: React.FC<GameViewProps> = ({
-	code,
-}) => (
-	<iframe
-		css={{
-			flex: "1",
-			height: "100%",
-			border: "none",
-			background: "black",
-		}}
-		srcDoc={`
-<!DOCTYPE html>
-<head>
-	<style>
-		* {
-			margin: 0;
-			padding: 0;
-		}
-		body,
-		html {
-			width: 100%;
-			height: 100%;
-		}
-	</style>
-</head>
-<body>
-	<script src="/dist/kaboom.js"></script>
-	<script>
-${code}
-	</script>
-</body>
-		`}
-	/>
-);
-
-const Content: React.FC = () => {
-	const [ code, setCode ] = React.useState(testCode);
-	return (
-		<HStack
-			css={{
-				width: "100%",
-				flex: "1",
-				overflow: "hidden",
-			}}
-		>
-			<Editor content={code} onChange={setCode} />
-			<GameView code={code} />
-		</HStack>
-	);
+	`.trim(),
 };
 
 const Demo: React.FC = () => {
+
+	const [ code, setCode ] = React.useState(testCode["sprite"]);
+	const cmRef = React.useRef<EditorView | null>(null);
+
 	return (
 		<Page>
 			<VStack stretch>
-				<Header />
-				<Content />
+				<HStack
+					align="center"
+					justify="between"
+					css={{
+						padding: "0 16px",
+						background: "var(--color-bg2)",
+						width: "100%",
+						height: "64px",
+						overflow: "hidden",
+					}}
+				>
+					<HStack space={2} align="center">
+						<Link href="/">
+							<img
+								src="/img/kaboom.svg"
+								css={{
+									width: 160,
+									cursor: "pointer",
+								}}
+								alt="logo"
+							/>
+						</Link>
+						<Select
+							options={Object.keys(testCode)}
+							selected="sprite"
+							onChange={(selected) => setCode(testCode[selected])}
+						/>
+						<Button
+							text="Run"
+							onClick={() => {
+								if (!cmRef.current) return;
+								const cm = cmRef.current;
+								setCode(cm.state.doc.toString());
+							}}
+						/>
+					</HStack>
+					<HStack>
+						<ThemeToggle />
+					</HStack>
+				</HStack>
+				<HStack
+					css={{
+						width: "100%",
+						flex: "1",
+						overflow: "hidden",
+					}}
+				>
+					<Editor
+						content={code}
+						cmRef={cmRef}
+						css={{
+							width: "50%",
+							height: "100%",
+						}}
+					/>
+					<GameView
+						code={code}
+						css={{
+							flex: "1",
+							height: "100%",
+						}}
+					/>
+				</HStack>
 			</VStack>
 		</Page>
 	);
+
 };
 
 export default Demo;

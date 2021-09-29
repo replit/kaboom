@@ -119,14 +119,14 @@ const Page: React.FC<PageProps> = ({
 		if (localStorage["theme"]) {
 			setCurTheme(localStorage["theme"]);
 		}
-	}, [theme]);
+	}, [ theme ]);
 
 	React.useEffect(() => {
 		if (theme) {
 			return;
 		}
 		localStorage["theme"] = curTheme;
-	}, [curTheme, setCurTheme, theme]);
+	}, [ curTheme, setCurTheme, theme ]);
 
 	const nextTheme = React.useCallback(() => {
 		if (theme) {
@@ -415,6 +415,7 @@ const Select: React.FC<SelectProps> = ({
 				borderRadius: "8px",
 				fontSize: "var(--text-normal)",
 				cursor: "pointer",
+				outline: "none",
 			}}
 			value={curItem}
 			onChange={(e) => {

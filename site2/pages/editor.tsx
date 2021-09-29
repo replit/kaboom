@@ -31,11 +31,14 @@ import { useUpdateEffect } from "./utils";
 interface EditorProps {
 	content?: string,
 	onChange?: (content: string) => void,
+	cmRef?: React.MutableRefObject<EditorView | null>,
 };
 
 const Editor: React.FC<EditorProps> = ({
 	content,
 	onChange,
+	cmRef,
+	...args
 }) => {
 
 	const editorDOMRef = React.useRef(null);
@@ -61,6 +64,10 @@ const Editor: React.FC<EditorProps> = ({
 
 		editorCtxRef.current = editor;
 		themeConfRef.current = themeConf;
+
+		if (cmRef) {
+			cmRef.current = editor;
+		}
 
 		editor.setState(EditorState.create({
 			doc: content ?? "",
@@ -100,13 +107,28 @@ const Editor: React.FC<EditorProps> = ({
 			].filter((ext) => ext),
 		}));
 
-	}, [editorDOMRef]);
+	}, [ editorDOMRef ]);
 
 	useUpdateEffect(() => {
 
-		if (!editorCtxRef.current || !themeConfRef.current) {
-			return;
-		}
+		if (!editorCtxRef.current) return;
+
+		const editor = editorCtxRef.current;
+
+		editor.dispatch({
+			changes: {
+				from: 0,
+				to: editor.state.doc.length,
+				insert: content,
+			},
+		});
+
+	}, [ content ]);
+
+	useUpdateEffect(() => {
+
+		if (!editorCtxRef.current) return;
+		if (!themeConfRef.current) return;
 
 		const editor = editorCtxRef.current;
 		const themeConf = themeConfRef.current;
@@ -115,21 +137,19 @@ const Editor: React.FC<EditorProps> = ({
 			effects: themeConf.reconfigure(theme === "dark" ? oneDark : [])
 		});
 
-	}, [theme]);
+	}, [ theme ]);
 
 	return (
 		<div
 			ref={editorDOMRef}
 			css={{
-				width: "50%",
-				height: "100%",
 				fontFamily: "IBM Plex Mono",
 				overflow: "scroll",
 				fontSize: "var(--text-normal)",
 				background: "var(--color-bg1)",
 			}}
-		>
-		</div>
+			{...args}
+		/>
 	);
 };
 
