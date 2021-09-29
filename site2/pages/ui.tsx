@@ -16,7 +16,7 @@ const UI: React.FC = () => (
 		<View pad={4} dir="column" space={3}>
 			<View dir="column" space={1}>
 				<Text>here{"'"}s a dropdown menu</Text>
-				<Select options={["Jack", "Panda", "Banana"]} />
+				<Select options={["Jack", "Panda", "Banana"]} onChange={() => {}} />
 			</View>
 			<View dir="column" space={1}>
 				<Text>here{"'"}s a toggle</Text>

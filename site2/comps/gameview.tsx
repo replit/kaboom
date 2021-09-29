@@ -1,4 +1,5 @@
 import * as React from "react";
+import View from "comps/view";
 
 export interface GameViewRef {
 	run: (code?: string) => void,

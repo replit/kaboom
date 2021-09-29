@@ -15,6 +15,7 @@ import { javascript } from "@codemirror/lang-javascript";
 import { oneDark } from "@codemirror/theme-one-dark";
 
 import useUpdateEffect from "hooks/useUpdateEffect";
+import View from "comps/view";
 import ThemeCtx from "comps/theme";
 import { GameViewRef } from "comps/gameview";
 
@@ -154,15 +155,17 @@ const Editor = React.forwardRef<EditorRef, EditorProps>(({
 	}, [ theme ]);
 
 	return (
-		<div
+		<View
 			ref={editorDOMRef}
-			tabIndex={0}
+			focusable
+			bg={2}
+			outlined
+			rounded
+			pad={1}
 			css={{
 				fontFamily: "IBM Plex Mono",
 				overflow: "scroll",
 				fontSize: "var(--text-big)",
-				background: "var(--color-bg1)",
-				borderRadius: "8px",
 				":focus": {
 					outline: "solid 2px var(--color-highlight)"
 				},

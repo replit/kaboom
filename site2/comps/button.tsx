@@ -1,3 +1,6 @@
+import View from "comps/view";
+import Text from "comps/text";
+
 interface ButtonProps {
 	text: string,
 	onClick: () => void,
@@ -8,16 +11,16 @@ const Button: React.FC<ButtonProps> = ({
 	onClick,
 	...args
 }) => (
-	<div
+	<View
+		focusable
 		onClick={() => onClick()}
 		onKeyDown={(e) => e.key === "Enter" && onClick()}
-		tabIndex={0}
+		bg={3}
+		padX={1}
+		padY={0.5}
+		rounded
 		css={{
-			background: "var(--color-bg3)",
-			color: "var(--color-fg1)",
-			padding: "4px 8px",
 			border: "solid 2px var(--color-outline)",
-			borderRadius: "8px",
 			fontSize: "var(--text-normal)",
 			cursor: "pointer",
 			userSelect: "none",
@@ -30,8 +33,8 @@ const Button: React.FC<ButtonProps> = ({
 		}}
 		{...args}
 	>
-		{text}
-	</div>
+		<Text color={1}>{text}</Text>
+	</View>
 );
 
 export default Button;

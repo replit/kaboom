@@ -34,15 +34,15 @@ const Toggle: React.FC<ToggleProps> = ({
 			align="center"
 			justify={isOn ? "end" : "start"}
 			focusable
+			bg={3}
+			padX={0.5}
 			css={{
 				border: "solid 2px var(--color-outline)",
 				width: stripWidth,
 				height: size,
 				borderRadius: size / 2,
-				background: "var(--color-bg3)",
 				position: "relative",
 				cursor: "pointer",
-				padding: "0 4px",
 				":hover": {
 					background: "var(--color-bg4)",
 				},
@@ -62,10 +62,10 @@ const Toggle: React.FC<ToggleProps> = ({
 			}}
 			{...args}
 		>
-			<div
+			<View
+				width={size - 8}
+				height={size - 8}
 				css={{
-					width: size - 8,
-					height: size - 8,
 					borderRadius: size / 2,
 					background: "var(--color-bg1) no-repeat 50% 50%",
 					...((onIcon || offIcon) ? {
@@ -78,7 +78,7 @@ const Toggle: React.FC<ToggleProps> = ({
 					backgroundSize: "60% 60%",
 				}}
 			>
-			</div>
+			</View>
 		</View>
 	);
 

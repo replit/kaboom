@@ -6,7 +6,7 @@ import useClickOutside from "hooks/useClickOutside";
 interface SelectProps {
 	options: string[],
 	selected?: string,
-	onChange?: (item: string) => void,
+	onChange: (item: string) => void,
 }
 
 const Select: React.FC<SelectProps> = ({
@@ -27,14 +27,13 @@ const Select: React.FC<SelectProps> = ({
 			dir="column"
 			ref={domRef}
 			focusable
+			rounded
+			outlined
+			bg={3}
 			css={{
-				background: "var(--color-bg3)",
-				color: "var(--color-fg1)",
-				border: "solid 2px var(--color-outline)",
-				borderRadius: "8px",
-				fontSize: "var(--text-normal)",
 				cursor: "pointer",
 				userSelect: "none",
+				position: "relative",
 				":hover": {
 					...(!expanded ? {
 						background: "var(--color-bg4)",
@@ -46,20 +45,18 @@ const Select: React.FC<SelectProps> = ({
 			{...args}
 		>
 			<View dir="row" stretchX justify="between">
-				<Text
-					css={{
-						padding: "4px 8px",
-					}}
-				>{curItem}</Text>
+				<View padX={1} padY={0.5}>
+					<Text>{curItem}</Text>
+				</View>
 				<View
 					align="center"
 					justify="center"
+					width={24}
+					height={35}
+					bg={4}
 					css={{
-						width: "24px",
-						height: "35px",
-						background: "var(--color-bg4)",
-						borderTopRightRadius: "6px",
-						borderBottomRightRadius: "6px",
+						borderTopRightRadius: 6,
+						borderBottomRightRadius: expanded ? 0 : 6,
 					}}
 				>
 					<Text
@@ -76,21 +73,38 @@ const Select: React.FC<SelectProps> = ({
 					</Text>
 				</View>
 			</View>
-			<View dir="column">
-				{expanded && options.map((opt) => (
-					<Text
+			{expanded && <View
+				dir="column"
+				stretchX
+				bg={3}
+				rounded
+				outlined
+				css={{
+					overflow: "hidden",
+					position: "absolute",
+					zIndex: 1000,
+				}}
+			>
+				{options.map((opt) => (
+					<View
+						stretchX
 						key={opt}
+						padX={1}
+						padY={0.5}
 						css={{
-							padding: "4px 8px",
-							width: "100%",
 							":hover": {
 								background: "var(--color-bg4)",
 							},
 						}}
-						onClick={() => setCurItem(opt)}
-					>{opt}</Text>
+						onClick={() => {
+							setCurItem(opt);
+							onChange(opt);
+						}}
+					>
+						<Text>{opt}</Text>
+					</View>
 				))}
-			</View>
+			</View>}
 		</View>
 	);
 
