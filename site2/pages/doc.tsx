@@ -89,7 +89,7 @@ const Doc: React.FC = () => {
 
 	return (
 		<Page>
-			<HStack css={{height: "100%"}}>
+			<HStack stretch>
 				<SideBar />
 				<Content />
 			</HStack>

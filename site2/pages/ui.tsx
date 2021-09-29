@@ -174,6 +174,7 @@ const Page: React.FC<PageProps> = ({
 							margin: 0;
 							padding: 0;
 							box-sizing: border-box;
+							font-family: inherit;
 						}
 						html {
 							width: 100%;
@@ -183,6 +184,12 @@ const Page: React.FC<PageProps> = ({
 						body {
 							width: 100%;
 							height: 100%;
+						}
+						pre {
+							font-family: IBM Plex Mono;
+						}
+						code {
+							font-family: IBM Plex Mono;
 						}
 						#__next {
 							width: 100%;
@@ -273,6 +280,9 @@ interface StackProps {
 	wrap?: boolean,
 	align?: Align,
 	justify?: Justify,
+	stretchX?: boolean,
+	stretchY?: boolean,
+	stretch?: boolean,
 }
 
 const Stack: React.FC<StackProps> = ({
@@ -282,6 +292,9 @@ const Stack: React.FC<StackProps> = ({
 	wrap,
 	align,
 	justify,
+	stretchX,
+	stretchY,
+	stretch,
 	children,
 	...args
 } = {
@@ -302,6 +315,8 @@ const Stack: React.FC<StackProps> = ({
 				alignItems: toAlign(align ?? "start"),
 				justifyContent: toJustify(justify ?? "start"),
 				flexWrap: wrap ? "wrap" : "nowrap",
+				width: (stretchX || stretch) ? "100%" : "auto",
+				height: (stretchY || stretch) ? "100%" : "auto",
 				"& > *": { [marginSide]: (space ?? 0) * spaceUnit, },
 				"& > *:last-child": { [marginSide]: 0, },
 			}}
@@ -346,17 +361,6 @@ interface ButtonProps {
 	onClick?: () => void,
 }
 
-//  		"background": "var(--color-bg3)",
-//  		"color": "var(--color-fg)",
-//  		"padding": "4px 8px",
-//  		"border": "solid 2px var(--color-outline)",
-//  		"border-radius": "8px",
-//  		"font-size": "16px",
-//  		"cursor": "pointer",
-//  		":hover": {
-//  			"background": "var(--color-outline)",
-//  		},
-
 const Button: React.FC<ButtonProps> = ({
 	text,
 	onClick,
@@ -384,7 +388,7 @@ const Button: React.FC<ButtonProps> = ({
 
 interface SelectProps {
 	options: string[],
-	selected: string,
+	selected?: string,
 	onChange?: (item: string) => void,
 }
 
@@ -500,19 +504,18 @@ interface ThemeToggleProps {
 	onChange?: (on: boolean) => void,
 }
 
-const ThemeToggle: React.FC<ThemeToggleProps> = ({...args}) => (
-	<ThemeCtx.Consumer>
-		{({theme, nextTheme}) => (
-			<Toggle
-				on={theme === "dark"}
-				onChange={nextTheme}
-				offIcon="/img/sun.svg"
-				onIcon="/img/moon.svg"
-				{...args}
-			/>
-		)}
-	</ThemeCtx.Consumer>
-);
+const ThemeToggle: React.FC<ThemeToggleProps> = ({...args}) => {
+	const { theme, nextTheme } = React.useContext(ThemeCtx);
+	return (
+		<Toggle
+			on={theme === "dark"}
+			onChange={nextTheme}
+			offIcon="/img/sun.svg"
+			onIcon="/img/moon.svg"
+			{...args}
+		/>
+	);
+};
 
 export {
 	Page,
