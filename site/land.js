@@ -9,7 +9,7 @@ const css = {
 	},
 	"body": {
 		"padding": "48px",
-		"background": `var(--color-bg) url("/site/img/bg.svg") repeat`,
+		"background": "var(--color-bg) url(/site/img/bg.svg) repeat",
 		"animation": "scroll linear 5s infinite",
 	},
 	"a": {
@@ -91,6 +91,11 @@ const css = {
 			},
 		},
 	},
+	"label[for='themeswitch']": {
+		"position": "fixed",
+		"right": "16px",
+		"bottom": "16px",
+	},
 	"@keyframes": {
 		"scroll": {
 			"0%": {
@@ -157,7 +162,7 @@ const page = t("html", {}, [
 					", ",
 					t("a", { href: "/demo", }, "demos"),
 					", \n",
-					t("a", { href: "/tut/intro.md", }, "tutorial"),
+					t("a", { href: "/doc/intro.md", }, "tutorial"),
 					", and ",
 					t("a", { href: "/github", }, "github"),
 					".",
@@ -165,6 +170,12 @@ const page = t("html", {}, [
 				t("img", { id: "highlight", src: "/site/img/highlight.png", }),
 				t("img", { id: "outline", src: "/site/img/outline.png", }),
 				t("img", { id: "circle", src: "/site/img/circle.png", }),
+			]),
+		]),
+		t("input", { id: "themeswitch", type: "checkbox", name: "themeswitch", style: "display: none" }, ""),
+		t("label", { for: "themeswitch", class: "switch theme", }, [
+			t("div", { class: "strip", }, [
+				t("div", { class: "ball", }, []),
 			]),
 		]),
 		t("script", { src: "/site/js/land.js" }, ""),

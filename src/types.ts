@@ -14,7 +14,7 @@
  *     stretch: true,
  *     letterbox: true,
  *     font: "sinko",
- *     clearColor: [ 0, 0, 255, ],
+ *     background: [ 0, 0, 255, ],
  * });
  *
  * // all kaboom functions are imported to global automatically
@@ -1501,7 +1501,7 @@ interface KaboomConf {
 	/**
 	 * Background color. E.g. [ 0, 0, 255 ] for solid blue background.
 	 */
-	clearColor?: number[],
+	background?: number[],
 	/**
 	 * The color to draw collider boxes etc.
 	 */

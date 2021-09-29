@@ -1,3 +1,5 @@
+import { initTheme, patchToggle } from "./theme";
+
 const fun = document.querySelector("#fun");
 
 const games = [
@@ -16,3 +18,6 @@ const games = [
 fun.addEventListener("click", () => {
 	window.open(games[~~(Math.random() * games.length)]);
 });
+
+initTheme();
+patchToggle(document.querySelector("#themeswitch"));

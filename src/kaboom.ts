@@ -79,7 +79,7 @@ const app = appInit({
 });
 
 const gfx = gfxInit(app.gl, {
-	clearColor: gconf.clearColor ? rgb(gconf.clearColor) : undefined,
+	background: gconf.background ? rgb(gconf.background) : undefined,
 	width: gconf.width,
 	height: gconf.height,
 	scale: gconf.scale,

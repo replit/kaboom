@@ -1,25 +1,16 @@
 const Koa = require("koa");
 const fs = require("fs");
 const path = require("path");
-const marked = require("marked");
-const hljs = require("highlight.js");
 const esbuild = require("esbuild");
 const port = process.env.PORT || 8000;
 const land = require("./land");
 const doc = require("./doc");
 const demo = require("./demo");
+const md = require("./md");
 const global = require("./global");
 const www = require("./www");
 const t = www.tag;
 const app = new Koa();
-
-marked.setOptions({
-	highlight: (code, lang) => {
-		return hljs.highlight(code, {
-			language: lang,
-		}).value;
-	}
-});
 
 function get(path, cb) {
 	return (ctx, next) => {
@@ -98,12 +89,12 @@ function renderDir(dir) {
 					},
 					"a": {
 						"display": "table",
-						"color": "#333333",
+						"color": "var(--color-fg)",
 						"border-radius": "12px",
 						"padding": "2px 4px",
 						":hover": {
-							"background": "#333333",
-							"color": "white",
+							"background": "var(--color-fg)",
+							"color": "var(--color-bg)",
 						},
 					},
 				})),
@@ -111,42 +102,12 @@ function renderDir(dir) {
 			t("body", {}, fs
 				.readdirSync(dir)
 				.filter((p) => !p.startsWith("."))
+				.sort((p1, p2) => path.extname(p1) > path.extname(p2) ? 1 : -1)
 				.map((file) => {
 					return t("a", { href: `${ctx.path}/${file}`, }, file);
 				})),
 		]))(ctx, next);
 	};
-}
-
-function renderMD(p) {
-	return html(t("html", {}, [
-		t("head", {}, [
-			...global.head,
-			t("title", {}, path.basename(p)),
-			t("style", {}, www.css({
-				"#content": {
-					"font-size": "24px",
-					"margin": "32px auto",
-					"width": "800px",
-					"max-width": "80%",
-					...www.vspace(32),
-					"*": {
-						"max-width": "100%",
-					},
-					"@media": {
-						"(max-device-width: 640px)": {
-							"width": "90%",
-							"font-size": "48px",
-						},
-					},
-				},
-			})),
-			t("link", { rel: "stylesheet", href: "/site/css/paraiso.css"}),
-		]),
-		t("body", {}, [
-			t("div", { id: "content", }, marked(fs.readFileSync(p, "utf-8"))),
-		]),
-	]));
 }
 
 function buildJS(p) {
@@ -166,6 +127,8 @@ function buildJS(p) {
 	};
 }
 
+const renderMD = (p) => html(md(p));
+
 app.use(get("/", html(land)));
 app.use(get("/doc", html(doc)));
 app.use(get("/demo", html(demo)));
@@ -177,7 +140,7 @@ app.use(files("/dist", "../dist"));
 app.use(files("/site", ".", { js: buildJS, }));
 app.use(files("/changelog", "../CHANGELOG.md", { md: renderMD, }));
 app.use(files("/readme", "../README.md", { md: renderMD, }));
-app.use(files("/tut", "../tut", { md: renderMD, }));
+app.use(files("/doc", "../doc", { md: renderMD, }));
 app.use(files("/lib/dev", "../dist"));
 app.use(files("/kaboom.png", "kaboom.png"));
 app.use(redirect("/twitter", "https://twitter.com/Kaboomjs"));

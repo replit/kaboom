@@ -4,13 +4,13 @@ const t = www.tag;
 const css = {
 	":root": {
 		"--color-bg": "#ffffff",
-		"--color-bg2": "#f5f5f5",
-		"--color-bg3": "#dfdfdf",
-		"--color-code-bg": "#fafafa",
+		"--color-bg2": "#f8f8f8",
+		"--color-bg3": "#eaeaea",
 		"--color-outline": "#eaeaea",
 		"--color-fg": "#333333",
 		"--color-fg2": "#666666",
 		"--color-fg3": "#999999",
+		"--color-fg4": "#cccccc",
 		"--color-highlight": "#0080ff",
 		"--color-title-bg": "#fff8bc",
 	},
@@ -18,12 +18,12 @@ const css = {
 		"--color-bg": "#111117",
 		"--color-bg2": "#15151f",
 		"--color-bg3": "#21212f",
-		"--color-code-bg": "#15151f",
 		"--color-outline": "#25252f",
 		"--color-fg": "#dadada",
 		"--color-fg2": "#aaaaaa",
 		"--color-fg3": "#7a7a7a",
-		"--color-highlight": "#2078df",
+		"--color-fg4": "#4a4a4a",
+		"--color-highlight": "#1090ef",
 		"--color-title-bg": "#132131",
 	},
 	"@font-face": [
@@ -60,7 +60,7 @@ const css = {
 	"pre": {
 		"overflow": "scroll",
 		"font-family": "IBM Plex Mono",
-		"background": "var(--color-code-bg)",
+		"background": "var(--color-bg2)",
 		"padding": "16px",
 		"border": "solid 2px var(--color-outline)",
 		"border-radius": "12px",
@@ -73,20 +73,30 @@ const css = {
 		},
 	},
 	"code": {
-		"background": "var(--color-code-bg)",
-		"border": "solid 2px #eaeaea",
+		"background": "var(--color-bg3)",
 		"font-size": "90%",
-		"padding": "2px 6px",
-		"border-radius": "12px",
+		"padding": "4px 8px",
+		"border-radius": "8px",
 		"font-family": "IBM Plex Mono",
 	},
 	"blockquote": {
-		"color": "#999999",
+		"color": "var(--color-fg3)",
 		"padding-left": "24px",
-		"border-left": "solid 3px #cccccc",
+		"border-left": "solid 2px var(--color-fg4)",
 	},
 	"img": {
 		"display": "block",
+	},
+	"a": {
+		"color": "var(--color-highlight)",
+	},
+	"ul": {
+		"margin-left": "32px",
+		...www.vspace(8),
+	},
+	"ol": {
+		"margin-left": "32px",
+		...www.vspace(8),
 	},
 	"button": {
 		"background": "var(--color-bg3)",
