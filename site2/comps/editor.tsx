@@ -42,22 +42,20 @@ import { GameViewRef } from "comps/gameview";
 
 export interface EditorRef {
 	getContent: () => string | null,
-	getCodeMirror: () => EditorView | null,
+	getSelection: () => string | null,
 }
 
 interface EditorProps {
 	content?: string,
 	onChange?: (code: string) => void,
-	onRun?: (code: string) => void,
-	ext?: [],
-	gameview?: React.Ref<GameViewRef>,
+	keymaps?: any[],
 };
 
 // TODO: use custom theme
 const Editor = React.forwardRef<EditorRef, EditorProps>(({
 	content,
 	onChange,
-	onRun,
+	keymaps,
 	...args
 }, ref) => {
 
@@ -69,10 +67,16 @@ const Editor = React.forwardRef<EditorRef, EditorProps>(({
 	React.useImperativeHandle(ref, () => ({
 		getContent() {
 			if (!cmRef.current) return null;
-			return cmRef.current.state.doc.toString();
+			const cm = cmRef.current;
+			return cm.state.doc.toString();
 		},
-		getCodeMirror() {
-			return cmRef.current;
+		getSelection() {
+			if (!cmRef.current) return null;
+			const cm = cmRef.current;
+			return cm.state.sliceDoc(
+				cm.state.selection.main.from,
+				cm.state.selection.main.to
+			)
 		},
 	}));
 
@@ -131,14 +135,7 @@ const Editor = React.forwardRef<EditorRef, EditorProps>(({
 					...commentKeymap,
 					...searchKeymap,
 					indentWithTab,
-					{
-						key: "Mod-s",
-						run: () => {
-							onRun && onRun(cm.state.doc.toString());
-							return false;
-						},
-						preventDefault: true,
-					},
+					...(keymaps ?? []),
 				]),
 			].filter((ext) => ext),
 		}));
@@ -182,11 +179,10 @@ const Editor = React.forwardRef<EditorRef, EditorProps>(({
 			bg={2}
 			outlined
 			rounded
-			pad={1}
 			css={{
 				fontFamily: "IBM Plex Mono",
 				overflow: "scroll",
-				fontSize: "var(--text-big)",
+				fontSize: "var(--text-normal)",
 				":focus": {
 					outline: "solid 2px var(--color-highlight)"
 				},

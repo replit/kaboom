@@ -2,12 +2,13 @@ import * as React from "react";
 import Link from "next/link";
 import Editor, { EditorRef } from "comps/editor";
 import GameView, { GameViewRef } from "comps/gameview";
-import useFetch from "hooks/useFetch";
+import useDoc from "hooks/useDoc";
 import Page from "comps/page";
 import Button from "comps/button";
 import ThemeToggle from "comps/themetoggle";
 import Select from "comps/select";
 import View from "comps/view";
+import Text from "comps/text";
 
 const testCode: Record<string, string> = {
 	"sprite": `
@@ -145,8 +146,10 @@ go("game");
 const Demo: React.FC = () => {
 
 	const [ code, setCode ] = React.useState(testCode["sprite"]);
+	const [ explaining, setExplaining ] = React.useState<string | null>(null);
 	const editorRef = React.useRef<EditorRef | null>(null);
 	const gameviewRef = React.useRef<GameViewRef | null>(null);
+	const doc = useDoc();
 
 	return (
 		<Page>
@@ -188,6 +191,16 @@ const Demo: React.FC = () => {
 								}
 							}}
 						/>
+						<Button
+							text="Explain"
+							onClick={() => {
+								if (!editorRef.current) return;
+								const sel = editorRef.current.getSelection();
+								if (sel) {
+									setExplaining(sel);
+								}
+							}}
+						/>
 					</View>
 					<View dir="row" gap={2} align="center">
 						<Button text="Download" onClick={() => {}} />
@@ -206,19 +219,72 @@ const Demo: React.FC = () => {
 						paddingTop: 0,
 					}}
 				>
-					<Editor
-						ref={editorRef}
-						gameview={gameviewRef}
-						content={code}
-						onRun={(code) => {
-							if (!gameviewRef.current) return;
-							gameviewRef.current.run(code);
-						}}
+					<View
+						dir="column"
+						gap={2}
 						css={{
 							width: "40%",
 							height: "100%",
 						}}
-					/>
+					>
+						<Editor
+							ref={editorRef}
+							content={code}
+							css={{
+								width: "100%",
+								flex: "1",
+							}}
+							keymaps={[
+								{
+									key: "Mod-s",
+									run: () => {
+										if (!gameviewRef.current) return;
+										const gameview = gameviewRef.current;
+										if (!editorRef.current) return;
+										const editor = editorRef.current;
+										gameview.run(editor.getContent() ?? undefined);
+										return false;
+									},
+									preventDefault: true,
+								},
+								{
+									key: "Mod-e",
+									run: () => {
+										if (!editorRef.current) return;
+										const editor = editorRef.current;
+										setExplaining(editor.getSelection());
+										console.log(doc.getDef(editor.getSelection()));
+										return false;
+									},
+									preventDefault: true,
+								},
+							]}
+						/>
+						{explaining && <View
+							height={240}
+							stretchX
+							rounded
+							outlined
+							pad={2}
+						>
+							<Text size="big">{explaining}</Text>
+							<View
+								width={32}
+								height={32}
+								padX={1.4}
+								padY={0.5}
+								onClick={() => setExplaining(null)}
+								css={{
+									position: "absolute",
+									cursor: "pointer",
+									top: 0,
+									right: 0,
+								}}
+							>
+								<Text bold color={3}>x</Text>
+							</View>
+						</View>}
+					</View>
 					<GameView
 						ref={gameviewRef}
 						code={code}

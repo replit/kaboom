@@ -1,7 +1,7 @@
 import * as React from "react";
 import Link from "next/link";
 
-import useFetch from "hooks/useFetch";
+import useDoc from "hooks/useDoc";
 import Page from "comps/page";
 import Text from "comps/text";
 import Spacer from "comps/spacer";
@@ -86,7 +86,7 @@ const Content: React.FC = () => (
 
 const Doc: React.FC = () => {
 
-	const { data } = useFetch("/types.json", (res) => res.json());
+	const doc = useDoc();
 
 	return (
 		<Page>
