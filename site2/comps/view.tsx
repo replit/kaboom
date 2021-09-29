@@ -1,3 +1,5 @@
+import * as React from "react";
+
 const spaceUnit = 8;
 
 type StackDir =
@@ -43,7 +45,7 @@ const toJustify = (j: Justify) => {
 	}
 }
 
-interface StackProps {
+interface ViewProps {
 	dir?: StackDir,
 	space?: number,
 	reverse?: boolean,
@@ -53,9 +55,19 @@ interface StackProps {
 	stretchX?: boolean,
 	stretchY?: boolean,
 	stretch?: boolean,
+	bg?: number | string,
+	rounded?: boolean,
+	width?: number | string,
+	height?: number | string,
+	focusable?: boolean,
+	pad?: number,
+	padX?: number,
+	padY?: number,
+	onClick?: (e: MouseEvent) => void,
+	onKeyDown?: (e: KeyboardEvent) => void,
 }
 
-const Stack: React.FC<StackProps> = ({
+const View = React.forwardRef<HTMLDivElement, React.PropsWithChildren<ViewProps>>(({
 	dir,
 	space,
 	reverse,
@@ -65,19 +77,30 @@ const Stack: React.FC<StackProps> = ({
 	stretchX,
 	stretchY,
 	stretch,
+	bg,
+	rounded,
+	width,
+	height,
+	pad,
+	padX,
+	padY,
+	focusable,
+	onClick,
+	onKeyDown,
 	children,
-	...args
-} = {
-	dir: "column",
-	space: 0,
-	reverse: false,
-	wrap: true,
-	align: "start",
-	justify: "start",
-}) => {
+	...props
+}, ref) => {
+
 	const marginSide = dir === "row" ? "marginRight" : "marginBottom";
+	const px = (padX ?? pad ?? 0) * 8;
+	const py = (padY ?? pad ?? 0) * 8;
+
 	return (
 		<div
+			ref={ref}
+			onClick={onClick}
+			onKeyDown={onKeyDown}
+			tabIndex={focusable ? 0 : undefined}
 			css={{
 				display: "flex",
 //  				flexDirection: (dir ?? "column") + (reverse ? "-reverse" : ""),
@@ -85,26 +108,22 @@ const Stack: React.FC<StackProps> = ({
 				alignItems: toAlign(align ?? "start"),
 				justifyContent: toJustify(justify ?? "start"),
 				flexWrap: wrap ? "wrap" : "nowrap",
-				width: (stretchX || stretch) ? "100%" : "auto",
-				height: (stretchY || stretch) ? "100%" : "auto",
+				width: (stretchX || stretch) ? "100%" : width,
+				height: (stretchY || stretch) ? "100%" : height,
+				background: typeof bg === "number" ? `var(--color-bg${bg})` : bg,
+				paddingLeft: `${px}px`,
+				paddingRight: `${px}px`,
+				paddingTop: `${py}px`,
+				paddingBottom: `${py}px`,
 				"& > *": { [marginSide]: (space ?? 0) * spaceUnit, },
 				"& > *:last-child": { [marginSide]: 0, },
 			}}
-			{...args}
+			{...props}
 		>
 			{children}
 		</div>
 	);
-};
 
-type VStackProps = Omit<StackProps, "dir">;
-type HStackProps = Omit<StackProps, "dir">;
+});
 
-const VStack: React.FC<VStackProps> = ({...args}) => <Stack {...args} dir="column" />;
-const HStack: React.FC<HStackProps> = ({...args}) => <Stack {...args} dir="row" />;
-
-export {
-	Stack,
-	VStack,
-	HStack,
-}
+export default View;

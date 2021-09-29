@@ -7,7 +7,7 @@ import Page from "comps/page";
 import Button from "comps/button";
 import ThemeToggle from "comps/themetoggle";
 import Select from "comps/select";
-import { VStack, HStack } from "comps/stack";
+import View from "comps/view";
 
 const testCode: Record<string, string> = {
 	"sprite": `
@@ -150,19 +150,17 @@ const Demo: React.FC = () => {
 
 	return (
 		<Page>
-			<VStack stretch>
-				<HStack
+			<View dir="column" stretch>
+				<View
+					dir="row"
 					align="center"
 					justify="between"
-					css={{
-						padding: "0 16px",
-						background: "var(--color-bg2)",
-						width: "100%",
-						height: "64px",
-						overflow: "hidden",
-					}}
+					bg={2}
+					stretchX
+					height={64}
+					padX={2}
 				>
-					<HStack space={2} align="center">
+					<View dir="row" space={2} align="center">
 						<Link href="/">
 							<img
 								src="/img/kaboom.svg"
@@ -190,20 +188,22 @@ const Demo: React.FC = () => {
 								}
 							}}
 						/>
-					</HStack>
-					<HStack>
+					</View>
+					<View dir="row">
 						<ThemeToggle />
-					</HStack>
-				</HStack>
-				<HStack
+					</View>
+				</View>
+				<View
+					dir="row"
+					stretchX
 					css={{
-						width: "100%",
 						flex: "1",
 						overflow: "hidden",
 					}}
 				>
 					<Editor
 						ref={editorRef}
+						gameview={gameviewRef}
 						content={code}
 						onRun={(code) => {
 							if (!gameviewRef.current) return;
@@ -222,8 +222,8 @@ const Demo: React.FC = () => {
 							height: "100%",
 						}}
 					/>
-				</HStack>
-			</VStack>
+				</View>
+			</View>
 		</Page>
 	);
 

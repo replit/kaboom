@@ -4,6 +4,7 @@ import Image from "next/image";
 import { keyframes } from '@emotion/react';
 
 import Page from "comps/page";
+import View from "comps/view";
 import Text from "comps/text";
 import Spacer from "comps/spacer";
 import ThemeToggle from "comps/themetoggle";
@@ -104,35 +105,36 @@ const Info: React.FC = () => (
 );
 
 const Home: React.FC = () => (
-	<Page
-		css={{
-			width: "100%",
-			height: "100%",
-			background: "url(/img/bg.svg) repeat var(--color-bg1)",
-			animation: `${anims.scroll} 5s infinite linear`,
-			overflow: "scroll",
-			fontFamily: "Necto Mono",
-		}}
-	>
-		<div
+	<Page>
+		<View
+			stretch
 			css={{
-				margin: "0 auto",
-				width: "calc(600px + 30vw)",
-				maxWidth: "90%",
+				background: "url(/img/bg.svg) repeat var(--color-bg1)",
+				animation: `${anims.scroll} 5s infinite linear`,
+				overflow: "scroll",
+				fontFamily: "Necto Mono",
 			}}
 		>
-			<Spacer space={6} />
-			<Logo />
-			<Spacer space={3} />
-			<Info />
-		</div>
-		<ThemeToggle
-			css={{
-				position: "fixed",
-				bottom: "24px",
-				right: "24px",
-			}}
-		/>
+			<div
+				css={{
+					margin: "0 auto",
+					width: "calc(600px + 30vw)",
+					maxWidth: "90%",
+				}}
+			>
+				<Spacer space={6} />
+				<Logo />
+				<Spacer space={3} />
+				<Info />
+			</div>
+			<ThemeToggle
+				css={{
+					position: "fixed",
+					bottom: "24px",
+					right: "24px",
+				}}
+			/>
+		</View>
 	</Page>
 );
 

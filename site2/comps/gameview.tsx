@@ -52,9 +52,16 @@ const GameView = React.forwardRef<GameViewRef, GameViewProps>(({
 	return (
 		<iframe
 			ref={iframeRef}
+			tabIndex={0}
+			width={640}
+			height={480}
 			css={{
 				border: "none",
 				background: "black",
+				borderRadius: "8px",
+				":focus": {
+					outline: "solid 2px var(--color-highlight)"
+				},
 			}}
 			srcDoc={wrapGame(code ?? "")}
 			{...args}

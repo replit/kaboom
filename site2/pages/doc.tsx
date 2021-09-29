@@ -8,7 +8,7 @@ import Spacer from "comps/spacer";
 import ThemeToggle from "comps/themetoggle";
 import Button from "comps/button";
 import Select from "comps/select";
-import { VStack, HStack } from "comps/stack";
+import View from "comps/view";
 
 import Markdown from "comps/markdown";
 
@@ -21,10 +21,10 @@ const IndexSection: React.FC<IndexSectionProps> = ({
 	children,
 	...args
 }) => (
-	<VStack {...args}>
+	<View dir="column" {...args}>
 		<Text color={2}>{title}</Text>
 		{children}
-	</VStack>
+	</View>
 );
 
 interface IndexEntryProps {
@@ -42,7 +42,8 @@ const IndexEntry: React.FC<IndexEntryProps> = ({
 );
 
 const SideBar: React.FC = () => (
-	<VStack
+	<View
+		dir="column"
 		space={3}
 		css={{
 			width: 240,
@@ -65,11 +66,12 @@ const SideBar: React.FC = () => (
 		<ThemeToggle />
 		<IndexSection title="Tutorials">
 		</IndexSection>
-	</VStack>
+	</View>
 );
 
 const Content: React.FC = () => (
-	<VStack
+	<View
+		dir="column"
 		space={3}
 		css={{
 			flex: "1",
@@ -79,7 +81,7 @@ const Content: React.FC = () => (
 			background: "var(--color-bg1)",
 		}}
 	>
-	</VStack>
+	</View>
 );
 
 const Doc: React.FC = () => {
@@ -88,10 +90,10 @@ const Doc: React.FC = () => {
 
 	return (
 		<Page>
-			<HStack stretch>
+			<View dir="row" stretch>
 				<SideBar />
 				<Content />
-			</HStack>
+			</View>
 		</Page>
 	);
 

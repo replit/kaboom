@@ -24,18 +24,18 @@ export type FontSize =
 	| "huge"
 	;
 
-type CSSVal = string;
-type ThemeDef = Record<Color, CSSVal>;
-type ThemeBook = Record<Theme, ThemeDef>;
+export type CSSVal = string;
+export type ThemeDef = Record<Color, CSSVal>;
+export type ThemeBook = Record<Theme, ThemeDef>;
 
-const fontSizes: Record<FontSize, CSSVal> = {
+export const fontSizes: Record<FontSize, CSSVal> = {
 	"small": "16px",
 	"normal": "20px",
 	"big": "24px",
 	"huge": "32px",
 }
 
-const themes: ThemeBook = {
+export const themes: ThemeBook = {
 	"light": {
 		"bg1": "#ffffff",
 		"bg2": "#f8f8f8",
@@ -69,7 +69,7 @@ const themes: ThemeBook = {
 export const space = 8;
 export const DEF_THEME: Theme = "light";
 
-export const genCSSVars = (() => {
+export const cssVars = (() => {
 
 	const buildCSSVars = (prefix: string, map: Record<string, CSSVal>): string => {
 		let code = "";

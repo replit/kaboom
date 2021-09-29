@@ -1,4 +1,5 @@
 import * as React from "react";
+import View from "comps/view";
 
 interface ToggleProps {
 	offIcon?: string,
@@ -28,7 +29,11 @@ const Toggle: React.FC<ToggleProps> = ({
 	}, [on]);
 
 	return (
-		<div
+		<View
+			dir="row"
+			align="center"
+			justify={isOn ? "end" : "start"}
+			focusable
 			css={{
 				border: "solid 2px var(--color-outline)",
 				width: stripWidth,
@@ -37,6 +42,7 @@ const Toggle: React.FC<ToggleProps> = ({
 				background: "var(--color-bg3)",
 				position: "relative",
 				cursor: "pointer",
+				padding: "0 4px",
 				":hover": {
 					background: "var(--color-bg4)",
 				},
@@ -54,16 +60,13 @@ const Toggle: React.FC<ToggleProps> = ({
 					setIsOn(!isOn);
 				}
 			}}
-			tabIndex={0}
 			{...args}
 		>
 			<div
 				css={{
-					width: size - 4,
-					height: size - 4,
+					width: size - 8,
+					height: size - 8,
 					borderRadius: size / 2,
-					border: "solid 4px var(--color-bg3)",
-					position: "absolute",
 					background: "var(--color-bg1) no-repeat 50% 50%",
 					...((onIcon || offIcon) ? {
 						...(isOn ? {
@@ -73,11 +76,10 @@ const Toggle: React.FC<ToggleProps> = ({
 						})
 					} : {}),
 					backgroundSize: "60% 60%",
-					left: isOn ? stripWidth - size : 0,
 				}}
 			>
 			</div>
-		</div>
+		</View>
 	);
 
 };

@@ -1,6 +1,7 @@
 import * as React from "react";
-import { Stack, VStack, HStack } from "comps/stack";
+import View from "comps/view";
 import Text from "comps/text";
+import useClickOutside from "hooks/useClickOutside";
 
 interface SelectProps {
 	options: string[],
@@ -15,15 +16,17 @@ const Select: React.FC<SelectProps> = ({
 	...args
 }) => {
 
-	if (options.length <= 0) {
-		throw new Error("empty options");
-	}
-
+	const domRef = React.useRef(null);
 	const [ curItem, setCurItem ] = React.useState(selected ?? options[0]);
 	const [ expanded, setExpanded ] = React.useState(false);
 
+	useClickOutside(domRef, () => setExpanded(false), [ setExpanded ]);
+
 	return (
-		<VStack
+		<View
+			dir="column"
+			ref={domRef}
+			focusable
 			css={{
 				background: "var(--color-bg3)",
 				color: "var(--color-fg1)",
@@ -40,21 +43,20 @@ const Select: React.FC<SelectProps> = ({
 			}}
 			onClick={() => setExpanded(!expanded)}
 			onKeyDown={(e) => e.key === "Enter" && setExpanded(!expanded)}
-			tabIndex={0}
 			{...args}
 		>
-			<HStack>
+			<View dir="row" stretchX justify="between">
 				<Text
 					css={{
 						padding: "4px 8px",
 					}}
 				>{curItem}</Text>
-				<Stack
+				<View
 					align="center"
 					justify="center"
 					css={{
 						width: "24px",
-						height: "34px",
+						height: "35px",
 						background: "var(--color-bg4)",
 						borderTopRightRadius: "6px",
 						borderBottomRightRadius: "6px",
@@ -72,9 +74,9 @@ const Select: React.FC<SelectProps> = ({
 					>
 						{">"}
 					</Text>
-				</Stack>
-			</HStack>
-			<VStack>
+				</View>
+			</View>
+			<View dir="column">
 				{expanded && options.map((opt) => (
 					<Text
 						key={opt}
@@ -86,10 +88,10 @@ const Select: React.FC<SelectProps> = ({
 							},
 						}}
 						onClick={() => setCurItem(opt)}
-					>{curItem}</Text>
+					>{opt}</Text>
 				))}
-			</VStack>
-		</VStack>
+			</View>
+		</View>
 	);
 
 };

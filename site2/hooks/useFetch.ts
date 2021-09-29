@@ -1,6 +1,6 @@
 import * as React from "react";
 
-const useFetch = <D>(url: string, parse: (res: Response) => D) => {
+export default function useFetch<D>(url: string, parse: (res: Response) => D) {
 
 	const [ res, setRes ] = React.useState<Response | null>(null);
 	const [ data, setData ] = React.useState<D | null>(null);
@@ -37,6 +37,3 @@ const useFetch = <D>(url: string, parse: (res: Response) => D) => {
 	};
 
 };
-
-export default useFetch;
-

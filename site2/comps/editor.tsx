@@ -16,6 +16,7 @@ import { oneDark } from "@codemirror/theme-one-dark";
 
 import useUpdateEffect from "hooks/useUpdateEffect";
 import ThemeCtx from "comps/theme";
+import { GameViewRef } from "comps/gameview";
 
 export interface EditorRef {
 	getContent: () => string | null,
@@ -27,6 +28,7 @@ interface EditorProps {
 	onChange?: (code: string) => void,
 	onRun?: (code: string) => void,
 	ext?: [],
+	gameview?: React.Ref<GameViewRef>,
 };
 
 // TODO: use custom theme
@@ -154,11 +156,16 @@ const Editor = React.forwardRef<EditorRef, EditorProps>(({
 	return (
 		<div
 			ref={editorDOMRef}
+			tabIndex={0}
 			css={{
 				fontFamily: "IBM Plex Mono",
 				overflow: "scroll",
 				fontSize: "var(--text-big)",
 				background: "var(--color-bg1)",
+				borderRadius: "8px",
+				":focus": {
+					outline: "solid 2px var(--color-highlight)"
+				},
 			}}
 			{...args}
 		/>

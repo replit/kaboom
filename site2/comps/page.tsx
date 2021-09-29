@@ -1,98 +1,7 @@
 import * as React from "react";
 import { Global, css } from "@emotion/react"
 import ThemeCtx from "comps/theme";
-
-type Color =
-	| "bg1"
-	| "bg2"
-	| "bg3"
-	| "bg4"
-	| "outline"
-	| "fg1"
-	| "fg2"
-	| "fg3"
-	| "fg4"
-	| "highlight"
-	| "title-bg"
-	;
-
-type Theme =
-	| "light"
-	| "dark"
-	;
-
-type FontSize =
-	| "small"
-	| "normal"
-	| "big"
-	| "huge"
-	;
-
-type CSSVal = string;
-type ThemeDef = Record<Color, CSSVal>;
-type ThemeBook = Record<Theme, ThemeDef>;
-
-const spaceUnit = 8;
-
-const fontSizes: Record<FontSize, CSSVal> = {
-	"small": "16px",
-	"normal": "20px",
-	"big": "24px",
-	"huge": "32px",
-}
-
-const themes: ThemeBook = {
-	"light": {
-		"bg1": "#ffffff",
-		"bg2": "#f8f8f8",
-		"bg3": "#eaeaea",
-		"bg4": "#e2e2e2",
-		"outline": "#dadada",
-//  		"outline": "#eaeaea",
-		"fg1": "#333333",
-		"fg2": "#666666",
-		"fg3": "#999999",
-		"fg4": "#cccccc",
-		"highlight": "#0080ff",
-		"title-bg": "#fff8bc",
-	},
-	"dark": {
-		"bg1": "#111117",
-		"bg2": "#15151f",
-		"bg3": "#21212f",
-		"bg4": "#2a2a3a",
-		"outline": "#3f3f5f",
-//  		"outline": "#25252f",
-		"fg1": "#dfdfdf",
-		"fg2": "#aaaaaf",
-		"fg3": "#7a7a7f",
-		"fg4": "#4a4a5f",
-		"highlight": "#1090ef",
-		"title-bg": "#132131",
-	},
-};
-
-const defTheme: Theme = "light";
-
-const vars = (() => {
-
-	const buildCSSVars = (prefix: string, map: Record<string, CSSVal>): string => {
-		let code = "";
-		for (const k in map) {
-			code += `--${prefix}-${k}: ${map[k]};`;
-		}
-		return code;
-	}
-
-	let code = `:root {${buildCSSVars("text", fontSizes)}${buildCSSVars("color", themes[defTheme])}}`;
-
-	for (const theme in themes) {
-		code += `.${theme} {${buildCSSVars("color", themes[theme as Theme])}}`;
-	}
-
-	return code;
-
-})();
+import { Theme, DEF_THEME, themes, cssVars } from "comps/ui";
 
 interface PageProps {
 	theme?: Theme,
@@ -101,12 +10,11 @@ interface PageProps {
 const Page: React.FC<PageProps> = ({
 	theme,
 	children,
-	...args
 } = {
-	theme: defTheme,
+	theme: DEF_THEME,
 }) => {
 
-	const [ curTheme, setCurTheme ] = React.useState<Theme>(theme ?? defTheme);
+	const [ curTheme, setCurTheme ] = React.useState<Theme>(theme ?? DEF_THEME);
 
 	React.useEffect(() => {
 		if (theme) {
@@ -150,11 +58,10 @@ const Page: React.FC<PageProps> = ({
 					height: "100%",
 					overflow: "scroll",
 				}}
-//  				{...args}
 			>
 				<Global
 					styles={css`
-						${vars}
+						${cssVars}
 						@font-face {
 							font-family: IBM Plex Sans;
 							src: url(fonts/IBMPlexSans-Regular.ttf) format(truetype);
@@ -194,6 +101,9 @@ const Page: React.FC<PageProps> = ({
 						#__next {
 							width: 100%;
 							height: 100%;
+						}
+						.cm-focused {
+							outline: solid 2px var(--color-highlight) !important;
 						}
 					`}
 				/>
