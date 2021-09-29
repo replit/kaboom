@@ -71,6 +71,7 @@ You might have encountered errors when trying to `loadSprite()` from local file 
 - `$ python -m SimpleHTTPServer` if you have [python2](https://www.python.org) installed
 - `$ serve` if you have [serve](https://github.com/vercel/serve) installed
 - `$ caddy file-server` if you have [caddy](https://caddyserver.com/) installed
+- `$ static-here` if you have [static-here](https://github.com/amasad/static-here) installed
 
 Let's say you have a folder structure like this:
 ```sh
