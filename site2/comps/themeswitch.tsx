@@ -1,7 +1,7 @@
 import * as React from "react";
 import ThemeCtx from "comps/theme";
 import View from "comps/view";
-import { themes } from "comps/ui";
+import { themes, Theme } from "comps/ui";
 
 interface ThemeSwitchProps {
 	big?: boolean,
@@ -15,8 +15,8 @@ const ThemeSwitch: React.FC<ThemeSwitchProps> = ({...args}) => {
 		{Object.keys(themes).map((t) => (
 			<View
 				key={t}
-				onClick={() => setTheme(t)}
-				bg={themes[t]["bg2"]}
+				onClick={() => setTheme(t as Theme)}
+				bg={themes[t as Theme]["bg2"]}
 				width={t === theme ? 32 : 28}
 				height={t === theme ? 32 : 28}
 				outlined

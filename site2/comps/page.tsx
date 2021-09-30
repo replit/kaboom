@@ -85,9 +85,6 @@ const Page: React.FC<PageProps> = ({
 							height: 100%;
 							font-family: IBM Plex Sans;
 						}
-						h1,h2,h3,h4,h5,h6,p,pre,code,div {
-							color: var(--color-fg1);
-						}
 						body {
 							width: 100%;
 							height: 100%;
@@ -98,9 +95,8 @@ const Page: React.FC<PageProps> = ({
 						}
 						.hljs-comment,
 						.hljs-quote {
-							color: #776e71;
+							color: var(--color-fg4);
 						}
-
 						/* red */
 						.hljs-variable,
 						.hljs-template-variable,
@@ -113,7 +109,6 @@ const Page: React.FC<PageProps> = ({
 						.hljs-meta {
 							color: #ef6155;
 						}
-
 						/* orange */
 						.hljs-number,
 						.hljs-built_in,
@@ -124,13 +119,11 @@ const Page: React.FC<PageProps> = ({
 						.hljs-deletion {
 							color: #f99b15;
 						}
-
 						/* yellow */
 						.hljs-section,
 						.hljs-attribute {
 							color: #fec418;
 						}
-
 						/* green */
 						.hljs-string,
 						.hljs-symbol,
@@ -138,25 +131,24 @@ const Page: React.FC<PageProps> = ({
 						.hljs-addition {
 							color: #48b685;
 						}
-
 						/* purple */
 						.hljs-keyword,
 						.hljs-selector-tag {
 							color: #815ba4;
 						}
-
+						code {
+							color: var(--color-fg2);
+						}
 						.hljs {
 							display: block;
 							overflow-x: auto;
 							background: #e7e9db;
-							color: #4f424c;
+							color: var(--color-fg2);
 							padding: 0.5em;
 						}
-
 						.hljs-emphasis {
 							font-style: italic;
 						}
-
 						.hljs-strong {
 							font-weight: bold;
 						}

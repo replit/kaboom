@@ -1,5 +1,5 @@
 import * as React from "react";
-import { EditorState, Compartment } from "@codemirror/state";
+import { EditorState, Compartment, Extension } from "@codemirror/state";
 import { EditorView, keymap, highlightSpecialChars, highlightActiveLine, drawSelection, placeholder, } from "@codemirror/view";
 import { defaultHighlightStyle, HighlightStyle, tags as t } from "@codemirror/highlight";
 import { defaultKeymap, indentWithTab } from "@codemirror/commands";
@@ -17,21 +17,22 @@ import useUpdateEffect from "hooks/useUpdateEffect";
 import View from "comps/view";
 import ThemeCtx from "comps/theme";
 import { GameViewRef } from "comps/gameview";
-import { themes } from "comps/ui";
+import { themes, Theme } from "comps/ui";
 
-const cmThemes = {};
+// @ts-ignore
+const cmThemes: Record<Theme, [ Extension, HighlightStyle ]> = {};
 
 Object.keys(themes).forEach((name) => {
 
-	const theme = themes[name];
+	const theme = themes[name as Theme];
 	const yellow = "#e5c07b";
-	const coral = "#e06c75";
+	const red = "#e06c75";
 	const cyan = "#56b6c2";
-	const invalid = "#ffffff";
 	const ivory = theme["fg2"];
 	const stone = theme["fg3"];
-	const malibu = "#61afef";
-	const sage = "#98c379";
+	const invalid = theme["fg4"];
+	const blue = "#61afef";
+	const green = "#98d379";
 	const whiskey = "#d19a66";
 	const magenta = "#c678dd";
 	const darkBackground = theme["bg1"];
@@ -40,7 +41,7 @@ Object.keys(themes).forEach((name) => {
 	const selection = theme["bg4"];
 	const cursor = theme["highlight"];
 
-	cmThemes[name] = [
+	cmThemes[name as Theme] = [
 		EditorView.theme({
 			"&": {
 				color: ivory,
@@ -94,7 +95,7 @@ Object.keys(themes).forEach((name) => {
 			".cm-foldPlaceholder": {
 				backgroundColor: theme["fg4"],
 				border: "none",
-				color: "#ddd",
+				color: theme["fg1"],
 			},
 		}, { dark: true, }),
 		HighlightStyle.define([
@@ -104,20 +105,20 @@ Object.keys(themes).forEach((name) => {
 			},
 			{
 				tag: [
-					t.name,
+//  					t.name,
 					t.deleted,
 					t.character,
-					t.propertyName,
 					t.macroName,
+//  					t.propertyName,
 				],
-				color: coral,
+				color: red,
 			},
 			{
 				tag: [
 					t.function(t.variableName),
 					t.labelName,
 				],
-				color: malibu,
+				color: blue,
 			},
 			{
 				tag: [
@@ -186,7 +187,7 @@ Object.keys(themes).forEach((name) => {
 			{
 				tag: t.heading,
 				fontWeight: "bold",
-				color: coral,
+				color: red,
 			},
 			{
 				tag: [
@@ -202,7 +203,7 @@ Object.keys(themes).forEach((name) => {
 					t.string,
 					t.inserted,
 				],
-				color: sage,
+				color: green,
 			},
 			{
 				tag: t.invalid,

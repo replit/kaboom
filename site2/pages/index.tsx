@@ -165,6 +165,7 @@ const player = add([
 	body(),          // responds to physics and gravity
 ]);
 
+// jump when player presses "space" key
 keyPress("space", () => {
 	player.jump();
 });

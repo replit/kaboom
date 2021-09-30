@@ -29,7 +29,15 @@ export const fontSizes: Record<FontSize, CSSVal> = {
 	"huge": "32px",
 }
 
-export const themes = {
+export type Theme =
+	| "dark"
+	| "yellow"
+	| "light"
+	;
+
+export type ThemeBook = Record<Theme, ThemeDef>;
+
+export const themes: ThemeBook = {
 	"dark": {
 		"bg1": "rgb(20, 20, 30)",
 		"bg2": "rgb(32, 32, 46)",
@@ -43,17 +51,17 @@ export const themes = {
 		"highlight": "rgb(30, 140, 230)",
 		"title-bg": "rgb(19, 33, 49)",
 	},
-	"purple": {
-		"bg1": "rgb(31, 11, 61)",
-		"bg2": "rgb(44, 24, 74)",
-		"bg3": "rgb(57, 37, 87)",
-		"bg4": "rgb(70, 50, 100)",
-		"outline": "rgb(63, 63, 95)",
-		"fg1": "rgb(233, 233, 233)",
-		"fg2": "rgb(170, 170, 175)",
-		"fg3": "rgb(125, 135, 153)",
-		"fg4": "rgb(74, 74, 95)",
-		"highlight": "rgb(32, 144, 239)",
+	"yellow": {
+		"bg1": "rgb(255, 235, 170)",
+		"bg2": "rgb(245, 225, 160)",
+		"bg3": "rgb(235, 215, 150)",
+		"bg4": "rgb(225, 205, 140)",
+		"outline": "rgb(220, 200, 135)",
+		"fg1": "rgb(60, 60, 40)",
+		"fg2": "rgb(100, 100, 80)",
+		"fg3": "rgb(140, 140, 120)",
+		"fg4": "rgb(180, 180, 140)",
+		"highlight": "rgb(30, 140, 230)",
 		"title-bg": "rgb(19, 33, 49)",
 	},
 	"light": {
@@ -65,7 +73,7 @@ export const themes = {
 		"fg1": "rgb(51, 51, 51)",
 		"fg2": "rgb(102, 102, 102)",
 		"fg3": "rgb(153, 153, 153)",
-		"fg4": "rgb(204, 204, 204)",
+		"fg4": "rgb(190, 190, 190)",
 		"highlight": "rgb(0, 128, 255)",
 		"title-bg": "rgb(255, 248, 188)",
 	},
@@ -87,7 +95,7 @@ export const cssVars = (() => {
 	let code = `:root {${buildCSSVars("text", fontSizes)}${buildCSSVars("color", themes[DEF_THEME])}}`;
 
 	for (const theme in themes) {
-		code += `.${theme} {${buildCSSVars("color", themes[theme])}}`;
+		code += `.${theme} {${buildCSSVars("color", themes[theme as Theme])}}`;
 	}
 
 	return code;

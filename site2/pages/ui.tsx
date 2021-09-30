@@ -6,7 +6,7 @@ import useFetch from "hooks/useFetch";
 import Page from "comps/page";
 import Button from "comps/button";
 import Toggle from "comps/toggle";
-import ThemeToggle from "comps/themetoggle";
+import ThemeSwitch from "comps/themeswitch";
 import Text from "comps/text";
 import Select from "comps/select";
 import View from "comps/view";
@@ -24,7 +24,7 @@ const UI: React.FC = () => (
 			</View>
 			<View dir="column" gap={1}>
 				<Text>here{"'"}s a theme toggle</Text>
-				<ThemeToggle />
+				<ThemeSwitch />
 			</View>
 			<View dir="column" gap={1}>
 				<Text>here{"'"}s a text</Text>

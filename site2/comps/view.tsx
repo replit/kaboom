@@ -45,7 +45,7 @@ const toJustify = (j: Justify) => {
 	}
 }
 
-interface ViewProps {
+export interface ViewProps {
 	dir?: StackDir,
 	gap?: number,
 	reverse?: boolean,
