@@ -8,7 +8,8 @@ marked.setOptions({
 		return hljs.highlight(code, {
 			language: lang,
 		}).value;
-	}
+	},
+	baseUrl: "/public",
 });
 
 interface MarkdownProps {

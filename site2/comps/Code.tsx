@@ -11,7 +11,7 @@ const Code: React.FC<CodeProps> = ({
 	lang,
 	...args
 }) => (
-	<View pad={2} bg={2} rounded outlined stretchX {...args}>
+	<View stretchX {...args}>
 		<pre
 			css={{
 				fontFamily: "IBM Plex Mono",

@@ -113,6 +113,7 @@ const Page: React.FC<PageProps> = ({
 						ul,ol {
 							line-height: 2;
 							color: var(--color-fg1);
+							margin-left: 24px;
 						}
 						a {
 							color: var(--color-highlight);
@@ -121,20 +122,17 @@ const Page: React.FC<PageProps> = ({
 							color: var(--color-highlight);
 						}
 						pre {
+							width: 100%;
 							background: var(--color-bg2);
 							padding: 16px;
 							border-radius: 8px;
 							border: solid 2px var(--color-outline);
 							flex: 1,
-							> code {
-								background: none;
-								border: none;
-								padding: none;
-								font-size: inherit;
-							},
 						}
 						code {
 							font-family: IBM Plex Mono;
+						}
+						p > code {
 							padding: 2px 6px;
 							border-radius: 8px;
 							background: var(--color-bg2);

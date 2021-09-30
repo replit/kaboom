@@ -165,7 +165,7 @@ const Demo: React.FC = () => {
 					<View dir="row" gap={2} align="center">
 						<Link href="/">
 							<img
-								src="/img/k.png"
+								src="/public/img/k.png"
 								css={{
 									width: 48,
 									cursor: "pointer",
