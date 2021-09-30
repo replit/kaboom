@@ -19,4 +19,5 @@ export default function useClickOutside<T extends HTMLElement>(
 	}, [ onMousedown ]);
 
 	return ref;
+
 }

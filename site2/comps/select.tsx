@@ -2,6 +2,7 @@ import * as React from "react";
 import View from "comps/view";
 import Text from "comps/text";
 import useClickOutside from "hooks/useClickOutside";
+import useEsc from "hooks/useEsc";
 
 interface CurItemProps {
 	name: string,
@@ -18,7 +19,7 @@ const CurItem: React.FC<CurItemProps> = ({
 		justify="between"
 	>
 		<View padX={1} padY={0.5}>
-			<Text>{name}</Text>
+			<Text noSelect>{name}</Text>
 		</View>
 		<View
 			align="center"
@@ -65,6 +66,7 @@ const Select: React.FC<SelectProps> = ({
 	const [ expanded, setExpanded ] = React.useState(false);
 
 	useClickOutside(domRef, () => setExpanded(false), [ setExpanded ]);
+	useEsc(() => setExpanded(false), [ setExpanded ]);
 
 	return (
 		<View

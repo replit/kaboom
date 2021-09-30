@@ -10,6 +10,7 @@ import ThemeSwitch from "comps/themeswitch";
 import Text from "comps/text";
 import Select from "comps/select";
 import View from "comps/view";
+import Menu from "comps/menu";
 
 const UI: React.FC = () => (
 	<Page>
@@ -17,6 +18,24 @@ const UI: React.FC = () => (
 			<View dir="column" gap={1}>
 				<Text>here{"'"}s a dropdown menu</Text>
 				<Select options={["Jack", "Panda", "Banana"]} onChange={() => {}} />
+			</View>
+			<View dir="column" gap={1}>
+				<Text>here{"'"}s a menu</Text>
+				<Menu items={[
+					{
+						name: "Copy",
+						action: () => {},
+					},
+					{
+						name: "Rename",
+						action: () => {},
+					},
+					{
+						name: "Delete",
+						action: () => {},
+						danger: true,
+					},
+				]} />
 			</View>
 			<View dir="column" gap={1}>
 				<Text>here{"'"}s a toggle</Text>

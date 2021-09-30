@@ -6,6 +6,7 @@ interface TextProps {
 	size?: FontSize,
 	bold?: boolean,
 	italic?: boolean,
+	noSelect?: boolean,
 	onClick?: (e: MouseEvent) => void,
 }
 
@@ -16,13 +17,8 @@ const Text = React.forwardRef<HTMLDivElement, React.PropsWithChildren<TextProps>
 	italic,
 	onClick,
 	children,
+	noSelect,
 	...props
-} = {
-	color: 1,
-	size: "normal",
-	bold: false,
-	italic: false,
-	onClick: () => {},
 }, ref) => (
 	<div
 		ref={ref}
@@ -32,6 +28,7 @@ const Text = React.forwardRef<HTMLDivElement, React.PropsWithChildren<TextProps>
 			color: `var(--color-fg${color ?? "1"})`,
 			fontWeight: bold ? "bold" : "normal",
 			fontStyle: italic ? "italic" : "normal",
+			userSelect: noSelect ? "none" : "normal",
 		}}
 		{...props}
 	>

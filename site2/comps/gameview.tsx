@@ -66,7 +66,6 @@ const GameView = React.forwardRef<GameViewRef, GameViewProps & ViewProps>(({
 					},
 				}}
 				srcDoc={wrapGame(code ?? "")}
-				{...args}
 			/>
 		</View>
 	);
