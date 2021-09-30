@@ -10,6 +10,7 @@ import Select from "comps/Select";
 import View from "comps/View";
 import Text from "comps/Text";
 import Menu from "comps/Menu";
+import Background from "comps/Background";
 
 const testCode: Record<string, string> = {
 	"sprite": `
@@ -154,7 +155,7 @@ const Demo: React.FC = () => {
 
 	return (
 		<Page>
-			<View dir="column" stretch>
+			<Background dir="column" bg={1} pat={3}>
 				<View
 					dir="row"
 					align="center"
@@ -304,7 +305,7 @@ const Demo: React.FC = () => {
 						}}
 					/>
 				</View>
-			</View>
+			</Background>
 		</Page>
 	);
 

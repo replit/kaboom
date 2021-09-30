@@ -4,6 +4,7 @@ import Image from "next/image";
 import { keyframes } from '@emotion/react';
 
 import Page from "comps/Page";
+import Background from "comps/Background";
 import View from "comps/View";
 import Text from "comps/Text";
 import Markdown from "comps/Markdown";
@@ -19,14 +20,6 @@ const anims = {
 		}
 		10% {
 			transform: scale(1);
-		}
-	`),
-	scroll: keyframes(`
-		0% {
-			background-position: 0 0;
-		}
-		100% {
-			background-position: 48px 48px;
 		}
 	`),
 	fun: keyframes(`
@@ -120,14 +113,7 @@ const NavLink: React.FC<NavLinkProps> = ({
 
 const Nav: React.FC = ({children}) => (
 	<Page>
-		<View
-			stretch
-			pad={2}
-			css={{
-				background: "url(/public/img/bg.svg) repeat #3D3ACF",
-				animation: `${anims.scroll} 5s infinite linear`,
-			}}
-		>
+		<Background pad={2}>
 			<View stretch dir="row" bg={1} rounded outlined css={{ overflow: "hidden" }}>
 				<View
 					dir="column"
@@ -163,7 +149,7 @@ const Nav: React.FC = ({children}) => (
 					{children}
 				</View>
 			</View>
-		</View>
+		</Background>
 	</Page>
 );
 
