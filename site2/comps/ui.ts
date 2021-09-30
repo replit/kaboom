@@ -59,7 +59,7 @@ export const themes: ThemeBook = {
 		"fg2": "#aaaaaf",
 		"fg3": "#7a7a7f",
 		"fg4": "#4a4a5f",
-		"highlight": "#1090ef",
+		"highlight": "#2090ef",
 		"title-bg": "#132131",
 	},
 };
