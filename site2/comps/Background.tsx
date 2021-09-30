@@ -2,12 +2,10 @@ import View, { ViewProps } from "comps/View";
 import { keyframes } from '@emotion/react';
 
 interface BackgroundProps {
-	pat?: number,
 	bg?: number | string,
 }
 
 const Background: React.FC<BackgroundProps & ViewProps> = ({
-	pat,
 	bg,
 	children,
 	...args
@@ -15,7 +13,7 @@ const Background: React.FC<BackgroundProps & ViewProps> = ({
 	<View
 		stretch
 		css={{
-			background: `url(/public/img/pat${pat ?? 1}.svg) repeat ${bg !== undefined ? (typeof bg === "number" ? `var(--color-bg${bg})` : bg) : "#3d3acf"}`,
+			background: `url(/public/img/pat.svg) repeat ${bg !== undefined ? (typeof bg === "number" ? `var(--color-bg${bg})` : bg) : "var(--color-bg1)"}`,
 			animation: `${keyframes(`
 				0% {
 					background-position: 0 0;

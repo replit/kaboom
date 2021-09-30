@@ -1,4 +1,4 @@
-import View from "comps/View";
+import View, { ViewProps } from "comps/View";
 import Text from "comps/Text";
 
 interface ButtonProps {
@@ -6,7 +6,7 @@ interface ButtonProps {
 	action: () => void,
 }
 
-const Button: React.FC<ButtonProps> = ({
+const Button: React.FC<ButtonProps & ViewProps> = ({
 	text,
 	action,
 	...args

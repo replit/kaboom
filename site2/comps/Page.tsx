@@ -1,57 +1,67 @@
 import * as React from "react";
 import { Global, css } from "@emotion/react"
-import ThemeCtx from "lib/ThemeCtx";
+import Ctx, { Tooltip } from "lib/Ctx";
+import View from "comps/View";
+import Button from "comps/Button";
+import Text from "comps/Text";
 import { Theme, DEF_THEME, themes, cssVars } from "lib/ui";
+import useMousePos from "hooks/useMousePos";
 
 interface PageProps {
 	theme?: Theme,
 }
 
 const Page: React.FC<PageProps> = ({
-	theme,
+	theme: initTheme,
 	children,
 } = {
 	theme: DEF_THEME,
 }) => {
 
-	const [ curTheme, setCurTheme ] = React.useState<Theme>(theme ?? DEF_THEME);
+	const [ theme, setTheme ] = React.useState<Theme>(initTheme ?? DEF_THEME);
+	const [ inspect, setInspect ] = React.useState(false);
+	const [ tooltip, setTooltip ] = React.useState<Tooltip | null>(null);
+	const [ mouseX, mouseY ] = useMousePos();
 
 	React.useEffect(() => {
-		if (theme) {
+		if (initTheme) {
 			return;
 		}
 		if (localStorage["theme"]) {
-			setCurTheme(localStorage["theme"]);
+			setTheme(localStorage["theme"]);
 		}
-	}, [ theme ]);
+	}, [ initTheme ]);
 
 	React.useEffect(() => {
-		if (theme) {
+		if (initTheme) {
 			return;
 		}
-		localStorage["theme"] = curTheme;
-	}, [ curTheme, setCurTheme, theme ]);
+		localStorage["theme"] = theme;
+	}, [ theme, setTheme, initTheme ]);
 
 	const nextTheme = React.useCallback(() => {
-		if (theme) {
+		if (initTheme) {
 			return;
 		}
 		const options = Object.keys(themes) as Array<Theme>;
-		setCurTheme((prev: Theme) => {
+		setTheme((prev: Theme) => {
 			const idx = options.indexOf(prev);
 			const nxt = (idx + 1) % options.length;
 			return options[nxt];
 		});
-	}, [setCurTheme, theme]);
+	}, [setTheme, initTheme]);
 
 	return (
-		<ThemeCtx.Provider value={{
-			theme: curTheme,
-			setTheme: setCurTheme,
-			nextTheme: nextTheme,
+		<Ctx.Provider value={{
+			theme,
+			setTheme,
+			nextTheme,
+			inspect,
+			setInspect,
+			setTooltip,
 		}}>
 			<div
-				className={curTheme}
+				className={theme}
 				css={{
 					background: `var(--color-bg1)`,
 					width: "100%",
@@ -204,7 +214,47 @@ const Page: React.FC<PageProps> = ({
 				/>
 				{children}
 			</div>
-		</ThemeCtx.Provider>
+			{ inspect && <View
+				stretch
+				pad={2}
+				align="end"
+				justify="end"
+				css={{
+					position: "fixed",
+					top: 0,
+					left: 0,
+					background: "rgba(0, 0, 0, 0.3)",
+					pointerEvents: "none",
+					zIndex: 10000,
+				}}
+			>
+				<Button
+					action={() => setInspect(false)}
+					text="Exit inspect mode"
+					css={{
+						pointerEvents: "auto",
+					}}
+				/>
+			</View> }
+			{ tooltip && <View
+				bg={1}
+				pad={1.5}
+				rounded
+				outlined
+				css={{
+					position: "fixed",
+					top: mouseY,
+					left: mouseX,
+					zIndex: 20000,
+					pointerEvents: "none",
+				}}
+			>
+				{ tooltip.name &&
+					<Text noSelect>{tooltip.name}</Text>
+				}
+				<Text color={2} noSelect>{tooltip.desc}</Text>
+			</View> }
+		</Ctx.Provider>
 	);
 
 };

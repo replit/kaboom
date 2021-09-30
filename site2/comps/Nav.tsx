@@ -113,7 +113,7 @@ const NavLink: React.FC<NavLinkProps> = ({
 
 const Nav: React.FC = ({children}) => (
 	<Page>
-		<Background pad={2}>
+		<Background pad={3}>
 			<View stretch dir="row" bg={1} rounded outlined css={{ overflow: "hidden" }}>
 				<View
 					dir="column"

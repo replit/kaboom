@@ -1,15 +1,15 @@
 import * as React from "react";
-import View from "comps/View";
+import View, { ViewProps } from "comps/View";
 import Text from "comps/Text";
 import useClickOutside from "hooks/useClickOutside";
 import useEsc from "hooks/useEsc";
 
-interface CurItemProps {
+interface PromptProps {
 	name: string,
 	expanded: boolean,
 }
 
-const CurItem: React.FC<CurItemProps> = ({
+const Prompt: React.FC<PromptProps> = ({
 	expanded,
 	name,
 }) => (
@@ -53,7 +53,7 @@ interface SelectProps {
 	onChange: (item: string) => void,
 }
 
-const Select: React.FC<SelectProps> = ({
+const Select: React.FC<SelectProps & ViewProps> = ({
 	options,
 	selected,
 	onChange,
@@ -88,7 +88,7 @@ const Select: React.FC<SelectProps> = ({
 			onClick={() => setExpanded(!expanded)}
 			{...args}
 		>
-			<CurItem name={curItem} expanded={expanded} />
+			<Prompt name={curItem} expanded={expanded} />
 			{expanded && <View
 				dir="column"
 				bg={3}
@@ -102,7 +102,7 @@ const Select: React.FC<SelectProps> = ({
 					zIndex: 1000,
 				}}
 			>
-				<CurItem name={curItem} expanded={expanded} />
+				<Prompt name={curItem} expanded={expanded} />
 				<View height={2} stretchX bg={4} />
 				{options.map((opt) => (
 					<View

@@ -55,7 +55,7 @@ import { javascript } from "@codemirror/lang-javascript";
 
 import useUpdateEffect from "hooks/useUpdateEffect";
 import View, { ViewProps } from "comps/View";
-import ThemeCtx from "lib/ThemeCtx";
+import Ctx from "lib/Ctx";
 import { themes, Theme } from "lib/ui";
 
 // @ts-ignore
@@ -279,7 +279,7 @@ const Editor = React.forwardRef<EditorRef, EditorProps & ViewProps>(({
 	const editorDOMRef = React.useRef(null);
 	const cmRef = React.useRef<EditorView | null>(null);
 	const themeConfRef = React.useRef<Compartment | null>(null);
-	const { theme } = React.useContext(ThemeCtx);
+	const { theme } = React.useContext(Ctx);
 
 	React.useImperativeHandle(ref, () => ({
 		getContent() {

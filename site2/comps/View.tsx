@@ -1,4 +1,5 @@
 import * as React from "react";
+import Ctx from "lib/Ctx";
 
 const spaceUnit = 8;
 
@@ -46,6 +47,8 @@ const toJustify = (j: Justify) => {
 }
 
 export interface ViewProps {
+	name?: string,
+	desc?: string,
 	dir?: StackDir,
 	gap?: number,
 	reverse?: boolean,
@@ -69,6 +72,8 @@ export interface ViewProps {
 }
 
 const View = React.forwardRef<HTMLDivElement, React.PropsWithChildren<ViewProps>>(({
+	name,
+	desc,
 	dir,
 	gap,
 	reverse,
@@ -96,48 +101,66 @@ const View = React.forwardRef<HTMLDivElement, React.PropsWithChildren<ViewProps>
 	const marginSide = dir === "row" ? "marginRight" : "marginBottom";
 	const px = (padX ?? pad ?? 0) * 8;
 	const py = (padY ?? pad ?? 0) * 8;
+	const { inspect, setTooltip } = React.useContext(Ctx);
 
-	return (
-		<div
-			ref={ref}
-			onClick={onClick}
-			onKeyDown={(e) => {
-				if (focusable) {
-					if (e.key === "Enter") {
-						e.currentTarget.click();
-					}
+	return <div
+		ref={ref}
+		onClick={onClick}
+		onMouseEnter={() => {
+			if (!inspect || !desc) return;
+			console.log("enter");
+			setTooltip({
+				name,
+				desc,
+			});
+		}}
+		onMouseLeave={() => {
+			if (!inspect || !desc) return;
+			console.log("leave");
+			setTooltip(null);
+		}}
+		onKeyDown={(e) => {
+			if (focusable) {
+				if (e.key === "Enter") {
+					e.currentTarget.click();
 				}
-				onKeyDown && onKeyDown(e);
-			}}
-			tabIndex={focusable ? 0 : undefined}
-			css={{
-				display: "flex",
-//  				flexDirection: (dir ?? "column") + (reverse ? "-reverse" : ""),
-				flexDirection: dir ?? "column",
-				alignItems: toAlign(align ?? "start"),
-				justifyContent: toJustify(justify ?? "start"),
-				flexWrap: wrap ? "wrap" : "nowrap",
-				width: (stretchX || stretch) ? "100%" : width,
-				height: (stretchY || stretch) ? "100%" : height,
-				background: typeof bg === "number" ? `var(--color-bg${bg})` : bg,
-				paddingLeft: `${px}px`,
-				paddingRight: `${px}px`,
-				paddingTop: `${py}px`,
-				paddingBottom: `${py}px`,
-				position: "relative",
-				borderRadius: rounded ? 8 : 0,
-				outline: outlined ? "solid 2px var(--color-outline)" : "none",
-				"& > *": { [marginSide]: (gap ?? 0) * spaceUnit, },
-				"& > *:last-child": { [marginSide]: 0, },
-				":focus": {
+			}
+			onKeyDown && onKeyDown(e);
+		}}
+		tabIndex={focusable ? 0 : undefined}
+		css={{
+			display: "flex",
+//  			flexDirection: (dir ?? "column") + (reverse ? "-reverse" : ""),
+			flexDirection: dir ?? "column",
+			alignItems: toAlign(align ?? "start"),
+			justifyContent: toJustify(justify ?? "start"),
+			flexWrap: wrap ? "wrap" : "nowrap",
+			width: (stretchX || stretch) ? "100%" : width,
+			height: (stretchY || stretch) ? "100%" : height,
+			background: typeof bg === "number" ? `var(--color-bg${bg})` : bg,
+			paddingLeft: `${px}px`,
+			paddingRight: `${px}px`,
+			paddingTop: `${py}px`,
+			paddingBottom: `${py}px`,
+			position: "relative",
+			borderRadius: rounded ? 8 : 0,
+			outline: outlined ? "solid 2px var(--color-outline)" : "none",
+			"& > *": { [marginSide]: (gap ?? 0) * spaceUnit, },
+			"& > *:last-child": { [marginSide]: 0, },
+			":focus": {
+				outline: "solid 2px var(--color-highlight)",
+			},
+			...((inspect && desc) ? {
+				":hover": {
+					cursor: "help",
 					outline: "solid 2px var(--color-highlight)",
 				},
-			}}
-			{...props}
-		>
-			{children}
-		</div>
-	);
+			} : {}),
+		}}
+		{...props}
+	>
+		{children}
+	</div>
 
 });
 

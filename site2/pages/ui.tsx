@@ -13,6 +13,7 @@ import View from "comps/View";
 import Menu from "comps/Menu";
 import Input from "comps/Input";
 import Markdown from "comps/Markdown";
+import Inspect from "comps/Inspect";
 
 const UI: React.FC = () => (
 	<Page>
@@ -57,7 +58,11 @@ const UI: React.FC = () => (
 			</View>
 			<View dir="column" gap={1}>
 				<Text>here{"'"}s a button</Text>
-				<Button text="Run" action={() => {}} />
+				<Button text="Run" action={() => {}} name="Run Button" desc="run current code" />
+			</View>
+			<View dir="column" gap={1}>
+				<Text>here{"'"}s an inspect button</Text>
+				<Inspect />
 			</View>
 			<View dir="column" gap={1}>
 				<Text>here{"'"}s a game view</Text>
