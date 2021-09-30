@@ -7,7 +7,7 @@ export interface Doc {
 
 const useDoc = (): Doc => {
 
-	const { data } = useFetch("/types.json", (res) => res.json());
+	const { data } = useFetch("/public/types.json", (res) => res.json());
 
 	const getDef = React.useCallback((mem) => {
 		if (!data) return null;

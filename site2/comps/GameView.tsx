@@ -25,7 +25,7 @@ const wrapGame = (code: string) => `
 	</style>
 </head>
 <body>
-	<script src="/dist/kaboom.js"></script>
+	<script src="/public/dist/kaboom.js"></script>
 	<script>
 ${code}
 	</script>
@@ -51,7 +51,7 @@ const GameView = React.forwardRef<GameViewRef, GameViewProps & ViewProps>(({
 	}));
 
 	return (
-		<View {...args}>
+		<View outlined rounded {...args}>
 			<iframe
 				ref={iframeRef}
 				tabIndex={0}
@@ -61,9 +61,6 @@ const GameView = React.forwardRef<GameViewRef, GameViewProps & ViewProps>(({
 					borderRadius: "8px",
 					width: "100%",
 					height: "100%",
-					":focus-within": {
-						border: "solid 2px var(--color-highlight)"
-					},
 				}}
 				srcDoc={wrapGame(code ?? "")}
 			/>

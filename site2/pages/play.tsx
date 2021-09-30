@@ -32,7 +32,7 @@ const SPEED = 480;
 kaboom();
 
 // load assets
-loadSprite("bean", "assets/sprites/bean.png");
+loadSprite("bean", "public/assets/sprites/bean.png");
 
 scene("game", () => {
 
@@ -233,6 +233,9 @@ const Demo: React.FC = () => {
 							css={{
 								flex: "1",
 							}}
+							onSelect={(sel) => {
+								console.log(sel);
+							}}
 							keys={[
 								{
 									key: "Mod-s",
@@ -251,7 +254,8 @@ const Demo: React.FC = () => {
 									run: () => {
 										if (!editorRef.current) return false;
 										const editor = editorRef.current;
-										setExplaining(editor.getSelection());
+										const sel = editor.getSelection() || editor.getWord();
+										setExplaining(sel);
 										return false;
 									},
 									preventDefault: true,

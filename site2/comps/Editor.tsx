@@ -256,20 +256,23 @@ Object.keys(themes).forEach((name) => {
 export interface EditorRef {
 	getContent: () => string | null,
 	getSelection: () => string | null,
+	getWord: () => string | null,
 }
 
 interface EditorProps {
 	content?: string,
 	placeholder?: string,
 	onChange?: (code: string) => void,
+	onSelect?: (code: string) => void,
 	keys?: KeyBinding[],
 };
 
 const Editor = React.forwardRef<EditorRef, EditorProps & ViewProps>(({
 	content,
 	placeholder,
-	onChange,
 	keys,
+	onChange,
+	onSelect,
 	...args
 }, ref) => {
 
@@ -291,6 +294,15 @@ const Editor = React.forwardRef<EditorRef, EditorProps & ViewProps>(({
 				cm.state.selection.main.from,
 				cm.state.selection.main.to
 			)
+		},
+		getWord() {
+			if (!cmRef.current) return null;
+			const cm = cmRef.current;
+			const range = cm.state.wordAt(cm.state.selection.main.head);
+			if (range) {
+				return cm.state.sliceDoc(range.from, range.to);
+			}
+			return null;
 		},
 	}));
 
@@ -339,8 +351,18 @@ const Editor = React.forwardRef<EditorRef, EditorProps & ViewProps>(({
 				drawSelection(),
 				defaultHighlightStyle,
 				EditorView.updateListener.of((update) => {
+					const state = update.state;
 					if (update.docChanged) {
-						onChange && onChange(update.state.doc.toString());
+						onChange && onChange(state.doc.toString());
+					}
+					if (update.selectionSet) {
+						const sel = state.sliceDoc(
+							state.selection.main.from,
+							state.selection.main.to
+						);
+						if (sel) {
+							onSelect && onSelect(sel);
+						}
 					}
 				}),
 				keymap.of([

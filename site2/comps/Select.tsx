@@ -107,7 +107,7 @@ const Select: React.FC<SelectProps> = ({
 				}}
 			>
 				<CurItem name={curItem} expanded={expanded} />
-				<View height={2} stretchX bg={4} />
+				<View height={2} stretchX bg={2} />
 				{options.map((opt) => (
 					<View
 						stretchX
