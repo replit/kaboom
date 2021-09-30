@@ -6,7 +6,7 @@ import Button from "comps/Button";
 import Text from "comps/Text";
 import { Theme, DEF_THEME, themes, cssVars } from "lib/ui";
 import useMousePos from "hooks/useMousePos";
-import useEsc from "hooks/useEsc";
+import useKey from "hooks/useKey";
 import IDList from "lib/idlist";
 
 interface PageProps {
@@ -23,14 +23,15 @@ const Page: React.FC<PageProps> = ({
 	const [ theme, setTheme ] = React.useState<Theme>(initTheme ?? DEF_THEME);
 	const [ inspect, setInspect ] = React.useState(false);
 	const [ tooltipStack, setTooltipStack ] = React.useState<IDList<Tooltip>>(new IDList());
-//  	const [ mouseX, mouseY ] = useMousePos();
+	const [ mouseX, mouseY ] = useMousePos();
 
 	const curTooltip = React.useMemo(
 		() => tooltipStack.size === 0 ? null : Array.from(tooltipStack)[tooltipStack.size - 1][1],
 		[ tooltipStack ]
 	);
 
-	useEsc(() => setInspect(false), [ setInspect ]);
+	useKey("F1", () => setInspect(!inspect), [ setInspect, inspect ]);
+	useKey("Escape", () => setInspect(false), [ setInspect ]);
 
 	React.useEffect(() => {
 		if (initTheme) {
@@ -61,19 +62,23 @@ const Page: React.FC<PageProps> = ({
 	}, [setTheme, initTheme]);
 
 	const pushTooltip = React.useCallback((t: Tooltip) => {
-		const newStack = new IDList<Tooltip>(tooltipStack);
-		const id = newStack.push(t);
-		setTooltipStack(newStack);
-		return id;
-	}, [ setTooltipStack, tooltipStack, ]);
+		return new Promise<number>((resolve, reject) => {
+			setTooltipStack((prevStack) => {
+				const newStack = new IDList<Tooltip>(prevStack);
+				const id = newStack.push(t);
+				resolve(id);
+				return newStack;
+			});
+		});
+	}, [ setTooltipStack, ]);
 
 	const popTooltip = React.useCallback((id: number) => {
-		const newStack = new IDList<Tooltip>(tooltipStack);
-		newStack.delete(id);
-		setTooltipStack(newStack);
-	}, [ setTooltipStack, tooltipStack, ]);
-
-	console.log(tooltipStack);
+		setTooltipStack((prevStack) => {
+			const newStack = new IDList<Tooltip>(prevStack);
+			newStack.delete(id);
+			return newStack;
+		});
+	}, [ setTooltipStack, ]);
 
 	return (
 		<Ctx.Provider value={{
@@ -261,17 +266,17 @@ const Page: React.FC<PageProps> = ({
 					}}
 				/>
 			</View> }
-			{ curTooltip && <View
+			{ inspect && curTooltip && <View
 				bg={1}
 				pad={1.5}
 				rounded
 				outlined
 				css={{
 					position: "absolute",
-//  					top: mouseY,
-//  					left: mouseX,
-					bottom: 16,
-					right: 16,
+//  					bottom: 16,
+//  					right: 16,
+					top: mouseY,
+					left: mouseX,
 					zIndex: 20000,
 					maxWidth: "240px",
 					pointerEvents: "none",

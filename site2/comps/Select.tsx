@@ -2,7 +2,7 @@ import * as React from "react";
 import View, { ViewProps } from "comps/View";
 import Text from "comps/Text";
 import useClickOutside from "hooks/useClickOutside";
-import useEsc from "hooks/useEsc";
+import useKey from "hooks/useKey";
 
 interface PromptProps {
 	name: string,
@@ -65,7 +65,7 @@ const Select: React.FC<SelectProps & ViewProps> = ({
 	const [ expanded, setExpanded ] = React.useState(false);
 
 	useClickOutside(domRef, () => setExpanded(false), [ setExpanded ]);
-	useEsc(() => setExpanded(false), [ setExpanded ]);
+	useKey("Escape", () => setExpanded(false), [ setExpanded ]);
 
 	return (
 		<View

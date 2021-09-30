@@ -8,7 +8,7 @@ export default function useTooltip(): [
 	const { pushTooltip, popTooltip } = React.useContext(Ctx);
 	const [ id, setID ] = React.useState<number | null>(null);
 	const push = React.useCallback((t: Tooltip) => {
-		setID(pushTooltip(t));
+		pushTooltip(t).then(setID);
 	}, [ setID, pushTooltip ]);
 	const pop = React.useCallback(() => {
 		if (id != null) {

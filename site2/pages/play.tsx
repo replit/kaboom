@@ -1,7 +1,7 @@
 import * as React from "react";
 import Link from "next/link";
 import useDoc from "hooks/useDoc";
-import useEsc from "hooks/useEsc";
+import useKey from "hooks/useKey";
 import useClickOutside from "hooks/useClickOutside";
 import Editor, { EditorRef } from "comps/Editor";
 import GameView, { GameViewRef } from "comps/GameView";
@@ -158,7 +158,7 @@ const Demo: React.FC = () => {
 	const drawerRef = React.useRef(null);
 	const doc = useDoc();
 
-	useEsc(() => setExpanded(false), [ setExpanded ]);
+	useKey("Escape", () => setExpanded(false), [ setExpanded ]);
 	useClickOutside(drawerRef, () => setExpanded(false), [ setExpanded ]);
 
 	return <Page>
