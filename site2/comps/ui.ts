@@ -9,7 +9,7 @@ export type Color =
 	| "fg3"
 	| "fg4"
 	| "highlight"
-	| "title-bg"
+	| "accent"
 	;
 
 export type FontSize =
@@ -31,6 +31,7 @@ export const fontSizes: Record<FontSize, CSSVal> = {
 
 export type Theme =
 	| "dark"
+	| "black"
 	| "yellow"
 	| "light"
 	;
@@ -49,7 +50,20 @@ export const themes: ThemeBook = {
 		"fg3": "rgb(125, 135, 145)",
 		"fg4": "rgb(80, 90, 100)",
 		"highlight": "rgb(30, 140, 230)",
-		"title-bg": "rgb(19, 33, 49)",
+		"accent": "rgb(19, 33, 49)",
+	},
+	"black": {
+		"bg1": "rgb(0, 0, 0)",
+		"bg2": "rgb(15, 15, 15)",
+		"bg3": "rgb(30, 30, 30)",
+		"bg4": "rgb(45, 45, 45)",
+		"outline": "rgb(55, 55, 55)",
+		"fg1": "rgb(215, 215, 215)",
+		"fg2": "rgb(175, 175, 175)",
+		"fg3": "rgb(135, 135, 135)",
+		"fg4": "rgb(95, 95, 95)",
+		"highlight": "rgb(30, 140, 230)",
+		"accent": "rgb(19, 33, 49)",
 	},
 	"yellow": {
 		"bg1": "rgb(255, 235, 170)",
@@ -62,7 +76,7 @@ export const themes: ThemeBook = {
 		"fg3": "rgb(140, 140, 120)",
 		"fg4": "rgb(180, 180, 140)",
 		"highlight": "rgb(30, 140, 230)",
-		"title-bg": "rgb(19, 33, 49)",
+		"accent": "rgb(19, 33, 49)",
 	},
 	"light": {
 		"bg1": "rgb(255, 255, 255)",
@@ -75,7 +89,7 @@ export const themes: ThemeBook = {
 		"fg3": "rgb(153, 153, 153)",
 		"fg4": "rgb(190, 190, 190)",
 		"highlight": "rgb(0, 128, 255)",
-		"title-bg": "rgb(255, 248, 188)",
+		"accent": "rgb(255, 248, 188)",
 	},
 };
 
