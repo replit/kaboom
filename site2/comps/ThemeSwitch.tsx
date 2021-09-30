@@ -11,10 +11,12 @@ const ThemeSwitch: React.FC = () => {
 				<View
 					key={t}
 					onClick={() => setTheme(t as Theme)}
+					onKeyDown={(e) => e.key === "Enter" && setTheme(t as Theme)}
 					bg={themes[t as Theme]["bg2"]}
 					width={t === theme ? 32 : 28}
 					height={t === theme ? 32 : 28}
 					outlined
+					focusable
 					css={{
 						borderColor: t === theme ? "var(--color-highlight)" : "var(--color-outline)",
 						borderRadius: "50%",

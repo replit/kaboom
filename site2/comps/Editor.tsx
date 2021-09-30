@@ -1,16 +1,56 @@
 import * as React from "react";
-import { EditorState, Compartment, Extension } from "@codemirror/state";
-import { EditorView, keymap, highlightSpecialChars, highlightActiveLine, drawSelection, placeholder, } from "@codemirror/view";
-import { defaultHighlightStyle, HighlightStyle, tags as t } from "@codemirror/highlight";
-import { defaultKeymap, indentWithTab } from "@codemirror/commands";
-import { indentUnit, indentOnInput } from "@codemirror/language";
-import { lineNumbers, highlightActiveLineGutter } from "@codemirror/gutter";
-import { history, historyKeymap } from "@codemirror/history";
+
+import {
+	EditorState,
+	Compartment,
+	Extension,
+} from "@codemirror/state";
+
+import {
+	EditorView,
+	keymap,
+	highlightSpecialChars,
+	highlightActiveLine,
+	drawSelection,
+	placeholder as cmPlaceholder,
+	KeyBinding
+} from "@codemirror/view";
+
+import {
+	defaultHighlightStyle,
+	HighlightStyle,
+	tags as t
+} from "@codemirror/highlight";
+
+import {
+	defaultKeymap,
+	indentWithTab,
+} from "@codemirror/commands";
+
+import {
+	indentUnit,
+	indentOnInput,
+} from "@codemirror/language";
+
+import {
+	lineNumbers,
+	highlightActiveLineGutter,
+} from "@codemirror/gutter";
+
+import {
+	history,
+	historyKeymap,
+} from "@codemirror/history";
+
+import {
+	searchKeymap,
+	highlightSelectionMatches,
+} from "@codemirror/search";
+
 import { bracketMatching } from "@codemirror/matchbrackets";
 import { closeBrackets } from "@codemirror/closebrackets";
 import { commentKeymap } from "@codemirror/comment";
 import { foldGutter } from "@codemirror/fold";
-import { searchKeymap, highlightSelectionMatches } from "@codemirror/search";
 import { javascript } from "@codemirror/lang-javascript";
 
 import useUpdateEffect from "hooks/useUpdateEffect";
@@ -220,14 +260,16 @@ export interface EditorRef {
 
 interface EditorProps {
 	content?: string,
+	placeholder?: string,
 	onChange?: (code: string) => void,
-	keymaps?: any[],
+	keys?: KeyBinding[],
 };
 
 const Editor = React.forwardRef<EditorRef, EditorProps & ViewProps>(({
 	content,
+	placeholder,
 	onChange,
-	keymaps,
+	keys,
 	...args
 }, ref) => {
 
@@ -288,7 +330,7 @@ const Editor = React.forwardRef<EditorRef, EditorProps & ViewProps>(({
 				highlightActiveLine(),
 				highlightActiveLineGutter(),
 				highlightSelectionMatches(),
-				placeholder("Come on let's make some games!"),
+				cmPlaceholder(placeholder ?? ""),
 				history(),
 				foldGutter(),
 				bracketMatching(),
@@ -307,7 +349,7 @@ const Editor = React.forwardRef<EditorRef, EditorProps & ViewProps>(({
 					...commentKeymap,
 					...searchKeymap,
 					indentWithTab,
-					...(keymaps ?? []),
+					...(keys ?? []),
 				]),
 			].filter((ext) => ext),
 		}));
@@ -317,7 +359,6 @@ const Editor = React.forwardRef<EditorRef, EditorProps & ViewProps>(({
 	useUpdateEffect(() => {
 
 		if (!cmRef.current) return;
-
 		const cm = cmRef.current;
 
 		cm.dispatch({
@@ -333,9 +374,8 @@ const Editor = React.forwardRef<EditorRef, EditorProps & ViewProps>(({
 	useUpdateEffect(() => {
 
 		if (!cmRef.current) return;
-		if (!themeConfRef.current) return;
-
 		const cm = cmRef.current;
+		if (!themeConfRef.current) return;
 		const themeConf = themeConfRef.current;
 
 		cm.dispatch({
@@ -347,7 +387,6 @@ const Editor = React.forwardRef<EditorRef, EditorProps & ViewProps>(({
 	return (
 		<View
 			ref={editorDOMRef}
-			focusable
 			bg={2}
 			outlined
 			rounded
@@ -355,8 +394,8 @@ const Editor = React.forwardRef<EditorRef, EditorProps & ViewProps>(({
 				fontFamily: "IBM Plex Mono",
 				overflow: "scroll",
 				fontSize: "var(--text-big)",
-				":focus": {
-					outline: "solid 2px var(--color-highlight)"
+				":focus-within": {
+					border: "solid 2px var(--color-highlight)"
 				},
 			}}
 			{...args}

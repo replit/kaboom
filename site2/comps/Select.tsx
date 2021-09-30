@@ -24,7 +24,7 @@ const CurItem: React.FC<CurItemProps> = ({
 		<View
 			align="center"
 			justify="center"
-			width={24}
+			width={32}
 			height={35}
 			bg={4}
 			css={{
@@ -33,13 +33,12 @@ const CurItem: React.FC<CurItemProps> = ({
 			}}
 		>
 			<Text
-				bold
 				color={3}
 				css={{
 					position: "relative",
 					left: expanded ? -1 : 2,
 					top: expanded ? 0 : 2,
-					transform: `rotate(${expanded ? -90 : 90}deg)`,
+					transform: `rotate(${expanded ? -90 : 90}deg) scaleY(1.2)`,
 				}}
 			>
 				{">"}
@@ -116,6 +115,7 @@ const Select: React.FC<SelectProps> = ({
 						padX={1}
 						padY={0.5}
 						bg={curItem === opt ? 4 : "none"}
+						focusable
 						css={{
 							":hover": {
 								background: "var(--color-highlight)",

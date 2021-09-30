@@ -229,16 +229,17 @@ const Demo: React.FC = () => {
 							ref={editorRef}
 							content={code}
 							stretchX
+							placeholder="Come on let's make some games!"
 							css={{
 								flex: "1",
 							}}
-							keymaps={[
+							keys={[
 								{
 									key: "Mod-s",
 									run: () => {
-										if (!gameviewRef.current) return;
+										if (!gameviewRef.current) return false;
 										const gameview = gameviewRef.current;
-										if (!editorRef.current) return;
+										if (!editorRef.current) return false;
 										const editor = editorRef.current;
 										gameview.run(editor.getContent() ?? undefined);
 										return false;
@@ -248,10 +249,9 @@ const Demo: React.FC = () => {
 								{
 									key: "Mod-e",
 									run: () => {
-										if (!editorRef.current) return;
+										if (!editorRef.current) return false;
 										const editor = editorRef.current;
 										setExplaining(editor.getSelection());
-										console.log(doc.getDef(editor.getSelection()));
 										return false;
 									},
 									preventDefault: true,
@@ -280,7 +280,7 @@ const Demo: React.FC = () => {
 									right: 0,
 								}}
 							>
-								<Text bold color={3}>x</Text>
+								<Text color={3}>x</Text>
 							</View>
 						</View>}
 					</View>

@@ -79,6 +79,7 @@ const Page: React.FC<PageProps> = ({
 							padding: 0;
 							box-sizing: border-box;
 							font-family: inherit;
+							outline: none;
 						}
 						html {
 							width: 100%;
@@ -92,6 +93,51 @@ const Page: React.FC<PageProps> = ({
 						#__next {
 							width: 100%;
 							height: 100%;
+						}
+						h1 {
+							font-size: 48px;
+						}
+						h2 {
+							font-size: 36px;
+						}
+						h3,h4,h5,h6 {
+							font-size: 24px;
+						}
+						h1,h2,h3,h4,h5,h6,p {
+							color: var(--color-fg1);
+						}
+						p {
+							font-size: var(--text-normal);
+							line-height: 1.6;
+						}
+						ul,ol {
+							line-height: 2;
+							color: var(--color-fg1);
+						}
+						a {
+							color: var(--color-highlight);
+						}
+						a:visited {
+							color: var(--color-highlight);
+						}
+						pre {
+							background: var(--color-bg2);
+							padding: 16px;
+							border-radius: 8px;
+							border: solid 2px var(--color-outline);
+							flex: 1,
+							> code {
+								background: none;
+								border: none;
+								padding: none;
+								font-size: inherit;
+							},
+						}
+						code {
+							font-family: IBM Plex Mono;
+							padding: 2px 6px;
+							border-radius: 8px;
+							background: var(--color-bg2);
 						}
 						.cm-editor {
 							width: 100% !important;

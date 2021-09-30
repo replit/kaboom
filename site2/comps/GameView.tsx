@@ -61,8 +61,8 @@ const GameView = React.forwardRef<GameViewRef, GameViewProps & ViewProps>(({
 					borderRadius: "8px",
 					width: "100%",
 					height: "100%",
-					":focus": {
-						outline: "solid 2px var(--color-highlight)"
+					":focus-within": {
+						border: "solid 2px var(--color-highlight)"
 					},
 				}}
 				srcDoc={wrapGame(code ?? "")}

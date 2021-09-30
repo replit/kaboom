@@ -27,22 +27,26 @@ const Menu: React.FC<MenuProps> = ({
 	return (
 		<View
 			ref={domRef}
-			rounded
 			width={32}
 			height={32}
+			rounded
+			focusable
+			outlined
 			css={{
+				borderColor: "transparent",
 				cursor: "pointer",
 				":hover": {
 					background: "var(--color-bg3)",
 				},
 			}}
 			onClick={() => setExpanded(!expanded)}
+			onKeyDown={(e) => e.key === "Enter" && setExpanded(!expanded)}
 		>
 			<Text
 				css={{
 					position: "absolute",
-					top: "2px",
-					left: "14px",
+					top: "0px",
+					left: "12px",
 					transform: "rotate(90deg)",
 				}}
 			>
@@ -65,6 +69,7 @@ const Menu: React.FC<MenuProps> = ({
 						stretchX
 						padX={1}
 						padY={0.5}
+						focusable
 						css={{
 							":hover": {
 								background: "var(--color-highlight)",
