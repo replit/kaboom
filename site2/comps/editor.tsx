@@ -14,9 +14,8 @@ import { searchKeymap, highlightSelectionMatches } from "@codemirror/search";
 import { javascript } from "@codemirror/lang-javascript";
 
 import useUpdateEffect from "hooks/useUpdateEffect";
-import View, { ViewProps } from "comps/view";
+import View, { ViewProps } from "comps/View";
 import ThemeCtx from "comps/theme";
-import { GameViewRef } from "comps/gameview";
 import { themes, Theme } from "comps/ui";
 
 // @ts-ignore

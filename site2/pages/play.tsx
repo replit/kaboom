@@ -1,14 +1,14 @@
 import * as React from "react";
 import Link from "next/link";
-import Editor, { EditorRef } from "comps/editor";
-import GameView, { GameViewRef } from "comps/gameview";
 import useDoc from "hooks/useDoc";
-import Page from "comps/page";
-import Button from "comps/button";
-import ThemeSwitch from "comps/themeswitch";
-import Select from "comps/select";
-import View from "comps/view";
-import Text from "comps/text";
+import Editor, { EditorRef } from "comps/Editor";
+import GameView, { GameViewRef } from "comps/GameView";
+import Page from "comps/Page";
+import Button from "comps/Button";
+import ThemeSwitch from "comps/ThemeSwitch";
+import Select from "comps/Select";
+import View from "comps/View";
+import Text from "comps/Text";
 
 const testCode: Record<string, string> = {
 	"sprite": `

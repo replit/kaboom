@@ -1,16 +1,16 @@
 import * as React from "react";
 import Link from "next/link";
-import Editor, { EditorRef } from "comps/editor";
-import GameView, { GameViewRef } from "comps/gameview";
 import useFetch from "hooks/useFetch";
-import Page from "comps/page";
-import Button from "comps/button";
-import Toggle from "comps/toggle";
-import ThemeSwitch from "comps/themeswitch";
-import Text from "comps/text";
-import Select from "comps/select";
-import View from "comps/view";
-import Menu from "comps/menu";
+import Editor, { EditorRef } from "comps/Editor";
+import GameView, { GameViewRef } from "comps/GameView";
+import Page from "comps/Page";
+import Button from "comps/Button";
+import Toggle from "comps/Toggle";
+import ThemeSwitch from "comps/ThemeSwitch";
+import Text from "comps/Text";
+import Select from "comps/Select";
+import View from "comps/View";
+import Menu from "comps/Menu";
 
 const UI: React.FC = () => (
 	<Page>

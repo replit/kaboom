@@ -1,5 +1,5 @@
 import * as React from "react";
-import View from "comps/view";
+import View from "comps/View";
 
 interface ToggleProps {
 	offIcon?: string,

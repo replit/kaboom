@@ -1,6 +1,6 @@
 import * as React from "react";
-import View from "comps/view";
-import Text from "comps/text";
+import View from "comps/View";
+import Text from "comps/Text";
 import useClickOutside from "hooks/useClickOutside";
 import useEsc from "hooks/useEsc";
 

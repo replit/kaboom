@@ -1,5 +1,5 @@
-import View from "comps/view";
-import Text from "comps/text";
+import View from "comps/View";
+import Text from "comps/Text";
 
 interface ButtonProps {
 	text: string,

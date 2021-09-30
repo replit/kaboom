@@ -1,6 +1,6 @@
 import * as React from "react";
 import ThemeCtx from "comps/theme";
-import View from "comps/view";
+import View from "comps/View";
 import { themes, Theme } from "comps/ui";
 
 const ThemeSwitch: React.FC = () => {

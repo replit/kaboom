@@ -1,5 +1,5 @@
 import hljs from "highlight.js";
-import View, { ViewProps } from "comps/view";
+import View, { ViewProps } from "comps/View";
 
 interface CodeProps {
 	code: string,

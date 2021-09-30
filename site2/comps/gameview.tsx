@@ -1,5 +1,5 @@
 import * as React from "react";
-import View, { ViewProps } from "comps/view";
+import View, { ViewProps } from "comps/View";
 
 export interface GameViewRef {
 	run: (code?: string) => void,

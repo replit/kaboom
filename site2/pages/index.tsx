@@ -3,12 +3,12 @@ import NextLink from "next/link";
 import Image from "next/image";
 import { keyframes } from '@emotion/react';
 
-import Page from "comps/page";
-import View from "comps/view";
-import Text from "comps/text";
-import Spacer from "comps/spacer";
-import Code from "comps/code";
-import ThemeSwitch from "comps/themeswitch";
+import Page from "comps/Page";
+import View from "comps/View";
+import Text from "comps/Text";
+import Spacer from "comps/Spacer";
+import Code from "comps/Code";
+import ThemeSwitch from "comps/ThemeSwitch";
 
 const anims = {
 	kaboom: keyframes(`
