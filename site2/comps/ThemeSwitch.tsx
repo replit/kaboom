@@ -1,7 +1,7 @@
 import * as React from "react";
-import ThemeCtx from "comps/theme";
 import View from "comps/View";
-import { themes, Theme } from "comps/ui";
+import ThemeCtx from "lib/ThemeCtx";
+import { themes, Theme } from "lib/ui";
 
 const ThemeSwitch: React.FC = () => {
 	const { theme, setTheme } = React.useContext(ThemeCtx);
@@ -11,7 +11,6 @@ const ThemeSwitch: React.FC = () => {
 				<View
 					key={t}
 					onClick={() => setTheme(t as Theme)}
-					onKeyDown={(e) => e.key === "Enter" && setTheme(t as Theme)}
 					bg={themes[t as Theme]["bg2"]}
 					width={t === theme ? 32 : 28}
 					height={t === theme ? 32 : 28}

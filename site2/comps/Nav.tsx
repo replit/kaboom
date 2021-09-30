@@ -6,8 +6,6 @@ import { keyframes } from '@emotion/react';
 import Page from "comps/Page";
 import View from "comps/View";
 import Text from "comps/Text";
-import Spacer from "comps/Spacer";
-import Code from "comps/Code";
 import Markdown from "comps/Markdown";
 import ThemeSwitch from "comps/ThemeSwitch";
 
@@ -88,30 +86,35 @@ const Logo: React.FC = () => (
 	</Link>
 );
 
-interface LinkProps {
+interface NavLinkProps {
 	text: string,
 	link: string,
 }
 
-const NavLink: React.FC<LinkProps> = ({
+const NavLink: React.FC<NavLinkProps> = ({
 	text,
 	link,
 }) => (
 	<Link href={link}>
-		<Text
-			color={2}
+		<View
+			focusable
+			padX={1}
+			padY={0.5}
+			rounded
 			css={{
 				cursor: "pointer",
-				padding: "4px 8px",
-				borderRadius: 8,
 				position: "relative",
 				left: "-4px",
 				":hover": {
 					background: "var(--color-highlight)",
-					color: "white",
+					"> *": {
+						color: "white !important",
+					}
 				},
 			}}
-		>{text}</Text>
+		>
+			<Text color={2} noSelect>{text}</Text>
+		</View>
 	</Link>
 );
 

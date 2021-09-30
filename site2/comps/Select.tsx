@@ -86,7 +86,6 @@ const Select: React.FC<SelectProps> = ({
 				},
 			}}
 			onClick={() => setExpanded(!expanded)}
-			onKeyDown={(e) => e.key === "Enter" && setExpanded(!expanded)}
 			{...args}
 		>
 			<CurItem name={curItem} expanded={expanded} />

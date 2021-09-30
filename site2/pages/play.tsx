@@ -9,6 +9,7 @@ import ThemeSwitch from "comps/ThemeSwitch";
 import Select from "comps/Select";
 import View from "comps/View";
 import Text from "comps/Text";
+import Menu from "comps/Menu";
 
 const testCode: Record<string, string> = {
 	"sprite": `
@@ -180,7 +181,7 @@ const Demo: React.FC = () => {
 						/>
 						<Button
 							text="Run"
-							onClick={() => {
+							action={() => {
 								if (!editorRef.current) return;
 								if (!gameviewRef.current) return;
 								const content = editorRef.current.getContent();
@@ -192,7 +193,7 @@ const Demo: React.FC = () => {
 						/>
 						<Button
 							text="Explain"
-							onClick={() => {
+							action={() => {
 								if (!editorRef.current) return;
 								const sel = editorRef.current.getSelection();
 								if (sel) {
@@ -203,6 +204,12 @@ const Demo: React.FC = () => {
 					</View>
 					<View dir="row" gap={2} align="center">
 						<ThemeSwitch />
+						<Menu left items={[
+							{
+								name: "Open in Replit",
+								action: () => {},
+							},
+						]} />
 					</View>
 				</View>
 				<View

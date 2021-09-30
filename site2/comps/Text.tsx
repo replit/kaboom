@@ -1,5 +1,5 @@
 import * as React from "react";
-import { FontSize } from "comps/ui";
+import { FontSize } from "lib/ui";
 
 interface TextProps {
 	color?: number,
@@ -7,7 +7,6 @@ interface TextProps {
 	bold?: boolean,
 	italic?: boolean,
 	noSelect?: boolean,
-	onClick?: (e: MouseEvent) => void,
 }
 
 const Text = React.forwardRef<HTMLDivElement, React.PropsWithChildren<TextProps>>(({
@@ -15,20 +14,18 @@ const Text = React.forwardRef<HTMLDivElement, React.PropsWithChildren<TextProps>
 	size,
 	bold,
 	italic,
-	onClick,
 	children,
 	noSelect,
 	...props
 }, ref) => (
 	<div
 		ref={ref}
-		onClick={onClick}
 		css={{
 			fontSize: `var(--text-${size ?? "normal"})`,
 			color: `var(--color-fg${color ?? "1"})`,
 			fontWeight: bold ? "bold" : "normal",
 			fontStyle: italic ? "italic" : "normal",
-			userSelect: noSelect ? "none" : "normal",
+			userSelect: noSelect ? "none" : "auto",
 		}}
 		{...props}
 	>

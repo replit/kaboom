@@ -54,12 +54,6 @@ const Toggle: React.FC<ToggleProps> = ({
 				onChange(!isOn);
 				setIsOn(!isOn);
 			}}
-			onKeyDown={(e) => {
-				if (e.key === "Enter") {
-					onChange(!isOn);
-					setIsOn(!isOn);
-				}
-			}}
 			{...args}
 		>
 			<View

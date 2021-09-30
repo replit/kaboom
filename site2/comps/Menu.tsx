@@ -12,10 +12,12 @@ export interface MenuItem {
 
 interface MenuProps {
 	items: MenuItem[],
+	left?: boolean,
 }
 
 const Menu: React.FC<MenuProps> = ({
 	items,
+	left
 }) => {
 
 	const domRef = React.useRef(null);
@@ -40,7 +42,6 @@ const Menu: React.FC<MenuProps> = ({
 				},
 			}}
 			onClick={() => setExpanded(!expanded)}
-			onKeyDown={(e) => e.key === "Enter" && setExpanded(!expanded)}
 		>
 			<Text
 				css={{
@@ -61,6 +62,7 @@ const Menu: React.FC<MenuProps> = ({
 					overflow: "hidden",
 					position: "absolute",
 					zIndex: 1000,
+					left: left ? "-100%" : 0,
 				}}
 			>
 				{items.map((item) => (

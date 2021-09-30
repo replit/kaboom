@@ -2,18 +2,21 @@ import View from "comps/View";
 import Text from "comps/Text";
 
 interface InputProps {
-	placeholder?: string,
+	value: string,
 	onChange: (txt: string) => void,
+	placeholder?: string,
 }
 
 const Input: React.FC<InputProps> = ({
-	placeholder,
+	value,
 	onChange,
+	placeholder,
 	...args
 }) => (
 	<input
-		onChange={(e) => onChange(e.target.value)}
-		placeholder={placeholder ?? "123"}
+		value={value}
+		onChange={(e) => onChange(e.currentTarget.value)}
+		placeholder={placeholder ?? ""}
 		css={{
 			fontSize: "var(--text-normal)",
 			userSelect: "none",

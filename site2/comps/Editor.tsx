@@ -55,8 +55,8 @@ import { javascript } from "@codemirror/lang-javascript";
 
 import useUpdateEffect from "hooks/useUpdateEffect";
 import View, { ViewProps } from "comps/View";
-import ThemeCtx from "comps/theme";
-import { themes, Theme } from "comps/ui";
+import ThemeCtx from "lib/ThemeCtx";
+import { themes, Theme } from "lib/ui";
 
 // @ts-ignore
 const cmThemes: Record<Theme, [ Extension, HighlightStyle ]> = {};

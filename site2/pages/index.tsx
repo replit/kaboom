@@ -1,12 +1,10 @@
 import * as React from "react";
-import NextLink from "next/link";
 import Image from "next/image";
 import { keyframes } from '@emotion/react';
 
 import Nav from "comps/Nav";
 import View from "comps/View";
 import Text from "comps/Text";
-import Spacer from "comps/Spacer";
 import Markdown from "comps/Markdown";
 
 const Home: React.FC = () => (

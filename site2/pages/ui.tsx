@@ -45,7 +45,7 @@ const UI: React.FC = () => (
 			</View>
 			<View dir="column" gap={1}>
 				<Text>here{"'"}s an input</Text>
-				<Input />
+				<Input value="" onChange={() => {}} />
 			</View>
 			<View dir="column" gap={1}>
 				<Text>here{"'"}s a theme switcher</Text>
@@ -57,7 +57,7 @@ const UI: React.FC = () => (
 			</View>
 			<View dir="column" gap={1}>
 				<Text>here{"'"}s a button</Text>
-				<Button text="Run" onClick={() => {}} />
+				<Button text="Run" action={() => {}} />
 			</View>
 			<View dir="column" gap={1}>
 				<Text>here{"'"}s a game view</Text>

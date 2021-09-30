@@ -3,18 +3,17 @@ import Text from "comps/Text";
 
 interface ButtonProps {
 	text: string,
-	onClick: () => void,
+	action: () => void,
 }
 
 const Button: React.FC<ButtonProps> = ({
 	text,
-	onClick,
+	action,
 	...args
 }) => (
 	<View
 		focusable
-		onClick={() => onClick()}
-		onKeyDown={(e) => e.key === "Enter" && onClick()}
+		onClick={() => action && action()}
 		bg={3}
 		padX={1}
 		padY={0.5}

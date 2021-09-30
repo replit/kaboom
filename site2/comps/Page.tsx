@@ -1,7 +1,7 @@
 import * as React from "react";
 import { Global, css } from "@emotion/react"
-import ThemeCtx from "comps/theme";
-import { Theme, DEF_THEME, themes, cssVars } from "comps/ui";
+import ThemeCtx from "lib/ThemeCtx";
+import { Theme, DEF_THEME, themes, cssVars } from "lib/ui";
 
 interface PageProps {
 	theme?: Theme,

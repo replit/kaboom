@@ -64,8 +64,8 @@ export interface ViewProps {
 	pad?: number,
 	padX?: number,
 	padY?: number,
-	onClick?: (e: MouseEvent) => void,
-	onKeyDown?: (e: KeyboardEvent) => void,
+	onClick?: React.MouseEventHandler<HTMLDivElement>,
+	onKeyDown?: React.KeyboardEventHandler<HTMLDivElement>,
 }
 
 const View = React.forwardRef<HTMLDivElement, React.PropsWithChildren<ViewProps>>(({
@@ -101,7 +101,14 @@ const View = React.forwardRef<HTMLDivElement, React.PropsWithChildren<ViewProps>
 		<div
 			ref={ref}
 			onClick={onClick}
-			onKeyDown={onKeyDown}
+			onKeyDown={(e) => {
+				if (focusable) {
+					if (e.key === "Enter") {
+						e.currentTarget.click();
+					}
+				}
+				onKeyDown && onKeyDown(e);
+			}}
 			tabIndex={focusable ? 0 : undefined}
 			css={{
 				display: "flex",
