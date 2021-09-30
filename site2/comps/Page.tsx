@@ -7,6 +7,7 @@ import Text from "comps/Text";
 import { Theme, DEF_THEME, themes, cssVars } from "lib/ui";
 import useMousePos from "hooks/useMousePos";
 import useEsc from "hooks/useEsc";
+import IDList from "lib/idlist";
 
 interface PageProps {
 	theme?: Theme,
@@ -21,8 +22,13 @@ const Page: React.FC<PageProps> = ({
 
 	const [ theme, setTheme ] = React.useState<Theme>(initTheme ?? DEF_THEME);
 	const [ inspect, setInspect ] = React.useState(false);
-	const [ tooltip, setTooltip ] = React.useState<Tooltip | null>(null);
-	const [ mouseX, mouseY ] = useMousePos();
+	const [ tooltipStack, setTooltipStack ] = React.useState<IDList<Tooltip>>(new IDList());
+//  	const [ mouseX, mouseY ] = useMousePos();
+
+	const curTooltip = React.useMemo(
+		() => tooltipStack.size === 0 ? null : Array.from(tooltipStack)[tooltipStack.size - 1][1],
+		[ tooltipStack ]
+	);
 
 	useEsc(() => setInspect(false), [ setInspect ]);
 
@@ -54,6 +60,21 @@ const Page: React.FC<PageProps> = ({
 		});
 	}, [setTheme, initTheme]);
 
+	const pushTooltip = React.useCallback((t: Tooltip) => {
+		const newStack = new IDList<Tooltip>(tooltipStack);
+		const id = newStack.push(t);
+		setTooltipStack(newStack);
+		return id;
+	}, [ setTooltipStack, tooltipStack, ]);
+
+	const popTooltip = React.useCallback((id: number) => {
+		const newStack = new IDList<Tooltip>(tooltipStack);
+		newStack.delete(id);
+		setTooltipStack(newStack);
+	}, [ setTooltipStack, tooltipStack, ]);
+
+	console.log(tooltipStack);
+
 	return (
 		<Ctx.Provider value={{
 			theme,
@@ -61,7 +82,8 @@ const Page: React.FC<PageProps> = ({
 			nextTheme,
 			inspect,
 			setInspect,
-			setTooltip,
+			pushTooltip,
+			popTooltip,
 		}}>
 			<div
 				className={theme}
@@ -239,24 +261,26 @@ const Page: React.FC<PageProps> = ({
 					}}
 				/>
 			</View> }
-			{ tooltip && <View
+			{ curTooltip && <View
 				bg={1}
 				pad={1.5}
 				rounded
 				outlined
 				css={{
 					position: "absolute",
-					top: mouseY,
-					left: mouseX,
+//  					top: mouseY,
+//  					left: mouseX,
+					bottom: 16,
+					right: 16,
 					zIndex: 20000,
 					maxWidth: "240px",
 					pointerEvents: "none",
 				}}
 			>
-				{ tooltip.name &&
-					<Text noSelect>{tooltip.name}</Text>
+				{ curTooltip.name &&
+					<Text noSelect>{curTooltip.name}</Text>
 				}
-				<Text color={2} noSelect>{tooltip.desc}</Text>
+				<Text color={2} noSelect>{curTooltip.desc}</Text>
 			</View> }
 		</Ctx.Provider>
 	);

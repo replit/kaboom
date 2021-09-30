@@ -12,7 +12,8 @@ interface Ctx {
 	nextTheme(): void,
 	inspect: boolean,
 	setInspect: (inspect: boolean) => void,
-	setTooltip: (tooltip: Tooltip | null) => void,
+	pushTooltip: (tooltip: Tooltip) => number,
+	popTooltip: (id: number) => void,
 }
 
 export default React.createContext<Ctx>({
@@ -21,5 +22,6 @@ export default React.createContext<Ctx>({
 	nextTheme: () => {},
 	inspect: false,
 	setInspect: () => {},
-	setTooltip: () => {},
+	pushTooltip: () => 0,
+	popTooltip: () => {},
 });

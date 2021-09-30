@@ -6,7 +6,7 @@ import { themes, Theme } from "lib/ui";
 const ThemeSwitch: React.FC<ViewProps> = ({...args}) => {
 	const { theme, setTheme } = React.useContext(Ctx);
 	return (
-		<View dir="row" gap={1.5} align="center" {...args}>
+		<View dir="row" gap={1.5} align="center" rounded {...args}>
 			{Object.keys(themes).map((t) => (
 				<View
 					key={t}

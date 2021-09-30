@@ -173,7 +173,8 @@ const Demo: React.FC = () => {
 			>
 				<View dir="row" gap={2} align="center">
 					<View
-						desc="back to home"
+						rounded
+						desc="Back to home"
 					>
 						<Link href="/" passHref>
 							<img
@@ -188,14 +189,14 @@ const Demo: React.FC = () => {
 					</View>
 					<Select
 						name="Demo Selector"
-						desc="select a demo to run"
+						desc="Select a demo to run"
 						options={Object.keys(testCode)}
 						selected="sprite"
 						onChange={(selected) => setCode(testCode[selected])}
 					/>
 					<Button
 						name="Run Button"
-						desc="run current code"
+						desc="Run current code"
 						text="Run"
 						action={() => {
 							if (!editorRef.current) return;
@@ -237,7 +238,7 @@ const Demo: React.FC = () => {
 			>
 				<View
 					name="Drawer"
-					desc="a place to put assets"
+					desc="Contains various helper tools like asset manager"
 					ref={drawerRef}
 					dir="row"
 					bg={1}
@@ -265,7 +266,7 @@ const Demo: React.FC = () => {
 					</View>
 					<View
 						name="Drawer Handle"
-						desc="click to show / hide the drawer"
+						desc="Click to show / hide the drawer"
 						dir="row"
 						align="center"
 						justify="around"
@@ -289,7 +290,7 @@ const Demo: React.FC = () => {
 				>
 					<Editor
 						name="Editor"
-						desc="the place you edit code"
+						desc="Where you edit the code"
 						ref={editorRef}
 						content={code}
 						stretchX
@@ -354,7 +355,7 @@ const Demo: React.FC = () => {
 				</View>
 				<GameView
 					name="Game View"
-					desc="where your game runs"
+					desc="Where your game runs"
 					ref={gameviewRef}
 					code={code}
 					stretchY

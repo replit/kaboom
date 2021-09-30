@@ -1,5 +1,6 @@
 import * as React from "react";
 import Ctx from "lib/Ctx";
+import useTooltip from "hooks/useTooltip";
 
 const spaceUnit = 8;
 
@@ -101,21 +102,22 @@ const View = React.forwardRef<HTMLDivElement, React.PropsWithChildren<ViewProps>
 	const marginSide = dir === "row" ? "marginRight" : "marginBottom";
 	const px = (padX ?? pad ?? 0) * 8;
 	const py = (padY ?? pad ?? 0) * 8;
-	const { inspect, setTooltip } = React.useContext(Ctx);
+	const { inspect } = React.useContext(Ctx);
+	const [ pushTooltip, popTooltip ] = useTooltip();
 
 	return <div
 		ref={ref}
 		onClick={onClick}
 		onMouseEnter={() => {
 			if (!inspect || !desc) return;
-			setTooltip({
+			pushTooltip({
 				name,
 				desc,
 			});
 		}}
 		onMouseLeave={() => {
 			if (!inspect || !desc) return;
-			setTooltip(null);
+			popTooltip();
 		}}
 		onKeyDown={(e) => {
 			if (focusable) {
