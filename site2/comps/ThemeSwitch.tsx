@@ -1,12 +1,12 @@
 import * as React from "react";
-import View from "comps/View";
+import View, { ViewProps } from "comps/View";
 import Ctx from "lib/Ctx";
 import { themes, Theme } from "lib/ui";
 
-const ThemeSwitch: React.FC = () => {
+const ThemeSwitch: React.FC<ViewProps> = ({...args}) => {
 	const { theme, setTheme } = React.useContext(Ctx);
 	return (
-		<View dir="row" gap={1.5} align="center">
+		<View dir="row" gap={1.5} align="center" {...args}>
 			{Object.keys(themes).map((t) => (
 				<View
 					key={t}

@@ -6,6 +6,7 @@ import Button from "comps/Button";
 import Text from "comps/Text";
 import { Theme, DEF_THEME, themes, cssVars } from "lib/ui";
 import useMousePos from "hooks/useMousePos";
+import useEsc from "hooks/useEsc";
 
 interface PageProps {
 	theme?: Theme,
@@ -22,6 +23,8 @@ const Page: React.FC<PageProps> = ({
 	const [ inspect, setInspect ] = React.useState(false);
 	const [ tooltip, setTooltip ] = React.useState<Tooltip | null>(null);
 	const [ mouseX, mouseY ] = useMousePos();
+
+	useEsc(() => setInspect(false), [ setInspect ]);
 
 	React.useEffect(() => {
 		if (initTheme) {
@@ -242,10 +245,11 @@ const Page: React.FC<PageProps> = ({
 				rounded
 				outlined
 				css={{
-					position: "fixed",
+					position: "absolute",
 					top: mouseY,
 					left: mouseX,
 					zIndex: 20000,
+					maxWidth: "240px",
 					pointerEvents: "none",
 				}}
 			>

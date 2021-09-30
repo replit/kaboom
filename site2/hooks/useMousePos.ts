@@ -1,6 +1,6 @@
 import React from "react";
 
-export default function useEsc(cb: () => void, deps: React.DependencyList) {
+export default function useMousePos() {
 
 	const [ mousePos, setMousePos ] = React.useState([0, 0]);
 

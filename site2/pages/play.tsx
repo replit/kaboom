@@ -151,7 +151,6 @@ go("game");
 const Demo: React.FC = () => {
 
 	const [ expanded, setExpanded ] = React.useState(false);
-	const [ inspect, setInspect ] = React.useState(false);
 	const [ code, setCode ] = React.useState(testCode["sprite"]);
 	const [ explaining, setExplaining ] = React.useState<string | null>(null);
 	const editorRef = React.useRef<EditorRef | null>(null);
@@ -159,14 +158,7 @@ const Demo: React.FC = () => {
 	const drawerRef = React.useRef(null);
 	const doc = useDoc();
 
-	useEsc(() => {
-		if (inspect) {
-			setInspect(false);
-			return;
-		}
-		setExpanded(false);
-	}, [ setExpanded ]);
-
+	useEsc(() => setExpanded(false), [ setExpanded ]);
 	useClickOutside(drawerRef, () => setExpanded(false), [ setExpanded ]);
 
 	return <Page>
@@ -180,16 +172,20 @@ const Demo: React.FC = () => {
 				padX={2}
 			>
 				<View dir="row" gap={2} align="center">
-					<Link href="/" passHref>
-						<img
-							src="/public/img/k.png"
-							css={{
-								width: 48,
-								cursor: "pointer",
-							}}
-							alt="logo"
-						/>
-					</Link>
+					<View
+						desc="back to home"
+					>
+						<Link href="/" passHref>
+							<img
+								src="/public/img/k.png"
+								css={{
+									width: 48,
+									cursor: "pointer",
+								}}
+								alt="logo"
+							/>
+						</Link>
+					</View>
 					<Select
 						name="Demo Selector"
 						desc="select a demo to run"
@@ -214,7 +210,10 @@ const Demo: React.FC = () => {
 					<Inspect />
 				</View>
 				<View dir="row" gap={2} align="center">
-					<ThemeSwitch />
+					<ThemeSwitch
+						name="Theme Switcher"
+						desc="Choose a theme!"
+					/>
 					<Menu left items={[
 						{
 							name: "Open in Replit",
@@ -289,6 +288,8 @@ const Demo: React.FC = () => {
 					stretchY
 				>
 					<Editor
+						name="Editor"
+						desc="the place you edit code"
 						ref={editorRef}
 						content={code}
 						stretchX
@@ -352,6 +353,8 @@ const Demo: React.FC = () => {
 					</View>}
 				</View>
 				<GameView
+					name="Game View"
+					desc="where your game runs"
 					ref={gameviewRef}
 					code={code}
 					stretchY

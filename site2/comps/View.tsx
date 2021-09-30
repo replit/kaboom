@@ -108,7 +108,6 @@ const View = React.forwardRef<HTMLDivElement, React.PropsWithChildren<ViewProps>
 		onClick={onClick}
 		onMouseEnter={() => {
 			if (!inspect || !desc) return;
-			console.log("enter");
 			setTooltip({
 				name,
 				desc,
@@ -116,7 +115,6 @@ const View = React.forwardRef<HTMLDivElement, React.PropsWithChildren<ViewProps>
 		}}
 		onMouseLeave={() => {
 			if (!inspect || !desc) return;
-			console.log("leave");
 			setTooltip(null);
 		}}
 		onKeyDown={(e) => {
@@ -152,7 +150,7 @@ const View = React.forwardRef<HTMLDivElement, React.PropsWithChildren<ViewProps>
 			},
 			...((inspect && desc) ? {
 				":hover": {
-					cursor: "help",
+					cursor: "help !important",
 					outline: "solid 2px var(--color-highlight)",
 				},
 			} : {}),
