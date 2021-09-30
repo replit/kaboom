@@ -12,11 +12,6 @@ export type Color =
 	| "title-bg"
 	;
 
-export type Theme =
-	| "light"
-	| "dark"
-	;
-
 export type FontSize =
 	| "small"
 	| "normal"
@@ -26,7 +21,6 @@ export type FontSize =
 
 export type CSSVal = string;
 export type ThemeDef = Record<Color, CSSVal>;
-export type ThemeBook = Record<Theme, ThemeDef>;
 
 export const fontSizes: Record<FontSize, CSSVal> = {
 	"small": "16px",
@@ -35,37 +29,50 @@ export const fontSizes: Record<FontSize, CSSVal> = {
 	"huge": "32px",
 }
 
-export const themes: ThemeBook = {
-	"light": {
-		"bg1": "#ffffff",
-		"bg2": "#f4f4f4",
-		"bg3": "#e9e9e9",
-		"bg4": "#dedede",
-		"outline": "#dadada",
-		"fg1": "#333333",
-		"fg2": "#666666",
-		"fg3": "#999999",
-		"fg4": "#cccccc",
-		"highlight": "#0080ff",
-		"title-bg": "#fff8bc",
-	},
+export const themes = {
 	"dark": {
-		"bg1": "#15151f",
-		"bg2": "#21212f",
-		"bg3": "#2c2c3f",
-		"bg4": "#38384f",
-		"outline": "#3f3f5f",
-		"fg1": "#dfdfdf",
-		"fg2": "#aaaaaf",
-		"fg3": "#7a7a7f",
-		"fg4": "#4a4a5f",
-		"highlight": "#2090ef",
-		"title-bg": "#132131",
+		"bg1": "rgb(20, 20, 30)",
+		"bg2": "rgb(32, 32, 46)",
+		"bg3": "rgb(44, 44, 62)",
+		"bg4": "rgb(56, 56, 78)",
+		"outline": "rgb(64, 64, 96)",
+		"fg1": "rgb(215, 225, 235)",
+		"fg2": "rgb(170, 170, 190)",
+		"fg3": "rgb(125, 135, 145)",
+		"fg4": "rgb(80, 90, 100)",
+		"highlight": "rgb(30, 140, 230)",
+		"title-bg": "rgb(19, 33, 49)",
+	},
+	"purple": {
+		"bg1": "rgb(31, 11, 61)",
+		"bg2": "rgb(44, 24, 74)",
+		"bg3": "rgb(57, 37, 87)",
+		"bg4": "rgb(70, 50, 100)",
+		"outline": "rgb(63, 63, 95)",
+		"fg1": "rgb(233, 233, 233)",
+		"fg2": "rgb(170, 170, 175)",
+		"fg3": "rgb(125, 135, 153)",
+		"fg4": "rgb(74, 74, 95)",
+		"highlight": "rgb(32, 144, 239)",
+		"title-bg": "rgb(19, 33, 49)",
+	},
+	"light": {
+		"bg1": "rgb(255, 255, 255)",
+		"bg2": "rgb(244, 244, 244)",
+		"bg3": "rgb(233, 233, 233)",
+		"bg4": "rgb(222, 222, 222)",
+		"outline": "rgb(218, 218, 218)",
+		"fg1": "rgb(51, 51, 51)",
+		"fg2": "rgb(102, 102, 102)",
+		"fg3": "rgb(153, 153, 153)",
+		"fg4": "rgb(204, 204, 204)",
+		"highlight": "rgb(0, 128, 255)",
+		"title-bg": "rgb(255, 248, 188)",
 	},
 };
 
 export const space = 8;
-export const DEF_THEME: Theme = "light";
+export const DEF_THEME = "dark";
 
 export const cssVars = (() => {
 
@@ -80,7 +87,7 @@ export const cssVars = (() => {
 	let code = `:root {${buildCSSVars("text", fontSizes)}${buildCSSVars("color", themes[DEF_THEME])}}`;
 
 	for (const theme in themes) {
-		code += `.${theme} {${buildCSSVars("color", themes[theme as Theme])}}`;
+		code += `.${theme} {${buildCSSVars("color", themes[theme])}}`;
 	}
 
 	return code;

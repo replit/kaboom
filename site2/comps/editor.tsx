@@ -19,124 +19,199 @@ import ThemeCtx from "comps/theme";
 import { GameViewRef } from "comps/gameview";
 import { themes } from "comps/ui";
 
-const chalky = "#e5c07b";
-const coral = "#e06c75";
-const cyan = "#56b6c2";
-const invalid = "#ffffff";
-const ivory = "#abb2bf";
-const stone = "#7d8799"; // Brightened compared to original to increase contras
-const malibu = "#61afef";
-const sage = "#98c379";
-const whiskey = "#d19a66";
-const violet = "#c678dd";
-const darkBackground = themes["dark"]["bg1"];
-const highlightBackground = themes["dark"]["bg3"];
-const background = themes["dark"]["bg2"];
-const selection = themes["dark"]["bg4"];
-const cursor = themes["dark"]["highlight"];
+const cmThemes = {};
 
-const darkTheme = EditorView.theme({
-	"&": {
-		color: ivory,
-		backgroundColor: background,
-	},
-	".cm-content": {
-		caretColor: cursor,
-	},
-	"&.cm-focused .cm-cursor": {
-		borderLeftColor: cursor,
-	},
-	"&.cm-focused .cm-selectionBackground, .cm-selectionBackground, .cm-content ::selection": {
-		backgroundColor: selection,
-	},
+Object.keys(themes).forEach((name) => {
 
-  ".cm-panels": {backgroundColor: darkBackground, color: ivory},
-  ".cm-panels.cm-panels-top": {borderBottom: "2px solid black"},
-  ".cm-panels.cm-panels-bottom": {borderTop: "2px solid black"},
+	const theme = themes[name];
+	const yellow = "#e5c07b";
+	const coral = "#e06c75";
+	const cyan = "#56b6c2";
+	const invalid = "#ffffff";
+	const ivory = theme["fg2"];
+	const stone = theme["fg3"];
+	const malibu = "#61afef";
+	const sage = "#98c379";
+	const whiskey = "#d19a66";
+	const magenta = "#c678dd";
+	const darkBackground = theme["bg1"];
+	const highlightBackground = theme["bg3"];
+	const background = theme["bg2"];
+	const selection = theme["bg4"];
+	const cursor = theme["highlight"];
 
-  ".cm-searchMatch": {
-    backgroundColor: "#72a1ff59",
-    outline: "1px solid #457dff"
-  },
-  ".cm-searchMatch.cm-searchMatch-selected": {
-    backgroundColor: "#6199ff2f"
-  },
+	cmThemes[name] = [
+		EditorView.theme({
+			"&": {
+				color: ivory,
+				backgroundColor: background,
+			},
+			".cm-content": {
+				caretColor: cursor,
+			},
+			"&.cm-focused .cm-cursor": {
+				borderLeftColor: cursor,
+			},
+			"&.cm-focused .cm-selectionBackground, .cm-selectionBackground, .cm-content ::selection": {
+				backgroundColor: selection,
+			},
+			".cm-panels": {
+				backgroundColor: darkBackground,
+				color: ivory,
+			},
+			".cm-panels.cm-panels-top": {
+				borderBottom: "2px solid black",
+			},
+			".cm-panels.cm-panels-bottom": {
+				borderTop: "2px solid black",
+			},
+			".cm-searchMatch": {
+				backgroundColor: "#72a1ff59",
+				outline: "1px solid #457dff",
+			},
+			".cm-searchMatch.cm-searchMatch-selected": {
+				backgroundColor: "#6199ff2f",
+			},
+			".cm-activeLine": {
+				backgroundColor: highlightBackground,
+			},
+			".cm-selectionMatch": {
+				backgroundColor: "#aafe661a",
+			},
+			".cm-matchingBracket, .cm-nonmatchingBracket": {
+				backgroundColor: "#bad0f847",
+				outline: "1px solid #515a6b",
+			},
+			".cm-gutters": {
+				backgroundColor: background,
+				color: stone,
+				border: "none",
+			},
+			".cm-activeLineGutter": {
+				color: stone,
+				backgroundColor: highlightBackground,
+			},
+			".cm-foldPlaceholder": {
+				backgroundColor: theme["fg4"],
+				border: "none",
+				color: "#ddd",
+			},
+		}, { dark: true, }),
+		HighlightStyle.define([
+			{
+				tag: t.keyword,
+				color: magenta
+			},
+			{
+				tag: [
+					t.name,
+					t.deleted,
+					t.character,
+					t.propertyName,
+					t.macroName,
+				],
+				color: coral,
+			},
+			{
+				tag: [
+					t.function(t.variableName),
+					t.labelName,
+				],
+				color: malibu,
+			},
+			{
+				tag: [
+					t.color,
+					t.constant(t.name),
+					t.standard(t.name),
+				],
+				color: whiskey,
+			},
+			{
+				tag: [
+					t.definition(t.name),
+					t.separator,
+				],
+				color: ivory,
+			},
+			{
+				tag: [
+					t.typeName,
+					t.className,
+					t.number,
+					t.changed,
+					t.annotation,
+					t.modifier,
+					t.self,
+					t.namespace,
+				],
+				color: yellow,
+			},
+			{
+				tag: [
+					t.operator,
+					t.operatorKeyword,
+					t.url,
+					t.escape,
+					t.regexp,
+					t.link,
+					t.special(t.string)
+				],
+				color: cyan,
+			},
+			{
+				tag: [
+					t.meta,
+					t.comment,
+				],
+				color: stone,
+			},
+			{
+				tag: t.strong,
+				fontWeight: "bold",
+			},
+			{
+				tag: t.emphasis,
+				fontStyle: "italic",
+			},
+			{
+				tag: t.strikethrough,
+				textDecoration: "line-through",
+			},
+			{
+				tag: t.link,
+				color: stone,
+				textDecoration: "underline",
+			},
+			{
+				tag: t.heading,
+				fontWeight: "bold",
+				color: coral,
+			},
+			{
+				tag: [
+					t.atom,
+					t.bool,
+					t.special(t.variableName),
+				],
+				color: whiskey,
+			},
+			{
+				tag: [
+					t.processingInstruction,
+					t.string,
+					t.inserted,
+				],
+				color: sage,
+			},
+			{
+				tag: t.invalid,
+				color: invalid,
+			},
+		]),
+	];
 
-  ".cm-activeLine": {backgroundColor: highlightBackground},
-  ".cm-selectionMatch": {backgroundColor: "#aafe661a"},
-
-  ".cm-matchingBracket, .cm-nonmatchingBracket": {
-    backgroundColor: "#bad0f847",
-    outline: "1px solid #515a6b"
-  },
-
-  ".cm-gutters": {
-    backgroundColor: background,
-    color: stone,
-    border: "none"
-  },
-
-  ".cm-activeLineGutter": {
-    backgroundColor: highlightBackground
-  },
-
-  ".cm-foldPlaceholder": {
-    backgroundColor: "transparent",
-    border: "none",
-    color: "#ddd"
-  },
-
-  ".cm-tooltip": {
-    border: "1px solid #181a1f",
-    backgroundColor: darkBackground
-  },
-  ".cm-tooltip-autocomplete": {
-    "& > ul > li[aria-selected]": {
-      backgroundColor: highlightBackground,
-      color: ivory
-    }
-  }
-}, {dark: true})
-
-/// The highlighting style for code in the One Dark theme.
-const darkHighlightStyle = HighlightStyle.define([
-  {tag: t.keyword,
-   color: violet},
-  {tag: [t.name, t.deleted, t.character, t.propertyName, t.macroName],
-   color: coral},
-  {tag: [t.function(t.variableName), t.labelName],
-   color: malibu},
-  {tag: [t.color, t.constant(t.name), t.standard(t.name)],
-   color: whiskey},
-  {tag: [t.definition(t.name), t.separator],
-   color: ivory},
-  {tag: [t.typeName, t.className, t.number, t.changed, t.annotation, t.modifier, t.self, t.namespace],
-   color: chalky},
-  {tag: [t.operator, t.operatorKeyword, t.url, t.escape, t.regexp, t.link, t.special(t.string)],
-   color: cyan},
-  {tag: [t.meta, t.comment],
-   color: stone},
-  {tag: t.strong,
-   fontWeight: "bold"},
-  {tag: t.emphasis,
-   fontStyle: "italic"},
-  {tag: t.strikethrough,
-   textDecoration: "line-through"},
-  {tag: t.link,
-   color: stone,
-   textDecoration: "underline"},
-  {tag: t.heading,
-   fontWeight: "bold",
-   color: coral},
-  {tag: [t.atom, t.bool, t.special(t.variableName)],
-   color: whiskey },
-  {tag: [t.processingInstruction, t.string, t.inserted],
-   color: sage},
-  {tag: t.invalid,
-   color: invalid},
-])
-
-const dark = [ darkTheme, darkHighlightStyle ];
+});
 
 export interface EditorRef {
 	getContent: () => string | null,
@@ -203,7 +278,7 @@ const Editor = React.forwardRef<EditorRef, EditorProps>(({
 		cm.setState(EditorState.create({
 			doc: content ?? "",
 			extensions: [
-				themeConf.of(theme === "dark" ? dark : []),
+				themeConf.of(cmThemes[theme]),
 				EditorState.tabSize.of(4),
 				EditorState.allowMultipleSelections.of(true),
 				indentUnit.of("\t"),
@@ -264,7 +339,7 @@ const Editor = React.forwardRef<EditorRef, EditorProps>(({
 		const themeConf = themeConfRef.current;
 
 		cm.dispatch({
-			effects: themeConf.reconfigure(theme === "dark" ? dark : [])
+			effects: themeConf.reconfigure(cmThemes[theme])
 		});
 
 	}, [ theme ]);

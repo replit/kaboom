@@ -8,7 +8,7 @@ import View from "comps/view";
 import Text from "comps/text";
 import Spacer from "comps/spacer";
 import Code from "comps/code";
-import ThemeToggle from "comps/themetoggle";
+import ThemeSwitch from "comps/themeswitch";
 
 const anims = {
 	kaboom: keyframes(`
@@ -130,7 +130,7 @@ const Home: React.FC = () => (
 				>
 					<View />
 					<Logo />
-					<ThemeToggle />
+					<ThemeSwitch />
 					<View gap={0.5}>
 						<Link link="/play" text="PlayGround" />
 						<Link link="/play" text="Setup Guide" />

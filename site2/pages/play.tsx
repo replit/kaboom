@@ -5,7 +5,7 @@ import GameView, { GameViewRef } from "comps/gameview";
 import useDoc from "hooks/useDoc";
 import Page from "comps/page";
 import Button from "comps/button";
-import ThemeToggle from "comps/themetoggle";
+import ThemeSwitch from "comps/themeswitch";
 import Select from "comps/select";
 import View from "comps/view";
 import Text from "comps/text";
@@ -202,7 +202,7 @@ const Demo: React.FC = () => {
 						/>
 					</View>
 					<View dir="row" gap={2} align="center">
-						<ThemeToggle />
+						<ThemeSwitch />
 					</View>
 				</View>
 				<View
@@ -264,6 +264,7 @@ const Demo: React.FC = () => {
 							rounded
 							outlined
 							pad={2}
+							bg={2}
 						>
 							<Text size="big">{explaining}</Text>
 							<View
