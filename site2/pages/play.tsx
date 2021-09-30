@@ -1,6 +1,8 @@
 import * as React from "react";
 import Link from "next/link";
 import useDoc from "hooks/useDoc";
+import useEsc from "hooks/useEsc";
+import useClickOutside from "hooks/useClickOutside";
 import Editor, { EditorRef } from "comps/Editor";
 import GameView, { GameViewRef } from "comps/GameView";
 import Page from "comps/Page";
@@ -147,11 +149,16 @@ go("game");
 
 const Demo: React.FC = () => {
 
+	const [ expanded, setExpanded ] = React.useState(false);
 	const [ code, setCode ] = React.useState(testCode["sprite"]);
 	const [ explaining, setExplaining ] = React.useState<string | null>(null);
 	const editorRef = React.useRef<EditorRef | null>(null);
 	const gameviewRef = React.useRef<GameViewRef | null>(null);
+	const drawerRef = React.useRef(null);
 	const doc = useDoc();
+
+	useEsc(() => setExpanded(false), [ setExpanded ]);
+	useClickOutside(drawerRef, () => setExpanded(false), [ setExpanded ]);
 
 	return (
 		<Page>
@@ -223,15 +230,54 @@ const Demo: React.FC = () => {
 						flex: "1",
 						overflow: "hidden",
 						paddingTop: 2,
+						paddingLeft: 42,
 					}}
 				>
 					<View
+						ref={drawerRef}
+						dir="row"
+						bg={1}
+						rounded
+						outlined
+						width={240}
+						height="80%"
+						css={{
+							position: "absolute",
+							top: "8%",
+							left: expanded ? -4 : -(240 - 24),
+							transition: "0.2s left",
+							overflow: "hidden",
+							zIndex: 50,
+						}}
+					>
+						<View
+							stretchY
+							css={{
+								flex: "1",
+							}}
+						>
+						</View>
+						<View
+							dir="row"
+							align="center"
+							justify="around"
+							padX={0.5}
+							width={24}
+							stretchY
+							onClick={() => setExpanded(!expanded)}
+							css={{
+								cursor: "pointer",
+							}}
+						>
+							<View height="95%" width={2} bg={2} />
+							<View height="95%" width={2} bg={2} />
+						</View>
+					</View>
+					<View
 						dir="column"
 						gap={2}
-						css={{
-							width: "40%",
-							height: "100%",
-						}}
+						width="45%"
+						stretchY
 					>
 						<Editor
 							ref={editorRef}
