@@ -158,7 +158,6 @@ const Demo: React.FC = () => {
 					dir="row"
 					align="center"
 					justify="between"
-					bg={1}
 					stretchX
 					height={64}
 					padX={2}
@@ -203,7 +202,6 @@ const Demo: React.FC = () => {
 						/>
 					</View>
 					<View dir="row" gap={2} align="center">
-						<Button text="Download" onClick={() => {}} />
 						<ThemeToggle />
 					</View>
 				</View>
@@ -271,7 +269,7 @@ const Demo: React.FC = () => {
 							<View
 								width={32}
 								height={32}
-								padX={1.4}
+								padX={1.2}
 								padY={0.5}
 								onClick={() => setExplaining(null)}
 								css={{

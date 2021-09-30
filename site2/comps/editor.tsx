@@ -182,7 +182,7 @@ const Editor = React.forwardRef<EditorRef, EditorProps>(({
 			css={{
 				fontFamily: "IBM Plex Mono",
 				overflow: "scroll",
-				fontSize: "var(--text-normal)",
+				fontSize: "var(--text-big)",
 				":focus": {
 					outline: "solid 2px var(--color-highlight)"
 				},

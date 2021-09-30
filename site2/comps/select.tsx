@@ -61,7 +61,7 @@ const Select: React.FC<SelectProps> = ({
 				>
 					<Text
 						bold
-						color={4}
+						color={3}
 						css={{
 							position: "relative",
 							left: expanded ? "2px" : 0,

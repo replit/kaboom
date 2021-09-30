@@ -1,4 +1,5 @@
 import marked from "marked";
+import hljs from "highlight.js"
 
 interface MarkdownProps {
 	src: string,

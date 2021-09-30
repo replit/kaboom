@@ -1,5 +1,5 @@
 import * as React from "react";
-import Link from "next/link";
+import NextLink from "next/link";
 import Image from "next/image";
 import { keyframes } from '@emotion/react';
 
@@ -7,6 +7,7 @@ import Page from "comps/page";
 import View from "comps/view";
 import Text from "comps/text";
 import Spacer from "comps/spacer";
+import Code from "comps/code";
 import ThemeToggle from "comps/themetoggle";
 
 const anims = {
@@ -52,16 +53,13 @@ const anims = {
 };
 
 const Logo: React.FC = () => (
-	<div
-		css={{
-			position: "relative",
-			height: "180px",
-		}}
-	>
+	<View stretchX height={120}>
 		<img
 			src="/img/boom.svg"
 			alt="boom"
 			css={{
+				width: "80%",
+				left: "10%",
 				position: "absolute",
 				animation: `${anims.kaboom} 5s infinite`,
 			}}
@@ -70,70 +68,111 @@ const Logo: React.FC = () => (
 			src="/img/ka.svg"
 			alt="ka"
 			css={{
+				width: "90%",
 				position: "absolute",
-				left: "-24px",
-				top: "32px",
+				left: "2px",
+				top: "28px",
 				animation: `${anims.kaboom} 5s infinite`,
 				animationDelay: "0.08s",
 			}}
 		/>
-	</div>
+	</View>
 );
 
-const Info: React.FC = () => (
-	<div>
+interface LinkProps {
+	text: string,
+	link: string,
+}
+
+const Link: React.FC<LinkProps> = ({
+	text,
+	link,
+}) => (
+	<NextLink href={link}>
 		<Text
-			size="huge"
+			color={2}
 			css={{
-				whiteSpace: "pre",
-				fontSize: "48px",
- 			}}
-		>
-			Kaboom is a JavaScript{"\n"}game programming library{"\n"}that helps you make games{"\n"}fast and <span>fun</span>.
-		</Text>
-		<Spacer space={6} />
-		<Text
-			size="huge"
-			css={{
-				whiteSpace: "pre",
-				fontSize: "48px",
- 			}}
-		>
-			Check out the <Link href="/doc">docs</Link>, <Link href="/demo">demos</Link>,{"\n"}<Link href="/doc/intro">tutorial</Link>, and <a href="https://github.com/replit/kaboom">github</a>.
-		</Text>
-	</div>
+				cursor: "pointer",
+				padding: "4px 8px",
+				borderRadius: 8,
+				position: "relative",
+				left: "-4px",
+				":hover": {
+					background: "var(--color-highlight)",
+					color: "white",
+				},
+			}}
+		>{text}</Text>
+	</NextLink>
 );
 
 const Home: React.FC = () => (
 	<Page>
 		<View
 			stretch
+			pad={2}
 			css={{
-				background: "url(/img/bg.svg) repeat var(--color-bg1)",
+				background: "url(/img/bg.svg) repeat #3D3ACF",
 				animation: `${anims.scroll} 5s infinite linear`,
-				overflow: "scroll",
-				fontFamily: "Necto Mono",
 			}}
 		>
-			<div
-				css={{
-					margin: "0 auto",
-					width: "calc(600px + 30vw)",
-					maxWidth: "90%",
-				}}
-			>
-				<Spacer space={6} />
-				<Logo />
-				<Spacer space={3} />
-				<Info />
-			</div>
-			<ThemeToggle
-				css={{
-					position: "fixed",
-					bottom: "24px",
-					right: "24px",
-				}}
-			/>
+			<View stretch dir="row" bg={1} rounded outlined css={{ overflow: "hidden" }}>
+				<View
+					dir="column"
+					gap={2}
+					stretchY
+					width={240}
+					pad={3}
+					bg={2}
+					css={{
+						overflow: "scroll",
+					}}
+				>
+					<View />
+					<Logo />
+					<ThemeToggle />
+					<View gap={0.5}>
+						<Link link="/play" text="PlayGround" />
+						<Link link="/play" text="Setup Guide" />
+						<Link link="/play" text="Tutorial" />
+						<Link link="https://github.com/replit/kaboom" text="Github" />
+					</View>
+				</View>
+				<View
+					dir="column"
+					gap={3}
+					pad={4}
+					stretchY
+					css={{
+						flex: "1",
+					}}
+				>
+					<Text size="huge" color={1}>Kaboom is a Javascript game programming library that helps you make games fast and fun.</Text>
+					<Code
+						lang="javascript"
+						code={`
+// start the game
+kaboom();
+
+// load a default sprite
+loadBean();
+
+// add character to screen, from a list of components
+const player = add([
+	sprite("bean"),  // renders as a sprite
+	pos(120, 80),    // position in world
+	area(),          // has a collider
+	body(),          // responds to physics and gravity
+]);
+
+keyPress("space", () => {
+	player.jump();
+});
+						`}
+					/>
+					<Text><span>Kaboom</span> uses a flexible component system that makes it easy to compose game logics</Text>
+				</View>
+			</View>
 		</View>
 	</Page>
 );
