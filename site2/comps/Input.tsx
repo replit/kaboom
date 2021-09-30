@@ -22,15 +22,15 @@ const Input: React.FC<InputProps> = ({
 			userSelect: "none",
 			background: "var(--color-bg3)",
 			borderRadius: 8,
-			border: "solid 2px var(--color-outline)",
-			outline: "none",
+			outline: "solid 2px var(--color-outline)",
+			border: "none",
 			padding: 8,
 			color: "var(--color-fg1)",
 			"::placeholder": {
 				color: "var(--color-fg3)",
 			},
 			":focus": {
-				border: "solid 2px var(--color-highlight)",
+				outline: "solid 2px var(--color-highlight)",
 			},
 		}}
 		{...args}

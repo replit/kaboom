@@ -33,9 +33,7 @@ const Menu: React.FC<MenuProps> = ({
 			height={32}
 			rounded
 			focusable
-			outlined
 			css={{
-				borderColor: "transparent",
 				cursor: "pointer",
 				":hover": {
 					background: "var(--color-bg3)",
@@ -46,8 +44,8 @@ const Menu: React.FC<MenuProps> = ({
 			<Text
 				css={{
 					position: "absolute",
-					top: "0px",
-					left: "12px",
+					top: "2px",
+					left: "14px",
 					transform: "rotate(90deg)",
 				}}
 			>

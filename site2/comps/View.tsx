@@ -126,11 +126,11 @@ const View = React.forwardRef<HTMLDivElement, React.PropsWithChildren<ViewProps>
 				paddingBottom: `${py}px`,
 				position: "relative",
 				borderRadius: rounded ? 8 : 0,
-				border: outlined ? "solid 2px var(--color-outline)" : "none",
+				outline: outlined ? "solid 2px var(--color-outline)" : "none",
 				"& > *": { [marginSide]: (gap ?? 0) * spaceUnit, },
 				"& > *:last-child": { [marginSide]: 0, },
 				":focus": {
-					border: "solid 2px var(--color-highlight)",
+					outline: "solid 2px var(--color-highlight)",
 				},
 			}}
 			{...props}

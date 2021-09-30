@@ -98,9 +98,6 @@ const Select: React.FC<SelectProps> = ({
 				css={{
 					overflow: "hidden",
 					position: "absolute",
-					width: "calc(100% + 4px)",
-					top: -2,
-					left: -2,
 					borderColor: "var(--color-highlight)",
 					zIndex: 1000,
 				}}

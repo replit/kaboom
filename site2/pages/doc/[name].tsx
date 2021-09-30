@@ -13,7 +13,7 @@ const Doc = () => {
 	const { data: doc, loading } = useFetch(`/public/doc/${name}.md`, (res) => res.text());
 
 	return <Nav>
-		<Link href="/">
+		<Link href="/" passHref>
 			<Button text="< Back" action={() => {}} />
 		</Link>
 		{loading

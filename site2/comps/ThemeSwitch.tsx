@@ -17,7 +17,7 @@ const ThemeSwitch: React.FC = () => {
 					outlined
 					focusable
 					css={{
-						borderColor: t === theme ? "var(--color-highlight)" : "var(--color-outline)",
+						outlineColor: t === theme ? "var(--color-highlight)" : "var(--color-outline)",
 						borderRadius: "50%",
 						cursor: "pointer",
 					}}

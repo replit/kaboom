@@ -126,7 +126,7 @@ const Page: React.FC<PageProps> = ({
 							background: var(--color-bg2);
 							padding: 16px;
 							border-radius: 8px;
-							border: solid 2px var(--color-outline);
+							outline: solid 2px var(--color-outline);
 							flex: 1,
 						}
 						code {

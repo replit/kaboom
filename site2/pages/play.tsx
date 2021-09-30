@@ -164,7 +164,7 @@ const Demo: React.FC = () => {
 					padX={2}
 				>
 					<View dir="row" gap={2} align="center">
-						<Link href="/">
+						<Link href="/" passHref>
 							<img
 								src="/public/img/k.png"
 								css={{
@@ -221,7 +221,7 @@ const Demo: React.FC = () => {
 					css={{
 						flex: "1",
 						overflow: "hidden",
-						paddingTop: 0,
+						paddingTop: 2,
 					}}
 				>
 					<View
