@@ -23,7 +23,7 @@ const UI: React.FC = () => (
 				<Toggle onChange={() => {}} />
 			</View>
 			<View dir="column" gap={1}>
-				<Text>here{"'"}s a theme toggle</Text>
+				<Text>here{"'"}s a theme switcher</Text>
 				<ThemeSwitch />
 			</View>
 			<View dir="column" gap={1}>
@@ -36,15 +36,11 @@ const UI: React.FC = () => (
 			</View>
 			<View dir="column" gap={1}>
 				<Text>here{"'"}s an editor</Text>
-				<Editor />
+				<Editor width={640} height={320} />
 			</View>
 			<View dir="column" gap={1}>
 				<Text>here{"'"}s a game view</Text>
-				<GameView code="kaboom()" />
-			</View>
-			<View dir="column" gap={1}>
-				<Text>here{"'"}s the code for this page</Text>
-				<a href="">Link</a>
+				<GameView code="kaboom()" width={640} height={480} />
 			</View>
 		</View>
 	</Page>

@@ -1,5 +1,5 @@
 import * as React from "react";
-import View from "comps/view";
+import View, { ViewProps } from "comps/view";
 
 export interface GameViewRef {
 	run: (code?: string) => void,
@@ -32,7 +32,7 @@ ${code}
 </body>
 `;
 
-const GameView = React.forwardRef<GameViewRef, GameViewProps>(({
+const GameView = React.forwardRef<GameViewRef, GameViewProps & ViewProps>(({
 	code,
 	...args
 }, ref) => {
@@ -51,22 +51,24 @@ const GameView = React.forwardRef<GameViewRef, GameViewProps>(({
 	}));
 
 	return (
-		<iframe
-			ref={iframeRef}
-			tabIndex={0}
-			width={640}
-			height={480}
-			css={{
-				border: "none",
-				background: "black",
-				borderRadius: "8px",
-				":focus": {
-					outline: "solid 2px var(--color-highlight)"
-				},
-			}}
-			srcDoc={wrapGame(code ?? "")}
-			{...args}
-		/>
+		<View {...args}>
+			<iframe
+				ref={iframeRef}
+				tabIndex={0}
+				css={{
+					border: "none",
+					background: "black",
+					borderRadius: "8px",
+					width: "100%",
+					height: "100%",
+					":focus": {
+						outline: "solid 2px var(--color-highlight)"
+					},
+				}}
+				srcDoc={wrapGame(code ?? "")}
+				{...args}
+			/>
+		</View>
 	);
 
 });

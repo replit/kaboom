@@ -93,6 +93,10 @@ const Page: React.FC<PageProps> = ({
 							width: 100%;
 							height: 100%;
 						}
+						.cm-editor {
+							width: 100% !important;
+							height: 100% !important;
+						}
 						.hljs-comment,
 						.hljs-quote {
 							color: var(--color-fg4);

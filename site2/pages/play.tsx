@@ -228,8 +228,8 @@ const Demo: React.FC = () => {
 						<Editor
 							ref={editorRef}
 							content={code}
+							stretchX
 							css={{
-								width: "100%",
 								flex: "1",
 							}}
 							keymaps={[
@@ -287,9 +287,9 @@ const Demo: React.FC = () => {
 					<GameView
 						ref={gameviewRef}
 						code={code}
+						stretchY
 						css={{
 							flex: "1",
-							height: "100%",
 						}}
 					/>
 				</View>

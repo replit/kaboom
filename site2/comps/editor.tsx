@@ -14,7 +14,7 @@ import { searchKeymap, highlightSelectionMatches } from "@codemirror/search";
 import { javascript } from "@codemirror/lang-javascript";
 
 import useUpdateEffect from "hooks/useUpdateEffect";
-import View from "comps/view";
+import View, { ViewProps } from "comps/view";
 import ThemeCtx from "comps/theme";
 import { GameViewRef } from "comps/gameview";
 import { themes, Theme } from "comps/ui";
@@ -225,7 +225,7 @@ interface EditorProps {
 	keymaps?: any[],
 };
 
-const Editor = React.forwardRef<EditorRef, EditorProps>(({
+const Editor = React.forwardRef<EditorRef, EditorProps & ViewProps>(({
 	content,
 	onChange,
 	keymaps,
