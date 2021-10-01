@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Theme, DEF_THEME } from "lib/ui";
+import { Theme, defTheme } from "lib/ui";
 
 export interface Tooltip {
 	name?: string,
@@ -9,7 +9,6 @@ export interface Tooltip {
 interface Ctx {
 	theme: Theme,
 	setTheme(theme: Theme): void,
-	nextTheme(): void,
 	inspect: boolean,
 	setInspect: (inspect: boolean) => void,
 	pushTooltip: (tooltip: Tooltip) => Promise<number>,
@@ -17,9 +16,8 @@ interface Ctx {
 }
 
 export default React.createContext<Ctx>({
-	theme: DEF_THEME,
+	theme: defTheme,
 	setTheme: () => {},
-	nextTheme: () => {},
 	inspect: false,
 	setInspect: () => {},
 	pushTooltip: () => Promise.reject(),

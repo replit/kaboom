@@ -1,8 +1,7 @@
 import * as React from "react";
 import Ctx from "lib/Ctx";
 import useTooltip from "hooks/useTooltip";
-
-const spaceUnit = 8;
+import { space as spaceUnit } from "lib/ui";
 
 type StackDir =
 	| "row"
@@ -108,15 +107,8 @@ const View = React.forwardRef<HTMLDivElement, React.PropsWithChildren<ViewProps>
 	return <div
 		ref={ref}
 		onClick={onClick}
-		onMouseEnter={(inspect && desc) ? () => {
-			pushTooltip({
-				name,
-				desc,
-			});
-		} : undefined}
-		onMouseLeave={(inspect && desc) ? () => {
-			popTooltip();
-		} : undefined}
+		onMouseEnter={(inspect && desc) ? () => pushTooltip({ name, desc, }) : undefined}
+		onMouseLeave={(inspect && desc) ? popTooltip : undefined}
 		onKeyDown={(focusable || onKeyDown) ? (e) => {
 			if (focusable) {
 				if (e.key === "Enter") {

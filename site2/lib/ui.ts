@@ -94,7 +94,7 @@ export const themes: ThemeBook = {
 };
 
 export const space = 8;
-export const DEF_THEME = "dark";
+export const defTheme = "dark";
 
 export const cssVars = (() => {
 
@@ -106,7 +106,7 @@ export const cssVars = (() => {
 		return code;
 	}
 
-	let code = `:root {${buildCSSVars("text", fontSizes)}${buildCSSVars("color", themes[DEF_THEME])}}`;
+	let code = `:root {${buildCSSVars("text", fontSizes)}${buildCSSVars("color", themes[defTheme])}}`;
 
 	for (const theme in themes) {
 		code += `.${theme} {${buildCSSVars("color", themes[theme as Theme])}}`;

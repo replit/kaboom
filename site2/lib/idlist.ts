@@ -3,9 +3,11 @@ class IDList<T> extends Map<number, T> {
 	constructor(...args: any[]) {
 		super(...args);
 		this._lastID = 0;
-		if (args[0] instanceof IDList) {
-			this._lastID = args[0]._lastID;
-		}
+	}
+	clone(): IDList<T> {
+		const n = new IDList<T>(this);
+		n._lastID = this._lastID;
+		return n;
 	}
 	push(v: T): number {
 		const id = this._lastID;

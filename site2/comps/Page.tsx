@@ -4,7 +4,7 @@ import Ctx, { Tooltip } from "lib/Ctx";
 import View from "comps/View";
 import Button from "comps/Button";
 import Text from "comps/Text";
-import { Theme, DEF_THEME, themes, cssVars } from "lib/ui";
+import { Theme, defTheme, themes, cssVars } from "lib/ui";
 import useMousePos from "hooks/useMousePos";
 import useKey from "hooks/useKey";
 import IDList from "lib/idlist";
@@ -17,27 +17,26 @@ const Page: React.FC<PageProps> = ({
 	theme: initTheme,
 	children,
 } = {
-	theme: DEF_THEME,
+	theme: defTheme,
 }) => {
 
-	const [ theme, setTheme ] = React.useState<Theme>(initTheme ?? DEF_THEME);
+	const [ theme, setTheme ] = React.useState<Theme>(initTheme ?? defTheme);
 	const [ inspect, setInspect ] = React.useState(false);
 	const [ tooltipStack, setTooltipStack ] = React.useState<IDList<Tooltip>>(new IDList());
 	const [ mouseX, mouseY ] = useMousePos();
 
 	const curTooltip = React.useMemo(
-		() => tooltipStack.size === 0 ? null : Array.from(tooltipStack)[tooltipStack.size - 1][1],
+		() => tooltipStack.size === 0 ? null : Array.from(tooltipStack.values())[tooltipStack.size - 1],
 		[ tooltipStack ]
 	);
 
 	useKey("F1", () => setInspect(!inspect), [ setInspect, inspect ]);
 	useKey("Escape", () => setInspect(false), [ setInspect ]);
 
-	// TODO: this is for covering up the stack bug
-	React.useEffect(() => {
-		setTooltipStack(new IDList());
-	}, [ inspect ]);
+	// TODO: reset the tooltip stack when entering / exiting inspect mode to cover up any possible stack bug
+	React.useEffect(() => setTooltipStack(new IDList()), [ inspect ]);
 
+	// set theme from local storage
 	React.useEffect(() => {
 		if (initTheme) {
 			return;
@@ -47,6 +46,7 @@ const Page: React.FC<PageProps> = ({
 		}
 	}, [ initTheme ]);
 
+	// save theme setting into local storage
 	React.useEffect(() => {
 		if (initTheme) {
 			return;
@@ -54,22 +54,11 @@ const Page: React.FC<PageProps> = ({
 		localStorage["theme"] = theme;
 	}, [ theme, setTheme, initTheme ]);
 
-	const nextTheme = React.useCallback(() => {
-		if (initTheme) {
-			return;
-		}
-		const options = Object.keys(themes) as Array<Theme>;
-		setTheme((prev: Theme) => {
-			const idx = options.indexOf(prev);
-			const nxt = (idx + 1) % options.length;
-			return options[nxt];
-		});
-	}, [setTheme, initTheme]);
-
+	// push a tooltip into tooltip stack, returning the id
 	const pushTooltip = React.useCallback((t: Tooltip) => {
 		return new Promise<number>((resolve, reject) => {
 			setTooltipStack((prevStack) => {
-				const newStack = new IDList<Tooltip>(prevStack);
+				const newStack = prevStack.clone();
 				const id = newStack.push(t);
 				resolve(id);
 				return newStack;
@@ -77,9 +66,10 @@ const Page: React.FC<PageProps> = ({
 		});
 	}, [ setTooltipStack, ]);
 
+	// pop a tooltip from tooltip stack with id
 	const popTooltip = React.useCallback((id: number) => {
 		setTooltipStack((prevStack) => {
-			const newStack = new IDList<Tooltip>(prevStack);
+			const newStack = prevStack.clone();
 			newStack.delete(id);
 			return newStack;
 		});
@@ -89,7 +79,6 @@ const Page: React.FC<PageProps> = ({
 		<Ctx.Provider value={{
 			theme,
 			setTheme,
-			nextTheme,
 			inspect,
 			setInspect,
 			pushTooltip,
