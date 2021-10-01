@@ -184,7 +184,7 @@ const TooltipComp: React.FC<Tooltip> = ({
 			css={{
 				position: "absolute",
 				zIndex: 20000,
-				maxWidth: "240px",
+				maxWidth: "320px",
 				pointerEvents: "none",
 				overflow: "hidden",
 				top: mouseY,
