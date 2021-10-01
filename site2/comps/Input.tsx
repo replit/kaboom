@@ -31,6 +31,7 @@ const Input: React.FC<InputProps> = ({
 				boxShadow: "0 0 0 2px var(--color-outline)",
 				border: "none",
 				padding: 8,
+				width: "100%",
 				color: "var(--color-fg1)",
 				"::placeholder": {
 					color: "var(--color-fg3)",

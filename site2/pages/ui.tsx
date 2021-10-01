@@ -9,7 +9,7 @@ import Toggle from "comps/Toggle";
 import ThemeSwitch from "comps/ThemeSwitch";
 import Text from "comps/Text";
 import Select from "comps/Select";
-import View from "comps/View";
+import View, { ViewProps } from "comps/View";
 import Menu from "comps/Menu";
 import Input from "comps/Input";
 import Markdown from "comps/Markdown";
@@ -21,8 +21,12 @@ interface ExampleProps {
 	thing: string,
 }
 
-const Example: React.FC<ExampleProps> = ({ thing, children }) => (
-	<View dir="column" gap={2}>
+const Example: React.FC<ExampleProps & ViewProps> = ({
+	thing,
+	children,
+	...args
+}) => (
+	<View dir="column" gap={2} {...args}>
 		<Text color={4} size="huge">here{"'"}s {thing}</Text>
 		{children}
 	</View>
@@ -56,7 +60,9 @@ const UI: React.FC = () => (
 				<Toggle />
 			</Example>
 			<Example thing="an input">
-				<Input placeholder="Enter your bank account and password" />
+				<View width={400}>
+					<Input placeholder="Please enter your bank account and password" />
+				</View>
 			</Example>
 			<Example thing="a theme switcher">
 				<ThemeSwitch />
@@ -103,7 +109,7 @@ add([
 				/>
 			</Example>
 			<Example thing="a piece of doc">
-				<View width={640}>
+				<View width={640} name="Document Component" desc="Display doc for a Kaboom function just by passing a name">
 					<KaboomEntry name="add" />
 				</View>
 			</Example>

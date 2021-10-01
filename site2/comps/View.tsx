@@ -71,6 +71,7 @@ export interface ViewProps {
 	onKeyDown?: React.KeyboardEventHandler<HTMLDivElement>,
 }
 
+// TODO: put tooltip / inspect logic to a useInspect()?
 const View = React.forwardRef<HTMLDivElement, React.PropsWithChildren<ViewProps>>(({
 	name,
 	desc,
