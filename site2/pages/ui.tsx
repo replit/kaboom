@@ -71,7 +71,7 @@ const UI: React.FC = () => (
 				<Text italic bold size="huge">oh hi mark</Text>
 			</Example>
 			<Example thing="a button">
-				<Button text="Run" action={() => {}} name="Run Button" desc="run current code" />
+				<Button text="Run" name="Run Button" desc="run current code" />
 			</Example>
 			<Example thing="an inspect button">
 				<Inspect />

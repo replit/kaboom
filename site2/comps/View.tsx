@@ -67,12 +67,23 @@ export interface ViewProps {
 	pad?: number,
 	padX?: number,
 	padY?: number,
-	onClick?: React.MouseEventHandler<HTMLDivElement>,
-	onKeyDown?: React.KeyboardEventHandler<HTMLDivElement>,
 }
 
+export type ViewPropsWithChildren = React.PropsWithChildren<ViewProps>;
+
+export type ViewPropsWithChildrenAndDiv =
+	ViewPropsWithChildren
+	& Omit<
+		Omit<
+			React.HTMLProps<HTMLDivElement>,
+			"ref"
+		>,
+		keyof ViewProps
+	>
+	;
+
 // TODO: put tooltip / inspect logic to a useInspect()?
-const View = React.forwardRef<HTMLDivElement, React.PropsWithChildren<ViewProps>>(({
+const View = React.forwardRef<HTMLDivElement, ViewPropsWithChildrenAndDiv>(({
 	name,
 	desc,
 	dir,
@@ -93,7 +104,6 @@ const View = React.forwardRef<HTMLDivElement, React.PropsWithChildren<ViewProps>
 	padX,
 	padY,
 	focusable,
-	onClick,
 	onKeyDown,
 	children,
 	...props
@@ -119,7 +129,6 @@ const View = React.forwardRef<HTMLDivElement, React.PropsWithChildren<ViewProps>
 
 	return <div
 		ref={curDomRef}
-		onClick={onClick}
 		onMouseEnter={(inspect && desc) ? () => pushTooltip({ name, desc, }) : undefined}
 		onMouseLeave={(inspect && desc) ? popTooltip : undefined}
 		onKeyDown={(focusable || onKeyDown) ? (e) => {

@@ -13,6 +13,7 @@ import View from "comps/View";
 import Text from "comps/Text";
 import Menu from "comps/Menu";
 import Inspect from "comps/Inspect";
+import FileDrop from "comps/FileDrop";
 import Background from "comps/Background";
 import KaboomEntry from "comps/KaboomEntry";
 
@@ -312,16 +313,26 @@ const Demo: React.FC = () => {
 				}}
 			>
 				<View
-					pad={2}
+					padY={2}
 					gap={2}
 					stretchY
 					css={{
+						paddingLeft: 16,
+						paddingRight: 8,
 						flex: "1",
 						overflow: "scroll",
 					}}
 				>
-					<Text size="big" color={2} noSelect>Backpack</Text>
-					<View gap={1} stretchX>
+					<View padX={1} stretchX>
+						<Text size="big" color={2} noSelect>Backpack</Text>
+					</View>
+					<FileDrop
+						pad={1}
+						rounded
+						type="dataURL"
+						gap={1}
+						stretchX
+					>
 						<Text color={3} noSelect>Sprites</Text>
 						{[
 							"bean",
@@ -335,8 +346,14 @@ const Demo: React.FC = () => {
 								src={`/public/assets/sprites/${name}.png`}
 							/>
 						))}
-					</View>
-					<View gap={1} stretchX>
+					</FileDrop>
+					<FileDrop
+						pad={1}
+						rounded
+						type="dataURL"
+						gap={1}
+						stretchX
+					>
 						<Text color={3} noSelect>Sounds</Text>
 						{[
 							"bug",
@@ -350,7 +367,7 @@ const Demo: React.FC = () => {
 								src={`/public/assets/sounds/${name}.mp3`}
 							/>
 						))}
-					</View>
+					</FileDrop>
 				</View>
 				<View
 					name="Backpack Handle"
