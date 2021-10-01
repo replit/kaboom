@@ -11,6 +11,8 @@ export type Color =
 	| "fg4"
 	| "highlight"
 	| "accent"
+	| "err"
+	| "errbg"
 	;
 
 export type FontSize =
@@ -53,6 +55,8 @@ export const themes: ThemeBook = {
 		"fg4": "rgb(80, 90, 110)",
 		"highlight": "rgb(30, 140, 230)",
 		"accent": "rgb(19, 33, 49)",
+		"err": "rgb(230, 90, 90)",
+		"errbg": "rgb(40, 25, 35)",
 	},
 	"black": {
 		"bg1": "rgb(0, 0, 0)",
@@ -67,6 +71,8 @@ export const themes: ThemeBook = {
 		"fg4": "rgb(95, 95, 95)",
 		"highlight": "rgb(30, 140, 230)",
 		"accent": "rgb(19, 33, 49)",
+		"err": "rgb(255, 128, 128)",
+		"errbg": "rgb(30, 10, 10)",
 	},
 	"yellow": {
 		"bg1": "rgb(255, 235, 170)",
@@ -81,6 +87,8 @@ export const themes: ThemeBook = {
 		"fg4": "rgb(180, 180, 140)",
 		"highlight": "rgb(30, 140, 230)",
 		"accent": "rgb(19, 33, 49)",
+		"err": "rgb(255, 128, 128)",
+		"errbg": "rgb(255, 205, 140)",
 	},
 	"light": {
 		"bg1": "rgb(255, 255, 255)",
@@ -95,6 +103,8 @@ export const themes: ThemeBook = {
 		"fg4": "rgb(190, 190, 190)",
 		"highlight": "rgb(0, 128, 255)",
 		"accent": "rgb(255, 248, 188)",
+		"err": "rgb(255, 128, 128)",
+		"errbg": "rgb(255, 215, 215)",
 	},
 };
 

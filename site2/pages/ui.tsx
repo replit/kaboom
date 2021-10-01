@@ -124,10 +124,11 @@ add([
 					bg={1}
 					rounded
 					outlined
-					type="text"
+					accept="^image/"
+					readAs="text"
 					onLoad={(file, content) => console.log(file, content)}
 				>
-					<Text color={3}>drop stuff on me!</Text>
+					<Text color={3}>drop images on me!</Text>
 				</FileDrop>
 			</Example>
 		</Background>

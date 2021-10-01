@@ -71,7 +71,7 @@ const Menu: React.FC<MenuProps> = ({
 						focusable
 						css={{
 							":hover": {
-								background: "var(--color-highlight)",
+								background: item.danger ? "var(--color-err)" : "var(--color-highlight)",
 							},
 						}}
 						onClick={() => item.action && item.action()}

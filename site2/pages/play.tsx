@@ -329,9 +329,19 @@ const Demo: React.FC = () => {
 					<FileDrop
 						pad={1}
 						rounded
-						type="dataURL"
+						readAs="dataURL"
 						gap={1}
 						stretchX
+						accept="^image/"
+						onLoad={(file, content) => {
+							console.log(file);
+//  							setSprites((prev) => [
+//  								...prev,
+//  								{
+//  									name: file.
+//  								}
+//  							]);
+						}}
 					>
 						<Text color={3} noSelect>Sprites</Text>
 						{[
@@ -350,7 +360,7 @@ const Demo: React.FC = () => {
 					<FileDrop
 						pad={1}
 						rounded
-						type="dataURL"
+						readAs="dataURL"
 						gap={1}
 						stretchX
 					>

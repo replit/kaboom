@@ -15,12 +15,13 @@ type FileContent =
 	;
 
 interface DropZoneProps {
-	onDrag?: (hovering: boolean) => void,
+	onEnter?: () => void,
+	onLeave?: () => void,
 	onLoad?: (file: File, content: FileContent) => void,
 	onErr?: (file: File) => void,
 	onAbort?: (file: File) => void,
-	type?: FileType | ((file: File) => FileType),
-	accept?: string | string[],
+	readAs?: FileType | ((file: File) => FileType),
+	accept?: string | RegExp | (string | RegExp)[],
 	dragColor?: number | string,
 }
 
@@ -29,8 +30,9 @@ const DropZone = React.forwardRef<HTMLDivElement, DropZoneProps & ViewPropsWithC
 	onLoad,
 	onErr,
 	onAbort,
-	onDrag,
-	type,
+	onEnter,
+	onLeave,
+	readAs,
 	accept,
 	dragColor,
 	children,
@@ -38,39 +40,88 @@ const DropZone = React.forwardRef<HTMLDivElement, DropZoneProps & ViewPropsWithC
 }, ref) => {
 
 	const [ counter, setCounter ] = React.useState(0);
+	const [ refuse, setRefuse ] = React.useState(false);
 	const draggin = counter > 0;
+
+	const checkAccept = React.useCallback((mime: string) => {
+
+		// accept anything if no accept is passed
+		if (!accept) {
+			return true;
+		}
+
+		const acceptList = Array.isArray(accept) ? accept : [accept];
+
+		for (const pat of acceptList) {
+			if (!mime.match(pat)) {
+				return false;
+			}
+		}
+
+		return true;
+
+	}, [ accept, ]);
 
 	return (
 		<View
-			bg={draggin ? (dragColor ?? 2) : bg}
+			bg={refuse ? "var(--color-errbg)" : (draggin ? (dragColor ?? 2) : bg)}
 			onDragEnter={(e) => {
+
 				e.preventDefault();
+
 				setCounter((c) => {
-					c == 0 && onDrag && onDrag(true);
+
+					if (c == 0) {
+
+						onEnter && onEnter();
+
+						const items = e.dataTransfer.items;
+
+						if (items?.length) {
+
+							for (let i = 0; i < items.length; i++) {
+
+								if (items[i].kind !== "file") {
+									setRefuse(true);
+									break;
+								};
+
+								if (!checkAccept(items[i].type)) {
+									setRefuse(true);
+									break;
+								}
+
+							}
+
+						}
+
+					}
+
 					return c + 1;
+
 				});
+
 			}}
 			onDragLeave={(e) => {
 				e.preventDefault();
 				setCounter((c) => {
-					c == 1 && onDrag && onDrag(false);
+					if (c - 1 === 0) {
+						onLeave && onLeave();
+						setRefuse(false);
+					}
 					return c - 1;
 				});
 			}}
 			onDragOver={(e) => {
 				e.preventDefault();
-				if (!onLoad || !type) return;
 			}}
 			onDrop={(e) => {
 
 				e.preventDefault();
+				setCounter(0);
+				setRefuse(false);
 
-				setCounter((c) => {
-					c == 1 && onDrag && onDrag(false);
-					return c - 1;
-				});
-
-				if (!onLoad || !type) return;
+				if (refuse || !draggin || !onLoad || !readAs) return;
 
 				const items = e.dataTransfer.items;
 
@@ -83,7 +134,7 @@ const DropZone = React.forwardRef<HTMLDivElement, DropZoneProps & ViewPropsWithC
 					if (!file) continue;
 
 					// get the desired read method of the file
-					const ty = typeof type === "string" ? type : type(file);
+					const ty = typeof readAs === "string" ? readAs : readAs(file);
 
 					// init reader
 					const reader = new FileReader();
