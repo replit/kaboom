@@ -1,10 +1,7 @@
 import * as React from "react";
 import { Theme, defTheme } from "lib/ui";
-
-export interface Tooltip {
-	name?: string,
-	desc: string,
-}
+import { Tooltip } from "lib/tooltip";
+import { Doc } from "lib/doc";
 
 interface Ctx {
 	theme: Theme,
@@ -13,6 +10,7 @@ interface Ctx {
 	setInspect: (inspect: boolean) => void,
 	pushTooltip: (tooltip: Tooltip) => Promise<number>,
 	popTooltip: (id: number) => void,
+	doc: Doc | null,
 }
 
 export default React.createContext<Ctx>({
@@ -22,4 +20,5 @@ export default React.createContext<Ctx>({
 	setInspect: () => {},
 	pushTooltip: () => Promise.reject(),
 	popTooltip: () => {},
+	doc: null,
 });

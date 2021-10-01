@@ -1,21 +1,29 @@
 import * as React from "react";
 import useFetch from "hooks/useFetch";
-
-export interface Doc {
-	getDef: (member: string) => any | null,
-}
+import { Doc } from "lib/doc";
 
 const useDoc = (): Doc => {
 
 	const { data } = useFetch("/public/types.json", (res) => res.json());
 
-	const getDef = React.useCallback((mem) => {
-		if (!data) return null;
-		return data["KaboomCtx"][mem];
-	}, [ data ]);
+	const entries = React.useMemo(() => {
+		if (!data) {
+			return {};
+		}
+		const members = data["KaboomCtx"].members;
+		const entries: any = {};
+		for (const mem of members) {
+			if (!entries[mem.name]) {
+				entries[mem.name] = [];
+			}
+			entries[mem.name].push(mem);
+		}
+		return entries;
+	}, [ data, ]);
 
 	return {
-		getDef,
+		entries,
+		types: data,
 	};
 
 };

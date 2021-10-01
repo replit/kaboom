@@ -1,13 +1,15 @@
 import * as React from "react";
 import Head from "next/head";
 import { Global, css } from "@emotion/react"
-import Ctx, { Tooltip } from "lib/Ctx";
+import Ctx from "lib/Ctx";
+import { Tooltip } from "lib/tooltip";
 import View from "comps/View";
 import Button from "comps/Button";
 import Text from "comps/Text";
 import { Theme, defTheme, themes, cssVars } from "lib/ui";
 import useMousePos from "hooks/useMousePos";
 import useKey from "hooks/useKey";
+import useDoc from "hooks/useDoc";
 import IDList from "lib/idlist";
 
 interface PageProps {
@@ -28,7 +30,7 @@ const Page: React.FC<PageProps> = ({
 	const [ theme, setTheme ] = React.useState<Theme>(initTheme ?? defTheme);
 	const [ inspect, setInspect ] = React.useState(false);
 	const [ tooltipStack, setTooltipStack ] = React.useState<IDList<Tooltip>>(new IDList());
-	const [ mouseX, mouseY ] = useMousePos();
+	const doc = useDoc();
 
 	const curTooltip = React.useMemo(
 		() => tooltipStack.size === 0 ? null : Array.from(tooltipStack.values())[tooltipStack.size - 1],
@@ -38,7 +40,7 @@ const Page: React.FC<PageProps> = ({
 	useKey("F1", () => setInspect(!inspect), [ setInspect, inspect ]);
 	useKey("Escape", () => setInspect(false), [ setInspect ]);
 
-	// TODO: reset the tooltip stack when entering / exiting inspect mode to cover up any possible stack bug
+	// reset tooltip stack when entering / exiting inspect mode
 	React.useEffect(() => setTooltipStack(new IDList()), [ inspect ]);
 
 	// set theme from local storage
@@ -240,6 +242,7 @@ const Page: React.FC<PageProps> = ({
 			setInspect,
 			pushTooltip,
 			popTooltip,
+			doc,
 		}}>
 			<div
 				className={theme}
@@ -274,29 +277,39 @@ const Page: React.FC<PageProps> = ({
 					}}
 				/>
 			</View> }
-			{ inspect && curTooltip && <View
-				bg={1}
-				pad={1.5}
-				rounded
-				outlined
-				css={{
-					position: "absolute",
-					top: mouseY,
-					left: mouseX,
-					zIndex: 20000,
-					maxWidth: "240px",
-					pointerEvents: "none",
-					overflow: "hidden",
-				}}
-			>
-				{ curTooltip.name &&
-					<Text noSelect>{curTooltip.name}</Text>
-				}
-				<Text color={2} noSelect>{curTooltip.desc}</Text>
-			</View> }
+			{ inspect && curTooltip && <TooltipComp {...curTooltip} /> }
 		</Ctx.Provider>
 	</>;
 
+};
+
+const TooltipComp: React.FC<Tooltip> = ({
+	name,
+	desc,
+}) => {
+	const [ mouseX, mouseY ] = useMousePos();
+	return (
+		<View
+			bg={1}
+			pad={1.5}
+			rounded
+			outlined
+			css={{
+				position: "absolute",
+				zIndex: 20000,
+				maxWidth: "240px",
+				pointerEvents: "none",
+				overflow: "hidden",
+				top: mouseY,
+				left: mouseX,
+			}}
+		>
+		{ name &&
+			<Text noSelect>{name}</Text>
+		}
+		<Text color={2} noSelect>{desc}</Text>
+	</View>
+	);
 };
 
 export default Page;
