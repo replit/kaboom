@@ -148,4 +148,3 @@ if (!globalGenerated) {
 
 fs.writeFileSync(`${distDir}/kaboom.d.ts`, dts);
 fs.writeFileSync("site2/public/public/types.json", JSON.stringify(types));
-// TODO: copy to site2/public/dist

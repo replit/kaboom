@@ -7,55 +7,69 @@ import useKey from "hooks/useKey";
 interface PromptProps {
 	name: string,
 	expanded: boolean,
+	options: string[],
 }
 
 const Prompt: React.FC<PromptProps> = ({
 	expanded,
+	options,
 	name,
-}) => (
-	<View
-		dir="row"
-		stretchX
-		justify="between"
-	>
-		<View padX={1} padY={0.5}>
-			<Text noSelect>{name}</Text>
-		</View>
+}) => {
+
+	const longest = React.useMemo(
+		() => options.reduce((a, b) => a.length > b.length ? a : b),
+		[ options, ]
+	);
+
+	return (
 		<View
-			align="center"
-			justify="center"
-			width={32}
-			height={35}
-			bg={4}
-			css={{
-				borderTopRightRadius: 6,
-				borderBottomRightRadius: expanded ? 0 : 6,
-			}}
+			dir="row"
+			stretchX
+			gap={1}
+			justify="between"
 		>
-			<Text
-				color={3}
+			<View padX={1} padY={0.5}>
+				<Text noSelect css={{ opacity: "0" }}>{longest}</Text>
+				<Text noSelect css={{ position: "absolute" }}>{name}</Text>
+			</View>
+			<View
+				align="center"
+				justify="center"
+				width={32}
+				height={35}
+				bg={4}
 				css={{
-					position: "relative",
-					left: expanded ? -1 : 2,
-					top: expanded ? 0 : 2,
-					transform: `rotate(${expanded ? -90 : 90}deg) scaleY(1.2)`,
+					borderTopRightRadius: 6,
+					borderBottomRightRadius: expanded ? 0 : 6,
 				}}
 			>
-				{">"}
-			</Text>
+				<Text
+					color={3}
+					css={{
+						position: "relative",
+						left: expanded ? -1 : 2,
+						top: expanded ? 0 : 2,
+						transform: `rotate(${expanded ? -90 : 90}deg) scaleY(1.2)`,
+					}}
+				>
+					{">"}
+				</Text>
+			</View>
 		</View>
-	</View>
-);
+	);
+};
 
 interface SelectProps {
 	options: string[],
 	selected?: string,
+	maxHeight?: number | string,
 	onChange: (item: string) => void,
 }
 
 const Select: React.FC<SelectProps & ViewProps> = ({
 	options,
 	selected,
+	maxHeight,
 	onChange,
 	...args
 }) => {
@@ -88,7 +102,7 @@ const Select: React.FC<SelectProps & ViewProps> = ({
 			onClick={() => setExpanded(!expanded)}
 			{...args}
 		>
-			<Prompt name={curItem} expanded={expanded} />
+			<Prompt name={curItem} options={options} expanded={expanded} />
 			{expanded && <View
 				dir="column"
 				bg={3}
@@ -96,13 +110,15 @@ const Select: React.FC<SelectProps & ViewProps> = ({
 				outlined
 				rounded
 				css={{
-					overflow: "hidden",
+					overflowX: "hidden",
+					overflowY: "scroll",
 					position: "absolute",
 					borderColor: "var(--color-highlight)",
 					zIndex: 1000,
+					maxHeight: maxHeight ?? 480,
 				}}
 			>
-				<Prompt name={curItem} expanded={expanded} />
+				<Prompt name={curItem} options={options} expanded={expanded} />
 				<View height={2} stretchX bg={4} />
 				{options.map((opt) => (
 					<View
