@@ -2,6 +2,7 @@ import * as React from "react";
 import Link from "next/link";
 import useKey from "hooks/useKey";
 import useFetch from "hooks/useFetch";
+import useStoredState from "hooks/useStoredState";
 import useClickOutside from "hooks/useClickOutside";
 import Editor, { EditorRef } from "comps/Editor";
 import GameView, { GameViewRef } from "comps/GameView";
@@ -16,6 +17,8 @@ import Inspect from "comps/Inspect";
 import FileDrop from "comps/FileDrop";
 import Background from "comps/Background";
 import KaboomEntry from "comps/KaboomEntry";
+import { basename } from "lib/path";
+import getSpaceUsed from "lib/spaceUsed";
 
 const demos = [
 	"audio",
@@ -91,7 +94,7 @@ const SpriteEntry: React.FC<SpriteEntryProps> = ({
 				}}
 			/>
 		</View>
-		<Text noSelect>{name}</Text>
+		<Text>{name}</Text>
 	</View>
 );
 
@@ -115,7 +118,7 @@ const SoundEntry: React.FC<SoundEntryProps> = ({
 		padX={2}
 		padY={1}
 		rounded
-		height={64}
+		height={48}
 		css={{
 			"overflow": "hidden",
 			":hover": {
@@ -125,10 +128,19 @@ const SoundEntry: React.FC<SoundEntryProps> = ({
 		}}
 		onClick={() => new Audio(src).play()}
 	>
-		<View width={48} height={48} justify="center"></View>
-		<Text noSelect>{name}</Text>
+		<Text>{name}</Text>
 	</View>
 );
+
+interface Sprite {
+	name: string,
+	src: string,
+}
+
+interface Sound {
+	name: string,
+	src: string,
+}
 
 const Demo: React.FC = () => {
 
@@ -136,11 +148,14 @@ const Demo: React.FC = () => {
 	const { data: fetchedCode } = useFetch(`/public/demo/${curDemo}.js`, (res) => res.text());
 	const [ backpackOpen, setBackpackOpen ] = React.useState(false);
 	const [ code, setCode ] = React.useState("");
+	const [ sprites, setSprites ] = useStoredState<Sprite[]>("sprites", []);
+	const [ sounds, setSounds ] = useStoredState<Sound[]>("sounds", []);
 	const [ blackboard, setBlackboard ] = React.useState<string | null>(null);
 	const editorRef = React.useRef<EditorRef | null>(null);
 	const gameviewRef = React.useRef<GameViewRef | null>(null);
 	const backpackRef = React.useRef(null);
 	const blackboardRef = React.useRef(null);
+	const spaceUsed = React.useMemo(getSpaceUsed, [ sprites, sounds ]);
 
 	React.useEffect(() => {
 		if (fetchedCode != null) {
@@ -314,7 +329,7 @@ const Demo: React.FC = () => {
 			>
 				<View
 					padY={2}
-					gap={2}
+					gap={1}
 					stretchY
 					css={{
 						paddingLeft: 16,
@@ -324,7 +339,7 @@ const Demo: React.FC = () => {
 					}}
 				>
 					<View padX={1} stretchX>
-						<Text size="big" color={2} noSelect>Backpack</Text>
+						<Text size="big" color={2}>Backpack</Text>
 					</View>
 					<FileDrop
 						pad={1}
@@ -334,26 +349,29 @@ const Demo: React.FC = () => {
 						stretchX
 						accept="^image/"
 						onLoad={(file, content) => {
-							console.log(file);
-//  							setSprites((prev) => [
-//  								...prev,
-//  								{
-//  									name: file.
-//  								}
-//  							]);
+							setSprites((prev) => {
+								for (const spr of prev) {
+									if (spr.src === content) {
+										// TODO: err msg?
+										return prev;
+									}
+								}
+								return [
+									...prev,
+									{
+										name: file.name,
+										src: content,
+									},
+								];
+							})
 						}}
 					>
-						<Text color={3} noSelect>Sprites</Text>
-						{[
-							"bean",
-							"googoly",
-							"cut",
-							"meat",
-						].map((name) => (
+						<Text color={3}>Sprites</Text>
+						{sprites.map(({name, src}) => (
 							<SpriteEntry
 								key={name}
-								name={name}
-								src={`/public/assets/sprites/${name}.png`}
+								name={basename(name) ?? name}
+								src={src}
 							/>
 						))}
 					</FileDrop>
@@ -363,21 +381,37 @@ const Demo: React.FC = () => {
 						readAs="dataURL"
 						gap={1}
 						stretchX
+						accept="^audio/"
+						onLoad={(file, content) => {
+							setSounds((prev) => {
+								for (const snd of prev) {
+									if (snd.src === content) {
+										// TODO: err msg?
+										return prev;
+									}
+								}
+								return [
+									...prev,
+									{
+										name: file.name,
+										src: content,
+									},
+								];
+							})
+						}}
 					>
-						<Text color={3} noSelect>Sounds</Text>
-						{[
-							"bug",
-							"computer",
-							"dune",
-							"mystic",
-						].map((name) => (
+						<Text color={3}>Sounds</Text>
+						{sounds.map(({name, src}) => (
 							<SoundEntry
 								key={name}
-								name={name}
-								src={`/public/assets/sounds/${name}.mp3`}
+								name={basename(name) ?? name}
+								src={src}
 							/>
 						))}
 					</FileDrop>
+					<View stretchX padX={1}>
+						<Text color={4} size="small">Space used: {(spaceUsed / 1024 / 1024).toFixed(2)}mb</Text>
+					</View>
 				</View>
 				<View
 					name="Backpack Handle"

@@ -8,26 +8,23 @@ import Button from "comps/Button";
 import Text from "comps/Text";
 import { Theme, defTheme, themes, cssVars } from "lib/ui";
 import useMousePos from "hooks/useMousePos";
+import useStoredState from "hooks/useStoredState";
 import useKey from "hooks/useKey";
 import useDoc from "hooks/useDoc";
 import IDList from "lib/idlist";
 
 interface PageProps {
-	theme?: Theme,
 	title?: string,
 	desc?: string,
 }
 
 const Page: React.FC<PageProps> = ({
-	theme: initTheme,
 	title,
 	desc,
 	children,
-} = {
-	theme: defTheme,
 }) => {
 
-	const [ theme, setTheme ] = React.useState<Theme>(initTheme ?? defTheme);
+	const [ theme, setTheme ] = useStoredState<Theme>("theme", defTheme);
 	const [ inspect, setInspect ] = React.useState(false);
 	const [ tooltipStack, setTooltipStack ] = React.useState<IDList<Tooltip>>(new IDList());
 	const doc = useDoc();
@@ -46,24 +43,6 @@ const Page: React.FC<PageProps> = ({
 			setTooltipStack(new IDList());
 		}
 	}, [ inspect ]);
-
-	// set theme from local storage
-	React.useEffect(() => {
-		if (initTheme) {
-			return;
-		}
-		if (localStorage["theme"]) {
-			setTheme(localStorage["theme"]);
-		}
-	}, [ initTheme ]);
-
-	// save theme setting into local storage
-	React.useEffect(() => {
-		if (initTheme) {
-			return;
-		}
-		localStorage["theme"] = theme;
-	}, [ theme, setTheme, initTheme ]);
 
 	// push a tooltip into tooltip stack, returning the id
 	const pushTooltip = React.useCallback((t: Tooltip) => {
@@ -216,9 +195,9 @@ const TooltipComp: React.FC<Tooltip> = ({
 		>
 		{
 			name &&
-			<Text noSelect>{name}</Text>
+			<Text>{name}</Text>
 		}
-		<Text color={2} noSelect>{desc}</Text>
+		<Text color={2}>{desc}</Text>
 	</View>
 	);
 };

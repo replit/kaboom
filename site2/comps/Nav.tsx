@@ -106,7 +106,7 @@ const NavLink: React.FC<NavLinkProps> = ({
 				},
 			}}
 		>
-			<Text color={2} noSelect>{text}</Text>
+			<Text color={2}>{text}</Text>
 		</View>
 	</Link>
 );

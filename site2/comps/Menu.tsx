@@ -40,7 +40,6 @@ const Menu: React.FC<MenuProps> = ({
 			onClick={() => setExpanded(!expanded)}
 		>
 			<Text
-				noSelect
 				css={{
 					position: "absolute",
 					top: "2px",
@@ -76,7 +75,7 @@ const Menu: React.FC<MenuProps> = ({
 						}}
 						onClick={() => item.action && item.action()}
 					>
-						<Text noSelect>{item.name}</Text>
+						<Text>{item.name}</Text>
 					</View>
 				))}
 			</View>}

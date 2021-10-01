@@ -29,8 +29,8 @@ const Prompt: React.FC<PromptProps> = ({
 			justify="between"
 		>
 			<View padX={1} padY={0.5}>
-				<Text noSelect css={{ opacity: "0" }}>{longest}</Text>
-				<Text noSelect css={{ position: "absolute" }}>{name}</Text>
+				<Text css={{ opacity: "0" }}>{longest}</Text>
+				<Text css={{ position: "absolute" }}>{name}</Text>
 			</View>
 			<View
 				align="center"
