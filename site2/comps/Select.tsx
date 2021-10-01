@@ -110,37 +110,43 @@ const Select: React.FC<SelectProps & ViewProps> = ({
 				outlined
 				rounded
 				css={{
-					overflowX: "hidden",
-					overflowY: "scroll",
+					overflow: "hidden",
 					position: "absolute",
 					borderColor: "var(--color-highlight)",
 					zIndex: 1000,
-					maxHeight: maxHeight ?? 480,
 				}}
 			>
 				<Prompt name={curItem} options={options} expanded={expanded} />
 				<View height={2} stretchX bg={4} />
-				{options.map((opt) => (
-					<View
-						stretchX
-						key={opt}
-						padX={1}
-						padY={0.5}
-						bg={curItem === opt ? 4 : "none"}
-						focusable
-						css={{
-							":hover": {
-								background: "var(--color-highlight)",
-							},
-						}}
-						onClick={() => {
-							setCurItem(opt);
-							onChange(opt);
-						}}
-					>
-						<Text>{opt}</Text>
-					</View>
-				))}
+				<View
+					stretchX
+					css={{
+						overflowY: "scroll",
+						maxHeight: maxHeight ?? 480,
+					}}
+				>
+					{options.map((opt) => (
+						<View
+							stretchX
+							key={opt}
+							padX={1}
+							padY={0.5}
+							bg={curItem === opt ? 4 : "none"}
+							focusable
+							css={{
+								":hover": {
+									background: "var(--color-highlight)",
+								},
+							}}
+							onClick={() => {
+								setCurItem(opt);
+								onChange(opt);
+							}}
+						>
+							<Text>{opt}</Text>
+						</View>
+					))}
+				</View>
 			</View>}
 		</View>
 	);
