@@ -168,7 +168,8 @@ const View = React.forwardRef<HTMLDivElement, ViewPropsWithChildrenAndDiv>(({
 				":hover": {
 					cursor: "help !important",
 //  					outline: "solid 2px var(--color-highlight)",
-					boxShadow: outlined ? "0 0 0 2px var(--color-highlight)" : "none",
+//  					boxShadow: outlined ? "0 0 0 2px var(--color-highlight)" : "none",
+					boxShadow: "0 0 0 2px var(--color-highlight)",
 				},
 			} : {}),
 		}}

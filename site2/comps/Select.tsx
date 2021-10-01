@@ -66,6 +66,7 @@ interface SelectProps {
 	onChange?: (item: string) => void,
 }
 
+// TODO: scroll to cur at expand
 // TODO: jump with key
 const Select: React.FC<SelectProps & ViewProps> = ({
 	options,
