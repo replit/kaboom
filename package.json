@@ -21,6 +21,7 @@
 	"files": [
 		"dist/",
 		"src/",
+		"demo/",
 		"kaboom.png",
 		"CHANGELOG.md"
 	],

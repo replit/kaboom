@@ -40,8 +40,12 @@ const Page: React.FC<PageProps> = ({
 	useKey("F1", () => setInspect(!inspect), [ setInspect, inspect ]);
 	useKey("Escape", () => setInspect(false), [ setInspect ]);
 
-	// reset tooltip stack when entering / exiting inspect mode
-	React.useEffect(() => setTooltipStack(new IDList()), [ inspect ]);
+	// reset tooltip stack when exiting inspect mode
+	React.useEffect(() => {
+		if (!inspect) {
+			setTooltipStack(new IDList());
+		}
+	}, [ inspect ]);
 
 	// set theme from local storage
 	React.useEffect(() => {
@@ -63,14 +67,30 @@ const Page: React.FC<PageProps> = ({
 
 	// push a tooltip into tooltip stack, returning the id
 	const pushTooltip = React.useCallback((t: Tooltip) => {
+
 		return new Promise<number>((resolve, reject) => {
+
 			setTooltipStack((prevStack) => {
+
+				// if it's already the current tooltip, we just return that
+				const last = Array.from(prevStack)[prevStack.size - 1];
+
+				if (last && t.name === last[1].name && t.desc === last[1].desc) {
+					resolve(last[0]);
+					return prevStack;
+				}
+
 				const newStack = prevStack.clone();
 				const id = newStack.push(t);
+
 				resolve(id);
+
 				return newStack;
+
 			});
+
 		});
+
 	}, [ setTooltipStack, ]);
 
 	// pop a tooltip from tooltip stack with id
@@ -175,6 +195,9 @@ const TooltipComp: React.FC<Tooltip> = ({
 	desc,
 }) => {
 	const [ mouseX, mouseY ] = useMousePos();
+	if (!mouseX || !mouseY) {
+		return <></>;
+	}
 	return (
 		<View
 			bg={1}

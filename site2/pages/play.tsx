@@ -90,7 +90,7 @@ const SpriteEntry: React.FC<SpriteEntryProps> = ({
 				}}
 			/>
 		</View>
-		<Text noSelect css={{overflowWrap: "break-word"}}>{name}</Text>
+		<Text noSelect>{name}</Text>
 	</View>
 );
 
