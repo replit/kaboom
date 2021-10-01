@@ -70,10 +70,10 @@ const GameView = React.forwardRef<GameViewRef, GameViewProps & ViewProps>(({
 	}));
 
 	React.useEffect(() => {
-		if (!iframeRef.current) return;
-		const iframe = iframeRef.current;
-		const body = iframe.contentWindow.document.body;
-		body.className = theme;
+		const body = iframeRef.current?.contentWindow?.document?.body;
+		if (body) {
+			body.className = theme;
+		}
 	}, [ theme ]);
 
 	return (
