@@ -1,5 +1,6 @@
 import * as React from "react";
-import Ctx, { Tooltip } from "lib/Ctx";
+import Ctx from "lib/Ctx";
+import { Tooltip } from "lib/tooltip";
 
 // wrap around the tooltip stack structure
 export default function useTooltip(): [
