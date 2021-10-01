@@ -23,6 +23,9 @@ const wrapGame = (code: string) => `
 			width: 100%;
 			height: 100%;
 		}
+		body {
+			background: var(--color-bg2);
+		}
 		canvas {
 			width: 100%;
 			height: 100%;
@@ -80,7 +83,7 @@ const GameView = React.forwardRef<GameViewRef, GameViewProps & ViewProps>(({
 				tabIndex={0}
 				css={{
 					border: "none",
-					background: "black",
+					background: "var(--background-bg2)",
 					borderRadius: "8px",
 					width: "100%",
 					height: "100%",

@@ -6,7 +6,7 @@ import useKey from "hooks/useKey";
 
 export interface MenuItem {
 	name: string,
-	action: () => void,
+	action?: () => void,
 	danger?: boolean,
 }
 
@@ -74,7 +74,7 @@ const Menu: React.FC<MenuProps> = ({
 								background: "var(--color-highlight)",
 							},
 						}}
-						onClick={() => item.action()}
+						onClick={() => item.action && item.action()}
 					>
 						<Text noSelect>{item.name}</Text>
 					</View>

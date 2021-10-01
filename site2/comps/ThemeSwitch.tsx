@@ -10,8 +10,8 @@ const ThemeSwitch: React.FC<ViewProps> = ({...args}) => {
 			{Object.keys(themes).map((t) => (
 				<View
 					key={t}
-					name={t}
-					desc="theme"
+					name={t[0].toUpperCase() + t.slice(1)}
+					desc="Theme"
 					onClick={() => setTheme(t as Theme)}
 					bg={themes[t as Theme]["bg2"]}
 					width={t === theme ? 32 : 24}

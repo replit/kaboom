@@ -3,6 +3,7 @@ export type Color =
 	| "bg2"
 	| "bg3"
 	| "bg4"
+	| "bgpat"
 	| "outline"
 	| "fg1"
 	| "fg2"
@@ -44,11 +45,12 @@ export const themes: ThemeBook = {
 		"bg2": "rgb(32, 32, 46)",
 		"bg3": "rgb(44, 44, 62)",
 		"bg4": "rgb(56, 56, 78)",
+		"bgpat": "rgb(17, 17, 27)",
 		"outline": "rgb(64, 64, 96)",
 		"fg1": "rgb(215, 225, 235)",
 		"fg2": "rgb(170, 170, 190)",
-		"fg3": "rgb(125, 135, 145)",
-		"fg4": "rgb(80, 90, 100)",
+		"fg3": "rgb(125, 135, 155)",
+		"fg4": "rgb(80, 90, 110)",
 		"highlight": "rgb(30, 140, 230)",
 		"accent": "rgb(19, 33, 49)",
 	},
@@ -57,6 +59,7 @@ export const themes: ThemeBook = {
 		"bg2": "rgb(15, 15, 15)",
 		"bg3": "rgb(30, 30, 30)",
 		"bg4": "rgb(45, 45, 45)",
+		"bgpat": "rgb(15, 15, 15)",
 		"outline": "rgb(55, 55, 55)",
 		"fg1": "rgb(215, 215, 215)",
 		"fg2": "rgb(175, 175, 175)",
@@ -70,6 +73,7 @@ export const themes: ThemeBook = {
 		"bg2": "rgb(245, 225, 160)",
 		"bg3": "rgb(235, 215, 150)",
 		"bg4": "rgb(225, 205, 140)",
+		"bgpat": "rgb(248, 228, 163)",
 		"outline": "rgb(220, 200, 135)",
 		"fg1": "rgb(60, 60, 40)",
 		"fg2": "rgb(100, 100, 80)",
@@ -83,6 +87,7 @@ export const themes: ThemeBook = {
 		"bg2": "rgb(244, 244, 244)",
 		"bg3": "rgb(233, 233, 233)",
 		"bg4": "rgb(222, 222, 222)",
+		"bgpat": "rgb(248, 248, 248)",
 		"outline": "rgb(218, 218, 218)",
 		"fg1": "rgb(51, 51, 51)",
 		"fg2": "rgb(102, 102, 102)",

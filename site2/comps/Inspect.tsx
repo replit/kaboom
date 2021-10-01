@@ -11,7 +11,7 @@ const Inspect: React.FC = ({
 
 	return <View
 		name="Inspect Button"
-		desc="Enter inspect mode"
+		desc="Enter inspect mode (F1)"
 		focusable
 		onClick={() => setInspect(!inspect)}
 		bg={3}

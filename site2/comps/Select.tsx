@@ -61,22 +61,22 @@ const Prompt: React.FC<PromptProps> = ({
 
 interface SelectProps {
 	options: string[],
-	selected?: string,
+	value?: string,
 	maxHeight?: number | string,
-	onChange: (item: string) => void,
+	onChange?: (item: string) => void,
 }
 
 // TODO: jump with key
 const Select: React.FC<SelectProps & ViewProps> = ({
 	options,
-	selected,
+	value,
 	maxHeight,
 	onChange,
 	...args
 }) => {
 
 	const dropdownRef = React.useRef<HTMLDivElement>(null);
-	const [ curItem, setCurItem ] = React.useState(selected ?? options[0]);
+	const [ curItem, setCurItem ] = React.useState(value ?? options[0]);
 	const [ expanded, setExpanded ] = React.useState(false);
 
 	useClickOutside(dropdownRef, () => setExpanded(false), [ setExpanded ]);
@@ -153,7 +153,7 @@ const Select: React.FC<SelectProps & ViewProps> = ({
 							}}
 							onClick={() => {
 								setCurItem(opt);
-								onChange(opt);
+								onChange && onChange(opt);
 							}}
 						>
 							<Text>{opt}</Text>

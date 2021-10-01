@@ -6,7 +6,7 @@ interface ToggleProps {
 	onIcon?: string,
 	on?: boolean,
 	big?: boolean,
-	onChange: (on: boolean) => void,
+	onChange?: (on: boolean) => void,
 }
 
 const Toggle: React.FC<ToggleProps> = ({
@@ -51,7 +51,7 @@ const Toggle: React.FC<ToggleProps> = ({
 				},
 			}}
 			onClick={() => {
-				onChange(!isOn);
+				onChange && onChange(!isOn);
 				setIsOn(!isOn);
 			}}
 			{...args}

@@ -14,63 +14,81 @@ import Menu from "comps/Menu";
 import Input from "comps/Input";
 import Markdown from "comps/Markdown";
 import Inspect from "comps/Inspect";
+import Background from "comps/Background";
+import KaboomEntry from "comps/KaboomEntry";
+
+interface ExampleProps {
+	thing: string,
+}
+
+const Example: React.FC<ExampleProps> = ({ thing, children }) => (
+	<View dir="column" gap={2}>
+		<Text color={4} size="huge">here{"'"}s a {thing}</Text>
+		{children}
+	</View>
+);
 
 const UI: React.FC = () => (
 	<Page>
-		<View pad={4} dir="column" gap={3}>
-			<View dir="column" gap={1}>
-				<Text>here{"'"}s a dropdown menu</Text>
-				<Select options={["Jack", "Panda", "Banana"]} onChange={() => {}} />
-			</View>
-			<View dir="column" gap={1}>
-				<Text>here{"'"}s a menu</Text>
+		<Background pad={4} dir="column" gap={3}>
+			<Example thing="dropdown menu">
+				<Select
+					name="Name Selector"
+					desc="Select some names!"
+					options={["Jack", "Panda", "Banana"]}
+				/>
+			</Example>
+			<Example thing="menu">
 				<Menu items={[
 					{
 						name: "Copy",
-						action: () => {},
 					},
 					{
 						name: "Rename",
-						action: () => {},
 					},
 					{
 						name: "Delete",
-						action: () => {},
 						danger: true,
 					},
 				]} />
-			</View>
-			<View dir="column" gap={1}>
-				<Text>here{"'"}s a toggle</Text>
-				<Toggle onChange={() => {}} />
-			</View>
-			<View dir="column" gap={1}>
-				<Text>here{"'"}s an input</Text>
-				<Input value="" onChange={() => {}} />
-			</View>
-			<View dir="column" gap={1}>
-				<Text>here{"'"}s a theme switcher</Text>
+			</Example>
+			<Example thing="toggle">
+				<Toggle />
+			</Example>
+			<Example thing="input">
+				<Input placeholder="Enter your bank account and password" />
+			</Example>
+			<Example thing="theme switcher">
 				<ThemeSwitch />
-			</View>
-			<View dir="column" gap={1}>
-				<Text>here{"'"}s a text</Text>
+			</Example>
+			<Example thing="text">
 				<Text italic bold size="huge">oh hi mark</Text>
-			</View>
-			<View dir="column" gap={1}>
-				<Text>here{"'"}s a button</Text>
+			</Example>
+			<Example thing="button">
 				<Button text="Run" action={() => {}} name="Run Button" desc="run current code" />
-			</View>
-			<View dir="column" gap={1}>
-				<Text>here{"'"}s an inspect button</Text>
+			</Example>
+			<Example thing="inspect button">
 				<Inspect />
-			</View>
-			<View dir="column" gap={1}>
-				<Text>here{"'"}s a game view</Text>
-				<GameView code="kaboom(); keyPress('space', () => alert('yo'))" width={640} height={480} />
-			</View>
-			<View dir="column" gap={1}>
-				<Text>here{"'"}s an editor</Text>
-				<Editor width={640} height={320} placeholder="yo" content={`
+			</Example>
+			<Example thing="game view">
+				<GameView
+					code={`
+kaboom();
+keyPress(() => addKaboom(mousePos()));
+mouseMove(() => addKaboom(mousePos()));
+					`}
+					width={640}
+					height={480}
+				/>
+			</Example>
+			<Example thing="editor">
+				<Editor
+					name="Code Editor"
+					desc="Edit your code here!"
+					width={640}
+					height={320}
+					placeholder="Congrats you have discovered the placeholder text"
+					content={`
 kaboom();
 
 // load default sprite "bean"
@@ -81,38 +99,15 @@ add([
 	sprite("bean"),
 	pos(80, 40),
 ]);
-				`.trim()} />
-			</View>
-			<View dir="column" gap={1}>
-				<Text>here{"'"}s a markdown</Text>
-				<Markdown width={960} src={`
-## Examples
-
-(these are for the newest beta version or \`kaboom@next\`)
-
-Lots of iteractive examples [here](https://kaboomjs.com/demo)
-
-\`\`\`html
-<script type="module">
-
-// import kaboom lib
-import kaboom from "https://unpkg.com/kaboom@next/dist/kaboom.mjs";
-
-// initialize kaboom context
-kaboom();
-
-// add a piece of text at position (120, 80)
-add([
-    text("hello"),
-    pos(120, 80),
-]);
-
-</script>
-\`\`\`
-You can paste this directly into an \`.html\` file, open it in browser, and start playing around!
-				`} />
-			</View>
-		</View>
+					`.trim()}
+				/>
+			</Example>
+			<Example thing="piece of doc">
+				<View width={640}>
+					<KaboomEntry name="add" />
+				</View>
+			</Example>
+		</Background>
 	</Page>
 );
 

@@ -16,7 +16,7 @@ interface MarkdownProps {
 	src: string,
 }
 
-const Markdown = React.forwardRef<HTMLDivElement, MarkdownProps & ViewProps>(({
+const Markdown: React.FC<MarkdownProps & ViewProps> = ({
 	src,
 	...args
 }) => (
@@ -61,6 +61,7 @@ const Markdown = React.forwardRef<HTMLDivElement, MarkdownProps & ViewProps>(({
 				padding: 16,
 				borderRadius: 8,
 				boxShadow: "0 0 0 2px var(--color-outline)",
+				maxHeight: "480px",
 				display: "block",
 				overflowX: "scroll",
 				overflowY: "visible",
@@ -138,6 +139,6 @@ const Markdown = React.forwardRef<HTMLDivElement, MarkdownProps & ViewProps>(({
 		}}
 		{...args}
 	/>
-));
+);
 
 export default Markdown;

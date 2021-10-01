@@ -3,7 +3,7 @@ import Text from "comps/Text";
 
 interface ButtonProps {
 	text: string,
-	action: () => void,
+	action?: () => void,
 }
 
 const Button: React.FC<ButtonProps & ViewProps> = ({

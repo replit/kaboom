@@ -142,7 +142,7 @@ const Demo: React.FC = () => {
 	const blackboardRef = React.useRef(null);
 
 	React.useEffect(() => {
-		if (fetchedCode) {
+		if (fetchedCode != null) {
 			setCode(fetchedCode);
 		}
 	}, [ fetchedCode ]);
@@ -191,8 +191,8 @@ const Demo: React.FC = () => {
 						name="Demo Selector"
 						desc="Select a demo to run"
 						options={demos}
-						selected="sprite"
-						onChange={(selected) => setCurDemo(selected)}
+						value={curDemo}
+						onChange={setCurDemo}
 					/>
 					<Button
 						name="Run Button"
