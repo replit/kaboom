@@ -257,6 +257,8 @@ export interface EditorRef {
 	getContent: () => string | null,
 	getSelection: () => string | null,
 	getWord: () => string | null,
+	setContent: (content: string) => void,
+	getCodeMirror: () => EditorView | null,
 }
 
 interface EditorProps {
@@ -304,25 +306,36 @@ const Editor = React.forwardRef<EditorRef, EditorProps & ViewProps>(({
 			}
 			return null;
 		},
+		setContent(content: string) {
+			if (!cmRef.current) return null;
+			const cm = cmRef.current;
+			cm.dispatch({
+				changes: {
+					from: 0,
+					to: cm.state.doc.length,
+					insert: content,
+				},
+			});
+		},
+		getCodeMirror() {
+			return cmRef.current;
+		},
 	}));
 
 	React.useEffect(() => {
 
-		if (!editorDOMRef.current) {
-			return;
+		if (!editorDOMRef.current) return;
+		const editorDOM = editorDOMRef.current;
+
+		if (!cmRef.current) {
+			cmRef.current = new EditorView({
+				parent: editorDOM,
+			});
 		}
 
-		if (cmRef.current) {
-			return;
-		}
-
-		const cm = new EditorView({
-			parent: editorDOMRef.current,
-		});
-
+		const cm = cmRef.current;
 		const themeConf = new Compartment();
 
-		cmRef.current = cm;
 		themeConfRef.current = themeConf;
 
 		if (cmRef) {
@@ -375,21 +388,6 @@ const Editor = React.forwardRef<EditorRef, EditorProps & ViewProps>(({
 				]),
 			].filter((ext) => ext),
 		}));
-
-	}, []);
-
-	useUpdateEffect(() => {
-
-		if (!cmRef.current) return;
-		const cm = cmRef.current;
-
-		cm.dispatch({
-			changes: {
-				from: 0,
-				to: cm.state.doc.length,
-				insert: content,
-			},
-		});
 
 	}, [ content ]);
 

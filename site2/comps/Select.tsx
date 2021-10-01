@@ -66,6 +66,7 @@ interface SelectProps {
 	onChange: (item: string) => void,
 }
 
+// TODO: jump with key
 const Select: React.FC<SelectProps & ViewProps> = ({
 	options,
 	selected,
@@ -74,17 +75,24 @@ const Select: React.FC<SelectProps & ViewProps> = ({
 	...args
 }) => {
 
-	const domRef = React.useRef(null);
+	const dropdownRef = React.useRef<HTMLDivElement>(null);
 	const [ curItem, setCurItem ] = React.useState(selected ?? options[0]);
 	const [ expanded, setExpanded ] = React.useState(false);
 
-	useClickOutside(domRef, () => setExpanded(false), [ setExpanded ]);
+	useClickOutside(dropdownRef, () => setExpanded(false), [ setExpanded ]);
 	useKey("Escape", () => setExpanded(false), [ setExpanded ]);
+
+	React.useEffect(() => {
+		if (!dropdownRef.current) return;
+		const dropdown = dropdownRef.current;
+		if (expanded) {
+			dropdown.focus();
+		}
+	}, [ expanded ]);
 
 	return (
 		<View
 			dir="column"
-			ref={domRef}
 			focusable
 			rounded
 			outlined
@@ -119,8 +127,12 @@ const Select: React.FC<SelectProps & ViewProps> = ({
 				<Prompt name={curItem} options={options} expanded={expanded} />
 				<View height={2} stretchX bg={4} />
 				<View
+					ref={dropdownRef}
 					stretchX
 					bg={2}
+					onKeyDown={(e) => {
+						console.log(e.key);
+					}}
 					css={{
 						overflowY: "scroll",
 						maxHeight: maxHeight ?? 480,

@@ -228,6 +228,9 @@ const Demo: React.FC = () => {
 					overflow: "hidden",
 					paddingTop: 2,
 					paddingLeft: 42,
+//  					"@media (max-aspect-ratio: 1/1)": {
+//  						flexDirection: "column",
+//  					},
 				}}
 			>
 				<Editor
@@ -297,10 +300,10 @@ const Demo: React.FC = () => {
 				rounded
 				outlined
 				width={240}
-				height="80%"
+				height="calc(90% - 64px)"
 				css={{
 					position: "absolute",
-					top: "14%",
+					top: "calc(64px + 4%)",
 					left: backpackOpen ? -4 : -(240 - 24),
 					transition: "0.2s left",
 					overflow: "hidden",
