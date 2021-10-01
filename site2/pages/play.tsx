@@ -132,7 +132,7 @@ const SoundEntry: React.FC<SoundEntryProps> = ({
 
 const Demo: React.FC = () => {
 
-	const [ curDemo, setCurDemo ] = React.useState("runner");
+	const [ curDemo, setCurDemo ] = React.useState("platform");
 	const { data: fetchedCode } = useFetch(`/public/demo/${curDemo}.js`, (res) => res.text());
 	const [ backpackOpen, setBackpackOpen ] = React.useState(false);
 	const [ code, setCode ] = React.useState("");
