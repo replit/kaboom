@@ -23,7 +23,7 @@ interface ExampleProps {
 
 const Example: React.FC<ExampleProps> = ({ thing, children }) => (
 	<View dir="column" gap={2}>
-		<Text color={4} size="huge">here{"'"}s a {thing}</Text>
+		<Text color={4} size="huge">here{"'"}s {thing}</Text>
 		{children}
 	</View>
 );
@@ -31,14 +31,14 @@ const Example: React.FC<ExampleProps> = ({ thing, children }) => (
 const UI: React.FC = () => (
 	<Page>
 		<Background pad={4} dir="column" gap={3}>
-			<Example thing="dropdown menu">
+			<Example thing="a dropdown menu">
 				<Select
 					name="Name Selector"
 					desc="Select some names!"
 					options={["Jack", "Panda", "Banana"]}
 				/>
 			</Example>
-			<Example thing="menu">
+			<Example thing="a menu">
 				<Menu items={[
 					{
 						name: "Copy",
@@ -52,25 +52,25 @@ const UI: React.FC = () => (
 					},
 				]} />
 			</Example>
-			<Example thing="toggle">
+			<Example thing="a toggle">
 				<Toggle />
 			</Example>
-			<Example thing="input">
+			<Example thing="an input">
 				<Input placeholder="Enter your bank account and password" />
 			</Example>
-			<Example thing="theme switcher">
+			<Example thing="a theme switcher">
 				<ThemeSwitch />
 			</Example>
-			<Example thing="text">
+			<Example thing="a text">
 				<Text italic bold size="huge">oh hi mark</Text>
 			</Example>
-			<Example thing="button">
+			<Example thing="a button">
 				<Button text="Run" action={() => {}} name="Run Button" desc="run current code" />
 			</Example>
-			<Example thing="inspect button">
+			<Example thing="an inspect button">
 				<Inspect />
 			</Example>
-			<Example thing="game view">
+			<Example thing="a game view">
 				<GameView
 					code={`
 kaboom();
@@ -81,7 +81,7 @@ mouseMove(() => addKaboom(mousePos()));
 					height={480}
 				/>
 			</Example>
-			<Example thing="editor">
+			<Example thing="an editor">
 				<Editor
 					name="Code Editor"
 					desc="Edit your code here!"
@@ -102,7 +102,7 @@ add([
 					`.trim()}
 				/>
 			</Example>
-			<Example thing="piece of doc">
+			<Example thing="a piece of doc">
 				<View width={640}>
 					<KaboomEntry name="add" />
 				</View>
