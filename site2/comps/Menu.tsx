@@ -12,12 +12,10 @@ export interface MenuItem {
 
 interface MenuProps {
 	items: MenuItem[],
-	left?: boolean,
 }
 
 const Menu: React.FC<MenuProps> = ({
 	items,
-	left
 }) => {
 
 	const domRef = React.useRef(null);
@@ -42,6 +40,7 @@ const Menu: React.FC<MenuProps> = ({
 			onClick={() => setExpanded(!expanded)}
 		>
 			<Text
+				noSelect
 				css={{
 					position: "absolute",
 					top: "2px",
@@ -60,10 +59,10 @@ const Menu: React.FC<MenuProps> = ({
 					overflow: "hidden",
 					position: "absolute",
 					zIndex: 1000,
-					left: left ? "-100%" : 0,
+					left: 0,
 				}}
 			>
-				{items.map((item) => (
+				{items.length > 0 && items.map((item) => (
 					<View
 						key={item.name}
 						stretchX

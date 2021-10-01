@@ -147,6 +147,13 @@ const Demo: React.FC = () => {
 	}, [ fetchedCode ]);
 
 	useKey("Escape", () => setExpanded(false), [ setExpanded ]);
+
+	useKey("b", (e) => {
+		if (!e.metaKey) return;
+		e.preventDefault();
+		setExpanded(!expanded);
+	}, [ expanded, setExpanded ]);
+
 	useClickOutside(drawerRef, () => setExpanded(false), [ setExpanded ]);
 
 	return <Page>
@@ -184,7 +191,7 @@ const Demo: React.FC = () => {
 					/>
 					<Button
 						name="Run Button"
-						desc="Run current code"
+						desc="Run current code (Cmd+s)"
 						text="Run"
 						action={() => {
 							if (!editorRef.current) return;
@@ -203,12 +210,7 @@ const Demo: React.FC = () => {
 						name="Theme Switcher"
 						desc="Choose a theme!"
 					/>
-					<Menu left items={[
-						{
-							name: "Open in Replit",
-							action: () => {},
-						},
-					]} />
+					<Menu items={[]} />
 				</View>
 			</View>
 			<View
@@ -285,7 +287,7 @@ const Demo: React.FC = () => {
 					</View>
 					<View
 						name="Drawer Handle"
-						desc="Click to show / hide the drawer"
+						desc="Click to show / hide the drawer (Cmd+b)"
 						dir="row"
 						align="center"
 						justify="around"
