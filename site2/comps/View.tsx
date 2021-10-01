@@ -108,30 +108,28 @@ const View = React.forwardRef<HTMLDivElement, React.PropsWithChildren<ViewProps>
 	return <div
 		ref={ref}
 		onClick={onClick}
-		onMouseEnter={() => {
-			if (!inspect || !desc) return;
+		onMouseEnter={(inspect && desc) ? () => {
 			pushTooltip({
 				name,
 				desc,
 			});
-		}}
-		onMouseLeave={() => {
-			if (!inspect || !desc) return;
+		} : undefined}
+		onMouseLeave={(inspect && desc) ? () => {
 			popTooltip();
-		}}
-		onKeyDown={(e) => {
+		} : undefined}
+		onKeyDown={(focusable || onKeyDown) ? (e) => {
 			if (focusable) {
 				if (e.key === "Enter") {
 					e.currentTarget.click();
 				}
 			}
 			onKeyDown && onKeyDown(e);
-		}}
+		} : undefined}
 		tabIndex={focusable ? 0 : undefined}
+		// @ts-ignore
 		css={{
 			display: "flex",
-//  			flexDirection: (dir ?? "column") + (reverse ? "-reverse" : ""),
-			flexDirection: dir ?? "column",
+			flexDirection: (dir ?? "column") + (reverse ? "-reverse" : ""),
 			alignItems: toAlign(align ?? "start"),
 			justifyContent: toJustify(justify ?? "start"),
 			flexWrap: wrap ? "wrap" : "nowrap",
@@ -144,16 +142,19 @@ const View = React.forwardRef<HTMLDivElement, React.PropsWithChildren<ViewProps>
 			paddingBottom: `${py}px`,
 			position: "relative",
 			borderRadius: rounded ? 8 : 0,
-			outline: outlined ? "solid 2px var(--color-outline)" : "none",
+//  			outline: outlined ? "solid 2px var(--color-outline)" : "none",
+			boxShadow: outlined ? "0 0 0 2px var(--color-outline)" : "none",
 			"& > *": { [marginSide]: (gap ?? 0) * spaceUnit, },
 			"& > *:last-child": { [marginSide]: 0, },
 			":focus": {
-				outline: "solid 2px var(--color-highlight)",
+//  				outline: "solid 2px var(--color-highlight)",
+				boxShadow: outlined ? "0 0 0 2px var(--color-highlight)" : "none",
 			},
 			...((inspect && desc) ? {
 				":hover": {
 					cursor: "help !important",
-					outline: "solid 2px var(--color-highlight)",
+//  					outline: "solid 2px var(--color-highlight)",
+					boxShadow: outlined ? "0 0 0 2px var(--color-highlight)" : "none",
 				},
 			} : {}),
 		}}

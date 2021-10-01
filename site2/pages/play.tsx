@@ -148,6 +148,84 @@ go("game");
 	`.trim(),
 };
 
+interface SpriteEntryProps {
+	name: string,
+	src: string,
+}
+
+const SpriteEntry: React.FC<SpriteEntryProps> = ({
+	name,
+	src,
+}) => (
+	<View
+		name={name}
+		desc={src}
+		focusable
+		dir="row"
+		align="center"
+		gap={1}
+		stretchX
+		padX={2}
+		padY={1}
+		rounded
+		height={64}
+		css={{
+			"overflow": "hidden",
+			":hover": {
+				"background": "var(--color-bg2)",
+				"cursor": "pointer",
+			},
+		}}
+	>
+		<View width={48} height={48} justify="center">
+			<img
+				src={src}
+				css={{
+					width: "100%",
+					overflow: "hidden",
+					objectFit: "cover",
+				}}
+			/>
+		</View>
+		<Text noSelect css={{overflowWrap: "break-word"}}>{name}</Text>
+	</View>
+);
+
+interface SoundEntryProps {
+	name: string,
+	src: string,
+}
+
+const SoundEntry: React.FC<SoundEntryProps> = ({
+	name,
+	src,
+}) => (
+	<View
+		name={name}
+		desc={src}
+		focusable
+		dir="row"
+		align="center"
+		gap={1}
+		stretchX
+		padX={2}
+		padY={1}
+		rounded
+		height={64}
+		css={{
+			"overflow": "hidden",
+			":hover": {
+				"background": "var(--color-bg2)",
+				"cursor": "pointer",
+			},
+		}}
+		onClick={() => new Audio(src).play()}
+	>
+		<View width={48} height={48} justify="center"></View>
+		<Text noSelect>{name}</Text>
+	</View>
+);
+
 const Demo: React.FC = () => {
 
 	const [ expanded, setExpanded ] = React.useState(false);
@@ -256,13 +334,44 @@ const Demo: React.FC = () => {
 					}}
 				>
 					<View
-						stretchY
 						pad={2}
+						gap={2}
+						stretchY
 						css={{
 							flex: "1",
+							overflow: "scroll",
 						}}
 					>
-						<Text size="big" color={2}>Sprites</Text>
+						<View gap={1} stretchX>
+							<Text size="big" color={2} noSelect>Sprites</Text>
+							{[
+								"bean",
+								"googoly",
+								"cut",
+								"meat",
+							].map((name) => (
+								<SpriteEntry
+									key={name}
+									name={name}
+									src={`/public/assets/sprites/${name}.png`}
+								/>
+							))}
+						</View>
+						<View gap={1} stretchX>
+							<Text size="big" color={2} noSelect>Sounds</Text>
+							{[
+								"bug",
+								"computer",
+								"dune",
+								"mystic",
+							].map((name) => (
+								<SoundEntry
+									key={name}
+									name={name}
+									src={`/public/assets/sounds/${name}.mp3`}
+								/>
+							))}
+						</View>
 					</View>
 					<View
 						name="Drawer Handle"
@@ -297,9 +406,6 @@ const Demo: React.FC = () => {
 						placeholder="Come on let's make some games!"
 						css={{
 							flex: "1",
-						}}
-						onSelect={(sel) => {
-							console.log(sel);
 						}}
 						keys={[
 							{

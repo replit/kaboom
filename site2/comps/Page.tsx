@@ -33,6 +33,11 @@ const Page: React.FC<PageProps> = ({
 	useKey("F1", () => setInspect(!inspect), [ setInspect, inspect ]);
 	useKey("Escape", () => setInspect(false), [ setInspect ]);
 
+	// TODO: this is for covering up the stack bug
+	React.useEffect(() => {
+		setTooltipStack(new IDList());
+	}, [ inspect ]);
+
 	React.useEffect(() => {
 		if (initTheme) {
 			return;
@@ -104,15 +109,15 @@ const Page: React.FC<PageProps> = ({
 						${cssVars}
 						@font-face {
 							font-family: IBM Plex Sans;
-							src: url(fonts/IBMPlexSans-Regular.ttf) format(truetype);
+							src: url(/public/fonts/IBMPlexSans-Regular.ttf) format(truetype);
 						}
 						@font-face {
 							font-family: IBM Plex Mono;
-							src: url(fonts/IBMPlexMono-Regular.ttf) format(truetype);
+							src: url(/public/fonts/IBMPlexMono-Regular.ttf) format(truetype);
 						}
 						@font-face {
 							font-family: Necto Mono;
-							src: url(fonts/NectoMono-Regular.otf) format(opentype);
+							src: url(/public/fonts/NectoMono-Regular.otf) format(opentype);
 						}
 						* {
 							margin: 0;
@@ -180,6 +185,9 @@ const Page: React.FC<PageProps> = ({
 						.cm-editor {
 							width: 100% !important;
 							height: 100% !important;
+						}
+						.cm-editor > * {
+							font-family: inherit !important;
 						}
 						.hljs-comment,
 						.hljs-quote {
@@ -273,13 +281,12 @@ const Page: React.FC<PageProps> = ({
 				outlined
 				css={{
 					position: "absolute",
-//  					bottom: 16,
-//  					right: 16,
 					top: mouseY,
 					left: mouseX,
 					zIndex: 20000,
 					maxWidth: "240px",
 					pointerEvents: "none",
+					overflow: "hidden",
 				}}
 			>
 				{ curTooltip.name &&

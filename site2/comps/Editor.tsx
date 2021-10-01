@@ -417,7 +417,7 @@ const Editor = React.forwardRef<EditorRef, EditorProps & ViewProps>(({
 				overflow: "scroll",
 				fontSize: "var(--text-big)",
 				":focus-within": {
-					outline: "solid 2px var(--color-highlight)"
+					boxShadow: "0 0 0 2px var(--color-highlight)",
 				},
 			}}
 			{...args}
