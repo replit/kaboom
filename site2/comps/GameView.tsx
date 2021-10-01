@@ -8,19 +8,7 @@ export interface GameViewRef {
 	run: (code?: string) => void,
 }
 
-interface GameViewProps {
-	code?: string,
-}
-
-const GameView = React.forwardRef<GameViewRef, GameViewProps & ViewProps>(({
-	code,
-	...args
-}, ref) => {
-
-	const iframeRef = React.useRef<HTMLIFrameElement>(null);
-	const { theme } = React.useContext(Ctx);
-
-	const wrapGame = React.useCallback((code: string) => `
+const wrapGame = (code: string) => `
 <!DOCTYPE html>
 <head>
 	<style>
@@ -46,24 +34,44 @@ const GameView = React.forwardRef<GameViewRef, GameViewProps & ViewProps>(({
 		}
 	</style>
 </head>
-<body class="${theme}">
+<body>
 	<script src="/public/dist/kaboom.js"></script>
 	<script>
 ${code}
 	</script>
 </body>
-	`, [ theme, cssVars, ]);
+`;
+
+interface GameViewProps {
+	code?: string,
+}
+
+const GameView = React.forwardRef<GameViewRef, GameViewProps & ViewProps>(({
+	code,
+	...args
+}, ref) => {
+
+	const iframeRef = React.useRef<HTMLIFrameElement>(null);
+	const { theme } = React.useContext(Ctx);
 
 	React.useImperativeHandle(ref, () => ({
 		run(code?: string) {
 			if (!iframeRef.current) return;
+			const iframe = iframeRef.current;
 			if (code === undefined) {
-				iframeRef.current.srcdoc += "";
+				iframe.srcdoc += "";
 			} else {
-				iframeRef.current.srcdoc = wrapGame(code);
+				iframe.srcdoc = wrapGame(code);
 			}
 		},
 	}));
+
+	React.useEffect(() => {
+		if (!iframeRef.current) return;
+		const iframe = iframeRef.current;
+		const body = iframe.contentWindow.document.body;
+		body.className = theme;
+	}, [ theme ]);
 
 	return (
 		<View rounded {...args}>
