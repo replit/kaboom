@@ -369,20 +369,26 @@ const Demo: React.FC = () => {
 			<View
 				name="Blackboard"
 				desc="Watch closely what the teacher is demonstrating!"
-				height={320}
-				width={480}
+				ref={blackboardRef}
+				height={360}
+				width={540}
 				rounded
 				outlined
-				pad={2}
+				pad={3}
 				bg={1}
 				css={{
 					position: "absolute",
 					left: "45%",
-					top: blackboard ? -4 : -322,
+					top: blackboard ? -4 : -544,
 					transition: "0.2s top",
+					overflowY: "scroll",
+					overflowX: "hidden",
 				}}
 			>
-				<KaboomEntry name={blackboard} />
+				{
+					blackboard &&
+					<KaboomEntry name={blackboard} />
+				}
 			</View>
 		</Background>
 	</Page>;

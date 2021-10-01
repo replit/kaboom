@@ -419,6 +419,13 @@ const Editor = React.forwardRef<EditorRef, EditorProps & ViewProps>(({
 				":focus-within": {
 					boxShadow: "0 0 0 2px var(--color-highlight)",
 				},
+				".cm-editor": {
+					width: "100% !important",
+					height: "100% !important",
+				},
+				".cm-editor > *": {
+					fontFamily: "inherit !important",
+				},
 			}}
 			{...args}
 		/>

@@ -2,15 +2,30 @@ import * as React from "react";
 import Ctx from "lib/Ctx";
 import View from "comps/View";
 import Text from "comps/Text";
+import Markdown from "comps/Markdown";
 
 interface KaboomEntryProps {
 	name: string,
 }
 
 const KaboomMember: React.FC<any> = (def) => {
-	console.log(def.jsDoc);
+	const doc = def.jsDoc?.[0];
+	console.log(doc);
 	return (
-		<View>
+		<View gap={1} stretchX>
+			<Text size="big">{def.name}</Text>
+			{
+				doc &&
+				<View gap={2} stretchX>
+					<Text color={2}>{doc.comment}</Text>
+					{ (doc.tags ?? []).map((tag: any) => {
+						switch (tag.tagName) {
+							case "example": return <Markdown src={tag.comment} />;
+							default: return <></>;
+						}
+					}) }
+				</View>
+			}
 		</View>
 	);
 };
@@ -31,7 +46,7 @@ const KaboomEntry: React.FC<KaboomEntryProps> = ({
 		);
 	}
 	return (
-		<View>
+		<View stretchX>
 			{entries.map((e: any, i: number) => <KaboomMember key={i} {...e} />)}
 		</View>
 	);
