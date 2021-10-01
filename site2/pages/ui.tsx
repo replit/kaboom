@@ -16,6 +16,7 @@ import Markdown from "comps/Markdown";
 import Inspect from "comps/Inspect";
 import Background from "comps/Background";
 import KaboomEntry from "comps/KaboomEntry";
+import FileDrop from "comps/FileDrop";
 
 interface ExampleProps {
 	thing: string,
@@ -110,8 +111,24 @@ add([
 			</Example>
 			<Example thing="a piece of doc">
 				<View width={640} name="Document Component" desc="Display doc for a Kaboom function just by passing a name">
-					<KaboomEntry name="add" />
+					<FileDrop name="add" />
 				</View>
+			</Example>
+			<Example thing="a file dropper">
+				<FileDrop
+					name="add"
+					align="center"
+					justify="center"
+					width={320}
+					height={240}
+					bg={1}
+					rounded
+					outlined
+					type="text"
+					onLoad={(file, content) => console.log(file, content)}
+				>
+					<Text color={3}>drop stuff on me!</Text>
+				</FileDrop>
 			</Example>
 		</Background>
 	</Page>

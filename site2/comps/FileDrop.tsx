@@ -25,6 +25,7 @@ interface DropZoneProps {
 }
 
 const DropZone = React.forwardRef<HTMLDivElement, DropZoneProps & ViewPropsWithChildren>(({
+	bg,
 	onLoad,
 	onErr,
 	onAbort,
@@ -41,14 +42,13 @@ const DropZone = React.forwardRef<HTMLDivElement, DropZoneProps & ViewPropsWithC
 
 	return (
 		<View
-			bg={draggin ? (dragColor ?? 2) : undefined}
+			bg={draggin ? (dragColor ?? 2) : bg}
 			onDragEnter={(e) => {
 				e.preventDefault();
 				setCounter((c) => {
 					c == 0 && onDrag && onDrag(true);
 					return c + 1;
 				});
-				if (!onLoad || !type) return;
 			}}
 			onDragLeave={(e) => {
 				e.preventDefault();
@@ -56,7 +56,6 @@ const DropZone = React.forwardRef<HTMLDivElement, DropZoneProps & ViewPropsWithC
 					c == 1 && onDrag && onDrag(false);
 					return c - 1;
 				});
-				if (!onLoad || !type) return;
 			}}
 			onDragOver={(e) => {
 				e.preventDefault();
@@ -65,6 +64,11 @@ const DropZone = React.forwardRef<HTMLDivElement, DropZoneProps & ViewPropsWithC
 			onDrop={(e) => {
 
 				e.preventDefault();
+
+				setCounter((c) => {
+					c == 1 && onDrag && onDrag(false);
+					return c - 1;
+				});
 
 				if (!onLoad || !type) return;
 
