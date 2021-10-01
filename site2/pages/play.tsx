@@ -82,6 +82,7 @@ const SpriteEntry: React.FC<SpriteEntryProps> = ({
 		<View width={48} height={48} justify="center">
 			<img
 				src={src}
+				alt={name}
 				css={{
 					width: "100%",
 					overflow: "hidden",

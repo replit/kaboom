@@ -10,7 +10,6 @@ interface KaboomEntryProps {
 
 const KaboomMember: React.FC<any> = (def) => {
 	const doc = def.jsDoc?.[0];
-	console.log(doc);
 	return (
 		<View gap={1} stretchX>
 			<Text size="big">{def.name}</Text>
@@ -20,7 +19,7 @@ const KaboomMember: React.FC<any> = (def) => {
 					<Text color={2}>{doc.comment}</Text>
 					{ (doc.tags ?? []).map((tag: any) => {
 						switch (tag.tagName) {
-							case "example": return <Markdown src={tag.comment} />;
+							case "example": return <Markdown key={tag.comment} src={tag.comment} />;
 							default: return <></>;
 						}
 					}) }

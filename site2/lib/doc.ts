@@ -1,4 +1,5 @@
 export interface Doc {
-	types: any,
-	entries: any,
+	types: Record<string, any>,
+	entries: Record<string, any>,
+	data: any,
 };

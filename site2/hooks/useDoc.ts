@@ -1,29 +1,31 @@
 import * as React from "react";
-import useFetch from "hooks/useFetch";
 import { Doc } from "lib/doc";
+// @ts-ignore
+import data from "lib/types";
 
 const useDoc = (): Doc => {
 
-	const { data } = useFetch("/public/types.json", (res) => res.json());
+	const [ entries, types ] = React.useMemo(() => {
 
-	const entries = React.useMemo(() => {
-		if (!data) {
-			return {};
-		}
 		const members = data["KaboomCtx"].members;
-		const entries: any = {};
+		const entries: Record<string, any> = {};
+		const types: Record<string, any> = {};
+
 		for (const mem of members) {
 			if (!entries[mem.name]) {
 				entries[mem.name] = [];
 			}
 			entries[mem.name].push(mem);
 		}
-		return entries;
+
+		return [ entries, types ];
+
 	}, [ data, ]);
 
 	return {
+		data,
 		entries,
-		types: data,
+		types,
 	};
 
 };
