@@ -120,6 +120,7 @@ const Select: React.FC<SelectProps & ViewProps> = ({
 				<View height={2} stretchX bg={4} />
 				<View
 					stretchX
+					bg={2}
 					css={{
 						overflowY: "scroll",
 						maxHeight: maxHeight ?? 480,
