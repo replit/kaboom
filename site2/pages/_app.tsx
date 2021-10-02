@@ -74,41 +74,7 @@ const Page = ({ Component, pageProps }: AppProps) => {
 		});
 	}, [ setTooltipStack, ]);
 
-	return <>
-		<Global
-			styles={css`
-				${cssVars}
-				@font-face {
-					font-family: IBM Plex Sans;
-					src: url(/public/fonts/IBMPlexSans-Regular.ttf) format("truetype");
-				}
-				@font-face {
-					font-family: IBM Plex Mono;
-					src: url(/public/fonts/IBMPlexMono-Regular.ttf) format("truetype");
-				}
-				* {
-					margin: 0;
-					padding: 0;
-					box-sizing: border-box;
-					font-family: inherit;
-					outline: none;
-					scrollbar-color: red yellow;
-				}
-				html {
-					width: 100%;
-					height: 100%;
-					font-family: IBM Plex Sans;
-				}
-				body {
-					width: 100%;
-					height: 100%;
-				}
-				#__next {
-					width: 100%;
-					height: 100%;
-				}
-			`}
-		/>
+	return (
 		<Ctx.Provider value={{
 			theme,
 			setTheme,
@@ -120,6 +86,40 @@ const Page = ({ Component, pageProps }: AppProps) => {
 			draggin,
 			setDraggin,
 		}}>
+			<Global
+				styles={css`
+					${cssVars}
+					@font-face {
+						font-family: IBM Plex Sans;
+						src: url(/public/fonts/IBMPlexSans-Regular.ttf) format("truetype");
+					}
+					@font-face {
+						font-family: IBM Plex Mono;
+						src: url(/public/fonts/IBMPlexMono-Regular.ttf) format("truetype");
+					}
+					* {
+						margin: 0;
+						padding: 0;
+						box-sizing: border-box;
+						font-family: inherit;
+						outline: none;
+						scrollbar-color: red yellow;
+					}
+					html {
+						width: 100%;
+						height: 100%;
+						font-family: IBM Plex Sans;
+					}
+					body {
+						width: 100%;
+						height: 100%;
+					}
+					#__next {
+						width: 100%;
+						height: 100%;
+					}
+				`}
+			/>
 			<div
 				className={theme}
 				css={{
@@ -155,8 +155,7 @@ const Page = ({ Component, pageProps }: AppProps) => {
 			</View> }
 			{ inspect && curTooltip && <TooltipComp {...curTooltip} /> }
 		</Ctx.Provider>
-	</>;
-
+	);
 };
 
 const TooltipComp: React.FC<Tooltip> = ({
