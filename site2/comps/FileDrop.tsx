@@ -1,5 +1,5 @@
 import * as React from "react";
-import View, { ViewPropsWithChildren } from "comps/View";
+import View, { ViewPropsAnd } from "comps/View";
 
 type FileType =
 	| "arrayBuffer"
@@ -14,7 +14,7 @@ type FileContent =
 	| any
 	;
 
-interface DropZoneProps {
+interface FileDropProps {
 	onEnter?: () => void,
 	onLeave?: () => void,
 	onLoad?: (file: File, content: FileContent) => void,
@@ -25,7 +25,7 @@ interface DropZoneProps {
 	dragColor?: number | string,
 }
 
-const DropZone = React.forwardRef<HTMLDivElement, DropZoneProps & ViewPropsWithChildren>(({
+const FileDrop = React.forwardRef<HTMLDivElement, ViewPropsAnd<FileDropProps>>(({
 	bg,
 	onLoad,
 	onErr,
@@ -69,41 +69,40 @@ const DropZone = React.forwardRef<HTMLDivElement, DropZoneProps & ViewPropsWithC
 
 				e.preventDefault();
 
-				setCounter((c) => {
+				const items = e.dataTransfer.items;
+				if (!items?.length) return;
 
-					if (c == 0) {
-
-						onEnter && onEnter();
-
-						const items = e.dataTransfer.items;
-
-						if (items?.length) {
-
-							for (let i = 0; i < items.length; i++) {
-
-								if (items[i].kind !== "file") {
-									setRefuse(true);
-									break;
-								};
-
-								if (!checkAccept(items[i].type)) {
-									setRefuse(true);
-									break;
-								}
-
-							}
-
-						}
-
+				for (let i = 0; i < items.length; i++) {
+					if (items[i].kind !== "file") {
+						return;
+					};
+					if (!checkAccept(items[i].type)) {
+						setRefuse(true);
+						break;
 					}
+				}
 
+				setCounter((c) => {
+					if (c == 0) {
+						onEnter && onEnter();
+					}
 					return c + 1;
-
 				});
 
 			}}
 			onDragLeave={(e) => {
+
 				e.preventDefault();
+
+				const items = e.dataTransfer.items;
+				if (!items?.length) return;
+
+				for (let i = 0; i < items.length; i++) {
+					if (items[i].kind !== "file") {
+						return;
+					};
+				}
+
 				setCounter((c) => {
 					if (c - 1 === 0) {
 						onLeave && onLeave();
@@ -111,9 +110,21 @@ const DropZone = React.forwardRef<HTMLDivElement, DropZoneProps & ViewPropsWithC
 					}
 					return c - 1;
 				});
+
 			}}
 			onDragOver={(e) => {
+
+				const items = e.dataTransfer.items;
+				if (!items?.length) return;
+
+				for (let i = 0; i < items.length; i++) {
+					if (items[i].kind !== "file") {
+						return;
+					};
+				}
+
 				e.preventDefault();
+
 			}}
 			onDrop={(e) => {
 
@@ -124,7 +135,6 @@ const DropZone = React.forwardRef<HTMLDivElement, DropZoneProps & ViewPropsWithC
 				if (refuse || !draggin || !onLoad || !readAs) return;
 
 				const items = e.dataTransfer.items;
-
 				if (!items?.length) return;
 
 				for (let i = 0; i < items.length; i++) {
@@ -176,4 +186,4 @@ const DropZone = React.forwardRef<HTMLDivElement, DropZoneProps & ViewPropsWithC
 
 });
 
-export default DropZone;
+export default FileDrop;

@@ -82,6 +82,8 @@ export type ViewPropsWithChildrenAndDiv =
 	>
 	;
 
+export type ViewPropsAnd<T> = T & Omit<ViewPropsWithChildrenAndDiv, keyof T>;
+
 // TODO: put tooltip / inspect logic to a useInspect()?
 const View = React.forwardRef<HTMLDivElement, ViewPropsWithChildrenAndDiv>(({
 	name,

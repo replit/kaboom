@@ -9,7 +9,7 @@ import Markdown from "comps/Markdown";
 
 const Home: React.FC = () => (
 	<Nav>
-		<Text size="huge" color={1}>Kaboom is a Javascript game programming library that helps you make games fast and fun.</Text>
+		<Text select size="huge" color={1}>Kaboom is a Javascript game programming library that helps you make games fast and fun.</Text>
 		<Markdown stretchX src={`
 \`\`\`js
 // start the game

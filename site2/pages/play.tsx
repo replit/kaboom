@@ -15,6 +15,8 @@ import Text from "comps/Text";
 import Menu from "comps/Menu";
 import Inspect from "comps/Inspect";
 import FileDrop from "comps/FileDrop";
+import Draggable from "comps/Draggable";
+import Droppable from "comps/Droppable";
 import Background from "comps/Background";
 import KaboomEntry from "comps/KaboomEntry";
 import { basename } from "lib/path";
@@ -63,9 +65,7 @@ const SpriteEntry: React.FC<SpriteEntryProps> = ({
 	name,
 	src,
 }) => (
-	<View
-		name={name}
-		desc={src}
+	<Draggable
 		focusable
 		dir="row"
 		align="center"
@@ -75,6 +75,8 @@ const SpriteEntry: React.FC<SpriteEntryProps> = ({
 		padY={1}
 		rounded
 		height={64}
+		dragType="sprite"
+		dragID={name}
 		css={{
 			"overflow": "hidden",
 			":hover": {
@@ -94,8 +96,8 @@ const SpriteEntry: React.FC<SpriteEntryProps> = ({
 				}}
 			/>
 		</View>
-		<Text>{name}</Text>
-	</View>
+		<Text>{basename(name)}</Text>
+	</Draggable>
 );
 
 interface SoundEntryProps {
@@ -108,8 +110,6 @@ const SoundEntry: React.FC<SoundEntryProps> = ({
 	src,
 }) => (
 	<View
-		name={name}
-		desc={src}
 		focusable
 		dir="row"
 		align="center"
@@ -128,7 +128,7 @@ const SoundEntry: React.FC<SoundEntryProps> = ({
 		}}
 		onClick={() => new Audio(src).play()}
 	>
-		<Text>{name}</Text>
+		<Text>{basename(name)}</Text>
 	</View>
 );
 
@@ -310,18 +310,18 @@ const Demo: React.FC = () => {
 			/>
 			<View
 				name="Backpack"
-				desc="A place where you put all your stuff"
+				desc="A place to put your stuff like sprite and sound assets. Drag the files into their own sections."
 				ref={backpackRef}
 				dir="row"
 				bg={1}
 				rounded
 				outlined
-				width={240}
+				width={260}
 				height="calc(90% - 64px)"
 				css={{
 					position: "absolute",
 					top: "calc(64px + 4%)",
-					left: backpackOpen ? -4 : -(240 - 24),
+					left: backpackOpen ? -4 : -(260 - 24),
 					transition: "0.2s left",
 					overflow: "hidden",
 					zIndex: 50,
@@ -333,13 +333,32 @@ const Demo: React.FC = () => {
 					stretchY
 					css={{
 						paddingLeft: 16,
-						paddingRight: 8,
+						paddingRight: 4,
 						flex: "1",
 						overflow: "scroll",
 					}}
 				>
-					<View padX={1} stretchX>
+					<View padX={1} gap={2} stretchX>
 						<Text size="big" color={2}>Backpack</Text>
+						<Droppable
+							name="Trash Can"
+							desc="Drop unwanted assets here to trash them"
+							pad={1}
+							stretchX
+							bg={2}
+							rounded
+							accept={["sprite", "sound"]}
+							onDrop={(ty, id) => {
+								switch (ty) {
+									case "sprite":
+										setSprites((prev) => prev.filter(({ name }) => name !== id));
+									case "sound":
+										setSounds((prev) => prev.filter(({ name }) => name !== id));
+								}
+							}}
+						>
+							<Text color={2}>Trash can</Text>
+						</Droppable>
 					</View>
 					<FileDrop
 						pad={1}
@@ -347,7 +366,7 @@ const Demo: React.FC = () => {
 						readAs="dataURL"
 						gap={1}
 						stretchX
-						accept="^image/"
+						accept="image"
 						onLoad={(file, content) => {
 							setSprites((prev) => {
 								for (const spr of prev) {
@@ -367,13 +386,17 @@ const Demo: React.FC = () => {
 						}}
 					>
 						<Text color={3}>Sprites</Text>
-						{sprites.map(({name, src}) => (
-							<SpriteEntry
-								key={name}
-								name={basename(name) ?? name}
-								src={src}
-							/>
-						))}
+						{
+							sprites
+								.sort((a, b) => a.name > b.name ? 1 : -1)
+								.map(({name, src}) => (
+									<SpriteEntry
+										key={name}
+										name={name}
+										src={src}
+									/>
+								))
+						}
 					</FileDrop>
 					<FileDrop
 						pad={1}
@@ -401,13 +424,17 @@ const Demo: React.FC = () => {
 						}}
 					>
 						<Text color={3}>Sounds</Text>
-						{sounds.map(({name, src}) => (
-							<SoundEntry
-								key={name}
-								name={basename(name) ?? name}
-								src={src}
-							/>
-						))}
+						{
+							sounds
+								.sort((a, b) => a.name > b.name ? 1 : -1)
+								.map(({name, src}) => (
+									<SoundEntry
+										key={name}
+										name={name}
+										src={src}
+									/>
+								))
+						}
 					</FileDrop>
 					<View stretchX padX={1}>
 						<Text color={4} size="small">Space used: {(spaceUsed / 1024 / 1024).toFixed(2)}mb</Text>

@@ -105,6 +105,7 @@ const Page: React.FC<PageProps> = ({
 					box-sizing: border-box;
 					font-family: inherit;
 					outline: none;
+					scrollbar-color: red yellow;
 				}
 				html {
 					width: 100%;
