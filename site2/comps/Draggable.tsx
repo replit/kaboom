@@ -3,7 +3,7 @@ import View, { ViewPropsAnd } from "comps/View";
 import Ctx from "lib/Ctx";
 
 interface DraggableProps {
-	dragID: string,
+	dragData: any,
 	dragType: string,
 	onDragStart?: () => void,
 	onDragEnd?: () => void,
@@ -11,7 +11,7 @@ interface DraggableProps {
 
 // TODO: draggin Ctx
 const Draggable = React.forwardRef<HTMLDivElement, ViewPropsAnd<DraggableProps>>(({
-	dragID,
+	dragData,
 	dragType,
 	onDragStart,
 	onDragEnd,
@@ -24,7 +24,7 @@ const Draggable = React.forwardRef<HTMLDivElement, ViewPropsAnd<DraggableProps>>
 			draggable
 			onDragStart={(e) => {
 				setDraggin({
-					id: dragID,
+					data: dragData,
 					type: dragType,
 				});
 				onDragStart && onDragStart();

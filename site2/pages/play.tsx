@@ -21,6 +21,7 @@ import Background from "comps/Background";
 import KaboomEntry from "comps/KaboomEntry";
 import { basename } from "lib/path";
 import getSpaceUsed from "lib/spaceUsed";
+import Ctx from "lib/Ctx";
 
 const demos = [
 	"audio",
@@ -76,7 +77,7 @@ const SpriteEntry: React.FC<SpriteEntryProps> = ({
 		rounded
 		height={64}
 		dragType="sprite"
-		dragID={name}
+		dragData={name}
 		css={{
 			"overflow": "hidden",
 			":hover": {
@@ -145,6 +146,7 @@ interface Sound {
 
 const Demo: React.FC = () => {
 
+	const { draggin } = React.useContext(Ctx);
 	const [ curDemo, setCurDemo ] = React.useState("platformer");
 	const { data: fetchedCode } = useFetch(`/public/demo/${curDemo}.js`, (res) => res.text());
 	const [ backpackOpen, setBackpackOpen ] = React.useState(false);
@@ -157,6 +159,9 @@ const Demo: React.FC = () => {
 	const backpackRef = React.useRef(null);
 	const blackboardRef = React.useRef(null);
 	const spaceUsed = React.useMemo(getSpaceUsed, [ sprites, sounds ]);
+
+	// TODO: ctx is 1 level lower
+	console.log(draggin);
 
 	React.useEffect(() => {
 		if (fetchedCode != null) {
@@ -309,6 +314,24 @@ const Demo: React.FC = () => {
 					position: "absolute",
 				}}
 			/>
+			{
+				draggin &&
+				<Droppable
+					stretch
+					css={{
+						position: "absolute",
+					}}
+					accept={["sprite", "sound"]}
+					onDrop={(ty, data) => {
+						switch (ty) {
+							case "sprite":
+								setSprites((prev) => prev.filter(({ name }) => name !== data));
+							case "sound":
+								setSounds((prev) => prev.filter(({ name }) => name !== data));
+						}
+					}}
+				/>
+			}
 			<View
 				name="Backpack"
 				desc="A place to put your stuff like sprite and sound assets. Drag the files into their own sections."
@@ -341,25 +364,6 @@ const Demo: React.FC = () => {
 				>
 					<View padX={1} gap={2} stretchX>
 						<Text size="big" color={2}>Backpack</Text>
-						<Droppable
-							name="Trash Can"
-							desc="Drop unwanted assets here to trash them"
-							pad={1}
-							stretchX
-							bg={2}
-							rounded
-							accept={["sprite", "sound"]}
-							onDrop={(ty, id) => {
-								switch (ty) {
-									case "sprite":
-										setSprites((prev) => prev.filter(({ name }) => name !== id));
-									case "sound":
-										setSounds((prev) => prev.filter(({ name }) => name !== id));
-								}
-							}}
-						>
-							<Text color={2}>Trash can</Text>
-						</Droppable>
 					</View>
 					<FileDrop
 						pad={1}

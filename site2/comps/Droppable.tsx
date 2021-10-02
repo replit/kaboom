@@ -5,7 +5,7 @@ import Ctx from "lib/Ctx";
 
 interface DroppableProps {
 	accept?: string | string[],
-	onDrop?: (ty: string, id: string) => void,
+	onDrop?: (ty: string, data: any) => void,
 }
 
 const Droppable = React.forwardRef<HTMLDivElement, ViewPropsAnd<DroppableProps>>(({
@@ -14,7 +14,7 @@ const Droppable = React.forwardRef<HTMLDivElement, ViewPropsAnd<DroppableProps>>
 	onDrop,
 	...args
 }, ref) => {
-	const { draggin } = React.useContext(Ctx);
+	const { draggin, setDraggin } = React.useContext(Ctx);
 	return (
 		<View
 			onDragEnter={(e) => {}}
@@ -36,7 +36,8 @@ const Droppable = React.forwardRef<HTMLDivElement, ViewPropsAnd<DroppableProps>>
 					const acceptList = Array.isArray(accept) ? accept : [ accept ];
 					if (!acceptList.some((pat) => draggin.type.match(pat))) return;
 				}
-				onDrop(draggin.type, draggin.id);
+				onDrop(draggin.type, draggin.data);
+				setDraggin(null);
 			}}
 			{...args}
 		>

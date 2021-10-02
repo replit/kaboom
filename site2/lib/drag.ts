@@ -1,4 +1,4 @@
 export interface Drag {
 	type: string,
-	id: string,
+	data: any,
 }
