@@ -90,6 +90,7 @@ const SpriteEntry: React.FC<SpriteEntryProps> = ({
 				src={src}
 				alt={name}
 				css={{
+					userDrag: "none",
 					width: "100%",
 					overflow: "hidden",
 					objectFit: "cover",

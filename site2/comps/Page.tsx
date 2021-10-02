@@ -3,6 +3,7 @@ import Head from "next/head";
 import { Global, css } from "@emotion/react"
 import Ctx from "lib/Ctx";
 import { Tooltip } from "lib/tooltip";
+import { Drag } from "lib/drag";
 import View from "comps/View";
 import Button from "comps/Button";
 import Text from "comps/Text";
@@ -26,6 +27,7 @@ const Page: React.FC<PageProps> = ({
 
 	const [ theme, setTheme ] = useStoredState<Theme>("theme", defTheme);
 	const [ inspect, setInspect ] = React.useState(false);
+	const [ draggin, setDraggin ] = React.useState<Drag | null>(null);
 	const [ tooltipStack, setTooltipStack ] = React.useState<IDList<Tooltip>>(new IDList());
 	const doc = useDoc();
 
@@ -130,6 +132,8 @@ const Page: React.FC<PageProps> = ({
 			pushTooltip,
 			popTooltip,
 			doc,
+			draggin,
+			setDraggin,
 		}}>
 			<div
 				className={theme}
