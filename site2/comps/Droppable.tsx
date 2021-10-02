@@ -1,6 +1,5 @@
 import * as React from "react";
 import View, { ViewPropsAnd } from "comps/View";
-import ftry from "lib/ftry";
 import Ctx from "lib/Ctx";
 
 interface DroppableProps {

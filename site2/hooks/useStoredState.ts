@@ -13,7 +13,11 @@ export default function useStoredState<S>(
 	// get / set from local storage on init
 	React.useEffect(() => {
 		if (window.localStorage[key]) {
-			setData(de(window.localStorage[key]));
+			try {
+				setData(de(window.localStorage[key]));
+			} finally {
+				window.localStorage[key] = ser(data);
+			}
 		} else {
 			window.localStorage[key] = ser(data);
 		}
