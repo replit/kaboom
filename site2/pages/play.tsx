@@ -157,7 +157,7 @@ const Demo: React.FC = () => {
 	const gameviewRef = React.useRef<GameViewRef | null>(null);
 	const backpackRef = React.useRef(null);
 	const blackboardRef = React.useRef(null);
-	const spaceUsed = React.useMemo(getSpaceUsed, [ sprites, sounds ]);
+//  	const spaceUsed = React.useMemo(getSpaceUsed, [ sprites, sounds ]);
 
 	React.useEffect(() => {
 		if (fetchedCode != null) {
@@ -437,9 +437,11 @@ const Demo: React.FC = () => {
 								))
 						}
 					</FileDrop>
+					{/*
 					<View stretchX padX={1}>
 						<Text color={4} size="small">Space used: {(spaceUsed / 1024 / 1024).toFixed(2)}mb</Text>
 					</View>
+					*/}
 				</View>
 				<View
 					name="Backpack Handle"

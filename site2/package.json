@@ -20,7 +20,7 @@
 		"@codemirror/matchbrackets": "0.19.3",
 		"@codemirror/search": "0.19.2",
 		"@codemirror/state": "0.19.2",
-		"@codemirror/view": "0.19.8",
+		"@codemirror/view": "0.19.9",
 		"@emotion/react": "11.4.1",
 		"highlight.js": "11.2.0",
 		"marked": "3.0.4",
