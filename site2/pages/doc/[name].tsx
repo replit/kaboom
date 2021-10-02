@@ -10,7 +10,7 @@ const Doc = () => {
 
 	const router = useRouter()
 	const { name } = router.query;
-	const { data: doc, loading } = useFetch(`/public/doc/${name}.md`, (res) => res.text());
+	const { data: doc, loading } = useFetch(`/site/doc/${name}.md`, (res) => res.text());
 
 	return <Nav>
 		<Link href="/" passHref>

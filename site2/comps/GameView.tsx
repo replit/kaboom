@@ -38,7 +38,7 @@ const wrapGame = (code: string) => `
 	</style>
 </head>
 <body>
-	<script src="/public/dist/kaboom.js"></script>
+	<script src="/site/dist/kaboom.js"></script>
 	<script>
 ${code}
 	</script>

@@ -91,11 +91,11 @@ const Page = ({ Component, pageProps }: AppProps) => {
 					${cssVars}
 					@font-face {
 						font-family: IBM Plex Sans;
-						src: url(/public/fonts/IBMPlexSans-Regular.ttf) format("truetype");
+						src: url(/site/fonts/IBMPlexSans-Regular.ttf) format("truetype");
 					}
 					@font-face {
 						font-family: IBM Plex Mono;
-						src: url(/public/fonts/IBMPlexMono-Regular.ttf) format("truetype");
+						src: url(/site/fonts/IBMPlexMono-Regular.ttf) format("truetype");
 					}
 					* {
 						margin: 0;

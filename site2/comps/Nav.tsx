@@ -53,7 +53,7 @@ const Logo: React.FC = () => (
 			}}
 		>
 			<img
-				src="/public/img/boom.svg"
+				src="/site/img/boom.svg"
 				alt="boom"
 				css={{
 					width: "80%",
@@ -63,7 +63,7 @@ const Logo: React.FC = () => (
 				}}
 			/>
 			<img
-				src="/public/img/ka.svg"
+				src="/site/img/ka.svg"
 				alt="ka"
 				css={{
 					width: "90%",

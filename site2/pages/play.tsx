@@ -4,6 +4,7 @@ import useKey from "hooks/useKey";
 import useFetch from "hooks/useFetch";
 import useStoredState from "hooks/useStoredState";
 import useClickOutside from "hooks/useClickOutside";
+import useSpaceUsed from "hooks/useSpaceUsed";
 import Editor, { EditorRef } from "comps/Editor";
 import GameView, { GameViewRef } from "comps/GameView";
 import Button from "comps/Button";
@@ -19,7 +20,6 @@ import Droppable from "comps/Droppable";
 import Background from "comps/Background";
 import KaboomEntry from "comps/KaboomEntry";
 import { basename } from "lib/path";
-import getSpaceUsed from "lib/spaceUsed";
 import Ctx from "lib/Ctx";
 
 const demos = [
@@ -147,7 +147,7 @@ const Demo: React.FC = () => {
 
 	const { draggin } = React.useContext(Ctx);
 	const [ curDemo, setCurDemo ] = React.useState("platformer");
-	const { data: fetchedCode } = useFetch(`/public/demo/${curDemo}.js`, (res) => res.text());
+	const { data: fetchedCode } = useFetch(`/site/demo/${curDemo}.js`, (res) => res.text());
 	const [ backpackOpen, setBackpackOpen ] = React.useState(false);
 	const [ code, setCode ] = React.useState("");
 	const [ sprites, setSprites ] = useStoredState<Sprite[]>("sprites", []);
@@ -157,7 +157,7 @@ const Demo: React.FC = () => {
 	const gameviewRef = React.useRef<GameViewRef | null>(null);
 	const backpackRef = React.useRef(null);
 	const blackboardRef = React.useRef(null);
-	const spaceUsed = React.useMemo(getSpaceUsed, [ sprites, sounds ]);
+	const spaceUsed = useSpaceUsed();
 
 	React.useEffect(() => {
 		if (fetchedCode != null) {
@@ -196,7 +196,7 @@ const Demo: React.FC = () => {
 					>
 						<Link href="/" passHref>
 							<img
-								src="/public/img/k.png"
+								src="/site/img/k.png"
 								css={{
 									width: 48,
 									cursor: "pointer",
