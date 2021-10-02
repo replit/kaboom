@@ -6,7 +6,6 @@ import useStoredState from "hooks/useStoredState";
 import useClickOutside from "hooks/useClickOutside";
 import Editor, { EditorRef } from "comps/Editor";
 import GameView, { GameViewRef } from "comps/GameView";
-import Page from "comps/Page";
 import Button from "comps/Button";
 import ThemeSwitch from "comps/ThemeSwitch";
 import Select from "comps/Select";
@@ -160,9 +159,6 @@ const Demo: React.FC = () => {
 	const blackboardRef = React.useRef(null);
 	const spaceUsed = React.useMemo(getSpaceUsed, [ sprites, sounds ]);
 
-	// TODO: ctx is 1 level lower
-	console.log(draggin);
-
 	React.useEffect(() => {
 		if (fetchedCode != null) {
 			setCode(fetchedCode);
@@ -183,7 +179,7 @@ const Demo: React.FC = () => {
 	useClickOutside(backpackRef, () => setBackpackOpen(false), [ setBackpackOpen ]);
 	useClickOutside(blackboardRef, () => setBlackboard(null), [ setBlackboard ]);
 
-	return <Page>
+	return <>
 		<Background dir="column">
 			<View
 				dir="row"
@@ -488,7 +484,7 @@ const Demo: React.FC = () => {
 				}
 			</View>
 		</Background>
-	</Page>;
+	</>;
 
 };
 

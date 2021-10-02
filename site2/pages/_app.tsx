@@ -1,5 +1,5 @@
+import type { AppProps } from 'next/app'
 import * as React from "react";
-import Head from "next/head";
 import { Global, css } from "@emotion/react"
 import Ctx from "lib/Ctx";
 import { Tooltip } from "lib/tooltip";
@@ -14,16 +14,7 @@ import useKey from "hooks/useKey";
 import useDoc from "hooks/useDoc";
 import IDList from "lib/idlist";
 
-interface PageProps {
-	title?: string,
-	desc?: string,
-}
-
-const Page: React.FC<PageProps> = ({
-	title,
-	desc,
-	children,
-}) => {
+const Page = ({ Component, pageProps }: AppProps) => {
 
 	const [ theme, setTheme ] = useStoredState<Theme>("theme", defTheme);
 	const [ inspect, setInspect ] = React.useState(false);
@@ -84,12 +75,6 @@ const Page: React.FC<PageProps> = ({
 	}, [ setTooltipStack, ]);
 
 	return <>
-		<Head>
-			<title>{title || "Kaboom!"}</title>
-			<meta name="description" content={desc || ""} />
-			<meta name="viewport" content="initial-scale=1.0, width=device-width" />
-			<link href="icon" rel="/public/img/k.png" />
-		</Head>
 		<Global
 			styles={css`
 				${cssVars}
@@ -144,7 +129,7 @@ const Page: React.FC<PageProps> = ({
 					overflow: "scroll",
 				}}
 			>
-				{children}
+				<Component {...pageProps} />
 			</div>
 			{ inspect && <View
 				stretch

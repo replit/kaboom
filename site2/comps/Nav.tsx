@@ -3,7 +3,6 @@ import Link from "next/link";
 import Image from "next/image";
 import { keyframes } from '@emotion/react';
 
-import Page from "comps/Page";
 import Background from "comps/Background";
 import View from "comps/View";
 import Text from "comps/Text";
@@ -112,45 +111,43 @@ const NavLink: React.FC<NavLinkProps> = ({
 );
 
 const Nav: React.FC = ({children}) => (
-	<Page>
-		<Background pad={3}>
-			<View stretch dir="row" bg={1} rounded outlined css={{ overflow: "hidden" }}>
-				<View
-					dir="column"
-					gap={2}
-					stretchY
-					width={240}
-					pad={3}
-					bg={2}
-					css={{
-						overflow: "scroll",
-					}}
-				>
-					<View />
-					<Logo />
-					<ThemeSwitch />
-					<View gap={0.5}>
-						<NavLink link="/play" text="PlayGround" />
-						<NavLink link="/doc/setup" text="Setup Guide" />
-						<NavLink link="/doc/intro" text="Tutorial" />
-						<NavLink link="https://github.com/replit/kaboom" text="Github" />
-					</View>
-				</View>
-				<View
-					dir="column"
-					gap={3}
-					pad={4}
-					stretchY
-					css={{
-						overflow: "scroll",
-						flex: "1",
-					}}
-				>
-					{children}
+	<Background pad={3}>
+		<View stretch dir="row" bg={1} rounded outlined css={{ overflow: "hidden" }}>
+			<View
+				dir="column"
+				gap={2}
+				stretchY
+				width={240}
+				pad={3}
+				bg={2}
+				css={{
+					overflow: "scroll",
+				}}
+			>
+				<View />
+				<Logo />
+				<ThemeSwitch />
+				<View gap={0.5}>
+					<NavLink link="/play" text="PlayGround" />
+					<NavLink link="/doc/setup" text="Setup Guide" />
+					<NavLink link="/doc/intro" text="Tutorial" />
+					<NavLink link="https://github.com/replit/kaboom" text="Github" />
 				</View>
 			</View>
-		</Background>
-	</Page>
+			<View
+				dir="column"
+				gap={3}
+				pad={4}
+				stretchY
+				css={{
+					overflow: "scroll",
+					flex: "1",
+				}}
+			>
+				{children}
+			</View>
+		</View>
+	</Background>
 );
 
 export default Nav;
