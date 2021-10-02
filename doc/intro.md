@@ -449,3 +449,5 @@ scene("lose", (score) => {
 
 go("game");
 ```
+
+Also try this [video tutorial](https://www.youtube.com/watch?v=hgReGsh5xVU&feature=youtu.be) that teaches you how to make a flappy bird game! 
