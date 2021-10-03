@@ -101,8 +101,8 @@ const NavLink: React.FC<NavLinkProps> = ({
 				":hover": {
 					background: "var(--color-highlight)",
 					"> *": {
-						color: "white !important",
-					}
+						color: "var(--color-fghl) !important",
+					},
 				},
 			}}
 		>

@@ -9,6 +9,7 @@ export type Color =
 	| "fg2"
 	| "fg3"
 	| "fg4"
+	| "fghl"
 	| "highlight"
 	| "accent"
 	| "err"
@@ -35,8 +36,6 @@ export const fontSizes: Record<FontSize, CSSVal> = {
 export type Theme =
 	| "dark"
 	| "black"
-	| "yellow"
-	| "light"
 	;
 
 export type ThemeBook = Record<Theme, ThemeDef>;
@@ -53,6 +52,7 @@ export const themes: ThemeBook = {
 		"fg2": "rgb(170, 170, 190)",
 		"fg3": "rgb(125, 135, 155)",
 		"fg4": "rgb(80, 90, 110)",
+		"fghl": "rgb(215, 225, 235)",
 		"highlight": "rgb(30, 140, 230)",
 		"accent": "rgb(19, 33, 49)",
 		"err": "rgb(230, 90, 90)",
@@ -69,42 +69,11 @@ export const themes: ThemeBook = {
 		"fg2": "rgb(175, 175, 175)",
 		"fg3": "rgb(135, 135, 135)",
 		"fg4": "rgb(95, 95, 95)",
+		"fghl": "rgb(215, 215, 215)",
 		"highlight": "rgb(30, 140, 230)",
 		"accent": "rgb(19, 33, 49)",
 		"err": "rgb(255, 128, 128)",
 		"errbg": "rgb(30, 10, 10)",
-	},
-	"yellow": {
-		"bg1": "rgb(255, 235, 170)",
-		"bg2": "rgb(245, 225, 160)",
-		"bg3": "rgb(235, 215, 150)",
-		"bg4": "rgb(225, 205, 140)",
-		"bgpat": "rgb(248, 228, 163)",
-		"outline": "rgb(220, 200, 135)",
-		"fg1": "rgb(60, 60, 40)",
-		"fg2": "rgb(100, 100, 80)",
-		"fg3": "rgb(140, 140, 120)",
-		"fg4": "rgb(180, 180, 140)",
-		"highlight": "rgb(30, 140, 230)",
-		"accent": "rgb(19, 33, 49)",
-		"err": "rgb(255, 128, 128)",
-		"errbg": "rgb(255, 205, 140)",
-	},
-	"light": {
-		"bg1": "rgb(255, 255, 255)",
-		"bg2": "rgb(244, 244, 244)",
-		"bg3": "rgb(233, 233, 233)",
-		"bg4": "rgb(222, 222, 222)",
-		"bgpat": "rgb(248, 248, 248)",
-		"outline": "rgb(218, 218, 218)",
-		"fg1": "rgb(51, 51, 51)",
-		"fg2": "rgb(102, 102, 102)",
-		"fg3": "rgb(153, 153, 153)",
-		"fg4": "rgb(190, 190, 190)",
-		"highlight": "rgb(0, 128, 255)",
-		"accent": "rgb(255, 248, 188)",
-		"err": "rgb(255, 128, 128)",
-		"errbg": "rgb(255, 215, 215)",
 	},
 };
 

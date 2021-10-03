@@ -267,6 +267,7 @@ const Demo: React.FC = () => {
 					placeholder="Come on let's make some games!"
 					css={{
 						flex: "1",
+						zIndex: 20,
 					}}
 					keys={[
 						{
@@ -302,6 +303,7 @@ const Demo: React.FC = () => {
 					stretchY
 					css={{
 						flex: "1",
+						zIndex: 20,
 					}}
 				/>
 			</View>
@@ -321,6 +323,7 @@ const Demo: React.FC = () => {
 					stretch
 					css={{
 						position: "absolute",
+						zIndex: 10,
 					}}
 					accept={["sprite", "sound"]}
 					onDrop={(ty, data) => {

@@ -150,6 +150,9 @@ const Select: React.FC<SelectProps & ViewProps> = ({
 							css={{
 								":hover": {
 									background: "var(--color-highlight)",
+									"> *": {
+										color: "var(--color-fghl) !important",
+									},
 								},
 							}}
 							onClick={() => {

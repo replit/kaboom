@@ -2,7 +2,7 @@ import * as React from "react";
 import { FontSize } from "lib/ui";
 
 interface TextProps {
-	color?: number,
+	color?: number | string,
 	size?: FontSize,
 	bold?: boolean,
 	italic?: boolean,
@@ -22,7 +22,9 @@ const Text = React.forwardRef<HTMLDivElement, React.PropsWithChildren<TextProps>
 		ref={ref}
 		css={{
 			fontSize: `var(--text-${size ?? "normal"})`,
-			color: `var(--color-fg${color ?? "1"})`,
+			color: color === undefined
+				? "var(--color-fg1)"
+				: typeof color === "number" ? `var(--color-fg${color})` : color,
 			fontWeight: bold ? "bold" : "normal",
 			fontStyle: italic ? "italic" : "normal",
 			userSelect: select ? "auto" : "none",
