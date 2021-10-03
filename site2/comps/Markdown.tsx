@@ -58,13 +58,15 @@ const Markdown: React.FC<MarkdownProps & ViewProps> = ({
 			"pre": {
 				width: "100%",
 				background: "var(--color-bg2)",
-				padding: 16,
 				borderRadius: 8,
 				boxShadow: "0 0 0 2px var(--color-outline)",
 				maxHeight: "480px",
-				display: "block",
-				overflowX: "scroll",
-				overflowY: "visible",
+				display: "flex",
+				"code": {
+					padding: 16,
+					width: "100%",
+					overflowY: "auto",
+				},
 			},
 			"code": {
 				fontFamily: "IBM Plex Mono",

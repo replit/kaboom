@@ -103,7 +103,6 @@ const Page = ({ Component, pageProps }: AppProps) => {
 						box-sizing: border-box;
 						font-family: inherit;
 						outline: none;
-						scrollbar-color: red yellow;
 					}
 					html {
 						width: 100%;
@@ -117,6 +116,9 @@ const Page = ({ Component, pageProps }: AppProps) => {
 					#__next {
 						width: 100%;
 						height: 100%;
+					}
+					::selection {
+						background: var(--color-bg4);
 					}
 				`}
 			/>

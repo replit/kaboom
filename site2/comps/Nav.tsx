@@ -7,6 +7,7 @@ import Background from "comps/Background";
 import View from "comps/View";
 import Text from "comps/Text";
 import Markdown from "comps/Markdown";
+import Input from "comps/Input";
 import ThemeSwitch from "comps/ThemeSwitch";
 
 const anims = {
@@ -110,44 +111,48 @@ const NavLink: React.FC<NavLinkProps> = ({
 	</Link>
 );
 
-const Nav: React.FC = ({children}) => (
-	<Background pad={3}>
-		<View stretch dir="row" bg={1} rounded outlined css={{ overflow: "hidden" }}>
-			<View
-				dir="column"
-				gap={2}
-				stretchY
-				width={240}
-				pad={3}
-				bg={2}
-				css={{
-					overflow: "scroll",
-				}}
-			>
-				<View />
-				<Logo />
-				<ThemeSwitch />
-				<View gap={0.5}>
-					<NavLink link="/play" text="PlayGround" />
-					<NavLink link="/doc/setup" text="Setup Guide" />
-					<NavLink link="/doc/intro" text="Tutorial" />
-					<NavLink link="https://github.com/replit/kaboom" text="Github" />
+const Nav: React.FC = ({children}) => {
+	const [ query, setQuery ] = React.useState("");
+	return (
+		<Background pad={3}>
+			<View stretch dir="row" bg={1} rounded outlined css={{ overflow: "hidden" }}>
+				<View
+					dir="column"
+					gap={2}
+					stretchY
+					width={240}
+					pad={3}
+					bg={2}
+					css={{
+						overflow: "scroll",
+					}}
+				>
+					<View />
+					<Logo />
+					<ThemeSwitch />
+					<View gap={0.5}>
+						<NavLink link="/play" text="PlayGround" />
+						<NavLink link="/doc/setup" text="Setup Guide" />
+						<NavLink link="/doc/intro" text="Tutorial" />
+						<NavLink link="https://github.com/replit/kaboom" text="Github" />
+					</View>
+					<Input value={query} onChange={setQuery} placeholder="Search for doc" />
+				</View>
+				<View
+					dir="column"
+					gap={3}
+					pad={4}
+					stretchY
+					css={{
+						overflow: "scroll",
+						flex: "1",
+					}}
+				>
+					{children}
 				</View>
 			</View>
-			<View
-				dir="column"
-				gap={3}
-				pad={4}
-				stretchY
-				css={{
-					overflow: "scroll",
-					flex: "1",
-				}}
-			>
-				{children}
-			</View>
-		</View>
-	</Background>
-);
+		</Background>
+	);
+};
 
 export default Nav;

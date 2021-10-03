@@ -233,7 +233,12 @@ const Demo: React.FC = () => {
 						name="Theme Switcher"
 						desc="Choose a theme!"
 					/>
-					<Menu items={[]} />
+					<Menu items={[
+						{
+							name: "Export",
+							action: () => {},
+						}
+					]} />
 				</View>
 			</View>
 			<View

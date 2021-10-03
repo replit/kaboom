@@ -14,6 +14,7 @@ interface MenuProps {
 	items: MenuItem[],
 }
 
+// TODO: squeeze to left if no space
 const Menu: React.FC<MenuProps> = ({
 	items,
 }) => {

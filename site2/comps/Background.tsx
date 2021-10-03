@@ -23,7 +23,7 @@ const Background: React.FC<ViewProps> = ({
 					100% {
 						background-position: 96px 96px;
 					}
-				`)} 5s infinite linear`,
+				`)} 16s infinite linear`,
 			}}
 			{...args}
 		>
