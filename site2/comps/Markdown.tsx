@@ -31,6 +31,9 @@ const Markdown: React.FC<MarkdownProps & ViewProps> = ({
 			}),
 		}}
 		css={{
+			"*": {
+				maxWidth: "100%",
+			},
 			"h1": {
 				fontSize: 48,
 			},
