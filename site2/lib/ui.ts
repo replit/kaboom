@@ -12,7 +12,7 @@ export type Color =
 	| "fghl"
 	| "highlight"
 	| "accent"
-	| "err"
+	| "danger"
 	| "errbg"
 	;
 
@@ -46,7 +46,7 @@ export const themes: ThemeBook = {
 		"bg2": "rgb(32, 32, 46)",
 		"bg3": "rgb(44, 44, 62)",
 		"bg4": "rgb(56, 56, 78)",
-		"bgpat": "rgb(17, 17, 27)",
+		"bgpat": "rgb(16, 16, 26)",
 		"outline": "rgb(64, 64, 96)",
 		"fg1": "rgb(215, 225, 235)",
 		"fg2": "rgb(170, 170, 190)",
@@ -55,7 +55,7 @@ export const themes: ThemeBook = {
 		"fghl": "rgb(215, 225, 235)",
 		"highlight": "rgb(30, 140, 230)",
 		"accent": "rgb(19, 33, 49)",
-		"err": "rgb(230, 90, 90)",
+		"danger": "rgb(230, 90, 90)",
 		"errbg": "rgb(40, 25, 35)",
 	},
 	"black": {
@@ -72,7 +72,7 @@ export const themes: ThemeBook = {
 		"fghl": "rgb(215, 215, 215)",
 		"highlight": "rgb(30, 140, 230)",
 		"accent": "rgb(19, 33, 49)",
-		"err": "rgb(255, 128, 128)",
+		"danger": "rgb(255, 128, 128)",
 		"errbg": "rgb(30, 10, 10)",
 	},
 };

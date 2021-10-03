@@ -4,17 +4,19 @@ import Text from "comps/Text";
 interface ButtonProps {
 	text: string,
 	action?: () => void,
+	danger?: boolean,
 }
 
 const Button: React.FC<ButtonProps & ViewProps> = ({
 	text,
 	action,
+	danger,
 	...args
 }) => (
 	<View
 		focusable
 		onClick={() => action && action()}
-		bg={3}
+		bg={danger ? "var(--color-danger)" : 3}
 		padX={1}
 		padY={0.5}
 		rounded

@@ -16,6 +16,7 @@ import Inspect from "comps/Inspect";
 import Background from "comps/Background";
 import KaboomEntry from "comps/KaboomEntry";
 import FileDrop from "comps/FileDrop";
+import Modal from "comps/Modal";
 
 interface ExampleProps {
 	thing: string,
@@ -34,6 +35,11 @@ const Example: React.FC<ExampleProps & ViewProps> = ({
 
 const UI: React.FC = () => (
 	<Background pad={4} dir="column" gap={3}>
+		{/*<Modal isOpen close={() => {}}>
+			<View width={480} height={240} bg={2} pad={2} rounded outlined>
+				<Text size="big">Are you sure?</Text>
+			</View>
+		</Modal>*/}
 		<Example thing="a dropdown menu">
 			<Select
 				name="Name Selector"
@@ -67,7 +73,7 @@ const UI: React.FC = () => (
 			<ThemeSwitch />
 		</Example>
 		<Example thing="a text">
-			<Text italic bold size="huge">oh hi mark</Text>
+			<Text select italic bold size="huge">oh hi mark</Text>
 		</Example>
 		<Example thing="a button">
 			<Button text="Run" name="Run Button" desc="run current code" />

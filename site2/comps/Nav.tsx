@@ -138,6 +138,23 @@ const Nav: React.FC = ({children}) => {
 					</View>
 					<Input value={query} onChange={setQuery} placeholder="Search for doc" />
 				</View>
+				{/*<div css={{
+					height: 640,
+					width: 640,
+					background: "blue",
+					boxSizing: "border-box",
+					overflow: "scroll",
+					display: "flex",
+					padding: 120,
+					flexDirection: "column",
+				}}>
+					<div css={{
+						height: 1200,
+						width: "100%",
+						background: "green",
+					}}>
+					</div>
+				</div>*/}
 				<View
 					dir="column"
 					gap={3}

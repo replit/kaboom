@@ -233,7 +233,7 @@ const Demo: React.FC = () => {
 						name="Theme Switcher"
 						desc="Choose a theme!"
 					/>
-					<Menu items={[
+					<Menu left items={[
 						{
 							name: "Export",
 							action: () => {},
@@ -315,6 +315,7 @@ const Demo: React.FC = () => {
 					transition: "0.2s opacity",
 					pointerEvents: "none",
 					position: "absolute",
+					zIndex: 100,
 				}}
 			/>
 			{
@@ -352,7 +353,7 @@ const Demo: React.FC = () => {
 					left: backpackOpen ? -4 : -(260 - 24),
 					transition: "0.2s left",
 					overflow: "hidden",
-					zIndex: 50,
+					zIndex: 200,
 				}}
 			>
 				<View
@@ -484,6 +485,7 @@ const Demo: React.FC = () => {
 					transition: "0.2s top",
 					overflowY: "scroll",
 					overflowX: "hidden",
+					zIndex: 200,
 				}}
 			>
 				{

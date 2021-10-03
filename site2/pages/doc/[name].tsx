@@ -16,9 +16,9 @@ const Doc = () => {
 		<Link href="/" passHref>
 			<Button text="< Back" action={() => {}} />
 		</Link>
-		{loading
+		{ loading
 			? <Text color={3}>loading...</Text>
-			: <Markdown src={doc ?? ""} />
+			: <Markdown src={doc ?? ""} baseUrl="/site/doc/" />
 		}
 	</Nav>;
 

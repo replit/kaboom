@@ -9,15 +9,16 @@ marked.setOptions({
 			language: lang,
 		}).value;
 	},
-	baseUrl: "/public",
 });
 
 interface MarkdownProps {
 	src: string,
+	baseUrl?: string,
 }
 
 const Markdown: React.FC<MarkdownProps & ViewProps> = ({
 	src,
+	baseUrl,
 	...args
 }) => (
 	<View
@@ -25,7 +26,9 @@ const Markdown: React.FC<MarkdownProps & ViewProps> = ({
 		gap={2}
 		// @ts-ignore
 		dangerouslySetInnerHTML={{
-			__html: marked(src),
+			__html: marked(src, {
+				baseUrl: baseUrl,
+			}),
 		}}
 		css={{
 			"h1": {

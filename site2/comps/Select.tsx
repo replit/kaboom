@@ -143,8 +143,8 @@ const Select: React.FC<SelectProps & ViewProps> = ({
 						<View
 							stretchX
 							key={opt}
-							padX={1}
-							padY={0.5}
+							padX={1.5}
+							padY={1}
 							bg={curItem === opt ? 4 : "none"}
 							focusable
 							css={{

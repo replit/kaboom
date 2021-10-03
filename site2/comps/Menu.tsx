@@ -12,11 +12,13 @@ export interface MenuItem {
 
 interface MenuProps {
 	items: MenuItem[],
+	left?: boolean,
 }
 
 // TODO: squeeze to left if no space
 const Menu: React.FC<MenuProps> = ({
 	items,
+	left,
 }) => {
 
 	const domRef = React.useRef(null);
@@ -53,25 +55,28 @@ const Menu: React.FC<MenuProps> = ({
 			{expanded && <View
 				outlined
 				rounded
-				gap={1}
+				pad={0.5}
 				bg={3}
 				css={{
 					overflow: "hidden",
 					position: "absolute",
 					zIndex: 1000,
-					left: 0,
+					[left ? 'right' : 'left']: 0,
+					top: 40,
 				}}
 			>
 				{items.length > 0 && items.map((item) => (
 					<View
 						key={item.name}
 						stretchX
-						padX={1}
+						padX={1.5}
 						padY={0.5}
 						focusable
+						rounded
 						css={{
+							minWidth: 120,
 							":hover": {
-								background: item.danger ? "var(--color-err)" : "var(--color-highlight)",
+								background: item.danger ? "var(--color-danger)" : "var(--color-highlight)",
 							},
 						}}
 						onClick={() => item.action && item.action()}
