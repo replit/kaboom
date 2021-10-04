@@ -28,113 +28,126 @@ const Example: React.FC<ExampleProps & ViewProps> = ({
 	...args
 }) => (
 	<View dir="column" gap={2} {...args}>
-		<Text color={4} size="huge">here{"'"}s {thing}</Text>
+		<Text color={3} size="huge">here{"'"}s {thing}</Text>
 		{children}
 	</View>
 );
 
 const UI: React.FC = () => (
-	<Background pad={4} dir="column" gap={3}>
-		{/*<Modal isOpen close={() => {}}>
-			<View width={480} height={240} bg={2} pad={2} rounded outlined>
-				<Text size="big">Are you sure?</Text>
-			</View>
-		</Modal>*/}
-		<Example thing="a dropdown menu">
-			<Select
-				name="Name Selector"
-				desc="Select some names!"
-				options={["Jack", "Panda", "Banana"]}
-			/>
-		</Example>
-		<Example thing="a menu">
-			<Menu items={[
-				{
-					name: "Copy",
-				},
-				{
-					name: "Rename",
-				},
-				{
-					name: "Delete",
-					danger: true,
-				},
-			]} />
-		</Example>
-		<Example thing="a toggle">
-			<Toggle />
-		</Example>
-		<Example thing="an input">
-			<View width={400}>
-				<Input placeholder="Please enter your bank account and password" />
-			</View>
-		</Example>
-		<Example thing="a theme switcher">
-			<ThemeSwitch />
-		</Example>
-		<Example thing="a text">
-			<Text select italic bold size="huge">oh hi mark</Text>
-		</Example>
-		<Example thing="a button">
-			<Button text="Run" name="Run Button" desc="run current code" />
-		</Example>
-		<Example thing="an inspect button">
-			<Inspect />
-		</Example>
-		<Example thing="a game view">
-			<GameView
-				code={`
-kaboom();
-keyPress(() => addKaboom(mousePos()));
-mouseMove(() => addKaboom(mousePos()));
-				`}
-				width={640}
-				height={480}
-			/>
-		</Example>
-		<Example thing="an editor">
-			<Editor
-				name="Code Editor"
-				desc="Edit your code here!"
-				width={640}
-				height={320}
-				placeholder="Congrats you have discovered the placeholder text"
-				content={`
-kaboom();
+	<Background pad={3}>
+		<View
+			pad={4}
+			bg={2}
+			gap={4}
+			width="100%"
+			height="100%"
+			outlined
+			rounded
+			css={{
+				overflow: "scroll",
+			}}
+		>
+			{/*<Modal isOpen close={() => {}}>
+				<View width={480} height={240} bg={2} pad={2} rounded outlined>
+					<Text size="big">Are you sure?</Text>
+				</View>
+			</Modal>*/}
+			<Example thing="a dropdown menu">
+				<Select
+					name="Name Selector"
+					desc="Select some names!"
+					options={["Jack", "Panda", "Banana"]}
+				/>
+			</Example>
+			<Example thing="a menu">
+				<Menu items={[
+					{
+						name: "Copy",
+					},
+					{
+						name: "Rename",
+					},
+					{
+						name: "Delete",
+						danger: true,
+					},
+				]} />
+			</Example>
+			<Example thing="a toggle">
+				<Toggle />
+			</Example>
+			<Example thing="an input">
+				<View width={400}>
+					<Input placeholder="Please enter your bank account and password" />
+				</View>
+			</Example>
+			<Example thing="a theme switcher">
+				<ThemeSwitch />
+			</Example>
+			<Example thing="a text">
+				<Text select italic bold size="huge">oh hi mark</Text>
+			</Example>
+			<Example thing="a button">
+				<Button text="Run" name="Run Button" desc="run current code" />
+			</Example>
+			<Example thing="an inspect button">
+				<Inspect />
+			</Example>
+			<Example thing="a game view">
+				<GameView
+					code={`
+	kaboom();
+	keyPress(() => addKaboom(mousePos()));
+	mouseMove(() => addKaboom(mousePos()));
+					`}
+					width={640}
+					height={480}
+				/>
+			</Example>
+			<Example thing="an editor">
+				<Editor
+					name="Code Editor"
+					desc="Edit your code here!"
+					width={640}
+					height={320}
+					placeholder="Congrats you have discovered the placeholder text"
+					content={`
+	kaboom();
 
-// load default sprite "bean"
-loadBean();
+	// load default sprite "bean"
+	loadBean();
 
-// add to screen
-add([
-sprite("bean"),
-pos(80, 40),
-]);
-				`.trim()}
-			/>
-		</Example>
-		<Example thing="a piece of doc">
-			<View width={640} name="Document Component" desc="Display doc for a Kaboom function just by passing a name">
-				<FileDrop name="add" />
-			</View>
-		</Example>
-		<Example thing="a file dropper">
-			<FileDrop
-				name="add"
-				align="center"
-				justify="center"
-				width={320}
-				height={240}
-				bg={1}
-				rounded
-				outlined
-				accept="^image/"
-				readAs="text"
-				onLoad={(file, content) => console.log(file, content)}
-			>
-				<Text color={3}>drop images on me!</Text>
-			</FileDrop>
-		</Example>
+	// add to screen
+	add([
+	sprite("bean"),
+	pos(80, 40),
+	]);
+					`.trim()}
+				/>
+			</Example>
+			<Example thing="a piece of doc">
+				<View width={640} name="Document Component" desc="Display doc for a Kaboom function just by passing a name">
+					<FileDrop name="add" />
+				</View>
+			</Example>
+			<Example thing="a file dropper">
+				<FileDrop
+					name="add"
+					align="center"
+					justify="center"
+					width={320}
+					height={240}
+					bg={1}
+					rounded
+					outlined
+					accept="^image/"
+					readAs="text"
+					onLoad={(file, content) => console.log(file, content)}
+				>
+					<Text color={3}>drop images on me!</Text>
+				</FileDrop>
+			</Example>
+		</View>
 	</Background>
 );
 

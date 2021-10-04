@@ -160,8 +160,7 @@ const View = React.forwardRef<HTMLDivElement, ViewPropsWithChildrenAndDiv>(({
 			borderRadius: rounded ? 8 : 0,
 //  			outline: outlined ? "solid 2px var(--color-outline)" : "none",
 			boxShadow: outlined ? "0 0 0 2px var(--color-outline)" : "none",
-			"& > *": { [marginSide]: (gap ?? 0) * spaceUnit, },
-			"& > *:last-child": { [marginSide]: 0, },
+			gap: (gap ?? 0) * spaceUnit,
 			":focus": {
 //  				outline: "solid 2px var(--color-highlight)",
 				boxShadow: outlined ? "0 0 0 2px var(--color-highlight)" : "none",

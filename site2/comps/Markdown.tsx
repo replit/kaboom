@@ -61,6 +61,9 @@ const Markdown: React.FC<MarkdownProps & ViewProps> = ({
 			"a:visited": {
 				color: "var(--color-highlight)",
 			},
+			"img": {
+				borderRadius: 8,
+			},
 			"pre": {
 				width: "100%",
 				background: "var(--color-bg2)",
@@ -77,6 +80,9 @@ const Markdown: React.FC<MarkdownProps & ViewProps> = ({
 			"code": {
 				fontFamily: "IBM Plex Mono",
 				color: "var(--color-fg2)",
+				background: "var(--color-bg2)",
+				borderRadius: 8,
+				padding: "4px 8px",
 			},
 			"p > code": {
 				padding: "2px 6px",

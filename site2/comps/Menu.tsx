@@ -70,12 +70,15 @@ const Menu: React.FC<MenuProps> = ({
 						key={item.name}
 						stretchX
 						padX={1.5}
-						padY={0.5}
+						padY={1}
 						focusable
 						rounded
 						css={{
 							minWidth: 120,
 							":hover": {
+								"*": {
+									color: "var(--color-fghl) !important",
+								},
 								background: item.danger ? "var(--color-danger)" : "var(--color-highlight)",
 							},
 						}}

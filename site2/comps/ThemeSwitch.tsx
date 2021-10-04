@@ -6,7 +6,7 @@ import { themes, Theme } from "lib/ui";
 const ThemeSwitch: React.FC<ViewProps> = ({...args}) => {
 	const { theme, setTheme } = React.useContext(Ctx);
 	return (
-		<View dir="row" gap={1.5} align="center" rounded {...args}>
+		<View dir="row" gap={1.5} align="center" rounded wrap {...args}>
 			{Object.keys(themes).map((t) => (
 				<View
 					key={t}
@@ -14,9 +14,9 @@ const ThemeSwitch: React.FC<ViewProps> = ({...args}) => {
 					desc="Theme"
 					onClick={() => setTheme(t as Theme)}
 					bg={themes[t as Theme]["bg2"]}
-					width={t === theme ? 32 : 24}
-					height={t === theme ? 32 : 24}
-					outlined
+					width={24}
+					height={24}
+					outlined={t === theme}
 					focusable
 					css={{
 						outlineColor: t === theme ? "var(--color-highlight)" : "var(--color-outline)",
