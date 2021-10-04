@@ -20,7 +20,7 @@ const KaboomMember: React.FC<any> = (def) => {
 					{ (doc.tags ?? []).map((tag: any) => {
 						switch (tag.tagName) {
 							case "example": return <Markdown key={tag.comment} src={tag.comment} />;
-							default: return <></>;
+							default: return <React.Fragment key={tag.comment}></React.Fragment>;
 						}
 					}) }
 				</View>
