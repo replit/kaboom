@@ -56,14 +56,14 @@ import { javascript } from "@codemirror/lang-javascript";
 import useUpdateEffect from "hooks/useUpdateEffect";
 import View, { ViewProps } from "comps/View";
 import Ctx from "lib/Ctx";
-import { themes, Theme } from "lib/ui";
+import { themes } from "lib/ui";
 
 // @ts-ignore
 const cmThemes: Record<Theme, [ Extension, HighlightStyle ]> = {};
 
 Object.keys(themes).forEach((name) => {
 
-	const theme = themes[name as Theme];
+	const theme = themes[name];
 	const yellow = "#e5c07b";
 	const red = "#e06c75";
 	const cyan = "#56b6c2";
@@ -80,7 +80,7 @@ Object.keys(themes).forEach((name) => {
 	const selection = theme["bg4"];
 	const cursor = theme["highlight"];
 
-	cmThemes[name as Theme] = [
+	cmThemes[name] = [
 		EditorView.theme({
 			"&": {
 				color: ivory,

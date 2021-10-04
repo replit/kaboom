@@ -2,7 +2,7 @@ import * as React from "react";
 import { cssVars } from "lib/ui";
 import View, { ViewProps } from "comps/View";
 import Ctx from "lib/Ctx";
-import { themes, Theme } from "lib/ui";
+import { themes } from "lib/ui";
 
 export interface GameViewRef {
 	run: (code?: string) => void,

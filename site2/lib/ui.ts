@@ -33,12 +33,18 @@ export const fontSizes: Record<FontSize, CSSVal> = {
 	"huge": "32px",
 }
 
-export type Theme =
-	| "dark"
-	| "black"
-	;
+export type ThemeBook = Record<string, ThemeDef>;
 
-export type ThemeBook = Record<Theme, ThemeDef>;
+// TODO: figure out a way to gen type like this would be nice
+// genColor(name: string, count: number)
+// genColor("bg", 4)
+
+// {
+// 	"bg1": string,
+// 	"bg2": string,
+// 	"bg3": string,
+// 	"bg4": string,
+// }
 
 const genColors = (
 	name: string, num: number,
@@ -47,12 +53,14 @@ const genColors = (
 ): Record<string, CSSVal> => {
 	const map = {};
 	for (let i = 0; i < num; i++) {
+		// @ts-ignore
 		map[`${name}${i + 1}`] = `rgb(${r + dr * i}, ${g + dg * i}, ${b + db * i})`;
 	}
 	return map;
 };
 
 export const themes: ThemeBook = {
+	// @ts-ignore
 	"dark": {
 		...genColors(
 			"bg", 4,
@@ -72,6 +80,7 @@ export const themes: ThemeBook = {
 		"danger": "rgb(240, 90, 90)",
 		"errbg": "rgb(40, 25, 35)",
 	},
+	// @ts-ignore
 	"black": {
 		...genColors(
 			"bg", 4,
@@ -129,6 +138,7 @@ export const themes: ThemeBook = {
 // 		"danger": "rgb(255, 90, 90)",
 // 		"errbg": "rgb(30, 10, 10)",
 // 	},
+	// @ts-ignore
 	"ice": {
 		...genColors(
 			"bg", 4,
@@ -185,7 +195,7 @@ export const cssVars = (() => {
 	let code = `:root {${buildCSSVars("text", fontSizes)}${buildCSSVars("color", themes[defTheme])}}`;
 
 	for (const theme in themes) {
-		code += `.${theme} {${buildCSSVars("color", themes[theme as Theme])}}`;
+		code += `.${theme} {${buildCSSVars("color", themes[theme])}}`;
 	}
 
 	return code;

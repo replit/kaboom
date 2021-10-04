@@ -7,7 +7,7 @@ import { Drag } from "lib/drag";
 import View from "comps/View";
 import Button from "comps/Button";
 import Text from "comps/Text";
-import { Theme, defTheme, themes, cssVars } from "lib/ui";
+import { defTheme, themes, cssVars } from "lib/ui";
 import useMousePos from "hooks/useMousePos";
 import useStoredState from "hooks/useStoredState";
 import useKey from "hooks/useKey";
@@ -16,7 +16,7 @@ import IDList from "lib/idlist";
 
 const Page = ({ Component, pageProps }: AppProps) => {
 
-	const [ theme, setTheme ] = useStoredState<Theme>("theme", defTheme);
+	const [ theme, setTheme ] = useStoredState("theme", defTheme);
 	const [ inspect, setInspect ] = React.useState(false);
 	const [ draggin, setDraggin ] = React.useState<Drag | null>(null);
 	const [ tooltipStack, setTooltipStack ] = React.useState<IDList<Tooltip>>(new IDList());

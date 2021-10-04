@@ -1,12 +1,12 @@
 import * as React from "react";
-import { Theme, defTheme } from "lib/ui";
+import { defTheme } from "lib/ui";
 import { Tooltip } from "lib/tooltip";
 import { Drag } from "lib/drag";
 import { Doc } from "lib/doc";
 
 interface Ctx {
-	theme: Theme,
-	setTheme(theme: Theme): void,
+	theme: string,
+	setTheme(theme: string): void,
 	inspect: boolean,
 	setInspect: (inspect: boolean) => void,
 	pushTooltip: (tooltip: Tooltip) => Promise<number>,
