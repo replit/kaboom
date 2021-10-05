@@ -88,6 +88,10 @@ const Select: React.FC<SelectProps & ViewProps> = ({
 		const dropdown = dropdownRef.current;
 		if (expanded) {
 			dropdown.focus();
+			const selected = dropdown.querySelector(".selected") as HTMLElement;
+			if (selected) {
+				dropdown.scrollTop = selected.offsetTop;
+			}
 		}
 	}, [ expanded ]);
 
@@ -134,10 +138,12 @@ const Select: React.FC<SelectProps & ViewProps> = ({
 				<Prompt name={curItem} options={options} expanded={expanded} />
 				<View height={2} stretchX bg={4} />
 				<View
+// 					focusable
 					ref={dropdownRef}
 					stretchX
 					bg={2}
 					onKeyDown={(e) => {
+						// TODO
 						console.log(e.key);
 					}}
 					css={{
@@ -151,6 +157,7 @@ const Select: React.FC<SelectProps & ViewProps> = ({
 							key={opt}
 							padX={1.5}
 							padY={1}
+							className={curItem === opt ? "selected" : undefined}
 							bg={curItem === opt ? 4 : "none"}
 							focusable
 							css={{

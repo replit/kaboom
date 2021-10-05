@@ -18,7 +18,7 @@ const ThemeSwitch: React.FC<ViewProps> = ({...args}) => {
 		};
 		// @ts-ignore
 		return () => delete window.showmedacolors;
-	}, [])
+	}, [ setShowMore ])
 
 	return (
 		<View pad={0.5} dir="row" gap={1.5} align="center" rounded wrap {...args}>

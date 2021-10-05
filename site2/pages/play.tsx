@@ -151,8 +151,8 @@ const Play: React.FC = () => {
 
 	const router = useRouter();
 	const { draggin } = React.useContext(Ctx);
-	const [ curDemo, setCurDemo ] = React.useState(DEF_DEMO);
-	const { data: fetchedCode } = useFetch(`/site/demo/${curDemo}.js`, (res) => res.text());
+	const demo = router.query.demo as string || DEF_DEMO;
+	const { data: fetchedCode } = useFetch(`/site/demo/${demo}.js`, (res) => res.text());
 	const [ backpackOpen, setBackpackOpen ] = React.useState(false);
 	const [ code, setCode ] = React.useState("");
 	const [ sprites, setSprites ] = useSavedState<Sprite[]>("sprites", []);
@@ -171,11 +171,8 @@ const Play: React.FC = () => {
 					demo: DEF_DEMO,
 				},
 			});
-			return;
 		}
-		setCurDemo(router.query.demo);
-		console.log(router.query.demo);
-	}, [ router.query.demo ]);
+	}, [ router ]);
 
 	React.useEffect(() => {
 		if (fetchedCode != null) {
@@ -228,7 +225,7 @@ const Play: React.FC = () => {
 						name="Demo Selector"
 						desc="Select a demo to run"
 						options={demos}
-						value={curDemo}
+						value={demo}
 						onChange={(demo) => router.push({
 							query: {
 								demo: demo,
