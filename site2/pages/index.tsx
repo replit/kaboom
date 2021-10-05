@@ -6,6 +6,8 @@ import Nav from "comps/Nav";
 import View from "comps/View";
 import Text from "comps/Text";
 import Markdown from "comps/Markdown";
+import KaboomEntry from "comps/KaboomEntry";
+import * as doc from "lib/doc";
 
 const Home: React.FC = () => {
 	return <Nav>
@@ -36,6 +38,24 @@ keyPress("space", () => {
 
 Kaboom uses a flexible component system that makes it easy to compose game logics.
 		`} />
+
+		{ doc.sections.map((sec) => {
+
+			const entries = sec.entries;
+
+			return (
+				<View stretchX gap={1} key={sec.name}>
+					<Text size="huge" color={3}>{sec.name}</Text>
+						<View stretchX gap={3}>
+							{ entries.map((name) => {
+								return <KaboomEntry key={name} name={name} />
+							}) }
+						</View>
+				</View>
+			);
+
+		}) }
+
 	</Nav>;
 };
 

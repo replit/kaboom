@@ -113,47 +113,57 @@ const NavLink: React.FC<NavLinkProps> = ({
 );
 
 const Index: React.FC = () => {
+
 	const [ query, setQuery ] = React.useState("");
+
 	return <>
+
 		<Input value={query} onChange={setQuery} placeholder="Search for doc" />
+
 		{ doc.sections.map((sec) => {
+
+			const entries = sec.entries
+				.filter((name) => query ? name.match(query) : true);
+			if (entries.length === 0) {
+				return <></>;
+			}
+
 			return (
 				<View stretchX gap={1} key={sec.name}>
 					<Text size="big" color={3}>{sec.name}</Text>
 						<View>
-							{
-								sec.entries
-									.filter((name) => query ? name.match(query) : true)
-									.map((name) => {
-										let dname = name;
-										const mem = doc.entries[name][0];
-										if (mem.kind === "MethodSignature") {
-											dname += "()";
-										}
-										return (
-											<a key={name} href={`#${name}`}>
-												<View
-													padX={1}
-													padY={0.5}
-													css={{
-														cursor: "pointer",
-														borderRadius: 8,
-														":hover": {
-															background: "var(--color-bg3)",
-														},
-													}}
-												>
-													<Text color={2} code>{dname}</Text>
-												</View>
-											</a>
-										);
-									})
-							}
+							{ entries.map((name) => {
+								let dname = name;
+								const mem = doc.entries[name][0];
+								if (mem.kind === "MethodSignature") {
+									dname += "()";
+								}
+								return (
+									<a key={name} href={`#${name}`}>
+										<View
+											padX={1}
+											padY={0.5}
+											css={{
+												cursor: "pointer",
+												borderRadius: 8,
+												":hover": {
+													background: "var(--color-bg3)",
+												},
+											}}
+										>
+											<Text color={2} code>{dname}</Text>
+										</View>
+									</a>
+								);
+							}) }
 						</View>
 				</View>
 			);
+
 		}) }
+
 	</>;
+
 };
 
 const Nav: React.FC = ({children}) => (

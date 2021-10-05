@@ -12,7 +12,7 @@ const KaboomMember: React.FC<any> = (def) => {
 	const doc = def.jsDoc?.[0];
 	return (
 		<View gap={1} stretchX>
-			<Text size="big">{def.name}</Text>
+			<Text code size="big">{def.name}</Text>
 			{
 				doc &&
 				<View gap={2} stretchX>
