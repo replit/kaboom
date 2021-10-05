@@ -121,15 +121,16 @@ const MOBILE = 640;
 
 const Index: React.FC = () => {
 
+	// TODO: useMediaQuery instead
 	const [ winWidth, winHeight ] = useWinSize();
 	const [ expanded, setExpanded ] = React.useState(false);
-	const narrow = winWidth <= NARROW && winWidth !== 0;
+	const isNarrow = winWidth <= NARROW && winWidth !== 0;
 
 	useUpdateEffect(() => {
-		setExpanded(!narrow);
-	}, [ narrow ]);
+		setExpanded(!isNarrow);
+	}, [ isNarrow ]);
 
-	return narrow ? (
+	return isNarrow ? (
 		<Drawer
 			height="90%"
 			expanded={expanded}
@@ -201,6 +202,7 @@ const IndexContent: React.FC = () => {
 												padX={1}
 												padY={0.5}
 												onClick={() => {
+													// TODO
 // 													if (narrow) {
 // 														setExpanded(false);
 // 													}

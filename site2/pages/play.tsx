@@ -6,6 +6,7 @@ import useFetch from "hooks/useFetch";
 import useSavedState from "hooks/useSavedState";
 import useClickOutside from "hooks/useClickOutside";
 import useSpaceUsed from "hooks/useSpaceUsed";
+import useMediaQuery from "hooks/useMediaQuery";
 import Head from "comps/Head";
 import Editor, { EditorRef } from "comps/Editor";
 import GameView, { GameViewRef } from "comps/GameView";
@@ -162,6 +163,7 @@ const Play: React.FC = () => {
 	const editorRef = React.useRef<EditorRef | null>(null);
 	const gameviewRef = React.useRef<GameViewRef | null>(null);
 	const blackboardRef = React.useRef(null);
+	const isNarrow = useMediaQuery("(max-aspect-ratio: 1/1)");;
 	const spaceUsed = useSpaceUsed();
 
 	React.useEffect(() => {
@@ -195,13 +197,13 @@ const Play: React.FC = () => {
 
 	return <>
 		<Head title="Kaboom Playground" />
-		<Background dir="column">
+		<Background dir="column" css={{ overflow: "hidden" }}>
 			<View
 				dir="row"
 				align="center"
 				justify="between"
 				stretchX
-				height={64}
+				padY={1}
 				padX={2}
 			>
 				<View dir="row" gap={2} align="center">
@@ -245,134 +247,138 @@ const Play: React.FC = () => {
 							}
 						}}
 					/>
-					<Inspect />
+					{ !isNarrow &&
+						<Inspect />
+					}
 				</View>
-				<View dir="row" gap={2} align="center">
-					<ThemeSwitch />
-					<Menu left items={[
-						{
-							name: "Export",
-							action: () => {},
-						}
-					]} />
-				</View>
+				{ !isNarrow &&
+					<View dir="row" gap={2} align="center">
+						<ThemeSwitch />
+						<Menu left items={[
+							{
+								name: "Export",
+								action: () => {},
+							}
+						]} />
+					</View>
+				}
 			</View>
 			<View
-				dir="row"
+				dir={isNarrow ? "column" : "row"}
 				gap={2}
 				stretchX
 				align="center"
-				padY={2}
+				padY={isNarrow ? 1 : 2}
+				reverse={!!isNarrow}
 				css={{
 					flex: "1",
 					overflow: "hidden",
 					paddingTop: 2,
-					paddingRight: 24,
-//  					"@media (max-aspect-ratio: 1/1)": {
-//  						flexDirection: "column",
-//  					},
+					paddingRight: isNarrow ? 8 : 24,
+					paddingLeft: isNarrow ? 8 : 0,
 				}}
 			>
-				<Drawer
-					bigHandle
-					expanded={backpackOpen}
-					setExpanded={setBackpackOpen}
-					height="90%"
-					pad={2}
-				>
-					<View padX={1} gap={2} stretchX>
-						<Text size="big" color={2}>Backpack</Text>
-					</View>
-					<FileDrop
-						pad={1}
-						rounded
-						readAs="dataURL"
-						gap={1}
-						stretchX
-						accept="image"
-						onLoad={(file, content) => {
-							setSprites((prev) => {
-								for (const spr of prev) {
-									if (spr.src === content) {
-										// TODO: err msg?
-										return prev;
-									}
-								}
-								return [
-									...prev,
-									{
-										name: file.name,
-										src: content,
-									},
-								];
-							})
-						}}
+				{ !isNarrow &&
+					<Drawer
+						bigHandle
+						expanded={backpackOpen}
+						setExpanded={setBackpackOpen}
+						height="90%"
+						pad={2}
 					>
-						<Text color={3}>Sprites</Text>
-						{
-							sprites
-								.sort((a, b) => a.name > b.name ? 1 : -1)
-								.map(({name, src}) => (
-									<SpriteEntry
-										key={name}
-										name={name}
-										src={src}
-									/>
-								))
-						}
-					</FileDrop>
-					<FileDrop
-						pad={1}
-						rounded
-						readAs="dataURL"
-						gap={1}
-						stretchX
-						accept="^audio/"
-						onLoad={(file, content) => {
-							setSounds((prev) => {
-								for (const snd of prev) {
-									if (snd.src === content) {
-										// TODO: err msg?
-										return prev;
+						<View padX={1} gap={2} stretchX>
+							<Text size="big" color={2}>Backpack</Text>
+						</View>
+						<FileDrop
+							pad={1}
+							rounded
+							readAs="dataURL"
+							gap={1}
+							stretchX
+							accept="image"
+							onLoad={(file, content) => {
+								setSprites((prev) => {
+									for (const spr of prev) {
+										if (spr.src === content) {
+											// TODO: err msg?
+											return prev;
+										}
 									}
-								}
-								return [
-									...prev,
-									{
-										name: file.name,
-										src: content,
-									},
-								];
-							})
-						}}
-					>
-						<Text color={3}>Sounds</Text>
-						{
-							sounds
-								.sort((a, b) => a.name > b.name ? 1 : -1)
-								.map(({name, src}) => (
-									<SoundEntry
-										key={name}
-										name={name}
-										src={src}
-									/>
-								))
-						}
-					</FileDrop>
-					<View stretchX padX={1}>
-						<Text color={4} size="small">Space used: {(spaceUsed / 1024 / 1024).toFixed(2)}mb</Text>
-					</View>
-				</Drawer>
+									return [
+										...prev,
+										{
+											name: file.name,
+											src: content,
+										},
+									];
+								})
+							}}
+						>
+							<Text color={3}>Sprites</Text>
+							{
+								sprites
+									.sort((a, b) => a.name > b.name ? 1 : -1)
+									.map(({name, src}) => (
+										<SpriteEntry
+											key={name}
+											name={name}
+											src={src}
+										/>
+									))
+							}
+						</FileDrop>
+						<FileDrop
+							pad={1}
+							rounded
+							readAs="dataURL"
+							gap={1}
+							stretchX
+							accept="^audio/"
+							onLoad={(file, content) => {
+								setSounds((prev) => {
+									for (const snd of prev) {
+										if (snd.src === content) {
+											// TODO: err msg?
+											return prev;
+										}
+									}
+									return [
+										...prev,
+										{
+											name: file.name,
+											src: content,
+										},
+									];
+								})
+							}}
+						>
+							<Text color={3}>Sounds</Text>
+							{
+								sounds
+									.sort((a, b) => a.name > b.name ? 1 : -1)
+									.map(({name, src}) => (
+										<SoundEntry
+											key={name}
+											name={name}
+											src={src}
+										/>
+									))
+							}
+						</FileDrop>
+						<View stretchX padX={1}>
+							<Text color={4} size="small">Space used: {(spaceUsed / 1024 / 1024).toFixed(2)}mb</Text>
+						</View>
+					</Drawer>
+				}
 				<Editor
 					name="Editor"
 					desc="Where you edit the code"
 					ref={editorRef}
 					content={code}
-					stretchY
-					width="45%"
+					width={isNarrow ? "100%" : "45%"}
+					height={isNarrow ? "55%" : "100%"}
 					placeholder="Come on let's make some games!"
 					css={{
-						flex: "1",
 						zIndex: 20,
 					}}
 					keys={[
@@ -406,7 +412,8 @@ const Play: React.FC = () => {
 					desc="Where your game runs"
 					ref={gameviewRef}
 					code={code}
-					stretchY
+					width={isNarrow ? "100%" : "auto"}
+					height={isNarrow ? "auto" : "100%"}
 					css={{
 						flex: "1",
 						zIndex: 20,
