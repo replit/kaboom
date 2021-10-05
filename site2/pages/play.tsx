@@ -17,6 +17,7 @@ import Text from "comps/Text";
 import Menu from "comps/Menu";
 import Inspect from "comps/Inspect";
 import FileDrop from "comps/FileDrop";
+import Drawer from "comps/Drawer";
 import Draggable from "comps/Draggable";
 import Droppable from "comps/Droppable";
 import Background from "comps/Background";
@@ -160,7 +161,6 @@ const Play: React.FC = () => {
 	const [ blackboard, setBlackboard ] = React.useState<string | null>(null);
 	const editorRef = React.useRef<EditorRef | null>(null);
 	const gameviewRef = React.useRef<GameViewRef | null>(null);
-	const backpackRef = React.useRef(null);
 	const blackboardRef = React.useRef(null);
 	const spaceUsed = useSpaceUsed();
 
@@ -191,7 +191,6 @@ const Play: React.FC = () => {
 		setBackpackOpen((b) => !b);
 	}, [ setBackpackOpen ]);
 
-	useClickOutside(backpackRef, () => setBackpackOpen(false), [ setBackpackOpen ]);
 	useClickOutside(blackboardRef, () => setBlackboard(null), [ setBlackboard ]);
 
 	return <>
@@ -262,127 +261,23 @@ const Play: React.FC = () => {
 				dir="row"
 				gap={2}
 				stretchX
-				padX={2}
+				align="center"
 				padY={2}
 				css={{
 					flex: "1",
 					overflow: "hidden",
 					paddingTop: 2,
-					paddingLeft: 42,
+					paddingRight: 24,
 //  					"@media (max-aspect-ratio: 1/1)": {
 //  						flexDirection: "column",
 //  					},
 				}}
 			>
-				<Editor
-					name="Editor"
-					desc="Where you edit the code"
-					ref={editorRef}
-					content={code}
-					stretchY
-					width="45%"
-					placeholder="Come on let's make some games!"
-					css={{
-						flex: "1",
-						zIndex: 20,
-					}}
-					keys={[
-						{
-							key: "Mod-s",
-							run: () => {
-								if (!gameviewRef.current) return false;
-								const gameview = gameviewRef.current;
-								if (!editorRef.current) return false;
-								const editor = editorRef.current;
-								gameview.run(editor.getContent() ?? undefined);
-								return false;
-							},
-							preventDefault: true,
-						},
-						{
-							key: "Mod-e",
-							run: () => {
-								if (!editorRef.current) return false;
-								const editor = editorRef.current;
-								const sel = editor.getSelection() || editor.getWord();
-								setBlackboard(sel);
-								return false;
-							},
-							preventDefault: true,
-						},
-					]}
-				/>
-				<GameView
-					name="Game View"
-					desc="Where your game runs"
-					ref={gameviewRef}
-					code={code}
-					stretchY
-					css={{
-						flex: "1",
-						zIndex: 20,
-					}}
-				/>
-			</View>
-			<View
-				stretch
-				css={{
-					background: "black",
-					opacity: (backpackOpen || blackboard) ? 0.2 : 0,
-					transition: "0.2s opacity",
-					pointerEvents: "none",
-					position: "absolute",
-					zIndex: 100,
-				}}
-			/>
-			{
-				draggin &&
-				<Droppable
-					stretch
-					css={{
-						position: "absolute",
-						zIndex: 10,
-					}}
-					accept={["sprite", "sound"]}
-					onDrop={(ty, data) => {
-						switch (ty) {
-							case "sprite":
-								setSprites((prev) => prev.filter(({ name }) => name !== data));
-							case "sound":
-								setSounds((prev) => prev.filter(({ name }) => name !== data));
-						}
-					}}
-				/>
-			}
-			<View
-				name="Backpack"
-				desc="A place to put your stuff like sprite and sound assets. Drag the files into their own sections."
-				ref={backpackRef}
-				dir="row"
-				bg={1}
-				rounded
-				outlined
-				width={260}
-				height="calc(90% - 64px)"
-				css={{
-					position: "absolute",
-					top: "calc(64px + 4%)",
-					left: backpackOpen ? -4 : -(260 - 24),
-					transition: "0.2s left",
-					overflow: "hidden",
-					zIndex: 200,
-				}}
-			>
-				<View
-					padY={2}
-					gap={1}
-					stretchY
-					css={{
-						paddingLeft: 16,
-						paddingRight: 4,
-						flex: "1",
-						overflow: "scroll",
-					}}
+				<Drawer
+					bigHandle
+					expanded={backpackOpen}
+					setExpanded={setBackpackOpen}
+					height="90%"
 				>
 					<View padX={1} gap={2} stretchX>
 						<Text size="big" color={2}>Backpack</Text>
@@ -466,25 +361,76 @@ const Play: React.FC = () => {
 					<View stretchX padX={1}>
 						<Text color={4} size="small">Space used: {(spaceUsed / 1024 / 1024).toFixed(2)}mb</Text>
 					</View>
-				</View>
-				<View
-					name="Backpack Handle"
-					desc="Click to pull out / put away your backpack (Cmd+b)."
-					dir="row"
-					align="center"
-					justify="around"
-					padX={0.5}
-					width={24}
+				</Drawer>
+				<Editor
+					name="Editor"
+					desc="Where you edit the code"
+					ref={editorRef}
+					content={code}
 					stretchY
-					onClick={() => setBackpackOpen(!backpackOpen)}
+					width="45%"
+					placeholder="Come on let's make some games!"
 					css={{
-						cursor: "pointer",
+						flex: "1",
+						zIndex: 20,
 					}}
-				>
-					<View height="calc(100% - 16px)" width={2} bg={2} />
-					<View height="calc(100% - 16px)" width={2} bg={2} />
-				</View>
+					keys={[
+						{
+							key: "Mod-s",
+							run: () => {
+								if (!gameviewRef.current) return false;
+								const gameview = gameviewRef.current;
+								if (!editorRef.current) return false;
+								const editor = editorRef.current;
+								gameview.run(editor.getContent() ?? undefined);
+								return false;
+							},
+							preventDefault: true,
+						},
+						{
+							key: "Mod-e",
+							run: () => {
+								if (!editorRef.current) return false;
+								const editor = editorRef.current;
+								const sel = editor.getSelection() || editor.getWord();
+								setBlackboard(sel);
+								return false;
+							},
+							preventDefault: true,
+						},
+					]}
+				/>
+				<GameView
+					name="Game View"
+					desc="Where your game runs"
+					ref={gameviewRef}
+					code={code}
+					stretchY
+					css={{
+						flex: "1",
+						zIndex: 20,
+					}}
+				/>
 			</View>
+			{
+				draggin &&
+				<Droppable
+					stretch
+					css={{
+						position: "absolute",
+						zIndex: 10,
+					}}
+					accept={["sprite", "sound"]}
+					onDrop={(ty, data) => {
+						switch (ty) {
+							case "sprite":
+								setSprites((prev) => prev.filter(({ name }) => name !== data));
+							case "sound":
+								setSounds((prev) => prev.filter(({ name }) => name !== data));
+						}
+					}}
+				/>
+			}
 			<View
 				name="Blackboard"
 				desc="Watch closely what the teacher is demonstrating!"

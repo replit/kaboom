@@ -4,7 +4,7 @@ export default function useWindowSize() {
 
 	const [ size, setSize ] = React.useState([0, 0]);
 
-	React.useLayoutEffect(() => {
+	React.useEffect(() => {
 		function onResize() {
 			setSize([window.innerWidth, window.innerHeight]);
 		}

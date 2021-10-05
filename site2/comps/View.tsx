@@ -104,28 +104,28 @@ const View = React.forwardRef<HTMLDivElement, Props>(({
 	onKeyDown,
 	children,
 	...props
-}, domRef) => {
+}, ref) => {
 
 	const marginSide = dir === "row" ? "marginRight" : "marginBottom";
 	const px = (padX ?? pad ?? 0) * 8;
 	const py = (padY ?? pad ?? 0) * 8;
 	const { inspect } = React.useContext(Ctx);
 	const [ pushTooltip, popTooltip ] = useTooltip();
-	const localDomRef = React.useRef(null);
-	const curDomRef = domRef ?? localDomRef;
+	const localRef = React.useRef(null);
+	const curRef = ref ?? localRef;
 
 	// if dom is hovered when entering inspect mode, push tooltip
 	React.useEffect(() => {
 		if (inspect && desc) {
 			// @ts-ignore
-			if (curDomRef?.current?.matches(":hover")) {
+			if (curRef?.current?.matches(":hover")) {
 				pushTooltip({ name, desc });
 			}
 		}
 	}, [ inspect, name, desc, pushTooltip, ]);
 
 	return <div
-		ref={curDomRef}
+		ref={curRef}
 		onMouseEnter={(inspect && desc) ? () => pushTooltip({ name, desc, }) : undefined}
 		onMouseLeave={(inspect && desc) ? popTooltip : undefined}
 		onKeyDown={(focusable || onKeyDown) ? (e) => {

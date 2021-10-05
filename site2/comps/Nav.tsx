@@ -5,11 +5,13 @@ import { keyframes } from '@emotion/react';
 
 import useWinSize from "hooks/useWinSize";
 import useClickOutside from "hooks/useClickOutside";
+import useUpdateEffect from "hooks/useUpdateEffect";
 import Background from "comps/Background";
 import View from "comps/View";
 import Text from "comps/Text";
 import Markdown from "comps/Markdown";
 import Input from "comps/Input";
+import Drawer from "comps/Drawer";
 import ThemeSwitch from "comps/ThemeSwitch";
 import * as doc from "lib/doc";
 
@@ -119,142 +121,109 @@ const MOBILE = 640;
 
 const Index: React.FC = () => {
 
-	const ref = React.useRef(null);
-	const [ query, setQuery ] = React.useState("");
 	const [ winWidth, winHeight ] = useWinSize();
-	const [ expanded, setExpanded ] = React.useState(true);
+	const [ expanded, setExpanded ] = React.useState(false);
 	const narrow = winWidth <= NARROW && winWidth !== 0;
 
-	React.useLayoutEffect(() => {
+	useUpdateEffect(() => {
 		setExpanded(!narrow);
 	}, [ narrow ]);
 
-	useClickOutside(ref, () => {
-		setExpanded(false);
-	}, [ setExpanded ]);
+	return narrow ? (
+		<Drawer
+			height="90%"
+			expanded={expanded}
+			setExpanded={setExpanded}
+		>
+			<IndexContent />
+		</Drawer>
+	) : (
+		<View
+			stretchY
+			bg={2}
+		>
+			<IndexContent />
+		</View>
+	);
+
+};
+
+const IndexContent: React.FC = () => {
+
+	const [ query, setQuery ] = React.useState("");
 
 	return <>
 
 		<View
-			ref={ref}
-			dir="row"
+			dir="column"
+			gap={2}
 			stretchY
-			bg={2}
+			width={240}
+			pad={3}
 			css={{
-				[`@media (max-width: ${NARROW}px)`]: {
-					position: "absolute",
-					zIndex: 5000,
-				},
+				overflowX: "hidden",
+				overflowY: "scroll",
 			}}
 		>
+			<View />
+			<Logo />
+			<ThemeSwitch width={160} />
+			<View gap={0.5}>
+				<NavLink link="/play" text="PlayGround" />
+				<NavLink link="/doc/setup" text="Setup Guide" />
+				<NavLink link="/doc/intro" text="Tutorial" />
+				<NavLink link="https://github.com/replit/kaboom" text="Github" />
+			</View>
 
-			{ expanded &&
+			<Input value={query} onChange={setQuery} placeholder="Search for doc" />
 
-				<View
-					dir="column"
-					gap={2}
-					stretchY
-					width={240}
-					pad={3}
-					css={{
-						overflowX: "hidden",
-						overflowY: "scroll",
-					}}
-				>
-					<View />
-					<Logo />
-					<ThemeSwitch width={160} />
-					<View gap={0.5}>
-						<NavLink link="/play" text="PlayGround" />
-						<NavLink link="/doc/setup" text="Setup Guide" />
-						<NavLink link="/doc/intro" text="Tutorial" />
-						<NavLink link="https://github.com/replit/kaboom" text="Github" />
-					</View>
+			{ doc.sections.map((sec) => {
 
-					<Input value={query} onChange={setQuery} placeholder="Search for doc" />
+				const entries = sec.entries
+					.filter((name) => query ? name.match(query) : true);
+				if (entries.length === 0) {
+					return <></>;
+				}
 
-					{ doc.sections.map((sec) => {
-
-						const entries = sec.entries
-							.filter((name) => query ? name.match(query) : true);
-						if (entries.length === 0) {
-							return <></>;
-						}
-
-						return (
-							<View stretchX gap={1} key={sec.name}>
-								<Text size="big" color={3}>{sec.name}</Text>
-									<View>
-										{ entries.map((name) => {
-											let dname = name;
-											const mem = doc.entries[name][0];
-											if (mem.kind === "MethodSignature") {
-												dname += "()";
-											}
-											return (
-												<a key={name} href={`#${name}`}>
-													<View
-														padX={1}
-														padY={0.5}
-														onClick={() => {
-															if (narrow) {
-																setExpanded(false);
-															}
-														}}
-														css={{
-															cursor: "pointer",
-															borderRadius: 8,
-															":hover": {
-																background: "var(--color-bg3)",
-															},
-														}}
-													>
-														<Text color={2} code>{dname}</Text>
-													</View>
-												</a>
-											);
-										}) }
-									</View>
+				return (
+					<View stretchX gap={1} key={sec.name}>
+						<Text size="big" color={3}>{sec.name}</Text>
+							<View>
+								{ entries.map((name) => {
+									let dname = name;
+									const mem = doc.entries[name][0];
+									if (mem.kind === "MethodSignature") {
+										dname += "()";
+									}
+									return (
+										<a key={name} href={`/#${name}`}>
+											<View
+												padX={1}
+												padY={0.5}
+												onClick={() => {
+// 													if (narrow) {
+// 														setExpanded(false);
+// 													}
+												}}
+												css={{
+													cursor: "pointer",
+													borderRadius: 8,
+													":hover": {
+														background: "var(--color-bg3)",
+													},
+												}}
+											>
+												<Text color={2} code>{dname}</Text>
+											</View>
+										</a>
+									);
+								}) }
 							</View>
-						);
+					</View>
+				);
 
-					}) }
-				</View>
-
-			}
-
-			{ narrow &&
-
-				<View
-					stretchY
-					padX={0.5}
-					width={16}
-					dir="row"
-					align="center"
-					justify="around"
-					onClick={() => setExpanded(!expanded)}
-					css={{
-						cursor: "pointer",
-					}}
-
-				>
-					<View height="calc(100% - 16px)" width={2} bg={3} />
-				</View>
-
-			}
-
+			}) }
 		</View>
-
-		{ expanded && narrow &&
-			<View css={{
-				width: "100vw",
-				height: "100vh",
-				position: "absolute",
-				background: "rgba(0, 0, 0, 0.5)",
-				zIndex: 2500,
-			}} />
-		}
-
 	</>;
 
 };
@@ -269,6 +238,7 @@ const Nav: React.FC = ({children}) => (
 		<View
 			stretch
 			dir="row"
+			align="center"
 			bg={1}
 			rounded
 			outlined
@@ -308,10 +278,6 @@ const Nav: React.FC = ({children}) => (
 					flex: "1",
 					"@media (max-width: 640px)": {
 						padding: 24,
-						paddingLeft: "36px !important",
-					},
-					[`@media (max-width: ${NARROW}px)`]: {
-						paddingLeft: 48,
 					},
 				}}
 			>

@@ -9,7 +9,6 @@ interface DraggableProps {
 	onDragEnd?: () => void,
 }
 
-// TODO: draggin Ctx
 const Draggable = React.forwardRef<HTMLDivElement, ViewPropsAnd<DraggableProps>>(({
 	dragData,
 	dragType,
