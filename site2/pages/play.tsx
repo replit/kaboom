@@ -278,6 +278,7 @@ const Play: React.FC = () => {
 					expanded={backpackOpen}
 					setExpanded={setBackpackOpen}
 					height="90%"
+					pad={2}
 				>
 					<View padX={1} gap={2} stretchX>
 						<Text size="big" color={2}>Backpack</Text>

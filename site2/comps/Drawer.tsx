@@ -4,6 +4,7 @@ import Ctx from "lib/Ctx";
 import useClickOutside from "hooks/useClickOutside";
 
 interface DrawerProps {
+	paneWidth?: number,
 	bigHandle?: boolean,
 	expanded: boolean,
 	setExpanded: React.Dispatch<React.SetStateAction<boolean>>,
@@ -13,7 +14,7 @@ const Drawer = React.forwardRef<HTMLDivElement, ViewPropsAnd<DrawerProps>>(({
 	bigHandle,
 	expanded,
 	setExpanded,
-	width,
+	paneWidth,
 	height,
 	children,
 	...args
@@ -21,7 +22,7 @@ const Drawer = React.forwardRef<HTMLDivElement, ViewPropsAnd<DrawerProps>>(({
 
 	const localRef = React.useRef(null);
 	const curRef = ref ?? localRef;
-	const paneWidth = width ?? 240;
+	paneWidth = paneWidth ?? 240;
 	const handleWidth = bigHandle ? 24 : 16;
 
 	// @ts-ignore
@@ -32,7 +33,7 @@ const Drawer = React.forwardRef<HTMLDivElement, ViewPropsAnd<DrawerProps>>(({
 	return <>
 		<View
 			width={24}
-			height={height ?? "100%"}
+			height={height ?? "90%"}
 		>
 			<View
 				ref={curRef}
@@ -49,18 +50,15 @@ const Drawer = React.forwardRef<HTMLDivElement, ViewPropsAnd<DrawerProps>>(({
 					overflow: "hidden",
 					zIndex: 200,
 				}}
-				{...args}
 			>
 				<View
-					padY={2}
 					gap={1}
 					stretchY
 					css={{
-						paddingLeft: 16,
-						paddingRight: 4,
 						flex: "1",
 						overflow: "scroll",
 					}}
+					{...args}
 				>
 					{children}
 				</View>
