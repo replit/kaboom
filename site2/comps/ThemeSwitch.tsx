@@ -1,13 +1,28 @@
 import * as React from "react";
+import { useRouter } from "next/router";
 import View, { ViewProps } from "comps/View";
 import Ctx from "lib/Ctx";
-import { themes } from "lib/ui";
+import { themes, commonThemes } from "lib/ui";
 
 const ThemeSwitch: React.FC<ViewProps> = ({...args}) => {
+
 	const { theme, setTheme } = React.useContext(Ctx);
+	const [ showMore, setShowMore ] = React.useState(false);
+
+	// @ts-ignore
+	React.useEffect(() => {
+		// @ts-ignore
+		window.showmedathemes = () => {
+			setShowMore(true);
+			console.log("yessir whatever");
+		};
+		// @ts-ignore
+		return () => delete window.showmedathemes;
+	}, [])
+
 	return (
 		<View dir="row" gap={1.5} align="center" rounded wrap {...args}>
-			{Object.keys(themes).map((t) => (
+			{(showMore ? Object.keys(themes) : commonThemes).map((t) => (
 				<View
 					key={t}
 					name={t[0].toUpperCase() + t.slice(1)}
@@ -27,6 +42,7 @@ const ThemeSwitch: React.FC<ViewProps> = ({...args}) => {
 			))}
 		</View>
 	);
+
 };
 
 export default ThemeSwitch;

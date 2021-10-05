@@ -183,7 +183,7 @@ const Nav: React.FC = ({children}) => (
 			>
 				<View />
 				<Logo />
-				<ThemeSwitch width={120} />
+				<ThemeSwitch width={160} />
 				<View gap={0.5}>
 					<NavLink link="/play" text="PlayGround" />
 					<NavLink link="/doc/setup" text="Setup Guide" />

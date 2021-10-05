@@ -100,44 +100,6 @@ export const themes: ThemeBook = {
 		"danger": "rgb(255, 80, 80)",
 		"errbg": "rgb(30, 10, 10)",
 	},
-// 	"light": {
-// 		...genColors(
-// 			"bg", 4,
-// 			250, 250, 250,
-// 			-10, -10, -10
-// 		),
-// 		...genColors(
-// 			"fg", 4,
-// 			60, 60, 60,
-// 			40, 40, 40,
-// 		),
-// 		"outline": "var(--color-bg4)",
-// 		"bgpat": "rgb(240, 240, 240)",
-// 		"fghl": "rgb(250, 250, 250)",
-// 		"highlight": "rgb(30, 140, 230)",
-// 		"accent": "rgb(19, 33, 49)",
-// 		"danger": "rgb(255, 90, 90)",
-// 		"errbg": "rgb(30, 10, 10)",
-// 	},
-// 	"roses": {
-// 		...genColors(
-// 			"bg", 4,
-// 			255, 230, 240,
-// 			-5, -10, -10
-// 		),
-// 		...genColors(
-// 			"fg", 4,
-// 			80, 60, 65,
-// 			45, 35, 40,
-// 		),
-// 		"outline": "var(--color-bg4)",
-// 		"bgpat": "rgb(245, 220, 230)",
-// 		"fghl": "rgb(250, 250, 250)",
-// 		"highlight": "rgb(30, 140, 230)",
-// 		"accent": "rgb(19, 33, 49)",
-// 		"danger": "rgb(255, 90, 90)",
-// 		"errbg": "rgb(30, 10, 10)",
-// 	},
 	// @ts-ignore
 	"ice": {
 		...genColors(
@@ -158,26 +120,73 @@ export const themes: ThemeBook = {
 		"danger": "rgb(255, 90, 90)",
 		"errbg": "rgb(30, 10, 10)",
 	},
-// 	"toy": {
-// 		...genColors(
-// 			"bg", 4,
-// 			255, 255, 220,
-// 			-8, -8, -12
-// 		),
-// 		...genColors(
-// 			"fg", 4,
-// 			70, 70, 55,
-// 			40, 40, 35,
-// 		),
-// 		"outline": "var(--color-bg4)",
-// 		"bgpat": "rgb(245, 245, 210)",
-// 		"fghl": "rgb(250, 250, 250)",
-// 		"highlight": "rgb(30, 140, 230)",
-// 		"accent": "rgb(19, 33, 49)",
-// 		"danger": "rgb(255, 90, 90)",
-// 		"errbg": "rgb(30, 10, 10)",
-// 	},
+	// @ts-ignore
+	"light": {
+		...genColors(
+			"bg", 4,
+			250, 250, 250,
+			-10, -10, -10
+		),
+		...genColors(
+			"fg", 4,
+			60, 60, 60,
+			40, 40, 40,
+		),
+		"outline": "var(--color-bg4)",
+		"bgpat": "rgb(240, 240, 240)",
+		"fghl": "rgb(250, 250, 250)",
+		"highlight": "rgb(30, 140, 230)",
+		"accent": "rgb(19, 33, 49)",
+		"danger": "rgb(255, 90, 90)",
+		"errbg": "rgb(30, 10, 10)",
+	},
+	// @ts-ignore
+	"roses": {
+		...genColors(
+			"bg", 4,
+			255, 230, 240,
+			-5, -10, -10
+		),
+		...genColors(
+			"fg", 4,
+			80, 60, 65,
+			45, 35, 40,
+		),
+		"outline": "var(--color-bg4)",
+		"bgpat": "rgb(245, 220, 230)",
+		"fghl": "rgb(250, 250, 250)",
+		"highlight": "rgb(30, 140, 230)",
+		"accent": "rgb(19, 33, 49)",
+		"danger": "rgb(255, 90, 90)",
+		"errbg": "rgb(30, 10, 10)",
+	},
+	// @ts-ignore
+	"toy": {
+		...genColors(
+			"bg", 4,
+			255, 255, 220,
+			-8, -8, -12
+		),
+		...genColors(
+			"fg", 4,
+			70, 70, 55,
+			40, 40, 35,
+		),
+		"outline": "var(--color-bg4)",
+		"bgpat": "rgb(245, 245, 210)",
+		"fghl": "rgb(250, 250, 250)",
+		"highlight": "rgb(30, 140, 230)",
+		"accent": "rgb(19, 33, 49)",
+		"danger": "rgb(255, 90, 90)",
+		"errbg": "rgb(30, 10, 10)",
+	},
 };
+
+export const commonThemes = [
+	"dark",
+	"black",
+	"ice",
+];
 
 export const space = 8;
 export const defTheme = "dark";
