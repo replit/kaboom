@@ -8,11 +8,40 @@ interface KaboomEntryProps {
 	name: string,
 }
 
-const KaboomMember: React.FC<any> = (def) => {
-	const doc = def.jsDoc?.[0];
+const FuncParams: React.FC<any> = (m) => m.parameters.map((p: any, i: number) => (
+	<span
+		key={p.name}
+	>
+		{p.name}
+		{p.questionToken ? "?" : ""}
+		{i === m.parameters.length - 1 ? "" : ", "}
+	</span>
+));
+
+const MethodSignature: React.FC<any> = (m) => (
+	<Text
+		code
+		size="big"
+	>
+		{m.name}(<FuncParams {...m} />)
+	</Text>
+);
+
+const PropertySignature: React.FC<any> = (m) => (
+	<Text code size="big">{m.name}</Text>
+);
+
+const KaboomMember: React.FC<any> = (m) => {
+	const doc = m.jsDoc?.[0];
 	return (
 		<View gap={1} stretchX>
-			<Text code size="big">{def.name}</Text>
+			{(() => {
+				switch (m.kind) {
+					case "MethodSignature": return <MethodSignature {...m} />;
+					case "PropertySignature": return <PropertySignature {...m} />;
+					default: return <></>;
+				}
+			})()}
 			{
 				doc &&
 				<View gap={2} stretchX>
@@ -41,7 +70,7 @@ const KaboomEntry: React.FC<ViewPropsAnd<KaboomEntryProps>> = ({
 		return <Text color={3}>Entry not found: {name}</Text>;
 	}
 	return (
-		<View stretchX {...args}>
+		<View stretchX {...args} gap={3}>
 			{entries.map((e: any, i: number) => <KaboomMember key={i} {...e} />)}
 		</View>
 	);

@@ -5,25 +5,34 @@ import View from "comps/View";
 import Text from "comps/Text";
 import ThemeSwitch from "comps/ThemeSwitch";
 
-interface ErrorProps {
-	statusCode: number,
+interface ErrorPageProps {
+	statusCode?: number,
 }
 
-const Error: NextPage<ErrorProps> = ({ statusCode }) => (
+const ErrorPage: NextPage<ErrorPageProps> = ({ statusCode }) => (
 	<Page>
 		<Background align="center" justify="center">
 			<View align="center" gap={2}>
-				<Text color={4} bold css={{ fontSize: 120 }}>{statusCode}</Text>
+				<Text
+					color={4}
+					bold
+					css={{
+						fontSize: 120 ,
+					}}>
+						{statusCode ?? 404}
+				</Text>
 				<ThemeSwitch />
 			</View>
 		</Background>
 	</Page>
 );
 
-Error.getInitialProps = ({ res, err }: NextPageContext): ErrorProps => {
+export async function getServerSideProps(ctx: NextPageContext) {
 	return {
-		statusCode: res?.statusCode ?? 404,
+		props: {
+			statusCode: ctx.res?.statusCode,
+		},
 	};
 }
 
-export default Error;
+export default ErrorPage;

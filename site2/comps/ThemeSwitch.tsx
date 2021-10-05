@@ -2,27 +2,27 @@ import * as React from "react";
 import View, { ViewProps } from "comps/View";
 import useSavedState from "hooks/useSavedState";
 import Ctx from "lib/Ctx";
-import { themes, commonThemes } from "lib/ui";
+import { themes, noobThemes } from "lib/ui";
 
 const ThemeSwitch: React.FC<ViewProps> = ({...args}) => {
 
 	const { theme, setTheme } = React.useContext(Ctx);
-	const [ showMore, setShowMore ] = useSavedState("showmedacolors", false);
+	const [ showDa, setShowDa ] = useSavedState("showmedacolors", false);
 
 	// @ts-ignore
 	React.useEffect(() => {
 		// @ts-ignore
 		window.showmedacolors = () => {
-			setShowMore(true);
+			setShowDa(true);
 			console.log("yessir whatever");
 		};
 		// @ts-ignore
 		return () => delete window.showmedacolors;
-	}, [ setShowMore ])
+	}, [ setShowDa ])
 
 	return (
 		<View pad={0.5} dir="row" gap={1.5} align="center" rounded wrap {...args}>
-			{(showMore ? Object.keys(themes) : commonThemes).map((t) => (
+			{(showDa ? Object.keys(themes) : noobThemes).map((t) => (
 				<View
 					key={t}
 					name={t[0].toUpperCase() + t.slice(1)}
