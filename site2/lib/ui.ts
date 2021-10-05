@@ -61,7 +61,7 @@ const genColors = (
 
 export const themes: ThemeBook = {
 	// @ts-ignore
-	"dark": {
+	"night": {
 		...genColors(
 			"bg", 4,
 			20, 20, 30,
@@ -81,7 +81,7 @@ export const themes: ThemeBook = {
 		"errbg": "rgb(40, 25, 35)",
 	},
 	// @ts-ignore
-	"black": {
+	"blackhole": {
 		...genColors(
 			"bg", 4,
 			0, 0, 0,
@@ -161,6 +161,26 @@ export const themes: ThemeBook = {
 		"errbg": "rgb(30, 10, 10)",
 	},
 	// @ts-ignore
+	"snow": {
+		...genColors(
+			"bg", 4,
+			250, 250, 250,
+			-10, -10, -10
+		),
+		...genColors(
+			"fg", 4,
+			60, 60, 60,
+			40, 40, 40,
+		),
+		"outline": "var(--color-bg4)",
+		"bgpat": "rgb(240, 240, 240)",
+		"fghl": "rgb(250, 250, 250)",
+		"highlight": "rgb(60, 160, 240)",
+		"accent": "rgb(19, 33, 49)",
+		"danger": "rgb(255, 90, 90)",
+		"errbg": "rgb(30, 10, 10)",
+	},
+	// @ts-ignore
 	"ice": {
 		...genColors(
 			"bg", 4,
@@ -176,26 +196,6 @@ export const themes: ThemeBook = {
 		"bgpat": "rgb(220, 230, 245)",
 		"fghl": "rgb(250, 250, 250)",
 		"highlight": "rgb(70, 180, 240)",
-		"accent": "rgb(19, 33, 49)",
-		"danger": "rgb(255, 90, 90)",
-		"errbg": "rgb(30, 10, 10)",
-	},
-	// @ts-ignore
-	"light": {
-		...genColors(
-			"bg", 4,
-			250, 250, 250,
-			-10, -10, -10
-		),
-		...genColors(
-			"fg", 4,
-			60, 60, 60,
-			40, 40, 40,
-		),
-		"outline": "var(--color-bg4)",
-		"bgpat": "rgb(240, 240, 240)",
-		"fghl": "rgb(250, 250, 250)",
-		"highlight": "rgb(60, 160, 220)",
 		"accent": "rgb(19, 33, 49)",
 		"danger": "rgb(255, 90, 90)",
 		"errbg": "rgb(30, 10, 10)",
@@ -223,13 +223,13 @@ export const themes: ThemeBook = {
 };
 
 export const noobThemes = [
-	"dark",
-	"black",
-	"ice",
+	"night",
+	"blackhole",
+	"snow",
 ];
 
 export const space = 8;
-export const DEF_THEME = "dark";
+export const DEF_THEME = "night";
 
 export const cursors = {
 	"default": (t: string) => `url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='23' height='29' viewBox='0 0 23 29'><g><path d='M0.520179 26.1868L0.698837 3.1076C0.711984 1.40935 2.70214 0.499303 3.99528 1.60023L21.5689 16.5617C23.0117 17.79 22.0966 20.1492 20.2029 20.0834L11.2961 19.7736C10.667 19.7518 10.0643 20.0274 9.66931 20.5176L4.07745 27.4571C2.88858 28.9325 0.505511 28.0815 0.520179 26.1868Z' fill='${themes[t]["bg1"]}' stroke='${themes[t]["bg2"]}' stroke-width='2'></path></g></svg>") 23 29, default`,

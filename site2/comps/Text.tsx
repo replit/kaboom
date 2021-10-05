@@ -10,15 +10,7 @@ interface TextProps {
 	code?: boolean,
 }
 
-type Props = React.PropsWithChildren<
-	TextProps
-	& Omit<
-		React.HTMLProps<HTMLDivElement>,
-		keyof TextProps | "ref"
-	>
->;
-
-const Text = React.forwardRef<HTMLDivElement, Props>(({
+const Text: React.FC<TextProps> = (({
 	color,
 	size,
 	bold,
@@ -27,23 +19,32 @@ const Text = React.forwardRef<HTMLDivElement, Props>(({
 	select,
 	code,
 	...props
-}, ref) => (
-	<div
-		ref={ref}
+}) => (
+	<span
 		css={{
-			fontFamily: code ? "IBM PLex Mono" : "IBM Plex Sans",
-			fontSize: `var(--text-${size ?? "normal"})`,
-			fontWeight: bold ? "bold" : "normal",
-			fontStyle: italic ? "italic" : "normal",
-			color: color === undefined
-				? "var(--color-fg1)"
-				: typeof color === "number" ? `var(--color-fg${color})` : color,
-			userSelect: select ? "auto" : "none",
+			...(code ? {
+				fontFamily: "IBM PLex Mono",
+			}: {}),
+			...(bold ? {
+				fontWeight: "bold",
+			}: {}),
+			...(size ? {
+				fontSize: `var(--text-${size})`,
+			}: {}),
+			...(italic ? {
+				fontStyle: "italic",
+			}: {}),
+			...(color ? {
+				color: typeof color === "number" ? `var(--color-fg${color})` : color,
+			}: {}),
+			...(select ? {
+				userSelect: "text",
+			}: {}),
 		}}
 		{...props}
 	>
 		{children}
-	</div>
+	</span>
 ));
 
 export default Text;

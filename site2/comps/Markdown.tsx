@@ -49,6 +49,7 @@ const Markdown: React.FC<MarkdownProps & ViewProps> = ({
 			"p": {
 				fontSize: "var(--text-normal)",
 				lineHeight: 1.6,
+				userSelect: "text",
 			},
 			"ul,ol": {
 				lineHeight: 2,
@@ -71,6 +72,7 @@ const Markdown: React.FC<MarkdownProps & ViewProps> = ({
 				boxShadow: "0 0 0 2px var(--color-outline)",
 				maxHeight: "480px",
 				display: "flex",
+				userSelect: "text",
 				"code": {
 					padding: 16,
 					width: "100%",
@@ -78,6 +80,7 @@ const Markdown: React.FC<MarkdownProps & ViewProps> = ({
 				},
 			},
 			"code": {
+				userSelect: "text",
 				fontFamily: "IBM Plex Mono",
 				color: "var(--color-fg2)",
 				background: "var(--color-bg2)",

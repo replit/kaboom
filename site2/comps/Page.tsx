@@ -104,12 +104,19 @@ const Page: React.FC = ({ children }) => {
 						padding: 0;
 						box-sizing: border-box;
 						font-family: inherit;
+						font-size: inherit;
+						font-style: inherit;
+						font-weight: inherit;
+						user-select: inherit;
 						outline: none;
 					}
 					html {
 						width: 100%;
 						height: 100%;
 						font-family: IBM Plex Sans;
+						font-size: var(--text-normal);
+						color: var(--color-fg1);
+						user-select: none;
 					}
 					body {
 						width: 100%;

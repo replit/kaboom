@@ -8,19 +8,41 @@ interface KaboomEntryProps {
 	name: string,
 }
 
+const TypeSig: React.FC<any> = (m) => <Text color={2}>{(() => {
+	switch (m.kind) {
+		case "StringKeyword": return "string";
+		case "NumberKeyword": return "number";
+		case "BooleanKeyword": return "boolean";
+		case "VoidKeyword": return "void";
+		case "AnyKeyword": return "any";
+		case "NullKeyword": return "null";
+		case "UnionType": return m.types.map((t: any, i: number) => <React.Fragment key={i}><TypeSig {...t} />{i === m.types.length - 1 ? "" : " | "}</React.Fragment>);
+		case "LiteralType": return <TypeSig {...m.literal} />;
+		case "StringLiteral": return `"${m.text}"`;
+		case "ArrayType": return <><TypeSig {...m.elementType} />[]</>;
+		case "ParenthesizedType": return <>(<TypeSig {...m.type} />)</>;
+		case "FunctionType": return <>(<FuncParams {...m} />) {'=>'} <TypeSig {...m.type} /></>;
+		case "TypeReference": return m.typeName;
+		default: return "unknown";
+	}
+})()}</Text>;
+
 const FuncParams: React.FC<any> = (m) => m.parameters.map((p: any, i: number) => (
-	<span
+	<Text
+		code
 		key={p.name}
 	>
 		{p.name}
 		{p.questionToken ? "?" : ""}
+		: {p.dotDotDotToken ? "..." : <TypeSig {...p.type} />}
 		{i === m.parameters.length - 1 ? "" : ", "}
-	</span>
+	</Text>
 ));
 
 const MethodSignature: React.FC<any> = (m) => (
 	<Text
 		code
+		select
 		size="big"
 	>
 		{m.name}(<FuncParams {...m} />)
@@ -28,7 +50,7 @@ const MethodSignature: React.FC<any> = (m) => (
 );
 
 const PropertySignature: React.FC<any> = (m) => (
-	<Text code size="big">{m.name}</Text>
+	<Text code size="big">{m.name} {m.questionToken ? "?" : ""}: <TypeSig {...m.type} /></Text>
 );
 
 const KaboomMember: React.FC<any> = (m) => {
@@ -45,7 +67,7 @@ const KaboomMember: React.FC<any> = (m) => {
 			{
 				doc &&
 				<View gap={2} stretchX>
-					<Text color={2}>{doc.comment}</Text>
+					<Text select color={2}>{doc.comment}</Text>
 					{ (doc.tags ?? []).map((tag: any) => {
 						switch (tag.tagName) {
 							case "example": return <Markdown key={tag.comment} src={tag.comment} />;
