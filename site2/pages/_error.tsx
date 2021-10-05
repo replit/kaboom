@@ -1,5 +1,6 @@
 import { NextPage, NextPageContext } from "next";
 import Page from "comps/Page";
+import Head from "comps/Head";
 import Background from "comps/Background";
 import View from "comps/View";
 import Text from "comps/Text";
@@ -11,6 +12,7 @@ interface ErrorPageProps {
 
 const ErrorPage: NextPage<ErrorPageProps> = ({ statusCode }) => (
 	<Page>
+		<Head title="Error" />
 		<Background align="center" justify="center">
 			<View align="center" gap={2}>
 				<Text

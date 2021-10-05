@@ -481,8 +481,8 @@ const Play: React.FC = () => {
 						cursor: "pointer",
 					}}
 				>
-					<View height="95%" width={2} bg={2} />
-					<View height="95%" width={2} bg={2} />
+					<View height="calc(100% - 16px)" width={2} bg={2} />
+					<View height="calc(100% - 16px)" width={2} bg={2} />
 				</View>
 			</View>
 			<View

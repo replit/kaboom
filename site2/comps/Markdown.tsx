@@ -22,7 +22,7 @@ const Markdown: React.FC<MarkdownProps & ViewProps> = ({
 	...args
 }) => (
 	<View
-		stretch
+		stretchX
 		gap={2}
 		// @ts-ignore
 		dangerouslySetInnerHTML={{
