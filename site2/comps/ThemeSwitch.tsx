@@ -21,7 +21,7 @@ const ThemeSwitch: React.FC<ViewProps> = ({...args}) => {
 	}, [])
 
 	return (
-		<View dir="row" gap={1.5} align="center" rounded wrap {...args}>
+		<View pad={0.5} dir="row" gap={1.5} align="center" rounded wrap {...args}>
 			{(showMore ? Object.keys(themes) : commonThemes).map((t) => (
 				<View
 					key={t}

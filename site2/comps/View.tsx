@@ -69,23 +69,18 @@ export interface ViewProps {
 	padY?: number,
 }
 
-export type ViewPropsWithChildren = React.PropsWithChildren<ViewProps>;
-
-export type ViewPropsWithChildrenAndDiv =
-	ViewPropsWithChildren
+type Props = React.PropsWithChildren<
+	ViewProps
 	& Omit<
-		Omit<
-			React.HTMLProps<HTMLDivElement>,
-			"ref"
-		>,
-		keyof ViewProps
+		React.HTMLProps<HTMLDivElement>,
+		keyof ViewProps | "ref"
 	>
-	;
+>;
 
-export type ViewPropsAnd<T> = T & Omit<ViewPropsWithChildrenAndDiv, keyof T>;
+export type ViewPropsAnd<T> = T & Omit<Props, keyof T>;
 
 // TODO: put tooltip / inspect logic to a useInspect()?
-const View = React.forwardRef<HTMLDivElement, ViewPropsWithChildrenAndDiv>(({
+const View = React.forwardRef<HTMLDivElement, Props>(({
 	name,
 	desc,
 	dir,
@@ -158,18 +153,14 @@ const View = React.forwardRef<HTMLDivElement, ViewPropsWithChildrenAndDiv>(({
 			paddingBottom: `${py}px`,
 			position: "relative",
 			borderRadius: rounded ? 8 : 0,
-//  			outline: outlined ? "solid 2px var(--color-outline)" : "none",
 			boxShadow: outlined ? "0 0 0 2px var(--color-outline)" : "none",
 			gap: (gap ?? 0) * spaceUnit,
 			":focus": {
-//  				outline: "solid 2px var(--color-highlight)",
 				boxShadow: outlined ? "0 0 0 2px var(--color-highlight)" : "none",
 			},
 			...((inspect && desc) ? {
 				":hover": {
 					cursor: "help !important",
-//  					outline: "solid 2px var(--color-highlight)",
-//  					boxShadow: outlined ? "0 0 0 2px var(--color-highlight)" : "none",
 					boxShadow: "0 0 0 2px var(--color-highlight)",
 				},
 			} : {}),

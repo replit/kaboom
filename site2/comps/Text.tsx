@@ -14,7 +14,7 @@ type Props = React.PropsWithChildren<
 	TextProps
 	& Omit<
 		React.HTMLProps<HTMLDivElement>,
-		keyof TextProps
+		keyof TextProps | "ref"
 	>
 >;
 

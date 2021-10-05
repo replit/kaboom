@@ -1,5 +1,5 @@
 import * as React from "react";
-import View from "comps/View";
+import View, { ViewPropsAnd } from "comps/View";
 import Text from "comps/Text";
 import Markdown from "comps/Markdown";
 import * as doc from "lib/doc";
@@ -20,7 +20,7 @@ const KaboomMember: React.FC<any> = (def) => {
 					{ (doc.tags ?? []).map((tag: any) => {
 						switch (tag.tagName) {
 							case "example": return <Markdown key={tag.comment} src={tag.comment} />;
-							default: return <React.Fragment key={tag.comment}></React.Fragment>;
+							default: return null;
 						}
 					}) }
 				</View>
@@ -29,8 +29,9 @@ const KaboomMember: React.FC<any> = (def) => {
 	);
 };
 
-const KaboomEntry: React.FC<KaboomEntryProps> = ({
+const KaboomEntry: React.FC<ViewPropsAnd<KaboomEntryProps>> = ({
 	name,
+	...args
 }) => {
 	if (!doc?.entries) {
 		return <Text color={3}>Loading docs...</Text>;
@@ -40,7 +41,7 @@ const KaboomEntry: React.FC<KaboomEntryProps> = ({
 		return <Text color={3}>Entry not found: {name}</Text>;
 	}
 	return (
-		<View stretchX>
+		<View stretchX {...args}>
 			{entries.map((e: any, i: number) => <KaboomMember key={i} {...e} />)}
 		</View>
 	);
