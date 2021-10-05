@@ -1,5 +1,6 @@
 import * as React from "react";
 import Link from "next/link";
+import { useRouter } from "next/router";
 import useKey from "hooks/useKey";
 import useFetch from "hooks/useFetch";
 import useSavedState from "hooks/useSavedState";
@@ -22,6 +23,8 @@ import Background from "comps/Background";
 import KaboomEntry from "comps/KaboomEntry";
 import { basename } from "lib/path";
 import Ctx from "lib/Ctx";
+
+const DEF_DEMO = "sprite";
 
 const demos = [
 	"audio",
@@ -146,8 +149,9 @@ interface Sound {
 
 const Play: React.FC = () => {
 
+	const router = useRouter();
 	const { draggin } = React.useContext(Ctx);
-	const [ curDemo, setCurDemo ] = React.useState("platformer");
+	const [ curDemo, setCurDemo ] = React.useState(DEF_DEMO);
 	const { data: fetchedCode } = useFetch(`/site/demo/${curDemo}.js`, (res) => res.text());
 	const [ backpackOpen, setBackpackOpen ] = React.useState(false);
 	const [ code, setCode ] = React.useState("");
@@ -159,6 +163,19 @@ const Play: React.FC = () => {
 	const backpackRef = React.useRef(null);
 	const blackboardRef = React.useRef(null);
 	const spaceUsed = useSpaceUsed();
+
+	React.useEffect(() => {
+		if (router.isReady && !router.query.demo) {
+			router.push({
+				query: {
+					demo: DEF_DEMO,
+				},
+			});
+			return;
+		}
+		setCurDemo(router.query.demo);
+		console.log(router.query.demo);
+	}, [ router.query.demo ]);
 
 	React.useEffect(() => {
 		if (fetchedCode != null) {
@@ -212,7 +229,11 @@ const Play: React.FC = () => {
 						desc="Select a demo to run"
 						options={demos}
 						value={curDemo}
-						onChange={setCurDemo}
+						onChange={(demo) => router.push({
+							query: {
+								demo: demo,
+							},
+						})}
 					/>
 					<Button
 						name="Run Button"

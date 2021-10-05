@@ -7,7 +7,7 @@ import { Drag } from "lib/drag";
 import View from "comps/View";
 import Button from "comps/Button";
 import Text from "comps/Text";
-import { defTheme, themes, cssVars } from "lib/ui";
+import { DEF_THEME, themes, cssVars } from "lib/ui";
 import useMousePos from "hooks/useMousePos";
 import useSavedState from "hooks/useSavedState";
 import useKey from "hooks/useKey";
@@ -15,18 +15,24 @@ import IDList from "lib/idlist";
 
 const Page = ({ Component, pageProps }: AppProps) => {
 
-	const [ theme, setTheme ] = useSavedState("theme", defTheme);
+	const [ theme, setTheme ] = useSavedState("theme", DEF_THEME);
 	const [ inspect, setInspect ] = React.useState(false);
 	const [ draggin, setDraggin ] = React.useState<Drag | null>(null);
 	const [ tooltipStack, setTooltipStack ] = React.useState<IDList<Tooltip>>(new IDList());
 
 	const curTooltip = React.useMemo(
-		() => tooltipStack.size === 0 ? null : Array.from(tooltipStack.values())[tooltipStack.size - 1],
+		() => tooltipStack.size === 0
+			? null
+			: Array.from(tooltipStack.values())[tooltipStack.size - 1],
 		[ tooltipStack ]
 	);
 
 	useKey("F1", () => setInspect(!inspect), [ setInspect, inspect ]);
 	useKey("Escape", () => setInspect(false), [ setInspect ]);
+
+	const goodSetTheme = React.useCallback((to) => {
+		setTheme(themes[to] ? to : DEF_THEME);
+	}, [ setTheme ]);
 
 	// reset tooltip stack when exiting inspect mode
 	React.useEffect(() => {
@@ -75,7 +81,7 @@ const Page = ({ Component, pageProps }: AppProps) => {
 	return (
 		<Ctx.Provider value={{
 			theme,
-			setTheme,
+			setTheme: goodSetTheme,
 			inspect,
 			setInspect,
 			pushTooltip,

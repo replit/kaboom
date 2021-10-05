@@ -8,9 +8,12 @@ import useFetch from "hooks/useFetch";
 
 const Doc = () => {
 
-	const router = useRouter()
+	const router = useRouter();
 	const { name } = router.query;
-	const { data: doc, loading } = useFetch(`/site/doc/${name}.md`, (res) => res.text());
+	const { data: doc, loading } = useFetch(
+		name ? `/site/doc/${name}.md` : null,
+		(res) => res.text()
+	);
 
 	return <Nav>
 		<Link href="/" passHref>

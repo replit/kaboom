@@ -91,6 +91,12 @@ const Select: React.FC<SelectProps & ViewProps> = ({
 		}
 	}, [ expanded ]);
 
+	React.useEffect(() => {
+		if (value != null) {
+			setCurItem(value);
+		}
+	}, [ value ]);
+
 	return (
 		<View
 			dir="column"

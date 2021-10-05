@@ -1,6 +1,9 @@
 import * as React from "react";
 
-export default function useFetch<D>(url: string, parse: (res: Response) => Promise<D>) {
+export default function useFetch<D>(
+	url: string | null,
+	parse: (res: Response) => Promise<D>
+) {
 
 	const [ res, setRes ] = React.useState<Response | null>(null);
 	const [ data, setData ] = React.useState<D | null>(null);
@@ -8,6 +11,10 @@ export default function useFetch<D>(url: string, parse: (res: Response) => Promi
 	const [ err, setErr ] = React.useState(null);
 
 	React.useEffect(() => {
+
+		if (!url) {
+			return;
+		}
 
 		fetch(url)
 			.then((res) => {

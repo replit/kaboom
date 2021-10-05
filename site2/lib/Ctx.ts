@@ -1,5 +1,5 @@
 import * as React from "react";
-import { defTheme } from "lib/ui";
+import { DEF_THEME } from "lib/ui";
 import { Tooltip } from "lib/tooltip";
 import { Drag } from "lib/drag";
 
@@ -15,7 +15,7 @@ interface Ctx {
 }
 
 export default React.createContext<Ctx>({
-	theme: defTheme,
+	theme: DEF_THEME,
 	setTheme: () => {},
 	inspect: false,
 	setInspect: () => {},

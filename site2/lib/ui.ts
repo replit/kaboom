@@ -175,7 +175,7 @@ export const themes: ThemeBook = {
 		"outline": "var(--color-bg4)",
 		"bgpat": "rgb(220, 230, 245)",
 		"fghl": "rgb(250, 250, 250)",
-		"highlight": "rgb(30, 140, 230)",
+		"highlight": "rgb(70, 180, 240)",
 		"accent": "rgb(19, 33, 49)",
 		"danger": "rgb(255, 90, 90)",
 		"errbg": "rgb(30, 10, 10)",
@@ -195,13 +195,13 @@ export const themes: ThemeBook = {
 		"outline": "var(--color-bg4)",
 		"bgpat": "rgb(240, 240, 240)",
 		"fghl": "rgb(250, 250, 250)",
-		"highlight": "rgb(30, 140, 230)",
+		"highlight": "rgb(60, 160, 220)",
 		"accent": "rgb(19, 33, 49)",
 		"danger": "rgb(255, 90, 90)",
 		"errbg": "rgb(30, 10, 10)",
 	},
 	// @ts-ignore
-	"roses": {
+	"spring": {
 		...genColors(
 			"bg", 4,
 			255, 230, 240,
@@ -229,7 +229,7 @@ export const commonThemes = [
 ];
 
 export const space = 8;
-export const defTheme = "dark";
+export const DEF_THEME = "dark";
 
 export const cssVars = (() => {
 
@@ -241,7 +241,7 @@ export const cssVars = (() => {
 		return code;
 	}
 
-	let code = `:root {${buildCSSVars("text", fontSizes)}${buildCSSVars("color", themes[defTheme])}}`;
+	let code = `:root {${buildCSSVars("text", fontSizes)}${buildCSSVars("color", themes[DEF_THEME])}}`;
 
 	for (const theme in themes) {
 		code += `.${theme} {${buildCSSVars("color", themes[theme])}}`;

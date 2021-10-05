@@ -15,7 +15,7 @@ export default function useStoredState<S>(
 		if (window.localStorage[key]) {
 			try {
 				setData(de(window.localStorage[key]));
-			} finally {
+			} catch (err) {
 				window.localStorage[key] = ser(data);
 			}
 		} else {
