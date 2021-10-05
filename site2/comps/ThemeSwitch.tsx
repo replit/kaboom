@@ -1,13 +1,13 @@
 import * as React from "react";
-import { useRouter } from "next/router";
 import View, { ViewProps } from "comps/View";
+import useSavedState from "hooks/useSavedState";
 import Ctx from "lib/Ctx";
 import { themes, commonThemes } from "lib/ui";
 
 const ThemeSwitch: React.FC<ViewProps> = ({...args}) => {
 
 	const { theme, setTheme } = React.useContext(Ctx);
-	const [ showMore, setShowMore ] = React.useState(false);
+	const [ showMore, setShowMore ] = useSavedState("showmedathemes", false);
 
 	// @ts-ignore
 	React.useEffect(() => {
@@ -28,7 +28,7 @@ const ThemeSwitch: React.FC<ViewProps> = ({...args}) => {
 					name={t[0].toUpperCase() + t.slice(1)}
 					desc="Theme"
 					onClick={() => setTheme(t)}
-					bg={themes[t]["bg2"]}
+					bg={themes[t]["bg4"]}
 					width={24}
 					height={24}
 					outlined={t === theme}

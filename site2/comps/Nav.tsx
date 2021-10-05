@@ -46,7 +46,7 @@ const anims = {
 };
 
 const Logo: React.FC = () => (
-	<Link href="/">
+	<Link href="/" passHref>
 		<View
 			desc="Back to home"
 			rounded
@@ -171,7 +171,7 @@ const Nav: React.FC = ({children}) => (
 		<View stretch dir="row" bg={1} rounded outlined css={{ overflow: "hidden" }}>
 			<View
 				dir="column"
-				gap={3}
+				gap={2}
 				stretchY
 				width={260}
 				pad={3}

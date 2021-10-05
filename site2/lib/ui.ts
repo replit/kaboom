@@ -95,9 +95,69 @@ export const themes: ThemeBook = {
 		"outline": "var(--color-bg4)",
 		"bgpat": "rgb(15, 15, 15)",
 		"fghl": "rgb(215, 215, 215)",
-		"highlight": "rgb(30, 140, 230)",
+		"highlight": "rgb(30, 140, 200)",
 		"accent": "rgb(19, 33, 49)",
 		"danger": "rgb(255, 80, 80)",
+		"errbg": "rgb(30, 10, 10)",
+	},
+	// @ts-ignore
+	"violet": {
+		...genColors(
+			"bg", 4,
+			50, 30, 90,
+			12, 12, 15
+		),
+		...genColors(
+			"fg", 4,
+			220, 200, 240,
+			-20, -20, -10,
+		),
+		"outline": "var(--color-bg4)",
+		"bgpat": "rgb(45, 25, 85)",
+		"fghl": "rgb(255, 255, 255)",
+		"highlight": "rgb(120, 120, 230)",
+		"accent": "rgb(19, 33, 49)",
+		"danger": "rgb(255, 90, 90)",
+		"errbg": "rgb(30, 10, 10)",
+	},
+	// @ts-ignore
+	"grass": {
+		...genColors(
+			"bg", 4,
+			20, 120, 100,
+			10, 15, 12,
+		),
+		...genColors(
+			"fg", 4,
+			210, 240, 230,
+			-15, -10, -10,
+		),
+		"outline": "var(--color-bg4)",
+		"bgpat": "rgb(10, 110, 90)",
+		"fghl": "rgb(255, 255, 255)",
+		"highlight": "rgb(40, 160, 160)",
+		"accent": "rgb(19, 33, 49)",
+		"danger": "rgb(255, 90, 90)",
+		"errbg": "rgb(30, 10, 10)",
+	},
+	// @ts-ignore
+	"vibrant": {
+		...genColors(
+			"bg", 4,
+			110, 50, 30,
+			15, 12, 12,
+		),
+		...genColors(
+			"fg", 4,
+			240, 230, 210,
+			-10, -15, -15,
+		),
+		"outline": "var(--color-bg4)",
+		"bgpat": "rgb(100, 40, 20)",
+		"fghl": "rgb(255, 255, 255)",
+		"highlight": "rgb(180, 120, 100)",
+		"accent": "rgb(19, 33, 49)",
+		"danger": "rgb(255, 90, 90)",
 		"errbg": "rgb(30, 10, 10)",
 	},
 	// @ts-ignore
@@ -154,26 +214,6 @@ export const themes: ThemeBook = {
 		),
 		"outline": "var(--color-bg4)",
 		"bgpat": "rgb(245, 220, 230)",
-		"fghl": "rgb(250, 250, 250)",
-		"highlight": "rgb(30, 140, 230)",
-		"accent": "rgb(19, 33, 49)",
-		"danger": "rgb(255, 90, 90)",
-		"errbg": "rgb(30, 10, 10)",
-	},
-	// @ts-ignore
-	"toy": {
-		...genColors(
-			"bg", 4,
-			255, 255, 220,
-			-8, -8, -12
-		),
-		...genColors(
-			"fg", 4,
-			70, 70, 55,
-			40, 40, 35,
-		),
-		"outline": "var(--color-bg4)",
-		"bgpat": "rgb(245, 245, 210)",
 		"fghl": "rgb(250, 250, 250)",
 		"highlight": "rgb(30, 140, 230)",
 		"accent": "rgb(19, 33, 49)",
