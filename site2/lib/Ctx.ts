@@ -2,7 +2,6 @@ import * as React from "react";
 import { defTheme } from "lib/ui";
 import { Tooltip } from "lib/tooltip";
 import { Drag } from "lib/drag";
-import { Doc } from "lib/doc";
 
 interface Ctx {
 	theme: string,
@@ -11,7 +10,6 @@ interface Ctx {
 	setInspect: (inspect: boolean) => void,
 	pushTooltip: (tooltip: Tooltip) => Promise<number>,
 	popTooltip: (id: number) => void,
-	doc: Doc | null,
 	draggin: Drag | null,
 	setDraggin: (d: Drag | null) => void,
 }
@@ -23,7 +21,6 @@ export default React.createContext<Ctx>({
 	setInspect: () => {},
 	pushTooltip: () => Promise.reject(),
 	popTooltip: () => {},
-	doc: null,
 	draggin: null,
 	setDraggin: () => {},
 });

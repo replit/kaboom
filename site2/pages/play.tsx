@@ -5,6 +5,7 @@ import useFetch from "hooks/useFetch";
 import useStoredState from "hooks/useStoredState";
 import useClickOutside from "hooks/useClickOutside";
 import useSpaceUsed from "hooks/useSpaceUsed";
+import Head from "comps/Head";
 import Editor, { EditorRef } from "comps/Editor";
 import GameView, { GameViewRef } from "comps/GameView";
 import Button from "comps/Button";
@@ -143,7 +144,7 @@ interface Sound {
 	src: string,
 }
 
-const Demo: React.FC = () => {
+const Play: React.FC = () => {
 
 	const { draggin } = React.useContext(Ctx);
 	const [ curDemo, setCurDemo ] = React.useState("platformer");
@@ -180,6 +181,7 @@ const Demo: React.FC = () => {
 	useClickOutside(blackboardRef, () => setBlackboard(null), [ setBlackboard ]);
 
 	return <>
+		<Head title="Kaboom Playground" />
 		<Background dir="column">
 			<View
 				dir="row"
@@ -229,10 +231,7 @@ const Demo: React.FC = () => {
 					<Inspect />
 				</View>
 				<View dir="row" gap={2} align="center">
-					<ThemeSwitch
-						name="Theme Switcher"
-						desc="Choose a theme!"
-					/>
+					<ThemeSwitch />
 					<Menu left items={[
 						{
 							name: "Export",
@@ -498,4 +497,4 @@ const Demo: React.FC = () => {
 
 };
 
-export default Demo;
+export default Play;

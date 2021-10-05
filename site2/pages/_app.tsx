@@ -11,7 +11,6 @@ import { defTheme, themes, cssVars } from "lib/ui";
 import useMousePos from "hooks/useMousePos";
 import useStoredState from "hooks/useStoredState";
 import useKey from "hooks/useKey";
-import useDoc from "hooks/useDoc";
 import IDList from "lib/idlist";
 
 const Page = ({ Component, pageProps }: AppProps) => {
@@ -20,7 +19,6 @@ const Page = ({ Component, pageProps }: AppProps) => {
 	const [ inspect, setInspect ] = React.useState(false);
 	const [ draggin, setDraggin ] = React.useState<Drag | null>(null);
 	const [ tooltipStack, setTooltipStack ] = React.useState<IDList<Tooltip>>(new IDList());
-	const doc = useDoc();
 
 	const curTooltip = React.useMemo(
 		() => tooltipStack.size === 0 ? null : Array.from(tooltipStack.values())[tooltipStack.size - 1],
@@ -82,7 +80,6 @@ const Page = ({ Component, pageProps }: AppProps) => {
 			setInspect,
 			pushTooltip,
 			popTooltip,
-			doc,
 			draggin,
 			setDraggin,
 		}}>
@@ -112,6 +109,9 @@ const Page = ({ Component, pageProps }: AppProps) => {
 					body {
 						width: 100%;
 						height: 100%;
+					}
+					a {
+						text-decoration: none;
 					}
 					#__next {
 						width: 100%;

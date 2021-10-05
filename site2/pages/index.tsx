@@ -1,14 +1,15 @@
 import * as React from "react";
 import Image from "next/image";
 import { keyframes } from '@emotion/react';
-
+import Head from "comps/Head";
 import Nav from "comps/Nav";
 import View from "comps/View";
 import Text from "comps/Text";
 import Markdown from "comps/Markdown";
 
-const Home: React.FC = () => (
-	<Nav>
+const Home: React.FC = () => {
+	return <Nav>
+		<Head title="Kaboom" />
 		<Text select size="huge" color={1}>Kaboom is a Javascript game programming library that helps you make games fast and fun.</Text>
 		<Markdown stretchX src={`
 \`\`\`js
@@ -35,7 +36,7 @@ keyPress("space", () => {
 
 Kaboom uses a flexible component system that makes it easy to compose game logics.
 		`} />
-	</Nav>
-);
+	</Nav>;
+};
 
 export default Home;

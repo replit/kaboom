@@ -1,6 +1,7 @@
 import * as React from "react";
 import Link from "next/link";
 import useFetch from "hooks/useFetch";
+import Head from "comps/Head";
 import Editor, { EditorRef } from "comps/Editor";
 import GameView, { GameViewRef } from "comps/GameView";
 import Button from "comps/Button";
@@ -35,6 +36,7 @@ const Example: React.FC<ExampleProps & ViewProps> = ({
 
 const UI: React.FC = () => (
 	<Background pad={6} dir="column" gap={6}>
+		<Head title="KUI" />
 		{/*<Modal isOpen close={() => {}}>
 			<View width={480} height={240} bg={2} pad={2} rounded outlined>
 				<Text size="big">Are you sure?</Text>

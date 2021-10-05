@@ -9,6 +9,7 @@ import Text from "comps/Text";
 import Markdown from "comps/Markdown";
 import Input from "comps/Input";
 import ThemeSwitch from "comps/ThemeSwitch";
+import * as doc from "lib/doc";
 
 const anims = {
 	kaboom: keyframes(`
@@ -47,8 +48,8 @@ const anims = {
 const Logo: React.FC = () => (
 	<Link href="/">
 		<View
-			stretchX
-			height={120}
+			desc="Back to home"
+			rounded
 			css={{
 				"cursor": "pointer",
 			}}
@@ -57,9 +58,9 @@ const Logo: React.FC = () => (
 				src="/site/img/boom.svg"
 				alt="boom"
 				css={{
+					position: "relative",
 					width: "80%",
 					left: "10%",
-					position: "absolute",
 					animation: `${anims.kaboom} 5s infinite`,
 				}}
 			/>
@@ -88,7 +89,7 @@ const NavLink: React.FC<NavLinkProps> = ({
 	text,
 	link,
 }) => (
-	<Link href={link}>
+	<Link href={link} passHref>
 		<View
 			focusable
 			padX={1}
@@ -111,65 +112,107 @@ const NavLink: React.FC<NavLinkProps> = ({
 	</Link>
 );
 
-const Nav: React.FC = ({children}) => {
+const Index: React.FC = () => {
 	const [ query, setQuery ] = React.useState("");
-	return (
-		<Background pad={3}>
-			<View stretch dir="row" bg={1} rounded outlined css={{ overflow: "hidden" }}>
-				<View
-					dir="column"
-					gap={2}
-					stretchY
-					width={240}
-					pad={3}
-					bg={2}
-					css={{
-						overflow: "scroll",
-					}}
-				>
-					<View />
-					<Logo />
-					<ThemeSwitch width={120} />
-					<View gap={0.5}>
-						<NavLink link="/play" text="PlayGround" />
-						<NavLink link="/doc/setup" text="Setup Guide" />
-						<NavLink link="/doc/intro" text="Tutorial" />
-						<NavLink link="https://github.com/replit/kaboom" text="Github" />
-					</View>
-					<Input value={query} onChange={setQuery} placeholder="Search for doc" />
+	return <>
+		<Input value={query} onChange={setQuery} placeholder="Search for doc" />
+		{ doc.sections.map((sec) => {
+			return (
+				<View stretchX gap={1} key={sec.name}>
+					<Text size="big" color={3}>{sec.name}</Text>
+						<View>
+							{
+								sec.entries
+									.filter((name) => query ? name.match(query) : true)
+									.map((name) => {
+										let dname = name;
+										const mem = doc.entries[name][0];
+										if (mem.kind === "MethodSignature") {
+											dname += "()";
+										}
+										return (
+											<a key={name} href={`#${name}`}>
+												<View
+													padX={1}
+													padY={0.5}
+													css={{
+														cursor: "pointer",
+														borderRadius: 8,
+														":hover": {
+															background: "var(--color-bg3)",
+														},
+													}}
+												>
+													<Text color={2} code>{dname}</Text>
+												</View>
+											</a>
+										);
+									})
+							}
+						</View>
 				</View>
-				{/*<div css={{
-					height: 640,
-					width: 640,
-					background: "blue",
-					boxSizing: "border-box",
-					overflow: "scroll",
-					display: "flex",
-					padding: 120,
-					flexDirection: "column",
-				}}>
-					<div css={{
-						height: 1200,
-						width: "100%",
-						background: "green",
-					}}>
-					</div>
-				</div>*/}
-				<View
-					dir="column"
-					gap={3}
-					pad={4}
-					stretchY
-					css={{
-						overflow: "scroll",
-						flex: "1",
-					}}
-				>
-					{children}
-				</View>
-			</View>
-		</Background>
-	);
+			);
+		}) }
+	</>;
 };
+
+const Nav: React.FC = ({children}) => (
+	<Background pad={3}>
+		<View stretch dir="row" bg={1} rounded outlined css={{ overflow: "hidden" }}>
+			<View
+				dir="column"
+				gap={3}
+				stretchY
+				width={260}
+				pad={3}
+				bg={2}
+				css={{
+					overflowX: "hidden",
+					overflowY: "scroll",
+				}}
+			>
+				<View />
+				<Logo />
+				<ThemeSwitch width={120} />
+				<View gap={0.5}>
+					<NavLink link="/play" text="PlayGround" />
+					<NavLink link="/doc/setup" text="Setup Guide" />
+					<NavLink link="/doc/intro" text="Tutorial" />
+					<NavLink link="https://github.com/replit/kaboom" text="Github" />
+				</View>
+				<Index />
+			</View>
+			{/*<div css={{
+				height: 640,
+				width: 640,
+				background: "blue",
+				boxSizing: "border-box",
+				overflow: "scroll",
+				display: "flex",
+				padding: 120,
+				flexDirection: "column",
+			}}>
+				<div css={{
+					height: 1200,
+					width: "100%",
+					background: "green",
+				}}>
+				</div>
+			</div>*/}
+			<View
+				dir="column"
+				gap={3}
+				pad={4}
+				stretchY
+				css={{
+					overflow: "scroll",
+					flex: "1",
+				}}
+			>
+				{children}
+			</View>
+		</View>
+	</Background>
+);
 
 export default Nav;

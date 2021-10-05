@@ -1,8 +1,8 @@
 import * as React from "react";
-import Ctx from "lib/Ctx";
 import View from "comps/View";
 import Text from "comps/Text";
 import Markdown from "comps/Markdown";
+import * as doc from "lib/doc";
 
 interface KaboomEntryProps {
 	name: string,
@@ -32,17 +32,12 @@ const KaboomMember: React.FC<any> = (def) => {
 const KaboomEntry: React.FC<KaboomEntryProps> = ({
 	name,
 }) => {
-	const { doc } = React.useContext(Ctx);
 	if (!doc?.entries) {
-		return (
-			<Text color={3}>Loading docs...</Text>
-		);
+		return <Text color={3}>Loading docs...</Text>;
 	}
 	const entries = doc.entries[name];
 	if (!entries) {
-		return (
-			<Text color={3}>Entry not found: {name}</Text>
-		);
+		return <Text color={3}>Entry not found: {name}</Text>;
 	}
 	return (
 		<View stretchX>
