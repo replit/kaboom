@@ -7,17 +7,17 @@ import { themes, commonThemes } from "lib/ui";
 const ThemeSwitch: React.FC<ViewProps> = ({...args}) => {
 
 	const { theme, setTheme } = React.useContext(Ctx);
-	const [ showMore, setShowMore ] = useSavedState("showmedathemes", false);
+	const [ showMore, setShowMore ] = useSavedState("showmedacolors", false);
 
 	// @ts-ignore
 	React.useEffect(() => {
 		// @ts-ignore
-		window.showmedathemes = () => {
+		window.showmedacolors = () => {
 			setShowMore(true);
 			console.log("yessir whatever");
 		};
 		// @ts-ignore
-		return () => delete window.showmedathemes;
+		return () => delete window.showmedacolors;
 	}, [])
 
 	return (
@@ -34,7 +34,7 @@ const ThemeSwitch: React.FC<ViewProps> = ({...args}) => {
 					outlined={t === theme}
 					focusable
 					css={{
-						outlineColor: t === theme ? "var(--color-highlight)" : "var(--color-outline)",
+						boxShadow: t === theme ? "0 0 0 2px var(--color-highlight)" : "none",
 						borderRadius: "50%",
 						cursor: "pointer",
 					}}
