@@ -13,6 +13,7 @@ const Drawer = React.forwardRef<HTMLDivElement, ViewPropsAnd<DrawerProps>>(({
 	bigHandle,
 	expanded,
 	setExpanded,
+	width,
 	height,
 	children,
 	...args
@@ -20,7 +21,8 @@ const Drawer = React.forwardRef<HTMLDivElement, ViewPropsAnd<DrawerProps>>(({
 
 	const localRef = React.useRef(null);
 	const curRef = ref ?? localRef;
-	const width = bigHandle ? 24 : 16;
+	const paneWidth = width ?? 240;
+	const handleWidth = bigHandle ? 24 : 16;
 
 	// @ts-ignore
 	useClickOutside(curRef, () => {
@@ -39,10 +41,10 @@ const Drawer = React.forwardRef<HTMLDivElement, ViewPropsAnd<DrawerProps>>(({
 				rounded
 				outlined
 				stretchY
-				width={260}
+				width={paneWidth + handleWidth}
 				css={{
 					position: "absolute",
-					left: expanded ? -4 : -(260 - width),
+					left: expanded ? -4 : -(paneWidth),
 					transition: "0.2s left",
 					overflow: "hidden",
 					zIndex: 200,
@@ -67,7 +69,7 @@ const Drawer = React.forwardRef<HTMLDivElement, ViewPropsAnd<DrawerProps>>(({
 					align="center"
 					justify="around"
 					padX={0.5}
-					width={width}
+					width={handleWidth}
 					stretchY
 					onClick={() => setExpanded((e) => !e)}
 					css={{
