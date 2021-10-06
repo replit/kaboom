@@ -8,7 +8,7 @@ interface KaboomEntryProps {
 	name: string,
 }
 
-const TypeSig: React.FC<any> = (m) => <Text color={2}>{(() => {
+const TypeSig: React.FC<any> = (m) => <span css={{ color: "var(--color-fg3)" }}>{(() => {
 	switch (m.kind) {
 		case "StringKeyword": return "string";
 		case "NumberKeyword": return "number";
@@ -25,23 +25,21 @@ const TypeSig: React.FC<any> = (m) => <Text color={2}>{(() => {
 		case "TypeReference": return m.typeName;
 		default: return "unknown";
 	}
-})()}</Text>;
+})()}</span>;
 
 const FuncParams: React.FC<any> = (m) => m.parameters.map((p: any, i: number) => (
-	<Text
-		code
-		key={p.name}
-	>
+	<span>
 		{p.name}
 		{p.questionToken ? "?" : ""}
 		: {p.dotDotDotToken ? "..." : <TypeSig {...p.type} />}
 		{i === m.parameters.length - 1 ? "" : ", "}
-	</Text>
+	</span>
 ));
 
 const MethodSignature: React.FC<any> = (m) => (
 	<Text
 		code
+		color={1}
 		select
 		size="big"
 	>

@@ -15,39 +15,17 @@ import Drawer from "comps/Drawer";
 import ThemeSwitch from "comps/ThemeSwitch";
 import * as doc from "lib/doc";
 
-const anims = {
-	kaboom: keyframes(`
-		0% {
-			transform: scale(1);
-		}
-		5% {
-			transform: scale(1.1);
-		}
-		10% {
-			transform: scale(1);
-		}
-	`),
-	fun: keyframes(`
-		0% {
-			color: blue;
-		}
-		20% {
-			color: orange;
-		}
-		40% {
-			color: yellow;
-		}
-		60% {
-			color: green;
-		}
-		80% {
-			color: cyan;
-		}
-		100% {
-			color: blue;
-		}
-	`),
-};
+const popping = keyframes(`
+	0% {
+		transform: scale(1);
+	}
+	5% {
+		transform: scale(1.1);
+	}
+	10% {
+		transform: scale(1);
+	}
+`);
 
 const Logo: React.FC = () => (
 	<Link href="/" passHref>
@@ -65,7 +43,7 @@ const Logo: React.FC = () => (
 					position: "relative",
 					width: "80%",
 					left: "10%",
-					animation: `${anims.kaboom} 5s infinite`,
+					animation: `${popping} 5s infinite`,
 				}}
 			/>
 			<img
@@ -76,7 +54,7 @@ const Logo: React.FC = () => (
 					position: "absolute",
 					left: "2px",
 					top: "28px",
-					animation: `${anims.kaboom} 5s infinite`,
+					animation: `${popping} 5s infinite`,
 					animationDelay: "0.08s",
 				}}
 			/>

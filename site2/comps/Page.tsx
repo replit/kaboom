@@ -116,7 +116,7 @@ const Page: React.FC = ({ children }) => {
 						font-family: IBM Plex Sans;
 						font-size: var(--text-normal);
 						color: var(--color-fg1);
-						user-select: none;
+						overflow: hidden;
 					}
 					body {
 						width: 100%;

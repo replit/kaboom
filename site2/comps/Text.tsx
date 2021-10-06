@@ -10,7 +10,9 @@ interface TextProps {
 	code?: boolean,
 }
 
-const Text: React.FC<TextProps> = (({
+type Props = TextProps & Omit<React.HTMLProps<HTMLSpanElement>, keyof TextProps>;
+
+const Text: React.FC<Props> = (({
 	color,
 	size,
 	bold,
@@ -22,24 +24,14 @@ const Text: React.FC<TextProps> = (({
 }) => (
 	<span
 		css={{
-			...(code ? {
-				fontFamily: "IBM PLex Mono",
-			}: {}),
-			...(bold ? {
-				fontWeight: "bold",
-			}: {}),
-			...(size ? {
-				fontSize: `var(--text-${size})`,
-			}: {}),
-			...(italic ? {
-				fontStyle: "italic",
-			}: {}),
-			...(color ? {
-				color: typeof color === "number" ? `var(--color-fg${color})` : color,
-			}: {}),
-			...(select ? {
-				userSelect: "text",
-			}: {}),
+			fontFamily: code ? "IBM PLex Mono" : "IBM Plex Sans",
+			fontSize: `var(--text-${size ?? "normal"})`,
+			fontWeight: bold ? "bold" : "normal",
+			fontStyle: italic ? "italic" : "normal",
+			color: color === undefined
+				? "var(--color-fg1)"
+				: typeof color === "number" ? `var(--color-fg${color})` : color,
+			userSelect: select ? "text" : "none",
 		}}
 		{...props}
 	>

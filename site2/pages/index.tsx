@@ -8,11 +8,50 @@ import Text from "comps/Text";
 import Markdown from "comps/Markdown";
 import KaboomEntry from "comps/KaboomEntry";
 import * as doc from "lib/doc";
+// @ts-ignore
+import fun from "lib/fun";
+
+const flashy = keyframes(`
+	0% {
+		color: blue;
+	}
+	20% {
+		color: orange;
+	}
+	40% {
+		color: yellow;
+	}
+	60% {
+		color: green;
+	}
+	80% {
+		color: cyan;
+	}
+	100% {
+		color: blue;
+	}
+`);
+
+const Fun: React.FC = () => (
+	<Text
+		onClick={() => {
+			window.open(fun[Math.floor(Math.random() * fun.length)])
+		}}
+		css={{
+			":hover": {
+				"cursor": "pointer",
+				"animation": `${flashy} 1s infinite linear`,
+			},
+		}}
+	>
+		fun
+	</Text>
+);
 
 const Home: React.FC = () => {
 	return <Nav>
 		<Head title="Kaboom" scale={0.8} />
-		<Text select size="huge" color={1}>Kaboom is a Javascript game programming library that helps you make games fast and fun.</Text>
+		<Text select size="huge" color={1}>Kaboom is a Javascript game programming library that helps you make games fast and <Fun />.</Text>
 		<Markdown stretchX src={`
 \`\`\`js
 // start the game
