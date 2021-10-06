@@ -1,10 +1,12 @@
 import { useRouter } from "next/router";
 import Link from "next/link";
+import Head from "comps/Head";
 import Markdown from "comps/Markdown";
 import Nav from "comps/Nav";
 import Text from "comps/Text";
 import Button from "comps/Button";
 import useFetch from "hooks/useFetch";
+import { capitalize } from "lib/str";
 
 const Doc = () => {
 
@@ -16,6 +18,7 @@ const Doc = () => {
 	);
 
 	return <Nav>
+		<Head title={`Kaboom - ${capitalize(name as string ?? "")}`} />
 		<Link href="/" passHref>
 			<Button text="< Back" action={() => {}} />
 		</Link>

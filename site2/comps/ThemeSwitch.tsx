@@ -3,6 +3,7 @@ import View, { ViewProps } from "comps/View";
 import useSavedState from "hooks/useSavedState";
 import Ctx from "lib/Ctx";
 import { themes, noobThemes } from "lib/ui";
+import { capitalize } from "lib/str";
 
 const ThemeSwitch: React.FC<ViewProps> = ({...args}) => {
 
@@ -25,7 +26,7 @@ const ThemeSwitch: React.FC<ViewProps> = ({...args}) => {
 			{(showDa ? Object.keys(themes) : noobThemes).map((t) => (
 				<View
 					key={t}
-					name={t[0].toUpperCase() + t.slice(1)}
+					name={capitalize(t)}
 					desc="Theme"
 					onClick={() => setTheme(t)}
 					bg={themes[t]["bg4"]}

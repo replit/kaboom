@@ -1,4 +1,4 @@
-function basename(path: string): string | null {
+export function basename(path: string): string | null {
 	return path
 		.split("/")
 		.pop()
@@ -8,14 +8,9 @@ function basename(path: string): string | null {
 		|| null;
 }
 
-function extname(path: string): string | null {
+export function extname(path: string): string | null {
 	return path
 		.split(".")
 		.pop()
 		|| null;
 }
-
-export {
-	basename,
-	extname,
-};

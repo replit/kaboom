@@ -82,7 +82,7 @@ keyPress("space", () => {
 });
 \`\`\`
 
-Kaboom uses a flexible component system that makes it easy to compose game logics.
+Play with it yourself or check out the examples in the [Playground](/play)!
 		`} />
 
 		{ doc.sections.map((sec) => {
