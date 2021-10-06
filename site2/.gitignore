@@ -2,8 +2,3 @@
 node_modules/
 .next/
 build/
-public/doc
-public/demo
-public/assets
-public/dist
-public/types.json
