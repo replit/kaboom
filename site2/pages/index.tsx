@@ -81,10 +81,6 @@ keyPress("space", () => {
 Kaboom uses a flexible component system that makes it easy to compose game logics.
 		`} />
 
-		<Doc
-			name="Origin"
-		/>
-
 		{ doc.sections.map((sec) => {
 			const entries = sec.entries;
 			return (
@@ -110,13 +106,19 @@ Kaboom uses a flexible component system that makes it easy to compose game logic
 		<Drawer
 			dir="right"
 			pad={2}
-			height="60%"
-			paneWidth={320}
+			height="64%"
+			paneWidth={360}
 			expanded={showType}
 			setExpanded={setShowType}
 		>
 			{ shownTypeName &&
-				<Doc name={shownTypeName} />
+				<Doc
+					name={shownTypeName}
+					typeref={(name) => {
+						setShowType(true);
+						setShownTypeName(name);
+					}}
+				/>
 			}
 		</Drawer>
 
