@@ -8,6 +8,7 @@ import Text from "comps/Text";
 import Markdown from "comps/Markdown";
 import Drawer from "comps/Drawer";
 import Doc from "comps/Doc";
+import useMediaQuery from "hooks/useMediaQuery";
 import * as doc from "lib/doc";
 // @ts-ignore
 import fun from "lib/fun";
@@ -49,9 +50,12 @@ const Fun: React.FC = () => (
 	</span>
 );
 
+const NARROW = 840;
+
 const Home: React.FC = () => {
 	const [ showType, setShowType ] = React.useState(false);
 	const [ shownTypeName, setShownTypeName ] = React.useState<string | null>(null);
+	const isNarrow = useMediaQuery(`(max-width: ${NARROW}px)`);
 	return <Nav>
 		<Head title="Kaboom" scale={0.8} />
 		<Text select size="huge" color={1}>Kaboom is a Javascript game programming library that helps you make games fast and <Fun />.</Text>
@@ -107,7 +111,7 @@ Kaboom uses a flexible component system that makes it easy to compose game logic
 			dir="right"
 			pad={2}
 			height="64%"
-			paneWidth={360}
+			paneWidth={isNarrow ? 320 : 360}
 			expanded={showType}
 			setExpanded={setShowType}
 		>

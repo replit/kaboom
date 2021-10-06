@@ -113,20 +113,26 @@ const Index: React.FC = () => {
 			expanded={expanded}
 			setExpanded={setExpanded}
 		>
-			<IndexContent />
+			<IndexContent shrink={() => setExpanded(false)} />
 		</Drawer>
 	) : (
 		<View
 			stretchY
 			bg={2}
 		>
-			<IndexContent />
+			<IndexContent shrink={() => setExpanded(false)} />
 		</View>
 	);
 
 };
 
-const IndexContent: React.FC = () => {
+interface IndexContentProps {
+	shrink: () => void,
+}
+
+const IndexContent: React.FC<IndexContentProps> = ({
+	shrink,
+}) => {
 
 	const [ query, setQuery ] = React.useState("");
 
@@ -178,12 +184,7 @@ const IndexContent: React.FC = () => {
 											<View
 												padX={1}
 												padY={0.5}
-												onClick={() => {
-													// TODO
-// 													if (narrow) {
-// 														setExpanded(false);
-// 													}
-												}}
+												onClick={shrink}
 												css={{
 													cursor: "pointer",
 													borderRadius: 8,
