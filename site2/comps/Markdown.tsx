@@ -70,7 +70,6 @@ const Markdown: React.FC<MarkdownProps & ViewProps> = ({
 				background: "var(--color-bg2)",
 				borderRadius: 8,
 				boxShadow: "0 0 0 2px var(--color-outline)",
-				maxHeight: "480px",
 				display: "flex",
 				userSelect: "text",
 				"code": {
