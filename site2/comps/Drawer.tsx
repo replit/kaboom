@@ -74,8 +74,8 @@ const Drawer = React.forwardRef<HTMLDivElement, ViewPropsAnd<DrawerProps>>(({
 						cursor: "pointer",
 					}}
 				>
-					{[...Array(bigHandle ? 2 : 1)].map((n) => (
-						<View key={n} height="calc(100% - 16px)" width={2} bg={2} />
+					{[...Array(bigHandle ? 2 : 1)].map((_, i) => (
+						<View key={i} height="calc(100% - 16px)" width={2} bg={2} />
 					))}
 				</View>
 			</View>

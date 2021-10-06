@@ -418,6 +418,7 @@ const Editor = React.forwardRef<EditorRef, EditorProps & ViewProps>(({
 					boxShadow: "0 0 0 2px var(--color-highlight)",
 				},
 				".cm-editor": {
+					userSelect: "auto",
 					width: "100% !important",
 					height: "100% !important",
 				},

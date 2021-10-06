@@ -24,6 +24,8 @@ import Droppable from "comps/Droppable";
 import Background from "comps/Background";
 import KaboomEntry from "comps/KaboomEntry";
 import { basename } from "lib/path";
+import download from "lib/download";
+import wrapHTML from "lib/wrapHTML";
 import Ctx from "lib/Ctx";
 
 const DEF_DEMO = "sprite";
@@ -165,6 +167,7 @@ const Play: React.FC = () => {
 	const blackboardRef = React.useRef(null);
 	const isNarrow = useMediaQuery("(max-aspect-ratio: 1/1)");;
 	const spaceUsed = useSpaceUsed();
+	const [ make, setMake ] = React.useState(false);
 
 	React.useEffect(() => {
 		if (router.isReady && !router.query.demo) {
@@ -196,7 +199,7 @@ const Play: React.FC = () => {
 	useClickOutside(blackboardRef, () => setBlackboard(null), [ setBlackboard ]);
 
 	return <>
-		<Head title="Kaboom Playground" />
+		<Head title="Kaboom Playground" scale={0.6} />
 		<Background dir="column" css={{ overflow: "hidden" }}>
 			<View
 				dir="row"
@@ -222,17 +225,19 @@ const Play: React.FC = () => {
 							/>
 						</Link>
 					</View>
-					<Select
-						name="Demo Selector"
-						desc="Select a demo to run"
-						options={demos}
-						value={demo}
-						onChange={(demo) => router.push({
-							query: {
-								demo: demo,
-							},
-						})}
-					/>
+					{ !make &&
+						<Select
+							name="Demo Selector"
+							desc="Select a demo to run"
+							options={demos}
+							value={demo}
+							onChange={(demo) => router.push({
+								query: {
+									demo: demo,
+								},
+							})}
+						/>
+					}
 					<Button
 						name="Run Button"
 						desc="Run current code (Cmd+s)"
@@ -247,21 +252,23 @@ const Play: React.FC = () => {
 							}
 						}}
 					/>
-					{ !isNarrow &&
-						<Inspect />
-					}
 				</View>
-				{ !isNarrow &&
-					<View dir="row" gap={2} align="center">
+				<View dir="row" gap={2} align="center">
+					{ !isNarrow &&
 						<ThemeSwitch />
+					}
+					{ !isNarrow && make &&
 						<Menu left items={[
 							{
 								name: "Export",
-								action: () => {},
+								action: () => {
+									const name = prompt("File name: ");
+									download(`${name}.html`, wrapHTML(code));
+								},
 							}
 						]} />
-					</View>
-				}
+					}
+				</View>
 			</View>
 			<View
 				dir={isNarrow ? "column" : "row"}
@@ -269,17 +276,19 @@ const Play: React.FC = () => {
 				stretchX
 				align="center"
 				padY={isNarrow ? 1 : 2}
-				reverse={!!isNarrow}
 				css={{
 					flex: "1",
 					overflow: "hidden",
 					paddingTop: 2,
-					paddingRight: isNarrow ? 8 : 24,
-					paddingLeft: isNarrow ? 8 : 0,
+					paddingBottom: 16,
+					paddingRight: 16,
+					paddingLeft: isNarrow ? 16 : (make ? 0 : 16),
 				}}
 			>
-				{ !isNarrow &&
+				{ !isNarrow && make &&
 					<Drawer
+						name="Backpack"
+						desc="A place to put all your stuff"
 						bigHandle
 						expanded={backpackOpen}
 						setExpanded={setBackpackOpen}
@@ -379,6 +388,7 @@ const Play: React.FC = () => {
 					height={isNarrow ? "55%" : "100%"}
 					placeholder="Come on let's make some games!"
 					css={{
+						order: isNarrow ? 2 : 1,
 						zIndex: 20,
 					}}
 					keys={[
@@ -415,6 +425,7 @@ const Play: React.FC = () => {
 					width={isNarrow ? "100%" : "auto"}
 					height={isNarrow ? "auto" : "100%"}
 					css={{
+						order: isNarrow ? 1 : 2,
 						flex: "1",
 						zIndex: 20,
 					}}

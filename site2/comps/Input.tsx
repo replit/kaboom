@@ -25,7 +25,7 @@ const Input: React.FC<InputProps> = ({
 			placeholder={placeholder ?? ""}
 			css={{
 				fontSize: "var(--text-normal)",
-				userSelect: "none",
+				userSelect: "auto",
 				background: "var(--color-bg3)",
 				borderRadius: 8,
 				boxShadow: "0 0 0 2px var(--color-outline)",

@@ -3,7 +3,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { keyframes } from '@emotion/react';
 
-import useWinSize from "hooks/useWinSize";
+import useMediaQuery from "hooks/useMediaQuery";
 import useClickOutside from "hooks/useClickOutside";
 import useUpdateEffect from "hooks/useUpdateEffect";
 import Background from "comps/Background";
@@ -121,10 +121,8 @@ const MOBILE = 640;
 
 const Index: React.FC = () => {
 
-	// TODO: useMediaQuery instead
-	const [ winWidth, winHeight ] = useWinSize();
+	const isNarrow = useMediaQuery(`(max-width: ${NARROW}px)`);
 	const [ expanded, setExpanded ] = React.useState(false);
-	const isNarrow = winWidth <= NARROW && winWidth !== 0;
 
 	useUpdateEffect(() => {
 		setExpanded(!isNarrow);
@@ -232,7 +230,7 @@ const IndexContent: React.FC = () => {
 
 const Nav: React.FC = ({children}) => (
 	<Background pad={3} css={{
-		"@media (max-width: 640px)": {
+		[`@media (max-width: ${MOBILE}px)`]: {
 			"padding": 0,
 			"borderRadius": 0,
 		},
@@ -246,7 +244,7 @@ const Nav: React.FC = ({children}) => (
 			outlined
 			css={{
 				overflow: "hidden",
-				"@media (max-width: 640px)": {
+				[`@media (max-width: ${MOBILE}px)`]: {
 					"borderRadius": 0,
 				},
 			}}
@@ -278,7 +276,7 @@ const Nav: React.FC = ({children}) => (
 					overflowX: "hidden",
 					overflowY: "scroll",
 					flex: "1",
-					"@media (max-width: 640px)": {
+					[`@media (max-width: ${MOBILE}px)`]: {
 						padding: 24,
 					},
 				}}

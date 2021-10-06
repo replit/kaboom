@@ -11,7 +11,7 @@ import * as doc from "lib/doc";
 
 const Home: React.FC = () => {
 	return <Nav>
-		<Head title="Kaboom" />
+		<Head title="Kaboom" scale={0.8} />
 		<Text select size="huge" color={1}>Kaboom is a Javascript game programming library that helps you make games fast and fun.</Text>
 		<Markdown stretchX src={`
 \`\`\`js
