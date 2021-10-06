@@ -34,6 +34,7 @@
 		"@types/marked": "3.0.1",
 		"@types/react": "^17.0.27",
 		"eslint": "7.32.0",
-		"eslint-config-next": "11.1.2"
+		"eslint-config-next": "11.1.2",
+		"raw-loader": "^4.0.2"
 	}
 }

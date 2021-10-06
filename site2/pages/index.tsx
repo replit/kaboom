@@ -7,7 +7,7 @@ import View from "comps/View";
 import Text from "comps/Text";
 import Markdown from "comps/Markdown";
 import Drawer from "comps/Drawer";
-import { Entry } from "comps/Doc";
+import Doc from "comps/Doc";
 import * as doc from "lib/doc";
 // @ts-ignore
 import fun from "lib/fun";
@@ -50,7 +50,8 @@ const Fun: React.FC = () => (
 );
 
 const Home: React.FC = () => {
-	const [ showType, setShowType ] = React.useState<string | null>(null);
+	const [ showType, setShowType ] = React.useState(false);
+	const [ shownTypeName, setShownTypeName ] = React.useState<string | null>(null);
 	return <Nav>
 		<Head title="Kaboom" scale={0.8} />
 		<Text select size="huge" color={1}>Kaboom is a Javascript game programming library that helps you make games fast and <Fun />.</Text>
@@ -80,6 +81,10 @@ keyPress("space", () => {
 Kaboom uses a flexible component system that makes it easy to compose game logics.
 		`} />
 
+		<Doc
+			name="Origin"
+		/>
+
 		{ doc.sections.map((sec) => {
 			const entries = sec.entries;
 			return (
@@ -87,17 +92,33 @@ Kaboom uses a flexible component system that makes it easy to compose game logic
 					<Text size="huge" color={3}>{sec.name}</Text>
 					<View stretchX gap={3}>
 						{ entries.map((name) => (
-							<Entry
+							<Doc
 								id={name}
 								key={name}
 								name={name}
-								typeref={setShowType}
+								typeref={(name) => {
+									setShowType(true);
+									setShownTypeName(name);
+								}}
 							/>
 						)) }
 					</View>
 				</View>
 			);
 		}) }
+
+		<Drawer
+			dir="right"
+			pad={2}
+			height="60%"
+			paneWidth={320}
+			expanded={showType}
+			setExpanded={setShowType}
+		>
+			{ shownTypeName &&
+				<Doc name={shownTypeName} />
+			}
+		</Drawer>
 
 	</Nav>;
 };

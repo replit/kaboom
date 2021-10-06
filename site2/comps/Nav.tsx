@@ -108,6 +108,7 @@ const Index: React.FC = () => {
 
 	return isNarrow ? (
 		<Drawer
+			handle
 			height="90%"
 			expanded={expanded}
 			setExpanded={setExpanded}
@@ -168,7 +169,7 @@ const IndexContent: React.FC = () => {
 							<View>
 								{ entries.map((name) => {
 									let dname = name;
-									const mem = doc.entries[name][0];
+									const mem = doc.types[name][0];
 									if (mem.kind === "MethodSignature" || mem.kind === "FunctionDeclaration") {
 										dname += "()";
 									}
@@ -209,8 +210,11 @@ const IndexContent: React.FC = () => {
 const Nav: React.FC = ({children}) => (
 	<Background pad={3} css={{
 		[`@media (max-width: ${MOBILE}px)`]: {
-			"padding": 0,
-			"borderRadius": 0,
+			padding: "0 !important",
+			borderRadius: 0,
+		},
+		[`@media (max-width: ${NARROW}px)`]: {
+			paddingLeft: 40,
 		},
 	}}>
 		<View
@@ -223,39 +227,23 @@ const Nav: React.FC = ({children}) => (
 			css={{
 				overflow: "hidden",
 				[`@media (max-width: ${MOBILE}px)`]: {
-					"borderRadius": 0,
+					borderRadius: 0,
 				},
 			}}
 		>
 			<Index />
-			{/*<div css={{
-				height: 640,
-				width: 640,
-				background: "blue",
-				boxSizing: "border-box",
-				overflow: "scroll",
-				display: "flex",
-				padding: 120,
-				flexDirection: "column",
-			}}>
-				<div css={{
-					height: 1200,
-					width: "100%",
-					background: "green",
-				}}>
-				</div>
-			</div>*/}
 			<View
 				dir="column"
 				gap={3}
-				pad={4}
 				stretchY
 				css={{
 					overflowX: "hidden",
 					overflowY: "scroll",
+					padding: 32,
 					flex: "1",
 					[`@media (max-width: ${MOBILE}px)`]: {
 						padding: 24,
+						paddingLeft: 40,
 					},
 				}}
 			>

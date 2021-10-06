@@ -22,7 +22,7 @@ import Drawer from "comps/Drawer";
 import Draggable from "comps/Draggable";
 import Droppable from "comps/Droppable";
 import Background from "comps/Background";
-import { Entry } from "comps/Doc";
+import Doc from "comps/Doc";
 import { basename } from "lib/path";
 import download from "lib/download";
 import wrapHTML from "lib/wrapHTML";
@@ -282,103 +282,9 @@ const Play: React.FC = () => {
 					paddingTop: 2,
 					paddingBottom: 16,
 					paddingRight: 16,
-					paddingLeft: isNarrow ? 16 : (make ? 0 : 16),
+					paddingLeft: (isNarrow || !make) ? 16 : 44,
 				}}
 			>
-				{ !isNarrow && make &&
-					<Drawer
-						name="Backpack"
-						desc="A place to put all your stuff"
-						bigHandle
-						expanded={backpackOpen}
-						setExpanded={setBackpackOpen}
-						height="90%"
-						pad={2}
-					>
-						<View padX={1} gap={2} stretchX>
-							<Text size="big" color={2}>Backpack</Text>
-						</View>
-						<FileDrop
-							pad={1}
-							rounded
-							readAs="dataURL"
-							gap={1}
-							stretchX
-							accept="image"
-							onLoad={(file, content) => {
-								setSprites((prev) => {
-									for (const spr of prev) {
-										if (spr.src === content) {
-											// TODO: err msg?
-											return prev;
-										}
-									}
-									return [
-										...prev,
-										{
-											name: file.name,
-											src: content,
-										},
-									];
-								})
-							}}
-						>
-							<Text color={3}>Sprites</Text>
-							{
-								sprites
-									.sort((a, b) => a.name > b.name ? 1 : -1)
-									.map(({name, src}) => (
-										<SpriteEntry
-											key={name}
-											name={name}
-											src={src}
-										/>
-									))
-							}
-						</FileDrop>
-						<FileDrop
-							pad={1}
-							rounded
-							readAs="dataURL"
-							gap={1}
-							stretchX
-							accept="^audio/"
-							onLoad={(file, content) => {
-								setSounds((prev) => {
-									for (const snd of prev) {
-										if (snd.src === content) {
-											// TODO: err msg?
-											return prev;
-										}
-									}
-									return [
-										...prev,
-										{
-											name: file.name,
-											src: content,
-										},
-									];
-								})
-							}}
-						>
-							<Text color={3}>Sounds</Text>
-							{
-								sounds
-									.sort((a, b) => a.name > b.name ? 1 : -1)
-									.map(({name, src}) => (
-										<SoundEntry
-											key={name}
-											name={name}
-											src={src}
-										/>
-									))
-							}
-						</FileDrop>
-						<View stretchX padX={1}>
-							<Text color={4} size="small">Space used: {(spaceUsed / 1024 / 1024).toFixed(2)}mb</Text>
-						</View>
-					</Drawer>
-				}
 				<Editor
 					name="Editor"
 					desc="Where you edit the code"
@@ -472,9 +378,104 @@ const Play: React.FC = () => {
 			>
 				{
 					blackboard &&
-					<Entry name={blackboard} />
+					<Doc name={blackboard} />
 				}
 			</View>
+			{ !isNarrow && make &&
+				<Drawer
+					name="Backpack"
+					desc="A place to put all your stuff"
+					handle
+					bigHandle
+					expanded={backpackOpen}
+					setExpanded={setBackpackOpen}
+					height="80%"
+					pad={2}
+				>
+					<View padX={1} gap={2} stretchX>
+						<Text size="big" color={2}>Backpack</Text>
+					</View>
+					<FileDrop
+						pad={1}
+						rounded
+						readAs="dataURL"
+						gap={1}
+						stretchX
+						accept="image"
+						onLoad={(file, content) => {
+							setSprites((prev) => {
+								for (const spr of prev) {
+									if (spr.src === content) {
+										// TODO: err msg?
+										return prev;
+									}
+								}
+								return [
+									...prev,
+									{
+										name: file.name,
+										src: content,
+									},
+								];
+							})
+						}}
+					>
+						<Text color={3}>Sprites</Text>
+						{
+							sprites
+								.sort((a, b) => a.name > b.name ? 1 : -1)
+								.map(({name, src}) => (
+									<SpriteEntry
+										key={name}
+										name={name}
+										src={src}
+									/>
+								))
+						}
+					</FileDrop>
+					<FileDrop
+						pad={1}
+						rounded
+						readAs="dataURL"
+						gap={1}
+						stretchX
+						accept="^audio/"
+						onLoad={(file, content) => {
+							setSounds((prev) => {
+								for (const snd of prev) {
+									if (snd.src === content) {
+										// TODO: err msg?
+										return prev;
+									}
+								}
+								return [
+									...prev,
+									{
+										name: file.name,
+										src: content,
+									},
+								];
+							})
+						}}
+					>
+						<Text color={3}>Sounds</Text>
+						{
+							sounds
+								.sort((a, b) => a.name > b.name ? 1 : -1)
+								.map(({name, src}) => (
+									<SoundEntry
+										key={name}
+										name={name}
+										src={src}
+									/>
+								))
+						}
+					</FileDrop>
+					<View stretchX padX={1}>
+						<Text color={4} size="small">Space used: {(spaceUsed / 1024 / 1024).toFixed(2)}mb</Text>
+					</View>
+				</Drawer>
+			}
 		</Background>
 	</>;
 

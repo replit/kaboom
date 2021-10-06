@@ -3,19 +3,29 @@ import View, { ViewPropsAnd } from "comps/View";
 import Ctx from "lib/Ctx";
 import useClickOutside from "hooks/useClickOutside";
 
+type DrawerDir =
+	| "left"
+	| "right"
+	| "top"
+	| "bottom"
+
 interface DrawerProps {
 	paneWidth?: number,
+	handle?: boolean,
 	bigHandle?: boolean,
 	expanded: boolean,
+	dir?: DrawerDir,
 	setExpanded: React.Dispatch<React.SetStateAction<boolean>>,
 }
 
 const Drawer = React.forwardRef<HTMLDivElement, ViewPropsAnd<DrawerProps>>(({
+	handle,
 	bigHandle,
 	expanded,
 	setExpanded,
 	paneWidth,
 	height,
+	dir,
 	children,
 	...args
 }, ref) => {
@@ -23,7 +33,7 @@ const Drawer = React.forwardRef<HTMLDivElement, ViewPropsAnd<DrawerProps>>(({
 	const localRef = React.useRef(null);
 	const curRef = ref ?? localRef;
 	paneWidth = paneWidth ?? 240;
-	const handleWidth = bigHandle ? 24 : 16;
+	const handleWidth = handle ? (bigHandle ? 24 : 16) : 0;
 
 	// @ts-ignore
 	useClickOutside(curRef, () => {
@@ -32,36 +42,36 @@ const Drawer = React.forwardRef<HTMLDivElement, ViewPropsAnd<DrawerProps>>(({
 
 	return <>
 		<View
-			width={24}
+			ref={curRef}
+			dir="row"
+			bg={1}
+			rounded
+			outlined
 			height={height ?? "90%"}
+			width={paneWidth + handleWidth}
+			css={{
+				position: "fixed",
+				top: "50%",
+				transform: "translateY(-50%)",
+				[dir ?? "left"]: expanded ? -4 : (handle ? -paneWidth : -paneWidth - 4),
+				transition: "0.2s",
+				overflow: "hidden",
+				zIndex: 200,
+			}}
 		>
 			<View
-				ref={curRef}
-				dir="row"
-				bg={1}
-				rounded
-				outlined
+				gap={1}
 				stretchY
-				width={paneWidth + handleWidth}
 				css={{
-					position: "absolute",
-					left: expanded ? -4 : -(paneWidth),
-					transition: "0.2s left",
-					overflow: "hidden",
-					zIndex: 200,
+					flex: "1",
+					overflow: "scroll",
+					order: dir === "right" || dir === "bottom" ? 2 : 1,
 				}}
+				{...args}
 			>
-				<View
-					gap={1}
-					stretchY
-					css={{
-						flex: "1",
-						overflow: "scroll",
-					}}
-					{...args}
-				>
-					{children}
-				</View>
+				{children}
+			</View>
+			{ handle &&
 				<View
 					dir="row"
 					align="center"
@@ -72,13 +82,14 @@ const Drawer = React.forwardRef<HTMLDivElement, ViewPropsAnd<DrawerProps>>(({
 					onClick={() => setExpanded((e) => !e)}
 					css={{
 						cursor: "pointer",
+					order: dir === "right" || dir === "bottom" ? 1 : 2,
 					}}
 				>
 					{[...Array(bigHandle ? 2 : 1)].map((_, i) => (
 						<View key={i} height="calc(100% - 16px)" width={2} bg={2} />
 					))}
 				</View>
-			</View>
+			}
 		</View>
 		<View
 			css={{
@@ -91,7 +102,7 @@ const Drawer = React.forwardRef<HTMLDivElement, ViewPropsAnd<DrawerProps>>(({
 				position: "fixed",
 				zIndex: 199,
 				top: 0,
-				bottom: 0,
+				left: 0,
 			}}
 		/>
 	</>;

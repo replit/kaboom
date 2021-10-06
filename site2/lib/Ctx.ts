@@ -3,7 +3,7 @@ import { DEF_THEME } from "lib/ui";
 import { Tooltip } from "lib/tooltip";
 import { Drag } from "lib/drag";
 
-interface Ctx {
+interface PageCtx {
 	theme: string,
 	setTheme(theme: string): void,
 	inspect: boolean,
@@ -14,7 +14,7 @@ interface Ctx {
 	setDraggin: (d: Drag | null) => void,
 }
 
-export default React.createContext<Ctx>({
+export default React.createContext<PageCtx>({
 	theme: DEF_THEME,
 	setTheme: () => {},
 	inspect: false,

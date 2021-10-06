@@ -15,7 +15,7 @@ import Input from "comps/Input";
 import Markdown from "comps/Markdown";
 import Inspect from "comps/Inspect";
 import Background from "comps/Background";
-import { Entry } from "comps/Doc";
+import Doc from "comps/Doc";
 import FileDrop from "comps/FileDrop";
 import Modal from "comps/Modal";
 
@@ -117,7 +117,7 @@ pos(80, 40),
 		</Example>
 		<Example thing="a piece of doc">
 			<View width={640} name="Document Component" desc="Display doc for a Kaboom function just by passing a name">
-				<Entry name="add" />
+				<Doc name="add" />
 			</View>
 		</Example>
 		<Example thing="a file dropper">
