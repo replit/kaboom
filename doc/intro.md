@@ -191,7 +191,7 @@ Inside the callback we're doing 2 things. `addKaboom()` spawns an explosion anim
 
 The second thing is `shake()`, which just shakes the screen,
 
-![hit](intro/hit.gif)
+![hit](hit.gif)
 
 Here's a trick. Try pressing `F1` in the game. See all the blue outlines? This is inspect mode and it'll show all the bounding boxes of every game obj with `area()` component. Also try hovering over each game object to inspect its states like position and tags.
 
