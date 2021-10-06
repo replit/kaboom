@@ -5,60 +5,83 @@ import Text from "comps/Text";
 import Markdown from "comps/Markdown";
 import * as doc from "lib/doc";
 
-const TypeSig: React.FC<any> = (m) => <span
+const TypeSig: React.FC<any> = ({ typeref, data }) => <span
 	css={{
 		color: "var(--color-fg3) !important",
 	}}>{(() => {
-	switch (m.kind) {
+	switch (data.kind) {
 		case "StringKeyword": return "string";
 		case "NumberKeyword": return "number";
 		case "BooleanKeyword": return "boolean";
 		case "VoidKeyword": return "void";
 		case "AnyKeyword": return "any";
 		case "NullKeyword": return "null";
-		case "UnionType": return m.types.map((t: any, i: number) => <React.Fragment key={i}><TypeSig {...t} />{i === m.types.length - 1 ? "" : " | "}</React.Fragment>);
-		case "LiteralType": return <TypeSig {...m.literal} />;
-		case "StringLiteral": return `"${m.text}"`;
-		case "ArrayType": return <><TypeSig {...m.elementType} />[]</>;
-		case "ParenthesizedType": return <>(<TypeSig {...m.type} />)</>;
-		case "FunctionType": return <>(<FuncParams {...m} />) {'=>'} <TypeSig {...m.type} /></>;
-		case "TypeReference": return doc.data[m.typeName] ? <Link href={`/#${m.typeName}`}>{m.typeName}</Link> : m.typeName;
+		case "UnionType": return data.types.map((t: any, i: number) => <React.Fragment key={i}><TypeSig data={t} />{i === data.types.length - 1 ? "" : " | "}</React.Fragment>);
+		case "LiteralType": return <TypeSig data={data.literal} />;
+		case "StringLiteral": return `"${data.text}"`;
+		case "ArrayType": return <><TypeSig data={data.elementType} />[]</>;
+		case "ParenthesizedType": return <>(<TypeSig data={data.type} />)</>;
+		case "FunctionType": return <>(<FuncParams data={data} />) {'=>'} <TypeSig data={data.type} /></>;
+		case "TypeReference": return doc.data[data.typeName]
+			?
+				<span
+					css={{textDecoration: "underline", cursor: "pointer"}}
+					onClick={() => typeref && typeref(data.typeName)}
+				>
+					{data.typeName}
+				</span>
+			: data.typeName;
 		default: return "unknown";
 	}
 })()}</span>;
 
-const FuncParams: React.FC<any> = (m) => m.parameters.map((p: any, i: number) => (
+const FuncParams: React.FC<any> = ({ typeref, data }) => data.parameters.map((p: any, i: number) => (
 	<span key={p.name}>
 		{p.name}
 		{p.questionToken ? "?" : ""}
-		: {p.dotDotDotToken ? "..." : <TypeSig {...p.type} />}
-		{i === m.parameters.length - 1 ? "" : ", "}
+		: {p.dotDotDotToken ? "..." : <TypeSig data={p.type} typeref={typeref} />}
+		{i === data.parameters.length - 1 ? "" : ", "}
 	</span>
 ));
 
-const MethodSignature: React.FC<any> = (m) => (
+const MethodSignature: React.FC<any> = ({ typeref, data }) => (
 	<Text
 		code
 		color={1}
 		select
 		size="big"
 	>
-		{m.name}(<FuncParams {...m} />)
+		{data.name}(<FuncParams data={data} typeref={typeref} />)
 	</Text>
 );
 
-const PropertySignature: React.FC<any> = (m) => (
-	<Text code size="big">{m.name} {m.questionToken ? "?" : ""}: <TypeSig {...m.type} /></Text>
+const PropertySignature: React.FC<any> = ({ typeref, data }) => (
+	<Text code size="big">{data.name} {data.questionToken ? "?" : ""}: <TypeSig data={data.type} typeref={typeref} /></Text>
 );
 
-const KaboomMember: React.FC<any> = (m) => {
-	const doc = m.jsDoc?.[0];
+const FunctionDeclaration: React.FC<any> = ({ typeref, data }) => (
+	<Text
+		code
+		color={1}
+		select
+		size="big"
+	>
+		{data.name}(<FuncParams data={data} typeref={typeref} />)
+	</Text>
+);
+
+const Member: React.FC<any> = ({ typeref, data }) => {
+	const doc = data.jsDoc?.[0];
 	return (
 		<View gap={1} stretchX>
 			{(() => {
-				switch (m.kind) {
-					case "MethodSignature": return <MethodSignature {...m} />;
-					case "PropertySignature": return <PropertySignature {...m} />;
+				switch (data.kind) {
+					case "MethodSignature":
+						return <MethodSignature typeref={typeref} data={data} />;
+					case "PropertySignature":
+						return <PropertySignature typeref={typeref} data={data} />;
+					case "FunctionDeclaration":
+						return <FunctionDeclaration typeref={typeref} data={data} />;
 					default: return <></>;
 				}
 			})()}
@@ -80,10 +103,12 @@ const KaboomMember: React.FC<any> = (m) => {
 
 interface EntryProps {
 	name: string,
+	typeref: (name: string) => void,
 }
 
 const Entry: React.FC<ViewPropsAnd<EntryProps>> = ({
 	name,
+	typeref,
 	...args
 }) => {
 	if (!doc?.entries) {
@@ -95,7 +120,7 @@ const Entry: React.FC<ViewPropsAnd<EntryProps>> = ({
 	}
 	return (
 		<View stretchX {...args} gap={3}>
-			{entries.map((e: any, i: number) => <KaboomMember key={i} {...e} />)}
+			{entries.map((e: any, i: number) => <Member key={i} typeref={typeref} data={e} />)}
 		</View>
 	);
 };

@@ -169,7 +169,7 @@ const IndexContent: React.FC = () => {
 								{ entries.map((name) => {
 									let dname = name;
 									const mem = doc.entries[name][0];
-									if (mem.kind === "MethodSignature") {
+									if (mem.kind === "MethodSignature" || mem.kind === "FunctionDeclaration") {
 										dname += "()";
 									}
 									return (

@@ -19,7 +19,12 @@ const types: Record<string, any> = {};
 const sections: DocSection[] = [];
 let curSection: Array<any> = [];
 
-entries["kaboom"] = data["kaboom"];
+entries["kaboom"] = [data["kaboom"]];
+
+sections.push({
+	name: "Init",
+	entries: ["kaboom"],
+});
 
 for (const mem of members) {
 	if (!entries[mem.name]) {
