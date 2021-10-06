@@ -19,6 +19,15 @@ const Page: React.FC = ({ children }) => {
 	const [ draggin, setDraggin ] = React.useState<Drag | null>(null);
 	const [ tooltipStack, setTooltipStack ] = React.useState<IDList<Tooltip>>(new IDList());
 
+	// make sure theme from local storage don't break anything
+	const curTheme = React.useMemo(() => {
+		if (!themes[theme]) {
+			setTheme(DEF_THEME);
+			return DEF_THEME;
+		}
+		return theme;
+	}, [ theme, setTheme ]);
+
 	const curTooltip = React.useMemo(
 		() => tooltipStack.size === 0
 			? null
@@ -28,10 +37,6 @@ const Page: React.FC = ({ children }) => {
 
 	useKey("F1", () => setInspect(!inspect), [ setInspect, inspect ]);
 	useKey("Escape", () => setInspect(false), [ setInspect ]);
-
-	const goodSetTheme = React.useCallback((to) => {
-		setTheme(themes[to] ? to : DEF_THEME);
-	}, [ setTheme ]);
 
 	// reset tooltip stack when exiting inspect mode
 	React.useEffect(() => {
@@ -79,8 +84,8 @@ const Page: React.FC = ({ children }) => {
 
 	return (
 		<Ctx.Provider value={{
-			theme,
-			setTheme: goodSetTheme,
+			theme: curTheme,
+			setTheme,
 			inspect,
 			setInspect,
 			pushTooltip,
@@ -103,12 +108,10 @@ const Page: React.FC = ({ children }) => {
 						margin: 0;
 						padding: 0;
 						box-sizing: border-box;
-						font-family: inherit;
-						font-size: inherit;
-						font-style: inherit;
-						font-weight: inherit;
-						user-select: inherit;
 						outline: none;
+						color: inherit;
+						font-size: inherit;
+						font-family: inherit;
 					}
 					html {
 						width: 100%;

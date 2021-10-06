@@ -8,6 +8,7 @@ interface TextProps {
 	italic?: boolean,
 	select?: boolean,
 	code?: boolean,
+	underline?: boolean,
 }
 
 type Props = TextProps & Omit<React.HTMLProps<HTMLSpanElement>, keyof TextProps>;
@@ -20,6 +21,7 @@ const Text: React.FC<Props> = (({
 	children,
 	select,
 	code,
+	underline,
 	...props
 }) => (
 	<span
@@ -28,6 +30,7 @@ const Text: React.FC<Props> = (({
 			fontSize: `var(--text-${size ?? "normal"})`,
 			fontWeight: bold ? "bold" : "normal",
 			fontStyle: italic ? "italic" : "normal",
+			textDecoration: underline ? "underline" : "none",
 			color: color === undefined
 				? "var(--color-fg1)"
 				: typeof color === "number" ? `var(--color-fg${color})` : color,

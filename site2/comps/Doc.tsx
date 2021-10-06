@@ -1,10 +1,14 @@
 import * as React from "react";
+import Link from "next/link";
 import View, { ViewPropsAnd } from "comps/View";
 import Text from "comps/Text";
 import Markdown from "comps/Markdown";
 import * as doc from "lib/doc";
 
-const TypeSig: React.FC<any> = (m) => <span css={{ color: "var(--color-fg3)" }}>{(() => {
+const TypeSig: React.FC<any> = (m) => <span
+	css={{
+		color: "var(--color-fg3) !important",
+	}}>{(() => {
 	switch (m.kind) {
 		case "StringKeyword": return "string";
 		case "NumberKeyword": return "number";
@@ -18,7 +22,7 @@ const TypeSig: React.FC<any> = (m) => <span css={{ color: "var(--color-fg3)" }}>
 		case "ArrayType": return <><TypeSig {...m.elementType} />[]</>;
 		case "ParenthesizedType": return <>(<TypeSig {...m.type} />)</>;
 		case "FunctionType": return <>(<FuncParams {...m} />) {'=>'} <TypeSig {...m.type} /></>;
-		case "TypeReference": return m.typeName;
+		case "TypeReference": return doc.data[m.typeName] ? <Link href={`/#${m.typeName}`}>{m.typeName}</Link> : m.typeName;
 		default: return "unknown";
 	}
 })()}</span>;
