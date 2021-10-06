@@ -152,7 +152,7 @@ const IndexContent: React.FC = () => {
 				<NavLink link="https://github.com/replit/kaboom" text="Github" />
 			</View>
 
-			<Input value={query} onChange={setQuery} placeholder="Search for doc" />
+			<Input value={query} onChange={setQuery} placeholder="Search in doc" />
 
 			{ doc.sections.map((sec) => {
 

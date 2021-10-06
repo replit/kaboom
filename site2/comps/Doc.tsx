@@ -4,10 +4,6 @@ import Text from "comps/Text";
 import Markdown from "comps/Markdown";
 import * as doc from "lib/doc";
 
-interface KaboomEntryProps {
-	name: string,
-}
-
 const TypeSig: React.FC<any> = (m) => <span css={{ color: "var(--color-fg3)" }}>{(() => {
 	switch (m.kind) {
 		case "StringKeyword": return "string";
@@ -28,7 +24,7 @@ const TypeSig: React.FC<any> = (m) => <span css={{ color: "var(--color-fg3)" }}>
 })()}</span>;
 
 const FuncParams: React.FC<any> = (m) => m.parameters.map((p: any, i: number) => (
-	<span>
+	<span key={p.name}>
 		{p.name}
 		{p.questionToken ? "?" : ""}
 		: {p.dotDotDotToken ? "..." : <TypeSig {...p.type} />}
@@ -78,7 +74,11 @@ const KaboomMember: React.FC<any> = (m) => {
 	);
 };
 
-const KaboomEntry: React.FC<ViewPropsAnd<KaboomEntryProps>> = ({
+interface EntryProps {
+	name: string,
+}
+
+const Entry: React.FC<ViewPropsAnd<EntryProps>> = ({
 	name,
 	...args
 }) => {
@@ -96,4 +96,20 @@ const KaboomEntry: React.FC<ViewPropsAnd<KaboomEntryProps>> = ({
 	);
 };
 
-export default KaboomEntry;
+interface TypeProps {
+	name: string,
+}
+
+const Type: React.FC<ViewPropsAnd<TypeProps>> = ({
+	name,
+	...args
+}) => {
+	return (
+		<View></View>
+	);
+}
+
+export {
+	Entry,
+	Type,
+};

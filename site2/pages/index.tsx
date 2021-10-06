@@ -6,7 +6,7 @@ import Nav from "comps/Nav";
 import View from "comps/View";
 import Text from "comps/Text";
 import Markdown from "comps/Markdown";
-import KaboomEntry from "comps/KaboomEntry";
+import { Entry } from "comps/Doc";
 import * as doc from "lib/doc";
 // @ts-ignore
 import fun from "lib/fun";
@@ -33,7 +33,7 @@ const flashy = keyframes(`
 `);
 
 const Fun: React.FC = () => (
-	<Text
+	<span
 		onClick={() => {
 			window.open(fun[Math.floor(Math.random() * fun.length)])
 		}}
@@ -45,7 +45,7 @@ const Fun: React.FC = () => (
 		}}
 	>
 		fun
-	</Text>
+	</span>
 );
 
 const Home: React.FC = () => {
@@ -85,7 +85,7 @@ Kaboom uses a flexible component system that makes it easy to compose game logic
 					<Text size="huge" color={3}>{sec.name}</Text>
 					<View stretchX gap={3}>
 						{ entries.map((name) => (
-							<KaboomEntry
+							<Entry
 								id={name}
 								key={name}
 								name={name}

@@ -22,7 +22,7 @@ import Drawer from "comps/Drawer";
 import Draggable from "comps/Draggable";
 import Droppable from "comps/Droppable";
 import Background from "comps/Background";
-import KaboomEntry from "comps/KaboomEntry";
+import { Entry } from "comps/Doc";
 import { basename } from "lib/path";
 import download from "lib/download";
 import wrapHTML from "lib/wrapHTML";
@@ -472,7 +472,7 @@ const Play: React.FC = () => {
 			>
 				{
 					blackboard &&
-					<KaboomEntry name={blackboard} />
+					<Entry name={blackboard} />
 				}
 			</View>
 		</Background>
