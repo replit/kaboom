@@ -6,17 +6,20 @@ export default function handler(
 	req: NextApiRequest,
 	res: NextApiResponse
 ) {
+
 	const { kind } = req.query;
-	const dir = path.resolve("./public", kind);
-	if (!fs.existsSync(dir)) {
-		res.status(404).json([]);
-		return;
-	}
-	const files = fs
-		.readdirSync(dir)
-		.filter((p) => !p.startsWith("."));
+	const dir = path.resolve("./public", Array.isArray(kind) ? kind.join("") : kind);
+
+	const [ status, files ] = fs.existsSync(dir)
+		? [ 200, fs
+			.readdirSync(dir)
+			.filter((p) => !p.startsWith(".")) ]
+		: [ 404, [] ]
+		;
+
 	res
-		.status(200)
+		.status(status)
 		.json(files)
 		;
+
 }
