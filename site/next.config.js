@@ -1,6 +1,13 @@
 /** @type {import('next').NextConfig} */
 module.exports = {
 	reactStrictMode: true,
+	async headers() {
+		return [
+			{ source: "/api/assets/:path*", headers: [
+				{ key: "Access-Control-Allow-Origin", value: "*" },
+			] },
+		];
+	},
 	async redirects(data) {
 		return [
 			{ source: "/doc", destination: "/", permanent: false },
