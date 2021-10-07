@@ -412,7 +412,7 @@ const Editor = React.forwardRef<EditorRef, EditorProps & ViewProps>(({
 			rounded
 			css={{
 				fontFamily: "IBM Plex Mono",
-				overflow: "scroll",
+				overflow: "hidden",
 				fontSize: "var(--text-big)",
 				":focus-within": {
 					boxShadow: "0 0 0 2px var(--color-highlight)",
