@@ -105,14 +105,17 @@ const PropertySignature: React.FC<MemberProps> = ({ data, big }) => (
 );
 
 const FunctionDeclaration: React.FC<EntryProps> = ({ data }) => (
-	<Text
-		code
-		color={1}
-		select
-		size="big"
-	>
-		{data.name}(<FuncParams data={data} />)
-	</Text>
+	<View gap={1}>
+		<Text
+			code
+			color={1}
+			select
+			size="big"
+		>
+			{data.name}(<FuncParams data={data} />)
+		</Text>
+		<JSDoc data={data} />
+	</View>
 );
 
 const TypeAliasDeclaration: React.FC<EntryProps> = ({ data }) => (

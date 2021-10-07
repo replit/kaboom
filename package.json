@@ -27,7 +27,8 @@
 	"scripts": {
 		"setup": "npm install && cd site; npm install",
 		"dev": "node scripts/dev.js",
-		"site": "node site/server.js",
+		"site": "cd site && npm run build && npm run start",
+		"devsite": "cd site && npm run dev",
 		"build": "node scripts/build.js",
 		"check": "tsc --noEmit",
 		"prepack": "npm run build"

@@ -1,5 +1,12 @@
 {
-	"name": "kaboom-site",
+	"private": true,
+	"scripts": {
+		"dev": "next dev",
+		"build": "next build",
+		"start": "next start",
+		"lint": "next lint",
+		"check": "tsc --noEmit"
+	},
 	"dependencies": {
 		"@codemirror/closebrackets": "0.19.0",
 		"@codemirror/commands": "0.19.5",
@@ -10,15 +17,24 @@
 		"@codemirror/history": "0.19.0",
 		"@codemirror/lang-javascript": "0.19.2",
 		"@codemirror/language": "0.19.3",
-		"@codemirror/matchbrackets": "0.19.2",
+		"@codemirror/matchbrackets": "0.19.3",
 		"@codemirror/search": "0.19.2",
 		"@codemirror/state": "0.19.2",
-		"@codemirror/theme-one-dark": "0.19.0",
-		"@codemirror/view": "0.19.8",
-		"esbuild": "^0.13.2",
-		"highlight.js": "^11.2.0",
-		"koa": "^2.13.3",
-		"marked": "^3.0.4",
-		"typescript": "^4.4.3"
+		"@codemirror/view": "0.19.9",
+		"@emotion/react": "11.4.1",
+		"highlight.js": "11.2.0",
+		"marked": "3.0.4",
+		"next": "11.1.2",
+		"react": "17.0.2",
+		"react-dom": "17.0.2",
+		"typescript": "4.4.3"
+	},
+	"devDependencies": {
+		"@emotion/babel-plugin": "11.3.0",
+		"@types/marked": "3.0.1",
+		"@types/react": "^17.0.27",
+		"eslint": "7.32.0",
+		"eslint-config-next": "11.1.2",
+		"raw-loader": "^4.0.2"
 	}
 }
