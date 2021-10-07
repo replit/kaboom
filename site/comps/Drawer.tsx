@@ -64,7 +64,7 @@ const Drawer = React.forwardRef<HTMLDivElement, ViewPropsAnd<DrawerProps>>(({
 				stretchY
 				css={{
 					flex: "1",
-					overflow: "scroll",
+					overflow: "auto",
 					order: dir === "right" || dir === "bottom" ? 2 : 1,
 				}}
 				{...args}

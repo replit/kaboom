@@ -371,7 +371,7 @@ const Play: React.FC = () => {
 					left: "45%",
 					top: blackboard ? -4 : -544,
 					transition: "0.2s top",
-					overflowY: "scroll",
+					overflowY: "auto",
 					overflowX: "hidden",
 					zIndex: 200,
 				}}

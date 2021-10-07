@@ -146,7 +146,7 @@ const IndexContent: React.FC<IndexContentProps> = ({
 			pad={3}
 			css={{
 				overflowX: "hidden",
-				overflowY: "scroll",
+				overflowY: "auto",
 			}}
 		>
 			<View />
@@ -239,7 +239,7 @@ const Nav: React.FC = ({children}) => (
 				stretchY
 				css={{
 					overflowX: "hidden",
-					overflowY: "scroll",
+					overflowY: "auto",
 					padding: 32,
 					flex: "1",
 					[`@media (max-width: ${MOBILE}px)`]: {

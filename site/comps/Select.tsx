@@ -147,7 +147,7 @@ const Select: React.FC<SelectProps & ViewProps> = ({
 						console.log(e.key);
 					}}
 					css={{
-						overflowY: "scroll",
+						overflowY: "auto",
 						maxHeight: maxHeight ?? 480,
 					}}
 				>
