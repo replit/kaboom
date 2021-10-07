@@ -1,0 +1,257 @@
+import * as React from "react";
+import Link from "next/link";
+import Image from "next/image";
+import { keyframes } from '@emotion/react';
+
+import useMediaQuery from "hooks/useMediaQuery";
+import useClickOutside from "hooks/useClickOutside";
+import useUpdateEffect from "hooks/useUpdateEffect";
+import Background from "comps/Background";
+import View from "comps/View";
+import Text from "comps/Text";
+import Markdown from "comps/Markdown";
+import Input from "comps/Input";
+import Drawer from "comps/Drawer";
+import ThemeSwitch from "comps/ThemeSwitch";
+import * as doc from "lib/doc";
+
+const popping = keyframes(`
+	0% {
+		transform: scale(1);
+	}
+	5% {
+		transform: scale(1.1);
+	}
+	10% {
+		transform: scale(1);
+	}
+`);
+
+const Logo: React.FC = () => (
+	<Link href="/" passHref>
+		<View
+			desc="Back to home"
+			rounded
+			css={{
+				"cursor": "pointer",
+			}}
+		>
+			<img
+				src="/site/img/boom.svg"
+				alt="boom"
+				css={{
+					position: "relative",
+					width: "80%",
+					left: "10%",
+					animation: `${popping} 5s infinite`,
+				}}
+			/>
+			<img
+				src="/site/img/ka.svg"
+				alt="ka"
+				css={{
+					width: "90%",
+					position: "absolute",
+					left: "2px",
+					top: "28px",
+					animation: `${popping} 5s infinite`,
+					animationDelay: "0.08s",
+				}}
+			/>
+		</View>
+	</Link>
+);
+
+interface NavLinkProps {
+	text: string,
+	link: string,
+}
+
+const NavLink: React.FC<NavLinkProps> = ({
+	text,
+	link,
+}) => (
+	<Link href={link} passHref>
+		<View
+			focusable
+			padX={1}
+			padY={0.5}
+			rounded
+			css={{
+				cursor: "pointer",
+				position: "relative",
+				left: "-4px",
+				":hover": {
+					background: "var(--color-highlight)",
+					"> *": {
+						color: "var(--color-fghl) !important",
+					},
+				},
+			}}
+		>
+			<Text color={2}>{text}</Text>
+		</View>
+	</Link>
+);
+
+const NARROW = 840;
+const MOBILE = 640;
+
+const Index: React.FC = () => {
+
+	const isNarrow = useMediaQuery(`(max-width: ${NARROW}px)`);
+	const [ expanded, setExpanded ] = React.useState(false);
+
+	useUpdateEffect(() => {
+		setExpanded(!isNarrow);
+	}, [ isNarrow ]);
+
+	return isNarrow ? (
+		<Drawer
+			handle
+			height="90%"
+			expanded={expanded}
+			setExpanded={setExpanded}
+		>
+			<IndexContent shrink={() => setExpanded(false)} />
+		</Drawer>
+	) : (
+		<View
+			stretchY
+			bg={2}
+		>
+			<IndexContent shrink={() => setExpanded(false)} />
+		</View>
+	);
+
+};
+
+interface IndexContentProps {
+	shrink: () => void,
+}
+
+const IndexContent: React.FC<IndexContentProps> = ({
+	shrink,
+}) => {
+
+	const [ query, setQuery ] = React.useState("");
+
+	return <>
+
+		<View
+			dir="column"
+			gap={2}
+			stretchY
+			width={240}
+			pad={3}
+			css={{
+				overflowX: "hidden",
+				overflowY: "scroll",
+			}}
+		>
+			<View />
+			<Logo />
+			<ThemeSwitch width={160} />
+			<View gap={0.5}>
+				<NavLink link="/play" text="PlayGround" />
+				<NavLink link="/doc/setup" text="Setup Guide" />
+				<NavLink link="/doc/intro" text="Tutorial" />
+				<NavLink link="https://github.com/replit/kaboom" text="Github" />
+			</View>
+
+			<Input value={query} onChange={setQuery} placeholder="Search in doc" />
+
+			{ doc.sections.map((sec) => {
+
+				const entries = sec.entries
+					.filter((name) => query ? name.match(query) : true);
+				if (entries.length === 0) {
+					return <></>;
+				}
+
+				return (
+					<View stretchX gap={1} key={sec.name}>
+						<Text size="big" color={3}>{sec.name}</Text>
+							<View>
+								{ entries.map((name) => {
+									let dname = name;
+									const mem = doc.types[name][0];
+									if (mem.kind === "MethodSignature" || mem.kind === "FunctionDeclaration") {
+										dname += "()";
+									}
+									return (
+										<a key={name} href={`/#${name}`}>
+											<View
+												padX={1}
+												padY={0.5}
+												onClick={shrink}
+												css={{
+													cursor: "pointer",
+													borderRadius: 8,
+													":hover": {
+														background: "var(--color-bg3)",
+													},
+												}}
+											>
+												<Text color={2} code>{dname}</Text>
+											</View>
+										</a>
+									);
+								}) }
+							</View>
+					</View>
+				);
+
+			}) }
+		</View>
+	</>;
+
+};
+
+const Nav: React.FC = ({children}) => (
+	<Background pad={3} css={{
+		[`@media (max-width: ${MOBILE}px)`]: {
+			padding: "0 !important",
+			borderRadius: 0,
+		},
+		[`@media (max-width: ${NARROW}px)`]: {
+			paddingLeft: 40,
+		},
+	}}>
+		<View
+			stretch
+			dir="row"
+			align="center"
+			bg={1}
+			rounded
+			outlined
+			css={{
+				overflow: "hidden",
+				[`@media (max-width: ${MOBILE}px)`]: {
+					borderRadius: 0,
+				},
+			}}
+		>
+			<Index />
+			<View
+				dir="column"
+				gap={3}
+				stretchY
+				css={{
+					overflowX: "hidden",
+					overflowY: "scroll",
+					padding: 32,
+					flex: "1",
+					[`@media (max-width: ${MOBILE}px)`]: {
+						padding: 24,
+						paddingLeft: 40,
+					},
+				}}
+			>
+				{children}
+			</View>
+		</View>
+	</Background>
+);
+
+export default Nav;
