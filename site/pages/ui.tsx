@@ -35,7 +35,7 @@ const Example: React.FC<ExampleProps & ViewProps> = ({
 );
 
 const UI: React.FC = () => (
-	<Background pad={6} dir="column" gap={6}>
+	<Background pad={6} dir="column" gap={6} css={{ overflow: "scroll" }}>
 		<Head title="KUI" />
 		{/*<Modal isOpen close={() => {}}>
 			<View width={480} height={240} bg={2} pad={2} rounded outlined>
