@@ -16,22 +16,28 @@ export default function useFetch<D>(
 			return;
 		}
 
+		let didCancel = false;
+
 		fetch(url)
 			.then((res) => {
-				setRes(res);
+				if (!didCancel) {
+					setRes(res);
+				}
 				return parse(res);
 			})
 			.then((d) => {
+				if (didCancel) return;
 				setData(d);
 				setLoading(false);
 			})
 			.catch((e) => {
+				if (didCancel) return;
 				setErr(e);
 				setLoading(false);
 			});
 
 		return () => {
-			// TODO: cancel request on clean up?
+			didCancel = true;
 		};
 
 	}, [ url ]);

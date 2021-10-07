@@ -88,7 +88,7 @@ Play with it yourself or check out the examples in the [Playground](/play)!
 		{ doc.sections.map((sec) => {
 			const entries = sec.entries;
 			return (
-				<View stretchX gap={2} key={sec.name}>
+				<View stretchX gap={1} key={sec.name}>
 					<Text size="huge" color={3}>{sec.name}</Text>
 					<View stretchX gap={3}>
 						{ entries.map((name) => (
