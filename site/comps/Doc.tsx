@@ -105,7 +105,7 @@ const PropertySignature: React.FC<MemberProps> = ({ data, big }) => (
 );
 
 const FunctionDeclaration: React.FC<EntryProps> = ({ data }) => (
-	<View gap={1}>
+	<View gap={1} stretchX>
 		<Text
 			code
 			color={1}
@@ -119,7 +119,7 @@ const FunctionDeclaration: React.FC<EntryProps> = ({ data }) => (
 );
 
 const TypeAliasDeclaration: React.FC<EntryProps> = ({ data }) => (
-	<View gap={1}>
+	<View gap={1} stretchX>
 		<Text
 			code
 			color={1}
