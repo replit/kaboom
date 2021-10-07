@@ -18,12 +18,10 @@ export default function handler(
 		? [ 200, fs
 			.readdirSync(dir)
 			.filter((p) => !p.startsWith(".")) ]
-		: [ 404, [] ]
-		;
+		: [ 404, [] ];
 
 	res
 		.status(status)
-		.json(files)
-		;
+		.json(files);
 
 }
