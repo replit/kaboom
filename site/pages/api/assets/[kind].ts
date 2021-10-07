@@ -8,11 +8,8 @@ export default function handler(
 ) {
 
 	const { kind } = req.query;
-
-	const dir = path.resolve(
-		"./public",
-		Array.isArray(kind) ? kind.join("") : kind
-	);
+	// "kind" should always be string here, as URL param won't overwrite
+	const dir = path.resolve("./public", kind as string);
 
 	const [ status, files ] = fs.existsSync(dir)
 		? [ 200, fs
