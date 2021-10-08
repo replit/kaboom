@@ -157,6 +157,7 @@ const IndexContent: React.FC<IndexContentProps> = ({
 				<NavLink link="/doc/setup" text="Setup Guide" />
 				<NavLink link="/doc/intro" text="Tutorial" />
 				<NavLink link="https://github.com/replit/kaboom" text="Github" />
+				<NavLink link="https://discord.com/invite/aQ6RuQm3TF" text="Discord" />
 			</View>
 
 			<Input value={query} onChange={setQuery} placeholder="Search in doc" />
