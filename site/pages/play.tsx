@@ -171,7 +171,7 @@ const Play: React.FC = () => {
 
 	React.useEffect(() => {
 		if (router.isReady && !router.query.demo) {
-			router.push({
+			router.replace({
 				query: {
 					demo: DEF_DEMO,
 				},
