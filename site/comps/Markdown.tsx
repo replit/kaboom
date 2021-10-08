@@ -3,11 +3,10 @@ import marked from "marked";
 import hljs from "highlight.js"
 import View, { ViewProps } from "comps/View";
 
-marked.setOptions({
-	highlight: (code, lang) => {
-		return hljs.highlight(code, {
-			language: lang,
-		}).value;
+marked.use({
+	renderer: {
+		code: (code, info, escaped) => {
+		const c = `<pre><button onclick="navigator.clipboard.writeText(${JSON.stringify(code).replaceAll("\"", "\\\"")})">copy</button><code>${info ? hljs.highlight(code, { language: info }).value : code}</code></pre>`; console.log(c); return c;},
 	},
 });
 
@@ -72,11 +71,20 @@ const Markdown: React.FC<MarkdownProps & ViewProps> = ({
 				boxShadow: "0 0 0 2px var(--color-outline)",
 				display: "flex",
 				userSelect: "text",
+				position: "relative",
 				"code": {
 					padding: 16,
 					width: "100%",
 					overflowY: "auto",
 				},
+			},
+			"pre > button": {
+				position: "absolute",
+				top: 8,
+				right: 8,
+				background: "var(--color-bg2)",
+				border: "none",
+				cursor: "pointer",
 			},
 			"code": {
 				userSelect: "text",
