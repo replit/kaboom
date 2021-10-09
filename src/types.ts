@@ -2667,7 +2667,7 @@ interface LevelConf {
 	/**
 	 * Called when encountered an undefined symbol.
 	 */
-	any(s: string): CompList<any> | undefined,
+	any(s: string, pos: Vec2): CompList<any> | undefined,
 	// TODO: should return CompList<any>
 	[sym: string]: any,
 }

@@ -2294,9 +2294,9 @@ function addLevel(map: string[], conf: LevelConf): Level {
 					if (typeof conf[sym] !== "function") {
 						throw new Error("level symbol def must be a function returning a component list");
 					}
-					return conf[sym]();
+					return conf[sym](p);
 				} else if (conf.any) {
-					return conf.any(sym);
+					return conf.any(sym, p);
 				}
 			})();
 
