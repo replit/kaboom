@@ -31,7 +31,7 @@ You can paste this directly into an `.html` file, open it in browser, and start 
 
 Kaboom uses a powerful component system to compose game objects and behaviors.
 To make a flappy bird movement you only need a few lines
-```js
+```javascript
 // init context
 kaboom();
 
@@ -54,7 +54,7 @@ keyPress("space", () => {
 ```
 
 It's easy to make custom components to compose your game object behaviors:
-```js
+```javascript
 // add a game obj to the scene from a list of component
 const player = add([
     // it renders as a sprite
@@ -86,7 +86,7 @@ player.collides("enemy", () => {
 ```
 
 Blocky imperative syntax for describing behaviors
-```js
+```javascript
 // check fall death
 player.action(() => {
     if (player.pos.y >= height()) {
@@ -119,7 +119,7 @@ keyDown("w", () => {
 $ npm install kaboom@next
 ```
 
-```js
+```javascript
 import kaboom from "kaboom";
 
 kaboom();
@@ -132,7 +132,7 @@ add([
 
 also works with CJS
 
-```js
+```javascript
 const kaboom = require("kaboom");
 ```
 
