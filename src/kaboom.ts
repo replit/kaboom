@@ -583,6 +583,9 @@ function collides(
 	const e1 = on("collide", t1, (a, b, side) => b.is(t2) && f(a, b));
 	const e2 = on("collide", t2, (a, b, side) => b.is(t1) && f(b, a));
 	const e3 = action(t1, (o1: Character) => {
+		if (!o1.area) {
+			throw new Error("collides() requires the object to have area() component");
+		}
 		o1._checkCollisions(t2, (o2) => {
 			f(o1, o2);
 		});
