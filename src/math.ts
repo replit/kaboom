@@ -506,7 +506,7 @@ function testLineLine2(l1: Line, l2: Line): number | null {
 	const ua = ((l2.p2.x - l2.p1.x) * (l1.p1.y - l2.p1.y) - (l2.p2.y - l2.p1.y) * (l1.p1.x - l2.p1.x)) / denom;
 	const ub = ((l1.p2.x - l1.p1.x) * (l1.p1.y - l2.p1.y) - (l1.p2.y - l1.p1.y) * (l1.p1.x - l2.p1.x)) / denom;
 
-	// is the intersection on the segment
+	// is the intersection on the segments
 	if (ua < 0 || ua > 1 || ub < 0 || ub > 1) {
 		return null;
 	}
