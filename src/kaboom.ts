@@ -15,13 +15,12 @@ import {
 	mapc,
 	wave,
 	testLineLine,
-	testLineLine2,
-	testRectRect,
+	testLineLineT,
+	testRectRect2,
 	testRectLine,
 	testRectPt,
 	minkDiff,
-	overlapRectRect,
-	ovrRectPt,
+	testRectRect,
 	dir,
 	deg2rad,
 	rad2deg,
@@ -1042,7 +1041,7 @@ function pos(...args): PosComp {
 					let md = minkDiff(a2, a1);
 
 					// if they're already overlapping, push them away first
-					if (ovrRectPt(md, vec2(0))) {
+					if (testRectPt(md, vec2(0))) {
 
 						let dist = Math.min(
 							Math.abs(md.p1.x),
@@ -1094,7 +1093,7 @@ function pos(...args): PosComp {
 							minT = 1;
 							break;
 						}
-						const t = testLineLine2(ray, line);
+						const t = testLineLineT(ray, line);
 						if (t != null) {
 							numCols++;
 							if (t < minT) {
@@ -1107,7 +1106,7 @@ function pos(...args): PosComp {
 					// if moving away, we forgive
 					if (
 						minT < 1
-						&& !(minT === 0 && numCols == 1 && !ovrRectPt(md, vec2(dx, dy)))
+						&& !(minT === 0 && numCols == 1 && !testRectPt(md, vec2(dx, dy)))
 					) {
 						dx *= minT;
 						dy *= minT;
@@ -1310,7 +1309,7 @@ function cleanup(time: number = 0): CleanupComp {
 				p1: vec2(0, 0),
 				p2: vec2(width(), height()),
 			}
-			if (testRectRect(this.screenArea(), screenRect)) {
+			if (testRectRect2(this.screenArea(), screenRect)) {
 				timer = 0;
 			} else {
 				timer += dt();
@@ -1376,7 +1375,7 @@ function area(conf: AreaCompConf = {}): AreaComp {
 			}
 			const a1 = this.worldArea();
 			const a2 = other.worldArea();
-			return overlapRectRect(a1, a2);
+			return testRectRect(a1, a2);
 		},
 
 		isTouching(other) {
@@ -1385,7 +1384,7 @@ function area(conf: AreaCompConf = {}): AreaComp {
 			}
 			const a1 = this.worldArea();
 			const a2 = other.worldArea();
-			return testRectRect(a1, a2);
+			return testRectRect2(a1, a2);
 		},
 
 		clicks(f: () => void): EventCanceller {
@@ -1437,7 +1436,7 @@ function area(conf: AreaCompConf = {}): AreaComp {
 			const a2 = obj.worldArea();
 			const md = minkDiff(a1, a2);
 
-			if (!ovrRectPt(md, vec2(0))) {
+			if (!testRectPt(md, vec2(0))) {
 				return null;
 			}
 

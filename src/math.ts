@@ -476,21 +476,23 @@ function choose<T>(list: T[]): T {
 	return list[randi(list.length)];
 }
 
-function testRectRect(r1: Rect, r2: Rect): boolean {
+// TODO: better name
+function testRectRect2(r1: Rect, r2: Rect): boolean {
 	return r1.p2.x >= r2.p1.x
 		&& r1.p1.x <= r2.p2.x
 		&& r1.p2.y >= r2.p1.y
 		&& r1.p1.y <= r2.p2.y;
 }
 
-function overlapRectRect(r1: Rect, r2: Rect): boolean {
+function testRectRect(r1: Rect, r2: Rect): boolean {
 	return r1.p2.x > r2.p1.x
 		&& r1.p1.x < r2.p2.x
 		&& r1.p2.y > r2.p1.y
 		&& r1.p1.y < r2.p2.y;
 }
 
-function testLineLine2(l1: Line, l2: Line): number | null {
+// TODO: better name
+function testLineLineT(l1: Line, l2: Line): number | null {
 
 	if ((l1.p1.x === l1.p2.x && l1.p1.y === l1.p2.y) || (l2.p1.x === l2.p2.x && l2.p1.y === l2.p2.y)) {
 		return null;
@@ -516,7 +518,7 @@ function testLineLine2(l1: Line, l2: Line): number | null {
 }
 
 function testLineLine(l1: Line, l2: Line): Vec2 | null {
-	const t = testLineLine2(l1, l2);
+	const t = testLineLineT(l1, l2);
 	if (!t) return null;
 	return vec2(
 		l1.p1.x + t * (l1.p2.x - l1.p1.x),
@@ -534,11 +536,11 @@ function testRectLine(r: Rect, l: Line): boolean {
 		|| !!testLineLine(l, makeLine(vec2(r.p1.x, r.p2.y), r.p1));
 }
 
-function testRectPt(r: Rect, pt: Vec2): boolean {
+function testRectPt2(r: Rect, pt: Vec2): boolean {
 	return pt.x >= r.p1.x && pt.x <= r.p2.x && pt.y >= r.p1.y && pt.y <= r.p2.y;
 }
 
-function ovrRectPt(r: Rect, pt: Vec2): boolean {
+function testRectPt(r: Rect, pt: Vec2): boolean {
 	return pt.x > r.p1.x && pt.x < r.p2.x && pt.y > r.p1.y && pt.y < r.p2.y;
 }
 
@@ -575,13 +577,12 @@ export {
 	wave,
 	deg2rad,
 	rad2deg,
+	testRectRect2,
 	testRectRect,
-	overlapRectRect,
 	testLineLine,
-	testLineLine2,
+	testLineLineT,
 	testRectLine,
 	testRectPt,
-	ovrRectPt,
 	minkDiff,
 	dir,
 	isVec2,
