@@ -131,11 +131,11 @@ const Page: React.FC = ({ children }) => {
 						height: 8px;
 					}
 					::-webkit-scrollbar-track {
-						background: transparent;
-						border-radius: 4px;
+						background: rgba(0, 0, 0, 0.1);
 					}
 					::-webkit-scrollbar-thumb {
-						background: rgba(0, 0, 0, 0.3);
+						background: rgba(0, 0, 0, 0.2);
+						border-radius: 4px;
 					}
 					a {
 						text-decoration: none;
