@@ -1274,19 +1274,19 @@ interface KaboomCtx {
 	/**
 	 * Check if 2 lines intersects, if yes returns the intersection point.
 	 */
-	colLineLine(l1: Line, l2: Line): Vec2 | null,
+	testLineLine(l1: Line, l2: Line): Vec2 | null,
 	/**
 	 * Check if 2 rectangle overlaps.
 	 */
-	colRectRect(r1: Rect, r2: Rect): boolean,
+	testRectRect(r1: Rect, r2: Rect): boolean,
 	/**
 	 * Check if a line and a rectangle overlaps.
 	 */
-	colRectLine(r: Rect, l: Line): boolean,
+	testRectLine(r: Rect, l: Line): boolean,
 	/**
 	 * Check if a point is inside a rectangle.
 	 */
-	colRectPt(r: Rect, pt: Vec2): boolean,
+	testRectPt(r: Rect, pt: Vec2): boolean,
 	/**
 	 * Define a scene.
 	 *

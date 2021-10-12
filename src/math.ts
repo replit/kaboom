@@ -476,7 +476,7 @@ function choose<T>(list: T[]): T {
 	return list[randi(list.length)];
 }
 
-function colRectRect(r1: Rect, r2: Rect): boolean {
+function testRectRect(r1: Rect, r2: Rect): boolean {
 	return r1.p2.x >= r2.p1.x
 		&& r1.p1.x <= r2.p2.x
 		&& r1.p2.y >= r2.p1.y
@@ -490,7 +490,7 @@ function overlapRectRect(r1: Rect, r2: Rect): boolean {
 		&& r1.p1.y < r2.p2.y;
 }
 
-function colLineLine2(l1: Line, l2: Line): number | null {
+function testLineLine2(l1: Line, l2: Line): number | null {
 
 	if ((l1.p1.x === l1.p2.x && l1.p1.y === l1.p2.y) || (l2.p1.x === l2.p2.x && l2.p1.y === l2.p2.y)) {
 		return null;
@@ -515,7 +515,7 @@ function colLineLine2(l1: Line, l2: Line): number | null {
 
 }
 
-function colLineLine(l1: Line, l2: Line): Vec2 | null {
+function testLineLine(l1: Line, l2: Line): Vec2 | null {
 
 	if ((l1.p1.x === l1.p2.x && l1.p1.y === l1.p2.y) || (l2.p1.x === l2.p2.x && l2.p1.y === l2.p2.y)) {
 		return null;
@@ -544,17 +544,17 @@ function colLineLine(l1: Line, l2: Line): Vec2 | null {
 
 }
 
-function colRectLine(r: Rect, l: Line): boolean {
-	if (colRectPt(r, l.p1) || colRectPt(r, l.p2)) {
+function testRectLine(r: Rect, l: Line): boolean {
+	if (testRectPt(r, l.p1) || testRectPt(r, l.p2)) {
 		return true;
 	}
-	return !!colLineLine(l, makeLine(r.p1, vec2(r.p2.x, r.p1.y)))
-		|| !!colLineLine(l, makeLine(vec2(r.p2.x, r.p1.y), r.p2))
-		|| !!colLineLine(l, makeLine(r.p2, vec2(r.p1.x, r.p2.y)))
-		|| !!colLineLine(l, makeLine(vec2(r.p1.x, r.p2.y), r.p1));
+	return !!testLineLine(l, makeLine(r.p1, vec2(r.p2.x, r.p1.y)))
+		|| !!testLineLine(l, makeLine(vec2(r.p2.x, r.p1.y), r.p2))
+		|| !!testLineLine(l, makeLine(r.p2, vec2(r.p1.x, r.p2.y)))
+		|| !!testLineLine(l, makeLine(vec2(r.p1.x, r.p2.y), r.p1));
 }
 
-function colRectPt(r: Rect, pt: Vec2): boolean {
+function testRectPt(r: Rect, pt: Vec2): boolean {
 	return pt.x >= r.p1.x && pt.x <= r.p2.x && pt.y >= r.p1.y && pt.y <= r.p2.y;
 }
 
@@ -595,12 +595,12 @@ export {
 	wave,
 	deg2rad,
 	rad2deg,
-	colRectRect,
+	testRectRect,
 	overlapRectRect,
-	colLineLine,
-	colLineLine2,
-	colRectLine,
-	colRectPt,
+	testLineLine,
+	testLineLine2,
+	testRectLine,
+	testRectPt,
 	ovrRectPt,
 	minkDiff,
 	dir,

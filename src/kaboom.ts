@@ -14,13 +14,13 @@ import {
 	map,
 	mapc,
 	wave,
-	colLineLine,
-	colLineLine2,
+	testLineLine,
+	testLineLine2,
+	testRectRect,
+	testRectLine,
+	testRectPt,
 	minkDiff,
-	colRectRect,
-	colRectLine,
 	overlapRectRect,
-	colRectPt,
 	ovrRectPt,
 	dir,
 	deg2rad,
@@ -1094,7 +1094,7 @@ function pos(...args): PosComp {
 							minT = 1;
 							break;
 						}
-						const t = colLineLine2(ray, line);
+						const t = testLineLine2(ray, line);
 						if (t != null) {
 							numCols++;
 							if (t < minT) {
@@ -1310,7 +1310,7 @@ function cleanup(time: number = 0): CleanupComp {
 				p1: vec2(0, 0),
 				p2: vec2(width(), height()),
 			}
-			if (colRectRect(this.screenArea(), screenRect)) {
+			if (testRectRect(this.screenArea(), screenRect)) {
 				timer = 0;
 			} else {
 				timer += dt();
@@ -1385,7 +1385,7 @@ function area(conf: AreaCompConf = {}): AreaComp {
 			}
 			const a1 = this.worldArea();
 			const a2 = other.worldArea();
-			return colRectRect(a1, a2);
+			return testRectRect(a1, a2);
 		},
 
 		clicks(f: () => void): EventCanceller {
@@ -1416,7 +1416,7 @@ function area(conf: AreaCompConf = {}): AreaComp {
 
 		hasPt(pt: Vec2): boolean {
 			const a = this.worldArea();
-			return colRectPt({
+			return testRectPt({
 				p1: a.p1,
 				p2: a.p2,
 			}, pt);
@@ -2488,10 +2488,10 @@ const ctx: KaboomCtx = {
 	wave,
 	deg2rad,
 	rad2deg,
-	colLineLine,
-	colRectRect,
-	colRectLine,
-	colRectPt,
+	testLineLine,
+	testRectRect,
+	testRectLine,
+	testRectPt,
 	// raw draw
 	drawSprite,
 	drawText,
