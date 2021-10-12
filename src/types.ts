@@ -1271,8 +1271,22 @@ interface KaboomCtx {
 	 * Make a new random number generator.
 	 */
 	rng(seed: number): RNG,
-	colLineLine(l1: Line, l2: Line): Vec2 | null,
-	colRectRect(r1: Rect, r2: Rect): boolean,
+	/**
+	 * Check if 2 lines intersects, if yes returns the intersection point.
+	 */
+	testLineLine(l1: Line, l2: Line): Vec2 | null,
+	/**
+	 * Check if 2 rectangle overlaps.
+	 */
+	testRectRect(r1: Rect, r2: Rect): boolean,
+	/**
+	 * Check if a line and a rectangle overlaps.
+	 */
+	testRectLine(r: Rect, l: Line): boolean,
+	/**
+	 * Check if a point is inside a rectangle.
+	 */
+	testRectPt(r: Rect, pt: Vec2): boolean,
 	/**
 	 * Define a scene.
 	 *
