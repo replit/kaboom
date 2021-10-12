@@ -126,6 +126,20 @@ const Page: React.FC = ({ children }) => {
 						height: 100%;
 						overflow: hidden;
 					}
+					::-webkit-scrollbar {
+						width: 8px;
+						height: 8px;
+					}
+					::-webkit-scrollbar-track {
+						background: rgba(0, 0, 0, 0.1);
+					}
+					::-webkit-scrollbar-thumb {
+						background: rgba(0, 0, 0, 0.2);
+						border-radius: 4px;
+					}
+					::-webkit-scrollbar-corner {
+						background: rgba(0, 0, 0, 0.1);
+					}
 					a {
 						text-decoration: none;
 					}
