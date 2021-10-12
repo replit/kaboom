@@ -506,7 +506,7 @@ function testLineLine2(l1: Line, l2: Line): number | null {
 	const ua = ((l2.p2.x - l2.p1.x) * (l1.p1.y - l2.p1.y) - (l2.p2.y - l2.p1.y) * (l1.p1.x - l2.p1.x)) / denom;
 	const ub = ((l1.p2.x - l1.p1.x) * (l1.p1.y - l2.p1.y) - (l1.p2.y - l1.p1.y) * (l1.p1.x - l2.p1.x)) / denom;
 
-	// is the intersection along the segments
+	// is the intersection on the segment
 	if (ua < 0 || ua > 1 || ub < 0 || ub > 1) {
 		return null;
 	}
@@ -516,32 +516,12 @@ function testLineLine2(l1: Line, l2: Line): number | null {
 }
 
 function testLineLine(l1: Line, l2: Line): Vec2 | null {
-
-	if ((l1.p1.x === l1.p2.x && l1.p1.y === l1.p2.y) || (l2.p1.x === l2.p2.x && l2.p1.y === l2.p2.y)) {
-		return null;
-	}
-
-	const denom = ((l2.p2.y - l2.p1.y) * (l1.p2.x - l1.p1.x) - (l2.p2.x - l2.p1.x) * (l1.p2.y - l1.p1.y));
-
-	// parallel
-	if (denom === 0) {
-		return null;
-	}
-
-	const ua = ((l2.p2.x - l2.p1.x) * (l1.p1.y - l2.p1.y) - (l2.p2.y - l2.p1.y) * (l1.p1.x - l2.p1.x)) / denom;
-	const ub = ((l1.p2.x - l1.p1.x) * (l1.p1.y - l2.p1.y) - (l1.p2.y - l1.p1.y) * (l1.p1.x - l2.p1.x)) / denom;
-
-	// is the intersection along the segments
-	if (ua < 0 || ua > 1 || ub < 0 || ub > 1) {
-		return null;
-	}
-
-	// intersection point
+	const t = testLineLine2(l1, l2);
+	if (!t) return null;
 	return vec2(
-		l1.p1.x + ua * (l1.p2.x - l1.p1.x),
-		l1.p1.y + ua * (l1.p2.y - l1.p1.y),
+		l1.p1.x + t * (l1.p2.x - l1.p1.x),
+		l1.p1.y + t * (l1.p2.y - l1.p1.y),
 	);
-
 }
 
 function testRectLine(r: Rect, l: Line): boolean {
