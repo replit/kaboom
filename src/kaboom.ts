@@ -18,6 +18,7 @@ import {
 	colLineLine2,
 	minkDiff,
 	colRectRect,
+	colRectLine,
 	overlapRectRect,
 	colRectPt,
 	ovrRectPt,
@@ -2489,6 +2490,8 @@ const ctx: KaboomCtx = {
 	rad2deg,
 	colLineLine,
 	colRectRect,
+	colRectLine,
+	colRectPt,
 	// raw draw
 	drawSprite,
 	drawText,
