@@ -265,7 +265,7 @@ interface KaboomCtx {
 	 *
 	 * @example
 	 * ```js
-	 * // i don't know, could be an obstacle or somethign
+	 * // i don't know, could be an obstacle or something
 	 * add([
 	 *     rect(20, 40),
 	 *     outline(4),
@@ -302,38 +302,15 @@ interface KaboomCtx {
 	 * // die if player collides with another game obj with tag "tree"
 	 * player.collides("tree", () => {
 	 *     destroy(player);
+	 *     go("lose");
 	 * });
 	 *
-	 * // push player out of all other game obj with "solid" component
-	 * player.action(() => {
-	 *     player.pushOutAll();
-	 * });
-	 *
-	 * // simple drag an drop
-	 * let draggin = false;
-	 *
-	 * player.clicks(() => {
-	 *     draggin = true;
-	 * });
-	 *
-	 * player.action(() => {
-	 *     if (draggin) {
-	 *         player.pos = mousePos();
-	 *     }
-	 * })
-	 *
-	 * mouseRelease(() => {
-	 *     draggin = false;
-	 * });
-	 *
-	 * // check for collision with another single game obj
+	 * // check for collision manually every frame instead of registering an event
 	 * player.action(() => {
 	 *     if (player.isColliding(bomb)) {
 	 *         score += 1;
 	 *     }
 	 * });
-	 *
-	 * // for more methods check out AreaComp
 	 * ```
 	 */
 	area(conf?: AreaCompConf): AreaComp,
@@ -2288,14 +2265,6 @@ interface AreaComp extends Comp {
 	pushOut(obj: Character): void,
 	/**
 	 * Push out from all other solid game objs if currently overlapping.
-	 *
-	 * @example
-	 * ```js
-	 * // make player won't move through solid() objs
-	 * player.action(() => {
-	 *     player.pushOutAll();
-	 * });
-	 * ```
 	 */
 	pushOutAll(): void,
 	/**

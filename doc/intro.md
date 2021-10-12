@@ -2,7 +2,7 @@
 
 Welcome! Kaboom is a JavaScript library that helps you make games fast and fun :D
 
-This is an intro tutorial that will cover the basic concepts and make a very simple [Chrome Dino](https://en.wikipedia.org/wiki/Dinosaur_Game) - ish game. For setting up Kaboom development, see the [setup guide](/doc/setup). Or if you're looking for a video tutorial, check ou [this one](https://www.youtube.com/watch?v=hgReGsh5xVU).
+This is an intro tutorial that will cover the basic concepts and make a very simple [Chrome Dino](https://en.wikipedia.org/wiki/Dinosaur_Game) - ish game. For setting up Kaboom development, see the [setup guide](/doc/setup). Or if you're looking for a video tutorial, check out [this one](https://www.youtube.com/watch?v=hgReGsh5xVU).
 
 ![game](intro/game.png)
 
