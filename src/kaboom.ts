@@ -1818,7 +1818,6 @@ function text(t: string, conf: TextCompConf = {}): TextComp {
 
 }
 
-// TODO: accept p1: Vec2 p2: Vec2
 function rect(w: number, h: number): RectComp {
 	return {
 		id: "rect",
@@ -1841,6 +1840,29 @@ function rect(w: number, h: number): RectComp {
 		},
 		inspect() {
 			return `${this.width}, ${this.height}`;
+		},
+	};
+}
+
+function circle(radius: number): CircleComp {
+	return {
+		id: "circle",
+		radius: radius,
+		draw() {
+			gfx.drawCircle({
+				pos: this.pos,
+				radius: this.radius,
+				scale: this.scale,
+				angle: this.angle,
+				color: this.color,
+				opacity: this.opacity,
+				outline: this.outline,
+				prog: assets.shaders[this.shader],
+				uniform: this.uniform,
+			});
+		},
+		inspect() {
+			return `${Math.ceil(this.radius)}`;
 		},
 	};
 }

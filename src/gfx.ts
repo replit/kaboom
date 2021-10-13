@@ -45,6 +45,15 @@ type GfxConf = {
     letterbox?: boolean,
 };
 
+// TODO: name
+type DrawTextConf2 = RenderProps & {
+	text: string,
+	font?: GfxFont,
+	size?: number,
+	width?: number,
+	origin?: Origin | Vec2,
+}
+
 type Gfx = {
 	width(): number,
 	height(): number,
@@ -71,7 +80,10 @@ type Gfx = {
 	frameEnd(),
 	pushTransform(): void,
 	popTransform(): void,
+	pushTranslate(x: number, y: number): void,
 	pushTranslate(p: Vec2): void,
+	pushScale(sx: number, sy: number): void,
+	pushScale(s: number): void,
 	pushScale(s: Vec2): void,
 	pushRotateX(angle: number): void,
 	pushRotateY(angle: number): void,
@@ -705,7 +717,10 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 		let h = conf.height;
 
 		if (conf.radius) {
+
+			// maxium radius is half the shortest side
 			const r = Math.min(Math.min(w, h) / 2, conf.radius);
+
 			const pts = [
 				vec2(r, 0),
 				vec2(w - r, 0),
@@ -720,7 +735,9 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 				vec2(0, r),
 				...getArcPts(vec2(r, r), r, 180, 270),
 			];
+
 			drawPoly({ pts, ...conf });
+
 		} else {
 
 			if (conf.fill !== false) {
@@ -814,15 +831,22 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 		}
 
 		if (conf.outline) {
+
 			for (let i = 0; i < npts; i++) {
+
 				const p1 = conf.pts[i];
 				const p2 = conf.pts[(i + 1) % npts];
-				const lconf = {
+
+				// TODO: line join
+				drawLine({
+					p1: p1,
+					p2: p2,
 					width: conf.outline.width,
 					color: conf.outline.color,
-				};
-				drawLine({ p1, p2, ...lconf });
+				});
+
 			}
+
 		}
 
 		if (conf.fill !== false) {

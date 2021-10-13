@@ -267,9 +267,22 @@ interface KaboomCtx {
 	 * ```js
 	 * // i don't know, could be an obstacle or something
 	 * add([
+	 *     pos(80, 120),
 	 *     rect(20, 40),
 	 *     outline(4),
 	 *     area(),
+	 * ]);
+	 * ```
+	 */
+	rect(w: number, h: number): RectComp,
+	/**
+	 * Renders as circle.
+	 *
+	 * @example
+	 * ```js
+	 * add([
+	 *     pos(80, 120),
+	 *     circle(16),
 	 * ]);
 	 * ```
 	 */
@@ -1941,15 +1954,6 @@ type DrawTextConf = RenderProps & {
 	origin?: Origin | Vec2,
 }
 
-// TODO: name & place
-type DrawTextConf2 = RenderProps & {
-	text: string,
-	font?: GfxFont,
-	size?: number,
-	width?: number,
-	origin?: Origin | Vec2,
-}
-
 interface FormattedChar {
 	tex: GfxTexture,
 	quad: Quad,
@@ -2512,6 +2516,13 @@ interface RectComp extends Comp {
 	 * Height of height.
 	 */
 	height: number,
+}
+
+interface CircleComp extends Comp {
+	/**
+	 * Radius of circle.
+	 */
+	radius: number,
 }
 
 type AreaType =

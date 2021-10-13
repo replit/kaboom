@@ -63,12 +63,13 @@ render(() => {
 			radius: 24,
 			origin: "center",
 			color: rgb(255, 255, 0),
+			outline: { width: 4, color: rgb(0, 0, 255) }
 		});
 	}
 
 	drawText({
-		text: "hi",
-		pos: mousePos(),
+		text: "Drawcalls: " + debug.drawCalls(),
+		pos: vec2(24, 24),
 		size: 64,
 	});
 
