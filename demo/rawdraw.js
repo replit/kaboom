@@ -8,11 +8,24 @@ render(() => {
 
 	drawSprite("bean", {
 		pos: vec2(120),
-		rot: time() * 100,
+		angle: time() * 100,
 		origin: "center",
 	});
 
-	drawRect(vec2(50), 40, 100);
+	pushTransform();
+	pushTranslate(mousePos());
+	pushRotate(time() * 100);
+	pushScale(vec2(3));
+
+	drawRect(40, 100, {
+		origin: "center",
+		stroke: {
+			width: 4,
+			color: rgb(0, 0, 255),
+		},
+	});
+
+	popTransform();
 
 	const l1 = {
 		p1: vec2(0),
@@ -34,7 +47,7 @@ render(() => {
 		color: rgb(0, 0, 255),
 	});
 
-	const pt = colLineLine(l1, l2);
+	const pt = testLineLine(l1, l2);
 
 	if (pt) {
 		drawRect(pt, 12, 12, {
@@ -46,7 +59,9 @@ render(() => {
 		pos: mousePos(),
 		size: 64,
 	});
-// 	drawTri(vec2(100, 100), vec2(200, 200), mousePos(), {
-// 		color: rgb(1, 1, 1)
-// 	});
+
+	drawTri(vec2(480, 120), vec2(200, 240), mousePos(), {
+		color: rgb(128, 128, 255)
+	});
+
 });

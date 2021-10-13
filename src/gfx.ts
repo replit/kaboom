@@ -73,16 +73,9 @@ type Gfx = {
 		conf?: DrawTextConf,
 	): FormattedText,
 	drawRect(
-		pos: Vec2,
 		w: number,
 		h: number,
 		conf?: DrawRectConf,
-	),
-	drawRectStroke(
-		pos: Vec2,
-		w: number,
-		h: number,
-		conf?: DrawRectStrokeConf,
 	),
 	drawLine(
 		p1: Vec2,
@@ -97,10 +90,14 @@ type Gfx = {
 	),
 	frameStart(),
 	frameEnd(),
-	pushTransform(),
-	pushTranslate(p: Vec2),
-	popTransform(),
-	pushMatrix(m: Mat4),
+	pushTransform(): void,
+	popTransform(): void,
+	pushTranslate(p: Vec2): void,
+	pushScale(s: Vec2): void,
+	pushRotateX(angle: number): void,
+	pushRotateY(angle: number): void,
+	pushRotateZ(angle: number): void,
+	applyMatrix(m: Mat4),
 	drawCalls(): number,
 };
 
@@ -533,7 +530,7 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 	}
 
 	// TODO: don't use push as prefix for these
-	function pushMatrix(m: Mat4) {
+	function applyMatrix(m: Mat4) {
 		gfx.transform = m.clone();
 	}
 
@@ -592,38 +589,37 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 		const origin = originPt(conf.origin || DEF_ORIGIN);
 		const offset = origin.scale(vec2(w, h).scale(-0.5));
 		const scale = vec2(conf.scale ?? 1);
-		const rot = conf.rot || 0;
+		const angle = conf.angle || 0;
 		const q = conf.quad || quad(0, 0, 1, 1);
-		const z = 1 - (conf.z ?? 0);
 		const color = conf.color || rgb();
 
 		pushTransform();
 		pushTranslate(pos);
-		pushRotateZ(rot);
+		pushRotateZ(angle);
 		pushScale(scale);
 		pushTranslate(offset);
 
 		drawRaw([
 			{
-				pos: vec3(-w / 2, h / 2, z),
+				pos: vec3(-w / 2, h / 2, 0),
 				uv: vec2(conf.flipX ? q.x + q.w : q.x, conf.flipY ? q.y : q.y + q.h),
 				color: color,
 				opacity: conf.opacity ?? 1,
 			},
 			{
-				pos: vec3(-w / 2, -h / 2, z),
+				pos: vec3(-w / 2, -h / 2, 0),
 				uv: vec2(conf.flipX ? q.x + q.w : q.x, conf.flipY ? q.y + q.h : q.y),
 				color: color,
 				opacity: conf.opacity ?? 1,
 			},
 			{
-				pos: vec3(w / 2, -h / 2, z),
+				pos: vec3(w / 2, -h / 2, 0),
 				uv: vec2(conf.flipX ? q.x : q.x + q.w, conf.flipY ? q.y + q.h : q.y),
 				color: color,
 				opacity: conf.opacity ?? 1,
 			},
 			{
-				pos: vec3(w / 2, h / 2, z),
+				pos: vec3(w / 2, h / 2, 0),
 				uv: vec2(conf.flipX ? q.x : q.x + q.w, conf.flipY ? q.y : q.y + q.h),
 				color: color,
 				opacity: conf.opacity ?? 1,
@@ -697,43 +693,48 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 	}
 
 	function drawRect(
-		pos: Vec2,
 		w: number,
 		h: number,
 		conf: DrawRectConf = {}
 	) {
-		drawQuad({
-			...conf,
-			pos: pos,
-			width: w,
-			height: h,
-		});
-	}
 
-	function drawRectStroke(
-		pos: Vec2,
-		w: number,
-		h: number,
-		conf: DrawRectStrokeConf = {}
-	) {
+		if (conf.fill !== false) {
 
-		if (conf.scale) {
-			const scale = vec2(conf.scale);
-			w = w * scale.x;
-			h = h * scale.y;
-			conf.scale = 1;
+			drawQuad({
+				...conf,
+				width: w,
+				height: h,
+			});
+
 		}
 
-		const offset = originPt(conf.origin || DEF_ORIGIN).scale(vec2(w, h)).scale(0.5);
-		const p1 = pos.add(vec2(-w / 2, -h / 2)).sub(offset);
-		const p2 = pos.add(vec2(-w / 2,  h / 2)).sub(offset);
-		const p3 = pos.add(vec2( w / 2,  h / 2)).sub(offset);
-		const p4 = pos.add(vec2( w / 2, -h / 2)).sub(offset);
+		// TODO: rotation
+		if (conf.stroke) {
 
-		drawLine(p1, p2, conf);
-		drawLine(p2, p3, conf);
-		drawLine(p3, p4, conf);
-		drawLine(p4, p1, conf);
+			const lconf = {
+				pos: conf.pos,
+				width: conf.stroke.width,
+				color: conf.stroke.color,
+			};
+
+			if (conf.scale) {
+				const scale = vec2(conf.scale);
+				w = w * scale.x;
+				h = h * scale.y;
+			}
+
+			const offset = originPt(conf.origin || DEF_ORIGIN).scale(vec2(w, h)).scale(0.5);
+			const p1 = vec2(-w / 2, -h / 2).sub(offset);
+			const p2 = vec2(-w / 2,  h / 2).sub(offset);
+			const p3 = vec2( w / 2,  h / 2).sub(offset);
+			const p4 = vec2( w / 2, -h / 2).sub(offset);
+
+			drawLine(p1, p2, lconf);
+			drawLine(p2, p3, lconf);
+			drawLine(p3, p4, lconf);
+			drawLine(p4, p1, lconf);
+
+		}
 
 	}
 
@@ -745,17 +746,25 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 
 		const w = conf.width || 1;
 		const h = p1.dist(p2);
-		const rot = p1.angle(p2) - 90;
+		const angle = p1.angle(p2) - 90;
+		const pos = conf.pos ?? vec2(0);
 
 		drawQuad({
 			...conf,
-			pos: p1.add(p2).scale(0.5),
+			pos: pos.add(p1.add(p2).scale(0.5)),
 			width: w,
 			height: h,
-			rot: rot,
+			angle: angle,
 			origin: "center",
 		});
 
+	}
+
+	function drawPolygon(
+		pts: Vec2[],
+		conf: DrawPolyConf = {},
+	) {
+		// TODO
 	}
 
 	// TODO: not drawing
@@ -765,23 +774,22 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 		p3: Vec2,
 		conf: DrawTriConf = {},
 	) {
-		const z = conf.z;
 		const color = conf.color || rgb();
 		drawRaw([
 			{
-				pos: vec3(p1.x, p1.y, z),
+				pos: vec3(p1.x, p1.y, 0),
 				uv: vec2(0, 0),
 				color: color,
 				opacity: conf.opacity ?? 1,
 			},
 			{
-				pos: vec3(p2.x, p2.y, z),
+				pos: vec3(p2.x, p2.y, 0),
 				uv: vec2(0, 0),
 				color: color,
 				opacity: conf.opacity ?? 1,
 			},
 			{
-				pos: vec3(p3.x, p3.y, z),
+				pos: vec3(p3.x, p3.y, 0),
 				uv: vec2(0, 0),
 				color: color,
 				opacity: conf.opacity ?? 1,
@@ -994,16 +1002,19 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 		drawText,
 		drawFmtText,
 		drawRect,
-		drawRectStroke,
 		drawLine,
 		drawTri,
 		fmtText,
 		frameStart,
 		frameEnd,
 		pushTranslate,
+		pushScale,
+		pushRotateX,
+		pushRotateY,
+		pushRotateZ,
 		pushTransform,
 		popTransform,
-		pushMatrix,
+		applyMatrix,
 		drawCalls,
 		background,
 	};

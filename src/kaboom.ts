@@ -891,7 +891,7 @@ function gameFrame(ignorePause?: boolean) {
 			gfx.pushTransform();
 
 			if (!obj.fixed) {
-				gfx.pushMatrix(game.camMatrix);
+				gfx.applyMatrix(game.camMatrix);
 			}
 
 			obj.trigger("draw");
@@ -933,13 +933,13 @@ function drawInspect() {
 			gfx.pushTranslate(vec2(0, -bh));
 		}
 
-		gfx.drawRect(pos, bw, bh, {
+		gfx.drawRect(bw, bh, {
+			pos: pos,
 			color: rgb(255, 255, 255),
-		});
-
-		gfx.drawRectStroke(pos, bw, bh, {
-			width: 2 / s,
-			color: rgb(0, 0, 0),
+			stroke: {
+				width: 2 / s,
+				color: rgb(0, 0, 0),
+			},
 		});
 
 		gfx.drawFmtText(ftxt);
@@ -962,7 +962,7 @@ function drawInspect() {
 
 		if (!obj.fixed) {
 			gfx.pushTransform();
-			gfx.pushMatrix(game.camMatrix);
+			gfx.applyMatrix(game.camMatrix);
 		}
 
 		if (!inspecting) {
@@ -976,9 +976,13 @@ function drawInspect() {
 		const w = a.p2.x - a.p1.x;
 		const h = a.p2.y - a.p1.y;
 
-		gfx.drawRectStroke(a.p1, w, h, {
-			width: lwidth,
-			color: lcolor,
+		gfx.drawRect(w, h, {
+			pos: a.p1,
+			stroke: {
+				width: lwidth,
+				color: lcolor,
+			},
+			fill: false,
 		});
 
 		if (!obj.fixed) {
@@ -1608,7 +1612,7 @@ function sprite(id: string | SpriteData, conf: SpriteCompConf = {}): SpriteComp 
 			drawSprite(spr, {
 				pos: this.pos,
 				scale: this.scale,
-				rot: this.angle,
+				angle: this.angle,
 				color: this.color,
 				opacity: this.opacity,
 				frame: this.frame,
@@ -1767,7 +1771,7 @@ function text(t: string, conf: TextCompConf = {}): TextComp {
 		const ftext = gfx.fmtText(this.text + "", font, {
 			pos: this.pos,
 			scale: this.scale,
-			rot: this.angle,
+			angle: this.angle,
 			size: conf.size,
 			origin: this.origin,
 			color: this.color,
@@ -1810,9 +1814,10 @@ function rect(w: number, h: number): RectComp {
 		width: w,
 		height: h,
 		draw() {
-			gfx.drawRect(this.pos, this.width, this.height, {
+			gfx.drawRect(this.width, this.height, {
+				pos: this.pos,
 				scale: this.scale,
-				rot: this.angle,
+				angle: this.angle,
 				color: this.color,
 				opacity: this.opacity,
 				origin: this.origin,
@@ -1838,9 +1843,13 @@ function outline(width: number = 1, color: Color = rgb(0, 0, 0)): OutlineComp {
 
 			if (this.width && this.height) {
 
-				gfx.drawRectStroke(this.pos || vec2(0), this.width, this.height, {
-					width: this.lineWidth,
-					color: this.lineColor,
+				gfx.drawRect(this.width, this.height, {
+					pos: this.pos || vec2(0),
+					stroke: {
+						width: this.lineWidth,
+						color: this.lineColor,
+					},
+					fill: false,
 					scale: this.scale,
 					opacity: this.opacity,
 					origin: this.origin,
@@ -1854,9 +1863,12 @@ function outline(width: number = 1, color: Color = rgb(0, 0, 0)): OutlineComp {
 				const w = a.p2.x - a.p1.x;
 				const h = a.p2.y - a.p1.y;
 
-				gfx.drawRectStroke(a.p1, w, h, {
-					width: width,
-					color: color,
+				gfx.drawRect(w, h, {
+					pos: a.p1,
+					stroke: {
+						width: width,
+						color: color,
+					},
 					opacity: this.opacity,
 				});
 
@@ -2495,9 +2507,13 @@ const ctx: KaboomCtx = {
 	drawSprite,
 	drawText,
 	drawRect: gfx.drawRect,
-	drawRectStroke: gfx.drawRectStroke,
 	drawLine: gfx.drawLine,
 	drawTri: gfx.drawTri,
+	pushTransform: gfx.pushTransform,
+	popTransform: gfx.popTransform,
+	pushTranslate: gfx.pushTranslate,
+	pushRotate: gfx.pushRotateZ,
+	pushScale: gfx.pushScale,
 	// debug
 	debug,
 	// scene
@@ -2557,9 +2573,22 @@ app.run(() => {
 			const w = width() / 2;
 			const h = 24 / gfx.scale();
 			const pos = vec2(width() / 2, height() / 2).sub(vec2(w / 2, h / 2));
-			gfx.drawRect(vec2(0), width(), height(), { color: rgb(0, 0, 0), });
-			gfx.drawRectStroke(pos, w, h, { width: 4 / gfx.scale(), });
-			gfx.drawRect(pos, w * progress, h);
+
+			gfx.drawRect(width(), height(), {
+				pos: vec2(0),
+				color: rgb(0, 0, 0),
+			});
+
+			gfx.drawRect(w, h, {
+				pos: pos,
+				fill: false,
+				stroke: {
+					width: 4 / gfx.scale(),
+				},
+			});
+
+			gfx.drawRect(w * progress, h, { pos: pos, });
+
 		}
 
 	} else {

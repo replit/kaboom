@@ -1357,10 +1357,14 @@ interface KaboomCtx {
 	drawSprite(id: string | SpriteData, conf?: DrawSpriteConf): void,
 	// TODO: conf type
 	drawText(txt: string, conf?: {}): void,
-	drawRect(pos: Vec2, w: number, h: number, conf?: DrawRectConf): void,
-	drawRectStroke(pos: Vec2, w: number, h: number, conf?: DrawRectStrokeConf): void,
+	drawRect(w: number, h: number, conf?: DrawRectConf): void,
 	drawLine(p1: Vec2, p2: Vec2, conf?: DrawLineConf): void,
 	drawTri(p1: Vec2, p2: Vec2, p3: Vec2, conf?: DrawTriConf): void,
+	pushTransform(): void,
+	popTransform(): void,
+	pushTranslate(p: Vec2): void,
+	pushRotate(angle: number): void,
+	pushScale(s: Vec2): void,
 	/**
 	 * Import a plugin.
 	 */
@@ -1804,11 +1808,10 @@ interface GfxTexConf {
 interface RenderProps {
 	pos?: Vec2,
 	scale?: Vec2 | number,
-	rot?: number,
+	angle?: number,
 	color?: Color,
 	opacity?: number,
 	origin?: Origin | Vec2,
-	z?: number,
 	prog?: GfxProgram,
 	uniform?: Uniform,
 }
@@ -1831,18 +1834,23 @@ type DrawTextureConf = RenderProps & {
 	quad?: Quad,
 }
 
-type DrawRectStrokeConf = RenderProps & {
-	width?: number,
-}
-
 type DrawRectConf = RenderProps & {
+	stroke?: Stroke,
+	fill?: boolean,
 }
 
-type DrawLineConf = RenderProps & {
+type DrawLineConf = Omit<RenderProps, "angle" | "scale" | "origin"> & {
 	width?: number,
 }
 
 type DrawTriConf = RenderProps & {
+	stroke?: Stroke,
+	fill?: boolean,
+}
+
+interface Stroke {
+	width?: number,
+	color?: Color,
 }
 
 type DrawTextConf = RenderProps & {
