@@ -2523,8 +2523,7 @@ type AreaType =
 	;
 
 interface OutlineComp extends Comp {
-	lineWidth: number,
-	lineColor: Color,
+	outline: Outline,
 }
 
 interface Debug {

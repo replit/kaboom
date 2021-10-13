@@ -1849,8 +1849,10 @@ function outline(width: number = 1, color: Color = rgb(0, 0, 0)): OutlineComp {
 	return {
 
 		id: "outline",
-		lineWidth: width,
-		lineColor: color,
+		outline: {
+			width,
+			color,
+		},
 
 		draw() {
 
@@ -1861,8 +1863,8 @@ function outline(width: number = 1, color: Color = rgb(0, 0, 0)): OutlineComp {
 					width: this.width,
 					height: this.height,
 					outline: {
-						width: this.lineWidth,
-						color: this.lineColor,
+						width: this.outline.width,
+						color: this.outline.color,
 					},
 					fill: false,
 					scale: this.scale,
