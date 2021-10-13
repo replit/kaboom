@@ -1357,7 +1357,7 @@ interface KaboomCtx {
 	drawSprite(id: string | SpriteData, conf?: DrawSpriteConf): void,
 	// TODO: conf type
 	drawText(txt: string, conf?: {}): void,
-	drawRect(w: number, h: number, conf?: DrawRectConf): void,
+	drawRect(pos: Vec2, w: number, h: number, conf?: DrawRectConf): void,
 	drawLine(p1: Vec2, p2: Vec2, conf?: DrawLineConf): void,
 	drawTri(p1: Vec2, p2: Vec2, p3: Vec2, conf?: DrawTriConf): void,
 	drawCircle(pos: Vec2, radius: number, conf?: DrawCircleConf): void,

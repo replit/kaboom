@@ -933,8 +933,7 @@ function drawInspect() {
 			gfx.pushTranslate(vec2(0, -bh));
 		}
 
-		gfx.drawRect(bw, bh, {
-			pos: pos,
+		gfx.drawRect(pos, bw, bh, {
 			color: rgb(255, 255, 255),
 			stroke: {
 				width: 2 / s,
@@ -976,8 +975,7 @@ function drawInspect() {
 		const w = a.p2.x - a.p1.x;
 		const h = a.p2.y - a.p1.y;
 
-		gfx.drawRect(w, h, {
-			pos: a.p1,
+		gfx.drawRect(a.p1, w, h, {
 			stroke: {
 				width: lwidth,
 				color: lcolor,
@@ -1814,8 +1812,7 @@ function rect(w: number, h: number): RectComp {
 		width: w,
 		height: h,
 		draw() {
-			gfx.drawRect(this.width, this.height, {
-				pos: this.pos,
+			gfx.drawRect(this.pos, this.width, this.height, {
 				scale: this.scale,
 				angle: this.angle,
 				color: this.color,
@@ -1843,8 +1840,7 @@ function outline(width: number = 1, color: Color = rgb(0, 0, 0)): OutlineComp {
 
 			if (this.width && this.height) {
 
-				gfx.drawRect(this.width, this.height, {
-					pos: this.pos || vec2(0),
+				gfx.drawRect(this.pos, this.width, this.height, {
 					stroke: {
 						width: this.lineWidth,
 						color: this.lineColor,
@@ -1863,8 +1859,7 @@ function outline(width: number = 1, color: Color = rgb(0, 0, 0)): OutlineComp {
 				const w = a.p2.x - a.p1.x;
 				const h = a.p2.y - a.p1.y;
 
-				gfx.drawRect(w, h, {
-					pos: a.p1,
+				gfx.drawRect(a.p1, w, h, {
 					stroke: {
 						width: width,
 						color: color,
@@ -2576,20 +2571,18 @@ app.run(() => {
 			const h = 24 / gfx.scale();
 			const pos = vec2(width() / 2, height() / 2).sub(vec2(w / 2, h / 2));
 
-			gfx.drawRect(width(), height(), {
-				pos: vec2(0),
+			gfx.drawRect(vec2(0), width(), height(), {
 				color: rgb(0, 0, 0),
 			});
 
-			gfx.drawRect(w, h, {
-				pos: pos,
+			gfx.drawRect(pos, w, h, {
 				fill: false,
 				stroke: {
 					width: 4 / gfx.scale(),
 				},
 			});
 
-			gfx.drawRect(w * progress, h, { pos: pos, });
+			gfx.drawRect(pos, w * progress, h);
 
 		}
 

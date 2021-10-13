@@ -74,6 +74,7 @@ type Gfx = {
 		conf?: DrawTextConf,
 	): FormattedText,
 	drawRect(
+		pos: Vec2,
 		w: number,
 		h: number,
 		conf?: DrawRectConf,
@@ -703,26 +704,25 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 	}
 
 	function drawRect(
+		pos: Vec2,
 		w: number,
 		h: number,
 		conf: DrawRectConf = {}
 	) {
 
 		if (conf.fill !== false) {
-
 			drawQuad({
 				...conf,
+				pos: pos,
 				width: w,
 				height: h,
 			});
-
 		}
 
 		// TODO: rotation
 		if (conf.stroke) {
 
 			const lconf = {
-				pos: conf.pos,
 				width: conf.stroke.width,
 				color: conf.stroke.color,
 			};
@@ -734,10 +734,10 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 			}
 
 			const offset = originPt(conf.origin || DEF_ORIGIN).scale(vec2(w, h)).scale(0.5);
-			const p1 = vec2(-w / 2, -h / 2).sub(offset);
-			const p2 = vec2(-w / 2,  h / 2).sub(offset);
-			const p3 = vec2( w / 2,  h / 2).sub(offset);
-			const p4 = vec2( w / 2, -h / 2).sub(offset);
+			const p1 = pos.add(vec2(-w / 2, -h / 2)).sub(offset);
+			const p2 = pos.add(vec2(-w / 2,  h / 2)).sub(offset);
+			const p3 = pos.add(vec2( w / 2,  h / 2)).sub(offset);
+			const p4 = pos.add(vec2( w / 2, -h / 2)).sub(offset);
 
 			drawLine(p1, p2, lconf);
 			drawLine(p2, p3, lconf);

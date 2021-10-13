@@ -17,7 +17,7 @@ render(() => {
 	pushRotate(time() * 100);
 	pushScale(vec2(3));
 
-	drawRect(40, 100, {
+	drawRect(vec2(0), 40, 100, {
 		origin: "center",
 		stroke: {
 			width: 4,
