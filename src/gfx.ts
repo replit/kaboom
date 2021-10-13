@@ -58,47 +58,15 @@ type Gfx = {
 		gh: number,
 		chars: string,
 	): GfxFont,
-	drawTexture(
-		tex: GfxTexture,
-		conf?: DrawTextureConf,
-	),
-	drawText(
-		txt: string,
-		font: GfxFont,
-		conf?: DrawTextConf,
-	),
+	drawTexture(conf: DrawTextureConf),
+	drawText(conf: DrawTextConf2),
 	drawFmtText(ftext: FormattedText),
-	fmtText(
-		txt: string,
-		font: GfxFont,
-		conf?: DrawTextConf,
-	): FormattedText,
-	drawRect(
-		pos: Vec2,
-		w: number,
-		h: number,
-		conf?: DrawRectConf,
-	),
-	drawLine(
-		p1: Vec2,
-		p2: Vec2,
-		conf?: DrawLineConf,
-	),
-	drawTri(
-		p1: Vec2,
-		p2: Vec2,
-		p3: Vec2,
-		conf?: DrawTriConf,
-	),
-	drawCircle(
-		pos: Vec2,
-		radius: number,
-		conf?: DrawCircleConf,
-	),
-	drawPoly(
-		pts: Vec2[],
-		conf?: DrawPolyConf,
-	),
+	drawRect(conf: DrawRectConf),
+	drawLine(conf: DrawLineConf),
+	drawTri(conf: DrawTriConf),
+	drawCircle(conf: DrawCircleConf),
+	drawPoly(conf: DrawPolyConf),
+	fmtText(conf: DrawTextConf2): FormattedText,
 	frameStart(),
 	frameEnd(),
 	pushTransform(): void,
@@ -643,13 +611,16 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 	}
 
 	function drawTexture(
-		tex: GfxTexture,
-		conf: DrawTextureConf = {},
+		conf: DrawTextureConf,
 	) {
 
+		if (!conf.tex) {
+			throw new Error("drawTexture() requires property \"tex\".");
+		}
+
 		const q = conf.quad ?? quad(0, 0, 1, 1);
-		const w = tex.width * q.w;
-		const h = tex.height * q.h;
+		const w = conf.tex.width * q.w;
+		const h = conf.tex.height * q.h;
 		const scale = vec2(1);
 
 		if (conf.tiled) {
@@ -668,7 +639,7 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 						pos: (conf.pos || vec2(0)).add(vec2(w * i, h * j)).sub(offset),
 						// @ts-ignore
 						scale: scale.scale(conf.scale || vec2(1)),
-						tex: tex,
+						tex: conf.tex,
 						quad: q,
 						width: w,
 						height: h,
@@ -694,7 +665,7 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 				...conf,
 				// @ts-ignore
 				scale: scale.scale(conf.scale || vec2(1)),
-				tex: tex,
+				tex: conf.tex,
 				quad: q,
 				width: w,
 				height: h,
@@ -720,15 +691,21 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 		return pts;
 	}
 
-	function drawRect(
-		pos: Vec2,
-		w: number,
-		h: number,
-		conf: DrawRectConf = {}
-	) {
+	function drawRect(conf: DrawRectConf) {
+
+		if (conf.width === undefined || conf.height === undefined) {
+			throw new Error("drawRect() requires property \"width\" and \"height\".");
+		}
+
+		if (conf.width <= 0 || conf.height <= 0) {
+			return;
+		}
+
+		let w = conf.width;
+		let h = conf.height;
 
 		if (conf.radius) {
-			const r = Math.min(Math.min(w, h), conf.radius);
+			const r = Math.min(Math.min(w, h) / 2, conf.radius);
 			const pts = [
 				vec2(r, 0),
 				vec2(w - r, 0),
@@ -743,13 +720,12 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 				vec2(0, r),
 				...getArcPts(vec2(r, r), r, 180, 270),
 			];
-			drawPoly(pts, conf);
+			drawPoly({ pts, ...conf });
 		} else {
 
 			if (conf.fill !== false) {
 				drawQuad({
 					...conf,
-					pos: pos,
 					width: w,
 					height: h,
 				});
@@ -769,16 +745,17 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 					h = h * scale.y;
 				}
 
+				const pos = conf.pos ?? vec2(0);
 				const offset = originPt(conf.origin || DEF_ORIGIN).scale(vec2(w, h)).scale(0.5);
 				const p1 = pos.add(vec2(-w / 2, -h / 2)).sub(offset);
 				const p2 = pos.add(vec2(-w / 2,  h / 2)).sub(offset);
 				const p3 = pos.add(vec2( w / 2,  h / 2)).sub(offset);
 				const p4 = pos.add(vec2( w / 2, -h / 2)).sub(offset);
 
-				drawLine(p1, p2, lconf);
-				drawLine(p2, p3, lconf);
-				drawLine(p3, p4, lconf);
-				drawLine(p4, p1, lconf);
+				drawLine({ p1: p1, p2: p2, ...lconf });
+				drawLine({ p1: p2, p2: p3, ...lconf });
+				drawLine({ p1: p3, p2: p4, ...lconf });
+				drawLine({ p1: p4, p2: p1, ...lconf });
 
 			}
 
@@ -786,11 +763,13 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 
 	}
 
-	function drawLine(
-		p1: Vec2,
-		p2: Vec2,
-		conf: DrawLineConf = {},
-	) {
+	function drawLine(conf: DrawLineConf) {
+
+		const { p1, p2 } = conf;
+
+		if (!p1 || !p2) {
+			throw new Error("drawLine() requires properties \"p1\" and \"p2\".");
+		}
 
 		const w = conf.width || 1;
 		const h = p1.dist(p2);
@@ -808,29 +787,27 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 
 	}
 
-	function drawTri(
-		p1: Vec2,
-		p2: Vec2,
-		p3: Vec2,
-		conf: DrawTriConf = {},
-	) {
-		return drawPoly([p1, p2, p3], conf);
+	function drawTri(conf: DrawTriConf) {
+		if (!conf.p1 || !conf.p2 || !conf.p3) {
+			throw new Error("drawPoly() requires properties \"p1\", \"p2\" and \"p3\".");
+		}
+		return drawPoly({ pts: [conf.p1, conf.p2, conf.p3], ...conf });
 	}
 
-	function drawCircle(
-		pos: Vec2,
-		radius: number,
-		conf: DrawCircleConf = {},
-	) {
-		drawPoly(getArcPts(pos, radius, 0, 360), conf);
+	function drawCircle(conf: DrawCircleConf) {
+		if (!conf.radius) {
+			throw new Error("drawCircle() requires property \"radius\".");
+		}
+		drawPoly({ pts: getArcPts(conf.pos ?? vec2(0), conf.radius, 0, 360), ...conf });
 	}
 
-	function drawPoly(
-		pts: Vec2[],
-		conf: DrawPolyConf = {},
-	) {
+	function drawPoly(conf: DrawPolyConf) {
 
-		const npts = pts.length;
+		if (!conf.pts) {
+			throw new Error("drawPoly() requires property \"pts\".");
+		}
+
+		const npts = conf.pts.length;
 
 		if (npts < 3) {
 			throw new Error("Cannot draw a polygon with less than 3 points.");
@@ -838,13 +815,13 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 
 		if (conf.stroke) {
 			for (let i = 0; i < npts; i++) {
-				const p1 = pts[i];
-				const p2 = pts[(i + 1) % npts];
+				const p1 = conf.pts[i];
+				const p2 = conf.pts[(i + 1) % npts];
 				const lconf = {
 					width: conf.stroke.width,
 					color: conf.stroke.color,
 				};
-				drawLine(p1, p2, lconf);
+				drawLine({ p1, p2, ...lconf });
 			}
 		}
 
@@ -852,7 +829,7 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 
 			const color = conf.color ?? rgb();
 
-			const verts = pts.map((pt) => ({
+			const verts = conf.pts.map((pt) => ({
 				pos: vec3(pt.x, pt.y, 0),
 				uv: vec2(0, 0),
 				color: color,
@@ -863,20 +840,21 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 				.map((n) => [0, n + 1, n + 2])
 				.flat();
 
-			drawRaw(verts, indices, gfx.defTex, conf.prog, conf.uniform);
+			drawRaw(verts, conf.indices ?? indices, gfx.defTex, conf.prog, conf.uniform);
 
 		}
 
 	}
 
 	// format text and return a list of chars with their calculated position
-	function fmtText(
-		text: string,
-		font: GfxFont,
-		conf: DrawTextConf = {}
-	): FormattedText {
+	function fmtText(conf: DrawTextConf2): FormattedText {
 
-		const chars = (text + "").split("");
+		if (conf.text === undefined) {
+			throw new Error("fmtText() requires property \"text\".");
+		}
+
+		const font = conf.font;
+		const chars = (conf.text + "").split("");
 		const gw = font.qw * font.tex.width;
 		const gh = font.qh * font.tex.height;
 		const size = conf.size || gh;
@@ -977,12 +955,8 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 
 	}
 
-	function drawText(
-		txt: string,
-		font: GfxFont,
-		conf = {},
-	) {
-		drawFmtText(fmtText(txt, font, conf));
+	function drawText(conf: DrawTextConf2) {
+		drawFmtText(fmtText(conf));
 	}
 
 	// TODO: rotation

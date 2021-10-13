@@ -1354,31 +1354,31 @@ interface KaboomCtx {
 	 *
 	 * @section Render
 	 */
-	drawSprite(id: string | SpriteData, conf?: DrawSpriteConf): void,
+	drawSprite(conf: DrawSpriteConf): void,
 	/**
 	 * Draw a piece of text.
 	 */
-	drawText(txt: string, conf?: {}): void,
+	drawText(conf: DrawTextConf): void,
 	/**
 	 * Draw a rectangle.
 	 */
-	drawRect(pos: Vec2, w: number, h: number, conf?: DrawRectConf): void,
+	drawRect(conf: DrawRectConf): void,
 	/**
 	 * Draw a line.
 	 */
-	drawLine(p1: Vec2, p2: Vec2, conf?: DrawLineConf): void,
+	drawLine(conf: DrawLineConf): void,
 	/**
 	 * Draw a triangle.
 	 */
-	drawTri(p1: Vec2, p2: Vec2, p3: Vec2, conf?: DrawTriConf): void,
+	drawTri(conf: DrawTriConf): void,
 	/**
 	 * Draw a circle.
 	 */
-	drawCircle(pos: Vec2, radius: number, conf?: DrawCircleConf): void,
+	drawCircle(conf: DrawCircleConf): void,
 	/**
 	 * Draw a convex polygon from a list of vertices.
 	 */
-	drawPoly(pts: Vec2[], conf?: DrawPolyConf): void,
+	drawPoly(conf: DrawPolyConf): void,
 	/**
 	 * Push current transform matrix to the transform stack.
 	 *
@@ -1854,7 +1854,6 @@ interface RenderProps {
 	angle?: number,
 	color?: Color,
 	opacity?: number,
-	origin?: Origin | Vec2,
 	prog?: GfxProgram,
 	uniform?: Uniform,
 }
@@ -1866,41 +1865,67 @@ type DrawQuadConf = RenderProps & {
 	height?: number,
 	tex?: GfxTexture,
 	quad?: Quad,
+	origin?: Origin | Vec2,
 }
 
-type DrawTextureConf = RenderProps & {
-	flipX?: boolean,
-	flipY?: boolean,
+type DrawSpriteConf = RenderProps & {
+	sprite: string | SpriteData,
+	frame?: number,
 	width?: number,
 	height?: number,
 	tiled?: boolean,
+	flipX?: boolean,
+	flipY?: boolean,
 	quad?: Quad,
+	origin?: Origin | Vec2,
+}
+
+type DrawTextureConf = RenderProps & {
+	tex: GfxTexture,
+	width?: number,
+	height?: number,
+	tiled?: boolean,
+	flipX?: boolean,
+	flipY?: boolean,
+	quad?: Quad,
+	origin?: Origin | Vec2,
 }
 
 type DrawRectConf = RenderProps & {
+	width: number,
+	height: number,
 	stroke?: Stroke,
 	fill?: boolean,
 	radius?: number,
+	origin?: Origin | Vec2,
 }
 
-type DrawLineConf = Omit<RenderProps, "angle" | "scale" | "origin"> & {
+type DrawLineConf = Omit<RenderProps, "angle" | "scale"> & {
+	p1: Vec2,
+	p2: Vec2,
 	width?: number,
 }
 
 type DrawTriConf = RenderProps & {
+	p1: Vec2,
+	p2: Vec2,
+	p3: Vec2,
 	stroke?: Stroke,
 	fill?: boolean,
 }
 
 type DrawCircleConf = RenderProps & {
+	radius: number,
 	stroke?: Stroke,
 	fill?: boolean,
 	resolution?: number,
 }
 
 type DrawPolyConf = RenderProps & {
+	pts: Vec2[],
 	stroke?: Stroke,
 	fill?: boolean,
+	indices?: number[],
 }
 
 interface Stroke {
@@ -1909,8 +1934,20 @@ interface Stroke {
 }
 
 type DrawTextConf = RenderProps & {
+	text: string,
+	font?: string,
 	size?: number,
 	width?: number,
+	origin?: Origin | Vec2,
+}
+
+// TODO: name & place
+type DrawTextConf2 = RenderProps & {
+	text: string,
+	font?: GfxFont,
+	size?: number,
+	width?: number,
+	origin?: Origin | Vec2,
 }
 
 interface FormattedChar {
@@ -1981,18 +2018,6 @@ type Origin =
 	| "bot"
 	| "botright"
 	;
-
-type DrawSpriteConf = RenderProps & {
-	frame?: number,
-	width?: number,
-	height?: number,
-	tiled?: boolean,
-	flipX?: boolean,
-	flipY?: boolean,
-	quad?: Quad,
-	prog?: ShaderData,
-	uniform?: Uniform,
-}
 
 interface Vec2 {
 	x: number,

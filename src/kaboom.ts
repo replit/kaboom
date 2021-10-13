@@ -140,42 +140,44 @@ function mouseWorldPos(): Vec2 {
 	return game.camMousePos;
 }
 
-function drawSprite(
-	id: string | SpriteData,
-	conf: DrawSpriteConf = {},
-) {
+// wrapper around gfx.drawTexture to integrate with sprite assets mananger / frame anim
+function drawSprite(conf: DrawSpriteConf) {
+	if (!conf.sprite) {
+		throw new Error(`drawSprite() requires property "sprite"`);
+	}
 	const spr = (() => {
-		if (typeof id === "string") {
-			return assets.sprites[id];
+		if (typeof conf.sprite === "string") {
+			return assets.sprites[conf.sprite];
 		} else {
-			return id;
+			return conf.sprite;
 		}
 	})();
 	if (!spr) {
-		throw new Error(`sprite not found: "${id}"`);
+		throw new Error(`sprite not found: "${conf.sprite}"`);
 	}
 	const q = spr.frames[conf.frame ?? 0];
 	if (!q) {
 		throw new Error(`frame not found: ${conf.frame ?? 0}`);
 	}
-	gfx.drawTexture(spr.tex, {
+	gfx.drawTexture({
 		...conf,
+		tex: spr.tex,
 		quad: q.scale(conf.quad || quad(0, 0, 1, 1)),
 	});
 }
 
-// TODO: DrawTextComf
-function drawText(
-	txt: string,
-	conf = {},
-) {
+// wrapper around gfx.drawText to integrate with font assets mananger / default font
+function drawText(conf: DrawTextConf) {
 	// @ts-ignore
 	const fid = conf.font ?? DEF_FONT;
 	const font = assets.fonts[fid];
 	if (!font) {
 		throw new Error(`font not found: ${fid}`);
 	}
-	gfx.drawText(txt, font, conf);
+	gfx.drawText({
+		...conf,
+		font: font,
+	});
 }
 
 const DEF_GRAVITY = 1600;
@@ -914,7 +916,9 @@ function drawInspect() {
 		const s = gfx.scale();
 		const pad = vec2(6).scale(1 / s);
 
-		const ftxt = gfx.fmtText(txt, font, {
+		const ftxt = gfx.fmtText({
+			text: txt,
+			font: font,
 			size: 16 / s,
 			pos: pos.add(vec2(pad.x, pad.y)),
 			color: rgb(0, 0, 0),
@@ -933,7 +937,10 @@ function drawInspect() {
 			gfx.pushTranslate(vec2(0, -bh));
 		}
 
-		gfx.drawRect(pos, bw, bh, {
+		gfx.drawRect({
+			pos: pos,
+			width: bw,
+			height: bh,
 			color: rgb(255, 255, 255),
 			stroke: {
 				width: 2 / s,
@@ -975,7 +982,10 @@ function drawInspect() {
 		const w = a.p2.x - a.p1.x;
 		const h = a.p2.y - a.p1.y;
 
-		gfx.drawRect(a.p1, w, h, {
+		gfx.drawRect({
+			pos: a.p1,
+			width: w,
+			height: h,
 			stroke: {
 				width: lwidth,
 				color: lcolor,
@@ -1607,7 +1617,8 @@ function sprite(id: string | SpriteData, conf: SpriteCompConf = {}): SpriteComp 
 		},
 
 		draw() {
-			drawSprite(spr, {
+			drawSprite({
+				sprite: spr,
 				pos: this.pos,
 				scale: this.scale,
 				angle: this.angle,
@@ -1766,7 +1777,9 @@ function text(t: string, conf: TextCompConf = {}): TextComp {
 			throw new Error(`font not found: "${font}"`);
 		}
 
-		const ftext = gfx.fmtText(this.text + "", font, {
+		const ftext = gfx.fmtText({
+			text: this.text + "",
+			font: font,
 			pos: this.pos,
 			scale: this.scale,
 			angle: this.angle,
@@ -1812,7 +1825,10 @@ function rect(w: number, h: number): RectComp {
 		width: w,
 		height: h,
 		draw() {
-			gfx.drawRect(this.pos, this.width, this.height, {
+			gfx.drawRect({
+				pos: this.pos,
+				width: this.width,
+				height: this.height,
 				scale: this.scale,
 				angle: this.angle,
 				color: this.color,
@@ -1840,7 +1856,10 @@ function outline(width: number = 1, color: Color = rgb(0, 0, 0)): OutlineComp {
 
 			if (this.width && this.height) {
 
-				gfx.drawRect(this.pos, this.width, this.height, {
+				gfx.drawRect({
+					pos: this.pos,
+					width: this.width,
+					height: this.height,
 					stroke: {
 						width: this.lineWidth,
 						color: this.lineColor,
@@ -1859,7 +1878,10 @@ function outline(width: number = 1, color: Color = rgb(0, 0, 0)): OutlineComp {
 				const w = a.p2.x - a.p1.x;
 				const h = a.p2.y - a.p1.y;
 
-				gfx.drawRect(a.p1, w, h, {
+				gfx.drawRect({
+					pos: a.p1,
+					width: w,
+					height: h,
 					stroke: {
 						width: width,
 						color: color,
@@ -2567,22 +2589,33 @@ app.run(() => {
 			game.loaded = true;
 			game.trigger("load");
 		} else {
+
 			const w = width() / 2;
 			const h = 24 / gfx.scale();
 			const pos = vec2(width() / 2, height() / 2).sub(vec2(w / 2, h / 2));
 
-			gfx.drawRect(vec2(0), width(), height(), {
+			gfx.drawRect({
+				pos: vec2(0),
+				width: width(),
+				height: height(),
 				color: rgb(0, 0, 0),
 			});
 
-			gfx.drawRect(pos, w, h, {
+			gfx.drawRect({
+				pos: pos,
+				width: w,
+				height: h,
 				fill: false,
 				stroke: {
 					width: 4 / gfx.scale(),
 				},
 			});
 
-			gfx.drawRect(pos, w * progress, h);
+			gfx.drawRect({
+				pos: pos,
+				width: w * progress,
+				height: h,
+			});
 
 		}
 
