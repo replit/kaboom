@@ -1821,7 +1821,7 @@ function rect(w: number, h: number): RectComp {
 			});
 		},
 		inspect() {
-			return `${Math.round(this.width)}, ${Math.round(this.height)}`;
+			return `${Math.ceil(this.width)}, ${Math.ceil(this.height)}`;
 		},
 	};
 }
