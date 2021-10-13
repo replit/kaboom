@@ -1834,6 +1834,7 @@ function rect(w: number, h: number): RectComp {
 				color: this.color,
 				opacity: this.opacity,
 				origin: this.origin,
+				outline: this.outline,
 				prog: assets.shaders[this.shader],
 				uniform: this.uniform,
 			});
@@ -1845,58 +1846,13 @@ function rect(w: number, h: number): RectComp {
 }
 
 function outline(width: number = 1, color: Color = rgb(0, 0, 0)): OutlineComp {
-
 	return {
-
 		id: "outline",
 		outline: {
 			width,
 			color,
 		},
-
-		draw() {
-
-			if (this.width && this.height) {
-
-				gfx.drawRect({
-					pos: this.pos,
-					width: this.width,
-					height: this.height,
-					outline: {
-						width: this.outline.width,
-						color: this.outline.color,
-					},
-					fill: false,
-					scale: this.scale,
-					opacity: this.opacity,
-					origin: this.origin,
-					prog: assets.shaders[this.shader],
-					uniform: this.uniform,
-				});
-
-			} else if (this.area) {
-
-				const a = this.worldArea();
-				const w = a.p2.x - a.p1.x;
-				const h = a.p2.y - a.p1.y;
-
-				gfx.drawRect({
-					pos: a.p1,
-					width: w,
-					height: h,
-					outline: {
-						width: width,
-						color: color,
-					},
-					opacity: this.opacity,
-				});
-
-			}
-
-		},
-
 	};
-
 }
 
 function timer(n?: number, action?: () => void): TimerComp {
