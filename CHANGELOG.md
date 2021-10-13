@@ -3,7 +3,7 @@
 - added `burp()` for easy burping
 - added decent typescript / autocomplete support and jsdocs
 - introducing new character "bean"
-![bean](sprites/bean.png)
+![bean](assets/sprites/bean.png)
 - added `loadBean()` to load `"bean"` as a default sprite
 - changed default font to [APL386](https://abrudz.github.io/APL386/), as `"apl386o"` (default outlined version) and `"apl386"`
 - included font [kitchen sink](https://polyducks.itch.io/kitchen-sink-textmode-font) as `"sinko"` (outlined version) and `"sink"` (standard version with extended characters for text-mode games)
