@@ -86,7 +86,11 @@ type Gfx = {
 		p1: Vec2,
 		p2: Vec2,
 		p3: Vec2,
-		conf?: DrawLineConf,
+		conf?: DrawTriConf,
+	),
+	drawPoly(
+		pts: Vec2[],
+		conf?: DrawPolyConf,
 	),
 	frameStart(),
 	frameEnd(),
@@ -760,41 +764,45 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 
 	}
 
-	function drawPolygon(
-		pts: Vec2[],
-		conf: DrawPolyConf = {},
-	) {
-		// TODO
-	}
-
-	// TODO: not drawing
 	function drawTri(
 		p1: Vec2,
 		p2: Vec2,
 		p3: Vec2,
 		conf: DrawTriConf = {},
 	) {
-		const color = conf.color || rgb();
-		drawRaw([
-			{
-				pos: vec3(p1.x, p1.y, 0),
+		return drawPoly([p1, p2, p3], conf);
+	}
+
+	function drawPoly(
+		pts: Vec2[],
+		conf: DrawPolyConf = {},
+	) {
+
+		const npts = pts.length;
+
+		if (npts < 3) {
+			throw new Error("Cannot draw a polygon with less than 3 points.");
+		}
+
+		if (conf.fill !== false) {
+
+			const color = conf.color ?? rgb();
+
+			const verts = pts.map((pt) => ({
+				pos: vec3(pt.x, pt.y, 0),
 				uv: vec2(0, 0),
 				color: color,
 				opacity: conf.opacity ?? 1,
-			},
-			{
-				pos: vec3(p2.x, p2.y, 0),
-				uv: vec2(0, 0),
-				color: color,
-				opacity: conf.opacity ?? 1,
-			},
-			{
-				pos: vec3(p3.x, p3.y, 0),
-				uv: vec2(0, 0),
-				color: color,
-				opacity: conf.opacity ?? 1,
-			},
-		], [0, 1, 2], gfx.defTex, conf.prog, conf.uniform);
+			}));
+
+			const indices = [...Array(npts - 2).keys()]
+				.map((n) => [0, n + 1, n + 2])
+				.flat();
+
+			drawRaw(verts, indices, gfx.defTex, conf.prog, conf.uniform);
+
+		}
+
 	}
 
 	// format text and return a list of chars with their calculated position
@@ -1004,6 +1012,7 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 		drawRect,
 		drawLine,
 		drawTri,
+		drawPoly,
 		fmtText,
 		frameStart,
 		frameEnd,

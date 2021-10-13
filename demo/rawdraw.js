@@ -13,7 +13,7 @@ render(() => {
 	});
 
 	pushTransform();
-	pushTranslate(mousePos());
+	pushTranslate(vec2(20, 400));
 	pushRotate(time() * 100);
 	pushScale(vec2(3));
 
@@ -50,8 +50,10 @@ render(() => {
 	const pt = testLineLine(l1, l2);
 
 	if (pt) {
-		drawRect(pt, 12, 12, {
+		drawRect(12, 12, {
+			pos: pt,
 			origin: "center",
+			color: rgb(255, 255, 0),
 		});
 	}
 

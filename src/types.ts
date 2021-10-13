@@ -1360,6 +1360,7 @@ interface KaboomCtx {
 	drawRect(w: number, h: number, conf?: DrawRectConf): void,
 	drawLine(p1: Vec2, p2: Vec2, conf?: DrawLineConf): void,
 	drawTri(p1: Vec2, p2: Vec2, p3: Vec2, conf?: DrawTriConf): void,
+	drawPoly(pts: Vec2[], conf?: DrawPolyConf): void,
 	pushTransform(): void,
 	popTransform(): void,
 	pushTranslate(p: Vec2): void,
@@ -1844,6 +1845,11 @@ type DrawLineConf = Omit<RenderProps, "angle" | "scale" | "origin"> & {
 }
 
 type DrawTriConf = RenderProps & {
+	stroke?: Stroke,
+	fill?: boolean,
+}
+
+type DrawPolyConf = RenderProps & {
 	stroke?: Stroke,
 	fill?: boolean,
 }
