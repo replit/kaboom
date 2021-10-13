@@ -732,11 +732,11 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 			}
 
 			// TODO: rotation
-			if (conf.stroke) {
+			if (conf.outline) {
 
 				const lconf = {
-					width: conf.stroke.width,
-					color: conf.stroke.color,
+					width: conf.outline.width,
+					color: conf.outline.color,
 				};
 
 				if (conf.scale) {
@@ -813,13 +813,13 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 			throw new Error("Cannot draw a polygon with less than 3 points.");
 		}
 
-		if (conf.stroke) {
+		if (conf.outline) {
 			for (let i = 0; i < npts; i++) {
 				const p1 = conf.pts[i];
 				const p2 = conf.pts[(i + 1) % npts];
 				const lconf = {
-					width: conf.stroke.width,
-					color: conf.stroke.color,
+					width: conf.outline.width,
+					color: conf.outline.color,
 				};
 				drawLine({ p1, p2, ...lconf });
 			}

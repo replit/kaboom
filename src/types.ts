@@ -1894,7 +1894,7 @@ type DrawTextureConf = RenderProps & {
 type DrawRectConf = RenderProps & {
 	width: number,
 	height: number,
-	stroke?: Stroke,
+	outline?: Outline,
 	fill?: boolean,
 	radius?: number,
 	origin?: Origin | Vec2,
@@ -1910,25 +1910,25 @@ type DrawTriConf = RenderProps & {
 	p1: Vec2,
 	p2: Vec2,
 	p3: Vec2,
-	stroke?: Stroke,
+	outline?: Outline,
 	fill?: boolean,
 }
 
 type DrawCircleConf = RenderProps & {
 	radius: number,
-	stroke?: Stroke,
+	outline?: Outline,
 	fill?: boolean,
 	resolution?: number,
 }
 
 type DrawPolyConf = RenderProps & {
 	pts: Vec2[],
-	stroke?: Stroke,
+	outline?: Outline,
 	fill?: boolean,
 	indices?: number[],
 }
 
-interface Stroke {
+interface Outline {
 	width?: number,
 	color?: Color,
 }

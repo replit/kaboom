@@ -59,7 +59,9 @@ function loggerInit(gfx: Gfx, assets: Assets, conf: LoggerConf = {
 				}
 			})();
 
-			const ftext = gfx.fmtText(log.msg, assets.fonts["sink"], {
+			const ftext = gfx.fmtText({
+				text: log.msg,
+				font: assets.fonts["sink"],
 				pos: pos,
 				origin: "botleft",
 				color: col,
@@ -68,7 +70,10 @@ function loggerInit(gfx: Gfx, assets: Assets, conf: LoggerConf = {
 				opacity: txtAlpha,
 			});
 
-			gfx.drawRect(pos, ftext.width, ftext.height, {
+			gfx.drawRect({
+				pos: pos,
+				width: ftext.width,
+				height: ftext.height,
 				origin: "botleft",
 				color: rgb(0, 0, 0),
 				opacity: bgAlpha,

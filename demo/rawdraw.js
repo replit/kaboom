@@ -23,7 +23,7 @@ render(() => {
 		height: 80,
 		origin: "center",
 		radius: 10,
-		stroke: {
+		outline: {
 			width: 2,
 			color: rgb(0, 0, 255),
 		},

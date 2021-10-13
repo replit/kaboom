@@ -942,7 +942,7 @@ function drawInspect() {
 			width: bw,
 			height: bh,
 			color: rgb(255, 255, 255),
-			stroke: {
+			outline: {
 				width: 2 / s,
 				color: rgb(0, 0, 0),
 			},
@@ -986,7 +986,7 @@ function drawInspect() {
 			pos: a.p1,
 			width: w,
 			height: h,
-			stroke: {
+			outline: {
 				width: lwidth,
 				color: lcolor,
 			},
@@ -1860,7 +1860,7 @@ function outline(width: number = 1, color: Color = rgb(0, 0, 0)): OutlineComp {
 					pos: this.pos,
 					width: this.width,
 					height: this.height,
-					stroke: {
+					outline: {
 						width: this.lineWidth,
 						color: this.lineColor,
 					},
@@ -1882,7 +1882,7 @@ function outline(width: number = 1, color: Color = rgb(0, 0, 0)): OutlineComp {
 					pos: a.p1,
 					width: w,
 					height: h,
-					stroke: {
+					outline: {
 						width: width,
 						color: color,
 					},
@@ -2606,7 +2606,7 @@ app.run(() => {
 				width: w,
 				height: h,
 				fill: false,
-				stroke: {
+				outline: {
 					width: 4 / gfx.scale(),
 				},
 			});
