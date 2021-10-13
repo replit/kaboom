@@ -1172,7 +1172,7 @@ function pos(...args): PosComp {
 		},
 
 		inspect() {
-			return `(${~~this.pos.x}, ${~~this.pos.y})`;
+			return `(${Math.round(this.pos.x)}, ${Math.round(this.pos.y)})`;
 		},
 
 	};
@@ -1821,7 +1821,7 @@ function rect(w: number, h: number): RectComp {
 			});
 		},
 		inspect() {
-			return `${this.width}, ${this.height}`;
+			return `${Math.ceil(this.width)}, ${Math.ceil(this.height)}`;
 		},
 	};
 }
