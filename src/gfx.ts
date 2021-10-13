@@ -789,18 +789,24 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 		}
 
 		const w = conf.width || 1;
-		const h = p1.dist(p2);
-		const angle = p1.angle(p2) - 90;
-		const pos = conf.pos ?? vec2(0);
 
-		drawQuad({
-			...conf,
-			pos: pos.add(p1.add(p2).scale(0.5)),
-			width: w,
-			height: h,
-			angle: angle,
-			origin: "center",
-		});
+		// the displacement from the line end point to the corner point
+		const dis = p2.sub(p1).unit().normal().scale(w * 0.5);
+
+		// calculate the 4 corner points of the line polygon
+		const verts = [
+			p1.sub(dis),
+			p1.add(dis),
+			p2.add(dis),
+			p2.sub(dis),
+		].map((p) => ({
+			pos: vec3(p.x, p.y, 0),
+			uv: vec2(0),
+			color: conf.color ?? rgb(),
+			opacity: conf.opacity ?? 1,
+		}));
+
+		drawRaw(verts, [0, 1, 3, 1, 2, 3], gfx.defTex, conf.prog, conf.uniform);
 
 	}
 
