@@ -4,6 +4,7 @@ import {
 	quad,
 	rgb,
 	mat4,
+	dir,
 	isVec2,
 	isVec3,
 	isColor,
@@ -87,6 +88,11 @@ type Gfx = {
 		p2: Vec2,
 		p3: Vec2,
 		conf?: DrawTriConf,
+	),
+	drawCircle(
+		pos: Vec2,
+		radius: number,
+		conf?: DrawCircleConf,
 	),
 	drawPoly(
 		pts: Vec2[],
@@ -773,6 +779,20 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 		return drawPoly([p1, p2, p3], conf);
 	}
 
+	function drawCircle(
+		pos: Vec2,
+		radius: number,
+		conf: DrawCircleConf = {},
+	) {
+		const nsegs = Math.max(radius / 4 * (conf.resolution ?? 1), 16);
+		const pts = [];
+		for (let i = 0; i < nsegs; i++) {
+			const angle = 360 / nsegs * i;
+			pts.push(pos.add(dir(angle).scale(radius)));
+		}
+		return drawPoly(pts, conf);
+	}
+
 	function drawPoly(
 		pts: Vec2[],
 		conf: DrawPolyConf = {},
@@ -1012,6 +1032,7 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 		drawRect,
 		drawLine,
 		drawTri,
+		drawCircle,
 		drawPoly,
 		fmtText,
 		frameStart,

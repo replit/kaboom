@@ -50,8 +50,7 @@ render(() => {
 	const pt = testLineLine(l1, l2);
 
 	if (pt) {
-		drawRect(12, 12, {
-			pos: pt,
+		drawCircle(pt, 24, {
 			origin: "center",
 			color: rgb(255, 255, 0),
 		});

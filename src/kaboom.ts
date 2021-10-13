@@ -2509,6 +2509,7 @@ const ctx: KaboomCtx = {
 	drawRect: gfx.drawRect,
 	drawLine: gfx.drawLine,
 	drawTri: gfx.drawTri,
+	drawCircle: gfx.drawCircle,
 	drawPoly: gfx.drawPoly,
 	pushTransform: gfx.pushTransform,
 	popTransform: gfx.popTransform,
