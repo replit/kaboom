@@ -13,12 +13,13 @@ render(() => {
 	});
 
 	pushTransform();
-	pushTranslate(vec2(20, 400));
-	pushRotate(time() * 100);
+	pushTranslate(vec2(20, 300));
+// 	pushRotate(time() * 100);
 	pushScale(vec2(3));
 
-	drawRect(vec2(0), 40, 100, {
+	drawRect(vec2(0), 40, 80, {
 		origin: "center",
+		radius: 10,
 		stroke: {
 			width: 4,
 			color: rgb(0, 0, 255),

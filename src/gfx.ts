@@ -540,7 +540,6 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 		);
 	}
 
-	// TODO: don't use push as prefix for these
 	function applyMatrix(m: Mat4) {
 		gfx.transform = m.clone();
 	}
@@ -715,9 +714,8 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 		const nsegs = Math.max(radius / 4 * (res ?? 1), 16);
 		const step = 360 / nsegs;
 		const pts = [];
-		for (let i = 0; i < nsegs; i++) {
-			const angle = step * i;
-			pts.push(pos.add(dir(angle).scale(radius)));
+		for (let a = a1; a <= a2; a += step) {
+			pts.push(pos.add(dir(a).scale(radius)));
 		}
 		return pts;
 	}
@@ -729,42 +727,60 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 		conf: DrawRectConf = {}
 	) {
 
-		if (conf.fill !== false) {
-			if (conf.radius) {
-				// TODO
+		if (conf.radius) {
+			const r = Math.min(Math.min(w, h), conf.radius);
+			const pts = [
+				vec2(r, 0),
+				vec2(w - r, 0),
+				...getArcPts(vec2(w - r, r), r, 270, 360),
+				vec2(w, r),
+				vec2(w, h - r),
+				...getArcPts(vec2(w - r, h - r), r, 0, 90),
+				vec2(w - r, h),
+				vec2(r, h),
+				...getArcPts(vec2(r, h - r), r, 90, 180),
+				vec2(0, h - r),
+				vec2(0, r),
+				...getArcPts(vec2(r, r), r, 180, 270),
+			];
+			drawPoly(pts, conf);
+		} else {
+
+			if (conf.fill !== false) {
+				drawQuad({
+					...conf,
+					pos: pos,
+					width: w,
+					height: h,
+				});
 			}
-			drawQuad({
-				...conf,
-				pos: pos,
-				width: w,
-				height: h,
-			});
-		}
 
-		// TODO: rotation
-		if (conf.stroke) {
+			// TODO: rotation
+			if (conf.stroke) {
 
-			const lconf = {
-				width: conf.stroke.width,
-				color: conf.stroke.color,
-			};
+				const lconf = {
+					width: conf.stroke.width,
+					color: conf.stroke.color,
+				};
 
-			if (conf.scale) {
-				const scale = vec2(conf.scale);
-				w = w * scale.x;
-				h = h * scale.y;
+				if (conf.scale) {
+					const scale = vec2(conf.scale);
+					w = w * scale.x;
+					h = h * scale.y;
+				}
+
+				const offset = originPt(conf.origin || DEF_ORIGIN).scale(vec2(w, h)).scale(0.5);
+				const p1 = pos.add(vec2(-w / 2, -h / 2)).sub(offset);
+				const p2 = pos.add(vec2(-w / 2,  h / 2)).sub(offset);
+				const p3 = pos.add(vec2( w / 2,  h / 2)).sub(offset);
+				const p4 = pos.add(vec2( w / 2, -h / 2)).sub(offset);
+
+				drawLine(p1, p2, lconf);
+				drawLine(p2, p3, lconf);
+				drawLine(p3, p4, lconf);
+				drawLine(p4, p1, lconf);
+
 			}
-
-			const offset = originPt(conf.origin || DEF_ORIGIN).scale(vec2(w, h)).scale(0.5);
-			const p1 = pos.add(vec2(-w / 2, -h / 2)).sub(offset);
-			const p2 = pos.add(vec2(-w / 2,  h / 2)).sub(offset);
-			const p3 = pos.add(vec2( w / 2,  h / 2)).sub(offset);
-			const p4 = pos.add(vec2( w / 2, -h / 2)).sub(offset);
-
-			drawLine(p1, p2, lconf);
-			drawLine(p2, p3, lconf);
-			drawLine(p3, p4, lconf);
-			drawLine(p4, p1, lconf);
 
 		}
 
@@ -806,14 +822,7 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 		radius: number,
 		conf: DrawCircleConf = {},
 	) {
-		const nsegs = Math.max(radius / 4 * (conf.resolution ?? 1), 16);
-		const step = 360 / nsegs;
-		const pts = [];
-		for (let i = 0; i < nsegs; i++) {
-			const angle = step * i;
-			pts.push(pos.add(dir(angle).scale(radius)));
-		}
-		return drawPoly(pts, conf);
+		drawPoly(getArcPts(pos, radius, 0, 360), conf);
 	}
 
 	function drawPoly(
@@ -825,6 +834,18 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 
 		if (npts < 3) {
 			throw new Error("Cannot draw a polygon with less than 3 points.");
+		}
+
+		if (conf.stroke) {
+			for (let i = 0; i < npts; i++) {
+				const p1 = pts[i];
+				const p2 = pts[(i + 1) % npts];
+				const lconf = {
+					width: conf.stroke.width,
+					color: conf.stroke.color,
+				};
+				drawLine(p1, p2, lconf);
+			}
 		}
 
 		if (conf.fill !== false) {
