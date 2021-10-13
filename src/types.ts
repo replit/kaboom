@@ -1355,18 +1355,59 @@ interface KaboomCtx {
 	 * @section Render
 	 */
 	drawSprite(id: string | SpriteData, conf?: DrawSpriteConf): void,
-	// TODO: conf type
+	/**
+	 * Draw a piece of text.
+	 */
 	drawText(txt: string, conf?: {}): void,
+	/**
+	 * Draw a rectangle.
+	 */
 	drawRect(pos: Vec2, w: number, h: number, conf?: DrawRectConf): void,
+	/**
+	 * Draw a line.
+	 */
 	drawLine(p1: Vec2, p2: Vec2, conf?: DrawLineConf): void,
+	/**
+	 * Draw a triangle.
+	 */
 	drawTri(p1: Vec2, p2: Vec2, p3: Vec2, conf?: DrawTriConf): void,
+	/**
+	 * Draw a circle.
+	 */
 	drawCircle(pos: Vec2, radius: number, conf?: DrawCircleConf): void,
+	/**
+	 * Draw a convex polygon from a list of vertices.
+	 */
 	drawPoly(pts: Vec2[], conf?: DrawPolyConf): void,
+	/**
+	 * Push current transform matrix to the transform stack.
+	 *
+	 * @example
+	 * ```js
+	 * pushTransform();
+	 * pushTranslate(120, 200);
+	 * pushRotate(time() * 120);
+	 * pushScale(6);
+	 *
+	 * // the transformation above will affect every render until popTransform()
+	 * drawSprite("froggy");
+	 * drawCircle(vec2(0), 120);
+	 *
+	 * // remember to pop so it won't affect following renders
+	 * popTransform();
+	 * ```
+	 */
 	pushTransform(): void,
+	/**
+	 * Pop the topmost transform matrix from the transform stack.
+	 */
 	popTransform(): void,
+	pushTranslate(x: number, y: number): void,
 	pushTranslate(p: Vec2): void,
-	pushRotate(angle: number): void,
+	pushScale(x: number, y: number): void,
+	pushScale(s: number): void,
 	pushScale(s: Vec2): void,
+	pushRotate(angle: number): void,
 	/**
 	 * Import a plugin.
 	 */
@@ -1839,6 +1880,7 @@ type DrawTextureConf = RenderProps & {
 type DrawRectConf = RenderProps & {
 	stroke?: Stroke,
 	fill?: boolean,
+	radius?: number,
 }
 
 type DrawLineConf = Omit<RenderProps, "angle" | "scale" | "origin"> & {

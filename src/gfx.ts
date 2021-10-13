@@ -545,15 +545,17 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 		gfx.transform = m.clone();
 	}
 
-	function pushTranslate(p: Vec2) {
-		if (!p || (p.x === 0 && p.y === 0)) {
+	function pushTranslate(...args) {
+		const p = vec2(...args);
+		if (p.x === 0 && p.y === 0) {
 			return;
 		}
 		gfx.transform = gfx.transform.translate(p);
 	}
 
-	function pushScale(p: Vec2) {
-		if (!p || (p.x === 1 && p.y === 1)) {
+	function pushScale(...args) {
+		const p = vec2(...args);
+		if (p.x === 1 && p.y === 1) {
 			return;
 		}
 		gfx.transform = gfx.transform.scale(p);
@@ -703,6 +705,23 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 
 	}
 
+	function getArcPts(
+		pos: Vec2,
+		radius: number,
+		a1: number,
+		a2: number,
+		res: number = 1
+	): Vec2[] {
+		const nsegs = Math.max(radius / 4 * (res ?? 1), 16);
+		const step = 360 / nsegs;
+		const pts = [];
+		for (let i = 0; i < nsegs; i++) {
+			const angle = step * i;
+			pts.push(pos.add(dir(angle).scale(radius)));
+		}
+		return pts;
+	}
+
 	function drawRect(
 		pos: Vec2,
 		w: number,
@@ -711,6 +730,9 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 	) {
 
 		if (conf.fill !== false) {
+			if (conf.radius) {
+				// TODO
+			}
 			drawQuad({
 				...conf,
 				pos: pos,
@@ -785,9 +807,10 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 		conf: DrawCircleConf = {},
 	) {
 		const nsegs = Math.max(radius / 4 * (conf.resolution ?? 1), 16);
+		const step = 360 / nsegs;
 		const pts = [];
 		for (let i = 0; i < nsegs; i++) {
-			const angle = 360 / nsegs * i;
+			const angle = step * i;
 			pts.push(pos.add(dir(angle).scale(radius)));
 		}
 		return drawPoly(pts, conf);
