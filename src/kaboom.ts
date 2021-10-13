@@ -1172,7 +1172,7 @@ function pos(...args): PosComp {
 		},
 
 		inspect() {
-			return `(${~~this.pos.x}, ${~~this.pos.y})`;
+			return `(${Math.round(this.pos.x)}, ${Math.round(this.pos.y)})`;
 		},
 
 	};
@@ -1821,7 +1821,7 @@ function rect(w: number, h: number): RectComp {
 			});
 		},
 		inspect() {
-			return `${this.width}, ${this.height}`;
+			return `${Math.ceil(this.width)}, ${Math.ceil(this.height)}`;
 		},
 	};
 }
@@ -2297,9 +2297,9 @@ function addLevel(map: string[], conf: LevelConf): Level {
 					if (typeof conf[sym] !== "function") {
 						throw new Error("level symbol def must be a function returning a component list");
 					}
-					return conf[sym]();
+					return conf[sym](p);
 				} else if (conf.any) {
-					return conf.any(sym);
+					return conf.any(sym, p);
 				}
 			})();
 
