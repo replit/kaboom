@@ -1869,6 +1869,9 @@ interface GfxTexConf {
 	wrap?: TexWrap,
 }
 
+/**
+ * Common render properties.
+ */
 interface RenderProps {
 	pos?: Vec2,
 	scale?: Vec2 | number,
@@ -1879,7 +1882,13 @@ interface RenderProps {
 	uniform?: Uniform,
 }
 
+/**
+ * How the sprite should look like.
+ */
 type DrawSpriteConf = RenderProps & {
+	/**
+	 * The sprite name in the asset manager, or the raw sprite data.
+	 */
 	sprite: string | SpriteData,
 	frame?: number,
 	width?: number,
@@ -1891,17 +1900,9 @@ type DrawSpriteConf = RenderProps & {
 	origin?: Origin | Vec2,
 }
 
-type DrawTextureConf = RenderProps & {
-	tex: GfxTexture,
-	width?: number,
-	height?: number,
-	tiled?: boolean,
-	flipX?: boolean,
-	flipY?: boolean,
-	quad?: Quad,
-	origin?: Origin | Vec2,
-}
-
+/**
+ * How the rectangle should look like.
+ */
 type DrawRectConf = RenderProps & {
 	width: number,
 	height: number,
@@ -1911,45 +1912,99 @@ type DrawRectConf = RenderProps & {
 	origin?: Origin | Vec2,
 }
 
+/**
+ * How the line should look like.
+ */
 type DrawLineConf = Omit<RenderProps, "angle" | "scale"> & {
+	/**
+	 * Starting point of the line.
+	 */
 	p1: Vec2,
+	/**
+	 * Ending point of the line.
+	 */
 	p2: Vec2,
 	width?: number,
 }
 
+/**
+ * How the lines should look like.
+ */
 type DrawLinesConf = Omit<RenderProps, "angle" | "scale"> & {
+	/**
+	 * The points that should be connected with a line.
+	 */
 	pts: Vec2[],
 	width?: number,
+	radius?: number,
 }
 
+/**
+ * How the triangle should look like.
+ */
 type DrawTriConf = RenderProps & {
+	/**
+	 * First point of triangle.
+	 */
 	p1: Vec2,
+	/**
+	 * Second point of triangle.
+	 */
 	p2: Vec2,
+	/**
+	 * Third point of triangle.
+	 */
 	p3: Vec2,
 	outline?: Outline,
 	fill?: boolean,
+	radius?: number,
 }
 
+/**
+ * How the circle should look like.
+ */
 type DrawCircleConf = Omit<RenderProps, "angle"> & {
 	radius: number,
 	outline?: Outline,
 	fill?: boolean,
 	resolution?: number,
+	origin?: Origin | Vec2,
+	start?: number,
+	end?: number,
 }
 
+/**
+ * How the ellipse should look like.
+ */
 type DrawEllipseConf = RenderProps & {
+	/**
+	 * The horizontal radius.
+	 */
 	radiusX: number,
+	/**
+	 * The vertical radius.
+	 */
 	radiusY: number,
 	outline?: Outline,
 	fill?: boolean,
 	resolution?: number,
 }
 
+/**
+ * How the polygon should look like.
+ */
 type DrawPolyConf = RenderProps & {
+	/**
+	 * The points that make up the polygon
+	 */
 	pts: Vec2[],
 	outline?: Outline,
 	fill?: boolean,
+	/**
+	 * Optionally provide manual triangulation.
+	 */
 	indices?: number[],
+	radius?: number,
 }
 
 interface Outline {
@@ -1957,6 +2012,9 @@ interface Outline {
 	color?: Color,
 }
 
+/**
+ * How the text should look like.
+ */
 type DrawTextConf = RenderProps & {
 	text: string,
 	font?: string,
@@ -1965,6 +2023,9 @@ type DrawTextConf = RenderProps & {
 	origin?: Origin | Vec2,
 }
 
+/**
+ * One formated character.
+ */
 interface FormattedChar {
 	tex: GfxTexture,
 	quad: Quad,
@@ -1976,6 +2037,9 @@ interface FormattedChar {
 	origin: string,
 }
 
+/**
+ * Formatted text with info on how and where to render each character.
+ */
 interface FormattedText {
 	width: number,
 	height: number,

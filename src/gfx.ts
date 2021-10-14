@@ -55,6 +55,17 @@ type DrawQuadConf = RenderProps & {
 	origin?: Origin | Vec2,
 }
 
+type DrawTextureConf = RenderProps & {
+	tex: GfxTexture,
+	width?: number,
+	height?: number,
+	tiled?: boolean,
+	flipX?: boolean,
+	flipY?: boolean,
+	quad?: Quad,
+	origin?: Origin | Vec2,
+}
+
 // TODO: name
 type DrawTextConf2 = RenderProps & {
 	text: string,
@@ -702,14 +713,14 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 	function getArcPts(
 		pos: Vec2,
 		radius: number,
-		a1: number,
-		a2: number,
+		start: number,
+		end: number,
 		res: number = 1
 	): Vec2[] {
 		const nsegs = Math.max(radius / 4 * (res ?? 1), 16);
 		const step = 360 / nsegs;
 		const pts = [];
-		for (let a = a1; a <= a2; a += step) {
+		for (let a = start; a <= end; a += step) {
 			pts.push(pos.add(dir(a).scale(radius)));
 		}
 		return pts;
@@ -749,7 +760,7 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 				...getArcPts(vec2(r, r), r, 180, 270),
 			];
 
-			drawPoly({ pts, ...conf });
+			drawPoly({ ...conf, pts });
 
 		} else {
 
@@ -821,16 +832,54 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 	}
 
 	function drawLines(conf: DrawLinesConf) {
-		if (!conf.pts) {
+
+		const pts = conf.pts;
+
+		if (!pts) {
 			throw new Error("drawLines() requires property \"pts\".");
 		}
-		for (let i = 0; i < conf.pts.length - 1; i++) {
-			drawLine({
-				p1: conf.pts[i],
-				p2: conf.pts[i + 1],
-				...conf,
-			});
+
+		if (pts.length < 2) {
+			throw new Error("drawLines() requires at least 2 points.");
 		}
+
+		if (conf.radius && pts.length >= 3) {
+
+			// TODO: rounded vertices for arbitury polygonic shape
+			let minLen = pts[0].dist(pts[1]);
+
+			for (let i = 1; i < pts.length - 1; i++) {
+				minLen = Math.min(pts[i].dist(pts[i + 1]), minLen);
+			}
+
+			const radius = Math.min(conf.radius, minLen / 2);
+
+			drawLine({ ...conf, p1: pts[0], p2: pts[1], });
+
+			for (let i = 1; i < pts.length - 2; i++) {
+				const p1 = pts[i];
+				const p2 = pts[i + 1];
+				drawLine({
+					...conf,
+					p1: p1,
+					p2: p2,
+				});
+			}
+
+			drawLine({ ...conf, p1: pts[pts.length - 2], p2: pts[pts.length - 1], });
+
+		} else {
+
+			for (let i = 0; i < pts.length - 1; i++) {
+				drawLine({
+					...conf,
+					p1: pts[i],
+					p2: pts[i + 1],
+				});
+			}
+
+		}
+
 	}
 
 	function drawTri(conf: DrawTriConf) {
@@ -838,18 +887,20 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 			throw new Error("drawPoly() requires properties \"p1\", \"p2\" and \"p3\".");
 		}
 		return drawPoly({
-			pts: [conf.p1, conf.p2, conf.p3],
 			...conf,
+			pts: [conf.p1, conf.p2, conf.p3],
 		});
 	}
 
+	// TODO: origin
 	function drawCircle(conf: DrawCircleConf) {
 		if (!conf.radius) {
 			throw new Error("drawCircle() requires property \"radius\".");
 		}
 		drawPoly({
-			pts: getArcPts(conf.pos ?? vec2(0), conf.radius, 0, 360, conf.resolution),
 			...conf,
+			pts: getArcPts(conf.pos ?? vec2(0), conf.radius, 0, 360, conf.resolution),
+			radius: 0,
 		});
 	}
 
@@ -888,15 +939,7 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 		const npts = conf.pts.length;
 
 		if (npts < 3) {
-			throw new Error("Cannot draw a polygon with less than 3 points.");
-		}
-
-		if (conf.outline) {
-			drawLines({
-				pts: [ ...conf.pts, conf.pts[0] ],
-				width: conf.outline.width,
-				color: conf.outline.color,
-			});
+			throw new Error("drawPoly() requires at least 3 points.");
 		}
 
 		if (conf.fill !== false) {
@@ -916,6 +959,15 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 
 			drawRaw(verts, conf.indices ?? indices, gfx.defTex, conf.prog, conf.uniform);
 
+		}
+
+		if (conf.outline) {
+			drawLines({
+				pts: [ ...conf.pts, conf.pts[0] ],
+				radius: conf.radius,
+				width: conf.outline.width,
+				color: conf.outline.color,
+			});
 		}
 
 	}

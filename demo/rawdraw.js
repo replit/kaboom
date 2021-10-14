@@ -76,7 +76,11 @@ render(() => {
 		p1: vec2(480, 120),
 		p2: vec2(200, 240),
 		p3: mousePos(),
-		color: rgb(128, 128, 255)
+		color: rgb(128, 128, 255),
+		outline: {
+			width: 4,
+			color: rgb(0, 0, 255),
+		},
 	});
 
 	drawRect({
@@ -86,15 +90,20 @@ render(() => {
 		origin: "center",
 		fill: false,
 		outline: {
-			width: 2,
+			width: 4,
 			color: rgb(0, 0, 255),
 		},
 	});
 
+	// TODO: this outline looks awful
 	drawEllipse({
 		radiusX: 50,
 		radiusY: 120,
 		pos: vec2(400),
+		outline: {
+			width: 4,
+			color: rgb(0, 0, 255),
+		},
 	});
 
 });
