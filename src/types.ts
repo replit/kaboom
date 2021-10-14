@@ -1965,13 +1965,22 @@ type DrawTriConf = RenderProps & {
  * How the circle should look like.
  */
 type DrawCircleConf = Omit<RenderProps, "angle"> & {
+	/**
+	 * Radius of the circle.
+	 */
 	radius: number,
+	/**
+	 * Starting angle.
+	 */
+	start?: number,
+	/**
+	 * Ending angle.
+	 */
+	end?: number,
 	outline?: Outline,
 	fill?: boolean,
 	resolution?: number,
 	origin?: Origin | Vec2,
-	start?: number,
-	end?: number,
 }
 
 /**
@@ -1986,6 +1995,14 @@ type DrawEllipseConf = RenderProps & {
 	 * The vertical radius.
 	 */
 	radiusY: number,
+	/**
+	 * Starting angle.
+	 */
+	start?: number,
+	/**
+	 * Ending angle.
+	 */
+	end?: number,
 	outline?: Outline,
 	fill?: boolean,
 	resolution?: number,

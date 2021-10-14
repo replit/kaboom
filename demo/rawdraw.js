@@ -99,6 +99,8 @@ render(() => {
 		radiusX: 50,
 		radiusY: 120,
 		pos: vec2(400),
+		start: 0,
+		end: 180,
 		outline: {
 			width: 4,
 			color: rgb(0, 0, 255),

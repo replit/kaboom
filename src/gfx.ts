@@ -712,7 +712,7 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 
 	}
 
-	// TODO: support ellipse
+	// TODO: clearer resolution calculation
 	function getArcPts(
 		pos: Vec2,
 		radiusX: number,
@@ -721,8 +721,8 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 		end: number,
 		res: number = 1
 	): Vec2[] {
-		const nsegs = Math.max((radiusX + radiusY) / 2 / 4 * (res ?? 1), 16);
-		const step = 360 / nsegs;
+		const nsegs = Math.max((radiusX + radiusY) / 2 / 4 * (res ?? 1), 16) * (end - start) / 360;
+		const step = (end - start) / ~~nsegs;
 		const pts = [];
 		for (let a = start; a <= end; a += step) {
 			const x = radiusX * Math.cos(deg2rad(a));
@@ -933,8 +933,8 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 				conf.pos ?? vec2(0),
 				conf.radiusX,
 				conf.radiusY,
-				0,
-				360,
+				conf.start ?? 0,
+				conf.end ?? 360,
 				conf.resolution
 			),
 			radius: 0,
