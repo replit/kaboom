@@ -1389,6 +1389,10 @@ interface KaboomCtx {
 	 */
 	drawCircle(conf: DrawCircleConf): void,
 	/**
+	 * Draw an ellipse.
+	 */
+	drawEllipse(conf: DrawEllipseConf): void,
+	/**
 	 * Draw a convex polygon from a list of vertices.
 	 */
 	drawPoly(conf: DrawPolyConf): void,
@@ -1871,16 +1875,6 @@ interface RenderProps {
 	uniform?: Uniform,
 }
 
-type DrawQuadConf = RenderProps & {
-	flipX?: boolean,
-	flipY?: boolean,
-	width?: number,
-	height?: number,
-	tex?: GfxTexture,
-	quad?: Quad,
-	origin?: Origin | Vec2,
-}
-
 type DrawSpriteConf = RenderProps & {
 	sprite: string | SpriteData,
 	frame?: number,
@@ -1927,7 +1921,7 @@ type DrawTriConf = RenderProps & {
 	fill?: boolean,
 }
 
-type DrawCircleConf = RenderProps & {
+type DrawCircleConf = Omit<RenderProps, "angle"> & {
 	radius: number,
 	outline?: Outline,
 	fill?: boolean,
@@ -1935,8 +1929,8 @@ type DrawCircleConf = RenderProps & {
 }
 
 type DrawEllipseConf = RenderProps & {
-	width: number,
-	height: number,
+	radiusX: number,
+	radiusY: number,
 	outline?: Outline,
 	fill?: boolean,
 	resolution?: number,

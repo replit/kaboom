@@ -45,6 +45,16 @@ type GfxConf = {
     letterbox?: boolean,
 };
 
+type DrawQuadConf = RenderProps & {
+	flipX?: boolean,
+	flipY?: boolean,
+	width?: number,
+	height?: number,
+	tex?: GfxTexture,
+	quad?: Quad,
+	origin?: Origin | Vec2,
+}
+
 // TODO: name
 type DrawTextConf2 = RenderProps & {
 	text: string,
@@ -74,6 +84,7 @@ type Gfx = {
 	drawLine(conf: DrawLineConf),
 	drawTri(conf: DrawTriConf),
 	drawCircle(conf: DrawCircleConf),
+	drawEllipse(conf: DrawEllipseConf),
 	drawPoly(conf: DrawPolyConf),
 	fmtText(conf: DrawTextConf2): FormattedText,
 	frameStart(),
@@ -831,11 +842,31 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 	}
 
 	function drawEllipse(conf: DrawEllipseConf) {
-		if (conf.width === undefined || conf.height === undefined) {
-			throw new Error("drawCircle() requires property \"radius\".");
+
+		if (conf.radiusX === undefined || conf.radiusY === undefined) {
+			throw new Error("drawEllipse() requires properties \"radiusX\" and \"radiusY\".");
 		}
+
+		if (conf.radiusX === 0 || conf.radiusY === 0) {
+			return;
+		}
+
+		// TODO: generate real ellipse vertices
+		pushTransform();
+		pushTranslate(conf.pos);
+		pushScale(1, conf.radiusY / conf.radiusX);
+
+		drawCircle({
+			...conf,
+			radius: conf.radiusX,
+			pos: vec2(0),
+		});
+
+		popTransform();
+
 	}
 
+	// TODO: scale, pos, rotate
 	function drawPoly(conf: DrawPolyConf) {
 
 		if (!conf.pts) {
@@ -1093,6 +1124,7 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 		drawLine,
 		drawTri,
 		drawCircle,
+		drawEllipse,
 		drawPoly,
 		fmtText,
 		frameStart,

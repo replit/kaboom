@@ -79,4 +79,22 @@ render(() => {
 		color: rgb(128, 128, 255)
 	});
 
+	drawRect({
+		width: 100,
+		height: 240,
+		pos: vec2(400),
+		origin: "center",
+		fill: false,
+		outline: {
+			width: 2,
+			color: rgb(0, 0, 255),
+		},
+	});
+
+	drawEllipse({
+		radiusX: 50,
+		radiusY: 120,
+		pos: vec2(400),
+	});
+
 });
