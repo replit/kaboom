@@ -1381,6 +1381,10 @@ interface KaboomCtx {
 	 */
 	drawLine(conf: DrawLineConf): void,
 	/**
+	 * Draw lines.
+	 */
+	drawLines(conf: DrawLinesConf): void,
+	/**
 	 * Draw a triangle.
 	 */
 	drawTri(conf: DrawTriConf): void,
@@ -1910,6 +1914,11 @@ type DrawRectConf = RenderProps & {
 type DrawLineConf = Omit<RenderProps, "angle" | "scale"> & {
 	p1: Vec2,
 	p2: Vec2,
+	width?: number,
+}
+
+type DrawLinesConf = Omit<RenderProps, "angle" | "scale"> & {
+	pts: Vec2[],
 	width?: number,
 }
 

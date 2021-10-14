@@ -82,6 +82,7 @@ type Gfx = {
 	drawFmtText(ftext: FormattedText),
 	drawRect(conf: DrawRectConf),
 	drawLine(conf: DrawLineConf),
+	drawLines(conf: DrawLinesConf),
 	drawTri(conf: DrawTriConf),
 	drawCircle(conf: DrawCircleConf),
 	drawEllipse(conf: DrawEllipseConf),
@@ -727,6 +728,7 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 		let w = conf.width;
 		let h = conf.height;
 
+		// TODO: respect origin
 		if (conf.radius) {
 
 			// maxium radius is half the shortest side
@@ -762,11 +764,6 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 			// TODO: rotation
 			if (conf.outline) {
 
-				const lconf = {
-					width: conf.outline.width,
-					color: conf.outline.color,
-				};
-
 				if (conf.scale) {
 					const scale = vec2(conf.scale);
 					w = w * scale.x;
@@ -775,15 +772,17 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 
 				const pos = conf.pos ?? vec2(0);
 				const offset = originPt(conf.origin || DEF_ORIGIN).scale(vec2(w, h)).scale(0.5);
+
 				const p1 = pos.add(vec2(-w / 2, -h / 2)).sub(offset);
 				const p2 = pos.add(vec2(-w / 2,  h / 2)).sub(offset);
 				const p3 = pos.add(vec2( w / 2,  h / 2)).sub(offset);
 				const p4 = pos.add(vec2( w / 2, -h / 2)).sub(offset);
 
-				drawLine({ p1: p1, p2: p2, ...lconf });
-				drawLine({ p1: p2, p2: p3, ...lconf });
-				drawLine({ p1: p3, p2: p4, ...lconf });
-				drawLine({ p1: p4, p2: p1, ...lconf });
+				drawLines({
+					pts: [ p1, p2, p3, p4, p1 ],
+					width: conf.outline.width,
+					color: conf.outline.color,
+				});
 
 			}
 
@@ -819,6 +818,19 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 
 		drawRaw(verts, [0, 1, 3, 1, 2, 3], gfx.defTex, conf.prog, conf.uniform);
 
+	}
+
+	function drawLines(conf: DrawLinesConf) {
+		if (!conf.pts) {
+			throw new Error("drawLines() requires property \"pts\".");
+		}
+		for (let i = 0; i < conf.pts.length - 1; i++) {
+			drawLine({
+				p1: conf.pts[i],
+				p2: conf.pts[i + 1],
+				...conf,
+			});
+		}
 	}
 
 	function drawTri(conf: DrawTriConf) {
@@ -880,22 +892,11 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 		}
 
 		if (conf.outline) {
-
-			for (let i = 0; i < npts; i++) {
-
-				const p1 = conf.pts[i];
-				const p2 = conf.pts[(i + 1) % npts];
-
-				// TODO: line join
-				drawLine({
-					p1: p1,
-					p2: p2,
-					width: conf.outline.width,
-					color: conf.outline.color,
-				});
-
-			}
-
+			drawLines({
+				pts: [ ...conf.pts, conf.pts[0] ],
+				width: conf.outline.width,
+				color: conf.outline.color,
+			});
 		}
 
 		if (conf.fill !== false) {
@@ -1122,6 +1123,7 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 		drawFmtText,
 		drawRect,
 		drawLine,
+		drawLines,
 		drawTri,
 		drawCircle,
 		drawEllipse,

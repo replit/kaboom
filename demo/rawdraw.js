@@ -21,8 +21,8 @@ render(() => {
 	drawRect({
 		width: 40,
 		height: 80,
-		origin: "center",
-		radius: 10,
+// 		origin: "center",
+// 		radius: 10,
 		outline: {
 			width: 2,
 			color: rgb(0, 0, 255),
