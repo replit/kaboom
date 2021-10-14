@@ -5,6 +5,7 @@ import {
 	rgb,
 	mat4,
 	dir,
+	deg2rad,
 	isVec2,
 	isVec3,
 	isColor,
@@ -222,6 +223,7 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 		gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, QUEUE_COUNT * 2, gl.DYNAMIC_DRAW);
 		gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
 
+		// a checkerboard texture
 		const bgTex = makeTex(
 			new ImageData(new Uint8ClampedArray([
 				128, 128, 128, 255,
@@ -365,7 +367,6 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 
 			send(uniform: Uniform) {
 				this.bind();
-				// TODO: slow for vec2
 				for (const name in uniform) {
 					const val = uniform[name];
 					const loc = gl.getUniformLocation(id, name);
@@ -454,6 +455,7 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 				return i + gfx.vqueue.length / STRIDE;
 			});
 
+		// TODO: put more calculations in shader
 		const nVerts = verts
 			.map((v) => {
 				const pt = toNDC(gfx.transform.multVec2(v.pos.xy()));
@@ -710,18 +712,22 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 
 	}
 
+	// TODO: support ellipse
 	function getArcPts(
 		pos: Vec2,
-		radius: number,
+		radiusX: number,
+		radiusY: number,
 		start: number,
 		end: number,
 		res: number = 1
 	): Vec2[] {
-		const nsegs = Math.max(radius / 4 * (res ?? 1), 16);
+		const nsegs = Math.max((radiusX + radiusY) / 2 / 4 * (res ?? 1), 16);
 		const step = 360 / nsegs;
 		const pts = [];
 		for (let a = start; a <= end; a += step) {
-			pts.push(pos.add(dir(a).scale(radius)));
+			const x = radiusX * Math.cos(deg2rad(a));
+			const y = radiusY * Math.sin(deg2rad(a));
+			pts.push(pos.add(x, y));
 		}
 		return pts;
 	}
@@ -748,16 +754,16 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 			const pts = [
 				vec2(r, 0),
 				vec2(w - r, 0),
-				...getArcPts(vec2(w - r, r), r, 270, 360),
+				...getArcPts(vec2(w - r, r), r, r, 270, 360),
 				vec2(w, r),
 				vec2(w, h - r),
-				...getArcPts(vec2(w - r, h - r), r, 0, 90),
+				...getArcPts(vec2(w - r, h - r), r, r, 0, 90),
 				vec2(w - r, h),
 				vec2(r, h),
-				...getArcPts(vec2(r, h - r), r, 90, 180),
+				...getArcPts(vec2(r, h - r), r, r, 90, 180),
 				vec2(0, h - r),
 				vec2(0, r),
-				...getArcPts(vec2(r, r), r, 180, 270),
+				...getArcPts(vec2(r, r), r, r, 180, 270),
 			];
 
 			drawPoly({ ...conf, pts });
@@ -894,14 +900,21 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 
 	// TODO: origin
 	function drawCircle(conf: DrawCircleConf) {
+
 		if (!conf.radius) {
 			throw new Error("drawCircle() requires property \"radius\".");
 		}
-		drawPoly({
+
+		if (conf.radius === 0) {
+			return;
+		}
+
+		drawEllipse({
 			...conf,
-			pts: getArcPts(conf.pos ?? vec2(0), conf.radius, 0, 360, conf.resolution),
-			radius: 0,
+			radiusX: conf.radius,
+			radiusY: conf.radius,
 		});
+
 	}
 
 	function drawEllipse(conf: DrawEllipseConf) {
@@ -914,18 +927,18 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 			return;
 		}
 
-		// TODO: generate real ellipse vertices
-		pushTransform();
-		pushTranslate(conf.pos);
-		pushScale(1, conf.radiusY / conf.radiusX);
-
-		drawCircle({
+		drawPoly({
 			...conf,
-			radius: conf.radiusX,
-			pos: vec2(0),
+			pts: getArcPts(
+				conf.pos ?? vec2(0),
+				conf.radiusX,
+				conf.radiusY,
+				0,
+				360,
+				conf.resolution
+			),
+			radius: 0,
 		});
-
-		popTransform();
 
 	}
 

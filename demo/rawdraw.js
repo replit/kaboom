@@ -95,7 +95,6 @@ render(() => {
 		},
 	});
 
-	// TODO: this outline looks awful
 	drawEllipse({
 		radiusX: 50,
 		radiusY: 120,
