@@ -72,7 +72,7 @@ render(() => {
 		size: 64,
 	});
 
-	drawTri({
+	drawTriangle({
 		p1: vec2(480, 120),
 		p2: vec2(200, 240),
 		p3: mousePos(),

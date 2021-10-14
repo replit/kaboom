@@ -286,7 +286,7 @@ interface KaboomCtx {
 	 * ]);
 	 * ```
 	 */
-	rect(w: number, h: number): RectComp,
+	circle(radius: number): CircleComp,
 	/**
 	 * Collider. Will calculate from rendered comps (e.g. from sprite, text, rect) if no params given.
 	 *
@@ -1383,7 +1383,7 @@ interface KaboomCtx {
 	/**
 	 * Draw a triangle.
 	 */
-	drawTri(conf: DrawTriConf): void,
+	drawTriangle(conf: DrawTriangleConf): void,
 	/**
 	 * Draw a circle.
 	 */
@@ -1919,7 +1919,7 @@ type DrawLineConf = Omit<RenderProps, "angle" | "scale"> & {
 	width?: number,
 }
 
-type DrawTriConf = RenderProps & {
+type DrawTriangleConf = RenderProps & {
 	p1: Vec2,
 	p2: Vec2,
 	p3: Vec2,
@@ -1929,6 +1929,14 @@ type DrawTriConf = RenderProps & {
 
 type DrawCircleConf = RenderProps & {
 	radius: number,
+	outline?: Outline,
+	fill?: boolean,
+	resolution?: number,
+}
+
+type DrawEllipseConf = RenderProps & {
+	width: number,
+	height: number,
 	outline?: Outline,
 	fill?: boolean,
 	resolution?: number,

@@ -72,7 +72,7 @@ type Gfx = {
 	drawFmtText(ftext: FormattedText),
 	drawRect(conf: DrawRectConf),
 	drawLine(conf: DrawLineConf),
-	drawTri(conf: DrawTriConf),
+	drawTriangle(conf: DrawTriangleConf),
 	drawCircle(conf: DrawCircleConf),
 	drawPoly(conf: DrawPolyConf),
 	fmtText(conf: DrawTextConf2): FormattedText,
@@ -810,18 +810,30 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 
 	}
 
-	function drawTri(conf: DrawTriConf) {
+	function drawTriangle(conf: DrawTriangleConf) {
 		if (!conf.p1 || !conf.p2 || !conf.p3) {
 			throw new Error("drawPoly() requires properties \"p1\", \"p2\" and \"p3\".");
 		}
-		return drawPoly({ pts: [conf.p1, conf.p2, conf.p3], ...conf });
+		return drawPoly({
+			pts: [conf.p1, conf.p2, conf.p3],
+			...conf,
+		});
 	}
 
 	function drawCircle(conf: DrawCircleConf) {
 		if (!conf.radius) {
 			throw new Error("drawCircle() requires property \"radius\".");
 		}
-		drawPoly({ pts: getArcPts(conf.pos ?? vec2(0), conf.radius, 0, 360), ...conf });
+		drawPoly({
+			pts: getArcPts(conf.pos ?? vec2(0), conf.radius, 0, 360, conf.resolution),
+			...conf,
+		});
+	}
+
+	function drawEllipse(conf: DrawEllipseConf) {
+		if (conf.width === undefined || conf.height === undefined) {
+			throw new Error("drawCircle() requires property \"radius\".");
+		}
 	}
 
 	function drawPoly(conf: DrawPolyConf) {
@@ -1079,7 +1091,7 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 		drawFmtText,
 		drawRect,
 		drawLine,
-		drawTri,
+		drawTriangle,
 		drawCircle,
 		drawPoly,
 		fmtText,
