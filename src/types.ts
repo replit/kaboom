@@ -1383,7 +1383,7 @@ interface KaboomCtx {
 	/**
 	 * Draw a triangle.
 	 */
-	drawTriangle(conf: DrawTriangleConf): void,
+	drawTri(conf: DrawTriConf): void,
 	/**
 	 * Draw a circle.
 	 */
@@ -1919,7 +1919,7 @@ type DrawLineConf = Omit<RenderProps, "angle" | "scale"> & {
 	width?: number,
 }
 
-type DrawTriangleConf = RenderProps & {
+type DrawTriConf = RenderProps & {
 	p1: Vec2,
 	p2: Vec2,
 	p3: Vec2,

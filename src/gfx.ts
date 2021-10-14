@@ -72,7 +72,7 @@ type Gfx = {
 	drawFmtText(ftext: FormattedText),
 	drawRect(conf: DrawRectConf),
 	drawLine(conf: DrawLineConf),
-	drawTriangle(conf: DrawTriangleConf),
+	drawTri(conf: DrawTriConf),
 	drawCircle(conf: DrawCircleConf),
 	drawPoly(conf: DrawPolyConf),
 	fmtText(conf: DrawTextConf2): FormattedText,
@@ -810,7 +810,7 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 
 	}
 
-	function drawTriangle(conf: DrawTriangleConf) {
+	function drawTri(conf: DrawTriConf) {
 		if (!conf.p1 || !conf.p2 || !conf.p3) {
 			throw new Error("drawPoly() requires properties \"p1\", \"p2\" and \"p3\".");
 		}
@@ -1091,7 +1091,7 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 		drawFmtText,
 		drawRect,
 		drawLine,
-		drawTriangle,
+		drawTri,
 		drawCircle,
 		drawPoly,
 		fmtText,
