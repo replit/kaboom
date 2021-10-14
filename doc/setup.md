@@ -111,4 +111,4 @@ This is a complete package including
 
 A lighter version that only contains the barebone HTML and JS file.
 
-Cool! Now you should be all ready to start using Kaboom. Try this [intro tutorial](/tut/intro.md) if you don't know how to start.
+Cool! Now you should be all ready to start using Kaboom. Try this [intro tutorial](/doc/intro.md) if you don't know how to start.
