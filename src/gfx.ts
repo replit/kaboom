@@ -721,6 +721,8 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 		end: number,
 		res: number = 1
 	): Vec2[] {
+
+		// the number of vertices is radius
 		const nsegs = Math.max((radiusX + radiusY) / 2 / 4 * (res ?? 1), 16) * (end - start) / 360;
 		const step = (end - start) / ~~nsegs;
 		const pts = [];

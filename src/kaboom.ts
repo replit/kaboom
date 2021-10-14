@@ -1547,6 +1547,21 @@ function area(conf: AreaCompConf = {}): AreaComp {
 
 }
 
+// make the list of common render properties from the "pos", "scale", "color", "opacity", "rotate", "origin", "outline", and "shader" components of a character
+function getRenderProps(obj: Character<any>) {
+	return {
+		pos: obj.pos,
+		scale: obj.scale,
+		color: obj.color,
+		opacity: obj.opacity,
+		angle: obj.angle,
+		origin: obj.origin,
+		outline: obj.outline,
+		prog: assets.shaders[obj.shader],
+		uniform: obj.uniform,
+	};
+}
+
 interface SpriteCurAnim {
 	name: string,
 	timer: number,
@@ -1618,17 +1633,10 @@ function sprite(id: string | SpriteData, conf: SpriteCompConf = {}): SpriteComp 
 
 		draw() {
 			drawSprite({
+				...getRenderProps(this),
 				sprite: spr,
-				pos: this.pos,
-				scale: this.scale,
-				angle: this.angle,
-				color: this.color,
-				opacity: this.opacity,
 				frame: this.frame,
-				origin: this.origin,
 				quad: this.quad,
-				prog: assets.shaders[this.shader],
-				uniform: this.uniform,
 				flipX: conf.flipX,
 				flipY: conf.flipY,
 				tiled: conf.tiled,
@@ -1778,15 +1786,9 @@ function text(t: string, conf: TextCompConf = {}): TextComp {
 		}
 
 		const ftext = gfx.fmtText({
+			...getRenderProps(this),
 			text: this.text + "",
 			font: font,
-			pos: this.pos,
-			scale: this.scale,
-			angle: this.angle,
-			size: conf.size,
-			origin: this.origin,
-			color: this.color,
-			opacity: this.opacity,
 			width: conf.width,
 		});
 
@@ -1825,17 +1827,9 @@ function rect(w: number, h: number): RectComp {
 		height: h,
 		draw() {
 			gfx.drawRect({
-				pos: this.pos,
+				...getRenderProps(this),
 				width: this.width,
 				height: this.height,
-				scale: this.scale,
-				angle: this.angle,
-				color: this.color,
-				opacity: this.opacity,
-				origin: this.origin,
-				outline: this.outline,
-				prog: assets.shaders[this.shader],
-				uniform: this.uniform,
 			});
 		},
 		inspect() {
@@ -1850,14 +1844,8 @@ function circle(radius: number): CircleComp {
 		radius: radius,
 		draw() {
 			gfx.drawCircle({
-				pos: this.pos,
+				...getRenderProps(this),
 				radius: this.radius,
-				scale: this.scale,
-				color: this.color,
-				opacity: this.opacity,
-				outline: this.outline,
-				prog: assets.shaders[this.shader],
-				uniform: this.uniform,
 			});
 		},
 		inspect() {
