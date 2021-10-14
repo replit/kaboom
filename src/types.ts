@@ -1406,15 +1406,16 @@ interface KaboomCtx {
 	 * @example
 	 * ```js
 	 * pushTransform();
+	 *
+	 * // these transforms will affect every render until popTransform()
 	 * pushTranslate(120, 200);
 	 * pushRotate(time() * 120);
 	 * pushScale(6);
 	 *
-	 * // the transformation above will affect every render until popTransform()
 	 * drawSprite("froggy");
 	 * drawCircle(vec2(0), 120);
 	 *
-	 * // remember to pop so it won't affect following renders
+	 * // restore the transformation stack to when last pushed
 	 * popTransform();
 	 * ```
 	 */
