@@ -719,19 +719,26 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 		radiusY: number,
 		start: number,
 		end: number,
-		res: number = 1
+		res: number,
 	): Vec2[] {
 
-		// the number of vertices is radius
-		const nsegs = Math.max((radiusX + radiusY) / 2 / 4 * (res ?? 1), 16) * (end - start) / 360;
-		const step = (end - start) / ~~nsegs;
+		// normalize and turn start and end angles to radians
+		start = deg2rad(start % 360);
+		end = deg2rad(end % 360);
+		if (end <= start) end += Math.PI * 2;
+
+		// the number of vertices is sqrt(r1 + r2) * 2 * res with a minimum of 16
+		const nverts = Math.ceil(Math.max(Math.sqrt(radiusX + radiusY) * 2 * (res || 1), 16));
+		const step = (end - start) / nverts;
 		const pts = [];
+
+		// calculate vertices
 		for (let a = start; a <= end; a += step) {
-			const x = radiusX * Math.cos(deg2rad(a));
-			const y = radiusY * Math.sin(deg2rad(a));
-			pts.push(pos.add(x, y));
+			pts.push(pos.add(radiusX * Math.cos(a), radiusY * Math.sin(a)));
 		}
+
 		return pts;
+
 	}
 
 	function drawRect(conf: DrawRectConf) {
