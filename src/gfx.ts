@@ -4,6 +4,8 @@ import {
 	quad,
 	rgb,
 	mat4,
+	dir,
+	deg2rad,
 	isVec2,
 	isVec3,
 	isColor,
@@ -44,6 +46,26 @@ type GfxConf = {
     letterbox?: boolean,
 };
 
+type DrawTextureConf = RenderProps & {
+	tex: GfxTexture,
+	width?: number,
+	height?: number,
+	tiled?: boolean,
+	flipX?: boolean,
+	flipY?: boolean,
+	quad?: Quad,
+	origin?: Origin | Vec2,
+}
+
+// TODO: name
+type DrawTextConf2 = RenderProps & {
+	text: string,
+	font?: GfxFont,
+	size?: number,
+	width?: number,
+	origin?: Origin | Vec2,
+}
+
 type Gfx = {
 	width(): number,
 	height(): number,
@@ -57,50 +79,31 @@ type Gfx = {
 		gh: number,
 		chars: string,
 	): GfxFont,
-	drawTexture(
-		tex: GfxTexture,
-		conf?: DrawTextureConf,
-	),
-	drawText(
-		txt: string,
-		font: GfxFont,
-		conf?: DrawTextConf,
-	),
+	drawTexture(conf: DrawTextureConf),
+	drawText(conf: DrawTextConf2),
 	drawFmtText(ftext: FormattedText),
-	fmtText(
-		txt: string,
-		font: GfxFont,
-		conf?: DrawTextConf,
-	): FormattedText,
-	drawRect(
-		pos: Vec2,
-		w: number,
-		h: number,
-		conf?: DrawRectConf,
-	),
-	drawRectStroke(
-		pos: Vec2,
-		w: number,
-		h: number,
-		conf?: DrawRectStrokeConf,
-	),
-	drawLine(
-		p1: Vec2,
-		p2: Vec2,
-		conf?: DrawLineConf,
-	),
-	drawTri(
-		p1: Vec2,
-		p2: Vec2,
-		p3: Vec2,
-		conf?: DrawLineConf,
-	),
+	drawRect(conf: DrawRectConf),
+	drawLine(conf: DrawLineConf),
+	drawLines(conf: DrawLinesConf),
+	drawTri(conf: DrawTriConf),
+	drawCircle(conf: DrawCircleConf),
+	drawEllipse(conf: DrawEllipseConf),
+	drawPoly(conf: DrawPolyConf),
+	drawUVQuad(conf: DrawUVQuadConf),
+	fmtText(conf: DrawTextConf2): FormattedText,
 	frameStart(),
 	frameEnd(),
-	pushTransform(),
-	pushTranslate(p: Vec2),
-	popTransform(),
-	pushMatrix(m: Mat4),
+	pushTransform(): void,
+	popTransform(): void,
+	pushTranslate(x: number, y: number): void,
+	pushTranslate(p: Vec2): void,
+	pushScale(sx: number, sy: number): void,
+	pushScale(s: number): void,
+	pushScale(s: Vec2): void,
+	pushRotateX(angle: number): void,
+	pushRotateY(angle: number): void,
+	pushRotateZ(angle: number): void,
+	applyMatrix(m: Mat4),
 	drawCalls(): number,
 };
 
@@ -211,6 +214,7 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 		gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, QUEUE_COUNT * 2, gl.DYNAMIC_DRAW);
 		gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
 
+		// a checkerboard texture
 		const bgTex = makeTex(
 			new ImageData(new Uint8ClampedArray([
 				128, 128, 128, 255,
@@ -354,7 +358,6 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 
 			send(uniform: Uniform) {
 				this.bind();
-				// TODO: slow for vec2
 				for (const name in uniform) {
 					const val = uniform[name];
 					const loc = gl.getUniformLocation(id, name);
@@ -443,6 +446,7 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 				return i + gfx.vqueue.length / STRIDE;
 			});
 
+		// TODO: put more calculations in shader
 		const nVerts = verts
 			.map((v) => {
 				const pt = toNDC(gfx.transform.multVec2(v.pos.xy()));
@@ -497,7 +501,7 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 		gl.clear(gl.COLOR_BUFFER_BIT);
 
 		if (!gconf.background) {
-			drawQuad({
+			drawUVQuad({
 				width: width(),
 				height: height(),
 				quad: quad(
@@ -532,22 +536,21 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 		);
 	}
 
-	// TODO: don't use push as prefix for these
-	function pushMatrix(m: Mat4) {
+	function applyMatrix(m: Mat4) {
 		gfx.transform = m.clone();
 	}
 
-	function pushTranslate(p: Vec2) {
-		if (!p || (p.x === 0 && p.y === 0)) {
-			return;
-		}
+	function pushTranslate(...args) {
+		if (args[0] === undefined) return;
+		const p = vec2(...args);
+		if (p.x === 0 && p.y === 0) return;
 		gfx.transform = gfx.transform.translate(p);
 	}
 
-	function pushScale(p: Vec2) {
-		if (!p || (p.x === 1 && p.y === 1)) {
-			return;
-		}
+	function pushScale(...args) {
+		if (args[0] === undefined) return;
+		const p = vec2(...args);
+		if (p.x === 1 && p.y === 1) return;
 		gfx.transform = gfx.transform.scale(p);
 	}
 
@@ -582,51 +585,55 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 		}
 	}
 
-	// TODO: clean
-	// draw a textured quad
-	function drawQuad(conf: DrawQuadConf = {}) {
+	// draw a uv textured quad
+	function drawUVQuad(conf: DrawUVQuadConf) {
 
-		const w = conf.width || 0;
-		const h = conf.height || 0;
-		const pos = conf.pos || vec2(0, 0);
+		if (conf.width === undefined || conf.height === undefined) {
+			throw new Error("drawUVQuad() requires property \"width\" and \"height\".");
+		}
+
+		if (conf.width <= 0 || conf.height <= 0) {
+			return;
+		}
+
+		const w = conf.width;
+		const h = conf.height;
 		const origin = originPt(conf.origin || DEF_ORIGIN);
 		const offset = origin.scale(vec2(w, h).scale(-0.5));
-		const scale = vec2(conf.scale ?? 1);
-		const rot = conf.rot || 0;
 		const q = conf.quad || quad(0, 0, 1, 1);
-		const z = 1 - (conf.z ?? 0);
-		const color = conf.color || rgb();
+		const color = conf.color || rgb(255, 255, 255);
+		const opacity = conf.opacity ?? 1;
 
 		pushTransform();
-		pushTranslate(pos);
-		pushRotateZ(rot);
-		pushScale(scale);
+		pushTranslate(conf.pos);
+		pushRotateZ(conf.angle);
+		pushScale(conf.scale);
 		pushTranslate(offset);
 
 		drawRaw([
 			{
-				pos: vec3(-w / 2, h / 2, z),
+				pos: vec3(-w / 2, h / 2, 0),
 				uv: vec2(conf.flipX ? q.x + q.w : q.x, conf.flipY ? q.y : q.y + q.h),
 				color: color,
-				opacity: conf.opacity ?? 1,
+				opacity: opacity,
 			},
 			{
-				pos: vec3(-w / 2, -h / 2, z),
+				pos: vec3(-w / 2, -h / 2, 0),
 				uv: vec2(conf.flipX ? q.x + q.w : q.x, conf.flipY ? q.y + q.h : q.y),
 				color: color,
-				opacity: conf.opacity ?? 1,
+				opacity: opacity,
 			},
 			{
-				pos: vec3(w / 2, -h / 2, z),
+				pos: vec3(w / 2, -h / 2, 0),
 				uv: vec2(conf.flipX ? q.x : q.x + q.w, conf.flipY ? q.y + q.h : q.y),
 				color: color,
-				opacity: conf.opacity ?? 1,
+				opacity: opacity,
 			},
 			{
-				pos: vec3(w / 2, h / 2, z),
+				pos: vec3(w / 2, h / 2, 0),
 				uv: vec2(conf.flipX ? q.x : q.x + q.w, conf.flipY ? q.y : q.y + q.h),
 				color: color,
-				opacity: conf.opacity ?? 1,
+				opacity: opacity,
 			},
 		], [0, 1, 3, 1, 2, 3], conf.tex, conf.prog, conf.uniform);
 
@@ -634,14 +641,18 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 
 	}
 
+	// TODO: clean
 	function drawTexture(
-		tex: GfxTexture,
-		conf: DrawTextureConf = {},
+		conf: DrawTextureConf,
 	) {
 
+		if (!conf.tex) {
+			throw new Error("drawTexture() requires property \"tex\".");
+		}
+
 		const q = conf.quad ?? quad(0, 0, 1, 1);
-		const w = tex.width * q.w;
-		const h = tex.height * q.h;
+		const w = conf.tex.width * q.w;
+		const h = conf.tex.height * q.h;
 		const scale = vec2(1);
 
 		if (conf.tiled) {
@@ -655,12 +666,12 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 			// TODO: rotation
 			for (let i = 0; i < repX; i++) {
 				for (let j = 0; j < repY; j++) {
-					drawQuad({
+					drawUVQuad({
 						...conf,
 						pos: (conf.pos || vec2(0)).add(vec2(w * i, h * j)).sub(offset),
 						// @ts-ignore
 						scale: scale.scale(conf.scale || vec2(1)),
-						tex: tex,
+						tex: conf.tex,
 						quad: q,
 						width: w,
 						height: h,
@@ -682,11 +693,11 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 				scale.x = scale.y;
 			}
 
-			drawQuad({
+			drawUVQuad({
 				...conf,
 				// @ts-ignore
 				scale: scale.scale(conf.scale || vec2(1)),
-				tex: tex,
+				tex: conf.tex,
 				quad: q,
 				width: w,
 				height: h,
@@ -696,107 +707,285 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 
 	}
 
-	function drawRect(
+	// generate vertices to form an arc
+	function getArcPts(
 		pos: Vec2,
-		w: number,
-		h: number,
-		conf: DrawRectConf = {}
-	) {
-		drawQuad({
-			...conf,
-			pos: pos,
-			width: w,
-			height: h,
-		});
-	}
+		radiusX: number,
+		radiusY: number,
+		start: number,
+		end: number,
+		res: number = 1,
+	): Vec2[] {
 
-	function drawRectStroke(
-		pos: Vec2,
-		w: number,
-		h: number,
-		conf: DrawRectStrokeConf = {}
-	) {
+		// normalize and turn start and end angles to radians
+		start = deg2rad(start % 360);
+		end = deg2rad(end % 360);
+		if (end <= start) end += Math.PI * 2;
 
-		if (conf.scale) {
-			const scale = vec2(conf.scale);
-			w = w * scale.x;
-			h = h * scale.y;
-			conf.scale = 1;
+		// TODO: better way to get this?
+		// the number of vertices is sqrt(r1 + r2) * 3 * res with a minimum of 16
+		const nverts = Math.ceil(Math.max(Math.sqrt(radiusX + radiusY) * 3 * (res || 1), 16));
+		const step = (end - start) / nverts;
+		const pts = [];
+
+		// calculate vertices
+		for (let a = start; a < end; a += step) {
+			pts.push(pos.add(radiusX * Math.cos(a), radiusY * Math.sin(a)));
 		}
 
-		const offset = originPt(conf.origin || DEF_ORIGIN).scale(vec2(w, h)).scale(0.5);
-		const p1 = pos.add(vec2(-w / 2, -h / 2)).sub(offset);
-		const p2 = pos.add(vec2(-w / 2,  h / 2)).sub(offset);
-		const p3 = pos.add(vec2( w / 2,  h / 2)).sub(offset);
-		const p4 = pos.add(vec2( w / 2, -h / 2)).sub(offset);
+		// doing this on the side due to possible floating point inaccuracy
+		pts.push(pos.add(radiusX * Math.cos(end), radiusY * Math.sin(end)));
 
-		drawLine(p1, p2, conf);
-		drawLine(p2, p3, conf);
-		drawLine(p3, p4, conf);
-		drawLine(p4, p1, conf);
+		return pts;
 
 	}
 
-	function drawLine(
-		p1: Vec2,
-		p2: Vec2,
-		conf: DrawLineConf = {},
-	) {
+	function drawRect(conf: DrawRectConf) {
+
+		if (conf.width === undefined || conf.height === undefined) {
+			throw new Error("drawRect() requires property \"width\" and \"height\".");
+		}
+
+		if (conf.width <= 0 || conf.height <= 0) {
+			return;
+		}
+
+		const w = conf.width;
+		const h = conf.height;
+		const origin = originPt(conf.origin || DEF_ORIGIN).add(1, 1);
+		const offset = origin.scale(vec2(w, h).scale(-0.5));
+
+		let pts = [
+			vec2(0, 0),
+			vec2(w, 0),
+			vec2(w, h),
+			vec2(0, h),
+		];
+
+		// TODO: drawPoly should handle generic rounded corners
+		if (conf.radius) {
+
+			// maxium radius is half the shortest side
+			const r = Math.min(Math.min(w, h) / 2, conf.radius);
+
+			pts = [
+				vec2(r, 0),
+				vec2(w - r, 0),
+				...getArcPts(vec2(w - r, r), r, r, 270, 360),
+				vec2(w, r),
+				vec2(w, h - r),
+				...getArcPts(vec2(w - r, h - r), r, r, 0, 90),
+				vec2(w - r, h),
+				vec2(r, h),
+				...getArcPts(vec2(r, h - r), r, r, 90, 180),
+				vec2(0, h - r),
+				vec2(0, r),
+				...getArcPts(vec2(r, r), r, r, 180, 270),
+			];
+
+		}
+
+		drawPoly({ ...conf, offset, pts });
+
+	}
+
+	function drawLine(conf: DrawLineConf) {
+
+		const { p1, p2 } = conf;
+
+		if (!p1 || !p2) {
+			throw new Error("drawLine() requires properties \"p1\" and \"p2\".");
+		}
 
 		const w = conf.width || 1;
-		const h = p1.dist(p2);
-		const rot = p1.angle(p2) - 90;
 
-		drawQuad({
+		// the displacement from the line end point to the corner point
+		const dis = p2.sub(p1).unit().normal().scale(w * 0.5);
+
+		// calculate the 4 corner points of the line polygon
+		const verts = [
+			p1.sub(dis),
+			p1.add(dis),
+			p2.add(dis),
+			p2.sub(dis),
+		].map((p) => ({
+			pos: vec3(p.x, p.y, 0),
+			uv: vec2(0),
+			color: conf.color ?? rgb(),
+			opacity: conf.opacity ?? 1,
+		}));
+
+		drawRaw(verts, [0, 1, 3, 1, 2, 3], gfx.defTex, conf.prog, conf.uniform);
+
+	}
+
+	function drawLines(conf: DrawLinesConf) {
+
+		const pts = conf.pts;
+
+		if (!pts) {
+			throw new Error("drawLines() requires property \"pts\".");
+		}
+
+		if (pts.length < 2) {
+			return;
+		}
+
+		if (conf.radius && pts.length >= 3) {
+
+			// TODO: rounded vertices for arbitury polygonic shape
+			let minLen = pts[0].dist(pts[1]);
+
+			for (let i = 1; i < pts.length - 1; i++) {
+				minLen = Math.min(pts[i].dist(pts[i + 1]), minLen);
+			}
+
+			const radius = Math.min(conf.radius, minLen / 2);
+
+			drawLine({ ...conf, p1: pts[0], p2: pts[1], });
+
+			for (let i = 1; i < pts.length - 2; i++) {
+				const p1 = pts[i];
+				const p2 = pts[i + 1];
+				drawLine({
+					...conf,
+					p1: p1,
+					p2: p2,
+				});
+			}
+
+			drawLine({ ...conf, p1: pts[pts.length - 2], p2: pts[pts.length - 1], });
+
+		} else {
+
+			for (let i = 0; i < pts.length - 1; i++) {
+				drawLine({
+					...conf,
+					p1: pts[i],
+					p2: pts[i + 1],
+				});
+			}
+
+		}
+
+	}
+
+	function drawTri(conf: DrawTriConf) {
+		if (!conf.p1 || !conf.p2 || !conf.p3) {
+			throw new Error("drawPoly() requires properties \"p1\", \"p2\" and \"p3\".");
+		}
+		return drawPoly({
 			...conf,
-			pos: p1.add(p2).scale(0.5),
-			width: w,
-			height: h,
-			rot: rot,
-			origin: "center",
+			pts: [conf.p1, conf.p2, conf.p3],
+		});
+	}
+
+	// TODO: origin
+	function drawCircle(conf: DrawCircleConf) {
+
+		if (!conf.radius) {
+			throw new Error("drawCircle() requires property \"radius\".");
+		}
+
+		if (conf.radius === 0) {
+			return;
+		}
+
+		drawEllipse({
+			...conf,
+			radiusX: conf.radius,
+			radiusY: conf.radius,
+			angle: 0,
 		});
 
 	}
 
-	// TODO: not drawing
-	function drawTri(
-		p1: Vec2,
-		p2: Vec2,
-		p3: Vec2,
-		conf: DrawTriConf = {},
-	) {
-		const z = conf.z;
-		const color = conf.color || rgb();
-		drawRaw([
-			{
-				pos: vec3(p1.x, p1.y, z),
+	// TODO: use fan-like triangulation
+	function drawEllipse(conf: DrawEllipseConf) {
+
+		if (conf.radiusX === undefined || conf.radiusY === undefined) {
+			throw new Error("drawEllipse() requires properties \"radiusX\" and \"radiusY\".");
+		}
+
+		if (conf.radiusX === 0 || conf.radiusY === 0) {
+			return;
+		}
+
+		drawPoly({
+			...conf,
+			pts: getArcPts(
+				vec2(0),
+				conf.radiusX,
+				conf.radiusY,
+				conf.start ?? 0,
+				conf.end ?? 360,
+				conf.resolution
+			),
+			radius: 0,
+		});
+
+	}
+
+	function drawPoly(conf: DrawPolyConf) {
+
+		if (!conf.pts) {
+			throw new Error("drawPoly() requires property \"pts\".");
+		}
+
+		const npts = conf.pts.length;
+
+		if (npts < 3) {
+			return;
+		}
+
+		pushTransform();
+		pushTranslate(conf.pos);
+		pushScale(conf.scale);
+		pushRotateZ(conf.angle);
+		pushTranslate(conf.offset);
+
+		if (conf.fill !== false) {
+
+			const color = conf.color ?? rgb();
+
+			const verts = conf.pts.map((pt) => ({
+				pos: vec3(pt.x, pt.y, 0),
 				uv: vec2(0, 0),
 				color: color,
 				opacity: conf.opacity ?? 1,
-			},
-			{
-				pos: vec3(p2.x, p2.y, z),
-				uv: vec2(0, 0),
-				color: color,
-				opacity: conf.opacity ?? 1,
-			},
-			{
-				pos: vec3(p3.x, p3.y, z),
-				uv: vec2(0, 0),
-				color: color,
-				opacity: conf.opacity ?? 1,
-			},
-		], [0, 1, 2], gfx.defTex, conf.prog, conf.uniform);
+			}));
+
+			// TODO: better triangulation
+			const indices = [...Array(npts - 2).keys()]
+				.map((n) => [0, n + 1, n + 2])
+				.flat();
+
+			drawRaw(verts, conf.indices ?? indices, gfx.defTex, conf.prog, conf.uniform);
+
+		}
+
+		if (conf.outline) {
+			drawLines({
+				pts: [ ...conf.pts, conf.pts[0] ],
+				radius: conf.radius,
+				width: conf.outline.width,
+				color: conf.outline.color,
+			});
+		}
+
+		popTransform();
+
 	}
 
 	// format text and return a list of chars with their calculated position
-	function fmtText(
-		text: string,
-		font: GfxFont,
-		conf: DrawTextConf = {}
-	): FormattedText {
+	function fmtText(conf: DrawTextConf2): FormattedText {
 
-		const chars = (text + "").split("");
+		if (conf.text === undefined) {
+			throw new Error("fmtText() requires property \"text\".");
+		}
+
+		const font = conf.font;
+		const chars = (conf.text + "").split("");
 		const gw = font.qw * font.tex.width;
 		const gh = font.qh * font.tex.height;
 		const size = conf.size || gh;
@@ -897,18 +1086,14 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 
 	}
 
-	function drawText(
-		txt: string,
-		font: GfxFont,
-		conf = {},
-	) {
-		drawFmtText(fmtText(txt, font, conf));
+	function drawText(conf: DrawTextConf2) {
+		drawFmtText(fmtText(conf));
 	}
 
 	// TODO: rotation
 	function drawFmtText(ftext: FormattedText) {
 		for (const ch of ftext.chars) {
-			drawQuad({
+			drawUVQuad({
 				tex: ch.tex,
 				width: ch.tex.width * ch.quad.w,
 				height: ch.tex.height * ch.quad.h,
@@ -994,16 +1179,24 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 		drawText,
 		drawFmtText,
 		drawRect,
-		drawRectStroke,
 		drawLine,
+		drawLines,
 		drawTri,
+		drawCircle,
+		drawEllipse,
+		drawPoly,
+		drawUVQuad,
 		fmtText,
 		frameStart,
 		frameEnd,
 		pushTranslate,
+		pushScale,
+		pushRotateX,
+		pushRotateY,
+		pushRotateZ,
 		pushTransform,
 		popTransform,
-		pushMatrix,
+		applyMatrix,
 		drawCalls,
 		background,
 	};

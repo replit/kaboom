@@ -404,9 +404,8 @@ function mat4(m?: number[]): Mat4 {
 
 }
 
-// easy sine wave
-function wave(lo: number, hi: number, t: number): number {
-	return lo + (Math.sin(t) + 1) / 2 * (hi - lo);
+function wave(lo: number, hi: number, t: number, f = Math.sin): number {
+	return lo + (f(t) + 1) / 2 * (hi - lo);
 }
 
 // basic ANSI C LCG

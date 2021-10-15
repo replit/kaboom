@@ -30,12 +30,14 @@ import Ctx from "lib/Ctx";
 
 const DEF_DEMO = "sprite";
 
+// TODO: shouldn't hard code
 const demos = [
 	"audio",
 	"bench",
 	"burp",
 	"button",
 	"doublejump",
+	"draw",
 	"drag",
 	"eatbomb",
 	"egg",
@@ -49,7 +51,6 @@ const demos = [
 	"particle",
 	"platformer",
 	"pointclick",
-	"rawdraw",
 	"rpg",
 	"runner",
 	"scenes",
