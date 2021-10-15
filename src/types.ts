@@ -2410,13 +2410,6 @@ interface MoveComp extends Comp {
 interface CleanupComp extends Comp {
 }
 
-type RectSide =
-	| "top"
-	| "bottom"
-	| "left"
-	| "right"
-	;
-
 interface AreaCompConf {
 	/**
 	 * Width of area.
