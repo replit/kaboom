@@ -79,6 +79,8 @@ render(() => {
 		color: rgb(w(128, 255, 4), w(128, 255, 8), w(128, 255, 2)),
 	});
 
+	// TODO: show a custom shader quad here
+
 	// pop to not affect the mouse trail and draw
 	if (keyIsDown("space")) {
 		popTransform();
@@ -94,7 +96,7 @@ render(() => {
 			...outline,
 			pts: pts,
 		});
-	})
+	});
 
 });
 
