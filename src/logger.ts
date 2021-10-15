@@ -19,6 +19,7 @@ type Log = {
 
 type LoggerConf = {
 	max?: number,
+	time?: () => number,
 };
 
 type Logger = {
@@ -30,9 +31,7 @@ type Logger = {
 
 const LOG_SIZE = 16;
 
-function loggerInit(gfx: Gfx, assets: Assets, conf: LoggerConf = {
-	max: 1,
-}): Logger {
+function loggerInit(gfx: Gfx, assets: Assets, conf: LoggerConf = {}): Logger {
 
 	let logs: Log[] = [];
 	const max = conf.max ?? 1;
