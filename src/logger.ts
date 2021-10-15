@@ -31,14 +31,13 @@ type Logger = {
 const LOG_SIZE = 16;
 
 function loggerInit(gfx: Gfx, assets: Assets, conf: LoggerConf = {
-	max: 8,
+	max: 1,
 }): Logger {
 
 	let logs: Log[] = [];
-	const max = conf.max ?? 8;
+	const max = conf.max ?? 1;
 
 	// TODO: draw rects first to reduce draw calls
-	// TODO: make log and progress bar fixed size independent of global scale
 	function draw() {
 
 		if (logs.length > max) {
