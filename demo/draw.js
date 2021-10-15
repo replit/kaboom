@@ -44,7 +44,7 @@ render(() => {
 		width: w(60, 120, 4),
 		height: w(100, 140, 8),
 		origin: "center",
-		radius: w(0, 24, 8),
+		radius: w(0, 32, 4),
 		angle: t(80),
 		color: rgb(w(128, 255, 4), 255, w(128, 255, 8)),
 		outline,
@@ -52,8 +52,10 @@ render(() => {
 
 	drawEllipse({
 		pos: p(2, 0),
-		radiusX: w(40, 60, 4),
-		radiusY: w(40, 60, 8),
+		radiusX: w(40, 70, 2),
+		radiusY: w(40, 70, 4),
+		start: 0,
+		end: w(180, 360, 1),
 		color: rgb(255, w(128, 255, 8), w(128, 255, 4)),
 		outline,
 	});

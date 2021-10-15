@@ -710,6 +710,7 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 
 	}
 
+	// generate vertices to form an arc
 	function getArcPts(
 		pos: Vec2,
 		radiusX: number,
@@ -724,20 +725,25 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 		end = deg2rad(end % 360);
 		if (end <= start) end += Math.PI * 2;
 
+		// TODO: better way to get this?
 		// the number of vertices is sqrt(r1 + r2) * 3 * res with a minimum of 16
 		const nverts = Math.ceil(Math.max(Math.sqrt(radiusX + radiusY) * 3 * (res || 1), 16));
 		const step = (end - start) / nverts;
 		const pts = [];
 
 		// calculate vertices
-		for (let a = start; a <= end; a += step) {
+		for (let a = start; a < end; a += step) {
 			pts.push(pos.add(radiusX * Math.cos(a), radiusY * Math.sin(a)));
 		}
+
+		// doing this on the side due to possible floating point inaccuracy
+		pts.push(pos.add(radiusX * Math.cos(end), radiusY * Math.sin(end)));
 
 		return pts;
 
 	}
 
+	// TODO: rely all on drawPoly, use drawUVQuad() if need uv
 	function drawRect(conf: DrawRectConf) {
 
 		if (conf.width === undefined || conf.height === undefined) {
@@ -923,6 +929,7 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 
 	}
 
+	// TODO: use fan-like triangulation
 	function drawEllipse(conf: DrawEllipseConf) {
 
 		if (conf.radiusX === undefined || conf.radiusY === undefined) {
@@ -977,6 +984,7 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 				opacity: conf.opacity ?? 1,
 			}));
 
+			// TODO: better triangulation
 			const indices = [...Array(npts - 2).keys()]
 				.map((n) => [0, n + 1, n + 2])
 				.flat();
