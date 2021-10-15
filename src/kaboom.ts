@@ -1334,7 +1334,6 @@ function cleanup(time: number = 0): CleanupComp {
 	};
 }
 
-// TODO: tell displacement vector
 function area(conf: AreaCompConf = {}): AreaComp {
 
 	const colliding = {};
@@ -1488,7 +1487,6 @@ function area(conf: AreaCompConf = {}): AreaComp {
 				}
 
 				if (this.isColliding(obj)) {
-					// TODO: return displacement
 					this.trigger("collide", obj, null);
 					colliding[obj._id] = obj;
 				}
