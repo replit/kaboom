@@ -94,7 +94,6 @@ render(() => {
 		drawLines({
 			...outline,
 			pts: pts,
-			color: rgb(0, 0, 255),
 		});
 	})
 
