@@ -1020,7 +1020,18 @@ function drawInspect() {
 
 }
 
-// TODO: have velocity here?
+function makeCollision(target: Character<any>, dis: Vec2): Collision {
+	return {
+		target: target,
+		dis: dis,
+		isTop: () => dis.y > 0,
+		isBottom: () => dis.y < 0,
+		isLeft: () => dis.x > 0,
+		isRight: () => dis.x < 0,
+	};
+}
+
+// TODO: manage global velocity here?
 function pos(...args): PosComp {
 
 	return {
@@ -1029,7 +1040,7 @@ function pos(...args): PosComp {
 		pos: vec2(...args),
 
 		// TODO: clean
-		moveBy(...args) {
+		moveBy(...args): Collision | null {
 
 			const p = vec2(...args);
 			let dx = p.x;
@@ -1121,10 +1132,7 @@ function pos(...args): PosComp {
 						const dis = vec2(-dx * (1 - minT), -dy * (1 - minT));
 						dx *= minT;
 						dy *= minT;
-						col = {
-							obj: other,
-							dis: dis,
-						};
+						col = makeCollision(other, dis);
 					}
 
 				});
@@ -1135,8 +1143,8 @@ function pos(...args): PosComp {
 			this.pos.y += dy;
 
 			if (col) {
-				this.trigger("collide", col.obj, col.dis);
-				col.obj.trigger("collide", this, col.dis.scale(-1));
+				this.trigger("collide", col.target, col);
+				col.target.trigger("collide", this, makeCollision(this, col.dis.scale(-1)));
 			}
 
 			return col;
@@ -1144,7 +1152,7 @@ function pos(...args): PosComp {
 		},
 
 		// move with velocity (pixels per second)
-		move(...args) {
+		move(...args): Collision | null {
 			return this.moveBy(vec2(...args).scale(dt()));
 		},
 
@@ -1965,8 +1973,8 @@ function body(conf: BodyCompConf = {}): BodyComp {
 
 				// check if grounded to a new platform
 				if (col) {
-					if (col.dis.y < 0) {
-						curPlatform = col.obj;
+					if (col.isBottom()) {
+						curPlatform = col.target;
 						const oy = velY;
 						velY = 0;
 						if (curPlatform.pos) {
@@ -1976,9 +1984,9 @@ function body(conf: BodyCompConf = {}): BodyComp {
 							this.trigger("ground", curPlatform);
 							canDouble = true;
 						}
-					} else if (col.dis.y > 0) {
+					} else if (col.isTop()) {
 						velY = 0;
-						this.trigger("headbutt", col.obj);
+						this.trigger("headbutt", col.target);
 					}
 				}
 

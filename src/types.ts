@@ -2410,6 +2410,18 @@ interface MoveComp extends Comp {
 interface CleanupComp extends Comp {
 }
 
+/**
+ * Collision resolution data.
+ */
+interface Collision {
+	target: Character,
+	dis: Vec2,
+	isTop(): boolean,
+	isBottom(): boolean,
+	isLeft(): boolean,
+	isRight(): boolean,
+}
+
 interface AreaCompConf {
 	/**
 	 * Width of area.
