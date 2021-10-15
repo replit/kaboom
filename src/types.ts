@@ -212,7 +212,7 @@ interface KaboomCtx {
 	 */
 	opacity(o?: number): OpacityComp,
 	/**
-	 * Renders as sprite.
+	 * Render as a sprite.
 	 *
 	 * @example
 	 * ```js
@@ -239,7 +239,7 @@ interface KaboomCtx {
 	 */
 	sprite(spr: string | SpriteData, conf?: SpriteCompConf): SpriteComp,
 	/**
-	 * Renders as text.
+	 * Render as text.
 	 *
 	 * @example
 	 * ```js
@@ -261,7 +261,7 @@ interface KaboomCtx {
 	 */
 	text(txt: string, conf?: TextCompConf): TextComp,
 	/**
-	 * Renders as rect.
+	 * Render as a rectangle.
 	 *
 	 * @example
 	 * ```js
@@ -276,7 +276,7 @@ interface KaboomCtx {
 	 */
 	rect(w: number, h: number): RectComp,
 	/**
-	 * Renders as circle.
+	 * Render as a circle.
 	 *
 	 * @example
 	 * ```js
@@ -287,6 +287,18 @@ interface KaboomCtx {
 	 * ```
 	 */
 	circle(radius: number): CircleComp,
+	/**
+	 * Render as a UV quad.
+	 *
+	 * @example
+	 * ```js
+	 * add([
+	 *     uvquad(width(), height()),
+	 *     shader("spiral"),
+	 * ]);
+	 * ```
+	 */
+	uvquad(w: number, h: number): UVQuadComp,
 	/**
 	 * Collider. Will calculate from rendered comps (e.g. from sprite, text, rect) if no params given.
 	 *
@@ -1401,6 +1413,10 @@ interface KaboomCtx {
 	 */
 	drawPoly(conf: DrawPolyConf): void,
 	/**
+	 * Draw a rectangle with UV data.
+	 */
+	drawUVQuad(conf: DrawUVQuadConf): void,
+	/**
 	 * Push current transform matrix to the transform stack.
 	 *
 	 * @example
@@ -1897,6 +1913,16 @@ type DrawSpriteConf = RenderProps & {
 	tiled?: boolean,
 	flipX?: boolean,
 	flipY?: boolean,
+	quad?: Quad,
+	origin?: Origin | Vec2,
+}
+
+type DrawUVQuadConf = RenderProps & {
+	width: number,
+	height: number,
+	flipX?: boolean,
+	flipY?: boolean,
+	tex?: GfxTexture,
 	quad?: Quad,
 	origin?: Origin | Vec2,
 }
@@ -2617,6 +2643,17 @@ interface CircleComp extends Comp {
 	 * Radius of circle.
 	 */
 	radius: number,
+}
+
+interface UVQuadComp extends Comp {
+	/**
+	 * Width of rect.
+	 */
+	width: number,
+	/**
+	 * Height of height.
+	 */
+	height: number,
 }
 
 type AreaType =

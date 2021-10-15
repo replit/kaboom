@@ -1838,6 +1838,24 @@ function rect(w: number, h: number): RectComp {
 	};
 }
 
+function uvquad(w: number, h: number): UVQuadComp {
+	return {
+		id: "rect",
+		width: w,
+		height: h,
+		draw() {
+			gfx.drawUVQuad({
+				...getRenderProps(this),
+				width: this.width,
+				height: this.height,
+			});
+		},
+		inspect() {
+			return `${Math.ceil(this.width)}, ${Math.ceil(this.height)}`;
+		},
+	};
+}
+
 function circle(radius: number): CircleComp {
 	return {
 		id: "circle",
@@ -2415,6 +2433,7 @@ const ctx: KaboomCtx = {
 	text,
 	rect,
 	circle,
+	uvquad,
 	outline,
 	body,
 	shader,
@@ -2498,6 +2517,7 @@ const ctx: KaboomCtx = {
 	drawTri: gfx.drawTri,
 	drawCircle: gfx.drawCircle,
 	drawEllipse: gfx.drawEllipse,
+	drawUVQuad: gfx.drawUVQuad,
 	drawPoly: gfx.drawPoly,
 	pushTransform: gfx.pushTransform,
 	popTransform: gfx.popTransform,

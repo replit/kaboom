@@ -17,7 +17,7 @@ vec4 frag(vec3 pos, vec2 uv, vec4 color, sampler2D tex) {
 `);
 
 const shade = add([
-	rect(width(), height()),
+	uvquad(width(), height()),
 	shader("test"),
 ]);
 

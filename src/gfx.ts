@@ -46,16 +46,6 @@ type GfxConf = {
     letterbox?: boolean,
 };
 
-type DrawQuadConf = RenderProps & {
-	flipX?: boolean,
-	flipY?: boolean,
-	width?: number,
-	height?: number,
-	tex?: GfxTexture,
-	quad?: Quad,
-	origin?: Origin | Vec2,
-}
-
 type DrawTextureConf = RenderProps & {
 	tex: GfxTexture,
 	width?: number,
@@ -99,6 +89,7 @@ type Gfx = {
 	drawCircle(conf: DrawCircleConf),
 	drawEllipse(conf: DrawEllipseConf),
 	drawPoly(conf: DrawPolyConf),
+	drawUVQuad(conf: DrawUVQuadConf),
 	fmtText(conf: DrawTextConf2): FormattedText,
 	frameStart(),
 	frameEnd(),
@@ -510,7 +501,7 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 		gl.clear(gl.COLOR_BUFFER_BIT);
 
 		if (!gconf.background) {
-			drawQuad({
+			drawUVQuad({
 				width: width(),
 				height: height(),
 				quad: quad(
@@ -594,24 +585,29 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 		}
 	}
 
-	// TODO: clean
-	// draw a textured quad
-	function drawQuad(conf: DrawQuadConf = {}) {
+	// draw a uv textured quad
+	function drawUVQuad(conf: DrawUVQuadConf) {
 
-		const w = conf.width || 0;
-		const h = conf.height || 0;
-		const pos = conf.pos || vec2(0, 0);
+		if (conf.width === undefined || conf.height === undefined) {
+			throw new Error("drawUVQuad() requires property \"width\" and \"height\".");
+		}
+
+		if (conf.width <= 0 || conf.height <= 0) {
+			return;
+		}
+
+		const w = conf.width;
+		const h = conf.height;
 		const origin = originPt(conf.origin || DEF_ORIGIN);
 		const offset = origin.scale(vec2(w, h).scale(-0.5));
-		const scale = vec2(conf.scale ?? 1);
-		const angle = conf.angle || 0;
 		const q = conf.quad || quad(0, 0, 1, 1);
-		const color = conf.color || rgb();
+		const color = conf.color || rgb(255, 255, 255);
+		const opacity = conf.opacity ?? 1;
 
 		pushTransform();
-		pushTranslate(pos);
-		pushRotateZ(angle);
-		pushScale(scale);
+		pushTranslate(conf.pos);
+		pushRotateZ(conf.angle);
+		pushScale(conf.scale);
 		pushTranslate(offset);
 
 		drawRaw([
@@ -619,25 +615,25 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 				pos: vec3(-w / 2, h / 2, 0),
 				uv: vec2(conf.flipX ? q.x + q.w : q.x, conf.flipY ? q.y : q.y + q.h),
 				color: color,
-				opacity: conf.opacity ?? 1,
+				opacity: opacity,
 			},
 			{
 				pos: vec3(-w / 2, -h / 2, 0),
 				uv: vec2(conf.flipX ? q.x + q.w : q.x, conf.flipY ? q.y + q.h : q.y),
 				color: color,
-				opacity: conf.opacity ?? 1,
+				opacity: opacity,
 			},
 			{
 				pos: vec3(w / 2, -h / 2, 0),
 				uv: vec2(conf.flipX ? q.x : q.x + q.w, conf.flipY ? q.y + q.h : q.y),
 				color: color,
-				opacity: conf.opacity ?? 1,
+				opacity: opacity,
 			},
 			{
 				pos: vec3(w / 2, h / 2, 0),
 				uv: vec2(conf.flipX ? q.x : q.x + q.w, conf.flipY ? q.y : q.y + q.h),
 				color: color,
-				opacity: conf.opacity ?? 1,
+				opacity: opacity,
 			},
 		], [0, 1, 3, 1, 2, 3], conf.tex, conf.prog, conf.uniform);
 
@@ -645,6 +641,7 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 
 	}
 
+	// TODO: clean
 	function drawTexture(
 		conf: DrawTextureConf,
 	) {
@@ -669,7 +666,7 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 			// TODO: rotation
 			for (let i = 0; i < repX; i++) {
 				for (let j = 0; j < repY; j++) {
-					drawQuad({
+					drawUVQuad({
 						...conf,
 						pos: (conf.pos || vec2(0)).add(vec2(w * i, h * j)).sub(offset),
 						// @ts-ignore
@@ -696,7 +693,7 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 				scale.x = scale.y;
 			}
 
-			drawQuad({
+			drawUVQuad({
 				...conf,
 				// @ts-ignore
 				scale: scale.scale(conf.scale || vec2(1)),
@@ -743,7 +740,6 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 
 	}
 
-	// TODO: rely all on drawPoly, use drawUVQuad() if need uv
 	function drawRect(conf: DrawRectConf) {
 
 		if (conf.width === undefined || conf.height === undefined) {
@@ -754,17 +750,25 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 			return;
 		}
 
-		let w = conf.width;
-		let h = conf.height;
+		const w = conf.width;
+		const h = conf.height;
+		const origin = originPt(conf.origin || DEF_ORIGIN).add(1, 1);
+		const offset = origin.scale(vec2(w, h).scale(-0.5));
 
+		let pts = [
+			vec2(0, 0),
+			vec2(w, 0),
+			vec2(w, h),
+			vec2(0, h),
+		];
+
+		// TODO: drawPoly should handle generic rounded corners
 		if (conf.radius) {
 
 			// maxium radius is half the shortest side
 			const r = Math.min(Math.min(w, h) / 2, conf.radius);
-			const origin = originPt(conf.origin || DEF_ORIGIN).add(1, 1);
-			const offset = origin.scale(vec2(w, h).scale(-0.5));
 
-			const pts = [
+			pts = [
 				vec2(r, 0),
 				vec2(w - r, 0),
 				...getArcPts(vec2(w - r, r), r, r, 270, 360),
@@ -779,42 +783,9 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 				...getArcPts(vec2(r, r), r, r, 180, 270),
 			];
 
-			drawPoly({ ...conf, offset, pts });
-
-		} else {
-
-			if (conf.fill !== false) {
-				drawQuad({
-					...conf,
-					width: w,
-					height: h,
-				});
-			}
-
-			if (conf.outline) {
-
-				if (conf.scale) {
-					const scale = vec2(conf.scale);
-					w = w * scale.x;
-					h = h * scale.y;
-				}
-
-				const offset = originPt(conf.origin || DEF_ORIGIN).scale(vec2(w, h)).scale(0.5);
-				const pos = conf.pos ?? vec2(0);
-				const p1 = vec2(-w / 2, -h / 2);
-				const p2 = vec2(-w / 2,  h / 2);
-				const p3 = vec2( w / 2,  h / 2);
-				const p4 = vec2( w / 2, -h / 2);
-
-				drawLines({
-					pts: [ p1, p2, p3, p4, p1 ].map((pt) => pt.add(pos).sub(offset)),
-					width: conf.outline.width,
-					color: conf.outline.color,
-				});
-
-			}
-
 		}
+
+		drawPoly({ ...conf, offset, pts });
 
 	}
 
@@ -1122,7 +1093,7 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 	// TODO: rotation
 	function drawFmtText(ftext: FormattedText) {
 		for (const ch of ftext.chars) {
-			drawQuad({
+			drawUVQuad({
 				tex: ch.tex,
 				width: ch.tex.width * ch.quad.w,
 				height: ch.tex.height * ch.quad.h,
@@ -1214,6 +1185,7 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 		drawCircle,
 		drawEllipse,
 		drawPoly,
+		drawUVQuad,
 		fmtText,
 		frameStart,
 		frameEnd,
