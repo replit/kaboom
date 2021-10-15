@@ -1259,11 +1259,11 @@ interface KaboomCtx {
 	 */
 	dir(deg: number): Vec2,
 	/**
-	 * Sin() motion between 2 values.
+	 * Interpolate between 2 values (default using Math.sin motion).
 	 *
 	 * @example
 	 * ```js
-	 * // change color with sin() like motion
+	 * // bounce color between 2 values as time goes on
 	 * action("colorful", (c) => {
 	 *     c.color.r = wave(0, 255, time());
 	 *     c.color.g = wave(0, 255, time() + 1);
@@ -1271,7 +1271,7 @@ interface KaboomCtx {
 	 * });
 	 * ```
 	 */
-	wave(lo: number, hi: number, t: number): number,
+	wave(lo: number, hi: number, t: number, func?: (x: number) => number): number,
 	/**
 	 * Convert degrees to radians.
 	 */

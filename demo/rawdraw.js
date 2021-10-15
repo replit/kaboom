@@ -4,107 +4,54 @@ kaboom();
 
 loadSprite("bean", "sprites/bean.png");
 
+const t = (n = 1) => time() * n;
+const p = (x, y) => vec2(x, y).scale(200).add(120, 120);
+const trail = [];
+
+const outline = {
+	width: 4,
+	color: rgb(0, 0, 255),
+};
+
 render(() => {
 
 	drawSprite({
 		sprite: "bean",
-		pos: vec2(120),
-		angle: time() * 100,
+		pos: p(0, 0),
+		angle: t(40),
 		origin: "center",
-	});
-
-	pushTransform();
-	pushTranslate(vec2(20, 300));
-// 	pushRotate(time() * 100);
-	pushScale(vec2(3));
-
-	drawRect({
-		width: 40,
-		height: 80,
-// 		origin: "center",
-// 		radius: 10,
-		outline: {
-			width: 2,
-			color: rgb(0, 0, 255),
-		},
-	});
-
-	popTransform();
-
-	const l1 = {
-		p1: vec2(0),
-		p2: mousePos(),
-	};
-
-	const l2 = {
-		p1: vec2(100, 300),
-		p2: vec2(300, 100),
-	};
-
-	drawLine({
-		p1: l1.p1,
-		p2: l1.p2,
-		width: 3,
-		color: rgb(0, 0, 255),
-	});
-
-	drawLine({
-		p1: l2.p1,
-		p2: l2.p2,
-		width: 3,
-		color: rgb(0, 0, 255),
-	});
-
-	const pt = testLineLine(l1, l2);
-
-	if (pt) {
-		drawCircle({
-			pos: pt,
-			radius: 12,
-			origin: "center",
-			color: rgb(255, 255, 0),
-		});
-	}
-
-	drawText({
-		text: "Drawcalls: " + debug.drawCalls(),
-		pos: vec2(24, 24),
-		size: 64,
-	});
-
-	drawTri({
-		p1: vec2(480, 120),
-		p2: vec2(200, 240),
-		p3: mousePos(),
-		color: rgb(128, 128, 255),
-		outline: {
-			width: 4,
-			color: rgb(0, 0, 255),
-		},
+		scale: wave(1, 1.5, t(4)),
+		color: rgb(wave(128, 255, t(4)), wave(128, 255, t(8)), 255),
 	});
 
 	drawRect({
-		width: 100,
-		height: 240,
-		pos: vec2(400),
+		pos: p(1, 0),
+		width: wave(60, 120, t(4)),
+		height: wave(100, 140, t(8)),
 		origin: "center",
-		fill: false,
-		outline: {
-			width: 4,
-			color: rgb(0, 0, 255),
-		},
+		radius: wave(0, 24, t(8)),
+		angle: t(80),
+		color: rgb(wave(128, 255, t(4)), 255, wave(128, 255, t(8))),
+		outline,
 	});
 
 	drawEllipse({
-		radiusX: 50,
-		radiusY: 120,
-		pos: vec2(400),
-		start: 0,
-		end: 180,
-		outline: {
-			width: 4,
-			color: rgb(0, 0, 255),
-		},
+		pos: p(2, 0),
+		radiusX: wave(40, 60, t(4)),
+		radiusY: wave(40, 60, t(8)),
+		color: rgb(255, wave(128, 255, t(8)), wave(128, 255, t(4))),
+		outline,
+	});
+
+	trail.push(mousePos());
+
+	if (trail.length > 16) {
+		trail.shift();
+	}
+
+	drawLines({
+		pts: trail,
+		...outline,
 	});
 
 });

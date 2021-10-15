@@ -2491,6 +2491,7 @@ const ctx: KaboomCtx = {
 	// raw draw
 	drawSprite,
 	drawText,
+	// TODO: wrap these to use assets lib for the "prog" prop
 	drawRect: gfx.drawRect,
 	drawLine: gfx.drawLine,
 	drawLines: gfx.drawLines,

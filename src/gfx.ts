@@ -550,18 +550,16 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 	}
 
 	function pushTranslate(...args) {
+		if (args[0] === undefined) return;
 		const p = vec2(...args);
-		if (p.x === 0 && p.y === 0) {
-			return;
-		}
+		if (p.x === 0 && p.y === 0) return;
 		gfx.transform = gfx.transform.translate(p);
 	}
 
 	function pushScale(...args) {
+		if (args[0] === undefined) return;
 		const p = vec2(...args);
-		if (p.x === 1 && p.y === 1) {
-			return;
-		}
+		if (p.x === 1 && p.y === 1) return;
 		gfx.transform = gfx.transform.scale(p);
 	}
 
@@ -712,14 +710,13 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 
 	}
 
-	// TODO: clearer resolution calculation
 	function getArcPts(
 		pos: Vec2,
 		radiusX: number,
 		radiusY: number,
 		start: number,
 		end: number,
-		res: number,
+		res: number = 1,
 	): Vec2[] {
 
 		// normalize and turn start and end angles to radians
@@ -727,8 +724,8 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 		end = deg2rad(end % 360);
 		if (end <= start) end += Math.PI * 2;
 
-		// the number of vertices is sqrt(r1 + r2) * 2 * res with a minimum of 16
-		const nverts = Math.ceil(Math.max(Math.sqrt(radiusX + radiusY) * 2 * (res || 1), 16));
+		// the number of vertices is sqrt(r1 + r2) * 3 * res with a minimum of 16
+		const nverts = Math.ceil(Math.max(Math.sqrt(radiusX + radiusY) * 3 * (res || 1), 16));
 		const step = (end - start) / nverts;
 		const pts = [];
 
@@ -754,11 +751,12 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 		let w = conf.width;
 		let h = conf.height;
 
-		// TODO: respect origin
 		if (conf.radius) {
 
 			// maxium radius is half the shortest side
 			const r = Math.min(Math.min(w, h) / 2, conf.radius);
+			const origin = originPt(conf.origin || DEF_ORIGIN).add(1, 1);
+			const offset = origin.scale(vec2(w, h).scale(-0.5));
 
 			const pts = [
 				vec2(r, 0),
@@ -775,7 +773,13 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 				...getArcPts(vec2(r, r), r, r, 180, 270),
 			];
 
+			pushTransform();
+			pushTranslate(conf.pos);
+			pushScale(conf.scale);
+			pushRotateZ(conf.angle);
+			pushTranslate(offset);
 			drawPoly({ ...conf, pts });
+			popTransform();
 
 		} else {
 
@@ -796,16 +800,15 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 					h = h * scale.y;
 				}
 
-				const pos = conf.pos ?? vec2(0);
 				const offset = originPt(conf.origin || DEF_ORIGIN).scale(vec2(w, h)).scale(0.5);
-
-				const p1 = pos.add(vec2(-w / 2, -h / 2)).sub(offset);
-				const p2 = pos.add(vec2(-w / 2,  h / 2)).sub(offset);
-				const p3 = pos.add(vec2( w / 2,  h / 2)).sub(offset);
-				const p4 = pos.add(vec2( w / 2, -h / 2)).sub(offset);
+				const pos = conf.pos ?? vec2(0);
+				const p1 = vec2(-w / 2, -h / 2);
+				const p2 = vec2(-w / 2,  h / 2);
+				const p3 = vec2( w / 2,  h / 2);
+				const p4 = vec2( w / 2, -h / 2);
 
 				drawLines({
-					pts: [ p1, p2, p3, p4, p1 ],
+					pts: [ p1, p2, p3, p4, p1 ].map((pt) => pt.add(pos).sub(offset)),
 					width: conf.outline.width,
 					color: conf.outline.color,
 				});
@@ -855,7 +858,7 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 		}
 
 		if (pts.length < 2) {
-			throw new Error("drawLines() requires at least 2 points.");
+			return;
 		}
 
 		if (conf.radius && pts.length >= 3) {
@@ -961,7 +964,7 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 		const npts = conf.pts.length;
 
 		if (npts < 3) {
-			throw new Error("drawPoly() requires at least 3 points.");
+			return;
 		}
 
 		if (conf.fill !== false) {
