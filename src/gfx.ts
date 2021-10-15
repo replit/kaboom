@@ -773,13 +773,7 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 				...getArcPts(vec2(r, r), r, r, 180, 270),
 			];
 
-			pushTransform();
-			pushTranslate(conf.pos);
-			pushScale(conf.scale);
-			pushRotateZ(conf.angle);
-			pushTranslate(offset);
-			drawPoly({ ...conf, pts });
-			popTransform();
+			drawPoly({ ...conf, offset, pts });
 
 		} else {
 
@@ -925,6 +919,7 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 			...conf,
 			radiusX: conf.radius,
 			radiusY: conf.radius,
+			angle: 0,
 		});
 
 	}
@@ -942,7 +937,7 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 		drawPoly({
 			...conf,
 			pts: getArcPts(
-				conf.pos ?? vec2(0),
+				vec2(0),
 				conf.radiusX,
 				conf.radiusY,
 				conf.start ?? 0,
@@ -966,6 +961,12 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 		if (npts < 3) {
 			return;
 		}
+
+		pushTransform();
+		pushTranslate(conf.pos);
+		pushScale(conf.scale);
+		pushRotateZ(conf.angle);
+		pushTranslate(conf.offset);
 
 		if (conf.fill !== false) {
 
@@ -994,6 +995,8 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 				color: conf.outline.color,
 			});
 		}
+
+		popTransform();
 
 	}
 

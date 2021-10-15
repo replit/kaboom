@@ -2022,6 +2022,7 @@ type DrawPolyConf = RenderProps & {
 	 * Optionally provide manual triangulation.
 	 */
 	indices?: number[],
+	offset?: Vec2,
 	radius?: number,
 }
 
