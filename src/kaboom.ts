@@ -1420,9 +1420,9 @@ function area(conf: AreaCompConf = {}): AreaComp {
 			});
 		},
 
-		collides(tag: Tag, f: (o: Character, dis?: Vec2) => void): EventCanceller {
+		collides(tag: Tag, f: (o: Character, col?: Collision) => void): EventCanceller {
 			const e1 = this.action(() => this._checkCollisions(tag, f));
-			const e2 = this.on("collide", (obj, dis) => obj.is(tag) && f(obj, dis));
+			const e2 = this.on("collide", (obj, col) => obj.is(tag) && f(obj, col));
 			return () => [e1, e2].forEach((f) => f());
 		},
 

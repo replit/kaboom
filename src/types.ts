@@ -568,7 +568,7 @@ interface KaboomCtx {
 	collides(
 		t1: Tag,
 		t2: Tag,
-		cb: (a: Character, b: Character, dis?: Vec2) => void,
+		cb: (a: Character, b: Character, col?: Collision) => void,
 	): EventCanceller,
 	/**
 	 * Register event when game objs with certain tags are clicked. This function spins off an action() when called, please put it at root level and never inside another action().
@@ -2485,7 +2485,7 @@ interface AreaComp extends Comp {
 	/**
 	 * Registers an event runs when collides with another game obj with certain tag.
 	 */
-	collides(tag: Tag, f: (obj: Character, dis?: Vec2) => void): void,
+	collides(tag: Tag, f: (obj: Character, col?: Collision) => void): void,
 	/**
 	 * If has a certain point inside collider.
 	 */
