@@ -1,7 +1,6 @@
 // kaboom as pure rendering lib (no component / game obj etc.)
 
 kaboom();
-
 loadSprite("bean", "sprites/bean.png");
 
 const t = (n = 1) => time() * n;
@@ -16,6 +15,7 @@ const outline = {
 	color: rgb(0, 0, 0),
 };
 
+// this'll run every frame
 render(() => {
 
 	const mx = (width() - px * 2) / 2;
@@ -84,6 +84,23 @@ render(() => {
 		popTransform();
 	}
 
+	drawLines({
+		...outline,
+		pts: trail,
+	});
+
+	draw.forEach((pts) => {
+		drawLines({
+			...outline,
+			pts: pts,
+		});
+	})
+
+});
+
+// this'll also run every frame, but before all renders
+action(() => {
+
 	trail.push(mousePos());
 
 	if (trail.length > 16) {
@@ -97,17 +114,5 @@ render(() => {
 	if (mouseIsDown() && mouseIsMoved()) {
 		draw[draw.length - 1].push(mousePos());
 	}
-
-	drawLines({
-		...outline,
-		pts: trail,
-	});
-
-	draw.forEach((pts) => {
-		drawLines({
-			...outline,
-			pts: pts,
-		});
-	})
 
 });
