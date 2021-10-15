@@ -1,6 +1,4 @@
 import * as React from "react";
-import Link from "next/link";
-import Image from "next/image";
 import { keyframes } from '@emotion/react';
 
 import useMediaQuery from "hooks/useMediaQuery";
@@ -28,7 +26,7 @@ const popping = keyframes(`
 `);
 
 const Logo: React.FC = () => (
-	<Link href="/" passHref>
+	<a href="/">
 		<View
 			desc="Back to home"
 			rounded
@@ -59,7 +57,7 @@ const Logo: React.FC = () => (
 				}}
 			/>
 		</View>
-	</Link>
+	</a>
 );
 
 interface NavLinkProps {
@@ -71,7 +69,7 @@ const NavLink: React.FC<NavLinkProps> = ({
 	text,
 	link,
 }) => (
-	<Link href={link} passHref>
+	<a href={link}>
 		<View
 			focusable
 			padX={1}
@@ -91,7 +89,7 @@ const NavLink: React.FC<NavLinkProps> = ({
 		>
 			<Text color={2}>{text}</Text>
 		</View>
-	</Link>
+	</a>
 );
 
 const NARROW = 840;

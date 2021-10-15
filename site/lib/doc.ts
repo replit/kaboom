@@ -1,6 +1,6 @@
 import ts from "typescript";
 // @ts-ignore
-import dts from "!raw-loader!public/dist/kaboom.d.ts"
+// import dts from "public/dist/kaboom.d.ts"
 
 export interface DocSection {
 	name: string,

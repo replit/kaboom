@@ -1,5 +1,4 @@
 import * as React from "react";
-import Image from "next/image";
 import { keyframes } from '@emotion/react';
 import Head from "comps/Head";
 import Nav from "comps/Nav";
