@@ -785,7 +785,6 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 				});
 			}
 
-			// TODO: rotation
 			if (conf.outline) {
 
 				if (conf.scale) {
@@ -949,7 +948,6 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 
 	}
 
-	// TODO: scale, pos, rotate
 	function drawPoly(conf: DrawPolyConf) {
 
 		if (!conf.pts) {
