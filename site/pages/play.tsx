@@ -1,7 +1,6 @@
 import * as React from "react";
 import useRouter from "hooks/useRouter";
 import useKey from "hooks/useKey";
-import useFetch from "hooks/useFetch";
 import useSavedState from "hooks/useSavedState";
 import useClickOutside from "hooks/useClickOutside";
 import useSpaceUsed from "hooks/useSpaceUsed";
@@ -29,41 +28,6 @@ import wrapHTML from "lib/wrapHTML";
 import Ctx from "lib/Ctx";
 
 const DEF_DEMO = "sprite";
-
-// TODO: shouldn't hard code
-const demos = [
-	"audio",
-	"bench",
-	"burp",
-	"button",
-	"doublejump",
-	"draw",
-	"drag",
-	"eatbomb",
-	"egg",
-	"flappy",
-	"fullscreen",
-	"hi",
-	"kaboom",
-	"layer",
-	"multiboom",
-	"out",
-	"particle",
-	"platformer",
-	"pointclick",
-	"rpg",
-	"runner",
-	"scenes",
-	"shader",
-	"shooter",
-	"size",
-	"sprite",
-	"spriteatlas",
-	"text",
-	"tiled",
-	"tileset",
-	"transform",
-]
 
 interface SpriteEntryProps {
 	name: string,
@@ -152,14 +116,19 @@ interface Sound {
 	src: string,
 }
 
-const Play: React.FC = () => {
+interface PlayProps {
+	demos: Record<string, string>,
+}
+
+const Play: React.FC<PlayProps> = ({
+	demos
+}) => {
 
 	const router = useRouter();
 	const { draggin } = React.useContext(Ctx);
 	const demo = router.params["demo"] || DEF_DEMO;
-	const codeFetch = useFetch(`/site/demo/${demo}.js`, (res) => res.text());
 	const [ backpackOpen, setBackpackOpen ] = React.useState(false);
-	const [ code, setCode ] = React.useState("");
+	const [ code, setCode ] = React.useState(demos[demo]);
 	const [ sprites, setSprites ] = useSavedState<Sprite[]>("sprites", []);
 	const [ sounds, setSounds ] = useSavedState<Sound[]>("sounds", []);
 	const [ blackboard, setBlackboard ] = React.useState<string | null>(null);
@@ -180,12 +149,6 @@ const Play: React.FC = () => {
 			});
 		}
 	}, []);
-
-	React.useEffect(() => {
-		if (!codeFetch.err && codeFetch.data) {
-			setCode(codeFetch.data);
-		}
-	}, [ codeFetch ]);
 
 	useKey("Escape", () => {
 		setBackpackOpen(false);
@@ -231,7 +194,7 @@ const Play: React.FC = () => {
 						<Select
 							name="Demo Selector"
 							desc="Select a demo to run"
-							options={demos}
+							options={Object.keys(demos)}
 							value={demo}
 							onChange={(demo) => {
 								router.set({

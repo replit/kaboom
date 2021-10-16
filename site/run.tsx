@@ -1,5 +1,5 @@
 import fs from "fs";
-import path from "path";
+import { resolve } from "path";
 import express from "express";
 import esbuild from "esbuild";
 import ReactDOMServer from "react-dom/server";
@@ -10,8 +10,9 @@ import Doc from "pages/doc";
 const app = express();
 const port = process.env.PORT || 8000;
 
+const path = (p: string) => resolve(__dirname, p);
 const files = (route: string | RegExp, p: string) =>
-	app.use(route, express.static(path.resolve(__dirname, p)));
+	app.use(route, express.static(path(p)));
 
 const page = (route: string | RegExp, handle: (req) => React.ReactElement | undefined) => {
 	app.get(route, (req, res, next) => {
@@ -33,11 +34,23 @@ ${ReactDOMServer.renderToString(el)}
 };
 
 page("/", () => <Home />);
-page("/play", () => <Play />);
+
+page("/play", () => {
+	const demos = fs
+		.readdirSync(path("../demo"))
+		.filter((p) => !p.startsWith("."))
+		.reduce<Record<string, string>>((table, name) => {
+			table[name] = fs.readFileSync(path(`../demo/${name}`), "utf8");
+			return table;
+		}, {});
+	return <Play demos={demos} />;
+});
+
 page("/doc/:name", (req) => {
-	const src = fs.readFileSync(path.resolve(__dirname, `../doc/${req.params.name}.md`), "utf8");
+	const src = fs.readFileSync(path(`../doc/${req.params.name}.md`), "utf8");
 	return <Doc src={src} />
 });
+
 files("/sprites", "../assets/sprites");
 files("/sounds", "../assets/sounds");
 files("/fonts", "../assets/fonts");
@@ -46,8 +59,6 @@ files("/site/demo", "../demo");
 files("/site/doc", "../doc");
 files("/lib", "../dist");
 
-const server = app.listen(port, () =>
+export default app.listen(port, () =>
 	console.log(`site running at http://localhost:${port}`)
 );
-
-export default server;

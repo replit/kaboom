@@ -1,10 +1,5 @@
 const esbuild = require("esbuild");
 
-function dofile(mod) {
-	delete require.cache[require.resolve(mod)];
-	return require(mod);
-}
-
 esbuild.build({
 	bundle: true,
 	sourcemap: true,
@@ -19,6 +14,16 @@ esbuild.build({
 
 let server = null;
 
+function postBuild() {
+	if (server) server.close();
+	server = dofile("./site").default;
+}
+
+function dofile(mod) {
+	delete require.cache[require.resolve(mod)];
+	return require(mod);
+}
+
 esbuild.build({
 	bundle: true,
 	sourcemap: true,
@@ -28,14 +33,9 @@ esbuild.build({
 	jsxFactory: "jsx",
 	platform: "node",
 	watch: process.env.NODE_ENV === "development" ? {
-		onRebuild() {
-			server.close();
-			server = dofile("./site").default;
-		},
+		onRebuild: postBuild,
 	} : false,
 	inject: [ "inject.js", ],
 	entryPoints: [ "run.tsx" ],
 	outfile: "site.js",
-}).then(() => {
-	server = dofile("./site").default;
-});
+}).then(postBuild);

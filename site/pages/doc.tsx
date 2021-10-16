@@ -13,12 +13,12 @@ interface DocProps {
 
 const Doc: React.FC<DocProps> = ({
 	src,
-}) => {
-	return <Page>
+}) => (
+	<Page>
 		<Nav>
 			<Markdown src={src} baseUrl="/site/doc/" />
 		</Nav>
-	</Page>;
-}
+	</Page>
+);
 
 export default Doc;
