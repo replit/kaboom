@@ -1,5 +1,4 @@
 import * as React from "react";
-import Link from "next/link";
 import View, { ViewPropsAnd } from "comps/View";
 import Text from "comps/Text";
 import Markdown from "comps/Markdown";

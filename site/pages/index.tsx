@@ -62,7 +62,7 @@ const Home: React.FC = () => {
 			<Head title="Kaboom" scale={0.8} />
 			<Text select size="huge" color={1}>Kaboom is a Javascript game programming library that helps you make games fast and <Fun />.</Text>
 			<Markdown stretchX src={`
-\`\`\`javascript
+\`\`\`js
 // start the game
 kaboom();
 

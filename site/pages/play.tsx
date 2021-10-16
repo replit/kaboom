@@ -1,5 +1,6 @@
 import * as React from "react";
 import ReactDOM from "react-dom";
+import useRouter from "hooks/useRouter";
 import useKey from "hooks/useKey";
 import useFetch from "hooks/useFetch";
 import useSavedState from "hooks/useSavedState";
@@ -154,9 +155,9 @@ interface Sound {
 
 const Play: React.FC = () => {
 
+	const router = useRouter();
 	const { draggin } = React.useContext(Ctx);
-// 	const demo = router.query.demo as string || DEF_DEMO;
-	const demo = DEF_DEMO;
+	const demo = router.params["demo"] || DEF_DEMO;
 	const codeFetch = useFetch(`/site/demo/${demo}.js`, (res) => res.text());
 	const [ backpackOpen, setBackpackOpen ] = React.useState(false);
 	const [ code, setCode ] = React.useState("");
@@ -171,14 +172,14 @@ const Play: React.FC = () => {
 	const [ make, setMake ] = React.useState(false);
 
 // 	React.useEffect(() => {
-// 		if (router.isReady && !router.query.demo) {
-// 			router.replace({
-// 				query: {
+// 		if (!router.params["demo"]) {
+// 			router.set({
+// 				params: {
 // 					demo: DEF_DEMO,
 // 				},
 // 			});
 // 		}
-// 	}, [ router ]);
+// 	}, []);
 
 	React.useEffect(() => {
 		if (!codeFetch.err && codeFetch.data) {
@@ -232,11 +233,10 @@ const Play: React.FC = () => {
 							desc="Select a demo to run"
 							options={demos}
 							value={demo}
-// 							onChange={(demo) => router.push({
-// 								query: {
-// 									demo: demo,
-// 								},
-// 							})}
+							onChange={(demo) => {
+								urlParams.set("demo", demo);
+								document.location.search = urlParams.toString();
+							}}
 						/>
 					}
 					<Button

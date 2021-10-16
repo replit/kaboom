@@ -42,6 +42,7 @@ static("/sounds", "../assets/sounds");
 static("/fonts", "../assets/fonts");
 static("/site", "public");
 static("/site/demo", "../demo");
+static("/site/doc", "../doc");
 static("/lib", "../dist");
 
 app.listen(port, () => console.log(`site running at http://localhost:${port}`));
