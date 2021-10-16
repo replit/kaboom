@@ -857,6 +857,7 @@ function gameFrame(ignorePause?: boolean) {
 		game.timers.forEach((t, id) => {
 			t.time -= dt();
 			if (t.time <= 0) {
+				// TODO: some timer action causes crash on FF when dt is really high, not sure why
 				t.action();
 				game.timers.delete(id);
 			}
