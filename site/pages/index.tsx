@@ -1,4 +1,6 @@
 import * as React from "react";
+import ReactDOM from "react-dom";
+import Page from "comps/Page";
 import { keyframes } from '@emotion/react';
 import Head from "comps/Head";
 import Nav from "comps/Nav";
@@ -55,11 +57,12 @@ const Home: React.FC = () => {
 	const [ showType, setShowType ] = React.useState(false);
 	const [ shownTypeName, setShownTypeName ] = React.useState<string | null>(null);
 	const isNarrow = useMediaQuery(`(max-width: ${NARROW}px)`);
-	return <Nav>
-		<Head title="Kaboom" scale={0.8} />
-		<Text select size="huge" color={1}>Kaboom is a Javascript game programming library that helps you make games fast and <Fun />.</Text>
-		<Markdown stretchX src={`
-\`\`\`js
+	return <Page>
+		<Nav>
+			<Head title="Kaboom" scale={0.8} />
+			<Text select size="huge" color={1}>Kaboom is a Javascript game programming library that helps you make games fast and <Fun />.</Text>
+			<Markdown stretchX src={`
+\`\`\`javascript
 // start the game
 kaboom();
 
@@ -82,50 +85,53 @@ keyPress("space", () => {
 \`\`\`
 
 Play with it yourself or check out the examples in the [Playground](/play)!
-		`} />
+			`} />
 
-		{ doc.sections.map((sec) => {
-			const entries = sec.entries;
-			return (
-				<View stretchX gap={1} key={sec.name}>
-					<Text size="huge" color={3}>{sec.name}</Text>
-					<View stretchX gap={3}>
-						{ entries.map((name) => (
-							<Doc
-								id={name}
-								key={name}
-								name={name}
-								typeref={(name) => {
-									setShowType(true);
-									setShownTypeName(name);
-								}}
-							/>
-						)) }
+			{ doc.sections.map((sec) => {
+				const entries = sec.entries;
+				return (
+					<View stretchX gap={1} key={sec.name}>
+						<Text size="huge" color={3}>{sec.name}</Text>
+						<View stretchX gap={3}>
+							{ entries.map((name) => (
+								<Doc
+									id={name}
+									key={name}
+									name={name}
+									typeref={(name) => {
+										setShowType(true);
+										setShownTypeName(name);
+									}}
+								/>
+							)) }
+						</View>
 					</View>
-				</View>
-			);
-		}) }
+				);
+			}) }
 
-		<Drawer
-			dir="right"
-			pad={2}
-			height="64%"
-			paneWidth={isNarrow ? 320 : 360}
-			expanded={showType}
-			setExpanded={setShowType}
-		>
-			{ shownTypeName &&
-				<Doc
-					name={shownTypeName}
-					typeref={(name) => {
-						setShowType(true);
-						setShownTypeName(name);
-					}}
-				/>
-			}
-		</Drawer>
-
-	</Nav>;
+			<Drawer
+				dir="right"
+				pad={2}
+				height="64%"
+				paneWidth={isNarrow ? 320 : 360}
+				expanded={showType}
+				setExpanded={setShowType}
+			>
+				{ shownTypeName &&
+					<Doc
+						name={shownTypeName}
+						typeref={(name) => {
+							setShowType(true);
+							setShownTypeName(name);
+						}}
+					/>
+				}
+			</Drawer>
+		</Nav>
+	</Page>;
 };
 
-export default Home;
+ReactDOM.render(
+	React.createElement(Home, null),
+	document.body
+);

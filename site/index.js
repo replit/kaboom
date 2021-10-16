@@ -14,7 +14,7 @@ const page = (route, name) => {
 <head>
 </head>
 <body>
-	<script src="/site/page/${name}.js"></script>
+	<script src="/site/pages/${name}.js"></script>
 </body>
 </html>
 		`);
@@ -23,9 +23,12 @@ const page = (route, name) => {
 
 page("/", "index");
 page("/play", "play");
+page("/test", "test");
 static("/sprites", "../assets/sprites");
 static("/sounds", "../assets/sounds");
 static("/fonts", "../assets/fonts");
 static("/site", "public");
+static("/site/demo", "../demo");
+static("/lib", "../dist");
 
 app.listen(port, () => console.log(`site running at http://localhost:${port}`));

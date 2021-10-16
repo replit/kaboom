@@ -1,12 +1,12 @@
 import * as React from "react";
-import Link from "next/link";
-import { useRouter } from "next/router";
+import ReactDOM from "react-dom";
 import useKey from "hooks/useKey";
 import useFetch from "hooks/useFetch";
 import useSavedState from "hooks/useSavedState";
 import useClickOutside from "hooks/useClickOutside";
 import useSpaceUsed from "hooks/useSpaceUsed";
 import useMediaQuery from "hooks/useMediaQuery";
+import Page from "comps/Page";
 import Head from "comps/Head";
 import Editor, { EditorRef } from "comps/Editor";
 import GameView, { GameViewRef } from "comps/GameView";
@@ -153,10 +153,10 @@ interface Sound {
 
 const Play: React.FC = () => {
 
-	const router = useRouter();
 	const { draggin } = React.useContext(Ctx);
-	const demo = router.query.demo as string || DEF_DEMO;
-	const { data: fetchedCode } = useFetch(`/site/demo/${demo}.js`, (res) => res.text());
+// 	const demo = router.query.demo as string || DEF_DEMO;
+	const demo = DEF_DEMO;
+	const codeFetch = useFetch(`/site/demo/${demo}.js`, (res) => res.text());
 	const [ backpackOpen, setBackpackOpen ] = React.useState(false);
 	const [ code, setCode ] = React.useState("");
 	const [ sprites, setSprites ] = useSavedState<Sprite[]>("sprites", []);
@@ -169,21 +169,21 @@ const Play: React.FC = () => {
 	const spaceUsed = useSpaceUsed();
 	const [ make, setMake ] = React.useState(false);
 
-	React.useEffect(() => {
-		if (router.isReady && !router.query.demo) {
-			router.replace({
-				query: {
-					demo: DEF_DEMO,
-				},
-			});
-		}
-	}, [ router ]);
+// 	React.useEffect(() => {
+// 		if (router.isReady && !router.query.demo) {
+// 			router.replace({
+// 				query: {
+// 					demo: DEF_DEMO,
+// 				},
+// 			});
+// 		}
+// 	}, [ router ]);
 
 	React.useEffect(() => {
-		if (fetchedCode != null) {
-			setCode(fetchedCode);
+		if (!codeFetch.err && codeFetch.data) {
+			setCode(codeFetch.data);
 		}
-	}, [ fetchedCode ]);
+	}, [ codeFetch ]);
 
 	useKey("Escape", () => {
 		setBackpackOpen(false);
@@ -198,7 +198,7 @@ const Play: React.FC = () => {
 
 	useClickOutside(blackboardRef, () => setBlackboard(null), [ setBlackboard ]);
 
-	return <>
+	return <Page>
 		<Head title="Kaboom Playground" scale={0.6} />
 		<Background dir="column" css={{ overflow: "hidden" }}>
 			<View
@@ -214,7 +214,7 @@ const Play: React.FC = () => {
 						rounded
 						desc="Back to home"
 					>
-						<Link href="/" passHref>
+						<a href="/">
 							<img
 								src="/site/img/k.png"
 								css={{
@@ -223,7 +223,7 @@ const Play: React.FC = () => {
 								}}
 								alt="logo"
 							/>
-						</Link>
+						</a>
 					</View>
 					{ !make &&
 						<Select
@@ -231,11 +231,11 @@ const Play: React.FC = () => {
 							desc="Select a demo to run"
 							options={demos}
 							value={demo}
-							onChange={(demo) => router.push({
-								query: {
-									demo: demo,
-								},
-							})}
+// 							onChange={(demo) => router.push({
+// 								query: {
+// 									demo: demo,
+// 								},
+// 							})}
 						/>
 					}
 					<Button
@@ -477,8 +477,11 @@ const Play: React.FC = () => {
 				</Drawer>
 			}
 		</Background>
-	</>;
+	</Page>;
 
 };
 
-export default Play;
+ReactDOM.render(
+	React.createElement(Play, null),
+	document.body
+);

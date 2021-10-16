@@ -7,6 +7,8 @@ esbuild.buildSync({
 	target: "es6",
 	minify: true,
 	keepNames: true,
-	entryPoints: [ "pages/index.tsx", ],
+	jsxFactory: "jsx",
+	inject: [ "inject.js", ],
+	entryPoints: [ "pages/index.tsx", "pages/play.tsx" ],
 	outdir: "public/pages",
 });
