@@ -1788,6 +1788,7 @@ function text(t: string, conf: TextCompConf = {}): TextComp {
 		const ftext = gfx.fmtText({
 			...getRenderProps(this),
 			text: this.text + "",
+			size: this.textSize,
 			font: font,
 			width: conf.width,
 		});
