@@ -171,15 +171,16 @@ const Play: React.FC = () => {
 	const spaceUsed = useSpaceUsed();
 	const [ make, setMake ] = React.useState(false);
 
-// 	React.useEffect(() => {
-// 		if (!router.params["demo"]) {
-// 			router.set({
-// 				params: {
-// 					demo: DEF_DEMO,
-// 				},
-// 			});
-// 		}
-// 	}, []);
+	React.useEffect(() => {
+		if (!router.params["demo"]) {
+			router.set({
+				params: {
+					demo: DEF_DEMO,
+				},
+				push: false,
+			});
+		}
+	}, []);
 
 	React.useEffect(() => {
 		if (!codeFetch.err && codeFetch.data) {
@@ -234,8 +235,11 @@ const Play: React.FC = () => {
 							options={demos}
 							value={demo}
 							onChange={(demo) => {
-								urlParams.set("demo", demo);
-								document.location.search = urlParams.toString();
+								router.set({
+									params: {
+										demo: demo,
+									},
+								});
 							}}
 						/>
 					}
