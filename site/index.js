@@ -1,8 +1,22 @@
 const fs = require("fs");
 const path = require("path");
+const esbuild = require("esbuild");
 const express = require("express");
 const app = express();
 const port = process.env.PORT || 8000;
+
+esbuild.build({
+	bundle: true,
+	sourcemap: true,
+	target: "es6",
+	minify: true,
+	keepNames: true,
+	jsxFactory: "jsx",
+	watch: process.env.NODE_ENV === "development",
+	inject: [ "inject.js", ],
+	entryPoints: [ "pages/index.tsx", "pages/play.tsx" ],
+	outdir: "public/pages",
+});
 
 const static = (route, p) => app.use(route, express.static(path.resolve(__dirname, p)));
 
@@ -23,7 +37,6 @@ const page = (route, name) => {
 
 page("/", "index");
 page("/play", "play");
-page("/test", "test");
 static("/sprites", "../assets/sprites");
 static("/sounds", "../assets/sounds");
 static("/fonts", "../assets/fonts");

@@ -1,9 +1,8 @@
 {
 	"private": true,
 	"scripts": {
-		"build": "node build.js",
-		"dev": "node index.js",
-		"start": "node index.js",
+		"dev": "NODE_ENV=development node index.js",
+		"start": "NODE_ENV=production node index.js",
 		"check": "tsc --noEmit"
 	},
 	"dependencies": {
