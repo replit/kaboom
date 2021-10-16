@@ -9,9 +9,9 @@ interface SetRoute {
 export default function useRouter() {
 
 	const [ path, setPath ] = React.useState(() => window.location.pathname);
-	const [ params, setParams ] = React.useState<Record<string, string>>(() => {
-		return Object.fromEntries(new URLSearchParams(window.location.search).entries());
-	});
+	const [ params, setParams ] = React.useState(() => Object.fromEntries(
+		new URLSearchParams(window.location.search).entries()
+	));
 
 	React.useEffect(() => {
 
@@ -48,6 +48,7 @@ export default function useRouter() {
 	}, []);
 
 	return {
+		path,
 		params,
 		set,
 	};

@@ -1,5 +1,4 @@
 import * as React from "react";
-import ReactDOM from "react-dom";
 import useRouter from "hooks/useRouter";
 import useKey from "hooks/useKey";
 import useFetch from "hooks/useFetch";
@@ -486,7 +485,4 @@ const Play: React.FC = () => {
 
 };
 
-ReactDOM.render(
-	React.createElement(Play, null),
-	document.body
-);
+export default Play;

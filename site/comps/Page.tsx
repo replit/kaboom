@@ -143,10 +143,6 @@ const Page: React.FC = ({ children }) => {
 					a {
 						text-decoration: none;
 					}
-					#__next {
-						width: 100%;
-						height: 100%;
-					}
 					::selection {
 						background: var(--color-bg4);
 					}
