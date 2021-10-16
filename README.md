@@ -8,7 +8,7 @@
 
 (these are for the newest beta version or `kaboom@next`)
 
-Lots of iteractive examples [here](https://kaboomjs.com/demo)
+Lots of interactive examples [here](https://kaboomjs.com/demo)
 
 ```html
 <script type="module">

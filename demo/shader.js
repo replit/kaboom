@@ -16,13 +16,12 @@ vec4 frag(vec3 pos, vec2 uv, vec4 color, sampler2D tex) {
 }
 `);
 
-add([
-	rect(width(), height()),
+const shade = add([
+	uvquad(width(), height()),
 	shader("test"),
-	{
-		update() {
-			this.uniform["u_time"] = time();
-			this.uniform["u_mpos"] = mousePos().scale(1 / width(), 1 / height());
-		},
-	}
 ]);
+
+action(() => {
+	shade.uniform["u_time"] = time();
+	shade.uniform["u_mpos"] = mousePos().scale(1 / width(), 1 / height());
+});

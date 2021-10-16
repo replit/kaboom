@@ -14,13 +14,13 @@ import {
 	map,
 	mapc,
 	wave,
-	colLineLine,
-	colLineLine2,
+	testLineLine,
+	testLineLineT,
+	testRectRect2,
+	testRectLine,
+	testRectPt,
 	minkDiff,
-	colRectRect,
-	overlapRectRect,
-	colRectPt,
-	ovrRectPt,
+	testRectRect,
 	dir,
 	deg2rad,
 	rad2deg,
@@ -140,42 +140,44 @@ function mouseWorldPos(): Vec2 {
 	return game.camMousePos;
 }
 
-function drawSprite(
-	id: string | SpriteData,
-	conf: DrawSpriteConf = {},
-) {
+// wrapper around gfx.drawTexture to integrate with sprite assets mananger / frame anim
+function drawSprite(conf: DrawSpriteConf) {
+	if (!conf.sprite) {
+		throw new Error(`drawSprite() requires property "sprite"`);
+	}
 	const spr = (() => {
-		if (typeof id === "string") {
-			return assets.sprites[id];
+		if (typeof conf.sprite === "string") {
+			return assets.sprites[conf.sprite];
 		} else {
-			return id;
+			return conf.sprite;
 		}
 	})();
 	if (!spr) {
-		throw new Error(`sprite not found: "${id}"`);
+		throw new Error(`sprite not found: "${conf.sprite}"`);
 	}
 	const q = spr.frames[conf.frame ?? 0];
 	if (!q) {
 		throw new Error(`frame not found: ${conf.frame ?? 0}`);
 	}
-	gfx.drawTexture(spr.tex, {
+	gfx.drawTexture({
 		...conf,
+		tex: spr.tex,
 		quad: q.scale(conf.quad || quad(0, 0, 1, 1)),
 	});
 }
 
-// TODO: DrawTextComf
-function drawText(
-	txt: string,
-	conf = {},
-) {
+// wrapper around gfx.drawText to integrate with font assets mananger / default font
+function drawText(conf: DrawTextConf) {
 	// @ts-ignore
 	const fid = conf.font ?? DEF_FONT;
 	const font = assets.fonts[fid];
 	if (!font) {
 		throw new Error(`font not found: ${fid}`);
 	}
-	gfx.drawText(txt, font, conf);
+	gfx.drawText({
+		...conf,
+		font: font,
+	});
 }
 
 const DEF_GRAVITY = 1600;
@@ -891,7 +893,7 @@ function gameFrame(ignorePause?: boolean) {
 			gfx.pushTransform();
 
 			if (!obj.fixed) {
-				gfx.pushMatrix(game.camMatrix);
+				gfx.applyMatrix(game.camMatrix);
 			}
 
 			obj.trigger("draw");
@@ -914,7 +916,9 @@ function drawInspect() {
 		const s = gfx.scale();
 		const pad = vec2(6).scale(1 / s);
 
-		const ftxt = gfx.fmtText(txt, font, {
+		const ftxt = gfx.fmtText({
+			text: txt,
+			font: font,
 			size: 16 / s,
 			pos: pos.add(vec2(pad.x, pad.y)),
 			color: rgb(0, 0, 0),
@@ -933,13 +937,15 @@ function drawInspect() {
 			gfx.pushTranslate(vec2(0, -bh));
 		}
 
-		gfx.drawRect(pos, bw, bh, {
+		gfx.drawRect({
+			pos: pos,
+			width: bw,
+			height: bh,
 			color: rgb(255, 255, 255),
-		});
-
-		gfx.drawRectStroke(pos, bw, bh, {
-			width: 2 / s,
-			color: rgb(0, 0, 0),
+			outline: {
+				width: 2 / s,
+				color: rgb(0, 0, 0),
+			},
 		});
 
 		gfx.drawFmtText(ftxt);
@@ -962,7 +968,7 @@ function drawInspect() {
 
 		if (!obj.fixed) {
 			gfx.pushTransform();
-			gfx.pushMatrix(game.camMatrix);
+			gfx.applyMatrix(game.camMatrix);
 		}
 
 		if (!inspecting) {
@@ -976,9 +982,15 @@ function drawInspect() {
 		const w = a.p2.x - a.p1.x;
 		const h = a.p2.y - a.p1.y;
 
-		gfx.drawRectStroke(a.p1, w, h, {
-			width: lwidth,
-			color: lcolor,
+		gfx.drawRect({
+			pos: a.p1,
+			width: w,
+			height: h,
+			outline: {
+				width: lwidth,
+				color: lcolor,
+			},
+			fill: false,
 		});
 
 		if (!obj.fixed) {
@@ -1041,7 +1053,7 @@ function pos(...args): PosComp {
 					let md = minkDiff(a2, a1);
 
 					// if they're already overlapping, push them away first
-					if (ovrRectPt(md, vec2(0))) {
+					if (testRectPt(md, vec2(0))) {
 
 						let dist = Math.min(
 							Math.abs(md.p1.x),
@@ -1093,7 +1105,7 @@ function pos(...args): PosComp {
 							minT = 1;
 							break;
 						}
-						const t = colLineLine2(ray, line);
+						const t = testLineLineT(ray, line);
 						if (t != null) {
 							numCols++;
 							if (t < minT) {
@@ -1106,7 +1118,7 @@ function pos(...args): PosComp {
 					// if moving away, we forgive
 					if (
 						minT < 1
-						&& !(minT === 0 && numCols == 1 && !ovrRectPt(md, vec2(dx, dy)))
+						&& !(minT === 0 && numCols == 1 && !testRectPt(md, vec2(dx, dy)))
 					) {
 						dx *= minT;
 						dy *= minT;
@@ -1172,7 +1184,7 @@ function pos(...args): PosComp {
 		},
 
 		inspect() {
-			return `(${~~this.pos.x}, ${~~this.pos.y})`;
+			return `(${Math.round(this.pos.x)}, ${Math.round(this.pos.y)})`;
 		},
 
 	};
@@ -1309,7 +1321,7 @@ function cleanup(time: number = 0): CleanupComp {
 				p1: vec2(0, 0),
 				p2: vec2(width(), height()),
 			}
-			if (colRectRect(this.screenArea(), screenRect)) {
+			if (testRectRect2(this.screenArea(), screenRect)) {
 				timer = 0;
 			} else {
 				timer += dt();
@@ -1375,7 +1387,7 @@ function area(conf: AreaCompConf = {}): AreaComp {
 			}
 			const a1 = this.worldArea();
 			const a2 = other.worldArea();
-			return overlapRectRect(a1, a2);
+			return testRectRect(a1, a2);
 		},
 
 		isTouching(other) {
@@ -1384,7 +1396,7 @@ function area(conf: AreaCompConf = {}): AreaComp {
 			}
 			const a1 = this.worldArea();
 			const a2 = other.worldArea();
-			return colRectRect(a1, a2);
+			return testRectRect2(a1, a2);
 		},
 
 		clicks(f: () => void): EventCanceller {
@@ -1415,7 +1427,7 @@ function area(conf: AreaCompConf = {}): AreaComp {
 
 		hasPt(pt: Vec2): boolean {
 			const a = this.worldArea();
-			return colRectPt({
+			return testRectPt({
 				p1: a.p1,
 				p2: a.p2,
 			}, pt);
@@ -1436,7 +1448,7 @@ function area(conf: AreaCompConf = {}): AreaComp {
 			const a2 = obj.worldArea();
 			const md = minkDiff(a1, a2);
 
-			if (!ovrRectPt(md, vec2(0))) {
+			if (!testRectPt(md, vec2(0))) {
 				return null;
 			}
 
@@ -1535,6 +1547,21 @@ function area(conf: AreaCompConf = {}): AreaComp {
 
 }
 
+// make the list of common render properties from the "pos", "scale", "color", "opacity", "rotate", "origin", "outline", and "shader" components of a character
+function getRenderProps(obj: Character<any>) {
+	return {
+		pos: obj.pos,
+		scale: obj.scale,
+		color: obj.color,
+		opacity: obj.opacity,
+		angle: obj.angle,
+		origin: obj.origin,
+		outline: obj.outline,
+		prog: assets.shaders[obj.shader],
+		uniform: obj.uniform,
+	};
+}
+
 interface SpriteCurAnim {
 	name: string,
 	timer: number,
@@ -1605,17 +1632,11 @@ function sprite(id: string | SpriteData, conf: SpriteCompConf = {}): SpriteComp 
 		},
 
 		draw() {
-			drawSprite(spr, {
-				pos: this.pos,
-				scale: this.scale,
-				rot: this.angle,
-				color: this.color,
-				opacity: this.opacity,
+			drawSprite({
+				...getRenderProps(this),
+				sprite: spr,
 				frame: this.frame,
-				origin: this.origin,
 				quad: this.quad,
-				prog: assets.shaders[this.shader],
-				uniform: this.uniform,
 				flipX: conf.flipX,
 				flipY: conf.flipY,
 				tiled: conf.tiled,
@@ -1764,14 +1785,10 @@ function text(t: string, conf: TextCompConf = {}): TextComp {
 			throw new Error(`font not found: "${font}"`);
 		}
 
-		const ftext = gfx.fmtText(this.text + "", font, {
-			pos: this.pos,
-			scale: this.scale,
-			rot: this.angle,
-			size: conf.size,
-			origin: this.origin,
-			color: this.color,
-			opacity: this.opacity,
+		const ftext = gfx.fmtText({
+			...getRenderProps(this),
+			text: this.text + "",
+			font: font,
 			width: conf.width,
 		});
 
@@ -1803,69 +1820,66 @@ function text(t: string, conf: TextCompConf = {}): TextComp {
 
 }
 
-// TODO: accept p1: Vec2 p2: Vec2
 function rect(w: number, h: number): RectComp {
 	return {
 		id: "rect",
 		width: w,
 		height: h,
 		draw() {
-			gfx.drawRect(this.pos, this.width, this.height, {
-				scale: this.scale,
-				rot: this.angle,
-				color: this.color,
-				opacity: this.opacity,
-				origin: this.origin,
-				prog: assets.shaders[this.shader],
-				uniform: this.uniform,
+			gfx.drawRect({
+				...getRenderProps(this),
+				width: this.width,
+				height: this.height,
 			});
 		},
 		inspect() {
-			return `${this.width}, ${this.height}`;
+			return `${Math.ceil(this.width)}, ${Math.ceil(this.height)}`;
+		},
+	};
+}
+
+function uvquad(w: number, h: number): UVQuadComp {
+	return {
+		id: "rect",
+		width: w,
+		height: h,
+		draw() {
+			gfx.drawUVQuad({
+				...getRenderProps(this),
+				width: this.width,
+				height: this.height,
+			});
+		},
+		inspect() {
+			return `${Math.ceil(this.width)}, ${Math.ceil(this.height)}`;
+		},
+	};
+}
+
+function circle(radius: number): CircleComp {
+	return {
+		id: "circle",
+		radius: radius,
+		draw() {
+			gfx.drawCircle({
+				...getRenderProps(this),
+				radius: this.radius,
+			});
+		},
+		inspect() {
+			return `${Math.ceil(this.radius)}`;
 		},
 	};
 }
 
 function outline(width: number = 1, color: Color = rgb(0, 0, 0)): OutlineComp {
-
 	return {
-
 		id: "outline",
-		lineWidth: width,
-		lineColor: color,
-
-		draw() {
-
-			if (this.width && this.height) {
-
-				gfx.drawRectStroke(this.pos || vec2(0), this.width, this.height, {
-					width: this.lineWidth,
-					color: this.lineColor,
-					scale: this.scale,
-					opacity: this.opacity,
-					origin: this.origin,
-					prog: assets.shaders[this.shader],
-					uniform: this.uniform,
-				});
-
-			} else if (this.area) {
-
-				const a = this.worldArea();
-				const w = a.p2.x - a.p1.x;
-				const h = a.p2.y - a.p1.y;
-
-				gfx.drawRectStroke(a.p1, w, h, {
-					width: width,
-					color: color,
-					opacity: this.opacity,
-				});
-
-			}
-
+		outline: {
+			width,
+			color,
 		},
-
 	};
-
 }
 
 function timer(n?: number, action?: () => void): TimerComp {
@@ -2297,9 +2311,9 @@ function addLevel(map: string[], conf: LevelConf): Level {
 					if (typeof conf[sym] !== "function") {
 						throw new Error("level symbol def must be a function returning a component list");
 					}
-					return conf[sym]();
+					return conf[sym](p);
 				} else if (conf.any) {
-					return conf.any(sym);
+					return conf.any(sym, p);
 				}
 			})();
 
@@ -2418,6 +2432,8 @@ const ctx: KaboomCtx = {
 	sprite,
 	text,
 	rect,
+	circle,
+	uvquad,
 	outline,
 	body,
 	shader,
@@ -2487,15 +2503,27 @@ const ctx: KaboomCtx = {
 	wave,
 	deg2rad,
 	rad2deg,
-	colLineLine,
-	colRectRect,
+	testLineLine,
+	testRectRect,
+	testRectLine,
+	testRectPt,
 	// raw draw
 	drawSprite,
 	drawText,
+	// TODO: wrap these to use assets lib for the "prog" prop
 	drawRect: gfx.drawRect,
-	drawRectStroke: gfx.drawRectStroke,
 	drawLine: gfx.drawLine,
+	drawLines: gfx.drawLines,
 	drawTri: gfx.drawTri,
+	drawCircle: gfx.drawCircle,
+	drawEllipse: gfx.drawEllipse,
+	drawUVQuad: gfx.drawUVQuad,
+	drawPoly: gfx.drawPoly,
+	pushTransform: gfx.pushTransform,
+	popTransform: gfx.popTransform,
+	pushTranslate: gfx.pushTranslate,
+	pushRotate: gfx.pushRotateZ,
+	pushScale: gfx.pushScale,
 	// debug
 	debug,
 	// scene
@@ -2552,12 +2580,34 @@ app.run(() => {
 			game.loaded = true;
 			game.trigger("load");
 		} else {
+
 			const w = width() / 2;
 			const h = 24 / gfx.scale();
 			const pos = vec2(width() / 2, height() / 2).sub(vec2(w / 2, h / 2));
-			gfx.drawRect(vec2(0), width(), height(), { color: rgb(0, 0, 0), });
-			gfx.drawRectStroke(pos, w, h, { width: 4 / gfx.scale(), });
-			gfx.drawRect(pos, w * progress, h);
+
+			gfx.drawRect({
+				pos: vec2(0),
+				width: width(),
+				height: height(),
+				color: rgb(0, 0, 0),
+			});
+
+			gfx.drawRect({
+				pos: pos,
+				width: w,
+				height: h,
+				fill: false,
+				outline: {
+					width: 4 / gfx.scale(),
+				},
+			});
+
+			gfx.drawRect({
+				pos: pos,
+				width: w * progress,
+				height: h,
+			});
+
 		}
 
 	} else {
