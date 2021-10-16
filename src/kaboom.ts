@@ -757,22 +757,22 @@ function regDebugInput() {
 
 	keyPress("f8", () => {
 		debug.paused = !debug.paused;
-		logger.info(`${debug.paused ? "paused" : "unpaused"}`);
+		debug.log(`${debug.paused ? "paused" : "unpaused"}`);
 	});
 
 	keyPress("f7", () => {
 		debug.timeScale = clamp(debug.timeScale - 0.2, 0, 2);
-		logger.info(`time scale: ${debug.timeScale.toFixed(1)}`);
+		debug.log(`time scale: ${debug.timeScale.toFixed(1)}`);
 	});
 
 	keyPress("f9", () => {
 		debug.timeScale = clamp(debug.timeScale + 0.2, 0, 2);
-		logger.info(`time scale: ${debug.timeScale.toFixed(1)}`);
+		debug.log(`time scale: ${debug.timeScale.toFixed(1)}`);
 	});
 
 	keyPress("f10", () => {
 		debug.stepFrame();
-		logger.info(`stepped frame`);
+		debug.log(`stepped frame`);
 	});
 
 }
@@ -2125,8 +2125,8 @@ const debug: Debug = {
 	},
 	drawCalls: gfx.drawCalls,
 	clearLog: logger.clear,
-	log: logger.info,
-	error: logger.error,
+	log: (msg) => logger.info(`[${app.time().toFixed(2)}] ${msg}`),
+	error: (msg) => logger.error(`[${app.time().toFixed(2)}] ${msg}`),
 	get paused() {
 		return game.paused;
 	},
