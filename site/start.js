@@ -5,6 +5,18 @@ function dofile(mod) {
 	return require(mod);
 }
 
+esbuild.build({
+	bundle: true,
+	sourcemap: true,
+	target: "es6",
+	minify: true,
+	keepNames: true,
+	jsxFactory: "jsx",
+	inject: [ "inject.js", ],
+	entryPoints: [ "pages/home_hydrate.tsx", "pages/play_hydrate.tsx" ],
+	outdir: "public/pages",
+});
+
 let server = null;
 
 esbuild.build({
