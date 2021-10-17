@@ -582,8 +582,8 @@ function collides(
 	t2: Tag,
 	f: (a: Character, b: Character) => void,
 ): EventCanceller {
-	const e1 = on("collide", t1, (a, b, side) => b.is(t2) && f(a, b));
-	const e2 = on("collide", t2, (a, b, side) => b.is(t1) && f(b, a));
+	const e1 = on("collide", t1, (a, b, dis) => b.is(t2) && f(a, b));
+	const e2 = on("collide", t2, (a, b, dis) => b.is(t1) && f(b, a));
 	const e3 = action(t1, (o1: Character) => {
 		if (!o1.area) {
 			throw new Error("collides() requires the object to have area() component");
@@ -1021,7 +1021,18 @@ function drawInspect() {
 
 }
 
-// TODO: have velocity here?
+function makeCollision(target: Character<any>, dis: Vec2): Collision {
+	return {
+		target: target,
+		displacement: dis,
+		isTop: () => dis.y > 0,
+		isBottom: () => dis.y < 0,
+		isLeft: () => dis.x > 0,
+		isRight: () => dis.x < 0,
+	};
+}
+
+// TODO: manage global velocity here?
 function pos(...args): PosComp {
 
 	return {
@@ -1030,7 +1041,7 @@ function pos(...args): PosComp {
 		pos: vec2(...args),
 
 		// TODO: clean
-		moveBy(...args) {
+		moveBy(...args): Collision | null {
 
 			const p = vec2(...args);
 			let dx = p.x;
@@ -1082,7 +1093,6 @@ function pos(...args): PosComp {
 
 					const ray = { p1: vec2(0), p2: vec2(dx, dy) };
 					let minT = 1;
-					let minSide = "right";
 					const p1 = md.p1;
 					const p2 = vec2(md.p1.x, md.p2.y);
 					const p3 = md.p2;
@@ -1111,7 +1121,6 @@ function pos(...args): PosComp {
 							numCols++;
 							if (t < minT) {
 								minT = t;
-								minSide = s;
 							}
 						}
 					}
@@ -1121,12 +1130,10 @@ function pos(...args): PosComp {
 						minT < 1
 						&& !(minT === 0 && numCols == 1 && !testRectPt(md, vec2(dx, dy)))
 					) {
+						const dis = vec2(-dx * (1 - minT), -dy * (1 - minT));
 						dx *= minT;
 						dy *= minT;
-						col = {
-							obj: other,
-							side: minSide,
-						};
+						col = makeCollision(other, dis);
 					}
 
 				});
@@ -1137,14 +1144,8 @@ function pos(...args): PosComp {
 			this.pos.y += dy;
 
 			if (col) {
-				const opposite = {
-					"right": "left",
-					"left": "right",
-					"top": "bottom",
-					"bottom": "top",
-				};
-				this.trigger("collide", col.obj, col.side);
-				col.obj.trigger("collide", this, opposite[col.side]);
+				this.trigger("collide", col.target, col);
+				col.target.trigger("collide", this, makeCollision(this, col.dis.scale(-1)));
 			}
 
 			return col;
@@ -1152,7 +1153,7 @@ function pos(...args): PosComp {
 		},
 
 		// move with velocity (pixels per second)
-		move(...args) {
+		move(...args): Collision | null {
 			return this.moveBy(vec2(...args).scale(dt()));
 		},
 
@@ -1334,7 +1335,6 @@ function cleanup(time: number = 0): CleanupComp {
 	};
 }
 
-// TODO: tell which side collides
 function area(conf: AreaCompConf = {}): AreaComp {
 
 	const colliding = {};
@@ -1420,9 +1420,9 @@ function area(conf: AreaCompConf = {}): AreaComp {
 			});
 		},
 
-		collides(tag: Tag, f: (o: Character, side?: RectSide) => void): EventCanceller {
+		collides(tag: Tag, f: (o: Character, col?: Collision) => void): EventCanceller {
 			const e1 = this.action(() => this._checkCollisions(tag, f));
-			const e2 = this.on("collide", (obj, side) => obj.is(tag) && f(obj, side));
+			const e2 = this.on("collide", (obj, col) => obj.is(tag) && f(obj, col));
 			return () => [e1, e2].forEach((f) => f());
 		},
 
@@ -1488,7 +1488,6 @@ function area(conf: AreaCompConf = {}): AreaComp {
 				}
 
 				if (this.isColliding(obj)) {
-					// TODO: return side
 					this.trigger("collide", obj, null);
 					colliding[obj._id] = obj;
 				}
@@ -1974,8 +1973,8 @@ function body(conf: BodyCompConf = {}): BodyComp {
 
 				// check if grounded to a new platform
 				if (col) {
-					if (col.side === "bottom") {
-						curPlatform = col.obj;
+					if (col.isBottom()) {
+						curPlatform = col.target;
 						const oy = velY;
 						velY = 0;
 						if (curPlatform.pos) {
@@ -1985,9 +1984,9 @@ function body(conf: BodyCompConf = {}): BodyComp {
 							this.trigger("ground", curPlatform);
 							canDouble = true;
 						}
-					} else if (col.side === "top") {
+					} else if (col.isTop()) {
 						velY = 0;
-						this.trigger("headbutt", col.obj);
+						this.trigger("headbutt", col.target);
 					}
 				}
 
