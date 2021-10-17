@@ -3,14 +3,16 @@ import marked from "marked";
 import hljs from "highlight.js/lib/core";
 import javascript from "highlight.js/lib/languages/javascript";
 import typescript from "highlight.js/lib/languages/typescript";
-import shell from "highlight.js/lib/languages/shell";
 import xml from "highlight.js/lib/languages/xml";
+import shell from "highlight.js/lib/languages/shell";
+import bash from "highlight.js/lib/languages/bash";
 import View, { ViewProps } from "comps/View";
 
 hljs.registerLanguage("javascript", javascript);
 hljs.registerLanguage("typescript", typescript);
 hljs.registerLanguage("xml", xml);
 hljs.registerLanguage("shell", shell);
+hljs.registerLanguage("bash", bash);
 
 marked.setOptions({
 	highlight: (code, lang) => {

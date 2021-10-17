@@ -17,19 +17,23 @@ const files = (route: string | RegExp, p: string) =>
 const page = (route: string | RegExp, handle: (req) => React.ReactElement | undefined) => {
 	app.get(route, (req, res, next) => {
 		const el = handle(req);
-		if (!el) {
-			return next();
-		}
-		res.send(`
+		if (!el) return next();
+		const stream = ReactDOMServer.renderToNodeStream(el);
+		res.write(`
 <!DOCTYPE html>
 <html>
 <head>
 </head>
 <body>
-${ReactDOMServer.renderToString(el)}
+		`);
+		stream.pipe(res, { end: false });
+		stream.on("end", () =>{
+			res.write(`
 </body>
 </html>
-		`);
+			`);
+			res.end();
+		});
 	});
 };
 
