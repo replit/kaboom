@@ -446,6 +446,7 @@ const Play: React.FC<PlayProps> = ({
 
 };
 
+// TODO: getServerSideProps is handy for dev when you're changing demos, but should be getStaticProps for prod
 export const getServerSideProps: GetServerSideProps = async (ctx) => {
 	const demos = fs
 		.readdirSync("public/site/demo")
