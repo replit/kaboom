@@ -1,8 +1,10 @@
+import fs from "fs";
+import path from "path";
 import * as React from "react";
+import { GetServerSideProps } from "next";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import useKey from "hooks/useKey";
-import useFetch from "hooks/useFetch";
 import useSavedState from "hooks/useSavedState";
 import useClickOutside from "hooks/useClickOutside";
 import useSpaceUsed from "hooks/useSpaceUsed";
@@ -29,41 +31,6 @@ import wrapHTML from "lib/wrapHTML";
 import Ctx from "lib/Ctx";
 
 const DEF_DEMO = "sprite";
-
-// TODO: shouldn't hard code
-const demos = [
-	"audio",
-	"bench",
-	"burp",
-	"button",
-	"doublejump",
-	"draw",
-	"drag",
-	"eatbomb",
-	"egg",
-	"flappy",
-	"fullscreen",
-	"hi",
-	"kaboom",
-	"layer",
-	"multiboom",
-	"out",
-	"particle",
-	"platformer",
-	"pointclick",
-	"rpg",
-	"runner",
-	"scenes",
-	"shader",
-	"shooter",
-	"size",
-	"sprite",
-	"spriteatlas",
-	"text",
-	"tiled",
-	"tileset",
-	"transform",
-]
 
 interface SpriteEntryProps {
 	name: string,
@@ -152,14 +119,19 @@ interface Sound {
 	src: string,
 }
 
-const Play: React.FC = () => {
+interface PlayProps {
+	demos: Record<string, string>,
+}
+
+const Play: React.FC<PlayProps> = ({
+	demos,
+}) => {
 
 	const router = useRouter();
 	const { draggin } = React.useContext(Ctx);
 	const demo = router.query.demo as string || DEF_DEMO;
-	const { data: fetchedCode } = useFetch(`/site/demo/${demo}.js`, (res) => res.text());
 	const [ backpackOpen, setBackpackOpen ] = React.useState(false);
-	const [ code, setCode ] = React.useState("");
+	const code = demos[demo];
 	const [ sprites, setSprites ] = useSavedState<Sprite[]>("sprites", []);
 	const [ sounds, setSounds ] = useSavedState<Sound[]>("sounds", []);
 	const [ blackboard, setBlackboard ] = React.useState<string | null>(null);
@@ -179,12 +151,6 @@ const Play: React.FC = () => {
 			});
 		}
 	}, [ router ]);
-
-	React.useEffect(() => {
-		if (fetchedCode != null) {
-			setCode(fetchedCode);
-		}
-	}, [ fetchedCode ]);
 
 	useKey("Escape", () => {
 		setBackpackOpen(false);
@@ -230,7 +196,7 @@ const Play: React.FC = () => {
 						<Select
 							name="Demo Selector"
 							desc="Select a demo to run"
-							options={demos}
+							options={Object.keys(demos)}
 							value={demo}
 							onChange={(demo) => router.push({
 								query: {
@@ -248,8 +214,7 @@ const Play: React.FC = () => {
 							if (!gameviewRef.current) return;
 							const content = editorRef.current.getContent();
 							if (content) {
-								setCode(content);
-								gameviewRef.current.run();
+								gameviewRef.current.run(content);
 							}
 						}}
 					/>
@@ -481,5 +446,23 @@ const Play: React.FC = () => {
 	</>;
 
 };
+
+export const getServerSideProps: GetServerSideProps = async (ctx) => {
+	const demos = fs
+		.readdirSync("public/site/demo")
+		.filter((p) => !p.startsWith("."))
+		.reduce<Record<string, string>>((table, file) => {
+			table[path.basename(file, ".js")] = fs.readFileSync(
+				`public/site/demo/${file}`,
+				"utf8"
+			);
+			return table;
+		}, {});
+	return {
+		props: {
+			demos: demos,
+		},
+	};
+}
 
 export default Play;
