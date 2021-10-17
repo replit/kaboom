@@ -400,6 +400,11 @@ function appInit(gconf: AppConf = {}): App {
 
 		const frame = (t: number) => {
 
+			if (document.visibilityState !== "visible") {
+				app.loopID = requestAnimationFrame(frame);
+				return;
+			}
+
 			const realTime = t / 1000;
 			const realDt = realTime - app.realTime;
 

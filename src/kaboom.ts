@@ -757,22 +757,22 @@ function regDebugInput() {
 
 	keyPress("f8", () => {
 		debug.paused = !debug.paused;
-		logger.info(`${debug.paused ? "paused" : "unpaused"}`);
+		debug.log(`${debug.paused ? "paused" : "unpaused"}`);
 	});
 
 	keyPress("f7", () => {
 		debug.timeScale = clamp(debug.timeScale - 0.2, 0, 2);
-		logger.info(`time scale: ${debug.timeScale.toFixed(1)}`);
+		debug.log(`time scale: ${debug.timeScale.toFixed(1)}`);
 	});
 
 	keyPress("f9", () => {
 		debug.timeScale = clamp(debug.timeScale + 0.2, 0, 2);
-		logger.info(`time scale: ${debug.timeScale.toFixed(1)}`);
+		debug.log(`time scale: ${debug.timeScale.toFixed(1)}`);
 	});
 
 	keyPress("f10", () => {
 		debug.stepFrame();
-		logger.info(`stepped frame`);
+		debug.log(`stepped frame`);
 	});
 
 }
@@ -857,6 +857,7 @@ function gameFrame(ignorePause?: boolean) {
 		game.timers.forEach((t, id) => {
 			t.time -= dt();
 			if (t.time <= 0) {
+				// TODO: some timer action causes crash on FF when dt is really high, not sure why
 				t.action();
 				game.timers.delete(id);
 			}
@@ -1788,6 +1789,7 @@ function text(t: string, conf: TextCompConf = {}): TextComp {
 		const ftext = gfx.fmtText({
 			...getRenderProps(this),
 			text: this.text + "",
+			size: this.textSize,
 			font: font,
 			width: conf.width,
 		});
@@ -2123,8 +2125,8 @@ const debug: Debug = {
 	},
 	drawCalls: gfx.drawCalls,
 	clearLog: logger.clear,
-	log: logger.info,
-	error: logger.error,
+	log: (msg) => logger.info(`[${app.time().toFixed(2)}] ${msg}`),
+	error: (msg) => logger.error(`[${app.time().toFixed(2)}] ${msg}`),
 	get paused() {
 		return game.paused;
 	},
