@@ -448,6 +448,7 @@ interface KaboomCtx {
 	 * const score = add([
 	 *     text(0),
 	 *     pos(12, 12),
+	 *     fixed(),
 	 * ]);
 	 * ```
 	 */
