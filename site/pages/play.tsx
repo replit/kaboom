@@ -127,10 +127,10 @@ const Play: React.FC<PlayProps> = ({
 }) => {
 
 	const router = useRouter();
-	const { draggin } = React.useContext(Ctx);
 	const demo = router.query.demo as string || DEF_DEMO;
-	const [ backpackOpen, setBackpackOpen ] = React.useState(false);
 	const code = demos[demo];
+	const { draggin } = React.useContext(Ctx);
+	const [ backpackOpen, setBackpackOpen ] = React.useState(false);
 	const [ sprites, setSprites ] = useSavedState<Sprite[]>("sprites", []);
 	const [ sounds, setSounds ] = useSavedState<Sound[]>("sounds", []);
 	const [ blackboard, setBlackboard ] = React.useState<string | null>(null);
@@ -446,7 +446,7 @@ const Play: React.FC<PlayProps> = ({
 
 };
 
-// TODO: getServerSideProps is handy for dev when you're changing demos, but should be getStaticProps for prod
+// TODO: getServerSideProps is handy for dev when you're changing demos, but getStaticProps makes more sense for prod since it won't change
 export const getServerSideProps: GetServerSideProps = async (ctx) => {
 	const demos = fs
 		.readdirSync("public/site/demo")
