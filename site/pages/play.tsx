@@ -1,5 +1,4 @@
 import fs from "fs";
-import path from "path";
 import * as React from "react";
 import { GetServerSideProps } from "next";
 import Link from "next/link";
@@ -452,7 +451,7 @@ export const getServerSideProps: GetServerSideProps = async (ctx) => {
 		.readdirSync("public/site/demo")
 		.filter((p) => !p.startsWith("."))
 		.reduce<Record<string, string>>((table, file) => {
-			table[path.basename(file, ".js")] = fs.readFileSync(
+			table[basename(file) ?? file] = fs.readFileSync(
 				`public/site/demo/${file}`,
 				"utf8"
 			);
@@ -460,7 +459,7 @@ export const getServerSideProps: GetServerSideProps = async (ctx) => {
 		}, {});
 	return {
 		props: {
-			demos: demos,
+			demos,
 		},
 	};
 }
