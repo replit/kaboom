@@ -1,5 +1,5 @@
 import fs from "fs";
-import { resolve } from "path";
+import { resolve, basename } from "path";
 import express from "express";
 import esbuild from "esbuild";
 import ReactDOMServer from "react-dom/server";
@@ -23,6 +23,9 @@ const page = (route: string | RegExp, handle: (req) => React.ReactElement | unde
 <!DOCTYPE html>
 <html>
 <head>
+<script>
+window.PROPS = ${JSON.stringify(el.props).replaceAll("</script>", "<\\/script>")};
+</script>
 </head>
 <body>
 		`);
@@ -43,8 +46,8 @@ page("/play", () => {
 	const demos = fs
 		.readdirSync(path("../demo"))
 		.filter((p) => !p.startsWith("."))
-		.reduce<Record<string, string>>((table, name) => {
-			table[name] = fs.readFileSync(path(`../demo/${name}`), "utf8");
+		.reduce<Record<string, string>>((table, file) => {
+			table[basename(file, ".js")] = fs.readFileSync(path(`../demo/${file}`), "utf8");
 			return table;
 		}, {});
 	return <Play demos={demos} />;

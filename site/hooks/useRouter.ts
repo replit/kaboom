@@ -8,10 +8,8 @@ interface SetRoute {
 
 export default function useRouter() {
 
-	const [ path, setPath ] = React.useState(() => window.location.pathname);
-	const [ params, setParams ] = React.useState(() => Object.fromEntries(
-		new URLSearchParams(window.location.search).entries()
-	));
+	const [ path, setPath ] = React.useState("");
+	const [ params, setParams ] = React.useState({});
 
 	React.useEffect(() => {
 

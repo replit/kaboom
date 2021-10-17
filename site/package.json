@@ -1,7 +1,7 @@
 {
 	"private": true,
 	"scripts": {
-		"dev": "NODE_ENV=development node start.js",
+		"dev": "NODE_ENV=development node start.js --enable-source-maps",
 		"start": "NODE_ENV=production node start.js",
 		"check": "tsc --noEmit"
 	},

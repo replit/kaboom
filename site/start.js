@@ -7,6 +7,7 @@ esbuild.build({
 	minify: true,
 	keepNames: true,
 	jsxFactory: "jsx",
+	watch: process.env.NODE_ENV === "development",
 	inject: [ "inject.js", ],
 	entryPoints: [ "pages/home_hydrate.tsx", "pages/play_hydrate.tsx" ],
 	outdir: "public/pages",

@@ -202,6 +202,7 @@ const Play: React.FC<PlayProps> = ({
 										demo: demo,
 									},
 								});
+								setCode(demos[demo]);
 							}}
 						/>
 					}
