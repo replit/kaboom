@@ -1023,7 +1023,7 @@ function drawInspect() {
 function makeCollision(target: Character<any>, dis: Vec2): Collision {
 	return {
 		target: target,
-		dis: dis,
+		displacement: dis,
 		isTop: () => dis.y > 0,
 		isBottom: () => dis.y < 0,
 		isLeft: () => dis.x > 0,
