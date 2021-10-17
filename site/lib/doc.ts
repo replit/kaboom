@@ -1,5 +1,6 @@
-// @ts-ignore
-import types from "types.json"
+import importedTypes from "types.json"
+
+const types = importedTypes as any;
 
 export interface DocSection {
 	name: string,
