@@ -1,3 +1,5 @@
+import fs from "fs";
+import { GetServerSideProps } from "next";
 import { useRouter } from "next/router";
 import Link from "next/link";
 import Head from "comps/Head";
@@ -5,29 +7,39 @@ import Markdown from "comps/Markdown";
 import Nav from "comps/Nav";
 import Text from "comps/Text";
 import Button from "comps/Button";
-import useFetch from "hooks/useFetch";
 import { capitalize } from "lib/str";
 
-const Doc = () => {
+interface DocProps {
+	name: string,
+	src?: string,
+}
 
-	const router = useRouter();
-	const { name } = router.query;
-	const { data: doc, loading } = useFetch(
-		name ? `/site/doc/${name}.md` : null,
-		(res) => res.text()
-	);
-
-	return <Nav>
-		<Head title={`Kaboom - ${capitalize(name as string ?? "")}`} />
+const Doc: React.FC<DocProps> = ({
+	src,
+	name,
+}) => (
+	<Nav>
+		<Head title={`Kaboom - ${capitalize(name)}`} />
 		<Link href="/" passHref>
 			<Button text="< Back" action={() => {}} />
 		</Link>
-		{ loading
-			? <Text color={3}>loading...</Text>
-			: <Markdown src={doc ?? ""} baseUrl="/site/doc/" />
+		{ src
+			? <Markdown src={src || ""} baseUrl="/site/doc/" />
+			: <Text color={3}>{`There's no doc called "${name}" :(`}</Text>
 		}
-	</Nav>;
+	</Nav>
+);
 
+export const getServerSideProps: GetServerSideProps = async (ctx) => {
+	const { name } = ctx.query;
+	const path = `public/site/doc/${name}.md`
+	const src = fs.existsSync(path) ? fs.readFileSync(path, "utf8") : null;
+	return {
+		props: {
+			name,
+			src,
+		},
+	};
 }
 
 export default Doc;
