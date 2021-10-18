@@ -83,6 +83,25 @@ function processBtnState(s: ButtonState): ButtonState {
 	return s;
 }
 
+function enterFullscreen(el: HTMLElement) {
+	if (el.requestFullscreen) el.requestFullscreen();
+	// @ts-ignore
+	else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen();
+};
+
+function exitFullscreen() {
+	if (document.exitFullscreen) document.exitFullscreen();
+	// @ts-ignore
+	else if (document.webkitExitFullScreen) document.webkitExitFullScreen();
+};
+
+function getFullscreenElement(): Element | void {
+	return document.fullscreenElement
+		// @ts-ignore
+		|| document.webkitFullscreenElement
+		;
+};
+
 function appInit(gconf: AppConf = {}): App {
 
     const root = gconf.root ?? document.body;
@@ -185,7 +204,13 @@ function appInit(gconf: AppConf = {}): App {
 	app.isTouch = ("ontouchstart" in window) || navigator.maxTouchPoints > 0;
 
 	app.canvas.addEventListener("mousemove", (e) => {
-		app.mousePos = vec2(e.offsetX, e.offsetY).scale(1 / app.scale);
+		if (fullscreen()) {
+			// in fullscreen mode browser adds letter box to preserve original canvas aspect ratio, but won't give us the transformed mouse position
+			// TODO
+			app.mousePos = vec2(e.offsetX, e.offsetY).scale(1 / app.scale);
+		} else {
+			app.mousePos = vec2(e.offsetX, e.offsetY).scale(1 / app.scale);
+		}
 		app.mouseDeltaPos = vec2(e.movementX, e.movementY).scale(1 / app.scale);
 		app.mouseMoved = true;
 	});
@@ -361,39 +386,14 @@ function appInit(gconf: AppConf = {}): App {
 	}
 
 	function fullscreen(f?: boolean): boolean {
-		const enterFullscreen = (el: any) => {
-			if(el.mozRequestFullScreen) {
-				el.mozRequestFullScreen();
-			} else if (el.webkitRequestFullScreen) {
-				el.webkitRequestFullScreen();
+		if (f !== undefined) {
+			if (f) {
+				enterFullscreen(app.canvas);
 			} else {
-				el.requestFullscreen();
+				exitFullscreen();
 			}
-		};
-
-		const exitFullscreen = (doc: any) => {
-			if(doc.mozExitFullScreen) {
-				doc.mozExitFullScreen();
-			} else if(doc.webkitExitFullScreen) {
-				doc.webkitExitFullScreen();
-			} else {
-				doc.exitFullscreen();
-			}
-		};
-
-		const getFullscreenElement = (doc: any):HTMLElement => {
-			if(doc.mozFullscreenElement !== undefined) return doc.mozFullscreenElement;
-			if(doc.webkitFullscreenElement !== undefined) return doc.webkitFullscreenElement;
-			return doc.fullscreenElement;
-		};
-
-		if (getFullscreenElement(document)) {
-			exitFullscreen(document);
-		} else {
-			enterFullscreen(app.canvas);
 		}
-
-		return !!getFullscreenElement(document);
+		return Boolean(getFullscreenElement());
 	}
 
 	function run(f: () => void) {
