@@ -463,7 +463,7 @@ interface KaboomCtx {
 	 *     add([
 	 *         sprite("explosion", { anim: "burst", }),
 	 *         stay(),
-	 *         lifespan(2),
+	 *         lifespan(1),
 	 *     ]);
 	 *     go("lose", score);
 	 * });
@@ -505,10 +505,10 @@ interface KaboomCtx {
 	 *
 	 * @example
 	 * ```js
-	 * // spawn an explosion, destroy after 2 seconds and the switch scene
+	 * // spawn an explosion, destroy after 1 seconds, start fading away after 0.5 second
 	 * add([
 	 *     sprite("explosion", { anim: "burst", }),
-	 *     lifespan(2, () => go("lose")),
+	 *     lifespan(1, { fade: 0.5 }),
 	 * ]);
 	 * ```
 	 */
