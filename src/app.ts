@@ -386,12 +386,10 @@ function appInit(gconf: AppConf = {}): App {
 	}
 
 	function fullscreen(f?: boolean): boolean {
-		if (f !== undefined) {
-			if (f) {
-				enterFullscreen(app.canvas);
-			} else {
-				exitFullscreen();
-			}
+		if (f === true) {
+			enterFullscreen(app.canvas);
+		} else if (f === false) {
+			exitFullscreen();
 		}
 		return Boolean(getFullscreenElement());
 	}
