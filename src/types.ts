@@ -1092,7 +1092,7 @@ interface KaboomCtx {
 	 */
 	regCursor(c: string, draw: string | ((mpos: Vec2) => void)): void,
 	/**
-	 * Enter / exit fullscreen mode.
+	 * Enter / exit fullscreen mode. (note: mouse position is not working in fullscreen mode at the moment)
 	 *
 	 * @example
 	 * ```js
@@ -1552,7 +1552,7 @@ interface KaboomConf {
 	 */
 	stretch?: boolean,
 	/**
-	 * When stretching if keep aspect ratio and leave black bars on remaining spaces.
+	 * When stretching if keep aspect ratio and leave black bars on remaining spaces. (note: not working properly at the moment.)
 	 */
 	letterbox?: boolean,
 	/**
