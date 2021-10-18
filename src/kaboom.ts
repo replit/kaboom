@@ -1145,7 +1145,7 @@ function pos(...args): PosComp {
 
 			if (col) {
 				this.trigger("collide", col.target, col);
-				col.target.trigger("collide", this, makeCollision(this, col.dis.scale(-1)));
+				col.target.trigger("collide", this, makeCollision(this, col.displacement.scale(-1)));
 			}
 
 			return col;
