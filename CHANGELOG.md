@@ -1,4 +1,4 @@
-### kaboom2000 (unreleased)
+# v2000.0.0 "The New Era"
 - version jumped to v2000.0.0 (still semver, just big)
 - added `burp()` for easy burping
 - added decent typescript / autocomplete support and jsdocs
