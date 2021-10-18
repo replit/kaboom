@@ -1926,7 +1926,7 @@ function body(conf: BodyCompConf = {}): BodyComp {
 	return {
 
 		id: "body",
-		require: [ "pos", ],
+		require: [ "pos", "body", ],
 		jumpForce: conf.jumpForce ?? DEF_JUMP_FORCE,
 		weight: conf.weight ?? 1,
 		solid: conf.solid ?? true,
