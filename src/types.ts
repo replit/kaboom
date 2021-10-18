@@ -1400,7 +1400,7 @@ interface KaboomCtx {
 	/**
 	 * Draw a triangle.
 	 */
-	drawTri(conf: DrawTriConf): void,
+	drawTriangle(conf: DrawTriangleConf): void,
 	/**
 	 * Draw a circle.
 	 */
@@ -1412,7 +1412,7 @@ interface KaboomCtx {
 	/**
 	 * Draw a convex polygon from a list of vertices.
 	 */
-	drawPoly(conf: DrawPolyConf): void,
+	drawPolygon(conf: DrawPolyConf): void,
 	/**
 	 * Draw a rectangle with UV data.
 	 */
@@ -1798,7 +1798,7 @@ interface SoundData {
 }
 
 type FontData = GfxFont;
-type ShaderData = GfxProgram;
+type ShaderData = GfxShader;
 
 // TODO: enable setting on load, make part of SoundData
 /**
@@ -1837,7 +1837,7 @@ interface AudioPlay {
 }
 
 // TODO: hide
-interface GfxProgram {
+interface GfxShader {
 	bind(): void,
 	unbind(): void,
 	bindAttribs(): void,
@@ -1896,7 +1896,7 @@ interface RenderProps {
 	angle?: number,
 	color?: Color,
 	opacity?: number,
-	prog?: GfxProgram,
+	shader?: GfxShader,
 	uniform?: Uniform,
 }
 
@@ -1970,7 +1970,7 @@ type DrawLinesConf = Omit<RenderProps, "angle" | "scale"> & {
 /**
  * How the triangle should look like.
  */
-type DrawTriConf = RenderProps & {
+type DrawTriangleConf = RenderProps & {
 	/**
 	 * First point of triangle.
 	 */
@@ -2651,6 +2651,13 @@ interface TextCompConf {
 	width?: number,
 }
 
+interface RectCompConf {
+	/**
+	 * Radius of the rectangle corners.
+	 */
+	radius?: number,
+}
+
 interface RectComp extends Comp {
 	/**
 	 * Width of rect.
@@ -2660,6 +2667,10 @@ interface RectComp extends Comp {
 	 * Height of height.
 	 */
 	height: number,
+	/**
+	 * Radius of the rectangle corners.
+	 */
+	radius?: number,
 }
 
 interface CircleComp extends Comp {
