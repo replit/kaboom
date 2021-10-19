@@ -548,9 +548,13 @@ function testRectCircle(r: Rect, c: Circle): boolean {
 	return false;
 }
 
-// TODO
 function testRectPolygon(r: Rect, p: Polygon): boolean {
-	return false;
+	return testPolygonPolygon(p, [
+		r.p1,
+		vec2(r.p2.x, r.p1.y),
+		r.p2,
+		vec2(r.p1.x, r.p2.y),
+	]);
 }
 
 // TODO
@@ -719,6 +723,7 @@ export {
 	testPolygonPolygon,
 	testCircleCircle,
 	testCirclePoint,
+	testRectPolygon,
 	minkDiff,
 	dir,
 	isVec2,

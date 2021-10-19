@@ -25,6 +25,7 @@ import {
 	testPolygonPolygon,
 	testCircleCircle,
 	testCirclePoint,
+	testRectPolygon,
 	minkDiff,
 	dir,
 	deg2rad,
@@ -2521,6 +2522,7 @@ const ctx: KaboomCtx = {
 	testPolygonPolygon,
 	testCircleCircle,
 	testCirclePoint,
+	testRectPolygon,
 	// raw draw
 	drawSprite,
 	drawText,
