@@ -8,5 +8,5 @@ add([
 
 // toggle fullscreen on "f"
 keyPress("f", () => {
-	fullscreen(!fullscreen());
+	fullscreen(!isFullscreen());
 });
