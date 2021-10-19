@@ -2703,6 +2703,9 @@ interface UVQuadComp extends Comp {
 	height: number,
 }
 
+/**
+ * Union type for area / collider data of different shapes ("rect", "line", "circle", "point" and "polygon").
+ */
 type Area =
 	| { type: "rect" } & Rect
 	| { type: "line" } & Line
