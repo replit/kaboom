@@ -2402,6 +2402,7 @@ const ctx: KaboomCtx = {
 	cursor: app.cursor,
 	regCursor,
 	fullscreen: app.fullscreen,
+	isFullscreen: app.isFullscreen,
 	ready,
 	isTouch: () => app.isTouch,
 	// misc

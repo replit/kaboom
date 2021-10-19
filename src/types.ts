@@ -1098,11 +1098,15 @@ interface KaboomCtx {
 	 * ```js
 	 * // toggle fullscreen mode on "f"
 	 * keyPress("f", (c) => {
-	 *     fullscreen(!fullscreen());
+	 *     fullscreen(!isFullscreen());
 	 * });
 	 * ```
 	 */
-	fullscreen(f?: boolean): boolean,
+	fullscreen(f?: boolean): void,
+	/**
+	 * If currently in fullscreen mode.
+	 */
+	isFullscreen(): boolean,
 	/**
 	 * Play a piece of audio, returns a handle to control.
 	 *

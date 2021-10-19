@@ -59,7 +59,8 @@ type App = {
 	mouseMoved(): boolean,
 	charInputted(): string[],
 	cursor(c?: Cursor): Cursor,
-	fullscreen(f?: boolean): boolean,
+	fullscreen(f?: boolean): void,
+	isFullscreen(): boolean,
 	dt(): number,
 	fps(): number,
 	time(): number,
@@ -204,7 +205,7 @@ function appInit(gconf: AppConf = {}): App {
 	app.isTouch = ("ontouchstart" in window) || navigator.maxTouchPoints > 0;
 
 	app.canvas.addEventListener("mousemove", (e) => {
-		if (fullscreen()) {
+		if (isFullscreen()) {
 			// in fullscreen mode browser adds letter box to preserve original canvas aspect ratio, but won't give us the transformed mouse position
 			// TODO
 			app.mousePos = vec2(e.offsetX, e.offsetY).scale(1 / app.scale);
@@ -385,12 +386,15 @@ function appInit(gconf: AppConf = {}): App {
 		return app.canvas.style.cursor;
 	}
 
-	function fullscreen(f?: boolean): boolean {
-		if (f === true) {
+	function fullscreen(f: boolean = true) {
+		if (f) {
 			enterFullscreen(app.canvas);
-		} else if (f === false) {
+		} else {
 			exitFullscreen();
 		}
+	}
+
+	function isFullscreen(): boolean {
 		return Boolean(getFullscreenElement());
 	}
 
@@ -475,6 +479,7 @@ function appInit(gconf: AppConf = {}): App {
 		isTouch: app.isTouch,
 		scale: app.scale,
 		fullscreen,
+		isFullscreen,
 	};
 
 }
