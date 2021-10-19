@@ -745,7 +745,7 @@ function touchEnd(f: (id: TouchID, pos: Vec2) => void): EventCanceller {
 	return game.on("touchEnd", f);
 }
 
-function regDebugInput() {
+function enterDebugMode() {
 
 	keyPress("f1", () => {
 		debug.inspect = !debug.inspect;
@@ -775,6 +775,10 @@ function regDebugInput() {
 		debug.log(`stepped frame`);
 	});
 
+}
+
+function enterBurpMode() {
+	keyPress("b", audio.burp);
 }
 
 // TODO: cache sorted list
@@ -2196,7 +2200,11 @@ function go(id: SceneID, ...args) {
 		game.scenes[id](...args);
 
 		if (gconf.debug !== false) {
-			regDebugInput();
+			enterDebugMode();
+		}
+
+		if (gconf.burp) {
+			enterBurpMode();
 		}
 
 	});
@@ -2636,7 +2644,11 @@ app.run(() => {
 });
 
 if (gconf.debug !== false) {
-	regDebugInput();
+	enterDebugMode();
+}
+
+if (gconf.burp) {
+	enterBurpMode();
 }
 
 window.addEventListener("error", (e) => {

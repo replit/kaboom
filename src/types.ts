@@ -1607,6 +1607,10 @@ interface KaboomConf {
 	 * List of plugins to import.
 	 */
 	plugins?: KaboomPlugin<any>[],
+	/**
+	 * Enter burp mode.
+	 */
+	burp?: boolean,
 }
 
 type KaboomPlugin<T> = (k: KaboomCtx) => T;
