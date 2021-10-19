@@ -2017,13 +2017,13 @@ function body(conf: BodyCompConf = {}): BodyComp {
 			velY = -force || -this.jumpForce;
 		},
 
-		djump(force: number) {
+		doubleJump(force: number) {
 			if (this.grounded()) {
 				this.jump(force);
 			} else if (canDouble) {
 				canDouble = false;
 				this.jump(force);
-				this.trigger("djump");
+				this.trigger("doubleJump");
 			}
 		},
 
