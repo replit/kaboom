@@ -3,7 +3,7 @@
 - added `burp()` for easy burping
 - added decent typescript / autocomplete support and jsdocs
 - introducing new character "bean"
-![bean](sprites/bean.png)
+![bean](assets/sprites/bean.png)
 - added `loadBean()` to load `"bean"` as a default sprite
 - changed default font to [APL386](https://abrudz.github.io/APL386/), as `"apl386o"` (default outlined version) and `"apl386"`
 - included font [kitchen sink](https://polyducks.itch.io/kitchen-sink-textmode-font) as `"sinko"` (outlined version) and `"sink"` (standard version with extended characters for text-mode games)
@@ -12,7 +12,7 @@
 - inspect mode now displays every comp's state
 - **BREAK** added continuous collision resolution which checks collision in `move()` if 2 objects are both "solid" (objects now won't pass through other solid object at high speed or low framerate)
 
-```js
+```javascript
 // before
 add([
 	sprite("player"),
@@ -69,7 +69,7 @@ keyDown("left", () => {
 - **BREAK** separated color and opacity, removed `rgba()` in favor of `rgb`, use component `opacity()` to define opacity
 - **BREAK** changed color from 0-1 range to 0-255, angles from radians to degrees
 
-```js
+```javascript
 // before
 add([
     rotate(Math.PI / 2),
@@ -91,7 +91,7 @@ add([
 - added `anim` field in `SpriteCompConf` to play an anim on start
 - beter type support for components
 - `scene()` and `start()` (also removed in favor of `go()`) are optional now, if you don't need multiple scenes yet you can just go directly
-```js
+```javascript
 kaboom();
 // no mandatory scene() to start kabooming
 add(...);
@@ -100,7 +100,7 @@ keyPress(...);
 - **BREAK** `area()` is now explicit and not automatically added by `sprite()`, `rect()`, and `text()`, removed each `noArea` or `area` config field
 - **BREAK** `area()` now takes an `AreaCompConf`, where you can define the area size, scale, and hover cursor
 
-```js
+```javascript
 add([
     sprite("bean"),
     area(), // empty area will derive from sprite size
@@ -120,7 +120,7 @@ add([
 - **BREAK** changed last argument of `loadFont()` to `FontLoadConf`
 - all event handlers like `keyPress()`, `mouseClick()`, `action()`, `collides()` now returns a function to cancel that listener
 - added `require` on component definitions, making it possible to declare dependencies for components, e.g.
-```js
+```javascript
 function alwaysRight() {
     return {
         // the id of this component
@@ -137,7 +137,7 @@ function alwaysRight() {
 - **BREAK** overlapping component fields are not allowed, e.g. you can't have a custom comp that has a `collides` field if it already have a `area` component, since it already has that
 - **BREAK** changed `text(txt, size, conf)` to `text(txt, conf)` with `size` as a field
 - added `obj.c(id)` for getting a specific comp's state (by default all comps' states are mounted to the obj by `Object.defineProperty`)
-```js
+```javascript
 // both works
 obj.play("anim");
 obj.c("sprite").play("anim");
@@ -165,7 +165,7 @@ obj.c("sprite").play("anim");
 - **BREAK** renamed `makeRng()` to `rng()`
 - sprite animation now supports defining properties like loop and speed in load step and play step
 
-```js
+```javascript
 loadSprite("hero", "hero.png", {
 	sliceX: 9,
 	anims: {
@@ -178,7 +178,7 @@ loadSprite("hero", "hero.png", {
 - **BREAK** changed `.play(anim, ifLoop)` under `sprite()` to accept a dict of properties `.play(anim, { loop: true, speed: 60, pingpong: true })`
 - **BREAK** now every symbol definition in `addLevel()` should be a function returning the component list, to ensure there's no weird shared states
 
-```js
+```javascript
 addLevel([
 	"*    *",
 	"*    *",
@@ -197,6 +197,7 @@ addLevel([
 })
 ```
 - **BREAK** renamed `clearColor` to `background`
+- added collision detection functions `testLineLine()`, `testRectRect()`, `testRectLine()` etc.
 
 ### v0.5.1
 - added plugins npm package support e.g. `import asepritePlugin from "kaboom/plugins/aseprite"`
@@ -239,7 +240,7 @@ addLevel([
 
 # v0.4.0 "Multiboom"
 - **BREAK** removed `init()` and `kaboom.global()`, in favor of `kaboom()`, also allows multiple kaboom games on one page
-```js
+```javascript
 // replaces init(), and added a 'global' flag for previous kaboom.global()
 kaboom({
     global: true,
@@ -248,7 +249,7 @@ kaboom({
 });
 ```
 or not global
-```js
+```javascript
 const k = kaboom();
 k.scene();
 k.start();

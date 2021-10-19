@@ -154,7 +154,6 @@ const IndexContent: React.FC<IndexContentProps> = ({
 			<ThemeSwitch width={160} />
 			<View gap={0.5}>
 				<NavLink link="/play" text="PlayGround" />
-				<NavLink link="/doc/setup" text="Setup Guide" />
 				<NavLink link="/doc/intro" text="Tutorial" />
 				<NavLink link="https://github.com/replit/kaboom" text="Github" />
 				<NavLink link="https://discord.com/invite/aQ6RuQm3TF" text="Discord" />

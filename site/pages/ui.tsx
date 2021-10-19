@@ -1,6 +1,5 @@
 import * as React from "react";
 import Link from "next/link";
-import useFetch from "hooks/useFetch";
 import Head from "comps/Head";
 import Editor, { EditorRef } from "comps/Editor";
 import GameView, { GameViewRef } from "comps/GameView";

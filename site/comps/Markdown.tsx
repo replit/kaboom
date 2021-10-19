@@ -1,12 +1,24 @@
 import * as React from "react";
 import marked from "marked";
-import hljs from "highlight.js"
+import hljs from "highlight.js/lib/core";
+import javascript from "highlight.js/lib/languages/javascript";
+import typescript from "highlight.js/lib/languages/typescript";
+import xml from "highlight.js/lib/languages/xml";
+import shell from "highlight.js/lib/languages/shell";
+import bash from "highlight.js/lib/languages/bash";
 import View, { ViewProps } from "comps/View";
 
-marked.use({
-	renderer: {
-		code: (code, info, escaped) => {
-		const c = `<pre><button onclick="navigator.clipboard.writeText(${JSON.stringify(code).replaceAll("\"", "\\\"")})">copy</button><code>${info ? hljs.highlight(code, { language: info }).value : code}</code></pre>`; console.log(c); return c;},
+hljs.registerLanguage("javascript", javascript);
+hljs.registerLanguage("typescript", typescript);
+hljs.registerLanguage("xml", xml);
+hljs.registerLanguage("shell", shell);
+hljs.registerLanguage("bash", bash);
+
+marked.setOptions({
+	highlight: (code, lang) => {
+		return hljs.highlight(code, {
+			language: lang,
+		}).value;
 	},
 });
 

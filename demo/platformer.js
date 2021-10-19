@@ -21,8 +21,8 @@ function patrol(speed = 60, dir = 1) {
 		id: "patrol",
 		require: [ "pos", "area", ],
 		add() {
-			this.on("collide", (obj, side) => {
-				if (side === "left" || side === "right") {
+			this.on("collide", (obj, col) => {
+				if (col.isLeft() || col.isRight()) {
 					dir = -dir;
 				}
 			});
@@ -216,8 +216,9 @@ scene("game", ({ levelId, coins } = { levelId: 0, coins: 0 }) => {
 		}
 	});
 
-	player.collides("enemy", (e, side) => {
-		if (side !== "bottom") {
+	player.collides("enemy", (e, col) => {
+		// if it's not from the top, die
+		if (!col.isBottom()) {
 			go("lose");
 			play("hit");
 		}

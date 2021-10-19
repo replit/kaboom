@@ -1,10 +1,8 @@
 # Intro to Kaboom
 
-![kaboom](intro/kaboom.png)
-
 Welcome! Kaboom is a JavaScript library that helps you make games fast and fun :D
 
-This is an intro tutorial that will cover the basic concepts and make a very simple [Chrome Dino](https://en.wikipedia.org/wiki/Dinosaur_Game) - ish game. For setting up Kaboom development, see the [setup guide](/tut/setup.md).
+This is an intro tutorial that will cover the basic concepts and make a very simple [Chrome Dino](https://en.wikipedia.org/wiki/Dinosaur_Game) - ish game. For setting up Kaboom development, see the [setup guide](/doc/setup). Or if you're looking for a video tutorial, check out [this one](https://www.youtube.com/watch?v=hgReGsh5xVU).
 
 ![game](intro/game.png)
 
@@ -39,7 +37,7 @@ Introducing Frog the "Bean"! A happy frog that enjoys life. You'll see Bean a lo
 
 Before explaining what this code does, let's try adding some more stuff to it and see what happens:
 
-```js
+```javascript
 // add something to screen
 add([
 	sprite("bean"),
@@ -71,7 +69,7 @@ Human are also composed from a list of components, each component provides diffe
 
 It's actually kinda like playing with lego pieces! Let's keep this in mind and start making the actual player character in our game:
 
-```js
+```javascript
 // putting together our player character
 const bean = add([
 	sprite("bean"),
@@ -96,7 +94,7 @@ We're also testing out our player character with a little interaction here. `key
 
 With the `body()` component, our Bean is going to keep falling into oblivion if we don't hit "space" key enough. Let's add a solid platform for Bean to land on.
 
-```js
+```javascript
 // add platform
 add([
 	rect(width(), 48),
@@ -123,7 +121,7 @@ Pretty straightforward! Refresh the game and you should see our Bean is now safe
 
 Let's also make sure our Bean can only jump when grounded.
 
-```js
+```javascript
 keyPress("space", () => {
 	if (bean.grounded()) {
 		bean.jump();
@@ -135,7 +133,7 @@ keyPress("space", () => {
 
 Bean loves challanges. Let's start adding in obstacles to jump over! Time to build a game object from components again.
 
-```js
+```javascript
 // add tree
 add([
 	rect(48, 64),
@@ -162,7 +160,7 @@ To do this we'll need to check for collision between the two.
 
 First we'll need to give the tree a tag. Any game object can have any number of tags, they're kinda like components but much more light weight. We often use tags to quickly describe behaviors for a group of objects.
 
-```js
+```javascript
 // add tree
 add([
 	rect(48, 64),
@@ -178,7 +176,7 @@ add([
 
 To add a tag we simply put a string in the component array. Then we can check for collision between Bean and any object with tag "tree".
 
-```js
+```javascript
 bean.collides("tree", () => {
 	addKaboom(bean.pos);
 	shake();
@@ -191,7 +189,7 @@ Inside the callback we're doing 2 things. `addKaboom()` spawns an explosion anim
 
 The second thing is `shake()`, which just shakes the screen,
 
-![hit](hit.gif)
+![hit](intro/hit.gif)
 
 Here's a trick. Try pressing `F1` in the game. See all the blue outlines? This is inspect mode and it'll show all the bounding boxes of every game obj with `area()` component. Also try hovering over each game object to inspect its states like position and tags.
 
@@ -201,7 +199,7 @@ Now it's time to add more trees. How can we keep them spawning constantly?
 
 Let's try the `loop()` function, which performs an action every x seconds.
 
-```js
+```javascript
 loop(1, () => {
 	// add tree
 	add([
@@ -223,13 +221,13 @@ Sick! Lots of trees coming to you now. Now we already have most of the game mech
 
 1. It might be better if trees all have different random heights. We can use `rand()` to assign different value to the tree's rect height:
 
-```js
+```javascript
 rect(48, rand(24, 64)),
 ```
 
 2. It'll be more fun if the trees spawn at different intervals. We cannot do that from `loop()`, but we can compose that with recursive `wait()`s, which waits for x seconds to execute some code.
 
-```js
+```javascript
 function spawnTree() {
 	add([
 		// the tree components
@@ -246,7 +244,7 @@ See? We're calling `spawnTree()` recursively / endlessly, with a random interval
 
 Before adding a score counter, let's actually complete the game loop first, by sending player to a gameover scene when they hit a tree. We can achieve this with kaboom's `scene()` system
 
-```js
+```javascript
 scene("game", () => {
 	add([
 		sprite("bean"),
@@ -266,7 +264,7 @@ Consider this example above, we're declaring 2 scenes here, "game" and "lose". T
 
 Let's first move everything game code we have into a scene.
 
-```js
+```javascript
 // don't move these init / loader functions
 kaboom()
 loadSprite("bean", "sprites/bean.png");
@@ -284,7 +282,7 @@ Try this, this shouldn't change any of your game's content.
 
 Then we can add a "lose" scene independent to your core game content here.
 
-```js
+```javascript
 scene("lose", () => {
 	add([
 		text("Game Over"),
@@ -296,7 +294,7 @@ scene("lose", () => {
 
 So in the "lose" scene, we'll add a piece of text in the center says "Game Over" (`text()` is a component that renders text). Go ahead and go to this scene when player collides with a tree:
 
-```js
+```javascript
 player.collides("tree", () => {
 	addKaboom(bean.pos);
 	shake();
@@ -306,7 +304,7 @@ player.collides("tree", () => {
 
 Ok! Now we've arrived at the final part of our game: score counter.
 
-```js
+```javascript
 let score = 0;
 const scoreLabel = add([
 	text(score),
@@ -318,7 +316,7 @@ Here we've declared a number variable to store the score, and added a game obj w
 
 Let's keep it simple and just use time as score.
 
-```js
+```javascript
 // increment score every frame
 action(() => {
 	score++;
@@ -332,7 +330,7 @@ We can use the `action()` function, which takes a function, and runs it every fr
 
 Full game code here:
 
-```js
+```javascript
 const FLOOR_HEIGHT = 48;
 const JUMP_FORCE = 800;
 const SPEED = 480;
@@ -449,5 +447,3 @@ scene("lose", (score) => {
 
 go("game");
 ```
-
-Also try this [video tutorial](https://www.youtube.com/watch?v=hgReGsh5xVU&feature=youtu.be) that teaches you how to make a flappy bird game! 

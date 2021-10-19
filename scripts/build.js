@@ -101,10 +101,17 @@ const overwrites = new Set([
 	"focus",
 ]);
 
+// contain the type data for doc gen
+const types = {};
+
 // generate global decls for KaboomCtx members
 dts += "declare global {\n";
 
 for (const stmt of stmts) {
+	if (!types[stmt.name]) {
+		types[stmt.name] = [];
+	}
+	types[stmt.name].push(stmt);
 	if (stmt.name === "KaboomCtx") {
 		if (stmt.kind !== "InterfaceDeclaration") {
 			throw new Error("KaboomCtx has to be an interface.");
@@ -134,3 +141,4 @@ if (!globalGenerated) {
 }
 
 fs.writeFileSync(`${distDir}/kaboom.d.ts`, dts);
+fs.writeFileSync(`site/types.json`, JSON.stringify(types));
