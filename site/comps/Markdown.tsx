@@ -1,4 +1,5 @@
 import * as React from "react";
+import ReactDOM from "react-dom";
 import marked from "marked";
 import hljs from "highlight.js/lib/core";
 import javascript from "highlight.js/lib/languages/javascript";
@@ -31,11 +32,17 @@ const Markdown: React.FC<MarkdownProps & ViewProps> = ({
 	src,
 	baseUrl,
 	...args
-}) => (
-	<View
+}) => {
+	const domRef = React.useRef(null);
+	React.useEffect(() => {
+		if (!domRef.current) return;
+		const dom = domRef.current;
+		const codeblocks = dom.querySelectorAll("pre");
+	}, []);
+	return <View
+		ref={domRef}
 		stretchX
 		gap={2}
-		// @ts-ignore
 		dangerouslySetInnerHTML={{
 			__html: marked(src, {
 				baseUrl: baseUrl,
@@ -175,6 +182,6 @@ const Markdown: React.FC<MarkdownProps & ViewProps> = ({
 		}}
 		{...args}
 	/>
-);
+};
 
 export default Markdown;
