@@ -1,13 +1,17 @@
 const cp = require("child_process");
 
-const run = (name) => cp.spawn("npm", ["run", name, "--silent"], {
-	stdio: "inherit",
-	detached: true,
-	env: {
-		...process.env,
-		NODE_ENV: "development",
-	},
-});
+const run = (name) => cp.spawn(
+	"npm",
+	["run", name, "--silent"],
+	{
+		stdio: "inherit",
+		detached: true,
+		env: {
+			...process.env,
+			NODE_ENV: "development",
+		},
+	}
+);
 
 const tasks = [
 	run("build"),
