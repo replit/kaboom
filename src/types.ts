@@ -93,10 +93,10 @@ interface KaboomCtx {
 	 *     friend.hurt();
 	 * });
 	 *
-	 * // check out #Character for stuff that exists for all game objects, independent of its components.
+	 * // check out #GameObj for stuff that exists for all game objects, independent of its components.
 	 * ```
 	 */
-	add<T>(comps: CompList<T>): Character<T>,
+	add<T>(comps: CompList<T>): GameObj<T>,
 	/**
 	 * Get a list of all game objs with certain tag.
 	 *
@@ -109,7 +109,7 @@ interface KaboomCtx {
 	 * const allObjs = get();
 	 * ```
 	 */
-	get(tag?: Tag): Character[],
+	get(tag?: Tag): GameObj[],
 	/**
 	 * Run callback on every game obj with certain tag.
 	 *
@@ -122,13 +122,13 @@ interface KaboomCtx {
 	 * every((obj) => {});
 	 * ```
 	 */
-	every<T>(t: Tag, cb: (obj: Character) => T): void,
-	every<T>(cb: (obj: Character) => T): void,
+	every<T>(t: Tag, cb: (obj: GameObj) => T): void,
+	every<T>(cb: (obj: GameObj) => T): void,
 	/**
 	 * Run callback on every game obj with certain tag in reverse order.
 	 */
-	revery<T>(t: Tag, cb: (obj: Character) => T): void,
-	revery<T>(cb: (obj: Character) => T): void,
+	revery<T>(t: Tag, cb: (obj: GameObj) => T): void,
+	revery<T>(cb: (obj: GameObj) => T): void,
 	/**
 	 * Remove and re-add the game obj.
 	 *
@@ -138,7 +138,7 @@ interface KaboomCtx {
 	 * readd(froggy);
 	 * ```
 	 */
-	readd(obj: Character): Character,
+	readd(obj: GameObj): GameObj,
 	/**
 	 * Remove the game obj.
 	 *
@@ -150,7 +150,7 @@ interface KaboomCtx {
 	 * });
 	 * ```
 	 */
-	destroy(obj: Character): void,
+	destroy(obj: GameObj): void,
 	/**
 	 * Remove all game objs with certain tag.
 	 *
@@ -430,7 +430,7 @@ interface KaboomCtx {
 	/**
 	 * Follow another game obj's position.
 	 */
-	follow(obj: Character | null, offset?: Vec2): FollowComp,
+	follow(obj: GameObj | null, offset?: Vec2): FollowComp,
 	/**
 	 * Custom shader.
 	 */
@@ -528,7 +528,7 @@ interface KaboomCtx {
 	 * });
 	 * ```
 	 */
-	on(event: string, tag: Tag, cb: (obj: Character, ...args) => void): EventCanceller,
+	on(event: string, tag: Tag, cb: (obj: GameObj, ...args) => void): EventCanceller,
 	/**
 	 * Register "update" event (runs every frame) on all game objs with certain tag.
 	 *
@@ -549,12 +549,12 @@ interface KaboomCtx {
 	 * });
 	 * ```
 	 */
-	action(tag: Tag, cb: (obj: Character) => void): EventCanceller,
+	action(tag: Tag, cb: (obj: GameObj) => void): EventCanceller,
 	action(cb: () => void): EventCanceller,
 	/**
 	 * Register "draw" event (runs every frame) on all game objs with certain tag. (This is the same as `action()`, but all draw events are run after updates)
 	 */
-	render(tag: Tag, cb: (obj: Character) => void): EventCanceller,
+	render(tag: Tag, cb: (obj: GameObj) => void): EventCanceller,
 	render(cb: () => void): EventCanceller,
 	/**
 	 * Register event when 2 game objs with certain tags collides. This function spins off an action() when called, please put it at root level and never inside another action().
@@ -569,21 +569,21 @@ interface KaboomCtx {
 	collides(
 		t1: Tag,
 		t2: Tag,
-		cb: (a: Character, b: Character, col?: Collision) => void,
+		cb: (a: GameObj, b: GameObj, col?: Collision) => void,
 	): EventCanceller,
 	/**
 	 * Register event when game objs with certain tags are clicked. This function spins off an action() when called, please put it at root level and never inside another action().
 	 */
 	clicks(
 		tag: Tag,
-		cb: (a: Character) => void,
+		cb: (a: GameObj) => void,
 	): EventCanceller,
 	/**
 	 * Register event when game objs with certain tags are hovered. This function spins off an action() when called, please put it at root level and never inside another action().
 	 */
 	hovers(
 		tag: Tag,
-		cb: (a: Character) => void,
+		cb: (a: GameObj) => void,
 	): EventCanceller,
 	/**
 	 * Get current mouse position (without camera transform).
@@ -1533,7 +1533,7 @@ type Key =
 /**
  * Inspect info for a character.
  */
-type CharacterInspect = Record<Tag, string | null>;
+type GameObjInspect = Record<Tag, string | null>;
 
 /**
  * Kaboom configurations.
@@ -1614,9 +1614,9 @@ type KaboomPlugin<T> = (k: KaboomCtx) => T;
 /**
  * A character in game. The basic unit of object in Kaboom. The player, a bullet, a tree, a piece of text, they're all characters!
  */
-type Character<T = any> = {
+type GameObj<T = any> = {
 	/**
-	 * Internal Character ID.
+	 * Internal GameObj ID.
 	 */
 	_id: number | null,
 	/**
@@ -1635,12 +1635,12 @@ type Character<T = any> = {
 	 * If there a certain tag on the game obj.
 	 */
 	is(tag: Tag | Tag[]): boolean;
-	// TODO: update the Character type info
+	// TODO: update the GameObj type info
 	/**
 	 * Add a component or tag.
 	 */
 	use(comp: Comp | Tag): void;
-	// TODO: update the Character type info
+	// TODO: update the GameObj type info
 	/**
 	 * Remove a tag or a component with its id.
 	 */
@@ -1668,7 +1668,7 @@ type Character<T = any> = {
 	/**
 	 * Gather debug info of all comps.
 	 */
-	inspect(): CharacterInspect;
+	inspect(): GameObjInspect;
 } & MergeComps<T>;
 
 type SceneID = string;
@@ -2331,7 +2331,7 @@ interface Comp {
 	inspect?: () => string;
 }
 
-type CharacterID = number;
+type GameObjID = number;
 
 interface PosComp extends Comp {
 	/**
@@ -2404,7 +2404,7 @@ interface ZComp extends Comp {
 
 interface FollowComp extends Comp {
 	follow: {
-		obj: Character,
+		obj: GameObj,
 		offset: Vec2,
 	},
 }
@@ -2422,7 +2422,7 @@ interface Collision {
 	/**
 	 * The game object that we collided into.
 	 */
-	target: Character,
+	target: GameObj,
 	/**
 	 * The displacement it'll need to separate us from the target.
 	 */
@@ -2492,11 +2492,11 @@ interface AreaComp extends Comp {
 	/**
 	 * If is currently colliding with another game obj.
 	 */
-	isColliding(o: Character): boolean,
+	isColliding(o: GameObj): boolean,
 	/**
 	 * If is currently touching another game obj.
 	 */
-	isTouching(o: Character): boolean,
+	isTouching(o: GameObj): boolean,
 	/**
 	 * Registers an event runs when clicked.
 	 */
@@ -2508,7 +2508,7 @@ interface AreaComp extends Comp {
 	/**
 	 * Registers an event runs when collides with another game obj with certain tag.
 	 */
-	collides(tag: Tag, f: (obj: Character, col?: Collision) => void): void,
+	collides(tag: Tag, f: (obj: GameObj, col?: Collision) => void): void,
 	/**
 	 * If has a certain point inside collider.
 	 */
@@ -2516,7 +2516,7 @@ interface AreaComp extends Comp {
 	/**
 	 * Push out from another solid game obj if currently overlapping.
 	 */
-	pushOut(obj: Character): void,
+	pushOut(obj: GameObj): void,
 	/**
 	 * Push out from all other solid game objs if currently overlapping.
 	 */
@@ -2784,7 +2784,7 @@ interface BodyComp extends Comp {
 	/**
 	 * Current platform landing on.
 	 */
-	curPlatform(): Character | null,
+	curPlatform(): GameObj | null,
 	/**
 	 * If currently landing on a platform.
 	 */
@@ -2926,8 +2926,8 @@ interface LevelConf {
 interface Level {
 	getPos(p: Vec2): Vec2,
 	getPos(x: number, y: number): Vec2,
-	spawn(sym: string, p: Vec2): Character,
-	spawn(sym: string, x: number, y: number): Character,
+	spawn(sym: string, p: Vec2): GameObj,
+	spawn(sym: string, x: number, y: number): GameObj,
 	width(): number,
 	height(): number,
 	gridWidth(): number,

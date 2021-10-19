@@ -187,7 +187,7 @@ interface Game {
 	loaded: boolean,
 	events: Record<string, IDList<() => void>>,
 	objEvents: Record<string, IDList<TaggedEvent>>,
-	objs: IDList<Character>,
+	objs: IDList<GameObj>,
 	timers: IDList<Timer>,
 	cam: Camera,
 	camMousePos: Vec2,
@@ -336,7 +336,7 @@ const COMP_EVENTS = new Set([
 	"inspect",
 ]);
 
-function make<T>(comps: CompList<T>): Character<T> {
+function make<T>(comps: CompList<T>): GameObj<T> {
 
 	const compStates = new Map();
 	const customState = {};
@@ -525,11 +525,11 @@ function make<T>(comps: CompList<T>): Character<T> {
 		obj.use(comp);
 	}
 
-	return obj as unknown as Character<T>;
+	return obj as unknown as GameObj<T>;
 
 }
 
-function add<T>(comps: CompList<T>): Character<T> {
+function add<T>(comps: CompList<T>): GameObj<T> {
 	const obj = make(comps);
 	obj._id = game.objs.push(obj);
 	obj.trigger("add");
@@ -537,7 +537,7 @@ function add<T>(comps: CompList<T>): Character<T> {
 	return obj;
 }
 
-function readd(obj: Character): Character {
+function readd(obj: GameObj): GameObj {
 	if (!obj.exists()) {
 		return;
 	}
@@ -547,7 +547,7 @@ function readd(obj: Character): Character {
 }
 
 // add an event to a tag
-function on(event: string, tag: Tag, cb: (obj: Character, ...args) => void): EventCanceller {
+function on(event: string, tag: Tag, cb: (obj: GameObj, ...args) => void): EventCanceller {
 	if (!game.objEvents[event]) {
 		game.objEvents[event] = new IDList();
 	}
@@ -559,7 +559,7 @@ function on(event: string, tag: Tag, cb: (obj: Character, ...args) => void): Eve
 
 // TODO: detect if is currently in another action?
 // add update event to a tag or global update
-function action(tag: Tag | (() => void), cb?: (obj: Character) => void): EventCanceller {
+function action(tag: Tag | (() => void), cb?: (obj: GameObj) => void): EventCanceller {
 	if (typeof tag === "function" && cb === undefined) {
 		return add([{ update: tag, }]).destroy;
 	} else if (typeof tag === "string") {
@@ -568,7 +568,7 @@ function action(tag: Tag | (() => void), cb?: (obj: Character) => void): EventCa
 }
 
 // add draw event to a tag or global draw
-function render(tag: Tag | (() => void), cb?: (obj: Character) => void) {
+function render(tag: Tag | (() => void), cb?: (obj: GameObj) => void) {
 	if (typeof tag === "function" && cb === undefined) {
 		return add([{ draw: tag, }]).destroy;
 	} else if (typeof tag === "string") {
@@ -580,11 +580,11 @@ function render(tag: Tag | (() => void), cb?: (obj: Character) => void) {
 function collides(
 	t1: Tag,
 	t2: Tag,
-	f: (a: Character, b: Character) => void,
+	f: (a: GameObj, b: GameObj) => void,
 ): EventCanceller {
 	const e1 = on("collide", t1, (a, b, dis) => b.is(t2) && f(a, b));
 	const e2 = on("collide", t2, (a, b, dis) => b.is(t1) && f(b, a));
-	const e3 = action(t1, (o1: Character) => {
+	const e3 = action(t1, (o1: GameObj) => {
 		if (!o1.area) {
 			throw new Error("collides() requires the object to have area() component");
 		}
@@ -596,8 +596,8 @@ function collides(
 }
 
 // add an event that runs when objs with tag t is clicked
-function clicks(t: string, f: (obj: Character) => void): EventCanceller {
-	return action(t, (o: Character) => {
+function clicks(t: string, f: (obj: GameObj) => void): EventCanceller {
+	return action(t, (o: GameObj) => {
 		if (o.isClicked()) {
 			f(o);
 		}
@@ -605,8 +605,8 @@ function clicks(t: string, f: (obj: Character) => void): EventCanceller {
 }
 
 // add an event that runs when objs with tag t is hovered
-function hovers(t: string, onHover: (obj: Character) => void, onNotHover?: (obj: Character) => void): EventCanceller {
-	return action(t, (o: Character) => {
+function hovers(t: string, onHover: (obj: GameObj) => void, onNotHover?: (obj: GameObj) => void): EventCanceller {
+	return action(t, (o: GameObj) => {
 		if (o.isHovering()) {
 			onHover(o);
 		} else {
@@ -779,7 +779,7 @@ function regDebugInput() {
 
 // TODO: cache sorted list
 // get all objects with tag
-function get(t?: string): Character[] {
+function get(t?: string): GameObj[] {
 
 	const objs = [...game.objs.values()].sort((o1, o2) => {
 
@@ -804,7 +804,7 @@ function get(t?: string): Character[] {
 }
 
 // apply a function to all objects currently in game with tag t
-function every<T>(t: string | ((obj: Character) => T), f?: (obj: Character) => T) {
+function every<T>(t: string | ((obj: GameObj) => T), f?: (obj: GameObj) => T) {
 	if (typeof t === "function" && f === undefined) {
 		return get().forEach((obj) => obj.exists() && t(obj));
 	} else if (typeof t === "string") {
@@ -813,7 +813,7 @@ function every<T>(t: string | ((obj: Character) => T), f?: (obj: Character) => T
 }
 
 // every but in reverse order
-function revery<T>(t: string | ((obj: Character) => T), f?: (obj: Character) => T) {
+function revery<T>(t: string | ((obj: GameObj) => T), f?: (obj: GameObj) => T) {
 	if (typeof t === "function" && f === undefined) {
 		return get().reverse().forEach((obj) => obj.exists() && t(obj));
 	} else if (typeof t === "string") {
@@ -822,7 +822,7 @@ function revery<T>(t: string | ((obj: Character) => T), f?: (obj: Character) => 
 }
 
 // destroy an obj
-function destroy(obj: Character) {
+function destroy(obj: GameObj) {
 	obj.destroy();
 }
 
@@ -1021,7 +1021,7 @@ function drawInspect() {
 
 }
 
-function makeCollision(target: Character<any>, dis: Vec2): Collision {
+function makeCollision(target: GameObj<any>, dis: Vec2): Collision {
 	return {
 		target: target,
 		displacement: dis,
@@ -1281,7 +1281,7 @@ function z(z: number): ZComp {
 	};
 }
 
-function follow(obj: Character, offset?: Vec2): FollowComp {
+function follow(obj: GameObj, offset?: Vec2): FollowComp {
 	return {
 		id: "follow",
 		require: [ "pos", ],
@@ -1420,7 +1420,7 @@ function area(conf: AreaCompConf = {}): AreaComp {
 			});
 		},
 
-		collides(tag: Tag, f: (o: Character, col?: Collision) => void): EventCanceller {
+		collides(tag: Tag, f: (o: GameObj, col?: Collision) => void): EventCanceller {
 			const e1 = this.action(() => this._checkCollisions(tag, f));
 			const e2 = this.on("collide", (obj, col) => obj.is(tag) && f(obj, col));
 			return () => [e1, e2].forEach((f) => f());
@@ -1435,7 +1435,7 @@ function area(conf: AreaCompConf = {}): AreaComp {
 		},
 
 		// push an obj out of another if they're overlapped
-		pushOut(obj: Character): Vec2 | null {
+		pushOut(obj: GameObj): Vec2 | null {
 
 			if (obj === this) {
 				return null;
@@ -1548,7 +1548,7 @@ function area(conf: AreaCompConf = {}): AreaComp {
 }
 
 // make the list of common render properties from the "pos", "scale", "color", "opacity", "rotate", "origin", "outline", and "shader" components of a character
-function getRenderProps(obj: Character<any>) {
+function getRenderProps(obj: GameObj<any>) {
 	return {
 		pos: obj.pos,
 		scale: obj.scale,
@@ -1921,7 +1921,7 @@ const MAX_VEL = 65536;
 function body(conf: BodyCompConf = {}): BodyComp {
 
 	let velY = 0;
-	let curPlatform: Character | null = null;
+	let curPlatform: GameObj | null = null;
 	let lastPlatformPos = null;
 	let canDouble = true;
 
@@ -1999,7 +1999,7 @@ function body(conf: BodyCompConf = {}): BodyComp {
 
 		},
 
-		curPlatform(): Character | null {
+		curPlatform(): GameObj | null {
 			return curPlatform;
 		},
 
@@ -2279,7 +2279,7 @@ function addLevel(map: string[], conf: LevelConf): Level {
 		throw new Error("Must provide level grid width & height.");
 	}
 
-	const objs: Character[] = [];
+	const objs: GameObj[] = [];
 	const offset = vec2(conf.pos || vec2(0));
 	let longRow = 0;
 
@@ -2305,7 +2305,7 @@ function addLevel(map: string[], conf: LevelConf): Level {
 			);
 		},
 
-		spawn(sym: string, ...args): Character {
+		spawn(sym: string, ...args): GameObj {
 
 			const p = vec2(...args);
 
