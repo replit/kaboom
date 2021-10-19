@@ -1316,7 +1316,7 @@ interface KaboomCtx {
 	/**
 	 * Check if a point is inside a rectangle.
 	 */
-	testRectPt(r: Rect, pt: Vec2): boolean,
+	testRectPoint(r: Rect, pt: Vec2): boolean,
 	/**
 	 * Define a scene.
 	 *
@@ -2293,6 +2293,14 @@ interface Line {
 	p2: Vec2,
 }
 
+interface Circle {
+	center: Vec2,
+	radius: number,
+}
+
+type Polygon = Vec2[];
+type Point = Vec2;
+
 type ClientID = number;
 type MsgHandler = (id: ClientID, data: any) => void;
 
@@ -2447,7 +2455,7 @@ interface Collision {
 
 interface AreaCompConf {
 	/**
-	 * Width of area.
+	 * Displacement of area.
 	 */
 	offset?: Vec2,
 	/**
@@ -2512,7 +2520,7 @@ interface AreaComp extends Comp {
 	/**
 	 * If has a certain point inside collider.
 	 */
-	hasPt(p: Vec2): boolean,
+	hasPoint(p: Vec2): boolean,
 	/**
 	 * Push out from another solid game obj if currently overlapping.
 	 */
@@ -2694,6 +2702,14 @@ interface UVQuadComp extends Comp {
 	 */
 	height: number,
 }
+
+type Area =
+	| { type: "rect" } & Rect
+	| { type: "line" } & Line
+	| { type: "circle" } & Circle
+	| { type: "point" } & { pt: Point }
+	| { type: "polygon" } & { pts: Polygon }
+	;
 
 type AreaType =
 	| "rect"

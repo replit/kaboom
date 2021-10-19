@@ -18,7 +18,7 @@ import {
 	testLineLineT,
 	testRectRect2,
 	testRectLine,
-	testRectPt,
+	testRectPoint,
 	minkDiff,
 	testRectRect,
 	dir,
@@ -1065,7 +1065,7 @@ function pos(...args): PosComp {
 					let md = minkDiff(a2, a1);
 
 					// if they're already overlapping, push them away first
-					if (testRectPt(md, vec2(0))) {
+					if (testRectPoint(md, vec2(0))) {
 
 						let dist = Math.min(
 							Math.abs(md.p1.x),
@@ -1128,7 +1128,7 @@ function pos(...args): PosComp {
 					// if moving away, we forgive
 					if (
 						minT < 1
-						&& !(minT === 0 && numCols == 1 && !testRectPt(md, vec2(dx, dy)))
+						&& !(minT === 0 && numCols == 1 && !testRectPoint(md, vec2(dx, dy)))
 					) {
 						const dis = vec2(-dx * (1 - minT), -dy * (1 - minT));
 						dx *= minT;
@@ -1376,9 +1376,9 @@ function area(conf: AreaCompConf = {}): AreaComp {
 		isHovering() {
 			const mpos = this.fixed ? mousePos() : mouseWorldPos();
 			if (app.isTouch) {
-				return app.mouseDown() && this.hasPt(mpos);
+				return app.mouseDown() && this.hasPoint(mpos);
 			} else {
-				return this.hasPt(mpos);
+				return this.hasPoint(mpos);
 			}
 		},
 
@@ -1426,9 +1426,9 @@ function area(conf: AreaCompConf = {}): AreaComp {
 			return () => [e1, e2].forEach((f) => f());
 		},
 
-		hasPt(pt: Vec2): boolean {
+		hasPoint(pt: Vec2): boolean {
 			const a = this.worldArea();
-			return testRectPt({
+			return testRectPoint({
 				p1: a.p1,
 				p2: a.p2,
 			}, pt);
@@ -1449,7 +1449,7 @@ function area(conf: AreaCompConf = {}): AreaComp {
 			const a2 = obj.worldArea();
 			const md = minkDiff(a1, a2);
 
-			if (!testRectPt(md, vec2(0))) {
+			if (!testRectPoint(md, vec2(0))) {
 				return null;
 			}
 
@@ -2510,7 +2510,7 @@ const ctx: KaboomCtx = {
 	testLineLine,
 	testRectRect,
 	testRectLine,
-	testRectPt,
+	testRectPoint,
 	// raw draw
 	drawSprite,
 	drawText,

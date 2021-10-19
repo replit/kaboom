@@ -526,7 +526,7 @@ function testLineLine(l1: Line, l2: Line): Vec2 | null {
 }
 
 function testRectLine(r: Rect, l: Line): boolean {
-	if (testRectPt(r, l.p1) || testRectPt(r, l.p2)) {
+	if (testRectPoint(r, l.p1) || testRectPoint(r, l.p2)) {
 		return true;
 	}
 	return !!testLineLine(l, makeLine(r.p1, vec2(r.p2.x, r.p1.y)))
@@ -535,12 +535,104 @@ function testRectLine(r: Rect, l: Line): boolean {
 		|| !!testLineLine(l, makeLine(vec2(r.p1.x, r.p2.y), r.p1));
 }
 
-function testRectPt2(r: Rect, pt: Vec2): boolean {
+function testRectPoint2(r: Rect, pt: Point): boolean {
 	return pt.x >= r.p1.x && pt.x <= r.p2.x && pt.y >= r.p1.y && pt.y <= r.p2.y;
 }
 
-function testRectPt(r: Rect, pt: Vec2): boolean {
+function testRectPoint(r: Rect, pt: Point): boolean {
 	return pt.x > r.p1.x && pt.x < r.p2.x && pt.y > r.p1.y && pt.y < r.p2.y;
+}
+
+// TODO
+function testRectCircle(r: Rect, c: Circle): boolean {
+	return false;
+}
+
+// TODO
+function testRectPolygon(r: Rect, p: Polygon): boolean {
+	return false;
+}
+
+// TODO
+function testLinePoint(l: Line, pt: Vec2): boolean {
+	return false;
+}
+
+// TODO
+function testLineCircle(l: Line, c: Circle): boolean {
+	return false;
+}
+
+// TODO
+function testLinePolygon(l: Line, p: Polygon): boolean {
+	return false;
+}
+
+function testCirclePoint(c: Circle, p: Point): boolean {
+	return c.center.dist(p) < c.radius;
+}
+
+function testCircleCircle(c1: Circle, c2: Circle): boolean {
+	return c1.center.dist(c2.center) < c1.radius + c2.radius;
+}
+
+// TODO
+function testCirclePolygon(c: Circle, p: Polygon): boolean {
+	return false;
+}
+
+// TODO
+function testPolygonPolygon(p1: Polygon, p2: Polygon): boolean {
+	return false;
+}
+
+// TODO
+function testPolygonPoint(p: Polygon, pt: Point): boolean {
+	return false;
+}
+
+function testPointPoint(p1: Point, p2: Point): boolean {
+	return p1.eq(p2);
+}
+
+function test(a1: Area, a2: Area): boolean {
+	switch (a1.type) {
+		case "rect":
+			switch (a2.type) {
+				case "rect": return testRectRect(a1, a2);
+				case "line": return testRectLine(a1, a2);
+				case "circle": return testRectCircle(a1, a2);
+				case "polygon": return testRectPolygon(a1, a2.pts);
+				case "point": return testRectPoint(a1, a2.pt);
+			}
+		case "line":
+			switch (a2.type) {
+				case "line": return Boolean(testLineLine(a1, a2));
+				case "circle": return testLineCircle(a1, a2);
+				case "polygon": return testLinePolygon(a1, a2.pts);
+				case "point": return testLinePoint(a1, a2.pt);
+				default: return test(a2, a1);
+			}
+		case "circle":
+			switch (a2.type) {
+				case "circle": return testCircleCircle(a1, a2);
+				case "polygon": return testCirclePolygon(a1, a2.pts);
+				case "point": return testCirclePoint(a1, a2.pt);
+				default: return test(a2, a1);
+			}
+		case "polygon":
+			switch (a2.type) {
+				case "polygon": return testPolygonPolygon(a1.pts, a2.pts);
+				case "point": return testPolygonPoint(a1.pts, a2.pt);
+				default: return test(a2, a1);
+			}
+		case "point":
+			switch (a2.type) {
+				case "point": return testPointPoint(a1.pt, a2.pt);
+				default: return test(a2, a1);
+			}
+	}
+	return false;
 }
 
 function minkDiff(r1: Rect, r2: Rect): Rect {
@@ -581,7 +673,7 @@ export {
 	testLineLine,
 	testLineLineT,
 	testRectLine,
-	testRectPt,
+	testRectPoint,
 	minkDiff,
 	dir,
 	isVec2,
