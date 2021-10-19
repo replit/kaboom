@@ -62,30 +62,30 @@ import {
 import kaboomPlugin from "./plugins/kaboom";
 
 // @ts-ignore
-module.exports = (gconf: KaboomConf = {}): KaboomCtx => {
+module.exports = (gprops: KaboomProps = {}): KaboomCtx => {
 
 const audio = audioInit();
 
 const app = appInit({
-	width: gconf.width,
-	height: gconf.height,
-	scale: gconf.scale,
-	crisp: gconf.crisp,
-	canvas: gconf.canvas,
-	root: gconf.root,
-	stretch: gconf.stretch,
-	touchToMouse: gconf.touchToMouse ?? true,
+	width: gprops.width,
+	height: gprops.height,
+	scale: gprops.scale,
+	crisp: gprops.crisp,
+	canvas: gprops.canvas,
+	root: gprops.root,
+	stretch: gprops.stretch,
+	touchToMouse: gprops.touchToMouse ?? true,
 	audioCtx: audio.ctx,
 });
 
 const gfx = gfxInit(app.gl, {
-	background: gconf.background ? rgb(gconf.background) : undefined,
-	width: gconf.width,
-	height: gconf.height,
-	scale: gconf.scale,
-	texFilter: gconf.texFilter,
-	stretch: gconf.stretch,
-	letterbox: gconf.letterbox,
+	background: gprops.background ? rgb(gprops.background) : undefined,
+	width: gprops.width,
+	height: gprops.height,
+	scale: gprops.scale,
+	texFilter: gprops.texFilter,
+	stretch: gprops.stretch,
+	letterbox: gprops.letterbox,
 });
 
 const {
@@ -100,7 +100,7 @@ const assets = assetsInit(gfx, audio, {
 });
 
 const logger = loggerInit(gfx, assets, {
-	max: gconf.logMax,
+	max: gprops.logMax,
 });
 
 const DEF_FONT = "apl386o";
@@ -111,7 +111,7 @@ function dt() {
 }
 
 // TODO: clean
-function play(id: string, conf: AudioPlayConf = {}): AudioPlay {
+function play(id: string, props: AudioPlayProps = {}): AudioPlay {
 	const pb = audio.play({
 		buf: new AudioBuffer({
 			length: 1,
@@ -124,7 +124,7 @@ function play(id: string, conf: AudioPlayConf = {}): AudioPlay {
 		if (!snd) {
 			throw new Error(`sound not found: "${id}"`);
 		}
-		const pb2 = audio.play(snd, conf);
+		const pb2 = audio.play(snd, props);
 		for (const k in pb2) {
 			pb[k] = pb2[k];
 		}
@@ -141,41 +141,41 @@ function mouseWorldPos(): Vec2 {
 }
 
 // wrapper around gfx.drawTexture to integrate with sprite assets mananger / frame anim
-function drawSprite(conf: DrawSpriteConf) {
-	if (!conf.sprite) {
+function drawSprite(props: DrawSpriteProps) {
+	if (!props.sprite) {
 		throw new Error(`drawSprite() requires property "sprite"`);
 	}
 	const spr = (() => {
-		if (typeof conf.sprite === "string") {
-			return assets.sprites[conf.sprite];
+		if (typeof props.sprite === "string") {
+			return assets.sprites[props.sprite];
 		} else {
-			return conf.sprite;
+			return props.sprite;
 		}
 	})();
 	if (!spr) {
-		throw new Error(`sprite not found: "${conf.sprite}"`);
+		throw new Error(`sprite not found: "${props.sprite}"`);
 	}
-	const q = spr.frames[conf.frame ?? 0];
+	const q = spr.frames[props.frame ?? 0];
 	if (!q) {
-		throw new Error(`frame not found: ${conf.frame ?? 0}`);
+		throw new Error(`frame not found: ${props.frame ?? 0}`);
 	}
 	gfx.drawTexture({
-		...conf,
+		...props,
 		tex: spr.tex,
-		quad: q.scale(conf.quad || quad(0, 0, 1, 1)),
+		quad: q.scale(props.quad || quad(0, 0, 1, 1)),
 	});
 }
 
 // wrapper around gfx.drawText to integrate with font assets mananger / default font
-function drawText(conf: DrawTextConf) {
+function drawText(props: DrawTextProps) {
 	// @ts-ignore
-	const fid = conf.font ?? DEF_FONT;
+	const fid = props.font ?? DEF_FONT;
 	const font = assets.fonts[fid];
 	if (!font) {
 		throw new Error(`font not found: ${fid}`);
 	}
 	gfx.drawText({
-		...conf,
+		...props,
 		font: font,
 	});
 }
@@ -910,7 +910,7 @@ function drawInspect() {
 
 	let inspecting = null;
 	const font = assets.fonts[DBG_FONT];
-	const lcolor = rgb(gconf.inspectColor ?? [0, 0, 255]);
+	const lcolor = rgb(gprops.inspectColor ?? [0, 0, 255]);
 
 	function drawInspectTxt(pos, txt) {
 
@@ -1335,7 +1335,7 @@ function cleanup(time: number = 0): CleanupComp {
 	};
 }
 
-function area(conf: AreaCompConf = {}): AreaComp {
+function area(props: AreaCompProps = {}): AreaComp {
 
 	const colliding = {};
 
@@ -1352,11 +1352,11 @@ function area(conf: AreaCompConf = {}): AreaComp {
 		},
 
 		area: {
-			offset: conf.offset ?? vec2(0),
-			width: conf.width,
-			height: conf.height,
-			scale: conf.scale ?? vec2(1),
-			cursor: conf.cursor,
+			offset: props.offset ?? vec2(0),
+			width: props.width,
+			height: props.height,
+			scale: props.scale ?? vec2(1),
+			cursor: props.cursor,
 		},
 
 		areaWidth(): number {
@@ -1572,7 +1572,7 @@ interface SpriteCurAnim {
 }
 
 // TODO: clean
-function sprite(id: string | SpriteData, conf: SpriteCompConf = {}): SpriteComp {
+function sprite(id: string | SpriteData, props: SpriteCompProps = {}): SpriteComp {
 
 	let spr = null;
 	let curAnim: SpriteCurAnim | null = null;
@@ -1598,9 +1598,9 @@ function sprite(id: string | SpriteData, conf: SpriteCompConf = {}): SpriteComp 
 		// TODO: allow update
 		width: 0,
 		height: 0,
-		frame: conf.frame || 0,
-		quad: conf.quad || quad(0, 0, 1, 1),
-		animSpeed: conf.animSpeed ?? 1,
+		frame: props.frame || 0,
+		quad: props.quad || quad(0, 0, 1, 1),
+		animSpeed: props.animSpeed ?? 1,
 
 		load() {
 
@@ -1616,17 +1616,17 @@ function sprite(id: string | SpriteData, conf: SpriteCompConf = {}): SpriteComp 
 
 			let q = { ...spr.frames[0] };
 
-			if (conf.quad) {
-				q = q.scale(conf.quad);
+			if (props.quad) {
+				q = q.scale(props.quad);
 			}
 
-			const scale = calcTexScale(spr.tex, q, conf.width, conf.height);
+			const scale = calcTexScale(spr.tex, q, props.width, props.height);
 
 			this.width = spr.tex.width * q.w * scale.x;
 			this.height = spr.tex.height * q.h * scale.y;
 
-			if (conf.anim) {
-				this.play(conf.anim);
+			if (props.anim) {
+				this.play(props.anim);
 			}
 
 		},
@@ -1637,11 +1637,11 @@ function sprite(id: string | SpriteData, conf: SpriteCompConf = {}): SpriteComp 
 				sprite: spr,
 				frame: this.frame,
 				quad: this.quad,
-				flipX: conf.flipX,
-				flipY: conf.flipY,
-				tiled: conf.tiled,
-				width: conf.width,
-				height: conf.height,
+				flipX: props.flipX,
+				flipY: props.flipY,
+				tiled: props.tiled,
+				width: props.width,
+				height: props.height,
 			});
 		},
 
@@ -1694,8 +1694,8 @@ function sprite(id: string | SpriteData, conf: SpriteCompConf = {}): SpriteComp 
 
 		},
 
-		// TODO: this conf should be used instead of the sprite data conf, if given
-		play(name: string, conf: SpriteAnimPlayConf = {}) {
+		// TODO: this props should be used instead of the sprite data props, if given
+		play(name: string, props: SpriteAnimPlayProps = {}) {
 
 			if (!spr) {
 				ready(() => {
@@ -1717,10 +1717,10 @@ function sprite(id: string | SpriteData, conf: SpriteCompConf = {}): SpriteComp 
 			curAnim = {
 				name: name,
 				timer: 0,
-				loop: conf.loop ?? anim.loop ?? false,
-				pingpong: conf.pingpong ?? anim.pingpong ?? false,
-				speed: conf.speed ?? anim.speed ?? 10,
-				onEnd: conf.onEnd ?? (() => {}),
+				loop: props.loop ?? anim.loop ?? false,
+				pingpong: props.pingpong ?? anim.pingpong ?? false,
+				speed: props.speed ?? anim.speed ?? 10,
+				onEnd: props.onEnd ?? (() => {}),
 			};
 
 			if (typeof anim === "number") {
@@ -1754,11 +1754,11 @@ function sprite(id: string | SpriteData, conf: SpriteCompConf = {}): SpriteComp 
 		},
 
 		flipX(b: boolean) {
-			conf.flipX = b;
+			props.flipX = b;
 		},
 
 		flipY(b: boolean) {
-			conf.flipY = b;
+			props.flipY = b;
 		},
 
 		inspect() {
@@ -1775,11 +1775,11 @@ function sprite(id: string | SpriteData, conf: SpriteCompConf = {}): SpriteComp 
 
 }
 
-function text(t: string, conf: TextCompConf = {}): TextComp {
+function text(t: string, props: TextCompProps = {}): TextComp {
 
 	function update() {
 
-		const font = assets.fonts[this.font ?? gconf.font ?? DEF_FONT];
+		const font = assets.fonts[this.font ?? gprops.font ?? DEF_FONT];
 
 		if (!font) {
 			throw new Error(`font not found: "${font}"`);
@@ -1790,7 +1790,7 @@ function text(t: string, conf: TextCompConf = {}): TextComp {
 			text: this.text + "",
 			size: this.textSize,
 			font: font,
-			width: conf.width,
+			width: props.width,
 		});
 
 		this.width = ftext.width / (this.scale?.x || 1);
@@ -1804,8 +1804,8 @@ function text(t: string, conf: TextCompConf = {}): TextComp {
 
 		id: "text",
 		text: t,
-		textSize: conf.size,
-		font: conf.font,
+		textSize: props.size,
+		font: props.font,
 		width: 0,
 		height: 0,
 
@@ -1916,7 +1916,7 @@ const DEF_JUMP_FORCE = 640;
 const MAX_VEL = 65536;
 
 // TODO: land on wall
-function body(conf: BodyCompConf = {}): BodyComp {
+function body(props: BodyCompProps = {}): BodyComp {
 
 	let velY = 0;
 	let curPlatform: Character | null = null;
@@ -1927,9 +1927,9 @@ function body(conf: BodyCompConf = {}): BodyComp {
 
 		id: "body",
 		require: [ "pos", "area", ],
-		jumpForce: conf.jumpForce ?? DEF_JUMP_FORCE,
-		weight: conf.weight ?? 1,
-		solid: conf.solid ?? true,
+		jumpForce: props.jumpForce ?? DEF_JUMP_FORCE,
+		weight: props.weight ?? 1,
+		solid: props.solid ?? true,
 
 		update() {
 
@@ -1991,7 +1991,7 @@ function body(conf: BodyCompConf = {}): BodyComp {
 				}
 
 				velY += gravity() * this.weight * dt();
-				velY = Math.min(velY, conf.maxVel ?? MAX_VEL);
+				velY = Math.min(velY, props.maxVel ?? MAX_VEL);
 
 			}
 
@@ -2089,12 +2089,12 @@ function health(hp: number): HealthComp {
 	};
 }
 
-function lifespan(time: number, conf: LifespanCompConf = {}): LifespanComp {
+function lifespan(time: number, props: LifespanCompProps = {}): LifespanComp {
 	if (time == null) {
 		throw new Error("lifespan() requires time");
 	}
 	let timer = 0;
-	const fade = conf.fade ?? 0;
+	const fade = props.fade ?? 0;
 	const startFade = Math.max((time - fade), 0);
 	return {
 		id: "lifespan",
@@ -2193,7 +2193,7 @@ function go(id: SceneID, ...args) {
 
 		game.scenes[id](...args);
 
-		if (gconf.debug !== false) {
+		if (gprops.debug !== false) {
 			regDebugInput();
 		}
 
@@ -2223,7 +2223,7 @@ function plug<T>(plugin: KaboomPlugin<T>): MergeObj<T> & KaboomCtx {
 	for (const k in funcs) {
 		// @ts-ignore
 		ctx[k] = funcs[k];
-		if (gconf.global !== false) {
+		if (gprops.global !== false) {
 			// @ts-ignore
 			window[k] = funcs[k];
 		}
@@ -2271,14 +2271,14 @@ function grid(level: Level, p: Vec2) {
 
 }
 
-function addLevel(map: string[], conf: LevelConf): Level {
+function addLevel(map: string[], props: LevelProps): Level {
 
-	if (!conf.width || !conf.height) {
+	if (!props.width || !props.height) {
 		throw new Error("Must provide level grid width & height.");
 	}
 
 	const objs: Character[] = [];
-	const offset = vec2(conf.pos || vec2(0));
+	const offset = vec2(props.pos || vec2(0));
 	let longRow = 0;
 
 	const level = {
@@ -2288,18 +2288,18 @@ function addLevel(map: string[], conf: LevelConf): Level {
 		},
 
 		gridWidth() {
-			return conf.width;
+			return props.width;
 		},
 
 		gridHeight() {
-			return conf.height;
+			return props.height;
 		},
 
 		getPos(...args): Vec2 {
 			const p = vec2(...args);
 			return vec2(
-				offset.x + p.x * conf.width,
-				offset.y + p.y * conf.height
+				offset.x + p.x * props.width,
+				offset.y + p.y * props.height
 			);
 		},
 
@@ -2308,13 +2308,13 @@ function addLevel(map: string[], conf: LevelConf): Level {
 			const p = vec2(...args);
 
 			const comps = (() => {
-				if (conf[sym]) {
-					if (typeof conf[sym] !== "function") {
+				if (props[sym]) {
+					if (typeof props[sym] !== "function") {
 						throw new Error("level symbol def must be a function returning a component list");
 					}
-					return conf[sym](p);
-				} else if (conf.any) {
-					return conf.any(sym, p);
+					return props[sym](p);
+				} else if (props.any) {
+					return props.any(sym, p);
 				}
 			})();
 
@@ -2323,8 +2323,8 @@ function addLevel(map: string[], conf: LevelConf): Level {
 			}
 
 			const posComp = vec2(
-				offset.x + p.x * conf.width,
-				offset.y + p.y * conf.height
+				offset.x + p.x * props.width,
+				offset.y + p.y * props.height
 			);
 
 			for (const comp of comps) {
@@ -2347,11 +2347,11 @@ function addLevel(map: string[], conf: LevelConf): Level {
 		},
 
 		width() {
-			return longRow * conf.width;
+			return longRow * props.width;
 		},
 
 		height() {
-			return map.length * conf.height;
+			return map.length * props.height;
 		},
 
 		destroy() {
@@ -2551,11 +2551,11 @@ const ctx: KaboomCtx = {
 
 plug(kaboomPlugin);
 
-if (gconf.plugins) {
-	gconf.plugins.forEach(plug);
+if (gprops.plugins) {
+	gprops.plugins.forEach(plug);
 }
 
-if (gconf.global !== false) {
+if (gprops.global !== false) {
 	for (const k in ctx) {
 		window[k] = ctx[k];
 	}
@@ -2632,7 +2632,7 @@ app.run(() => {
 
 });
 
-if (gconf.debug !== false) {
+if (gprops.debug !== false) {
 	regDebugInput();
 }
 

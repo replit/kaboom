@@ -21,7 +21,7 @@ import sinkoSrc from "./sinko.png";
 // @ts-ignore
 import beanSrc from "./bean.png";
 
-type AssetsConf = {
+type AssetsProps = {
 	errHandler?: (err: string) => void,
 };
 
@@ -44,7 +44,7 @@ type Assets = {
 	loadSprite(
 		name: string | null,
 		src: SpriteLoadSrc,
-		conf?: SpriteLoadConf,
+		props?: SpriteLoadProps,
 	): Promise<SpriteData>,
 	loadSpriteAtlas(
 		src: SpriteLoadSrc,
@@ -70,7 +70,7 @@ type Assets = {
 		src: string,
 		gw: number,
 		gh: number,
-		conf?: FontLoadConf,
+		props?: FontLoadProps,
 	): Promise<FontData>,
 	loadShader(
 		name: string | null,
@@ -107,7 +107,7 @@ function isDataUrl(src: string): boolean {
 	return src.startsWith("data:");
 }
 
-function assetsInit(gfx: Gfx, audio: Audio, gconf: AssetsConf = {}): Assets {
+function assetsInit(gfx: Gfx, audio: Audio, gprops: AssetsProps = {}): Assets {
 
 	const assets: AssetsCtx = {
 		lastLoaderID: 0,
@@ -124,7 +124,7 @@ function assetsInit(gfx: Gfx, audio: Audio, gconf: AssetsConf = {}): Assets {
 		assets.loaders[id] = false;
 		assets.lastLoaderID++;
 		return prom
-			.catch(gconf.errHandler ?? console.error)
+			.catch(gprops.errHandler ?? console.error)
 			.finally(() => assets.loaders[id] = true) as Promise<T>;
 	}
 
@@ -159,13 +159,13 @@ function assetsInit(gfx: Gfx, audio: Audio, gconf: AssetsConf = {}): Assets {
 		src: string,
 		gw: number,
 		gh: number,
-		conf: FontLoadConf = {},
+		props: FontLoadProps = {},
 	): Promise<FontData> {
 		return load(new Promise<FontData>((resolve, reject) => {
 			const path = isDataUrl(src) ? src : assets.loadRoot + src;
 			loadImg(path)
 				.then((img) => {
-					const font = gfx.makeFont(gfx.makeTex(img, conf), gw, gh, conf.chars ?? ASCII_CHARS);
+					const font = gfx.makeFont(gfx.makeTex(img, props), gw, gh, props.chars ?? ASCII_CHARS);
 					if (name) {
 						assets.fonts[name] = font;
 					}
@@ -240,7 +240,7 @@ function assetsInit(gfx: Gfx, audio: Audio, gconf: AssetsConf = {}): Assets {
 	function loadSprite(
 		name: string | null,
 		src: SpriteLoadSrc,
-		conf: SpriteLoadConf = {
+		props: SpriteLoadProps = {
 			sliceX: 1,
 			sliceY: 1,
 			anims: {},
@@ -251,20 +251,20 @@ function assetsInit(gfx: Gfx, audio: Audio, gconf: AssetsConf = {}): Assets {
 		function loadRawSprite(
 			name: string | null,
 			src: GfxTexData,
-			conf: SpriteLoadConf = {
+			props: SpriteLoadProps = {
 				sliceX: 1,
 				sliceY: 1,
 				anims: {},
 			},
 		) {
 
-			const tex = gfx.makeTex(src, conf);
-			const frames = slice(conf.sliceX || 1, conf.sliceY || 1);
+			const tex = gfx.makeTex(src, props);
+			const frames = slice(props.sliceX || 1, props.sliceY || 1);
 
 			const sprite = {
 				tex: tex,
 				frames: frames,
-				anims: conf.anims || {},
+				anims: props.anims || {},
 			};
 
 			if (name) {
@@ -285,10 +285,10 @@ function assetsInit(gfx: Gfx, audio: Audio, gconf: AssetsConf = {}): Assets {
 			if (typeof(src) === "string") {
 				const path = isDataUrl(src) ? src : assets.loadRoot + src;
 				loadImg(path)
-					.then((img) => resolve(loadRawSprite(name, img, conf)))
+					.then((img) => resolve(loadRawSprite(name, img, props)))
 					.catch(reject);
 			} else {
-				resolve(loadRawSprite(name, src, conf));
+				resolve(loadRawSprite(name, src, props));
 			}
 
 		}));
@@ -536,7 +536,7 @@ function assetsInit(gfx: Gfx, audio: Audio, gconf: AssetsConf = {}): Assets {
 }
 
 export {
-	AssetsConf,
+	AssetsProps,
 	Assets,
 	assetsInit,
 	ASCII_CHARS,

@@ -6,7 +6,7 @@
  * // this will create a blank canvas and import all kaboom functions to global
  * kaboom();
  *
- * // init with some configs (check out #KaboomConf for full config list)
+ * // init with some configs (check out #KaboomProps for full config list)
  * // create a game with custom dimension, but stretch to fit container, keeping aspect ratio, with a clear color
  * kaboom({
  *     width: 320,
@@ -32,7 +32,7 @@
  * k.vec2(...);
  * ```
  */
-declare function kaboom(conf?: KaboomConf): KaboomCtx;
+declare function kaboom(conf?: KaboomProps): KaboomCtx;
 
 /**
  * Context handle that contains every kaboom function.
@@ -237,7 +237,7 @@ interface KaboomCtx {
 	 * froggy.frame = 3;
 	 * ```
 	 */
-	sprite(spr: string | SpriteData, conf?: SpriteCompConf): SpriteComp,
+	sprite(spr: string | SpriteData, conf?: SpriteCompProps): SpriteComp,
 	/**
 	 * Render as text.
 	 *
@@ -259,7 +259,7 @@ interface KaboomCtx {
 	 * kaboom({ font: "sink" });
 	 * ```
 	 */
-	text(txt: string, conf?: TextCompConf): TextComp,
+	text(txt: string, conf?: TextCompProps): TextComp,
 	/**
 	 * Render as a rectangle.
 	 *
@@ -338,7 +338,7 @@ interface KaboomCtx {
 	 * });
 	 * ```
 	 */
-	area(conf?: AreaCompConf): AreaComp,
+	area(conf?: AreaCompProps): AreaComp,
 	/**
 	 * Origin point for render (default "topleft").
 	 *
@@ -393,7 +393,7 @@ interface KaboomCtx {
 	 * });
 	 * ```
 	 */
-	body(conf?: BodyCompConf): BodyComp,
+	body(conf?: BodyCompProps): BodyComp,
 	/**
 	 * Make other objects cannot move pass. Requires "area" comp.
 	 */
@@ -512,7 +512,7 @@ interface KaboomCtx {
 	 * ]);
 	 * ```
 	 */
-	lifespan(time: number, conf?: LifespanCompConf): LifespanComp,
+	lifespan(time: number, conf?: LifespanCompProps): LifespanComp,
 	/**
 	 * Register an event on all game objs with certain tag.
 	 *
@@ -765,7 +765,7 @@ interface KaboomCtx {
 	loadSprite(
 		id: string | null,
 		src: SpriteLoadSrc,
-		conf?: SpriteLoadConf,
+		conf?: SpriteLoadProps,
 	): Promise<SpriteData>,
 	/**
 	 * Load sprites from a sprite atlas.
@@ -864,7 +864,7 @@ interface KaboomCtx {
 		src: string,
 		gridWidth: number,
 		gridHeight: number,
-		conf?: FontLoadConf,
+		conf?: FontLoadProps,
 	): Promise<FontData>,
 	/**
 	 * Load a shader into asset manager with vertex and fragment code / file url.
@@ -1113,7 +1113,7 @@ interface KaboomCtx {
 	 * // play a one off sound
 	 * play("wooosh");
 	 *
-	 * // play a looping soundtrack (check out AudioPlayConf for more configs)
+	 * // play a looping soundtrack (check out AudioPlayProps for more configs)
 	 * const music = play("OverworldlyFoe", {
 	 *     volume: 0.8,
 	 *     loop: true
@@ -1124,11 +1124,11 @@ interface KaboomCtx {
 	 * music.play();
 	 * ```
 	 */
-	play(id: string, conf?: AudioPlayConf): AudioPlay,
+	play(id: string, conf?: AudioPlayProps): AudioPlay,
 	/**
 	 * Yep.
 	 */
-	burp(conf?: AudioPlayConf): AudioPlay,
+	burp(conf?: AudioPlayProps): AudioPlay,
 	/**
 	 * Sets global volume.
 	 *
@@ -1364,7 +1364,7 @@ interface KaboomCtx {
 	 * });
 	 * ```
 	 */
-	addLevel(map: string[], conf: LevelConf): Level,
+	addLevel(map: string[], conf: LevelProps): Level,
 	/**
 	 * Get data from local storage, if not present can set to a default value.
 	 *
@@ -1380,43 +1380,43 @@ interface KaboomCtx {
 	 *
 	 * @section Render
 	 */
-	drawSprite(conf: DrawSpriteConf): void,
+	drawSprite(conf: DrawSpriteProps): void,
 	/**
 	 * Draw a piece of text.
 	 */
-	drawText(conf: DrawTextConf): void,
+	drawText(conf: DrawTextProps): void,
 	/**
 	 * Draw a rectangle.
 	 */
-	drawRect(conf: DrawRectConf): void,
+	drawRect(conf: DrawRectProps): void,
 	/**
 	 * Draw a line.
 	 */
-	drawLine(conf: DrawLineConf): void,
+	drawLine(conf: DrawLineProps): void,
 	/**
 	 * Draw lines.
 	 */
-	drawLines(conf: DrawLinesConf): void,
+	drawLines(conf: DrawLinesProps): void,
 	/**
 	 * Draw a triangle.
 	 */
-	drawTri(conf: DrawTriConf): void,
+	drawTri(conf: DrawTriProps): void,
 	/**
 	 * Draw a circle.
 	 */
-	drawCircle(conf: DrawCircleConf): void,
+	drawCircle(conf: DrawCircleProps): void,
 	/**
 	 * Draw an ellipse.
 	 */
-	drawEllipse(conf: DrawEllipseConf): void,
+	drawEllipse(conf: DrawEllipseProps): void,
 	/**
 	 * Draw a convex polygon from a list of vertices.
 	 */
-	drawPoly(conf: DrawPolyConf): void,
+	drawPoly(conf: DrawPolyProps): void,
 	/**
 	 * Draw a rectangle with UV data.
 	 */
-	drawUVQuad(conf: DrawUVQuadConf): void,
+	drawUVQuad(conf: DrawUVQuadProps): void,
 	/**
 	 * Push current transform matrix to the transform stack.
 	 *
@@ -1464,7 +1464,7 @@ interface KaboomCtx {
 	 * // enter inspect mode
 	 * debug.inspect = true;
 	 *
-	 * // in debug mode (on by default, unless disabled by `debug: false` in KaboomConf), some keys are binded to toggle certain debug features:
+	 * // in debug mode (on by default, unless disabled by `debug: false` in KaboomProps), some keys are binded to toggle certain debug features:
 	 * // F1: toggle debug.inspect
 	 * // F2: call debug.clearLog()
 	 * // F8: toggle debug.pause
@@ -1534,7 +1534,7 @@ type CharacterInspect = Record<Tag, string | null>;
 /**
  * Kaboom configurations.
  */
-interface KaboomConf {
+interface KaboomProps {
 	/**
 	 * Width of game.
 	 */
@@ -1705,7 +1705,7 @@ type SpriteAnim = number | {
 /**
  * Sprite animation configuration when playing.
  */
-interface SpriteAnimPlayConf {
+interface SpriteAnimPlayProps {
 	/**
 	 * If this anim should be played in loop.
 	 */
@@ -1733,7 +1733,7 @@ type SpriteAnims = Record<string, SpriteAnim>
 /**
  * Sprite loading configuration.
  */
-interface SpriteLoadConf {
+interface SpriteLoadProps {
 	sliceX?: number,
 	sliceY?: number,
 	anims?: SpriteAnims,
@@ -1787,7 +1787,7 @@ interface SpriteData {
 	wrap?: TexWrap,
 }
 
-interface FontLoadConf {
+interface FontLoadProps {
 	chars?: string,
 	filter?: TexFilter,
 	wrap?: TexWrap,
@@ -1804,7 +1804,7 @@ type ShaderData = GfxProgram;
 /**
  * Audio play configurations.
  */
-interface AudioPlayConf {
+interface AudioPlayProps {
 	loop?: boolean,
 	volume?: number,
 	speed?: number,
@@ -1882,7 +1882,7 @@ interface Vertex {
 type TexFilter = "nearest" | "linear";
 type TexWrap = "repeat" | "clampToEdge";
 
-interface GfxTexConf {
+interface GfxTexProps {
 	filter?: TexFilter,
 	wrap?: TexWrap,
 }
@@ -1903,7 +1903,7 @@ interface RenderProps {
 /**
  * How the sprite should look like.
  */
-type DrawSpriteConf = RenderProps & {
+type DrawSpriteProps = RenderProps & {
 	/**
 	 * The sprite name in the asset manager, or the raw sprite data.
 	 */
@@ -1918,7 +1918,7 @@ type DrawSpriteConf = RenderProps & {
 	origin?: Origin | Vec2,
 }
 
-type DrawUVQuadConf = RenderProps & {
+type DrawUVQuadProps = RenderProps & {
 	width: number,
 	height: number,
 	flipX?: boolean,
@@ -1931,7 +1931,7 @@ type DrawUVQuadConf = RenderProps & {
 /**
  * How the rectangle should look like.
  */
-type DrawRectConf = RenderProps & {
+type DrawRectProps = RenderProps & {
 	width: number,
 	height: number,
 	outline?: Outline,
@@ -1943,7 +1943,7 @@ type DrawRectConf = RenderProps & {
 /**
  * How the line should look like.
  */
-type DrawLineConf = Omit<RenderProps, "angle" | "scale"> & {
+type DrawLineProps = Omit<RenderProps, "angle" | "scale"> & {
 	/**
 	 * Starting point of the line.
 	 */
@@ -1958,7 +1958,7 @@ type DrawLineConf = Omit<RenderProps, "angle" | "scale"> & {
 /**
  * How the lines should look like.
  */
-type DrawLinesConf = Omit<RenderProps, "angle" | "scale"> & {
+type DrawLinesProps = Omit<RenderProps, "angle" | "scale"> & {
 	/**
 	 * The points that should be connected with a line.
 	 */
@@ -1970,7 +1970,7 @@ type DrawLinesConf = Omit<RenderProps, "angle" | "scale"> & {
 /**
  * How the triangle should look like.
  */
-type DrawTriConf = RenderProps & {
+type DrawTriProps = RenderProps & {
 	/**
 	 * First point of triangle.
 	 */
@@ -1991,7 +1991,7 @@ type DrawTriConf = RenderProps & {
 /**
  * How the circle should look like.
  */
-type DrawCircleConf = Omit<RenderProps, "angle"> & {
+type DrawCircleProps = Omit<RenderProps, "angle"> & {
 	/**
 	 * Radius of the circle.
 	 */
@@ -2013,7 +2013,7 @@ type DrawCircleConf = Omit<RenderProps, "angle"> & {
 /**
  * How the ellipse should look like.
  */
-type DrawEllipseConf = RenderProps & {
+type DrawEllipseProps = RenderProps & {
 	/**
 	 * The horizontal radius.
 	 */
@@ -2038,7 +2038,7 @@ type DrawEllipseConf = RenderProps & {
 /**
  * How the polygon should look like.
  */
-type DrawPolyConf = RenderProps & {
+type DrawPolyProps = RenderProps & {
 	/**
 	 * The points that make up the polygon
 	 */
@@ -2061,7 +2061,7 @@ interface Outline {
 /**
  * How the text should look like.
  */
-type DrawTextConf = RenderProps & {
+type DrawTextProps = RenderProps & {
 	text: string,
 	font?: string,
 	size?: number,
@@ -2441,7 +2441,7 @@ interface Collision {
 	isRight(): boolean,
 }
 
-interface AreaCompConf {
+interface AreaCompProps {
 	/**
 	 * Width of area.
 	 */
@@ -2468,7 +2468,7 @@ interface AreaComp extends Comp {
 	/**
 	 * Collider area info.
 	 */
-	area: AreaCompConf,
+	area: AreaCompProps,
 	/**
 	 * Get the width of collider area.
 	 */
@@ -2527,7 +2527,7 @@ interface AreaComp extends Comp {
 	screenArea(): Rect,
 }
 
-interface SpriteCompConf {
+interface SpriteCompProps {
 	/**
 	 * Rectangular area to render.
 	 */
@@ -2586,7 +2586,7 @@ interface SpriteComp extends Comp {
 	/**
 	 * Play a piece of anim.
 	 */
-	play(anim: string, conf?: SpriteAnimPlayConf): void,
+	play(anim: string, conf?: SpriteAnimPlayProps): void,
 	/**
 	 * Stop current anim.
 	 */
@@ -2636,7 +2636,7 @@ interface TextComp extends Comp {
 	height: number,
 }
 
-interface TextCompConf {
+interface TextCompProps {
 	/**
 	 * Height of text.
 	 */
@@ -2788,7 +2788,7 @@ interface BodyComp extends Comp {
 	djump(f?: number): void,
 }
 
-interface BodyCompConf {
+interface BodyCompProps {
 	/**
 	 * Initial speed in pixels per second for jump().
 	 */
@@ -2880,14 +2880,14 @@ interface HealthComp extends Comp {
 interface LifespanComp extends Comp {
 }
 
-interface LifespanCompConf {
+interface LifespanCompProps {
 	/**
 	 * Fade out duration (default 0 which is no fade out).
 	 */
 	fade?: number,
 }
 
-interface LevelConf {
+interface LevelProps {
 	/**
 	 * Grid width (width of each block).
 	 */
