@@ -563,9 +563,24 @@ function testLineCircle(l: Line, c: Circle): boolean {
 	return false;
 }
 
-// TODO
 function testLinePolygon(l: Line, p: Polygon): boolean {
+
+	// test if line is inside
+	if (testPolygonPoint(p, l.p1) || testPolygonPoint(p, l.p2)) {
+		return true;
+	}
+
+	// test each line
+	for (let i = 0; i < p.length; i++) {
+		const p1 = p[i];
+		const p2 = p[(i + 1) % p.length];
+		if (testLineLine(l, { p1, p2 })) {
+			return true;
+		}
+	}
+
 	return false;
+
 }
 
 function testCirclePoint(c: Circle, p: Point): boolean {
@@ -581,14 +596,36 @@ function testCirclePolygon(c: Circle, p: Polygon): boolean {
 	return false;
 }
 
-// TODO
 function testPolygonPolygon(p1: Polygon, p2: Polygon): boolean {
+	for (let i = 0; i < p1.length; i++) {
+		const l = {
+			p1: p1[i],
+			p2: p1[(i + 1) % p1.length],
+		};
+		if (testLinePolygon(l, p2)) {
+			return true;
+		}
+	}
 	return false;
 }
 
-// TODO
 function testPolygonPoint(p: Polygon, pt: Point): boolean {
-	return false;
+
+	let has = false;
+
+	for (let i = 0; i < p.length; i++) {
+
+		const p1 = p[i];
+		const p2 = p[(i + 1) % p.length];
+
+		if (((p1.y > pt.y && p2.y < pt.y) || (p1.y < pt.y && p2.y > pt.y)) && (pt.x < (p2.x - p1.x) * (pt.y - p1.y) / (p2.y - p1.y) + p1.x)) {
+			has = !has;
+		}
+
+	}
+
+	return has;
+
 }
 
 function testPointPoint(p1: Point, p2: Point): boolean {
@@ -668,12 +705,17 @@ export {
 	wave,
 	deg2rad,
 	rad2deg,
-	testRectRect2,
-	testRectRect,
-	testLineLine,
 	testLineLineT,
+	testRectRect2,
+	testLineLine,
+	testRectRect,
 	testRectLine,
 	testRectPoint,
+	testPolygonPoint,
+	testLinePolygon,
+	testPolygonPolygon,
+	testCircleCircle,
+	testCirclePoint,
 	minkDiff,
 	dir,
 	isVec2,
