@@ -1557,7 +1557,7 @@ function getRenderProps(obj: Character<any>) {
 		angle: obj.angle,
 		origin: obj.origin,
 		outline: obj.outline,
-		prog: assets.shaders[obj.shader],
+		shader: assets.shaders[obj.shader],
 		uniform: obj.uniform,
 	};
 }
@@ -1821,16 +1821,18 @@ function text(t: string, conf: TextCompConf = {}): TextComp {
 
 }
 
-function rect(w: number, h: number): RectComp {
+function rect(w: number, h: number, conf: RectCompConf = {}): RectComp {
 	return {
 		id: "rect",
 		width: w,
 		height: h,
+		radius: conf.radius || 0,
 		draw() {
 			gfx.drawRect({
 				...getRenderProps(this),
 				width: this.width,
 				height: this.height,
+				radius: this.radius,
 			});
 		},
 		inspect() {
@@ -2030,7 +2032,7 @@ function body(conf: BodyCompConf = {}): BodyComp {
 }
 
 function shader(id: string, uniform: Uniform = {}): ShaderComp {
-	const prog = assets.shaders[id];
+	const shader = assets.shaders[id];
 	return {
 		id: "shader",
 		shader: id,
@@ -2512,15 +2514,15 @@ const ctx: KaboomCtx = {
 	// raw draw
 	drawSprite,
 	drawText,
-	// TODO: wrap these to use assets lib for the "prog" prop
+	// TODO: wrap these to use assets lib for the "shader" prop
 	drawRect: gfx.drawRect,
 	drawLine: gfx.drawLine,
 	drawLines: gfx.drawLines,
-	drawTri: gfx.drawTri,
+	drawTriangle: gfx.drawTriangle,
 	drawCircle: gfx.drawCircle,
 	drawEllipse: gfx.drawEllipse,
 	drawUVQuad: gfx.drawUVQuad,
-	drawPoly: gfx.drawPoly,
+	drawPolygon: gfx.drawPolygon,
 	pushTransform: gfx.pushTransform,
 	popTransform: gfx.popTransform,
 	pushTranslate: gfx.pushTranslate,

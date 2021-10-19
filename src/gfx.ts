@@ -22,8 +22,8 @@ type GfxCtx = {
 	vqueue: number[],
 	iqueue: number[],
 	background: Color,
-	defProg: GfxProgram,
-	curProg: GfxProgram,
+	defShader: GfxShader,
+	curShader: GfxShader,
 	defTex: GfxTexture,
 	curTex: GfxTexture,
 	bgTex: GfxTexture,
@@ -72,7 +72,7 @@ type Gfx = {
 	scale(): number,
 	background(): Color,
 	makeTex(data: GfxTexData, conf?: GfxTexConf): GfxTexture,
-	makeProgram(vert: string, frag: string): GfxProgram,
+	makeShader(vert: string, frag: string): GfxShader,
 	makeFont(
 		tex: GfxTexture,
 		gw: number,
@@ -85,10 +85,10 @@ type Gfx = {
 	drawRect(conf: DrawRectConf),
 	drawLine(conf: DrawLineConf),
 	drawLines(conf: DrawLinesConf),
-	drawTri(conf: DrawTriConf),
+	drawTriangle(conf: DrawTriangleConf),
 	drawCircle(conf: DrawCircleConf),
 	drawEllipse(conf: DrawEllipseConf),
-	drawPoly(conf: DrawPolyConf),
+	drawPolygon(conf: DrawPolyConf),
 	drawUVQuad(conf: DrawUVQuadConf),
 	fmtText(conf: DrawTextConf2): FormattedText,
 	frameStart(),
@@ -190,7 +190,7 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 
 	const gfx: GfxCtx = (() => {
 
-		const defProg = makeProgram(DEF_VERT, DEF_FRAG);
+		const defShader = makeShader(DEF_VERT, DEF_FRAG);
 		const emptyTex = makeTex(
 			new ImageData(new Uint8ClampedArray([ 255, 255, 255, 255, ]), 1, 1)
 		);
@@ -230,8 +230,8 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 		return {
 			drawCalls: 0,
 			lastDrawCalls: 0,
-			defProg: defProg,
-			curProg: defProg,
+			defShader: defShader,
+			curShader: defShader,
 			defTex: emptyTex,
 			curTex: emptyTex,
 			curUniform: {},
@@ -295,10 +295,10 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 
 	}
 
-	function makeProgram(
+	function makeShader(
 		vertSrc: string | null = DEF_VERT,
 		fragSrc: string | null = DEF_FRAG,
-	): GfxProgram {
+	): GfxShader {
 
 		let msg;
 		const vcode = VERT_TEMPLATE.replace("{{user}}", vertSrc ?? DEF_VERT);
@@ -419,17 +419,17 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 		verts: Vertex[],
 		indices: number[],
 		tex: GfxTexture = gfx.defTex,
-		prog: GfxProgram = gfx.defProg,
+		shader: GfxShader = gfx.defShader,
 		uniform: Uniform = {},
 	) {
 
 		tex = tex ?? gfx.defTex;
-		prog = prog ?? gfx.defProg;
+		shader = shader ?? gfx.defShader;
 
 		// flush on texture / shader change and overflow
 		if (
 			tex !== gfx.curTex
-			|| prog !== gfx.curProg
+			|| shader !== gfx.curShader
 			|| !deepEq(gfx.curUniform, uniform)
 			|| gfx.vqueue.length + verts.length * STRIDE > QUEUE_COUNT
 			|| gfx.iqueue.length + indices.length > QUEUE_COUNT
@@ -438,7 +438,7 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 		}
 
 		gfx.curTex = tex;
-		gfx.curProg = prog;
+		gfx.curShader = shader;
 		gfx.curUniform = uniform;
 
 		indices.forEach((i) => {
@@ -460,25 +460,25 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 
 		if (
 			!gfx.curTex
-			|| !gfx.curProg
+			|| !gfx.curShader
 			|| gfx.vqueue.length === 0
 			|| gfx.iqueue.length === 0
 		) {
 			return;
 		}
 
-		gfx.curProg.send(gfx.curUniform);
+		gfx.curShader.send(gfx.curUniform);
 
 		gl.bindBuffer(gl.ARRAY_BUFFER, gfx.vbuf);
 		gl.bufferSubData(gl.ARRAY_BUFFER, 0, new Float32Array(gfx.vqueue));
 		gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, gfx.ibuf);
 		gl.bufferSubData(gl.ELEMENT_ARRAY_BUFFER, 0, new Uint16Array(gfx.iqueue));
-		gfx.curProg.bind();
-		gfx.curProg.bindAttribs();
+		gfx.curShader.bind();
+		gfx.curShader.bindAttribs();
 		gfx.curTex.bind();
 		gl.drawElements(gl.TRIANGLES, gfx.iqueue.length, gl.UNSIGNED_SHORT, 0);
 		gfx.curTex.unbind();
-		gfx.curProg.unbind();
+		gfx.curShader.unbind();
 		gl.bindBuffer(gl.ARRAY_BUFFER, null);
 		gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
 
@@ -628,7 +628,7 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 				color: color,
 				opacity: opacity,
 			},
-		], [0, 1, 3, 1, 2, 3], conf.tex, conf.prog, conf.uniform);
+		], [0, 1, 3, 1, 2, 3], conf.tex, conf.shader, conf.uniform);
 
 		popTransform();
 
@@ -755,7 +755,7 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 			vec2(0, h),
 		];
 
-		// TODO: drawPoly should handle generic rounded corners
+		// TODO: drawPolygon should handle generic rounded corners
 		if (conf.radius) {
 
 			// maxium radius is half the shortest side
@@ -778,7 +778,7 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 
 		}
 
-		drawPoly({ ...conf, offset, pts });
+		drawPolygon({ ...conf, offset, pts });
 
 	}
 
@@ -808,7 +808,7 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 			opacity: conf.opacity ?? 1,
 		}));
 
-		drawRaw(verts, [0, 1, 3, 1, 2, 3], gfx.defTex, conf.prog, conf.uniform);
+		drawRaw(verts, [0, 1, 3, 1, 2, 3], gfx.defTex, conf.shader, conf.uniform);
 
 	}
 
@@ -863,11 +863,11 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 
 	}
 
-	function drawTri(conf: DrawTriConf) {
+	function drawTriangle(conf: DrawTriangleConf) {
 		if (!conf.p1 || !conf.p2 || !conf.p3) {
-			throw new Error("drawPoly() requires properties \"p1\", \"p2\" and \"p3\".");
+			throw new Error("drawPolygon() requires properties \"p1\", \"p2\" and \"p3\".");
 		}
-		return drawPoly({
+		return drawPolygon({
 			...conf,
 			pts: [conf.p1, conf.p2, conf.p3],
 		});
@@ -904,7 +904,7 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 			return;
 		}
 
-		drawPoly({
+		drawPolygon({
 			...conf,
 			pts: getArcPts(
 				vec2(0),
@@ -919,10 +919,10 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 
 	}
 
-	function drawPoly(conf: DrawPolyConf) {
+	function drawPolygon(conf: DrawPolyConf) {
 
 		if (!conf.pts) {
-			throw new Error("drawPoly() requires property \"pts\".");
+			throw new Error("drawPolygon() requires property \"pts\".");
 		}
 
 		const npts = conf.pts.length;
@@ -953,7 +953,7 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 				.map((n) => [0, n + 1, n + 2])
 				.flat();
 
-			drawRaw(verts, conf.indices ?? indices, gfx.defTex, conf.prog, conf.uniform);
+			drawRaw(verts, conf.indices ?? indices, gfx.defTex, conf.shader, conf.uniform);
 
 		}
 
@@ -1160,13 +1160,12 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 	frameStart();
 	frameEnd();
 
-	// TODO: type this
 	return {
 		width,
 		height,
 		scale,
 		makeTex,
-		makeProgram,
+		makeShader,
 		makeFont,
 		drawTexture,
 		drawText,
@@ -1174,10 +1173,10 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 		drawRect,
 		drawLine,
 		drawLines,
-		drawTri,
+		drawTriangle,
 		drawCircle,
 		drawEllipse,
-		drawPoly,
+		drawPolygon,
 		drawUVQuad,
 		fmtText,
 		frameStart,
