@@ -447,15 +447,11 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 
 		verts.forEach((v) => {
 			const pt = toNDC(gfx.transform.multVec2(v.pos.xy()));
-			gfx.vqueue.push(pt.x);
-			gfx.vqueue.push(pt.y);
-			gfx.vqueue.push(v.pos.z);
-			gfx.vqueue.push(v.uv.x);
-			gfx.vqueue.push(v.uv.y);
-			gfx.vqueue.push(v.color.r / 255);
-			gfx.vqueue.push(v.color.g / 255);
-			gfx.vqueue.push(v.color.b / 255);
-			gfx.vqueue.push(v.opacity);
+			gfx.vqueue.push(
+				pt.x, pt.y, v.pos.z,
+				v.uv.x, v.uv.y,
+				v.color.r / 255, v.color.g / 255, v.color.b / 255, v.opacity,
+			);
 		});
 
 	}
