@@ -6,7 +6,7 @@
  * // this will create a blank canvas and import all kaboom functions to global
  * kaboom();
  *
- * // init with some configs (check out #KaboomOpt for full config list)
+ * // init with some options (check out #KaboomOpt for full options list)
  * // create a game with custom dimension, but stretch to fit container, keeping aspect ratio, with a clear color
  * kaboom({
  *     width: 320,
@@ -32,7 +32,7 @@
  * k.vec2(...);
  * ```
  */
-declare function kaboom(conf?: KaboomOpt): KaboomCtx;
+declare function kaboom(options?: KaboomOpt): KaboomCtx;
 
 /**
  * Context handle that contains every kaboom function.
@@ -221,7 +221,7 @@ interface KaboomCtx {
 	 *     sprite("froggy"),
 	 * ]);
 	 *
-	 * // with config
+	 * // with options
 	 * const froggy = add([
 	 *     sprite("froggy", {
 	 *         // start with animation "idle"
@@ -237,7 +237,7 @@ interface KaboomCtx {
 	 * froggy.frame = 3;
 	 * ```
 	 */
-	sprite(spr: string | SpriteData, conf?: SpriteCompOpt): SpriteComp,
+	sprite(spr: string | SpriteData, options?: SpriteCompOpt): SpriteComp,
 	/**
 	 * Render as text.
 	 *
@@ -255,7 +255,7 @@ interface KaboomCtx {
 	 *     score.text = "Score:" + score.value;
 	 * });
 	 *
-	 * // with config
+	 * // with options
 	 * add([
 	 *     pos(24, 24),
 	 *     text("ohhi", {
@@ -267,7 +267,7 @@ interface KaboomCtx {
 	 * ```
 	 * ```
 	 */
-	text(txt: string, conf?: TextCompOpt): TextComp,
+	text(txt: string, options?: TextCompOpt): TextComp,
 	/**
 	 * Render as a rectangle.
 	 *
@@ -346,7 +346,7 @@ interface KaboomCtx {
 	 * });
 	 * ```
 	 */
-	area(conf?: AreaCompOpt): AreaComp,
+	area(options?: AreaCompOpt): AreaComp,
 	/**
 	 * Origin point for render (default "topleft").
 	 *
@@ -401,7 +401,7 @@ interface KaboomCtx {
 	 * });
 	 * ```
 	 */
-	body(conf?: BodyCompOpt): BodyComp,
+	body(options?: BodyCompOpt): BodyComp,
 	/**
 	 * Make other objects cannot move pass. Requires "area" comp.
 	 */
@@ -520,7 +520,7 @@ interface KaboomCtx {
 	 * ]);
 	 * ```
 	 */
-	lifespan(time: number, conf?: LifespanCompOpt): LifespanComp,
+	lifespan(time: number, options?: LifespanCompOpt): LifespanComp,
 	/**
 	 * Register an event on all game objs with certain tag.
 	 *
@@ -773,7 +773,7 @@ interface KaboomCtx {
 	loadSprite(
 		id: string | null,
 		src: SpriteLoadSrc,
-		conf?: SpriteLoadOpt,
+		options?: SpriteLoadOpt,
 	): Promise<SpriteData>,
 	/**
 	 * Load sprites from a sprite atlas.
@@ -872,7 +872,7 @@ interface KaboomCtx {
 		src: string,
 		gridWidth: number,
 		gridHeight: number,
-		conf?: FontLoadOpt,
+		options?: FontLoadOpt,
 	): Promise<FontData>,
 	/**
 	 * Load a shader into asset manager with vertex and fragment code / file url.
@@ -1125,7 +1125,7 @@ interface KaboomCtx {
 	 * // play a one off sound
 	 * play("wooosh");
 	 *
-	 * // play a looping soundtrack (check out AudioPlayOpt for more configs)
+	 * // play a looping soundtrack (check out AudioPlayOpt for more options)
 	 * const music = play("OverworldlyFoe", {
 	 *     volume: 0.8,
 	 *     loop: true
@@ -1136,11 +1136,11 @@ interface KaboomCtx {
 	 * music.play();
 	 * ```
 	 */
-	play(id: string, conf?: AudioPlayOpt): AudioPlay,
+	play(id: string, options?: AudioPlayOpt): AudioPlay,
 	/**
 	 * Yep.
 	 */
-	burp(conf?: AudioPlayOpt): AudioPlay,
+	burp(options?: AudioPlayOpt): AudioPlay,
 	/**
 	 * Sets global volume.
 	 *
@@ -1376,7 +1376,7 @@ interface KaboomCtx {
 	 * });
 	 * ```
 	 */
-	addLevel(map: string[], conf: LevelOpt): Level,
+	addLevel(map: string[], options: LevelOpt): Level,
 	/**
 	 * Get data from local storage, if not present can set to a default value.
 	 *
@@ -1392,43 +1392,43 @@ interface KaboomCtx {
 	 *
 	 * @section Render
 	 */
-	drawSprite(conf: DrawSpriteOpt): void,
+	drawSprite(options: DrawSpriteOpt): void,
 	/**
 	 * Draw a piece of text.
 	 */
-	drawText(conf: DrawTextOpt): void,
+	drawText(options: DrawTextOpt): void,
 	/**
 	 * Draw a rectangle.
 	 */
-	drawRect(conf: DrawRectOpt): void,
+	drawRect(options: DrawRectOpt): void,
 	/**
 	 * Draw a line.
 	 */
-	drawLine(conf: DrawLineOpt): void,
+	drawLine(options: DrawLineOpt): void,
 	/**
 	 * Draw lines.
 	 */
-	drawLines(conf: DrawLinesOpt): void,
+	drawLines(options: DrawLinesOpt): void,
 	/**
 	 * Draw a triangle.
 	 */
-	drawTriangle(conf: DrawTriangleOpt): void,
+	drawTriangle(options: DrawTriangleOpt): void,
 	/**
 	 * Draw a circle.
 	 */
-	drawCircle(conf: DrawCircleOpt): void,
+	drawCircle(options: DrawCircleOpt): void,
 	/**
 	 * Draw an ellipse.
 	 */
-	drawEllipse(conf: DrawEllipseOpt): void,
+	drawEllipse(options: DrawEllipseOpt): void,
 	/**
 	 * Draw a convex polygon from a list of vertices.
 	 */
-	drawPolygon(conf: DrawPolyOpt): void,
+	drawPolygon(options: DrawPolyOpt): void,
 	/**
 	 * Draw a rectangle with UV data.
 	 */
-	drawUVQuad(conf: DrawUVQuadOpt): void,
+	drawUVQuad(options: DrawUVQuadOpt): void,
 	/**
 	 * Push current transform matrix to the transform stack.
 	 *
@@ -2606,7 +2606,7 @@ interface SpriteComp extends Comp {
 	/**
 	 * Play a piece of anim.
 	 */
-	play(anim: string, conf?: SpriteAnimPlayOpt): void,
+	play(anim: string, options?: SpriteAnimPlayOpt): void,
 	/**
 	 * Stop current anim.
 	 */
