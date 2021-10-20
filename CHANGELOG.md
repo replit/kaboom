@@ -1,4 +1,4 @@
-# v2000.0.0 "The New Era"
+# v2000.0.0 "Burp Mode"
 - version jumped to v2000.0.0 (still semver, just big)
 - added `burp()` for easy burping
 - added decent typescript / autocomplete support and jsdocs
@@ -12,7 +12,7 @@
 - inspect mode now displays every comp's state
 - **BREAK** added continuous collision resolution which checks collision in `move()` if 2 objects are both "solid" (objects now won't pass through other solid object at high speed or low framerate)
 
-```javascript
+```js
 // before
 add([
 	sprite("player"),
@@ -69,7 +69,7 @@ keyDown("left", () => {
 - **BREAK** separated color and opacity, removed `rgba()` in favor of `rgb`, use component `opacity()` to define opacity
 - **BREAK** changed color from 0-1 range to 0-255, angles from radians to degrees
 
-```javascript
+```js
 // before
 add([
     rotate(Math.PI / 2),
@@ -91,7 +91,7 @@ add([
 - added `anim` field in `SpriteCompOpt` to play an anim on start
 - beter type support for components
 - `scene()` and `start()` (also removed in favor of `go()`) are optional now, if you don't need multiple scenes yet you can just go directly
-```javascript
+```js
 kaboom();
 // no mandatory scene() to start kabooming
 add(...);
@@ -100,7 +100,7 @@ keyPress(...);
 - **BREAK** `area()` is now explicit and not automatically added by `sprite()`, `rect()`, and `text()`, removed each `noArea` or `area` config field
 - **BREAK** `area()` now takes an `AreaCompOpt`, where you can define the area size, scale, and hover cursor
 
-```javascript
+```js
 add([
     sprite("bean"),
     area(), // empty area will derive from sprite size
@@ -120,7 +120,7 @@ add([
 - **BREAK** changed last argument of `loadFont()` to `FontLoadOpt`
 - all event handlers like `keyPress()`, `mouseClick()`, `action()`, `collides()` now returns a function to cancel that listener
 - added `require` on component definitions, making it possible to declare dependencies for components, e.g.
-```javascript
+```js
 function alwaysRight() {
     return {
         // the id of this component
@@ -137,7 +137,7 @@ function alwaysRight() {
 - **BREAK** overlapping component fields are not allowed, e.g. you can't have a custom comp that has a `collides` field if it already have a `area` component, since it already has that
 - **BREAK** changed `text(txt, size, conf)` to `text(txt, conf)` with `size` as a field
 - added `obj.c(id)` for getting a specific comp's state (by default all comps' states are mounted to the obj by `Object.defineProperty`)
-```javascript
+```js
 // both works
 obj.play("anim");
 obj.c("sprite").play("anim");
@@ -165,7 +165,7 @@ obj.c("sprite").play("anim");
 - **BREAK** renamed `makeRng()` to `rng()`
 - sprite animation now supports defining properties like loop and speed in load step and play step
 
-```javascript
+```js
 loadSprite("hero", "hero.png", {
 	sliceX: 9,
 	anims: {
@@ -178,7 +178,7 @@ loadSprite("hero", "hero.png", {
 - **BREAK** changed `.play(anim, ifLoop)` under `sprite()` to accept a dict of properties `.play(anim, { loop: true, speed: 60, pingpong: true })`
 - **BREAK** now every symbol definition in `addLevel()` should be a function returning the component list, to ensure there's no weird shared states
 
-```javascript
+```js
 addLevel([
 	"*    *",
 	"*    *",
@@ -201,7 +201,7 @@ addLevel([
 - added drawing functions `drawSprite()`, `drawRect()`, `drawCircle()`, `drawPolygon()`, `drawEllipse()`, `drawLine()`, `drawLines()`
 - added transformation functions `pushTransform()`, `popTransform()`, `pushTranslate()`, `pushRotate()`, `pushScale()`
 - **BREAK** removed `areaWidth()` and `areaHeight()` since they won't make sense if the area shape is not rectangle, use `worldArea()` if you need area data
-```javascript
+```js
 const area = player.worldArea();
 if (area.shape === "rect") {
 	const width = area.p2.x - area.p1.x;
@@ -250,7 +250,7 @@ if (area.shape === "rect") {
 
 # v0.4.0 "Multiboom"
 - **BREAK** removed `init()` and `kaboom.global()`, in favor of `kaboom()`, also allows multiple kaboom games on one page
-```javascript
+```js
 // replaces init(), and added a 'global' flag for previous kaboom.global()
 kaboom({
     global: true,
@@ -259,7 +259,7 @@ kaboom({
 });
 ```
 or not global
-```javascript
+```js
 const k = kaboom();
 k.scene();
 k.start();

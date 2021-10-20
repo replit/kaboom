@@ -6,7 +6,7 @@ Start playing around with it in the [Kaboom Playground](https://kaboomjs.com/pla
 
 ## Examples
 
-```javascript
+```js
 // initialize context
 kaboom();
 
@@ -30,7 +30,7 @@ keyPress("space", () => {
 
 Kaboom uses a powerful component system to compose game objects and behaviors.
 
-```javascript
+```js
 // add a game obj to the scene from a list of component
 const player = add([
     // it renders as a sprite
@@ -57,7 +57,7 @@ const player = add([
 
 Blocky imperative syntax for describing behaviors
 
-```javascript
+```js
 // .collides() comes from "area" component
 player.collides("enemy", () => {
     // .hurt() comes from "health" component
@@ -96,7 +96,7 @@ keyDown("w", () => {
 $ npm install kaboom
 ```
 
-```javascript
+```js
 import kaboom from "kaboom";
 
 kaboom();
@@ -109,7 +109,7 @@ add([
 
 also works with CommonJS
 
-```javascript
+```js
 const kaboom = require("kaboom");
 ```
 
