@@ -31,10 +31,10 @@ type Logger = {
 
 const LOG_SIZE = 16;
 
-function loggerInit(gfx: Gfx, assets: Assets, conf: LoggerOpt = {}): Logger {
+function loggerInit(gfx: Gfx, assets: Assets, opt: LoggerOpt = {}): Logger {
 
 	let logs: Log[] = [];
-	const max = conf.max ?? 1;
+	const max = opt.max ?? 1;
 
 	// TODO: draw rects first to reduce draw calls
 	function draw() {
