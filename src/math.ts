@@ -639,44 +639,70 @@ function testPointPoint(p1: Point, p2: Point): boolean {
 	return p1.eq(p2);
 }
 
-function test(a1: Area, a2: Area): boolean {
-	switch (a1.type) {
-		case "rect":
-			switch (a2.type) {
-				case "rect": return testRectRect(a1, a2);
-				case "line": return testRectLine(a1, a2);
-				case "circle": return testRectCircle(a1, a2);
-				case "polygon": return testRectPolygon(a1, a2.pts);
-				case "point": return testRectPoint(a1, a2.pt);
-			}
-		case "line":
-			switch (a2.type) {
-				case "line": return Boolean(testLineLine(a1, a2));
-				case "circle": return testLineCircle(a1, a2);
-				case "polygon": return testLinePolygon(a1, a2.pts);
-				case "point": return testLinePoint(a1, a2.pt);
-				default: return test(a2, a1);
-			}
-		case "circle":
-			switch (a2.type) {
-				case "circle": return testCircleCircle(a1, a2);
-				case "polygon": return testCirclePolygon(a1, a2.pts);
-				case "point": return testCirclePoint(a1, a2.pt);
-				default: return test(a2, a1);
-			}
-		case "polygon":
-			switch (a2.type) {
-				case "polygon": return testPolygonPolygon(a1.pts, a2.pts);
-				case "point": return testPolygonPoint(a1.pts, a2.pt);
-				default: return test(a2, a1);
-			}
-		case "point":
-			switch (a2.type) {
-				case "point": return testPointPoint(a1.pt, a2.pt);
-				default: return test(a2, a1);
-			}
+function testAreaRect(a: Area, r: Rect): boolean {
+	switch (a.shape) {
+		case "rect": return testRectRect(r, a);
+		case "line": return testRectLine(r, a);
+		case "circle": return testRectCircle(r, a);
+		case "polygon": return testRectPolygon(r, a.pts);
+		case "point": return testRectPoint(r, a.pt);
 	}
-	return false;
+	throw new Error(`Unknown area shape: ${(a as Area).shape}`);
+}
+
+function testAreaLine(a: Area, l: Line): boolean {
+	switch (a.shape) {
+		case "rect": return testRectLine(a, l);
+		case "line": return Boolean(testLineLine(a, l));
+		case "circle": return testLineCircle(l, a);
+		case "polygon": return testLinePolygon(l, a.pts);
+		case "point": return testLinePoint(l, a.pt);
+	}
+	throw new Error(`Unknown area shape: ${(a as Area).shape}`);
+}
+
+function testAreaCircle(a: Area, c: Circle): boolean {
+	switch (a.shape) {
+		case "rect": return testRectCircle(a, c);
+		case "line": return testLineCircle(a, c);
+		case "circle": return testCircleCircle(a, c);
+		case "polygon": return testCirclePolygon(c, a.pts);
+		case "point": return testCirclePoint(c, a.pt);
+	}
+	throw new Error(`Unknown area shape: ${(a as Area).shape}`);
+}
+
+function testAreaPolygon(a: Area, p: Polygon): boolean {
+	switch (a.shape) {
+		case "rect": return testRectPolygon(a, p);
+		case "line": return testLinePolygon(a, p);
+		case "circle": return testCirclePolygon(a, p);
+		case "polygon": return testPolygonPolygon(p, a.pts);
+		case "point": return testPolygonPoint(p, a.pt);
+	}
+	throw new Error(`Unknown area shape: ${(a as Area).shape}`);
+}
+
+function testAreaPoint(a: Area, p: Point): boolean {
+	switch (a.shape) {
+		case "rect": return testRectPoint(a, p);
+		case "line": return testLinePoint(a, p);
+		case "circle": return testCirclePoint(a, p);
+		case "polygon": return testPolygonPoint(a.pts, p);
+		case "point": return testPointPoint(a.pt, p);
+	}
+	throw new Error(`Unknown area shape: ${(a as Area).shape}`);
+}
+
+function testAreaArea(a1: Area, a2: Area): boolean {
+	switch (a2.shape) {
+		case "rect": return testAreaRect(a1, a2);
+		case "line": return testAreaLine(a1, a2);
+		case "circle": return testAreaCircle(a1, a2);
+		case "polygon": return testAreaPolygon(a1, a2.pts);
+		case "point": return testAreaPoint(a1, a2.pt);
+	}
+	throw new Error(`Unknown area shape: ${(a2 as Area).shape}`);
 }
 
 function minkDiff(r1: Rect, r2: Rect): Rect {
@@ -712,6 +738,12 @@ export {
 	wave,
 	deg2rad,
 	rad2deg,
+	testAreaRect,
+	testAreaLine,
+	testAreaCircle,
+	testAreaPolygon,
+	testAreaPoint,
+	testAreaArea,
 	testLineLineT,
 	testRectRect2,
 	testLineLine,

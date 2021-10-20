@@ -2455,6 +2455,10 @@ interface Collision {
 
 interface AreaCompConf {
 	/**
+	 * Shape.
+	 */
+	shape?: Shape,
+	/**
 	 * Position of area relative to position of the object.
 	 */
 	offset?: Vec2,
@@ -2481,14 +2485,6 @@ interface AreaComp extends Comp {
 	 * Collider area info.
 	 */
 	area: AreaCompConf,
-	/**
-	 * Get the width of collider area.
-	 */
-	areaWidth(): number,
-	/**
-	 * Get the height of collider area.
-	 */
-	areaHeight(): number,
 	/**
 	 * If was just clicked on last frame.
 	 */
@@ -2532,11 +2528,11 @@ interface AreaComp extends Comp {
 	/**
 	 * Get the geometry data for the collider in world coordinate space.
 	 */
-	worldArea(): Rect,
+	worldArea(): Area,
 	/**
 	 * Get the geometry data for the collider in screen coordinate space.
 	 */
-	screenArea(): Rect,
+	screenArea(): Area,
 }
 
 interface SpriteCompConf {
@@ -2707,14 +2703,14 @@ interface UVQuadComp extends Comp {
  * Union type for area / collider data of different shapes ("rect", "line", "circle", "point" and "polygon").
  */
 type Area =
-	| { type: "rect" } & Rect
-	| { type: "line" } & Line
-	| { type: "circle" } & Circle
-	| { type: "point" } & { pt: Point }
-	| { type: "polygon" } & { pts: Polygon }
+	| { shape: "rect" } & Rect
+	| { shape: "line" } & Line
+	| { shape: "circle" } & Circle
+	| { shape: "point" } & { pt: Point }
+	| { shape: "polygon" } & { pts: Polygon }
 	;
 
-type AreaType =
+type Shape =
 	| "rect"
 	| "line"
 	| "point"
