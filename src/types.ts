@@ -2870,21 +2870,6 @@ interface TimerComp extends Comp {
 interface SolidComp extends Comp {
 	/**
 	 * If should stop other solid objects from moving through.
-	 *
-	 * @example
-	 * ```js
-	 * add([
-	 *     sprite("floor"),
-	 *     solid(),
-	 *     "block",
-	 * ]);
-	 *
-	 * // Currently lots of solid objects will slow down the game. If you're only testing against a player, try turning off solid if they're far away.
-	 * action("block", (b) => {
-	 *     // only turn on solid if it's near player
-	 *     b.solid = b.pos.dist(player.pos) >= 64;
-	 * });
-	 * ```
 	 */
 	solid: boolean,
 }
