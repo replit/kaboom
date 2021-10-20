@@ -29,36 +29,38 @@ const popping = keyframes(`
 
 const Logo: React.FC = () => (
 	<Link href="/" passHref>
-		<View
-			desc="Back to home"
-			rounded
-			css={{
-				"cursor": "pointer",
-			}}
-		>
-			<img
-				src="/site/img/boom.svg"
-				alt="boom"
+		<a>
+			<View
+				desc="Back to home"
+				rounded
 				css={{
-					position: "relative",
-					width: "80%",
-					left: "10%",
-					animation: `${popping} 5s infinite`,
+					"cursor": "pointer",
 				}}
-			/>
-			<img
-				src="/site/img/ka.svg"
-				alt="ka"
-				css={{
-					width: "90%",
-					position: "absolute",
-					left: "2px",
-					top: "28px",
-					animation: `${popping} 5s infinite`,
-					animationDelay: "0.08s",
-				}}
-			/>
-		</View>
+			>
+				<img
+					src="/site/img/boom.svg"
+					alt="boom"
+					css={{
+						position: "relative",
+						width: "80%",
+						left: "10%",
+						animation: `${popping} 5s infinite`,
+					}}
+				/>
+				<img
+					src="/site/img/ka.svg"
+					alt="ka"
+					css={{
+						width: "90%",
+						position: "absolute",
+						left: "2px",
+						top: "28px",
+						animation: `${popping} 5s infinite`,
+						animationDelay: "0.08s",
+					}}
+				/>
+			</View>
+		</a>
 	</Link>
 );
 
@@ -72,25 +74,27 @@ const NavLink: React.FC<NavLinkProps> = ({
 	link,
 }) => (
 	<Link href={link} passHref>
-		<View
-			focusable
-			padX={1}
-			padY={0.5}
-			rounded
-			css={{
-				cursor: "pointer",
-				position: "relative",
-				left: "-4px",
-				":hover": {
-					background: "var(--color-highlight)",
-					"> *": {
-						color: "var(--color-fghl) !important",
+		<a>
+			<View
+				focusable
+				padX={1}
+				padY={0.5}
+				rounded
+				css={{
+					cursor: "pointer",
+					position: "relative",
+					left: "-4px",
+					":hover": {
+						background: "var(--color-highlight)",
+						"> *": {
+							color: "var(--color-fghl) !important",
+						},
 					},
-				},
-			}}
-		>
-			<Text color={2}>{text}</Text>
-		</View>
+				}}
+			>
+				<Text color={2}>{text}</Text>
+			</View>
+		</a>
 	</Link>
 );
 

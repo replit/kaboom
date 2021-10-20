@@ -1791,10 +1791,11 @@ function text(t: string, opt: TextCompOpt = {}): TextComp {
 
 	function update() {
 
-		const font = assets.fonts[this.font ?? gopt.font ?? DEF_FONT];
+		const name = this.font ?? gopt.font ?? DEF_FONT;
+		const font = assets.fonts[name];
 
 		if (!font) {
-			throw new Error(`font not found: "${font}"`);
+			throw new Error(`font not found: "${name}"`);
 		}
 
 		const ftext = gfx.fmtText({
