@@ -404,6 +404,21 @@ interface KaboomCtx {
 	body(options?: BodyCompOpt): BodyComp,
 	/**
 	 * Make other objects cannot move pass. Requires "area" comp.
+	 *
+	 * @example
+	 * ```js
+	 * add([
+	 *     sprite("rock"),
+	 *     pos(30, 120),
+	 *     area(),
+	 *     solid(),
+	 * ]);
+	 *
+	 * // only do collision checking when a block is close to player for performance
+	 * action("block", (b) => {
+	 *     b.solid = b.pos.dist(player.pos) <= 64;
+	 * });
+	 * ```
 	 */
 	solid(): SolidComp,
 	/**
