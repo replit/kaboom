@@ -389,7 +389,7 @@ function assetsInit(gfx: Gfx, audio: Audio, gconf: AssetsConf = {}): Assets {
 			vert: string | null,
 			frag: string | null,
 		): ShaderData {
-			const shader = gfx.makeProgram(vert, frag);
+			const shader = gfx.makeShader(vert, frag);
 			if (name) {
 				assets.shaders[name] = shader;
 			}

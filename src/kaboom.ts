@@ -14,13 +14,25 @@ import {
 	map,
 	mapc,
 	wave,
-	testLineLine,
+	testAreaRect,
+	testAreaLine,
+	testAreaCircle,
+	testAreaPolygon,
+	testAreaPoint,
+	testAreaArea,
 	testLineLineT,
 	testRectRect2,
-	testRectLine,
-	testRectPt,
-	minkDiff,
+	testLineLine,
 	testRectRect,
+	testRectLine,
+	testRectPoint,
+	testPolygonPoint,
+	testLinePolygon,
+	testPolygonPolygon,
+	testCircleCircle,
+	testCirclePoint,
+	testRectPolygon,
+	minkDiff,
 	dir,
 	deg2rad,
 	rad2deg,
@@ -187,7 +199,7 @@ interface Game {
 	loaded: boolean,
 	events: Record<string, IDList<() => void>>,
 	objEvents: Record<string, IDList<TaggedEvent>>,
-	objs: IDList<Character>,
+	objs: IDList<GameObj>,
 	timers: IDList<Timer>,
 	cam: Camera,
 	camMousePos: Vec2,
@@ -336,7 +348,7 @@ const COMP_EVENTS = new Set([
 	"inspect",
 ]);
 
-function make<T>(comps: CompList<T>): Character<T> {
+function make<T>(comps: CompList<T>): GameObj<T> {
 
 	const compStates = new Map();
 	const customState = {};
@@ -525,11 +537,11 @@ function make<T>(comps: CompList<T>): Character<T> {
 		obj.use(comp);
 	}
 
-	return obj as unknown as Character<T>;
+	return obj as unknown as GameObj<T>;
 
 }
 
-function add<T>(comps: CompList<T>): Character<T> {
+function add<T>(comps: CompList<T>): GameObj<T> {
 	const obj = make(comps);
 	obj._id = game.objs.push(obj);
 	obj.trigger("add");
@@ -537,7 +549,7 @@ function add<T>(comps: CompList<T>): Character<T> {
 	return obj;
 }
 
-function readd(obj: Character): Character {
+function readd(obj: GameObj): GameObj {
 	if (!obj.exists()) {
 		return;
 	}
@@ -547,7 +559,7 @@ function readd(obj: Character): Character {
 }
 
 // add an event to a tag
-function on(event: string, tag: Tag, cb: (obj: Character, ...args) => void): EventCanceller {
+function on(event: string, tag: Tag, cb: (obj: GameObj, ...args) => void): EventCanceller {
 	if (!game.objEvents[event]) {
 		game.objEvents[event] = new IDList();
 	}
@@ -559,7 +571,7 @@ function on(event: string, tag: Tag, cb: (obj: Character, ...args) => void): Eve
 
 // TODO: detect if is currently in another action?
 // add update event to a tag or global update
-function action(tag: Tag | (() => void), cb?: (obj: Character) => void): EventCanceller {
+function action(tag: Tag | (() => void), cb?: (obj: GameObj) => void): EventCanceller {
 	if (typeof tag === "function" && cb === undefined) {
 		return add([{ update: tag, }]).destroy;
 	} else if (typeof tag === "string") {
@@ -568,7 +580,7 @@ function action(tag: Tag | (() => void), cb?: (obj: Character) => void): EventCa
 }
 
 // add draw event to a tag or global draw
-function render(tag: Tag | (() => void), cb?: (obj: Character) => void) {
+function render(tag: Tag | (() => void), cb?: (obj: GameObj) => void) {
 	if (typeof tag === "function" && cb === undefined) {
 		return add([{ draw: tag, }]).destroy;
 	} else if (typeof tag === "string") {
@@ -580,11 +592,11 @@ function render(tag: Tag | (() => void), cb?: (obj: Character) => void) {
 function collides(
 	t1: Tag,
 	t2: Tag,
-	f: (a: Character, b: Character) => void,
+	f: (a: GameObj, b: GameObj) => void,
 ): EventCanceller {
 	const e1 = on("collide", t1, (a, b, dis) => b.is(t2) && f(a, b));
 	const e2 = on("collide", t2, (a, b, dis) => b.is(t1) && f(b, a));
-	const e3 = action(t1, (o1: Character) => {
+	const e3 = action(t1, (o1: GameObj) => {
 		if (!o1.area) {
 			throw new Error("collides() requires the object to have area() component");
 		}
@@ -596,8 +608,8 @@ function collides(
 }
 
 // add an event that runs when objs with tag t is clicked
-function clicks(t: string, f: (obj: Character) => void): EventCanceller {
-	return action(t, (o: Character) => {
+function clicks(t: string, f: (obj: GameObj) => void): EventCanceller {
+	return action(t, (o: GameObj) => {
 		if (o.isClicked()) {
 			f(o);
 		}
@@ -605,8 +617,8 @@ function clicks(t: string, f: (obj: Character) => void): EventCanceller {
 }
 
 // add an event that runs when objs with tag t is hovered
-function hovers(t: string, onHover: (obj: Character) => void, onNotHover?: (obj: Character) => void): EventCanceller {
-	return action(t, (o: Character) => {
+function hovers(t: string, onHover: (obj: GameObj) => void, onNotHover?: (obj: GameObj) => void): EventCanceller {
+	return action(t, (o: GameObj) => {
 		if (o.isHovering()) {
 			onHover(o);
 		} else {
@@ -745,7 +757,7 @@ function touchEnd(f: (id: TouchID, pos: Vec2) => void): EventCanceller {
 	return game.on("touchEnd", f);
 }
 
-function regDebugInput() {
+function enterDebugMode() {
 
 	keyPress("f1", () => {
 		debug.inspect = !debug.inspect;
@@ -777,9 +789,13 @@ function regDebugInput() {
 
 }
 
+function enterBurpMode() {
+	keyPress("b", audio.burp);
+}
+
 // TODO: cache sorted list
 // get all objects with tag
-function get(t?: string): Character[] {
+function get(t?: string): GameObj[] {
 
 	const objs = [...game.objs.values()].sort((o1, o2) => {
 
@@ -804,7 +820,7 @@ function get(t?: string): Character[] {
 }
 
 // apply a function to all objects currently in game with tag t
-function every<T>(t: string | ((obj: Character) => T), f?: (obj: Character) => T) {
+function every<T>(t: string | ((obj: GameObj) => T), f?: (obj: GameObj) => T) {
 	if (typeof t === "function" && f === undefined) {
 		return get().forEach((obj) => obj.exists() && t(obj));
 	} else if (typeof t === "string") {
@@ -813,7 +829,7 @@ function every<T>(t: string | ((obj: Character) => T), f?: (obj: Character) => T
 }
 
 // every but in reverse order
-function revery<T>(t: string | ((obj: Character) => T), f?: (obj: Character) => T) {
+function revery<T>(t: string | ((obj: GameObj) => T), f?: (obj: GameObj) => T) {
 	if (typeof t === "function" && f === undefined) {
 		return get().reverse().forEach((obj) => obj.exists() && t(obj));
 	} else if (typeof t === "string") {
@@ -822,7 +838,7 @@ function revery<T>(t: string | ((obj: Character) => T), f?: (obj: Character) => 
 }
 
 // destroy an obj
-function destroy(obj: Character) {
+function destroy(obj: GameObj) {
 	obj.destroy();
 }
 
@@ -1021,7 +1037,7 @@ function drawInspect() {
 
 }
 
-function makeCollision(target: Character<any>, dis: Vec2): Collision {
+function makeCollision(target: GameObj<any>, dis: Vec2): Collision {
 	return {
 		target: target,
 		displacement: dis,
@@ -1048,7 +1064,7 @@ function pos(...args): PosComp {
 			let dy = p.y;
 			let col = null;
 
-			if (this.solid && this.area) {
+			if (this.solid && this.area?.shape === "rect") {
 
 				let a1 = this.worldArea();
 
@@ -1057,7 +1073,12 @@ function pos(...args): PosComp {
 
 					// make sure we still exist, don't check with self, and only
 					// check with other solid objects
-					if (!this.exists() || other === this || !other.solid) {
+					if (
+						!this.exists()
+						|| other === this
+						|| !other.solid
+						|| other.area?.shape !== "rect"
+					) {
 						return;
 					}
 
@@ -1065,7 +1086,7 @@ function pos(...args): PosComp {
 					let md = minkDiff(a2, a1);
 
 					// if they're already overlapping, push them away first
-					if (testRectPt(md, vec2(0))) {
+					if (testRectPoint(md, vec2(0))) {
 
 						let dist = Math.min(
 							Math.abs(md.p1.x),
@@ -1128,7 +1149,7 @@ function pos(...args): PosComp {
 					// if moving away, we forgive
 					if (
 						minT < 1
-						&& !(minT === 0 && numCols == 1 && !testRectPt(md, vec2(dx, dy)))
+						&& !(minT === 0 && numCols == 1 && !testRectPoint(md, vec2(dx, dy)))
 					) {
 						const dis = vec2(-dx * (1 - minT), -dy * (1 - minT));
 						dx *= minT;
@@ -1281,7 +1302,7 @@ function z(z: number): ZComp {
 	};
 }
 
-function follow(obj: Character, offset?: Vec2): FollowComp {
+function follow(obj: GameObj, offset?: Vec2): FollowComp {
 	return {
 		id: "follow",
 		require: [ "pos", ],
@@ -1323,7 +1344,7 @@ function cleanup(time: number = 0): CleanupComp {
 				p1: vec2(0, 0),
 				p2: vec2(width(), height()),
 			}
-			if (testRectRect2(this.screenArea(), screenRect)) {
+			if (testAreaRect(this.screenArea(), screenRect)) {
 				timer = 0;
 			} else {
 				timer += dt();
@@ -1352,21 +1373,12 @@ function area(conf: AreaCompConf = {}): AreaComp {
 		},
 
 		area: {
+			shape: "rect",
 			offset: conf.offset ?? vec2(0),
 			width: conf.width,
 			height: conf.height,
 			scale: conf.scale ?? vec2(1),
 			cursor: conf.cursor,
-		},
-
-		areaWidth(): number {
-			const { p1, p2 } = this.worldArea();
-			return p2.x - p1.x;
-		},
-
-		areaHeight(): number {
-			const { p1, p2 } = this.worldArea();
-			return p2.y - p1.y;
 		},
 
 		isClicked(): boolean {
@@ -1376,9 +1388,9 @@ function area(conf: AreaCompConf = {}): AreaComp {
 		isHovering() {
 			const mpos = this.fixed ? mousePos() : mouseWorldPos();
 			if (app.isTouch) {
-				return app.mouseDown() && this.hasPt(mpos);
+				return app.mouseDown() && this.hasPoint(mpos);
 			} else {
-				return this.hasPt(mpos);
+				return this.hasPoint(mpos);
 			}
 		},
 
@@ -1388,13 +1400,14 @@ function area(conf: AreaCompConf = {}): AreaComp {
 			}
 			const a1 = this.worldArea();
 			const a2 = other.worldArea();
-			return testRectRect(a1, a2);
+			return testAreaArea(a1, a2);
 		},
 
 		isTouching(other) {
 			if (!other.area || !other.exists()) {
 				return false;
 			}
+			// TODO: support other shapes
 			const a1 = this.worldArea();
 			const a2 = other.worldArea();
 			return testRectRect2(a1, a2);
@@ -1420,28 +1433,25 @@ function area(conf: AreaCompConf = {}): AreaComp {
 			});
 		},
 
-		collides(tag: Tag, f: (o: Character, col?: Collision) => void): EventCanceller {
+		collides(tag: Tag, f: (o: GameObj, col?: Collision) => void): EventCanceller {
 			const e1 = this.action(() => this._checkCollisions(tag, f));
 			const e2 = this.on("collide", (obj, col) => obj.is(tag) && f(obj, col));
 			return () => [e1, e2].forEach((f) => f());
 		},
 
-		hasPt(pt: Vec2): boolean {
-			const a = this.worldArea();
-			return testRectPt({
-				p1: a.p1,
-				p2: a.p2,
-			}, pt);
+		hasPoint(pt: Vec2): boolean {
+			return testAreaPoint(this.worldArea(), pt);
 		},
 
 		// push an obj out of another if they're overlapped
-		pushOut(obj: Character): Vec2 | null {
+		pushOut(obj: GameObj): Vec2 | null {
 
 			if (obj === this) {
 				return null;
 			}
 
-			if (!obj.area) {
+			// TODO: support other shapes
+			if (obj.area?.shape !== "rect") {
 				return null;
 			}
 
@@ -1449,7 +1459,7 @@ function area(conf: AreaCompConf = {}): AreaComp {
 			const a2 = obj.worldArea();
 			const md = minkDiff(a1, a2);
 
-			if (!testRectPt(md, vec2(0))) {
+			if (!testRectPoint(md, vec2(0))) {
 				return null;
 			}
 
@@ -1475,7 +1485,7 @@ function area(conf: AreaCompConf = {}): AreaComp {
 
 		// push object out of other solid objects
 		pushOutAll() {
-			every((other) => this.pushOut(other));
+			every(this.pushOut);
 		},
 
 		// @ts-ignore
@@ -1505,7 +1515,7 @@ function area(conf: AreaCompConf = {}): AreaComp {
 
 		// TODO: cache
 		// TODO: use matrix mult for more accuracy and rotation?
-		worldArea(): Rect {
+		worldArea(): Area {
 
 			let w = this.area.width ?? this.width;
 			let h = this.area.height ?? this.height;
@@ -1525,18 +1535,20 @@ function area(conf: AreaCompConf = {}): AreaComp {
 				.sub(orig.add(1, 1).scale(0.5).scale(w, h));
 
 			return {
+				shape: "rect",
 				p1: pos,
 				p2: vec2(pos.x + w, pos.y + h),
 			};
 
 		},
 
-		screenArea(): Rect {
+		screenArea(): Area {
 			const area = this.worldArea();
 			if (this.fixed) {
 				return area;
 			} else {
 				return {
+					shape: "rect",
 					p1: game.camMatrix.multVec2(area.p1),
 					p2: game.camMatrix.multVec2(area.p2),
 				};
@@ -1548,7 +1560,7 @@ function area(conf: AreaCompConf = {}): AreaComp {
 }
 
 // make the list of common render properties from the "pos", "scale", "color", "opacity", "rotate", "origin", "outline", and "shader" components of a character
-function getRenderProps(obj: Character<any>) {
+function getRenderProps(obj: GameObj<any>) {
 	return {
 		pos: obj.pos,
 		scale: obj.scale,
@@ -1557,7 +1569,7 @@ function getRenderProps(obj: Character<any>) {
 		angle: obj.angle,
 		origin: obj.origin,
 		outline: obj.outline,
-		prog: assets.shaders[obj.shader],
+		shader: assets.shaders[obj.shader],
 		uniform: obj.uniform,
 	};
 }
@@ -1821,16 +1833,18 @@ function text(t: string, conf: TextCompConf = {}): TextComp {
 
 }
 
-function rect(w: number, h: number): RectComp {
+function rect(w: number, h: number, conf: RectCompConf = {}): RectComp {
 	return {
 		id: "rect",
 		width: w,
 		height: h,
+		radius: conf.radius || 0,
 		draw() {
 			gfx.drawRect({
 				...getRenderProps(this),
 				width: this.width,
 				height: this.height,
+				radius: this.radius,
 			});
 		},
 		inspect() {
@@ -1919,7 +1933,7 @@ const MAX_VEL = 65536;
 function body(conf: BodyCompConf = {}): BodyComp {
 
 	let velY = 0;
-	let curPlatform: Character | null = null;
+	let curPlatform: GameObj | null = null;
 	let lastPlatformPos = null;
 	let canDouble = true;
 
@@ -1997,7 +2011,7 @@ function body(conf: BodyCompConf = {}): BodyComp {
 
 		},
 
-		curPlatform(): Character | null {
+		curPlatform(): GameObj | null {
 			return curPlatform;
 		},
 
@@ -2015,13 +2029,13 @@ function body(conf: BodyCompConf = {}): BodyComp {
 			velY = -force || -this.jumpForce;
 		},
 
-		djump(force: number) {
+		doubleJump(force: number) {
 			if (this.grounded()) {
 				this.jump(force);
 			} else if (canDouble) {
 				canDouble = false;
 				this.jump(force);
-				this.trigger("djump");
+				this.trigger("doubleJump");
 			}
 		},
 
@@ -2030,7 +2044,7 @@ function body(conf: BodyCompConf = {}): BodyComp {
 }
 
 function shader(id: string, uniform: Uniform = {}): ShaderComp {
-	const prog = assets.shaders[id];
+	const shader = assets.shaders[id];
 	return {
 		id: "shader",
 		shader: id,
@@ -2194,7 +2208,11 @@ function go(id: SceneID, ...args) {
 		game.scenes[id](...args);
 
 		if (gconf.debug !== false) {
-			regDebugInput();
+			enterDebugMode();
+		}
+
+		if (gconf.burp) {
+			enterBurpMode();
 		}
 
 	});
@@ -2277,7 +2295,7 @@ function addLevel(map: string[], conf: LevelConf): Level {
 		throw new Error("Must provide level grid width & height.");
 	}
 
-	const objs: Character[] = [];
+	const objs: GameObj[] = [];
 	const offset = vec2(conf.pos || vec2(0));
 	let longRow = 0;
 
@@ -2303,7 +2321,7 @@ function addLevel(map: string[], conf: LevelConf): Level {
 			);
 		},
 
-		spawn(sym: string, ...args): Character {
+		spawn(sym: string, ...args): GameObj {
 
 			const p = vec2(...args);
 
@@ -2402,6 +2420,7 @@ const ctx: KaboomCtx = {
 	cursor: app.cursor,
 	regCursor,
 	fullscreen: app.fullscreen,
+	isFullscreen: app.isFullscreen,
 	ready,
 	isTouch: () => app.isTouch,
 	// misc
@@ -2504,22 +2523,34 @@ const ctx: KaboomCtx = {
 	wave,
 	deg2rad,
 	rad2deg,
+	testAreaRect,
+	testAreaLine,
+	testAreaCircle,
+	testAreaPolygon,
+	testAreaPoint,
+	testAreaArea,
 	testLineLine,
 	testRectRect,
 	testRectLine,
-	testRectPt,
+	testRectPoint,
+	testPolygonPoint,
+	testLinePolygon,
+	testPolygonPolygon,
+	testCircleCircle,
+	testCirclePoint,
+	testRectPolygon,
 	// raw draw
 	drawSprite,
 	drawText,
-	// TODO: wrap these to use assets lib for the "prog" prop
+	// TODO: wrap these to use assets lib for the "shader" prop
 	drawRect: gfx.drawRect,
 	drawLine: gfx.drawLine,
 	drawLines: gfx.drawLines,
-	drawTri: gfx.drawTri,
+	drawTriangle: gfx.drawTriangle,
 	drawCircle: gfx.drawCircle,
 	drawEllipse: gfx.drawEllipse,
 	drawUVQuad: gfx.drawUVQuad,
-	drawPoly: gfx.drawPoly,
+	drawPolygon: gfx.drawPolygon,
 	pushTransform: gfx.pushTransform,
 	popTransform: gfx.popTransform,
 	pushTranslate: gfx.pushTranslate,
@@ -2633,7 +2664,11 @@ app.run(() => {
 });
 
 if (gconf.debug !== false) {
-	regDebugInput();
+	enterDebugMode();
+}
+
+if (gconf.burp) {
+	enterBurpMode();
 }
 
 window.addEventListener("error", (e) => {

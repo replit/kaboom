@@ -93,10 +93,10 @@ interface KaboomCtx {
 	 *     friend.hurt();
 	 * });
 	 *
-	 * // check out #Character for stuff that exists for all game objects, independent of its components.
+	 * // check out #GameObj for stuff that exists for all game objects, independent of its components.
 	 * ```
 	 */
-	add<T>(comps: CompList<T>): Character<T>,
+	add<T>(comps: CompList<T>): GameObj<T>,
 	/**
 	 * Get a list of all game objs with certain tag.
 	 *
@@ -109,7 +109,7 @@ interface KaboomCtx {
 	 * const allObjs = get();
 	 * ```
 	 */
-	get(tag?: Tag): Character[],
+	get(tag?: Tag): GameObj[],
 	/**
 	 * Run callback on every game obj with certain tag.
 	 *
@@ -122,13 +122,13 @@ interface KaboomCtx {
 	 * every((obj) => {});
 	 * ```
 	 */
-	every<T>(t: Tag, cb: (obj: Character) => T): void,
-	every<T>(cb: (obj: Character) => T): void,
+	every<T>(t: Tag, cb: (obj: GameObj) => T): void,
+	every<T>(cb: (obj: GameObj) => T): void,
 	/**
 	 * Run callback on every game obj with certain tag in reverse order.
 	 */
-	revery<T>(t: Tag, cb: (obj: Character) => T): void,
-	revery<T>(cb: (obj: Character) => T): void,
+	revery<T>(t: Tag, cb: (obj: GameObj) => T): void,
+	revery<T>(cb: (obj: GameObj) => T): void,
 	/**
 	 * Remove and re-add the game obj.
 	 *
@@ -138,7 +138,7 @@ interface KaboomCtx {
 	 * readd(froggy);
 	 * ```
 	 */
-	readd(obj: Character): Character,
+	readd(obj: GameObj): GameObj,
 	/**
 	 * Remove the game obj.
 	 *
@@ -150,7 +150,7 @@ interface KaboomCtx {
 	 * });
 	 * ```
 	 */
-	destroy(obj: Character): void,
+	destroy(obj: GameObj): void,
 	/**
 	 * Remove all game objs with certain tag.
 	 *
@@ -255,8 +255,16 @@ interface KaboomCtx {
 	 *     score.text = "Score:" + score.value;
 	 * });
 	 *
-	 * // set to another default font on start up ("sink" is a pixel font provided by default)
-	 * kaboom({ font: "sink" });
+	 * // with config
+	 * add([
+	 *     pos(24, 24),
+	 *     text("ohhi", {
+	 *         size: 48, // 48 pixels tall
+	 *         width: 320, // it'll wrap to next line when width exceeds this value
+	 *         font: "sink", // there're 4 built-in fonts: "apl386", "apl386o", "sink", and "sinko"
+	 *     }),
+	 * ]);
+	 * ```
 	 * ```
 	 */
 	text(txt: string, conf?: TextCompConf): TextComp,
@@ -430,7 +438,7 @@ interface KaboomCtx {
 	/**
 	 * Follow another game obj's position.
 	 */
-	follow(obj: Character | null, offset?: Vec2): FollowComp,
+	follow(obj: GameObj | null, offset?: Vec2): FollowComp,
 	/**
 	 * Custom shader.
 	 */
@@ -528,7 +536,7 @@ interface KaboomCtx {
 	 * });
 	 * ```
 	 */
-	on(event: string, tag: Tag, cb: (obj: Character, ...args) => void): EventCanceller,
+	on(event: string, tag: Tag, cb: (obj: GameObj, ...args) => void): EventCanceller,
 	/**
 	 * Register "update" event (runs every frame) on all game objs with certain tag.
 	 *
@@ -549,12 +557,12 @@ interface KaboomCtx {
 	 * });
 	 * ```
 	 */
-	action(tag: Tag, cb: (obj: Character) => void): EventCanceller,
+	action(tag: Tag, cb: (obj: GameObj) => void): EventCanceller,
 	action(cb: () => void): EventCanceller,
 	/**
 	 * Register "draw" event (runs every frame) on all game objs with certain tag. (This is the same as `action()`, but all draw events are run after updates)
 	 */
-	render(tag: Tag, cb: (obj: Character) => void): EventCanceller,
+	render(tag: Tag, cb: (obj: GameObj) => void): EventCanceller,
 	render(cb: () => void): EventCanceller,
 	/**
 	 * Register event when 2 game objs with certain tags collides. This function spins off an action() when called, please put it at root level and never inside another action().
@@ -569,21 +577,21 @@ interface KaboomCtx {
 	collides(
 		t1: Tag,
 		t2: Tag,
-		cb: (a: Character, b: Character, col?: Collision) => void,
+		cb: (a: GameObj, b: GameObj, col?: Collision) => void,
 	): EventCanceller,
 	/**
 	 * Register event when game objs with certain tags are clicked. This function spins off an action() when called, please put it at root level and never inside another action().
 	 */
 	clicks(
 		tag: Tag,
-		cb: (a: Character) => void,
+		cb: (a: GameObj) => void,
 	): EventCanceller,
 	/**
 	 * Register event when game objs with certain tags are hovered. This function spins off an action() when called, please put it at root level and never inside another action().
 	 */
 	hovers(
 		tag: Tag,
-		cb: (a: Character) => void,
+		cb: (a: GameObj) => void,
 	): EventCanceller,
 	/**
 	 * Get current mouse position (without camera transform).
@@ -1092,17 +1100,21 @@ interface KaboomCtx {
 	 */
 	regCursor(c: string, draw: string | ((mpos: Vec2) => void)): void,
 	/**
-	 * Enter / exit fullscreen mode.
+	 * Enter / exit fullscreen mode. (note: mouse position is not working in fullscreen mode at the moment)
 	 *
 	 * @example
 	 * ```js
 	 * // toggle fullscreen mode on "f"
 	 * keyPress("f", (c) => {
-	 *     fullscreen(!fullscreen());
+	 *     fullscreen(!isFullscreen());
 	 * });
 	 * ```
 	 */
-	fullscreen(f?: boolean): boolean,
+	fullscreen(f?: boolean): void,
+	/**
+	 * If currently in fullscreen mode.
+	 */
+	isFullscreen(): boolean,
 	/**
 	 * Play a piece of audio, returns a handle to control.
 	 *
@@ -1312,7 +1324,7 @@ interface KaboomCtx {
 	/**
 	 * Check if a point is inside a rectangle.
 	 */
-	testRectPt(r: Rect, pt: Vec2): boolean,
+	testRectPoint(r: Rect, pt: Vec2): boolean,
 	/**
 	 * Define a scene.
 	 *
@@ -1400,7 +1412,7 @@ interface KaboomCtx {
 	/**
 	 * Draw a triangle.
 	 */
-	drawTri(conf: DrawTriConf): void,
+	drawTriangle(conf: DrawTriangleConf): void,
 	/**
 	 * Draw a circle.
 	 */
@@ -1412,7 +1424,7 @@ interface KaboomCtx {
 	/**
 	 * Draw a convex polygon from a list of vertices.
 	 */
-	drawPoly(conf: DrawPolyConf): void,
+	drawPolygon(conf: DrawPolyConf): void,
 	/**
 	 * Draw a rectangle with UV data.
 	 */
@@ -1529,7 +1541,7 @@ type Key =
 /**
  * Inspect info for a character.
  */
-type CharacterInspect = Record<Tag, string | null>;
+type GameObjInspect = Record<Tag, string | null>;
 
 /**
  * Kaboom configurations.
@@ -1552,7 +1564,7 @@ interface KaboomConf {
 	 */
 	stretch?: boolean,
 	/**
-	 * When stretching if keep aspect ratio and leave black bars on remaining spaces.
+	 * When stretching if keep aspect ratio and leave black bars on remaining spaces. (note: not working properly at the moment.)
 	 */
 	letterbox?: boolean,
 	/**
@@ -1603,6 +1615,10 @@ interface KaboomConf {
 	 * List of plugins to import.
 	 */
 	plugins?: KaboomPlugin<any>[],
+	/**
+	 * Enter burp mode.
+	 */
+	burp?: boolean,
 }
 
 type KaboomPlugin<T> = (k: KaboomCtx) => T;
@@ -1610,9 +1626,9 @@ type KaboomPlugin<T> = (k: KaboomCtx) => T;
 /**
  * A character in game. The basic unit of object in Kaboom. The player, a bullet, a tree, a piece of text, they're all characters!
  */
-type Character<T = any> = {
+type GameObj<T = any> = {
 	/**
-	 * Internal Character ID.
+	 * Internal GameObj ID.
 	 */
 	_id: number | null,
 	/**
@@ -1631,12 +1647,12 @@ type Character<T = any> = {
 	 * If there a certain tag on the game obj.
 	 */
 	is(tag: Tag | Tag[]): boolean;
-	// TODO: update the Character type info
+	// TODO: update the GameObj type info
 	/**
 	 * Add a component or tag.
 	 */
 	use(comp: Comp | Tag): void;
-	// TODO: update the Character type info
+	// TODO: update the GameObj type info
 	/**
 	 * Remove a tag or a component with its id.
 	 */
@@ -1664,7 +1680,7 @@ type Character<T = any> = {
 	/**
 	 * Gather debug info of all comps.
 	 */
-	inspect(): CharacterInspect;
+	inspect(): GameObjInspect;
 } & MergeComps<T>;
 
 type SceneID = string;
@@ -1798,7 +1814,7 @@ interface SoundData {
 }
 
 type FontData = GfxFont;
-type ShaderData = GfxProgram;
+type ShaderData = GfxShader;
 
 // TODO: enable setting on load, make part of SoundData
 /**
@@ -1837,7 +1853,7 @@ interface AudioPlay {
 }
 
 // TODO: hide
-interface GfxProgram {
+interface GfxShader {
 	bind(): void,
 	unbind(): void,
 	bindAttribs(): void,
@@ -1896,7 +1912,7 @@ interface RenderProps {
 	angle?: number,
 	color?: Color,
 	opacity?: number,
-	prog?: GfxProgram,
+	shader?: GfxShader,
 	uniform?: Uniform,
 }
 
@@ -1970,7 +1986,7 @@ type DrawLinesConf = Omit<RenderProps, "angle" | "scale"> & {
 /**
  * How the triangle should look like.
  */
-type DrawTriConf = RenderProps & {
+type DrawTriangleConf = RenderProps & {
 	/**
 	 * First point of triangle.
 	 */
@@ -2289,6 +2305,14 @@ interface Line {
 	p2: Vec2,
 }
 
+interface Circle {
+	center: Vec2,
+	radius: number,
+}
+
+type Polygon = Vec2[];
+type Point = Vec2;
+
 type ClientID = number;
 type MsgHandler = (id: ClientID, data: any) => void;
 
@@ -2327,7 +2351,7 @@ interface Comp {
 	inspect?: () => string;
 }
 
-type CharacterID = number;
+type GameObjID = number;
 
 interface PosComp extends Comp {
 	/**
@@ -2400,7 +2424,7 @@ interface ZComp extends Comp {
 
 interface FollowComp extends Comp {
 	follow: {
-		obj: Character,
+		obj: GameObj,
 		offset: Vec2,
 	},
 }
@@ -2418,7 +2442,7 @@ interface Collision {
 	/**
 	 * The game object that we collided into.
 	 */
-	target: Character,
+	target: GameObj,
 	/**
 	 * The displacement it'll need to separate us from the target.
 	 */
@@ -2443,7 +2467,11 @@ interface Collision {
 
 interface AreaCompConf {
 	/**
-	 * Width of area.
+	 * Shape.
+	 */
+	shape?: Shape,
+	/**
+	 * Position of area relative to position of the object.
 	 */
 	offset?: Vec2,
 	/**
@@ -2470,14 +2498,6 @@ interface AreaComp extends Comp {
 	 */
 	area: AreaCompConf,
 	/**
-	 * Get the width of collider area.
-	 */
-	areaWidth(): number,
-	/**
-	 * Get the height of collider area.
-	 */
-	areaHeight(): number,
-	/**
 	 * If was just clicked on last frame.
 	 */
 	isClicked(): boolean,
@@ -2488,11 +2508,11 @@ interface AreaComp extends Comp {
 	/**
 	 * If is currently colliding with another game obj.
 	 */
-	isColliding(o: Character): boolean,
+	isColliding(o: GameObj): boolean,
 	/**
 	 * If is currently touching another game obj.
 	 */
-	isTouching(o: Character): boolean,
+	isTouching(o: GameObj): boolean,
 	/**
 	 * Registers an event runs when clicked.
 	 */
@@ -2504,15 +2524,15 @@ interface AreaComp extends Comp {
 	/**
 	 * Registers an event runs when collides with another game obj with certain tag.
 	 */
-	collides(tag: Tag, f: (obj: Character, col?: Collision) => void): void,
+	collides(tag: Tag, f: (obj: GameObj, col?: Collision) => void): void,
 	/**
 	 * If has a certain point inside collider.
 	 */
-	hasPt(p: Vec2): boolean,
+	hasPoint(p: Vec2): boolean,
 	/**
 	 * Push out from another solid game obj if currently overlapping.
 	 */
-	pushOut(obj: Character): void,
+	pushOut(obj: GameObj): void,
 	/**
 	 * Push out from all other solid game objs if currently overlapping.
 	 */
@@ -2520,11 +2540,11 @@ interface AreaComp extends Comp {
 	/**
 	 * Get the geometry data for the collider in world coordinate space.
 	 */
-	worldArea(): Rect,
+	worldArea(): Area,
 	/**
 	 * Get the geometry data for the collider in screen coordinate space.
 	 */
-	screenArea(): Rect,
+	screenArea(): Area,
 }
 
 interface SpriteCompConf {
@@ -2651,6 +2671,13 @@ interface TextCompConf {
 	width?: number,
 }
 
+interface RectCompConf {
+	/**
+	 * Radius of the rectangle corners.
+	 */
+	radius?: number,
+}
+
 interface RectComp extends Comp {
 	/**
 	 * Width of rect.
@@ -2660,6 +2687,10 @@ interface RectComp extends Comp {
 	 * Height of height.
 	 */
 	height: number,
+	/**
+	 * Radius of the rectangle corners.
+	 */
+	radius?: number,
 }
 
 interface CircleComp extends Comp {
@@ -2680,7 +2711,18 @@ interface UVQuadComp extends Comp {
 	height: number,
 }
 
-type AreaType =
+/**
+ * Union type for area / collider data of different shapes ("rect", "line", "circle", "point" and "polygon").
+ */
+type Area =
+	| { shape: "rect" } & Rect
+	| { shape: "line" } & Line
+	| { shape: "circle" } & Circle
+	| { shape: "point" } & { pt: Point }
+	| { shape: "polygon" } & { pts: Polygon }
+	;
+
+type Shape =
 	| "rect"
 	| "line"
 	| "point"
@@ -2769,7 +2811,7 @@ interface BodyComp extends Comp {
 	/**
 	 * Current platform landing on.
 	 */
-	curPlatform(): Character | null,
+	curPlatform(): GameObj | null,
 	/**
 	 * If currently landing on a platform.
 	 */
@@ -2785,7 +2827,7 @@ interface BodyComp extends Comp {
 	/**
 	 * Performs double jump (the initial jump only happens if player is grounded).
 	 */
-	djump(f?: number): void,
+	doubleJump(f?: number): void,
 }
 
 interface BodyCompConf {
@@ -2911,8 +2953,8 @@ interface LevelConf {
 interface Level {
 	getPos(p: Vec2): Vec2,
 	getPos(x: number, y: number): Vec2,
-	spawn(sym: string, p: Vec2): Character,
-	spawn(sym: string, x: number, y: number): Character,
+	spawn(sym: string, p: Vec2): GameObj,
+	spawn(sym: string, x: number, y: number): GameObj,
 	width(): number,
 	height(): number,
 	gridWidth(): number,

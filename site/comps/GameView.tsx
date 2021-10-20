@@ -27,8 +27,6 @@ const wrapGame = (code: string) => `
 			background: var(--color-bg2);
 		}
 		canvas {
-			width: 100%;
-			height: 100%;
 			border: solid 2px var(--color-outline);
 			border-radius: 8px;
 		}

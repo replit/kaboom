@@ -60,7 +60,7 @@ render(() => {
 		outline,
 	});
 
-	drawPoly({
+	drawPolygon({
 		pos: p(0, 1),
 		pts: [
 			vec2(w(-10, 10, 2), -80),

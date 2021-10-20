@@ -116,7 +116,7 @@ scene("game", () => {
 	});
 
 	// spin on double jump
-	bean.on("djump", () => {
+	bean.on("doubleJump", () => {
 		bean.spin();
 	});
 
@@ -128,7 +128,7 @@ scene("game", () => {
 	});
 
 	keyPress("space", () => {
-		bean.djump();
+		bean.doubleJump();
 	});
 
 	// both keys will trigger
