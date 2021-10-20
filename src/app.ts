@@ -426,8 +426,6 @@ function appInit(gconf: AppConf = {}): App {
 
 			app.skipTime = false;
 
-			const gamepads = navigator.getGamepads();
-
 			f();
 
 			for (const k in app.keyStates) {
