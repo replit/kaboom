@@ -102,6 +102,10 @@ const Markdown: React.FC<MarkdownProps & ViewProps> = ({
 				borderRadius: 8,
 				background: "var(--color-bg2)",
 			},
+			"blockquote *": {
+				fontStyle: "italic",
+				color: "var(--color-fg3)",
+			},
 			// dim
 			[[
 				".hljs-comment",
