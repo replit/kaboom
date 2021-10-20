@@ -2,7 +2,9 @@
 
 [**Kaboom.js**](https://kaboomjs.com/) is a JavaScript library that helps you make games fast and fun!
 
-Start playing around with it [here](https://kaboomjs.com/play)
+Start playing around with it [in the Kaboom Platground](https://kaboomjs.com/play)
+
+## Examples
 
 ```javascript
 // initialize context
