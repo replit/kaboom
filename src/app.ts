@@ -10,7 +10,7 @@ type ButtonState =
 	| "released"
 	;
 
-type AppConf = {
+type AppOpt = {
 	width?: number,
 	height?: number,
 	stretch?: boolean,
@@ -103,9 +103,9 @@ function getFullscreenElement(): Element | void {
 		;
 };
 
-function appInit(gconf: AppConf = {}): App {
+function appInit(gopt: AppOpt = {}): App {
 
-    const root = gconf.root ?? document.body;
+    const root = gopt.root ?? document.body;
 
 	if (root === document.body) {
 		document.body.style["width"] = "100%";
@@ -116,7 +116,7 @@ function appInit(gconf: AppConf = {}): App {
 	}
 
 	const app: AppCtx = {
-		canvas: gconf.canvas ?? (() => {
+		canvas: gopt.canvas ?? (() => {
 			const canvas = document.createElement("canvas");
 			root.appendChild(canvas);
 			return canvas;
@@ -133,7 +133,7 @@ function appInit(gconf: AppConf = {}): App {
 		realTime: 0,
 		skipTime: false,
 		dt: 0.0,
-		scale: gconf.scale ?? 1,
+		scale: gopt.scale ?? 1,
 		isTouch: false,
 		loopID: null,
 		stopped: false,
@@ -171,9 +171,9 @@ function appInit(gconf: AppConf = {}): App {
 		"s",
 	];
 
-	if (gconf.width && gconf.height && !gconf.stretch) {
-		app.canvas.width = gconf.width * app.scale;
-		app.canvas.height = gconf.height * app.scale;
+	if (gopt.width && gopt.height && !gopt.stretch) {
+		app.canvas.width = gopt.width * app.scale;
+		app.canvas.height = gopt.height * app.scale;
 	} else {
 		app.canvas.width = app.canvas.parentElement.offsetWidth;
 		app.canvas.height = app.canvas.parentElement.offsetHeight;
@@ -184,7 +184,7 @@ function appInit(gconf: AppConf = {}): App {
 		"cursor: default",
 	];
 
-	if (gconf.crisp) {
+	if (gopt.crisp) {
 		styles.push("image-rendering: pixelated");
 		styles.push("image-rendering: crisp-edges");
 	}
@@ -256,7 +256,7 @@ function appInit(gconf: AppConf = {}): App {
 	});
 
 	app.canvas.addEventListener("touchstart", (e) => {
-		if (!gconf.touchToMouse) return;
+		if (!gopt.touchToMouse) return;
 		// disable long tap context menu
 		e.preventDefault();
 		const t = e.touches[0];
@@ -265,7 +265,7 @@ function appInit(gconf: AppConf = {}): App {
 	});
 
 	app.canvas.addEventListener("touchmove", (e) => {
-		if (!gconf.touchToMouse) return;
+		if (!gopt.touchToMouse) return;
 		// disable scrolling
 		e.preventDefault();
 		const t = e.touches[0];
@@ -274,12 +274,12 @@ function appInit(gconf: AppConf = {}): App {
 	});
 
 	app.canvas.addEventListener("touchend", (e) => {
-		if (!gconf.touchToMouse) return;
+		if (!gopt.touchToMouse) return;
 		app.mouseState = "released";
 	});
 
 	app.canvas.addEventListener("touchcancel", (e) => {
-		if (!gconf.touchToMouse) return;
+		if (!gopt.touchToMouse) return;
 		app.mouseState = "released";
 	});
 
@@ -289,17 +289,17 @@ function appInit(gconf: AppConf = {}): App {
 				// prevent a surge of dt() when switch back after the tab being hidden for a while
 				app.skipTime = true;
 				// TODO: don't resume if debug.paused
-				gconf.audioCtx?.resume();
+				gopt.audioCtx?.resume();
 				break;
 			case "hidden":
-				gconf.audioCtx?.suspend();
+				gopt.audioCtx?.suspend();
 				break;
 		}
 	});
 
 	// TODO: not quite working
 //  	window.addEventListener("resize", () => {
-//  		if (!(gconf.width && gconf.height && !gconf.stretch)) {
+//  		if (!(gopt.width && gopt.height && !gopt.stretch)) {
 //  			app.canvas.width = app.canvas.parentElement.offsetWidth;
 //  			app.canvas.height = app.canvas.parentElement.offsetHeight;
 //  		}
