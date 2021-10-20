@@ -526,7 +526,7 @@ function testLineLine(l1: Line, l2: Line): Vec2 | null {
 }
 
 function testRectLine(r: Rect, l: Line): boolean {
-	if (testRectPt(r, l.p1) || testRectPt(r, l.p2)) {
+	if (testRectPoint(r, l.p1) || testRectPoint(r, l.p2)) {
 		return true;
 	}
 	return !!testLineLine(l, makeLine(r.p1, vec2(r.p2.x, r.p1.y)))
@@ -535,12 +535,174 @@ function testRectLine(r: Rect, l: Line): boolean {
 		|| !!testLineLine(l, makeLine(vec2(r.p1.x, r.p2.y), r.p1));
 }
 
-function testRectPt2(r: Rect, pt: Vec2): boolean {
+function testRectPoint2(r: Rect, pt: Point): boolean {
 	return pt.x >= r.p1.x && pt.x <= r.p2.x && pt.y >= r.p1.y && pt.y <= r.p2.y;
 }
 
-function testRectPt(r: Rect, pt: Vec2): boolean {
+function testRectPoint(r: Rect, pt: Point): boolean {
 	return pt.x > r.p1.x && pt.x < r.p2.x && pt.y > r.p1.y && pt.y < r.p2.y;
+}
+
+// TODO
+function testRectCircle(r: Rect, c: Circle): boolean {
+	return false;
+}
+
+function testRectPolygon(r: Rect, p: Polygon): boolean {
+	return testPolygonPolygon(p, [
+		r.p1,
+		vec2(r.p2.x, r.p1.y),
+		r.p2,
+		vec2(r.p1.x, r.p2.y),
+	]);
+}
+
+// TODO
+function testLinePoint(l: Line, pt: Vec2): boolean {
+	return false;
+}
+
+// TODO
+function testLineCircle(l: Line, c: Circle): boolean {
+	return false;
+}
+
+function testLinePolygon(l: Line, p: Polygon): boolean {
+
+	// test if line is inside
+	if (testPolygonPoint(p, l.p1) || testPolygonPoint(p, l.p2)) {
+		return true;
+	}
+
+	// test each line
+	for (let i = 0; i < p.length; i++) {
+		const p1 = p[i];
+		const p2 = p[(i + 1) % p.length];
+		if (testLineLine(l, { p1, p2 })) {
+			return true;
+		}
+	}
+
+	return false;
+
+}
+
+function testCirclePoint(c: Circle, p: Point): boolean {
+	return c.center.dist(p) < c.radius;
+}
+
+function testCircleCircle(c1: Circle, c2: Circle): boolean {
+	return c1.center.dist(c2.center) < c1.radius + c2.radius;
+}
+
+// TODO
+function testCirclePolygon(c: Circle, p: Polygon): boolean {
+	return false;
+}
+
+function testPolygonPolygon(p1: Polygon, p2: Polygon): boolean {
+	for (let i = 0; i < p1.length; i++) {
+		const l = {
+			p1: p1[i],
+			p2: p1[(i + 1) % p1.length],
+		};
+		if (testLinePolygon(l, p2)) {
+			return true;
+		}
+	}
+	return false;
+}
+
+function testPolygonPoint(p: Polygon, pt: Point): boolean {
+
+	let has = false;
+
+	for (let i = 0; i < p.length; i++) {
+
+		const p1 = p[i];
+		const p2 = p[(i + 1) % p.length];
+
+		if (
+			((p1.y > pt.y && p2.y < pt.y) || (p1.y < pt.y && p2.y > pt.y))
+			&& (pt.x < (p2.x - p1.x) * (pt.y - p1.y) / (p2.y - p1.y) + p1.x)
+		) {
+			has = !has;
+		}
+
+	}
+
+	return has;
+
+}
+
+function testPointPoint(p1: Point, p2: Point): boolean {
+	return p1.eq(p2);
+}
+
+function testAreaRect(a: Area, r: Rect): boolean {
+	switch (a.shape) {
+		case "rect": return testRectRect(r, a);
+		case "line": return testRectLine(r, a);
+		case "circle": return testRectCircle(r, a);
+		case "polygon": return testRectPolygon(r, a.pts);
+		case "point": return testRectPoint(r, a.pt);
+	}
+	throw new Error(`Unknown area shape: ${(a as Area).shape}`);
+}
+
+function testAreaLine(a: Area, l: Line): boolean {
+	switch (a.shape) {
+		case "rect": return testRectLine(a, l);
+		case "line": return Boolean(testLineLine(a, l));
+		case "circle": return testLineCircle(l, a);
+		case "polygon": return testLinePolygon(l, a.pts);
+		case "point": return testLinePoint(l, a.pt);
+	}
+	throw new Error(`Unknown area shape: ${(a as Area).shape}`);
+}
+
+function testAreaCircle(a: Area, c: Circle): boolean {
+	switch (a.shape) {
+		case "rect": return testRectCircle(a, c);
+		case "line": return testLineCircle(a, c);
+		case "circle": return testCircleCircle(a, c);
+		case "polygon": return testCirclePolygon(c, a.pts);
+		case "point": return testCirclePoint(c, a.pt);
+	}
+	throw new Error(`Unknown area shape: ${(a as Area).shape}`);
+}
+
+function testAreaPolygon(a: Area, p: Polygon): boolean {
+	switch (a.shape) {
+		case "rect": return testRectPolygon(a, p);
+		case "line": return testLinePolygon(a, p);
+		case "circle": return testCirclePolygon(a, p);
+		case "polygon": return testPolygonPolygon(p, a.pts);
+		case "point": return testPolygonPoint(p, a.pt);
+	}
+	throw new Error(`Unknown area shape: ${(a as Area).shape}`);
+}
+
+function testAreaPoint(a: Area, p: Point): boolean {
+	switch (a.shape) {
+		case "rect": return testRectPoint(a, p);
+		case "line": return testLinePoint(a, p);
+		case "circle": return testCirclePoint(a, p);
+		case "polygon": return testPolygonPoint(a.pts, p);
+		case "point": return testPointPoint(a.pt, p);
+	}
+	throw new Error(`Unknown area shape: ${(a as Area).shape}`);
+}
+
+function testAreaArea(a1: Area, a2: Area): boolean {
+	switch (a2.shape) {
+		case "rect": return testAreaRect(a1, a2);
+		case "line": return testAreaLine(a1, a2);
+		case "circle": return testAreaCircle(a1, a2);
+		case "polygon": return testAreaPolygon(a1, a2.pts);
+		case "point": return testAreaPoint(a1, a2.pt);
+	}
+	throw new Error(`Unknown area shape: ${(a2 as Area).shape}`);
 }
 
 function minkDiff(r1: Rect, r2: Rect): Rect {
@@ -576,12 +738,24 @@ export {
 	wave,
 	deg2rad,
 	rad2deg,
-	testRectRect2,
-	testRectRect,
-	testLineLine,
+	testAreaRect,
+	testAreaLine,
+	testAreaCircle,
+	testAreaPolygon,
+	testAreaPoint,
+	testAreaArea,
 	testLineLineT,
+	testRectRect2,
+	testLineLine,
+	testRectRect,
 	testRectLine,
-	testRectPt,
+	testRectPoint,
+	testPolygonPoint,
+	testLinePolygon,
+	testPolygonPolygon,
+	testCircleCircle,
+	testCirclePoint,
+	testRectPolygon,
 	minkDiff,
 	dir,
 	isVec2,

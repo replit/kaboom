@@ -14,13 +14,25 @@ import {
 	map,
 	mapc,
 	wave,
-	testLineLine,
+	testAreaRect,
+	testAreaLine,
+	testAreaCircle,
+	testAreaPolygon,
+	testAreaPoint,
+	testAreaArea,
 	testLineLineT,
 	testRectRect2,
-	testRectLine,
-	testRectPt,
-	minkDiff,
+	testLineLine,
 	testRectRect,
+	testRectLine,
+	testRectPoint,
+	testPolygonPoint,
+	testLinePolygon,
+	testPolygonPolygon,
+	testCircleCircle,
+	testCirclePoint,
+	testRectPolygon,
+	minkDiff,
 	dir,
 	deg2rad,
 	rad2deg,
@@ -1052,7 +1064,7 @@ function pos(...args): PosComp {
 			let dy = p.y;
 			let col = null;
 
-			if (this.solid && this.area) {
+			if (this.solid && this.area?.shape === "rect") {
 
 				let a1 = this.worldArea();
 
@@ -1061,7 +1073,12 @@ function pos(...args): PosComp {
 
 					// make sure we still exist, don't check with self, and only
 					// check with other solid objects
-					if (!this.exists() || other === this || !other.solid) {
+					if (
+						!this.exists()
+						|| other === this
+						|| !other.solid
+						|| other.area?.shape !== "rect"
+					) {
 						return;
 					}
 
@@ -1069,7 +1086,7 @@ function pos(...args): PosComp {
 					let md = minkDiff(a2, a1);
 
 					// if they're already overlapping, push them away first
-					if (testRectPt(md, vec2(0))) {
+					if (testRectPoint(md, vec2(0))) {
 
 						let dist = Math.min(
 							Math.abs(md.p1.x),
@@ -1132,7 +1149,7 @@ function pos(...args): PosComp {
 					// if moving away, we forgive
 					if (
 						minT < 1
-						&& !(minT === 0 && numCols == 1 && !testRectPt(md, vec2(dx, dy)))
+						&& !(minT === 0 && numCols == 1 && !testRectPoint(md, vec2(dx, dy)))
 					) {
 						const dis = vec2(-dx * (1 - minT), -dy * (1 - minT));
 						dx *= minT;
@@ -1327,7 +1344,7 @@ function cleanup(time: number = 0): CleanupComp {
 				p1: vec2(0, 0),
 				p2: vec2(width(), height()),
 			}
-			if (testRectRect2(this.screenArea(), screenRect)) {
+			if (testAreaRect(this.screenArea(), screenRect)) {
 				timer = 0;
 			} else {
 				timer += dt();
@@ -1356,21 +1373,12 @@ function area(conf: AreaCompConf = {}): AreaComp {
 		},
 
 		area: {
+			shape: "rect",
 			offset: conf.offset ?? vec2(0),
 			width: conf.width,
 			height: conf.height,
 			scale: conf.scale ?? vec2(1),
 			cursor: conf.cursor,
-		},
-
-		areaWidth(): number {
-			const { p1, p2 } = this.worldArea();
-			return p2.x - p1.x;
-		},
-
-		areaHeight(): number {
-			const { p1, p2 } = this.worldArea();
-			return p2.y - p1.y;
 		},
 
 		isClicked(): boolean {
@@ -1380,9 +1388,9 @@ function area(conf: AreaCompConf = {}): AreaComp {
 		isHovering() {
 			const mpos = this.fixed ? mousePos() : mouseWorldPos();
 			if (app.isTouch) {
-				return app.mouseDown() && this.hasPt(mpos);
+				return app.mouseDown() && this.hasPoint(mpos);
 			} else {
-				return this.hasPt(mpos);
+				return this.hasPoint(mpos);
 			}
 		},
 
@@ -1392,13 +1400,14 @@ function area(conf: AreaCompConf = {}): AreaComp {
 			}
 			const a1 = this.worldArea();
 			const a2 = other.worldArea();
-			return testRectRect(a1, a2);
+			return testAreaArea(a1, a2);
 		},
 
 		isTouching(other) {
 			if (!other.area || !other.exists()) {
 				return false;
 			}
+			// TODO: support other shapes
 			const a1 = this.worldArea();
 			const a2 = other.worldArea();
 			return testRectRect2(a1, a2);
@@ -1430,12 +1439,8 @@ function area(conf: AreaCompConf = {}): AreaComp {
 			return () => [e1, e2].forEach((f) => f());
 		},
 
-		hasPt(pt: Vec2): boolean {
-			const a = this.worldArea();
-			return testRectPt({
-				p1: a.p1,
-				p2: a.p2,
-			}, pt);
+		hasPoint(pt: Vec2): boolean {
+			return testAreaPoint(this.worldArea(), pt);
 		},
 
 		// push an obj out of another if they're overlapped
@@ -1445,7 +1450,8 @@ function area(conf: AreaCompConf = {}): AreaComp {
 				return null;
 			}
 
-			if (!obj.area) {
+			// TODO: support other shapes
+			if (obj.area?.shape !== "rect") {
 				return null;
 			}
 
@@ -1453,7 +1459,7 @@ function area(conf: AreaCompConf = {}): AreaComp {
 			const a2 = obj.worldArea();
 			const md = minkDiff(a1, a2);
 
-			if (!testRectPt(md, vec2(0))) {
+			if (!testRectPoint(md, vec2(0))) {
 				return null;
 			}
 
@@ -1479,7 +1485,7 @@ function area(conf: AreaCompConf = {}): AreaComp {
 
 		// push object out of other solid objects
 		pushOutAll() {
-			every((other) => this.pushOut(other));
+			every(this.pushOut);
 		},
 
 		// @ts-ignore
@@ -1509,7 +1515,7 @@ function area(conf: AreaCompConf = {}): AreaComp {
 
 		// TODO: cache
 		// TODO: use matrix mult for more accuracy and rotation?
-		worldArea(): Rect {
+		worldArea(): Area {
 
 			let w = this.area.width ?? this.width;
 			let h = this.area.height ?? this.height;
@@ -1529,18 +1535,20 @@ function area(conf: AreaCompConf = {}): AreaComp {
 				.sub(orig.add(1, 1).scale(0.5).scale(w, h));
 
 			return {
+				shape: "rect",
 				p1: pos,
 				p2: vec2(pos.x + w, pos.y + h),
 			};
 
 		},
 
-		screenArea(): Rect {
+		screenArea(): Area {
 			const area = this.worldArea();
 			if (this.fixed) {
 				return area;
 			} else {
 				return {
+					shape: "rect",
 					p1: game.camMatrix.multVec2(area.p1),
 					p2: game.camMatrix.multVec2(area.p2),
 				};
@@ -2515,10 +2523,22 @@ const ctx: KaboomCtx = {
 	wave,
 	deg2rad,
 	rad2deg,
+	testAreaRect,
+	testAreaLine,
+	testAreaCircle,
+	testAreaPolygon,
+	testAreaPoint,
+	testAreaArea,
 	testLineLine,
 	testRectRect,
 	testRectLine,
-	testRectPt,
+	testRectPoint,
+	testPolygonPoint,
+	testLinePolygon,
+	testPolygonPolygon,
+	testCircleCircle,
+	testCirclePoint,
+	testRectPolygon,
 	// raw draw
 	drawSprite,
 	drawText,

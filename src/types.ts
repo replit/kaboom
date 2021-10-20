@@ -1324,7 +1324,7 @@ interface KaboomCtx {
 	/**
 	 * Check if a point is inside a rectangle.
 	 */
-	testRectPt(r: Rect, pt: Vec2): boolean,
+	testRectPoint(r: Rect, pt: Vec2): boolean,
 	/**
 	 * Define a scene.
 	 *
@@ -2305,6 +2305,14 @@ interface Line {
 	p2: Vec2,
 }
 
+interface Circle {
+	center: Vec2,
+	radius: number,
+}
+
+type Polygon = Vec2[];
+type Point = Vec2;
+
 type ClientID = number;
 type MsgHandler = (id: ClientID, data: any) => void;
 
@@ -2459,7 +2467,11 @@ interface Collision {
 
 interface AreaCompConf {
 	/**
-	 * Width of area.
+	 * Shape.
+	 */
+	shape?: Shape,
+	/**
+	 * Position of area relative to position of the object.
 	 */
 	offset?: Vec2,
 	/**
@@ -2485,14 +2497,6 @@ interface AreaComp extends Comp {
 	 * Collider area info.
 	 */
 	area: AreaCompConf,
-	/**
-	 * Get the width of collider area.
-	 */
-	areaWidth(): number,
-	/**
-	 * Get the height of collider area.
-	 */
-	areaHeight(): number,
 	/**
 	 * If was just clicked on last frame.
 	 */
@@ -2524,7 +2528,7 @@ interface AreaComp extends Comp {
 	/**
 	 * If has a certain point inside collider.
 	 */
-	hasPt(p: Vec2): boolean,
+	hasPoint(p: Vec2): boolean,
 	/**
 	 * Push out from another solid game obj if currently overlapping.
 	 */
@@ -2536,11 +2540,11 @@ interface AreaComp extends Comp {
 	/**
 	 * Get the geometry data for the collider in world coordinate space.
 	 */
-	worldArea(): Rect,
+	worldArea(): Area,
 	/**
 	 * Get the geometry data for the collider in screen coordinate space.
 	 */
-	screenArea(): Rect,
+	screenArea(): Area,
 }
 
 interface SpriteCompConf {
@@ -2707,7 +2711,18 @@ interface UVQuadComp extends Comp {
 	height: number,
 }
 
-type AreaType =
+/**
+ * Union type for area / collider data of different shapes ("rect", "line", "circle", "point" and "polygon").
+ */
+type Area =
+	| { shape: "rect" } & Rect
+	| { shape: "line" } & Line
+	| { shape: "circle" } & Circle
+	| { shape: "point" } & { pt: Point }
+	| { shape: "polygon" } & { pts: Polygon }
+	;
+
+type Shape =
 	| "rect"
 	| "line"
 	| "point"
