@@ -201,6 +201,13 @@ addLevel([
 - added drawing functions `drawSprite()`, `drawRect()`, `drawCircle()`, `drawPolygon()`, `drawEllipse()`, `drawLine()`, `drawLines()`
 - added transformation functions `pushTransform()`, `popTransform()`, `pushTranslate()`, `pushRotate()`, `pushScale()`
 - **BREAK** removed `areaWidth()` and `areaHeight()` since they won't make sense if the area shape is not rectangle, use `worldArea()` if you need area data
+```javascript
+const area = player.worldArea();
+if (area.shape === "rect") {
+	const width = area.p2.x - area.p1.x;
+	const height = area.p2.y - area.p1.y;
+}
+```
 
 ### v0.5.1
 - added plugins npm package support e.g. `import asepritePlugin from "kaboom/plugins/aseprite"`
