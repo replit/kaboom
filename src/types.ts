@@ -2455,7 +2455,7 @@ interface Collision {
 
 interface AreaCompConf {
 	/**
-	 * Displacement of area.
+	 * Position of area relative to position of the object.
 	 */
 	offset?: Vec2,
 	/**
