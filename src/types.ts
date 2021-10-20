@@ -1624,7 +1624,7 @@ interface KaboomOpt {
 type KaboomPlugin<T> = (k: KaboomCtx) => T;
 
 /**
- * A character in game. The basic unit of object in Kaboom. The player, a bullet, a tree, a piece of text, they're all characters!
+ * The basic unit of object in Kaboom. The player, a butterfly, a tree, or even piece of text.
  */
 type GameObj<T = any> = {
 	/**

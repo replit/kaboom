@@ -2,43 +2,16 @@
 
 [**Kaboom.js**](https://kaboomjs.com/) is a JavaScript library that helps you make games fast and fun!
 
-**NOTE**: still in early active development, expect breaking changes and lots of new features (check out `CHANGELOG.md` for these).
+Start playing around with it [here](https://kaboomjs.com/play)
 
-## Examples
-
-(these are for the newest beta version or `kaboom@next`)
-
-Lots of interactive examples [here](https://kaboomjs.com/demo)
-
-```html
-<script type="module">
-
-// import kaboom lib
-import kaboom from "https://unpkg.com/kaboom@next/dist/kaboom.mjs";
-
-// initialize kaboom context
-kaboom();
-
-// add a piece of text at position (120, 80)
-add([
-    text("hello"),
-    pos(120, 80),
-]);
-
-</script>
-```
-You can paste this directly into an `.html` file, open it in browser, and start playing around!
-
-Kaboom uses a powerful component system to compose game objects and behaviors.
-To make a flappy bird movement you only need a few lines
 ```javascript
-// init context
+// initialize context
 kaboom();
 
-// load a default sprite "bean"
-loadBean();
+// load a sprite called "froggy"
+loadSprite("froggy", "sprites/froggy.png");
 
-// compose the player game object from multiple components
+// compose the player game object from multiple components and add it to the game
 const froggy = add([
     sprite("bean"),
     pos(80, 40),
@@ -53,7 +26,8 @@ keyPress("space", () => {
 });
 ```
 
-It's easy to make custom components to compose your game object behaviors:
+Kaboom uses a powerful component system to compose game objects and behaviors.
+
 ```javascript
 // add a game obj to the scene from a list of component
 const player = add([
@@ -67,7 +41,7 @@ const player = add([
     body(),
     // it has 8 health
     health(8),
-    // or give it tags for controlling group behaviors
+    // or give it tags for easier group behaviors
     "player",
     "friendly",
     // plain objects fields are directly assigned to the game obj
@@ -77,16 +51,17 @@ const player = add([
         speed: 240,
     },
 ]);
+```
 
+Blocky imperative syntax for describing behaviors
+
+```javascript
 // .collides() comes from "area" component
 player.collides("enemy", () => {
     // .hurt() comes from "health" component
     player.hurt(1)
 });
-```
 
-Blocky imperative syntax for describing behaviors
-```javascript
 // check fall death
 player.action(() => {
     if (player.pos.y >= height()) {
@@ -116,7 +91,7 @@ keyDown("w", () => {
 ### NPM
 
 ```sh
-$ npm install kaboom@next
+$ npm install kaboom
 ```
 
 ```javascript
@@ -130,7 +105,7 @@ add([
 ]);
 ```
 
-also works with CJS
+also works with CommonJS
 
 ```javascript
 const kaboom = require("kaboom");
@@ -143,7 +118,7 @@ Note that you'll need to use a bundler like `esbuild` or `webpack` to use Kaboom
 This exports a global `kaboom` function
 
 ```html
-<script src="https://unpkg.com/kaboom@next/dist/kaboom.js"></script>
+<script src="https://unpkg.com/kaboom/dist/kaboom.js"></script>
 <script>
 kaboom();
 </script>
@@ -153,7 +128,7 @@ or use with es modules
 
 ```html
 <script type="module">
-import kaboom from "https://unpkg.com/kaboom@next/dist/kaboom.mjs";
+import kaboom from "https://unpkg.com/kaboom/dist/kaboom.mjs";
 kaboom();
 </script>
 ```
