@@ -1460,10 +1460,6 @@ interface KaboomCtx {
 	pushScale(s: Vec2): void,
 	pushRotate(angle: number): void,
 	/**
-	 * Import a plugin.
-	 */
-	plug<T>(plugin: KaboomPlugin<T>): void,
-	/**
 	 * Debug stuff.
 	 *
 	 * @section Misc
@@ -1486,6 +1482,10 @@ interface KaboomCtx {
 	 * ```
 	 */
 	debug: Debug,
+	/**
+	 * Import a plugin.
+	 */
+	plug<T>(plugin: KaboomPlugin<T>): void,
 	/**
 	 * All chars in ASCII.
 	 */
