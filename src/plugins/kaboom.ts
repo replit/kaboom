@@ -5,7 +5,7 @@ import kaSrc from "./ka.png";
 // @ts-ignore
 import boomSrc from "./boom.png";
 
-interface BoomConf {
+interface BoomOpt {
 	/**
 	 * Animation speed.
 	 */
@@ -35,7 +35,7 @@ interface ExplodeComp extends Comp {
 }
 
 interface KaboomPlug {
-	addKaboom(pos: Vec2, conf?: BoomConf): Kaboom,
+	addKaboom(pos: Vec2, opt?: BoomOpt): Kaboom,
 }
 
 export default (k: KaboomCtx) => {
@@ -62,10 +62,10 @@ export default (k: KaboomCtx) => {
 	k.loadSprite(null, kaSrc).then((spr) => kaSprite = spr);
 	k.loadSprite(null, boomSrc).then((spr) => boomSprite = spr);
 
-	function addKaboom(pos: Vec2, conf: BoomConf = {}): Kaboom {
+	function addKaboom(pos: Vec2, opt: BoomOpt = {}): Kaboom {
 
-		const speed = (conf.speed || 1) * 5;
-		const scale = conf.scale || 1;
+		const speed = (opt.speed || 1) * 5;
+		const scale = opt.scale || 1;
 
 		const boom = k.add([
 			k.pos(pos),
@@ -74,7 +74,7 @@ export default (k: KaboomCtx) => {
 			k.stay(),
 			k.origin("center"),
 			explode(speed, scale),
-			...(conf.boomComps ?? (() => []))(),
+			...(opt.boomComps ?? (() => []))(),
 		]);
 
 		const ka = k.add([
@@ -84,7 +84,7 @@ export default (k: KaboomCtx) => {
 			k.stay(),
 			k.origin("center"),
 			k.timer(0.4 / speed, () => ka.use(explode(speed, scale))),
-			...(conf.kaComps ?? (() => []))(),
+			...(opt.kaComps ?? (() => []))(),
 		]);
 
 		return {

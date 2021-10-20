@@ -8,7 +8,7 @@ Getting the package from a CDN provider is the quickest and easiest way to start
 <script type="module">
 
 // import kaboom lib
-import kaboom from "https://unpkg.com/kaboom@next/dist/kaboom.mjs";
+import kaboom from "https://unpkg.com/kaboom/dist/kaboom.mjs";
 
 // initialize kaboom context
 kaboom();
@@ -29,7 +29,7 @@ The Kaboom package is deployed to NPM, so it's availbale on various CDN provider
 The example above is using Kaboom with es6 module, you can also just include it with a `<script>` tag
 
 ```html
-<script src="https://unpkg.com/kaboom@next/dist/kaboom.js"></script>
+<script src="https://unpkg.com/kaboom/dist/kaboom.js"></script>
 ```
 
 ## Using NPM
@@ -37,7 +37,7 @@ The example above is using Kaboom with es6 module, you can also just include it 
 With NPM it's easier have some other packages and do version control, also it's easier to get typescript autocomplete support and stuff, but it requires a bit more setup.
 
 ```sh
-$ npm install kaboom@next
+$ npm install kaboom
 ```
 
 but you'll need to use a bundler to use Kaboom with NPM. There's a lot of options like `esbuild`, `webpack`, `parcel`, `vite`, etc, here I'll give a short example of how to use Kaboom with [`esbuild`](https://esbuild.github.io/).
