@@ -255,8 +255,16 @@ interface KaboomCtx {
 	 *     score.text = "Score:" + score.value;
 	 * });
 	 *
-	 * // set to another default font on start up ("sink" is a pixel font provided by default)
-	 * kaboom({ font: "sink" });
+	 * // with config
+	 * add([
+	 *     pos(24, 24),
+	 *     text("ohhi", {
+	 *         size: 48, // 48 pixels tall
+	 *         width: 320, // it'll wrap to next line when width exceeds this value
+	 *         font: "sink", // there're 4 built-in fonts: "apl386", "apl386o", "sink", and "sinko"
+	 *     }),
+	 * ]);
+	 * ```
 	 * ```
 	 */
 	text(txt: string, conf?: TextCompConf): TextComp,
