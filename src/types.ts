@@ -2827,7 +2827,7 @@ interface BodyComp extends Comp {
 	/**
 	 * Performs double jump (the initial jump only happens if player is grounded).
 	 */
-	djump(f?: number): void,
+	doubleJump(f?: number): void,
 }
 
 interface BodyCompConf {
