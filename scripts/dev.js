@@ -1,19 +1,21 @@
 const cp = require("child_process");
 
+const run = (name) => cp.spawn(
+	"npm",
+	["run", name, "--silent"],
+	{
+		stdio: "inherit",
+		detached: true,
+		env: {
+			...process.env,
+			NODE_ENV: "development",
+		},
+	}
+);
+
 const tasks = [
-	cp.spawn("node", [
-		"scripts/watch.js", "src",
-		"npm", "run", "build", "--silent",
-	], {
-		stdio: "inherit",
-		detached: true,
-	}),
-	cp.spawn("npm", [
-		"run", "site", "--silent",
-	], {
-		stdio: "inherit",
-		detached: true,
-	}),
+	run("build"),
+	run("site"),
 ];
 
 process.on("SIGINT", () => {
