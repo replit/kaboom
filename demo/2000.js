@@ -1,7 +1,7 @@
 // v2000 launch game
 
 kaboom({
-	scale: 0.66,
+	scale: 0.7,
 	background: [ 128, 180, 255 ],
 });
 
@@ -20,7 +20,7 @@ loadSound("bell", "sounds/bell.mp3");
 loadSound("kaboom2000", "sounds/kaboom2000.mp3");
 
 const FLOOR_HEIGHT = 64;
-const JUMP_FORCE = 1200;
+const JUMP_FORCE = 1320;
 const CAPTION_SPEED = 340;
 const PLAYER_SPEED = 640;
 
@@ -42,22 +42,52 @@ const player = add([
 	z(100),
 ]);
 
-const size = 160;
+const gw = 200;
+const gh = 140;
+const maxRow = 4;
+const notes = [ 0, 2, 4, 5, 6, 7, 8, 9, 11, 12, ];
 
-for (let i = 0; i < 5; i++) {
-	for (let j = 0; j <= i; j++) {
-		const n = i * (i + 1) / 2 + j;
+for (let i = 1; i <= maxRow; i++) {
+	for (let j = 0; j < i; j++) {
+		const n = i * (i - 1) / 2 + j;
+		const w = (i - 1) * gw + 64;
 		add([
 			sprite("note"),
-			pos(j * size + 64 + (5 - i) * size / 2, i * 140 + 140),
+			pos(j * gw + (width() - w) / 2 + 32, height() - FLOOR_HEIGHT + 24 - (maxRow - i + 1) * gh),
 			area(),
 			solid(),
 			origin("bot"),
 			color(hsl2rgb((n * 20) / 255, 0.6, 0.7)),
+			bounce(),
+			scale(1),
 			n === 0 ? "burp" : "note",
-			{ detune: n * -100 + 200, },
+			{ detune: notes[9 - n] * 100 + -800, },
 		]);
 	}
+}
+
+function bounce() {
+	let bouncing = false;
+	let timer = 0;
+	return {
+		id: "bounce",
+		require: [ "scale" ],
+		update() {
+			if (bouncing) {
+				timer += dt() * 20;
+				const w = Math.sin(timer) * 0.1;
+				if (w < 0) {
+					bouncing = false;
+					timer = 0;
+				} else {
+					this.scale = vec2(1 + w);
+				}
+			}
+		},
+		bounce() {
+			bouncing = true;
+		},
+	};
 }
 
 // floor
@@ -87,10 +117,11 @@ player.on("headbutt", (block) => {
 	if (block.is("note")) {
 		play("bell", {
 			detune: block.detune,
-			volume: 0.2
+			volume: 0.1
 		});
 		addKaboom(block.pos);
 		shake(1);
+		block.bounce();
 		if (!started) {
 			started = true;
 			caption.hidden = false;
@@ -112,7 +143,7 @@ action(() => {
 	camScale(camScale().lerp(vec2(5), dt() * 3));
 });
 
-const lyrics = "kaboom2000 is out today, i have to go and try it out now... oh it's so fun it's so fun it's so fun...... it's so fun it's so fun it's so fun";
+const lyrics = "kaboom2000 is out today, i have to go and try it out now... oh it's so fun it's so fun it's so fun...... it's so fun it's so fun it's so fun!";
 
 const caption = add([
 	text(lyrics, {
@@ -124,7 +155,7 @@ const caption = add([
 			};
 		},
 	}),
-	pos(width(), 20),
+	pos(width(), 32),
 	move(LEFT, CAPTION_SPEED),
 ]);
 
