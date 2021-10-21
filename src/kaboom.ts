@@ -3,6 +3,7 @@ import {
 	mat4,
 	quad,
 	rgb,
+	hsl2rgb,
 	rng,
 	rand,
 	randi,
@@ -1804,6 +1805,7 @@ function text(t: string, opt: TextCompOpt = {}): TextComp {
 			size: this.textSize,
 			font: font,
 			width: opt.width,
+			transform: opt.transform,
 		});
 
 		this.width = ftext.width / (this.scale?.x || 1);
@@ -2515,6 +2517,7 @@ const ctx: KaboomCtx = {
 	vec2,
 	dir,
 	rgb,
+	hsl2rgb,
 	quad,
 	choose,
 	chance,
