@@ -20,9 +20,6 @@ const Doc: React.FC<DocProps> = ({
 }) => (
 	<Nav>
 		<Head title={`Kaboom - ${capitalize(name)}`} />
-		<Link href="/" passHref>
-			<Button text="< Back" action={() => {}} />
-		</Link>
 		{ src
 			? <Markdown src={src || ""} baseUrl="/site/doc/" />
 			: <Text color={3}>{`There's no doc called "${name}" :(`}</Text>

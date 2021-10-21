@@ -37,7 +37,7 @@ Introducing Frog the "Bean"! A happy frog that enjoys life. You'll see Bean a lo
 
 Before explaining what this code does, let's try adding some more stuff to it and see what happens:
 
-```javascript
+```js
 // add something to screen
 add([
 	sprite("bean"),
@@ -69,7 +69,7 @@ Human are also composed from a list of components, each component provides diffe
 
 It's actually kinda like playing with lego pieces! Let's keep this in mind and start making the actual player character in our game:
 
-```javascript
+```js
 // putting together our player character
 const bean = add([
 	sprite("bean"),
@@ -94,7 +94,7 @@ We're also testing out our player character with a little interaction here. `key
 
 With the `body()` component, our Bean is going to keep falling into oblivion if we don't hit "space" key enough. Let's add a solid platform for Bean to land on.
 
-```javascript
+```js
 // add platform
 add([
 	rect(width(), 48),
@@ -121,7 +121,7 @@ Pretty straightforward! Refresh the game and you should see our Bean is now safe
 
 Let's also make sure our Bean can only jump when grounded.
 
-```javascript
+```js
 keyPress("space", () => {
 	if (bean.grounded()) {
 		bean.jump();
@@ -133,7 +133,7 @@ keyPress("space", () => {
 
 Bean loves challanges. Let's start adding in obstacles to jump over! Time to build a game object from components again.
 
-```javascript
+```js
 // add tree
 add([
 	rect(48, 64),
@@ -160,7 +160,7 @@ To do this we'll need to check for collision between the two.
 
 First we'll need to give the tree a tag. Any game object can have any number of tags, they're kinda like components but much more light weight. We often use tags to quickly describe behaviors for a group of objects.
 
-```javascript
+```js
 // add tree
 add([
 	rect(48, 64),
@@ -176,7 +176,7 @@ add([
 
 To add a tag we simply put a string in the component array. Then we can check for collision between Bean and any object with tag "tree".
 
-```javascript
+```js
 bean.collides("tree", () => {
 	addKaboom(bean.pos);
 	shake();
@@ -199,7 +199,7 @@ Now it's time to add more trees. How can we keep them spawning constantly?
 
 Let's try the `loop()` function, which performs an action every x seconds.
 
-```javascript
+```js
 loop(1, () => {
 	// add tree
 	add([
@@ -221,13 +221,13 @@ Sick! Lots of trees coming to you now. Now we already have most of the game mech
 
 1. It might be better if trees all have different random heights. We can use `rand()` to assign different value to the tree's rect height:
 
-```javascript
+```js
 rect(48, rand(24, 64)),
 ```
 
 2. It'll be more fun if the trees spawn at different intervals. We cannot do that from `loop()`, but we can compose that with recursive `wait()`s, which waits for x seconds to execute some code.
 
-```javascript
+```js
 function spawnTree() {
 	add([
 		// the tree components
@@ -244,7 +244,7 @@ See? We're calling `spawnTree()` recursively / endlessly, with a random interval
 
 Before adding a score counter, let's actually complete the game loop first, by sending player to a gameover scene when they hit a tree. We can achieve this with kaboom's `scene()` system
 
-```javascript
+```js
 scene("game", () => {
 	add([
 		sprite("bean"),
@@ -264,7 +264,7 @@ Consider this example above, we're declaring 2 scenes here, "game" and "lose". T
 
 Let's first move everything game code we have into a scene.
 
-```javascript
+```js
 // don't move these init / loader functions
 kaboom()
 loadSprite("bean", "sprites/bean.png");
@@ -282,7 +282,7 @@ Try this, this shouldn't change any of your game's content.
 
 Then we can add a "lose" scene independent to your core game content here.
 
-```javascript
+```js
 scene("lose", () => {
 	add([
 		text("Game Over"),
@@ -294,7 +294,7 @@ scene("lose", () => {
 
 So in the "lose" scene, we'll add a piece of text in the center says "Game Over" (`text()` is a component that renders text). Go ahead and go to this scene when player collides with a tree:
 
-```javascript
+```js
 player.collides("tree", () => {
 	addKaboom(bean.pos);
 	shake();
@@ -304,7 +304,7 @@ player.collides("tree", () => {
 
 Ok! Now we've arrived at the final part of our game: score counter.
 
-```javascript
+```js
 let score = 0;
 const scoreLabel = add([
 	text(score),
@@ -316,7 +316,7 @@ Here we've declared a number variable to store the score, and added a game obj w
 
 Let's keep it simple and just use time as score.
 
-```javascript
+```js
 // increment score every frame
 action(() => {
 	score++;
@@ -330,7 +330,7 @@ We can use the `action()` function, which takes a function, and runs it every fr
 
 Full game code here:
 
-```javascript
+```js
 const FLOOR_HEIGHT = 48;
 const JUMP_FORCE = 800;
 const SPEED = 480;

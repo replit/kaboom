@@ -64,6 +64,7 @@ type DrawTextOpt2 = RenderProps & {
 	size?: number,
 	width?: number,
 	origin?: Origin | Vec2,
+	transform?: (idx: number, ch: string) => CharTransform,
 }
 
 type Gfx = {
@@ -1046,6 +1047,7 @@ function gfxInit(gl: WebGLRenderingContext, gopt: GfxOpt): Gfx {
 		// this math is complicated i forgot how it works instantly
 		const ox = -offset.x * cw - (offset.x + 0.5) * (tw - cw);
 		const oy = -offset.y * ch - (offset.y + 0.5) * (th - ch);
+		let idx = 0;
 
 		flines.forEach((line, ln) => {
 
@@ -1056,17 +1058,28 @@ function gfxInit(gl: WebGLRenderingContext, gopt: GfxOpt): Gfx {
 				const qpos = font.map[char];
 				const x = cn * cw;
 				const y = ln * ch;
+				idx += 1;
 				if (qpos) {
-					fchars.push({
+					const fchar = {
 						tex: font.tex,
 						quad: quad(qpos.x, qpos.y, font.qw, font.qh),
 						ch: char,
 						pos: vec2(pos.x + x + ox + oxl, pos.y + y + oy),
 						opacity: opt.opacity,
-						color: opt.color,
+						color: opt.color ?? rgb(255, 255, 255),
 						origin: opt.origin,
 						scale: scale,
-					});
+						angle: 0,
+					}
+					if (opt.transform) {
+						const tr = opt.transform(idx, char) ?? {};
+						if (tr.pos) fchar.pos = fchar.pos.add(tr.pos);
+						if (tr.scale) fchar.scale = fchar.scale.scale(vec2(tr.scale));
+						if (tr.angle) fchar.angle += tr.angle;
+						if (tr.color) fchar.color = fchar.color.mult(tr.color);
+						if (tr.opacity) fchar.opacity *= tr.opacity;
+					}
+					fchars.push(fchar);
 				}
 			});
 		});
@@ -1092,6 +1105,7 @@ function gfxInit(gl: WebGLRenderingContext, gopt: GfxOpt): Gfx {
 				height: ch.tex.height * ch.quad.h,
 				pos: ch.pos,
 				scale: ch.scale,
+				angle: ch.angle,
 				color: ch.color,
 				opacity: ch.opacity,
 				quad: ch.quad,

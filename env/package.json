@@ -4,7 +4,7 @@
 		"@replit/database": "^2.0.1",
 		"esbuild": "^0.12.19",
 		"express": "^4.17.1",
-		"kaboom": "^2000.0.0-beta.12",
+		"kaboom": "^2000.0.0",
 		"stacktrace-js": "^2.0.2",
 		"ws": "^8.2.0"
 	}
