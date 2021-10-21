@@ -76,6 +76,9 @@ const Markdown: React.FC<MarkdownProps & ViewProps> = ({
 			"img": {
 				borderRadius: 8,
 			},
+			"video": {
+				borderRadius: 8,
+			},
 			"pre": {
 				width: "100%",
 				background: "var(--color-bg2)",
