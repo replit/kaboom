@@ -1,4 +1,4 @@
-// v2000 launch game
+// bean is holding a concert to celebrate kaboom2000!
 
 kaboom({
 	scale: 0.7,
