@@ -1235,6 +1235,10 @@ interface KaboomCtx {
 	 */
 	rgb(r: number, g: number, b: number): Color,
 	/**
+	 * Convert HSL color (all values in [0.0 - 1.0] range) to RGB color.
+	 */
+	hsl2rgb(hue: number, saturation: number, lightness: number): Color,
+	/**
 	 * Rectangle area (0.0 - 1.0).
 	 */
 	quad(x: number, y: number, w: number, h: number): Quad,
@@ -2109,9 +2113,18 @@ interface FormattedChar {
 	ch: string,
 	pos: Vec2,
 	scale: Vec2,
+	angle: number,
 	color: Color,
 	opacity: number,
 	origin: string,
+}
+
+interface CharTransform {
+	pos?: Vec2,
+	scale?: Vec2 | number,
+	angle?: number,
+	color?: Color,
+	opacity?: number,
 }
 
 /**
@@ -2283,6 +2296,7 @@ interface Color {
 	 */
 	darken(n: number): Color,
 	invert(): Color,
+	mult(other: Color): Color,
 	eq(c: Color): boolean,
 	str(): string,
 }
@@ -2684,6 +2698,10 @@ interface TextCompOpt {
 	 * Wrap text to a certain width.
 	 */
 	width?: number,
+	/**
+	 * If transform each character.
+	 */
+	transform?: (idx: number, ch: string) => CharTransform,
 }
 
 interface RectCompOpt {

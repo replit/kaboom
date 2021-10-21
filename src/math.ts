@@ -194,6 +194,13 @@ function rgb(...args): Color {
 		invert(): Color {
 			return rgb(255 - this.r, 255 - this.g, 255 - this.b);
 		},
+		mult(other: Color): Color {
+			return rgb(
+				this.r * other.r / 255,
+				this.g * other.g / 255,
+				this.b * other.b / 255,
+			);
+		},
 		eq(other: Color): boolean {
 			return this.r === other.r
 				&& this.g === other.g
@@ -204,6 +211,31 @@ function rgb(...args): Color {
 			return `(${this.r}, ${this.g}, ${this.b})`;
 		},
 	};
+
+}
+
+function hsl2rgb(h: number, s: number, l: number): Color {
+
+	if (s == 0){
+		return rgb(255 * l, 255 * l, 255 * l);
+	}
+
+	const hue2rgb = (p, q, t) => {
+		if (t < 0) t += 1;
+		if (t > 1) t -= 1;
+		if (t < 1 / 6) return p + (q - p) * 6 * t;
+		if (t < 1 / 2) return q;
+		if (t < 2 / 3) return p + (q - p) * (2/3 - t) * 6;
+		return p;
+	}
+
+	const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+	const p = 2 * l - q;
+	const r = hue2rgb(p, q, h + 1 / 3);
+	const g = hue2rgb(p, q, h);
+	const b = hue2rgb(p, q, h - 1 / 3);
+
+	return rgb(Math.round(r * 255), Math.round(g * 255), Math.round(b * 255));
 
 }
 
@@ -725,6 +757,7 @@ export {
 	mat4,
 	quad,
 	rgb,
+	hsl2rgb,
 	rng,
 	rand,
 	randi,
