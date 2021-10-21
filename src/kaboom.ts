@@ -3,6 +3,7 @@ import {
 	mat4,
 	quad,
 	rgb,
+	hsl2rgb,
 	rng,
 	rand,
 	randi,
@@ -14,13 +15,25 @@ import {
 	map,
 	mapc,
 	wave,
-	testLineLine,
+	testAreaRect,
+	testAreaLine,
+	testAreaCircle,
+	testAreaPolygon,
+	testAreaPoint,
+	testAreaArea,
 	testLineLineT,
 	testRectRect2,
-	testRectLine,
-	testRectPt,
-	minkDiff,
+	testLineLine,
 	testRectRect,
+	testRectLine,
+	testRectPoint,
+	testPolygonPoint,
+	testLinePolygon,
+	testPolygonPolygon,
+	testCircleCircle,
+	testCirclePoint,
+	testRectPolygon,
+	minkDiff,
 	dir,
 	deg2rad,
 	rad2deg,
@@ -62,30 +75,30 @@ import {
 import kaboomPlugin from "./plugins/kaboom";
 
 // @ts-ignore
-module.exports = (gconf: KaboomConf = {}): KaboomCtx => {
+module.exports = (gopt: KaboomOpt = {}): KaboomCtx => {
 
 const audio = audioInit();
 
 const app = appInit({
-	width: gconf.width,
-	height: gconf.height,
-	scale: gconf.scale,
-	crisp: gconf.crisp,
-	canvas: gconf.canvas,
-	root: gconf.root,
-	stretch: gconf.stretch,
-	touchToMouse: gconf.touchToMouse ?? true,
+	width: gopt.width,
+	height: gopt.height,
+	scale: gopt.scale,
+	crisp: gopt.crisp,
+	canvas: gopt.canvas,
+	root: gopt.root,
+	stretch: gopt.stretch,
+	touchToMouse: gopt.touchToMouse ?? true,
 	audioCtx: audio.ctx,
 });
 
 const gfx = gfxInit(app.gl, {
-	background: gconf.background ? rgb(gconf.background) : undefined,
-	width: gconf.width,
-	height: gconf.height,
-	scale: gconf.scale,
-	texFilter: gconf.texFilter,
-	stretch: gconf.stretch,
-	letterbox: gconf.letterbox,
+	background: gopt.background ? rgb(gopt.background) : undefined,
+	width: gopt.width,
+	height: gopt.height,
+	scale: gopt.scale,
+	texFilter: gopt.texFilter,
+	stretch: gopt.stretch,
+	letterbox: gopt.letterbox,
 });
 
 const {
@@ -100,7 +113,7 @@ const assets = assetsInit(gfx, audio, {
 });
 
 const logger = loggerInit(gfx, assets, {
-	max: gconf.logMax,
+	max: gopt.logMax,
 });
 
 const DEF_FONT = "apl386o";
@@ -111,7 +124,7 @@ function dt() {
 }
 
 // TODO: clean
-function play(id: string, conf: AudioPlayConf = {}): AudioPlay {
+function play(id: string, opt: AudioPlayOpt = {}): AudioPlay {
 	const pb = audio.play({
 		buf: new AudioBuffer({
 			length: 1,
@@ -124,7 +137,7 @@ function play(id: string, conf: AudioPlayConf = {}): AudioPlay {
 		if (!snd) {
 			throw new Error(`sound not found: "${id}"`);
 		}
-		const pb2 = audio.play(snd, conf);
+		const pb2 = audio.play(snd, opt);
 		for (const k in pb2) {
 			pb[k] = pb2[k];
 		}
@@ -140,42 +153,44 @@ function mouseWorldPos(): Vec2 {
 	return game.camMousePos;
 }
 
-function drawSprite(
-	id: string | SpriteData,
-	conf: DrawSpriteConf = {},
-) {
+// wrapper around gfx.drawTexture to integrate with sprite assets mananger / frame anim
+function drawSprite(opt: DrawSpriteOpt) {
+	if (!opt.sprite) {
+		throw new Error(`drawSprite() requires property "sprite"`);
+	}
 	const spr = (() => {
-		if (typeof id === "string") {
-			return assets.sprites[id];
+		if (typeof opt.sprite === "string") {
+			return assets.sprites[opt.sprite];
 		} else {
-			return id;
+			return opt.sprite;
 		}
 	})();
 	if (!spr) {
-		throw new Error(`sprite not found: "${id}"`);
+		throw new Error(`sprite not found: "${opt.sprite}"`);
 	}
-	const q = spr.frames[conf.frame ?? 0];
+	const q = spr.frames[opt.frame ?? 0];
 	if (!q) {
-		throw new Error(`frame not found: ${conf.frame ?? 0}`);
+		throw new Error(`frame not found: ${opt.frame ?? 0}`);
 	}
-	gfx.drawTexture(spr.tex, {
-		...conf,
-		quad: q.scale(conf.quad || quad(0, 0, 1, 1)),
+	gfx.drawTexture({
+		...opt,
+		tex: spr.tex,
+		quad: q.scale(opt.quad || quad(0, 0, 1, 1)),
 	});
 }
 
-// TODO: DrawTextComf
-function drawText(
-	txt: string,
-	conf = {},
-) {
+// wrapper around gfx.drawText to integrate with font assets mananger / default font
+function drawText(opt: DrawTextOpt) {
 	// @ts-ignore
-	const fid = conf.font ?? DEF_FONT;
+	const fid = opt.font ?? DEF_FONT;
 	const font = assets.fonts[fid];
 	if (!font) {
 		throw new Error(`font not found: ${fid}`);
 	}
-	gfx.drawText(txt, font, conf);
+	gfx.drawText({
+		...opt,
+		font: font,
+	});
 }
 
 const DEF_GRAVITY = 1600;
@@ -185,7 +200,7 @@ interface Game {
 	loaded: boolean,
 	events: Record<string, IDList<() => void>>,
 	objEvents: Record<string, IDList<TaggedEvent>>,
-	objs: IDList<Character>,
+	objs: IDList<GameObj>,
 	timers: IDList<Timer>,
 	cam: Camera,
 	camMousePos: Vec2,
@@ -334,7 +349,7 @@ const COMP_EVENTS = new Set([
 	"inspect",
 ]);
 
-function make<T>(comps: CompList<T>): Character<T> {
+function make<T>(comps: CompList<T>): GameObj<T> {
 
 	const compStates = new Map();
 	const customState = {};
@@ -523,11 +538,11 @@ function make<T>(comps: CompList<T>): Character<T> {
 		obj.use(comp);
 	}
 
-	return obj as unknown as Character<T>;
+	return obj as unknown as GameObj<T>;
 
 }
 
-function add<T>(comps: CompList<T>): Character<T> {
+function add<T>(comps: CompList<T>): GameObj<T> {
 	const obj = make(comps);
 	obj._id = game.objs.push(obj);
 	obj.trigger("add");
@@ -535,7 +550,7 @@ function add<T>(comps: CompList<T>): Character<T> {
 	return obj;
 }
 
-function readd(obj: Character): Character {
+function readd(obj: GameObj): GameObj {
 	if (!obj.exists()) {
 		return;
 	}
@@ -545,7 +560,7 @@ function readd(obj: Character): Character {
 }
 
 // add an event to a tag
-function on(event: string, tag: Tag, cb: (obj: Character, ...args) => void): EventCanceller {
+function on(event: string, tag: Tag, cb: (obj: GameObj, ...args) => void): EventCanceller {
 	if (!game.objEvents[event]) {
 		game.objEvents[event] = new IDList();
 	}
@@ -557,7 +572,7 @@ function on(event: string, tag: Tag, cb: (obj: Character, ...args) => void): Eve
 
 // TODO: detect if is currently in another action?
 // add update event to a tag or global update
-function action(tag: Tag | (() => void), cb?: (obj: Character) => void): EventCanceller {
+function action(tag: Tag | (() => void), cb?: (obj: GameObj) => void): EventCanceller {
 	if (typeof tag === "function" && cb === undefined) {
 		return add([{ update: tag, }]).destroy;
 	} else if (typeof tag === "string") {
@@ -566,7 +581,7 @@ function action(tag: Tag | (() => void), cb?: (obj: Character) => void): EventCa
 }
 
 // add draw event to a tag or global draw
-function render(tag: Tag | (() => void), cb?: (obj: Character) => void) {
+function render(tag: Tag | (() => void), cb?: (obj: GameObj) => void) {
 	if (typeof tag === "function" && cb === undefined) {
 		return add([{ draw: tag, }]).destroy;
 	} else if (typeof tag === "string") {
@@ -578,11 +593,11 @@ function render(tag: Tag | (() => void), cb?: (obj: Character) => void) {
 function collides(
 	t1: Tag,
 	t2: Tag,
-	f: (a: Character, b: Character) => void,
+	f: (a: GameObj, b: GameObj) => void,
 ): EventCanceller {
-	const e1 = on("collide", t1, (a, b, side) => b.is(t2) && f(a, b));
-	const e2 = on("collide", t2, (a, b, side) => b.is(t1) && f(b, a));
-	const e3 = action(t1, (o1: Character) => {
+	const e1 = on("collide", t1, (a, b, dis) => b.is(t2) && f(a, b));
+	const e2 = on("collide", t2, (a, b, dis) => b.is(t1) && f(b, a));
+	const e3 = action(t1, (o1: GameObj) => {
 		if (!o1.area) {
 			throw new Error("collides() requires the object to have area() component");
 		}
@@ -594,8 +609,8 @@ function collides(
 }
 
 // add an event that runs when objs with tag t is clicked
-function clicks(t: string, f: (obj: Character) => void): EventCanceller {
-	return action(t, (o: Character) => {
+function clicks(t: string, f: (obj: GameObj) => void): EventCanceller {
+	return action(t, (o: GameObj) => {
 		if (o.isClicked()) {
 			f(o);
 		}
@@ -603,8 +618,8 @@ function clicks(t: string, f: (obj: Character) => void): EventCanceller {
 }
 
 // add an event that runs when objs with tag t is hovered
-function hovers(t: string, onHover: (obj: Character) => void, onNotHover?: (obj: Character) => void): EventCanceller {
-	return action(t, (o: Character) => {
+function hovers(t: string, onHover: (obj: GameObj) => void, onNotHover?: (obj: GameObj) => void): EventCanceller {
+	return action(t, (o: GameObj) => {
 		if (o.isHovering()) {
 			onHover(o);
 		} else {
@@ -743,7 +758,7 @@ function touchEnd(f: (id: TouchID, pos: Vec2) => void): EventCanceller {
 	return game.on("touchEnd", f);
 }
 
-function regDebugInput() {
+function enterDebugMode() {
 
 	keyPress("f1", () => {
 		debug.inspect = !debug.inspect;
@@ -755,29 +770,33 @@ function regDebugInput() {
 
 	keyPress("f8", () => {
 		debug.paused = !debug.paused;
-		logger.info(`${debug.paused ? "paused" : "unpaused"}`);
+		debug.log(`${debug.paused ? "paused" : "unpaused"}`);
 	});
 
 	keyPress("f7", () => {
 		debug.timeScale = clamp(debug.timeScale - 0.2, 0, 2);
-		logger.info(`time scale: ${debug.timeScale.toFixed(1)}`);
+		debug.log(`time scale: ${debug.timeScale.toFixed(1)}`);
 	});
 
 	keyPress("f9", () => {
 		debug.timeScale = clamp(debug.timeScale + 0.2, 0, 2);
-		logger.info(`time scale: ${debug.timeScale.toFixed(1)}`);
+		debug.log(`time scale: ${debug.timeScale.toFixed(1)}`);
 	});
 
 	keyPress("f10", () => {
 		debug.stepFrame();
-		logger.info(`stepped frame`);
+		debug.log(`stepped frame`);
 	});
 
 }
 
+function enterBurpMode() {
+	keyPress("b", audio.burp);
+}
+
 // TODO: cache sorted list
 // get all objects with tag
-function get(t?: string): Character[] {
+function get(t?: string): GameObj[] {
 
 	const objs = [...game.objs.values()].sort((o1, o2) => {
 
@@ -802,7 +821,7 @@ function get(t?: string): Character[] {
 }
 
 // apply a function to all objects currently in game with tag t
-function every<T>(t: string | ((obj: Character) => T), f?: (obj: Character) => T) {
+function every<T>(t: string | ((obj: GameObj) => T), f?: (obj: GameObj) => T) {
 	if (typeof t === "function" && f === undefined) {
 		return get().forEach((obj) => obj.exists() && t(obj));
 	} else if (typeof t === "string") {
@@ -811,7 +830,7 @@ function every<T>(t: string | ((obj: Character) => T), f?: (obj: Character) => T
 }
 
 // every but in reverse order
-function revery<T>(t: string | ((obj: Character) => T), f?: (obj: Character) => T) {
+function revery<T>(t: string | ((obj: GameObj) => T), f?: (obj: GameObj) => T) {
 	if (typeof t === "function" && f === undefined) {
 		return get().reverse().forEach((obj) => obj.exists() && t(obj));
 	} else if (typeof t === "string") {
@@ -820,7 +839,7 @@ function revery<T>(t: string | ((obj: Character) => T), f?: (obj: Character) => 
 }
 
 // destroy an obj
-function destroy(obj: Character) {
+function destroy(obj: GameObj) {
 	obj.destroy();
 }
 
@@ -855,6 +874,7 @@ function gameFrame(ignorePause?: boolean) {
 		game.timers.forEach((t, id) => {
 			t.time -= dt();
 			if (t.time <= 0) {
+				// TODO: some timer action causes crash on FF when dt is really high, not sure why
 				t.action();
 				game.timers.delete(id);
 			}
@@ -891,7 +911,7 @@ function gameFrame(ignorePause?: boolean) {
 			gfx.pushTransform();
 
 			if (!obj.fixed) {
-				gfx.pushMatrix(game.camMatrix);
+				gfx.applyMatrix(game.camMatrix);
 			}
 
 			obj.trigger("draw");
@@ -907,14 +927,16 @@ function drawInspect() {
 
 	let inspecting = null;
 	const font = assets.fonts[DBG_FONT];
-	const lcolor = rgb(gconf.inspectColor ?? [0, 0, 255]);
+	const lcolor = rgb(gopt.inspectColor ?? [0, 0, 255]);
 
 	function drawInspectTxt(pos, txt) {
 
 		const s = gfx.scale();
 		const pad = vec2(6).scale(1 / s);
 
-		const ftxt = gfx.fmtText(txt, font, {
+		const ftxt = gfx.fmtText({
+			text: txt,
+			font: font,
 			size: 16 / s,
 			pos: pos.add(vec2(pad.x, pad.y)),
 			color: rgb(0, 0, 0),
@@ -933,13 +955,15 @@ function drawInspect() {
 			gfx.pushTranslate(vec2(0, -bh));
 		}
 
-		gfx.drawRect(pos, bw, bh, {
+		gfx.drawRect({
+			pos: pos,
+			width: bw,
+			height: bh,
 			color: rgb(255, 255, 255),
-		});
-
-		gfx.drawRectStroke(pos, bw, bh, {
-			width: 2 / s,
-			color: rgb(0, 0, 0),
+			outline: {
+				width: 2 / s,
+				color: rgb(0, 0, 0),
+			},
 		});
 
 		gfx.drawFmtText(ftxt);
@@ -962,7 +986,7 @@ function drawInspect() {
 
 		if (!obj.fixed) {
 			gfx.pushTransform();
-			gfx.pushMatrix(game.camMatrix);
+			gfx.applyMatrix(game.camMatrix);
 		}
 
 		if (!inspecting) {
@@ -976,9 +1000,15 @@ function drawInspect() {
 		const w = a.p2.x - a.p1.x;
 		const h = a.p2.y - a.p1.y;
 
-		gfx.drawRectStroke(a.p1, w, h, {
-			width: lwidth,
-			color: lcolor,
+		gfx.drawRect({
+			pos: a.p1,
+			width: w,
+			height: h,
+			outline: {
+				width: lwidth,
+				color: lcolor,
+			},
+			fill: false,
 		});
 
 		if (!obj.fixed) {
@@ -1008,7 +1038,18 @@ function drawInspect() {
 
 }
 
-// TODO: have velocity here?
+function makeCollision(target: GameObj<any>, dis: Vec2): Collision {
+	return {
+		target: target,
+		displacement: dis,
+		isTop: () => dis.y > 0,
+		isBottom: () => dis.y < 0,
+		isLeft: () => dis.x > 0,
+		isRight: () => dis.x < 0,
+	};
+}
+
+// TODO: manage global velocity here?
 function pos(...args): PosComp {
 
 	return {
@@ -1017,14 +1058,14 @@ function pos(...args): PosComp {
 		pos: vec2(...args),
 
 		// TODO: clean
-		moveBy(...args) {
+		moveBy(...args): Collision | null {
 
 			const p = vec2(...args);
 			let dx = p.x;
 			let dy = p.y;
 			let col = null;
 
-			if (this.solid && this.area) {
+			if (this.solid && this.area?.shape === "rect") {
 
 				let a1 = this.worldArea();
 
@@ -1033,7 +1074,12 @@ function pos(...args): PosComp {
 
 					// make sure we still exist, don't check with self, and only
 					// check with other solid objects
-					if (!this.exists() || other === this || !other.solid) {
+					if (
+						!this.exists()
+						|| other === this
+						|| !other.solid
+						|| other.area?.shape !== "rect"
+					) {
 						return;
 					}
 
@@ -1041,7 +1087,7 @@ function pos(...args): PosComp {
 					let md = minkDiff(a2, a1);
 
 					// if they're already overlapping, push them away first
-					if (testRectPt(md, vec2(0))) {
+					if (testRectPoint(md, vec2(0))) {
 
 						let dist = Math.min(
 							Math.abs(md.p1.x),
@@ -1069,7 +1115,6 @@ function pos(...args): PosComp {
 
 					const ray = { p1: vec2(0), p2: vec2(dx, dy) };
 					let minT = 1;
-					let minSide = "right";
 					const p1 = md.p1;
 					const p2 = vec2(md.p1.x, md.p2.y);
 					const p3 = md.p2;
@@ -1098,7 +1143,6 @@ function pos(...args): PosComp {
 							numCols++;
 							if (t < minT) {
 								minT = t;
-								minSide = s;
 							}
 						}
 					}
@@ -1106,14 +1150,12 @@ function pos(...args): PosComp {
 					// if moving away, we forgive
 					if (
 						minT < 1
-						&& !(minT === 0 && numCols == 1 && !testRectPt(md, vec2(dx, dy)))
+						&& !(minT === 0 && numCols == 1 && !testRectPoint(md, vec2(dx, dy)))
 					) {
+						const dis = vec2(-dx * (1 - minT), -dy * (1 - minT));
 						dx *= minT;
 						dy *= minT;
-						col = {
-							obj: other,
-							side: minSide,
-						};
+						col = makeCollision(other, dis);
 					}
 
 				});
@@ -1124,14 +1166,8 @@ function pos(...args): PosComp {
 			this.pos.y += dy;
 
 			if (col) {
-				const opposite = {
-					"right": "left",
-					"left": "right",
-					"top": "bottom",
-					"bottom": "top",
-				};
-				this.trigger("collide", col.obj, col.side);
-				col.obj.trigger("collide", this, opposite[col.side]);
+				this.trigger("collide", col.target, col);
+				col.target.trigger("collide", this, makeCollision(this, col.displacement.scale(-1)));
 			}
 
 			return col;
@@ -1139,7 +1175,7 @@ function pos(...args): PosComp {
 		},
 
 		// move with velocity (pixels per second)
-		move(...args) {
+		move(...args): Collision | null {
 			return this.moveBy(vec2(...args).scale(dt()));
 		},
 
@@ -1172,7 +1208,7 @@ function pos(...args): PosComp {
 		},
 
 		inspect() {
-			return `(${~~this.pos.x}, ${~~this.pos.y})`;
+			return `(${Math.round(this.pos.x)}, ${Math.round(this.pos.y)})`;
 		},
 
 	};
@@ -1267,7 +1303,7 @@ function z(z: number): ZComp {
 	};
 }
 
-function follow(obj: Character, offset?: Vec2): FollowComp {
+function follow(obj: GameObj, offset?: Vec2): FollowComp {
 	return {
 		id: "follow",
 		require: [ "pos", ],
@@ -1309,7 +1345,7 @@ function cleanup(time: number = 0): CleanupComp {
 				p1: vec2(0, 0),
 				p2: vec2(width(), height()),
 			}
-			if (testRectRect2(this.screenArea(), screenRect)) {
+			if (testAreaRect(this.screenArea(), screenRect)) {
 				timer = 0;
 			} else {
 				timer += dt();
@@ -1321,8 +1357,7 @@ function cleanup(time: number = 0): CleanupComp {
 	};
 }
 
-// TODO: tell which side collides
-function area(conf: AreaCompConf = {}): AreaComp {
+function area(opt: AreaCompOpt = {}): AreaComp {
 
 	const colliding = {};
 
@@ -1339,21 +1374,12 @@ function area(conf: AreaCompConf = {}): AreaComp {
 		},
 
 		area: {
-			offset: conf.offset ?? vec2(0),
-			width: conf.width,
-			height: conf.height,
-			scale: conf.scale ?? vec2(1),
-			cursor: conf.cursor,
-		},
-
-		areaWidth(): number {
-			const { p1, p2 } = this.worldArea();
-			return p2.x - p1.x;
-		},
-
-		areaHeight(): number {
-			const { p1, p2 } = this.worldArea();
-			return p2.y - p1.y;
+			shape: "rect",
+			offset: opt.offset ?? vec2(0),
+			width: opt.width,
+			height: opt.height,
+			scale: opt.scale ?? vec2(1),
+			cursor: opt.cursor,
 		},
 
 		isClicked(): boolean {
@@ -1363,9 +1389,9 @@ function area(conf: AreaCompConf = {}): AreaComp {
 		isHovering() {
 			const mpos = this.fixed ? mousePos() : mouseWorldPos();
 			if (app.isTouch) {
-				return app.mouseDown() && this.hasPt(mpos);
+				return app.mouseDown() && this.hasPoint(mpos);
 			} else {
-				return this.hasPt(mpos);
+				return this.hasPoint(mpos);
 			}
 		},
 
@@ -1375,13 +1401,14 @@ function area(conf: AreaCompConf = {}): AreaComp {
 			}
 			const a1 = this.worldArea();
 			const a2 = other.worldArea();
-			return testRectRect(a1, a2);
+			return testAreaArea(a1, a2);
 		},
 
 		isTouching(other) {
 			if (!other.area || !other.exists()) {
 				return false;
 			}
+			// TODO: support other shapes
 			const a1 = this.worldArea();
 			const a2 = other.worldArea();
 			return testRectRect2(a1, a2);
@@ -1407,28 +1434,25 @@ function area(conf: AreaCompConf = {}): AreaComp {
 			});
 		},
 
-		collides(tag: Tag, f: (o: Character, side?: RectSide) => void): EventCanceller {
+		collides(tag: Tag, f: (o: GameObj, col?: Collision) => void): EventCanceller {
 			const e1 = this.action(() => this._checkCollisions(tag, f));
-			const e2 = this.on("collide", (obj, side) => obj.is(tag) && f(obj, side));
+			const e2 = this.on("collide", (obj, col) => obj.is(tag) && f(obj, col));
 			return () => [e1, e2].forEach((f) => f());
 		},
 
-		hasPt(pt: Vec2): boolean {
-			const a = this.worldArea();
-			return testRectPt({
-				p1: a.p1,
-				p2: a.p2,
-			}, pt);
+		hasPoint(pt: Vec2): boolean {
+			return testAreaPoint(this.worldArea(), pt);
 		},
 
 		// push an obj out of another if they're overlapped
-		pushOut(obj: Character): Vec2 | null {
+		pushOut(obj: GameObj): Vec2 | null {
 
 			if (obj === this) {
 				return null;
 			}
 
-			if (!obj.area) {
+			// TODO: support other shapes
+			if (obj.area?.shape !== "rect") {
 				return null;
 			}
 
@@ -1436,7 +1460,7 @@ function area(conf: AreaCompConf = {}): AreaComp {
 			const a2 = obj.worldArea();
 			const md = minkDiff(a1, a2);
 
-			if (!testRectPt(md, vec2(0))) {
+			if (!testRectPoint(md, vec2(0))) {
 				return null;
 			}
 
@@ -1462,7 +1486,7 @@ function area(conf: AreaCompConf = {}): AreaComp {
 
 		// push object out of other solid objects
 		pushOutAll() {
-			every((other) => this.pushOut(other));
+			every(this.pushOut);
 		},
 
 		// @ts-ignore
@@ -1475,7 +1499,6 @@ function area(conf: AreaCompConf = {}): AreaComp {
 				}
 
 				if (this.isColliding(obj)) {
-					// TODO: return side
 					this.trigger("collide", obj, null);
 					colliding[obj._id] = obj;
 				}
@@ -1493,7 +1516,7 @@ function area(conf: AreaCompConf = {}): AreaComp {
 
 		// TODO: cache
 		// TODO: use matrix mult for more accuracy and rotation?
-		worldArea(): Rect {
+		worldArea(): Area {
 
 			let w = this.area.width ?? this.width;
 			let h = this.area.height ?? this.height;
@@ -1513,18 +1536,20 @@ function area(conf: AreaCompConf = {}): AreaComp {
 				.sub(orig.add(1, 1).scale(0.5).scale(w, h));
 
 			return {
+				shape: "rect",
 				p1: pos,
 				p2: vec2(pos.x + w, pos.y + h),
 			};
 
 		},
 
-		screenArea(): Rect {
+		screenArea(): Area {
 			const area = this.worldArea();
 			if (this.fixed) {
 				return area;
 			} else {
 				return {
+					shape: "rect",
 					p1: game.camMatrix.multVec2(area.p1),
 					p2: game.camMatrix.multVec2(area.p2),
 				};
@@ -1533,6 +1558,21 @@ function area(conf: AreaCompConf = {}): AreaComp {
 
 	};
 
+}
+
+// make the list of common render properties from the "pos", "scale", "color", "opacity", "rotate", "origin", "outline", and "shader" components of a character
+function getRenderProps(obj: GameObj<any>) {
+	return {
+		pos: obj.pos,
+		scale: obj.scale,
+		color: obj.color,
+		opacity: obj.opacity,
+		angle: obj.angle,
+		origin: obj.origin,
+		outline: obj.outline,
+		shader: assets.shaders[obj.shader],
+		uniform: obj.uniform,
+	};
 }
 
 interface SpriteCurAnim {
@@ -1545,7 +1585,7 @@ interface SpriteCurAnim {
 }
 
 // TODO: clean
-function sprite(id: string | SpriteData, conf: SpriteCompConf = {}): SpriteComp {
+function sprite(id: string | SpriteData, opt: SpriteCompOpt = {}): SpriteComp {
 
 	let spr = null;
 	let curAnim: SpriteCurAnim | null = null;
@@ -1571,9 +1611,9 @@ function sprite(id: string | SpriteData, conf: SpriteCompConf = {}): SpriteComp 
 		// TODO: allow update
 		width: 0,
 		height: 0,
-		frame: conf.frame || 0,
-		quad: conf.quad || quad(0, 0, 1, 1),
-		animSpeed: conf.animSpeed ?? 1,
+		frame: opt.frame || 0,
+		quad: opt.quad || quad(0, 0, 1, 1),
+		animSpeed: opt.animSpeed ?? 1,
 
 		load() {
 
@@ -1589,38 +1629,32 @@ function sprite(id: string | SpriteData, conf: SpriteCompConf = {}): SpriteComp 
 
 			let q = { ...spr.frames[0] };
 
-			if (conf.quad) {
-				q = q.scale(conf.quad);
+			if (opt.quad) {
+				q = q.scale(opt.quad);
 			}
 
-			const scale = calcTexScale(spr.tex, q, conf.width, conf.height);
+			const scale = calcTexScale(spr.tex, q, opt.width, opt.height);
 
 			this.width = spr.tex.width * q.w * scale.x;
 			this.height = spr.tex.height * q.h * scale.y;
 
-			if (conf.anim) {
-				this.play(conf.anim);
+			if (opt.anim) {
+				this.play(opt.anim);
 			}
 
 		},
 
 		draw() {
-			drawSprite(spr, {
-				pos: this.pos,
-				scale: this.scale,
-				rot: this.angle,
-				color: this.color,
-				opacity: this.opacity,
+			drawSprite({
+				...getRenderProps(this),
+				sprite: spr,
 				frame: this.frame,
-				origin: this.origin,
 				quad: this.quad,
-				prog: assets.shaders[this.shader],
-				uniform: this.uniform,
-				flipX: conf.flipX,
-				flipY: conf.flipY,
-				tiled: conf.tiled,
-				width: conf.width,
-				height: conf.height,
+				flipX: opt.flipX,
+				flipY: opt.flipY,
+				tiled: opt.tiled,
+				width: opt.width,
+				height: opt.height,
 			});
 		},
 
@@ -1673,8 +1707,8 @@ function sprite(id: string | SpriteData, conf: SpriteCompConf = {}): SpriteComp 
 
 		},
 
-		// TODO: this conf should be used instead of the sprite data conf, if given
-		play(name: string, conf: SpriteAnimPlayConf = {}) {
+		// TODO: this opt should be used instead of the sprite data opt, if given
+		play(name: string, opt: SpriteAnimPlayOpt = {}) {
 
 			if (!spr) {
 				ready(() => {
@@ -1696,10 +1730,10 @@ function sprite(id: string | SpriteData, conf: SpriteCompConf = {}): SpriteComp 
 			curAnim = {
 				name: name,
 				timer: 0,
-				loop: conf.loop ?? anim.loop ?? false,
-				pingpong: conf.pingpong ?? anim.pingpong ?? false,
-				speed: conf.speed ?? anim.speed ?? 10,
-				onEnd: conf.onEnd ?? (() => {}),
+				loop: opt.loop ?? anim.loop ?? false,
+				pingpong: opt.pingpong ?? anim.pingpong ?? false,
+				speed: opt.speed ?? anim.speed ?? 10,
+				onEnd: opt.onEnd ?? (() => {}),
 			};
 
 			if (typeof anim === "number") {
@@ -1733,11 +1767,11 @@ function sprite(id: string | SpriteData, conf: SpriteCompConf = {}): SpriteComp 
 		},
 
 		flipX(b: boolean) {
-			conf.flipX = b;
+			opt.flipX = b;
 		},
 
 		flipY(b: boolean) {
-			conf.flipY = b;
+			opt.flipY = b;
 		},
 
 		inspect() {
@@ -1754,25 +1788,24 @@ function sprite(id: string | SpriteData, conf: SpriteCompConf = {}): SpriteComp 
 
 }
 
-function text(t: string, conf: TextCompConf = {}): TextComp {
+function text(t: string, opt: TextCompOpt = {}): TextComp {
 
 	function update() {
 
-		const font = assets.fonts[this.font ?? gconf.font ?? DEF_FONT];
+		const name = this.font ?? gopt.font ?? DEF_FONT;
+		const font = assets.fonts[name];
 
 		if (!font) {
-			throw new Error(`font not found: "${font}"`);
+			throw new Error(`font not found: "${name}"`);
 		}
 
-		const ftext = gfx.fmtText(this.text + "", font, {
-			pos: this.pos,
-			scale: this.scale,
-			rot: this.angle,
-			size: conf.size,
-			origin: this.origin,
-			color: this.color,
-			opacity: this.opacity,
-			width: conf.width,
+		const ftext = gfx.fmtText({
+			...getRenderProps(this),
+			text: this.text + "",
+			size: this.textSize,
+			font: font,
+			width: opt.width,
+			transform: opt.transform,
 		});
 
 		this.width = ftext.width / (this.scale?.x || 1);
@@ -1786,8 +1819,8 @@ function text(t: string, conf: TextCompConf = {}): TextComp {
 
 		id: "text",
 		text: t,
-		textSize: conf.size,
-		font: conf.font,
+		textSize: opt.size,
+		font: opt.font,
 		width: 0,
 		height: 0,
 
@@ -1803,69 +1836,68 @@ function text(t: string, conf: TextCompConf = {}): TextComp {
 
 }
 
-// TODO: accept p1: Vec2 p2: Vec2
-function rect(w: number, h: number): RectComp {
+function rect(w: number, h: number, opt: RectCompOpt = {}): RectComp {
+	return {
+		id: "rect",
+		width: w,
+		height: h,
+		radius: opt.radius || 0,
+		draw() {
+			gfx.drawRect({
+				...getRenderProps(this),
+				width: this.width,
+				height: this.height,
+				radius: this.radius,
+			});
+		},
+		inspect() {
+			return `${Math.ceil(this.width)}, ${Math.ceil(this.height)}`;
+		},
+	};
+}
+
+function uvquad(w: number, h: number): UVQuadComp {
 	return {
 		id: "rect",
 		width: w,
 		height: h,
 		draw() {
-			gfx.drawRect(this.pos, this.width, this.height, {
-				scale: this.scale,
-				rot: this.angle,
-				color: this.color,
-				opacity: this.opacity,
-				origin: this.origin,
-				prog: assets.shaders[this.shader],
-				uniform: this.uniform,
+			gfx.drawUVQuad({
+				...getRenderProps(this),
+				width: this.width,
+				height: this.height,
 			});
 		},
 		inspect() {
-			return `${this.width}, ${this.height}`;
+			return `${Math.ceil(this.width)}, ${Math.ceil(this.height)}`;
+		},
+	};
+}
+
+function circle(radius: number): CircleComp {
+	return {
+		id: "circle",
+		radius: radius,
+		draw() {
+			gfx.drawCircle({
+				...getRenderProps(this),
+				radius: this.radius,
+			});
+		},
+		inspect() {
+			return `${Math.ceil(this.radius)}`;
 		},
 	};
 }
 
 function outline(width: number = 1, color: Color = rgb(0, 0, 0)): OutlineComp {
-
 	return {
-
 		id: "outline",
-		lineWidth: width,
-		lineColor: color,
-
-		draw() {
-
-			if (this.width && this.height) {
-
-				gfx.drawRectStroke(this.pos || vec2(0), this.width, this.height, {
-					width: this.lineWidth,
-					color: this.lineColor,
-					scale: this.scale,
-					opacity: this.opacity,
-					origin: this.origin,
-					prog: assets.shaders[this.shader],
-					uniform: this.uniform,
-				});
-
-			} else if (this.area) {
-
-				const a = this.worldArea();
-				const w = a.p2.x - a.p1.x;
-				const h = a.p2.y - a.p1.y;
-
-				gfx.drawRectStroke(a.p1, w, h, {
-					width: width,
-					color: color,
-					opacity: this.opacity,
-				});
-
-			}
-
+		outline: {
+			width,
+			color,
 		},
-
 	};
-
 }
 
 function timer(n?: number, action?: () => void): TimerComp {
@@ -1901,20 +1933,20 @@ const DEF_JUMP_FORCE = 640;
 const MAX_VEL = 65536;
 
 // TODO: land on wall
-function body(conf: BodyCompConf = {}): BodyComp {
+function body(opt: BodyCompOpt = {}): BodyComp {
 
 	let velY = 0;
-	let curPlatform: Character | null = null;
+	let curPlatform: GameObj | null = null;
 	let lastPlatformPos = null;
 	let canDouble = true;
 
 	return {
 
 		id: "body",
-		require: [ "pos", ],
-		jumpForce: conf.jumpForce ?? DEF_JUMP_FORCE,
-		weight: conf.weight ?? 1,
-		solid: conf.solid ?? true,
+		require: [ "pos", "area", ],
+		jumpForce: opt.jumpForce ?? DEF_JUMP_FORCE,
+		weight: opt.weight ?? 1,
+		solid: opt.solid ?? true,
 
 		update() {
 
@@ -1958,8 +1990,8 @@ function body(conf: BodyCompConf = {}): BodyComp {
 
 				// check if grounded to a new platform
 				if (col) {
-					if (col.side === "bottom") {
-						curPlatform = col.obj;
+					if (col.isBottom()) {
+						curPlatform = col.target;
 						const oy = velY;
 						velY = 0;
 						if (curPlatform.pos) {
@@ -1969,20 +2001,20 @@ function body(conf: BodyCompConf = {}): BodyComp {
 							this.trigger("ground", curPlatform);
 							canDouble = true;
 						}
-					} else if (col.side === "top") {
+					} else if (col.isTop()) {
 						velY = 0;
-						this.trigger("headbutt", col.obj);
+						this.trigger("headbutt", col.target);
 					}
 				}
 
 				velY += gravity() * this.weight * dt();
-				velY = Math.min(velY, conf.maxVel ?? MAX_VEL);
+				velY = Math.min(velY, opt.maxVel ?? MAX_VEL);
 
 			}
 
 		},
 
-		curPlatform(): Character | null {
+		curPlatform(): GameObj | null {
 			return curPlatform;
 		},
 
@@ -2000,13 +2032,13 @@ function body(conf: BodyCompConf = {}): BodyComp {
 			velY = -force || -this.jumpForce;
 		},
 
-		djump(force: number) {
+		doubleJump(force: number) {
 			if (this.grounded()) {
 				this.jump(force);
 			} else if (canDouble) {
 				canDouble = false;
 				this.jump(force);
-				this.trigger("djump");
+				this.trigger("doubleJump");
 			}
 		},
 
@@ -2015,7 +2047,7 @@ function body(conf: BodyCompConf = {}): BodyComp {
 }
 
 function shader(id: string, uniform: Uniform = {}): ShaderComp {
-	const prog = assets.shaders[id];
+	const shader = assets.shaders[id];
 	return {
 		id: "shader",
 		shader: id,
@@ -2074,12 +2106,12 @@ function health(hp: number): HealthComp {
 	};
 }
 
-function lifespan(time: number, conf: LifespanCompConf = {}): LifespanComp {
+function lifespan(time: number, opt: LifespanCompOpt = {}): LifespanComp {
 	if (time == null) {
 		throw new Error("lifespan() requires time");
 	}
 	let timer = 0;
-	const fade = conf.fade ?? 0;
+	const fade = opt.fade ?? 0;
 	const startFade = Math.max((time - fade), 0);
 	return {
 		id: "lifespan",
@@ -2109,8 +2141,8 @@ const debug: Debug = {
 	},
 	drawCalls: gfx.drawCalls,
 	clearLog: logger.clear,
-	log: logger.info,
-	error: logger.error,
+	log: (msg) => logger.info(`[${app.time().toFixed(2)}] ${msg}`),
+	error: (msg) => logger.error(`[${app.time().toFixed(2)}] ${msg}`),
 	get paused() {
 		return game.paused;
 	},
@@ -2178,8 +2210,12 @@ function go(id: SceneID, ...args) {
 
 		game.scenes[id](...args);
 
-		if (gconf.debug !== false) {
-			regDebugInput();
+		if (gopt.debug !== false) {
+			enterDebugMode();
+		}
+
+		if (gopt.burp) {
+			enterBurpMode();
 		}
 
 	});
@@ -2208,7 +2244,7 @@ function plug<T>(plugin: KaboomPlugin<T>): MergeObj<T> & KaboomCtx {
 	for (const k in funcs) {
 		// @ts-ignore
 		ctx[k] = funcs[k];
-		if (gconf.global !== false) {
+		if (gopt.global !== false) {
 			// @ts-ignore
 			window[k] = funcs[k];
 		}
@@ -2256,14 +2292,14 @@ function grid(level: Level, p: Vec2) {
 
 }
 
-function addLevel(map: string[], conf: LevelConf): Level {
+function addLevel(map: string[], opt: LevelOpt): Level {
 
-	if (!conf.width || !conf.height) {
+	if (!opt.width || !opt.height) {
 		throw new Error("Must provide level grid width & height.");
 	}
 
-	const objs: Character[] = [];
-	const offset = vec2(conf.pos || vec2(0));
+	const objs: GameObj[] = [];
+	const offset = vec2(opt.pos || vec2(0));
 	let longRow = 0;
 
 	const level = {
@@ -2273,33 +2309,33 @@ function addLevel(map: string[], conf: LevelConf): Level {
 		},
 
 		gridWidth() {
-			return conf.width;
+			return opt.width;
 		},
 
 		gridHeight() {
-			return conf.height;
+			return opt.height;
 		},
 
 		getPos(...args): Vec2 {
 			const p = vec2(...args);
 			return vec2(
-				offset.x + p.x * conf.width,
-				offset.y + p.y * conf.height
+				offset.x + p.x * opt.width,
+				offset.y + p.y * opt.height
 			);
 		},
 
-		spawn(sym: string, ...args): Character {
+		spawn(sym: string, ...args): GameObj {
 
 			const p = vec2(...args);
 
 			const comps = (() => {
-				if (conf[sym]) {
-					if (typeof conf[sym] !== "function") {
+				if (opt[sym]) {
+					if (typeof opt[sym] !== "function") {
 						throw new Error("level symbol def must be a function returning a component list");
 					}
-					return conf[sym]();
-				} else if (conf.any) {
-					return conf.any(sym);
+					return opt[sym](p);
+				} else if (opt.any) {
+					return opt.any(sym, p);
 				}
 			})();
 
@@ -2308,8 +2344,8 @@ function addLevel(map: string[], conf: LevelConf): Level {
 			}
 
 			const posComp = vec2(
-				offset.x + p.x * conf.width,
-				offset.y + p.y * conf.height
+				offset.x + p.x * opt.width,
+				offset.y + p.y * opt.height
 			);
 
 			for (const comp of comps) {
@@ -2332,11 +2368,11 @@ function addLevel(map: string[], conf: LevelConf): Level {
 		},
 
 		width() {
-			return longRow * conf.width;
+			return longRow * opt.width;
 		},
 
 		height() {
-			return map.length * conf.height;
+			return map.length * opt.height;
 		},
 
 		destroy() {
@@ -2387,6 +2423,7 @@ const ctx: KaboomCtx = {
 	cursor: app.cursor,
 	regCursor,
 	fullscreen: app.fullscreen,
+	isFullscreen: app.isFullscreen,
 	ready,
 	isTouch: () => app.isTouch,
 	// misc
@@ -2418,6 +2455,8 @@ const ctx: KaboomCtx = {
 	sprite,
 	text,
 	rect,
+	circle,
+	uvquad,
 	outline,
 	body,
 	shader,
@@ -2478,6 +2517,7 @@ const ctx: KaboomCtx = {
 	vec2,
 	dir,
 	rgb,
+	hsl2rgb,
 	quad,
 	choose,
 	chance,
@@ -2487,17 +2527,39 @@ const ctx: KaboomCtx = {
 	wave,
 	deg2rad,
 	rad2deg,
+	testAreaRect,
+	testAreaLine,
+	testAreaCircle,
+	testAreaPolygon,
+	testAreaPoint,
+	testAreaArea,
 	testLineLine,
 	testRectRect,
 	testRectLine,
-	testRectPt,
+	testRectPoint,
+	testPolygonPoint,
+	testLinePolygon,
+	testPolygonPolygon,
+	testCircleCircle,
+	testCirclePoint,
+	testRectPolygon,
 	// raw draw
 	drawSprite,
 	drawText,
+	// TODO: wrap these to use assets lib for the "shader" prop
 	drawRect: gfx.drawRect,
-	drawRectStroke: gfx.drawRectStroke,
 	drawLine: gfx.drawLine,
-	drawTri: gfx.drawTri,
+	drawLines: gfx.drawLines,
+	drawTriangle: gfx.drawTriangle,
+	drawCircle: gfx.drawCircle,
+	drawEllipse: gfx.drawEllipse,
+	drawUVQuad: gfx.drawUVQuad,
+	drawPolygon: gfx.drawPolygon,
+	pushTransform: gfx.pushTransform,
+	popTransform: gfx.popTransform,
+	pushTranslate: gfx.pushTranslate,
+	pushRotate: gfx.pushRotateZ,
+	pushScale: gfx.pushScale,
 	// debug
 	debug,
 	// scene
@@ -2524,11 +2586,11 @@ const ctx: KaboomCtx = {
 
 plug(kaboomPlugin);
 
-if (gconf.plugins) {
-	gconf.plugins.forEach(plug);
+if (gopt.plugins) {
+	gopt.plugins.forEach(plug);
 }
 
-if (gconf.global !== false) {
+if (gopt.global !== false) {
 	for (const k in ctx) {
 		window[k] = ctx[k];
 	}
@@ -2554,12 +2616,34 @@ app.run(() => {
 			game.loaded = true;
 			game.trigger("load");
 		} else {
+
 			const w = width() / 2;
 			const h = 24 / gfx.scale();
 			const pos = vec2(width() / 2, height() / 2).sub(vec2(w / 2, h / 2));
-			gfx.drawRect(vec2(0), width(), height(), { color: rgb(0, 0, 0), });
-			gfx.drawRectStroke(pos, w, h, { width: 4 / gfx.scale(), });
-			gfx.drawRect(pos, w * progress, h);
+
+			gfx.drawRect({
+				pos: vec2(0),
+				width: width(),
+				height: height(),
+				color: rgb(0, 0, 0),
+			});
+
+			gfx.drawRect({
+				pos: pos,
+				width: w,
+				height: h,
+				fill: false,
+				outline: {
+					width: 4 / gfx.scale(),
+				},
+			});
+
+			gfx.drawRect({
+				pos: pos,
+				width: w * progress,
+				height: h,
+			});
+
 		}
 
 	} else {
@@ -2583,8 +2667,12 @@ app.run(() => {
 
 });
 
-if (gconf.debug !== false) {
-	regDebugInput();
+if (gopt.debug !== false) {
+	enterDebugMode();
+}
+
+if (gopt.burp) {
+	enterBurpMode();
 }
 
 window.addEventListener("error", (e) => {

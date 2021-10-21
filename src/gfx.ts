@@ -4,6 +4,8 @@ import {
 	quad,
 	rgb,
 	mat4,
+	dir,
+	deg2rad,
 	isVec2,
 	isVec3,
 	isColor,
@@ -20,8 +22,8 @@ type GfxCtx = {
 	vqueue: number[],
 	iqueue: number[],
 	background: Color,
-	defProg: GfxProgram,
-	curProg: GfxProgram,
+	defShader: GfxShader,
+	curShader: GfxShader,
 	defTex: GfxTexture,
 	curTex: GfxTexture,
 	bgTex: GfxTexture,
@@ -34,7 +36,7 @@ type GfxCtx = {
 	height: number,
 };
 
-type GfxConf = {
+type GfxOpt = {
 	background?: Color,
 	width?: number,
 	height?: number,
@@ -44,63 +46,65 @@ type GfxConf = {
     letterbox?: boolean,
 };
 
+type DrawTextureOpt = RenderProps & {
+	tex: GfxTexture,
+	width?: number,
+	height?: number,
+	tiled?: boolean,
+	flipX?: boolean,
+	flipY?: boolean,
+	quad?: Quad,
+	origin?: Origin | Vec2,
+}
+
+// TODO: name
+type DrawTextOpt2 = RenderProps & {
+	text: string,
+	font?: GfxFont,
+	size?: number,
+	width?: number,
+	origin?: Origin | Vec2,
+	transform?: (idx: number, ch: string) => CharTransform,
+}
+
 type Gfx = {
 	width(): number,
 	height(): number,
 	scale(): number,
 	background(): Color,
-	makeTex(data: GfxTexData, conf?: GfxTexConf): GfxTexture,
-	makeProgram(vert: string, frag: string): GfxProgram,
+	makeTex(data: GfxTexData, opt?: GfxTexOpt): GfxTexture,
+	makeShader(vert: string, frag: string): GfxShader,
 	makeFont(
 		tex: GfxTexture,
 		gw: number,
 		gh: number,
 		chars: string,
 	): GfxFont,
-	drawTexture(
-		tex: GfxTexture,
-		conf?: DrawTextureConf,
-	),
-	drawText(
-		txt: string,
-		font: GfxFont,
-		conf?: DrawTextConf,
-	),
+	drawTexture(opt: DrawTextureOpt),
+	drawText(opt: DrawTextOpt2),
 	drawFmtText(ftext: FormattedText),
-	fmtText(
-		txt: string,
-		font: GfxFont,
-		conf?: DrawTextConf,
-	): FormattedText,
-	drawRect(
-		pos: Vec2,
-		w: number,
-		h: number,
-		conf?: DrawRectConf,
-	),
-	drawRectStroke(
-		pos: Vec2,
-		w: number,
-		h: number,
-		conf?: DrawRectStrokeConf,
-	),
-	drawLine(
-		p1: Vec2,
-		p2: Vec2,
-		conf?: DrawLineConf,
-	),
-	drawTri(
-		p1: Vec2,
-		p2: Vec2,
-		p3: Vec2,
-		conf?: DrawLineConf,
-	),
+	drawRect(opt: DrawRectOpt),
+	drawLine(opt: DrawLineOpt),
+	drawLines(opt: DrawLinesOpt),
+	drawTriangle(opt: DrawTriangleOpt),
+	drawCircle(opt: DrawCircleOpt),
+	drawEllipse(opt: DrawEllipseOpt),
+	drawPolygon(opt: DrawPolyOpt),
+	drawUVQuad(opt: DrawUVQuadOpt),
+	fmtText(opt: DrawTextOpt2): FormattedText,
 	frameStart(),
 	frameEnd(),
-	pushTransform(),
-	pushTranslate(p: Vec2),
-	popTransform(),
-	pushMatrix(m: Mat4),
+	pushTransform(): void,
+	popTransform(): void,
+	pushTranslate(x: number, y: number): void,
+	pushTranslate(p: Vec2): void,
+	pushScale(sx: number, sy: number): void,
+	pushScale(s: number): void,
+	pushScale(s: Vec2): void,
+	pushRotateX(angle: number): void,
+	pushRotateY(angle: number): void,
+	pushRotateZ(angle: number): void,
+	applyMatrix(m: Mat4),
 	drawCalls(): number,
 };
 
@@ -183,16 +187,16 @@ function originPt(orig: Origin | Vec2): Vec2 {
 	}
 }
 
-function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
+function gfxInit(gl: WebGLRenderingContext, gopt: GfxOpt): Gfx {
 
 	const gfx: GfxCtx = (() => {
 
-		const defProg = makeProgram(DEF_VERT, DEF_FRAG);
+		const defShader = makeShader(DEF_VERT, DEF_FRAG);
 		const emptyTex = makeTex(
 			new ImageData(new Uint8ClampedArray([ 255, 255, 255, 255, ]), 1, 1)
 		);
 
-		const c = gconf.background ?? rgb(0, 0, 0);
+		const c = gopt.background ?? rgb(0, 0, 0);
 
 		gl.clearColor(c.r / 255, c.g / 255, c.b / 255, 1);
 		gl.enable(gl.BLEND);
@@ -211,6 +215,7 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 		gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, QUEUE_COUNT * 2, gl.DYNAMIC_DRAW);
 		gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
 
+		// a checkerboard texture
 		const bgTex = makeTex(
 			new ImageData(new Uint8ClampedArray([
 				128, 128, 128, 255,
@@ -226,8 +231,8 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 		return {
 			drawCalls: 0,
 			lastDrawCalls: 0,
-			defProg: defProg,
-			curProg: defProg,
+			defShader: defShader,
+			curShader: defShader,
 			defTex: emptyTex,
 			curTex: emptyTex,
 			curUniform: {},
@@ -239,8 +244,8 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 			transformStack: [],
 			background: c,
 			bgTex: bgTex,
-			width: gconf.width,
-			height: gconf.height,
+			width: gopt.width,
+			height: gopt.height,
 		};
 
 	})();
@@ -249,7 +254,7 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 		return (Math.log(n) / Math.log(2)) % 1 === 0;
 	}
 
-	function makeTex(data: GfxTexData, conf: GfxTexConf = {}): GfxTexture {
+	function makeTex(data: GfxTexData, opt: GfxTexOpt = {}): GfxTexture {
 
 		const id = gl.createTexture();
 
@@ -257,7 +262,7 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 		gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, data);
 
 		const filter = (() => {
-			switch (conf.filter ?? gconf.texFilter) {
+			switch (opt.filter ?? gopt.texFilter) {
 				case "linear": return gl.LINEAR;
 				case "nearest": return gl.NEAREST;
 				default: return gl.NEAREST;
@@ -265,7 +270,7 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 		})();
 
 		const wrap = (() => {
-			switch (conf.wrap) {
+			switch (opt.wrap) {
 				case "repeat": return gl.REPEAT;
 				case "clampToEdge": return gl.CLAMP_TO_EDGE;
 				default: return gl.CLAMP_TO_EDGE;
@@ -291,10 +296,10 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 
 	}
 
-	function makeProgram(
+	function makeShader(
 		vertSrc: string | null = DEF_VERT,
 		fragSrc: string | null = DEF_FRAG,
-	): GfxProgram {
+	): GfxShader {
 
 		let msg;
 		const vcode = VERT_TEMPLATE.replace("{{user}}", vertSrc ?? DEF_VERT);
@@ -354,7 +359,6 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 
 			send(uniform: Uniform) {
 				this.bind();
-				// TODO: slow for vec2
 				for (const name in uniform) {
 					const val = uniform[name];
 					const loc = gl.getUniformLocation(id, name);
@@ -416,17 +420,17 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 		verts: Vertex[],
 		indices: number[],
 		tex: GfxTexture = gfx.defTex,
-		prog: GfxProgram = gfx.defProg,
+		shader: GfxShader = gfx.defShader,
 		uniform: Uniform = {},
 	) {
 
 		tex = tex ?? gfx.defTex;
-		prog = prog ?? gfx.defProg;
+		shader = shader ?? gfx.defShader;
 
 		// flush on texture / shader change and overflow
 		if (
 			tex !== gfx.curTex
-			|| prog !== gfx.curProg
+			|| shader !== gfx.curShader
 			|| !deepEq(gfx.curUniform, uniform)
 			|| gfx.vqueue.length + verts.length * STRIDE > QUEUE_COUNT
 			|| gfx.iqueue.length + indices.length > QUEUE_COUNT
@@ -435,27 +439,21 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 		}
 
 		gfx.curTex = tex;
-		gfx.curProg = prog;
+		gfx.curShader = shader;
 		gfx.curUniform = uniform;
 
-		const nIndices = indices
-			.map((i) => {
-				return i + gfx.vqueue.length / STRIDE;
-			});
+		indices.forEach((i) => {
+			gfx.iqueue.push(i + gfx.vqueue.length / STRIDE);
+		});
 
-		const nVerts = verts
-			.map((v) => {
-				const pt = toNDC(gfx.transform.multVec2(v.pos.xy()));
-				return [
-					pt.x, pt.y, v.pos.z,
-					v.uv.x, v.uv.y,
-					v.color.r / 255, v.color.g / 255, v.color.b / 255, v.opacity
-				];
-			})
-			.flat();
-
-		nIndices.forEach((i) => gfx.iqueue.push(i));
-		nVerts.forEach((v) => gfx.vqueue.push(v));
+		verts.forEach((v) => {
+			const pt = toNDC(gfx.transform.multVec2(v.pos.xy()));
+			gfx.vqueue.push(
+				pt.x, pt.y, v.pos.z,
+				v.uv.x, v.uv.y,
+				v.color.r / 255, v.color.g / 255, v.color.b / 255, v.opacity,
+			);
+		});
 
 	}
 
@@ -463,25 +461,25 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 
 		if (
 			!gfx.curTex
-			|| !gfx.curProg
+			|| !gfx.curShader
 			|| gfx.vqueue.length === 0
 			|| gfx.iqueue.length === 0
 		) {
 			return;
 		}
 
-		gfx.curProg.send(gfx.curUniform);
+		gfx.curShader.send(gfx.curUniform);
 
 		gl.bindBuffer(gl.ARRAY_BUFFER, gfx.vbuf);
 		gl.bufferSubData(gl.ARRAY_BUFFER, 0, new Float32Array(gfx.vqueue));
 		gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, gfx.ibuf);
 		gl.bufferSubData(gl.ELEMENT_ARRAY_BUFFER, 0, new Uint16Array(gfx.iqueue));
-		gfx.curProg.bind();
-		gfx.curProg.bindAttribs();
+		gfx.curShader.bind();
+		gfx.curShader.bindAttribs();
 		gfx.curTex.bind();
 		gl.drawElements(gl.TRIANGLES, gfx.iqueue.length, gl.UNSIGNED_SHORT, 0);
 		gfx.curTex.unbind();
-		gfx.curProg.unbind();
+		gfx.curShader.unbind();
 		gl.bindBuffer(gl.ARRAY_BUFFER, null);
 		gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
 
@@ -496,8 +494,8 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 
 		gl.clear(gl.COLOR_BUFFER_BIT);
 
-		if (!gconf.background) {
-			drawQuad({
+		if (!gopt.background) {
+			drawUVQuad({
 				width: width(),
 				height: height(),
 				quad: quad(
@@ -532,22 +530,21 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 		);
 	}
 
-	// TODO: don't use push as prefix for these
-	function pushMatrix(m: Mat4) {
+	function applyMatrix(m: Mat4) {
 		gfx.transform = m.clone();
 	}
 
-	function pushTranslate(p: Vec2) {
-		if (!p || (p.x === 0 && p.y === 0)) {
-			return;
-		}
+	function pushTranslate(...args) {
+		if (args[0] === undefined) return;
+		const p = vec2(...args);
+		if (p.x === 0 && p.y === 0) return;
 		gfx.transform = gfx.transform.translate(p);
 	}
 
-	function pushScale(p: Vec2) {
-		if (!p || (p.x === 1 && p.y === 1)) {
-			return;
-		}
+	function pushScale(...args) {
+		if (args[0] === undefined) return;
+		const p = vec2(...args);
+		if (p.x === 1 && p.y === 1) return;
 		gfx.transform = gfx.transform.scale(p);
 	}
 
@@ -582,85 +579,93 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 		}
 	}
 
-	// TODO: clean
-	// draw a textured quad
-	function drawQuad(conf: DrawQuadConf = {}) {
+	// draw a uv textured quad
+	function drawUVQuad(opt: DrawUVQuadOpt) {
 
-		const w = conf.width || 0;
-		const h = conf.height || 0;
-		const pos = conf.pos || vec2(0, 0);
-		const origin = originPt(conf.origin || DEF_ORIGIN);
+		if (opt.width === undefined || opt.height === undefined) {
+			throw new Error("drawUVQuad() requires property \"width\" and \"height\".");
+		}
+
+		if (opt.width <= 0 || opt.height <= 0) {
+			return;
+		}
+
+		const w = opt.width;
+		const h = opt.height;
+		const origin = originPt(opt.origin || DEF_ORIGIN);
 		const offset = origin.scale(vec2(w, h).scale(-0.5));
-		const scale = vec2(conf.scale ?? 1);
-		const rot = conf.rot || 0;
-		const q = conf.quad || quad(0, 0, 1, 1);
-		const z = 1 - (conf.z ?? 0);
-		const color = conf.color || rgb();
+		const q = opt.quad || quad(0, 0, 1, 1);
+		const color = opt.color || rgb(255, 255, 255);
+		const opacity = opt.opacity ?? 1;
 
 		pushTransform();
-		pushTranslate(pos);
-		pushRotateZ(rot);
-		pushScale(scale);
+		pushTranslate(opt.pos);
+		pushRotateZ(opt.angle);
+		pushScale(opt.scale);
 		pushTranslate(offset);
 
 		drawRaw([
 			{
-				pos: vec3(-w / 2, h / 2, z),
-				uv: vec2(conf.flipX ? q.x + q.w : q.x, conf.flipY ? q.y : q.y + q.h),
+				pos: vec3(-w / 2, h / 2, 0),
+				uv: vec2(opt.flipX ? q.x + q.w : q.x, opt.flipY ? q.y : q.y + q.h),
 				color: color,
-				opacity: conf.opacity ?? 1,
+				opacity: opacity,
 			},
 			{
-				pos: vec3(-w / 2, -h / 2, z),
-				uv: vec2(conf.flipX ? q.x + q.w : q.x, conf.flipY ? q.y + q.h : q.y),
+				pos: vec3(-w / 2, -h / 2, 0),
+				uv: vec2(opt.flipX ? q.x + q.w : q.x, opt.flipY ? q.y + q.h : q.y),
 				color: color,
-				opacity: conf.opacity ?? 1,
+				opacity: opacity,
 			},
 			{
-				pos: vec3(w / 2, -h / 2, z),
-				uv: vec2(conf.flipX ? q.x : q.x + q.w, conf.flipY ? q.y + q.h : q.y),
+				pos: vec3(w / 2, -h / 2, 0),
+				uv: vec2(opt.flipX ? q.x : q.x + q.w, opt.flipY ? q.y + q.h : q.y),
 				color: color,
-				opacity: conf.opacity ?? 1,
+				opacity: opacity,
 			},
 			{
-				pos: vec3(w / 2, h / 2, z),
-				uv: vec2(conf.flipX ? q.x : q.x + q.w, conf.flipY ? q.y : q.y + q.h),
+				pos: vec3(w / 2, h / 2, 0),
+				uv: vec2(opt.flipX ? q.x : q.x + q.w, opt.flipY ? q.y : q.y + q.h),
 				color: color,
-				opacity: conf.opacity ?? 1,
+				opacity: opacity,
 			},
-		], [0, 1, 3, 1, 2, 3], conf.tex, conf.prog, conf.uniform);
+		], [0, 1, 3, 1, 2, 3], opt.tex, opt.shader, opt.uniform);
 
 		popTransform();
 
 	}
 
+	// TODO: clean
 	function drawTexture(
-		tex: GfxTexture,
-		conf: DrawTextureConf = {},
+		opt: DrawTextureOpt,
 	) {
 
-		const q = conf.quad ?? quad(0, 0, 1, 1);
-		const w = tex.width * q.w;
-		const h = tex.height * q.h;
+		if (!opt.tex) {
+			throw new Error("drawTexture() requires property \"tex\".");
+		}
+
+		const q = opt.quad ?? quad(0, 0, 1, 1);
+		const w = opt.tex.width * q.w;
+		const h = opt.tex.height * q.h;
 		const scale = vec2(1);
 
-		if (conf.tiled) {
+		if (opt.tiled) {
 
 			// TODO: draw fract
-			const repX = Math.ceil((conf.width || w) / w);
-			const repY = Math.ceil((conf.height || h) / h);
-			const origin = originPt(conf.origin || DEF_ORIGIN).add(vec2(1, 1)).scale(0.5);
+			const repX = Math.ceil((opt.width || w) / w);
+			const repY = Math.ceil((opt.height || h) / h);
+			const origin = originPt(opt.origin || DEF_ORIGIN).add(vec2(1, 1)).scale(0.5);
 			const offset = origin.scale(repX * w, repY * h);
 
 			// TODO: rotation
 			for (let i = 0; i < repX; i++) {
 				for (let j = 0; j < repY; j++) {
-					drawQuad({
-						...conf,
-						pos: (conf.pos || vec2(0)).add(vec2(w * i, h * j)).sub(offset),
+					drawUVQuad({
+						...opt,
+						pos: (opt.pos || vec2(0)).add(vec2(w * i, h * j)).sub(offset),
 						// @ts-ignore
-						scale: scale.scale(conf.scale || vec2(1)),
-						tex: tex,
+						scale: scale.scale(opt.scale || vec2(1)),
+						tex: opt.tex,
 						quad: q,
 						width: w,
 						height: h,
@@ -671,22 +676,22 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 		} else {
 
 			// TODO: should this ignore scale?
-			if (conf.width && conf.height) {
-				scale.x = conf.width / w;
-				scale.y = conf.height / h;
-			} else if (conf.width) {
-				scale.x = conf.width / w;
+			if (opt.width && opt.height) {
+				scale.x = opt.width / w;
+				scale.y = opt.height / h;
+			} else if (opt.width) {
+				scale.x = opt.width / w;
 				scale.y = scale.x;
-			} else if (conf.height) {
-				scale.y = conf.height / h;
+			} else if (opt.height) {
+				scale.y = opt.height / h;
 				scale.x = scale.y;
 			}
 
-			drawQuad({
-				...conf,
+			drawUVQuad({
+				...opt,
 				// @ts-ignore
-				scale: scale.scale(conf.scale || vec2(1)),
-				tex: tex,
+				scale: scale.scale(opt.scale || vec2(1)),
+				tex: opt.tex,
 				quad: q,
 				width: w,
 				height: h,
@@ -696,111 +701,289 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 
 	}
 
-	function drawRect(
+	// generate vertices to form an arc
+	function getArcPts(
 		pos: Vec2,
-		w: number,
-		h: number,
-		conf: DrawRectConf = {}
-	) {
-		drawQuad({
-			...conf,
-			pos: pos,
-			width: w,
-			height: h,
-		});
-	}
+		radiusX: number,
+		radiusY: number,
+		start: number,
+		end: number,
+		res: number = 1,
+	): Vec2[] {
 
-	function drawRectStroke(
-		pos: Vec2,
-		w: number,
-		h: number,
-		conf: DrawRectStrokeConf = {}
-	) {
+		// normalize and turn start and end angles to radians
+		start = deg2rad(start % 360);
+		end = deg2rad(end % 360);
+		if (end <= start) end += Math.PI * 2;
 
-		if (conf.scale) {
-			const scale = vec2(conf.scale);
-			w = w * scale.x;
-			h = h * scale.y;
-			conf.scale = 1;
+		// TODO: better way to get this?
+		// the number of vertices is sqrt(r1 + r2) * 3 * res with a minimum of 16
+		const nverts = Math.ceil(Math.max(Math.sqrt(radiusX + radiusY) * 3 * (res || 1), 16));
+		const step = (end - start) / nverts;
+		const pts = [];
+
+		// calculate vertices
+		for (let a = start; a < end; a += step) {
+			pts.push(pos.add(radiusX * Math.cos(a), radiusY * Math.sin(a)));
 		}
 
-		const offset = originPt(conf.origin || DEF_ORIGIN).scale(vec2(w, h)).scale(0.5);
-		const p1 = pos.add(vec2(-w / 2, -h / 2)).sub(offset);
-		const p2 = pos.add(vec2(-w / 2,  h / 2)).sub(offset);
-		const p3 = pos.add(vec2( w / 2,  h / 2)).sub(offset);
-		const p4 = pos.add(vec2( w / 2, -h / 2)).sub(offset);
+		// doing this on the side due to possible floating point inaccuracy
+		pts.push(pos.add(radiusX * Math.cos(end), radiusY * Math.sin(end)));
 
-		drawLine(p1, p2, conf);
-		drawLine(p2, p3, conf);
-		drawLine(p3, p4, conf);
-		drawLine(p4, p1, conf);
+		return pts;
 
 	}
 
-	function drawLine(
-		p1: Vec2,
-		p2: Vec2,
-		conf: DrawLineConf = {},
-	) {
+	function drawRect(opt: DrawRectOpt) {
 
-		const w = conf.width || 1;
-		const h = p1.dist(p2);
-		const rot = p1.angle(p2) - 90;
+		if (opt.width === undefined || opt.height === undefined) {
+			throw new Error("drawRect() requires property \"width\" and \"height\".");
+		}
 
-		drawQuad({
-			...conf,
-			pos: p1.add(p2).scale(0.5),
-			width: w,
-			height: h,
-			rot: rot,
-			origin: "center",
+		if (opt.width <= 0 || opt.height <= 0) {
+			return;
+		}
+
+		const w = opt.width;
+		const h = opt.height;
+		const origin = originPt(opt.origin || DEF_ORIGIN).add(1, 1);
+		const offset = origin.scale(vec2(w, h).scale(-0.5));
+
+		let pts = [
+			vec2(0, 0),
+			vec2(w, 0),
+			vec2(w, h),
+			vec2(0, h),
+		];
+
+		// TODO: drawPolygon should handle generic rounded corners
+		if (opt.radius) {
+
+			// maxium radius is half the shortest side
+			const r = Math.min(Math.min(w, h) / 2, opt.radius);
+
+			pts = [
+				vec2(r, 0),
+				vec2(w - r, 0),
+				...getArcPts(vec2(w - r, r), r, r, 270, 360),
+				vec2(w, r),
+				vec2(w, h - r),
+				...getArcPts(vec2(w - r, h - r), r, r, 0, 90),
+				vec2(w - r, h),
+				vec2(r, h),
+				...getArcPts(vec2(r, h - r), r, r, 90, 180),
+				vec2(0, h - r),
+				vec2(0, r),
+				...getArcPts(vec2(r, r), r, r, 180, 270),
+			];
+
+		}
+
+		drawPolygon({ ...opt, offset, pts });
+
+	}
+
+	function drawLine(opt: DrawLineOpt) {
+
+		const { p1, p2 } = opt;
+
+		if (!p1 || !p2) {
+			throw new Error("drawLine() requires properties \"p1\" and \"p2\".");
+		}
+
+		const w = opt.width || 1;
+
+		// the displacement from the line end point to the corner point
+		const dis = p2.sub(p1).unit().normal().scale(w * 0.5);
+
+		// calculate the 4 corner points of the line polygon
+		const verts = [
+			p1.sub(dis),
+			p1.add(dis),
+			p2.add(dis),
+			p2.sub(dis),
+		].map((p) => ({
+			pos: vec3(p.x, p.y, 0),
+			uv: vec2(0),
+			color: opt.color ?? rgb(),
+			opacity: opt.opacity ?? 1,
+		}));
+
+		drawRaw(verts, [0, 1, 3, 1, 2, 3], gfx.defTex, opt.shader, opt.uniform);
+
+	}
+
+	function drawLines(opt: DrawLinesOpt) {
+
+		const pts = opt.pts;
+
+		if (!pts) {
+			throw new Error("drawLines() requires property \"pts\".");
+		}
+
+		if (pts.length < 2) {
+			return;
+		}
+
+		if (opt.radius && pts.length >= 3) {
+
+			// TODO: rounded vertices for arbitury polygonic shape
+			let minLen = pts[0].dist(pts[1]);
+
+			for (let i = 1; i < pts.length - 1; i++) {
+				minLen = Math.min(pts[i].dist(pts[i + 1]), minLen);
+			}
+
+			const radius = Math.min(opt.radius, minLen / 2);
+
+			drawLine({ ...opt, p1: pts[0], p2: pts[1], });
+
+			for (let i = 1; i < pts.length - 2; i++) {
+				const p1 = pts[i];
+				const p2 = pts[i + 1];
+				drawLine({
+					...opt,
+					p1: p1,
+					p2: p2,
+				});
+			}
+
+			drawLine({ ...opt, p1: pts[pts.length - 2], p2: pts[pts.length - 1], });
+
+		} else {
+
+			for (let i = 0; i < pts.length - 1; i++) {
+				drawLine({
+					...opt,
+					p1: pts[i],
+					p2: pts[i + 1],
+				});
+			}
+
+		}
+
+	}
+
+	function drawTriangle(opt: DrawTriangleOpt) {
+		if (!opt.p1 || !opt.p2 || !opt.p3) {
+			throw new Error("drawPolygon() requires properties \"p1\", \"p2\" and \"p3\".");
+		}
+		return drawPolygon({
+			...opt,
+			pts: [opt.p1, opt.p2, opt.p3],
+		});
+	}
+
+	// TODO: origin
+	function drawCircle(opt: DrawCircleOpt) {
+
+		if (!opt.radius) {
+			throw new Error("drawCircle() requires property \"radius\".");
+		}
+
+		if (opt.radius === 0) {
+			return;
+		}
+
+		drawEllipse({
+			...opt,
+			radiusX: opt.radius,
+			radiusY: opt.radius,
+			angle: 0,
 		});
 
 	}
 
-	// TODO: not drawing
-	function drawTri(
-		p1: Vec2,
-		p2: Vec2,
-		p3: Vec2,
-		conf: DrawTriConf = {},
-	) {
-		const z = conf.z;
-		const color = conf.color || rgb();
-		drawRaw([
-			{
-				pos: vec3(p1.x, p1.y, z),
+	// TODO: use fan-like triangulation
+	function drawEllipse(opt: DrawEllipseOpt) {
+
+		if (opt.radiusX === undefined || opt.radiusY === undefined) {
+			throw new Error("drawEllipse() requires properties \"radiusX\" and \"radiusY\".");
+		}
+
+		if (opt.radiusX === 0 || opt.radiusY === 0) {
+			return;
+		}
+
+		drawPolygon({
+			...opt,
+			pts: getArcPts(
+				vec2(0),
+				opt.radiusX,
+				opt.radiusY,
+				opt.start ?? 0,
+				opt.end ?? 360,
+				opt.resolution
+			),
+			radius: 0,
+		});
+
+	}
+
+	function drawPolygon(opt: DrawPolyOpt) {
+
+		if (!opt.pts) {
+			throw new Error("drawPolygon() requires property \"pts\".");
+		}
+
+		const npts = opt.pts.length;
+
+		if (npts < 3) {
+			return;
+		}
+
+		pushTransform();
+		pushTranslate(opt.pos);
+		pushScale(opt.scale);
+		pushRotateZ(opt.angle);
+		pushTranslate(opt.offset);
+
+		if (opt.fill !== false) {
+
+			const color = opt.color ?? rgb();
+
+			const verts = opt.pts.map((pt) => ({
+				pos: vec3(pt.x, pt.y, 0),
 				uv: vec2(0, 0),
 				color: color,
-				opacity: conf.opacity ?? 1,
-			},
-			{
-				pos: vec3(p2.x, p2.y, z),
-				uv: vec2(0, 0),
-				color: color,
-				opacity: conf.opacity ?? 1,
-			},
-			{
-				pos: vec3(p3.x, p3.y, z),
-				uv: vec2(0, 0),
-				color: color,
-				opacity: conf.opacity ?? 1,
-			},
-		], [0, 1, 2], gfx.defTex, conf.prog, conf.uniform);
+				opacity: opt.opacity ?? 1,
+			}));
+
+			// TODO: better triangulation
+			const indices = [...Array(npts - 2).keys()]
+				.map((n) => [0, n + 1, n + 2])
+				.flat();
+
+			drawRaw(verts, opt.indices ?? indices, gfx.defTex, opt.shader, opt.uniform);
+
+		}
+
+		if (opt.outline) {
+			drawLines({
+				pts: [ ...opt.pts, opt.pts[0] ],
+				radius: opt.radius,
+				width: opt.outline.width,
+				color: opt.outline.color,
+			});
+		}
+
+		popTransform();
+
 	}
 
 	// format text and return a list of chars with their calculated position
-	function fmtText(
-		text: string,
-		font: GfxFont,
-		conf: DrawTextConf = {}
-	): FormattedText {
+	function fmtText(opt: DrawTextOpt2): FormattedText {
 
-		const chars = (text + "").split("");
+		if (opt.text === undefined) {
+			throw new Error("fmtText() requires property \"text\".");
+		}
+
+		const font = opt.font;
+		const chars = (opt.text + "").split("");
 		const gw = font.qw * font.tex.width;
 		const gh = font.qh * font.tex.height;
-		const size = conf.size || gh;
-		const scale = vec2(size / gh).scale(vec2(conf.scale || 1));
+		const size = opt.size || gh;
+		const scale = vec2(size / gh).scale(vec2(opt.scale || 1));
 		const cw = scale.x * gw;
 		const ch = scale.y * gh;
 		let curX = 0;
@@ -823,7 +1006,7 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 				lastSpace = null;
 				flines.push(curLine);
 				curLine = [];
-			} else if ((conf.width ? (curX + cw > conf.width) : false)) {
+			} else if ((opt.width ? (curX + cw > opt.width) : false)) {
 				// new line on last word if width exceeds
 				th += ch;
 				curX = 0;
@@ -853,17 +1036,18 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 
 		flines.push(curLine);
 
-		if (conf.width) {
-			tw = conf.width;
+		if (opt.width) {
+			tw = opt.width;
 		}
 
 		// whole text offset
 		const fchars = [];
-		const pos = vec2(conf.pos || 0);
-		const offset = originPt(conf.origin || DEF_ORIGIN).scale(0.5);
+		const pos = vec2(opt.pos || 0);
+		const offset = originPt(opt.origin || DEF_ORIGIN).scale(0.5);
 		// this math is complicated i forgot how it works instantly
 		const ox = -offset.x * cw - (offset.x + 0.5) * (tw - cw);
 		const oy = -offset.y * ch - (offset.y + 0.5) * (th - ch);
+		let idx = 0;
 
 		flines.forEach((line, ln) => {
 
@@ -874,17 +1058,28 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 				const qpos = font.map[char];
 				const x = cn * cw;
 				const y = ln * ch;
+				idx += 1;
 				if (qpos) {
-					fchars.push({
+					const fchar = {
 						tex: font.tex,
 						quad: quad(qpos.x, qpos.y, font.qw, font.qh),
 						ch: char,
 						pos: vec2(pos.x + x + ox + oxl, pos.y + y + oy),
-						opacity: conf.opacity,
-						color: conf.color,
-						origin: conf.origin,
+						opacity: opt.opacity,
+						color: opt.color ?? rgb(255, 255, 255),
+						origin: opt.origin,
 						scale: scale,
-					});
+						angle: 0,
+					}
+					if (opt.transform) {
+						const tr = opt.transform(idx, char) ?? {};
+						if (tr.pos) fchar.pos = fchar.pos.add(tr.pos);
+						if (tr.scale) fchar.scale = fchar.scale.scale(vec2(tr.scale));
+						if (tr.angle) fchar.angle += tr.angle;
+						if (tr.color) fchar.color = fchar.color.mult(tr.color);
+						if (tr.opacity) fchar.opacity *= tr.opacity;
+					}
+					fchars.push(fchar);
 				}
 			});
 		});
@@ -897,23 +1092,20 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 
 	}
 
-	function drawText(
-		txt: string,
-		font: GfxFont,
-		conf = {},
-	) {
-		drawFmtText(fmtText(txt, font, conf));
+	function drawText(opt: DrawTextOpt2) {
+		drawFmtText(fmtText(opt));
 	}
 
 	// TODO: rotation
 	function drawFmtText(ftext: FormattedText) {
 		for (const ch of ftext.chars) {
-			drawQuad({
+			drawUVQuad({
 				tex: ch.tex,
 				width: ch.tex.width * ch.quad.w,
 				height: ch.tex.height * ch.quad.h,
 				pos: ch.pos,
 				scale: ch.scale,
+				angle: ch.angle,
 				color: ch.color,
 				opacity: ch.opacity,
 				quad: ch.quad,
@@ -926,22 +1118,22 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 //  	window.addEventListener("resize", updateSize);
 
 	function updateSize() {
-		if (gconf.width && gconf.height && gconf.stretch) {
-			if (gconf.letterbox) {
+		if (gopt.width && gopt.height && gopt.stretch) {
+			if (gopt.letterbox) {
 				// TODO: not working
 				const r1 = gl.drawingBufferWidth / gl.drawingBufferHeight;
-				const r2 = gconf.width / gconf.height;
+				const r2 = gopt.width / gopt.height;
 				if (r1 > r2) {
-					gfx.width = gconf.height * r1;
-					gfx.height = gconf.height;
+					gfx.width = gopt.height * r1;
+					gfx.height = gopt.height;
 					const sw = gl.drawingBufferHeight * r2;
 					const sh = gl.drawingBufferHeight;
 					const x = (gl.drawingBufferWidth - sw) / 2;
 					gl.scissor(x, 0, sw, sh);
 					gl.viewport(x, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
 				} else {
-					gfx.width = gconf.width;
-					gfx.height = gconf.width / r1;
+					gfx.width = gopt.width;
+					gfx.height = gopt.width / r1;
 					const sw = gl.drawingBufferWidth;
 					const sh = gl.drawingBufferWidth / r2;
 					const y = (gl.drawingBufferHeight - sh) / 2;
@@ -949,8 +1141,8 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 					gl.viewport(0, -y, gl.drawingBufferWidth, gl.drawingBufferHeight);
 				}
 			} else {
-				gfx.width = gconf.width;
-				gfx.height = gconf.height;
+				gfx.width = gopt.width;
+				gfx.height = gopt.height;
 				gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
 			}
 		} else {
@@ -971,7 +1163,7 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 	}
 
 	function scale(): number {
-		return gconf.scale ?? 1;
+		return gopt.scale ?? 1;
 	}
 
 	function background(): Color {
@@ -982,28 +1174,35 @@ function gfxInit(gl: WebGLRenderingContext, gconf: GfxConf): Gfx {
 	frameStart();
 	frameEnd();
 
-	// TODO: type this
 	return {
 		width,
 		height,
 		scale,
 		makeTex,
-		makeProgram,
+		makeShader,
 		makeFont,
 		drawTexture,
 		drawText,
 		drawFmtText,
 		drawRect,
-		drawRectStroke,
 		drawLine,
-		drawTri,
+		drawLines,
+		drawTriangle,
+		drawCircle,
+		drawEllipse,
+		drawPolygon,
+		drawUVQuad,
 		fmtText,
 		frameStart,
 		frameEnd,
 		pushTranslate,
+		pushScale,
+		pushRotateX,
+		pushRotateY,
+		pushRotateZ,
 		pushTransform,
 		popTransform,
-		pushMatrix,
+		applyMatrix,
 		drawCalls,
 		background,
 	};

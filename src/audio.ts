@@ -13,8 +13,8 @@ type AudioCtx = {
 type Audio = {
 	ctx: AudioContext,
 	volume(v: number): number,
-	play(snd: SoundData, conf?: AudioPlayConf): AudioPlay,
-	burp(conf?: AudioPlayConf): AudioPlay,
+	play(snd: SoundData, opt?: AudioPlayOpt): AudioPlay,
+	burp(opt?: AudioPlayOpt): AudioPlay,
 };
 
 const MIN_GAIN = 0;
@@ -71,7 +71,7 @@ function audioInit(): Audio {
 	// plays a sound, returns a control handle
 	function play(
 		snd: SoundData,
-		conf: AudioPlayConf = {
+		opt: AudioPlayOpt = {
 			loop: false,
 			volume: 1,
 			speed: 1,
@@ -84,14 +84,14 @@ function audioInit(): Audio {
 		let srcNode = audio.ctx.createBufferSource();
 
 		srcNode.buffer = snd.buf;
-		srcNode.loop = conf.loop ? true : false;
+		srcNode.loop = opt.loop ? true : false;
 
 		const gainNode = audio.ctx.createGain();
 
 		srcNode.connect(gainNode);
 		gainNode.connect(audio.masterNode);
 
-		const pos = conf.seek ?? 0;
+		const pos = opt.seek ?? 0;
 
 		srcNode.start(0, pos);
 
@@ -200,16 +200,16 @@ function audioInit(): Audio {
 
 		};
 
-		handle.speed(conf.speed);
-		handle.detune(conf.detune);
-		handle.volume(conf.volume);
+		handle.speed(opt.speed);
+		handle.detune(opt.detune);
+		handle.volume(opt.volume);
 
 		return handle;
 
 	}
 
-	function burp(conf?: AudioPlayConf): AudioPlay {
-		return play(burpSnd, conf);
+	function burp(opt?: AudioPlayOpt): AudioPlay {
+		return play(burpSnd, opt);
 	}
 
 	return {

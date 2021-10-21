@@ -10,7 +10,7 @@ type ButtonState =
 	| "released"
 	;
 
-type AppConf = {
+type AppOpt = {
 	width?: number,
 	height?: number,
 	stretch?: boolean,
@@ -59,7 +59,8 @@ type App = {
 	mouseMoved(): boolean,
 	charInputted(): string[],
 	cursor(c?: Cursor): Cursor,
-	fullscreen(f?: boolean): boolean,
+	fullscreen(f?: boolean): void,
+	isFullscreen(): boolean,
 	dt(): number,
 	fps(): number,
 	time(): number,
@@ -83,9 +84,28 @@ function processBtnState(s: ButtonState): ButtonState {
 	return s;
 }
 
-function appInit(gconf: AppConf = {}): App {
+function enterFullscreen(el: HTMLElement) {
+	if (el.requestFullscreen) el.requestFullscreen();
+	// @ts-ignore
+	else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen();
+};
 
-    const root = gconf.root ?? document.body;
+function exitFullscreen() {
+	if (document.exitFullscreen) document.exitFullscreen();
+	// @ts-ignore
+	else if (document.webkitExitFullScreen) document.webkitExitFullScreen();
+};
+
+function getFullscreenElement(): Element | void {
+	return document.fullscreenElement
+		// @ts-ignore
+		|| document.webkitFullscreenElement
+		;
+};
+
+function appInit(gopt: AppOpt = {}): App {
+
+    const root = gopt.root ?? document.body;
 
 	if (root === document.body) {
 		document.body.style["width"] = "100%";
@@ -96,7 +116,7 @@ function appInit(gconf: AppConf = {}): App {
 	}
 
 	const app: AppCtx = {
-		canvas: gconf.canvas ?? (() => {
+		canvas: gopt.canvas ?? (() => {
 			const canvas = document.createElement("canvas");
 			root.appendChild(canvas);
 			return canvas;
@@ -113,7 +133,7 @@ function appInit(gconf: AppConf = {}): App {
 		realTime: 0,
 		skipTime: false,
 		dt: 0.0,
-		scale: gconf.scale ?? 1,
+		scale: gopt.scale ?? 1,
 		isTouch: false,
 		loopID: null,
 		stopped: false,
@@ -151,9 +171,9 @@ function appInit(gconf: AppConf = {}): App {
 		"s",
 	];
 
-	if (gconf.width && gconf.height && !gconf.stretch) {
-		app.canvas.width = gconf.width * app.scale;
-		app.canvas.height = gconf.height * app.scale;
+	if (gopt.width && gopt.height && !gopt.stretch) {
+		app.canvas.width = gopt.width * app.scale;
+		app.canvas.height = gopt.height * app.scale;
 	} else {
 		app.canvas.width = app.canvas.parentElement.offsetWidth;
 		app.canvas.height = app.canvas.parentElement.offsetHeight;
@@ -164,7 +184,7 @@ function appInit(gconf: AppConf = {}): App {
 		"cursor: default",
 	];
 
-	if (gconf.crisp) {
+	if (gopt.crisp) {
 		styles.push("image-rendering: pixelated");
 		styles.push("image-rendering: crisp-edges");
 	}
@@ -185,7 +205,13 @@ function appInit(gconf: AppConf = {}): App {
 	app.isTouch = ("ontouchstart" in window) || navigator.maxTouchPoints > 0;
 
 	app.canvas.addEventListener("mousemove", (e) => {
-		app.mousePos = vec2(e.offsetX, e.offsetY).scale(1 / app.scale);
+		if (isFullscreen()) {
+			// in fullscreen mode browser adds letter box to preserve original canvas aspect ratio, but won't give us the transformed mouse position
+			// TODO
+			app.mousePos = vec2(e.offsetX, e.offsetY).scale(1 / app.scale);
+		} else {
+			app.mousePos = vec2(e.offsetX, e.offsetY).scale(1 / app.scale);
+		}
 		app.mouseDeltaPos = vec2(e.movementX, e.movementY).scale(1 / app.scale);
 		app.mouseMoved = true;
 	});
@@ -230,7 +256,7 @@ function appInit(gconf: AppConf = {}): App {
 	});
 
 	app.canvas.addEventListener("touchstart", (e) => {
-		if (!gconf.touchToMouse) return;
+		if (!gopt.touchToMouse) return;
 		// disable long tap context menu
 		e.preventDefault();
 		const t = e.touches[0];
@@ -239,7 +265,7 @@ function appInit(gconf: AppConf = {}): App {
 	});
 
 	app.canvas.addEventListener("touchmove", (e) => {
-		if (!gconf.touchToMouse) return;
+		if (!gopt.touchToMouse) return;
 		// disable scrolling
 		e.preventDefault();
 		const t = e.touches[0];
@@ -248,12 +274,12 @@ function appInit(gconf: AppConf = {}): App {
 	});
 
 	app.canvas.addEventListener("touchend", (e) => {
-		if (!gconf.touchToMouse) return;
+		if (!gopt.touchToMouse) return;
 		app.mouseState = "released";
 	});
 
 	app.canvas.addEventListener("touchcancel", (e) => {
-		if (!gconf.touchToMouse) return;
+		if (!gopt.touchToMouse) return;
 		app.mouseState = "released";
 	});
 
@@ -263,17 +289,17 @@ function appInit(gconf: AppConf = {}): App {
 				// prevent a surge of dt() when switch back after the tab being hidden for a while
 				app.skipTime = true;
 				// TODO: don't resume if debug.paused
-				gconf.audioCtx?.resume();
+				gopt.audioCtx?.resume();
 				break;
 			case "hidden":
-				gconf.audioCtx?.suspend();
+				gopt.audioCtx?.suspend();
 				break;
 		}
 	});
 
 	// TODO: not quite working
 //  	window.addEventListener("resize", () => {
-//  		if (!(gconf.width && gconf.height && !gconf.stretch)) {
+//  		if (!(gopt.width && gopt.height && !gopt.stretch)) {
 //  			app.canvas.width = app.canvas.parentElement.offsetWidth;
 //  			app.canvas.height = app.canvas.parentElement.offsetHeight;
 //  		}
@@ -360,45 +386,26 @@ function appInit(gconf: AppConf = {}): App {
 		return app.canvas.style.cursor;
 	}
 
-	function fullscreen(f?: boolean): boolean {
-		const enterFullscreen = (el: any) => {
-			if(el.mozRequestFullScreen) {
-				el.mozRequestFullScreen();
-			} else if (el.webkitRequestFullScreen) {
-				el.webkitRequestFullScreen();
-			} else {
-				el.requestFullscreen();
-			}
-		};
-
-		const exitFullscreen = (doc: any) => {
-			if(doc.mozExitFullScreen) {
-				doc.mozExitFullScreen();
-			} else if(doc.webkitExitFullScreen) {
-				doc.webkitExitFullScreen();
-			} else {
-				doc.exitFullscreen();
-			}
-		};
-
-		const getFullscreenElement = (doc: any):HTMLElement => {
-			if(doc.mozFullscreenElement !== undefined) return doc.mozFullscreenElement;
-			if(doc.webkitFullscreenElement !== undefined) return doc.webkitFullscreenElement;
-			return doc.fullscreenElement;
-		};
-
-		if (getFullscreenElement(document)) {
-			exitFullscreen(document);
-		} else {
+	function fullscreen(f: boolean = true) {
+		if (f) {
 			enterFullscreen(app.canvas);
+		} else {
+			exitFullscreen();
 		}
+	}
 
-		return !!getFullscreenElement(document);
+	function isFullscreen(): boolean {
+		return Boolean(getFullscreenElement());
 	}
 
 	function run(f: () => void) {
 
 		const frame = (t: number) => {
+
+			if (document.visibilityState !== "visible") {
+				app.loopID = requestAnimationFrame(frame);
+				return;
+			}
 
 			const realTime = t / 1000;
 			const realDt = realTime - app.realTime;
@@ -418,8 +425,6 @@ function appInit(gconf: AppConf = {}): App {
 			}
 
 			app.skipTime = false;
-
-			const gamepads = navigator.getGamepads();
 
 			f();
 
@@ -472,6 +477,7 @@ function appInit(gconf: AppConf = {}): App {
 		isTouch: app.isTouch,
 		scale: app.scale,
 		fullscreen,
+		isFullscreen,
 	};
 
 }
