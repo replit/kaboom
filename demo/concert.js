@@ -16,6 +16,7 @@ loadSprite("gigagantrum", "sprites/gigagantrum.png");
 loadSprite("note", "sprites/note.png");
 loadSprite("grass", "sprites/grass.png");
 loadSprite("cloud", "sprites/cloud.png");
+loadSprite("sun", "sprites/sun.png");
 loadSound("bell", "sounds/bell.mp3");
 loadSound("kaboom2000", "sounds/kaboom2000.mp3");
 
@@ -227,3 +228,15 @@ function spawnFriend() {
 
 spawnCloud();
 spawnFriend();
+
+const sun = add([
+	sprite("sun"),
+	origin("center"),
+	pos(width() - 90, 90),
+	rotate(),
+	z(-100),
+]);
+
+sun.action(() => {
+	sun.angle += dt() * 12;
+});
