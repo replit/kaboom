@@ -3,7 +3,7 @@ kaboom({
 });
 
 loadSprite("bean", "sprites/bean.png");
-loadSprite("mark", "sprites/spike.png");
+loadSprite("mark", "sprites/mark.png");
 
 const dialogues = [
 	"hi my butterfly",
