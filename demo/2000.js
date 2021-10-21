@@ -57,6 +57,7 @@ for (let i = 1; i <= maxRow; i++) {
 			area(),
 			solid(),
 			origin("bot"),
+			// note: hsl2rgb is not released yet!
 			color(hsl2rgb((n * 20) / 255, 0.6, 0.7)),
 			bounce(),
 			scale(1),
@@ -147,6 +148,7 @@ const lyrics = "kaboom2000 is out today, i have to go and try it out now... oh i
 
 const caption = add([
 	text(lyrics, {
+		// note: character transform is not released yet!
 		transform(idx, ch) {
 			return {
 				color: hsl2rgb(((time() * 60 + idx * 20) % 255) / 255, 0.7, 0.8),
