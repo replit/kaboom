@@ -1,4 +1,3 @@
-kaboom();
-add([text("press any key")]);
-keyPress(burp);
+kaboom({ burp: true });
+add([text("press b")]);
 mouseClick(burp);
