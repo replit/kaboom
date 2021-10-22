@@ -7,12 +7,10 @@
  * kaboom();
  *
  * // init with some options (check out #KaboomOpt for full options list)
- * // create a game with custom dimension, but stretch to fit container, keeping aspect ratio, with a clear color
+ * // create a game with custom dimension and background color
  * kaboom({
  *     width: 320,
  *     height: 240,
- *     stretch: true,
- *     letterbox: true,
  *     font: "sinko",
  *     background: [ 0, 0, 255, ],
  * });
