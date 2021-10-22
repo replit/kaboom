@@ -1,0 +1,5 @@
+kaboom();
+
+const player = add([
+
+]);

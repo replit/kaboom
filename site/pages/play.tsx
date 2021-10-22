@@ -25,6 +25,7 @@ import Droppable from "comps/Droppable";
 import Background from "comps/Background";
 import Doc from "comps/Doc";
 import { basename } from "lib/path";
+import walkdir from "lib/walkdir";
 import download from "lib/download";
 import wrapHTML from "lib/wrapHTML";
 import Ctx from "lib/Ctx";
@@ -450,14 +451,10 @@ const Play: React.FC<PlayProps> = ({
 
 // TODO: getServerSideProps is handy for dev when you're changing demos, but getStaticProps makes more sense for prod since it won't change
 export const getServerSideProps: GetServerSideProps = async (ctx) => {
-	const demos = fs
-		.readdirSync("public/site/demo")
-		.filter((p) => !p.startsWith("."))
+	const dir = await walkdir("public/site/demo");
+	const demos = dir.files
 		.reduce<Record<string, string>>((table, file) => {
-			table[basename(file) ?? file] = fs.readFileSync(
-				`public/site/demo/${file}`,
-				"utf8"
-			);
+			table[basename(file) ?? file] = fs.readFileSync(`${dir.path}/${file}`, "utf8");
 			return table;
 		}, {});
 	return {
