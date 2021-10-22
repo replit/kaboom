@@ -2,7 +2,7 @@
 
 kaboom();
 
-loadSound("wooosh", "sounds/wooosh.mp3");
+loadSound("bell", "sounds/bell.mp3");
 loadSound("OtherworldlyFoe", "sounds/OtherworldlyFoe.mp3");
 
 // the music might not autoplay cuz some browser won't allow audio start before any user interaction
@@ -27,7 +27,7 @@ detune: ${music.detune().toFixed(2)}
 updateText();
 
 // update text every frame
-action(() => updateText());
+action(updateText);
 
 keyPress("space", () => {
 
@@ -39,10 +39,13 @@ keyPress("space", () => {
 	}
 
 	// play one off sound
-	play("wooosh");
+	play("bell", {
+		detune: randi(-12, 12) * 100,
+	});
 
 });
 
+// adjust music properties through input
 keyPress("up", () => music.volume(music.volume() + 0.1));
 keyPress("down", () => music.volume(music.volume() - 0.1));
 keyPress("left", () => music.detune(music.detune() - 100));

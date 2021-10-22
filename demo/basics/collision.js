@@ -1,17 +1,31 @@
+// area() component gives objects the ability to check for collision between each other
+
 kaboom();
+
+loadSprite("bean", "sprites/bean.png");
+loadSprite("apple", "sprites/apple.png");
 
 const player = add([
 	sprite("bean"),
-	// to enable collision detection, must give the objects area() component!
+	// must give the objects area() component to enable collision detection!
 	area(),
 ]);
 
-add([
-	// ...
-]);
+for (let i = 0; i < 12; i++) {
+	add([
+		sprite("apple"),
+		pos(rand(0, width()), rand(0, height())),
+		// both objects need to have area() to enable collision
+		// can specify some options to tweak the area size
+		area({ scale: 0.5 }),
+		"apple",
+	]);
+}
 
-player.collides("block", () => {
-	// ...
+// register an event that runs every time player collides with another object with tag "apple"
+// the callback gets the collided object as the first argument
+player.collides("apple", (apple) => {
+	destroy(apple);
 });
 
 // enter inspect mode to check object bounding boxes
