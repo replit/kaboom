@@ -67,6 +67,11 @@ type DrawTextOpt2 = RenderProps & {
 	transform?: (idx: number, ch: string) => CharTransform,
 }
 
+interface GfxTexOpt {
+	filter?: TexFilter,
+	wrap?: TexWrap,
+}
+
 type Gfx = {
 	width(): number,
 	height(): number,

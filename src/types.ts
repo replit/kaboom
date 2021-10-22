@@ -308,21 +308,21 @@ interface KaboomCtx {
 	 */
 	uvquad(w: number, h: number): UVQuadComp,
 	/**
-	 * Collider. Will calculate from rendered comps (e.g. from sprite, text, rect) if no params given.
+	 * Collider area. Will auto generate the shape and size from render components (e.g. sprite, text, rect) if no params given.
 	 *
 	 * @example
 	 * ```js
 	 * add([
 	 *     sprite("froggy"),
-	 *     // without args it'll auto calculate from the data sprite comp provides
+	 *     // without args it'll auto generate from the sprite component we have above
 	 *     area(),
 	 * ]);
 	 *
 	 * add([
 	 *     sprite("bomb"),
-	 *     // scale to 0.6 of the sprite size
+	 *     // scale to 0.6 of the generated area
 	 *     area({ scale: 0.6 }),
-	 *     // we want the scale to be calculated from the center
+	 *     // if we want the scale to be calculated from the center
 	 *     origin("center"),
 	 * ]);
 	 *
@@ -1199,11 +1199,14 @@ interface KaboomCtx {
 	rand<T extends RNGValue>(n: T): T,
 	rand<T extends RNGValue>(a: T, b: T): T,
 	/**
-	 * rand() but integer only.
+	 * rand() but floored to integer.
+	 *
+	 * @example
+	 * ```js
+	 * randi(0, 3) // will give either 0, 1, or 2
+	 * ```
 	 */
 	randi(): number,
-	randi<T extends RNGValue>(n: T): T,
-	randi<T extends RNGValue>(a: T, b: T): T,
 	/**
 	 * Get / set the random number generator seed.
 	 */
@@ -1410,10 +1413,37 @@ interface KaboomCtx {
 	 * Draw a sprite.
 	 *
 	 * @section Render
+	 *
+	 * @example
+	 * ```js
+	 * // these functions need to be called in a per-frame function like render() or it'll only get drawn one frame and immediately cleared
+	 * render(() => {
+	 *     // check #DrawSpriteOpt type for details of all options
+	 *     drawSprite({
+	 *         sprite: "froggy",
+	 *         frame: 1,
+	 *         quad: quad(0, 0, 0.5, 0.5),
+	 *         pos: vec2(100, 200),
+	 *         color: rgb(0, 0, 255),
+	 *     });
+	 * });
+	 * ```
 	 */
 	drawSprite(options: DrawSpriteOpt): void,
 	/**
 	 * Draw a piece of text.
+	 *
+	 * @example
+	 * ```js
+	 * // these functions need to be called in a per-frame function like render() or it'll only get drawn one frame and immediately cleared
+	 * render(() => {
+	 *     drawText({
+	 *         sprite: "froggy",
+	 *         pos: vec2(100, 200),
+	 *         color: rgb(0, 0, 255),
+	 *     });
+	 * });
+	 * ```
 	 */
 	drawText(options: DrawTextOpt): void,
 	/**
@@ -1840,9 +1870,29 @@ type ShaderData = GfxShader;
  * Audio play configurations.
  */
 interface AudioPlayOpt {
+	/**
+	 * If audio should be played again from start when its ended.
+	 */
 	loop?: boolean,
+	/**
+	 * Volume of audio. 1.0 means full volume, 0.5 means half volume.
+	 */
 	volume?: number,
+	/**
+	 * Playback speed. 1.0 means normal playback speed, 2.0 means twice as fast.
+	 */
 	speed?: number,
+	/**
+	 * Detune the sound. Every 100 means a semitone.
+	 *
+	 * @example
+	 * ```js
+	 * // play a random note in the octave
+	 * play("noteC", {
+	 *     detune: randi(0, 12) * 100,
+	 * });
+	 * ```
+	 */
 	detune?: number,
 	/**
 	 * The start time, in seconds.
@@ -1851,13 +1901,46 @@ interface AudioPlayOpt {
 }
 
 interface AudioPlay {
+	/**
+	 * Play the sound. Optionally pass in the time where it starts.
+	 */
 	play(seek?: number): void,
+	/**
+	 * Stop the sound.
+	 */
 	stop(): void,
+	/**
+	 * Pause the sound.
+	 */
 	pause(): void,
+	/**
+	 * If the sound is paused.
+	 */
 	paused(): boolean,
+	/**
+	 * If the sound is stopped or ended.
+	 */
 	stopped(): boolean,
+	/**
+	 * Change the playback speed of the sound. 1.0 means normal playback speed, 2.0 means twice as fast.
+	 */
 	speed(s?: number): number,
+	/**
+	 * Detune the sound. Every 100 means a semitone.
+	 *
+	 * @example
+	 * ```js
+	 * // tune down a semitone
+	 * music.detune(-100);
+	 *
+	 * // tune up an octave
+	 * music.detune(1200);
+	 * ```
+	 */
 	detune(d?: number): number,
+	/**
+	 * Change the volume of the sound. 1.0 means full volume, 0.5 means half volume.
+	 */
 	volume(v?: number): number,
 	/**
 	 * The current playing time.
@@ -1867,7 +1950,13 @@ interface AudioPlay {
 	 * The total duration.
 	 */
 	duration(): number,
+	/**
+	 * Set audio to play in loop.
+	 */
 	loop(): void,
+	/**
+	 * Set audio to not play in loop.
+	 */
 	unloop(): void,
 }
 
@@ -1917,11 +2006,6 @@ interface Vertex {
 type TexFilter = "nearest" | "linear";
 type TexWrap = "repeat" | "clampToEdge";
 
-interface GfxTexOpt {
-	filter?: TexFilter,
-	wrap?: TexWrap,
-}
-
 /**
  * Common render properties.
  */
@@ -1943,23 +2027,68 @@ type DrawSpriteOpt = RenderProps & {
 	 * The sprite name in the asset manager, or the raw sprite data.
 	 */
 	sprite: string | SpriteData,
+	/**
+	 * If the sprite is loaded with multiple frames, or sliced, use the frame option to specify which frame to draw.
+	 */
 	frame?: number,
+	/**
+	 * Width of sprite. If `height` is not specified it'll stretch with aspect ratio. If `tiled` is set to true it'll tiled to the specified width horizontally.
+	 */
 	width?: number,
+	/**
+	 * Height of sprite. If `width` is not specified it'll stretch with aspect ratio. If `tiled` is set to true it'll tiled to the specified width vertically.
+	 */
 	height?: number,
+	/**
+	 * When set to true, `width` and `height` will not scale the sprite but instead render multiple tiled copies of them until the specified width and height. Useful for background texture pattern etc.
+	 */
 	tiled?: boolean,
+	/**
+	 * If flip the texture horizontally.
+	 */
 	flipX?: boolean,
+	/**
+	 * If flip the texture vertically.
+	 */
 	flipY?: boolean,
+	/**
+	 * The sub-area to render from the texture, by default it'll render the whole `quad(0, 0, 1, 1)`
+	 */
 	quad?: Quad,
+	/**
+	 * The origin point, or the pivot point. Default to "topleft".
+	 */
 	origin?: Origin | Vec2,
 }
 
 type DrawUVQuadOpt = RenderProps & {
+	/**
+	 * Width of the UV quad.
+	 */
 	width: number,
+	/**
+	 * Height of the UV quad.
+	 */
 	height: number,
+	/**
+	 * If flip the texture horizontally.
+	 */
 	flipX?: boolean,
+	/**
+	 * If flip the texture vertically.
+	 */
 	flipY?: boolean,
+	/**
+	 * The texture to sample for this quad.
+	 */
 	tex?: GfxTexture,
+	/**
+	 * The texture sampling area.
+	 */
 	quad?: Quad,
+	/**
+	 * The origin point, or the pivot point. Default to "topleft".
+	 */
 	origin?: Origin | Vec2,
 }
 
@@ -1967,11 +2096,29 @@ type DrawUVQuadOpt = RenderProps & {
  * How the rectangle should look like.
  */
 type DrawRectOpt = RenderProps & {
+	/**
+	 * Width of the rectangle.
+	 */
 	width: number,
+	/**
+	 * Height of the rectangle.
+	 */
 	height: number,
+	/**
+	 * If draw an outline around the shape.
+	 */
 	outline?: Outline,
+	/**
+	 * If fill the shape with color (set this to false if you only want an outline).
+	 */
 	fill?: boolean,
+	/**
+	 * The radius of each corner.
+	 */
 	radius?: number,
+	/**
+	 * The origin point, or the pivot point. Default to "topleft".
+	 */
 	origin?: Origin | Vec2,
 }
 
@@ -1987,6 +2134,9 @@ type DrawLineOpt = Omit<RenderProps, "angle" | "scale"> & {
 	 * Ending point of the line.
 	 */
 	p2: Vec2,
+	/**
+	 * The width, or thickness of the line,
+	 */
 	width?: number,
 }
 
@@ -1998,7 +2148,13 @@ type DrawLinesOpt = Omit<RenderProps, "angle" | "scale"> & {
 	 * The points that should be connected with a line.
 	 */
 	pts: Vec2[],
+	/**
+	 * The width, or thickness of the lines,
+	 */
 	width?: number,
+	/**
+	 * The radius of each corner.
+	 */
 	radius?: number,
 }
 
@@ -2018,8 +2174,17 @@ type DrawTriangleOpt = RenderProps & {
 	 * Third point of triangle.
 	 */
 	p3: Vec2,
+	/**
+	 * If draw an outline around the shape.
+	 */
 	outline?: Outline,
+	/**
+	 * If fill the shape with color (set this to false if you only want an outline).
+	 */
 	fill?: boolean,
+	/**
+	 * The radius of each corner.
+	 */
 	radius?: number,
 }
 
@@ -2039,9 +2204,21 @@ type DrawCircleOpt = Omit<RenderProps, "angle"> & {
 	 * Ending angle.
 	 */
 	end?: number,
+	/**
+	 * If draw an outline around the shape.
+	 */
 	outline?: Outline,
+	/**
+	 * If fill the shape with color (set this to false if you only want an outline).
+	 */
 	fill?: boolean,
+	/**
+	 * Multipliyer for the number of polygon segments.
+	 */
 	resolution?: number,
+	/**
+	 * The origin point, or the pivot point. Default to "topleft".
+	 */
 	origin?: Origin | Vec2,
 }
 
@@ -2065,9 +2242,22 @@ type DrawEllipseOpt = RenderProps & {
 	 * Ending angle.
 	 */
 	end?: number,
+	/**
+	 * If draw an outline around the shape.
+	 */
 	outline?: Outline,
+	/**
+	 * If fill the shape with color (set this to false if you only want an outline).
+	 */
 	fill?: boolean,
+	/**
+	 * Multipliyer for the number of polygon segments.
+	 */
 	resolution?: number,
+	/**
+	 * The origin point, or the pivot point. Default to "topleft".
+	 */
+	origin?: Origin | Vec2,
 }
 
 /**
@@ -2078,18 +2268,36 @@ type DrawPolyOpt = RenderProps & {
 	 * The points that make up the polygon
 	 */
 	pts: Vec2[],
+	/**
+	 * If draw an outline around the shape.
+	 */
 	outline?: Outline,
+	/**
+	 * If fill the shape with color (set this to false if you only want an outline).
+	 */
 	fill?: boolean,
 	/**
-	 * Optionally provide manual triangulation.
+	 * Manual triangulation.
 	 */
 	indices?: number[],
+	/**
+	 * The center point of transformation in relation to the position.
+	 */
 	offset?: Vec2,
+	/**
+	 * The radius of each corner.
+	 */
 	radius?: number,
 }
 
 interface Outline {
+	/**
+	 * The width, or thinkness of the line.
+	 */
 	width?: number,
+	/**
+	 * The color of the line.
+	 */
 	color?: Color,
 }
 
@@ -2097,11 +2305,30 @@ interface Outline {
  * How the text should look like.
  */
 type DrawTextOpt = RenderProps & {
+	/**
+	 * The text to render.
+	 */
 	text: string,
+	/**
+	 * The name of font to use.
+	 */
 	font?: string,
+	/**
+	 * The size of text (the height of each character).
+	 */
 	size?: number,
+	/**
+	 * The maximum width. Will wrap around if exceed.
+	 */
 	width?: number,
+	/**
+	 * The origin point, or the pivot point. Default to "topleft".
+	 */
 	origin?: Origin | Vec2,
+	/**
+	 * Transform the pos, scale, rotation or color for each character based on the index or char.
+	 */
+	transform?: (idx: number, ch: string) => CharTransform,
 }
 
 /**
@@ -2496,7 +2723,7 @@ interface Collision {
 
 interface AreaCompOpt {
 	/**
-	 * Shape.
+	 * The shape of the area.
 	 */
 	shape?: Shape,
 	/**
@@ -2578,11 +2805,7 @@ interface AreaComp extends Comp {
 
 interface SpriteCompOpt {
 	/**
-	 * Rectangular area to render.
-	 */
-	quad?: Quad,
-	/**
-	 * Initial frame.
+	 * If the sprite is loaded with multiple frames, or sliced, use the frame option to specify which frame to draw.
 	 */
 	frame?: number,
 	/**
@@ -2598,11 +2821,11 @@ interface SpriteCompOpt {
 	 */
 	height?: number,
 	/**
-	 * Play an anim on start.
+	 * Play an animation on start.
 	 */
 	anim?: string,
 	/**
-	 * Frame animation speed scale multiplier.
+	 * Animation speed scale multiplier.
 	 */
 	animSpeed?: number,
 	/**
@@ -2613,6 +2836,10 @@ interface SpriteCompOpt {
 	 * Flip texture vertically.
 	 */
 	flipY?: boolean,
+	/**
+	 * The rectangular sub-area of the texture to render, default to full texture `quad(0, 0, 1, 1)`.
+	 */
+	quad?: Quad,
 }
 
 interface SpriteComp extends Comp {
@@ -2699,7 +2926,7 @@ interface TextCompOpt {
 	 */
 	width?: number,
 	/**
-	 * If transform each character.
+	 * Transform the pos, scale, rotation or color for each character based on the index or char.
 	 */
 	transform?: (idx: number, ch: string) => CharTransform,
 }
@@ -2713,15 +2940,15 @@ interface RectCompOpt {
 
 interface RectComp extends Comp {
 	/**
-	 * Width of rect.
+	 * Width of rectangle.
 	 */
 	width: number,
 	/**
-	 * Height of height.
+	 * Height of rectangle.
 	 */
 	height: number,
 	/**
-	 * Radius of the rectangle corners.
+	 * The radius of each corner.
 	 */
 	radius?: number,
 }

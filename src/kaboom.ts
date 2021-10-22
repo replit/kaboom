@@ -611,6 +611,7 @@ function collides(
 // add an event that runs when objs with tag t is clicked
 function clicks(t: string, f: (obj: GameObj) => void): EventCanceller {
 	return action(t, (o: GameObj) => {
+		if (!o.area) throw new Error("clicks() requires the object to have area() component");
 		if (o.isClicked()) {
 			f(o);
 		}
@@ -620,6 +621,7 @@ function clicks(t: string, f: (obj: GameObj) => void): EventCanceller {
 // add an event that runs when objs with tag t is hovered
 function hovers(t: string, onHover: (obj: GameObj) => void, onNotHover?: (obj: GameObj) => void): EventCanceller {
 	return action(t, (o: GameObj) => {
+		if (!o.area) throw new Error("hovers() requires the object to have area() component");
 		if (o.isHovering()) {
 			onHover(o);
 		} else {
