@@ -449,7 +449,7 @@ const Play: React.FC<PlayProps> = ({
 
 };
 
-// TODO: getServerSideProps is handy for dev when you're changing demos, but getStaticProps makes more sense for prod since it won't change
+// TODO: getServerSideProps is handy for dev when you're changing demos, but getStaticProps makes more sense for prod since the demos won't change
 export const getServerSideProps: GetServerSideProps = async (ctx) => {
 	const dir = await walkdir("public/site/demo");
 	const demos = dir.files

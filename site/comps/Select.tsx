@@ -4,10 +4,12 @@ import Text from "comps/Text";
 import useClickOutside from "hooks/useClickOutside";
 import useKey from "hooks/useKey";
 
+type Options = string[] | Record<string, string[]>;
+
 interface PromptProps {
 	name: string,
 	expanded: boolean,
-	options: string[],
+	options: Options,
 }
 
 const Prompt: React.FC<PromptProps> = ({
@@ -60,7 +62,7 @@ const Prompt: React.FC<PromptProps> = ({
 };
 
 interface SelectProps {
-	options: string[],
+	options: Options,
 	value?: string,
 	maxHeight?: number | string,
 	onChange?: (item: string) => void,
@@ -77,7 +79,13 @@ const Select: React.FC<SelectProps & ViewProps> = ({
 }) => {
 
 	const dropdownRef = React.useRef<HTMLDivElement>(null);
-	const [ curItem, setCurItem ] = React.useState(value ?? options[0]);
+
+	const [ curItem, setCurItem ] = React.useState(() => {
+		if (value) return value;
+		if (Array.isArray(options)) return options[0];
+		if (typeof options === "object") return Object.values(options)[0][0];
+	});
+
 	const [ expanded, setExpanded ] = React.useState(false);
 
 	useClickOutside(dropdownRef, () => setExpanded(false), [ setExpanded ]);
