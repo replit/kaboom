@@ -1504,6 +1504,23 @@ interface KaboomCtx {
 	 */
 	plug<T>(plugin: KaboomPlugin<T>): void,
 	/**
+	 * Records a video of the game returns a handle
+	 * to control the recording and download it.
+	 * No support for audio recording currenlty
+	 */
+	record(frameRate?: number): {
+		/** pauses the recording */
+		pause(): void;
+		/** resumes the recording */
+		resume(): void;
+		/**
+		 * stops the recording and downloads the file
+		 * trying to resume after downloading will lead
+		 * to an error
+		 */
+		download(filename?: string): void;
+	},
+	/**
 	 * All chars in ASCII.
 	 */
 	ASCII_CHARS: string,
