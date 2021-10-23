@@ -1,6 +1,6 @@
-import * as React from "react";
-import View, { ViewPropsAnd } from "comps/View";
-import Ctx from "lib/Ctx";
+import * as React from "react"
+import View, { ViewPropsAnd } from "comps/View"
+import Ctx from "lib/Ctx"
 
 interface DraggableProps {
 	dragData: any,
@@ -17,7 +17,7 @@ const Draggable = React.forwardRef<HTMLDivElement, ViewPropsAnd<DraggableProps>>
 	children,
 	...args
 }, ref) => {
-	const { setDraggin } = React.useContext(Ctx);
+	const { setDraggin } = React.useContext(Ctx)
 	return (
 		<View
 			draggable
@@ -25,18 +25,18 @@ const Draggable = React.forwardRef<HTMLDivElement, ViewPropsAnd<DraggableProps>>
 				setDraggin({
 					data: dragData,
 					type: dragType,
-				});
-				onDragStart && onDragStart();
+				})
+				onDragStart && onDragStart()
 			}}
 			onDragEnd={(e) => {
-				setDraggin(null);
-				onDragEnd && onDragEnd();
+				setDraggin(null)
+				onDragEnd && onDragEnd()
 			}}
 			{...args}
 		>
 			{children}
 		</View>
-	);
-});
+	)
+})
 
-export default Draggable;
+export default Draggable

@@ -280,7 +280,7 @@ interface KaboomCtx {
 	 * ]);
 	 * ```
 	 */
-	rect(w: number, h: number): RectComp,
+	rect(w: number, h: number, options?: RectCompOpt): RectComp,
 	/**
 	 * Render as a circle.
 	 *
@@ -1100,19 +1100,6 @@ interface KaboomCtx {
 	 */
 	cursor(c?: Cursor): Cursor,
 	/**
-	 * Load a cursor from a sprite, or custom drawing function.
-	 *
-	 * @example
-	 * ```js
-	 * loadSprite("froggy", "sprites/froggy.png");
-	 *
-	 * // use sprite as cursor
-	 * regCursor("default", "froggy");
-	 * regCursor("pointer", "apple");
-	 * ```
-	 */
-	regCursor(c: string, draw: string | ((mpos: Vec2) => void)): void,
-	/**
 	 * Enter / exit fullscreen mode. (note: mouse position is not working in fullscreen mode at the moment)
 	 *
 	 * @example
@@ -1354,7 +1341,7 @@ interface KaboomCtx {
 	/**
 	 * Go to a scene, passing all rest args to scene callback.
 	 */
-	go(id: SceneID, ...args: any[]): void,
+	go(id: SceneID, ...args: unknown[]): void,
 	/**
 	 * Construct a level based on symbols.
 	 *
@@ -1406,7 +1393,7 @@ interface KaboomCtx {
 	/**
 	 * Set data from local storage.
 	 */
-	setData(key: string, data: any): void,
+	setData(key: string, data: unknown): void,
 	/**
 	 * Draw a sprite.
 	 *
@@ -1561,7 +1548,7 @@ interface KaboomCtx {
 	 * The canvas DOM kaboom is currently using.
 	 */
 	canvas: HTMLCanvasElement,
-	[custom: string]: any,
+	[custom: string]: unknown,
 }
 
 type Tag = string;
@@ -2567,9 +2554,6 @@ interface Circle {
 type Polygon = Vec2[];
 type Point = Vec2;
 
-type ClientID = number;
-type MsgHandler = (id: ClientID, data: any) => void;
-
 interface Comp {
 	/**
 	 * Component ID (if left out won't be treated as a comp).
@@ -2604,8 +2588,6 @@ interface Comp {
 	 */
 	inspect?: () => string;
 }
-
-type GameObjID = number;
 
 interface PosComp extends Comp {
 	/**
@@ -2683,11 +2665,9 @@ interface FollowComp extends Comp {
 	},
 }
 
-interface MoveComp extends Comp {
-}
+type MoveComp = Comp
 
-interface CleanupComp extends Comp {
-}
+type CleanupComp = Comp
 
 /**
  * Collision resolution data.
@@ -3177,8 +3157,7 @@ interface HealthComp extends Comp {
 	setHP(hp: number): void,
 }
 
-interface LifespanComp extends Comp {
-}
+type LifespanComp = Comp
 
 interface LifespanCompOpt {
 	/**

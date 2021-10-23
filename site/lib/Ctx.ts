@@ -1,7 +1,7 @@
-import * as React from "react";
-import { DEF_THEME } from "lib/ui";
-import { Tooltip } from "lib/tooltip";
-import { Drag } from "lib/drag";
+import * as React from "react"
+import { DEF_THEME } from "lib/ui"
+import { Tooltip } from "lib/tooltip"
+import { Drag } from "lib/drag"
 
 interface PageCtx {
 	theme: string,
@@ -23,4 +23,4 @@ export default React.createContext<PageCtx>({
 	popTooltip: () => {},
 	draggin: null,
 	setDraggin: () => {},
-});
+})

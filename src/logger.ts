@@ -2,15 +2,15 @@ import {
 	vec2,
 	rgb,
 	map,
-} from "./math";
+} from "./math"
 
 import {
 	Assets,
-} from "./assets";
+} from "./assets"
 
 import {
 	Gfx,
-} from "./gfx";
+} from "./gfx"
 
 type Log = {
 	type: "info" | "error",
@@ -29,33 +29,33 @@ type Logger = {
 	clear(),
 };
 
-const LOG_SIZE = 16;
+const LOG_SIZE = 16
 
 function loggerInit(gfx: Gfx, assets: Assets, opt: LoggerOpt = {}): Logger {
 
-	let logs: Log[] = [];
-	const max = opt.max ?? 1;
+	let logs: Log[] = []
+	const max = opt.max ?? 1
 
 	// TODO: draw rects first to reduce draw calls
 	function draw() {
 
 		if (logs.length > max) {
-			logs = logs.slice(0, max);
+			logs = logs.slice(0, max)
 		}
 
-		const pos = vec2(0, gfx.height());
+		const pos = vec2(0, gfx.height())
 
 		logs.forEach((log, i) => {
 
-			const txtAlpha = map(i, 0, max, 1, 0.5);
-			const bgAlpha = map(i, 0, max, 0.8, 0.2);
+			const txtAlpha = map(i, 0, max, 1, 0.5)
+			const bgAlpha = map(i, 0, max, 0.8, 0.2)
 
 			const col = (() => {
 				switch (log.type) {
-					case "info": return rgb(255, 255, 255);
-					case "error": return rgb(255, 0, 127);
+					case "info": return rgb(255, 255, 255)
+					case "error": return rgb(255, 0, 127)
 				}
-			})();
+			})()
 
 			const ftext = gfx.fmtText({
 				text: log.msg,
@@ -66,7 +66,7 @@ function loggerInit(gfx: Gfx, assets: Assets, opt: LoggerOpt = {}): Logger {
 				size: LOG_SIZE / gfx.scale(),
 				width: gfx.width(),
 				opacity: txtAlpha,
-			});
+			})
 
 			gfx.drawRect({
 				pos: pos,
@@ -75,12 +75,12 @@ function loggerInit(gfx: Gfx, assets: Assets, opt: LoggerOpt = {}): Logger {
 				origin: "botleft",
 				color: rgb(0, 0, 0),
 				opacity: bgAlpha,
-			});
+			})
 
-			gfx.drawFmtText(ftext);
-			pos.y -= ftext.height;
+			gfx.drawFmtText(ftext)
+			pos.y -= ftext.height
 
-		});
+		})
 
 	}
 
@@ -88,18 +88,18 @@ function loggerInit(gfx: Gfx, assets: Assets, opt: LoggerOpt = {}): Logger {
 		logs.unshift({
 			type: "error",
 			msg: msg,
-		});
+		})
 	}
 
 	function info(msg: string) {
 		logs.unshift({
 			type: "info",
 			msg: msg,
-		});
+		})
 	}
 
 	function clear() {
-		logs = [];
+		logs = []
 	}
 
 	return {
@@ -107,10 +107,10 @@ function loggerInit(gfx: Gfx, assets: Assets, opt: LoggerOpt = {}): Logger {
 		error,
 		draw,
 		clear,
-	};
+	}
 
 }
 
 export {
 	loggerInit,
-};
+}

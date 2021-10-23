@@ -1,9 +1,9 @@
 // explosion
 
 // @ts-ignore
-import kaSrc from "./ka.png";
+import kaSrc from "./ka.png"
 // @ts-ignore
-import boomSrc from "./boom.png";
+import boomSrc from "./boom.png"
 
 interface BoomOpt {
 	/**
@@ -31,8 +31,7 @@ interface Kaboom {
 	destroy(): void,
 }
 
-interface ExplodeComp extends Comp {
-}
+type ExplodeComp = Comp
 
 interface KaboomPlug {
 	addKaboom(pos: Vec2, opt?: BoomOpt): Kaboom,
@@ -40,32 +39,32 @@ interface KaboomPlug {
 
 export default (k: KaboomCtx) => {
 
-	function explode(speed: number = 2, size: number = 1): ExplodeComp {
-		let time = 0;
+	function explode(speed = 2, size = 1): ExplodeComp {
+		let time = 0
 		return {
 			id: "explode",
 			require: [ "scale", ],
 			update() {
-				const s = Math.sin(time * speed) * size;
+				const s = Math.sin(time * speed) * size
 				if (s < 0) {
-					k.destroy(this);
+					k.destroy(this)
 				}
-				this.scale = k.vec2(s);
-				time += k.dt();
+				this.scale = k.vec2(s)
+				time += k.dt()
 			},
-		};
+		}
 	}
 
-	let kaSprite = null;
-	let boomSprite = null;
+	let kaSprite = null
+	let boomSprite = null
 
-	k.loadSprite(null, kaSrc).then((spr) => kaSprite = spr);
-	k.loadSprite(null, boomSrc).then((spr) => boomSprite = spr);
+	k.loadSprite(null, kaSrc).then((spr) => kaSprite = spr)
+	k.loadSprite(null, boomSrc).then((spr) => boomSprite = spr)
 
 	function addKaboom(pos: Vec2, opt: BoomOpt = {}): Kaboom {
 
-		const speed = (opt.speed || 1) * 5;
-		const scale = opt.scale || 1;
+		const speed = (opt.speed || 1) * 5
+		const scale = opt.scale || 1
 
 		const boom = k.add([
 			k.pos(pos),
@@ -75,7 +74,7 @@ export default (k: KaboomCtx) => {
 			k.origin("center"),
 			explode(speed, scale),
 			...(opt.boomComps ?? (() => []))(),
-		]);
+		])
 
 		const ka = k.add([
 			k.pos(pos),
@@ -85,19 +84,19 @@ export default (k: KaboomCtx) => {
 			k.origin("center"),
 			k.timer(0.4 / speed, () => ka.use(explode(speed, scale))),
 			...(opt.kaComps ?? (() => []))(),
-		]);
+		])
 
 		return {
 			destroy() {
-				k.destroy(ka);
-				k.destroy(boom);
+				k.destroy(ka)
+				k.destroy(boom)
 			},
-		};
+		}
 
 	}
 
 	return {
 		addKaboom,
-	};
+	}
 
-};
+}

@@ -1,9 +1,9 @@
-import * as React from "react";
-import Link from "next/link";
-import View, { ViewPropsAnd } from "comps/View";
-import Text from "comps/Text";
-import Markdown from "comps/Markdown";
-import * as doc from "lib/doc";
+import * as React from "react"
+import Link from "next/link"
+import View, { ViewPropsAnd } from "comps/View"
+import Text from "comps/Text"
+import Markdown from "comps/Markdown"
+import * as doc from "lib/doc"
 
 const TypeSig: React.FC<EntryProps> = ({ data }) => (
 	<span
@@ -13,46 +13,46 @@ const TypeSig: React.FC<EntryProps> = ({ data }) => (
 	>
 		{(() => {
 			switch (data.kind) {
-				case "StringKeyword": return "string";
-				case "NumberKeyword": return "number";
-				case "BooleanKeyword": return "boolean";
-				case "VoidKeyword": return "void";
-				case "AnyKeyword": return "any";
-				case "NullKeyword": return "null";
-				case "StringLiteral": return `"${data.text}"`;
-				case "LiteralType": return <TypeSig data={data.literal} />;
-				case "ArrayType": return <><TypeSig data={data.elementType} />[]</>;
-				case "ParenthesizedType": return <>(<TypeSig data={data.type} />)</>;
+				case "StringKeyword": return "string"
+				case "NumberKeyword": return "number"
+				case "BooleanKeyword": return "boolean"
+				case "VoidKeyword": return "void"
+				case "AnyKeyword": return "any"
+				case "NullKeyword": return "null"
+				case "StringLiteral": return `"${data.text}"`
+				case "LiteralType": return <TypeSig data={data.literal} />
+				case "ArrayType": return <><TypeSig data={data.elementType} />[]</>
+				case "ParenthesizedType": return <>(<TypeSig data={data.type} />)</>
 				case "FunctionType": return <>
-					(<FuncParams data={data} />) {'=>'} <TypeSig data={data.type} />
-				</>;
+					(<FuncParams data={data} />) {"=>"} <TypeSig data={data.type} />
+				</>
 				case "UnionType": return data.types.map((t: any, i: number) => (
 					<React.Fragment key={i}>
 						<TypeSig data={t} />
 						{i === data.types.length - 1 ? "" : " | "}
 					</React.Fragment>
-				));
+				))
 				case "TypeReference": return doc.types[data.typeName]
 					?
-						<DocCtx.Consumer>
-							{(ctx) => (
-								<span
-									css={{textDecoration: "underline", cursor: "pointer"}}
-									onClick={() => ctx.typeref && ctx.typeref(data.typeName)}
-								>
-									{data.typeName}
-								</span>
-							)}
-						</DocCtx.Consumer>
-					: data.typeName;
+					<DocCtx.Consumer>
+						{(ctx) => (
+							<span
+								css={{textDecoration: "underline", cursor: "pointer"}}
+								onClick={() => ctx.typeref && ctx.typeref(data.typeName)}
+							>
+								{data.typeName}
+							</span>
+						)}
+					</DocCtx.Consumer>
+					: data.typeName
 				case "TypeLiteral":
 					return <View gap={2} stretchX>
 						{
 							data.members.map((mem: any) => <Member key={mem.name} data={mem} />)
 						}
-					</View>;
+					</View>
 				default:
-					return "unknown";
+					return "unknown"
 			}
 		})()}
 		{ data.typeArguments &&
@@ -66,7 +66,7 @@ const TypeSig: React.FC<EntryProps> = ({ data }) => (
 			</span>
 		}
 	</span>
-);
+)
 
 const FuncParams: React.FC<EntryProps> = ({ data }) => data.parameters.map((p: any, i: number) => (
 	<span key={p.name}>
@@ -75,7 +75,7 @@ const FuncParams: React.FC<EntryProps> = ({ data }) => data.parameters.map((p: a
 		: {p.dotDotDotToken ? "..." : <TypeSig data={p.type} />}
 		{i === data.parameters.length - 1 ? "" : ", "}
 	</span>
-));
+))
 
 interface MemberProps {
 	data: any,
@@ -95,14 +95,14 @@ const MethodSignature: React.FC<MemberProps> = ({ data, big }) => (
 		</Text>
 		<JSDoc data={data} />
 	</View>
-);
+)
 
 const PropertySignature: React.FC<MemberProps> = ({ data, big }) => (
 	<View gap={1} stretchX>
 		<Text code size={big ? "big" : "normal"}>{data.name}{data.questionToken ? "?" : ""}: <TypeSig data={data.type} /></Text>
 		<JSDoc data={data} />
 	</View>
-);
+)
 
 const FunctionDeclaration: React.FC<EntryProps> = ({ data }) => (
 	<View gap={1} stretchX>
@@ -116,7 +116,7 @@ const FunctionDeclaration: React.FC<EntryProps> = ({ data }) => (
 		</Text>
 		<JSDoc data={data} />
 	</View>
-);
+)
 
 const TypeAliasDeclaration: React.FC<EntryProps> = ({ data }) => (
 	<View gap={1} stretchX>
@@ -145,14 +145,14 @@ const TypeAliasDeclaration: React.FC<EntryProps> = ({ data }) => (
 				case "IntersectionType":
 					return data.type.types.map((t: any, i: number) => (
 						<><TypeSig data={t} />{i === data.type.types.length - 1 ? "" : "&"}</>
-					));
+					))
 				default:
-					return <></>;
+					return <></>
 			}
 			<JSDoc data={data} />
 		})()}
 	</View>
-);
+)
 
 const InterfaceDeclaration: React.FC<EntryProps> = ({ data }) => {
 	return (
@@ -170,18 +170,18 @@ const InterfaceDeclaration: React.FC<EntryProps> = ({ data }) => {
 			</View>
 			{data.members.map((mem: any) => <Member key={mem.name} data={mem} />)}
 		</View>
-	);
-};
+	)
+}
 
 const Member: React.FC<MemberProps> = ({ data }) => {
 	switch (data.kind) {
 		case "MethodSignature":
-			return <MethodSignature data={data} />;
+			return <MethodSignature data={data} />
 		case "PropertySignature":
-			return <PropertySignature data={data} />;
+			return <PropertySignature data={data} />
 	}
-	return <></>;
-};
+	return <></>
+}
 
 interface EntryProps {
 	data: any,
@@ -190,33 +190,33 @@ interface EntryProps {
 const Entry: React.FC<EntryProps> = ({ data }) => {
 	switch (data.kind) {
 		case "MethodSignature":
-			return <MethodSignature data={data} big />;
+			return <MethodSignature data={data} big />
 		case "PropertySignature":
-			return <PropertySignature data={data} big />;
+			return <PropertySignature data={data} big />
 		case "FunctionDeclaration":
-			return <FunctionDeclaration data={data} />;
+			return <FunctionDeclaration data={data} />
 		case "TypeAliasDeclaration":
-			return <TypeAliasDeclaration data={data} />;
+			return <TypeAliasDeclaration data={data} />
 		case "InterfaceDeclaration":
-			return <InterfaceDeclaration data={data} />;
+			return <InterfaceDeclaration data={data} />
 	}
-	return <></>;
-};
+	return <></>
+}
 
 const JSDoc: React.FC<EntryProps> = ({data}) => {
-	const doc = data.jsDoc?.[0];
+	const doc = data.jsDoc?.[0]
 	return doc ? (
 		<View gap={2} stretchX>
 			<Text select color={3}>{doc.comment}</Text>
 			{ (doc.tags ?? []).map((tag: any) => {
 				switch (tag.tagName) {
-					case "example": return <Markdown key={tag.comment} src={tag.comment} />;
-					default: return null;
+					case "example": return <Markdown key={tag.comment} src={tag.comment} />
+					default: return null
 				}
 			}) }
 		</View>
-	) : <></>;
-};
+	) : <></>
+}
 
 interface DocProps {
 	name: string,
@@ -228,9 +228,9 @@ const Doc: React.FC<ViewPropsAnd<DocProps>> = ({
 	typeref,
 	...args
 }) => {
-	const entries = doc.types[name];
+	const entries = doc.types[name]
 	if (!entries) {
-		return <Text color={3}>Entry not found: {name}</Text>;
+		return <Text color={3}>Entry not found: {name}</Text>
 	}
 	return (
 		<DocCtx.Provider value={{
@@ -240,8 +240,8 @@ const Doc: React.FC<ViewPropsAnd<DocProps>> = ({
 				{entries.map((e: any, i: number) => <Entry key={`${e.name}-${i}`} data={e} />)}
 			</View>
 		</DocCtx.Provider>
-	);
-};
+	)
+}
 
 interface DocCtx {
 	typeref?: (name: string) => void,
@@ -249,6 +249,6 @@ interface DocCtx {
 
 const DocCtx = React.createContext<DocCtx>({
 	typeref: () => {},
-});
+})
 
-export default Doc;
+export default Doc

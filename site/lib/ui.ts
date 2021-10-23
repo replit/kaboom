@@ -51,13 +51,13 @@ const genColors = (
 	r: number, g: number, b: number,
 	dr: number, dg: number, db: number,
 ): Record<string, CSSVal> => {
-	const map = {};
+	const map = {}
 	for (let i = 0; i < num; i++) {
 		// @ts-ignore
-		map[`${name}${i + 1}`] = `rgb(${r + dr * i}, ${g + dg * i}, ${b + db * i})`;
+		map[`${name}${i + 1}`] = `rgb(${r + dr * i}, ${g + dg * i}, ${b + db * i})`
 	}
-	return map;
-};
+	return map
+}
 
 export const themes: ThemeBook = {
 	// @ts-ignore
@@ -220,16 +220,16 @@ export const themes: ThemeBook = {
 		"danger": "rgb(255, 90, 90)",
 		"errbg": "rgb(30, 10, 10)",
 	},
-};
+}
 
 export const noobThemes = [
 	"night",
 	"blackhole",
 	"snow",
-];
+]
 
-export const space = 8;
-export const DEF_THEME = "night";
+export const space = 8
+export const DEF_THEME = "night"
 
 export const cursors = {
 	"default": (t: string) => `url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='23' height='29' viewBox='0 0 23 29'><g><path d='M0.520179 26.1868L0.698837 3.1076C0.711984 1.40935 2.70214 0.499303 3.99528 1.60023L21.5689 16.5617C23.0117 17.79 22.0966 20.1492 20.2029 20.0834L11.2961 19.7736C10.667 19.7518 10.0643 20.0274 9.66931 20.5176L4.07745 27.4571C2.88858 28.9325 0.505511 28.0815 0.520179 26.1868Z' fill='${themes[t]["bg1"]}' stroke='${themes[t]["bg2"]}' stroke-width='2'></path></g></svg>") 23 29, default`,
@@ -237,24 +237,24 @@ export const cursors = {
 	"text": (t: string) => `url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='23' height='29' viewBox='0 0 23 29'><g><path d='M0.520179 26.1868L0.698837 3.1076C0.711984 1.40935 2.70214 0.499303 3.99528 1.60023L21.5689 16.5617C23.0117 17.79 22.0966 20.1492 20.2029 20.0834L11.2961 19.7736C10.667 19.7518 10.0643 20.0274 9.66931 20.5176L4.07745 27.4571C2.88858 28.9325 0.505511 28.0815 0.520179 26.1868Z' fill='${themes[t]["bg1"]}' stroke='${themes[t]["bg2"]}' stroke-width='2'></path></g></svg>") 23 29, text`,
 	"help": (t: string) => `url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='23' height='29' viewBox='0 0 23 29'><g><path d='M0.520179 26.1868L0.698837 3.1076C0.711984 1.40935 2.70214 0.499303 3.99528 1.60023L21.5689 16.5617C23.0117 17.79 22.0966 20.1492 20.2029 20.0834L11.2961 19.7736C10.667 19.7518 10.0643 20.0274 9.66931 20.5176L4.07745 27.4571C2.88858 28.9325 0.505511 28.0815 0.520179 26.1868Z' fill='${themes[t]["bg1"]}' stroke='${themes[t]["bg2"]}' stroke-width='2'></path></g></svg>") 23 29, help`,
 	"move": (t: string) => `url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='23' height='29' viewBox='0 0 23 29'><g><path d='M0.520179 26.1868L0.698837 3.1076C0.711984 1.40935 2.70214 0.499303 3.99528 1.60023L21.5689 16.5617C23.0117 17.79 22.0966 20.1492 20.2029 20.0834L11.2961 19.7736C10.667 19.7518 10.0643 20.0274 9.66931 20.5176L4.07745 27.4571C2.88858 28.9325 0.505511 28.0815 0.520179 26.1868Z' fill='${themes[t]["bg1"]}' stroke='${themes[t]["bg2"]}' stroke-width='2'></path></g></svg>") 23 29, move`,
-};
+}
 
 export const cssVars = (() => {
 
 	const buildCSSVars = (prefix: string, map: Record<string, CSSVal>): string => {
-		let code = "";
+		let code = ""
 		for (const k in map) {
-			code += `--${prefix}-${k}: ${map[k]};`;
+			code += `--${prefix}-${k}: ${map[k]};`
 		}
-		return code;
+		return code
 	}
 
-	let code = `:root {${buildCSSVars("text", fontSizes)}${buildCSSVars("color", themes[DEF_THEME])}}`;
+	let code = `:root {${buildCSSVars("text", fontSizes)}${buildCSSVars("color", themes[DEF_THEME])}}`
 
 	for (const theme in themes) {
-		code += `.${theme} {${buildCSSVars("color", themes[theme])}}`;
+		code += `.${theme} {${buildCSSVars("color", themes[theme])}}`
 	}
 
-	return code;
+	return code
 
-})();
+})()

@@ -1,4 +1,4 @@
-import * as React from "react";
+import * as React from "react"
 
 export default function useClickOutside<T extends HTMLElement>(
 	ref: React.RefObject<T>,
@@ -8,16 +8,16 @@ export default function useClickOutside<T extends HTMLElement>(
 
 	const onMousedown = React.useCallback((e: MouseEvent) => {
 		if (ref.current && ref.current.contains(e.target as Node)) {
-			return;
+			return
 		}
-		cb(e);
-	}, deps);
+		cb(e)
+	}, deps)
 
 	React.useEffect(() => {
-		document.addEventListener("mousedown", onMousedown);
-		return () => document.removeEventListener("mousedown", onMousedown);
-	}, [ onMousedown ]);
+		document.addEventListener("mousedown", onMousedown)
+		return () => document.removeEventListener("mousedown", onMousedown)
+	}, [ onMousedown ])
 
-	return ref;
+	return ref
 
 }

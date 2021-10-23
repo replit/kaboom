@@ -1,6 +1,6 @@
-import * as React from "react";
-import View from "comps/View";
-import Text from "comps/Text";
+import * as React from "react"
+import View from "comps/View"
+import Text from "comps/Text"
 
 interface InputProps {
 	value?: string,
@@ -14,13 +14,13 @@ const Input: React.FC<InputProps> = ({
 	placeholder,
 	...args
 }) => {
-	const [ content, setContent ] = React.useState(value ?? "");
+	const [ content, setContent ] = React.useState(value ?? "")
 	return (
 		<input
 			value={content}
 			onChange={(e) => {
-				onChange && onChange(e.currentTarget.value);
-				setContent(e.currentTarget.value);
+				onChange && onChange(e.currentTarget.value)
+				setContent(e.currentTarget.value)
 			}}
 			placeholder={placeholder ?? ""}
 			css={{
@@ -42,7 +42,7 @@ const Input: React.FC<InputProps> = ({
 			}}
 			{...args}
 		/>
-	);
-};
+	)
+}
 
-export default Input;
+export default Input

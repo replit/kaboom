@@ -1,17 +1,17 @@
-import * as React from "react";
+import * as React from "react"
 
 const useUpdateEffect: typeof React.useEffect = (effect, deps) => {
 
-	const isMountedRef = React.useRef(false);
+	const isMountedRef = React.useRef(false)
 
 	React.useEffect(() => {
 		if (!isMountedRef.current) {
-			isMountedRef.current = true;
+			isMountedRef.current = true
 		} else {
-			return effect();
+			return effect()
 		}
-	}, deps);
+	}, deps)
 
-};
+}
 
-export default useUpdateEffect;
+export default useUpdateEffect

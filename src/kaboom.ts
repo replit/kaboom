@@ -37,164 +37,158 @@ import {
 	dir,
 	deg2rad,
 	rad2deg,
-	isVec2,
-} from "./math";
+} from "./math"
 
 import {
 	originPt,
 	gfxInit,
-} from "./gfx";
+} from "./gfx"
 
 import {
 	appInit,
-} from "./app";
+} from "./app"
 
 import {
 	audioInit,
-} from "./audio";
+} from "./audio"
 
 import {
 	assetsInit,
 	ASCII_CHARS,
 	CP437_CHARS,
-} from "./assets";
+} from "./assets"
 
 import {
 	loggerInit,
-} from "./logger";
-
-import {
-	Net,
-	netInit,
-} from "./net";
+} from "./logger"
 
 import {
 	IDList,
-} from "./utils";
+} from "./utils"
 
-import kaboomPlugin from "./plugins/kaboom";
+import kaboomPlugin from "./plugins/kaboom"
 
 // @ts-ignore
 module.exports = (gopt: KaboomOpt = {}): KaboomCtx => {
 
-const audio = audioInit();
+	const audio = audioInit()
 
-const app = appInit({
-	width: gopt.width,
-	height: gopt.height,
-	scale: gopt.scale,
-	crisp: gopt.crisp,
-	canvas: gopt.canvas,
-	root: gopt.root,
-	stretch: gopt.stretch,
-	touchToMouse: gopt.touchToMouse ?? true,
-	audioCtx: audio.ctx,
-});
+	const app = appInit({
+		width: gopt.width,
+		height: gopt.height,
+		scale: gopt.scale,
+		crisp: gopt.crisp,
+		canvas: gopt.canvas,
+		root: gopt.root,
+		stretch: gopt.stretch,
+		touchToMouse: gopt.touchToMouse ?? true,
+		audioCtx: audio.ctx,
+	})
 
-const gfx = gfxInit(app.gl, {
-	background: gopt.background ? rgb(gopt.background) : undefined,
-	width: gopt.width,
-	height: gopt.height,
-	scale: gopt.scale,
-	texFilter: gopt.texFilter,
-	stretch: gopt.stretch,
-	letterbox: gopt.letterbox,
-});
+	const gfx = gfxInit(app.gl, {
+		background: gopt.background ? rgb(gopt.background) : undefined,
+		width: gopt.width,
+		height: gopt.height,
+		scale: gopt.scale,
+		texFilter: gopt.texFilter,
+		stretch: gopt.stretch,
+		letterbox: gopt.letterbox,
+	})
 
-const {
-	width,
-	height,
-} = gfx;
+	const {
+		width,
+		height,
+	} = gfx
 
-const assets = assetsInit(gfx, audio, {
-	errHandler: (err: string) => {
-		logger.error(err);
-	},
-});
+	const assets = assetsInit(gfx, audio, {
+		errHandler: (err: string) => {
+			logger.error(err)
+		},
+	})
 
-const logger = loggerInit(gfx, assets, {
-	max: gopt.logMax,
-});
+	const logger = loggerInit(gfx, assets, {
+		max: gopt.logMax,
+	})
 
-const DEF_FONT = "apl386o";
-const DBG_FONT = "sink";
+	const DEF_FONT = "apl386o"
+	const DBG_FONT = "sink"
 
-function dt() {
-	return app.dt() * debug.timeScale;
-}
-
-// TODO: clean
-function play(id: string, opt: AudioPlayOpt = {}): AudioPlay {
-	const pb = audio.play({
-		buf: new AudioBuffer({
-			length: 1,
-			numberOfChannels: 1,
-			sampleRate: 44100
-		}),
-	});
-	ready(() => {
-		const snd = assets.sounds[id];
-		if (!snd) {
-			throw new Error(`sound not found: "${id}"`);
-		}
-		const pb2 = audio.play(snd, opt);
-		for (const k in pb2) {
-			pb[k] = pb2[k];
-		}
-	});
-	return pb;
-}
-
-function mousePos(): Vec2 {
-	return app.mousePos();
-}
-
-function mouseWorldPos(): Vec2 {
-	return game.camMousePos;
-}
-
-// wrapper around gfx.drawTexture to integrate with sprite assets mananger / frame anim
-function drawSprite(opt: DrawSpriteOpt) {
-	if (!opt.sprite) {
-		throw new Error(`drawSprite() requires property "sprite"`);
+	function dt() {
+		return app.dt() * debug.timeScale
 	}
-	const spr = (() => {
-		if (typeof opt.sprite === "string") {
-			return assets.sprites[opt.sprite];
-		} else {
-			return opt.sprite;
-		}
-	})();
-	if (!spr) {
-		throw new Error(`sprite not found: "${opt.sprite}"`);
-	}
-	const q = spr.frames[opt.frame ?? 0];
-	if (!q) {
-		throw new Error(`frame not found: ${opt.frame ?? 0}`);
-	}
-	gfx.drawTexture({
-		...opt,
-		tex: spr.tex,
-		quad: q.scale(opt.quad || quad(0, 0, 1, 1)),
-	});
-}
 
-// wrapper around gfx.drawText to integrate with font assets mananger / default font
-function drawText(opt: DrawTextOpt) {
+	// TODO: clean
+	function play(id: string, opt: AudioPlayOpt = {}): AudioPlay {
+		const pb = audio.play({
+			buf: new AudioBuffer({
+				length: 1,
+				numberOfChannels: 1,
+				sampleRate: 44100
+			}),
+		})
+		ready(() => {
+			const snd = assets.sounds[id]
+			if (!snd) {
+				throw new Error(`sound not found: "${id}"`)
+			}
+			const pb2 = audio.play(snd, opt)
+			for (const k in pb2) {
+				pb[k] = pb2[k]
+			}
+		})
+		return pb
+	}
+
+	function mousePos(): Vec2 {
+		return app.mousePos()
+	}
+
+	function mouseWorldPos(): Vec2 {
+		return game.camMousePos
+	}
+
+	// wrapper around gfx.drawTexture to integrate with sprite assets mananger / frame anim
+	function drawSprite(opt: DrawSpriteOpt) {
+		if (!opt.sprite) {
+			throw new Error("drawSprite() requires property \"sprite\"")
+		}
+		const spr = (() => {
+			if (typeof opt.sprite === "string") {
+				return assets.sprites[opt.sprite]
+			} else {
+				return opt.sprite
+			}
+		})()
+		if (!spr) {
+			throw new Error(`sprite not found: "${opt.sprite}"`)
+		}
+		const q = spr.frames[opt.frame ?? 0]
+		if (!q) {
+			throw new Error(`frame not found: ${opt.frame ?? 0}`)
+		}
+		gfx.drawTexture({
+			...opt,
+			tex: spr.tex,
+			quad: q.scale(opt.quad || quad(0, 0, 1, 1)),
+		})
+	}
+
+	// wrapper around gfx.drawText to integrate with font assets mananger / default font
+	function drawText(opt: DrawTextOpt) {
 	// @ts-ignore
-	const fid = opt.font ?? DEF_FONT;
-	const font = assets.fonts[fid];
-	if (!font) {
-		throw new Error(`font not found: ${fid}`);
+		const fid = opt.font ?? DEF_FONT
+		const font = assets.fonts[fid]
+		if (!font) {
+			throw new Error(`font not found: ${fid}`)
+		}
+		gfx.drawText({
+			...opt,
+			font: font,
+		})
 	}
-	gfx.drawText({
-		...opt,
-		font: font,
-	});
-}
 
-const DEF_GRAVITY = 1600;
-const DEF_ORIGIN = "topleft";
+	const DEF_GRAVITY = 1600
+	const DEF_ORIGIN = "topleft"
 
 interface Game {
 	loaded: boolean,
@@ -212,7 +206,7 @@ interface Game {
 	trigger(ev: string, ...args),
 	scenes: Record<SceneID, SceneDef>,
 	paused: boolean,
-};
+}
 
 type Camera = {
 	pos: Vec2,
@@ -221,28 +215,10 @@ type Camera = {
 	shake: number,
 };
 
-type Layer = {
-	order: number,
-}
-
 type TaggedEvent = {
 	tag: string,
 	cb: (...args) => void,
 };
-
-type KeyEvent = {
-	key: string,
-	cb(),
-};
-
-type MouseInputEvent = {
-	cb(),
-};
-
-type LoadEvent = () => void;
-type NextFrameEvent = () => void;
-type MouseEvent = () => void;
-type CharEvent = (ch: string) => void;
 
 const game: Game = {
 
@@ -274,71 +250,71 @@ const game: Game = {
 
 	on<F>(ev: string, cb: F): EventCanceller {
 		if (!this.events[ev]) {
-			this.events[ev] = new IDList();
+			this.events[ev] = new IDList()
 		}
-		return this.events[ev].pushd(cb);
+		return this.events[ev].pushd(cb)
 	},
 
 	trigger(ev: string, ...args) {
 		if (this.events[ev]) {
-			this.events[ev].forEach((cb) => cb(...args));
+			this.events[ev].forEach((cb) => cb(...args))
 		}
 	},
 
 	scenes: {},
 	paused: false,
 
-};
+}
 
 function layers(list: string[], def?: string) {
 
 	list.forEach((name, idx) => {
-		game.layers[name] = idx + 1;
-	});
+		game.layers[name] = idx + 1
+	})
 
 	if (def) {
-		game.defLayer = def;
+		game.defLayer = def
 	}
 
 }
 
 function camPos(...pos): Vec2 {
 	if (pos.length > 0) {
-		game.cam.pos = vec2(...pos);
+		game.cam.pos = vec2(...pos)
 	}
-	return game.cam.pos.clone();
+	return game.cam.pos.clone()
 }
 
 function camScale(...scale): Vec2 {
 	if (scale.length > 0) {
-		game.cam.scale = vec2(...scale);
+		game.cam.scale = vec2(...scale)
 	}
-	return game.cam.scale.clone();
+	return game.cam.scale.clone()
 }
 
 function camRot(angle: number): number {
 	if (angle !== undefined) {
-		game.cam.angle = angle;
+		game.cam.angle = angle
 	}
-	return game.cam.angle;
+	return game.cam.angle
 }
 
-function shake(intensity: number = 12) {
-	game.cam.shake = intensity;
+function shake(intensity = 12) {
+	game.cam.shake = intensity
 }
 
 function toScreen(p: Vec2): Vec2 {
-	return game.camMatrix.multVec2(p);
+	return game.camMatrix.multVec2(p)
 }
 
 function toWorld(p: Vec2): Vec2 {
-	return game.camMatrix.invert().multVec2(p);
+	return game.camMatrix.invert().multVec2(p)
 }
 
 const COMP_DESC = new Set([
 	"id",
 	"require",
-]);
+])
 
 const COMP_EVENTS = new Set([
 	"add",
@@ -347,13 +323,13 @@ const COMP_EVENTS = new Set([
 	"draw",
 	"destroy",
 	"inspect",
-]);
+])
 
 function make<T>(comps: CompList<T>): GameObj<T> {
 
-	const compStates = new Map();
-	const customState = {};
-	const events = {};
+	const compStates = new Map()
+	const customState = {}
+	const events = {}
 
 	const obj = {
 
@@ -365,45 +341,45 @@ function make<T>(comps: CompList<T>): GameObj<T> {
 		use(comp: Comp | Tag) {
 
 			if (!comp) {
-				return;
+				return
 			}
 
 			// tag
 			if (typeof comp === "string") {
 				return this.use({
 					id: comp
-				});
+				})
 			}
 
 			// clear if overwrite
 			if (comp.id) {
-				this.unuse(comp.id);
-				compStates.set(comp.id, {});
+				this.unuse(comp.id)
+				compStates.set(comp.id, {})
 			}
 
 			// state source location
-			const state = comp.id ? compStates.get(comp.id) : customState;
+			const state = comp.id ? compStates.get(comp.id) : customState
 
-			state.cleanups = [];
+			state.cleanups = []
 
 			for (const k in comp) {
 
 				if (COMP_DESC.has(k)) {
-					continue;
+					continue
 				}
 
 				// event / custom method
 				if (typeof comp[k] === "function") {
-					const func = comp[k].bind(this);
+					const func = comp[k].bind(this)
 					if (COMP_EVENTS.has(k)) {
-						state.cleanups.push(this.on(k, func));
-						state[k] = func;
-						continue;
+						state.cleanups.push(this.on(k, func))
+						state[k] = func
+						continue
 					} else {
-						state[k] = func;
+						state[k] = func
 					}
 				} else {
-					state[k] = comp[k];
+					state[k] = comp[k]
 				}
 
 				if (this[k] === undefined) {
@@ -413,36 +389,36 @@ function make<T>(comps: CompList<T>): GameObj<T> {
 						set: (val) => state[k] = val,
 						configurable: true,
 						enumerable: true,
-					});
+					})
 				}
 
 			}
 
 			const checkDeps = () => {
 				if (!comp.require) {
-					return;
+					return
 				}
 				for (const dep of comp.require) {
 					if (!this.c(dep)) {
-						throw new Error(`comp '${comp.id}' requires comp '${dep}'`);
+						throw new Error(`comp '${comp.id}' requires comp '${dep}'`)
 					}
 				}
-			};
+			}
 
 			// check deps or run add event
 			if (this.exists()) {
 				if (comp.add) {
-					comp.add.call(this);
+					comp.add.call(this)
 				}
 				if (comp.load) {
-					ready(() => comp.load.call(this));
+					ready(() => comp.load.call(this))
 				}
-				checkDeps();
+				checkDeps()
 			} else {
 				if (comp.require) {
 					state.cleanups.push(this.on("add", () => {
-						checkDeps();
-					}));
+						checkDeps()
+					}))
 				}
 			}
 
@@ -450,64 +426,64 @@ function make<T>(comps: CompList<T>): GameObj<T> {
 
 		unuse(id: Tag) {
 			if (compStates.has(id)) {
-				const comp = compStates.get(id);
-				comp.cleanups.forEach((f) => f());
+				const comp = compStates.get(id)
+				comp.cleanups.forEach((f) => f())
 				for (const k in comp) {
-					delete comp[k];
+					delete comp[k]
 				}
 			}
-			compStates.delete(id);
+			compStates.delete(id)
 		},
 
 		c(id: Tag): Comp {
-			return compStates.get(id);
+			return compStates.get(id)
 		},
 
 		exists(): boolean {
-			return this._id !== null;
+			return this._id !== null
 		},
 
 		is(tag: Tag | Tag[]): boolean {
 			if (tag === "*") {
-				return true;
+				return true
 			}
 			if (Array.isArray(tag)) {
 				for (const t of tag) {
 					if (!this.c(t)) {
-						return false;
+						return false
 					}
 				}
-				return true;
+				return true
 			} else {
-				return this.c(tag) != null;
+				return this.c(tag) != null
 			}
 		},
 
 		on(ev: string, cb): EventCanceller {
 			if (!events[ev]) {
-				events[ev] = new IDList();
+				events[ev] = new IDList()
 			}
-			return events[ev].pushd(cb);
+			return events[ev].pushd(cb)
 		},
 
 		action(cb: () => void): EventCanceller {
-			return this.on("update", cb);
+			return this.on("update", cb)
 		},
 
 		trigger(ev: string, ...args): void {
 
 			if (events[ev]) {
-				events[ev].forEach((cb) => cb.call(this, ...args));
+				events[ev].forEach((cb) => cb.call(this, ...args))
 			}
 
-			const gEvents = game.objEvents[ev];
+			const gEvents = game.objEvents[ev]
 
 			if (gEvents) {
 				gEvents.forEach((e) => {
 					if (this.is(e.tag)) {
-						e.cb(this, ...args);
+						e.cb(this, ...args)
 					}
-				});
+				})
 			}
 
 		},
@@ -515,77 +491,77 @@ function make<T>(comps: CompList<T>): GameObj<T> {
 		destroy() {
 
 			if (!this.exists()) {
-				return;
+				return
 			}
 
-			this.trigger("destroy");
-			game.objs.delete(this._id);
-			this._id = null;
+			this.trigger("destroy")
+			game.objs.delete(this._id)
+			this._id = null
 
 		},
 
 		inspect() {
-			const info = {};
+			const info = {}
 			for (const [tag, comp] of compStates) {
-				info[tag] = comp.inspect ? comp.inspect() : null;
+				info[tag] = comp.inspect ? comp.inspect() : null
 			}
-			return info;
+			return info
 		},
 
-	};
-
-	for (const comp of comps) {
-		obj.use(comp);
 	}
 
-	return obj as unknown as GameObj<T>;
+	for (const comp of comps) {
+		obj.use(comp)
+	}
+
+	return obj as unknown as GameObj<T>
 
 }
 
 function add<T>(comps: CompList<T>): GameObj<T> {
-	const obj = make(comps);
-	obj._id = game.objs.push(obj);
-	obj.trigger("add");
-	ready(() => obj.trigger("load"));
-	return obj;
+	const obj = make(comps)
+	obj._id = game.objs.push(obj)
+	obj.trigger("add")
+	ready(() => obj.trigger("load"))
+	return obj
 }
 
 function readd(obj: GameObj): GameObj {
 	if (!obj.exists()) {
-		return;
+		return
 	}
-	game.objs.delete(obj._id);
-	obj._id = game.objs.push(obj);
-	return obj;
+	game.objs.delete(obj._id)
+	obj._id = game.objs.push(obj)
+	return obj
 }
 
 // add an event to a tag
 function on(event: string, tag: Tag, cb: (obj: GameObj, ...args) => void): EventCanceller {
 	if (!game.objEvents[event]) {
-		game.objEvents[event] = new IDList();
+		game.objEvents[event] = new IDList()
 	}
 	return game.objEvents[event].pushd({
 		tag: tag,
 		cb: cb,
-	});
+	})
 }
 
 // TODO: detect if is currently in another action?
 // add update event to a tag or global update
 function action(tag: Tag | (() => void), cb?: (obj: GameObj) => void): EventCanceller {
 	if (typeof tag === "function" && cb === undefined) {
-		return add([{ update: tag, }]).destroy;
+		return add([{ update: tag, }]).destroy
 	} else if (typeof tag === "string") {
-		return on("update", tag, cb);
+		return on("update", tag, cb)
 	}
 }
 
 // add draw event to a tag or global draw
 function render(tag: Tag | (() => void), cb?: (obj: GameObj) => void) {
 	if (typeof tag === "function" && cb === undefined) {
-		return add([{ draw: tag, }]).destroy;
+		return add([{ draw: tag, }]).destroy
 	} else if (typeof tag === "string") {
-		return on("draw", tag, cb);
+		return on("draw", tag, cb)
 	}
 }
 
@@ -595,41 +571,41 @@ function collides(
 	t2: Tag,
 	f: (a: GameObj, b: GameObj) => void,
 ): EventCanceller {
-	const e1 = on("collide", t1, (a, b, dis) => b.is(t2) && f(a, b));
-	const e2 = on("collide", t2, (a, b, dis) => b.is(t1) && f(b, a));
+	const e1 = on("collide", t1, (a, b) => b.is(t2) && f(a, b))
+	const e2 = on("collide", t2, (a, b) => b.is(t1) && f(b, a))
 	const e3 = action(t1, (o1: GameObj) => {
 		if (!o1.area) {
-			throw new Error("collides() requires the object to have area() component");
+			throw new Error("collides() requires the object to have area() component")
 		}
 		o1._checkCollisions(t2, (o2) => {
-			f(o1, o2);
-		});
-	});
-	return () => [e1, e2, e3].forEach((f) => f());
+			f(o1, o2)
+		})
+	})
+	return () => [e1, e2, e3].forEach((f) => f())
 }
 
 // add an event that runs when objs with tag t is clicked
 function clicks(t: string, f: (obj: GameObj) => void): EventCanceller {
 	return action(t, (o: GameObj) => {
-		if (!o.area) throw new Error("clicks() requires the object to have area() component");
+		if (!o.area) throw new Error("clicks() requires the object to have area() component")
 		if (o.isClicked()) {
-			f(o);
+			f(o)
 		}
-	});
+	})
 }
 
 // add an event that runs when objs with tag t is hovered
 function hovers(t: string, onHover: (obj: GameObj) => void, onNotHover?: (obj: GameObj) => void): EventCanceller {
 	return action(t, (o: GameObj) => {
-		if (!o.area) throw new Error("hovers() requires the object to have area() component");
+		if (!o.area) throw new Error("hovers() requires the object to have area() component")
 		if (o.isHovering()) {
-			onHover(o);
+			onHover(o)
 		} else {
 			if (onNotHover) {
-				onNotHover(o);
+				onNotHover(o)
 			}
 		}
-	});
+	})
 }
 
 // add an event that'd be run after t
@@ -639,161 +615,161 @@ function wait(t: number, f?: () => void): Promise<void> {
 			time: t,
 			action: () => {
 				if (f) {
-					f();
+					f()
 				}
-				resolve();
+				resolve()
 			},
-		});
-	});
+		})
+	})
 }
 
 // add an event that's run every t seconds
 function loop(t: number, f: () => void): EventCanceller {
 
-	let stopped = false;
+	let stopped = false
 
 	const newF = () => {
 		if (stopped) {
-			return;
+			return
 		}
-		f();
-		wait(t, newF);
-	};
+		f()
+		wait(t, newF)
+	}
 
-	newF();
+	newF()
 
-	return () => stopped = true;
+	return () => stopped = true
 
 }
 
 // input callbacks
 function keyDown(k: Key | Key[], f: () => void): EventCanceller {
 	if (Array.isArray(k)) {
-		const cancellers = k.map((key) => keyDown(key, f));
-		return () => cancellers.forEach((cb) => cb());
+		const cancellers = k.map((key) => keyDown(key, f))
+		return () => cancellers.forEach((cb) => cb())
 	} {
-		return game.on("input", () => app.keyDown(k) && f());
+		return game.on("input", () => app.keyDown(k) && f())
 	}
 }
 
 function keyPress(k: Key | Key[] | (() => void), f?: () => void): EventCanceller {
 	if (Array.isArray(k)) {
-		const cancellers = k.map((key) => keyPress(key, f));
-		return () => cancellers.forEach((cb) => cb());
+		const cancellers = k.map((key) => keyPress(key, f))
+		return () => cancellers.forEach((cb) => cb())
 	} else if (typeof k === "function") {
-		return game.on("input", () => app.keyPressed() && k());
+		return game.on("input", () => app.keyPressed() && k())
 	} else {
-		return game.on("input", () => app.keyPressed(k) && f());
+		return game.on("input", () => app.keyPressed(k) && f())
 	}
 }
 
 function keyPressRep(k: Key | Key[] | (() => void), f?: () => void): EventCanceller {
 	if (Array.isArray(k)) {
-		const cancellers = k.map((key) => keyPressRep(key, f));
-		return () => cancellers.forEach((cb) => cb());
+		const cancellers = k.map((key) => keyPressRep(key, f))
+		return () => cancellers.forEach((cb) => cb())
 	} else if (typeof k === "function") {
-		return game.on("input", () => app.keyPressed() && k());
+		return game.on("input", () => app.keyPressed() && k())
 	} else {
-		return game.on("input", () => app.keyPressedRep(k) && f());
+		return game.on("input", () => app.keyPressedRep(k) && f())
 	}
 }
 
 function keyRelease(k: Key | Key[] | (() => void), f?: () => void): EventCanceller {
 	if (Array.isArray(k)) {
-		const cancellers = k.map((key) => keyRelease(key, f));
-		return () => cancellers.forEach((cb) => cb());
+		const cancellers = k.map((key) => keyRelease(key, f))
+		return () => cancellers.forEach((cb) => cb())
 	} else if (typeof k === "function") {
-		return game.on("input", () => app.keyPressed() && k());
+		return game.on("input", () => app.keyPressed() && k())
 	} else {
-		return game.on("input", () => app.keyReleased(k) && f());
+		return game.on("input", () => app.keyReleased(k) && f())
 	}
 }
 
 function mouseDown(f: (pos: Vec2) => void): EventCanceller {
-	return game.on("input", () => app.mouseDown() && f(mousePos()));
+	return game.on("input", () => app.mouseDown() && f(mousePos()))
 }
 
 function mouseClick(f: (pos: Vec2) => void): EventCanceller {
-	return game.on("input", () => app.mouseClicked() && f(mousePos()));
+	return game.on("input", () => app.mouseClicked() && f(mousePos()))
 }
 
 function mouseRelease(f: (pos: Vec2) => void): EventCanceller {
-	return game.on("input", () => app.mouseReleased() && f(mousePos()));
+	return game.on("input", () => app.mouseReleased() && f(mousePos()))
 }
 
 function mouseMove(f: (pos: Vec2, dpos: Vec2) => void): EventCanceller {
-	return game.on("input", () => app.mouseMoved() && f(mousePos(), app.mouseDeltaPos()));
+	return game.on("input", () => app.mouseMoved() && f(mousePos(), app.mouseDeltaPos()))
 }
 
 function charInput(f: (ch: string) => void): EventCanceller {
-	return game.on("input", () => app.charInputted().forEach((ch) => f(ch)));
+	return game.on("input", () => app.charInputted().forEach((ch) => f(ch)))
 }
 
 // TODO: put this in app.ts's and handle in game loop
 app.canvas.addEventListener("touchstart", (e) => {
 	[...e.changedTouches].forEach((t) => {
-		game.trigger("touchStart", t.identifier, vec2(t.clientX, t.clientY).scale(1 / app.scale));
-	});
-});
+		game.trigger("touchStart", t.identifier, vec2(t.clientX, t.clientY).scale(1 / app.scale))
+	})
+})
 
 app.canvas.addEventListener("touchmove", (e) => {
 	[...e.changedTouches].forEach((t) => {
-		game.trigger("touchMove", t.identifier, vec2(t.clientX, t.clientY).scale(1 / app.scale));
-	});
-});
+		game.trigger("touchMove", t.identifier, vec2(t.clientX, t.clientY).scale(1 / app.scale))
+	})
+})
 
 app.canvas.addEventListener("touchmove", (e) => {
 	[...e.changedTouches].forEach((t) => {
-		game.trigger("touchEnd", t.identifier, vec2(t.clientX, t.clientY).scale(1 / app.scale));
-	});
-});
+		game.trigger("touchEnd", t.identifier, vec2(t.clientX, t.clientY).scale(1 / app.scale))
+	})
+})
 
 function touchStart(f: (id: TouchID, pos: Vec2) => void): EventCanceller {
-	return game.on("touchStart", f);
+	return game.on("touchStart", f)
 }
 
 function touchMove(f: (id: TouchID, pos: Vec2) => void): EventCanceller {
-	return game.on("touchMove", f);
+	return game.on("touchMove", f)
 }
 
 function touchEnd(f: (id: TouchID, pos: Vec2) => void): EventCanceller {
-	return game.on("touchEnd", f);
+	return game.on("touchEnd", f)
 }
 
 function enterDebugMode() {
 
 	keyPress("f1", () => {
-		debug.inspect = !debug.inspect;
-	});
+		debug.inspect = !debug.inspect
+	})
 
 	keyPress("f2", () => {
-		debug.clearLog();
-	});
+		debug.clearLog()
+	})
 
 	keyPress("f8", () => {
-		debug.paused = !debug.paused;
-		debug.log(`${debug.paused ? "paused" : "unpaused"}`);
-	});
+		debug.paused = !debug.paused
+		debug.log(`${debug.paused ? "paused" : "unpaused"}`)
+	})
 
 	keyPress("f7", () => {
-		debug.timeScale = clamp(debug.timeScale - 0.2, 0, 2);
-		debug.log(`time scale: ${debug.timeScale.toFixed(1)}`);
-	});
+		debug.timeScale = clamp(debug.timeScale - 0.2, 0, 2)
+		debug.log(`time scale: ${debug.timeScale.toFixed(1)}`)
+	})
 
 	keyPress("f9", () => {
-		debug.timeScale = clamp(debug.timeScale + 0.2, 0, 2);
-		debug.log(`time scale: ${debug.timeScale.toFixed(1)}`);
-	});
+		debug.timeScale = clamp(debug.timeScale + 0.2, 0, 2)
+		debug.log(`time scale: ${debug.timeScale.toFixed(1)}`)
+	})
 
 	keyPress("f10", () => {
-		debug.stepFrame();
-		debug.log(`stepped frame`);
-	});
+		debug.stepFrame()
+		debug.log("stepped frame")
+	})
 
 }
 
 function enterBurpMode() {
-	keyPress("b", audio.burp);
+	keyPress("b", audio.burp)
 }
 
 // TODO: cache sorted list
@@ -802,22 +778,22 @@ function get(t?: string): GameObj[] {
 
 	const objs = [...game.objs.values()].sort((o1, o2) => {
 
-		const l1 = game.layers[o1.layer ?? game.defLayer] ?? 0;
-		const l2 = game.layers[o2.layer ?? game.defLayer] ?? 0;
+		const l1 = game.layers[o1.layer ?? game.defLayer] ?? 0
+		const l2 = game.layers[o2.layer ?? game.defLayer] ?? 0
 
 		// if on same layer, use "z" comp to decide which is on top, if given
 		if (l1 == l2) {
-			return (o1.z ?? 0) - (o2.z ?? 0);
+			return (o1.z ?? 0) - (o2.z ?? 0)
 		} else {
-			return l1 - l2;
+			return l1 - l2
 		}
 
-	});
+	})
 
 	if (!t) {
-		return objs;
+		return objs
 	} else {
-		return objs.filter(obj => obj.is(t));
+		return objs.filter(obj => obj.is(t))
 	}
 
 }
@@ -825,116 +801,112 @@ function get(t?: string): GameObj[] {
 // apply a function to all objects currently in game with tag t
 function every<T>(t: string | ((obj: GameObj) => T), f?: (obj: GameObj) => T) {
 	if (typeof t === "function" && f === undefined) {
-		return get().forEach((obj) => obj.exists() && t(obj));
+		return get().forEach((obj) => obj.exists() && t(obj))
 	} else if (typeof t === "string") {
-		return get(t).forEach((obj) => obj.exists() && f(obj));
+		return get(t).forEach((obj) => obj.exists() && f(obj))
 	}
 }
 
 // every but in reverse order
 function revery<T>(t: string | ((obj: GameObj) => T), f?: (obj: GameObj) => T) {
 	if (typeof t === "function" && f === undefined) {
-		return get().reverse().forEach((obj) => obj.exists() && t(obj));
+		return get().reverse().forEach((obj) => obj.exists() && t(obj))
 	} else if (typeof t === "string") {
-		return get(t).reverse().forEach((obj) => obj.exists() && f(obj));
+		return get(t).reverse().forEach((obj) => obj.exists() && f(obj))
 	}
 }
 
 // destroy an obj
 function destroy(obj: GameObj) {
-	obj.destroy();
+	obj.destroy()
 }
 
 // destroy all obj with the tag
 function destroyAll(t: string) {
-	every(t, destroy);
+	every(t, destroy)
 }
 
 // get / set gravity
 function gravity(g?: number): number {
 	if (g !== undefined) {
-		game.gravity = g;
+		game.gravity = g
 	}
-	return game.gravity;
-}
-
-function regCursor(c: Cursor, draw: string | ((mpos: Vec2) => void)) {
-	// TODO
+	return game.gravity
 }
 
 // TODO: cleaner pause logic
 function gameFrame(ignorePause?: boolean) {
 
-	game.trigger("next");
-	delete game.events["next"];
+	game.trigger("next")
+	delete game.events["next"]
 
-	const doUpdate = ignorePause || !debug.paused;
+	const doUpdate = ignorePause || !debug.paused
 
 	if (doUpdate) {
 
 		// update timers
 		game.timers.forEach((t, id) => {
-			t.time -= dt();
+			t.time -= dt()
 			if (t.time <= 0) {
 				// TODO: some timer action causes crash on FF when dt is really high, not sure why
-				t.action();
-				game.timers.delete(id);
+				t.action()
+				game.timers.delete(id)
 			}
-		});
+		})
 
 		// update every obj
 		revery((obj) => {
 			if (!obj.paused) {
-				obj.trigger("update", obj);
+				obj.trigger("update", obj)
 			}
-		});
+		})
 
 	}
 
 	// calculate camera matrix
-	const size = vec2(width(), height());
-	const cam = game.cam;
-	const shake = dir(rand(0, 360)).scale(cam.shake);
+	const size = vec2(width(), height())
+	const cam = game.cam
+	const shake = dir(rand(0, 360)).scale(cam.shake)
 
-	cam.shake = lerp(cam.shake, 0, 5 * dt());
+	cam.shake = lerp(cam.shake, 0, 5 * dt())
 	game.camMatrix = mat4()
 		.translate(size.scale(0.5))
 		.scale(cam.scale)
 		.rotateZ(cam.angle)
 		.translate(size.scale(-0.5))
 		.translate(cam.pos.scale(-1).add(size.scale(0.5)).add(shake))
-		;
+
 
 	// draw every obj
 	every((obj) => {
 
 		if (!obj.hidden) {
 
-			gfx.pushTransform();
+			gfx.pushTransform()
 
 			if (!obj.fixed) {
-				gfx.applyMatrix(game.camMatrix);
+				gfx.applyMatrix(game.camMatrix)
 			}
 
-			obj.trigger("draw");
-			gfx.popTransform();
+			obj.trigger("draw")
+			gfx.popTransform()
 
 		}
 
-	});
+	})
 
 }
 
 function drawInspect() {
 
-	let inspecting = null;
-	const font = assets.fonts[DBG_FONT];
-	const lcolor = rgb(gopt.inspectColor ?? [0, 0, 255]);
+	let inspecting = null
+	const font = assets.fonts[DBG_FONT]
+	const lcolor = rgb(gopt.inspectColor ?? [0, 0, 255])
 
 	function drawInspectTxt(pos, txt) {
 
-		const s = gfx.scale();
-		const pad = vec2(6).scale(1 / s);
+		const s = gfx.scale()
+		const pad = vec2(6).scale(1 / s)
 
 		const ftxt = gfx.fmtText({
 			text: txt,
@@ -942,19 +914,19 @@ function drawInspect() {
 			size: 16 / s,
 			pos: pos.add(vec2(pad.x, pad.y)),
 			color: rgb(0, 0, 0),
-		});
+		})
 
-		const bw = ftxt.width + pad.x * 2;
-		const bh = ftxt.height + pad.x * 2;
+		const bw = ftxt.width + pad.x * 2
+		const bh = ftxt.height + pad.x * 2
 
-		gfx.pushTransform();
+		gfx.pushTransform()
 
 		if (pos.x + bw >= width()) {
-			gfx.pushTranslate(vec2(-bw, 0));
+			gfx.pushTranslate(vec2(-bw, 0))
 		}
 
 		if (pos.y + bh >= height()) {
-			gfx.pushTranslate(vec2(0, -bh));
+			gfx.pushTranslate(vec2(0, -bh))
 		}
 
 		gfx.drawRect({
@@ -966,10 +938,10 @@ function drawInspect() {
 				width: 2 / s,
 				color: rgb(0, 0, 0),
 			},
-		});
+		})
 
-		gfx.drawFmtText(ftxt);
-		gfx.popTransform();
+		gfx.drawFmtText(ftxt)
+		gfx.popTransform()
 
 	}
 
@@ -977,30 +949,30 @@ function drawInspect() {
 	every((obj) => {
 
 		if (!obj.area) {
-			return;
+			return
 		}
 
 		if (obj.hidden) {
-			return;
+			return
 		}
 
-		const scale = gfx.scale() * (obj.fixed ? 1: (game.cam.scale.x + game.cam.scale.y) / 2);
+		const scale = gfx.scale() * (obj.fixed ? 1: (game.cam.scale.x + game.cam.scale.y) / 2)
 
 		if (!obj.fixed) {
-			gfx.pushTransform();
-			gfx.applyMatrix(game.camMatrix);
+			gfx.pushTransform()
+			gfx.applyMatrix(game.camMatrix)
 		}
 
 		if (!inspecting) {
 			if (obj.isHovering()) {
-				inspecting = obj;
+				inspecting = obj
 			}
 		}
 
-		const lwidth = (inspecting === obj ? 8 : 4) / scale;
-		const a = obj.worldArea();
-		const w = a.p2.x - a.p1.x;
-		const h = a.p2.y - a.p1.y;
+		const lwidth = (inspecting === obj ? 8 : 4) / scale
+		const a = obj.worldArea()
+		const w = a.p2.x - a.p1.x
+		const h = a.p2.y - a.p1.y
 
 		gfx.drawRect({
 			pos: a.p1,
@@ -1011,36 +983,36 @@ function drawInspect() {
 				color: lcolor,
 			},
 			fill: false,
-		});
+		})
 
 		if (!obj.fixed) {
-			gfx.popTransform();
+			gfx.popTransform()
 		}
 
-	});
+	})
 
 	if (inspecting) {
 
-		const lines = [];
-		const data = inspecting.inspect();
+		const lines = []
+		const data = inspecting.inspect()
 
 		for (const tag in data) {
 			if (data[tag]) {
-				lines.push(`${tag}: ${data[tag]}`);
+				lines.push(`${tag}: ${data[tag]}`)
 			} else {
-				lines.push(`${tag}`);
+				lines.push(`${tag}`)
 			}
 		}
 
-		drawInspectTxt(mousePos(), lines.join("\n"));
+		drawInspectTxt(mousePos(), lines.join("\n"))
 
 	}
 
-	drawInspectTxt(vec2(0), `FPS: ${app.fps()}`);
+	drawInspectTxt(vec2(0), `FPS: ${app.fps()}`)
 
 }
 
-function makeCollision(target: GameObj<any>, dis: Vec2): Collision {
+function makeCollision(target: GameObj, dis: Vec2): Collision {
 	return {
 		target: target,
 		displacement: dis,
@@ -1048,7 +1020,7 @@ function makeCollision(target: GameObj<any>, dis: Vec2): Collision {
 		isBottom: () => dis.y < 0,
 		isLeft: () => dis.x > 0,
 		isRight: () => dis.x < 0,
-	};
+	}
 }
 
 // TODO: manage global velocity here?
@@ -1062,14 +1034,14 @@ function pos(...args): PosComp {
 		// TODO: clean
 		moveBy(...args): Collision | null {
 
-			const p = vec2(...args);
-			let dx = p.x;
-			let dy = p.y;
-			let col = null;
+			const p = vec2(...args)
+			let dx = p.x
+			let dy = p.y
+			let col = null
 
 			if (this.solid && this.area?.shape === "rect") {
 
-				let a1 = this.worldArea();
+				let a1 = this.worldArea()
 
 				// TODO: definitely shouln't iterate through all solid objs
 				every((other) => {
@@ -1082,69 +1054,69 @@ function pos(...args): PosComp {
 						|| !other.solid
 						|| other.area?.shape !== "rect"
 					) {
-						return;
+						return
 					}
 
-					const a2 = other.worldArea();
-					let md = minkDiff(a2, a1);
+					const a2 = other.worldArea()
+					let md = minkDiff(a2, a1)
 
 					// if they're already overlapping, push them away first
 					if (testRectPoint(md, vec2(0))) {
 
-						let dist = Math.min(
+						const dist = Math.min(
 							Math.abs(md.p1.x),
 							Math.abs(md.p2.x),
 							Math.abs(md.p1.y),
 							Math.abs(md.p2.y),
-						);
+						)
 
 						const res = (() => {
 							switch (dist) {
-								case Math.abs(md.p1.x): return vec2(dist, 0);
-								case Math.abs(md.p2.x): return vec2(-dist, 0);
-								case Math.abs(md.p1.y): return vec2(0, dist);
-								case Math.abs(md.p2.y): return vec2(0, -dist);
+								case Math.abs(md.p1.x): return vec2(dist, 0)
+								case Math.abs(md.p2.x): return vec2(-dist, 0)
+								case Math.abs(md.p1.y): return vec2(0, dist)
+								case Math.abs(md.p2.y): return vec2(0, -dist)
 							}
-						})();
+						})()
 
-						this.pos = this.pos.sub(res);
+						this.pos = this.pos.sub(res)
 
 						// calculate new mink diff
-						a1 = this.worldArea();
-						md = minkDiff(a2, a1);
+						a1 = this.worldArea()
+						md = minkDiff(a2, a1)
 
 					}
 
-					const ray = { p1: vec2(0), p2: vec2(dx, dy) };
-					let minT = 1;
-					const p1 = md.p1;
-					const p2 = vec2(md.p1.x, md.p2.y);
-					const p3 = md.p2;
-					const p4 = vec2(md.p2.x, md.p1.y);
-					let numCols = 0;
+					const ray = { p1: vec2(0), p2: vec2(dx, dy) }
+					let minT = 1
+					const p1 = md.p1
+					const p2 = vec2(md.p1.x, md.p2.y)
+					const p3 = md.p2
+					const p4 = vec2(md.p2.x, md.p1.y)
+					let numCols = 0
 					const lines = {
 						"right": { p1: p1, p2: p2, },
 						"top": { p1: p2, p2: p3, },
 						"left": { p1: p3, p2: p4, },
 						"bottom": { p1: p4, p2: p1, },
-					};
+					}
 
 					for (const s in lines) {
-						const line = lines[s];
+						const line = lines[s]
 						// if moving along a side, we forgive
 						if (
 							(dx === 0 && line.p1.x === 0 && line.p2.x === 0)
 							||
 							(dy === 0 && line.p1.y === 0 && line.p2.y === 0)
 						) {
-							minT = 1;
-							break;
+							minT = 1
+							break
 						}
-						const t = testLineLineT(ray, line);
+						const t = testLineLineT(ray, line)
 						if (t != null) {
-							numCols++;
+							numCols++
 							if (t < minT) {
-								minT = t;
+								minT = t
 							}
 						}
 					}
@@ -1154,84 +1126,84 @@ function pos(...args): PosComp {
 						minT < 1
 						&& !(minT === 0 && numCols == 1 && !testRectPoint(md, vec2(dx, dy)))
 					) {
-						const dis = vec2(-dx * (1 - minT), -dy * (1 - minT));
-						dx *= minT;
-						dy *= minT;
-						col = makeCollision(other, dis);
+						const dis = vec2(-dx * (1 - minT), -dy * (1 - minT))
+						dx *= minT
+						dy *= minT
+						col = makeCollision(other, dis)
 					}
 
-				});
+				})
 
 			}
 
-			this.pos.x += dx;
-			this.pos.y += dy;
+			this.pos.x += dx
+			this.pos.y += dy
 
 			if (col) {
-				this.trigger("collide", col.target, col);
-				col.target.trigger("collide", this, makeCollision(this, col.displacement.scale(-1)));
+				this.trigger("collide", col.target, col)
+				col.target.trigger("collide", this, makeCollision(this, col.displacement.scale(-1)))
 			}
 
-			return col;
+			return col
 
 		},
 
 		// move with velocity (pixels per second)
 		move(...args): Collision | null {
-			return this.moveBy(vec2(...args).scale(dt()));
+			return this.moveBy(vec2(...args).scale(dt()))
 		},
 
 		// move to a destination, with optional speed
 		moveTo(...args) {
 			if (typeof args[0] === "number" && typeof args[1] === "number") {
-				return this.moveTo(vec2(args[0], args[1]), args[2]);
+				return this.moveTo(vec2(args[0], args[1]), args[2])
 			}
-			const dest = args[0];
-			const speed = args[1];
+			const dest = args[0]
+			const speed = args[1]
 			if (speed === undefined) {
-				this.pos = vec2(dest);
-				return;
+				this.pos = vec2(dest)
+				return
 			}
-			const diff = dest.sub(this.pos);
+			const diff = dest.sub(this.pos)
 			if (diff.len() <= speed * dt()) {
-				this.pos = vec2(dest);
-				return;
+				this.pos = vec2(dest)
+				return
 			}
-			this.move(diff.unit().scale(speed));
+			this.move(diff.unit().scale(speed))
 		},
 
 		// get the screen position (transformed by camera)
 		screenPos(): Vec2 {
 			if (this.fixed) {
-				return this.pos;
+				return this.pos
 			} else {
-				return toScreen(this.pos);
+				return toScreen(this.pos)
 			}
 		},
 
 		inspect() {
-			return `(${Math.round(this.pos.x)}, ${Math.round(this.pos.y)})`;
+			return `(${Math.round(this.pos.x)}, ${Math.round(this.pos.y)})`
 		},
 
-	};
+	}
 
-};
+}
 
 // TODO: allow single number assignment
 function scale(...args): ScaleComp {
 	if (args.length === 0) {
-		return scale(1);
+		return scale(1)
 	}
 	return {
 		id: "scale",
 		scale: vec2(...args),
 		scaleTo(...args) {
-			this.scale = vec2(...args);
+			this.scale = vec2(...args)
 		},
 		inspect() {
-			return `(${toFixed(this.scale.x, 2)}, ${toFixed(this.scale.y, 2)})`;
+			return `(${toFixed(this.scale.x, 2)}, ${toFixed(this.scale.y, 2)})`
 		},
-	};
+	}
 }
 
 function rotate(r: number): RotateComp {
@@ -1239,9 +1211,9 @@ function rotate(r: number): RotateComp {
 		id: "rotate",
 		angle: r ?? 0,
 		inspect() {
-			return `${Math.round(this.angle)}`;
+			return `${Math.round(this.angle)}`
 		},
-	};
+	}
 }
 
 function color(...args): ColorComp {
@@ -1249,13 +1221,13 @@ function color(...args): ColorComp {
 		id: "color",
 		color: rgb(...args),
 		inspect() {
-			return this.color.str();
+			return this.color.str()
 		},
-	};
+	}
 }
 
 function toFixed(n: number, f: number) {
-	return Number(n.toFixed(f));
+	return Number(n.toFixed(f))
 }
 
 function opacity(a: number): OpacityComp {
@@ -1263,26 +1235,26 @@ function opacity(a: number): OpacityComp {
 		id: "opacity",
 		opacity: a ?? 1,
 		inspect() {
-			return `${toFixed(this.opacity, 2)}`;
+			return `${toFixed(this.opacity, 2)}`
 		},
-	};
+	}
 }
 
 function origin(o: Origin | Vec2): OriginComp {
 	if (!o) {
-		throw new Error("please define an origin");
+		throw new Error("please define an origin")
 	}
 	return {
 		id: "origin",
 		origin: o,
 		inspect() {
 			if (typeof this.origin === "string") {
-				return this.origin;
+				return this.origin
 			} else {
-				return this.origin.str();
+				return this.origin.str()
 			}
 		},
-	};
+	}
 }
 
 function layer(l: string): LayerComp {
@@ -1290,9 +1262,9 @@ function layer(l: string): LayerComp {
 		id: "layer",
 		layer: l,
 		inspect() {
-			return this.layer ?? game.defLayer;
+			return this.layer ?? game.defLayer
 		},
-	};
+	}
 }
 
 function z(z: number): ZComp {
@@ -1300,9 +1272,9 @@ function z(z: number): ZComp {
 		id: "z",
 		z: z,
 		inspect() {
-			return `${this.z}`;
+			return `${this.z}`
 		},
-	};
+	}
 }
 
 function follow(obj: GameObj, offset?: Vec2): FollowComp {
@@ -1315,30 +1287,30 @@ function follow(obj: GameObj, offset?: Vec2): FollowComp {
 		},
 		add() {
 			if (obj.exists()) {
-				this.pos = this.follow.obj.pos.add(this.follow.offset);
+				this.pos = this.follow.obj.pos.add(this.follow.offset)
 			}
 		},
 		update() {
 			if (obj.exists()) {
-				this.pos = this.follow.obj.pos.add(this.follow.offset);
+				this.pos = this.follow.obj.pos.add(this.follow.offset)
 			}
 		},
-	};
+	}
 }
 
 function move(direction: number | Vec2, speed: number): MoveComp {
-	const d = typeof direction === "number" ? dir(direction) : direction.unit();
+	const d = typeof direction === "number" ? dir(direction) : direction.unit()
 	return {
 		id: "move",
 		require: [ "pos", ],
 		update() {
-			this.move(d.scale(speed));
+			this.move(d.scale(speed))
 		},
-	};
+	}
 }
 
-function cleanup(time: number = 0): CleanupComp {
-	let timer = 0;
+function cleanup(time = 0): CleanupComp {
+	let timer = 0
 	return {
 		id: "cleanup",
 		require: [ "pos", "area", ],
@@ -1348,20 +1320,20 @@ function cleanup(time: number = 0): CleanupComp {
 				p2: vec2(width(), height()),
 			}
 			if (testAreaRect(this.screenArea(), screenRect)) {
-				timer = 0;
+				timer = 0
 			} else {
-				timer += dt();
+				timer += dt()
 				if (timer >= time) {
-					this.destroy();
+					this.destroy()
 				}
 			}
 		},
-	};
+	}
 }
 
 function area(opt: AreaCompOpt = {}): AreaComp {
 
-	const colliding = {};
+	const colliding = {}
 
 	return {
 
@@ -1370,8 +1342,8 @@ function area(opt: AreaCompOpt = {}): AreaComp {
 		add() {
 			if (this.area.cursor) {
 				this.hovers(() => {
-					app.cursor(this.area.cursor);
-				});
+					app.cursor(this.area.cursor)
+				})
 			}
 		},
 
@@ -1385,110 +1357,110 @@ function area(opt: AreaCompOpt = {}): AreaComp {
 		},
 
 		isClicked(): boolean {
-			return app.mouseClicked() && this.isHovering();
+			return app.mouseClicked() && this.isHovering()
 		},
 
 		isHovering() {
-			const mpos = this.fixed ? mousePos() : mouseWorldPos();
+			const mpos = this.fixed ? mousePos() : mouseWorldPos()
 			if (app.isTouch) {
-				return app.mouseDown() && this.hasPoint(mpos);
+				return app.mouseDown() && this.hasPoint(mpos)
 			} else {
-				return this.hasPoint(mpos);
+				return this.hasPoint(mpos)
 			}
 		},
 
 		isColliding(other) {
 			if (!other.area || !other.exists()) {
-				return false;
+				return false
 			}
-			const a1 = this.worldArea();
-			const a2 = other.worldArea();
-			return testAreaArea(a1, a2);
+			const a1 = this.worldArea()
+			const a2 = other.worldArea()
+			return testAreaArea(a1, a2)
 		},
 
 		isTouching(other) {
 			if (!other.area || !other.exists()) {
-				return false;
+				return false
 			}
 			// TODO: support other shapes
-			const a1 = this.worldArea();
-			const a2 = other.worldArea();
-			return testRectRect2(a1, a2);
+			const a1 = this.worldArea()
+			const a2 = other.worldArea()
+			return testRectRect2(a1, a2)
 		},
 
 		clicks(f: () => void): EventCanceller {
 			return this.action(() => {
 				if (this.isClicked()) {
-					f();
+					f()
 				}
-			});
+			})
 		},
 
 		hovers(onHover: () => void, onNotHover: () => void): EventCanceller {
 			return this.action(() => {
 				if (this.isHovering()) {
-					onHover();
+					onHover()
 				} else {
 					if (onNotHover) {
-						onNotHover();
+						onNotHover()
 					}
 				}
-			});
+			})
 		},
 
 		collides(tag: Tag, f: (o: GameObj, col?: Collision) => void): EventCanceller {
-			const e1 = this.action(() => this._checkCollisions(tag, f));
-			const e2 = this.on("collide", (obj, col) => obj.is(tag) && f(obj, col));
-			return () => [e1, e2].forEach((f) => f());
+			const e1 = this.action(() => this._checkCollisions(tag, f))
+			const e2 = this.on("collide", (obj, col) => obj.is(tag) && f(obj, col))
+			return () => [e1, e2].forEach((f) => f())
 		},
 
 		hasPoint(pt: Vec2): boolean {
-			return testAreaPoint(this.worldArea(), pt);
+			return testAreaPoint(this.worldArea(), pt)
 		},
 
 		// push an obj out of another if they're overlapped
 		pushOut(obj: GameObj): Vec2 | null {
 
 			if (obj === this) {
-				return null;
+				return null
 			}
 
 			// TODO: support other shapes
 			if (obj.area?.shape !== "rect") {
-				return null;
+				return null
 			}
 
-			const a1 = this.worldArea();
-			const a2 = obj.worldArea();
-			const md = minkDiff(a1, a2);
+			const a1 = this.worldArea()
+			const a2 = obj.worldArea()
+			const md = minkDiff(a1, a2)
 
 			if (!testRectPoint(md, vec2(0))) {
-				return null;
+				return null
 			}
 
-			let dist = Math.min(
+			const dist = Math.min(
 				Math.abs(md.p1.x),
 				Math.abs(md.p2.x),
 				Math.abs(md.p1.y),
 				Math.abs(md.p2.y),
-			);
+			)
 
 			const res = (() => {
 				switch (dist) {
-					case Math.abs(md.p1.x): return vec2(dist, 0);
-					case Math.abs(md.p2.x): return vec2(-dist, 0);
-					case Math.abs(md.p1.y): return vec2(0, dist);
-					case Math.abs(md.p2.y): return vec2(0, -dist);
+					case Math.abs(md.p1.x): return vec2(dist, 0)
+					case Math.abs(md.p2.x): return vec2(-dist, 0)
+					case Math.abs(md.p1.y): return vec2(0, dist)
+					case Math.abs(md.p2.y): return vec2(0, -dist)
 				}
-			})();
+			})()
 
-			this.pos = this.pos.add(res);
+			this.pos = this.pos.add(res)
 
 		},
 
 		// push object out of other solid objects
 		pushOutAll() {
-			every(this.pushOut);
+			every(this.pushOut)
 		},
 
 		// @ts-ignore
@@ -1497,20 +1469,20 @@ function area(opt: AreaCompOpt = {}): AreaComp {
 			every(tag, (obj) => {
 
 				if (this === obj || !this.exists() || colliding[obj._id]) {
-					return;
+					return
 				}
 
 				if (this.isColliding(obj)) {
-					this.trigger("collide", obj, null);
-					colliding[obj._id] = obj;
+					this.trigger("collide", obj, null)
+					colliding[obj._id] = obj
 				}
 
-			});
+			})
 
 			for (const id in colliding) {
-				const obj = colliding[id];
+				const obj = colliding[id]
 				if (!this.isColliding(obj)) {
-					delete colliding[id];
+					delete colliding[id]
 				}
 			}
 
@@ -1520,50 +1492,50 @@ function area(opt: AreaCompOpt = {}): AreaComp {
 		// TODO: use matrix mult for more accuracy and rotation?
 		worldArea(): Area {
 
-			let w = this.area.width ?? this.width;
-			let h = this.area.height ?? this.height;
+			let w = this.area.width ?? this.width
+			let h = this.area.height ?? this.height
 
 			if (w == null || h == null) {
-				throw new Error("failed to get area dimension");
+				throw new Error("failed to get area dimension")
 			}
 
-			const scale = (this.scale ?? vec2(1)).scale(this.area.scale);
+			const scale = (this.scale ?? vec2(1)).scale(this.area.scale)
 
-			w *= scale.x;
-			h *= scale.y;
+			w *= scale.x
+			h *= scale.y
 
-			const orig = originPt(this.origin || DEF_ORIGIN);
+			const orig = originPt(this.origin || DEF_ORIGIN)
 			const pos = (this.pos ?? vec2(0))
 				.add(this.area.offset)
-				.sub(orig.add(1, 1).scale(0.5).scale(w, h));
+				.sub(orig.add(1, 1).scale(0.5).scale(w, h))
 
 			return {
 				shape: "rect",
 				p1: pos,
 				p2: vec2(pos.x + w, pos.y + h),
-			};
+			}
 
 		},
 
 		screenArea(): Area {
-			const area = this.worldArea();
+			const area = this.worldArea()
 			if (this.fixed) {
-				return area;
+				return area
 			} else {
 				return {
 					shape: "rect",
 					p1: game.camMatrix.multVec2(area.p1),
 					p2: game.camMatrix.multVec2(area.p2),
-				};
+				}
 			}
 		},
 
-	};
+	}
 
 }
 
 // make the list of common render properties from the "pos", "scale", "color", "opacity", "rotate", "origin", "outline", and "shader" components of a character
-function getRenderProps(obj: GameObj<any>) {
+function getRenderProps(obj: GameObj) {
 	return {
 		pos: obj.pos,
 		scale: obj.scale,
@@ -1574,7 +1546,7 @@ function getRenderProps(obj: GameObj<any>) {
 		outline: obj.outline,
 		shader: assets.shaders[obj.shader],
 		uniform: obj.uniform,
-	};
+	}
 }
 
 interface SpriteCurAnim {
@@ -1589,22 +1561,22 @@ interface SpriteCurAnim {
 // TODO: clean
 function sprite(id: string | SpriteData, opt: SpriteCompOpt = {}): SpriteComp {
 
-	let spr = null;
-	let curAnim: SpriteCurAnim | null = null;
+	let spr = null
+	let curAnim: SpriteCurAnim | null = null
 
 	function calcTexScale(tex: GfxTexture, q: Quad, w?: number, h?: number): Vec2 {
-		const scale = vec2(1, 1);
+		const scale = vec2(1, 1)
 		if (w && h) {
-			scale.x = w / (tex.width * q.w);
-			scale.y = h / (tex.height * q.h);
+			scale.x = w / (tex.width * q.w)
+			scale.y = h / (tex.height * q.h)
 		} else if (w) {
-			scale.x = w / (tex.width * q.w);
-			scale.y = scale.x;
+			scale.x = w / (tex.width * q.w)
+			scale.y = scale.x
 		} else if (h) {
-			scale.y = h / (tex.height * q.h);
-			scale.x = scale.y;
+			scale.y = h / (tex.height * q.h)
+			scale.x = scale.y
 		}
-		return scale;
+		return scale
 	}
 
 	return {
@@ -1620,28 +1592,28 @@ function sprite(id: string | SpriteData, opt: SpriteCompOpt = {}): SpriteComp {
 		load() {
 
 			if (typeof id === "string") {
-				spr = assets.sprites[id];
+				spr = assets.sprites[id]
 			} else {
-				spr = id;
+				spr = id
 			}
 
 			if (!spr) {
-				throw new Error(`sprite not found: "${id}"`);
+				throw new Error(`sprite not found: "${id}"`)
 			}
 
-			let q = { ...spr.frames[0] };
+			let q = { ...spr.frames[0] }
 
 			if (opt.quad) {
-				q = q.scale(opt.quad);
+				q = q.scale(opt.quad)
 			}
 
-			const scale = calcTexScale(spr.tex, q, opt.width, opt.height);
+			const scale = calcTexScale(spr.tex, q, opt.width, opt.height)
 
-			this.width = spr.tex.width * q.w * scale.x;
-			this.height = spr.tex.height * q.h * scale.y;
+			this.width = spr.tex.width * q.w * scale.x
+			this.height = spr.tex.height * q.h * scale.y
 
 			if (opt.anim) {
-				this.play(opt.anim);
+				this.play(opt.anim)
 			}
 
 		},
@@ -1657,51 +1629,51 @@ function sprite(id: string | SpriteData, opt: SpriteCompOpt = {}): SpriteComp {
 				tiled: opt.tiled,
 				width: opt.width,
 				height: opt.height,
-			});
+			})
 		},
 
 		update() {
 
 			if (!curAnim) {
-				return;
+				return
 			}
 
-			const anim = spr.anims[curAnim.name];
+			const anim = spr.anims[curAnim.name]
 
 			if (typeof anim === "number") {
-				this.frame = anim;
-				return;
+				this.frame = anim
+				return
 			}
 
 			if (anim.speed === 0) {
-				throw new Error("sprite anim speed cannot be 0");
+				throw new Error("sprite anim speed cannot be 0")
 			}
 
-			curAnim.timer += dt() * this.animSpeed;
+			curAnim.timer += dt() * this.animSpeed
 
 			if (curAnim.timer >= (1 / curAnim.speed)) {
-				curAnim.timer = 0;
+				curAnim.timer = 0
 				// TODO: clean up
 				if (anim.from > anim.to) {
-					this.frame--;
+					this.frame--
 					if (this.frame < anim.to) {
 						if (curAnim.loop) {
-							this.frame = anim.from;
+							this.frame = anim.from
 						} else {
-							this.frame++;
-							curAnim.onEnd();
-							this.stop();
+							this.frame++
+							curAnim.onEnd()
+							this.stop()
 						}
 					}
 				} else {
-					this.frame++;
+					this.frame++
 					if (this.frame > anim.to) {
 						if (curAnim.loop) {
-							this.frame = anim.from;
+							this.frame = anim.from
 						} else {
-							this.frame--;
-							curAnim.onEnd();
-							this.stop();
+							this.frame--
+							curAnim.onEnd()
+							this.stop()
 						}
 					}
 				}
@@ -1714,19 +1686,19 @@ function sprite(id: string | SpriteData, opt: SpriteCompOpt = {}): SpriteComp {
 
 			if (!spr) {
 				ready(() => {
-					this.play(name);
-				});
-				return;
+					this.play(name)
+				})
+				return
 			}
 
-			const anim = spr.anims[name];
+			const anim = spr.anims[name]
 
 			if (anim == null) {
-				throw new Error(`anim not found: ${name}`);
+				throw new Error(`anim not found: ${name}`)
 			}
 
 			if (curAnim) {
-				this.stop();
+				this.stop()
 			}
 
 			curAnim = {
@@ -1736,57 +1708,57 @@ function sprite(id: string | SpriteData, opt: SpriteCompOpt = {}): SpriteComp {
 				pingpong: opt.pingpong ?? anim.pingpong ?? false,
 				speed: opt.speed ?? anim.speed ?? 10,
 				onEnd: opt.onEnd ?? (() => {}),
-			};
-
-			if (typeof anim === "number") {
-				this.frame = anim;
-			} else {
-				this.frame = anim.from;
 			}
 
-			this.trigger("animPlay", name);
+			if (typeof anim === "number") {
+				this.frame = anim
+			} else {
+				this.frame = anim.from
+			}
+
+			this.trigger("animPlay", name)
 
 		},
 
 		stop() {
 			if (!curAnim) {
-				return;
+				return
 			}
-			const prevAnim = curAnim.name;
-			curAnim = null;
-			this.trigger("animEnd", prevAnim);
+			const prevAnim = curAnim.name
+			curAnim = null
+			this.trigger("animEnd", prevAnim)
 		},
 
 		numFrames() {
 			if (!spr) {
-				return 0;
+				return 0
 			}
-			return spr.frames.length;
+			return spr.frames.length
 		},
 
 		curAnim() {
-			return curAnim?.name;
+			return curAnim?.name
 		},
 
 		flipX(b: boolean) {
-			opt.flipX = b;
+			opt.flipX = b
 		},
 
 		flipY(b: boolean) {
-			opt.flipY = b;
+			opt.flipY = b
 		},
 
 		inspect() {
-			let msg = "";
+			let msg = ""
 			if (typeof id === "string") {
-				msg += JSON.stringify(id);
+				msg += JSON.stringify(id)
 			} else {
-				msg += "[blob]";
+				msg += "[blob]"
 			}
-			return msg;
+			return msg
 		},
 
-	};
+	}
 
 }
 
@@ -1794,11 +1766,11 @@ function text(t: string, opt: TextCompOpt = {}): TextComp {
 
 	function update() {
 
-		const name = this.font ?? gopt.font ?? DEF_FONT;
-		const font = assets.fonts[name];
+		const name = this.font ?? gopt.font ?? DEF_FONT
+		const font = assets.fonts[name]
 
 		if (!font) {
-			throw new Error(`font not found: "${name}"`);
+			throw new Error(`font not found: "${name}"`)
 		}
 
 		const ftext = gfx.fmtText({
@@ -1808,14 +1780,14 @@ function text(t: string, opt: TextCompOpt = {}): TextComp {
 			font: font,
 			width: opt.width,
 			transform: opt.transform,
-		});
+		})
 
-		this.width = ftext.width / (this.scale?.x || 1);
-		this.height = ftext.height / (this.scale?.y || 1);
+		this.width = ftext.width / (this.scale?.x || 1)
+		this.height = ftext.height / (this.scale?.y || 1)
 
-		return ftext;
+		return ftext
 
-	};
+	}
 
 	return {
 
@@ -1827,14 +1799,14 @@ function text(t: string, opt: TextCompOpt = {}): TextComp {
 		height: 0,
 
 		load() {
-			update.call(this);
+			update.call(this)
 		},
 
 		draw() {
-			gfx.drawFmtText(update.call(this));
+			gfx.drawFmtText(update.call(this))
 		},
 
-	};
+	}
 
 }
 
@@ -1850,12 +1822,12 @@ function rect(w: number, h: number, opt: RectCompOpt = {}): RectComp {
 				width: this.width,
 				height: this.height,
 				radius: this.radius,
-			});
+			})
 		},
 		inspect() {
-			return `${Math.ceil(this.width)}, ${Math.ceil(this.height)}`;
+			return `${Math.ceil(this.width)}, ${Math.ceil(this.height)}`
 		},
-	};
+	}
 }
 
 function uvquad(w: number, h: number): UVQuadComp {
@@ -1868,12 +1840,12 @@ function uvquad(w: number, h: number): UVQuadComp {
 				...getRenderProps(this),
 				width: this.width,
 				height: this.height,
-			});
+			})
 		},
 		inspect() {
-			return `${Math.ceil(this.width)}, ${Math.ceil(this.height)}`;
+			return `${Math.ceil(this.width)}, ${Math.ceil(this.height)}`
 		},
-	};
+	}
 }
 
 function circle(radius: number): CircleComp {
@@ -1884,31 +1856,31 @@ function circle(radius: number): CircleComp {
 			gfx.drawCircle({
 				...getRenderProps(this),
 				radius: this.radius,
-			});
+			})
 		},
 		inspect() {
-			return `${Math.ceil(this.radius)}`;
+			return `${Math.ceil(this.radius)}`
 		},
-	};
+	}
 }
 
-function outline(width: number = 1, color: Color = rgb(0, 0, 0)): OutlineComp {
+function outline(width = 1, color: Color = rgb(0, 0, 0)): OutlineComp {
 	return {
 		id: "outline",
 		outline: {
 			width,
 			color,
 		},
-	};
+	}
 }
 
 function timer(n?: number, action?: () => void): TimerComp {
-	const timers: IDList<Timer> = new IDList();
+	const timers: IDList<Timer> = new IDList()
 	if (n && action) {
 		timers.pushd({
 			time: n,
 			action: action,
-		});
+		})
 	}
 	return {
 		id: "timer",
@@ -1916,31 +1888,31 @@ function timer(n?: number, action?: () => void): TimerComp {
 			return timers.pushd({
 				time: n,
 				action: action,
-			});
+			})
 		},
 		update() {
 			timers.forEach((timer, id) => {
-				timer.time -= dt();
+				timer.time -= dt()
 				if (timer.time <= 0) {
-					timer.action.call(this);
-					timers.delete(id);
+					timer.action.call(this)
+					timers.delete(id)
 				}
-			});
+			})
 		},
-	};
+	}
 }
 
 // maximum y velocity with body()
-const DEF_JUMP_FORCE = 640;
-const MAX_VEL = 65536;
+const DEF_JUMP_FORCE = 640
+const MAX_VEL = 65536
 
 // TODO: land on wall
 function body(opt: BodyCompOpt = {}): BodyComp {
 
-	let velY = 0;
-	let curPlatform: GameObj | null = null;
-	let lastPlatformPos = null;
-	let canDouble = true;
+	let velY = 0
+	let curPlatform: GameObj | null = null
+	let lastPlatformPos = null
+	let canDouble = true
 
 	return {
 
@@ -1952,19 +1924,19 @@ function body(opt: BodyCompOpt = {}): BodyComp {
 
 		update() {
 
-			let justFall = false;
+			let justFall = false
 
 			// check if loses current platform
 			if (curPlatform) {
 
-				const a1 = this.worldArea();
-				const a2 = curPlatform.worldArea();
-				const y1 = a1.p2.y;
-				const y2 = a2.p1.y;
-				const x1 = a1.p1.x;
-				const x2 = a1.p2.x;
-				const x3 = a2.p1.x;
-				const x4 = a2.p2.x;
+				const a1 = this.worldArea()
+				const a2 = curPlatform.worldArea()
+				const y1 = a1.p2.y
+				const y2 = a2.p1.y
+				const x1 = a1.p1.x
+				const x2 = a1.p2.x
+				const x3 = a2.p1.x
+				const x4 = a2.p2.x
 
 				if (
 					!curPlatform.exists()
@@ -1972,89 +1944,87 @@ function body(opt: BodyCompOpt = {}): BodyComp {
 					|| x2 < x3
 					|| x1 > x4
 				) {
-					this.trigger("fall", curPlatform);
-					curPlatform = null;
-					lastPlatformPos = null;
-					justFall = true;
+					this.trigger("fall", curPlatform)
+					curPlatform = null
+					lastPlatformPos = null
+					justFall = true
 				} else {
 					if (lastPlatformPos && curPlatform.pos) {
 						// TODO: moveBy?
 						// sticky platform
-						this.pos = this.pos.add(curPlatform.pos.sub(lastPlatformPos));
-						lastPlatformPos = curPlatform.pos.clone();
+						this.pos = this.pos.add(curPlatform.pos.sub(lastPlatformPos))
+						lastPlatformPos = curPlatform.pos.clone()
 					}
 				}
 			}
 
 			if (!curPlatform) {
 
-				const col = this.move(0, velY);
+				const col = this.move(0, velY)
 
 				// check if grounded to a new platform
 				if (col) {
 					if (col.isBottom()) {
-						curPlatform = col.target;
-						const oy = velY;
-						velY = 0;
+						curPlatform = col.target
+						velY = 0
 						if (curPlatform.pos) {
-							lastPlatformPos = curPlatform.pos.clone();
+							lastPlatformPos = curPlatform.pos.clone()
 						}
 						if (!justFall) {
-							this.trigger("ground", curPlatform);
-							canDouble = true;
+							this.trigger("ground", curPlatform)
+							canDouble = true
 						}
 					} else if (col.isTop()) {
-						velY = 0;
-						this.trigger("headbutt", col.target);
+						velY = 0
+						this.trigger("headbutt", col.target)
 					}
 				}
 
-				velY += gravity() * this.weight * dt();
-				velY = Math.min(velY, opt.maxVel ?? MAX_VEL);
+				velY += gravity() * this.weight * dt()
+				velY = Math.min(velY, opt.maxVel ?? MAX_VEL)
 
 			}
 
 		},
 
 		curPlatform(): GameObj | null {
-			return curPlatform;
+			return curPlatform
 		},
 
 		grounded(): boolean {
-			return curPlatform !== null;
+			return curPlatform !== null
 		},
 
 		falling(): boolean {
-			return velY > 0;
+			return velY > 0
 		},
 
 		jump(force: number) {
-			curPlatform = null;
-			lastPlatformPos = null;
-			velY = -force || -this.jumpForce;
+			curPlatform = null
+			lastPlatformPos = null
+			velY = -force || -this.jumpForce
 		},
 
 		doubleJump(force: number) {
 			if (this.grounded()) {
-				this.jump(force);
+				this.jump(force)
 			} else if (canDouble) {
-				canDouble = false;
-				this.jump(force);
-				this.trigger("doubleJump");
+				canDouble = false
+				this.jump(force)
+				this.trigger("doubleJump")
 			}
 		},
 
-	};
+	}
 
 }
 
 function shader(id: string, uniform: Uniform = {}): ShaderComp {
-	const shader = assets.shaders[id];
 	return {
 		id: "shader",
 		shader: id,
 		uniform: uniform,
-	};
+	}
 }
 
 function solid(): SolidComp {
@@ -2062,72 +2032,72 @@ function solid(): SolidComp {
 		id: "solid",
 		require: [ "area", ],
 		solid: true,
-	};
+	}
 }
 
 function fixed(): FixedComp {
 	return {
 		id: "fixed",
 		fixed: true,
-	};
+	}
 }
 
 function stay(): StayComp {
 	return {
 		id: "stay",
 		stay: true,
-	};
+	}
 }
 
 function health(hp: number): HealthComp {
 	if (hp == null) {
-		throw new Error("health() requires the initial amount of hp");
+		throw new Error("health() requires the initial amount of hp")
 	}
 	return {
 		id: "health",
-		hurt(n: number = 1) {
-			this.setHP(hp - n);
-			this.trigger("hurt");
+		hurt(n = 1) {
+			this.setHP(hp - n)
+			this.trigger("hurt")
 		},
-		heal(n: number = 1) {
-			this.setHP(hp + n);
-			this.trigger("heal");
+		heal(n = 1) {
+			this.setHP(hp + n)
+			this.trigger("heal")
 		},
 		hp(): number {
-			return hp;
+			return hp
 		},
 		setHP(n: number) {
-			hp = n;
+			hp = n
 			if (hp <= 0) {
-				this.trigger("death");
+				this.trigger("death")
 			}
 		},
 		inspect() {
-			return `${hp}`;
+			return `${hp}`
 		},
-	};
+	}
 }
 
 function lifespan(time: number, opt: LifespanCompOpt = {}): LifespanComp {
 	if (time == null) {
-		throw new Error("lifespan() requires time");
+		throw new Error("lifespan() requires time")
 	}
-	let timer = 0;
-	const fade = opt.fade ?? 0;
-	const startFade = Math.max((time - fade), 0);
+	let timer = 0
+	const fade = opt.fade ?? 0
+	const startFade = Math.max((time - fade), 0)
 	return {
 		id: "lifespan",
 		update() {
-			timer += dt();
+			timer += dt()
 			// TODO: don't assume 1 as start opacity
 			if (timer >= startFade) {
-				this.opacity = map(timer, startFade, time, 1, 0);
+				this.opacity = map(timer, startFade, time, 1, 0)
 			}
 			if (timer >= time) {
-				this.destroy();
+				this.destroy()
 			}
 		},
-	};
+	}
 }
 
 const debug: Debug = {
@@ -2136,64 +2106,64 @@ const debug: Debug = {
 	showLog: true,
 	fps: app.fps,
 	objCount(): number {
-		return game.objs.size;
+		return game.objs.size
 	},
 	stepFrame() {
-		gameFrame(true);
+		gameFrame(true)
 	},
 	drawCalls: gfx.drawCalls,
 	clearLog: logger.clear,
 	log: (msg) => logger.info(`[${app.time().toFixed(2)}] ${msg}`),
 	error: (msg) => logger.error(`[${app.time().toFixed(2)}] ${msg}`),
 	get paused() {
-		return game.paused;
+		return game.paused
 	},
 	set paused(v) {
-		game.paused = v;
+		game.paused = v
 		if (v) {
-			audio.ctx.suspend();
+			audio.ctx.suspend()
 		} else {
-			audio.ctx.resume();
+			audio.ctx.resume()
 		}
 	}
-};
+}
 
 function ready(cb: () => void): void {
 	if (game.loaded) {
-		cb();
+		cb()
 	} else {
-		game.on("load", cb);
+		game.on("load", cb)
 	}
 }
 
 function scene(id: SceneID, def: SceneDef) {
-	game.scenes[id] = def;
+	game.scenes[id] = def
 }
 
 function go(id: SceneID, ...args) {
 
 	if (!game.scenes[id]) {
-		throw new Error(`scene not found: ${id}`);
+		throw new Error(`scene not found: ${id}`)
 	}
 
 	game.on("next", () => {
 
-		game.events = {};
+		game.events = {}
 
 		game.objEvents = {
 			add: new IDList(),
 			update: new IDList(),
 			draw: new IDList(),
 			destroy: new IDList(),
-		};
+		}
 
 		game.objs.forEach((obj) => {
 			if (!obj.stay) {
-				destroy(obj);
+				destroy(obj)
 			}
-		});
+		})
 
-		game.timers = new IDList();
+		game.timers = new IDList()
 
 		// cam
 		game.cam = {
@@ -2201,61 +2171,61 @@ function go(id: SceneID, ...args) {
 			scale: vec2(1, 1),
 			angle: 0,
 			shake: 0,
-		};
+		}
 
-		game.camMousePos = app.mousePos();
-		game.camMatrix = mat4();
+		game.camMousePos = app.mousePos()
+		game.camMatrix = mat4()
 
-		game.layers = {};
-		game.defLayer = null;
-		game.gravity = DEF_GRAVITY;
+		game.layers = {}
+		game.defLayer = null
+		game.gravity = DEF_GRAVITY
 
-		game.scenes[id](...args);
+		game.scenes[id](...args)
 
 		if (gopt.debug !== false) {
-			enterDebugMode();
+			enterDebugMode()
 		}
 
 		if (gopt.burp) {
-			enterBurpMode();
+			enterBurpMode()
 		}
 
-	});
+	})
 
 }
 
 function getData<T>(key: string, def?: T): T {
 	try {
-		return JSON.parse(window.localStorage[key]);
+		return JSON.parse(window.localStorage[key])
 	} catch {
 		if (def) {
-			setData(key, def);
-			return def;
+			setData(key, def)
+			return def
 		} else {
-			return null;
+			return null
 		}
 	}
 }
 
-function setData(key: string, data: any) {
-	window.localStorage[key] = JSON.stringify(data);
+function setData<D>(key: string, data: D) {
+	window.localStorage[key] = JSON.stringify(data)
 }
 
 function plug<T>(plugin: KaboomPlugin<T>): MergeObj<T> & KaboomCtx {
-	const funcs = plugin(ctx);
+	const funcs = plugin(ctx)
 	for (const k in funcs) {
 		// @ts-ignore
-		ctx[k] = funcs[k];
+		ctx[k] = funcs[k]
 		if (gopt.global !== false) {
 			// @ts-ignore
-			window[k] = funcs[k];
+			window[k] = funcs[k]
 		}
 	}
-	return ctx as unknown as MergeObj<T> & KaboomCtx;
+	return ctx as unknown as MergeObj<T> & KaboomCtx
 }
 
 function center(): Vec2 {
-	return vec2(width() / 2, height() / 2);
+	return vec2(width() / 2, height() / 2)
 }
 
 function grid(level: Level, p: Vec2) {
@@ -2266,138 +2236,138 @@ function grid(level: Level, p: Vec2) {
 		gridPos: p.clone(),
 
 		setGridPos(...args) {
-			const p = vec2(...args);
-			this.gridPos = p.clone();
+			const p = vec2(...args)
+			this.gridPos = p.clone()
 			this.pos = vec2(
 				level.offset().x + this.gridPos.x * level.gridWidth(),
 				level.offset().y + this.gridPos.y * level.gridHeight()
-			);
+			)
 		},
 
 		moveLeft() {
-			this.setGridPos(this.gridPos.add(vec2(-1, 0)));
+			this.setGridPos(this.gridPos.add(vec2(-1, 0)))
 		},
 
 		moveRight() {
-			this.setGridPos(this.gridPos.add(vec2(1, 0)));
+			this.setGridPos(this.gridPos.add(vec2(1, 0)))
 		},
 
 		moveUp() {
-			this.setGridPos(this.gridPos.add(vec2(0, -1)));
+			this.setGridPos(this.gridPos.add(vec2(0, -1)))
 		},
 
 		moveDown() {
-			this.setGridPos(this.gridPos.add(vec2(0, 1)));
+			this.setGridPos(this.gridPos.add(vec2(0, 1)))
 		},
 
-	};
+	}
 
 }
 
 function addLevel(map: string[], opt: LevelOpt): Level {
 
 	if (!opt.width || !opt.height) {
-		throw new Error("Must provide level grid width & height.");
+		throw new Error("Must provide level grid width & height.")
 	}
 
-	const objs: GameObj[] = [];
-	const offset = vec2(opt.pos || vec2(0));
-	let longRow = 0;
+	const objs: GameObj[] = []
+	const offset = vec2(opt.pos || vec2(0))
+	let longRow = 0
 
 	const level = {
 
 		offset() {
-			return offset.clone();
+			return offset.clone()
 		},
 
 		gridWidth() {
-			return opt.width;
+			return opt.width
 		},
 
 		gridHeight() {
-			return opt.height;
+			return opt.height
 		},
 
 		getPos(...args): Vec2 {
-			const p = vec2(...args);
+			const p = vec2(...args)
 			return vec2(
 				offset.x + p.x * opt.width,
 				offset.y + p.y * opt.height
-			);
+			)
 		},
 
 		spawn(sym: string, ...args): GameObj {
 
-			const p = vec2(...args);
+			const p = vec2(...args)
 
 			const comps = (() => {
 				if (opt[sym]) {
 					if (typeof opt[sym] !== "function") {
-						throw new Error("level symbol def must be a function returning a component list");
+						throw new Error("level symbol def must be a function returning a component list")
 					}
-					return opt[sym](p);
+					return opt[sym](p)
 				} else if (opt.any) {
-					return opt.any(sym, p);
+					return opt.any(sym, p)
 				}
-			})();
+			})()
 
 			if (!comps) {
-				return;
+				return
 			}
 
 			const posComp = vec2(
 				offset.x + p.x * opt.width,
 				offset.y + p.y * opt.height
-			);
+			)
 
 			for (const comp of comps) {
 				if (comp.id === "pos") {
-					posComp.x += comp.pos.x;
-					posComp.y += comp.pos.y;
-					break;
+					posComp.x += comp.pos.x
+					posComp.y += comp.pos.y
+					break
 				}
 			}
 
-			comps.push(pos(posComp));
-			comps.push(grid(this, p));
+			comps.push(pos(posComp))
+			comps.push(grid(this, p))
 
-			const obj = add(comps);
+			const obj = add(comps)
 
-			objs.push(obj);
+			objs.push(obj)
 
-			return obj;
+			return obj
 
 		},
 
 		width() {
-			return longRow * opt.width;
+			return longRow * opt.width
 		},
 
 		height() {
-			return map.length * opt.height;
+			return map.length * opt.height
 		},
 
 		destroy() {
 			for (const obj of objs) {
-				destroy(obj);
+				destroy(obj)
 			}
 		},
 
-	};
+	}
 
 	map.forEach((row, i) => {
 
-		const syms = row.split("");
+		const syms = row.split("")
 
-		longRow = Math.max(syms.length, longRow);
+		longRow = Math.max(syms.length, longRow)
 
 		syms.forEach((sym, j) => {
-			level.spawn(sym, vec2(j, i));
-		});
+			level.spawn(sym, vec2(j, i))
+		})
 
-	});
+	})
 
-	return level;
+	return level
 
 }
 
@@ -2423,7 +2393,6 @@ const ctx: KaboomCtx = {
 	focused: app.focused,
 	focus: app.focus,
 	cursor: app.cursor,
-	regCursor,
 	fullscreen: app.fullscreen,
 	isFullscreen: app.isFullscreen,
 	ready,
@@ -2584,51 +2553,44 @@ const ctx: KaboomCtx = {
 	DOWN: vec2(0, 1),
 	// dom
 	canvas: app.canvas,
-};
+}
 
-plug(kaboomPlugin);
+plug(kaboomPlugin)
 
 if (gopt.plugins) {
-	gopt.plugins.forEach(plug);
+	gopt.plugins.forEach(plug)
 }
 
 if (gopt.global !== false) {
 	for (const k in ctx) {
-		window[k] = ctx[k];
+		window[k] = ctx[k]
 	}
-}
-
-let numFrames = 0;
-
-function frames() {
-	return numFrames;
 }
 
 app.run(() => {
 
-	numFrames++;
-	gfx.frameStart();
+	gfx.frameStart()
 
 	if (!game.loaded) {
 
 		// if assets are not fully loaded, draw a progress bar
-		const progress = assets.loadProgress();
+		const progress = assets.loadProgress()
 
 		if (progress === 1) {
-			game.loaded = true;
-			game.trigger("load");
+			game.loaded = true
+			game.trigger("load")
 		} else {
 
-			const w = width() / 2;
-			const h = 24 / gfx.scale();
-			const pos = vec2(width() / 2, height() / 2).sub(vec2(w / 2, h / 2));
+			const w = width() / 2
+			const h = 24 / gfx.scale()
+			const pos = vec2(width() / 2, height() / 2).sub(vec2(w / 2, h / 2))
 
 			gfx.drawRect({
 				pos: vec2(0),
 				width: width(),
 				height: height(),
 				color: rgb(0, 0, 0),
-			});
+			})
 
 			gfx.drawRect({
 				pos: pos,
@@ -2638,57 +2600,57 @@ app.run(() => {
 				outline: {
 					width: 4 / gfx.scale(),
 				},
-			});
+			})
 
 			gfx.drawRect({
 				pos: pos,
 				width: w * progress,
 				height: h,
-			});
+			})
 
 		}
 
 	} else {
 
 		// TODO: this gives the latest mousePos in input handlers but uses cam matrix from last frame
-		game.camMousePos = game.camMatrix.invert().multVec2(app.mousePos());
-		game.trigger("input");
-		gameFrame();
+		game.camMousePos = game.camMatrix.invert().multVec2(app.mousePos())
+		game.trigger("input")
+		gameFrame()
 
 		if (debug.inspect) {
-			drawInspect();
+			drawInspect()
 		}
 
 		if (debug.showLog) {
-			logger.draw();
+			logger.draw()
 		}
 
 	}
 
-	gfx.frameEnd();
+	gfx.frameEnd()
 
-});
+})
 
 if (gopt.debug !== false) {
-	enterDebugMode();
+	enterDebugMode()
 }
 
 if (gopt.burp) {
-	enterBurpMode();
+	enterBurpMode()
 }
 
 window.addEventListener("error", (e) => {
-	logger.error(`Error: ${e.error.message}`);
-	app.quit();
+	logger.error(`Error: ${e.error.message}`)
+	app.quit()
 	app.run(() => {
 		if (assets.loadProgress() === 1) {
-			gfx.frameStart();
-			logger.draw();
-			gfx.frameEnd();
+			gfx.frameStart()
+			logger.draw()
+			gfx.frameEnd()
 		}
-	});
-});
+	})
+})
 
-return ctx;
+return ctx
 
-};
+}

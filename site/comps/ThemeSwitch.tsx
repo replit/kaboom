@@ -1,24 +1,24 @@
-import * as React from "react";
-import View, { ViewProps } from "comps/View";
-import useSavedState from "hooks/useSavedState";
-import Ctx from "lib/Ctx";
-import { themes, noobThemes } from "lib/ui";
-import { capitalize } from "lib/str";
+import * as React from "react"
+import View, { ViewProps } from "comps/View"
+import useSavedState from "hooks/useSavedState"
+import Ctx from "lib/Ctx"
+import { themes, noobThemes } from "lib/ui"
+import { capitalize } from "lib/str"
 
 const ThemeSwitch: React.FC<ViewProps> = ({...args}) => {
 
-	const { theme, setTheme } = React.useContext(Ctx);
-	const [ showDa, setShowDa ] = useSavedState("showmedacolors", false);
+	const { theme, setTheme } = React.useContext(Ctx)
+	const [ showDa, setShowDa ] = useSavedState("showmedacolors", false)
 
 	// @ts-ignore
 	React.useEffect(() => {
 		// @ts-ignore
 		window.showmedacolors = () => {
-			setShowDa(true);
-			console.log("yessir whatever");
-		};
+			setShowDa(true)
+			console.log("yessir whatever")
+		}
 		// @ts-ignore
-		return () => delete window.showmedacolors;
+		return () => delete window.showmedacolors
 	}, [ setShowDa ])
 
 	return (
@@ -42,8 +42,8 @@ const ThemeSwitch: React.FC<ViewProps> = ({...args}) => {
 				/>
 			))}
 		</View>
-	);
+	)
 
-};
+}
 
-export default ThemeSwitch;
+export default ThemeSwitch

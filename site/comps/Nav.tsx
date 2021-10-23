@@ -1,19 +1,19 @@
-import * as React from "react";
-import Link from "next/link";
-import Image from "next/image";
-import { keyframes } from '@emotion/react';
+import * as React from "react"
+import Link from "next/link"
+import Image from "next/image"
+import { keyframes } from "@emotion/react"
 
-import useMediaQuery from "hooks/useMediaQuery";
-import useClickOutside from "hooks/useClickOutside";
-import useUpdateEffect from "hooks/useUpdateEffect";
-import Background from "comps/Background";
-import View from "comps/View";
-import Text from "comps/Text";
-import Markdown from "comps/Markdown";
-import Input from "comps/Input";
-import Drawer from "comps/Drawer";
-import ThemeSwitch from "comps/ThemeSwitch";
-import * as doc from "lib/doc";
+import useMediaQuery from "hooks/useMediaQuery"
+import useClickOutside from "hooks/useClickOutside"
+import useUpdateEffect from "hooks/useUpdateEffect"
+import Background from "comps/Background"
+import View from "comps/View"
+import Text from "comps/Text"
+import Markdown from "comps/Markdown"
+import Input from "comps/Input"
+import Drawer from "comps/Drawer"
+import ThemeSwitch from "comps/ThemeSwitch"
+import * as doc from "lib/doc"
 
 const popping = keyframes(`
 	0% {
@@ -25,7 +25,7 @@ const popping = keyframes(`
 	10% {
 		transform: scale(1);
 	}
-`);
+`)
 
 const Logo: React.FC = () => (
 	<Link href="/" passHref>
@@ -62,7 +62,7 @@ const Logo: React.FC = () => (
 			</View>
 		</a>
 	</Link>
-);
+)
 
 interface NavLinkProps {
 	text: string,
@@ -96,19 +96,19 @@ const NavLink: React.FC<NavLinkProps> = ({
 			</View>
 		</a>
 	</Link>
-);
+)
 
-const NARROW = 840;
-const MOBILE = 640;
+const NARROW = 840
+const MOBILE = 640
 
 const Index: React.FC = () => {
 
-	const isNarrow = useMediaQuery(`(max-width: ${NARROW}px)`);
-	const [ expanded, setExpanded ] = React.useState(false);
+	const isNarrow = useMediaQuery(`(max-width: ${NARROW}px)`)
+	const [ expanded, setExpanded ] = React.useState(false)
 
 	useUpdateEffect(() => {
-		setExpanded(!isNarrow);
-	}, [ isNarrow ]);
+		setExpanded(!isNarrow)
+	}, [ isNarrow ])
 
 	return isNarrow ? (
 		<Drawer
@@ -126,9 +126,9 @@ const Index: React.FC = () => {
 		>
 			<IndexContent shrink={() => setExpanded(false)} />
 		</View>
-	);
+	)
 
-};
+}
 
 interface IndexContentProps {
 	shrink: () => void,
@@ -138,7 +138,7 @@ const IndexContent: React.FC<IndexContentProps> = ({
 	shrink,
 }) => {
 
-	const [ query, setQuery ] = React.useState("");
+	const [ query, setQuery ] = React.useState("")
 
 	return <>
 
@@ -168,49 +168,49 @@ const IndexContent: React.FC<IndexContentProps> = ({
 			{ doc.sections.map((sec) => {
 
 				const entries = sec.entries
-					.filter((name) => query ? name.match(query) : true);
+					.filter((name) => query ? name.match(query) : true)
 				if (entries.length === 0) {
-					return <></>;
+					return <></>
 				}
 
 				return (
 					<View stretchX gap={1} key={sec.name}>
 						<Text size="big" color={3}>{sec.name}</Text>
-							<View>
-								{ entries.map((name) => {
-									let dname = name;
-									const mem = doc.types[name][0];
-									if (mem.kind === "MethodSignature" || mem.kind === "FunctionDeclaration") {
-										dname += "()";
-									}
-									return (
-										<a key={name} href={`/#${name}`}>
-											<View
-												padX={1}
-												padY={0.5}
-												onClick={shrink}
-												css={{
-													cursor: "pointer",
-													borderRadius: 8,
-													":hover": {
-														background: "var(--color-bg3)",
-													},
-												}}
-											>
-												<Text color={2} code>{dname}</Text>
-											</View>
-										</a>
-									);
-								}) }
-							</View>
+						<View>
+							{ entries.map((name) => {
+								let dname = name
+								const mem = doc.types[name][0]
+								if (mem.kind === "MethodSignature" || mem.kind === "FunctionDeclaration") {
+									dname += "()"
+								}
+								return (
+									<a key={name} href={`/#${name}`}>
+										<View
+											padX={1}
+											padY={0.5}
+											onClick={shrink}
+											css={{
+												cursor: "pointer",
+												borderRadius: 8,
+												":hover": {
+													background: "var(--color-bg3)",
+												},
+											}}
+										>
+											<Text color={2} code>{dname}</Text>
+										</View>
+									</a>
+								)
+							}) }
+						</View>
 					</View>
-				);
+				)
 
 			}) }
 		</View>
-	</>;
+	</>
 
-};
+}
 
 const Nav: React.FC = ({children}) => (
 	<Background pad={3} css={{
@@ -256,6 +256,6 @@ const Nav: React.FC = ({children}) => (
 			</View>
 		</View>
 	</Background>
-);
+)
 
-export default Nav;
+export default Nav

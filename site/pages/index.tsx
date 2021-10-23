@@ -1,17 +1,16 @@
-import * as React from "react";
-import Image from "next/image";
-import { keyframes } from '@emotion/react';
-import Head from "comps/Head";
-import Nav from "comps/Nav";
-import View from "comps/View";
-import Text from "comps/Text";
-import Markdown from "comps/Markdown";
-import Drawer from "comps/Drawer";
-import Doc from "comps/Doc";
-import useMediaQuery from "hooks/useMediaQuery";
-import * as doc from "lib/doc";
+import * as React from "react"
+import { keyframes } from "@emotion/react"
+import Head from "comps/Head"
+import Nav from "comps/Nav"
+import View from "comps/View"
+import Text from "comps/Text"
+import Markdown from "comps/Markdown"
+import Drawer from "comps/Drawer"
+import Doc from "comps/Doc"
+import useMediaQuery from "hooks/useMediaQuery"
+import * as doc from "lib/doc"
 // @ts-ignore
-import fun from "lib/fun";
+import fun from "lib/fun"
 
 const flashy = keyframes(`
 	0% {
@@ -32,7 +31,7 @@ const flashy = keyframes(`
 	100% {
 		color: blue;
 	}
-`);
+`)
 
 const Fun: React.FC = () => (
 	<span
@@ -48,14 +47,14 @@ const Fun: React.FC = () => (
 	>
 		fun
 	</span>
-);
+)
 
-const NARROW = 840;
+const NARROW = 840
 
 const Home: React.FC = () => {
-	const [ showType, setShowType ] = React.useState(false);
-	const [ shownTypeName, setShownTypeName ] = React.useState<string | null>(null);
-	const isNarrow = useMediaQuery(`(max-width: ${NARROW}px)`);
+	const [ showType, setShowType ] = React.useState(false)
+	const [ shownTypeName, setShownTypeName ] = React.useState<string | null>(null)
+	const isNarrow = useMediaQuery(`(max-width: ${NARROW}px)`)
 	return <Nav>
 		<Head title="Kaboom" scale={0.8} />
 		<Text select size="huge" color={1}>Kaboom is a Javascript game programming library that helps you make games fast and <Fun />.</Text>
@@ -86,7 +85,7 @@ Play with it yourself or check out the examples in the [Playground](/play)!
 		`} />
 
 		{ doc.sections.map((sec) => {
-			const entries = sec.entries;
+			const entries = sec.entries
 			return (
 				<View stretchX gap={1} key={sec.name}>
 					<Text size="huge" color={3}>{sec.name}</Text>
@@ -97,14 +96,14 @@ Play with it yourself or check out the examples in the [Playground](/play)!
 								key={name}
 								name={name}
 								typeref={(name) => {
-									setShowType(true);
-									setShownTypeName(name);
+									setShowType(true)
+									setShownTypeName(name)
 								}}
 							/>
 						)) }
 					</View>
 				</View>
-			);
+			)
 		}) }
 
 		<Drawer
@@ -119,14 +118,14 @@ Play with it yourself or check out the examples in the [Playground](/play)!
 				<Doc
 					name={shownTypeName}
 					typeref={(name) => {
-						setShowType(true);
-						setShownTypeName(name);
+						setShowType(true)
+						setShownTypeName(name)
 					}}
 				/>
 			}
 		</Drawer>
 
-	</Nav>;
-};
+	</Nav>
+}
 
-export default Home;
+export default Home

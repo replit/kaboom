@@ -1,8 +1,8 @@
-import * as React from "react";
-import View from "comps/View";
-import Text from "comps/Text";
-import useClickOutside from "hooks/useClickOutside";
-import useKey from "hooks/useKey";
+import * as React from "react"
+import View from "comps/View"
+import Text from "comps/Text"
+import useClickOutside from "hooks/useClickOutside"
+import useKey from "hooks/useKey"
 
 export interface MenuItem {
 	name: string,
@@ -21,11 +21,11 @@ const Menu: React.FC<MenuProps> = ({
 	left,
 }) => {
 
-	const domRef = React.useRef(null);
-	const [ expanded, setExpanded ] = React.useState(false);
+	const domRef = React.useRef(null)
+	const [ expanded, setExpanded ] = React.useState(false)
 
-	useClickOutside(domRef, () => setExpanded(false), [ setExpanded ]);
-	useKey("Escape", () => setExpanded(false), [ setExpanded ]);
+	useClickOutside(domRef, () => setExpanded(false), [ setExpanded ])
+	useKey("Escape", () => setExpanded(false), [ setExpanded ])
 
 	return (
 		<View
@@ -61,7 +61,7 @@ const Menu: React.FC<MenuProps> = ({
 					overflow: "hidden",
 					position: "absolute",
 					zIndex: 1000,
-					[left ? 'right' : 'left']: 0,
+					[left ? "right" : "left"]: 0,
 					top: 40,
 				}}
 			>
@@ -89,7 +89,7 @@ const Menu: React.FC<MenuProps> = ({
 				))}
 			</View>}
 		</View>
-	);
-};
+	)
+}
 
-export default Menu;
+export default Menu

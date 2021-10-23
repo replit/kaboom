@@ -1,7 +1,7 @@
-import * as React from "react";
-import View, { ViewPropsAnd } from "comps/View";
-import Ctx from "lib/Ctx";
-import useClickOutside from "hooks/useClickOutside";
+import * as React from "react"
+import View, { ViewPropsAnd } from "comps/View"
+import Ctx from "lib/Ctx"
+import useClickOutside from "hooks/useClickOutside"
 
 type DrawerDir =
 	| "left"
@@ -30,15 +30,15 @@ const Drawer = React.forwardRef<HTMLDivElement, ViewPropsAnd<DrawerProps>>(({
 	...args
 }, ref) => {
 
-	const localRef = React.useRef(null);
-	const curRef = ref ?? localRef;
-	paneWidth = paneWidth ?? 240;
-	const handleWidth = handle ? (bigHandle ? 24 : 16) : 0;
+	const localRef = React.useRef(null)
+	const curRef = ref ?? localRef
+	paneWidth = paneWidth ?? 240
+	const handleWidth = handle ? (bigHandle ? 24 : 16) : 0
 
 	// @ts-ignore
 	useClickOutside(curRef, () => {
-		setExpanded(false);
-	}, []);
+		setExpanded(false)
+	}, [])
 
 	return <>
 		<View
@@ -82,7 +82,7 @@ const Drawer = React.forwardRef<HTMLDivElement, ViewPropsAnd<DrawerProps>>(({
 					onClick={() => setExpanded((e) => !e)}
 					css={{
 						cursor: "pointer",
-					order: dir === "right" || dir === "bottom" ? 1 : 2,
+						order: dir === "right" || dir === "bottom" ? 1 : 2,
 					}}
 				>
 					{[...Array(bigHandle ? 2 : 1)].map((_, i) => (
@@ -105,8 +105,8 @@ const Drawer = React.forwardRef<HTMLDivElement, ViewPropsAnd<DrawerProps>>(({
 				left: 0,
 			}}
 		/>
-	</>;
+	</>
 
-});
+})
 
-export default Drawer;
+export default Drawer

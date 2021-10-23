@@ -1,13 +1,13 @@
-import * as React from "react";
-import View from "comps/View";
-import Text from "comps/Text";
-import Ctx from "lib/Ctx";
+import * as React from "react"
+import View from "comps/View"
+import Text from "comps/Text"
+import Ctx from "lib/Ctx"
 
 const Inspect: React.FC = ({
 	...args
 }) => {
 
-	const { inspect, setInspect } = React.useContext(Ctx);
+	const { inspect, setInspect } = React.useContext(Ctx)
 
 	return <View
 		name="Inspect Button"
@@ -35,8 +35,8 @@ const Inspect: React.FC = ({
 		{...args}
 	>
 		<Text color={2}>?</Text>
-	</View>;
+	</View>
 
-};
+}
 
-export default Inspect;
+export default Inspect

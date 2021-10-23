@@ -5,12 +5,12 @@ export function basename(path: string): string | null {
 		?.split(".")
 		.slice(0, -1)
 		.join(".")
-		|| null;
+		|| null
 }
 
 export function extname(path: string): string | null {
 	return path
 		.split(".")
 		.pop()
-		|| null;
+		|| null
 }

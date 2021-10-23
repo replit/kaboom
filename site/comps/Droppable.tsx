@@ -1,6 +1,6 @@
-import * as React from "react";
-import View, { ViewPropsAnd } from "comps/View";
-import Ctx from "lib/Ctx";
+import * as React from "react"
+import View, { ViewPropsAnd } from "comps/View"
+import Ctx from "lib/Ctx"
 
 interface DroppableProps {
 	accept?: string | string[],
@@ -13,36 +13,36 @@ const Droppable = React.forwardRef<HTMLDivElement, ViewPropsAnd<DroppableProps>>
 	onDrop,
 	...args
 }, ref) => {
-	const { draggin, setDraggin } = React.useContext(Ctx);
+	const { draggin, setDraggin } = React.useContext(Ctx)
 	return (
 		<View
 			onDragEnter={(e) => {}}
 			onDragLeave={(e) => {}}
 			onDragOver={(e) => {
-				if (!draggin) return;
-				if (!onDrop) return;
+				if (!draggin) return
+				if (!onDrop) return
 				if (accept) {
-					const acceptList = Array.isArray(accept) ? accept : [ accept ];
-					if (!acceptList.some((pat) => draggin.type.match(pat))) return;
+					const acceptList = Array.isArray(accept) ? accept : [ accept ]
+					if (!acceptList.some((pat) => draggin.type.match(pat))) return
 				}
-				e.preventDefault();
+				e.preventDefault()
 			}}
 			onDrop={(e) => {
-				e.preventDefault();
-				if (!draggin) return;
-				if (!onDrop) return;
+				e.preventDefault()
+				if (!draggin) return
+				if (!onDrop) return
 				if (accept) {
-					const acceptList = Array.isArray(accept) ? accept : [ accept ];
-					if (!acceptList.some((pat) => draggin.type.match(pat))) return;
+					const acceptList = Array.isArray(accept) ? accept : [ accept ]
+					if (!acceptList.some((pat) => draggin.type.match(pat))) return
 				}
-				onDrop(draggin.type, draggin.data);
-				setDraggin(null);
+				onDrop(draggin.type, draggin.data)
+				setDraggin(null)
 			}}
 			{...args}
 		>
 			{children}
 		</View>
-	);
-});
+	)
+})
 
-export default Droppable;
+export default Droppable

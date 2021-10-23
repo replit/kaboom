@@ -1,10 +1,10 @@
-import * as React from "react";
+import * as React from "react"
 
 import {
 	EditorState,
 	Compartment,
 	Extension,
-} from "@codemirror/state";
+} from "@codemirror/state"
 
 import {
 	EditorView,
@@ -14,71 +14,71 @@ import {
 	drawSelection,
 	placeholder as cmPlaceholder,
 	KeyBinding
-} from "@codemirror/view";
+} from "@codemirror/view"
 
 import {
 	defaultHighlightStyle,
 	HighlightStyle,
 	tags as t
-} from "@codemirror/highlight";
+} from "@codemirror/highlight"
 
 import {
 	defaultKeymap,
 	indentWithTab,
-} from "@codemirror/commands";
+} from "@codemirror/commands"
 
 import {
 	indentUnit,
 	indentOnInput,
-} from "@codemirror/language";
+} from "@codemirror/language"
 
 import {
 	lineNumbers,
 	highlightActiveLineGutter,
-} from "@codemirror/gutter";
+} from "@codemirror/gutter"
 
 import {
 	history,
 	historyKeymap,
-} from "@codemirror/history";
+} from "@codemirror/history"
 
 import {
 	searchKeymap,
 	highlightSelectionMatches,
-} from "@codemirror/search";
+} from "@codemirror/search"
 
-import { bracketMatching } from "@codemirror/matchbrackets";
-import { closeBrackets } from "@codemirror/closebrackets";
-import { commentKeymap } from "@codemirror/comment";
-import { foldGutter } from "@codemirror/fold";
-import { javascript } from "@codemirror/lang-javascript";
+import { bracketMatching } from "@codemirror/matchbrackets"
+import { closeBrackets } from "@codemirror/closebrackets"
+import { commentKeymap } from "@codemirror/comment"
+import { foldGutter } from "@codemirror/fold"
+import { javascript } from "@codemirror/lang-javascript"
 
-import useUpdateEffect from "hooks/useUpdateEffect";
-import View, { ViewProps } from "comps/View";
-import Ctx from "lib/Ctx";
-import { themes } from "lib/ui";
+import useUpdateEffect from "hooks/useUpdateEffect"
+import View, { ViewProps } from "comps/View"
+import Ctx from "lib/Ctx"
+import { themes } from "lib/ui"
 
 // @ts-ignore
-const cmThemes: Record<Theme, [ Extension, HighlightStyle ]> = {};
+const cmThemes: Record<Theme, [ Extension, HighlightStyle ]> = {}
 
 Object.keys(themes).forEach((name) => {
 
-	const theme = themes[name];
-	const yellow = "#e5c07b";
-	const red = "#e06c75";
-	const cyan = "#56b6c2";
-	const ivory = theme["fg2"];
-	const stone = theme["fg3"];
-	const invalid = theme["fg4"];
-	const blue = "#61afef";
-	const green = "#98d379";
-	const whiskey = "#d19a66";
-	const magenta = "#c678dd";
-	const darkBackground = theme["bg1"];
-	const highlightBackground = theme["bg3"];
-	const background = theme["bg2"];
-	const selection = theme["bg4"];
-	const cursor = theme["highlight"];
+	const theme = themes[name]
+	const yellow = "#e5c07b"
+	const red = "#e06c75"
+	const cyan = "#56b6c2"
+	const ivory = theme["fg2"]
+	const stone = theme["fg3"]
+	const invalid = theme["fg4"]
+	const blue = "#61afef"
+	const green = "#98d379"
+	const whiskey = "#d19a66"
+	const magenta = "#c678dd"
+	const darkBackground = theme["bg1"]
+	const highlightBackground = theme["bg3"]
+	const background = theme["bg2"]
+	const selection = theme["bg4"]
+	const cursor = theme["highlight"]
 
 	cmThemes[name] = [
 		EditorView.theme({
@@ -144,11 +144,11 @@ Object.keys(themes).forEach((name) => {
 			},
 			{
 				tag: [
-//  					t.name,
+					//  					t.name,
 					t.deleted,
 					t.character,
 					t.macroName,
-//  					t.propertyName,
+					//  					t.propertyName,
 				],
 				color: red,
 			},
@@ -249,9 +249,9 @@ Object.keys(themes).forEach((name) => {
 				color: invalid,
 			},
 		]),
-	];
+	]
 
-});
+})
 
 export interface EditorRef {
 	getContent: () => string | null,
@@ -267,7 +267,7 @@ interface EditorProps {
 	onChange?: (code: string) => void,
 	onSelect?: (code: string) => void,
 	keys?: KeyBinding[],
-};
+}
 
 const Editor = React.forwardRef<EditorRef, EditorProps & ViewProps>(({
 	content,
@@ -278,68 +278,68 @@ const Editor = React.forwardRef<EditorRef, EditorProps & ViewProps>(({
 	...args
 }, ref) => {
 
-	const editorDOMRef = React.useRef(null);
-	const cmRef = React.useRef<EditorView | null>(null);
-	const themeConfRef = React.useRef<Compartment | null>(null);
-	const { theme } = React.useContext(Ctx);
+	const editorDOMRef = React.useRef(null)
+	const cmRef = React.useRef<EditorView | null>(null)
+	const themeConfRef = React.useRef<Compartment | null>(null)
+	const { theme } = React.useContext(Ctx)
 
 	React.useImperativeHandle(ref, () => ({
 		getContent() {
-			if (!cmRef.current) return null;
-			const cm = cmRef.current;
-			return cm.state.doc.toString();
+			if (!cmRef.current) return null
+			const cm = cmRef.current
+			return cm.state.doc.toString()
 		},
 		getSelection() {
-			if (!cmRef.current) return null;
-			const cm = cmRef.current;
+			if (!cmRef.current) return null
+			const cm = cmRef.current
 			return cm.state.sliceDoc(
 				cm.state.selection.main.from,
 				cm.state.selection.main.to
 			)
 		},
 		getWord() {
-			if (!cmRef.current) return null;
-			const cm = cmRef.current;
-			const range = cm.state.wordAt(cm.state.selection.main.head);
+			if (!cmRef.current) return null
+			const cm = cmRef.current
+			const range = cm.state.wordAt(cm.state.selection.main.head)
 			if (range) {
-				return cm.state.sliceDoc(range.from, range.to);
+				return cm.state.sliceDoc(range.from, range.to)
 			}
-			return null;
+			return null
 		},
 		setContent(content: string) {
-			if (!cmRef.current) return null;
-			const cm = cmRef.current;
+			if (!cmRef.current) return null
+			const cm = cmRef.current
 			cm.dispatch({
 				changes: {
 					from: 0,
 					to: cm.state.doc.length,
 					insert: content,
 				},
-			});
+			})
 		},
 		getCodeMirror() {
-			return cmRef.current;
+			return cmRef.current
 		},
-	}));
+	}))
 
 	React.useEffect(() => {
 
-		if (!editorDOMRef.current) return;
-		const editorDOM = editorDOMRef.current;
+		if (!editorDOMRef.current) return
+		const editorDOM = editorDOMRef.current
 
 		if (!cmRef.current) {
 			cmRef.current = new EditorView({
 				parent: editorDOM,
-			});
+			})
 		}
 
-		const cm = cmRef.current;
-		const themeConf = new Compartment();
+		const cm = cmRef.current
+		const themeConf = new Compartment()
 
-		themeConfRef.current = themeConf;
+		themeConfRef.current = themeConf
 
 		if (cmRef) {
-			cmRef.current = cm;
+			cmRef.current = cm
 		}
 
 		cm.setState(EditorState.create({
@@ -364,17 +364,17 @@ const Editor = React.forwardRef<EditorRef, EditorProps & ViewProps>(({
 				drawSelection(),
 				defaultHighlightStyle,
 				EditorView.updateListener.of((update) => {
-					const state = update.state;
+					const state = update.state
 					if (update.docChanged) {
-						onChange && onChange(state.doc.toString());
+						onChange && onChange(state.doc.toString())
 					}
 					if (update.selectionSet) {
 						const sel = state.sliceDoc(
 							state.selection.main.from,
 							state.selection.main.to
-						);
+						)
 						if (sel) {
-							onSelect && onSelect(sel);
+							onSelect && onSelect(sel)
 						}
 					}
 				}),
@@ -387,22 +387,22 @@ const Editor = React.forwardRef<EditorRef, EditorProps & ViewProps>(({
 					...(keys ?? []),
 				]),
 			].filter((ext) => ext),
-		}));
+		}))
 
-	}, [ content ]);
+	}, [ content ])
 
 	useUpdateEffect(() => {
 
-		if (!cmRef.current) return;
-		const cm = cmRef.current;
-		if (!themeConfRef.current) return;
-		const themeConf = themeConfRef.current;
+		if (!cmRef.current) return
+		const cm = cmRef.current
+		if (!themeConfRef.current) return
+		const themeConf = themeConfRef.current
 
 		cm.dispatch({
 			effects: themeConf.reconfigure(cmThemes[theme])
-		});
+		})
 
-	}, [ theme ]);
+	}, [ theme ])
 
 	return (
 		<View
@@ -428,7 +428,7 @@ const Editor = React.forwardRef<EditorRef, EditorProps & ViewProps>(({
 			}}
 			{...args}
 		/>
-	);
-});
+	)
+})
 
-export default Editor;
+export default Editor

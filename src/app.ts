@@ -1,6 +1,6 @@
 import {
 	vec2,
-} from "./math";
+} from "./math"
 
 type ButtonState =
 	"up"
@@ -76,50 +76,50 @@ type App = {
 
 function processBtnState(s: ButtonState): ButtonState {
 	if (s === "pressed" || s === "rpressed") {
-		return "down";
+		return "down"
 	}
 	if (s === "released") {
-		return "up";
+		return "up"
 	}
-	return s;
+	return s
 }
 
 function enterFullscreen(el: HTMLElement) {
-	if (el.requestFullscreen) el.requestFullscreen();
+	if (el.requestFullscreen) el.requestFullscreen()
 	// @ts-ignore
-	else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen();
-};
+	else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen()
+}
 
 function exitFullscreen() {
-	if (document.exitFullscreen) document.exitFullscreen();
+	if (document.exitFullscreen) document.exitFullscreen()
 	// @ts-ignore
-	else if (document.webkitExitFullScreen) document.webkitExitFullScreen();
-};
+	else if (document.webkitExitFullScreen) document.webkitExitFullScreen()
+}
 
 function getFullscreenElement(): Element | void {
 	return document.fullscreenElement
 		// @ts-ignore
 		|| document.webkitFullscreenElement
-		;
-};
+		
+}
 
 function appInit(gopt: AppOpt = {}): App {
 
-    const root = gopt.root ?? document.body;
+	const root = gopt.root ?? document.body
 
 	if (root === document.body) {
-		document.body.style["width"] = "100%";
-		document.body.style["height"] = "100%";
-		document.body.style["margin"] = "0px";
-		document.documentElement.style["width"] = "100%";
-		document.documentElement.style["height"] = "100%";
+		document.body.style["width"] = "100%"
+		document.body.style["height"] = "100%"
+		document.body.style["margin"] = "0px"
+		document.documentElement.style["width"] = "100%"
+		document.documentElement.style["height"] = "100%"
 	}
 
 	const app: AppCtx = {
 		canvas: gopt.canvas ?? (() => {
-			const canvas = document.createElement("canvas");
-			root.appendChild(canvas);
-			return canvas;
+			const canvas = document.createElement("canvas")
+			root.appendChild(canvas)
+			return canvas
 		})(),
 		keyStates: {},
 		charInputted: [],
@@ -140,7 +140,7 @@ function appInit(gopt: AppOpt = {}): App {
 		fps: 0,
 		fpsBuf: [],
 		fpsTimer: 0,
-	};
+	}
 
 	const keyMap = {
 		"ArrowLeft": "left",
@@ -148,7 +148,7 @@ function appInit(gopt: AppOpt = {}): App {
 		"ArrowUp": "up",
 		"ArrowDown": "down",
 		" ": "space",
-	};
+	}
 
 	const preventDefaultKeys = [
 		"space",
@@ -169,29 +169,29 @@ function appInit(gopt: AppOpt = {}): App {
 		"f10",
 		"f11",
 		"s",
-	];
+	]
 
 	if (gopt.width && gopt.height && !gopt.stretch) {
-		app.canvas.width = gopt.width * app.scale;
-		app.canvas.height = gopt.height * app.scale;
+		app.canvas.width = gopt.width * app.scale
+		app.canvas.height = gopt.height * app.scale
 	} else {
-		app.canvas.width = app.canvas.parentElement.offsetWidth;
-		app.canvas.height = app.canvas.parentElement.offsetHeight;
+		app.canvas.width = app.canvas.parentElement.offsetWidth
+		app.canvas.height = app.canvas.parentElement.offsetHeight
 	}
 
 	const styles = [
 		"outline: none",
 		"cursor: default",
-	];
+	]
 
 	if (gopt.crisp) {
-		styles.push("image-rendering: pixelated");
-		styles.push("image-rendering: crisp-edges");
+		styles.push("image-rendering: pixelated")
+		styles.push("image-rendering: crisp-edges")
 	}
 
 	// @ts-ignore
-	app.canvas.style = styles.join(";");
-	app.canvas.setAttribute("tabindex", "0");
+	app.canvas.style = styles.join(";")
+	app.canvas.setAttribute("tabindex", "0")
 
 	const gl = app.canvas
 		.getContext("webgl", {
@@ -200,202 +200,202 @@ function appInit(gopt: AppOpt = {}): App {
 			stencil: true,
 			alpha: true,
 			preserveDrawingBuffer: true,
-		});
+		})
 
-	app.isTouch = ("ontouchstart" in window) || navigator.maxTouchPoints > 0;
+	app.isTouch = ("ontouchstart" in window) || navigator.maxTouchPoints > 0
 
 	app.canvas.addEventListener("mousemove", (e) => {
 		if (isFullscreen()) {
 			// in fullscreen mode browser adds letter box to preserve original canvas aspect ratio, but won't give us the transformed mouse position
 			// TODO
-			app.mousePos = vec2(e.offsetX, e.offsetY).scale(1 / app.scale);
+			app.mousePos = vec2(e.offsetX, e.offsetY).scale(1 / app.scale)
 		} else {
-			app.mousePos = vec2(e.offsetX, e.offsetY).scale(1 / app.scale);
+			app.mousePos = vec2(e.offsetX, e.offsetY).scale(1 / app.scale)
 		}
-		app.mouseDeltaPos = vec2(e.movementX, e.movementY).scale(1 / app.scale);
-		app.mouseMoved = true;
-	});
+		app.mouseDeltaPos = vec2(e.movementX, e.movementY).scale(1 / app.scale)
+		app.mouseMoved = true
+	})
 
 	app.canvas.addEventListener("mousedown", () => {
-		app.mouseState = "pressed";
-	});
+		app.mouseState = "pressed"
+	})
 
 	app.canvas.addEventListener("mouseup", () => {
-		app.mouseState = "released";
-	});
+		app.mouseState = "released"
+	})
 
 	app.canvas.addEventListener("keydown", (e) => {
 
-		const k = keyMap[e.key] || e.key.toLowerCase();
+		const k = keyMap[e.key] || e.key.toLowerCase()
 
 		if (preventDefaultKeys.includes(k)) {
-			e.preventDefault();
+			e.preventDefault()
 		}
 
 		if (k.length === 1) {
-			app.charInputted.push(e.key);
+			app.charInputted.push(e.key)
 		}
 
 		if (k === "space") {
-			app.charInputted.push(" ");
+			app.charInputted.push(" ")
 		}
 
 		if (e.repeat) {
-			app.keyPressedRep = true;
-			app.keyStates[k] = "rpressed";
+			app.keyPressedRep = true
+			app.keyStates[k] = "rpressed"
 		} else {
-			app.keyPressed = true;
-			app.keyStates[k] = "pressed";
+			app.keyPressed = true
+			app.keyStates[k] = "pressed"
 		}
 
-	});
+	})
 
 	app.canvas.addEventListener("keyup", (e: KeyboardEvent) => {
-		const k = keyMap[e.key] || e.key.toLowerCase();
-		app.keyStates[k] = "released";
-	});
+		const k = keyMap[e.key] || e.key.toLowerCase()
+		app.keyStates[k] = "released"
+	})
 
 	app.canvas.addEventListener("touchstart", (e) => {
-		if (!gopt.touchToMouse) return;
+		if (!gopt.touchToMouse) return
 		// disable long tap context menu
-		e.preventDefault();
-		const t = e.touches[0];
-		app.mousePos = vec2(t.clientX, t.clientY).scale(1 / app.scale);
-		app.mouseState = "pressed";
-	});
+		e.preventDefault()
+		const t = e.touches[0]
+		app.mousePos = vec2(t.clientX, t.clientY).scale(1 / app.scale)
+		app.mouseState = "pressed"
+	})
 
 	app.canvas.addEventListener("touchmove", (e) => {
-		if (!gopt.touchToMouse) return;
+		if (!gopt.touchToMouse) return
 		// disable scrolling
-		e.preventDefault();
-		const t = e.touches[0];
-		app.mousePos = vec2(t.clientX, t.clientY).scale(1 / app.scale);
-		app.mouseMoved = true;
-	});
+		e.preventDefault()
+		const t = e.touches[0]
+		app.mousePos = vec2(t.clientX, t.clientY).scale(1 / app.scale)
+		app.mouseMoved = true
+	})
 
 	app.canvas.addEventListener("touchend", (e) => {
-		if (!gopt.touchToMouse) return;
-		app.mouseState = "released";
-	});
+		if (!gopt.touchToMouse) return
+		app.mouseState = "released"
+	})
 
 	app.canvas.addEventListener("touchcancel", (e) => {
-		if (!gopt.touchToMouse) return;
-		app.mouseState = "released";
-	});
+		if (!gopt.touchToMouse) return
+		app.mouseState = "released"
+	})
 
 	document.addEventListener("visibilitychange", () => {
 		switch (document.visibilityState) {
 			case "visible":
-				// prevent a surge of dt() when switch back after the tab being hidden for a while
-				app.skipTime = true;
+			// prevent a surge of dt() when switch back after the tab being hidden for a while
+				app.skipTime = true
 				// TODO: don't resume if debug.paused
-				gopt.audioCtx?.resume();
-				break;
+				gopt.audioCtx?.resume()
+				break
 			case "hidden":
-				gopt.audioCtx?.suspend();
-				break;
+				gopt.audioCtx?.suspend()
+				break
 		}
-	});
+	})
 
 	// TODO: not quite working
-//  	window.addEventListener("resize", () => {
-//  		if (!(gopt.width && gopt.height && !gopt.stretch)) {
-//  			app.canvas.width = app.canvas.parentElement.offsetWidth;
-//  			app.canvas.height = app.canvas.parentElement.offsetHeight;
-//  		}
-//  	});
+	//  	window.addEventListener("resize", () => {
+	//  		if (!(gopt.width && gopt.height && !gopt.stretch)) {
+	//  			app.canvas.width = app.canvas.parentElement.offsetWidth;
+	//  			app.canvas.height = app.canvas.parentElement.offsetHeight;
+	//  		}
+	//  	});
 
 	function mousePos(): Vec2 {
-		return app.mousePos.clone();
+		return app.mousePos.clone()
 	}
 
 	function mouseDeltaPos(): Vec2 {
-		return app.mouseDeltaPos.clone();
+		return app.mouseDeltaPos.clone()
 	}
 
 	function mouseClicked(): boolean {
-		return app.mouseState === "pressed";
+		return app.mouseState === "pressed"
 	}
 
 	function mouseDown(): boolean {
-		return app.mouseState === "pressed" || app.mouseState === "down";
+		return app.mouseState === "pressed" || app.mouseState === "down"
 	}
 
 	function mouseReleased(): boolean {
-		return app.mouseState === "released";
+		return app.mouseState === "released"
 	}
 
 	function mouseMoved(): boolean {
-		return app.mouseMoved;
+		return app.mouseMoved
 	}
 
 	function keyPressed(k?: string): boolean {
 		if (k === undefined) {
-			return app.keyPressed;
+			return app.keyPressed
 		} else {
-			return app.keyStates[k] === "pressed";
+			return app.keyStates[k] === "pressed"
 		}
 	}
 
 	function keyPressedRep(k: string): boolean {
 		if (k === undefined) {
-			return app.keyPressedRep;
+			return app.keyPressedRep
 		} else {
-			return app.keyStates[k] === "pressed" || app.keyStates[k] === "rpressed";
+			return app.keyStates[k] === "pressed" || app.keyStates[k] === "rpressed"
 		}
 	}
 
 	function keyDown(k: string): boolean {
 		return app.keyStates[k] === "pressed"
 			|| app.keyStates[k] === "rpressed"
-			|| app.keyStates[k] === "down";
+			|| app.keyStates[k] === "down"
 	}
 
 	function keyReleased(k: string): boolean {
-		return app.keyStates[k] === "released";
+		return app.keyStates[k] === "released"
 	}
 
 	function charInputted(): string[] {
-		return [...app.charInputted];
+		return [...app.charInputted]
 	}
 
 	// get delta time between last frame
 	function dt(): number {
-		return app.dt;
+		return app.dt
 	}
 
 	// get current running time
 	function time(): number {
-		return app.time;
+		return app.time
 	}
 
 	function fps(): number {
-		return app.fps;
+		return app.fps
 	}
 
 	// get a base64 png image of canvas
 	function screenshot(): string {
-		return app.canvas.toDataURL();
+		return app.canvas.toDataURL()
 	}
 
 	// TODO: custom cursor
 	function cursor(c?: Cursor): Cursor {
 		if (c) {
-			app.canvas.style.cursor = c;
+			app.canvas.style.cursor = c
 		}
-		return app.canvas.style.cursor;
+		return app.canvas.style.cursor
 	}
 
-	function fullscreen(f: boolean = true) {
+	function fullscreen(f = true) {
 		if (f) {
-			enterFullscreen(app.canvas);
+			enterFullscreen(app.canvas)
 		} else {
-			exitFullscreen();
+			exitFullscreen()
 		}
 	}
 
 	function isFullscreen(): boolean {
-		return Boolean(getFullscreenElement());
+		return Boolean(getFullscreenElement())
 	}
 
 	function run(f: () => void) {
@@ -403,52 +403,52 @@ function appInit(gopt: AppOpt = {}): App {
 		const frame = (t: number) => {
 
 			if (document.visibilityState !== "visible") {
-				app.loopID = requestAnimationFrame(frame);
-				return;
+				app.loopID = requestAnimationFrame(frame)
+				return
 			}
 
-			const realTime = t / 1000;
-			const realDt = realTime - app.realTime;
+			const realTime = t / 1000
+			const realDt = realTime - app.realTime
 
-			app.realTime = realTime;
+			app.realTime = realTime
 
 			if (!app.skipTime) {
-				app.dt = realDt;
-				app.time += app.dt;
-				app.fpsBuf.push(1 / app.dt);
-				app.fpsTimer += app.dt;
+				app.dt = realDt
+				app.time += app.dt
+				app.fpsBuf.push(1 / app.dt)
+				app.fpsTimer += app.dt
 				if (app.fpsTimer >= 1) {
-					app.fpsTimer = 0;
-					app.fps = Math.round(app.fpsBuf.reduce((a, b) => a + b) / app.fpsBuf.length);
-					app.fpsBuf = [];
+					app.fpsTimer = 0
+					app.fps = Math.round(app.fpsBuf.reduce((a, b) => a + b) / app.fpsBuf.length)
+					app.fpsBuf = []
 				}
 			}
 
-			app.skipTime = false;
+			app.skipTime = false
 
-			f();
+			f()
 
 			for (const k in app.keyStates) {
-				app.keyStates[k] = processBtnState(app.keyStates[k]);
+				app.keyStates[k] = processBtnState(app.keyStates[k])
 			}
 
-			app.mouseState = processBtnState(app.mouseState);
-			app.charInputted = [];
-			app.mouseMoved = false;
-			app.keyPressed = false;
-			app.keyPressedRep = false;
-			app.loopID = requestAnimationFrame(frame);
+			app.mouseState = processBtnState(app.mouseState)
+			app.charInputted = []
+			app.mouseMoved = false
+			app.keyPressed = false
+			app.keyPressedRep = false
+			app.loopID = requestAnimationFrame(frame)
 
-		};
+		}
 
-		app.stopped = false;
-		app.loopID = requestAnimationFrame(frame);
+		app.stopped = false
+		app.loopID = requestAnimationFrame(frame)
 
 	}
 
 	function quit() {
-		cancelAnimationFrame(app.loopID);
-		app.stopped = true;
+		cancelAnimationFrame(app.loopID)
+		app.stopped = true
 	}
 
 	return {
@@ -478,11 +478,11 @@ function appInit(gopt: AppOpt = {}): App {
 		scale: app.scale,
 		fullscreen,
 		isFullscreen,
-	};
+	}
 
 }
 
 export {
 	App,
 	appInit,
-};
+}

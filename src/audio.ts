@@ -2,7 +2,7 @@
 
 import {
 	clamp,
-} from "./math";
+} from "./math"
 
 type AudioCtx = {
 	ctx: AudioContext,
@@ -17,34 +17,34 @@ type Audio = {
 	burp(opt?: AudioPlayOpt): AudioPlay,
 };
 
-const MIN_GAIN = 0;
-const MAX_GAIN = 3;
-const MIN_SPEED = 0;
-const MAX_SPEED = 3;
-const MIN_DETUNE = -1200;
-const MAX_DETUNE = 1200;
+const MIN_GAIN = 0
+const MAX_GAIN = 3
+const MIN_SPEED = 0
+const MAX_SPEED = 3
+const MIN_DETUNE = -1200
+const MAX_DETUNE = 1200
 
 // @ts-ignore
-import burpBytes from "./burp.mp3";
+import burpBytes from "./burp.mp3"
 
 function audioInit(): Audio {
 
 	const audio: AudioCtx = (() => {
 
 		// @ts-ignore
-		const ctx = new (window.AudioContext || window.webkitAudioContext)();
-		const gainNode = ctx.createGain();
-		const masterNode = gainNode;
+		const ctx = new (window.AudioContext || window.webkitAudioContext)()
+		const gainNode = ctx.createGain()
+		const masterNode = gainNode
 
-		masterNode.connect(ctx.destination);
+		masterNode.connect(ctx.destination)
 
 		return {
 			ctx,
 			gainNode,
 			masterNode,
-		};
+		}
 
-	})();
+	})()
 
 	const burpSnd = {
 		buf: new AudioBuffer({
@@ -52,20 +52,20 @@ function audioInit(): Audio {
 			numberOfChannels: 1,
 			sampleRate: 44100
 		}),
-	};
+	}
 
 	audio.ctx.decodeAudioData(burpBytes.buffer.slice(0), (buf) => {
-		burpSnd.buf = buf;
+		burpSnd.buf = buf
 	}, () => {
 		throw new Error("failed to make burp")
-	});
+	})
 
 	// get / set master volume
 	function volume(v?: number): number {
 		if (v !== undefined) {
-			audio.gainNode.gain.value = clamp(v, MIN_GAIN, MAX_GAIN);
+			audio.gainNode.gain.value = clamp(v, MIN_GAIN, MAX_GAIN)
 		}
-		return audio.gainNode.gain.value;
+		return audio.gainNode.gain.value
 	}
 
 	// plays a sound, returns a control handle
@@ -80,136 +80,136 @@ function audioInit(): Audio {
 		},
 	): AudioPlay {
 
-		let stopped = false;
-		let srcNode = audio.ctx.createBufferSource();
+		let stopped = false
+		let srcNode = audio.ctx.createBufferSource()
 
-		srcNode.buffer = snd.buf;
-		srcNode.loop = opt.loop ? true : false;
+		srcNode.buffer = snd.buf
+		srcNode.loop = opt.loop ? true : false
 
-		const gainNode = audio.ctx.createGain();
+		const gainNode = audio.ctx.createGain()
 
-		srcNode.connect(gainNode);
-		gainNode.connect(audio.masterNode);
+		srcNode.connect(gainNode)
+		gainNode.connect(audio.masterNode)
 
-		const pos = opt.seek ?? 0;
+		const pos = opt.seek ?? 0
 
-		srcNode.start(0, pos);
+		srcNode.start(0, pos)
 
-		let startTime = audio.ctx.currentTime - pos;
-		let stopTime: number | null = null;
+		let startTime = audio.ctx.currentTime - pos
+		let stopTime: number | null = null
 
 		const handle = {
 
 			stop() {
 				if (stopped) {
-					return;
+					return
 				}
-				this.pause();
-				startTime = audio.ctx.currentTime;
+				this.pause()
+				startTime = audio.ctx.currentTime
 			},
 
 			play(seek?: number) {
 
 				if (!stopped) {
-					return;
+					return
 				}
 
-				const oldNode = srcNode;
+				const oldNode = srcNode
 
-				srcNode = audio.ctx.createBufferSource();
-				srcNode.buffer = oldNode.buffer;
-				srcNode.loop = oldNode.loop;
-				srcNode.playbackRate.value = oldNode.playbackRate.value;
+				srcNode = audio.ctx.createBufferSource()
+				srcNode.buffer = oldNode.buffer
+				srcNode.loop = oldNode.loop
+				srcNode.playbackRate.value = oldNode.playbackRate.value
 
 				if (srcNode.detune) {
-					srcNode.detune.value = oldNode.detune.value;
+					srcNode.detune.value = oldNode.detune.value
 				}
 
-				srcNode.connect(gainNode);
+				srcNode.connect(gainNode)
 
-				const pos = seek ?? this.time();
+				const pos = seek ?? this.time()
 
-				srcNode.start(0, pos);
-				startTime = audio.ctx.currentTime - pos;
-				stopped = false;
-				stopTime = null;
+				srcNode.start(0, pos)
+				startTime = audio.ctx.currentTime - pos
+				stopped = false
+				stopTime = null
 
 			},
 
 			pause() {
 				if (stopped) {
-					return;
+					return
 				}
-				srcNode.stop();
-				stopped = true;
-				stopTime = audio.ctx.currentTime;
+				srcNode.stop()
+				stopped = true
+				stopTime = audio.ctx.currentTime
 			},
 
 			paused(): boolean {
-				return stopped;
+				return stopped
 			},
 
 			stopped(): boolean {
-				return stopped;
+				return stopped
 			},
 
 			// TODO: affect time()
 			speed(val?: number): number {
 				if (val !== undefined) {
-					srcNode.playbackRate.value = clamp(val, MIN_SPEED, MAX_SPEED);
+					srcNode.playbackRate.value = clamp(val, MIN_SPEED, MAX_SPEED)
 				}
-				return srcNode.playbackRate.value;
+				return srcNode.playbackRate.value
 			},
 
 			detune(val?: number): number {
 				if (!srcNode.detune) {
-					return 0;
+					return 0
 				}
 				if (val !== undefined) {
-					srcNode.detune.value = clamp(val, MIN_DETUNE, MAX_DETUNE);
+					srcNode.detune.value = clamp(val, MIN_DETUNE, MAX_DETUNE)
 				}
-				return srcNode.detune.value;
+				return srcNode.detune.value
 			},
 
 			volume(val?: number): number {
 				if (val !== undefined) {
-					gainNode.gain.value = clamp(val, MIN_GAIN, MAX_GAIN);
+					gainNode.gain.value = clamp(val, MIN_GAIN, MAX_GAIN)
 				}
-				return gainNode.gain.value;
+				return gainNode.gain.value
 			},
 
 			loop() {
-				srcNode.loop = true;
+				srcNode.loop = true
 			},
 
 			unloop() {
-				srcNode.loop = false;
+				srcNode.loop = false
 			},
 
 			duration(): number {
-				return snd.buf.duration;
+				return snd.buf.duration
 			},
 
 			time(): number {
 				if (stopped) {
-					return stopTime - startTime;
+					return stopTime - startTime
 				} else {
-					return audio.ctx.currentTime - startTime;
+					return audio.ctx.currentTime - startTime
 				}
 			},
 
-		};
+		}
 
-		handle.speed(opt.speed);
-		handle.detune(opt.detune);
-		handle.volume(opt.volume);
+		handle.speed(opt.speed)
+		handle.detune(opt.detune)
+		handle.volume(opt.volume)
 
-		return handle;
+		return handle
 
 	}
 
 	function burp(opt?: AudioPlayOpt): AudioPlay {
-		return play(burpSnd, opt);
+		return play(burpSnd, opt)
 	}
 
 	return {
@@ -217,11 +217,11 @@ function audioInit(): Audio {
 		volume,
 		play,
 		burp,
-	};
+	}
 
 }
 
 export {
 	Audio,
 	audioInit,
-};
+}
