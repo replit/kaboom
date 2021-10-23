@@ -1,17 +1,17 @@
-const FLOOR_HEIGHT = 48;
-const JUMP_FORCE = 800;
-const SPEED = 480;
+const FLOOR_HEIGHT = 48
+const JUMP_FORCE = 800
+const SPEED = 480
 
 // initialize context
-kaboom();
+kaboom()
 
 // load assets
-loadSprite("bean", "sprites/bean.png");
+loadSprite("bean", "sprites/bean.png")
 
 scene("game", () => {
 
 	// define gravity
-	gravity(2400);
+	gravity(2400)
 
 	// add a game object to screen
 	const player = add([
@@ -20,7 +20,7 @@ scene("game", () => {
 		pos(80, 40),
 		area(),
 		body(),
-	]);
+	])
 
 	// floor
 	add([
@@ -31,17 +31,17 @@ scene("game", () => {
 		area(),
 		solid(),
 		color(127, 200, 255),
-	]);
+	])
 
 	function jump() {
 		if (player.grounded()) {
-			player.jump(JUMP_FORCE);
+			player.jump(JUMP_FORCE)
 		}
 	}
 
 	// jump when user press space
-	keyPress("space", jump);
-	mouseClick(jump);
+	keyPress("space", jump)
+	mouseClick(jump)
 
 	function spawnTree() {
 
@@ -56,39 +56,39 @@ scene("game", () => {
 			move(LEFT, SPEED),
 			cleanup(),
 			"tree",
-		]);
+		])
 
 		// wait a random amount of time to spawn next tree
-		wait(rand(0.5, 1.5), spawnTree);
+		wait(rand(0.5, 1.5), spawnTree)
 
 	}
 
 	// start spawning trees
-	spawnTree();
+	spawnTree()
 
 	// lose if player collides with any game obj with tag "tree"
 	player.collides("tree", () => {
 		// go to "lose" scene and pass the score
-		go("lose", score);
-		burp();
-		addKaboom(player.pos);
-	});
+		go("lose", score)
+		burp()
+		addKaboom(player.pos)
+	})
 
 	// keep track of score
-	let score = 0;
+	let score = 0
 
 	const scoreLabel = add([
 		text(score),
 		pos(24, 24),
-	]);
+	])
 
 	// increment score every frame
 	action(() => {
-		score++;
-		scoreLabel.text = score;
-	});
+		score++
+		scoreLabel.text = score
+	})
 
-});
+})
 
 scene("lose", (score) => {
 
@@ -97,7 +97,7 @@ scene("lose", (score) => {
 		pos(width() / 2, height() / 2 - 80),
 		scale(2),
 		origin("center"),
-	]);
+	])
 
 	// display score
 	add([
@@ -105,12 +105,12 @@ scene("lose", (score) => {
 		pos(width() / 2, height() / 2 + 80),
 		scale(2),
 		origin("center"),
-	]);
+	])
 
 	// go back to game with space is pressed
-	keyPress("space", () => go("game"));
-	mouseClick(() => go("game"));
+	keyPress("space", () => go("game"))
+	mouseClick(() => go("game"))
 
-});
+})
 
-go("game");
+go("game")

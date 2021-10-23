@@ -1,19 +1,19 @@
-kaboom();
+kaboom()
 
 // load assets
-loadSprite("bean", "sprites/bean.png");
-loadSprite("googoly", "sprites/googoly.png");
-loadSprite("spike", "sprites/spike.png");
-loadSprite("grass", "sprites/grass.png");
-loadSprite("prize", "sprites/jumpy.png");
-loadSprite("apple", "sprites/apple.png");
-loadSprite("portal", "sprites/portal.png");
-loadSprite("coin", "sprites/coin.png");
-loadSound("coin", "sounds/score.mp3");
-loadSound("powerup", "sounds/powerup.mp3");
-loadSound("blip", "sounds/blip.mp3");
-loadSound("hit", "sounds/hit.mp3");
-loadSound("portal", "sounds/portal.mp3");
+loadSprite("bean", "sprites/bean.png")
+loadSprite("googoly", "sprites/googoly.png")
+loadSprite("spike", "sprites/spike.png")
+loadSprite("grass", "sprites/grass.png")
+loadSprite("prize", "sprites/jumpy.png")
+loadSprite("apple", "sprites/apple.png")
+loadSprite("portal", "sprites/portal.png")
+loadSprite("coin", "sprites/coin.png")
+loadSound("coin", "sounds/score.mp3")
+loadSound("powerup", "sounds/powerup.mp3")
+loadSound("blip", "sounds/blip.mp3")
+loadSound("hit", "sounds/hit.mp3")
+loadSound("portal", "sounds/portal.mp3")
 
 // custom component controlling enemy patrol movement
 function patrol(speed = 60, dir = 1) {
@@ -23,21 +23,21 @@ function patrol(speed = 60, dir = 1) {
 		add() {
 			this.on("collide", (obj, col) => {
 				if (col.isLeft() || col.isRight()) {
-					dir = -dir;
+					dir = -dir
 				}
-			});
+			})
 		},
 		update() {
-			this.move(speed * dir, 0);
+			this.move(speed * dir, 0)
 		},
-	};
+	}
 }
 
 // custom component that makes stuff grow big
 function big() {
-	let timer = 0;
-	let isBig = false;
-	let destScale = 1;
+	let timer = 0
+	let isBig = false
+	let destScale = 1
 	return {
 		// component id / name
 		id: "big",
@@ -46,34 +46,34 @@ function big() {
 		// this runs every frame
 		update() {
 			if (isBig) {
-				timer -= dt();
+				timer -= dt()
 				if (timer <= 0) {
-					this.smallify();
+					this.smallify()
 				}
 			}
-			this.scale = this.scale.lerp(vec2(destScale), dt() * 6);
+			this.scale = this.scale.lerp(vec2(destScale), dt() * 6)
 		},
 		// custom methods
 		isBig() {
-			return isBig;
+			return isBig
 		},
 		smallify() {
-			destScale = 1;
-			timer = 0;
-			isBig = false;
+			destScale = 1
+			timer = 0
+			isBig = false
 		},
 		biggify(time) {
-			destScale = 2;
-			timer = time;
-			isBig = true;
+			destScale = 2
+			timer = time
+			isBig = true
 		},
-	};
+	}
 }
 
 // define some constants
-const JUMP_FORCE = 1320;
-const MOVE_SPEED = 480;
-const FALL_DEATH = 2400;
+const JUMP_FORCE = 1320
+const MOVE_SPEED = 480
+const FALL_DEATH = 2400
 
 const LEVELS = [
 	[
@@ -100,7 +100,7 @@ const LEVELS = [
 		" ^^^^>^^^^>^^^^>^^^^>^^^^^@",
 		"===========================",
 	],
-];
+]
 
 // define what each symbol means in the level graph
 const levelConf = {
@@ -157,14 +157,14 @@ const levelConf = {
 		pos(0, -12),
 		"portal",
 	],
-};
+}
 
 scene("game", ({ levelId, coins } = { levelId: 0, coins: 0 }) => {
 
-	gravity(3200);
+	gravity(3200)
 
 	// add level to scene
-	const level = addLevel(LEVELS[levelId ?? 0], levelConf);
+	const level = addLevel(LEVELS[levelId ?? 0], levelConf)
 
 	// define player object
 	const player = add([
@@ -177,140 +177,140 @@ scene("game", ({ levelId, coins } = { levelId: 0, coins: 0 }) => {
 		// the custom component we defined above
 		big(),
 		origin("bot"),
-	]);
+	])
 
 	// action() runs every frame
 	player.action(() => {
 		// center camera to player
-		camPos(player.pos);
+		camPos(player.pos)
 		// check fall death
 		if (player.pos.y >= FALL_DEATH) {
-			go("lose");
+			go("lose")
 		}
-	});
+	})
 
 	// if player collides with any obj with "danger" tag, lose
 	player.collides("danger", () => {
-		go("lose");
-		play("hit");
-	});
+		go("lose")
+		play("hit")
+	})
 
 	player.collides("portal", () => {
-		play("portal");
+		play("portal")
 		if (levelId + 1 < LEVELS.length) {
 			go("game", {
 				levelId: levelId + 1,
 				coins: coins,
-			});
+			})
 		} else {
-			go("win");
+			go("win")
 		}
-	});
+	})
 
 	player.on("ground", (l) => {
 		if (l.is("enemy")) {
-			player.jump(JUMP_FORCE * 1.5);
-			destroy(l);
-			addKaboom(player.pos);
-			play("powerup");
+			player.jump(JUMP_FORCE * 1.5)
+			destroy(l)
+			addKaboom(player.pos)
+			play("powerup")
 		}
-	});
+	})
 
 	player.collides("enemy", (e, col) => {
 		// if it's not from the top, die
 		if (!col.isBottom()) {
-			go("lose");
-			play("hit");
+			go("lose")
+			play("hit")
 		}
-	});
+	})
 
-	let hasApple = false;
+	let hasApple = false
 
 	// grow an apple if player's head bumps into an obj with "prize" tag
 	player.on("headbutt", (obj) => {
 		if (obj.is("prize") && !hasApple) {
-			const apple = level.spawn("#", obj.gridPos.sub(0, 1));
-			apple.jump();
-			hasApple = true;
-			play("blip");
+			const apple = level.spawn("#", obj.gridPos.sub(0, 1))
+			apple.jump()
+			hasApple = true
+			play("blip")
 		}
-	});
+	})
 
 	// player grows big collides with an "apple" obj
 	player.collides("apple", (a) => {
-		destroy(a);
+		destroy(a)
 		// as we defined in the big() component
-		player.biggify(3);
-		hasApple = false;
-		play("powerup");
-	});
+		player.biggify(3)
+		hasApple = false
+		play("powerup")
+	})
 
-	let coinPitch = 0;
+	let coinPitch = 0
 
 	action(() => {
 		if (coinPitch > 0) {
-			coinPitch = Math.max(0, coinPitch - dt() * 100);
+			coinPitch = Math.max(0, coinPitch - dt() * 100)
 		}
-	});
+	})
 
 	player.collides("coin", (c) => {
-		destroy(c);
+		destroy(c)
 		play("coin", {
 			detune: coinPitch,
-		});
-		coinPitch += 100;
-		coins += 1;
-		coinsLabel.text = coins;
-	});
+		})
+		coinPitch += 100
+		coins += 1
+		coinsLabel.text = coins
+	})
 
 	const coinsLabel = add([
 		text(coins),
 		pos(24, 24),
 		fixed(),
-	]);
+	])
 
 	// jump with space
 	keyPress("space", () => {
 		// these 2 functions are provided by body() component
 		if (player.grounded()) {
-			player.jump(JUMP_FORCE);
+			player.jump(JUMP_FORCE)
 		}
-	});
+	})
 
 	keyDown("left", () => {
-		player.move(-MOVE_SPEED, 0);
-	});
+		player.move(-MOVE_SPEED, 0)
+	})
 
 	keyDown("right", () => {
-		player.move(MOVE_SPEED, 0);
-	});
+		player.move(MOVE_SPEED, 0)
+	})
 
 	keyPress("down", () => {
-		player.weight = 3;
-	});
+		player.weight = 3
+	})
 
 	keyRelease("down", () => {
-		player.weight = 1;
-	});
+		player.weight = 1
+	})
 
 	keyPress("f", () => {
-		fullscreen(!fullscreen());
-	});
+		fullscreen(!fullscreen())
+	})
 
-});
+})
 
 scene("lose", () => {
 	add([
 		text("You Lose"),
-	]);
-	keyPress(() => go("game"));
-});
+	])
+	keyPress(() => go("game"))
+})
 
 scene("win", () => {
 	add([
 		text("You Win"),
-	]);
-	keyPress(() => go("game"));
-});
+	])
+	keyPress(() => go("game"))
+})
 
-go("game");
+go("game")

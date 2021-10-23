@@ -1,33 +1,33 @@
 // kaboom as pure rendering lib (no component / game obj etc.)
 
-kaboom();
-loadSprite("bean", "sprites/bean.png");
+kaboom()
+loadSprite("bean", "sprites/bean.png")
 
-const t = (n = 1) => time() * n;
-const w = (a, b, n) => wave(a, b, t(n));
-const px = 160;
-const py = 200;
-const draw = [];
-const trail = [];
+const t = (n = 1) => time() * n
+const w = (a, b, n) => wave(a, b, t(n))
+const px = 160
+const py = 200
+const draw = []
+const trail = []
 
 const outline = {
 	width: 4,
 	color: rgb(0, 0, 0),
-};
+}
 
 // this'll run every frame
 render(() => {
 
-	const mx = (width() - px * 2) / 2;
-	const my = (height() - py * 2) / 1;
-	const p = (x, y) => vec2(x, y).scale(mx, my).add(px, py);
+	const mx = (width() - px * 2) / 2
+	const my = (height() - py * 2) / 1
+	const p = (x, y) => vec2(x, y).scale(mx, my).add(px, py)
 
 	// when "space" key is down, rotate the whole canvas from the center
 	if (keyIsDown("space")) {
-		pushTransform();
-		pushTranslate(width() / 2, height() / 2);
-		pushRotate(t(240));
-		pushTranslate(-width() / 2, -height() / 2);
+		pushTransform()
+		pushTranslate(width() / 2, height() / 2)
+		pushRotate(t(240))
+		pushTranslate(-width() / 2, -height() / 2)
 	}
 
 	drawSprite({
@@ -37,7 +37,7 @@ render(() => {
 		origin: "center",
 		scale: w(1, 1.5, 4),
 		color: rgb(w(128, 255, 4), w(128, 255, 8), 255),
-	});
+	})
 
 	drawRect({
 		pos: p(1, 0),
@@ -48,7 +48,7 @@ render(() => {
 		angle: t(80),
 		color: rgb(w(128, 255, 4), 255, w(128, 255, 8)),
 		outline,
-	});
+	})
 
 	drawEllipse({
 		pos: p(2, 0),
@@ -58,7 +58,7 @@ render(() => {
 		end: w(180, 360, 1),
 		color: rgb(255, w(128, 255, 8), w(128, 255, 4)),
 		outline,
-	});
+	})
 
 	drawPolygon({
 		pos: p(0, 1),
@@ -71,7 +71,7 @@ render(() => {
 		],
 		color: rgb(w(128, 255, 8), 255, w(128, 255, 4)),
 		outline,
-	});
+	})
 
 	drawText({
 		text: "yo",
@@ -79,44 +79,44 @@ render(() => {
 		origin: "center",
 		size: w(80, 120, 2),
 		color: rgb(w(128, 255, 4), w(128, 255, 8), w(128, 255, 2)),
-	});
+	})
 
 	// TODO: show a custom shader quad here
 
 	// pop to not affect the mouse trail and draw
 	if (keyIsDown("space")) {
-		popTransform();
+		popTransform()
 	}
 
 	drawLines({
 		...outline,
 		pts: trail,
-	});
+	})
 
 	draw.forEach((pts) => {
 		drawLines({
 			...outline,
 			pts: pts,
-		});
-	});
+		})
+	})
 
-});
+})
 
 // this'll also run every frame, but before all renders
 action(() => {
 
-	trail.push(mousePos());
+	trail.push(mousePos())
 
 	if (trail.length > 16) {
-		trail.shift();
+		trail.shift()
 	}
 
 	if (mouseIsClicked()) {
-		draw.push([]);
+		draw.push([])
 	}
 
 	if (mouseIsDown() && mouseIsMoved()) {
-		draw[draw.length - 1].push(mousePos());
+		draw[draw.length - 1].push(mousePos())
 	}
 
-});
+})

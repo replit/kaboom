@@ -1,7 +1,7 @@
-kaboom();
+kaboom()
 
 // load sprite
-loadSprite("kaboom", "sprites/kaboom.png");
+loadSprite("kaboom", "sprites/kaboom.png")
 
 // load sprite to screen
 const k = add([
@@ -11,10 +11,10 @@ const k = add([
 	rotate(0),
 	// center point of position and rotation (default "topleft")
 	origin("center"),
-]);
+])
 
 // change scale and rotation every frame
 k.action(() => {
-	k.scale = wave(-5, 5, time());
-	k.angle = time() * 60;
-});
+	k.scale = wave(-5, 5, time())
+	k.angle = time() * 60
+})

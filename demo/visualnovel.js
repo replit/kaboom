@@ -1,9 +1,9 @@
 kaboom({
 	background: [ 255, 209, 253 ]
-});
+})
 
-loadSprite("bean", "sprites/bean.png");
-loadSprite("mark", "sprites/mark.png");
+loadSprite("bean", "sprites/bean.png")
+loadSprite("mark", "sprites/mark.png")
 
 const dialogues = [
 	"hi my butterfly",
@@ -14,7 +14,7 @@ const dialogues = [
 	"you don't know me ...",
 	"what! mark???",
 	"oh...hi"
-];
+]
 
 const chars = [
 	"bean",
@@ -25,9 +25,9 @@ const chars = [
 	"mark",
 	"bean",
 	"mark"
-];
+]
 
-let c = 0;
+let c = 0
 
 scene("say", (txt, ch) => {
 	
@@ -36,28 +36,28 @@ scene("say", (txt, ch) => {
 		origin("center"),
 		pos(center().x, height() - 100),
 		outline(4),
-	]);
+	])
 
-	textbox.radius = 40; // rounded
+	textbox.radius = 40 // rounded
 
 	add([
 		sprite(ch),
 		scale(3),
 		origin("center"),
 		pos(center().sub(0, 50))
-	]);
+	])
 	
 	add([
 		text(txt, { size: 30, width: width() - 230 }),
 		pos(textbox.pos.sub(0, 10)),
 		origin("center")
-	]);
+	])
 
 	keyPress("space", () => {
-		if(c == dialogues.length - 1) c = 0;
-		else c++;
-		go("say", dialogues[c], chars[c]);
-	});
-});
+		if(c == dialogues.length - 1) c = 0
+		else c++
+		go("say", dialogues[c], chars[c])
+	})
+})
 
-go("say", dialogues[c], chars[c]);
+go("say", dialogues[c], chars[c])

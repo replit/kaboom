@@ -1,3 +1,3 @@
-kaboom({ burp: true });
-add([text("press b")]);
-mouseClick(burp);
+kaboom({ burp: true })
+add([text("press b")])
+mouseClick(burp)

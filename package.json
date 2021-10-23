@@ -27,10 +27,11 @@
 		"setup": "npm install && cd site; npm install",
 		"dev": "node scripts/dev.js",
 		"site": "cd site && npm run build && npm run start",
-		"fmt": "eslint src --fix",
 		"devsite": "cd site && npm run dev",
 		"build": "node scripts/build.js",
 		"check": "tsc --noEmit",
+		"lint": "eslint src",
+		"fmt": "eslint --fix src",
 		"prepack": "npm run build"
 	},
 	"devDependencies": {

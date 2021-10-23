@@ -1,7 +1,7 @@
 kaboom({
 	scale: 4,
 	clearColor: [0, 0, 0],
-});
+})
 
 // https://0x72.itch.io/dungeontileset-ii
 loadSpriteAtlas("sprites/dungeon.png", {
@@ -131,7 +131,7 @@ loadSpriteAtlas("sprites/dungeon.png", {
 		"width": 16,
 		"height": 16
 	},
-});
+})
 
 // floor
 addLevel([
@@ -151,7 +151,7 @@ addLevel([
 	" ": () => [
 		sprite("floor", { frame: ~~rand(0, 8) }),
 	],
-});
+})
 
 // objects
 const map = addLevel([
@@ -215,7 +215,7 @@ const map = addLevel([
 		area({ width: 4, offset: vec2(12, 0) }),
 		solid(),
 	],
-});
+})
 
 const player = add([
 	pos(map.getPos(2, 2)),
@@ -223,7 +223,7 @@ const player = add([
 	area({ width: 12, height: 12, offset: vec2(0, 6) }),
 	solid(),
 	origin("center"),
-]);
+])
 
 const ogre = add([
 	sprite("ogre"),
@@ -231,7 +231,7 @@ const ogre = add([
 	origin("bot"),
 	area({ scale: 0.5 }),
 	solid(),
-]);
+])
 
 const sword = add([
 	pos(),
@@ -240,84 +240,84 @@ const sword = add([
 	rotate(0),
 	follow(player, vec2(-4, 9)),
 	spin(),
-]);
+])
 
 function spin() {
-	let spinning = false;
+	let spinning = false
 	return {
 		id: "spin",
 		update() {
 			if (spinning) {
-				this.angle += 1200 * dt();
+				this.angle += 1200 * dt()
 				if (this.angle >= 360) {
-					this.angle = 0;
-					spinning = false;
+					this.angle = 0
+					spinning = false
 				}
 			}
 		},
 		spin() {
-			spinning = true;
+			spinning = true
 		},
-	};
+	}
 }
 
 keyPress("space", () => {
-	let interacted = false;
+	let interacted = false
 	every("chest", (c) => {
 		if (player.isTouching(c)) {
 			if (c.opened) {
-				c.play("close");
-				c.opened = false;
+				c.play("close")
+				c.opened = false
 			} else {
-				c.play("open");
-				c.opened = true;
+				c.play("open")
+				c.opened = true
 			}
-			interacted = true;
+			interacted = true
 		}
-	});
+	})
 	if (!interacted) {
-		sword.spin();
+		sword.spin()
 	}
-});
+})
 
-const SPEED = 120;
+const SPEED = 120
 
 const dirs = {
 	"left": LEFT,
 	"right": RIGHT,
 	"up": UP,
 	"down": DOWN,
-};
+}
 
 player.action(() => {
-	camPos(player.pos);
-});
+	camPos(player.pos)
+})
 
 keyDown("right", () => {
-	player.flipX(false);
-	sword.flipX(false);
-	player.move(SPEED, 0);
-	sword.follow.offset = vec2(-4, 9);
-});
+	player.flipX(false)
+	sword.flipX(false)
+	player.move(SPEED, 0)
+	sword.follow.offset = vec2(-4, 9)
+})
 
 keyDown("left", () => {
-	player.flipX(true);
-	sword.flipX(true);
-	player.move(-SPEED, 0);
-	sword.follow.offset = vec2(4, 9);
-});
+	player.flipX(true)
+	sword.flipX(true)
+	player.move(-SPEED, 0)
+	sword.follow.offset = vec2(4, 9)
+})
 
 keyDown("up", () => {
-	player.move(0, -SPEED);
-});
+	player.move(0, -SPEED)
+})
 
 keyDown("down", () => {
-	player.move(0, SPEED);
-});
+	player.move(0, SPEED)
+})
 
 keyPress(["left", "right", "up", "down"], () => {
-	player.play("run");
-});
+	player.play("run")
+})
 
 keyRelease(["left", "right", "up", "down"], () => {
 	if (
@@ -326,6 +326,6 @@ keyRelease(["left", "right", "up", "down"], () => {
 		&& !keyIsDown("up")
 		&& !keyIsDown("down")
 	) {
-		player.play("idle");
+		player.play("idle")
 	}
-});
+})

@@ -1,4 +1,4 @@
-const cp = require("child_process");
+const cp = require("child_process")
 
 const run = (name) => cp.spawn(
 	"npm",
@@ -11,16 +11,16 @@ const run = (name) => cp.spawn(
 			NODE_ENV: "development",
 		},
 	}
-);
+)
 
 const tasks = [
 	run("build"),
 	run("site"),
-];
+]
 
 process.on("SIGINT", () => {
 	tasks.forEach((t) => {
-		process.kill(-t.pid);
-	});
-	process.exit();
-});
+		process.kill(-t.pid)
+	})
+	process.exit()
+})

@@ -834,6 +834,7 @@ function gfxInit(gl: WebGLRenderingContext, gopt: GfxOpt): Gfx {
 				minLen = Math.min(pts[i].dist(pts[i + 1]), minLen)
 			}
 
+			// eslint-disable-next-line
 			const radius = Math.min(opt.radius, minLen / 2)
 
 			drawLine({ ...opt, p1: pts[0], p2: pts[1], })

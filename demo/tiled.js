@@ -1,8 +1,8 @@
 // tiled sprite
 
-kaboom();
+kaboom()
 
-loadSprite("steep", "sprites/steel.png");
+loadSprite("steep", "sprites/steel.png")
 
 add([
 	sprite("steep", {
@@ -10,4 +10,4 @@ add([
 		height: height(),
 		tiled: true,
 	}),
-]);
+])
