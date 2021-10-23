@@ -2584,6 +2584,59 @@ const ctx: KaboomCtx = {
 	DOWN: vec2(0, 1),
 	// dom
 	canvas: app.canvas,
+
+	record: (frameRate = 25) => {
+		const stream = app.canvas.captureStream(frameRate);
+
+		// Breaks the recording right now
+		// audio
+		// 	.ctx
+		// 	.createMediaStreamDestination()
+		// 	.stream
+		// 	.getAudioTracks().forEach((track) => {
+		// 		stream.addTrack(track)
+		// 	})
+
+		const mediaRecorder = new MediaRecorder(stream);
+		const recordedChunks = [];
+		mediaRecorder.ondataavailable = e => {
+			if(e.data.size > 0){
+					recordedChunks.push(e.data);
+			}
+		};
+		mediaRecorder.start();
+
+		return {
+			pause: () => {
+				mediaRecorder.pause();
+			},
+			resume: () => {
+				mediaRecorder.resume();
+			},
+			download: (filename: string = 'kaboom.mp4') => {
+				mediaRecorder.stop();
+
+				// Chunks might need a tick to flush
+				setTimeout(() => {
+					const blob = new Blob(recordedChunks, {
+						type: 'video/mp4'
+					});
+					const url = URL.createObjectURL(blob);
+
+					const a = document.createElement('a');
+					document.body.appendChild(a);
+					a.setAttribute('style', 'display: none');
+					a.href = url;
+					a.download = filename;
+					a.click();
+
+					// cleanup
+					URL.revokeObjectURL(url);
+					recordedChunks.length = 0;
+				}, 0)
+			}
+		};
+	}
 };
 
 plug(kaboomPlugin);
