@@ -2588,14 +2588,11 @@ const ctx: KaboomCtx = {
 	record: (frameRate = 25) => {
 		const stream = app.canvas.captureStream(frameRate);
 
-		// Breaks the recording right now
-		// audio
-		// 	.ctx
-		// 	.createMediaStreamDestination()
-		// 	.stream
-		// 	.getAudioTracks().forEach((track) => {
-		// 		stream.addTrack(track)
-		// 	})
+		const streamAudioDestination = audio.ctx.createMediaStreamDestination();
+		audio.masterNode.connect(streamAudioDestination)
+		const audioStream = streamAudioDestination.stream;
+		const [firstAudioTrack] = audioStream.getAudioTracks();
+		stream.addTrack(firstAudioTrack);
 
 		const mediaRecorder = new MediaRecorder(stream);
 		const recordedChunks = [];
@@ -2633,6 +2630,10 @@ const ctx: KaboomCtx = {
 					// cleanup
 					URL.revokeObjectURL(url);
 					recordedChunks.length = 0;
+					audio.masterNode.disconnect(streamAudioDestination)
+					stream.getTracks().forEach(t => {
+						t.stop();
+					});
 				}, 0)
 			}
 		};
