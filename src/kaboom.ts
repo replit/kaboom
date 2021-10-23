@@ -2585,7 +2585,7 @@ const ctx: KaboomCtx = {
 	// dom
 	canvas: app.canvas,
 
-	record: (frameRate = 25) => {
+	record: (frameRate = 30) => {
 		const stream = app.canvas.captureStream(frameRate);
 
 		const streamAudioDestination = audio.ctx.createMediaStreamDestination();
