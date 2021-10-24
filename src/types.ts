@@ -1341,7 +1341,7 @@ interface KaboomCtx {
 	/**
 	 * Go to a scene, passing all rest args to scene callback.
 	 */
-	go(id: SceneID, ...args: unknown[]): void,
+	go(id: SceneID, ...args): void,
 	/**
 	 * Construct a level based on symbols.
 	 *
@@ -1393,7 +1393,7 @@ interface KaboomCtx {
 	/**
 	 * Set data from local storage.
 	 */
-	setData(key: string, data: unknown): void,
+	setData<T>(key: string, data: T): void,
 	/**
 	 * Draw a sprite.
 	 *
@@ -1702,7 +1702,7 @@ type GameObj<T = any> = {
 	/**
 	 * Triggers an event.
 	 */
-	trigger(ev: string, ...args: any[]): void;
+	trigger(ev: string, ...args): void;
 	/**
 	 * Remove the game obj from scene.
 	 */
@@ -1718,7 +1718,7 @@ type GameObj<T = any> = {
 } & MergeComps<T>;
 
 type SceneID = string;
-type SceneDef = (...args: any[]) => void;
+type SceneDef = (...args) => void;
 type TouchID = number;
 
 /**
@@ -1976,13 +1976,6 @@ interface GfxFont {
 	 */
 	qw: number,
 	qh: number,
-}
-
-interface Vertex {
-	pos: Vec3,
-	uv: Vec2,
-	color: Color,
-	opacity: number,
 }
 
 /**
@@ -3097,17 +3090,6 @@ interface BodyCompOpt {
 	 * How many pixels per second to glide down when hanging.
 	 */
 //  	hangGlide?: number,
-}
-
-interface Timer {
-	/**
-	 * Timer left.
-	 */
-	time: number,
-	/**
-	 * The action to take after time is up.
-	 */
-	action(): void,
 }
 
 interface TimerComp extends Comp {

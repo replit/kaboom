@@ -100,7 +100,7 @@ function getFullscreenElement(): Element | void {
 	return document.fullscreenElement
 		// @ts-ignore
 		|| document.webkitFullscreenElement
-		
+
 }
 
 function appInit(gopt: AppOpt = {}): App {
@@ -273,12 +273,12 @@ function appInit(gopt: AppOpt = {}): App {
 		app.mouseMoved = true
 	})
 
-	app.canvas.addEventListener("touchend", (e) => {
+	app.canvas.addEventListener("touchend", () => {
 		if (!gopt.touchToMouse) return
 		app.mouseState = "released"
 	})
 
-	app.canvas.addEventListener("touchcancel", (e) => {
+	app.canvas.addEventListener("touchcancel", () => {
 		if (!gopt.touchToMouse) return
 		app.mouseState = "released"
 	})

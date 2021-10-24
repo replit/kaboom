@@ -33,10 +33,6 @@ interface Kaboom {
 
 type ExplodeComp = Comp
 
-interface KaboomPlug {
-	addKaboom(pos: Vec2, opt?: BoomOpt): Kaboom,
-}
-
 export default (k: KaboomCtx) => {
 
 	function explode(speed = 2, size = 1): ExplodeComp {

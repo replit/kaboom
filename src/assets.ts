@@ -175,22 +175,6 @@ function assetsInit(gfx: Gfx, audio: Audio, gopt: AssetsOpt = {}): Assets {
 		}))
 	}
 
-	function getSprite(name: string): SpriteData | null {
-		return assets.sprites[name] ?? null
-	}
-
-	function getSound(name: string): SoundData | null {
-		return assets.sounds[name] ?? null
-	}
-
-	function getFont(name: string): FontData | null {
-		return assets.fonts[name] ?? null
-	}
-
-	function getShader(name: string): ShaderData | null {
-		return assets.shaders[name] ?? null
-	}
-
 	function slice(x = 1, y = 1, dx = 0, dy = 0, w = 1, h = 1): Quad[] {
 		const frames = []
 		const qw = w / x
@@ -322,7 +306,7 @@ function assetsInit(gfx: Gfx, audio: Audio, gopt: AssetsOpt = {}): Assets {
 				})
 				.then(resolve)
 				.catch(reject)
-				
+
 
 		}))
 
@@ -345,7 +329,7 @@ function assetsInit(gfx: Gfx, audio: Audio, gopt: AssetsOpt = {}): Assets {
 						.then((res) => res.json())
 						.then((data) => {
 							const size = data.meta.size
-							sprite.frames = data.frames.map((f: any) => {
+							sprite.frames = data.frames.map((f) => {
 								return quad(
 									f.frame.x / size.w,
 									f.frame.y / size.h,
@@ -369,7 +353,7 @@ function assetsInit(gfx: Gfx, audio: Audio, gopt: AssetsOpt = {}): Assets {
 							resolve(sprite)
 						})
 						.catch(reject)
-						
+
 				})
 				.catch(reject)
 

@@ -564,10 +564,6 @@ function testRectLine(r: Rect, l: Line): boolean {
 		|| !!testLineLine(l, makeLine(vec2(r.p1.x, r.p2.y), r.p1))
 }
 
-function testRectPoint2(r: Rect, pt: Point): boolean {
-	return pt.x >= r.p1.x && pt.x <= r.p2.x && pt.y >= r.p1.y && pt.y <= r.p2.y
-}
-
 function testRectPoint(r: Rect, pt: Point): boolean {
 	return pt.x > r.p1.x && pt.x < r.p2.x && pt.y > r.p1.y && pt.y < r.p2.y
 }

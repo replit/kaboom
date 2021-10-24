@@ -71,6 +71,13 @@ interface GfxTexOpt {
 	wrap?: TexWrap,
 }
 
+interface Vertex {
+	pos: Vec3,
+	uv: Vec2,
+	color: Color,
+	opacity: number,
+}
+
 type Gfx = {
 	width(): number,
 	height(): number,
