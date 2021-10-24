@@ -3252,7 +3252,7 @@ interface StateComp extends Comp {
 	 * Enter a state, trigger onStateLeave for previous state and onStateEnter for the new State state.
 	 */
 	enterState: (state: string, ...args) => void,
-	onStateEnter: (state: string, action: () => void) => void,
+	onStateEnter: (state: string, action: (...args) => void) => void,
 	onStateLeave: (state: string, action: () => void) => void,
 	onStateUpdate: (state: string, action: () => void) => void,
 	onStateDraw: (state: string, action: () => void) => void,
