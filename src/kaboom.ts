@@ -2130,6 +2130,50 @@ function lifespan(time: number, opt: LifespanCompOpt = {}): LifespanComp {
 	};
 }
 
+function state(initState: string, stateList?: string[]): StateComp {
+
+	const hooks = {};
+
+	const initStateHook = (state: string) => {
+		if (!hooks[state]) {
+			hooks[state] = {
+				enter: [],
+				leave: [],
+				update: [],
+			};
+		}
+	};
+
+	return {
+		id: "state",
+		state: initState,
+		enterState(state: string, ...args) {
+			if (stateList && !stateList[state]) {
+				throw new Error(`State not found: ${state}`);
+			}
+			hooks[this.state].leave.forEach((action) => action());
+			this.state = state;
+			hooks[this.state].enter.forEach((action) => action(...args));
+		},
+		onStateEnter(state: string, action: () => void) {
+			initStateHook(state);
+			hooks[state].enter.push(action);
+		},
+		onStateUpdate(state: string, action: () => void) {
+			initStateHook(state);
+			hooks[state].update.push(action);
+		},
+		onStateLeave(state: string, action: () => void) {
+			initStateHook(state);
+			hooks[state].leave.push(action);
+		},
+		update() {
+			hooks[this.state].update.forEach((action) => action());
+		},
+	};
+
+}
+
 const debug: Debug = {
 	inspect: false,
 	timeScale: 1,
