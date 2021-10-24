@@ -3252,9 +3252,21 @@ interface StateComp extends Comp {
 	 * Enter a state, trigger onStateLeave for previous state and onStateEnter for the new State state.
 	 */
 	enterState: (state: string, ...args) => void,
+	/**
+	 * Register event that runs once when enters a specific state. Accepts arguments passed from `enterState(name, ...args)`.
+	 */
 	onStateEnter: (state: string, action: (...args) => void) => void,
+	/**
+	 * Register event that runs once when leaves a specific state.
+	 */
 	onStateLeave: (state: string, action: () => void) => void,
+	/**
+	 * Register event that runs every frame when in a specific state.
+	 */
 	onStateUpdate: (state: string, action: () => void) => void,
+	/**
+	 * Register event that runs every frame when in a specific state.
+	 */
 	onStateDraw: (state: string, action: () => void) => void,
 }
 
