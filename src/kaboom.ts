@@ -2130,6 +2130,33 @@ function lifespan(time: number, opt: LifespanCompOpt = {}): LifespanComp {
 	};
 }
 
+const LEFT = vec2(-1, 0);
+const RIGHT = vec2(1, 0);
+const UP = vec2(0, -1);
+const DOWN = vec2(0, 1);
+
+function topdownControl(speed: number) {
+
+	const dirs = {
+		"up": UP,
+		"down": DOWN,
+		"left": LEFT,
+		"right": RIGHT,
+	};
+
+	return {
+		require: [ "pos" ],
+		update() {
+			for (const key in dirs) {
+				if (app.keyDown(key as Key)) {
+					this.move(dirs[key].scale(speed));
+				}
+			}
+		}
+	}
+
+}
+
 const debug: Debug = {
 	inspect: false,
 	timeScale: 1,
