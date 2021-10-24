@@ -565,7 +565,7 @@ interface KaboomCtx {
 	 *
 	 * // this will run every frame when current state is "move"
 	 * enemy.onStateUpdate("move", () => {
-	 *     enemy.play("attackAnim")
+	 *     enemy.follow(player);
 	 *     if (enemy.pos.dist(player.pos) < 16) {
 	 *         enemy.enterState("attack")
 	 *     }
