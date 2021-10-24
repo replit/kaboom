@@ -3255,6 +3255,7 @@ interface StateComp extends Comp {
 	onStateEnter: (state: string, action: () => void) => void,
 	onStateLeave: (state: string, action: () => void) => void,
 	onStateUpdate: (state: string, action: () => void) => void,
+	onStateDraw: (state: string, action: () => void) => void,
 }
 
 interface LevelOpt {

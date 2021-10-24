@@ -2140,6 +2140,7 @@ function state(initState: string, stateList?: string[]): StateComp {
 				enter: [],
 				leave: [],
 				update: [],
+				draw: [],
 			};
 		}
 	};
@@ -2162,6 +2163,10 @@ function state(initState: string, stateList?: string[]): StateComp {
 		onStateUpdate(state: string, action: () => void) {
 			initStateHook(state);
 			hooks[state].update.push(action);
+		},
+		onStateDraw(state: string, action: () => void) {
+			initStateHook(state);
+			hooks[state].draw.push(action);
 		},
 		onStateLeave(state: string, action: () => void) {
 			initStateHook(state);
@@ -2516,6 +2521,7 @@ const ctx: KaboomCtx = {
 	move,
 	cleanup,
 	follow,
+	state,
 	// group events
 	on,
 	action,
