@@ -107,6 +107,12 @@ Play with it yourself or check out the examples in the [Playground](/play)!
 			);
 		}) }
 
+		{ doc.typerefs.map((name) => {
+			if (name !== "KaboomCtx") {
+				return <Doc id={name} key={name} name={name} />
+			}
+		})}
+
 		<Drawer
 			dir="right"
 			pad={2}

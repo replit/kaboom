@@ -12,7 +12,7 @@ const TypeSig: React.FC<EntryProps> = ({ data }) => (
 		}}
 	>
 		{(() => {
-			switch (data.kind) {
+			switch (data?.kind) {
 				case "StringKeyword": return "string";
 				case "NumberKeyword": return "number";
 				case "BooleanKeyword": return "boolean";
@@ -55,7 +55,7 @@ const TypeSig: React.FC<EntryProps> = ({ data }) => (
 					return "unknown";
 			}
 		})()}
-		{ data.typeArguments &&
+		{ data?.typeArguments &&
 			<span>
 				{"<"}{data.typeArguments.map((arg: any, i: number) => (
 					<React.Fragment key={arg.typeName + i}>

@@ -9,11 +9,7 @@ export interface DocSection {
 
 export type DocTypes = Record<string, any[]>;
 
-export interface Doc {
-	types: DocTypes,
-	sections: DocSection[],
-}
-
+const typerefs = [...new Set(Object.keys(types))];
 const kmembers = types["KaboomCtx"][0].members;
 const sections: DocSection[] = [];
 let curSection: Array<any> = [];
@@ -48,4 +44,5 @@ for (const mem of kmembers) {
 export {
 	types,
 	sections,
+	typerefs,
 };
