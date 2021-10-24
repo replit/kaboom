@@ -144,7 +144,7 @@ const TypeAliasDeclaration: React.FC<EntryProps> = ({ data }) => (
 					return <TypeSig data={data.type} />
 				case "IntersectionType":
 					return data.type.types.map((t: any, i: number) => (
-						<><TypeSig data={t} />{i === data.type.types.length - 1 ? "" : "&"}</>
+						<React.Fragment key={i}><TypeSig data={t} />{i === data.type.types.length - 1 ? "" : "&"}</React.Fragment>
 					));
 				default:
 					return <></>;
@@ -168,7 +168,7 @@ const InterfaceDeclaration: React.FC<EntryProps> = ({ data }) => {
 				</Text>
 				<JSDoc data={data} />
 			</View>
-			{data.members.map((mem: any) => <Member key={mem.name} data={mem} />)}
+			{data.members.map((mem: any, i: number) => <Member key={`${mem.name}-${i}`} data={mem} />)}
 		</View>
 	);
 };
