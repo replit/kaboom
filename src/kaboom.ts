@@ -2132,6 +2132,10 @@ function lifespan(time: number, opt: LifespanCompOpt = {}): LifespanComp {
 
 function state(initState: string, stateList?: string[]): StateComp {
 
+	if (!initState) {
+		throw new Error("state() requires an initial state");
+	}
+
 	const hooks = {};
 
 	const initStateHook = (state: string) => {
