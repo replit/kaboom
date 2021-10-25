@@ -95,7 +95,7 @@ Play with it yourself or check out the examples in the [Playground](/play)!
 								id={name}
 								key={name}
 								name={name}
-								typeref={(name) => setShowType(name)}
+								typeref={setShowType}
 							/>
 						)) }
 					</View>
@@ -109,7 +109,7 @@ Play with it yourself or check out the examples in the [Playground](/play)!
 					id={name}
 					key={name}
 					name={name}
-					typeref={(name) => setShowType(name)}
+					typeref={setShowType}
 				/>
 			}
 		})}
@@ -129,7 +129,7 @@ Play with it yourself or check out the examples in the [Playground](/play)!
 			{ showType &&
 				<Doc
 					name={showType}
-					typeref={(name) => setShowType(name)}
+					typeref={setShowType}
 				/>
 			}
 		</Drawer>
