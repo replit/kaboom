@@ -4,8 +4,8 @@
 kaboom()
 
 // Load assets
-loadSprite("bean", "sprite/bean.png")
-loadSprite("googoly", "sprite/googoly.png")
+loadSprite("bean", "sprites/bean.png")
+loadSprite("googoly", "sprites/googoly.png")
 
 // Define player movement speed
 const SPEED = 320
@@ -16,6 +16,7 @@ const player = add([
 	pos(80, 40),
 	// area() component gives the object a collider, which enables collision checking
 	area(),
+	color(),
 ])
 
 // Register input handlers & movement
@@ -38,11 +39,11 @@ keyDown("down", () => {
 // Add enemies
 for (let i = 0; i < 3; i++) {
 
-	const y = rand(0, height())
+	const y = height() / 4 * (i + 1)
 
 	add([
 		sprite("googoly"),
-		pos(160, y),
+		pos(320, y),
 		// both objects must have area() component to enable collision detection between
 		area(),
 		"enemy",
@@ -50,15 +51,24 @@ for (let i = 0; i < 3; i++) {
 
 }
 
-// .collides() is provided by the area() component, it registers an event that runs when an objects collides with another object with certain tag
+// .collides() is provided by area() component, it registers an event that runs when an objects collides with another object with certain tag
 // In this case we destroy (remove from game) the enemy when player hits one
 player.collides("enemy", (enemy) => {
 	destroy(enemy)
 })
 
-// .clicks() is provided by the area() component, it registers an event that runs when the object is clicked
+// .clicks() is provided by area() component, it registers an event that runs when the object is clicked
 player.clicks(() => {
+	debug.log("what up")
+})
 
+player.action(() => {
+	// .isHovering() is provided by area() component, which returns a boolean of if the object is currently being hovered on
+	if (player.isHovering()) {
+		player.color = rgb(0, 0, 255)
+	} else {
+		player.color = rgb()
+	}
 })
 
 // Enter inspect mode, which shows the collider outline of each object with area() component, handy for debugging (can also be toggled by pressing F1)

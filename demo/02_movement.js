@@ -4,8 +4,7 @@
 kaboom()
 
 // Load assets
-loadSprite("bean", "sprite/bean.png")
-loadSprite("googoly", "sprite/googoly.png")
+loadSprite("bean", "sprites/bean.png")
 
 // Define player movement speed (pixels per second)
 const SPEED = 320
@@ -13,7 +12,8 @@ const SPEED = 320
 // Add player game object
 const player = add([
 	sprite("bean"),
-	pos(80, 40),
+	// center() returns the center point vec2(width() / 2, height() / 2)
+	pos(center()),
 ])
 
 // keuPress() registers an event that runs every frame as long as user is holding a certain key
@@ -33,5 +33,8 @@ keyDown("down", () => {
 	player.move(0, SPEED)
 })
 
-// TODO: put this in Event seection doc
-// NOTE: Always put event registers like action(), keyPress(), collides() at root level and never inside another event handler function (e.g. keyPress() inside an action(), action() in a mouseClick()) as it'll exponantially add the number of event handlers and eventually lag your game and crash your computer.
+add([
+	// text() component is similar to sprite() but renders text
+	text("Press arrow keys", { width: width() / 2 }),
+	pos(12, 12),
+])

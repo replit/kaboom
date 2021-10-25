@@ -4,8 +4,8 @@
 kaboom()
 
 // Load a sprite asset from "sprites/bean.png", with the name "bean"
-loadSprite("bean", "sprite/bean.png")
-loadSprite("googoly", "sprite/googoly.png")
+loadSprite("bean", "sprites/bean.png")
+loadSprite("googoly", "sprites/googoly.png")
 
 // A "Game Object" is the basic unit of entity in kaboom
 // Game objects are composed from multiple components
@@ -20,23 +20,14 @@ const player = add([
 // flipX() is a method provided by the sprite() component to flip the sprite texture
 player.flipX()
 
-// action() is a method comes with every game object, it registers an event that runs every frame (typically runs 60 times per second)
-player.action(() => {
-	// move() is a method provided by the pos() component to move with a velocity
-	// Here we're moving towards the right at 100 pixels per second
-	player.move(100, 0)
-})
-
 // Add multiple game objects
 for (let i = 0; i < 3; i++) {
 
-	// Generate a number from 0 to game height
-	const y = rand(0, height())
+	const y = height() / 4 * (i + 1)
 
 	add([
 		sprite("googoly"),  // This also renders as a sprite
-		pos(160, y),        // Give it a random Y position from 0 to game height
-		scale(2),           // scale() component gives it scale
+		pos(320, y),        // Give it a random Y position from 0 to game height
 		rotate(45),         // rotate() component gives it rotation
 		origin("center"),   // origin() component defines the pivot point (defaults to "topleft")
 		"enemy",            // strings here are tags
@@ -51,5 +42,3 @@ action("enemy", (enemy) => {
 	// Increment the angle of every "enemy" by 120 degrees per second
 	enemy.angle += 120 * dt()
 })
-
-// NOTE: never put a action() inside another action() as it'll exponantially add the number of stuff running each frame and eventually lag and crash your computer
