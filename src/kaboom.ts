@@ -1595,7 +1595,7 @@ function area(opt: AreaCompOpt = {}): AreaComp {
 				throw new Error("failed to get area dimension");
 			}
 
-			const scale = (this.scale ?? vec2(1)).scale(this.area.scale);
+			const scale = vec2(this.scale ?? 1).scale(this.area.scale);
 
 			w *= scale.x;
 			h *= scale.y;
