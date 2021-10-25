@@ -494,6 +494,10 @@ function make<T>(comps: CompList<T>): GameObj<T> {
 			return this.on("update", cb);
 		},
 
+		action(...args): EventCanceller {
+			return this.onUpdate(...args);
+		},
+
 		trigger(ev: string, ...args): void {
 
 			if (events[ev]) {
@@ -2491,6 +2495,8 @@ const ctx: KaboomCtx = {
 	onCollide,
 	onClick,
 	onHover,
+	action: onUpdate,
+	render: onDraw,
 	collides: onCollide,
 	clicks: onClick,
 	hovers: onHover,
