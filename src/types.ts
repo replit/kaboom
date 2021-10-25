@@ -625,7 +625,7 @@ interface KaboomCtx {
 	/**
 	 * @deprecated Use onHover() instead
 	 */
-	hover: KaboomCtx["onHover"],
+	hovers: KaboomCtx["onHover"],
 	/**
 	 * Get current mouse position (without camera transform).
 	 *
@@ -658,31 +658,43 @@ interface KaboomCtx {
 	 * @example
 	 * ```js
 	 * // .jump() once when "space" is just being pressed
-	 * keyPress("space", () => {
+	 * onKeyPress("space", () => {
 	 *     froggy.jump();
 	 * });
 	 * ```
 	 */
-	keyPress(k: Key | Key[], cb: () => void): EventCanceller,
-	keyPress(cb: () => void): EventCanceller,
+	onKeyPress(k: Key | Key[], cb: () => void): EventCanceller,
+	onKeyPress(cb: () => void): EventCanceller,
+	/**
+	 * @deprecated Use onKeyPress() instead.
+	 */
+	keyPress: KaboomCtx["onKeyPress"],
 	/**
 	 * Registers an event that runs when user presses certain key (also fires repeatedly when they key is held).
 	 *
 	 * @example
 	 * ```js
 	 * // delete last character when "backspace" is being pressed and held
-	 * keyPressRep("backspace", () => {
+	 * onKeyPressRep("backspace", () => {
 	 *     input.text = input.text.substring(0, input.text.length - 1);
 	 * });
 	 * ```
 	 */
-	keyPressRep(k: Key | Key[], cb: () => void): EventCanceller,
-	keyPressRep(cb: () => void): EventCanceller,
+	onKeyPressRep(k: Key | Key[], cb: () => void): EventCanceller,
+	onKeyPressRep(cb: () => void): EventCanceller,
+	/**
+	 * @deprecated Use onKeyPress() instead.
+	 */
+	keyPressRep: KaboomCtx["onKeyPressRep"],
 	/**
 	 * Registers an event that runs when user releases certain key.
 	 */
-	keyRelease(k: Key | Key[], cb: () => void): EventCanceller,
-	keyRelease(cb: () => void): EventCanceller,
+	onKeyRelease(k: Key | Key[], cb: () => void): EventCanceller,
+	onKeyRelease(cb: () => void): EventCanceller,
+	/**
+	 * @deprecated Use onKeyPress() instead.
+	 */
+	keyRelease: KaboomCtx["onKeyRelease"],
 	/**
 	 * Registers an event that runs when user inputs text.
 	 *
@@ -694,41 +706,73 @@ interface KaboomCtx {
 	 * });
 	 * ```
 	 */
-	charInput(cb: (ch: string) => void): EventCanceller,
+	onCharInput(cb: (ch: string) => void): EventCanceller,
+	/**
+	 * @deprecated Use onCharInput() instead.
+	 */
+	charInput: KaboomCtx["onCharInput"],
 	/**
 	 * Registers an event that runs every frame when mouse button is down.
 	 */
-	mouseDown(cb: (pos: Vec2) => void): EventCanceller,
+	onMouseDown(cb: (pos: Vec2) => void): EventCanceller,
+	/**
+	 * @deprecated Use onMouseDown() instead.
+	 */
+	mouseDown: KaboomCtx["onMouseDown"],
 	/**
 	 * Registers an event that runs when user clicks mouse.
 	 */
-	mouseClick(cb: (pos: Vec2) => void): EventCanceller,
+	onMouseClick(cb: (pos: Vec2) => void): EventCanceller,
+	/**
+	 * @deprecated Use onMouseClick() instead.
+	 */
+	mouseClick: KaboomCtx["onMouseClick"],
 	/**
 	 * Registers an event that runs when user releases mouse.
 	 */
-	mouseRelease(cb: (pos: Vec2) => void): EventCanceller,
+	onMouseRelease(cb: (pos: Vec2) => void): EventCanceller,
+	/**
+	 * @deprecated Use onMouseRelease() instead.
+	 */
+	mouseRelease: KaboomCtx["onMouseRelease"],
 	/**
 	 * Registers an event that runs whenever user move the mouse.
 	 */
-	mouseMove(cb: (pos: Vec2) => void): EventCanceller,
+	onMouseMove(cb: (pos: Vec2) => void): EventCanceller,
+	/**
+	 * @deprecated Use onMouseMove() instead.
+	 */
+	mouseMove: KaboomCtx["onMouseMove"],
 	/**
 	 * Registers an event that runs when a touch starts.
 	 */
-	touchStart(cb: (id: TouchID, pos: Vec2) => void): EventCanceller,
+	onTouchStart(cb: (id: TouchID, pos: Vec2) => void): EventCanceller,
+	/**
+	 * @deprecated Use onTouchStart() instead.
+	 */
+	touchStart: KaboomCtx["onTouchStart"],
 	/**
 	 * Registers an event that runs whenever touch moves.
 	 */
-	touchMove(cb: (id: TouchID, pos: Vec2) => void): EventCanceller,
+	onTouchMove(cb: (id: TouchID, pos: Vec2) => void): EventCanceller,
+	/**
+	 * @deprecated Use onTouchMove() instead.
+	 */
+	touchMove: KaboomCtx["onTouchMove"],
 	/**
 	 * Registers an event that runs when a touch ends.
 	 */
-	touchEnd(cb: (id: TouchID, pos: Vec2) => void): EventCanceller,
+	onTouchEnd(cb: (id: TouchID, pos: Vec2) => void): EventCanceller,
+	/**
+	 * @deprecated Use onTouchEnd() instead.
+	 */
+	touchEnd: KaboomCtx["onTouchEnd"],
 	/**
 	 * If certain key is currently down.
 	 *
 	 * @example
 	 * ```js
-	 * // almost equivalent to the keyPress() example above
+	 * // almost equivalent to the onKeyPress() example above
 	 * onUpdate(() => {
 	 *     if (keyIsDown("left")) {
 	 *         froggy.move(-SPEED, 0);
@@ -1138,7 +1182,7 @@ interface KaboomCtx {
 	 * @example
 	 * ```js
 	 * // toggle fullscreen mode on "f"
-	 * keyPress("f", (c) => {
+	 * onKeyPress("f", (c) => {
 	 *     fullscreen(!isFullscreen());
 	 * });
 	 * ```
