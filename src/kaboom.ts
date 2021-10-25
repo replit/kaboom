@@ -2446,7 +2446,7 @@ function startRecord(frameRate = 30) {
 
 }
 
-function endRecord() {
+function endRecord(filename = "kaboom.mp4") {
 
 	if (!isRecording()) return;
 
@@ -2464,7 +2464,7 @@ function endRecord() {
 
 		download(new Blob(chunks, {
 			type: "video/mp4",
-		}), "kaboom.mp4");
+		}), filename);
 
 		// cleanup
 		audio.masterNode.disconnect(audioDest)

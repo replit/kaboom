@@ -1536,11 +1536,11 @@ interface KaboomCtx {
 	/**
 	 * Start recording the game. Call endRecord() to end the recording and download the video. You can also toggle recording mode by hitting F11 in debug mode.
 	 */
-	startRecord(): void,
+	startRecord(frameRate?: number): void,
 	/**
 	 * End recording and download the video.
 	 */
-	endRecord(): void,
+	endRecord(filename?: string): void,
 	/**
 	 * If is currently recording.
 	 */
