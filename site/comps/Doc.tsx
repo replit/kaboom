@@ -12,7 +12,7 @@ const TypeSig: React.FC<EntryProps> = ({ data }) => (
 		}}
 	>
 		{(() => {
-			switch (data.kind) {
+			switch (data?.kind) {
 				case "StringKeyword": return "string";
 				case "NumberKeyword": return "number";
 				case "BooleanKeyword": return "boolean";
@@ -55,7 +55,7 @@ const TypeSig: React.FC<EntryProps> = ({ data }) => (
 					return "unknown";
 			}
 		})()}
-		{ data.typeArguments &&
+		{ data?.typeArguments &&
 			<span>
 				{"<"}{data.typeArguments.map((arg: any, i: number) => (
 					<React.Fragment key={arg.typeName + i}>
@@ -118,16 +118,36 @@ const FunctionDeclaration: React.FC<EntryProps> = ({ data }) => (
 	</View>
 );
 
-const TypeAliasDeclaration: React.FC<EntryProps> = ({ data }) => (
-	<View gap={1} stretchX>
+interface TypeTitleProps {
+	name: string,
+}
+
+const TypeTitle: React.FC<TypeTitleProps> = ({ name }) => (
+	<View gap={1} dir="row" align="center">
+		<View bg={2} pad={0.5} rounded>
+			<Text
+				code
+				color={3}
+				bold
+				size="small"
+			>
+				type
+			</Text>
+		</View>
 		<Text
 			code
 			color={1}
 			select
 			size="big"
 		>
-			{data.name}
+			{name}
 		</Text>
+	</View>
+);
+
+const TypeAliasDeclaration: React.FC<EntryProps> = ({ data }) => (
+	<View gap={1} stretchX>
+		<TypeTitle name={data.name} />
 		{(() => {
 			switch (data.type.kind) {
 				case "TypeLiteral":
@@ -144,7 +164,7 @@ const TypeAliasDeclaration: React.FC<EntryProps> = ({ data }) => (
 					return <TypeSig data={data.type} />
 				case "IntersectionType":
 					return data.type.types.map((t: any, i: number) => (
-						<><TypeSig data={t} />{i === data.type.types.length - 1 ? "" : "&"}</>
+						<React.Fragment key={i}><TypeSig data={t} />{i === data.type.types.length - 1 ? "" : "&"}</React.Fragment>
 					));
 				default:
 					return <></>;
@@ -158,17 +178,10 @@ const InterfaceDeclaration: React.FC<EntryProps> = ({ data }) => {
 	return (
 		<View gap={2} stretchX>
 			<View gap={1} stretchX>
-				<Text
-					code
-					color={1}
-					select
-					size="big"
-				>
-					{data.name}
-				</Text>
+				<TypeTitle name={data.name} />
 				<JSDoc data={data} />
 			</View>
-			{data.members.map((mem: any) => <Member key={mem.name} data={mem} />)}
+			{data.members.map((mem: any, i: number) => <Member key={`${mem.name}-${i}`} data={mem} />)}
 		</View>
 	);
 };
