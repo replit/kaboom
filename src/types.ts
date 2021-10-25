@@ -668,7 +668,7 @@ export interface KaboomCtx {
 	 *
 	 * @example
 	 * ```js
-	 * // export type into input
+	 * // type into input
 	 * charInput((ch) => {
 	 *     input.text += ch;
 	 * });
@@ -814,7 +814,7 @@ export interface KaboomCtx {
 	 *
 	 * player.play("run");
 	 *
-	 * // or load from json file, see SpriteAtlasData export type for format spec
+	 * // or load from json file, see SpriteAtlasData type for format spec
 	 * loadSpriteAtlas("sprites/dungeon.png", "sprites/dungeon.json");
 	 * ```
 	 */
@@ -1416,7 +1416,7 @@ export interface KaboomCtx {
 	 * ```js
 	 * // these functions need to be called in a per-frame function like render() or it'll only get drawn one frame and immediately cleared
 	 * render(() => {
-	 *     // check #DrawSpriteOpt export type for details of all options
+	 *     // check #DrawSpriteOpt type for details of all options
 	 *     drawSprite({
 	 *         sprite: "froggy",
 	 *         frame: 1,
@@ -1711,12 +1711,12 @@ export type GameObj<T = any> = {
 	 * If there a certain tag on the game obj.
 	 */
 	is(tag: Tag | Tag[]): boolean;
-	// TODO: update the GameObj export type info
+	// TODO: update the GameObj type info
 	/**
 	 * Add a component or tag.
 	 */
 	use(comp: Comp | Tag): void;
-	// TODO: update the GameObj export type info
+	// TODO: update the GameObj type info
 	/**
 	 * Remove a tag or a component with its id.
 	 */
@@ -2987,7 +2987,7 @@ export interface UVQuadComp extends Comp {
 }
 
 /**
- * Union export type for area / collider data of different shapes ("rect", "line", "circle", "point" and "polygon").
+ * Union type for area / collider data of different shapes ("rect", "line", "circle", "point" and "polygon").
  */
 export type Area =
 	| { shape: "rect" } & Rect
