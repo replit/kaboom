@@ -2,6 +2,12 @@ import {
 	vec2,
 } from "./math";
 
+import {
+	Key,
+	Vec2,
+	Cursor,
+} from "./types";
+
 type ButtonState =
 	"up"
 	| "pressed"

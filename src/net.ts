@@ -1,3 +1,7 @@
+import {
+	MsgHandler,
+} from "./types";
+
 type Net = {
 	connect(): Promise<WebSocket>,
 	close(): void,
