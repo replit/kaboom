@@ -1,5 +1,0 @@
-kaboom();
-
-const player = add([
-
-]);

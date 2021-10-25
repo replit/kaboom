@@ -1,4 +1,4 @@
-import fs from "fs/promises";
+import fs from "fs";
 import { GetServerSideProps } from "next";
 import { useRouter } from "next/router";
 import Link from "next/link";
@@ -30,8 +30,7 @@ const Doc: React.FC<DocProps> = ({
 export const getServerSideProps: GetServerSideProps = async (ctx) => {
 	const { name } = ctx.query;
 	const path = `public/site/doc/${name}.md`
-	const stat = await fs.stat(path);
-	const src = stat.isFile() ? await fs.readFile(path, "utf8") : null;
+	const src = fs.existsSync(path) ? fs.readFileSync(path, "utf8") : null;
 	return {
 		props: {
 			name,
