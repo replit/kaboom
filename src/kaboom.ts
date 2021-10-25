@@ -593,10 +593,10 @@ function render(tag: Tag | (() => void), cb?: (obj: GameObj) => void) {
 function collides(
 	t1: Tag,
 	t2: Tag,
-	f: (a: GameObj, b: GameObj) => void,
+	f: (a: GameObj, b: GameObj, col?: Collision) => void,
 ): EventCanceller {
-	const e1 = on("collide", t1, (a, b, dis) => b.is(t2) && f(a, b));
-	const e2 = on("collide", t2, (a, b, dis) => b.is(t1) && f(b, a));
+	const e1 = on("collide", t1, (a, b, col) => b.is(t2) && f(a, b, col));
+	const e2 = on("collide", t2, (a, b, col) => b.is(t1) && f(b, a, col));
 	const e3 = action(t1, (o1: GameObj) => {
 		if (!o1.area) {
 			throw new Error("collides() requires the object to have area() component");
