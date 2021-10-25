@@ -490,7 +490,7 @@ function make<T>(comps: CompList<T>): GameObj<T> {
 			return events[ev].pushd(cb);
 		},
 
-		action(cb: () => void): EventCanceller {
+		onUpdate(cb: () => void): EventCanceller {
 			return this.on("update", cb);
 		},
 
@@ -572,7 +572,7 @@ function on(event: string, tag: Tag, cb: (obj: GameObj, ...args) => void): Event
 
 // TODO: detect if is currently in another action?
 // add update event to a tag or global update
-function action(tag: Tag | (() => void), cb?: (obj: GameObj) => void): EventCanceller {
+function onUpdate(tag: Tag | (() => void), cb?: (obj: GameObj) => void): EventCanceller {
 	if (typeof tag === "function" && cb === undefined) {
 		return add([{ update: tag, }]).destroy;
 	} else if (typeof tag === "string") {
@@ -581,7 +581,7 @@ function action(tag: Tag | (() => void), cb?: (obj: GameObj) => void): EventCanc
 }
 
 // add draw event to a tag or global draw
-function render(tag: Tag | (() => void), cb?: (obj: GameObj) => void) {
+function onDraw(tag: Tag | (() => void), cb?: (obj: GameObj) => void) {
 	if (typeof tag === "function" && cb === undefined) {
 		return add([{ draw: tag, }]).destroy;
 	} else if (typeof tag === "string") {
@@ -590,16 +590,16 @@ function render(tag: Tag | (() => void), cb?: (obj: GameObj) => void) {
 }
 
 // add an event that runs with objs with t1 collides with objs with t2
-function collides(
+function onCollide(
 	t1: Tag,
 	t2: Tag,
 	f: (a: GameObj, b: GameObj, col?: Collision) => void,
 ): EventCanceller {
 	const e1 = on("collide", t1, (a, b, col) => b.is(t2) && f(a, b, col));
 	const e2 = on("collide", t2, (a, b, col) => b.is(t1) && f(b, a, col));
-	const e3 = action(t1, (o1: GameObj) => {
+	const e3 = onUpdate(t1, (o1: GameObj) => {
 		if (!o1.area) {
-			throw new Error("collides() requires the object to have area() component");
+			throw new Error("onCollide() requires the object to have area() component");
 		}
 		o1._checkCollisions(t2, (o2) => {
 			f(o1, o2);
@@ -609,9 +609,9 @@ function collides(
 }
 
 // add an event that runs when objs with tag t is clicked
-function clicks(t: string, f: (obj: GameObj) => void): EventCanceller {
-	return action(t, (o: GameObj) => {
-		if (!o.area) throw new Error("clicks() requires the object to have area() component");
+function onClick(t: string, f: (obj: GameObj) => void): EventCanceller {
+	return onUpdate(t, (o: GameObj) => {
+		if (!o.area) throw new Error("onClick() requires the object to have area() component");
 		if (o.isClicked()) {
 			f(o);
 		}
@@ -619,9 +619,9 @@ function clicks(t: string, f: (obj: GameObj) => void): EventCanceller {
 }
 
 // add an event that runs when objs with tag t is hovered
-function hovers(t: string, onHover: (obj: GameObj) => void, onNotHover?: (obj: GameObj) => void): EventCanceller {
-	return action(t, (o: GameObj) => {
-		if (!o.area) throw new Error("hovers() requires the object to have area() component");
+function onHover(t: string, onHover: (obj: GameObj) => void, onNotHover?: (obj: GameObj) => void): EventCanceller {
+	return onUpdate(t, (o: GameObj) => {
+		if (!o.area) throw new Error("onHover() requires the object to have area() component");
 		if (o.isHovering()) {
 			onHover(o);
 		} else {
@@ -1416,16 +1416,16 @@ function area(opt: AreaCompOpt = {}): AreaComp {
 			return testRectRect2(a1, a2);
 		},
 
-		clicks(f: () => void): EventCanceller {
-			return this.action(() => {
+		onClick(f: () => void): EventCanceller {
+			return this.onUpdate(() => {
 				if (this.isClicked()) {
 					f();
 				}
 			});
 		},
 
-		hovers(onHover: () => void, onNotHover: () => void): EventCanceller {
-			return this.action(() => {
+		onHover(onHover: () => void, onNotHover: () => void): EventCanceller {
+			return this.onUpdate(() => {
 				if (this.isHovering()) {
 					onHover();
 				} else {
@@ -1436,10 +1436,22 @@ function area(opt: AreaCompOpt = {}): AreaComp {
 			});
 		},
 
-		collides(tag: Tag, f: (o: GameObj, col?: Collision) => void): EventCanceller {
-			const e1 = this.action(() => this._checkCollisions(tag, f));
+		onCollide(tag: Tag, f: (o: GameObj, col?: Collision) => void): EventCanceller {
+			const e1 = this.onUpdate(() => this._checkCollisions(tag, f));
 			const e2 = this.on("collide", (obj, col) => obj.is(tag) && f(obj, col));
 			return () => [e1, e2].forEach((f) => f());
+		},
+
+		clicks(...args) {
+			return this.onClick(...args);
+		},
+
+		hovers(...args) {
+			return this.onHover(...args);
+		},
+
+		collides(...args) {
+			return this.onCollide(...args);
 		},
 
 		hasPoint(pt: Vec2): boolean {
@@ -2474,11 +2486,14 @@ const ctx: KaboomCtx = {
 	follow,
 	// group events
 	on,
-	action,
-	render,
-	collides,
-	clicks,
-	hovers,
+	onUpdate,
+	onDraw,
+	onCollide,
+	onClick,
+	onHover,
+	collides: onCollide,
+	clicks: onClick,
+	hovers: onHover,
 	// input
 	keyDown,
 	keyPress,
