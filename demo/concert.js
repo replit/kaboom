@@ -9,7 +9,7 @@ loadSprite("bean", "sprites/bean.png");
 loadSprite("bag", "sprites/bag.png");
 loadSprite("bobo", "sprites/bobo.png");
 loadSprite("onion", "sprites/onion.png");
-loadSprite("googoly", "sprites/googoly.png");
+loadSprite("ghosty", "sprites/ghosty.png");
 loadSprite("lamp", "sprites/lamp.png");
 loadSprite("goldfly", "sprites/goldfly.png");
 loadSprite("gigagantrum", "sprites/gigagantrum.png");
@@ -169,7 +169,7 @@ const guys = [
 	"bag",
 	"bobo",
 	"onion",
-	"googoly",
+	"ghosty",
 	"lamp",
 	"gigagantrum",
 	"goldfly",
