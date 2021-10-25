@@ -70,6 +70,7 @@ import {
 
 import {
 	IDList,
+	download,
 } from "./utils";
 
 import kaboomPlugin from "./plugins/kaboom";
@@ -791,10 +792,10 @@ function enterDebugMode() {
 	});
 
 	keyPress("f11", () => {
-		if (app.isRecording()) {
-			app.endRecord();
+		if (isRecording()) {
+			endRecord();
 		} else {
-			app.startRecord();
+			startRecord();
 		}
 	});
 
@@ -2409,6 +2410,75 @@ function addLevel(map: string[], opt: LevelOpt): Level {
 
 }
 
+let curRecording = null;
+
+function startRecord(frameRate = 30) {
+
+	if (isRecording()) return;
+
+	const stream = app.canvas.captureStream(frameRate);
+	const audioDest = audio.ctx.createMediaStreamDestination();
+
+	audio.masterNode.connect(audioDest)
+
+	const audioStream = audioDest.stream;
+	const [firstAudioTrack] = audioStream.getAudioTracks();
+
+	stream.addTrack(firstAudioTrack);
+
+	const recorder = new MediaRecorder(stream);
+	const chunks = [];
+
+	recorder.ondataavailable = e => {
+		if(e.data.size > 0){
+			chunks.push(e.data);
+		}
+	};
+
+	recorder.start();
+
+	curRecording = {
+		recorder,
+		chunks,
+		audioDest,
+		stream,
+	};
+
+}
+
+function endRecord() {
+
+	if (!isRecording()) return;
+
+	const {
+		recorder,
+		chunks,
+		audioDest,
+		stream,
+	} = curRecording;
+
+	recorder.stop();
+
+	// Chunks might need a tick to flush
+	setTimeout(() => {
+
+		download(new Blob(chunks, {
+			type: "video/mp4",
+		}), "kaboom.mp4");
+
+		// cleanup
+		audio.masterNode.disconnect(audioDest)
+		stream.getTracks().forEach(t => t.stop());
+		curRecording = null;
+
+	}, 0)
+
+}
+
+function isRecording() {
+	return curRecording !== null;
+}
+
 const ctx: KaboomCtx = {
 	// asset load
 	loadRoot: assets.loadRoot,
@@ -2428,9 +2498,9 @@ const ctx: KaboomCtx = {
 	dt,
 	time: app.time,
 	screenshot: app.screenshot,
-	isRecording: app.isRecording,
-	startRecord: app.startRecord,
-	endRecord: app.endRecord,
+	isRecording: isRecording,
+	startRecord: startRecord,
+	endRecord: endRecord,
 	focused: app.focused,
 	focus: app.focus,
 	cursor: app.cursor,
@@ -2674,7 +2744,7 @@ app.run(() => {
 			logger.draw();
 		}
 
-		if (app.isRecording()) {
+		if (isRecording()) {
 			gfx.drawCircle({
 				radius: 12,
 				pos: vec2(24, height() - 24),
