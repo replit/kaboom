@@ -790,6 +790,14 @@ function enterDebugMode() {
 		debug.log(`stepped frame`);
 	});
 
+	keyPress("f11", () => {
+		if (app.isRecording()) {
+			app.endRecord();
+		} else {
+			app.startRecord();
+		}
+	});
+
 }
 
 function enterBurpMode() {
@@ -2420,6 +2428,9 @@ const ctx: KaboomCtx = {
 	dt,
 	time: app.time,
 	screenshot: app.screenshot,
+	isRecording: app.isRecording,
+	startRecord: app.startRecord,
+	endRecord: app.endRecord,
 	focused: app.focused,
 	focus: app.focus,
 	cursor: app.cursor,
@@ -2584,60 +2595,6 @@ const ctx: KaboomCtx = {
 	DOWN: vec2(0, 1),
 	// dom
 	canvas: app.canvas,
-
-	record: (frameRate = 30) => {
-		const stream = app.canvas.captureStream(frameRate);
-
-		const streamAudioDestination = audio.ctx.createMediaStreamDestination();
-		audio.masterNode.connect(streamAudioDestination)
-		const audioStream = streamAudioDestination.stream;
-		const [firstAudioTrack] = audioStream.getAudioTracks();
-		stream.addTrack(firstAudioTrack);
-
-		const mediaRecorder = new MediaRecorder(stream);
-		const recordedChunks = [];
-		mediaRecorder.ondataavailable = e => {
-			if(e.data.size > 0){
-					recordedChunks.push(e.data);
-			}
-		};
-		mediaRecorder.start();
-
-		return {
-			pause: () => {
-				mediaRecorder.pause();
-			},
-			resume: () => {
-				mediaRecorder.resume();
-			},
-			download: (filename: string = 'kaboom.mp4') => {
-				mediaRecorder.stop();
-
-				// Chunks might need a tick to flush
-				setTimeout(() => {
-					const blob = new Blob(recordedChunks, {
-						type: 'video/mp4'
-					});
-					const url = URL.createObjectURL(blob);
-
-					const a = document.createElement('a');
-					document.body.appendChild(a);
-					a.setAttribute('style', 'display: none');
-					a.href = url;
-					a.download = filename;
-					a.click();
-
-					// cleanup
-					URL.revokeObjectURL(url);
-					recordedChunks.length = 0;
-					audio.masterNode.disconnect(streamAudioDestination)
-					stream.getTracks().forEach(t => {
-						t.stop();
-					});
-				}, 0)
-			}
-		};
-	}
 };
 
 plug(kaboomPlugin);
@@ -2715,6 +2672,15 @@ app.run(() => {
 
 		if (debug.showLog) {
 			logger.draw();
+		}
+
+		if (app.isRecording()) {
+			gfx.drawCircle({
+				radius: 12,
+				pos: vec2(24, height() - 24),
+				color: rgb(255, 0, 0),
+				opacity: wave(0, 1, app.time() * 4),
+			});
 		}
 
 	}

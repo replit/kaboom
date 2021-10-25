@@ -2,6 +2,10 @@ import {
 	vec2,
 } from "./math";
 
+import {
+	download,
+} from "./utils";
+
 type ButtonState =
 	"up"
 	| "pressed"
@@ -72,6 +76,9 @@ type App = {
 	canvas: HTMLCanvasElement,
 	isTouch: boolean,
 	scale: number,
+	isRecording(): boolean,
+	startRecord(): void,
+	endRecord(): void,
 };
 
 function processBtnState(s: ButtonState): ButtonState {
@@ -451,6 +458,77 @@ function appInit(gopt: AppOpt = {}): App {
 		app.stopped = true;
 	}
 
+	let curRecording = null;
+
+	function startRecord(frameRate = 30) {
+
+		if (isRecording()) return;
+
+		curRecording = {};
+
+		const stream = app.canvas.captureStream(frameRate);
+// 		const audioDest = audio.ctx.createMediaStreamDestination();
+
+// 		audio.masterNode.connect(audioDest)
+
+// 		const audioStream = audioDest.stream;
+// 		const [firstAudioTrack] = audioStream.getAudioTracks();
+
+// 		stream.addTrack(firstAudioTrack);
+
+		const recorder = new MediaRecorder(stream);
+		const chunks = [];
+
+		recorder.ondataavailable = e => {
+			if(e.data.size > 0){
+				chunks.push(e.data);
+			}
+		};
+
+		recorder.start();
+
+		curRecording = {
+			recorder,
+			chunks,
+// 			audioDest,
+			stream,
+		};
+
+	}
+
+	function endRecord() {
+
+		if (!isRecording()) return;
+
+		const {
+			recorder,
+			chunks,
+			audioDest,
+			stream,
+		} = curRecording;
+
+		recorder.stop();
+
+		// Chunks might need a tick to flush
+		setTimeout(() => {
+
+			download(new Blob(chunks, {
+				type: "video/mp4",
+			}), "kaboom.mp4");
+
+			// cleanup
+// 			audio.masterNode.disconnect(audioDest)
+			stream.getTracks().forEach(t => t.stop());
+			curRecording = null;
+
+		}, 0)
+
+	}
+
+	function isRecording() {
+		return curRecording !== null;
+	}
+
 	return {
 		gl,
 		mousePos,
@@ -478,6 +556,9 @@ function appInit(gopt: AppOpt = {}): App {
 		scale: app.scale,
 		fullscreen,
 		isFullscreen,
+		startRecord,
+		endRecord,
+		isRecording,
 	};
 
 }

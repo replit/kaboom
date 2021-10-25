@@ -966,10 +966,6 @@ interface KaboomCtx {
 	 */
 	time(): number,
 	/**
-	 * Take a screenshot and get the dataurl of the image.
-	 */
-	screenshot(): string,
-	/**
 	 * If the game canvas is currently focused.
 	 */
 	focused(): boolean,
@@ -1534,22 +1530,21 @@ interface KaboomCtx {
 	 */
 	plug<T>(plugin: KaboomPlugin<T>): void,
 	/**
-	 * Records a video of the game returns a handle
-	 * to control the recording and download it.
-	 * No support for audio recording currenlty
+	 * Take a screenshot and get the dataurl of the image.
 	 */
-	record(frameRate?: number): {
-		/** pauses the recording */
-		pause(): void;
-		/** resumes the recording */
-		resume(): void;
-		/**
-		 * stops the recording and downloads the file
-		 * trying to resume after downloading will lead
-		 * to an error
-		 */
-		download(filename?: string): void;
-	},
+	screenshot(): string,
+	/**
+	 * Start recording the game. Call endRecord() to end the recording and download the video. You can also toggle recording mode by hitting F11 in debug mode.
+	 */
+	startRecord(): void,
+	/**
+	 * End recording and download the video.
+	 */
+	endRecord(): void,
+	/**
+	 * If is currently recording.
+	 */
+	isRecording(): boolean,
 	/**
 	 * All chars in ASCII.
 	 */
