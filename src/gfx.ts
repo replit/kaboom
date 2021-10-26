@@ -16,6 +16,34 @@ import {
 	deepEq,
 } from "./utils";
 
+import {
+	Color,
+	Vec2,
+	Mat4,
+	Quad,
+	Origin,
+	GfxShader,
+	GfxTexture,
+	GfxTexData,
+	GfxFont,
+	Uniform,
+	TexFilter,
+	RenderProps,
+	CharTransform,
+	TexWrap,
+	FormattedText,
+	DrawRectOpt,
+	DrawLineOpt,
+	DrawLinesOpt,
+	DrawTriangleOpt,
+	DrawPolyOpt,
+	DrawCircleOpt,
+	DrawEllipseOpt,
+	DrawUVQuadOpt,
+	Vertex,
+	DrawTextOpt,
+} from "./types";
+
 type GfxCtx = {
 	vbuf: WebGLBuffer,
 	ibuf: WebGLBuffer,

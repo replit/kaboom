@@ -49,8 +49,6 @@ fmts.forEach((fmt) => {
 function buildTypes() {
 
 	let dts = fs.readFileSync(`${srcDir}/types.ts`, "utf-8")
-		.replace(/type\s/g, "export type ")
-		.replace(/interface\s/g, "export interface ")
 		.replace(/declare\s/g, "export default ");
 
 	const f = ts.createSourceFile(
