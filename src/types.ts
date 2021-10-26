@@ -535,7 +535,7 @@ interface KaboomCtx {
 	 */
 	lifespan(time: number, options?: LifespanCompOpt): LifespanComp,
 	/**
-	 * Register an event on all game objs with certain tag.
+	 * Registers an event on all game objs with certain tag.
 	 *
 	 * @section Events
 	 *
@@ -551,7 +551,7 @@ interface KaboomCtx {
 	 */
 	on(event: string, tag: Tag, cb: (obj: GameObj, ...args) => void): EventCanceller,
 	/**
-	 * Register "update" event (runs every frame) on all game objs with certain tag.
+	 * Registers an event that runs every frame for all game objs with certain tag. If tag is omitted it'll just run the callback every frame.
 	 *
 	 * @example
 	 * ```js
@@ -564,7 +564,7 @@ interface KaboomCtx {
 	 *     }
 	 * });
 	 *
-	 * // without tags it just runs it every frame
+	 * // without tags it just runs somethinge every frame
 	 * onUpdate(() => {
 	 *     debug.log("ohhi");
 	 * });
@@ -577,7 +577,7 @@ interface KaboomCtx {
 	 */
 	action: KaboomCtx["onUpdate"],
 	/**
-	 * Register "draw" event (runs every frame) on all game objs with certain tag. (This is the same as `onUpdate()`, but all draw events are run after updates)
+	 * Registers an event that runs every frame for all game objs with certain tag (this is the same as onUpdate but all draw events are run after update events). If tag is omitted it'll just run the callback every frame.
 	 */
 	onDraw(tag: Tag, cb: (obj: GameObj) => void): EventCanceller,
 	onDraw(cb: () => void): EventCanceller,
@@ -586,7 +586,7 @@ interface KaboomCtx {
 	 */
 	render: KaboomCtx["onDraw"],
 	/**
-	 * Register event when 2 game objs with certain tags collides. This function spins off an action() when called, please put it at root level and never inside another onUpdate().
+	 * Registers an event that runs when 2 game objs with certain tags collides. This function spins off an action() when called, please put it at root level and never inside another onUpdate().
 	 *
 	 * @example
 	 * ```js
@@ -605,7 +605,7 @@ interface KaboomCtx {
 	 */
 	collides: KaboomCtx["onCollide"],
 	/**
-	 * Register event when game objs with certain tags are clicked. This function spins off an onUpdate() when called, please put it at root level and never inside another onUpdate().
+	 * Registers an event that runs when game objs with certain tags are clicked. This function spins off an onUpdate() when called, please put it at root level and never inside another onUpdate().
 	 */
 	onClick(
 		tag: Tag,
@@ -616,7 +616,7 @@ interface KaboomCtx {
 	 */
 	clicks: KaboomCtx["onClick"],
 	/**
-	 * Register event when game objs with certain tags are hovered. This function spins off an onUpdate() when called, please put it at root level and never inside another onUpdate().
+	 * Registers an event that runs when game objs with certain tags are hovered. This function spins off an onUpdate() when called, please put it at root level and never inside another onUpdate().
 	 */
 	onHover(
 		tag: Tag,
@@ -641,7 +641,7 @@ interface KaboomCtx {
 	 */
 	mouseDeltaPos(): Vec2,
 	/**
-	 * Registers an event that runs every frame when a key is down.
+	 * Registers an event that runs every frame when a key is held down.
 	 *
 	 * @example
 	 * ```js
@@ -1806,15 +1806,19 @@ interface GameObjRaw {
 	 */
 	inspect(): GameObjInspect;
 	/**
-	 * Register an event that runs every frame as long as the game obj exists (alias to onUpdate).
+	 * Registers an event that runs every frame as long as the game obj exists (alias to onUpdate).
 	 */
 	action: GameObjRaw["onUpdate"];
 	/**
-	 * Register an event that runs every frame as long as the game obj exists.
+	 * Registers an event that runs every frame as long as the game obj exists.
 	 */
 	onUpdate(cb: () => void): EventCanceller;
 	/**
-	 * Register an event that runs when the game obj is destroyed.
+	 * Registers an event that runs every frame as long as the game obj exists (this is the same as `onUpdate()`, but all draw events are run after all update events).
+	 */
+	onDraw(cb: () => void): EventCanceller;
+	/**
+	 * Registers an event that runs when the game obj is destroyed.
 	 */
 	onDestroy(cb: () => void): EventCanceller;
 }
@@ -2870,7 +2874,7 @@ interface AreaComp extends Comp {
 	 */
 	clicks: AreaComp["onClick"],
 	/**
-	 * Registers an event runs when hovered.
+	 * Registers an event runs every frame when hovered.
 	 */
 	onHover(onHover: () => void, onNotHover?: () => void): void,
 	/**
@@ -2878,7 +2882,7 @@ interface AreaComp extends Comp {
 	 */
 	hovers: AreaComp["onHover"],
 	/**
-	 * Registers an event runs when collides with another game obj with certain tag.
+	 * Registers an event runs when collide with another game obj with certain tag.
 	 */
 	onCollide(tag: Tag, f: (obj: GameObj, col?: Collision) => void): void,
 	/**

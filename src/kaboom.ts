@@ -536,6 +536,10 @@ function make<T>(comps: CompList<T>): GameObj<T> {
 			return this.on("update", cb);
 		},
 
+		onDraw(cb: () => void): EventCanceller {
+			return this.on("draw", cb);
+		},
+
 		onDestroy(action: () => void): EventCanceller {
 			return this.on("destroy", action);
 		},
