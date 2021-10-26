@@ -1786,10 +1786,6 @@ type GameObj<T = any> = {
 	 */
 	unuse(comp: Tag): void;
 	/**
-	 * Run something every frame for this game obj (sugar for on("update")).
-	 */
-	onUpdate(cb: () => void): EventCanceller;
-	/**
 	 * Registers an event.
 	 */
 	on(ev: string, cb: () => void): EventCanceller;
@@ -1809,6 +1805,14 @@ type GameObj<T = any> = {
 	 * Gather debug info of all comps.
 	 */
 	inspect(): GameObjInspect;
+	/**
+	 * Register an event that runs every frame as long as the game obj exists.
+	 */
+	onUpdate(cb: () => void): EventCanceller;
+	/**
+	 * Register an event that runs when the game obj is destroyed.
+	 */
+	onDestroy(cb: () => void): EventCanceller;
 } & MergeComps<T>;
 
 type SceneID = string;
@@ -2978,6 +2982,14 @@ interface SpriteComp extends Comp {
 	 * Flip texture vertically.
 	 */
 	flipY(b: boolean): void,
+	/**
+	 * Registers an event that runs when an animation is played.
+	 */
+	onAnimPlay(action: (name: string) => void): EventCanceller,
+	/**
+	 * Registers an event that runs when an animation is ended.
+	 */
+	onAnimEnd(action: (name: string) => void): EventCanceller,
 }
 
 interface TextComp extends Comp {
@@ -3179,6 +3191,14 @@ interface BodyComp extends Comp {
 	 * Performs double jump (the initial jump only happens if player is grounded).
 	 */
 	doubleJump(f?: number): void,
+	/**
+	 * Registers an event that runs when the object is grounded.
+	 */
+	onGround(action: () => void): EventCanceller,
+	/**
+	 * Registers an event that runs when the object starts falling.
+	 */
+	onFall(action: () => void): EventCanceller,
 }
 
 interface BodyCompOpt {

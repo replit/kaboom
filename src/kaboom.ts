@@ -490,10 +490,6 @@ function make<T>(comps: CompList<T>): GameObj<T> {
 			return events[ev].pushd(cb);
 		},
 
-		onUpdate(cb: () => void): EventCanceller {
-			return this.on("update", cb);
-		},
-
 		action(...args): EventCanceller {
 			return this.onUpdate(...args);
 		},
@@ -534,6 +530,14 @@ function make<T>(comps: CompList<T>): GameObj<T> {
 				info[tag] = comp.inspect ? comp.inspect() : null;
 			}
 			return info;
+		},
+
+		onUpdate(cb: () => void): EventCanceller {
+			return this.on("update", cb);
+		},
+
+		onDestroy(action: () => void): EventCanceller {
+			return this.on("destroy", action);
 		},
 
 	};
@@ -1792,6 +1796,14 @@ function sprite(id: string | SpriteData, opt: SpriteCompOpt = {}): SpriteComp {
 			opt.flipY = b;
 		},
 
+		onAnimEnd(action: (name: string) => void): EventCanceller {
+			return this.on("animEnd", action);
+		},
+
+		onAnimPlay(action: (name: string) => void): EventCanceller {
+			return this.on("animPlay", action);
+		},
+
 		inspect() {
 			let msg = "";
 			if (typeof id === "string") {
@@ -2058,6 +2070,14 @@ function body(opt: BodyCompOpt = {}): BodyComp {
 				this.jump(force);
 				this.trigger("doubleJump");
 			}
+		},
+
+		onGround(action: () => void): EventCanceller {
+			return this.on("ground", action);
+		},
+
+		onFall(action: () => void): EventCanceller {
+			return this.on("fall", action);
 		},
 
 	};
