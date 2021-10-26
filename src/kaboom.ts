@@ -132,6 +132,7 @@ import {
 	HealthComp,
 	LifespanComp,
 	LifespanCompOpt,
+	StateComp,
 	Debug,
 	KaboomPlugin,
 	MergeObj,
