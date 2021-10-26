@@ -2204,11 +2204,11 @@ function state(initState: string, stateList?: string[]): StateComp {
 		throw new Error("state() requires an initial state");
 	}
 
-	const actions = {};
+	const events = {};
 
 	const initStateHook = (state: string) => {
-		if (!actions[state]) {
-			actions[state] = {
+		if (!events[state]) {
+			events[state] = {
 				enter: [],
 				leave: [],
 				update: [],
@@ -2224,31 +2224,31 @@ function state(initState: string, stateList?: string[]): StateComp {
 			if (stateList && !stateList[state]) {
 				throw new Error(`State not found: ${state}`);
 			}
-			actions[this.state].leave.forEach((action) => action());
+			events[this.state].leave.forEach((action) => action());
 			this.state = state;
-			actions[this.state].enter.forEach((action) => action(...args));
+			events[this.state].enter.forEach((action) => action(...args));
 		},
 		onStateEnter(state: string, action: () => void) {
 			initStateHook(state);
-			actions[state].enter.push(action);
+			events[state].enter.push(action);
 		},
 		onStateUpdate(state: string, action: () => void) {
 			initStateHook(state);
-			actions[state].update.push(action);
+			events[state].update.push(action);
 		},
 		onStateDraw(state: string, action: () => void) {
 			initStateHook(state);
-			actions[state].draw.push(action);
+			events[state].draw.push(action);
 		},
 		onStateLeave(state: string, action: () => void) {
 			initStateHook(state);
-			actions[state].leave.push(action);
+			events[state].leave.push(action);
 		},
 		update() {
-			actions[this.state].update.forEach((action) => action());
+			events[this.state].update.forEach((action) => action());
 		},
 		draw() {
-			actions[this.state].draw.forEach((action) => action());
+			events[this.state].draw.forEach((action) => action());
 		},
 	};
 
