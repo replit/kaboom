@@ -2198,6 +2198,62 @@ function lifespan(time: number, opt: LifespanCompOpt = {}): LifespanComp {
 	};
 }
 
+function state(initState: string, stateList?: string[]): StateComp {
+
+	if (!initState) {
+		throw new Error("state() requires an initial state");
+	}
+
+	const events = {};
+
+	const initStateHook = (state: string) => {
+		if (!events[state]) {
+			events[state] = {
+				enter: [],
+				leave: [],
+				update: [],
+				draw: [],
+			};
+		}
+	};
+
+	return {
+		id: "state",
+		state: initState,
+		enterState(state: string, ...args) {
+			if (stateList && !stateList[state]) {
+				throw new Error(`State not found: ${state}`);
+			}
+			events[this.state].leave.forEach((action) => action());
+			this.state = state;
+			events[this.state].enter.forEach((action) => action(...args));
+		},
+		onStateEnter(state: string, action: () => void) {
+			initStateHook(state);
+			events[state].enter.push(action);
+		},
+		onStateUpdate(state: string, action: () => void) {
+			initStateHook(state);
+			events[state].update.push(action);
+		},
+		onStateDraw(state: string, action: () => void) {
+			initStateHook(state);
+			events[state].draw.push(action);
+		},
+		onStateLeave(state: string, action: () => void) {
+			initStateHook(state);
+			events[state].leave.push(action);
+		},
+		update() {
+			events[this.state].update.forEach((action) => action());
+		},
+		draw() {
+			events[this.state].draw.forEach((action) => action());
+		},
+	};
+
+}
+
 const debug: Debug = {
 	inspect: false,
 	timeScale: 1,
@@ -2540,6 +2596,7 @@ const ctx: KaboomCtx = {
 	move,
 	cleanup,
 	follow,
+	state,
 	// group events
 	on,
 	action,

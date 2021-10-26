@@ -535,6 +535,45 @@ export interface KaboomCtx {
 	 */
 	lifespan(time: number, options?: LifespanCompOpt): LifespanComp,
 	/**
+	 * Finite state machine.
+	 *
+	 * @example
+	 * ```js
+	 * const enemy = add([
+	 *     pos(80, 100),
+	 *     sprite("robot"),
+	 *     state("idle", ["idle", "attack", "move"]),
+	 * ]);
+	 *
+	 * // this will run once when enters "attack" state
+	 * enemy.onStateEnter("attack", () => {
+	 *     enemy.play("attackAnim")
+	 *     checkHit(enemy, player)
+	 *     wait(1, () => {
+	 *         // any additional arguments will be passed into the onStateEnter() callback
+	 *         enemy.enterState("idle", rand(1, 3))
+	 *     })
+	 * })
+	 *
+	 * // this will run once when enters "idle" state
+	 * enemy.onStateEnter("idle", (time) => {
+	 *     enemy.play("attackAnim")
+	 *     wait(1, () => {
+	 *         enemy.enterState("move")
+	 *     })
+	 * })
+	 *
+	 * // this will run every frame when current state is "move"
+	 * enemy.onStateUpdate("move", () => {
+	 *     enemy.follow(player);
+	 *     if (enemy.pos.dist(player.pos) < 16) {
+	 *         enemy.enterState("attack")
+	 *     }
+	 * })
+	 * ```
+	 */
+	state(initialState: string, stateList?: string[]): StateComp,
+	/**
 	 * Register an event on all game objs with certain tag.
 	 *
 	 * @section Events
@@ -3202,6 +3241,33 @@ export interface LifespanCompOpt {
 	 * Fade out duration (default 0 which is no fade out).
 	 */
 	fade?: number,
+}
+
+export interface StateComp extends Comp {
+	/**
+	 * Current state.
+	 */
+	state: string,
+	/**
+	 * Enter a state, trigger onStateLeave for previous state and onStateEnter for the new State state.
+	 */
+	enterState: (state: string, ...args) => void,
+	/**
+	 * Register event that runs once when enters a specific state. Accepts arguments passed from `enterState(name, ...args)`.
+	 */
+	onStateEnter: (state: string, action: (...args) => void) => void,
+	/**
+	 * Register event that runs once when leaves a specific state.
+	 */
+	onStateLeave: (state: string, action: () => void) => void,
+	/**
+	 * Register event that runs every frame when in a specific state.
+	 */
+	onStateUpdate: (state: string, action: () => void) => void,
+	/**
+	 * Register event that runs every frame when in a specific state.
+	 */
+	onStateDraw: (state: string, action: () => void) => void,
 }
 
 export interface LevelOpt {
