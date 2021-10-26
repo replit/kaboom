@@ -1752,9 +1752,9 @@ interface KaboomOpt {
 type KaboomPlugin<T> = (k: KaboomCtx) => T;
 
 /**
- * The basic unit of object in Kaboom. The player, a butterfly, a tree, or even a piece of text.
+ * Base interface of all game objects.
  */
-type GameObj<T = any> = {
+interface GameObjRaw {
 	/**
 	 * Internal GameObj ID.
 	 */
@@ -1806,6 +1806,10 @@ type GameObj<T = any> = {
 	 */
 	inspect(): GameObjInspect;
 	/**
+	 * Register an event that runs every frame as long as the game obj exists (alias to onUpdate).
+	 */
+	action: GameObjRaw["onUpdate"];
+	/**
 	 * Register an event that runs every frame as long as the game obj exists.
 	 */
 	onUpdate(cb: () => void): EventCanceller;
@@ -1813,7 +1817,12 @@ type GameObj<T = any> = {
 	 * Register an event that runs when the game obj is destroyed.
 	 */
 	onDestroy(cb: () => void): EventCanceller;
-} & MergeComps<T>;
+}
+
+/**
+ * The basic unit of object in Kaboom. The player, a butterfly, a tree, or even a piece of text.
+ */
+type GameObj<T = any> = GameObjRaw & MergeComps<T>;
 
 type SceneID = string;
 type SceneDef = (...args: any[]) => void;
