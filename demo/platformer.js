@@ -2,7 +2,7 @@ kaboom();
 
 // load assets
 loadSprite("bean", "sprites/bean.png");
-loadSprite("googoly", "sprites/googoly.png");
+loadSprite("ghosty", "sprites/ghosty.png");
 loadSprite("spike", "sprites/spike.png");
 loadSprite("grass", "sprites/grass.png");
 loadSprite("prize", "sprites/jumpy.png");
@@ -143,7 +143,7 @@ const levelConf = {
 		"apple",
 	],
 	">": () => [
-		sprite("googoly"),
+		sprite("ghosty"),
 		area(),
 		origin("bot"),
 		body(),

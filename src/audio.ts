@@ -4,6 +4,11 @@ import {
 	clamp,
 } from "./math";
 
+import {
+	SoundData,
+	AudioPlay,
+	AudioPlayOpt,
+} from "./types";
 
 type Audio = {
 	ctx: AudioContext,

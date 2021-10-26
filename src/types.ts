@@ -35,7 +35,7 @@ declare function kaboom(options?: KaboomOpt): KaboomCtx;
 /**
  * Context handle that contains every kaboom function.
  */
-interface KaboomCtx {
+export interface KaboomCtx {
 	/**
 	 * Create and add a game obj to the scene, from a list of components or tags. The added and returned game obj will contain all methods from each component.
 	 *
@@ -1620,18 +1620,18 @@ interface KaboomCtx {
 	[custom: string]: any,
 }
 
-type Tag = string;
+export type Tag = string;
 
 // TODO: understand this
-type UnionToIntersection<U> = (U extends any ? (k: U) => void : never) extends ((k: infer I) => void) ? I : never
-type Defined<T> = T extends any ? Pick<T, { [K in keyof T]-?: T[K] extends undefined ? never : K }[keyof T]> : never;
-type Expand<T> = T extends infer U ? { [K in keyof U]: U[K] } : never;
-type MergeObj<T> = Expand<UnionToIntersection<Defined<T>>>;
-type MergeComps<T> = Omit<MergeObj<T>, keyof Comp>;
+export type UnionToIntersection<U> = (U extends any ? (k: U) => void : never) extends ((k: infer I) => void) ? I : never
+export type Defined<T> = T extends any ? Pick<T, { [K in keyof T]-?: T[K] extends undefined ? never : K }[keyof T]> : never;
+export type Expand<T> = T extends infer U ? { [K in keyof U]: U[K] } : never;
+export type MergeObj<T> = Expand<UnionToIntersection<Defined<T>>>;
+export type MergeComps<T> = Omit<MergeObj<T>, keyof Comp>;
 
-type CompList<T> = Array<T | Tag>;
+export type CompList<T> = Array<T | Tag>;
 
-type Key =
+export type Key =
 	| "f1" | "f2" | "f3" | "f4" | "f5" | "f6" | "f7" | "f8" | "f9" | "f10" | "f11" | "f12"
 	| "`" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9" | "0" | "-" | "="
 	| "q" | "w" | "e" | "r" | "t" | "y" | "u" | "i" | "o" | "p" | "[" | "]" | "\\"
@@ -1644,12 +1644,12 @@ type Key =
 /**
  * Inspect info for a character.
  */
-type GameObjInspect = Record<Tag, string | null>;
+export type GameObjInspect = Record<Tag, string | null>;
 
 /**
  * Kaboom configurations.
  */
-interface KaboomOpt {
+export interface KaboomOpt {
 	/**
 	 * Width of game.
 	 */
@@ -1724,12 +1724,12 @@ interface KaboomOpt {
 	burp?: boolean,
 }
 
-type KaboomPlugin<T> = (k: KaboomCtx) => T;
+export type KaboomPlugin<T> = (k: KaboomCtx) => T;
 
 /**
  * The basic unit of object in Kaboom. The player, a butterfly, a tree, or even a piece of text.
  */
-type GameObj<T = any> = {
+export type GameObj<T = any> = {
 	/**
 	 * Internal GameObj ID.
 	 */
@@ -1786,19 +1786,19 @@ type GameObj<T = any> = {
 	inspect(): GameObjInspect;
 } & MergeComps<T>;
 
-type SceneID = string;
-type SceneDef = (...args: any[]) => void;
-type TouchID = number;
+export type SceneID = string;
+export type SceneDef = (...args: any[]) => void;
+export type TouchID = number;
 
 /**
  * Cancel the event.
  */
-type EventCanceller = () => void;
+export type EventCanceller = () => void;
 
 /**
  * Frame-based animation configuration.
  */
-type SpriteAnim = number | {
+export type SpriteAnim = number | {
 	/**
 	 * The starting frame.
 	 */
@@ -1824,7 +1824,7 @@ type SpriteAnim = number | {
 /**
  * Sprite animation configuration when playing.
  */
-interface SpriteAnimPlayOpt {
+export interface SpriteAnimPlayOpt {
 	/**
 	 * If this anim should be played in loop.
 	 */
@@ -1846,13 +1846,13 @@ interface SpriteAnimPlayOpt {
 /**
  * A dict of name <-> animation.
  */
-type SpriteAnims = Record<string, SpriteAnim>
+export type SpriteAnims = Record<string, SpriteAnim>
 
 // TODO: support frameWidth and frameHeight as alternative to slice
 /**
  * Sprite loading configuration.
  */
-interface SpriteLoadOpt {
+export interface SpriteLoadOpt {
 	sliceX?: number,
 	sliceY?: number,
 	anims?: SpriteAnims,
@@ -1860,12 +1860,12 @@ interface SpriteLoadOpt {
 	wrap?: TexWrap,
 }
 
-type SpriteAtlasData = Record<string, SpriteAtlasEntry>;
+export type SpriteAtlasData = Record<string, SpriteAtlasEntry>;
 
 /**
  * A sprite in a sprite atlas.
  */
-interface SpriteAtlasEntry {
+export interface SpriteAtlasEntry {
 	/**
 	 * X position of the top left corner.
 	 */
@@ -1896,9 +1896,9 @@ interface SpriteAtlasEntry {
 	anims?: SpriteAnims,
 }
 
-type SpriteLoadSrc = string | GfxTexData;
+export type SpriteLoadSrc = string | GfxTexData;
 
-interface SpriteData {
+export interface SpriteData {
 	tex: GfxTexture,
 	frames: Quad[],
 	anims: SpriteAnims,
@@ -1906,24 +1906,24 @@ interface SpriteData {
 	wrap?: TexWrap,
 }
 
-interface FontLoadOpt {
+export interface FontLoadOpt {
 	chars?: string,
 	filter?: TexFilter,
 	wrap?: TexWrap,
 }
 
-interface SoundData {
+export interface SoundData {
 	buf: AudioBuffer,
 }
 
-type FontData = GfxFont;
-type ShaderData = GfxShader;
+export type FontData = GfxFont;
+export type ShaderData = GfxShader;
 
 // TODO: enable setting on load, make part of SoundData
 /**
  * Audio play configurations.
  */
-interface AudioPlayOpt {
+export interface AudioPlayOpt {
 	/**
 	 * If audio should be played again from start when its ended.
 	 */
@@ -1954,7 +1954,7 @@ interface AudioPlayOpt {
 	seek?: number,
 }
 
-interface AudioPlay {
+export interface AudioPlay {
 	/**
 	 * Play the sound. Optionally pass in the time where it starts.
 	 */
@@ -2015,7 +2015,7 @@ interface AudioPlay {
 }
 
 // TODO: hide
-interface GfxShader {
+export interface GfxShader {
 	bind(): void,
 	unbind(): void,
 	bindAttribs(): void,
@@ -2023,21 +2023,21 @@ interface GfxShader {
 }
 
 // TODO: hide
-interface GfxTexture {
+export interface GfxTexture {
 	width: number,
 	height: number,
 	bind(): void,
 	unbind(): void,
 }
 
-type GfxTexData =
+export type GfxTexData =
 	HTMLImageElement
 	| HTMLCanvasElement
 	| ImageData
 	| ImageBitmap
 	;
 
-interface GfxFont {
+export interface GfxFont {
 	tex: GfxTexture,
 	map: Record<string, Vec2>,
 	/**
@@ -2047,7 +2047,7 @@ interface GfxFont {
 	qh: number,
 }
 
-interface Vertex {
+export interface Vertex {
 	pos: Vec3,
 	uv: Vec2,
 	color: Color,
@@ -2057,13 +2057,13 @@ interface Vertex {
 /**
  * Texture scaling filter. "nearest" is mainly for sharp pixelated scaling, "linear" means linear interpolation.
  */
-type TexFilter = "nearest" | "linear";
-type TexWrap = "repeat" | "clampToEdge";
+export type TexFilter = "nearest" | "linear";
+export type TexWrap = "repeat" | "clampToEdge";
 
 /**
  * Common render properties.
  */
-interface RenderProps {
+export interface RenderProps {
 	pos?: Vec2,
 	scale?: Vec2 | number,
 	angle?: number,
@@ -2076,7 +2076,7 @@ interface RenderProps {
 /**
  * How the sprite should look like.
  */
-type DrawSpriteOpt = RenderProps & {
+export type DrawSpriteOpt = RenderProps & {
 	/**
 	 * The sprite name in the asset manager, or the raw sprite data.
 	 */
@@ -2115,7 +2115,7 @@ type DrawSpriteOpt = RenderProps & {
 	origin?: Origin | Vec2,
 }
 
-type DrawUVQuadOpt = RenderProps & {
+export type DrawUVQuadOpt = RenderProps & {
 	/**
 	 * Width of the UV quad.
 	 */
@@ -2149,7 +2149,7 @@ type DrawUVQuadOpt = RenderProps & {
 /**
  * How the rectangle should look like.
  */
-type DrawRectOpt = RenderProps & {
+export type DrawRectOpt = RenderProps & {
 	/**
 	 * Width of the rectangle.
 	 */
@@ -2179,7 +2179,7 @@ type DrawRectOpt = RenderProps & {
 /**
  * How the line should look like.
  */
-type DrawLineOpt = Omit<RenderProps, "angle" | "scale"> & {
+export type DrawLineOpt = Omit<RenderProps, "angle" | "scale"> & {
 	/**
 	 * Starting point of the line.
 	 */
@@ -2197,7 +2197,7 @@ type DrawLineOpt = Omit<RenderProps, "angle" | "scale"> & {
 /**
  * How the lines should look like.
  */
-type DrawLinesOpt = Omit<RenderProps, "angle" | "scale"> & {
+export type DrawLinesOpt = Omit<RenderProps, "angle" | "scale"> & {
 	/**
 	 * The points that should be connected with a line.
 	 */
@@ -2215,7 +2215,7 @@ type DrawLinesOpt = Omit<RenderProps, "angle" | "scale"> & {
 /**
  * How the triangle should look like.
  */
-type DrawTriangleOpt = RenderProps & {
+export type DrawTriangleOpt = RenderProps & {
 	/**
 	 * First point of triangle.
 	 */
@@ -2245,7 +2245,7 @@ type DrawTriangleOpt = RenderProps & {
 /**
  * How the circle should look like.
  */
-type DrawCircleOpt = Omit<RenderProps, "angle"> & {
+export type DrawCircleOpt = Omit<RenderProps, "angle"> & {
 	/**
 	 * Radius of the circle.
 	 */
@@ -2279,7 +2279,7 @@ type DrawCircleOpt = Omit<RenderProps, "angle"> & {
 /**
  * How the ellipse should look like.
  */
-type DrawEllipseOpt = RenderProps & {
+export type DrawEllipseOpt = RenderProps & {
 	/**
 	 * The horizontal radius.
 	 */
@@ -2317,7 +2317,7 @@ type DrawEllipseOpt = RenderProps & {
 /**
  * How the polygon should look like.
  */
-type DrawPolyOpt = RenderProps & {
+export type DrawPolyOpt = RenderProps & {
 	/**
 	 * The points that make up the polygon
 	 */
@@ -2344,7 +2344,7 @@ type DrawPolyOpt = RenderProps & {
 	radius?: number,
 }
 
-interface Outline {
+export interface Outline {
 	/**
 	 * The width, or thinkness of the line.
 	 */
@@ -2358,7 +2358,7 @@ interface Outline {
 /**
  * How the text should look like.
  */
-type DrawTextOpt = RenderProps & {
+export type DrawTextOpt = RenderProps & {
 	/**
 	 * The text to render.
 	 */
@@ -2388,7 +2388,7 @@ type DrawTextOpt = RenderProps & {
 /**
  * One formated character.
  */
-interface FormattedChar {
+export interface FormattedChar {
 	tex: GfxTexture,
 	quad: Quad,
 	ch: string,
@@ -2400,7 +2400,7 @@ interface FormattedChar {
 	origin: string,
 }
 
-interface CharTransform {
+export interface CharTransform {
 	pos?: Vec2,
 	scale?: Vec2 | number,
 	angle?: number,
@@ -2411,13 +2411,13 @@ interface CharTransform {
 /**
  * Formatted text with info on how and where to render each character.
  */
-interface FormattedText {
+export interface FormattedText {
 	width: number,
 	height: number,
 	chars: FormattedChar[],
 }
 
-type Cursor =
+export type Cursor =
 	string
 	| "auto"
 	| "default"
@@ -2457,7 +2457,7 @@ type Cursor =
 	| "zoom-out"
 	;
 
-type Origin =
+export type Origin =
 	"topleft"
 	| "top"
 	| "topright"
@@ -2469,7 +2469,7 @@ type Origin =
 	| "botright"
 	;
 
-interface Vec2 {
+export interface Vec2 {
 	x: number,
 	y: number,
 	clone(): Vec2,
@@ -2522,21 +2522,21 @@ interface Vec2 {
 	str(): string,
 }
 
-interface Vec3 {
+export interface Vec3 {
 	x: number,
 	y: number,
 	z: number,
 	xy(): Vec2,
 }
 
-interface Vec4 {
+export interface Vec4 {
 	x: number,
 	y: number,
 	z: number,
 	w: number,
 }
 
-interface Mat4 {
+export interface Mat4 {
 	m: number[],
 	clone(): Mat4,
 	mult(m: Mat4): Mat4,
@@ -2554,7 +2554,7 @@ interface Mat4 {
 /**
  * 0-255 RGBA color.
  */
-interface Color {
+export interface Color {
 	/**
 	 * Red (0-255).
 	 */
@@ -2582,7 +2582,7 @@ interface Color {
 	str(): string,
 }
 
-interface Quad {
+export interface Quad {
 	x: number,
 	y: number,
 	w: number,
@@ -2592,41 +2592,41 @@ interface Quad {
 	eq(q: Quad): boolean,
 }
 
-type RNGValue =
+export type RNGValue =
 	number
 	| Vec2
 	| Color
 	;
 
-interface RNG {
+export interface RNG {
 	seed: number,
 	gen(): number,
 	gen<T extends RNGValue>(n: T): T,
 	gen<T extends RNGValue>(a: T, b: T): T,
 }
 
-interface Rect {
+export interface Rect {
 	p1: Vec2,
 	p2: Vec2,
 }
 
-interface Line {
+export interface Line {
 	p1: Vec2,
 	p2: Vec2,
 }
 
-interface Circle {
+export interface Circle {
 	center: Vec2,
 	radius: number,
 }
 
-type Polygon = Vec2[];
-type Point = Vec2;
+export type Polygon = Vec2[];
+export type Point = Vec2;
 
-type ClientID = number;
-type MsgHandler = (id: ClientID, data: any) => void;
+export type ClientID = number;
+export type MsgHandler = (id: ClientID, data: any) => void;
 
-interface Comp {
+export interface Comp {
 	/**
 	 * Component ID (if left out won't be treated as a comp).
 	 */
@@ -2661,9 +2661,9 @@ interface Comp {
 	inspect?: () => string;
 }
 
-type GameObjID = number;
+export type GameObjID = number;
 
-interface PosComp extends Comp {
+export interface PosComp extends Comp {
 	/**
 	 * Object's current world position.
 	 */
@@ -2689,66 +2689,66 @@ interface PosComp extends Comp {
 	screenPos(): Vec2;
 }
 
-interface ScaleComp extends Comp {
-	scale: Vec2,
+export interface ScaleComp extends Comp {
+	scale: Vec2 | number,
 	scaleTo(s: number): void,
 	scaleTo(s: Vec2): void,
 	scaleTo(sx: number, sy: number): void,
 }
 
-interface RotateComp extends Comp {
+export interface RotateComp extends Comp {
 	/**
 	 * Angle in degrees.
 	 */
 	angle: number,
 }
 
-interface ColorComp extends Comp {
+export interface ColorComp extends Comp {
 	color: Color,
 }
 
-interface OpacityComp extends Comp {
+export interface OpacityComp extends Comp {
 	opacity: number,
 }
 
-interface OriginComp extends Comp {
+export interface OriginComp extends Comp {
 	/**
 	 * Origin point for render.
 	 */
 	origin: Origin | Vec2,
 }
 
-interface LayerComp extends Comp {
+export interface LayerComp extends Comp {
 	/**
 	 * Which layer this game obj belongs to.
 	 */
 	layer: string,
 }
 
-interface ZComp extends Comp {
+export interface ZComp extends Comp {
 	/**
 	 * Defines the z-index of this game obj
 	 */
 	z: number,
 }
 
-interface FollowComp extends Comp {
+export interface FollowComp extends Comp {
 	follow: {
 		obj: GameObj,
 		offset: Vec2,
 	},
 }
 
-interface MoveComp extends Comp {
+export interface MoveComp extends Comp {
 }
 
-interface CleanupComp extends Comp {
+export interface CleanupComp extends Comp {
 }
 
 /**
  * Collision resolution data.
  */
-interface Collision {
+export interface Collision {
 	/**
 	 * The game object that we collided into.
 	 */
@@ -2775,7 +2775,7 @@ interface Collision {
 	isRight(): boolean,
 }
 
-interface AreaCompOpt {
+export interface AreaCompOpt {
 	/**
 	 * The shape of the area.
 	 */
@@ -2802,7 +2802,7 @@ interface AreaCompOpt {
 	cursor?: Cursor,
 }
 
-interface AreaComp extends Comp {
+export interface AreaComp extends Comp {
 	/**
 	 * Collider area info.
 	 */
@@ -2857,7 +2857,7 @@ interface AreaComp extends Comp {
 	screenArea(): Area,
 }
 
-interface SpriteCompOpt {
+export interface SpriteCompOpt {
 	/**
 	 * If the sprite is loaded with multiple frames, or sliced, use the frame option to specify which frame to draw.
 	 */
@@ -2896,7 +2896,7 @@ interface SpriteCompOpt {
 	quad?: Quad,
 }
 
-interface SpriteComp extends Comp {
+export interface SpriteComp extends Comp {
 	/**
 	 * Width for sprite.
 	 */
@@ -2943,7 +2943,7 @@ interface SpriteComp extends Comp {
 	flipY(b: boolean): void,
 }
 
-interface TextComp extends Comp {
+export interface TextComp extends Comp {
 	/**
 	 * The text to render.
 	 */
@@ -2966,7 +2966,7 @@ interface TextComp extends Comp {
 	height: number,
 }
 
-interface TextCompOpt {
+export interface TextCompOpt {
 	/**
 	 * Height of text.
 	 */
@@ -2985,14 +2985,14 @@ interface TextCompOpt {
 	transform?: (idx: number, ch: string) => CharTransform,
 }
 
-interface RectCompOpt {
+export interface RectCompOpt {
 	/**
 	 * Radius of the rectangle corners.
 	 */
 	radius?: number,
 }
 
-interface RectComp extends Comp {
+export interface RectComp extends Comp {
 	/**
 	 * Width of rectangle.
 	 */
@@ -3007,14 +3007,14 @@ interface RectComp extends Comp {
 	radius?: number,
 }
 
-interface CircleComp extends Comp {
+export interface CircleComp extends Comp {
 	/**
 	 * Radius of circle.
 	 */
 	radius: number,
 }
 
-interface UVQuadComp extends Comp {
+export interface UVQuadComp extends Comp {
 	/**
 	 * Width of rect.
 	 */
@@ -3028,7 +3028,7 @@ interface UVQuadComp extends Comp {
 /**
  * Union type for area / collider data of different shapes ("rect", "line", "circle", "point" and "polygon").
  */
-type Area =
+export type Area =
 	| { shape: "rect" } & Rect
 	| { shape: "line" } & Line
 	| { shape: "circle" } & Circle
@@ -3036,7 +3036,7 @@ type Area =
 	| { shape: "polygon" } & { pts: Polygon }
 	;
 
-type Shape =
+export type Shape =
 	| "rect"
 	| "line"
 	| "point"
@@ -3044,11 +3044,11 @@ type Shape =
 	| "polygon"
 	;
 
-interface OutlineComp extends Comp {
+export interface OutlineComp extends Comp {
 	outline: Outline,
 }
 
-interface Debug {
+export interface Debug {
 	/**
 	 * Pause the whole game.
 	 */
@@ -3095,21 +3095,21 @@ interface Debug {
 	error(msg: string): void,
 }
 
-type UniformValue =
+export type UniformValue =
 	Vec2
 	| Vec3
 	| Color
 	| Mat4
 	;
 
-type Uniform = Record<string, UniformValue>;
+export type Uniform = Record<string, UniformValue>;
 
-interface ShaderComp extends Comp {
+export interface ShaderComp extends Comp {
 	uniform: Uniform,
 	shader: string,
 }
 
-interface BodyComp extends Comp {
+export interface BodyComp extends Comp {
 	/**
 	 * If should collide with other solid objects.
 	 */
@@ -3144,7 +3144,7 @@ interface BodyComp extends Comp {
 	doubleJump(f?: number): void,
 }
 
-interface BodyCompOpt {
+export interface BodyCompOpt {
 	/**
 	 * Initial speed in pixels per second for jump().
 	 */
@@ -3175,7 +3175,7 @@ interface BodyCompOpt {
 //  	hangGlide?: number,
 }
 
-interface Timer {
+export interface Timer {
 	/**
 	 * Timer left.
 	 */
@@ -3186,35 +3186,35 @@ interface Timer {
 	action(): void,
 }
 
-interface TimerComp extends Comp {
+export interface TimerComp extends Comp {
 	/**
 	 * Run the callback after n seconds.
 	 */
 	wait(n: number, cb: () => void): EventCanceller,
 }
 
-interface SolidComp extends Comp {
+export interface SolidComp extends Comp {
 	/**
 	 * If should stop other solid objects from moving through.
 	 */
 	solid: boolean,
 }
 
-interface FixedComp extends Comp {
+export interface FixedComp extends Comp {
 	/**
 	 * If the obj is unaffected by camera
 	 */
 	fixed: boolean,
 }
 
-interface StayComp extends Comp {
+export interface StayComp extends Comp {
 	/**
 	 * If the obj should not be destroyed on scene switch.
 	 */
 	stay: boolean,
 }
 
-interface HealthComp extends Comp {
+export interface HealthComp extends Comp {
 	/**
 	 * Decrease HP by n (defaults to 1).
 	 */
@@ -3233,17 +3233,17 @@ interface HealthComp extends Comp {
 	setHP(hp: number): void,
 }
 
-interface LifespanComp extends Comp {
+export interface LifespanComp extends Comp {
 }
 
-interface LifespanCompOpt {
+export interface LifespanCompOpt {
 	/**
 	 * Fade out duration (default 0 which is no fade out).
 	 */
 	fade?: number,
 }
 
-interface StateComp extends Comp {
+export interface StateComp extends Comp {
 	/**
 	 * Current state.
 	 */
@@ -3270,7 +3270,7 @@ interface StateComp extends Comp {
 	onStateDraw: (state: string, action: () => void) => void,
 }
 
-interface LevelOpt {
+export interface LevelOpt {
 	/**
 	 * Grid width (width of each block).
 	 */
@@ -3291,7 +3291,7 @@ interface LevelOpt {
 	[sym: string]: any,
 }
 
-interface Level {
+export interface Level {
 	getPos(p: Vec2): Vec2,
 	getPos(x: number, y: number): Vec2,
 	spawn(sym: string, p: Vec2): GameObj,

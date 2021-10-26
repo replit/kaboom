@@ -72,6 +72,74 @@ import {
 	IDList,
 } from "./utils";
 
+import {
+	KaboomCtx,
+	KaboomOpt,
+	AudioPlay,
+	AudioPlayOpt,
+	Vec2,
+	Mat4,
+	DrawSpriteOpt,
+	DrawTextOpt,
+	GameObj,
+	Timer,
+	EventCanceller,
+	SceneID,
+	SceneDef,
+	CompList,
+	Comp,
+	Tag,
+	Key,
+	TouchID,
+	Collision,
+	PosComp,
+	ScaleComp,
+	RotateComp,
+	ColorComp,
+	OpacityComp,
+	Origin,
+	OriginComp,
+	LayerComp,
+	ZComp,
+	FollowComp,
+	MoveComp,
+	CleanupComp,
+	AreaCompOpt,
+	AreaComp,
+	Area,
+	SpriteData,
+	SpriteComp,
+	SpriteCompOpt,
+	GfxTexture,
+	Quad,
+	SpriteAnimPlayOpt,
+	TextComp,
+	TextCompOpt,
+	RectComp,
+	RectCompOpt,
+	UVQuadComp,
+	CircleComp,
+	Color,
+	OutlineComp,
+	TimerComp,
+	BodyComp,
+	BodyCompOpt,
+	Uniform,
+	ShaderComp,
+	SolidComp,
+	FixedComp,
+	StayComp,
+	HealthComp,
+	LifespanComp,
+	LifespanCompOpt,
+	Debug,
+	KaboomPlugin,
+	MergeObj,
+	Level,
+	LevelOpt,
+	Cursor,
+} from "./types";
+
 import kaboomPlugin from "./plugins/kaboom";
 
 // @ts-ignore
@@ -593,10 +661,10 @@ function render(tag: Tag | (() => void), cb?: (obj: GameObj) => void) {
 function collides(
 	t1: Tag,
 	t2: Tag,
-	f: (a: GameObj, b: GameObj) => void,
+	f: (a: GameObj, b: GameObj, col?: Collision) => void,
 ): EventCanceller {
-	const e1 = on("collide", t1, (a, b, dis) => b.is(t2) && f(a, b));
-	const e2 = on("collide", t2, (a, b, dis) => b.is(t1) && f(b, a));
+	const e1 = on("collide", t1, (a, b, col) => b.is(t2) && f(a, b, col));
+	const e2 = on("collide", t2, (a, b, col) => b.is(t1) && f(b, a, col));
 	const e3 = action(t1, (o1: GameObj) => {
 		if (!o1.area) {
 			throw new Error("collides() requires the object to have area() component");
@@ -1527,7 +1595,7 @@ function area(opt: AreaCompOpt = {}): AreaComp {
 				throw new Error("failed to get area dimension");
 			}
 
-			const scale = (this.scale ?? vec2(1)).scale(this.area.scale);
+			const scale = vec2(this.scale ?? 1).scale(this.area.scale);
 
 			w *= scale.x;
 			h *= scale.y;
@@ -2642,17 +2710,14 @@ const ctx: KaboomCtx = {
 	// dom
 	canvas: app.canvas,
 
-	record: (frameRate = 25) => {
+	record: (frameRate = 30) => {
 		const stream = app.canvas.captureStream(frameRate);
 
-		// Breaks the recording right now
-		// audio
-		// 	.ctx
-		// 	.createMediaStreamDestination()
-		// 	.stream
-		// 	.getAudioTracks().forEach((track) => {
-		// 		stream.addTrack(track)
-		// 	})
+		const streamAudioDestination = audio.ctx.createMediaStreamDestination();
+		audio.masterNode.connect(streamAudioDestination)
+		const audioStream = streamAudioDestination.stream;
+		const [firstAudioTrack] = audioStream.getAudioTracks();
+		stream.addTrack(firstAudioTrack);
 
 		const mediaRecorder = new MediaRecorder(stream);
 		const recordedChunks = [];
@@ -2690,6 +2755,10 @@ const ctx: KaboomCtx = {
 					// cleanup
 					URL.revokeObjectURL(url);
 					recordedChunks.length = 0;
+					audio.masterNode.disconnect(streamAudioDestination)
+					stream.getTracks().forEach(t => {
+						t.stop();
+					});
 				}, 0)
 			}
 		};
