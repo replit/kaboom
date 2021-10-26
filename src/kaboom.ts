@@ -72,6 +72,75 @@ import {
 	IDList,
 } from "./utils";
 
+import {
+	KaboomCtx,
+	KaboomOpt,
+	AudioPlay,
+	AudioPlayOpt,
+	Vec2,
+	Mat4,
+	DrawSpriteOpt,
+	DrawTextOpt,
+	GameObj,
+	Timer,
+	EventCanceller,
+	SceneID,
+	SceneDef,
+	CompList,
+	Comp,
+	Tag,
+	Key,
+	TouchID,
+	Collision,
+	PosComp,
+	ScaleComp,
+	RotateComp,
+	ColorComp,
+	OpacityComp,
+	Origin,
+	OriginComp,
+	LayerComp,
+	ZComp,
+	FollowComp,
+	MoveComp,
+	CleanupComp,
+	AreaCompOpt,
+	AreaComp,
+	Area,
+	SpriteData,
+	SpriteComp,
+	SpriteCompOpt,
+	GfxTexture,
+	Quad,
+	SpriteAnimPlayOpt,
+	TextComp,
+	TextCompOpt,
+	RectComp,
+	RectCompOpt,
+	UVQuadComp,
+	CircleComp,
+	Color,
+	OutlineComp,
+	TimerComp,
+	BodyComp,
+	BodyCompOpt,
+	Uniform,
+	ShaderComp,
+	SolidComp,
+	FixedComp,
+	StayComp,
+	HealthComp,
+	LifespanComp,
+	LifespanCompOpt,
+	StateComp,
+	Debug,
+	KaboomPlugin,
+	MergeObj,
+	Level,
+	LevelOpt,
+	Cursor,
+} from "./types";
+
 import kaboomPlugin from "./plugins/kaboom";
 
 // @ts-ignore
@@ -1551,7 +1620,7 @@ function area(opt: AreaCompOpt = {}): AreaComp {
 				throw new Error("failed to get area dimension");
 			}
 
-			const scale = (this.scale ?? vec2(1)).scale(this.area.scale);
+			const scale = vec2(this.scale ?? 1).scale(this.area.scale);
 
 			w *= scale.x;
 			h *= scale.y;
@@ -2170,6 +2239,62 @@ function lifespan(time: number, opt: LifespanCompOpt = {}): LifespanComp {
 	};
 }
 
+function state(initState: string, stateList?: string[]): StateComp {
+
+	if (!initState) {
+		throw new Error("state() requires an initial state");
+	}
+
+	const events = {};
+
+	const initStateHook = (state: string) => {
+		if (!events[state]) {
+			events[state] = {
+				enter: [],
+				leave: [],
+				update: [],
+				draw: [],
+			};
+		}
+	};
+
+	return {
+		id: "state",
+		state: initState,
+		enterState(state: string, ...args) {
+			if (stateList && !stateList[state]) {
+				throw new Error(`State not found: ${state}`);
+			}
+			events[this.state].leave.forEach((action) => action());
+			this.state = state;
+			events[this.state].enter.forEach((action) => action(...args));
+		},
+		onStateEnter(state: string, action: () => void) {
+			initStateHook(state);
+			events[state].enter.push(action);
+		},
+		onStateUpdate(state: string, action: () => void) {
+			initStateHook(state);
+			events[state].update.push(action);
+		},
+		onStateDraw(state: string, action: () => void) {
+			initStateHook(state);
+			events[state].draw.push(action);
+		},
+		onStateLeave(state: string, action: () => void) {
+			initStateHook(state);
+			events[state].leave.push(action);
+		},
+		update() {
+			events[this.state].update.forEach((action) => action());
+		},
+		draw() {
+			events[this.state].draw.forEach((action) => action());
+		},
+	};
+
+}
+
 const debug: Debug = {
 	inspect: false,
 	timeScale: 1,
@@ -2512,6 +2637,7 @@ const ctx: KaboomCtx = {
 	move,
 	cleanup,
 	follow,
+	state,
 	// group events
 	on,
 	onUpdate,

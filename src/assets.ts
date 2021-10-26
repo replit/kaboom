@@ -10,6 +10,19 @@ import {
 	Gfx,
 } from "./gfx";
 
+import {
+	SpriteData,
+	SoundData,
+	FontData,
+	ShaderData,
+	SpriteLoadSrc,
+	SpriteLoadOpt,
+	SpriteAtlasData,
+	FontLoadOpt,
+	Quad,
+	GfxTexData,
+} from "./types";
+
 // @ts-ignore
 import apl386Src from "./apl386.png";
 // @ts-ignore

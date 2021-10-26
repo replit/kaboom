@@ -1,5 +1,12 @@
 // explosion
 
+import {
+	CompList,
+	Vec2,
+	Comp,
+	KaboomCtx,
+} from "../types";
+
 // @ts-ignore
 import kaSrc from "./ka.png";
 // @ts-ignore
