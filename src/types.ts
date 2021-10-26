@@ -572,7 +572,7 @@ interface KaboomCtx {
 	 * })
 	 * ```
 	 */
-	state(initState: string, stateList?: string[]): StateComp,
+	state(initialState: string, stateList?: string[]): StateComp,
 	/**
 	 * Register an event on all game objs with certain tag.
 	 *
