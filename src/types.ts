@@ -1072,10 +1072,6 @@ export interface KaboomCtx {
 	 */
 	time(): number,
 	/**
-	 * Take a screenshot and get the dataurl of the image.
-	 */
-	screenshot(): string,
-	/**
 	 * If the game canvas is currently focused.
 	 */
 	isFocused(): boolean,
@@ -1644,22 +1640,13 @@ export interface KaboomCtx {
 	 */
 	plug<T>(plugin: KaboomPlugin<T>): void,
 	/**
-	 * Records a video of the game returns a handle
-	 * to control the recording and download it.
-	 * No support for audio recording currenlty
+	 * Take a screenshot and get the dataurl of the image.
 	 */
-	record(frameRate?: number): {
-		/** pauses the recording */
-		pause(): void;
-		/** resumes the recording */
-		resume(): void;
-		/**
-		 * stops the recording and downloads the file
-		 * trying to resume after downloading will lead
-		 * to an error
-		 */
-		download(filename?: string): void;
-	},
+	screenshot(): string,
+	/**
+	 * Start recording the canvas into a video. Returns a handle with controls.
+	 */
+	record(frameRate?: number): Recording,
 	/**
 	 * All chars in ASCII.
 	 */
@@ -1882,6 +1869,24 @@ export type TouchID = number;
  * Cancel the event.
  */
 export type EventCanceller = () => void;
+
+/**
+ * Screen recording control handle.
+ */
+export interface Recording {
+	/**
+	 * Pause the recording.
+	 */
+	pause(): void,
+	/**
+	 * Resumes the recording.
+	 */
+	resume(): void,
+	/**
+	 * Stops the recording and downloads the file as mp4. Trying to resume later will lead to error.
+	 */
+	download(filename: string): void,
+}
 
 /**
  * Frame-based animation configuration.
