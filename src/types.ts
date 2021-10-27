@@ -754,7 +754,7 @@ export interface KaboomCtx {
 	/**
 	 * @deprecated Use onLoad() instead.
 	 */
-	ready(action: () => void): void,
+	ready: KaboomCtx["onLoad"],
 	/**
 	 * @deprecated Use onCollide() instead
 	 */
