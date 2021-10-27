@@ -388,7 +388,7 @@ export interface KaboomCtx {
 	 * // when froggy is grounded, press space to jump
 	 * // check out BodyComp for more methods
 	 * keyPress("space", () => {
-	 *     if (froggy.grounded()) {
+	 *     if (froggy.isGrounded()) {
 	 *         froggy.jump();
 	 *     }
 	 * });
@@ -3275,6 +3275,14 @@ export interface BodyComp extends Comp {
 	 * Registers an event that runs when the object starts falling.
 	 */
 	onFall(action: () => void): EventCanceller,
+	/**
+	 * Registers an event that runs when the object bumps into something on the head.
+	 */
+	onHeadbutt(action: () => void): EventCanceller,
+	/**
+	 * Registers an event that runs when the object performs the second jump when double jumping.
+	 */
+	onDoubleJump(action: () => void): EventCanceller,
 }
 
 export interface BodyCompOpt {
@@ -3364,6 +3372,18 @@ export interface HealthComp extends Comp {
 	 * Set current health points.
 	 */
 	setHP(hp: number): void,
+	/**
+	 * Registers an event that runs when hurt() is called upon the object.
+	 */
+	onHurt(action: () => void): EventCanceller,
+	/**
+	 * Registers an event that runs when heal() is called upon the object.
+	 */
+	onHeal(action: () => void): EventCanceller,
+	/**
+	 * Registers an event that runs when object's HP is equal or below 0.
+	 */
+	onDeath(action: () => void): EventCanceller,
 }
 
 export interface LifespanComp extends Comp {

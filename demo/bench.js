@@ -4,7 +4,7 @@ kaboom();
 
 loadBean();
 
-render(() => {
+onDraw(() => {
 
 	const w = width();
 	const h = height();

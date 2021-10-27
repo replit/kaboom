@@ -2144,7 +2144,7 @@ function body(opt: BodyCompOpt = {}): BodyComp {
 		},
 
 		doubleJump(force: number) {
-			if (this.grounded()) {
+			if (this.isGrounded()) {
 				this.jump(force);
 			} else if (canDouble) {
 				canDouble = false;
@@ -2159,6 +2159,14 @@ function body(opt: BodyCompOpt = {}): BodyComp {
 
 		onFall(action: () => void): EventCanceller {
 			return this.on("fall", action);
+		},
+
+		onHeadbutt(action: () => void): EventCanceller {
+			return this.on("headbutt", action);
+		},
+
+		onDoubleJump(action: () => void): EventCanceller {
+			return this.on("doubleJump", action);
 		},
 
 	};
@@ -2218,6 +2226,15 @@ function health(hp: number): HealthComp {
 			if (hp <= 0) {
 				this.trigger("death");
 			}
+		},
+		onHurt(action: () => void): EventCanceller {
+			return this.on("hurt", action);
+		},
+		onHeal(action: () => void): EventCanceller {
+			return this.on("heal", action);
+		},
+		onDeath(action: () => void): EventCanceller {
+			return this.on("death", action);
 		},
 		inspect() {
 			return `${hp}`;

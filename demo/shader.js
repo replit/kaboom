@@ -21,7 +21,7 @@ const shade = add([
 	shader("test"),
 ]);
 
-action(() => {
+onUpdate(() => {
 	shade.uniform["u_time"] = time();
 	shade.uniform["u_mpos"] = mousePos().scale(1 / width(), 1 / height());
 });

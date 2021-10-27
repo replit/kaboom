@@ -16,7 +16,7 @@ const outline = {
 };
 
 // this'll run every frame
-render(() => {
+onDraw(() => {
 
 	const mx = (width() - px * 2) / 2;
 	const my = (height() - py * 2) / 1;
@@ -103,7 +103,7 @@ render(() => {
 });
 
 // this'll also run every frame, but before all renders
-action(() => {
+onUpdate(() => {
 
 	trail.push(mousePos());
 

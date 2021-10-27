@@ -39,10 +39,10 @@ function shoot() {
 	]);
 }
 
-keyPress("space", shoot);
-mouseClick(shoot);
+onKeyPress("space", shoot);
+onMouseClick(shoot);
 
-action("bean", (m) => {
+onUpdate("bean", (m) => {
 	m.move(m.dir.scale(SPEED));
 });
 

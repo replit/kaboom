@@ -8,7 +8,7 @@ scene("game", () => {
 		text("Press space to view score", { width: width() }),
 	]);
 
-	keyPress("space", () => {
+	onKeyPress("space", () => {
 		// passing custom data to another scene
 		go("score", ~~rand(100));
 	});
@@ -23,7 +23,7 @@ scene("score", (score) => {
 	]);
 
 	// go back to game scene on key press
-	keyPress("space", () => {
+	onKeyPress("space", () => {
 		go("game");
 	});
 

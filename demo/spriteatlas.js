@@ -261,7 +261,7 @@ function spin() {
 	};
 }
 
-keyPress("space", () => {
+onKeyPress("space", () => {
 	let interacted = false;
 	every("chest", (c) => {
 		if (player.isTouching(c)) {
@@ -289,37 +289,37 @@ const dirs = {
 	"down": DOWN,
 };
 
-player.action(() => {
+player.onUpdate(() => {
 	camPos(player.pos);
 });
 
-keyDown("right", () => {
+onKeyDown("right", () => {
 	player.flipX(false);
 	sword.flipX(false);
 	player.move(SPEED, 0);
 	sword.follow.offset = vec2(-4, 9);
 });
 
-keyDown("left", () => {
+onKeyDown("left", () => {
 	player.flipX(true);
 	sword.flipX(true);
 	player.move(-SPEED, 0);
 	sword.follow.offset = vec2(4, 9);
 });
 
-keyDown("up", () => {
+onKeyDown("up", () => {
 	player.move(0, -SPEED);
 });
 
-keyDown("down", () => {
+onKeyDown("down", () => {
 	player.move(0, SPEED);
 });
 
-keyPress(["left", "right", "up", "down"], () => {
+onKeyPress(["left", "right", "up", "down"], () => {
 	player.play("run");
 });
 
-keyRelease(["left", "right", "up", "down"], () => {
+onKeyRelease(["left", "right", "up", "down"], () => {
 	if (
 		!keyIsDown("left")
 		&& !keyIsDown("right")
