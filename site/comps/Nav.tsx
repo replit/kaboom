@@ -178,11 +178,18 @@ const IndexContent: React.FC<IndexContentProps> = ({
 						<Text size="big" color={3}>{sec.name}</Text>
 							<View>
 								{ entries.map((name) => {
+
 									let dname = name;
 									const mem = doc.types[name][0];
+
+									if (doc.isDeprecated(mem)) {
+										return
+									}
+
 									if (mem.kind === "MethodSignature" || mem.kind === "FunctionDeclaration") {
 										dname += "()";
 									}
+
 									return (
 										<a key={name} href={`/#${name}`}>
 											<View
@@ -201,6 +208,7 @@ const IndexContent: React.FC<IndexContentProps> = ({
 											</View>
 										</a>
 									);
+
 								}) }
 							</View>
 					</View>
