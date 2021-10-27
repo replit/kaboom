@@ -1534,17 +1534,9 @@ interface KaboomCtx {
 	 */
 	screenshot(): string,
 	/**
-	 * Start recording the game. Call endRecord() to end the recording and download the video. You can also toggle recording mode by hitting F11 in debug mode.
+	 * Start recording the canvas into a video. Returns a handle with controls.
 	 */
-	startRecord(frameRate?: number): void,
-	/**
-	 * End recording and download the video.
-	 */
-	endRecord(filename?: string): void,
-	/**
-	 * If is currently recording.
-	 */
-	isRecording(): boolean,
+	record(frameRate?: number): Recording,
 	/**
 	 * All chars in ASCII.
 	 */
@@ -1750,6 +1742,24 @@ type TouchID = number;
  * Cancel the event.
  */
 type EventCanceller = () => void;
+
+/**
+ * Screen recording control handle.
+ */
+export interface Recording {
+	/**
+	 * Pause the recording.
+	 */
+	pause(): void,
+	/**
+	 * Resumes the recording.
+	 */
+	resume(): void,
+	/**
+	 * Stops the recording and downloads the file as mp4. Trying to resume later will lead to error.
+	 */
+	download(filename: string): void,
+}
 
 /**
  * Frame-based animation configuration.

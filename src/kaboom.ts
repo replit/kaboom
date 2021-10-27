@@ -791,11 +791,14 @@ function enterDebugMode() {
 		debug.log(`stepped frame`);
 	});
 
+	let curRecording = null;
+
 	keyPress("f11", () => {
-		if (isRecording()) {
-			endRecord();
+		if (curRecording) {
+			curRecording.download();
+			curRecording = null;
 		} else {
-			startRecord();
+			curRecording = record();
 		}
 	});
 
@@ -2410,11 +2413,7 @@ function addLevel(map: string[], opt: LevelOpt): Level {
 
 }
 
-let curRecording = null;
-
-function startRecord(frameRate = 30) {
-
-	if (isRecording()) return;
+function record(frameRate = 30): Recording {
 
 	const stream = app.canvas.captureStream(frameRate);
 	const audioDest = audio.ctx.createMediaStreamDestination();
@@ -2437,46 +2436,36 @@ function startRecord(frameRate = 30) {
 
 	recorder.start();
 
-	curRecording = {
-		recorder,
-		chunks,
-		audioDest,
-		stream,
+	return {
+
+		resume() {
+			recorder.resume();
+		},
+
+		pause() {
+			recorder.pause();
+		},
+
+		download(filename = "kaboom.mp4") {
+
+			recorder.stop();
+
+			// Chunks might need a tick to flush
+			setTimeout(() => {
+
+				download(new Blob(chunks, {
+					type: "video/mp4",
+				}), filename);
+
+				// cleanup
+				audio.masterNode.disconnect(audioDest)
+				stream.getTracks().forEach(t => t.stop());
+
+			}, 0)
+
+		}
 	};
 
-}
-
-function endRecord(filename = "kaboom.mp4") {
-
-	if (!isRecording()) return;
-
-	const {
-		recorder,
-		chunks,
-		audioDest,
-		stream,
-	} = curRecording;
-
-	recorder.stop();
-
-	// Chunks might need a tick to flush
-	setTimeout(() => {
-
-		download(new Blob(chunks, {
-			type: "video/mp4",
-		}), filename);
-
-		// cleanup
-		audio.masterNode.disconnect(audioDest)
-		stream.getTracks().forEach(t => t.stop());
-		curRecording = null;
-
-	}, 0)
-
-}
-
-function isRecording() {
-	return curRecording !== null;
 }
 
 const ctx: KaboomCtx = {
@@ -2498,9 +2487,7 @@ const ctx: KaboomCtx = {
 	dt,
 	time: app.time,
 	screenshot: app.screenshot,
-	isRecording: isRecording,
-	startRecord: startRecord,
-	endRecord: endRecord,
+	record: record,
 	focused: app.focused,
 	focus: app.focus,
 	cursor: app.cursor,
@@ -2744,7 +2731,7 @@ app.run(() => {
 			logger.draw();
 		}
 
-		if (isRecording()) {
+		if (curRecording) {
 			gfx.drawCircle({
 				radius: 12,
 				pos: vec2(24, height() - 24),
