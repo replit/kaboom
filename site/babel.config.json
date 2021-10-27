@@ -1,0 +1,12 @@
+{
+	"presets": [
+		[
+			"next/babel",
+			{
+				"preset-react": {
+					"importSource": "@emotion/react"
+				}
+			}
+		]
+	]
+}
