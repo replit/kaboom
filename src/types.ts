@@ -80,8 +80,8 @@ export interface KaboomCtx {
 	 *     player.move(player.dir.scale(player.speed));
 	 * });
 	 *
-	 * // .collides is provided by area()
-	 * player.collides("tree", () => {
+	 * // .onCollide is provided by area()
+	 * player.onCollide("tree", () => {
 	 *     destroy(player);
 	 * });
 	 *
@@ -143,7 +143,7 @@ export interface KaboomCtx {
 	 * @example
 	 * ```js
 	 * // every time froggy collides with anything with tag "fruit", remove it
-	 * froggy.collides("fruit", (fruit) => {
+	 * froggy.onCollide("fruit", (fruit) => {
 	 *     destroy(fruit);
 	 * });
 	 * ```
@@ -155,7 +155,7 @@ export interface KaboomCtx {
 	 * @example
 	 * ```js
 	 * // destroy all objects with tag "bomb" when you click one
-	 * clicks("bomb", () => {
+	 * onClick("bomb", () => {
 	 *     destroyAll("bomb");
 	 * });
 	 * ```
@@ -248,7 +248,7 @@ export interface KaboomCtx {
 	 *     { value: 0 },
 	 * ]);
 	 *
-	 * player.collides("coin", () => {
+	 * player.onCollide("coin", () => {
 	 *     score.value += 1;
 	 *     score.text = "Score:" + score.value;
 	 * });
@@ -331,7 +331,7 @@ export interface KaboomCtx {
 	 * ])
 	 *
 	 * // die if player collides with another game obj with tag "tree"
-	 * player.collides("tree", () => {
+	 * player.onCollide("tree", () => {
 	 *     destroy(player);
 	 *     go("lose");
 	 * });
@@ -479,7 +479,7 @@ export interface KaboomCtx {
 	 *
 	 * @example
 	 * ```js
-	 * player.collides("bomb", () => {
+	 * player.onCollide("bomb", () => {
 	 *     // spawn an explosion and switch scene, but don't destroy the explosion game obj on scene switch
 	 *     add([
 	 *         sprite("explosion", { anim: "burst", }),
@@ -500,12 +500,12 @@ export interface KaboomCtx {
 	 *     health(3),
 	 * ]);
 	 *
-	 * player.collides("bad", (bad) => {
+	 * player.onCollide("bad", (bad) => {
 	 *     player.hurt(1);
 	 *     bad.hurt(1);
 	 * });
      *
-	 * player.collides("apple", () => {
+	 * player.onCollide("apple", () => {
 	 *     player.heal(1);
 	 * });
 	 *
@@ -1114,7 +1114,7 @@ export interface KaboomCtx {
 	 * @example
 	 * ```js
 	 * // shake intensively when froggy collides with a "bomb"
-	 * froggy.collides("bomb", () => {
+	 * froggy.onCollide("bomb", () => {
 	 *     shake(120);
 	 * });
 	 * ```
@@ -1204,7 +1204,7 @@ export interface KaboomCtx {
 	 *
 	 * @example
 	 * ```js
-	 * hovers("clickable", (c) => {
+	 * onHover("clickable", (c) => {
 	 *     cursor("pointer");
 	 * });
 	 * ```
