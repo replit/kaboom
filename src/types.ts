@@ -1011,6 +1011,10 @@ export interface KaboomCtx {
 	/**
 	 * If the game canvas is currently focused.
 	 */
+	isFocused(): boolean,
+	/**
+	 * @deprecated Use isFocused() instead.
+	 */
 	focused(): boolean,
 	/**
 	 * Focus on the game canvas.
@@ -1970,9 +1974,17 @@ export interface AudioPlay {
 	/**
 	 * If the sound is paused.
 	 */
+	isPaused(): boolean,
+	/**
+	 * @deprecated Use isPaused() instead.
+	 */
 	paused(): boolean,
 	/**
 	 * If the sound is stopped or ended.
+	 */
+	isStopped(): boolean,
+	/**
+	 * @deprecated Use isStopped() instead.
 	 */
 	stopped(): boolean,
 	/**
@@ -3129,9 +3141,17 @@ export interface BodyComp extends Comp {
 	/**
 	 * If currently landing on a platform.
 	 */
+	isGrounded(): boolean,
+	/**
+	 * @deprecated Use isGrounded() instead.
+	 */
 	grounded(): boolean,
 	/**
 	 * If currently falling.
+	 */
+	isFalling(): boolean,
+	/**
+	 * @deprecated Use isFalling() instead.
 	 */
 	falling(): boolean,
 	/**

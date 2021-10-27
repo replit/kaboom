@@ -2089,12 +2089,20 @@ function body(opt: BodyCompOpt = {}): BodyComp {
 			return curPlatform;
 		},
 
-		grounded(): boolean {
+		isGrounded() {
 			return curPlatform !== null;
 		},
 
-		falling(): boolean {
+		grounded(): boolean {
+			return this.isGrounded();
+		},
+
+		isFalling(): boolean {
 			return velY > 0;
+		},
+
+		falling(): boolean {
+			return this.isFalling();
 		},
 
 		jump(force: number) {
@@ -2545,7 +2553,8 @@ const ctx: KaboomCtx = {
 	dt,
 	time: app.time,
 	screenshot: app.screenshot,
-	focused: app.focused,
+	isFocused: app.isFocused,
+	focused: app.isFocused,
 	focus: app.focus,
 	cursor: app.cursor,
 	regCursor,
