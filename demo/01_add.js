@@ -37,7 +37,7 @@ for (let i = 0; i < 3; i++) {
 
 // Plain action() is similar to obj.action(), but instead it operates on all objects that shares a specific tag.
 // In this case we're running this function with every game object with tag "enemy"
-action("enemy", (enemy) => {
+onUpdate("enemy", (enemy) => {
 	// .angle is a property provided by rotate() component
 	// Increment the angle of every "enemy" by 120 degrees per second
 	enemy.angle += 120 * dt()

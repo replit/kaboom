@@ -16,20 +16,20 @@ const player = add([
 	pos(center()),
 ])
 
-// keuPress() registers an event that runs every frame as long as user is holding a certain key
-keyDown("left", () => {
+// onKeyDown() registers an event that runs every frame as long as user is holding a certain key
+onKeyDown("left", () => {
 	player.move(-SPEED, 0)
 })
 
-keyDown("right", () => {
+onKeyDown("right", () => {
 	player.move(SPEED, 0)
 })
 
-keyDown("up", () => {
+onKeyDown("up", () => {
 	player.move(0, -SPEED)
 })
 
-keyDown("down", () => {
+onKeyDown("down", () => {
 	player.move(0, SPEED)
 })
 

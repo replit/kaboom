@@ -20,19 +20,19 @@ const player = add([
 ])
 
 // Register input handlers & movement
-keyDown("left", () => {
+onKeyDown("left", () => {
 	player.move(-SPEED, 0)
 })
 
-keyDown("right", () => {
+onKeyDown("right", () => {
 	player.move(SPEED, 0)
 })
 
-keyDown("up", () => {
+onKeyDown("up", () => {
 	player.move(0, -SPEED)
 })
 
-keyDown("down", () => {
+onKeyDown("down", () => {
 	player.move(0, SPEED)
 })
 
@@ -51,18 +51,18 @@ for (let i = 0; i < 3; i++) {
 
 }
 
-// .collides() is provided by area() component, it registers an event that runs when an objects collides with another object with certain tag
+// .onCollide() is provided by area() component, it registers an event that runs when an objects collides with another object with certain tag
 // In this case we destroy (remove from game) the enemy when player hits one
-player.collides("enemy", (enemy) => {
+player.onCollide("enemy", (enemy) => {
 	destroy(enemy)
 })
 
 // .clicks() is provided by area() component, it registers an event that runs when the object is clicked
-player.clicks(() => {
+player.onClick(() => {
 	debug.log("what up")
 })
 
-player.action(() => {
+player.onUpdate(() => {
 	// .isHovering() is provided by area() component, which returns a boolean of if the object is currently being hovered on
 	if (player.isHovering()) {
 		player.color = rgb(0, 0, 255)
