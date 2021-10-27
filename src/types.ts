@@ -535,9 +535,6 @@ export interface KaboomCtx {
 	 */
 	lifespan(time: number, options?: LifespanCompOpt): LifespanComp,
 	/**
-<<<<<<< HEAD
-	 * Registers an event on all game objs with certain tag.
-=======
 	 * Finite state machine.
 	 *
 	 * @example
@@ -578,7 +575,6 @@ export interface KaboomCtx {
 	state(initialState: string, stateList?: string[]): StateComp,
 	/**
 	 * Register an event on all game objs with certain tag.
->>>>>>> b022b64d431626fb4d517d2c13dd7d60e70915f5
 	 *
 	 * @section Events
 	 *
@@ -633,7 +629,7 @@ export interface KaboomCtx {
 	 *
 	 * @example
 	 * ```js
-	 * collides("sun", "earth", () => {
+	 * onCollide("sun", "earth", () => {
 	 *     addExplosion();
 	 * });
 	 * ```
@@ -689,12 +685,16 @@ export interface KaboomCtx {
 	 * @example
 	 * ```js
 	 * // move left by SPEED pixels per frame every frame when "left" is being held down
-	 * keyDown("left", () => {
+	 * onKeyDown("left", () => {
 	 *     froggy.move(-SPEED, 0);
 	 * });
 	 * ```
 	 */
-	keyDown(k: Key | Key[], cb: () => void): EventCanceller,
+	onKeyDown(k: Key | Key[], cb: () => void): EventCanceller,
+	/**
+	 * @deprecated Use onKeyDown() instead.
+	 */
+	keyDown: KaboomCtx["onKeyDown"],
 	/**
 	 * Registers an event that runs when user presses certain key.
 	 *
@@ -744,7 +744,7 @@ export interface KaboomCtx {
 	 * @example
 	 * ```js
 	 * // type into input
-	 * charInput((ch) => {
+	 * onChatInput((ch) => {
 	 *     input.text += ch;
 	 * });
 	 * ```
