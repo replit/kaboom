@@ -26,13 +26,13 @@ onCharInput((ch) => {
 	input.text += ch;
 });
 
-// like keyPress() but will retrigger when key is being held (which is similar
+// like onKeyPress() but will retrigger when key is being held (which is similar
 // to text input behavior)
-onKeyPressRep("enter", () => {
+onKeyPressRepeat("enter", () => {
 	input.text += "\n";
 });
 
-onKeyPressRep("backspace", () => {
+onKeyPressRepeat("backspace", () => {
 	input.text = input.text.substring(0, input.text.length - 1);
 });
 
