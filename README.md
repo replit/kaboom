@@ -22,7 +22,7 @@ const froggy = add([
 ]);
 
 // press space to jump
-keyPress("space", () => {
+onKeyPress("space", () => {
     // this method is provided by the "body" component above
     froggy.jump();
 });
@@ -58,32 +58,32 @@ const player = add([
 Blocky imperative syntax for describing behaviors
 
 ```js
-// .collides() comes from "area" component
-player.collides("enemy", () => {
+// .onCollide() comes from "area" component
+player.onCollide("enemy", () => {
     // .hurt() comes from "health" component
     player.hurt(1)
 });
 
 // check fall death
-player.action(() => {
+player.onUpdate(() => {
     if (player.pos.y >= height()) {
         destroy(player);
         gameOver();
     }
 });
 
-// if 'player' collides with any object with tag "enemy", run the callback
-player.collides("enemy", () => {
+// if 'player' onCollide with any object with tag "enemy", run the callback
+player.onCollide("enemy", () => {
     player.hp -= 1;
 });
 
 // all objects with tag "enemy" will move towards 'player' every frame
-action("enemy", (e) => {
+onUpdate("enemy", (e) => {
     e.move(player.pos.sub(e.pos).unit().scale(e.speed));
 });
 
 // move up 100 pixels per second every frame when "w" key is held down
-keyDown("w", () => {
+onKeyDown("w", () => {
     player.move(0, 100);
 });
 ```
