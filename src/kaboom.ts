@@ -1004,8 +1004,6 @@ function gameFrame(ignorePause?: boolean) {
 		.translate(cam.pos.scale(-1).add(size.scale(0.5)).add(shake))
 		;
 
-	gfx.frameStart();
-
 	// draw every obj
 	every((obj) => {
 
@@ -2892,6 +2890,7 @@ function frames() {
 app.run(() => {
 
 	numFrames++;
+	gfx.frameStart();
 
 	if (!game.loaded) {
 
@@ -2906,8 +2905,6 @@ app.run(() => {
 			const w = width() / 2;
 			const h = 24 / gfx.scale();
 			const pos = vec2(width() / 2, height() / 2).sub(vec2(w / 2, h / 2));
-
-			gfx.frameStart();
 
 			gfx.drawRect({
 				pos: vec2(0),
