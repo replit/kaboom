@@ -661,44 +661,6 @@ export interface KaboomCtx {
 		cb: (a: GameObj) => void,
 	): EventCanceller,
 	/**
-	 * @deprecated Use onUpdate() instead
-	 */
-	action: KaboomCtx["onUpdate"],
-	/**
-	 * @deprecated Use onDraw() instead
-	 */
-	render: KaboomCtx["onDraw"],
-	/**
-	 * @deprecated Use onLoad() instead.
-	 */
-	ready(action: () => void): void,
-	/**
-	 * @deprecated Use onCollide() instead
-	 */
-	collides: KaboomCtx["onCollide"],
-	/**
-	 * @deprecated Use onClick() instead
-	 */
-	clicks: KaboomCtx["onClick"],
-	/**
-	 * @deprecated Use onHover() instead
-	 */
-	hovers: KaboomCtx["onHover"],
-	/**
-	 * Get current mouse position (without camera transform).
-	 *
-	 * @section Input
-	 */
-	mousePos(): Vec2,
-	/**
-	 * Get current mouse position (after camera transform)
-	 */
-	mouseWorldPos(): Vec2,
-	/**
-	 * How much mouse moved last frame.
-	 */
-	mouseDeltaPos(): Vec2,
-	/**
 	 * Registers an event that runs every frame when a key is held down.
 	 *
 	 * @example
@@ -782,47 +744,29 @@ export interface KaboomCtx {
 	 */
 	onTouchEnd(cb: (id: TouchID, pos: Vec2) => void): EventCanceller,
 	/**
-	 * If certain key is currently down.
-	 *
-	 * @example
-	 * ```js
-	 * // almost equivalent to the onKeyPress() example above
-	 * onUpdate(() => {
-	 *     if (keyIsDown("left")) {
-	 *         froggy.move(-SPEED, 0);
-	 *     }
-	 * });
-	 * ```
+	 * @deprecated Use onUpdate() instead
 	 */
-	keyIsDown(k: Key): boolean,
+	action: KaboomCtx["onUpdate"],
 	/**
-	 * If certain key is just pressed last frame.
+	 * @deprecated Use onDraw() instead
 	 */
-	keyIsPressed(k?: Key): boolean,
+	render: KaboomCtx["onDraw"],
 	/**
-	 * If certain key is just pressed last frame (accepts help down repeatedly).
+	 * @deprecated Use onLoad() instead.
 	 */
-	keyIsPressedRep(k?: Key): boolean,
+	ready(action: () => void): void,
 	/**
-	 * If certain key is just released last frame.
+	 * @deprecated Use onCollide() instead
 	 */
-	keyIsReleased(k?: Key): boolean,
+	collides: KaboomCtx["onCollide"],
 	/**
-	 * If certain mouse is currently down.
+	 * @deprecated Use onClick() instead
 	 */
-	mouseIsDown(): boolean,
+	clicks: KaboomCtx["onClick"],
 	/**
-	 * If mouse is just clicked last frame.
+	 * @deprecated Use onHover() instead
 	 */
-	mouseIsClicked(): boolean,
-	/**
-	 * If mouse is just released last frame.
-	 */
-	mouseIsReleased(): boolean,
-	/**
-	 * If mouse moved last frame.
-	 */
-	mouseIsMoved(): boolean,
+	hovers: KaboomCtx["onHover"],
 	/**
 	 * @deprecated Use onKeyDown() instead.
 	 */
@@ -1103,6 +1047,60 @@ export interface KaboomCtx {
 	 * Is currently on a touch screen device.
 	 */
 	isTouch(): boolean,
+	/**
+	 * Get current mouse position (without camera transform).
+	 */
+	mousePos(): Vec2,
+	/**
+	 * Get current mouse position (after camera transform)
+	 */
+	mouseWorldPos(): Vec2,
+	/**
+	 * How much mouse moved last frame.
+	 */
+	mouseDeltaPos(): Vec2,
+	/**
+	 * If certain key is currently down.
+	 *
+	 * @example
+	 * ```js
+	 * // equivalent to the calling froggy.move() in an onKeyDown("left")
+	 * onUpdate(() => {
+	 *     if (keyIsDown("left")) {
+	 *         froggy.move(-SPEED, 0);
+	 *     }
+	 * });
+	 * ```
+	 */
+	keyIsDown(k: Key): boolean,
+	/**
+	 * If certain key is just pressed last frame.
+	 */
+	keyIsPressed(k?: Key): boolean,
+	/**
+	 * If certain key is just pressed last frame (accepts help down repeatedly).
+	 */
+	keyIsPressedRep(k?: Key): boolean,
+	/**
+	 * If certain key is just released last frame.
+	 */
+	keyIsReleased(k?: Key): boolean,
+	/**
+	 * If certain mouse is currently down.
+	 */
+	mouseIsDown(): boolean,
+	/**
+	 * If mouse is just clicked last frame.
+	 */
+	mouseIsClicked(): boolean,
+	/**
+	 * If mouse is just released last frame.
+	 */
+	mouseIsReleased(): boolean,
+	/**
+	 * If mouse moved last frame.
+	 */
+	mouseIsMoved(): boolean,
 	/**
 	 * Camera shake.
 	 *
