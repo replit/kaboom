@@ -624,6 +624,26 @@ export interface KaboomCtx {
 	 */
 	render: KaboomCtx["onDraw"],
 	/**
+	 * Registers an event that runs when all assets finished loading.
+	 *
+	 * @example
+	 * ```js
+	 * const froggy = add([
+	 *     sprite("froggy"),
+	 * ]);
+	 *
+	 * // certain assets related data are only available when the game finishes loading
+	 * onLoad(() => {
+	 *     debug.log(froggy.numFrames());
+	 * });
+	 * ```
+	 */
+	onLoad(action: () => void): void,
+	/**
+	 * @deprecated Use onLoad() instead.
+	 */
+	ready(action: () => void): void,
+	/**
 	 * Registers an event that runs when 2 game objs with certain tags collides.
 	 *
 	 * @example
@@ -1083,26 +1103,6 @@ export interface KaboomCtx {
 	 * Focus on the game canvas.
 	 */
 	focus(): void,
-	/**
-	 * Registers an event that runs when all assets finished loading.
-	 *
-	 * @example
-	 * ```js
-	 * const froggy = add([
-	 *     sprite("froggy"),
-	 * ]);
-	 *
-	 * // certain assets related data are only available when the game finishes loading
-	 * onLoad(() => {
-	 *     debug.log(froggy.numFrames());
-	 * });
-	 * ```
-	 */
-	onLoad(action: () => void): void,
-	/**
-	 * @deprecated Use onLoad() instead.
-	 */
-	ready(action: () => void): void,
 	/**
 	 * Is currently on a touch screen device.
 	 */
