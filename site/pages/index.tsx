@@ -89,7 +89,7 @@ Play with it yourself or check out the examples in the [Playground](/play)!
 			return (
 				<View stretchX gap={1} key={sec.name}>
 					<Text size="huge" color={3}>{sec.name}</Text>
-					<View stretchX gap={3}>
+					<View stretchX gap={4}>
 						{ entries.map((name) => (
 							<Doc
 								id={name}
