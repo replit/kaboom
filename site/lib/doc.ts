@@ -33,7 +33,7 @@ for (const mem of kmembers) {
 
 	if (tags["section"]) {
 		const section = {
-			name: tags["section"],
+			name: tags["section"][0],
 			entries: [],
 			deprecated: [],
 		};
