@@ -29,7 +29,6 @@ for (const mem of kmembers) {
 	types[mem.name].push(mem);
 
 	const tags = mem.jsDoc?.tags ?? {};
-	let deprecated = false;
 
 	if (tags["section"]) {
 		const section = {
@@ -38,12 +37,10 @@ for (const mem of kmembers) {
 			deprecated: [],
 		};
 		sections.push(section);
-	} else if (tags["deprecated"]) {
-		deprecated = true;
 	}
 
 	const curSection = sections[sections.length - 1];
-	const dest = deprecated ? curSection.deprecated : curSection.entries;
+	const dest = tags["deprecated"] ? curSection.deprecated : curSection.entries;
 
 	if (mem.name && !dest.includes(mem.name)) {
 		dest.push(mem.name);
