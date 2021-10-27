@@ -12,10 +12,10 @@ const player = add([
 
 let dest = vec2(0);
 
-player.action(() => {
+player.onUpdate(() => {
 	player.moveTo(dest, 480);
 });
 
-mouseClick(() => {
+onMouseClick(() => {
 	dest = mousePos();
 });

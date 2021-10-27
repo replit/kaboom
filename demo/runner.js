@@ -34,14 +34,14 @@ scene("game", () => {
 	]);
 
 	function jump() {
-		if (player.grounded()) {
+		if (player.isGrounded()) {
 			player.jump(JUMP_FORCE);
 		}
 	}
 
 	// jump when user press space
-	keyPress("space", jump);
-	mouseClick(jump);
+	onKeyPress("space", jump);
+	onMouseClick(jump);
 
 	function spawnTree() {
 
@@ -67,7 +67,7 @@ scene("game", () => {
 	spawnTree();
 
 	// lose if player collides with any game obj with tag "tree"
-	player.collides("tree", () => {
+	player.onCollide("tree", () => {
 		// go to "lose" scene and pass the score
 		go("lose", score);
 		burp();
@@ -83,7 +83,7 @@ scene("game", () => {
 	]);
 
 	// increment score every frame
-	action(() => {
+	onUpdate(() => {
 		score++;
 		scoreLabel.text = score;
 	});
@@ -108,8 +108,8 @@ scene("lose", (score) => {
 	]);
 
 	// go back to game with space is pressed
-	keyPress("space", () => go("game"));
-	mouseClick(() => go("game"));
+	onKeyPress("space", () => go("game"));
+	onMouseClick(() => go("game"));
 
 });
 

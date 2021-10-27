@@ -124,10 +124,6 @@ function buildTypes() {
 				if (!mem.name || dups.has(mem.name)) {
 					continue;
 				}
-				if (mem.jsDoc) {
-					// TODO: what is jsDoc when it has multiple members?
-					dts += `\t/**\n\t * ${mem.jsDoc[0].comment}\n\t */\n`;
-				}
 				if (overwrites.has(mem.name)) {
 					dts += "\t// @ts-ignore\n";
 				}

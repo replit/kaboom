@@ -36,7 +36,7 @@ scene("game", () => {
 	]);
 
 	// check for fall death
-	bean.action(() => {
+	bean.onUpdate(() => {
 		if (bean.pos.y >= height() || bean.pos.y <= CEILING) {
 			// switch to "lose" scene
 			go("lose", score);
@@ -44,13 +44,13 @@ scene("game", () => {
 	});
 
 	// jump
-	keyPress("space", () => {
+	onKeyPress("space", () => {
 		bean.jump(JUMP_FORCE);
 		play("wooosh");
 	});
 
 	// mobile
-	mouseClick(() => {
+	onMouseClick(() => {
 		bean.jump(JUMP_FORCE);
 		play("wooosh");
 	});
@@ -89,15 +89,15 @@ scene("game", () => {
 
 	}
 
-	// callback when bean collides with objects with tag "pipe"
-	bean.collides("pipe", () => {
+	// callback when bean onCollide with objects with tag "pipe"
+	bean.onCollide("pipe", () => {
 		go("lose", score);
 		play("hit");
 		addKaboom(bean.pos);
 	});
 
 	// per frame event for all objects with tag 'pipe'
-	action("pipe", (p) => {
+	onUpdate("pipe", (p) => {
 		// check if bean passed the pipe
 		if (p.pos.x + p.width <= bean.pos.x && p.passed === false) {
 			addScore();
@@ -146,8 +146,8 @@ scene("lose", (score) => {
 	]);
 
 	// go back to game with space is pressed
-	keyPress("space", () => go("game"));
-	mouseClick(() => go("game"));
+	onKeyPress("space", () => go("game"));
+	onMouseClick(() => go("game"));
 
 });
 

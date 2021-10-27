@@ -22,7 +22,7 @@ add([
 ]);
 
 // move paddles with mouse
-action("paddle", (p) => {
+onUpdate("paddle", (p) => {
 	p.pos.y = mousePos().y
 });
 
@@ -49,7 +49,7 @@ const ball = add([
 ]);
 
 // move ball, bounce it when touche horizontal edges, respawn when touch vertical edges
-ball.action(() => {
+ball.onUpdate(() => {
 	ball.move(ball.vel.scale(speed));
 	if (ball.pos.x < 0 || ball.pos.x > width()) {
 		score = 0;
@@ -63,7 +63,7 @@ ball.action(() => {
 });
 
 // bounce when touch paddle
-ball.collides("paddle", (p) => {
+ball.onCollide("paddle", (p) => {
 	speed += 60;
 	ball.vel = dir(ball.pos.angle(p.pos));
 	score++;

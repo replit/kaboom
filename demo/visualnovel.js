@@ -30,7 +30,7 @@ const chars = [
 let c = 0;
 
 scene("say", (txt, ch) => {
-	
+
 	const textbox = add([
 		rect(width() - 200, 120),
 		origin("center"),
@@ -46,18 +46,19 @@ scene("say", (txt, ch) => {
 		origin("center"),
 		pos(center().sub(0, 50))
 	]);
-	
+
 	add([
 		text(txt, { size: 30, width: width() - 230 }),
 		pos(textbox.pos.sub(0, 10)),
 		origin("center")
 	]);
 
-	keyPress("space", () => {
+	onKeyPress("space", () => {
 		if(c == dialogues.length - 1) c = 0;
 		else c++;
 		go("say", dialogues[c], chars[c]);
 	});
+
 });
 
 go("say", dialogues[c], chars[c]);

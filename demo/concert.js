@@ -104,18 +104,17 @@ for (let x = 0; x < width(); x += 64) {
 }
 
 function jump() {
-	if (player.grounded()) {
+	if (player.isGrounded()) {
 		player.jump(JUMP_FORCE);
 	}
 }
 
 // jump when user press space
-keyPress(["space", "up"], jump);
+onKeyPress(["space", "up"], jump);
+onKeyDown("left", () => player.move(-PLAYER_SPEED, 0));
+onKeyDown("right", () => player.move(PLAYER_SPEED, 0));
 
-keyDown("left", () => player.move(-PLAYER_SPEED, 0));
-keyDown("right", () => player.move(PLAYER_SPEED, 0));
-
-player.on("headbutt", (block) => {
+player.onHeadbutt((block) => {
 	if (block.is("note")) {
 		play("bell", {
 			detune: block.detune,
@@ -139,7 +138,7 @@ player.on("headbutt", (block) => {
 	}
 });
 
-action(() => {
+onUpdate(() => {
 	if (!burping) return;
 	camPos(camPos().lerp(player.pos, dt() * 3));
 	camScale(camScale().lerp(vec2(5), dt() * 3));
@@ -237,6 +236,6 @@ const sun = add([
 	z(-100),
 ]);
 
-sun.action(() => {
+sun.onUpdate(() => {
 	sun.angle += dt() * 12;
 });

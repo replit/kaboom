@@ -14,7 +14,7 @@ const k = add([
 ]);
 
 // change scale and rotation every frame
-k.action(() => {
+k.onUpdate(() => {
 	k.scale = wave(-5, 5, time());
 	k.angle = time() * 60;
 });

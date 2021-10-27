@@ -46,7 +46,7 @@ function rock() {
 	};
 }
 
-keyPress("space", () => {
+onKeyPress("space", () => {
 
 	player.moveTo(rand(0, width()), rand(0, height()));
 
@@ -63,7 +63,7 @@ keyPress("space", () => {
 });
 
 // HATCH
-keyPress("enter", () => {
+onKeyPress("enter", () => {
 	every("egg", (e) => {
 		if (e.stage === 0) {
 			e.stage = 1;
