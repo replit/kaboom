@@ -41,8 +41,14 @@ for (const mem of kmembers) {
 	}
 }
 
+function isDeprecated(entry: any): boolean {
+	const tags = entry.jsDoc?.[0]?.tags ?? [];
+	return tags.find((tag: any) => tag.tagName === "deprecated");
+}
+
 export {
 	types,
 	sections,
 	typerefs,
+	isDeprecated,
 };

@@ -180,6 +180,10 @@ const IndexContent: React.FC<IndexContentProps> = ({
 								{ entries.map((name) => {
 									let dname = name;
 									const mem = doc.types[name][0];
+									// TODO: memo
+									if (doc.isDeprecated(mem)) {
+										return;
+									}
 									if (mem.kind === "MethodSignature" || mem.kind === "FunctionDeclaration") {
 										dname += "()";
 									}

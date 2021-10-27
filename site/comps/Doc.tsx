@@ -84,11 +84,6 @@ interface MemberProps {
 	small?: boolean,
 }
 
-function isDeprecated(entry: any): boolean {
-	const tags = entry.jsDoc?.[0]?.tags ?? [];
-	return tags.find((tag: any) => tag.tagName === "deprecated");
-}
-
 const MethodSignature: React.FC<MemberProps> = ({ data, small }) => (
 	<View gap={1} stretchX>
 		<Title data={data}>
@@ -110,7 +105,7 @@ const Title: React.FC<TitleProps> = ({ data, small, children }) => {
 
 		const tags = [];
 
-		if (isDeprecated(data)) {
+		if (doc.isDeprecated(data)) {
 			tags.push("deprecated");
 		}
 
