@@ -535,6 +535,9 @@ export interface KaboomCtx {
 	 */
 	lifespan(time: number, options?: LifespanCompOpt): LifespanComp,
 	/**
+<<<<<<< HEAD
+	 * Registers an event on all game objs with certain tag.
+=======
 	 * Finite state machine.
 	 *
 	 * @example
@@ -575,6 +578,7 @@ export interface KaboomCtx {
 	state(initialState: string, stateList?: string[]): StateComp,
 	/**
 	 * Register an event on all game objs with certain tag.
+>>>>>>> b022b64d431626fb4d517d2c13dd7d60e70915f5
 	 *
 	 * @section Events
 	 *
@@ -590,34 +594,42 @@ export interface KaboomCtx {
 	 */
 	on(event: string, tag: Tag, cb: (obj: GameObj, ...args) => void): EventCanceller,
 	/**
-	 * Register "update" event (runs every frame) on all game objs with certain tag.
+	 * Registers an event that runs every frame for all game objs with certain tag. If tag is omitted it'll just run the callback every frame.
 	 *
 	 * @example
 	 * ```js
 	 * // move every "tree" 120 pixels per second to the left, destroy it when it leaves screen
 	 * // there'll be nothing to run if there's no "tree" obj in the scene
-	 * action("tree", (tree) => {
+	 * onUpdate("tree", (tree) => {
 	 *     tree.move(-120, 0);
 	 *     if (tree.pos.x < 0) {
 	 *         destroy(tree);
 	 *     }
 	 * });
 	 *
-	 * // without tags it just runs it every frame
-	 * action(() => {
+	 * // without tags it just runs somethinge every frame
+	 * onUpdate(() => {
 	 *     debug.log("ohhi");
 	 * });
 	 * ```
 	 */
-	action(tag: Tag, cb: (obj: GameObj) => void): EventCanceller,
-	action(cb: () => void): EventCanceller,
+	onUpdate(tag: Tag, cb: (obj: GameObj) => void): EventCanceller,
+	onUpdate(cb: () => void): EventCanceller,
 	/**
-	 * Register "draw" event (runs every frame) on all game objs with certain tag. (This is the same as `action()`, but all draw events are run after updates)
+	 * @deprecated Use onUpdate() instead
 	 */
-	render(tag: Tag, cb: (obj: GameObj) => void): EventCanceller,
-	render(cb: () => void): EventCanceller,
+	action: KaboomCtx["onUpdate"],
 	/**
-	 * Register event when 2 game objs with certain tags collides. This function spins off an action() when called, please put it at root level and never inside another action().
+	 * Registers an event that runs every frame for all game objs with certain tag (this is the same as onUpdate but all draw events are run after update events). If tag is omitted it'll just run the callback every frame.
+	 */
+	onDraw(tag: Tag, cb: (obj: GameObj) => void): EventCanceller,
+	onDraw(cb: () => void): EventCanceller,
+	/**
+	 * @deprecated Use onDraw() instead
+	 */
+	render: KaboomCtx["onDraw"],
+	/**
+	 * Registers an event that runs when 2 game objs with certain tags collides. This function spins off an action() when called, please put it at root level and never inside another onUpdate().
 	 *
 	 * @example
 	 * ```js
@@ -626,25 +638,37 @@ export interface KaboomCtx {
 	 * });
 	 * ```
 	 */
-	collides(
+	onCollide(
 		t1: Tag,
 		t2: Tag,
 		cb: (a: GameObj, b: GameObj, col?: Collision) => void,
 	): EventCanceller,
 	/**
-	 * Register event when game objs with certain tags are clicked. This function spins off an action() when called, please put it at root level and never inside another action().
+	 * @deprecated Use onCollide() instead
 	 */
-	clicks(
+	collides: KaboomCtx["onCollide"],
+	/**
+	 * Registers an event that runs when game objs with certain tags are clicked. This function spins off an onUpdate() when called, please put it at root level and never inside another onUpdate().
+	 */
+	onClick(
 		tag: Tag,
 		cb: (a: GameObj) => void,
 	): EventCanceller,
 	/**
-	 * Register event when game objs with certain tags are hovered. This function spins off an action() when called, please put it at root level and never inside another action().
+	 * @deprecated Use onClick() instead
 	 */
-	hovers(
+	clicks: KaboomCtx["onClick"],
+	/**
+	 * Registers an event that runs when game objs with certain tags are hovered. This function spins off an onUpdate() when called, please put it at root level and never inside another onUpdate().
+	 */
+	onHover(
 		tag: Tag,
 		cb: (a: GameObj) => void,
 	): EventCanceller,
+	/**
+	 * @deprecated Use onHover() instead
+	 */
+	hovers: KaboomCtx["onHover"],
 	/**
 	 * Get current mouse position (without camera transform).
 	 *
@@ -660,7 +684,7 @@ export interface KaboomCtx {
 	 */
 	mouseDeltaPos(): Vec2,
 	/**
-	 * Registers an event that runs every frame when a key is down.
+	 * Registers an event that runs every frame when a key is held down.
 	 *
 	 * @example
 	 * ```js
@@ -677,31 +701,43 @@ export interface KaboomCtx {
 	 * @example
 	 * ```js
 	 * // .jump() once when "space" is just being pressed
-	 * keyPress("space", () => {
+	 * onKeyPress("space", () => {
 	 *     froggy.jump();
 	 * });
 	 * ```
 	 */
-	keyPress(k: Key | Key[], cb: () => void): EventCanceller,
-	keyPress(cb: () => void): EventCanceller,
+	onKeyPress(k: Key | Key[], cb: () => void): EventCanceller,
+	onKeyPress(cb: () => void): EventCanceller,
+	/**
+	 * @deprecated Use onKeyPress() instead.
+	 */
+	keyPress: KaboomCtx["onKeyPress"],
 	/**
 	 * Registers an event that runs when user presses certain key (also fires repeatedly when they key is held).
 	 *
 	 * @example
 	 * ```js
 	 * // delete last character when "backspace" is being pressed and held
-	 * keyPressRep("backspace", () => {
+	 * onKeyPressRep("backspace", () => {
 	 *     input.text = input.text.substring(0, input.text.length - 1);
 	 * });
 	 * ```
 	 */
-	keyPressRep(k: Key | Key[], cb: () => void): EventCanceller,
-	keyPressRep(cb: () => void): EventCanceller,
+	onKeyPressRep(k: Key | Key[], cb: () => void): EventCanceller,
+	onKeyPressRep(cb: () => void): EventCanceller,
+	/**
+	 * @deprecated Use onKeyPress() instead.
+	 */
+	keyPressRep: KaboomCtx["onKeyPressRep"],
 	/**
 	 * Registers an event that runs when user releases certain key.
 	 */
-	keyRelease(k: Key | Key[], cb: () => void): EventCanceller,
-	keyRelease(cb: () => void): EventCanceller,
+	onKeyRelease(k: Key | Key[], cb: () => void): EventCanceller,
+	onKeyRelease(cb: () => void): EventCanceller,
+	/**
+	 * @deprecated Use onKeyPress() instead.
+	 */
+	keyRelease: KaboomCtx["onKeyRelease"],
 	/**
 	 * Registers an event that runs when user inputs text.
 	 *
@@ -713,42 +749,74 @@ export interface KaboomCtx {
 	 * });
 	 * ```
 	 */
-	charInput(cb: (ch: string) => void): EventCanceller,
+	onCharInput(cb: (ch: string) => void): EventCanceller,
+	/**
+	 * @deprecated Use onCharInput() instead.
+	 */
+	charInput: KaboomCtx["onCharInput"],
 	/**
 	 * Registers an event that runs every frame when mouse button is down.
 	 */
-	mouseDown(cb: (pos: Vec2) => void): EventCanceller,
+	onMouseDown(cb: (pos: Vec2) => void): EventCanceller,
+	/**
+	 * @deprecated Use onMouseDown() instead.
+	 */
+	mouseDown: KaboomCtx["onMouseDown"],
 	/**
 	 * Registers an event that runs when user clicks mouse.
 	 */
-	mouseClick(cb: (pos: Vec2) => void): EventCanceller,
+	onMouseClick(cb: (pos: Vec2) => void): EventCanceller,
+	/**
+	 * @deprecated Use onMouseClick() instead.
+	 */
+	mouseClick: KaboomCtx["onMouseClick"],
 	/**
 	 * Registers an event that runs when user releases mouse.
 	 */
-	mouseRelease(cb: (pos: Vec2) => void): EventCanceller,
+	onMouseRelease(cb: (pos: Vec2) => void): EventCanceller,
+	/**
+	 * @deprecated Use onMouseRelease() instead.
+	 */
+	mouseRelease: KaboomCtx["onMouseRelease"],
 	/**
 	 * Registers an event that runs whenever user move the mouse.
 	 */
-	mouseMove(cb: (pos: Vec2) => void): EventCanceller,
+	onMouseMove(cb: (pos: Vec2) => void): EventCanceller,
+	/**
+	 * @deprecated Use onMouseMove() instead.
+	 */
+	mouseMove: KaboomCtx["onMouseMove"],
 	/**
 	 * Registers an event that runs when a touch starts.
 	 */
-	touchStart(cb: (id: TouchID, pos: Vec2) => void): EventCanceller,
+	onTouchStart(cb: (id: TouchID, pos: Vec2) => void): EventCanceller,
+	/**
+	 * @deprecated Use onTouchStart() instead.
+	 */
+	touchStart: KaboomCtx["onTouchStart"],
 	/**
 	 * Registers an event that runs whenever touch moves.
 	 */
-	touchMove(cb: (id: TouchID, pos: Vec2) => void): EventCanceller,
+	onTouchMove(cb: (id: TouchID, pos: Vec2) => void): EventCanceller,
+	/**
+	 * @deprecated Use onTouchMove() instead.
+	 */
+	touchMove: KaboomCtx["onTouchMove"],
 	/**
 	 * Registers an event that runs when a touch ends.
 	 */
-	touchEnd(cb: (id: TouchID, pos: Vec2) => void): EventCanceller,
+	onTouchEnd(cb: (id: TouchID, pos: Vec2) => void): EventCanceller,
+	/**
+	 * @deprecated Use onTouchEnd() instead.
+	 */
+	touchEnd: KaboomCtx["onTouchEnd"],
 	/**
 	 * If certain key is currently down.
 	 *
 	 * @example
 	 * ```js
-	 * // almost equivalent to the keyPress() example above
-	 * action(() => {
+	 * // almost equivalent to the onKeyPress() example above
+	 * onUpdate(() => {
 	 *     if (keyIsDown("left")) {
 	 *         froggy.move(-SPEED, 0);
 	 *     }
@@ -994,7 +1062,7 @@ export interface KaboomCtx {
 	 * @example
 	 * ```js
 	 * // rotate froggy 100 deg per second
-	 * froggy.action(() => {
+	 * froggy.onUpdate(() => {
 	 *     froggy.angle += 100 * dt();
 	 * });
 	 * ```
@@ -1058,7 +1126,7 @@ export interface KaboomCtx {
 	 * @example
 	 * ```js
 	 * // camera follows player
-	 * player.action(() => {
+	 * player.onUpdate(() => {
 	 *     camPos(player.pos);
 	 * });
 	 * ```
@@ -1161,7 +1229,7 @@ export interface KaboomCtx {
 	 * @example
 	 * ```js
 	 * // toggle fullscreen mode on "f"
-	 * keyPress("f", (c) => {
+	 * onKeyPress("f", (c) => {
 	 *     fullscreen(!isFullscreen());
 	 * });
 	 * ```
@@ -1302,7 +1370,7 @@ export interface KaboomCtx {
 	 * @example
 	 * ```js
 	 * // every frame all objs with tag "unlucky" have 50% chance die
-	 * action("unlucky", (o) => {
+	 * onUpdate("unlucky", (o) => {
 	 *     if (chance(0.5)) {
 	 *         destroy(o);
 	 *     }
@@ -1340,7 +1408,7 @@ export interface KaboomCtx {
 	 * @example
 	 * ```js
 	 * // move towards 80 deg direction at SPEED
-	 * player.action(() => {
+	 * player.onUpdate(() => {
 	 *     player.move(dir(80).scale(SPEED));
 	 * });
 	 * ```
@@ -1352,7 +1420,7 @@ export interface KaboomCtx {
 	 * @example
 	 * ```js
 	 * // bounce color between 2 values as time goes on
-	 * action("colorful", (c) => {
+	 * onUpdate("colorful", (c) => {
 	 *     c.color.r = wave(0, 255, time());
 	 *     c.color.g = wave(0, 255, time() + 1);
 	 *     c.color.b = wave(0, 255, time() + 2);
@@ -1457,8 +1525,8 @@ export interface KaboomCtx {
 	 *
 	 * @example
 	 * ```js
-	 * // these functions need to be called in a per-frame function like render() or it'll only get drawn one frame and immediately cleared
-	 * render(() => {
+	 * // these functions need to be called in a per-frame function like onDraw() or it'll only get drawn one frame and immediately cleared
+	 * onDraw(() => {
 	 *     // check #DrawSpriteOpt type for details of all options
 	 *     drawSprite({
 	 *         sprite: "froggy",
@@ -1476,8 +1544,8 @@ export interface KaboomCtx {
 	 *
 	 * @example
 	 * ```js
-	 * // these functions need to be called in a per-frame function like render() or it'll only get drawn one frame and immediately cleared
-	 * render(() => {
+	 * // these functions need to be called in a per-frame function like onDraw() or it'll only get drawn one frame and immediately cleared
+	 * onDraw(() => {
 	 *     drawText({
 	 *         sprite: "froggy",
 	 *         pos: vec2(100, 200),
@@ -1731,9 +1799,9 @@ export interface KaboomOpt {
 export type KaboomPlugin<T> = (k: KaboomCtx) => T;
 
 /**
- * The basic unit of object in Kaboom. The player, a butterfly, a tree, or even a piece of text.
+ * Base interface of all game objects.
  */
-export type GameObj<T = any> = {
+export interface GameObjRaw {
 	/**
 	 * Internal GameObj ID.
 	 */
@@ -1765,10 +1833,6 @@ export type GameObj<T = any> = {
 	 */
 	unuse(comp: Tag): void;
 	/**
-	 * Run something every frame for this game obj (sugar for on("update")).
-	 */
-	action(cb: () => void): EventCanceller;
-	/**
 	 * Registers an event.
 	 */
 	on(ev: string, cb: () => void): EventCanceller;
@@ -1788,7 +1852,28 @@ export type GameObj<T = any> = {
 	 * Gather debug info of all comps.
 	 */
 	inspect(): GameObjInspect;
-} & MergeComps<T>;
+	/**
+	 * Registers an event that runs every frame as long as the game obj exists (alias to onUpdate).
+	 */
+	action: GameObjRaw["onUpdate"];
+	/**
+	 * Registers an event that runs every frame as long as the game obj exists.
+	 */
+	onUpdate(cb: () => void): EventCanceller;
+	/**
+	 * Registers an event that runs every frame as long as the game obj exists (this is the same as `onUpdate()`, but all draw events are run after all update events).
+	 */
+	onDraw(cb: () => void): EventCanceller;
+	/**
+	 * Registers an event that runs when the game obj is destroyed.
+	 */
+	onDestroy(cb: () => void): EventCanceller;
+}
+
+/**
+ * The basic unit of object in Kaboom. The player, a butterfly, a tree, or even a piece of text.
+ */
+export type GameObj<T = any> = GameObjRaw & MergeComps<T>;
 
 export type SceneID = string;
 export type SceneDef = (...args: any[]) => void;
@@ -2838,15 +2923,27 @@ export interface AreaComp extends Comp {
 	/**
 	 * Registers an event runs when clicked.
 	 */
-	clicks(f: () => void): void,
+	onClick(f: () => void): void,
 	/**
-	 * Registers an event runs when hovered.
+	 * @deprecated Use onClick() instead.
 	 */
-	hovers(onHover: () => void, onNotHover?: () => void): void,
+	clicks: AreaComp["onClick"],
 	/**
-	 * Registers an event runs when collides with another game obj with certain tag.
+	 * Registers an event runs every frame when hovered.
 	 */
-	collides(tag: Tag, f: (obj: GameObj, col?: Collision) => void): void,
+	onHover(onHover: () => void, onNotHover?: () => void): void,
+	/**
+	 * @deprecated Use onHover() instead.
+	 */
+	hovers: AreaComp["onHover"],
+	/**
+	 * Registers an event runs when collide with another game obj with certain tag.
+	 */
+	onCollide(tag: Tag, f: (obj: GameObj, col?: Collision) => void): void,
+	/**
+	 * @deprecated Use onCollide() instead.
+	 */
+	collides: AreaComp["onCollide"],
 	/**
 	 * If has a certain point inside collider.
 	 */
@@ -2953,6 +3050,14 @@ export interface SpriteComp extends Comp {
 	 * Flip texture vertically.
 	 */
 	flipY(b: boolean): void,
+	/**
+	 * Registers an event that runs when an animation is played.
+	 */
+	onAnimPlay(action: (name: string) => void): EventCanceller,
+	/**
+	 * Registers an event that runs when an animation is ended.
+	 */
+	onAnimEnd(action: (name: string) => void): EventCanceller,
 }
 
 export interface TextComp extends Comp {
@@ -3162,6 +3267,14 @@ export interface BodyComp extends Comp {
 	 * Performs double jump (the initial jump only happens if player is grounded).
 	 */
 	doubleJump(f?: number): void,
+	/**
+	 * Registers an event that runs when the object is grounded.
+	 */
+	onGround(action: () => void): EventCanceller,
+	/**
+	 * Registers an event that runs when the object starts falling.
+	 */
+	onFall(action: () => void): EventCanceller,
 }
 
 export interface BodyCompOpt {
