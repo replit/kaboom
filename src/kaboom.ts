@@ -2619,8 +2619,8 @@ function record(frameRate = 30): Recording {
 	const recorder = new MediaRecorder(stream);
 	const chunks = [];
 
-	recorder.ondataavailable = e => {
-		if(e.data.size > 0){
+	recorder.ondataavailable = (e) => {
+		if (e.data.size > 0) {
 			chunks.push(e.data);
 		}
 	};
