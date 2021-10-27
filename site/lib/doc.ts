@@ -48,6 +48,10 @@ function isDeprecated(entry: any): boolean {
 	return Boolean(entry.jsDoc?.tags["deprecated"]);
 }
 
+function isIgnored(entry: any): boolean {
+	return Boolean(entry.jsDoc?.tags["ignore"]);
+}
+
 function isType(entry: any): boolean {
 	return entry.kind === "TypeAliasDeclaration" || entry.kind === "InterfaceDeclaration";
 }
@@ -57,5 +61,6 @@ export {
 	sections,
 	typerefs,
 	isDeprecated,
+	isIgnored,
 	isType,
 };
