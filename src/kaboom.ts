@@ -70,7 +70,8 @@ import {
 
 import {
 	IDList,
-	download,
+	downloadURL,
+	downloadBlob,
 } from "./utils";
 
 import {
@@ -875,7 +876,13 @@ function enterDebugMode() {
 		debug.log(`stepped frame`);
 	});
 
-	onKeyPress("f11", () => {
+	onKeyPress("f5", () => {
+		setTimeout(() => {
+			downloadURL(app.screenshot(), "kaboom.png");
+		}, 0);
+	});
+
+	onKeyPress("f6", () => {
 		if (curRecording) {
 			curRecording.download();
 			curRecording = null;
@@ -2644,7 +2651,7 @@ function record(frameRate = 30): Recording {
 			// Chunks might need a tick to flush
 			setTimeout(() => {
 
-				download(new Blob(chunks, {
+				downloadBlob(new Blob(chunks, {
 					type: "video/mp4",
 				}), filename);
 
