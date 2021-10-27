@@ -1887,7 +1887,7 @@ export interface Recording {
 	/**
 	 * Stops the recording and downloads the file as mp4. Trying to resume later will lead to error.
 	 */
-	download(filename: string): void,
+	download(filename?: string): void,
 }
 
 /**
