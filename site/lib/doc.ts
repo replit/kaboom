@@ -28,20 +28,18 @@ for (const mem of kmembers) {
 
 	types[mem.name].push(mem);
 
-	const tags = mem.jsDoc?.[0].tags ?? [];
+	const tags = mem.jsDoc?.tags ?? {};
 	let deprecated = false;
 
-	for (const tag of tags) {
-		if (tag.tagName === "section") {
-			const section = {
-				name: tag.comment,
-				entries: [],
-				deprecated: [],
-			};
-			sections.push(section);
-		} else if (tag.tagName === "deprecated") {
-			deprecated = true;
-		}
+	if (tags["section"]) {
+		const section = {
+			name: tags["section"],
+			entries: [],
+			deprecated: [],
+		};
+		sections.push(section);
+	} else if (tags["deprecated"]) {
+		deprecated = true;
 	}
 
 	const curSection = sections[sections.length - 1];
@@ -54,8 +52,7 @@ for (const mem of kmembers) {
 }
 
 function isDeprecated(entry: any): boolean {
-	const tags = entry.jsDoc?.[0]?.tags ?? [];
-	return tags.find((tag: any) => tag.tagName === "deprecated");
+	return Boolean(entry.jsDoc?.tags["deprecated"]);
 }
 
 export {

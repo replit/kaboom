@@ -241,16 +241,16 @@ const Entry: React.FC<EntryProps> = ({ data }) => {
 };
 
 const JSDoc: React.FC<EntryProps> = ({data}) => {
-	const doc = data.jsDoc?.[0];
-	return doc ? (
+	return data.jsDoc ? (
 		<View gap={2} stretchX>
-			{ doc.comment &&
-				<Text select color={3}>{doc.comment}</Text>
+			{ data.jsDoc.doc &&
+				<Text select color={3}>{data.jsDoc.doc}</Text>
 			}
-			{ (doc.tags ?? []).map((tag: any) => {
-				switch (tag.tagName) {
-					case "example": return <Markdown key={tag.comment} src={tag.comment} />;
-					case "deprecated": return <Text key={tag.comment} select color={3}>{tag.comment}</Text>;
+			{ Object.entries(data.jsDoc.tags).map(([name, content2]) => {
+				const content: string[] = content2 as string[];
+				switch (name) {
+					case "example": return <Markdown key={content[0]} src={content[0]} />;
+					case "deprecated": return <Text key={content[0]} select color={3}>{content[0]}</Text>;
 					default: return null;
 				}
 			}) }
