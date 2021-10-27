@@ -2758,9 +2758,6 @@ export interface Circle {
 export type Polygon = Vec2[];
 export type Point = Vec2;
 
-export type ClientID = number;
-export type MsgHandler = (id: ClientID, data: any) => void;
-
 export interface Comp {
 	/**
 	 * Component ID (if left out won't be treated as a comp).
