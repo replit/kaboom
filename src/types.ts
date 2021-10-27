@@ -1084,7 +1084,7 @@ export interface KaboomCtx {
 	/**
 	 * If certain key is just released last frame.
 	 */
-	keyIsReleased(k?: Key): boolean,
+	isKeyReleased(k?: Key): boolean,
 	/**
 	 * If certain mouse is currently down.
 	 */
@@ -1244,6 +1244,10 @@ export interface KaboomCtx {
 	 * @deprecated Use isKeyPressedRep() instead.
 	 */
 	keyIsPressedRep: KaboomCtx["isKeyPressedRep"],
+	/**
+	 * @deprecated Use isKeyReleased() instead.
+	 */
+	keyIsReleased: KaboomCtx["isKeyReleased"],
 	/**
 	 * @deprecated Use isMouseDown() instead.
 	 */
