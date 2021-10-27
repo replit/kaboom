@@ -1131,15 +1131,15 @@ export interface KaboomCtx {
 	 * });
 	 * ```
 	 */
-	camPos(pos: Vec2): Vec2,
+	camPos(pos?: Vec2): Vec2,
 	/**
 	 * Get / set camera scale.
 	 */
-	camScale(scale: Vec2): Vec2,
+	camScale(scale?: Vec2): Vec2,
 	/**
 	 * Get / set camera rotation.
 	 */
-	camRot(angle: number): number,
+	camRot(angle?: number): number,
 	/**
 	 * Transform a point from world position to screen position.
 	 */
