@@ -17,16 +17,16 @@
  *
  * // all kaboom functions are imported to global automatically
  * add();
- * action();
- * keyPress();
+ * onUpdate();
+ * onKeyPress();
  * vec2();
  *
  * // can also prevent kaboom from importing all functions to global and use a context handle
  * const k = kaboom({ global: false });
  *
  * k.add(...);
- * k.action(...);
- * k.keyPress(...);
+ * k.onUpdate(...);
+ * k.onKeyPress(...);
  * k.vec2(...);
  * ```
  */
@@ -76,7 +76,7 @@ export interface KaboomCtx {
 	 *
 	 * // run something every frame
 	 * // player will constantly move towards player.dir, at player.speed per second
-	 * player.action(() => {
+	 * player.onUpdate(() => {
 	 *     player.move(player.dir.scale(player.speed));
 	 * });
 	 *
@@ -86,7 +86,7 @@ export interface KaboomCtx {
 	 * });
 	 *
 	 * // run this for all game objs with tag "friendly"
-	 * action("friendly", (friend) => {
+	 * onUpdate("friendly", (friend) => {
 	 *     // .hurt is provided by health()
 	 *     friend.hurt();
 	 * });
@@ -337,7 +337,7 @@ export interface KaboomCtx {
 	 * });
 	 *
 	 * // check for collision manually every frame instead of registering an event
-	 * player.action(() => {
+	 * player.onUpdate(() => {
 	 *     if (player.isColliding(bomb)) {
 	 *         score += 1;
 	 *     }
@@ -387,7 +387,7 @@ export interface KaboomCtx {
 	 *
 	 * // when froggy is grounded, press space to jump
 	 * // check out BodyComp for more methods
-	 * keyPress("space", () => {
+	 * onKeyPress("space", () => {
 	 *     if (froggy.isGrounded()) {
 	 *         froggy.jump();
 	 *     }
@@ -413,7 +413,7 @@ export interface KaboomCtx {
 	 * ]);
 	 *
 	 * // only do collision checking when a block is close to player for performance
-	 * action("block", (b) => {
+	 * onUpdate("block", (b) => {
 	 *     b.solid = b.pos.dist(player.pos) <= 64;
 	 * });
 	 * ```
@@ -625,7 +625,7 @@ export interface KaboomCtx {
 	 */
 	render: KaboomCtx["onDraw"],
 	/**
-	 * Registers an event that runs when 2 game objs with certain tags collides. This function spins off an action() when called, please put it at root level and never inside another onUpdate().
+	 * Registers an event that runs when 2 game objs with certain tags collides.
 	 *
 	 * @example
 	 * ```js
