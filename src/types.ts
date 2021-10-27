@@ -263,7 +263,6 @@ export interface KaboomCtx {
 	 *     }),
 	 * ]);
 	 * ```
-	 * ```
 	 */
 	text(txt: string, options?: TextCompOpt): TextComp,
 	/**
