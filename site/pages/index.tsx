@@ -97,14 +97,6 @@ Play with it yourself or check out the examples in the [Playground](/play)!
 								typeref={setShowType}
 							/>
 						)) }
-						{ sec.deprecated.map((name) => (
-							<Doc
-								id={name}
-								key={name}
-								name={name}
-								typeref={setShowType}
-							/>
-						)) }
 					</View>
 				</View>
 			);

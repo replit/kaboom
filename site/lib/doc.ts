@@ -5,7 +5,6 @@ const types = importedTypes as any;
 export interface DocSection {
 	name: string,
 	entries: string[],
-	deprecated: string[],
 };
 
 export type DocTypes = Record<string, any[]>;
@@ -17,7 +16,6 @@ const sections: DocSection[] = [];
 sections.push({
 	name: "Start",
 	entries: ["kaboom"],
-	deprecated: [],
 });
 
 for (const mem of kmembers) {
@@ -34,16 +32,14 @@ for (const mem of kmembers) {
 		const section = {
 			name: tags["section"][0],
 			entries: [],
-			deprecated: [],
 		};
 		sections.push(section);
 	}
 
 	const curSection = sections[sections.length - 1];
-	const dest = tags["deprecated"] ? curSection.deprecated : curSection.entries;
 
-	if (mem.name && !dest.includes(mem.name)) {
-		dest.push(mem.name);
+	if (mem.name && !curSection.entries.includes(mem.name)) {
+		curSection.entries.push(mem.name);
 	}
 
 }
