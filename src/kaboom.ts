@@ -203,7 +203,7 @@ function play(id: string, opt: AudioPlayOpt = {}): AudioPlay {
 			sampleRate: 44100
 		}),
 	});
-	ready(() => {
+	onLoad(() => {
 		const snd = assets.sounds[id];
 		if (!snd) {
 			throw new Error(`sound not found: "${id}"`);
@@ -506,7 +506,7 @@ function make<T>(comps: CompList<T>): GameObj<T> {
 					comp.add.call(this);
 				}
 				if (comp.load) {
-					ready(() => comp.load.call(this));
+					onLoad(() => comp.load.call(this));
 				}
 				checkDeps();
 			} else {
@@ -629,7 +629,7 @@ function add<T>(comps: CompList<T>): GameObj<T> {
 	const obj = make(comps);
 	obj._id = game.objs.push(obj);
 	obj.trigger("add");
-	ready(() => obj.trigger("load"));
+	onLoad(() => obj.trigger("load"));
 	return obj;
 }
 
@@ -1819,7 +1819,7 @@ function sprite(id: string | SpriteData, opt: SpriteCompOpt = {}): SpriteComp {
 		play(name: string, opt: SpriteAnimPlayOpt = {}) {
 
 			if (!spr) {
-				ready(() => {
+				onLoad(() => {
 					this.play(name);
 				});
 				return;
@@ -2361,7 +2361,7 @@ const debug: Debug = {
 	}
 };
 
-function ready(cb: () => void): void {
+function onLoad(cb: () => void): void {
 	if (game.loaded) {
 		cb();
 	} else {
@@ -2686,7 +2686,8 @@ const ctx: KaboomCtx = {
 	regCursor,
 	fullscreen: app.fullscreen,
 	isFullscreen: app.isFullscreen,
-	ready,
+	onLoad,
+	ready: onLoad,
 	isTouch: () => app.isTouch,
 	// misc
 	layers,

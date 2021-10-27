@@ -1084,21 +1084,25 @@ export interface KaboomCtx {
 	 */
 	focus(): void,
 	/**
-	 * Run something when assets finished loading.
+	 * Registers an event that runs when all assets finished loading.
 	 *
 	 * @example
 	 * ```js
 	 * const froggy = add([
-	 *     // ...
+	 *     sprite("froggy"),
 	 * ]);
 	 *
 	 * // certain assets related data are only available when the game finishes loading
-	 * ready(() => {
+	 * onLoad(() => {
 	 *     debug.log(froggy.numFrames());
 	 * });
 	 * ```
 	 */
-	ready(cb: () => void): void,
+	onLoad(action: () => void): void,
+	/**
+	 * @deprecated Use onLoad() instead.
+	 */
+	ready(action: () => void): void,
 	/**
 	 * Is currently on a touch screen device.
 	 */
