@@ -23,7 +23,7 @@ onDraw(() => {
 	const p = (x, y) => vec2(x, y).scale(mx, my).add(px, py);
 
 	// when "space" key is down, rotate the whole canvas from the center
-	if (keyIsDown("space")) {
+	if (isKeyDown("space")) {
 		pushTransform();
 		pushTranslate(width() / 2, height() / 2);
 		pushRotate(t(240));
@@ -84,7 +84,7 @@ onDraw(() => {
 	// TODO: show a custom shader quad here
 
 	// pop to not affect the mouse trail and draw
-	if (keyIsDown("space")) {
+	if (isKeyDown("space")) {
 		popTransform();
 	}
 
