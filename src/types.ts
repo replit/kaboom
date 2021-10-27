@@ -1066,21 +1066,21 @@ export interface KaboomCtx {
 	 * ```js
 	 * // equivalent to the calling froggy.move() in an onKeyDown("left")
 	 * onUpdate(() => {
-	 *     if (keyIsDown("left")) {
+	 *     if (isKeyDown("left")) {
 	 *         froggy.move(-SPEED, 0);
 	 *     }
 	 * });
 	 * ```
 	 */
-	keyIsDown(k: Key): boolean,
+	isKeyDown(k: Key): boolean,
 	/**
 	 * If certain key is just pressed last frame.
 	 */
-	keyIsPressed(k?: Key): boolean,
+	isKeyPressed(k?: Key): boolean,
 	/**
 	 * If certain key is just pressed last frame (accepts help down repeatedly).
 	 */
-	keyIsPressedRep(k?: Key): boolean,
+	isKeyPressedRep(k?: Key): boolean,
 	/**
 	 * If certain key is just released last frame.
 	 */
@@ -1088,19 +1088,19 @@ export interface KaboomCtx {
 	/**
 	 * If certain mouse is currently down.
 	 */
-	mouseIsDown(): boolean,
+	isMouseDown(): boolean,
 	/**
 	 * If mouse is just clicked last frame.
 	 */
-	mouseIsClicked(): boolean,
+	isMouseClicked(): boolean,
 	/**
 	 * If mouse is just released last frame.
 	 */
-	mouseIsReleased(): boolean,
+	isMouseReleased(): boolean,
 	/**
 	 * If mouse moved last frame.
 	 */
-	mouseIsMoved(): boolean,
+	isMouseMoved(): boolean,
 	/**
 	 * Camera shake.
 	 *
@@ -1232,6 +1232,34 @@ export interface KaboomCtx {
 	 * If currently in fullscreen mode.
 	 */
 	isFullscreen(): boolean,
+	/**
+	 * @deprecated Use isKeyDown() instead.
+	 */
+	keyIsDown: KaboomCtx["isKeyDown"],
+	/**
+	 * @deprecated Use isKeyPressed() instead.
+	 */
+	keyIsPressed: KaboomCtx["isKeyPressed"],
+	/**
+	 * @deprecated Use isKeyPressedRep() instead.
+	 */
+	keyIsPressedRep: KaboomCtx["isKeyPressedRep"],
+	/**
+	 * @deprecated Use isMouseDown() instead.
+	 */
+	mouseIsDown: KaboomCtx["isMouseDown"],
+	/**
+	 * @deprecated Use isMouseClicked() instead.
+	 */
+	mouseIsClicked: KaboomCtx["isMouseClicked"],
+	/**
+	 * @deprecated Use isMouseReleased() instead.
+	 */
+	mouseIsReleased: KaboomCtx["isMouseReleased"],
+	/**
+	 * @deprecated Use isMouseMoved() instead.
+	 */
+	mouseIsMoved: KaboomCtx["isMouseMoved"],
 	/**
 	 * @deprecated Use isFocused() instead.
 	 */

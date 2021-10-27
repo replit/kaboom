@@ -321,10 +321,10 @@ onKeyPress(["left", "right", "up", "down"], () => {
 
 onKeyRelease(["left", "right", "up", "down"], () => {
 	if (
-		!keyIsDown("left")
-		&& !keyIsDown("right")
-		&& !keyIsDown("up")
-		&& !keyIsDown("down")
+		!isKeyDown("left")
+		&& !isKeyDown("right")
+		&& !isKeyDown("up")
+		&& !isKeyDown("down")
 	) {
 		player.play("idle");
 	}
