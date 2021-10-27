@@ -85,12 +85,19 @@ Play with it yourself or check out the examples in the [Playground](/play)!
 		`} />
 
 		{ doc.sections.map((sec) => {
-			const entries = sec.entries;
 			return (
 				<View stretchX gap={1} key={sec.name}>
 					<Text size="huge" color={3}>{sec.name}</Text>
-					<View stretchX gap={4}>
-						{ entries.map((name) => (
+					<View stretchX gap={3}>
+						{ sec.entries.map((name) => (
+							<Doc
+								id={name}
+								key={name}
+								name={name}
+								typeref={setShowType}
+							/>
+						)) }
+						{ sec.deprecated.map((name) => (
 							<Doc
 								id={name}
 								key={name}

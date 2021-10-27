@@ -79,21 +79,6 @@ const FuncParams: React.FC<EntryProps> = ({ data }) => data.parameters.map((p: a
 	</span>
 ));
 
-interface MemberProps {
-	data: any,
-	small?: boolean,
-}
-
-const MethodSignature: React.FC<MemberProps> = ({ data, small }) => (
-	<View gap={1} stretchX>
-		<Title data={data}>
-			(<FuncParams data={data} />)
-			{ data.type?.kind !== "VoidKeyword" && <>{" => "}<TypeSig data={data.type}/ ></> }
-		</Title>
-		<JSDoc data={data} />
-	</View>
-);
-
 interface TitleProps {
 	data: any,
 	small?: boolean,
@@ -148,9 +133,24 @@ const Title: React.FC<TitleProps> = ({ data, small, children }) => {
 	);
 };
 
+interface MemberProps {
+	data: any,
+	small?: boolean,
+}
+
+const MethodSignature: React.FC<MemberProps> = ({ data, small }) => (
+	<View gap={1} stretchX>
+		<Title data={data} small={small}>
+			(<FuncParams data={data} />)
+			{ data.type?.kind !== "VoidKeyword" && <>{" => "}<TypeSig data={data.type}/ ></> }
+		</Title>
+		<JSDoc data={data} />
+	</View>
+);
+
 const PropertySignature: React.FC<MemberProps> = ({ data, small }) => (
 	<View gap={1} stretchX>
-		<Title data={data}>{data.questionToken ? "?" : ""}: <TypeSig data={data.type} /></Title>
+		<Title data={data} small={small}>{data.questionToken ? "?" : ""}: <TypeSig data={data.type} /></Title>
 		<JSDoc data={data} />
 	</View>
 );
@@ -250,7 +250,7 @@ const JSDoc: React.FC<EntryProps> = ({data}) => {
 			{ (doc.tags ?? []).map((tag: any) => {
 				switch (tag.tagName) {
 					case "example": return <Markdown key={tag.comment} src={tag.comment} />;
-					case "deprecated": return <Text select color={3}>{tag.comment}</Text>;
+					case "deprecated": return <Text key={tag.comment} select color={3}>{tag.comment}</Text>;
 					default: return null;
 				}
 			}) }
