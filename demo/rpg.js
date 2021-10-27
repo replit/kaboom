@@ -148,12 +148,12 @@ scene("main", (levelIdx) => {
 	let hasKey = false;
 	const dialog = addDialog();
 
-	player.collides("key", (key) => {
+	player.onCollide("key", (key) => {
 		destroy(key);
 		hasKey = true;
 	});
 
-	player.collides("door", () => {
+	player.onCollide("door", () => {
 		if (hasKey) {
 			if (levelIdx + 1 < levels.length) {
 				go("main", levelIdx + 1);
@@ -166,7 +166,7 @@ scene("main", (levelIdx) => {
 	});
 
 	// talk on touch
-	player.collides("character", (ch) => {
+	player.onCollide("character", (ch) => {
 		dialog.say(ch.msg);
 	});
 
@@ -178,10 +178,10 @@ scene("main", (levelIdx) => {
 	};
 
 	for (const dir in dirs) {
-		keyPress(dir, () => {
+		onKeyPress(dir, () => {
 			dialog.dismiss();
 		});
-		keyDown(dir, () => {
+		onKeyDown(dir, () => {
 			player.move(dirs[dir].scale(SPEED));
 		});
 	}

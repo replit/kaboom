@@ -1,3 +1,19 @@
+import {
+	Vec2,
+	Vec3,
+	Vec4,
+	Mat4,
+	Color,
+	Quad,
+	Point,
+	Rect,
+	Circle,
+	Polygon,
+	Line,
+	Area,
+	RNG,
+} from "./types";
+
 function deg2rad(deg: number): number {
 	return deg * Math.PI / 180;
 }

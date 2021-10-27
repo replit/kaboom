@@ -49,8 +49,6 @@ fmts.forEach((fmt) => {
 function buildTypes() {
 
 	let dts = fs.readFileSync(`${srcDir}/types.ts`, "utf-8")
-		.replace(/type\s/g, "export type ")
-		.replace(/interface\s/g, "export interface ")
 		.replace(/declare\s/g, "export default ");
 
 	const f = ts.createSourceFile(
@@ -125,10 +123,6 @@ function buildTypes() {
 			for (const mem of stmt.members) {
 				if (!mem.name || dups.has(mem.name)) {
 					continue;
-				}
-				if (mem.jsDoc) {
-					// TODO: what is jsDoc when it has multiple members?
-					dts += `\t/**\n\t * ${mem.jsDoc[0].comment}\n\t */\n`;
 				}
 				if (overwrites.has(mem.name)) {
 					dts += "\t// @ts-ignore\n";

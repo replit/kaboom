@@ -17,7 +17,7 @@ const label = add([
 
 function updateText() {
 	label.text = `
-${music.paused() ? "paused" : "playing"}
+${music.isPaused() ? "paused" : "playing"}
 time: ${music.time().toFixed(2)}
 volume: ${music.volume().toFixed(2)}
 detune: ${music.detune().toFixed(2)}
@@ -27,12 +27,12 @@ detune: ${music.detune().toFixed(2)}
 updateText();
 
 // update text every frame
-action(() => updateText());
+onUpdate(updateText);
 
-keyPress("space", () => {
+onKeyPress("space", () => {
 
 	// pause / play music
-	if (music.paused()) {
+	if (music.isPaused()) {
 		music.play();
 	} else {
 		music.pause();
@@ -43,8 +43,8 @@ keyPress("space", () => {
 
 });
 
-keyPress("up", () => music.volume(music.volume() + 0.1));
-keyPress("down", () => music.volume(music.volume() - 0.1));
-keyPress("left", () => music.detune(music.detune() - 100));
-keyPress("right", () => music.detune(music.detune() + 100));
-keyPress("escape", () => music.stop());
+onKeyPress("up", () => music.volume(music.volume() + 0.1));
+onKeyPress("down", () => music.volume(music.volume() - 0.1));
+onKeyPress("left", () => music.detune(music.detune() - 100));
+onKeyPress("right", () => music.detune(music.detune() + 100));
+onKeyPress("escape", () => music.stop());

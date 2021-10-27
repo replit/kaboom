@@ -7,6 +7,6 @@ add([
 ]);
 
 // toggle fullscreen on "f"
-keyPress("f", () => {
+onKeyPress("f", () => {
 	fullscreen(!isFullscreen());
 });

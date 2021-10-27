@@ -42,7 +42,7 @@ function drag() {
 }
 
 // drop
-mouseRelease(() => {
+onMouseRelease(() => {
 	curDraggin = null;
 });
 
@@ -61,4 +61,4 @@ for (let i = 0; i < 48; i++) {
 }
 
 // reset cursor to default at frame start for easier cursor management
-action(() => cursor("default"));
+onUpdate(() => cursor("default"));

@@ -4,6 +4,11 @@ import {
 	clamp,
 } from "./math";
 
+import {
+	SoundData,
+	AudioPlay,
+	AudioPlayOpt,
+} from "./types";
 
 type Audio = {
 	ctx: AudioContext,
@@ -129,12 +134,20 @@ function audioInit(): Audio {
 				stopTime = ctx.currentTime;
 			},
 
+			isPaused(): boolean {
+				return stopped;
+			},
+
 			paused(): boolean {
+				return this.isPaused();
+			},
+
+			isStopped(): boolean {
 				return stopped;
 			},
 
 			stopped(): boolean {
-				return stopped;
+				return this.isStopped();
 			},
 
 			// TODO: affect time()
