@@ -87,22 +87,10 @@ interface TitleProps {
 const Title: React.FC<TitleProps> = ({ data, small, children }) => {
 
 	const tags = React.useMemo(() => {
-
-		const tags = [];
-
-		if (doc.isDeprecated(data)) {
-			tags.push("deprecated");
-		}
-
-		if (
-			data.kind === "TypeAliasDeclaration"
-			|| data.kind === "InterfaceDeclaration"
-		) {
-			tags.push("type");
-		}
-
-		return tags;
-
+		return [
+			doc.isDeprecated(data) && "deprecated",
+			doc.isType(data)       && "type",
+		].filter((t) => t) as string[];
 	}, [ data ]);
 
 	return (
@@ -131,6 +119,7 @@ const Title: React.FC<TitleProps> = ({ data, small, children }) => {
 			</Text>
 		</View>
 	);
+
 };
 
 interface MemberProps {

@@ -55,9 +55,14 @@ function isDeprecated(entry: any): boolean {
 	return Boolean(entry.jsDoc?.tags["deprecated"]);
 }
 
+function isType(entry: any): boolean {
+	return entry.kind === "TypeAliasDeclaration" || entry.kind === "InterfaceDeclaration";
+}
+
 export {
 	types,
 	sections,
 	typerefs,
 	isDeprecated,
+	isType,
 };
