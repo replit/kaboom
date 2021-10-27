@@ -70,7 +70,78 @@ import {
 
 import {
 	IDList,
+	download,
 } from "./utils";
+
+import {
+	KaboomCtx,
+	KaboomOpt,
+	AudioPlay,
+	AudioPlayOpt,
+	Vec2,
+	Mat4,
+	DrawSpriteOpt,
+	DrawTextOpt,
+	GameObj,
+	Timer,
+	EventCanceller,
+	SceneID,
+	SceneDef,
+	CompList,
+	Comp,
+	Tag,
+	Key,
+	TouchID,
+	Collision,
+	PosComp,
+	ScaleComp,
+	RotateComp,
+	ColorComp,
+	OpacityComp,
+	Origin,
+	OriginComp,
+	LayerComp,
+	ZComp,
+	FollowComp,
+	MoveComp,
+	CleanupComp,
+	AreaCompOpt,
+	AreaComp,
+	Area,
+	SpriteData,
+	SpriteComp,
+	SpriteCompOpt,
+	GfxTexture,
+	Quad,
+	SpriteAnimPlayOpt,
+	TextComp,
+	TextCompOpt,
+	RectComp,
+	RectCompOpt,
+	UVQuadComp,
+	CircleComp,
+	Color,
+	OutlineComp,
+	TimerComp,
+	BodyComp,
+	BodyCompOpt,
+	Uniform,
+	ShaderComp,
+	SolidComp,
+	FixedComp,
+	StayComp,
+	HealthComp,
+	LifespanComp,
+	LifespanCompOpt,
+	StateComp,
+	Debug,
+	KaboomPlugin,
+	MergeObj,
+	Level,
+	LevelOpt,
+	Cursor,
+	Recording,
+} from "./types";
 
 import kaboomPlugin from "./plugins/kaboom";
 
@@ -132,7 +203,7 @@ function play(id: string, opt: AudioPlayOpt = {}): AudioPlay {
 			sampleRate: 44100
 		}),
 	});
-	ready(() => {
+	onLoad(() => {
 		const snd = assets.sounds[id];
 		if (!snd) {
 			throw new Error(`sound not found: "${id}"`);
@@ -435,7 +506,7 @@ function make<T>(comps: CompList<T>): GameObj<T> {
 					comp.add.call(this);
 				}
 				if (comp.load) {
-					ready(() => comp.load.call(this));
+					onLoad(() => comp.load.call(this));
 				}
 				checkDeps();
 			} else {
@@ -490,8 +561,8 @@ function make<T>(comps: CompList<T>): GameObj<T> {
 			return events[ev].pushd(cb);
 		},
 
-		action(cb: () => void): EventCanceller {
-			return this.on("update", cb);
+		action(...args): EventCanceller {
+			return this.onUpdate(...args);
 		},
 
 		trigger(ev: string, ...args): void {
@@ -532,6 +603,18 @@ function make<T>(comps: CompList<T>): GameObj<T> {
 			return info;
 		},
 
+		onUpdate(cb: () => void): EventCanceller {
+			return this.on("update", cb);
+		},
+
+		onDraw(cb: () => void): EventCanceller {
+			return this.on("draw", cb);
+		},
+
+		onDestroy(action: () => void): EventCanceller {
+			return this.on("destroy", action);
+		},
+
 	};
 
 	for (const comp of comps) {
@@ -546,7 +629,7 @@ function add<T>(comps: CompList<T>): GameObj<T> {
 	const obj = make(comps);
 	obj._id = game.objs.push(obj);
 	obj.trigger("add");
-	ready(() => obj.trigger("load"));
+	onLoad(() => obj.trigger("load"));
 	return obj;
 }
 
@@ -572,7 +655,7 @@ function on(event: string, tag: Tag, cb: (obj: GameObj, ...args) => void): Event
 
 // TODO: detect if is currently in another action?
 // add update event to a tag or global update
-function action(tag: Tag | (() => void), cb?: (obj: GameObj) => void): EventCanceller {
+function onUpdate(tag: Tag | (() => void), cb?: (obj: GameObj) => void): EventCanceller {
 	if (typeof tag === "function" && cb === undefined) {
 		return add([{ update: tag, }]).destroy;
 	} else if (typeof tag === "string") {
@@ -581,7 +664,7 @@ function action(tag: Tag | (() => void), cb?: (obj: GameObj) => void): EventCanc
 }
 
 // add draw event to a tag or global draw
-function render(tag: Tag | (() => void), cb?: (obj: GameObj) => void) {
+function onDraw(tag: Tag | (() => void), cb?: (obj: GameObj) => void) {
 	if (typeof tag === "function" && cb === undefined) {
 		return add([{ draw: tag, }]).destroy;
 	} else if (typeof tag === "string") {
@@ -590,16 +673,16 @@ function render(tag: Tag | (() => void), cb?: (obj: GameObj) => void) {
 }
 
 // add an event that runs with objs with t1 collides with objs with t2
-function collides(
+function onCollide(
 	t1: Tag,
 	t2: Tag,
-	f: (a: GameObj, b: GameObj) => void,
+	f: (a: GameObj, b: GameObj, col?: Collision) => void,
 ): EventCanceller {
-	const e1 = on("collide", t1, (a, b, dis) => b.is(t2) && f(a, b));
-	const e2 = on("collide", t2, (a, b, dis) => b.is(t1) && f(b, a));
-	const e3 = action(t1, (o1: GameObj) => {
+	const e1 = on("collide", t1, (a, b, col) => b.is(t2) && f(a, b, col));
+	const e2 = on("collide", t2, (a, b, col) => b.is(t1) && f(b, a, col));
+	const e3 = onUpdate(t1, (o1: GameObj) => {
 		if (!o1.area) {
-			throw new Error("collides() requires the object to have area() component");
+			throw new Error("onCollide() requires the object to have area() component");
 		}
 		o1._checkCollisions(t2, (o2) => {
 			f(o1, o2);
@@ -609,8 +692,9 @@ function collides(
 }
 
 // add an event that runs when objs with tag t is clicked
-function clicks(t: string, f: (obj: GameObj) => void): EventCanceller {
-	return action(t, (o: GameObj) => {
+function onClick(t: string, f: (obj: GameObj) => void): EventCanceller {
+	return onUpdate(t, (o: GameObj) => {
+		if (!o.area) throw new Error("onClick() requires the object to have area() component");
 		if (o.isClicked()) {
 			f(o);
 		}
@@ -618,8 +702,9 @@ function clicks(t: string, f: (obj: GameObj) => void): EventCanceller {
 }
 
 // add an event that runs when objs with tag t is hovered
-function hovers(t: string, onHover: (obj: GameObj) => void, onNotHover?: (obj: GameObj) => void): EventCanceller {
-	return action(t, (o: GameObj) => {
+function onHover(t: string, onHover: (obj: GameObj) => void, onNotHover?: (obj: GameObj) => void): EventCanceller {
+	return onUpdate(t, (o: GameObj) => {
+		if (!o.area) throw new Error("onHover() requires the object to have area() component");
 		if (o.isHovering()) {
 			onHover(o);
 		} else {
@@ -665,18 +750,18 @@ function loop(t: number, f: () => void): EventCanceller {
 }
 
 // input callbacks
-function keyDown(k: Key | Key[], f: () => void): EventCanceller {
+function onKeyDown(k: Key | Key[], f: () => void): EventCanceller {
 	if (Array.isArray(k)) {
-		const cancellers = k.map((key) => keyDown(key, f));
+		const cancellers = k.map((key) => onKeyDown(key, f));
 		return () => cancellers.forEach((cb) => cb());
 	} {
 		return game.on("input", () => app.keyDown(k) && f());
 	}
 }
 
-function keyPress(k: Key | Key[] | (() => void), f?: () => void): EventCanceller {
+function onKeyPress(k: Key | Key[] | (() => void), f?: () => void): EventCanceller {
 	if (Array.isArray(k)) {
-		const cancellers = k.map((key) => keyPress(key, f));
+		const cancellers = k.map((key) => onKeyPress(key, f));
 		return () => cancellers.forEach((cb) => cb());
 	} else if (typeof k === "function") {
 		return game.on("input", () => app.keyPressed() && k());
@@ -685,9 +770,9 @@ function keyPress(k: Key | Key[] | (() => void), f?: () => void): EventCanceller
 	}
 }
 
-function keyPressRep(k: Key | Key[] | (() => void), f?: () => void): EventCanceller {
+function onKeyPressRep(k: Key | Key[] | (() => void), f?: () => void): EventCanceller {
 	if (Array.isArray(k)) {
-		const cancellers = k.map((key) => keyPressRep(key, f));
+		const cancellers = k.map((key) => onKeyPressRep(key, f));
 		return () => cancellers.forEach((cb) => cb());
 	} else if (typeof k === "function") {
 		return game.on("input", () => app.keyPressed() && k());
@@ -696,9 +781,9 @@ function keyPressRep(k: Key | Key[] | (() => void), f?: () => void): EventCancel
 	}
 }
 
-function keyRelease(k: Key | Key[] | (() => void), f?: () => void): EventCanceller {
+function onKeyRelease(k: Key | Key[] | (() => void), f?: () => void): EventCanceller {
 	if (Array.isArray(k)) {
-		const cancellers = k.map((key) => keyRelease(key, f));
+		const cancellers = k.map((key) => onKeyRelease(key, f));
 		return () => cancellers.forEach((cb) => cb());
 	} else if (typeof k === "function") {
 		return game.on("input", () => app.keyPressed() && k());
@@ -707,91 +792,102 @@ function keyRelease(k: Key | Key[] | (() => void), f?: () => void): EventCancell
 	}
 }
 
-function mouseDown(f: (pos: Vec2) => void): EventCanceller {
+function onMouseDown(f: (pos: Vec2) => void): EventCanceller {
 	return game.on("input", () => app.mouseDown() && f(mousePos()));
 }
 
-function mouseClick(f: (pos: Vec2) => void): EventCanceller {
+function onMouseClick(f: (pos: Vec2) => void): EventCanceller {
 	return game.on("input", () => app.mouseClicked() && f(mousePos()));
 }
 
-function mouseRelease(f: (pos: Vec2) => void): EventCanceller {
+function onMouseRelease(f: (pos: Vec2) => void): EventCanceller {
 	return game.on("input", () => app.mouseReleased() && f(mousePos()));
 }
 
-function mouseMove(f: (pos: Vec2, dpos: Vec2) => void): EventCanceller {
+function onMouseMove(f: (pos: Vec2, dpos: Vec2) => void): EventCanceller {
 	return game.on("input", () => app.mouseMoved() && f(mousePos(), app.mouseDeltaPos()));
 }
 
-function charInput(f: (ch: string) => void): EventCanceller {
+function onCharInput(f: (ch: string) => void): EventCanceller {
 	return game.on("input", () => app.charInputted().forEach((ch) => f(ch)));
 }
 
 // TODO: put this in app.ts's and handle in game loop
 app.canvas.addEventListener("touchstart", (e) => {
 	[...e.changedTouches].forEach((t) => {
-		game.trigger("touchStart", t.identifier, vec2(t.clientX, t.clientY).scale(1 / app.scale));
+		game.trigger("onTouchStart", t.identifier, vec2(t.clientX, t.clientY).scale(1 / app.scale));
 	});
 });
 
 app.canvas.addEventListener("touchmove", (e) => {
 	[...e.changedTouches].forEach((t) => {
-		game.trigger("touchMove", t.identifier, vec2(t.clientX, t.clientY).scale(1 / app.scale));
+		game.trigger("onTouchMove", t.identifier, vec2(t.clientX, t.clientY).scale(1 / app.scale));
 	});
 });
 
 app.canvas.addEventListener("touchmove", (e) => {
 	[...e.changedTouches].forEach((t) => {
-		game.trigger("touchEnd", t.identifier, vec2(t.clientX, t.clientY).scale(1 / app.scale));
+		game.trigger("onTouchEnd", t.identifier, vec2(t.clientX, t.clientY).scale(1 / app.scale));
 	});
 });
 
-function touchStart(f: (id: TouchID, pos: Vec2) => void): EventCanceller {
-	return game.on("touchStart", f);
+function onTouchStart(f: (id: TouchID, pos: Vec2) => void): EventCanceller {
+	return game.on("onTouchStart", f);
 }
 
-function touchMove(f: (id: TouchID, pos: Vec2) => void): EventCanceller {
-	return game.on("touchMove", f);
+function onTouchMove(f: (id: TouchID, pos: Vec2) => void): EventCanceller {
+	return game.on("onTouchMove", f);
 }
 
-function touchEnd(f: (id: TouchID, pos: Vec2) => void): EventCanceller {
-	return game.on("touchEnd", f);
+function onTouchEnd(f: (id: TouchID, pos: Vec2) => void): EventCanceller {
+	return game.on("onTouchEnd", f);
 }
+
+let curRecording = null;
 
 function enterDebugMode() {
 
-	keyPress("f1", () => {
+	onKeyPress("f1", () => {
 		debug.inspect = !debug.inspect;
 	});
 
-	keyPress("f2", () => {
+	onKeyPress("f2", () => {
 		debug.clearLog();
 	});
 
-	keyPress("f8", () => {
+	onKeyPress("f8", () => {
 		debug.paused = !debug.paused;
 		debug.log(`${debug.paused ? "paused" : "unpaused"}`);
 	});
 
-	keyPress("f7", () => {
+	onKeyPress("f7", () => {
 		debug.timeScale = clamp(debug.timeScale - 0.2, 0, 2);
 		debug.log(`time scale: ${debug.timeScale.toFixed(1)}`);
 	});
 
-	keyPress("f9", () => {
+	onKeyPress("f9", () => {
 		debug.timeScale = clamp(debug.timeScale + 0.2, 0, 2);
 		debug.log(`time scale: ${debug.timeScale.toFixed(1)}`);
 	});
 
-	keyPress("f10", () => {
+	onKeyPress("f10", () => {
 		debug.stepFrame();
 		debug.log(`stepped frame`);
+	});
+
+	onKeyPress("f11", () => {
+		if (curRecording) {
+			curRecording.download();
+			curRecording = null;
+		} else {
+			curRecording = record();
+		}
 	});
 
 }
 
 function enterBurpMode() {
-	keyPress("b", audio.burp);
+	onKeyPress("b", audio.burp);
 }
 
 // TODO: cache sorted list
@@ -1414,16 +1510,16 @@ function area(opt: AreaCompOpt = {}): AreaComp {
 			return testRectRect2(a1, a2);
 		},
 
-		clicks(f: () => void): EventCanceller {
-			return this.action(() => {
+		onClick(f: () => void): EventCanceller {
+			return this.onUpdate(() => {
 				if (this.isClicked()) {
 					f();
 				}
 			});
 		},
 
-		hovers(onHover: () => void, onNotHover: () => void): EventCanceller {
-			return this.action(() => {
+		onHover(onHover: () => void, onNotHover: () => void): EventCanceller {
+			return this.onUpdate(() => {
 				if (this.isHovering()) {
 					onHover();
 				} else {
@@ -1434,10 +1530,22 @@ function area(opt: AreaCompOpt = {}): AreaComp {
 			});
 		},
 
-		collides(tag: Tag, f: (o: GameObj, col?: Collision) => void): EventCanceller {
-			const e1 = this.action(() => this._checkCollisions(tag, f));
+		onCollide(tag: Tag, f: (o: GameObj, col?: Collision) => void): EventCanceller {
+			const e1 = this.onUpdate(() => this._checkCollisions(tag, f));
 			const e2 = this.on("collide", (obj, col) => obj.is(tag) && f(obj, col));
 			return () => [e1, e2].forEach((f) => f());
+		},
+
+		clicks(...args) {
+			return this.onClick(...args);
+		},
+
+		hovers(...args) {
+			return this.onHover(...args);
+		},
+
+		collides(...args) {
+			return this.onCollide(...args);
 		},
 
 		hasPoint(pt: Vec2): boolean {
@@ -1525,7 +1633,7 @@ function area(opt: AreaCompOpt = {}): AreaComp {
 				throw new Error("failed to get area dimension");
 			}
 
-			const scale = (this.scale ?? vec2(1)).scale(this.area.scale);
+			const scale = vec2(this.scale ?? 1).scale(this.area.scale);
 
 			w *= scale.x;
 			h *= scale.y;
@@ -1711,7 +1819,7 @@ function sprite(id: string | SpriteData, opt: SpriteCompOpt = {}): SpriteComp {
 		play(name: string, opt: SpriteAnimPlayOpt = {}) {
 
 			if (!spr) {
-				ready(() => {
+				onLoad(() => {
 					this.play(name);
 				});
 				return;
@@ -1772,6 +1880,14 @@ function sprite(id: string | SpriteData, opt: SpriteCompOpt = {}): SpriteComp {
 
 		flipY(b: boolean) {
 			opt.flipY = b;
+		},
+
+		onAnimEnd(action: (name: string) => void): EventCanceller {
+			return this.on("animEnd", action);
+		},
+
+		onAnimPlay(action: (name: string) => void): EventCanceller {
+			return this.on("animPlay", action);
 		},
 
 		inspect() {
@@ -2018,12 +2134,20 @@ function body(opt: BodyCompOpt = {}): BodyComp {
 			return curPlatform;
 		},
 
-		grounded(): boolean {
+		isGrounded() {
 			return curPlatform !== null;
 		},
 
-		falling(): boolean {
+		grounded(): boolean {
+			return this.isGrounded();
+		},
+
+		isFalling(): boolean {
 			return velY > 0;
+		},
+
+		falling(): boolean {
+			return this.isFalling();
 		},
 
 		jump(force: number) {
@@ -2033,13 +2157,29 @@ function body(opt: BodyCompOpt = {}): BodyComp {
 		},
 
 		doubleJump(force: number) {
-			if (this.grounded()) {
+			if (this.isGrounded()) {
 				this.jump(force);
 			} else if (canDouble) {
 				canDouble = false;
 				this.jump(force);
 				this.trigger("doubleJump");
 			}
+		},
+
+		onGround(action: () => void): EventCanceller {
+			return this.on("ground", action);
+		},
+
+		onFall(action: () => void): EventCanceller {
+			return this.on("fall", action);
+		},
+
+		onHeadbutt(action: () => void): EventCanceller {
+			return this.on("headbutt", action);
+		},
+
+		onDoubleJump(action: () => void): EventCanceller {
+			return this.on("doubleJump", action);
 		},
 
 	};
@@ -2100,6 +2240,15 @@ function health(hp: number): HealthComp {
 				this.trigger("death");
 			}
 		},
+		onHurt(action: () => void): EventCanceller {
+			return this.on("hurt", action);
+		},
+		onHeal(action: () => void): EventCanceller {
+			return this.on("heal", action);
+		},
+		onDeath(action: () => void): EventCanceller {
+			return this.on("death", action);
+		},
 		inspect() {
 			return `${hp}`;
 		},
@@ -2126,6 +2275,62 @@ function lifespan(time: number, opt: LifespanCompOpt = {}): LifespanComp {
 			}
 		},
 	};
+}
+
+function state(initState: string, stateList?: string[]): StateComp {
+
+	if (!initState) {
+		throw new Error("state() requires an initial state");
+	}
+
+	const events = {};
+
+	const initStateHook = (state: string) => {
+		if (!events[state]) {
+			events[state] = {
+				enter: [],
+				leave: [],
+				update: [],
+				draw: [],
+			};
+		}
+	};
+
+	return {
+		id: "state",
+		state: initState,
+		enterState(state: string, ...args) {
+			if (stateList && !stateList[state]) {
+				throw new Error(`State not found: ${state}`);
+			}
+			events[this.state].leave.forEach((action) => action());
+			this.state = state;
+			events[this.state].enter.forEach((action) => action(...args));
+		},
+		onStateEnter(state: string, action: () => void) {
+			initStateHook(state);
+			events[state].enter.push(action);
+		},
+		onStateUpdate(state: string, action: () => void) {
+			initStateHook(state);
+			events[state].update.push(action);
+		},
+		onStateDraw(state: string, action: () => void) {
+			initStateHook(state);
+			events[state].draw.push(action);
+		},
+		onStateLeave(state: string, action: () => void) {
+			initStateHook(state);
+			events[state].leave.push(action);
+		},
+		update() {
+			events[this.state].update.forEach((action) => action());
+		},
+		draw() {
+			events[this.state].draw.forEach((action) => action());
+		},
+	};
+
 }
 
 const debug: Debug = {
@@ -2156,7 +2361,7 @@ const debug: Debug = {
 	}
 };
 
-function ready(cb: () => void): void {
+function onLoad(cb: () => void): void {
 	if (game.loaded) {
 		cb();
 	} else {
@@ -2399,6 +2604,61 @@ function addLevel(map: string[], opt: LevelOpt): Level {
 
 }
 
+function record(frameRate = 30): Recording {
+
+	const stream = app.canvas.captureStream(frameRate);
+	const audioDest = audio.ctx.createMediaStreamDestination();
+
+	audio.masterNode.connect(audioDest)
+
+	const audioStream = audioDest.stream;
+	const [firstAudioTrack] = audioStream.getAudioTracks();
+
+	stream.addTrack(firstAudioTrack);
+
+	const recorder = new MediaRecorder(stream);
+	const chunks = [];
+
+	recorder.ondataavailable = (e) => {
+		if (e.data.size > 0) {
+			chunks.push(e.data);
+		}
+	};
+
+	recorder.start();
+
+	return {
+
+		resume() {
+			recorder.resume();
+		},
+
+		pause() {
+			recorder.pause();
+		},
+
+		download(filename = "kaboom.mp4") {
+
+			recorder.stop();
+
+			// Chunks might need a tick to flush
+			setTimeout(() => {
+
+				download(new Blob(chunks, {
+					type: "video/mp4",
+				}), filename);
+
+				// cleanup
+				audio.masterNode.disconnect(audioDest)
+				stream.getTracks().forEach(t => t.stop());
+
+			}, 0)
+
+		}
+	};
+
+}
+
 const ctx: KaboomCtx = {
 	// asset load
 	loadRoot: assets.loadRoot,
@@ -2418,13 +2678,16 @@ const ctx: KaboomCtx = {
 	dt,
 	time: app.time,
 	screenshot: app.screenshot,
-	focused: app.focused,
+	record: record,
+	focused: app.isFocused,
+	isFocused: app.isFocused,
 	focus: app.focus,
 	cursor: app.cursor,
 	regCursor,
 	fullscreen: app.fullscreen,
 	isFullscreen: app.isFullscreen,
-	ready,
+	onLoad,
+	ready: onLoad,
 	isTouch: () => app.isTouch,
 	// misc
 	layers,
@@ -2470,26 +2733,44 @@ const ctx: KaboomCtx = {
 	move,
 	cleanup,
 	follow,
+	state,
 	// group events
 	on,
-	action,
-	render,
-	collides,
-	clicks,
-	hovers,
+	onUpdate,
+	onDraw,
+	onCollide,
+	onClick,
+	onHover,
+	action: onUpdate,
+	render: onDraw,
+	collides: onCollide,
+	clicks: onClick,
+	hovers: onHover,
 	// input
-	keyDown,
-	keyPress,
-	keyPressRep,
-	keyRelease,
-	mouseDown,
-	mouseClick,
-	mouseRelease,
-	mouseMove,
-	charInput,
-	touchStart,
-	touchMove,
-	touchEnd,
+	onKeyDown,
+	onKeyPress,
+	onKeyPressRep,
+	onKeyRelease,
+	onMouseDown,
+	onMouseClick,
+	onMouseRelease,
+	onMouseMove,
+	onCharInput,
+	onTouchStart,
+	onTouchMove,
+	onTouchEnd,
+	keyDown: onKeyDown,
+	keyPress: onKeyPress,
+	keyPressRep: onKeyPressRep,
+	keyRelease: onKeyRelease,
+	mouseDown: onMouseDown,
+	mouseClick: onMouseClick,
+	mouseRelease: onMouseRelease,
+	mouseMove: onMouseMove,
+	charInput: onCharInput,
+	touchStart: onTouchStart,
+	touchMove: onTouchMove,
+	touchEnd: onTouchEnd,
 	mousePos,
 	mouseWorldPos,
 	mouseDeltaPos: app.mouseDeltaPos,
@@ -2659,6 +2940,15 @@ app.run(() => {
 
 		if (debug.showLog) {
 			logger.draw();
+		}
+
+		if (curRecording) {
+			gfx.drawCircle({
+				radius: 12,
+				pos: vec2(24, height() - 24),
+				color: rgb(255, 0, 0),
+				opacity: wave(0, 1, app.time() * 4),
+			});
 		}
 
 	}

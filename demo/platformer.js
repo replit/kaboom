@@ -2,7 +2,7 @@ kaboom();
 
 // load assets
 loadSprite("bean", "sprites/bean.png");
-loadSprite("googoly", "sprites/googoly.png");
+loadSprite("ghosty", "sprites/ghosty.png");
 loadSprite("spike", "sprites/spike.png");
 loadSprite("grass", "sprites/grass.png");
 loadSprite("prize", "sprites/jumpy.png");
@@ -143,7 +143,7 @@ const levelConf = {
 		"apple",
 	],
 	">": () => [
-		sprite("googoly"),
+		sprite("ghosty"),
 		area(),
 		origin("bot"),
 		body(),
@@ -180,7 +180,7 @@ scene("game", ({ levelId, coins } = { levelId: 0, coins: 0 }) => {
 	]);
 
 	// action() runs every frame
-	player.action(() => {
+	player.onUpdate(() => {
 		// center camera to player
 		camPos(player.pos);
 		// check fall death
@@ -189,13 +189,13 @@ scene("game", ({ levelId, coins } = { levelId: 0, coins: 0 }) => {
 		}
 	});
 
-	// if player collides with any obj with "danger" tag, lose
-	player.collides("danger", () => {
+	// if player onCollide with any obj with "danger" tag, lose
+	player.onCollide("danger", () => {
 		go("lose");
 		play("hit");
 	});
 
-	player.collides("portal", () => {
+	player.onCollide("portal", () => {
 		play("portal");
 		if (levelId + 1 < LEVELS.length) {
 			go("game", {
@@ -207,7 +207,7 @@ scene("game", ({ levelId, coins } = { levelId: 0, coins: 0 }) => {
 		}
 	});
 
-	player.on("ground", (l) => {
+	player.onGround((l) => {
 		if (l.is("enemy")) {
 			player.jump(JUMP_FORCE * 1.5);
 			destroy(l);
@@ -216,7 +216,7 @@ scene("game", ({ levelId, coins } = { levelId: 0, coins: 0 }) => {
 		}
 	});
 
-	player.collides("enemy", (e, col) => {
+	player.onCollide("enemy", (e, col) => {
 		// if it's not from the top, die
 		if (!col.isBottom()) {
 			go("lose");
@@ -227,7 +227,7 @@ scene("game", ({ levelId, coins } = { levelId: 0, coins: 0 }) => {
 	let hasApple = false;
 
 	// grow an apple if player's head bumps into an obj with "prize" tag
-	player.on("headbutt", (obj) => {
+	player.onHeadbutt((obj) => {
 		if (obj.is("prize") && !hasApple) {
 			const apple = level.spawn("#", obj.gridPos.sub(0, 1));
 			apple.jump();
@@ -236,8 +236,8 @@ scene("game", ({ levelId, coins } = { levelId: 0, coins: 0 }) => {
 		}
 	});
 
-	// player grows big collides with an "apple" obj
-	player.collides("apple", (a) => {
+	// player grows big onCollide with an "apple" obj
+	player.onCollide("apple", (a) => {
 		destroy(a);
 		// as we defined in the big() component
 		player.biggify(3);
@@ -247,13 +247,13 @@ scene("game", ({ levelId, coins } = { levelId: 0, coins: 0 }) => {
 
 	let coinPitch = 0;
 
-	action(() => {
+	onUpdate(() => {
 		if (coinPitch > 0) {
 			coinPitch = Math.max(0, coinPitch - dt() * 100);
 		}
 	});
 
-	player.collides("coin", (c) => {
+	player.onCollide("coin", (c) => {
 		destroy(c);
 		play("coin", {
 			detune: coinPitch,
@@ -270,30 +270,30 @@ scene("game", ({ levelId, coins } = { levelId: 0, coins: 0 }) => {
 	]);
 
 	// jump with space
-	keyPress("space", () => {
+	onKeyPress("space", () => {
 		// these 2 functions are provided by body() component
-		if (player.grounded()) {
+		if (player.isGrounded()) {
 			player.jump(JUMP_FORCE);
 		}
 	});
 
-	keyDown("left", () => {
+	onKeyDown("left", () => {
 		player.move(-MOVE_SPEED, 0);
 	});
 
-	keyDown("right", () => {
+	onKeyDown("right", () => {
 		player.move(MOVE_SPEED, 0);
 	});
 
-	keyPress("down", () => {
+	onKeyPress("down", () => {
 		player.weight = 3;
 	});
 
-	keyRelease("down", () => {
+	onKeyRelease("down", () => {
 		player.weight = 1;
 	});
 
-	keyPress("f", () => {
+	onKeyPress("f", () => {
 		fullscreen(!fullscreen());
 	});
 
@@ -303,14 +303,14 @@ scene("lose", () => {
 	add([
 		text("You Lose"),
 	]);
-	keyPress(() => go("game"));
+	onKeyPress(() => go("game"));
 });
 
 scene("win", () => {
 	add([
 		text("You Win"),
 	]);
-	keyPress(() => go("game"));
+	onKeyPress(() => go("game"));
 });
 
 go("game");

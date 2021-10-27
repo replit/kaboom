@@ -2,6 +2,12 @@ import {
 	vec2,
 } from "./math";
 
+import {
+	Key,
+	Vec2,
+	Cursor,
+} from "./types";
+
 type ButtonState =
 	"up"
 	| "pressed"
@@ -67,7 +73,7 @@ type App = {
 	screenshot(): string,
 	run(f: () => void),
 	quit(),
-	focused(): boolean,
+	isFocused(): boolean,
 	focus(),
 	canvas: HTMLCanvasElement,
 	isTouch: boolean,
@@ -471,7 +477,7 @@ function appInit(gopt: AppOpt = {}): App {
 		screenshot,
 		run,
 		quit,
-		focused: () => document.activeElement === app.canvas,
+		isFocused: () => document.activeElement === app.canvas,
 		focus: () => app.canvas.focus(),
 		canvas: app.canvas,
 		isTouch: app.isTouch,

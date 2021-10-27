@@ -53,8 +53,7 @@ const Fun: React.FC = () => (
 const NARROW = 840;
 
 const Home: React.FC = () => {
-	const [ showType, setShowType ] = React.useState(false);
-	const [ shownTypeName, setShownTypeName ] = React.useState<string | null>(null);
+	const [ showType, setShowType ] = React.useState<string | null>(null);
 	const isNarrow = useMediaQuery(`(max-width: ${NARROW}px)`);
 	return <Nav>
 		<Head title="Kaboom" scale={0.8} />
@@ -96,10 +95,7 @@ Play with it yourself or check out the examples in the [Playground](/play)!
 								id={name}
 								key={name}
 								name={name}
-								typeref={(name) => {
-									setShowType(true);
-									setShownTypeName(name);
-								}}
+								typeref={setShowType}
 							/>
 						)) }
 					</View>
@@ -107,21 +103,33 @@ Play with it yourself or check out the examples in the [Playground](/play)!
 			);
 		}) }
 
+		{ doc.typerefs.map((name) => {
+			if (name !== "KaboomCtx" && name !== "kaboom") {
+				return <Doc
+					id={name}
+					key={name}
+					name={name}
+					typeref={setShowType}
+				/>
+			}
+		})}
+
 		<Drawer
 			dir="right"
 			pad={2}
 			height="64%"
 			paneWidth={isNarrow ? 320 : 360}
-			expanded={showType}
-			setExpanded={setShowType}
+			expanded={showType !== null}
+			setExpanded={(b) => {
+				if (b === false) {
+					setShowType(null);
+				}
+			}}
 		>
-			{ shownTypeName &&
+			{ showType &&
 				<Doc
-					name={shownTypeName}
-					typeref={(name) => {
-						setShowType(true);
-						setShownTypeName(name);
-					}}
+					name={showType}
+					typeref={setShowType}
 				/>
 			}
 		</Drawer>

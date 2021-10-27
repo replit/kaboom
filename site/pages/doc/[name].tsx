@@ -1,4 +1,4 @@
-import fs from "fs";
+import fs from "fs/promises";
 import { GetServerSideProps } from "next";
 import { useRouter } from "next/router";
 import Link from "next/link";
@@ -11,7 +11,7 @@ import { capitalize } from "lib/str";
 
 interface DocProps {
 	name: string,
-	src?: string,
+	src: string,
 }
 
 const Doc: React.FC<DocProps> = ({
@@ -20,23 +20,25 @@ const Doc: React.FC<DocProps> = ({
 }) => (
 	<Nav>
 		<Head title={`Kaboom - ${capitalize(name)}`} />
-		{ src
-			? <Markdown src={src || ""} baseUrl="/site/doc/" />
-			: <Text color={3}>{`There's no doc called "${name}" :(`}</Text>
-		}
+		<Markdown src={src} baseUrl="/site/doc/" />
 	</Nav>
 );
 
 export const getServerSideProps: GetServerSideProps = async (ctx) => {
 	const { name } = ctx.query;
 	const path = `public/site/doc/${name}.md`
-	const src = fs.existsSync(path) ? fs.readFileSync(path, "utf8") : null;
-	return {
-		props: {
-			name,
-			src,
-		},
-	};
+	try {
+		return {
+			props: {
+				name: name,
+				src: await fs.readFile(path, "utf8"),
+			},
+		};
+	} catch (e) {
+		return {
+			notFound: true,
+		};
+	}
 }
 
 export default Doc;

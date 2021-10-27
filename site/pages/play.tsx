@@ -1,4 +1,4 @@
-import fs from "fs";
+import fs from "fs/promises";
 import * as React from "react";
 import { GetServerSideProps } from "next";
 import Link from "next/link";
@@ -450,16 +450,12 @@ const Play: React.FC<PlayProps> = ({
 
 // TODO: getServerSideProps is handy for dev when you're changing demos, but getStaticProps makes more sense for prod since it won't change
 export const getServerSideProps: GetServerSideProps = async (ctx) => {
-	const demos = fs
-		.readdirSync("public/site/demo")
+	const demodir = (await fs.readdir("public/site/demo"))
 		.filter((p) => !p.startsWith("."))
-		.reduce<Record<string, string>>((table, file) => {
-			table[basename(file) ?? file] = fs.readFileSync(
-				`public/site/demo/${file}`,
-				"utf8"
-			);
-			return table;
-		}, {});
+	const demos: Record<string, string> = {}
+	for (const file of demodir) {
+		demos[basename(file) ?? file] = await fs.readFile(`public/site/demo/${file}`, "utf8");
+	}
 	return {
 		props: {
 			demos,

@@ -107,7 +107,7 @@ scene("battle", () => {
 		opacity(0),
 	]);
 
-	sky.action(() => {
+	sky.onUpdate(() => {
 		if (insaneMode) {
 			const t = time() * 10;
 			sky.color.r = wave(127, 255, t);
@@ -134,7 +134,7 @@ scene("battle", () => {
 // 		"stars",
 // 	]);
 
-// 	action("stars", (r) => {
+// 	onUpdate("stars", (r) => {
 // 		r.move(0, STAR_SPEED * (insaneMode ? 10 : 1));
 // 		if (r.pos.y >= height()) {
 // 			r.pos.y -= height() * 2;
@@ -148,31 +148,31 @@ scene("battle", () => {
 		origin("center"),
 	]);
 
-	keyDown("left", () => {
+	onKeyDown("left", () => {
 		player.move(-PLAYER_SPEED, 0);
 		if (player.pos.x < 0) {
 			player.pos.x = width();
 		}
 	});
 
-	keyDown("right", () => {
+	onKeyDown("right", () => {
 		player.move(PLAYER_SPEED, 0);
 		if (player.pos.x > width()) {
 			player.pos.x = 0;
 		}
 	});
 
-	keyPress("up", () => {
+	onKeyPress("up", () => {
 		insaneMode = true;
 		music.speed(2);
 	});
 
-	keyRelease("up", () => {
+	onKeyRelease("up", () => {
 		insaneMode = false;
 		music.speed(1);
 	});
 
-	player.collides("enemy", (e) => {
+	player.onCollide("enemy", (e) => {
 		destroy(e);
 		destroy(player);
 		shake(120);
@@ -218,13 +218,13 @@ scene("battle", () => {
 		]);
 	}
 
-	action("bullet", (b) => {
+	onUpdate("bullet", (b) => {
 		if (insaneMode) {
 			b.color = rand(rgb(0, 0, 0), rgb(255, 255, 255));
 		}
 	});
 
-	keyPress("space", () => {
+	onKeyPress("space", () => {
 		spawnBullet(player.pos.sub(16, 0));
 		spawnBullet(player.pos.add(16, 0));
 		play("shoot", {
@@ -283,25 +283,25 @@ scene("battle", () => {
 		{ time: 0, },
 	]);
 
-	timer.action(() => {
+	timer.onUpdate(() => {
 		timer.time += dt();
 		timer.text = timer.time.toFixed(2);
 	});
 
-	collides("bullet", "enemy", (b, e) => {
+	onCollide("bullet", "enemy", (b, e) => {
 		destroy(b);
 		e.hurt(insaneMode ? 10 : 1);
 		addExplode(b.pos, 1, 24, 1);
 	});
 
-	action("trash", (t) => {
+	onUpdate("trash", (t) => {
 		t.move(0, t.speed * (insaneMode ? 5 : 1));
 		if (t.pos.y - t.height > height()) {
 			destroy(t);
 		}
 	});
 
-	boss.action((p) => {
+	boss.onUpdate((p) => {
 		boss.move(BOSS_SPEED * boss.dir * (insaneMode ? 3 : 1), 0);
 		if (boss.dir === 1 && boss.pos.x >= width() - 20) {
 			boss.dir = -1;
@@ -311,11 +311,11 @@ scene("battle", () => {
 		}
 	});
 
-	boss.on("hurt", () => {
+	boss.onHurt(() => {
 		healthbar.set(boss.hp());
 	});
 
-	boss.on("death", () => {
+	boss.onDeath(() => {
 		music.stop();
 		go("win", {
 			time: timer.time,
@@ -338,7 +338,7 @@ scene("battle", () => {
 		},
 	]);
 
-	healthbar.action(() => {
+	healthbar.onUpdate(() => {
 		if (healthbar.flash) {
 			healthbar.color = rgb(255, 255, 255);
 			healthbar.flash = false;
