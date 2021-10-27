@@ -70,6 +70,7 @@ import {
 
 import {
 	IDList,
+	download,
 } from "./utils";
 
 import {
@@ -139,6 +140,7 @@ import {
 	Level,
 	LevelOpt,
 	Cursor,
+	Recording,
 } from "./types";
 
 import kaboomPlugin from "./plugins/kaboom";
@@ -201,7 +203,7 @@ function play(id: string, opt: AudioPlayOpt = {}): AudioPlay {
 			sampleRate: 44100
 		}),
 	});
-	ready(() => {
+	onLoad(() => {
 		const snd = assets.sounds[id];
 		if (!snd) {
 			throw new Error(`sound not found: "${id}"`);
@@ -504,7 +506,7 @@ function make<T>(comps: CompList<T>): GameObj<T> {
 					comp.add.call(this);
 				}
 				if (comp.load) {
-					ready(() => comp.load.call(this));
+					onLoad(() => comp.load.call(this));
 				}
 				checkDeps();
 			} else {
@@ -627,7 +629,7 @@ function add<T>(comps: CompList<T>): GameObj<T> {
 	const obj = make(comps);
 	obj._id = game.objs.push(obj);
 	obj.trigger("add");
-	ready(() => obj.trigger("load"));
+	onLoad(() => obj.trigger("load"));
 	return obj;
 }
 
@@ -841,6 +843,8 @@ function onTouchEnd(f: (id: TouchID, pos: Vec2) => void): EventCanceller {
 	return game.on("onTouchEnd", f);
 }
 
+let curRecording = null;
+
 function enterDebugMode() {
 
 	onKeyPress("f1", () => {
@@ -869,6 +873,15 @@ function enterDebugMode() {
 	onKeyPress("f10", () => {
 		debug.stepFrame();
 		debug.log(`stepped frame`);
+	});
+
+	onKeyPress("f11", () => {
+		if (curRecording) {
+			curRecording.download();
+			curRecording = null;
+		} else {
+			curRecording = record();
+		}
 	});
 
 }
@@ -1806,7 +1819,7 @@ function sprite(id: string | SpriteData, opt: SpriteCompOpt = {}): SpriteComp {
 		play(name: string, opt: SpriteAnimPlayOpt = {}) {
 
 			if (!spr) {
-				ready(() => {
+				onLoad(() => {
 					this.play(name);
 				});
 				return;
@@ -2348,7 +2361,7 @@ const debug: Debug = {
 	}
 };
 
-function ready(cb: () => void): void {
+function onLoad(cb: () => void): void {
 	if (game.loaded) {
 		cb();
 	} else {
@@ -2591,6 +2604,61 @@ function addLevel(map: string[], opt: LevelOpt): Level {
 
 }
 
+function record(frameRate = 30): Recording {
+
+	const stream = app.canvas.captureStream(frameRate);
+	const audioDest = audio.ctx.createMediaStreamDestination();
+
+	audio.masterNode.connect(audioDest)
+
+	const audioStream = audioDest.stream;
+	const [firstAudioTrack] = audioStream.getAudioTracks();
+
+	stream.addTrack(firstAudioTrack);
+
+	const recorder = new MediaRecorder(stream);
+	const chunks = [];
+
+	recorder.ondataavailable = (e) => {
+		if (e.data.size > 0) {
+			chunks.push(e.data);
+		}
+	};
+
+	recorder.start();
+
+	return {
+
+		resume() {
+			recorder.resume();
+		},
+
+		pause() {
+			recorder.pause();
+		},
+
+		download(filename = "kaboom.mp4") {
+
+			recorder.stop();
+
+			// Chunks might need a tick to flush
+			setTimeout(() => {
+
+				download(new Blob(chunks, {
+					type: "video/mp4",
+				}), filename);
+
+				// cleanup
+				audio.masterNode.disconnect(audioDest)
+				stream.getTracks().forEach(t => t.stop());
+
+			}, 0)
+
+		}
+	};
+
+}
+
 const ctx: KaboomCtx = {
 	// asset load
 	loadRoot: assets.loadRoot,
@@ -2610,14 +2678,16 @@ const ctx: KaboomCtx = {
 	dt,
 	time: app.time,
 	screenshot: app.screenshot,
-	isFocused: app.isFocused,
+	record: record,
 	focused: app.isFocused,
+	isFocused: app.isFocused,
 	focus: app.focus,
 	cursor: app.cursor,
 	regCursor,
 	fullscreen: app.fullscreen,
 	isFullscreen: app.isFullscreen,
-	ready,
+	onLoad,
+	ready: onLoad,
 	isTouch: () => app.isTouch,
 	// misc
 	layers,
@@ -2793,60 +2863,6 @@ const ctx: KaboomCtx = {
 	DOWN: vec2(0, 1),
 	// dom
 	canvas: app.canvas,
-
-	record: (frameRate = 30) => {
-		const stream = app.canvas.captureStream(frameRate);
-
-		const streamAudioDestination = audio.ctx.createMediaStreamDestination();
-		audio.masterNode.connect(streamAudioDestination)
-		const audioStream = streamAudioDestination.stream;
-		const [firstAudioTrack] = audioStream.getAudioTracks();
-		stream.addTrack(firstAudioTrack);
-
-		const mediaRecorder = new MediaRecorder(stream);
-		const recordedChunks = [];
-		mediaRecorder.ondataavailable = e => {
-			if(e.data.size > 0){
-					recordedChunks.push(e.data);
-			}
-		};
-		mediaRecorder.start();
-
-		return {
-			pause: () => {
-				mediaRecorder.pause();
-			},
-			resume: () => {
-				mediaRecorder.resume();
-			},
-			download: (filename: string = 'kaboom.mp4') => {
-				mediaRecorder.stop();
-
-				// Chunks might need a tick to flush
-				setTimeout(() => {
-					const blob = new Blob(recordedChunks, {
-						type: 'video/mp4'
-					});
-					const url = URL.createObjectURL(blob);
-
-					const a = document.createElement('a');
-					document.body.appendChild(a);
-					a.setAttribute('style', 'display: none');
-					a.href = url;
-					a.download = filename;
-					a.click();
-
-					// cleanup
-					URL.revokeObjectURL(url);
-					recordedChunks.length = 0;
-					audio.masterNode.disconnect(streamAudioDestination)
-					stream.getTracks().forEach(t => {
-						t.stop();
-					});
-				}, 0)
-			}
-		};
-	}
 };
 
 plug(kaboomPlugin);
@@ -2924,6 +2940,15 @@ app.run(() => {
 
 		if (debug.showLog) {
 			logger.draw();
+		}
+
+		if (curRecording) {
+			gfx.drawCircle({
+				radius: 12,
+				pos: vec2(24, height() - 24),
+				color: rgb(255, 0, 0),
+				opacity: wave(0, 1, app.time() * 4),
+			});
 		}
 
 	}

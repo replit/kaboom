@@ -42,7 +42,24 @@ function deepEq(o1: any, o2: any): boolean {
 	return o1 === o2;
 }
 
+function download(blob: Blob, filename: string) {
+
+	const url = URL.createObjectURL(blob);
+	const a = document.createElement("a");
+	document.body.appendChild(a);
+	a.setAttribute("style", "display: none");
+	a.href = url;
+	a.download = filename;
+	a.click();
+
+	// cleanup
+	URL.revokeObjectURL(url);
+	document.body.removeChild(a);
+
+}
+
 export {
 	deepEq,
 	IDList,
+	download,
 };
