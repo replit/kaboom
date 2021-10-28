@@ -3,7 +3,7 @@ import Link from "next/link";
 import View, { ViewPropsAnd } from "comps/View";
 import Text from "comps/Text";
 import Markdown from "comps/Markdown";
-import * as doc from "lib/doc";
+import doc from "doc.json";
 
 const TypeSig: React.FC<EntryProps> = ({ data }) => (
 	<span
@@ -48,7 +48,9 @@ const TypeSig: React.FC<EntryProps> = ({ data }) => (
 				case "TypeLiteral":
 					return <View gap={2} stretchX>
 						{
-							data.members.map((mem: any) => <Member key={mem.name} data={mem} />)
+							Object.entries(data.members).map(([name, mem]) =>
+								<Member key={mem.name} data={mem} />
+							)
 						}
 					</View>;
 				case "IndexedAccessType":
@@ -101,9 +103,13 @@ interface TitleProps {
 	small?: boolean,
 }
 
+function isType(entry: any): boolean {
+	return entry.kind === "TypeAliasDeclaration" || entry.kind === "InterfaceDeclaration";
+}
+
 const Title: React.FC<TitleProps> = ({ data, small, children }) => (
 	<View gap={1} dir="row" align="center">
-		{ doc.isType(data) && <Tag name="type" /> }
+		{ isType(data) && <Tag name="type" /> }
 		<Text
 			code
 			color={1}
@@ -157,7 +163,9 @@ const TypeAliasDeclaration: React.FC<EntryProps> = ({ data }) => (
 		{(() => {
 			switch (data.type.kind) {
 				case "TypeLiteral":
-					return data.type.members.map((mem: any) => <Entry key={mem.name} data={mem} />)
+					return Object.entries(data.type.members).map(([name, mem]) =>
+						<Entry key={mem.name} data={mem} />
+					);
 				case "TypeReference":
 				case "UnionType":
 				case "StringKeyword":
@@ -187,7 +195,9 @@ const InterfaceDeclaration: React.FC<EntryProps> = ({ data }) => {
 				<Title data={data} />
 				<JSDoc data={data} />
 			</View>
-			{data.members.map((mem: any, i: number) => <Member key={`${mem.name}-${i}`} data={mem} />)}
+			{ Object.entries(data.members).map(([name, mem], i) =>
+				<Member key={`${mem.name}-${i}`} data={mem} />
+			) }
 		</View>
 	);
 };
@@ -255,7 +265,7 @@ const Doc: React.FC<ViewPropsAnd<DocProps>> = ({
 	typeref,
 	...args
 }) => {
-	const entries = doc.types[name];
+	const entries = doc.types[name] || doc.types["KaboomCtx"][0].members[name];
 	if (!entries) {
 		return <Text color={3}>Entry not found: {name}</Text>;
 	}

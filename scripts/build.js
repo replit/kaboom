@@ -91,6 +91,20 @@ function buildTypes() {
 			case "tagName": return v.escapedText;
 			case "kind": return ts.SyntaxKind[v];
 			case "questionToken": return true;
+			case "members": {
+				const members = {};
+				for (const mem of v) {
+					const name = mem.name?.escapedText;
+					if (!name) {
+						continue;
+					}
+					if (!members[name]) {
+						members[name] = [];
+					}
+					members[name].push(mem);
+				}
+				return members;
+			}
 			case "jsDoc": {
 				const doc = v[0];
 				const taglist = doc.tags ?? [];
@@ -113,7 +127,6 @@ function buildTypes() {
 
 	// check if global defs are being generated
 	let globalGenerated = false;
-	const dups = new Set();
 
 	// window attribs to overwrite
 	const overwrites = new Set([
@@ -123,11 +136,7 @@ function buildTypes() {
 
 	// contain the type data for doc gen
 	const types = {};
-
-	const sections = [{
-		name: "Start",
-		entries: ["kaboom"],
-	}];
+	const sections = [];
 
 	// generate global decls for KaboomCtx members
 	dts += "declare global {\n";
@@ -146,20 +155,17 @@ function buildTypes() {
 				throw new Error("KaboomCtx has to be an interface.");
 			}
 
-			for (const mem of stmt.members) {
+			for (const name in stmt.members) {
 
-				if (!mem.name || dups.has(mem.name)) {
-					continue;
-				}
+				const mem = stmt.members[name];
 
-				if (overwrites.has(mem.name)) {
+				if (overwrites.has(name)) {
 					dts += "\t// @ts-ignore\n";
 				}
 
-				dts += `\tconst ${mem.name}: KaboomCtx["${mem.name}"];\n`;
-				dups.add(mem.name);
+				dts += `\tconst ${name}: KaboomCtx["${name}"];\n`;
 
-				const tags = mem.jsDoc?.tags ?? {};
+				const tags = mem[0].jsDoc?.tags ?? {};
 
 				if (tags["section"]) {
 					sections.push({
@@ -170,8 +176,8 @@ function buildTypes() {
 
 				const curSection = sections[sections.length - 1];
 
-				if (mem.name && !curSection.entries.includes(mem.name)) {
-					curSection.entries.push(mem.name);
+				if (name && !curSection.entries.includes(name)) {
+					curSection.entries.push(name);
 				}
 
 			}
@@ -190,9 +196,9 @@ function buildTypes() {
 
 	fs.writeFileSync(`${distDir}/kaboom.d.ts`, dts);
 
-	fs.writeFileSync(`site/types.json`, JSON.stringify({
+	fs.writeFileSync(`site/doc.json`, JSON.stringify({
 		types,
 		sections,
-	}, null, 4));
+	}));
 
 }
