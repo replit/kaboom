@@ -91,6 +91,22 @@ function buildTypes() {
 			case "tagName": return v.escapedText;
 			case "kind": return ts.SyntaxKind[v];
 			case "questionToken": return true;
+			case "jsDoc": {
+				const doc = v[0];
+				const taglist = doc.tags ?? [];
+				const tags = {};
+				for (const tag of taglist) {
+					const name = tag.tagName.escapedText;
+					if (!tags[name]) {
+						tags[name] = [];
+					}
+					tags[name].push(tag.comment);
+				}
+				return {
+					doc: doc.comment,
+					tags: tags,
+				};
+			}
 			default: return v;
 		}
 	});
