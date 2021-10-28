@@ -1949,8 +1949,6 @@ export interface GameObjRaw {
 	 */
 	onDestroy(cb: () => void): EventCanceller;
 	/**
-	 * Registers an event that runs every frame as long as the game obj exists (alias to onUpdate).
-	 *
 	 * @deprecated Use onUpdate() instead.
 	 */
 	action: GameObjRaw["onUpdate"];
