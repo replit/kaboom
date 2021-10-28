@@ -1931,21 +1931,29 @@ export interface GameObjRaw {
 	 */
 	inspect(): GameObjInspect;
 	/**
-	 * Registers an event that runs every frame as long as the game obj exists (alias to onUpdate).
-	 */
-	action: GameObjRaw["onUpdate"];
-	/**
 	 * Registers an event that runs every frame as long as the game obj exists.
+	 *
+	 * @since v2000.1.0
 	 */
 	onUpdate(cb: () => void): EventCanceller;
 	/**
 	 * Registers an event that runs every frame as long as the game obj exists (this is the same as `onUpdate()`, but all draw events are run after all update events).
+	 *
+	 * @since v2000.1.0
 	 */
 	onDraw(cb: () => void): EventCanceller;
 	/**
 	 * Registers an event that runs when the game obj is destroyed.
+	 *
+	 * @since v2000.1.0
 	 */
 	onDestroy(cb: () => void): EventCanceller;
+	/**
+	 * Registers an event that runs every frame as long as the game obj exists (alias to onUpdate).
+	 *
+	 * @deprecated Use onUpdate() instead.
+	 */
+	action: GameObjRaw["onUpdate"];
 }
 
 /**
