@@ -233,7 +233,7 @@ const JSDoc: React.FC<EntryProps> = ({data}) => {
 					switch (name) {
 						case "example": return <Markdown key={content} src={content} />;
 						default: return (
-							<View key={content} gap={1} dir="row" align="center">
+							<View key={content} gap={1} dir="row">
 								<Tag name={name} />
 								<Text select color={3}>{content}</Text>
 							</View>
