@@ -756,7 +756,7 @@ function onKeyDown(k: Key | Key[], f: () => void): EventCanceller {
 		const cancellers = k.map((key) => onKeyDown(key, f));
 		return () => cancellers.forEach((cb) => cb());
 	} {
-		return game.on("input", () => app.keyDown(k) && f());
+		return game.on("input", () => app.isKeyDown(k) && f());
 	}
 }
 
@@ -765,9 +765,9 @@ function onKeyPress(k: Key | Key[] | (() => void), f?: () => void): EventCancell
 		const cancellers = k.map((key) => onKeyPress(key, f));
 		return () => cancellers.forEach((cb) => cb());
 	} else if (typeof k === "function") {
-		return game.on("input", () => app.keyPressed() && k());
+		return game.on("input", () => app.isKeyPressed() && k());
 	} else {
-		return game.on("input", () => app.keyPressed(k) && f());
+		return game.on("input", () => app.isKeyPressed(k) && f());
 	}
 }
 
@@ -776,9 +776,9 @@ function onKeyPressRepeat(k: Key | Key[] | (() => void), f?: () => void): EventC
 		const cancellers = k.map((key) => onKeyPressRepeat(key, f));
 		return () => cancellers.forEach((cb) => cb());
 	} else if (typeof k === "function") {
-		return game.on("input", () => app.keyPressed() && k());
+		return game.on("input", () => app.isKeyPressed() && k());
 	} else {
-		return game.on("input", () => app.keyPressedRepeat(k) && f());
+		return game.on("input", () => app.isKeyPressedRepeat(k) && f());
 	}
 }
 
@@ -787,26 +787,26 @@ function onKeyRelease(k: Key | Key[] | (() => void), f?: () => void): EventCance
 		const cancellers = k.map((key) => onKeyRelease(key, f));
 		return () => cancellers.forEach((cb) => cb());
 	} else if (typeof k === "function") {
-		return game.on("input", () => app.keyPressed() && k());
+		return game.on("input", () => app.isKeyPressed() && k());
 	} else {
-		return game.on("input", () => app.keyReleased(k) && f());
+		return game.on("input", () => app.isKeyReleased(k) && f());
 	}
 }
 
 function onMouseDown(f: (pos: Vec2) => void): EventCanceller {
-	return game.on("input", () => app.mouseDown() && f(mousePos()));
+	return game.on("input", () => app.isMouseDown() && f(mousePos()));
 }
 
 function onMouseClick(f: (pos: Vec2) => void): EventCanceller {
-	return game.on("input", () => app.mouseClicked() && f(mousePos()));
+	return game.on("input", () => app.isMouseClicked() && f(mousePos()));
 }
 
 function onMouseRelease(f: (pos: Vec2) => void): EventCanceller {
-	return game.on("input", () => app.mouseReleased() && f(mousePos()));
+	return game.on("input", () => app.isMouseReleased() && f(mousePos()));
 }
 
 function onMouseMove(f: (pos: Vec2, dpos: Vec2) => void): EventCanceller {
-	return game.on("input", () => app.mouseMoved() && f(mousePos(), app.mouseDeltaPos()));
+	return game.on("input", () => app.isMouseMoved() && f(mousePos(), app.mouseDeltaPos()));
 }
 
 function onCharInput(f: (ch: string) => void): EventCanceller {
@@ -1484,13 +1484,13 @@ function area(opt: AreaCompOpt = {}): AreaComp {
 		},
 
 		isClicked(): boolean {
-			return app.mouseClicked() && this.isHovering();
+			return app.isMouseClicked() && this.isHovering();
 		},
 
 		isHovering() {
 			const mpos = this.fixed ? mousePos() : mouseWorldPos();
 			if (app.isTouch) {
-				return app.mouseDown() && this.hasPoint(mpos);
+				return app.isMouseDown() && this.hasPoint(mpos);
 			} else {
 				return this.hasPoint(mpos);
 			}
@@ -2779,22 +2779,22 @@ const ctx: KaboomCtx = {
 	mousePos,
 	mouseWorldPos,
 	mouseDeltaPos: app.mouseDeltaPos,
-	isKeyDown: app.keyDown,
-	isKeyPressed: app.keyPressed,
-	isKeyPressedRepeat: app.keyPressedRepeat,
-	isKeyReleased: app.keyReleased,
-	isMouseDown: app.mouseDown,
-	isMouseClicked: app.mouseClicked,
-	isMouseReleased: app.mouseReleased,
-	isMouseMoved: app.mouseMoved,
-	keyIsDown: app.keyDown,
-	keyIsPressed: app.keyPressed,
-	keyIsPressedRep: app.keyPressedRepeat,
-	keyIsReleased: app.keyReleased,
-	mouseIsDown: app.mouseDown,
-	mouseIsClicked: app.mouseClicked,
-	mouseIsReleased: app.mouseReleased,
-	mouseIsMoved: app.mouseMoved,
+	isKeyDown: app.isKeyDown,
+	isKeyPressed: app.isKeyPressed,
+	isKeyPressedRepeat: app.isKeyPressedRepeat,
+	isKeyReleased: app.isKeyReleased,
+	isMouseDown: app.isMouseDown,
+	isMouseClicked: app.isMouseClicked,
+	isMouseReleased: app.isMouseReleased,
+	isMouseMoved: app.isMouseMoved,
+	keyIsDown: app.isKeyDown,
+	keyIsPressed: app.isKeyPressed,
+	keyIsPressedRep: app.isKeyPressedRepeat,
+	keyIsReleased: app.isKeyReleased,
+	mouseIsDown: app.isMouseDown,
+	mouseIsClicked: app.isMouseClicked,
+	mouseIsReleased: app.isMouseReleased,
+	mouseIsMoved: app.isMouseMoved,
 	// timer
 	loop,
 	wait,

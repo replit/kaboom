@@ -55,14 +55,14 @@ type App = {
 	gl: WebGLRenderingContext,
 	mousePos(): Vec2,
 	mouseDeltaPos(): Vec2,
-	keyDown(k?: Key): boolean,
-	keyPressed(k?: Key): boolean,
-	keyPressedRepeat(k?: Key): boolean,
-	keyReleased(k?: Key): boolean,
-	mouseDown(): boolean,
-	mouseClicked(): boolean,
-	mouseReleased(): boolean,
-	mouseMoved(): boolean,
+	isKeyDown(k?: Key): boolean,
+	isKeyPressed(k?: Key): boolean,
+	isKeyPressedRepeat(k?: Key): boolean,
+	isKeyReleased(k?: Key): boolean,
+	isMouseDown(): boolean,
+	isMouseClicked(): boolean,
+	isMouseReleased(): boolean,
+	isMouseMoved(): boolean,
 	charInputted(): string[],
 	cursor(c?: Cursor): Cursor,
 	fullscreen(f?: boolean): void,
@@ -319,23 +319,23 @@ function appInit(gopt: AppOpt = {}): App {
 		return app.mouseDeltaPos.clone();
 	}
 
-	function mouseClicked(): boolean {
+	function isMouseClicked(): boolean {
 		return app.mouseState === "pressed";
 	}
 
-	function mouseDown(): boolean {
+	function isMouseDown(): boolean {
 		return app.mouseState === "pressed" || app.mouseState === "down";
 	}
 
-	function mouseReleased(): boolean {
+	function isMouseReleased(): boolean {
 		return app.mouseState === "released";
 	}
 
-	function mouseMoved(): boolean {
+	function isMouseMoved(): boolean {
 		return app.mouseMoved;
 	}
 
-	function keyPressed(k?: string): boolean {
+	function isKeyPressed(k?: string): boolean {
 		if (k === undefined) {
 			return app.keyPressed;
 		} else {
@@ -343,7 +343,7 @@ function appInit(gopt: AppOpt = {}): App {
 		}
 	}
 
-	function keyPressedRepeat(k: string): boolean {
+	function isKeyPressedRepeat(k: string): boolean {
 		if (k === undefined) {
 			return app.keyPressedRepeat;
 		} else {
@@ -351,13 +351,13 @@ function appInit(gopt: AppOpt = {}): App {
 		}
 	}
 
-	function keyDown(k: string): boolean {
+	function isKeyDown(k: string): boolean {
 		return app.keyStates[k] === "pressed"
 			|| app.keyStates[k] === "rpressed"
 			|| app.keyStates[k] === "down";
 	}
 
-	function keyReleased(k: string): boolean {
+	function isKeyReleased(k: string): boolean {
 		return app.keyStates[k] === "released";
 	}
 
@@ -461,14 +461,14 @@ function appInit(gopt: AppOpt = {}): App {
 		gl,
 		mousePos,
 		mouseDeltaPos,
-		keyDown,
-		keyPressed,
-		keyPressedRepeat,
-		keyReleased,
-		mouseDown,
-		mouseClicked,
-		mouseReleased,
-		mouseMoved,
+		isKeyDown,
+		isKeyPressed,
+		isKeyPressedRepeat,
+		isKeyReleased,
+		isMouseDown,
+		isMouseClicked,
+		isMouseReleased,
+		isMouseMoved,
 		charInputted,
 		cursor,
 		dt,
