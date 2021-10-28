@@ -64,11 +64,6 @@ import {
 } from "./logger";
 
 import {
-	Net,
-	netInit,
-} from "./net";
-
-import {
 	IDList,
 	downloadURL,
 	downloadBlob,
