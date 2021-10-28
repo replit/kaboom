@@ -686,7 +686,7 @@ export interface KaboomCtx {
 	onKeyPress(k: Key | Key[], cb: () => void): EventCanceller,
 	onKeyPress(cb: () => void): EventCanceller,
 	/**
-	 * Registers an event that runs when user presses certain key (also fires repeatedly when they key is held).
+	 * Registers an event that runs when user presses certain key (also fires repeatedly when they key is being held down).
 	 *
 	 * @example
 	 * ```js
@@ -1078,7 +1078,7 @@ export interface KaboomCtx {
 	 */
 	isKeyPressed(k?: Key): boolean,
 	/**
-	 * If certain key is just pressed last frame (accepts help down repeatedly).
+	 * If certain key is just pressed last frame (also fires repeatedly when the key is being held down).
 	 */
 	isKeyPressedRepeat(k?: Key): boolean,
 	/**
