@@ -1667,7 +1667,7 @@ export interface KaboomCtx {
 	/**
 	 * Draw a convex polygon from a list of vertices.
 	 */
-	drawPolygon(options: DrawPolyOpt): void,
+	drawPolygon(options: DrawPolygonOpt): void,
 	/**
 	 * Draw a rectangle with UV data.
 	 */
@@ -2522,7 +2522,7 @@ export type DrawEllipseOpt = RenderProps & {
 /**
  * How the polygon should look like.
  */
-export type DrawPolyOpt = RenderProps & {
+export type DrawPolygonOpt = RenderProps & {
 	/**
 	 * The points that make up the polygon
 	 */
