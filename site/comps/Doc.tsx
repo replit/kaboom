@@ -224,21 +224,22 @@ const Entry: React.FC<EntryProps> = ({ data }) => {
 
 const JSDoc: React.FC<EntryProps> = ({data}) => {
 	return data.jsDoc ? (
-		<View gap={2} stretchX>
+		<View gap={1} stretchX>
 			{ data.jsDoc.doc &&
 				<Text select color={3}>{data.jsDoc.doc}</Text>
 			}
-			{ Object.entries(data.jsDoc.tags).map(([name, content2]) => {
-				const content: string[] = content2 as string[];
-				switch (name) {
-					case "example": return <Markdown key={content[0]} src={content[0]} />;
-					default: return (
-						<View gap={1} dir="row" align="center">
-							<Tag name={name} />
-							<Text key={content[0]} select color={3}>{content[0]}</Text>
-						</View>
-					);
-				}
+			{ Object.entries(data.jsDoc.tags).map(([name, items]) => {
+				return (items as string[]).map((content) => {
+					switch (name) {
+						case "example": return <Markdown key={content} src={content} />;
+						default: return (
+							<View key={content} gap={1} dir="row" align="center">
+								<Tag name={name} />
+								<Text select color={3}>{content}</Text>
+							</View>
+						);
+					}
+				})
 			}) }
 		</View>
 	) : <></>;
