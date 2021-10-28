@@ -108,30 +108,62 @@ function buildTypes() {
 	// contain the type data for doc gen
 	const types = {};
 
+	const sections = [{
+		name: "Start",
+		entries: ["kaboom"],
+	}];
+
 	// generate global decls for KaboomCtx members
 	dts += "declare global {\n";
 
 	for (const stmt of stmts) {
+
 		if (!types[stmt.name]) {
 			types[stmt.name] = [];
 		}
+
 		types[stmt.name].push(stmt);
+
 		if (stmt.name === "KaboomCtx") {
+
 			if (stmt.kind !== "InterfaceDeclaration") {
 				throw new Error("KaboomCtx has to be an interface.");
 			}
+
 			for (const mem of stmt.members) {
+
 				if (!mem.name || dups.has(mem.name)) {
 					continue;
 				}
+
 				if (overwrites.has(mem.name)) {
 					dts += "\t// @ts-ignore\n";
 				}
+
 				dts += `\tconst ${mem.name}: KaboomCtx["${mem.name}"];\n`;
 				dups.add(mem.name);
+
+				const tags = mem.jsDoc?.tags ?? {};
+
+				if (tags["section"]) {
+					sections.push({
+						name: tags["section"][0],
+						entries: [],
+					});
+				}
+
+				const curSection = sections[sections.length - 1];
+
+				if (mem.name && !curSection.entries.includes(mem.name)) {
+					curSection.entries.push(mem.name);
+				}
+
 			}
+
 			globalGenerated = true;
+
 		}
+
 	}
 
 	dts += "}\n";
@@ -141,6 +173,10 @@ function buildTypes() {
 	}
 
 	fs.writeFileSync(`${distDir}/kaboom.d.ts`, dts);
-	fs.writeFileSync(`site/types.json`, JSON.stringify(types));
+
+	fs.writeFileSync(`site/types.json`, JSON.stringify({
+		types,
+		sections,
+	}, null, 4));
 
 }

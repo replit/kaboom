@@ -22,6 +22,12 @@ player.jump()
 
 // a method provided by the pos() component
 player.moveTo(123)
+
+// a method provided by the area() component
+player.onCollide("enemy", (enemy) => {
+	destroy(enemy)
+	addExplosion()
+})
 ```
 
 To check out what methods and properties the component gives the Game Object, click on the type that the component function returns, e.g. `PosComp`, which will open a panel showing what it gives.
