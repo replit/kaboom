@@ -79,48 +79,41 @@ const FuncParams: React.FC<EntryProps> = ({ data }) => data.parameters.map((p: a
 	</span>
 ));
 
+interface TagProps {
+	name: string,
+}
+
+const Tag: React.FC<TagProps> = ({ name }) => (
+	<View bg={2} pad={0.5} rounded>
+		<Text
+			code
+			color={3}
+			bold
+			size="small"
+		>
+			{name}
+		</Text>
+	</View>
+);
+
 interface TitleProps {
 	data: any,
 	small?: boolean,
 }
 
-const Title: React.FC<TitleProps> = ({ data, small, children }) => {
-
-	const tags = React.useMemo(() => {
-		return [
-			doc.isDeprecated(data) && "deprecated",
-			doc.isType(data)       && "type",
-		].filter((t) => t) as string[];
-	}, [ data ]);
-
-	return (
-		<View gap={1} dir="row" align="center">
-			{
-				tags.map((tag) => (
-					<View key={tag} bg={2} pad={0.5} rounded>
-						<Text
-							code
-							color={3}
-							bold
-							size="small"
-						>
-							{tag}
-						</Text>
-					</View>
-				))
-			}
-			<Text
-				code
-				color={1}
-				select
-				size={small ? "normal" : "big"}
-			>
-				{data.name}{children}
-			</Text>
-		</View>
-	);
-
-};
+const Title: React.FC<TitleProps> = ({ data, small, children }) => (
+	<View gap={1} dir="row" align="center">
+		{ doc.isType(data) && <Tag name="type" /> }
+		<Text
+			code
+			color={1}
+			select
+			size={small ? "normal" : "big"}
+		>
+			{data.name}{children}
+		</Text>
+	</View>
+);
 
 interface MemberProps {
 	data: any,
@@ -239,7 +232,12 @@ const JSDoc: React.FC<EntryProps> = ({data}) => {
 				const content: string[] = content2 as string[];
 				switch (name) {
 					case "example": return <Markdown key={content[0]} src={content[0]} />;
-					case "deprecated": return <Text key={content[0]} select color={3}>{content[0]}</Text>;
+					case "deprecated": return (
+						<View gap={1} dir="row" align="center">
+							<Tag name="deprecated" />
+							<Text key={content[0]} select color={3}>{content[0]}</Text>
+						</View>
+					);
 					default: return null;
 				}
 			}) }
