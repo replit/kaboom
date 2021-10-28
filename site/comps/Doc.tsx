@@ -232,13 +232,12 @@ const JSDoc: React.FC<EntryProps> = ({data}) => {
 				const content: string[] = content2 as string[];
 				switch (name) {
 					case "example": return <Markdown key={content[0]} src={content[0]} />;
-					case "deprecated": return (
+					default: return (
 						<View gap={1} dir="row" align="center">
-							<Tag name="deprecated" />
+							<Tag name={name} />
 							<Text key={content[0]} select color={3}>{content[0]}</Text>
 						</View>
 					);
-					default: return null;
 				}
 			}) }
 		</View>
