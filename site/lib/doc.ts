@@ -12,7 +12,6 @@ export type DocTypes = Record<string, any[]>;
 const typerefs = [...new Set(Object.keys(types))];
 const kmembers = types["KaboomCtx"][0].members;
 const sections: DocSection[] = [];
-let curSection: Array<any> = [];
 
 sections.push({
 	name: "Start",
@@ -20,29 +19,48 @@ sections.push({
 });
 
 for (const mem of kmembers) {
+
 	if (!types[mem.name]) {
 		types[mem.name] = [];
 	}
+
 	types[mem.name].push(mem);
-	const tags = mem.jsDoc?.[0].tags ?? [];
-	for (const tag of tags) {
-		if (tag.tagName === "section") {
-			const section = {
-				name: tag.comment,
-				entries: [],
-			};
-			sections.push(section);
-			curSection = section.entries;
-			break;
-		}
+
+	const tags = mem.jsDoc?.tags ?? {};
+
+	if (tags["section"]) {
+		const section = {
+			name: tags["section"][0],
+			entries: [],
+		};
+		sections.push(section);
 	}
-	if (mem.name && !curSection.includes(mem.name)) {
-		curSection.push(mem.name);
+
+	const curSection = sections[sections.length - 1];
+
+	if (mem.name && !curSection.entries.includes(mem.name)) {
+		curSection.entries.push(mem.name);
 	}
+
+}
+
+function isDeprecated(entry: any): boolean {
+	return Boolean(entry.jsDoc?.tags["deprecated"]);
+}
+
+function isIgnored(entry: any): boolean {
+	return Boolean(entry.jsDoc?.tags["ignore"]);
+}
+
+function isType(entry: any): boolean {
+	return entry.kind === "TypeAliasDeclaration" || entry.kind === "InterfaceDeclaration";
 }
 
 export {
 	types,
 	sections,
 	typerefs,
+	isDeprecated,
+	isIgnored,
+	isType,
 };
