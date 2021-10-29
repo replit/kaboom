@@ -830,9 +830,9 @@ export interface KaboomCtx {
 	 */
 	charInput: KaboomCtx["onCharInput"],
 	/**
-	 * @deprecated Use onMouseClick() instead.
+	 * @deprecated Use onClick() or onMousePress() instead.
 	 */
-	mouseClick: KaboomCtx["onMouseClick"],
+	mouseClick: KaboomCtx["onMousePress"],
 	/**
 	 * @deprecated Use onMouseRelease() instead.
 	 */
