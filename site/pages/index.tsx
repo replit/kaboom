@@ -9,7 +9,7 @@ import Markdown from "comps/Markdown";
 import Drawer from "comps/Drawer";
 import Doc from "comps/Doc";
 import useMediaQuery from "hooks/useMediaQuery";
-import * as doc from "lib/doc";
+import doc from "doc.json";
 // @ts-ignore
 import fun from "lib/fun";
 
@@ -88,6 +88,9 @@ Play with it yourself or check out the examples in the [Playground](/play)!
 			return (
 				<View stretchX gap={1} key={sec.name}>
 					<Text size="huge" color={3}>{sec.name}</Text>
+					{ sec.doc &&
+						<Markdown src={sec.doc} />
+					}
 					<View stretchX gap={3}>
 						{ sec.entries.map((name) => (
 							<Doc
@@ -102,7 +105,7 @@ Play with it yourself or check out the examples in the [Playground](/play)!
 			);
 		}) }
 
-		{ doc.typerefs.map((name) => {
+		{ Object.keys(doc.types).map((name) => {
 			if (name !== "KaboomCtx" && name !== "kaboom") {
 				return <Doc
 					id={name}

@@ -3,7 +3,8 @@ import Link from "next/link";
 import View, { ViewPropsAnd } from "comps/View";
 import Text from "comps/Text";
 import Markdown from "comps/Markdown";
-import * as doc from "lib/doc";
+// @ts-ignore
+import doc from "doc.json";
 
 const TypeSig: React.FC<EntryProps> = ({ data }) => (
 	<span
@@ -32,7 +33,7 @@ const TypeSig: React.FC<EntryProps> = ({ data }) => (
 						{i === data.types.length - 1 ? "" : " | "}
 					</React.Fragment>
 				));
-				case "TypeReference": return doc.types[data.typeName]
+				case "TypeReference": return (doc as any).types[data.typeName]
 					?
 						<DocCtx.Consumer>
 							{(ctx) => (
@@ -48,7 +49,11 @@ const TypeSig: React.FC<EntryProps> = ({ data }) => (
 				case "TypeLiteral":
 					return <View gap={2} stretchX>
 						{
-							data.members.map((mem: any) => <Member key={mem.name} data={mem} />)
+							Object.entries(data.members).map(([name, variants]: [string, any]) =>
+								variants.map((mem: any) =>
+									<Member key={mem.name} data={mem} />
+								)
+							)
 						}
 					</View>;
 				case "IndexedAccessType":
@@ -101,9 +106,13 @@ interface TitleProps {
 	small?: boolean,
 }
 
+function isType(entry: any): boolean {
+	return entry.kind === "TypeAliasDeclaration" || entry.kind === "InterfaceDeclaration";
+}
+
 const Title: React.FC<TitleProps> = ({ data, small, children }) => (
 	<View gap={1} dir="row" align="center">
-		{ doc.isType(data) && <Tag name="type" /> }
+		{ isType(data) && <Tag name="type" /> }
 		<Text
 			code
 			color={1}
@@ -157,7 +166,11 @@ const TypeAliasDeclaration: React.FC<EntryProps> = ({ data }) => (
 		{(() => {
 			switch (data.type.kind) {
 				case "TypeLiteral":
-					return data.type.members.map((mem: any) => <Entry key={mem.name} data={mem} />)
+					return Object.entries(data.type.members).map(([name, variants]: [string, any]) =>
+						variants.map((mem: any) =>
+							<Entry key={mem.name} data={mem} />
+						)
+					);
 				case "TypeReference":
 				case "UnionType":
 				case "StringKeyword":
@@ -187,7 +200,11 @@ const InterfaceDeclaration: React.FC<EntryProps> = ({ data }) => {
 				<Title data={data} />
 				<JSDoc data={data} />
 			</View>
-			{data.members.map((mem: any, i: number) => <Member key={`${mem.name}-${i}`} data={mem} />)}
+			{ Object.entries(data.members).map(([name, variants]: [string, any], i) =>
+				variants.map((mem: any, j: number) =>
+					<Member key={`${mem.name}-${i}-${j}`} data={mem} />
+				)
+			) }
 		</View>
 	);
 };
@@ -231,7 +248,8 @@ const JSDoc: React.FC<EntryProps> = ({data}) => {
 			{ Object.entries(data.jsDoc.tags).map(([name, items]) => {
 				return (items as string[]).map((content) => {
 					switch (name) {
-						case "example": return <Markdown key={content} src={content} />;
+						case "section": return;
+						case "example": return <Markdown padY={1} key={content} src={content} />;
 						default: return (
 							<View key={content} gap={1} dir="row">
 								<Tag name={name} />
@@ -255,10 +273,14 @@ const Doc: React.FC<ViewPropsAnd<DocProps>> = ({
 	typeref,
 	...args
 }) => {
-	const entries = doc.types[name];
+
+	const entries = (doc as any).types[name]
+		|| (doc as any).types["KaboomCtx"][0].members[name];
+
 	if (!entries) {
 		return <Text color={3}>Entry not found: {name}</Text>;
 	}
+
 	return (
 		<DocCtx.Provider value={{
 			typeref: typeref,
@@ -268,6 +290,7 @@ const Doc: React.FC<ViewPropsAnd<DocProps>> = ({
 			</View>
 		</DocCtx.Provider>
 	);
+
 };
 
 interface DocCtx {

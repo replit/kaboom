@@ -1606,7 +1606,7 @@ export interface KaboomCtx {
 	/**
 	 * Draw a sprite.
 	 *
-	 * @section Render
+	 * @section Draw
 	 *
 	 * @example
 	 * ```js
