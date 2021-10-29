@@ -756,7 +756,7 @@ function onKeyDown(k: Key | Key[], f: () => void): EventCanceller {
 		const cancellers = k.map((key) => onKeyDown(key, f));
 		return () => cancellers.forEach((cb) => cb());
 	} {
-		return game.on("input", () => app.keyDown(k) && f());
+		return game.on("input", () => app.isKeyDown(k) && f());
 	}
 }
 
@@ -765,9 +765,9 @@ function onKeyPress(k: Key | Key[] | (() => void), f?: () => void): EventCancell
 		const cancellers = k.map((key) => onKeyPress(key, f));
 		return () => cancellers.forEach((cb) => cb());
 	} else if (typeof k === "function") {
-		return game.on("input", () => app.keyPressed() && k());
+		return game.on("input", () => app.isKeyPressed() && k());
 	} else {
-		return game.on("input", () => app.keyPressed(k) && f());
+		return game.on("input", () => app.isKeyPressed(k) && f());
 	}
 }
 
@@ -776,9 +776,9 @@ function onKeyPressRep(k: Key | Key[] | (() => void), f?: () => void): EventCanc
 		const cancellers = k.map((key) => onKeyPressRep(key, f));
 		return () => cancellers.forEach((cb) => cb());
 	} else if (typeof k === "function") {
-		return game.on("input", () => app.keyPressed() && k());
+		return game.on("input", () => app.isKeyPressed() && k());
 	} else {
-		return game.on("input", () => app.keyPressedRep(k) && f());
+		return game.on("input", () => app.isKeyPressedRep(k) && f());
 	}
 }
 
@@ -787,9 +787,9 @@ function onKeyRelease(k: Key | Key[] | (() => void), f?: () => void): EventCance
 		const cancellers = k.map((key) => onKeyRelease(key, f));
 		return () => cancellers.forEach((cb) => cb());
 	} else if (typeof k === "function") {
-		return game.on("input", () => app.keyPressed() && k());
+		return game.on("input", () => app.isKeyPressed() && k());
 	} else {
-		return game.on("input", () => app.keyReleased(k) && f());
+		return game.on("input", () => app.isKeyReleased(k) && f());
 	}
 }
 
@@ -798,9 +798,9 @@ function onMouseDown(
 	action?: (pos?: Vec2) => void
 ): EventCanceller {
 	if (typeof m === "function") {
-		return game.on("input", () => app.mouseDown() && m(mousePos()));
+		return game.on("input", () => app.isMouseDown() && m(mousePos()));
 	} else {
-		return game.on("input", () => app.mouseDown(m) && action(mousePos()));
+		return game.on("input", () => app.isMouseDown(m) && action(mousePos()));
 	}
 }
 
@@ -809,9 +809,9 @@ function onMousePress(
 	action?: (pos?: Vec2) => void
 ): EventCanceller {
 	if (typeof m === "function") {
-		return game.on("input", () => app.mousePressed() && m(mousePos()));
+		return game.on("input", () => app.isMousePressed() && m(mousePos()));
 	} else {
-		return game.on("input", () => app.mousePressed(m) && action(mousePos()));
+		return game.on("input", () => app.isMousePressed(m) && action(mousePos()));
 	}
 }
 
@@ -820,14 +820,14 @@ function onMouseRelease(
 	action?: (pos?: Vec2) => void
 ): EventCanceller {
 	if (typeof m === "function") {
-		return game.on("input", () => app.mouseReleased() && m(mousePos()));
+		return game.on("input", () => app.isMouseReleased() && m(mousePos()));
 	} else {
-		return game.on("input", () => app.mouseReleased(m) && action(mousePos()));
+		return game.on("input", () => app.isMouseReleased(m) && action(mousePos()));
 	}
 }
 
 function onMouseMove(f: (pos: Vec2, dpos: Vec2) => void): EventCanceller {
-	return game.on("input", () => app.mouseMoved() && f(mousePos(), app.mouseDeltaPos()));
+	return game.on("input", () => app.isMouseMoved() && f(mousePos(), app.mouseDeltaPos()));
 }
 
 function onCharInput(f: (ch: string) => void): EventCanceller {
@@ -1505,13 +1505,13 @@ function area(opt: AreaCompOpt = {}): AreaComp {
 		},
 
 		isClicked(): boolean {
-			return app.mousePressed() && this.isHovering();
+			return app.isMousePressed() && this.isHovering();
 		},
 
 		isHovering() {
 			const mpos = this.fixed ? mousePos() : mouseWorldPos();
 			if (app.isTouch) {
-				return app.mouseDown() && this.hasPoint(mpos);
+				return app.isMouseDown() && this.hasPoint(mpos);
 			} else {
 				return this.hasPoint(mpos);
 			}
@@ -2802,22 +2802,22 @@ const ctx: KaboomCtx = {
 	mousePos,
 	mouseWorldPos,
 	mouseDeltaPos: app.mouseDeltaPos,
-	isKeyDown: app.keyDown,
-	isKeyPressed: app.keyPressed,
-	isKeyPressedRep: app.keyPressedRep,
-	isKeyReleased: app.keyReleased,
-	isMouseDown: app.mouseDown,
-	isMousePressed: app.mousePressed,
-	isMouseReleased: app.mouseReleased,
-	isMouseMoved: app.mouseMoved,
-	keyIsDown: app.keyDown,
-	keyIsPressed: app.keyPressed,
-	keyIsPressedRep: app.keyPressedRep,
-	keyIsReleased: app.keyReleased,
-	mouseIsDown: app.mouseDown,
-	mouseIsClicked: app.mousePressed,
-	mouseIsReleased: app.mouseReleased,
-	mouseIsMoved: app.mouseMoved,
+	isKeyDown: app.isKeyDown,
+	isKeyPressed: app.isKeyPressed,
+	isKeyPressedRep: app.isKeyPressedRep,
+	isKeyReleased: app.isKeyReleased,
+	isMouseDown: app.isMouseDown,
+	isMousePressed: app.isMousePressed,
+	isMouseReleased: app.isMouseReleased,
+	isMouseMoved: app.isMouseMoved,
+	keyIsDown: app.isKeyDown,
+	keyIsPressed: app.isKeyPressed,
+	keyIsPressedRep: app.isKeyPressedRep,
+	keyIsReleased: app.isKeyReleased,
+	mouseIsDown: app.isMouseDown,
+	mouseIsClicked: app.isMousePressed,
+	mouseIsReleased: app.isMouseReleased,
+	mouseIsMoved: app.isMouseMoved,
 	// timer
 	loop,
 	wait,
