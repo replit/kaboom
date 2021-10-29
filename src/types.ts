@@ -702,20 +702,20 @@ export interface KaboomCtx {
 	onKeyPress(k: Key | Key[], cb: () => void): EventCanceller,
 	onKeyPress(cb: () => void): EventCanceller,
 	/**
-	 * Registers an event that runs when user presses certain key (also fires repeatedly when they key is held).
+	 * Registers an event that runs when user presses certain key (also fires repeatedly when they key is being held down).
 	 *
 	 * @since v2000.1.0
 	 *
 	 * @example
 	 * ```js
 	 * // delete last character when "backspace" is being pressed and held
-	 * onKeyPressRep("backspace", () => {
+	 * onKeyPressRepeat("backspace", () => {
 	 *     input.text = input.text.substring(0, input.text.length - 1);
 	 * });
 	 * ```
 	 */
-	onKeyPressRep(k: Key | Key[], cb: () => void): EventCanceller,
-	onKeyPressRep(cb: () => void): EventCanceller,
+	onKeyPressRepeat(k: Key | Key[], cb: () => void): EventCanceller,
+	onKeyPressRepeat(cb: () => void): EventCanceller,
 	/**
 	 * Registers an event that runs when user releases certain key.
 	 *
@@ -812,9 +812,9 @@ export interface KaboomCtx {
 	 */
 	keyPress: KaboomCtx["onKeyPress"],
 	/**
-	 * @deprecated Use onKeyPressRep() instead.
+	 * @deprecated Use onKeyPressRepeat() instead.
 	 */
-	keyPressRep: KaboomCtx["onKeyPressRep"],
+	keyPressRep: KaboomCtx["onKeyPressRepeat"],
 	/**
 	 * @deprecated Use onKeyPress() instead.
 	 */
@@ -1120,11 +1120,11 @@ export interface KaboomCtx {
 	 */
 	isKeyPressed(k?: Key): boolean,
 	/**
-	 * If certain key is just pressed last frame (accepts help down repeatedly).
+	 * If certain key is just pressed last frame (also fires repeatedly when the key is being held down).
 	 *
 	 * @since v2000.1.0
 	 */
-	isKeyPressedRep(k?: Key): boolean,
+	isKeyPressedRepeat(k?: Key): boolean,
 	/**
 	 * If certain key is just released last frame.
 	 *
@@ -1295,9 +1295,9 @@ export interface KaboomCtx {
 	 */
 	keyIsPressed: KaboomCtx["isKeyPressed"],
 	/**
-	 * @deprecated Use isKeyPressedRep() instead.
+	 * @deprecated Use isKeyPressedRepeat() instead.
 	 */
-	keyIsPressedRep: KaboomCtx["isKeyPressedRep"],
+	keyIsPressedRep: KaboomCtx["isKeyPressedRepeat"],
 	/**
 	 * @deprecated Use isKeyReleased() instead.
 	 */
