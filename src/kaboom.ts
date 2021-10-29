@@ -2626,6 +2626,11 @@ function record(frameRate?): Recording {
 		}
 	};
 
+	recorder.onerror = (e) => {
+		audio.masterNode.disconnect(audioDest)
+		stream.getTracks().forEach(t => t.stop());
+	};
+
 	recorder.start();
 
 	return {
