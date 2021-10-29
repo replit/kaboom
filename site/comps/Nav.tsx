@@ -176,16 +176,13 @@ const IndexContent: React.FC<IndexContentProps> = ({
 							<View>
 								{ entries.map((name) => {
 
-									let dname = name;
-									const mem = (doc as any).types["KaboomCtx"][0].members[name][0];
+									const mem = (doc as any).types["KaboomCtx"][0].members[name]?.[0] || (doc as any).types[name]?.[0];
 
 									if (mem.jsDoc?.tags["deprecated"]) {
 										return
 									}
 
-									if (mem.kind === "MethodSignature" || mem.kind === "FunctionDeclaration") {
-										dname += "()";
-									}
+									const isFunc = mem.kind === "MethodSignature" || mem.kind === "FunctionDeclaration";
 
 									return (
 										<a key={name} href={`/#${name}`}>
@@ -201,7 +198,7 @@ const IndexContent: React.FC<IndexContentProps> = ({
 													},
 												}}
 											>
-												<Text color={2} code>{dname}</Text>
+												<Text color={2} code>{name}{isFunc ? "()" : ""}</Text>
 											</View>
 										</a>
 									);

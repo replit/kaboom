@@ -139,7 +139,10 @@ function buildTypes() {
 
 	// contain the type data for doc gen
 	const types = {};
-	const sections = [];
+	const sections = [{
+		name: "Start",
+		entries: [ "kaboom" ],
+	}];
 
 	// generate global decls for KaboomCtx members
 	dts += "declare global {\n";
