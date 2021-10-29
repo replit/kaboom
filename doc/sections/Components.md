@@ -5,7 +5,7 @@ For example,
 - `sprite()` component gives the object the ability to render as a sprite and controlling animations.
 - `pos()` component gives the object a position in world and the ability to move.
 - `area()` component gives the object the ability to check for collisions with other game objects with `area()` component.
-- `body()` component gives the ability.
+- `body()` component gives the ability to respond to gravity and jump.
 
 These components are typically used with `add()` to assemble them together into a Game Object and add them to the world.
 
