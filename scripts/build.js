@@ -21,8 +21,7 @@ fmts.forEach((fmt) => {
 	const distPath = `${distDir}/kaboom.${fmt.ext}`;
 
 	const postBuild = () => {
-		console.log(`${srcPath} -> ${distPath}`);
-		buildTypes();
+		console.log(`-> ${distPath}`);
 	};
 
 	esbuild.build({
@@ -44,6 +43,10 @@ fmts.forEach((fmt) => {
 	}).then(postBuild);
 
 });
+
+if (!dev) {
+	buildTypes();
+}
 
 // generate .d.ts / docs data
 function buildTypes() {
@@ -197,11 +200,14 @@ function buildTypes() {
 		throw new Error("KaboomCtx not found, failed to generate global defs.");
 	}
 
-	fs.writeFileSync(`${distDir}/kaboom.d.ts`, dts);
-
 	fs.writeFileSync(`site/doc.json`, JSON.stringify({
 		types,
 		sections,
-	}, null, 4));
+	}));
+
+	console.log(`-> site/doc.json`);
+
+	fs.writeFileSync(`${distDir}/kaboom.d.ts`, dts);
+	console.log(`-> ${distDir}/kaboom.d.ts`);
 
 }
