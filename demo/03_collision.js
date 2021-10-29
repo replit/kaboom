@@ -5,7 +5,7 @@ kaboom()
 
 // Load assets
 loadSprite("bean", "sprites/bean.png")
-loadSprite("googoly", "sprites/googoly.png")
+loadSprite("ghosty", "sprites/ghosty.png")
 
 // Define player movement speed
 const SPEED = 320
@@ -42,7 +42,7 @@ for (let i = 0; i < 3; i++) {
 	const y = height() / 4 * (i + 1)
 
 	add([
-		sprite("googoly"),
+		sprite("ghosty"),
 		pos(320, y),
 		// both objects must have area() component to enable collision detection between
 		area(),

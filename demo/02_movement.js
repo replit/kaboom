@@ -18,6 +18,7 @@ const player = add([
 
 // onKeyDown() registers an event that runs every frame as long as user is holding a certain key
 onKeyDown("left", () => {
+	// .move() is provided by pos() component, move by pixels per second
 	player.move(-SPEED, 0)
 })
 
@@ -31,6 +32,12 @@ onKeyDown("up", () => {
 
 onKeyDown("down", () => {
 	player.move(0, SPEED)
+})
+
+// onMouseClick() registers an event that runs once when left mouse is clicked
+onMouseClick(() => {
+	// .moveTo() is provided by pos() component, changes the position
+	player.moveTo(mousePos())
 })
 
 add([

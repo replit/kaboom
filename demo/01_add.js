@@ -5,7 +5,7 @@ kaboom()
 
 // Load a sprite asset from "sprites/bean.png", with the name "bean"
 loadSprite("bean", "sprites/bean.png")
-loadSprite("googoly", "sprites/googoly.png")
+loadSprite("ghosty", "sprites/ghosty.png")
 
 // A "Game Object" is the basic unit of entity in kaboom
 // Game objects are composed from multiple components
@@ -17,7 +17,7 @@ const player = add([
 	pos(80, 40),    // pos() component gives it position, also enables movement
 ])
 
-// flipX() is a method provided by the sprite() component to flip the sprite texture
+// .flipX() is a method provided by sprite() component to flip the sprite texture
 player.flipX()
 
 // Add multiple game objects
@@ -26,11 +26,11 @@ for (let i = 0; i < 3; i++) {
 	const y = height() / 4 * (i + 1)
 
 	add([
-		sprite("googoly"),  // This also renders as a sprite
-		pos(320, y),        // Give it a random Y position from 0 to game height
-		rotate(45),         // rotate() component gives it rotation
-		origin("center"),   // origin() component defines the pivot point (defaults to "topleft")
-		"enemy",            // strings here are tags
+		sprite("ghosty"),  // This also renders as a sprite
+		pos(320, y),       // Give it a random Y position from 0 to game height
+		rotate(45),        // rotate() component gives it rotation
+		origin("center"),  // origin() component defines the pivot point (defaults to "topleft")
+		"enemy",           // strings here are tags
 	])
 
 }
