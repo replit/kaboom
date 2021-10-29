@@ -2625,7 +2625,7 @@ function record(frameRate = 30): Recording {
 		}
 	};
 
-	recorder.start();
+	recorder.start(100);
 
 	return {
 
