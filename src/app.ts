@@ -35,7 +35,7 @@ type AppCtx = {
 	mouseState: ButtonState,
 	keyStates: Record<string, ButtonState>,
 	charInputted: string[],
-	mouseMoved: boolean,
+	isMouseMoved: boolean,
 	time: number,
 	dt: number,
 	realTime: number,
@@ -47,22 +47,22 @@ type AppCtx = {
 	fps: number,
 	fpsBuf: number[],
 	fpsTimer: number,
-	keyPressed: boolean,
-	keyPressedRep: boolean,
+	isKeyPressed: boolean,
+	isKeyPressedRep: boolean,
 };
 
 type App = {
 	gl: WebGLRenderingContext,
 	mousePos(): Vec2,
 	mouseDeltaPos(): Vec2,
-	keyDown(k?: Key): boolean,
-	keyPressed(k?: Key): boolean,
-	keyPressedRep(k?: Key): boolean,
-	keyReleased(k?: Key): boolean,
-	mouseDown(): boolean,
-	mouseClicked(): boolean,
-	mouseReleased(): boolean,
-	mouseMoved(): boolean,
+	isKeyDown(k?: Key): boolean,
+	isKeyPressed(k?: Key): boolean,
+	isKeyPressedRep(k?: Key): boolean,
+	isKeyReleased(k?: Key): boolean,
+	isMouseDown(): boolean,
+	isMouseClicked(): boolean,
+	isMouseReleased(): boolean,
+	isMouseMoved(): boolean,
 	charInputted(): string[],
 	cursor(c?: Cursor): Cursor,
 	fullscreen(f?: boolean): void,
@@ -129,9 +129,9 @@ function appInit(gopt: AppOpt = {}): App {
 		})(),
 		keyStates: {},
 		charInputted: [],
-		mouseMoved: false,
-		keyPressed: false,
-		keyPressedRep: false,
+		isMouseMoved: false,
+		isKeyPressed: false,
+		isKeyPressedRep: false,
 		mouseState: "up",
 		mousePos: vec2(0, 0),
 		mouseDeltaPos: vec2(0, 0),
@@ -219,7 +219,7 @@ function appInit(gopt: AppOpt = {}): App {
 			app.mousePos = vec2(e.offsetX, e.offsetY).scale(1 / app.scale);
 		}
 		app.mouseDeltaPos = vec2(e.movementX, e.movementY).scale(1 / app.scale);
-		app.mouseMoved = true;
+		app.isMouseMoved = true;
 	});
 
 	app.canvas.addEventListener("mousedown", () => {
@@ -247,10 +247,10 @@ function appInit(gopt: AppOpt = {}): App {
 		}
 
 		if (e.repeat) {
-			app.keyPressedRep = true;
+			app.isKeyPressedRep = true;
 			app.keyStates[k] = "rpressed";
 		} else {
-			app.keyPressed = true;
+			app.isKeyPressed = true;
 			app.keyStates[k] = "pressed";
 		}
 
@@ -276,7 +276,7 @@ function appInit(gopt: AppOpt = {}): App {
 		e.preventDefault();
 		const t = e.touches[0];
 		app.mousePos = vec2(t.clientX, t.clientY).scale(1 / app.scale);
-		app.mouseMoved = true;
+		app.isMouseMoved = true;
 	});
 
 	app.canvas.addEventListener("touchend", (e) => {
@@ -319,45 +319,45 @@ function appInit(gopt: AppOpt = {}): App {
 		return app.mouseDeltaPos.clone();
 	}
 
-	function mouseClicked(): boolean {
+	function isMouseClicked(): boolean {
 		return app.mouseState === "pressed";
 	}
 
-	function mouseDown(): boolean {
+	function isMouseDown(): boolean {
 		return app.mouseState === "pressed" || app.mouseState === "down";
 	}
 
-	function mouseReleased(): boolean {
+	function isMouseReleased(): boolean {
 		return app.mouseState === "released";
 	}
 
-	function mouseMoved(): boolean {
-		return app.mouseMoved;
+	function isMouseMoved(): boolean {
+		return app.isMouseMoved;
 	}
 
-	function keyPressed(k?: string): boolean {
+	function isKeyPressed(k?: string): boolean {
 		if (k === undefined) {
-			return app.keyPressed;
+			return app.isKeyPressed;
 		} else {
 			return app.keyStates[k] === "pressed";
 		}
 	}
 
-	function keyPressedRep(k: string): boolean {
+	function isKeyPressedRep(k: string): boolean {
 		if (k === undefined) {
-			return app.keyPressedRep;
+			return app.isKeyPressedRep;
 		} else {
 			return app.keyStates[k] === "pressed" || app.keyStates[k] === "rpressed";
 		}
 	}
 
-	function keyDown(k: string): boolean {
+	function isKeyDown(k: string): boolean {
 		return app.keyStates[k] === "pressed"
 			|| app.keyStates[k] === "rpressed"
 			|| app.keyStates[k] === "down";
 	}
 
-	function keyReleased(k: string): boolean {
+	function isKeyReleased(k: string): boolean {
 		return app.keyStates[k] === "released";
 	}
 
@@ -440,9 +440,9 @@ function appInit(gopt: AppOpt = {}): App {
 
 			app.mouseState = processBtnState(app.mouseState);
 			app.charInputted = [];
-			app.mouseMoved = false;
-			app.keyPressed = false;
-			app.keyPressedRep = false;
+			app.isMouseMoved = false;
+			app.isKeyPressed = false;
+			app.isKeyPressedRep = false;
 			app.loopID = requestAnimationFrame(frame);
 
 		};
@@ -461,14 +461,14 @@ function appInit(gopt: AppOpt = {}): App {
 		gl,
 		mousePos,
 		mouseDeltaPos,
-		keyDown,
-		keyPressed,
-		keyPressedRep,
-		keyReleased,
-		mouseDown,
-		mouseClicked,
-		mouseReleased,
-		mouseMoved,
+		isKeyDown,
+		isKeyPressed,
+		isKeyPressedRep,
+		isKeyReleased,
+		isMouseDown,
+		isMouseClicked,
+		isMouseReleased,
+		isMouseMoved,
 		charInputted,
 		cursor,
 		dt,
