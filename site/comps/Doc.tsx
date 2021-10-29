@@ -49,8 +49,10 @@ const TypeSig: React.FC<EntryProps> = ({ data }) => (
 				case "TypeLiteral":
 					return <View gap={2} stretchX>
 						{
-							Object.entries(data.members).map(([name, mem]: [string, any]) =>
-								<Member key={mem.name} data={mem} />
+							Object.entries(data.members).map(([name, variants]: [string, any]) =>
+								variants.map((mem: any) =>
+									<Member key={mem.name} data={mem} />
+								)
 							)
 						}
 					</View>;
@@ -164,8 +166,10 @@ const TypeAliasDeclaration: React.FC<EntryProps> = ({ data }) => (
 		{(() => {
 			switch (data.type.kind) {
 				case "TypeLiteral":
-					return Object.entries(data.type.members).map(([name, mem]: [string, any]) =>
-						<Entry key={mem.name} data={mem} />
+					return Object.entries(data.type.members).map(([name, variants]: [string, any]) =>
+						variants.map((mem: any) =>
+							<Entry key={mem.name} data={mem} />
+						)
 					);
 				case "TypeReference":
 				case "UnionType":
@@ -196,8 +200,10 @@ const InterfaceDeclaration: React.FC<EntryProps> = ({ data }) => {
 				<Title data={data} />
 				<JSDoc data={data} />
 			</View>
-			{ Object.entries(data.members).map(([name, mem]: [string, any], i) =>
-				<Member key={`${mem.name}-${i}`} data={mem} />
+			{ Object.entries(data.members).map(([name, variants]: [string, any], i) =>
+				variants.map((mem: any, j: number) =>
+					<Member key={`${mem.name}-${i}-${j}`} data={mem} />
+				)
 			) }
 		</View>
 	);
@@ -243,7 +249,7 @@ const JSDoc: React.FC<EntryProps> = ({data}) => {
 				return (items as string[]).map((content) => {
 					switch (name) {
 						case "section": return;
-						case "example": return <Markdown key={content} src={content} />;
+						case "example": return <Markdown padY={1} key={content} src={content} />;
 						default: return (
 							<View key={content} gap={1} dir="row">
 								<Tag name={name} />
