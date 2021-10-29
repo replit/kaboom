@@ -2639,20 +2639,16 @@ function record(frameRate = 30): Recording {
 
 		download(filename = "kaboom.mp4") {
 
-			recorder.stop();
-
-			// Chunks might need a tick to flush
-			setTimeout(() => {
-
+			recorder.onstop = () => {
 				downloadBlob(new Blob(chunks, {
 					type: "video/mp4",
 				}), filename);
+			}
 
-				// cleanup
-				audio.masterNode.disconnect(audioDest)
-				stream.getTracks().forEach(t => t.stop());
-
-			}, 0)
+			recorder.stop();
+			// cleanup
+			audio.masterNode.disconnect(audioDest)
+			stream.getTracks().forEach(t => t.stop());
 
 		}
 	};
