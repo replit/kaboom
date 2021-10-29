@@ -64,13 +64,9 @@ import {
 } from "./logger";
 
 import {
-	Net,
-	netInit,
-} from "./net";
-
-import {
 	IDList,
-	download,
+	downloadURL,
+	downloadBlob,
 } from "./utils";
 
 import {
@@ -875,7 +871,11 @@ function enterDebugMode() {
 		debug.log(`stepped frame`);
 	});
 
-	onKeyPress("f11", () => {
+	onKeyPress("f5", () => {
+		downloadURL(app.screenshot(), "kaboom.png");
+	});
+
+	onKeyPress("f6", () => {
 		if (curRecording) {
 			curRecording.download();
 			curRecording = null;
@@ -2604,7 +2604,7 @@ function addLevel(map: string[], opt: LevelOpt): Level {
 
 }
 
-function record(frameRate = 30): Recording {
+function record(frameRate?): Recording {
 
 	const stream = app.canvas.captureStream(frameRate);
 	const audioDest = audio.ctx.createMediaStreamDestination();
@@ -2614,7 +2614,8 @@ function record(frameRate = 30): Recording {
 	const audioStream = audioDest.stream;
 	const [firstAudioTrack] = audioStream.getAudioTracks();
 
-	stream.addTrack(firstAudioTrack);
+	// TODO: Enabling audio results in empty video if no audio received
+	// stream.addTrack(firstAudioTrack);
 
 	const recorder = new MediaRecorder(stream);
 	const chunks = [];
@@ -2623,6 +2624,11 @@ function record(frameRate = 30): Recording {
 		if (e.data.size > 0) {
 			chunks.push(e.data);
 		}
+	};
+
+	recorder.onerror = (e) => {
+		audio.masterNode.disconnect(audioDest)
+		stream.getTracks().forEach(t => t.stop());
 	};
 
 	recorder.start();
@@ -2639,20 +2645,16 @@ function record(frameRate = 30): Recording {
 
 		download(filename = "kaboom.mp4") {
 
-			recorder.stop();
-
-			// Chunks might need a tick to flush
-			setTimeout(() => {
-
-				download(new Blob(chunks, {
+			recorder.onstop = () => {
+				downloadBlob(new Blob(chunks, {
 					type: "video/mp4",
 				}), filename);
+			}
 
-				// cleanup
-				audio.masterNode.disconnect(audioDest)
-				stream.getTracks().forEach(t => t.stop());
-
-			}, 0)
+			recorder.stop();
+			// cleanup
+			audio.masterNode.disconnect(audioDest)
+			stream.getTracks().forEach(t => t.stop());
 
 		}
 	};
@@ -2774,6 +2776,14 @@ const ctx: KaboomCtx = {
 	mousePos,
 	mouseWorldPos,
 	mouseDeltaPos: app.mouseDeltaPos,
+	isKeyDown: app.keyDown,
+	isKeyPressed: app.keyPressed,
+	isKeyPressedRep: app.keyPressedRep,
+	isKeyReleased: app.keyReleased,
+	isMouseDown: app.mouseDown,
+	isMouseClicked: app.mouseClicked,
+	isMouseReleased: app.mouseReleased,
+	isMouseMoved: app.mouseMoved,
 	keyIsDown: app.keyDown,
 	keyIsPressed: app.keyPressed,
 	keyIsPressedRep: app.keyPressedRep,

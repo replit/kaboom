@@ -13,7 +13,7 @@ import Markdown from "comps/Markdown";
 import Input from "comps/Input";
 import Drawer from "comps/Drawer";
 import ThemeSwitch from "comps/ThemeSwitch";
-import * as doc from "lib/doc";
+import doc from "doc.json";
 
 const popping = keyframes(`
 	0% {
@@ -169,20 +169,21 @@ const IndexContent: React.FC<IndexContentProps> = ({
 
 				const entries = sec.entries
 					.filter((name) => query ? name.match(query) : true);
-				if (entries.length === 0) {
-					return <></>;
-				}
 
 				return (
 					<View stretchX gap={1} key={sec.name}>
 						<Text size="big" color={3}>{sec.name}</Text>
 							<View>
 								{ entries.map((name) => {
-									let dname = name;
-									const mem = doc.types[name][0];
-									if (mem.kind === "MethodSignature" || mem.kind === "FunctionDeclaration") {
-										dname += "()";
+
+									const mem = (doc as any).types["KaboomCtx"][0].members[name]?.[0] || (doc as any).types[name]?.[0];
+
+									if (mem.jsDoc?.tags["deprecated"]) {
+										return
 									}
+
+									const isFunc = mem.kind === "MethodSignature" || mem.kind === "FunctionDeclaration";
+
 									return (
 										<a key={name} href={`/#${name}`}>
 											<View
@@ -197,10 +198,11 @@ const IndexContent: React.FC<IndexContentProps> = ({
 													},
 												}}
 											>
-												<Text color={2} code>{dname}</Text>
+												<Text color={2} code>{name}{isFunc ? "()" : ""}</Text>
 											</View>
 										</a>
 									);
+
 								}) }
 							</View>
 					</View>

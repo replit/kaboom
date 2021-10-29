@@ -21,8 +21,7 @@ fmts.forEach((fmt) => {
 	const distPath = `${distDir}/kaboom.${fmt.ext}`;
 
 	const postBuild = () => {
-		console.log(`${srcPath} -> ${distPath}`);
-		buildTypes();
+		console.log(`-> ${distPath}`);
 	};
 
 	esbuild.build({
@@ -44,6 +43,10 @@ fmts.forEach((fmt) => {
 	}).then(postBuild);
 
 });
+
+if (!dev) {
+	buildTypes();
+}
 
 // generate .d.ts / docs data
 function buildTypes() {
@@ -79,7 +82,6 @@ function buildTypes() {
 	// transform and prune typescript ast to a format more meaningful to us
 	const stmts = transform(f.statements, (k, v) => {
 		switch (k) {
-			case "pos":
 			case "end":
 			case "flags":
 			case "parent":
@@ -89,15 +91,45 @@ function buildTypes() {
 			case "name":
 			case "typeName":
 			case "tagName": return v.escapedText;
+			case "pos": return typeof v === "number" ? undefined : v;
 			case "kind": return ts.SyntaxKind[v];
 			case "questionToken": return true;
+			case "members": {
+				const members = {};
+				for (const mem of v) {
+					const name = mem.name?.escapedText;
+					if (!name) {
+						continue;
+					}
+					if (!members[name]) {
+						members[name] = [];
+					}
+					members[name].push(mem);
+				}
+				return members;
+			}
+			case "jsDoc": {
+				const doc = v[0];
+				const taglist = doc.tags ?? [];
+				const tags = {};
+				for (const tag of taglist) {
+					const name = tag.tagName.escapedText;
+					if (!tags[name]) {
+						tags[name] = [];
+					}
+					tags[name].push(tag.comment);
+				}
+				return {
+					doc: doc.comment,
+					tags: tags,
+				};
+			}
 			default: return v;
 		}
 	});
 
 	// check if global defs are being generated
 	let globalGenerated = false;
-	const dups = new Set();
 
 	// window attribs to overwrite
 	const overwrites = new Set([
@@ -107,31 +139,62 @@ function buildTypes() {
 
 	// contain the type data for doc gen
 	const types = {};
+	const sections = [{
+		name: "Start",
+		entries: [ "kaboom" ],
+	}];
 
 	// generate global decls for KaboomCtx members
 	dts += "declare global {\n";
 
 	for (const stmt of stmts) {
+
 		if (!types[stmt.name]) {
 			types[stmt.name] = [];
 		}
+
 		types[stmt.name].push(stmt);
+
 		if (stmt.name === "KaboomCtx") {
+
 			if (stmt.kind !== "InterfaceDeclaration") {
 				throw new Error("KaboomCtx has to be an interface.");
 			}
-			for (const mem of stmt.members) {
-				if (!mem.name || dups.has(mem.name)) {
-					continue;
-				}
-				if (overwrites.has(mem.name)) {
+
+			for (const name in stmt.members) {
+
+				const mem = stmt.members[name];
+
+				if (overwrites.has(name)) {
 					dts += "\t// @ts-ignore\n";
 				}
-				dts += `\tconst ${mem.name}: KaboomCtx["${mem.name}"];\n`;
-				dups.add(mem.name);
+
+				dts += `\tconst ${name}: KaboomCtx["${name}"];\n`;
+
+				const tags = mem[0].jsDoc?.tags ?? {};
+
+				if (tags["section"]) {
+					const name = tags["section"][0];
+					const docPath = path.resolve(__dirname, `../doc/sections/${name}.md`);
+					sections.push({
+						name: name,
+						entries: [],
+						doc: fs.existsSync(docPath) ? fs.readFileSync(docPath, "utf8") : null,
+					});
+				}
+
+				const curSection = sections[sections.length - 1];
+
+				if (name && !curSection.entries.includes(name)) {
+					curSection.entries.push(name);
+				}
+
 			}
+
 			globalGenerated = true;
+
 		}
+
 	}
 
 	dts += "}\n";
@@ -140,7 +203,14 @@ function buildTypes() {
 		throw new Error("KaboomCtx not found, failed to generate global defs.");
 	}
 
+	fs.writeFileSync(`site/doc.json`, JSON.stringify({
+		types,
+		sections,
+	}));
+
+	console.log(`-> site/doc.json`);
+
 	fs.writeFileSync(`${distDir}/kaboom.d.ts`, dts);
-	fs.writeFileSync(`site/types.json`, JSON.stringify(types));
+	console.log(`-> ${distDir}/kaboom.d.ts`);
 
 }
