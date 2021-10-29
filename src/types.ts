@@ -655,14 +655,17 @@ export interface KaboomCtx {
 		cb: (a: GameObj, b: GameObj, col?: Collision) => void,
 	): EventCanceller,
 	/**
-	 * Registers an event that runs when game objs with certain tags are clicked. This function spins off an onUpdate() when called, please put it at root level and never inside another onUpdate().
+	 * Registers an event that runs when game objs with certain tags are clicked.
 	 *
 	 * @since v2000.1.0
 	 */
-	onClick(
-		tag: Tag,
-		cb: (a: GameObj) => void,
-	): EventCanceller,
+	onClick(tag: Tag, cb: (a: GameObj) => void): EventCanceller,
+	/**
+	 * Registers an event that runs when users clicks.
+	 *
+	 * @since v2000.1.0
+	 */
+	onClick(cb: () => void): EventCanceller,
 	/**
 	 * Registers an event that runs when game objs with certain tags are hovered. This function spins off an onUpdate() when called, please put it at root level and never inside another onUpdate().
 	 *
@@ -742,19 +745,22 @@ export interface KaboomCtx {
 	 *
 	 * @since v2000.1.0
 	 */
-	onMouseDown(cb: (pos: Vec2) => void): EventCanceller,
+	onMouseDown(action: (pos: Vec2) => void): EventCanceller,
+	onMouseDown(button: MouseButton, action: (pos: Vec2) => void): EventCanceller,
 	/**
 	 * Registers an event that runs when user clicks mouse.
 	 *
 	 * @since v2000.1.0
 	 */
-	onMouseClick(cb: (pos: Vec2) => void): EventCanceller,
+	onMousePress(action: (pos: Vec2) => void): EventCanceller,
+	onMousePress(button: MouseButton, action: (pos: Vec2) => void): EventCanceller,
 	/**
 	 * Registers an event that runs when user releases mouse.
 	 *
 	 * @since v2000.1.0
 	 */
-	onMouseRelease(cb: (pos: Vec2) => void): EventCanceller,
+	onMouseRelease(action: (pos: Vec2) => void): EventCanceller,
+	onMouseRelease(button: MouseButton, action: (pos: Vec2) => void): EventCanceller,
 	/**
 	 * Registers an event that runs whenever user move the mouse.
 	 *
@@ -1132,23 +1138,23 @@ export interface KaboomCtx {
 	 */
 	isKeyReleased(k?: Key): boolean,
 	/**
-	 * If certain mouse is currently down.
+	 * If a mouse button is currently down.
 	 *
 	 * @since v2000.1.0
 	 */
-	isMouseDown(): boolean,
+	isMouseDown(button?: MouseButton): boolean,
 	/**
-	 * If mouse is just clicked last frame.
+	 * If a mouse button is just clicked last frame.
 	 *
 	 * @since v2000.1.0
 	 */
-	isMouseClicked(): boolean,
+	isMousePressed(button?: MouseButton): boolean,
 	/**
-	 * If mouse is just released last frame.
+	 * If a mouse button is just released last frame.
 	 *
 	 * @since v2000.1.0
 	 */
-	isMouseReleased(): boolean,
+	isMouseReleased(button?: MouseButton): boolean,
 	/**
 	 * If mouse moved last frame.
 	 *
@@ -1789,6 +1795,14 @@ export type Key =
 	| "z" | "x" | "c" | "v" | "b" | "n" | "m" | "," | "." | "/"
 	| "backspace" | "enter" | "tab" | "space" | " "
 	| "left" | "right" | "up" | "down"
+	;
+
+export type MouseButton =
+	| "left"
+	| "right"
+	| "middle"
+	| "back"
+	| "forward"
 	;
 
 /**

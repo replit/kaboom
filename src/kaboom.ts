@@ -87,6 +87,7 @@ import {
 	Comp,
 	Tag,
 	Key,
+	MouseButton,
 	TouchID,
 	Collision,
 	PosComp,
@@ -688,13 +689,17 @@ function onCollide(
 }
 
 // add an event that runs when objs with tag t is clicked
-function onClick(t: string, f: (obj: GameObj) => void): EventCanceller {
-	return onUpdate(t, (o: GameObj) => {
-		if (!o.area) throw new Error("onClick() requires the object to have area() component");
-		if (o.isClicked()) {
-			f(o);
-		}
-	});
+function onClick(tag: Tag | (() => void), cb?: (obj: GameObj) => void): EventCanceller {
+	if (typeof tag === "function") {
+		return onMousePress(tag);
+	} else {
+		return onUpdate(tag, (o: GameObj) => {
+			if (!o.area) throw new Error("onClick() requires the object to have area() component");
+			if (o.isClicked()) {
+				cb(o);
+			}
+		});
+	}
 }
 
 // add an event that runs when objs with tag t is hovered
@@ -788,16 +793,37 @@ function onKeyRelease(k: Key | Key[] | (() => void), f?: () => void): EventCance
 	}
 }
 
-function onMouseDown(f: (pos: Vec2) => void): EventCanceller {
-	return game.on("input", () => app.mouseDown() && f(mousePos()));
+function onMouseDown(
+	m: MouseButton | ((pos?: Vec2) => void),
+	action?: (pos?: Vec2) => void
+): EventCanceller {
+	if (typeof m === "function") {
+		return game.on("input", () => app.mouseDown() && m(mousePos()));
+	} else {
+		return game.on("input", () => app.mouseDown(m) && action(mousePos()));
+	}
 }
 
-function onMouseClick(f: (pos: Vec2) => void): EventCanceller {
-	return game.on("input", () => app.mouseClicked() && f(mousePos()));
+function onMousePress(
+	m: MouseButton | ((pos?: Vec2) => void),
+	action?: (pos?: Vec2) => void
+): EventCanceller {
+	if (typeof m === "function") {
+		return game.on("input", () => app.mousePressed() && m(mousePos()));
+	} else {
+		return game.on("input", () => app.mousePressed(m) && action(mousePos()));
+	}
 }
 
-function onMouseRelease(f: (pos: Vec2) => void): EventCanceller {
-	return game.on("input", () => app.mouseReleased() && f(mousePos()));
+function onMouseRelease(
+	m: MouseButton | ((pos?: Vec2) => void),
+	action?: (pos?: Vec2) => void
+): EventCanceller {
+	if (typeof m === "function") {
+		return game.on("input", () => app.mouseReleased() && m(mousePos()));
+	} else {
+		return game.on("input", () => app.mouseReleased(m) && action(mousePos()));
+	}
 }
 
 function onMouseMove(f: (pos: Vec2, dpos: Vec2) => void): EventCanceller {
@@ -1479,7 +1505,7 @@ function area(opt: AreaCompOpt = {}): AreaComp {
 		},
 
 		isClicked(): boolean {
-			return app.mouseClicked() && this.isHovering();
+			return app.mousePressed() && this.isHovering();
 		},
 
 		isHovering() {
@@ -2754,7 +2780,7 @@ const ctx: KaboomCtx = {
 	onKeyPressRep,
 	onKeyRelease,
 	onMouseDown,
-	onMouseClick,
+	onMousePress,
 	onMouseRelease,
 	onMouseMove,
 	onCharInput,
@@ -2766,7 +2792,7 @@ const ctx: KaboomCtx = {
 	keyPressRep: onKeyPressRep,
 	keyRelease: onKeyRelease,
 	mouseDown: onMouseDown,
-	mouseClick: onMouseClick,
+	mouseClick: onMousePress,
 	mouseRelease: onMouseRelease,
 	mouseMove: onMouseMove,
 	charInput: onCharInput,
@@ -2781,7 +2807,7 @@ const ctx: KaboomCtx = {
 	isKeyPressedRep: app.keyPressedRep,
 	isKeyReleased: app.keyReleased,
 	isMouseDown: app.mouseDown,
-	isMouseClicked: app.mouseClicked,
+	isMousePressed: app.mousePressed,
 	isMouseReleased: app.mouseReleased,
 	isMouseMoved: app.mouseMoved,
 	keyIsDown: app.keyDown,
@@ -2789,7 +2815,7 @@ const ctx: KaboomCtx = {
 	keyIsPressedRep: app.keyPressedRep,
 	keyIsReleased: app.keyReleased,
 	mouseIsDown: app.mouseDown,
-	mouseIsClicked: app.mouseClicked,
+	mouseIsClicked: app.mousePressed,
 	mouseIsReleased: app.mouseReleased,
 	mouseIsMoved: app.mouseMoved,
 	// timer
