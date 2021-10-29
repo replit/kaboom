@@ -2614,7 +2614,8 @@ function record(frameRate = 30): Recording {
 	const audioStream = audioDest.stream;
 	const [firstAudioTrack] = audioStream.getAudioTracks();
 
-// 	stream.addTrack(firstAudioTrack);
+	// TODO: Enabling audio results in empty video if no audio received
+	// stream.addTrack(firstAudioTrack);
 
 	const recorder = new MediaRecorder(stream);
 	const chunks = [];
