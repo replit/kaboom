@@ -956,184 +956,6 @@ function regCursor(c: Cursor, draw: string | ((mpos: Vec2) => void)) {
 	// TODO
 }
 
-// TODO: cleaner pause logic
-function gameFrame(ignorePause?: boolean) {
-
-	game.trigger("next");
-	delete game.events["next"];
-
-	const doUpdate = ignorePause || !debug.paused;
-
-	if (doUpdate) {
-
-		// update timers
-		game.timers.forEach((t, id) => {
-			t.time -= dt();
-			if (t.time <= 0) {
-				// TODO: some timer action causes crash on FF when dt is really high, not sure why
-				t.action();
-				game.timers.delete(id);
-			}
-		});
-
-		// update every obj
-		revery((obj) => {
-			if (!obj.paused) {
-				obj.trigger("update", obj);
-			}
-		});
-
-	}
-
-	// calculate camera matrix
-	const size = vec2(width(), height());
-	const cam = game.cam;
-	const shake = dir(rand(0, 360)).scale(cam.shake);
-
-	cam.shake = lerp(cam.shake, 0, 5 * dt());
-	game.camMatrix = mat4()
-		.translate(size.scale(0.5))
-		.scale(cam.scale)
-		.rotateZ(cam.angle)
-		.translate(size.scale(-0.5))
-		.translate(cam.pos.scale(-1).add(size.scale(0.5)).add(shake))
-		;
-
-	// draw every obj
-	every((obj) => {
-
-		if (!obj.hidden) {
-
-			gfx.pushTransform();
-
-			if (!obj.fixed) {
-				gfx.applyMatrix(game.camMatrix);
-			}
-
-			obj.trigger("draw");
-			gfx.popTransform();
-
-		}
-
-	});
-
-}
-
-function drawInspect() {
-
-	let inspecting = null;
-	const font = assets.fonts[DBG_FONT];
-	const lcolor = rgb(gopt.inspectColor ?? [0, 0, 255]);
-
-	function drawInspectTxt(pos, txt) {
-
-		const s = gfx.scale();
-		const pad = vec2(6).scale(1 / s);
-
-		const ftxt = gfx.fmtText({
-			text: txt,
-			font: font,
-			size: 16 / s,
-			pos: pos.add(vec2(pad.x, pad.y)),
-			color: rgb(0, 0, 0),
-		});
-
-		const bw = ftxt.width + pad.x * 2;
-		const bh = ftxt.height + pad.x * 2;
-
-		gfx.pushTransform();
-
-		if (pos.x + bw >= width()) {
-			gfx.pushTranslate(vec2(-bw, 0));
-		}
-
-		if (pos.y + bh >= height()) {
-			gfx.pushTranslate(vec2(0, -bh));
-		}
-
-		gfx.drawRect({
-			pos: pos,
-			width: bw,
-			height: bh,
-			color: rgb(255, 255, 255),
-			outline: {
-				width: 2 / s,
-				color: rgb(0, 0, 0),
-			},
-		});
-
-		gfx.drawFmtText(ftxt);
-		gfx.popTransform();
-
-	}
-
-	// draw area outline
-	every((obj) => {
-
-		if (!obj.area) {
-			return;
-		}
-
-		if (obj.hidden) {
-			return;
-		}
-
-		const scale = gfx.scale() * (obj.fixed ? 1: (game.cam.scale.x + game.cam.scale.y) / 2);
-
-		if (!obj.fixed) {
-			gfx.pushTransform();
-			gfx.applyMatrix(game.camMatrix);
-		}
-
-		if (!inspecting) {
-			if (obj.isHovering()) {
-				inspecting = obj;
-			}
-		}
-
-		const lwidth = (inspecting === obj ? 8 : 4) / scale;
-		const a = obj.worldArea();
-		const w = a.p2.x - a.p1.x;
-		const h = a.p2.y - a.p1.y;
-
-		gfx.drawRect({
-			pos: a.p1,
-			width: w,
-			height: h,
-			outline: {
-				width: lwidth,
-				color: lcolor,
-			},
-			fill: false,
-		});
-
-		if (!obj.fixed) {
-			gfx.popTransform();
-		}
-
-	});
-
-	if (inspecting) {
-
-		const lines = [];
-		const data = inspecting.inspect();
-
-		for (const tag in data) {
-			if (data[tag]) {
-				lines.push(`${tag}: ${data[tag]}`);
-			} else {
-				lines.push(`${tag}`);
-			}
-		}
-
-		drawInspectTxt(mousePos(), lines.join("\n"));
-
-	}
-
-	drawInspectTxt(vec2(0), `FPS: ${app.fps()}`);
-
-}
-
 function makeCollision(target: GameObj<any>, dis: Vec2): Collision {
 	return {
 		target: target,
@@ -2341,9 +2163,7 @@ const debug: Debug = {
 	objCount(): number {
 		return game.objs.size;
 	},
-	stepFrame() {
-		gameFrame(true);
-	},
+	stepFrame: updateFrame,
 	drawCalls: gfx.drawCalls,
 	clearLog: logger.clear,
 	log: (msg) => logger.info(`[${app.time().toFixed(2)}] ${msg}`),
@@ -2379,7 +2199,7 @@ function go(id: SceneID, ...args) {
 		throw new Error(`scene not found: ${id}`);
 	}
 
-	game.on("next", () => {
+	game.on("nextFrameStart", () => {
 
 		game.events = {};
 
@@ -2893,56 +2713,242 @@ function frames() {
 	return numFrames;
 }
 
-app.run(() => {
+function updateFrame() {
 
-	numFrames++;
-	gfx.frameStart();
+	game.trigger("nextFrameStart");
+	delete game.events["nextFrameStart"];
 
-	if (!game.loaded) {
+	// update timers
+	game.timers.forEach((t, id) => {
+		t.time -= dt();
+		if (t.time <= 0) {
+			// TODO: some timer action causes crash on FF when dt is really high, not sure why
+			t.action();
+			game.timers.delete(id);
+		}
+	});
 
-		// if assets are not fully loaded, draw a progress bar
-		const progress = assets.loadProgress();
+	// update every obj
+	revery((obj) => {
+		if (!obj.paused) {
+			obj.trigger("update", obj);
+		}
+	});
 
-		if (progress === 1) {
-			game.loaded = true;
-			game.trigger("load");
-		} else {
+}
 
-			const w = width() / 2;
-			const h = 24 / gfx.scale();
-			const pos = vec2(width() / 2, height() / 2).sub(vec2(w / 2, h / 2));
+function drawFrame() {
 
-			gfx.drawRect({
-				pos: vec2(0),
-				width: width(),
-				height: height(),
-				color: rgb(0, 0, 0),
-			});
+	// calculate camera matrix
+	const size = vec2(width(), height());
+	const cam = game.cam;
+	const shake = dir(rand(0, 360)).scale(cam.shake);
 
-			gfx.drawRect({
-				pos: pos,
-				width: w,
-				height: h,
-				fill: false,
-				outline: {
-					width: 4 / gfx.scale(),
-				},
-			});
+	cam.shake = lerp(cam.shake, 0, 5 * dt());
+	game.camMatrix = mat4()
+		.translate(size.scale(0.5))
+		.scale(cam.scale)
+		.rotateZ(cam.angle)
+		.translate(size.scale(-0.5))
+		.translate(cam.pos.scale(-1).add(size.scale(0.5)).add(shake))
+		;
 
-			gfx.drawRect({
-				pos: pos,
-				width: w * progress,
-				height: h,
-			});
+	// draw every obj
+	every((obj) => {
+
+		if (!obj.hidden) {
+
+			gfx.pushTransform();
+
+			if (!obj.fixed) {
+				gfx.applyMatrix(game.camMatrix);
+			}
+
+			obj.trigger("draw");
+			gfx.popTransform();
 
 		}
 
+	});
+
+}
+
+function drawInspect() {
+
+	let inspecting = null;
+	const font = assets.fonts[DBG_FONT];
+	const lcolor = rgb(gopt.inspectColor ?? [0, 0, 255]);
+
+	function drawInspectTxt(pos, txt) {
+
+		const s = gfx.scale();
+		const pad = vec2(6).scale(1 / s);
+
+		const ftxt = gfx.fmtText({
+			text: txt,
+			font: font,
+			size: 16 / s,
+			pos: pos.add(vec2(pad.x, pad.y)),
+			color: rgb(0, 0, 0),
+		});
+
+		const bw = ftxt.width + pad.x * 2;
+		const bh = ftxt.height + pad.x * 2;
+
+		gfx.pushTransform();
+
+		if (pos.x + bw >= width()) {
+			gfx.pushTranslate(vec2(-bw, 0));
+		}
+
+		if (pos.y + bh >= height()) {
+			gfx.pushTranslate(vec2(0, -bh));
+		}
+
+		gfx.drawRect({
+			pos: pos,
+			width: bw,
+			height: bh,
+			color: rgb(255, 255, 255),
+			outline: {
+				width: 2 / s,
+				color: rgb(0, 0, 0),
+			},
+		});
+
+		gfx.drawFmtText(ftxt);
+		gfx.popTransform();
+
+	}
+
+	// draw area outline
+	every((obj) => {
+
+		if (!obj.area) {
+			return;
+		}
+
+		if (obj.hidden) {
+			return;
+		}
+
+		const scale = gfx.scale() * (obj.fixed ? 1: (game.cam.scale.x + game.cam.scale.y) / 2);
+
+		if (!obj.fixed) {
+			gfx.pushTransform();
+			gfx.applyMatrix(game.camMatrix);
+		}
+
+		if (!inspecting) {
+			if (obj.isHovering()) {
+				inspecting = obj;
+			}
+		}
+
+		const lwidth = (inspecting === obj ? 8 : 4) / scale;
+		const a = obj.worldArea();
+		const w = a.p2.x - a.p1.x;
+		const h = a.p2.y - a.p1.y;
+
+		gfx.drawRect({
+			pos: a.p1,
+			width: w,
+			height: h,
+			outline: {
+				width: lwidth,
+				color: lcolor,
+			},
+			fill: false,
+		});
+
+		if (!obj.fixed) {
+			gfx.popTransform();
+		}
+
+	});
+
+	if (inspecting) {
+
+		const lines = [];
+		const data = inspecting.inspect();
+
+		for (const tag in data) {
+			if (data[tag]) {
+				lines.push(`${tag}: ${data[tag]}`);
+			} else {
+				lines.push(`${tag}`);
+			}
+		}
+
+		drawInspectTxt(mousePos(), lines.join("\n"));
+
+	}
+
+	drawInspectTxt(vec2(0), `FPS: ${app.fps()}`);
+
+}
+
+function drawLoadScreen() {
+
+	// if assets are not fully loaded, draw a progress bar
+	const progress = assets.loadProgress();
+
+	if (progress === 1) {
+		game.loaded = true;
+		game.trigger("load");
+	} else {
+
+		const w = width() / 2;
+		const h = 24 / gfx.scale();
+		const pos = vec2(width() / 2, height() / 2).sub(vec2(w / 2, h / 2));
+
+		gfx.drawRect({
+			pos: vec2(0),
+			width: width(),
+			height: height(),
+			color: rgb(0, 0, 0),
+		});
+
+		gfx.drawRect({
+			pos: pos,
+			width: w,
+			height: h,
+			fill: false,
+			outline: {
+				width: 4 / gfx.scale(),
+			},
+		});
+
+		gfx.drawRect({
+			pos: pos,
+			width: w * progress,
+			height: h,
+		});
+
+	}
+
+}
+
+app.run(() => {
+
+	numFrames++;
+
+	if (!game.loaded) {
+		gfx.frameStart();
+		drawLoadScreen();
+		gfx.frameEnd();
 	} else {
 
 		// TODO: this gives the latest mousePos in input handlers but uses cam matrix from last frame
 		game.camMousePos = game.camMatrix.invert().multVec2(app.mousePos());
 		game.trigger("input");
-		gameFrame();
+
+		if (!debug.paused) {
+			updateFrame();
+		}
+
+		gfx.frameStart();
+		drawFrame();
 
 		if (debug.inspect) {
 			drawInspect();
@@ -2961,9 +2967,9 @@ app.run(() => {
 			});
 		}
 
-	}
+		gfx.frameEnd();
 
-	gfx.frameEnd();
+	}
 
 });
 
