@@ -79,7 +79,6 @@ function buildTypes() {
 	// transform and prune typescript ast to a format more meaningful to us
 	const stmts = transform(f.statements, (k, v) => {
 		switch (k) {
-			case "pos":
 			case "end":
 			case "flags":
 			case "parent":
@@ -89,6 +88,7 @@ function buildTypes() {
 			case "name":
 			case "typeName":
 			case "tagName": return v.escapedText;
+			case "pos": return typeof v === "number" ? undefined : v;
 			case "kind": return ts.SyntaxKind[v];
 			case "questionToken": return true;
 			case "members": {
@@ -168,9 +168,12 @@ function buildTypes() {
 				const tags = mem[0].jsDoc?.tags ?? {};
 
 				if (tags["section"]) {
+					const name = tags["section"][0];
+					const docPath = path.resolve(__dirname, `../doc/sections/${name}.md`);
 					sections.push({
-						name: tags["section"][0],
+						name: name,
 						entries: [],
+						doc: fs.existsSync(docPath) ? fs.readFileSync(docPath, "utf8") : null,
 					});
 				}
 
@@ -199,6 +202,6 @@ function buildTypes() {
 	fs.writeFileSync(`site/doc.json`, JSON.stringify({
 		types,
 		sections,
-	}));
+	}, null, 4));
 
 }

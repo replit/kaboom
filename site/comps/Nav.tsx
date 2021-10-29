@@ -177,7 +177,7 @@ const IndexContent: React.FC<IndexContentProps> = ({
 								{ entries.map((name) => {
 
 									let dname = name;
-									const mem = doc.types["KaboomCtx"][0].members[name][0];
+									const mem = (doc as any).types["KaboomCtx"][0].members[name][0];
 
 									if (mem.jsDoc?.tags["deprecated"]) {
 										return

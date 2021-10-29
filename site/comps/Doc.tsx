@@ -3,6 +3,7 @@ import Link from "next/link";
 import View, { ViewPropsAnd } from "comps/View";
 import Text from "comps/Text";
 import Markdown from "comps/Markdown";
+// @ts-ignore
 import doc from "doc.json";
 
 const TypeSig: React.FC<EntryProps> = ({ data }) => (
@@ -32,7 +33,7 @@ const TypeSig: React.FC<EntryProps> = ({ data }) => (
 						{i === data.types.length - 1 ? "" : " | "}
 					</React.Fragment>
 				));
-				case "TypeReference": return doc.types[data.typeName]
+				case "TypeReference": return (doc as any).types[data.typeName]
 					?
 						<DocCtx.Consumer>
 							{(ctx) => (
@@ -48,7 +49,7 @@ const TypeSig: React.FC<EntryProps> = ({ data }) => (
 				case "TypeLiteral":
 					return <View gap={2} stretchX>
 						{
-							Object.entries(data.members).map(([name, mem]) =>
+							Object.entries(data.members).map(([name, mem]: [string, any]) =>
 								<Member key={mem.name} data={mem} />
 							)
 						}
@@ -163,7 +164,7 @@ const TypeAliasDeclaration: React.FC<EntryProps> = ({ data }) => (
 		{(() => {
 			switch (data.type.kind) {
 				case "TypeLiteral":
-					return Object.entries(data.type.members).map(([name, mem]) =>
+					return Object.entries(data.type.members).map(([name, mem]: [string, any]) =>
 						<Entry key={mem.name} data={mem} />
 					);
 				case "TypeReference":
@@ -195,7 +196,7 @@ const InterfaceDeclaration: React.FC<EntryProps> = ({ data }) => {
 				<Title data={data} />
 				<JSDoc data={data} />
 			</View>
-			{ Object.entries(data.members).map(([name, mem], i) =>
+			{ Object.entries(data.members).map(([name, mem]: [string, any], i) =>
 				<Member key={`${mem.name}-${i}`} data={mem} />
 			) }
 		</View>
@@ -241,6 +242,7 @@ const JSDoc: React.FC<EntryProps> = ({data}) => {
 			{ Object.entries(data.jsDoc.tags).map(([name, items]) => {
 				return (items as string[]).map((content) => {
 					switch (name) {
+						case "section": return;
 						case "example": return <Markdown key={content} src={content} />;
 						default: return (
 							<View key={content} gap={1} dir="row">
@@ -265,10 +267,14 @@ const Doc: React.FC<ViewPropsAnd<DocProps>> = ({
 	typeref,
 	...args
 }) => {
-	const entries = doc.types[name] || doc.types["KaboomCtx"][0].members[name];
+
+	const entries = (doc as any).types[name]
+		|| (doc as any).types["KaboomCtx"][0].members[name];
+
 	if (!entries) {
 		return <Text color={3}>Entry not found: {name}</Text>;
 	}
+
 	return (
 		<DocCtx.Provider value={{
 			typeref: typeref,
@@ -278,6 +284,7 @@ const Doc: React.FC<ViewPropsAnd<DocProps>> = ({
 			</View>
 		</DocCtx.Provider>
 	);
+
 };
 
 interface DocCtx {
