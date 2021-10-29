@@ -591,6 +591,8 @@ export interface KaboomCtx {
 	/**
 	 * Registers an event that runs every frame for all game objs with certain tag. If tag is omitted it'll just run the callback every frame.
 	 *
+	 * @since v2000.1.0
+	 *
 	 * @example
 	 * ```js
 	 * // move every "tree" 120 pixels per second to the left, destroy it when it leaves screen
@@ -612,11 +614,15 @@ export interface KaboomCtx {
 	onUpdate(cb: () => void): EventCanceller,
 	/**
 	 * Registers an event that runs every frame for all game objs with certain tag (this is the same as onUpdate but all draw events are run after update events). If tag is omitted it'll just run the callback every frame.
+	 *
+	 * @since v2000.1.0
 	 */
 	onDraw(tag: Tag, cb: (obj: GameObj) => void): EventCanceller,
 	onDraw(cb: () => void): EventCanceller,
 	/**
 	 * Registers an event that runs when all assets finished loading.
+	 *
+	 * @since v2000.1.0
 	 *
 	 * @example
 	 * ```js
@@ -634,6 +640,8 @@ export interface KaboomCtx {
 	/**
 	 * Registers an event that runs when 2 game objs with certain tags collides.
 	 *
+	 * @since v2000.1.0
+	 *
 	 * @example
 	 * ```js
 	 * onCollide("sun", "earth", () => {
@@ -648,6 +656,8 @@ export interface KaboomCtx {
 	): EventCanceller,
 	/**
 	 * Registers an event that runs when game objs with certain tags are clicked. This function spins off an onUpdate() when called, please put it at root level and never inside another onUpdate().
+	 *
+	 * @since v2000.1.0
 	 */
 	onClick(
 		tag: Tag,
@@ -655,6 +665,8 @@ export interface KaboomCtx {
 	): EventCanceller,
 	/**
 	 * Registers an event that runs when game objs with certain tags are hovered. This function spins off an onUpdate() when called, please put it at root level and never inside another onUpdate().
+	 *
+	 * @since v2000.1.0
 	 */
 	onHover(
 		tag: Tag,
@@ -662,6 +674,8 @@ export interface KaboomCtx {
 	): EventCanceller,
 	/**
 	 * Registers an event that runs every frame when a key is held down.
+	 *
+	 * @since v2000.1.0
 	 *
 	 * @example
 	 * ```js
@@ -674,6 +688,8 @@ export interface KaboomCtx {
 	onKeyDown(k: Key | Key[], cb: () => void): EventCanceller,
 	/**
 	 * Registers an event that runs when user presses certain key.
+	 *
+	 * @since v2000.1.0
 	 *
 	 * @example
 	 * ```js
@@ -688,6 +704,8 @@ export interface KaboomCtx {
 	/**
 	 * Registers an event that runs when user presses certain key (also fires repeatedly when they key is being held down).
 	 *
+	 * @since v2000.1.0
+	 *
 	 * @example
 	 * ```js
 	 * // delete last character when "backspace" is being pressed and held
@@ -700,11 +718,15 @@ export interface KaboomCtx {
 	onKeyPressRepeat(cb: () => void): EventCanceller,
 	/**
 	 * Registers an event that runs when user releases certain key.
+	 *
+	 * @since v2000.1.0
 	 */
 	onKeyRelease(k: Key | Key[], cb: () => void): EventCanceller,
 	onKeyRelease(cb: () => void): EventCanceller,
 	/**
 	 * Registers an event that runs when user inputs text.
+	 *
+	 * @since v2000.1.0
 	 *
 	 * @example
 	 * ```js
@@ -717,30 +739,44 @@ export interface KaboomCtx {
 	onCharInput(cb: (ch: string) => void): EventCanceller,
 	/**
 	 * Registers an event that runs every frame when mouse button is down.
+	 *
+	 * @since v2000.1.0
 	 */
 	onMouseDown(cb: (pos: Vec2) => void): EventCanceller,
 	/**
 	 * Registers an event that runs when user clicks mouse.
+	 *
+	 * @since v2000.1.0
 	 */
 	onMouseClick(cb: (pos: Vec2) => void): EventCanceller,
 	/**
 	 * Registers an event that runs when user releases mouse.
+	 *
+	 * @since v2000.1.0
 	 */
 	onMouseRelease(cb: (pos: Vec2) => void): EventCanceller,
 	/**
 	 * Registers an event that runs whenever user move the mouse.
+	 *
+	 * @since v2000.1.0
 	 */
 	onMouseMove(cb: (pos: Vec2) => void): EventCanceller,
 	/**
 	 * Registers an event that runs when a touch starts.
+	 *
+	 * @since v2000.1.0
 	 */
 	onTouchStart(cb: (id: TouchID, pos: Vec2) => void): EventCanceller,
 	/**
 	 * Registers an event that runs whenever touch moves.
+	 *
+	 * @since v2000.1.0
 	 */
 	onTouchMove(cb: (id: TouchID, pos: Vec2) => void): EventCanceller,
 	/**
 	 * Registers an event that runs when a touch ends.
+	 *
+	 * @since v2000.1.0
 	 */
 	onTouchEnd(cb: (id: TouchID, pos: Vec2) => void): EventCanceller,
 	/**
@@ -1037,6 +1073,8 @@ export interface KaboomCtx {
 	time(): number,
 	/**
 	 * If the game canvas is currently focused.
+	 *
+	 * @since v2000.1.0
 	 */
 	isFocused(): boolean,
 	/**
@@ -1062,6 +1100,8 @@ export interface KaboomCtx {
 	/**
 	 * If certain key is currently down.
 	 *
+	 * @since v2000.1.0
+	 *
 	 * @example
 	 * ```js
 	 * // equivalent to the calling froggy.move() in an onKeyDown("left")
@@ -1075,30 +1115,44 @@ export interface KaboomCtx {
 	isKeyDown(k: Key): boolean,
 	/**
 	 * If certain key is just pressed last frame.
+	 *
+	 * @since v2000.1.0
 	 */
 	isKeyPressed(k?: Key): boolean,
 	/**
 	 * If certain key is just pressed last frame (also fires repeatedly when the key is being held down).
+	 *
+	 * @since v2000.1.0
 	 */
 	isKeyPressedRepeat(k?: Key): boolean,
 	/**
 	 * If certain key is just released last frame.
+	 *
+	 * @since v2000.1.0
 	 */
 	isKeyReleased(k?: Key): boolean,
 	/**
 	 * If certain mouse is currently down.
+	 *
+	 * @since v2000.1.0
 	 */
 	isMouseDown(): boolean,
 	/**
 	 * If mouse is just clicked last frame.
+	 *
+	 * @since v2000.1.0
 	 */
 	isMouseClicked(): boolean,
 	/**
 	 * If mouse is just released last frame.
+	 *
+	 * @since v2000.1.0
 	 */
 	isMouseReleased(): boolean,
 	/**
 	 * If mouse moved last frame.
+	 *
+	 * @since v2000.1.0
 	 */
 	isMouseMoved(): boolean,
 	/**
@@ -1377,6 +1431,8 @@ export interface KaboomCtx {
 	rgb(r: number, g: number, b: number): Color,
 	/**
 	 * Convert HSL color (all values in [0.0 - 1.0] range) to RGB color.
+	 *
+	 * @since v2000.1.0
 	 */
 	hsl2rgb(hue: number, saturation: number, lightness: number): Color,
 	/**
@@ -1550,7 +1606,7 @@ export interface KaboomCtx {
 	/**
 	 * Draw a sprite.
 	 *
-	 * @section Render
+	 * @section Draw
 	 *
 	 * @example
 	 * ```js
@@ -1611,7 +1667,7 @@ export interface KaboomCtx {
 	/**
 	 * Draw a convex polygon from a list of vertices.
 	 */
-	drawPolygon(options: DrawPolyOpt): void,
+	drawPolygon(options: DrawPolygonOpt): void,
 	/**
 	 * Draw a rectangle with UV data.
 	 */
@@ -1678,7 +1734,9 @@ export interface KaboomCtx {
 	 */
 	screenshot(): string,
 	/**
-	 * Start recording the canvas into a video. Returns a handle with controls.
+	 * Start recording the canvas into a video, returns a handle with controls. If framerate is not specified, a new frame will be captured each time the canvas changes.
+	 *
+	 * @since v2000.1.0
 	 */
 	record(frameRate?: number): Recording,
 	/**
@@ -1715,9 +1773,9 @@ export interface KaboomCtx {
 export type Tag = string;
 
 // TODO: understand this
-export type UnionToIntersection<U> = (U extends any ? (k: U) => void : never) extends ((k: infer I) => void) ? I : never
-export type Defined<T> = T extends any ? Pick<T, { [K in keyof T]-?: T[K] extends undefined ? never : K }[keyof T]> : never;
-export type Expand<T> = T extends infer U ? { [K in keyof U]: U[K] } : never;
+type UnionToIntersection<U> = (U extends any ? (k: U) => void : never) extends ((k: infer I) => void) ? I : never
+type Defined<T> = T extends any ? Pick<T, { [K in keyof T]-?: T[K] extends undefined ? never : K }[keyof T]> : never;
+type Expand<T> = T extends infer U ? { [K in keyof U]: U[K] } : never;
 export type MergeObj<T> = Expand<UnionToIntersection<Defined<T>>>;
 export type MergeComps<T> = Omit<MergeObj<T>, keyof Comp>;
 
@@ -1873,21 +1931,29 @@ export interface GameObjRaw {
 	 */
 	inspect(): GameObjInspect;
 	/**
-	 * Registers an event that runs every frame as long as the game obj exists (alias to onUpdate).
-	 */
-	action: GameObjRaw["onUpdate"];
-	/**
 	 * Registers an event that runs every frame as long as the game obj exists.
+	 *
+	 * @since v2000.1.0
 	 */
 	onUpdate(cb: () => void): EventCanceller;
 	/**
 	 * Registers an event that runs every frame as long as the game obj exists (this is the same as `onUpdate()`, but all draw events are run after all update events).
+	 *
+	 * @since v2000.1.0
 	 */
 	onDraw(cb: () => void): EventCanceller;
 	/**
 	 * Registers an event that runs when the game obj is destroyed.
+	 *
+	 * @since v2000.1.0
 	 */
 	onDestroy(cb: () => void): EventCanceller;
+	/**
+	 * Registers an event that runs every frame as long as the game obj exists (alias to onUpdate).
+	 *
+	 * @deprecated Use onUpdate() instead.
+	 */
+	action: GameObjRaw["onUpdate"];
 }
 
 /**
@@ -2096,10 +2162,14 @@ export interface AudioPlay {
 	pause(): void,
 	/**
 	 * If the sound is paused.
+	 *
+	 * @since v2000.1.0
 	 */
 	isPaused(): boolean,
 	/**
 	 * If the sound is stopped or ended.
+	 *
+	 * @since v2000.1.0
 	 */
 	isStopped(): boolean,
 	/**
@@ -2452,7 +2522,7 @@ export type DrawEllipseOpt = RenderProps & {
 /**
  * How the polygon should look like.
  */
-export type DrawPolyOpt = RenderProps & {
+export type DrawPolygonOpt = RenderProps & {
 	/**
 	 * The points that make up the polygon
 	 */
@@ -2516,6 +2586,8 @@ export type DrawTextOpt = RenderProps & {
 	origin?: Origin | Vec2,
 	/**
 	 * Transform the pos, scale, rotation or color for each character based on the index or char.
+	 *
+	 * @since v2000.1.0
 	 */
 	transform?: (idx: number, ch: string) => CharTransform,
 }
@@ -2758,9 +2830,6 @@ export interface Circle {
 export type Polygon = Vec2[];
 export type Point = Vec2;
 
-export type ClientID = number;
-export type MsgHandler = (id: ClientID, data: any) => void;
-
 export interface Comp {
 	/**
 	 * Component ID (if left out won't be treated as a comp).
@@ -2960,14 +3029,20 @@ export interface AreaComp extends Comp {
 	isTouching(o: GameObj): boolean,
 	/**
 	 * Registers an event runs when clicked.
+	 *
+	 * @since v2000.1.0
 	 */
 	onClick(f: () => void): void,
 	/**
 	 * Registers an event runs every frame when hovered.
+	 *
+	 * @since v2000.1.0
 	 */
 	onHover(onHover: () => void, onNotHover?: () => void): void,
 	/**
 	 * Registers an event runs when collide with another game obj with certain tag.
+	 *
+	 * @since v2000.1.0
 	 */
 	onCollide(tag: Tag, f: (obj: GameObj, col?: Collision) => void): void,
 	/**
@@ -3283,10 +3358,14 @@ export interface BodyComp extends Comp {
 	curPlatform(): GameObj | null,
 	/**
 	 * If currently landing on a platform.
+	 *
+	 * @since v2000.1.0
 	 */
 	isGrounded(): boolean,
 	/**
 	 * If currently falling.
+	 *
+	 * @since v2000.1.0
 	 */
 	isFalling(): boolean,
 	/**
@@ -3299,18 +3378,26 @@ export interface BodyComp extends Comp {
 	doubleJump(f?: number): void,
 	/**
 	 * Registers an event that runs when the object is grounded.
+	 *
+	 * @since v2000.1.0
 	 */
 	onGround(action: () => void): EventCanceller,
 	/**
 	 * Registers an event that runs when the object starts falling.
+	 *
+	 * @since v2000.1.0
 	 */
 	onFall(action: () => void): EventCanceller,
 	/**
 	 * Registers an event that runs when the object bumps into something on the head.
+	 *
+	 * @since v2000.1.0
 	 */
 	onHeadbutt(action: () => void): EventCanceller,
 	/**
 	 * Registers an event that runs when the object performs the second jump when double jumping.
+	 *
+	 * @since v2000.1.0
 	 */
 	onDoubleJump(action: () => void): EventCanceller,
 	/**
