@@ -1734,7 +1734,7 @@ export interface KaboomCtx {
 	 */
 	screenshot(): string,
 	/**
-	 * Start recording the canvas into a video. Returns a handle with controls.
+	 * Start recording the canvas into a video, returns a handle with controls. If framerate is not specified, a new frame will be captured each time the canvas changes.
 	 *
 	 * @since v2000.1.0
 	 */

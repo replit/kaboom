@@ -2604,7 +2604,7 @@ function addLevel(map: string[], opt: LevelOpt): Level {
 
 }
 
-function record(frameRate = 30): Recording {
+function record(frameRate?): Recording {
 
 	const stream = app.canvas.captureStream(frameRate);
 	const audioDest = audio.ctx.createMediaStreamDestination();
