@@ -2614,7 +2614,7 @@ function record(frameRate = 30): Recording {
 	const audioStream = audioDest.stream;
 	const [firstAudioTrack] = audioStream.getAudioTracks();
 
-	stream.addTrack(firstAudioTrack);
+// 	stream.addTrack(firstAudioTrack);
 
 	const recorder = new MediaRecorder(stream);
 	const chunks = [];
