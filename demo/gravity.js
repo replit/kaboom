@@ -1,4 +1,4 @@
-// Collision handling
+// Responding to gravity & jumping
 
 // Start kaboom
 kaboom()
