@@ -5,20 +5,20 @@ kaboom({
 	background: [ 128, 180, 255 ],
 });
 
-loadSprite("bean", "sprites/bean.png");
-loadSprite("bag", "sprites/bag.png");
-loadSprite("bobo", "sprites/bobo.png");
-loadSprite("onion", "sprites/onion.png");
-loadSprite("ghosty", "sprites/ghosty.png");
-loadSprite("lamp", "sprites/lamp.png");
-loadSprite("goldfly", "sprites/goldfly.png");
-loadSprite("gigagantrum", "sprites/gigagantrum.png");
-loadSprite("note", "sprites/note.png");
-loadSprite("grass", "sprites/grass.png");
-loadSprite("cloud", "sprites/cloud.png");
-loadSprite("sun", "sprites/sun.png");
-loadSound("bell", "sounds/bell.mp3");
-loadSound("kaboom2000", "sounds/kaboom2000.mp3");
+loadSprite("bean", "/sprites/bean.png");
+loadSprite("bag", "/sprites/bag.png");
+loadSprite("bobo", "/sprites/bobo.png");
+loadSprite("onion", "/sprites/onion.png");
+loadSprite("ghosty", "/sprites/ghosty.png");
+loadSprite("lamp", "/sprites/lamp.png");
+loadSprite("goldfly", "/sprites/goldfly.png");
+loadSprite("gigagantrum", "/sprites/gigagantrum.png");
+loadSprite("note", "/sprites/note.png");
+loadSprite("grass", "/sprites/grass.png");
+loadSprite("cloud", "/sprites/cloud.png");
+loadSprite("sun", "/sprites/sun.png");
+loadSound("bell", "/sounds/bell.mp3");
+loadSound("kaboom2000", "/sounds/kaboom2000.mp3");
 
 const FLOOR_HEIGHT = 64;
 const JUMP_FORCE = 1320;

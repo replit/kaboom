@@ -1,6 +1,6 @@
 kaboom();
 
-loadSprite("bean", "sprites/bean.png");
+loadSprite("bean", "/sprites/bean.png");
 
 // layer "ui" will be on top of layer "game", with "game" layer being the default
 layers([

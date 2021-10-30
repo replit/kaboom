@@ -2,7 +2,7 @@
 
 kaboom();
 
-loadSprite("steep", "sprites/steel.png");
+loadSprite("steep", "/sprites/steel.png");
 
 add([
 	sprite("steep", {

@@ -2,13 +2,13 @@
 
 kaboom();
 
-loadSprite("bag", "sprites/bag.png");
-loadSprite("ghosty", "sprites/ghosty.png");
-loadSprite("grass", "sprites/grass.png");
-loadSprite("steel", "sprites/steel.png");
-loadSprite("door", "sprites/door.png");
-loadSprite("key", "sprites/key.png");
-loadSprite("bean", "sprites/bean.png");
+loadSprite("bag", "/sprites/bag.png");
+loadSprite("ghosty", "/sprites/ghosty.png");
+loadSprite("grass", "/sprites/grass.png");
+loadSprite("steel", "/sprites/steel.png");
+loadSprite("door", "/sprites/door.png");
+loadSprite("key", "/sprites/key.png");
+loadSprite("bean", "/sprites/bean.png");
 
 scene("main", (levelIdx) => {
 

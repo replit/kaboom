@@ -2,8 +2,8 @@
 
 kaboom();
 
-loadSound("wooosh", "sounds/wooosh.mp3");
-loadSound("OtherworldlyFoe", "sounds/OtherworldlyFoe.mp3");
+loadSound("wooosh", "/sounds/wooosh.mp3");
+loadSound("OtherworldlyFoe", "/sounds/OtherworldlyFoe.mp3");
 
 // the music might not autoplay cuz some browser won't allow audio start before any user interaction
 const music = play("OtherworldlyFoe", { loop: true, });

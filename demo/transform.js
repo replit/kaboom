@@ -1,7 +1,7 @@
 kaboom();
 
 // load sprite
-loadSprite("kaboom", "sprites/kaboom.png");
+loadSprite("kaboom", "/sprites/kaboom.png");
 
 // load sprite to screen
 const k = add([

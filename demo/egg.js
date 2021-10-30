@@ -2,9 +2,9 @@
 
 kaboom();
 
-loadSprite("bean", "sprites/bean.png");
-loadSprite("egg", "sprites/egg.png");
-loadSprite("egg_crack", "sprites/egg_crack.png");
+loadSprite("bean", "/sprites/bean.png");
+loadSprite("egg", "/sprites/egg.png");
+loadSprite("egg_crack", "/sprites/egg_crack.png");
 
 const player = add([
 	sprite("bean"),
