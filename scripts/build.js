@@ -8,7 +8,15 @@ const srcDir = "src";
 const distDir = "dist";
 
 const fmts = [
-	{ format: "iife", ext: "js",  },
+	{
+		format: "iife",
+		ext: "js",
+		config: {
+			footer: {
+				js: "window.kaboom = kaboom.default;",
+			},
+		},
+	},
 	...(dev ? [] : [
 		{ format: "cjs",  ext: "cjs", },
 		{ format: "esm",  ext: "mjs", },
@@ -40,6 +48,7 @@ fmts.forEach((fmt) => {
 		globalName: "kaboom",
 		format: fmt.format,
 		outfile: distPath,
+		...(fmt.config ?? {})
 	}).then(postBuild);
 
 });
@@ -176,7 +185,6 @@ function buildTypes() {
 				if (tags["section"]) {
 					const name = tags["section"][0];
 					const docPath = path.resolve(`doc/sections/${name}.md`);
-					console.log(docPath);
 					sections.push({
 						name: name,
 						entries: [],
