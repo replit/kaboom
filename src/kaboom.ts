@@ -141,8 +141,7 @@ import {
 
 import kaboomPlugin from "./plugins/kaboom";
 
-// @ts-ignore
-module.exports = (gopt: KaboomOpt = {}): KaboomCtx => {
+export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 const audio = audioInit();
 
