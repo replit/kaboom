@@ -45,12 +45,12 @@ onCharInput((ch) => {
 
 // Like onKeyPress() but will retrigger when key is being held (which is similar to text input behavior)
 // Insert new line when user presses enter
-onKeyPressRep("enter", () => {
+onKeyPressRepeat("enter", () => {
 	input.text += "\n"
 })
 
 // Delete last character
-onKeyPressRep("backspace", () => {
+onKeyPressRepeat("backspace", () => {
 	input.text = input.text.substring(0, input.text.length - 1)
 })
 

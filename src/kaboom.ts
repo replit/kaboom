@@ -751,7 +751,7 @@ function onKeyDown(k: Key | Key[], f: () => void): EventCanceller {
 		const cancellers = k.map((key) => onKeyDown(key, f));
 		return () => cancellers.forEach((cb) => cb());
 	} {
-		return game.on("input", () => app.keyDown(k) && f());
+		return game.on("input", () => app.isKeyDown(k) && f());
 	}
 }
 
@@ -760,20 +760,20 @@ function onKeyPress(k: Key | Key[] | (() => void), f?: () => void): EventCancell
 		const cancellers = k.map((key) => onKeyPress(key, f));
 		return () => cancellers.forEach((cb) => cb());
 	} else if (typeof k === "function") {
-		return game.on("input", () => app.keyPressed() && k());
+		return game.on("input", () => app.isKeyPressed() && k());
 	} else {
-		return game.on("input", () => app.keyPressed(k) && f());
+		return game.on("input", () => app.isKeyPressed(k) && f());
 	}
 }
 
-function onKeyPressRep(k: Key | Key[] | (() => void), f?: () => void): EventCanceller {
+function onKeyPressRepeat(k: Key | Key[] | (() => void), f?: () => void): EventCanceller {
 	if (Array.isArray(k)) {
-		const cancellers = k.map((key) => onKeyPressRep(key, f));
+		const cancellers = k.map((key) => onKeyPressRepeat(key, f));
 		return () => cancellers.forEach((cb) => cb());
 	} else if (typeof k === "function") {
-		return game.on("input", () => app.keyPressed() && k());
+		return game.on("input", () => app.isKeyPressed() && k());
 	} else {
-		return game.on("input", () => app.keyPressedRep(k) && f());
+		return game.on("input", () => app.isKeyPressedRepeat(k) && f());
 	}
 }
 
@@ -782,26 +782,26 @@ function onKeyRelease(k: Key | Key[] | (() => void), f?: () => void): EventCance
 		const cancellers = k.map((key) => onKeyRelease(key, f));
 		return () => cancellers.forEach((cb) => cb());
 	} else if (typeof k === "function") {
-		return game.on("input", () => app.keyPressed() && k());
+		return game.on("input", () => app.isKeyPressed() && k());
 	} else {
-		return game.on("input", () => app.keyReleased(k) && f());
+		return game.on("input", () => app.isKeyReleased(k) && f());
 	}
 }
 
 function onMouseDown(f: (pos: Vec2) => void): EventCanceller {
-	return game.on("input", () => app.mouseDown() && f(mousePos()));
+	return game.on("input", () => app.isMouseDown() && f(mousePos()));
 }
 
 function onMouseClick(f: (pos: Vec2) => void): EventCanceller {
-	return game.on("input", () => app.mouseClicked() && f(mousePos()));
+	return game.on("input", () => app.isMouseClicked() && f(mousePos()));
 }
 
 function onMouseRelease(f: (pos: Vec2) => void): EventCanceller {
-	return game.on("input", () => app.mouseReleased() && f(mousePos()));
+	return game.on("input", () => app.isMouseReleased() && f(mousePos()));
 }
 
 function onMouseMove(f: (pos: Vec2, dpos: Vec2) => void): EventCanceller {
-	return game.on("input", () => app.mouseMoved() && f(mousePos(), app.mouseDeltaPos()));
+	return game.on("input", () => app.isMouseMoved() && f(mousePos(), app.mouseDeltaPos()));
 }
 
 function onCharInput(f: (ch: string) => void): EventCanceller {
@@ -954,184 +954,6 @@ function gravity(g?: number): number {
 
 function regCursor(c: Cursor, draw: string | ((mpos: Vec2) => void)) {
 	// TODO
-}
-
-// TODO: cleaner pause logic
-function gameFrame(ignorePause?: boolean) {
-
-	game.trigger("next");
-	delete game.events["next"];
-
-	const doUpdate = ignorePause || !debug.paused;
-
-	if (doUpdate) {
-
-		// update timers
-		game.timers.forEach((t, id) => {
-			t.time -= dt();
-			if (t.time <= 0) {
-				// TODO: some timer action causes crash on FF when dt is really high, not sure why
-				t.action();
-				game.timers.delete(id);
-			}
-		});
-
-		// update every obj
-		revery((obj) => {
-			if (!obj.paused) {
-				obj.trigger("update", obj);
-			}
-		});
-
-	}
-
-	// calculate camera matrix
-	const size = vec2(width(), height());
-	const cam = game.cam;
-	const shake = dir(rand(0, 360)).scale(cam.shake);
-
-	cam.shake = lerp(cam.shake, 0, 5 * dt());
-	game.camMatrix = mat4()
-		.translate(size.scale(0.5))
-		.scale(cam.scale)
-		.rotateZ(cam.angle)
-		.translate(size.scale(-0.5))
-		.translate(cam.pos.scale(-1).add(size.scale(0.5)).add(shake))
-		;
-
-	// draw every obj
-	every((obj) => {
-
-		if (!obj.hidden) {
-
-			gfx.pushTransform();
-
-			if (!obj.fixed) {
-				gfx.applyMatrix(game.camMatrix);
-			}
-
-			obj.trigger("draw");
-			gfx.popTransform();
-
-		}
-
-	});
-
-}
-
-function drawInspect() {
-
-	let inspecting = null;
-	const font = assets.fonts[DBG_FONT];
-	const lcolor = rgb(gopt.inspectColor ?? [0, 0, 255]);
-
-	function drawInspectTxt(pos, txt) {
-
-		const s = gfx.scale();
-		const pad = vec2(6).scale(1 / s);
-
-		const ftxt = gfx.fmtText({
-			text: txt,
-			font: font,
-			size: 16 / s,
-			pos: pos.add(vec2(pad.x, pad.y)),
-			color: rgb(0, 0, 0),
-		});
-
-		const bw = ftxt.width + pad.x * 2;
-		const bh = ftxt.height + pad.x * 2;
-
-		gfx.pushTransform();
-
-		if (pos.x + bw >= width()) {
-			gfx.pushTranslate(vec2(-bw, 0));
-		}
-
-		if (pos.y + bh >= height()) {
-			gfx.pushTranslate(vec2(0, -bh));
-		}
-
-		gfx.drawRect({
-			pos: pos,
-			width: bw,
-			height: bh,
-			color: rgb(255, 255, 255),
-			outline: {
-				width: 2 / s,
-				color: rgb(0, 0, 0),
-			},
-		});
-
-		gfx.drawFmtText(ftxt);
-		gfx.popTransform();
-
-	}
-
-	// draw area outline
-	every((obj) => {
-
-		if (!obj.area) {
-			return;
-		}
-
-		if (obj.hidden) {
-			return;
-		}
-
-		const scale = gfx.scale() * (obj.fixed ? 1: (game.cam.scale.x + game.cam.scale.y) / 2);
-
-		if (!obj.fixed) {
-			gfx.pushTransform();
-			gfx.applyMatrix(game.camMatrix);
-		}
-
-		if (!inspecting) {
-			if (obj.isHovering()) {
-				inspecting = obj;
-			}
-		}
-
-		const lwidth = (inspecting === obj ? 8 : 4) / scale;
-		const a = obj.worldArea();
-		const w = a.p2.x - a.p1.x;
-		const h = a.p2.y - a.p1.y;
-
-		gfx.drawRect({
-			pos: a.p1,
-			width: w,
-			height: h,
-			outline: {
-				width: lwidth,
-				color: lcolor,
-			},
-			fill: false,
-		});
-
-		if (!obj.fixed) {
-			gfx.popTransform();
-		}
-
-	});
-
-	if (inspecting) {
-
-		const lines = [];
-		const data = inspecting.inspect();
-
-		for (const tag in data) {
-			if (data[tag]) {
-				lines.push(`${tag}: ${data[tag]}`);
-			} else {
-				lines.push(`${tag}`);
-			}
-		}
-
-		drawInspectTxt(mousePos(), lines.join("\n"));
-
-	}
-
-	drawInspectTxt(vec2(0), `FPS: ${app.fps()}`);
-
 }
 
 function makeCollision(target: GameObj<any>, dis: Vec2): Collision {
@@ -1479,13 +1301,13 @@ function area(opt: AreaCompOpt = {}): AreaComp {
 		},
 
 		isClicked(): boolean {
-			return app.mouseClicked() && this.isHovering();
+			return app.isMouseClicked() && this.isHovering();
 		},
 
 		isHovering() {
 			const mpos = this.fixed ? mousePos() : mouseWorldPos();
 			if (app.isTouch) {
-				return app.mouseDown() && this.hasPoint(mpos);
+				return app.isMouseDown() && this.hasPoint(mpos);
 			} else {
 				return this.hasPoint(mpos);
 			}
@@ -2341,9 +2163,7 @@ const debug: Debug = {
 	objCount(): number {
 		return game.objs.size;
 	},
-	stepFrame() {
-		gameFrame(true);
-	},
+	stepFrame: updateFrame,
 	drawCalls: gfx.drawCalls,
 	clearLog: logger.clear,
 	log: (msg) => logger.info(`[${app.time().toFixed(2)}] ${msg}`),
@@ -2379,7 +2199,7 @@ function go(id: SceneID, ...args) {
 		throw new Error(`scene not found: ${id}`);
 	}
 
-	game.on("next", () => {
+	game.on("nextFrameStart", () => {
 
 		game.events = {};
 
@@ -2751,7 +2571,7 @@ const ctx: KaboomCtx = {
 	// input
 	onKeyDown,
 	onKeyPress,
-	onKeyPressRep,
+	onKeyPressRepeat,
 	onKeyRelease,
 	onMouseDown,
 	onMouseClick,
@@ -2763,7 +2583,7 @@ const ctx: KaboomCtx = {
 	onTouchEnd,
 	keyDown: onKeyDown,
 	keyPress: onKeyPress,
-	keyPressRep: onKeyPressRep,
+	keyPressRep: onKeyPressRepeat,
 	keyRelease: onKeyRelease,
 	mouseDown: onMouseDown,
 	mouseClick: onMouseClick,
@@ -2776,22 +2596,22 @@ const ctx: KaboomCtx = {
 	mousePos,
 	mouseWorldPos,
 	mouseDeltaPos: app.mouseDeltaPos,
-	isKeyDown: app.keyDown,
-	isKeyPressed: app.keyPressed,
-	isKeyPressedRep: app.keyPressedRep,
-	isKeyReleased: app.keyReleased,
-	isMouseDown: app.mouseDown,
-	isMouseClicked: app.mouseClicked,
-	isMouseReleased: app.mouseReleased,
-	isMouseMoved: app.mouseMoved,
-	keyIsDown: app.keyDown,
-	keyIsPressed: app.keyPressed,
-	keyIsPressedRep: app.keyPressedRep,
-	keyIsReleased: app.keyReleased,
-	mouseIsDown: app.mouseDown,
-	mouseIsClicked: app.mouseClicked,
-	mouseIsReleased: app.mouseReleased,
-	mouseIsMoved: app.mouseMoved,
+	isKeyDown: app.isKeyDown,
+	isKeyPressed: app.isKeyPressed,
+	isKeyPressedRepeat: app.isKeyPressedRepeat,
+	isKeyReleased: app.isKeyReleased,
+	isMouseDown: app.isMouseDown,
+	isMouseClicked: app.isMouseClicked,
+	isMouseReleased: app.isMouseReleased,
+	isMouseMoved: app.isMouseMoved,
+	keyIsDown: app.isKeyDown,
+	keyIsPressed: app.isKeyPressed,
+	keyIsPressedRep: app.isKeyPressedRepeat,
+	keyIsReleased: app.isKeyReleased,
+	mouseIsDown: app.isMouseDown,
+	mouseIsClicked: app.isMouseClicked,
+	mouseIsReleased: app.isMouseReleased,
+	mouseIsMoved: app.isMouseMoved,
 	// timer
 	loop,
 	wait,
@@ -2893,56 +2713,242 @@ function frames() {
 	return numFrames;
 }
 
-app.run(() => {
+function updateFrame() {
 
-	numFrames++;
-	gfx.frameStart();
+	game.trigger("nextFrameStart");
+	delete game.events["nextFrameStart"];
 
-	if (!game.loaded) {
+	// update timers
+	game.timers.forEach((t, id) => {
+		t.time -= dt();
+		if (t.time <= 0) {
+			// TODO: some timer action causes crash on FF when dt is really high, not sure why
+			t.action();
+			game.timers.delete(id);
+		}
+	});
 
-		// if assets are not fully loaded, draw a progress bar
-		const progress = assets.loadProgress();
+	// update every obj
+	revery((obj) => {
+		if (!obj.paused) {
+			obj.trigger("update", obj);
+		}
+	});
 
-		if (progress === 1) {
-			game.loaded = true;
-			game.trigger("load");
-		} else {
+}
 
-			const w = width() / 2;
-			const h = 24 / gfx.scale();
-			const pos = vec2(width() / 2, height() / 2).sub(vec2(w / 2, h / 2));
+function drawFrame() {
 
-			gfx.drawRect({
-				pos: vec2(0),
-				width: width(),
-				height: height(),
-				color: rgb(0, 0, 0),
-			});
+	// calculate camera matrix
+	const size = vec2(width(), height());
+	const cam = game.cam;
+	const shake = dir(rand(0, 360)).scale(cam.shake);
 
-			gfx.drawRect({
-				pos: pos,
-				width: w,
-				height: h,
-				fill: false,
-				outline: {
-					width: 4 / gfx.scale(),
-				},
-			});
+	cam.shake = lerp(cam.shake, 0, 5 * dt());
+	game.camMatrix = mat4()
+		.translate(size.scale(0.5))
+		.scale(cam.scale)
+		.rotateZ(cam.angle)
+		.translate(size.scale(-0.5))
+		.translate(cam.pos.scale(-1).add(size.scale(0.5)).add(shake))
+		;
 
-			gfx.drawRect({
-				pos: pos,
-				width: w * progress,
-				height: h,
-			});
+	// draw every obj
+	every((obj) => {
+
+		if (!obj.hidden) {
+
+			gfx.pushTransform();
+
+			if (!obj.fixed) {
+				gfx.applyMatrix(game.camMatrix);
+			}
+
+			obj.trigger("draw");
+			gfx.popTransform();
 
 		}
 
+	});
+
+}
+
+function drawInspect() {
+
+	let inspecting = null;
+	const font = assets.fonts[DBG_FONT];
+	const lcolor = rgb(gopt.inspectColor ?? [0, 0, 255]);
+
+	function drawInspectTxt(pos, txt) {
+
+		const s = gfx.scale();
+		const pad = vec2(6).scale(1 / s);
+
+		const ftxt = gfx.fmtText({
+			text: txt,
+			font: font,
+			size: 16 / s,
+			pos: pos.add(vec2(pad.x, pad.y)),
+			color: rgb(0, 0, 0),
+		});
+
+		const bw = ftxt.width + pad.x * 2;
+		const bh = ftxt.height + pad.x * 2;
+
+		gfx.pushTransform();
+
+		if (pos.x + bw >= width()) {
+			gfx.pushTranslate(vec2(-bw, 0));
+		}
+
+		if (pos.y + bh >= height()) {
+			gfx.pushTranslate(vec2(0, -bh));
+		}
+
+		gfx.drawRect({
+			pos: pos,
+			width: bw,
+			height: bh,
+			color: rgb(255, 255, 255),
+			outline: {
+				width: 2 / s,
+				color: rgb(0, 0, 0),
+			},
+		});
+
+		gfx.drawFmtText(ftxt);
+		gfx.popTransform();
+
+	}
+
+	// draw area outline
+	every((obj) => {
+
+		if (!obj.area) {
+			return;
+		}
+
+		if (obj.hidden) {
+			return;
+		}
+
+		const scale = gfx.scale() * (obj.fixed ? 1: (game.cam.scale.x + game.cam.scale.y) / 2);
+
+		if (!obj.fixed) {
+			gfx.pushTransform();
+			gfx.applyMatrix(game.camMatrix);
+		}
+
+		if (!inspecting) {
+			if (obj.isHovering()) {
+				inspecting = obj;
+			}
+		}
+
+		const lwidth = (inspecting === obj ? 8 : 4) / scale;
+		const a = obj.worldArea();
+		const w = a.p2.x - a.p1.x;
+		const h = a.p2.y - a.p1.y;
+
+		gfx.drawRect({
+			pos: a.p1,
+			width: w,
+			height: h,
+			outline: {
+				width: lwidth,
+				color: lcolor,
+			},
+			fill: false,
+		});
+
+		if (!obj.fixed) {
+			gfx.popTransform();
+		}
+
+	});
+
+	if (inspecting) {
+
+		const lines = [];
+		const data = inspecting.inspect();
+
+		for (const tag in data) {
+			if (data[tag]) {
+				lines.push(`${tag}: ${data[tag]}`);
+			} else {
+				lines.push(`${tag}`);
+			}
+		}
+
+		drawInspectTxt(mousePos(), lines.join("\n"));
+
+	}
+
+	drawInspectTxt(vec2(0), `FPS: ${app.fps()}`);
+
+}
+
+function drawLoadScreen() {
+
+	// if assets are not fully loaded, draw a progress bar
+	const progress = assets.loadProgress();
+
+	if (progress === 1) {
+		game.loaded = true;
+		game.trigger("load");
+	} else {
+
+		const w = width() / 2;
+		const h = 24 / gfx.scale();
+		const pos = vec2(width() / 2, height() / 2).sub(vec2(w / 2, h / 2));
+
+		gfx.drawRect({
+			pos: vec2(0),
+			width: width(),
+			height: height(),
+			color: rgb(0, 0, 0),
+		});
+
+		gfx.drawRect({
+			pos: pos,
+			width: w,
+			height: h,
+			fill: false,
+			outline: {
+				width: 4 / gfx.scale(),
+			},
+		});
+
+		gfx.drawRect({
+			pos: pos,
+			width: w * progress,
+			height: h,
+		});
+
+	}
+
+}
+
+app.run(() => {
+
+	numFrames++;
+
+	if (!game.loaded) {
+		gfx.frameStart();
+		drawLoadScreen();
+		gfx.frameEnd();
 	} else {
 
 		// TODO: this gives the latest mousePos in input handlers but uses cam matrix from last frame
 		game.camMousePos = game.camMatrix.invert().multVec2(app.mousePos());
 		game.trigger("input");
-		gameFrame();
+
+		if (!debug.paused) {
+			updateFrame();
+		}
+
+		gfx.frameStart();
+		drawFrame();
 
 		if (debug.inspect) {
 			drawInspect();
@@ -2961,9 +2967,9 @@ app.run(() => {
 			});
 		}
 
-	}
+		gfx.frameEnd();
 
-	gfx.frameEnd();
+	}
 
 });
 
