@@ -1,4 +1,4 @@
-// kaboom as pure rendering lib (no component / game obj etc.)
+// Kaboom as pure rendering lib (no component / game obj etc.)
 
 kaboom();
 loadSprite("bean", "sprites/bean.png");
@@ -15,14 +15,14 @@ const outline = {
 	color: rgb(0, 0, 0),
 };
 
-// this'll run every frame
+// onDraw() is similar to onUpdate(), it runs every frame, but after all update events.
 onDraw(() => {
 
 	const mx = (width() - px * 2) / 2;
 	const my = (height() - py * 2) / 1;
 	const p = (x, y) => vec2(x, y).scale(mx, my).add(px, py);
 
-	// when "space" key is down, rotate the whole canvas from the center
+	// When "space" key is down, rotate the whole canvas from the center
 	if (isKeyDown("space")) {
 		pushTransform();
 		pushTranslate(width() / 2, height() / 2);
@@ -102,7 +102,7 @@ onDraw(() => {
 
 });
 
-// this'll also run every frame, but before all renders
+// It's a common practice to put all input handling and state updates before rendering.
 onUpdate(() => {
 
 	trail.push(mousePos());
@@ -111,11 +111,11 @@ onUpdate(() => {
 		trail.shift();
 	}
 
-	if (mouseIsClicked()) {
+	if (isMouseClicked()) {
 		draw.push([]);
 	}
 
-	if (mouseIsDown() && mouseIsMoved()) {
+	if (isMouseDown() && isMouseMoved()) {
 		draw[draw.length - 1].push(mousePos());
 	}
 
