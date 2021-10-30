@@ -53,25 +53,25 @@ scene("game", () => {
 	]);
 
 	// make the layer move by mouse
-	player.action(() => {
+	player.onUpdate(() => {
 		player.pos = mousePos();
 	});
 
 	// game over if player eats a fruit
-	player.collides("fruit", (fruit) => {
+	player.onCollide("fruit", (fruit) => {
 		go("lose", score);
 		play("hit");
 	});
 
 	// move the food every frame, destroy it if far outside of screen
-	action("food", (food) => {
+	onUpdate("food", (food) => {
 		food.move(-food.speed, 0);
 		if (food.pos.x < -120) {
 			destroy(food);
 		}
 	});
 
-	action("bomb", (bomb) => {
+	onUpdate("bomb", (bomb) => {
 		if (bomb.pos.x <= 0) {
 			go("lose", score);
 			play("hit");
@@ -88,7 +88,7 @@ scene("game", () => {
 	]);
 
 	// increment score if player eats a bomb
-	player.collides("bomb", (bomb) => {
+	player.onCollide("bomb", (bomb) => {
 		addKaboom(player.pos);
 		score += 1;
 		destroy(bomb);
@@ -143,8 +143,8 @@ scene("lose", (score) => {
 	]);
 
 	// go back to game with space is pressed
-	keyPress("space", () => go("start"));
-	mouseClick(() => go("start"));
+	onKeyPress("space", () => go("start"));
+	onMouseClick(() => go("start"));
 
 });
 

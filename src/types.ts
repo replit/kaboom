@@ -17,16 +17,16 @@
  *
  * // all kaboom functions are imported to global automatically
  * add();
- * action();
- * keyPress();
+ * onUpdate();
+ * onKeyPress();
  * vec2();
  *
  * // can also prevent kaboom from importing all functions to global and use a context handle
  * const k = kaboom({ global: false });
  *
  * k.add(...);
- * k.action(...);
- * k.keyPress(...);
+ * k.onUpdate(...);
+ * k.onKeyPress(...);
  * k.vec2(...);
  * ```
  */
@@ -35,7 +35,7 @@ declare function kaboom(options?: KaboomOpt): KaboomCtx;
 /**
  * Context handle that contains every kaboom function.
  */
-interface KaboomCtx {
+export interface KaboomCtx {
 	/**
 	 * Create and add a game obj to the scene, from a list of components or tags. The added and returned game obj will contain all methods from each component.
 	 *
@@ -76,17 +76,17 @@ interface KaboomCtx {
 	 *
 	 * // run something every frame
 	 * // player will constantly move towards player.dir, at player.speed per second
-	 * player.action(() => {
+	 * player.onUpdate(() => {
 	 *     player.move(player.dir.scale(player.speed));
 	 * });
 	 *
-	 * // .collides is provided by area()
-	 * player.collides("tree", () => {
+	 * // .onCollide is provided by area()
+	 * player.onCollide("tree", () => {
 	 *     destroy(player);
 	 * });
 	 *
 	 * // run this for all game objs with tag "friendly"
-	 * action("friendly", (friend) => {
+	 * onUpdate("friendly", (friend) => {
 	 *     // .hurt is provided by health()
 	 *     friend.hurt();
 	 * });
@@ -143,7 +143,7 @@ interface KaboomCtx {
 	 * @example
 	 * ```js
 	 * // every time froggy collides with anything with tag "fruit", remove it
-	 * froggy.collides("fruit", (fruit) => {
+	 * froggy.onCollide("fruit", (fruit) => {
 	 *     destroy(fruit);
 	 * });
 	 * ```
@@ -155,7 +155,7 @@ interface KaboomCtx {
 	 * @example
 	 * ```js
 	 * // destroy all objects with tag "bomb" when you click one
-	 * clicks("bomb", () => {
+	 * onClick("bomb", () => {
 	 *     destroyAll("bomb");
 	 * });
 	 * ```
@@ -248,7 +248,7 @@ interface KaboomCtx {
 	 *     { value: 0 },
 	 * ]);
 	 *
-	 * player.collides("coin", () => {
+	 * player.onCollide("coin", () => {
 	 *     score.value += 1;
 	 *     score.text = "Score:" + score.value;
 	 * });
@@ -262,7 +262,6 @@ interface KaboomCtx {
 	 *         font: "sink", // there're 4 built-in fonts: "apl386", "apl386o", "sink", and "sinko"
 	 *     }),
 	 * ]);
-	 * ```
 	 * ```
 	 */
 	text(txt: string, options?: TextCompOpt): TextComp,
@@ -331,13 +330,13 @@ interface KaboomCtx {
 	 * ])
 	 *
 	 * // die if player collides with another game obj with tag "tree"
-	 * player.collides("tree", () => {
+	 * player.onCollide("tree", () => {
 	 *     destroy(player);
 	 *     go("lose");
 	 * });
 	 *
 	 * // check for collision manually every frame instead of registering an event
-	 * player.action(() => {
+	 * player.onUpdate(() => {
 	 *     if (player.isColliding(bomb)) {
 	 *         score += 1;
 	 *     }
@@ -387,8 +386,8 @@ interface KaboomCtx {
 	 *
 	 * // when froggy is grounded, press space to jump
 	 * // check out BodyComp for more methods
-	 * keyPress("space", () => {
-	 *     if (froggy.grounded()) {
+	 * onKeyPress("space", () => {
+	 *     if (froggy.isGrounded()) {
 	 *         froggy.jump();
 	 *     }
 	 * });
@@ -413,7 +412,7 @@ interface KaboomCtx {
 	 * ]);
 	 *
 	 * // only do collision checking when a block is close to player for performance
-	 * action("block", (b) => {
+	 * onUpdate("block", (b) => {
 	 *     b.solid = b.pos.dist(player.pos) <= 64;
 	 * });
 	 * ```
@@ -479,7 +478,7 @@ interface KaboomCtx {
 	 *
 	 * @example
 	 * ```js
-	 * player.collides("bomb", () => {
+	 * player.onCollide("bomb", () => {
 	 *     // spawn an explosion and switch scene, but don't destroy the explosion game obj on scene switch
 	 *     add([
 	 *         sprite("explosion", { anim: "burst", }),
@@ -500,12 +499,12 @@ interface KaboomCtx {
 	 *     health(3),
 	 * ]);
 	 *
-	 * player.collides("bad", (bad) => {
+	 * player.onCollide("bad", (bad) => {
 	 *     player.hurt(1);
 	 *     bad.hurt(1);
 	 * });
      *
-	 * player.collides("apple", () => {
+	 * player.onCollide("apple", () => {
 	 *     player.heal(1);
 	 * });
 	 *
@@ -535,6 +534,45 @@ interface KaboomCtx {
 	 */
 	lifespan(time: number, options?: LifespanCompOpt): LifespanComp,
 	/**
+	 * Finite state machine.
+	 *
+	 * @example
+	 * ```js
+	 * const enemy = add([
+	 *     pos(80, 100),
+	 *     sprite("robot"),
+	 *     state("idle", ["idle", "attack", "move"]),
+	 * ]);
+	 *
+	 * // this will run once when enters "attack" state
+	 * enemy.onStateEnter("attack", () => {
+	 *     enemy.play("attackAnim")
+	 *     checkHit(enemy, player)
+	 *     wait(1, () => {
+	 *         // any additional arguments will be passed into the onStateEnter() callback
+	 *         enemy.enterState("idle", rand(1, 3))
+	 *     })
+	 * })
+	 *
+	 * // this will run once when enters "idle" state
+	 * enemy.onStateEnter("idle", (time) => {
+	 *     enemy.play("attackAnim")
+	 *     wait(1, () => {
+	 *         enemy.enterState("move")
+	 *     })
+	 * })
+	 *
+	 * // this will run every frame when current state is "move"
+	 * enemy.onStateUpdate("move", () => {
+	 *     enemy.follow(player);
+	 *     if (enemy.pos.dist(player.pos) < 16) {
+	 *         enemy.enterState("attack")
+	 *     }
+	 * })
+	 * ```
+	 */
+	state(initialState: string, stateList?: string[]): StateComp,
+	/**
 	 * Register an event on all game objs with certain tag.
 	 *
 	 * @section Events
@@ -551,200 +589,268 @@ interface KaboomCtx {
 	 */
 	on(event: string, tag: Tag, cb: (obj: GameObj, ...args) => void): EventCanceller,
 	/**
-	 * Register "update" event (runs every frame) on all game objs with certain tag.
+	 * Registers an event that runs every frame for all game objs with certain tag. If tag is omitted it'll just run the callback every frame.
+	 *
+	 * @since v2000.1.0
 	 *
 	 * @example
 	 * ```js
 	 * // move every "tree" 120 pixels per second to the left, destroy it when it leaves screen
 	 * // there'll be nothing to run if there's no "tree" obj in the scene
-	 * action("tree", (tree) => {
+	 * onUpdate("tree", (tree) => {
 	 *     tree.move(-120, 0);
 	 *     if (tree.pos.x < 0) {
 	 *         destroy(tree);
 	 *     }
 	 * });
 	 *
-	 * // without tags it just runs it every frame
-	 * action(() => {
+	 * // without tags it just runs somethinge every frame
+	 * onUpdate(() => {
 	 *     debug.log("ohhi");
 	 * });
 	 * ```
 	 */
-	action(tag: Tag, cb: (obj: GameObj) => void): EventCanceller,
-	action(cb: () => void): EventCanceller,
+	onUpdate(tag: Tag, cb: (obj: GameObj) => void): EventCanceller,
+	onUpdate(cb: () => void): EventCanceller,
 	/**
-	 * Register "draw" event (runs every frame) on all game objs with certain tag. (This is the same as `action()`, but all draw events are run after updates)
+	 * Registers an event that runs every frame for all game objs with certain tag (this is the same as onUpdate but all draw events are run after update events). If tag is omitted it'll just run the callback every frame.
+	 *
+	 * @since v2000.1.0
 	 */
-	render(tag: Tag, cb: (obj: GameObj) => void): EventCanceller,
-	render(cb: () => void): EventCanceller,
+	onDraw(tag: Tag, cb: (obj: GameObj) => void): EventCanceller,
+	onDraw(cb: () => void): EventCanceller,
 	/**
-	 * Register event when 2 game objs with certain tags collides. This function spins off an action() when called, please put it at root level and never inside another action().
+	 * Registers an event that runs when all assets finished loading.
+	 *
+	 * @since v2000.1.0
 	 *
 	 * @example
 	 * ```js
-	 * collides("sun", "earth", () => {
+	 * const froggy = add([
+	 *     sprite("froggy"),
+	 * ]);
+	 *
+	 * // certain assets related data are only available when the game finishes loading
+	 * onLoad(() => {
+	 *     debug.log(froggy.numFrames());
+	 * });
+	 * ```
+	 */
+	onLoad(action: () => void): void,
+	/**
+	 * Registers an event that runs when 2 game objs with certain tags collides.
+	 *
+	 * @since v2000.1.0
+	 *
+	 * @example
+	 * ```js
+	 * onCollide("sun", "earth", () => {
 	 *     addExplosion();
 	 * });
 	 * ```
 	 */
-	collides(
+	onCollide(
 		t1: Tag,
 		t2: Tag,
 		cb: (a: GameObj, b: GameObj, col?: Collision) => void,
 	): EventCanceller,
 	/**
-	 * Register event when game objs with certain tags are clicked. This function spins off an action() when called, please put it at root level and never inside another action().
-	 */
-	clicks(
-		tag: Tag,
-		cb: (a: GameObj) => void,
-	): EventCanceller,
-	/**
-	 * Register event when game objs with certain tags are hovered. This function spins off an action() when called, please put it at root level and never inside another action().
-	 */
-	hovers(
-		tag: Tag,
-		cb: (a: GameObj) => void,
-	): EventCanceller,
-	/**
-	 * Get current mouse position (without camera transform).
+	 * Registers an event that runs when game objs with certain tags are clicked. This function spins off an onUpdate() when called, please put it at root level and never inside another onUpdate().
 	 *
-	 * @section Input
+	 * @since v2000.1.0
 	 */
-	mousePos(): Vec2,
+	onClick(
+		tag: Tag,
+		cb: (a: GameObj) => void,
+	): EventCanceller,
 	/**
-	 * Get current mouse position (after camera transform)
+	 * Registers an event that runs when game objs with certain tags are hovered. This function spins off an onUpdate() when called, please put it at root level and never inside another onUpdate().
+	 *
+	 * @since v2000.1.0
 	 */
-	mouseWorldPos(): Vec2,
+	onHover(
+		tag: Tag,
+		cb: (a: GameObj) => void,
+	): EventCanceller,
 	/**
-	 * How much mouse moved last frame.
-	 */
-	mouseDeltaPos(): Vec2,
-	/**
-	 * Registers an event that runs every frame when a key is down.
+	 * Registers an event that runs every frame when a key is held down.
+	 *
+	 * @since v2000.1.0
 	 *
 	 * @example
 	 * ```js
 	 * // move left by SPEED pixels per frame every frame when "left" is being held down
-	 * keyDown("left", () => {
+	 * onKeyDown("left", () => {
 	 *     froggy.move(-SPEED, 0);
 	 * });
 	 * ```
 	 */
-	keyDown(k: Key | Key[], cb: () => void): EventCanceller,
+	onKeyDown(k: Key | Key[], cb: () => void): EventCanceller,
 	/**
 	 * Registers an event that runs when user presses certain key.
+	 *
+	 * @since v2000.1.0
 	 *
 	 * @example
 	 * ```js
 	 * // .jump() once when "space" is just being pressed
-	 * keyPress("space", () => {
+	 * onKeyPress("space", () => {
 	 *     froggy.jump();
 	 * });
 	 * ```
 	 */
-	keyPress(k: Key | Key[], cb: () => void): EventCanceller,
-	keyPress(cb: () => void): EventCanceller,
+	onKeyPress(k: Key | Key[], cb: () => void): EventCanceller,
+	onKeyPress(cb: () => void): EventCanceller,
 	/**
-	 * Registers an event that runs when user presses certain key (also fires repeatedly when they key is held).
+	 * Registers an event that runs when user presses certain key (also fires repeatedly when they key is being held down).
+	 *
+	 * @since v2000.1.0
 	 *
 	 * @example
 	 * ```js
 	 * // delete last character when "backspace" is being pressed and held
-	 * keyPressRep("backspace", () => {
+	 * onKeyPressRepeat("backspace", () => {
 	 *     input.text = input.text.substring(0, input.text.length - 1);
 	 * });
 	 * ```
 	 */
-	keyPressRep(k: Key | Key[], cb: () => void): EventCanceller,
-	keyPressRep(cb: () => void): EventCanceller,
+	onKeyPressRepeat(k: Key | Key[], cb: () => void): EventCanceller,
+	onKeyPressRepeat(cb: () => void): EventCanceller,
 	/**
 	 * Registers an event that runs when user releases certain key.
+	 *
+	 * @since v2000.1.0
 	 */
-	keyRelease(k: Key | Key[], cb: () => void): EventCanceller,
-	keyRelease(cb: () => void): EventCanceller,
+	onKeyRelease(k: Key | Key[], cb: () => void): EventCanceller,
+	onKeyRelease(cb: () => void): EventCanceller,
 	/**
 	 * Registers an event that runs when user inputs text.
+	 *
+	 * @since v2000.1.0
 	 *
 	 * @example
 	 * ```js
 	 * // type into input
-	 * charInput((ch) => {
+	 * onChatInput((ch) => {
 	 *     input.text += ch;
 	 * });
 	 * ```
 	 */
-	charInput(cb: (ch: string) => void): EventCanceller,
+	onCharInput(cb: (ch: string) => void): EventCanceller,
 	/**
 	 * Registers an event that runs every frame when mouse button is down.
+	 *
+	 * @since v2000.1.0
 	 */
-	mouseDown(cb: (pos: Vec2) => void): EventCanceller,
+	onMouseDown(cb: (pos: Vec2) => void): EventCanceller,
 	/**
 	 * Registers an event that runs when user clicks mouse.
+	 *
+	 * @since v2000.1.0
 	 */
-	mouseClick(cb: (pos: Vec2) => void): EventCanceller,
+	onMouseClick(cb: (pos: Vec2) => void): EventCanceller,
 	/**
 	 * Registers an event that runs when user releases mouse.
+	 *
+	 * @since v2000.1.0
 	 */
-	mouseRelease(cb: (pos: Vec2) => void): EventCanceller,
+	onMouseRelease(cb: (pos: Vec2) => void): EventCanceller,
 	/**
 	 * Registers an event that runs whenever user move the mouse.
+	 *
+	 * @since v2000.1.0
 	 */
-	mouseMove(cb: (pos: Vec2) => void): EventCanceller,
+	onMouseMove(cb: (pos: Vec2) => void): EventCanceller,
 	/**
 	 * Registers an event that runs when a touch starts.
+	 *
+	 * @since v2000.1.0
 	 */
-	touchStart(cb: (id: TouchID, pos: Vec2) => void): EventCanceller,
+	onTouchStart(cb: (id: TouchID, pos: Vec2) => void): EventCanceller,
 	/**
 	 * Registers an event that runs whenever touch moves.
+	 *
+	 * @since v2000.1.0
 	 */
-	touchMove(cb: (id: TouchID, pos: Vec2) => void): EventCanceller,
+	onTouchMove(cb: (id: TouchID, pos: Vec2) => void): EventCanceller,
 	/**
 	 * Registers an event that runs when a touch ends.
-	 */
-	touchEnd(cb: (id: TouchID, pos: Vec2) => void): EventCanceller,
-	/**
-	 * If certain key is currently down.
 	 *
-	 * @example
-	 * ```js
-	 * // almost equivalent to the keyPress() example above
-	 * action(() => {
-	 *     if (keyIsDown("left")) {
-	 *         froggy.move(-SPEED, 0);
-	 *     }
-	 * });
-	 * ```
+	 * @since v2000.1.0
 	 */
-	keyIsDown(k: Key): boolean,
+	onTouchEnd(cb: (id: TouchID, pos: Vec2) => void): EventCanceller,
 	/**
-	 * If certain key is just pressed last frame.
+	 * @deprecated Use onUpdate() instead
 	 */
-	keyIsPressed(k?: Key): boolean,
+	action: KaboomCtx["onUpdate"],
 	/**
-	 * If certain key is just pressed last frame (accepts help down repeatedly).
+	 * @deprecated Use onDraw() instead
 	 */
-	keyIsPressedRep(k?: Key): boolean,
+	render: KaboomCtx["onDraw"],
 	/**
-	 * If certain key is just released last frame.
+	 * @deprecated Use onLoad() instead.
 	 */
-	keyIsReleased(k?: Key): boolean,
+	ready: KaboomCtx["onLoad"],
 	/**
-	 * If certain mouse is currently down.
+	 * @deprecated Use onCollide() instead
 	 */
-	mouseIsDown(): boolean,
+	collides: KaboomCtx["onCollide"],
 	/**
-	 * If mouse is just clicked last frame.
+	 * @deprecated Use onClick() instead
 	 */
-	mouseIsClicked(): boolean,
+	clicks: KaboomCtx["onClick"],
 	/**
-	 * If mouse is just released last frame.
+	 * @deprecated Use onHover() instead
 	 */
-	mouseIsReleased(): boolean,
+	hovers: KaboomCtx["onHover"],
 	/**
-	 * If mouse moved last frame.
+	 * @deprecated Use onKeyDown() instead.
 	 */
-	mouseIsMoved(): boolean,
+	keyDown: KaboomCtx["onKeyDown"],
+	/**
+	 * @deprecated Use onKeyPress() instead.
+	 */
+	keyPress: KaboomCtx["onKeyPress"],
+	/**
+	 * @deprecated Use onKeyPressRepeat() instead.
+	 */
+	keyPressRep: KaboomCtx["onKeyPressRepeat"],
+	/**
+	 * @deprecated Use onKeyPress() instead.
+	 */
+	keyRelease: KaboomCtx["onKeyRelease"],
+	/**
+	 * @deprecated Use onCharInput() instead.
+	 */
+	charInput: KaboomCtx["onCharInput"],
+	/**
+	 * @deprecated Use onMouseClick() instead.
+	 */
+	mouseClick: KaboomCtx["onMouseClick"],
+	/**
+	 * @deprecated Use onMouseRelease() instead.
+	 */
+	mouseRelease: KaboomCtx["onMouseRelease"],
+	/**
+	 * @deprecated Use onMouseDown() instead.
+	 */
+	mouseDown: KaboomCtx["onMouseDown"],
+	/**
+	 * @deprecated Use onMouseMove() instead.
+	 */
+	mouseMove: KaboomCtx["onMouseMove"],
+	/**
+	 * @deprecated Use onTouchStart() instead.
+	 */
+	touchStart: KaboomCtx["onTouchStart"],
+	/**
+	 * @deprecated Use onTouchMove() instead.
+	 */
+	touchMove: KaboomCtx["onTouchMove"],
+	/**
+	 * @deprecated Use onTouchEnd() instead.
+	 */
+	touchEnd: KaboomCtx["onTouchEnd"],
 	/**
 	 * Sets the root for all subsequent resource urls.
 	 *
@@ -955,7 +1061,7 @@ interface KaboomCtx {
 	 * @example
 	 * ```js
 	 * // rotate froggy 100 deg per second
-	 * froggy.action(() => {
+	 * froggy.onUpdate(() => {
 	 *     froggy.angle += 100 * dt();
 	 * });
 	 * ```
@@ -966,44 +1072,96 @@ interface KaboomCtx {
 	 */
 	time(): number,
 	/**
-	 * Take a screenshot and get the dataurl of the image.
-	 */
-	screenshot(): string,
-	/**
 	 * If the game canvas is currently focused.
+	 *
+	 * @since v2000.1.0
 	 */
-	focused(): boolean,
+	isFocused(): boolean,
 	/**
 	 * Focus on the game canvas.
 	 */
 	focus(): void,
 	/**
-	 * Run something when assets finished loading.
-	 *
-	 * @example
-	 * ```js
-	 * const froggy = add([
-	 *     // ...
-	 * ]);
-	 *
-	 * // certain assets related data are only available when the game finishes loading
-	 * ready(() => {
-	 *     debug.log(froggy.numFrames());
-	 * });
-	 * ```
-	 */
-	ready(cb: () => void): void,
-	/**
 	 * Is currently on a touch screen device.
 	 */
 	isTouch(): boolean,
+	/**
+	 * Get current mouse position (without camera transform).
+	 */
+	mousePos(): Vec2,
+	/**
+	 * Get current mouse position (after camera transform)
+	 */
+	mouseWorldPos(): Vec2,
+	/**
+	 * How much mouse moved last frame.
+	 */
+	mouseDeltaPos(): Vec2,
+	/**
+	 * If certain key is currently down.
+	 *
+	 * @since v2000.1.0
+	 *
+	 * @example
+	 * ```js
+	 * // equivalent to the calling froggy.move() in an onKeyDown("left")
+	 * onUpdate(() => {
+	 *     if (isKeyDown("left")) {
+	 *         froggy.move(-SPEED, 0);
+	 *     }
+	 * });
+	 * ```
+	 */
+	isKeyDown(k: Key): boolean,
+	/**
+	 * If certain key is just pressed last frame.
+	 *
+	 * @since v2000.1.0
+	 */
+	isKeyPressed(k?: Key): boolean,
+	/**
+	 * If certain key is just pressed last frame (also fires repeatedly when the key is being held down).
+	 *
+	 * @since v2000.1.0
+	 */
+	isKeyPressedRepeat(k?: Key): boolean,
+	/**
+	 * If certain key is just released last frame.
+	 *
+	 * @since v2000.1.0
+	 */
+	isKeyReleased(k?: Key): boolean,
+	/**
+	 * If certain mouse is currently down.
+	 *
+	 * @since v2000.1.0
+	 */
+	isMouseDown(): boolean,
+	/**
+	 * If mouse is just clicked last frame.
+	 *
+	 * @since v2000.1.0
+	 */
+	isMouseClicked(): boolean,
+	/**
+	 * If mouse is just released last frame.
+	 *
+	 * @since v2000.1.0
+	 */
+	isMouseReleased(): boolean,
+	/**
+	 * If mouse moved last frame.
+	 *
+	 * @since v2000.1.0
+	 */
+	isMouseMoved(): boolean,
 	/**
 	 * Camera shake.
 	 *
 	 * @example
 	 * ```js
 	 * // shake intensively when froggy collides with a "bomb"
-	 * froggy.collides("bomb", () => {
+	 * froggy.onCollide("bomb", () => {
 	 *     shake(120);
 	 * });
 	 * ```
@@ -1015,20 +1173,20 @@ interface KaboomCtx {
 	 * @example
 	 * ```js
 	 * // camera follows player
-	 * player.action(() => {
+	 * player.onUpdate(() => {
 	 *     camPos(player.pos);
 	 * });
 	 * ```
 	 */
-	camPos(pos: Vec2): Vec2,
+	camPos(pos?: Vec2): Vec2,
 	/**
 	 * Get / set camera scale.
 	 */
-	camScale(scale: Vec2): Vec2,
+	camScale(scale?: Vec2): Vec2,
 	/**
 	 * Get / set camera rotation.
 	 */
-	camRot(angle: number): number,
+	camRot(angle?: number): number,
 	/**
 	 * Transform a point from world position to screen position.
 	 */
@@ -1093,7 +1251,7 @@ interface KaboomCtx {
 	 *
 	 * @example
 	 * ```js
-	 * hovers("clickable", (c) => {
+	 * onHover("clickable", (c) => {
 	 *     cursor("pointer");
 	 * });
 	 * ```
@@ -1118,7 +1276,7 @@ interface KaboomCtx {
 	 * @example
 	 * ```js
 	 * // toggle fullscreen mode on "f"
-	 * keyPress("f", (c) => {
+	 * onKeyPress("f", (c) => {
 	 *     fullscreen(!isFullscreen());
 	 * });
 	 * ```
@@ -1128,6 +1286,42 @@ interface KaboomCtx {
 	 * If currently in fullscreen mode.
 	 */
 	isFullscreen(): boolean,
+	/**
+	 * @deprecated Use isKeyDown() instead.
+	 */
+	keyIsDown: KaboomCtx["isKeyDown"],
+	/**
+	 * @deprecated Use isKeyPressed() instead.
+	 */
+	keyIsPressed: KaboomCtx["isKeyPressed"],
+	/**
+	 * @deprecated Use isKeyPressedRepeat() instead.
+	 */
+	keyIsPressedRep: KaboomCtx["isKeyPressedRepeat"],
+	/**
+	 * @deprecated Use isKeyReleased() instead.
+	 */
+	keyIsReleased: KaboomCtx["isKeyReleased"],
+	/**
+	 * @deprecated Use isMouseDown() instead.
+	 */
+	mouseIsDown: KaboomCtx["isMouseDown"],
+	/**
+	 * @deprecated Use isMouseClicked() instead.
+	 */
+	mouseIsClicked: KaboomCtx["isMouseClicked"],
+	/**
+	 * @deprecated Use isMouseReleased() instead.
+	 */
+	mouseIsReleased: KaboomCtx["isMouseReleased"],
+	/**
+	 * @deprecated Use isMouseMoved() instead.
+	 */
+	mouseIsMoved: KaboomCtx["isMouseMoved"],
+	/**
+	 * @deprecated Use isFocused() instead.
+	 */
+	focused(): boolean,
 	/**
 	 * Play a piece of audio, returns a handle to control.
 	 *
@@ -1237,6 +1431,8 @@ interface KaboomCtx {
 	rgb(r: number, g: number, b: number): Color,
 	/**
 	 * Convert HSL color (all values in [0.0 - 1.0] range) to RGB color.
+	 *
+	 * @since v2000.1.0
 	 */
 	hsl2rgb(hue: number, saturation: number, lightness: number): Color,
 	/**
@@ -1259,7 +1455,7 @@ interface KaboomCtx {
 	 * @example
 	 * ```js
 	 * // every frame all objs with tag "unlucky" have 50% chance die
-	 * action("unlucky", (o) => {
+	 * onUpdate("unlucky", (o) => {
 	 *     if (chance(0.5)) {
 	 *         destroy(o);
 	 *     }
@@ -1297,7 +1493,7 @@ interface KaboomCtx {
 	 * @example
 	 * ```js
 	 * // move towards 80 deg direction at SPEED
-	 * player.action(() => {
+	 * player.onUpdate(() => {
 	 *     player.move(dir(80).scale(SPEED));
 	 * });
 	 * ```
@@ -1309,7 +1505,7 @@ interface KaboomCtx {
 	 * @example
 	 * ```js
 	 * // bounce color between 2 values as time goes on
-	 * action("colorful", (c) => {
+	 * onUpdate("colorful", (c) => {
 	 *     c.color.r = wave(0, 255, time());
 	 *     c.color.g = wave(0, 255, time() + 1);
 	 *     c.color.b = wave(0, 255, time() + 2);
@@ -1410,12 +1606,12 @@ interface KaboomCtx {
 	/**
 	 * Draw a sprite.
 	 *
-	 * @section Render
+	 * @section Draw
 	 *
 	 * @example
 	 * ```js
-	 * // these functions need to be called in a per-frame function like render() or it'll only get drawn one frame and immediately cleared
-	 * render(() => {
+	 * // these functions need to be called in a per-frame function like onDraw() or it'll only get drawn one frame and immediately cleared
+	 * onDraw(() => {
 	 *     // check #DrawSpriteOpt type for details of all options
 	 *     drawSprite({
 	 *         sprite: "froggy",
@@ -1433,8 +1629,8 @@ interface KaboomCtx {
 	 *
 	 * @example
 	 * ```js
-	 * // these functions need to be called in a per-frame function like render() or it'll only get drawn one frame and immediately cleared
-	 * render(() => {
+	 * // these functions need to be called in a per-frame function like onDraw() or it'll only get drawn one frame and immediately cleared
+	 * onDraw(() => {
 	 *     drawText({
 	 *         sprite: "froggy",
 	 *         pos: vec2(100, 200),
@@ -1471,7 +1667,7 @@ interface KaboomCtx {
 	/**
 	 * Draw a convex polygon from a list of vertices.
 	 */
-	drawPolygon(options: DrawPolyOpt): void,
+	drawPolygon(options: DrawPolygonOpt): void,
 	/**
 	 * Draw a rectangle with UV data.
 	 */
@@ -1534,22 +1730,15 @@ interface KaboomCtx {
 	 */
 	plug<T>(plugin: KaboomPlugin<T>): void,
 	/**
-	 * Records a video of the game returns a handle
-	 * to control the recording and download it.
-	 * No support for audio recording currenlty
+	 * Take a screenshot and get the dataurl of the image.
 	 */
-	record(frameRate?: number): {
-		/** pauses the recording */
-		pause(): void;
-		/** resumes the recording */
-		resume(): void;
-		/**
-		 * stops the recording and downloads the file
-		 * trying to resume after downloading will lead
-		 * to an error
-		 */
-		download(filename?: string): void;
-	},
+	screenshot(): string,
+	/**
+	 * Start recording the canvas into a video, returns a handle with controls. If framerate is not specified, a new frame will be captured each time the canvas changes.
+	 *
+	 * @since v2000.1.0
+	 */
+	record(frameRate?: number): Recording,
 	/**
 	 * All chars in ASCII.
 	 */
@@ -1581,18 +1770,18 @@ interface KaboomCtx {
 	[custom: string]: any,
 }
 
-type Tag = string;
+export type Tag = string;
 
 // TODO: understand this
 type UnionToIntersection<U> = (U extends any ? (k: U) => void : never) extends ((k: infer I) => void) ? I : never
 type Defined<T> = T extends any ? Pick<T, { [K in keyof T]-?: T[K] extends undefined ? never : K }[keyof T]> : never;
 type Expand<T> = T extends infer U ? { [K in keyof U]: U[K] } : never;
-type MergeObj<T> = Expand<UnionToIntersection<Defined<T>>>;
-type MergeComps<T> = Omit<MergeObj<T>, keyof Comp>;
+export type MergeObj<T> = Expand<UnionToIntersection<Defined<T>>>;
+export type MergeComps<T> = Omit<MergeObj<T>, keyof Comp>;
 
-type CompList<T> = Array<T | Tag>;
+export type CompList<T> = Array<T | Tag>;
 
-type Key =
+export type Key =
 	| "f1" | "f2" | "f3" | "f4" | "f5" | "f6" | "f7" | "f8" | "f9" | "f10" | "f11" | "f12"
 	| "`" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9" | "0" | "-" | "="
 	| "q" | "w" | "e" | "r" | "t" | "y" | "u" | "i" | "o" | "p" | "[" | "]" | "\\"
@@ -1605,12 +1794,12 @@ type Key =
 /**
  * Inspect info for a character.
  */
-type GameObjInspect = Record<Tag, string | null>;
+export type GameObjInspect = Record<Tag, string | null>;
 
 /**
  * Kaboom configurations.
  */
-interface KaboomOpt {
+export interface KaboomOpt {
 	/**
 	 * Width of game.
 	 */
@@ -1685,12 +1874,12 @@ interface KaboomOpt {
 	burp?: boolean,
 }
 
-type KaboomPlugin<T> = (k: KaboomCtx) => T;
+export type KaboomPlugin<T> = (k: KaboomCtx) => T;
 
 /**
- * The basic unit of object in Kaboom. The player, a butterfly, a tree, or even a piece of text.
+ * Base interface of all game objects.
  */
-type GameObj<T = any> = {
+export interface GameObjRaw {
 	/**
 	 * Internal GameObj ID.
 	 */
@@ -1722,10 +1911,6 @@ type GameObj<T = any> = {
 	 */
 	unuse(comp: Tag): void;
 	/**
-	 * Run something every frame for this game obj (sugar for on("update")).
-	 */
-	action(cb: () => void): EventCanceller;
-	/**
 	 * Registers an event.
 	 */
 	on(ev: string, cb: () => void): EventCanceller;
@@ -1745,21 +1930,68 @@ type GameObj<T = any> = {
 	 * Gather debug info of all comps.
 	 */
 	inspect(): GameObjInspect;
-} & MergeComps<T>;
+	/**
+	 * Registers an event that runs every frame as long as the game obj exists.
+	 *
+	 * @since v2000.1.0
+	 */
+	onUpdate(cb: () => void): EventCanceller;
+	/**
+	 * Registers an event that runs every frame as long as the game obj exists (this is the same as `onUpdate()`, but all draw events are run after all update events).
+	 *
+	 * @since v2000.1.0
+	 */
+	onDraw(cb: () => void): EventCanceller;
+	/**
+	 * Registers an event that runs when the game obj is destroyed.
+	 *
+	 * @since v2000.1.0
+	 */
+	onDestroy(cb: () => void): EventCanceller;
+	/**
+	 * Registers an event that runs every frame as long as the game obj exists (alias to onUpdate).
+	 *
+	 * @deprecated Use onUpdate() instead.
+	 */
+	action: GameObjRaw["onUpdate"];
+}
 
-type SceneID = string;
-type SceneDef = (...args: any[]) => void;
-type TouchID = number;
+/**
+ * The basic unit of object in Kaboom. The player, a butterfly, a tree, or even a piece of text.
+ */
+export type GameObj<T = any> = GameObjRaw & MergeComps<T>;
+
+export type SceneID = string;
+export type SceneDef = (...args: any[]) => void;
+export type TouchID = number;
 
 /**
  * Cancel the event.
  */
-type EventCanceller = () => void;
+export type EventCanceller = () => void;
+
+/**
+ * Screen recording control handle.
+ */
+export interface Recording {
+	/**
+	 * Pause the recording.
+	 */
+	pause(): void,
+	/**
+	 * Resumes the recording.
+	 */
+	resume(): void,
+	/**
+	 * Stops the recording and downloads the file as mp4. Trying to resume later will lead to error.
+	 */
+	download(filename?: string): void,
+}
 
 /**
  * Frame-based animation configuration.
  */
-type SpriteAnim = number | {
+export type SpriteAnim = number | {
 	/**
 	 * The starting frame.
 	 */
@@ -1785,7 +2017,7 @@ type SpriteAnim = number | {
 /**
  * Sprite animation configuration when playing.
  */
-interface SpriteAnimPlayOpt {
+export interface SpriteAnimPlayOpt {
 	/**
 	 * If this anim should be played in loop.
 	 */
@@ -1807,13 +2039,13 @@ interface SpriteAnimPlayOpt {
 /**
  * A dict of name <-> animation.
  */
-type SpriteAnims = Record<string, SpriteAnim>
+export type SpriteAnims = Record<string, SpriteAnim>
 
 // TODO: support frameWidth and frameHeight as alternative to slice
 /**
  * Sprite loading configuration.
  */
-interface SpriteLoadOpt {
+export interface SpriteLoadOpt {
 	sliceX?: number,
 	sliceY?: number,
 	anims?: SpriteAnims,
@@ -1821,12 +2053,12 @@ interface SpriteLoadOpt {
 	wrap?: TexWrap,
 }
 
-type SpriteAtlasData = Record<string, SpriteAtlasEntry>;
+export type SpriteAtlasData = Record<string, SpriteAtlasEntry>;
 
 /**
  * A sprite in a sprite atlas.
  */
-interface SpriteAtlasEntry {
+export interface SpriteAtlasEntry {
 	/**
 	 * X position of the top left corner.
 	 */
@@ -1857,9 +2089,9 @@ interface SpriteAtlasEntry {
 	anims?: SpriteAnims,
 }
 
-type SpriteLoadSrc = string | GfxTexData;
+export type SpriteLoadSrc = string | GfxTexData;
 
-interface SpriteData {
+export interface SpriteData {
 	tex: GfxTexture,
 	frames: Quad[],
 	anims: SpriteAnims,
@@ -1867,24 +2099,24 @@ interface SpriteData {
 	wrap?: TexWrap,
 }
 
-interface FontLoadOpt {
+export interface FontLoadOpt {
 	chars?: string,
 	filter?: TexFilter,
 	wrap?: TexWrap,
 }
 
-interface SoundData {
+export interface SoundData {
 	buf: AudioBuffer,
 }
 
-type FontData = GfxFont;
-type ShaderData = GfxShader;
+export type FontData = GfxFont;
+export type ShaderData = GfxShader;
 
 // TODO: enable setting on load, make part of SoundData
 /**
  * Audio play configurations.
  */
-interface AudioPlayOpt {
+export interface AudioPlayOpt {
 	/**
 	 * If audio should be played again from start when its ended.
 	 */
@@ -1915,7 +2147,7 @@ interface AudioPlayOpt {
 	seek?: number,
 }
 
-interface AudioPlay {
+export interface AudioPlay {
 	/**
 	 * Play the sound. Optionally pass in the time where it starts.
 	 */
@@ -1930,12 +2162,16 @@ interface AudioPlay {
 	pause(): void,
 	/**
 	 * If the sound is paused.
+	 *
+	 * @since v2000.1.0
 	 */
-	paused(): boolean,
+	isPaused(): boolean,
 	/**
 	 * If the sound is stopped or ended.
+	 *
+	 * @since v2000.1.0
 	 */
-	stopped(): boolean,
+	isStopped(): boolean,
 	/**
 	 * Change the playback speed of the sound. 1.0 means normal playback speed, 2.0 means twice as fast.
 	 */
@@ -1973,10 +2209,18 @@ interface AudioPlay {
 	 * Set audio to not play in loop.
 	 */
 	unloop(): void,
+	/**
+	 * @deprecated Use isPaused() instead.
+	 */
+	paused(): boolean,
+	/**
+	 * @deprecated Use isStopped() instead.
+	 */
+	stopped(): boolean,
 }
 
 // TODO: hide
-interface GfxShader {
+export interface GfxShader {
 	bind(): void,
 	unbind(): void,
 	bindAttribs(): void,
@@ -1984,21 +2228,21 @@ interface GfxShader {
 }
 
 // TODO: hide
-interface GfxTexture {
+export interface GfxTexture {
 	width: number,
 	height: number,
 	bind(): void,
 	unbind(): void,
 }
 
-type GfxTexData =
+export type GfxTexData =
 	HTMLImageElement
 	| HTMLCanvasElement
 	| ImageData
 	| ImageBitmap
 	;
 
-interface GfxFont {
+export interface GfxFont {
 	tex: GfxTexture,
 	map: Record<string, Vec2>,
 	/**
@@ -2008,7 +2252,7 @@ interface GfxFont {
 	qh: number,
 }
 
-interface Vertex {
+export interface Vertex {
 	pos: Vec3,
 	uv: Vec2,
 	color: Color,
@@ -2018,13 +2262,13 @@ interface Vertex {
 /**
  * Texture scaling filter. "nearest" is mainly for sharp pixelated scaling, "linear" means linear interpolation.
  */
-type TexFilter = "nearest" | "linear";
-type TexWrap = "repeat" | "clampToEdge";
+export type TexFilter = "nearest" | "linear";
+export type TexWrap = "repeat" | "clampToEdge";
 
 /**
  * Common render properties.
  */
-interface RenderProps {
+export interface RenderProps {
 	pos?: Vec2,
 	scale?: Vec2 | number,
 	angle?: number,
@@ -2037,7 +2281,7 @@ interface RenderProps {
 /**
  * How the sprite should look like.
  */
-type DrawSpriteOpt = RenderProps & {
+export type DrawSpriteOpt = RenderProps & {
 	/**
 	 * The sprite name in the asset manager, or the raw sprite data.
 	 */
@@ -2076,7 +2320,7 @@ type DrawSpriteOpt = RenderProps & {
 	origin?: Origin | Vec2,
 }
 
-type DrawUVQuadOpt = RenderProps & {
+export type DrawUVQuadOpt = RenderProps & {
 	/**
 	 * Width of the UV quad.
 	 */
@@ -2110,7 +2354,7 @@ type DrawUVQuadOpt = RenderProps & {
 /**
  * How the rectangle should look like.
  */
-type DrawRectOpt = RenderProps & {
+export type DrawRectOpt = RenderProps & {
 	/**
 	 * Width of the rectangle.
 	 */
@@ -2140,7 +2384,7 @@ type DrawRectOpt = RenderProps & {
 /**
  * How the line should look like.
  */
-type DrawLineOpt = Omit<RenderProps, "angle" | "scale"> & {
+export type DrawLineOpt = Omit<RenderProps, "angle" | "scale"> & {
 	/**
 	 * Starting point of the line.
 	 */
@@ -2158,7 +2402,7 @@ type DrawLineOpt = Omit<RenderProps, "angle" | "scale"> & {
 /**
  * How the lines should look like.
  */
-type DrawLinesOpt = Omit<RenderProps, "angle" | "scale"> & {
+export type DrawLinesOpt = Omit<RenderProps, "angle" | "scale"> & {
 	/**
 	 * The points that should be connected with a line.
 	 */
@@ -2176,7 +2420,7 @@ type DrawLinesOpt = Omit<RenderProps, "angle" | "scale"> & {
 /**
  * How the triangle should look like.
  */
-type DrawTriangleOpt = RenderProps & {
+export type DrawTriangleOpt = RenderProps & {
 	/**
 	 * First point of triangle.
 	 */
@@ -2206,7 +2450,7 @@ type DrawTriangleOpt = RenderProps & {
 /**
  * How the circle should look like.
  */
-type DrawCircleOpt = Omit<RenderProps, "angle"> & {
+export type DrawCircleOpt = Omit<RenderProps, "angle"> & {
 	/**
 	 * Radius of the circle.
 	 */
@@ -2240,7 +2484,7 @@ type DrawCircleOpt = Omit<RenderProps, "angle"> & {
 /**
  * How the ellipse should look like.
  */
-type DrawEllipseOpt = RenderProps & {
+export type DrawEllipseOpt = RenderProps & {
 	/**
 	 * The horizontal radius.
 	 */
@@ -2278,7 +2522,7 @@ type DrawEllipseOpt = RenderProps & {
 /**
  * How the polygon should look like.
  */
-type DrawPolyOpt = RenderProps & {
+export type DrawPolygonOpt = RenderProps & {
 	/**
 	 * The points that make up the polygon
 	 */
@@ -2305,7 +2549,7 @@ type DrawPolyOpt = RenderProps & {
 	radius?: number,
 }
 
-interface Outline {
+export interface Outline {
 	/**
 	 * The width, or thinkness of the line.
 	 */
@@ -2319,7 +2563,7 @@ interface Outline {
 /**
  * How the text should look like.
  */
-type DrawTextOpt = RenderProps & {
+export type DrawTextOpt = RenderProps & {
 	/**
 	 * The text to render.
 	 */
@@ -2342,6 +2586,8 @@ type DrawTextOpt = RenderProps & {
 	origin?: Origin | Vec2,
 	/**
 	 * Transform the pos, scale, rotation or color for each character based on the index or char.
+	 *
+	 * @since v2000.1.0
 	 */
 	transform?: (idx: number, ch: string) => CharTransform,
 }
@@ -2349,7 +2595,7 @@ type DrawTextOpt = RenderProps & {
 /**
  * One formated character.
  */
-interface FormattedChar {
+export interface FormattedChar {
 	tex: GfxTexture,
 	quad: Quad,
 	ch: string,
@@ -2361,7 +2607,7 @@ interface FormattedChar {
 	origin: string,
 }
 
-interface CharTransform {
+export interface CharTransform {
 	pos?: Vec2,
 	scale?: Vec2 | number,
 	angle?: number,
@@ -2372,13 +2618,13 @@ interface CharTransform {
 /**
  * Formatted text with info on how and where to render each character.
  */
-interface FormattedText {
+export interface FormattedText {
 	width: number,
 	height: number,
 	chars: FormattedChar[],
 }
 
-type Cursor =
+export type Cursor =
 	string
 	| "auto"
 	| "default"
@@ -2418,7 +2664,7 @@ type Cursor =
 	| "zoom-out"
 	;
 
-type Origin =
+export type Origin =
 	"topleft"
 	| "top"
 	| "topright"
@@ -2430,7 +2676,7 @@ type Origin =
 	| "botright"
 	;
 
-interface Vec2 {
+export interface Vec2 {
 	x: number,
 	y: number,
 	clone(): Vec2,
@@ -2483,21 +2729,21 @@ interface Vec2 {
 	str(): string,
 }
 
-interface Vec3 {
+export interface Vec3 {
 	x: number,
 	y: number,
 	z: number,
 	xy(): Vec2,
 }
 
-interface Vec4 {
+export interface Vec4 {
 	x: number,
 	y: number,
 	z: number,
 	w: number,
 }
 
-interface Mat4 {
+export interface Mat4 {
 	m: number[],
 	clone(): Mat4,
 	mult(m: Mat4): Mat4,
@@ -2515,7 +2761,7 @@ interface Mat4 {
 /**
  * 0-255 RGBA color.
  */
-interface Color {
+export interface Color {
 	/**
 	 * Red (0-255).
 	 */
@@ -2543,7 +2789,7 @@ interface Color {
 	str(): string,
 }
 
-interface Quad {
+export interface Quad {
 	x: number,
 	y: number,
 	w: number,
@@ -2553,41 +2799,38 @@ interface Quad {
 	eq(q: Quad): boolean,
 }
 
-type RNGValue =
+export type RNGValue =
 	number
 	| Vec2
 	| Color
 	;
 
-interface RNG {
+export interface RNG {
 	seed: number,
 	gen(): number,
 	gen<T extends RNGValue>(n: T): T,
 	gen<T extends RNGValue>(a: T, b: T): T,
 }
 
-interface Rect {
+export interface Rect {
 	p1: Vec2,
 	p2: Vec2,
 }
 
-interface Line {
+export interface Line {
 	p1: Vec2,
 	p2: Vec2,
 }
 
-interface Circle {
+export interface Circle {
 	center: Vec2,
 	radius: number,
 }
 
-type Polygon = Vec2[];
-type Point = Vec2;
+export type Polygon = Vec2[];
+export type Point = Vec2;
 
-type ClientID = number;
-type MsgHandler = (id: ClientID, data: any) => void;
-
-interface Comp {
+export interface Comp {
 	/**
 	 * Component ID (if left out won't be treated as a comp).
 	 */
@@ -2622,9 +2865,9 @@ interface Comp {
 	inspect?: () => string;
 }
 
-type GameObjID = number;
+export type GameObjID = number;
 
-interface PosComp extends Comp {
+export interface PosComp extends Comp {
 	/**
 	 * Object's current world position.
 	 */
@@ -2650,66 +2893,66 @@ interface PosComp extends Comp {
 	screenPos(): Vec2;
 }
 
-interface ScaleComp extends Comp {
-	scale: Vec2,
+export interface ScaleComp extends Comp {
+	scale: Vec2 | number,
 	scaleTo(s: number): void,
 	scaleTo(s: Vec2): void,
 	scaleTo(sx: number, sy: number): void,
 }
 
-interface RotateComp extends Comp {
+export interface RotateComp extends Comp {
 	/**
 	 * Angle in degrees.
 	 */
 	angle: number,
 }
 
-interface ColorComp extends Comp {
+export interface ColorComp extends Comp {
 	color: Color,
 }
 
-interface OpacityComp extends Comp {
+export interface OpacityComp extends Comp {
 	opacity: number,
 }
 
-interface OriginComp extends Comp {
+export interface OriginComp extends Comp {
 	/**
 	 * Origin point for render.
 	 */
 	origin: Origin | Vec2,
 }
 
-interface LayerComp extends Comp {
+export interface LayerComp extends Comp {
 	/**
 	 * Which layer this game obj belongs to.
 	 */
 	layer: string,
 }
 
-interface ZComp extends Comp {
+export interface ZComp extends Comp {
 	/**
 	 * Defines the z-index of this game obj
 	 */
 	z: number,
 }
 
-interface FollowComp extends Comp {
+export interface FollowComp extends Comp {
 	follow: {
 		obj: GameObj,
 		offset: Vec2,
 	},
 }
 
-interface MoveComp extends Comp {
+export interface MoveComp extends Comp {
 }
 
-interface CleanupComp extends Comp {
+export interface CleanupComp extends Comp {
 }
 
 /**
  * Collision resolution data.
  */
-interface Collision {
+export interface Collision {
 	/**
 	 * The game object that we collided into.
 	 */
@@ -2736,7 +2979,7 @@ interface Collision {
 	isRight(): boolean,
 }
 
-interface AreaCompOpt {
+export interface AreaCompOpt {
 	/**
 	 * The shape of the area.
 	 */
@@ -2763,7 +3006,7 @@ interface AreaCompOpt {
 	cursor?: Cursor,
 }
 
-interface AreaComp extends Comp {
+export interface AreaComp extends Comp {
 	/**
 	 * Collider area info.
 	 */
@@ -2786,16 +3029,22 @@ interface AreaComp extends Comp {
 	isTouching(o: GameObj): boolean,
 	/**
 	 * Registers an event runs when clicked.
+	 *
+	 * @since v2000.1.0
 	 */
-	clicks(f: () => void): void,
+	onClick(f: () => void): void,
 	/**
-	 * Registers an event runs when hovered.
+	 * Registers an event runs every frame when hovered.
+	 *
+	 * @since v2000.1.0
 	 */
-	hovers(onHover: () => void, onNotHover?: () => void): void,
+	onHover(onHover: () => void, onNotHover?: () => void): void,
 	/**
-	 * Registers an event runs when collides with another game obj with certain tag.
+	 * Registers an event runs when collide with another game obj with certain tag.
+	 *
+	 * @since v2000.1.0
 	 */
-	collides(tag: Tag, f: (obj: GameObj, col?: Collision) => void): void,
+	onCollide(tag: Tag, f: (obj: GameObj, col?: Collision) => void): void,
 	/**
 	 * If has a certain point inside collider.
 	 */
@@ -2816,9 +3065,21 @@ interface AreaComp extends Comp {
 	 * Get the geometry data for the collider in screen coordinate space.
 	 */
 	screenArea(): Area,
+	/**
+	 * @deprecated Use onCollide() instead.
+	 */
+	collides: AreaComp["onCollide"],
+	/**
+	 * @deprecated Use onClick() instead.
+	 */
+	clicks: AreaComp["onClick"],
+	/**
+	 * @deprecated Use onHover() instead.
+	 */
+	hovers: AreaComp["onHover"],
 }
 
-interface SpriteCompOpt {
+export interface SpriteCompOpt {
 	/**
 	 * If the sprite is loaded with multiple frames, or sliced, use the frame option to specify which frame to draw.
 	 */
@@ -2857,7 +3118,7 @@ interface SpriteCompOpt {
 	quad?: Quad,
 }
 
-interface SpriteComp extends Comp {
+export interface SpriteComp extends Comp {
 	/**
 	 * Width for sprite.
 	 */
@@ -2902,9 +3163,17 @@ interface SpriteComp extends Comp {
 	 * Flip texture vertically.
 	 */
 	flipY(b: boolean): void,
+	/**
+	 * Registers an event that runs when an animation is played.
+	 */
+	onAnimPlay(action: (name: string) => void): EventCanceller,
+	/**
+	 * Registers an event that runs when an animation is ended.
+	 */
+	onAnimEnd(action: (name: string) => void): EventCanceller,
 }
 
-interface TextComp extends Comp {
+export interface TextComp extends Comp {
 	/**
 	 * The text to render.
 	 */
@@ -2927,7 +3196,7 @@ interface TextComp extends Comp {
 	height: number,
 }
 
-interface TextCompOpt {
+export interface TextCompOpt {
 	/**
 	 * Height of text.
 	 */
@@ -2946,14 +3215,14 @@ interface TextCompOpt {
 	transform?: (idx: number, ch: string) => CharTransform,
 }
 
-interface RectCompOpt {
+export interface RectCompOpt {
 	/**
 	 * Radius of the rectangle corners.
 	 */
 	radius?: number,
 }
 
-interface RectComp extends Comp {
+export interface RectComp extends Comp {
 	/**
 	 * Width of rectangle.
 	 */
@@ -2968,14 +3237,14 @@ interface RectComp extends Comp {
 	radius?: number,
 }
 
-interface CircleComp extends Comp {
+export interface CircleComp extends Comp {
 	/**
 	 * Radius of circle.
 	 */
 	radius: number,
 }
 
-interface UVQuadComp extends Comp {
+export interface UVQuadComp extends Comp {
 	/**
 	 * Width of rect.
 	 */
@@ -2989,7 +3258,7 @@ interface UVQuadComp extends Comp {
 /**
  * Union type for area / collider data of different shapes ("rect", "line", "circle", "point" and "polygon").
  */
-type Area =
+export type Area =
 	| { shape: "rect" } & Rect
 	| { shape: "line" } & Line
 	| { shape: "circle" } & Circle
@@ -2997,7 +3266,7 @@ type Area =
 	| { shape: "polygon" } & { pts: Polygon }
 	;
 
-type Shape =
+export type Shape =
 	| "rect"
 	| "line"
 	| "point"
@@ -3005,11 +3274,11 @@ type Shape =
 	| "polygon"
 	;
 
-interface OutlineComp extends Comp {
+export interface OutlineComp extends Comp {
 	outline: Outline,
 }
 
-interface Debug {
+export interface Debug {
 	/**
 	 * Pause the whole game.
 	 */
@@ -3056,21 +3325,21 @@ interface Debug {
 	error(msg: string): void,
 }
 
-type UniformValue =
+export type UniformValue =
 	Vec2
 	| Vec3
 	| Color
 	| Mat4
 	;
 
-type Uniform = Record<string, UniformValue>;
+export type Uniform = Record<string, UniformValue>;
 
-interface ShaderComp extends Comp {
+export interface ShaderComp extends Comp {
 	uniform: Uniform,
 	shader: string,
 }
 
-interface BodyComp extends Comp {
+export interface BodyComp extends Comp {
 	/**
 	 * If should collide with other solid objects.
 	 */
@@ -3089,12 +3358,16 @@ interface BodyComp extends Comp {
 	curPlatform(): GameObj | null,
 	/**
 	 * If currently landing on a platform.
+	 *
+	 * @since v2000.1.0
 	 */
-	grounded(): boolean,
+	isGrounded(): boolean,
 	/**
 	 * If currently falling.
+	 *
+	 * @since v2000.1.0
 	 */
-	falling(): boolean,
+	isFalling(): boolean,
 	/**
 	 * Upward thrust.
 	 */
@@ -3103,9 +3376,41 @@ interface BodyComp extends Comp {
 	 * Performs double jump (the initial jump only happens if player is grounded).
 	 */
 	doubleJump(f?: number): void,
+	/**
+	 * Registers an event that runs when the object is grounded.
+	 *
+	 * @since v2000.1.0
+	 */
+	onGround(action: () => void): EventCanceller,
+	/**
+	 * Registers an event that runs when the object starts falling.
+	 *
+	 * @since v2000.1.0
+	 */
+	onFall(action: () => void): EventCanceller,
+	/**
+	 * Registers an event that runs when the object bumps into something on the head.
+	 *
+	 * @since v2000.1.0
+	 */
+	onHeadbutt(action: () => void): EventCanceller,
+	/**
+	 * Registers an event that runs when the object performs the second jump when double jumping.
+	 *
+	 * @since v2000.1.0
+	 */
+	onDoubleJump(action: () => void): EventCanceller,
+	/**
+	 * @deprecated Use isGrounded() instead.
+	 */
+	grounded(): boolean,
+	/**
+	 * @deprecated Use isFalling() instead.
+	 */
+	falling(): boolean,
 }
 
-interface BodyCompOpt {
+export interface BodyCompOpt {
 	/**
 	 * Initial speed in pixels per second for jump().
 	 */
@@ -3136,7 +3441,7 @@ interface BodyCompOpt {
 //  	hangGlide?: number,
 }
 
-interface Timer {
+export interface Timer {
 	/**
 	 * Timer left.
 	 */
@@ -3147,35 +3452,35 @@ interface Timer {
 	action(): void,
 }
 
-interface TimerComp extends Comp {
+export interface TimerComp extends Comp {
 	/**
 	 * Run the callback after n seconds.
 	 */
 	wait(n: number, cb: () => void): EventCanceller,
 }
 
-interface SolidComp extends Comp {
+export interface SolidComp extends Comp {
 	/**
 	 * If should stop other solid objects from moving through.
 	 */
 	solid: boolean,
 }
 
-interface FixedComp extends Comp {
+export interface FixedComp extends Comp {
 	/**
 	 * If the obj is unaffected by camera
 	 */
 	fixed: boolean,
 }
 
-interface StayComp extends Comp {
+export interface StayComp extends Comp {
 	/**
 	 * If the obj should not be destroyed on scene switch.
 	 */
 	stay: boolean,
 }
 
-interface HealthComp extends Comp {
+export interface HealthComp extends Comp {
 	/**
 	 * Decrease HP by n (defaults to 1).
 	 */
@@ -3192,19 +3497,58 @@ interface HealthComp extends Comp {
 	 * Set current health points.
 	 */
 	setHP(hp: number): void,
+	/**
+	 * Registers an event that runs when hurt() is called upon the object.
+	 */
+	onHurt(action: () => void): EventCanceller,
+	/**
+	 * Registers an event that runs when heal() is called upon the object.
+	 */
+	onHeal(action: () => void): EventCanceller,
+	/**
+	 * Registers an event that runs when object's HP is equal or below 0.
+	 */
+	onDeath(action: () => void): EventCanceller,
 }
 
-interface LifespanComp extends Comp {
+export interface LifespanComp extends Comp {
 }
 
-interface LifespanCompOpt {
+export interface LifespanCompOpt {
 	/**
 	 * Fade out duration (default 0 which is no fade out).
 	 */
 	fade?: number,
 }
 
-interface LevelOpt {
+export interface StateComp extends Comp {
+	/**
+	 * Current state.
+	 */
+	state: string,
+	/**
+	 * Enter a state, trigger onStateLeave for previous state and onStateEnter for the new State state.
+	 */
+	enterState: (state: string, ...args) => void,
+	/**
+	 * Register event that runs once when enters a specific state. Accepts arguments passed from `enterState(name, ...args)`.
+	 */
+	onStateEnter: (state: string, action: (...args) => void) => void,
+	/**
+	 * Register event that runs once when leaves a specific state.
+	 */
+	onStateLeave: (state: string, action: () => void) => void,
+	/**
+	 * Register event that runs every frame when in a specific state.
+	 */
+	onStateUpdate: (state: string, action: () => void) => void,
+	/**
+	 * Register event that runs every frame when in a specific state.
+	 */
+	onStateDraw: (state: string, action: () => void) => void,
+}
+
+export interface LevelOpt {
 	/**
 	 * Grid width (width of each block).
 	 */
@@ -3225,7 +3569,7 @@ interface LevelOpt {
 	[sym: string]: any,
 }
 
-interface Level {
+export interface Level {
 	getPos(p: Vec2): Vec2,
 	getPos(x: number, y: number): Vec2,
 	spawn(sym: string, p: Vec2): GameObj,

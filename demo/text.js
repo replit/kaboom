@@ -22,26 +22,26 @@ const fonts = [
 let curFont = 0;
 
 // listen to text input
-charInput((ch) => {
+onCharInput((ch) => {
 	input.text += ch;
 });
 
-// like keyPress() but will retrigger when key is being held (which is similar
+// like onKeyPress() but will retrigger when key is being held (which is similar
 // to text input behavior)
-keyPressRep("enter", () => {
+onKeyPressRepeat("enter", () => {
 	input.text += "\n";
 });
 
-keyPressRep("backspace", () => {
+onKeyPressRepeat("backspace", () => {
 	input.text = input.text.substring(0, input.text.length - 1);
 });
 
-keyPress("up", () => {
+onKeyPress("up", () => {
 	curFont = Math.max(curFont - 1, 0);
 	input.font = fonts[curFont];
 });
 
-keyPress("down", () => {
+onKeyPress("down", () => {
 	curFont = Math.min(curFont + 1, fonts.length - 1);
 	input.font = fonts[curFont];
 });

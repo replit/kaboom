@@ -12,9 +12,9 @@ function addButton(txt, p, f) {
 		origin("center"),
 	]);
 
-	btn.clicks(f);
+	btn.onClick(f);
 
-	btn.hovers(() => {
+	btn.onHover(() => {
 		const t = time() * 10;
 		btn.color = rgb(
 			wave(0, 255, t),
@@ -33,4 +33,4 @@ addButton("Start", vec2(200, 100), () => debug.log("oh hi"));
 addButton("Quit", vec2(200, 200), () => debug.log("bye"));
 
 // reset cursor to default at frame start for easier cursor management
-action(() => cursor("default"));
+onUpdate(() => cursor("default"));

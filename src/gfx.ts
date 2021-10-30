@@ -16,6 +16,34 @@ import {
 	deepEq,
 } from "./utils";
 
+import {
+	Color,
+	Vec2,
+	Mat4,
+	Quad,
+	Origin,
+	GfxShader,
+	GfxTexture,
+	GfxTexData,
+	GfxFont,
+	Uniform,
+	TexFilter,
+	RenderProps,
+	CharTransform,
+	TexWrap,
+	FormattedText,
+	DrawRectOpt,
+	DrawLineOpt,
+	DrawLinesOpt,
+	DrawTriangleOpt,
+	DrawPolygonOpt,
+	DrawCircleOpt,
+	DrawEllipseOpt,
+	DrawUVQuadOpt,
+	Vertex,
+	DrawTextOpt,
+} from "./types";
+
 type GfxCtx = {
 	vbuf: WebGLBuffer,
 	ibuf: WebGLBuffer,
@@ -94,7 +122,7 @@ type Gfx = {
 	drawTriangle(opt: DrawTriangleOpt),
 	drawCircle(opt: DrawCircleOpt),
 	drawEllipse(opt: DrawEllipseOpt),
-	drawPolygon(opt: DrawPolyOpt),
+	drawPolygon(opt: DrawPolygonOpt),
 	drawUVQuad(opt: DrawUVQuadOpt),
 	fmtText(opt: DrawTextOpt2): FormattedText,
 	frameStart(),
@@ -925,7 +953,7 @@ function gfxInit(gl: WebGLRenderingContext, gopt: GfxOpt): Gfx {
 
 	}
 
-	function drawPolygon(opt: DrawPolyOpt) {
+	function drawPolygon(opt: DrawPolygonOpt) {
 
 		if (!opt.pts) {
 			throw new Error("drawPolygon() requires property \"pts\".");

@@ -1,8 +1,8 @@
 import { NextApiRequest, NextApiResponse } from "next";
-import fs from "fs";
+import fs from "fs/promises";
 import path from "path";
 
-export default function handler(
+export default async function handler(
 	req: NextApiRequest,
 	res: NextApiResponse
 ) {
@@ -10,11 +10,10 @@ export default function handler(
 	const { kind } = req.query;
 	// "kind" should always be string here, as URL param won't overwrite
 	const dir = path.resolve("./public", kind as string);
+	const stat = await fs.stat(dir);
 
-	const [ status, files ] = fs.existsSync(dir)
-		? [ 200, fs
-			.readdirSync(dir)
-			.filter((p) => !p.startsWith(".")) ]
+	const [ status, files ] = stat.isDirectory()
+		? [ 200, (await fs.readdir(dir)).filter((p) => !p.startsWith(".")) ]
 		: [ 404, [] ];
 
 	res

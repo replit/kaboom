@@ -9,7 +9,7 @@ import Markdown from "comps/Markdown";
 import Drawer from "comps/Drawer";
 import Doc from "comps/Doc";
 import useMediaQuery from "hooks/useMediaQuery";
-import * as doc from "lib/doc";
+import doc from "doc.json";
 // @ts-ignore
 import fun from "lib/fun";
 
@@ -53,8 +53,7 @@ const Fun: React.FC = () => (
 const NARROW = 840;
 
 const Home: React.FC = () => {
-	const [ showType, setShowType ] = React.useState(false);
-	const [ shownTypeName, setShownTypeName ] = React.useState<string | null>(null);
+	const [ showType, setShowType ] = React.useState<string | null>(null);
 	const isNarrow = useMediaQuery(`(max-width: ${NARROW}px)`);
 	return <Nav>
 		<Head title="Kaboom" scale={0.8} />
@@ -86,20 +85,19 @@ Play with it yourself or check out the examples in the [Playground](/play)!
 		`} />
 
 		{ doc.sections.map((sec) => {
-			const entries = sec.entries;
 			return (
 				<View stretchX gap={1} key={sec.name}>
 					<Text size="huge" color={3}>{sec.name}</Text>
+					{ sec.doc &&
+						<Markdown src={sec.doc} />
+					}
 					<View stretchX gap={3}>
-						{ entries.map((name) => (
+						{ sec.entries.map((name) => (
 							<Doc
 								id={name}
 								key={name}
 								name={name}
-								typeref={(name) => {
-									setShowType(true);
-									setShownTypeName(name);
-								}}
+								typeref={setShowType}
 							/>
 						)) }
 					</View>
@@ -107,21 +105,33 @@ Play with it yourself or check out the examples in the [Playground](/play)!
 			);
 		}) }
 
+		{ Object.keys(doc.types).map((name) => {
+			if (name !== "KaboomCtx" && name !== "kaboom") {
+				return <Doc
+					id={name}
+					key={name}
+					name={name}
+					typeref={setShowType}
+				/>
+			}
+		})}
+
 		<Drawer
 			dir="right"
 			pad={2}
 			height="64%"
 			paneWidth={isNarrow ? 320 : 360}
-			expanded={showType}
-			setExpanded={setShowType}
+			expanded={showType !== null}
+			setExpanded={(b) => {
+				if (b === false) {
+					setShowType(null);
+				}
+			}}
 		>
-			{ shownTypeName &&
+			{ showType &&
 				<Doc
-					name={shownTypeName}
-					typeref={(name) => {
-						setShowType(true);
-						setShownTypeName(name);
-					}}
+					name={showType}
+					typeref={setShowType}
 				/>
 			}
 		</Drawer>

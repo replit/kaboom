@@ -103,11 +103,11 @@ scene("game", () => {
 		]);
 	}
 
-	bean.collides("danger", () => {
+	bean.onCollide("danger", () => {
 		go("lose");
 	});
 
-	bean.collides("coin", (c) => {
+	bean.onCollide("coin", (c) => {
 		destroy(c);
 		play("coin");
 		score.value += 1;
@@ -116,27 +116,27 @@ scene("game", () => {
 	});
 
 	// spin on double jump
-	bean.on("doubleJump", () => {
+	bean.onDoubleJump(() => {
 		bean.spin();
 	});
 
-	action("platform", (p) => {
+	onUpdate("platform", (p) => {
 		p.move(p.dir * p.speed, 0);
 		if (p.pos.x < 0 || p.pos.x > width()) {
 			p.dir = -p.dir;
 		}
 	});
 
-	keyPress("space", () => {
+	onKeyPress("space", () => {
 		bean.doubleJump();
 	});
 
 	// both keys will trigger
-	keyDown("left", () => {
+	onKeyDown("left", () => {
 		bean.move(-PLAYER_SPEED, 0);
 	});
 
-	keyDown("right", () => {
+	onKeyDown("right", () => {
 		bean.move(PLAYER_SPEED, 0);
 	});
 
@@ -148,7 +148,7 @@ scene("game", () => {
 		text(time),
 	]);
 
-	action(() => {
+	onUpdate(() => {
 		time -= dt();
 		if (time <= 0) {
 			go("win", score.value);
@@ -176,7 +176,7 @@ scene("win", (score) => {
 	]);
 
 	// go back to game with space is pressed
-	keyPress("space", () => go("game"));
+	onKeyPress("space", () => go("game"));
 
 });
 
@@ -184,7 +184,7 @@ scene("lose", () => {
 	add([
 		text("You Lose"),
 	]);
-	keyPress("space", () => {
+	onKeyPress("space", () => {
 		go("game");
 	});
 });
