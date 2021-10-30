@@ -771,14 +771,14 @@ function onKeyPress(k: Key | Key[] | (() => void), f?: () => void): EventCancell
 	}
 }
 
-function onKeyPressRep(k: Key | Key[] | (() => void), f?: () => void): EventCanceller {
+function onKeyPressRepeat(k: Key | Key[] | (() => void), f?: () => void): EventCanceller {
 	if (Array.isArray(k)) {
-		const cancellers = k.map((key) => onKeyPressRep(key, f));
+		const cancellers = k.map((key) => onKeyPressRepeat(key, f));
 		return () => cancellers.forEach((cb) => cb());
 	} else if (typeof k === "function") {
 		return game.on("input", () => app.isKeyPressed() && k());
 	} else {
-		return game.on("input", () => app.isKeyPressedRep(k) && f());
+		return game.on("input", () => app.isKeyPressedRepeat(k) && f());
 	}
 }
 
@@ -2597,7 +2597,7 @@ const ctx: KaboomCtx = {
 	// input
 	onKeyDown,
 	onKeyPress,
-	onKeyPressRep,
+	onKeyPressRepeat,
 	onKeyRelease,
 	onMouseDown,
 	onMousePress,
@@ -2609,7 +2609,7 @@ const ctx: KaboomCtx = {
 	onTouchEnd,
 	keyDown: onKeyDown,
 	keyPress: onKeyPress,
-	keyPressRep: onKeyPressRep,
+	keyPressRep: onKeyPressRepeat,
 	keyRelease: onKeyRelease,
 	mouseDown: onMouseDown,
 	mouseClick: onMousePress,
@@ -2624,7 +2624,7 @@ const ctx: KaboomCtx = {
 	mouseDeltaPos: app.mouseDeltaPos,
 	isKeyDown: app.isKeyDown,
 	isKeyPressed: app.isKeyPressed,
-	isKeyPressedRep: app.isKeyPressedRep,
+	isKeyPressedRepeat: app.isKeyPressedRepeat,
 	isKeyReleased: app.isKeyReleased,
 	isMouseDown: app.isMouseDown,
 	isMousePressed: app.isMousePressed,
@@ -2632,7 +2632,7 @@ const ctx: KaboomCtx = {
 	isMouseMoved: app.isMouseMoved,
 	keyIsDown: app.isKeyDown,
 	keyIsPressed: app.isKeyPressed,
-	keyIsPressedRep: app.isKeyPressedRep,
+	keyIsPressedRep: app.isKeyPressedRepeat,
 	keyIsReleased: app.isKeyReleased,
 	mouseIsDown: app.isMouseDown,
 	mouseIsClicked: app.isMousePressed,

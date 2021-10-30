@@ -49,7 +49,7 @@ type AppCtx = {
 	fpsBuf: number[],
 	fpsTimer: number,
 	isKeyPressed: boolean,
-	isKeyPressedRep: boolean,
+	isKeyPressedRepeat: boolean,
 };
 
 type App = {
@@ -58,7 +58,7 @@ type App = {
 	mouseDeltaPos(): Vec2,
 	isKeyDown(k?: Key): boolean,
 	isKeyPressed(k?: Key): boolean,
-	isKeyPressedRep(k?: Key): boolean,
+	isKeyPressedRepeat(k?: Key): boolean,
 	isKeyReleased(k?: Key): boolean,
 	isMouseDown(m?: MouseButton): boolean,
 	isMousePressed(m?: MouseButton): boolean,
@@ -132,7 +132,7 @@ function appInit(gopt: AppOpt = {}): App {
 		charInputted: [],
 		isMouseMoved: false,
 		isKeyPressed: false,
-		isKeyPressedRep: false,
+		isKeyPressedRepeat: false,
 		mouseStates: {},
 		mousePos: vec2(0, 0),
 		mouseDeltaPos: vec2(0, 0),
@@ -263,7 +263,7 @@ function appInit(gopt: AppOpt = {}): App {
 		}
 
 		if (e.repeat) {
-			app.isKeyPressedRep = true;
+			app.isKeyPressedRepeat = true;
 			app.keyStates[k] = "rpressed";
 		} else {
 			app.isKeyPressed = true;
@@ -363,7 +363,7 @@ function appInit(gopt: AppOpt = {}): App {
 		}
 	}
 
-	function isKeyPressedRep(k: string): boolean {
+	function isKeyPressedRepeat(k: string): boolean {
 		if (k === undefined) {
 			return app.isKeyPressedRep;
 		} else {
@@ -465,7 +465,7 @@ function appInit(gopt: AppOpt = {}): App {
 			app.charInputted = [];
 			app.isMouseMoved = false;
 			app.isKeyPressed = false;
-			app.isKeyPressedRep = false;
+			app.isKeyPressedRepeat = false;
 			app.loopID = requestAnimationFrame(frame);
 
 		};
@@ -486,7 +486,7 @@ function appInit(gopt: AppOpt = {}): App {
 		mouseDeltaPos,
 		isKeyDown,
 		isKeyPressed,
-		isKeyPressedRep,
+		isKeyPressedRepeat,
 		isKeyReleased,
 		isMouseDown,
 		isMousePressed,
