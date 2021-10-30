@@ -8,39 +8,44 @@ import Text from "comps/Text";
 import Button from "comps/Button";
 import { capitalize } from "lib/str";
 
-interface DocProps {
-	name: string,
-	code?: string,
-}
-
-const Doc: React.FC<DocProps> = ({
-	code,
-	name,
-}) => (
-	<>
-		<Head title={`Kaboom Demo - ${capitalize(name)}`} />
-		{ code
-			? <GameView stretch code={code || ""} />
-			: <Text color={3}>{`There's no demo called "${name}" :(`}</Text>
-		}
-	</>
-);
-
 export const getServerSideProps: GetServerSideProps = async (ctx) => {
 	const { name } = ctx.query;
 	const path = `public/site/demo/${name}.js`;
+	let code = "";
 	try {
-		return {
-			props: {
-				name: name,
-				code: await fs.readFile(path, "utf8"),
-			},
-		};
+		code = await fs.readFile(path, "utf8");
 	} catch (e) {
 		return {
 			notFound: true,
 		};
 	}
+	ctx.res.setHeader('Content-type', 'text/html')
+	ctx.res.write(`
+<!DOCTYPE html>
+<head>
+	<style>
+		* {
+			margin: 0;
+			padding: 0;
+			box-sizing: border-box;
+		}
+		body,
+		html {
+			width: 100%;
+			height: 100%;
+		}
+	</style>
+</head>
+<body>
+	<script src="/dist/kaboom.js"></script>
+	<script>
+${code}
+	</script>
+</body>
+	`);
+	ctx.res.end();
+	return {props: {}};
 }
 
-export default Doc;
+const EmptyPage: React.FC = () => <></>;
+export default EmptyPage;
