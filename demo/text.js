@@ -35,6 +35,7 @@ const fonts = [
 	"unscii"
 ]
 
+// Keep track which is the current font
 let curFont = 0
 
 // Like onKeyPressRepeat() but more suitable for text input.
@@ -43,20 +44,24 @@ onCharInput((ch) => {
 })
 
 // Like onKeyPress() but will retrigger when key is being held (which is similar to text input behavior)
+// Insert new line when user presses enter
 onKeyPressRep("enter", () => {
 	input.text += "\n"
 })
 
+// Delete last character
 onKeyPressRep("backspace", () => {
 	input.text = input.text.substring(0, input.text.length - 1)
 })
 
+// Go to previous font
 onKeyPress("up", () => {
-	curFont = Math.max(curFont - 1, 0)
+	if (--curFont < 0) curFont = fonts.length - 1
 	input.font = fonts[curFont]
 })
 
+// Go to next font
 onKeyPress("down", () => {
-	curFont = Math.min(curFont + 1, fonts.length - 1)
+	curFont = (curFont + 1) % fonts.length
 	input.font = fonts[curFont]
 })
