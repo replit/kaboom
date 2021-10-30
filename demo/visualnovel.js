@@ -2,8 +2,8 @@ kaboom({
 	background: [ 255, 209, 253 ]
 });
 
-loadSprite("bean", "sprites/bean.png");
-loadSprite("mark", "sprites/mark.png");
+loadSprite("bean", "/sprites/bean.png");
+loadSprite("mark", "/sprites/mark.png");
 
 const dialogues = [
 	"hi my butterfly",

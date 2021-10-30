@@ -9,7 +9,7 @@ const sprites = [
 ];
 
 sprites.forEach((spr) => {
-	loadSprite(spr, `sprites/${spr}.png`);
+	loadSprite(spr, `/sprites/${spr}.png`);
 });
 
 loop(0.1, () => {

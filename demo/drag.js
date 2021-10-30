@@ -2,7 +2,7 @@
 
 kaboom();
 
-loadSprite("mark", "sprites/bean.png");
+loadSprite("mark", "/sprites/bean.png");
 
 let curDraggin = null;
 

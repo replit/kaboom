@@ -2,7 +2,7 @@
 
 kaboom();
 
-loadSprite("bean", "sprites/bean.png");
+loadSprite("bean", "/sprites/bean.png");
 
 // custom comp
 function handleout() {
