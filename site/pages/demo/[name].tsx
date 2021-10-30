@@ -21,7 +21,7 @@ const Doc: React.FC<DocProps> = ({
 		<Head title={`Kaboom Demo - ${capitalize(name)}`} />
 		{ code
 			? <GameView stretch code={code || ""} />
-			: <Text color={3}>{`There's no doc called "${name}" :(`}</Text>
+			: <Text color={3}>{`There's no demo called "${name}" :(`}</Text>
 		}
 	</>
 );
@@ -35,11 +35,11 @@ export const getServerSideProps: GetServerSideProps = async (ctx) => {
 				name: name,
 				code: await fs.readFile(path, "utf8"),
 			},
-		}
+		};
 	} catch (e) {
 		return {
 			notFound: true,
-		}
+		};
 	}
 }
 
