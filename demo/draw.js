@@ -16,6 +16,7 @@ const outline = {
 };
 
 // onDraw() is similar to onUpdate(), it runs every frame, but after all update events.
+// All drawXXX() functions need to be called every frame if you want them to persist
 onDraw(() => {
 
 	const mx = (width() - px * 2) / 2;

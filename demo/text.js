@@ -1,23 +1,5 @@
 kaboom()
 
-// Add a game object with text() component + options
-const input = add([
-	text("Please type! Or press up and down to cycle fonts", {
-		// It'll wrap to next line if the text width exceeds the width option specified here
-		width: width(),
-		// The height of character
-		size: 32,
-		// Transform each character for special effects
-		transform: (idx, ch) => {
-			return {
-				color: hsl2rgb(((time() * 60 + idx * 20) % 255) / 255, 0.7, 0.8),
-				scale: wave(1, 1.2, time() * 3 + idx),
-				angle: wave(-9, 9, time() * 3 + idx),
-			}
-		},
-	}),
-])
-
 // Load custom bitmap font, specifying the width and height of each character in the image
 loadFont("unscii", "fonts/unscii_8x8.png", 8, 8)
 
@@ -37,6 +19,25 @@ const fonts = [
 
 // Keep track which is the current font
 let curFont = 0
+let curSize = 48
+
+// Add a game object with text() component + options
+const input = add([
+	text("Type! And try arrow keys!", {
+		// What font to use
+		font: fonts[curFont],
+		// It'll wrap to next line if the text width exceeds the width option specified here
+		width: width(),
+		// The height of character
+		size: curSize,
+		// Transform each character for special effects
+		transform: (idx, ch) => ({
+			color: hsl2rgb(((time() * 60 + idx * 20) % 255) / 255, 0.7, 0.8),
+			scale: wave(1, 1.2, time() * 3 + idx),
+			angle: wave(-9, 9, time() * 3 + idx),
+		}),
+	}),
+])
 
 // Like onKeyPressRepeat() but more suitable for text input.
 onCharInput((ch) => {
@@ -55,13 +56,29 @@ onKeyPressRepeat("backspace", () => {
 })
 
 // Go to previous font
-onKeyPress("up", () => {
+onKeyPress("left", () => {
 	if (--curFont < 0) curFont = fonts.length - 1
 	input.font = fonts[curFont]
 })
 
 // Go to next font
-onKeyPress("down", () => {
+onKeyPress("right", () => {
 	curFont = (curFont + 1) % fonts.length
 	input.font = fonts[curFont]
+})
+
+const SIZE_SPEED = 32
+const SIZE_MIN = 12
+const SIZE_MAX = 120
+
+// Increase text size
+onKeyDown("up", () => {
+	curSize = Math.min(curSize + dt() * SIZE_SPEED, SIZE_MAX)
+	input.textSize = curSize
+})
+
+// Decrease text size
+onKeyDown("down", () => {
+	curSize = Math.max(curSize - dt() * SIZE_SPEED, SIZE_MIN)
+	input.textSize = curSize
 })
