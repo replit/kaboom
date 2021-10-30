@@ -1,10 +1,22 @@
-kaboom();
+// Sprite animation
 
-// load default sprite "bean"
-loadBean();
+// Start a kaboom game
+kaboom()
 
-// add to screen
-add([
+// Loading a multi-frame sprite
+loadSprite("bean", "sprites/bean.png")
+
+const player = add([
 	sprite("bean"),
-	pos(80, 40),
-]);
+	pos(center()),
+	origin("center"),
+])
+
+onKeyPress("left", () => {
+	player.flipX(false)
+})
+
+onKeyPress("right", () => {
+	player.flipX(true)
+})
+

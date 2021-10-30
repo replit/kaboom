@@ -39,12 +39,13 @@ onKeyDown("down", () => {
 // Add enemies
 for (let i = 0; i < 3; i++) {
 
-	const y = height() / 4 * (i + 1)
+	const x = rand(0, width())
+	const y = rand(0, height())
 
 	add([
 		sprite("ghosty"),
-		pos(320, y),
-		// both objects must have area() component to enable collision detection between
+		pos(x, y),
+		// Both objects must have area() component to enable collision detection between
 		area(),
 		"enemy",
 	])
@@ -71,5 +72,6 @@ player.onUpdate(() => {
 	}
 })
 
-// Enter inspect mode, which shows the collider outline of each object with area() component, handy for debugging (can also be toggled by pressing F1)
+// Enter inspect mode, which shows the collider outline of each object with area() component, handy for debugging
+// Can also be toggled by pressing F1
 debug.inspect = true

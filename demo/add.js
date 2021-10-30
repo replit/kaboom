@@ -8,13 +8,13 @@ loadSprite("bean", "sprites/bean.png")
 loadSprite("ghosty", "sprites/ghosty.png")
 
 // A "Game Object" is the basic unit of entity in kaboom
-// Game objects are composed from multiple components
+// Game objects are composed from components
 // Each component gives a game object certain capabilities
 
-// Add a game object to the game from a list of components, and assign the game object reference to variable "player"
+// Assemble a game object from a list of components and add to game, and assign the game object reference to a variable
 const player = add([
 	sprite("bean"),   // sprite() component makes it render as a sprite
-	pos(120, 80),      // pos() component gives it position, also enables movement
+	pos(120, 80),     // pos() component gives it position, also enables movement
 	rotate(0),        // rotate() component gives it rotation
 	origin("center"), // origin() component defines the pivot point (defaults to "topleft")
 ])
@@ -27,8 +27,14 @@ player.onUpdate(() => {
 
 // Add multiple game objects
 for (let i = 0; i < 3; i++) {
+
+	// generate a random point on screen
+	// width() and height() gives the game dimension
+	const x = rand(0, width())
+	const y = rand(0, height())
+
 	add([
-		sprite("ghosty"),  // This also renders as a sprite
-		pos(rand(0, width()), rand(0, height())),       // Give it a random Y position from 0 to game height
+		sprite("ghosty"),
+		pos(x, y),
 	])
 }

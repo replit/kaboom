@@ -35,6 +35,8 @@ const DEMO_ORDER = [
 	"add",
 	"movement",
 	"collision",
+	"sprite",
+	"gravity",
 ];
 
 interface SpriteEntryProps {
