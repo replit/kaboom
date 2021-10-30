@@ -11,10 +11,10 @@ for (const fruit of fruits) {
 	loadSprite(fruit, `sprites/${fruit}.png`);
 }
 
-loadSprite("bean", "sprites/bean.png");
-loadSprite("bomb", "sprites/bomb.png");
-loadSound("hit", "sounds/hit.mp3");
-loadSound("wooosh", "sounds/wooosh.mp3");
+loadSprite("bean", "/sprites/bean.png");
+loadSprite("bomb", "/sprites/bomb.png");
+loadSound("hit", "/sounds/hit.mp3");
+loadSound("wooosh", "/sounds/wooosh.mp3");
 
 scene("start", () => {
 

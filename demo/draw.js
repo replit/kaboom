@@ -1,7 +1,7 @@
 // Kaboom as pure rendering lib (no component / game obj etc.)
 
 kaboom();
-loadSprite("bean", "sprites/bean.png");
+loadSprite("bean", "/sprites/bean.png");
 
 const t = (n = 1) => time() * n;
 const w = (a, b, n) => wave(a, b, t(n));

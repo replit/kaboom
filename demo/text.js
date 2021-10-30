@@ -1,7 +1,7 @@
 kaboom()
 
 // Load custom bitmap font, specifying the width and height of each character in the image
-loadFont("unscii", "fonts/unscii_8x8.png", 8, 8)
+loadFont("unscii", "/fonts/unscii_8x8.png", 8, 8)
 
 // List of built-in fonts ("o" at the end means the outlined version)
 const builtinFonts = [

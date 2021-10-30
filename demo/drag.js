@@ -2,7 +2,7 @@
 
 kaboom();
 
-loadSprite("bean", "sprites/bean.png");
+loadSprite("bean", "/sprites/bean.png");
 
 // Keep track of the current draggin item
 let curDraggin = null;
