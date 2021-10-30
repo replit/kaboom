@@ -1,11 +1,5 @@
 import fs from "fs/promises";
 import { GetServerSideProps } from "next";
-import { useRouter } from "next/router";
-import Head from "comps/Head";
-import GameView from "comps/GameView";
-import Nav from "comps/Nav";
-import Text from "comps/Text";
-import Button from "comps/Button";
 import { capitalize } from "lib/str";
 
 export const getServerSideProps: GetServerSideProps = async (ctx) => {
@@ -20,9 +14,16 @@ export const getServerSideProps: GetServerSideProps = async (ctx) => {
 		};
 	}
 	ctx.res.setHeader('Content-type', 'text/html')
+	const title = `Kaboom Demo - ${capitalize(name as string)}`;
 	ctx.res.write(`
 <!DOCTYPE html>
 <head>
+	<title>${title}</title>
+	<link rel="icon" href="/site/img/k.png" />
+	<meta name="twitter:card" content="player" />
+	<meta name="twitter:title" content="${title}" />
+	<meta name="twitter:site" content="@kaboomjs" />
+	<meta name="twitter:player" content="https://kaboomjs.com/demo/${name}" />
 	<style>
 		* {
 			margin: 0;
