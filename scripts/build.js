@@ -1,7 +1,7 @@
-const fs = require("fs");
-const path = require("path");
-const esbuild = require("esbuild");
-const ts = require("typescript");
+import fs from "fs";
+import path from "path";
+import esbuild from "esbuild";
+import ts from "typescript";
 
 const dev = process.env.NODE_ENV === "development";
 const srcDir = "src";
@@ -175,7 +175,8 @@ function buildTypes() {
 
 				if (tags["section"]) {
 					const name = tags["section"][0];
-					const docPath = path.resolve(__dirname, `../doc/sections/${name}.md`);
+					const docPath = path.resolve(`doc/sections/${name}.md`);
+					console.log(docPath);
 					sections.push({
 						name: name,
 						entries: [],

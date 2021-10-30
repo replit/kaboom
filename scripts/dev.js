@@ -1,4 +1,4 @@
-const cp = require("child_process");
+import cp from "child_process";
 
 const run = (name) => cp.spawn(
 	"npm",
