@@ -1,32 +1,34 @@
-// drag & drop interaction
+// Drag & drop interaction
 
 kaboom();
 
-loadSprite("mark", "sprites/bean.png");
+loadSprite("bean", "sprites/bean.png");
 
+// Keep track of the current draggin item
 let curDraggin = null;
 
-// custom component for handling drag & drop behavior
+// A custom component for handling drag & drop behavior
 function drag() {
 
-	// the difference between object pos and mouse pos
+	// The displacement between object pos and mouse pos
 	let offset = vec2(0);
 
 	return {
-		// name of the component
+		// Name of the component
 		id: "drag",
-		// it requires the "pos" and "area" component
+		// This component requires the "pos" and "area" component to work
 		require: [ "pos", "area", ],
 		// "add" is a lifecycle method gets called when the obj is added to scene
 		add() {
 			// TODO: these need to be checked in reverse order
 			// "this" in all methods refer to the obj
-			this.clicks(() => {
+			this.onClick(() => {
 				if (curDraggin) {
 					return;
 				}
 				curDraggin = this;
 				offset = mousePos().sub(this.pos);
+				// Remove the object and re-add it, so it'll be drawn on top
 				readd(this);
 			});
 		},
@@ -49,7 +51,7 @@ onMouseRelease(() => {
 // adding dragable objects
 for (let i = 0; i < 48; i++) {
 	add([
-		sprite("mark"),
+		sprite("bean"),
 		pos(rand(width()), rand(height())),
 		area(),
 		scale(5),

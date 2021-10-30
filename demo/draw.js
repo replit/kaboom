@@ -7,7 +7,7 @@ const t = (n = 1) => time() * n;
 const w = (a, b, n) => wave(a, b, t(n));
 const px = 160;
 const py = 200;
-const draw = [];
+const doodles = [];
 const trail = [];
 
 const outline = {
@@ -94,7 +94,7 @@ onDraw(() => {
 		pts: trail,
 	});
 
-	draw.forEach((pts) => {
+	doodles.forEach((pts) => {
 		drawLines({
 			...outline,
 			pts: pts,
@@ -113,11 +113,11 @@ onUpdate(() => {
 	}
 
 	if (isMouseClicked()) {
-		draw.push([]);
+		doodles.push([]);
 	}
 
 	if (isMouseDown() && isMouseMoved()) {
-		draw[draw.length - 1].push(mousePos());
+		doodles[doodles.length - 1].push(mousePos());
 	}
 
 });
