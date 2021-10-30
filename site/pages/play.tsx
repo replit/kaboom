@@ -29,7 +29,13 @@ import download from "lib/download";
 import wrapHTML from "lib/wrapHTML";
 import Ctx from "lib/Ctx";
 
-const DEF_DEMO = "sprite";
+const DEF_DEMO = "add";
+
+const DEMO_ORDER = [
+	"add",
+	"movement",
+	"collision",
+];
 
 interface SpriteEntryProps {
 	name: string,
@@ -141,6 +147,15 @@ const Play: React.FC<PlayProps> = ({
 	const spaceUsed = useSpaceUsed();
 	const [ make, setMake ] = React.useState(false);
 
+	// DEMO_ORDER defines the demos that should appear at the top of the list
+	// names not defined in the list just fall to their default order
+	const demoList = React.useMemo(() => {
+		return [...new Set([
+			...DEMO_ORDER,
+			...Object.keys(demos),
+		])];
+	}, [ demos ]);
+
 	React.useEffect(() => {
 		if (router.isReady && !router.query.demo) {
 			router.replace({
@@ -197,7 +212,7 @@ const Play: React.FC<PlayProps> = ({
 						<Select
 							name="Demo Selector"
 							desc="Select a demo to run"
-							options={Object.keys(demos)}
+							options={demoList}
 							value={demo}
 							onChange={(demo) => router.push({
 								query: {
@@ -447,12 +462,6 @@ const Play: React.FC<PlayProps> = ({
 	</>;
 
 };
-
-const demoOrder = [
-	"add",
-	"movement",
-	"collision",
-];
 
 // TODO: getServerSideProps is handy for dev when you're changing demos, but getStaticProps makes more sense for prod since it won't change
 export const getServerSideProps: GetServerSideProps = async (ctx) => {

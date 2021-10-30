@@ -13,32 +13,22 @@ loadSprite("ghosty", "sprites/ghosty.png")
 
 // Add a game object to the game from a list of components, and assign the game object reference to variable "player"
 const player = add([
-	sprite("bean"), // sprite() component makes it render as a sprite
-	pos(80, 40),    // pos() component gives it position, also enables movement
+	sprite("bean"),   // sprite() component makes it render as a sprite
+	pos(120, 80),      // pos() component gives it position, also enables movement
+	rotate(0),        // rotate() component gives it rotation
+	origin("center"), // origin() component defines the pivot point (defaults to "topleft")
 ])
 
-// .flipX() is a method provided by sprite() component to flip the sprite texture
-player.flipX()
+// .onUpdate() is a method on all game objects, it registers an event that runs every frame
+player.onUpdate(() => {
+	// .angle is a property provided by rotate() component, here we're incrementing the angle by 120 degrees per second, dt() is the time elapsed since last frame in seconds
+	player.angle += 120 * dt()
+})
 
 // Add multiple game objects
 for (let i = 0; i < 3; i++) {
-
-	const y = height() / 4 * (i + 1)
-
 	add([
 		sprite("ghosty"),  // This also renders as a sprite
-		pos(320, y),       // Give it a random Y position from 0 to game height
-		rotate(45),        // rotate() component gives it rotation
-		origin("center"),  // origin() component defines the pivot point (defaults to "topleft")
-		"enemy",           // strings here are tags
+		pos(rand(0, width()), rand(0, height())),       // Give it a random Y position from 0 to game height
 	])
-
 }
-
-// Plain action() is similar to obj.action(), but instead it operates on all objects that shares a specific tag.
-// In this case we're running this function with every game object with tag "enemy"
-onUpdate("enemy", (enemy) => {
-	// .angle is a property provided by rotate() component
-	// Increment the angle of every "enemy" by 120 degrees per second
-	enemy.angle += 120 * dt()
-})

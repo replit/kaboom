@@ -68,7 +68,7 @@ Object.keys(themes).forEach((name) => {
 	const red = "#e06c75";
 	const cyan = "#56b6c2";
 	const ivory = theme["fg2"];
-	const stone = theme["fg3"];
+	const stone = theme["fg4"];
 	const invalid = theme["fg4"];
 	const blue = "#61afef";
 	const green = "#98d379";
@@ -413,7 +413,7 @@ const Editor = React.forwardRef<EditorRef, EditorProps & ViewProps>(({
 			css={{
 				fontFamily: "IBM Plex Mono",
 				overflow: "hidden",
-				fontSize: "var(--text-big)",
+				fontSize: "var(--text-normal)",
 				":focus-within": {
 					boxShadow: "0 0 0 2px var(--color-highlight)",
 				},
