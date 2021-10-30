@@ -655,7 +655,7 @@ export interface KaboomCtx {
 		cb: (a: GameObj, b: GameObj, col?: Collision) => void,
 	): EventCanceller,
 	/**
-	 * Registers an event that runs when game objs with certain tags and area() component are clicked.
+	 * Registers an event that runs when game objs with certain tags are clicked (also required to have the area() component).
 	 *
 	 * @since v2000.1.0
 	 */
