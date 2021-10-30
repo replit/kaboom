@@ -304,12 +304,12 @@ function appInit(gopt: AppOpt = {}): App {
 	});
 
 	// TODO: not quite working
-//  	window.addEventListener("resize", () => {
-//  		if (!(gopt.width && gopt.height && !gopt.stretch)) {
-//  			app.canvas.width = app.canvas.parentElement.offsetWidth;
-//  			app.canvas.height = app.canvas.parentElement.offsetHeight;
-//  		}
-//  	});
+ 	window.addEventListener("resize", () => {
+ 		if (!(gopt.width && gopt.height && !gopt.stretch)) {
+ 			app.canvas.width = app.canvas.parentElement.offsetWidth;
+ 			app.canvas.height = app.canvas.parentElement.offsetHeight;
+ 		}
+ 	});
 
 	function mousePos(): Vec2 {
 		return app.mousePos.clone();
