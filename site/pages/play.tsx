@@ -38,6 +38,9 @@ const DEMO_ORDER = [
 	"gravity",
 	"sprite",
 	"text",
+	"audio",
+	"level",
+	"scenes",
 	"draw",
 ];
 

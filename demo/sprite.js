@@ -33,6 +33,10 @@ loadSprite("dino", "/sprites/dino.png", {
 	},
 })
 
+const SPEED = 120
+const JUMP_FORCE = 240
+
+// Set the gravity acceleration (pixels per second)
 gravity(640)
 
 // Add our player character
@@ -70,13 +74,13 @@ player.onAnimEnd("idle", () => {
 
 onKeyPress("space", () => {
 	if (player.isGrounded()) {
-		player.jump(240)
+		player.jump(JUMP_FORCE)
 		player.play("jump")
 	}
 })
 
 onKeyDown("left", () => {
-	player.move(-120, 0)
+	player.move(-SPEED, 0)
 	player.flipX(true)
 	// .play() will reset to the first frame of the anim, so we want to make sure it only runs when the current animation is not "run"
 	if (player.isGrounded() && player.curAnim() !== "run") {
@@ -85,7 +89,7 @@ onKeyDown("left", () => {
 })
 
 onKeyDown("right", () => {
-	player.move(120, 0)
+	player.move(SPEED, 0)
 	player.flipX(false)
 	if (player.isGrounded() && player.curAnim() !== "run") {
 		player.play("run")
