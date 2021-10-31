@@ -16,7 +16,7 @@ const SPEED = 480
 gravity(2400)
 
 const level = addLevel([
-	// Draw the level layout with symbols
+	// Design the level layout with symbols
 	"@  ^ $$",
 	"=======",
 ], {
