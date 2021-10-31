@@ -23,6 +23,7 @@ let curSize = 48
 
 // Add a game object with text() component + options
 const input = add([
+	// Render text with the text() component
 	text("Type! And try arrow keys!", {
 		// What font to use
 		font: fonts[curFont],

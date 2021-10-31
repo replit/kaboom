@@ -41,7 +41,9 @@ const DEMO_ORDER = [
 	"audio",
 	"level",
 	"scenes",
+	"comp",
 	"draw",
+	"shader",
 	"burp",
 ];
 

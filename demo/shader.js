@@ -1,27 +1,22 @@
-// custom shader component
-kaboom({
-	scale: 2,
-});
+// Custom shader
+kaboom();
 
-loadShader("test", null, `
-uniform float u_time;
-uniform vec2 u_mpos;
+loadSprite("bean", "/sprites/bean.png")
 
+// Load a shader with custom fragment shader code
+// The fragment shader should define a function "frag", which returns a color and receives the vertex position, texture coodinate, vertex color, and texture as arguments
+// There's also the def_frag() function which returns the default fragment color
+loadShader("invert", null, `
 vec4 frag(vec3 pos, vec2 uv, vec4 color, sampler2D tex) {
-	vec2 pp = uv - u_mpos;
-	float angle = atan(pp.y, pp.x);
-	float dis = length(pp);
-	float c = sin(dis * 48.0 + u_time * 8.0 + angle);
-	return vec4(c, c, c, 1);
+	vec4 c = def_frag();
+	return vec4(1.0 - c.r, 1.0 - c.g, 1.0 - c.b, c.a);
 }
-`);
+`)
 
-const shade = add([
-	uvquad(width(), height()),
-	shader("test"),
-]);
-
-onUpdate(() => {
-	shade.uniform["u_time"] = time();
-	shade.uniform["u_mpos"] = mousePos().scale(1 / width(), 1 / height());
-});
+add([
+	sprite("bean"),
+	pos(80, 40),
+	scale(8),
+	// Use the shader with shader() component
+	shader("invert"),
+])

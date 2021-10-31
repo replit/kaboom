@@ -140,34 +140,29 @@ scene("lose", () => {
 	])
 
 	// Press any key to go back
-	onKeyPress(() => {
-		go("game", {
-			levelIdx: 0,
-			score: 0,
-		})
-	})
+	onKeyPress(start)
 
 })
 
 scene("win", ({ score }) => {
 
 	add([
-		text(`${score}!!!`),
+		text(`You grabbed ${score} coins!!!`, {
+			width: width(),
+		}),
 		pos(12),
 	])
 
-	onKeyPress(() => {
-		go("game", {
-			levelIdx: 0,
-			score: 0,
-		})
+	onKeyPress(start)
+
+})
+
+function start() {
+	// Start with the "game" scene, with initial parameters
+	go("game", {
+		levelIdx: 0,
+		score: 0,
 	})
+}
 
-
-})
-
-// Start with the "game" scene, with initial parameters
-go("game", {
-	levelIdx: 0,
-	score: 0,
-})
+start()
