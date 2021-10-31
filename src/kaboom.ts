@@ -1671,7 +1671,9 @@ function sprite(id: string | SpriteData, opt: SpriteCompOpt = {}): SpriteComp {
 				this.frame = anim.from;
 			}
 
+			// TODO: "animPlay" is deprecated
 			this.trigger("animPlay", name);
+			this.trigger("animStart", name);
 
 		},
 
@@ -1703,12 +1705,20 @@ function sprite(id: string | SpriteData, opt: SpriteCompOpt = {}): SpriteComp {
 			opt.flipY = b;
 		},
 
-		onAnimEnd(action: (name: string) => void): EventCanceller {
-			return this.on("animEnd", action);
+		onAnimEnd(name: string, action: () => void): EventCanceller {
+			return this.on("animEnd", (anim) => {
+				if (anim === name) {
+					action();
+				}
+			});
 		},
 
-		onAnimPlay(action: (name: string) => void): EventCanceller {
-			return this.on("animPlay", action);
+		onAnimStart(name: string, action: () => void): EventCanceller {
+			return this.on("animStart", (anim) => {
+				if (anim === name) {
+					action();
+				}
+			});
 		},
 
 		inspect() {

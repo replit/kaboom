@@ -3166,11 +3166,11 @@ export interface SpriteComp extends Comp {
 	/**
 	 * Registers an event that runs when an animation is played.
 	 */
-	onAnimPlay(action: (name: string) => void): EventCanceller,
+	onAnimStart(name: string, action: () => void): EventCanceller,
 	/**
 	 * Registers an event that runs when an animation is ended.
 	 */
-	onAnimEnd(action: (name: string) => void): EventCanceller,
+	onAnimEnd(name: string, action: () => void): EventCanceller,
 }
 
 export interface TextComp extends Comp {
