@@ -35,8 +35,8 @@ const DEMO_ORDER = [
 	"add",
 	"movement",
 	"collision",
-	"sprite",
 	"gravity",
+	"sprite",
 	"text",
 	"draw",
 ];

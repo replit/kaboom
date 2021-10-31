@@ -4,8 +4,10 @@
 kaboom()
 
 // Load assets
-loadSprite("bean", "sprites/bean.png")
-loadSprite("ghosty", "sprites/ghosty.png")
+loadSprite("bean", "/sprites/bean.png")
+loadSprite("ghosty", "/sprites/ghosty.png")
+
+gravity()
 
 // Add player game object
 const player = add([
@@ -43,4 +45,3 @@ add([
 	text("Press space key", { width: width() / 2 }),
 	pos(12, 12),
 ])
-
