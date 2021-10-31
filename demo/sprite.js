@@ -2,7 +2,10 @@
 
 // Start a kaboom game
 kaboom({
+	// Scale the whole game up
 	scale: 4,
+	// Set the default font
+	font: "sinko",
 })
 
 // Loading a multi-frame sprite
@@ -61,6 +64,10 @@ player.onGround(() => {
 	}
 })
 
+player.onAnimEnd("idle", () => {
+	// You can also register an event that runs when certain anim ends
+})
+
 onKeyPress("space", () => {
 	if (player.isGrounded()) {
 		player.jump(240)
@@ -90,4 +97,19 @@ onKeyRelease(["left", "right"], () => {
 	if (!isKeyDown("left") && !isKeyDown("right")) {
 		player.play("idle")
 	}
+})
+
+const getInfo = () => `
+Anim: ${player.curAnim()}
+Frame: ${player.frame}
+`.trim()
+
+// Add some text to show the current animation
+const label = add([
+	text(getInfo()),
+	pos(4),
+])
+
+label.onUpdate(() => {
+	label.text = getInfo()
 })
