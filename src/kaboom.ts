@@ -1309,11 +1309,7 @@ function area(opt: AreaCompOpt = {}): AreaComp {
 
 		isHovering() {
 			const mpos = this.fixed ? mousePos() : mouseWorldPos();
-			if (app.isTouch) {
-				return app.isMouseDown() && this.hasPoint(mpos);
-			} else {
-				return this.hasPoint(mpos);
-			}
+			return this.hasPoint(mpos);
 		},
 
 		isColliding(other) {
