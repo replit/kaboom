@@ -4,8 +4,7 @@ kaboom()
 
 loadSprite("bean", "/sprites/bean.png")
 
-// Define a custom component called "funky"
-// Components are just functions that returns an object that follows a special format
+// Components are just functions that returns an object that follows a certain format
 function funky() {
 
 	// Can use local closed variables to store component state
@@ -40,7 +39,7 @@ function funky() {
 
 		// Runs every frame (after update) as long as the host object exists
 		draw() {
-			// ...
+			// (This component doesn't render anything)
 		},
 
 		// Runs when the host object is destroyed
@@ -75,12 +74,12 @@ const bean = add([
 	funky(),
 ])
 
-onKeyPress(() => {
-	// Let's goooooo
+onKeyPress("space", () => {
+	// We can use .getFunky() provided by the funky() component now
 	bean.getFunky()
 })
 
 add([
-	text("Press any key to get funky", { width: width() }),
+	text("Press space to get funky", { width: width() }),
 	pos(12, 12),
 ])
