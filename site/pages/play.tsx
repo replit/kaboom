@@ -42,6 +42,7 @@ const DEMO_ORDER = [
 	"level",
 	"scenes",
 	"draw",
+	"burp",
 ];
 
 interface SpriteEntryProps {

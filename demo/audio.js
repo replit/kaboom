@@ -11,7 +11,7 @@ const music = play("OtherworldlyFoe", {
 	loop: true,
 })
 
-// adjust global volume
+// Adjust global volume
 volume(0.5)
 
 const label = add([
@@ -47,9 +47,9 @@ onKeyPress("left", () => music.detune(music.detune() - 100));
 onKeyPress("right", () => music.detune(music.detune() + 100));
 onKeyPress("escape", () => music.stop());
 
-// Make a simple musical keyboard with "bell" sound and these keys
 const keyboard = "awsedftgyhujk"
 
+// Simple piano with "bell" sound and the second row of a QWERTY keyboard
 for (let i = 0; i < keyboard.length; i++) {
 	onKeyPress(keyboard[i], () => {
 		play("bell", {
