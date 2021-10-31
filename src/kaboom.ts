@@ -1144,7 +1144,11 @@ function scale(...args): ScaleComp {
 			this.scale = vec2(...args);
 		},
 		inspect() {
-			return `(${toFixed(this.scale.x, 2)}, ${toFixed(this.scale.y, 2)})`;
+			if (typeof this.scale === "number") {
+				return `${toFixed(this.scale, 2)}`;
+			} else {
+				return `(${toFixed(this.scale.x, 2)}, ${toFixed(this.scale.y, 2)})`;
+			}
 		},
 	};
 }
