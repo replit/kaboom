@@ -84,4 +84,4 @@ onKeyDown("down", () => {
 	input.textSize = curSize
 })
 
-// Check out https://kaboomjs.com#AreaComp for everything area() provides
+// Check out https://kaboomjs.com#TextComp for everything text() provides

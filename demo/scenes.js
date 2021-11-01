@@ -75,7 +75,7 @@ scene("game", ({ levelIdx, score }) => {
 	const player = get("player")[0]
 
 	// Movements
-	keyPress("space", () => {
+	onKeyPress("space", () => {
 		if (player.isGrounded()) {
 			player.jump()
 		}

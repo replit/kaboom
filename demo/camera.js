@@ -1,4 +1,4 @@
-// Build levels with addLevel()
+// Adjust camera / viewport
 
 // Start game
 kaboom()
@@ -57,6 +57,7 @@ const level = addLevel([
 const player = get("player")[0]
 
 player.onUpdate(() => {
+	// Set the viewport center to player.pos
 	camPos(player.pos)
 })
 

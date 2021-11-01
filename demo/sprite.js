@@ -36,7 +36,6 @@ loadSprite("dino", "/sprites/dino.png", {
 const SPEED = 120
 const JUMP_FORCE = 240
 
-// Set the gravity acceleration (pixels per second)
 gravity(640)
 
 // Add our player character
@@ -48,6 +47,7 @@ const player = add([
 	body(),
 ])
 
+// .play is provided by sprite() component, it starts playing the specified animation (the animation information of "idle" is defined above in loadSprite)
 player.play("idle")
 
 // Add a platform
