@@ -696,7 +696,7 @@ export interface KaboomCtx {
 		action: (a: GameObj) => void,
 	): EventCanceller,
 	/**
-	 * Registers an event that runs when game objs with certain tags are hovered. This function spins off an onUpdate() when called, please put it at root level and never inside another onUpdate().
+	 * Registers an event that runs when game objs with certain tags are hovered.
 	 *
 	 * @since v2000.1.0
 	 */
@@ -711,7 +711,7 @@ export interface KaboomCtx {
 	 *
 	 * @example
 	 * ```js
-	 * // move left by SPEED pixels per frame every frame when "left" is being held down
+	 * // move left by SPEED pixels per frame every frame when left arrow key is being held down
 	 * onKeyDown("left", () => {
 	 *     froggy.move(-SPEED, 0);
 	 * });
