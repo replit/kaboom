@@ -6,6 +6,7 @@ kaboom()
 // Load assets
 loadSprite("bean", "/sprites/bean.png")
 loadSprite("ghosty", "/sprites/ghosty.png")
+loadSprite("grass", "/sprites/grass.png")
 
 // Define player movement speed
 const SPEED = 320
@@ -14,9 +15,11 @@ const SPEED = 320
 const player = add([
 	sprite("bean"),
 	pos(80, 40),
+	color(),
 	// area() component gives the object a collider, which enables collision checking
 	area(),
-	color(),
+	// solid() component makes the object can't move pass other solid objects
+	solid(),
 ])
 
 // Register input handlers & movement
@@ -51,6 +54,14 @@ for (let i = 0; i < 3; i++) {
 	])
 
 }
+
+add([
+	sprite("grass"),
+	pos(center()),
+	area(),
+	// This game object also has solid(), so our player won't be able to move pass this
+	solid(),
+])
 
 // .onCollide() is provided by area() component, it registers an event that runs when an objects collides with another object with certain tag
 // In this case we destroy (remove from game) the enemy when player hits one

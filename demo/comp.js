@@ -22,7 +22,7 @@ function funky() {
 
 		// Runs when the host object is added to the game
 		add() {
-			debug.log("Prepare to get funky")
+			// E.g. Register some events from other components, do some bookkeeping, etc.
 		},
 
 		// Runs every frame as long as the host object exists
@@ -39,12 +39,12 @@ function funky() {
 
 		// Runs every frame (after update) as long as the host object exists
 		draw() {
-			// (This component doesn't render anything)
+			// E.g. Custom drawXXX() operations.
 		},
 
 		// Runs when the host object is destroyed
 		destroy() {
-			debug.log("Someone stopped being funky?!?")
+			// E.g. Clean up event handlers, etc.
 		},
 
 		// Get the info to present in inspect mode
