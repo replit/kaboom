@@ -117,3 +117,5 @@ const label = add([
 label.onUpdate(() => {
 	label.text = getInfo()
 })
+
+// Check out https://kaboomjs.com#SpriteComp for everything sprite() provides

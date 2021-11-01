@@ -83,3 +83,5 @@ onKeyDown("down", () => {
 	curSize = Math.max(curSize - dt() * SIZE_SPEED, SIZE_MIN)
 	input.textSize = curSize
 })
+
+// Check out https://kaboomjs.com#AreaComp for everything area() provides

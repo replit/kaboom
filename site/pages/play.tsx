@@ -48,6 +48,7 @@ const DEMO_ORDER = [
 	"draw",
 	"particle",
 	"shader",
+	"button",
 	"burp",
 ];
 

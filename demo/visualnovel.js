@@ -1,64 +1,59 @@
 kaboom({
 	background: [ 255, 209, 253 ]
-});
+})
 
-loadSprite("bean", "/sprites/bean.png");
-loadSprite("mark", "/sprites/mark.png");
+loadSprite("bean", "/sprites/bean.png")
+loadSprite("mark", "/sprites/mark.png")
 
 const dialogues = [
-	"hi my butterfly",
-	"i love u",
-	"you love me? pretty baby",
-	"mark is a stupid",
-	"he did not know how to take care of you...",
-	"you don't know me ...",
-	"what! mark???",
-	"oh...hi"
-];
+	[ "bean", "hi my butterfly" ],
+	[ "bean", "i love u" ],
+	[ "bean", "you love me? pretty baby" ],
+	[ "bean", "mark is a stupid" ],
+	[ "bean", "he did not know how to take care of you..." ],
+	[ "mark", "you don't know me ..." ],
+	[ "bean", "what! mark???" ],
+	[ "mark", "oh...hi " ],
+]
 
-const chars = [
-	"bean",
-	"bean",
-	"bean",
-	"bean",
-	"bean",
-	"mark",
-	"bean",
-	"mark"
-];
+let curDialog = 0
 
-let c = 0;
+const textbox = add([
+	rect(width() - 200, 120, { radius: 32 }),
+	origin("center"),
+	pos(center().x, height() - 100),
+	outline(2),
+])
 
-scene("say", (txt, ch) => {
+const avatar = add([
+	sprite("bean"),
+	scale(3),
+	origin("center"),
+	pos(center().sub(0, 50))
+])
 
-	const textbox = add([
-		rect(width() - 200, 120),
-		origin("center"),
-		pos(center().x, height() - 100),
-		outline(4),
-	]);
+const txt = add([
+	text("", { size: 32, width: width() - 230 }),
+	pos(textbox.pos),
+	origin("center")
+])
 
-	textbox.radius = 40; // rounded
+onKeyPress("space", () => {
+	// Cycle through the dialogues
+	curDialog = (curDialog + 1) % dialogues.length
+	updateDialog()
+})
 
-	add([
-		sprite(ch),
-		scale(3),
-		origin("center"),
-		pos(center().sub(0, 50))
-	]);
+// Update the on screen sprite & text
+function updateDialog() {
 
-	add([
-		text(txt, { size: 30, width: width() - 230 }),
-		pos(textbox.pos.sub(0, 10)),
-		origin("center")
-	]);
+	const [ char, dialog ] = dialogues[curDialog]
 
-	onKeyPress("space", () => {
-		if(c == dialogues.length - 1) c = 0;
-		else c++;
-		go("say", dialogues[c], chars[c]);
-	});
+	// Use a new sprite component to replace the old one
+	avatar.use(sprite(char))
+	// Update the dialog text
+	txt.text = dialog
 
-});
+}
 
-go("say", dialogues[c], chars[c]);
+updateDialog()
