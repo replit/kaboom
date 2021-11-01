@@ -2208,7 +2208,7 @@ function go(id: SceneID, ...args) {
 		throw new Error(`scene not found: ${id}`);
 	}
 
-	game.on("nextFrameStart", () => {
+	const cancel = game.on("updateStart", () => {
 
 		game.events = {};
 
@@ -2251,6 +2251,8 @@ function go(id: SceneID, ...args) {
 		if (gopt.burp) {
 			enterBurpMode();
 		}
+
+		cancel();
 
 	});
 
@@ -2724,8 +2726,7 @@ function frames() {
 
 function updateFrame() {
 
-	game.trigger("nextFrameStart");
-	delete game.events["nextFrameStart"];
+	game.trigger("updateStart");
 
 	// update timers
 	game.timers.forEach((t, id) => {
