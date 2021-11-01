@@ -7,6 +7,7 @@ kaboom()
 loadSprite("bean", "/sprites/bean.png")
 loadSprite("ghosty", "/sprites/ghosty.png")
 
+// Set the gravity acceleration (pixels per second)
 gravity()
 
 // Add player game object
@@ -45,3 +46,5 @@ add([
 	text("Press space key", { width: width() / 2 }),
 	pos(12, 12),
 ])
+
+// Check out https://kaboomjs.com#BodyComp for everything body() provides
