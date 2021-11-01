@@ -629,13 +629,13 @@ export interface KaboomCtx {
 	 */
 	onUpdate(action: () => void): EventCanceller,
 	/**
-	 * Registers an event that runs every frame (~60 times per second) for all game objs with certain tag (this is the same as onUpdate but all draw events are run after update events, and drawXXX() functions only work in this phase).
+	 * Registers an event that runs every frame (~60 times per second) for all game objs with certain tag (this is the same as onUpdate but all draw events are run after update events, drawXXX() functions only work in this phase).
 	 *
 	 * @since v2000.1.0
 	 */
 	onDraw(tag: Tag, action: (obj: GameObj) => void): EventCanceller,
 	/**
-	 * Registers an event that runs every frame (~60 times per second) (this is the same as onUpdate but all draw events are run after update events, and drawXXX() functions only work in this phase).
+	 * Registers an event that runs every frame (~60 times per second) (this is the same as onUpdate but all draw events are run after update events, drawXXX() functions only work in this phase).
 	 *
 	 * @since v2000.1.0
 	 *
@@ -643,7 +643,7 @@ export interface KaboomCtx {
 	 * ```js
 	 * onDraw(() => {
 	 *     drawLine({
-	 *         p1: vec2()0),
+	 *         p1: vec2(0),
 	 *         p2: mousePos(),
 	 *         color: rgb(0, 0, 255),
 	 *     })
