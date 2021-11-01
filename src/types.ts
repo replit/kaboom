@@ -1808,6 +1808,14 @@ export interface KaboomCtx {
 	 * Down directional vector vec2(0, 1).
 	 */
 	DOWN: Vec2,
+	RED: Color,
+	GREEN: Color,
+	BLUE: Color,
+	YELLOW: Color,
+	MAGENTA: Color,
+	CYAN: Color,
+	WHITE: Color,
+	BLACK: Color,
 	/**
 	 * The canvas DOM kaboom is currently using.
 	 */
