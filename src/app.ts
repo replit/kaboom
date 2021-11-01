@@ -365,7 +365,7 @@ function appInit(gopt: AppOpt = {}): App {
 
 	function isKeyPressedRepeat(k: string): boolean {
 		if (k === undefined) {
-			return app.isKeyPressedRep;
+			return app.isKeyPressedRepeat;
 		} else {
 			return app.keyStates[k] === "pressed" || app.keyStates[k] === "rpressed";
 		}

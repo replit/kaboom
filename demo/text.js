@@ -8,7 +8,7 @@ const input = add([
 ]);
 
 // load custom font 8x8
-loadFont("unscii", "fonts/unscii_8x8.png", 8, 8);
+loadFont("unscii", "/fonts/unscii_8x8.png", 8, 8);
 
 // list of built-in fonts ("o" at the end means the outlined version)
 const fonts = [

@@ -6,7 +6,7 @@ const SPEED = 480;
 kaboom();
 
 // load assets
-loadSprite("bean", "sprites/bean.png");
+loadSprite("bean", "/sprites/bean.png");
 
 scene("game", () => {
 

@@ -113,20 +113,28 @@ export interface KaboomCtx {
 	 *
 	 * @example
 	 * ```js
-	 * // how destroyAll() works
+	 * // Destroy all game obj with tag "fruit"
 	 * every("fruit", destroy);
+	 * ```
+	 */
+	every<T>(t: Tag, action: (obj: GameObj) => T): void,
+	/**
+	 * Run callback on every game obj.
 	 *
-	 * // without tag it runs through every game obj
+	 * @example
+	 * ```js
 	 * every((obj) => {});
 	 * ```
 	 */
-	every<T>(t: Tag, cb: (obj: GameObj) => T): void,
-	every<T>(cb: (obj: GameObj) => T): void,
+	every<T>(action: (obj: GameObj) => T): void,
 	/**
 	 * Run callback on every game obj with certain tag in reverse order.
 	 */
-	revery<T>(t: Tag, cb: (obj: GameObj) => T): void,
-	revery<T>(cb: (obj: GameObj) => T): void,
+	revery<T>(t: Tag, action: (obj: GameObj) => T): void,
+	/**
+	 * Run callback on every game obj in reverse order.
+	 */
+	revery<T>(action: (obj: GameObj) => T): void,
 	/**
 	 * Remove and re-add the game obj.
 	 *
@@ -587,9 +595,9 @@ export interface KaboomCtx {
 	 * });
 	 * ```
 	 */
-	on(event: string, tag: Tag, cb: (obj: GameObj, ...args) => void): EventCanceller,
+	on(event: string, tag: Tag, action: (obj: GameObj, ...args) => void): EventCanceller,
 	/**
-	 * Registers an event that runs every frame for all game objs with certain tag. If tag is omitted it'll just run the callback every frame.
+	 * Registers an event that runs every frame (~60 times per second) for all game objs with certain tag.
 	 *
 	 * @since v2000.1.0
 	 *
@@ -603,22 +611,46 @@ export interface KaboomCtx {
 	 *         destroy(tree);
 	 *     }
 	 * });
+	 * ```
+	 */
+	onUpdate(tag: Tag, action: (obj: GameObj) => void): EventCanceller,
+	/**
+	 * Registers an event that runs every frame (~60 times per second).
 	 *
-	 * // without tags it just runs somethinge every frame
+	 * @since v2000.1.0
+	 *
+	 * @example
+	 * ```js
+	 * // This will run every frame
 	 * onUpdate(() => {
 	 *     debug.log("ohhi");
 	 * });
 	 * ```
 	 */
-	onUpdate(tag: Tag, cb: (obj: GameObj) => void): EventCanceller,
-	onUpdate(cb: () => void): EventCanceller,
+	onUpdate(action: () => void): EventCanceller,
 	/**
-	 * Registers an event that runs every frame for all game objs with certain tag (this is the same as onUpdate but all draw events are run after update events). If tag is omitted it'll just run the callback every frame.
+	 * Registers an event that runs every frame (~60 times per second) for all game objs with certain tag (this is the same as onUpdate but all draw events are run after update events, drawXXX() functions only work in this phase).
 	 *
 	 * @since v2000.1.0
 	 */
-	onDraw(tag: Tag, cb: (obj: GameObj) => void): EventCanceller,
-	onDraw(cb: () => void): EventCanceller,
+	onDraw(tag: Tag, action: (obj: GameObj) => void): EventCanceller,
+	/**
+	 * Registers an event that runs every frame (~60 times per second) (this is the same as onUpdate but all draw events are run after update events, drawXXX() functions only work in this phase).
+	 *
+	 * @since v2000.1.0
+	 *
+	 * @example
+	 * ```js
+	 * onDraw(() => {
+	 *     drawLine({
+	 *         p1: vec2(0),
+	 *         p2: mousePos(),
+	 *         color: rgb(0, 0, 255),
+	 *     })
+	 * })
+	 * ```
+	 */
+	onDraw(action: () => void): EventCanceller,
 	/**
 	 * Registers an event that runs when all assets finished loading.
 	 *
@@ -632,7 +664,7 @@ export interface KaboomCtx {
 	 *
 	 * // certain assets related data are only available when the game finishes loading
 	 * onLoad(() => {
-	 *     debug.log(froggy.numFrames());
+	 *     debug.log(froggy.width);
 	 * });
 	 * ```
 	 */
@@ -652,20 +684,20 @@ export interface KaboomCtx {
 	onCollide(
 		t1: Tag,
 		t2: Tag,
-		cb: (a: GameObj, b: GameObj, col?: Collision) => void,
+		action: (a: GameObj, b: GameObj, col?: Collision) => void,
 	): EventCanceller,
 	/**
-	 * Registers an event that runs when game objs with certain tags are clicked (also required to have the area() component).
+	 * Registers an event that runs when game objs with certain tags are clicked (required to have the area() component).
 	 *
 	 * @since v2000.1.0
 	 */
-	onClick(tag: Tag, cb: (a: GameObj) => void): EventCanceller,
+	onClick(tag: Tag, action: (a: GameObj) => void): EventCanceller,
 	/**
 	 * Registers an event that runs when users clicks.
 	 *
 	 * @since v2000.1.0
 	 */
-	onClick(cb: () => void): EventCanceller,
+	onClick(action: () => void): EventCanceller,
 	/**
 	 * Registers an event that runs when game objs with certain tags are hovered. This function spins off an onUpdate() when called, please put it at root level and never inside another onUpdate().
 	 *
@@ -673,7 +705,7 @@ export interface KaboomCtx {
 	 */
 	onHover(
 		tag: Tag,
-		cb: (a: GameObj) => void,
+		action: (a: GameObj) => void,
 	): EventCanceller,
 	/**
 	 * Registers an event that runs every frame when a key is held down.
@@ -688,7 +720,7 @@ export interface KaboomCtx {
 	 * });
 	 * ```
 	 */
-	onKeyDown(k: Key | Key[], cb: () => void): EventCanceller,
+	onKeyDown(k: Key | Key[], action: () => void): EventCanceller,
 	/**
 	 * Registers an event that runs when user presses certain key.
 	 *
@@ -702,8 +734,21 @@ export interface KaboomCtx {
 	 * });
 	 * ```
 	 */
-	onKeyPress(k: Key | Key[], cb: () => void): EventCanceller,
-	onKeyPress(cb: () => void): EventCanceller,
+	onKeyPress(k: Key | Key[], action: () => void): EventCanceller,
+	/**
+	 * Registers an event that runs when user presses any key.
+	 *
+	 * @since v2000.1.0
+	 *
+	 * @example
+	 * ```js
+	 * // Call restart() when player presses any key
+	 * onKeyPress(() => {
+	 *     restart()
+	 * });
+	 * ```
+	 */
+	onKeyPress(action: () => void): EventCanceller,
 	/**
 	 * Registers an event that runs when user presses certain key (also fires repeatedly when they key is being held down).
 	 *
@@ -717,15 +762,15 @@ export interface KaboomCtx {
 	 * });
 	 * ```
 	 */
-	onKeyPressRepeat(k: Key | Key[], cb: () => void): EventCanceller,
-	onKeyPressRepeat(cb: () => void): EventCanceller,
+	onKeyPressRepeat(k: Key | Key[], action: () => void): EventCanceller,
+	onKeyPressRepeat(action: () => void): EventCanceller,
 	/**
 	 * Registers an event that runs when user releases certain key.
 	 *
 	 * @since v2000.1.0
 	 */
-	onKeyRelease(k: Key | Key[], cb: () => void): EventCanceller,
-	onKeyRelease(cb: () => void): EventCanceller,
+	onKeyRelease(k: Key | Key[], action: () => void): EventCanceller,
+	onKeyRelease(action: () => void): EventCanceller,
 	/**
 	 * Registers an event that runs when user inputs text.
 	 *
@@ -739,9 +784,9 @@ export interface KaboomCtx {
 	 * });
 	 * ```
 	 */
-	onCharInput(cb: (ch: string) => void): EventCanceller,
+	onCharInput(action: (ch: string) => void): EventCanceller,
 	/**
-	 * Registers an event that runs every frame when mouse button is down.
+	 * Registers an event that runs every frame when a mouse button is being held down.
 	 *
 	 * @since v2000.1.0
 	 */
@@ -766,25 +811,25 @@ export interface KaboomCtx {
 	 *
 	 * @since v2000.1.0
 	 */
-	onMouseMove(cb: (pos: Vec2) => void): EventCanceller,
+	onMouseMove(action: (pos: Vec2) => void): EventCanceller,
 	/**
 	 * Registers an event that runs when a touch starts.
 	 *
 	 * @since v2000.1.0
 	 */
-	onTouchStart(cb: (id: TouchID, pos: Vec2) => void): EventCanceller,
+	onTouchStart(action: (id: TouchID, pos: Vec2) => void): EventCanceller,
 	/**
 	 * Registers an event that runs whenever touch moves.
 	 *
 	 * @since v2000.1.0
 	 */
-	onTouchMove(cb: (id: TouchID, pos: Vec2) => void): EventCanceller,
+	onTouchMove(action: (id: TouchID, pos: Vec2) => void): EventCanceller,
 	/**
 	 * Registers an event that runs when a touch ends.
 	 *
 	 * @since v2000.1.0
 	 */
-	onTouchEnd(cb: (id: TouchID, pos: Vec2) => void): EventCanceller,
+	onTouchEnd(action: (id: TouchID, pos: Vec2) => void): EventCanceller,
 	/**
 	 * @deprecated Use onUpdate() instead
 	 */
@@ -1247,11 +1292,11 @@ export interface KaboomCtx {
 	 * });
 	 * ```
 	 */
-	loop(t: number, cb: () => void): EventCanceller,
+	loop(t: number, action: () => void): EventCanceller,
 	/**
 	 * Run the callback after n seconds.
 	 */
-	wait(n: number, cb?: () => void): Promise<void>,
+	wait(n: number, action?: () => void): Promise<void>,
 	/**
 	 * Get / set the cursor (css). Cursor will be reset to "default" every frame so use this in an per-frame action.
 	 *
@@ -1927,7 +1972,7 @@ export interface GameObjRaw {
 	/**
 	 * Registers an event.
 	 */
-	on(ev: string, cb: () => void): EventCanceller;
+	on(ev: string, action: () => void): EventCanceller;
 	/**
 	 * Triggers an event.
 	 */
@@ -1949,19 +1994,19 @@ export interface GameObjRaw {
 	 *
 	 * @since v2000.1.0
 	 */
-	onUpdate(cb: () => void): EventCanceller;
+	onUpdate(action: () => void): EventCanceller;
 	/**
 	 * Registers an event that runs every frame as long as the game obj exists (this is the same as `onUpdate()`, but all draw events are run after all update events).
 	 *
 	 * @since v2000.1.0
 	 */
-	onDraw(cb: () => void): EventCanceller;
+	onDraw(action: () => void): EventCanceller;
 	/**
 	 * Registers an event that runs when the game obj is destroyed.
 	 *
 	 * @since v2000.1.0
 	 */
-	onDestroy(cb: () => void): EventCanceller;
+	onDestroy(action: () => void): EventCanceller;
 	/**
 	 * Registers an event that runs every frame as long as the game obj exists (alias to onUpdate).
 	 *
@@ -3180,11 +3225,11 @@ export interface SpriteComp extends Comp {
 	/**
 	 * Registers an event that runs when an animation is played.
 	 */
-	onAnimPlay(action: (name: string) => void): EventCanceller,
+	onAnimStart(name: string, action: () => void): EventCanceller,
 	/**
 	 * Registers an event that runs when an animation is ended.
 	 */
-	onAnimEnd(action: (name: string) => void): EventCanceller,
+	onAnimEnd(name: string, action: () => void): EventCanceller,
 }
 
 export interface TextComp extends Comp {
@@ -3470,7 +3515,7 @@ export interface TimerComp extends Comp {
 	/**
 	 * Run the callback after n seconds.
 	 */
-	wait(n: number, cb: () => void): EventCanceller,
+	wait(n: number, action: () => void): EventCanceller,
 }
 
 export interface SolidComp extends Comp {

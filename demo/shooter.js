@@ -15,14 +15,14 @@ const objs = [
 ];
 
 for (const obj of objs) {
-	loadSprite(obj, `sprites/${obj}.png`);
+	loadSprite(obj, `/sprites/${obj}.png`);
 }
 
 loadBean();
-loadSound("hit", "sounds/hit.mp3");
-loadSound("shoot", "sounds/shoot.mp3");
-loadSound("explode", "sounds/explode.mp3");
-loadSound("OtherworldlyFoe", "sounds/OtherworldlyFoe.mp3");
+loadSound("hit", "/sounds/hit.mp3");
+loadSound("shoot", "/sounds/shoot.mp3");
+loadSound("explode", "/sounds/explode.mp3");
+loadSound("OtherworldlyFoe", "/sounds/OtherworldlyFoe.mp3");
 
 scene("battle", () => {
 

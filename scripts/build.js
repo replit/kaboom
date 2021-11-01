@@ -1,14 +1,22 @@
-const fs = require("fs");
-const path = require("path");
-const esbuild = require("esbuild");
-const ts = require("typescript");
+import fs from "fs";
+import path from "path";
+import esbuild from "esbuild";
+import ts from "typescript";
 
 const dev = process.env.NODE_ENV === "development";
 const srcDir = "src";
 const distDir = "dist";
 
 const fmts = [
-	{ format: "iife", ext: "js",  },
+	{
+		format: "iife",
+		ext: "js",
+		config: {
+			footer: {
+				js: "window.kaboom = kaboom.default;",
+			},
+		},
+	},
 	...(dev ? [] : [
 		{ format: "cjs",  ext: "cjs", },
 		{ format: "esm",  ext: "mjs", },
@@ -40,6 +48,7 @@ fmts.forEach((fmt) => {
 		globalName: "kaboom",
 		format: fmt.format,
 		outfile: distPath,
+		...(fmt.config ?? {})
 	}).then(postBuild);
 
 });
@@ -175,7 +184,7 @@ function buildTypes() {
 
 				if (tags["section"]) {
 					const name = tags["section"][0];
-					const docPath = path.resolve(__dirname, `../doc/sections/${name}.md`);
+					const docPath = path.resolve(`doc/sections/${name}.md`);
 					sections.push({
 						name: name,
 						entries: [],

@@ -142,8 +142,7 @@ import {
 
 import kaboomPlugin from "./plugins/kaboom";
 
-// @ts-ignore
-module.exports = (gopt: KaboomOpt = {}): KaboomCtx => {
+export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 const audio = audioInit();
 
@@ -1171,7 +1170,11 @@ function scale(...args): ScaleComp {
 			this.scale = vec2(...args);
 		},
 		inspect() {
-			return `(${toFixed(this.scale.x, 2)}, ${toFixed(this.scale.y, 2)})`;
+			if (typeof this.scale === "number") {
+				return `${toFixed(this.scale, 2)}`;
+			} else {
+				return `(${toFixed(this.scale.x, 2)}, ${toFixed(this.scale.y, 2)})`;
+			}
 		},
 	};
 }
@@ -1332,11 +1335,7 @@ function area(opt: AreaCompOpt = {}): AreaComp {
 
 		isHovering() {
 			const mpos = this.fixed ? mousePos() : mouseWorldPos();
-			if (app.isTouch) {
-				return app.isMouseDown() && this.hasPoint(mpos);
-			} else {
-				return this.hasPoint(mpos);
-			}
+			return this.hasPoint(mpos);
 		},
 
 		isColliding(other) {
@@ -1698,7 +1697,9 @@ function sprite(id: string | SpriteData, opt: SpriteCompOpt = {}): SpriteComp {
 				this.frame = anim.from;
 			}
 
+			// TODO: "animPlay" is deprecated
 			this.trigger("animPlay", name);
+			this.trigger("animStart", name);
 
 		},
 
@@ -1730,12 +1731,20 @@ function sprite(id: string | SpriteData, opt: SpriteCompOpt = {}): SpriteComp {
 			opt.flipY = b;
 		},
 
-		onAnimEnd(action: (name: string) => void): EventCanceller {
-			return this.on("animEnd", action);
+		onAnimEnd(name: string, action: () => void): EventCanceller {
+			return this.on("animEnd", (anim) => {
+				if (anim === name) {
+					action();
+				}
+			});
 		},
 
-		onAnimPlay(action: (name: string) => void): EventCanceller {
-			return this.on("animPlay", action);
+		onAnimStart(name: string, action: () => void): EventCanceller {
+			return this.on("animStart", (anim) => {
+				if (anim === name) {
+					action();
+				}
+			});
 		},
 
 		inspect() {
@@ -2225,7 +2234,7 @@ function go(id: SceneID, ...args) {
 		throw new Error(`scene not found: ${id}`);
 	}
 
-	game.on("nextFrameStart", () => {
+	const cancel = game.on("updateStart", () => {
 
 		game.events = {};
 
@@ -2268,6 +2277,8 @@ function go(id: SceneID, ...args) {
 		if (gopt.burp) {
 			enterBurpMode();
 		}
+
+		cancel();
 
 	});
 
@@ -2741,8 +2752,7 @@ function frames() {
 
 function updateFrame() {
 
-	game.trigger("nextFrameStart");
-	delete game.events["nextFrameStart"];
+	game.trigger("updateStart");
 
 	// update timers
 	game.timers.forEach((t, id) => {
