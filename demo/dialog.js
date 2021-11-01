@@ -1,3 +1,5 @@
+// Simple dialogues
+
 kaboom({
 	background: [ 255, 209, 253 ]
 })
@@ -5,7 +7,8 @@ kaboom({
 loadSprite("bean", "/sprites/bean.png")
 loadSprite("mark", "/sprites/mark.png")
 
-const dialogues = [
+// Define the dialogue data
+const dialogs = [
 	[ "bean", "hi my butterfly" ],
 	[ "bean", "i love u" ],
 	[ "bean", "you love me? pretty baby" ],
@@ -18,6 +21,7 @@ const dialogues = [
 
 let curDialog = 0
 
+// Text bubble
 const textbox = add([
 	rect(width() - 200, 120, { radius: 32 }),
 	origin("center"),
@@ -25,6 +29,14 @@ const textbox = add([
 	outline(2),
 ])
 
+// Text
+const txt = add([
+	text("", { size: 32, width: width() - 230 }),
+	pos(textbox.pos),
+	origin("center")
+])
+
+// Character avatar
 const avatar = add([
 	sprite("bean"),
 	scale(3),
@@ -32,22 +44,16 @@ const avatar = add([
 	pos(center().sub(0, 50))
 ])
 
-const txt = add([
-	text("", { size: 32, width: width() - 230 }),
-	pos(textbox.pos),
-	origin("center")
-])
-
 onKeyPress("space", () => {
-	// Cycle through the dialogues
-	curDialog = (curDialog + 1) % dialogues.length
+	// Cycle through the dialogs
+	curDialog = (curDialog + 1) % dialogs.length
 	updateDialog()
 })
 
 // Update the on screen sprite & text
 function updateDialog() {
 
-	const [ char, dialog ] = dialogues[curDialog]
+	const [ char, dialog ] = dialogs[curDialog]
 
 	// Use a new sprite component to replace the old one
 	avatar.use(sprite(char))
