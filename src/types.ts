@@ -544,6 +544,8 @@ export interface KaboomCtx {
 	/**
 	 * Finite state machine.
 	 *
+	 * @since v2000.1.0
+	 *
 	 * @example
 	 * ```js
 	 * const enemy = add([
