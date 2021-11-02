@@ -4,6 +4,7 @@
 - added `record()` to start a screen recording
 - added F5 to screenshot and F6 to toggle record mode in debug mode
 - added `DrawTextOpt#transform()` and `TextCompOpt#transform()` for defining style and transformation for each character
+- added `state()` component for finite state machine
 - added new API style (`on` prefix for all event handler function, `is` prefix for all boolean state getters)
   - `onLoad()`
   - `onUpdate()`
