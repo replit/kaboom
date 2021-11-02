@@ -552,22 +552,20 @@ export interface KaboomCtx {
 	 *     state("idle", ["idle", "attack", "move"]),
 	 * ]);
 	 *
-	 * // this will run once when enters "attack" state
+	 * // this callback will run once when enters "attack" state
 	 * enemy.onStateEnter("attack", () => {
-	 *     enemy.play("attackAnim")
-	 *     checkHit(enemy, player)
-	 *     wait(1, () => {
+	 *     // enter "idle" state when the attack animation ends
+	 *     enemy.play("attackAnim", {
 	 *         // any additional arguments will be passed into the onStateEnter() callback
-	 *         enemy.enterState("idle", rand(1, 3))
+	 *         onEnd: () => enemy.enterState("idle", rand(1, 3)),
 	 *     })
+	 *     checkHit(enemy, player)
 	 * })
 	 *
 	 * // this will run once when enters "idle" state
 	 * enemy.onStateEnter("idle", (time) => {
-	 *     enemy.play("attackAnim")
-	 *     wait(1, () => {
-	 *         enemy.enterState("move")
-	 *     })
+	 *     enemy.play("idleAnim")
+	 *     wait(time, () => enemy.enterState("move"))
 	 * })
 	 *
 	 * // this will run every frame when current state is "move"
