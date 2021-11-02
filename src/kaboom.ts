@@ -852,7 +852,6 @@ function enterDebugMode() {
 
 	onKeyPress("f8", () => {
 		debug.paused = !debug.paused;
-		debug.log(`${debug.paused ? "paused" : "unpaused"}`);
 	});
 
 	onKeyPress("f7", () => {
@@ -2968,13 +2967,57 @@ app.run(() => {
 			logger.draw();
 		}
 
+		if (debug.paused) {
+
+			gfx.pushTransform();
+			gfx.pushTranslate(width(), 0);
+			gfx.pushScale(1 / app.scale);
+			gfx.pushTranslate(-24, 24);
+
+			const size = 48;
+
+			gfx.drawRect({
+				width: size,
+				height: size,
+				origin: "topright",
+				color: rgb(0, 0, 0),
+				opacity: 0.8,
+				radius: 4,
+			});
+
+			for (let i = 1; i <= 2; i++) {
+
+				gfx.drawRect({
+					width: 6,
+					height: size * 0.6,
+					origin: "center",
+					pos: vec2(-size / 3 * i, size * 0.5),
+					color: rgb(255, 255, 255),
+					opacity: 0.8,
+					radius: 3,
+				});
+
+			}
+
+			gfx.popTransform();
+
+		}
+
 		if (curRecording) {
+
+			gfx.pushTransform();
+			gfx.pushTranslate(0, height());
+			gfx.pushScale(1 / app.scale);
+			gfx.pushTranslate(24, -24);
+
 			gfx.drawCircle({
 				radius: 12,
-				pos: vec2(24, height() - 24),
 				color: rgb(255, 0, 0),
 				opacity: wave(0, 1, app.time() * 4),
 			});
+
+			gfx.popTransform();
+
 		}
 
 		gfx.frameEnd();
