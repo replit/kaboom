@@ -3370,6 +3370,8 @@ export interface Debug {
 	error(msg: string): void,
 	/**
 	 * The recording handle if currently in recording mode.
+	 *
+	 * @since v2000.1.0
 	 */
 	curRecording: Recording | null,
 }
