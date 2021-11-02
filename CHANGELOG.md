@@ -1,3 +1,53 @@
+# v2000.1.0 ""
+
+- added `hsl2rgb()` for converting HSL color to kaboom RGB
+- added `record()` to start a screen recording
+- added F5 to screenshot and F6 to toggle record mode in debug mode
+- added `DrawTextOpt#transform()` and `TextCompOpt#transform()` for defining style and transformation for each character
+- added new API style (`on` prefix for all event handler function, `is` prefix for all boolean state getters)
+  - `onLoad()`
+  - `onUpdate()`
+  - `onDraw()`
+  - `onKeyPress()`
+  - `onKeyPressRepeat()`
+  - `onKeyDown()`
+  - `onKeyRelease()`
+  - `onMousePress()`
+  - `onMouseDown()`
+  - `onMouseRelease()`
+  - `onMoueMove()`
+  - `onTouchStart()`
+  - `onTouchMove()`
+  - `onTouchEnd()`
+  - `onCollide()`
+  - `onClick()`
+  - `onHover()`
+  - `isFocused()`
+  - `isKeyDown()`
+  - `isKeyPressed()`
+  - `isKeyPressedRepeat()`
+  - `isKeyDown()`
+  - `isMouseDown()`
+  - `isMousePressed()`
+  - `isMouseReleased()`
+  - `isMouseMoved()`
+  - `isMouseMoved()`
+  - `GameObj#onUpdate()`
+  - `GameObj#onDraw()`
+  - `AreaComp#onCollide()`
+  - `AreaComp#onHover()`
+  - `AreaComp#onClick()`
+  - `BodyComp#onGround()`
+  - `BodyComp#onFall()`
+  - `BodyComp#onHeadbutt()`
+  - `BodyComp#onDoubleJump()`
+  - `BodyComp#isGrounded()`
+  - `BodyComp#isFalling()`
+  - `SpriteComp#onAnimEnd()`
+  - `SpriteComp#onAnimStart()`
+  - `AudioPlay#isStopped()`
+  - `AudioPlay#isPaused()`
+
 # v2000.0.0 "Burp Mode"
 - version jumped to v2000.0.0 (still semver, just big)
 - added `burp()` for easy burping
