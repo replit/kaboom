@@ -1,4 +1,5 @@
 import fs from "fs/promises";
+import path from "path";
 import * as React from "react";
 import { GetServerSideProps } from "next";
 import Link from "next/link";
@@ -24,34 +25,12 @@ import Draggable from "comps/Draggable";
 import Droppable from "comps/Droppable";
 import Background from "comps/Background";
 import Doc from "comps/Doc";
-import { basename } from "lib/path";
 import download from "lib/download";
 import wrapHTML from "lib/wrapHTML";
 import Ctx from "lib/Ctx";
+import DEMO_ORDER from "public/site/demo/order.json";
 
 const DEF_DEMO = "add";
-
-const DEMO_ORDER = [
-	"add",
-	"movement",
-	"collision",
-	"gravity",
-	"sprite",
-	"text",
-	"audio",
-	"level",
-	"scenes",
-	"timer",
-	"comp",
-	"layer",
-	"camera",
-	"draw",
-	"particle",
-	"shader",
-	"button",
-	"dialog",
-	"burp",
-];
 
 interface SpriteEntryProps {
 	name: string,
@@ -94,7 +73,7 @@ const SpriteEntry: React.FC<SpriteEntryProps> = ({
 				}}
 			/>
 		</View>
-		<Text>{basename(name)}</Text>
+		<Text>{path.basename(name)}</Text>
 	</Draggable>
 );
 
@@ -126,7 +105,7 @@ const SoundEntry: React.FC<SoundEntryProps> = ({
 		}}
 		onClick={() => new Audio(src).play()}
 	>
-		<Text>{basename(name)}</Text>
+		<Text>{path.basename(name)}</Text>
 	</View>
 );
 
@@ -485,7 +464,11 @@ export const getServerSideProps: GetServerSideProps = async (ctx) => {
 		.filter((p) => !p.startsWith("."))
 	const demos: Record<string, string> = {}
 	for (const file of demodir) {
-		demos[basename(file) ?? file] = await fs.readFile(`public/site/demo/${file}`, "utf8");
+		const ext = path.extname(file)
+		const name = path.basename(file, ext)
+		if (ext === ".js") {
+			demos[name] = await fs.readFile(`public/site/demo/${file}`, "utf8");
+		}
 	}
 	return {
 		props: {

@@ -1,0 +1,21 @@
+[
+	"add",
+	"movement",
+	"collision",
+	"gravity",
+	"sprite",
+	"text",
+	"audio",
+	"level",
+	"scenes",
+	"timer",
+	"comp",
+	"layer",
+	"camera",
+	"draw",
+	"particle",
+	"shader",
+	"button",
+	"dialog",
+	"burp"
+]
