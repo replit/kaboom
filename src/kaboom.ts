@@ -2890,7 +2890,32 @@ function drawInspect() {
 
 	}
 
-	drawInspectTxt(vec2(0), `FPS: ${app.fps()}`);
+	// top left corner
+	gfx.pushTransform();
+	gfx.pushScale(1 / app.scale);
+	gfx.pushTranslate(8, 8);
+
+	const pad = 8;
+
+	const ftxt = gfx.fmtText({
+		text: `FPS: ${app.fps()}`,
+		font: assets.fonts[DBG_FONT],
+		size: 16,
+		color: rgb(255, 255, 255),
+		pos: vec2(pad),
+	});
+
+	gfx.drawRect({
+		width: ftxt.width + pad * 2,
+		height: ftxt.height + pad * 2,
+		color: rgb(0, 0, 0),
+		opacity: 0.8,
+		radius: 4,
+	});
+
+	gfx.drawFmtText(ftxt);
+
+	gfx.popTransform();
 
 }
 
@@ -2970,9 +2995,9 @@ app.run(() => {
 			gfx.pushTransform();
 			gfx.pushTranslate(width(), 0);
 			gfx.pushScale(1 / app.scale);
-			gfx.pushTranslate(-16, 16);
+			gfx.pushTranslate(-8, 8);
 
-			const size = 48;
+			const size = 32;
 
 			// bg
 			gfx.drawRect({
@@ -2987,12 +3012,12 @@ app.run(() => {
 			// pause icon
 			for (let i = 1; i <= 2; i++) {
 				gfx.drawRect({
-					width: 6,
+					width: 4,
 					height: size * 0.6,
 					origin: "center",
 					pos: vec2(-size / 3 * i, size * 0.5),
 					color: rgb(255, 255, 255),
-					radius: 3,
+					radius: 2,
 				});
 			}
 
@@ -3006,7 +3031,7 @@ app.run(() => {
 			gfx.pushTransform();
 			gfx.pushTranslate(width(), height());
 			gfx.pushScale(1 / app.scale);
-			gfx.pushTranslate(-16, -16);
+			gfx.pushTranslate(-8, -8);
 
 			const pad = 8;
 
