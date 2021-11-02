@@ -111,9 +111,10 @@ function getFullscreenElement(): Element | void {
 
 function appInit(gopt: AppOpt = {}): App {
 
-    const root = gopt.root ?? document.body;
+	const root = gopt.root ?? document.body;
 
-	if (root === document.body) {
+	// If user doesn't provide a canvas and we're creating one under document.body, stretch <body> and <html> so it's properly fullscreen without default margin / padding
+	if (!gopt.canvas && root === document.body) {
 		document.body.style["width"] = "100%";
 		document.body.style["height"] = "100%";
 		document.body.style["margin"] = "0px";
@@ -178,9 +179,11 @@ function appInit(gopt: AppOpt = {}): App {
 	];
 
 	if (gopt.width && gopt.height && !gopt.stretch) {
+		// If width and height is provided and we're not stretching, size the canvas to the given size * given scale
 		app.canvas.width = gopt.width * app.scale;
 		app.canvas.height = gopt.height * app.scale;
-	} else {
+	} else if (!gopt.canvas) {
+		// If width and height is not provided and we're not using user provided canvas, stretch to parent size
 		app.canvas.width = app.canvas.parentElement.offsetWidth;
 		app.canvas.height = app.canvas.parentElement.offsetHeight;
 	}
