@@ -1053,7 +1053,7 @@ export interface KaboomCtx {
 	 * `vec4 frag(vec3 pos, vec2 uv, vec4 color, sampler2D tex) {
 	 *     // turn everything blue-ish
 	 *     return def_frag() * vec4(0, 0, 1, 1);
-	 * }`, true);
+	 * }`, false);
 	 * ```
 	 */
 	loadShader(
