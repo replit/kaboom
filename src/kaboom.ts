@@ -854,19 +854,21 @@ function enterDebugMode() {
 		debug.paused = !debug.paused;
 	});
 
+	const toFixedNumber = (num, digits, base = 10) => {
+		const pow = Math.pow(base, digits);
+		return Math.round(num * pow) / pow;
+	}
+
 	onKeyPress("f7", () => {
-		debug.timeScale = clamp(debug.timeScale - 0.2, 0, 2);
-		debug.log(`time scale: ${debug.timeScale.toFixed(1)}`);
+		debug.timeScale = toFixedNumber(clamp(debug.timeScale - 0.2, 0, 2), 1);
 	});
 
 	onKeyPress("f9", () => {
-		debug.timeScale = clamp(debug.timeScale + 0.2, 0, 2);
-		debug.log(`time scale: ${debug.timeScale.toFixed(1)}`);
+		debug.timeScale = toFixedNumber(clamp(debug.timeScale + 0.2, 0, 2), 1);
 	});
 
 	onKeyPress("f10", () => {
 		debug.stepFrame();
-		debug.log(`stepped frame`);
 	});
 
 	onKeyPress("f5", () => {
@@ -2993,11 +2995,54 @@ app.run(() => {
 					origin: "center",
 					pos: vec2(-size / 3 * i, size * 0.5),
 					color: rgb(255, 255, 255),
-					opacity: 0.8,
 					radius: 3,
 				});
 
 			}
+
+			gfx.popTransform();
+
+		}
+
+		if (debug.timeScale !== 1) {
+
+			gfx.pushTransform();
+			gfx.pushTranslate(width(), height());
+			gfx.pushScale(1 / app.scale);
+			gfx.pushTranslate(-24, -24);
+
+			const pad = 8;
+
+			const ftxt = gfx.fmtText({
+				text: debug.timeScale.toFixed(1),
+				font: assets.fonts[DBG_FONT],
+				size: 16,
+				color: rgb(255, 255, 255),
+				pos: vec2(-pad),
+				origin: "botright",
+			});
+
+			gfx.drawRect({
+				width: ftxt.width + pad * 2 + pad * 4,
+				height: ftxt.height + pad * 2,
+				origin: "botright",
+				color: rgb(0, 0, 0),
+				opacity: 0.8,
+				radius: 4,
+			});
+
+			for (let i = 0; i < 2; i++) {
+				const flipped = debug.timeScale < 1;
+				gfx.drawTriangle({
+					p1: vec2(-ftxt.width - pad * (flipped ? 2 : 3.5), -pad),
+					p2: vec2(-ftxt.width - pad * (flipped ? 2 : 3.5), -pad - ftxt.height),
+					p3: vec2(-ftxt.width - pad * (flipped ? 3.5 : 2), -pad - ftxt.height / 2),
+					pos: vec2(-i * pad * 1 + (flipped ? -pad * 0.5 : 0), 0),
+					color: rgb(255, 255, 255),
+				});
+			}
+
+			gfx.drawFmtText(ftxt);
 
 			gfx.popTransform();
 
