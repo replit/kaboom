@@ -3368,6 +3368,10 @@ export interface Debug {
 	 * Log an error message to on screen debug log.
 	 */
 	error(msg: string): void,
+	/**
+	 * The recording handle if currently in recording mode.
+	 */
+	curRecording: Recording | null,
 }
 
 export type UniformValue =
