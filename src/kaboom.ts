@@ -2970,7 +2970,7 @@ app.run(() => {
 			gfx.pushTransform();
 			gfx.pushTranslate(width(), 0);
 			gfx.pushScale(1 / app.scale);
-			gfx.pushTranslate(-24, 24);
+			gfx.pushTranslate(-16, 16);
 
 			const size = 48;
 
@@ -3006,7 +3006,7 @@ app.run(() => {
 			gfx.pushTransform();
 			gfx.pushTranslate(width(), height());
 			gfx.pushScale(1 / app.scale);
-			gfx.pushTranslate(-24, -24);
+			gfx.pushTranslate(-16, -16);
 
 			const pad = 8;
 
