@@ -79,6 +79,11 @@ onKeyPress("space", () => {
 	bean.getFunky()
 })
 
+onKeyPress("r", () => {
+	// .use() is on every game object, it adds a component at runtime
+	bean.use(rotate(180))
+})
+
 add([
 	text("Press space to get funky", { width: width() }),
 	pos(12, 12),
