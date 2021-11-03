@@ -838,8 +838,6 @@ function onTouchEnd(f: (id: TouchID, pos: Vec2) => void): EventCanceller {
 	return game.on("onTouchEnd", f);
 }
 
-let curRecording = null;
-
 function enterDebugMode() {
 
 	onKeyPress("f1", () => {
@@ -875,11 +873,11 @@ function enterDebugMode() {
 	});
 
 	onKeyPress("f6", () => {
-		if (curRecording) {
-			curRecording.download();
-			curRecording = null;
+		if (debug.curRecording) {
+			debug.curRecording.download();
+			debug.curRecording = null;
 		} else {
-			curRecording = record();
+			debug.curRecording = record();
 		}
 	});
 
@@ -2177,6 +2175,7 @@ const debug: Debug = {
 	clearLog: logger.clear,
 	log: (msg) => logger.info(`[${app.time().toFixed(2)}] ${msg}`),
 	error: (msg) => logger.error(`[${app.time().toFixed(2)}] ${msg}`),
+	curRecording: null,
 	get paused() {
 		return game.paused;
 	},
@@ -2968,7 +2967,7 @@ app.run(() => {
 			logger.draw();
 		}
 
-		if (curRecording) {
+		if (debug.curRecording) {
 			gfx.drawCircle({
 				radius: 12,
 				pos: vec2(24, height() - 24),
