@@ -8,6 +8,7 @@
 - added support for multiple tags in `get()` and `every()`
 - added UI indicator for `debug.paused` and `debug.timeScale`
 - changed inspect mode UI style
+- added color constants `WHITE`, `BLACK`, `BLUE`, `GREEN`, `RED`, `MAGENTA`, `CYAN`, `YELLOW`
 - added new API style (`on` prefix for all event handler function, `is` prefix for all boolean state getters)
   - `onLoad()`
   - `onUpdate()`
