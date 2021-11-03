@@ -1,6 +1,6 @@
 // Particle spawning
 
-kaboom();
+kaboom()
 
 const sprites = [
 	"apple",
@@ -8,11 +8,11 @@ const sprites = [
 	"coin",
 	"meat",
 	"lightening",
-];
+]
 
 sprites.forEach((spr) => {
-	loadSprite(spr, `/sprites/${spr}.png`);
-});
+	loadSprite(spr, `/sprites/${spr}.png`)
+})
 
 // Spawn one particle every 0.1 second
 loop(0.1, () => {
@@ -27,8 +27,8 @@ loop(0.1, () => {
 		body({ solid: false, }),
 		lifespan(1, { fade: 0.5 }),
 		move(choose([LEFT, RIGHT]), rand(60, 240)),
-	]);
+	])
 
-	item.jump(rand(320, 640));
+	item.jump(rand(320, 640))
 
-});
+})
