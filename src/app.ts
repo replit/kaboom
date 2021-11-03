@@ -4,6 +4,7 @@ import {
 
 import {
 	Key,
+	MouseButton,
 	Vec2,
 	Cursor,
 } from "./types";
@@ -32,7 +33,7 @@ type AppCtx = {
 	canvas: HTMLCanvasElement,
 	mousePos: Vec2,
 	mouseDeltaPos: Vec2,
-	mouseState: ButtonState,
+	mouseStates: Record<string, ButtonState>,
 	keyStates: Record<string, ButtonState>,
 	charInputted: string[],
 	isMouseMoved: boolean,
@@ -59,10 +60,10 @@ type App = {
 	isKeyPressed(k?: Key): boolean,
 	isKeyPressedRepeat(k?: Key): boolean,
 	isKeyReleased(k?: Key): boolean,
-	isMouseDown(): boolean,
-	isMouseClicked(): boolean,
-	isMouseReleased(): boolean,
-	isMouseMoved(): boolean,
+	isMouseDown(m?: MouseButton): boolean,
+	isMousePressed(m?: MouseButton): boolean,
+	isMouseReleased(m?: MouseButton): boolean,
+	isMouseMoved(m?: MouseButton): boolean,
 	charInputted(): string[],
 	cursor(c?: Cursor): Cursor,
 	fullscreen(f?: boolean): void,
@@ -132,7 +133,7 @@ function appInit(gopt: AppOpt = {}): App {
 		isMouseMoved: false,
 		isKeyPressed: false,
 		isKeyPressedRepeat: false,
-		mouseState: "up",
+		mouseStates: {},
 		mousePos: vec2(0, 0),
 		mouseDeltaPos: vec2(0, 0),
 		time: 0,
@@ -222,12 +223,27 @@ function appInit(gopt: AppOpt = {}): App {
 		app.isMouseMoved = true;
 	});
 
-	app.canvas.addEventListener("mousedown", () => {
-		app.mouseState = "pressed";
+	// according to https://developer.mozilla.org/en-US/docs/Web/API/MouseEvent/button
+	const mouseButtons = [
+		"left",
+		"middle",
+		"right",
+		"back",
+		"forward",
+	];
+
+	app.canvas.addEventListener("mousedown", (e) => {
+		const m = mouseButtons[e.button];
+		if (m) {
+			app.mouseStates[m] = "pressed";
+		}
 	});
 
-	app.canvas.addEventListener("mouseup", () => {
-		app.mouseState = "released";
+	app.canvas.addEventListener("mouseup", (e) => {
+		const m = mouseButtons[e.button];
+		if (m) {
+			app.mouseStates[m] = "released";
+		}
 	});
 
 	app.canvas.addEventListener("keydown", (e) => {
@@ -267,7 +283,7 @@ function appInit(gopt: AppOpt = {}): App {
 		e.preventDefault();
 		const t = e.touches[0];
 		app.mousePos = vec2(t.clientX, t.clientY).scale(1 / app.scale);
-		app.mouseState = "pressed";
+		app.mouseStates["left"] = "pressed";
 	});
 
 	app.canvas.addEventListener("touchmove", (e) => {
@@ -281,12 +297,16 @@ function appInit(gopt: AppOpt = {}): App {
 
 	app.canvas.addEventListener("touchend", (e) => {
 		if (!gopt.touchToMouse) return;
-		app.mouseState = "released";
+		app.mouseStates["left"] = "released";
 	});
 
 	app.canvas.addEventListener("touchcancel", (e) => {
 		if (!gopt.touchToMouse) return;
-		app.mouseState = "released";
+		app.mouseStates["left"] = "released";
+	});
+
+	app.canvas.addEventListener("contextmenu", function (e) {
+		e.preventDefault();
 	});
 
 	document.addEventListener("visibilitychange", () => {
@@ -319,16 +339,16 @@ function appInit(gopt: AppOpt = {}): App {
 		return app.mouseDeltaPos.clone();
 	}
 
-	function isMouseClicked(): boolean {
-		return app.mouseState === "pressed";
+	function isMousePressed(m = "left"): boolean {
+		return app.mouseStates[m] === "pressed";
 	}
 
-	function isMouseDown(): boolean {
-		return app.mouseState === "pressed" || app.mouseState === "down";
+	function isMouseDown(m = "left"): boolean {
+		return app.mouseStates[m] === "pressed" || app.mouseStates[m] === "down";
 	}
 
-	function isMouseReleased(): boolean {
-		return app.mouseState === "released";
+	function isMouseReleased(m = "left"): boolean {
+		return app.mouseStates[m] === "released";
 	}
 
 	function isMouseMoved(): boolean {
@@ -438,7 +458,10 @@ function appInit(gopt: AppOpt = {}): App {
 				app.keyStates[k] = processBtnState(app.keyStates[k]);
 			}
 
-			app.mouseState = processBtnState(app.mouseState);
+			for (const m in app.mouseStates) {
+				app.mouseStates[m] = processBtnState(app.mouseStates[m]);
+			}
+
 			app.charInputted = [];
 			app.isMouseMoved = false;
 			app.isKeyPressed = false;
@@ -466,7 +489,7 @@ function appInit(gopt: AppOpt = {}): App {
 		isKeyPressedRepeat,
 		isKeyReleased,
 		isMouseDown,
-		isMouseClicked,
+		isMousePressed,
 		isMouseReleased,
 		isMouseMoved,
 		charInputted,

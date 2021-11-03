@@ -107,7 +107,7 @@ export interface KaboomCtx {
 	 * const allObjs = get();
 	 * ```
 	 */
-	get(tag?: Tag): GameObj[],
+	get(tag?: Tag | Tag[]): GameObj[],
 	/**
 	 * Run callback on every game obj with certain tag.
 	 *
@@ -117,7 +117,7 @@ export interface KaboomCtx {
 	 * every("fruit", destroy);
 	 * ```
 	 */
-	every<T>(t: Tag, action: (obj: GameObj) => T): void,
+	every<T>(tag: Tag | Tag[], action: (obj: GameObj) => T): void,
 	/**
 	 * Run callback on every game obj.
 	 *
@@ -130,7 +130,7 @@ export interface KaboomCtx {
 	/**
 	 * Run callback on every game obj with certain tag in reverse order.
 	 */
-	revery<T>(t: Tag, action: (obj: GameObj) => T): void,
+	revery<T>(tag: Tag | Tag[], action: (obj: GameObj) => T): void,
 	/**
 	 * Run callback on every game obj in reverse order.
 	 */
@@ -544,6 +544,8 @@ export interface KaboomCtx {
 	/**
 	 * Finite state machine.
 	 *
+	 * @since v2000.1.0
+	 *
 	 * @example
 	 * ```js
 	 * const enemy = add([
@@ -685,14 +687,17 @@ export interface KaboomCtx {
 		action: (a: GameObj, b: GameObj, col?: Collision) => void,
 	): EventCanceller,
 	/**
-	 * Registers an event that runs when game objs with certain tags are clicked. This function spins off an onUpdate() when called, please put it at root level and never inside another onUpdate().
+	 * Registers an event that runs when game objs with certain tags are clicked (required to have the area() component).
 	 *
 	 * @since v2000.1.0
 	 */
-	onClick(
-		tag: Tag,
-		action: (a: GameObj) => void,
-	): EventCanceller,
+	onClick(tag: Tag, action: (a: GameObj) => void): EventCanceller,
+	/**
+	 * Registers an event that runs when users clicks.
+	 *
+	 * @since v2000.1.0
+	 */
+	onClick(action: () => void): EventCanceller,
 	/**
 	 * Registers an event that runs when game objs with certain tags are hovered.
 	 *
@@ -781,23 +786,26 @@ export interface KaboomCtx {
 	 */
 	onCharInput(action: (ch: string) => void): EventCanceller,
 	/**
-	 * Registers an event that runs every frame when mouse button is down.
+	 * Registers an event that runs every frame when a mouse button is being held down.
 	 *
 	 * @since v2000.1.0
 	 */
 	onMouseDown(action: (pos: Vec2) => void): EventCanceller,
+	onMouseDown(button: MouseButton, action: (pos: Vec2) => void): EventCanceller,
 	/**
 	 * Registers an event that runs when user clicks mouse.
 	 *
 	 * @since v2000.1.0
 	 */
-	onMouseClick(action: (pos: Vec2) => void): EventCanceller,
+	onMousePress(action: (pos: Vec2) => void): EventCanceller,
+	onMousePress(button: MouseButton, action: (pos: Vec2) => void): EventCanceller,
 	/**
 	 * Registers an event that runs when user releases mouse.
 	 *
 	 * @since v2000.1.0
 	 */
 	onMouseRelease(action: (pos: Vec2) => void): EventCanceller,
+	onMouseRelease(button: MouseButton, action: (pos: Vec2) => void): EventCanceller,
 	/**
 	 * Registers an event that runs whenever user move the mouse.
 	 *
@@ -867,9 +875,9 @@ export interface KaboomCtx {
 	 */
 	charInput: KaboomCtx["onCharInput"],
 	/**
-	 * @deprecated Use onMouseClick() instead.
+	 * @deprecated Use onClick() or onMousePress() instead.
 	 */
-	mouseClick: KaboomCtx["onMouseClick"],
+	mouseClick: KaboomCtx["onMousePress"],
 	/**
 	 * @deprecated Use onMouseRelease() instead.
 	 */
@@ -1053,7 +1061,7 @@ export interface KaboomCtx {
 	 * `vec4 frag(vec3 pos, vec2 uv, vec4 color, sampler2D tex) {
 	 *     // turn everything blue-ish
 	 *     return def_frag() * vec4(0, 0, 1, 1);
-	 * }`, true);
+	 * }`, false);
 	 * ```
 	 */
 	loadShader(
@@ -1175,23 +1183,23 @@ export interface KaboomCtx {
 	 */
 	isKeyReleased(k?: Key): boolean,
 	/**
-	 * If certain mouse is currently down.
+	 * If a mouse button is currently down.
 	 *
 	 * @since v2000.1.0
 	 */
-	isMouseDown(): boolean,
+	isMouseDown(button?: MouseButton): boolean,
 	/**
-	 * If mouse is just clicked last frame.
+	 * If a mouse button is just clicked last frame.
 	 *
 	 * @since v2000.1.0
 	 */
-	isMouseClicked(): boolean,
+	isMousePressed(button?: MouseButton): boolean,
 	/**
-	 * If mouse is just released last frame.
+	 * If a mouse button is just released last frame.
 	 *
 	 * @since v2000.1.0
 	 */
-	isMouseReleased(): boolean,
+	isMouseReleased(button?: MouseButton): boolean,
 	/**
 	 * If mouse moved last frame.
 	 *
@@ -1806,6 +1814,14 @@ export interface KaboomCtx {
 	 * Down directional vector vec2(0, 1).
 	 */
 	DOWN: Vec2,
+	RED: Color,
+	GREEN: Color,
+	BLUE: Color,
+	YELLOW: Color,
+	MAGENTA: Color,
+	CYAN: Color,
+	WHITE: Color,
+	BLACK: Color,
 	/**
 	 * The canvas DOM kaboom is currently using.
 	 */
@@ -1832,6 +1848,14 @@ export type Key =
 	| "z" | "x" | "c" | "v" | "b" | "n" | "m" | "," | "." | "/"
 	| "backspace" | "enter" | "tab" | "space" | " "
 	| "left" | "right" | "up" | "down"
+	;
+
+export type MouseButton =
+	| "left"
+	| "right"
+	| "middle"
+	| "back"
+	| "forward"
 	;
 
 /**
@@ -1940,7 +1964,7 @@ export interface GameObjRaw {
 	 */
 	exists(): boolean;
 	/**
-	 * If there a certain tag on the game obj.
+	 * If there's certain tag(s) on the game obj.
 	 */
 	is(tag: Tag | Tag[]): boolean;
 	// TODO: update the GameObj type info
@@ -3366,6 +3390,12 @@ export interface Debug {
 	 * Log an error message to on screen debug log.
 	 */
 	error(msg: string): void,
+	/**
+	 * The recording handle if currently in recording mode.
+	 *
+	 * @since v2000.1.0
+	 */
+	curRecording: Recording | null,
 }
 
 export type UniformValue =
