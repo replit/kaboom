@@ -5,6 +5,9 @@
 - added F5 to screenshot and F6 to toggle record mode in debug mode
 - added `DrawTextOpt#transform()` and `TextCompOpt#transform()` for defining style and transformation for each character
 - added `state()` component for finite state machine
+- added support for multiple tags in `get()` and `every()`
+- added UI indicator for `debug.paused` and `debug.timeScale`
+- changed inspect mode UI style
 - added new API style (`on` prefix for all event handler function, `is` prefix for all boolean state getters)
   - `onLoad()`
   - `onUpdate()`
