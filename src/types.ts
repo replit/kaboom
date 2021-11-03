@@ -317,21 +317,22 @@ export interface KaboomCtx {
 	 *
 	 * @example
 	 * ```js
+	 * // Automatically generate area information from the shape of render
 	 * add([
 	 *     sprite("froggy"),
-	 *     // without args it'll auto generate from the sprite component we have above
 	 *     area(),
 	 * ]);
 	 *
+	 * // Manually define area
 	 * add([
-	 *     sprite("bomb"),
-	 *     // scale to 0.6 of the generated area
+	 *     sprite("flower"),
+	 *     // Scale to 0.6 of the generated area
 	 *     area({ scale: 0.6 }),
-	 *     // if we want the scale to be calculated from the center
+	 *     // If we want the area scale to be calculated from the center
 	 *     origin("center"),
 	 * ]);
 	 *
-	 * // define custom area with topleft and botright point
+	 * // Define custom area with width and height
 	 * const player = add([
 	 *     sprite("froggy"),
 	 *     area({ width: 20, height: 40. }),
