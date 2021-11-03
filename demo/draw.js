@@ -112,7 +112,7 @@ onUpdate(() => {
 		trail.shift();
 	}
 
-	if (isMouseClicked()) {
+	if (isMousePressed()) {
 		doodles.push([]);
 	}
 
