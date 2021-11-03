@@ -176,7 +176,7 @@ export interface KaboomCtx {
 	 *
 	 * @example
 	 * ```js
-	 * // this game obj will draw the "froggy" sprite at (100, 200)
+	 * // This game object will draw a "froggy" sprite at (100, 200)
 	 * add([
 	 *     pos(100, 200),
 	 *     sprite("froggy"),

@@ -86,7 +86,7 @@ Play with it yourself or check out the examples in the [Playground](/play)!
 
 		{ doc.sections.map((sec) => {
 			return (
-				<View stretchX gap={1} key={sec.name}>
+				<View stretchX gap={1} key={sec.name} id={sec.name}>
 					<Text size="huge" color={3}>{sec.name}</Text>
 					{ sec.doc &&
 						<Markdown src={sec.doc} />
