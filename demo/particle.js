@@ -1,3 +1,5 @@
+// Particle spawning
+
 kaboom();
 
 const sprites = [
@@ -12,7 +14,10 @@ sprites.forEach((spr) => {
 	loadSprite(spr, `/sprites/${spr}.png`);
 });
 
+// Spawn one particle every 0.1 second
 loop(0.1, () => {
+
+	// Compose particle properties with components
 	const item = add([
 		pos(mousePos()),
 		sprite(choose(sprites)),
@@ -23,5 +28,7 @@ loop(0.1, () => {
 		lifespan(1, { fade: 0.5 }),
 		move(choose([LEFT, RIGHT]), rand(60, 240)),
 	]);
+
 	item.jump(rand(320, 640));
+
 });

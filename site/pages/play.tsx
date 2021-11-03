@@ -1,4 +1,5 @@
 import fs from "fs/promises";
+import path from "path";
 import * as React from "react";
 import { GetServerSideProps } from "next";
 import Link from "next/link";
@@ -24,12 +25,12 @@ import Draggable from "comps/Draggable";
 import Droppable from "comps/Droppable";
 import Background from "comps/Background";
 import Doc from "comps/Doc";
-import { basename } from "lib/path";
 import download from "lib/download";
 import wrapHTML from "lib/wrapHTML";
 import Ctx from "lib/Ctx";
+import DEMO_ORDER from "public/site/demo/order.json";
 
-const DEF_DEMO = "sprite";
+const DEF_DEMO = "add";
 
 interface SpriteEntryProps {
 	name: string,
@@ -72,7 +73,7 @@ const SpriteEntry: React.FC<SpriteEntryProps> = ({
 				}}
 			/>
 		</View>
-		<Text>{basename(name)}</Text>
+		<Text>{path.basename(name)}</Text>
 	</Draggable>
 );
 
@@ -104,7 +105,7 @@ const SoundEntry: React.FC<SoundEntryProps> = ({
 		}}
 		onClick={() => new Audio(src).play()}
 	>
-		<Text>{basename(name)}</Text>
+		<Text>{path.basename(name)}</Text>
 	</View>
 );
 
@@ -140,6 +141,15 @@ const Play: React.FC<PlayProps> = ({
 	const isNarrow = useMediaQuery("(max-aspect-ratio: 1/1)");;
 	const spaceUsed = useSpaceUsed();
 	const [ make, setMake ] = React.useState(false);
+
+	// DEMO_ORDER defines the demos that should appear at the top of the list
+	// names not defined in the list just fall to their default order
+	const demoList = React.useMemo(() => {
+		return [...new Set([
+			...DEMO_ORDER,
+			...Object.keys(demos),
+		])];
+	}, [ demos ]);
 
 	React.useEffect(() => {
 		if (router.isReady && !router.query.demo) {
@@ -197,7 +207,7 @@ const Play: React.FC<PlayProps> = ({
 						<Select
 							name="Demo Selector"
 							desc="Select a demo to run"
-							options={Object.keys(demos)}
+							options={demoList}
 							value={demo}
 							onChange={(demo) => router.push({
 								query: {
@@ -454,7 +464,11 @@ export const getServerSideProps: GetServerSideProps = async (ctx) => {
 		.filter((p) => !p.startsWith("."))
 	const demos: Record<string, string> = {}
 	for (const file of demodir) {
-		demos[basename(file) ?? file] = await fs.readFile(`public/site/demo/${file}`, "utf8");
+		const ext = path.extname(file)
+		const name = path.basename(file, ext)
+		if (ext === ".js") {
+			demos[name] = await fs.readFile(`public/site/demo/${file}`, "utf8");
+		}
 	}
 	return {
 		props: {

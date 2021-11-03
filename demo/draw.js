@@ -1,4 +1,4 @@
-// kaboom as pure rendering lib (no component / game obj etc.)
+// Kaboom as pure rendering lib (no component / game obj etc.)
 
 kaboom();
 loadSprite("bean", "/sprites/bean.png");
@@ -7,7 +7,7 @@ const t = (n = 1) => time() * n;
 const w = (a, b, n) => wave(a, b, t(n));
 const px = 160;
 const py = 200;
-const draw = [];
+const doodles = [];
 const trail = [];
 
 const outline = {
@@ -15,14 +15,15 @@ const outline = {
 	color: rgb(0, 0, 0),
 };
 
-// this'll run every frame
+// onDraw() is similar to onUpdate(), it runs every frame, but after all update events.
+// All drawXXX() functions need to be called every frame if you want them to persist
 onDraw(() => {
 
 	const mx = (width() - px * 2) / 2;
 	const my = (height() - py * 2) / 1;
 	const p = (x, y) => vec2(x, y).scale(mx, my).add(px, py);
 
-	// when "space" key is down, rotate the whole canvas from the center
+	// When "space" key is down, rotate the whole canvas from the center
 	if (isKeyDown("space")) {
 		pushTransform();
 		pushTranslate(width() / 2, height() / 2);
@@ -93,7 +94,7 @@ onDraw(() => {
 		pts: trail,
 	});
 
-	draw.forEach((pts) => {
+	doodles.forEach((pts) => {
 		drawLines({
 			...outline,
 			pts: pts,
@@ -102,7 +103,7 @@ onDraw(() => {
 
 });
 
-// this'll also run every frame, but before all renders
+// It's a common practice to put all input handling and state updates before rendering.
 onUpdate(() => {
 
 	trail.push(mousePos());
@@ -111,12 +112,12 @@ onUpdate(() => {
 		trail.shift();
 	}
 
-	if (mouseIsClicked()) {
-		draw.push([]);
+	if (isMousePressed()) {
+		doodles.push([]);
 	}
 
-	if (mouseIsDown() && mouseIsMoved()) {
-		draw[draw.length - 1].push(mousePos());
+	if (isMouseDown() && isMouseMoved()) {
+		doodles[doodles.length - 1].push(mousePos());
 	}
 
 });

@@ -670,7 +670,7 @@ export interface KaboomCtx {
 	 */
 	onLoad(action: () => void): void,
 	/**
-	 * Registers an event that runs when 2 game objs with certain tags collides.
+	 * Registers an event that runs when 2 game objs with certain tags collides (required to have area() component).
 	 *
 	 * @since v2000.1.0
 	 *
@@ -699,7 +699,7 @@ export interface KaboomCtx {
 	 */
 	onClick(action: () => void): EventCanceller,
 	/**
-	 * Registers an event that runs when game objs with certain tags are hovered.
+	 * Registers an event that runs when game objs with certain tags are hovered (required to have area() component).
 	 *
 	 * @since v2000.1.0
 	 */
