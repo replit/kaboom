@@ -50,6 +50,9 @@
   - `BodyComp#isFalling()`
   - `SpriteComp#onAnimEnd()`
   - `SpriteComp#onAnimStart()`
+  - `HealthComp#onDeath()`
+  - `HealthComp#onHurt()`
+  - `HealthComp#onHeal()`
   - `AudioPlay#isStopped()`
   - `AudioPlay#isPaused()`
 
