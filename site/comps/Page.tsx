@@ -133,9 +133,15 @@ const Page: React.FC = ({ children }) => {
 					::-webkit-scrollbar-track {
 						background: rgba(0, 0, 0, 0.1);
 					}
-					::-webkit-scrollbar-thumb {
+					::-webkit-scrollbar-track:hover {
 						background: rgba(0, 0, 0, 0.2);
+					}
+					::-webkit-scrollbar-thumb {
+						background: rgba(0, 0, 0, 0.3);
 						border-radius: 4px;
+					}
+					::-webkit-scrollbar-thumb:hover {
+						background: rgba(0, 0, 0, 0.4);
 					}
 					::-webkit-scrollbar-corner {
 						background: rgba(0, 0, 0, 0.1);

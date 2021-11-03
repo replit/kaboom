@@ -168,7 +168,7 @@ const IndexContent: React.FC<IndexContentProps> = ({
 			{ doc.sections.map((sec) => {
 
 				const entries = sec.entries
-					.filter((name) => query ? name.match(query) : true);
+					.filter((name) => query ? name.match(new RegExp(query, "i")) : true);
 
 				return (
 					<View stretchX gap={1} key={sec.name}>

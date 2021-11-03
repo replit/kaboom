@@ -3,31 +3,31 @@
  *
  * @example
  * ```js
- * // this will create a blank canvas and import all kaboom functions to global
- * kaboom();
+ * // Start kaboom with default options (will create a fullscreen canvas under <body>)
+ * kaboom()
  *
- * // init with some options (check out #KaboomOpt for full options list)
- * // create a game with custom dimension and background color
+ * // Init with some options (check out #KaboomOpt for full options list)
  * kaboom({
  *     width: 320,
  *     height: 240,
  *     font: "sinko",
+ *     canvas: document.querySelector("#mycanvas"),
  *     background: [ 0, 0, 255, ],
- * });
+ * })
  *
- * // all kaboom functions are imported to global automatically
- * add();
- * onUpdate();
- * onKeyPress();
- * vec2();
+ * // All kaboom functions are imported to global after calling kaboom()
+ * add()
+ * onUpdate()
+ * onKeyPress()
+ * vec2()
  *
- * // can also prevent kaboom from importing all functions to global and use a context handle
- * const k = kaboom({ global: false });
+ * // If you want to prevent kaboom from importing all functions to global and use a context handle for all kaboom functions
+ * const k = kaboom({ global: false })
  *
- * k.add(...);
- * k.onUpdate(...);
- * k.onKeyPress(...);
- * k.vec2(...);
+ * k.add(...)
+ * k.onUpdate(...)
+ * k.onKeyPress(...)
+ * k.vec2(...)
  * ```
  */
 declare function kaboom(options?: KaboomOpt): KaboomCtx;
@@ -37,32 +37,28 @@ declare function kaboom(options?: KaboomOpt): KaboomCtx;
  */
 export interface KaboomCtx {
 	/**
-	 * Create and add a game obj to the scene, from a list of components or tags. The added and returned game obj will contain all methods from each component.
+	 * Assemble a game object from a list of components, and add it to the game
+	 *
+	 * @returns The added game object that contains all properties and methods each component offers.
 	 *
 	 * @section Game Obj
 	 *
 	 * @example
 	 * ```js
-	 * // let's add our player character to the screen
-	 * // we use a list of components to define who they are and how they actually work
 	 * const player = add([
-	 *     // it renders as a sprite
+	 *     // List of components, each offers a set of functionalities
 	 *     sprite("mark"),
-	 *     // it has a position
 	 *     pos(100, 200),
-	 *     // it has a collider
 	 *     area(),
-	 *     // it is a physical body which will respond to physics
 	 *     body(),
-	 *     // you can easily make custom components to encapsulate reusable logics
-	 *     doubleJump(),
 	 *     health(8),
-	 *     // give it tags for controlling group behaviors
+	 *     doubleJump(),
+	 *     // Plain strings are tags, a quicker way to let us define behaviors for a group
 	 *     "player",
 	 *     "friendly",
-	 *     // plain objects fields are directly assigned to the game obj
+	 *     // Components are just plain objects, you can pass an object literal as a component.
 	 *     {
-	 *         dir: vec2(-1, 0),
+	 *         dir: LEFT,
 	 *         dead: false,
 	 *         speed: 240,
 	 *     },
@@ -72,11 +68,11 @@ export interface KaboomCtx {
 	 * player.jump();
 
 	 * // .moveTo is provided by pos()
-	 * player.moveTo(100, 200);
+	 * player.moveTo(300, 200);
 	 *
-	 * // run something every frame
-	 * // player will constantly move towards player.dir, at player.speed per second
+	 * // .onUpdate() is on every game object, it registers an event that runs every frame
 	 * player.onUpdate(() => {
+	 *     // .move() is provided by pos()
 	 *     player.move(player.dir.scale(player.speed));
 	 * });
 	 *
@@ -84,14 +80,6 @@ export interface KaboomCtx {
 	 * player.onCollide("tree", () => {
 	 *     destroy(player);
 	 * });
-	 *
-	 * // run this for all game objs with tag "friendly"
-	 * onUpdate("friendly", (friend) => {
-	 *     // .hurt is provided by health()
-	 *     friend.hurt();
-	 * });
-	 *
-	 * // check out #GameObj for stuff that exists for all game objects, independent of its components.
 	 * ```
 	 */
 	add<T>(comps: CompList<T>): GameObj<T>,
@@ -176,7 +164,7 @@ export interface KaboomCtx {
 	 *
 	 * @example
 	 * ```js
-	 * // this game obj will draw the "froggy" sprite at (100, 200)
+	 * // This game object will draw a "froggy" sprite at (100, 200)
 	 * add([
 	 *     pos(100, 200),
 	 *     sprite("froggy"),
@@ -317,21 +305,22 @@ export interface KaboomCtx {
 	 *
 	 * @example
 	 * ```js
+	 * // Automatically generate area information from the shape of render
 	 * add([
 	 *     sprite("froggy"),
-	 *     // without args it'll auto generate from the sprite component we have above
 	 *     area(),
 	 * ]);
 	 *
+	 * // Manually define area
 	 * add([
-	 *     sprite("bomb"),
-	 *     // scale to 0.6 of the generated area
+	 *     sprite("flower"),
+	 *     // Scale to 0.6 of the generated area
 	 *     area({ scale: 0.6 }),
-	 *     // if we want the scale to be calculated from the center
+	 *     // If we want the area scale to be calculated from the center
 	 *     origin("center"),
 	 * ]);
 	 *
-	 * // define custom area with topleft and botright point
+	 * // Define custom area with width and height
 	 * const player = add([
 	 *     sprite("froggy"),
 	 *     area({ width: 20, height: 40. }),
@@ -3572,14 +3561,20 @@ export interface HealthComp extends Comp {
 	setHP(hp: number): void,
 	/**
 	 * Registers an event that runs when hurt() is called upon the object.
+	 *
+	 * @since v2000.1.0
 	 */
 	onHurt(action: () => void): EventCanceller,
 	/**
 	 * Registers an event that runs when heal() is called upon the object.
+	 *
+	 * @since v2000.1.0
 	 */
 	onHeal(action: () => void): EventCanceller,
 	/**
 	 * Registers an event that runs when object's HP is equal or below 0.
+	 *
+	 * @since v2000.1.0
 	 */
 	onDeath(action: () => void): EventCanceller,
 }

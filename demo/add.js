@@ -11,7 +11,7 @@ loadSprite("ghosty", "/sprites/ghosty.png")
 // Game objects are composed from components
 // Each component gives a game object certain capabilities
 
-// Assemble a game object from a list of components and add to game, and assign the game object reference to a variable
+// add() assembles a game object from a list of components and add to game, returns the reference of the game object
 const player = add([
 	sprite("bean"),   // sprite() component makes it render as a sprite
 	pos(120, 80),     // pos() component gives it position, also enables movement
