@@ -107,7 +107,7 @@ export interface KaboomCtx {
 	 * const allObjs = get();
 	 * ```
 	 */
-	get(tag?: Tag): GameObj[],
+	get(tag?: Tag | Tag[]): GameObj[],
 	/**
 	 * Run callback on every game obj with certain tag.
 	 *
@@ -117,7 +117,7 @@ export interface KaboomCtx {
 	 * every("fruit", destroy);
 	 * ```
 	 */
-	every<T>(t: Tag, action: (obj: GameObj) => T): void,
+	every<T>(tag: Tag | Tag[], action: (obj: GameObj) => T): void,
 	/**
 	 * Run callback on every game obj.
 	 *
@@ -130,7 +130,7 @@ export interface KaboomCtx {
 	/**
 	 * Run callback on every game obj with certain tag in reverse order.
 	 */
-	revery<T>(t: Tag, action: (obj: GameObj) => T): void,
+	revery<T>(tag: Tag | Tag[], action: (obj: GameObj) => T): void,
 	/**
 	 * Run callback on every game obj in reverse order.
 	 */
@@ -1942,7 +1942,7 @@ export interface GameObjRaw {
 	 */
 	exists(): boolean;
 	/**
-	 * If there a certain tag on the game obj.
+	 * If there's a certain tag on the game obj.
 	 */
 	is(tag: Tag | Tag[]): boolean;
 	// TODO: update the GameObj type info
