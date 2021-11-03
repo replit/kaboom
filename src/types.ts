@@ -687,14 +687,17 @@ export interface KaboomCtx {
 		action: (a: GameObj, b: GameObj, col?: Collision) => void,
 	): EventCanceller,
 	/**
-	 * Registers an event that runs when game objs with certain tags are clicked. This function spins off an onUpdate() when called, please put it at root level and never inside another onUpdate().
+	 * Registers an event that runs when game objs with certain tags are clicked (required to have the area() component).
 	 *
 	 * @since v2000.1.0
 	 */
-	onClick(
-		tag: Tag,
-		action: (a: GameObj) => void,
-	): EventCanceller,
+	onClick(tag: Tag, action: (a: GameObj) => void): EventCanceller,
+	/**
+	 * Registers an event that runs when users clicks.
+	 *
+	 * @since v2000.1.0
+	 */
+	onClick(action: () => void): EventCanceller,
 	/**
 	 * Registers an event that runs when game objs with certain tags are hovered.
 	 *
@@ -783,23 +786,26 @@ export interface KaboomCtx {
 	 */
 	onCharInput(action: (ch: string) => void): EventCanceller,
 	/**
-	 * Registers an event that runs every frame when mouse button is down.
+	 * Registers an event that runs every frame when a mouse button is being held down.
 	 *
 	 * @since v2000.1.0
 	 */
 	onMouseDown(action: (pos: Vec2) => void): EventCanceller,
+	onMouseDown(button: MouseButton, action: (pos: Vec2) => void): EventCanceller,
 	/**
 	 * Registers an event that runs when user clicks mouse.
 	 *
 	 * @since v2000.1.0
 	 */
-	onMouseClick(action: (pos: Vec2) => void): EventCanceller,
+	onMousePress(action: (pos: Vec2) => void): EventCanceller,
+	onMousePress(button: MouseButton, action: (pos: Vec2) => void): EventCanceller,
 	/**
 	 * Registers an event that runs when user releases mouse.
 	 *
 	 * @since v2000.1.0
 	 */
 	onMouseRelease(action: (pos: Vec2) => void): EventCanceller,
+	onMouseRelease(button: MouseButton, action: (pos: Vec2) => void): EventCanceller,
 	/**
 	 * Registers an event that runs whenever user move the mouse.
 	 *
@@ -869,9 +875,9 @@ export interface KaboomCtx {
 	 */
 	charInput: KaboomCtx["onCharInput"],
 	/**
-	 * @deprecated Use onMouseClick() instead.
+	 * @deprecated Use onClick() or onMousePress() instead.
 	 */
-	mouseClick: KaboomCtx["onMouseClick"],
+	mouseClick: KaboomCtx["onMousePress"],
 	/**
 	 * @deprecated Use onMouseRelease() instead.
 	 */
@@ -1177,23 +1183,23 @@ export interface KaboomCtx {
 	 */
 	isKeyReleased(k?: Key): boolean,
 	/**
-	 * If certain mouse is currently down.
+	 * If a mouse button is currently down.
 	 *
 	 * @since v2000.1.0
 	 */
-	isMouseDown(): boolean,
+	isMouseDown(button?: MouseButton): boolean,
 	/**
-	 * If mouse is just clicked last frame.
+	 * If a mouse button is just clicked last frame.
 	 *
 	 * @since v2000.1.0
 	 */
-	isMouseClicked(): boolean,
+	isMousePressed(button?: MouseButton): boolean,
 	/**
-	 * If mouse is just released last frame.
+	 * If a mouse button is just released last frame.
 	 *
 	 * @since v2000.1.0
 	 */
-	isMouseReleased(): boolean,
+	isMouseReleased(button?: MouseButton): boolean,
 	/**
 	 * If mouse moved last frame.
 	 *
@@ -1834,6 +1840,14 @@ export type Key =
 	| "z" | "x" | "c" | "v" | "b" | "n" | "m" | "," | "." | "/"
 	| "backspace" | "enter" | "tab" | "space" | " "
 	| "left" | "right" | "up" | "down"
+	;
+
+export type MouseButton =
+	| "left"
+	| "right"
+	| "middle"
+	| "back"
+	| "forward"
 	;
 
 /**

@@ -16,6 +16,6 @@ player.onUpdate(() => {
 	player.moveTo(dest, 480);
 });
 
-onMouseClick(() => {
+onClick(() => {
 	dest = mousePos();
 });
