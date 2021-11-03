@@ -1942,7 +1942,7 @@ export interface GameObjRaw {
 	 */
 	exists(): boolean;
 	/**
-	 * If there's a certain tag on the game obj.
+	 * If there's certain tag(s) on the game obj.
 	 */
 	is(tag: Tag | Tag[]): boolean;
 	// TODO: update the GameObj type info
