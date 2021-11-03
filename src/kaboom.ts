@@ -87,6 +87,7 @@ import {
 	Comp,
 	Tag,
 	Key,
+	MouseButton,
 	TouchID,
 	Collision,
 	PosComp,
@@ -687,13 +688,17 @@ function onCollide(
 }
 
 // add an event that runs when objs with tag t is clicked
-function onClick(t: string, f: (obj: GameObj) => void): EventCanceller {
-	return onUpdate(t, (o: GameObj) => {
-		if (!o.area) throw new Error("onClick() requires the object to have area() component");
-		if (o.isClicked()) {
-			f(o);
-		}
-	});
+function onClick(tag: Tag | (() => void), cb?: (obj: GameObj) => void): EventCanceller {
+	if (typeof tag === "function") {
+		return onMousePress(tag);
+	} else {
+		return onUpdate(tag, (o: GameObj) => {
+			if (!o.area) throw new Error("onClick() requires the object to have area() component");
+			if (o.isClicked()) {
+				cb(o);
+			}
+		});
+	}
 }
 
 // add an event that runs when objs with tag t is hovered
@@ -787,16 +792,37 @@ function onKeyRelease(k: Key | Key[] | (() => void), f?: () => void): EventCance
 	}
 }
 
-function onMouseDown(f: (pos: Vec2) => void): EventCanceller {
-	return game.on("input", () => app.isMouseDown() && f(mousePos()));
+function onMouseDown(
+	m: MouseButton | ((pos?: Vec2) => void),
+	action?: (pos?: Vec2) => void
+): EventCanceller {
+	if (typeof m === "function") {
+		return game.on("input", () => app.isMouseDown() && m(mousePos()));
+	} else {
+		return game.on("input", () => app.isMouseDown(m) && action(mousePos()));
+	}
 }
 
-function onMouseClick(f: (pos: Vec2) => void): EventCanceller {
-	return game.on("input", () => app.isMouseClicked() && f(mousePos()));
+function onMousePress(
+	m: MouseButton | ((pos?: Vec2) => void),
+	action?: (pos?: Vec2) => void
+): EventCanceller {
+	if (typeof m === "function") {
+		return game.on("input", () => app.isMousePressed() && m(mousePos()));
+	} else {
+		return game.on("input", () => app.isMousePressed(m) && action(mousePos()));
+	}
 }
 
-function onMouseRelease(f: (pos: Vec2) => void): EventCanceller {
-	return game.on("input", () => app.isMouseReleased() && f(mousePos()));
+function onMouseRelease(
+	m: MouseButton | ((pos?: Vec2) => void),
+	action?: (pos?: Vec2) => void
+): EventCanceller {
+	if (typeof m === "function") {
+		return game.on("input", () => app.isMouseReleased() && m(mousePos()));
+	} else {
+		return game.on("input", () => app.isMouseReleased(m) && action(mousePos()));
+	}
 }
 
 function onMouseMove(f: (pos: Vec2, dpos: Vec2) => void): EventCanceller {
@@ -838,8 +864,6 @@ function onTouchEnd(f: (id: TouchID, pos: Vec2) => void): EventCanceller {
 	return game.on("onTouchEnd", f);
 }
 
-let curRecording = null;
-
 function enterDebugMode() {
 
 	onKeyPress("f1", () => {
@@ -875,11 +899,11 @@ function enterDebugMode() {
 	});
 
 	onKeyPress("f6", () => {
-		if (curRecording) {
-			curRecording.download();
-			curRecording = null;
+		if (debug.curRecording) {
+			debug.curRecording.download();
+			debug.curRecording = null;
 		} else {
-			curRecording = record();
+			debug.curRecording = record();
 		}
 	});
 
@@ -891,7 +915,7 @@ function enterBurpMode() {
 
 // TODO: cache sorted list
 // get all objects with tag
-function get(t?: string): GameObj[] {
+function get(t?: Tag | Tag[]): GameObj[] {
 
 	const objs = [...game.objs.values()].sort((o1, o2) => {
 
@@ -916,19 +940,19 @@ function get(t?: string): GameObj[] {
 }
 
 // apply a function to all objects currently in game with tag t
-function every<T>(t: string | ((obj: GameObj) => T), f?: (obj: GameObj) => T) {
+function every<T>(t: Tag | Tag[] | ((obj: GameObj) => T), f?: (obj: GameObj) => T) {
 	if (typeof t === "function" && f === undefined) {
 		return get().forEach((obj) => obj.exists() && t(obj));
-	} else if (typeof t === "string") {
+	} else if (typeof t === "string" || Array.isArray(t)) {
 		return get(t).forEach((obj) => obj.exists() && f(obj));
 	}
 }
 
 // every but in reverse order
-function revery<T>(t: string | ((obj: GameObj) => T), f?: (obj: GameObj) => T) {
+function revery<T>(t: Tag | Tag[] | ((obj: GameObj) => T), f?: (obj: GameObj) => T) {
 	if (typeof t === "function" && f === undefined) {
 		return get().reverse().forEach((obj) => obj.exists() && t(obj));
-	} else if (typeof t === "string") {
+	} else if (typeof t === "string" || Array.isArray(t)) {
 		return get(t).reverse().forEach((obj) => obj.exists() && f(obj));
 	}
 }
@@ -1304,7 +1328,7 @@ function area(opt: AreaCompOpt = {}): AreaComp {
 		},
 
 		isClicked(): boolean {
-			return app.isMouseClicked() && this.isHovering();
+			return app.isMousePressed() && this.isHovering();
 		},
 
 		isHovering() {
@@ -2177,6 +2201,7 @@ const debug: Debug = {
 	clearLog: logger.clear,
 	log: (msg) => logger.info(`[${app.time().toFixed(2)}] ${msg}`),
 	error: (msg) => logger.error(`[${app.time().toFixed(2)}] ${msg}`),
+	curRecording: null,
 	get paused() {
 		return game.paused;
 	},
@@ -2585,7 +2610,7 @@ const ctx: KaboomCtx = {
 	onKeyPressRepeat,
 	onKeyRelease,
 	onMouseDown,
-	onMouseClick,
+	onMousePress,
 	onMouseRelease,
 	onMouseMove,
 	onCharInput,
@@ -2597,7 +2622,7 @@ const ctx: KaboomCtx = {
 	keyPressRep: onKeyPressRepeat,
 	keyRelease: onKeyRelease,
 	mouseDown: onMouseDown,
-	mouseClick: onMouseClick,
+	mouseClick: onMousePress,
 	mouseRelease: onMouseRelease,
 	mouseMove: onMouseMove,
 	charInput: onCharInput,
@@ -2612,7 +2637,7 @@ const ctx: KaboomCtx = {
 	isKeyPressedRepeat: app.isKeyPressedRepeat,
 	isKeyReleased: app.isKeyReleased,
 	isMouseDown: app.isMouseDown,
-	isMouseClicked: app.isMouseClicked,
+	isMousePressed: app.isMousePressed,
 	isMouseReleased: app.isMouseReleased,
 	isMouseMoved: app.isMouseMoved,
 	keyIsDown: app.isKeyDown,
@@ -2620,7 +2645,7 @@ const ctx: KaboomCtx = {
 	keyIsPressedRep: app.isKeyPressedRepeat,
 	keyIsReleased: app.isKeyReleased,
 	mouseIsDown: app.isMouseDown,
-	mouseIsClicked: app.isMouseClicked,
+	mouseIsClicked: app.isMousePressed,
 	mouseIsReleased: app.isMouseReleased,
 	mouseIsMoved: app.isMouseMoved,
 	// timer
@@ -2702,6 +2727,15 @@ const ctx: KaboomCtx = {
 	RIGHT: vec2(1, 0),
 	UP: vec2(0, -1),
 	DOWN: vec2(0, 1),
+	// colors
+	RED: rgb(255, 0, 0),
+	GREEN: rgb(0, 255, 0),
+	BLUE: rgb(0, 0, 255),
+	YELLOW: rgb(255, 255, 0),
+	MAGENTA: rgb(255, 0, 255),
+	CYAN: rgb(0, 255, 255),
+	WHITE: rgb(255, 255, 255),
+	BLACK: rgb(0, 0, 0),
 	// dom
 	canvas: app.canvas,
 };
@@ -2968,7 +3002,7 @@ app.run(() => {
 			logger.draw();
 		}
 
-		if (curRecording) {
+		if (debug.curRecording) {
 			gfx.drawCircle({
 				radius: 12,
 				pos: vec2(24, height() - 24),

@@ -144,7 +144,7 @@ scene("lose", (score) => {
 
 	// go back to game with space is pressed
 	onKeyPress("space", () => go("start"));
-	onMouseClick(() => go("start"));
+	onClick(() => go("start"));
 
 });
 

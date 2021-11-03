@@ -34,8 +34,8 @@ onKeyDown("down", () => {
 	player.move(0, SPEED)
 })
 
-// onMouseClick() registers an event that runs once when left mouse is clicked
-onMouseClick(() => {
+// onClick() registers an event that runs once when left mouse is clicked
+onClick(() => {
 	// .moveTo() is provided by pos() component, changes the position
 	player.moveTo(mousePos())
 })
