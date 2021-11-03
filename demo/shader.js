@@ -1,5 +1,5 @@
 // Custom shader
-kaboom();
+kaboom()
 
 loadSprite("bean", "/sprites/bean.png")
 

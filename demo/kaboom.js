@@ -1,3 +1,3 @@
-kaboom();
-onKeyPress(() => addKaboom(mousePos()));
-onMouseMove(() => addKaboom(mousePos()));
+kaboom()
+onKeyPress(() => addKaboom(mousePos()))
+onMouseMove(() => addKaboom(mousePos()))

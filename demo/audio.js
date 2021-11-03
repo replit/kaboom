@@ -1,9 +1,9 @@
 // audio playback & control
 
-kaboom();
+kaboom()
 
-loadSound("bell", "/sounds/bell.mp3");
-loadSound("OtherworldlyFoe", "/sounds/OtherworldlyFoe.mp3");
+loadSound("bell", "/sounds/bell.mp3")
+loadSound("OtherworldlyFoe", "/sounds/OtherworldlyFoe.mp3")
 
 // play() to play audio
 // (This might not play until user input due to browser policy)
@@ -24,28 +24,28 @@ ${music.isPaused() ? "Paused" : "Playing"}
 Time: ${music.time().toFixed(2)}
 Tolume: ${music.volume().toFixed(2)}
 Tetune: ${music.detune().toFixed(2)}
-	`.trim();
+	`.trim()
 }
 
-updateText();
+updateText()
 
 // Update text every frame
-onUpdate(updateText);
+onUpdate(updateText)
 
 // Adjust music properties through input
 onKeyPress("space", () => {
 	if (music.isPaused()) {
-		music.play();
+		music.play()
 	} else {
-		music.pause();
+		music.pause()
 	}
 })
 
-onKeyPress("up", () => music.volume(music.volume() + 0.1));
-onKeyPress("down", () => music.volume(music.volume() - 0.1));
-onKeyPress("left", () => music.detune(music.detune() - 100));
-onKeyPress("right", () => music.detune(music.detune() + 100));
-onKeyPress("escape", () => music.stop());
+onKeyPress("up", () => music.volume(music.volume() + 0.1))
+onKeyPress("down", () => music.volume(music.volume() - 0.1))
+onKeyPress("left", () => music.detune(music.detune() - 100))
+onKeyPress("right", () => music.detune(music.detune() + 100))
+onKeyPress("escape", () => music.stop())
 
 const keyboard = "awsedftgyhujk"
 
