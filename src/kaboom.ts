@@ -889,7 +889,7 @@ function enterBurpMode() {
 
 // TODO: cache sorted list
 // get all objects with tag
-function get(t?: string): GameObj[] {
+function get(t?: Tag | Tag[]): GameObj[] {
 
 	const objs = [...game.objs.values()].sort((o1, o2) => {
 
@@ -914,19 +914,19 @@ function get(t?: string): GameObj[] {
 }
 
 // apply a function to all objects currently in game with tag t
-function every<T>(t: string | ((obj: GameObj) => T), f?: (obj: GameObj) => T) {
+function every<T>(t: Tag | Tag[] | ((obj: GameObj) => T), f?: (obj: GameObj) => T) {
 	if (typeof t === "function" && f === undefined) {
 		return get().forEach((obj) => obj.exists() && t(obj));
-	} else if (typeof t === "string") {
+	} else if (typeof t === "string" || Array.isArray(t)) {
 		return get(t).forEach((obj) => obj.exists() && f(obj));
 	}
 }
 
 // every but in reverse order
-function revery<T>(t: string | ((obj: GameObj) => T), f?: (obj: GameObj) => T) {
+function revery<T>(t: Tag | Tag[] | ((obj: GameObj) => T), f?: (obj: GameObj) => T) {
 	if (typeof t === "function" && f === undefined) {
 		return get().reverse().forEach((obj) => obj.exists() && t(obj));
-	} else if (typeof t === "string") {
+	} else if (typeof t === "string" || Array.isArray(t)) {
 		return get(t).reverse().forEach((obj) => obj.exists() && f(obj));
 	}
 }
