@@ -1366,12 +1366,13 @@ export interface KaboomCtx {
 	 *
 	 * @example
 	 * ```js
-	 * // spawn a bomb at random position every frame
+	 * // spawn a butterfly at random position every 1 second
 	 * loop(1, () => {
 	 *     add([
-	 *         sprite("bomb"),
+	 *         sprite("butterfly"),
 	 *         pos(rand(vec2(width(), height()))),
 	 *         area(),
+	 *         "friend",
 	 *     ])
 	 * })
 	 * ```
