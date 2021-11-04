@@ -20,22 +20,25 @@ const fonts = [
 // Keep track which is the current font
 let curFont = 0
 let curSize = 48
+const pad = 24
 
 // Add a game object with text() component + options
 const input = add([
+	pos(pad),
 	// Render text with the text() component
 	text("Type! And try arrow keys!", {
 		// What font to use
 		font: fonts[curFont],
 		// It'll wrap to next line if the text width exceeds the width option specified here
-		width: width(),
+		width: width() - pad * 2,
 		// The height of character
 		size: curSize,
 		// Transform each character for special effects
 		transform: (idx, ch) => ({
-			color: hsl2rgb(((time() * 60 + idx * 20) % 255) / 255, 0.7, 0.8),
-			scale: wave(1, 1.2, time() * 3 + idx),
-			angle: wave(-9, 9, time() * 3 + idx),
+			color: hsl2rgb((time() * 0.2 + idx * 0.1) % 1, 0.7, 0.8),
+			pos: vec2(0, wave(-4, 4, time() * 4 + idx * 0.5)),
+// 			scale: wave(1, 1.2, time() * 3 + idx),
+// 			angle: wave(-9, 9, time() * 3 + idx),
 		}),
 	}),
 ])
@@ -84,4 +87,4 @@ onKeyDown("down", () => {
 	input.textSize = curSize
 })
 
-// Check out https://kaboomjs.com#TextComp for everything text() provides
+// Check out https://kaboomjs.com#TextComp for everything text() offers
