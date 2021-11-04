@@ -1369,9 +1369,11 @@ export interface KaboomCtx {
 	 */
 	focused(): boolean,
 	/**
-	 * Play a piece of audio, returns a handle to control.
+	 * Play a piece of audio.
 	 *
 	 * @section Audio
+	 *
+	 * @returns A control handle.
 	 *
 	 * @example
 	 * ```js
@@ -1409,23 +1411,34 @@ export interface KaboomCtx {
 	 */
 	audioCtx: AudioContext,
 	/**
-	 * Get a random number (with optional bounds).
+	 * Get a random number between 0 - 1.
 	 *
 	 * @section Math
+	 */
+	rand(): number,
+	/**
+	 * Get a random value between 0 and the given value.
 	 *
 	 * @example
 	 * ```js
-	 * // a random number between 0 - 1
-	 * rand()
-
 	 * // a random number between 0 - 8
 	 * rand(8)
-
-	 * // a random number between 50 - 100
-	 * rand(50, 100)
 	 *
-	 * // a random vec2 between vec2(0) and vec2(100)
-	 * rand(vec2(0), vec2(100))
+	 * // A random point on screen
+	 * rand(vec2(width(), height()))
+	 *
+	 * // A random color
+	 * rand(rgb(255, 255, 255))
+	 * ```
+	 */
+	rand<T extends RNGValue>(n: T): T,
+	/**
+	 * Get a random value between the given bound.
+	 *
+	 * @example
+	 * ```js
+	 * rand(50, 100)
+	 * rand(vec2(20), vec2(100))
 	 *
 	 * // spawn something on the right side of the screen but with random y value within screen height
 	 * add([
@@ -1433,8 +1446,6 @@ export interface KaboomCtx {
 	 * ])
 	 * ```
 	 */
-	rand(): number,
-	rand<T extends RNGValue>(n: T): T,
 	rand<T extends RNGValue>(a: T, b: T): T,
 	/**
 	 * rand() but floored to integer.
@@ -1447,6 +1458,11 @@ export interface KaboomCtx {
 	randi(): number,
 	/**
 	 * Get / set the random number generator seed.
+	 *
+	 * @example
+	 * ```js
+	 * randSeed(Date.now())
+	 * ```
 	 */
 	randSeed(seed?: number): number,
 	/**
@@ -1596,7 +1612,7 @@ export interface KaboomCtx {
 	/**
 	 * Go to a scene, passing all rest args to scene callback.
 	 */
-	go(id: SceneID, ...args: any[]): void,
+	go(id: SceneID, ...args): void,
 	/**
 	 * Construct a level based on symbols.
 	 *
@@ -1862,7 +1878,9 @@ export interface KaboomCtx {
 	 */
 	screenshot(): string,
 	/**
-	 * Start recording the canvas into a video, returns a handle with controls. If framerate is not specified, a new frame will be captured each time the canvas changes.
+	 * Start recording the canvas into a video. If framerate is not specified, a new frame will be captured each time the canvas changes.
+	 *
+	 * @returns A control handle.
 	 *
 	 * @since v2000.1.0
 	 */
@@ -2061,7 +2079,7 @@ export interface GameObjRaw {
 	/**
 	 * Triggers an event.
 	 */
-	trigger(ev: string, ...args: any[]): void,
+	trigger(ev: string, ...args): void,
 	/**
 	 * Remove the game obj from scene.
 	 */
@@ -2106,7 +2124,7 @@ export interface GameObjRaw {
 export type GameObj<T = any> = GameObjRaw & MergeComps<T>;
 
 export type SceneID = string;
-export type SceneDef = (...args: any[]) => void;
+export type SceneDef = (...args) => void;
 export type TouchID = number;
 
 /**
