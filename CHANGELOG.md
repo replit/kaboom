@@ -1,4 +1,4 @@
-# v2000.1.0 ""
+# v2000.1.0 "Record Mode"
 
 - added `hsl2rgb()` for converting HSL color to kaboom RGB
 - added `record()` to start a screen recording
