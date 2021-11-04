@@ -24,6 +24,8 @@ export const getServerSideProps: GetServerSideProps = async (ctx) => {
 	<meta name="twitter:title" content="${title}" />
 	<meta name="twitter:site" content="@kaboomjs" />
 	<meta name="twitter:player" content="https://kaboomjs.com/demo/${name}" />
+	<meta name="twitter:player:width" content="480" />
+	<meta name="twitter:player:height" content="480" />
 	<style>
 		* {
 			margin: 0;
