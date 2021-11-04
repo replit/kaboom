@@ -48,7 +48,7 @@ function mycomp() {
 			debug.log("Oh bye");
 		},
 		// what to display in inspect mode
-		inspect(): string {
+		inspect() {
 			return "some state that deserves to be shown in inspect mode";
 		},
 	}
@@ -56,3 +56,5 @@ function mycomp() {
 ```
 
 Most kaboom built-in components are built using public interfaces, feel free to check them out. Also check out the "drag", "platformer", "doublejump" demos with their own custom components.
+
+Check out the [component demo](https://kaboomjs.com/play?demo=component).

@@ -374,7 +374,7 @@ scene("game", () => {
 
 	// jump when user press space
 	onKeyPress("space", jump);
-	onMouseClick(jump);
+	onClick(jump);
 
 	function spawnTree() {
 
@@ -441,7 +441,7 @@ scene("lose", (score) => {
 
 	// go back to game with space is pressed
 	onKeyPress("space", () => go("game"));
-	onMouseClick(() => go("game"));
+	onClick(() => go("game"));
 
 });
 
