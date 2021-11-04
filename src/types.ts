@@ -429,9 +429,10 @@ export interface KaboomCtx {
 	 * // enemy throwing feces at player
 	 * const projectile = add([
 	 *     sprite("feces"),
-	 *     pos(player.pos),
+	 *     pos(enemy.pos),
 	 *     area(),
 	 *     move(player.pos.angle(enemy.pos), 1200),
+	 *     cleanup(),
 	 * ])
 	 * ```
 	 */
