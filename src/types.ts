@@ -1272,27 +1272,6 @@ export interface KaboomCtx {
 	 */
 	layers(list: string[], def?: string): void,
 	/**
-	 * Run the callback every n seconds.
-	 *
-	 * @example
-	 * ```js
-	 * // spawn a bomb at random position every frame
-	 * loop(1, () => {
-	 *     add([
-	 *         sprite("bomb"),
-	 *         pos(rand(0, width()), rand(0, height())),
-	 *         area(),
-	 *         body(),
-	 *     ])
-	 * })
-	 * ```
-	 */
-	loop(t: number, action: () => void): EventCanceller,
-	/**
-	 * Run the callback after n seconds.
-	 */
-	wait(n: number, action?: () => void): Promise<void>,
-	/**
 	 * Get / set the cursor (css). Cursor will be reset to "default" every frame so use this in an per-frame action.
 	 *
 	 * @example
@@ -1368,6 +1347,36 @@ export interface KaboomCtx {
 	 * @deprecated Use isFocused() instead.
 	 */
 	focused(): boolean,
+	/**
+	 * Run the callback after n seconds.
+	 *
+	 * @section Timer
+	 *
+	 * @example
+	 * ```js
+	 * // 3 seconds until explosion! Runnn!
+	 * wait(3, () => {
+	 *     explode()
+	 * })
+	 * ```
+	 */
+	wait(n: number, action?: () => void): Promise<void>,
+	/**
+	 * Run the callback every n seconds.
+	 *
+	 * @example
+	 * ```js
+	 * // spawn a bomb at random position every frame
+	 * loop(1, () => {
+	 *     add([
+	 *         sprite("bomb"),
+	 *         pos(rand(vec2(width(), height()))),
+	 *         area(),
+	 *     ])
+	 * })
+	 * ```
+	 */
+	loop(t: number, action: () => void): EventCanceller,
 	/**
 	 * Play a piece of audio.
 	 *
@@ -1466,7 +1475,7 @@ export interface KaboomCtx {
 	 */
 	randSeed(seed?: number): number,
 	/**
-	 * Make a 2d vector.
+	 * Create a 2d vector.
 	 *
 	 * @example
 	 * ```js
@@ -1477,10 +1486,10 @@ export interface KaboomCtx {
 	 * vec2(10)
 	 *
 	 * // { x: 100, y: 80 }
-	 * const pos = vec2(100, 80)
+	 * vec2(100, 80)
 	 *
 	 * // move to 150 degrees direction with by length 10
-	 * pos = pos.add(dir(150).scale(10))
+	 * player.pos = pos.add(dir(150).scale(10))
 	 * ```
 	 */
 	vec2(x: number, y: number): Vec2,
@@ -1489,12 +1498,26 @@ export interface KaboomCtx {
 	vec2(): Vec2,
 	/**
 	 * RGB color (0 - 255).
+	 *
+	 * @example
+	 * ```js
+	 * // update the color of the sky to light blue
+	 * sky.color = rgb(0, 128, 255)
+	 * ```
 	 */
 	rgb(r: number, g: number, b: number): Color,
 	/**
-	 * Convert HSL color (all values in [0.0 - 1.0] range) to RGB color.
+	 * Convert HSL color (all values in 0.0 - 1.0 range) to RGB color.
 	 *
 	 * @since v2000.1.0
+	 *
+	 * @example
+	 * ```js
+	 * // animate rainbow color
+	 * onUpdate("rainbow", (obj) => {
+	 *     obj.color = hsl2rgb(wave(0, 1, time()), 0.6, 0.6)
+	 * })
+	 * ```
 	 */
 	hsl2rgb(hue: number, saturation: number, lightness: number): Color,
 	/**
@@ -1620,22 +1643,19 @@ export interface KaboomCtx {
 	 *
 	 * @example
 	 * ```js
-	 * // example from demo/platformer.js
 	 * addLevel([
-	 *     "                          $",
 	 *     "                          $",
 	 *     "                          $",
 	 *     "           $$         =   $",
 	 *     "  %      ====         =   $",
-	 *     "                      =   $",
 	 *     "                      =    ",
-	 *     "       ^^      = >    =    ",
+	 *     "       ^^      = >    =   @",
 	 *     "===========================",
 	 * ], {
 	 *     // define the size of each block
 	 *     width: 32,
 	 *     height: 32,
-	 *     // define what each symbol means, by a function returning a comp list (what you'll pass to add())
+	 *     // define what each symbol means, by a function returning a component list (what will be passed to add())
 	 *     "=": () => [
 	 *         sprite("floor"),
 	 *         area(),
@@ -3714,11 +3734,11 @@ export interface StateComp extends Comp {
 
 export interface LevelOpt {
 	/**
-	 * Grid width (width of each block).
+	 * Width of each block.
 	 */
 	width: number,
 	/**
-	 * Grid height (height of each block).
+	 * Height of each block.
 	 */
 	height: number,
 	/**
