@@ -175,7 +175,15 @@ const Play: React.FC<PlayProps> = ({
 	useClickOutside(blackboardRef, () => setBlackboard(null), [ setBlackboard ]);
 
 	return <>
-		<Head title="Kaboom Playground" scale={0.6} />
+		<Head
+			title="Kaboom Playground"
+			scale={0.6}
+			twitterPlayer={{
+				url: `https://kaboomjs.com/demo/${demo}`,
+				width: 480,
+				height: 480,
+			}}
+		/>
 		<Background dir="column" css={{ overflow: "hidden" }}>
 			<View
 				dir="row"
