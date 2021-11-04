@@ -157,7 +157,7 @@ const Play: React.FC<PlayProps> = ({
 				query: {
 					demo: DEF_DEMO,
 				},
-			});
+			}, undefined, { shallow: true, });
 		}
 	}, [ router ]);
 
@@ -221,7 +221,7 @@ const Play: React.FC<PlayProps> = ({
 								query: {
 									demo: demo,
 								},
-							})}
+							}, undefined, { shallow: true, })}
 						/>
 					}
 					<Button
@@ -468,6 +468,7 @@ const Play: React.FC<PlayProps> = ({
 
 // TODO: getServerSideProps is handy for dev when you're changing demos, but getStaticProps makes more sense for prod since it won't change
 export const getServerSideProps: GetServerSideProps = async (ctx) => {
+	const { demo } = ctx.query;
 	const demodir = (await fs.readdir("public/site/demo"))
 		.filter((p) => !p.startsWith("."))
 	const demos: Record<string, string> = {}
@@ -478,11 +479,17 @@ export const getServerSideProps: GetServerSideProps = async (ctx) => {
 			demos[name] = await fs.readFile(`public/site/demo/${file}`, "utf8");
 		}
 	}
-	return {
-		props: {
-			demos,
-		},
-	};
+	if (!demo || demos[demo as string]) {
+		return {
+			props: {
+				demos,
+			},
+		};
+	} else {
+		return {
+			notFound: true,
+		};
+	}
 }
 
 export default Play;
