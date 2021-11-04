@@ -75,7 +75,7 @@ const player = add([
 ]);
 
 // jump when player presses "space" key
-keyPress("space", () => {
+onKeyPress("space", () => {
 	// .jump() is provided by the body() component
 	player.jump();
 });

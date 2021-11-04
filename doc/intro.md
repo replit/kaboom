@@ -79,7 +79,7 @@ const bean = add([
 ])
 
 // .jump() when "space" key is pressed
-keyPress("space", () => {
+onKeyPress("space", () => {
 	bean.jump()
 })
 ```
@@ -90,7 +90,7 @@ Let's see what components we're using:
 - `area()` gives it a collider area, so we can check for collisions with other characters later on
 - `body()` gives it a physical body, making it fall due to gravity and ability to jump
 
-We're also testing out our player character with a little interaction here. `keyPress()` registers an event that runs every time user presses a certain key. In this case, we're calling the `.jump()` method (which is provided by the `body()` component) when `"space"` key is pressed. Go ahead and slap that space key!
+We're also testing out our player character with a little interaction here. `onKeyPress()` registers an event that runs every time user presses a certain key. In this case, we're calling the `.jump()` method (which is provided by the `body()` component) when `"space"` key is pressed. Go ahead and slap that space key!
 
 With the `body()` component, our Bean is going to keep falling into oblivion if we don't hit "space" key enough. Let's add a solid platform for Bean to land on.
 
@@ -119,17 +119,17 @@ Pretty straightforward! Refresh the game and you should see our Bean is now safe
 
 ![land](intro/land.png)
 
-Let's also make sure our Bean can only jump when grounded.
+Let's also make sure our Bean can only jump when isGrounded.
 
 ```js
-keyPress("space", () => {
-	if (bean.grounded()) {
+onKeyPress("space", () => {
+	if (bean.isGrounded()) {
 		bean.jump();
 	}
 });
 ```
 
-`grounded()` is another function provided by `body()` component which checks if currently landed on a platform. Now our game is slightly more physically correct.
+`isGrounded()` is another function provided by `body()` component which checks if currently landed on a platform. Now our game is slightly more physically correct.
 
 Bean loves challanges. Let's start adding in obstacles to jump over! Time to build a game object from components again.
 
@@ -177,13 +177,13 @@ add([
 To add a tag we simply put a string in the component array. Then we can check for collision between Bean and any object with tag "tree".
 
 ```js
-bean.collides("tree", () => {
+bean.onCollide("tree", () => {
 	addKaboom(bean.pos);
 	shake();
 });
 ```
 
-`.collides()` is a function provided by the `area()` component. It registers an event that runs every time the object collides with another object with a certain tag, passed by the first argument. In this case, it means every time Bean collides with another game obj with tag `"tree"`, run the callback.
+`.onCollide()` is a function provided by the `area()` component. It registers an event that runs every time the object collides with another object with a certain tag, passed by the first argument. In this case, it means every time Bean collides with another game obj with tag `"tree"`, run the callback.
 
 Inside the callback we're doing 2 things. `addKaboom()` spawns an explosion animation which is basically kaboom's logo, it accepts 1 argument the position to spawn, which we pass in the player's current position with `.pos` (which is provided by the `pos()` component).
 
@@ -295,7 +295,7 @@ scene("lose", () => {
 So in the "lose" scene, we'll add a piece of text in the center says "Game Over" (`text()` is a component that renders text). Go ahead and go to this scene when player collides with a tree:
 
 ```js
-player.collides("tree", () => {
+player.onCollide("tree", () => {
 	addKaboom(bean.pos);
 	shake();
 	go("lose"); // go to "lose" scene here
@@ -318,13 +318,13 @@ Let's keep it simple and just use time as score.
 
 ```js
 // increment score every frame
-action(() => {
+onUpdate(() => {
 	score++;
 	scoreLabel.text = score;
 });
 ```
 
-We can use the `action()` function, which takes a function, and runs it every frame. In this case we're going to increment the score, and update the score label's text every frame.
+We can use the `onUpdate()` function, which takes a function, and runs it every frame. In this case we're going to increment the score, and update the score label's text every frame.
 
 (todo)
 
@@ -367,14 +367,14 @@ scene("game", () => {
 	]);
 
 	function jump() {
-		if (player.grounded()) {
+		if (player.isGrounded()) {
 			player.jump(JUMP_FORCE);
 		}
 	}
 
 	// jump when user press space
-	keyPress("space", jump);
-	mouseClick(jump);
+	onKeyPress("space", jump);
+	onMouseClick(jump);
 
 	function spawnTree() {
 
@@ -399,7 +399,7 @@ scene("game", () => {
 	spawnTree();
 
 	// lose if player collides with any game obj with tag "tree"
-	player.collides("tree", () => {
+	player.onCollide("tree", () => {
 		// go to "lose" scene and pass the score
 		go("lose", score);
 		burp();
@@ -415,7 +415,7 @@ scene("game", () => {
 	]);
 
 	// increment score every frame
-	action(() => {
+	onUpdate(() => {
 		score++;
 		scoreLabel.text = score;
 	});
@@ -440,8 +440,8 @@ scene("lose", (score) => {
 	]);
 
 	// go back to game with space is pressed
-	keyPress("space", () => go("game"));
-	mouseClick(() => go("game"));
+	onKeyPress("space", () => go("game"));
+	onMouseClick(() => go("game"));
 
 });
 
