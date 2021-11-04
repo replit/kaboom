@@ -6,10 +6,10 @@ kaboom({
 	stretch: true,
 	// "letterbox" makes stretching keeps aspect ratio (leaves black bars on empty spaces), have no effect without "stretch"
 	letterbox: true,
-});
+})
 
-loadBean();
+loadBean()
 
 add([
 	sprite("bean"),
-]);
+])

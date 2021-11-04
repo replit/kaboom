@@ -1,13 +1,6 @@
-Kaboom uses a flexible component system which values composition over inheritence. Each game object is composed from a list of components, each component gives the game object certain abilities.
+Kaboom uses a flexible component system which values composition over inheritence. Each game object is composed from a list of components, each component gives the game object certain capabilities.
 
-For example,
-
-- `sprite()` component gives the object the ability to render as a sprite and controlling animations.
-- `pos()` component gives the object a position in world and the ability to move.
-- `area()` component gives the object the ability to check for collisions with other game objects with `area()` component.
-- `body()` component gives the ability to respond to gravity and jump.
-
-These components are typically used with `add()` to assemble them together into a Game Object and add them to the world.
+Use `add()` to assemble the components together into a Game Object and add them to the world.
 
 ```js
 const player = add([
@@ -17,17 +10,19 @@ const player = add([
 	body(),
 ])
 
-// a method provided by body() component
+// .jump() is provided by body() component
 player.jump()
 
-// a method provided by the pos() component
-player.moveTo(123)
+// .moveTo() is provided by pos() component
+player.moveTo(120, 80)
 
-// a method provided by the area() component
+// .onCollide() is provided by the area() component
 player.onCollide("enemy", (enemy) => {
 	destroy(enemy)
 	addExplosion()
 })
 ```
 
-To check out what methods and properties the component gives the Game Object, click on the type that the component function returns, e.g. `PosComp`, which will open a panel showing what it gives.
+To see what methods and properties a component offers, click on the type that the component function returns, e.g. `PosComp`, which will open a panel showing all the properties and methods it'd give the game object.
+
+To learn more about how components work or how to make your own component, check out the [component](/play?demo=component) demo.

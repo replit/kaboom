@@ -3,31 +3,31 @@
  *
  * @example
  * ```js
- * // this will create a blank canvas and import all kaboom functions to global
- * kaboom();
+ * // Start kaboom with default options (will create a fullscreen canvas under <body>)
+ * kaboom()
  *
- * // init with some options (check out #KaboomOpt for full options list)
- * // create a game with custom dimension and background color
+ * // Init with some options (check out #KaboomOpt for full options list)
  * kaboom({
  *     width: 320,
  *     height: 240,
  *     font: "sinko",
+ *     canvas: document.querySelector("#mycanvas"),
  *     background: [ 0, 0, 255, ],
- * });
+ * })
  *
- * // all kaboom functions are imported to global automatically
- * add();
- * onUpdate();
- * onKeyPress();
- * vec2();
+ * // All kaboom functions are imported to global after calling kaboom()
+ * add()
+ * onUpdate()
+ * onKeyPress()
+ * vec2()
  *
- * // can also prevent kaboom from importing all functions to global and use a context handle
- * const k = kaboom({ global: false });
+ * // If you want to prevent kaboom from importing all functions to global and use a context handle for all kaboom functions
+ * const k = kaboom({ global: false })
  *
- * k.add(...);
- * k.onUpdate(...);
- * k.onKeyPress(...);
- * k.vec2(...);
+ * k.add(...)
+ * k.onUpdate(...)
+ * k.onKeyPress(...)
+ * k.vec2(...)
  * ```
  */
 declare function kaboom(options?: KaboomOpt): KaboomCtx;
@@ -37,61 +37,49 @@ declare function kaboom(options?: KaboomOpt): KaboomCtx;
  */
 export interface KaboomCtx {
 	/**
-	 * Create and add a game obj to the scene, from a list of components or tags. The added and returned game obj will contain all methods from each component.
+	 * Assemble a game object from a list of components, and add it to the game
+	 *
+	 * @returns The added game object that contains all properties and methods each component offers.
 	 *
 	 * @section Game Obj
 	 *
 	 * @example
 	 * ```js
-	 * // let's add our player character to the screen
-	 * // we use a list of components to define who they are and how they actually work
 	 * const player = add([
-	 *     // it renders as a sprite
+	 *     // List of components, each offers a set of functionalities
 	 *     sprite("mark"),
-	 *     // it has a position
 	 *     pos(100, 200),
-	 *     // it has a collider
 	 *     area(),
-	 *     // it is a physical body which will respond to physics
 	 *     body(),
-	 *     // you can easily make custom components to encapsulate reusable logics
-	 *     doubleJump(),
 	 *     health(8),
-	 *     // give it tags for controlling group behaviors
+	 *     doubleJump(),
+	 *     // Plain strings are tags, a quicker way to let us define behaviors for a group
 	 *     "player",
 	 *     "friendly",
-	 *     // plain objects fields are directly assigned to the game obj
+	 *     // Components are just plain objects, you can pass an object literal as a component.
 	 *     {
-	 *         dir: vec2(-1, 0),
+	 *         dir: LEFT,
 	 *         dead: false,
 	 *         speed: 240,
 	 *     },
-	 * ]);
+	 * ])
 	 *
 	 * // .jump is provided by body()
-	 * player.jump();
+	 * player.jump()
 
 	 * // .moveTo is provided by pos()
-	 * player.moveTo(100, 200);
+	 * player.moveTo(300, 200)
 	 *
-	 * // run something every frame
-	 * // player will constantly move towards player.dir, at player.speed per second
+	 * // .onUpdate() is on every game object, it registers an event that runs every frame
 	 * player.onUpdate(() => {
-	 *     player.move(player.dir.scale(player.speed));
-	 * });
+	 *     // .move() is provided by pos()
+	 *     player.move(player.dir.scale(player.speed))
+	 * })
 	 *
 	 * // .onCollide is provided by area()
 	 * player.onCollide("tree", () => {
-	 *     destroy(player);
-	 * });
-	 *
-	 * // run this for all game objs with tag "friendly"
-	 * onUpdate("friendly", (friend) => {
-	 *     // .hurt is provided by health()
-	 *     friend.hurt();
-	 * });
-	 *
-	 * // check out #GameObj for stuff that exists for all game objects, independent of its components.
+	 *     destroy(player)
+	 * })
 	 * ```
 	 */
 	add<T>(comps: CompList<T>): GameObj<T>,
@@ -101,36 +89,36 @@ export interface KaboomCtx {
 	 * @example
 	 * ```js
 	 * // get a list of all game objs with tag "bomb"
-	 * const allBombs = get("bomb");
+	 * const allBombs = get("bomb")
 	 *
 	 * // without args returns all current objs in the game
-	 * const allObjs = get();
+	 * const allObjs = get()
 	 * ```
 	 */
-	get(tag?: Tag): GameObj[],
+	get(tag?: Tag | Tag[]): GameObj[],
 	/**
 	 * Run callback on every game obj with certain tag.
 	 *
 	 * @example
 	 * ```js
 	 * // Destroy all game obj with tag "fruit"
-	 * every("fruit", destroy);
+	 * every("fruit", destroy)
 	 * ```
 	 */
-	every<T>(t: Tag, action: (obj: GameObj) => T): void,
+	every<T>(tag: Tag | Tag[], action: (obj: GameObj) => T): void,
 	/**
 	 * Run callback on every game obj.
 	 *
 	 * @example
 	 * ```js
-	 * every((obj) => {});
+	 * every((obj) => {})
 	 * ```
 	 */
 	every<T>(action: (obj: GameObj) => T): void,
 	/**
 	 * Run callback on every game obj with certain tag in reverse order.
 	 */
-	revery<T>(t: Tag, action: (obj: GameObj) => T): void,
+	revery<T>(tag: Tag | Tag[], action: (obj: GameObj) => T): void,
 	/**
 	 * Run callback on every game obj in reverse order.
 	 */
@@ -141,7 +129,7 @@ export interface KaboomCtx {
 	 * @example
 	 * ```js
 	 * // mainly useful when you want to make something to draw on top
-	 * readd(froggy);
+	 * readd(froggy)
 	 * ```
 	 */
 	readd(obj: GameObj): GameObj,
@@ -152,8 +140,8 @@ export interface KaboomCtx {
 	 * ```js
 	 * // every time froggy collides with anything with tag "fruit", remove it
 	 * froggy.onCollide("fruit", (fruit) => {
-	 *     destroy(fruit);
-	 * });
+	 *     destroy(fruit)
+	 * })
 	 * ```
 	 */
 	destroy(obj: GameObj): void,
@@ -164,8 +152,8 @@ export interface KaboomCtx {
 	 * ```js
 	 * // destroy all objects with tag "bomb" when you click one
 	 * onClick("bomb", () => {
-	 *     destroyAll("bomb");
-	 * });
+	 *     destroyAll("bomb")
+	 * })
 	 * ```
 	 */
 	destroyAll(tag: Tag): void,
@@ -176,11 +164,11 @@ export interface KaboomCtx {
 	 *
 	 * @example
 	 * ```js
-	 * // this game obj will draw the "froggy" sprite at (100, 200)
+	 * // This game object will draw a "froggy" sprite at (100, 200)
 	 * add([
 	 *     pos(100, 200),
 	 *     sprite("froggy"),
-	 * ]);
+	 * ])
 	 * ```
 	 */
 	pos(x: number, y: number): PosComp,
@@ -207,7 +195,7 @@ export interface KaboomCtx {
 	 * add([
 	 *     sprite("froggy"),
 	 *     color(0, 0, 255)
-	 * ]);
+	 * ])
 	 * ```
 	 */
 	color(r: number, g: number, b: number): ColorComp,
@@ -225,7 +213,7 @@ export interface KaboomCtx {
 	 * // minimal setup
 	 * add([
 	 *     sprite("froggy"),
-	 * ]);
+	 * ])
 	 *
 	 * // with options
 	 * const froggy = add([
@@ -233,14 +221,14 @@ export interface KaboomCtx {
 	 *         // start with animation "idle"
 	 *         anim: "idle",
 	 *     }),
-	 * ]);
+	 * ])
 	 *
 	 * // play / stop an anim
-	 * froggy.play("jump");
-	 * froggy.stop();
+	 * froggy.play("jump")
+	 * froggy.stop()
 	 *
 	 * // manually setting a frame
-	 * froggy.frame = 3;
+	 * froggy.frame = 3
 	 * ```
 	 */
 	sprite(spr: string | SpriteData, options?: SpriteCompOpt): SpriteComp,
@@ -254,12 +242,12 @@ export interface KaboomCtx {
 	 *     text("Score: 0"),
 	 *     pos(24, 24),
 	 *     { value: 0 },
-	 * ]);
+	 * ])
 	 *
 	 * player.onCollide("coin", () => {
-	 *     score.value += 1;
-	 *     score.text = "Score:" + score.value;
-	 * });
+	 *     score.value += 1
+	 *     score.text = "Score:" + score.value
+	 * })
 	 *
 	 * // with options
 	 * add([
@@ -269,7 +257,7 @@ export interface KaboomCtx {
 	 *         width: 320, // it'll wrap to next line when width exceeds this value
 	 *         font: "sink", // there're 4 built-in fonts: "apl386", "apl386o", "sink", and "sinko"
 	 *     }),
-	 * ]);
+	 * ])
 	 * ```
 	 */
 	text(txt: string, options?: TextCompOpt): TextComp,
@@ -284,7 +272,7 @@ export interface KaboomCtx {
 	 *     rect(20, 40),
 	 *     outline(4),
 	 *     area(),
-	 * ]);
+	 * ])
 	 * ```
 	 */
 	rect(w: number, h: number): RectComp,
@@ -296,7 +284,7 @@ export interface KaboomCtx {
 	 * add([
 	 *     pos(80, 120),
 	 *     circle(16),
-	 * ]);
+	 * ])
 	 * ```
 	 */
 	circle(radius: number): CircleComp,
@@ -308,50 +296,57 @@ export interface KaboomCtx {
 	 * add([
 	 *     uvquad(width(), height()),
 	 *     shader("spiral"),
-	 * ]);
+	 * ])
 	 * ```
 	 */
 	uvquad(w: number, h: number): UVQuadComp,
 	/**
-	 * Collider area. Will auto generate the shape and size from render components (e.g. sprite, text, rect) if no params given.
+	 * Generates collider area from shape and enables collision detection.
+	 *
+	 * @example
+	 * ```js
+	 * // Automatically generate area information from the shape of render
+	 * const player = add([
+	 *     sprite("froggy"),
+	 *     area(),
+	 * ])
+	 *
+	 * // Die if player collides with another game obj with tag "tree"
+	 * player.onCollide("tree", () => {
+	 *     destroy(player)
+	 *     go("lose")
+	 * })
+	 *
+	 * // Check for collision manually every frame instead of registering an event
+	 * player.onUpdate(() => {
+	 *     if (player.isColliding(bomb)) {
+	 *         score += 1
+	 *     }
+	 * })
+	 * ```
+	 */
+	area(): AreaComp,
+	/**
+	 * Define collider area and enables collision detection.
 	 *
 	 * @example
 	 * ```js
 	 * add([
-	 *     sprite("froggy"),
-	 *     // without args it'll auto generate from the sprite component we have above
-	 *     area(),
-	 * ]);
-	 *
-	 * add([
-	 *     sprite("bomb"),
-	 *     // scale to 0.6 of the generated area
+	 *     sprite("flower"),
+	 *     // Scale to 0.6 of the generated area
 	 *     area({ scale: 0.6 }),
-	 *     // if we want the scale to be calculated from the center
+	 *     // If we want the area scale to be calculated from the center
 	 *     origin("center"),
-	 * ]);
-	 *
-	 * // define custom area with topleft and botright point
-	 * const player = add([
-	 *     sprite("froggy"),
-	 *     area({ width: 20, height: 40. }),
 	 * ])
 	 *
-	 * // die if player collides with another game obj with tag "tree"
-	 * player.onCollide("tree", () => {
-	 *     destroy(player);
-	 *     go("lose");
-	 * });
-	 *
-	 * // check for collision manually every frame instead of registering an event
-	 * player.onUpdate(() => {
-	 *     if (player.isColliding(bomb)) {
-	 *         score += 1;
-	 *     }
-	 * });
+	 * add([
+	 *     sprite("froggy"),
+	 *     // Define custom area with width and height
+	 *     area({ width: 20, height: 40. }),
+	 * ])
 	 * ```
 	 */
-	area(options?: AreaCompOpt): AreaComp,
+	area(options: AreaCompOpt): AreaComp,
 	/**
 	 * Origin point for render (default "topleft").
 	 *
@@ -362,7 +357,7 @@ export interface KaboomCtx {
 	 *     rect(40, 10),
 	 *     rotate(45),
 	 *     origin("center"),
-	 * ]);
+	 * ])
 	 * ```
 	 */
 	origin(o: Origin | Vec2): OriginComp,
@@ -390,20 +385,20 @@ export interface KaboomCtx {
 	 *     pos(),
 	 *     area(),
 	 *     body(),
-	 * ]);
+	 * ])
 	 *
 	 * // when froggy is grounded, press space to jump
 	 * // check out BodyComp for more methods
 	 * onKeyPress("space", () => {
 	 *     if (froggy.isGrounded()) {
-	 *         froggy.jump();
+	 *         froggy.jump()
 	 *     }
-	 * });
+	 * })
 	 *
 	 * // a custom event provided by "body"
 	 * froggy.on("ground", () => {
-	 *     debug.log("oh no!");
-	 * });
+	 *     debug.log("oh no!")
+	 * })
 	 * ```
 	 */
 	body(options?: BodyCompOpt): BodyComp,
@@ -417,12 +412,12 @@ export interface KaboomCtx {
 	 *     pos(30, 120),
 	 *     area(),
 	 *     solid(),
-	 * ]);
+	 * ])
 	 *
 	 * // only do collision checking when a block is close to player for performance
 	 * onUpdate("block", (b) => {
-	 *     b.solid = b.pos.dist(player.pos) <= 64;
-	 * });
+	 *     b.solid = b.pos.dist(player.pos) <= 64
+	 * })
 	 * ```
 	 */
 	solid(): SolidComp,
@@ -437,7 +432,7 @@ export interface KaboomCtx {
 	 *     pos(player.pos),
 	 *     area(),
 	 *     move(player.pos.angle(enemy.pos), 1200),
-	 * ]);
+	 * ])
 	 * ```
 	 */
 	move(direction: number | Vec2, speed: number): MoveComp,
@@ -451,7 +446,7 @@ export interface KaboomCtx {
 	 *     pos(80, 80),
 	 *     move(LEFT, 120),
 	 *     cleanup(3),
-	 * ]);
+	 * ])
 	 * ```
 	 */
 	cleanup(time?: number): CleanupComp,
@@ -477,7 +472,7 @@ export interface KaboomCtx {
 	 *     text(0),
 	 *     pos(12, 12),
 	 *     fixed(),
-	 * ]);
+	 * ])
 	 * ```
 	 */
 	fixed(): FixedComp,
@@ -492,9 +487,9 @@ export interface KaboomCtx {
 	 *         sprite("explosion", { anim: "burst", }),
 	 *         stay(),
 	 *         lifespan(1),
-	 *     ]);
-	 *     go("lose", score);
-	 * });
+	 *     ])
+	 *     go("lose", score)
+	 * })
 	 * ```
 	 */
 	stay(): StayComp,
@@ -505,26 +500,26 @@ export interface KaboomCtx {
 	 * ```js
 	 * const player = add([
 	 *     health(3),
-	 * ]);
+	 * ])
 	 *
 	 * player.onCollide("bad", (bad) => {
-	 *     player.hurt(1);
-	 *     bad.hurt(1);
-	 * });
+	 *     player.hurt(1)
+	 *     bad.hurt(1)
+	 * })
      *
 	 * player.onCollide("apple", () => {
-	 *     player.heal(1);
-	 * });
+	 *     player.heal(1)
+	 * })
 	 *
 	 * player.on("hurt", () => {
-	 *     play("ouch");
-	 * });
+	 *     play("ouch")
+	 * })
 	 *
 	 * // triggers when hp reaches 0
 	 * player.on("death", () => {
-	 *     destroy(player);
-	 *     go("lose");
-	 * });
+	 *     destroy(player)
+	 *     go("lose")
+	 * })
 	 * ```
 	 */
 	health(hp: number): HealthComp,
@@ -537,7 +532,7 @@ export interface KaboomCtx {
 	 * add([
 	 *     sprite("explosion", { anim: "burst", }),
 	 *     lifespan(1, { fade: 0.5 }),
-	 * ]);
+	 * ])
 	 * ```
 	 */
 	lifespan(time: number, options?: LifespanCompOpt): LifespanComp,
@@ -552,7 +547,7 @@ export interface KaboomCtx {
 	 *     pos(80, 100),
 	 *     sprite("robot"),
 	 *     state("idle", ["idle", "attack", "move"]),
-	 * ]);
+	 * ])
 	 *
 	 * // this callback will run once when enters "attack" state
 	 * enemy.onStateEnter("attack", () => {
@@ -572,7 +567,7 @@ export interface KaboomCtx {
 	 *
 	 * // this will run every frame when current state is "move"
 	 * enemy.onStateUpdate("move", () => {
-	 *     enemy.follow(player);
+	 *     enemy.follow(player)
 	 *     if (enemy.pos.dist(player.pos) < 16) {
 	 *         enemy.enterState("attack")
 	 *     }
@@ -590,9 +585,9 @@ export interface KaboomCtx {
 	 * // a custom event defined by body() comp
 	 * // every time an obj with tag "bomb" hits the floor, destroy it and addKaboom()
 	 * on("ground", "bomb", (bomb) => {
-	 *     destroy(bomb);
-	 *     addKaboom();
-	 * });
+	 *     destroy(bomb)
+	 *     addKaboom()
+	 * })
 	 * ```
 	 */
 	on(event: string, tag: Tag, action: (obj: GameObj, ...args) => void): EventCanceller,
@@ -606,11 +601,11 @@ export interface KaboomCtx {
 	 * // move every "tree" 120 pixels per second to the left, destroy it when it leaves screen
 	 * // there'll be nothing to run if there's no "tree" obj in the scene
 	 * onUpdate("tree", (tree) => {
-	 *     tree.move(-120, 0);
+	 *     tree.move(-120, 0)
 	 *     if (tree.pos.x < 0) {
-	 *         destroy(tree);
+	 *         destroy(tree)
 	 *     }
-	 * });
+	 * })
 	 * ```
 	 */
 	onUpdate(tag: Tag, action: (obj: GameObj) => void): EventCanceller,
@@ -623,8 +618,8 @@ export interface KaboomCtx {
 	 * ```js
 	 * // This will run every frame
 	 * onUpdate(() => {
-	 *     debug.log("ohhi");
-	 * });
+	 *     debug.log("ohhi")
+	 * })
 	 * ```
 	 */
 	onUpdate(action: () => void): EventCanceller,
@@ -660,25 +655,25 @@ export interface KaboomCtx {
 	 * ```js
 	 * const froggy = add([
 	 *     sprite("froggy"),
-	 * ]);
+	 * ])
 	 *
 	 * // certain assets related data are only available when the game finishes loading
 	 * onLoad(() => {
-	 *     debug.log(froggy.width);
-	 * });
+	 *     debug.log(froggy.width)
+	 * })
 	 * ```
 	 */
 	onLoad(action: () => void): void,
 	/**
-	 * Registers an event that runs when 2 game objs with certain tags collides.
+	 * Registers an event that runs when 2 game objs with certain tags collides (required to have area() component).
 	 *
 	 * @since v2000.1.0
 	 *
 	 * @example
 	 * ```js
 	 * onCollide("sun", "earth", () => {
-	 *     addExplosion();
-	 * });
+	 *     addExplosion()
+	 * })
 	 * ```
 	 */
 	onCollide(
@@ -687,16 +682,19 @@ export interface KaboomCtx {
 		action: (a: GameObj, b: GameObj, col?: Collision) => void,
 	): EventCanceller,
 	/**
-	 * Registers an event that runs when game objs with certain tags are clicked. This function spins off an onUpdate() when called, please put it at root level and never inside another onUpdate().
+	 * Registers an event that runs when game objs with certain tags are clicked (required to have the area() component).
 	 *
 	 * @since v2000.1.0
 	 */
-	onClick(
-		tag: Tag,
-		action: (a: GameObj) => void,
-	): EventCanceller,
+	onClick(tag: Tag, action: (a: GameObj) => void): EventCanceller,
 	/**
-	 * Registers an event that runs when game objs with certain tags are hovered.
+	 * Registers an event that runs when users clicks.
+	 *
+	 * @since v2000.1.0
+	 */
+	onClick(action: () => void): EventCanceller,
+	/**
+	 * Registers an event that runs when game objs with certain tags are hovered (required to have area() component).
 	 *
 	 * @since v2000.1.0
 	 */
@@ -713,8 +711,8 @@ export interface KaboomCtx {
 	 * ```js
 	 * // move left by SPEED pixels per frame every frame when left arrow key is being held down
 	 * onKeyDown("left", () => {
-	 *     froggy.move(-SPEED, 0);
-	 * });
+	 *     froggy.move(-SPEED, 0)
+	 * })
 	 * ```
 	 */
 	onKeyDown(k: Key | Key[], action: () => void): EventCanceller,
@@ -727,8 +725,8 @@ export interface KaboomCtx {
 	 * ```js
 	 * // .jump() once when "space" is just being pressed
 	 * onKeyPress("space", () => {
-	 *     froggy.jump();
-	 * });
+	 *     froggy.jump()
+	 * })
 	 * ```
 	 */
 	onKeyPress(k: Key | Key[], action: () => void): EventCanceller,
@@ -742,7 +740,7 @@ export interface KaboomCtx {
 	 * // Call restart() when player presses any key
 	 * onKeyPress(() => {
 	 *     restart()
-	 * });
+	 * })
 	 * ```
 	 */
 	onKeyPress(action: () => void): EventCanceller,
@@ -755,8 +753,8 @@ export interface KaboomCtx {
 	 * ```js
 	 * // delete last character when "backspace" is being pressed and held
 	 * onKeyPressRepeat("backspace", () => {
-	 *     input.text = input.text.substring(0, input.text.length - 1);
-	 * });
+	 *     input.text = input.text.substring(0, input.text.length - 1)
+	 * })
 	 * ```
 	 */
 	onKeyPressRepeat(k: Key | Key[], action: () => void): EventCanceller,
@@ -777,29 +775,32 @@ export interface KaboomCtx {
 	 * ```js
 	 * // type into input
 	 * onChatInput((ch) => {
-	 *     input.text += ch;
-	 * });
+	 *     input.text += ch
+	 * })
 	 * ```
 	 */
 	onCharInput(action: (ch: string) => void): EventCanceller,
 	/**
-	 * Registers an event that runs every frame when mouse button is down.
+	 * Registers an event that runs every frame when a mouse button is being held down.
 	 *
 	 * @since v2000.1.0
 	 */
 	onMouseDown(action: (pos: Vec2) => void): EventCanceller,
+	onMouseDown(button: MouseButton, action: (pos: Vec2) => void): EventCanceller,
 	/**
 	 * Registers an event that runs when user clicks mouse.
 	 *
 	 * @since v2000.1.0
 	 */
-	onMouseClick(action: (pos: Vec2) => void): EventCanceller,
+	onMousePress(action: (pos: Vec2) => void): EventCanceller,
+	onMousePress(button: MouseButton, action: (pos: Vec2) => void): EventCanceller,
 	/**
 	 * Registers an event that runs when user releases mouse.
 	 *
 	 * @since v2000.1.0
 	 */
 	onMouseRelease(action: (pos: Vec2) => void): EventCanceller,
+	onMouseRelease(button: MouseButton, action: (pos: Vec2) => void): EventCanceller,
 	/**
 	 * Registers an event that runs whenever user move the mouse.
 	 *
@@ -869,9 +870,9 @@ export interface KaboomCtx {
 	 */
 	charInput: KaboomCtx["onCharInput"],
 	/**
-	 * @deprecated Use onMouseClick() instead.
+	 * @deprecated Use onClick() or onMousePress() instead.
 	 */
-	mouseClick: KaboomCtx["onMouseClick"],
+	mouseClick: KaboomCtx["onMousePress"],
 	/**
 	 * @deprecated Use onMouseRelease() instead.
 	 */
@@ -903,8 +904,8 @@ export interface KaboomCtx {
 	 *
 	 * @example
 	 * ```js
-	 * loadRoot("https://myassets.com/");
-	 * loadSprite("froggy", "sprites/froggy.png"); // will resolve to "https://myassets.com/sprites/frogg.png"
+	 * loadRoot("https://myassets.com/")
+	 * loadSprite("froggy", "sprites/froggy.png") // will resolve to "https://myassets.com/sprites/frogg.png"
 	 * ```
 	 */
 	loadRoot(path?: string): string,
@@ -914,8 +915,8 @@ export interface KaboomCtx {
 	 * @example
 	 * ```js
 	 * // due to browser policies you'll need a static file server to load local files
-	 * loadSprite("froggy", "froggy.png");
-	 * loadSprite("apple", "https://kaboomjs.com/sprites/apple.png");
+	 * loadSprite("froggy", "froggy.png")
+	 * loadSprite("apple", "https://kaboomjs.com/sprites/apple.png")
 	 *
 	 * // slice a spritesheet and add anims manually
 	 * loadSprite("froggy", "froggy.png", {
@@ -931,7 +932,7 @@ export interface KaboomCtx {
 	 *             to: 3,
 	 *         },
 	 *     },
-	 * });
+	 * })
 	 * ```
 	 */
 	loadSprite(
@@ -957,16 +958,16 @@ export interface KaboomCtx {
 	 *             hit: { from: 8, to: 8 },
 	 *         },
 	 *     },
-	 * });
+	 * })
 	 *
 	 * const player = add([
 	 *     sprite("hero"),
-	 * ]);
+	 * ])
 	 *
-	 * player.play("run");
+	 * player.play("run")
 	 *
 	 * // or load from json file, see SpriteAtlasData type for format spec
-	 * loadSpriteAtlas("sprites/dungeon.png", "sprites/dungeon.json");
+	 * loadSpriteAtlas("sprites/dungeon.png", "sprites/dungeon.json")
 	 * ```
 	 */
 	loadSpriteAtlas(
@@ -982,7 +983,7 @@ export interface KaboomCtx {
 	 *
 	 * @example
 	 * ```js
-	 * loadAseprite("car", "sprites/car.png", "sprites/car.json");
+	 * loadAseprite("car", "sprites/car.png", "sprites/car.json")
 	 * ```
 	 */
 	loadAseprite(
@@ -996,12 +997,12 @@ export interface KaboomCtx {
 	 *
 	 * @example
 	 * ```js
-	 * loadBean();
+	 * loadBean()
 	 *
 	 * // use it right away
 	 * add([
 	 *     sprite("bean"),
-	 * ]);
+	 * ])
 	 * ```
 	 */
 	loadBean(name?: string): Promise<SpriteData>,
@@ -1010,8 +1011,8 @@ export interface KaboomCtx {
 	 *
 	 * @example
 	 * ```js
-	 * loadSound("shoot", "horse.ogg");
-	 * loadSound("shoot", "https://kaboomjs.com/sounds/scream6.mp3");
+	 * loadSound("shoot", "horse.ogg")
+	 * loadSound("shoot", "https://kaboomjs.com/sounds/scream6.mp3")
 	 * ```
 	 */
 	loadSound(
@@ -1025,10 +1026,10 @@ export interface KaboomCtx {
 	 * ```js
 	 * // load a bitmap font called "04b03", with bitmap "fonts/04b03.png"
 	 * // each character on bitmap has a size of (6, 8), and contains default ASCII_CHARS
-	 * loadFont("04b03", "fonts/04b03.png", 6, 8);
+	 * loadFont("04b03", "fonts/04b03.png", 6, 8)
 	 *
 	 * // load a font with custom characters
-	 * loadFont("cp437", "cp437.png", 6, 8, "☺☻♥♦♣♠");
+	 * loadFont("cp437", "cp437.png", 6, 8, "☺☻♥♦♣♠")
 	 * ```
 	 */
 	loadFont(
@@ -1044,18 +1045,18 @@ export interface KaboomCtx {
 	 * @example
 	 * ```js
 	 * // load only a fragment shader from URL
-	 * loadShader("outline", null, "/shaders/outline.glsl", true);
+	 * loadShader("outline", null, "/shaders/outline.glsl", true)
 	 *
 	 * // default shaders and custom shader format
 	 * loadShader("outline",
 	 *     `vec4 vert(vec3 pos, vec2 uv, vec4 color) {
 	 *     // predefined functions to get the default value by kaboom
-	 *     return def_vert();
+	 *     return def_vert()
 	 * }`,
 	 * `vec4 frag(vec3 pos, vec2 uv, vec4 color, sampler2D tex) {
 	 *     // turn everything blue-ish
-	 *     return def_frag() * vec4(0, 0, 1, 1);
-	 * }`, false);
+	 *     return def_frag() * vec4(0, 0, 1, 1)
+	 * }`, false)
 	 * ```
 	 */
 	loadShader(
@@ -1071,8 +1072,8 @@ export interface KaboomCtx {
 	 * ```js
 	 * load(new Promise((resolve, reject) => {
 	 *     // anything you want to do that stalls the game in loading state
-	 *     resolve("ok");
-	 * }));
+	 *     resolve("ok")
+	 * }))
 	 * ```
 	 */
 	load<T>(l: Promise<T>): void,
@@ -1096,7 +1097,7 @@ export interface KaboomCtx {
 	 *     sprite("froggy"),
 	 *     pos(center()),
 	 *     // ...
-	 * ]);
+	 * ])
 	 * ```
 	 */
 	center(): Vec2,
@@ -1107,8 +1108,8 @@ export interface KaboomCtx {
 	 * ```js
 	 * // rotate froggy 100 deg per second
 	 * froggy.onUpdate(() => {
-	 *     froggy.angle += 100 * dt();
-	 * });
+	 *     froggy.angle += 100 * dt()
+	 * })
 	 * ```
 	 */
 	dt(): number,
@@ -1152,9 +1153,9 @@ export interface KaboomCtx {
 	 * // equivalent to the calling froggy.move() in an onKeyDown("left")
 	 * onUpdate(() => {
 	 *     if (isKeyDown("left")) {
-	 *         froggy.move(-SPEED, 0);
+	 *         froggy.move(-SPEED, 0)
 	 *     }
-	 * });
+	 * })
 	 * ```
 	 */
 	isKeyDown(k: Key): boolean,
@@ -1177,23 +1178,23 @@ export interface KaboomCtx {
 	 */
 	isKeyReleased(k?: Key): boolean,
 	/**
-	 * If certain mouse is currently down.
+	 * If a mouse button is currently down.
 	 *
 	 * @since v2000.1.0
 	 */
-	isMouseDown(): boolean,
+	isMouseDown(button?: MouseButton): boolean,
 	/**
-	 * If mouse is just clicked last frame.
+	 * If a mouse button is just clicked last frame.
 	 *
 	 * @since v2000.1.0
 	 */
-	isMouseClicked(): boolean,
+	isMousePressed(button?: MouseButton): boolean,
 	/**
-	 * If mouse is just released last frame.
+	 * If a mouse button is just released last frame.
 	 *
 	 * @since v2000.1.0
 	 */
-	isMouseReleased(): boolean,
+	isMouseReleased(button?: MouseButton): boolean,
 	/**
 	 * If mouse moved last frame.
 	 *
@@ -1207,8 +1208,8 @@ export interface KaboomCtx {
 	 * ```js
 	 * // shake intensively when froggy collides with a "bomb"
 	 * froggy.onCollide("bomb", () => {
-	 *     shake(120);
-	 * });
+	 *     shake(120)
+	 * })
 	 * ```
 	 */
 	shake(intensity: number): void,
@@ -1219,8 +1220,8 @@ export interface KaboomCtx {
 	 * ```js
 	 * // camera follows player
 	 * player.onUpdate(() => {
-	 *     camPos(player.pos);
-	 * });
+	 *     camPos(player.pos)
+	 * })
 	 * ```
 	 */
 	camPos(pos?: Vec2): Vec2,
@@ -1254,19 +1255,19 @@ export interface KaboomCtx {
 	 *     "bg",
 	 *     "game",
 	 *     "ui",
-	 * ], "game");
+	 * ], "game")
 	 *
 	 * // use layer() comp to define which layer an obj belongs to
 	 * add([
 	 *     text(score),
 	 *     layer("ui"),
 	 *     fixed(),
-	 * ]);
+	 * ])
 	 *
 	 * // without layer() comp it'll fall back to default layer, which is "game"
 	 * add([
 	 *     sprite("froggy"),
-	 * ]);
+	 * ])
 	 * ```
 	 */
 	layers(list: string[], def?: string): void,
@@ -1282,8 +1283,8 @@ export interface KaboomCtx {
 	 *         pos(rand(0, width()), rand(0, height())),
 	 *         area(),
 	 *         body(),
-	 *     ]);
-	 * });
+	 *     ])
+	 * })
 	 * ```
 	 */
 	loop(t: number, action: () => void): EventCanceller,
@@ -1297,8 +1298,8 @@ export interface KaboomCtx {
 	 * @example
 	 * ```js
 	 * onHover("clickable", (c) => {
-	 *     cursor("pointer");
-	 * });
+	 *     cursor("pointer")
+	 * })
 	 * ```
 	 */
 	cursor(c?: Cursor): Cursor,
@@ -1307,11 +1308,11 @@ export interface KaboomCtx {
 	 *
 	 * @example
 	 * ```js
-	 * loadSprite("froggy", "sprites/froggy.png");
+	 * loadSprite("froggy", "sprites/froggy.png")
 	 *
 	 * // use sprite as cursor
-	 * regCursor("default", "froggy");
-	 * regCursor("pointer", "apple");
+	 * regCursor("default", "froggy")
+	 * regCursor("pointer", "apple")
 	 * ```
 	 */
 	regCursor(c: string, draw: string | ((mpos: Vec2) => void)): void,
@@ -1322,8 +1323,8 @@ export interface KaboomCtx {
 	 * ```js
 	 * // toggle fullscreen mode on "f"
 	 * onKeyPress("f", (c) => {
-	 *     fullscreen(!isFullscreen());
-	 * });
+	 *     fullscreen(!isFullscreen())
+	 * })
 	 * ```
 	 */
 	fullscreen(f?: boolean): void,
@@ -1375,17 +1376,17 @@ export interface KaboomCtx {
 	 * @example
 	 * ```js
 	 * // play a one off sound
-	 * play("wooosh");
+	 * play("wooosh")
 	 *
 	 * // play a looping soundtrack (check out AudioPlayOpt for more options)
 	 * const music = play("OverworldlyFoe", {
 	 *     volume: 0.8,
 	 *     loop: true
-	 * });
+	 * })
 	 *
 	 * // using the handle to control (check out AudioPlay for more controls / info)
-	 * music.pause();
-	 * music.play();
+	 * music.pause()
+	 * music.play()
 	 * ```
 	 */
 	play(id: string, options?: AudioPlayOpt): AudioPlay,
@@ -1399,7 +1400,7 @@ export interface KaboomCtx {
 	 * @example
 	 * ```js
 	 * // makes everything quieter
-	 * volume(0.5);
+	 * volume(0.5)
 	 * ```
 	 */
 	volume(v?: number): number,
@@ -1415,21 +1416,21 @@ export interface KaboomCtx {
 	 * @example
 	 * ```js
 	 * // a random number between 0 - 1
-	 * rand();
+	 * rand()
 
 	 * // a random number between 0 - 8
-	 * rand(8);
+	 * rand(8)
 
 	 * // a random number between 50 - 100
-	 * rand(50, 100);
+	 * rand(50, 100)
 	 *
 	 * // a random vec2 between vec2(0) and vec2(100)
-	 * rand(vec2(0), vec2(100));
+	 * rand(vec2(0), vec2(100))
 	 *
 	 * // spawn something on the right side of the screen but with random y value within screen height
 	 * add([
 	 *     pos(width(), rand(0, height())),
-	 * ]);
+	 * ])
 	 * ```
 	 */
 	rand(): number,
@@ -1454,16 +1455,16 @@ export interface KaboomCtx {
 	 * @example
 	 * ```js
 	 * // { x: 0, y: 0 }
-	 * vec2();
+	 * vec2()
 	 *
 	 * // { x: 10, y: 10 }
-	 * vec2(10);
+	 * vec2(10)
 	 *
 	 * // { x: 100, y: 80 }
-	 * const pos = vec2(100, 80);
+	 * const pos = vec2(100, 80)
 	 *
 	 * // move to 150 degrees direction with by length 10
-	 * pos = pos.add(dir(150).scale(10));
+	 * pos = pos.add(dir(150).scale(10))
 	 * ```
 	 */
 	vec2(x: number, y: number): Vec2,
@@ -1490,7 +1491,7 @@ export interface KaboomCtx {
 	 * @example
 	 * ```js
 	 * // decide the best fruit randomly
-	 * const bestFruit = choose(["apple", "banana", "pear", "watermelon"]);
+	 * const bestFruit = choose(["apple", "banana", "pear", "watermelon"])
 	 * ```
 	 */
 	choose<T>(lst: T[]): T,
@@ -1502,9 +1503,9 @@ export interface KaboomCtx {
 	 * // every frame all objs with tag "unlucky" have 50% chance die
 	 * onUpdate("unlucky", (o) => {
 	 *     if (chance(0.5)) {
-	 *         destroy(o);
+	 *         destroy(o)
 	 *     }
-	 * });
+	 * })
 	 * ```
 	 */
 	chance(p: number): boolean,
@@ -1539,8 +1540,8 @@ export interface KaboomCtx {
 	 * ```js
 	 * // move towards 80 deg direction at SPEED
 	 * player.onUpdate(() => {
-	 *     player.move(dir(80).scale(SPEED));
-	 * });
+	 *     player.move(dir(80).scale(SPEED))
+	 * })
 	 * ```
 	 */
 	dir(deg: number): Vec2,
@@ -1551,10 +1552,10 @@ export interface KaboomCtx {
 	 * ```js
 	 * // bounce color between 2 values as time goes on
 	 * onUpdate("colorful", (c) => {
-	 *     c.color.r = wave(0, 255, time());
-	 *     c.color.g = wave(0, 255, time() + 1);
-	 *     c.color.b = wave(0, 255, time() + 2);
-	 * });
+	 *     c.color.r = wave(0, 255, time())
+	 *     c.color.g = wave(0, 255, time() + 1)
+	 *     c.color.b = wave(0, 255, time() + 2)
+	 * })
 	 * ```
 	 */
 	wave(lo: number, hi: number, t: number, func?: (x: number) => number): number,
@@ -1634,7 +1635,7 @@ export interface KaboomCtx {
 	 *         area(),
 	 *         "danger",
 	 *     ],
-	 * });
+	 * })
 	 * ```
 	 */
 	addLevel(map: string[], options: LevelOpt): Level,
@@ -1655,17 +1656,11 @@ export interface KaboomCtx {
 	 *
 	 * @example
 	 * ```js
-	 * // these functions need to be called in a per-frame function like onDraw() or it'll only get drawn one frame and immediately cleared
-	 * onDraw(() => {
-	 *     // check #DrawSpriteOpt type for details of all options
-	 *     drawSprite({
-	 *         sprite: "froggy",
-	 *         frame: 1,
-	 *         quad: quad(0, 0, 0.5, 0.5),
-	 *         pos: vec2(100, 200),
-	 *         color: rgb(0, 0, 255),
-	 *     });
-	 * });
+	 * drawSprite({
+	 *     sprite: "froggy",
+	 *     pos: vec2(100, 200),
+	 *     frame: 3,
+	 * })
 	 * ```
 	 */
 	drawSprite(options: DrawSpriteOpt): void,
@@ -1674,43 +1669,119 @@ export interface KaboomCtx {
 	 *
 	 * @example
 	 * ```js
-	 * // these functions need to be called in a per-frame function like onDraw() or it'll only get drawn one frame and immediately cleared
-	 * onDraw(() => {
-	 *     drawText({
-	 *         sprite: "froggy",
-	 *         pos: vec2(100, 200),
-	 *         color: rgb(0, 0, 255),
-	 *     });
-	 * });
+	 * drawText({
+	 *     text: "oh hi",
+	 *     size: 48,
+	 *     font: "sink",
+	 *     width: 120,
+	 *     pos: vec2(100, 200),
+	 *     color: rgb(0, 0, 255),
+	 * })
 	 * ```
 	 */
 	drawText(options: DrawTextOpt): void,
 	/**
 	 * Draw a rectangle.
+	 *
+	 * @example
+	 * ```js
+	 * draRect({
+	 *     width: 120,
+	 *     height: 240,
+	 *     pos: vec2(20, 20),
+	 *     color: YELLOW,
+	 *     outline: { color: BLACK, width: 4 },
+	 * })
+	 * ```
 	 */
 	drawRect(options: DrawRectOpt): void,
 	/**
 	 * Draw a line.
+	 *
+	 * @example
+	 * ```js
+	 * drawLine({
+	 *     p1: vec2(0),
+	 *     p2: mousePos(),
+	 *     width: 4,
+	 *     color: rgb(0, 0, 255),
+	 * })
+	 * ```
 	 */
 	drawLine(options: DrawLineOpt): void,
 	/**
 	 * Draw lines.
+	 *
+	 * @example
+	 * ```js
+	 * drawLines({
+	 *     pts: [ vec2(0), vec2(0, height()), mousePos() ],
+	 *     width: 4,
+	 *     pos: vec2(100, 200),
+	 *     color: rgb(0, 0, 255),
+	 * })
+	 * ```
 	 */
 	drawLines(options: DrawLinesOpt): void,
 	/**
 	 * Draw a triangle.
+	 *
+	 * @example
+	 * ```js
+	 * drawTriangle({
+	 *     p1: vec2(0),
+	 *     p2: vec2(0, height()),
+	 *     p3: mousePos(),
+	 *     pos: vec2(100, 200),
+	 *     color: rgb(0, 0, 255),
+	 * })
+	 * ```
 	 */
 	drawTriangle(options: DrawTriangleOpt): void,
 	/**
 	 * Draw a circle.
+	 *
+	 * @example
+	 * ```js
+	 * drawCircle({
+	 *     pos: vec2(100, 200),
+	 *     radius: 120,
+	 *     color: rgb(255, 255, 0),
+	 * })
+	 * ```
 	 */
 	drawCircle(options: DrawCircleOpt): void,
 	/**
 	 * Draw an ellipse.
+	 *
+	 * @example
+	 * ```js
+	 * drawEllipse({
+	 *     pos: vec2(100, 200),
+	 *     radiusX: 120,
+	 *     radiusY: 120,
+	 *     color: rgb(255, 255, 0),
+	 * })
+	 * ```
 	 */
 	drawEllipse(options: DrawEllipseOpt): void,
 	/**
 	 * Draw a convex polygon from a list of vertices.
+	 *
+	 * @example
+	 * ```js
+	 * drawPolygon({
+	 *     pts: [
+	 *         vec2(-12),
+	 *         vec2(0, 16),
+	 *         vec2(12, 4),
+	 *         vec2(0, -2),
+	 *         vec2(-8),
+	 *     ],
+	 *     pos: vec2(100, 200),
+	 *     color: rgb(0, 0, 255),
+	 * })
+	 * ```
 	 */
 	drawPolygon(options: DrawPolygonOpt): void,
 	/**
@@ -1722,18 +1793,18 @@ export interface KaboomCtx {
 	 *
 	 * @example
 	 * ```js
-	 * pushTransform();
+	 * pushTransform()
 	 *
 	 * // these transforms will affect every render until popTransform()
-	 * pushTranslate(120, 200);
-	 * pushRotate(time() * 120);
-	 * pushScale(6);
+	 * pushTranslate(120, 200)
+	 * pushRotate(time() * 120)
+	 * pushScale(6)
 	 *
-	 * drawSprite("froggy");
-	 * drawCircle(vec2(0), 120);
+	 * drawSprite("froggy")
+	 * drawCircle(vec2(0), 120)
 	 *
 	 * // restore the transformation stack to when last pushed
-	 * popTransform();
+	 * popTransform()
 	 * ```
 	 */
 	pushTransform(): void,
@@ -1741,37 +1812,49 @@ export interface KaboomCtx {
 	 * Pop the topmost transform matrix from the transform stack.
 	 */
 	popTransform(): void,
+	/**
+	 * Translate all subsequent draws.
+	 *
+	 * @example
+	 * ```js
+	 * pushTranslate(100, 100)
+	 *
+	 * // this will be drawn at (120, 120)
+	 * drawText({
+	 *     text: "oh hi",
+	 *     pos: vec2(20, 20),
+	 * })
+	 * ```
+	 */
 	pushTranslate(x: number, y: number): void,
 	pushTranslate(p: Vec2): void,
+	/**
+	 * Scale all subsequent draws.
+	 */
 	pushScale(x: number, y: number): void,
 	pushScale(s: number): void,
 	pushScale(s: Vec2): void,
+	/**
+	 * Rotate all subsequent draws.
+	 */
 	pushRotate(angle: number): void,
 	/**
-	 * Debug stuff.
-	 *
-	 * @section Misc
+	 * @section Debug
 	 *
 	 * @example
 	 * ```js
 	 * // pause the whole game
-	 * debug.paused = true;
+	 * debug.paused = true
 	 *
 	 * // enter inspect mode
-	 * debug.inspect = true;
-	 *
-	 * // in debug mode (on by default, unless disabled by `debug: false` in KaboomOpt), some keys are binded to toggle certain debug features:
-	 * // F1: toggle debug.inspect
-	 * // F2: call debug.clearLog()
-	 * // F8: toggle debug.pause
-	 * // F7: decrease debug.timeScale
-	 * // F9: increase debug.timeScale
-	 * // F10: call debug.stepFrame()
+	 * debug.inspect = true
 	 * ```
 	 */
 	debug: Debug,
 	/**
 	 * Import a plugin.
+	 *
+	 * @section Misc
 	 */
 	plug<T>(plugin: KaboomPlugin<T>): void,
 	/**
@@ -1808,6 +1891,14 @@ export interface KaboomCtx {
 	 * Down directional vector vec2(0, 1).
 	 */
 	DOWN: Vec2,
+	RED: Color,
+	GREEN: Color,
+	BLUE: Color,
+	YELLOW: Color,
+	MAGENTA: Color,
+	CYAN: Color,
+	WHITE: Color,
+	BLACK: Color,
 	/**
 	 * The canvas DOM kaboom is currently using.
 	 */
@@ -1815,31 +1906,39 @@ export interface KaboomCtx {
 	[custom: string]: any,
 }
 
-export type Tag = string;
+export type Tag = string
 
 // TODO: understand this
 type UnionToIntersection<U> = (U extends any ? (k: U) => void : never) extends ((k: infer I) => void) ? I : never
-type Defined<T> = T extends any ? Pick<T, { [K in keyof T]-?: T[K] extends undefined ? never : K }[keyof T]> : never;
-type Expand<T> = T extends infer U ? { [K in keyof U]: U[K] } : never;
-export type MergeObj<T> = Expand<UnionToIntersection<Defined<T>>>;
-export type MergeComps<T> = Omit<MergeObj<T>, keyof Comp>;
+type Defined<T> = T extends any ? Pick<T, { [K in keyof T]-?: T[K] extends undefined ? never : K }[keyof T]> : never
+type Expand<T> = T extends infer U ? { [K in keyof U]: U[K] } : never
+export type MergeObj<T> = Expand<UnionToIntersection<Defined<T>>>
+export type MergeComps<T> = Omit<MergeObj<T>, keyof Comp>
 
-export type CompList<T> = Array<T | Tag>;
+export type CompList<T> = Array<T | Tag>
 
 export type Key =
 	| "f1" | "f2" | "f3" | "f4" | "f5" | "f6" | "f7" | "f8" | "f9" | "f10" | "f11" | "f12"
 	| "`" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9" | "0" | "-" | "="
 	| "q" | "w" | "e" | "r" | "t" | "y" | "u" | "i" | "o" | "p" | "[" | "]" | "\\"
-	| "a" | "s" | "d" | "f" | "g" | "h" | "j" | "k" | "l" | ";" | "'"
+	| "a" | "s" | "d" | "f" | "g" | "h" | "j" | "k" | "l" | "" | "'"
 	| "z" | "x" | "c" | "v" | "b" | "n" | "m" | "," | "." | "/"
 	| "backspace" | "enter" | "tab" | "space" | " "
 	| "left" | "right" | "up" | "down"
-	;
+
+
+export type MouseButton =
+	| "left"
+	| "right"
+	| "middle"
+	| "back"
+	| "forward"
+
 
 /**
  * Inspect info for a character.
  */
-export type GameObjInspect = Record<Tag, string | null>;
+export type GameObjInspect = Record<Tag, string | null>
 
 /**
  * Kaboom configurations.
@@ -1919,7 +2018,7 @@ export interface KaboomOpt {
 	burp?: boolean,
 }
 
-export type KaboomPlugin<T> = (k: KaboomCtx) => T;
+export type KaboomPlugin<T> = (k: KaboomCtx) => T
 
 /**
  * Base interface of all game objects.
@@ -1932,73 +2031,73 @@ export interface GameObjRaw {
 	/**
 	 * If draw the game obj (run "draw" event or not).
 	 */
-	hidden: boolean;
+	hidden: boolean,
 	/**
 	 * If update the game obj (run "update" event or not).
 	 */
-	paused: boolean;
+	paused: boolean,
 	/**
 	 * If game obj exists in scene.
 	 */
-	exists(): boolean;
+	exists(): boolean,
 	/**
-	 * If there a certain tag on the game obj.
+	 * If there's certain tag(s) on the game obj.
 	 */
-	is(tag: Tag | Tag[]): boolean;
+	is(tag: Tag | Tag[]): boolean,
 	// TODO: update the GameObj type info
 	/**
 	 * Add a component or tag.
 	 */
-	use(comp: Comp | Tag): void;
+	use(comp: Comp | Tag): void,
 	// TODO: update the GameObj type info
 	/**
 	 * Remove a tag or a component with its id.
 	 */
-	unuse(comp: Tag): void;
+	unuse(comp: Tag): void,
 	/**
 	 * Registers an event.
 	 */
-	on(ev: string, action: () => void): EventCanceller;
+	on(ev: string, action: () => void): EventCanceller,
 	/**
 	 * Triggers an event.
 	 */
-	trigger(ev: string, ...args: any[]): void;
+	trigger(ev: string, ...args: any[]): void,
 	/**
 	 * Remove the game obj from scene.
 	 */
-	destroy(): void;
+	destroy(): void,
 	/**
 	 * Get state for a specific comp.
 	 */
-	c(id: Tag): Comp;
+	c(id: Tag): Comp,
 	/**
 	 * Gather debug info of all comps.
 	 */
-	inspect(): GameObjInspect;
+	inspect(): GameObjInspect,
 	/**
 	 * Registers an event that runs every frame as long as the game obj exists.
 	 *
 	 * @since v2000.1.0
 	 */
-	onUpdate(action: () => void): EventCanceller;
+	onUpdate(action: () => void): EventCanceller,
 	/**
 	 * Registers an event that runs every frame as long as the game obj exists (this is the same as `onUpdate()`, but all draw events are run after all update events).
 	 *
 	 * @since v2000.1.0
 	 */
-	onDraw(action: () => void): EventCanceller;
+	onDraw(action: () => void): EventCanceller,
 	/**
 	 * Registers an event that runs when the game obj is destroyed.
 	 *
 	 * @since v2000.1.0
 	 */
-	onDestroy(action: () => void): EventCanceller;
+	onDestroy(action: () => void): EventCanceller,
 	/**
 	 * Registers an event that runs every frame as long as the game obj exists (alias to onUpdate).
 	 *
 	 * @deprecated Use onUpdate() instead.
 	 */
-	action: GameObjRaw["onUpdate"];
+	action: GameObjRaw["onUpdate"],
 }
 
 /**
@@ -2182,7 +2281,7 @@ export interface AudioPlayOpt {
 	 * // play a random note in the octave
 	 * play("noteC", {
 	 *     detune: randi(0, 12) * 100,
-	 * });
+	 * })
 	 * ```
 	 */
 	detune?: number,
@@ -2227,10 +2326,10 @@ export interface AudioPlay {
 	 * @example
 	 * ```js
 	 * // tune down a semitone
-	 * music.detune(-100);
+	 * music.detune(-100)
 	 *
 	 * // tune up an octave
-	 * music.detune(1200);
+	 * music.detune(1200)
 	 * ```
 	 */
 	detune(d?: number): number,
@@ -2879,35 +2978,35 @@ export interface Comp {
 	/**
 	 * Component ID (if left out won't be treated as a comp).
 	 */
-	id?: Tag;
+	id?: Tag,
 	/**
 	 * What other comps this comp depends on.
 	 */
-	require?: Tag[];
+	require?: Tag[],
 	/**
 	 * Event that runs when host game obj is added to scene.
 	 */
-	add?: () => void;
+	add?: () => void,
 	/**
 	 * Event that runs when host game obj is added to scene and game is loaded.
 	 */
-	load?: () => void;
+	load?: () => void,
 	/**
 	 * Event that runs every frame.
 	 */
-	update?: () => void;
+	update?: () => void,
 	/**
 	 * Event that runs every frame.
 	 */
-	draw?: () => void;
+	draw?: () => void,
 	/**
 	 * Event that runs when obj is removed from scene.
 	 */
-	destroy?: () => void;
+	destroy?: () => void,
 	/**
 	 * Debug info for inspect mode.
 	 */
-	inspect?: () => string;
+	inspect?: () => string,
 }
 
 export type GameObjID = number;
@@ -2916,26 +3015,26 @@ export interface PosComp extends Comp {
 	/**
 	 * Object's current world position.
 	 */
-	pos: Vec2;
+	pos: Vec2,
 	/**
 	 * Move how many pixels per second. If object is 'solid', it won't move into other 'solid' objects.
 	 */
-	move(xVel: number, yVel: number): void;
-	move(vel: Vec2): void;
+	move(xVel: number, yVel: number): void,
+	move(vel: Vec2): void,
 	/**
 	 * Move how many pixels, without multiplying dt, but still checking for 'solid'.
 	 */
-	moveBy(dx: number, dy: number): void;
-	moveBy(d: Vec2): void;
+	moveBy(dx: number, dy: number): void,
+	moveBy(d: Vec2): void,
 	/**
 	 * Move to a spot with a speed (pixels per second), teleports if speed is not given.
 	 */
-	moveTo(dest: Vec2, speed?: number): void;
-	moveTo(x: number, y: number, speed?: number): void;
+	moveTo(dest: Vec2, speed?: number): void,
+	moveTo(x: number, y: number, speed?: number): void,
 	/**
 	 * Get position on screen after camera transform.
 	 */
-	screenPos(): Vec2;
+	screenPos(): Vec2,
 }
 
 export interface ScaleComp extends Comp {
@@ -3368,6 +3467,12 @@ export interface Debug {
 	 * Log an error message to on screen debug log.
 	 */
 	error(msg: string): void,
+	/**
+	 * The recording handle if currently in recording mode.
+	 *
+	 * @since v2000.1.0
+	 */
+	curRecording: Recording | null,
 }
 
 export type UniformValue =
@@ -3544,14 +3649,20 @@ export interface HealthComp extends Comp {
 	setHP(hp: number): void,
 	/**
 	 * Registers an event that runs when hurt() is called upon the object.
+	 *
+	 * @since v2000.1.0
 	 */
 	onHurt(action: () => void): EventCanceller,
 	/**
 	 * Registers an event that runs when heal() is called upon the object.
+	 *
+	 * @since v2000.1.0
 	 */
 	onHeal(action: () => void): EventCanceller,
 	/**
 	 * Registers an event that runs when object's HP is equal or below 0.
+	 *
+	 * @since v2000.1.0
 	 */
 	onDeath(action: () => void): EventCanceller,
 }
