@@ -592,7 +592,7 @@ export interface KaboomCtx {
 	 */
 	on(event: string, tag: Tag, action: (obj: GameObj, ...args) => void): EventCanceller,
 	/**
-	 * Registers an event that runs every frame (~60 times per second) for all game objs with certain tag.
+	 * Register an event that runs every frame (~60 times per second) for all game objs with certain tag.
 	 *
 	 * @since v2000.1.0
 	 *
@@ -610,7 +610,7 @@ export interface KaboomCtx {
 	 */
 	onUpdate(tag: Tag, action: (obj: GameObj) => void): EventCanceller,
 	/**
-	 * Registers an event that runs every frame (~60 times per second).
+	 * Register an event that runs every frame (~60 times per second).
 	 *
 	 * @since v2000.1.0
 	 *
@@ -624,13 +624,13 @@ export interface KaboomCtx {
 	 */
 	onUpdate(action: () => void): EventCanceller,
 	/**
-	 * Registers an event that runs every frame (~60 times per second) for all game objs with certain tag (this is the same as onUpdate but all draw events are run after update events, drawXXX() functions only work in this phase).
+	 * Register an event that runs every frame (~60 times per second) for all game objs with certain tag (this is the same as onUpdate but all draw events are run after update events, drawXXX() functions only work in this phase).
 	 *
 	 * @since v2000.1.0
 	 */
 	onDraw(tag: Tag, action: (obj: GameObj) => void): EventCanceller,
 	/**
-	 * Registers an event that runs every frame (~60 times per second) (this is the same as onUpdate but all draw events are run after update events, drawXXX() functions only work in this phase).
+	 * Register an event that runs every frame (~60 times per second) (this is the same as onUpdate but all draw events are run after update events, drawXXX() functions only work in this phase).
 	 *
 	 * @since v2000.1.0
 	 *
@@ -647,7 +647,7 @@ export interface KaboomCtx {
 	 */
 	onDraw(action: () => void): EventCanceller,
 	/**
-	 * Registers an event that runs when all assets finished loading.
+	 * Register an event that runs when all assets finished loading.
 	 *
 	 * @since v2000.1.0
 	 *
@@ -665,7 +665,7 @@ export interface KaboomCtx {
 	 */
 	onLoad(action: () => void): void,
 	/**
-	 * Registers an event that runs when 2 game objs with certain tags collides (required to have area() component).
+	 * Register an event that runs when 2 game objs with certain tags collides (required to have area() component).
 	 *
 	 * @since v2000.1.0
 	 *
@@ -682,19 +682,19 @@ export interface KaboomCtx {
 		action: (a: GameObj, b: GameObj, col?: Collision) => void,
 	): EventCanceller,
 	/**
-	 * Registers an event that runs when game objs with certain tags are clicked (required to have the area() component).
+	 * Register an event that runs when game objs with certain tags are clicked (required to have the area() component).
 	 *
 	 * @since v2000.1.0
 	 */
 	onClick(tag: Tag, action: (a: GameObj) => void): EventCanceller,
 	/**
-	 * Registers an event that runs when users clicks.
+	 * Register an event that runs when users clicks.
 	 *
 	 * @since v2000.1.0
 	 */
 	onClick(action: () => void): EventCanceller,
 	/**
-	 * Registers an event that runs when game objs with certain tags are hovered (required to have area() component).
+	 * Register an event that runs when game objs with certain tags are hovered (required to have area() component).
 	 *
 	 * @since v2000.1.0
 	 */
@@ -703,7 +703,7 @@ export interface KaboomCtx {
 		action: (a: GameObj) => void,
 	): EventCanceller,
 	/**
-	 * Registers an event that runs every frame when a key is held down.
+	 * Register an event that runs every frame when a key is held down.
 	 *
 	 * @since v2000.1.0
 	 *
@@ -717,7 +717,7 @@ export interface KaboomCtx {
 	 */
 	onKeyDown(k: Key | Key[], action: () => void): EventCanceller,
 	/**
-	 * Registers an event that runs when user presses certain key.
+	 * Register an event that runs when user presses certain key.
 	 *
 	 * @since v2000.1.0
 	 *
@@ -731,7 +731,7 @@ export interface KaboomCtx {
 	 */
 	onKeyPress(k: Key | Key[], action: () => void): EventCanceller,
 	/**
-	 * Registers an event that runs when user presses any key.
+	 * Register an event that runs when user presses any key.
 	 *
 	 * @since v2000.1.0
 	 *
@@ -745,7 +745,7 @@ export interface KaboomCtx {
 	 */
 	onKeyPress(action: () => void): EventCanceller,
 	/**
-	 * Registers an event that runs when user presses certain key (also fires repeatedly when they key is being held down).
+	 * Register an event that runs when user presses certain key (also fires repeatedly when they key is being held down).
 	 *
 	 * @since v2000.1.0
 	 *
@@ -760,14 +760,14 @@ export interface KaboomCtx {
 	onKeyPressRepeat(k: Key | Key[], action: () => void): EventCanceller,
 	onKeyPressRepeat(action: () => void): EventCanceller,
 	/**
-	 * Registers an event that runs when user releases certain key.
+	 * Register an event that runs when user releases certain key.
 	 *
 	 * @since v2000.1.0
 	 */
 	onKeyRelease(k: Key | Key[], action: () => void): EventCanceller,
 	onKeyRelease(action: () => void): EventCanceller,
 	/**
-	 * Registers an event that runs when user inputs text.
+	 * Register an event that runs when user inputs text.
 	 *
 	 * @since v2000.1.0
 	 *
@@ -781,46 +781,46 @@ export interface KaboomCtx {
 	 */
 	onCharInput(action: (ch: string) => void): EventCanceller,
 	/**
-	 * Registers an event that runs every frame when a mouse button is being held down.
+	 * Register an event that runs every frame when a mouse button is being held down.
 	 *
 	 * @since v2000.1.0
 	 */
 	onMouseDown(action: (pos: Vec2) => void): EventCanceller,
 	onMouseDown(button: MouseButton, action: (pos: Vec2) => void): EventCanceller,
 	/**
-	 * Registers an event that runs when user clicks mouse.
+	 * Register an event that runs when user clicks mouse.
 	 *
 	 * @since v2000.1.0
 	 */
 	onMousePress(action: (pos: Vec2) => void): EventCanceller,
 	onMousePress(button: MouseButton, action: (pos: Vec2) => void): EventCanceller,
 	/**
-	 * Registers an event that runs when user releases mouse.
+	 * Register an event that runs when user releases mouse.
 	 *
 	 * @since v2000.1.0
 	 */
 	onMouseRelease(action: (pos: Vec2) => void): EventCanceller,
 	onMouseRelease(button: MouseButton, action: (pos: Vec2) => void): EventCanceller,
 	/**
-	 * Registers an event that runs whenever user move the mouse.
+	 * Register an event that runs whenever user move the mouse.
 	 *
 	 * @since v2000.1.0
 	 */
 	onMouseMove(action: (pos: Vec2) => void): EventCanceller,
 	/**
-	 * Registers an event that runs when a touch starts.
+	 * Register an event that runs when a touch starts.
 	 *
 	 * @since v2000.1.0
 	 */
 	onTouchStart(action: (id: TouchID, pos: Vec2) => void): EventCanceller,
 	/**
-	 * Registers an event that runs whenever touch moves.
+	 * Register an event that runs whenever touch moves.
 	 *
 	 * @since v2000.1.0
 	 */
 	onTouchMove(action: (id: TouchID, pos: Vec2) => void): EventCanceller,
 	/**
-	 * Registers an event that runs when a touch ends.
+	 * Register an event that runs when a touch ends.
 	 *
 	 * @since v2000.1.0
 	 */
@@ -1369,9 +1369,11 @@ export interface KaboomCtx {
 	 */
 	focused(): boolean,
 	/**
-	 * Play a piece of audio, returns a handle to control.
+	 * Play a piece of audio.
 	 *
 	 * @section Audio
+	 *
+	 * @returns A control handle.
 	 *
 	 * @example
 	 * ```js
@@ -1409,23 +1411,34 @@ export interface KaboomCtx {
 	 */
 	audioCtx: AudioContext,
 	/**
-	 * Get a random number (with optional bounds).
+	 * Get a random number between 0 - 1.
 	 *
 	 * @section Math
+	 */
+	rand(): number,
+	/**
+	 * Get a random value between 0 and the given value.
 	 *
 	 * @example
 	 * ```js
-	 * // a random number between 0 - 1
-	 * rand()
-
 	 * // a random number between 0 - 8
 	 * rand(8)
-
-	 * // a random number between 50 - 100
-	 * rand(50, 100)
 	 *
-	 * // a random vec2 between vec2(0) and vec2(100)
-	 * rand(vec2(0), vec2(100))
+	 * // a random point on screen
+	 * rand(vec2(width(), height()))
+	 *
+	 * // a random color
+	 * rand(rgb(255, 255, 255))
+	 * ```
+	 */
+	rand<T extends RNGValue>(n: T): T,
+	/**
+	 * Get a random value between the given bound.
+	 *
+	 * @example
+	 * ```js
+	 * rand(50, 100)
+	 * rand(vec2(20), vec2(100))
 	 *
 	 * // spawn something on the right side of the screen but with random y value within screen height
 	 * add([
@@ -1433,8 +1446,6 @@ export interface KaboomCtx {
 	 * ])
 	 * ```
 	 */
-	rand(): number,
-	rand<T extends RNGValue>(n: T): T,
 	rand<T extends RNGValue>(a: T, b: T): T,
 	/**
 	 * rand() but floored to integer.
@@ -1447,6 +1458,11 @@ export interface KaboomCtx {
 	randi(): number,
 	/**
 	 * Get / set the random number generator seed.
+	 *
+	 * @example
+	 * ```js
+	 * randSeed(Date.now())
+	 * ```
 	 */
 	randSeed(seed?: number): number,
 	/**
@@ -1596,7 +1612,7 @@ export interface KaboomCtx {
 	/**
 	 * Go to a scene, passing all rest args to scene callback.
 	 */
-	go(id: SceneID, ...args: any[]): void,
+	go(id: SceneID, ...args): void,
 	/**
 	 * Construct a level based on symbols.
 	 *
@@ -1859,10 +1875,14 @@ export interface KaboomCtx {
 	plug<T>(plugin: KaboomPlugin<T>): void,
 	/**
 	 * Take a screenshot and get the dataurl of the image.
+	 *
+	 * @returns The dataURL of the image.
 	 */
 	screenshot(): string,
 	/**
-	 * Start recording the canvas into a video, returns a handle with controls. If framerate is not specified, a new frame will be captured each time the canvas changes.
+	 * Start recording the canvas into a video. If framerate is not specified, a new frame will be captured each time the canvas changes.
+	 *
+	 * @returns A control handle.
 	 *
 	 * @since v2000.1.0
 	 */
@@ -2055,13 +2075,13 @@ export interface GameObjRaw {
 	 */
 	unuse(comp: Tag): void,
 	/**
-	 * Registers an event.
+	 * Register an event.
 	 */
 	on(ev: string, action: () => void): EventCanceller,
 	/**
-	 * Triggers an event.
+	 * Trigger an event.
 	 */
-	trigger(ev: string, ...args: any[]): void,
+	trigger(ev: string, ...args): void,
 	/**
 	 * Remove the game obj from scene.
 	 */
@@ -2075,25 +2095,25 @@ export interface GameObjRaw {
 	 */
 	inspect(): GameObjInspect,
 	/**
-	 * Registers an event that runs every frame as long as the game obj exists.
+	 * Register an event that runs every frame as long as the game obj exists.
 	 *
 	 * @since v2000.1.0
 	 */
 	onUpdate(action: () => void): EventCanceller,
 	/**
-	 * Registers an event that runs every frame as long as the game obj exists (this is the same as `onUpdate()`, but all draw events are run after all update events).
+	 * Register an event that runs every frame as long as the game obj exists (this is the same as `onUpdate()`, but all draw events are run after all update events).
 	 *
 	 * @since v2000.1.0
 	 */
 	onDraw(action: () => void): EventCanceller,
 	/**
-	 * Registers an event that runs when the game obj is destroyed.
+	 * Register an event that runs when the game obj is destroyed.
 	 *
 	 * @since v2000.1.0
 	 */
 	onDestroy(action: () => void): EventCanceller,
 	/**
-	 * Registers an event that runs every frame as long as the game obj exists (alias to onUpdate).
+	 * Register an event that runs every frame as long as the game obj exists (alias to onUpdate).
 	 *
 	 * @deprecated Use onUpdate() instead.
 	 */
@@ -2106,7 +2126,7 @@ export interface GameObjRaw {
 export type GameObj<T = any> = GameObjRaw & MergeComps<T>;
 
 export type SceneID = string;
-export type SceneDef = (...args: any[]) => void;
+export type SceneDef = (...args) => void;
 export type TouchID = number;
 
 /**
@@ -3172,19 +3192,19 @@ export interface AreaComp extends Comp {
 	 */
 	isTouching(o: GameObj): boolean,
 	/**
-	 * Registers an event runs when clicked.
+	 * Register an event runs when clicked.
 	 *
 	 * @since v2000.1.0
 	 */
 	onClick(f: () => void): void,
 	/**
-	 * Registers an event runs every frame when hovered.
+	 * Register an event runs every frame when hovered.
 	 *
 	 * @since v2000.1.0
 	 */
 	onHover(onHover: () => void, onNotHover?: () => void): void,
 	/**
-	 * Registers an event runs when collide with another game obj with certain tag.
+	 * Register an event runs when collide with another game obj with certain tag.
 	 *
 	 * @since v2000.1.0
 	 */
@@ -3308,11 +3328,11 @@ export interface SpriteComp extends Comp {
 	 */
 	flipY(b: boolean): void,
 	/**
-	 * Registers an event that runs when an animation is played.
+	 * Register an event that runs when an animation is played.
 	 */
 	onAnimStart(name: string, action: () => void): EventCanceller,
 	/**
-	 * Registers an event that runs when an animation is ended.
+	 * Register an event that runs when an animation is ended.
 	 */
 	onAnimEnd(name: string, action: () => void): EventCanceller,
 }
@@ -3527,25 +3547,25 @@ export interface BodyComp extends Comp {
 	 */
 	doubleJump(f?: number): void,
 	/**
-	 * Registers an event that runs when the object is grounded.
+	 * Register an event that runs when the object is grounded.
 	 *
 	 * @since v2000.1.0
 	 */
 	onGround(action: () => void): EventCanceller,
 	/**
-	 * Registers an event that runs when the object starts falling.
+	 * Register an event that runs when the object starts falling.
 	 *
 	 * @since v2000.1.0
 	 */
 	onFall(action: () => void): EventCanceller,
 	/**
-	 * Registers an event that runs when the object bumps into something on the head.
+	 * Register an event that runs when the object bumps into something on the head.
 	 *
 	 * @since v2000.1.0
 	 */
 	onHeadbutt(action: () => void): EventCanceller,
 	/**
-	 * Registers an event that runs when the object performs the second jump when double jumping.
+	 * Register an event that runs when the object performs the second jump when double jumping.
 	 *
 	 * @since v2000.1.0
 	 */
@@ -3577,18 +3597,6 @@ export interface BodyCompOpt {
 	 * If should not move through other solid objects.
 	 */
 	solid?: boolean,
-	/**
-	 * Can you hang to a wall.
-	 */
-//  	hang?: boolean,
-	/**
-	 * How many seconds can you hang to a wall.
-	 */
-//  	hangTime?: number,
-	/**
-	 * How many pixels per second to glide down when hanging.
-	 */
-//  	hangGlide?: number,
 }
 
 export interface Timer {
@@ -3648,19 +3656,19 @@ export interface HealthComp extends Comp {
 	 */
 	setHP(hp: number): void,
 	/**
-	 * Registers an event that runs when hurt() is called upon the object.
+	 * Register an event that runs when hurt() is called upon the object.
 	 *
 	 * @since v2000.1.0
 	 */
 	onHurt(action: () => void): EventCanceller,
 	/**
-	 * Registers an event that runs when heal() is called upon the object.
+	 * Register an event that runs when heal() is called upon the object.
 	 *
 	 * @since v2000.1.0
 	 */
 	onHeal(action: () => void): EventCanceller,
 	/**
-	 * Registers an event that runs when object's HP is equal or below 0.
+	 * Register an event that runs when object's HP is equal or below 0.
 	 *
 	 * @since v2000.1.0
 	 */
@@ -3691,15 +3699,15 @@ export interface StateComp extends Comp {
 	 */
 	onStateEnter: (state: string, action: (...args) => void) => void,
 	/**
-	 * Register event that runs once when leaves a specific state.
+	 * Register an event that runs once when leaves a specific state.
 	 */
 	onStateLeave: (state: string, action: () => void) => void,
 	/**
-	 * Register event that runs every frame when in a specific state.
+	 * Register an event that runs every frame when in a specific state.
 	 */
 	onStateUpdate: (state: string, action: () => void) => void,
 	/**
-	 * Register event that runs every frame when in a specific state.
+	 * Register an event that runs every frame when in a specific state.
 	 */
 	onStateDraw: (state: string, action: () => void) => void,
 }

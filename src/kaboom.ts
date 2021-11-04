@@ -876,22 +876,18 @@ function enterDebugMode() {
 
 	onKeyPress("f8", () => {
 		debug.paused = !debug.paused;
-		debug.log(`${debug.paused ? "paused" : "unpaused"}`);
 	});
 
 	onKeyPress("f7", () => {
-		debug.timeScale = clamp(debug.timeScale - 0.2, 0, 2);
-		debug.log(`time scale: ${debug.timeScale.toFixed(1)}`);
+		debug.timeScale = toFixed(clamp(debug.timeScale - 0.2, 0, 2), 1);
 	});
 
 	onKeyPress("f9", () => {
-		debug.timeScale = clamp(debug.timeScale + 0.2, 0, 2);
-		debug.log(`time scale: ${debug.timeScale.toFixed(1)}`);
+		debug.timeScale = toFixed(clamp(debug.timeScale + 0.2, 0, 2), 1);
 	});
 
 	onKeyPress("f10", () => {
 		debug.stepFrame();
-		debug.log(`stepped frame`);
 	});
 
 	onKeyPress("f5", () => {
@@ -2817,121 +2813,6 @@ function drawFrame() {
 
 }
 
-function drawInspect() {
-
-	let inspecting = null;
-	const font = assets.fonts[DBG_FONT];
-	const lcolor = rgb(gopt.inspectColor ?? [0, 0, 255]);
-
-	function drawInspectTxt(pos, txt) {
-
-		const s = gfx.scale();
-		const pad = vec2(6).scale(1 / s);
-
-		const ftxt = gfx.fmtText({
-			text: txt,
-			font: font,
-			size: 16 / s,
-			pos: pos.add(vec2(pad.x, pad.y)),
-			color: rgb(0, 0, 0),
-		});
-
-		const bw = ftxt.width + pad.x * 2;
-		const bh = ftxt.height + pad.x * 2;
-
-		gfx.pushTransform();
-
-		if (pos.x + bw >= width()) {
-			gfx.pushTranslate(vec2(-bw, 0));
-		}
-
-		if (pos.y + bh >= height()) {
-			gfx.pushTranslate(vec2(0, -bh));
-		}
-
-		gfx.drawRect({
-			pos: pos,
-			width: bw,
-			height: bh,
-			color: rgb(255, 255, 255),
-			outline: {
-				width: 2 / s,
-				color: rgb(0, 0, 0),
-			},
-		});
-
-		gfx.drawFmtText(ftxt);
-		gfx.popTransform();
-
-	}
-
-	// draw area outline
-	every((obj) => {
-
-		if (!obj.area) {
-			return;
-		}
-
-		if (obj.hidden) {
-			return;
-		}
-
-		const scale = gfx.scale() * (obj.fixed ? 1: (game.cam.scale.x + game.cam.scale.y) / 2);
-
-		if (!obj.fixed) {
-			gfx.pushTransform();
-			gfx.applyMatrix(game.camMatrix);
-		}
-
-		if (!inspecting) {
-			if (obj.isHovering()) {
-				inspecting = obj;
-			}
-		}
-
-		const lwidth = (inspecting === obj ? 8 : 4) / scale;
-		const a = obj.worldArea();
-		const w = a.p2.x - a.p1.x;
-		const h = a.p2.y - a.p1.y;
-
-		gfx.drawRect({
-			pos: a.p1,
-			width: w,
-			height: h,
-			outline: {
-				width: lwidth,
-				color: lcolor,
-			},
-			fill: false,
-		});
-
-		if (!obj.fixed) {
-			gfx.popTransform();
-		}
-
-	});
-
-	if (inspecting) {
-
-		const lines = [];
-		const data = inspecting.inspect();
-
-		for (const tag in data) {
-			if (data[tag]) {
-				lines.push(`${tag}: ${data[tag]}`);
-			} else {
-				lines.push(`${tag}`);
-			}
-		}
-
-		drawInspectTxt(mousePos(), lines.join("\n"));
-
-	}
-
-	drawInspectTxt(vec2(0), `FPS: ${app.fps()}`);
-
-}
-
 function drawLoadScreen() {
 
 	// if assets are not fully loaded, draw a progress bar
@@ -2973,6 +2854,229 @@ function drawLoadScreen() {
 
 }
 
+function drawDebug() {
+
+	if (debug.inspect) {
+
+		let inspecting = null;
+		const font = assets.fonts[DBG_FONT];
+		const lcolor = rgb(gopt.inspectColor ?? [0, 0, 255]);
+
+		function drawInspectTxt(pos, txt) {
+
+			const s = gfx.scale();
+			const pad = vec2(6).scale(1 / s);
+
+			const ftxt = gfx.fmtText({
+				text: txt,
+				font: font,
+				size: 16 / s,
+				pos: pos.add(vec2(pad.x, pad.y)),
+				color: rgb(255, 255, 255),
+			});
+
+			const bw = ftxt.width + pad.x * 2;
+			const bh = ftxt.height + pad.x * 2;
+
+			gfx.pushTransform();
+
+			if (pos.x + bw >= width()) {
+				gfx.pushTranslate(vec2(-bw, 0));
+			}
+
+			if (pos.y + bh >= height()) {
+				gfx.pushTranslate(vec2(0, -bh));
+			}
+
+			gfx.drawRect({
+				pos: pos,
+				width: bw,
+				height: bh,
+				color: rgb(0, 0, 0),
+				radius: 4,
+				opacity: 0.8,
+			});
+
+			gfx.drawFmtText(ftxt);
+			gfx.popTransform();
+
+		}
+
+		// draw area outline
+		every((obj) => {
+
+			if (!obj.area) {
+				return;
+			}
+
+			if (obj.hidden) {
+				return;
+			}
+
+			const scale = gfx.scale() * (obj.fixed ? 1: (game.cam.scale.x + game.cam.scale.y) / 2);
+
+			if (!obj.fixed) {
+				gfx.pushTransform();
+				gfx.applyMatrix(game.camMatrix);
+			}
+
+			if (!inspecting) {
+				if (obj.isHovering()) {
+					inspecting = obj;
+				}
+			}
+
+			const lwidth = (inspecting === obj ? 8 : 4) / scale;
+			const a = obj.worldArea();
+			const w = a.p2.x - a.p1.x;
+			const h = a.p2.y - a.p1.y;
+
+			gfx.drawRect({
+				pos: a.p1,
+				width: w,
+				height: h,
+				outline: {
+					width: lwidth,
+					color: lcolor,
+				},
+				fill: false,
+			});
+
+			if (!obj.fixed) {
+				gfx.popTransform();
+			}
+
+		});
+
+		if (inspecting) {
+
+			const lines = [];
+			const data = inspecting.inspect();
+
+			for (const tag in data) {
+				if (data[tag]) {
+					lines.push(`${tag}: ${data[tag]}`);
+				} else {
+					lines.push(`${tag}`);
+				}
+			}
+
+			drawInspectTxt(mousePos(), lines.join("\n"));
+
+		}
+
+		drawInspectTxt(vec2(8), `FPS: ${app.fps()}`);
+
+	}
+
+	if (debug.paused) {
+
+		// top right corner
+		gfx.pushTransform();
+		gfx.pushTranslate(width(), 0);
+		gfx.pushScale(1 / app.scale);
+		gfx.pushTranslate(-8, 8);
+
+		const size = 32;
+
+		// bg
+		gfx.drawRect({
+			width: size,
+			height: size,
+			origin: "topright",
+			color: rgb(0, 0, 0),
+			opacity: 0.8,
+			radius: 4,
+		});
+
+		// pause icon
+		for (let i = 1; i <= 2; i++) {
+			gfx.drawRect({
+				width: 4,
+				height: size * 0.6,
+				origin: "center",
+				pos: vec2(-size / 3 * i, size * 0.5),
+				color: rgb(255, 255, 255),
+				radius: 2,
+			});
+		}
+
+		gfx.popTransform();
+
+	}
+
+	if (debug.timeScale !== 1) {
+
+		// bottom right corner
+		gfx.pushTransform();
+		gfx.pushTranslate(width(), height());
+		gfx.pushScale(1 / app.scale);
+		gfx.pushTranslate(-8, -8);
+
+		const pad = 8;
+
+		// format text first to get text size
+		const ftxt = gfx.fmtText({
+			text: debug.timeScale.toFixed(1),
+			font: assets.fonts[DBG_FONT],
+			size: 16,
+			color: rgb(255, 255, 255),
+			pos: vec2(-pad),
+			origin: "botright",
+		});
+
+		// bg
+		gfx.drawRect({
+			width: ftxt.width + pad * 2 + pad * 4,
+			height: ftxt.height + pad * 2,
+			origin: "botright",
+			color: rgb(0, 0, 0),
+			opacity: 0.8,
+			radius: 4,
+		});
+
+		// fast forward / slow down icon
+		for (let i = 0; i < 2; i++) {
+			const flipped = debug.timeScale < 1;
+			gfx.drawTriangle({
+				p1: vec2(-ftxt.width - pad * (flipped ? 2 : 3.5), -pad),
+				p2: vec2(-ftxt.width - pad * (flipped ? 2 : 3.5), -pad - ftxt.height),
+				p3: vec2(-ftxt.width - pad * (flipped ? 3.5 : 2), -pad - ftxt.height / 2),
+				pos: vec2(-i * pad * 1 + (flipped ? -pad * 0.5 : 0), 0),
+				color: rgb(255, 255, 255),
+			});
+		}
+
+		// text
+		gfx.drawFmtText(ftxt);
+
+		gfx.popTransform();
+
+	}
+
+	if (debug.curRecording) {
+
+		gfx.pushTransform();
+		gfx.pushTranslate(0, height());
+		gfx.pushScale(1 / app.scale);
+		gfx.pushTranslate(24, -24);
+
+		gfx.drawCircle({
+			radius: 12,
+			color: rgb(255, 0, 0),
+			opacity: wave(0, 1, app.time() * 4),
+		});
+
+		gfx.popTransform();
+
+	}
+
+	if (debug.showLog) {
+		logger.draw();
+	}
+
+}
+
 app.run(() => {
 
 	numFrames++;
@@ -2987,28 +3091,15 @@ app.run(() => {
 		game.camMousePos = game.camMatrix.invert().multVec2(app.mousePos());
 		game.trigger("input");
 
-		if (!debug.paused) {
+		if (!debug.paused && gopt.debug !== false) {
 			updateFrame();
 		}
 
 		gfx.frameStart();
 		drawFrame();
 
-		if (debug.inspect) {
-			drawInspect();
-		}
-
-		if (debug.showLog) {
-			logger.draw();
-		}
-
-		if (debug.curRecording) {
-			gfx.drawCircle({
-				radius: 12,
-				pos: vec2(24, height() - 24),
-				color: rgb(255, 0, 0),
-				opacity: wave(0, 1, app.time() * 4),
-			});
+		if (gopt.debug !== false) {
+			drawDebug();
 		}
 
 		gfx.frameEnd();
