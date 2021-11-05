@@ -220,18 +220,20 @@ function mouseWorldPos(): Vec2 {
 	return game.camMousePos;
 }
 
+function findAsset<T>(src: string | T, lib: Record<string, T>, def?: string): T | undefined {
+	if (src) {
+		return typeof src === "string" ? lib[src] : src;
+	} else if (def) {
+		return lib[def];
+	}
+}
+
 // wrapper around gfx.drawTexture to integrate with sprite assets mananger / frame anim
 function drawSprite(opt: DrawSpriteOpt) {
 	if (!opt.sprite) {
 		throw new Error(`drawSprite() requires property "sprite"`);
 	}
-	const spr = (() => {
-		if (typeof opt.sprite === "string") {
-			return assets.sprites[opt.sprite];
-		} else {
-			return opt.sprite;
-		}
-	})();
+	const spr = findAsset(opt.sprite, assets.sprites);
 	if (!spr) {
 		throw new Error(`sprite not found: "${opt.sprite}"`);
 	}
@@ -248,13 +250,7 @@ function drawSprite(opt: DrawSpriteOpt) {
 
 // wrapper around gfx.drawText to integrate with font assets mananger / default font
 function drawText(opt: DrawTextOpt) {
-	const font = (() => {
-		if (opt.font) {
-			return typeof opt.font === "string" ? assets.fonts[opt.font] : opt.font;
-		} else {
-			return assets.fonts[DEF_FONT];
-		}
-	})();
+	const font = findAsset(opt.font, assets.fonts, DEF_FONT);
 	if (!font) {
 		throw new Error(`font not found: ${opt.font}`);
 	}
@@ -264,15 +260,9 @@ function drawText(opt: DrawTextOpt) {
 	});
 }
 
-// wrapper around gfx.drawText to integrate with font assets mananger / default font
+// wrapper around gfx.formatText to integrate with font assets mananger / default font
 function formatText(opt: DrawTextOpt) {
-	const font = (() => {
-		if (opt.font) {
-			return typeof opt.font === "string" ? assets.fonts[opt.font] : opt.font;
-		} else {
-			return assets.fonts[DEF_FONT];
-		}
-	})();
+	const font = findAsset(opt.font, assets.fonts, DEF_FONT);
 	if (!font) {
 		throw new Error(`font not found: ${opt.font}`);
 	}
