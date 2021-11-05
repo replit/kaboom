@@ -946,6 +946,7 @@ export interface KaboomCtx {
 	 *
 	 * @example
 	 * ```js
+	 * // See #SpriteAtlasData type for format spec
 	 * loadSpriteAtlas("sprites/dungeon.png", {
 	 *     "hero": {
 	 *         x: 128,
@@ -956,7 +957,7 @@ export interface KaboomCtx {
 	 *         anims: {
 	 *             idle: { from: 0, to: 3 },
 	 *             run: { from: 4, to: 7 },
-	 *             hit: { from: 8, to: 8 },
+	 *             hit: 8,
 	 *         },
 	 *     },
 	 * })
@@ -966,15 +967,27 @@ export interface KaboomCtx {
 	 * ])
 	 *
 	 * player.play("run")
-	 *
-	 * // or load from json file, see SpriteAtlasData type for format spec
-	 * loadSpriteAtlas("sprites/dungeon.png", "sprites/dungeon.json")
 	 * ```
 	 */
 	loadSpriteAtlas(
 		src: SpriteLoadSrc,
 		data: SpriteAtlasData,
 	): Promise<Record<string, SpriteData>>,
+	/**
+	 * Load sprites from a sprite atlas with URL.
+	 *
+	 * @example
+	 * ```js
+	 * // Load from json file, see #SpriteAtlasData type for format spec
+	 * loadSpriteAtlas("sprites/dungeon.png", "sprites/dungeon.json")
+	 *
+	 * const player = add([
+	 *     sprite("hero"),
+	 * ])
+	 *
+	 * player.play("run")
+	 * ```
+	 */
 	loadSpriteAtlas(
 		src: SpriteLoadSrc,
 		url: string,
