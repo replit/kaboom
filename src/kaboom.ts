@@ -230,17 +230,11 @@ function findAsset<T>(src: string | T, lib: Record<string, T>, def?: string): T 
 
 // wrapper around gfx.drawTexture to integrate with sprite assets mananger / frame anim
 function drawSprite(opt: DrawSpriteOpt) {
-	if (!opt.sprite) {
-		throw new Error(`drawSprite() requires property "sprite"`);
-	}
+	if (!opt.sprite) throw new Error(`drawSprite() requires property "sprite"`);
 	const spr = findAsset(opt.sprite, assets.sprites);
-	if (!spr) {
-		throw new Error(`sprite not found: "${opt.sprite}"`);
-	}
+	if (!spr) throw new Error(`sprite not found: "${opt.sprite}"`);
 	const q = spr.frames[opt.frame ?? 0];
-	if (!q) {
-		throw new Error(`frame not found: ${opt.frame ?? 0}`);
-	}
+	if (!q) throw new Error(`frame not found: ${opt.frame ?? 0}`);
 	gfx.drawTexture({
 		...opt,
 		tex: spr.tex,
@@ -251,9 +245,7 @@ function drawSprite(opt: DrawSpriteOpt) {
 // wrapper around gfx.drawText to integrate with font assets mananger / default font
 function drawText(opt: DrawTextOpt) {
 	const font = findAsset(opt.font, assets.fonts, DEF_FONT);
-	if (!font) {
-		throw new Error(`font not found: ${opt.font}`);
-	}
+	if (!font) throw new Error(`font not found: ${opt.font}`);
 	gfx.drawText({
 		...opt,
 		font: font,
@@ -263,9 +255,7 @@ function drawText(opt: DrawTextOpt) {
 // wrapper around gfx.formatText to integrate with font assets mananger / default font
 function formatText(opt: DrawTextOpt) {
 	const font = findAsset(opt.font, assets.fonts, DEF_FONT);
-	if (!font) {
-		throw new Error(`font not found: ${opt.font}`);
-	}
+	if (!font) throw new Error(`font not found: ${opt.font}`);
 	return gfx.formatText({
 		...opt,
 		font: font,
