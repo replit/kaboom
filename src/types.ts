@@ -1840,6 +1840,25 @@ export interface KaboomCtx {
 	 */
 	drawUVQuad(options: DrawUVQuadOpt): void,
 	/**
+	 * Draw a piece of formatted text from formatText().
+	 *
+	 * @example
+	 * ```js
+	 * // text background
+	 * const txt = formatText({
+	 *     text: "oh hi",
+	 * })
+	 *
+	 * drawRect({
+	 *     width: txt.width,
+	 *     height: txt.height,
+	 * })
+	 *
+	 * drawFormattedText(txt)
+	 * ```
+	 */
+	drawFormattedText(text: FormattedText): void,
+	/**
 	 * Push current transform matrix to the transform stack.
 	 *
 	 * @example
@@ -1889,6 +1908,25 @@ export interface KaboomCtx {
 	 * Rotate all subsequent draws.
 	 */
 	pushRotate(angle: number): void,
+	/**
+	 * Format a piece of text without drawing (for getting dimensions, etc).
+	 *
+	 * @example
+	 * ```js
+	 * // text background
+	 * const txt = formatText({
+	 *     text: "oh hi",
+	 * })
+	 *
+	 * drawRect({
+	 *     width: txt.width,
+	 *     height: txt.height,
+	 * })
+	 *
+	 * drawFormattedText(txt)
+	 * ```
+	 */
+	formatText(options: DrawTextOpt): FormattedText,
 	/**
 	 * @section Debug
 	 *
@@ -2770,7 +2808,7 @@ export type DrawTextOpt = RenderProps & {
 	/**
 	 * The name of font to use.
 	 */
-	font?: string,
+	font?: string | FontData,
 	/**
 	 * The size of text (the height of each character).
 	 */
@@ -2789,6 +2827,15 @@ export type DrawTextOpt = RenderProps & {
 	 * @since v2000.1.0
 	 */
 	transform?: (idx: number, ch: string) => CharTransform,
+}
+
+/**
+ * Formatted text with info on how and where to render each character.
+ */
+export interface FormattedText {
+	width: number,
+	height: number,
+	chars: FormattedChar[],
 }
 
 /**
@@ -2812,15 +2859,6 @@ export interface CharTransform {
 	angle?: number,
 	color?: Color,
 	opacity?: number,
-}
-
-/**
- * Formatted text with info on how and where to render each character.
- */
-export interface FormattedText {
-	width: number,
-	height: number,
-	chars: FormattedChar[],
 }
 
 export type Cursor =

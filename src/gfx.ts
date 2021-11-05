@@ -115,7 +115,7 @@ type Gfx = {
 	): GfxFont,
 	drawTexture(opt: DrawTextureOpt),
 	drawText(opt: DrawTextOpt2),
-	drawFmtText(ftext: FormattedText),
+	drawFormattedText(ftext: FormattedText),
 	drawRect(opt: DrawRectOpt),
 	drawLine(opt: DrawLineOpt),
 	drawLines(opt: DrawLinesOpt),
@@ -124,7 +124,7 @@ type Gfx = {
 	drawEllipse(opt: DrawEllipseOpt),
 	drawPolygon(opt: DrawPolygonOpt),
 	drawUVQuad(opt: DrawUVQuadOpt),
-	fmtText(opt: DrawTextOpt2): FormattedText,
+	formatText(opt: DrawTextOpt2): FormattedText,
 	frameStart(),
 	frameEnd(),
 	pushTransform(): void,
@@ -1005,10 +1005,10 @@ function gfxInit(gl: WebGLRenderingContext, gopt: GfxOpt): Gfx {
 	}
 
 	// format text and return a list of chars with their calculated position
-	function fmtText(opt: DrawTextOpt2): FormattedText {
+	function formatText(opt: DrawTextOpt2): FormattedText {
 
 		if (opt.text === undefined) {
-			throw new Error("fmtText() requires property \"text\".");
+			throw new Error("formatText() requires property \"text\".");
 		}
 
 		const font = opt.font;
@@ -1126,11 +1126,11 @@ function gfxInit(gl: WebGLRenderingContext, gopt: GfxOpt): Gfx {
 	}
 
 	function drawText(opt: DrawTextOpt2) {
-		drawFmtText(fmtText(opt));
+		drawFormattedText(formatText(opt));
 	}
 
 	// TODO: rotation
-	function drawFmtText(ftext: FormattedText) {
+	function drawFormattedText(ftext: FormattedText) {
 		for (const ch of ftext.chars) {
 			drawUVQuad({
 				tex: ch.tex,
@@ -1216,7 +1216,7 @@ function gfxInit(gl: WebGLRenderingContext, gopt: GfxOpt): Gfx {
 		makeFont,
 		drawTexture,
 		drawText,
-		drawFmtText,
+		drawFormattedText,
 		drawRect,
 		drawLine,
 		drawLines,
@@ -1225,7 +1225,7 @@ function gfxInit(gl: WebGLRenderingContext, gopt: GfxOpt): Gfx {
 		drawEllipse,
 		drawPolygon,
 		drawUVQuad,
-		fmtText,
+		formatText,
 		frameStart,
 		frameEnd,
 		pushTranslate,
