@@ -1600,7 +1600,7 @@ export interface KaboomCtx {
 	 */
 	dir(deg: number): Vec2,
 	/**
-	 * Interpolate between 2 values (default using Math.sin motion).
+	 * Interpolate between 2 values (Optionally takes a custom periodic function, which default to Math.sin).
 	 *
 	 * @example
 	 * ```js
