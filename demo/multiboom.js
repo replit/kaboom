@@ -1,6 +1,6 @@
 // multiple kaboom contexts in one page
 
-const clearColors = [
+const backgrounds = [
 	[255, 0, 255],
 	[0, 0, 255],
 ]
@@ -8,7 +8,7 @@ const clearColors = [
 for (let i = 0; i < 2; i++) {
 
 	const k = kaboom({
-		clearColor: clearColors[i],
+		background: backgrounds[i],
 		global: false,
 		width: 320,
 		height: 320,
