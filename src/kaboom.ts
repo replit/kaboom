@@ -220,25 +220,21 @@ function mouseWorldPos(): Vec2 {
 	return game.camMousePos;
 }
 
+function findAsset<T>(src: string | T, lib: Record<string, T>, def?: string): T | undefined {
+	if (src) {
+		return typeof src === "string" ? lib[src] : src;
+	} else if (def) {
+		return lib[def];
+	}
+}
+
 // wrapper around gfx.drawTexture to integrate with sprite assets mananger / frame anim
 function drawSprite(opt: DrawSpriteOpt) {
-	if (!opt.sprite) {
-		throw new Error(`drawSprite() requires property "sprite"`);
-	}
-	const spr = (() => {
-		if (typeof opt.sprite === "string") {
-			return assets.sprites[opt.sprite];
-		} else {
-			return opt.sprite;
-		}
-	})();
-	if (!spr) {
-		throw new Error(`sprite not found: "${opt.sprite}"`);
-	}
+	if (!opt.sprite) throw new Error(`drawSprite() requires property "sprite"`);
+	const spr = findAsset(opt.sprite, assets.sprites);
+	if (!spr) throw new Error(`sprite not found: "${opt.sprite}"`);
 	const q = spr.frames[opt.frame ?? 0];
-	if (!q) {
-		throw new Error(`frame not found: ${opt.frame ?? 0}`);
-	}
+	if (!q) throw new Error(`frame not found: ${opt.frame ?? 0}`);
 	gfx.drawTexture({
 		...opt,
 		tex: spr.tex,
@@ -248,13 +244,19 @@ function drawSprite(opt: DrawSpriteOpt) {
 
 // wrapper around gfx.drawText to integrate with font assets mananger / default font
 function drawText(opt: DrawTextOpt) {
-	// @ts-ignore
-	const fid = opt.font ?? DEF_FONT;
-	const font = assets.fonts[fid];
-	if (!font) {
-		throw new Error(`font not found: ${fid}`);
-	}
+	const font = findAsset(opt.font, assets.fonts, DEF_FONT);
+	if (!font) throw new Error(`font not found: ${opt.font}`);
 	gfx.drawText({
+		...opt,
+		font: font,
+	});
+}
+
+// wrapper around gfx.formatText to integrate with font assets mananger / default font
+function formatText(opt: DrawTextOpt) {
+	const font = findAsset(opt.font, assets.fonts, DEF_FONT);
+	if (!font) throw new Error(`font not found: ${opt.font}`);
+	return gfx.formatText({
 		...opt,
 		font: font,
 	});
@@ -1766,7 +1768,7 @@ function text(t: string, opt: TextCompOpt = {}): TextComp {
 			throw new Error(`font not found: "${name}"`);
 		}
 
-		const ftext = gfx.fmtText({
+		const ftext = gfx.formatText({
 			...getRenderProps(this),
 			text: this.text + "",
 			size: this.textSize,
@@ -1796,7 +1798,7 @@ function text(t: string, opt: TextCompOpt = {}): TextComp {
 		},
 
 		draw() {
-			gfx.drawFmtText(update.call(this));
+			gfx.drawFormattedText(update.call(this));
 		},
 
 	};
@@ -2689,6 +2691,7 @@ const ctx: KaboomCtx = {
 	// raw draw
 	drawSprite,
 	drawText,
+	formatText,
 	// TODO: wrap these to use assets lib for the "shader" prop
 	drawRect: gfx.drawRect,
 	drawLine: gfx.drawLine,
@@ -2698,6 +2701,7 @@ const ctx: KaboomCtx = {
 	drawEllipse: gfx.drawEllipse,
 	drawUVQuad: gfx.drawUVQuad,
 	drawPolygon: gfx.drawPolygon,
+	drawFormattedText: gfx.drawFormattedText,
 	pushTransform: gfx.pushTransform,
 	popTransform: gfx.popTransform,
 	pushTranslate: gfx.pushTranslate,
@@ -2867,7 +2871,7 @@ function drawDebug() {
 			const s = gfx.scale();
 			const pad = vec2(6).scale(1 / s);
 
-			const ftxt = gfx.fmtText({
+			const ftxt = gfx.formatText({
 				text: txt,
 				font: font,
 				size: 16 / s,
@@ -2897,7 +2901,7 @@ function drawDebug() {
 				opacity: 0.8,
 			});
 
-			gfx.drawFmtText(ftxt);
+			gfx.drawFormattedText(ftxt);
 			gfx.popTransform();
 
 		}
@@ -3016,7 +3020,7 @@ function drawDebug() {
 		const pad = 8;
 
 		// format text first to get text size
-		const ftxt = gfx.fmtText({
+		const ftxt = gfx.formatText({
 			text: debug.timeScale.toFixed(1),
 			font: assets.fonts[DBG_FONT],
 			size: 16,
@@ -3048,7 +3052,7 @@ function drawDebug() {
 		}
 
 		// text
-		gfx.drawFmtText(ftxt);
+		gfx.drawFormattedText(ftxt);
 
 		gfx.popTransform();
 
