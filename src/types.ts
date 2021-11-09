@@ -1664,7 +1664,7 @@ export interface KaboomCtx {
 	 *     "           $$         =   $",
 	 *     "  %      ====         =   $",
 	 *     "                      =    ",
-	 *     "       ^^      = >    =   @",
+	 *     "       ^^      = >    =   &",
 	 *     "===========================",
 	 * ], {
 	 *     // define the size of each block
