@@ -591,9 +591,11 @@ function testRectPoint(r: Rect, pt: Point): boolean {
 	return pt.x > r.p1.x && pt.x < r.p2.x && pt.y > r.p1.y && pt.y < r.p2.y;
 }
 
-// TODO
 function testRectCircle(r: Rect, c: Circle): boolean {
-	return false;
+	const nx = Math.max(r.p1.x, Math.min(c.center.x, r.p2.x));
+	const ny = Math.max(r.p1.y, Math.min(c.center.y, r.p2.y))
+	const nearestEdge = vec2(nx,ny) 
+	return nearestEdge.dist(c.center) <= c.radius
 }
 
 function testRectPolygon(r: Rect, p: Polygon): boolean {
