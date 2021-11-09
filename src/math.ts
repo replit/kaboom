@@ -593,9 +593,9 @@ function testRectPoint(r: Rect, pt: Point): boolean {
 
 function testRectCircle(r: Rect, c: Circle): boolean {
 	const nx = Math.max(r.p1.x, Math.min(c.center.x, r.p2.x));
-	const ny = Math.max(r.p1.y, Math.min(c.center.y, r.p2.y))
-	const nearestPoint = vec2(nx,ny) 
-	return nearestPoint.dist(c.center) <= c.radius
+	const ny = Math.max(r.p1.y, Math.min(c.center.y, r.p2.y));
+	const nearestPoint = vec2(nx, ny);
+	return nearestPoint.dist(c.center) <= c.radius;
 }
 
 function testRectPolygon(r: Rect, p: Polygon): boolean {
