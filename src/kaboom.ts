@@ -2151,7 +2151,7 @@ function state(initState: string, stateList?: string[]): StateComp {
 		id: "state",
 		state: initState,
 		enterState(state: string, ...args) {
-			if (stateList && !stateList[state]) {
+			if (stateList && !stateList.includes(state)) {
 				throw new Error(`State not found: ${state}`);
 			}
 			events[this.state].leave.forEach((action) => action());
