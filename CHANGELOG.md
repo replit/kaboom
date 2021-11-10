@@ -1,3 +1,7 @@
+### v2000.1.1
+
+- fixed `StateComp#enterState()` not accepting any state
+
 # v2000.1.0 "Record Mode"
 
 - added `hsl2rgb()` for converting HSL color to kaboom RGB
