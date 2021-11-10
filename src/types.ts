@@ -1842,6 +1842,8 @@ export interface KaboomCtx {
 	/**
 	 * Draw a piece of formatted text from formatText().
 	 *
+	 * @since v2000.2.0
+	 *
 	 * @example
 	 * ```js
 	 * // text background
@@ -1910,6 +1912,8 @@ export interface KaboomCtx {
 	pushRotate(angle: number): void,
 	/**
 	 * Format a piece of text without drawing (for getting dimensions, etc).
+	 *
+	 * @since v2000.2.0
 	 *
 	 * @example
 	 * ```js
