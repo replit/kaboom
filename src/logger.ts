@@ -57,7 +57,7 @@ function loggerInit(gfx: Gfx, assets: Assets, opt: LoggerOpt = {}): Logger {
 				}
 			})();
 
-			const ftext = gfx.fmtText({
+			const ftext = gfx.formatText({
 				text: log.msg,
 				font: assets.fonts["sink"],
 				pos: pos,
