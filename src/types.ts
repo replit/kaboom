@@ -2138,6 +2138,42 @@ export interface GameObjRaw {
 	 */
 	exists(): boolean,
 	/**
+	 * Add a child.
+	 *
+	 * @since v2000.2.0
+	 */
+	add<T>(comps: CompList<T>): GameObj<T>,
+	/**
+	 * Remove a child.
+	 *
+	 * @since v2000.2.0
+	 */
+	remove(obj: GameObj): void,
+	/**
+	 * Get the parent game obj, if have any.
+	 *
+	 * @since v2000.2.0
+	 */
+	parent: GameObj | null,
+	/**
+	 * Get all children game objects.
+	 *
+	 * @since v2000.2.0
+	 */
+	children: GameObj[],
+	/**
+	 * Update this game object and all children game objects.
+	 *
+	 * @since v2000.2.0
+	 */
+	update(): void,
+	/**
+	 * Draw this game object and all children game objects.
+	 *
+	 * @since v2000.2.0
+	 */
+	draw(): void,
+	/**
 	 * If there's certain tag(s) on the game obj.
 	 */
 	is(tag: Tag | Tag[]): boolean,

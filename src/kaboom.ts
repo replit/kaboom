@@ -269,7 +269,7 @@ interface Game {
 	loaded: boolean,
 	events: Record<string, IDList<() => void>>,
 	objEvents: Record<string, IDList<TaggedEvent>>,
-	objs: IDList<GameObj>,
+	root: GameObj,
 	timers: IDList<Timer>,
 	cam: Camera,
 	camMousePos: Vec2,
@@ -322,7 +322,7 @@ const game: Game = {
 	objEvents: {},
 
 	// in game pool
-	objs: new IDList(),
+	root: make([]),
 	timers: new IDList(),
 
 	// cam
@@ -429,6 +429,42 @@ function make<T>(comps: CompList<T>): GameObj<T> {
 		_id: null,
 		hidden: false,
 		paused: false,
+		children: [],
+		parent: null,
+
+		add<T2>(comps: CompList<T2>): GameObj<T2> {
+			const obj = make(comps);
+			obj.parent = this;
+			obj.trigger("add");
+			onLoad(() => obj.trigger("load"));
+			this.children.push(obj);
+			return obj;
+		},
+
+		remove(obj: GameObj): void {
+			const idx = this.children.indexOf(obj);
+			if (idx !== -1) {
+				obj.parent = null;
+				obj.trigger("destroy");
+				this.children.splice(idx, 1);
+			}
+		},
+
+		update() {
+			if (this.paused) return;
+			for (const child of this.children) {
+				child.update();
+			}
+			this.trigger("update");
+		},
+
+		draw() {
+			if (this.hidden) return;
+			for (const child of this.children) {
+				child.draw();
+			}
+			this.trigger("draw");
+		},
 
 		// use a comp, or tag
 		use(comp: Comp | Tag) {
@@ -533,7 +569,11 @@ function make<T>(comps: CompList<T>): GameObj<T> {
 		},
 
 		exists(): boolean {
-			return this._id !== null;
+			if (this.parent === game.root) {
+				return true;
+			} else {
+				return this.parent?.exists();
+			}
 		},
 
 		is(tag: Tag | Tag[]): boolean {
@@ -582,15 +622,7 @@ function make<T>(comps: CompList<T>): GameObj<T> {
 		},
 
 		destroy() {
-
-			if (!this.exists()) {
-				return;
-			}
-
-			this.trigger("destroy");
-			game.objs.delete(this._id);
-			this._id = null;
-
+			this.parent?.remove(this);
 		},
 
 		inspect() {
@@ -624,20 +656,11 @@ function make<T>(comps: CompList<T>): GameObj<T> {
 }
 
 function add<T>(comps: CompList<T>): GameObj<T> {
-	const obj = make(comps);
-	obj._id = game.objs.push(obj);
-	obj.trigger("add");
-	onLoad(() => obj.trigger("load"));
-	return obj;
+	return game.root.add(comps);
 }
 
 function readd(obj: GameObj): GameObj {
-	if (!obj.exists()) {
-		return;
-	}
-	game.objs.delete(obj._id);
-	obj._id = game.objs.push(obj);
-	return obj;
+	return game.root.readd(obj);
 }
 
 // add an event to a tag
@@ -914,27 +937,7 @@ function enterBurpMode() {
 // TODO: cache sorted list
 // get all objects with tag
 function get(t?: Tag | Tag[]): GameObj[] {
-
-	const objs = [...game.objs.values()].sort((o1, o2) => {
-
-		const l1 = game.layers[o1.layer ?? game.defLayer] ?? 0;
-		const l2 = game.layers[o2.layer ?? game.defLayer] ?? 0;
-
-		// if on same layer, use "z" comp to decide which is on top, if given
-		if (l1 == l2) {
-			return (o1.z ?? 0) - (o2.z ?? 0);
-		} else {
-			return l1 - l2;
-		}
-
-	});
-
-	if (!t) {
-		return objs;
-	} else {
-		return objs.filter(obj => obj.is(t));
-	}
-
+	return [];
 }
 
 // apply a function to all objects currently in game with tag t
@@ -2192,7 +2195,7 @@ const debug: Debug = {
 	showLog: true,
 	fps: app.fps,
 	objCount(): number {
-		return game.objs.size;
+		return 0;
 	},
 	stepFrame: updateFrame,
 	drawCalls: gfx.drawCalls,
@@ -2242,11 +2245,7 @@ function go(id: SceneID, ...args) {
 			destroy: new IDList(),
 		};
 
-		game.objs.forEach((obj) => {
-			if (!obj.stay) {
-				destroy(obj);
-			}
-		});
+		game.root = make([]);
 
 		game.timers = new IDList();
 
@@ -2773,11 +2772,7 @@ function updateFrame() {
 	});
 
 	// update every obj
-	revery((obj) => {
-		if (!obj.paused) {
-			obj.trigger("update", obj);
-		}
-	});
+	game.root.update();
 
 }
 
@@ -2798,22 +2793,7 @@ function drawFrame() {
 		;
 
 	// draw every obj
-	every((obj) => {
-
-		if (!obj.hidden) {
-
-			gfx.pushTransform();
-
-			if (!obj.fixed) {
-				gfx.applyMatrix(game.camMatrix);
-			}
-
-			obj.trigger("draw");
-			gfx.popTransform();
-
-		}
-
-	});
+	game.root.draw();
 
 }
 
