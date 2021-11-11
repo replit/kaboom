@@ -441,6 +441,14 @@ function make<T>(comps: CompList<T>): GameObj<T> {
 			return obj;
 		},
 
+		readd(obj: GameObj): GameObj {
+			this.remove(obj);
+			obj.trigger("add");
+			onLoad(() => obj.trigger("load"));
+			this.children.push(obj);
+			return obj;
+		},
+
 		remove(obj: GameObj): void {
 			const idx = this.children.indexOf(obj);
 			if (idx !== -1) {
@@ -448,6 +456,10 @@ function make<T>(comps: CompList<T>): GameObj<T> {
 				obj.trigger("destroy");
 				this.children.splice(idx, 1);
 			}
+		},
+
+		removeAll(tag: Tag) {
+			this.every(tag, this.remove);
 		},
 
 		update() {
@@ -460,10 +472,15 @@ function make<T>(comps: CompList<T>): GameObj<T> {
 
 		draw() {
 			if (this.hidden) return;
+			gfx.pushTransform();
+			gfx.pushTranslate(this.pos);
+			gfx.pushScale(this.scale);
+			gfx.pushRotateZ(this.angle);
 			for (const child of this.children) {
 				child.draw();
 			}
 			this.trigger("draw");
+			gfx.popTransform();
 		},
 
 		// use a comp, or tag
@@ -568,6 +585,26 @@ function make<T>(comps: CompList<T>): GameObj<T> {
 			return compStates.get(id);
 		},
 
+		get(t?: Tag | Tag[]): GameObj[] {
+			return this.children.filter((child) => t ? child.is(t) : true);
+		},
+
+		every<T>(t: Tag | Tag[] | ((obj: GameObj) => T), f?: (obj: GameObj) => T) {
+			if (typeof t === "function" && f === undefined) {
+				return this.get().forEach((obj) => t(obj));
+			} else if (typeof t === "string" || Array.isArray(t)) {
+				return this.get(t).forEach((obj) => f(obj));
+			}
+		},
+
+		revery<T>(t: Tag | Tag[] | ((obj: GameObj) => T), f?: (obj: GameObj) => T) {
+			if (typeof t === "function" && f === undefined) {
+				return this.get().reverse().forEach((obj) => t(obj));
+			} else if (typeof t === "string" || Array.isArray(t)) {
+				return this.get(t).reverse().forEach((obj) => f(obj));
+			}
+		},
+
 		exists(): boolean {
 			if (this.parent === game.root) {
 				return true;
@@ -655,14 +692,6 @@ function make<T>(comps: CompList<T>): GameObj<T> {
 
 }
 
-function add<T>(comps: CompList<T>): GameObj<T> {
-	return game.root.add(comps);
-}
-
-function readd(obj: GameObj): GameObj {
-	return game.root.readd(obj);
-}
-
 // add an event to a tag
 function on(event: string, tag: Tag, cb: (obj: GameObj, ...args) => void): EventCanceller {
 	if (!game.objEvents[event]) {
@@ -678,7 +707,7 @@ function on(event: string, tag: Tag, cb: (obj: GameObj, ...args) => void): Event
 // add update event to a tag or global update
 function onUpdate(tag: Tag | (() => void), cb?: (obj: GameObj) => void): EventCanceller {
 	if (typeof tag === "function" && cb === undefined) {
-		return add([{ update: tag, }]).destroy;
+		return game.root.add([{ update: tag, }]).destroy;
 	} else if (typeof tag === "string") {
 		return on("update", tag, cb);
 	}
@@ -687,7 +716,7 @@ function onUpdate(tag: Tag | (() => void), cb?: (obj: GameObj) => void): EventCa
 // add draw event to a tag or global draw
 function onDraw(tag: Tag | (() => void), cb?: (obj: GameObj) => void) {
 	if (typeof tag === "function" && cb === undefined) {
-		return add([{ draw: tag, }]).destroy;
+		return game.root.add([{ draw: tag, }]).destroy;
 	} else if (typeof tag === "string") {
 		return on("draw", tag, cb);
 	}
@@ -932,40 +961,6 @@ function enterDebugMode() {
 
 function enterBurpMode() {
 	onKeyPress("b", audio.burp);
-}
-
-// TODO: cache sorted list
-// get all objects with tag
-function get(t?: Tag | Tag[]): GameObj[] {
-	return [];
-}
-
-// apply a function to all objects currently in game with tag t
-function every<T>(t: Tag | Tag[] | ((obj: GameObj) => T), f?: (obj: GameObj) => T) {
-	if (typeof t === "function" && f === undefined) {
-		return get().forEach((obj) => obj.exists() && t(obj));
-	} else if (typeof t === "string" || Array.isArray(t)) {
-		return get(t).forEach((obj) => obj.exists() && f(obj));
-	}
-}
-
-// every but in reverse order
-function revery<T>(t: Tag | Tag[] | ((obj: GameObj) => T), f?: (obj: GameObj) => T) {
-	if (typeof t === "function" && f === undefined) {
-		return get().reverse().forEach((obj) => obj.exists() && t(obj));
-	} else if (typeof t === "string" || Array.isArray(t)) {
-		return get(t).reverse().forEach((obj) => obj.exists() && f(obj));
-	}
-}
-
-// destroy an obj
-function destroy(obj: GameObj) {
-	obj.destroy();
-}
-
-// destroy all obj with the tag
-function destroyAll(t: string) {
-	every(t, destroy);
 }
 
 // get / set gravity
@@ -1517,11 +1512,8 @@ function area(opt: AreaCompOpt = {}): AreaComp {
 // make the list of common render properties from the "pos", "scale", "color", "opacity", "rotate", "origin", "outline", and "shader" components of a character
 function getRenderProps(obj: GameObj<any>) {
 	return {
-		pos: obj.pos,
-		scale: obj.scale,
 		color: obj.color,
 		opacity: obj.opacity,
-		angle: obj.angle,
 		origin: obj.origin,
 		outline: obj.outline,
 		shader: assets.shaders[obj.shader],
@@ -2417,7 +2409,7 @@ function addLevel(map: string[], opt: LevelOpt): Level {
 			comps.push(pos(posComp));
 			comps.push(grid(this, p));
 
-			const obj = add(comps);
+			const obj = game.root.add(comps);
 
 			objs.push(obj);
 
@@ -2554,13 +2546,13 @@ const ctx: KaboomCtx = {
 	toWorld,
 	gravity,
 	// obj
-	add,
-	readd,
-	destroy,
-	destroyAll,
-	get,
-	every,
-	revery,
+	add: game.root.add.bind(game.root),
+	readd: game.root.readd.bind(game.root),
+	destroy: game.root.remove.bind(game.root),
+	destroyAll: game.root.removeAll.bind(game.root),
+	get: game.root.get.bind(game.root),
+	every: game.root.every.bind(game.root),
+	revery: game.root.revery.bind(game.root),
 	// comps
 	pos,
 	scale,
