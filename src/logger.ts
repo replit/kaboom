@@ -77,7 +77,7 @@ function loggerInit(gfx: Gfx, assets: Assets, opt: LoggerOpt = {}): Logger {
 				opacity: bgAlpha,
 			});
 
-			gfx.drawFmtText(ftext);
+			gfx.drawFormattedText(ftext);
 			pos.y -= ftext.height;
 
 		});
