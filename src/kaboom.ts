@@ -443,8 +443,6 @@ function make<T>(comps: CompList<T>): GameObj<T> {
 
 		readd(obj: GameObj): GameObj {
 			this.remove(obj);
-			obj.trigger("add");
-			onLoad(() => obj.trigger("load"));
 			this.children.push(obj);
 			return obj;
 		},
