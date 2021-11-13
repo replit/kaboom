@@ -838,7 +838,7 @@ function onKeyRelease(k: Key | Key[] | (() => void), f?: () => void): EventCance
 		const cancellers = k.map((key) => onKeyRelease(key, f));
 		return () => cancellers.forEach((cb) => cb());
 	} else if (typeof k === "function") {
-		return game.on("input", () => app.isKeyPressed() && k());
+		return game.on("input", () => app.isKeyReleased() && k());
 	} else {
 		return game.on("input", () => app.isKeyReleased(k) && f());
 	}
