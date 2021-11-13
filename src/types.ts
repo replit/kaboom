@@ -1080,6 +1080,23 @@ export interface KaboomCtx {
 		isUrl?: boolean,
 	): Promise<ShaderData>,
 	/**
+	 * Load sprite from an NFT image. Use ethereumProvider option in kaboom() to set the ethereum provider (will look for window.ethereum by default).
+	 *
+	 * @example
+	 * ```js
+	 * // pass in contract address and token ID
+	 * loadNFT("img", "0x97b70306Eb1A04ce543676192b2414298A4DE2f9", 5)
+	 *
+	 * // use as normal sprite
+	 * add([ sprite("img") ])
+	 * ```
+	 */
+	loadNFT(
+		name: string | null,
+		contractAddr: string,
+		tokenID: number,
+	): Promise<SpriteData>,
+	/**
 	 * Add a new loader to wait for before starting the game.
 	 *
 	 * @example
@@ -2037,7 +2054,9 @@ export type MouseButton =
  */
 export type GameObjInspect = Record<Tag, string | null>
 
-// https://eips.ethereum.org/EIPS/eip-1193
+/**
+ * Ethereum provider defined in EIP1193.
+ */
 export type EthereumProvider = {
 	request: (args: {
 		method: string

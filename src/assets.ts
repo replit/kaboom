@@ -487,8 +487,6 @@ function assetsInit(gfx: Gfx, audio: Audio, gopt: AssetsOpt = {}): Assets {
 		return new TextDecoder().decode(bytes)
 	}
 
-	const URI_METHOD_ERC721 = "0xc87b56dd"
-	const URI_METHOD_ERC1155 = "0x0e89341c"
 	const IPFS_URL_RE = /^ipfs:\/\/(ipfs\/)?/;
 	const MAKERSPLACE_GATEWAY = "ipfsgateway.makersplace.com";
 
@@ -502,6 +500,9 @@ function assetsInit(gfx: Gfx, audio: Audio, gopt: AssetsOpt = {}): Assets {
 		}
 		return url;
 	}
+
+	const URI_METHOD_ERC721 = "0xc87b56dd"
+	const URI_METHOD_ERC1155 = "0x0e89341c"
 
 	function loadNFT(
 		name: string | null,
