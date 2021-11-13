@@ -36,7 +36,15 @@ import beanSrc from "./bean.png";
 
 type AssetsOpt = {
 	errHandler?: (err: string) => void,
+	ethereumProvider?: EthereumProviderEip1193,
 };
+
+type EthereumProviderEip1193 = {
+	request: (args: {
+		method: string
+		params?: unknown[] | Record<string, unknown>
+	}) => Promise<unknown>
+}
 
 type LoaderID = number;
 
@@ -91,6 +99,11 @@ type Assets = {
 		frag?: string,
 		isUrl?: boolean,
 	): Promise<ShaderData>,
+	loadNFT(
+		name: string | null,
+		contract: string,
+		token: number,
+	): Promise<SpriteData>,
 	loadProgress(): number,
 	load<T>(prom: Promise<T>),
 	sprites: Record<string, SpriteData>,
@@ -447,6 +460,72 @@ function assetsInit(gfx: Gfx, audio: Audio, gopt: AssetsOpt = {}): Assets {
 
 	}
 
+	function uint256Hex(value) {
+		let result = ""
+		for (let i = 0; i < 32; ++i) {
+			result += (
+				"0" + ((value >> BigInt(8 * 32 - i * 8 - 8)) & BigInt(255)).toString(16)
+			).slice(-2)
+		}
+		return result
+	}
+
+	function hexToUint8Array(hex: string): Uint8Array {
+		hex = hex.replace(/^0x/, "")
+		return new Uint8Array(
+			(hex.match(/.{1,2}/g) ?? []).map((byte) => parseInt(byte, 16))
+		)
+	}
+
+	function bytesToBigInt(bytes: Uint8Array): bigint {
+		let value = BigInt(0)
+		for (const byte of bytes) {
+			value = (value << BigInt(8)) + BigInt(byte)
+		}
+		return value
+	}
+
+	function decodeString(hex: string): string {
+		const data = hexToUint8Array(hex)
+		const pointer = Number(bytesToBigInt(data.subarray(0, 32)))
+		const length = Number(bytesToBigInt(data.subarray(pointer, pointer + 32)))
+		const bytes = data.subarray(pointer + 32, pointer + 32 + length)
+		return new TextDecoder().decode(bytes)
+	}
+
+	function normalizeURL(url: string): string {
+		return url.replace("ipfs://", "https://ipfs.io/");
+	}
+
+	const METHOD_TOKEN_URI = "0xc87b56dd" // tokenURI
+
+	function loadNFT(
+		name: string | null,
+		contract: string,
+		token: number,
+	): Promise<SpriteData> {
+		const eth = gopt.ethereumProvider ?? (window as any).ethereum;
+		if (!eth) {
+			throw new Error("Ethereum provider not found.")
+		}
+		return load(
+			eth.request({
+				method: "eth_call",
+				params: [
+					{
+						data: METHOD_TOKEN_URI + uint256Hex(BigInt(token)),
+						to: contract
+					},
+					"latest"
+				]
+			})
+				.then((res) => fetch(normalizeURL(decodeString(res as string))))
+				.then((res) => res.json())
+				// some imageURL doesn't allow CORS
+				.then((res) => loadSprite(name, "/api/proxy/" + encodeURIComponent(res.imageUrl)))
+		);
+	}
+
 	// TODO: accept dataurl
 	// load a sound to asset manager
 	function loadSound(
@@ -538,6 +617,7 @@ function assetsInit(gfx: Gfx, audio: Audio, gopt: AssetsOpt = {}): Assets {
 		loadSound,
 		loadFont,
 		loadShader,
+		loadNFT,
 		loadProgress,
 		load,
 		sprites: assets.sprites,

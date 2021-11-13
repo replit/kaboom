@@ -2523,6 +2523,7 @@ const ctx: KaboomCtx = {
 	loadSound: assets.loadSound,
 	loadFont: assets.loadFont,
 	loadShader: assets.loadShader,
+	loadNFT: assets.loadNFT,
 	loadAseprite: assets.loadAseprite,
 	loadPedit: assets.loadPedit,
 	loadBean: assets.loadBean,
