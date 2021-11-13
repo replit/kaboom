@@ -489,19 +489,13 @@ function assetsInit(gfx: Gfx, audio: Audio, gopt: AssetsOpt = {}): Assets {
 
 	const URI_METHOD_ERC721 = "0xc87b56dd"
 	const URI_METHOD_ERC1155 = "0x0e89341c"
-	const IPFS_URL_RE = /^ipfs:\/\/(?:ipfs\/)?([^/]+)(\/.+)?$/;
+	const IPFS_URL_RE = /^ipfs:\/\/(ipfs\/)?/;
 
 	function normalizeURL(url: string): string {
-
-		const ipfsUrlMatch = IPFS_URL_RE.exec(url);
-
-		if (ipfsUrlMatch) {
-			const [, cid, path = ""] = ipfsUrlMatch;
-			return `https://ipfs.io/ipfs/${cid}${path}`;
+		if (IPFS_URL_RE.test(url)) {
+			return url.replace(IPFS_URL_RE, "https://ipfs.io/ipfs/");
 		}
-
 		return url;
-
 	}
 
 	function loadNFT(
