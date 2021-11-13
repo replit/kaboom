@@ -494,10 +494,14 @@ function assetsInit(gfx: Gfx, audio: Audio, gopt: AssetsOpt = {}): Assets {
 	}
 
 	function normalizeURL(url: string): string {
-		return url.replace("ipfs://", "https://ipfs.io/");
+		if (url.startsWith("ipfs://")) {
+			return url.replace("ipfs://", "https://ipfs.io/");
+		}
+		return url;
 	}
 
-	const METHOD_TOKEN_URI = "0xc87b56dd" // tokenURI
+	const URI_METHOD_ERC721 = "0xc87b56dd"
+	const URI_METHOD_ERC1155 = "0x0e89341c"
 
 	function loadNFT(
 		name: string | null,
@@ -509,20 +513,22 @@ function assetsInit(gfx: Gfx, audio: Audio, gopt: AssetsOpt = {}): Assets {
 			throw new Error("Ethereum provider not found.")
 		}
 		return load(
-			eth.request({
+			Promise.any([
+				URI_METHOD_ERC721,
+				URI_METHOD_ERC1155,
+			].map((method) => eth.request({
 				method: "eth_call",
 				params: [
 					{
-						data: METHOD_TOKEN_URI + uint256Hex(BigInt(token)),
+						data: method + uint256Hex(BigInt(token)),
 						to: contract
 					},
 					"latest"
 				]
-			})
+			})))
 				.then((res) => fetch(normalizeURL(decodeString(res as string))))
 				.then((res) => res.json())
-				// some imageURL doesn't allow CORS
-				.then((res) => loadSprite(name, "/api/proxy/" + encodeURIComponent(res.imageUrl)))
+				.then((res) => loadSprite(name, normalizeURL(res.imageUrl ?? res.image)))
 		);
 	}
 
