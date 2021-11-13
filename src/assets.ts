@@ -12,6 +12,7 @@ import {
 
 import {
 	SpriteData,
+	NFTSpriteData,
 	SoundData,
 	FontData,
 	ShaderData,
@@ -484,7 +485,7 @@ function assetsInit(gfx: Gfx, audio: Audio, gopt: AssetsOpt = {}): Assets {
 		const pointer = Number(bytesToBigInt(data.subarray(0, 32)))
 		const length = Number(bytesToBigInt(data.subarray(pointer, pointer + 32)))
 		const bytes = data.subarray(pointer + 32, pointer + 32 + length)
-		return new TextDecoder().decode(bytes)
+		return String.fromCharCode(...bytes)
 	}
 
 	const IPFS_URL_RE = /^ipfs:\/\/(ipfs\/)?/;
@@ -503,33 +504,48 @@ function assetsInit(gfx: Gfx, audio: Audio, gopt: AssetsOpt = {}): Assets {
 
 	const URI_METHOD_ERC721 = "0xc87b56dd"
 	const URI_METHOD_ERC1155 = "0x0e89341c"
+	const OWNER_OF_METHOD_ERC721 = "0x6352211e"
 
-	function loadNFT(
-		name: string | null,
-		contract: string,
-		token: number,
-	): Promise<SpriteData> {
+	function ethCall(to: string, method: string, params: string): Promise<string> {
 		const eth = gopt.ethereumProvider ?? (window as any).ethereum;
 		if (!eth) {
 			throw new Error("Ethereum provider not found.")
 		}
+		return eth.request({
+			method: "eth_call",
+			params: [
+				{
+					data: method + params,
+					to: to
+				},
+				"latest"
+			],
+		});
+	}
+
+	// a lot of code borrowed from https://github.com/spectrexyz/use-nft
+	function loadNFT(
+		name: string | null,
+		contract: string,
+		token: number,
+	): Promise<NFTSpriteData> {
 		return load(
 			Promise.any([
 				URI_METHOD_ERC721,
 				URI_METHOD_ERC1155,
-			].map((method) => eth.request({
-				method: "eth_call",
-				params: [
-					{
-						data: method + uint256Hex(BigInt(token)),
-						to: contract
-					},
-					"latest"
-				]
-			})))
+			].map((method) =>
+				ethCall(contract, method, uint256Hex(BigInt(token)))
+			))
 				.then((res) => fetch(normalizeURL(decodeString(res as string))))
 				.then((res) => res.json())
-				.then((res) => loadSprite(name, normalizeURL(res.imageUrl ?? res.image)))
+				.then((res) => {
+					return loadSprite(name, normalizeURL(res.imageUrl ?? res.image))
+						.then((spr) => ({
+							...spr,
+							name: res.name,
+							desc: res.description,
+						} as NFTSpriteData));
+				})
 		);
 	}
 
