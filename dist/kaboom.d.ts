@@ -2371,6 +2371,11 @@ export interface SpriteData {
 	wrap?: TexWrap,
 }
 
+export interface NFTSpriteData extends SpriteData {
+	name: string,
+	desc: string,
+}
+
 export interface FontLoadOpt {
 	chars?: string,
 	filter?: TexFilter,
