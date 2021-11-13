@@ -509,7 +509,7 @@ function assetsInit(gfx: Gfx, audio: Audio, gopt: AssetsOpt = {}): Assets {
 	function ethCall(to: string, method: string, params: string): Promise<string> {
 		const eth = gopt.ethereumProvider ?? (window as any).ethereum;
 		if (!eth) {
-			throw new Error("Ethereum provider not found.")
+			throw new Error("Ethereum provider not found. Use ethereumProvider field in kaboom() to specify an EIP1193 provider.")
 		}
 		return eth.request({
 			method: "eth_call",

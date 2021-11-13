@@ -1080,7 +1080,7 @@ export interface KaboomCtx {
 		isUrl?: boolean,
 	): Promise<ShaderData>,
 	/**
-	 * Load sprite from an NFT image. Use ethereumProvider option in kaboom() to set the ethereum provider (will look for window.ethereum by default).
+	 * Load sprite from an NFT (ERC 721 / ERC1155) image. Use ethereumProvider option in kaboom() to set the ethereum provider (will look for window.ethereum by default).
 	 *
 	 * @example
 	 * ```js
@@ -2055,7 +2055,7 @@ export type MouseButton =
 export type GameObjInspect = Record<Tag, string | null>
 
 /**
- * Ethereum provider defined in EIP1193.
+ * EIP1193 Ethereum provider.
  */
 export type EthereumProvider = {
 	request: (args: {
@@ -2129,7 +2129,7 @@ export interface KaboomOpt {
 	 */
 	touchToMouse?: boolean,
 	/**
-	 * Provider for ethereum.
+	 * EIP1193 Ethereum provider.
 	 */
 	ethereumProvider?: EthereumProvider,
 	/**
