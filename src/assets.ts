@@ -490,10 +490,15 @@ function assetsInit(gfx: Gfx, audio: Audio, gopt: AssetsOpt = {}): Assets {
 	const URI_METHOD_ERC721 = "0xc87b56dd"
 	const URI_METHOD_ERC1155 = "0x0e89341c"
 	const IPFS_URL_RE = /^ipfs:\/\/(ipfs\/)?/;
+	const MAKERSPLACE_GATEWAY = "ipfsgateway.makersplace.com";
 
 	function normalizeURL(url: string): string {
 		if (IPFS_URL_RE.test(url)) {
 			return url.replace(IPFS_URL_RE, "https://ipfs.io/ipfs/");
+		}
+		// makersplace doesn't allow cors, switch to ipfs.io
+		if (url.includes(MAKERSPLACE_GATEWAY)) {
+			return url.replace(MAKERSPLACE_GATEWAY, "ipfs.io");
 		}
 		return url;
 	}
