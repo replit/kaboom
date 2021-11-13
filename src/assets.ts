@@ -12,6 +12,7 @@ import {
 
 import {
 	SpriteData,
+	NFTSpriteData,
 	SoundData,
 	FontData,
 	ShaderData,
@@ -508,7 +509,7 @@ function assetsInit(gfx: Gfx, audio: Audio, gopt: AssetsOpt = {}): Assets {
 		name: string | null,
 		contract: string,
 		token: number,
-	): Promise<SpriteData> {
+	): Promise<NFTSpriteData> {
 		const eth = gopt.ethereumProvider ?? (window as any).ethereum;
 		if (!eth) {
 			throw new Error("Ethereum provider not found.")
@@ -529,7 +530,14 @@ function assetsInit(gfx: Gfx, audio: Audio, gopt: AssetsOpt = {}): Assets {
 			})))
 				.then((res) => fetch(normalizeURL(decodeString(res as string))))
 				.then((res) => res.json())
-				.then((res) => loadSprite(name, normalizeURL(res.imageUrl ?? res.image)))
+				.then((res) => {
+					return loadSprite(name, normalizeURL(res.imageUrl ?? res.image))
+						.then((spr) => ({
+							...spr,
+							name: res.name,
+							desc: res.description,
+						}));
+				})
 		);
 	}
 
