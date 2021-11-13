@@ -177,6 +177,7 @@ const assets = assetsInit(gfx, audio, {
 	errHandler: (err: string) => {
 		logger.error(err);
 	},
+	ethereumProvider: gopt.ethereumProvider,
 });
 
 const logger = loggerInit(gfx, assets, {

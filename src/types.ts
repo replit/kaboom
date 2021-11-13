@@ -2037,6 +2037,14 @@ export type MouseButton =
  */
 export type GameObjInspect = Record<Tag, string | null>
 
+// https://eips.ethereum.org/EIPS/eip-1193
+export type EthereumProvider = {
+	request: (args: {
+		method: string
+		params?: unknown[] | Record<string, unknown>
+	}) => Promise<unknown>
+}
+
 /**
  * Kaboom configurations.
  */
@@ -2101,6 +2109,10 @@ export interface KaboomOpt {
 	 * If translate touch events as mouse clicks (default true).
 	 */
 	touchToMouse?: boolean,
+	/**
+	 * Provider for ethereum.
+	 */
+	ethereumProvider?: EthereumProvider,
 	/**
 	 * If import all kaboom functions to global (default true).
 	 */

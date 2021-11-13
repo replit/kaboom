@@ -21,6 +21,7 @@ import {
 	FontLoadOpt,
 	Quad,
 	GfxTexData,
+	EthereumProvider,
 } from "./types";
 
 // @ts-ignore
@@ -36,15 +37,8 @@ import beanSrc from "./bean.png";
 
 type AssetsOpt = {
 	errHandler?: (err: string) => void,
-	ethereumProvider?: EthereumProviderEip1193,
+	ethereumProvider?: EthereumProvider,
 };
-
-type EthereumProviderEip1193 = {
-	request: (args: {
-		method: string
-		params?: unknown[] | Record<string, unknown>
-	}) => Promise<unknown>
-}
 
 type LoaderID = number;
 
@@ -493,15 +487,22 @@ function assetsInit(gfx: Gfx, audio: Audio, gopt: AssetsOpt = {}): Assets {
 		return new TextDecoder().decode(bytes)
 	}
 
-	function normalizeURL(url: string): string {
-		if (url.startsWith("ipfs://")) {
-			return url.replace("ipfs://", "https://ipfs.io/");
-		}
-		return url;
-	}
-
 	const URI_METHOD_ERC721 = "0xc87b56dd"
 	const URI_METHOD_ERC1155 = "0x0e89341c"
+	const IPFS_URL_RE = /^ipfs:\/\/(?:ipfs\/)?([^/]+)(\/.+)?$/;
+
+	function normalizeURL(url: string): string {
+
+		const ipfsUrlMatch = IPFS_URL_RE.exec(url);
+
+		if (ipfsUrlMatch) {
+			const [, cid, path = ""] = ipfsUrlMatch;
+			return `https://ipfs.io/ipfs/${cid}${path}`;
+		}
+
+		return url;
+
+	}
 
 	function loadNFT(
 		name: string | null,
