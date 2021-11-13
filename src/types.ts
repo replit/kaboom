@@ -2372,8 +2372,8 @@ export interface SpriteData {
 }
 
 export interface NFTSpriteData extends SpriteData {
-	name?: string,
-	desc?: string,
+	name: string,
+	desc: string,
 }
 
 export interface FontLoadOpt {
