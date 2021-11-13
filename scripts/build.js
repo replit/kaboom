@@ -27,10 +27,7 @@ fmts.forEach((fmt) => {
 
 	const srcPath = `${srcDir}/kaboom.ts`;
 	const distPath = `${distDir}/kaboom.${fmt.ext}`;
-
-	const postBuild = () => {
-		console.log(`-> ${distPath}`);
-	};
+	const log = () => console.log(`-> ${distPath}`);
 
 	esbuild.build({
 		bundle: true,
@@ -43,19 +40,17 @@ fmts.forEach((fmt) => {
 			".glsl": "text",
 			".mp3": "binary",
 		},
-		watch: dev ? { onRebuild: postBuild } : false,
+		watch: dev ? { onRebuild: log } : false,
 		entryPoints: [ srcPath ],
 		globalName: "kaboom",
 		format: fmt.format,
 		outfile: distPath,
 		...(fmt.config ?? {})
-	}).then(postBuild);
+	}).then(log);
 
 });
 
-if (!dev) {
-	buildTypes();
-}
+buildTypes();
 
 // generate .d.ts / docs data
 function buildTypes() {
