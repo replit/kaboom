@@ -153,6 +153,8 @@ also check out [CONTRIBUTION.md](CONTRIBUTING.md)
 
 [Discord](https://discord.gg/aQ6RuQm3TF)
 
+[Twitter](https://twitter.com/Kaboomjs)
+
 ### Misc
 
 - Thanks to [abrudz](https://github.com/abrudz) for the amazing [APL386 font](https://abrudz.github.io/APL386/)
