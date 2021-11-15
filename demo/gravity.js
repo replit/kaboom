@@ -8,7 +8,7 @@ loadSprite("bean", "/sprites/bean.png")
 loadSprite("ghosty", "/sprites/ghosty.png")
 
 // Set the gravity acceleration (pixels per second)
-gravity()
+gravity(1600)
 
 // Add player game object
 const player = add([
