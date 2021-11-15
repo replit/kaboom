@@ -1005,7 +1005,7 @@ function pos(...args): PosComp {
 				let a1 = this.worldArea();
 
 				// TODO: definitely shouln't iterate through all solid objs
-				every((other) => {
+				game.root.every((other) => {
 
 					// make sure we still exist, don't check with self, and only
 					// check with other solid objects
@@ -1433,13 +1433,13 @@ function area(opt: AreaCompOpt = {}): AreaComp {
 
 		// push object out of other solid objects
 		pushOutAll() {
-			every(this.pushOut);
+			game.root.every(this.pushOut);
 		},
 
 		// @ts-ignore
 		_checkCollisions(tag: Tag) {
 
-			every(tag, (obj) => {
+			game.root.every(tag, (obj) => {
 
 				if (this === obj || !this.exists() || colliding[obj._id]) {
 					return;
@@ -2425,7 +2425,7 @@ function addLevel(map: string[], opt: LevelOpt): Level {
 
 		destroy() {
 			for (const obj of objs) {
-				destroy(obj);
+				obj.destroy();
 			}
 		},
 
@@ -2877,7 +2877,7 @@ function drawDebug() {
 		}
 
 		// draw area outline
-		every((obj) => {
+		game.root.every((obj) => {
 
 			if (!obj.area) {
 				return;
