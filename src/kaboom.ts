@@ -2138,7 +2138,7 @@ function state(initState: string, stateList?: string[]): StateComp {
 
 	const events = {};
 
-	const initStateHook = (state: string) => {
+	function initStateHook(state: string) {
 		if (!events[state]) {
 			events[state] = {
 				enter: [],
@@ -2147,7 +2147,17 @@ function state(initState: string, stateList?: string[]): StateComp {
 				draw: [],
 			};
 		}
-	};
+	}
+
+	function on(event, state, action) {
+		initStateHook(state);
+		events[state][event].push(action);
+	}
+
+	function trigger(event, state) {
+		initStateHook(state);
+		events[state][event].forEach((action) => action());
+	}
 
 	return {
 		id: "state",
@@ -2156,31 +2166,27 @@ function state(initState: string, stateList?: string[]): StateComp {
 			if (stateList && !stateList.includes(state)) {
 				throw new Error(`State not found: ${state}`);
 			}
-			events[this.state].leave.forEach((action) => action());
+			trigger("leave", this.state);
 			this.state = state;
-			events[this.state].enter.forEach((action) => action(...args));
+			trigger("enter", this.state);
 		},
 		onStateEnter(state: string, action: () => void) {
-			initStateHook(state);
-			events[state].enter.push(action);
+			on("enter", state, action);
 		},
 		onStateUpdate(state: string, action: () => void) {
-			initStateHook(state);
-			events[state].update.push(action);
+			on("update", state, action);
 		},
 		onStateDraw(state: string, action: () => void) {
-			initStateHook(state);
-			events[state].draw.push(action);
+			on("draw", state, action);
 		},
 		onStateLeave(state: string, action: () => void) {
-			initStateHook(state);
-			events[state].leave.push(action);
+			on("leave", state, action);
 		},
 		update() {
-			events[this.state].update.forEach((action) => action());
+			trigger("update", this.state);
 		},
 		draw() {
-			events[this.state].draw.forEach((action) => action());
+			trigger("draw", this.state);
 		},
 	};
 
