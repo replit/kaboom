@@ -145,6 +145,8 @@ works all CDNs that supports NPM packages, e.g. jsdelivr, skypack
 1. edit demos in `demo/` to test
 1. make sure not to break any existing demos
 
+also check out [CONTRIBUTION.md](CONTRIBUTING.md)
+
 ## Community
 
 [Github Discussions](https://github.com/replit/kaboom/discussions)
