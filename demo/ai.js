@@ -1,4 +1,4 @@
-// Use state to handle basic AI
+// Use state() component to handle basic AI
 
 // Start kaboom
 kaboom()
