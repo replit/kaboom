@@ -9,15 +9,13 @@ loadSprite("ghosty", "/sprites/ghosty.png")
 
 const SPEED = 320
 const ENEMY_SPEED = 160
-const BULLET_SPEED = 960
+const BULLET_SPEED = 800
 
 // Add player game object
 const player = add([
 	sprite("bean"),
 	pos(80, 80),
-	color(),
 	area(),
-	solid(),
 	origin("center"),
 ])
 
@@ -26,8 +24,7 @@ const enemy = add([
 	pos(width() - 80, height() - 80),
 	origin("center"),
 	// This enemy cycle between 3 states, and start from "idle" state
-	state("idle", [ "idle", "attack", "move", ]),
-	"enemy",
+	state("move", [ "idle", "attack", "move", ]),
 ])
 
 // Run the callback once every time we enter "idle" state.
@@ -71,8 +68,8 @@ enemy.onStateUpdate("move", () => {
 	enemy.move(dir.scale(ENEMY_SPEED))
 })
 
-// Have to manually call enterState() to trigger the onStateEnter("idle") event we defined above.
-enemy.enterState("idle")
+// Have to manually call enterState() to trigger the onStateEnter("move") event we defined above.
+enemy.enterState("move")
 
 // Taking a bullet makes us disappear
 player.onCollide("bullet", (bullet) => {
