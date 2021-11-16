@@ -1315,7 +1315,7 @@ function outOfView(opt: OutOfViewOpt = {}): OutOfViewComp {
 	};
 }
 
-function cleanup(opt: CleanupOpt = {}): CleanupComp {
+function cleanup(opt: (number | undefined) | CleanupOpt = {}): CleanupComp {
 	// DEPRECATED
 	if (typeof opt === "number") {
 		return {
