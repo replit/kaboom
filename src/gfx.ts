@@ -70,8 +70,9 @@ type GfxOpt = {
 	height?: number,
 	scale?: number,
 	texFilter?: TexFilter,
-    stretch?: boolean,
-    letterbox?: boolean,
+	stretch?: boolean,
+	letterbox?: boolean,
+	cull?: boolean,
 };
 
 type DrawTextureOpt = RenderProps & {

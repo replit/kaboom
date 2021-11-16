@@ -166,6 +166,7 @@ const gfx = gfxInit(app.gl, {
 	texFilter: gopt.texFilter,
 	stretch: gopt.stretch,
 	letterbox: gopt.letterbox,
+	cull: gopt.cull,
 });
 
 const {
