@@ -480,9 +480,10 @@ function gfxInit(gl: WebGLRenderingContext, gopt: GfxOpt): Gfx {
 
 			for (const v of verts) {
 
-				// WebGL screenspace coordinate [-1.0 ~ 1.0]
+				// WebGL screen space coordinate [-1.0 ~ 1.0]
 				const pt = toNDC(gfx.transform.multVec2(v.pos.xy()));
 
+				// get the bounding rectangle for the polygon
 				objBound.p1.x = Math.min(objBound.p1.x, pt.x);
 				objBound.p2.x = Math.max(objBound.p2.x, pt.x);
 				objBound.p1.y = Math.min(objBound.p1.y, pt.y);
