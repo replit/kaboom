@@ -31,10 +31,10 @@ Now we want to add Bean to the screen.
 
 ```// add a character to screen
 add([
-	// list of components
-	sprite("bean"),
-	pos(80, 40),
-	area(),
+    // list of components
+    sprite("bean"),
+    pos(80, 40),
+    area(),
     color(0, 0, 255),
 ]);
 ```
