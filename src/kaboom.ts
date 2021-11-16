@@ -2133,7 +2133,7 @@ function lifespan(time: number, opt: LifespanCompOpt = {}): LifespanComp {
 function state(
 	initState: string,
 	stateList?: string[],
-	transitions?: Record<string, string[]>,
+	transitions?: Record<string, string | string[]>,
 ): StateComp {
 
 	if (!initState) {
@@ -2170,12 +2170,22 @@ function state(
 			if (stateList && !stateList.includes(state)) {
 				throw new Error(`State not found: ${state}`);
 			}
-			if (transitions?.[this.state] && !transitions[this.state].includes(state)) {
-				throw new Error(`Cannot transition state from "${this.state}" to "${state}". Available transitions: ${transitions[this.state].map((s) => `"${s}"`).join(", ")}`);
+			if (transitions?.[this.state]) {
+				const available = typeof transitions[this.state] === "string"
+					? [transitions[this.state]]
+					: transitions[this.state] as string[];
+				if (!available.includes(state)) {
+					throw new Error(`Cannot transition state from "${this.state}" to "${state}". Available transitions: ${available.map((s) => `"${s}"`).join(", ")}`);
+				}
 			}
-			trigger("leave", this.state, ...args);
+			const oldState = this.state;
+			trigger("leave", oldState, ...args);
 			this.state = state;
-			trigger("enter", this.state, ...args);
+			trigger("enter", state, ...args);
+			trigger("enter", `${oldState} -> ${state}`, ...args);
+		},
+		onStateTransition(from: string, to: string, action: () => void) {
+			on("enter", `${from} -> ${to}`, action);
 		},
 		onStateEnter(state: string, action: () => void) {
 			on("enter", state, action);

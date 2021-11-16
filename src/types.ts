@@ -578,7 +578,7 @@ export interface KaboomCtx {
 	state(
 		initialState: string,
 		stateList?: string[],
-		transitions?: Record<string, string[]>,
+		transitions?: Record<string, string | string[]>,
 	): StateComp,
 	/**
 	 * Register an event on all game objs with certain tag.
@@ -3787,6 +3787,10 @@ export interface StateComp extends Comp {
 	 * Enter a state, trigger onStateLeave for previous state and onStateEnter for the new State state.
 	 */
 	enterState: (state: string, ...args) => void,
+	/**
+	 * Register event that runs once when a specific state transition happens. Accepts arguments passed from `enterState(name, ...args)`.
+	 */
+	onStateTransition(from: string, to: string, action: () => void),
 	/**
 	 * Register event that runs once when enters a specific state. Accepts arguments passed from `enterState(name, ...args)`.
 	 */
