@@ -6,13 +6,7 @@ Adding game objects to a game is a fundamental part of creating games.
 
 In Kaboom, the characters such as players, bullets, rocks, clouds, text etc. that we add to a game are called Game Objects. In other words, a game object is the basic unit of entity in a Kaboom world. 
 
-In this tutorial, we'll look at how game objects, also known as sprites, are added to a game. The code we'll look at is considered boilerplate code (or rather a template) for starting most games we can create with Kaboom. For any game you may want to create, you need to know how to add sprites as a result, we'll discuss it at length to form a good foundation for game development in Kaboom.
-
-## Creating a new project in Replit
-
-Head over to [Replit](https://replit.com) and create a new repl. Choose **Kaboom** as your project type. Give this repl a name, like "AddSprite".
-
-After the repl has booted up, you should see a `main.js` file under the "Code" section. You'll see some code already written for you to add a sprite.
+In this tutorial, we'll look at how game objects, also known as sprites, are added to a game. The code we'll look at is considered boilerplate code (or rather a template) for starting most games we can create with Kaboom. For any game you may want to create, you need to know how to add sprites as a result, we'll discuss it at length to form a good foundation for game development in Kaboom. You can find this code at https://replit.com/@ritza/add-sprite-tutorial#code/main.js 
 
 ## Understanding the code
 
@@ -62,3 +56,7 @@ Here are some suggestions of how you can extend this code further:
 
 - Add other components to Bean's character. Can you change the shape?
 - Play around with different sprites, positions, rotations, and scale 
+
+You can try out the code in the embedded repl below:
+
+<iframe height="400px" width="100%" src="https://replit.com/@ritza/add-sprite-tutorial?embed=true" scrolling="no" frameborder="no" allowtransparency="true" allowfullscreen="true" sandbox="allow-forms allow-pointer-lock allow-popups allow-same-origin allow-scripts allow-modals"></iframe>
