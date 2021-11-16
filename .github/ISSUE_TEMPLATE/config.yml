@@ -1,4 +1,7 @@
 contact_links:
-  - name: Forum
-    url: https://github.com/replit/kaboom/discussions
-    about: For questions, suggestions, showcase, chat, and fun!
+  - name: Help
+    url: https://github.com/replit/kaboom/discussions/categories/q-a
+    about: How to use certain Kaboom feature, or how to achieve something with Kaboom
+  - name: Suggestion
+    url: https://github.com/replit/kaboom/discussions/categories/ideas
+    about: Features you'd like Kaboom to have
