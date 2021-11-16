@@ -2137,6 +2137,7 @@ function state(initState: string, stateList?: string[]): StateComp {
 	}
 
 	const events = {};
+	let initializing = true;
 
 	function initStateHook(state: string) {
 		if (!events[state]) {
@@ -2166,12 +2167,16 @@ function state(initState: string, stateList?: string[]): StateComp {
 			if (stateList && !stateList.includes(state)) {
 				throw new Error(`State not found: ${state}`);
 			}
+			initializing = false;
 			trigger("leave", this.state, ...args);
 			this.state = state;
 			trigger("enter", this.state, ...args);
 		},
 		onStateEnter(state: string, action: () => void) {
 			on("enter", state, action);
+			if (initializing && state === initState) {
+				action();
+			}
 		},
 		onStateUpdate(state: string, action: () => void) {
 			on("update", state, action);
@@ -2183,6 +2188,7 @@ function state(initState: string, stateList?: string[]): StateComp {
 			on("leave", state, action);
 		},
 		update() {
+			initializing = false;
 			trigger("update", this.state);
 		},
 		draw() {
