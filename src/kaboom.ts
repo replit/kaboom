@@ -1316,6 +1316,16 @@ function outOfView(opt: OutOfViewOpt = {}): OutOfViewComp {
 }
 
 function cleanup(opt: CleanupOpt = {}): CleanupComp {
+	// DEPRECATED
+	if (typeof opt === "number") {
+		return {
+			...outOfView({
+				destroy: true,
+				time: opt,
+			}),
+			id: "cleanup",
+		};
+	}
 	return {
 		...outOfView({
 			destroy: true,

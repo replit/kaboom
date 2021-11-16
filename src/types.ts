@@ -466,6 +466,10 @@ export interface KaboomCtx {
 	 */
 	cleanup(opt?: CleanupOpt): CleanupComp,
 	/**
+	 * @deprecated Use cleanup() with optional CleanupOpt instead of single time argument.
+	 */
+	cleanup(time?: number): CleanupComp,
+	/**
 	 * Follow another game obj's position.
 	 */
 	follow(obj: GameObj | null, offset?: Vec2): FollowComp,
