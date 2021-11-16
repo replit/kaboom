@@ -438,19 +438,33 @@ export interface KaboomCtx {
 	 */
 	move(direction: number | Vec2, speed: number): MoveComp,
 	/**
-	 * destroy() the character if it's out of screen. Optionally specify the amount of time it has to be off-screen before removal.
+	 * Control the behavior of object when it goes out of view.
+	 *
+	 * @since v2000.2
 	 *
 	 * @example
 	 * ```js
-	 * // remove this 3 seconds after it leaves screen
 	 * add([
-	 *     pos(80, 80),
-	 *     move(LEFT, 120),
-	 *     cleanup(3),
+	 *     pos(1200, 80),
+	 *     outOfView({ hide: true, pause: true }),
 	 * ])
 	 * ```
 	 */
-	cleanup(time?: number): CleanupComp,
+	outOfView(opt?: OutOfViewOpt): OutOfViewComp,
+	/**
+	 * destroy() the object if it goes out of screen. Optionally specify the amount of time it has to be off-screen before removal.
+	 *
+	 * @example
+	 * ```js
+	 * // destroy when it leaves screen
+	 * const bullet = add([
+	 *     pos(80, 80),
+	 *     move(LEFT, 960),
+	 *     cleanup(),
+	 * ])
+	 * ```
+	 */
+	cleanup(opt?: CleanupOpt): CleanupComp,
 	/**
 	 * Follow another game obj's position.
 	 */
@@ -3197,6 +3211,55 @@ export interface FollowComp extends Comp {
 }
 
 export interface MoveComp extends Comp {
+}
+
+export interface OutOfViewOpt {
+	/**
+	 * If hide object when out of view.
+	 */
+	hide?: boolean,
+	/**
+	 * If pause object when out of view.
+	 */
+	pause?: boolean,
+	/**
+	 * If destroy object when out of view.
+	 */
+	destroy?: boolean,
+	/**
+	 * The screen bound offset.
+	 */
+	offset?: Vec2,
+	/**
+	 * If it needs to stay out of view for a period of time before proceed to action.
+	 */
+	time?: number,
+	/**
+	 * Register an event that runs when object goes out of view.
+	 */
+	onOut?: () => void,
+}
+
+export interface OutOfViewComp extends Comp {
+	/**
+	 * If object is currently out of view.
+	 */
+	isOutOfView(): boolean,
+}
+
+export interface CleanupOpt {
+	/**
+	 * The screen bound offset.
+	 */
+	offset?: Vec2,
+	/**
+	 * If it needs to stay out of view for a period of time before proceed to destroy.
+	 */
+	time?: number,
+	/**
+	 * Register an event that runs when object gets cleaned up.
+	 */
+	onCleanup?: () => void,
 }
 
 export interface CleanupComp extends Comp {
