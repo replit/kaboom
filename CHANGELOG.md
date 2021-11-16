@@ -1,3 +1,7 @@
+### v2000.1.5
+
+- fixed `enterState()` not passing args to `onStateEnter()` callback
+
 ### v2000.1.4
 
 - fixed `state()` to not require registering `onStateUpdate()` before using any state
