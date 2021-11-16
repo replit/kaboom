@@ -575,7 +575,11 @@ export interface KaboomCtx {
 	 * })
 	 * ```
 	 */
-	state(initialState: string, stateList?: string[]): StateComp,
+	state(
+		initialState: string,
+		stateList?: string[],
+		transitions?: Record<string, string[]>,
+	): StateComp,
 	/**
 	 * Register an event on all game objs with certain tag.
 	 *

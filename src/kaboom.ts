@@ -2130,7 +2130,11 @@ function lifespan(time: number, opt: LifespanCompOpt = {}): LifespanComp {
 	};
 }
 
-function state(initState: string, stateList?: string[]): StateComp {
+function state(
+	initState: string,
+	stateList?: string[],
+	transitions?: Record<string, string[]>,
+): StateComp {
 
 	if (!initState) {
 		throw new Error("state() requires an initial state");
@@ -2165,6 +2169,9 @@ function state(initState: string, stateList?: string[]): StateComp {
 		enterState(state: string, ...args) {
 			if (stateList && !stateList.includes(state)) {
 				throw new Error(`State not found: ${state}`);
+			}
+			if (transitions?.[this.state] && !transitions[this.state].includes(state)) {
+				throw new Error(`Cannot transition state from "${this.state}" to "${state}". Available transitions: ${transitions[this.state].map((s) => `"${s}"`).join(", ")}`);
 			}
 			trigger("leave", this.state, ...args);
 			this.state = state;
