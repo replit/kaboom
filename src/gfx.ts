@@ -475,7 +475,7 @@ function gfxInit(gl: WebGLRenderingContext, gopt: GfxOpt): Gfx {
 
 		if (gopt.cull) {
 
-			const objBound = { p1: vec2(99999), p2: vec2(-99999) };
+			const objBound = { p1: vec2(Number.MAX_VALUE), p2: vec2(-Number.MAX_VALUE)};
 			const screenBound = { p1: vec2(-1), p2: vec2(1) };
 
 			for (const v of verts) {
