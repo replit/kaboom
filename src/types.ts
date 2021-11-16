@@ -3789,6 +3789,8 @@ export interface StateComp extends Comp {
 	enterState: (state: string, ...args) => void,
 	/**
 	 * Register event that runs once when a specific state transition happens. Accepts arguments passed from `enterState(name, ...args)`.
+	 *
+	 * @since v2000.2
 	 */
 	onStateTransition(from: string, to: string, action: () => void),
 	/**
