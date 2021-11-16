@@ -1284,7 +1284,7 @@ function move(direction: number | Vec2, speed: number): MoveComp {
 function outOfView(opt: OutOfViewOpt = {}): OutOfViewComp {
 	let timer = 0;
 	return {
-		id: "outofview",
+		id: "outOfView",
 		require: [ "pos", "area", ],
 		isOutOfView(): boolean {
 			const offset = opt.offset ?? vec2(0);
