@@ -4,9 +4,8 @@ body:
   - type: checkboxes
     attributes:
       label: Is there an existing issue for this?
-      description: Please search to see if an issue already exists for the bug you encountered.
       options:
-      - label: There is no existing issue for this bug
+      - label: I've searched and there is no existing issue for this bug
         required: true
   - type: dropdown
     id: version
@@ -34,13 +33,17 @@ body:
     id: live-demo
     attributes:
       label: Live demo
-      description: If there's a live demo of the bug
+      description: (optional) If there's a live demo of the bug
       placeholder: https://yourdomain.tld/game
+  - type: textarea
+    id: repro
+    attributes:
+      label: How to reproduce?
+      description: How to reproduce the bug in the demo, or a piece of minimum reproducable code
   - type: textarea
     id: what-happened
     attributes:
       label: What happened?
-      description: What happend that should not happen.
       placeholder: I see horror beyond imagination...
     validations:
       required: true
@@ -48,7 +51,6 @@ body:
     id: what-expected
     attributes:
       label: What's the expected behavior?
-      description: What is the expected behavior
       placeholder: It should do ...
     validations:
       required: true
