@@ -388,15 +388,15 @@ export interface KaboomCtx {
 	 * ])
 	 *
 	 * // when froggy is grounded, press space to jump
-	 * // check out BodyComp for more methods
+	 * // check out #BodyComp for more methods
 	 * onKeyPress("space", () => {
 	 *     if (froggy.isGrounded()) {
 	 *         froggy.jump()
 	 *     }
 	 * })
 	 *
-	 * // a custom event provided by "body"
-	 * froggy.on("ground", () => {
+	 * // run something when froggy falls and hits a ground
+	 * froggy.onGround(() => {
 	 *     debug.log("oh no!")
 	 * })
 	 * ```
