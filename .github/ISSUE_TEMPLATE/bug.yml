@@ -1,12 +1,6 @@
 name: Bug Report
 description: File a bug report
 body:
-  - type: checkboxes
-    attributes:
-      label: Is there an existing issue for this?
-      options:
-      - label: I've searched and there is no existing issue for this bug
-        required: true
   - type: dropdown
     id: version
     attributes:
@@ -29,6 +23,20 @@ body:
         - Safari
         - Microsoft Edge
         - Other
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      placeholder: I see horror beyond imagination ...
+    validations:
+      required: true
+  - type: textarea
+    id: what-expected
+    attributes:
+      label: What's the expected behavior?
+      placeholder: It should do ...
+    validations:
+      required: true
   - type: input
     id: live-demo
     attributes:
@@ -41,17 +49,10 @@ body:
       label: Minimum reproducable code
       description: If there's a small piece of code that can reliably reproduce the bug
       placeholder: kaboom()
-  - type: textarea
-    id: what-happened
+
+  - type: checkboxes
     attributes:
-      label: What happened?
-      placeholder: I see horror beyond imagination...
-    validations:
-      required: true
-  - type: textarea
-    id: what-expected
-    attributes:
-      label: What's the expected behavior?
-      placeholder: It should do ...
-    validations:
-      required: true
+      label: Is there an existing issue for this?
+      options:
+      - label: I've searched and there is no existing issue for this bug
+        required: true
