@@ -450,7 +450,7 @@ export interface KaboomCtx {
 	 * ])
 	 * ```
 	 */
-	cleanup(time?: number): CleanupComp,
+	cleanup(time?: number, cull?: boolean, cullOffset?: Vec2): CleanupComp,
 	/**
 	 * Follow another game obj's position.
 	 */

@@ -1278,7 +1278,7 @@ function move(direction: number | Vec2, speed: number): MoveComp {
 	};
 }
 
-function cleanup(time: number = 0): CleanupComp {
+function cleanup(time: number = 0, cull: boolean = false, cullOffset: Vec2 = vec2(0, 0)): CleanupComp {
 	let timer = 0;
 	return {
 		id: "cleanup",
@@ -1288,12 +1288,27 @@ function cleanup(time: number = 0): CleanupComp {
 				p1: vec2(0, 0),
 				p2: vec2(width(), height()),
 			}
+
+			if (cull) {
+				screenRect.p1.x -= cullOffset.x
+				screenRect.p1.y -= cullOffset.y
+				screenRect.p2.x += cullOffset.x
+				screenRect.p2.y += cullOffset.y
+			}
+
 			if (testAreaRect(this.screenArea(), screenRect)) {
 				timer = 0;
+				if (cull) {
+					this.hidden = false
+				}
 			} else {
 				timer += dt();
 				if (timer >= time) {
-					this.destroy();
+					if (cull) {
+						this.hidden = true
+					} else {
+						this.destroy();
+					}
 				}
 			}
 		},
