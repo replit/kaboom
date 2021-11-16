@@ -14,13 +14,9 @@ We'd like to register the following inputs and movements:
 - Moving down (pressing the down arrow key)
 - Moving to a specific position (clicking on the left-side of the mouse)
 
-## Creating a new project in Replit
-
-Head over to [Replit](https://replit.com) and create a new repl. Choose **Kaboom** as your project type. Give this repl a name, like "MoveSprite".
-
-After the repl has booted up, you should see a `main.js` file under the "Code" section. You'll see some code already written for you to add a sprite. To learn more about adding game objects to the screen, head over to `add-sprite-tutorial.md`. We're going to modify this code and add to it to handle inputs and movements.
-
 ## Getting started with the code
+
+You can check out the code to handle inputs and movements at https://replit.com/@ritza/move-sprite-tutorial#code/main.js
 
 ## Step 1 - adding a player game object
 
@@ -104,3 +100,7 @@ Some suggestions to challenge yourself:
 
 - Use other keys with `onKeyDown()` such as "space" or a letter like "w" etc.
 - Can you make sprites appear in random positions? Hint: what method can you use to generate random numbers to assign a location that a sprite can appear from?
+
+You can find the code for this tutorial here:
+
+<iframe height="400px" width="100%" src="https://replit.com/@ritza/move-sprite-tutorial?embed=true" scrolling="no" frameborder="no" allowtransparency="true" allowfullscreen="true" sandbox="allow-forms allow-pointer-lock allow-popups allow-same-origin allow-scripts allow-modals"></iframe>
