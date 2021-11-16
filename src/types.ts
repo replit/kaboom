@@ -686,12 +686,24 @@ export interface KaboomCtx {
 	 * Register an event that runs when game objs with certain tags are clicked (required to have the area() component).
 	 *
 	 * @since v2000.1
+	 *
+	 * @example
+	 * ```js
+	 * // click on any "chest" to open
+	 * onClick("chest", (chest) => chest.open())
+	 * ```
 	 */
 	onClick(tag: Tag, action: (a: GameObj) => void): EventCanceller,
 	/**
 	 * Register an event that runs when users clicks.
 	 *
 	 * @since v2000.1
+	 *
+	 * @example
+	 * ```js
+	 * // click on anywhere to go to "game" scene
+	 * onClick(() => go("game"))
+	 * ```
 	 */
 	onClick(action: () => void): EventCanceller,
 	/**
