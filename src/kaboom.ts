@@ -2163,6 +2163,18 @@ function state(
 		events[state][event].forEach((action) => action(...args));
 	}
 
+	function checkTransition(from: string, to: string) {
+		if (!transitions?.[from]) {
+			return
+		}
+		const available = typeof transitions[from] === "string"
+			? [transitions[from]]
+			: transitions[from] as string[];
+		if (!available.includes(to)) {
+			throw new Error(`Cannot transition state from "${from}" to "${state}". Available transitions: ${available.map((s) => `"${s}"`).join(", ")}`);
+		}
+	}
+
 	return {
 		id: "state",
 		state: initState,
@@ -2170,15 +2182,8 @@ function state(
 			if (stateList && !stateList.includes(state)) {
 				throw new Error(`State not found: ${state}`);
 			}
-			if (transitions?.[this.state]) {
-				const available = typeof transitions[this.state] === "string"
-					? [transitions[this.state]]
-					: transitions[this.state] as string[];
-				if (!available.includes(state)) {
-					throw new Error(`Cannot transition state from "${this.state}" to "${state}". Available transitions: ${available.map((s) => `"${s}"`).join(", ")}`);
-				}
-			}
 			const oldState = this.state;
+			checkTransition(oldState, state);
 			trigger("leave", oldState, ...args);
 			this.state = state;
 			trigger("enter", state, ...args);
