@@ -70,8 +70,8 @@ type GfxOpt = {
 	height?: number,
 	scale?: number,
 	texFilter?: TexFilter,
-    stretch?: boolean,
-    letterbox?: boolean,
+	stretch?: boolean,
+	letterbox?: boolean,
 };
 
 type DrawTextureOpt = RenderProps & {
@@ -475,18 +475,18 @@ function gfxInit(gl: WebGLRenderingContext, gopt: GfxOpt): Gfx {
 		gfx.curShader = shader;
 		gfx.curUniform = uniform;
 
-		indices.forEach((i) => {
+		for (const i of indices) {
 			gfx.iqueue.push(i + gfx.vqueue.length / STRIDE);
-		});
+		}
 
-		verts.forEach((v) => {
+		for (const v of verts) {
 			const pt = toNDC(gfx.transform.multVec2(v.pos.xy()));
 			gfx.vqueue.push(
 				pt.x, pt.y, v.pos.z,
 				v.uv.x, v.uv.y,
 				v.color.r / 255, v.color.g / 255, v.color.b / 255, v.opacity,
 			);
-		});
+		}
 
 	}
 
