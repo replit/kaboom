@@ -2152,9 +2152,9 @@ function state(initState: string, stateList?: string[]): StateComp {
 		events[state][event].push(action);
 	}
 
-	function trigger(event, state) {
+	function trigger(event, state, ...args) {
 		initStateHook(state);
-		events[state][event].forEach((action) => action());
+		events[state][event].forEach((action) => action(...args));
 	}
 
 	return {
@@ -2164,9 +2164,9 @@ function state(initState: string, stateList?: string[]): StateComp {
 			if (stateList && !stateList.includes(state)) {
 				throw new Error(`State not found: ${state}`);
 			}
-			trigger("leave", this.state);
+			trigger("leave", this.state, ...args);
 			this.state = state;
-			trigger("enter", this.state);
+			trigger("enter", this.state, ...args);
 		},
 		onStateEnter(state: string, action: () => void) {
 			on("enter", state, action);
