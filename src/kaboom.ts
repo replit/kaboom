@@ -1294,7 +1294,14 @@ function outOfView(opt: OutOfViewOpt = {}): OutOfViewComp {
 			}
 			return testAreaRect(this.screenArea(), screenRect);
 		},
+		onExitView(action: () => void): EventCanceller {
+			return this.on("exitView", action);
+		},
+		onEnterView(action: () => void): EventCanceller {
+			return this.on("enterView", action);
+		},
 		update() {
+			// TODO: trigger "exitView" and "enterView" events
 			if (this.isOutOfView()) {
 				if (opt.time) {
 					timer += dt();
@@ -1329,7 +1336,7 @@ function cleanup(opt: (number | undefined) | CleanupOpt = {}): CleanupComp {
 	return {
 		...outOfView({
 			destroy: true,
-			onOut: opt.onCleanup,
+			onExitView: opt.onCleanup,
 			offset: opt.offset,
 			time: opt.time,
 		}),

@@ -3241,7 +3241,11 @@ export interface OutOfViewOpt {
 	/**
 	 * Register an event that runs when object goes out of view.
 	 */
-	onOut?: () => void,
+	onExitView?: () => void,
+	/**
+	 * Register an event that runs when object enters view.
+	 */
+	onEnterView?: () => void,
 }
 
 export interface OutOfViewComp extends Comp {
@@ -3249,6 +3253,14 @@ export interface OutOfViewComp extends Comp {
 	 * If object is currently out of view.
 	 */
 	isOutOfView(): boolean,
+	/**
+	 * Register an event that runs when object goes out of view.
+	 */
+	onExitView(action: () => void): EventCanceller,
+	/**
+	 * Register an event that runs when object enters view.
+	 */
+	onEnterView(action: () => void): EventCanceller,
 }
 
 export interface CleanupOpt {
