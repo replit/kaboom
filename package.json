@@ -31,6 +31,7 @@
 		"devsite": "cd site && npm run dev",
 		"build": "node scripts/build.js",
 		"check": "tsc --noEmit",
+		"test": "",
 		"prepack": "npm run build"
 	},
 	"devDependencies": {
