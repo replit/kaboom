@@ -40,16 +40,7 @@ body:
     attributes:
       label: Minimum reproducable code
       description: If there's a small piece of code that can reliably reproduce the bug
-      placeholder: |
-        kaboom()
-
-        const player = add([
-          sprite("froggy"),
-          pos(160, 80),
-          area(),
-        ])
-
-        player.buggedBehavior()
+      placeholder: kaboom()
   - type: textarea
     id: what-happened
     attributes:
