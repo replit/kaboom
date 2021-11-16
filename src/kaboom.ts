@@ -2188,6 +2188,9 @@ function state(initState: string, stateList?: string[]): StateComp {
 		draw() {
 			trigger("draw", this.state);
 		},
+		inspect() {
+			return this.state;
+		},
 	};
 
 }
