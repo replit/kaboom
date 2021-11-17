@@ -3233,7 +3233,7 @@ export interface OutOfViewOpt {
 	/**
 	 * The screen bound offset.
 	 */
-	offset?: Vec2,
+	offset?: number | Vec2,
 	/**
 	 * If it needs to stay out of view for a period of time before proceed to action.
 	 */
@@ -3267,7 +3267,7 @@ export interface CleanupOpt {
 	/**
 	 * The screen bound offset.
 	 */
-	offset?: Vec2,
+	offset?: number | Vec2,
 	/**
 	 * If it needs to stay out of view for a period of time before proceed to destroy.
 	 */

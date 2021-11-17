@@ -1288,7 +1288,7 @@ function outOfView(opt: OutOfViewOpt = {}): OutOfViewComp {
 		id: "outOfView",
 		require: [ "pos", "area", ],
 		isOutOfView(): boolean {
-			const offset = opt.offset ?? vec2(0);
+			const offset = vec2(opt.offset);
 			const screenRect = {
 				p1: vec2(0, 0).sub(offset),
 				p2: vec2(width(), height()).add(offset),
