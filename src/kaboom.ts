@@ -2867,54 +2867,53 @@ function drawLoadScreen() {
 
 }
 
+function drawInspectText(pos, txt) {
+
+	const s = app.scale;
+	const pad = vec2(8);
+
+	gfx.pushTransform();
+	gfx.pushTranslate(pos);
+	gfx.pushScale(1 / s);
+
+	const ftxt = gfx.formatText({
+		text: txt,
+		font: assets.fonts[DBG_FONT],
+		size: 16,
+		pos: pad,
+		color: rgb(255, 255, 255),
+	});
+
+	const bw = ftxt.width + pad.x * 2;
+	const bh = ftxt.height + pad.x * 2;
+
+	if (pos.x + bw / s >= width()) {
+		gfx.pushTranslate(vec2(-bw, 0));
+	}
+
+	if (pos.y + bh / s >= height()) {
+		gfx.pushTranslate(vec2(0, -bh));
+	}
+
+	gfx.drawRect({
+		width: bw,
+		height: bh,
+		color: rgb(0, 0, 0),
+		radius: 4,
+		opacity: 0.8,
+	});
+
+	gfx.drawFormattedText(ftxt);
+	gfx.popTransform();
+
+}
+
 function drawDebug() {
 
 	if (debug.inspect) {
 
 		let inspecting = null;
-		const font = assets.fonts[DBG_FONT];
 		const lcolor = rgb(gopt.inspectColor ?? [0, 0, 255]);
-
-		function drawInspectTxt(pos, txt) {
-
-			const s = app.scale;
-			const pad = vec2(8);
-
-			gfx.pushTransform();
-			gfx.pushTranslate(pos);
-			gfx.pushScale(1 / s);
-
-			const ftxt = gfx.formatText({
-				text: txt,
-				font: font,
-				size: 16,
-				pos: pad,
-				color: rgb(255, 255, 255),
-			});
-
-			const bw = ftxt.width + pad.x * 2;
-			const bh = ftxt.height + pad.x * 2;
-
-			if (pos.x + bw / s >= width()) {
-				gfx.pushTranslate(vec2(-bw, 0));
-			}
-
-			if (pos.y + bh / s >= height()) {
-				gfx.pushTranslate(vec2(0, -bh));
-			}
-
-			gfx.drawRect({
-				width: bw,
-				height: bh,
-				color: rgb(0, 0, 0),
-				radius: 4,
-				opacity: 0.8,
-			});
-
-			gfx.drawFormattedText(ftxt);
-			gfx.popTransform();
-
-		}
 
 		// draw area outline
 		every((obj) => {
@@ -2975,11 +2974,11 @@ function drawDebug() {
 				}
 			}
 
-			drawInspectTxt(mousePos(), lines.join("\n"));
+			drawInspectText(mousePos(), lines.join("\n"));
 
 		}
 
-		drawInspectTxt(vec2(8 / app.scale), `FPS: ${app.fps()}`);
+		drawInspectText(vec2(8 / app.scale), `FPS: ${app.fps()}`);
 
 	}
 
