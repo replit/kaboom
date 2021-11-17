@@ -1025,10 +1025,11 @@ function gfxInit(gl: WebGLRenderingContext, gopt: GfxOpt): Gfx {
 		}
 
 		const charStyleMap = {};
+		// get the text without the styling syntax
 		const renderText = opt.text.replace(TEXT_STYLE_RE, "$1");
 		let idxOffset = 0;
 
-		// put each styled char index into a map for easy access by index later
+		// put each styled char index into a map for easy access later when iterating each char
 		for (const match of opt.text.matchAll(TEXT_STYLE_RE)) {
 			for (
 				let i = match.index - idxOffset;
