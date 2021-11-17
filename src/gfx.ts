@@ -1030,7 +1030,6 @@ function gfxInit(gl: WebGLRenderingContext, gopt: GfxOpt): Gfx {
 
 		// put each styled char index into a map for easy access by index later
 		for (const match of opt.text.matchAll(TEXT_STYLE_RE)) {
-			// TODO: match.index refers to the index in original string
 			for (
 				let i = match.index - idxOffset;
 				i <= match.index + match.groups.text.length;
