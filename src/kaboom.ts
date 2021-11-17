@@ -1283,6 +1283,7 @@ function move(direction: number | Vec2, speed: number): MoveComp {
 
 function outOfView(opt: OutOfViewOpt = {}): OutOfViewComp {
 	let timer = 0;
+	let isOut = false;
 	return {
 		id: "outOfView",
 		require: [ "pos", "area", ],
@@ -1292,7 +1293,7 @@ function outOfView(opt: OutOfViewOpt = {}): OutOfViewComp {
 				p1: vec2(0, 0).sub(offset),
 				p2: vec2(width(), height()).add(offset),
 			}
-			return testAreaRect(this.screenArea(), screenRect);
+			return !testAreaRect(this.screenArea(), screenRect);
 		},
 		onExitView(action: () => void): EventCanceller {
 			return this.on("exitView", action);
@@ -1301,8 +1302,11 @@ function outOfView(opt: OutOfViewOpt = {}): OutOfViewComp {
 			return this.on("enterView", action);
 		},
 		update() {
-			// TODO: trigger "exitView" and "enterView" events
 			if (this.isOutOfView()) {
+				if (!isOut) {
+					this.trigger("exitView");
+					isOut = true;
+				}
 				if (opt.time) {
 					timer += dt();
 					if (timer < opt.time) return
@@ -1311,6 +1315,10 @@ function outOfView(opt: OutOfViewOpt = {}): OutOfViewComp {
 				if (opt.pause) this.paused = true;
 				if (opt.destroy) this.destroy();
 			} else {
+				if (isOut) {
+					this.trigger("enterView");
+					isOut = false;
+				}
 				timer = 0;
 				if (opt.hide) this.hidden = false;
 				if (opt.pause) this.paused = false;
