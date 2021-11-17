@@ -3,6 +3,10 @@
 - added `outOfView()` component
 - deprecated `cleanup(number?: time)` in favor of `cleanup(opt?: CleanupOpt)`
 
+### v2000.1.6
+
+- fixed debug widget scale
+
 ### v2000.1.5
 
 - fixed `enterState()` not passing args to `onStateEnter()` callback
