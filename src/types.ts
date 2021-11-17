@@ -2842,7 +2842,13 @@ export type DrawTextOpt = RenderProps & {
 	 *
 	 * @since v2000.1
 	 */
-	transform?: (idx: number, ch: string) => CharTransform,
+	transform?: CharTransformFunc,
+	/**
+	 * Stylesheet for styled chunks, in the syntax of "here comes a (styled):wavy word".
+	 *
+	 * @since v2000.2
+	 */
+	styles?: Record<string, CharTransformFunc>,
 }
 
 /**
@@ -2866,8 +2872,9 @@ export interface FormattedChar {
 	angle: number,
 	color: Color,
 	opacity: number,
-	origin: string,
 }
+
+export type CharTransformFunc = (idx: number, ch: string) => CharTransform;
 
 export interface CharTransform {
 	pos?: Vec2,
@@ -3464,8 +3471,16 @@ export interface TextCompOpt {
 	width?: number,
 	/**
 	 * Transform the pos, scale, rotation or color for each character based on the index or char.
+	 *
+	 * @since v2000.1
 	 */
-	transform?: (idx: number, ch: string) => CharTransform,
+	transform?: CharTransformFunc,
+	/**
+	 * Stylesheet for styled chunks, in the syntax of "here comes a (styled):wavy word".
+	 *
+	 * @since v2000.2
+	 */
+	styles?: Record<string, CharTransformFunc>,
 }
 
 export interface RectCompOpt {
