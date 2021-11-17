@@ -1015,7 +1015,7 @@ function gfxInit(gl: WebGLRenderingContext, gopt: GfxOpt): Gfx {
 		if (tr.opacity) fchar.opacity *= tr.opacity;
 	}
 
-	const TEXT_STYLE_RE = /\((?<text>[^\)]+)\):(?<style>\w+)/g;
+	const TEXT_STYLE_RE = /\((?<text>[^\)]*)\):(?<style>\w+)/g;
 
 	// format text and return a list of chars with their calculated position
 	function formatText(opt: DrawTextOpt2): FormattedText {
