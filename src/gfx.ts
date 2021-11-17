@@ -1015,7 +1015,7 @@ function gfxInit(gl: WebGLRenderingContext, gopt: GfxOpt): Gfx {
 		if (tr.opacity) fchar.opacity *= tr.opacity;
 	}
 
-	const TEXT_STYLE_RE = /\((?<text>[^\)]+)\):(?<style>\w+)/g;
+	const TEXT_STYLE_RE = /\[(?<style>\w+)\](?<text>.*)\[\/\k<style>\]/g;
 
 	// format text and return a list of chars with their calculated position
 	function formatText(opt: DrawTextOpt2): FormattedText {
@@ -1041,8 +1041,8 @@ function gfxInit(gl: WebGLRenderingContext, gopt: GfxOpt): Gfx {
 					style: match.groups.style,
 				};
 			}
-			// omit "(", ")", ":" and the style text in the format string when calculating index
-			idxOffset += 3 + match.groups.style.length;
+			// omit "[", "]", "[/" and the style text in the format string when calculating index
+			idxOffset += 5 + match.groups.style.length * 2;
 		}
 
 		const font = opt.font;

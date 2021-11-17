@@ -2844,7 +2844,7 @@ export type DrawTextOpt = RenderProps & {
 	 */
 	transform?: CharTransformFunc,
 	/**
-	 * Stylesheet for styled chunks, in the syntax of "here comes a (styled):wavy word".
+	 * Stylesheet for styled chunks, in the syntax of "here comes a [wavy]styled[/wavy] word".
 	 *
 	 * @since v2000.2
 	 */
@@ -3476,7 +3476,7 @@ export interface TextCompOpt {
 	 */
 	transform?: CharTransformFunc,
 	/**
-	 * Stylesheet for styled chunks, in the syntax of "here comes a (styled):wavy word".
+	 * Stylesheet for styled chunks, in the syntax of "here comes a [wavy]styled[/wavy] word".
 	 *
 	 * @since v2000.2
 	 */
