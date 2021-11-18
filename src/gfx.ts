@@ -93,6 +93,8 @@ type DrawTextOpt2 = RenderProps & {
 	font?: GfxFont,
 	size?: number,
 	width?: number,
+	lineSpacing?: number,
+	charSpacing?: number,
 	origin?: Origin | Vec2,
 	transform?: (idx: number, ch: string) => CharTransform,
 }
@@ -1055,8 +1057,8 @@ function gfxInit(gl: WebGLRenderingContext, gopt: GfxOpt): Gfx {
 		const gh = font.qh * font.tex.height;
 		const size = opt.size || gh;
 		const scale = vec2(size / gh).scale(vec2(opt.scale || 1));
-		const cw = scale.x * gw;
-		const ch = scale.y * gh;
+		const cw = scale.x * gw + (opt.charSpacing ?? 0);
+		const ch = scale.y * gh + (opt.lineSpacing ?? 0);
 		let curX = 0;
 		let th = ch;
 		let tw = 0;
