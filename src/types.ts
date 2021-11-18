@@ -2835,10 +2835,14 @@ export type DrawTextOpt = RenderProps & {
 	width?: number,
 	/**
 	 * The gap between each line.
+	 *
+	 * @since v2000.2
 	 */
 	lineSpacing?: number,
 	/**
 	 * The gap between each character.
+	 *
+	 * @since v2000.2
 	 */
 	charSpacing?: number,
 	/**
@@ -3472,10 +3476,14 @@ export interface TextCompOpt {
 	width?: number,
 	/**
 	 * The gap between each line.
+	 *
+	 * @since v2000.2
 	 */
 	lineSpacing?: number,
 	/**
 	 * The gap between each character.
+	 *
+	 * @since v2000.2
 	 */
 	charSpacing?: number,
 	/**
