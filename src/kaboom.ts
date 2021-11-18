@@ -471,7 +471,7 @@ function make<T>(comps: CompList<T>): GameObj<T> {
 		draw() {
 			if (this.hidden) return;
 			if (this.fixed) {
-				const cancel = game.on("postDraw", () => {
+				const cancel = game.on("drawFixed", () => {
 					gfx.pushTransform();
 					gfx.pushTranslate(this.pos);
 					gfx.pushScale(this.scale);
@@ -2850,7 +2850,7 @@ function drawFrame() {
 	// draw every obj
 	game.root.draw();
 	gfx.popTransform();
-	game.trigger("postDraw");
+	game.trigger("drawFixed");
 
 }
 
