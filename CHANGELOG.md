@@ -1,3 +1,12 @@
+# v2000.2.0
+
+- added `formatText()` and `drawFormattedText()`
+- added `charSpacing` and `lineSpacing` in `TextCompOpt` and `DrawTextOpt`
+
+### v2000.1.6
+
+- fixed debug widget scale
+
 ### v2000.1.5
 
 - fixed `enterState()` not passing args to `onStateEnter()` callback
