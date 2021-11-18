@@ -33,6 +33,8 @@ const input = add([
 		width: width() - pad * 2,
 		// The height of character
 		size: curSize,
+		lineSpacing: 8,
+		charSpacing: 4,
 		// Transform each character for special effects
 		transform: (idx, ch) => ({
 			color: hsl2rgb((time() * 0.2 + idx * 0.1) % 1, 0.7, 0.8),
