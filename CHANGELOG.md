@@ -1,3 +1,8 @@
+# v2000.2.0
+
+- added `formatText()` and `drawFormattedText()`
+- added `charSpacing` and `lineSpacing` in `TextCompOpt` and `DrawTextOpt`
+
 ### v2000.1.6
 
 - fixed debug widget scale
