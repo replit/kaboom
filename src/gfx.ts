@@ -1019,14 +1019,20 @@ function gfxInit(gl: WebGLRenderingContext, gopt: GfxOpt): Gfx {
 
 	const TEXT_STYLE_RE = /\[(?<text>[^\]]*)\]\.(?<style>[\w\.]+)+/g;
 
-	function compileStyledText(text: string) {
+	function compileStyledText(text: string): {
+		charStyleMap: Record<number, {
+			localIdx: number,
+			styles: string[],
+		}>,
+		text: string,
+	} {
 
 		const charStyleMap = {};
 		// get the text without the styling syntax
 		const renderText = text.replace(TEXT_STYLE_RE, "$1");
 		let idxOffset = 0;
 
-		// put each styled char index into a map for easy access later when iterating each char
+		// put each styled char index into a map for easy access when iterating each char
 		for (const match of text.matchAll(TEXT_STYLE_RE)) {
 			const styles = match.groups.style.split(".");
 			for (
@@ -1035,11 +1041,11 @@ function gfxInit(gl: WebGLRenderingContext, gopt: GfxOpt): Gfx {
 				i++
 			) {
 				charStyleMap[i] = {
-					idx: i - match.index,
+					localIdx: i - match.index,
 					styles: styles,
 				};
 			}
-			// omit "(", ")", ":" and the style text in the format string when calculating index
+			// omit "[", "]", "." and the style text in the format string when calculating index
 			idxOffset += 3 + match.groups.style.length;
 		}
 
@@ -1157,7 +1163,7 @@ function gfxInit(gl: WebGLRenderingContext, gopt: GfxOpt): Gfx {
 						}
 					}
 					if (charStyleMap[idx]) {
-						const { styles, idx: localIdx } = charStyleMap[idx];
+						const { styles, localIdx } = charStyleMap[idx];
 						for (const style of styles) {
 							const tr = opt.styles[style](localIdx, char);
 							if (tr) {
