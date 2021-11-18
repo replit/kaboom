@@ -2875,7 +2875,7 @@ export type DrawTextOpt = RenderProps & {
 	 *
 	 * @since v2000.2
 	 */
-	charSpacing?: number,
+	letterSpacing?: number,
 	/**
 	 * The origin point, or the pivot point. Default to "topleft".
 	 */
@@ -3516,7 +3516,7 @@ export interface TextCompOpt {
 	 *
 	 * @since v2000.2
 	 */
-	charSpacing?: number,
+	letterSpacing?: number,
 	/**
 	 * Transform the pos, scale, rotation or color for each character based on the index or char.
 	 */
