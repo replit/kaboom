@@ -457,7 +457,7 @@ function make<T>(comps: CompList<T>): GameObj<T> {
 		},
 
 		removeAll(tag: Tag) {
-			this.every(tag, this.remove);
+			this.every(tag, (obj) => this.remove(obj));
 		},
 
 		update() {
@@ -596,6 +596,7 @@ function make<T>(comps: CompList<T>): GameObj<T> {
 			return compStates.get(id);
 		},
 
+		// TODO: a recursive variant
 		get(t?: Tag | Tag[]): GameObj[] {
 			return this.children
 				.filter((child) => t ? child.is(t) : true)
