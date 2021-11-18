@@ -1,5 +1,3 @@
-// Use parent game object
-
 kaboom()
 
 loadSprite("bean", "/sprites/bean.png")

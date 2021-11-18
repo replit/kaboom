@@ -599,8 +599,17 @@ function make<T>(comps: CompList<T>): GameObj<T> {
 		get(t?: Tag | Tag[]): GameObj[] {
 			return this.children
 				.filter((child) => t ? child.is(t) : true)
-				.sort((c1, c2) => (c1.z ?? 0) - (c2.z ?? 0))
-				;
+				.sort((o1, o2) => {
+					// DEPRECATED: layers
+					const l1 = game.layers[o1.layer ?? game.defLayer] ?? 0;
+					const l2 = game.layers[o2.layer ?? game.defLayer] ?? 0;
+					// if on same layer, use "z" comp to decide which is on top, if given
+					if (l1 == l2) {
+						return (o1.z ?? 0) - (o2.z ?? 0);
+					} else {
+						return l1 - l2;
+					}
+				});
 		},
 
 		every<T>(t: Tag | Tag[] | ((obj: GameObj) => T), f?: (obj: GameObj) => T) {
