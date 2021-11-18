@@ -872,75 +872,75 @@ export interface KaboomCtx {
 	 */
 	onTouchEnd(action: (id: TouchID, pos: Vec2) => void): EventCanceller,
 	/**
-	 * @deprecated Use onUpdate() instead
+	 * @deprecated v2000.1 Use onUpdate() instead
 	 */
 	action: KaboomCtx["onUpdate"],
 	/**
-	 * @deprecated Use onDraw() instead
+	 * @deprecated v2000.1 Use onDraw() instead
 	 */
 	render: KaboomCtx["onDraw"],
 	/**
-	 * @deprecated Use onLoad() instead.
+	 * @deprecated v2000.1 Use onLoad() instead.
 	 */
 	ready: KaboomCtx["onLoad"],
 	/**
-	 * @deprecated Use onCollide() instead
+	 * @deprecated v2000.1 Use onCollide() instead
 	 */
 	collides: KaboomCtx["onCollide"],
 	/**
-	 * @deprecated Use onClick() instead
+	 * @deprecated v2000.1 Use onClick() instead
 	 */
 	clicks: KaboomCtx["onClick"],
 	/**
-	 * @deprecated Use onHover() instead
+	 * @deprecated v2000.1 Use onHover() instead
 	 */
 	hovers: KaboomCtx["onHover"],
 	/**
-	 * @deprecated Use onKeyDown() instead.
+	 * @deprecated v2000.1 Use onKeyDown() instead.
 	 */
 	keyDown: KaboomCtx["onKeyDown"],
 	/**
-	 * @deprecated Use onKeyPress() instead.
+	 * @deprecated v2000.1 Use onKeyPress() instead.
 	 */
 	keyPress: KaboomCtx["onKeyPress"],
 	/**
-	 * @deprecated Use onKeyPressRepeat() instead.
+	 * @deprecated v2000.1 Use onKeyPressRepeat() instead.
 	 */
 	keyPressRep: KaboomCtx["onKeyPressRepeat"],
 	/**
-	 * @deprecated Use onKeyPress() instead.
+	 * @deprecated v2000.1 Use onKeyPress() instead.
 	 */
 	keyRelease: KaboomCtx["onKeyRelease"],
 	/**
-	 * @deprecated Use onCharInput() instead.
+	 * @deprecated v2000.1 Use onCharInput() instead.
 	 */
 	charInput: KaboomCtx["onCharInput"],
 	/**
-	 * @deprecated Use onClick() or onMousePress() instead.
+	 * @deprecated v2000.1 Use onClick() or onMousePress() instead.
 	 */
 	mouseClick: KaboomCtx["onMousePress"],
 	/**
-	 * @deprecated Use onMouseRelease() instead.
+	 * @deprecated v2000.1 Use onMouseRelease() instead.
 	 */
 	mouseRelease: KaboomCtx["onMouseRelease"],
 	/**
-	 * @deprecated Use onMouseDown() instead.
+	 * @deprecated v2000.1 Use onMouseDown() instead.
 	 */
 	mouseDown: KaboomCtx["onMouseDown"],
 	/**
-	 * @deprecated Use onMouseMove() instead.
+	 * @deprecated v2000.1 Use onMouseMove() instead.
 	 */
 	mouseMove: KaboomCtx["onMouseMove"],
 	/**
-	 * @deprecated Use onTouchStart() instead.
+	 * @deprecated v2000.1 Use onTouchStart() instead.
 	 */
 	touchStart: KaboomCtx["onTouchStart"],
 	/**
-	 * @deprecated Use onTouchMove() instead.
+	 * @deprecated v2000.1 Use onTouchMove() instead.
 	 */
 	touchMove: KaboomCtx["onTouchMove"],
 	/**
-	 * @deprecated Use onTouchEnd() instead.
+	 * @deprecated v2000.1 Use onTouchEnd() instead.
 	 */
 	touchEnd: KaboomCtx["onTouchEnd"],
 	/**
@@ -1373,39 +1373,39 @@ export interface KaboomCtx {
 	 */
 	isFullscreen(): boolean,
 	/**
-	 * @deprecated Use isKeyDown() instead.
+	 * @deprecated v2000.1 Use isKeyDown() instead.
 	 */
 	keyIsDown: KaboomCtx["isKeyDown"],
 	/**
-	 * @deprecated Use isKeyPressed() instead.
+	 * @deprecated v2000.1 Use isKeyPressed() instead.
 	 */
 	keyIsPressed: KaboomCtx["isKeyPressed"],
 	/**
-	 * @deprecated Use isKeyPressedRepeat() instead.
+	 * @deprecated v2000.1 Use isKeyPressedRepeat() instead.
 	 */
 	keyIsPressedRep: KaboomCtx["isKeyPressedRepeat"],
 	/**
-	 * @deprecated Use isKeyReleased() instead.
+	 * @deprecated v2000.1 Use isKeyReleased() instead.
 	 */
 	keyIsReleased: KaboomCtx["isKeyReleased"],
 	/**
-	 * @deprecated Use isMouseDown() instead.
+	 * @deprecated v2000.1 Use isMouseDown() instead.
 	 */
 	mouseIsDown: KaboomCtx["isMouseDown"],
 	/**
-	 * @deprecated Use isMouseClicked() instead.
+	 * @deprecated v2000.1 Use isMouseClicked() instead.
 	 */
 	mouseIsClicked: KaboomCtx["isMouseClicked"],
 	/**
-	 * @deprecated Use isMouseReleased() instead.
+	 * @deprecated v2000.1 Use isMouseReleased() instead.
 	 */
 	mouseIsReleased: KaboomCtx["isMouseReleased"],
 	/**
-	 * @deprecated Use isMouseMoved() instead.
+	 * @deprecated v2000.1 Use isMouseMoved() instead.
 	 */
 	mouseIsMoved: KaboomCtx["isMouseMoved"],
 	/**
-	 * @deprecated Use isFocused() instead.
+	 * @deprecated v2000.1 Use isFocused() instead.
 	 */
 	focused(): boolean,
 	/**
@@ -2275,7 +2275,7 @@ export interface GameObjRaw {
 	/**
 	 * Register an event that runs every frame as long as the game obj exists (alias to onUpdate).
 	 *
-	 * @deprecated Use onUpdate() instead.
+	 * @deprecated v2000.1 Use onUpdate() instead.
 	 */
 	action: GameObjRaw["onUpdate"],
 }
@@ -2534,11 +2534,11 @@ export interface AudioPlay {
 	 */
 	unloop(): void,
 	/**
-	 * @deprecated Use isPaused() instead.
+	 * @deprecated v2000.1 Use isPaused() instead.
 	 */
 	paused(): boolean,
 	/**
-	 * @deprecated Use isStopped() instead.
+	 * @deprecated v2000.1 Use isStopped() instead.
 	 */
 	stopped(): boolean,
 }
@@ -3402,15 +3402,15 @@ export interface AreaComp extends Comp {
 	 */
 	screenArea(): Area,
 	/**
-	 * @deprecated Use onCollide() instead.
+	 * @deprecated v2000.1 Use onCollide() instead.
 	 */
 	collides: AreaComp["onCollide"],
 	/**
-	 * @deprecated Use onClick() instead.
+	 * @deprecated v2000.1 Use onClick() instead.
 	 */
 	clicks: AreaComp["onClick"],
 	/**
-	 * @deprecated Use onHover() instead.
+	 * @deprecated v2000.1 Use onHover() instead.
 	 */
 	hovers: AreaComp["onHover"],
 }
@@ -3755,11 +3755,11 @@ export interface BodyComp extends Comp {
 	 */
 	onDoubleJump(action: () => void): EventCanceller,
 	/**
-	 * @deprecated Use isGrounded() instead.
+	 * @deprecated v2000.1 Use isGrounded() instead.
 	 */
 	grounded(): boolean,
 	/**
-	 * @deprecated Use isFalling() instead.
+	 * @deprecated v2000.1 Use isFalling() instead.
 	 */
 	falling(): boolean,
 }
