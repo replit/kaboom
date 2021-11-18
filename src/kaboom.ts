@@ -1487,6 +1487,7 @@ function area(opt: AreaCompOpt = {}): AreaComp {
 
 		},
 
+		// TODO: doesn't work with nested parent transforms
 		// TODO: cache
 		// TODO: use matrix mult for more accuracy and rotation?
 		worldArea(): Area {
