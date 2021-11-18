@@ -1015,7 +1015,7 @@ function gfxInit(gl: WebGLRenderingContext, gopt: GfxOpt): Gfx {
 		if (tr.opacity) fchar.opacity *= tr.opacity;
 	}
 
-	const TEXT_STYLE_RE = /\((?<text>[^\)]*)\):(?<style>\w+)/g;
+	const TEXT_STYLE_RE = /\[(?<text>[^\]]*)\]\.(?<style>[\w\.]+)+/g;
 
 	// format text and return a list of chars with their calculated position
 	function formatText(opt: DrawTextOpt2): FormattedText {
@@ -1031,6 +1031,7 @@ function gfxInit(gl: WebGLRenderingContext, gopt: GfxOpt): Gfx {
 
 		// put each styled char index into a map for easy access later when iterating each char
 		for (const match of opt.text.matchAll(TEXT_STYLE_RE)) {
+			const styles = match.groups.style.split(".");
 			for (
 				let i = match.index - idxOffset;
 				i <= match.index + match.groups.text.length;
@@ -1038,7 +1039,7 @@ function gfxInit(gl: WebGLRenderingContext, gopt: GfxOpt): Gfx {
 			) {
 				charStyleMap[i] = {
 					idx: i - match.index,
-					style: match.groups.style,
+					styles: styles,
 				};
 			}
 			// omit "(", ")", ":" and the style text in the format string when calculating index
@@ -1142,9 +1143,11 @@ function gfxInit(gl: WebGLRenderingContext, gopt: GfxOpt): Gfx {
 						applyCharTransform(fchar, tr);
 					}
 					if (charStyleMap[idx]) {
-						const { style, idx: innerIdx } = charStyleMap[idx];
-						const tr = opt.styles[style](innerIdx, char) ?? {};
-						applyCharTransform(fchar, tr);
+						const { styles, idx: localIdx } = charStyleMap[idx];
+						for (const style of styles) {
+							const tr = opt.styles[style](localIdx, char) ?? {};
+							applyCharTransform(fchar, tr);
+						}
 					}
 					fchars.push(fchar);
 				}
