@@ -1826,6 +1826,8 @@ function text(t: string, opt: TextCompOpt = {}): TextComp {
 			size: this.textSize,
 			font: font,
 			width: opt.width,
+			charSpacing: opt.charSpacing,
+			lineSpacing: opt.lineSpacing,
 			transform: opt.transform,
 		});
 
@@ -2182,7 +2184,11 @@ function lifespan(time: number, opt: LifespanCompOpt = {}): LifespanComp {
 	};
 }
 
-function state(initState: string, stateList?: string[]): StateComp {
+function state(
+	initState: string,
+	stateList?: string[],
+	transitions?: Record<string, string | string[]>,
+): StateComp {
 
 	if (!initState) {
 		throw new Error("state() requires an initial state");
@@ -2212,37 +2218,70 @@ function state(initState: string, stateList?: string[]): StateComp {
 	}
 
 	return {
+
 		id: "state",
 		state: initState,
+
 		enterState(state: string, ...args) {
+
 			if (stateList && !stateList.includes(state)) {
 				throw new Error(`State not found: ${state}`);
 			}
-			trigger("leave", this.state, ...args);
+
+			const oldState = this.state;
+
+			// check if the transition is legal, if transition graph is defined
+			if (!transitions?.[oldState]) {
+				return;
+			}
+
+			const available = typeof transitions[oldState] === "string"
+				? [transitions[oldState]]
+				: transitions[oldState] as string[];
+
+			if (!available.includes(state)) {
+				throw new Error(`Cannot transition state from "${oldState}" to "${state}". Available transitions: ${available.map((s) => `"${s}"`).join(", ")}`);
+			}
+
+			trigger("leave", oldState, ...args);
 			this.state = state;
-			trigger("enter", this.state, ...args);
+			trigger("enter", state, ...args);
+			trigger("enter", `${oldState} -> ${state}`, ...args);
+
 		},
+
+		onStateTransition(from: string, to: string, action: () => void) {
+			on("enter", `${from} -> ${to}`, action);
+		},
+
 		onStateEnter(state: string, action: () => void) {
 			on("enter", state, action);
 		},
+
 		onStateUpdate(state: string, action: () => void) {
 			on("update", state, action);
 		},
+
 		onStateDraw(state: string, action: () => void) {
 			on("draw", state, action);
 		},
+
 		onStateLeave(state: string, action: () => void) {
 			on("leave", state, action);
 		},
+
 		update() {
 			trigger("update", this.state);
 		},
+
 		draw() {
 			trigger("draw", this.state);
 		},
+
 		inspect() {
 			return this.state;
 		},
+
 	};
 
 }

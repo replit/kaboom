@@ -1,5 +1,9 @@
-## v2000.2
+# v2000.2.0
 
+- added `formatText()` and `drawFormattedText()`
+- added `charSpacing` and `lineSpacing` in `TextCompOpt` and `DrawTextOpt`
+- added optional `transitions` argument in `state()` to define allowed transitions
+- added `StateComp#onStateTransition` to register event for specific transitions
 - added `outOfView()` component
 - deprecated `cleanup(number?: time)` in favor of `cleanup(opt?: CleanupOpt)`
 
