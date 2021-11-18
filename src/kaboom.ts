@@ -2085,6 +2085,7 @@ function fixed(): FixedComp {
 	};
 }
 
+// TODO: doesn't work
 function stay(): StayComp {
 	return {
 		id: "stay",
@@ -2260,7 +2261,8 @@ const debug: Debug = {
 	showLog: true,
 	fps: app.fps,
 	objCount(): number {
-		return 0;
+		// TODO: recursive count
+		return game.root.children.length;
 	},
 	stepFrame: updateFrame,
 	drawCalls: gfx.drawCalls,
