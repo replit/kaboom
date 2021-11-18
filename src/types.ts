@@ -1307,7 +1307,7 @@ export interface KaboomCtx {
 	/**
 	 * Define layers (the last one will be on top).
 	 *
-	 * @deprecated v2000.2 Use parent game object with z() component instead.
+	 * @deprecated v2000.2 Use parent game object with z() or fixed() component instead.
 	 *
 	 * @example
 	 * ```js
