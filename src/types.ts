@@ -575,7 +575,38 @@ export interface KaboomCtx {
 	 * })
 	 * ```
 	 */
-	state(initialState: string, stateList?: string[]): StateComp,
+	state(
+		initialState: string,
+		stateList?: string[],
+	): StateComp,
+	/**
+	 * state() with pre-defined transitions.
+	 *
+	 * @since v2000.2
+	 *
+	 * @example
+	 * ```js
+	 * const enemy = add([
+	 *     pos(80, 100),
+	 *     sprite("robot"),
+	 *     state("idle", ["idle", "attack", "move"], {
+	 *         "idle": "attack",
+	 *         "attack": "move",
+	 *         "move": [ "idle", "attack" ],
+	 *     }),
+	 * ])
+	 *
+	 * // this callback will only run once when enter "attack" state from "idle"
+	 * enemy.onStateTransition("idle", "attack", () => {
+	 *     checkHit(enemy, player)
+	 * })
+	 * ```
+	 */
+	state(
+		initialState: string,
+		stateList: string[],
+		transitions: Record<string, string | string[]>,
+	): StateComp,
 	/**
 	 * Register an event on all game objs with certain tag.
 	 *
@@ -3807,6 +3838,12 @@ export interface StateComp extends Comp {
 	 * Enter a state, trigger onStateLeave for previous state and onStateEnter for the new State state.
 	 */
 	enterState: (state: string, ...args) => void,
+	/**
+	 * Register event that runs once when a specific state transition happens. Accepts arguments passed from `enterState(name, ...args)`.
+	 *
+	 * @since v2000.2
+	 */
+	onStateTransition(from: string, to: string, action: () => void),
 	/**
 	 * Register event that runs once when enters a specific state. Accepts arguments passed from `enterState(name, ...args)`.
 	 */
