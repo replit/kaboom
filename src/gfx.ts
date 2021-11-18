@@ -1019,20 +1019,15 @@ function gfxInit(gl: WebGLRenderingContext, gopt: GfxOpt): Gfx {
 
 	const TEXT_STYLE_RE = /\[(?<text>[^\]]*)\]\.(?<style>[\w\.]+)+/g;
 
-	// format text and return a list of chars with their calculated position
-	function formatText(opt: DrawTextOpt2): FormattedText {
-
-		if (opt.text === undefined) {
-			throw new Error("formatText() requires property \"text\".");
-		}
+	function compileStyledText(text: string) {
 
 		const charStyleMap = {};
 		// get the text without the styling syntax
-		const renderText = opt.text.replace(TEXT_STYLE_RE, "$1");
+		const renderText = text.replace(TEXT_STYLE_RE, "$1");
 		let idxOffset = 0;
 
 		// put each styled char index into a map for easy access later when iterating each char
-		for (const match of opt.text.matchAll(TEXT_STYLE_RE)) {
+		for (const match of text.matchAll(TEXT_STYLE_RE)) {
 			const styles = match.groups.style.split(".");
 			for (
 				let i = match.index - idxOffset;
@@ -1048,8 +1043,23 @@ function gfxInit(gl: WebGLRenderingContext, gopt: GfxOpt): Gfx {
 			idxOffset += 3 + match.groups.style.length;
 		}
 
+		return {
+			charStyleMap: charStyleMap,
+			text: renderText,
+		};
+
+	}
+
+	// format text and return a list of chars with their calculated position
+	function formatText(opt: DrawTextOpt2): FormattedText {
+
+		if (opt.text === undefined) {
+			throw new Error("formatText() requires property \"text\".");
+		}
+
+		const { charStyleMap, text } = compileStyledText(opt.text + "");
 		const font = opt.font;
-		const chars = (renderText + "").split("");
+		const chars = text.split("");
 		const gw = font.qw * font.tex.width;
 		const gh = font.qh * font.tex.height;
 		const size = opt.size || gh;
