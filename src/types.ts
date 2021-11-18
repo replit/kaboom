@@ -364,7 +364,7 @@ export interface KaboomCtx {
 	/**
 	 * Which layer this object belongs to.
 	 *
-	 * @deprecated v2000.2 Use parent game object with z() component instead.
+	 * @deprecated v2000.2 Use parent game object with z() or fixed() component instead.
 	 */
 	layer(l: string): LayerComp,
 	/**
