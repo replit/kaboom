@@ -470,6 +470,21 @@ function make<T>(comps: CompList<T>): GameObj<T> {
 
 		draw() {
 			if (this.hidden) return;
+			if (this.fixed) {
+				const cancel = game.on("postDraw", () => {
+					gfx.pushTransform();
+					gfx.pushTranslate(this.pos);
+					gfx.pushScale(this.scale);
+					gfx.pushRotateZ(this.angle);
+					for (const child of this.children) {
+						child.draw();
+					}
+					this.trigger("draw");
+					gfx.popTransform();
+					cancel();
+				});
+				return;
+			}
 			gfx.pushTransform();
 			gfx.pushTranslate(this.pos);
 			gfx.pushScale(this.scale);
@@ -2835,6 +2850,7 @@ function drawFrame() {
 	// draw every obj
 	game.root.draw();
 	gfx.popTransform();
+	game.trigger("postDraw");
 
 }
 
