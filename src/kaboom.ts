@@ -1774,6 +1774,8 @@ function text(t: string, opt: TextCompOpt = {}): TextComp {
 			size: this.textSize,
 			font: font,
 			width: opt.width,
+			charSpacing: opt.charSpacing,
+			lineSpacing: opt.lineSpacing,
 			transform: opt.transform,
 		});
 
