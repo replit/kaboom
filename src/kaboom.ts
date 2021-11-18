@@ -2830,8 +2830,11 @@ function drawFrame() {
 		.translate(cam.pos.scale(-1).add(size.scale(0.5)).add(shake))
 		;
 
+	gfx.pushTransform();
+	gfx.applyMatrix(game.camMatrix);
 	// draw every obj
 	game.root.draw();
+	gfx.popTransform();
 
 }
 
