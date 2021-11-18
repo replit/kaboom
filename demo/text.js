@@ -89,4 +89,22 @@ onKeyDown("down", () => {
 	input.textSize = curSize
 })
 
+// Use this syntax and style option to style chunks of text, with CharTransformFunc.
+add([
+	text("[oh hi].green this is a [styled].wavy text", {
+		styles: {
+			"green": (idx, ch) => ({
+				color: GREEN,
+			}),
+			"wavy": (idx, ch) => ({
+				color: BLUE,
+				pos: vec2(0, wave(-4, 4, time() * 4 + idx * 0.5)),
+			}),
+		},
+	}),
+	pos(pad, height() - pad),
+	origin("botleft"),
+	scale(0.5),
+])
+
 // Check out https://kaboomjs.com#TextComp for everything text() offers

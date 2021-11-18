@@ -1777,6 +1777,7 @@ function text(t: string, opt: TextCompOpt = {}): TextComp {
 			letterSpacing: opt.letterSpacing,
 			lineSpacing: opt.lineSpacing,
 			transform: opt.transform,
+			styles: opt.styles,
 		});
 
 		this.width = ftext.width / (this.scale?.x || 1);

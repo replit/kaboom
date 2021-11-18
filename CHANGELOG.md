@@ -4,6 +4,7 @@
 - added `charSpacing` and `lineSpacing` in `TextCompOpt` and `DrawTextOpt`
 - added optional `transitions` argument in `state()` to define allowed transitions
 - added `StateComp#onStateTransition` to register event for specific transitions
+- added syntax for chunked text style `"this is a [styled].wavy text"` and `style` option in `TextCompOpt` and `DrawTextOpt` to define the styles with `CharTransformFunc`
 
 ### v2000.1.6
 

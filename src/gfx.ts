@@ -30,8 +30,10 @@ import {
 	TexFilter,
 	RenderProps,
 	CharTransform,
+	CharTransformFunc,
 	TexWrap,
 	FormattedText,
+	FormattedChar,
 	DrawRectOpt,
 	DrawLineOpt,
 	DrawLinesOpt,
@@ -94,7 +96,8 @@ type DrawTextOpt2 = RenderProps & {
 	lineSpacing?: number,
 	letterSpacing?: number,
 	origin?: Origin | Vec2,
-	transform?: (idx: number, ch: string) => CharTransform,
+	transform?: CharTransformFunc,
+	styles?: Record<string, CharTransformFunc>,
 }
 
 interface GfxTexOpt {
@@ -1006,6 +1009,53 @@ function gfxInit(gl: WebGLRenderingContext, gopt: GfxOpt): Gfx {
 
 	}
 
+	function applyCharTransform(fchar: FormattedChar, tr: CharTransform) {
+		if (tr.pos) fchar.pos = fchar.pos.add(tr.pos);
+		if (tr.scale) fchar.scale = fchar.scale.scale(vec2(tr.scale));
+		if (tr.angle) fchar.angle += tr.angle;
+		if (tr.color) fchar.color = fchar.color.mult(tr.color);
+		if (tr.opacity) fchar.opacity *= tr.opacity;
+	}
+
+	const TEXT_STYLE_RE = /\[(?<text>[^\]]*)\]\.(?<style>[\w\.]+)+/g;
+
+	function compileStyledText(text: string): {
+		charStyleMap: Record<number, {
+			localIdx: number,
+			styles: string[],
+		}>,
+		text: string,
+	} {
+
+		const charStyleMap = {};
+		// get the text without the styling syntax
+		const renderText = text.replace(TEXT_STYLE_RE, "$1");
+		let idxOffset = 0;
+
+		// put each styled char index into a map for easy access when iterating each char
+		for (const match of text.matchAll(TEXT_STYLE_RE)) {
+			const styles = match.groups.style.split(".");
+			for (
+				let i = match.index - idxOffset;
+				i <= match.index + match.groups.text.length;
+				i++
+			) {
+				charStyleMap[i] = {
+					localIdx: i - match.index,
+					styles: styles,
+				};
+			}
+			// omit "[", "]", "." and the style text in the format string when calculating index
+			idxOffset += 3 + match.groups.style.length;
+		}
+
+		return {
+			charStyleMap: charStyleMap,
+			text: renderText,
+		};
+
+	}
+
 	// format text and return a list of chars with their calculated position
 	function formatText(opt: DrawTextOpt2): FormattedText {
 
@@ -1013,8 +1063,9 @@ function gfxInit(gl: WebGLRenderingContext, gopt: GfxOpt): Gfx {
 			throw new Error("formatText() requires property \"text\".");
 		}
 
+		const { charStyleMap, text } = compileStyledText(opt.text + "");
 		const font = opt.font;
-		const chars = (opt.text + "").split("");
+		const chars = text.split("");
 		const gw = font.qw * font.tex.width;
 		const gh = font.qh * font.tex.height;
 		const size = opt.size || gh;
@@ -1095,24 +1146,30 @@ function gfxInit(gl: WebGLRenderingContext, gopt: GfxOpt): Gfx {
 				const y = ln * ch;
 				idx += 1;
 				if (qpos) {
-					const fchar = {
+					const fchar: FormattedChar = {
 						tex: font.tex,
 						quad: quad(qpos.x, qpos.y, font.qw, font.qh),
 						ch: char,
 						pos: vec2(pos.x + x + ox + oxl, pos.y + y + oy),
 						opacity: opt.opacity,
 						color: opt.color ?? rgb(255, 255, 255),
-						origin: opt.origin,
 						scale: scale,
 						angle: 0,
 					}
 					if (opt.transform) {
-						const tr = opt.transform(idx, char) ?? {};
-						if (tr.pos) fchar.pos = fchar.pos.add(tr.pos);
-						if (tr.scale) fchar.scale = fchar.scale.scale(vec2(tr.scale));
-						if (tr.angle) fchar.angle += tr.angle;
-						if (tr.color) fchar.color = fchar.color.mult(tr.color);
-						if (tr.opacity) fchar.opacity *= tr.opacity;
+						const tr = opt.transform(idx, char);
+						if (tr) {
+							applyCharTransform(fchar, tr);
+						}
+					}
+					if (charStyleMap[idx]) {
+						const { styles, localIdx } = charStyleMap[idx];
+						for (const style of styles) {
+							const tr = opt.styles[style](localIdx, char);
+							if (tr) {
+								applyCharTransform(fchar, tr);
+							}
+						}
 					}
 					fchars.push(fchar);
 				}
