@@ -466,7 +466,7 @@ export interface KaboomCtx {
 	 */
 	cleanup(opt?: CleanupOpt): CleanupComp,
 	/**
-	 * @deprecated Use cleanup() with optional CleanupOpt instead of single time argument.
+	 * @deprecated v2000.2 Use cleanup() with optional CleanupOpt instead of single time argument.
 	 */
 	cleanup(time?: number): CleanupComp,
 	/**
