@@ -2834,6 +2834,14 @@ export type DrawTextOpt = RenderProps & {
 	 */
 	width?: number,
 	/**
+	 * The gap between each line.
+	 */
+	lineSpacing?: number,
+	/**
+	 * The gap between each character.
+	 */
+	charSpacing?: number,
+	/**
 	 * The origin point, or the pivot point. Default to "topleft".
 	 */
 	origin?: Origin | Vec2,
@@ -3462,6 +3470,14 @@ export interface TextCompOpt {
 	 * Wrap text to a certain width.
 	 */
 	width?: number,
+	/**
+	 * The gap between each line.
+	 */
+	lineSpacing?: number,
+	/**
+	 * The gap between each character.
+	 */
+	charSpacing?: number,
 	/**
 	 * Transform the pos, scale, rotation or color for each character based on the index or char.
 	 */

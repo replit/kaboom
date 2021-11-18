@@ -1774,6 +1774,8 @@ function text(t: string, opt: TextCompOpt = {}): TextComp {
 			size: this.textSize,
 			font: font,
 			width: opt.width,
+			charSpacing: opt.charSpacing,
+			lineSpacing: opt.lineSpacing,
 			transform: opt.transform,
 		});
 
@@ -2882,6 +2884,8 @@ function drawInspectText(pos, txt) {
 		size: 16,
 		pos: pad,
 		color: rgb(255, 255, 255),
+		lineSpacing: 16,
+		charSpacing: 8,
 	});
 
 	const bw = ftxt.width + pad.x * 2;
