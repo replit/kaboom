@@ -70,8 +70,8 @@ type GfxOpt = {
 	height?: number,
 	scale?: number,
 	texFilter?: TexFilter,
-    stretch?: boolean,
-    letterbox?: boolean,
+	stretch?: boolean,
+	letterbox?: boolean,
 };
 
 type DrawTextureOpt = RenderProps & {
@@ -91,6 +91,8 @@ type DrawTextOpt2 = RenderProps & {
 	font?: GfxFont,
 	size?: number,
 	width?: number,
+	lineSpacing?: number,
+	charSpacing?: number,
 	origin?: Origin | Vec2,
 	transform?: (idx: number, ch: string) => CharTransform,
 }
@@ -475,18 +477,18 @@ function gfxInit(gl: WebGLRenderingContext, gopt: GfxOpt): Gfx {
 		gfx.curShader = shader;
 		gfx.curUniform = uniform;
 
-		indices.forEach((i) => {
+		for (const i of indices) {
 			gfx.iqueue.push(i + gfx.vqueue.length / STRIDE);
-		});
+		}
 
-		verts.forEach((v) => {
+		for (const v of verts) {
 			const pt = toNDC(gfx.transform.multVec2(v.pos.xy()));
 			gfx.vqueue.push(
 				pt.x, pt.y, v.pos.z,
 				v.uv.x, v.uv.y,
 				v.color.r / 255, v.color.g / 255, v.color.b / 255, v.opacity,
 			);
-		});
+		}
 
 	}
 
@@ -1017,8 +1019,8 @@ function gfxInit(gl: WebGLRenderingContext, gopt: GfxOpt): Gfx {
 		const gh = font.qh * font.tex.height;
 		const size = opt.size || gh;
 		const scale = vec2(size / gh).scale(vec2(opt.scale || 1));
-		const cw = scale.x * gw;
-		const ch = scale.y * gh;
+		const cw = scale.x * gw + (opt.charSpacing ?? 0);
+		const ch = scale.y * gh + (opt.lineSpacing ?? 0);
 		let curX = 0;
 		let th = ch;
 		let tw = 0;

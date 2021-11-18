@@ -388,15 +388,15 @@ export interface KaboomCtx {
 	 * ])
 	 *
 	 * // when froggy is grounded, press space to jump
-	 * // check out BodyComp for more methods
+	 * // check out #BodyComp for more methods
 	 * onKeyPress("space", () => {
 	 *     if (froggy.isGrounded()) {
 	 *         froggy.jump()
 	 *     }
 	 * })
 	 *
-	 * // a custom event provided by "body"
-	 * froggy.on("ground", () => {
+	 * // run something when froggy falls and hits a ground
+	 * froggy.onGround(() => {
 	 *     debug.log("oh no!")
 	 * })
 	 * ```
@@ -540,7 +540,7 @@ export interface KaboomCtx {
 	/**
 	 * Finite state machine.
 	 *
-	 * @since v2000.1.0
+	 * @since v2000.1
 	 *
 	 * @example
 	 * ```js
@@ -575,7 +575,38 @@ export interface KaboomCtx {
 	 * })
 	 * ```
 	 */
-	state(initialState: string, stateList?: string[]): StateComp,
+	state(
+		initialState: string,
+		stateList?: string[],
+	): StateComp,
+	/**
+	 * state() with pre-defined transitions.
+	 *
+	 * @since v2000.2
+	 *
+	 * @example
+	 * ```js
+	 * const enemy = add([
+	 *     pos(80, 100),
+	 *     sprite("robot"),
+	 *     state("idle", ["idle", "attack", "move"], {
+	 *         "idle": "attack",
+	 *         "attack": "move",
+	 *         "move": [ "idle", "attack" ],
+	 *     }),
+	 * ])
+	 *
+	 * // this callback will only run once when enter "attack" state from "idle"
+	 * enemy.onStateTransition("idle", "attack", () => {
+	 *     checkHit(enemy, player)
+	 * })
+	 * ```
+	 */
+	state(
+		initialState: string,
+		stateList: string[],
+		transitions: Record<string, string | string[]>,
+	): StateComp,
 	/**
 	 * Register an event on all game objs with certain tag.
 	 *
@@ -595,7 +626,7 @@ export interface KaboomCtx {
 	/**
 	 * Register an event that runs every frame (~60 times per second) for all game objs with certain tag.
 	 *
-	 * @since v2000.1.0
+	 * @since v2000.1
 	 *
 	 * @example
 	 * ```js
@@ -613,7 +644,7 @@ export interface KaboomCtx {
 	/**
 	 * Register an event that runs every frame (~60 times per second).
 	 *
-	 * @since v2000.1.0
+	 * @since v2000.1
 	 *
 	 * @example
 	 * ```js
@@ -627,13 +658,13 @@ export interface KaboomCtx {
 	/**
 	 * Register an event that runs every frame (~60 times per second) for all game objs with certain tag (this is the same as onUpdate but all draw events are run after update events, drawXXX() functions only work in this phase).
 	 *
-	 * @since v2000.1.0
+	 * @since v2000.1
 	 */
 	onDraw(tag: Tag, action: (obj: GameObj) => void): EventCanceller,
 	/**
 	 * Register an event that runs every frame (~60 times per second) (this is the same as onUpdate but all draw events are run after update events, drawXXX() functions only work in this phase).
 	 *
-	 * @since v2000.1.0
+	 * @since v2000.1
 	 *
 	 * @example
 	 * ```js
@@ -650,7 +681,7 @@ export interface KaboomCtx {
 	/**
 	 * Register an event that runs when all assets finished loading.
 	 *
-	 * @since v2000.1.0
+	 * @since v2000.1
 	 *
 	 * @example
 	 * ```js
@@ -668,7 +699,7 @@ export interface KaboomCtx {
 	/**
 	 * Register an event that runs when 2 game objs with certain tags collides (required to have area() component).
 	 *
-	 * @since v2000.1.0
+	 * @since v2000.1
 	 *
 	 * @example
 	 * ```js
@@ -685,19 +716,31 @@ export interface KaboomCtx {
 	/**
 	 * Register an event that runs when game objs with certain tags are clicked (required to have the area() component).
 	 *
-	 * @since v2000.1.0
+	 * @since v2000.1
+	 *
+	 * @example
+	 * ```js
+	 * // click on any "chest" to open
+	 * onClick("chest", (chest) => chest.open())
+	 * ```
 	 */
 	onClick(tag: Tag, action: (a: GameObj) => void): EventCanceller,
 	/**
 	 * Register an event that runs when users clicks.
 	 *
-	 * @since v2000.1.0
+	 * @since v2000.1
+	 *
+	 * @example
+	 * ```js
+	 * // click on anywhere to go to "game" scene
+	 * onClick(() => go("game"))
+	 * ```
 	 */
 	onClick(action: () => void): EventCanceller,
 	/**
 	 * Register an event that runs when game objs with certain tags are hovered (required to have area() component).
 	 *
-	 * @since v2000.1.0
+	 * @since v2000.1
 	 */
 	onHover(
 		tag: Tag,
@@ -706,7 +749,7 @@ export interface KaboomCtx {
 	/**
 	 * Register an event that runs every frame when a key is held down.
 	 *
-	 * @since v2000.1.0
+	 * @since v2000.1
 	 *
 	 * @example
 	 * ```js
@@ -720,7 +763,7 @@ export interface KaboomCtx {
 	/**
 	 * Register an event that runs when user presses certain key.
 	 *
-	 * @since v2000.1.0
+	 * @since v2000.1
 	 *
 	 * @example
 	 * ```js
@@ -734,7 +777,7 @@ export interface KaboomCtx {
 	/**
 	 * Register an event that runs when user presses any key.
 	 *
-	 * @since v2000.1.0
+	 * @since v2000.1
 	 *
 	 * @example
 	 * ```js
@@ -748,7 +791,7 @@ export interface KaboomCtx {
 	/**
 	 * Register an event that runs when user presses certain key (also fires repeatedly when they key is being held down).
 	 *
-	 * @since v2000.1.0
+	 * @since v2000.1
 	 *
 	 * @example
 	 * ```js
@@ -763,14 +806,14 @@ export interface KaboomCtx {
 	/**
 	 * Register an event that runs when user releases certain key.
 	 *
-	 * @since v2000.1.0
+	 * @since v2000.1
 	 */
 	onKeyRelease(k: Key | Key[], action: () => void): EventCanceller,
 	onKeyRelease(action: () => void): EventCanceller,
 	/**
 	 * Register an event that runs when user inputs text.
 	 *
-	 * @since v2000.1.0
+	 * @since v2000.1
 	 *
 	 * @example
 	 * ```js
@@ -784,46 +827,46 @@ export interface KaboomCtx {
 	/**
 	 * Register an event that runs every frame when a mouse button is being held down.
 	 *
-	 * @since v2000.1.0
+	 * @since v2000.1
 	 */
 	onMouseDown(action: (pos: Vec2) => void): EventCanceller,
 	onMouseDown(button: MouseButton, action: (pos: Vec2) => void): EventCanceller,
 	/**
 	 * Register an event that runs when user clicks mouse.
 	 *
-	 * @since v2000.1.0
+	 * @since v2000.1
 	 */
 	onMousePress(action: (pos: Vec2) => void): EventCanceller,
 	onMousePress(button: MouseButton, action: (pos: Vec2) => void): EventCanceller,
 	/**
 	 * Register an event that runs when user releases mouse.
 	 *
-	 * @since v2000.1.0
+	 * @since v2000.1
 	 */
 	onMouseRelease(action: (pos: Vec2) => void): EventCanceller,
 	onMouseRelease(button: MouseButton, action: (pos: Vec2) => void): EventCanceller,
 	/**
 	 * Register an event that runs whenever user move the mouse.
 	 *
-	 * @since v2000.1.0
+	 * @since v2000.1
 	 */
 	onMouseMove(action: (pos: Vec2) => void): EventCanceller,
 	/**
 	 * Register an event that runs when a touch starts.
 	 *
-	 * @since v2000.1.0
+	 * @since v2000.1
 	 */
 	onTouchStart(action: (id: TouchID, pos: Vec2) => void): EventCanceller,
 	/**
 	 * Register an event that runs whenever touch moves.
 	 *
-	 * @since v2000.1.0
+	 * @since v2000.1
 	 */
 	onTouchMove(action: (id: TouchID, pos: Vec2) => void): EventCanceller,
 	/**
 	 * Register an event that runs when a touch ends.
 	 *
-	 * @since v2000.1.0
+	 * @since v2000.1
 	 */
 	onTouchEnd(action: (id: TouchID, pos: Vec2) => void): EventCanceller,
 	/**
@@ -1134,7 +1177,7 @@ export interface KaboomCtx {
 	/**
 	 * If the game canvas is currently focused.
 	 *
-	 * @since v2000.1.0
+	 * @since v2000.1
 	 */
 	isFocused(): boolean,
 	/**
@@ -1160,7 +1203,7 @@ export interface KaboomCtx {
 	/**
 	 * If certain key is currently down.
 	 *
-	 * @since v2000.1.0
+	 * @since v2000.1
 	 *
 	 * @example
 	 * ```js
@@ -1176,43 +1219,43 @@ export interface KaboomCtx {
 	/**
 	 * If certain key is just pressed last frame.
 	 *
-	 * @since v2000.1.0
+	 * @since v2000.1
 	 */
 	isKeyPressed(k?: Key): boolean,
 	/**
 	 * If certain key is just pressed last frame (also fires repeatedly when the key is being held down).
 	 *
-	 * @since v2000.1.0
+	 * @since v2000.1
 	 */
 	isKeyPressedRepeat(k?: Key): boolean,
 	/**
 	 * If certain key is just released last frame.
 	 *
-	 * @since v2000.1.0
+	 * @since v2000.1
 	 */
 	isKeyReleased(k?: Key): boolean,
 	/**
 	 * If a mouse button is currently down.
 	 *
-	 * @since v2000.1.0
+	 * @since v2000.1
 	 */
 	isMouseDown(button?: MouseButton): boolean,
 	/**
 	 * If a mouse button is just clicked last frame.
 	 *
-	 * @since v2000.1.0
+	 * @since v2000.1
 	 */
 	isMousePressed(button?: MouseButton): boolean,
 	/**
 	 * If a mouse button is just released last frame.
 	 *
-	 * @since v2000.1.0
+	 * @since v2000.1
 	 */
 	isMouseReleased(button?: MouseButton): boolean,
 	/**
 	 * If mouse moved last frame.
 	 *
-	 * @since v2000.1.0
+	 * @since v2000.1
 	 */
 	isMouseMoved(): boolean,
 	/**
@@ -1524,7 +1567,7 @@ export interface KaboomCtx {
 	/**
 	 * Convert HSL color (all values in 0.0 - 1.0 range) to RGB color.
 	 *
-	 * @since v2000.1.0
+	 * @since v2000.1
 	 *
 	 * @example
 	 * ```js
@@ -1842,7 +1885,7 @@ export interface KaboomCtx {
 	/**
 	 * Draw a piece of formatted text from formatText().
 	 *
-	 * @since v2000.2.0
+	 * @since v2000.2
 	 *
 	 * @example
 	 * ```js
@@ -1913,7 +1956,7 @@ export interface KaboomCtx {
 	/**
 	 * Format a piece of text without drawing (for getting dimensions, etc).
 	 *
-	 * @since v2000.2.0
+	 * @since v2000.2
 	 *
 	 * @example
 	 * ```js
@@ -1961,7 +2004,7 @@ export interface KaboomCtx {
 	 *
 	 * @returns A control handle.
 	 *
-	 * @since v2000.1.0
+	 * @since v2000.1
 	 */
 	record(frameRate?: number): Recording,
 	/**
@@ -2210,19 +2253,19 @@ export interface GameObjRaw {
 	/**
 	 * Register an event that runs every frame as long as the game obj exists.
 	 *
-	 * @since v2000.1.0
+	 * @since v2000.1
 	 */
 	onUpdate(action: () => void): EventCanceller,
 	/**
 	 * Register an event that runs every frame as long as the game obj exists (this is the same as `onUpdate()`, but all draw events are run after all update events).
 	 *
-	 * @since v2000.1.0
+	 * @since v2000.1
 	 */
 	onDraw(action: () => void): EventCanceller,
 	/**
 	 * Register an event that runs when the game obj is destroyed.
 	 *
-	 * @since v2000.1.0
+	 * @since v2000.1
 	 */
 	onDestroy(action: () => void): EventCanceller,
 	/**
@@ -2440,13 +2483,13 @@ export interface AudioPlay {
 	/**
 	 * If the sound is paused.
 	 *
-	 * @since v2000.1.0
+	 * @since v2000.1
 	 */
 	isPaused(): boolean,
 	/**
 	 * If the sound is stopped or ended.
 	 *
-	 * @since v2000.1.0
+	 * @since v2000.1
 	 */
 	isStopped(): boolean,
 	/**
@@ -2858,13 +2901,25 @@ export type DrawTextOpt = RenderProps & {
 	 */
 	width?: number,
 	/**
+	 * The gap between each line.
+	 *
+	 * @since v2000.2
+	 */
+	lineSpacing?: number,
+	/**
+	 * The gap between each character.
+	 *
+	 * @since v2000.2
+	 */
+	charSpacing?: number,
+	/**
 	 * The origin point, or the pivot point. Default to "topleft".
 	 */
 	origin?: Origin | Vec2,
 	/**
 	 * Transform the pos, scale, rotation or color for each character based on the index or char.
 	 *
-	 * @since v2000.1.0
+	 * @since v2000.1
 	 */
 	transform?: (idx: number, ch: string) => CharTransform,
 }
@@ -3307,19 +3362,19 @@ export interface AreaComp extends Comp {
 	/**
 	 * Register an event runs when clicked.
 	 *
-	 * @since v2000.1.0
+	 * @since v2000.1
 	 */
 	onClick(f: () => void): void,
 	/**
 	 * Register an event runs every frame when hovered.
 	 *
-	 * @since v2000.1.0
+	 * @since v2000.1
 	 */
 	onHover(onHover: () => void, onNotHover?: () => void): void,
 	/**
 	 * Register an event runs when collide with another game obj with certain tag.
 	 *
-	 * @since v2000.1.0
+	 * @since v2000.1
 	 */
 	onCollide(tag: Tag, f: (obj: GameObj, col?: Collision) => void): void,
 	/**
@@ -3487,6 +3542,18 @@ export interface TextCompOpt {
 	 */
 	width?: number,
 	/**
+	 * The gap between each line.
+	 *
+	 * @since v2000.2
+	 */
+	lineSpacing?: number,
+	/**
+	 * The gap between each character.
+	 *
+	 * @since v2000.2
+	 */
+	charSpacing?: number,
+	/**
 	 * Transform the pos, scale, rotation or color for each character based on the index or char.
 	 */
 	transform?: (idx: number, ch: string) => CharTransform,
@@ -3603,7 +3670,7 @@ export interface Debug {
 	/**
 	 * The recording handle if currently in recording mode.
 	 *
-	 * @since v2000.1.0
+	 * @since v2000.1
 	 */
 	curRecording: Recording | null,
 }
@@ -3642,13 +3709,13 @@ export interface BodyComp extends Comp {
 	/**
 	 * If currently landing on a platform.
 	 *
-	 * @since v2000.1.0
+	 * @since v2000.1
 	 */
 	isGrounded(): boolean,
 	/**
 	 * If currently falling.
 	 *
-	 * @since v2000.1.0
+	 * @since v2000.1
 	 */
 	isFalling(): boolean,
 	/**
@@ -3662,25 +3729,25 @@ export interface BodyComp extends Comp {
 	/**
 	 * Register an event that runs when the object is grounded.
 	 *
-	 * @since v2000.1.0
+	 * @since v2000.1
 	 */
 	onGround(action: () => void): EventCanceller,
 	/**
 	 * Register an event that runs when the object starts falling.
 	 *
-	 * @since v2000.1.0
+	 * @since v2000.1
 	 */
 	onFall(action: () => void): EventCanceller,
 	/**
 	 * Register an event that runs when the object bumps into something on the head.
 	 *
-	 * @since v2000.1.0
+	 * @since v2000.1
 	 */
 	onHeadbutt(action: () => void): EventCanceller,
 	/**
 	 * Register an event that runs when the object performs the second jump when double jumping.
 	 *
-	 * @since v2000.1.0
+	 * @since v2000.1
 	 */
 	onDoubleJump(action: () => void): EventCanceller,
 	/**
@@ -3771,19 +3838,19 @@ export interface HealthComp extends Comp {
 	/**
 	 * Register an event that runs when hurt() is called upon the object.
 	 *
-	 * @since v2000.1.0
+	 * @since v2000.1
 	 */
 	onHurt(action: () => void): EventCanceller,
 	/**
 	 * Register an event that runs when heal() is called upon the object.
 	 *
-	 * @since v2000.1.0
+	 * @since v2000.1
 	 */
 	onHeal(action: () => void): EventCanceller,
 	/**
 	 * Register an event that runs when object's HP is equal or below 0.
 	 *
-	 * @since v2000.1.0
+	 * @since v2000.1
 	 */
 	onDeath(action: () => void): EventCanceller,
 }
@@ -3807,6 +3874,12 @@ export interface StateComp extends Comp {
 	 * Enter a state, trigger onStateLeave for previous state and onStateEnter for the new State state.
 	 */
 	enterState: (state: string, ...args) => void,
+	/**
+	 * Register event that runs once when a specific state transition happens. Accepts arguments passed from `enterState(name, ...args)`.
+	 *
+	 * @since v2000.2
+	 */
+	onStateTransition(from: string, to: string, action: () => void),
 	/**
 	 * Register event that runs once when enters a specific state. Accepts arguments passed from `enterState(name, ...args)`.
 	 */
