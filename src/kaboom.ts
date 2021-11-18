@@ -2165,56 +2165,71 @@ function state(
 		events[state][event].forEach((action) => action(...args));
 	}
 
-	function checkTransition(from: string, to: string) {
-		if (!transitions?.[from]) {
-			return
-		}
-		const available = typeof transitions[from] === "string"
-			? [transitions[from]]
-			: transitions[from] as string[];
-		if (!available.includes(to)) {
-			throw new Error(`Cannot transition state from "${from}" to "${state}". Available transitions: ${available.map((s) => `"${s}"`).join(", ")}`);
-		}
-	}
-
 	return {
+
 		id: "state",
 		state: initState,
+
 		enterState(state: string, ...args) {
+
 			if (stateList && !stateList.includes(state)) {
 				throw new Error(`State not found: ${state}`);
 			}
+
 			const oldState = this.state;
-			checkTransition(oldState, state);
+
+			// check if the transition is legal, if transition graph is defined
+			if (!transitions?.[oldState]) {
+				return;
+			}
+
+			const available = typeof transitions[oldState] === "string"
+				? [transitions[oldState]]
+				: transitions[oldState] as string[];
+
+			if (!available.includes(state)) {
+				throw new Error(`Cannot transition state from "${oldState}" to "${state}". Available transitions: ${available.map((s) => `"${s}"`).join(", ")}`);
+			}
+
 			trigger("leave", oldState, ...args);
 			this.state = state;
 			trigger("enter", state, ...args);
 			trigger("enter", `${oldState} -> ${state}`, ...args);
+
 		},
+
 		onStateTransition(from: string, to: string, action: () => void) {
 			on("enter", `${from} -> ${to}`, action);
 		},
+
 		onStateEnter(state: string, action: () => void) {
 			on("enter", state, action);
 		},
+
 		onStateUpdate(state: string, action: () => void) {
 			on("update", state, action);
 		},
+
 		onStateDraw(state: string, action: () => void) {
 			on("draw", state, action);
 		},
+
 		onStateLeave(state: string, action: () => void) {
 			on("leave", state, action);
 		},
+
 		update() {
 			trigger("update", this.state);
 		},
+
 		draw() {
 			trigger("draw", this.state);
 		},
+
 		inspect() {
 			return this.state;
 		},
+
 	};
 
 }
