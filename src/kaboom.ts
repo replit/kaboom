@@ -462,38 +462,36 @@ function make<T>(comps: CompList<T>): GameObj<T> {
 
 		update() {
 			if (this.paused) return;
-			for (const child of this.children) {
-				child.update();
-			}
+			this.revery((child) => child.update());
 			this.trigger("update");
 		},
 
 		draw() {
+
 			if (this.hidden) return;
+
+			const draw = () => {
+				gfx.pushTransform();
+				gfx.pushTranslate(this.pos);
+				gfx.pushScale(this.scale);
+				gfx.pushRotateZ(this.angle);
+				this.every((child) => child.draw());
+				this.trigger("draw");
+				gfx.popTransform();
+			};
+
+			// if we're fixed, draw during drawFixed event
 			if (this.fixed) {
 				const cancel = game.on("drawFixed", () => {
-					gfx.pushTransform();
-					gfx.pushTranslate(this.pos);
-					gfx.pushScale(this.scale);
-					gfx.pushRotateZ(this.angle);
-					for (const child of this.children) {
-						child.draw();
-					}
-					this.trigger("draw");
-					gfx.popTransform();
+					draw();
+					// cancel the event since this is a per-frame action
 					cancel();
 				});
 				return;
 			}
-			gfx.pushTransform();
-			gfx.pushTranslate(this.pos);
-			gfx.pushScale(this.scale);
-			gfx.pushRotateZ(this.angle);
-			for (const child of this.children) {
-				child.draw();
-			}
-			this.trigger("draw");
-			gfx.popTransform();
+
+			draw();
+
 		},
 
 		// use a comp, or tag
@@ -599,7 +597,10 @@ function make<T>(comps: CompList<T>): GameObj<T> {
 		},
 
 		get(t?: Tag | Tag[]): GameObj[] {
-			return this.children.filter((child) => t ? child.is(t) : true);
+			return this.children
+				.filter((child) => t ? child.is(t) : true)
+				.sort((c1, c2) => (c1.z ?? 0) - (c2.z ?? 0))
+				;
 		},
 
 		every<T>(t: Tag | Tag[] | ((obj: GameObj) => T), f?: (obj: GameObj) => T) {
