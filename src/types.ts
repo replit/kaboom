@@ -466,11 +466,11 @@ export interface KaboomCtx {
 	 */
 	timer(n?: number, action?: () => void): TimerComp,
 	/**
-	 * Unaffected by camera.
+	 * Make object unaffected by camera or parent object transforms, and render at last.
 	 *
 	 * @example
 	 * ```js
-	 * // this score counter better be fixed on top left and not affected by camera
+	 * // this will be be fixed on top left and not affected by camera
 	 * const score = add([
 	 *     text(0),
 	 *     pos(12, 12),

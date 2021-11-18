@@ -16,13 +16,6 @@ scene("game", () => {
 	// define gravity
 	gravity(3200)
 
-	// define draw layers
-	layers([
-		"bg",
-		"obj",
-		"ui",
-	], "obj")
-
 	// a game object consists of a list of components and tags
 	const bean = add([
 		// sprite() means it's drawn with a sprite of name "bean" (defined above in 'loadSprite')
@@ -115,9 +108,9 @@ scene("game", () => {
 	// display score
 	const scoreLabel = add([
 		text(score),
-		layer("ui"),
 		origin("center"),
 		pos(width() / 2, 80),
+		fixed(),
 	])
 
 	function addScore() {
