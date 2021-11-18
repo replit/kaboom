@@ -1139,14 +1139,18 @@ function gfxInit(gl: WebGLRenderingContext, gopt: GfxOpt): Gfx {
 						angle: 0,
 					}
 					if (opt.transform) {
-						const tr = opt.transform(idx, char) ?? {};
-						applyCharTransform(fchar, tr);
+						const tr = opt.transform(idx, char);
+						if (tr) {
+							applyCharTransform(fchar, tr);
+						}
 					}
 					if (charStyleMap[idx]) {
 						const { styles, idx: localIdx } = charStyleMap[idx];
 						for (const style of styles) {
-							const tr = opt.styles[style](localIdx, char) ?? {};
-							applyCharTransform(fchar, tr);
+							const tr = opt.styles[style](localIdx, char);
+							if (tr) {
+								applyCharTransform(fchar, tr);
+							}
 						}
 					}
 					fchars.push(fchar);
