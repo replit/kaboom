@@ -2085,7 +2085,6 @@ function fixed(): FixedComp {
 	};
 }
 
-// TODO: doesn't work
 function stay(): StayComp {
 	return {
 		id: "stay",
@@ -2312,7 +2311,11 @@ function go(id: SceneID, ...args) {
 			destroy: new IDList(),
 		};
 
-		game.root = make([]);
+		game.root.every((obj) => {
+			if (!obj.is("stay")) {
+				game.root.remove(obj);
+			}
+		})
 
 		game.timers = new IDList();
 
