@@ -61,10 +61,10 @@ const Home: React.FC = () => {
 		<Markdown stretchX src={`
 \`\`\`js
 // start the game
-kaboom();
+kaboom()
 
 // load a default sprite
-loadBean();
+loadBean()
 
 // add character to screen, from a list of components
 const player = add([
@@ -72,13 +72,13 @@ const player = add([
 	pos(120, 80),    // position in world
 	area(),          // has a collider
 	body(),          // responds to physics and gravity
-]);
+])
 
 // jump when player presses "space" key
 onKeyPress("space", () => {
 	// .jump() is provided by the body() component
-	player.jump();
-});
+	player.jump()
+})
 \`\`\`
 
 Play with it yourself or check out the examples in the [Playground](/play)!
