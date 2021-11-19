@@ -818,7 +818,7 @@ export interface KaboomCtx {
 	 * @example
 	 * ```js
 	 * // type into input
-	 * onChatInput((ch) => {
+	 * onCharInput((ch) => {
 	 *     input.text += ch
 	 * })
 	 * ```
