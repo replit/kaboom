@@ -1635,9 +1635,9 @@ export interface KaboomCtx {
 	 *
 	 * @example
 	 * ```js
-	 * // move towards 60 deg direction at SPEED pixels per second
+	 * // move toward bottom right in 45 degrees
 	 * player.onUpdate(() => {
-	 *     player.move(vec2FromAngle(60).scale(SPEED))
+	 *     player.move(vec2FromAngle(45).scale(SPEED))
 	 * })
 	 * ```
 	 */
