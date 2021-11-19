@@ -3138,16 +3138,10 @@ function drawDebug() {
 			width: gfx.width() * gfx.scale() * 0.6,
 			lineSpacing: pad / 2,
 			styles: {
-				"time": () => ({
-					color: rgb(127, 127, 127),
-				}),
-				"info": () => ({
-					color: rgb(255, 255, 255),
-				}),
-				"error": () => ({
-					color: rgb(255, 0, 127),
-				}),
-			}
+				"time": { color: rgb(127, 127, 127) },
+				"info": { color: rgb(255, 255, 255) },
+				"error": { color: rgb(255, 0, 127) },
+			},
 		});
 
 		gfx.drawRect({
