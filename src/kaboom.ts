@@ -3117,22 +3117,25 @@ function drawDebug() {
 
 	if (debug.showLog && logs.length > 0) {
 
+		gfx.pushTransform();
+		gfx.pushTranslate(0, height());
+		gfx.pushScale(1 / app.scale);
+		gfx.pushTranslate(8, -8);
+
 		const pad = 8;
-		const max = gopt.logMax || 1;
+		const max = gopt.logMax ?? 1;
 
 		if (logs.length > max) {
 			logs = logs.slice(0, max);
 		}
 
-		const pos = vec2(pad, gfx.height() - pad);
-
 		const ftext = gfx.formatText({
 			text: logs.join("\n"),
 			font: assets.fonts[DBG_FONT],
-			pos: pos.add(pad, -pad),
+			pos: vec2(pad, -pad),
 			origin: "botleft",
 			size: 16,
-			width: gfx.width() * 0.6,
+			width: gfx.width() * gfx.scale() * 0.6,
 			lineSpacing: pad / 2,
 			styles: {
 				"time": () => ({
@@ -3148,7 +3151,6 @@ function drawDebug() {
 		});
 
 		gfx.drawRect({
-			pos: pos,
 			width: ftext.width + pad * 2,
 			height: ftext.height + pad * 2,
 			origin: "botleft",
@@ -3158,6 +3160,7 @@ function drawDebug() {
 		});
 
 		gfx.drawFormattedText(ftext);
+		gfx.popTransform();
 
 	}
 
