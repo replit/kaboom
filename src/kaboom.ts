@@ -67,6 +67,7 @@ import {
 	IDList,
 	downloadURL,
 	downloadBlob,
+	uid,
 } from "./utils";
 
 import {
@@ -426,7 +427,8 @@ function make<T>(comps: CompList<T>): GameObj<T> {
 
 	const obj = {
 
-		_id: null,
+		// @deprecated
+		_id: uid(),
 		hidden: false,
 		paused: false,
 		children: [],
