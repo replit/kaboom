@@ -16,7 +16,7 @@ We'd like to register the following inputs and movements:
 
 ## Getting started with the code
 
-You can check out the code to handle inputs and movements at https://replit.com/@ritza/move-sprite-tutorial#code/main.js
+You can check out the code to handle inputs and movements at https://replit.com/@ritza/move-sprite-tutorial or see the embedded code at the bottom of this tutorial.
 
 ## Step 1 - adding a player game object
 
