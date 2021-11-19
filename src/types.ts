@@ -1635,15 +1635,19 @@ export interface KaboomCtx {
 		h2: number,
 	): number,
 	/**
-	 * Get directional vector from an angle
+	 * Get directional vector from an angle.
 	 *
 	 * @example
 	 * ```js
-	 * // move towards 80 deg direction at SPEED
+	 * // move toward bottom right in 45 degrees
 	 * player.onUpdate(() => {
-	 *     player.move(dir(80).scale(SPEED))
+	 *     player.move(vec2FromAngle(45).scale(SPEED))
 	 * })
 	 * ```
+	 */
+	vec2FromAngle(deg: number): Vec2,
+	/**
+	 * @deprecated v2000.2 Use vec2FromAngle instead.
 	 */
 	dir(deg: number): Vec2,
 	/**
@@ -2915,7 +2919,7 @@ export type DrawTextOpt = RenderProps & {
 	 *
 	 * @since v2000.2
 	 */
-	charSpacing?: number,
+	letterSpacing?: number,
 	/**
 	 * The origin point, or the pivot point. Default to "topleft".
 	 */
@@ -2925,7 +2929,13 @@ export type DrawTextOpt = RenderProps & {
 	 *
 	 * @since v2000.1
 	 */
-	transform?: (idx: number, ch: string) => CharTransform,
+	transform?: CharTransformFunc,
+	/**
+	 * Stylesheet for styled chunks, in the syntax of "here comes a (styled):wavy word".
+	 *
+	 * @since v2000.2
+	 */
+	styles?: Record<string, CharTransformFunc>,
 }
 
 /**
@@ -2949,8 +2959,9 @@ export interface FormattedChar {
 	angle: number,
 	color: Color,
 	opacity: number,
-	origin: string,
 }
+
+export type CharTransformFunc = (idx: number, ch: string) => CharTransform;
 
 export interface CharTransform {
 	pos?: Vec2,
@@ -3556,11 +3567,19 @@ export interface TextCompOpt {
 	 *
 	 * @since v2000.2
 	 */
-	charSpacing?: number,
+	letterSpacing?: number,
 	/**
 	 * Transform the pos, scale, rotation or color for each character based on the index or char.
+	 *
+	 * @since v2000.1
 	 */
-	transform?: (idx: number, ch: string) => CharTransform,
+	transform?: CharTransformFunc,
+	/**
+	 * Stylesheet for styled chunks, in the syntax of "here comes a (styled):wavy word".
+	 *
+	 * @since v2000.2
+	 */
+	styles?: Record<string, CharTransformFunc>,
 }
 
 export interface RectCompOpt {

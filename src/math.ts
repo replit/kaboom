@@ -133,7 +133,7 @@ function vec2(...args): Vec2 {
 	};
 }
 
-function dir(deg: number): Vec2 {
+function vec2FromAngle(deg: number): Vec2 {
 	const angle = deg2rad(deg);
 	return vec2(Math.cos(angle), Math.sin(angle));
 }
@@ -808,7 +808,7 @@ export {
 	testCirclePoint,
 	testRectPolygon,
 	minkDiff,
-	dir,
+	vec2FromAngle,
 	isVec2,
 	isVec3,
 	isColor,
