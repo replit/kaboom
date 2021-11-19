@@ -95,8 +95,8 @@ type DrawTextOpt2 = RenderProps & {
 	lineSpacing?: number,
 	letterSpacing?: number,
 	origin?: Origin | Vec2,
-	transform?: CharTransformFunc,
-	styles?: Record<string, CharTransformFunc>,
+	transform?: CharTransform | CharTransformFunc,
+	styles?: Record<string, CharTransform | CharTransformFunc>,
 }
 
 interface GfxTexOpt {
@@ -1158,15 +1158,20 @@ function gfxInit(gl: WebGLRenderingContext, gopt: GfxOpt): Gfx {
 						angle: 0,
 					}
 					if (opt.transform) {
-						const tr = opt.transform(idx, char);
+						const tr = typeof opt.transform === "function"
+							? opt.transform(idx, char)
+							: opt.transform;
 						if (tr) {
 							applyCharTransform(fchar, tr);
 						}
 					}
 					if (charStyleMap[idx]) {
 						const { styles, localIdx } = charStyleMap[idx];
-						for (const style of styles) {
-							const tr = opt.styles[style](localIdx, char);
+						for (const name of styles) {
+							const style = opt.styles[name];
+							const tr = typeof style === "function"
+								? style(localIdx, char)
+								: style;
 							if (tr) {
 								applyCharTransform(fchar, tr);
 							}

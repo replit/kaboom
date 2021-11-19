@@ -93,9 +93,9 @@ onKeyDown("down", () => {
 add([
 	text("[oh hi].green this is a [styled].wavy text", {
 		styles: {
-			"green": (idx, ch) => ({
+			"green": {
 				color: GREEN,
-			}),
+			},
 			"wavy": (idx, ch) => ({
 				color: BLUE,
 				pos: vec2(0, wave(-4, 4, time() * 4 + idx * 0.5)),

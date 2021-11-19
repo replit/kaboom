@@ -2889,13 +2889,13 @@ export type DrawTextOpt = RenderProps & {
 	 *
 	 * @since v2000.1
 	 */
-	transform?: CharTransformFunc,
+	transform?: CharTransform | CharTransformFunc,
 	/**
 	 * Stylesheet for styled chunks, in the syntax of "here comes a (styled):wavy word".
 	 *
 	 * @since v2000.2
 	 */
-	styles?: Record<string, CharTransformFunc>,
+	styles?: Record<string, CharTransform | CharTransformFunc>,
 }
 
 /**
@@ -3533,13 +3533,13 @@ export interface TextCompOpt {
 	 *
 	 * @since v2000.1
 	 */
-	transform?: CharTransformFunc,
+	transform?: CharTransform | CharTransformFunc,
 	/**
 	 * Stylesheet for styled chunks, in the syntax of "here comes a (styled):wavy word".
 	 *
 	 * @since v2000.2
 	 */
-	styles?: Record<string, CharTransformFunc>,
+	styles?: Record<string, CharTransform | CharTransformFunc>,
 }
 
 export interface RectCompOpt {
