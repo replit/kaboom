@@ -34,7 +34,7 @@ import {
 	testCirclePoint,
 	testRectPolygon,
 	minkDiff,
-	dir,
+	vec2FromAngle,
 	deg2rad,
 	rad2deg,
 	isVec2,
@@ -1267,8 +1267,8 @@ function follow(obj: GameObj, offset?: Vec2): FollowComp {
 	};
 }
 
-function move(direction: number | Vec2, speed: number): MoveComp {
-	const d = typeof direction === "number" ? dir(direction) : direction.unit();
+function move(dir: number | Vec2, speed: number): MoveComp {
+	const d = typeof dir === "number" ? vec2FromAngle(dir) : dir.unit();
 	return {
 		id: "move",
 		require: [ "pos", ],
@@ -2709,7 +2709,8 @@ const ctx: KaboomCtx = {
 	randi,
 	randSeed,
 	vec2,
-	dir,
+	vec2FromAngle,
+	dir: vec2FromAngle,
 	rgb,
 	hsl2rgb,
 	quad,
@@ -2835,7 +2836,7 @@ function drawFrame() {
 	// calculate camera matrix
 	const size = vec2(width(), height());
 	const cam = game.cam;
-	const shake = dir(rand(0, 360)).scale(cam.shake);
+	const shake = vec2FromAngle(rand(0, 360)).scale(cam.shake);
 
 	cam.shake = lerp(cam.shake, 0, 5 * dt());
 	game.camMatrix = mat4()

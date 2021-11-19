@@ -1631,15 +1631,19 @@ export interface KaboomCtx {
 		h2: number,
 	): number,
 	/**
-	 * Get directional vector from an angle
+	 * Get directional vector from an angle.
 	 *
 	 * @example
 	 * ```js
-	 * // move towards 80 deg direction at SPEED
+	 * // move towards 60 deg direction at SPEED pixels per second
 	 * player.onUpdate(() => {
-	 *     player.move(dir(80).scale(SPEED))
+	 *     player.move(vec2FromAngle(60).scale(SPEED))
 	 * })
 	 * ```
+	 */
+	vec2FromAngle(deg: number): Vec2,
+	/**
+	 * @deprecated v2000.2 Use vec2FromAngle instead.
 	 */
 	dir(deg: number): Vec2,
 	/**
