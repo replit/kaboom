@@ -9,6 +9,8 @@ In this tutorial, we're going to look at how to add simple button functionality.
 The first thing we want to do to is load the `kaboom()` library. 
 
 ```
+import kaboom from "kaboom";
+
 kaboom()
 ```
 
@@ -37,6 +39,7 @@ Let's look at the components we're using:
 - `origin()` origin point to represent position of object
 
 Now that we've added our button, we want to be able to click on it. The `onClick()` function is used.
+
 ```
 btn.onClick(f)
 ```
