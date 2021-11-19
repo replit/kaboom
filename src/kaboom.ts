@@ -427,7 +427,6 @@ function make<T>(comps: CompList<T>): GameObj<T> {
 
 	const obj = {
 
-		// @deprecated
 		_id: uid(),
 		hidden: false,
 		paused: false,
