@@ -4,7 +4,6 @@ import {
 	quad,
 	rgb,
 	mat4,
-	dir,
 	deg2rad,
 	isVec2,
 	isVec3,
