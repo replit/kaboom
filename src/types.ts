@@ -2959,6 +2959,7 @@ export interface FormattedChar {
 	angle: number,
 	color: Color,
 	opacity: number,
+	uniform: Uniform,
 }
 
 export type CharTransformFunc = (idx: number, ch: string) => CharTransform;

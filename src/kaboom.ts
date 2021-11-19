@@ -468,31 +468,14 @@ function make<T>(comps: CompList<T>): GameObj<T> {
 		},
 
 		draw() {
-
 			if (this.hidden) return;
-
-			const draw = () => {
-				gfx.pushTransform();
-				gfx.pushTranslate(this.pos);
-				gfx.pushScale(this.scale);
-				gfx.pushRotateZ(this.angle);
-				this.every((child) => child.draw());
-				this.trigger("draw");
-				gfx.popTransform();
-			};
-
-			// if we're fixed, draw during drawFixed event
-			if (this.fixed) {
-				const cancel = game.on("drawFixed", () => {
-					draw();
-					// cancel the event since this is a per-frame action
-					cancel();
-				});
-				return;
-			}
-
-			draw();
-
+			gfx.pushTransform();
+			gfx.pushTranslate(this.pos);
+			gfx.pushScale(this.scale);
+			gfx.pushRotateZ(this.angle);
+			this.every((child) => child.draw());
+			this.trigger("draw");
+			gfx.popTransform();
 		},
 
 		// use a comp, or tag
@@ -1543,7 +1526,10 @@ function getRenderProps(obj: GameObj<any>) {
 		origin: obj.origin,
 		outline: obj.outline,
 		shader: assets.shaders[obj.shader],
-		uniform: obj.uniform,
+		uniform: {
+			...obj.uniform,
+			"u_transform": obj.fixed ? mat4() : game.camMatrix,
+		},
 	};
 }
 
@@ -2852,25 +2838,18 @@ function updateFrame() {
 function drawFrame() {
 
 	// calculate camera matrix
-	const size = vec2(width(), height());
+	const scale = vec2(-2 / width(), 2 / height());
 	const cam = game.cam;
-	const shake = vec2FromAngle(rand(0, 360)).scale(cam.shake);
+	const shake = vec2FromAngle(rand(0, 360)).scale(cam.shake).scale(scale);
 
 	cam.shake = lerp(cam.shake, 0, 5 * dt());
 	game.camMatrix = mat4()
-		.translate(size.scale(0.5))
 		.scale(cam.scale)
 		.rotateZ(cam.angle)
-		.translate(size.scale(-0.5))
-		.translate(cam.pos.scale(-1).add(size.scale(0.5)).add(shake))
+		.translate(cam.pos.scale(scale).add(vec2(1, -1)).add(shake))
 		;
 
-	gfx.pushTransform();
-	gfx.applyMatrix(game.camMatrix);
-	// draw every obj
 	game.root.draw();
-	gfx.popTransform();
-	game.trigger("drawFixed");
 
 }
 
@@ -2976,11 +2955,6 @@ function drawDebug() {
 
 			const scale = gfx.scale() * (obj.fixed ? 1: (game.cam.scale.x + game.cam.scale.y) / 2);
 
-			if (!obj.fixed) {
-				gfx.pushTransform();
-				gfx.applyMatrix(game.camMatrix);
-			}
-
 			if (!inspecting) {
 				if (obj.isHovering()) {
 					inspecting = obj;
@@ -3000,12 +2974,11 @@ function drawDebug() {
 					width: lwidth,
 					color: lcolor,
 				},
+				uniform: {
+					"u_transform": obj.fixed ? mat4() : game.camMatrix,
+				},
 				fill: false,
 			});
-
-			if (!obj.fixed) {
-				gfx.popTransform();
-			}
 
 		});
 
@@ -3149,7 +3122,7 @@ app.run(() => {
 	} else {
 
 		// TODO: this gives the latest mousePos in input handlers but uses cam matrix from last frame
-		game.camMousePos = game.camMatrix.invert().multVec2(app.mousePos());
+		game.camMousePos = gfx.toScreen(game.camMatrix.invert().multVec2(gfx.toNDC(app.mousePos())));
 		game.trigger("input");
 
 		if (!debug.paused && gopt.debug !== false) {
