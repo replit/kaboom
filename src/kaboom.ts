@@ -1533,8 +1533,9 @@ function getRenderProps(obj: GameObj<any>) {
 		opacity: obj.opacity,
 		origin: obj.origin,
 		outline: obj.outline,
-		shader: assets.shaders[obj.shader],
 		fixed: obj.fixed,
+		shader: assets.shaders[obj.shader],
+		uniform: obj.uniform,
 	};
 }
 
