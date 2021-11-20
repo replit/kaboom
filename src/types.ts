@@ -2602,6 +2602,7 @@ export interface RenderProps {
 	angle?: number,
 	color?: Color,
 	opacity?: number,
+	fixed?: boolean,
 	shader?: GfxShader,
 	uniform?: Uniform,
 }
