@@ -663,25 +663,21 @@ function testPolygonPolygon(p1: Polygon, p2: Polygon): boolean {
 	return false;
 }
 
+// https://wrf.ecse.rpi.edu/Research/Short_Notes/pnpoly.html
 function testPolygonPoint(p: Polygon, pt: Point): boolean {
 
-	let has = false;
+	let c = false;
 
-	for (let i = 0; i < p.length; i++) {
-
-		const p1 = p[i];
-		const p2 = p[(i + 1) % p.length];
-
+	for (let i = 0, j = p.length - 1; i < p.length; j = i++) {
 		if (
-			((p1.y > pt.y && p2.y < pt.y) || (p1.y < pt.y && p2.y > pt.y))
-			&& (pt.x < (p2.x - p1.x) * (pt.y - p1.y) / (p2.y - p1.y) + p1.x)
+			((p[i].y > pt.y) != (p[j].y > pt.y))
+			&& (pt.x < (p[j].x - p[i].x) * (pt.y - p[i].y) / (p[j].y - p[i].y) + p[i].x)
 		) {
-			has = !has;
+			c = !c;
 		}
-
 	}
 
-	return has;
+	return c;
 
 }
 
