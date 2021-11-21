@@ -6,7 +6,7 @@ In this tutorial, we're going to see how to drag game objects, also known as spr
 
 ## Things to consider
 
-The main things that we want to consider about the code are as follows:
+The main things that we want to consider are as follows:
 
 - We want to keep track of the sprite we're dragging
 - We want to create a custom component for handling drag and drop behaviour
@@ -22,7 +22,7 @@ import kaboom from "kaboom";
 kaboom()
 ```
 
-Next, we want to keep track of the current object we're dragging. To start, `curDraggin` is `null`.
+Next, we want to keep track of the current object we're dragging. 
 
 ```
 let curDraggin = null
@@ -37,45 +37,47 @@ The code below shows the `drag()` function:
 ```
 function drag() {
 
-	// The displacement between object pos and mouse pos
-	let offset = vec2(0)
-
-	return {
-		// Name of the component
-		id: "drag",
-		// This component requires the "pos" and "area" component to work
-		require: [ "pos", "area", ],
-		// "add" is a lifecycle method gets called when the obj is added to scene
-		add() {
-			// "this" in all methods refer to the obj
-			this.onClick(() => {
-				if (curDraggin) {
-					return
-				}
-				curDraggin = this
-				offset = mousePos().sub(this.pos)
-				// Remove the object and re-add it, so it'll be drawn on top
-				readd(this)
-			})
-		},
-		// "update" is a lifecycle method gets called every frame the obj is in scene
-		update() {
-			if (curDraggin === this) {
-				cursor("move")
-				this.pos = mousePos().sub(offset)
-			}
-		},
-	}
+    // The displacement between object pos and mouse pos
+    let offset = vec2(0)
+    
+    return {
+    
+    // Name of the component
+    id: "drag",
+    // This component requires the "pos" and "area" component to work
+    require: [ "pos", "area", ],
+    // "add" is a lifecycle method gets called when the obj is added to scene
+    add() {
+       // "this" in all methods refer to the obj
+       this.onClick(() => {
+           if (curDraggin) {
+	       return
+	   }
+	
+           curDraggin = this
+           offset = mousePos().sub(this.pos)
+           // Remove the object and re-add it, so it'll be drawn on top
+           readd(this)
+       })
+     },
+     // "update" is a lifecycle method gets called every frame the obj is in scene
+     update() {
+	    if (curDraggin === this) {
+	        cursor("move")
+		this.pos = mousePos().sub(offset)
+	    }
+      },
+    }
 
 }
 ```
 
-Now that we've defined our custom component, we want to register releasing the mouse. For this, we use the `onMouseRelease()` event handler.
+Now that we've defined our custom component, we want to register drop our sprite. For this, we use the `onMouseRelease()` event handler.
 
 ```
 // drop
 onMouseRelease(() => {
-	curDraggin = null
+    curDraggin = null
 })
 ```
 
