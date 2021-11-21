@@ -46,9 +46,10 @@ btn.onClick(f)
 
 The code below shows how to call `addButton()`. In our simple example, we want the text "oh hi" to be displayed when the "Start" button is clicked and for the text "bye" to be displayed when the "Quit" button is clicked. Remember the function definition: `addButton(txt, p, f)` - in the code below, "Start" is our txt; p, the vec2(200, 100), is the position of our text on the screen represented by X Y coordinates (X: 200; Y: 100) and the anonymous function determines the action we want performed when the button is clicked.
 
+```
 addButton("Start", vec2(200, 100), () => debug.log("oh hi"))
 addButton("Quit", vec2(200, 200), () => debug.log("bye"))
-
+```
 
 ## Things you can try
 
