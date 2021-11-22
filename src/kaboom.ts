@@ -60,10 +60,6 @@ import {
 } from "./assets";
 
 import {
-	loggerInit,
-} from "./logger";
-
-import {
 	IDList,
 	downloadURL,
 	downloadBlob,
@@ -173,15 +169,7 @@ const {
 	height,
 } = gfx;
 
-const assets = assetsInit(gfx, audio, {
-	errHandler: (err: string) => {
-		logger.error(err);
-	},
-});
-
-const logger = loggerInit(gfx, assets, {
-	max: gopt.logMax,
-});
+const assets = assetsInit(gfx, audio);
 
 const DEF_FONT = "apl386o";
 const DBG_FONT = "sink";
@@ -2235,6 +2223,8 @@ function state(
 
 }
 
+let logs = [];
+
 const debug: Debug = {
 	inspect: false,
 	timeScale: 1,
@@ -2245,9 +2235,9 @@ const debug: Debug = {
 	},
 	stepFrame: updateFrame,
 	drawCalls: gfx.drawCalls,
-	clearLog: logger.clear,
-	log: (msg) => logger.info(`[${app.time().toFixed(2)}] ${msg}`),
-	error: (msg) => logger.error(`[${app.time().toFixed(2)}] ${msg}`),
+	clearLog: () => logs = [],
+	log: (msg) => logs.unshift(`[${app.time().toFixed(2)}].time [${msg}].info`),
+	error: (msg) => logs.unshift(`[${app.time().toFixed(2)}].time [${msg}].error`),
 	curRecording: null,
 	get paused() {
 		return game.paused;
@@ -3125,8 +3115,47 @@ function drawDebug() {
 
 	}
 
-	if (debug.showLog) {
-		logger.draw();
+	if (debug.showLog && logs.length > 0) {
+
+		gfx.pushTransform();
+		gfx.pushTranslate(0, height());
+		gfx.pushScale(1 / app.scale);
+		gfx.pushTranslate(8, -8);
+
+		const pad = 8;
+		const max = gopt.logMax ?? 1;
+
+		if (logs.length > max) {
+			logs = logs.slice(0, max);
+		}
+
+		const ftext = gfx.formatText({
+			text: logs.join("\n"),
+			font: assets.fonts[DBG_FONT],
+			pos: vec2(pad, -pad),
+			origin: "botleft",
+			size: 16,
+			width: gfx.width() * gfx.scale() * 0.6,
+			lineSpacing: pad / 2,
+			styles: {
+				"time": { color: rgb(127, 127, 127) },
+				"info": { color: rgb(255, 255, 255) },
+				"error": { color: rgb(255, 0, 127) },
+			},
+		});
+
+		gfx.drawRect({
+			width: ftext.width + pad * 2,
+			height: ftext.height + pad * 2,
+			origin: "botleft",
+			color: rgb(0, 0, 0),
+			radius: 4,
+			opacity: 0.8,
+		});
+
+		gfx.drawFormattedText(ftext);
+		gfx.popTransform();
+
 	}
 
 }
@@ -3171,12 +3200,12 @@ if (gopt.burp) {
 }
 
 window.addEventListener("error", (e) => {
-	logger.error(`Error: ${e.error.message}`);
+	debug.error(`Error: ${e.error.message}`);
 	app.quit();
 	app.run(() => {
 		if (assets.loadProgress() === 1) {
 			gfx.frameStart();
-			logger.draw();
+			drawDebug();
 			gfx.frameEnd();
 		}
 	});
