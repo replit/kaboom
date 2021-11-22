@@ -24,9 +24,29 @@ You can find the code we use at https://replit.com/@ritza/flappy-tutorial or you
 
 # Getting started with the code
 
-Games usually run in a loop that can update the events that take place as we play, such as keys pressed or character behaviors. So, we are going to place most of our code inside the `scene()` function.
+The first thing we want to do is load the `kaboom()` library and initialize a Kaboom context. 
+
+```
+import kaboom from "kaboom";
+
+kaboom();
+```
+Next, we're going to load the assets we'll be using during the game. In this case, our player sprite and some cool sound effects.
+
+```
+loadSprite("bean", "/sprites/bean.png")
+loadSound("score", "/sounds/score.mp3")
+loadSound("wooosh", "/sounds/wooosh.mp3")
+loadSound("hit", "/sounds/hit.mp3")
+```
 
 ### Adding a player character
+
+Games usually run in a loop that can update the events that take place as we play, such as keys pressed or character behaviors. So, we are going to place most of our code inside the `scene()` function.
+
+```
+scene("game", () => {
+```
 
 We have to add a player character for the game and also make sure to give the character an `area()` and a `body()` component. These two components will be used later when we program what happens when our player collides with the pipes and vertical edges as well as let our character respond to the gravity we've set in the game.
 
@@ -40,8 +60,7 @@ const bean = add([
 ])
 ```
 
-We need to define some constant variables for the game, for the:
-gravity; distance of the opening between pipes; minimum sizes of the pipes; the jumping force of our player character; and the moving speed of the pipes.
+We need to define some constant variables for the game, for the: gravity; distance of the opening between pipes; minimum sizes of the pipes; the jumping force of our player character; and the moving speed of the pipes.
 
 ```
 gravity(3200)
