@@ -31,6 +31,7 @@ import kaboom from "kaboom";
 
 kaboom();
 ```
+
 Next, we're going to load the assets we'll be using during the game. In this case, our player sprite and some cool sound effects.
 
 ```
