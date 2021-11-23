@@ -2377,7 +2377,7 @@ export interface SpriteAtlasEntry {
 	anims?: SpriteAnims,
 }
 
-export type SpriteLoadSrc = string | string[] | GfxTexData;
+export type SpriteLoadSrc = string | GfxTexData;
 
 export interface SpriteData {
 	tex: GfxTexture,
