@@ -54,7 +54,7 @@ type AssetsCtx = {
 
 type Assets = {
 	loadRoot(path?: string): string,
-	mergeImg(urls: string[]): Promise<HTMLCanvasElement>,
+	mergeImg(urls: string[]): Promise<ImageData>,
 	loadSprite(
 		name: string | null,
 		src: SpriteLoadSrc,
@@ -117,7 +117,7 @@ function loadImg(src: string): Promise<HTMLImageElement> {
 	});
 }
 
-function mergeImg(urls: string[]): Promise<HTMLCanvasElement> {
+function mergeImg(urls: string[]): Promise<ImageData> {
     let promises: Promise<HTMLImageElement>[] = [];
     for (let url of urls) {
         const img = new Image();
@@ -147,7 +147,7 @@ function mergeImg(urls: string[]): Promise<HTMLCanvasElement> {
 						ctx.drawImage(img, 0, 0);
 					}
                 });
-                resolve(canvas);
+                resolve(ctx.getImageData(0, 0, width, height));
             } else {
 				reject();
 			}
@@ -339,11 +339,6 @@ function assetsInit(gfx: Gfx, audio: Audio, gopt: AssetsOpt = {}): Assets {
 				const path = isDataUrl(src) ? src : assets.loadRoot + src;
 				loadImg(path)
 					.then((img) => resolve(loadRawSprite(name, img, opt)))
-					.catch(reject);
-			} else if (Array.isArray(src)) {
-				const paths = <Array<string>> src.map((s) =>  isDataUrl(s) ? s : assets.loadRoot + s);
-				mergeImg(paths)
-					.then((img) => {console.log(img.width+'/'+img.height); resolve(loadRawSprite(name, img, opt));})
 					.catch(reject);
 			} else {
 				resolve(loadRawSprite(name, src, opt));
