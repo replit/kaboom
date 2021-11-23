@@ -2567,6 +2567,7 @@ function record(frameRate?): Recording {
 const ctx: KaboomCtx = {
 	// asset load
 	loadRoot: assets.loadRoot,
+	mergeImg: assets.mergeImg,
 	loadSprite: assets.loadSprite,
 	loadSpriteAtlas: assets.loadSpriteAtlas,
 	loadSound: assets.loadSound,
