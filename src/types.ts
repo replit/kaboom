@@ -446,11 +446,11 @@ export interface KaboomCtx {
 	 * ```js
 	 * add([
 	 *     pos(1200, 80),
-	 *     outView({ hide: true, pause: true }),
+	 *     outOfView({ hide: true, pause: true }),
 	 * ])
 	 * ```
 	 */
-	outView(opt?: OutOfViewOpt): OutOfViewComp,
+	outOfView(opt?: OutOfViewOpt): OutOfViewComp,
 	/**
 	 * destroy() the object if it goes out of screen. Optionally specify the amount of time it has to be off-screen before removal.
 	 *

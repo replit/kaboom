@@ -1281,11 +1281,11 @@ function move(direction: number | Vec2, speed: number): MoveComp {
 	};
 }
 
-function outView(opt: OutOfViewOpt = {}): OutOfViewComp {
+function outOfView(opt: OutOfViewOpt = {}): OutOfViewComp {
 	let timer = 0;
 	let isOut = false;
 	return {
-		id: "outView",
+		id: "outOfView",
 		require: [ "pos", "area", ],
 		isOutOfView(): boolean {
 			const offset = vec2(opt.offset);
@@ -1334,7 +1334,7 @@ function cleanup(opt: (number | undefined) | CleanupOpt = {}): CleanupComp {
 	// DEPRECATED
 	if (typeof opt === "number") {
 		return {
-			...outView({
+			...outOfView({
 				destroy: true,
 				time: opt,
 			}),
@@ -1342,7 +1342,7 @@ function cleanup(opt: (number | undefined) | CleanupOpt = {}): CleanupComp {
 		};
 	}
 	return {
-		...outView({
+		...outOfView({
 			destroy: true,
 			onExitView: opt.onCleanup,
 			offset: opt.offset,
@@ -2687,7 +2687,7 @@ const ctx: KaboomCtx = {
 	lifespan,
 	z,
 	move,
-	outView,
+	outOfView,
 	cleanup,
 	follow,
 	state,
