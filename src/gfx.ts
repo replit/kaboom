@@ -143,6 +143,8 @@ type Gfx = {
 	pushRotateZ(angle: number): void,
 	applyMatrix(m: Mat4),
 	drawCalls(): number,
+	toNDC(pt: Vec2): Vec2,
+	toScreen(pt: Vec2): Vec2,
 };
 
 const DEF_ORIGIN = "topleft";
@@ -159,8 +161,10 @@ varying vec3 v_pos;
 varying vec2 v_uv;
 varying vec4 v_color;
 
+uniform mat4 u_transform;
+
 vec4 def_vert() {
-	return vec4(a_pos, 1.0);
+	return u_transform * vec4(a_pos, 1.0);
 }
 
 {{user}}
@@ -505,7 +509,10 @@ function gfxInit(gl: WebGLRenderingContext, gopt: GfxOpt): Gfx {
 			return;
 		}
 
-		gfx.curShader.send(gfx.curUniform);
+		gfx.curShader.send({
+			...gfx.curUniform,
+			"u_transform": gfx.curUniform["u_transform"] ?? mat4(),
+		});
 
 		gl.bindBuffer(gl.ARRAY_BUFFER, gfx.vbuf);
 		gl.bufferSubData(gl.ARRAY_BUFFER, 0, new Float32Array(gfx.vqueue));
@@ -564,6 +571,13 @@ function gfxInit(gl: WebGLRenderingContext, gopt: GfxOpt): Gfx {
 		return vec2(
 			pt.x / width() * 2 - 1,
 			-pt.y / height() * 2 + 1,
+		);
+	}
+
+	function toScreen(pt: Vec2): Vec2 {
+		return vec2(
+			(pt.x + 1) / 2 * width(),
+			-(pt.y - 1) / 2 * height(),
 		);
 	}
 
@@ -1001,6 +1015,7 @@ function gfxInit(gl: WebGLRenderingContext, gopt: GfxOpt): Gfx {
 				radius: opt.radius,
 				width: opt.outline.width,
 				color: opt.outline.color,
+				uniform: opt.uniform,
 			});
 		}
 
@@ -1156,6 +1171,7 @@ function gfxInit(gl: WebGLRenderingContext, gopt: GfxOpt): Gfx {
 						color: opt.color ?? rgb(255, 255, 255),
 						scale: scale,
 						angle: 0,
+						uniform: opt.uniform,
 					}
 					if (opt.transform) {
 						const tr = typeof opt.transform === "function"
@@ -1210,6 +1226,7 @@ function gfxInit(gl: WebGLRenderingContext, gopt: GfxOpt): Gfx {
 				quad: ch.quad,
 				// TODO: topleft
 				origin: "center",
+				uniform: ch.uniform,
 			});
 		}
 	}
@@ -1304,6 +1321,8 @@ function gfxInit(gl: WebGLRenderingContext, gopt: GfxOpt): Gfx {
 		applyMatrix,
 		drawCalls,
 		background,
+		toNDC,
+		toScreen,
 	};
 
 }

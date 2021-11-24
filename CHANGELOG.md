@@ -1,5 +1,6 @@
 # v2000.2.0
 
+- added `GameObjRaw#add()` to add a child game object
 - added `formatText()` and `drawFormattedText()`
 - added `charSpacing` and `lineSpacing` in `TextCompOpt` and `DrawTextOpt`
 - added optional `transitions` argument in `state()` to define allowed transitions
