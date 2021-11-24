@@ -2153,12 +2153,6 @@ export interface KaboomOpt {
 	 */
 	touchToMouse?: boolean,
 	/**
-	 * Don't render shapes that's outside of the screen (default false).
-	 *
-	 * @since v2000.2
-	 */
-	cull?: boolean,
-	/**
 	 * If import all kaboom functions to global (default true).
 	 */
 	global?: boolean,

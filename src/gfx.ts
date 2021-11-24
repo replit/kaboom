@@ -74,7 +74,6 @@ type GfxOpt = {
 	texFilter?: TexFilter,
 	stretch?: boolean,
 	letterbox?: boolean,
-	cull?: boolean,
 };
 
 type DrawTextureOpt = RenderProps & {
@@ -481,49 +480,33 @@ function gfxInit(gl: WebGLRenderingContext, gopt: GfxOpt): Gfx {
 			flush();
 		}
 
-		if (gopt.cull) {
+		const objBound = { p1: vec2(Number.MAX_VALUE), p2: vec2(-Number.MAX_VALUE)};
+		const screenBound = { p1: vec2(-1), p2: vec2(1) };
 
-			const objBound = { p1: vec2(Number.MAX_VALUE), p2: vec2(-Number.MAX_VALUE)};
-			const screenBound = { p1: vec2(-1), p2: vec2(1) };
+		for (const v of verts) {
 
-			for (const v of verts) {
+			// WebGL screen space coordinate [-1.0 ~ 1.0]
+			const pt = toNDC(gfx.transform.multVec2(v.pos.xy()));
 
-				// WebGL screen space coordinate [-1.0 ~ 1.0]
-				const pt = toNDC(gfx.transform.multVec2(v.pos.xy()));
+			// get the bounding rectangle for the polygon
+			objBound.p1.x = Math.min(objBound.p1.x, pt.x);
+			objBound.p2.x = Math.max(objBound.p2.x, pt.x);
+			objBound.p1.y = Math.min(objBound.p1.y, pt.y);
+			objBound.p2.y = Math.max(objBound.p2.y, pt.y);
 
-				// get the bounding rectangle for the polygon
-				objBound.p1.x = Math.min(objBound.p1.x, pt.x);
-				objBound.p2.x = Math.max(objBound.p2.x, pt.x);
-				objBound.p1.y = Math.min(objBound.p1.y, pt.y);
-				objBound.p2.y = Math.max(objBound.p2.y, pt.y);
+			gfx.vqueue.push(
+				pt.x, pt.y, v.pos.z,
+				v.uv.x, v.uv.y,
+				v.color.r / 255, v.color.g / 255, v.color.b / 255, v.opacity,
+			);
 
-				gfx.vqueue.push(
-					pt.x, pt.y, v.pos.z,
-					v.uv.x, v.uv.y,
-					v.color.r / 255, v.color.g / 255, v.color.b / 255, v.opacity,
-				);
+		}
 
-			}
-
-			// if the object bound is totally outside, we don't render
-			if (!testRectRect(objBound, screenBound)) {
-				const num = verts.length * STRIDE;
-				gfx.vqueue.splice(gfx.vqueue.length - num, num);
-				return;
-			}
-
-		} else {
-
-			for (const v of verts) {
-				// WebGL screenspace coordinate [-1.0 ~ 1.0]
-				const pt = toNDC(gfx.transform.multVec2(v.pos.xy()));
-				gfx.vqueue.push(
-					pt.x, pt.y, v.pos.z,
-					v.uv.x, v.uv.y,
-					v.color.r / 255, v.color.g / 255, v.color.b / 255, v.opacity,
-				);
-			}
-
+		// if the object bound is totally outside, we don't render
+		if (!testRectRect(objBound, screenBound)) {
+			const num = verts.length * STRIDE;
+			gfx.vqueue.splice(gfx.vqueue.length - num, num);
+			return;
 		}
 
 		for (const i of indices) {
