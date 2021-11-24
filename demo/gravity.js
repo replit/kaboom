@@ -5,7 +5,6 @@ kaboom()
 
 // Load assets
 loadSprite("bean", "/sprites/bean.png")
-loadSprite("ghosty", "/sprites/ghosty.png")
 
 // Set the gravity acceleration (pixels per second)
 gravity(1600)

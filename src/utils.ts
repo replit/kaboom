@@ -58,9 +58,15 @@ function downloadBlob(blob: Blob, filename: string) {
 	URL.revokeObjectURL(url);
 }
 
+const uid = (() => {
+	let id = 0;
+	return () => id++;
+})();
+
 export {
 	deepEq,
 	IDList,
 	downloadBlob,
 	downloadURL,
+	uid,
 };

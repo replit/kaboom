@@ -1,9 +1,12 @@
 # v2000.2.0
 
+- added `GameObjRaw#add()` to add a child game object
 - added `formatText()` and `drawFormattedText()`
 - added `charSpacing` and `lineSpacing` in `TextCompOpt` and `DrawTextOpt`
 - added optional `transitions` argument in `state()` to define allowed transitions
 - added `StateComp#onStateTransition` to register event for specific transitions
+- added syntax for chunked text style `"this is a [styled].wavy text"` and `style` option in `TextCompOpt` and `DrawTextOpt` to define the styles with `CharTransformFunc`
+- deprecated `dir()` in favor of `vec2FromAngle()`
 - added `cull` option in `kaboom()` to not render objects out screen
 
 ### v2000.1.6

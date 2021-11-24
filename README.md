@@ -8,10 +8,10 @@ Start playing around with it in the [Kaboom Playground](https://kaboomjs.com/pla
 
 ```js
 // initialize context
-kaboom();
+kaboom()
 
 // load a sprite called "froggy"
-loadSprite("froggy", "sprites/froggy.png");
+loadSprite("froggy", "sprites/froggy.png")
 
 // compose the player game object from multiple components and add it to the game
 const froggy = add([
@@ -19,13 +19,13 @@ const froggy = add([
     pos(80, 40),
     area(),
     body(),
-]);
+])
 
 // press space to jump
 onKeyPress("space", () => {
     // this method is provided by the "body" component above
-    froggy.jump();
-});
+    froggy.jump()
+})
 ```
 
 Kaboom uses a powerful component system to compose game objects and behaviors.
@@ -52,7 +52,7 @@ const player = add([
         dead: false,
         speed: 240,
     },
-]);
+])
 ```
 
 Blocky imperative syntax for describing behaviors
@@ -62,30 +62,30 @@ Blocky imperative syntax for describing behaviors
 player.onCollide("enemy", () => {
     // .hurt() comes from "health" component
     player.hurt(1)
-});
+})
 
 // check fall death
 player.onUpdate(() => {
     if (player.pos.y >= height()) {
-        destroy(player);
-        gameOver();
+        destroy(player)
+        gameOver()
     }
-});
+})
 
 // if 'player' onCollide with any object with tag "enemy", run the callback
 player.onCollide("enemy", () => {
-    player.hp -= 1;
-});
+    player.hp -= 1
+})
 
 // all objects with tag "enemy" will move towards 'player' every frame
 onUpdate("enemy", (e) => {
-    e.move(player.pos.sub(e.pos).unit().scale(e.speed));
-});
+    e.move(player.pos.sub(e.pos).unit().scale(e.speed))
+})
 
 // move up 100 pixels per second every frame when "w" key is held down
 onKeyDown("w", () => {
-    player.move(0, 100);
-});
+    player.move(0, 100)
+})
 ```
 
 ## Usage
@@ -97,20 +97,20 @@ $ npm install kaboom
 ```
 
 ```js
-import kaboom from "kaboom";
+import kaboom from "kaboom"
 
-kaboom();
+kaboom()
 
 add([
     text("oh hi"),
     pos(80, 40),
-]);
+])
 ```
 
 also works with CommonJS
 
 ```js
-const kaboom = require("kaboom");
+const kaboom = require("kaboom")
 ```
 
 Note that you'll need to use a bundler like `esbuild` or `webpack` to use Kaboom with NPM
@@ -122,7 +122,7 @@ This exports a global `kaboom` function
 ```html
 <script src="https://unpkg.com/kaboom/dist/kaboom.js"></script>
 <script>
-kaboom();
+kaboom()
 </script>
 ```
 
@@ -130,8 +130,8 @@ or use with es modules
 
 ```html
 <script type="module">
-import kaboom from "https://unpkg.com/kaboom/dist/kaboom.mjs";
-kaboom();
+import kaboom from "https://unpkg.com/kaboom/dist/kaboom.mjs"
+kaboom()
 </script>
 ```
 
@@ -157,6 +157,7 @@ also check out [CONTRIBUTION.md](CONTRIBUTING.md)
 
 ### Misc
 
+- Thanks to [LaJBel](https://lajbel.repl.co/) for help building the Kaboom community
 - Thanks to [abrudz](https://github.com/abrudz) for the amazing [APL386 font](https://abrudz.github.io/APL386/)
 - Thanks to [Polyducks](http://polyducks.co.uk/) for the amazing [kitchen sink font](https://polyducks.itch.io/kitchen-sink-textmode-font) font
 - Thanks to [0x72](https://0x72.itch.io/) for the amazing [Dungeon Tileset](https://0x72.itch.io/dungeontileset-ii)

@@ -363,6 +363,8 @@ export interface KaboomCtx {
 	origin(o: Origin | Vec2): OriginComp,
 	/**
 	 * Which layer this object belongs to.
+	 *
+	 * @deprecated v2000.2 Use parent game object with z() or fixed() component instead.
 	 */
 	layer(l: string): LayerComp,
 	/**
@@ -464,11 +466,11 @@ export interface KaboomCtx {
 	 */
 	timer(n?: number, action?: () => void): TimerComp,
 	/**
-	 * Unaffected by camera.
+	 * Make object unaffected by camera or parent object transforms, and render at last.
 	 *
 	 * @example
 	 * ```js
-	 * // this score counter better be fixed on top left and not affected by camera
+	 * // this will be be fixed on top left and not affected by camera
 	 * const score = add([
 	 *     text(0),
 	 *     pos(12, 12),
@@ -818,7 +820,7 @@ export interface KaboomCtx {
 	 * @example
 	 * ```js
 	 * // type into input
-	 * onChatInput((ch) => {
+	 * onCharInput((ch) => {
 	 *     input.text += ch
 	 * })
 	 * ```
@@ -870,75 +872,75 @@ export interface KaboomCtx {
 	 */
 	onTouchEnd(action: (id: TouchID, pos: Vec2) => void): EventCanceller,
 	/**
-	 * @deprecated Use onUpdate() instead
+	 * @deprecated v2000.1 Use onUpdate() instead
 	 */
 	action: KaboomCtx["onUpdate"],
 	/**
-	 * @deprecated Use onDraw() instead
+	 * @deprecated v2000.1 Use onDraw() instead
 	 */
 	render: KaboomCtx["onDraw"],
 	/**
-	 * @deprecated Use onLoad() instead.
+	 * @deprecated v2000.1 Use onLoad() instead.
 	 */
 	ready: KaboomCtx["onLoad"],
 	/**
-	 * @deprecated Use onCollide() instead
+	 * @deprecated v2000.1 Use onCollide() instead
 	 */
 	collides: KaboomCtx["onCollide"],
 	/**
-	 * @deprecated Use onClick() instead
+	 * @deprecated v2000.1 Use onClick() instead
 	 */
 	clicks: KaboomCtx["onClick"],
 	/**
-	 * @deprecated Use onHover() instead
+	 * @deprecated v2000.1 Use onHover() instead
 	 */
 	hovers: KaboomCtx["onHover"],
 	/**
-	 * @deprecated Use onKeyDown() instead.
+	 * @deprecated v2000.1 Use onKeyDown() instead.
 	 */
 	keyDown: KaboomCtx["onKeyDown"],
 	/**
-	 * @deprecated Use onKeyPress() instead.
+	 * @deprecated v2000.1 Use onKeyPress() instead.
 	 */
 	keyPress: KaboomCtx["onKeyPress"],
 	/**
-	 * @deprecated Use onKeyPressRepeat() instead.
+	 * @deprecated v2000.1 Use onKeyPressRepeat() instead.
 	 */
 	keyPressRep: KaboomCtx["onKeyPressRepeat"],
 	/**
-	 * @deprecated Use onKeyPress() instead.
+	 * @deprecated v2000.1 Use onKeyPress() instead.
 	 */
 	keyRelease: KaboomCtx["onKeyRelease"],
 	/**
-	 * @deprecated Use onCharInput() instead.
+	 * @deprecated v2000.1 Use onCharInput() instead.
 	 */
 	charInput: KaboomCtx["onCharInput"],
 	/**
-	 * @deprecated Use onClick() or onMousePress() instead.
+	 * @deprecated v2000.1 Use onClick() or onMousePress() instead.
 	 */
 	mouseClick: KaboomCtx["onMousePress"],
 	/**
-	 * @deprecated Use onMouseRelease() instead.
+	 * @deprecated v2000.1 Use onMouseRelease() instead.
 	 */
 	mouseRelease: KaboomCtx["onMouseRelease"],
 	/**
-	 * @deprecated Use onMouseDown() instead.
+	 * @deprecated v2000.1 Use onMouseDown() instead.
 	 */
 	mouseDown: KaboomCtx["onMouseDown"],
 	/**
-	 * @deprecated Use onMouseMove() instead.
+	 * @deprecated v2000.1 Use onMouseMove() instead.
 	 */
 	mouseMove: KaboomCtx["onMouseMove"],
 	/**
-	 * @deprecated Use onTouchStart() instead.
+	 * @deprecated v2000.1 Use onTouchStart() instead.
 	 */
 	touchStart: KaboomCtx["onTouchStart"],
 	/**
-	 * @deprecated Use onTouchMove() instead.
+	 * @deprecated v2000.1 Use onTouchMove() instead.
 	 */
 	touchMove: KaboomCtx["onTouchMove"],
 	/**
-	 * @deprecated Use onTouchEnd() instead.
+	 * @deprecated v2000.1 Use onTouchEnd() instead.
 	 */
 	touchEnd: KaboomCtx["onTouchEnd"],
 	/**
@@ -1305,6 +1307,8 @@ export interface KaboomCtx {
 	/**
 	 * Define layers (the last one will be on top).
 	 *
+	 * @deprecated v2000.2 Use parent game object with z() or fixed() component instead.
+	 *
 	 * @example
 	 * ```js
 	 * // defining 3 layers, "ui" will be drawn on top most, with default layer being "game"
@@ -1369,39 +1373,39 @@ export interface KaboomCtx {
 	 */
 	isFullscreen(): boolean,
 	/**
-	 * @deprecated Use isKeyDown() instead.
+	 * @deprecated v2000.1 Use isKeyDown() instead.
 	 */
 	keyIsDown: KaboomCtx["isKeyDown"],
 	/**
-	 * @deprecated Use isKeyPressed() instead.
+	 * @deprecated v2000.1 Use isKeyPressed() instead.
 	 */
 	keyIsPressed: KaboomCtx["isKeyPressed"],
 	/**
-	 * @deprecated Use isKeyPressedRepeat() instead.
+	 * @deprecated v2000.1 Use isKeyPressedRepeat() instead.
 	 */
 	keyIsPressedRep: KaboomCtx["isKeyPressedRepeat"],
 	/**
-	 * @deprecated Use isKeyReleased() instead.
+	 * @deprecated v2000.1 Use isKeyReleased() instead.
 	 */
 	keyIsReleased: KaboomCtx["isKeyReleased"],
 	/**
-	 * @deprecated Use isMouseDown() instead.
+	 * @deprecated v2000.1 Use isMouseDown() instead.
 	 */
 	mouseIsDown: KaboomCtx["isMouseDown"],
 	/**
-	 * @deprecated Use isMouseClicked() instead.
+	 * @deprecated v2000.1 Use isMouseClicked() instead.
 	 */
 	mouseIsClicked: KaboomCtx["isMouseClicked"],
 	/**
-	 * @deprecated Use isMouseReleased() instead.
+	 * @deprecated v2000.1 Use isMouseReleased() instead.
 	 */
 	mouseIsReleased: KaboomCtx["isMouseReleased"],
 	/**
-	 * @deprecated Use isMouseMoved() instead.
+	 * @deprecated v2000.1 Use isMouseMoved() instead.
 	 */
 	mouseIsMoved: KaboomCtx["isMouseMoved"],
 	/**
-	 * @deprecated Use isFocused() instead.
+	 * @deprecated v2000.1 Use isFocused() instead.
 	 */
 	focused(): boolean,
 	/**
@@ -1631,15 +1635,19 @@ export interface KaboomCtx {
 		h2: number,
 	): number,
 	/**
-	 * Get directional vector from an angle
+	 * Get directional vector from an angle.
 	 *
 	 * @example
 	 * ```js
-	 * // move towards 80 deg direction at SPEED
+	 * // move toward bottom right in 45 degrees
 	 * player.onUpdate(() => {
-	 *     player.move(dir(80).scale(SPEED))
+	 *     player.move(vec2FromAngle(45).scale(SPEED))
 	 * })
 	 * ```
+	 */
+	vec2FromAngle(deg: number): Vec2,
+	/**
+	 * @deprecated v2000.2 Use vec2FromAngle instead.
 	 */
 	dir(deg: number): Vec2,
 	/**
@@ -2187,6 +2195,42 @@ export interface GameObjRaw {
 	 */
 	exists(): boolean,
 	/**
+	 * Add a child.
+	 *
+	 * @since v2000.2.0
+	 */
+	add<T>(comps: CompList<T>): GameObj<T>,
+	/**
+	 * Remove a child.
+	 *
+	 * @since v2000.2.0
+	 */
+	remove(obj: GameObj): void,
+	/**
+	 * Get the parent game obj, if have any.
+	 *
+	 * @since v2000.2.0
+	 */
+	parent: GameObj | null,
+	/**
+	 * Get all children game objects.
+	 *
+	 * @since v2000.2.0
+	 */
+	children: GameObj[],
+	/**
+	 * Update this game object and all children game objects.
+	 *
+	 * @since v2000.2.0
+	 */
+	update(): void,
+	/**
+	 * Draw this game object and all children game objects.
+	 *
+	 * @since v2000.2.0
+	 */
+	draw(): void,
+	/**
 	 * If there's certain tag(s) on the game obj.
 	 */
 	is(tag: Tag | Tag[]): boolean,
@@ -2241,7 +2285,7 @@ export interface GameObjRaw {
 	/**
 	 * Register an event that runs every frame as long as the game obj exists (alias to onUpdate).
 	 *
-	 * @deprecated Use onUpdate() instead.
+	 * @deprecated v2000.1 Use onUpdate() instead.
 	 */
 	action: GameObjRaw["onUpdate"],
 }
@@ -2500,11 +2544,11 @@ export interface AudioPlay {
 	 */
 	unloop(): void,
 	/**
-	 * @deprecated Use isPaused() instead.
+	 * @deprecated v2000.1 Use isPaused() instead.
 	 */
 	paused(): boolean,
 	/**
-	 * @deprecated Use isStopped() instead.
+	 * @deprecated v2000.1 Use isStopped() instead.
 	 */
 	stopped(): boolean,
 }
@@ -2564,6 +2608,7 @@ export interface RenderProps {
 	angle?: number,
 	color?: Color,
 	opacity?: number,
+	fixed?: boolean,
 	shader?: GfxShader,
 	uniform?: Uniform,
 }
@@ -2881,7 +2926,7 @@ export type DrawTextOpt = RenderProps & {
 	 *
 	 * @since v2000.2
 	 */
-	charSpacing?: number,
+	letterSpacing?: number,
 	/**
 	 * The origin point, or the pivot point. Default to "topleft".
 	 */
@@ -2891,7 +2936,13 @@ export type DrawTextOpt = RenderProps & {
 	 *
 	 * @since v2000.1
 	 */
-	transform?: (idx: number, ch: string) => CharTransform,
+	transform?: CharTransform | CharTransformFunc,
+	/**
+	 * Stylesheet for styled chunks, in the syntax of "here comes a (styled):wavy word".
+	 *
+	 * @since v2000.2
+	 */
+	styles?: Record<string, CharTransform | CharTransformFunc>,
 }
 
 /**
@@ -2915,8 +2966,10 @@ export interface FormattedChar {
 	angle: number,
 	color: Color,
 	opacity: number,
-	origin: string,
+	uniform: Uniform,
 }
+
+export type CharTransformFunc = (idx: number, ch: string) => CharTransform;
 
 export interface CharTransform {
 	pos?: Vec2,
@@ -3368,15 +3421,15 @@ export interface AreaComp extends Comp {
 	 */
 	screenArea(): Area,
 	/**
-	 * @deprecated Use onCollide() instead.
+	 * @deprecated v2000.1 Use onCollide() instead.
 	 */
 	collides: AreaComp["onCollide"],
 	/**
-	 * @deprecated Use onClick() instead.
+	 * @deprecated v2000.1 Use onClick() instead.
 	 */
 	clicks: AreaComp["onClick"],
 	/**
-	 * @deprecated Use onHover() instead.
+	 * @deprecated v2000.1 Use onHover() instead.
 	 */
 	hovers: AreaComp["onHover"],
 }
@@ -3522,11 +3575,19 @@ export interface TextCompOpt {
 	 *
 	 * @since v2000.2
 	 */
-	charSpacing?: number,
+	letterSpacing?: number,
 	/**
 	 * Transform the pos, scale, rotation or color for each character based on the index or char.
+	 *
+	 * @since v2000.1
 	 */
-	transform?: (idx: number, ch: string) => CharTransform,
+	transform?: CharTransform | CharTransformFunc,
+	/**
+	 * Stylesheet for styled chunks, in the syntax of "here comes a (styled):wavy word".
+	 *
+	 * @since v2000.2
+	 */
+	styles?: Record<string, CharTransform | CharTransformFunc>,
 }
 
 export interface RectCompOpt {
@@ -3721,11 +3782,11 @@ export interface BodyComp extends Comp {
 	 */
 	onDoubleJump(action: () => void): EventCanceller,
 	/**
-	 * @deprecated Use isGrounded() instead.
+	 * @deprecated v2000.1 Use isGrounded() instead.
 	 */
 	grounded(): boolean,
 	/**
-	 * @deprecated Use isFalling() instead.
+	 * @deprecated v2000.1 Use isFalling() instead.
 	 */
 	falling(): boolean,
 }
