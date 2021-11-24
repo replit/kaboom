@@ -1760,19 +1760,15 @@ function sprite(id: string | SpriteData, opt: SpriteCompOpt = {}): SpriteComp {
 
 function text(t: string, opt: TextCompOpt = {}): TextComp {
 
-	function update() {
+	function update(obj: GameObj<TextComp | any>) {
 
-		const name = this.font ?? gopt.font ?? DEF_FONT;
-		const font = assets.fonts[name];
-
-		if (!font) {
-			throw new Error(`font not found: "${name}"`);
-		}
+		const font = findAsset(opt.font, assets.fonts, DEF_FONT);
+		if (!font) throw new Error(`font not found: ${opt.font}`);
 
 		const ftext = gfx.formatText({
-			...getRenderProps(this),
-			text: this.text + "",
-			size: this.textSize,
+			...getRenderProps(obj),
+			text: obj.text + "",
+			size: obj.textSize,
 			font: font,
 			width: opt.width,
 			letterSpacing: opt.letterSpacing,
@@ -1781,8 +1777,8 @@ function text(t: string, opt: TextCompOpt = {}): TextComp {
 			styles: opt.styles,
 		});
 
-		this.width = ftext.width / (this.scale?.x || 1);
-		this.height = ftext.height / (this.scale?.y || 1);
+		obj.width = ftext.width / (obj.scale?.x || 1);
+		obj.height = ftext.height / (obj.scale?.y || 1);
 
 		return ftext;
 
@@ -1798,11 +1794,11 @@ function text(t: string, opt: TextCompOpt = {}): TextComp {
 		height: 0,
 
 		load() {
-			update.call(this);
+			update(this);
 		},
 
 		draw() {
-			gfx.drawFormattedText(update.call(this));
+			gfx.drawFormattedText(update(this));
 		},
 
 	};
