@@ -9,6 +9,7 @@ import {
 	isVec3,
 	isColor,
 	isMat4,
+	testRectRect,
 } from "./math";
 
 import {
@@ -479,22 +480,42 @@ function gfxInit(gl: WebGLRenderingContext, gopt: GfxOpt): Gfx {
 			flush();
 		}
 
-		gfx.curTex = tex;
-		gfx.curShader = shader;
-		gfx.curUniform = uniform;
-
-		for (const i of indices) {
-			gfx.iqueue.push(i + gfx.vqueue.length / STRIDE);
-		}
+		const objBound = { p1: vec2(Number.MAX_VALUE), p2: vec2(-Number.MAX_VALUE)};
+		const screenBound = { p1: vec2(-1), p2: vec2(1) };
 
 		for (const v of verts) {
+
+			// WebGL screen space coordinate [-1.0 ~ 1.0]
 			const pt = toNDC(gfx.transform.multVec2(v.pos.xy()));
+
+			// get the bounding rectangle for the polygon
+			objBound.p1.x = Math.min(objBound.p1.x, pt.x);
+			objBound.p2.x = Math.max(objBound.p2.x, pt.x);
+			objBound.p1.y = Math.min(objBound.p1.y, pt.y);
+			objBound.p2.y = Math.max(objBound.p2.y, pt.y);
+
 			gfx.vqueue.push(
 				pt.x, pt.y, v.pos.z,
 				v.uv.x, v.uv.y,
 				v.color.r / 255, v.color.g / 255, v.color.b / 255, v.opacity,
 			);
+
 		}
+
+		// if the object bound is totally outside, we don't render
+		if (!testRectRect(objBound, screenBound)) {
+			const num = verts.length * STRIDE;
+			gfx.vqueue.splice(gfx.vqueue.length - num, num);
+			return;
+		}
+
+		for (const i of indices) {
+			gfx.iqueue.push(i + gfx.vqueue.length / STRIDE - verts.length);
+		}
+
+		gfx.curTex = tex;
+		gfx.curShader = shader;
+		gfx.curUniform = uniform;
 
 	}
 
