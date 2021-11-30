@@ -54,7 +54,6 @@ type AssetsCtx = {
 
 type Assets = {
 	loadRoot(path?: string): string,
-	mergeImg(urls: string[]): Promise<ImageData>,
 	loadSprite(
 		name: string | null,
 		src: SpriteLoadSrc,
@@ -116,45 +115,6 @@ function loadImg(src: string): Promise<HTMLImageElement> {
 		};
 	});
 }
-
-function mergeImg(urls: string[]): Promise<ImageData> {
-    let promises: Promise<HTMLImageElement>[] = [];
-    for (let url of urls) {
-        const img = new Image();
-        img.src = url;
-        img.crossOrigin = "anonymous";
-        promises.push(new Promise<HTMLImageElement>((resolve, reject) => {
-            img.onload = () => {
-                resolve(img);
-            };
-            img.onerror = () => {
-                reject(`failed to load ${url}`);
-            };
-        }));
-    }
-    return new Promise((resolve, reject) => {
-        Promise.all(promises).then((images) => {
-            const canvas = document.createElement("canvas");
-
-			const width = images[0].width;
-			const height = images[0].height;
-            canvas.width = width;
-            canvas.height = height;
-            const ctx = canvas.getContext("2d");
-            if (ctx) {
-                images.forEach((img: HTMLImageElement, i) => {
-					if (img.width === width && img.height === height) {
-						ctx.drawImage(img, 0, 0);
-					}
-                });
-                resolve(ctx.getImageData(0, 0, width, height));
-            } else {
-				reject();
-			}
-        }).catch((error) => reject(error));
-    })
-}
-
 
 function isDataUrl(src: string): boolean {
 	return src.startsWith("data:");
@@ -570,7 +530,6 @@ function assetsInit(gfx: Gfx, audio: Audio, gopt: AssetsOpt = {}): Assets {
 
 	return {
 		loadRoot,
-		mergeImg,
 		loadSprite,
 		loadSpriteAtlas,
 		loadPedit,
