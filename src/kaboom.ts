@@ -904,7 +904,7 @@ app.canvas.addEventListener("touchmove", (e) => {
 	});
 });
 
-app.canvas.addEventListener("touchmove", (e) => {
+app.canvas.addEventListener("touchend", (e) => {
 	[...e.changedTouches].forEach((t) => {
 		game.trigger("onTouchEnd", t.identifier, vec2(t.clientX, t.clientY).scale(1 / app.scale));
 	});
