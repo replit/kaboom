@@ -29,21 +29,41 @@ onDraw(() => {
 `.trim();
 
 const code = `
+const outline = {
+	color: rgb(0, 0, 0),
+	width: 4,
+}
+
 drawRect({
 	pos: vec2(40, 80),
 	width: 80,
 	height: 120,
-	origin: "center",
+	origin: "topleft",
 	radius: 4,
 	angle: 0,
 	color: rgb(128, 255, 255),
 	outline,
 })
 
-drawTriangle({
-	p1: vec2(330),
-	p2: vec2(180),
-	p3: vec2(401, 65),
+for (let i = 0; i < 1; i++) {
+	drawTriangle({
+		pos: vec2(320, 240),
+		p1: vec2(200),
+		p2: vec2(0),
+		p3: vec2(240, 60 - 200),
+		color: hsl2rgb((i * 0.1) % 1, 0.6, 0.8),
+		opacity: 1 - i * 0.005,
+		angle: i * 10,
+		outline,
+	})
+}
+
+drawEllipse({
+	pos: vec2(160, 400),
+	radiusX: 48,
+	radiusY: 64,
+	color: rgb(255, 255, 128),
+	outline,
 })
 `.trim();
 
