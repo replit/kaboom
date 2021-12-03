@@ -7,46 +7,16 @@ import {
 	Decoration,
 } from "@codemirror/view";
 
+import {StateField, StateEffect} from "@codemirror/state"
+
 import { syntaxTree } from "@codemirror/language";
 import { Range } from "@codemirror/rangeset";
 
-class SliderWidget extends WidgetType {
+const snumMark = Decoration.mark({class: "cm-snum"});
 
-	constructor(readonly value: number) {
-		super()
-	}
-
-	eq(other: SliderWidget) {
-		return other.value == this.value;
-	}
-
-	toDOM() {
-
-		const slider = document.createElement("div");
-
-		slider.dataset.value = this.value.toString();
-		slider.style.display = "inline-block";
-		slider.style.marginLeft = "4px";
-		slider.style.width = "16px";
-		slider.style.height = "12px";
-// 		slider.style.height = "100%";
-		slider.style.background = "var(--color-bg1)";
-		slider.style.borderRadius = "4px";
-		slider.style.cursor = "ew-resize";
-
-		const wrapper = document.createElement("span");
-		wrapper.className = "cm-number-slider";
-		wrapper.appendChild(slider);
-		wrapper.style.height = "100%";
-
-		return wrapper
-	}
-
-	ignoreEvent() {
-		return false;
-	}
-
-}
+const snumTheme = EditorView.baseTheme({
+	".cm-snum": { textDecoration: "underline 3px red" }
+});
 
 const NUMBER_RE = /\b(?![a-zA-Z])-?\d+\.?\d*\b(?![a-zA-Z])/g;
 
@@ -60,11 +30,7 @@ function sliders(view: EditorView) {
 			if (match.index === undefined) continue;
 			const num = Number(match[0]);
 			if (isNaN(num)) continue;
-			const deco = Decoration.widget({
-				widget: new SliderWidget(num),
-				side: 1,
-			});
-			widgets.push(deco.range(match.index + match[0].length));
+			widgets.push(snumMark.range(match.index, match.index + match[0].length));
 		}
 	}
 
@@ -95,7 +61,8 @@ const sliderPlugin = ViewPlugin.fromClass(class {
 
 		mousedown: (e, view) => {
 			const el = e.target as HTMLDivElement;
-			if (!el.parentElement?.classList.contains("cm-number-slider")) return;
+			if (!el.parentElement?.classList.contains("cm-snum")) return;
+			if (!e.altKey) return;
 			e.preventDefault();
 			draggin = view.posAtDOM(el);
 		},
@@ -108,24 +75,23 @@ const sliderPlugin = ViewPlugin.fromClass(class {
 
 			const doc = view.state.doc;
 			const line = doc.lineAt(draggin);
-			const end = draggin;
-			let start = end - 1;
+			const start = draggin;
+			let end = start + 1;
 			let oldVal = NaN;
 
-			while (start >= line.from) {
+			while (end < line.to) {
 				const text = doc.sliceString(start, end);
 				const val = Number(text);
 				if (text[0] === " " || isNaN(val)) {
-					start++;
+					end--;
 					break;
 				} else {
 					oldVal = val;
 				}
-				start--;
+				end++;
 			}
 
 			const newVal = oldVal + e.movementX;
-			draggin += newVal.toString().length - oldVal.toString().length;
 
 			if (isNaN(newVal)) return;
 
