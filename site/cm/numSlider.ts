@@ -48,7 +48,7 @@ class SliderWidget extends WidgetType {
 
 }
 
-const NUMBER_RE = /\b(?![a-zA-Z])\d+\b(?![a-zA-Z])/g;
+const NUMBER_RE = /\b(?![a-zA-Z])-?\d+\.?\d*\b(?![a-zA-Z])/g;
 
 function sliders(view: EditorView) {
 
