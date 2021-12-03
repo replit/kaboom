@@ -18,7 +18,8 @@ const snumTheme = EditorView.baseTheme({
 	".cm-snum": { textDecoration: "underline 3px red" }
 });
 
-const NUMBER_RE = /\b(?![a-zA-Z])-?\d+\.?\d*\b(?![a-zA-Z])/g;
+// TODO: disallow alpha prefix
+const NUMBER_RE = /-?\d+\.?\d*\b(?![a-zA-Z])/g;
 
 function sliders(view: EditorView) {
 
@@ -27,6 +28,7 @@ function sliders(view: EditorView) {
 	for (let {from, to} of view.visibleRanges) {
 		const text = view.state.doc.sliceString(from, to);
 		for (const match of text.matchAll(NUMBER_RE)) {
+			console.log(match);
 			if (match.index === undefined) continue;
 			const num = Number(match[0]);
 			if (isNaN(num)) continue;
@@ -38,7 +40,12 @@ function sliders(view: EditorView) {
 
 }
 
-let draggin: number | null = null;
+interface Draggin {
+	pos: number,
+	value: number,
+}
+
+let draggin: Draggin | null = null;
 
 const sliderPlugin = ViewPlugin.fromClass(class {
 
@@ -60,48 +67,39 @@ const sliderPlugin = ViewPlugin.fromClass(class {
 	eventHandlers: {
 
 		mousedown: (e, view) => {
+			// is cm-snum it guaranteed to be the parent?
 			const el = e.target as HTMLDivElement;
-			if (!el.parentElement?.classList.contains("cm-snum")) return;
+			const snum = el.parentElement;
+			if (!snum?.classList.contains("cm-snum")) return;
 			if (!e.altKey) return;
 			e.preventDefault();
-			draggin = view.posAtDOM(el);
+			draggin = {
+				pos: view.posAtDOM(snum),
+				value: Number(snum.textContent),
+			};
+			document.body.style.cursor = "ew-resize";
 		},
 
 		mousemove: (e, view) => {
 
+			// TODO: change cursor when mouse over a cm-snum
 			if (draggin === null) return;
 
 			document.body.style.cursor = "ew-resize";
 
-			const doc = view.state.doc;
-			const line = doc.lineAt(draggin);
-			const start = draggin;
-			let end = start + 1;
-			let oldVal = NaN;
-
-			while (end < line.to) {
-				const text = doc.sliceString(start, end);
-				const val = Number(text);
-				if (text[0] === " " || isNaN(val)) {
-					end--;
-					break;
-				} else {
-					oldVal = val;
-				}
-				end++;
-			}
-
-			const newVal = oldVal + e.movementX;
+			const newVal = draggin.value + e.movementX;
 
 			if (isNaN(newVal)) return;
 
 			view.dispatch({
 				changes: {
-					from: start,
-					to: end,
+					from: draggin.pos,
+					to: draggin.pos + draggin.value.toString().length,
 					insert: newVal.toString(),
 				},
 			});
+
+			draggin.value = newVal;
 
 		},
 
@@ -109,6 +107,17 @@ const sliderPlugin = ViewPlugin.fromClass(class {
 			draggin = null;
 			document.body.style.cursor = "auto";
 		},
+
+		// TODO: change cursor when mouse over a cm-snum
+// 		keydown: (e, view) => {
+// 			if (e.altKey) {
+// 				document.body.style.cursor = "ew-resize";
+// 			}
+// 		},
+
+// 		keyup: (e, view) => {
+// 			document.body.style.cursor = "auto";
+// 		},
 
 	},
 
