@@ -21,6 +21,7 @@ class CheckboxWidget extends WidgetType {
 		let box = wrap.appendChild(document.createElement("input"))
 		box.type = "checkbox"
 		box.checked = this.checked
+		box.style.marginLeft = "4px";
 		return wrap
 	}
 

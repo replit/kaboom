@@ -17,7 +17,7 @@ class SliderWidget extends WidgetType {
 	}
 
 	eq(other: SliderWidget) {
-		return other.value == this.value
+		return other.value == this.value;
 	}
 
 	toDOM() {
@@ -28,7 +28,7 @@ class SliderWidget extends WidgetType {
 		slider.style.display = "inline-block";
 		slider.style.marginLeft = "4px";
 		slider.style.width = "16px";
-		slider.style.height = "16px";
+		slider.style.height = "12px";
 // 		slider.style.height = "100%";
 		slider.style.background = "var(--color-bg1)";
 		slider.style.borderRadius = "4px";
@@ -48,25 +48,24 @@ class SliderWidget extends WidgetType {
 
 }
 
+const NUMBER_RE = /\b(?![a-zA-Z])\d+\b(?![a-zA-Z])/g;
+
 function sliders(view: EditorView) {
 
 	const widgets: Array<Range<Decoration>> = [];
 
 	for (let {from, to} of view.visibleRanges) {
-		syntaxTree(view.state).iterate({
-			from,
-			to,
-			enter: (type, from, to) => {
-				if (type.name == "Number") {
-					const value = Number(view.state.doc.sliceString(from, to));
-					const deco = Decoration.widget({
-						widget: new SliderWidget(value),
-						side: 1
-					})
-					widgets.push(deco.range(to))
-				}
-			}
-		})
+		const text = view.state.doc.sliceString(from, to);
+		for (const match of text.matchAll(NUMBER_RE)) {
+			if (match.index === undefined) continue;
+			const num = Number(match[0]);
+			if (isNaN(num)) continue;
+			const deco = Decoration.widget({
+				widget: new SliderWidget(num),
+				side: 1,
+			});
+			widgets.push(deco.range(match.index + match[0].length));
+		}
 	}
 
 	return Decoration.set(widgets);
@@ -93,12 +92,14 @@ const sliderPlugin = ViewPlugin.fromClass(class {
 	decorations: v => v.decorations,
 
 	eventHandlers: {
+
 		mousedown: (e, view) => {
 			const el = e.target as HTMLDivElement;
 			if (!el.parentElement?.classList.contains("cm-number-slider")) return;
-			e.preventDefault()
+			e.preventDefault();
 			draggin = view.posAtDOM(el);
 		},
+
 		mousemove: (e, view) => {
 
 			if (draggin === null) return;
@@ -106,11 +107,12 @@ const sliderPlugin = ViewPlugin.fromClass(class {
 			document.body.style.cursor = "ew-resize";
 
 			const doc = view.state.doc;
+			const line = doc.lineAt(draggin);
 			const end = draggin;
 			let start = end - 1;
 			let oldVal = NaN;
 
-			while (start >= 0) {
+			while (start >= line.from) {
 				const text = doc.sliceString(start, end);
 				const val = Number(text);
 				if (text[0] === " " || isNaN(val)) {
@@ -136,11 +138,14 @@ const sliderPlugin = ViewPlugin.fromClass(class {
 			});
 
 		},
+
 		mouseup: (e, view) => {
 			draggin = null;
 			document.body.style.cursor = "auto";
 		},
+
 	},
+
 })
 
 export default sliderPlugin;
