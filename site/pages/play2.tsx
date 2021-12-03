@@ -141,6 +141,7 @@ const Play: React.FC = () => {
 				}}
 			>
 				<Editor
+					bret
 					name="Editor"
 					desc="Where you edit the code"
 					ref={editorRef}

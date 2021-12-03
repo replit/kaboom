@@ -271,6 +271,7 @@ interface EditorProps {
 	onChange?: (code: string) => void,
 	onSelect?: (code: string) => void,
 	keys?: KeyBinding[],
+	bret?: boolean,
 };
 
 const Editor = React.forwardRef<EditorRef, EditorProps & ViewProps>(({
@@ -279,6 +280,7 @@ const Editor = React.forwardRef<EditorRef, EditorProps & ViewProps>(({
 	keys,
 	onChange,
 	onSelect,
+	bret,
 	...args
 }, ref) => {
 
@@ -390,9 +392,11 @@ const Editor = React.forwardRef<EditorRef, EditorProps & ViewProps>(({
 					indentWithTab,
 					...(keys ?? []),
 				]),
-				boolCheckbox,
-				colorPickerPlugin,
-				numSlider,
+				...(bret ? [
+					boolCheckbox,
+					colorPickerPlugin,
+					numSlider,
+				] : []),
 			].filter((ext) => ext),
 		}));
 
