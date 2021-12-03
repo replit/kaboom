@@ -58,6 +58,10 @@ import View, { ViewProps } from "comps/View";
 import Ctx from "lib/Ctx";
 import { themes } from "lib/ui";
 
+import boolCheckbox from "cm/boolCheckbox";
+import numSlider from "cm/numSlider";
+import colorPickerPlugin from "cm/colorPicker";
+
 // @ts-ignore
 const cmThemes: Record<Theme, [ Extension, HighlightStyle ]> = {};
 
@@ -386,6 +390,9 @@ const Editor = React.forwardRef<EditorRef, EditorProps & ViewProps>(({
 					indentWithTab,
 					...(keys ?? []),
 				]),
+				boolCheckbox,
+				colorPickerPlugin,
+				numSlider,
 			].filter((ext) => ext),
 		}));
 
