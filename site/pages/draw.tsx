@@ -175,7 +175,7 @@ const Play: React.FC = () => {
 					name="Game View"
 					desc="Where your game runs"
 					ref={gameviewRef}
-					code={code}
+					code={template}
 					width={isNarrow ? "100%" : "auto"}
 					height={isNarrow ? "auto" : "100%"}
 					css={{

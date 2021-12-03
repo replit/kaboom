@@ -394,7 +394,7 @@ const Editor = React.forwardRef<EditorRef, EditorProps & ViewProps>(({
 				]),
 				...(bret ? [
 					boolCheckbox,
-					colorPickerPlugin,
+// 					colorPickerPlugin,
 					numSlider,
 				] : []),
 			].filter((ext) => ext),

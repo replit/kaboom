@@ -12,11 +12,7 @@ import { Range } from "@codemirror/rangeset";
 
 class SliderWidget extends WidgetType {
 
-	constructor(
-		readonly value: number,
-		readonly from: number,
-		readonly to: number,
-	) {
+	constructor(readonly value: number) {
 		super()
 	}
 
@@ -28,8 +24,6 @@ class SliderWidget extends WidgetType {
 
 		const slider = document.createElement("div");
 
-		slider.dataset.from = this.from.toString();
-		slider.dataset.to = this.to.toString();
 		slider.dataset.value = this.value.toString();
 		slider.style.display = "inline-block";
 		slider.style.marginLeft = "4px";
@@ -40,9 +34,9 @@ class SliderWidget extends WidgetType {
 		slider.style.borderRadius = "4px";
 		slider.style.cursor = "ew-resize";
 
-		const wrapper = document.createElement("span")
-		wrapper.className = "cm-number-slider"
-		wrapper.appendChild(slider)
+		const wrapper = document.createElement("span");
+		wrapper.className = "cm-number-slider";
+		wrapper.appendChild(slider);
 		wrapper.style.height = "100%";
 
 		return wrapper
@@ -65,8 +59,8 @@ function sliders(view: EditorView) {
 			enter: (type, from, to) => {
 				if (type.name == "Number") {
 					const value = Number(view.state.doc.sliceString(from, to));
-					let deco = Decoration.widget({
-						widget: new SliderWidget(value, from, to),
+					const deco = Decoration.widget({
+						widget: new SliderWidget(value),
 						side: 1
 					})
 					widgets.push(deco.range(to))
@@ -79,12 +73,7 @@ function sliders(view: EditorView) {
 
 }
 
-interface Draggin {
-	from: number,
-	to: number,
-}
-
-let draggin: Draggin[] = []
+let draggin: number | null = null;
 
 const sliderPlugin = ViewPlugin.fromClass(class {
 
@@ -108,29 +97,47 @@ const sliderPlugin = ViewPlugin.fromClass(class {
 			const el = e.target as HTMLDivElement;
 			if (!el.parentElement?.classList.contains("cm-number-slider")) return;
 			e.preventDefault()
-			draggin.push({
-				from: Number(el.dataset.from),
-				to: Number(el.dataset.to),
-			});
-			document.body.style.cursor = "ew-resize";
+			draggin = view.posAtDOM(el);
 		},
 		mousemove: (e, view) => {
-			for (const d of draggin) {
-				const oldVal = Number(view.state.doc.sliceString(d.from, d.to))
-				const newVal = oldVal + e.movementX;
-				const diff = newVal.toString().length - oldVal.toString().length;
-				view.dispatch({
-					changes: {
-						from: d.from,
-						to: d.to,
-						insert: newVal.toString(),
-					},
-				});
-				d.to += diff;
+
+			if (draggin === null) return;
+
+			document.body.style.cursor = "ew-resize";
+
+			const doc = view.state.doc;
+			const end = draggin;
+			let start = end - 1;
+			let oldVal = NaN;
+
+			while (start >= 0) {
+				const text = doc.sliceString(start, end);
+				const val = Number(text);
+				if (text[0] === " " || isNaN(val)) {
+					start++;
+					break;
+				} else {
+					oldVal = val;
+				}
+				start--;
 			}
+
+			const newVal = oldVal + e.movementX;
+			draggin += newVal.toString().length - oldVal.toString().length;
+
+			if (isNaN(newVal)) return;
+
+			view.dispatch({
+				changes: {
+					from: start,
+					to: end,
+					insert: newVal.toString(),
+				},
+			});
+
 		},
 		mouseup: (e, view) => {
-			draggin = []
+			draggin = null;
 			document.body.style.cursor = "auto";
 		},
 	},
