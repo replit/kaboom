@@ -17,12 +17,19 @@ import Background from "comps/Background";
 const template = `
 kaboom()
 
+let err = null
+
 onDraw(() => {
 	if (window.parent.code) {
 		try {
-			eval(window.parent.code);
+			eval(window.parent.code)
+			err = null
+			debug.clearLog()
 		} catch (e) {
-// 			debug.log(e)
+			if (!err || err.toString() !== e.toString()) {
+				debug.error(e)
+				err = e
+			}
 		}
 	}
 })
@@ -141,7 +148,6 @@ const Play: React.FC = () => {
 				}}
 			>
 				<Editor
-					bret
 					name="Editor"
 					desc="Where you edit the code"
 					ref={editorRef}

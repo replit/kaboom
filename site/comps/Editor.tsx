@@ -269,7 +269,6 @@ interface EditorProps {
 	onChange?: (code: string) => void,
 	onSelect?: (code: string) => void,
 	keys?: KeyBinding[],
-	bret?: boolean,
 };
 
 const Editor = React.forwardRef<EditorRef, EditorProps & ViewProps>(({
@@ -278,7 +277,6 @@ const Editor = React.forwardRef<EditorRef, EditorProps & ViewProps>(({
 	keys,
 	onChange,
 	onSelect,
-	bret,
 	...args
 }, ref) => {
 
@@ -346,6 +344,12 @@ const Editor = React.forwardRef<EditorRef, EditorProps & ViewProps>(({
 			cmRef.current = cm;
 		}
 
+		const origins = [
+			"topleft", "top", "topright",
+			"left", "center", "right",
+			"botleft", "bot", "botright",
+		];
+
 		cm.setState(EditorState.create({
 			doc: content ?? "",
 			extensions: [
@@ -390,31 +394,42 @@ const Editor = React.forwardRef<EditorRef, EditorProps & ViewProps>(({
 					indentWithTab,
 					...(keys ?? []),
 				]),
-				...(bret ? [
-					drag([
-						{
-							// TODO: not including '-' sign
-							regex: /(?![a-zA-Z])\b-?\d+\.?\d*\b(?![a-zA-Z])/g,
-							cursor: "ew-resize",
-							transform: (old: string, dx: number, dy: number) => {
-								const newVal = Number(old) + dx;
-								if (isNaN(newVal)) return null;
-								return newVal.toString();
-							}
+				drag([
+					{
+						// TODO: not including '-' sign
+						regex: /(?![a-zA-Z])\b-?\d+\.?\d*\b(?![a-zA-Z])/g,
+						cursor: "ew-resize",
+						transform: (old: string, dx: number, dy: number) => {
+							const newVal = Number(old) + dx;
+							if (isNaN(newVal)) return null;
+							return newVal.toString();
+						}
+					},
+					{
+						regex: /vec2\(.*\)/g,
+						cursor: "move",
+						transform: (old: string, dx: number, dy: number) => {
+							const res = /vec2\((?<x>\d+)\s*,\s*(?<y>\d+)\)/.exec(old);
+							const x = Number(res?.groups?.x);
+							const y = Number(res?.groups?.y);
+							if (isNaN(x) || isNaN(y)) return null;
+							return `vec2(${x + dx}, ${y + dy})`;
 						},
-						{
-							regex: /vec2\(.+\)/g,
-							cursor: "move",
-							transform: (old: string, dx: number, dy: number) => {
-								const res = /vec2\((?<x>\d+)\s*,\s*(?<y>\d+)\)/.exec(old);
-								const x = Number(res?.groups?.x);
-								const y = Number(res?.groups?.y);
-								if (isNaN(x) || isNaN(y)) return null;
-								return `vec2(${x + dx}, ${y + dy})`;
-							},
+					},
+					{
+						regex: new RegExp(origins.join("|"), "g"),
+						cursor: "move",
+						transform: (old: string, dx: number, dy: number) => {
+							const clamp = (n: number, a: number, b: number) => Math.min(b, Math.max(n, a));
+							const idx = origins.indexOf(old);
+							if (idx === -1) return null;
+							const s = 20;
+							const x = clamp(idx % 3 + Math.round(dx / s), 0, 2);
+							const y = clamp(Math.floor(idx / 3) + Math.round(dy / s), 0, 2);
+							return origins[y * 3 + x];
 						},
-					]),
-				] : []),
+					},
+				]),
 			].filter((ext) => ext),
 		}));
 
