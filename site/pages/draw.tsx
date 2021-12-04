@@ -17,6 +17,8 @@ import Background from "comps/Background";
 const template = `
 kaboom()
 
+loadBean()
+
 let err = null
 
 onDraw(() => {
@@ -50,6 +52,12 @@ drawRect({
 	angle: 0,
 	color: rgb(128, 255, 255),
 	outline,
+})
+
+drawSprite({
+	sprite: "bean",
+	flipX: false,
+	pos: vec2(200),
 })
 
 for (let i = 0; i < 1; i++) {
@@ -168,9 +176,7 @@ const Play: React.FC = () => {
 							run: () => {
 								if (!gameviewRef.current) return false;
 								const gameview = gameviewRef.current;
-								if (!editorRef.current) return false;
-								const editor = editorRef.current;
-								gameview.run(editor.getContent() ?? undefined);
+								gameview.run(template);
 								return false;
 							},
 							preventDefault: true,

@@ -58,7 +58,7 @@ import View, { ViewProps } from "comps/View";
 import Ctx from "lib/Ctx";
 import { themes } from "lib/ui";
 import { clamp } from "lib/math";
-import interact from "cm/interact";
+import interact from "lib/interact";
 
 // @ts-ignore
 const cmThemes: Record<Theme, [ Extension, HighlightStyle ]> = {};
@@ -348,7 +348,7 @@ const Editor = React.forwardRef<EditorRef, EditorProps & ViewProps>(({
 			"topleft", "top", "topright",
 			"left", "center", "right",
 			"botleft", "bot", "botright",
-		];
+		].map((o) => `"${o}"`);
 
 		// TODO
 		const originState = {
@@ -403,10 +403,10 @@ const Editor = React.forwardRef<EditorRef, EditorProps & ViewProps>(({
 				]),
 				interact([
 					{
-						// TODO: not including '-' sign
-						regex: /(?![a-zA-Z])\b-?\d+\.?\d*\b(?![a-zA-Z])/g,
+						regex: /-?\b\d+\.?\d*\b/g,
 						cursor: "ew-resize",
 						onDrag: (old, dx, dy) => {
+							// TODO: size aware
 							const newVal = Number(old) + dx;
 							if (isNaN(newVal)) return null;
 							return newVal.toString();
@@ -428,15 +428,17 @@ const Editor = React.forwardRef<EditorRef, EditorProps & ViewProps>(({
 						regex: /vec2\(.*\)/g,
 						cursor: "move",
 						onDrag: (old, dx, dy) => {
-							const res = /vec2\((?<x>\d+)\s*,\s*(?<y>\d+)\)/.exec(old);
-							const x = Number(res?.groups?.x);
-							const y = Number(res?.groups?.y);
-							if (isNaN(x) || isNaN(y)) return null;
+							// TODO: single arg vec2(120)
+							const res = /vec2\((?<x>-?\b\d+\.?\d*\b)\s*(,\s*(?<y>-?\b\d+\.?\d*\b))?\)/.exec(old);
+							let x = Number(res?.groups?.x);
+							let y = Number(res?.groups?.y);
+							if (isNaN(x)) return null;
+							if (isNaN(y)) y = x;
 							return `vec2(${x + dx}, ${y + dy})`;
 						},
 					},
 					{
-						regex: new RegExp(origins.join("|"), "g"),
+						regex: new RegExp(`${origins.join("|")}`, "g"),
 						cursor: "move",
 						onClick: (old, x, y) => {
 							const idx = origins.indexOf(old);

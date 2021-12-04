@@ -12,7 +12,7 @@ import {StateField, StateEffect} from "@codemirror/state"
 import { syntaxTree } from "@codemirror/language";
 import { Range } from "@codemirror/rangeset";
 
-interface DragTarget {
+interface InteractTarget {
 	pos: number,
 	text: string,
 	rule: InteractRule,
@@ -26,12 +26,12 @@ export interface InteractRule {
 	style?: any,
 }
 
-const drag = (rules: InteractRule[]) => {
+const interact = (rules: InteractRule[]) => {
 
-	let dragging: DragTarget | null = null;
-	let hovering: DragTarget | null = null;
+	let dragging: InteractTarget | null = null;
+	let hovering: InteractTarget | null = null;
 
-	const getMatchFromMouse = (view: EditorView, x: number, y: number): DragTarget | null => {
+	const getMatchFromMouse = (view: EditorView, x: number, y: number): InteractTarget | null => {
 
 		const pos = view.posAtCoords({ x, y });
 		if (!pos) return null;
@@ -60,6 +60,26 @@ const drag = (rules: InteractRule[]) => {
 
 	}
 
+	const updateText = (
+		view: EditorView,
+		d: InteractTarget,
+		text: string | null
+	) => {
+
+		if (text === null) return;
+
+		view.dispatch({
+			changes: {
+				from: d.pos,
+				to: d.pos + d.text.length,
+				insert: text,
+			},
+		});
+
+		d.text = text;
+
+	}
+
 	return ViewPlugin.define(() => ({}), {
 
 		eventHandlers: {
@@ -77,24 +97,16 @@ const drag = (rules: InteractRule[]) => {
 					text: match.text,
 				};
 
-				if (dragging.rule.cursor) document.body.style.cursor = dragging.rule.cursor;
+				if (dragging.rule.cursor) {
+					document.body.style.cursor = dragging.rule.cursor;
+				}
 
 				if (dragging.rule.onClick) {
-
-					const newText = dragging.rule.onClick(dragging.text, e.clientX, e.clientY);
-
-					if (newText === null) return;
-
-					view.dispatch({
-						changes: {
-							from: dragging.pos,
-							to: dragging.pos + dragging.text.length,
-							insert: newText,
-						},
-					});
-
-					dragging.text = newText;
-
+					updateText(view, dragging, dragging.rule.onClick(
+						dragging.text,
+						e.clientX,
+						e.clientY,
+					));
 				};
 
 			},
@@ -116,31 +128,21 @@ const drag = (rules: InteractRule[]) => {
 					document.body.style.cursor = dragging.rule.cursor;
 				}
 
-				if (!dragging.rule.onDrag) return;
-
-				const newText = dragging.rule.onDrag(
-					dragging.text,
-					e.movementX,
-					e.movementY
-				);
-
-				if (newText === null) return;
-
-				view.dispatch({
-					changes: {
-						from: dragging.pos,
-						to: dragging.pos + dragging.text.length,
-						insert: newText,
-					},
-				});
-
-				dragging.text = newText;
+				if (dragging.rule.onDrag) {
+					updateText(view, dragging, dragging.rule.onDrag(
+						dragging.text,
+						e.movementX,
+						e.movementY
+					));
+				};
 
 			},
 
 			mouseup: (e, view) => {
 				dragging = null;
-				document.body.style.cursor = "auto";
+				if (!hovering) {
+					document.body.style.cursor = "auto";
+				}
 			},
 
 			keydown: (e, view) => {
@@ -152,7 +154,9 @@ const drag = (rules: InteractRule[]) => {
 			},
 
 			keyup: (e, view) => {
-				document.body.style.cursor = "auto";
+				if (!hovering) {
+					document.body.style.cursor = "auto";
+				}
 			},
 
 		},
@@ -161,4 +165,4 @@ const drag = (rules: InteractRule[]) => {
 
 };
 
-export default drag;
+export default interact;
