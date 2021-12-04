@@ -30,6 +30,8 @@ const interact = (rules: InteractRule[]) => {
 
 	let dragging: InteractTarget | null = null;
 	let hovering: InteractTarget | null = null;
+	let mouseX = 0;
+	let mouseY = 0;
 
 	const getMatchFromMouse = (view: EditorView, x: number, y: number): InteractTarget | null => {
 
@@ -113,10 +115,13 @@ const interact = (rules: InteractRule[]) => {
 
 			mousemove: (e, view) => {
 
+				mouseX = e.clientX;
+				mouseY = e.clientY;
 				document.body.style.cursor = "auto";
-				hovering = getMatchFromMouse(view, e.clientX, e.clientY);
 
 				if (!e.altKey) return;
+
+				hovering = getMatchFromMouse(view, mouseX, mouseY);
 
 				if (hovering?.rule.cursor) {
 					document.body.style.cursor = hovering.rule.cursor;
@@ -140,7 +145,7 @@ const interact = (rules: InteractRule[]) => {
 
 			mouseup: (e, view) => {
 				dragging = null;
-				if (!hovering) {
+				if (!hovering && !e.altKey) {
 					document.body.style.cursor = "auto";
 				}
 			},
@@ -148,13 +153,14 @@ const interact = (rules: InteractRule[]) => {
 			keydown: (e, view) => {
 				if (!e.altKey) return;
 				if (!hovering) return;
+				hovering = getMatchFromMouse(view, mouseX, mouseY);
 				if (hovering?.rule.cursor) {
 					document.body.style.cursor = hovering.rule.cursor;
 				}
 			},
 
 			keyup: (e, view) => {
-				if (!hovering) {
+				if (!e.altKey) {
 					document.body.style.cursor = "auto";
 				}
 			},
