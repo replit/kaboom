@@ -393,9 +393,8 @@ const Editor = React.forwardRef<EditorRef, EditorProps & ViewProps>(({
 				...(bret ? [
 					drag([
 						{
-							// TODO: no alpha before
+							// TODO: not including '-' sign
 							regex: /(?![a-zA-Z])\b-?\d+\.?\d*\b(?![a-zA-Z])/g,
-							name: "num",
 							cursor: "ew-resize",
 							transform: (old: string, dx: number, dy: number) => {
 								const newVal = Number(old) + dx;
@@ -405,11 +404,13 @@ const Editor = React.forwardRef<EditorRef, EditorProps & ViewProps>(({
 						},
 						{
 							regex: /vec2\(.+\)/g,
-							name: "vec2",
 							cursor: "move",
 							transform: (old: string, dx: number, dy: number) => {
-								console.log(old);
-								return null;
+								const res = /vec2\((?<x>\d+)\s*,\s*(?<y>\d+)\)/.exec(old);
+								const x = Number(res?.groups?.x);
+								const y = Number(res?.groups?.y);
+								if (isNaN(x) || isNaN(y)) return null;
+								return `vec2(${x + dx}, ${y + dy})`;
 							},
 						},
 					]),

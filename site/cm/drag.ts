@@ -19,7 +19,6 @@ interface DragTarget {
 }
 
 export interface DragRule {
-	name: string,
 	regex: RegExp,
 	transform: (old: string, dx: number, dy: number) => string | null,
 	cursor?: string,
