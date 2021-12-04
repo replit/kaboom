@@ -21,7 +21,7 @@ interface DragTarget {
 export interface InteractRule {
 	regex: RegExp,
 	onDrag?: (old: string, dx: number, dy: number) => string | null,
-	onClick?: (old: string) => string | null,
+	onClick?: (old: string, x: number, y: number) => string | null,
 	cursor?: string,
 	style?: any,
 }
@@ -81,7 +81,7 @@ const drag = (rules: InteractRule[]) => {
 
 				if (dragging.rule.onClick) {
 
-					const newText = dragging.rule.onClick(dragging.text);
+					const newText = dragging.rule.onClick(dragging.text, e.clientX, e.clientY);
 
 					if (newText === null) return;
 

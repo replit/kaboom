@@ -57,7 +57,7 @@ import useUpdateEffect from "hooks/useUpdateEffect";
 import View, { ViewProps } from "comps/View";
 import Ctx from "lib/Ctx";
 import { themes } from "lib/ui";
-
+import { clamp } from "lib/math";
 import interact from "cm/interact";
 
 // @ts-ignore
@@ -350,6 +350,13 @@ const Editor = React.forwardRef<EditorRef, EditorProps & ViewProps>(({
 			"botleft", "bot", "botright",
 		];
 
+		// TODO
+		const originState = {
+			x: 0,
+			y: 0,
+			idx: -1,
+		};
+
 		cm.setState(EditorState.create({
 			doc: content ?? "",
 			extensions: [
@@ -399,7 +406,7 @@ const Editor = React.forwardRef<EditorRef, EditorProps & ViewProps>(({
 						// TODO: not including '-' sign
 						regex: /(?![a-zA-Z])\b-?\d+\.?\d*\b(?![a-zA-Z])/g,
 						cursor: "ew-resize",
-						onDrag: (old: string, dx: number, dy: number) => {
+						onDrag: (old, dx, dy) => {
 							const newVal = Number(old) + dx;
 							if (isNaN(newVal)) return null;
 							return newVal.toString();
@@ -408,7 +415,7 @@ const Editor = React.forwardRef<EditorRef, EditorProps & ViewProps>(({
 					{
 						regex: /true|false/g,
 						cursor: "pointer",
-						onClick: (old: string) => {
+						onClick: (old) => {
 							if (old === "true") {
 								return "false";
 							} else if (old === "false") {
@@ -420,7 +427,7 @@ const Editor = React.forwardRef<EditorRef, EditorProps & ViewProps>(({
 					{
 						regex: /vec2\(.*\)/g,
 						cursor: "move",
-						onDrag: (old: string, dx: number, dy: number) => {
+						onDrag: (old, dx, dy) => {
 							const res = /vec2\((?<x>\d+)\s*,\s*(?<y>\d+)\)/.exec(old);
 							const x = Number(res?.groups?.x);
 							const y = Number(res?.groups?.y);
@@ -431,14 +438,22 @@ const Editor = React.forwardRef<EditorRef, EditorProps & ViewProps>(({
 					{
 						regex: new RegExp(origins.join("|"), "g"),
 						cursor: "move",
-						onDrag: (old: string, dx: number, dy: number) => {
-							const clamp = (n: number, a: number, b: number) => Math.min(b, Math.max(n, a));
+						onClick: (old, x, y) => {
 							const idx = origins.indexOf(old);
-							if (idx === -1) return null;
-							const s = 20;
-							const x = clamp(idx % 3 + Math.round(dx / s), 0, 2);
-							const y = clamp(Math.floor(idx / 3) + Math.round(dy / s), 0, 2);
-							return origins[y * 3 + x];
+							originState.x = 0;
+							originState.x = 0;
+							originState.idx = idx;
+							return null;
+						},
+						onDrag: (old, dx, dy) => {
+							const { idx, x, y } = originState;
+							if (originState.idx === -1) return null;
+							originState.x += dx;
+							originState.y += dy;
+							const s = 80;
+							const sx = clamp(idx % 3 + Math.round(x / s), 0, 2);
+							const sy = clamp(Math.floor(idx / 3) + Math.round(y / s), 0, 2);
+							return origins[sy * 3 + sx];
 						},
 					},
 				]),
