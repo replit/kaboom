@@ -58,9 +58,7 @@ import View, { ViewProps } from "comps/View";
 import Ctx from "lib/Ctx";
 import { themes } from "lib/ui";
 
-import boolCheckbox from "cm/boolCheckbox";
-import slider from "cm/slider";
-import colorPickerPlugin from "cm/colorPicker";
+import drag from "cm/drag";
 
 // @ts-ignore
 const cmThemes: Record<Theme, [ Extension, HighlightStyle ]> = {};
@@ -393,19 +391,26 @@ const Editor = React.forwardRef<EditorRef, EditorProps & ViewProps>(({
 					...(keys ?? []),
 				]),
 				...(bret ? [
-					boolCheckbox,
-// 					colorPickerPlugin,
-					slider([
+					drag([
 						{
 							// TODO: no alpha before
-							regex: /-?\d+\.?\d*\b(?![a-zA-Z])/g,
-							name: "number",
+							regex: /(?![a-zA-Z])\b-?\d+\.?\d*\b(?![a-zA-Z])/g,
+							name: "num",
 							cursor: "ew-resize",
 							transform: (old: string, dx: number, dy: number) => {
 								const newVal = Number(old) + dx;
 								if (isNaN(newVal)) return null;
 								return newVal.toString();
 							}
+						},
+						{
+							regex: /vec2\(.+\)/g,
+							name: "vec2",
+							cursor: "move",
+							transform: (old: string, dx: number, dy: number) => {
+								console.log(old);
+								return null;
+							},
 						},
 					]),
 				] : []),
