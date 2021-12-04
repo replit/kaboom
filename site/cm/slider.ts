@@ -112,9 +112,8 @@ const slider = (rules: SliderRule[]) => {
 			mousemove: (e, view) => {
 
 				hovering = (e.target as HTMLElement)?.parentElement;
-				if (!e.altKey) return;
-
 				document.body.style.cursor = "auto";
+				if (!e.altKey) return;
 
 				for (const rule of rules) {
 					if (rule.cursor && hovering?.classList.contains(`cm-${rule.name}`)) {
@@ -125,21 +124,23 @@ const slider = (rules: SliderRule[]) => {
 
 				if (dragging === null) return;
 
-				document.body.style.cursor = "ew-resize";
+				if (dragging.rule.cursor) {
+					document.body.style.cursor = dragging.rule.cursor;
+				}
 
-				const newVal = dragging.rule.transform(dragging.text, e.movementX, e.movementY);
+				const newText = dragging.rule.transform(dragging.text, e.movementX, e.movementY);
 
-				if (newVal === null) return;
+				if (newText === null) return;
 
 				view.dispatch({
 					changes: {
 						from: dragging.pos,
 						to: dragging.pos + dragging.text.length,
-						insert: newVal,
+						insert: newText,
 					},
 				});
 
-				dragging.text = newVal;
+				dragging.text = newText;
 
 			},
 

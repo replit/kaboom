@@ -59,7 +59,7 @@ import Ctx from "lib/Ctx";
 import { themes } from "lib/ui";
 
 import boolCheckbox from "cm/boolCheckbox";
-import numSlider from "cm/numSlider";
+import slider from "cm/slider";
 import colorPickerPlugin from "cm/colorPicker";
 
 // @ts-ignore
@@ -395,7 +395,19 @@ const Editor = React.forwardRef<EditorRef, EditorProps & ViewProps>(({
 				...(bret ? [
 					boolCheckbox,
 // 					colorPickerPlugin,
-					numSlider,
+					slider([
+						{
+							// TODO: no alpha before
+							regex: /-?\d+\.?\d*\b(?![a-zA-Z])/g,
+							name: "number",
+							cursor: "ew-resize",
+							transform: (old: string, dx: number, dy: number) => {
+								const newVal = Number(old) + dx;
+								if (isNaN(newVal)) return null;
+								return newVal.toString();
+							}
+						},
+					]),
 				] : []),
 			].filter((ext) => ext),
 		}));
