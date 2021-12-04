@@ -58,7 +58,7 @@ import View, { ViewProps } from "comps/View";
 import Ctx from "lib/Ctx";
 import { themes } from "lib/ui";
 
-import drag from "cm/drag";
+import interact from "cm/interact";
 
 // @ts-ignore
 const cmThemes: Record<Theme, [ Extension, HighlightStyle ]> = {};
@@ -394,21 +394,33 @@ const Editor = React.forwardRef<EditorRef, EditorProps & ViewProps>(({
 					indentWithTab,
 					...(keys ?? []),
 				]),
-				drag([
+				interact([
 					{
 						// TODO: not including '-' sign
 						regex: /(?![a-zA-Z])\b-?\d+\.?\d*\b(?![a-zA-Z])/g,
 						cursor: "ew-resize",
-						transform: (old: string, dx: number, dy: number) => {
+						onDrag: (old: string, dx: number, dy: number) => {
 							const newVal = Number(old) + dx;
 							if (isNaN(newVal)) return null;
 							return newVal.toString();
 						}
 					},
 					{
+						regex: /true|false/g,
+						cursor: "pointer",
+						onClick: (old: string) => {
+							if (old === "true") {
+								return "false";
+							} else if (old === "false") {
+								return "true";
+							}
+							return null;
+						},
+					},
+					{
 						regex: /vec2\(.*\)/g,
 						cursor: "move",
-						transform: (old: string, dx: number, dy: number) => {
+						onDrag: (old: string, dx: number, dy: number) => {
 							const res = /vec2\((?<x>\d+)\s*,\s*(?<y>\d+)\)/.exec(old);
 							const x = Number(res?.groups?.x);
 							const y = Number(res?.groups?.y);
@@ -419,7 +431,7 @@ const Editor = React.forwardRef<EditorRef, EditorProps & ViewProps>(({
 					{
 						regex: new RegExp(origins.join("|"), "g"),
 						cursor: "move",
-						transform: (old: string, dx: number, dy: number) => {
+						onDrag: (old: string, dx: number, dy: number) => {
 							const clamp = (n: number, a: number, b: number) => Math.min(b, Math.max(n, a));
 							const idx = origins.indexOf(old);
 							if (idx === -1) return null;

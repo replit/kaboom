@@ -15,17 +15,18 @@ import { Range } from "@codemirror/rangeset";
 interface DragTarget {
 	pos: number,
 	text: string,
-	rule: DragRule,
+	rule: InteractRule,
 }
 
-export interface DragRule {
+export interface InteractRule {
 	regex: RegExp,
-	transform: (old: string, dx: number, dy: number) => string | null,
+	onDrag?: (old: string, dx: number, dy: number) => string | null,
+	onClick?: (old: string) => string | null,
 	cursor?: string,
 	style?: any,
 }
 
-const drag = (rules: DragRule[]) => {
+const drag = (rules: InteractRule[]) => {
 
 	let dragging: DragTarget | null = null;
 	let hovering: DragTarget | null = null;
@@ -76,7 +77,25 @@ const drag = (rules: DragRule[]) => {
 					text: match.text,
 				};
 
-				if (match.rule.cursor) document.body.style.cursor = match.rule.cursor;
+				if (dragging.rule.cursor) document.body.style.cursor = dragging.rule.cursor;
+
+				if (dragging.rule.onClick) {
+
+					const newText = dragging.rule.onClick(dragging.text);
+
+					if (newText === null) return;
+
+					view.dispatch({
+						changes: {
+							from: dragging.pos,
+							to: dragging.pos + dragging.text.length,
+							insert: newText,
+						},
+					});
+
+					dragging.text = newText;
+
+				};
 
 			},
 
@@ -97,7 +116,9 @@ const drag = (rules: DragRule[]) => {
 					document.body.style.cursor = dragging.rule.cursor;
 				}
 
-				const newText = dragging.rule.transform(
+				if (!dragging.rule.onDrag) return;
+
+				const newText = dragging.rule.onDrag(
 					dragging.text,
 					e.movementX,
 					e.movementY
