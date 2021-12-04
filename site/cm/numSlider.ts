@@ -28,7 +28,6 @@ function sliders(view: EditorView) {
 	for (let {from, to} of view.visibleRanges) {
 		const text = view.state.doc.sliceString(from, to);
 		for (const match of text.matchAll(NUMBER_RE)) {
-			console.log(match);
 			if (match.index === undefined) continue;
 			const num = Number(match[0]);
 			if (isNaN(num)) continue;
@@ -40,12 +39,13 @@ function sliders(view: EditorView) {
 
 }
 
-interface Draggin {
+interface Dragging {
 	pos: number,
 	value: number,
 }
 
-let draggin: Draggin | null = null;
+let dragging: Dragging | null = null;
+let hovering: EventTarget | null = null;
 
 const sliderPlugin = ViewPlugin.fromClass(class {
 
@@ -73,7 +73,7 @@ const sliderPlugin = ViewPlugin.fromClass(class {
 			if (!snum?.classList.contains("cm-snum")) return;
 			if (!e.altKey) return;
 			e.preventDefault();
-			draggin = {
+			dragging = {
 				pos: view.posAtDOM(snum),
 				value: Number(snum.textContent),
 			};
@@ -82,42 +82,57 @@ const sliderPlugin = ViewPlugin.fromClass(class {
 
 		mousemove: (e, view) => {
 
+			hovering = e.target;
+
+			if (e.altKey) {
+				document.body.style.cursor =
+					(hovering as HTMLElement)
+						?.parentElement
+						?.classList
+						.contains("cm-snum")
+					? "ew-resize" : "auto";
+			}
+
 			// TODO: change cursor when mouse over a cm-snum
-			if (draggin === null) return;
+			if (dragging === null) return;
 
 			document.body.style.cursor = "ew-resize";
 
-			const newVal = draggin.value + e.movementX;
+			const newVal = dragging.value + e.movementX;
 
 			if (isNaN(newVal)) return;
 
 			view.dispatch({
 				changes: {
-					from: draggin.pos,
-					to: draggin.pos + draggin.value.toString().length,
+					from: dragging.pos,
+					to: dragging.pos + dragging.value.toString().length,
 					insert: newVal.toString(),
 				},
 			});
 
-			draggin.value = newVal;
+			dragging.value = newVal;
 
 		},
 
 		mouseup: (e, view) => {
-			draggin = null;
+			dragging = null;
 			document.body.style.cursor = "auto";
 		},
 
-		// TODO: change cursor when mouse over a cm-snum
-// 		keydown: (e, view) => {
-// 			if (e.altKey) {
-// 				document.body.style.cursor = "ew-resize";
-// 			}
-// 		},
+		keydown: (e, view) => {
+			if (!e.altKey) return;
+			if (
+				!(hovering as HTMLElement)
+					?.parentElement
+					?.classList
+					.contains("cm-snum")
+			) return;
+			document.body.style.cursor = "ew-resize";
+		},
 
-// 		keyup: (e, view) => {
-// 			document.body.style.cursor = "auto";
-// 		},
+		keyup: (e, view) => {
+			document.body.style.cursor = "auto";
+		},
 
 	},
 
