@@ -405,9 +405,10 @@ const Editor = React.forwardRef<EditorRef, EditorProps & ViewProps>(({
 					{
 						regex: /-?\b\d+\.?\d*\b/g,
 						cursor: "ew-resize",
-						onDrag: (old, dx, dy) => {
+						onDrag: (old, e) => {
 							// TODO: size aware
-							const newVal = Number(old) + dx;
+							// TODO: small interval with shift key?
+							const newVal = Number(old) + e.movementX;
 							if (isNaN(newVal)) return null;
 							return newVal.toString();
 						}
@@ -416,10 +417,9 @@ const Editor = React.forwardRef<EditorRef, EditorProps & ViewProps>(({
 						regex: /true|false/g,
 						cursor: "pointer",
 						onClick: (old) => {
-							if (old === "true") {
-								return "false";
-							} else if (old === "false") {
-								return "true";
+							switch (old) {
+								case "true": return "false";
+								case "false": return "true";
 							}
 							return null;
 						},
@@ -427,31 +427,30 @@ const Editor = React.forwardRef<EditorRef, EditorProps & ViewProps>(({
 					{
 						regex: /vec2\(.*\)/g,
 						cursor: "move",
-						onDrag: (old, dx, dy) => {
-							// TODO: single arg vec2(120)
+						onDrag: (old, e) => {
 							const res = /vec2\((?<x>-?\b\d+\.?\d*\b)\s*(,\s*(?<y>-?\b\d+\.?\d*\b))?\)/.exec(old);
 							let x = Number(res?.groups?.x);
 							let y = Number(res?.groups?.y);
 							if (isNaN(x)) return null;
 							if (isNaN(y)) y = x;
-							return `vec2(${x + dx}, ${y + dy})`;
+							return `vec2(${x + e.movementX}, ${y + e.movementY})`;
 						},
 					},
 					{
 						regex: new RegExp(`${origins.join("|")}`, "g"),
 						cursor: "move",
-						onClick: (old, x, y) => {
+						onClick: (old) => {
 							const idx = origins.indexOf(old);
 							originState.x = 0;
 							originState.x = 0;
 							originState.idx = idx;
 							return null;
 						},
-						onDrag: (old, dx, dy) => {
+						onDrag: (old, e) => {
 							const { idx, x, y } = originState;
 							if (originState.idx === -1) return null;
-							originState.x += dx;
-							originState.y += dy;
+							originState.x += e.movementX;
+							originState.y += e.movementY;
 							const s = 80;
 							const sx = clamp(idx % 3 + Math.round(x / s), 0, 2);
 							const sy = clamp(Math.floor(idx / 3) + Math.round(y / s), 0, 2);

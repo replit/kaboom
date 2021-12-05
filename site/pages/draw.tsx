@@ -14,6 +14,10 @@ import Menu from "comps/Menu";
 import Inspect from "comps/Inspect";
 import Background from "comps/Background";
 
+// TODO: drag n' drop shapes / sprites from backpack
+// TODO: drag n' drop code snippets from editor to backpack
+// TODO: manual
+
 const template = `
 kaboom()
 

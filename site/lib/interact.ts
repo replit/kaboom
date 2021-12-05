@@ -20,8 +20,8 @@ interface InteractTarget {
 
 export interface InteractRule {
 	regex: RegExp,
-	onDrag?: (old: string, dx: number, dy: number) => string | null,
-	onClick?: (old: string, x: number, y: number) => string | null,
+	onDrag?: (old: string, e: MouseEvent) => string | null,
+	onClick?: (old: string, e: MouseEvent) => string | null,
 	cursor?: string,
 	style?: any,
 }
@@ -33,7 +33,42 @@ const interact = (rules: InteractRule[]) => {
 	let mouseX = 0;
 	let mouseY = 0;
 
-	const getMatchFromMouse = (view: EditorView, x: number, y: number): InteractTarget | null => {
+	const mark = Decoration.mark({ class: "cm-interact" });
+
+	const addInteract = StateEffect.define<InteractTarget>()
+	const clearInteract = StateEffect.define<null>()
+
+	const interactField = StateField.define<DecorationSet>({
+		create: () => Decoration.none,
+		update: (interacts, tr) => {
+			interacts = interacts.map(tr.changes)
+			for (let e of tr.effects) {
+				if (e.is(addInteract)) {
+					interacts = interacts.update({
+						filter: () => false,
+						add: [
+							mark.range(
+								e.value.pos,
+								e.value.pos + e.value.text.length
+							),
+						],
+					});
+				} else if (e.is(clearInteract)) {
+					interacts = interacts.update({
+						filter: () => false,
+					});
+				}
+			}
+			return interacts;
+		},
+		provide: (f) => EditorView.decorations.from(f)
+	});
+
+	const getMatchFromMouse = (
+		view: EditorView,
+		x: number,
+		y: number
+	): InteractTarget | null => {
 
 		const pos = view.posAtCoords({ x, y });
 		if (!pos) return null;
@@ -62,9 +97,29 @@ const interact = (rules: InteractRule[]) => {
 
 	}
 
+	const focus = (view: EditorView, target: InteractTarget) => {
+		if (target.rule.cursor) {
+			document.body.style.cursor = target.rule.cursor;
+		}
+		view.dispatch({
+			effects: [
+				addInteract.of(target),
+			],
+		});
+	};
+
+	const unfocus = (view: EditorView) => {
+		document.body.style.cursor = "auto";
+		view.dispatch({
+			effects: [
+				clearInteract.of(null),
+			],
+		});
+	};
+
 	const updateText = (
 		view: EditorView,
-		d: InteractTarget,
+		target: InteractTarget,
 		text: string | null
 	) => {
 
@@ -72,102 +127,104 @@ const interact = (rules: InteractRule[]) => {
 
 		view.dispatch({
 			changes: {
-				from: d.pos,
-				to: d.pos + d.text.length,
+				from: target.pos,
+				to: target.pos + target.text.length,
 				insert: text,
 			},
 		});
 
-		d.text = text;
+		target.text = text;
 
 	}
 
-	return ViewPlugin.define(() => ({}), {
+	return [
 
-		eventHandlers: {
+		interactField,
 
-			mousedown: (e, view) => {
+		EditorView.theme({
+			".cm-interact": {
+				background: "rgba(128, 128, 255, 0.2)",
+			},
+		}),
 
-				if (!e.altKey) return;
-				const match = getMatchFromMouse(view, e.clientX, e.clientY);
-				if (!match) return;
-				e.preventDefault();
+		ViewPlugin.define((view) => ({}), {
 
-				dragging = {
-					rule: match.rule,
-					pos: match.pos,
-					text: match.text,
-				};
+			eventHandlers: {
 
-				if (dragging.rule.cursor) {
-					document.body.style.cursor = dragging.rule.cursor;
-				}
+				mousedown: (e, view) => {
 
-				if (dragging.rule.onClick) {
-					updateText(view, dragging, dragging.rule.onClick(
-						dragging.text,
-						e.clientX,
-						e.clientY,
-					));
-				};
+					if (!e.altKey) return;
+					const match = getMatchFromMouse(view, e.clientX, e.clientY);
+					if (!match) return;
+					e.preventDefault();
+
+					dragging = {
+						rule: match.rule,
+						pos: match.pos,
+						text: match.text,
+					};
+
+					if (dragging.rule.onClick) {
+						updateText(view, dragging, dragging.rule.onClick(dragging.text, e));
+					};
+
+				},
+
+				mousemove: (e, view) => {
+
+					mouseX = e.clientX;
+					mouseY = e.clientY;
+					unfocus(view);
+
+					if (!e.altKey) return;
+
+					hovering = getMatchFromMouse(view, mouseX, mouseY);
+
+					if (hovering) {
+						focus(view, hovering);
+					} else {
+						unfocus(view);
+					}
+
+					if (dragging === null) return;
+
+					if (dragging) {
+						focus(view, dragging);
+					}
+
+					if (dragging.rule.onDrag) {
+						updateText(view, dragging, dragging.rule.onDrag(dragging.text, e));
+					};
+
+				},
+
+				mouseup: (e, view) => {
+					dragging = null;
+					if (!hovering && !e.altKey) {
+						unfocus(view);
+					}
+				},
+
+				keydown: (e, view) => {
+					if (!e.altKey) return;
+					if (!hovering) return;
+					hovering = getMatchFromMouse(view, mouseX, mouseY);
+					if (hovering) {
+						focus(view, hovering);
+					}
+				},
+
+				keyup: (e, view) => {
+					if (!e.altKey) {
+						unfocus(view);
+					}
+				},
 
 			},
 
-			mousemove: (e, view) => {
+		}),
 
-				mouseX = e.clientX;
-				mouseY = e.clientY;
-				document.body.style.cursor = "auto";
-
-				if (!e.altKey) return;
-
-				hovering = getMatchFromMouse(view, mouseX, mouseY);
-
-				if (hovering?.rule.cursor) {
-					document.body.style.cursor = hovering.rule.cursor;
-				}
-
-				if (dragging === null) return;
-
-				if (dragging.rule.cursor) {
-					document.body.style.cursor = dragging.rule.cursor;
-				}
-
-				if (dragging.rule.onDrag) {
-					updateText(view, dragging, dragging.rule.onDrag(
-						dragging.text,
-						e.movementX,
-						e.movementY
-					));
-				};
-
-			},
-
-			mouseup: (e, view) => {
-				dragging = null;
-				if (!hovering && !e.altKey) {
-					document.body.style.cursor = "auto";
-				}
-			},
-
-			keydown: (e, view) => {
-				if (!e.altKey) return;
-				if (!hovering) return;
-				hovering = getMatchFromMouse(view, mouseX, mouseY);
-				if (hovering?.rule.cursor) {
-					document.body.style.cursor = hovering.rule.cursor;
-				}
-			},
-
-			keyup: (e, view) => {
-				if (!e.altKey) {
-					document.body.style.cursor = "auto";
-				}
-			},
-
-		},
-
-	});
+	];
 
 };
 
