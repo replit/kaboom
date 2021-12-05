@@ -12,6 +12,8 @@ import {StateField, StateEffect} from "@codemirror/state"
 import { syntaxTree } from "@codemirror/language";
 import { Range } from "@codemirror/rangeset";
 
+// TODO: better focus logic
+
 interface InteractTarget {
 	pos: number,
 	text: string,
@@ -35,7 +37,7 @@ const interact = (rules: InteractRule[]) => {
 
 	const mark = Decoration.mark({ class: "cm-interact" });
 
-	const addInteract = StateEffect.define<InteractTarget>()
+	const setInteract = StateEffect.define<InteractTarget>()
 	const clearInteract = StateEffect.define<null>()
 
 	const interactField = StateField.define<DecorationSet>({
@@ -43,16 +45,19 @@ const interact = (rules: InteractRule[]) => {
 		update: (interacts, tr) => {
 			interacts = interacts.map(tr.changes)
 			for (let e of tr.effects) {
-				if (e.is(addInteract)) {
-					interacts = interacts.update({
-						filter: () => false,
-						add: [
-							mark.range(
-								e.value.pos,
-								e.value.pos + e.value.text.length
-							),
-						],
-					});
+				if (e.is(setInteract)) {
+					interacts = interacts
+						.update({
+							filter: () => false,
+						})
+						.update({
+							add: [
+								mark.range(
+									e.value.pos,
+									e.value.pos + e.value.text.length
+								),
+							],
+						});
 				} else if (e.is(clearInteract)) {
 					interacts = interacts.update({
 						filter: () => false,
@@ -61,7 +66,7 @@ const interact = (rules: InteractRule[]) => {
 			}
 			return interacts;
 		},
-		provide: (f) => EditorView.decorations.from(f)
+		provide: (f) => EditorView.decorations.from(f),
 	});
 
 	const getMatchFromMouse = (
@@ -103,7 +108,7 @@ const interact = (rules: InteractRule[]) => {
 		}
 		view.dispatch({
 			effects: [
-				addInteract.of(target),
+				setInteract.of(target),
 			],
 		});
 	};
@@ -144,6 +149,7 @@ const interact = (rules: InteractRule[]) => {
 		EditorView.theme({
 			".cm-interact": {
 				background: "rgba(128, 128, 255, 0.2)",
+				borderRadius: "4px",
 			},
 		}),
 
