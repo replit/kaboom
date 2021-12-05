@@ -19,10 +19,10 @@ interface InteractTarget {
 
 export interface InteractRule {
 	regex: RegExp,
-	onDrag?: (old: string, e: MouseEvent) => string | void,
-	onClick?: (old: string, e: MouseEvent) => string | void,
 	cursor?: string,
 	style?: any,
+	onClick?: (old: string, e: MouseEvent) => string | void,
+	onDrag?: (old: string, e: MouseEvent) => string | void,
 }
 
 // TODO: custom key mod
@@ -120,7 +120,7 @@ const updateText = (
 	text: string | void
 ) => {
 
-	if (text == null) return;
+	if (typeof text !== "string") return;
 
 	view.dispatch({
 		changes: {
