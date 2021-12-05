@@ -1,16 +1,12 @@
 import {
 	EditorView,
-	WidgetType,
-	ViewUpdate,
 	ViewPlugin,
+	PluginValue,
 	DecorationSet,
 	Decoration,
 } from "@codemirror/view";
 
-import {StateField, StateEffect} from "@codemirror/state"
-
-import { syntaxTree } from "@codemirror/language";
-import { Range } from "@codemirror/rangeset";
+import { StateEffect } from "@codemirror/state";
 
 interface InteractTarget {
 	pos: number,
@@ -26,6 +22,10 @@ export interface InteractRule {
 	style?: any,
 }
 
+interface InteractViewPlugin extends PluginValue {
+	deco: DecorationSet,
+}
+
 const interact = (rules: InteractRule[]) => {
 
 	let dragging: InteractTarget | null = null;
@@ -36,32 +36,6 @@ const interact = (rules: InteractRule[]) => {
 	const mark = Decoration.mark({ class: "cm-interact" });
 
 	const setInteract = StateEffect.define<InteractTarget | null>();
-
-	const interactField = StateField.define<DecorationSet>({
-		create: () => Decoration.none,
-		update: (interacts, tr) => {
-			interacts = interacts.map(tr.changes)
-			for (let e of tr.effects) {
-				if (e.is(setInteract)) {
-					interacts = interacts.update({
-						filter: () => false,
-					});
-					if (e.value) {
-						interacts = interacts.update({
-							add: [
-								mark.range(
-									e.value.pos,
-									e.value.pos + e.value.text.length
-								),
-							],
-						});
-					}
-				}
-			}
-			return interacts;
-		},
-		provide: (f) => EditorView.decorations.from(f),
-	});
 
 	const getMatchFromMouse = (
 		view: EditorView,
@@ -138,8 +112,6 @@ const interact = (rules: InteractRule[]) => {
 
 	return [
 
-		interactField,
-
 		EditorView.theme({
 			".cm-interact": {
 				background: "rgba(128, 128, 255, 0.2)",
@@ -147,7 +119,34 @@ const interact = (rules: InteractRule[]) => {
 			},
 		}),
 
-		ViewPlugin.define((view) => ({}), {
+		ViewPlugin.define<InteractViewPlugin>(() => {
+			return {
+				deco: Decoration.none,
+				update(update) {
+					for (const tr of update.transactions) {
+						for (const e of tr.effects) {
+							if (e.is(setInteract)) {
+								this.deco = this.deco.update({
+									filter: () => false,
+								});
+								if (e.value) {
+									this.deco = this.deco.update({
+										add: [
+											mark.range(
+												e.value.pos,
+												e.value.pos + e.value.text.length
+											),
+										],
+									});
+								}
+							}
+						}
+					}
+				},
+			};
+		}, {
+
+			decorations: (v) => v.deco,
 
 			eventHandlers: {
 
@@ -158,19 +157,21 @@ const interact = (rules: InteractRule[]) => {
 					if (!match) return;
 					e.preventDefault();
 
-					dragging = {
-						rule: match.rule,
-						pos: match.pos,
-						text: match.text,
-					};
-
-					if (dragging.rule.onClick) {
+					if (match.rule.onClick) {
 						updateText(
 							view,
-							dragging,
-							dragging.rule.onClick(dragging.text, e)
+							match,
+							match.rule.onClick(match.text, e)
 						);
 					};
+
+					if (match.rule.onDrag) {
+						dragging = {
+							rule: match.rule,
+							pos: match.pos,
+							text: match.text,
+						};
+					}
 
 				},
 
