@@ -410,7 +410,7 @@ const Editor = React.forwardRef<EditorRef, EditorProps & ViewProps>(({
 							// TODO: size aware
 							// TODO: small interval with shift key?
 							const newVal = Number(old) + e.movementX;
-							if (isNaN(newVal)) return null;
+							if (isNaN(newVal)) return;
 							return newVal.toString();
 						}
 					},
@@ -423,7 +423,6 @@ const Editor = React.forwardRef<EditorRef, EditorProps & ViewProps>(({
 								case "true": return "false";
 								case "false": return "true";
 							}
-							return null;
 						},
 					},
 					// kaboom vec2 slider
@@ -434,7 +433,7 @@ const Editor = React.forwardRef<EditorRef, EditorProps & ViewProps>(({
 							const res = /vec2\((?<x>-?\b\d+\.?\d*\b)\s*(,\s*(?<y>-?\b\d+\.?\d*\b))?\)/.exec(old);
 							let x = Number(res?.groups?.x);
 							let y = Number(res?.groups?.y);
-							if (isNaN(x)) return null;
+							if (isNaN(x)) return;
 							if (isNaN(y)) y = x;
 							return `vec2(${x + e.movementX}, ${y + e.movementY})`;
 						},
@@ -448,11 +447,10 @@ const Editor = React.forwardRef<EditorRef, EditorProps & ViewProps>(({
 							originState.x = 0;
 							originState.x = 0;
 							originState.idx = idx;
-							return null;
 						},
 						onDrag: (old, e) => {
 							const { idx, x, y } = originState;
-							if (originState.idx === -1) return null;
+							if (originState.idx === -1) return;
 							originState.x += e.movementX;
 							originState.y += e.movementY;
 							const s = 80;
@@ -467,7 +465,6 @@ const Editor = React.forwardRef<EditorRef, EditorProps & ViewProps>(({
 						cursor: "pointer",
 						onClick: (text) => {
 							window.open(text);
-							return null;
 						},
 					},
 				]),

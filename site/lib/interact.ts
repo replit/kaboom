@@ -19,8 +19,8 @@ interface InteractTarget {
 
 export interface InteractRule {
 	regex: RegExp,
-	onDrag?: (old: string, e: MouseEvent) => string | null,
-	onClick?: (old: string, e: MouseEvent) => string | null,
+	onDrag?: (old: string, e: MouseEvent) => string | void,
+	onClick?: (old: string, e: MouseEvent) => string | void,
 	cursor?: string,
 	style?: any,
 }
@@ -117,10 +117,10 @@ const unfocus = (view: EditorView) => {
 const updateText = (
 	view: EditorView,
 	target: InteractTarget,
-	text: string | null
+	text: string | void
 ) => {
 
-	if (text === null) return;
+	if (text == null) return;
 
 	view.dispatch({
 		changes: {
