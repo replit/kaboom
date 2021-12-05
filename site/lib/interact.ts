@@ -165,7 +165,11 @@ const interact = (rules: InteractRule[]) => {
 					};
 
 					if (dragging.rule.onClick) {
-						updateText(view, dragging, dragging.rule.onClick(dragging.text, e));
+						updateText(
+							view,
+							dragging,
+							dragging.rule.onClick(dragging.text, e)
+						);
 					};
 
 				},
@@ -180,7 +184,11 @@ const interact = (rules: InteractRule[]) => {
 					if (dragging) {
 						focus(view, dragging);
 						if (dragging.rule.onDrag) {
-							updateText(view, dragging, dragging.rule.onDrag(dragging.text, e));
+							updateText(
+								view,
+								dragging,
+								dragging.rule.onDrag(dragging.text, e)
+							);
 						}
 					} else {
 						hovering = getMatchFromMouse(view, mouseX, mouseY);
