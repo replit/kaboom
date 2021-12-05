@@ -8,6 +8,7 @@ import {
 import {
 	StateEffect,
 	StateField,
+	Facet,
 } from "@codemirror/state";
 
 interface InteractTarget {
@@ -26,7 +27,6 @@ export interface InteractRule {
 
 // TODO: custom key mod
 // TODO: custom style
-
 
 const mark = Decoration.mark({ class: "cm-interact" });
 const setInteract = StateEffect.define<InteractTarget | null>();
@@ -66,11 +66,11 @@ const theme = EditorView.theme({
 
 const getMatchFromPos = (
 	view: EditorView,
-	rules: InteractRule[],
 	x: number,
 	y: number,
 ): InteractTarget | null => {
 
+	const rules = view.state.facet(interactRules);
 	const pos = view.posAtCoords({ x, y });
 	if (!pos) return null;
 	const line = view.state.doc.lineAt(pos);
@@ -134,97 +134,102 @@ const updateText = (
 
 };
 
-const interact = (rules: InteractRule[]) => {
+const interactRules = Facet.define<InteractRule[], InteractRule[]>({
+	combine: (cfgs) => cfgs.flat(),
+});
+
+// TODO: not using closed values for state?
+const eventHandler = () => {
 
 	let dragging: InteractTarget | null = null;
 	let hovering: InteractTarget | null = null;
 	let mouseX = 0;
 	let mouseY = 0;
 
-	return [
+	return EditorView.domEventHandlers({
 
-		theme,
-		interactField,
+		mousedown: (e, view) => {
 
-		EditorView.domEventHandlers({
+			if (!e.altKey) return;
+			const match = getMatchFromPos(view, e.clientX, e.clientY);
+			if (!match) return;
+			e.preventDefault();
 
-			mousedown: (e, view) => {
+			if (match.rule.onClick) {
+				updateText(
+					view,
+					match,
+					match.rule.onClick(match.text, e)
+				);
+			};
 
-				if (!e.altKey) return;
-				const match = getMatchFromPos(view, rules, e.clientX, e.clientY);
-				if (!match) return;
-				e.preventDefault();
+			if (match.rule.onDrag) {
+				dragging = {
+					rule: match.rule,
+					pos: match.pos,
+					text: match.text,
+				};
+			}
 
-				if (match.rule.onClick) {
+		},
+
+		mousemove: (e, view) => {
+
+			mouseX = e.clientX;
+			mouseY = e.clientY;
+
+			if (!e.altKey) return;
+
+			if (dragging) {
+				focus(view, dragging);
+				if (dragging.rule.onDrag) {
 					updateText(
 						view,
-						match,
-						match.rule.onClick(match.text, e)
+						dragging,
+						dragging.rule.onDrag(dragging.text, e)
 					);
-				};
-
-				if (match.rule.onDrag) {
-					dragging = {
-						rule: match.rule,
-						pos: match.pos,
-						text: match.text,
-					};
 				}
-
-			},
-
-			mousemove: (e, view) => {
-
-				mouseX = e.clientX;
-				mouseY = e.clientY;
-
-				if (!e.altKey) return;
-
-				if (dragging) {
-					focus(view, dragging);
-					if (dragging.rule.onDrag) {
-						updateText(
-							view,
-							dragging,
-							dragging.rule.onDrag(dragging.text, e)
-						);
-					}
-				} else {
-					hovering = getMatchFromPos(view, rules, mouseX, mouseY);
-					if (hovering) {
-						focus(view, hovering);
-					} else {
-						unfocus(view);
-					}
-				}
-
-			},
-
-			mouseup: (e, view) => {
-				dragging = null;
-				if (!hovering) {
-					unfocus(view);
-				}
-			},
-
-			keydown: (e, view) => {
-				if (!e.altKey) return;
-				hovering = getMatchFromPos(view, rules, mouseX, mouseY);
+			} else {
+				hovering = getMatchFromPos(view, mouseX, mouseY);
 				if (hovering) {
 					focus(view, hovering);
-				}
-			},
-
-			keyup: (e, view) => {
-				if (!e.altKey) {
+				} else {
 					unfocus(view);
 				}
-			},
+			}
 
-		}),
+		},
 
-	];
+		mouseup: (e, view) => {
+			dragging = null;
+			if (!hovering) {
+				unfocus(view);
+			}
+		},
+
+		keydown: (e, view) => {
+			if (!e.altKey) return;
+			hovering = getMatchFromPos(view, mouseX, mouseY);
+			if (hovering) {
+				focus(view, hovering);
+			}
+		},
+
+		keyup: (e, view) => {
+			if (!e.altKey) {
+				unfocus(view);
+			}
+		},
+
+	});
 
 };
+
+const interact = (rules: InteractRule[]) => [
+	theme,
+	interactField,
+	interactRules.of(rules),
+	eventHandler(),
+];
 
 export default interact;
