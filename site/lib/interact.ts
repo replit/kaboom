@@ -134,9 +134,7 @@ const updateText = (
 
 };
 
-const interactRules = Facet.define<InteractRule[], InteractRule[]>({
-	combine: (cfgs) => cfgs.flat(),
-});
+const interactRules = Facet.define<InteractRule>();
 
 // TODO: not using closed values for state?
 const eventHandler = () => {
@@ -228,7 +226,7 @@ const eventHandler = () => {
 const interact = (rules: InteractRule[]) => [
 	theme,
 	interactField,
-	interactRules.of(rules),
+	rules.map((r) => interactRules.of(r)),
 	eventHandler(),
 ];
 

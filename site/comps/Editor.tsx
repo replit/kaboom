@@ -402,6 +402,7 @@ const Editor = React.forwardRef<EditorRef, EditorProps & ViewProps>(({
 					...(keys ?? []),
 				]),
 				interact([
+					// number slider
 					{
 						regex: /-?\b\d+\.?\d*\b/g,
 						cursor: "ew-resize",
@@ -413,6 +414,7 @@ const Editor = React.forwardRef<EditorRef, EditorProps & ViewProps>(({
 							return newVal.toString();
 						}
 					},
+					// bool toggler
 					{
 						regex: /true|false/g,
 						cursor: "pointer",
@@ -424,6 +426,7 @@ const Editor = React.forwardRef<EditorRef, EditorProps & ViewProps>(({
 							return null;
 						},
 					},
+					// kaboom vec2 slider
 					{
 						regex: /vec2\(.*\)/g,
 						cursor: "move",
@@ -436,6 +439,7 @@ const Editor = React.forwardRef<EditorRef, EditorProps & ViewProps>(({
 							return `vec2(${x + e.movementX}, ${y + e.movementY})`;
 						},
 					},
+					// kaboom origin slider
 					{
 						regex: new RegExp(`${origins.join("|")}`, "g"),
 						cursor: "move",
@@ -455,6 +459,15 @@ const Editor = React.forwardRef<EditorRef, EditorProps & ViewProps>(({
 							const sx = clamp(idx % 3 + Math.round(x / s), 0, 2);
 							const sy = clamp(Math.floor(idx / 3) + Math.round(y / s), 0, 2);
 							return origins[sy * 3 + sx];
+						},
+					},
+					// url clicker
+					{
+						regex: /https?:\/\/[^ "]+/g,
+						cursor: "pointer",
+						onClick: (text) => {
+							window.open(text);
+							return null;
 						},
 					},
 				]),
