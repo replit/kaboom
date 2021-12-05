@@ -50,6 +50,7 @@ type AppCtx = {
 	fpsTimer: number,
 	isKeyPressed: boolean,
 	isKeyPressedRepeat: boolean,
+	isKeyReleased: boolean,
 };
 
 type App = {
@@ -133,6 +134,7 @@ function appInit(gopt: AppOpt = {}): App {
 		isMouseMoved: false,
 		isKeyPressed: false,
 		isKeyPressedRepeat: false,
+		isKeyReleased: false,
 		mouseStates: {},
 		mousePos: vec2(0, 0),
 		mouseDeltaPos: vec2(0, 0),
@@ -275,6 +277,7 @@ function appInit(gopt: AppOpt = {}): App {
 	app.canvas.addEventListener("keyup", (e: KeyboardEvent) => {
 		const k = keyMap[e.key] || e.key.toLowerCase();
 		app.keyStates[k] = "released";
+		app.isKeyReleased = true;
 	});
 
 	app.canvas.addEventListener("touchstart", (e) => {
@@ -378,7 +381,11 @@ function appInit(gopt: AppOpt = {}): App {
 	}
 
 	function isKeyReleased(k: string): boolean {
-		return app.keyStates[k] === "released";
+		if (k === undefined) {
+			return app.isKeyReleased;
+		} else {
+			return app.keyStates[k] === "released";
+		}
 	}
 
 	function charInputted(): string[] {
@@ -466,6 +473,7 @@ function appInit(gopt: AppOpt = {}): App {
 			app.isMouseMoved = false;
 			app.isKeyPressed = false;
 			app.isKeyPressedRepeat = false;
+			app.isKeyReleased = false;
 			app.loopID = requestAnimationFrame(frame);
 
 		};

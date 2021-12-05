@@ -130,6 +130,8 @@ const Index: React.FC = () => {
 
 };
 
+type SectionTuple = [string, string[]]
+
 interface IndexContentProps {
 	shrink: () => void,
 }
@@ -139,6 +141,16 @@ const IndexContent: React.FC<IndexContentProps> = ({
 }) => {
 
 	const [ query, setQuery ] = React.useState("");
+
+	const filteredSections = doc.sections.reduce((acc: SectionTuple[], cur) => {
+		const filteredEntries = cur.entries
+			.filter(name => query ? name.match(new RegExp(query, "i")) : true);
+
+		// Exclude sections that have no matching entries.
+		return filteredEntries.length > 0
+			? acc.concat([[cur.name, filteredEntries]])
+			: acc;
+	}, [])
 
 	return <>
 
@@ -165,14 +177,11 @@ const IndexContent: React.FC<IndexContentProps> = ({
 
 			<Input value={query} onChange={setQuery} placeholder="Search in doc" />
 
-			{ doc.sections.map((sec) => {
-
-				const entries = sec.entries
-					.filter((name) => query ? name.match(new RegExp(query, "i")) : true);
+			{ filteredSections.map(([sectionName, entries]) => {
 
 				return (
-					<View stretchX gap={1} key={sec.name}>
-						<Text size="big" color={3}>{sec.name}</Text>
+					<View stretchX gap={1} key={sectionName}>
+						<Text size="big" color={3}>{sectionName}</Text>
 							<View>
 								{ entries.map((name) => {
 
