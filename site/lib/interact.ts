@@ -12,8 +12,6 @@ import {StateField, StateEffect} from "@codemirror/state"
 import { syntaxTree } from "@codemirror/language";
 import { Range } from "@codemirror/rangeset";
 
-// TODO: better focus logic
-
 interface InteractTarget {
 	pos: number,
 	text: string,
@@ -37,8 +35,7 @@ const interact = (rules: InteractRule[]) => {
 
 	const mark = Decoration.mark({ class: "cm-interact" });
 
-	const setInteract = StateEffect.define<InteractTarget>()
-	const clearInteract = StateEffect.define<null>()
+	const setInteract = StateEffect.define<InteractTarget | null>();
 
 	const interactField = StateField.define<DecorationSet>({
 		create: () => Decoration.none,
@@ -46,11 +43,11 @@ const interact = (rules: InteractRule[]) => {
 			interacts = interacts.map(tr.changes)
 			for (let e of tr.effects) {
 				if (e.is(setInteract)) {
-					interacts = interacts
-						.update({
-							filter: () => false,
-						})
-						.update({
+					interacts = interacts.update({
+						filter: () => false,
+					});
+					if (e.value) {
+						interacts = interacts.update({
 							add: [
 								mark.range(
 									e.value.pos,
@@ -58,10 +55,7 @@ const interact = (rules: InteractRule[]) => {
 								),
 							],
 						});
-				} else if (e.is(clearInteract)) {
-					interacts = interacts.update({
-						filter: () => false,
-					});
+					}
 				}
 			}
 			return interacts;
@@ -117,7 +111,7 @@ const interact = (rules: InteractRule[]) => {
 		document.body.style.cursor = "auto";
 		view.dispatch({
 			effects: [
-				clearInteract.of(null),
+				setInteract.of(null),
 			],
 		});
 	};
@@ -180,40 +174,34 @@ const interact = (rules: InteractRule[]) => {
 
 					mouseX = e.clientX;
 					mouseY = e.clientY;
-					unfocus(view);
 
 					if (!e.altKey) return;
 
-					hovering = getMatchFromMouse(view, mouseX, mouseY);
-
-					if (hovering) {
-						focus(view, hovering);
-					} else {
-						unfocus(view);
-					}
-
-					if (dragging === null) return;
-
 					if (dragging) {
 						focus(view, dragging);
+						if (dragging.rule.onDrag) {
+							updateText(view, dragging, dragging.rule.onDrag(dragging.text, e));
+						}
+					} else {
+						hovering = getMatchFromMouse(view, mouseX, mouseY);
+						if (hovering) {
+							focus(view, hovering);
+						} else {
+							unfocus(view);
+						}
 					}
-
-					if (dragging.rule.onDrag) {
-						updateText(view, dragging, dragging.rule.onDrag(dragging.text, e));
-					};
 
 				},
 
 				mouseup: (e, view) => {
 					dragging = null;
-					if (!hovering && !e.altKey) {
+					if (!hovering) {
 						unfocus(view);
 					}
 				},
 
 				keydown: (e, view) => {
 					if (!e.altKey) return;
-					if (!hovering) return;
 					hovering = getMatchFromMouse(view, mouseX, mouseY);
 					if (hovering) {
 						focus(view, hovering);
