@@ -1,6 +1,13 @@
+import fs from "fs/promises";
+import path from "path";
 import * as React from "react";
+import { GetServerSideProps } from "next";
 import Link from "next/link";
+import { useRouter } from "next/router";
+import useKey from "hooks/useKey";
 import useSavedState from "hooks/useSavedState";
+import useClickOutside from "hooks/useClickOutside";
+import useSpaceUsed from "hooks/useSpaceUsed";
 import useMediaQuery from "hooks/useMediaQuery";
 import Head from "comps/Head";
 import Editor, { EditorRef } from "comps/Editor";
@@ -12,7 +19,15 @@ import View from "comps/View";
 import Text from "comps/Text";
 import Menu from "comps/Menu";
 import Inspect from "comps/Inspect";
+import FileDrop from "comps/FileDrop";
+import Drawer from "comps/Drawer";
+import Draggable from "comps/Draggable";
+import Droppable from "comps/Droppable";
 import Background from "comps/Background";
+import Doc from "comps/Doc";
+import download from "lib/download";
+import wrapHTML from "lib/wrapHTML";
+import Ctx from "lib/Ctx";
 
 // TODO: drag n' drop shapes / sprites from backpack
 // TODO: drag n' drop code snippets from editor to backpack
@@ -86,15 +101,78 @@ drawEllipse({
 })
 `.trim();
 
+interface Sprite {
+	name: string,
+	src: string,
+}
+
+interface SpriteEntryProps {
+	name: string,
+	src: string,
+}
+
+const SpriteEntry: React.FC<SpriteEntryProps> = ({
+	name,
+	src,
+}) => (
+	<Draggable
+		focusable
+		dir="row"
+		align="center"
+		gap={1}
+		stretchX
+		padX={2}
+		padY={1}
+		rounded
+		height={64}
+		dragType="sprite"
+		dragData={name}
+		css={{
+			"overflow": "hidden",
+			":hover": {
+				"background": "var(--color-bg2)",
+				"cursor": "pointer",
+			},
+		}}
+	>
+		<View width={48} height={48} justify="center">
+			<img
+				src={src}
+				alt={name}
+				css={{
+					userDrag: "none",
+					width: "100%",
+					overflow: "hidden",
+					objectFit: "cover",
+				}}
+			/>
+		</View>
+		<Text>{path.basename(name)}</Text>
+	</Draggable>
+);
+
 const Play: React.FC = () => {
 
 	const editorRef = React.useRef<EditorRef | null>(null);
 	const gameviewRef = React.useRef<GameViewRef | null>(null);
 	const isNarrow = useMediaQuery("(max-aspect-ratio: 1/1)");;
+	const [ backpackOpen, setBackpackOpen ] = React.useState(false);
+	const [ sprites, setSprites ] = useSavedState<Sprite[]>("sprites", []);
+	const { draggin } = React.useContext(Ctx);
 
 	React.useEffect(() => {
 		(window as any).code = code;
 	}, []);
+
+	useKey("Escape", () => {
+		setBackpackOpen(false);
+	}, [ setBackpackOpen ]);
+
+	useKey("b", (e) => {
+		if (!e.metaKey) return;
+		e.preventDefault();
+		setBackpackOpen((b) => !b);
+	}, [ setBackpackOpen ]);
 
 	return <>
 		<Head
@@ -156,7 +234,7 @@ const Play: React.FC = () => {
 					paddingTop: 2,
 					paddingBottom: 16,
 					paddingRight: 16,
-					paddingLeft: 16,
+					paddingLeft: (isNarrow) ? 16 : 44,
 				}}
 			>
 				<Editor
@@ -201,6 +279,77 @@ const Play: React.FC = () => {
 					}}
 				/>
 			</View>
+			{
+				draggin &&
+				<Droppable
+					stretch
+					css={{
+						position: "absolute",
+						zIndex: 10,
+					}}
+					accept={["sprite", "sound"]}
+					onDrop={(ty, data) => {
+						switch (ty) {
+							case "sprite":
+								setSprites((prev) => prev.filter(({ name }) => name !== data));
+						}
+					}}
+				/>
+			}
+			{ !isNarrow &&
+				<Drawer
+					name="Backpack"
+					desc="A place to put all your stuff"
+					handle
+					bigHandle
+					expanded={backpackOpen}
+					setExpanded={setBackpackOpen}
+					height="80%"
+					pad={2}
+				>
+					<View padX={1} gap={2} stretchX>
+						<Text size="big" color={2}>Backpack</Text>
+					</View>
+					<FileDrop
+						pad={1}
+						rounded
+						readAs="dataURL"
+						gap={1}
+						stretchX
+						accept="image"
+						onLoad={(file, content) => {
+							setSprites((prev) => {
+								for (const spr of prev) {
+									if (spr.src === content) {
+										// TODO: err msg?
+										return prev;
+									}
+								}
+								return [
+									...prev,
+									{
+										name: file.name,
+										src: content,
+									},
+								];
+							})
+						}}
+					>
+						<Text color={3}>Sprites</Text>
+						{
+							sprites
+								.sort((a, b) => a.name > b.name ? 1 : -1)
+								.map(({name, src}) => (
+									<SpriteEntry
+										key={name}
+										name={name}
+										src={src}
+									/>
+								))
+						}
+					</FileDrop>
+				</Drawer>
+			}
 		</Background>
 	</>;
 

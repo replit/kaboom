@@ -1,17 +1,17 @@
 import {
 	EditorView,
 	ViewPlugin,
+	PluginValue,
 	DecorationSet,
 	Decoration,
 } from "@codemirror/view";
 
 import {
 	StateEffect,
-	StateField,
 	Facet,
 } from "@codemirror/state";
 
-interface InteractTarget {
+interface Target {
 	pos: number,
 	text: string,
 	rule: InteractRule,
@@ -29,33 +29,7 @@ export interface InteractRule {
 // TODO: custom style
 
 const mark = Decoration.mark({ class: "cm-interact" });
-const setInteract = StateEffect.define<InteractTarget | null>();
-
-const interactField = StateField.define<DecorationSet>({
-	create: () => Decoration.none,
-	update: (decos, tr) => {
-		decos = decos.map(tr.changes)
-		for (const e of tr.effects) {
-			if (e.is(setInteract)) {
-				decos = decos.update({
-					filter: () => false,
-				});
-				if (e.value) {
-					decos = decos.update({
-						add: [
-							mark.range(
-								e.value.pos,
-								e.value.pos + e.value.text.length
-							),
-						],
-					});
-				}
-			}
-		}
-		return decos;
-	},
-	provide: (f) => EditorView.decorations.from(f),
-});
+const setInteract = StateEffect.define<Target | null>();
 
 const theme = EditorView.theme({
 	".cm-interact": {
@@ -64,105 +38,138 @@ const theme = EditorView.theme({
 	},
 });
 
-const getMatchFromPos = (
-	view: EditorView,
-	x: number,
-	y: number,
-): InteractTarget | null => {
-
-	const rules = view.state.facet(interactRules);
-	const pos = view.posAtCoords({ x, y });
-	if (!pos) return null;
-	const line = view.state.doc.lineAt(pos);
-	const lpos = pos - line.from;
-	let match = null;
-
-	for (const rule of rules) {
-		for (const m of line.text.matchAll(rule.regex)) {
-			if (m.index === undefined) continue;
-			const text = m[0];
-			const start = m.index;
-			const end = m.index + text.length;
-			if (lpos < start || lpos > end) continue;
-			if (!match || text.length < match.text.length) {
-				match = {
-					rule: rule,
-					pos: line.from + start,
-					text: text,
-				};
-			}
-		}
-	}
-
-	return match;
-
-};
-
-const focus = (view: EditorView, target: InteractTarget) => {
-	if (target.rule.cursor) {
-		document.body.style.cursor = target.rule.cursor;
-	}
-	view.dispatch({
-		effects: setInteract.of(target),
-	});
-};
-
-const unfocus = (view: EditorView) => {
-	document.body.style.cursor = "auto";
-	view.dispatch({
-		effects: setInteract.of(null),
-	});
-};
-
-const updateText = (
-	view: EditorView,
-	target: InteractTarget,
-	text: string | void
-) => {
-
-	if (typeof text !== "string") return;
-
-	view.dispatch({
-		changes: {
-			from: target.pos,
-			to: target.pos + target.text.length,
-			insert: text,
-		},
-	});
-
-	target.text = text;
-
-};
-
 const interactRules = Facet.define<InteractRule>();
 
-// TODO: not using closed values for state?
-const eventHandler = () => {
+interface ViewState extends PluginValue {
+	dragging: Target | null,
+	hovering: Target | null,
+	mouseX: number,
+	mouseY: number,
+	deco: DecorationSet,
+	getMatch(): Target | null,
+	updateText(target: Target, text: string | void): void,
+	focus(target: Target): void,
+	unfocus(): void,
+}
 
-	let dragging: InteractTarget | null = null;
-	let hovering: InteractTarget | null = null;
-	let mouseX = 0;
-	let mouseY = 0;
+const view = ViewPlugin.define<ViewState>((view) => {
 
-	return EditorView.domEventHandlers({
+	return {
 
-		mousedown: (e, view) => {
+		dragging: null,
+		hovering: null,
+		mouseX: 0,
+		mouseY: 0,
+		deco: Decoration.none,
+
+		getMatch() {
+
+			const rules = view.state.facet(interactRules);
+			const pos = view.posAtCoords({ x: this.mouseX, y: this.mouseY });
+			if (!pos) return null;
+			const line = view.state.doc.lineAt(pos);
+			const lpos = pos - line.from;
+			let match = null;
+
+			for (const rule of rules) {
+				for (const m of line.text.matchAll(rule.regex)) {
+					if (m.index === undefined) continue;
+					const text = m[0];
+					const start = m.index;
+					const end = m.index + text.length;
+					if (lpos < start || lpos > end) continue;
+					if (!match || text.length < match.text.length) {
+						match = {
+							rule: rule,
+							pos: line.from + start,
+							text: text,
+						};
+					}
+				}
+			}
+
+			return match;
+
+		},
+
+		updateText(target, text) {
+
+			if (typeof text !== "string") return;
+
+			view.dispatch({
+				changes: {
+					from: target.pos,
+					to: target.pos + target.text.length,
+					insert: text,
+				},
+			});
+
+			target.text = text;
+
+		},
+
+		focus(target) {
+			if (target.rule.cursor) {
+				document.body.style.cursor = target.rule.cursor;
+			}
+			view.dispatch({
+				effects: setInteract.of(target),
+			});
+		},
+
+		unfocus() {
+			document.body.style.cursor = "auto";
+			view.dispatch({
+				effects: setInteract.of(null),
+			});
+		},
+
+		update(update) {
+			for (const tr of update.transactions) {
+				for (const e of tr.effects) {
+					if (e.is(setInteract)) {
+						this.deco = this.deco.update({
+							filter: () => false,
+						});
+						if (e.value) {
+							this.deco = this.deco.update({
+								add: [
+									mark.range(
+										e.value.pos,
+										e.value.pos + e.value.text.length
+									),
+								],
+							});
+						}
+					}
+				}
+			}
+		},
+
+	};
+
+}, {
+
+	decorations: (v) => v.deco,
+
+	eventHandlers: {
+
+		mousedown(e, view) {
 
 			if (!e.altKey) return;
-			const match = getMatchFromPos(view, e.clientX, e.clientY);
+			const match = this.getMatch();
 			if (!match) return;
 			e.preventDefault();
 
 			if (match.rule.onClick) {
-				updateText(
-					view,
+				this.updateText(
 					match,
 					match.rule.onClick(match.text, e)
 				);
 			};
 
 			if (match.rule.onDrag) {
-				dragging = {
+				this.dragging = {
 					rule: match.rule,
 					pos: match.pos,
 					text: match.text,
@@ -171,63 +178,60 @@ const eventHandler = () => {
 
 		},
 
-		mousemove: (e, view) => {
+		mousemove(e, view) {
 
-			mouseX = e.clientX;
-			mouseY = e.clientY;
+			this.mouseX = e.clientX;
+			this.mouseY = e.clientY;
 
 			if (!e.altKey) return;
 
-			if (dragging) {
-				focus(view, dragging);
-				if (dragging.rule.onDrag) {
-					updateText(
-						view,
-						dragging,
-						dragging.rule.onDrag(dragging.text, e)
+			if (this.dragging) {
+				this.focus(this.dragging);
+				if (this.dragging.rule.onDrag) {
+					this.updateText(
+						this.dragging,
+						this.dragging.rule.onDrag(this.dragging.text, e)
 					);
 				}
 			} else {
-				hovering = getMatchFromPos(view, mouseX, mouseY);
-				if (hovering) {
-					focus(view, hovering);
+				this.hovering = this.getMatch();
+				if (this.hovering) {
+					this.focus(this.hovering);
 				} else {
-					unfocus(view);
+					this.unfocus();
 				}
 			}
 
 		},
 
-		mouseup: (e, view) => {
-			dragging = null;
-			if (!hovering) {
-				unfocus(view);
+		mouseup(e, view) {
+			this.dragging = null;
+			if (!this.hovering) {
+				this.unfocus();
 			}
 		},
 
-		keydown: (e, view) => {
+		keydown(e, view) {
 			if (!e.altKey) return;
-			hovering = getMatchFromPos(view, mouseX, mouseY);
-			if (hovering) {
-				focus(view, hovering);
+			this.hovering = this.getMatch();
+			if (this.hovering) {
+				this.focus(this.hovering);
 			}
 		},
 
-		keyup: (e, view) => {
+		keyup(e, view) {
 			if (!e.altKey) {
-				unfocus(view);
+				this.unfocus();
 			}
 		},
 
-	});
-
-};
+	},
+})
 
 const interact = (rules: InteractRule[]) => [
 	theme,
-	interactField,
 	rules.map((r) => interactRules.of(r)),
-	eventHandler(),
+	view,
 ];
 
 export default interact;
