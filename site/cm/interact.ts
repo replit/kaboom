@@ -18,7 +18,7 @@ interface Target {
 }
 
 export interface InteractRule {
-	regex: RegExp,
+	regexp: RegExp,
 	cursor?: string,
 	style?: any,
 	onClick?: (old: string, e: MouseEvent) => string | void,
@@ -27,6 +27,7 @@ export interface InteractRule {
 
 // TODO: custom key mod
 // TODO: custom style
+// TODO: custom state for each rule?
 
 const mark = Decoration.mark({ class: "cm-interact" });
 const setInteract = StateEffect.define<Target | null>();
@@ -72,7 +73,7 @@ const view = ViewPlugin.define<ViewState>((view) => {
 			let match = null;
 
 			for (const rule of rules) {
-				for (const m of line.text.matchAll(rule.regex)) {
+				for (const m of line.text.matchAll(rule.regexp)) {
 					if (m.index === undefined) continue;
 					const text = m[0];
 					const start = m.index;
@@ -128,19 +129,11 @@ const view = ViewPlugin.define<ViewState>((view) => {
 			for (const tr of update.transactions) {
 				for (const e of tr.effects) {
 					if (e.is(setInteract)) {
-						this.deco = this.deco.update({
-							filter: () => false,
-						});
-						if (e.value) {
-							this.deco = this.deco.update({
-								add: [
-									mark.range(
-										e.value.pos,
-										e.value.pos + e.value.text.length
-									),
-								],
-							});
-						}
+						const decos = e.value ? mark.range(
+							e.value.pos,
+							e.value.pos + e.value.text.length
+						) : [];
+						this.deco = Decoration.set(decos);
 					}
 				}
 			}

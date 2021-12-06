@@ -58,7 +58,9 @@ import View, { ViewProps } from "comps/View";
 import Ctx from "lib/Ctx";
 import { themes } from "lib/ui";
 import { clamp } from "lib/math";
-import interact from "lib/interact";
+
+import interact from "cm/interact";
+import img from "cm/img";
 
 // @ts-ignore
 const cmThemes: Record<Theme, [ Extension, HighlightStyle ]> = {};
@@ -357,6 +359,12 @@ const Editor = React.forwardRef<EditorRef, EditorProps & ViewProps>(({
 			idx: -1,
 		};
 
+// 		const numPat = "-?\\b\\d+\\.?\\d*\\b";
+// 		const vec2Pat = `vec2\\(\\s*(?<x>${numPat})\\s*(,\\s*(?<y>${numPat})\\s*)?\\)`;
+
+// 		const numRegex = new RegExp(numPat, "g");
+// 		const vec2Regex = new RegExp(vec2Pat, "g");
+
 		cm.setState(EditorState.create({
 			doc: content ?? "",
 			extensions: [
@@ -404,7 +412,7 @@ const Editor = React.forwardRef<EditorRef, EditorProps & ViewProps>(({
 				interact([
 					// number slider
 					{
-						regex: /-?\b\d+\.?\d*\b/g,
+						regexp: /-?\b\d+\.?\d*\b/g,
 						cursor: "ew-resize",
 						onDrag: (old, e) => {
 							// TODO: size aware
@@ -416,7 +424,7 @@ const Editor = React.forwardRef<EditorRef, EditorProps & ViewProps>(({
 					},
 					// bool toggler
 					{
-						regex: /true|false/g,
+						regexp: /true|false/g,
 						cursor: "pointer",
 						onClick: (old) => {
 							switch (old) {
@@ -427,7 +435,7 @@ const Editor = React.forwardRef<EditorRef, EditorProps & ViewProps>(({
 					},
 					// kaboom vec2 slider
 					{
-						regex: /vec2\(.*\)/g,
+						regexp: /vec2\(-?\b\d+\.?\d*\b\s*(,\s*-?\b\d+\.?\d*\b)?\)/g,
 						cursor: "move",
 						onDrag: (old, e) => {
 							const res = /vec2\((?<x>-?\b\d+\.?\d*\b)\s*(,\s*(?<y>-?\b\d+\.?\d*\b))?\)/.exec(old);
@@ -440,19 +448,19 @@ const Editor = React.forwardRef<EditorRef, EditorProps & ViewProps>(({
 					},
 					// kaboom origin slider
 					{
-						regex: new RegExp(`${origins.join("|")}`, "g"),
+						regexp: new RegExp(`${origins.join("|")}`, "g"),
 						cursor: "move",
 						onClick: (old) => {
 							const idx = origins.indexOf(old);
 							originState.x = 0;
-							originState.x = 0;
+							originState.y = 0;
 							originState.idx = idx;
 						},
 						onDrag: (old, e) => {
-							const { idx, x, y } = originState;
-							if (originState.idx === -1) return;
 							originState.x += e.movementX;
 							originState.y += e.movementY;
+							const { idx, x, y } = originState;
+							if (idx === -1) return;
 							const s = 80;
 							const sx = clamp(idx % 3 + Math.round(x / s), 0, 2);
 							const sy = clamp(Math.floor(idx / 3) + Math.round(y / s), 0, 2);
@@ -461,13 +469,14 @@ const Editor = React.forwardRef<EditorRef, EditorProps & ViewProps>(({
 					},
 					// url clicker
 					{
-						regex: /https?:\/\/[^ "]+/g,
+						regexp: /https?:\/\/[^ "]+/g,
 						cursor: "pointer",
 						onClick: (text) => {
 							window.open(text);
 						},
 					},
 				]),
+				img,
 			].filter((ext) => ext),
 		}));
 
