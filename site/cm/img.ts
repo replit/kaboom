@@ -107,7 +107,7 @@ const view = ViewPlugin.define<ViewState>((view) => {
 			if (el.nodeName !== "IMG" || !el.classList.contains(className)) return;
 			const pos = Number(el.dataset.pos);
 
-			edit(el.src, (dataurl) => {
+			edit(el, (dataurl) => {
 				view.dispatch({
 					changes: {
 						from: pos,
@@ -123,8 +123,17 @@ const view = ViewPlugin.define<ViewState>((view) => {
 
 });
 
-function edit(src: string, write: (dataurl: string) => void) {
-	// ...
+// TODO
+function edit(src: HTMLImageElement, write: (dataurl: string) => void) {
+	const canvas = document.createElement("canvas");
+	canvas.width = src.width;
+	canvas.height = src.height;
+	const ctx = canvas.getContext("2d");
+	if (!ctx) return;
+	ctx.fillStyle = "blue";
+	ctx.fillRect(0, 0, src.width, src.height);
+	ctx.drawImage(src, 0, 0);
+	write(canvas.toDataURL());
 }
 
 export default view;
