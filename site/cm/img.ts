@@ -145,6 +145,7 @@ function edit(src: HTMLImageElement, write: (dataurl: string) => void) {
 			background: "var(--color-bg2)",
 			border: "solid 2px var(--color-outline)",
 			borderRadius: "4px",
+			margin: "0",
 		},
 	});
 
@@ -153,6 +154,10 @@ function edit(src: HTMLImageElement, write: (dataurl: string) => void) {
 	const btn = document.createElement("button");
 	btn.textContent = "Save";
 	btn.onclick = () => write(p.toDataURL());
+	btn.style.cursor = "pointer";
+	btn.style.padding = "4px";
+	btn.style.fontSize = "16px";
+	btn.style.marginLeft = "8px";
 
 	root.appendChild(btn);
 
