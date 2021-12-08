@@ -40,7 +40,7 @@ const theme = EditorView.theme({
 	},
 });
 
-const interactRules = Facet.define<InteractRule>();
+export const interactRule = Facet.define<InteractRule>();
 
 interface ViewState extends PluginValue {
 	dragging: Target | null,
@@ -66,7 +66,7 @@ const view = ViewPlugin.define<ViewState>((view) => {
 
 		getMatch() {
 
-			const rules = view.state.facet(interactRules);
+			const rules = view.state.facet(interactRule);
 			const pos = view.posAtCoords({ x: this.mouseX, y: this.mouseY });
 			if (!pos) return null;
 			const line = view.state.doc.lineAt(pos);
@@ -224,7 +224,7 @@ const view = ViewPlugin.define<ViewState>((view) => {
 
 const interact = (rules: InteractRule[]) => [
 	theme,
-	rules.map((r) => interactRules.of(r)),
+	rules.map((r) => interactRule.of(r)),
 	view,
 ];
 

@@ -20,6 +20,7 @@ type Pedit = {
 	toDataURL: () => string,
 	destroy: () => void,
 	resetView: () => void,
+	focus: () => void,
 };
 
 type View = {
@@ -434,8 +435,20 @@ export default function pedit(gopt: PeditOpt): Pedit {
 		}
 	};
 
+	canvasEl.onkeydown = (e) => {
+		switch (e.key) {
+			case "0":
+				resetView();
+				break;
+		}
+	}
+
 	function toDataURL() {
 		return imgCanvas.toDataURL();
+	}
+
+	function focus() {
+		canvasEl.focus();
 	}
 
 	function destroy() {
@@ -451,6 +464,7 @@ export default function pedit(gopt: PeditOpt): Pedit {
 		destroy,
 		toDataURL,
 		resetView,
+		focus,
 	};
 
 };
