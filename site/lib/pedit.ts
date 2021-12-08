@@ -29,7 +29,7 @@ type Color = {
 }
 
 type BrushTool = {
-	size: number,
+	brush: ImageData,
 }
 
 type ErasorTool = {
@@ -99,13 +99,58 @@ function* line(x0: number, y0: number, x1: number, y1: number) {
 
 }
 
-function setPixel(img: ImageData, x: number, y: number, c: Color) {
+function drawPixel(img: ImageData, x: number, y: number, c: Color) {
 	if (x < 0 || x >= img.width || y < 0 || y >= img.height) return;
 	const i = (Math.floor(y) * img.width + Math.floor(x)) * 4;
 	img.data[i + 0] = c.r;
 	img.data[i + 1] = c.g;
 	img.data[i + 2] = c.b;
 	img.data[i + 3] = c.a;
+}
+
+function getPixel(img: ImageData, x: number, y: number): Color {
+	if (x < 0 || x >= img.width || y < 0 || y >= img.height)
+		throw new Error(`Pixel out of bound: (${x}, ${y})`);
+	const i = (Math.floor(y) * img.width + Math.floor(x)) * 4;
+	return rgba(
+		img.data[i + 0],
+		img.data[i + 1],
+		img.data[i + 2],
+		img.data[i + 3],
+	);
+}
+
+function drawImg(
+	img: ImageData,
+	img2: ImageData,
+	x: number,
+	y: number,
+	c: Color
+) {
+	for (let xx = 0; xx < img2.width; xx++) {
+		for (let yy = 0; yy < img2.height; yy++) {
+			const c = getPixel(img2, xx, yy);
+			if (c.a) {
+				drawPixel(img, x + xx, y + yy, c);
+			}
+		}
+	}
+}
+
+function drawBrush(
+	img: ImageData,
+	brush: ImageData,
+	x0: number,
+	y0: number,
+	x1: number,
+	y1: number,
+	c: Color
+) {
+	const dx = Math.floor(brush.width / 2);
+	const dy = Math.floor(brush.height / 2);
+	for (const [ x, y ] of line(x0, y0, x1, y1)) {
+		drawImg(img, brush, x - dx, y - dy, c);
+	}
 }
 
 function drawLine(
@@ -128,7 +173,7 @@ function fillCircle(img: ImageData, x: number, y: number, r: number, c: Color) {
 		for (let yy = y - r; yy <= y + r; yy++) {
 			const dist = Math.sqrt((xx - x) ** 2 + (yy - y) ** 2);
 			if (dist <= r) {
-				setPixel(img, xx, yy, c);
+				drawPixel(img, xx, yy, c);
 			}
 		}
 	}
@@ -137,7 +182,7 @@ function fillCircle(img: ImageData, x: number, y: number, r: number, c: Color) {
 function fillRect(img: ImageData, x: number, y: number, w: number, h: number, c: Color) {
 	for (let xx = x; xx <= x + w; xx++) {
 		for (let yy = y; yy <= y + h; yy++) {
-			setPixel(img, xx, yy, c);
+			drawPixel(img, xx, yy, c);
 		}
 	}
 }
@@ -184,6 +229,7 @@ function bucket(img: ImageData, x: number, y: number, color: Color) {
 
 const rgba = (r: number, g: number, b: number, a: number = 255) => ({ r, g, b, a });
 const rgb = (r: number, g: number, b: number) => ({ r, g, b, a: 255 });
+const clamp = (n: number, a: number, b: number) => Math.min(b, Math.max(n, a));
 
 function makeCanvas(img: ImageData): [HTMLCanvasElement, () => void] {
 	const canvas = document.createElement("canvas");
@@ -214,6 +260,18 @@ function drawCheckerboard(ctx: CanvasRenderingContext2D, x: number, y: number, w
 	ctx.restore();
 }
 
+function makeRectBrush(size: number): ImageData {
+	const img = new ImageData(size, size);
+	fillRect(img, 0, 0, size, size, rgb(255, 255, 255));
+	return img;
+}
+
+function makeCircleBrush(size: number): ImageData {
+	const img = new ImageData(size, size);
+	fillCircle(img, 0, 0, size / 2, rgb(255, 255, 255));
+	return img;
+}
+
 export default function pedit(gopt: PeditOpt): Pedit {
 
 	const canvasEl = gopt.canvas ?? (() => {
@@ -232,6 +290,9 @@ export default function pedit(gopt: PeditOpt): Pedit {
 			if (val) canvasEl.style[key] = val;
 		}
 	}
+
+	canvasEl.tabIndex = 0;
+	canvasEl.style.cursor = "crosshair";
 
 	const ctx = canvasEl.getContext("2d");
 
@@ -302,9 +363,11 @@ export default function pedit(gopt: PeditOpt): Pedit {
 
 	frame();
 
+	const brush = makeRectBrush(1);
+
 	const cmds = {
 		"brush": (cmd: BrushCmd) => {
-			drawLine(img, cmd.fromX, cmd.fromY, cmd.toX, cmd.toY, cmd.size, cmd.color);
+			drawBrush(img, cmd.brush, cmd.fromX, cmd.fromY, cmd.toX, cmd.toY, cmd.color);
 		},
 	};
 
@@ -312,8 +375,18 @@ export default function pedit(gopt: PeditOpt): Pedit {
 
 	canvasEl.onwheel = (e) => {
 		e.preventDefault();
-		view.x -= e.deltaX;
-		view.y -= e.deltaY;
+		if (e.altKey) {
+			const sx = (e.offsetX - view.x) / view.s / img.width;
+			const sy = (e.offsetY - view.y) / view.s / img.height;
+			const oldS = view.s;
+			view.s = clamp(view.s - e.deltaY / 16, 1, 10);
+			const ds = view.s - oldS;
+			view.x -= sx * img.width * ds;
+			view.y -= sy * img.height * ds;
+		} else {
+			view.x -= e.deltaX;
+			view.y -= e.deltaY;
+		}
 	};
 
 	canvasEl.onmousedown = (e) => {
@@ -336,7 +409,7 @@ export default function pedit(gopt: PeditOpt): Pedit {
 				toX: x,
 				toY: y,
 				color: rgb(0, 0, 0),
-				size: 1,
+				brush: brush,
 			})
 		}
 	};
