@@ -1,3 +1,8 @@
+// TODO: don't use document.style.cursor
+// TODO: custom key mod
+// TODO: custom style
+// TODO: custom state for each rule?
+
 import {
 	EditorView,
 	ViewPlugin,
@@ -24,10 +29,6 @@ export interface InteractRule {
 	onClick?: (old: string, e: MouseEvent) => string | void,
 	onDrag?: (old: string, e: MouseEvent) => string | void,
 }
-
-// TODO: custom key mod
-// TODO: custom style
-// TODO: custom state for each rule?
 
 const mark = Decoration.mark({ class: "cm-interact" });
 const setInteract = StateEffect.define<Target | null>();

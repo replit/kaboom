@@ -19,7 +19,14 @@ type Pedit = {
 	ctx: CanvasRenderingContext2D,
 	toDataURL: () => string,
 	destroy: () => void,
+	resetView: () => void,
 };
+
+type View = {
+	scale: number,
+	x: number,
+	y: number,
+}
 
 type Color = {
 	r: number,
@@ -326,21 +333,24 @@ export default function pedit(gopt: PeditOpt): Pedit {
 
 	let loopID: number | null = null;
 
-	const view = (() => {
-		const s = Math.min(
+	const view = {
+		s: 1,
+		x: 0,
+		y: 0,
+	};
+
+	function resetView() {
+		view.s = Math.min(
 			canvasEl.width * 0.8 / img.width,
 			canvasEl.height * 0.8 / img.height
 		);
-		const w = img.width * s;
-		const h = img.height * s;
-		const x = (canvasEl.width - w) / 2;
-		const y = (canvasEl.height - h) / 2;
-		return {
-			x: x,
-			y: y,
-			s: s,
-		};
-	})();
+		const w = img.width * view.s;
+		const h = img.height * view.s;
+		view.x = (canvasEl.width - w) / 2;
+		view.y = (canvasEl.height - h) / 2;
+	}
+
+	resetView();
 
 	ctx.imageSmoothingEnabled = false;
 
@@ -440,6 +450,7 @@ export default function pedit(gopt: PeditOpt): Pedit {
 		ctx,
 		destroy,
 		toDataURL,
+		resetView,
 	};
 
 };
