@@ -14,6 +14,8 @@ import {
 	Facet,
 } from "@codemirror/state";
 
+import pedit from "lib/pedit";
+
 const className = "cm-img";
 
 class ImgWidget extends WidgetType {
@@ -36,34 +38,9 @@ class ImgWidget extends WidgetType {
 		img.classList.add(className);
 		img.style.maxHeight = "64px";
 		img.style.maxWidth = "256px";
-		return img;
-	}
-
-	ignoreEvent() {
-		return false;
-	}
-
-}
-
-class ImgEditWidget extends WidgetType {
-
-	constructor(
-		readonly src: string,
-		readonly pos: number,
-	) {
-		super();
-	}
-
-	eq(other: ImgWidget) {
-		return this.src === other.src && this.pos === other.pos;
-	}
-
-	toDOM() {
-		const img = document.createElement("img");
-		img.src = this.src;
-		img.dataset.pos = this.pos.toString();
-		img.classList.add(className);
-		return img;
+		const wrapper = document.createElement("span");
+		wrapper.appendChild(img);
+		return wrapper;
 	}
 
 	ignoreEvent() {
@@ -102,6 +79,7 @@ const view = ViewPlugin.define<ViewState>((view) => {
 	eventHandlers: {
 
 		mousedown(e, view) {
+
 			if (!e.altKey) return;
 			const el = e.target as HTMLImageElement;
 			if (el.nodeName !== "IMG" || !el.classList.contains(className)) return;
@@ -125,15 +103,29 @@ const view = ViewPlugin.define<ViewState>((view) => {
 
 // TODO
 function edit(src: HTMLImageElement, write: (dataurl: string) => void) {
-	const canvas = document.createElement("canvas");
-	canvas.width = src.width;
-	canvas.height = src.height;
-	const ctx = canvas.getContext("2d");
-	if (!ctx) return;
-	ctx.fillStyle = "blue";
-	ctx.fillRect(0, 0, src.width, src.height);
-	ctx.drawImage(src, 0, 0);
-	write(canvas.toDataURL());
+
+	const root = src.parentNode;
+
+	if (!root) return;
+
+	const p = pedit({
+		from: src,
+		root: root,
+		styles: {
+			background: "var(--color-bg2)",
+			border: "solid 2px blue",
+			borderRadius: "4px",
+		},
+	});
+
+	root.removeChild(src);
+
+	const btn = document.createElement("button");
+	btn.textContent = "Save";
+	btn.onclick = () => write(p.toDataURL());
+
+	root.appendChild(btn);
+
 }
 
 export default view;
