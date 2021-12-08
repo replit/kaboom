@@ -196,6 +196,24 @@ function makeCanvas(img: ImageData): [HTMLCanvasElement, () => void] {
 	return [ canvas, update ];
 }
 
+function drawCheckerboard(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number) {
+	ctx.save();
+	const clip = new Path2D();
+	clip.rect(x, y, w, h);
+	const s = 16;
+	ctx.clip(clip);
+	ctx.fillStyle = "#bebebe";
+	ctx.fillRect(x, y, w, h);
+	ctx.fillStyle = "#808080";
+	for (let xx = 0; xx < w / s; xx++) {
+		for (let yy = 0; yy < h / s; yy++) {
+			if ((xx + yy) % 2 === 0) continue;
+			ctx.fillRect(x + xx * s, x + yy * s, s, s);
+		}
+	}
+	ctx.restore();
+}
+
 export default function pedit(gopt: PeditOpt): Pedit {
 
 	const canvasEl = gopt.canvas ?? (() => {
@@ -205,8 +223,8 @@ export default function pedit(gopt: PeditOpt): Pedit {
 		return c;
 	})();
 
-	if (gopt.canvasWidth) canvasEl.width = gopt.canvasWidth;
-	if (gopt.canvasHeight) canvasEl.height = gopt.canvasHeight;
+	canvasEl.width = gopt.canvasWidth ?? 320;
+	canvasEl.height = gopt.canvasHeight ?? 240;
 
 	if (gopt.styles) {
 		for (const key in gopt.styles) {
@@ -247,41 +265,47 @@ export default function pedit(gopt: PeditOpt): Pedit {
 
 	let loopID: number | null = null;
 
-	const view = {
-		x: 0,
-		y: 0,
-		sx: 2,
-		sy: 2,
-	};
+	const view = (() => {
+		const s = Math.min(
+			canvasEl.width * 0.8 / img.width,
+			canvasEl.height * 0.8 / img.height
+		);
+		const w = img.width * s;
+		const h = img.height * s;
+		const x = (canvasEl.width - w) / 2;
+		const y = (canvasEl.height - h) / 2;
+		return {
+			x: x,
+			y: y,
+			s: s,
+		};
+	})();
 
-	const bg = new ImageData(img.width, img.height);
-	const [ bgCanvas, updateBgCanvas ] = makeCanvas(bg);
+	ctx.imageSmoothingEnabled = false;
+
 	const [ imgCanvas, updateImgCanvas ] = makeCanvas(img);
 
-	fillRect(bg, 0, 0, bg.width, bg.height, rgb(0, 0, 0));
-
 	function frame() {
+
 		if (!ctx) throw new Error("Failed to get 2d drawing context");
+
 		ctx.clearRect(0, 0, canvasEl.width, canvasEl.height);
 		ctx.translate(view.x, view.y);
-		ctx.scale(view.sx, view.sy);
+		ctx.scale(view.s, view.s);
+		drawCheckerboard(ctx, 0, 0, img.width, img.height);
 		updateImgCanvas();
-		ctx.drawImage(bgCanvas, 0, 0);
 		ctx.drawImage(imgCanvas, 0, 0);
-// 		ctx.putImageData(bg, view.x, view.y);
-// 		ctx.putImageData(img, view.x, view.y);
 		ctx.setTransform(1, 0, 0, 1, 0, 0);
 		loopID = requestAnimationFrame(frame);
+
 	}
 
 	frame();
 
 	const cmds = {
-
 		"brush": (cmd: BrushCmd) => {
 			drawLine(img, cmd.fromX, cmd.fromY, cmd.toX, cmd.toY, cmd.size, cmd.color);
 		},
-
 	};
 
 	let leftMouseDown = false;
@@ -300,10 +324,10 @@ export default function pedit(gopt: PeditOpt): Pedit {
 
 	canvasEl.onmousemove = (e) => {
 
-		const x = (e.offsetX - view.x) / view.sx;
-		const y = (e.offsetY - view.y) / view.sy;
-		const dx = e.movementX / view.sx;
-		const dy = e.movementY / view.sy;
+		const x = (e.offsetX - view.x) / view.s;
+		const y = (e.offsetY - view.y) / view.s;
+		const dx = e.movementX / view.s;
+		const dy = e.movementY / view.s;
 
 		if (leftMouseDown) {
 			cmds["brush"]({
@@ -312,7 +336,7 @@ export default function pedit(gopt: PeditOpt): Pedit {
 				toX: x,
 				toY: y,
 				color: rgb(0, 0, 0),
-				size: 2,
+				size: 1,
 			})
 		}
 	};

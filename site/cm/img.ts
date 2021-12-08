@@ -113,7 +113,7 @@ function edit(src: HTMLImageElement, write: (dataurl: string) => void) {
 		root: root,
 		styles: {
 			background: "var(--color-bg2)",
-			border: "solid 2px blue",
+			border: "solid 2px var(--color-outline)",
 			borderRadius: "4px",
 		},
 	});
