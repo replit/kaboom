@@ -26,6 +26,8 @@ type Pedit = {
 	addTool<Props, State = void>(cfg: ToolCfg<Props, State>): void,
 	addCmd<Args>(cmd: CmdCfg<Args>): void,
 	exec<Args>(name: string, args: Args): void,
+	undo(): void,
+	redo(): void,
 };
 
 type View = {
@@ -202,27 +204,27 @@ function pourBucket(img: ImageData, x: number, y: number, color: Color) {
 		return false;
 	}
 
-	const stack: [number, number][] = [];
+	const stack: Vec2[] = [];
 
-	stack.push([x, y]);
+	stack.push(vec2(x, y));
 
 	while (stack.length) {
 
-		const [x, y] = stack.pop() as [number, number];
+		const { x, y } = stack.pop() as Vec2;
 
 		if (!checkPt(img, x, y)) {
 			continue;
 		}
 
-		if (getPixel(img, x, y).eq(target)) {
+		if (getPixel(img, x, y).eq(color)) {
 			continue;
 		}
 
 		setPixel(img, x, y, color);
-		stack.push([x, y - 1]);
-		stack.push([x - 1, y]);
-		stack.push([x + 1, y]);
-		stack.push([x, y + 1]);
+		stack.push(vec2(x, y - 1));
+		stack.push(vec2(x - 1, y));
+		stack.push(vec2(x + 1, y));
+		stack.push(vec2(x, y + 1));
 
 	}
 
@@ -441,7 +443,6 @@ export default function pedit(gopt: PeditOpt): Pedit {
 
 	frame();
 
-	const brush = makeCircleBrush(24);
 	const SCALE_SPEED = 1 / 16;
 	const MIN_SCALE = 1;
 	const MAX_SCALE = 64;
@@ -479,11 +480,29 @@ export default function pedit(gopt: PeditOpt): Pedit {
 		})
 	}
 
+	function undo() {}
+	function redo() {}
+
 	canvasEl.addEventListener("keydown", (e) => {
 		switch (e.key) {
 			case "0":
 				resetView();
 				break;
+			case "z":
+				if (e.metaKey) {
+					if (e.shiftKey) {
+						redo();
+					} else {
+						undo();
+					}
+				}
+				break;
+		}
+		for (const [i, tool] of tools.entries()) {
+			if (tool.hotkey === e.key) {
+				curTool = i;
+				break;
+			}
 		}
 	});
 
@@ -623,6 +642,7 @@ export default function pedit(gopt: PeditOpt): Pedit {
 						props.size = Number(e.key);
 						break;
 				}
+				// TODO: use state()
 				state.brush = (() => {
 					switch (props.kind) {
 						case "circle": return makeCircleBrush(props.size);
@@ -669,7 +689,7 @@ export default function pedit(gopt: PeditOpt): Pedit {
 	addTool<BucketToolProps>({
 		name: "Bucket",
 		icon: "",
-		hotkey: "e",
+		hotkey: "g",
 		props: {
 			continuous: true,
 			tolerance: 0,
@@ -709,6 +729,8 @@ export default function pedit(gopt: PeditOpt): Pedit {
 		addTool,
 		addCmd,
 		exec,
+		undo,
+		redo
 	};
 
 };
