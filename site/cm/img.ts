@@ -51,6 +51,7 @@ class ImgWidget extends WidgetType {
 
 interface ViewState extends PluginValue {
 	deco: DecorationSet,
+	hovering: boolean,
 }
 
 const view = ViewPlugin.define<ViewState>((view) => {
@@ -63,6 +64,7 @@ const view = ViewPlugin.define<ViewState>((view) => {
 	});
 
 	return {
+		hovering: false,
 		deco: matcher.createDeco(view),
 		update(update) {
 			if (update.docChanged) {
@@ -95,6 +97,26 @@ const view = ViewPlugin.define<ViewState>((view) => {
 				});
 			});
 
+		},
+
+		mousemove(e, view) {
+			const el = e.target as HTMLImageElement;
+			this.hovering = el.nodeName === "IMG" && el.classList.contains(className);
+			if (e.altKey && this.hovering) {
+				document.body.style.cursor = "pointer";
+			}
+		},
+
+		keydown(e, view) {
+			if (e.altKey && this.hovering) {
+				document.body.style.cursor = "pointer";
+			}
+		},
+
+		keyup(e, view) {
+			if (!e.altKey) {
+				document.body.style.cursor = "auto";
+			}
 		},
 
 	},

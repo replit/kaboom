@@ -373,13 +373,17 @@ export default function pedit(gopt: PeditOpt): Pedit {
 
 	let leftMouseDown = false;
 
+	const SCALE_SPEED = 1 / 16;
+	const MIN_SCALE = 1;
+	const MAX_SCALE = 10;
+
 	canvasEl.onwheel = (e) => {
 		e.preventDefault();
 		if (e.altKey) {
 			const sx = (e.offsetX - view.x) / view.s / img.width;
 			const sy = (e.offsetY - view.y) / view.s / img.height;
 			const oldS = view.s;
-			view.s = clamp(view.s - e.deltaY / 16, 1, 10);
+			view.s = clamp(view.s - e.deltaY * SCALE_SPEED, MIN_SCALE, MAX_SCALE);
 			const ds = view.s - oldS;
 			view.x -= sx * img.width * ds;
 			view.y -= sy * img.height * ds;
