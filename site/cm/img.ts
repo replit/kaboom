@@ -149,6 +149,8 @@ function edit(src: HTMLImageElement, write: (dataurl: string) => void) {
 		},
 	});
 
+	p.focus();
+
 	root.removeChild(src);
 
 	const btn = document.createElement("button");

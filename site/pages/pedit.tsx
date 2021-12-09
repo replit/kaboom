@@ -17,6 +17,7 @@ const Test: React.FC = () => {
 			canvasHeight: root.offsetHeight - 32,
 			canvas: canvas,
 			styles: {
+// 				background: "var(--color-bg1)",
 				background: "var(--color-bg2)",
 				border: "solid 2px var(--color-outline)",
 				borderRadius: "8px",
