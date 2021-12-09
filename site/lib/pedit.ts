@@ -13,9 +13,25 @@ type PeditOpt = {
 		| HTMLImageElement
 		| HTMLCanvasElement
 		| ImageData
-		| ImageBitmap
 		,
 	load?: PeditData,
+	styles?: Partial<CSSStyleDeclaration>,
+	palette?: Color[],
+	send?: (msg: string) => void,
+};
+
+type PeditOptSync = {
+	width?: number,
+	height?: number,
+	canvasWidth?: number,
+	canvasHeight?: number,
+	canvas?: HTMLCanvasElement,
+	root?: Node,
+	from?: HTMLImageElement
+		| HTMLCanvasElement
+		| ImageData
+		,
+	load?: PeditDataSync,
 	styles?: Partial<CSSStyleDeclaration>,
 	palette?: Color[],
 	send?: (msg: string) => void,
@@ -37,14 +53,24 @@ type PeditData = {
 	anims: Anim[],
 }
 
+type PeditDataSync = {
+	width: number,
+	height: number,
+	frames: ImageData[][],
+	palette: Color[],
+	anims: Anim[],
+}
+
 type Pedit = {
 	canvas: HTMLCanvasElement,
 	ctx: CanvasRenderingContext2D,
 	destroy: () => void,
 	view: View,
+	showUI: boolean,
 	focus: () => void,
 	curImg: () => ImageData,
 	toCanvasPos(x: number, y: number): Vec2,
+// 	toCanvasPos(p: Vec2): Vec2,
 	toDataURL: () => string,
 	toImageData: () => ImageData,
 	addTool<Props, State = void>(cfg: ToolCfg<Props, State>): void,
@@ -453,57 +479,88 @@ type BucketCmd = {
 	continuous: boolean,
 }
 
-export default function pedit(gopt: PeditOpt): Pedit {
+async function loadImg(src: string): Promise<HTMLImageElement> {
+	const img = document.createElement("img");
+	img.src = src;
+	return new Promise((res, rej) => {
+		img.onload = () => res(img);
+		img.onerror = (e) => rej(e);
+	})
+}
 
-	const canvasEl = gopt.canvas ?? (() => {
+export default function pedit(opt: PeditOpt): Pedit {
+
+	const canvasEl = opt.canvas ?? (() => {
 		const c = document.createElement("canvas");
-		const root = gopt.root ?? document.body;
-		root.appendChild(c);
+		if (opt.root) {
+			opt.root.appendChild(c);
+		}
 		return c;
 	})();
 
-	canvasEl.width = gopt.canvasWidth ?? 320;
-	canvasEl.height = gopt.canvasHeight ?? 240;
+	canvasEl.width = opt.canvasWidth ?? 320;
+	canvasEl.height = opt.canvasHeight ?? 240;
 	canvasEl.style.imageRendering = "pixelated";
 	canvasEl.style.imageRendering = "crisp-edges";
 	canvasEl.tabIndex = 0;
 
-	if (gopt.styles) {
-		for (const key in gopt.styles) {
-			const val = gopt.styles[key];
+	if (opt.styles) {
+		for (const key in opt.styles) {
+			const val = opt.styles[key];
 			if (val) canvasEl.style[key] = val;
 		}
 	}
 
+	let loading = 0;
 	const ctx = canvasEl.getContext("2d");
 
 	if (!ctx) throw new Error("Failed to get 2d drawing context");
 
 	ctx.imageSmoothingEnabled = false;
 
+	const font = new FontFace("Proggy", PROGGY_CSS_URL);
+	loading++;
+	font.load().then(() => {
+		loading--;
+		document.fonts.add(font);
+	});
+
 	const frames = [[(() => {
 
-		if (gopt.from) {
-			if (gopt.from instanceof ImageData) return gopt.from;
-			const imgEl = (() => {
-				if (typeof gopt.from === "string") {
-					const el = document.createElement("img");
-					el.src = gopt.from;
-					return el;
+		if (opt.from) {
+
+			if (opt.from instanceof ImageData) {
+				return new ImageData(
+					new Uint8ClampedArray(opt.from.data),
+					opt.from.width,
+					opt.from.height
+				);
+			} else {
+				const blit = (d: HTMLImageElement | HTMLCanvasElement) => {
+					ctx.drawImage(d, 0, 0);
+					const data = ctx.getImageData(0, 0, d.width, d.height);
+					ctx.clearRect(0, 0, d.width, d.height);
+					return data;
 				}
-				return gopt.from;
-			})();
-			ctx.drawImage(imgEl, 0, 0);
-			const data = ctx.getImageData(0, 0, imgEl.width, imgEl.height);
-			ctx.clearRect(0, 0, imgEl.width, imgEl.height);
-			return data;
-		}
+				if (typeof opt.from === "string") {
+					loading++;
+					loadImg(opt.from).then((img) => {
+						frames[0][0] = blit(img);
+						loading--;
+					});
+					// TODO: not elegant... but async is uglier
+					return new ImageData(64, 64);
+				} else {
+					return blit(opt.from);
+				}
+			}
 
-		if (!gopt.width || !gopt.height) {
-			throw new Error("Width and height required to create a new canvas");
+		} else {
+			if (!opt.width || !opt.height) {
+				throw new Error("Width and height required to create a new canvas");
+			}
+			return new ImageData(opt.width, opt.height);
 		}
-
-		return new ImageData(gopt.width, gopt.height);
 
 	})()]];
 
@@ -521,9 +578,6 @@ export default function pedit(gopt: PeditOpt): Pedit {
 	let loopID: number | null = null;
 	let layerCanvas = new ImageCanvas(width(), height());
 	let frameCanvas = new ImageCanvas(width(), height());
-
-	const font = new FontFace("Proggy", PROGGY_CSS_URL);
-	font.load().then((f) => document.fonts.add(f));
 
 	const view: View = {
 		scale: 1,
@@ -607,6 +661,7 @@ export default function pedit(gopt: PeditOpt): Pedit {
 		}
 	});
 
+	// TODO: take vec2
 	function toCanvasPos(x: number, y: number): Vec2 {
 		return vec2(
 			Math.round((x - view.pos.x) / view.scale),
@@ -859,8 +914,8 @@ export default function pedit(gopt: PeditOpt): Pedit {
 
 	function exec<Args>(cmd: Cmd<Args>) {
 		cmds[cmd.name].exec(cmd.args);
-		if (gopt.send) {
-			gopt.send(JSON.stringify(cmd));
+		if (opt.send) {
+			opt.send(JSON.stringify(cmd));
 		}
 	}
 
@@ -929,6 +984,10 @@ export default function pedit(gopt: PeditOpt): Pedit {
 
 	}
 
+	function isLoading() {
+		return loading > 0;
+	}
+
 	render();
 
 	return {
@@ -950,6 +1009,13 @@ export default function pedit(gopt: PeditOpt): Pedit {
 		save,
 		width,
 		height,
+		isLoading,
+		get showUI() {
+			return showUI;
+		},
+		set showUI(v) {
+			showUI = v;
+		},
 	};
 
 };

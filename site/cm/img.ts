@@ -38,9 +38,46 @@ class ImgWidget extends WidgetType {
 		img.classList.add(className);
 		img.style.maxHeight = "64px";
 		img.style.maxWidth = "256px";
-		const wrapper = document.createElement("span");
-		wrapper.appendChild(img);
-		return wrapper;
+		return img;
+	}
+
+	ignoreEvent() {
+		return false;
+	}
+
+}
+
+class PeditWidget extends WidgetType {
+
+	constructor(
+		readonly src: string,
+		readonly pos: number,
+	) {
+		super();
+	}
+
+	eq(other: PeditWidget) {
+		return this.src === other.src && this.pos === other.pos;
+	}
+
+	toDOM() {
+
+		const p = pedit({
+			from: this.src,
+			styles: {
+				background: "var(--color-bg2)",
+				border: "solid 2px var(--color-outline)",
+				borderRadius: "4px",
+				margin: "0",
+			},
+		});
+
+		p.showUI = false;
+		p.focus();
+		p.canvas.dataset.pos = this.pos.toString();
+
+		return p.canvas;
+
 	}
 
 	ignoreEvent() {
@@ -52,19 +89,29 @@ class ImgWidget extends WidgetType {
 interface ViewState extends PluginValue {
 	deco: DecorationSet,
 	hovering: HTMLElement | null,
+	editing: string | null,
+	matcher: MatchDecorator,
 }
 
-const view = ViewPlugin.define<ViewState>((view) => {
+const viewPlugin = ViewPlugin.define<ViewState>((view) => {
 
 	const matcher = new MatchDecorator({
 		regexp: /"data:image\/\w+;base64,.+"/g,
-		decoration: (match, view, pos) => Decoration.replace({
-			widget: new ImgWidget(match[0].substring(1, match[0].length - 1), pos),
-		}),
+		decoration: (match, view, pos) => {
+			const v = view.plugin(viewPlugin);
+			const src = match[0].substring(1, match[0].length - 1);
+			return Decoration.replace({
+				widget: v?.editing === src
+					? new PeditWidget(src, pos)
+					: new ImgWidget(src, pos),
+			});
+		}
 	});
 
 	return {
+		matcher: matcher,
 		hovering: null,
+		editing: null,
 		deco: matcher.createDeco(view),
 		update(update) {
 			if (update.docChanged) {
@@ -87,15 +134,8 @@ const view = ViewPlugin.define<ViewState>((view) => {
 			if (el.nodeName !== "IMG" || !el.classList.contains(className)) return;
 			const pos = Number(el.dataset.pos);
 
-			edit(el, (dataurl) => {
-				view.dispatch({
-					changes: {
-						from: pos,
-						to: pos + el.src.length + 2,
-						insert: `"${dataurl}"`,
-					},
-				});
-			});
+			this.editing = el.src;
+			this.deco = this.matcher.createDeco(view);
 
 		},
 
@@ -131,38 +171,4 @@ const view = ViewPlugin.define<ViewState>((view) => {
 
 });
 
-// TODO
-function edit(src: HTMLImageElement, write: (dataurl: string) => void) {
-
-	const root = src.parentNode;
-
-	if (!root) return;
-
-	const p = pedit({
-		from: src,
-		root: root,
-		styles: {
-			background: "var(--color-bg2)",
-			border: "solid 2px var(--color-outline)",
-			borderRadius: "4px",
-			margin: "0",
-		},
-	});
-
-	p.focus();
-
-	root.removeChild(src);
-
-	const btn = document.createElement("button");
-	btn.textContent = "Save";
-	btn.onclick = () => write(p.toDataURL());
-	btn.style.cursor = "pointer";
-	btn.style.padding = "4px";
-	btn.style.fontSize = "16px";
-	btn.style.marginLeft = "8px";
-
-	root.appendChild(btn);
-
-}
-
-export default view;
+export default viewPlugin;
