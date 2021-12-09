@@ -76,7 +76,8 @@ class PeditWidget extends WidgetType {
 			p.showUI = false;
 			p.focus();
 			p.canvas.dataset.pos = this.pos.toString();
-			wrapper.prepend(p.canvas);
+			wrapper.append(p.canvas);
+			wrapper.append(btn);
 		});
 
 		const btn = document.createElement("button");
@@ -89,8 +90,6 @@ class PeditWidget extends WidgetType {
 		btn.style.marginLeft = "8px";
 		btn.style.fontSize = "var(--text-normal)";
 		btn.textContent = "Save";
-
-		wrapper.append(btn);
 
 		return wrapper;
 

@@ -91,6 +91,10 @@ export class Vec2 {
 		this.y = y ?? 0;
 	}
 
+	add(other: Vec2): Vec2 {
+		return new Vec2(this.x + other.x, this.y + other.y);
+	}
+
 }
 
 const vec2 = (...args: any[]) => new Vec2(...args);
@@ -107,6 +111,17 @@ export class Color {
 		this.g = g;
 		this.b = b;
 		this.a = a;
+	}
+
+	static fromHex(hex: string) {
+
+		const val = parseInt(hex, 16);
+		const r = (val >> 16) & 255;
+		const g = (val >> 8) & 255;
+		const b = val & 255;
+
+		return new Color(r, g, b);
+
 	}
 
 	eq(c: Color): boolean {
@@ -304,7 +319,7 @@ function fillArea(
 			continue;
 		}
 
-		if (getPixel(img, x, y).eq(color)) {
+		if (!getPixel(img, x, y).eq(target)) {
 			continue;
 		}
 
@@ -471,6 +486,51 @@ type BucketCmd = {
 	continuous: boolean,
 }
 
+type Outline = {
+	width: number,
+	color: Color,
+}
+
+type UIItem = {
+	width: number,
+	height: number,
+	draw: () => void,
+}
+
+type UIOpt = {
+	onClick?: () => void,
+	color?: Color,
+	outline?: Outline,
+	fill?: boolean,
+}
+
+type VAlign =
+	| "left"
+	| "center"
+	| "right"
+	;
+
+type HAlign =
+	| "top"
+	| "center"
+	| "bottom"
+	;
+
+type UIVStackOpt = UIOpt & {
+	align?: VAlign,
+	margin?: number,
+	padding?: number,
+}
+
+type UIRectOpt = UIOpt & {
+	radius?: number,
+}
+
+type UITextOpt = UIOpt & {
+	size?: number,
+	font?: string,
+}
+
 async function loadImg(src: string): Promise<HTMLImageElement> {
 	const img = document.createElement("img");
 	img.src = src;
@@ -561,6 +621,9 @@ export function peditSync(opt: PeditOptSync): Pedit {
 	const tools: Tool<any, any>[] = [];
 	const cmds: Record<string, CmdCfg<any>> = {};
 	const palette = [];
+	const mousePos = vec2();
+	let mousePressed = false;
+	let mouseDown = false;
 	let curColor = rgb(0, 0, 0);
 	let curTool = 0;
 	let curFrame = 0;
@@ -608,6 +671,23 @@ export function peditSync(opt: PeditOptSync): Pedit {
 
 	function undo() {}
 	function redo() {}
+
+	canvasEl.addEventListener("mousedown", (e) => {
+		mousePressed = true;
+		mouseDown = true;
+		mousePos.x = e.offsetX;
+		mousePos.y = e.offsetY;
+	});
+
+	canvasEl.addEventListener("mousemove", (e) => {
+		mousePos.x = e.offsetX;
+		mousePos.y = e.offsetY;
+	});
+
+	canvasEl.addEventListener("mouseup", (e) => {
+		mousePressed = false;
+		mouseDown = false;
+	});
 
 	canvasEl.addEventListener("wheel", (e) => {
 		e.preventDefault();
@@ -965,20 +1045,213 @@ export function peditSync(opt: PeditOptSync): Pedit {
 
 		if (showUI) {
 
-			ctx.fillStyle = rgb(32, 32, 45).lighten(60).toCSS();
-			ctx.font = "24px Proggy";
-			ctx.fillText(tool.name, 16, 24);
+			paframe(canvasEl.width, canvasEl.height, [
+				[ vec2(0, 0), vec2(16, 16), text(tool.name, {
+					color: rgb(32, 32, 45).lighten(60),
+					font: "Proggy",
+					size: 24,
+				}) ],
+				[ vec2(0, 1), vec2(16, -16), rect(24, 24, {
+					color: curColor,
+					onClick: () => {
+						const sel = document.createElement("input");
 
-			ctx.fillStyle = curColor.toCSS();
-			ctx.fillRect(16, canvasEl.height - 16 - 32, 32, 32);
+						sel.type = "color";
+
+						sel.addEventListener("change", (e) => {
+							curColor = Color.fromHex(e.target.value.substring(1));
+						});
+						sel.click();
+					},
+				}) ]
+			]).draw();
 
 		}
 
+		mousePressed = false;
 		loopID = requestAnimationFrame(render);
 
 	}
 
 	render();
+
+	function mouseInRect(x: number, y: number, w: number, h: number) {
+		if (w < 0) {
+			x += w;
+			w = -w;
+		}
+		if (h < 0) {
+			y += h;
+			h = -h;
+		}
+		const { x: mx, y: my } = mousePos;
+		return mx >= x && mx <= x + w && my >= y && my <= y + h;
+	}
+
+	// absolute frame
+	function aframe(w: number, h: number, list: [Vec2, UIItem][], opt: UIRectOpt = {}) {
+		if (!ctx) throw new Error("Failed to get ctx");
+		const area = rect(w, h, {
+			fill: false,
+			...opt,
+		});
+		return {
+			width: w,
+			height: h,
+			draw() {
+				area.draw();
+				list.forEach(([ pos, item ]) => {
+					ctx.save();
+					ctx.translate(pos.x, pos.y);
+					item.draw();
+					ctx.restore();
+				});
+			},
+		};
+	}
+
+	// propotinal frame
+	function pframe(w: number, h: number, list: [Vec2, UIItem][], opt: UIRectOpt = {}) {
+		return aframe(w, h, list.filter(i => i).map(([pos, item]) => {
+			return [vec2(pos.x * (w - item.width), pos.y * (h - item.height)), item];
+		}), opt);
+	}
+
+	function paframe(w: number, h: number, list: [Vec2, Vec2, UIItem][], opt: UIRectOpt = {}) {
+		return aframe(w, h, list.filter(i => i).map(([pos, offset, item]) => {
+			return [vec2(pos.x * (w - item.width), pos.y * (h - item.height)).add(offset), item];
+		}), opt);
+	}
+
+	function vstack(list: UIItem[], opt: UIVStackOpt = {}) {
+
+		if (!ctx) throw new Error("Failed to get ctx");
+		const align = opt.align || "left";
+		const margin = opt.margin || 0;
+		const padding = opt.padding || 0;
+		let cw = 0;
+		let ch = 0;
+
+		for (const item of list) {
+			if (!item) {
+				continue;
+			}
+			cw = Math.max(item.width, cw);
+			ch += item.height + margin;
+		}
+
+		const bw = cw + padding * 2;
+		const bh = ch + padding * 2;
+
+		const area = rect(bw, bh, {
+			fill: false,
+		});
+
+		return {
+
+			width: bw,
+			height: bh,
+
+			draw() {
+
+				area.draw();
+				ctx.save();
+				ctx.translate(padding, padding);
+
+				list.forEach((item) => {
+
+					if (!item) {
+						return;
+					}
+
+					const offset = (() => {
+						switch (align) {
+							case "left":   return 0;
+							case "center": return (cw - item.width) / 2;
+							case "right":   return (cw - item.width);
+						}
+					})();
+
+					ctx.translate(offset, 0);
+					item.draw();
+					ctx.translate(-offset, item.height + margin);
+
+				});
+
+				ctx.restore();
+
+			},
+
+		};
+
+	}
+
+	function move(x: number, y: number, item: UIItem): UIItem {
+		if (!ctx) throw new Error("Failed to get ctx");
+		return {
+			width: item.width,
+			height: item.height,
+			draw: () => {
+				ctx.save();
+				ctx.translate(x, y);
+				item.draw();
+				ctx.restore();
+			},
+		};
+	}
+
+	function rect(w: number, h: number, opt: UIRectOpt = {}): UIItem {
+		if (!ctx) throw new Error("Failed to get ctx");
+		return {
+			width: w,
+			height: h,
+			draw: () => {
+				if (opt.fill !== false) {
+					ctx.fillStyle = (opt.color ?? rgb(0, 0, 0)).toCSS();
+					ctx.fillRect(0, 0, w, h);
+				}
+				if (opt.outline) {
+					ctx.lineWidth = opt.outline.width ?? 1;
+					ctx.strokeStyle = (opt.outline.color ?? rgb(0, 0, 0)).toCSS();
+					ctx.strokeRect(0, 0, w, h);
+				}
+				if (opt.onClick && mousePressed) {
+					const { x, y } = ctx.getTransform().transformPoint();
+					if (mouseInRect(x, y, w, h)) {
+						opt.onClick();
+					}
+				}
+			},
+		};
+	}
+
+	function text(t: string, opt: UITextOpt = {}): UIItem {
+		if (!ctx) throw new Error("Failed to get ctx");
+		const metric = ctx.measureText(t);
+		const size = opt.size ?? 16;
+		return {
+			width: metric.width,
+			height: size,
+			draw: () => {
+				ctx.font = `${size}px ${opt.font ?? "Proggy"}`;
+				if (opt.fill !== false) {
+					ctx.fillStyle = (opt.color ?? rgb(0, 0, 0)).toCSS();
+					ctx.fillText(t, 0, 0);
+				}
+				if (opt.outline) {
+					ctx.lineWidth = opt.outline.width ?? 1;
+					ctx.strokeStyle = (opt.outline.color ?? rgb(0, 0, 0)).toCSS();
+					ctx.strokeText(t, 0, 0);
+				}
+				if (opt.onClick && mousePressed) {
+					const { x, y } = ctx.getTransform().transformPoint();
+					if (mouseInRect(x, y, metric.width, size)) {
+						opt.onClick();
+					}
+				}
+			},
+		};
+	}
 
 	return {
 		canvas: canvasEl,
