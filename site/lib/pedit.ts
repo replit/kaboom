@@ -531,6 +531,20 @@ type UITextOpt = UIOpt & {
 	font?: string,
 }
 
+function colorpicker(): Promise<Color> {
+	return new Promise((res, rej) => {
+		const sel = document.createElement("input");
+		sel.type = "color";
+		sel.addEventListener("change", (e) => {
+			const el = e.target as HTMLInputElement;
+			if (el.value) {
+				res(Color.fromHex(el.value.substring(1)));
+			}
+		});
+		sel.click();
+	});
+}
+
 async function loadImg(src: string): Promise<HTMLImageElement> {
 	const img = document.createElement("img");
 	img.src = src;
@@ -1053,16 +1067,7 @@ export function peditSync(opt: PeditOptSync): Pedit {
 				}) ],
 				[ vec2(0, 1), vec2(16, -16), rect(24, 24, {
 					color: curColor,
-					onClick: () => {
-						const sel = document.createElement("input");
-
-						sel.type = "color";
-
-						sel.addEventListener("change", (e) => {
-							curColor = Color.fromHex(e.target.value.substring(1));
-						});
-						sel.click();
-					},
+					onClick: () => colorpicker().then((c) => curColor = c),
 				}) ]
 			]).draw();
 
@@ -1215,10 +1220,11 @@ export function peditSync(opt: PeditOptSync): Pedit {
 					ctx.strokeStyle = (opt.outline.color ?? rgb(0, 0, 0)).toCSS();
 					ctx.strokeRect(0, 0, w, h);
 				}
-				if (opt.onClick && mousePressed) {
+				if (opt.onClick) {
 					const { x, y } = ctx.getTransform().transformPoint();
 					if (mouseInRect(x, y, w, h)) {
-						opt.onClick();
+						canvasEl.style.cursor = "pointer";
+						mousePressed && opt.onClick();
 					}
 				}
 			},
@@ -1234,6 +1240,8 @@ export function peditSync(opt: PeditOptSync): Pedit {
 			height: size,
 			draw: () => {
 				ctx.font = `${size}px ${opt.font ?? "Proggy"}`;
+				ctx.textAlign = "left";
+				ctx.textBaseline = "hanging";
 				if (opt.fill !== false) {
 					ctx.fillStyle = (opt.color ?? rgb(0, 0, 0)).toCSS();
 					ctx.fillText(t, 0, 0);
@@ -1243,10 +1251,11 @@ export function peditSync(opt: PeditOptSync): Pedit {
 					ctx.strokeStyle = (opt.outline.color ?? rgb(0, 0, 0)).toCSS();
 					ctx.strokeText(t, 0, 0);
 				}
-				if (opt.onClick && mousePressed) {
+				if (opt.onClick) {
 					const { x, y } = ctx.getTransform().transformPoint();
 					if (mouseInRect(x, y, metric.width, size)) {
-						opt.onClick();
+						canvasEl.style.cursor = "pointer";
+						mousePressed && opt.onClick();
 					}
 				}
 			},
