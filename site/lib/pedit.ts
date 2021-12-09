@@ -9,12 +9,10 @@ type PeditOpt = {
 	canvasHeight?: number,
 	canvas?: HTMLCanvasElement,
 	root?: Node,
-	from?: string
-		| HTMLImageElement
+	from?: HTMLImageElement
 		| HTMLCanvasElement
 		| ImageData
 		,
-	load?: PeditData,
 	styles?: Partial<CSSStyleDeclaration>,
 	palette?: Color[],
 	send?: (msg: string) => void,
@@ -52,36 +50,6 @@ type PeditDataSync = {
 	frames: ImageData[][],
 	palette: Color[],
 	anims: Anim[],
-}
-
-type Pedit = {
-	canvas: HTMLCanvasElement,
-	ctx: CanvasRenderingContext2D,
-	destroy: () => void,
-	view: View,
-	showUI: boolean,
-	focus: () => void,
-	curImg: () => ImageData,
-	toCanvasPos(x: number, y: number): Vec2,
-// 	toCanvasPos(p: Vec2): Vec2,
-	toDataURL: () => string,
-	toImageData: () => ImageData,
-	addTool<Props, State = void>(cfg: ToolCfg<Props, State>): void,
-	addCmd<Args>(cmd: CmdCfg<Args>): void,
-	exec<Args>(cmd: Cmd<Args>): void,
-	recv(msg: string): void,
-	undo(): void,
-	redo(): void,
-	pushState(): void,
-	width(): number,
-	height(): number,
-// 	save: () => PeditData,
-};
-
-type View = {
-	pos: Vec2,
-	scale: number,
-	reset: () => void,
 }
 
 export class Vec2 {
@@ -417,7 +385,7 @@ type Tool<Props, State> = ToolCfg<Props, State> & {
 
 type CmdCfg<Args> = {
 	name: string,
-	exec: (args: Args) => void,
+	exec: (args: Args, p: Pedit) => void,
 }
 
 type Cmd<Args> = {
@@ -558,9 +526,16 @@ function colorpicker(): Promise<Color> {
 	});
 }
 
-async function loadImg(src: string): Promise<HTMLImageElement> {
-	const img = document.createElement("img");
-	img.src = src;
+async function loadImg(src: string | HTMLImageElement): Promise<HTMLImageElement> {
+	const img = (() => {
+		if (typeof src == "string") {
+			const img = document.createElement("img");
+			img.src = src;
+			return img;
+		} else {
+			return src;
+		}
+	})();
 	return new Promise((res, rej) => {
 		img.onload = () => res(img);
 		img.onerror = (e) => rej(e);
@@ -581,290 +556,125 @@ type State = {
 	img: ImageData,
 }
 
-export default async function pedit(opt: PeditOpt): Promise<Pedit> {
+class Input {
 
-	const font = new FontFace("Proggy", PROGGY_CSS_URL);
+	mouseDown: boolean = false;
+	mousePressed: boolean = false;
+	mousePos: Vec2 = vec2();
+	mouseDeltaPos: Vec2 = vec2();
+	element: HTMLElement;
 
-	await font.load();
-	document.fonts.add(font);
+	constructor(el: HTMLElement) {
 
-	if (typeof opt.from === "string") {
-		const img = await loadImg(opt.from);
-		opt.from = img;
+		this.element = el;
+
+		el.addEventListener("mousedown", (e) => {
+			this.mousePressed = true;
+			this.mouseDown = true;
+			this.mousePos = vec2(e.offsetX, e.offsetY);
+		});
+
+		el.addEventListener("mousemove", (e) => {
+			this.mousePos = vec2(e.offsetX, e.offsetY);
+			this.mouseDeltaPos = vec2(e.movementX, e.movementY);
+		});
+
+		el.addEventListener("mouseup", (e) => {
+			this.mousePressed = false;
+			this.mouseDown = false;
+		});
+
 	}
 
-	if (opt.load) {
-		// TODO: load data
+	endFrame() {
+		this.mousePressed = false;
+		this.mouseDeltaPos = vec2();
 	}
-
-	return peditSync(opt as PeditOptSync);
 
 }
 
-export function peditSync(opt: PeditOptSync): Pedit {
-
-	const canvasEl = opt.canvas ?? (() => {
-		const c = document.createElement("canvas");
-		if (opt.root) {
-			opt.root.appendChild(c);
-		}
-		return c;
-	})();
-
-	canvasEl.width = opt.canvasWidth ?? 320;
-	canvasEl.height = opt.canvasHeight ?? 240;
-	canvasEl.style.imageRendering = "pixelated";
-	canvasEl.style.imageRendering = "crisp-edges";
-	canvasEl.tabIndex = 0;
-
-	if (opt.styles) {
-		for (const key in opt.styles) {
-			const val = opt.styles[key];
-			if (val) canvasEl.style[key] = val;
-		}
-	}
-
-	const ctx = canvasEl.getContext("2d");
-
-	if (!ctx) throw new Error("Failed to get 2d drawing context");
-
-	ctx.imageSmoothingEnabled = false;
-
-	const frames = [[(() => {
-
-		if (opt.from) {
-
-			if (opt.from instanceof ImageData) {
-				return cloneImageData(opt.from);
-			} else {
-				ctx.drawImage(opt.from, 0, 0);
-				const data = ctx.getImageData(0, 0, opt.from.width, opt.from.height);
-				ctx.clearRect(0, 0, opt.from.width, opt.from.height);
-				return data;
-			}
-
-		} else {
-			if (!opt.width || !opt.height) {
-				throw new Error("Width and height required to create a new canvas");
-			}
-			return new ImageData(opt.width, opt.height);
-		}
-
-	})()]];
-
-	const SCALE_SPEED = 1 / 16;
-	const MIN_SCALE = 1;
-	const MAX_SCALE = 64;
-	const tools: Tool<any, any>[] = [];
-	const cmds: Record<string, CmdCfg<any>> = {};
-	const palette = [];
-	const mousePos = vec2();
-	let mouseDown = false;
-	let curColor = rgb(0, 0, 0);
-	let curTool = 0;
-	let curFrame = 0;
-	let curLayer = 0;
-	let showUI = true;
-	let loopID: number | null = null;
-	let layerCanvas = new ImageCanvas(width(), height());
-	let frameCanvas = new ImageCanvas(width(), height());
-
-	const view: View = {
-		scale: 1,
-		pos: vec2(),
-		reset() {
-			this.scale = Math.min(
-				canvasEl.width * 0.8 / width(),
-				canvasEl.height * 0.8 / height()
-			);
-			const w = width() * view.scale;
-			const h = height() * view.scale;
-			view.pos = vec2(
-				(canvasEl.width - w) / 2,
-				(canvasEl.height - h) / 2
-			);
-		},
-	};
-
-	view.reset();
-
-	const events = [
-		"mousedown",
-		"mousemove",
-		"mouseup",
-		"keydown",
-		"keyup",
-	];
-
-	for (const ev of events) {
-		canvasEl.addEventListener(ev, (e) => {
-			const tool = tools[curTool];
-			if (tool?.events?.[ev]) {
-				tool.events[ev](e, tool.props, tool.curState);
-			}
-		})
-	}
-
-	function undo() {
-		const state = undoStack.pop();
-		if (state) {
-			pushRedo();
-			frames[state.frame][state.layer] = state.img;
-		}
-	}
-
-	function redo() {
-		const state = redoStack.pop();
-		if (state) {
-			pushUndo();
-			frames[state.frame][state.layer] = state.img;
-		}
-	}
-
-	const STACK_MAX = 640;
-	const stackMax = opt.stackMax ?? STACK_MAX;
-	let redoStack: State[] = [];
-	let undoStack: State[] = [];
-
-	function pushState() {
-		redoStack = [];
-		pushUndo();
-	}
-
-	function pushUndo() {
-		undoStack.push({
-			frame: curFrame,
-			layer: curLayer,
-			img: cloneImageData(curImg()),
-		});
-		if (undoStack.length > stackMax) {
-			undoStack.pop();
-		}
-	}
-
-	function pushRedo() {
-		redoStack.push({
-			frame: curFrame,
-			layer: curLayer,
-			img: cloneImageData(curImg()),
-		});
-		if (redoStack.length > stackMax) {
-			redoStack.pop();
-		}
-	}
-
-	canvasEl.addEventListener("wheel", (e) => {
-		e.preventDefault();
-		if (e.altKey) {
-			const sx = (e.offsetX - view.pos.x) / view.scale / width();
-			const sy = (e.offsetY - view.pos.y) / view.scale / height();
-			const oldS = view.scale;
-			view.scale = clamp(view.scale - e.deltaY * SCALE_SPEED, MIN_SCALE, MAX_SCALE);
-			const ds = view.scale - oldS;
-			view.pos.x -= sx * width() * ds;
-			view.pos.y -= sy * height() * ds;
-		} else {
-			view.pos.x -= e.deltaX;
-			view.pos.y -= e.deltaY;
-		}
-	})
-
-	canvasEl.addEventListener("keydown", (e) => {
-		switch (e.key) {
-			case "0":
-				view.reset();
-				break;
-			case "Tab":
-				e.preventDefault();
-				showUI = !showUI;
-				break;
-			case "z":
-				if (e.metaKey) {
-					if (e.shiftKey) {
-						redo();
-					} else {
-						undo();
-					}
+export const brushTool: ToolCfg<BrushToolProps, BrushToolState> = {
+	name: "Brush",
+	icon: "",
+	hotkey: "b",
+	cursor: "crosshair",
+	props: {
+		size: 1,
+		kind: "rect",
+		custom: null,
+		soft: 0,
+	},
+	cmds: [
+		{
+			name: "BRUSH",
+			exec: (cmd: BrushCmd, p: Pedit) => {
+				const dx = Math.floor(cmd.brush.width / 2);
+				const dy = Math.floor(cmd.brush.height / 2);
+				for (const [ x, y ] of line(cmd.from.x, cmd.from.y, cmd.to.x, cmd.to.y)) {
+					drawImg(p.curImg(), cmd.brush, x - dx, y - dy, cmd.color);
 				}
-				break;
-		}
-		for (const [i, tool] of tools.entries()) {
-			if (tool.hotkey === e.key) {
-				curTool = i;
-				break;
-			}
-		}
-	});
-
-	// TODO: take vec2
-	function toCanvasPos(x: number, y: number): Vec2 {
-		return vec2(
-			Math.round((x - view.pos.x) / view.scale),
-			Math.round((y - view.pos.y) / view.scale),
-		);
-	}
-
-	function toDataURL() {
-		update();
-		return frameCanvas.canvas.toDataURL();
-	}
-
-	function toImageData() {
-		update();
-		return frameCanvas.getImageData();
-	}
-
-	function focus() {
-		canvasEl.focus();
-	}
-
-	function destroy() {
-		canvasEl.parentNode?.removeChild(canvasEl);
-		if (loopID !== null) {
-			cancelAnimationFrame(loopID);
-		}
-	}
-
-	function addTool<Props, State = void>(cfg: ToolCfg<Props, State>) {
-		tools.push({
-			...cfg,
-			curState: cfg.state ? cfg.state(cfg.props) : null,
-		});
-		(cfg.cmds ?? []).forEach(addCmd);
-	}
-
-	function addCmd<Args>(cmd: CmdCfg<Args>) {
-		if (cmds[cmd.name]) {
-			throw new Error(`Command already exists: "${cmd.name}"`);
-		}
-		cmds[cmd.name] = cmd;
-	}
-
-	addTool<BrushToolProps, BrushToolState>({
-		name: "Brush",
-		icon: "",
-		hotkey: "b",
-		cursor: "crosshair",
-		props: {
-			size: 1,
-			kind: "rect",
-			custom: null,
-			soft: 0,
-		},
-		cmds: [
-			{
-				name: "BRUSH",
-				exec: (cmd: BrushCmd) => {
-					const dx = Math.floor(cmd.brush.width / 2);
-					const dy = Math.floor(cmd.brush.height / 2);
-					for (const [ x, y ] of line(cmd.from.x, cmd.from.y, cmd.to.x, cmd.to.y)) {
-						drawImg(curImg(), cmd.brush, x - dx, y - dy, cmd.color);
-					}
-				},
 			},
-		],
-		state: (props) => {
-			const brush = (() => {
+		},
+	],
+	state: (props) => {
+		const brush = (() => {
+			switch (props.kind) {
+				case "circle": return makeCircleBrush(props.size);
+				case "rect": return makeRectBrush(props.size);
+				case "custom": {
+					if (!props.custom) {
+						throw new Error("Custom brush requires brush data");
+					}
+					return props.custom;
+				};
+			}
+		})();
+		return {
+			brush: brush,
+			startPos: vec2(),
+			drawing: false,
+		};
+	},
+	events: {
+		mousedown: (e, props, state, p) => {
+			if (e.button === 0) {
+				state.startPos = p.toCanvasPos(e.offsetX, e.offsetY);
+				state.drawing = true;
+				p.pushState();
+			}
+		},
+		mouseup: (e, props, state, p) => {
+			if (e.button === 0) {
+				state.startPos = vec2();
+				state.drawing = false;
+			}
+		},
+		mousemove: (e, props, state, p) => {
+			if (state.drawing) {
+				const pos = p.toCanvasPos(e.offsetX, e.offsetY);
+				p.exec<BrushCmd>({
+					name: "BRUSH",
+					args: {
+						from: state.startPos,
+						to: pos,
+						brush: state.brush,
+						color: p.curColor,
+					},
+				});
+				state.startPos = pos;
+			}
+		},
+		keydown: (e, props, state, p) => {
+			switch (e.key) {
+				case "-":
+					props.size = Math.max(props.size - 1, 1);
+					break;
+				case "=":
+					props.size = Math.min(props.size + 1, 128);
+					break;
+			}
+			// TODO: use state()
+			state.brush = (() => {
 				switch (props.kind) {
 					case "circle": return makeCircleBrush(props.size);
 					case "rect": return makeRectBrush(props.size);
@@ -876,307 +686,488 @@ export function peditSync(opt: PeditOptSync): Pedit {
 					};
 				}
 			})();
-			return {
-				brush: brush,
-				startPos: vec2(),
-				drawing: false,
-			};
-		},
-		events: {
-			mousedown: (e, props, state, p) => {
-				if (e.button === 0) {
-					state.startPos = toCanvasPos(e.offsetX, e.offsetY);
-					state.drawing = true;
-					pushState();
-				}
-			},
-			mouseup: (e, props, state, p) => {
-				if (e.button === 0) {
-					state.startPos = vec2();
-					state.drawing = false;
-				}
-			},
-			mousemove: (e, props, state, p) => {
-				if (state.drawing) {
-					const pos = toCanvasPos(e.offsetX, e.offsetY);
-					exec<BrushCmd>({
-						name: "BRUSH",
-						args: {
-							from: state.startPos,
-							to: pos,
-							brush: state.brush,
-							color: curColor,
-						},
-					});
-					state.startPos = pos;
-				}
-			},
-			keydown: (e, props, state, p) => {
-				switch (e.key) {
-					case "-":
-						props.size = Math.max(props.size - 1, 1);
-						break;
-					case "=":
-						props.size = Math.min(props.size + 1, 128);
-						break;
-				}
-				// TODO: use state()
-				state.brush = (() => {
-					switch (props.kind) {
-						case "circle": return makeCircleBrush(props.size);
-						case "rect": return makeRectBrush(props.size);
-						case "custom": {
-							if (!props.custom) {
-								throw new Error("Custom brush requires brush data");
-							}
-							return props.custom;
-						};
-					}
-				})();
+		}
+	},
+};
+
+export const erasorTool: ToolCfg<ErasorToolProps, ErasorToolState> = {
+	name: "Erasor",
+	icon: "",
+	hotkey: "e",
+	props: {
+		size: 1,
+		kind: "rect",
+		soft: 0,
+	},
+	state: (props) => {
+		const brush = (() => {
+			switch (props.kind) {
+				case "circle": return makeCircleBrush(props.size);
+				case "rect": return makeRectBrush(props.size);
+			}
+		})();
+		return {
+			brush: brush,
+			startPos: vec2(),
+			drawing: false,
+		};
+	},
+	events: {
+		mousedown: (e, props, state, p) => {
+			if (e.button === 0) {
+				state.startPos = p.toCanvasPos(e.offsetX, e.offsetY);
+				state.drawing = true;
 			}
 		},
-	});
-
-	addTool<ErasorToolProps, ErasorToolState>({
-		name: "Erasor",
-		icon: "",
-		hotkey: "e",
-		props: {
-			size: 1,
-			kind: "rect",
-			soft: 0,
+		mouseup: (e, props, state, p) => {
+			if (e.button === 0) {
+				state.startPos = vec2();
+				state.drawing = false;
+			}
 		},
-		state: (props) => {
-			const brush = (() => {
+		mousemove: (e, props, state, p) => {
+			if (state.drawing) {
+				const pos = p.toCanvasPos(e.offsetX, e.offsetY);
+				p.exec<EraseCmd>({
+					name: "ERASE",
+					args: {
+						from: state.startPos,
+						to: pos,
+						brush: state.brush,
+					},
+				});
+				state.startPos = pos;
+			}
+		},
+		keydown: (e, props, state, p) => {
+			switch (e.key) {
+				case "-":
+					props.size = Math.max(props.size - 1, 1);
+					break;
+				case "=":
+					props.size = Math.min(props.size + 1, 128);
+					break;
+			}
+			// TODO: use state()
+			state.brush = (() => {
 				switch (props.kind) {
 					case "circle": return makeCircleBrush(props.size);
 					case "rect": return makeRectBrush(props.size);
 				}
 			})();
-			return {
-				brush: brush,
-				startPos: vec2(),
-				drawing: false,
-			};
-		},
-		events: {
-			mousedown: (e, props, state, p) => {
-				if (e.button === 0) {
-					state.startPos = toCanvasPos(e.offsetX, e.offsetY);
-					state.drawing = true;
-				}
-			},
-			mouseup: (e, props, state, p) => {
-				if (e.button === 0) {
-					state.startPos = vec2();
-					state.drawing = false;
-				}
-			},
-			mousemove: (e, props, state, p) => {
-				if (state.drawing) {
-					const pos = toCanvasPos(e.offsetX, e.offsetY);
-					exec<EraseCmd>({
-						name: "ERASE",
-						args: {
-							from: state.startPos,
-							to: pos,
-							brush: state.brush,
-						},
-					});
-					state.startPos = pos;
-				}
-			},
-			keydown: (e, props, state, p) => {
-				switch (e.key) {
-					case "-":
-						props.size = Math.max(props.size - 1, 1);
-						break;
-					case "=":
-						props.size = Math.min(props.size + 1, 128);
-						break;
-				}
-				// TODO: use state()
-				state.brush = (() => {
-					switch (props.kind) {
-						case "circle": return makeCircleBrush(props.size);
-						case "rect": return makeRectBrush(props.size);
-					}
-				})();
-			}
-		},
-	})
+		}
+	},
+};
 
-	addTool<BucketToolProps>({
-		name: "Bucket",
-		icon: "",
-		hotkey: "g",
-		props: {
-			continuous: true,
-			tolerance: 0,
-		},
-		cmds: [
-			{
+export const bucketTool: ToolCfg<BucketToolProps> = {
+	name: "Bucket",
+	icon: "",
+	hotkey: "g",
+	props: {
+		continuous: true,
+		tolerance: 0,
+	},
+	cmds: [
+		{
+			name: "BUCKET",
+			exec: (cmd: BucketCmd, p: Pedit) => {
+				if (cmd.continuous) {
+					fillArea(p.curImg(), cmd.pos.x, cmd.pos.y, cmd.color, cmd.tolerance);
+				} else {
+					replaceColor(p.curImg(), cmd.pos.x, cmd.pos.y, cmd.color, cmd.tolerance);
+				}
+			},
+		}
+	],
+	events: {
+		mousedown: (e, props, state, p) => {
+			const pos = p.toCanvasPos(e.offsetX, e.offsetY);
+			p.pushState();
+			p.exec<BucketCmd>({
 				name: "BUCKET",
-				exec: (cmd: BucketCmd) => {
-					if (cmd.continuous) {
-						fillArea(curImg(), cmd.pos.x, cmd.pos.y, cmd.color, cmd.tolerance);
-					} else {
-						replaceColor(curImg(), cmd.pos.x, cmd.pos.y, cmd.color, cmd.tolerance);
-					}
+				args: {
+					pos: pos,
+					color: p.curColor,
+					tolerance: props.tolerance,
+					continuous: props.continuous,
 				},
+			});
+		},
+	}
+};
+
+class View {
+	scale: number = 1;
+	pos: Vec2 = vec2();
+	constructor(pos?: Vec2, scale?: number) {
+		this.pos = pos ?? vec2();
+		this.scale = scale ?? 1;
+	}
+}
+
+const SCALE_SPEED = 1 / 16;
+const MIN_SCALE = 1;
+const MAX_SCALE = 64;
+const MAX_STACK = 640;
+
+export default class Pedit {
+
+	opt: PeditOpt;
+	canvas: HTMLCanvasElement;
+	frames: ImageData[][];
+	ctx: CanvasRenderingContext2D;
+	curFrame: number = 0;
+	curLayer: number = 0;
+	stackMax: number = MAX_STACK;
+	showUI: boolean = true;
+	tools: Tool<any, any>[] = [];
+	cmds: Record<string, CmdCfg<any>> = {};
+	view: View = new View();
+	curColor: Color = rgb(0, 0, 0);
+	curTool: number = 0;
+	palette: Color[] = [];
+
+	private frameCanvas: ImageCanvas;
+	private layerCanvas: ImageCanvas;
+	private loopID: number | null = null;
+	private redoStack: State[] = [];
+	private undoStack: State[] = [];
+
+	constructor(opt: PeditOpt) {
+
+		this.opt = opt;
+
+		this.canvas = opt.canvas ?? (() => {
+			const c = document.createElement("canvas");
+			if (opt.root) {
+				opt.root.appendChild(c);
 			}
-		],
-		events: {
-			mousedown: (e, props, state, p) => {
-				const pos = toCanvasPos(e.offsetX, e.offsetY);
-				pushState();
-				exec<BucketCmd>({
-					name: "BUCKET",
-					args: {
-						pos: pos,
-						color: curColor,
-						tolerance: props.tolerance,
-						continuous: props.continuous,
-					},
-				});
-			},
-		}
-	})
+			return c;
+		})();
 
-	const peers = [];
+		this.canvas.width = opt.canvasWidth ?? 320;
+		this.canvas.height = opt.canvasHeight ?? 240;
+		this.canvas.style.imageRendering = "pixelated";
+		this.canvas.style.imageRendering = "crisp-edges";
+		this.canvas.tabIndex = 0;
 
-	function exec<Args>(cmd: Cmd<Args>) {
-		cmds[cmd.name].exec(cmd.args);
-		if (opt.onChange) {
-			opt.onChange();
+		if (opt.styles) {
+			for (const key in opt.styles) {
+				const val = opt.styles[key];
+				if (val) this.canvas.style[key] = val;
+			}
 		}
-		if (opt.send) {
-			opt.send(JSON.stringify({
-				layer: curLayer,
-				frame: curFrame,
+
+		const ctx = this.canvas.getContext("2d");
+		if (!ctx) throw new Error("Failed to get 2d drawing context");
+		this.ctx = ctx;
+		this.ctx.imageSmoothingEnabled = false;
+
+		this.frames = [[(() => {
+
+			if (opt.from) {
+
+				if (opt.from instanceof ImageData) {
+					return cloneImageData(opt.from);
+				} else {
+					this.ctx.drawImage(opt.from, 0, 0);
+					const data = this.ctx.getImageData(0, 0, opt.from.width, opt.from.height);
+					ctx.clearRect(0, 0, opt.from.width, opt.from.height);
+					return data;
+				}
+
+			} else {
+				if (!opt.width || !opt.height) {
+					throw new Error("Width and height required to create a new canvas");
+				}
+				return new ImageData(opt.width, opt.height);
+			}
+
+		})()]];
+
+		this.palette = opt.palette ?? [];
+		this.stackMax = opt.stackMax ?? MAX_STACK;
+		this.layerCanvas = new ImageCanvas(this.width(), this.height());
+		this.frameCanvas = new ImageCanvas(this.width(), this.height());
+		this.resetView();
+
+		const events = [
+			"mousedown",
+			"mousemove",
+			"mouseup",
+			"keydown",
+			"keyup",
+		];
+
+		for (const ev of events) {
+			this.canvas.addEventListener(ev, (e) => {
+				const tool = this.tools[this.curTool];
+				if (tool?.events?.[ev]) {
+					tool.events[ev](e, tool.props, tool.curState, this);
+				}
+			})
+		}
+
+		this.canvas.addEventListener("wheel", (e) => {
+			e.preventDefault();
+			if (e.altKey) {
+				const sx = (e.offsetX - this.view.pos.x) / this.view.scale / this.width();
+				const sy = (e.offsetY - this.view.pos.y) / this.view.scale / this.height();
+				const oldS = this.view.scale;
+				this.view.scale = clamp(this.view.scale - e.deltaY * SCALE_SPEED, MIN_SCALE, MAX_SCALE);
+				const ds = this.view.scale - oldS;
+				this.view.pos.x -= sx * this.width() * ds;
+				this.view.pos.y -= sy * this.height() * ds;
+			} else {
+				this.view.pos.x -= e.deltaX;
+				this.view.pos.y -= e.deltaY;
+			}
+		})
+
+		this.canvas.addEventListener("keydown", (e) => {
+			switch (e.key) {
+				case "0":
+					this.resetView();
+					break;
+				case "Tab":
+					e.preventDefault();
+					this.showUI = !this.showUI;
+					break;
+				case "z":
+					if (e.metaKey) {
+						if (e.shiftKey) {
+							this.redo();
+						} else {
+							this.undo();
+						}
+					}
+					break;
+			}
+			for (const [i, tool] of this.tools.entries()) {
+				if (tool.hotkey === e.key) {
+					this.curTool = i;
+					break;
+				}
+			}
+		});
+
+		this.addTool(brushTool);
+		this.addTool(erasorTool);
+		this.addTool(bucketTool);
+
+		const ui = new UI(this.canvas);
+
+		const render = () => {
+
+			const tool = this.tools[this.curTool];
+
+			this.canvas.style.cursor = tool.cursor ?? "auto";
+
+			this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+
+			this.ctx.translate(this.view.pos.x, this.view.pos.y);
+			this.ctx.scale(this.view.scale, this.view.scale);
+			drawCheckerboard(ctx, 0, 0, this.width(), this.height());
+
+			// TODO: only call update() on mutation
+			this.update();
+			this.ctx.drawImage(this.frameCanvas.canvas, 0, 0);
+
+			ctx.setTransform(1, 0, 0, 1, 0, 0);
+
+			if (this.showUI) {
+
+				ui.paframe(ui.width, ui.height, [
+					[ vec2(0, 0), vec2(16, 16), ui.text(tool.name, {
+						color: rgb(32, 32, 45).lighten(60),
+						font: "Proggy",
+						size: 24,
+					}) ],
+					[ vec2(0, 1), vec2(16, -16), ui.rect(24, 24, {
+						color: this.curColor,
+						onClick: () => colorpicker().then((c) => this.curColor = c),
+					}) ],
+					[ vec2(1, 0), vec2(-16, 16), ui.hstack([
+						ui.text("size", { size: 24, color: rgb(32, 32, 45).lighten(60) }),
+						ui.slider(n, 0, 32, 1, (val) => n = val),
+					], { align: "center", margin: 8, }) ]
+				]).draw();
+
+			}
+
+			ui.endFrame();
+
+			this.loopID = requestAnimationFrame(render);
+
+		}
+
+		let n = 12;
+
+		render();
+
+	}
+
+	width() {
+		return this.curImg().width;
+	}
+
+	height() {
+		return this.curImg().height;
+	}
+
+	resetView(scale: number = 0.8) {
+
+		this.view.scale = Math.min(
+			this.canvas.width * scale / this.width(),
+			this.canvas.height * scale / this.height()
+		);
+
+		const w = this.width() * this.view.scale;
+		const h = this.height() * this.view.scale;
+
+		this.view.pos = vec2(
+			(this.canvas.width - w) / 2,
+			(this.canvas.height - h) / 2
+		);
+
+	}
+
+	undo() {
+		const state = this.undoStack.pop();
+		if (state) {
+			this.pushRedo();
+			this.frames[state.frame][state.layer] = state.img;
+		}
+	}
+
+	redo() {
+		const state = this.redoStack.pop();
+		if (state) {
+			this.pushUndo();
+			this.frames[state.frame][state.layer] = state.img;
+		}
+	}
+
+	pushState() {
+		this.redoStack = [];
+		this.pushUndo();
+	}
+
+	curImg() {
+		return this.frames[this.curFrame][this.curLayer];
+	}
+
+	focus() {
+		this.canvas.focus();
+	}
+
+	cleanUp() {
+		if (this.loopID !== null) {
+			cancelAnimationFrame(this.loopID);
+		}
+	}
+
+	exec<Args>(cmd: Cmd<Args>) {
+		this.cmds[cmd.name].exec(cmd.args, this);
+		if (this.opt.send) {
+			this.opt.send(JSON.stringify({
+				layer: this.curLayer,
+				frame: this.curFrame,
 				...cmd,
 			}));
 		}
 	}
 
-	function recv(msg: string) {
-		exec(JSON.parse(msg));
+	// TODO: take vec2
+	toCanvasPos(x: number, y: number): Vec2 {
+		return vec2(
+			Math.round((x - this.view.pos.x) / this.view.scale),
+			Math.round((y - this.view.pos.y) / this.view.scale),
+		);
 	}
 
-	function curImg() {
-		return frames[curFrame][curLayer];
-	}
-
-	function width() {
-		return curImg().width;
-	}
-
-	function height() {
-		return curImg().height;
-	}
-
-	function update() {
-		frameCanvas.clear();
-		for (const layer of frames[curFrame]) {
-			layerCanvas.putImageData(layer);
-			frameCanvas.drawImage(layerCanvas.canvas);
+	private update() {
+		this.frameCanvas.clear();
+		for (const layer of this.frames[this.curFrame]) {
+			this.layerCanvas.putImageData(layer);
+			this.frameCanvas.drawImage(this.layerCanvas.canvas);
 		}
 	}
 
-	function save() {
-		return {
-			// ...
-		};
+	addTool<Props, State = void>(cfg: ToolCfg<Props, State>) {
+		this.tools.push({
+			...cfg,
+			curState: cfg.state ? cfg.state(cfg.props) : null,
+		});
+		(cfg.cmds ?? []).forEach((cmd) => {
+			this.addCmd(cmd);
+		});
 	}
 
-	const ui = new UI(canvasEl);
-
-	function render() {
-
-		if (!ctx) throw new Error("Failed to get 2d drawing context");
-
-		const tool = tools[curTool];
-
-		canvasEl.style.cursor = tool.cursor ?? "auto";
-
-		ctx.clearRect(0, 0, canvasEl.width, canvasEl.height);
-
-		ctx.translate(view.pos.x, view.pos.y);
-		ctx.scale(view.scale, view.scale);
-		drawCheckerboard(ctx, 0, 0, width(), height());
-
-		// TODO: only call update() on mutation
-		update();
-		ctx.drawImage(frameCanvas.canvas, 0, 0);
-
-		ctx.setTransform(1, 0, 0, 1, 0, 0);
-
-		if (showUI) {
-
-			ui.paframe(ui.width, ui.height, [
-				[ vec2(0, 0), vec2(16, 16), ui.text(tool.name, {
-					color: rgb(32, 32, 45).lighten(60),
-					font: "Proggy",
-					size: 24,
-				}) ],
-				[ vec2(0, 1), vec2(16, -16), ui.rect(24, 24, {
-					color: curColor,
-					onClick: () => colorpicker().then((c) => curColor = c),
-				}) ],
-			]).draw();
-
+	addCmd<Args>(cmd: CmdCfg<Args>) {
+		if (this.cmds[cmd.name]) {
+			throw new Error(`Command already exists: "${cmd.name}"`);
 		}
-
-		ui.endFrame();
-
-		loopID = requestAnimationFrame(render);
-
+		this.cmds[cmd.name] = cmd;
 	}
 
-	render();
+	toDataURL() {
+		this.update();
+		return this.frameCanvas.canvas.toDataURL();
+	}
 
-	return {
-		canvas: canvasEl,
-		ctx,
-		destroy,
-		view,
-		focus,
-		toCanvasPos,
-		toDataURL,
-		toImageData,
-		addTool,
-		addCmd,
-		exec,
-		recv,
-		undo,
-		redo,
-		curImg,
-// 		save,
-		width,
-		height,
-		pushState,
-		get showUI() {
-			return showUI;
-		},
-		set showUI(v) {
-			showUI = v;
-		},
-	};
+	toImageData() {
+		this.update();
+		return this.frameCanvas.getImageData();
+	}
 
-};
+	private pushUndo() {
+		this.undoStack.push({
+			frame: this.curFrame,
+			layer: this.curLayer,
+			img: cloneImageData(this.curImg()),
+		});
+		if (this.undoStack.length > this.stackMax) {
+			this.undoStack.pop();
+		}
+	}
+
+	private pushRedo() {
+		this.redoStack.push({
+			frame: this.curFrame,
+			layer: this.curLayer,
+			img: cloneImageData(this.curImg()),
+		});
+		if (this.redoStack.length > this.stackMax) {
+			this.redoStack.pop();
+		}
+	}
+
+	static async fromImg(src: string | HTMLImageElement, opt: PeditOpt): Promise<Pedit> {
+		const img = await loadImg(src);
+		return new Pedit({
+			...opt,
+			from: img,
+		});
+	}
+
+	static async fromData(data: PeditData, opt: PeditOpt): Promise<Pedit> {
+		return new Pedit(opt);
+	}
+
+}
 
 class UI {
 
 	canvas: HTMLCanvasElement;
 	ctx: CanvasRenderingContext2D;
-	mouseDown: boolean = false;
-	mousePressed: boolean = false;
-	mousePos: Vec2 = vec2();
 	width: number;
 	height: number;
+	input: Input;
 
 	constructor(canvas: HTMLCanvasElement) {
 
+		this.input = new Input(canvas);
 		this.canvas = canvas;
 		this.width = canvas.width;
 		this.height = canvas.height;
@@ -1184,28 +1175,16 @@ class UI {
 		if (!ctx) throw new Error("Failed to get 2d drawing context");
 		this.ctx = ctx;
 
-		this.canvas.addEventListener("mousedown", (e) => {
-			this.mousePressed = true;
-			this.mouseDown = true;
-			this.mousePos = vec2(e.offsetX, e.offsetY);
-		});
-
-		this.canvas.addEventListener("mousemove", (e) => {
-			this.mousePos = vec2(e.offsetX, e.offsetY);
-		});
-
-		this.canvas.addEventListener("mouseup", (e) => {
-			this.mousePressed = false;
-			this.mouseDown = false;
-		});
-
 	}
 
 	endFrame() {
-		this.mousePressed = false;
+		this.input.endFrame();
 	}
 
 	private mouseInRect(x: number, y: number, w: number, h: number) {
+		const pos = this.ctx.getTransform().transformPoint();
+		x += pos.x;
+		y += pos.y;
 		if (w < 0) {
 			x += w;
 			w = -w;
@@ -1214,7 +1193,7 @@ class UI {
 			y += h;
 			h = -h;
 		}
-		const { x: mx, y: my } = this.mousePos;
+		const { x: mx, y: my } = this.input.mousePos;
 		return mx >= x && mx <= x + w && my >= y && my <= y + h;
 	}
 
@@ -1408,10 +1387,9 @@ class UI {
 					this.ctx.strokeRect(0, 0, w, h);
 				}
 				if (opt.onClick) {
-					const { x, y } = this.ctx.getTransform().transformPoint();
-					if (this.mouseInRect(x, y, w, h)) {
+					if (this.mouseInRect(0, 0, w, h)) {
 						this.canvas.style.cursor = "pointer";
-						this.mousePressed && opt.onClick();
+						this.input.mousePressed && opt.onClick();
 					}
 				}
 			},
@@ -1419,28 +1397,60 @@ class UI {
 	}
 
 	text(t: string, opt: UITextOpt = {}): UIItem {
-		const metrics = this.ctx.measureText(t);
 		const size = opt.size ?? 16;
+		this.ctx.font = `${size}px ${opt.font ?? "Proggy"}`;
+		this.ctx.textAlign = "left";
+		this.ctx.textBaseline = "hanging";
+		const metrics = this.ctx.measureText(t);
 		const area = this.rect(metrics.width, size, {
 			fill: false,
+// 			outline: { color: rgb(0, 0, 255), width: 2, },
 			...opt
 		});
 		return {
 			width: metrics.width,
 			height: size,
 			draw: () => {
-				area.draw();
 				this.ctx.font = `${size}px ${opt.font ?? "Proggy"}`;
 				this.ctx.textAlign = "left";
 				this.ctx.textBaseline = "hanging";
+				area.draw();
 				if (opt.fill !== false) {
 					this.ctx.fillStyle = (opt.color ?? rgb(0, 0, 0)).toCSS();
-					this.ctx.fillText(t, 0, 0);
+					// TODO:
+					this.ctx.fillText(t, 0, size / 4);
 				}
 				if (opt.outline) {
 					this.ctx.lineWidth = opt.outline.width ?? 1;
 					this.ctx.strokeStyle = (opt.outline.color ?? rgb(0, 0, 0)).toCSS();
 					this.ctx.strokeText(t, 0, 0);
+				}
+			},
+		};
+	}
+
+	slider(val: number, min: number, max: number, step: number, setVal: (val: number) => void): UIItem {
+
+		const ballSize = 16;
+		const stripWidth = 80;
+		const stripHeight = 4;
+
+		return {
+			width: stripWidth,
+			height: ballSize,
+			draw: () => {
+				const ratio = (val - min) / (max - min);
+				const dis = stripWidth * ratio;
+				this.ctx.fillStyle = "black";
+				this.ctx.fillRect(0, ballSize / 2 - stripHeight / 2, stripWidth, stripHeight);
+				this.ctx.beginPath();
+				this.ctx.arc(dis, ballSize / 2, ballSize / 2, 0, 2 * Math.PI);
+				this.ctx.fill();
+				if (this.mouseInRect(dis - ballSize / 2, 0, ballSize, ballSize)) {
+					this.canvas.style.cursor = "pointer";
+					if (this.input.mouseDown) {
+						setVal(val + (max - min) * this.input.mouseDeltaPos.x / stripWidth);
+					}
 				}
 			},
 		};

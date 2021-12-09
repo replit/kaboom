@@ -1,7 +1,7 @@
 import * as React from "react";
 import View from "comps/View";
 import Head from "comps/Head";
-import pedit from "lib/pedit";
+import Pedit from "lib/pedit";
 
 const Test: React.FC = () => {
 	const canvasRef = React.useRef<HTMLCanvasElement>(null);
@@ -10,7 +10,7 @@ const Test: React.FC = () => {
 		const canvas = canvasRef.current;
 		const root = canvas.parentElement;
 		if (!root) return;
-		pedit({
+		const p = new Pedit({
 			width: 64,
 			height: 64,
 			canvasWidth: root.offsetWidth - 32,
@@ -22,9 +22,8 @@ const Test: React.FC = () => {
 				border: "solid 2px var(--color-outline)",
 				borderRadius: "8px",
 			},
-		}).then((p) => {
-			p.focus();
 		});
+		p.focus();
 	}, []);
 	return (
 		<View align="center" justify="center" stretchX stretchY>

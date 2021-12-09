@@ -14,7 +14,7 @@ import {
 	Facet,
 } from "@codemirror/state";
 
-import pedit from "lib/pedit";
+import Pedit from "lib/pedit";
 
 const className = "cm-img";
 
@@ -64,8 +64,7 @@ class PeditWidget extends WidgetType {
 
 		const wrapper = document.createElement("span");
 
-		pedit({
-			from: this.src,
+		Pedit.fromImg(this.src, {
 			styles: {
 				background: "var(--color-bg2)",
 				border: "solid 2px var(--color-outline)",
