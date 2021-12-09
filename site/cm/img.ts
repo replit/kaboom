@@ -76,15 +76,28 @@ class PeditWidget extends WidgetType {
 			p.showUI = false;
 			p.focus();
 			p.canvas.dataset.pos = this.pos.toString();
-			wrapper.appendChild(p.canvas);
+			wrapper.prepend(p.canvas);
 		});
+
+		const btn = document.createElement("button");
+
+		btn.style.background = "var(--color-bg3)";
+		btn.style.borderRadius = "8px";
+		btn.style.padding = "4px 8px";
+		btn.style.cursor = "pointer";
+		btn.style.border = "solid 2px var(--color-outline)";
+		btn.style.marginLeft = "8px";
+		btn.style.fontSize = "var(--text-normal)";
+		btn.textContent = "Save";
+
+		wrapper.append(btn);
 
 		return wrapper;
 
 	}
 
 	ignoreEvent() {
-		return false;
+		return true;
 	}
 
 }
@@ -98,19 +111,16 @@ interface ViewState extends PluginValue {
 
 const viewPlugin = ViewPlugin.define<ViewState>((view) => {
 
-	const matcher = new MatchDecorator({
+	const matcher: MatchDecorator = new MatchDecorator({
 		regexp: /"data:image\/\w+;base64,.+"/g,
 		decoration: (match, view, pos) => {
-			const v = view.plugin<ViewState>(viewPlugin);
+			const v: ViewState | null = view.plugin<ViewState>(viewPlugin);
 			const src = match[0].substring(1, match[0].length - 1);
 			return Decoration.replace({
 				widget: v?.editing === src
 					? new PeditWidget(src, pos)
 					: new ImgWidget(src, pos),
 			});
-// 			return Decoration.replace({
-// 				widget: new ImgWidget(src, pos),
-// 			});
 		}
 	});
 
