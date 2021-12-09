@@ -18,23 +18,15 @@ type PeditOpt = {
 	styles?: Partial<CSSStyleDeclaration>,
 	palette?: Color[],
 	send?: (msg: string) => void,
+	onChange?: () => void,
 };
 
-type PeditOptSync = {
-	width?: number,
-	height?: number,
-	canvasWidth?: number,
-	canvasHeight?: number,
-	canvas?: HTMLCanvasElement,
-	root?: Node,
+type PeditOptSync = PeditOpt & {
 	from?: HTMLImageElement
 		| HTMLCanvasElement
 		| ImageData
 		,
 	load?: PeditDataSync,
-	styles?: Partial<CSSStyleDeclaration>,
-	palette?: Color[],
-	send?: (msg: string) => void,
 };
 
 type Anim = {
@@ -488,7 +480,27 @@ async function loadImg(src: string): Promise<HTMLImageElement> {
 	})
 }
 
-export default function pedit(opt: PeditOpt): Pedit {
+export default async function pedit(opt: PeditOpt): Promise<Pedit> {
+
+	const font = new FontFace("Proggy", PROGGY_CSS_URL);
+
+	await font.load();
+	document.fonts.add(font);
+
+	if (typeof opt.from === "string") {
+		const img = await loadImg(opt.from);
+		opt.from = img;
+	}
+
+	if (opt.load) {
+		// TODO: load data
+	}
+
+	return peditSync(opt as PeditOptSync);
+
+}
+
+export function peditSync(opt: PeditOptSync): Pedit {
 
 	const canvasEl = opt.canvas ?? (() => {
 		const c = document.createElement("canvas");
@@ -511,19 +523,11 @@ export default function pedit(opt: PeditOpt): Pedit {
 		}
 	}
 
-	let loading = 0;
 	const ctx = canvasEl.getContext("2d");
 
 	if (!ctx) throw new Error("Failed to get 2d drawing context");
 
 	ctx.imageSmoothingEnabled = false;
-
-	const font = new FontFace("Proggy", PROGGY_CSS_URL);
-	loading++;
-	font.load().then(() => {
-		loading--;
-		document.fonts.add(font);
-	});
 
 	const frames = [[(() => {
 
@@ -536,23 +540,10 @@ export default function pedit(opt: PeditOpt): Pedit {
 					opt.from.height
 				);
 			} else {
-				const blit = (d: HTMLImageElement | HTMLCanvasElement) => {
-					ctx.drawImage(d, 0, 0);
-					const data = ctx.getImageData(0, 0, d.width, d.height);
-					ctx.clearRect(0, 0, d.width, d.height);
-					return data;
-				}
-				if (typeof opt.from === "string") {
-					loading++;
-					loadImg(opt.from).then((img) => {
-						frames[0][0] = blit(img);
-						loading--;
-					});
-					// TODO: not elegant... but async is uglier
-					return new ImageData(64, 64);
-				} else {
-					return blit(opt.from);
-				}
+				ctx.drawImage(opt.from, 0, 0);
+				const data = ctx.getImageData(0, 0, opt.from.width, opt.from.height);
+				ctx.clearRect(0, 0, opt.from.width, opt.from.height);
+				return data;
 			}
 
 		} else {
@@ -914,6 +905,9 @@ export default function pedit(opt: PeditOpt): Pedit {
 
 	function exec<Args>(cmd: Cmd<Args>) {
 		cmds[cmd.name].exec(cmd.args);
+		if (opt.onChange) {
+			opt.onChange();
+		}
 		if (opt.send) {
 			opt.send(JSON.stringify(cmd));
 		}
@@ -984,10 +978,6 @@ export default function pedit(opt: PeditOpt): Pedit {
 
 	}
 
-	function isLoading() {
-		return loading > 0;
-	}
-
 	render();
 
 	return {
@@ -1009,7 +999,6 @@ export default function pedit(opt: PeditOpt): Pedit {
 		save,
 		width,
 		height,
-		isLoading,
 		get showUI() {
 			return showUI;
 		},

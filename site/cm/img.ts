@@ -62,7 +62,9 @@ class PeditWidget extends WidgetType {
 
 	toDOM() {
 
-		const p = pedit({
+		const wrapper = document.createElement("span");
+
+		pedit({
 			from: this.src,
 			styles: {
 				background: "var(--color-bg2)",
@@ -70,13 +72,14 @@ class PeditWidget extends WidgetType {
 				borderRadius: "4px",
 				margin: "0",
 			},
+		}).then((p) => {
+			p.showUI = false;
+			p.focus();
+			p.canvas.dataset.pos = this.pos.toString();
+			wrapper.appendChild(p.canvas);
 		});
 
-		p.showUI = false;
-		p.focus();
-		p.canvas.dataset.pos = this.pos.toString();
-
-		return p.canvas;
+		return wrapper;
 
 	}
 
@@ -98,13 +101,16 @@ const viewPlugin = ViewPlugin.define<ViewState>((view) => {
 	const matcher = new MatchDecorator({
 		regexp: /"data:image\/\w+;base64,.+"/g,
 		decoration: (match, view, pos) => {
-			const v = view.plugin(viewPlugin);
+			const v = view.plugin<ViewState>(viewPlugin);
 			const src = match[0].substring(1, match[0].length - 1);
 			return Decoration.replace({
 				widget: v?.editing === src
 					? new PeditWidget(src, pos)
 					: new ImgWidget(src, pos),
 			});
+// 			return Decoration.replace({
+// 				widget: new ImgWidget(src, pos),
+// 			});
 		}
 	});
 

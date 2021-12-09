@@ -10,7 +10,7 @@ const Test: React.FC = () => {
 		const canvas = canvasRef.current;
 		const root = canvas.parentElement;
 		if (!root) return;
-		const p = pedit({
+		pedit({
 			width: 64,
 			height: 64,
 			canvasWidth: root.offsetWidth - 32,
@@ -22,8 +22,9 @@ const Test: React.FC = () => {
 				border: "solid 2px var(--color-outline)",
 				borderRadius: "8px",
 			},
+		}).then((p) => {
+			p.focus();
 		});
-		p.focus();
 	}, []);
 	return (
 		<View align="center" justify="center" stretchX stretchY>
