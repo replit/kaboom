@@ -89,6 +89,7 @@ class PeditWidget extends WidgetType {
 		btn.style.border = "solid 2px var(--color-outline)";
 		btn.style.marginLeft = "8px";
 		btn.style.fontSize = "var(--text-normal)";
+		btn.style.color = "var(--color-fg1)";
 		btn.textContent = "Save";
 
 		return wrapper;
