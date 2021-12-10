@@ -349,6 +349,7 @@ const Play: React.FC = () => {
 		if (localStorage["initCode"]) {
 			initEditorRef.current?.setContent(localStorage["initCode"]);
 		}
+		gameviewRef.current?.run(template);
 	}, []);
 
 	useKey("Escape", () => {
@@ -410,10 +411,7 @@ const Play: React.FC = () => {
 						name="Run Button"
 						desc="Run current code (Cmd+s)"
 						text="Run"
-						action={() => {
-							if (!gameviewRef.current) return;
-							gameviewRef.current.run(template);
-						}}
+						action={() => gameviewRef.current?.run(template)}
 					/>
 				</View>
 				<View dir="row" gap={2} align="center">
@@ -480,9 +478,7 @@ const Play: React.FC = () => {
 							{
 								key: "Mod-s",
 								run: () => {
-									if (!gameviewRef.current) return false;
-									const gameview = gameviewRef.current;
-									gameview.run(template);
+									gameviewRef.current?.run(template);
 									return false;
 								},
 								preventDefault: true,
@@ -513,9 +509,7 @@ const Play: React.FC = () => {
 							{
 								key: "Mod-s",
 								run: () => {
-									if (!gameviewRef.current) return false;
-									const gameview = gameviewRef.current;
-									gameview.run(template);
+									gameviewRef.current?.run(template);
 									return false;
 								},
 								preventDefault: true,
@@ -570,6 +564,8 @@ const Play: React.FC = () => {
 						<Text size="big" color={2}>Backpack</Text>
 					</View>
 					<View
+						name="Shapes"
+						desc="Drag a shape into draw editor and see what happens!"
 						pad={1}
 						rounded
 						gap={1}
