@@ -424,6 +424,7 @@ const Play: React.FC = () => {
 							initEditorRef.current?.setContent(INIT_CODE);
 							delete localStorage["drawCode"];
 							delete localStorage["initCode"];
+							gameviewRef.current?.run(template);
 						}}
 					/>
 					{ !isNarrow &&
