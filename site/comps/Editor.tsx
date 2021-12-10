@@ -54,7 +54,7 @@ import { foldGutter } from "@codemirror/fold";
 import { javascript } from "@codemirror/lang-javascript";
 
 import useUpdateEffect from "hooks/useUpdateEffect";
-import View, { ViewProps } from "comps/View";
+import View, { ViewPropsAnd } from "comps/View";
 import Ctx from "lib/Ctx";
 import { themes } from "lib/ui";
 import { clamp } from "lib/math";
@@ -273,7 +273,7 @@ interface EditorProps {
 	keys?: KeyBinding[],
 };
 
-const Editor = React.forwardRef<EditorRef, EditorProps & ViewProps>(({
+const Editor = React.forwardRef<EditorRef, ViewPropsAnd<EditorProps>>(({
 	content,
 	placeholder,
 	keys,
