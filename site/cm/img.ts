@@ -110,6 +110,9 @@ class PeditWidget extends WidgetType {
 		if (e.target?.nodeName === "BUTTON") {
 			return false;
 		}
+		if (e instanceof KeyboardEvent && e.key === "Escape") {
+			return false;
+		}
 		return true;
 	}
 
@@ -196,6 +199,10 @@ const viewPlugin = ViewPlugin.define<ViewState>((view) => {
 		keydown(e, view) {
 			if (e.altKey && this.hovering) {
 				this.hovering.style.cursor = "pointer";
+			}
+			if (this.editing && e.key === "Escape") {
+				this.editing = null;
+				this.deco = this.matcher.createDeco(view);
 			}
 		},
 

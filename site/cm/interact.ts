@@ -77,6 +77,7 @@ const view = ViewPlugin.define<ViewState>((view) => {
 				for (const m of line.text.matchAll(rule.regexp)) {
 					if (m.index === undefined) continue;
 					const text = m[0];
+					if (!text) continue;
 					const start = m.index;
 					const end = m.index + text.length;
 					if (lpos < start || lpos > end) continue;

@@ -275,18 +275,6 @@ interface EditorProps {
 	keys?: KeyBinding[],
 };
 
-function colorpicker(on: (c: [number, number, number]) => void): void {
-	const sel = document.createElement("input");
-	sel.type = "color";
-	sel.addEventListener("input", (e) => {
-		const el = e.target as HTMLInputElement;
-		if (el.value) {
-			on(hex2rgb(el.value.substring(1)));
-		}
-	});
-	sel.click();
-}
-
 const Editor = React.forwardRef<EditorRef, ViewPropsAnd<EditorProps>>(({
 	content,
 	placeholder,
@@ -470,7 +458,16 @@ const Editor = React.forwardRef<EditorRef, ViewPropsAnd<EditorProps>>(({
 						regexp: /rgb\(.*\)/g,
 						cursor: "pointer",
 						onClick: (text, setText, e) => {
-							colorpicker(([r, g, b]) => setText(`rgb(${r}, ${g}, ${b})`));
+							const sel = document.createElement("input");
+							sel.type = "color";
+							sel.addEventListener("input", (e) => {
+								const el = e.target as HTMLInputElement;
+								if (el.value) {
+									const [r, g, b] = hex2rgb(el.value.substring(1));
+									setText(`rgb(${r}, ${g}, ${b})`)
+								}
+							});
+							sel.click();
 						},
 					},
 					// kaboom origin slider
