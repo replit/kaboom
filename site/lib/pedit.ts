@@ -374,18 +374,16 @@ type ToolEventHandlers<Props, State> = {
 	) => void;
 };
 
-function colorpicker(): Promise<Color> {
-	return new Promise((res, rej) => {
-		const sel = document.createElement("input");
-		sel.type = "color";
-		sel.addEventListener("change", (e) => {
-			const el = e.target as HTMLInputElement;
-			if (el.value) {
-				res(Color.fromHex(el.value.substring(1)));
-			}
-		});
-		sel.click();
+function colorpicker(on: (c: Color) => void): void {
+	const sel = document.createElement("input");
+	sel.type = "color";
+	sel.addEventListener("input", (e) => {
+		const el = e.target as HTMLInputElement;
+		if (el.value) {
+			on(Color.fromHex(el.value.substring(1)));
+		}
 	});
+	sel.click();
 }
 
 async function loadImg(src: string | HTMLImageElement): Promise<HTMLImageElement> {
@@ -649,7 +647,7 @@ export default class Pedit {
 					}) ],
 					[ vec2(0, 1), vec2(16, -16), ui.rect(24, 24, {
 						color: this.curColor,
-						onClick: () => colorpicker().then((c) => this.curColor = c),
+						onClick: () => colorpicker((c) => this.curColor = c),
 					}) ],
 					[ vec2(1, 0), vec2(-16, 16), ui.hstack([
 						ui.text("size", { size: 24, color: rgb(32, 32, 45).lighten(60) }),

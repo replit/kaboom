@@ -26,9 +26,8 @@ export interface InteractRule {
 	regexp: RegExp,
 	cursor?: string,
 	style?: any,
-	onClick?: (old: string, e: MouseEvent) => string | void,
-	onClickAsync?: (old: string, e: MouseEvent) => Promise<string | void>,
-	onDrag?: (old: string, e: MouseEvent) => string | void,
+	onClick?: (text: string, setText: (t: string) => void, e: MouseEvent) => void,
+	onDrag?: (text: string, setText: (t: string) => void, e: MouseEvent) => void,
 }
 
 const mark = Decoration.mark({ class: "cm-interact" });
@@ -50,7 +49,7 @@ interface ViewState extends PluginValue {
 	mouseY: number,
 	deco: DecorationSet,
 	getMatch(): Target | null,
-	updateText(target: Target, text: string | void): void,
+	updateText(target: Target): (text: string) => void,
 	focus(target: Target): void,
 	unfocus(): void,
 }
@@ -95,20 +94,17 @@ const view = ViewPlugin.define<ViewState>((view) => {
 
 		},
 
-		updateText(target, text) {
-
-			if (typeof text !== "string") return;
-
-			view.dispatch({
-				changes: {
-					from: target.pos,
-					to: target.pos + target.text.length,
-					insert: text,
-				},
-			});
-
-			target.text = text;
-
+		updateText(target) {
+			return (text) => {
+				view.dispatch({
+					changes: {
+						from: target.pos,
+						to: target.pos + target.text.length,
+						insert: text,
+					},
+				});
+				target.text = text;
+			};
 		},
 
 		focus(target) {
@@ -157,17 +153,7 @@ const view = ViewPlugin.define<ViewState>((view) => {
 			e.preventDefault();
 
 			if (match.rule.onClick) {
-				this.updateText(
-					match,
-					match.rule.onClick(match.text, e)
-				);
-			} else if (match.rule.onClickAsync) {
-				match.rule.onClickAsync(match.text, e).then((res) => {
-					this.updateText(
-						match,
-						res
-					);
-				});
+				match.rule.onClick(match.text, this.updateText(match), e);
 			};
 
 			if (match.rule.onDrag) {
@@ -190,10 +176,7 @@ const view = ViewPlugin.define<ViewState>((view) => {
 			if (this.dragging) {
 				this.focus(this.dragging);
 				if (this.dragging.rule.onDrag) {
-					this.updateText(
-						this.dragging,
-						this.dragging.rule.onDrag(this.dragging.text, e)
-					);
+					this.dragging.rule.onDrag(this.dragging.text, this.updateText(this.dragging), e);
 				}
 			} else {
 				this.hovering = this.getMatch();

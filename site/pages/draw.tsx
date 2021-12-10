@@ -42,7 +42,7 @@ loadSprite("bean", "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAAA2CAMAAA
 
 const drawCode = `
 // this code runs every frame
-// try hold alt and drag values
+// try hold alt and drag / click values
 
 const outline = {
 	color: rgb(0, 0, 0),

@@ -263,7 +263,8 @@ export interface EditorRef {
 	getSelection: () => string | null,
 	getWord: () => string | null,
 	setContent: (content: string) => void,
-	getCodeMirror: () => EditorView | null,
+	getView: () => EditorView | null,
+	focus: () => void,
 }
 
 interface EditorProps {
@@ -274,18 +275,16 @@ interface EditorProps {
 	keys?: KeyBinding[],
 };
 
-function colorpicker(): Promise<[number, number, number]> {
-	return new Promise((res, rej) => {
-		const sel = document.createElement("input");
-		sel.type = "color";
-		sel.addEventListener("change", (e) => {
-			const el = e.target as HTMLInputElement;
-			if (el.value) {
-				res(hex2rgb(el.value.substring(1)));
-			}
-		});
-		sel.click();
+function colorpicker(on: (c: [number, number, number]) => void): void {
+	const sel = document.createElement("input");
+	sel.type = "color";
+	sel.addEventListener("input", (e) => {
+		const el = e.target as HTMLInputElement;
+		if (el.value) {
+			on(hex2rgb(el.value.substring(1)));
+		}
 	});
+	sel.click();
 }
 
 const Editor = React.forwardRef<EditorRef, ViewPropsAnd<EditorProps>>(({
@@ -336,8 +335,13 @@ const Editor = React.forwardRef<EditorRef, ViewPropsAnd<EditorProps>>(({
 				},
 			});
 		},
-		getCodeMirror() {
+		getView() {
 			return cmRef.current;
+		},
+		focus() {
+			if (!cmRef.current) return null;
+			const cm = cmRef.current;
+			cm.focus();
 		},
 	}));
 
@@ -429,22 +433,22 @@ const Editor = React.forwardRef<EditorRef, ViewPropsAnd<EditorProps>>(({
 					{
 						regexp: /-?\b\d+\.?\d*\b/g,
 						cursor: "ew-resize",
-						onDrag: (old, e) => {
+						onDrag: (text, setText, e) => {
 							// TODO: size aware
 							// TODO: small interval with shift key?
-							const newVal = Number(old) + e.movementX;
+							const newVal = Number(text) + e.movementX;
 							if (isNaN(newVal)) return;
-							return newVal.toString();
+							setText(newVal.toString());
 						}
 					},
 					// bool toggler
 					{
 						regexp: /true|false/g,
 						cursor: "pointer",
-						onClick: (old) => {
-							switch (old) {
-								case "true": return "false";
-								case "false": return "true";
+						onClick: (text, setText) => {
+							switch (text) {
+								case "true": return setText("false");
+								case "false": return setText("true");
 							}
 						},
 					},
@@ -452,36 +456,34 @@ const Editor = React.forwardRef<EditorRef, ViewPropsAnd<EditorProps>>(({
 					{
 						regexp: /vec2\(-?\b\d+\.?\d*\b\s*(,\s*-?\b\d+\.?\d*\b)?\)/g,
 						cursor: "move",
-						onDrag: (old, e) => {
-							const res = /vec2\((?<x>-?\b\d+\.?\d*\b)\s*(,\s*(?<y>-?\b\d+\.?\d*\b))?\)/.exec(old);
+						onDrag: (text, setText, e) => {
+							const res = /vec2\((?<x>-?\b\d+\.?\d*\b)\s*(,\s*(?<y>-?\b\d+\.?\d*\b))?\)/.exec(text);
 							let x = Number(res?.groups?.x);
 							let y = Number(res?.groups?.y);
 							if (isNaN(x)) return;
 							if (isNaN(y)) y = x;
-							return `vec2(${x + e.movementX}, ${y + e.movementY})`;
+							setText(`vec2(${x + e.movementX}, ${y + e.movementY})`);
 						},
 					},
 					// kaboom color selector
 					{
 						regexp: /rgb\(.*\)/g,
-						cursor: "move",
-						onClickAsync: (old, e) => {
-							return colorpicker().then(([r, g, b]) => {
-								return `rgb(${r}, ${g}, ${b})`;
-							});
+						cursor: "pointer",
+						onClick: (text, setText, e) => {
+							colorpicker(([r, g, b]) => setText(`rgb(${r}, ${g}, ${b})`));
 						},
 					},
 					// kaboom origin slider
 					{
 						regexp: new RegExp(`${origins.join("|")}`, "g"),
 						cursor: "move",
-						onClick: (old) => {
-							const idx = origins.indexOf(old);
+						onClick: (text) => {
+							const idx = origins.indexOf(text);
 							originState.x = 0;
 							originState.y = 0;
 							originState.idx = idx;
 						},
-						onDrag: (old, e) => {
+						onDrag: (text, setText, e) => {
 							originState.x += e.movementX;
 							originState.y += e.movementY;
 							const { idx, x, y } = originState;
@@ -489,7 +491,7 @@ const Editor = React.forwardRef<EditorRef, ViewPropsAnd<EditorProps>>(({
 							const s = 80;
 							const sx = clamp(idx % 3 + Math.round(x / s), 0, 2);
 							const sy = clamp(Math.floor(idx / 3) + Math.round(y / s), 0, 2);
-							return origins[sy * 3 + sx];
+							setText(origins[sy * 3 + sx]);
 						},
 					},
 					// url clicker
