@@ -156,8 +156,11 @@ also check out [CONTRIBUTION.md](CONTRIBUTING.md)
 [Twitter](https://twitter.com/Kaboomjs)
 
 ## Games
+
 [**on Itch.io**](https://itch.io/games/tag-kaboomjs)
+
 [**on Replit**](https://replit.com/apps/kaboom)
+
 [**on Newgrounds**](https://www.newgrounds.com/search/conduct/games?tags=kaboomjs)
 
 ### Misc
