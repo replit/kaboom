@@ -29,9 +29,6 @@ import download from "lib/download";
 import wrapHTML from "lib/wrapHTML";
 import Ctx from "lib/Ctx";
 
-// TODO: drag n' drop shapes / sprites from backpack
-// TODO: drag n' drop code snippets from editor to backpack
-
 const initCode = `
 // this code runs once at start
 // requires restart after change
@@ -88,7 +85,6 @@ drawEllipse({
 })
 `.trim();
 
-// TODO: keep last no error code
 const template = `
 kaboom()
 
@@ -99,14 +95,17 @@ if (window.parent.initCode) {
 }
 
 let err = null
+let lastCode = null
 
 onDraw(() => {
 	if (window.parent.drawCode) {
 		try {
 			eval(window.parent.drawCode)
+			lastCode = window.parent.drawCode
 			err = null
 			debug.clearLog()
 		} catch (e) {
+			if (lastCode) eval(lastCode)
 			if (!err || err.toString() !== e.toString()) {
 				debug.error(e)
 				err = e
@@ -133,28 +132,71 @@ interface Shape {
 
 const shapes = [
 	{
-		img: "",
+		img: "/sprites/rect.png",
 		code: `
 drawRect({
-	pos: vec2(40, 80),
-	width: 80,
-	height: 120,
-	origin: "topleft",
-	radius: 4,
-	angle: 0,
-	color: rgb(128, 255, 255),
+	pos: vec2(80, 80),
+	width: 120,
+	height: 80,
+	color: rgb(250, 242, 164),
 })
 		`.trim(),
 	},
 	{
-		img: "",
+		img: "/sprites/triangle.png",
 		code: `
 drawTriangle({
-	pos: vec2(320, 240),
-	p1: vec2(200),
-	p2: vec2(0),
-	p3: vec2(240, -140),
-	color: hsl2rgb((i * 0.1) % 1, 0.6, 0.8),
+	pos: vec2(100, 100),
+	p1: vec2(0, -48),
+	p2: vec2(-60, 48),
+	p3: vec2(60, 48),
+	color: rgb(164, 250, 204),
+})
+	`.trim(),
+	},
+	{
+		img: "/sprites/circle.png",
+		code: `
+drawCircle({
+	pos: vec2(100, 100),
+	radius: 48,
+	color: rgb(181, 164, 250),
+})
+		`.trim(),
+	},
+	{
+		img: "/sprites/ellipse.png",
+		code: `
+drawEllipse({
+	pos: vec2(60, 60),
+	radiusX: 64,
+	radiusY: 40,
+	color: rgb(164, 209, 250),
+})
+		`.trim(),
+	},
+	{
+		img: "/sprites/polygon.png",
+		code: `
+drawPolygon({
+	pos: vec2(100, 100),
+	pts: [
+		vec2(0, -48),
+		vec2(-64, 0),
+		vec2(-32, 64),
+		vec2(32, 64),
+		vec2(64, 0),
+	],
+	color: rgb(250, 164, 226),
+})
+		`.trim(),
+	},
+	{
+		img: "/sprites/text.png",
+		code: `
+drawText({
+	text: "hi",
+	pos: vec2(60, 60),
 })
 		`.trim(),
 	},
@@ -166,8 +208,7 @@ const ShapeEntry: React.FC<Shape> = ({ img, code }) => (
 		dir="row"
 		align="center"
 		gap={1}
-		padX={2}
-		padY={1}
+		pad={1}
 		rounded
 		height={64}
 		dragType="code"
@@ -184,9 +225,7 @@ const ShapeEntry: React.FC<Shape> = ({ img, code }) => (
 			src={img}
 			css={{
 				userDrag: "none",
-				width: "100%",
-				overflow: "hidden",
-				objectFit: "cover",
+				height: "100%",
 			}}
 		/>
 	</Draggable>
@@ -484,6 +523,7 @@ const Play: React.FC = () => {
 						<View
 							dir="row"
 							gap={1}
+							wrap
 						>
 							{ shapes.map((shape) => <ShapeEntry {...shape} key={shape.code} />) }
 						</View>
