@@ -163,15 +163,53 @@ const SpriteEntry: React.FC<SpriteEntryProps> = ({
 	</Draggable>
 );
 
+interface SoundEntryProps {
+	name: string,
+	src: string,
+}
+
+const SoundEntry: React.FC<SoundEntryProps> = ({
+	name,
+	src,
+}) => (
+	<View
+		focusable
+		dir="row"
+		align="center"
+		gap={1}
+		stretchX
+		padX={2}
+		padY={1}
+		rounded
+		height={48}
+		css={{
+			"overflow": "hidden",
+			":hover": {
+				"background": "var(--color-bg2)",
+				"cursor": "pointer",
+			},
+		}}
+		onClick={() => new Audio(src).play()}
+	>
+		<Text>{path.basename(name)}</Text>
+	</View>
+);
+
+interface Sound {
+	name: string,
+	src: string,
+}
+
 const Play: React.FC = () => {
 
-	const editorRef = React.useRef<EditorRef | null>(null);
 	const gameviewRef = React.useRef<GameViewRef | null>(null);
 	const isNarrow = useMediaQuery("(max-aspect-ratio: 1/1)");;
 	const [ backpackOpen, setBackpackOpen ] = React.useState(false);
 	const [ sprites, setSprites ] = useSavedState<Sprite[]>("sprites", []);
+	const [ sounds, setSounds ] = useSavedState<Sound[]>("sounds", []);
 	const { draggin } = React.useContext(Ctx);
 	const [ editingInit, setEditingInit ] = React.useState(false);
+	const spaceUsed = useSpaceUsed();
 
 	React.useEffect(() => {
 		(window as any).drawCode = drawCode;
@@ -257,13 +295,11 @@ const Play: React.FC = () => {
 					css={{
 						position: "relative",
 						order: isNarrow ? 2 : 1,
-						zIndex: 20,
 					}}
 				>
 					<Editor
 						name="Editor"
 						desc="Where you edit the code"
-						ref={editorRef}
 						content={drawCode}
 						onChange={(code) => (window as any).drawCode = code}
 						width="calc(100% - 32px)"
@@ -274,7 +310,7 @@ const Play: React.FC = () => {
 							bottom: 0,
 							right: 0,
 							filter: `brightness(${!editingInit ? 1 : 0.6})`,
-							zIndex: !editingInit ? 50 : 0,
+							zIndex: !editingInit ? 20 : 0,
 						}}
 						placeholder="Come on let's make some games!"
 						keys={[
@@ -293,7 +329,6 @@ const Play: React.FC = () => {
 					<Editor
 						name="Editor"
 						desc="Where you edit the code"
-						ref={editorRef}
 						content={initCode}
 						onChange={(code) => (window as any).initCode = code}
 						width="calc(100% - 32px)"
@@ -304,7 +339,7 @@ const Play: React.FC = () => {
 							top: 0,
 							left: 0,
 							filter: `brightness(${editingInit ? 1 : 0.6})`,
-							zIndex: editingInit ? 50 : 0,
+							zIndex: editingInit ? 20 : 0,
 						}}
 						placeholder="Come on let's make some games!"
 						keys={[
@@ -331,7 +366,6 @@ const Play: React.FC = () => {
 					css={{
 						order: isNarrow ? 1 : 2,
 						flex: "1",
-						zIndex: 20,
 					}}
 				/>
 			</View>
@@ -348,6 +382,8 @@ const Play: React.FC = () => {
 						switch (ty) {
 							case "sprite":
 								setSprites((prev) => prev.filter(({ name }) => name !== data));
+							case "sound":
+								setSounds((prev) => prev.filter(({ name }) => name !== data));
 						}
 					}}
 				/>
@@ -404,6 +440,47 @@ const Play: React.FC = () => {
 								))
 						}
 					</FileDrop>
+					<FileDrop
+						pad={1}
+						rounded
+						readAs="dataURL"
+						gap={1}
+						stretchX
+						accept="^audio/"
+						onLoad={(file, content) => {
+							setSounds((prev) => {
+								for (const snd of prev) {
+									if (snd.src === content) {
+										// TODO: err msg?
+										return prev;
+									}
+								}
+								return [
+									...prev,
+									{
+										name: file.name,
+										src: content,
+									},
+								];
+							})
+						}}
+					>
+						<Text color={3}>Sounds</Text>
+						{
+							sounds
+								.sort((a, b) => a.name > b.name ? 1 : -1)
+								.map(({name, src}) => (
+									<SoundEntry
+										key={name}
+										name={name}
+										src={src}
+									/>
+								))
+						}
+					</FileDrop>
+					<View stretchX padX={1}>
+						<Text color={4} size="small">Space used: {(spaceUsed / 1024 / 1024).toFixed(2)}mb</Text>
+					</View>
 				</Drawer>
 			}
 		</Background>

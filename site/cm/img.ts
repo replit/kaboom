@@ -205,6 +205,46 @@ const viewPlugin = ViewPlugin.define<ViewState>((view) => {
 			}
 		},
 
+		dragover(e) {
+			e.preventDefault();
+		},
+
+		drop(e, view) {
+
+			e.preventDefault();
+
+			if (!e.dataTransfer) return;
+
+			const items = e.dataTransfer.items;
+			if (!items?.length) return;
+
+			for (let i = 0; i < items.length; i++) {
+
+				if (items[i].kind !== "file") continue;
+				const file = items[i].getAsFile();
+				if (!file) continue;
+
+				const reader = new FileReader();
+
+				reader.onload = (e) => {
+					if (e.target?.result) {
+						const sel = view.state.selection.main;
+						view.dispatch({
+							changes: {
+								from: sel.from,
+								to: sel.to,
+								insert: `"${e.target.result}"`,
+							},
+						});
+					}
+				};
+
+				reader.readAsDataURL(file);
+
+			}
+
+		},
+
 	},
 
 });
