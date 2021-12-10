@@ -56,37 +56,29 @@ const theme = EditorView.theme({
 
 class PeditWidget extends WidgetType {
 
+	btn: HTMLButtonElement | null = null;
+
 	constructor(
 		readonly src: string,
 		readonly pos: number,
+		readonly pedit: Pedit,
 	) {
 		super();
 	}
 
 	eq(other: PeditWidget) {
-		return this.src === other.src && this.pos === other.pos;
+		return this.src === other.src && this.pos === other.pos && this.pedit === other.pedit;
 	}
 
 	toDOM() {
 
 		const wrapper = document.createElement("span");
 
-		Pedit.fromImg(this.src).then((p) => {
-			wrapper.append(p.canvas);
-			wrapper.append(btn);
-			p.showUI = false;
-			p.canvas.classList.add("cm-pedit");
-			// TODO
-			// @ts-ignore
-			btn.transaction = () => ({
-				changes: {
-					from: this.pos + 1,
-					to: this.pos + this.src.length + 1,
-					insert: p.toDataURL(),
-				},
-			});
-			p.focus();
-		});
+		wrapper.append(this.pedit.canvas);
+		this.pedit.showUI = false;
+		this.pedit.canvas.classList.add("cm-pedit");
+		// TODO
+		setTimeout(() => this.pedit.focus(), 100);
 
 		const btn = document.createElement("button");
 
@@ -99,29 +91,37 @@ class PeditWidget extends WidgetType {
 		btn.style.fontSize = "var(--text-normal)";
 		btn.style.color = "var(--color-fg1)";
 		btn.textContent = "Save";
+		wrapper.append(btn);
+		this.btn = btn;
 
 		return wrapper;
 
 	}
 
 	ignoreEvent(e: Event) {
-		// TODO
-		// @ts-ignore
-		if (e.target?.nodeName === "BUTTON") {
+		if (e.target === this.btn) {
 			return false;
 		}
-		if (e instanceof KeyboardEvent && e.key === "Escape") {
-			return false;
+		if (e instanceof KeyboardEvent) {
+			if (e.key === "Enter" || e.key === "Escape") {
+				return false;
+			}
 		}
 		return true;
 	}
 
 }
 
+interface Editing {
+	pedit: Pedit,
+	src: string,
+	pos: number,
+}
+
 interface ViewState extends PluginValue {
 	deco: DecorationSet,
 	hovering: HTMLElement | null,
-	editing: string | null,
+	editing: Editing | null,
 	matcher: MatchDecorator,
 }
 
@@ -130,11 +130,12 @@ const viewPlugin = ViewPlugin.define<ViewState>((view) => {
 	const matcher: MatchDecorator = new MatchDecorator({
 		regexp: /"data:image\/\w+;base64,[^"\s]+"/g,
 		decoration: (match, view, pos) => {
-			const v: ViewState | null = view.plugin<ViewState>(viewPlugin);
 			const src = match[0].substring(1, match[0].length - 1);
+			const v: ViewState | null = view.plugin<ViewState>(viewPlugin);
 			return Decoration.replace({
-				widget: v?.editing === src
-					? new PeditWidget(src, pos)
+				// TODO: allow pos update?
+				widget: v?.editing?.src === src && v?.editing?.pos === pos
+					? new PeditWidget(v.editing.src, v.editing.pos, v.editing.pedit)
 					: new ImgWidget(src, pos),
 			});
 		}
@@ -166,16 +167,30 @@ const viewPlugin = ViewPlugin.define<ViewState>((view) => {
 			if (e.altKey) {
 				if (el.nodeName !== "IMG" || !el.classList.contains(className)) return;
 				const pos = Number(el.dataset.pos);
-				this.editing = (el as HTMLImageElement).src;
-				this.deco = this.matcher.createDeco(view);
+				const src = (el as HTMLImageElement).src;
+				Pedit.fromImg(src).then((p) => {
+					this.editing = {
+						pedit: p,
+						src: src,
+						pos: pos,
+					};
+					this.deco = this.matcher.createDeco(view);
+				});
 			}
 
 			// TODO
 			// @ts-ignore
-			if (el.transaction) {
-				// @ts-ignore
-				view.dispatch(el.transaction());
+			if (this.editing && el.nodeName === "BUTTON") {
+				view.dispatch({
+					changes: {
+						from: this.editing.pos + 1,
+						to: this.editing.pos + this.editing.src.length + 1,
+						insert: this.editing.pedit.toDataURL(),
+					},
+				});
+				this.editing.pedit.cleanUp();
 				this.editing = null;
+				this.deco = this.matcher.createDeco(view);
 			}
 
 		},
@@ -200,9 +215,29 @@ const viewPlugin = ViewPlugin.define<ViewState>((view) => {
 			if (e.altKey && this.hovering) {
 				this.hovering.style.cursor = "pointer";
 			}
-			if (this.editing && e.key === "Escape") {
-				this.editing = null;
-				this.deco = this.matcher.createDeco(view);
+			if (this.editing) {
+				switch (e.key) {
+					// TODO: not capturing "Enter" key
+					case "Enter": {
+						view.dispatch({
+							changes: {
+								from: this.editing.pos + 1,
+								to: this.editing.pos + this.editing.src.length + 1,
+								insert: this.editing.pedit.toDataURL(),
+							},
+						});
+						this.editing.pedit.cleanUp();
+						this.editing = null;
+						this.deco = this.matcher.createDeco(view);
+						break;
+					}
+					case "Escape": {
+						this.editing.pedit.cleanUp();
+						this.editing = null;
+						this.deco = this.matcher.createDeco(view);
+						break;
+					}
+				}
 			}
 		},
 
