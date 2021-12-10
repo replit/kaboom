@@ -77,6 +77,13 @@ class PeditWidget extends WidgetType {
 			p.canvas.dataset.pos = this.pos.toString();
 			wrapper.append(p.canvas);
 			wrapper.append(btn);
+			btn.transaction = () => ({
+				changes: {
+					from: this.pos + 1,
+					to: this.pos + this.src.length + 1,
+					insert: p.toDataURL(),
+				},
+			});
 		});
 
 		const btn = document.createElement("button");
@@ -95,7 +102,10 @@ class PeditWidget extends WidgetType {
 
 	}
 
-	ignoreEvent() {
+	ignoreEvent(e) {
+		if (e.target.nodeName === "BUTTON") {
+			return false;
+		}
 		return true;
 	}
 
@@ -144,13 +154,19 @@ const viewPlugin = ViewPlugin.define<ViewState>((view) => {
 
 		mousedown(e, view) {
 
-			if (!e.altKey) return;
-			const el = e.target as HTMLImageElement;
-			if (el.nodeName !== "IMG" || !el.classList.contains(className)) return;
-			const pos = Number(el.dataset.pos);
+			const el = e.target as HTMLElement;
+			if (e.altKey) {
+				if (el.nodeName !== "IMG" || !el.classList.contains(className)) return;
+				const pos = Number(el.dataset.pos);
 
-			this.editing = el.src;
-			this.deco = this.matcher.createDeco(view);
+				this.editing = el.src;
+				this.deco = this.matcher.createDeco(view);
+			}
+
+			if (el.transaction) {
+				view.dispatch(el.transaction());
+				this.editing = null;
+			}
 
 		},
 

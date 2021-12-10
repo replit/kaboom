@@ -20,14 +20,6 @@ type PeditOpt = {
 	stackMax?: number,
 };
 
-type PeditOptSync = PeditOpt & {
-	from?: HTMLImageElement
-		| HTMLCanvasElement
-		| ImageData
-		,
-	load?: PeditDataSync,
-};
-
 type Anim = {
 	name: string,
 	from: number,
@@ -40,14 +32,6 @@ type PeditData = {
 	width: number,
 	height: number,
 	frames: string[][],
-	palette: Color[],
-	anims: Anim[],
-}
-
-type PeditDataSync = {
-	width: number,
-	height: number,
-	frames: ImageData[][],
 	palette: Color[],
 	anims: Anim[],
 }
@@ -356,18 +340,6 @@ function drawCheckerboard(ctx: CanvasRenderingContext2D, x: number, y: number, w
 	ctx.restore();
 }
 
-function makeRectBrush(size: number): ImageData {
-	const img = new ImageData(size, size);
-	fillRect(img, 0, 0, size, size, rgb(255, 255, 255));
-	return img;
-}
-
-function makeCircleBrush(size: number): ImageData {
-	const img = new ImageData(size, size);
-	fillCircle(img, size / 2, size / 2, size / 2, rgb(255, 255, 255));
-	return img;
-}
-
 type ToolCfg<Props = void, State = void> = {
 	name: string,
 	hotkey?: string,
@@ -401,116 +373,6 @@ type ToolEventHandlers<Props, State> = {
 		p: Pedit,
 	) => void;
 };
-
-type BrushToolKind =
-	| "circle"
-	| "rect"
-	| "custom"
-
-type BrushToolProps = {
-	size: number,
-	kind: BrushToolKind,
-	custom: ImageData | null,
-	soft: number,
-}
-
-type BrushToolState = {
-	brush: ImageData,
-	drawing: boolean,
-	startPos: Vec2,
-}
-
-type BrushCmd = {
-	brush: ImageData,
-	from: Vec2,
-	to: Vec2,
-	color: Color,
-}
-
-type ErasorToolKind =
-	| "circle"
-	| "rect"
-
-type ErasorToolProps = {
-	size: number,
-	kind: ErasorToolKind,
-	soft: number,
-}
-
-type ErasorToolState = {
-	brush: ImageData,
-	drawing: boolean,
-	startPos: Vec2,
-}
-
-type EraseCmd = {
-	brush: ImageData,
-	from: Vec2,
-	to: Vec2,
-}
-
-type BucketToolProps = {
-	continuous: boolean,
-	tolerance: number,
-}
-
-type BucketCmd = {
-	pos: Vec2,
-	color: Color,
-	tolerance: number,
-	continuous: boolean,
-}
-
-type Outline = {
-	width: number,
-	color: Color,
-}
-
-type UIItem = {
-	width: number,
-	height: number,
-	draw: () => void,
-}
-
-type UIOpt = {
-	onClick?: () => void,
-	color?: Color,
-	outline?: Outline,
-	fill?: boolean,
-}
-
-type VAlign =
-	| "left"
-	| "center"
-	| "right"
-	;
-
-type HAlign =
-	| "top"
-	| "center"
-	| "bottom"
-	;
-
-type UIVStackOpt = UIOpt & {
-	align?: VAlign,
-	margin?: number,
-	padding?: number,
-}
-
-type UIHStackOpt = UIOpt & {
-	align?: HAlign,
-	margin?: number,
-	padding?: number,
-}
-
-type UIRectOpt = UIOpt & {
-	radius?: number,
-}
-
-type UITextOpt = UIOpt & {
-	size?: number,
-	font?: string,
-}
 
 function colorpicker(): Promise<Color> {
 	return new Promise((res, rej) => {
@@ -592,209 +454,6 @@ class Input {
 	}
 
 }
-
-export const brushTool: ToolCfg<BrushToolProps, BrushToolState> = {
-	name: "Brush",
-	icon: "",
-	hotkey: "b",
-	cursor: "crosshair",
-	props: {
-		size: 1,
-		kind: "rect",
-		custom: null,
-		soft: 0,
-	},
-	cmds: [
-		{
-			name: "BRUSH",
-			exec: (cmd: BrushCmd, p: Pedit) => {
-				const dx = Math.floor(cmd.brush.width / 2);
-				const dy = Math.floor(cmd.brush.height / 2);
-				for (const [ x, y ] of line(cmd.from.x, cmd.from.y, cmd.to.x, cmd.to.y)) {
-					drawImg(p.curImg(), cmd.brush, x - dx, y - dy, cmd.color);
-				}
-			},
-		},
-	],
-	state: (props) => {
-		const brush = (() => {
-			switch (props.kind) {
-				case "circle": return makeCircleBrush(props.size);
-				case "rect": return makeRectBrush(props.size);
-				case "custom": {
-					if (!props.custom) {
-						throw new Error("Custom brush requires brush data");
-					}
-					return props.custom;
-				};
-			}
-		})();
-		return {
-			brush: brush,
-			startPos: vec2(),
-			drawing: false,
-		};
-	},
-	events: {
-		mousedown: (e, props, state, p) => {
-			if (e.button === 0) {
-				state.startPos = p.toCanvasPos(e.offsetX, e.offsetY);
-				state.drawing = true;
-				p.pushState();
-			}
-		},
-		mouseup: (e, props, state, p) => {
-			if (e.button === 0) {
-				state.startPos = vec2();
-				state.drawing = false;
-			}
-		},
-		mousemove: (e, props, state, p) => {
-			if (state.drawing) {
-				const pos = p.toCanvasPos(e.offsetX, e.offsetY);
-				p.exec<BrushCmd>({
-					name: "BRUSH",
-					args: {
-						from: state.startPos,
-						to: pos,
-						brush: state.brush,
-						color: p.curColor,
-					},
-				});
-				state.startPos = pos;
-			}
-		},
-		keydown: (e, props, state, p) => {
-			switch (e.key) {
-				case "-":
-					props.size = Math.max(props.size - 1, 1);
-					break;
-				case "=":
-					props.size = Math.min(props.size + 1, 128);
-					break;
-			}
-			// TODO: use state()
-			state.brush = (() => {
-				switch (props.kind) {
-					case "circle": return makeCircleBrush(props.size);
-					case "rect": return makeRectBrush(props.size);
-					case "custom": {
-						if (!props.custom) {
-							throw new Error("Custom brush requires brush data");
-						}
-						return props.custom;
-					};
-				}
-			})();
-		}
-	},
-};
-
-export const erasorTool: ToolCfg<ErasorToolProps, ErasorToolState> = {
-	name: "Erasor",
-	icon: "",
-	hotkey: "e",
-	props: {
-		size: 1,
-		kind: "rect",
-		soft: 0,
-	},
-	state: (props) => {
-		const brush = (() => {
-			switch (props.kind) {
-				case "circle": return makeCircleBrush(props.size);
-				case "rect": return makeRectBrush(props.size);
-			}
-		})();
-		return {
-			brush: brush,
-			startPos: vec2(),
-			drawing: false,
-		};
-	},
-	events: {
-		mousedown: (e, props, state, p) => {
-			if (e.button === 0) {
-				state.startPos = p.toCanvasPos(e.offsetX, e.offsetY);
-				state.drawing = true;
-			}
-		},
-		mouseup: (e, props, state, p) => {
-			if (e.button === 0) {
-				state.startPos = vec2();
-				state.drawing = false;
-			}
-		},
-		mousemove: (e, props, state, p) => {
-			if (state.drawing) {
-				const pos = p.toCanvasPos(e.offsetX, e.offsetY);
-				p.exec<EraseCmd>({
-					name: "ERASE",
-					args: {
-						from: state.startPos,
-						to: pos,
-						brush: state.brush,
-					},
-				});
-				state.startPos = pos;
-			}
-		},
-		keydown: (e, props, state, p) => {
-			switch (e.key) {
-				case "-":
-					props.size = Math.max(props.size - 1, 1);
-					break;
-				case "=":
-					props.size = Math.min(props.size + 1, 128);
-					break;
-			}
-			// TODO: use state()
-			state.brush = (() => {
-				switch (props.kind) {
-					case "circle": return makeCircleBrush(props.size);
-					case "rect": return makeRectBrush(props.size);
-				}
-			})();
-		}
-	},
-};
-
-export const bucketTool: ToolCfg<BucketToolProps> = {
-	name: "Bucket",
-	icon: "",
-	hotkey: "g",
-	props: {
-		continuous: true,
-		tolerance: 0,
-	},
-	cmds: [
-		{
-			name: "BUCKET",
-			exec: (cmd: BucketCmd, p: Pedit) => {
-				if (cmd.continuous) {
-					fillArea(p.curImg(), cmd.pos.x, cmd.pos.y, cmd.color, cmd.tolerance);
-				} else {
-					replaceColor(p.curImg(), cmd.pos.x, cmd.pos.y, cmd.color, cmd.tolerance);
-				}
-			},
-		}
-	],
-	events: {
-		mousedown: (e, props, state, p) => {
-			const pos = p.toCanvasPos(e.offsetX, e.offsetY);
-			p.pushState();
-			p.exec<BucketCmd>({
-				name: "BUCKET",
-				args: {
-					pos: pos,
-					color: p.curColor,
-					tolerance: props.tolerance,
-					continuous: props.continuous,
-				},
-			});
-		},
-	}
-};
 
 class View {
 	scale: number = 1;
@@ -890,6 +549,9 @@ export default class Pedit {
 		this.layerCanvas = new ImageCanvas(this.width(), this.height());
 		this.frameCanvas = new ImageCanvas(this.width(), this.height());
 		this.resetView();
+
+		const font = new FontFace("Proggy", PROGGY_CSS_URL);
+		font.load().then((f) => document.fonts.add(f));
 
 		const events = [
 			"mousedown",
@@ -1068,6 +730,9 @@ export default class Pedit {
 	}
 
 	exec<Args>(cmd: Cmd<Args>) {
+		if (!this.cmds[cmd.name]) {
+			throw new Error(`Command not found: "${cmd.name}"`);
+		}
 		this.cmds[cmd.name].exec(cmd.args, this);
 		if (this.opt.send) {
 			this.opt.send(JSON.stringify({
@@ -1155,6 +820,57 @@ export default class Pedit {
 		return new Pedit(opt);
 	}
 
+}
+
+type Outline = {
+	width: number,
+	color: Color,
+}
+
+type UIItem = {
+	width: number,
+	height: number,
+	draw: () => void,
+}
+
+type UIOpt = {
+	onClick?: () => void,
+	color?: Color,
+	outline?: Outline,
+	fill?: boolean,
+}
+
+type VAlign =
+	| "left"
+	| "center"
+	| "right"
+	;
+
+type HAlign =
+	| "top"
+	| "center"
+	| "bottom"
+	;
+
+type UIVStackOpt = UIOpt & {
+	align?: VAlign,
+	margin?: number,
+	padding?: number,
+}
+
+type UIHStackOpt = UIOpt & {
+	align?: HAlign,
+	margin?: number,
+	padding?: number,
+}
+
+type UIRectOpt = UIOpt & {
+	radius?: number,
+}
+
+type UITextOpt = UIOpt & {
+	size?: number,
+	font?: string,
 }
 
 class UI {
@@ -1457,3 +1173,278 @@ class UI {
 	}
 
 }
+
+type BrushToolKind =
+	| "circle"
+	| "rect"
+	| "custom"
+
+type BrushToolProps = {
+	size: number,
+	kind: BrushToolKind,
+	custom: ImageData | null,
+	soft: number,
+}
+
+type BrushToolState = {
+	brush: ImageData,
+	drawing: boolean,
+	startPos: Vec2,
+}
+
+type BrushCmd = {
+	brush: ImageData,
+	from: Vec2,
+	to: Vec2,
+	color: Color,
+}
+
+function makeRectBrush(size: number): ImageData {
+	const img = new ImageData(size, size);
+	fillRect(img, 0, 0, size, size, rgb(255, 255, 255));
+	return img;
+}
+
+function makeCircleBrush(size: number): ImageData {
+	const img = new ImageData(size, size);
+	fillCircle(img, size / 2, size / 2, size / 2, rgb(255, 255, 255));
+	return img;
+}
+
+export const brushTool: ToolCfg<BrushToolProps, BrushToolState> = {
+	name: "Brush",
+	icon: "",
+	hotkey: "b",
+	cursor: "crosshair",
+	props: {
+		size: 1,
+		kind: "rect",
+		custom: null,
+		soft: 0,
+	},
+	cmds: [
+		{
+			name: "BRUSH",
+			exec: (cmd: BrushCmd, p: Pedit) => {
+				const dx = Math.floor(cmd.brush.width / 2);
+				const dy = Math.floor(cmd.brush.height / 2);
+				for (const [ x, y ] of line(cmd.from.x, cmd.from.y, cmd.to.x, cmd.to.y)) {
+					drawImg(p.curImg(), cmd.brush, x - dx, y - dy, cmd.color);
+				}
+			},
+		},
+	],
+	state: (props) => {
+		const brush = (() => {
+			switch (props.kind) {
+				case "circle": return makeCircleBrush(props.size);
+				case "rect": return makeRectBrush(props.size);
+				case "custom": {
+					if (!props.custom) {
+						throw new Error("Custom brush requires brush data");
+					}
+					return props.custom;
+				};
+			}
+		})();
+		return {
+			brush: brush,
+			startPos: vec2(),
+			drawing: false,
+		};
+	},
+	events: {
+		mousedown: (e, props, state, p) => {
+			if (e.button === 0) {
+				state.startPos = p.toCanvasPos(e.offsetX, e.offsetY);
+				state.drawing = true;
+				p.pushState();
+			}
+		},
+		mouseup: (e, props, state, p) => {
+			if (e.button === 0) {
+				state.startPos = vec2();
+				state.drawing = false;
+			}
+		},
+		mousemove: (e, props, state, p) => {
+			if (state.drawing) {
+				const pos = p.toCanvasPos(e.offsetX, e.offsetY);
+				p.exec<BrushCmd>({
+					name: "BRUSH",
+					args: {
+						from: state.startPos,
+						to: pos,
+						brush: state.brush,
+						color: p.curColor,
+					},
+				});
+				state.startPos = pos;
+			}
+		},
+		keydown: (e, props, state, p) => {
+			switch (e.key) {
+				case "-":
+					props.size = Math.max(props.size - 1, 1);
+					break;
+				case "=":
+					props.size = Math.min(props.size + 1, 128);
+					break;
+			}
+			// TODO: use state()
+			state.brush = (() => {
+				switch (props.kind) {
+					case "circle": return makeCircleBrush(props.size);
+					case "rect": return makeRectBrush(props.size);
+					case "custom": {
+						if (!props.custom) {
+							throw new Error("Custom brush requires brush data");
+						}
+						return props.custom;
+					};
+				}
+			})();
+		}
+	},
+};
+
+type ErasorToolKind =
+	| "circle"
+	| "rect"
+
+type ErasorToolProps = {
+	size: number,
+	kind: ErasorToolKind,
+	soft: number,
+}
+
+type ErasorToolState = {
+	brush: ImageData,
+	drawing: boolean,
+	startPos: Vec2,
+}
+
+type EraseCmd = {
+	brush: ImageData,
+	from: Vec2,
+	to: Vec2,
+}
+
+export const erasorTool: ToolCfg<ErasorToolProps, ErasorToolState> = {
+	name: "Erasor",
+	icon: "",
+	hotkey: "e",
+	props: {
+		size: 1,
+		kind: "rect",
+		soft: 0,
+	},
+	state: (props) => {
+		const brush = (() => {
+			switch (props.kind) {
+				case "circle": return makeCircleBrush(props.size);
+				case "rect": return makeRectBrush(props.size);
+			}
+		})();
+		return {
+			brush: brush,
+			startPos: vec2(),
+			drawing: false,
+		};
+	},
+	events: {
+		mousedown: (e, props, state, p) => {
+			if (e.button === 0) {
+				state.startPos = p.toCanvasPos(e.offsetX, e.offsetY);
+				state.drawing = true;
+			}
+		},
+		mouseup: (e, props, state, p) => {
+			if (e.button === 0) {
+				state.startPos = vec2();
+				state.drawing = false;
+			}
+		},
+		mousemove: (e, props, state, p) => {
+			if (state.drawing) {
+				const pos = p.toCanvasPos(e.offsetX, e.offsetY);
+				p.exec<EraseCmd>({
+					name: "ERASE",
+					args: {
+						from: state.startPos,
+						to: pos,
+						brush: state.brush,
+					},
+				});
+				state.startPos = pos;
+			}
+		},
+		keydown: (e, props, state, p) => {
+			switch (e.key) {
+				case "-":
+					props.size = Math.max(props.size - 1, 1);
+					break;
+				case "=":
+					props.size = Math.min(props.size + 1, 128);
+					break;
+			}
+			// TODO: use state()
+			state.brush = (() => {
+				switch (props.kind) {
+					case "circle": return makeCircleBrush(props.size);
+					case "rect": return makeRectBrush(props.size);
+				}
+			})();
+		}
+	},
+};
+
+type BucketToolProps = {
+	continuous: boolean,
+	tolerance: number,
+}
+
+type BucketCmd = {
+	pos: Vec2,
+	color: Color,
+	tolerance: number,
+	continuous: boolean,
+}
+
+export const bucketTool: ToolCfg<BucketToolProps> = {
+	name: "Bucket",
+	icon: "",
+	hotkey: "g",
+	props: {
+		continuous: true,
+		tolerance: 0,
+	},
+	cmds: [
+		{
+			name: "BUCKET",
+			exec: (cmd: BucketCmd, p: Pedit) => {
+				if (cmd.continuous) {
+					fillArea(p.curImg(), cmd.pos.x, cmd.pos.y, cmd.color, cmd.tolerance);
+				} else {
+					replaceColor(p.curImg(), cmd.pos.x, cmd.pos.y, cmd.color, cmd.tolerance);
+				}
+			},
+		}
+	],
+	events: {
+		mousedown: (e, props, state, p) => {
+			const pos = p.toCanvasPos(e.offsetX, e.offsetY);
+			p.pushState();
+			p.exec<BucketCmd>({
+				name: "BUCKET",
+				args: {
+					pos: pos,
+					color: p.curColor,
+					tolerance: props.tolerance,
+					continuous: props.continuous,
+				},
+			});
+		},
+	}
+};
+

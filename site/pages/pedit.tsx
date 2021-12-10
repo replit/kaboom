@@ -3,7 +3,7 @@ import View from "comps/View";
 import Head from "comps/Head";
 import Pedit from "lib/pedit";
 
-const Test: React.FC = () => {
+const Page: React.FC = () => {
 	const canvasRef = React.useRef<HTMLCanvasElement>(null);
 	React.useEffect(() => {
 		if (!canvasRef.current) return;
@@ -33,4 +33,4 @@ const Test: React.FC = () => {
 	)
 };
 
-export default Test;
+export default Page;
