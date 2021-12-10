@@ -31,32 +31,6 @@ import Ctx from "lib/Ctx";
 
 // TODO: drag n' drop shapes / sprites from backpack
 // TODO: drag n' drop code snippets from editor to backpack
-// TODO: manual
-
-const template = `
-kaboom()
-
-if (window.parent.initCode) {
-	eval(window.parent.initCode)
-}
-
-let err = null
-
-onDraw(() => {
-	if (window.parent.drawCode) {
-		try {
-			eval(window.parent.drawCode)
-			err = null
-			debug.clearLog()
-		} catch (e) {
-			if (!err || err.toString() !== e.toString()) {
-				debug.error(e)
-				err = e
-			}
-		}
-	}
-})
-`.trim();
 
 const initCode = `
 // this code runs once at start
@@ -109,6 +83,33 @@ drawEllipse({
 	radiusY: 64,
 	color: rgb(255, 255, 128),
 	outline,
+})
+`.trim();
+
+const template = `
+kaboom()
+
+if (window.parent.initCode) {
+	eval(window.parent.initCode)
+} else {
+	eval(${initCode})
+}
+
+let err = null
+
+onDraw(() => {
+	if (window.parent.drawCode) {
+		try {
+			eval(window.parent.drawCode)
+			err = null
+			debug.clearLog()
+		} catch (e) {
+			if (!err || err.toString() !== e.toString()) {
+				debug.error(e)
+				err = e
+			}
+		}
+	}
 })
 `.trim();
 
