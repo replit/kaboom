@@ -29,6 +29,8 @@ import download from "lib/download";
 import wrapHTML from "lib/wrapHTML";
 import Ctx from "lib/Ctx";
 
+// TODO: save
+
 const initCode = `
 // this code runs once at start
 // requires restart after change
@@ -123,11 +125,16 @@ interface Sprite {
 interface SpriteEntryProps {
 	name: string,
 	src: string,
+	onDragStart: () => void,
 }
 
-interface Shape {
+type Shape = {
 	img: string,
 	code: string,
+}
+
+type ShapeEntryProps = Shape & {
+	onDragStart: () => void,
 }
 
 const shapes = [
@@ -202,7 +209,7 @@ drawText({
 	},
 ];
 
-const ShapeEntry: React.FC<Shape> = ({ img, code }) => (
+const ShapeEntry: React.FC<ShapeEntryProps> = ({ img, code, onDragStart }) => (
 	<Draggable
 		focusable
 		dir="row"
@@ -213,6 +220,7 @@ const ShapeEntry: React.FC<Shape> = ({ img, code }) => (
 		height={64}
 		dragType="code"
 		dragData={code}
+		onDragStart={onDragStart}
 		css={{
 			"overflow": "hidden",
 			":hover": {
@@ -234,6 +242,7 @@ const ShapeEntry: React.FC<Shape> = ({ img, code }) => (
 const SpriteEntry: React.FC<SpriteEntryProps> = ({
 	name,
 	src,
+	onDragStart,
 }) => (
 	<Draggable
 		focusable
@@ -250,6 +259,7 @@ const SpriteEntry: React.FC<SpriteEntryProps> = ({
 			src: src,
 			name: name,
 		}}
+		onDragStart={onDragStart}
 		css={{
 			"overflow": "hidden",
 			":hover": {
@@ -277,11 +287,13 @@ const SpriteEntry: React.FC<SpriteEntryProps> = ({
 interface SoundEntryProps {
 	name: string,
 	src: string,
+	onDragStart: () => void,
 }
 
 const SoundEntry: React.FC<SoundEntryProps> = ({
 	name,
 	src,
+	onDragStart,
 }) => (
 	<View
 		focusable
@@ -525,7 +537,11 @@ const Play: React.FC = () => {
 							gap={1}
 							wrap
 						>
-							{ shapes.map((shape) => <ShapeEntry {...shape} key={shape.code} />) }
+							{ shapes.map((shape) => <ShapeEntry
+								{...shape}
+								key={shape.code}
+								onDragStart={() => setBackpackOpen(false)}
+							/>) }
 						</View>
 					</View>
 					<FileDrop
@@ -562,6 +578,7 @@ const Play: React.FC = () => {
 										key={name}
 										name={name}
 										src={src}
+										onDragStart={() => setBackpackOpen(false)}
 									/>
 								))
 						}
@@ -600,6 +617,7 @@ const Play: React.FC = () => {
 										key={name}
 										name={name}
 										src={src}
+										onDragStart={() => setBackpackOpen(false)}
 									/>
 								))
 						}
