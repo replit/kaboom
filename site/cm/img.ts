@@ -1,4 +1,5 @@
 import {
+	EditorView,
 	ViewPlugin,
 	PluginValue,
 	DecorationSet,
@@ -41,6 +42,18 @@ class ImgWidget extends WidgetType {
 
 }
 
+const theme = EditorView.theme({
+	".cm-pedit": {
+		background: "var(--color-bg2)",
+		border: "solid 2px var(--color-outline)",
+		borderRadius: "4px",
+		margin: "0",
+	},
+	".cm-pedit:focus": {
+		border: "solid 2px var(--color-highlight)",
+	},
+});
+
 class PeditWidget extends WidgetType {
 
 	constructor(
@@ -58,19 +71,11 @@ class PeditWidget extends WidgetType {
 
 		const wrapper = document.createElement("span");
 
-		Pedit.fromImg(this.src, {
-			styles: {
-				background: "var(--color-bg2)",
-				border: "solid 2px var(--color-outline)",
-				borderRadius: "4px",
-				margin: "0",
-			},
-		}).then((p) => {
-			p.showUI = false;
-			p.focus();
-			p.canvas.dataset.pos = this.pos.toString();
+		Pedit.fromImg(this.src).then((p) => {
 			wrapper.append(p.canvas);
 			wrapper.append(btn);
+			p.showUI = false;
+			p.canvas.classList.add("cm-pedit");
 			// TODO
 			// @ts-ignore
 			btn.transaction = () => ({
@@ -80,6 +85,7 @@ class PeditWidget extends WidgetType {
 					insert: p.toDataURL(),
 				},
 			});
+			p.focus();
 		});
 
 		const btn = document.createElement("button");
@@ -203,4 +209,7 @@ const viewPlugin = ViewPlugin.define<ViewState>((view) => {
 
 });
 
-export default viewPlugin;
+export default [
+	theme,
+	viewPlugin,
+];

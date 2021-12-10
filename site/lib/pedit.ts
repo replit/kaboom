@@ -649,13 +649,20 @@ export default class Pedit {
 						color: this.curColor,
 						onClick: () => colorpicker((c) => this.curColor = c),
 					}) ],
-					[ vec2(1, 0), vec2(-16, 16), ui.hstack([
-						ui.text("size", { size: 24, color: rgb(32, 32, 45).lighten(60) }),
-						ui.slider(n, 0, 32, 1, (val) => n = val),
-					], { align: "center", margin: 8, }) ]
+// 					[ vec2(1, 0), vec2(-16, 16), ui.hstack([
+// 						ui.text("size", { size: 24, color: rgb(32, 32, 45).lighten(60) }),
+// 						ui.slider(n, 0, 32, 1, (val) => n = val),
+// 					], { align: "center", margin: 8, }) ]
 				]).draw();
 
 			}
+
+// 			if (document.activeElement !== this.canvas) {
+// 				this.ctx.globalAlpha = 0.2;
+// 				this.ctx.fillStyle = "black";
+// 				this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+// 				this.ctx.globalAlpha = 1;
+// 			}
 
 			ui.endFrame();
 
@@ -809,7 +816,7 @@ export default class Pedit {
 		}
 	}
 
-	static async fromImg(src: string | HTMLImageElement, opt: PeditOpt): Promise<Pedit> {
+	static async fromImg(src: string | HTMLImageElement, opt: PeditOpt = {}): Promise<Pedit> {
 		const img = await loadImg(src);
 		return new Pedit({
 			...opt,
@@ -817,7 +824,7 @@ export default class Pedit {
 		});
 	}
 
-	static async fromData(data: PeditData, opt: PeditOpt): Promise<Pedit> {
+	static async fromData(data: PeditData, opt: PeditOpt = {}): Promise<Pedit> {
 		return new Pedit(opt);
 	}
 
