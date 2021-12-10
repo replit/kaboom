@@ -12,6 +12,7 @@ import {
 import {
 	StateEffect,
 	Facet,
+	Transaction,
 } from "@codemirror/state";
 
 import Pedit from "lib/pedit";
@@ -77,6 +78,8 @@ class PeditWidget extends WidgetType {
 			p.canvas.dataset.pos = this.pos.toString();
 			wrapper.append(p.canvas);
 			wrapper.append(btn);
+			// TODO
+			// @ts-ignore
 			btn.transaction = () => ({
 				changes: {
 					from: this.pos + 1,
@@ -102,8 +105,10 @@ class PeditWidget extends WidgetType {
 
 	}
 
-	ignoreEvent(e) {
-		if (e.target.nodeName === "BUTTON") {
+	ignoreEvent(e: Event) {
+		// TODO
+		// @ts-ignore
+		if (e.target?.nodeName === "BUTTON") {
 			return false;
 		}
 		return true;
@@ -155,15 +160,17 @@ const viewPlugin = ViewPlugin.define<ViewState>((view) => {
 		mousedown(e, view) {
 
 			const el = e.target as HTMLElement;
+
 			if (e.altKey) {
 				if (el.nodeName !== "IMG" || !el.classList.contains(className)) return;
 				const pos = Number(el.dataset.pos);
-
-				this.editing = el.src;
+				this.editing = (el as HTMLImageElement).src;
 				this.deco = this.matcher.createDeco(view);
 			}
 
+			// @ts-ignore
 			if (el.transaction) {
+				// @ts-ignore
 				view.dispatch(el.transaction());
 				this.editing = null;
 			}

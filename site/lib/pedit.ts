@@ -564,7 +564,9 @@ export default class Pedit {
 		for (const ev of events) {
 			this.canvas.addEventListener(ev, (e) => {
 				const tool = this.tools[this.curTool];
+				// @ts-ignore
 				if (tool?.events?.[ev]) {
+					// @ts-ignore
 					tool.events[ev](e, tool.props, tool.curState, this);
 				}
 			})
@@ -762,6 +764,7 @@ export default class Pedit {
 	addTool<Props, State = void>(cfg: ToolCfg<Props, State>) {
 		this.tools.push({
 			...cfg,
+			// @ts-ignore
 			curState: cfg.state ? cfg.state(cfg.props) : null,
 		});
 		(cfg.cmds ?? []).forEach((cmd) => {
