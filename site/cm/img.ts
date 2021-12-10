@@ -131,17 +131,16 @@ const viewPlugin = ViewPlugin.define<ViewState>((view) => {
 		regexp: /"data:image\/\w+;base64,[^"\s]+"/g,
 		decoration: (match, view, pos) => {
 			const src = match[0].substring(1, match[0].length - 1);
-			const v: ViewState | null = view.plugin<ViewState>(viewPlugin);
 			return Decoration.replace({
-				// TODO: allow pos update?
 				widget: v?.editing?.src === src && v?.editing?.pos === pos
 					? new PeditWidget(v.editing.src, v.editing.pos, v.editing.pedit)
 					: new ImgWidget(src, pos),
 			});
-		}
+		},
+// 		maxLength: 65536,
 	});
 
-	return {
+	const v: ViewState = {
 		matcher: matcher,
 		hovering: null,
 		editing: null,
@@ -152,6 +151,8 @@ const viewPlugin = ViewPlugin.define<ViewState>((view) => {
 			}
 		},
 	};
+
+	return v;
 
 }, {
 
