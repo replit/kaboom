@@ -26,6 +26,7 @@ const Draggable = React.forwardRef<HTMLDivElement, ViewPropsAnd<DraggableProps>>
 					data: dragData,
 					type: dragType,
 				});
+				e.dataTransfer.setData(dragType, JSON.stringify(dragData));
 				onDragStart && onDragStart(e);
 			}}
 			onDragEnd={(e) => {

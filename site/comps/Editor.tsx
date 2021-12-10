@@ -503,8 +503,16 @@ const Editor = React.forwardRef<EditorRef, ViewPropsAnd<EditorProps>>(({
 				drop([
 					{
 						kind: "dom",
-						key: "img",
-						process: (data) => `"${data}"`,
+						key: "sprite",
+						process: (msg) => {
+							const data = JSON.parse(msg);
+							return `"${data.src}"`;
+						}
+					},
+					{
+						kind: "dom",
+						key: "code",
+						process: JSON.parse,
 					},
 					{
 						kind: "file",

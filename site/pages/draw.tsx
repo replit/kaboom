@@ -88,6 +88,7 @@ drawEllipse({
 })
 `.trim();
 
+// TODO: keep last no error code
 const template = `
 kaboom()
 
@@ -125,6 +126,72 @@ interface SpriteEntryProps {
 	src: string,
 }
 
+interface Shape {
+	img: string,
+	code: string,
+}
+
+const shapes = [
+	{
+		img: "",
+		code: `
+drawRect({
+	pos: vec2(40, 80),
+	width: 80,
+	height: 120,
+	origin: "topleft",
+	radius: 4,
+	angle: 0,
+	color: rgb(128, 255, 255),
+})
+		`.trim(),
+	},
+	{
+		img: "",
+		code: `
+drawTriangle({
+	pos: vec2(320, 240),
+	p1: vec2(200),
+	p2: vec2(0),
+	p3: vec2(240, -140),
+	color: hsl2rgb((i * 0.1) % 1, 0.6, 0.8),
+})
+		`.trim(),
+	},
+];
+
+const ShapeEntry: React.FC<Shape> = ({ img, code }) => (
+	<Draggable
+		focusable
+		dir="row"
+		align="center"
+		gap={1}
+		padX={2}
+		padY={1}
+		rounded
+		height={64}
+		dragType="code"
+		dragData={code}
+		css={{
+			"overflow": "hidden",
+			":hover": {
+				"background": "var(--color-bg2)",
+				"cursor": "pointer",
+			},
+		}}
+	>
+		<img
+			src={img}
+			css={{
+				userDrag: "none",
+				width: "100%",
+				overflow: "hidden",
+				objectFit: "cover",
+			}}
+		/>
+	</Draggable>
+);
+
 const SpriteEntry: React.FC<SpriteEntryProps> = ({
 	name,
 	src,
@@ -140,8 +207,10 @@ const SpriteEntry: React.FC<SpriteEntryProps> = ({
 		rounded
 		height={64}
 		dragType="sprite"
-		dragData={name}
-		onDragStart={(e) => e.dataTransfer.setData("img", src)}
+		dragData={{
+			src: src,
+			name: name,
+		}}
 		css={{
 			"overflow": "hidden",
 			":hover": {
@@ -342,7 +411,7 @@ const Play: React.FC = () => {
 							top: 0,
 							left: 0,
 							filter: `brightness(${editingInit ? 1 : 0.6})`,
-							zIndex: editingInit ? 200 : 0,
+							zIndex: editingInit ? 20 : 0,
 						}}
 						placeholder="Come on let's make some games!"
 						keys={[
@@ -404,6 +473,20 @@ const Play: React.FC = () => {
 				>
 					<View padX={1} gap={2} stretchX>
 						<Text size="big" color={2}>Backpack</Text>
+					</View>
+					<View
+						pad={1}
+						rounded
+						gap={1}
+						stretchX
+					>
+						<Text color={3}>Shapes</Text>
+						<View
+							dir="row"
+							gap={1}
+						>
+							{ shapes.map((shape) => <ShapeEntry {...shape} key={shape.code} />) }
+						</View>
 					</View>
 					<FileDrop
 						pad={1}
