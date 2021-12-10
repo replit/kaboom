@@ -29,9 +29,9 @@ import download from "lib/download";
 import wrapHTML from "lib/wrapHTML";
 import Ctx from "lib/Ctx";
 
-// TODO: save
+// TODO: CLEAN
 
-const initCode = `
+const INIT_CODE = `
 // this code runs once at start
 // requires restart after change
 // try hold alt and click the img
@@ -39,9 +39,10 @@ const initCode = `
 loadSprite("bean", "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAAA2CAMAAABAzG8wAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAEyUExURQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAcPCw4ICA4dFw4eFg4eFxAQEBUsIhUtIhwPDxwQEBw8LR07LR08LSAgICNKOCNLOCRKOCRLOCoXFypZQypaQytZQytaQzAwMDFoTjFoTzFpTzgfHzh3WTh3Wjh4Wjl3WTl3Wjl4Wj+GZUBAQECGZECGZUCHZUYnJ0aVcEeVcE2ke06ke06kfFBQUFQuLlSzhlUuLlWzhlvCkVzCkVzCkmBgYGM2NmPRnWrgqHA+PnBwcHHvs35FRYCAgIxNTY1NTZCQkJtUVJtVVZ+fn6CgoKlcXKldXbdkZL+/v8Vra8VsbNDQ0NNzc9/f3+F7e////ysmAfQAAAAVdFJOUwAQIDBAUGBvcH+AkJ+gr7C/z9Df74JQjt0AAAO5SURBVEjHnVfrQtowFKaADC1qu9I6YSBecIKoOHAD2bhssMpc6zqn010c0/H+r7CcJG2TFAru/LCYnu/kO9ekkUiIxBJyStXSOhJNVeRkPPIIiS8qGMlJWklE50PLQbArKzN5SIuaHiraQjjc3/zZ7lHHtGwHiTXs1XYz7ovUdEc8uLHfsRxRhq1MOIn4U4reMZ0pYpaIyuIk/BMKP7GdELEyUyxIK/PAQU4mWogS+ocz4RALTCLJ749zZ5ghMLteMHQ9VzapG2kuF5h/Dgfe7lbQe6NQ5dJgFbz0rlvOEJnSFTZ9GI/p1w1Ps+ybeGOwtVR3Tnknoh5+mNF5TSJVoRrLzgtwQnINaIQY2kisW2KhzKwcUHIGQyEBSx2k+JpVbNK96P7ZLFk/v9uGh/mKiQIQKAl4/WB8SzTJ8vYDNZAdP8DjnQ1/o34EkQNd/P7WtTAe32EDFsGPvfVror/l+QAEXiICEL/sH19xfA6hcdrwT/Nh7DLAVBBh8CHlRgAiiHfSL8dN14VLEhobZ3D7+j1Zb4JjBiWssgQwJ6RJwqx//4yLxm8fVk4dsqGG8As0AkgOWR0cQQO/sLYEPN7PgV/IwDJNAUhH2MvoTXxB8NSARFLlVnyJVVwf+q1QMgJWiYEEdTSoKUwGu7P7HOZky12lMVhFjyO+b3tHm5ub+61Zk8EkpZhmPXiUtHAdxIDrf+GdIoImcAh2/guPeyEWkdHfWrimdWa2G7VKpVDkRlSbxFCBxgpiLLPdrlUrhVyGnUQ5VgeKS45EVPT46K8OKkUew9eVkAPoZkiCny8r/FgtCQRWUSHDOu9XQDY2jvv9Pb9jfM14wECXxVx8ufr26/f9X5BRnieAGxQPA94AdoFiOPngTl0qZW+eaTwziN+PIP7KnQFU8JRcwuNM5dMIzdgP4EdrfMcNdDpL6DRoCMkZifi8N1qIowZzMibR7wKTHQjOMY+/3+MdIBNugT3UmMbt6aITBH/on+2GHwAQqOWqUCD62xHPnylicvj5eHKsDZkmwwTzX+n2F2v+uQ1vqyKeHqx24A6U79/8vPm0pnP4YS6Ij8Q5lUnHQMl2ryjkwpsQbkeyLpQZvUW5LXjK3zG0WOB6pmK9BjeaM8Jotut0RZYmXG9Vcgq0bWE0o6suWRpU6YzQJl+1JZluV+4GZ7k9qLp00kvStDtywruh54q1rnvDPus2Kjn/a2E6HCpyOXwYzYBjE0vTvxPSSnzOLxV10geGHJfm/1aS4klZUQgXTVtJJWeA/wFPmR833RRQSAAAAABJRU5ErkJggg==")
 `.trim();
 
-const drawCode = `
+const DRAW_CODE = `
 // this code runs every frame
 // try hold alt and drag / click values
+// (all of these could work in replspace, but currently the live update thing requires communication between child iframe and parent window)
 
 const outline = {
 	color: rgb(0, 0, 0),
@@ -93,7 +94,7 @@ kaboom()
 if (window.parent.initCode) {
 	eval(window.parent.initCode)
 } else {
-	eval(${initCode})
+	eval(${INIT_CODE})
 }
 
 let err = null
@@ -333,10 +334,21 @@ const Play: React.FC = () => {
 	const { draggin } = React.useContext(Ctx);
 	const [ editingInit, setEditingInit ] = React.useState(false);
 	const spaceUsed = useSpaceUsed();
+	const drawEditorRef = React.useRef<EditorRef | null>(null);
+	const initEditorRef = React.useRef<EditorRef | null>(null);
 
 	React.useEffect(() => {
-		(window as any).drawCode = drawCode;
-		(window as any).initCode = initCode;
+		(window as any).drawCode = DRAW_CODE;
+		(window as any).initCode = INIT_CODE;
+	}, []);
+
+	React.useEffect(() => {
+		if (localStorage["drawCode"]) {
+			drawEditorRef.current?.setContent(localStorage["drawCode"]);
+		}
+		if (localStorage["initCode"]) {
+			initEditorRef.current?.setContent(localStorage["initCode"]);
+		}
 	}, []);
 
 	useKey("Escape", () => {
@@ -348,6 +360,19 @@ const Play: React.FC = () => {
 		e.preventDefault();
 		setBackpackOpen((b) => !b);
 	}, [ setBackpackOpen ]);
+
+	useKey("e", (e) => {
+		if (!e.metaKey) return;
+		e.preventDefault();
+		setEditingInit((e) => {
+			if (e) {
+				drawEditorRef.current?.focus();
+			} else {
+				initEditorRef.current?.focus();
+			}
+			return !e;
+		});
+	}, [ setEditingInit ]);
 
 	return <>
 		<Head
@@ -392,6 +417,17 @@ const Play: React.FC = () => {
 					/>
 				</View>
 				<View dir="row" gap={2} align="center">
+					<Button
+						name="Reset Button"
+						desc="Clear stored code"
+						text="Reset"
+						action={() => {
+							drawEditorRef.current?.setContent(DRAW_CODE);
+							initEditorRef.current?.setContent(INIT_CODE);
+							delete localStorage["drawCode"];
+							delete localStorage["initCode"];
+						}}
+					/>
 					{ !isNarrow &&
 						<ThemeSwitch />
 					}
@@ -421,10 +457,14 @@ const Play: React.FC = () => {
 					}}
 				>
 					<Editor
-						name="Editor"
-						desc="Where you edit the code"
-						content={drawCode}
-						onChange={(code) => (window as any).drawCode = code}
+						ref={drawEditorRef}
+						content={DRAW_CODE}
+						name="Draw Code Editor"
+						desc="Code here runs every frame, changes are reflected in output immediately."
+						onChange={(code) => {
+							(window as any).drawCode = code;
+							localStorage["drawCode"] = code;
+						}}
 						width="calc(100% - 32px)"
 						height="calc(100% - 32px)"
 						onMouseDown={() => setEditingInit(false)}
@@ -450,10 +490,14 @@ const Play: React.FC = () => {
 						]}
 					/>
 					<Editor
-						name="Editor"
-						desc="Where you edit the code"
-						content={initCode}
-						onChange={(code) => (window as any).initCode = code}
+						ref={initEditorRef}
+						content={INIT_CODE}
+						name="Init Code Editor"
+						desc="Code here runs once at start, changes requires restart."
+						onChange={(code) => {
+							(window as any).initCode = code;
+							localStorage["initCode"] = code;
+						}}
 						width="calc(100% - 32px)"
 						height="calc(100% - 32px)"
 						onMouseDown={() => setEditingInit(true)}
