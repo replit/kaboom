@@ -27,6 +27,7 @@ export interface InteractRule {
 	cursor?: string,
 	style?: any,
 	onClick?: (old: string, e: MouseEvent) => string | void,
+	onClickAsync?: (old: string, e: MouseEvent) => Promise<string | void>,
 	onDrag?: (old: string, e: MouseEvent) => string | void,
 }
 
@@ -160,6 +161,13 @@ const view = ViewPlugin.define<ViewState>((view) => {
 					match,
 					match.rule.onClick(match.text, e)
 				);
+			} else if (match.rule.onClickAsync) {
+				match.rule.onClickAsync(match.text, e).then((res) => {
+					this.updateText(
+						match,
+						res
+					);
+				});
 			};
 
 			if (match.rule.onDrag) {

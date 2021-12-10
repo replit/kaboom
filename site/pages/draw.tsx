@@ -307,7 +307,7 @@ const Play: React.FC = () => {
 						onChange={(code) => (window as any).drawCode = code}
 						width="calc(100% - 32px)"
 						height="calc(100% - 32px)"
-						onClick={() => setEditingInit(false)}
+						onMouseDown={() => setEditingInit(false)}
 						css={{
 							position: "absolute",
 							bottom: 0,
@@ -336,7 +336,7 @@ const Play: React.FC = () => {
 						onChange={(code) => (window as any).initCode = code}
 						width="calc(100% - 32px)"
 						height="calc(100% - 32px)"
-						onClick={() => setEditingInit(true)}
+						onMouseDown={() => setEditingInit(true)}
 						css={{
 							position: "absolute",
 							top: 0,

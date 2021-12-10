@@ -57,7 +57,7 @@ import useUpdateEffect from "hooks/useUpdateEffect";
 import View, { ViewPropsAnd } from "comps/View";
 import Ctx from "lib/Ctx";
 import { themes } from "lib/ui";
-import { clamp } from "lib/math";
+import { clamp, hex2rgb } from "lib/math";
 
 import interact from "cm/interact";
 import img from "cm/img";
@@ -274,6 +274,20 @@ interface EditorProps {
 	keys?: KeyBinding[],
 };
 
+function colorpicker(): Promise<[number, number, number]> {
+	return new Promise((res, rej) => {
+		const sel = document.createElement("input");
+		sel.type = "color";
+		sel.addEventListener("change", (e) => {
+			const el = e.target as HTMLInputElement;
+			if (el.value) {
+				res(hex2rgb(el.value.substring(1)));
+			}
+		});
+		sel.click();
+	});
+}
+
 const Editor = React.forwardRef<EditorRef, ViewPropsAnd<EditorProps>>(({
 	content,
 	placeholder,
@@ -445,6 +459,16 @@ const Editor = React.forwardRef<EditorRef, ViewPropsAnd<EditorProps>>(({
 							if (isNaN(x)) return;
 							if (isNaN(y)) y = x;
 							return `vec2(${x + e.movementX}, ${y + e.movementY})`;
+						},
+					},
+					// kaboom color selector
+					{
+						regexp: /rgb\(.*\)/g,
+						cursor: "move",
+						onClickAsync: (old, e) => {
+							return colorpicker().then(([r, g, b]) => {
+								return `rgb(${r}, ${g}, ${b})`;
+							});
 						},
 					},
 					// kaboom origin slider
