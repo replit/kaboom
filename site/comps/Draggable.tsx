@@ -5,7 +5,7 @@ import Ctx from "lib/Ctx";
 interface DraggableProps {
 	dragData: any,
 	dragType: string,
-	onDragStart?: () => void,
+	onDragStart?: (e: React.DragEvent) => void,
 	onDragEnd?: () => void,
 }
 
@@ -26,7 +26,7 @@ const Draggable = React.forwardRef<HTMLDivElement, ViewPropsAnd<DraggableProps>>
 					data: dragData,
 					type: dragType,
 				});
-				onDragStart && onDragStart();
+				onDragStart && onDragStart(e);
 			}}
 			onDragEnd={(e) => {
 				setDraggin(null);

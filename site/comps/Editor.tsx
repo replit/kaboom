@@ -61,6 +61,7 @@ import { clamp } from "lib/math";
 
 import interact from "cm/interact";
 import img from "cm/img";
+import drop from "cm/drop";
 
 // @ts-ignore
 const cmThemes: Record<Theme, [ Extension, HighlightStyle ]> = {};
@@ -473,6 +474,23 @@ const Editor = React.forwardRef<EditorRef, ViewPropsAnd<EditorProps>>(({
 						cursor: "pointer",
 						onClick: (text) => {
 							window.open(text);
+						},
+					},
+				]),
+				drop([
+					{
+						kind: "dom",
+						key: "img",
+						process: (data) => `"${data}"`,
+					},
+					{
+						kind: "file",
+						accept: /^image\//,
+						readAs: "dataURL",
+						process: (data) => {
+							if (typeof data === "string") {
+								return `"${data}"`;
+							}
 						},
 					},
 				]),

@@ -1,5 +1,4 @@
 import {
-	EditorView,
 	ViewPlugin,
 	PluginValue,
 	DecorationSet,
@@ -8,12 +7,6 @@ import {
 	MatchDecorator,
 	PluginField,
 } from "@codemirror/view";
-
-import {
-	StateEffect,
-	Facet,
-	Transaction,
-} from "@codemirror/state";
 
 import Pedit from "lib/pedit";
 
@@ -126,7 +119,7 @@ interface ViewState extends PluginValue {
 const viewPlugin = ViewPlugin.define<ViewState>((view) => {
 
 	const matcher: MatchDecorator = new MatchDecorator({
-		regexp: /"data:image\/\w+;base64,.+"/g,
+		regexp: /"data:image\/\w+;base64,[^"\s]+"/g,
 		decoration: (match, view, pos) => {
 			const v: ViewState | null = view.plugin<ViewState>(viewPlugin);
 			const src = match[0].substring(1, match[0].length - 1);
@@ -168,6 +161,7 @@ const viewPlugin = ViewPlugin.define<ViewState>((view) => {
 				this.deco = this.matcher.createDeco(view);
 			}
 
+			// TODO
 			// @ts-ignore
 			if (el.transaction) {
 				// @ts-ignore
@@ -203,46 +197,6 @@ const viewPlugin = ViewPlugin.define<ViewState>((view) => {
 			if (!e.altKey && this.hovering) {
 				this.hovering.style.cursor = "auto";
 			}
-		},
-
-		dragover(e) {
-			e.preventDefault();
-		},
-
-		drop(e, view) {
-
-			e.preventDefault();
-
-			if (!e.dataTransfer) return;
-
-			const items = e.dataTransfer.items;
-			if (!items?.length) return;
-
-			for (let i = 0; i < items.length; i++) {
-
-				if (items[i].kind !== "file") continue;
-				const file = items[i].getAsFile();
-				if (!file) continue;
-
-				const reader = new FileReader();
-
-				reader.onload = (e) => {
-					if (e.target?.result) {
-						const sel = view.state.selection.main;
-						view.dispatch({
-							changes: {
-								from: sel.from,
-								to: sel.to,
-								insert: `"${e.target.result}"`,
-							},
-						});
-					}
-				};
-
-				reader.readAsDataURL(file);
-
-			}
-
 		},
 
 	},
