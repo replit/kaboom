@@ -16,7 +16,7 @@ Most kaboom docs are written in `src/types.ts` as jsDoc above each entry. Help o
 
 Doc rendered on the website is built through `npm run build` command. This will generate a `site/doc.json` which contains all the documentation information.
 
-To view the built documentation, use `npm run site`. Or if you want to preview changes as you're editting, use `npm run devsite` instead, then `npm run build` should trigger refresh the page with updated content.
+To view the built documentation, use `npm run site`. Or if you want to preview changes as you're editing, use `npm run devsite` instead, then `npm run build` should trigger refresh the page with updated content.
 
 ## Demo
 
