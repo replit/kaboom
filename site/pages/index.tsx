@@ -84,26 +84,25 @@ onKeyPress("space", () => {
 Play with it yourself or check out the examples in the [Playground](/play)!
 		`} />
 
-		{ doc.sections.map((sec) => {
-			return (
-				<View stretchX gap={1} key={sec.name}>
-					<Text size="huge" color={3} id={sec.name}>{sec.name}</Text>
-					{ sec.doc &&
-						<Markdown src={sec.doc} dim />
-					}
-					<View stretchX gap={3}>
-						{ sec.entries.map((name) => (
-							<Doc
-								id={name}
-								key={name}
-								name={name}
-								typeref={setShowType}
-							/>
-						)) }
-					</View>
+		{ doc.sections.map((sec) => (
+			<View stretchX gap={1} key={sec.name}>
+				<Text size="huge" color={3} id={sec.name}>{sec.name}</Text>
+				{ sec.doc &&
+					<Markdown src={sec.doc} dim />
+				}
+				<View stretchX gap={3}>
+					{ sec.entries.map((name) => (
+						<Doc
+							id={name}
+							key={name}
+							name={name}
+							anchor={name}
+							typeref={setShowType}
+						/>
+					)) }
 				</View>
-			);
-		}) }
+			</View>
+		)) }
 
 		{ Object.keys(doc.types).map((name) => {
 			if (name !== "KaboomCtx" && name !== "kaboom") {
@@ -111,6 +110,7 @@ Play with it yourself or check out the examples in the [Playground](/play)!
 					id={name}
 					key={name}
 					name={name}
+					anchor={name}
 					typeref={setShowType}
 				/>
 			}
