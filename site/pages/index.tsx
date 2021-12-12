@@ -97,6 +97,7 @@ Play with it yourself or check out the examples in the [Playground](/play)!
 								id={name}
 								key={name}
 								name={name}
+								anchor={name}
 								typeref={setShowType}
 							/>
 						)) }
@@ -111,6 +112,7 @@ Play with it yourself or check out the examples in the [Playground](/play)!
 					id={name}
 					key={name}
 					name={name}
+					anchor={name}
 					typeref={setShowType}
 				/>
 			}

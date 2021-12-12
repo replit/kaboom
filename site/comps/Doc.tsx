@@ -119,7 +119,10 @@ const Title: React.FC<TitleProps> = ({ data, small, children }) => (
 			select
 			size={small ? "normal" : "big"}
 		>
-			{data.name}{children}
+			<DocCtx.Consumer>
+				{(ctx) => <Link href={`#${ctx.anchor}`}>{data.name}</Link>}
+			</DocCtx.Consumer>
+			{children}
 		</Text>
 	</View>
 );
@@ -265,11 +268,13 @@ const JSDoc: React.FC<EntryProps> = ({data}) => {
 
 interface DocProps {
 	name: string,
+	anchor?: string,
 	typeref?: (name: string) => void,
 }
 
 const Doc: React.FC<ViewPropsAnd<DocProps>> = ({
 	name,
+	anchor,
 	typeref,
 	...args
 }) => {
@@ -284,6 +289,7 @@ const Doc: React.FC<ViewPropsAnd<DocProps>> = ({
 	return (
 		<DocCtx.Provider value={{
 			typeref: typeref,
+			anchor: anchor,
 		}}>
 			<View stretchX {...args} gap={3}>
 				{entries.map((e: any, i: number) => <Entry key={`${e.name}-${i}`} data={e} />)}
@@ -294,6 +300,7 @@ const Doc: React.FC<ViewPropsAnd<DocProps>> = ({
 };
 
 interface DocCtx {
+	anchor?: string,
 	typeref?: (name: string) => void,
 }
 
