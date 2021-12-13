@@ -220,7 +220,7 @@ function rgb(...args): Color {
 		eq(other: Color): boolean {
 			return this.r === other.r
 				&& this.g === other.g
-				&& this.b === other.g
+				&& this.b === other.b
 				;
 		},
 		str(): string {

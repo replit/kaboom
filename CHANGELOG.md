@@ -1,3 +1,7 @@
+### v2000.1.8
+
+- fixed `Color#eq()` not giving correct result
+
 ### v2000.1.7
 
 - fixed not having export if installed from github repo with npm
