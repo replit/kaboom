@@ -711,7 +711,7 @@ function on(event: string, tag: Tag, cb: (obj: GameObj, ...args) => void): Event
 // add update event to a tag or global update
 function onUpdate(tag: Tag | (() => void), cb?: (obj: GameObj) => void): EventCanceller {
 	if (typeof tag === "function" && cb === undefined) {
-		return () => game.root.add([{ update: tag, }]).destroy();
+		return game.root.onUpdate(tag);
 	} else if (typeof tag === "string") {
 		return on("update", tag, cb);
 	}
@@ -720,7 +720,7 @@ function onUpdate(tag: Tag | (() => void), cb?: (obj: GameObj) => void): EventCa
 // add draw event to a tag or global draw
 function onDraw(tag: Tag | (() => void), cb?: (obj: GameObj) => void) {
 	if (typeof tag === "function" && cb === undefined) {
-		return () => game.root.add([{ draw: tag, }]).destroy();
+		return game.root.onDraw(tag);
 	} else if (typeof tag === "string") {
 		return on("draw", tag, cb);
 	}
