@@ -908,7 +908,7 @@ export interface KaboomCtx {
 	 */
 	keyPressRep: KaboomCtx["onKeyPressRepeat"],
 	/**
-	 * @deprecated v2000.1 Use onKeyPress() instead.
+	 * @deprecated v2000.1 Use onKeyRelease() instead.
 	 */
 	keyRelease: KaboomCtx["onKeyRelease"],
 	/**
