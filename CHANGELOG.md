@@ -9,6 +9,10 @@
 - deprecated `dir()` in favor of `vec2FromAngle()`
 - fixed `onTouchEnd()` fired on `touchmove`
 
+### v2000.1.8
+
+- fixed `Color#eq()` not giving correct result
+
 ### v2000.1.7
 
 - fixed not having export if installed from github repo with npm
