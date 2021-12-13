@@ -1,3 +1,8 @@
+### v2000.1.7
+
+- fixed not having export if installed from github repo with npm
+- fixed event canceller returned by raw `onUpdate()` and `onDraw()` crashing
+
 ### v2000.1.6
 
 - fixed debug widget scale
