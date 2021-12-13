@@ -653,7 +653,8 @@ function on(event: string, tag: Tag, cb: (obj: GameObj, ...args) => void): Event
 // add update event to a tag or global update
 function onUpdate(tag: Tag | (() => void), cb?: (obj: GameObj) => void): EventCanceller {
 	if (typeof tag === "function" && cb === undefined) {
-		return add([{ update: tag, }]).destroy;
+		const obj = add([{ update: tag }]);
+		return () => destroy(obj);
 	} else if (typeof tag === "string") {
 		return on("update", tag, cb);
 	}
@@ -662,7 +663,8 @@ function onUpdate(tag: Tag | (() => void), cb?: (obj: GameObj) => void): EventCa
 // add draw event to a tag or global draw
 function onDraw(tag: Tag | (() => void), cb?: (obj: GameObj) => void) {
 	if (typeof tag === "function" && cb === undefined) {
-		return add([{ draw: tag, }]).destroy;
+		const obj = add([{ draw: tag }]);
+		return () => destroy(obj);
 	} else if (typeof tag === "string") {
 		return on("draw", tag, cb);
 	}
