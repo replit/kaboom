@@ -237,7 +237,7 @@ function drawSprite(opt: DrawSpriteOpt) {
 
 // wrapper around gfx.drawText to integrate with font assets mananger / default font
 function drawText(opt: DrawTextOpt) {
-	const font = findAsset(opt.font, assets.fonts, DEF_FONT);
+	const font = findAsset(opt.font ?? gopt.font, assets.fonts, DEF_FONT);
 	if (!font) throw new Error(`font not found: ${opt.font}`);
 	gfx.drawText({
 		...opt,
@@ -251,7 +251,7 @@ function drawText(opt: DrawTextOpt) {
 
 // wrapper around gfx.formatText to integrate with font assets mananger / default font
 function formatText(opt: DrawTextOpt) {
-	const font = findAsset(opt.font, assets.fonts, DEF_FONT);
+	const font = findAsset(opt.font ?? gopt.font, assets.fonts, DEF_FONT);
 	if (!font) throw new Error(`font not found: ${opt.font}`);
 	return gfx.formatText({
 		...opt,
@@ -1762,14 +1762,11 @@ function text(t: string, opt: TextCompOpt = {}): TextComp {
 
 	function update(obj: GameObj<TextComp | any>) {
 
-		const font = findAsset(opt.font, assets.fonts, DEF_FONT);
-		if (!font) throw new Error(`font not found: ${opt.font}`);
-
-		const ftext = gfx.formatText({
+		const ftext = formatText({
 			...getRenderProps(obj),
 			text: obj.text + "",
 			size: obj.textSize,
-			font: font,
+			font: opt.font,
 			width: opt.width,
 			letterSpacing: opt.letterSpacing,
 			lineSpacing: opt.lineSpacing,
