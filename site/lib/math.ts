@@ -7,3 +7,7 @@ export const hex2rgb = (hex: string): [number, number, number] => {
 	const b = val & 255;
 	return [r, g, b];
 }
+
+export const rgb2hex = (r: number, g: number, b: number): string => {
+	return "#" + r.toString(16) + g.toString(16) + b.toString(16);
+}

@@ -1455,4 +1455,3 @@ export const bucketTool: ToolCfg<BucketToolProps> = {
 		},
 	}
 };
-

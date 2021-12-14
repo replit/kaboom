@@ -33,7 +33,7 @@ export interface InteractRule {
 const mark = Decoration.mark({ class: "cm-interact" });
 const setInteract = StateEffect.define<Target | null>();
 
-const theme = EditorView.theme({
+const interactTheme = EditorView.theme({
 	".cm-interact": {
 		background: "rgba(128, 128, 255, 0.2)",
 		borderRadius: "4px",
@@ -54,7 +54,7 @@ interface ViewState extends PluginValue {
 	unfocus(): void,
 }
 
-const view = ViewPlugin.define<ViewState>((view) => {
+const interactViewPlugin = ViewPlugin.define<ViewState>((view) => {
 
 	return {
 
@@ -214,10 +214,7 @@ const view = ViewPlugin.define<ViewState>((view) => {
 	},
 })
 
-const interact = (rules: InteractRule[]) => [
-	theme,
-	rules.map((r) => interactRule.of(r)),
-	view,
+export default [
+	interactTheme,
+	interactViewPlugin,
 ];
-
-export default interact;

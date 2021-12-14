@@ -42,7 +42,7 @@ class ImgWidget extends WidgetType {
 
 }
 
-const theme = EditorView.theme({
+const imgTheme = EditorView.theme({
 	".cm-pedit": {
 		background: "var(--color-bg2)",
 		border: "solid 2px var(--color-outline)",
@@ -125,7 +125,7 @@ interface ViewState extends PluginValue {
 	matcher: MatchDecorator,
 }
 
-const viewPlugin = ViewPlugin.define<ViewState>((view) => {
+const imgViewPlugin = ViewPlugin.define<ViewState>((view) => {
 
 	const matcher: MatchDecorator = new MatchDecorator({
 		regexp: /"data:image\/\w+;base64,[^"\s]+"/g,
@@ -253,6 +253,6 @@ const viewPlugin = ViewPlugin.define<ViewState>((view) => {
 });
 
 export default [
-	theme,
-	viewPlugin,
+	imgTheme,
+	imgViewPlugin,
 ];

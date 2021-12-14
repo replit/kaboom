@@ -5,7 +5,8 @@ import Ctx from "lib/Ctx";
 import { themes } from "lib/ui";
 
 export interface GameViewRef {
-	run: (code?: string) => void,
+	run: (code: string) => void,
+	send: (msg: any, origin?: string) => void,
 }
 
 const wrapGame = (code: string) => `
@@ -56,14 +57,15 @@ const GameView = React.forwardRef<GameViewRef, GameViewProps & ViewProps>(({
 	const { theme } = React.useContext(Ctx);
 
 	React.useImperativeHandle(ref, () => ({
-		run(code?: string) {
+		run(code: string, msg?: any) {
 			if (!iframeRef.current) return;
 			const iframe = iframeRef.current;
-			if (code === undefined) {
-				iframe.srcdoc += "";
-			} else {
-				iframe.srcdoc = wrapGame(code);
-			}
+			iframe.srcdoc = wrapGame(code);
+		},
+		send(msg: any, origin: string = "*") {
+			if (!iframeRef.current) return;
+			const iframe = iframeRef.current;
+			iframe.contentWindow?.postMessage(JSON.stringify(msg), origin);
 		},
 	}));
 

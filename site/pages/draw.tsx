@@ -97,18 +97,26 @@ if (window.parent.initCode) {
 	eval(${INIT_CODE})
 }
 
+let drawCode = null
+let lastDrawCode = null
 let err = null
-let lastCode = null
+
+window.addEventListener("message", (e) => {
+	const data = JSON.parse(e.data)
+	if (data.drawCode) {
+		drawCode = data.drawCode
+	}
+})
 
 onDraw(() => {
-	if (window.parent.drawCode) {
+	if (drawCode) {
 		try {
-			eval(window.parent.drawCode)
-			lastCode = window.parent.drawCode
+			eval(drawCode)
+			lastDrawCode = drawCode
 			err = null
 			debug.clearLog()
 		} catch (e) {
-			if (lastCode) eval(lastCode)
+			if (lastDrawCode) eval(lastDrawCode)
 			if (!err || err.toString() !== e.toString()) {
 				debug.error(e)
 				err = e
@@ -338,11 +346,6 @@ const Play: React.FC = () => {
 	const initEditorRef = React.useRef<EditorRef | null>(null);
 
 	React.useEffect(() => {
-		(window as any).drawCode = DRAW_CODE;
-		(window as any).initCode = INIT_CODE;
-	}, []);
-
-	React.useEffect(() => {
 		if (localStorage["drawCode"]) {
 			drawEditorRef.current?.setContent(localStorage["drawCode"]);
 		}
@@ -350,6 +353,7 @@ const Play: React.FC = () => {
 			initEditorRef.current?.setContent(localStorage["initCode"]);
 		}
 		gameviewRef.current?.run(template);
+		gameviewRef.current?.send({ drawCode: localStorage["drawCode"] });
 	}, []);
 
 	useKey("Escape", () => {
@@ -461,7 +465,7 @@ const Play: React.FC = () => {
 						name="Draw Code Editor"
 						desc="Code here runs every frame, changes are reflected in output immediately."
 						onChange={(code) => {
-							(window as any).drawCode = code;
+							gameviewRef.current?.send({ drawCode: code });
 							localStorage["drawCode"] = code;
 						}}
 						width="calc(100% - 32px)"

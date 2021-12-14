@@ -290,7 +290,7 @@ const Play: React.FC<PlayProps> = ({
 								const gameview = gameviewRef.current;
 								if (!editorRef.current) return false;
 								const editor = editorRef.current;
-								gameview.run(editor.getContent() ?? undefined);
+								gameview.run(editor.getContent() ?? "");
 								return false;
 							},
 							preventDefault: true,

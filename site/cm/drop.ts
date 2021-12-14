@@ -8,10 +8,6 @@ import {
 
 export const dropRule = Facet.define<DropRule>();
 
-type DropKind =
-	| "dom"
-	| "file"
-
 type ReadType =
 	| "arrayBuffer"
 	| "binaryString"
@@ -31,7 +27,7 @@ export type DropRule =
 		process?: (val: string | ArrayBuffer) => string | void,
 	}
 
-const eventHandler = EditorView.domEventHandlers({
+const dropHandler = EditorView.domEventHandlers({
 
 	dragover(e) {
 		e.preventDefault();
@@ -122,9 +118,4 @@ const eventHandler = EditorView.domEventHandlers({
 
 });
 
-const ext = (rules: DropRule[]) => [
-	rules.map((r) => dropRule.of(r)),
-	eventHandler,
-];
-
-export default ext;
+export default dropHandler;

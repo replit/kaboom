@@ -57,11 +57,11 @@ import useUpdateEffect from "hooks/useUpdateEffect";
 import View, { ViewPropsAnd } from "comps/View";
 import Ctx from "lib/Ctx";
 import { themes } from "lib/ui";
-import { clamp, hex2rgb } from "lib/math";
+import { clamp, hex2rgb, rgb2hex } from "lib/math";
 
-import interact from "cm/interact";
+import interact, { interactRule } from "cm/interact";
+import drop, { dropRule } from "cm/drop";
 import img from "cm/img";
-import drop from "cm/drop";
 
 // @ts-ignore
 const cmThemes: Record<Theme, [ Extension, HighlightStyle ]> = {};
@@ -416,115 +416,118 @@ const Editor = React.forwardRef<EditorRef, ViewPropsAnd<EditorProps>>(({
 					indentWithTab,
 					...(keys ?? []),
 				]),
-				interact([
-					// number slider
-					{
-						regexp: /-?\b\d+\.?\d*\b/g,
-						cursor: "ew-resize",
-						onDrag: (text, setText, e) => {
-							// TODO: size aware
-							// TODO: small interval with shift key?
-							const newVal = Number(text) + e.movementX;
-							if (isNaN(newVal)) return;
-							setText(newVal.toString());
+				interact,
+				// number slider
+				interactRule.of({
+					regexp: /-?\b\d+\.?\d*\b/g,
+					cursor: "ew-resize",
+					onDrag: (text, setText, e) => {
+						// TODO: size aware
+						// TODO: small interval with shift key?
+						const newVal = Number(text) + e.movementX;
+						if (isNaN(newVal)) return;
+						setText(newVal.toString());
+					}
+				}),
+				// bool toggler
+				interactRule.of({
+					regexp: /true|false/g,
+					cursor: "pointer",
+					onClick: (text, setText) => {
+						switch (text) {
+							case "true": return setText("false");
+							case "false": return setText("true");
 						}
 					},
-					// bool toggler
-					{
-						regexp: /true|false/g,
-						cursor: "pointer",
-						onClick: (text, setText) => {
-							switch (text) {
-								case "true": return setText("false");
-								case "false": return setText("true");
+				}),
+				// kaboom vec2 slider
+				interactRule.of({
+					regexp: /vec2\(-?\b\d+\.?\d*\b\s*(,\s*-?\b\d+\.?\d*\b)?\)/g,
+					cursor: "move",
+					onDrag: (text, setText, e) => {
+						const res = /vec2\((?<x>-?\b\d+\.?\d*\b)\s*(,\s*(?<y>-?\b\d+\.?\d*\b))?\)/.exec(text);
+						let x = Number(res?.groups?.x);
+						let y = Number(res?.groups?.y);
+						if (isNaN(x)) return;
+						if (isNaN(y)) y = x;
+						setText(`vec2(${x + e.movementX}, ${y + e.movementY})`);
+					},
+				}),
+				// kaboom color picker
+				interactRule.of({
+					regexp: /rgb\(.*\)/g,
+					cursor: "pointer",
+					onClick: (text, setText, e) => {
+						const res = /rgb\((?<r>\d+)\s*,\s*(?<g>\d+)\s*,\s*(?<b>\d+)\)/.exec(text);
+						const r = Number(res?.groups?.r);
+						const g = Number(res?.groups?.g);
+						const b = Number(res?.groups?.b);
+						const sel = document.createElement("input");
+						sel.type = "color";
+						if (!isNaN(r + g + b)) sel.value = rgb2hex(r, g, b);
+						sel.addEventListener("input", (e) => {
+							const el = e.target as HTMLInputElement;
+							if (el.value) {
+								const [r, g, b] = hex2rgb(el.value.substring(1));
+								setText(`rgb(${r}, ${g}, ${b})`)
 							}
-						},
+						});
+						sel.click();
 					},
-					// kaboom vec2 slider
-					{
-						regexp: /vec2\(-?\b\d+\.?\d*\b\s*(,\s*-?\b\d+\.?\d*\b)?\)/g,
-						cursor: "move",
-						onDrag: (text, setText, e) => {
-							const res = /vec2\((?<x>-?\b\d+\.?\d*\b)\s*(,\s*(?<y>-?\b\d+\.?\d*\b))?\)/.exec(text);
-							let x = Number(res?.groups?.x);
-							let y = Number(res?.groups?.y);
-							if (isNaN(x)) return;
-							if (isNaN(y)) y = x;
-							setText(`vec2(${x + e.movementX}, ${y + e.movementY})`);
-						},
+				}),
+				// kaboom origin slider
+				interactRule.of({
+					regexp: new RegExp(`${origins.join("|")}`, "g"),
+					cursor: "move",
+					onClick: (text) => {
+						const idx = origins.indexOf(text);
+						originState.x = 0;
+						originState.y = 0;
+						originState.idx = idx;
 					},
-					// kaboom color selector
-					{
-						regexp: /rgb\(.*\)/g,
-						cursor: "pointer",
-						onClick: (text, setText, e) => {
-							const sel = document.createElement("input");
-							sel.type = "color";
-							sel.addEventListener("input", (e) => {
-								const el = e.target as HTMLInputElement;
-								if (el.value) {
-									const [r, g, b] = hex2rgb(el.value.substring(1));
-									setText(`rgb(${r}, ${g}, ${b})`)
-								}
-							});
-							sel.click();
-						},
+					onDrag: (text, setText, e) => {
+						originState.x += e.movementX;
+						originState.y += e.movementY;
+						const { idx, x, y } = originState;
+						if (idx === -1) return;
+						const s = 80;
+						const sx = clamp(idx % 3 + Math.round(x / s), 0, 2);
+						const sy = clamp(Math.floor(idx / 3) + Math.round(y / s), 0, 2);
+						setText(origins[sy * 3 + sx]);
 					},
-					// kaboom origin slider
-					{
-						regexp: new RegExp(`${origins.join("|")}`, "g"),
-						cursor: "move",
-						onClick: (text) => {
-							const idx = origins.indexOf(text);
-							originState.x = 0;
-							originState.y = 0;
-							originState.idx = idx;
-						},
-						onDrag: (text, setText, e) => {
-							originState.x += e.movementX;
-							originState.y += e.movementY;
-							const { idx, x, y } = originState;
-							if (idx === -1) return;
-							const s = 80;
-							const sx = clamp(idx % 3 + Math.round(x / s), 0, 2);
-							const sy = clamp(Math.floor(idx / 3) + Math.round(y / s), 0, 2);
-							setText(origins[sy * 3 + sx]);
-						},
+				}),
+				// url clicker
+				interactRule.of({
+					regexp: /https?:\/\/[^ "]+/g,
+					cursor: "pointer",
+					onClick: (text) => {
+						window.open(text);
 					},
-					// url clicker
-					{
-						regexp: /https?:\/\/[^ "]+/g,
-						cursor: "pointer",
-						onClick: (text) => {
-							window.open(text);
-						},
-					},
-				]),
-				drop([
-					{
-						kind: "dom",
-						key: "sprite",
-						process: (msg) => {
-							const data = JSON.parse(msg);
-							return `"${data.src}"`;
+				}),
+				drop,
+				dropRule.of({
+					kind: "dom",
+					key: "sprite",
+					process: (msg) => {
+						const data = JSON.parse(msg);
+						return `"${data.src}"`;
+					}
+				}),
+				dropRule.of({
+					kind: "dom",
+					key: "code",
+					process: JSON.parse,
+				}),
+				dropRule.of({
+					kind: "file",
+					accept: /^image\//,
+					readAs: "dataURL",
+					process: (data) => {
+						if (typeof data === "string") {
+							return `"${data}"`;
 						}
 					},
-					{
-						kind: "dom",
-						key: "code",
-						process: JSON.parse,
-					},
-					{
-						kind: "file",
-						accept: /^image\//,
-						readAs: "dataURL",
-						process: (data) => {
-							if (typeof data === "string") {
-								return `"${data}"`;
-							}
-						},
-					},
-				]),
+				}),
 				img,
 			].filter((ext) => ext),
 		}));
