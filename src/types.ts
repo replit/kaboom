@@ -3726,7 +3726,7 @@ export interface BodyComp extends Comp {
 	/**
 	 * Gravity multiplier.
 	 */
-	weight: number,
+	gravityScale: number,
 	/**
 	 * Current platform landing on.
 	 */
@@ -3783,6 +3783,10 @@ export interface BodyComp extends Comp {
 	 * @deprecated v2000.1 Use isFalling() instead.
 	 */
 	falling(): boolean,
+	/**
+	 * @deprecated v2000.2 Use gravityScale instead.
+	 */
+	weight?: number,
 }
 
 export interface BodyCompOpt {
@@ -3797,11 +3801,15 @@ export interface BodyCompOpt {
 	/**
 	 * Gravity multiplier.
 	 */
-	weight?: number,
+	gravityScale?: number,
 	/**
 	 * If should not move through other solid objects.
 	 */
 	solid?: boolean,
+	/**
+	 * @deprecated v2000.2 Use gravityScale instead.
+	 */
+	weight?: number,
 }
 
 export interface Timer {
