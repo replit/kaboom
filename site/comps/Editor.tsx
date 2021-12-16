@@ -492,7 +492,7 @@ const Editor = React.forwardRef<EditorRef, ViewPropsAnd<EditorProps>>(({
 					drop,
 					dropRule.of({
 						kind: "dom",
-						key: "sprite",
+						format: "sprite",
 						process: (msg) => {
 							const data = JSON.parse(msg);
 							return `"${data.src}"`;
@@ -500,7 +500,7 @@ const Editor = React.forwardRef<EditorRef, ViewPropsAnd<EditorProps>>(({
 					}),
 					dropRule.of({
 						kind: "dom",
-						key: "code",
+						format: "code",
 						process: JSON.parse,
 					}),
 					dropRule.of({

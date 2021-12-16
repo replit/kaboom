@@ -112,13 +112,13 @@ class PeditWidget extends WidgetType {
 
 }
 
-interface Editing {
+type Editing = {
 	pedit: Pedit,
 	src: string,
 	pos: number,
 }
 
-interface ViewState extends PluginValue {
+type ViewState = PluginValue & {
 	deco: DecorationSet,
 	hovering: HTMLElement | null,
 	editing: Editing | null,

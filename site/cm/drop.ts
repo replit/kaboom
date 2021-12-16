@@ -17,20 +17,27 @@ type ReadType =
 export type DropRule =
 	| {
 		kind: "dom",
-		key: string,
-		process?: (val: string) => string | void,
+		format: string,
+		process: (val: string) => string | void,
 	}
 	| {
 		kind: "file",
 		readAs: ReadType | ((file: File) => ReadType),
 		accept?: RegExp,
-		process?: (val: string | ArrayBuffer) => string | void,
+		process: (val: string | ArrayBuffer) => string | void,
 	}
 
 const dropHandler = EditorView.domEventHandlers({
 
-	dragover(e) {
-		e.preventDefault();
+	dragover(e, view) {
+		const pos = view.posAtCoords({ x: e.clientX, y: e.clientY });
+		if (pos) {
+			view.dispatch({
+				selection: {
+					anchor: pos,
+				},
+			});
+		}
 	},
 
 	drop(e, view) {
@@ -40,20 +47,21 @@ const dropHandler = EditorView.domEventHandlers({
 		const rules = view.state.facet(dropRule);
 
 		const insert = (text: string) => {
-			const sel = view.state.selection.main;
-			view.dispatch({
-				changes: {
-					from: sel.from,
-					to: sel.to,
-					insert: text,
-				},
-			});
+			const pos = view.posAtCoords({ x: e.clientX, y: e.clientY });
+			if (pos) {
+				view.dispatch({
+					changes: {
+						from: pos,
+						insert: text,
+					},
+				});
+			}
 		}
 
 		for (const r of rules) {
 			switch (r.kind) {
 				case "dom": {
-					const data = e.dataTransfer.getData(r.key);
+					const data = e.dataTransfer.getData(r.format);
 					if (data) {
 						if (r.process) {
 							const data2 = r.process(data);
@@ -115,6 +123,6 @@ const dropHandler = EditorView.domEventHandlers({
 
 	},
 
-});
+})
 
 export default dropHandler;
