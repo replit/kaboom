@@ -1,13 +1,14 @@
-export const clamp = (n: number, a: number, b: number) => Math.min(b, Math.max(n, a));
+export const clamp = (n: number, a: number, b: number) =>
+	Math.min(b, Math.max(n, a));
 
 export const hex2rgb = (hex: string): [number, number, number] => {
-	const val = parseInt(hex, 16);
-	const r = (val >> 16) & 255;
-	const g = (val >> 8) & 255;
-	const b = val & 255;
-	return [r, g, b];
+	const v = parseInt(hex.substring(1), 16);
+	return [
+		(v >> 16) & 255,
+		(v >> 8) & 255,
+		v & 255,
+	];
 }
 
-export const rgb2hex = (r: number, g: number, b: number): string => {
-	return "#" + r.toString(16) + g.toString(16) + b.toString(16);
-}
+export const rgb2hex = (r: number, g: number, b: number): string =>
+	"#" + r.toString(16) + g.toString(16) + b.toString(16);

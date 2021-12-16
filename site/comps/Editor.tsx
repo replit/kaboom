@@ -285,73 +285,62 @@ const Editor = React.forwardRef<EditorRef, ViewPropsAnd<EditorProps>>(({
 }, ref) => {
 
 	const editorDOMRef = React.useRef(null);
-	const cmRef = React.useRef<EditorView | null>(null);
+	const viewRef = React.useRef<EditorView | null>(null);
 	const themeConfRef = React.useRef<Compartment | null>(null);
 	const { theme } = React.useContext(Ctx);
 
 	React.useImperativeHandle(ref, () => ({
 		getContent() {
-			if (!cmRef.current) return null;
-			const cm = cmRef.current;
-			return cm.state.doc.toString();
+			if (!viewRef.current) return null;
+			const view = viewRef.current;
+			return view.state.doc.toString();
 		},
 		getSelection() {
-			if (!cmRef.current) return null;
-			const cm = cmRef.current;
-			return cm.state.sliceDoc(
-				cm.state.selection.main.from,
-				cm.state.selection.main.to
+			if (!viewRef.current) return null;
+			const view = viewRef.current;
+			return view.state.sliceDoc(
+				view.state.selection.main.from,
+				view.state.selection.main.to
 			)
 		},
 		getWord() {
-			if (!cmRef.current) return null;
-			const cm = cmRef.current;
-			const range = cm.state.wordAt(cm.state.selection.main.head);
+			if (!viewRef.current) return null;
+			const view = viewRef.current;
+			const range = view.state.wordAt(view.state.selection.main.head);
 			if (range) {
-				return cm.state.sliceDoc(range.from, range.to);
+				return view.state.sliceDoc(range.from, range.to);
 			}
 			return null;
 		},
 		setContent(content: string) {
-			if (!cmRef.current) return null;
-			const cm = cmRef.current;
-			cm.dispatch({
+			if (!viewRef.current) return null;
+			const view = viewRef.current;
+			view.dispatch({
 				changes: {
 					from: 0,
-					to: cm.state.doc.length,
+					to: view.state.doc.length,
 					insert: content,
 				},
 			});
 		},
 		getView() {
-			return cmRef.current;
+			return viewRef.current;
 		},
 		focus() {
-			if (!cmRef.current) return null;
-			const cm = cmRef.current;
-			cm.focus();
+			if (!viewRef.current) return null;
+			const view = viewRef.current;
+			view.focus();
 		},
 	}));
 
 	React.useEffect(() => {
 
-		if (!editorDOMRef.current) return;
+		if (!editorDOMRef.current) {
+			throw new Error("Failed to start editor");
+		}
+
 		const editorDOM = editorDOMRef.current;
-
-		if (!cmRef.current) {
-			cmRef.current = new EditorView({
-				parent: editorDOM,
-			});
-		}
-
-		const cm = cmRef.current;
 		const themeConf = new Compartment();
-
-		themeConfRef.current = themeConf;
-
-		if (cmRef) {
-			cmRef.current = cm;
-		}
 
 		const origins = [
 			"topleft", "top", "topright",
@@ -366,182 +355,194 @@ const Editor = React.forwardRef<EditorRef, ViewPropsAnd<EditorProps>>(({
 			idx: -1,
 		};
 
-// 		const numPat = "-?\\b\\d+\\.?\\d*\\b";
-// 		const vec2Pat = `vec2\\(\\s*(?<x>${numPat})\\s*(,\\s*(?<y>${numPat})\\s*)?\\)`;
-
-// 		const numRegex = new RegExp(numPat, "g");
-// 		const vec2Regex = new RegExp(vec2Pat, "g");
-
-		cm.setState(EditorState.create({
-			doc: content ?? "",
-			extensions: [
-				themeConf.of(cmThemes[theme]),
-				EditorState.tabSize.of(4),
-				EditorState.allowMultipleSelections.of(true),
-				indentUnit.of("\t"),
-				javascript(),
-				lineNumbers(),
-				highlightSpecialChars(),
-				highlightActiveLine(),
-				highlightActiveLineGutter(),
-				highlightSelectionMatches(),
-				cmPlaceholder(placeholder ?? ""),
-				history(),
-				foldGutter(),
-				bracketMatching(),
-				closeBrackets(),
-				indentOnInput(),
-				drawSelection(),
-				defaultHighlightStyle,
-				EditorView.updateListener.of((update) => {
-					const state = update.state;
-					if (update.docChanged) {
-						onChange && onChange(state.doc.toString());
-					}
-					if (update.selectionSet) {
-						const sel = state.sliceDoc(
-							state.selection.main.from,
-							state.selection.main.to
-						);
-						if (sel) {
-							onSelect && onSelect(sel);
+		const view = new EditorView({
+			parent: editorDOM,
+			state: EditorState.create({
+				doc: content ?? "",
+				extensions: [
+					themeConf.of(cmThemes[theme]),
+					EditorState.tabSize.of(4),
+					EditorState.allowMultipleSelections.of(true),
+					indentUnit.of("\t"),
+					javascript(),
+					lineNumbers(),
+					highlightSpecialChars(),
+					highlightActiveLine(),
+					highlightActiveLineGutter(),
+					highlightSelectionMatches(),
+					cmPlaceholder(placeholder ?? ""),
+					history(),
+					foldGutter(),
+					bracketMatching(),
+					closeBrackets(),
+					indentOnInput(),
+					drawSelection(),
+					defaultHighlightStyle,
+					EditorView.updateListener.of((update) => {
+						const state = update.state;
+						if (update.docChanged) {
+							onChange && onChange(state.doc.toString());
 						}
-					}
-				}),
-				keymap.of([
-					...defaultKeymap,
-					...historyKeymap,
-					...commentKeymap,
-					...searchKeymap,
-					indentWithTab,
-					...(keys ?? []),
-				]),
-				interact,
-				// number slider
-				interactRule.of({
-					regexp: /-?\b\d+\.?\d*\b/g,
-					cursor: "ew-resize",
-					onDrag: (text, setText, e) => {
-						// TODO: size aware
-						// TODO: small interval with shift key?
-						const newVal = Number(text) + e.movementX;
-						if (isNaN(newVal)) return;
-						setText(newVal.toString());
-					}
-				}),
-				// bool toggler
-				interactRule.of({
-					regexp: /true|false/g,
-					cursor: "pointer",
-					onClick: (text, setText) => {
-						switch (text) {
-							case "true": return setText("false");
-							case "false": return setText("true");
-						}
-					},
-				}),
-				// kaboom vec2 slider
-				interactRule.of({
-					regexp: /vec2\(-?\b\d+\.?\d*\b\s*(,\s*-?\b\d+\.?\d*\b)?\)/g,
-					cursor: "move",
-					onDrag: (text, setText, e) => {
-						const res = /vec2\((?<x>-?\b\d+\.?\d*\b)\s*(,\s*(?<y>-?\b\d+\.?\d*\b))?\)/.exec(text);
-						let x = Number(res?.groups?.x);
-						let y = Number(res?.groups?.y);
-						if (isNaN(x)) return;
-						if (isNaN(y)) y = x;
-						setText(`vec2(${x + e.movementX}, ${y + e.movementY})`);
-					},
-				}),
-				// kaboom color picker
-				interactRule.of({
-					regexp: /rgb\(.*\)/g,
-					cursor: "pointer",
-					onClick: (text, setText, e) => {
-						const res = /rgb\((?<r>\d+)\s*,\s*(?<g>\d+)\s*,\s*(?<b>\d+)\)/.exec(text);
-						const r = Number(res?.groups?.r);
-						const g = Number(res?.groups?.g);
-						const b = Number(res?.groups?.b);
-						const sel = document.createElement("input");
-						sel.type = "color";
-						if (!isNaN(r + g + b)) sel.value = rgb2hex(r, g, b);
-						sel.addEventListener("input", (e) => {
-							const el = e.target as HTMLInputElement;
-							if (el.value) {
-								const [r, g, b] = hex2rgb(el.value.substring(1));
-								setText(`rgb(${r}, ${g}, ${b})`)
+						if (update.selectionSet) {
+							const sel = state.sliceDoc(
+								state.selection.main.from,
+								state.selection.main.to
+							);
+							if (sel) {
+								onSelect && onSelect(sel);
 							}
-						});
-						sel.click();
-					},
-				}),
-				// kaboom origin slider
-				interactRule.of({
-					regexp: new RegExp(`${origins.join("|")}`, "g"),
-					cursor: "move",
-					onClick: (text) => {
-						const idx = origins.indexOf(text);
-						originState.x = 0;
-						originState.y = 0;
-						originState.idx = idx;
-					},
-					onDrag: (text, setText, e) => {
-						originState.x += e.movementX;
-						originState.y += e.movementY;
-						const { idx, x, y } = originState;
-						if (idx === -1) return;
-						const s = 80;
-						const sx = clamp(idx % 3 + Math.round(x / s), 0, 2);
-						const sy = clamp(Math.floor(idx / 3) + Math.round(y / s), 0, 2);
-						setText(origins[sy * 3 + sx]);
-					},
-				}),
-				// url clicker
-				interactRule.of({
-					regexp: /https?:\/\/[^ "]+/g,
-					cursor: "pointer",
-					onClick: (text) => {
-						window.open(text);
-					},
-				}),
-				drop,
-				dropRule.of({
-					kind: "dom",
-					key: "sprite",
-					process: (msg) => {
-						const data = JSON.parse(msg);
-						return `"${data.src}"`;
-					}
-				}),
-				dropRule.of({
-					kind: "dom",
-					key: "code",
-					process: JSON.parse,
-				}),
-				dropRule.of({
-					kind: "file",
-					accept: /^image\//,
-					readAs: "dataURL",
-					process: (data) => {
-						if (typeof data === "string") {
-							return `"${data}"`;
 						}
-					},
-				}),
-				img,
-			].filter((ext) => ext),
-		}));
+					}),
+					keymap.of([
+						...defaultKeymap,
+						...historyKeymap,
+						...commentKeymap,
+						...searchKeymap,
+						indentWithTab,
+						...(keys ?? []),
+					]),
+					interact,
+					// number slider
+					interactRule.of({
+						regexp: /-?\b\d+\.?\d*\b/g,
+						cursor: "ew-resize",
+						onDrag: (text, setText, e) => {
+							// TODO: size aware
+							// TODO: small interval with shift key?
+							const newVal = Number(text) + e.movementX;
+							if (isNaN(newVal)) return;
+							setText(newVal.toString());
+						}
+					}),
+					// bool toggler
+					interactRule.of({
+						regexp: /true|false/g,
+						cursor: "pointer",
+						onClick: (text, setText) => {
+							switch (text) {
+								case "true": return setText("false");
+								case "false": return setText("true");
+							}
+						},
+					}),
+					// kaboom vec2 slider
+					interactRule.of({
+						regexp: /vec2\(-?\b\d+\.?\d*\b\s*(,\s*-?\b\d+\.?\d*\b)?\)/g,
+						cursor: "move",
+						onDrag: (text, setText, e) => {
+							const res = /vec2\((?<x>-?\b\d+\.?\d*\b)\s*(,\s*(?<y>-?\b\d+\.?\d*\b))?\)/.exec(text);
+							let x = Number(res?.groups?.x);
+							let y = Number(res?.groups?.y);
+							if (isNaN(x)) return;
+							if (isNaN(y)) y = x;
+							setText(`vec2(${x + e.movementX}, ${y + e.movementY})`);
+						},
+					}),
+					// kaboom color picker
+					interactRule.of({
+						regexp: /rgb\(.*\)/g,
+						cursor: "pointer",
+						onClick: (text, setText, e) => {
+							const res = /rgb\((?<r>\d+)\s*,\s*(?<g>\d+)\s*,\s*(?<b>\d+)\)/.exec(text);
+							const r = Number(res?.groups?.r);
+							const g = Number(res?.groups?.g);
+							const b = Number(res?.groups?.b);
+							const sel = document.createElement("input");
+							sel.type = "color";
+							if (!isNaN(r + g + b)) sel.value = rgb2hex(r, g, b);
+							sel.addEventListener("input", (e) => {
+								const el = e.target as HTMLInputElement;
+								if (el.value) {
+									const [r, g, b] = hex2rgb(el.value);
+									setText(`rgb(${r}, ${g}, ${b})`)
+								}
+							});
+							sel.click();
+						},
+					}),
+					// kaboom origin slider
+					interactRule.of({
+						regexp: new RegExp(`${origins.join("|")}`, "g"),
+						cursor: "move",
+						onClick: (text) => {
+							const idx = origins.indexOf(text);
+							originState.x = 0;
+							originState.y = 0;
+							originState.idx = idx;
+						},
+						onDrag: (text, setText, e) => {
+							originState.x += e.movementX;
+							originState.y += e.movementY;
+							const { idx, x, y } = originState;
+							if (idx === -1) return;
+							const s = 80;
+							const sx = clamp(idx % 3 + Math.round(x / s), 0, 2);
+							const sy = clamp(Math.floor(idx / 3) + Math.round(y / s), 0, 2);
+							setText(origins[sy * 3 + sx]);
+						},
+					}),
+					// url clicker
+					interactRule.of({
+						regexp: /https?:\/\/[^ "]+/g,
+						cursor: "pointer",
+						onClick: (text) => {
+							window.open(text);
+						},
+					}),
+					drop,
+					dropRule.of({
+						kind: "dom",
+						key: "sprite",
+						process: (msg) => {
+							const data = JSON.parse(msg);
+							return `"${data.src}"`;
+						}
+					}),
+					dropRule.of({
+						kind: "dom",
+						key: "code",
+						process: JSON.parse,
+					}),
+					dropRule.of({
+						kind: "file",
+						accept: /^image\//,
+						readAs: "dataURL",
+						process: (data) => {
+							if (typeof data === "string") {
+								return `"${data}"`;
+							}
+						},
+					}),
+					img,
+				].filter((ext) => ext),
+			}),
+		});
 
+		themeConfRef.current = themeConf;
+		viewRef.current = view;
+
+	}, []);
+
+	useUpdateEffect(() => {
+		if (!viewRef.current) return;
+		const view = viewRef.current;
+		view.dispatch({
+			changes: {
+				from: 0,
+				to: view.state.doc.length,
+				insert: content,
+			},
+		});
 	}, [ content ]);
 
 	useUpdateEffect(() => {
 
-		if (!cmRef.current) return;
-		const cm = cmRef.current;
+		if (!viewRef.current) return;
+		const view = viewRef.current;
 		if (!themeConfRef.current) return;
 		const themeConf = themeConfRef.current;
 
-		cm.dispatch({
+		view.dispatch({
 			effects: themeConf.reconfigure(cmThemes[theme])
 		});
 

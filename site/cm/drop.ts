@@ -35,7 +35,6 @@ const dropHandler = EditorView.domEventHandlers({
 
 	drop(e, view) {
 
-		e.preventDefault();
 		if (!e.dataTransfer) return;
 
 		const rules = view.state.facet(dropRule);

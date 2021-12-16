@@ -3,6 +3,7 @@ import { cssVars } from "lib/ui";
 import View, { ViewProps } from "comps/View";
 import Ctx from "lib/Ctx";
 import { themes } from "lib/ui";
+import useUpdateEffect from "hooks/useUpdateEffect";
 
 export interface GameViewRef {
 	run: (code: string) => void,
@@ -45,11 +46,13 @@ ${code}
 `;
 
 interface GameViewProps {
-	code?: string,
+	code: string,
+	msg?: any,
 }
 
 const GameView = React.forwardRef<GameViewRef, GameViewProps & ViewProps>(({
 	code,
+	msg,
 	...args
 }, ref) => {
 
@@ -68,6 +71,19 @@ const GameView = React.forwardRef<GameViewRef, GameViewProps & ViewProps>(({
 			iframe.contentWindow?.postMessage(JSON.stringify(msg), origin);
 		},
 	}));
+
+	useUpdateEffect(() => {
+		if (!iframeRef.current) return;
+		const iframe = iframeRef.current;
+		iframe.srcdoc = wrapGame(code);
+	}, [ code ]);
+
+	React.useEffect(() => {
+		if (!msg) return;
+		if (!iframeRef.current) return;
+		const iframe = iframeRef.current;
+		iframe.contentWindow?.postMessage(JSON.stringify(msg), "*");
+	}, [ msg ]);
 
 	React.useEffect(() => {
 		const body = iframeRef.current?.contentWindow?.document?.body;
