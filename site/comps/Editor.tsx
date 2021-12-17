@@ -94,8 +94,10 @@ Object.keys(themes).forEach((name) => {
 			".cm-content": {
 				caretColor: cursor,
 			},
-			"&.cm-focused .cm-cursor": {
+			".cm-cursor": {
 				borderLeftColor: cursor,
+				borderLeftWidth: "2px",
+				borderRadius: "2px",
 			},
 			"&.cm-focused .cm-selectionBackground, .cm-selectionBackground, .cm-content ::selection": {
 				backgroundColor: selection,
@@ -120,6 +122,10 @@ Object.keys(themes).forEach((name) => {
 			".cm-activeLine": {
 				backgroundColor: highlightBackground,
 			},
+			".cm-activeLineGutter": {
+				color: stone,
+				backgroundColor: highlightBackground,
+			},
 			".cm-selectionMatch": {
 				backgroundColor: "#aafe661a",
 			},
@@ -131,10 +137,6 @@ Object.keys(themes).forEach((name) => {
 				backgroundColor: background,
 				color: stone,
 				border: "none",
-			},
-			".cm-activeLineGutter": {
-				color: stone,
-				backgroundColor: highlightBackground,
 			},
 			".cm-foldPlaceholder": {
 				backgroundColor: theme["fg4"],
