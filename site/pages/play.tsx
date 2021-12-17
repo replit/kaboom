@@ -22,7 +22,6 @@ import Inspect from "comps/Inspect";
 import FileDrop from "comps/FileDrop";
 import Drawer from "comps/Drawer";
 import Draggable from "comps/Draggable";
-import Droppable from "comps/Droppable";
 import Background from "comps/Background";
 import Doc from "comps/Doc";
 import download from "lib/download";
@@ -51,7 +50,7 @@ const SpriteEntry: React.FC<SpriteEntryProps> = ({
 		padY={1}
 		rounded
 		height={64}
-		dragType="sprite"
+		dragFormat="sprite"
 		dragData={name}
 		css={{
 			"overflow": "hidden",
@@ -130,7 +129,6 @@ const Play: React.FC<PlayProps> = ({
 	const router = useRouter();
 	const demo = router.query.demo as string || DEF_DEMO;
 	const code = demos[demo];
-	const { draggin } = React.useContext(Ctx);
 	const [ backpackOpen, setBackpackOpen ] = React.useState(false);
 	const [ sprites, setSprites ] = useSavedState<Sprite[]>("sprites", []);
 	const [ sounds, setSounds ] = useSavedState<Sound[]>("sounds", []);
@@ -322,25 +320,6 @@ const Play: React.FC<PlayProps> = ({
 					}}
 				/>
 			</View>
-			{
-				draggin &&
-				<Droppable
-					stretch
-					css={{
-						position: "absolute",
-						zIndex: 10,
-					}}
-					accept={["sprite", "sound"]}
-					onDrop={(ty, data) => {
-						switch (ty) {
-							case "sprite":
-								setSprites((prev) => prev.filter(({ name }) => name !== data));
-							case "sound":
-								setSounds((prev) => prev.filter(({ name }) => name !== data));
-						}
-					}}
-				/>
-			}
 			<View
 				name="Blackboard"
 				desc="Watch closely what the teacher is demonstrating!"

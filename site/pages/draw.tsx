@@ -22,7 +22,6 @@ import Inspect from "comps/Inspect";
 import FileDrop from "comps/FileDrop";
 import Drawer from "comps/Drawer";
 import Draggable from "comps/Draggable";
-import Droppable from "comps/Droppable";
 import Background from "comps/Background";
 import Doc from "comps/Doc";
 import download from "lib/download";
@@ -134,7 +133,7 @@ interface Sprite {
 interface SpriteEntryProps {
 	name: string,
 	src: string,
-	onDragStart: () => void,
+	onDragStart?: () => void,
 }
 
 type Shape = {
@@ -143,7 +142,7 @@ type Shape = {
 }
 
 type ShapeEntryProps = Shape & {
-	onDragStart: () => void,
+	onDragStart?: () => void,
 }
 
 const shapes = [
@@ -227,9 +226,9 @@ const ShapeEntry: React.FC<ShapeEntryProps> = ({ img, code, onDragStart }) => (
 		pad={1}
 		rounded
 		height={64}
-		dragType="code"
+		dragFormat="code"
 		dragData={code}
-		onDragStart={onDragStart}
+		onDragStart={(e) => onDragStart && onDragStart()}
 		css={{
 			"overflow": "hidden",
 			":hover": {
@@ -263,12 +262,9 @@ const SpriteEntry: React.FC<SpriteEntryProps> = ({
 		padY={1}
 		rounded
 		height={64}
-		dragType="sprite"
-		dragData={{
-			src: src,
-			name: name,
-		}}
-		onDragStart={onDragStart}
+		dragFormat="code"
+		dragData={`"${src}"`}
+		onDragStart={(e) => onDragStart && onDragStart()}
 		css={{
 			"overflow": "hidden",
 			":hover": {
@@ -339,7 +335,6 @@ const Play: React.FC = () => {
 	const [ backpackOpen, setBackpackOpen ] = React.useState(false);
 	const [ sprites, setSprites ] = useSavedState<Sprite[]>("sprites", []);
 	const [ sounds, setSounds ] = useSavedState<Sound[]>("sounds", []);
-	const { draggin } = React.useContext(Ctx);
 	const [ editingInit, setEditingInit ] = React.useState(false);
 	const spaceUsed = useSpaceUsed();
 	const drawEditorRef = React.useRef<EditorRef | null>(null);
@@ -535,25 +530,6 @@ const Play: React.FC = () => {
 					}}
 				/>
 			</View>
-			{
-				draggin &&
-				<Droppable
-					stretch
-					css={{
-						position: "absolute",
-						zIndex: 10,
-					}}
-					accept={["sprite", "sound"]}
-					onDrop={(ty, data) => {
-						switch (ty) {
-							case "sprite":
-								setSprites((prev) => prev.filter(({ name }) => name !== data));
-							case "sound":
-								setSounds((prev) => prev.filter(({ name }) => name !== data));
-						}
-					}}
-				/>
-			}
 			{ !isNarrow &&
 				<Drawer
 					name="Backpack"

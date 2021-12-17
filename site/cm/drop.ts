@@ -16,15 +16,15 @@ type ReadType =
 
 export type DropRule =
 	| {
-		kind: "dom",
+		kind: "data",
 		format: string,
-		process: (val: string) => string | void,
+		process?: (val: string) => string | void,
 	}
 	| {
 		kind: "file",
 		readAs: ReadType | ((file: File) => ReadType),
 		accept?: RegExp,
-		process: (val: string | ArrayBuffer) => string | void,
+		process?: (val: string | ArrayBuffer) => string | void,
 	}
 
 const dropHandler = EditorView.domEventHandlers({
@@ -49,10 +49,15 @@ const dropHandler = EditorView.domEventHandlers({
 		const insert = (text: string) => {
 			const pos = view.posAtCoords({ x: e.clientX, y: e.clientY });
 			if (pos) {
+				view.focus();
 				view.dispatch({
 					changes: {
 						from: pos,
 						insert: text,
+					},
+					selection: {
+						anchor: pos,
+						head: pos + text.length,
 					},
 				});
 			}
@@ -60,7 +65,7 @@ const dropHandler = EditorView.domEventHandlers({
 
 		for (const r of rules) {
 			switch (r.kind) {
-				case "dom": {
+				case "data": {
 					const data = e.dataTransfer.getData(r.format);
 					if (data) {
 						if (r.process) {
@@ -102,8 +107,8 @@ const dropHandler = EditorView.domEventHandlers({
 								break;
 						}
 
-						reader.onload = (e) => {
-							const data = e.target?.result;
+						reader.onload = (res) => {
+							const data = res.target?.result;
 							if (!data) return;
 							if (r.process) {
 								const data2 = r.process(data);
