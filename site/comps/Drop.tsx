@@ -1,3 +1,5 @@
+// TODO: accept DOM / dataTransfer drop
+
 import * as React from "react";
 import View, { ViewPropsAnd } from "comps/View";
 
@@ -14,7 +16,7 @@ type FileContent =
 	| any
 	;
 
-interface FileDropProps {
+interface DropProps {
 	onEnter?: () => void,
 	onLeave?: () => void,
 	onLoad?: (file: File, content: FileContent) => void,
@@ -25,7 +27,7 @@ interface FileDropProps {
 	dragColor?: number | string,
 }
 
-const FileDrop = React.forwardRef<HTMLDivElement, ViewPropsAnd<FileDropProps>>(({
+const Drop = React.forwardRef<HTMLDivElement, ViewPropsAnd<DropProps>>(({
 	bg,
 	onLoad,
 	onErr,
@@ -186,4 +188,4 @@ const FileDrop = React.forwardRef<HTMLDivElement, ViewPropsAnd<FileDropProps>>((
 
 });
 
-export default FileDrop;
+export default Drop;

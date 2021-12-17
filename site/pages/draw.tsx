@@ -19,9 +19,8 @@ import View from "comps/View";
 import Text from "comps/Text";
 import Menu from "comps/Menu";
 import Inspect from "comps/Inspect";
-import FileDrop from "comps/FileDrop";
+import Drop from "comps/Drop";
 import Drawer from "comps/Drawer";
-import Draggable from "comps/Draggable";
 import Background from "comps/Background";
 import Doc from "comps/Doc";
 import download from "lib/download";
@@ -218,17 +217,19 @@ drawText({
 ];
 
 const ShapeEntry: React.FC<ShapeEntryProps> = ({ img, code, onDragStart }) => (
-	<Draggable
+	<View
 		focusable
+		draggable
 		dir="row"
 		align="center"
 		gap={1}
 		pad={1}
 		rounded
 		height={64}
-		dragFormat="code"
-		dragData={code}
-		onDragStart={(e) => onDragStart && onDragStart()}
+		onDragStart={(e) => {
+			e.dataTransfer.setData("code", code);
+			onDragStart && onDragStart();
+		}}
 		css={{
 			"overflow": "hidden",
 			":hover": {
@@ -244,7 +245,7 @@ const ShapeEntry: React.FC<ShapeEntryProps> = ({ img, code, onDragStart }) => (
 				height: "100%",
 			}}
 		/>
-	</Draggable>
+	</View>
 );
 
 const SpriteEntry: React.FC<SpriteEntryProps> = ({
@@ -252,7 +253,7 @@ const SpriteEntry: React.FC<SpriteEntryProps> = ({
 	src,
 	onDragStart,
 }) => (
-	<Draggable
+	<View
 		focusable
 		dir="row"
 		align="center"
@@ -262,9 +263,10 @@ const SpriteEntry: React.FC<SpriteEntryProps> = ({
 		padY={1}
 		rounded
 		height={64}
-		dragFormat="code"
-		dragData={`"${src}"`}
-		onDragStart={(e) => onDragStart && onDragStart()}
+		onDragStart={(e) => {
+			e.dataTransfer.setData("code", `"${src}"`);
+			onDragStart && onDragStart();
+		}}
 		css={{
 			"overflow": "hidden",
 			":hover": {
@@ -286,7 +288,7 @@ const SpriteEntry: React.FC<SpriteEntryProps> = ({
 			/>
 		</View>
 		<Text>{path.basename(name)}</Text>
-	</Draggable>
+	</View>
 );
 
 interface SoundEntryProps {
@@ -565,7 +567,7 @@ const Play: React.FC = () => {
 							/>) }
 						</View>
 					</View>
-					<FileDrop
+					<Drop
 						pad={1}
 						rounded
 						readAs="dataURL"
@@ -603,8 +605,8 @@ const Play: React.FC = () => {
 									/>
 								))
 						}
-					</FileDrop>
-					<FileDrop
+					</Drop>
+					<Drop
 						pad={1}
 						rounded
 						readAs="dataURL"
@@ -642,7 +644,7 @@ const Play: React.FC = () => {
 									/>
 								))
 						}
-					</FileDrop>
+					</Drop>
 					<View stretchX padX={1}>
 						<Text color={4} size="small">Space used: {(spaceUsed / 1024 / 1024).toFixed(2)}mb</Text>
 					</View>

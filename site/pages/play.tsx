@@ -19,9 +19,8 @@ import View from "comps/View";
 import Text from "comps/Text";
 import Menu from "comps/Menu";
 import Inspect from "comps/Inspect";
-import FileDrop from "comps/FileDrop";
+import Drop from "comps/Drop";
 import Drawer from "comps/Drawer";
-import Draggable from "comps/Draggable";
 import Background from "comps/Background";
 import Doc from "comps/Doc";
 import download from "lib/download";
@@ -40,8 +39,9 @@ const SpriteEntry: React.FC<SpriteEntryProps> = ({
 	name,
 	src,
 }) => (
-	<Draggable
+	<View
 		focusable
+		draggable
 		dir="row"
 		align="center"
 		gap={1}
@@ -73,7 +73,7 @@ const SpriteEntry: React.FC<SpriteEntryProps> = ({
 			/>
 		</View>
 		<Text>{path.basename(name)}</Text>
-	</Draggable>
+	</View>
 );
 
 interface SoundEntryProps {
@@ -359,7 +359,7 @@ const Play: React.FC<PlayProps> = ({
 					<View padX={1} gap={2} stretchX>
 						<Text size="big" color={2}>Backpack</Text>
 					</View>
-					<FileDrop
+					<Drop
 						pad={1}
 						rounded
 						readAs="dataURL"
@@ -396,8 +396,8 @@ const Play: React.FC<PlayProps> = ({
 									/>
 								))
 						}
-					</FileDrop>
-					<FileDrop
+					</Drop>
+					<Drop
 						pad={1}
 						rounded
 						readAs="dataURL"
@@ -434,7 +434,7 @@ const Play: React.FC<PlayProps> = ({
 									/>
 								))
 						}
-					</FileDrop>
+					</Drop>
 					<View stretchX padX={1}>
 						<Text color={4} size="small">Space used: {(spaceUsed / 1024 / 1024).toFixed(2)}mb</Text>
 					</View>
