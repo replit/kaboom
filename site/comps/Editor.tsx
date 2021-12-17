@@ -287,27 +287,23 @@ const Editor = React.forwardRef<EditorRef, ViewPropsAnd<EditorProps>>(({
 }, ref) => {
 
 	const editorDOMRef = React.useRef(null);
-	const viewRef = React.useRef<EditorView | null>(null);
-	const themeConfRef = React.useRef<Compartment | null>(null);
+	const [ view, setView ] = React.useState<EditorView | null>(null);
 	const { theme } = React.useContext(Ctx);
 
 	React.useImperativeHandle(ref, () => ({
 		getContent() {
-			if (!viewRef.current) return null;
-			const view = viewRef.current;
+			if (!view) return null;
 			return view.state.doc.toString();
 		},
 		getSelection() {
-			if (!viewRef.current) return null;
-			const view = viewRef.current;
+			if (!view) return null;
 			return view.state.sliceDoc(
 				view.state.selection.main.from,
 				view.state.selection.main.to
-			)
+			);
 		},
 		getWord() {
-			if (!viewRef.current) return null;
-			const view = viewRef.current;
+			if (!view) return null;
 			const range = view.state.wordAt(view.state.selection.main.head);
 			if (range) {
 				return view.state.sliceDoc(range.from, range.to);
@@ -315,9 +311,7 @@ const Editor = React.forwardRef<EditorRef, ViewPropsAnd<EditorProps>>(({
 			return null;
 		},
 		setContent(content: string) {
-			if (!viewRef.current) return null;
-			const view = viewRef.current;
-			view.dispatch({
+			view?.dispatch({
 				changes: {
 					from: 0,
 					to: view.state.doc.length,
@@ -326,12 +320,10 @@ const Editor = React.forwardRef<EditorRef, ViewPropsAnd<EditorProps>>(({
 			});
 		},
 		getView() {
-			return viewRef.current;
+			return view;
 		},
 		focus() {
-			if (!viewRef.current) return null;
-			const view = viewRef.current;
-			view.focus();
+			view?.focus();
 		},
 	}));
 
@@ -511,14 +503,12 @@ const Editor = React.forwardRef<EditorRef, ViewPropsAnd<EditorProps>>(({
 			}),
 		});
 
-		themeConfRef.current = themeConf;
-		viewRef.current = view;
+		setView(view);
 
 	}, []);
 
 	useUpdateEffect(() => {
-		if (!viewRef.current) return;
-		const view = viewRef.current;
+		if (!view) return;
 		view.dispatch({
 			changes: {
 				from: 0,
@@ -529,16 +519,10 @@ const Editor = React.forwardRef<EditorRef, ViewPropsAnd<EditorProps>>(({
 	}, [ content ]);
 
 	useUpdateEffect(() => {
-
-		if (!viewRef.current) return;
-		const view = viewRef.current;
-		if (!themeConfRef.current) return;
-		const themeConf = themeConfRef.current;
-
-		view.dispatch({
+		const themeConf = new Compartment();
+		view?.dispatch({
 			effects: themeConf.reconfigure(cmThemes[theme])
 		});
-
 	}, [ theme ]);
 
 	return (
