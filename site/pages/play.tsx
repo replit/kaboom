@@ -50,8 +50,6 @@ const SpriteEntry: React.FC<SpriteEntryProps> = ({
 		padY={1}
 		rounded
 		height={64}
-		dragFormat="sprite"
-		dragData={name}
 		css={{
 			"overflow": "hidden",
 			":hover": {

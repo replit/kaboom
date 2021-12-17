@@ -15,7 +15,7 @@ import Markdown from "comps/Markdown";
 import Inspect from "comps/Inspect";
 import Background from "comps/Background";
 import Doc from "comps/Doc";
-import FileDrop from "comps/FileDrop";
+import Drop from "comps/Drop";
 import Modal from "comps/Modal";
 
 interface ExampleProps {
@@ -120,7 +120,7 @@ pos(80, 40),
 			</View>
 		</Example>
 		<Example thing="a file dropper">
-			<FileDrop
+			<Drop
 				name="add"
 				align="center"
 				justify="center"
@@ -134,7 +134,7 @@ pos(80, 40),
 				onLoad={(file, content) => console.log(file, content)}
 			>
 				<Text color={3}>drop images on me!</Text>
-			</FileDrop>
+			</Drop>
 		</Example>
 	</Background>
 );
