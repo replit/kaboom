@@ -32,6 +32,7 @@ const dropHandler = EditorView.domEventHandlers({
 	dragover(e, view) {
 		const pos = view.posAtCoords({ x: e.clientX, y: e.clientY });
 		if (pos) {
+			view.focus();
 			view.dispatch({
 				selection: {
 					anchor: pos,
@@ -82,12 +83,12 @@ const dropHandler = EditorView.domEventHandlers({
 					const items = e.dataTransfer.items;
 					if (!items?.length) continue;
 
-					for (let i = 0; i < items.length; i++) {
+					for (const item of items) {
 
-						if (items[i].kind !== "file") continue;
-						if (r.accept && !items[i].type.match(r.accept)) continue;
+						if (item.kind !== "file") continue;
+						if (r.accept && !item.type.match(r.accept)) continue;
 
-						const file = items[i].getAsFile();
+						const file = item.getAsFile();
 						if (!file) continue;
 						const reader = new FileReader();
 						const ty = typeof r.readAs === "string" ? r.readAs : r.readAs(file);
@@ -128,6 +129,6 @@ const dropHandler = EditorView.domEventHandlers({
 
 	},
 
-})
+});
 
 export default dropHandler;

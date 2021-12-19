@@ -498,6 +498,11 @@ const Editor = React.forwardRef<EditorRef, ViewPropsAnd<EditorProps>>(({
 							}
 						},
 					}),
+					dropRule.of({
+						kind: "file",
+						accept: /^text\//,
+						readAs: "text",
+					}),
 					img,
 				].filter((ext) => ext),
 			}),

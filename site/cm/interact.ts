@@ -54,93 +54,89 @@ type ViewState = PluginValue & {
 	unfocus(): void,
 }
 
-const interactViewPlugin = ViewPlugin.define<ViewState>((view) => {
+const interactViewPlugin = ViewPlugin.define<ViewState>((view) => ({
 
-	return {
+	dragging: null,
+	hovering: null,
+	mouseX: 0,
+	mouseY: 0,
+	deco: Decoration.none,
 
-		dragging: null,
-		hovering: null,
-		mouseX: 0,
-		mouseY: 0,
-		deco: Decoration.none,
+	getMatch() {
 
-		getMatch() {
+		const rules = view.state.facet(interactRule);
+		const pos = view.posAtCoords({ x: this.mouseX, y: this.mouseY });
+		if (!pos) return null;
+		const line = view.state.doc.lineAt(pos);
+		const lpos = pos - line.from;
+		let match = null;
 
-			const rules = view.state.facet(interactRule);
-			const pos = view.posAtCoords({ x: this.mouseX, y: this.mouseY });
-			if (!pos) return null;
-			const line = view.state.doc.lineAt(pos);
-			const lpos = pos - line.from;
-			let match = null;
-
-			for (const rule of rules) {
-				for (const m of line.text.matchAll(rule.regexp)) {
-					if (m.index === undefined) continue;
-					const text = m[0];
-					if (!text) continue;
-					const start = m.index;
-					const end = m.index + text.length;
-					if (lpos < start || lpos > end) continue;
-					if (!match || text.length < match.text.length) {
-						match = {
-							rule: rule,
-							pos: line.from + start,
-							text: text,
-						};
-					}
+		for (const rule of rules) {
+			for (const m of line.text.matchAll(rule.regexp)) {
+				if (m.index === undefined) continue;
+				const text = m[0];
+				if (!text) continue;
+				const start = m.index;
+				const end = m.index + text.length;
+				if (lpos < start || lpos > end) continue;
+				if (!match || text.length < match.text.length) {
+					match = {
+						rule: rule,
+						pos: line.from + start,
+						text: text,
+					};
 				}
 			}
+		}
 
-			return match;
+		return match;
 
-		},
+	},
 
-		updateText(target) {
-			return (text) => {
-				view.dispatch({
-					changes: {
-						from: target.pos,
-						to: target.pos + target.text.length,
-						insert: text,
-					},
-				});
-				target.text = text;
-			};
-		},
-
-		focus(target) {
-			if (target.rule.cursor) {
-				document.body.style.cursor = target.rule.cursor;
-			}
+	updateText(target) {
+		return (text) => {
 			view.dispatch({
-				effects: setInteract.of(target),
+				changes: {
+					from: target.pos,
+					to: target.pos + target.text.length,
+					insert: text,
+				},
 			});
-		},
+			target.text = text;
+		};
+	},
 
-		unfocus() {
-			document.body.style.cursor = "auto";
-			view.dispatch({
-				effects: setInteract.of(null),
-			});
-		},
+	focus(target) {
+		if (target.rule.cursor) {
+			document.body.style.cursor = target.rule.cursor;
+		}
+		view.dispatch({
+			effects: setInteract.of(target),
+		});
+	},
 
-		update(update) {
-			for (const tr of update.transactions) {
-				for (const e of tr.effects) {
-					if (e.is(setInteract)) {
-						const decos = e.value ? mark.range(
-							e.value.pos,
-							e.value.pos + e.value.text.length
-						) : [];
-						this.deco = Decoration.set(decos);
-					}
+	unfocus() {
+		document.body.style.cursor = "auto";
+		view.dispatch({
+			effects: setInteract.of(null),
+		});
+	},
+
+	update(update) {
+		for (const tr of update.transactions) {
+			for (const e of tr.effects) {
+				if (e.is(setInteract)) {
+					const decos = e.value ? mark.range(
+						e.value.pos,
+						e.value.pos + e.value.text.length
+					) : [];
+					this.deco = Decoration.set(decos);
 				}
 			}
-		},
+		}
+	},
 
-	};
-
-}, {
+}), {
 
 	decorations: (v) => v.deco,
 
