@@ -171,7 +171,7 @@ const IndexContent: React.FC<IndexContentProps> = ({
 			<View gap={0.5}>
 				<NavLink link="/play" text="PlayGround" />
 				<NavLink link="/doc/intro" text="Tutorial" />
-				<NavLink link="https://github.com/replit/kaboom" text="Github" />
+				<NavLink link="https://github.com/replit/kaboom" text="GitHub" />
 				<NavLink link="https://discord.com/invite/aQ6RuQm3TF" text="Discord" />
 			</View>
 
