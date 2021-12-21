@@ -149,7 +149,7 @@ also check out [CONTRIBUTION.md](CONTRIBUTING.md)
 
 ## Community
 
-[Github Discussions](https://github.com/replit/kaboom/discussions)
+[GitHub Discussions](https://github.com/replit/kaboom/discussions)
 
 [Discord](https://discord.gg/aQ6RuQm3TF)
 
