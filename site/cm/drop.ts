@@ -1,10 +1,5 @@
-import {
-	EditorView,
-} from "@codemirror/view";
-
-import {
-	Facet,
-} from "@codemirror/state";
+import { EditorView, } from "@codemirror/view";
+import { Facet, } from "@codemirror/state";
 
 export const dropRule = Facet.define<DropRule>();
 
@@ -28,18 +23,6 @@ export type DropRule =
 	}
 
 const dropHandler = EditorView.domEventHandlers({
-
-	dragover(e, view) {
-		const pos = view.posAtCoords({ x: e.clientX, y: e.clientY });
-		if (pos) {
-			view.focus();
-			view.dispatch({
-				selection: {
-					anchor: pos,
-				},
-			});
-		}
-	},
 
 	drop(e, view) {
 

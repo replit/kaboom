@@ -61,6 +61,7 @@ import { clamp, hex2rgb, rgb2hex } from "lib/math";
 
 import interact, { interactRule } from "cm/interact";
 import drop, { dropRule } from "cm/drop";
+import dropCursor from "cm/dropCursor";
 import img from "cm/img";
 
 // @ts-ignore
@@ -96,8 +97,8 @@ Object.keys(themes).forEach((name) => {
 			},
 			".cm-cursor": {
 				borderLeftColor: cursor,
-				borderLeftWidth: "2px",
-				borderRadius: "2px",
+				borderLeftWidth: "3px",
+				borderRadius: "3px",
 			},
 			"&.cm-focused .cm-selectionBackground, .cm-selectionBackground, .cm-content ::selection": {
 				backgroundColor: selection,
@@ -371,6 +372,7 @@ const Editor = React.forwardRef<EditorRef, ViewPropsAnd<EditorProps>>(({
 					closeBrackets(),
 					indentOnInput(),
 					drawSelection(),
+					dropCursor,
 					defaultHighlightStyle,
 					EditorView.updateListener.of((update) => {
 						const state = update.state;
