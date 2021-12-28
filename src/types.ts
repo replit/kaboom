@@ -2155,7 +2155,7 @@ export interface KaboomOpt {
 	/**
 	 * Size of each spatial hashgrid cell used in collision detection. Defaults to 64.
 	 */
-	hashgridSize?: number,
+	hashGridSize?: number,
 	/**
 	 * If import all kaboom functions to global (default true).
 	 */

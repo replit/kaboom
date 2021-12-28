@@ -176,6 +176,7 @@ const assets = assetsInit(gfx, audio);
 
 const DEF_FONT = "apl386o";
 const DBG_FONT = "sink";
+const DEF_HASH_GRID_SIZE = 64;
 
 function dt() {
 	return app.dt() * debug.timeScale;
@@ -2677,7 +2678,7 @@ function checkFrame() {
 
 	// start a spatial hash grid for more efficient collision detection
 	const grid: Record<number, Record<number, GameObj<AreaComp>[]>> = {};
-	const cellSize = gopt.hashgridSize || 64;
+	const cellSize = gopt.hashGridSize || DEF_HASH_GRID_SIZE;
 
 	// current transform
 	let tr = mat4();
@@ -2688,6 +2689,8 @@ function checkFrame() {
 	function checkObj(obj: GameObj) {
 
 		stack.push(tr);
+
+		// Update object transform here. This will be the transform later used in rendering.
 		if (obj.pos) tr = tr.translate(obj.pos);
 		if (obj.scale) tr = tr.scale(obj.scale);
 		if (obj.angle) tr = tr.rotateZ(obj.angle);
@@ -2703,13 +2706,13 @@ function checkFrame() {
 			aobj._worldArea = area;
 			aobj._bbox = bbox;
 
-			// get grid coverage
+			// Get spatial hash grid coverage
 			const xmin = Math.floor(bbox.p1.x / cellSize);
 			const ymin = Math.floor(bbox.p1.y / cellSize);
 			const xmax = Math.ceil((bbox.p2.x) / cellSize);
 			const ymax = Math.ceil((bbox.p2.y) / cellSize);
 
-			// cache objs that are already checked
+			// Cache objs that are already checked
 			const checked = new Set();
 
 			// insert & check against all covered grids
