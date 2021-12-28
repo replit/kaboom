@@ -98,7 +98,7 @@ onKeyDown("right", () => {
 
 onKeyRelease(["left", "right"], () => {
 	// Only reset to "idle" if player is not holding any of these keys
-	if (!isKeyDown("left") && !isKeyDown("right")) {
+	if (player.isGrounded() && !isKeyDown("left") && !isKeyDown("right")) {
 		player.play("idle")
 	}
 })

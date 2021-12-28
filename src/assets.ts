@@ -107,12 +107,8 @@ function loadImg(src: string): Promise<HTMLImageElement> {
 	img.src = src;
 	img.crossOrigin = "anonymous";
 	return new Promise<HTMLImageElement>((resolve, reject) => {
-		img.onload = () => {
-			resolve(img);
-		};
-		img.onerror = () => {
-			reject(`failed to load ${src}`);
-		};
+		img.onload = () => resolve(img);
+		img.onerror = () => reject(`Failed to load image from "${src}"`);
 	});
 }
 
@@ -227,7 +223,7 @@ function assetsInit(gfx: Gfx, audio: Audio, gopt: AssetsOpt = {}): Assets {
 	): Promise<Record<string, SpriteData>> {
 		if (typeof data === "string") {
 			// TODO: this adds a new loader asyncly
-			return load(fetch(loadRoot() + data)
+			return load(fetch(assets.loadRoot + data)
 				.then((res) => res.json())
 				.then((data2) => loadSpriteAtlas(src, data2)));
 		}
@@ -313,8 +309,13 @@ function assetsInit(gfx: Gfx, audio: Audio, gopt: AssetsOpt = {}): Assets {
 
 		return load(new Promise<SpriteData>((resolve, reject) => {
 
-			fetch(loadRoot() + src)
-				.then((res) => res.json())
+			const url = assets.loadRoot + src;
+
+			fetch(url)
+				.then((res) => {
+					if (!res.ok) throw new Error(`Failed to load pedit from "${url}"`);
+					return res.json();
+				})
 				.then(async (data) => {
 
 					const images = await Promise.all(data.frames.map(loadImg));
@@ -350,12 +351,15 @@ function assetsInit(gfx: Gfx, audio: Audio, gopt: AssetsOpt = {}): Assets {
 
 		return load(new Promise<SpriteData>((resolve, reject) => {
 
-			const jsonPath = loadRoot() + jsonSrc;
+			const jsonPath = assets.loadRoot + jsonSrc;
 
 			loadSprite(name, imgSrc)
 				.then((sprite: SpriteData) => {
 					fetch(jsonPath)
-						.then((res) => res.json())
+						.then((res) => {
+							if (!res.ok) throw new Error(`Failed to load aseprite from "${jsonPath}"`);
+							return res.json();
+						})
 						.then((data) => {
 							const size = data.meta.size;
 							sprite.frames = data.frames.map((f: any) => {
@@ -418,12 +422,9 @@ function assetsInit(gfx: Gfx, audio: Audio, gopt: AssetsOpt = {}): Assets {
 			function resolveUrl(url?: string) {
 				return url ?
 					fetch(assets.loadRoot + url)
-						.then((r) => {
-							if (r.ok) {
-								return r.text();
-							} else {
-								throw new Error(`failed to load ${url}`)
-							}
+						.then((res) => {
+							if (!res.ok) throw new Error(`Failed to load shader from "${assets.loadRoot + url}"`)
+							return res.text();
 						})
 						.catch(reject)
 					: new Promise((r) => r(null));
@@ -466,16 +467,13 @@ function assetsInit(gfx: Gfx, audio: Audio, gopt: AssetsOpt = {}): Assets {
 			if (typeof(src) === "string") {
 				fetch(url)
 					.then((res) => {
-						if (res.ok) {
-							return res.arrayBuffer();
-						} else {
-							throw new Error(`failed to load ${url}`);
-						}
+						if (!res.ok) throw new Error(`Failed to load sound from "${url}"`);
+						return res.arrayBuffer();
 					})
 					.then((data) => {
-						return new Promise((resolve2, reject2) => {
-							audio.ctx.decodeAudioData(data, resolve2, reject2);
-						});
+						return new Promise((resolve2, reject2) =>
+							audio.ctx.decodeAudioData(data, resolve2, reject2)
+						);
 					})
 					.then((buf: AudioBuffer) => {
 						const snd = {

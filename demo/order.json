@@ -12,10 +12,11 @@
 	"component",
 	"layer",
 	"camera",
+	"ai",
+	"button",
+	"dialog",
 	"draw",
 	"particle",
 	"shader",
-	"button",
-	"dialog",
 	"burp"
 ]

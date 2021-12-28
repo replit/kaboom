@@ -34,7 +34,7 @@ import {
 	testCirclePoint,
 	testRectPolygon,
 	minkDiff,
-	dir,
+	vec2FromAngle,
 	deg2rad,
 	rad2deg,
 	isVec2,
@@ -60,13 +60,10 @@ import {
 } from "./assets";
 
 import {
-	loggerInit,
-} from "./logger";
-
-import {
 	IDList,
 	downloadURL,
 	downloadBlob,
+	uid,
 } from "./utils";
 
 import {
@@ -173,15 +170,7 @@ const {
 	height,
 } = gfx;
 
-const assets = assetsInit(gfx, audio, {
-	errHandler: (err: string) => {
-		logger.error(err);
-	},
-});
-
-const logger = loggerInit(gfx, assets, {
-	max: gopt.logMax,
-});
+const assets = assetsInit(gfx, audio);
 
 const DEF_FONT = "apl386o";
 const DBG_FONT = "sink";
@@ -239,22 +228,30 @@ function drawSprite(opt: DrawSpriteOpt) {
 		...opt,
 		tex: spr.tex,
 		quad: q.scale(opt.quad || quad(0, 0, 1, 1)),
+		uniform: {
+			...opt.uniform,
+			"u_transform": opt.fixed ? mat4() : game.camMatrix,
+		},
 	});
 }
 
 // wrapper around gfx.drawText to integrate with font assets mananger / default font
 function drawText(opt: DrawTextOpt) {
-	const font = findAsset(opt.font, assets.fonts, DEF_FONT);
+	const font = findAsset(opt.font ?? gopt.font, assets.fonts, DEF_FONT);
 	if (!font) throw new Error(`font not found: ${opt.font}`);
 	gfx.drawText({
 		...opt,
 		font: font,
+		uniform: {
+			...opt.uniform,
+			"u_transform": opt.fixed ? mat4() : game.camMatrix,
+		},
 	});
 }
 
 // wrapper around gfx.formatText to integrate with font assets mananger / default font
 function formatText(opt: DrawTextOpt) {
-	const font = findAsset(opt.font, assets.fonts, DEF_FONT);
+	const font = findAsset(opt.font ?? gopt.font, assets.fonts, DEF_FONT);
 	if (!font) throw new Error(`font not found: ${opt.font}`);
 	return gfx.formatText({
 		...opt,
@@ -269,7 +266,7 @@ interface Game {
 	loaded: boolean,
 	events: Record<string, IDList<() => void>>,
 	objEvents: Record<string, IDList<TaggedEvent>>,
-	objs: IDList<GameObj>,
+	root: GameObj,
 	timers: IDList<Timer>,
 	cam: Camera,
 	camMousePos: Vec2,
@@ -322,7 +319,7 @@ const game: Game = {
 	objEvents: {},
 
 	// in game pool
-	objs: new IDList(),
+	root: make([]),
 	timers: new IDList(),
 
 	// cam
@@ -426,9 +423,56 @@ function make<T>(comps: CompList<T>): GameObj<T> {
 
 	const obj = {
 
-		_id: null,
+		_id: uid(),
 		hidden: false,
 		paused: false,
+		children: [],
+		parent: null,
+
+		add<T2>(comps: CompList<T2>): GameObj<T2> {
+			const obj = make(comps);
+			obj.parent = this;
+			obj.trigger("add");
+			onLoad(() => obj.trigger("load"));
+			this.children.push(obj);
+			return obj;
+		},
+
+		readd(obj: GameObj): GameObj {
+			this.remove(obj);
+			this.children.push(obj);
+			return obj;
+		},
+
+		remove(obj: GameObj): void {
+			const idx = this.children.indexOf(obj);
+			if (idx !== -1) {
+				obj.parent = null;
+				obj.trigger("destroy");
+				this.children.splice(idx, 1);
+			}
+		},
+
+		removeAll(tag: Tag) {
+			this.every(tag, (obj) => this.remove(obj));
+		},
+
+		update() {
+			if (this.paused) return;
+			this.revery((child) => child.update());
+			this.trigger("update");
+		},
+
+		draw() {
+			if (this.hidden) return;
+			gfx.pushTransform();
+			gfx.pushTranslate(this.pos);
+			gfx.pushScale(this.scale);
+			gfx.pushRotateZ(this.angle);
+			this.every((child) => child.draw());
+			this.trigger("draw");
+			gfx.popTransform();
+		},
 
 		// use a comp, or tag
 		use(comp: Comp | Tag) {
@@ -532,8 +576,45 @@ function make<T>(comps: CompList<T>): GameObj<T> {
 			return compStates.get(id);
 		},
 
+		// TODO: a recursive variant
+		get(t?: Tag | Tag[]): GameObj[] {
+			return this.children
+				.filter((child) => t ? child.is(t) : true)
+				.sort((o1, o2) => {
+					// DEPRECATED: layers
+					const l1 = game.layers[o1.layer ?? game.defLayer] ?? 0;
+					const l2 = game.layers[o2.layer ?? game.defLayer] ?? 0;
+					// if on same layer, use "z" comp to decide which is on top, if given
+					if (l1 == l2) {
+						return (o1.z ?? 0) - (o2.z ?? 0);
+					} else {
+						return l1 - l2;
+					}
+				});
+		},
+
+		every<T>(t: Tag | Tag[] | ((obj: GameObj) => T), f?: (obj: GameObj) => T) {
+			if (typeof t === "function" && f === undefined) {
+				return this.get().forEach((obj) => t(obj));
+			} else if (typeof t === "string" || Array.isArray(t)) {
+				return this.get(t).forEach((obj) => f(obj));
+			}
+		},
+
+		revery<T>(t: Tag | Tag[] | ((obj: GameObj) => T), f?: (obj: GameObj) => T) {
+			if (typeof t === "function" && f === undefined) {
+				return this.get().reverse().forEach((obj) => t(obj));
+			} else if (typeof t === "string" || Array.isArray(t)) {
+				return this.get(t).reverse().forEach((obj) => f(obj));
+			}
+		},
+
 		exists(): boolean {
-			return this._id !== null;
+			if (this.parent === game.root) {
+				return true;
+			} else {
+				return this.parent?.exists();
+			}
 		},
 
 		is(tag: Tag | Tag[]): boolean {
@@ -582,15 +663,7 @@ function make<T>(comps: CompList<T>): GameObj<T> {
 		},
 
 		destroy() {
-
-			if (!this.exists()) {
-				return;
-			}
-
-			this.trigger("destroy");
-			game.objs.delete(this._id);
-			this._id = null;
-
+			this.parent?.remove(this);
 		},
 
 		inspect() {
@@ -623,23 +696,6 @@ function make<T>(comps: CompList<T>): GameObj<T> {
 
 }
 
-function add<T>(comps: CompList<T>): GameObj<T> {
-	const obj = make(comps);
-	obj._id = game.objs.push(obj);
-	obj.trigger("add");
-	onLoad(() => obj.trigger("load"));
-	return obj;
-}
-
-function readd(obj: GameObj): GameObj {
-	if (!obj.exists()) {
-		return;
-	}
-	game.objs.delete(obj._id);
-	obj._id = game.objs.push(obj);
-	return obj;
-}
-
 // add an event to a tag
 function on(event: string, tag: Tag, cb: (obj: GameObj, ...args) => void): EventCanceller {
 	if (!game.objEvents[event]) {
@@ -655,7 +711,7 @@ function on(event: string, tag: Tag, cb: (obj: GameObj, ...args) => void): Event
 // add update event to a tag or global update
 function onUpdate(tag: Tag | (() => void), cb?: (obj: GameObj) => void): EventCanceller {
 	if (typeof tag === "function" && cb === undefined) {
-		return add([{ update: tag, }]).destroy;
+		return game.root.onUpdate(tag);
 	} else if (typeof tag === "string") {
 		return on("update", tag, cb);
 	}
@@ -664,7 +720,7 @@ function onUpdate(tag: Tag | (() => void), cb?: (obj: GameObj) => void): EventCa
 // add draw event to a tag or global draw
 function onDraw(tag: Tag | (() => void), cb?: (obj: GameObj) => void) {
 	if (typeof tag === "function" && cb === undefined) {
-		return add([{ draw: tag, }]).destroy;
+		return game.root.onDraw(tag);
 	} else if (typeof tag === "string") {
 		return on("draw", tag, cb);
 	}
@@ -848,7 +904,7 @@ app.canvas.addEventListener("touchmove", (e) => {
 	});
 });
 
-app.canvas.addEventListener("touchmove", (e) => {
+app.canvas.addEventListener("touchend", (e) => {
 	[...e.changedTouches].forEach((t) => {
 		game.trigger("onTouchEnd", t.identifier, vec2(t.clientX, t.clientY).scale(1 / app.scale));
 	});
@@ -911,60 +967,6 @@ function enterBurpMode() {
 	onKeyPress("b", audio.burp);
 }
 
-// TODO: cache sorted list
-// get all objects with tag
-function get(t?: Tag | Tag[]): GameObj[] {
-
-	const objs = [...game.objs.values()].sort((o1, o2) => {
-
-		const l1 = game.layers[o1.layer ?? game.defLayer] ?? 0;
-		const l2 = game.layers[o2.layer ?? game.defLayer] ?? 0;
-
-		// if on same layer, use "z" comp to decide which is on top, if given
-		if (l1 == l2) {
-			return (o1.z ?? 0) - (o2.z ?? 0);
-		} else {
-			return l1 - l2;
-		}
-
-	});
-
-	if (!t) {
-		return objs;
-	} else {
-		return objs.filter(obj => obj.is(t));
-	}
-
-}
-
-// apply a function to all objects currently in game with tag t
-function every<T>(t: Tag | Tag[] | ((obj: GameObj) => T), f?: (obj: GameObj) => T) {
-	if (typeof t === "function" && f === undefined) {
-		return get().forEach((obj) => obj.exists() && t(obj));
-	} else if (typeof t === "string" || Array.isArray(t)) {
-		return get(t).forEach((obj) => obj.exists() && f(obj));
-	}
-}
-
-// every but in reverse order
-function revery<T>(t: Tag | Tag[] | ((obj: GameObj) => T), f?: (obj: GameObj) => T) {
-	if (typeof t === "function" && f === undefined) {
-		return get().reverse().forEach((obj) => obj.exists() && t(obj));
-	} else if (typeof t === "string" || Array.isArray(t)) {
-		return get(t).reverse().forEach((obj) => obj.exists() && f(obj));
-	}
-}
-
-// destroy an obj
-function destroy(obj: GameObj) {
-	obj.destroy();
-}
-
-// destroy all obj with the tag
-function destroyAll(t: string) {
-	every(t, destroy);
-}
-
 // get / set gravity
 function gravity(g?: number): number {
 	if (g !== undefined) {
@@ -1009,7 +1011,7 @@ function pos(...args): PosComp {
 				let a1 = this.worldArea();
 
 				// TODO: definitely shouln't iterate through all solid objs
-				every((other) => {
+				game.root.every((other) => {
 
 					// make sure we still exist, don't check with self, and only
 					// check with other solid objects
@@ -1267,8 +1269,8 @@ function follow(obj: GameObj, offset?: Vec2): FollowComp {
 	};
 }
 
-function move(direction: number | Vec2, speed: number): MoveComp {
-	const d = typeof direction === "number" ? dir(direction) : direction.unit();
+function move(dir: number | Vec2, speed: number): MoveComp {
+	const d = typeof dir === "number" ? vec2FromAngle(dir) : dir.unit();
 	return {
 		id: "move",
 		require: [ "pos", ],
@@ -1437,13 +1439,13 @@ function area(opt: AreaCompOpt = {}): AreaComp {
 
 		// push object out of other solid objects
 		pushOutAll() {
-			every(this.pushOut);
+			game.root.every(this.pushOut);
 		},
 
 		// @ts-ignore
 		_checkCollisions(tag: Tag) {
 
-			every(tag, (obj) => {
+			game.root.every(tag, (obj) => {
 
 				if (this === obj || !this.exists() || colliding[obj._id]) {
 					return;
@@ -1465,6 +1467,7 @@ function area(opt: AreaCompOpt = {}): AreaComp {
 
 		},
 
+		// TODO: doesn't work with nested parent transforms
 		// TODO: cache
 		// TODO: use matrix mult for more accuracy and rotation?
 		worldArea(): Area {
@@ -1514,13 +1517,11 @@ function area(opt: AreaCompOpt = {}): AreaComp {
 // make the list of common render properties from the "pos", "scale", "color", "opacity", "rotate", "origin", "outline", and "shader" components of a character
 function getRenderProps(obj: GameObj<any>) {
 	return {
-		pos: obj.pos,
-		scale: obj.scale,
 		color: obj.color,
 		opacity: obj.opacity,
-		angle: obj.angle,
 		origin: obj.origin,
 		outline: obj.outline,
+		fixed: obj.fixed,
 		shader: assets.shaders[obj.shader],
 		uniform: obj.uniform,
 	};
@@ -1759,26 +1760,22 @@ function sprite(id: string | SpriteData, opt: SpriteCompOpt = {}): SpriteComp {
 
 function text(t: string, opt: TextCompOpt = {}): TextComp {
 
-	function update() {
+	function update(obj: GameObj<TextComp | any>) {
 
-		const name = this.font ?? gopt.font ?? DEF_FONT;
-		const font = assets.fonts[name];
-
-		if (!font) {
-			throw new Error(`font not found: "${name}"`);
-		}
-
-		const ftext = gfx.formatText({
-			...getRenderProps(this),
-			text: this.text + "",
-			size: this.textSize,
-			font: font,
+		const ftext = formatText({
+			...getRenderProps(obj),
+			text: obj.text + "",
+			size: obj.textSize,
+			font: opt.font,
 			width: opt.width,
+			letterSpacing: opt.letterSpacing,
+			lineSpacing: opt.lineSpacing,
 			transform: opt.transform,
+			styles: opt.styles,
 		});
 
-		this.width = ftext.width / (this.scale?.x || 1);
-		this.height = ftext.height / (this.scale?.y || 1);
+		obj.width = ftext.width / (obj.scale?.x || 1);
+		obj.height = ftext.height / (obj.scale?.y || 1);
 
 		return ftext;
 
@@ -1794,11 +1791,11 @@ function text(t: string, opt: TextCompOpt = {}): TextComp {
 		height: 0,
 
 		load() {
-			update.call(this);
+			update(this);
 		},
 
 		draw() {
-			gfx.drawFormattedText(update.call(this));
+			gfx.drawFormattedText(update(this));
 		},
 
 	};
@@ -2130,7 +2127,11 @@ function lifespan(time: number, opt: LifespanCompOpt = {}): LifespanComp {
 	};
 }
 
-function state(initState: string, stateList?: string[]): StateComp {
+function state(
+	initState: string,
+	stateList?: string[],
+	transitions?: Record<string, string | string[]>,
+): StateComp {
 
 	if (!initState) {
 		throw new Error("state() requires an initial state");
@@ -2138,7 +2139,7 @@ function state(initState: string, stateList?: string[]): StateComp {
 
 	const events = {};
 
-	const initStateHook = (state: string) => {
+	function initStateHook(state: string) {
 		if (!events[state]) {
 			events[state] = {
 				enter: [],
@@ -2147,44 +2148,88 @@ function state(initState: string, stateList?: string[]): StateComp {
 				draw: [],
 			};
 		}
-	};
+	}
+
+	function on(event, state, action) {
+		initStateHook(state);
+		events[state][event].push(action);
+	}
+
+	function trigger(event, state, ...args) {
+		initStateHook(state);
+		events[state][event].forEach((action) => action(...args));
+	}
 
 	return {
+
 		id: "state",
 		state: initState,
+
 		enterState(state: string, ...args) {
+
 			if (stateList && !stateList.includes(state)) {
 				throw new Error(`State not found: ${state}`);
 			}
-			events[this.state].leave.forEach((action) => action());
+
+			const oldState = this.state;
+
+			// check if the transition is legal, if transition graph is defined
+			if (!transitions?.[oldState]) {
+				return;
+			}
+
+			const available = typeof transitions[oldState] === "string"
+				? [transitions[oldState]]
+				: transitions[oldState] as string[];
+
+			if (!available.includes(state)) {
+				throw new Error(`Cannot transition state from "${oldState}" to "${state}". Available transitions: ${available.map((s) => `"${s}"`).join(", ")}`);
+			}
+
+			trigger("leave", oldState, ...args);
 			this.state = state;
-			events[this.state].enter.forEach((action) => action(...args));
+			trigger("enter", state, ...args);
+			trigger("enter", `${oldState} -> ${state}`, ...args);
+
 		},
+
+		onStateTransition(from: string, to: string, action: () => void) {
+			on("enter", `${from} -> ${to}`, action);
+		},
+
 		onStateEnter(state: string, action: () => void) {
-			initStateHook(state);
-			events[state].enter.push(action);
+			on("enter", state, action);
 		},
+
 		onStateUpdate(state: string, action: () => void) {
-			initStateHook(state);
-			events[state].update.push(action);
+			on("update", state, action);
 		},
+
 		onStateDraw(state: string, action: () => void) {
-			initStateHook(state);
-			events[state].draw.push(action);
+			on("draw", state, action);
 		},
+
 		onStateLeave(state: string, action: () => void) {
-			initStateHook(state);
-			events[state].leave.push(action);
+			on("leave", state, action);
 		},
+
 		update() {
-			events[this.state].update.forEach((action) => action());
+			trigger("update", this.state);
 		},
+
 		draw() {
-			events[this.state].draw.forEach((action) => action());
+			trigger("draw", this.state);
 		},
+
+		inspect() {
+			return this.state;
+		},
+
 	};
 
 }
+
+let logs = [];
 
 const debug: Debug = {
 	inspect: false,
@@ -2192,13 +2237,14 @@ const debug: Debug = {
 	showLog: true,
 	fps: app.fps,
 	objCount(): number {
-		return game.objs.size;
+		// TODO: recursive count
+		return game.root.children.length;
 	},
 	stepFrame: updateFrame,
 	drawCalls: gfx.drawCalls,
-	clearLog: logger.clear,
-	log: (msg) => logger.info(`[${app.time().toFixed(2)}] ${msg}`),
-	error: (msg) => logger.error(`[${app.time().toFixed(2)}] ${msg}`),
+	clearLog: () => logs = [],
+	log: (msg) => logs.unshift(`[${app.time().toFixed(2)}].time [${msg}].info`),
+	error: (msg) => logs.unshift(`[${app.time().toFixed(2)}].time [${msg}].error`),
 	curRecording: null,
 	get paused() {
 		return game.paused;
@@ -2242,11 +2288,11 @@ function go(id: SceneID, ...args) {
 			destroy: new IDList(),
 		};
 
-		game.objs.forEach((obj) => {
-			if (!obj.stay) {
-				destroy(obj);
+		game.root.every((obj) => {
+			if (!obj.is("stay")) {
+				game.root.remove(obj);
 			}
-		});
+		})
 
 		game.timers = new IDList();
 
@@ -2418,7 +2464,7 @@ function addLevel(map: string[], opt: LevelOpt): Level {
 			comps.push(pos(posComp));
 			comps.push(grid(this, p));
 
-			const obj = add(comps);
+			const obj = game.root.add(comps);
 
 			objs.push(obj);
 
@@ -2436,7 +2482,7 @@ function addLevel(map: string[], opt: LevelOpt): Level {
 
 		destroy() {
 			for (const obj of objs) {
-				destroy(obj);
+				obj.destroy();
 			}
 		},
 
@@ -2555,13 +2601,13 @@ const ctx: KaboomCtx = {
 	toWorld,
 	gravity,
 	// obj
-	add,
-	readd,
-	destroy,
-	destroyAll,
-	get,
-	every,
-	revery,
+	add: (...args) => game.root.add(...args),
+	readd: (...args) => game.root.readd(...args),
+	destroy: (...args) => game.root.remove(...args),
+	destroyAll: (...args) => game.root.removeAll(...args),
+	get: (...args) => game.root.get(...args),
+	every: (...args) => game.root.every(...args),
+	revery: (...args) => game.root.revery(...args),
 	// comps
 	pos,
 	scale,
@@ -2660,7 +2706,8 @@ const ctx: KaboomCtx = {
 	randi,
 	randSeed,
 	vec2,
-	dir,
+	vec2FromAngle,
+	dir: vec2FromAngle,
 	rgb,
 	hsl2rgb,
 	quad,
@@ -2773,47 +2820,25 @@ function updateFrame() {
 	});
 
 	// update every obj
-	revery((obj) => {
-		if (!obj.paused) {
-			obj.trigger("update", obj);
-		}
-	});
+	game.root.update();
 
 }
 
 function drawFrame() {
 
 	// calculate camera matrix
-	const size = vec2(width(), height());
+	const scale = vec2(-2 / width(), 2 / height());
 	const cam = game.cam;
-	const shake = dir(rand(0, 360)).scale(cam.shake);
+	const shake = vec2FromAngle(rand(0, 360)).scale(cam.shake).scale(scale);
 
 	cam.shake = lerp(cam.shake, 0, 5 * dt());
 	game.camMatrix = mat4()
-		.translate(size.scale(0.5))
 		.scale(cam.scale)
 		.rotateZ(cam.angle)
-		.translate(size.scale(-0.5))
-		.translate(cam.pos.scale(-1).add(size.scale(0.5)).add(shake))
+		.translate(cam.pos.scale(scale).add(vec2(1, -1)).add(shake))
 		;
 
-	// draw every obj
-	every((obj) => {
-
-		if (!obj.hidden) {
-
-			gfx.pushTransform();
-
-			if (!obj.fixed) {
-				gfx.applyMatrix(game.camMatrix);
-			}
-
-			obj.trigger("draw");
-			gfx.popTransform();
-
-		}
-
-	});
+	game.root.draw();
 
 }
 
@@ -2858,56 +2883,56 @@ function drawLoadScreen() {
 
 }
 
+function drawInspectText(pos, txt) {
+
+	const s = app.scale;
+	const pad = vec2(8);
+
+	gfx.pushTransform();
+	gfx.pushTranslate(pos);
+	gfx.pushScale(1 / s);
+
+	const ftxt = gfx.formatText({
+		text: txt,
+		font: assets.fonts[DBG_FONT],
+		size: 16,
+		pos: pad,
+		color: rgb(255, 255, 255),
+	});
+
+	const bw = ftxt.width + pad.x * 2;
+	const bh = ftxt.height + pad.x * 2;
+
+	if (pos.x + bw / s >= width()) {
+		gfx.pushTranslate(vec2(-bw, 0));
+	}
+
+	if (pos.y + bh / s >= height()) {
+		gfx.pushTranslate(vec2(0, -bh));
+	}
+
+	gfx.drawRect({
+		width: bw,
+		height: bh,
+		color: rgb(0, 0, 0),
+		radius: 4,
+		opacity: 0.8,
+	});
+
+	gfx.drawFormattedText(ftxt);
+	gfx.popTransform();
+
+}
+
 function drawDebug() {
 
 	if (debug.inspect) {
 
 		let inspecting = null;
-		const font = assets.fonts[DBG_FONT];
 		const lcolor = rgb(gopt.inspectColor ?? [0, 0, 255]);
 
-		function drawInspectTxt(pos, txt) {
-
-			const s = gfx.scale();
-			const pad = vec2(6).scale(1 / s);
-
-			const ftxt = gfx.formatText({
-				text: txt,
-				font: font,
-				size: 16 / s,
-				pos: pos.add(vec2(pad.x, pad.y)),
-				color: rgb(255, 255, 255),
-			});
-
-			const bw = ftxt.width + pad.x * 2;
-			const bh = ftxt.height + pad.x * 2;
-
-			gfx.pushTransform();
-
-			if (pos.x + bw >= width()) {
-				gfx.pushTranslate(vec2(-bw, 0));
-			}
-
-			if (pos.y + bh >= height()) {
-				gfx.pushTranslate(vec2(0, -bh));
-			}
-
-			gfx.drawRect({
-				pos: pos,
-				width: bw,
-				height: bh,
-				color: rgb(0, 0, 0),
-				radius: 4,
-				opacity: 0.8,
-			});
-
-			gfx.drawFormattedText(ftxt);
-			gfx.popTransform();
-
-		}
-
 		// draw area outline
-		every((obj) => {
+		game.root.every((obj) => {
 
 			if (!obj.area) {
 				return;
@@ -2918,11 +2943,6 @@ function drawDebug() {
 			}
 
 			const scale = gfx.scale() * (obj.fixed ? 1: (game.cam.scale.x + game.cam.scale.y) / 2);
-
-			if (!obj.fixed) {
-				gfx.pushTransform();
-				gfx.applyMatrix(game.camMatrix);
-			}
 
 			if (!inspecting) {
 				if (obj.isHovering()) {
@@ -2943,12 +2963,11 @@ function drawDebug() {
 					width: lwidth,
 					color: lcolor,
 				},
+				uniform: {
+					"u_transform": obj.fixed ? mat4() : game.camMatrix,
+				},
 				fill: false,
 			});
-
-			if (!obj.fixed) {
-				gfx.popTransform();
-			}
 
 		});
 
@@ -2965,11 +2984,11 @@ function drawDebug() {
 				}
 			}
 
-			drawInspectTxt(mousePos(), lines.join("\n"));
+			drawInspectText(mousePos(), lines.join("\n"));
 
 		}
 
-		drawInspectTxt(vec2(8), `FPS: ${app.fps()}`);
+		drawInspectText(vec2(8 / app.scale), `FPS: ${app.fps()}`);
 
 	}
 
@@ -3075,8 +3094,47 @@ function drawDebug() {
 
 	}
 
-	if (debug.showLog) {
-		logger.draw();
+	if (debug.showLog && logs.length > 0) {
+
+		gfx.pushTransform();
+		gfx.pushTranslate(0, height());
+		gfx.pushScale(1 / app.scale);
+		gfx.pushTranslate(8, -8);
+
+		const pad = 8;
+		const max = gopt.logMax ?? 1;
+
+		if (logs.length > max) {
+			logs = logs.slice(0, max);
+		}
+
+		const ftext = gfx.formatText({
+			text: logs.join("\n"),
+			font: assets.fonts[DBG_FONT],
+			pos: vec2(pad, -pad),
+			origin: "botleft",
+			size: 16,
+			width: gfx.width() * gfx.scale() * 0.6,
+			lineSpacing: pad / 2,
+			styles: {
+				"time": { color: rgb(127, 127, 127) },
+				"info": { color: rgb(255, 255, 255) },
+				"error": { color: rgb(255, 0, 127) },
+			},
+		});
+
+		gfx.drawRect({
+			width: ftext.width + pad * 2,
+			height: ftext.height + pad * 2,
+			origin: "botleft",
+			color: rgb(0, 0, 0),
+			radius: 4,
+			opacity: 0.8,
+		});
+
+		gfx.drawFormattedText(ftext);
+		gfx.popTransform();
+
 	}
 
 }
@@ -3092,7 +3150,7 @@ app.run(() => {
 	} else {
 
 		// TODO: this gives the latest mousePos in input handlers but uses cam matrix from last frame
-		game.camMousePos = game.camMatrix.invert().multVec2(app.mousePos());
+		game.camMousePos = gfx.toScreen(game.camMatrix.invert().multVec2(gfx.toNDC(app.mousePos())));
 		game.trigger("input");
 
 		if (!debug.paused && gopt.debug !== false) {
@@ -3121,12 +3179,12 @@ if (gopt.burp) {
 }
 
 window.addEventListener("error", (e) => {
-	logger.error(`Error: ${e.error.message}`);
+	debug.error(`Error: ${e.error.message}`);
 	app.quit();
 	app.run(() => {
 		if (assets.loadProgress() === 1) {
 			gfx.frameStart();
-			logger.draw();
+			drawDebug();
 			gfx.frameEnd();
 		}
 	});

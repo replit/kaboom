@@ -53,12 +53,13 @@ player.onUpdate(() => {
 player.onCollide("coin", (coin) => {
 	destroy(coin)
 	play("score")
+	score++
 	// Zoooom in!
 	camScale(2)
 })
 
 // Movements
-keyPress("space", () => {
+onKeyPress("space", () => {
 	if (player.isGrounded()) {
 		player.jump()
 	}
@@ -66,3 +67,14 @@ keyPress("space", () => {
 
 onKeyDown("left", () => player.move(-SPEED, 0))
 onKeyDown("right", () => player.move(SPEED, 0))
+
+let score = 0
+
+// Add a score counter
+add([
+	text("0"),
+	pos(12),
+	// Use fixed() component to make the object not affected by camera
+	fixed(),
+	{ update() { this.text = score } },
+])

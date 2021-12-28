@@ -4,7 +4,6 @@ import {
 	quad,
 	rgb,
 	mat4,
-	dir,
 	deg2rad,
 	isVec2,
 	isVec3,
@@ -30,8 +29,10 @@ import {
 	TexFilter,
 	RenderProps,
 	CharTransform,
+	CharTransformFunc,
 	TexWrap,
 	FormattedText,
+	FormattedChar,
 	DrawRectOpt,
 	DrawLineOpt,
 	DrawLinesOpt,
@@ -70,8 +71,8 @@ type GfxOpt = {
 	height?: number,
 	scale?: number,
 	texFilter?: TexFilter,
-    stretch?: boolean,
-    letterbox?: boolean,
+	stretch?: boolean,
+	letterbox?: boolean,
 };
 
 type DrawTextureOpt = RenderProps & {
@@ -91,8 +92,11 @@ type DrawTextOpt2 = RenderProps & {
 	font?: GfxFont,
 	size?: number,
 	width?: number,
+	lineSpacing?: number,
+	letterSpacing?: number,
 	origin?: Origin | Vec2,
-	transform?: (idx: number, ch: string) => CharTransform,
+	transform?: CharTransform | CharTransformFunc,
+	styles?: Record<string, CharTransform | CharTransformFunc>,
 }
 
 interface GfxTexOpt {
@@ -139,6 +143,8 @@ type Gfx = {
 	pushRotateZ(angle: number): void,
 	applyMatrix(m: Mat4),
 	drawCalls(): number,
+	toNDC(pt: Vec2): Vec2,
+	toScreen(pt: Vec2): Vec2,
 };
 
 const DEF_ORIGIN = "topleft";
@@ -155,8 +161,10 @@ varying vec3 v_pos;
 varying vec2 v_uv;
 varying vec4 v_color;
 
+uniform mat4 u_transform;
+
 vec4 def_vert() {
-	return vec4(a_pos, 1.0);
+	return u_transform * vec4(a_pos, 1.0);
 }
 
 {{user}}
@@ -471,22 +479,26 @@ function gfxInit(gl: WebGLRenderingContext, gopt: GfxOpt): Gfx {
 			flush();
 		}
 
-		gfx.curTex = tex;
-		gfx.curShader = shader;
-		gfx.curUniform = uniform;
+		for (const v of verts) {
 
-		indices.forEach((i) => {
-			gfx.iqueue.push(i + gfx.vqueue.length / STRIDE);
-		});
-
-		verts.forEach((v) => {
+			// normalized world space coordinate [-1.0 ~ 1.0]
 			const pt = toNDC(gfx.transform.multVec2(v.pos.xy()));
+
 			gfx.vqueue.push(
 				pt.x, pt.y, v.pos.z,
 				v.uv.x, v.uv.y,
 				v.color.r / 255, v.color.g / 255, v.color.b / 255, v.opacity,
 			);
-		});
+
+		}
+
+		for (const i of indices) {
+			gfx.iqueue.push(i + gfx.vqueue.length / STRIDE - verts.length);
+		}
+
+		gfx.curTex = tex;
+		gfx.curShader = shader;
+		gfx.curUniform = uniform;
 
 	}
 
@@ -501,7 +513,10 @@ function gfxInit(gl: WebGLRenderingContext, gopt: GfxOpt): Gfx {
 			return;
 		}
 
-		gfx.curShader.send(gfx.curUniform);
+		gfx.curShader.send({
+			...gfx.curUniform,
+			"u_transform": gfx.curUniform["u_transform"] ?? mat4(),
+		});
 
 		gl.bindBuffer(gl.ARRAY_BUFFER, gfx.vbuf);
 		gl.bufferSubData(gl.ARRAY_BUFFER, 0, new Float32Array(gfx.vqueue));
@@ -560,6 +575,13 @@ function gfxInit(gl: WebGLRenderingContext, gopt: GfxOpt): Gfx {
 		return vec2(
 			pt.x / width() * 2 - 1,
 			-pt.y / height() * 2 + 1,
+		);
+	}
+
+	function toScreen(pt: Vec2): Vec2 {
+		return vec2(
+			(pt.x + 1) / 2 * width(),
+			-(pt.y - 1) / 2 * height(),
 		);
 	}
 
@@ -997,10 +1019,60 @@ function gfxInit(gl: WebGLRenderingContext, gopt: GfxOpt): Gfx {
 				radius: opt.radius,
 				width: opt.outline.width,
 				color: opt.outline.color,
+				uniform: opt.uniform,
 			});
 		}
 
 		popTransform();
+
+	}
+
+	function applyCharTransform(fchar: FormattedChar, tr: CharTransform) {
+		if (tr.pos) fchar.pos = fchar.pos.add(tr.pos);
+		if (tr.scale) fchar.scale = fchar.scale.scale(vec2(tr.scale));
+		if (tr.angle) fchar.angle += tr.angle;
+		if (tr.color) fchar.color = fchar.color.mult(tr.color);
+		if (tr.opacity) fchar.opacity *= tr.opacity;
+	}
+
+	// TODO: escape
+	const TEXT_STYLE_RE = /\[(?<text>[^\]]*)\]\.(?<style>[\w\.]+)+/g;
+
+	function compileStyledText(text: string): {
+		charStyleMap: Record<number, {
+			localIdx: number,
+			styles: string[],
+		}>,
+		text: string,
+	} {
+
+		const charStyleMap = {};
+		// get the text without the styling syntax
+		const renderText = text.replace(TEXT_STYLE_RE, "$1");
+		let idxOffset = 0;
+
+		// put each styled char index into a map for easy access when iterating each char
+		for (const match of text.matchAll(TEXT_STYLE_RE)) {
+			const styles = match.groups.style.split(".");
+			const origIdx = match.index - idxOffset;
+			for (
+				let i = origIdx;
+				i < match.index + match.groups.text.length;
+				i++
+			) {
+				charStyleMap[i] = {
+					localIdx: i - origIdx,
+					styles: styles,
+				};
+			}
+			// omit "[", "]", "." and the style text in the format string when calculating index
+			idxOffset += 3 + match.groups.style.length;
+		}
+
+		return {
+			charStyleMap: charStyleMap,
+			text: renderText,
+		};
 
 	}
 
@@ -1011,14 +1083,15 @@ function gfxInit(gl: WebGLRenderingContext, gopt: GfxOpt): Gfx {
 			throw new Error("formatText() requires property \"text\".");
 		}
 
+		const { charStyleMap, text } = compileStyledText(opt.text + "");
 		const font = opt.font;
-		const chars = (opt.text + "").split("");
+		const chars = text.split("");
 		const gw = font.qw * font.tex.width;
 		const gh = font.qh * font.tex.height;
 		const size = opt.size || gh;
 		const scale = vec2(size / gh).scale(vec2(opt.scale || 1));
-		const cw = scale.x * gw;
-		const ch = scale.y * gh;
+		const cw = scale.x * gw + (opt.letterSpacing ?? 0);
+		const ch = scale.y * gh + (opt.lineSpacing ?? 0);
 		let curX = 0;
 		let th = ch;
 		let tw = 0;
@@ -1037,6 +1110,7 @@ function gfxInit(gl: WebGLRenderingContext, gopt: GfxOpt): Gfx {
 				th += ch;
 				curX = 0;
 				lastSpace = null;
+				curLine.push(char);
 				flines.push(curLine);
 				curLine = [];
 			} else if ((opt.width ? (curX + cw > opt.width) : false)) {
@@ -1091,29 +1165,41 @@ function gfxInit(gl: WebGLRenderingContext, gopt: GfxOpt): Gfx {
 				const qpos = font.map[char];
 				const x = cn * cw;
 				const y = ln * ch;
-				idx += 1;
 				if (qpos) {
-					const fchar = {
+					const fchar: FormattedChar = {
 						tex: font.tex,
 						quad: quad(qpos.x, qpos.y, font.qw, font.qh),
 						ch: char,
 						pos: vec2(pos.x + x + ox + oxl, pos.y + y + oy),
 						opacity: opt.opacity,
 						color: opt.color ?? rgb(255, 255, 255),
-						origin: opt.origin,
 						scale: scale,
 						angle: 0,
+						uniform: opt.uniform,
 					}
 					if (opt.transform) {
-						const tr = opt.transform(idx, char) ?? {};
-						if (tr.pos) fchar.pos = fchar.pos.add(tr.pos);
-						if (tr.scale) fchar.scale = fchar.scale.scale(vec2(tr.scale));
-						if (tr.angle) fchar.angle += tr.angle;
-						if (tr.color) fchar.color = fchar.color.mult(tr.color);
-						if (tr.opacity) fchar.opacity *= tr.opacity;
+						const tr = typeof opt.transform === "function"
+							? opt.transform(idx, char)
+							: opt.transform;
+						if (tr) {
+							applyCharTransform(fchar, tr);
+						}
+					}
+					if (charStyleMap[idx]) {
+						const { styles, localIdx } = charStyleMap[idx];
+						for (const name of styles) {
+							const style = opt.styles[name];
+							const tr = typeof style === "function"
+								? style(localIdx, char)
+								: style;
+							if (tr) {
+								applyCharTransform(fchar, tr);
+							}
+						}
 					}
 					fchars.push(fchar);
 				}
+				idx += 1;
 			});
 		});
 
@@ -1144,6 +1230,7 @@ function gfxInit(gl: WebGLRenderingContext, gopt: GfxOpt): Gfx {
 				quad: ch.quad,
 				// TODO: topleft
 				origin: "center",
+				uniform: ch.uniform,
 			});
 		}
 	}
@@ -1238,6 +1325,8 @@ function gfxInit(gl: WebGLRenderingContext, gopt: GfxOpt): Gfx {
 		applyMatrix,
 		drawCalls,
 		background,
+		toNDC,
+		toScreen,
 	};
 
 }
