@@ -751,6 +751,65 @@ function testAreaArea(a1: Area, a2: Area): boolean {
 	throw new Error(`Unknown area shape: ${(a2 as Area).shape}`);
 }
 
+function areaBBox(a: Area): Rect {
+	switch (a.shape) {
+		case "rect": return a;
+		case "line": return a;
+		case "circle": return {
+			p1: a.center.sub(vec2(a.radius)),
+			p2: a.center.add(vec2(a.radius)),
+		};
+		case "polygon": {
+			const b = { p1: vec2(Number.MAX_VALUE), p2: vec2(-Number.MAX_VALUE) };
+			for (const pt of a.pts) {
+				b.p1.x = Math.min(b.p1.x, pt.x);
+				b.p2.x = Math.max(b.p2.x, pt.x);
+				b.p1.y = Math.min(b.p1.y, pt.y);
+				b.p2.y = Math.max(b.p2.y, pt.y);
+			}
+			return b;
+		};
+		case "point": return { p1: a.pt, p2: a.pt };
+	}
+	throw new Error(`Unknown area shape: ${(a as Area).shape}`);
+}
+
+// TODO
+function transformArea(a: Area, tr: Mat4): Area {
+	switch (a.shape) {
+		case "rect": return {
+			shape: "polygon",
+			pts: [
+				a.p1,
+				vec2(a.p2.x, a.p1.y),
+				a.p2,
+				vec2(a.p1.x, a.p2.y),
+			].map((pt) => tr.multVec2(pt)),
+		};
+		case "line": return {
+			shape: "line",
+			p1: tr.multVec2(a.p1),
+			p2: tr.multVec2(a.p2),
+		};
+		// TODO: should become ellipse
+		case "circle": return {
+			shape: "circle",
+			center: tr.multVec2(a.center),
+			// TODO
+			radius: tr.multVec2(vec2(a.radius, a.radius)).x,
+		};
+		case "polygon": return {
+			shape: "polygon",
+			pts: a.pts.map((pt) => tr.multVec2(pt)),
+		};
+		case "point": return {
+			shape: "point",
+			pt: tr.multVec2(a.pt),
+		};
+	}
+	throw new Error(`Unknown area shape: ${(a as Area).shape}`);
+}
+
 function minkDiff(r1: Rect, r2: Rect): Rect {
 	return {
 		p1: vec2(r1.p1.x - r2.p2.x, r1.p1.y - r2.p2.y),
@@ -803,6 +862,8 @@ export {
 	testCircleCircle,
 	testCirclePoint,
 	testRectPolygon,
+	areaBBox,
+	transformArea,
 	minkDiff,
 	vec2FromAngle,
 	isVec2,

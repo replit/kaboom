@@ -2153,6 +2153,10 @@ export interface KaboomOpt {
 	 */
 	touchToMouse?: boolean,
 	/**
+	 * Size of each spatial hashgrid cell used in collision detection. Defaults to 64.
+	 */
+	hashgridSize?: number,
+	/**
 	 * If import all kaboom functions to global (default true).
 	 */
 	global?: boolean,
@@ -2878,6 +2882,21 @@ export type DrawPolygonOpt = RenderProps & {
 	radius?: number,
 }
 
+export type DrawAreaOpt = RenderProps & {
+	/**
+	 * The area to draw.
+	 */
+	area: Area,
+	/**
+	 * If draw an outline around the shape.
+	 */
+	outline?: Outline,
+	/**
+	 * If fill the shape with color (set this to false if you only want an outline).
+	 */
+	fill?: boolean,
+}
+
 export interface Outline {
 	/**
 	 * The width, or thinkness of the line.
@@ -3395,6 +3414,12 @@ export interface AreaComp extends Comp {
 	 */
 	onCollide(tag: Tag, f: (obj: GameObj, col?: Collision) => void): void,
 	/**
+	 * Register an event runs when collide with any other game obj.
+	 *
+	 * @since v2000.2
+	 */
+	onCollide(f: (obj: GameObj, col?: Collision) => void): void,
+	/**
 	 * If has a certain point inside collider.
 	 */
 	hasPoint(p: Vec2): boolean,
@@ -3406,6 +3431,10 @@ export interface AreaComp extends Comp {
 	 * Push out from all other solid game objs if currently overlapping.
 	 */
 	pushOutAll(): void,
+	/**
+	 * Get the geometry data for the collider in local coordinate space.
+	 */
+	localArea(): Area,
 	/**
 	 * Get the geometry data for the collider in world coordinate space.
 	 */

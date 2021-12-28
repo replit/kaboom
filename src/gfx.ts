@@ -41,6 +41,7 @@ import {
 	DrawCircleOpt,
 	DrawEllipseOpt,
 	DrawUVQuadOpt,
+	DrawAreaOpt,
 	Vertex,
 	DrawTextOpt,
 } from "./types";
@@ -128,6 +129,7 @@ type Gfx = {
 	drawEllipse(opt: DrawEllipseOpt),
 	drawPolygon(opt: DrawPolygonOpt),
 	drawUVQuad(opt: DrawUVQuadOpt),
+	drawArea(opt: DrawAreaOpt),
 	formatText(opt: DrawTextOpt2): FormattedText,
 	frameStart(),
 	frameEnd(),
@@ -1027,6 +1029,37 @@ function gfxInit(gl: WebGLRenderingContext, gopt: GfxOpt): Gfx {
 
 	}
 
+	function drawArea(opt: DrawAreaOpt) {
+		if (!opt.area) {
+			throw new Error("drawArea() requires property \"area\".");
+		}
+		switch (opt.area.shape) {
+			case "polygon":
+				return drawPolygon({
+					...opt,
+					pts: opt.area.pts,
+				});
+			case "line":
+				return drawLine({
+					...opt,
+					p1: opt.area.p1,
+					p2: opt.area.p2,
+				});
+			case "rect":
+				return drawRect({
+					...opt,
+					pos: opt.area.p1,
+					width: opt.area.p2.x - opt.area.p1.x,
+					height: opt.area.p2.y - opt.area.p1.y,
+				});
+			case "circle":
+				return drawCircle({
+					...opt,
+					pos: opt.area.center,
+					radius: opt.area.radius,
+				});
+		}
+	}
 	function applyCharTransform(fchar: FormattedChar, tr: CharTransform) {
 		if (tr.pos) fchar.pos = fchar.pos.add(tr.pos);
 		if (tr.scale) fchar.scale = fchar.scale.scale(vec2(tr.scale));
@@ -1312,6 +1345,7 @@ function gfxInit(gl: WebGLRenderingContext, gopt: GfxOpt): Gfx {
 		drawEllipse,
 		drawPolygon,
 		drawUVQuad,
+		drawArea,
 		formatText,
 		frameStart,
 		frameEnd,

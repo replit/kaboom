@@ -33,6 +33,8 @@ import {
 	testCircleCircle,
 	testCirclePoint,
 	testRectPolygon,
+	transformArea,
+	areaBBox,
 	minkDiff,
 	vec2FromAngle,
 	deg2rad,
@@ -1375,10 +1377,12 @@ function area(opt: AreaCompOpt = {}): AreaComp {
 			});
 		},
 
-		onCollide(tag: Tag, f: (o: GameObj, col?: Collision) => void): EventCanceller {
-			const e1 = this.onUpdate(() => this._checkCollisions(tag, f));
-			const e2 = this.on("collide", (obj, col) => obj.is(tag) && f(obj, col));
-			return () => [e1, e2].forEach((f) => f());
+		onCollide(tag: Tag | (() => void), cb?: (obj: GameObj) => void): EventCanceller {
+			if (typeof tag === "function" && cb === undefined) {
+				return this.on("collide", cb);
+			} else if (typeof tag === "string") {
+				return this.on("collide", (obj) => obj.is(tag) && cb(obj));
+			}
 		},
 
 		clicks(...args) {
@@ -1464,6 +1468,29 @@ function area(opt: AreaCompOpt = {}): AreaComp {
 					delete colliding[id];
 				}
 			}
+
+		},
+
+		localArea(): Area {
+
+			let w = this.area.width ?? this.width;
+			let h = this.area.height ?? this.height;
+
+			if (!w || !h) {
+				throw new Error("failed to get area dimension");
+			}
+
+			w *= this.area.scale.x;
+			h *= this.area.scale.y;
+
+			const orig = originPt(this.origin || DEF_ORIGIN);
+			const pos = this.area.offset.sub(orig.add(1, 1).scale(0.5).scale(w, h));
+
+			return {
+				shape: "rect",
+				p1: pos,
+				p2: vec2(pos.x + w, pos.y + h),
+			};
 
 		},
 
@@ -2824,6 +2851,66 @@ function updateFrame() {
 
 }
 
+function checkFrame() {
+
+	const grid: Record<number, Record<number, GameObj<AreaComp>[]>> = {};
+	const cellSize = gopt.hashgridSize || 64;
+	let tr = mat4();
+	const stack = [];
+
+	function checkObj(obj: GameObj) {
+
+		stack.push(tr);
+		tr = obj.pos ? tr.translate(obj.pos) : tr;
+		tr = obj.scale ? tr.scale(obj.scale) : tr;
+		tr = obj.angle ? tr.rotateZ(obj.angle) : tr;
+
+		if (obj.c("area")) {
+
+			const aobj = obj as GameObj<AreaComp>;
+			const area = transformArea(aobj.localArea(), tr);
+			const bbox = areaBBox(area);
+			aobj._worldArea = area;
+
+			// get bbox
+			const checked = new Set();
+			const xmin = Math.floor(bbox.p1.x / cellSize);
+			const ymin = Math.floor(bbox.p1.y / cellSize);
+			const xmax = Math.ceil((bbox.p2.x) / cellSize);
+			const ymax = Math.ceil((bbox.p2.y) / cellSize);
+
+			for (let x = xmin; x <= xmax; x++) {
+				for (let y = ymin; y <= ymax; y++) {
+					if(!grid[x]) {
+						grid[x] = {};
+						grid[x][y] = [aobj];
+					} else if(!grid[x][y]) {
+						grid[x][y] = [aobj];
+					} else {
+						const cell = grid[x][y];
+						for (const other of cell) {
+							if (!checked.has(other._id) && testAreaArea(aobj._worldArea, other._worldArea)) {
+								checked.add(other._id);
+								aobj.trigger("collide", other);
+								other.trigger("collide", aobj);
+							}
+						}
+						cell.push(aobj);
+					}
+				}
+			}
+
+		}
+
+		obj.every(checkObj);
+		tr = stack.pop();
+
+	}
+
+	checkObj(game.root);
+
+}
+
 function drawFrame() {
 
 	// calculate camera matrix
@@ -2951,20 +3038,17 @@ function drawDebug() {
 			}
 
 			const lwidth = (inspecting === obj ? 8 : 4) / scale;
-			const a = obj.worldArea();
-			const w = a.p2.x - a.p1.x;
-			const h = a.p2.y - a.p1.y;
+			if (!obj._worldArea) return;
+			const a = obj._worldArea as Area;
 
-			gfx.drawRect({
-				pos: a.p1,
-				width: w,
-				height: h,
+			gfx.drawArea({
+				area: a,
 				outline: {
 					width: lwidth,
 					color: lcolor,
 				},
 				uniform: {
-					"u_transform": obj.fixed ? mat4() : game.camMatrix,
+					"u_transform": mat4(),
 				},
 				fill: false,
 			});
@@ -3156,6 +3240,8 @@ app.run(() => {
 		if (!debug.paused && gopt.debug !== false) {
 			updateFrame();
 		}
+
+		checkFrame();
 
 		gfx.frameStart();
 		drawFrame();
