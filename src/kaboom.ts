@@ -435,8 +435,11 @@ function make<T>(comps: CompList<T>): GameObj<T> {
 		add<T2>(comps: CompList<T2>): GameObj<T2> {
 			const obj = make(comps);
 			obj.parent = this;
+			// @ts-ignore
 			if (obj.pos) obj._transform = obj._transform.translate(obj.pos)
+			// @ts-ignore
 			if (obj.scale) obj._transform = obj._transform.scale(obj.scale)
+			// @ts-ignore
 			if (obj.angle) obj._transform = obj._transform.rotateZ(obj.angle)
 			let p = obj.parent;
 			while (p) {
@@ -1202,6 +1205,8 @@ function area(opt: AreaCompOpt = {}): AreaComp {
 	return {
 
 		id: "area",
+		_worldArea: null,
+		_bbox: null,
 
 		add() {
 			if (this.area.cursor) {
@@ -1272,7 +1277,10 @@ function area(opt: AreaCompOpt = {}): AreaComp {
 			});
 		},
 
-		onCollide(tag: Tag | (() => void), cb?: (obj: GameObj) => void): EventCanceller {
+		onCollide(
+			tag: Tag | ((obj: GameObj, col?: Collision) => void),
+			cb?: (obj: GameObj, col?: Collision) => void
+		): EventCanceller {
 			if (typeof tag === "function" && cb === undefined) {
 				return this.on("collide", cb);
 			} else if (typeof tag === "string") {
