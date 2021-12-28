@@ -16,10 +16,18 @@ const player = add([
 	sprite("bean"),
 	pos(80, 40),
 	color(),
+	scale(2),
+	rotate(30),
 	// area() component gives the object a collider, which enables collision checking
 	area(),
 	// solid() component makes the object can't move pass other solid objects
 	solid(),
+])
+
+player.add([
+	sprite("bean"),
+	pos(40, 40),
+	area(),
 ])
 
 // Register input handlers & movement

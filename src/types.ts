@@ -2181,6 +2181,10 @@ export interface GameObjRaw {
 	 */
 	_id: number | null,
 	/**
+	 * The final transform matrix.
+	 */
+	_transform: Mat4,
+	/**
 	 * If draw the game obj (run "draw" event or not).
 	 */
 	hidden: boolean,
@@ -3380,6 +3384,10 @@ export interface AreaComp extends Comp {
 	 */
 	area: AreaCompOpt,
 	/**
+	 * Current area in world space.
+	 */
+	_worldArea: Area,
+	/**
 	 * If was just clicked on last frame.
 	 */
 	isClicked(): boolean,
@@ -3412,13 +3420,13 @@ export interface AreaComp extends Comp {
 	 *
 	 * @since v2000.1
 	 */
-	onCollide(tag: Tag, f: (obj: GameObj, col?: Collision) => void): void,
+	onCollide(tag: Tag, f: (obj: GameObj, col?: Collision) => void): EventCanceller,
 	/**
 	 * Register an event runs when collide with any other game obj.
 	 *
 	 * @since v2000.2
 	 */
-	onCollide(f: (obj: GameObj, col?: Collision) => void): void,
+	onCollide(f: (obj: GameObj, col?: Collision) => void): EventCanceller,
 	/**
 	 * If has a certain point inside collider.
 	 */
