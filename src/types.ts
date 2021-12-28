@@ -3388,6 +3388,10 @@ export interface AreaComp extends Comp {
 	 */
 	_worldArea: Area,
 	/**
+	 * Current bounding box.
+	 */
+	_bbox: Rect,
+	/**
 	 * If was just clicked on last frame.
 	 */
 	isClicked(): boolean,

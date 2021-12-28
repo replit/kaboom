@@ -2718,16 +2718,17 @@ function checkFrame() {
 		if (obj.pos) tr = tr.translate(obj.pos);
 		if (obj.scale) tr = tr.scale(obj.scale);
 		if (obj.angle) tr = tr.rotateZ(obj.angle);
-		obj._transform = tr;
+		obj._transform = tr.clone();
 
 		// TODO: this logic should be defined through external interface
-		if (obj.c("area")) {
+		if (obj.is("area")) {
 
 			// TODO: only update worldArea if transform changed
 			const aobj = obj as GameObj<AreaComp>;
 			const area = transformArea(aobj.localArea(), tr);
 			const bbox = areaBBox(area);
 			aobj._worldArea = area;
+			aobj._bbox = bbox;
 
 			// get grid coverage
 			const xmin = Math.floor(bbox.p1.x / cellSize);
@@ -2879,8 +2880,7 @@ function drawDebug() {
 		let inspecting = null;
 		const lcolor = rgb(gopt.inspectColor ?? [0, 0, 255]);
 
-		// draw area outline
-		game.root.every((obj) => {
+		function drawObjDebug(obj: GameObj) {
 
 			if (!obj.area) {
 				return;
@@ -2899,8 +2899,7 @@ function drawDebug() {
 			}
 
 			const lwidth = (inspecting === obj ? 8 : 4) / scale;
-			if (!obj._worldArea) return;
-			const a = obj._worldArea as Area;
+			const a = obj._worldArea;
 
 			gfx.drawArea({
 				area: a,
@@ -2914,7 +2913,12 @@ function drawDebug() {
 				fill: false,
 			});
 
-		});
+			obj.every(drawObjDebug);
+
+		}
+
+		// draw area outline
+		game.root.every(drawObjDebug);
 
 		if (inspecting) {
 
