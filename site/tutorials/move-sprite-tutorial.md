@@ -2,7 +2,7 @@
 
 Kaboom is a fun library to use for creating simple games.
 
-Input handling and basic player movement is an important part of game development, as a result, we're going to learn these basics.
+Input handling and basic player movement is an important part of game development. Therefore, we're going to learn these basics.
 
 ## Steps to follow
 
@@ -32,7 +32,7 @@ const player = add([
 ]);
 ```
 
-We created a `player` variable to enable us to manipulate the 'bean' sprite using methods later on. Methods allow us to perform certain actions on sprites. For example, if we want to handle movements such jumping, checking for collisions, and as we'll see in this tutorial, changing directions.
+We created a `player` variable to enable us to manipulate the 'bean' sprite using methods later on. Methods allow us to perform certain actions on sprites. For example, if we want to handle movements such as jumping, checking for collisions, and as we'll see in this tutorial, changing directions.
 
 ## Step 2 - moving to the right 
 
@@ -84,7 +84,7 @@ onKeyDown("down", () => {
 
 What if we want to use a mouse to move sprites? Kaboom also enables us to register events that are triggered when a mouse is clicked. In this case, we want 'bean' to move to the position indicated when left-clicking a mouse.
 
-`onClick()` registers an event that runs once when left mouse is clicked while	`moveTo()` is provided by the `pos()` component and changes the position.
+`onClick()` registers an event that runs once when the left mouse is clicked while	`moveTo()` is provided by the `pos()` component and changes the position.
 
 ```
 onClick(() => {
