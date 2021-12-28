@@ -2858,6 +2858,8 @@ function drawDebug() {
 
 		function drawObjDebug(obj: GameObj) {
 
+			obj.every(drawObjDebug);
+
 			if (!obj.area) {
 				return;
 			}
@@ -2888,8 +2890,6 @@ function drawDebug() {
 				},
 				fill: false,
 			});
-
-			obj.every(drawObjDebug);
 
 		}
 
