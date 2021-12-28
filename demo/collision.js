@@ -5,6 +5,7 @@ kaboom()
 
 // Load assets
 loadSprite("bean", "/sprites/bean.png")
+loadSprite("bag", "/sprites/bag.png")
 loadSprite("ghosty", "/sprites/ghosty.png")
 loadSprite("grass", "/sprites/grass.png")
 
@@ -25,9 +26,10 @@ const player = add([
 ])
 
 player.add([
-	sprite("bean"),
+	sprite("bag"),
 	pos(40, 40),
 	area(),
+	"follower",
 ])
 
 // Register input handlers & movement
@@ -75,6 +77,11 @@ add([
 // In this case we destroy (remove from game) the enemy when player hits one
 player.onCollide("enemy", (enemy) => {
 	destroy(enemy)
+})
+
+onCollide("follower", "enemy", (a, b) => {
+	a.destroy()
+	b.destroy()
 })
 
 // .clicks() is provided by area() component, it registers an event that runs when the object is clicked
