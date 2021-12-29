@@ -810,6 +810,34 @@ function transformArea(a: Area, tr: Mat4): Area {
 	throw new Error(`Unknown area shape: ${(a as Area).shape}`);
 }
 
+function testPolygonPolygonSAT(p1: Polygon, p2: Polygon): boolean {
+	for (const poly of [p1, p2]) {
+		for (let i = 0; i < poly.length; i++) {
+			const a = poly[i];
+			const b = poly[(i + 1) % poly.length];
+			const axisProj = a.sub(b).normal().unit();
+			let min1 = Number.MAX_VALUE;
+			let max1 = -Number.MIN_VALUE;
+			for (let j = 0; j < p1.length; j++) {
+				const q = p1[j].dot(axisProj);
+				min1 = Math.min(min1, q);
+				max1 = Math.max(max1, q);
+			}
+			let min2 = Number.MAX_VALUE;
+			let max2 = -Number.MIN_VALUE;
+			for (let j = 0; j < p2.length; j++) {
+				const q = p2[j].dot(axisProj);
+				min2 = Math.min(min2, q);
+				max2 = Math.max(max2, q);
+			}
+			if (!(max2 >= min1 && max1 >= min2)) {
+				return false;
+			}
+		}
+	}
+	return true;
+}
+
 function minkDiff(r1: Rect, r2: Rect): Rect {
 	return {
 		p1: vec2(r1.p1.x - r2.p2.x, r1.p1.y - r2.p2.y),
@@ -862,6 +890,7 @@ export {
 	testCircleCircle,
 	testCirclePoint,
 	testRectPolygon,
+	testPolygonPolygonSAT,
 	areaBBox,
 	transformArea,
 	minkDiff,
