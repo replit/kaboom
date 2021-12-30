@@ -2735,18 +2735,26 @@ function checkFrame() {
 							}
 							// TODO: whitelist / blacklist?
 							if (!checked.has(other._id)) {
-								const res = testPolygonPolygonSAT(aobj._worldArea.pts, other._worldArea.pts);
-								if (res) {
-									// TODO: recalc transform and worldarea
-									aobj.pos = aobj.pos.add(res);
-									aobj.trigger("collide", other);
-									other.trigger("collide", aobj);
+								// TODO: weight
+								// TODO: support resolution for non polygons
+								if (aobj._worldArea.shape === "polygon" && other._worldArea.shape === "polygon") {
+									const res = testPolygonPolygonSAT(aobj._worldArea.pts, other._worldArea.pts);
+									if (res) {
+										if (aobj.solid && other.solid) {
+											aobj.pos = aobj.pos.add(res);
+											aobj._transform = tr.translate(res);
+											aobj._worldArea = transformArea(aobj.localArea(), aobj._transform);
+										}
+										aobj.trigger("collide", other);
+										other.trigger("collide", aobj);
+									}
+								} else {
+									if (testAreaArea(aobj._worldArea, other._worldArea)) {
+										aobj.trigger("collide", other);
+										other.trigger("collide", aobj);
+									}
 								}
 							}
-// 							if (!checked.has(other._id) && testPolygonPolygonSAT(aobj._worldArea.pts, other._worldArea.pts)) {
-// 								aobj.trigger("collide", other);
-// 								other.trigger("collide", aobj);
-// 							}
 							checked.add(other._id);
 						}
 						cell.push(aobj);
@@ -2756,7 +2764,7 @@ function checkFrame() {
 
 		}
 
-		obj.every(checkObj);
+		obj.revery(checkObj);
 		tr = stack.pop();
 
 	}
