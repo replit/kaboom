@@ -17,8 +17,8 @@ const player = add([
 	sprite("bean"),
 	pos(80, 40),
 	color(),
-	scale(2),
-	rotate(30),
+// 	scale(2),
+// 	rotate(30),
 	// area() component gives the object a collider, which enables collision checking
 	area(),
 	// solid() component makes the object can't move pass other solid objects
@@ -76,12 +76,12 @@ add([
 // .onCollide() is provided by area() component, it registers an event that runs when an objects collides with another object with certain tag
 // In this case we destroy (remove from game) the enemy when player hits one
 player.onCollide("enemy", (enemy) => {
-	destroy(enemy)
+// 	destroy(enemy)
 })
 
 onCollide("follower", "enemy", (a, b) => {
-	a.destroy()
-	b.destroy()
+// 	a.destroy()
+// 	b.destroy()
 })
 
 // .clicks() is provided by area() component, it registers an event that runs when the object is clicked

@@ -810,12 +810,14 @@ function transformArea(a: Area, tr: Mat4): Area {
 	throw new Error(`Unknown area shape: ${(a as Area).shape}`);
 }
 
-function testPolygonPolygonSAT(p1: Polygon, p2: Polygon): boolean {
+function testPolygonPolygonSAT(p1: Polygon, p2: Polygon): Vec2 | null {
+	let overlap = Number.MAX_VALUE;
+	let axis = vec2(0);
 	for (const poly of [p1, p2]) {
 		for (let i = 0; i < poly.length; i++) {
 			const a = poly[i];
 			const b = poly[(i + 1) % poly.length];
-			const axisProj = a.sub(b).normal().unit();
+			const axisProj = b.sub(a).normal().unit();
 			let min1 = Number.MAX_VALUE;
 			let max1 = -Number.MIN_VALUE;
 			for (let j = 0; j < p1.length; j++) {
@@ -830,12 +832,19 @@ function testPolygonPolygonSAT(p1: Polygon, p2: Polygon): boolean {
 				min2 = Math.min(min2, q);
 				max2 = Math.max(max2, q);
 			}
-			if (!(max2 >= min1 && max1 >= min2)) {
-				return false;
+			const o = Math.min(max1, max2) - Math.max(min1, min2);
+			if (o <= 0) {
+				return null;
+			}
+			if (o < Math.abs(overlap)) {
+				const o1 = max2 - min1;
+				const o2 = min2 - max1;
+				overlap = Math.abs(o1) < Math.abs(o2) ? o1 : o2;
+				axis = axisProj;
 			}
 		}
 	}
-	return true;
+	return axis.scale(overlap);
 }
 
 function minkDiff(r1: Rect, r2: Rect): Rect {

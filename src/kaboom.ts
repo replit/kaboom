@@ -33,6 +33,7 @@ import {
 	testCircleCircle,
 	testCirclePoint,
 	testRectPolygon,
+	testPolygonPolygonSAT,
 	transformArea,
 	areaBBox,
 	minkDiff,
@@ -481,7 +482,9 @@ function make<T>(comps: CompList<T>): GameObj<T> {
 		draw() {
 			if (this.hidden) return;
 			gfx.pushTransform();
-			gfx.applyMatrix(this._transform);
+			gfx.pushTranslate(this.pos);
+			gfx.pushScale(this.scale);
+			gfx.pushRotateZ(this.angle);
 			this.every((child) => child.draw());
 			this.trigger("draw");
 			gfx.popTransform();
@@ -1278,6 +1281,7 @@ function area(opt: AreaCompOpt = {}): AreaComp {
 			});
 		},
 
+		// TODO: update whitelist
 		onCollide(
 			tag: Tag | ((obj: GameObj, col?: Collision) => void),
 			cb?: (obj: GameObj, col?: Collision) => void
@@ -2726,12 +2730,24 @@ function checkFrame() {
 					} else {
 						const cell = grid[x][y];
 						for (const other of cell) {
-							// TODO: check whitelist / parent
-							if (!checked.has(other._id) && testAreaArea(aobj._worldArea, other._worldArea)) {
-								checked.add(other._id);
-								aobj.trigger("collide", other);
-								other.trigger("collide", aobj);
+							if (!other.exists()) {
+								continue;
 							}
+							// TODO: whitelist / blacklist?
+							if (!checked.has(other._id)) {
+								const res = testPolygonPolygonSAT(aobj._worldArea.pts, other._worldArea.pts);
+								if (res) {
+									// TODO: recalc transform and worldarea
+									aobj.pos = aobj.pos.add(res);
+									aobj.trigger("collide", other);
+									other.trigger("collide", aobj);
+								}
+							}
+// 							if (!checked.has(other._id) && testPolygonPolygonSAT(aobj._worldArea.pts, other._worldArea.pts)) {
+// 								aobj.trigger("collide", other);
+// 								other.trigger("collide", aobj);
+// 							}
+							checked.add(other._id);
 						}
 						cell.push(aobj);
 					}
