@@ -15,7 +15,6 @@ const player = add([
 	sprite("bean"),
 	pos(80, 40),
 	area(),
-	solid(),
 ])
 
 // Player movement
@@ -50,7 +49,6 @@ function addFlamebar(position = vec2(0), angle = 0, num = 6) {
 			sprite("pineapple"),
 			pos(0, i * 48),
 			area(),
-			solid(),
 			origin("center"),
 			"flame",
 		])
@@ -71,6 +69,6 @@ addFlamebar(vec2(400, 480), 0)
 
 // Game over if player touches a flame
 player.onCollide("flame", () => {
-// 	addKaboom(player.pos)
-// 	player.destroy()
+	addKaboom(player.pos)
+	player.destroy()
 })

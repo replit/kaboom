@@ -812,7 +812,7 @@ function transformArea(a: Area, tr: Mat4): Area {
 
 function testPolygonPolygonSAT(p1: Polygon, p2: Polygon): Vec2 | null {
 	let overlap = Number.MAX_VALUE;
-	let axis = vec2(0);
+	let displacement = vec2(0);
 	for (const poly of [p1, p2]) {
 		for (let i = 0; i < poly.length; i++) {
 			const a = poly[i];
@@ -840,11 +840,11 @@ function testPolygonPolygonSAT(p1: Polygon, p2: Polygon): Vec2 | null {
 				const o1 = max2 - min1;
 				const o2 = min2 - max1;
 				overlap = Math.abs(o1) < Math.abs(o2) ? o1 : o2;
-				axis = axisProj;
+				displacement = axisProj.scale(overlap);
 			}
 		}
 	}
-	return axis.scale(overlap);
+	return displacement;
 }
 
 function minkDiff(r1: Rect, r2: Rect): Rect {

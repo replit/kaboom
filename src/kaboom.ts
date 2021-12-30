@@ -437,17 +437,7 @@ function make<T>(comps: CompList<T>): GameObj<T> {
 		add<T2>(comps: CompList<T2>): GameObj<T2> {
 			const obj = make(comps);
 			obj.parent = this;
-			// @ts-ignore
-			if (obj.pos) obj._transform = obj._transform.translate(obj.pos)
-			// @ts-ignore
-			if (obj.scale) obj._transform = obj._transform.scale(obj.scale)
-			// @ts-ignore
-			if (obj.angle) obj._transform = obj._transform.rotateZ(obj.angle)
-			let p = obj.parent;
-			while (p) {
-				obj._transform = p._transform.mult(obj._transform);
-				p = p.parent;
-			}
+			obj._transform = calcTransform(obj);
 			obj.trigger("add");
 			onLoad(() => obj.trigger("load"));
 			this.children.push(obj);
@@ -1899,6 +1889,7 @@ function shader(id: string, uniform: Uniform = {}): ShaderComp {
 	};
 }
 
+// TODO: accept weight (0 as anything can push, -1 as nothing can push, otherwise calc)
 function solid(): SolidComp {
 	return {
 		id: "solid",
@@ -2678,6 +2669,19 @@ function updateFrame() {
 
 }
 
+function calcTransform(obj: GameObj): Mat4 {
+	let tr = mat4();
+	if (obj.pos) tr = tr.translate(obj.pos)
+	if (obj.scale) tr = tr.scale(obj.scale)
+	if (obj.angle) tr = tr.rotateZ(obj.angle)
+	let p = obj.parent;
+	while (p) {
+		tr = p._transform.mult(tr);
+		p = p.parent;
+	}
+	return tr;
+}
+
 function checkFrame() {
 
 	// start a spatial hash grid for more efficient collision detection
@@ -2742,7 +2746,8 @@ function checkFrame() {
 									if (res) {
 										if (aobj.solid && other.solid) {
 											aobj.pos = aobj.pos.add(res);
-											aobj._transform = tr.translate(res);
+											// TODO: also update children
+											aobj._transform = calcTransform(aobj);
 											aobj._worldArea = transformArea(aobj.localArea(), aobj._transform);
 										}
 										aobj.trigger("collide", other);
