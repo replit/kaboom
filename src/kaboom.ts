@@ -1911,7 +1911,7 @@ function body(opt: BodyCompOpt = {}): BodyComp {
 		id: "body",
 		require: [ "pos", "area", ],
 		jumpForce: opt.jumpForce ?? DEF_JUMP_FORCE,
-		weight: opt.weight ?? 1,
+		gravityScale: opt.gravityScale ?? 1,
 		solid: opt.solid ?? true,
 
 		update() {
@@ -1973,7 +1973,7 @@ function body(opt: BodyCompOpt = {}): BodyComp {
 					}
 				}
 
-				velY += gravity() * this.weight * dt();
+				velY += gravity() * this.gravityScale * dt();
 				velY = Math.min(velY, opt.maxVel ?? MAX_VEL);
 
 			}
@@ -2030,6 +2030,18 @@ function body(opt: BodyCompOpt = {}): BodyComp {
 
 		onDoubleJump(action: () => void): EventCanceller {
 			return this.on("doubleJump", action);
+		},
+
+		// TODO: not working
+		// @deprecated
+		get weight() {
+			return this.gravityScale;
+		},
+
+		// TODO: not working
+		// @deprecated
+		set weight(val: number) {
+			this.gravityScale = val;
 		},
 
 	};
