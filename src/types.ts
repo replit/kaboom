@@ -3334,6 +3334,10 @@ export interface Collision {
 	 */
 	displacement: Vec2,
 	/**
+	 * If kaboom already resolved the displacement for you (will happen automatically if both objects are solid).
+	 */
+	resolved: boolean,
+	/**
 	 * If the collision happened (roughly) on the top side of us.
 	 */
 	isTop(): boolean,

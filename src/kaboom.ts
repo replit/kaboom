@@ -975,10 +975,11 @@ function regCursor(c: Cursor, draw: string | ((mpos: Vec2) => void)) {
 	// TODO
 }
 
-function makeCollision(target: GameObj<any>, dis: Vec2): Collision {
+function makeCollision(target: GameObj<any>, dis: Vec2, resolved: boolean = false): Collision {
 	return {
 		target: target,
 		displacement: dis,
+		resolved: resolved,
 		isTop: () => dis.y > 0,
 		isBottom: () => dis.y < 0,
 		isLeft: () => dis.x > 0,
@@ -1277,7 +1278,7 @@ function area(opt: AreaCompOpt = {}): AreaComp {
 			cb?: (obj: GameObj, col?: Collision) => void
 		): EventCanceller {
 			if (typeof tag === "function" && cb === undefined) {
-				return this.on("collide", cb);
+				return this.on("collide", tag);
 			} else if (typeof tag === "string") {
 				return this.on("collide", (obj) => obj.is(tag) && cb(obj));
 			}
@@ -1891,10 +1892,23 @@ function shader(id: string, uniform: Uniform = {}): ShaderComp {
 
 // TODO: accept weight (0 as anything can push, -1 as nothing can push, otherwise calc)
 function solid(): SolidComp {
+	const cleanups = [];
 	return {
 		id: "solid",
 		require: [ "area", ],
 		solid: true,
+		add() {
+			cleanups.push(this.onCollide((other, col) => {
+				if (this.solid && other.solid && !col.resolved) {
+					this.pos = this.pos.add(col.displacement);
+					this._transform = calcTransform(this);
+					this._worldArea = transformArea(this.localArea(), this._transform);
+				}
+			}));
+		},
+		destroy() {
+			cleanups.forEach((c) => c());
+		},
 	};
 }
 
@@ -2744,14 +2758,8 @@ function checkFrame() {
 								if (aobj._worldArea.shape === "polygon" && other._worldArea.shape === "polygon") {
 									const res = testPolygonPolygonSAT(aobj._worldArea.pts, other._worldArea.pts);
 									if (res) {
-										if (aobj.solid && other.solid) {
-											aobj.pos = aobj.pos.add(res);
-											// TODO: also update children
-											aobj._transform = calcTransform(aobj);
-											aobj._worldArea = transformArea(aobj.localArea(), aobj._transform);
-										}
-										aobj.trigger("collide", other);
-										other.trigger("collide", aobj);
+										aobj.trigger("collide", other, makeCollision(other, res));
+										other.trigger("collide", aobj, makeCollision(aobj, res.scale(-1), true));
 									}
 								} else {
 									if (testAreaArea(aobj._worldArea, other._worldArea)) {

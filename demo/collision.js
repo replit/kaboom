@@ -44,7 +44,6 @@ for (let i = 0; i < 3; i++) {
 	])
 
 }
-
 add([
 	sprite("grass"),
 	pos(center()),
