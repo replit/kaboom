@@ -1895,7 +1895,7 @@ function solid(): SolidComp {
 	const cleanups = [];
 	return {
 		id: "solid",
-		require: [ "area", ],
+		require: [ "pos", "area", ],
 		solid: true,
 		add() {
 			cleanups.push(this.onCollide((other, col) => {
