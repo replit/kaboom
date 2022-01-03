@@ -286,11 +286,11 @@ scene("game", ({ levelId, coins } = { levelId: 0, coins: 0 }) => {
 	})
 
 	onKeyPress("down", () => {
-		player.gravityScale = 3
+		player.weight = 3
 	})
 
 	onKeyRelease("down", () => {
-		player.gravityScale = 1
+		player.weight = 1
 	})
 
 	onKeyPress("f", () => {
