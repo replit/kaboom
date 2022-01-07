@@ -124,6 +124,9 @@ function vec2(...args): Vec2 {
 		toFixed(n: number): Vec2 {
 			return vec2(this.x.toFixed(n), this.y.toFixed(n));
 		},
+		isZero(): boolean {
+			return this.x === 0 && this.y === 0;
+		},
 		eq(other: Vec2): boolean {
 			return this.x === other.x && this.y === other.y;
 		},
@@ -523,14 +526,6 @@ function choose<T>(list: T[]): T {
 	return list[randi(list.length)];
 }
 
-// TODO: better name
-function testRectRect2(r1: Rect, r2: Rect): boolean {
-	return r1.p2.x >= r2.p1.x
-		&& r1.p1.x <= r2.p2.x
-		&& r1.p2.y >= r2.p1.y
-		&& r1.p1.y <= r2.p2.y;
-}
-
 function testRectRect(r1: Rect, r2: Rect): boolean {
 	return r1.p2.x > r2.p1.x
 		&& r1.p1.x < r2.p2.x
@@ -538,8 +533,7 @@ function testRectRect(r1: Rect, r2: Rect): boolean {
 		&& r1.p1.y < r2.p2.y;
 }
 
-// TODO: better name
-function testLineLineT(l1: Line, l2: Line): number | null {
+function getLineIntersection(l1: Line, l2: Line): number | null {
 
 	if ((l1.p1.x === l1.p2.x && l1.p1.y === l1.p2.y) || (l2.p1.x === l2.p2.x && l2.p1.y === l2.p2.y)) {
 		return null;
@@ -565,7 +559,7 @@ function testLineLineT(l1: Line, l2: Line): number | null {
 }
 
 function testLineLine(l1: Line, l2: Line): Vec2 | null {
-	const t = testLineLineT(l1, l2);
+	const t = getLineIntersection(l1, l2);
 	if (!t) return null;
 	return vec2(
 		l1.p1.x + t * (l1.p2.x - l1.p1.x),
@@ -833,7 +827,7 @@ function testPolygonPolygonSAT(p1: Polygon, p2: Polygon): Vec2 | null {
 				max2 = Math.max(max2, q);
 			}
 			const o = Math.min(max1, max2) - Math.max(min1, min2);
-			if (o <= 0) {
+			if (o < 0) {
 				return null;
 			}
 			if (o < Math.abs(overlap)) {
@@ -887,8 +881,7 @@ export {
 	testAreaPolygon,
 	testAreaPoint,
 	testAreaArea,
-	testLineLineT,
-	testRectRect2,
+	getLineIntersection,
 	testLineLine,
 	testRectRect,
 	testRectLine,

@@ -81,3 +81,7 @@ player.onCollide("coin", (coin) => {
 	destroy(coin)
 	play("score")
 })
+
+player.onGround((ground) => {
+	debug.log(ground._id)
+})

@@ -21,8 +21,6 @@ import {
 	testAreaPolygon,
 	testAreaPoint,
 	testAreaArea,
-	testLineLineT,
-	testRectRect2,
 	testLineLine,
 	testRectRect,
 	testRectLine,
@@ -975,11 +973,11 @@ function regCursor(c: Cursor, draw: string | ((mpos: Vec2) => void)) {
 	// TODO
 }
 
-function makeCollision(target: GameObj<any>, dis: Vec2, resolved: boolean = false): Collision {
+function makeCollision(target: GameObj<any>, dis: Vec2): Collision {
 	return {
 		target: target,
 		displacement: dis,
-		resolved: resolved,
+		resolved: false,
 		isTop: () => dis.y > 0,
 		isBottom: () => dis.y < 0,
 		isLeft: () => dis.x > 0,
@@ -995,19 +993,12 @@ function pos(...args): PosComp {
 		id: "pos",
 		pos: vec2(...args),
 
-		// TODO: clean
 		moveBy(...args) {
-
-			const p = vec2(...args);
-			let dx = p.x;
-			let dy = p.y;
-			this.pos.x += dx;
-			this.pos.y += dy;
-
+			this.pos = this.pos.add(...args);
 		},
 
 		// move with velocity (pixels per second)
-		move(...args): Collision | null {
+		move(...args) {
 			return this.moveBy(vec2(...args).scale(dt()));
 		},
 
@@ -1233,23 +1224,25 @@ function area(opt: AreaCompOpt = {}): AreaComp {
 			return this.hasPoint(mpos);
 		},
 
-		isColliding(other) {
+		checkCollision(other) {
 			if (!other.area || !other.exists()) {
-				return false;
+				return null;
 			}
 			const a1 = this.worldArea();
 			const a2 = other.worldArea();
-			return testAreaArea(a1, a2);
+			if (a1.shape !== "polygon" || a2.shape !== "polygon") {
+				throw new Error("Only support polygon areas for now.");
+			}
+			return testPolygonPolygonSAT(a1.pts, a2.pts);
+		},
+
+		isColliding(other) {
+			const res = this.checkCollision(other);
+			return res && !res.isZero();
 		},
 
 		isTouching(other) {
-			if (!other.area || !other.exists()) {
-				return false;
-			}
-			// TODO: support other shapes
-			const a1 = this.worldArea();
-			const a2 = other.worldArea();
-			return testRectRect2(a1, a2);
+			return Boolean(this.checkCollision(other));
 		},
 
 		onClick(f: () => void): EventCanceller {
@@ -1312,6 +1305,7 @@ function area(opt: AreaCompOpt = {}): AreaComp {
 			game.root.every(this.pushOut);
 		},
 
+		// TODO: support custom polygon
 		localArea(): Area {
 
 			let w = this.area.width ?? this.width;
@@ -1750,6 +1744,7 @@ function body(opt: BodyCompOpt = {}): BodyComp {
 	let curPlatform: GameObj | null = null;
 	let lastPlatformPos = null;
 	let canDouble = true;
+	let lastlastPlatform = null;
 
 	return {
 
@@ -1759,35 +1754,41 @@ function body(opt: BodyCompOpt = {}): BodyComp {
 		weight: opt.weight ?? 1,
 		solid: opt.solid ?? true,
 
+		add() {
+
+			this.onCollide((other, col) => {
+				if (this.solid && other.solid && !col.resolved) {
+					col.resolved = true;
+					this.pos = this.pos.add(col.displacement);
+					this._transform = calcTransform(this);
+					this._worldArea = transformArea(this.localArea(), this._transform);
+					if (col.isBottom()) {
+						curPlatform = other;
+						velY = 0;
+						this.trigger("ground", curPlatform);
+						canDouble = true;
+						if (curPlatform.pos) {
+							lastPlatformPos = curPlatform.pos.clone();
+						}
+					} else if (col.isTop()) {
+						velY = 0;
+						this.trigger("headbutt", other);
+					}
+				}
+			});
+
+		},
+
 		update() {
 
-			let justFall = false;
 
-			// check if loses current platform
 			if (curPlatform) {
-
-				const a1 = this.worldArea();
-				const a2 = curPlatform.worldArea();
-				const y1 = a1.p2.y;
-				const y2 = a2.p1.y;
-				const x1 = a1.p1.x;
-				const x2 = a1.p2.x;
-				const x3 = a2.p1.x;
-				const x4 = a2.p2.x;
-
-				if (
-					!curPlatform.exists()
-					|| y1 !== y2
-					|| x2 < x3
-					|| x1 > x4
-				) {
+				if (!curPlatform.exists() || !this.isTouching(curPlatform)) {
 					this.trigger("fall", curPlatform);
 					curPlatform = null;
 					lastPlatformPos = null;
-					justFall = true;
 				} else {
 					if (lastPlatformPos && curPlatform.pos) {
-						// TODO: moveBy?
 						// sticky platform
 						this.pos = this.pos.add(curPlatform.pos.sub(lastPlatformPos));
 						lastPlatformPos = curPlatform.pos.clone();
@@ -1796,31 +1797,9 @@ function body(opt: BodyCompOpt = {}): BodyComp {
 			}
 
 			if (!curPlatform) {
-
-				const col = this.move(0, velY);
-
-				// check if grounded to a new platform
-				if (col) {
-					if (col.isBottom()) {
-						curPlatform = col.target;
-						const oy = velY;
-						velY = 0;
-						if (curPlatform.pos) {
-							lastPlatformPos = curPlatform.pos.clone();
-						}
-						if (!justFall) {
-							this.trigger("ground", curPlatform);
-							canDouble = true;
-						}
-					} else if (col.isTop()) {
-						velY = 0;
-						this.trigger("headbutt", col.target);
-					}
-				}
-
+				this.move(0, velY);
 				velY += gravity() * this.weight * dt();
 				velY = Math.min(velY, opt.maxVel ?? MAX_VEL);
-
 			}
 
 		},
@@ -1846,6 +1825,7 @@ function body(opt: BodyCompOpt = {}): BodyComp {
 		},
 
 		jump(force: number) {
+			lastlastPlatform = curPlatform;
 			curPlatform = null;
 			lastPlatformPos = null;
 			velY = -force || -this.jumpForce;
@@ -1900,6 +1880,7 @@ function solid(): SolidComp {
 		add() {
 			cleanups.push(this.onCollide((other, col) => {
 				if (this.solid && other.solid && !col.resolved) {
+					col.resolved = true;
 					this.pos = this.pos.add(col.displacement);
 					this._transform = calcTransform(this);
 					this._worldArea = transformArea(this.localArea(), this._transform);
@@ -2753,19 +2734,15 @@ function checkFrame() {
 							}
 							// TODO: whitelist / blacklist?
 							if (!checked.has(other._id)) {
-								// TODO: weight
-								// TODO: support resolution for non polygons
-								if (aobj._worldArea.shape === "polygon" && other._worldArea.shape === "polygon") {
-									const res = testPolygonPolygonSAT(aobj._worldArea.pts, other._worldArea.pts);
-									if (res) {
-										aobj.trigger("collide", other, makeCollision(other, res));
-										other.trigger("collide", aobj, makeCollision(aobj, res.scale(-1), true));
+								const res = aobj.checkCollision(other);
+								if (res && !res.isZero()) {
+									const col1 = makeCollision(other, res);
+									const col2 = makeCollision(aobj, res.scale(-1));
+									aobj.trigger("collide", other, col1);
+									if (col1.resolved) {
+										col2.resolved = true;
 									}
-								} else {
-									if (testAreaArea(aobj._worldArea, other._worldArea)) {
-										aobj.trigger("collide", other);
-										other.trigger("collide", aobj);
-									}
+									other.trigger("collide", aobj, col2);
 								}
 							}
 							checked.add(other._id);

@@ -44,14 +44,6 @@ for (let i = 0; i < 3; i++) {
 	])
 
 }
-add([
-	sprite("grass"),
-	pos(center()),
-	area(),
-	// This game object also has solid(), so our player won't be able to move pass this
-	solid(),
-	"block",
-])
 
 // Add player game object
 const player = add([
@@ -64,6 +56,15 @@ const player = add([
 	area(),
 	// solid() component makes the object can't move pass other solid objects
 	solid(),
+])
+
+add([
+	sprite("grass"),
+	pos(center()),
+	area(),
+	// This game object also has solid(), so our player won't be able to move pass this
+	solid(),
+	"block",
 ])
 
 player.add([

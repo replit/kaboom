@@ -3097,6 +3097,12 @@ export interface Vec2 {
 	 * To n precision floating point.
 	 */
 	toFixed(n: number): Vec2,
+	/**
+	 * Check if the vector is (0, 0).
+	 *
+	 * @since v2000.2
+	 */
+	isZero(): boolean,
 	eq(p: Vec2): boolean,
 	str(): string,
 }
@@ -3406,11 +3412,17 @@ export interface AreaComp extends Comp {
 	/**
 	 * If is currently colliding with another game obj.
 	 */
-	isColliding(o: GameObj): boolean,
+	isColliding(other: GameObj): boolean,
 	/**
 	 * If is currently touching another game obj.
 	 */
-	isTouching(o: GameObj): boolean,
+	isTouching(other: GameObj): boolean,
+	/**
+	 * Test collision against another Game Object and get the minimal displacement vector, if any.
+	 *
+	 * @since v2000.2
+	 */
+	checkCollision(other: GameObj): Vec2 | null,
 	/**
 	 * Register an event runs when clicked.
 	 *
