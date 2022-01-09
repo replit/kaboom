@@ -85,3 +85,7 @@ player.onCollide("coin", (coin) => {
 player.onGround((ground) => {
 	debug.log(ground._id)
 })
+
+player.onGround((ground) => {
+	debug.log("fall " + ground._id)
+})

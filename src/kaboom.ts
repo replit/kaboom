@@ -1744,7 +1744,7 @@ function body(opt: BodyCompOpt = {}): BodyComp {
 	let curPlatform: GameObj | null = null;
 	let lastPlatformPos = null;
 	let canDouble = true;
-	let lastlastPlatform = null;
+	let justFall = false;
 
 	return {
 
@@ -1755,38 +1755,39 @@ function body(opt: BodyCompOpt = {}): BodyComp {
 		solid: opt.solid ?? true,
 
 		add() {
-
 			this.onCollide((other, col) => {
 				if (this.solid && other.solid && !col.resolved) {
 					col.resolved = true;
 					this.pos = this.pos.add(col.displacement);
 					this._transform = calcTransform(this);
 					this._worldArea = transformArea(this.localArea(), this._transform);
-					if (col.isBottom()) {
-						curPlatform = other;
-						velY = 0;
-						this.trigger("ground", curPlatform);
-						canDouble = true;
-						if (curPlatform.pos) {
-							lastPlatformPos = curPlatform.pos.clone();
+					if (!curPlatform) {
+						if (col.isBottom() && velY >= 0) {
+							curPlatform = other;
+							velY = 0;
+							canDouble = true;
+							this.trigger("ground", curPlatform);
+							if (curPlatform.pos) {
+								lastPlatformPos = curPlatform.pos.clone();
+							}
+						} else if (col.isTop() && velY <= 0) {
+							velY = 0;
+							this.trigger("headbutt", other);
 						}
-					} else if (col.isTop()) {
-						velY = 0;
-						this.trigger("headbutt", other);
 					}
 				}
 			});
-
 		},
 
 		update() {
-
-
+			justFall = false;
 			if (curPlatform) {
 				if (!curPlatform.exists() || !this.isTouching(curPlatform)) {
 					this.trigger("fall", curPlatform);
 					curPlatform = null;
 					lastPlatformPos = null;
+					justFall = true;
+					velY = 0;
 				} else {
 					if (lastPlatformPos && curPlatform.pos) {
 						// sticky platform
@@ -1825,7 +1826,6 @@ function body(opt: BodyCompOpt = {}): BodyComp {
 		},
 
 		jump(force: number) {
-			lastlastPlatform = curPlatform;
 			curPlatform = null;
 			lastPlatformPos = null;
 			velY = -force || -this.jumpForce;

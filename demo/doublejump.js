@@ -103,7 +103,12 @@ scene("game", () => {
 		])
 	}
 
+	bean.onGround(() => {
+		debug.log("ground")
+	});
+
 	bean.onCollide("danger", () => {
+		debug.log("danger")
 		go("lose")
 	})
 
