@@ -1282,7 +1282,7 @@ function area(opt: AreaCompOpt = {}): AreaComp {
 			if (typeof tag === "function" && cb === undefined) {
 				return this.on("collide", tag);
 			} else if (typeof tag === "string") {
-				return this.on("collide", (obj) => obj.is(tag) && cb(obj));
+				return this.on("collide", (obj, col) => obj.is(tag) && cb(obj, col));
 			}
 		},
 
@@ -1302,6 +1302,7 @@ function area(opt: AreaCompOpt = {}): AreaComp {
 			return testAreaPoint(this.worldArea(), pt);
 		},
 
+		// TODO: area scale not working
 		// TODO: support custom polygon
 		localArea(): Area {
 
@@ -1765,6 +1766,9 @@ function body(opt: BodyCompOpt = {}): BodyComp {
 				if (!other.c("body")) {
 					return;
 				}
+				// static vs static: don't resolve
+				// static vs non-static: always resolve non-static
+				// non-static vs non-static: resolve the first one
 				if (!(this.static && other.static) && !col.resolved) {
 					const target = (this.static && !other.static) ? other : this;
 					const displacement = target === this ? col.displacement : col.displacement.scale(-1);
@@ -1781,10 +1785,7 @@ function body(opt: BodyCompOpt = {}): BodyComp {
 							canDouble = true;
 							// TODO: emit "changePlatform" event
 							this.trigger("ground", curPlatform);
-							console.log(curPlatform.inspect())
-							console.log(curPlatform.pos)
-							if (curPlatform.pos) {
-								console.log('12313123')
+							if (curPlatform?.pos) {
 								lastPlatformPos = curPlatform.pos.clone();
 							}
 						} else if (col.isTop() && velY <= 0) {
