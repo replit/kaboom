@@ -31,7 +31,7 @@ const level = addLevel([
 	"=": () => [
 		sprite("grass"),
 		area(),
-		solid(),
+		staticBody(),
 		origin("bot"),
 	],
 	"$": () => [

@@ -376,14 +376,13 @@ export interface KaboomCtx {
 	 */
 	outline(width?: number, color?: Color): OutlineComp,
 	/**
-	 * Physical body that responds to gravity. Requires "area" and "pos" comp. This also makes the object "solid".
+	 * Respond to physics. Requires "area" and "pos" comp.
 	 *
 	 * @example
 	 * ```js
 	 * // froggy jumpy
 	 * const froggy = add([
 	 *     sprite("froggy"),
-	 *     // body() requires "pos" and "area" component
 	 *     pos(),
 	 *     area(),
 	 *     body(),
@@ -405,24 +404,9 @@ export interface KaboomCtx {
 	 */
 	body(options?: BodyCompOpt): BodyComp,
 	/**
-	 * Make other objects cannot move pass. Requires "area" comp.
-	 *
-	 * @example
-	 * ```js
-	 * add([
-	 *     sprite("rock"),
-	 *     pos(30, 120),
-	 *     area(),
-	 *     solid(),
-	 * ])
-	 *
-	 * // only do collision checking when a block is close to player for performance
-	 * onUpdate("block", (b) => {
-	 *     b.solid = b.pos.dist(player.pos) <= 64
-	 * })
-	 * ```
+	 * Alias to body() with static and no gravity. Good for static physical objects.
 	 */
-	solid(): SolidComp,
+	staticBody(options?: BodyCompOpt): BodyComp,
 	/**
 	 * Move towards a direction infinitely, and destroys when it leaves game view. Requires "pos" comp.
 	 *
@@ -1725,7 +1709,7 @@ export interface KaboomCtx {
 	 *     "=": () => [
 	 *         sprite("floor"),
 	 *         area(),
-	 *         solid(),
+	 *         body(),
 	 *     ],
 	 *     "$": () => [
 	 *         sprite("coin"),
@@ -3251,12 +3235,12 @@ export interface PosComp extends Comp {
 	 */
 	pos: Vec2,
 	/**
-	 * Move how many pixels per second. If object is 'solid', it won't move into other 'solid' objects.
+	 * Move by velocity (pixels per second, velocity is multiplied by dt).
 	 */
 	move(xVel: number, yVel: number): void,
 	move(vel: Vec2): void,
 	/**
-	 * Move how many pixels, without multiplying dt, but still checking for 'solid'.
+	 * Move by pixels (not multiplied by dt).
 	 */
 	moveBy(dx: number, dy: number): void,
 	moveBy(d: Vec2): void,
@@ -3340,7 +3324,7 @@ export interface Collision {
 	 */
 	displacement: Vec2,
 	/**
-	 * If kaboom already resolved the displacement for you (will happen automatically if both objects are solid).
+	 * If displacement is already resolved.
 	 */
 	resolved: boolean,
 	/**
@@ -3451,14 +3435,6 @@ export interface AreaComp extends Comp {
 	 * If has a certain point inside collider.
 	 */
 	hasPoint(p: Vec2): boolean,
-	/**
-	 * Push out from another solid game obj if currently overlapping.
-	 */
-	pushOut(obj: GameObj): void,
-	/**
-	 * Push out from all other solid game objs if currently overlapping.
-	 */
-	pushOutAll(): void,
 	/**
 	 * Get the geometry data for the collider in local coordinate space.
 	 */
@@ -3773,9 +3749,17 @@ export interface ShaderComp extends Comp {
 
 export interface BodyComp extends Comp {
 	/**
-	 * If should collide with other solid objects.
+	 * If it's a static body, won't move often, and other objects shouldn't go through it.
+	 *
+	 * @since v2000.2
 	 */
-	solid: boolean,
+	static: boolean,
+	/**
+	 * If respond to gravity.
+	 *
+	 * @since v2000.2
+	 */
+	gravity?: boolean,
 	/**
 	 * Initial speed in pixels per second for jump().
 	 */
@@ -3844,6 +3828,18 @@ export interface BodyComp extends Comp {
 
 export interface BodyCompOpt {
 	/**
+	 * If it's a static object that doesn't move.
+	 *
+	 * @since v2000.2
+	 */
+	static?: boolean,
+	/**
+	 * If respond to gravity.
+	 *
+	 * @since v2000.2
+	 */
+	gravity?: boolean,
+	/**
 	 * Initial speed in pixels per second for jump().
 	 */
 	jumpForce?: number,
@@ -3855,10 +3851,6 @@ export interface BodyCompOpt {
 	 * Gravity multiplier.
 	 */
 	weight?: number,
-	/**
-	 * If should not move through other solid objects.
-	 */
-	solid?: boolean,
 }
 
 export interface Timer {
@@ -3877,13 +3869,6 @@ export interface TimerComp extends Comp {
 	 * Run the callback after n seconds.
 	 */
 	wait(n: number, action: () => void): EventCanceller,
-}
-
-export interface SolidComp extends Comp {
-	/**
-	 * If should stop other solid objects from moving through.
-	 */
-	solid: boolean,
 }
 
 export interface FixedComp extends Comp {

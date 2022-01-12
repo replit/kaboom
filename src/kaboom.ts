@@ -34,7 +34,6 @@ import {
 	testPolygonPolygonSAT,
 	transformArea,
 	areaBBox,
-	minkDiff,
 	vec2FromAngle,
 	deg2rad,
 	rad2deg,
@@ -122,7 +121,6 @@ import {
 	BodyCompOpt,
 	Uniform,
 	ShaderComp,
-	SolidComp,
 	FixedComp,
 	StayComp,
 	HealthComp,
@@ -973,16 +971,27 @@ function regCursor(c: Cursor, draw: string | ((mpos: Vec2) => void)) {
 	// TODO
 }
 
-function makeCollision(target: GameObj<any>, dis: Vec2): Collision {
-	return {
-		target: target,
-		displacement: dis,
-		resolved: false,
-		isTop: () => dis.y > 0,
-		isBottom: () => dis.y < 0,
-		isLeft: () => dis.x > 0,
-		isRight: () => dis.x < 0,
-	};
+class Collision {
+	target: GameObj;
+	displacement: Vec2;
+	resolved: boolean = false;
+	constructor(target: GameObj, dis: Vec2, resolved = false) {
+		this.target = target;
+		this.displacement = dis;
+		this.resolved = resolved;
+	}
+	isLeft() {
+		return this.displacement.x > 0;
+	}
+	isRight() {
+		return this.displacement.x < 0;
+	}
+	isTop() {
+		return this.displacement.y > 0;
+	}
+	isBottom() {
+		return this.displacement.y < 0;
+	}
 }
 
 // TODO: manage global velocity here?
@@ -1291,18 +1300,6 @@ function area(opt: AreaCompOpt = {}): AreaComp {
 
 		hasPoint(pt: Vec2): boolean {
 			return testAreaPoint(this.worldArea(), pt);
-		},
-
-		// push an obj out of another if they're overlapped
-		pushOut(obj: GameObj): Vec2 | null {
-			if (obj === this) {
-				return null;
-			}
-		},
-
-		// push object out of other solid objects
-		pushOutAll() {
-			game.root.every(this.pushOut);
 		},
 
 		// TODO: support custom polygon
@@ -1737,6 +1734,14 @@ function timer(n?: number, action?: () => void): TimerComp {
 const DEF_JUMP_FORCE = 640;
 const MAX_VEL = 65536;
 
+function staticBody(opt: BodyCompOpt = {}): BodyComp {
+	return body({
+		...opt,
+		static: true,
+		gravity: false,
+	});
+}
+
 // TODO: land on wall
 function body(opt: BodyCompOpt = {}): BodyComp {
 
@@ -1752,22 +1757,34 @@ function body(opt: BodyCompOpt = {}): BodyComp {
 		require: [ "pos", "area", ],
 		jumpForce: opt.jumpForce ?? DEF_JUMP_FORCE,
 		weight: opt.weight ?? 1,
-		solid: opt.solid ?? true,
+		static: opt.static ?? false,
+		gravity: opt.gravity ?? true,
 
 		add() {
 			this.onCollide((other, col) => {
-				if (this.solid && other.solid && !col.resolved) {
+				if (!other.c("body")) {
+					return;
+				}
+				if (!(this.static && other.static) && !col.resolved) {
+					const target = (this.static && !other.static) ? other : this;
+					const displacement = target === this ? col.displacement : col.displacement.scale(-1);
 					col.resolved = true;
-					this.pos = this.pos.add(col.displacement);
-					this._transform = calcTransform(this);
-					this._worldArea = transformArea(this.localArea(), this._transform);
+					target.pos = target.pos.add(displacement);
+					target._transform = calcTransform(target);
+					target._worldArea = transformArea(target.localArea(), target._transform);
+				}
+				if (this.gravity) {
 					if (!curPlatform) {
 						if (col.isBottom() && velY >= 0) {
 							curPlatform = other;
 							velY = 0;
 							canDouble = true;
+							// TODO: emit "changePlatform" event
 							this.trigger("ground", curPlatform);
+							console.log(curPlatform.inspect())
+							console.log(curPlatform.pos)
 							if (curPlatform.pos) {
+								console.log('12313123')
 								lastPlatformPos = curPlatform.pos.clone();
 							}
 						} else if (col.isTop() && velY <= 0) {
@@ -1780,6 +1797,11 @@ function body(opt: BodyCompOpt = {}): BodyComp {
 		},
 
 		update() {
+
+			if (!this.gravity) {
+				return;
+			}
+
 			justFall = false;
 			if (curPlatform) {
 				if (!curPlatform.exists() || !this.isTouching(curPlatform)) {
@@ -1867,29 +1889,6 @@ function shader(id: string, uniform: Uniform = {}): ShaderComp {
 		id: "shader",
 		shader: id,
 		uniform: uniform,
-	};
-}
-
-// TODO: accept weight (0 as anything can push, -1 as nothing can push, otherwise calc)
-function solid(): SolidComp {
-	const cleanups = [];
-	return {
-		id: "solid",
-		require: [ "pos", "area", ],
-		solid: true,
-		add() {
-			cleanups.push(this.onCollide((other, col) => {
-				if (this.solid && other.solid && !col.resolved) {
-					col.resolved = true;
-					this.pos = this.pos.add(col.displacement);
-					this._transform = calcTransform(this);
-					this._worldArea = transformArea(this.localArea(), this._transform);
-				}
-			}));
-		},
-		destroy() {
-			cleanups.forEach((c) => c());
-		},
 	};
 }
 
@@ -2464,9 +2463,9 @@ const ctx: KaboomCtx = {
 	uvquad,
 	outline,
 	body,
+	staticBody,
 	shader,
 	timer,
-	solid,
 	fixed,
 	stay,
 	health,
@@ -2679,6 +2678,7 @@ function calcTransform(obj: GameObj): Mat4 {
 
 function checkFrame() {
 
+	// TODO: persistent grid?
 	// start a spatial hash grid for more efficient collision detection
 	const grid: Record<number, Record<number, GameObj<AreaComp>[]>> = {};
 	const cellSize = gopt.hashGridSize || DEF_HASH_GRID_SIZE;
@@ -2736,12 +2736,14 @@ function checkFrame() {
 							if (!checked.has(other._id)) {
 								const res = aobj.checkCollision(other);
 								if (res && !res.isZero()) {
-									const col1 = makeCollision(other, res);
-									const col2 = makeCollision(aobj, res.scale(-1));
+									const col1 = new Collision(other, res);
 									aobj.trigger("collide", other, col1);
-									if (col1.resolved) {
-										col2.resolved = true;
-									}
+									// resolution only has to happen once
+									const col2 = new Collision(
+										aobj,
+										res.scale(-1),
+										col1.resolved
+									);
 									other.trigger("collide", aobj, col2);
 								}
 							}
@@ -2900,7 +2902,7 @@ function drawDebug() {
 					color: lcolor,
 				},
 				uniform: {
-					"u_transform": mat4(),
+					"u_transform": obj.fixed ? mat4() : game.camMatrix,
 				},
 				fill: false,
 			});

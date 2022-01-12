@@ -36,7 +36,7 @@ const level = addLevel([
 	"=": () => [
 		sprite("grass"),
 		area(),
-		solid(),
+		staticBody(),
 		origin("bot"),
 	],
 	"$": () => [
@@ -83,9 +83,9 @@ player.onCollide("coin", (coin) => {
 })
 
 player.onGround((ground) => {
-	debug.log(ground._id)
+	debug.log("ground " + ground._id)
 })
 
-player.onGround((ground) => {
+player.onFall((ground) => {
 	debug.log("fall " + ground._id)
 })

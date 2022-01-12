@@ -6,10 +6,8 @@ import {
 	Color,
 	Quad,
 	Point,
-	Rect,
 	Circle,
 	Polygon,
-	Line,
 	Area,
 	RNG,
 } from "./types";
@@ -571,10 +569,10 @@ function testRectLine(r: Rect, l: Line): boolean {
 	if (testRectPoint(r, l.p1) || testRectPoint(r, l.p2)) {
 		return true;
 	}
-	return !!testLineLine(l, makeLine(r.p1, vec2(r.p2.x, r.p1.y)))
-		|| !!testLineLine(l, makeLine(vec2(r.p2.x, r.p1.y), r.p2))
-		|| !!testLineLine(l, makeLine(r.p2, vec2(r.p1.x, r.p2.y)))
-		|| !!testLineLine(l, makeLine(vec2(r.p1.x, r.p2.y), r.p1));
+	return !!testLineLine(l, new Line(r.p1, vec2(r.p2.x, r.p1.y)))
+		|| !!testLineLine(l, new Line(vec2(r.p2.x, r.p1.y), r.p2))
+		|| !!testLineLine(l, new Line(r.p2, vec2(r.p1.x, r.p2.y)))
+		|| !!testLineLine(l, new Line(vec2(r.p1.x, r.p2.y), r.p1));
 }
 
 function testRectPoint2(r: Rect, pt: Point): boolean {
@@ -646,10 +644,7 @@ function testCirclePolygon(c: Circle, p: Polygon): boolean {
 
 function testPolygonPolygon(p1: Polygon, p2: Polygon): boolean {
 	for (let i = 0; i < p1.length; i++) {
-		const l = {
-			p1: p1[i],
-			p2: p1[(i + 1) % p1.length],
-		};
+		const l = new Line(p1[i], p1[(i + 1) % p1.length]);
 		if (testLinePolygon(l, p2)) {
 			return true;
 		}
@@ -841,18 +836,37 @@ function testPolygonPolygonSAT(p1: Polygon, p2: Polygon): Vec2 | null {
 	return displacement;
 }
 
-function minkDiff(r1: Rect, r2: Rect): Rect {
-	return {
-		p1: vec2(r1.p1.x - r2.p2.x, r1.p1.y - r2.p2.y),
-		p2: vec2(r1.p2.x - r2.p1.x, r1.p2.y - r2.p1.y),
-	};
+class Line {
+	p1: Vec2;
+	p2: Vec2;
+	constructor(p1: Vec2, p2: Vec2) {
+		this.p1 = p1.clone();
+		this.p2 = p2.clone();
+	}
 }
 
-function makeLine(p1: Vec2, p2: Vec2): Line {
-	return {
-		p1: p1.clone(),
-		p2: p2.clone(),
-	};
+// class Polygon {
+// 	pts: Vec2[];
+// 	constructor(pts: Vec2[]) {
+// 		this.pts = pts;
+// 	}
+// }
+
+class Rect {
+	p1: Vec2;
+	p2: Vec2;
+	constructor(p1: Vec2, p2: Vec2) {
+		this.p1 = p1.clone();
+		this.p2 = p2.clone();
+	}
+// 	toPolygon() {
+// 		return new Polygon([
+// 			this.p1,
+// 			vec2(this.p2.x, this.p1.y),
+// 			this.p2,
+// 			vec2(this.p1.x, this.p2.y),
+// 		]);
+// 	}
 }
 
 export {
@@ -895,7 +909,6 @@ export {
 	testPolygonPolygonSAT,
 	areaBBox,
 	transformArea,
-	minkDiff,
 	vec2FromAngle,
 	isVec2,
 	isVec3,

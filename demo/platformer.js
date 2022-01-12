@@ -111,7 +111,7 @@ const levelConf = {
 	"=": () => [
 		sprite("grass"),
 		area(),
-		solid(),
+		staticBody(),
 		origin("bot"),
 	],
 	"$": () => [
@@ -124,14 +124,14 @@ const levelConf = {
 	"%": () => [
 		sprite("prize"),
 		area(),
-		solid(),
+		staticBody(),
 		origin("bot"),
 		"prize",
 	],
 	"^": () => [
 		sprite("spike"),
 		area(),
-		solid(),
+		staticBody(),
 		origin("bot"),
 		"danger",
 	],
@@ -314,3 +314,4 @@ scene("win", () => {
 })
 
 go("game")
+focus()
