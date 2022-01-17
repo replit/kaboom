@@ -29,35 +29,40 @@ const enemy = add([
 
 // Run the callback once every time we enter "idle" state.
 // Here we stay "idle" for 0.5 second, then enter "attack" state.
-enemy.onStateEnter("idle", () => {
-	wait(0.5, () => enemy.enterState("attack"))
+enemy.onStateEnter("idle", async () => {
+	await wait(0.5)
+	enemy.enterState("attack")
 })
 
 // When we enter "attack" state, we fire a bullet, and enter "move" state after 1 sec
-enemy.onStateEnter("attack", () => {
-
-	wait(1, () => enemy.enterState("move"))
+enemy.onStateEnter("attack", async () => {
 
 	// Don't do anything if player doesn't exist anymore
-	if (!player.exists()) return
+	if (player.exists()) {
 
-	const dir = player.pos.sub(enemy.pos).unit()
+		const dir = player.pos.sub(enemy.pos).unit()
 
-	add([
-		pos(enemy.pos),
-		move(dir, BULLET_SPEED),
-		rect(12, 12),
-		area(),
-		cleanup(),
-		origin("center"),
-		color(BLUE),
-		"bullet",
-	])
+		add([
+			pos(enemy.pos),
+			move(dir, BULLET_SPEED),
+			rect(12, 12),
+			area(),
+			cleanup(),
+			origin("center"),
+			color(BLUE),
+			"bullet",
+		])
+
+	}
+
+	await wait(1)
+	enemy.enterState("move")
 
 })
 
-enemy.onStateEnter("move", () => {
-	wait(2, () => enemy.enterState("idle"))
+enemy.onStateEnter("move", async () => {
+	await wait(2)
+	enemy.enterState("idle")
 })
 
 // Like .onUpdate() which runs every frame, but only runs when the current state is "move"

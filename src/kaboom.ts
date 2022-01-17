@@ -440,8 +440,11 @@ function make<T>(comps: CompList<T>): GameObj<T> {
 			return obj;
 		},
 
+		// TODO
 		readd(obj: GameObj): GameObj {
 			this.remove(obj);
+			obj.parent = this;
+			obj._transform = calcTransform(obj);
 			this.children.push(obj);
 			return obj;
 		},
@@ -449,9 +452,9 @@ function make<T>(comps: CompList<T>): GameObj<T> {
 		remove(obj: GameObj): void {
 			const idx = this.children.indexOf(obj);
 			if (idx !== -1) {
-				obj.parent = null;
-				obj.trigger("destroy");
 				this.children.splice(idx, 1);
+				obj.trigger("destroy");
+				obj.parent = null;
 			}
 		},
 
@@ -471,8 +474,8 @@ function make<T>(comps: CompList<T>): GameObj<T> {
 			gfx.pushTranslate(this.pos);
 			gfx.pushScale(this.scale);
 			gfx.pushRotateZ(this.angle);
-			this.every((child) => child.draw());
 			this.trigger("draw");
+			this.every((child) => child.draw());
 			gfx.popTransform();
 		},
 
@@ -1304,6 +1307,7 @@ function area(opt: AreaCompOpt = {}): AreaComp {
 
 		// TODO: area scale not working
 		// TODO: support custom polygon
+		// TODO: check for each render component instead of width / height?
 		localArea(): Area {
 
 			let w = this.area.width ?? this.width;
@@ -1339,11 +1343,7 @@ function area(opt: AreaCompOpt = {}): AreaComp {
 			if (this.fixed) {
 				return area;
 			} else {
-				return {
-					shape: "rect",
-					p1: game.camMatrix.multVec2(area.p1),
-					p2: game.camMatrix.multVec2(area.p2),
-				};
+				return transformArea(area, game.camMatrix);
 			}
 		},
 
@@ -1763,7 +1763,7 @@ function body(opt: BodyCompOpt = {}): BodyComp {
 
 		add() {
 			this.onCollide((other, col) => {
-				if (!other.c("body")) {
+				if (!other.is("body")) {
 					return;
 				}
 				// static vs static: don't resolve
@@ -2013,17 +2013,21 @@ function state(
 
 			const oldState = this.state;
 
-			// check if the transition is legal, if transition graph is defined
-			if (!transitions?.[oldState]) {
-				return;
-			}
+			if (transitions) {
 
-			const available = typeof transitions[oldState] === "string"
-				? [transitions[oldState]]
-				: transitions[oldState] as string[];
+				// check if the transition is legal, if transition graph is defined
+				if (!transitions?.[oldState]) {
+					return;
+				}
 
-			if (!available.includes(state)) {
-				throw new Error(`Cannot transition state from "${oldState}" to "${state}". Available transitions: ${available.map((s) => `"${s}"`).join(", ")}`);
+				const available = typeof transitions[oldState] === "string"
+					? [transitions[oldState]]
+					: transitions[oldState] as string[];
+
+				if (!available.includes(state)) {
+					throw new Error(`Cannot transition state from "${oldState}" to "${state}". Available transitions: ${available.map((s) => `"${s}"`).join(", ")}`);
+				}
+
 			}
 
 			trigger("leave", oldState, ...args);
