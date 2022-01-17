@@ -2,6 +2,11 @@ const PROGGY_DATAURL = "data:font/woff2;base64,d09GMgABAAAAAA3IAAwAAAAAoPgAAA11A
 
 const PROGGY_CSS_URL = `url("${PROGGY_DATAURL}") format("woff2")`;
 
+type Theme = {
+	outline: string,
+	bg: string,
+}
+
 type PeditOpt = {
 	width?: number,
 	height?: number,
@@ -14,6 +19,7 @@ type PeditOpt = {
 		| ImageData
 		,
 	styles?: Partial<CSSStyleDeclaration>,
+	theme?: Theme,
 	palette?: Color[],
 	send?: (msg: string) => void,
 	onChange?: () => void,
@@ -187,6 +193,22 @@ function drawImg(
 			const ic = getPixel(img2, xx, yy);
 			if (ic.a) {
 				setPixel(img, x + xx, y + yy, ic.mix(c));
+			}
+		}
+	}
+}
+
+function eraseImg(
+	img: ImageData,
+	img2: ImageData,
+	x: number,
+	y: number,
+) {
+	for (let xx = 0; xx < img2.width; xx++) {
+		for (let yy = 0; yy < img2.height; yy++) {
+			const ic = getPixel(img2, xx, yy);
+			if (ic.a) {
+				setPixel(img, x + xx, y + yy, new Color(0, 0, 0, 0));
 			}
 		}
 	}
@@ -451,6 +473,8 @@ class Input {
 		this.mouseDeltaPos = vec2();
 	}
 
+	// TODO: destroy() to remove event listeners
+
 }
 
 class View {
@@ -483,6 +507,10 @@ export default class Pedit {
 	curColor: Color = rgb(0, 0, 0);
 	curTool: number = 0;
 	palette: Color[] = [];
+	theme: Theme = {
+		outline: "black",
+		bg: "white",
+	};
 
 	private frameCanvas: ImageCanvas;
 	private layerCanvas: ImageCanvas;
@@ -513,6 +541,10 @@ export default class Pedit {
 				const val = opt.styles[key];
 				if (val) this.canvas.style[key] = val;
 			}
+		}
+
+		if (opt.theme) {
+			this.theme = opt.theme;
 		}
 
 		const ctx = this.canvas.getContext("2d");
@@ -635,6 +667,10 @@ export default class Pedit {
 			this.update();
 			this.ctx.drawImage(this.frameCanvas.canvas, 0, 0);
 
+// 			ctx.strokeStyle = this.theme.outline;
+// 			ctx.lineWidth = 2 / this.view.scale;
+// 			ctx.strokeRect(0, 0, this.width(), this.height());
+
 			ctx.setTransform(1, 0, 0, 1, 0, 0);
 
 			if (this.showUI) {
@@ -649,10 +685,6 @@ export default class Pedit {
 						color: this.curColor,
 						onClick: () => colorpicker((c) => this.curColor = c),
 					}) ],
-// 					[ vec2(1, 0), vec2(-16, 16), ui.hstack([
-// 						ui.text("size", { size: 24, color: rgb(32, 32, 45).lighten(60) }),
-// 						ui.slider(n, 0, 32, 1, (val) => n = val),
-// 					], { align: "center", margin: 8, }) ]
 				]).draw();
 
 			}
@@ -1153,33 +1185,6 @@ class UI {
 		};
 	}
 
-	slider(val: number, min: number, max: number, step: number, setVal: (val: number) => void): UIItem {
-
-		const ballSize = 16;
-		const stripWidth = 80;
-		const stripHeight = 4;
-
-		return {
-			width: stripWidth,
-			height: ballSize,
-			draw: () => {
-				const ratio = (val - min) / (max - min);
-				const dis = stripWidth * ratio;
-				this.ctx.fillStyle = "black";
-				this.ctx.fillRect(0, ballSize / 2 - stripHeight / 2, stripWidth, stripHeight);
-				this.ctx.beginPath();
-				this.ctx.arc(dis, ballSize / 2, ballSize / 2, 0, 2 * Math.PI);
-				this.ctx.fill();
-				if (this.mouseInRect(dis - ballSize / 2, 0, ballSize, ballSize)) {
-					this.canvas.style.cursor = "pointer";
-					if (this.input.mouseDown) {
-						setVal(val + (max - min) * this.input.mouseDeltaPos.x / stripWidth);
-					}
-				}
-			},
-		};
-	}
-
 }
 
 type BrushToolKind =
@@ -1347,6 +1352,19 @@ export const erasorTool: ToolCfg<ErasorToolProps, ErasorToolState> = {
 		kind: "rect",
 		soft: 0,
 	},
+	cmds: [
+		{
+			name: "ERASE",
+			exec: (cmd: EraseCmd, p: Pedit) => {
+				const dx = Math.floor(cmd.brush.width / 2);
+				const dy = Math.floor(cmd.brush.height / 2);
+				for (const [ x, y ] of line(cmd.from.x, cmd.from.y, cmd.to.x, cmd.to.y)) {
+					// TODO: only support rect + circle erasor for better perf?
+					eraseImg(p.curImg(), cmd.brush, x - dx, y - dy);
+				}
+			},
+		},
+	],
 	state: (props) => {
 		const brush = (() => {
 			switch (props.kind) {
@@ -1365,6 +1383,7 @@ export const erasorTool: ToolCfg<ErasorToolProps, ErasorToolState> = {
 			if (e.button === 0) {
 				state.startPos = p.toCanvasPos(e.offsetX, e.offsetY);
 				state.drawing = true;
+				p.pushState();
 			}
 		},
 		mouseup: (e, props, state, p) => {
