@@ -2173,17 +2173,21 @@ function state(
 
 			const oldState = this.state;
 
-			// check if the transition is legal, if transition graph is defined
-			if (!transitions?.[oldState]) {
-				return;
-			}
+			if (transitions) {
 
-			const available = typeof transitions[oldState] === "string"
-				? [transitions[oldState]]
-				: transitions[oldState] as string[];
+				// check if the transition is legal, if transition graph is defined
+				if (!transitions?.[oldState]) {
+					return;
+				}
 
-			if (!available.includes(state)) {
-				throw new Error(`Cannot transition state from "${oldState}" to "${state}". Available transitions: ${available.map((s) => `"${s}"`).join(", ")}`);
+				const available = typeof transitions[oldState] === "string"
+					? [transitions[oldState]]
+					: transitions[oldState] as string[];
+
+				if (!available.includes(state)) {
+					throw new Error(`Cannot transition state from "${oldState}" to "${state}". Available transitions: ${available.map((s) => `"${s}"`).join(", ")}`);
+				}
+
 			}
 
 			trigger("leave", oldState, ...args);
