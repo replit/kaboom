@@ -470,7 +470,9 @@ const Play: React.FC = () => {
 					ref={gameviewRef}
 					code={template}
 					onLoad={() => {
-						gameviewRef.current?.send({ drawCode: localStorage["drawCode"] });
+						gameviewRef.current?.send({
+							drawCode: localStorage["drawCode"] ?? DRAW_CODE
+						});
 					}}
 					width={isNarrow ? "100%" : "auto"}
 					height={isNarrow ? "auto" : "100%"}
