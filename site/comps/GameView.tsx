@@ -47,12 +47,12 @@ ${code}
 
 interface GameViewProps {
 	code: string,
-	msg?: any,
+	onLoad?: () => void,
 }
 
 const GameView = React.forwardRef<GameViewRef, GameViewProps & ViewProps>(({
 	code,
-	msg,
+	onLoad,
 	...args
 }, ref) => {
 
@@ -79,13 +79,6 @@ const GameView = React.forwardRef<GameViewRef, GameViewProps & ViewProps>(({
 	}, [ code ]);
 
 	React.useEffect(() => {
-		if (!msg) return;
-		if (!iframeRef.current) return;
-		const iframe = iframeRef.current;
-		iframe.contentWindow?.postMessage(JSON.stringify(msg), "*");
-	}, [ msg ]);
-
-	React.useEffect(() => {
 		const body = iframeRef.current?.contentWindow?.document?.body;
 		if (body) {
 			body.className = theme;
@@ -97,6 +90,7 @@ const GameView = React.forwardRef<GameViewRef, GameViewProps & ViewProps>(({
 			<iframe
 				ref={iframeRef}
 				tabIndex={0}
+				onLoad={onLoad}
 				css={{
 					border: "none",
 					background: "var(--background-bg2)",

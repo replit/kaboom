@@ -29,18 +29,9 @@ import Ctx from "lib/Ctx";
 
 // TODO: CLEAN
 
-const INIT_CODE = `
-// this code runs once at start
-// requires restart after change
-// try hold alt and click the img
-
-loadSprite("bean", "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAAA2CAMAAABAzG8wAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAEyUExURQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAcPCw4ICA4dFw4eFg4eFxAQEBUsIhUtIhwPDxwQEBw8LR07LR08LSAgICNKOCNLOCRKOCRLOCoXFypZQypaQytZQytaQzAwMDFoTjFoTzFpTzgfHzh3WTh3Wjh4Wjl3WTl3Wjl4Wj+GZUBAQECGZECGZUCHZUYnJ0aVcEeVcE2ke06ke06kfFBQUFQuLlSzhlUuLlWzhlvCkVzCkVzCkmBgYGM2NmPRnWrgqHA+PnBwcHHvs35FRYCAgIxNTY1NTZCQkJtUVJtVVZ+fn6CgoKlcXKldXbdkZL+/v8Vra8VsbNDQ0NNzc9/f3+F7e////ysmAfQAAAAVdFJOUwAQIDBAUGBvcH+AkJ+gr7C/z9Df74JQjt0AAAO5SURBVEjHnVfrQtowFKaADC1qu9I6YSBecIKoOHAD2bhssMpc6zqn010c0/H+r7CcJG2TFAru/LCYnu/kO9ekkUiIxBJyStXSOhJNVeRkPPIIiS8qGMlJWklE50PLQbArKzN5SIuaHiraQjjc3/zZ7lHHtGwHiTXs1XYz7ovUdEc8uLHfsRxRhq1MOIn4U4reMZ0pYpaIyuIk/BMKP7GdELEyUyxIK/PAQU4mWogS+ocz4RALTCLJ749zZ5ghMLteMHQ9VzapG2kuF5h/Dgfe7lbQe6NQ5dJgFbz0rlvOEJnSFTZ9GI/p1w1Ps+ybeGOwtVR3Tnknoh5+mNF5TSJVoRrLzgtwQnINaIQY2kisW2KhzKwcUHIGQyEBSx2k+JpVbNK96P7ZLFk/v9uGh/mKiQIQKAl4/WB8SzTJ8vYDNZAdP8DjnQ1/o34EkQNd/P7WtTAe32EDFsGPvfVror/l+QAEXiICEL/sH19xfA6hcdrwT/Nh7DLAVBBh8CHlRgAiiHfSL8dN14VLEhobZ3D7+j1Zb4JjBiWssgQwJ6RJwqx//4yLxm8fVk4dsqGG8As0AkgOWR0cQQO/sLYEPN7PgV/IwDJNAUhH2MvoTXxB8NSARFLlVnyJVVwf+q1QMgJWiYEEdTSoKUwGu7P7HOZky12lMVhFjyO+b3tHm5ub+61Zk8EkpZhmPXiUtHAdxIDrf+GdIoImcAh2/guPeyEWkdHfWrimdWa2G7VKpVDkRlSbxFCBxgpiLLPdrlUrhVyGnUQ5VgeKS45EVPT46K8OKkUew9eVkAPoZkiCny8r/FgtCQRWUSHDOu9XQDY2jvv9Pb9jfM14wECXxVx8ufr26/f9X5BRnieAGxQPA94AdoFiOPngTl0qZW+eaTwziN+PIP7KnQFU8JRcwuNM5dMIzdgP4EdrfMcNdDpL6DRoCMkZifi8N1qIowZzMibR7wKTHQjOMY+/3+MdIBNugT3UmMbt6aITBH/on+2GHwAQqOWqUCD62xHPnylicvj5eHKsDZkmwwTzX+n2F2v+uQ1vqyKeHqx24A6U79/8vPm0pnP4YS6Ij8Q5lUnHQMl2ryjkwpsQbkeyLpQZvUW5LXjK3zG0WOB6pmK9BjeaM8Jotut0RZYmXG9Vcgq0bWE0o6suWRpU6YzQJl+1JZluV+4GZ7k9qLp00kvStDtywruh54q1rnvDPus2Kjn/a2E6HCpyOXwYzYBjE0vTvxPSSnzOLxV10geGHJfm/1aS4klZUQgXTVtJJWeA/wFPmR833RRQSAAAAABJRU5ErkJggg==")
-`.trim();
-
 const DRAW_CODE = `
 // this code runs every frame
 // try hold alt and drag / click values
-// (all of these could work in replspace, but currently the live update thing requires communication between child iframe and parent window)
 
 const outline = {
 	color: rgb(0, 0, 0),
@@ -59,7 +50,7 @@ drawRect({
 })
 
 drawSprite({
-	sprite: "bean",
+	sprite: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAAAxCAMAAABdyV+IAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAEOUExURQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAcLEAgLEA4WIA4XIA8WIA8XIBAMEBUiLxYiLxYiMB0tPyAYHyAYICQ4TyU4TytDXyxDXzAkLjAkLzNPbzpafztZf0AwPkAwP0Flj0Jkj0Jlj0lwnlA8TlB8rlF7rleGvliGvl9IXl+Rzl+SzmBIXWBIXmad3Wad3m6o7XBUbXWz/X9hfYBgfIBgfY9tjJBsjJBsjZBtjZ94nJ95nKB4nKB5nK+Eq6+Fq7CEq7CFrL+Qu7+Ru8+dys+dy9Cdy9+p2u+16f/B+Se1j8gAAAAXdFJOUwAQIDBAUF9gb3B/gI+Qn6CvsL/P0N/vIiFUiwAAAxhJREFUSMedltl60zAQheWlFDckFKfWz2qgYW0hLA17oclQoKwFQon9/i/Che1YspX0C3Nnz5yj2TQapRZIGPnmx7paUdaBXkkRxkBnRYLzAMmaUkptAND/Dw+AMxWe7soxJADaL5jilXOglOoAaA0koaXwfIe1F/XiON7smKYRpQRGPbp9DehN26UgrmzRvTn/WvWv75WnbOi5HUlU489iSUnh19bnitMT265fHdWjIUX5YoCHr28AhEqpc5U6vVXZFQyF4tHn4+n0+O2gUG2UhXwiMr4CxMorokwnx1me5yeFYeJVfTKY5qV8HZQMfeCeiMhLgHATgPdZZTcblbH5AINZXsv7ImyAAxERuQdogMFfwyx/VcR2vonP85O0jPG2yNyFtlm2A1xQfeB7bstJiXhWEMi2C5/nU0ArgLwpHwG4XOLlKQDTlhmA0sCspdqhSqGIyBhg1DL6DWgVA5OW7siMQOQK8M15Sq8o93FTN6trICKy6zrlsOywBEj/OLy7PsfLHjB04XtKqRAHw1FdRBGRd0DqwBe9HAGkdhQT4EFNIJeArIXXgTE5+GTqh1YORW4CppP7Jr5iOGwk+I1BcNcqQza08Q6GFBgbBLvAhzn+PkAStIfwodVjBl6emnUcGrOgHmra7IcZcNEk2AP2zfxttQZroIE0qwmumgTPgUdGj2157bkcUMfZInhRE0wc/teZHJ1OMATcz8ya7eYighEQOQku1IlaRvABiF14n7rbsmYVDIKsGvOu93hnUR+YZRwueKtjczgOrHFgN9JPIHEQYM62ncZl2jVuWwbgOVOQWtf5sUGwDfwy3fOdBANroGw35sEf86Y5Okmbk/sLcLG+jq9N9z4BekES50/kT4CXVg6rKk6qWdhaDAEYfsuqoWrEcK2sUPZjkhar08KdCBhOjn5/xXRhD2B/MhpUG8L6kq3KlKtFFsbXGvtHuGgv8+MGw40DERnfsf7pjrdktQu6fZvi9oPdS+Za1A1PXQ/9sNOL+9rm0XGvG60H3ip7phdszvFbvvovKdbdU6JeLmHUicKl8H8a8qVPhrjeUAAAAABJRU5ErkJggg==",
 	flipX: false,
 	pos: vec2(200),
 })
@@ -89,15 +80,32 @@ drawEllipse({
 const template = `
 kaboom()
 
-if (window.parent.initCode) {
-	eval(window.parent.initCode)
-} else {
-	eval(${INIT_CODE})
-}
-
 let drawCode = null
 let lastDrawCode = null
 let err = null
+
+const sprites = {}
+const origDrawSprite = drawSprite
+
+window.drawSprite = (opt) => {
+	let src = opt.sprite;
+	if (!src) return;
+	if (src.startsWith("data:image/")) {
+		if (sprites[src]) {
+			src = sprites[src]
+		} else {
+			// TODO: prevent multiple
+			loadSprite(src, src).then((spr) => {
+				sprites[src] = spr
+			})
+			return
+		}
+	}
+	origDrawSprite({
+		...opt,
+		sprite: src,
+	})
+}
 
 window.addEventListener("message", (e) => {
 	const data = JSON.parse(e.data)
@@ -314,9 +322,9 @@ const SoundEntry: React.FC<SoundEntryProps> = ({
 		height={48}
 		css={{
 			"overflow": "hidden",
+			"cursor": "pointer",
 			":hover": {
 				"background": "var(--color-bg2)",
-				"cursor": "pointer",
 			},
 		}}
 		onClick={() => new Audio(src).play()}
@@ -337,21 +345,8 @@ const Play: React.FC = () => {
 	const [ backpackOpen, setBackpackOpen ] = React.useState(false);
 	const [ sprites, setSprites ] = useSavedState<Sprite[]>("sprites", []);
 	const [ sounds, setSounds ] = useSavedState<Sound[]>("sounds", []);
-	const [ editingInit, setEditingInit ] = React.useState(false);
 	const spaceUsed = useSpaceUsed();
-	const drawEditorRef = React.useRef<EditorRef | null>(null);
-	const initEditorRef = React.useRef<EditorRef | null>(null);
-
-	React.useEffect(() => {
-		if (localStorage["drawCode"]) {
-			drawEditorRef.current?.setContent(localStorage["drawCode"]);
-		}
-		if (localStorage["initCode"]) {
-			initEditorRef.current?.setContent(localStorage["initCode"]);
-		}
-		gameviewRef.current?.run(template);
-		gameviewRef.current?.send({ drawCode: localStorage["drawCode"] });
-	}, []);
+	const editorRef = React.useRef<EditorRef | null>(null);
 
 	useKey("Escape", () => {
 		setBackpackOpen(false);
@@ -363,22 +358,9 @@ const Play: React.FC = () => {
 		setBackpackOpen((b) => !b);
 	}, [ setBackpackOpen ]);
 
-	useKey("e", (e) => {
-		if (!e.metaKey) return;
-		e.preventDefault();
-		setEditingInit((e) => {
-			if (e) {
-				drawEditorRef.current?.focus();
-			} else {
-				initEditorRef.current?.focus();
-			}
-			return !e;
-		});
-	}, [ setEditingInit ]);
-
 	return <>
 		<Head
-			title="Kaboom Playground"
+			title="Kaboom Draw"
 			scale={0.6}
 		/>
 		<Background dir="column" css={{ overflow: "hidden" }}>
@@ -421,10 +403,8 @@ const Play: React.FC = () => {
 						desc="Clear stored code"
 						text="Reset"
 						action={() => {
-							drawEditorRef.current?.setContent(DRAW_CODE);
-							initEditorRef.current?.setContent(INIT_CODE);
+							editorRef.current?.setContent(DRAW_CODE);
 							delete localStorage["drawCode"];
-							delete localStorage["initCode"];
 							gameviewRef.current?.run(template);
 						}}
 					/>
@@ -457,54 +437,19 @@ const Play: React.FC = () => {
 					}}
 				>
 					<Editor
-						ref={drawEditorRef}
-						content={DRAW_CODE}
+						ref={editorRef}
+						content={() => localStorage["drawCode"] ?? DRAW_CODE}
 						name="Draw Code Editor"
 						desc="Code here runs every frame, changes are reflected in output immediately."
 						onChange={(code) => {
 							gameviewRef.current?.send({ drawCode: code });
 							localStorage["drawCode"] = code;
 						}}
-						width="calc(100% - 32px)"
-						height="calc(100% - 32px)"
-						onMouseDown={() => setEditingInit(false)}
+						stretch
 						css={{
 							position: "absolute",
 							bottom: 0,
 							right: 0,
-							filter: `brightness(${!editingInit ? 1 : 0.6})`,
-							zIndex: !editingInit ? 20 : 0,
-						}}
-						placeholder="Come on let's make some games!"
-						keys={[
-							{
-								key: "Mod-s",
-								run: () => {
-									gameviewRef.current?.run(template);
-									return false;
-								},
-								preventDefault: true,
-							},
-						]}
-					/>
-					<Editor
-						ref={initEditorRef}
-						content={INIT_CODE}
-						name="Init Code Editor"
-						desc="Code here runs once at start, changes requires restart."
-						onChange={(code) => {
-							(window as any).initCode = code;
-							localStorage["initCode"] = code;
-						}}
-						width="calc(100% - 32px)"
-						height="calc(100% - 32px)"
-						onMouseDown={() => setEditingInit(true)}
-						css={{
-							position: "absolute",
-							top: 0,
-							left: 0,
-							filter: `brightness(${editingInit ? 1 : 0.6})`,
-							zIndex: editingInit ? 20 : 0,
 						}}
 						placeholder="Come on let's make some games!"
 						keys={[
@@ -524,6 +469,9 @@ const Play: React.FC = () => {
 					desc="Where your game runs"
 					ref={gameviewRef}
 					code={template}
+					onLoad={() => {
+						gameviewRef.current?.send({ drawCode: localStorage["drawCode"] });
+					}}
 					width={isNarrow ? "100%" : "auto"}
 					height={isNarrow ? "auto" : "100%"}
 					css={{

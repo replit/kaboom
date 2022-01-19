@@ -271,7 +271,7 @@ export interface EditorRef {
 }
 
 interface EditorProps {
-	content?: string,
+	content?: string | (() => string),
 	placeholder?: string,
 	onChange?: (code: string) => void,
 	onSelect?: (code: string) => void,
@@ -353,7 +353,7 @@ const Editor = React.forwardRef<EditorRef, ViewPropsAnd<EditorProps>>(({
 		const view = new EditorView({
 			parent: editorDOM,
 			state: EditorState.create({
-				doc: content ?? "",
+				doc: (typeof content === "function" ? content() : content) ?? "",
 				extensions: [
 					themeConf.of(cmThemes[theme]),
 					EditorState.tabSize.of(4),
@@ -513,17 +513,6 @@ const Editor = React.forwardRef<EditorRef, ViewPropsAnd<EditorProps>>(({
 		setView(view);
 
 	}, []);
-
-	useUpdateEffect(() => {
-		if (!view) return;
-		view.dispatch({
-			changes: {
-				from: 0,
-				to: view.state.doc.length,
-				insert: content,
-			},
-		});
-	}, [ content ]);
 
 	useUpdateEffect(() => {
 		const themeConf = new Compartment();
