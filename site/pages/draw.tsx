@@ -347,6 +347,7 @@ const Play: React.FC = () => {
 	const [ sounds, setSounds ] = useSavedState<Sound[]>("sounds", []);
 	const spaceUsed = useSpaceUsed();
 	const editorRef = React.useRef<EditorRef | null>(null);
+	const getInitCode = React.useCallback(() => localStorage["drawCode"] ?? DRAW_CODE, []);
 
 	useKey("Escape", () => {
 		setBackpackOpen(false);
@@ -438,7 +439,7 @@ const Play: React.FC = () => {
 				>
 					<Editor
 						ref={editorRef}
-						content={() => localStorage["drawCode"] ?? DRAW_CODE}
+						content={getInitCode}
 						name="Draw Code Editor"
 						desc="Code here runs every frame, changes are reflected in output immediately."
 						onChange={(code) => {

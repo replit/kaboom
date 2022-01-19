@@ -515,6 +515,17 @@ const Editor = React.forwardRef<EditorRef, ViewPropsAnd<EditorProps>>(({
 	}, []);
 
 	useUpdateEffect(() => {
+		if (!view) return;
+		view.dispatch({
+			changes: {
+				from: 0,
+				to: view.state.doc.length,
+				insert: (typeof content === "function" ? content() : content) ?? "",
+			},
+		});
+	}, [ content ]);
+
+	useUpdateEffect(() => {
 		const themeConf = new Compartment();
 		view?.dispatch({
 			effects: themeConf.reconfigure(cmThemes[theme])
