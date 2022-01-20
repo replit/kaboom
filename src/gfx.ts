@@ -148,7 +148,7 @@ type Gfx = {
 };
 
 const DEF_ORIGIN = "topleft";
-const STRIDE = 9;
+const STRIDE = 9 + 4 * 4;
 const QUEUE_COUNT = 65536;
 const BG_GRID_SIZE = 64;
 
@@ -156,6 +156,7 @@ const VERT_TEMPLATE = `
 attribute vec3 a_pos;
 attribute vec2 a_uv;
 attribute vec4 a_color;
+attribute mat4 a_transform;
 
 varying vec3 v_pos;
 varying vec2 v_uv;
@@ -163,8 +164,14 @@ varying vec4 v_color;
 
 uniform mat4 u_transform;
 
+// 			pt.x / width() * 2 - 1,
+// 			-pt.y / height() * 2 + 1,
+
 vec4 def_vert() {
-	return u_transform * vec4(a_pos, 1.0);
+	vec4 pt = u_transform * a_transform * vec4(a_pos, 1.0);
+	pt.x = pt.x / 320.0 * 2.0 - 1.0;
+	pt.y = -pt.y / 240.0 * 2.0 + 1.0;
+	return pt;
 }
 
 {{user}}
@@ -253,6 +260,14 @@ function gfxInit(gl: WebGLRenderingContext, gopt: GfxOpt): Gfx {
 		gl.enableVertexAttribArray(1);
 		gl.vertexAttribPointer(2, 4, gl.FLOAT, false, STRIDE * 4, 20);
 		gl.enableVertexAttribArray(2);
+		gl.vertexAttribPointer(3, 4, gl.FLOAT, false, STRIDE * 4, 36);
+		gl.enableVertexAttribArray(3);
+		gl.vertexAttribPointer(4, 4, gl.FLOAT, false, STRIDE * 4, 52);
+		gl.enableVertexAttribArray(4);
+		gl.vertexAttribPointer(5, 4, gl.FLOAT, false, STRIDE * 4, 68);
+		gl.enableVertexAttribArray(5);
+		gl.vertexAttribPointer(6, 4, gl.FLOAT, false, STRIDE * 4, 84);
+		gl.enableVertexAttribArray(6);
 		gl.bufferData(gl.ARRAY_BUFFER, QUEUE_COUNT * 4, gl.DYNAMIC_DRAW);
 		gl.bindBuffer(gl.ARRAY_BUFFER, null);
 
@@ -375,6 +390,7 @@ function gfxInit(gl: WebGLRenderingContext, gopt: GfxOpt): Gfx {
 		gl.bindAttribLocation(id, 0, "a_pos");
 		gl.bindAttribLocation(id, 1, "a_uv");
 		gl.bindAttribLocation(id, 2, "a_color");
+		gl.bindAttribLocation(id, 3, "a_transform");
 
 		gl.linkProgram(id);
 
@@ -479,12 +495,21 @@ function gfxInit(gl: WebGLRenderingContext, gopt: GfxOpt): Gfx {
 		for (const v of verts) {
 
 			// normalized world space coordinate [-1.0 ~ 1.0]
-			const pt = toNDC(gfx.transform.multVec2(v.pos.xy()));
+// 			const pt = toNDC(gfx.transform.multVec2(v.pos.xy()));
+			const m = gfx.transform.m;
 
 			gfx.vqueue.push(
-				pt.x, pt.y, v.pos.z,
+				v.pos.x, v.pos.y, v.pos.z,
 				v.uv.x, v.uv.y,
 				v.color.r / 255, v.color.g / 255, v.color.b / 255, v.opacity,
+				m[0], m[1], m[2], m[3],
+				m[4], m[5], m[6], m[7],
+				m[8], m[9], m[10], m[11],
+				m[12], m[13], m[14], m[15],
+// 				1, 0, 0, 0,
+// 				0, 1, 0, 0,
+// 				0, 0, 1, 0,
+// 				0, 0, 0, 1,
 			);
 
 		}
