@@ -171,7 +171,39 @@ const {
 	height,
 } = gfx;
 
-const assets = assetsInit(gfx, audio);
+let logs = [];
+
+const debug: Debug = {
+	inspect: false,
+	timeScale: 1,
+	showLog: true,
+	fps: app.fps,
+	objCount(): number {
+		// TODO: recursive count
+		return game.root.children.length;
+	},
+	stepFrame: updateFrame,
+	drawCalls: gfx.drawCalls,
+	clearLog: () => logs = [],
+	log: (msg) => logs.unshift(`[${app.time().toFixed(2)}].time [${msg}].info`),
+	error: (msg) => logs.unshift(`[${app.time().toFixed(2)}].time [${msg}].error`),
+	curRecording: null,
+	get paused() {
+		return game.paused;
+	},
+	set paused(v) {
+		game.paused = v;
+		if (v) {
+			audio.ctx.suspend();
+		} else {
+			audio.ctx.resume();
+		}
+	}
+};
+
+const assets = assetsInit(gfx, audio, {
+	errHandler: debug.error,
+});
 
 const DEF_FONT = "apl386o";
 const DBG_FONT = "sink";
@@ -231,13 +263,19 @@ function drawSprite(opt: DrawSpriteOpt) {
 
 	if (!spr) {
 
+		// TODO: better URL detection
 		// if passes a source url, we load it implicitly
 		if (typeof opt.sprite === "string" && (isDataURL(opt.sprite) || opt.sprite.endsWith(".png"))) {
 			if (!loading.has(opt.sprite)) {
 				loading.add(opt.sprite);
-				assets.loadSprite(opt.sprite, opt.sprite).then(() => {
-					loading.delete(opt.sprite);
-				});
+				assets.loadSprite(opt.sprite, opt.sprite)
+					.then((a) => {
+						console.log("success", a)
+						loading.delete(opt.sprite);
+					})
+					.catch((err) => {
+						console.log("failed")
+					});
 			}
 			return;
 		} else {
@@ -2261,36 +2299,6 @@ function state(
 	};
 
 }
-
-let logs = [];
-
-const debug: Debug = {
-	inspect: false,
-	timeScale: 1,
-	showLog: true,
-	fps: app.fps,
-	objCount(): number {
-		// TODO: recursive count
-		return game.root.children.length;
-	},
-	stepFrame: updateFrame,
-	drawCalls: gfx.drawCalls,
-	clearLog: () => logs = [],
-	log: (msg) => logs.unshift(`[${app.time().toFixed(2)}].time [${msg}].info`),
-	error: (msg) => logs.unshift(`[${app.time().toFixed(2)}].time [${msg}].error`),
-	curRecording: null,
-	get paused() {
-		return game.paused;
-	},
-	set paused(v) {
-		game.paused = v;
-		if (v) {
-			audio.ctx.suspend();
-		} else {
-			audio.ctx.resume();
-		}
-	}
-};
 
 function onLoad(cb: () => void): void {
 	if (game.loaded) {
