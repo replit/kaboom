@@ -247,6 +247,12 @@ function gfxInit(gl: WebGLRenderingContext, gopt: GfxOpt): Gfx {
 		const vbuf = gl.createBuffer();
 
 		gl.bindBuffer(gl.ARRAY_BUFFER, vbuf);
+		gl.vertexAttribPointer(0, 3, gl.FLOAT, false, STRIDE * 4, 0);
+		gl.enableVertexAttribArray(0);
+		gl.vertexAttribPointer(1, 2, gl.FLOAT, false, STRIDE * 4, 12);
+		gl.enableVertexAttribArray(1);
+		gl.vertexAttribPointer(2, 4, gl.FLOAT, false, STRIDE * 4, 20);
+		gl.enableVertexAttribArray(2);
 		gl.bufferData(gl.ARRAY_BUFFER, QUEUE_COUNT * 4, gl.DYNAMIC_DRAW);
 		gl.bindBuffer(gl.ARRAY_BUFFER, null);
 
@@ -389,15 +395,6 @@ function gfxInit(gl: WebGLRenderingContext, gopt: GfxOpt): Gfx {
 				gl.useProgram(null);
 			},
 
-			bindAttribs() {
-				gl.vertexAttribPointer(0, 3, gl.FLOAT, false, STRIDE * 4, 0);
-				gl.enableVertexAttribArray(0);
-				gl.vertexAttribPointer(1, 2, gl.FLOAT, false, STRIDE * 4, 12);
-				gl.enableVertexAttribArray(1);
-				gl.vertexAttribPointer(2, 4, gl.FLOAT, false, STRIDE * 4, 20);
-				gl.enableVertexAttribArray(2);
-			},
-
 			send(uniform: Uniform) {
 				this.bind();
 				for (const name in uniform) {
@@ -523,7 +520,6 @@ function gfxInit(gl: WebGLRenderingContext, gopt: GfxOpt): Gfx {
 		gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, gfx.ibuf);
 		gl.bufferSubData(gl.ELEMENT_ARRAY_BUFFER, 0, new Uint16Array(gfx.iqueue));
 		gfx.curShader.bind();
-		gfx.curShader.bindAttribs();
 		gfx.curTex.bind();
 		gl.drawElements(gl.TRIANGLES, gfx.iqueue.length, gl.UNSIGNED_SHORT, 0);
 		gfx.curTex.unbind();
