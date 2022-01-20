@@ -19,10 +19,8 @@ import View from "comps/View";
 import Text from "comps/Text";
 import Menu from "comps/Menu";
 import Inspect from "comps/Inspect";
-import FileDrop from "comps/FileDrop";
+import Drop from "comps/Drop";
 import Drawer from "comps/Drawer";
-import Draggable from "comps/Draggable";
-import Droppable from "comps/Droppable";
 import Background from "comps/Background";
 import Doc from "comps/Doc";
 import download from "lib/download";
@@ -41,8 +39,9 @@ const SpriteEntry: React.FC<SpriteEntryProps> = ({
 	name,
 	src,
 }) => (
-	<Draggable
+	<View
 		focusable
+		draggable
 		dir="row"
 		align="center"
 		gap={1}
@@ -51,8 +50,6 @@ const SpriteEntry: React.FC<SpriteEntryProps> = ({
 		padY={1}
 		rounded
 		height={64}
-		dragType="sprite"
-		dragData={name}
 		css={{
 			"overflow": "hidden",
 			":hover": {
@@ -74,7 +71,7 @@ const SpriteEntry: React.FC<SpriteEntryProps> = ({
 			/>
 		</View>
 		<Text>{path.basename(name)}</Text>
-	</Draggable>
+	</View>
 );
 
 interface SoundEntryProps {
@@ -130,7 +127,6 @@ const Play: React.FC<PlayProps> = ({
 	const router = useRouter();
 	const demo = router.query.demo as string || DEF_DEMO;
 	const code = demos[demo];
-	const { draggin } = React.useContext(Ctx);
 	const [ backpackOpen, setBackpackOpen ] = React.useState(false);
 	const [ sprites, setSprites ] = useSavedState<Sprite[]>("sprites", []);
 	const [ sounds, setSounds ] = useSavedState<Sound[]>("sounds", []);
@@ -290,7 +286,7 @@ const Play: React.FC<PlayProps> = ({
 								const gameview = gameviewRef.current;
 								if (!editorRef.current) return false;
 								const editor = editorRef.current;
-								gameview.run(editor.getContent() ?? undefined);
+								gameview.run(editor.getContent() ?? "");
 								return false;
 							},
 							preventDefault: true,
@@ -322,25 +318,6 @@ const Play: React.FC<PlayProps> = ({
 					}}
 				/>
 			</View>
-			{
-				draggin &&
-				<Droppable
-					stretch
-					css={{
-						position: "absolute",
-						zIndex: 10,
-					}}
-					accept={["sprite", "sound"]}
-					onDrop={(ty, data) => {
-						switch (ty) {
-							case "sprite":
-								setSprites((prev) => prev.filter(({ name }) => name !== data));
-							case "sound":
-								setSounds((prev) => prev.filter(({ name }) => name !== data));
-						}
-					}}
-				/>
-			}
 			<View
 				name="Blackboard"
 				desc="Watch closely what the teacher is demonstrating!"
@@ -380,7 +357,7 @@ const Play: React.FC<PlayProps> = ({
 					<View padX={1} gap={2} stretchX>
 						<Text size="big" color={2}>Backpack</Text>
 					</View>
-					<FileDrop
+					<Drop
 						pad={1}
 						rounded
 						readAs="dataURL"
@@ -417,8 +394,8 @@ const Play: React.FC<PlayProps> = ({
 									/>
 								))
 						}
-					</FileDrop>
-					<FileDrop
+					</Drop>
+					<Drop
 						pad={1}
 						rounded
 						readAs="dataURL"
@@ -455,7 +432,7 @@ const Play: React.FC<PlayProps> = ({
 									/>
 								))
 						}
-					</FileDrop>
+					</Drop>
 					<View stretchX padX={1}>
 						<Text color={4} size="small">Space used: {(spaceUsed / 1024 / 1024).toFixed(2)}mb</Text>
 					</View>
