@@ -63,7 +63,6 @@ import {
 	IDList,
 	downloadURL,
 	downloadBlob,
-	isDataURL,
 	uid,
 } from "./utils";
 
@@ -263,9 +262,8 @@ function drawSprite(opt: DrawSpriteOpt) {
 
 	if (!spr) {
 
-		// TODO: better URL detection
 		// if passes a source url, we load it implicitly
-		if (typeof opt.sprite === "string" && (isDataURL(opt.sprite) || opt.sprite.endsWith(".png"))) {
+		if (typeof opt.sprite === "string") {
 			if (!loading.has(opt.sprite)) {
 				loading.add(opt.sprite);
 				assets.loadSprite(opt.sprite, opt.sprite)
