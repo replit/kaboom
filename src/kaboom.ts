@@ -170,7 +170,39 @@ const {
 	height,
 } = gfx;
 
-const assets = assetsInit(gfx, audio);
+let logs = [];
+
+const debug: Debug = {
+	inspect: false,
+	timeScale: 1,
+	showLog: true,
+	fps: app.fps,
+	objCount(): number {
+		// TODO: recursive count
+		return game.root.children.length;
+	},
+	stepFrame: updateFrame,
+	drawCalls: gfx.drawCalls,
+	clearLog: () => logs = [],
+	log: (msg) => logs.unshift(`[${app.time().toFixed(2)}].time [${msg}].info`),
+	error: (msg) => logs.unshift(`[${app.time().toFixed(2)}].time [${msg}].error`),
+	curRecording: null,
+	get paused() {
+		return game.paused;
+	},
+	set paused(v) {
+		game.paused = v;
+		if (v) {
+			audio.ctx.suspend();
+		} else {
+			audio.ctx.resume();
+		}
+	}
+};
+
+const assets = assetsInit(gfx, audio, {
+	errHandler: debug.error,
+});
 
 const DEF_FONT = "apl386o";
 const DBG_FONT = "sink";
@@ -217,13 +249,39 @@ function findAsset<T>(src: string | T, lib: Record<string, T>, def?: string): T 
 	}
 }
 
+const loading = new Set();
+
 // wrapper around gfx.drawTexture to integrate with sprite assets mananger / frame anim
 function drawSprite(opt: DrawSpriteOpt) {
-	if (!opt.sprite) throw new Error(`drawSprite() requires property "sprite"`);
+
+	if (!opt.sprite) {
+		throw new Error(`drawSprite() requires property "sprite"`);
+	}
+
 	const spr = findAsset(opt.sprite, assets.sprites);
-	if (!spr) throw new Error(`sprite not found: "${opt.sprite}"`);
+
+	if (!spr) {
+
+		// if passes a source url, we load it implicitly
+		if (typeof opt.sprite === "string") {
+			if (!loading.has(opt.sprite)) {
+				loading.add(opt.sprite);
+				assets.loadSprite(opt.sprite, opt.sprite)
+					.then((a) => loading.delete(opt.sprite));
+			}
+			return;
+		} else {
+			throw new Error(`sprite not found: "${opt.sprite}"`);
+		}
+
+	}
+
 	const q = spr.frames[opt.frame ?? 0];
-	if (!q) throw new Error(`frame not found: ${opt.frame ?? 0}`);
+
+	if (!q) {
+		throw new Error(`frame not found: ${opt.frame ?? 0}`);
+	}
+
 	gfx.drawTexture({
 		...opt,
 		tex: spr.tex,
@@ -233,6 +291,7 @@ function drawSprite(opt: DrawSpriteOpt) {
 			"u_transform": opt.fixed ? mat4() : game.camMatrix,
 		},
 	});
+
 }
 
 // wrapper around gfx.drawText to integrate with font assets mananger / default font
@@ -2232,36 +2291,6 @@ function state(
 	};
 
 }
-
-let logs = [];
-
-const debug: Debug = {
-	inspect: false,
-	timeScale: 1,
-	showLog: true,
-	fps: app.fps,
-	objCount(): number {
-		// TODO: recursive count
-		return game.root.children.length;
-	},
-	stepFrame: updateFrame,
-	drawCalls: gfx.drawCalls,
-	clearLog: () => logs = [],
-	log: (msg) => logs.unshift(`[${app.time().toFixed(2)}].time [${msg}].info`),
-	error: (msg) => logs.unshift(`[${app.time().toFixed(2)}].time [${msg}].error`),
-	curRecording: null,
-	get paused() {
-		return game.paused;
-	},
-	set paused(v) {
-		game.paused = v;
-		if (v) {
-			audio.ctx.suspend();
-		} else {
-			audio.ctx.resume();
-		}
-	}
-};
 
 function onLoad(cb: () => void): void {
 	if (game.loaded) {

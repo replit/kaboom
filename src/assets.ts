@@ -23,6 +23,10 @@ import {
 	GfxTexData,
 } from "./types";
 
+import {
+	isDataURL
+} from "./utils";
+
 // @ts-ignore
 import apl386Src from "./apl386.png";
 // @ts-ignore
@@ -39,18 +43,6 @@ type AssetsOpt = {
 };
 
 type LoaderID = number;
-
-type AssetsCtx = {
-	lastLoaderID: LoaderID,
-	loadRoot: string,
-	// TODO: just use a counter?
-	loaders: Record<number, boolean>,
-	// TODO: allow Promise<SoundData>?
-	sprites: Record<string, SpriteData>,
-	sounds: Record<string, SoundData>,
-	fonts: Record<string, FontData>,
-	shaders: Record<string, ShaderData>,
-};
 
 type Assets = {
 	loadRoot(path?: string): string,
@@ -108,58 +100,64 @@ function loadImg(src: string): Promise<HTMLImageElement> {
 	img.crossOrigin = "anonymous";
 	return new Promise<HTMLImageElement>((resolve, reject) => {
 		img.onload = () => resolve(img);
+		// TODO: truncate for long dataurl src
 		img.onerror = () => reject(`Failed to load image from "${src}"`);
 	});
 }
 
-function isDataUrl(src: string): boolean {
-	return src.startsWith("data:");
-}
-
 function assetsInit(gfx: Gfx, audio: Audio, gopt: AssetsOpt = {}): Assets {
 
-	const assets: AssetsCtx = {
-		lastLoaderID: 0,
-		loadRoot: "",
-		loaders: {},
-		sprites: {},
-		sounds: {},
-		fonts: {},
-		shaders: {},
-	};
+	let numLoading = 0;
+	let numLoaded = 0;
+	let urlPrefix = "";
+	const sprites = {};
+	const sounds = {};
+	const shaders = {};
+	const fonts = {};
 
+	// wrap individual loaders with global loader counter, for stuff like progress bar
 	function load<T>(prom: Promise<T>): Promise<T> {
-		const id = assets.lastLoaderID;
-		assets.loaders[id] = false;
-		assets.lastLoaderID++;
-		return prom
-			.catch(gopt.errHandler ?? console.error)
-			.finally(() => assets.loaders[id] = true) as Promise<T>;
+
+		numLoading++;
+
+		// wrapping another layer of promise because we are catching errors here internally and we also want users be able to catch errors, however only one catch is allowed per promise chain
+		return new Promise((resolve, reject) => {
+			prom
+				.then(resolve)
+				.catch((err) => {
+					(gopt.errHandler ?? console.error)(err);
+					reject(err);
+				})
+				.finally(() => {
+					numLoading--;
+					numLoaded++;
+				});
+		}) as Promise<T>;
+
 	}
 
 	// get current load progress
 	function loadProgress(): number {
-
-		let total = 0;
-		let loaded = 0;
-
-		for (const id in assets.loaders) {
-			total += 1;
-			if (assets.loaders[id]) {
-				loaded += 1;
-			}
-		}
-
-		return loaded / total;
-
+		return numLoaded / (numLoading + numLoaded);
 	}
 
 	// global load path prefix
 	function loadRoot(path?: string): string {
 		if (path !== undefined) {
-			assets.loadRoot = path;
+			urlPrefix = path;
 		}
-		return assets.loadRoot;
+		return urlPrefix;
+	}
+
+	function fetchURL(path: string) {
+		const url = urlPrefix + path;
+		return fetch(url)
+			.then((res) => {
+				if (!res.ok) {
+					throw new Error(`Failed to fetch ${url}`);
+				}
+				return res;
+			});
 	}
 
 	// TODO: support SpriteLoadSrc
@@ -171,12 +169,12 @@ function assetsInit(gfx: Gfx, audio: Audio, gopt: AssetsOpt = {}): Assets {
 		opt: FontLoadOpt = {},
 	): Promise<FontData> {
 		return load(new Promise<FontData>((resolve, reject) => {
-			const path = isDataUrl(src) ? src : assets.loadRoot + src;
+			const path = isDataURL(src) ? src : urlPrefix + src;
 			loadImg(path)
 				.then((img) => {
 					const font = gfx.makeFont(gfx.makeTex(img, opt), gw, gh, opt.chars ?? ASCII_CHARS);
 					if (name) {
-						assets.fonts[name] = font;
+						fonts[name] = font;
 					}
 					resolve(font);
 				})
@@ -185,19 +183,19 @@ function assetsInit(gfx: Gfx, audio: Audio, gopt: AssetsOpt = {}): Assets {
 	}
 
 	function getSprite(name: string): SpriteData | null {
-		return assets.sprites[name] ?? null;
+		return sprites[name] ?? null;
 	}
 
 	function getSound(name: string): SoundData | null {
-		return assets.sounds[name] ?? null;
+		return sounds[name] ?? null;
 	}
 
 	function getFont(name: string): FontData | null {
-		return assets.fonts[name] ?? null;
+		return fonts[name] ?? null;
 	}
 
 	function getShader(name: string): ShaderData | null {
-		return assets.shaders[name] ?? null;
+		return shaders[name] ?? null;
 	}
 
 	function slice(x = 1, y = 1, dx = 0, dy = 0, w = 1, h = 1): Quad[] {
@@ -223,7 +221,7 @@ function assetsInit(gfx: Gfx, audio: Audio, gopt: AssetsOpt = {}): Assets {
 	): Promise<Record<string, SpriteData>> {
 		if (typeof data === "string") {
 			// TODO: this adds a new loader asyncly
-			return load(fetch(assets.loadRoot + data)
+			return load(fetchURL(data)
 				.then((res) => res.json())
 				.then((data2) => loadSpriteAtlas(src, data2)));
 		}
@@ -238,11 +236,39 @@ function assetsInit(gfx: Gfx, audio: Audio, gopt: AssetsOpt = {}): Assets {
 					frames: slice(info.sliceX, info.sliceY, info.x / w, info.y / h, info.width / w, info.height / h),
 					anims: info.anims,
 				}
-				assets.sprites[name] = spr;
+				sprites[name] = spr;
 				map[name] = spr;
 			}
 			return map;
 		}));
+	}
+
+	// synchronously load sprite from local pixel data
+	function loadRawSprite(
+		name: string | null,
+		src: GfxTexData,
+		opt: SpriteLoadOpt = {
+			sliceX: 1,
+			sliceY: 1,
+			anims: {},
+		},
+	) {
+
+		const tex = gfx.makeTex(src, opt);
+		const frames = slice(opt.sliceX || 1, opt.sliceY || 1);
+
+		const sprite = {
+			tex: tex,
+			frames: frames,
+			anims: opt.anims || {},
+		};
+
+		if (name) {
+			sprites[name] = sprite;
+		}
+
+		return sprite;
+
 	}
 
 	// load a sprite to asset manager
@@ -256,43 +282,15 @@ function assetsInit(gfx: Gfx, audio: Audio, gopt: AssetsOpt = {}): Assets {
 		},
 	): Promise<SpriteData> {
 
-		// synchronously load sprite from local pixel data
-		function loadRawSprite(
-			name: string | null,
-			src: GfxTexData,
-			opt: SpriteLoadOpt = {
-				sliceX: 1,
-				sliceY: 1,
-				anims: {},
-			},
-		) {
-
-			const tex = gfx.makeTex(src, opt);
-			const frames = slice(opt.sliceX || 1, opt.sliceY || 1);
-
-			const sprite = {
-				tex: tex,
-				frames: frames,
-				anims: opt.anims || {},
-			};
-
-			if (name) {
-				assets.sprites[name] = sprite;
-			}
-
-			return sprite;
-
-		}
-
 		return load(new Promise<SpriteData>((resolve, reject) => {
 
 			if (!src) {
-				return reject(`expected sprite src for "${name}"`);
+				return reject(`Expected sprite src for "${name}"`);
 			}
 
 			// from url
 			if (typeof(src) === "string") {
-				const path = isDataUrl(src) ? src : assets.loadRoot + src;
+				const path = isDataURL(src) ? src : urlPrefix + src;
 				loadImg(path)
 					.then((img) => resolve(loadRawSprite(name, img, opt)))
 					.catch(reject);
@@ -309,13 +307,8 @@ function assetsInit(gfx: Gfx, audio: Audio, gopt: AssetsOpt = {}): Assets {
 
 		return load(new Promise<SpriteData>((resolve, reject) => {
 
-			const url = assets.loadRoot + src;
-
-			fetch(url)
-				.then((res) => {
-					if (!res.ok) throw new Error(`Failed to load pedit from "${url}"`);
-					return res.json();
-				})
+			fetchURL(src)
+				.then((res) => res.json())
 				.then(async (data) => {
 
 					const images = await Promise.all(data.frames.map(loadImg));
@@ -351,15 +344,10 @@ function assetsInit(gfx: Gfx, audio: Audio, gopt: AssetsOpt = {}): Assets {
 
 		return load(new Promise<SpriteData>((resolve, reject) => {
 
-			const jsonPath = assets.loadRoot + jsonSrc;
-
 			loadSprite(name, imgSrc)
 				.then((sprite: SpriteData) => {
-					fetch(jsonPath)
-						.then((res) => {
-							if (!res.ok) throw new Error(`Failed to load aseprite from "${jsonPath}"`);
-							return res.json();
-						})
+					fetchURL(jsonSrc)
+						.then((res) => res.json())
 						.then((data) => {
 							const size = data.meta.size;
 							sprite.frames = data.frames.map((f: any) => {
@@ -408,7 +396,7 @@ function assetsInit(gfx: Gfx, audio: Audio, gopt: AssetsOpt = {}): Assets {
 		): ShaderData {
 			const shader = gfx.makeShader(vert, frag);
 			if (name) {
-				assets.shaders[name] = shader;
+				shaders[name] = shader;
 			}
 			return shader;
 		}
@@ -421,11 +409,8 @@ function assetsInit(gfx: Gfx, audio: Audio, gopt: AssetsOpt = {}): Assets {
 
 			function resolveUrl(url?: string) {
 				return url ?
-					fetch(assets.loadRoot + url)
-						.then((res) => {
-							if (!res.ok) throw new Error(`Failed to load shader from "${assets.loadRoot + url}"`)
-							return res.text();
-						})
+					fetchURL(url)
+						.then((res) => res.text())
 						.catch(reject)
 					: new Promise((r) => r(null));
 			}
@@ -455,8 +440,6 @@ function assetsInit(gfx: Gfx, audio: Audio, gopt: AssetsOpt = {}): Assets {
 		src: string,
 	): Promise<SoundData> {
 
-		const url = assets.loadRoot + src;
-
 		return load(new Promise<SoundData>((resolve, reject) => {
 
 			if (!src) {
@@ -465,11 +448,8 @@ function assetsInit(gfx: Gfx, audio: Audio, gopt: AssetsOpt = {}): Assets {
 
 			// from url
 			if (typeof(src) === "string") {
-				fetch(url)
-					.then((res) => {
-						if (!res.ok) throw new Error(`Failed to load sound from "${url}"`);
-						return res.arrayBuffer();
-					})
+				fetchURL(src)
+					.then((res) => res.arrayBuffer())
 					.then((data) => {
 						return new Promise((resolve2, reject2) =>
 							audio.ctx.decodeAudioData(data, resolve2, reject2)
@@ -480,7 +460,7 @@ function assetsInit(gfx: Gfx, audio: Audio, gopt: AssetsOpt = {}): Assets {
 							buf: buf,
 						}
 						if (name) {
-							assets.sounds[name] = snd;
+							sounds[name] = snd;
 						}
 						resolve(snd);
 					})
@@ -538,10 +518,10 @@ function assetsInit(gfx: Gfx, audio: Audio, gopt: AssetsOpt = {}): Assets {
 		loadShader,
 		loadProgress,
 		load,
-		sprites: assets.sprites,
-		fonts: assets.fonts,
-		sounds: assets.sounds,
-		shaders: assets.shaders,
+		sprites,
+		fonts,
+		sounds,
+		shaders,
 	};
 
 }
