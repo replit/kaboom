@@ -269,13 +269,7 @@ function drawSprite(opt: DrawSpriteOpt) {
 			if (!loading.has(opt.sprite)) {
 				loading.add(opt.sprite);
 				assets.loadSprite(opt.sprite, opt.sprite)
-					.then((a) => {
-						console.log("success", a)
-						loading.delete(opt.sprite);
-					})
-					.catch((err) => {
-						console.log("failed")
-					});
+					.then((a) => loading.delete(opt.sprite));
 			}
 			return;
 		} else {
