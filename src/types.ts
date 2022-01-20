@@ -2551,7 +2551,6 @@ export interface AudioPlay {
 export interface GfxShader {
 	bind(): void,
 	unbind(): void,
-	bindAttribs(): void,
 	send(uniform: Uniform): void,
 }
 
