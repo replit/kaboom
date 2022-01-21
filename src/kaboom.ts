@@ -64,6 +64,8 @@ import {
 	downloadURL,
 	downloadBlob,
 	uid,
+	deprecate,
+	deprecateMsg,
 } from "./utils";
 
 import {
@@ -420,6 +422,8 @@ const game: Game = {
 
 function layers(list: string[], def?: string) {
 
+	deprecateMsg("layers()", "parent game object");
+
 	list.forEach((name, idx) => {
 		game.layers[name] = idx + 1;
 	});
@@ -643,7 +647,7 @@ function make<T>(comps: CompList<T>): GameObj<T> {
 			return this.children
 				.filter((child) => t ? child.is(t) : true)
 				.sort((o1, o2) => {
-					// DEPRECATED: layers
+					// TODO: layers are deprecated
 					const l1 = game.layers[o1.layer ?? game.defLayer] ?? 0;
 					const l2 = game.layers[o2.layer ?? game.defLayer] ?? 0;
 					// if on same layer, use "z" comp to decide which is on top, if given
@@ -703,6 +707,7 @@ function make<T>(comps: CompList<T>): GameObj<T> {
 		},
 
 		action(...args): EventCanceller {
+			console.warn("action() is deprecated. Use onUpdate() instead")
 			return this.onUpdate(...args);
 		},
 
@@ -1291,6 +1296,7 @@ function origin(o: Origin | Vec2): OriginComp {
 }
 
 function layer(l: string): LayerComp {
+	deprecateMsg("layer()", "parent game object");
 	return {
 		id: "layer",
 		layer: l,
@@ -1393,8 +1399,8 @@ function outview(opt: OutviewCompOpt = {}): OutviewComp {
 }
 
 function cleanup(opt: (number | undefined) | CleanupCompOpt = {}): CleanupComp {
-	// TODO: deprecated
 	if (typeof opt === "number") {
+		deprecateMsg("clean(time)", "cleanup({ delay: time })");
 		return {
 			...outview({
 				destroy: true,
@@ -1494,14 +1500,17 @@ function area(opt: AreaCompOpt = {}): AreaComp {
 		},
 
 		clicks(...args) {
+			deprecateMsg("clicks()", "onClick()");
 			return this.onClick(...args);
 		},
 
 		hovers(...args) {
+			deprecateMsg("hovers()", "onHover()");
 			return this.onHover(...args);
 		},
 
 		collides(...args) {
+			deprecateMsg("collides()", "onCollide()");
 			return this.onCollide(...args);
 		},
 
@@ -2101,6 +2110,7 @@ function body(opt: BodyCompOpt = {}): BodyComp {
 		},
 
 		grounded(): boolean {
+			deprecateMsg("grounded()", "isGrounded()");
 			return this.isGrounded();
 		},
 
@@ -2109,6 +2119,7 @@ function body(opt: BodyCompOpt = {}): BodyComp {
 		},
 
 		falling(): boolean {
+			deprecateMsg("falling()", "isFalling()");
 			return this.isFalling();
 		},
 
@@ -2667,7 +2678,7 @@ const ctx: KaboomCtx = {
 	time: app.time,
 	screenshot: app.screenshot,
 	record: record,
-	focused: app.isFocused,
+	focused: deprecate("focused()", "isFocused()", app.isFocused),
 	isFocused: app.isFocused,
 	focus: app.focus,
 	cursor: app.cursor,
@@ -2675,7 +2686,7 @@ const ctx: KaboomCtx = {
 	fullscreen: app.fullscreen,
 	isFullscreen: app.isFullscreen,
 	onLoad,
-	ready: onLoad,
+	ready: deprecate("ready()", "onLoad()", onLoad),
 	isTouch: () => app.isTouch,
 	// misc
 	layers,
@@ -2730,11 +2741,11 @@ const ctx: KaboomCtx = {
 	onCollide,
 	onClick,
 	onHover,
-	action: onUpdate,
-	render: onDraw,
-	collides: onCollide,
-	clicks: onClick,
-	hovers: onHover,
+	action: deprecate("action()", "onUpdate()", onUpdate),
+	render: deprecate("render()", "onDraw()", onDraw),
+	collides: deprecate("collides()", "onCollide()", onCollide),
+	clicks: deprecate("clicks()", "onClick()", onClick),
+	hovers: deprecate("hovers()", "onHover()", onHover),
 	// input
 	onKeyDown,
 	onKeyPress,
@@ -2748,18 +2759,18 @@ const ctx: KaboomCtx = {
 	onTouchStart,
 	onTouchMove,
 	onTouchEnd,
-	keyDown: onKeyDown,
-	keyPress: onKeyPress,
-	keyPressRep: onKeyPressRepeat,
-	keyRelease: onKeyRelease,
-	mouseDown: onMouseDown,
-	mouseClick: onMousePress,
-	mouseRelease: onMouseRelease,
-	mouseMove: onMouseMove,
-	charInput: onCharInput,
-	touchStart: onTouchStart,
-	touchMove: onTouchMove,
-	touchEnd: onTouchEnd,
+	keyDown: deprecate("keyDown()", "onKeyDown()", onKeyDown),
+	keyPress: deprecate("keyPress()", "onKeyPress()", onKeyPress),
+	keyPressRep: deprecate("keyPressRep()", "onKeyPressRepeat()", onKeyPressRepeat),
+	keyRelease: deprecate("keyRelease()", "onKeyRelease()", onKeyRelease),
+	mouseDown: deprecate("mouseDown()", "onMouseDown()", onMouseDown),
+	mouseClick: deprecate("mouseClick()", "onMousePress()", onMousePress),
+	mouseRelease: deprecate("mouseRelease()", "onMouseRelease()", onMouseRelease),
+	mouseMove: deprecate("mouseMove()", "onMouseMove()", onMouseMove),
+	charInput: deprecate("charInput()", "onCharInput()", onCharInput),
+	touchStart: deprecate("touchStart()", "onTouchStart()", onTouchStart),
+	touchMove: deprecate("touchMove()", "onTouchMove()", onTouchMove),
+	touchEnd: deprecate("touchEnd()", "onTouchEnd()", onTouchEnd),
 	mousePos,
 	mouseWorldPos,
 	mouseDeltaPos: app.mouseDeltaPos,
@@ -2771,14 +2782,14 @@ const ctx: KaboomCtx = {
 	isMousePressed: app.isMousePressed,
 	isMouseReleased: app.isMouseReleased,
 	isMouseMoved: app.isMouseMoved,
-	keyIsDown: app.isKeyDown,
-	keyIsPressed: app.isKeyPressed,
-	keyIsPressedRep: app.isKeyPressedRepeat,
-	keyIsReleased: app.isKeyReleased,
-	mouseIsDown: app.isMouseDown,
-	mouseIsClicked: app.isMousePressed,
-	mouseIsReleased: app.isMouseReleased,
-	mouseIsMoved: app.isMouseMoved,
+	keyIsDown: deprecate("keyIsDown()", "isKeyDown()", app.isKeyDown),
+	keyIsPressed: deprecate("keyIsPressed()", "isKeyPressed()", app.isKeyPressed),
+	keyIsPressedRep: deprecate("keyIsPressedRep()", "isKeyPressedRepeat()", app.isKeyPressedRepeat),
+	keyIsReleased: deprecate("keyIsReleased()", "isKeyReleased()", app.isKeyReleased),
+	mouseIsDown: deprecate("mouseIsDown()", "isMouseDown()", app.isMouseDown),
+	mouseIsClicked: deprecate("mouseIsClicked()", "isMousePressed()", app.isMousePressed),
+	mouseIsReleased: deprecate("mouseIsReleased()", "isMouseReleased()", app.isMouseReleased),
+	mouseIsMoved: deprecate("mouseIsMoved()", "isMouseMoved()", app.isMouseMoved),
 	// timer
 	loop,
 	wait,

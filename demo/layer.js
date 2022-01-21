@@ -4,6 +4,7 @@ loadSprite("bean", "/sprites/bean.png")
 
 const ui = add([
 	fixed(),
+	z(10),
 ])
 
 ui.add([
