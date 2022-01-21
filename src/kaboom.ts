@@ -2805,7 +2805,7 @@ const ctx: KaboomCtx = {
 	randSeed,
 	vec2,
 	vec2FromAngle,
-	dir: vec2FromAngle,
+	dir: deprecate("dir()", "vec2FromAngle()", vec2FromAngle),
 	rgb,
 	hsl2rgb,
 	quad,

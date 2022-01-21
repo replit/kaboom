@@ -1,14 +1,13 @@
-# v2000.2.0
+# v2000.2.0 "Fancy Text Mode"
 
-- added `GameObjRaw#add()` to add a child game object
 - added `formatText()` and `drawFormattedText()`
 - added `charSpacing` and `lineSpacing` in `TextCompOpt` and `DrawTextOpt`
 - added optional `transitions` argument in `state()` to define allowed transitions
 - added `StateComp#onStateTransition` to register event for specific transitions
-- added syntax for chunked text style `"this is a [styled].wavy text"` and `style` option in `TextCompOpt` and `DrawTextOpt` to define the styles with `CharTransformFunc`
+- added syntax to style a piece of text `"this is a [styled].wavy text"` and `style` option in `TextCompOpt` and `DrawTextOpt` to define the styles with `CharTransformFunc`
 - deprecated `dir()` in favor of `vec2FromAngle()`
 - fixed `onTouchEnd()` fired on `touchmove`
-- added `outview()` component
+- added `outview()` component to control behavior when object leaves visible area
 - deprecated `cleanup(delay?: number)` in favor of `cleanup(opt?: CleanupOpt)`
 
 ### v2000.1.8

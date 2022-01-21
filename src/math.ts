@@ -133,6 +133,7 @@ function vec2(...args): Vec2 {
 	};
 }
 
+// TODO: Vec2.fromAngle
 function vec2FromAngle(deg: number): Vec2 {
 	const angle = deg2rad(deg);
 	return vec2(Math.cos(angle), Math.sin(angle));
