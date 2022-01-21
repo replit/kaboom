@@ -44,6 +44,7 @@ body:
       label: Minimum reproducable code
       description: If there's a small piece of code that can reliably reproduce the bug
       placeholder: kaboom()
+      render: shell
   - type: input
     id: live-demo
     attributes:
