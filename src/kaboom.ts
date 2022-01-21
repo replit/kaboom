@@ -101,9 +101,9 @@ import {
 	ZComp,
 	FollowComp,
 	MoveComp,
-	OutOfViewOpt,
-	OutOfViewComp,
-	CleanupOpt,
+	OutviewCompOpt,
+	OutviewComp,
+	CleanupCompOpt,
 	CleanupComp,
 	AreaCompOpt,
 	AreaComp,
@@ -1281,14 +1281,14 @@ function move(direction: number | Vec2, speed: number): MoveComp {
 	};
 }
 
-function outOfView(opt: OutOfViewOpt = {}): OutOfViewComp {
+function outview(opt: OutviewCompOpt = {}): OutviewComp {
 	let timer = 0;
 	let isOut = false;
 	return {
-		id: "outOfView",
+		id: "outview",
 		require: [ "pos", "area", ],
 		isOutOfView(): boolean {
-			const offset = vec2(opt.offset);
+			const offset = vec2(opt.offset ?? 0);
 			const screenRect = {
 				p1: vec2(0, 0).sub(offset),
 				p2: vec2(width(), height()).add(offset),
@@ -1305,11 +1305,12 @@ function outOfView(opt: OutOfViewOpt = {}): OutOfViewComp {
 			if (this.isOutOfView()) {
 				if (!isOut) {
 					this.trigger("exitView");
+					debug.log("123")
 					isOut = true;
 				}
-				if (opt.time) {
+				if (opt.delay) {
 					timer += dt();
-					if (timer < opt.time) return
+					if (timer < opt.delay) return
 				}
 				if (opt.hide) this.hidden = true;
 				if (opt.pause) this.paused = true;
@@ -1330,23 +1331,23 @@ function outOfView(opt: OutOfViewOpt = {}): OutOfViewComp {
 	};
 }
 
-function cleanup(opt: (number | undefined) | CleanupOpt = {}): CleanupComp {
-	// DEPRECATED
+function cleanup(opt: (number | undefined) | CleanupCompOpt = {}): CleanupComp {
+	// TODO: deprecated
 	if (typeof opt === "number") {
 		return {
-			...outOfView({
+			...outview({
 				destroy: true,
-				time: opt,
+				delay: opt,
 			}),
 			id: "cleanup",
 		};
 	}
 	return {
-		...outOfView({
+		...outview({
 			destroy: true,
 			onExitView: opt.onCleanup,
 			offset: opt.offset,
-			time: opt.time,
+			delay: opt.delay,
 		}),
 		id: "cleanup",
 	};
@@ -2687,7 +2688,7 @@ const ctx: KaboomCtx = {
 	lifespan,
 	z,
 	move,
-	outOfView,
+	outview,
 	cleanup,
 	follow,
 	state,

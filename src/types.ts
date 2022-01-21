@@ -446,11 +446,11 @@ export interface KaboomCtx {
 	 * ```js
 	 * add([
 	 *     pos(1200, 80),
-	 *     outOfView({ hide: true, pause: true }),
+	 *     outview({ hide: true, pause: true }),
 	 * ])
 	 * ```
 	 */
-	outOfView(opt?: OutOfViewOpt): OutOfViewComp,
+	outview(opt?: OutviewCompOpt): OutviewComp,
 	/**
 	 * destroy() the object if it goes out of screen. Optionally specify the amount of time it has to be off-screen before removal.
 	 *
@@ -464,9 +464,9 @@ export interface KaboomCtx {
 	 * ])
 	 * ```
 	 */
-	cleanup(opt?: CleanupOpt): CleanupComp,
+	cleanup(opt?: CleanupCompOpt): CleanupComp,
 	/**
-	 * @deprecated v2000.2 Use cleanup() with optional CleanupOpt instead of single time argument.
+	 * @deprecated v2000.2 Use cleanup() with optional CleanupCompOpt instead of single time argument.
 	 */
 	cleanup(time?: number): CleanupComp,
 	/**
@@ -3260,7 +3260,7 @@ export interface FollowComp extends Comp {
 export interface MoveComp extends Comp {
 }
 
-export interface OutOfViewOpt {
+export interface OutviewCompOpt {
 	/**
 	 * If hide object when out of view.
 	 */
@@ -3280,7 +3280,7 @@ export interface OutOfViewOpt {
 	/**
 	 * If it needs to stay out of view for a period of time before proceed to action.
 	 */
-	time?: number,
+	delay?: number,
 	/**
 	 * Register an event that runs when object goes out of view.
 	 */
@@ -3291,7 +3291,7 @@ export interface OutOfViewOpt {
 	onEnterView?: () => void,
 }
 
-export interface OutOfViewComp extends Comp {
+export interface OutviewComp extends Comp {
 	/**
 	 * If object is currently out of view.
 	 */
@@ -3306,7 +3306,7 @@ export interface OutOfViewComp extends Comp {
 	onEnterView(action: () => void): EventCanceller,
 }
 
-export interface CleanupOpt {
+export interface CleanupCompOpt {
 	/**
 	 * The screen bound offset.
 	 */
@@ -3314,7 +3314,7 @@ export interface CleanupOpt {
 	/**
 	 * If it needs to stay out of view for a period of time before proceed to destroy.
 	 */
-	time?: number,
+	delay?: number,
 	/**
 	 * Register an event that runs when object gets cleaned up.
 	 */
