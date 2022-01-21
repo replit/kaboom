@@ -422,8 +422,6 @@ const game: Game = {
 
 function layers(list: string[], def?: string) {
 
-	deprecateMsg("layers()", "parent game object");
-
 	list.forEach((name, idx) => {
 		game.layers[name] = idx + 1;
 	});
@@ -496,6 +494,9 @@ function make<T>(comps: CompList<T>): GameObj<T> {
 		parent: null,
 
 		add<T2>(comps: CompList<T2>): GameObj<T2> {
+			if (this !== game.root) {
+				throw new Error("Children game object not supported yet");
+			}
 			const obj = make(comps);
 			obj.parent = this;
 			obj.trigger("add");
@@ -1296,7 +1297,6 @@ function origin(o: Origin | Vec2): OriginComp {
 }
 
 function layer(l: string): LayerComp {
-	deprecateMsg("layer()", "parent game object");
 	return {
 		id: "layer",
 		layer: l,
