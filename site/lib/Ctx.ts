@@ -1,7 +1,6 @@
 import * as React from "react";
 import { DEF_THEME } from "lib/ui";
 import { Tooltip } from "lib/tooltip";
-import { Drag } from "lib/drag";
 
 interface PageCtx {
 	theme: string,
@@ -10,8 +9,6 @@ interface PageCtx {
 	setInspect: (inspect: boolean) => void,
 	pushTooltip: (tooltip: Tooltip) => Promise<number>,
 	popTooltip: (id: number) => void,
-	draggin: Drag | null,
-	setDraggin: (d: Drag | null) => void,
 }
 
 export default React.createContext<PageCtx>({
@@ -21,6 +18,4 @@ export default React.createContext<PageCtx>({
 	setInspect: () => {},
 	pushTooltip: () => Promise.reject(),
 	popTooltip: () => {},
-	draggin: null,
-	setDraggin: () => {},
 });

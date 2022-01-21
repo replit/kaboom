@@ -3,9 +3,11 @@ import { cssVars } from "lib/ui";
 import View, { ViewProps } from "comps/View";
 import Ctx from "lib/Ctx";
 import { themes } from "lib/ui";
+import useUpdateEffect from "hooks/useUpdateEffect";
 
 export interface GameViewRef {
-	run: (code?: string) => void,
+	run: (code: string) => void,
+	send: (msg: any, origin?: string) => void,
 }
 
 const wrapGame = (code: string) => `
@@ -44,11 +46,13 @@ ${code}
 `;
 
 interface GameViewProps {
-	code?: string,
+	code: string,
+	onLoad?: () => void,
 }
 
 const GameView = React.forwardRef<GameViewRef, GameViewProps & ViewProps>(({
 	code,
+	onLoad,
 	...args
 }, ref) => {
 
@@ -56,16 +60,23 @@ const GameView = React.forwardRef<GameViewRef, GameViewProps & ViewProps>(({
 	const { theme } = React.useContext(Ctx);
 
 	React.useImperativeHandle(ref, () => ({
-		run(code?: string) {
+		run(code: string, msg?: any) {
 			if (!iframeRef.current) return;
 			const iframe = iframeRef.current;
-			if (code === undefined) {
-				iframe.srcdoc += "";
-			} else {
-				iframe.srcdoc = wrapGame(code);
-			}
+			iframe.srcdoc = wrapGame(code);
+		},
+		send(msg: any, origin: string = "*") {
+			if (!iframeRef.current) return;
+			const iframe = iframeRef.current;
+			iframe.contentWindow?.postMessage(JSON.stringify(msg), origin);
 		},
 	}));
+
+	useUpdateEffect(() => {
+		if (!iframeRef.current) return;
+		const iframe = iframeRef.current;
+		iframe.srcdoc = wrapGame(code);
+	}, [ code ]);
 
 	React.useEffect(() => {
 		const body = iframeRef.current?.contentWindow?.document?.body;
@@ -79,6 +90,7 @@ const GameView = React.forwardRef<GameViewRef, GameViewProps & ViewProps>(({
 			<iframe
 				ref={iframeRef}
 				tabIndex={0}
+				onLoad={onLoad}
 				css={{
 					border: "none",
 					background: "var(--background-bg2)",

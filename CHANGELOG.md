@@ -1,11 +1,24 @@
 # v2000.2.0
 
+- added `GameObjRaw#add()` to add a child game object
 - added `formatText()` and `drawFormattedText()`
 - added `charSpacing` and `lineSpacing` in `TextCompOpt` and `DrawTextOpt`
 - added optional `transitions` argument in `state()` to define allowed transitions
 - added `StateComp#onStateTransition` to register event for specific transitions
-- added `outOfView()` component
-- deprecated `cleanup(number?: time)` in favor of `cleanup(opt?: CleanupOpt)`
+- added syntax for chunked text style `"this is a [styled].wavy text"` and `style` option in `TextCompOpt` and `DrawTextOpt` to define the styles with `CharTransformFunc`
+- deprecated `dir()` in favor of `vec2FromAngle()`
+- fixed `onTouchEnd()` fired on `touchmove`
+- added `outview()` component
+- deprecated `cleanup(delay?: number)` in favor of `cleanup(opt?: CleanupOpt)`
+
+### v2000.1.8
+
+- fixed `Color#eq()` not giving correct result
+
+### v2000.1.7
+
+- fixed not having export if installed from github repo with npm
+- fixed event canceller returned by raw `onUpdate()` and `onDraw()` crashing
 
 ### v2000.1.6
 

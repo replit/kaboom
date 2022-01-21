@@ -363,6 +363,8 @@ export interface KaboomCtx {
 	origin(o: Origin | Vec2): OriginComp,
 	/**
 	 * Which layer this object belongs to.
+	 *
+	 * @deprecated v2000.2 Use parent game object with z() or fixed() component instead.
 	 */
 	layer(l: string): LayerComp,
 	/**
@@ -468,7 +470,7 @@ export interface KaboomCtx {
 	/**
 	 * @deprecated v2000.2 Use cleanup() with optional CleanupCompOpt instead of single time argument.
 	 */
-	cleanup(time?: number): CleanupComp,
+	cleanup(delay?: number): CleanupComp,
 	/**
 	 * Follow another game obj's position.
 	 */
@@ -482,11 +484,11 @@ export interface KaboomCtx {
 	 */
 	timer(n?: number, action?: () => void): TimerComp,
 	/**
-	 * Unaffected by camera.
+	 * Make object unaffected by camera or parent object transforms, and render at last.
 	 *
 	 * @example
 	 * ```js
-	 * // this score counter better be fixed on top left and not affected by camera
+	 * // this will be be fixed on top left and not affected by camera
 	 * const score = add([
 	 *     text(0),
 	 *     pos(12, 12),
@@ -836,7 +838,7 @@ export interface KaboomCtx {
 	 * @example
 	 * ```js
 	 * // type into input
-	 * onChatInput((ch) => {
+	 * onCharInput((ch) => {
 	 *     input.text += ch
 	 * })
 	 * ```
@@ -924,7 +926,7 @@ export interface KaboomCtx {
 	 */
 	keyPressRep: KaboomCtx["onKeyPressRepeat"],
 	/**
-	 * @deprecated v2000.1 Use onKeyPress() instead.
+	 * @deprecated v2000.1 Use onKeyRelease() instead.
 	 */
 	keyRelease: KaboomCtx["onKeyRelease"],
 	/**
@@ -1323,6 +1325,8 @@ export interface KaboomCtx {
 	/**
 	 * Define layers (the last one will be on top).
 	 *
+	 * @deprecated v2000.2 Use parent game object with z() or fixed() component instead.
+	 *
 	 * @example
 	 * ```js
 	 * // defining 3 layers, "ui" will be drawn on top most, with default layer being "game"
@@ -1649,15 +1653,19 @@ export interface KaboomCtx {
 		h2: number,
 	): number,
 	/**
-	 * Get directional vector from an angle
+	 * Get directional vector from an angle.
 	 *
 	 * @example
 	 * ```js
-	 * // move towards 80 deg direction at SPEED
+	 * // move toward bottom right in 45 degrees
 	 * player.onUpdate(() => {
-	 *     player.move(dir(80).scale(SPEED))
+	 *     player.move(vec2FromAngle(45).scale(SPEED))
 	 * })
 	 * ```
+	 */
+	vec2FromAngle(deg: number): Vec2,
+	/**
+	 * @deprecated v2000.2 Use vec2FromAngle instead.
 	 */
 	dir(deg: number): Vec2,
 	/**
@@ -2199,6 +2207,42 @@ export interface GameObjRaw {
 	 */
 	exists(): boolean,
 	/**
+	 * Add a child.
+	 *
+	 * @since v2000.2.0
+	 */
+	add<T>(comps: CompList<T>): GameObj<T>,
+	/**
+	 * Remove a child.
+	 *
+	 * @since v2000.2.0
+	 */
+	remove(obj: GameObj): void,
+	/**
+	 * Get the parent game obj, if have any.
+	 *
+	 * @since v2000.2.0
+	 */
+	parent: GameObj | null,
+	/**
+	 * Get all children game objects.
+	 *
+	 * @since v2000.2.0
+	 */
+	children: GameObj[],
+	/**
+	 * Update this game object and all children game objects.
+	 *
+	 * @since v2000.2.0
+	 */
+	update(): void,
+	/**
+	 * Draw this game object and all children game objects.
+	 *
+	 * @since v2000.2.0
+	 */
+	draw(): void,
+	/**
 	 * If there's certain tag(s) on the game obj.
 	 */
 	is(tag: Tag | Tag[]): boolean,
@@ -2525,7 +2569,6 @@ export interface AudioPlay {
 export interface GfxShader {
 	bind(): void,
 	unbind(): void,
-	bindAttribs(): void,
 	send(uniform: Uniform): void,
 }
 
@@ -2576,6 +2619,7 @@ export interface RenderProps {
 	angle?: number,
 	color?: Color,
 	opacity?: number,
+	fixed?: boolean,
 	shader?: GfxShader,
 	uniform?: Uniform,
 }
@@ -2893,7 +2937,7 @@ export type DrawTextOpt = RenderProps & {
 	 *
 	 * @since v2000.2
 	 */
-	charSpacing?: number,
+	letterSpacing?: number,
 	/**
 	 * The origin point, or the pivot point. Default to "topleft".
 	 */
@@ -2903,7 +2947,13 @@ export type DrawTextOpt = RenderProps & {
 	 *
 	 * @since v2000.1
 	 */
-	transform?: (idx: number, ch: string) => CharTransform,
+	transform?: CharTransform | CharTransformFunc,
+	/**
+	 * Stylesheet for styled chunks, in the syntax of "here comes a (styled):wavy word".
+	 *
+	 * @since v2000.2
+	 */
+	styles?: Record<string, CharTransform | CharTransformFunc>,
 }
 
 /**
@@ -2927,8 +2977,10 @@ export interface FormattedChar {
 	angle: number,
 	color: Color,
 	opacity: number,
-	origin: string,
+	uniform: Uniform,
 }
+
+export type CharTransformFunc = (idx: number, ch: string) => CharTransform;
 
 export interface CharTransform {
 	pos?: Vec2,
@@ -3595,11 +3647,19 @@ export interface TextCompOpt {
 	 *
 	 * @since v2000.2
 	 */
-	charSpacing?: number,
+	letterSpacing?: number,
 	/**
 	 * Transform the pos, scale, rotation or color for each character based on the index or char.
+	 *
+	 * @since v2000.1
 	 */
-	transform?: (idx: number, ch: string) => CharTransform,
+	transform?: CharTransform | CharTransformFunc,
+	/**
+	 * Stylesheet for styled chunks, in the syntax of "here comes a (styled):wavy word".
+	 *
+	 * @since v2000.2
+	 */
+	styles?: Record<string, CharTransform | CharTransformFunc>,
 }
 
 export interface RectCompOpt {

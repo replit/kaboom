@@ -2,7 +2,6 @@ import * as React from "react";
 import { Global, css } from "@emotion/react"
 import Ctx from "lib/Ctx";
 import { Tooltip } from "lib/tooltip";
-import { Drag } from "lib/drag";
 import View from "comps/View";
 import Button from "comps/Button";
 import Text from "comps/Text";
@@ -16,7 +15,6 @@ const Page: React.FC = ({ children }) => {
 
 	const [ theme, setTheme ] = useSavedState("theme", DEF_THEME);
 	const [ inspect, setInspect ] = React.useState(false);
-	const [ draggin, setDraggin ] = React.useState<Drag | null>(null);
 	const [ tooltipStack, setTooltipStack ] = React.useState<IDList<Tooltip>>(new IDList());
 
 	// make sure theme from local storage don't break anything
@@ -90,8 +88,6 @@ const Page: React.FC = ({ children }) => {
 			setInspect,
 			pushTooltip,
 			popTooltip,
-			draggin,
-			setDraggin,
 		}}>
 			<Global
 				styles={css`

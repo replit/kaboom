@@ -1,4 +1,4 @@
-class IDList<T> extends Map<number, T> {
+export class IDList<T> extends Map<number, T> {
 	_lastID: number;
 	constructor(...args) {
 		super(...args);
@@ -16,7 +16,7 @@ class IDList<T> extends Map<number, T> {
 	}
 }
 
-function deepEq(o1: any, o2: any): boolean {
+export function deepEq(o1: any, o2: any): boolean {
 	const t1 = typeof o1;
 	const t2 = typeof o2;
 	if (t1 !== t2) {
@@ -42,7 +42,7 @@ function deepEq(o1: any, o2: any): boolean {
 	return o1 === o2;
 }
 
-function downloadURL(url: string, filename: string) {
+export function downloadURL(url: string, filename: string) {
 	const a = document.createElement("a");
 	document.body.appendChild(a);
 	a.setAttribute("style", "display: none");
@@ -52,15 +52,17 @@ function downloadURL(url: string, filename: string) {
 	document.body.removeChild(a);
 }
 
-function downloadBlob(blob: Blob, filename: string) {
+export function downloadBlob(blob: Blob, filename: string) {
 	const url = URL.createObjectURL(blob);
 	downloadURL(url, filename);
 	URL.revokeObjectURL(url);
 }
 
-export {
-	deepEq,
-	IDList,
-	downloadBlob,
-	downloadURL,
-};
+export function isDataURL(str: string) {
+	return str.match(/^data:\w+\/\w+;base64,.+/);
+}
+
+export const uid = (() => {
+	let id = 0;
+	return () => id++;
+})();
