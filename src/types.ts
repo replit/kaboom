@@ -440,19 +440,37 @@ export interface KaboomCtx {
 	 */
 	move(direction: number | Vec2, speed: number): MoveComp,
 	/**
-	 * destroy() the character if it's out of screen. Optionally specify the amount of time it has to be off-screen before removal.
+	 * Control the behavior of object when it goes out of view.
+	 *
+	 * @since v2000.2
 	 *
 	 * @example
 	 * ```js
-	 * // remove this 3 seconds after it leaves screen
 	 * add([
-	 *     pos(80, 80),
-	 *     move(LEFT, 120),
-	 *     cleanup(3),
+	 *     pos(1200, 80),
+	 *     outview({ hide: true, pause: true }),
 	 * ])
 	 * ```
 	 */
-	cleanup(time?: number): CleanupComp,
+	outview(opt?: OutviewCompOpt): OutviewComp,
+	/**
+	 * destroy() the object if it goes out of screen. Optionally specify the amount of time it has to be off-screen before removal.
+	 *
+	 * @example
+	 * ```js
+	 * // destroy when it leaves screen
+	 * const bullet = add([
+	 *     pos(80, 80),
+	 *     move(LEFT, 960),
+	 *     cleanup(),
+	 * ])
+	 * ```
+	 */
+	cleanup(opt?: CleanupCompOpt): CleanupComp,
+	/**
+	 * @deprecated v2000.2 Use cleanup() with optional CleanupCompOpt instead of single time argument.
+	 */
+	cleanup(delay?: number): CleanupComp,
 	/**
 	 * Follow another game obj's position.
 	 */
@@ -3292,6 +3310,67 @@ export interface FollowComp extends Comp {
 }
 
 export interface MoveComp extends Comp {
+}
+
+export interface OutviewCompOpt {
+	/**
+	 * If hide object when out of view.
+	 */
+	hide?: boolean,
+	/**
+	 * If pause object when out of view.
+	 */
+	pause?: boolean,
+	/**
+	 * If destroy object when out of view.
+	 */
+	destroy?: boolean,
+	/**
+	 * The screen bound offset.
+	 */
+	offset?: number | Vec2,
+	/**
+	 * If it needs to stay out of view for a period of time before proceed to action.
+	 */
+	delay?: number,
+	/**
+	 * Register an event that runs when object goes out of view.
+	 */
+	onExitView?: () => void,
+	/**
+	 * Register an event that runs when object enters view.
+	 */
+	onEnterView?: () => void,
+}
+
+export interface OutviewComp extends Comp {
+	/**
+	 * If object is currently out of view.
+	 */
+	isOutOfView(): boolean,
+	/**
+	 * Register an event that runs when object goes out of view.
+	 */
+	onExitView(action: () => void): EventCanceller,
+	/**
+	 * Register an event that runs when object enters view.
+	 */
+	onEnterView(action: () => void): EventCanceller,
+}
+
+export interface CleanupCompOpt {
+	/**
+	 * The screen bound offset.
+	 */
+	offset?: number | Vec2,
+	/**
+	 * If it needs to stay out of view for a period of time before proceed to destroy.
+	 */
+	delay?: number,
+	/**
+	 * Register an event that runs when object gets cleaned up.
+	 */
+	onCleanup?: () => void,
 }
 
 export interface CleanupComp extends Comp {

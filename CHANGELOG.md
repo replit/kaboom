@@ -8,6 +8,8 @@
 - added syntax for chunked text style `"this is a [styled].wavy text"` and `style` option in `TextCompOpt` and `DrawTextOpt` to define the styles with `CharTransformFunc`
 - deprecated `dir()` in favor of `vec2FromAngle()`
 - fixed `onTouchEnd()` fired on `touchmove`
+- added `outview()` component
+- deprecated `cleanup(delay?: number)` in favor of `cleanup(opt?: CleanupOpt)`
 
 ### v2000.1.8
 

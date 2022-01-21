@@ -98,6 +98,9 @@ import {
 	ZComp,
 	FollowComp,
 	MoveComp,
+	OutviewCompOpt,
+	OutviewComp,
+	CleanupCompOpt,
 	CleanupComp,
 	AreaCompOpt,
 	AreaComp,
@@ -1339,25 +1342,75 @@ function move(dir: number | Vec2, speed: number): MoveComp {
 	};
 }
 
-function cleanup(time: number = 0): CleanupComp {
+function outview(opt: OutviewCompOpt = {}): OutviewComp {
 	let timer = 0;
+	let isOut = false;
 	return {
-		id: "cleanup",
+		id: "outview",
 		require: [ "pos", "area", ],
-		update() {
+		isOutOfView(): boolean {
+			const offset = vec2(opt.offset ?? 0);
 			const screenRect = {
-				p1: vec2(0, 0),
-				p2: vec2(width(), height()),
+				p1: vec2(0, 0).sub(offset),
+				p2: vec2(width(), height()).add(offset),
 			}
-			if (testAreaRect(this.screenArea(), screenRect)) {
-				timer = 0;
-			} else {
-				timer += dt();
-				if (timer >= time) {
-					this.destroy();
+			return !testAreaRect(this.screenArea(), screenRect);
+		},
+		onExitView(action: () => void): EventCanceller {
+			return this.on("exitView", action);
+		},
+		onEnterView(action: () => void): EventCanceller {
+			return this.on("enterView", action);
+		},
+		update() {
+			if (this.isOutOfView()) {
+				if (!isOut) {
+					this.trigger("exitView");
+					debug.log("123")
+					isOut = true;
 				}
+				if (opt.delay) {
+					timer += dt();
+					if (timer < opt.delay) return
+				}
+				if (opt.hide) this.hidden = true;
+				if (opt.pause) this.paused = true;
+				if (opt.destroy) this.destroy();
+			} else {
+				if (isOut) {
+					this.trigger("enterView");
+					isOut = false;
+				}
+				timer = 0;
+				if (opt.hide) this.hidden = false;
+				if (opt.pause) this.paused = false;
 			}
 		},
+		inspect() {
+			return this.isOutOfView();
+		},
+	};
+}
+
+function cleanup(opt: (number | undefined) | CleanupCompOpt = {}): CleanupComp {
+	// TODO: deprecated
+	if (typeof opt === "number") {
+		return {
+			...outview({
+				destroy: true,
+				delay: opt,
+			}),
+			id: "cleanup",
+		};
+	}
+	return {
+		...outview({
+			destroy: true,
+			onExitView: opt.onCleanup,
+			offset: opt.offset,
+			delay: opt.delay,
+		}),
+		id: "cleanup",
 	};
 }
 
@@ -2666,6 +2719,7 @@ const ctx: KaboomCtx = {
 	lifespan,
 	z,
 	move,
+	outview,
 	cleanup,
 	follow,
 	state,
