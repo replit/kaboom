@@ -363,8 +363,6 @@ export interface KaboomCtx {
 	origin(o: Origin | Vec2): OriginComp,
 	/**
 	 * Which layer this object belongs to.
-	 *
-	 * @deprecated v2000.2 Use parent game object with z() or fixed() component instead.
 	 */
 	layer(l: string): LayerComp,
 	/**
@@ -1324,8 +1322,6 @@ export interface KaboomCtx {
 	gravity(g: number): number,
 	/**
 	 * Define layers (the last one will be on top).
-	 *
-	 * @deprecated v2000.2 Use parent game object with z() or fixed() component instead.
 	 *
 	 * @example
 	 * ```js
