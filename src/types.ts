@@ -1211,7 +1211,9 @@ export interface KaboomCtx {
 	 */
 	mousePos(): Vec2,
 	/**
-	 * Get current mouse position (after camera transform)
+	 * Get current mouse position (after camera transform).
+	 *
+	 * @deprecated v2000.2 Use toWorld(mousePos()) instead.
 	 */
 	mouseWorldPos(): Vec2,
 	/**

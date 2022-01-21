@@ -243,7 +243,8 @@ function mousePos(): Vec2 {
 }
 
 function mouseWorldPos(): Vec2 {
-	return game.camMousePos;
+	deprecateMsg("mouseWorldPos()", "toWorld(mousePos())");
+	return toWorld(mousePos());
 }
 
 function findAsset<T>(src: string | T, lib: Record<string, T>, def?: string): T | undefined {
@@ -333,7 +334,6 @@ interface Game {
 	root: GameObj,
 	timers: IDList<Timer>,
 	cam: Camera,
-	camMousePos: Vec2,
 	camMatrix: Mat4,
 	gravity: number,
 	layers: Record<string, number>,
@@ -394,7 +394,6 @@ const game: Game = {
 		shake: 0,
 	},
 
-	camMousePos: app.mousePos(),
 	camMatrix: mat4(),
 
 	// misc
@@ -457,12 +456,13 @@ function shake(intensity: number = 12) {
 	game.cam.shake = intensity;
 }
 
+// TODO: bugged
 function toScreen(p: Vec2): Vec2 {
 	return game.camMatrix.multVec2(p);
 }
 
 function toWorld(p: Vec2): Vec2 {
-	return game.camMatrix.invert().multVec2(p);
+	return gfx.toScreen(game.camMatrix.invert().multVec2(gfx.toNDC(p)));
 }
 
 const COMP_DESC = new Set([
@@ -2401,7 +2401,6 @@ function go(id: SceneID, ...args) {
 			shake: 0,
 		};
 
-		game.camMousePos = app.mousePos();
 		game.camMatrix = mat4();
 
 		game.layers = {};
@@ -3248,7 +3247,6 @@ app.run(() => {
 	} else {
 
 		// TODO: this gives the latest mousePos in input handlers but uses cam matrix from last frame
-		game.camMousePos = gfx.toScreen(game.camMatrix.invert().multVec2(gfx.toNDC(app.mousePos())));
 		game.trigger("input");
 
 		if (!debug.paused && gopt.debug !== false) {
