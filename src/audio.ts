@@ -10,6 +10,10 @@ import {
 	AudioPlayOpt,
 } from "./types";
 
+import {
+	deprecateMsg,
+} from "./utils";
+
 type Audio = {
 	ctx: AudioContext,
 	masterNode: GainNode,
@@ -139,6 +143,7 @@ function audioInit(): Audio {
 			},
 
 			paused(): boolean {
+				deprecateMsg("paused()", "isPaused()");
 				return this.isPaused();
 			},
 
@@ -147,6 +152,7 @@ function audioInit(): Audio {
 			},
 
 			stopped(): boolean {
+				deprecateMsg("stopped()", "isStopped()");
 				return this.isStopped();
 			},
 
