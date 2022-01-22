@@ -258,6 +258,9 @@ const DEF_GRAVITY = 1600;
 const QUEUE_COUNT = 65536;
 const BG_GRID_SIZE = 64;
 
+const DEF_FONT = "apl386o";
+const DBG_FONT = "sink";
+
 // vertex format stride (vec3 pos, vec2 uv, vec4 color)
 const STRIDE = 9;
 
@@ -539,14 +542,16 @@ const s = (() => {
 		mousePos: vec2(0, 0),
 		mouseDeltaPos: vec2(0, 0),
 
-		// total time game is running
+		// total time elapsed
 		time: 0,
-		// real total time game is running (including paused time)
+		// real total time elapsed (including paused time)
 		realTime: 0,
 		// if we should skip next dt, to prevent the massive dt surge if user switch to another tab for a while and comeback
 		skipTime: false,
 		// how much time last frame took
 		dt: 0.0,
+		// total frames elapsed
+		numFrames: 0,
 
 		// if we're on a touch device
 		isTouch: ("ontouchstart" in window) || navigator.maxTouchPoints > 0,
@@ -642,6 +647,10 @@ const s = (() => {
 			}
 		},
 		scenes: {},
+
+		// on screen log
+		logs: [],
+
 	};
 
 })();
@@ -1041,11 +1050,7 @@ function play(
 	if (typeof src === "string") {
 
 		const pb = play({
-			buf: new AudioBuffer({
-				length: 1,
-				numberOfChannels: 1,
-				sampleRate: 44100
-			}),
+			buf: createEmptyAudioBuffer(),
 		});
 
 		onLoad(() => {
@@ -1201,11 +1206,17 @@ function play(
 
 }
 
+// core kaboom logic
 function burp(opt?: AudioPlayOpt): AudioPlay {
 	return play(s.burpSnd, opt);
 }
 
-function makeTex(gl, data: GfxTexData, opt: GfxTexOpt = {}): GfxTexture {
+// TODO: take these webgl structures out pure
+function makeTex(
+	gl: WebGLRenderingContext,
+	data: GfxTexData,
+	opt: GfxTexOpt = {}
+): GfxTexture {
 
 	const id = gl.createTexture();
 
@@ -1384,7 +1395,7 @@ function drawRaw(
 	for (const v of verts) {
 
 		// normalized world space coordinate [-1.0 ~ 1.0]
-		const pt = toNDC(s.transform.multVec2(v.pos.xy()));
+		const pt = screen2ndc(s.transform.multVec2(v.pos.xy()));
 
 		s.vqueue.push(
 			pt.x, pt.y, v.pos.z,
@@ -1404,6 +1415,7 @@ function drawRaw(
 
 }
 
+// draw all batched shapes
 function flush() {
 
 	if (
@@ -1439,6 +1451,7 @@ function flush() {
 
 }
 
+// start a rendering frame, reset some states
 function frameStart() {
 
 	s.gl.clear(s.gl.COLOR_BUFFER_BIT);
@@ -1472,14 +1485,16 @@ function drawCalls() {
 	return s.lastDrawCalls;
 }
 
-function toNDC(pt: Vec2): Vec2 {
+// convert a screen space coordinate to webgl normalized device coordinate
+function screen2ndc(pt: Vec2): Vec2 {
 	return vec2(
 		pt.x / width() * 2 - 1,
 		-pt.y / height() * 2 + 1,
 	);
 }
 
-function toScreen(pt: Vec2): Vec2 {
+// convert a webgl normalied device coordinate to screen space coordinate
+function ndc2screen(pt: Vec2): Vec2 {
 	return vec2(
 		(pt.x + 1) / 2 * width(),
 		-(pt.y - 1) / 2 * height(),
@@ -1652,6 +1667,51 @@ function drawTexture(opt: DrawTextureOpt) {
 		});
 
 	}
+
+}
+
+// TODO: use native asset loader tracking
+const loading = new Set();
+
+function drawSprite(opt: DrawSpriteOpt) {
+
+	if (!opt.sprite) {
+		throw new Error(`drawSprite() requires property "sprite"`);
+	}
+
+	const spr = findAsset(opt.sprite, s.sprites);
+
+	if (!spr) {
+
+		// if passes a source url, we load it implicitly
+		if (typeof opt.sprite === "string") {
+			if (!loading.has(opt.sprite)) {
+				loading.add(opt.sprite);
+				loadSprite(opt.sprite, opt.sprite)
+					.then((a) => loading.delete(opt.sprite));
+			}
+			return;
+		} else {
+			throw new Error(`sprite not found: "${opt.sprite}"`);
+		}
+
+	}
+
+	const q = spr.frames[opt.frame ?? 0];
+
+	if (!q) {
+		throw new Error(`frame not found: ${opt.frame ?? 0}`);
+	}
+
+	drawTexture({
+		...opt,
+		tex: spr.tex,
+		quad: q.scale(opt.quad || quad(0, 0, 1, 1)),
+		uniform: {
+			...opt.uniform,
+			"u_transform": opt.fixed ? mat4() : s.camMatrix,
+		},
+	});
 
 }
 
@@ -2147,8 +2207,6 @@ function drawFormattedText(ftext: FormattedText) {
 	}
 }
 
-//  	window.addEventListener("resize", updateSize);
-
 function updateSize() {
 	if (gopt.width && gopt.height && gopt.stretch) {
 		if (gopt.letterbox) {
@@ -2194,11 +2252,7 @@ function height(): number {
 	return s.height;
 }
 
-updateSize();
-frameStart();
-frameEnd();
-s.cam.pos = center();
-
+// TODO: support remove events
 s.canvas.addEventListener("mousemove", (e) => {
 	if (isFullscreen()) {
 		// in fullscreen mode browser adds letter box to preserve original canvas aspect ratio, but won't give us the transformed mouse position
@@ -2285,6 +2339,24 @@ s.canvas.addEventListener("touchcancel", (e) => {
 	s.mouseStates["left"] = "released";
 });
 
+s.canvas.addEventListener("touchstart", (e) => {
+	[...e.changedTouches].forEach((t) => {
+		s.trigger("onTouchStart", t.identifier, vec2(t.clientX, t.clientY).scale(1 / s.scale));
+	});
+});
+
+s.canvas.addEventListener("touchmove", (e) => {
+	[...e.changedTouches].forEach((t) => {
+		s.trigger("onTouchMove", t.identifier, vec2(t.clientX, t.clientY).scale(1 / s.scale));
+	});
+});
+
+s.canvas.addEventListener("touchend", (e) => {
+	[...e.changedTouches].forEach((t) => {
+		s.trigger("onTouchEnd", t.identifier, vec2(t.clientX, t.clientY).scale(1 / s.scale));
+	});
+});
+
 s.canvas.addEventListener("contextmenu", function (e) {
 	e.preventDefault();
 });
@@ -2304,12 +2376,12 @@ document.addEventListener("visibilitychange", () => {
 });
 
 // TODO: not quite working
-//  	window.addEventListener("resize", () => {
-//  		if (!(gopt.width && gopt.height && !gopt.stretch)) {
-//  			s.canvas.width = s.canvas.parentElement.offsetWidth;
-//  			s.canvas.height = s.canvas.parentElement.offsetHeight;
-//  		}
-//  	});
+// window.addEventListener("resize", () => {
+// 	if (!(gopt.width && gopt.height && !gopt.stretch)) {
+// 		s.canvas.width = s.canvas.parentElement.offsetWidth;
+// 		s.canvas.height = s.canvas.parentElement.offsetHeight;
+// 	}
+// });
 
 function mousePos(): Vec2 {
 	return s.mousePos.clone();
@@ -2369,7 +2441,6 @@ function charInputted(): string[] {
 	return [...s.charInputted];
 }
 
-// get current running time
 function time(): number {
 	return s.time;
 }
@@ -2403,64 +2474,10 @@ function isFullscreen(): boolean {
 	return Boolean(getFullscreenElement());
 }
 
-function run(f: () => void) {
-
-	const frame = (t: number) => {
-
-		if (document.visibilityState !== "visible") {
-			s.loopID = requestAnimationFrame(frame);
-			return;
-		}
-
-		const realTime = t / 1000;
-		const realDt = realTime - s.realTime;
-
-		s.realTime = realTime;
-
-		if (!s.skipTime) {
-			s.dt = realDt;
-			s.time += s.dt;
-			s.fpsBuf.push(1 / s.dt);
-			s.fpsTimer += s.dt;
-			if (s.fpsTimer >= 1) {
-				s.fpsTimer = 0;
-				s.fps = Math.round(s.fpsBuf.reduce((a, b) => a + b) / s.fpsBuf.length);
-				s.fpsBuf = [];
-			}
-		}
-
-		s.skipTime = false;
-
-		f();
-
-		for (const k in s.keyStates) {
-			s.keyStates[k] = getNextButtonState(s.keyStates[k]);
-		}
-
-		for (const m in s.mouseStates) {
-			s.mouseStates[m] = getNextButtonState(s.mouseStates[m]);
-		}
-
-		s.charInputted = [];
-		s.isMouseMoved = false;
-		s.isKeyPressed = false;
-		s.isKeyPressedRepeat = false;
-		s.isKeyReleased = false;
-		s.loopID = requestAnimationFrame(frame);
-
-	};
-
-	s.stopped = false;
-	s.loopID = requestAnimationFrame(frame);
-
-}
-
 function quit() {
 	cancelAnimationFrame(s.loopID);
 	s.stopped = true;
 }
-
-let logs = [];
 
 const debug: Debug = {
 	inspect: false,
@@ -2473,9 +2490,9 @@ const debug: Debug = {
 	},
 	stepFrame: updateFrame,
 	drawCalls: () => s.drawCalls,
-	clearLog: () => logs = [],
-	log: (msg) => logs.unshift(`[${time().toFixed(2)}].time [${msg}].info`),
-	error: (msg) => logs.unshift(`[${time().toFixed(2)}].time [${msg}].error`),
+	clearLog: () => s.logs = [],
+	log: (msg) => s.logs.unshift(`[${time().toFixed(2)}].time [${msg}].info`),
+	error: (msg) => s.logs.unshift(`[${time().toFixed(2)}].time [${msg}].error`),
 	curRecording: null,
 	get paused() {
 		return s.paused;
@@ -2490,9 +2507,6 @@ const debug: Debug = {
 	}
 };
 
-const DEF_FONT = "apl386o";
-const DBG_FONT = "sink";
-
 function dt() {
 	return s.dt * debug.timeScale;
 }
@@ -2501,68 +2515,6 @@ function mouseWorldPos(): Vec2 {
 	deprecateMsg("mouseWorldPos()", "toWorld(mousePos())");
 	return toWorld(mousePos());
 }
-
-// TODO: use native asset loader tracking
-const loading = new Set();
-
-function drawSprite(opt: DrawSpriteOpt) {
-
-	if (!opt.sprite) {
-		throw new Error(`drawSprite() requires property "sprite"`);
-	}
-
-	const spr = findAsset(opt.sprite, s.sprites);
-
-	if (!spr) {
-
-		// if passes a source url, we load it implicitly
-		if (typeof opt.sprite === "string") {
-			if (!loading.has(opt.sprite)) {
-				loading.add(opt.sprite);
-				loadSprite(opt.sprite, opt.sprite)
-					.then((a) => loading.delete(opt.sprite));
-			}
-			return;
-		} else {
-			throw new Error(`sprite not found: "${opt.sprite}"`);
-		}
-
-	}
-
-	const q = spr.frames[opt.frame ?? 0];
-
-	if (!q) {
-		throw new Error(`frame not found: ${opt.frame ?? 0}`);
-	}
-
-	drawTexture({
-		...opt,
-		tex: spr.tex,
-		quad: q.scale(opt.quad || quad(0, 0, 1, 1)),
-		uniform: {
-			...opt.uniform,
-			"u_transform": opt.fixed ? mat4() : s.camMatrix,
-		},
-	});
-
-}
-
-interface Game {
-	loaded: boolean,
-	events: Record<string, IDList<() => void>>,
-	objEvents: Record<string, IDList<TaggedEvent>>,
-	root: GameObj,
-	timers: IDList<Timer>,
-	cam: Camera,
-	camMatrix: Mat4,
-	gravity: number,
-	layers: Record<string, number>,
-	defLayer: string | null,
-	on<F>(ev: string, cb: F): EventCanceller,
-	trigger(ev: string, ...args),
-	scenes: Record<SceneID, SceneDef>,
-	paused: boolean,
-};
 
 type Camera = {
 	pos: Vec2,
@@ -2632,12 +2584,12 @@ function shake(intensity: number = 12) {
 }
 
 // TODO: bugged
-// function toScreen(p: Vec2): Vec2 {
-// 	return s.camMatrix.multVec2(p);
-// }
+function toScreen(p: Vec2): Vec2 {
+	return s.camMatrix.multVec2(p);
+}
 
 function toWorld(p: Vec2): Vec2 {
-	return toScreen(s.camMatrix.invert().multVec2(toNDC(p)));
+	return toScreen(s.camMatrix.invert().multVec2(screen2ndc(p)));
 }
 
 const COMP_DESC = new Set([
@@ -3133,25 +3085,6 @@ function onMouseMove(f: (pos: Vec2, dpos: Vec2) => void): EventCanceller {
 function onCharInput(f: (ch: string) => void): EventCanceller {
 	return s.on("input", () => charInputted().forEach((ch) => f(ch)));
 }
-
-// TODO: put this in s.ts's and handle in game loop
-s.canvas.addEventListener("touchstart", (e) => {
-	[...e.changedTouches].forEach((t) => {
-		s.trigger("onTouchStart", t.identifier, vec2(t.clientX, t.clientY).scale(1 / s.scale));
-	});
-});
-
-s.canvas.addEventListener("touchmove", (e) => {
-	[...e.changedTouches].forEach((t) => {
-		s.trigger("onTouchMove", t.identifier, vec2(t.clientX, t.clientY).scale(1 / s.scale));
-	});
-});
-
-s.canvas.addEventListener("touchend", (e) => {
-	[...e.changedTouches].forEach((t) => {
-		s.trigger("onTouchEnd", t.identifier, vec2(t.clientX, t.clientY).scale(1 / s.scale));
-	});
-});
 
 function onTouchStart(f: (id: TouchID, pos: Vec2) => void): EventCanceller {
 	return s.on("onTouchStart", f);
@@ -4827,7 +4760,8 @@ function record(frameRate?): Recording {
 			s.masterNode.disconnect(audioDest)
 			stream.getTracks().forEach(t => t.stop());
 
-		}
+		},
+
 	};
 
 }
@@ -4923,247 +4857,8 @@ function addKaboom(p: Vec2, opt: BoomOpt = {}): Kaboom {
 
 }
 
-const ctx: KaboomCtx = {
-	// asset load
-	loadRoot,
-	loadSprite,
-	loadSpriteAtlas,
-	loadSound,
-	loadFont,
-	loadShader,
-	loadAseprite,
-	loadPedit,
-	loadBean,
-	load,
-	// query
-	width,
-	height,
-	center,
-	dt,
-	time,
-	screenshot,
-	record,
-	focused: deprecate("focused()", "isFocused()", isFocused),
-	isFocused: isFocused,
-	focus: focus,
-	cursor: cursor,
-	regCursor,
-	fullscreen: fullscreen,
-	isFullscreen: isFullscreen,
-	onLoad,
-	ready: deprecate("ready()", "onLoad()", onLoad),
-	isTouch: () => s.isTouch,
-	// misc
-	layers,
-	camPos,
-	camScale,
-	camRot,
-	shake,
-	toScreen,
-	toWorld,
-	gravity,
-	// obj
-	add: (...args) => s.root.add(...args),
-	readd: (...args) => s.root.readd(...args),
-	destroy: (...args) => s.root.remove(...args),
-	destroyAll: (...args) => s.root.removeAll(...args),
-	get: (...args) => s.root.get(...args),
-	every: (...args) => s.root.every(...args),
-	revery: (...args) => s.root.revery(...args),
-	// comps
-	pos,
-	scale,
-	rotate,
-	color,
-	opacity,
-	origin,
-	layer,
-	area,
-	sprite,
-	text,
-	rect,
-	circle,
-	uvquad,
-	outline,
-	body,
-	shader,
-	timer,
-	solid,
-	fixed,
-	stay,
-	health,
-	lifespan,
-	z,
-	move,
-	outview,
-	cleanup,
-	follow,
-	state,
-	// group events
-	on,
-	onUpdate,
-	onDraw,
-	onCollide,
-	onClick,
-	onHover,
-	action: deprecate("action()", "onUpdate()", onUpdate),
-	render: deprecate("render()", "onDraw()", onDraw),
-	collides: deprecate("collides()", "onCollide()", onCollide),
-	clicks: deprecate("clicks()", "onClick()", onClick),
-	hovers: deprecate("hovers()", "onHover()", onHover),
-	// input
-	onKeyDown,
-	onKeyPress,
-	onKeyPressRepeat,
-	onKeyRelease,
-	onMouseDown,
-	onMousePress,
-	onMouseRelease,
-	onMouseMove,
-	onCharInput,
-	onTouchStart,
-	onTouchMove,
-	onTouchEnd,
-	keyDown: deprecate("keyDown()", "onKeyDown()", onKeyDown),
-	keyPress: deprecate("keyPress()", "onKeyPress()", onKeyPress),
-	keyPressRep: deprecate("keyPressRep()", "onKeyPressRepeat()", onKeyPressRepeat),
-	keyRelease: deprecate("keyRelease()", "onKeyRelease()", onKeyRelease),
-	mouseDown: deprecate("mouseDown()", "onMouseDown()", onMouseDown),
-	mouseClick: deprecate("mouseClick()", "onMousePress()", onMousePress),
-	mouseRelease: deprecate("mouseRelease()", "onMouseRelease()", onMouseRelease),
-	mouseMove: deprecate("mouseMove()", "onMouseMove()", onMouseMove),
-	charInput: deprecate("charInput()", "onCharInput()", onCharInput),
-	touchStart: deprecate("touchStart()", "onTouchStart()", onTouchStart),
-	touchMove: deprecate("touchMove()", "onTouchMove()", onTouchMove),
-	touchEnd: deprecate("touchEnd()", "onTouchEnd()", onTouchEnd),
-	mousePos,
-	mouseWorldPos,
-	mouseDeltaPos,
-	isKeyDown: isKeyDown,
-	isKeyPressed: isKeyPressed,
-	isKeyPressedRepeat: isKeyPressedRepeat,
-	isKeyReleased: isKeyReleased,
-	isMouseDown: isMouseDown,
-	isMousePressed: isMousePressed,
-	isMouseReleased: isMouseReleased,
-	isMouseMoved: isMouseMoved,
-	keyIsDown: deprecate("keyIsDown()", "isKeyDown()", isKeyDown),
-	keyIsPressed: deprecate("keyIsPressed()", "isKeyPressed()", isKeyPressed),
-	keyIsPressedRep: deprecate("keyIsPressedRep()", "isKeyPressedRepeat()", isKeyPressedRepeat),
-	keyIsReleased: deprecate("keyIsReleased()", "isKeyReleased()", isKeyReleased),
-	mouseIsDown: deprecate("mouseIsDown()", "isMouseDown()", isMouseDown),
-	mouseIsClicked: deprecate("mouseIsClicked()", "isMousePressed()", isMousePressed),
-	mouseIsReleased: deprecate("mouseIsReleased()", "isMouseReleased()", isMouseReleased),
-	mouseIsMoved: deprecate("mouseIsMoved()", "isMouseMoved()", isMouseMoved),
-	// timer
-	loop,
-	wait,
-	// audio
-	play,
-	volume,
-	burp,
-	audioCtx: s.audioCtx,
-	// math
-	rng,
-	rand,
-	randi,
-	randSeed,
-	vec2,
-	vec2FromAngle,
-	dir: deprecate("dir()", "vec2FromAngle()", vec2FromAngle),
-	rgb,
-	hsl2rgb,
-	quad,
-	choose,
-	chance,
-	lerp,
-	map,
-	mapc,
-	wave,
-	deg2rad,
-	rad2deg,
-	testAreaRect,
-	testAreaLine,
-	testAreaCircle,
-	testAreaPolygon,
-	testAreaPoint,
-	testAreaArea,
-	testLineLine,
-	testRectRect,
-	testRectLine,
-	testRectPoint,
-	testPolygonPoint,
-	testLinePolygon,
-	testPolygonPolygon,
-	testCircleCircle,
-	testCirclePoint,
-	testRectPolygon,
-	// raw draw
-	drawSprite,
-	drawText,
-	formatText,
-	drawRect,
-	drawLine,
-	drawLines,
-	drawTriangle,
-	drawCircle,
-	drawEllipse,
-	drawUVQuad,
-	drawPolygon,
-	drawFormattedText,
-	pushTransform,
-	popTransform,
-	pushTranslate,
-	pushRotate: pushRotateZ,
-	pushScale,
-	// debug
-	debug,
-	// scene
-	scene,
-	go,
-	// level
-	addLevel,
-	// storage
-	getData,
-	setData,
-	// plugin
-	plug,
-	// char sets
-	ASCII_CHARS,
-	CP437_CHARS,
-	// dirs
-	LEFT: vec2(-1, 0),
-	RIGHT: vec2(1, 0),
-	UP: vec2(0, -1),
-	DOWN: vec2(0, 1),
-	// colors
-	RED: rgb(255, 0, 0),
-	GREEN: rgb(0, 255, 0),
-	BLUE: rgb(0, 0, 255),
-	YELLOW: rgb(255, 255, 0),
-	MAGENTA: rgb(255, 0, 255),
-	CYAN: rgb(0, 255, 255),
-	WHITE: rgb(255, 255, 255),
-	BLACK: rgb(0, 0, 0),
-	// dom
-	canvas: s.canvas,
-	addKaboom,
-};
-
-if (gopt.plugins) {
-	gopt.plugins.forEach(plug);
-}
-
-if (gopt.global !== false) {
-	for (const k in ctx) {
-		window[k] = ctx[k];
-	}
-}
-
-let numFrames = 0;
-
 function frames() {
-	return numFrames;
+	return s.numFrames;
 }
 
 function updateFrame() {
@@ -5454,7 +5149,7 @@ function drawDebug() {
 
 	}
 
-	if (debug.showLog && logs.length > 0) {
+	if (debug.showLog && s.logs.length > 0) {
 
 		pushTransform();
 		pushTranslate(0, height());
@@ -5464,12 +5159,12 @@ function drawDebug() {
 		const pad = 8;
 		const max = gopt.logMax ?? 1;
 
-		if (logs.length > max) {
-			logs = logs.slice(0, max);
+		if (s.logs.length > max) {
+			s.logs = s.logs.slice(0, max);
 		}
 
 		const ftext = formatText({
-			text: logs.join("\n"),
+			text: s.logs.join("\n"),
 			font: s.fonts[DBG_FONT],
 			pos: vec2(pad, -pad),
 			origin: "botleft",
@@ -5499,9 +5194,54 @@ function drawDebug() {
 
 }
 
-run(() => {
+if (gopt.debug !== false) {
+	enterDebugMode();
+}
 
-	numFrames++;
+if (gopt.burp) {
+	enterBurpMode();
+}
+
+window.addEventListener("error", (e) => {
+	debug.error(`Error: ${e.error.message}`);
+	quit();
+	// TODO
+// 	run(() => {
+// 		if (loadProgress() === 1) {
+// 			frameStart();
+// 			drawDebug();
+// 			frameEnd();
+// 		}
+// 	});
+});
+
+// main game loop
+function frame(t: number) {
+
+	if (document.visibilityState !== "visible") {
+		s.loopID = requestAnimationFrame(frame);
+		return;
+	}
+
+	const realTime = t / 1000;
+	const realDt = realTime - s.realTime;
+
+	s.realTime = realTime;
+
+	if (!s.skipTime) {
+		s.dt = realDt;
+		s.time += s.dt;
+		s.fpsBuf.push(1 / s.dt);
+		s.fpsTimer += s.dt;
+		if (s.fpsTimer >= 1) {
+			s.fpsTimer = 0;
+			s.fps = Math.round(s.fpsBuf.reduce((a, b) => a + b) / s.fpsBuf.length);
+			s.fpsBuf = [];
+		}
+	}
+
+	s.skipTime = false;
+	s.numFrames++;
 
 	if (!s.loaded) {
 		frameStart();
@@ -5527,27 +5267,22 @@ run(() => {
 
 	}
 
-});
+	for (const k in s.keyStates) {
+		s.keyStates[k] = getNextButtonState(s.keyStates[k]);
+	}
 
-if (gopt.debug !== false) {
-	enterDebugMode();
+	for (const m in s.mouseStates) {
+		s.mouseStates[m] = getNextButtonState(s.mouseStates[m]);
+	}
+
+	s.charInputted = [];
+	s.isMouseMoved = false;
+	s.isKeyPressed = false;
+	s.isKeyPressedRepeat = false;
+	s.isKeyReleased = false;
+	s.loopID = requestAnimationFrame(frame);
+
 }
-
-if (gopt.burp) {
-	enterBurpMode();
-}
-
-window.addEventListener("error", (e) => {
-	debug.error(`Error: ${e.error.message}`);
-	quit();
-	run(() => {
-		if (loadProgress() === 1) {
-			frameStart();
-			drawDebug();
-			frameEnd();
-		}
-	});
-});
 
 loadFont(
 	"apl386",
@@ -5579,6 +5314,252 @@ loadFont(
 	8,
 	10,
 );
+
+updateSize();
+frameStart();
+frameEnd();
+s.cam.pos = center();
+
+s.stopped = false;
+s.loopID = requestAnimationFrame(frame);
+
+// the exported ctx handle
+const ctx: KaboomCtx = {
+	// asset load
+	loadRoot,
+	loadSprite,
+	loadSpriteAtlas,
+	loadSound,
+	loadFont,
+	loadShader,
+	loadAseprite,
+	loadPedit,
+	loadBean,
+	load,
+	// query
+	width,
+	height,
+	center,
+	dt,
+	time,
+	screenshot,
+	record,
+	focused: deprecate("focused()", "isFocused()", isFocused),
+	isFocused: isFocused,
+	focus: focus,
+	cursor: cursor,
+	regCursor,
+	fullscreen: fullscreen,
+	isFullscreen: isFullscreen,
+	onLoad,
+	ready: deprecate("ready()", "onLoad()", onLoad),
+	isTouch: () => s.isTouch,
+	// misc
+	layers,
+	camPos,
+	camScale,
+	camRot,
+	shake,
+	toScreen,
+	toWorld,
+	gravity,
+	// obj
+	add: (...args) => s.root.add(...args),
+	readd: (...args) => s.root.readd(...args),
+	destroy: (...args) => s.root.remove(...args),
+	destroyAll: (...args) => s.root.removeAll(...args),
+	get: (...args) => s.root.get(...args),
+	every: (...args) => s.root.every(...args),
+	revery: (...args) => s.root.revery(...args),
+	// comps
+	pos,
+	scale,
+	rotate,
+	color,
+	opacity,
+	origin,
+	layer,
+	area,
+	sprite,
+	text,
+	rect,
+	circle,
+	uvquad,
+	outline,
+	body,
+	shader,
+	timer,
+	solid,
+	fixed,
+	stay,
+	health,
+	lifespan,
+	z,
+	move,
+	outview,
+	cleanup,
+	follow,
+	state,
+	// group events
+	on,
+	onUpdate,
+	onDraw,
+	onCollide,
+	onClick,
+	onHover,
+	action: deprecate("action()", "onUpdate()", onUpdate),
+	render: deprecate("render()", "onDraw()", onDraw),
+	collides: deprecate("collides()", "onCollide()", onCollide),
+	clicks: deprecate("clicks()", "onClick()", onClick),
+	hovers: deprecate("hovers()", "onHover()", onHover),
+	// input
+	onKeyDown,
+	onKeyPress,
+	onKeyPressRepeat,
+	onKeyRelease,
+	onMouseDown,
+	onMousePress,
+	onMouseRelease,
+	onMouseMove,
+	onCharInput,
+	onTouchStart,
+	onTouchMove,
+	onTouchEnd,
+	keyDown: deprecate("keyDown()", "onKeyDown()", onKeyDown),
+	keyPress: deprecate("keyPress()", "onKeyPress()", onKeyPress),
+	keyPressRep: deprecate("keyPressRep()", "onKeyPressRepeat()", onKeyPressRepeat),
+	keyRelease: deprecate("keyRelease()", "onKeyRelease()", onKeyRelease),
+	mouseDown: deprecate("mouseDown()", "onMouseDown()", onMouseDown),
+	mouseClick: deprecate("mouseClick()", "onMousePress()", onMousePress),
+	mouseRelease: deprecate("mouseRelease()", "onMouseRelease()", onMouseRelease),
+	mouseMove: deprecate("mouseMove()", "onMouseMove()", onMouseMove),
+	charInput: deprecate("charInput()", "onCharInput()", onCharInput),
+	touchStart: deprecate("touchStart()", "onTouchStart()", onTouchStart),
+	touchMove: deprecate("touchMove()", "onTouchMove()", onTouchMove),
+	touchEnd: deprecate("touchEnd()", "onTouchEnd()", onTouchEnd),
+	mousePos,
+	mouseWorldPos,
+	mouseDeltaPos,
+	isKeyDown: isKeyDown,
+	isKeyPressed: isKeyPressed,
+	isKeyPressedRepeat: isKeyPressedRepeat,
+	isKeyReleased: isKeyReleased,
+	isMouseDown: isMouseDown,
+	isMousePressed: isMousePressed,
+	isMouseReleased: isMouseReleased,
+	isMouseMoved: isMouseMoved,
+	keyIsDown: deprecate("keyIsDown()", "isKeyDown()", isKeyDown),
+	keyIsPressed: deprecate("keyIsPressed()", "isKeyPressed()", isKeyPressed),
+	keyIsPressedRep: deprecate("keyIsPressedRep()", "isKeyPressedRepeat()", isKeyPressedRepeat),
+	keyIsReleased: deprecate("keyIsReleased()", "isKeyReleased()", isKeyReleased),
+	mouseIsDown: deprecate("mouseIsDown()", "isMouseDown()", isMouseDown),
+	mouseIsClicked: deprecate("mouseIsClicked()", "isMousePressed()", isMousePressed),
+	mouseIsReleased: deprecate("mouseIsReleased()", "isMouseReleased()", isMouseReleased),
+	mouseIsMoved: deprecate("mouseIsMoved()", "isMouseMoved()", isMouseMoved),
+	// timer
+	loop,
+	wait,
+	// audio
+	play,
+	volume,
+	burp,
+	audioCtx: s.audioCtx,
+	// math
+	rng,
+	rand,
+	randi,
+	randSeed,
+	vec2,
+	vec2FromAngle,
+	dir: deprecate("dir()", "vec2FromAngle()", vec2FromAngle),
+	rgb,
+	hsl2rgb,
+	quad,
+	choose,
+	chance,
+	lerp,
+	map,
+	mapc,
+	wave,
+	deg2rad,
+	rad2deg,
+	testAreaRect,
+	testAreaLine,
+	testAreaCircle,
+	testAreaPolygon,
+	testAreaPoint,
+	testAreaArea,
+	testLineLine,
+	testRectRect,
+	testRectLine,
+	testRectPoint,
+	testPolygonPoint,
+	testLinePolygon,
+	testPolygonPolygon,
+	testCircleCircle,
+	testCirclePoint,
+	testRectPolygon,
+	// raw draw
+	drawSprite,
+	drawText,
+	formatText,
+	drawRect,
+	drawLine,
+	drawLines,
+	drawTriangle,
+	drawCircle,
+	drawEllipse,
+	drawUVQuad,
+	drawPolygon,
+	drawFormattedText,
+	pushTransform,
+	popTransform,
+	pushTranslate,
+	pushRotate: pushRotateZ,
+	pushScale,
+	// debug
+	debug,
+	// scene
+	scene,
+	go,
+	// level
+	addLevel,
+	// storage
+	getData,
+	setData,
+	// plugin
+	plug,
+	// char sets
+	ASCII_CHARS,
+	CP437_CHARS,
+	// dirs
+	LEFT: vec2(-1, 0),
+	RIGHT: vec2(1, 0),
+	UP: vec2(0, -1),
+	DOWN: vec2(0, 1),
+	// colors
+	RED: rgb(255, 0, 0),
+	GREEN: rgb(0, 255, 0),
+	BLUE: rgb(0, 0, 255),
+	YELLOW: rgb(255, 255, 0),
+	MAGENTA: rgb(255, 0, 255),
+	CYAN: rgb(0, 255, 255),
+	WHITE: rgb(255, 255, 255),
+	BLACK: rgb(0, 0, 0),
+	// dom
+	canvas: s.canvas,
+	addKaboom,
+};
+
+if (gopt.plugins) {
+	gopt.plugins.forEach(plug);
+}
+
+if (gopt.global !== false) {
+	for (const k in ctx) {
+		window[k] = ctx[k];
+	}
+}
 
 return ctx;
 
