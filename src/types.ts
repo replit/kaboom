@@ -3089,18 +3089,19 @@ export declare class Vec2 {
 	str(): string
 }
 
-export interface Vec3 {
-	x: number,
-	y: number,
-	z: number,
-	xy(): Vec2,
+export declare class Vec3 {
+	x: number
+	y: number
+	z: number
+	constructor(x: number, y: number, z: number)
+	xy(): Vec2
 }
 
-export interface Vec4 {
-	x: number,
-	y: number,
-	z: number,
-	w: number,
+export declare class Vec4 {
+	x: number
+	y: number
+	z: number
+	w: number
 }
 
 export declare class Mat4 {
@@ -3170,14 +3171,15 @@ export declare class Color {
 	str(): string;
 }
 
-export interface Quad {
-	x: number,
-	y: number,
-	w: number,
-	h: number,
-	scale(q: Quad): Quad,
-	clone(): Quad,
-	eq(q: Quad): boolean,
+export declare class Quad {
+	x: number
+	y: number
+	w: number
+	h: number
+	constructor(x: number, y: number, w: number, h: number)
+	scale(q: Quad): Quad
+	clone(): Quad
+	eq(q: Quad): boolean
 }
 
 export type RNGValue =
@@ -3193,19 +3195,22 @@ export interface RNG {
 	gen<T extends RNGValue>(a: T, b: T): T,
 }
 
-export interface Rect {
-	p1: Vec2,
-	p2: Vec2,
+export declare class Rect {
+	p1: Vec2
+	p2: Vec2
+	constructor(p1: Vec2, p2: Vec2)
 }
 
-export interface Line {
-	p1: Vec2,
-	p2: Vec2,
+export declare class Line {
+	p1: Vec2
+	p2: Vec2
+	constructor(p1: Vec2, p2: Vec2)
 }
 
-export interface Circle {
-	center: Vec2,
-	radius: number,
+export declare class Circle {
+	center: Vec2
+	radius: number
+	constructor(pos: Vec2, radius: number)
 }
 
 export type Polygon = Vec2[];
@@ -3897,15 +3902,20 @@ export interface BodyCompOpt {
 	solid?: boolean,
 }
 
-export interface Timer {
+export declare class Timer {
 	/**
-	 * Timer left.
+	 * Time left.
 	 */
-	time: number,
+	time: number
 	/**
-	 * The action to take after time is up.
+	 * The action to take when timer is up
 	 */
-	action(): void,
+	action: () => void
+	readonly finished: boolean
+	paused: boolean
+	constructor(time: number, action: () => void)
+	tick(dt: number): boolean
+	reset(time: number): void
 }
 
 export interface TimerComp extends Comp {

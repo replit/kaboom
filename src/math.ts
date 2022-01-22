@@ -1,8 +1,6 @@
 import {
 	Vec4,
 	Point,
-	Rect,
-	Circle,
 	Polygon,
 	Area,
 } from "./types";
@@ -270,7 +268,7 @@ export class Quad {
 	y: number = 0;
 	w: number = 1;
 	h: number = 1;
-	constructor(x: number = 0, y: number = 0, w: number = 1, h: number = 1) {
+	constructor(x: number, y: number, w: number, h: number) {
 		this.x = x;
 		this.y = y;
 		this.w = w;
@@ -818,5 +816,23 @@ export class Line {
 	constructor(p1: Vec2, p2: Vec2) {
 		this.p1 = p1;
 		this.p2 = p2;
+	}
+}
+
+export class Rect {
+	p1: Vec2;
+	p2: Vec2;
+	constructor(p1: Vec2, p2: Vec2) {
+		this.p1 = p1;
+		this.p2 = p2;
+	}
+}
+
+export class Circle {
+	center: Vec2;
+	radius: number;
+	constructor(center: Vec2, radius: number) {
+		this.center = center;
+		this.radius = radius;
 	}
 }

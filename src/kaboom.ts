@@ -3,6 +3,7 @@ import {
 	vec2,
 	vec3,
 	Vec3,
+	Rect,
 	Color,
 	Vec2,
 	Mat4,
@@ -91,7 +92,6 @@ import {
 	DrawSpriteOpt,
 	DrawTextOpt,
 	GameObj,
-	Timer,
 	EventCanceller,
 	SceneID,
 	SceneDef,
@@ -154,6 +154,7 @@ import {
 } from "./types";
 
 import FPSCounter from "./fps";
+import Timer from "./timer";
 
 // @ts-ignore
 import apl386Src from "./assets/apl386.png";
@@ -2963,15 +2964,10 @@ function onHover(t: string, onHover: (obj: GameObj) => void, onNotHover?: (obj: 
 // add an event that'd be run after t
 function wait(t: number, f?: () => void): Promise<void> {
 	return new Promise((resolve) => {
-		s.timers.push({
-			time: t,
-			action: () => {
-				if (f) {
-					f();
-				}
-				resolve();
-			},
-		});
+		s.timers.push(new Timer(t, () => {
+			if (f) f();
+			resolve();
+		}))
 	});
 }
 
@@ -3456,10 +3452,10 @@ function outview(opt: OutviewCompOpt = {}): OutviewComp {
 		require: [ "pos", "area", ],
 		isOutOfView(): boolean {
 			const offset = vec2(opt.offset ?? 0);
-			const screenRect = {
-				p1: vec2(0, 0).sub(offset),
-				p2: vec2(width(), height()).add(offset),
-			}
+			const screenRect = new Rect(
+				vec2(0, 0).sub(offset),
+				vec2(width(), height()).add(offset),
+			);
 			return !testAreaRect(this.screenArea(), screenRect);
 		},
 		onExitView(action: () => void): EventCanceller {
@@ -4087,27 +4083,19 @@ function outline(width: number = 1, color: Color = rgb(0, 0, 0)): OutlineComp {
 	};
 }
 
-function timer(n?: number, action?: () => void): TimerComp {
+function timer(time?: number, action?: () => void): TimerComp {
 	const timers: IDList<Timer> = new IDList();
-	if (n && action) {
-		timers.pushd({
-			time: n,
-			action: action,
-		});
+	if (time && action) {
+		timers.pushd(new Timer(time, action));
 	}
 	return {
 		id: "timer",
-		wait(n: number, action: () => void): EventCanceller {
-			return timers.pushd({
-				time: n,
-				action: action,
-			});
+		wait(time: number, action: () => void): EventCanceller {
+			return timers.pushd(new Timer(time, action));
 		},
 		update() {
 			timers.forEach((timer, id) => {
-				timer.time -= dt();
-				if (timer.time <= 0) {
-					timer.action.call(this);
+				if (timer.tick(dt())) {
 					timers.delete(id);
 				}
 			});

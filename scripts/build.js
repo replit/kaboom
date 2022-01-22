@@ -210,7 +210,7 @@ function buildTypes() {
 	fs.writeFileSync(`site/doc.json`, JSON.stringify({
 		types,
 		sections,
-	}, null, 4));
+	}));
 
 	console.log(`-> site/doc.json`);
 
