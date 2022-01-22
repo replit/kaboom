@@ -3107,50 +3107,61 @@ export interface Vec4 {
 	w: number,
 }
 
-export interface Mat4 {
-	m: number[],
-	clone(): Mat4,
-	mult(m: Mat4): Mat4,
-	multVec4(m: Vec4): Vec4,
-	multVec3(m: Vec3): Vec3,
-	multVec2(m: Vec2): Vec2,
-	scale(s: Vec2): Mat4,
-	translate(p: Vec2): Mat4,
-	rotateX(a: number): Mat4,
-	rotateY(a: number): Mat4,
-	rotateZ(a: number): Mat4,
-	invert(): Mat4,
+export declare class Mat4 {
+	m: number[];
+	constructor(m?: number[]);
+	clone(): Mat4;
+	mult(other: Mat4): Mat4;
+	multVec4(p: Vec4): Vec4;
+	multVec3(p: Vec3): Vec3;
+	multVec2(p: Vec2): Vec2;
+	static translate(p: Vec2): Mat4;
+	static scale(s: Vec2): Mat4;
+	static rotateX(a: number): Mat4;
+	static rotateY(a: number): Mat4;
+	static rotateZ(a: number): Mat4;
+	translate(p: Vec2): Mat4;
+	scale(s: Vec2): Mat4;
+	rotateX(a: number): Mat4;
+	rotateY(a: number): Mat4;
+	rotateZ(a: number): Mat4;
+	invert(): Mat4;
+	toString(): string;
 }
 
 /**
  * 0-255 RGBA color.
  */
-export interface Color {
+export declare class Color {
 	/**
 	 * Red (0-255).
 	 */
-	r: number,
+	r: number;
 	/**
 	 * Green (0-255).
 	 */
-	g: number,
+	g: number;
 	/**
 	 * Blue (0-255).
 	 */
-	b: number,
-	clone(): Color,
+	b: number;
+	constructor(r: number, g: number, b: number);
+	static white(): Color;
+	static fromArray(arr: number[]): Color;
+	clone(): Color;
 	/**
 	 * Lighten the color (adds RGB by n).
 	 */
-	lighten(n: number): Color,
+	lighten(n: number): Color;
 	/**
 	 * Darkens the color (subtracts RGB by n).
 	 */
-	darken(n: number): Color,
-	invert(): Color,
-	mult(other: Color): Color,
-	eq(c: Color): boolean,
-	str(): string,
+	darken(n: number): Color;
+	invert(): Color;
+	mult(other: Color): Color;
+	eq(c: Color): boolean;
+	str(): string;
+	toString(): string;
 }
 
 export interface Quad {

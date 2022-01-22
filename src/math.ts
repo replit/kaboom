@@ -1,15 +1,11 @@
 import {
 	Vec2,
-	Vec3,
 	Vec4,
-	Mat4,
-	Color,
 	Quad,
 	Point,
 	Rect,
 	Circle,
 	Polygon,
-	Line,
 	Area,
 	RNG,
 } from "./types";
@@ -139,16 +135,21 @@ function vec2FromAngle(deg: number): Vec2 {
 	return vec2(Math.cos(angle), Math.sin(angle));
 }
 
-function vec3(x: number, y: number, z: number): Vec3 {
-	return {
-		x: x,
-		y: y,
-		z: z,
-		xy(): Vec2 {
-			return vec2(this.x, this.y);
-		},
-	};
+export class Vec3 {
+	x: number = 0;
+	y: number = 0;
+	z: number = 0;
+	constructor(x: number, y: number, z: number) {
+		this.x = x;
+		this.y = y;
+		this.z = z;
+	}
+	xy() {
+		return vec2(this.x, this.y);
+	}
 }
+
+export const vec3 = (x, y, z) => new Vec3(x, y, z);
 
 function isVec2(p: any): boolean {
 	return p !== undefined
@@ -157,104 +158,94 @@ function isVec2(p: any): boolean {
 		;
 }
 
-function isVec3(p: any): boolean {
-	return p !== undefined
-		&& p.x !== undefined
-		&& p.y !== undefined
-		&& p.z !== undefined
-		;
-}
+export class Color {
 
-function isColor(c: any): boolean {
-	return c !== undefined
-		&& c.r !== undefined
-		&& c.g !== undefined
-		&& c.b !== undefined
-		;
-}
+	r: number = 255;
+	g: number = 255;
+	b: number = 255;
 
-function isMat4(m: any): Mat4 {
-	if (
-		m !== undefined
-		&& Array.isArray(m.m)
-		&& m.m.length === 16
-	) {
-		return m;
+	constructor(r: number, g: number, b: number) {
+		this.r = clamp(r, 0, 255);
+		this.g = clamp(g, 0, 255);
+		this.b = clamp(b, 0, 255);
 	}
-}
 
-function rgb(...args): Color {
+	static white() {
+		return new Color(255, 255, 255);
+	}
 
-	if (args.length === 0) {
-		return rgb(255, 255, 255);
-	} else if (args.length === 1) {
-		if (isColor(args[0])) {
-			return rgb(args[0].r, args[0].g, args[0].b);
-		} else if (Array.isArray(args[0]) && args[0].length === 3) {
-			return rgb.apply(null, args[0]);
+	static fromArray(arr: number[]) {
+		return new Color(arr[0], arr[1], arr[2])
+	}
+
+	clone(): Color {
+		return new Color(this.r, this.g, this.b);
+	}
+
+	lighten(a: number): Color {
+		return new Color(this.r + a, this.g + a, this.b + a);
+	}
+
+	darken(a: number): Color {
+		return this.lighten(-a);
+	}
+
+	invert(): Color {
+		return new Color(255 - this.r, 255 - this.g, 255 - this.b);
+	}
+
+	mult(other: Color): Color {
+		return new Color(
+			this.r * other.r / 255,
+			this.g * other.g / 255,
+			this.b * other.b / 255,
+		);
+	}
+
+	eq(other: Color): boolean {
+		return this.r === other.r
+			&& this.g === other.g
+			&& this.b === other.b
+			;
+	}
+
+	str(): string {
+		return `(${this.r}, ${this.g}, ${this.b})`;
+	}
+
+	toString(): string {
+		return `(${this.r}, ${this.g}, ${this.b})`;
+	}
+
+	static fromHSL(h: number, s: number, l: number) {
+
+		if (s == 0){
+			return rgb(255 * l, 255 * l, 255 * l);
 		}
-	}
 
-	return {
-		r: clamp(~~args[0], 0, 255),
-		g: clamp(~~args[1], 0, 255),
-		b: clamp(~~args[2], 0, 255),
-		clone(): Color {
-			return rgb(this.r, this.g, this.b);
-		},
-		lighten(a: number): Color {
-			return rgb(this.r + a, this.g + a, this.b + a);
-		},
-		darken(a: number): Color {
-			return this.lighten(-a);
-		},
-		invert(): Color {
-			return rgb(255 - this.r, 255 - this.g, 255 - this.b);
-		},
-		mult(other: Color): Color {
-			return rgb(
-				this.r * other.r / 255,
-				this.g * other.g / 255,
-				this.b * other.b / 255,
-			);
-		},
-		eq(other: Color): boolean {
-			return this.r === other.r
-				&& this.g === other.g
-				&& this.b === other.b
-				;
-		},
-		str(): string {
-			return `(${this.r}, ${this.g}, ${this.b})`;
-		},
-	};
+		const hue2rgb = (p, q, t) => {
+			if (t < 0) t += 1;
+			if (t > 1) t -= 1;
+			if (t < 1 / 6) return p + (q - p) * 6 * t;
+			if (t < 1 / 2) return q;
+			if (t < 2 / 3) return p + (q - p) * (2/3 - t) * 6;
+			return p;
+		}
+
+		const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+		const p = 2 * l - q;
+		const r = hue2rgb(p, q, h + 1 / 3);
+		const g = hue2rgb(p, q, h);
+		const b = hue2rgb(p, q, h - 1 / 3);
+
+		return rgb(Math.round(r * 255), Math.round(g * 255), Math.round(b * 255));
+
+	}
 
 }
 
-function hsl2rgb(h: number, s: number, l: number): Color {
-
-	if (s == 0){
-		return rgb(255 * l, 255 * l, 255 * l);
-	}
-
-	const hue2rgb = (p, q, t) => {
-		if (t < 0) t += 1;
-		if (t > 1) t -= 1;
-		if (t < 1 / 6) return p + (q - p) * 6 * t;
-		if (t < 1 / 2) return q;
-		if (t < 2 / 3) return p + (q - p) * (2/3 - t) * 6;
-		return p;
-	}
-
-	const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
-	const p = 2 * l - q;
-	const r = hue2rgb(p, q, h + 1 / 3);
-	const g = hue2rgb(p, q, h);
-	const b = hue2rgb(p, q, h - 1 / 3);
-
-	return rgb(Math.round(r * 255), Math.round(g * 255), Math.round(b * 255));
-
-}
+export const rgb = (r, g, b) => new Color(r, g, b);
+export const hsl2rgb = (h, s, l) => Color.fromHSL(h, s, l);
 
 function quad(x: number, y: number, w: number, h: number): Quad {
 	return {
@@ -282,174 +273,200 @@ function quad(x: number, y: number, w: number, h: number): Quad {
 	};
 }
 
-function mat4(m?: number[]): Mat4 {
+export class Mat4 {
 
-	return {
+	m: number[] = [
+		1, 0, 0, 0,
+		0, 1, 0, 0,
+		0, 0, 1, 0,
+		0, 0, 0, 1,
+	];
 
-		m: m ? [...m] : [
+	constructor(m?: number[]) {
+		if (m) {
+			this.m = m;
+		}
+	}
+
+	clone(): Mat4 {
+		return new Mat4(this.m);
+	};
+
+	mult(other: Mat4): Mat4 {
+
+		const out = [];
+
+		for (let i = 0; i < 4; i++) {
+			for (let j = 0; j < 4; j++) {
+				out[i * 4 + j] =
+					this.m[0 * 4 + j] * other.m[i * 4 + 0] +
+					this.m[1 * 4 + j] * other.m[i * 4 + 1] +
+					this.m[2 * 4 + j] * other.m[i * 4 + 2] +
+					this.m[3 * 4 + j] * other.m[i * 4 + 3];
+			}
+		}
+
+		return new Mat4(out);
+
+	}
+
+	multVec4(p: Vec4): Vec4 {
+		return {
+			x: p.x * this.m[0] + p.y * this.m[4] + p.z * this.m[8] + p.w * this.m[12],
+			y: p.x * this.m[1] + p.y * this.m[5] + p.z * this.m[9] + p.w * this.m[13],
+			z: p.x * this.m[2] + p.y * this.m[6] + p.z * this.m[10] + p.w * this.m[14],
+			w: p.x * this.m[3] + p.y * this.m[7] + p.z * this.m[11] + p.w * this.m[15]
+		};
+	}
+
+	multVec3(p: Vec3): Vec3 {
+		const p4 = this.multVec4({
+			x: p.x,
+			y: p.y,
+			z: p.z,
+			w: 1.0,
+		});
+		return vec3(p4.x, p4.y, p4.z);
+	}
+
+	multVec2(p: Vec2): Vec2 {
+		return vec2(
+			p.x * this.m[0] + p.y * this.m[4] + 0 * this.m[8] + 1 * this.m[12],
+			p.x * this.m[1] + p.y * this.m[5] + 0 * this.m[9] + 1 * this.m[13],
+		);
+	}
+
+	static translate(p: Vec2): Mat4 {
+		return new Mat4([
 			1, 0, 0, 0,
 			0, 1, 0, 0,
 			0, 0, 1, 0,
+			p.x, p.y, 0, 1,
+		]);
+	}
+
+	static scale(s: Vec2): Mat4 {
+		return new Mat4([
+			s.x, 0, 0, 0,
+			0, s.y, 0, 0,
+			0, 0, 1, 0,
 			0, 0, 0, 1,
-		],
+		]);
+	}
 
-		clone(): Mat4 {
-			return mat4(this.m);
-		},
+	static rotateX(a: number): Mat4 {
+		a = deg2rad(-a);
+		return new Mat4([
+			1, 0, 0, 0,
+			0, Math.cos(a), -Math.sin(a), 0,
+			0, Math.sin(a), Math.cos(a), 0,
+			0, 0, 0, 1,
+		]);
+	}
 
-		mult(other: Mat4): Mat4 {
+	static rotateY(a: number): Mat4 {
+		a = deg2rad(-a);
+		return new Mat4([
+			Math.cos(a), 0, Math.sin(a), 0,
+			0, 1, 0, 0,
+			-Math.sin(a), 0, Math.cos(a), 0,
+			0, 0, 0, 1,
+		]);
+	}
 
-			const out = [];
+	static rotateZ(a: number): Mat4 {
+		a = deg2rad(-a);
+		return new Mat4([
+			Math.cos(a), -Math.sin(a), 0, 0,
+			Math.sin(a), Math.cos(a), 0, 0,
+			0, 0, 1, 0,
+			0, 0, 0, 1,
+		]);
+	}
 
-			for (let i = 0; i < 4; i++) {
-				for (let j = 0; j < 4; j++) {
-					out[i * 4 + j] =
-						this.m[0 * 4 + j] * other.m[i * 4 + 0] +
-						this.m[1 * 4 + j] * other.m[i * 4 + 1] +
-						this.m[2 * 4 + j] * other.m[i * 4 + 2] +
-						this.m[3 * 4 + j] * other.m[i * 4 + 3];
-				}
+	translate(p: Vec2): Mat4 {
+		return this.mult(Mat4.translate(p));
+	}
+
+	scale(s: Vec2): Mat4 {
+		return this.mult(Mat4.scale(s));
+	}
+
+	rotateX(a: number): Mat4 {
+		return this.mult(Mat4.rotateX(a));
+	}
+
+	rotateY(a: number): Mat4 {
+		return this.mult(Mat4.rotateY(a));
+	}
+
+	rotateZ(a: number): Mat4 {
+		return this.mult(Mat4.rotateZ(a));
+	}
+
+	invert(): Mat4 {
+
+		const out = [];
+
+		const f00 = this.m[10] * this.m[15] - this.m[14] * this.m[11];
+		const f01 = this.m[9] * this.m[15] - this.m[13] * this.m[11];
+		const f02 = this.m[9] * this.m[14] - this.m[13] * this.m[10];
+		const f03 = this.m[8] * this.m[15] - this.m[12] * this.m[11];
+		const f04 = this.m[8] * this.m[14] - this.m[12] * this.m[10];
+		const f05 = this.m[8] * this.m[13] - this.m[12] * this.m[9];
+		const f06 = this.m[6] * this.m[15] - this.m[14] * this.m[7];
+		const f07 = this.m[5] * this.m[15] - this.m[13] * this.m[7];
+		const f08 = this.m[5] * this.m[14] - this.m[13] * this.m[6];
+		const f09 = this.m[4] * this.m[15] - this.m[12] * this.m[7];
+		const f10 = this.m[4] * this.m[14] - this.m[12] * this.m[6];
+		const f11 = this.m[5] * this.m[15] - this.m[13] * this.m[7];
+		const f12 = this.m[4] * this.m[13] - this.m[12] * this.m[5];
+		const f13 = this.m[6] * this.m[11] - this.m[10] * this.m[7];
+		const f14 = this.m[5] * this.m[11] - this.m[9] * this.m[7];
+		const f15 = this.m[5] * this.m[10] - this.m[9] * this.m[6];
+		const f16 = this.m[4] * this.m[11] - this.m[8] * this.m[7];
+		const f17 = this.m[4] * this.m[10] - this.m[8] * this.m[6];
+		const f18 = this.m[4] * this.m[9] - this.m[8] * this.m[5];
+
+		out[0] = this.m[5] * f00 - this.m[6] * f01 + this.m[7] * f02;
+		out[4] = -(this.m[4] * f00 - this.m[6] * f03 + this.m[7] * f04);
+		out[8] = this.m[4] * f01 - this.m[5] * f03 + this.m[7] * f05;
+		out[12] = -(this.m[4] * f02 - this.m[5] * f04 + this.m[6] * f05);
+
+		out[1] = -(this.m[1] * f00 - this.m[2] * f01 + this.m[3] * f02);
+		out[5] = this.m[0] * f00 - this.m[2] * f03 + this.m[3] * f04;
+		out[9] = -(this.m[0] * f01 - this.m[1] * f03 + this.m[3] * f05);
+		out[13] = this.m[0] * f02 - this.m[1] * f04 + this.m[2] * f05;
+
+		out[2] = this.m[1] * f06 - this.m[2] * f07 + this.m[3] * f08;
+		out[6] = -(this.m[0] * f06 - this.m[2] * f09 + this.m[3] * f10);
+		out[10] = this.m[0] * f11 - this.m[1] * f09 + this.m[3] * f12;
+		out[14] = -(this.m[0] * f08 - this.m[1] * f10 + this.m[2] * f12);
+
+		out[3] = -(this.m[1] * f13 - this.m[2] * f14 + this.m[3] * f15);
+		out[7] = this.m[0] * f13 - this.m[2] * f16 + this.m[3] * f17;
+		out[11] = -(this.m[0] * f14 - this.m[1] * f16 + this.m[3] * f18);
+		out[15] = this.m[0] * f15 - this.m[1] * f17 + this.m[2] * f18;
+
+		const det =
+			this.m[0] * out[0] +
+			this.m[1] * out[4] +
+			this.m[2] * out[8] +
+			this.m[3] * out[12];
+
+		for (let i = 0; i < 4; i++) {
+			for (let j = 0; j < 4; j++) {
+				out[i * 4 + j] *= (1.0 / det);
 			}
+		}
 
-			return mat4(out);
+		return new Mat4(out);
 
-		},
+	}
 
-		multVec4(p: Vec4): Vec4 {
-			return {
-				x: p.x * this.m[0] + p.y * this.m[4] + p.z * this.m[8] + p.w * this.m[12],
-				y: p.x * this.m[1] + p.y * this.m[5] + p.z * this.m[9] + p.w * this.m[13],
-				z: p.x * this.m[2] + p.y * this.m[6] + p.z * this.m[10] + p.w * this.m[14],
-				w: p.x * this.m[3] + p.y * this.m[7] + p.z * this.m[11] + p.w * this.m[15]
-			};
-		},
-
-		multVec3(p: Vec3): Vec3 {
-			const p4 = this.multVec4({
-				x: p.x,
-				y: p.y,
-				z: p.z,
-				w: 1.0,
-			});
-			return vec3(p4.x, p4.y, p4.z);
-		},
-
-		multVec2(p: Vec2): Vec2 {
-			return vec2(
-				p.x * this.m[0] + p.y * this.m[4] + 0 * this.m[8] + 1 * this.m[12],
-				p.x * this.m[1] + p.y * this.m[5] + 0 * this.m[9] + 1 * this.m[13],
-			);
-		},
-
-		translate(p: Vec2): Mat4 {
-			return this.mult(mat4([
-				1, 0, 0, 0,
-				0, 1, 0, 0,
-				0, 0, 1, 0,
-				p.x, p.y, 0, 1,
-			]));
-		},
-
-		scale(s: Vec2): Mat4 {
-			return this.mult(mat4([
-				s.x, 0, 0, 0,
-				0, s.y, 0, 0,
-				0, 0, 1, 0,
-				0, 0, 0, 1,
-			]));
-		},
-
-		rotateX(a: number): Mat4 {
-			a = deg2rad(-a);
-			return this.mult(mat4([
-				1, 0, 0, 0,
-				0, Math.cos(a), -Math.sin(a), 0,
-				0, Math.sin(a), Math.cos(a), 0,
-				0, 0, 0, 1,
-			]));
-		},
-
-		rotateY(a: number): Mat4 {
-			a = deg2rad(-a);
-			return this.mult(mat4([
-				Math.cos(a), 0, Math.sin(a), 0,
-				0, 1, 0, 0,
-				-Math.sin(a), 0, Math.cos(a), 0,
-				0, 0, 0, 1,
-			]));
-		},
-
-		rotateZ(a: number): Mat4 {
-			a = deg2rad(-a);
-			return this.mult(mat4([
-				Math.cos(a), -Math.sin(a), 0, 0,
-				Math.sin(a), Math.cos(a), 0, 0,
-				0, 0, 1, 0,
-				0, 0, 0, 1,
-			]));
-		},
-
-		invert(): Mat4 {
-
-			const out = [];
-
-			const f00 = this.m[10] * this.m[15] - this.m[14] * this.m[11];
-			const f01 = this.m[9] * this.m[15] - this.m[13] * this.m[11];
-			const f02 = this.m[9] * this.m[14] - this.m[13] * this.m[10];
-			const f03 = this.m[8] * this.m[15] - this.m[12] * this.m[11];
-			const f04 = this.m[8] * this.m[14] - this.m[12] * this.m[10];
-			const f05 = this.m[8] * this.m[13] - this.m[12] * this.m[9];
-			const f06 = this.m[6] * this.m[15] - this.m[14] * this.m[7];
-			const f07 = this.m[5] * this.m[15] - this.m[13] * this.m[7];
-			const f08 = this.m[5] * this.m[14] - this.m[13] * this.m[6];
-			const f09 = this.m[4] * this.m[15] - this.m[12] * this.m[7];
-			const f10 = this.m[4] * this.m[14] - this.m[12] * this.m[6];
-			const f11 = this.m[5] * this.m[15] - this.m[13] * this.m[7];
-			const f12 = this.m[4] * this.m[13] - this.m[12] * this.m[5];
-			const f13 = this.m[6] * this.m[11] - this.m[10] * this.m[7];
-			const f14 = this.m[5] * this.m[11] - this.m[9] * this.m[7];
-			const f15 = this.m[5] * this.m[10] - this.m[9] * this.m[6];
-			const f16 = this.m[4] * this.m[11] - this.m[8] * this.m[7];
-			const f17 = this.m[4] * this.m[10] - this.m[8] * this.m[6];
-			const f18 = this.m[4] * this.m[9] - this.m[8] * this.m[5];
-
-			out[0] = this.m[5] * f00 - this.m[6] * f01 + this.m[7] * f02;
-			out[4] = -(this.m[4] * f00 - this.m[6] * f03 + this.m[7] * f04);
-			out[8] = this.m[4] * f01 - this.m[5] * f03 + this.m[7] * f05;
-			out[12] = -(this.m[4] * f02 - this.m[5] * f04 + this.m[6] * f05);
-
-			out[1] = -(this.m[1] * f00 - this.m[2] * f01 + this.m[3] * f02);
-			out[5] = this.m[0] * f00 - this.m[2] * f03 + this.m[3] * f04;
-			out[9] = -(this.m[0] * f01 - this.m[1] * f03 + this.m[3] * f05);
-			out[13] = this.m[0] * f02 - this.m[1] * f04 + this.m[2] * f05;
-
-			out[2] = this.m[1] * f06 - this.m[2] * f07 + this.m[3] * f08;
-			out[6] = -(this.m[0] * f06 - this.m[2] * f09 + this.m[3] * f10);
-			out[10] = this.m[0] * f11 - this.m[1] * f09 + this.m[3] * f12;
-			out[14] = -(this.m[0] * f08 - this.m[1] * f10 + this.m[2] * f12);
-
-			out[3] = -(this.m[1] * f13 - this.m[2] * f14 + this.m[3] * f15);
-			out[7] = this.m[0] * f13 - this.m[2] * f16 + this.m[3] * f17;
-			out[11] = -(this.m[0] * f14 - this.m[1] * f16 + this.m[3] * f18);
-			out[15] = this.m[0] * f15 - this.m[1] * f17 + this.m[2] * f18;
-
-			const det =
-				this.m[0] * out[0] +
-				this.m[1] * out[4] +
-				this.m[2] * out[8] +
-				this.m[3] * out[12];
-
-			for (let i = 0; i < 4; i++) {
-				for (let j = 0; j < 4; j++) {
-					out[i * 4 + j] *= (1.0 / det);
-				}
-			}
-
-			return mat4(out);
-
-		},
-
-	};
+	toString(): string {
+		return this.m.toString();
+	}
 
 }
 
@@ -476,7 +493,7 @@ function rng(seed: number): RNG {
 					return this.gen(0, args[0]);
 				} else if (isVec2(args[0])) {
 					return this.gen(vec2(0, 0), args[0]);
-				} else if (isColor(args[0])) {
+				} else if (args[0] instanceof Color) {
 					return this.gen(rgb(0, 0, 0), args[0]);
 				}
 			} else if (args.length === 2) {
@@ -487,7 +504,7 @@ function rng(seed: number): RNG {
 						this.gen(args[0].x, args[1].x),
 						this.gen(args[0].y, args[1].y),
 					);
-				} else if (isColor(args[0]) && isColor(args[1])) {
+				} else if (args[0] instanceof Color && args[1] instanceof Color) {
 					return rgb(
 						this.gen(args[0].r, args[1].r),
 						this.gen(args[0].g, args[1].g),
@@ -578,10 +595,10 @@ function testRectLine(r: Rect, l: Line): boolean {
 	if (testRectPoint(r, l.p1) || testRectPoint(r, l.p2)) {
 		return true;
 	}
-	return !!testLineLine(l, makeLine(r.p1, vec2(r.p2.x, r.p1.y)))
-		|| !!testLineLine(l, makeLine(vec2(r.p2.x, r.p1.y), r.p2))
-		|| !!testLineLine(l, makeLine(r.p2, vec2(r.p1.x, r.p2.y)))
-		|| !!testLineLine(l, makeLine(vec2(r.p1.x, r.p2.y), r.p1));
+	return !!testLineLine(l, new Line(r.p1, vec2(r.p2.x, r.p1.y)))
+		|| !!testLineLine(l, new Line(vec2(r.p2.x, r.p1.y), r.p2))
+		|| !!testLineLine(l, new Line(r.p2, vec2(r.p1.x, r.p2.y)))
+		|| !!testLineLine(l, new Line(vec2(r.p1.x, r.p2.y), r.p1));
 }
 
 function testRectPoint2(r: Rect, pt: Point): boolean {
@@ -759,20 +776,18 @@ function minkDiff(r1: Rect, r2: Rect): Rect {
 	};
 }
 
-function makeLine(p1: Vec2, p2: Vec2): Line {
-	return {
-		p1: p1.clone(),
-		p2: p2.clone(),
-	};
+export class Line {
+	p1: Vec2;
+	p2: Vec2;
+	constructor(p1: Vec2, p2: Vec2) {
+		this.p1 = p1;
+		this.p2 = p2;
+	}
 }
 
 export {
 	vec2,
-	vec3,
-	mat4,
 	quad,
-	rgb,
-	hsl2rgb,
 	rng,
 	rand,
 	randi,
@@ -807,7 +822,4 @@ export {
 	minkDiff,
 	vec2FromAngle,
 	isVec2,
-	isVec3,
-	isColor,
-	isMat4,
 };

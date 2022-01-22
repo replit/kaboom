@@ -1,7 +1,9 @@
 import {
 	vec2,
 	vec3,
-	mat4,
+	Mat4,
+	Vec3,
+	Color,
 	quad,
 	rgb,
 	hsl2rgb,
@@ -39,9 +41,6 @@ import {
 	deg2rad,
 	rad2deg,
 	isVec2,
-	isVec3,
-	isMat4,
-	isColor,
 } from "./math";
 
 import {
@@ -89,7 +88,6 @@ import {
 	AudioPlay,
 	AudioPlayOpt,
 	Vec2,
-	Mat4,
 	DrawSpriteOpt,
 	DrawTextOpt,
 	GameObj,
@@ -132,7 +130,6 @@ import {
 	RectCompOpt,
 	UVQuadComp,
 	CircleComp,
-	Color,
 	OutlineComp,
 	TimerComp,
 	BodyComp,
@@ -480,7 +477,7 @@ const s = (() => {
 	const c = gopt.background ?? rgb(0, 0, 0);
 
 	if (gopt.background) {
-		const c = rgb(gopt.background);
+		const c = Color.fromArray(gopt.background);
 		gl.clearColor(c.r / 255, c.g / 255, c.b / 255, 1);
 	}
 
@@ -602,7 +599,7 @@ const s = (() => {
 		vqueue: [],
 		iqueue: [],
 
-		transform: mat4(),
+		transform: new Mat4(),
 		transformStack: [],
 
 		bgTex: bgTex,
@@ -646,7 +643,7 @@ const s = (() => {
 			shake: 0,
 		},
 		// cache camera matrix
-		camMatrix: mat4(),
+		camMatrix: new Mat4(),
 
 		// misc
 		layers: {},
@@ -1335,13 +1332,13 @@ function makeShader(
 				const loc = gl.getUniformLocation(id, name);
 				if (typeof val === "number") {
 					gl.uniform1f(loc, val);
-				} else if (isMat4(val)) {
+				} else if (val instanceof Mat4) {
 					// @ts-ignore
 					gl.uniformMatrix4fv(loc, false, new Float32Array(val.m));
-				} else if (isColor(val)) {
+				} else if (val instanceof Color) {
 					// @ts-ignore
 					gl.uniform4f(loc, val.r, val.g, val.b, val.a);
-				} else if (isVec3(val)) {
+				} else if (val instanceof Vec3) {
 					// @ts-ignore
 					gl.uniform3f(loc, val.x, val.y, val.z);
 				} else if (isVec2(val)) {
@@ -1446,7 +1443,7 @@ function flush() {
 
 	s.curShader.send({
 		...s.curUniform,
-		"u_transform": s.curUniform["u_transform"] ?? mat4(),
+		"u_transform": s.curUniform["u_transform"] ?? new Mat4(),
 	});
 
 	s.gl.bindBuffer(s.gl.ARRAY_BUFFER, s.vbuf);
@@ -1489,7 +1486,7 @@ function frameStart() {
 
 	s.drawCalls = 0;
 	s.transformStack = [];
-	s.transform = mat4();
+	s.transform = new Mat4();
 
 }
 
@@ -1726,7 +1723,7 @@ function drawSprite(opt: DrawSpriteOpt) {
 		quad: q.scale(opt.quad || quad(0, 0, 1, 1)),
 		uniform: {
 			...opt.uniform,
-			"u_transform": opt.fixed ? mat4() : s.camMatrix,
+			"u_transform": opt.fixed ? new Mat4() : s.camMatrix,
 		},
 	});
 
@@ -1836,7 +1833,7 @@ function drawLine(opt: DrawLineOpt) {
 	].map((p) => ({
 		pos: vec3(p.x, p.y, 0),
 		uv: vec2(0),
-		color: opt.color ?? rgb(),
+		color: opt.color ?? Color.white(),
 		opacity: opt.opacity ?? 1,
 	}));
 
@@ -1971,7 +1968,7 @@ function drawPolygon(opt: DrawPolygonOpt) {
 
 	if (opt.fill !== false) {
 
-		const color = opt.color ?? rgb();
+		const color = opt.color ?? Color.white();
 
 		const verts = opt.pts.map((pt) => ({
 			pos: vec3(pt.x, pt.y, 0),
@@ -4521,7 +4518,7 @@ function go(id: SceneID, ...args) {
 			shake: 0,
 		};
 
-		s.camMatrix = mat4();
+		s.camMatrix = new Mat4();
 
 		s.layers = {};
 		s.defLayer = null;
@@ -4921,7 +4918,7 @@ function drawFrame() {
 	const shake = vec2FromAngle(rand(0, 360)).scale(cam.shake).scale(scale);
 
 	cam.shake = lerp(cam.shake, 0, 5 * dt());
-	s.camMatrix = mat4()
+	s.camMatrix = new Mat4()
 		.scale(cam.scale)
 		.rotateZ(cam.angle)
 		.translate(cam.pos.scale(scale).add(vec2(1, -1)).add(shake))
@@ -5017,7 +5014,7 @@ function drawDebug() {
 	if (debug.inspect) {
 
 		let inspecting = null;
-		const lcolor = rgb(gopt.inspectColor ?? [0, 0, 255]);
+		const lcolor = Color.fromArray(gopt.inspectColor ?? [0, 0, 255]);
 
 		// draw area outline
 		s.root.every((obj) => {
@@ -5052,7 +5049,7 @@ function drawDebug() {
 					color: lcolor,
 				},
 				uniform: {
-					"u_transform": obj.fixed ? mat4() : s.camMatrix,
+					"u_transform": obj.fixed ? new Mat4() : s.camMatrix,
 				},
 				fill: false,
 			});
