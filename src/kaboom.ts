@@ -241,6 +241,23 @@ const PREVENT_DEFAULT_KEYS = [
 const ASCII_CHARS = " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~";
 const CP437_CHARS = " ☺☻♥♦♣♠•◘○◙♂♀♪♫☼►◄↕‼¶§▬↨↑↓→←∟↔▲▼ !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~⌂ÇüéâäàåçêëèïîìÄÅÉæÆôöòûùÿÖÜ¢£¥₧ƒáíóúñÑªº¿⌐¬½¼¡«»░▒▓│┤╡╢╖╕╣║╗╝╜╛┐└┴┬├─┼╞╟╚╔╩╦╠═╬╧╨╤╥╙╘╒╓╫╪┘┌█▄▌▐▀αßΓπΣσµτΦΘΩδ∞φε∩≡±≥≤⌠⌡÷≈°∙·√ⁿ²■";
 
+// TODO: contain in a table?
+// directions
+const LEFT = vec2(-1, 0);
+const RIGHT = vec2(1, 0);
+const UP = vec2(0, -1);
+const DOWN = vec2(0, 1);
+
+// colors
+const RED = rgb(255, 0, 0);
+const GREEN = rgb(0, 255, 0);
+const BLUE = rgb(0, 0, 255);
+const YELLOW = rgb(255, 255, 0);
+const MAGENTA = rgb(255, 0, 255);
+const CYAN = rgb(0, 255, 255);
+const WHITE = rgb(255, 255, 255);
+const BLACK = rgb(0, 0, 0);
+
 // audio gain range
 const MIN_GAIN = 0;
 const MAX_GAIN = 3;
@@ -4789,12 +4806,33 @@ interface BoomOpt {
 	boomComps?: () => CompList<any>,
 }
 
+// aliases for root game obj operations
 function add<T>(comps: CompList<T>): GameObj<T> {
 	return s.root.add(comps);
 }
 
+function readd<T>(obj: GameObj<T>): GameObj<T> {
+	return s.root.readd(obj);
+}
+
 function destroy(obj: GameObj) {
 	return s.root.remove(obj);
+}
+
+function destroyAll(...args) {
+	return s.root.removeAll(...args);
+}
+
+function get(...args) {
+	return s.root.get(...args);
+}
+
+function every(...args) {
+	return s.root.every(...args);
+}
+
+function revery(...args) {
+	return s.root.revery(...args);
 }
 
 interface ExplodeComp extends Comp {
@@ -5344,7 +5382,6 @@ const ctx: KaboomCtx = {
 	time,
 	screenshot,
 	record,
-	focused: deprecate("focused()", "isFocused()", isFocused),
 	isFocused: isFocused,
 	focus: focus,
 	cursor: cursor,
@@ -5352,7 +5389,6 @@ const ctx: KaboomCtx = {
 	fullscreen: fullscreen,
 	isFullscreen: isFullscreen,
 	onLoad,
-	ready: deprecate("ready()", "onLoad()", onLoad),
 	isTouch: () => s.isTouch,
 	// misc
 	layers,
@@ -5364,13 +5400,13 @@ const ctx: KaboomCtx = {
 	toWorld,
 	gravity,
 	// obj
-	add: (...args) => s.root.add(...args),
-	readd: (...args) => s.root.readd(...args),
-	destroy: (...args) => s.root.remove(...args),
-	destroyAll: (...args) => s.root.removeAll(...args),
-	get: (...args) => s.root.get(...args),
-	every: (...args) => s.root.every(...args),
-	revery: (...args) => s.root.revery(...args),
+	add,
+	readd,
+	destroy,
+	destroyAll,
+	get,
+	every,
+	revery,
 	// comps
 	pos,
 	scale,
@@ -5407,11 +5443,6 @@ const ctx: KaboomCtx = {
 	onCollide,
 	onClick,
 	onHover,
-	action: deprecate("action()", "onUpdate()", onUpdate),
-	render: deprecate("render()", "onDraw()", onDraw),
-	collides: deprecate("collides()", "onCollide()", onCollide),
-	clicks: deprecate("clicks()", "onClick()", onClick),
-	hovers: deprecate("hovers()", "onHover()", onHover),
 	// input
 	onKeyDown,
 	onKeyPress,
@@ -5425,18 +5456,6 @@ const ctx: KaboomCtx = {
 	onTouchStart,
 	onTouchMove,
 	onTouchEnd,
-	keyDown: deprecate("keyDown()", "onKeyDown()", onKeyDown),
-	keyPress: deprecate("keyPress()", "onKeyPress()", onKeyPress),
-	keyPressRep: deprecate("keyPressRep()", "onKeyPressRepeat()", onKeyPressRepeat),
-	keyRelease: deprecate("keyRelease()", "onKeyRelease()", onKeyRelease),
-	mouseDown: deprecate("mouseDown()", "onMouseDown()", onMouseDown),
-	mouseClick: deprecate("mouseClick()", "onMousePress()", onMousePress),
-	mouseRelease: deprecate("mouseRelease()", "onMouseRelease()", onMouseRelease),
-	mouseMove: deprecate("mouseMove()", "onMouseMove()", onMouseMove),
-	charInput: deprecate("charInput()", "onCharInput()", onCharInput),
-	touchStart: deprecate("touchStart()", "onTouchStart()", onTouchStart),
-	touchMove: deprecate("touchMove()", "onTouchMove()", onTouchMove),
-	touchEnd: deprecate("touchEnd()", "onTouchEnd()", onTouchEnd),
 	mousePos,
 	mouseWorldPos,
 	mouseDeltaPos,
@@ -5448,14 +5467,6 @@ const ctx: KaboomCtx = {
 	isMousePressed: isMousePressed,
 	isMouseReleased: isMouseReleased,
 	isMouseMoved: isMouseMoved,
-	keyIsDown: deprecate("keyIsDown()", "isKeyDown()", isKeyDown),
-	keyIsPressed: deprecate("keyIsPressed()", "isKeyPressed()", isKeyPressed),
-	keyIsPressedRep: deprecate("keyIsPressedRep()", "isKeyPressedRepeat()", isKeyPressedRepeat),
-	keyIsReleased: deprecate("keyIsReleased()", "isKeyReleased()", isKeyReleased),
-	mouseIsDown: deprecate("mouseIsDown()", "isMouseDown()", isMouseDown),
-	mouseIsClicked: deprecate("mouseIsClicked()", "isMousePressed()", isMousePressed),
-	mouseIsReleased: deprecate("mouseIsReleased()", "isMouseReleased()", isMouseReleased),
-	mouseIsMoved: deprecate("mouseIsMoved()", "isMouseMoved()", isMouseMoved),
 	// timer
 	loop,
 	wait,
@@ -5471,7 +5482,6 @@ const ctx: KaboomCtx = {
 	randSeed,
 	vec2,
 	vec2FromAngle,
-	dir: deprecate("dir()", "vec2FromAngle()", vec2FromAngle),
 	rgb,
 	hsl2rgb,
 	quad,
@@ -5533,28 +5543,58 @@ const ctx: KaboomCtx = {
 	ASCII_CHARS,
 	CP437_CHARS,
 	// dirs
-	LEFT: vec2(-1, 0),
-	RIGHT: vec2(1, 0),
-	UP: vec2(0, -1),
-	DOWN: vec2(0, 1),
+	LEFT,
+	RIGHT,
+	UP,
+	DOWN,
 	// colors
-	RED: rgb(255, 0, 0),
-	GREEN: rgb(0, 255, 0),
-	BLUE: rgb(0, 0, 255),
-	YELLOW: rgb(255, 255, 0),
-	MAGENTA: rgb(255, 0, 255),
-	CYAN: rgb(0, 255, 255),
-	WHITE: rgb(255, 255, 255),
-	BLACK: rgb(0, 0, 0),
+	RED,
+	GREEN,
+	BLUE,
+	YELLOW,
+	MAGENTA,
+	CYAN,
+	WHITE,
+	BLACK,
 	// dom
 	canvas: s.canvas,
 	addKaboom,
+	// deprecated
+	keyIsDown: deprecate("keyIsDown()", "isKeyDown()", isKeyDown),
+	keyIsPressed: deprecate("keyIsPressed()", "isKeyPressed()", isKeyPressed),
+	keyIsPressedRep: deprecate("keyIsPressedRep()", "isKeyPressedRepeat()", isKeyPressedRepeat),
+	keyIsReleased: deprecate("keyIsReleased()", "isKeyReleased()", isKeyReleased),
+	mouseIsDown: deprecate("mouseIsDown()", "isMouseDown()", isMouseDown),
+	mouseIsClicked: deprecate("mouseIsClicked()", "isMousePressed()", isMousePressed),
+	mouseIsReleased: deprecate("mouseIsReleased()", "isMouseReleased()", isMouseReleased),
+	mouseIsMoved: deprecate("mouseIsMoved()", "isMouseMoved()", isMouseMoved),
+	dir: deprecate("dir()", "vec2FromAngle()", vec2FromAngle),
+	action: deprecate("action()", "onUpdate()", onUpdate),
+	render: deprecate("render()", "onDraw()", onDraw),
+	collides: deprecate("collides()", "onCollide()", onCollide),
+	clicks: deprecate("clicks()", "onClick()", onClick),
+	hovers: deprecate("hovers()", "onHover()", onHover),
+	keyDown: deprecate("keyDown()", "onKeyDown()", onKeyDown),
+	keyPress: deprecate("keyPress()", "onKeyPress()", onKeyPress),
+	keyPressRep: deprecate("keyPressRep()", "onKeyPressRepeat()", onKeyPressRepeat),
+	keyRelease: deprecate("keyRelease()", "onKeyRelease()", onKeyRelease),
+	mouseDown: deprecate("mouseDown()", "onMouseDown()", onMouseDown),
+	mouseClick: deprecate("mouseClick()", "onMousePress()", onMousePress),
+	mouseRelease: deprecate("mouseRelease()", "onMouseRelease()", onMouseRelease),
+	mouseMove: deprecate("mouseMove()", "onMouseMove()", onMouseMove),
+	charInput: deprecate("charInput()", "onCharInput()", onCharInput),
+	touchStart: deprecate("touchStart()", "onTouchStart()", onTouchStart),
+	touchMove: deprecate("touchMove()", "onTouchMove()", onTouchMove),
+	touchEnd: deprecate("touchEnd()", "onTouchEnd()", onTouchEnd),
+	focused: deprecate("focused()", "isFocused()", isFocused),
+	ready: deprecate("ready()", "onLoad()", onLoad),
 };
 
 if (gopt.plugins) {
 	gopt.plugins.forEach(plug);
 }
 
+// export everything to window if global is set
 if (gopt.global !== false) {
 	for (const k in ctx) {
 		window[k] = ctx[k];
