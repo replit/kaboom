@@ -1,5 +1,6 @@
 import {
 	vec2,
+	vec3,
 	mat4,
 	quad,
 	rgb,
@@ -38,26 +39,10 @@ import {
 	deg2rad,
 	rad2deg,
 	isVec2,
+	isVec3,
+	isMat4,
+	isColor,
 } from "./math";
-
-import {
-	originPt,
-	gfxInit,
-} from "./gfx";
-
-import {
-	appInit,
-} from "./app";
-
-import {
-	audioInit,
-} from "./audio";
-
-import {
-	assetsInit,
-	ASCII_CHARS,
-	CP437_CHARS,
-} from "./assets";
 
 import {
 	IDList,
@@ -66,9 +51,39 @@ import {
 	uid,
 	deprecate,
 	deprecateMsg,
+	isDataURL,
+	deepEq,
 } from "./utils";
 
 import {
+	GfxShader,
+	GfxFont,
+	TexFilter,
+	RenderProps,
+	CharTransform,
+	CharTransformFunc,
+	TexWrap,
+	FormattedText,
+	FormattedChar,
+	DrawRectOpt,
+	DrawLineOpt,
+	DrawLinesOpt,
+	DrawTriangleOpt,
+	DrawPolygonOpt,
+	DrawCircleOpt,
+	DrawEllipseOpt,
+	DrawUVQuadOpt,
+	Vertex,
+	SpriteData,
+	SoundData,
+	FontData,
+	ShaderData,
+	SpriteLoadSrc,
+	SpriteLoadOpt,
+	SpriteAtlasData,
+	FontLoadOpt,
+	Quad,
+	GfxTexData,
 	KaboomCtx,
 	KaboomOpt,
 	AudioPlay,
@@ -107,11 +122,9 @@ import {
 	AreaCompOpt,
 	AreaComp,
 	Area,
-	SpriteData,
 	SpriteComp,
 	SpriteCompOpt,
 	GfxTexture,
-	Quad,
 	SpriteAnimPlayOpt,
 	TextComp,
 	TextCompOpt,
@@ -140,111 +153,1857 @@ import {
 	LevelOpt,
 	Cursor,
 	Recording,
+	Kaboom,
 } from "./types";
 
-import kaboomPlugin from "./plugins/kaboom";
+// @ts-ignore
+import apl386Src from "./assets/apl386.png";
+// @ts-ignore
+import apl386oSrc from "./assets/apl386o.png";
+// @ts-ignore
+import sinkSrc from "./assets/sink.png";
+// @ts-ignore
+import sinkoSrc from "./assets/sinko.png";
+// @ts-ignore
+import beanSrc from "./assets/bean.png";
+// @ts-ignore
+import burpBytes from "./assets/burp.mp3";
+// @ts-ignore
+import kaSrc from "./assets/ka.png";
+// @ts-ignore
+import boomSrc from "./assets/boom.png";
 
-export default (gopt: KaboomOpt = {}): KaboomCtx => {
+type ButtonState =
+	"up"
+	| "pressed"
+	| "rpressed"
+	| "down"
+	| "released"
+	;
 
-const audio = audioInit();
+type DrawTextureOpt = RenderProps & {
+	tex: GfxTexture,
+	width?: number,
+	height?: number,
+	tiled?: boolean,
+	flipX?: boolean,
+	flipY?: boolean,
+	quad?: Quad,
+	origin?: Origin | Vec2,
+}
 
-const app = appInit({
-	width: gopt.width,
-	height: gopt.height,
-	scale: gopt.scale,
-	crisp: gopt.crisp,
-	canvas: gopt.canvas,
-	root: gopt.root,
-	stretch: gopt.stretch,
-	touchToMouse: gopt.touchToMouse ?? true,
-	audioCtx: audio.ctx,
-});
+interface GfxTexOpt {
+	filter?: TexFilter,
+	wrap?: TexWrap,
+}
 
-const gfx = gfxInit(app.gl, {
-	background: gopt.background ? rgb(gopt.background) : undefined,
-	width: gopt.width,
-	height: gopt.height,
-	scale: gopt.scale,
-	texFilter: gopt.texFilter,
-	stretch: gopt.stretch,
-	letterbox: gopt.letterbox,
-});
-
-const {
-	width,
-	height,
-} = gfx;
-
-let logs = [];
-
-const debug: Debug = {
-	inspect: false,
-	timeScale: 1,
-	showLog: true,
-	fps: app.fps,
-	objCount(): number {
-		// TODO: recursive count
-		return game.root.children.length;
-	},
-	stepFrame: updateFrame,
-	drawCalls: gfx.drawCalls,
-	clearLog: () => logs = [],
-	log: (msg) => logs.unshift(`[${app.time().toFixed(2)}].time [${msg}].info`),
-	error: (msg) => logs.unshift(`[${app.time().toFixed(2)}].time [${msg}].error`),
-	curRecording: null,
-	get paused() {
-		return game.paused;
-	},
-	set paused(v) {
-		game.paused = v;
-		if (v) {
-			audio.ctx.suspend();
-		} else {
-			audio.ctx.resume();
-		}
-	}
+// translate these key names to a simpler version
+const KEY_ALIAS = {
+	"ArrowLeft": "left",
+	"ArrowRight": "right",
+	"ArrowUp": "up",
+	"ArrowDown": "down",
+	" ": "space",
 };
 
-const assets = assetsInit(gfx, audio, {
-	errHandler: debug.error,
-});
+// according to https://developer.mozilla.org/en-US/docs/Web/API/MouseEvent/button
+const MOUSE_BUTTONS = [
+	"left",
+	"middle",
+	"right",
+	"back",
+	"forward",
+];
 
-const DEF_FONT = "apl386o";
-const DBG_FONT = "sink";
+// don't trigger browser default event when these keys are pressed
+const PREVENT_DEFAULT_KEYS = [
+	"space",
+	"left",
+	"right",
+	"up",
+	"down",
+	"tab",
+	"f1",
+	"f2",
+	"f3",
+	"f4",
+	"f5",
+	"f6",
+	"f7",
+	"f8",
+	"f9",
+	"f10",
+	"f11",
+	"s",
+];
 
-function dt() {
-	return app.dt() * debug.timeScale;
+// some default charsets for loading bitmap fonts
+const ASCII_CHARS = " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~";
+const CP437_CHARS = " ☺☻♥♦♣♠•◘○◙♂♀♪♫☼►◄↕‼¶§▬↨↑↓→←∟↔▲▼ !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~⌂ÇüéâäàåçêëèïîìÄÅÉæÆôöòûùÿÖÜ¢£¥₧ƒáíóúñÑªº¿⌐¬½¼¡«»░▒▓│┤╡╢╖╕╣║╗╝╜╛┐└┴┬├─┼╞╟╚╔╩╦╠═╬╧╨╤╥╙╘╒╓╫╪┘┌█▄▌▐▀αßΓπΣσµτΦΘΩδ∞φε∩≡±≥≤⌠⌡÷≈°∙·√ⁿ²■";
+
+// audio gain range
+const MIN_GAIN = 0;
+const MAX_GAIN = 3;
+
+// audio speed range
+const MIN_SPEED = 0;
+const MAX_SPEED = 3;
+
+// audio detune range
+const MIN_DETUNE = -1200;
+const MAX_DETUNE = 1200;
+
+const DEF_ORIGIN = "topleft";
+const DEF_GRAVITY = 1600;
+const QUEUE_COUNT = 65536;
+const BG_GRID_SIZE = 64;
+
+// vertex format stride (vec3 pos, vec2 uv, vec4 color)
+const STRIDE = 9;
+
+// vertex shader template, replace {{user}} with user vertex shader code
+const VERT_TEMPLATE = `
+attribute vec3 a_pos;
+attribute vec2 a_uv;
+attribute vec4 a_color;
+
+varying vec3 v_pos;
+varying vec2 v_uv;
+varying vec4 v_color;
+
+uniform mat4 u_transform;
+
+vec4 def_vert() {
+	return u_transform * vec4(a_pos, 1.0);
+}
+
+{{user}}
+
+void main() {
+	vec4 pos = vert(a_pos, a_uv, a_color);
+	v_pos = a_pos;
+	v_uv = a_uv;
+	v_color = a_color;
+	gl_Position = pos;
+}
+`;
+
+// fragment shader template, replace {{user}} with user fragment shader code
+const FRAG_TEMPLATE = `
+precision mediump float;
+
+varying vec3 v_pos;
+varying vec2 v_uv;
+varying vec4 v_color;
+
+uniform sampler2D u_tex;
+
+vec4 def_frag() {
+	return v_color * texture2D(u_tex, v_uv);
+}
+
+{{user}}
+
+void main() {
+	gl_FragColor = frag(v_pos, v_uv, v_color, u_tex);
+	if (gl_FragColor.a == 0.0) {
+		discard;
+	}
+}
+`;
+
+// default {{user}} vertex shader code
+const DEF_VERT = `
+vec4 vert(vec3 pos, vec2 uv, vec4 color) {
+	return def_vert();
+}
+`;
+
+// default {{user}} fragment shader code
+const DEF_FRAG = `
+vec4 frag(vec3 pos, vec2 uv, vec4 color, sampler2D tex) {
+	return def_frag();
+}
+`;
+
+// transform the button state to the next state
+// e.g. a button might become "pressed" one frame, and it should become "down" next frame
+function getNextButtonState(s: ButtonState): ButtonState {
+	if (s === "pressed" || s === "rpressed") {
+		return "down";
+	}
+	if (s === "released") {
+		return "up";
+	}
+	return s;
+}
+
+// wrappers around full screen functions to work across browsers
+function enterFullscreen(el: HTMLElement) {
+	if (el.requestFullscreen) el.requestFullscreen();
+	// @ts-ignore
+	else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen();
+};
+
+function exitFullscreen() {
+	if (document.exitFullscreen) document.exitFullscreen();
+	// @ts-ignore
+	else if (document.webkitExitFullScreen) document.webkitExitFullScreen();
+};
+
+function getFullscreenElement(): Element | void {
+	return document.fullscreenElement
+		// @ts-ignore
+		|| document.webkitFullscreenElement
+		;
+};
+
+// convert origin string to a vec2 offset
+function originPt(orig: Origin | Vec2): Vec2 {
+	switch (orig) {
+		case "topleft": return vec2(-1, -1);
+		case "top": return vec2(0, -1);
+		case "topright": return vec2(1, -1);
+		case "left": return vec2(-1, 0);
+		case "center": return vec2(0, 0);
+		case "right": return vec2(1, 0);
+		case "botleft": return vec2(-1, 1);
+		case "bot": return vec2(0, 1);
+		case "botright": return vec2(1, 1);
+		default: return orig;
+	}
+}
+
+function createEmptyAudioBuffer() {
+	return new AudioBuffer({
+		length: 1,
+		numberOfChannels: 1,
+		sampleRate: 44100
+	});
+}
+
+// only exports one kaboom() which contains all the state
+export default (gopt: KaboomOpt = {}): KaboomCtx => {
+
+// init kaboom internal state
+const s = (() => {
+
+	const root = gopt.root ?? document.body;
+
+	// if root is not defined (which falls back to <body>) we assume user is using kaboom on a clean page, and modify <body> to better fit a full screen canvas
+	if (root === document.body) {
+		document.body.style["width"] = "100%";
+		document.body.style["height"] = "100%";
+		document.body.style["margin"] = "0px";
+		document.documentElement.style["width"] = "100%";
+		document.documentElement.style["height"] = "100%";
+	}
+
+	// create a <canvas> if user didn't provide one
+	const canvas = gopt.canvas ?? (() => {
+		const canvas = document.createElement("canvas");
+		root.appendChild(canvas);
+		return canvas;
+	})();
+
+	// global pixel scale
+	const scale = gopt.scale ?? 1;
+
+	// adjust canvas size according to user size / viewport settings
+	if (gopt.width && gopt.height && !gopt.stretch) {
+		canvas.width = gopt.width * scale;
+		canvas.height = gopt.height * scale;
+	} else {
+		canvas.width = canvas.parentElement.offsetWidth;
+		canvas.height = canvas.parentElement.offsetHeight;
+	}
+
+	// canvas css styles
+	const styles = [
+		"outline: none",
+		"cursor: default",
+	];
+
+	if (gopt.crisp) {
+		styles.push("image-rendering: pixelated");
+		styles.push("image-rendering: crisp-edges");
+	}
+
+	// TODO: .style is supposed to be readonly? alternative?
+	// @ts-ignore
+	canvas.style = styles.join(";");
+
+	// make canvas focusable
+	canvas.setAttribute("tabindex", "0");
+
+	// create webgl context
+	const gl = canvas
+		.getContext("webgl", {
+			antialias: true,
+			depth: true,
+			stencil: true,
+			alpha: true,
+			preserveDrawingBuffer: true,
+		});
+
+	const defShader = makeShader(gl, DEF_VERT, DEF_FRAG);
+
+	// a 1x1 white texture to draw raw shapes like rectangles and polygons
+	// we use a texture for those so we can use only 1 pipeline for drawing sprites + shapes
+	const emptyTex = makeTex(
+		gl,
+		new ImageData(new Uint8ClampedArray([ 255, 255, 255, 255, ]), 1, 1)
+	);
+
+	const c = gopt.background ?? rgb(0, 0, 0);
+
+	if (gopt.background) {
+		const c = rgb(gopt.background);
+		gl.clearColor(c.r / 255, c.g / 255, c.b / 255, 1);
+	}
+
+	gl.enable(gl.BLEND);
+	gl.enable(gl.SCISSOR_TEST);
+	gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
+
+	// we only use one vertex and index buffer that batches all draw calls
+	const vbuf = gl.createBuffer();
+
+	gl.bindBuffer(gl.ARRAY_BUFFER, vbuf);
+	// vec3 pos
+	gl.vertexAttribPointer(0, 3, gl.FLOAT, false, STRIDE * 4, 0);
+	gl.enableVertexAttribArray(0);
+	// vec2 uv
+	gl.vertexAttribPointer(1, 2, gl.FLOAT, false, STRIDE * 4, 12);
+	gl.enableVertexAttribArray(1);
+	// vec4 color
+	gl.vertexAttribPointer(2, 4, gl.FLOAT, false, STRIDE * 4, 20);
+	gl.enableVertexAttribArray(2);
+	gl.bufferData(gl.ARRAY_BUFFER, QUEUE_COUNT * 4, gl.DYNAMIC_DRAW);
+	gl.bindBuffer(gl.ARRAY_BUFFER, null);
+
+	const ibuf = gl.createBuffer();
+
+	gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, ibuf);
+	gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, QUEUE_COUNT * 2, gl.DYNAMIC_DRAW);
+	gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
+
+	// a checkerboard texture used for the default background
+	const bgTex = makeTex(
+		gl,
+		new ImageData(new Uint8ClampedArray([
+			128, 128, 128, 255,
+			190, 190, 190, 255,
+			190, 190, 190, 255,
+			128, 128, 128, 255,
+		]), 2, 2), {
+			wrap: "repeat",
+			filter: "nearest",
+		},
+	);
+
+	// TODO: handle when audio context is unavailable
+	const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)() as AudioContext
+	const masterNode = audioCtx.createGain();
+	masterNode.connect(audioCtx.destination);
+
+	// by default browsers can only load audio async, we don't deal with that and just start with an empty audio buffer
+	const burpSnd = {
+		buf: createEmptyAudioBuffer(),
+	};
+
+	// load that burp sound
+	audioCtx.decodeAudioData(burpBytes.buffer.slice(0), (buf) => {
+		burpSnd.buf = buf;
+	}, () => {
+		throw new Error("Failed to load burp.")
+	});
+
+	// big fat state obj
+	return {
+
+		canvas: canvas,
+		gl: gl,
+		scale: scale,
+
+		// keep track of all button states
+		keyStates: {} as Record<Key, ButtonState>,
+		mouseStates: {} as Record<MouseButton, ButtonState>,
+
+		// input states from last frame, should reset every frame
+		charInputted: [],
+		isMouseMoved: false,
+		isKeyPressed: false,
+		isKeyPressedRepeat: false,
+		isKeyReleased: false,
+		mousePos: vec2(0, 0),
+		mouseDeltaPos: vec2(0, 0),
+
+		// total time game is running
+		time: 0,
+		// real total time game is running (including paused time)
+		realTime: 0,
+		// if we should skip next dt, to prevent the massive dt surge if user switch to another tab for a while and comeback
+		skipTime: false,
+		// how much time last frame took
+		dt: 0.0,
+
+		// if we're on a touch device
+		isTouch: ("ontouchstart" in window) || navigator.maxTouchPoints > 0,
+
+		// requestAnimationFrame id
+		loopID: null,
+		// if our game loop is currently stopped / paused
+		stopped: false,
+		paused: false,
+
+		// TODO: take fps counter out pure
+		fps: 0,
+		fpsBuf: [],
+		fpsTimer: 0,
+
+		// keep track of how many draw calls we're doing this frame
+		drawCalls: 0,
+		// how many draw calls we're doing last frame, this is the number we give to users
+		lastDrawCalls: 0,
+
+		// gfx states
+		defShader: defShader,
+		curShader: defShader,
+		defTex: emptyTex,
+		curTex: emptyTex,
+		curUniform: {},
+		vbuf: vbuf,
+		ibuf: ibuf,
+
+		// local vertex / index buffer queue
+		vqueue: [],
+		iqueue: [],
+
+		transform: mat4(),
+		transformStack: [],
+
+		bgTex: bgTex,
+
+		width: gopt.width,
+		height: gopt.height,
+
+		// keep track of how many assets are loading / loaded, for calculaating progress
+		numLoading: 0,
+		numLoaded: 0,
+
+		// prefix for when loading from a url
+		urlPrefix: "",
+
+		// asset holders
+		sprites: {},
+		sounds: {},
+		shaders: {},
+		fonts: {},
+
+		audioCtx: audioCtx,
+		masterNode: masterNode,
+		burpSnd: burpSnd,
+
+		// if we finished loading all assets
+		loaded: false,
+
+		// event callbacks
+		events: {},
+		objEvents: {},
+
+		// in game pool
+		root: make([]),
+		timers: new IDList<Timer>(),
+
+		// camera
+		cam: {
+			pos: vec2(0),
+			scale: vec2(1),
+			angle: 0,
+			shake: 0,
+		},
+		// cache camera matrix
+		camMatrix: mat4(),
+
+		// misc
+		layers: {},
+		defLayer: null,
+		gravity: DEF_GRAVITY,
+		on<F>(ev: string, cb: F): EventCanceller {
+			if (!this.events[ev]) {
+				this.events[ev] = new IDList();
+			}
+			return this.events[ev].pushd(cb);
+		},
+		trigger(ev: string, ...args) {
+			if (this.events[ev]) {
+				this.events[ev].forEach((cb) => cb(...args));
+			}
+		},
+		scenes: {},
+	};
+
+})();
+
+// wrap individual loaders with global loader counter, for stuff like progress bar
+function load<T>(prom: Promise<T>): Promise<T> {
+
+	s.numLoading++;
+
+	// wrapping another layer of promise because we are catching errors here internally and we also want users be able to catch errors, however only one catch is allowed per promise chain
+	return new Promise((resolve, reject) => {
+		prom
+			.then(resolve)
+			.catch((err) => {
+				debug.error(err);
+				reject(err);
+			})
+			.finally(() => {
+				s.numLoading--;
+				s.numLoaded++;
+			});
+	}) as Promise<T>;
+
+}
+
+// get current load progress
+function loadProgress(): number {
+	return s.numLoaded / (s.numLoading + s.numLoaded);
+}
+
+// global load path prefix
+function loadRoot(path?: string): string {
+	if (path !== undefined) {
+		s.urlPrefix = path;
+	}
+	return s.urlPrefix;
+}
+
+// wrapper around fetch() that applies urlPrefix and basic error handling
+function fetchURL(path: string) {
+	const url = s.urlPrefix + path;
+	return fetch(url)
+		.then((res) => {
+			if (!res.ok) {
+				throw new Error(`Failed to fetch ${url}`);
+			}
+			return res;
+		});
+}
+
+// wrapper around image loader to get a Promise
+function loadImg(src: string): Promise<HTMLImageElement> {
+	const img = new Image();
+	img.src = isDataURL(src) ? src : s.urlPrefix + src;
+	img.crossOrigin = "anonymous";
+	return new Promise<HTMLImageElement>((resolve, reject) => {
+		img.onload = () => resolve(img);
+		// TODO: truncate for long dataurl src
+		img.onerror = () => reject(`Failed to load image from "${src}"`);
+	});
+}
+
+// TODO: support SpriteLoadSrc
+function loadFont(
+	name: string | null,
+	src: string,
+	gw: number,
+	gh: number,
+	opt: FontLoadOpt = {},
+): Promise<FontData> {
+	return load(loadImg(src)
+		.then((img) => {
+			const font = makeFont(
+				makeTex(s.gl, img, opt),
+				gw,
+				gh,
+				opt.chars ?? ASCII_CHARS
+			);
+			if (name) {
+				s.fonts[name] = font;
+			}
+			return font;
+		})
+	);
+}
+
+function getSprite(name: string): SpriteData | null {
+	return s.sprites[name] ?? null;
+}
+
+function getSound(name: string): SoundData | null {
+	return s.sounds[name] ?? null;
+}
+
+function getFont(name: string): FontData | null {
+	return s.fonts[name] ?? null;
+}
+
+function getShader(name: string): ShaderData | null {
+	return s.shaders[name] ?? null;
+}
+
+// get an array of frames based on configuration on how to slice the image
+function slice(x = 1, y = 1, dx = 0, dy = 0, w = 1, h = 1): Quad[] {
+	const frames = [];
+	const qw = w / x;
+	const qh = h / y;
+	for (let j = 0; j < y; j++) {
+		for (let i = 0; i < x; i++) {
+			frames.push(quad(
+				dx + i * qw,
+				dy + j * qh,
+				qw,
+				qh,
+			));
+		}
+	}
+	return frames;
+}
+
+function loadSpriteAtlas(
+	src: SpriteLoadSrc,
+	data: SpriteAtlasData | string
+): Promise<Record<string, SpriteData>> {
+	if (typeof data === "string") {
+		// TODO: this adds a new loader asyncly
+		return load(fetchURL(data)
+			.then((res) => res.json())
+			.then((data2) => loadSpriteAtlas(src, data2)));
+	}
+	return load(loadSprite(null, src).then((atlas) => {
+		const map = {};
+		const w = atlas.tex.width;
+		const h = atlas.tex.height;
+		for (const name in data) {
+			const info = data[name];
+			const spr = {
+				tex: atlas.tex,
+				frames: slice(info.sliceX, info.sliceY, info.x / w, info.y / h, info.width / w, info.height / h),
+				anims: info.anims,
+			}
+			s.sprites[name] = spr;
+			map[name] = spr;
+		}
+		return map;
+	}));
+}
+
+// synchronously load sprite from local pixel data
+function loadRawSprite(
+	name: string | null,
+	src: GfxTexData,
+	opt: SpriteLoadOpt = {}
+) {
+
+	const tex = makeTex(s.gl, src, opt);
+	const frames = slice(opt.sliceX || 1, opt.sliceY || 1);
+
+	const sprite = {
+		tex: tex,
+		frames: frames,
+		anims: opt.anims || {},
+	};
+
+	if (name) {
+		s.sprites[name] = sprite;
+	}
+
+	return sprite;
+
+}
+
+// load a sprite to asset manager
+function loadSprite(
+	name: string | null,
+	src: SpriteLoadSrc,
+	opt: SpriteLoadOpt = {
+		sliceX: 1,
+		sliceY: 1,
+		anims: {},
+	},
+): Promise<SpriteData> {
+
+	return load(new Promise<SpriteData>((resolve, reject) => {
+
+		if (!src) {
+			return reject(`Expected sprite src for "${name}"`);
+		}
+
+		// from url
+		if (typeof(src) === "string") {
+			loadImg(src)
+				.then((img) => resolve(loadRawSprite(name, img, opt)))
+				.catch(reject);
+		} else {
+			resolve(loadRawSprite(name, src, opt));
+		}
+
+	}));
+
+}
+
+// TODO: accept raw json
+function loadPedit(name: string, src: string): Promise<SpriteData> {
+
+	return load(new Promise<SpriteData>((resolve, reject) => {
+
+		fetchURL(src)
+			.then((res) => res.json())
+			.then(async (data) => {
+
+				const images = await Promise.all(data.frames.map(loadImg));
+				const canvas = document.createElement("canvas");
+				canvas.width = data.width;
+				canvas.height = data.height * data.frames.length;
+
+				const ctx = canvas.getContext("2d");
+
+				images.forEach((img: HTMLImageElement, i) => {
+					ctx.drawImage(img, 0, i * data.height);
+				});
+
+				return loadSprite(name, canvas, {
+					sliceY: data.frames.length,
+					anims: data.anims,
+				});
+			})
+			.then(resolve)
+			.catch(reject)
+			;
+
+	}));
+
+}
+
+// TODO: accept raw json
+function loadAseprite(
+	name: string | null,
+	imgSrc: SpriteLoadSrc,
+	jsonSrc: string
+): Promise<SpriteData> {
+
+	return load(new Promise<SpriteData>((resolve, reject) => {
+
+		loadSprite(name, imgSrc)
+			.then((sprite: SpriteData) => {
+				fetchURL(jsonSrc)
+					.then((res) => res.json())
+					.then((data) => {
+						const size = data.meta.size;
+						sprite.frames = data.frames.map((f: any) => {
+							return quad(
+								f.frame.x / size.w,
+								f.frame.y / size.h,
+								f.frame.w / size.w,
+								f.frame.h / size.h,
+							);
+						});
+						for (const anim of data.meta.frameTags) {
+							if (anim.from === anim.to) {
+								sprite.anims[anim.name] = anim.from
+							} else {
+								sprite.anims[anim.name] = {
+									from: anim.from,
+									to: anim.to,
+									// TODO: let users define these
+									speed: 10,
+									loop: true,
+								};
+							}
+						}
+						resolve(sprite);
+					})
+					.catch(reject)
+					;
+			})
+			.catch(reject);
+
+	}));
+
+}
+
+function loadShader(
+	name: string | null,
+	vert?: string,
+	frag?: string,
+	isUrl: boolean = false,
+): Promise<ShaderData> {
+
+	function loadRawShader(
+		name: string | null,
+		vert: string | null,
+		frag: string | null,
+	): ShaderData {
+		const shader = makeShader(s.gl, vert, frag);
+		if (name) {
+			s.shaders[name] = shader;
+		}
+		return shader;
+	}
+
+	return load(new Promise<ShaderData>((resolve, reject) => {
+
+		if (!vert && !frag) {
+			return reject("no shader");
+		}
+
+		function resolveUrl(url?: string) {
+			return url ?
+				fetchURL(url)
+					.then((res) => res.text())
+					.catch(reject)
+				: new Promise((r) => r(null));
+		}
+
+		if (isUrl) {
+			Promise.all([resolveUrl(vert), resolveUrl(frag)])
+				.then(([vcode, fcode]: [string | null, string | null]) => {
+					resolve(loadRawShader(name, vcode, fcode));
+				})
+				.catch(reject);
+		} else {
+			try {
+				resolve(loadRawShader(name, vert, frag));
+			} catch (err) {
+				reject(err);
+			}
+		}
+
+	}));
+
+}
+
+// TODO: accept dataurl
+// load a sound to asset manager
+function loadSound(
+	name: string | null,
+	src: string,
+): Promise<SoundData> {
+
+	return load(new Promise<SoundData>((resolve, reject) => {
+
+		if (!src) {
+			return reject(`expected sound src for "${name}"`);
+		}
+
+		// from url
+		if (typeof(src) === "string") {
+			fetchURL(src)
+				.then((res) => res.arrayBuffer())
+				.then((data) => {
+					return new Promise((resolve2, reject2) =>
+						s.audioCtx.decodeAudioData(data, resolve2, reject2)
+					);
+				})
+				.then((buf: AudioBuffer) => {
+					const snd = {
+						buf: buf,
+					}
+					if (name) {
+						s.sounds[name] = snd;
+					}
+					resolve(snd);
+				})
+				.catch(reject);
+		}
+
+	}));
+
+}
+
+function loadBean(name: string = "bean"): Promise<SpriteData> {
+	return loadSprite(name, beanSrc);
+}
+
+loadFont(
+	"apl386",
+	apl386Src,
+	45,
+	74,
+);
+
+loadFont(
+	"apl386o",
+	apl386oSrc,
+	45,
+	74,
+);
+
+loadFont(
+	"sink",
+	sinkSrc,
+	6,
+	8,
+	{
+		chars: `█☺☻♥♦♣♠●○▪□■◘♪♫≡►◄⌂ÞÀß×¥↑↓→←◌●▼▲ !"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_\`abcdefghijklmnopqrstuvwxyz{|}~Χ░▒▓ḀḁḂ│┬┤┌┐ḃḄ┼ḅḆḇḈḉḊḋḌ─├┴└┘ḍḎ⁞ḏḐḑḒḓḔḕḖḗḘ▄ḙḚḛḜ…ḝḞḟḠḡḢḣḤḥḦ▌▐ḧḨḩḪḫḬḭḮḯḰḱḲḳḴḵḶḷḸḹḺḻḼḽḾḿṀṁṂṃṄṅṆṇṈṉṊṋṌṍṎṏṐṑṒṓṔṕṖṗṘṙṚṛṜṝṞṟṠṡṢṣṤṥṦṧṨṩṪṫṬṭṮṯṰṱṲṳṴṵṶṷṸṹṺṻṼ`,
+	}
+);
+
+loadFont(
+	"sinko",
+	sinkoSrc,
+	8,
+	10,
+);
+
+// get / set master volume
+function volume(v?: number): number {
+	if (v !== undefined) {
+		s.masterNode.gain.value = clamp(v, MIN_GAIN, MAX_GAIN);
+	}
+	return s.masterNode.gain.value;
+}
+
+// plays a sound, returns a control handle
+function play(
+	src: SoundData | string,
+	opt: AudioPlayOpt = {
+		loop: false,
+		volume: 1,
+		speed: 1,
+		detune: 0,
+		seek: 0,
+	},
+): AudioPlay {
+
+	// TODO: clean?
+	if (typeof src === "string") {
+
+		const pb = play({
+			buf: new AudioBuffer({
+				length: 1,
+				numberOfChannels: 1,
+				sampleRate: 44100
+			}),
+		});
+
+		onLoad(() => {
+			const snd = s.sounds[src];
+			if (!snd) {
+				throw new Error(`Sound not found: "${src}"`);
+			}
+			const pb2 = play(snd, opt);
+			for (const k in pb2) {
+				pb[k] = pb2[k];
+			}
+		});
+
+		return pb;
+
+	}
+
+	let stopped = false;
+	let srcNode = s.audioCtx.createBufferSource();
+
+	srcNode.buffer = src.buf;
+	srcNode.loop = opt.loop ? true : false;
+
+	const gainNode = s.audioCtx.createGain();
+
+	srcNode.connect(gainNode);
+	gainNode.connect(s.masterNode);
+
+	const pos = opt.seek ?? 0;
+
+	srcNode.start(0, pos);
+
+	let startTime = s.audioCtx.currentTime - pos;
+	let stopTime: number | null = null;
+
+	const handle = {
+
+		stop() {
+			if (stopped) {
+				return;
+			}
+			this.pause();
+			startTime = s.audioCtx.currentTime;
+		},
+
+		play(seek?: number) {
+
+			if (!stopped) {
+				return;
+			}
+
+			const oldNode = srcNode;
+
+			srcNode = s.audioCtx.createBufferSource();
+			srcNode.buffer = oldNode.buffer;
+			srcNode.loop = oldNode.loop;
+			srcNode.playbackRate.value = oldNode.playbackRate.value;
+
+			if (srcNode.detune) {
+				srcNode.detune.value = oldNode.detune.value;
+			}
+
+			srcNode.connect(gainNode);
+
+			const pos = seek ?? this.time();
+
+			srcNode.start(0, pos);
+			startTime = s.audioCtx.currentTime - pos;
+			stopped = false;
+			stopTime = null;
+
+		},
+
+		pause() {
+			if (stopped) {
+				return;
+			}
+			srcNode.stop();
+			stopped = true;
+			stopTime = s.audioCtx.currentTime;
+		},
+
+		isPaused(): boolean {
+			return stopped;
+		},
+
+		paused(): boolean {
+			deprecateMsg("paused()", "isPaused()");
+			return this.isPaused();
+		},
+
+		isStopped(): boolean {
+			return stopped;
+		},
+
+		stopped(): boolean {
+			deprecateMsg("stopped()", "isStopped()");
+			return this.isStopped();
+		},
+
+		// TODO: affect time()
+		speed(val?: number): number {
+			if (val !== undefined) {
+				srcNode.playbackRate.value = clamp(val, MIN_SPEED, MAX_SPEED);
+			}
+			return srcNode.playbackRate.value;
+		},
+
+		detune(val?: number): number {
+			if (!srcNode.detune) {
+				return 0;
+			}
+			if (val !== undefined) {
+				srcNode.detune.value = clamp(val, MIN_DETUNE, MAX_DETUNE);
+			}
+			return srcNode.detune.value;
+		},
+
+		volume(val?: number): number {
+			if (val !== undefined) {
+				gainNode.gain.value = clamp(val, MIN_GAIN, MAX_GAIN);
+			}
+			return gainNode.gain.value;
+		},
+
+		loop() {
+			srcNode.loop = true;
+		},
+
+		unloop() {
+			srcNode.loop = false;
+		},
+
+		duration(): number {
+			return src.buf.duration;
+		},
+
+		time(): number {
+			if (stopped) {
+				return stopTime - startTime;
+			} else {
+				return s.audioCtx.currentTime - startTime;
+			}
+		},
+
+	};
+
+	handle.speed(opt.speed);
+	handle.detune(opt.detune);
+	handle.volume(opt.volume);
+
+	return handle;
+
+}
+
+function burp(opt?: AudioPlayOpt): AudioPlay {
+	return play(s.burpSnd, opt);
+}
+
+function makeTex(gl, data: GfxTexData, opt: GfxTexOpt = {}): GfxTexture {
+
+	const id = gl.createTexture();
+
+	gl.bindTexture(gl.TEXTURE_2D, id);
+	gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, data);
+
+	const filter = (() => {
+		switch (opt.filter ?? gopt.texFilter) {
+			case "linear": return gl.LINEAR;
+			case "nearest": return gl.NEAREST;
+			default: return gl.NEAREST;
+		}
+	})();
+
+	const wrap = (() => {
+		switch (opt.wrap) {
+			case "repeat": return gl.REPEAT;
+			case "clampToEdge": return gl.CLAMP_TO_EDGE;
+			default: return gl.CLAMP_TO_EDGE;
+		}
+	})();
+
+	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, filter);
+	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, filter);
+	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, wrap);
+	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, wrap);
+	gl.bindTexture(gl.TEXTURE_2D, null);
+
+	return {
+		width: data.width,
+		height: data.height,
+		bind() {
+			gl.bindTexture(gl.TEXTURE_2D, id);
+		},
+		unbind() {
+			gl.bindTexture(gl.TEXTURE_2D, null);
+		},
+	};
+
+}
+
+function makeShader(
+	gl: WebGLRenderingContext,
+	vertSrc: string | null = DEF_VERT,
+	fragSrc: string | null = DEF_FRAG,
+): GfxShader {
+
+	let msg;
+	const vcode = VERT_TEMPLATE.replace("{{user}}", vertSrc ?? DEF_VERT);
+	const fcode = FRAG_TEMPLATE.replace("{{user}}", fragSrc ?? DEF_FRAG);
+	const vertShader = gl.createShader(gl.VERTEX_SHADER);
+	const fragShader = gl.createShader(gl.FRAGMENT_SHADER);
+
+	gl.shaderSource(vertShader, vcode);
+	gl.shaderSource(fragShader, fcode);
+	gl.compileShader(vertShader);
+	gl.compileShader(fragShader);
+
+	if ((msg = gl.getShaderInfoLog(vertShader))) {
+		throw new Error(msg);
+	}
+
+	if ((msg = gl.getShaderInfoLog(fragShader))) {
+		throw new Error(msg);
+	}
+
+	const id = gl.createProgram();
+
+	gl.attachShader(id, vertShader);
+	gl.attachShader(id, fragShader);
+
+	gl.bindAttribLocation(id, 0, "a_pos");
+	gl.bindAttribLocation(id, 1, "a_uv");
+	gl.bindAttribLocation(id, 2, "a_color");
+
+	gl.linkProgram(id);
+
+	if ((msg = gl.getProgramInfoLog(id))) {
+		// for some reason on safari it always has a "\n" msg
+		if (msg !== "\n") {
+			throw new Error(msg);
+		}
+	}
+
+	return {
+
+		bind() {
+			gl.useProgram(id);
+		},
+
+		unbind() {
+			gl.useProgram(null);
+		},
+
+		send(uniform: Uniform) {
+			this.bind();
+			for (const name in uniform) {
+				const val = uniform[name];
+				const loc = gl.getUniformLocation(id, name);
+				if (typeof val === "number") {
+					gl.uniform1f(loc, val);
+				} else if (isMat4(val)) {
+					// @ts-ignore
+					gl.uniformMatrix4fv(loc, false, new Float32Array(val.m));
+				} else if (isColor(val)) {
+					// @ts-ignore
+					gl.uniform4f(loc, val.r, val.g, val.b, val.a);
+				} else if (isVec3(val)) {
+					// @ts-ignore
+					gl.uniform3f(loc, val.x, val.y, val.z);
+				} else if (isVec2(val)) {
+					// @ts-ignore
+					gl.uniform2f(loc, val.x, val.y);
+				}
+			}
+			this.unbind();
+		},
+
+	};
+
+}
+
+function makeFont(
+	tex: GfxTexture,
+	gw: number,
+	gh: number,
+	chars: string,
+): GfxFont {
+
+	const cols = tex.width / gw;
+	const rows = tex.height / gh;
+	const qw = 1.0 / cols;
+	const qh = 1.0 / rows;
+	const map: Record<string, Vec2> = {};
+	const charMap = chars.split("").entries();
+
+	for (const [i, ch] of charMap) {
+		map[ch] = vec2(
+			(i % cols) * qw,
+			Math.floor(i / cols) * qh,
+		);
+	}
+
+	return {
+		tex: tex,
+		map: map,
+		qw: qw,
+		qh: qh,
+	};
+
+}
+
+// TODO: expose
+function drawRaw(
+	verts: Vertex[],
+	indices: number[],
+	tex: GfxTexture = s.defTex,
+	shader: GfxShader = s.defShader,
+	uniform: Uniform = {},
+) {
+
+	tex = tex ?? s.defTex;
+	shader = shader ?? s.defShader;
+
+	// flush on texture / shader change and overflow
+	if (
+		tex !== s.curTex
+		|| shader !== s.curShader
+		|| !deepEq(s.curUniform, uniform)
+		|| s.vqueue.length + verts.length * STRIDE > QUEUE_COUNT
+		|| s.iqueue.length + indices.length > QUEUE_COUNT
+	) {
+		flush();
+	}
+
+	for (const v of verts) {
+
+		// normalized world space coordinate [-1.0 ~ 1.0]
+		const pt = toNDC(s.transform.multVec2(v.pos.xy()));
+
+		s.vqueue.push(
+			pt.x, pt.y, v.pos.z,
+			v.uv.x, v.uv.y,
+			v.color.r / 255, v.color.g / 255, v.color.b / 255, v.opacity,
+		);
+
+	}
+
+	for (const i of indices) {
+		s.iqueue.push(i + s.vqueue.length / STRIDE - verts.length);
+	}
+
+	s.curTex = tex;
+	s.curShader = shader;
+	s.curUniform = uniform;
+
+}
+
+function flush() {
+
+	if (
+		!s.curTex
+		|| !s.curShader
+		|| s.vqueue.length === 0
+		|| s.iqueue.length === 0
+	) {
+		return;
+	}
+
+	s.curShader.send({
+		...s.curUniform,
+		"u_transform": s.curUniform["u_transform"] ?? mat4(),
+	});
+
+	s.gl.bindBuffer(s.gl.ARRAY_BUFFER, s.vbuf);
+	s.gl.bufferSubData(s.gl.ARRAY_BUFFER, 0, new Float32Array(s.vqueue));
+	s.gl.bindBuffer(s.gl.ELEMENT_ARRAY_BUFFER, s.ibuf);
+	s.gl.bufferSubData(s.gl.ELEMENT_ARRAY_BUFFER, 0, new Uint16Array(s.iqueue));
+	s.curShader.bind();
+	s.curTex.bind();
+	s.gl.drawElements(s.gl.TRIANGLES, s.iqueue.length, s.gl.UNSIGNED_SHORT, 0);
+	s.curTex.unbind();
+	s.curShader.unbind();
+	s.gl.bindBuffer(s.gl.ARRAY_BUFFER, null);
+	s.gl.bindBuffer(s.gl.ELEMENT_ARRAY_BUFFER, null);
+
+	s.iqueue = [];
+	s.vqueue = [];
+
+	s.drawCalls++;
+
+}
+
+function frameStart() {
+
+	s.gl.clear(s.gl.COLOR_BUFFER_BIT);
+
+	if (!gopt.background) {
+		drawUVQuad({
+			width: width(),
+			height: height(),
+			quad: quad(
+				0,
+				0,
+				width() * s.scale / BG_GRID_SIZE,
+				height() * s.scale / BG_GRID_SIZE,
+			),
+			tex: s.bgTex,
+		})
+	}
+
+	s.drawCalls = 0;
+	s.transformStack = [];
+	s.transform = mat4();
+
+}
+
+function frameEnd() {
+	flush();
+	s.lastDrawCalls = s.drawCalls;
+}
+
+function drawCalls() {
+	return s.lastDrawCalls;
+}
+
+function toNDC(pt: Vec2): Vec2 {
+	return vec2(
+		pt.x / width() * 2 - 1,
+		-pt.y / height() * 2 + 1,
+	);
+}
+
+function toScreen(pt: Vec2): Vec2 {
+	return vec2(
+		(pt.x + 1) / 2 * width(),
+		-(pt.y - 1) / 2 * height(),
+	);
+}
+
+function applyMatrix(m: Mat4) {
+	s.transform = m.clone();
+}
+
+function pushTranslate(...args) {
+	if (args[0] === undefined) return;
+	const p = vec2(...args);
+	if (p.x === 0 && p.y === 0) return;
+	s.transform = s.transform.translate(p);
+}
+
+function pushScale(...args) {
+	if (args[0] === undefined) return;
+	const p = vec2(...args);
+	if (p.x === 1 && p.y === 1) return;
+	s.transform = s.transform.scale(p);
+}
+
+function pushRotateX(a: number) {
+	if (!a) {
+		return;
+	}
+	s.transform = s.transform.rotateX(a);
+}
+
+function pushRotateY(a: number) {
+	if (!a) {
+		return;
+	}
+	s.transform = s.transform.rotateY(a);
+}
+
+function pushRotateZ(a: number) {
+	if (!a) {
+		return;
+	}
+	s.transform = s.transform.rotateZ(a);
+}
+
+function pushTransform() {
+	s.transformStack.push(s.transform.clone());
+}
+
+function popTransform() {
+	if (s.transformStack.length > 0) {
+		s.transform = s.transformStack.pop();
+	}
+}
+
+// draw a uv textured quad
+function drawUVQuad(opt: DrawUVQuadOpt) {
+
+	if (opt.width === undefined || opt.height === undefined) {
+		throw new Error("drawUVQuad() requires property \"width\" and \"height\".");
+	}
+
+	if (opt.width <= 0 || opt.height <= 0) {
+		return;
+	}
+
+	const w = opt.width;
+	const h = opt.height;
+	const origin = originPt(opt.origin || DEF_ORIGIN);
+	const offset = origin.scale(vec2(w, h).scale(-0.5));
+	const q = opt.quad || quad(0, 0, 1, 1);
+	const color = opt.color || rgb(255, 255, 255);
+	const opacity = opt.opacity ?? 1;
+
+	pushTransform();
+	pushTranslate(opt.pos);
+	pushRotateZ(opt.angle);
+	pushScale(opt.scale);
+	pushTranslate(offset);
+
+	drawRaw([
+		{
+			pos: vec3(-w / 2, h / 2, 0),
+			uv: vec2(opt.flipX ? q.x + q.w : q.x, opt.flipY ? q.y : q.y + q.h),
+			color: color,
+			opacity: opacity,
+		},
+		{
+			pos: vec3(-w / 2, -h / 2, 0),
+			uv: vec2(opt.flipX ? q.x + q.w : q.x, opt.flipY ? q.y + q.h : q.y),
+			color: color,
+			opacity: opacity,
+		},
+		{
+			pos: vec3(w / 2, -h / 2, 0),
+			uv: vec2(opt.flipX ? q.x : q.x + q.w, opt.flipY ? q.y + q.h : q.y),
+			color: color,
+			opacity: opacity,
+		},
+		{
+			pos: vec3(w / 2, h / 2, 0),
+			uv: vec2(opt.flipX ? q.x : q.x + q.w, opt.flipY ? q.y : q.y + q.h),
+			color: color,
+			opacity: opacity,
+		},
+	], [0, 1, 3, 1, 2, 3], opt.tex, opt.shader, opt.uniform);
+
+	popTransform();
+
 }
 
 // TODO: clean
-function play(id: string, opt: AudioPlayOpt = {}): AudioPlay {
-	const pb = audio.play({
-		buf: new AudioBuffer({
-			length: 1,
-			numberOfChannels: 1,
-			sampleRate: 44100
-		}),
-	});
-	onLoad(() => {
-		const snd = assets.sounds[id];
-		if (!snd) {
-			throw new Error(`sound not found: "${id}"`);
+function drawTexture(opt: DrawTextureOpt) {
+
+	if (!opt.tex) {
+		throw new Error("drawTexture() requires property \"tex\".");
+	}
+
+	const q = opt.quad ?? quad(0, 0, 1, 1);
+	const w = opt.tex.width * q.w;
+	const h = opt.tex.height * q.h;
+	const scale = vec2(1);
+
+	if (opt.tiled) {
+
+		// TODO: draw fract
+		const repX = Math.ceil((opt.width || w) / w);
+		const repY = Math.ceil((opt.height || h) / h);
+		const origin = originPt(opt.origin || DEF_ORIGIN).add(vec2(1, 1)).scale(0.5);
+		const offset = origin.scale(repX * w, repY * h);
+
+		// TODO: rotation
+		for (let i = 0; i < repX; i++) {
+			for (let j = 0; j < repY; j++) {
+				drawUVQuad({
+					...opt,
+					pos: (opt.pos || vec2(0)).add(vec2(w * i, h * j)).sub(offset),
+					// @ts-ignore
+					scale: scale.scale(opt.scale || vec2(1)),
+					tex: opt.tex,
+					quad: q,
+					width: w,
+					height: h,
+					origin: "topleft",
+				});
+			}
 		}
-		const pb2 = audio.play(snd, opt);
-		for (const k in pb2) {
-			pb[k] = pb2[k];
+	} else {
+
+		// TODO: should this ignore scale?
+		if (opt.width && opt.height) {
+			scale.x = opt.width / w;
+			scale.y = opt.height / h;
+		} else if (opt.width) {
+			scale.x = opt.width / w;
+			scale.y = scale.x;
+		} else if (opt.height) {
+			scale.y = opt.height / h;
+			scale.x = scale.y;
 		}
-	});
-	return pb;
+
+		drawUVQuad({
+			...opt,
+			// @ts-ignore
+			scale: scale.scale(opt.scale || vec2(1)),
+			tex: opt.tex,
+			quad: q,
+			width: w,
+			height: h,
+		});
+
+	}
+
 }
 
-function mousePos(): Vec2 {
-	return app.mousePos();
+// generate vertices to form an arc
+function getArcPts(
+	pos: Vec2,
+	radiusX: number,
+	radiusY: number,
+	start: number,
+	end: number,
+	res: number = 1,
+): Vec2[] {
+
+	// normalize and turn start and end angles to radians
+	start = deg2rad(start % 360);
+	end = deg2rad(end % 360);
+	if (end <= start) end += Math.PI * 2;
+
+	// TODO: better way to get this?
+	// the number of vertices is sqrt(r1 + r2) * 3 * res with a minimum of 16
+	const nverts = Math.ceil(Math.max(Math.sqrt(radiusX + radiusY) * 3 * (res || 1), 16));
+	const step = (end - start) / nverts;
+	const pts = [];
+
+	// calculate vertices
+	for (let a = start; a < end; a += step) {
+		pts.push(pos.add(radiusX * Math.cos(a), radiusY * Math.sin(a)));
+	}
+
+	// doing this on the side due to possible floating point inaccuracy
+	pts.push(pos.add(radiusX * Math.cos(end), radiusY * Math.sin(end)));
+
+	return pts;
+
 }
 
-function mouseWorldPos(): Vec2 {
-	deprecateMsg("mouseWorldPos()", "toWorld(mousePos())");
-	return toWorld(mousePos());
+function drawRect(opt: DrawRectOpt) {
+
+	if (opt.width === undefined || opt.height === undefined) {
+		throw new Error("drawRect() requires property \"width\" and \"height\".");
+	}
+
+	if (opt.width <= 0 || opt.height <= 0) {
+		return;
+	}
+
+	const w = opt.width;
+	const h = opt.height;
+	const origin = originPt(opt.origin || DEF_ORIGIN).add(1, 1);
+	const offset = origin.scale(vec2(w, h).scale(-0.5));
+
+	let pts = [
+		vec2(0, 0),
+		vec2(w, 0),
+		vec2(w, h),
+		vec2(0, h),
+	];
+
+	// TODO: drawPolygon should handle generic rounded corners
+	if (opt.radius) {
+
+		// maxium radius is half the shortest side
+		const r = Math.min(Math.min(w, h) / 2, opt.radius);
+
+		pts = [
+			vec2(r, 0),
+			vec2(w - r, 0),
+			...getArcPts(vec2(w - r, r), r, r, 270, 360),
+			vec2(w, r),
+			vec2(w, h - r),
+			...getArcPts(vec2(w - r, h - r), r, r, 0, 90),
+			vec2(w - r, h),
+			vec2(r, h),
+			...getArcPts(vec2(r, h - r), r, r, 90, 180),
+			vec2(0, h - r),
+			vec2(0, r),
+			...getArcPts(vec2(r, r), r, r, 180, 270),
+		];
+
+	}
+
+	drawPolygon({ ...opt, offset, pts });
+
+}
+
+function drawLine(opt: DrawLineOpt) {
+
+	const { p1, p2 } = opt;
+
+	if (!p1 || !p2) {
+		throw new Error("drawLine() requires properties \"p1\" and \"p2\".");
+	}
+
+	const w = opt.width || 1;
+
+	// the displacement from the line end point to the corner point
+	const dis = p2.sub(p1).unit().normal().scale(w * 0.5);
+
+	// calculate the 4 corner points of the line polygon
+	const verts = [
+		p1.sub(dis),
+		p1.add(dis),
+		p2.add(dis),
+		p2.sub(dis),
+	].map((p) => ({
+		pos: vec3(p.x, p.y, 0),
+		uv: vec2(0),
+		color: opt.color ?? rgb(),
+		opacity: opt.opacity ?? 1,
+	}));
+
+	drawRaw(verts, [0, 1, 3, 1, 2, 3], s.defTex, opt.shader, opt.uniform);
+
+}
+
+function drawLines(opt: DrawLinesOpt) {
+
+	const pts = opt.pts;
+
+	if (!pts) {
+		throw new Error("drawLines() requires property \"pts\".");
+	}
+
+	if (pts.length < 2) {
+		return;
+	}
+
+	if (opt.radius && pts.length >= 3) {
+
+		// TODO: rounded vertices for arbitury polygonic shape
+		let minLen = pts[0].dist(pts[1]);
+
+		for (let i = 1; i < pts.length - 1; i++) {
+			minLen = Math.min(pts[i].dist(pts[i + 1]), minLen);
+		}
+
+		const radius = Math.min(opt.radius, minLen / 2);
+
+		drawLine({ ...opt, p1: pts[0], p2: pts[1], });
+
+		for (let i = 1; i < pts.length - 2; i++) {
+			const p1 = pts[i];
+			const p2 = pts[i + 1];
+			drawLine({
+				...opt,
+				p1: p1,
+				p2: p2,
+			});
+		}
+
+		drawLine({ ...opt, p1: pts[pts.length - 2], p2: pts[pts.length - 1], });
+
+	} else {
+
+		for (let i = 0; i < pts.length - 1; i++) {
+			drawLine({
+				...opt,
+				p1: pts[i],
+				p2: pts[i + 1],
+			});
+		}
+
+	}
+
+}
+
+function drawTriangle(opt: DrawTriangleOpt) {
+	if (!opt.p1 || !opt.p2 || !opt.p3) {
+		throw new Error("drawPolygon() requires properties \"p1\", \"p2\" and \"p3\".");
+	}
+	return drawPolygon({
+		...opt,
+		pts: [opt.p1, opt.p2, opt.p3],
+	});
+}
+
+// TODO: origin
+function drawCircle(opt: DrawCircleOpt) {
+
+	if (!opt.radius) {
+		throw new Error("drawCircle() requires property \"radius\".");
+	}
+
+	if (opt.radius === 0) {
+		return;
+	}
+
+	drawEllipse({
+		...opt,
+		radiusX: opt.radius,
+		radiusY: opt.radius,
+		angle: 0,
+	});
+
+}
+
+// TODO: use fan-like triangulation
+function drawEllipse(opt: DrawEllipseOpt) {
+
+	if (opt.radiusX === undefined || opt.radiusY === undefined) {
+		throw new Error("drawEllipse() requires properties \"radiusX\" and \"radiusY\".");
+	}
+
+	if (opt.radiusX === 0 || opt.radiusY === 0) {
+		return;
+	}
+
+	drawPolygon({
+		...opt,
+		pts: getArcPts(
+			vec2(0),
+			opt.radiusX,
+			opt.radiusY,
+			opt.start ?? 0,
+			opt.end ?? 360,
+			opt.resolution
+		),
+		radius: 0,
+	});
+
+}
+
+function drawPolygon(opt: DrawPolygonOpt) {
+
+	if (!opt.pts) {
+		throw new Error("drawPolygon() requires property \"pts\".");
+	}
+
+	const npts = opt.pts.length;
+
+	if (npts < 3) {
+		return;
+	}
+
+	pushTransform();
+	pushTranslate(opt.pos);
+	pushScale(opt.scale);
+	pushRotateZ(opt.angle);
+	pushTranslate(opt.offset);
+
+	if (opt.fill !== false) {
+
+		const color = opt.color ?? rgb();
+
+		const verts = opt.pts.map((pt) => ({
+			pos: vec3(pt.x, pt.y, 0),
+			uv: vec2(0, 0),
+			color: color,
+			opacity: opt.opacity ?? 1,
+		}));
+
+		// TODO: better triangulation
+		const indices = [...Array(npts - 2).keys()]
+			.map((n) => [0, n + 1, n + 2])
+			.flat();
+
+		drawRaw(verts, opt.indices ?? indices, s.defTex, opt.shader, opt.uniform);
+
+	}
+
+	if (opt.outline) {
+		drawLines({
+			pts: [ ...opt.pts, opt.pts[0] ],
+			radius: opt.radius,
+			width: opt.outline.width,
+			color: opt.outline.color,
+			uniform: opt.uniform,
+		});
+	}
+
+	popTransform();
+
+}
+
+function applyCharTransform(fchar: FormattedChar, tr: CharTransform) {
+	if (tr.pos) fchar.pos = fchar.pos.add(tr.pos);
+	if (tr.scale) fchar.scale = fchar.scale.scale(vec2(tr.scale));
+	if (tr.angle) fchar.angle += tr.angle;
+	if (tr.color) fchar.color = fchar.color.mult(tr.color);
+	if (tr.opacity) fchar.opacity *= tr.opacity;
+}
+
+// TODO: escape
+const TEXT_STYLE_RE = /\[(?<text>[^\]]*)\]\.(?<style>[\w\.]+)+/g;
+
+function compileStyledText(text: string): {
+	charStyleMap: Record<number, {
+		localIdx: number,
+		styles: string[],
+	}>,
+	text: string,
+} {
+
+	const charStyleMap = {};
+	// get the text without the styling syntax
+	const renderText = text.replace(TEXT_STYLE_RE, "$1");
+	let idxOffset = 0;
+
+	// put each styled char index into a map for easy access when iterating each char
+	for (const match of text.matchAll(TEXT_STYLE_RE)) {
+		const styles = match.groups.style.split(".");
+		const origIdx = match.index - idxOffset;
+		for (
+			let i = origIdx;
+			i < match.index + match.groups.text.length;
+			i++
+		) {
+			charStyleMap[i] = {
+				localIdx: i - origIdx,
+				styles: styles,
+			};
+		}
+		// omit "[", "]", "." and the style text in the format string when calculating index
+		idxOffset += 3 + match.groups.style.length;
+	}
+
+	return {
+		charStyleMap: charStyleMap,
+		text: renderText,
+	};
+
 }
 
 function findAsset<T>(src: string | T, lib: Record<string, T>, def?: string): T | undefined {
@@ -255,16 +2014,535 @@ function findAsset<T>(src: string | T, lib: Record<string, T>, def?: string): T 
 	}
 }
 
+// format text and return a list of chars with their calculated position
+function formatText(opt: DrawTextOpt): FormattedText {
+
+	if (opt.text === undefined) {
+		throw new Error("formatText() requires property \"text\".");
+	}
+
+	const font = findAsset(opt.font ?? gopt.font, s.fonts, DEF_FONT);
+
+	if (!font) {
+		throw new Error(`Font not found: ${opt.font}`);
+	}
+
+	const { charStyleMap, text } = compileStyledText(opt.text + "");
+	const chars = text.split("");
+	const gw = font.qw * font.tex.width;
+	const gh = font.qh * font.tex.height;
+	const size = opt.size || gh;
+	const scale = vec2(size / gh).scale(vec2(opt.scale || 1));
+	const cw = scale.x * gw + (opt.letterSpacing ?? 0);
+	const ch = scale.y * gh + (opt.lineSpacing ?? 0);
+	let curX = 0;
+	let th = ch;
+	let tw = 0;
+	const flines = [];
+	let curLine = [];
+	let lastSpace = null;
+	let cursor = 0;
+
+	while (cursor < chars.length) {
+
+		let char = chars[cursor];
+
+		// check new line
+		if (char === "\n") {
+			// always new line on '\n'
+			th += ch;
+			curX = 0;
+			lastSpace = null;
+			curLine.push(char);
+			flines.push(curLine);
+			curLine = [];
+		} else if ((opt.width ? (curX + cw > opt.width) : false)) {
+			// new line on last word if width exceeds
+			th += ch;
+			curX = 0;
+			if (lastSpace != null) {
+				cursor -= curLine.length - lastSpace;
+				char = chars[cursor];
+				curLine = curLine.slice(0, lastSpace);
+			}
+			lastSpace = null;
+			flines.push(curLine);
+			curLine = [];
+		}
+
+		// push char
+		if (char !== "\n") {
+			curLine.push(char);
+			curX += cw;
+			if (char === " ") {
+				lastSpace = curLine.length;
+			}
+		}
+
+		tw = Math.max(tw, curX);
+		cursor++;
+
+	}
+
+	flines.push(curLine);
+
+	if (opt.width) {
+		tw = opt.width;
+	}
+
+	// whole text offset
+	const fchars = [];
+	const pos = vec2(opt.pos || 0);
+	const offset = originPt(opt.origin || DEF_ORIGIN).scale(0.5);
+	// this math is complicated i forgot how it works instantly
+	const ox = -offset.x * cw - (offset.x + 0.5) * (tw - cw);
+	const oy = -offset.y * ch - (offset.y + 0.5) * (th - ch);
+	let idx = 0;
+
+	flines.forEach((line, ln) => {
+
+		// line offset
+		const oxl = (tw - line.length * cw) * (offset.x + 0.5);
+
+		line.forEach((char, cn) => {
+			const qpos = font.map[char];
+			const x = cn * cw;
+			const y = ln * ch;
+			if (qpos) {
+				const fchar: FormattedChar = {
+					tex: font.tex,
+					quad: quad(qpos.x, qpos.y, font.qw, font.qh),
+					ch: char,
+					pos: vec2(pos.x + x + ox + oxl, pos.y + y + oy),
+					opacity: opt.opacity,
+					color: opt.color ?? rgb(255, 255, 255),
+					scale: scale,
+					angle: 0,
+					uniform: opt.uniform,
+				}
+				if (opt.transform) {
+					const tr = typeof opt.transform === "function"
+						? opt.transform(idx, char)
+						: opt.transform;
+					if (tr) {
+						applyCharTransform(fchar, tr);
+					}
+				}
+				if (charStyleMap[idx]) {
+					const { styles, localIdx } = charStyleMap[idx];
+					for (const name of styles) {
+						const style = opt.styles[name];
+						const tr = typeof style === "function"
+							? style(localIdx, char)
+							: style;
+						if (tr) {
+							applyCharTransform(fchar, tr);
+						}
+					}
+				}
+				fchars.push(fchar);
+			}
+			idx += 1;
+		});
+	});
+
+	return {
+		width: tw,
+		height: th,
+		chars: fchars,
+	};
+
+}
+
+function drawText(opt: DrawTextOpt) {
+	drawFormattedText(formatText(opt));
+}
+
+// TODO: rotation
+function drawFormattedText(ftext: FormattedText) {
+	for (const ch of ftext.chars) {
+		drawUVQuad({
+			tex: ch.tex,
+			width: ch.tex.width * ch.quad.w,
+			height: ch.tex.height * ch.quad.h,
+			pos: ch.pos,
+			scale: ch.scale,
+			angle: ch.angle,
+			color: ch.color,
+			opacity: ch.opacity,
+			quad: ch.quad,
+			// TODO: topleft
+			origin: "center",
+			uniform: ch.uniform,
+		});
+	}
+}
+
+//  	window.addEventListener("resize", updateSize);
+
+function updateSize() {
+	if (gopt.width && gopt.height && gopt.stretch) {
+		if (gopt.letterbox) {
+			// TODO: not working
+			const r1 = s.gl.drawingBufferWidth / s.gl.drawingBufferHeight;
+			const r2 = gopt.width / gopt.height;
+			if (r1 > r2) {
+				s.width = gopt.height * r1;
+				s.height = gopt.height;
+				const sw = s.gl.drawingBufferHeight * r2;
+				const sh = s.gl.drawingBufferHeight;
+				const x = (s.gl.drawingBufferWidth - sw) / 2;
+				s.gl.scissor(x, 0, sw, sh);
+				s.gl.viewport(x, 0, s.gl.drawingBufferWidth, s.gl.drawingBufferHeight);
+			} else {
+				s.width = gopt.width;
+				s.height = gopt.width / r1;
+				const sw = s.gl.drawingBufferWidth;
+				const sh = s.gl.drawingBufferWidth / r2;
+				const y = (s.gl.drawingBufferHeight - sh) / 2;
+				s.gl.scissor(0, s.gl.drawingBufferHeight - sh - y, sw, sh);
+				s.gl.viewport(0, -y, s.gl.drawingBufferWidth, s.gl.drawingBufferHeight);
+			}
+		} else {
+			s.width = gopt.width;
+			s.height = gopt.height;
+			s.gl.viewport(0, 0, s.gl.drawingBufferWidth, s.gl.drawingBufferHeight);
+		}
+	} else {
+		s.width = s.gl.drawingBufferWidth / s.scale;
+		s.height = s.gl.drawingBufferHeight / s.scale;
+		s.gl.viewport(0, 0, s.gl.drawingBufferWidth, s.gl.drawingBufferHeight);
+	}
+}
+
+// get game width
+function width(): number {
+	return s.width;
+}
+
+// get game height
+function height(): number {
+	return s.height;
+}
+
+updateSize();
+frameStart();
+frameEnd();
+s.cam.pos = center();
+
+s.canvas.addEventListener("mousemove", (e) => {
+	if (isFullscreen()) {
+		// in fullscreen mode browser adds letter box to preserve original canvas aspect ratio, but won't give us the transformed mouse position
+		// TODO
+		s.mousePos = vec2(e.offsetX, e.offsetY).scale(1 / s.scale);
+	} else {
+		s.mousePos = vec2(e.offsetX, e.offsetY).scale(1 / s.scale);
+	}
+	s.mouseDeltaPos = vec2(e.movementX, e.movementY).scale(1 / s.scale);
+	s.isMouseMoved = true;
+});
+
+s.canvas.addEventListener("mousedown", (e) => {
+	const m = MOUSE_BUTTONS[e.button];
+	if (m) {
+		s.mouseStates[m] = "pressed";
+	}
+});
+
+s.canvas.addEventListener("mouseup", (e) => {
+	const m = MOUSE_BUTTONS[e.button];
+	if (m) {
+		s.mouseStates[m] = "released";
+	}
+});
+
+s.canvas.addEventListener("keydown", (e) => {
+
+	const k = KEY_ALIAS[e.key] || e.key.toLowerCase();
+
+	if (PREVENT_DEFAULT_KEYS.includes(k)) {
+		e.preventDefault();
+	}
+
+	if (k.length === 1) {
+		s.charInputted.push(e.key);
+	}
+
+	if (k === "space") {
+		s.charInputted.push(" ");
+	}
+
+	if (e.repeat) {
+		s.isKeyPressedRepeat = true;
+		s.keyStates[k] = "rpressed";
+	} else {
+		s.isKeyPressed = true;
+		s.keyStates[k] = "pressed";
+	}
+
+});
+
+s.canvas.addEventListener("keyup", (e: KeyboardEvent) => {
+	const k = KEY_ALIAS[e.key] || e.key.toLowerCase();
+	s.keyStates[k] = "released";
+	s.isKeyReleased = true;
+});
+
+s.canvas.addEventListener("touchstart", (e) => {
+	if (!gopt.touchToMouse) return;
+	// disable long tap context menu
+	e.preventDefault();
+	const t = e.touches[0];
+	s.mousePos = vec2(t.clientX, t.clientY).scale(1 / s.scale);
+	s.mouseStates["left"] = "pressed";
+});
+
+s.canvas.addEventListener("touchmove", (e) => {
+	if (!gopt.touchToMouse) return;
+	// disable scrolling
+	e.preventDefault();
+	const t = e.touches[0];
+	s.mousePos = vec2(t.clientX, t.clientY).scale(1 / s.scale);
+	s.isMouseMoved = true;
+});
+
+s.canvas.addEventListener("touchend", (e) => {
+	if (!gopt.touchToMouse) return;
+	s.mouseStates["left"] = "released";
+});
+
+s.canvas.addEventListener("touchcancel", (e) => {
+	if (!gopt.touchToMouse) return;
+	s.mouseStates["left"] = "released";
+});
+
+s.canvas.addEventListener("contextmenu", function (e) {
+	e.preventDefault();
+});
+
+document.addEventListener("visibilitychange", () => {
+	switch (document.visibilityState) {
+		case "visible":
+			// prevent a surge of dt() when switch back after the tab being hidden for a while
+			s.skipTime = true;
+			// TODO: don't resume if debug.paused
+			s.audioCtx.resume();
+			break;
+		case "hidden":
+			s.audioCtx.suspend();
+			break;
+	}
+});
+
+// TODO: not quite working
+//  	window.addEventListener("resize", () => {
+//  		if (!(gopt.width && gopt.height && !gopt.stretch)) {
+//  			s.canvas.width = s.canvas.parentElement.offsetWidth;
+//  			s.canvas.height = s.canvas.parentElement.offsetHeight;
+//  		}
+//  	});
+
+function mousePos(): Vec2 {
+	return s.mousePos.clone();
+}
+
+function mouseDeltaPos(): Vec2 {
+	return s.mouseDeltaPos.clone();
+}
+
+function isMousePressed(m = "left"): boolean {
+	return s.mouseStates[m] === "pressed";
+}
+
+function isMouseDown(m = "left"): boolean {
+	return s.mouseStates[m] === "pressed" || s.mouseStates[m] === "down";
+}
+
+function isMouseReleased(m = "left"): boolean {
+	return s.mouseStates[m] === "released";
+}
+
+function isMouseMoved(): boolean {
+	return s.isMouseMoved;
+}
+
+function isKeyPressed(k?: string): boolean {
+	if (k === undefined) {
+		return s.isKeyPressed;
+	} else {
+		return s.keyStates[k] === "pressed";
+	}
+}
+
+function isKeyPressedRepeat(k: string): boolean {
+	if (k === undefined) {
+		return s.isKeyPressedRepeat;
+	} else {
+		return s.keyStates[k] === "pressed" || s.keyStates[k] === "rpressed";
+	}
+}
+
+function isKeyDown(k: string): boolean {
+	return s.keyStates[k] === "pressed"
+		|| s.keyStates[k] === "rpressed"
+		|| s.keyStates[k] === "down";
+}
+
+function isKeyReleased(k?: string): boolean {
+	if (k === undefined) {
+		return s.isKeyReleased;
+	} else {
+		return s.keyStates[k] === "released";
+	}
+}
+
+function charInputted(): string[] {
+	return [...s.charInputted];
+}
+
+// get current running time
+function time(): number {
+	return s.time;
+}
+
+function fps(): number {
+	return s.fps;
+}
+
+// get a base64 png image of canvas
+function screenshot(): string {
+	return s.canvas.toDataURL();
+}
+
+// TODO: custom cursor
+function cursor(c?: Cursor): Cursor {
+	if (c) {
+		s.canvas.style.cursor = c;
+	}
+	return s.canvas.style.cursor;
+}
+
+function fullscreen(f: boolean = true) {
+	if (f) {
+		enterFullscreen(s.canvas);
+	} else {
+		exitFullscreen();
+	}
+}
+
+function isFullscreen(): boolean {
+	return Boolean(getFullscreenElement());
+}
+
+function run(f: () => void) {
+
+	const frame = (t: number) => {
+
+		if (document.visibilityState !== "visible") {
+			s.loopID = requestAnimationFrame(frame);
+			return;
+		}
+
+		const realTime = t / 1000;
+		const realDt = realTime - s.realTime;
+
+		s.realTime = realTime;
+
+		if (!s.skipTime) {
+			s.dt = realDt;
+			s.time += s.dt;
+			s.fpsBuf.push(1 / s.dt);
+			s.fpsTimer += s.dt;
+			if (s.fpsTimer >= 1) {
+				s.fpsTimer = 0;
+				s.fps = Math.round(s.fpsBuf.reduce((a, b) => a + b) / s.fpsBuf.length);
+				s.fpsBuf = [];
+			}
+		}
+
+		s.skipTime = false;
+
+		f();
+
+		for (const k in s.keyStates) {
+			s.keyStates[k] = getNextButtonState(s.keyStates[k]);
+		}
+
+		for (const m in s.mouseStates) {
+			s.mouseStates[m] = getNextButtonState(s.mouseStates[m]);
+		}
+
+		s.charInputted = [];
+		s.isMouseMoved = false;
+		s.isKeyPressed = false;
+		s.isKeyPressedRepeat = false;
+		s.isKeyReleased = false;
+		s.loopID = requestAnimationFrame(frame);
+
+	};
+
+	s.stopped = false;
+	s.loopID = requestAnimationFrame(frame);
+
+}
+
+function quit() {
+	cancelAnimationFrame(s.loopID);
+	s.stopped = true;
+}
+
+let logs = [];
+
+const debug: Debug = {
+	inspect: false,
+	timeScale: 1,
+	showLog: true,
+	fps: () => s.fps,
+	objCount(): number {
+		// TODO: recursive count
+		return s.root.children.length;
+	},
+	stepFrame: updateFrame,
+	drawCalls: () => s.drawCalls,
+	clearLog: () => logs = [],
+	log: (msg) => logs.unshift(`[${time().toFixed(2)}].time [${msg}].info`),
+	error: (msg) => logs.unshift(`[${time().toFixed(2)}].time [${msg}].error`),
+	curRecording: null,
+	get paused() {
+		return s.paused;
+	},
+	set paused(v) {
+		s.paused = v;
+		if (v) {
+			s.audioCtx.suspend();
+		} else {
+			s.audioCtx.resume();
+		}
+	}
+};
+
+const DEF_FONT = "apl386o";
+const DBG_FONT = "sink";
+
+function dt() {
+	return s.dt * debug.timeScale;
+}
+
+function mouseWorldPos(): Vec2 {
+	deprecateMsg("mouseWorldPos()", "toWorld(mousePos())");
+	return toWorld(mousePos());
+}
+
+// TODO: use native asset loader tracking
 const loading = new Set();
 
-// wrapper around gfx.drawTexture to integrate with sprite assets mananger / frame anim
 function drawSprite(opt: DrawSpriteOpt) {
 
 	if (!opt.sprite) {
 		throw new Error(`drawSprite() requires property "sprite"`);
 	}
 
-	const spr = findAsset(opt.sprite, assets.sprites);
+	const spr = findAsset(opt.sprite, s.sprites);
 
 	if (!spr) {
 
@@ -272,7 +2550,7 @@ function drawSprite(opt: DrawSpriteOpt) {
 		if (typeof opt.sprite === "string") {
 			if (!loading.has(opt.sprite)) {
 				loading.add(opt.sprite);
-				assets.loadSprite(opt.sprite, opt.sprite)
+				loadSprite(opt.sprite, opt.sprite)
 					.then((a) => loading.delete(opt.sprite));
 			}
 			return;
@@ -288,44 +2566,17 @@ function drawSprite(opt: DrawSpriteOpt) {
 		throw new Error(`frame not found: ${opt.frame ?? 0}`);
 	}
 
-	gfx.drawTexture({
+	drawTexture({
 		...opt,
 		tex: spr.tex,
 		quad: q.scale(opt.quad || quad(0, 0, 1, 1)),
 		uniform: {
 			...opt.uniform,
-			"u_transform": opt.fixed ? mat4() : game.camMatrix,
+			"u_transform": opt.fixed ? mat4() : s.camMatrix,
 		},
 	});
 
 }
-
-// wrapper around gfx.drawText to integrate with font assets mananger / default font
-function drawText(opt: DrawTextOpt) {
-	const font = findAsset(opt.font ?? gopt.font, assets.fonts, DEF_FONT);
-	if (!font) throw new Error(`font not found: ${opt.font}`);
-	gfx.drawText({
-		...opt,
-		font: font,
-		uniform: {
-			...opt.uniform,
-			"u_transform": opt.fixed ? mat4() : game.camMatrix,
-		},
-	});
-}
-
-// wrapper around gfx.formatText to integrate with font assets mananger / default font
-function formatText(opt: DrawTextOpt) {
-	const font = findAsset(opt.font ?? gopt.font, assets.fonts, DEF_FONT);
-	if (!font) throw new Error(`font not found: ${opt.font}`);
-	return gfx.formatText({
-		...opt,
-		font: font,
-	});
-}
-
-const DEF_GRAVITY = 1600;
-const DEF_ORIGIN = "topleft";
 
 interface Game {
 	loaded: boolean,
@@ -374,95 +2625,50 @@ type NextFrameEvent = () => void;
 type MouseEvent = () => void;
 type CharEvent = (ch: string) => void;
 
-const game: Game = {
-
-	loaded: false,
-
-	// event callbacks
-	events: {},
-	objEvents: {},
-
-	// in game pool
-	root: make([]),
-	timers: new IDList(),
-
-	// cam
-	cam: {
-		pos: center(),
-		scale: vec2(1),
-		angle: 0,
-		shake: 0,
-	},
-
-	camMatrix: mat4(),
-
-	// misc
-	layers: {},
-	defLayer: null,
-	gravity: DEF_GRAVITY,
-
-	on<F>(ev: string, cb: F): EventCanceller {
-		if (!this.events[ev]) {
-			this.events[ev] = new IDList();
-		}
-		return this.events[ev].pushd(cb);
-	},
-
-	trigger(ev: string, ...args) {
-		if (this.events[ev]) {
-			this.events[ev].forEach((cb) => cb(...args));
-		}
-	},
-
-	scenes: {},
-	paused: false,
-
-};
-
 function layers(list: string[], def?: string) {
 
 	list.forEach((name, idx) => {
-		game.layers[name] = idx + 1;
+		s.layers[name] = idx + 1;
 	});
 
 	if (def) {
-		game.defLayer = def;
+		s.defLayer = def;
 	}
 
 }
 
 function camPos(...pos): Vec2 {
 	if (pos.length > 0) {
-		game.cam.pos = vec2(...pos);
+		s.cam.pos = vec2(...pos);
 	}
-	return game.cam.pos.clone();
+	return s.cam.pos.clone();
 }
 
 function camScale(...scale): Vec2 {
 	if (scale.length > 0) {
-		game.cam.scale = vec2(...scale);
+		s.cam.scale = vec2(...scale);
 	}
-	return game.cam.scale.clone();
+	return s.cam.scale.clone();
 }
 
 function camRot(angle: number): number {
 	if (angle !== undefined) {
-		game.cam.angle = angle;
+		s.cam.angle = angle;
 	}
-	return game.cam.angle;
+	return s.cam.angle;
 }
 
 function shake(intensity: number = 12) {
-	game.cam.shake = intensity;
+	s.cam.shake = intensity;
 }
 
 // TODO: bugged
-function toScreen(p: Vec2): Vec2 {
-	return game.camMatrix.multVec2(p);
-}
+// function toScreen(p: Vec2): Vec2 {
+// 	return s.camMatrix.multVec2(p);
+// }
 
 function toWorld(p: Vec2): Vec2 {
-	return gfx.toScreen(game.camMatrix.invert().multVec2(gfx.toNDC(p)));
+	return toScreen(s.camMatrix.invert().multVec2(toNDC(p)));
 }
 
 const COMP_DESC = new Set([
@@ -494,7 +2700,7 @@ function make<T>(comps: CompList<T>): GameObj<T> {
 		parent: null,
 
 		add<T2>(comps: CompList<T2>): GameObj<T2> {
-			if (this !== game.root) {
+			if (this !== s.root) {
 				throw new Error("Children game object not supported yet");
 			}
 			const obj = make(comps);
@@ -532,13 +2738,13 @@ function make<T>(comps: CompList<T>): GameObj<T> {
 
 		draw() {
 			if (this.hidden) return;
-			gfx.pushTransform();
-			gfx.pushTranslate(this.pos);
-			gfx.pushScale(this.scale);
-			gfx.pushRotateZ(this.angle);
+			pushTransform();
+			pushTranslate(this.pos);
+			pushScale(this.scale);
+			pushRotateZ(this.angle);
 			this.every((child) => child.draw());
 			this.trigger("draw");
-			gfx.popTransform();
+			popTransform();
 		},
 
 		// use a comp, or tag
@@ -649,8 +2855,8 @@ function make<T>(comps: CompList<T>): GameObj<T> {
 				.filter((child) => t ? child.is(t) : true)
 				.sort((o1, o2) => {
 					// TODO: layers are deprecated
-					const l1 = game.layers[o1.layer ?? game.defLayer] ?? 0;
-					const l2 = game.layers[o2.layer ?? game.defLayer] ?? 0;
+					const l1 = s.layers[o1.layer ?? s.defLayer] ?? 0;
+					const l2 = s.layers[o2.layer ?? s.defLayer] ?? 0;
 					// if on same layer, use "z" comp to decide which is on top, if given
 					if (l1 == l2) {
 						return (o1.z ?? 0) - (o2.z ?? 0);
@@ -677,7 +2883,7 @@ function make<T>(comps: CompList<T>): GameObj<T> {
 		},
 
 		exists(): boolean {
-			if (this.parent === game.root) {
+			if (this.parent === s.root) {
 				return true;
 			} else {
 				return this.parent?.exists();
@@ -718,7 +2924,7 @@ function make<T>(comps: CompList<T>): GameObj<T> {
 				events[ev].forEach((cb) => cb.call(this, ...args));
 			}
 
-			const gEvents = game.objEvents[ev];
+			const gEvents = s.objEvents[ev];
 
 			if (gEvents) {
 				gEvents.forEach((e) => {
@@ -766,10 +2972,10 @@ function make<T>(comps: CompList<T>): GameObj<T> {
 
 // add an event to a tag
 function on(event: string, tag: Tag, cb: (obj: GameObj, ...args) => void): EventCanceller {
-	if (!game.objEvents[event]) {
-		game.objEvents[event] = new IDList();
+	if (!s.objEvents[event]) {
+		s.objEvents[event] = new IDList();
 	}
-	return game.objEvents[event].pushd({
+	return s.objEvents[event].pushd({
 		tag: tag,
 		cb: cb,
 	});
@@ -779,7 +2985,7 @@ function on(event: string, tag: Tag, cb: (obj: GameObj, ...args) => void): Event
 // add update event to a tag or global update
 function onUpdate(tag: Tag | (() => void), cb?: (obj: GameObj) => void): EventCanceller {
 	if (typeof tag === "function" && cb === undefined) {
-		return game.root.onUpdate(tag);
+		return s.root.onUpdate(tag);
 	} else if (typeof tag === "string") {
 		return on("update", tag, cb);
 	}
@@ -788,7 +2994,7 @@ function onUpdate(tag: Tag | (() => void), cb?: (obj: GameObj) => void): EventCa
 // add draw event to a tag or global draw
 function onDraw(tag: Tag | (() => void), cb?: (obj: GameObj) => void) {
 	if (typeof tag === "function" && cb === undefined) {
-		return game.root.onDraw(tag);
+		return s.root.onDraw(tag);
 	} else if (typeof tag === "string") {
 		return on("draw", tag, cb);
 	}
@@ -844,7 +3050,7 @@ function onHover(t: string, onHover: (obj: GameObj) => void, onNotHover?: (obj: 
 // add an event that'd be run after t
 function wait(t: number, f?: () => void): Promise<void> {
 	return new Promise((resolve) => {
-		game.timers.push({
+		s.timers.push({
 			time: t,
 			action: () => {
 				if (f) {
@@ -881,7 +3087,7 @@ function onKeyDown(k: Key | Key[], f: () => void): EventCanceller {
 		const cancellers = k.map((key) => onKeyDown(key, f));
 		return () => cancellers.forEach((cb) => cb());
 	} {
-		return game.on("input", () => app.isKeyDown(k) && f());
+		return s.on("input", () => isKeyDown(k) && f());
 	}
 }
 
@@ -890,9 +3096,9 @@ function onKeyPress(k: Key | Key[] | (() => void), f?: () => void): EventCancell
 		const cancellers = k.map((key) => onKeyPress(key, f));
 		return () => cancellers.forEach((cb) => cb());
 	} else if (typeof k === "function") {
-		return game.on("input", () => app.isKeyPressed() && k());
+		return s.on("input", () => isKeyPressed() && k());
 	} else {
-		return game.on("input", () => app.isKeyPressed(k) && f());
+		return s.on("input", () => isKeyPressed(k) && f());
 	}
 }
 
@@ -901,9 +3107,9 @@ function onKeyPressRepeat(k: Key | Key[] | (() => void), f?: () => void): EventC
 		const cancellers = k.map((key) => onKeyPressRepeat(key, f));
 		return () => cancellers.forEach((cb) => cb());
 	} else if (typeof k === "function") {
-		return game.on("input", () => app.isKeyPressed() && k());
+		return s.on("input", () => isKeyPressed() && k());
 	} else {
-		return game.on("input", () => app.isKeyPressedRepeat(k) && f());
+		return s.on("input", () => isKeyPressedRepeat(k) && f());
 	}
 }
 
@@ -912,9 +3118,9 @@ function onKeyRelease(k: Key | Key[] | (() => void), f?: () => void): EventCance
 		const cancellers = k.map((key) => onKeyRelease(key, f));
 		return () => cancellers.forEach((cb) => cb());
 	} else if (typeof k === "function") {
-		return game.on("input", () => app.isKeyReleased() && k());
+		return s.on("input", () => isKeyReleased() && k());
 	} else {
-		return game.on("input", () => app.isKeyReleased(k) && f());
+		return s.on("input", () => isKeyReleased(k) && f());
 	}
 }
 
@@ -923,9 +3129,9 @@ function onMouseDown(
 	action?: (pos?: Vec2) => void
 ): EventCanceller {
 	if (typeof m === "function") {
-		return game.on("input", () => app.isMouseDown() && m(mousePos()));
+		return s.on("input", () => isMouseDown() && m(mousePos()));
 	} else {
-		return game.on("input", () => app.isMouseDown(m) && action(mousePos()));
+		return s.on("input", () => isMouseDown(m) && action(mousePos()));
 	}
 }
 
@@ -934,9 +3140,9 @@ function onMousePress(
 	action?: (pos?: Vec2) => void
 ): EventCanceller {
 	if (typeof m === "function") {
-		return game.on("input", () => app.isMousePressed() && m(mousePos()));
+		return s.on("input", () => isMousePressed() && m(mousePos()));
 	} else {
-		return game.on("input", () => app.isMousePressed(m) && action(mousePos()));
+		return s.on("input", () => isMousePressed(m) && action(mousePos()));
 	}
 }
 
@@ -945,49 +3151,49 @@ function onMouseRelease(
 	action?: (pos?: Vec2) => void
 ): EventCanceller {
 	if (typeof m === "function") {
-		return game.on("input", () => app.isMouseReleased() && m(mousePos()));
+		return s.on("input", () => isMouseReleased() && m(mousePos()));
 	} else {
-		return game.on("input", () => app.isMouseReleased(m) && action(mousePos()));
+		return s.on("input", () => isMouseReleased(m) && action(mousePos()));
 	}
 }
 
 function onMouseMove(f: (pos: Vec2, dpos: Vec2) => void): EventCanceller {
-	return game.on("input", () => app.isMouseMoved() && f(mousePos(), app.mouseDeltaPos()));
+	return s.on("input", () => isMouseMoved() && f(mousePos(), mouseDeltaPos()));
 }
 
 function onCharInput(f: (ch: string) => void): EventCanceller {
-	return game.on("input", () => app.charInputted().forEach((ch) => f(ch)));
+	return s.on("input", () => charInputted().forEach((ch) => f(ch)));
 }
 
-// TODO: put this in app.ts's and handle in game loop
-app.canvas.addEventListener("touchstart", (e) => {
+// TODO: put this in s.ts's and handle in game loop
+s.canvas.addEventListener("touchstart", (e) => {
 	[...e.changedTouches].forEach((t) => {
-		game.trigger("onTouchStart", t.identifier, vec2(t.clientX, t.clientY).scale(1 / app.scale));
+		s.trigger("onTouchStart", t.identifier, vec2(t.clientX, t.clientY).scale(1 / s.scale));
 	});
 });
 
-app.canvas.addEventListener("touchmove", (e) => {
+s.canvas.addEventListener("touchmove", (e) => {
 	[...e.changedTouches].forEach((t) => {
-		game.trigger("onTouchMove", t.identifier, vec2(t.clientX, t.clientY).scale(1 / app.scale));
+		s.trigger("onTouchMove", t.identifier, vec2(t.clientX, t.clientY).scale(1 / s.scale));
 	});
 });
 
-app.canvas.addEventListener("touchend", (e) => {
+s.canvas.addEventListener("touchend", (e) => {
 	[...e.changedTouches].forEach((t) => {
-		game.trigger("onTouchEnd", t.identifier, vec2(t.clientX, t.clientY).scale(1 / app.scale));
+		s.trigger("onTouchEnd", t.identifier, vec2(t.clientX, t.clientY).scale(1 / s.scale));
 	});
 });
 
 function onTouchStart(f: (id: TouchID, pos: Vec2) => void): EventCanceller {
-	return game.on("onTouchStart", f);
+	return s.on("onTouchStart", f);
 }
 
 function onTouchMove(f: (id: TouchID, pos: Vec2) => void): EventCanceller {
-	return game.on("onTouchMove", f);
+	return s.on("onTouchMove", f);
 }
 
 function onTouchEnd(f: (id: TouchID, pos: Vec2) => void): EventCanceller {
-	return game.on("onTouchEnd", f);
+	return s.on("onTouchEnd", f);
 }
 
 function enterDebugMode() {
@@ -1017,7 +3223,7 @@ function enterDebugMode() {
 	});
 
 	onKeyPress("f5", () => {
-		downloadURL(app.screenshot(), "kaboom.png");
+		downloadURL(screenshot(), "kaboom.png");
 	});
 
 	onKeyPress("f6", () => {
@@ -1032,15 +3238,15 @@ function enterDebugMode() {
 }
 
 function enterBurpMode() {
-	onKeyPress("b", audio.burp);
+	onKeyPress("b", burp);
 }
 
 // get / set gravity
 function gravity(g?: number): number {
 	if (g !== undefined) {
-		game.gravity = g;
+		s.gravity = g;
 	}
-	return game.gravity;
+	return s.gravity;
 }
 
 function regCursor(c: Cursor, draw: string | ((mpos: Vec2) => void)) {
@@ -1079,7 +3285,7 @@ function pos(...args): PosComp {
 				let a1 = this.worldArea();
 
 				// TODO: definitely shouln't iterate through all solid objs
-				game.root.every((other) => {
+				s.root.every((other) => {
 
 					// make sure we still exist, don't check with self, and only
 					// check with other solid objects
@@ -1301,7 +3507,7 @@ function layer(l: string): LayerComp {
 		id: "layer",
 		layer: l,
 		inspect() {
-			return this.layer ?? game.defLayer;
+			return this.layer ?? s.defLayer;
 		},
 	};
 }
@@ -1431,7 +3637,7 @@ function area(opt: AreaCompOpt = {}): AreaComp {
 		add() {
 			if (this.area.cursor) {
 				this.hovers(() => {
-					app.cursor(this.area.cursor);
+					cursor(this.area.cursor);
 				});
 			}
 		},
@@ -1446,7 +3652,7 @@ function area(opt: AreaCompOpt = {}): AreaComp {
 		},
 
 		isClicked(): boolean {
-			return app.isMousePressed() && this.isHovering();
+			return isMousePressed() && this.isHovering();
 		},
 
 		isHovering() {
@@ -1560,13 +3766,13 @@ function area(opt: AreaCompOpt = {}): AreaComp {
 
 		// push object out of other solid objects
 		pushOutAll() {
-			game.root.every(this.pushOut);
+			s.root.every(this.pushOut);
 		},
 
 		// @ts-ignore
 		_checkCollisions(tag: Tag) {
 
-			game.root.every(tag, (obj) => {
+			s.root.every(tag, (obj) => {
 
 				if (this === obj || !this.exists() || colliding[obj._id]) {
 					return;
@@ -1625,8 +3831,8 @@ function area(opt: AreaCompOpt = {}): AreaComp {
 			} else {
 				return {
 					shape: "rect",
-					p1: game.camMatrix.multVec2(area.p1),
-					p2: game.camMatrix.multVec2(area.p2),
+					p1: s.camMatrix.multVec2(area.p1),
+					p2: s.camMatrix.multVec2(area.p2),
 				};
 			}
 		},
@@ -1643,7 +3849,7 @@ function getRenderProps(obj: GameObj<any>) {
 		origin: obj.origin,
 		outline: obj.outline,
 		fixed: obj.fixed,
-		shader: assets.shaders[obj.shader],
+		shader: s.shaders[obj.shader],
 		uniform: obj.uniform,
 	};
 }
@@ -1691,7 +3897,7 @@ function sprite(id: string | SpriteData, opt: SpriteCompOpt = {}): SpriteComp {
 		load() {
 
 			if (typeof id === "string") {
-				spr = assets.sprites[id];
+				spr = s.sprites[id];
 			} else {
 				spr = id;
 			}
@@ -1916,7 +4122,7 @@ function text(t: string, opt: TextCompOpt = {}): TextComp {
 		},
 
 		draw() {
-			gfx.drawFormattedText(update(this));
+			drawFormattedText(update(this));
 		},
 
 	};
@@ -1930,7 +4136,7 @@ function rect(w: number, h: number, opt: RectCompOpt = {}): RectComp {
 		height: h,
 		radius: opt.radius || 0,
 		draw() {
-			gfx.drawRect({
+			drawRect({
 				...getRenderProps(this),
 				width: this.width,
 				height: this.height,
@@ -1949,7 +4155,7 @@ function uvquad(w: number, h: number): UVQuadComp {
 		width: w,
 		height: h,
 		draw() {
-			gfx.drawUVQuad({
+			drawUVQuad({
 				...getRenderProps(this),
 				width: this.width,
 				height: this.height,
@@ -1966,7 +4172,7 @@ function circle(radius: number): CircleComp {
 		id: "circle",
 		radius: radius,
 		draw() {
-			gfx.drawCircle({
+			drawCircle({
 				...getRenderProps(this),
 				radius: this.radius,
 			});
@@ -2160,7 +4366,7 @@ function body(opt: BodyCompOpt = {}): BodyComp {
 }
 
 function shader(id: string, uniform: Uniform = {}): ShaderComp {
-	const shader = assets.shaders[id];
+	const shader = s.shaders[id];
 	return {
 		id: "shader",
 		shader: id,
@@ -2357,57 +4563,57 @@ function state(
 }
 
 function onLoad(cb: () => void): void {
-	if (game.loaded) {
+	if (s.loaded) {
 		cb();
 	} else {
-		game.on("load", cb);
+		s.on("load", cb);
 	}
 }
 
 function scene(id: SceneID, def: SceneDef) {
-	game.scenes[id] = def;
+	s.scenes[id] = def;
 }
 
 function go(id: SceneID, ...args) {
 
-	if (!game.scenes[id]) {
+	if (!s.scenes[id]) {
 		throw new Error(`scene not found: ${id}`);
 	}
 
-	const cancel = game.on("updateStart", () => {
+	const cancel = s.on("updateStart", () => {
 
-		game.events = {};
+		s.events = {};
 
-		game.objEvents = {
+		s.objEvents = {
 			add: new IDList(),
 			update: new IDList(),
 			draw: new IDList(),
 			destroy: new IDList(),
 		};
 
-		game.root.every((obj) => {
+		s.root.every((obj) => {
 			if (!obj.is("stay")) {
-				game.root.remove(obj);
+				s.root.remove(obj);
 			}
 		})
 
-		game.timers = new IDList();
+		s.timers = new IDList();
 
 		// cam
-		game.cam = {
+		s.cam = {
 			pos: center(),
 			scale: vec2(1, 1),
 			angle: 0,
 			shake: 0,
 		};
 
-		game.camMatrix = mat4();
+		s.camMatrix = mat4();
 
-		game.layers = {};
-		game.defLayer = null;
-		game.gravity = DEF_GRAVITY;
+		s.layers = {};
+		s.defLayer = null;
+		s.gravity = DEF_GRAVITY;
 
-		game.scenes[id](...args);
+		s.scenes[id](...args);
 
 		if (gopt.debug !== false) {
 			enterDebugMode();
@@ -2560,7 +4766,7 @@ function addLevel(map: string[], opt: LevelOpt): Level {
 			comps.push(pos(posComp));
 			comps.push(grid(this, p));
 
-			const obj = game.root.add(comps);
+			const obj = s.root.add(comps);
 
 			objs.push(obj);
 
@@ -2602,10 +4808,10 @@ function addLevel(map: string[], opt: LevelOpt): Level {
 
 function record(frameRate?): Recording {
 
-	const stream = app.canvas.captureStream(frameRate);
-	const audioDest = audio.ctx.createMediaStreamDestination();
+	const stream = s.canvas.captureStream(frameRate);
+	const audioDest = s.audioCtx.createMediaStreamDestination();
 
-	audio.masterNode.connect(audioDest)
+	s.masterNode.connect(audioDest)
 
 	const audioStream = audioDest.stream;
 	const [firstAudioTrack] = audioStream.getAudioTracks();
@@ -2623,7 +4829,7 @@ function record(frameRate?): Recording {
 	};
 
 	recorder.onerror = (e) => {
-		audio.masterNode.disconnect(audioDest)
+		s.masterNode.disconnect(audioDest)
 		stream.getTracks().forEach(t => t.stop());
 	};
 
@@ -2649,7 +4855,7 @@ function record(frameRate?): Recording {
 
 			recorder.stop();
 			// cleanup
-			audio.masterNode.disconnect(audioDest)
+			s.masterNode.disconnect(audioDest)
 			stream.getTracks().forEach(t => t.stop());
 
 		}
@@ -2657,36 +4863,127 @@ function record(frameRate?): Recording {
 
 }
 
+function isFocused(): boolean {
+	return document.activeElement === s.canvas;
+}
+
+interface BoomOpt {
+	/**
+	 * Animation speed.
+	 */
+	speed?: number,
+	/**
+	 * Scale.
+	 */
+	scale?: number,
+	/**
+	 * Additional ka components.
+	 */
+	kaComps?: () => CompList<any>,
+	/**
+	 * Additional boom components.
+	 */
+	boomComps?: () => CompList<any>,
+}
+
+function add<T>(comps: CompList<T>): GameObj<T> {
+	return s.root.add(comps);
+}
+
+function destroy(obj: GameObj) {
+	return s.root.remove(obj);
+}
+
+interface ExplodeComp extends Comp {
+}
+
+function explode(speed: number = 2, size: number = 1): ExplodeComp {
+	let time = 0;
+	return {
+		id: "explode",
+		require: [ "scale", ],
+		update() {
+			const s = Math.sin(time * speed) * size;
+			if (s < 0) {
+				destroy(this);
+			}
+			this.scale = vec2(s);
+			time += dt();
+		},
+	};
+}
+
+let kaSprite = null;
+let boomSprite = null;
+
+loadSprite(null, kaSrc).then((spr) => kaSprite = spr);
+loadSprite(null, boomSrc).then((spr) => boomSprite = spr);
+
+// TODO: use children obj
+function addKaboom(p: Vec2, opt: BoomOpt = {}): Kaboom {
+
+	const speed = (opt.speed || 1) * 5;
+	const s = opt.scale || 1;
+
+	const boom = add([
+		pos(p),
+		sprite(boomSprite),
+		scale(0),
+		stay(),
+		origin("center"),
+		explode(speed, s),
+		...(opt.boomComps ?? (() => []))(),
+	]);
+
+	const ka = add([
+		pos(p),
+		sprite(kaSprite),
+		scale(0),
+		stay(),
+		origin("center"),
+		timer(0.4 / speed, () => ka.use(explode(speed, s))),
+		...(opt.kaComps ?? (() => []))(),
+	]);
+
+	return {
+		destroy() {
+			destroy(ka);
+			destroy(boom);
+		},
+	};
+
+}
+
 const ctx: KaboomCtx = {
 	// asset load
-	loadRoot: assets.loadRoot,
-	loadSprite: assets.loadSprite,
-	loadSpriteAtlas: assets.loadSpriteAtlas,
-	loadSound: assets.loadSound,
-	loadFont: assets.loadFont,
-	loadShader: assets.loadShader,
-	loadAseprite: assets.loadAseprite,
-	loadPedit: assets.loadPedit,
-	loadBean: assets.loadBean,
-	load: assets.load,
+	loadRoot,
+	loadSprite,
+	loadSpriteAtlas,
+	loadSound,
+	loadFont,
+	loadShader,
+	loadAseprite,
+	loadPedit,
+	loadBean,
+	load,
 	// query
 	width,
 	height,
 	center,
 	dt,
-	time: app.time,
-	screenshot: app.screenshot,
-	record: record,
-	focused: deprecate("focused()", "isFocused()", app.isFocused),
-	isFocused: app.isFocused,
-	focus: app.focus,
-	cursor: app.cursor,
+	time,
+	screenshot,
+	record,
+	focused: deprecate("focused()", "isFocused()", isFocused),
+	isFocused: isFocused,
+	focus: focus,
+	cursor: cursor,
 	regCursor,
-	fullscreen: app.fullscreen,
-	isFullscreen: app.isFullscreen,
+	fullscreen: fullscreen,
+	isFullscreen: isFullscreen,
 	onLoad,
 	ready: deprecate("ready()", "onLoad()", onLoad),
-	isTouch: () => app.isTouch,
+	isTouch: () => s.isTouch,
 	// misc
 	layers,
 	camPos,
@@ -2697,13 +4994,13 @@ const ctx: KaboomCtx = {
 	toWorld,
 	gravity,
 	// obj
-	add: (...args) => game.root.add(...args),
-	readd: (...args) => game.root.readd(...args),
-	destroy: (...args) => game.root.remove(...args),
-	destroyAll: (...args) => game.root.removeAll(...args),
-	get: (...args) => game.root.get(...args),
-	every: (...args) => game.root.every(...args),
-	revery: (...args) => game.root.revery(...args),
+	add: (...args) => s.root.add(...args),
+	readd: (...args) => s.root.readd(...args),
+	destroy: (...args) => s.root.remove(...args),
+	destroyAll: (...args) => s.root.removeAll(...args),
+	get: (...args) => s.root.get(...args),
+	every: (...args) => s.root.every(...args),
+	revery: (...args) => s.root.revery(...args),
 	// comps
 	pos,
 	scale,
@@ -2772,31 +5069,31 @@ const ctx: KaboomCtx = {
 	touchEnd: deprecate("touchEnd()", "onTouchEnd()", onTouchEnd),
 	mousePos,
 	mouseWorldPos,
-	mouseDeltaPos: app.mouseDeltaPos,
-	isKeyDown: app.isKeyDown,
-	isKeyPressed: app.isKeyPressed,
-	isKeyPressedRepeat: app.isKeyPressedRepeat,
-	isKeyReleased: app.isKeyReleased,
-	isMouseDown: app.isMouseDown,
-	isMousePressed: app.isMousePressed,
-	isMouseReleased: app.isMouseReleased,
-	isMouseMoved: app.isMouseMoved,
-	keyIsDown: deprecate("keyIsDown()", "isKeyDown()", app.isKeyDown),
-	keyIsPressed: deprecate("keyIsPressed()", "isKeyPressed()", app.isKeyPressed),
-	keyIsPressedRep: deprecate("keyIsPressedRep()", "isKeyPressedRepeat()", app.isKeyPressedRepeat),
-	keyIsReleased: deprecate("keyIsReleased()", "isKeyReleased()", app.isKeyReleased),
-	mouseIsDown: deprecate("mouseIsDown()", "isMouseDown()", app.isMouseDown),
-	mouseIsClicked: deprecate("mouseIsClicked()", "isMousePressed()", app.isMousePressed),
-	mouseIsReleased: deprecate("mouseIsReleased()", "isMouseReleased()", app.isMouseReleased),
-	mouseIsMoved: deprecate("mouseIsMoved()", "isMouseMoved()", app.isMouseMoved),
+	mouseDeltaPos,
+	isKeyDown: isKeyDown,
+	isKeyPressed: isKeyPressed,
+	isKeyPressedRepeat: isKeyPressedRepeat,
+	isKeyReleased: isKeyReleased,
+	isMouseDown: isMouseDown,
+	isMousePressed: isMousePressed,
+	isMouseReleased: isMouseReleased,
+	isMouseMoved: isMouseMoved,
+	keyIsDown: deprecate("keyIsDown()", "isKeyDown()", isKeyDown),
+	keyIsPressed: deprecate("keyIsPressed()", "isKeyPressed()", isKeyPressed),
+	keyIsPressedRep: deprecate("keyIsPressedRep()", "isKeyPressedRepeat()", isKeyPressedRepeat),
+	keyIsReleased: deprecate("keyIsReleased()", "isKeyReleased()", isKeyReleased),
+	mouseIsDown: deprecate("mouseIsDown()", "isMouseDown()", isMouseDown),
+	mouseIsClicked: deprecate("mouseIsClicked()", "isMousePressed()", isMousePressed),
+	mouseIsReleased: deprecate("mouseIsReleased()", "isMouseReleased()", isMouseReleased),
+	mouseIsMoved: deprecate("mouseIsMoved()", "isMouseMoved()", isMouseMoved),
 	// timer
 	loop,
 	wait,
 	// audio
 	play,
-	volume: audio.volume,
-	burp: audio.burp,
-	audioCtx: audio.ctx,
+	volume,
+	burp,
+	audioCtx: s.audioCtx,
 	// math
 	rng,
 	rand,
@@ -2836,21 +5133,20 @@ const ctx: KaboomCtx = {
 	drawSprite,
 	drawText,
 	formatText,
-	// TODO: wrap these to use assets lib for the "shader" prop
-	drawRect: gfx.drawRect,
-	drawLine: gfx.drawLine,
-	drawLines: gfx.drawLines,
-	drawTriangle: gfx.drawTriangle,
-	drawCircle: gfx.drawCircle,
-	drawEllipse: gfx.drawEllipse,
-	drawUVQuad: gfx.drawUVQuad,
-	drawPolygon: gfx.drawPolygon,
-	drawFormattedText: gfx.drawFormattedText,
-	pushTransform: gfx.pushTransform,
-	popTransform: gfx.popTransform,
-	pushTranslate: gfx.pushTranslate,
-	pushRotate: gfx.pushRotateZ,
-	pushScale: gfx.pushScale,
+	drawRect,
+	drawLine,
+	drawLines,
+	drawTriangle,
+	drawCircle,
+	drawEllipse,
+	drawUVQuad,
+	drawPolygon,
+	drawFormattedText,
+	pushTransform,
+	popTransform,
+	pushTranslate,
+	pushRotate: pushRotateZ,
+	pushScale,
 	// debug
 	debug,
 	// scene
@@ -2881,10 +5177,9 @@ const ctx: KaboomCtx = {
 	WHITE: rgb(255, 255, 255),
 	BLACK: rgb(0, 0, 0),
 	// dom
-	canvas: app.canvas,
+	canvas: s.canvas,
+	addKaboom,
 };
-
-plug(kaboomPlugin);
 
 if (gopt.plugins) {
 	gopt.plugins.forEach(plug);
@@ -2904,20 +5199,20 @@ function frames() {
 
 function updateFrame() {
 
-	game.trigger("updateStart");
+	s.trigger("updateStart");
 
 	// update timers
-	game.timers.forEach((t, id) => {
+	s.timers.forEach((t, id) => {
 		t.time -= dt();
 		if (t.time <= 0) {
 			// TODO: some timer action causes crash on FF when dt is really high, not sure why
 			t.action();
-			game.timers.delete(id);
+			s.timers.delete(id);
 		}
 	});
 
 	// update every obj
-	game.root.update();
+	s.root.update();
 
 }
 
@@ -2925,52 +5220,52 @@ function drawFrame() {
 
 	// calculate camera matrix
 	const scale = vec2(-2 / width(), 2 / height());
-	const cam = game.cam;
+	const cam = s.cam;
 	const shake = vec2FromAngle(rand(0, 360)).scale(cam.shake).scale(scale);
 
 	cam.shake = lerp(cam.shake, 0, 5 * dt());
-	game.camMatrix = mat4()
+	s.camMatrix = mat4()
 		.scale(cam.scale)
 		.rotateZ(cam.angle)
 		.translate(cam.pos.scale(scale).add(vec2(1, -1)).add(shake))
 		;
 
-	game.root.draw();
+	s.root.draw();
 
 }
 
 function drawLoadScreen() {
 
 	// if assets are not fully loaded, draw a progress bar
-	const progress = assets.loadProgress();
+	const progress = loadProgress();
 
 	if (progress === 1) {
-		game.loaded = true;
-		game.trigger("load");
+		s.loaded = true;
+		s.trigger("load");
 	} else {
 
 		const w = width() / 2;
-		const h = 24 / gfx.scale();
+		const h = 24 / s.scale;
 		const pos = vec2(width() / 2, height() / 2).sub(vec2(w / 2, h / 2));
 
-		gfx.drawRect({
+		drawRect({
 			pos: vec2(0),
 			width: width(),
 			height: height(),
 			color: rgb(0, 0, 0),
 		});
 
-		gfx.drawRect({
+		drawRect({
 			pos: pos,
 			width: w,
 			height: h,
 			fill: false,
 			outline: {
-				width: 4 / gfx.scale(),
+				width: 4 / s.scale,
 			},
 		});
 
-		gfx.drawRect({
+		drawRect({
 			pos: pos,
 			width: w * progress,
 			height: h,
@@ -2982,16 +5277,15 @@ function drawLoadScreen() {
 
 function drawInspectText(pos, txt) {
 
-	const s = app.scale;
 	const pad = vec2(8);
 
-	gfx.pushTransform();
-	gfx.pushTranslate(pos);
-	gfx.pushScale(1 / s);
+	pushTransform();
+	pushTranslate(pos);
+	pushScale(1 / s.scale);
 
-	const ftxt = gfx.formatText({
+	const ftxt = formatText({
 		text: txt,
-		font: assets.fonts[DBG_FONT],
+		font: s.fonts[DBG_FONT],
 		size: 16,
 		pos: pad,
 		color: rgb(255, 255, 255),
@@ -3000,15 +5294,15 @@ function drawInspectText(pos, txt) {
 	const bw = ftxt.width + pad.x * 2;
 	const bh = ftxt.height + pad.x * 2;
 
-	if (pos.x + bw / s >= width()) {
-		gfx.pushTranslate(vec2(-bw, 0));
+	if (pos.x + bw / s.scale >= width()) {
+		pushTranslate(vec2(-bw, 0));
 	}
 
-	if (pos.y + bh / s >= height()) {
-		gfx.pushTranslate(vec2(0, -bh));
+	if (pos.y + bh / s.scale >= height()) {
+		pushTranslate(vec2(0, -bh));
 	}
 
-	gfx.drawRect({
+	drawRect({
 		width: bw,
 		height: bh,
 		color: rgb(0, 0, 0),
@@ -3016,8 +5310,8 @@ function drawInspectText(pos, txt) {
 		opacity: 0.8,
 	});
 
-	gfx.drawFormattedText(ftxt);
-	gfx.popTransform();
+	drawFormattedText(ftxt);
+	popTransform();
 
 }
 
@@ -3029,7 +5323,7 @@ function drawDebug() {
 		const lcolor = rgb(gopt.inspectColor ?? [0, 0, 255]);
 
 		// draw area outline
-		game.root.every((obj) => {
+		s.root.every((obj) => {
 
 			if (!obj.area) {
 				return;
@@ -3039,7 +5333,7 @@ function drawDebug() {
 				return;
 			}
 
-			const scale = gfx.scale() * (obj.fixed ? 1: (game.cam.scale.x + game.cam.scale.y) / 2);
+			const scale = s.scale * (obj.fixed ? 1: (s.cam.scale.x + s.cam.scale.y) / 2);
 
 			if (!inspecting) {
 				if (obj.isHovering()) {
@@ -3052,7 +5346,7 @@ function drawDebug() {
 			const w = a.p2.x - a.p1.x;
 			const h = a.p2.y - a.p1.y;
 
-			gfx.drawRect({
+			drawRect({
 				pos: a.p1,
 				width: w,
 				height: h,
@@ -3061,7 +5355,7 @@ function drawDebug() {
 					color: lcolor,
 				},
 				uniform: {
-					"u_transform": obj.fixed ? mat4() : game.camMatrix,
+					"u_transform": obj.fixed ? mat4() : s.camMatrix,
 				},
 				fill: false,
 			});
@@ -3085,22 +5379,22 @@ function drawDebug() {
 
 		}
 
-		drawInspectText(vec2(8 / app.scale), `FPS: ${app.fps()}`);
+		drawInspectText(vec2(8 / s.scale), `FPS: ${s.fps}`);
 
 	}
 
 	if (debug.paused) {
 
 		// top right corner
-		gfx.pushTransform();
-		gfx.pushTranslate(width(), 0);
-		gfx.pushScale(1 / app.scale);
-		gfx.pushTranslate(-8, 8);
+		pushTransform();
+		pushTranslate(width(), 0);
+		pushScale(1 / s.scale);
+		pushTranslate(-8, 8);
 
 		const size = 32;
 
 		// bg
-		gfx.drawRect({
+		drawRect({
 			width: size,
 			height: size,
 			origin: "topright",
@@ -3111,7 +5405,7 @@ function drawDebug() {
 
 		// pause icon
 		for (let i = 1; i <= 2; i++) {
-			gfx.drawRect({
+			drawRect({
 				width: 4,
 				height: size * 0.6,
 				origin: "center",
@@ -3121,24 +5415,24 @@ function drawDebug() {
 			});
 		}
 
-		gfx.popTransform();
+		popTransform();
 
 	}
 
 	if (debug.timeScale !== 1) {
 
 		// bottom right corner
-		gfx.pushTransform();
-		gfx.pushTranslate(width(), height());
-		gfx.pushScale(1 / app.scale);
-		gfx.pushTranslate(-8, -8);
+		pushTransform();
+		pushTranslate(width(), height());
+		pushScale(1 / s.scale);
+		pushTranslate(-8, -8);
 
 		const pad = 8;
 
 		// format text first to get text size
-		const ftxt = gfx.formatText({
+		const ftxt = formatText({
 			text: debug.timeScale.toFixed(1),
-			font: assets.fonts[DBG_FONT],
+			font: s.fonts[DBG_FONT],
 			size: 16,
 			color: rgb(255, 255, 255),
 			pos: vec2(-pad),
@@ -3146,7 +5440,7 @@ function drawDebug() {
 		});
 
 		// bg
-		gfx.drawRect({
+		drawRect({
 			width: ftxt.width + pad * 2 + pad * 4,
 			height: ftxt.height + pad * 2,
 			origin: "botright",
@@ -3158,7 +5452,7 @@ function drawDebug() {
 		// fast forward / slow down icon
 		for (let i = 0; i < 2; i++) {
 			const flipped = debug.timeScale < 1;
-			gfx.drawTriangle({
+			drawTriangle({
 				p1: vec2(-ftxt.width - pad * (flipped ? 2 : 3.5), -pad),
 				p2: vec2(-ftxt.width - pad * (flipped ? 2 : 3.5), -pad - ftxt.height),
 				p3: vec2(-ftxt.width - pad * (flipped ? 3.5 : 2), -pad - ftxt.height / 2),
@@ -3168,35 +5462,35 @@ function drawDebug() {
 		}
 
 		// text
-		gfx.drawFormattedText(ftxt);
+		drawFormattedText(ftxt);
 
-		gfx.popTransform();
+		popTransform();
 
 	}
 
 	if (debug.curRecording) {
 
-		gfx.pushTransform();
-		gfx.pushTranslate(0, height());
-		gfx.pushScale(1 / app.scale);
-		gfx.pushTranslate(24, -24);
+		pushTransform();
+		pushTranslate(0, height());
+		pushScale(1 / s.scale);
+		pushTranslate(24, -24);
 
-		gfx.drawCircle({
+		drawCircle({
 			radius: 12,
 			color: rgb(255, 0, 0),
-			opacity: wave(0, 1, app.time() * 4),
+			opacity: wave(0, 1, time() * 4),
 		});
 
-		gfx.popTransform();
+		popTransform();
 
 	}
 
 	if (debug.showLog && logs.length > 0) {
 
-		gfx.pushTransform();
-		gfx.pushTranslate(0, height());
-		gfx.pushScale(1 / app.scale);
-		gfx.pushTranslate(8, -8);
+		pushTransform();
+		pushTranslate(0, height());
+		pushScale(1 / s.scale);
+		pushTranslate(8, -8);
 
 		const pad = 8;
 		const max = gopt.logMax ?? 1;
@@ -3205,13 +5499,13 @@ function drawDebug() {
 			logs = logs.slice(0, max);
 		}
 
-		const ftext = gfx.formatText({
+		const ftext = formatText({
 			text: logs.join("\n"),
-			font: assets.fonts[DBG_FONT],
+			font: s.fonts[DBG_FONT],
 			pos: vec2(pad, -pad),
 			origin: "botleft",
 			size: 16,
-			width: gfx.width() * gfx.scale() * 0.6,
+			width: width() * s.scale * 0.6,
 			lineSpacing: pad / 2,
 			styles: {
 				"time": { color: rgb(127, 127, 127) },
@@ -3220,7 +5514,7 @@ function drawDebug() {
 			},
 		});
 
-		gfx.drawRect({
+		drawRect({
 			width: ftext.width + pad * 2,
 			height: ftext.height + pad * 2,
 			origin: "botleft",
@@ -3229,38 +5523,38 @@ function drawDebug() {
 			opacity: 0.8,
 		});
 
-		gfx.drawFormattedText(ftext);
-		gfx.popTransform();
+		drawFormattedText(ftext);
+		popTransform();
 
 	}
 
 }
 
-app.run(() => {
+run(() => {
 
 	numFrames++;
 
-	if (!game.loaded) {
-		gfx.frameStart();
+	if (!s.loaded) {
+		frameStart();
 		drawLoadScreen();
-		gfx.frameEnd();
+		frameEnd();
 	} else {
 
 		// TODO: this gives the latest mousePos in input handlers but uses cam matrix from last frame
-		game.trigger("input");
+		s.trigger("input");
 
 		if (!debug.paused && gopt.debug !== false) {
 			updateFrame();
 		}
 
-		gfx.frameStart();
+		frameStart();
 		drawFrame();
 
 		if (gopt.debug !== false) {
 			drawDebug();
 		}
 
-		gfx.frameEnd();
+		frameEnd();
 
 	}
 
@@ -3276,12 +5570,12 @@ if (gopt.burp) {
 
 window.addEventListener("error", (e) => {
 	debug.error(`Error: ${e.error.message}`);
-	app.quit();
-	app.run(() => {
-		if (assets.loadProgress() === 1) {
-			gfx.frameStart();
+	quit();
+	run(() => {
+		if (loadProgress() === 1) {
+			frameStart();
 			drawDebug();
-			gfx.frameEnd();
+			frameEnd();
 		}
 	});
 });

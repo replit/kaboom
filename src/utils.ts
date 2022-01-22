@@ -67,10 +67,10 @@ export const uid = (() => {
 	return () => id++;
 })();
 
-export const deprecateMsg = (oldName, newName) =>
+export const deprecateMsg = (oldName: string, newName: string) =>
 	console.warn(`${oldName} is deprecated. Use ${newName} instead.`);
 
-export const deprecate = (oldName, newName, newFunc) => (...args) => {
+export const deprecate = (oldName: string, newName: string, newFunc: (...args) => any) => (...args) => {
 	deprecateMsg(oldName, newName);
 	return newFunc(...args);
 };
