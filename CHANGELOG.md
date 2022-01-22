@@ -10,6 +10,8 @@
 - added `outview()` component to control behavior when object leaves visible area
 - deprecated `cleanup(delay?: number)` in favor of `cleanup(opt?: CleanupOpt)`
 - deprecated `mouseWorldPos()` in favor of `toWorld(mousePos())`
+- deprecated `rng()` in favor of `new RNG()`
+- added classes `Vec2`, `Color`, `Mat4`, `Timer`, `Quad`, `RNG`, `Line`, `Rect`, `Circle`
 - added deprecation warning
 
 ### v2000.1.8
