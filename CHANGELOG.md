@@ -10,6 +10,7 @@
 - added `outview()` component to control behavior when object leaves visible area
 - deprecated `cleanup(delay?: number)` in favor of `cleanup(opt?: CleanupOpt)`
 - deprecated `mouseWorldPos()` in favor of `toWorld(mousePos())`
+- added deprecation warning
 
 ### v2000.1.8
 

@@ -4032,3 +4032,10 @@ export interface Level {
 	offset(): Vec2,
 	destroy(),
 }
+
+export interface Kaboom {
+	/**
+	 * Remove kaboom.
+	 */
+	destroy(): void,
+}
