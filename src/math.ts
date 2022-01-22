@@ -65,6 +65,10 @@ export class Vec2 {
 		this.x = x;
 		this.y = y;
 	}
+	static LEFT = new Vec2(-1, 0);
+	static RIGHT = new Vec2(1, 0);
+	static UP = new Vec2(0, -1);
+	static DOWN = new Vec2(0, 1);
 	clone(): Vec2 {
 		return new Vec2(this.x, this.y);
 	}
@@ -121,23 +125,14 @@ export class Vec2 {
 }
 
 export function vec2(...args): Vec2 {
-
-	if (args.length === 0) {
-		return vec2(0, 0);
-	}
-
 	if (args.length === 1) {
-		if (typeof args[0] === "number") {
-			return vec2(args[0], args[0]);
-		} else if (args[0] instanceof Vec2) {
+		if (args[0] instanceof Vec2) {
 			return vec2(args[0].x, args[0].y);
 		} else if (Array.isArray(args[0]) && args[0].length === 2) {
 			return vec2.apply(null, args[0]);
 		}
 	}
-
 	return new Vec2(...args);
-
 }
 
 // TODO: Vec2.fromAngle
@@ -174,13 +169,18 @@ export class Color {
 		this.b = clamp(b, 0, 255);
 	}
 
-	static white() {
-		return new Color(255, 255, 255);
-	}
-
 	static fromArray(arr: number[]) {
 		return new Color(arr[0], arr[1], arr[2])
 	}
+
+	static RED = rgb(255, 0, 0);
+	static GREEN = rgb(0, 255, 0);
+	static BLUE = rgb(0, 0, 255);
+	static YELLOW = rgb(255, 255, 0);
+	static MAGENTA = rgb(255, 0, 255);
+	static CYAN = rgb(0, 255, 255);
+	static WHITE = rgb(255, 255, 255);
+	static BLACK = rgb(0, 0, 0);
 
 	clone(): Color {
 		return new Color(this.r, this.g, this.b);
@@ -243,7 +243,7 @@ export class Color {
 		const g = hue2rgb(p, q, h);
 		const b = hue2rgb(p, q, h - 1 / 3);
 
-		return rgb(Math.round(r * 255), Math.round(g * 255), Math.round(b * 255));
+		return new Color(Math.round(r * 255), Math.round(g * 255), Math.round(b * 255));
 
 	}
 
@@ -258,10 +258,9 @@ export function rgb(...args): Color {
 		} else if (Array.isArray(args[0]) && args[0].length === 3) {
 			return Color.fromArray(args[0]);
 		}
-	} else if (args.length === 3) {
-		return new Color(args[0], args[1], args[2]);
 	}
-	throw new Error(`Invalid args to rgb(): ${[...args]}`);
+	// @ts-ignore
+	return new Color(...args);
 }
 
 export const hsl2rgb = (h, s, l) => Color.fromHSL(h, s, l);
@@ -271,14 +270,11 @@ export class Quad {
 	y: number = 0;
 	w: number = 1;
 	h: number = 1;
-	constructor(x, y, w, h) {
+	constructor(x: number = 0, y: number = 0, w: number = 1, h: number = 1) {
 		this.x = x;
 		this.y = y;
 		this.w = w;
 		this.h = h;
-	}
-	static full() {
-		return new Quad(0, 0, 1, 1);
 	}
 	scale(other: Quad): Quad {
 		return new Quad(

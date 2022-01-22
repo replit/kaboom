@@ -3028,61 +3028,65 @@ export type Origin =
 	| "botright"
 	;
 
-export interface Vec2 {
-	x: number,
-	y: number,
-	clone(): Vec2,
+export declare class Vec2 {
+	x: number
+	y: number
+	static LEFT: Vec2
+	static RIGHT: Vec2
+	static UP: Vec2
+	static DOWN: Vec2
+	clone(): Vec2
 	/**
 	 * Returns the addition with another vector.
 	 */
-	add(p: Vec2): Vec2,
-	add(x: number, y: number): Vec2,
+	add(p: Vec2): Vec2
+	add(x: number, y: number): Vec2
 	/**
 	 * Returns the subtraction with another vector.
 	 */
-	sub(p: Vec2): Vec2,
-	sub(x: number, y: number): Vec2,
+	sub(p: Vec2): Vec2
+	sub(x: number, y: number): Vec2
 	/**
 	 * Scale by another vector, or a single number.
 	 */
-	scale(p: Vec2): Vec2,
-	scale(s: number): Vec2,
-	scale(sx: number, sy: number): Vec2,
+	scale(p: Vec2): Vec2
+	scale(s: number): Vec2
+	scale(sx: number, sy: number): Vec2
 	/**
 	 * Get the dot product with another vector.
 	 */
-	dot(p: Vec2): number,
+	dot(p: Vec2): number
 	/**
 	 * Get distance between another vector.
 	 */
-	dist(p: Vec2): number,
-	len(): number,
+	dist(p: Vec2): number
+	len(): number
 	/**
 	 * Get the unit vector (length of 1).
 	 */
-	unit(): Vec2,
+	unit(): Vec2
 	/**
 	 * Get the perpendicular vector.
 	 */
-	normal(): Vec2,
+	normal(): Vec2
 	/**
 	 * Get the angle between another vector
 	 */
-	angle(p: Vec2): number,
+	angle(p: Vec2): number
 	/**
 	 * Linear interpolate to a destination vector
 	 */
-	lerp(p: Vec2, t: number): Vec2,
+	lerp(p: Vec2, t: number): Vec2
 	/**
 	 * To n precision floating point.
 	 */
-	toFixed(n: number): Vec2,
-	eq(p: Vec2): boolean,
-	toString(): string,
+	toFixed(n: number): Vec2
+	eq(p: Vec2): boolean
+	toString(): string
 	/**
 	 * @deprecated v2000.2 Use toString() instead.
 	 */
-	str(): string,
+	str(): string
 }
 
 export interface Vec3 {
@@ -3138,8 +3142,15 @@ export declare class Color {
 	 */
 	b: number;
 	constructor(r: number, g: number, b: number);
-	static white(): Color;
 	static fromArray(arr: number[]): Color;
+	static RED: Color;
+	static GREEN: Color;
+	static BLUE: Color;
+	static YELLOW: Color;
+	static MAGENTA: Color;
+	static CYAN: Color;
+	static WHITE: Color;
+	static BLACK: Color;
 	clone(): Color;
 	/**
 	 * Lighten the color (adds RGB by n).

@@ -240,23 +240,6 @@ const PREVENT_DEFAULT_KEYS = [
 const ASCII_CHARS = " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~";
 const CP437_CHARS = " ☺☻♥♦♣♠•◘○◙♂♀♪♫☼►◄↕‼¶§▬↨↑↓→←∟↔▲▼ !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~⌂ÇüéâäàåçêëèïîìÄÅÉæÆôöòûùÿÖÜ¢£¥₧ƒáíóúñÑªº¿⌐¬½¼¡«»░▒▓│┤╡╢╖╕╣║╗╝╜╛┐└┴┬├─┼╞╟╚╔╩╦╠═╬╧╨╤╥╙╘╒╓╫╪┘┌█▄▌▐▀αßΓπΣσµτΦΘΩδ∞φε∩≡±≥≤⌠⌡÷≈°∙·√ⁿ²■";
 
-// TODO: contain in a table?
-// directions
-const LEFT = vec2(-1, 0);
-const RIGHT = vec2(1, 0);
-const UP = vec2(0, -1);
-const DOWN = vec2(0, 1);
-
-// colors
-const RED = rgb(255, 0, 0);
-const GREEN = rgb(0, 255, 0);
-const BLUE = rgb(0, 0, 255);
-const YELLOW = rgb(255, 255, 0);
-const MAGENTA = rgb(255, 0, 255);
-const CYAN = rgb(0, 255, 255);
-const WHITE = rgb(255, 255, 255);
-const BLACK = rgb(0, 0, 0);
-
 // audio gain range
 const MIN_GAIN = 0;
 const MAX_GAIN = 3;
@@ -774,7 +757,7 @@ function slice(x = 1, y = 1, dx = 0, dy = 0, w = 1, h = 1): Quad[] {
 	const qh = h / y;
 	for (let j = 0; j < y; j++) {
 		for (let i = 0; i < x; i++) {
-			frames.push(quad(
+			frames.push(new Quad(
 				dx + i * qw,
 				dy + j * qh,
 				qw,
@@ -916,7 +899,7 @@ function loadAseprite(
 					.then((data) => {
 						const size = data.meta.size;
 						sprite.frames = data.frames.map((f: any) => {
-							return quad(
+							return new Quad(
 								f.frame.x / size.w,
 								f.frame.y / size.h,
 								f.frame.w / size.w,
@@ -1474,7 +1457,7 @@ function frameStart() {
 		drawUVQuad({
 			width: width(),
 			height: height(),
-			quad: quad(
+			quad: new Quad(
 				0,
 				0,
 				width() * s.scale / BG_GRID_SIZE,
@@ -1579,7 +1562,7 @@ function drawUVQuad(opt: DrawUVQuadOpt) {
 	const h = opt.height;
 	const origin = originPt(opt.origin || DEF_ORIGIN);
 	const offset = origin.scale(vec2(w, h).scale(-0.5));
-	const q = opt.quad || quad(0, 0, 1, 1);
+	const q = opt.quad || new Quad(0, 0, 1, 1);
 	const color = opt.color || rgb(255, 255, 255);
 	const opacity = opt.opacity ?? 1;
 
@@ -1627,7 +1610,7 @@ function drawTexture(opt: DrawTextureOpt) {
 		throw new Error("drawTexture() requires property \"tex\".");
 	}
 
-	const q = opt.quad ?? quad(0, 0, 1, 1);
+	const q = opt.quad ?? new Quad(0, 0, 1, 1);
 	const w = opt.tex.width * q.w;
 	const h = opt.tex.height * q.h;
 	const scale = vec2(1);
@@ -1720,7 +1703,7 @@ function drawSprite(opt: DrawSpriteOpt) {
 	drawTexture({
 		...opt,
 		tex: spr.tex,
-		quad: q.scale(opt.quad || quad(0, 0, 1, 1)),
+		quad: q.scale(opt.quad || new Quad(0, 0, 1, 1)),
 		uniform: {
 			...opt.uniform,
 			"u_transform": opt.fixed ? new Mat4() : s.camMatrix,
@@ -1833,7 +1816,7 @@ function drawLine(opt: DrawLineOpt) {
 	].map((p) => ({
 		pos: vec3(p.x, p.y, 0),
 		uv: vec2(0),
-		color: opt.color ?? Color.white(),
+		color: opt.color ?? Color.WHITE,
 		opacity: opt.opacity ?? 1,
 	}));
 
@@ -1968,7 +1951,7 @@ function drawPolygon(opt: DrawPolygonOpt) {
 
 	if (opt.fill !== false) {
 
-		const color = opt.color ?? Color.white();
+		const color = opt.color ?? Color.WHITE;
 
 		const verts = opt.pts.map((pt) => ({
 			pos: vec3(pt.x, pt.y, 0),
@@ -2154,7 +2137,7 @@ function formatText(opt: DrawTextOpt): FormattedText {
 			if (qpos) {
 				const fchar: FormattedChar = {
 					tex: font.tex,
-					quad: quad(qpos.x, qpos.y, font.qw, font.qh),
+					quad: new Quad(qpos.x, qpos.y, font.qw, font.qh),
 					ch: char,
 					pos: vec2(pos.x + x + ox + oxl, pos.y + y + oy),
 					opacity: opt.opacity,
@@ -3802,7 +3785,7 @@ function sprite(id: string | SpriteData, opt: SpriteCompOpt = {}): SpriteComp {
 		width: 0,
 		height: 0,
 		frame: opt.frame || 0,
-		quad: opt.quad || quad(0, 0, 1, 1),
+		quad: opt.quad || new Quad(0, 0, 1, 1),
 		animSpeed: opt.animSpeed ?? 1,
 
 		load() {
@@ -5541,23 +5524,24 @@ const ctx: KaboomCtx = {
 	// char sets
 	ASCII_CHARS,
 	CP437_CHARS,
-	// dirs
-	LEFT,
-	RIGHT,
-	UP,
-	DOWN,
-	// colors
-	RED,
-	GREEN,
-	BLUE,
-	YELLOW,
-	MAGENTA,
-	CYAN,
-	WHITE,
-	BLACK,
 	// dom
 	canvas: s.canvas,
+	// misc
 	addKaboom,
+	// dirs
+	LEFT: Vec2.LEFT,
+	RIGHT: Vec2.RIGHT,
+	UP: Vec2.UP,
+	DOWN: Vec2.DOWN,
+	// colors
+	RED: Color.RED,
+	GREEN: Color.GREEN,
+	BLUE: Color.BLUE,
+	YELLOW: Color.YELLOW,
+	MAGENTA: Color.MAGENTA,
+	CYAN: Color.CYAN,
+	WHITE: Color.WHITE,
+	BLACK: Color.BLACK,
 	// deprecated
 	keyIsDown: deprecate("keyIsDown()", "isKeyDown()", isKeyDown),
 	keyIsPressed: deprecate("keyIsPressed()", "isKeyPressed()", isKeyPressed),
