@@ -1,9 +1,13 @@
 import {
+	vec2FromAngle,
 	vec2,
 	vec3,
-	Mat4,
 	Vec3,
 	Color,
+	Vec2,
+	Mat4,
+	Quad,
+	RNG,
 	quad,
 	rgb,
 	hsl2rgb,
@@ -37,10 +41,8 @@ import {
 	testCirclePoint,
 	testRectPolygon,
 	minkDiff,
-	vec2FromAngle,
 	deg2rad,
 	rad2deg,
-	isVec2,
 } from "./math";
 
 import {
@@ -81,13 +83,11 @@ import {
 	SpriteLoadOpt,
 	SpriteAtlasData,
 	FontLoadOpt,
-	Quad,
 	GfxTexData,
 	KaboomCtx,
 	KaboomOpt,
 	AudioPlay,
 	AudioPlayOpt,
-	Vec2,
 	DrawSpriteOpt,
 	DrawTextOpt,
 	GameObj,
@@ -1341,7 +1341,7 @@ function makeShader(
 				} else if (val instanceof Vec3) {
 					// @ts-ignore
 					gl.uniform3f(loc, val.x, val.y, val.z);
-				} else if (isVec2(val)) {
+				} else if (val instanceof Vec2) {
 					// @ts-ignore
 					gl.uniform2f(loc, val.x, val.y);
 				}
@@ -2599,7 +2599,7 @@ function toScreen(p: Vec2): Vec2 {
 }
 
 function toWorld(p: Vec2): Vec2 {
-	return toScreen(s.camMatrix.invert().multVec2(screen2ndc(p)));
+	return ndc2screen(s.camMatrix.invert().multVec2(screen2ndc(p)));
 }
 
 const COMP_DESC = new Set([
@@ -3567,7 +3567,7 @@ function area(opt: AreaCompOpt = {}): AreaComp {
 		},
 
 		isHovering() {
-			const mpos = this.fixed ? mousePos() : mouseWorldPos();
+			const mpos = this.fixed ? mousePos() : toWorld(mousePos());
 			return this.hasPoint(mpos);
 		},
 
@@ -5471,12 +5471,16 @@ const ctx: KaboomCtx = {
 	burp,
 	audioCtx: s.audioCtx,
 	// math
+	Vec2,
+	Color,
+	Mat4,
+	Quad,
+	RNG,
 	rng,
 	rand,
 	randi,
 	randSeed,
 	vec2,
-	vec2FromAngle,
 	rgb,
 	hsl2rgb,
 	quad,

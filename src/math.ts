@@ -1,24 +1,25 @@
 import {
-	Vec2,
 	Vec4,
-	Quad,
 	Point,
 	Rect,
 	Circle,
 	Polygon,
 	Area,
-	RNG,
 } from "./types";
 
-function deg2rad(deg: number): number {
+import {
+	deprecateMsg,
+} from "./utils";
+
+export function deg2rad(deg: number): number {
 	return deg * Math.PI / 180;
 }
 
-function rad2deg(rad: number): number {
+export function rad2deg(rad: number): number {
 	return rad * 180 / Math.PI;
 }
 
-function clamp(
+export function clamp(
 	val: number,
 	min: number,
 	max: number,
@@ -29,7 +30,7 @@ function clamp(
 	return Math.min(Math.max(val, min), max);
 }
 
-function lerp(
+export function lerp(
 	a: number,
 	b: number,
 	t: number,
@@ -37,7 +38,7 @@ function lerp(
 	return a + (b - a) * t;
 }
 
-function map(
+export function map(
 	v: number,
 	l1: number,
 	h1: number,
@@ -47,7 +48,7 @@ function map(
 	return l2 + (v - l1) / (h1 - l1) * (h2 - l2);
 }
 
-function mapc(
+export function mapc(
 	v: number,
 	l1: number,
 	h1: number,
@@ -57,7 +58,69 @@ function mapc(
 	return clamp(map(v, l1, h1, l2, h2), l2, h2);
 }
 
-function vec2(...args): Vec2 {
+export class Vec2 {
+	x: number = 0;
+	y: number = 0;
+	constructor(x: number = 0, y: number = x) {
+		this.x = x;
+		this.y = y;
+	}
+	clone(): Vec2 {
+		return new Vec2(this.x, this.y);
+	}
+	add(...args): Vec2 {
+		const p2 = vec2(...args);
+		return new Vec2(this.x + p2.x, this.y + p2.y);
+	}
+	sub(...args): Vec2 {
+		const p2 = vec2(...args);
+		return new Vec2(this.x - p2.x, this.y - p2.y);
+	}
+	scale(...args): Vec2 {
+		const s = vec2(...args);
+		return new Vec2(this.x * s.x, this.y * s.y);
+	}
+	dist(...args): number {
+		const p2 = vec2(...args);
+		return Math.sqrt(
+			(this.x - p2.x) * (this.x - p2.x)
+			+ (this.y - p2.y) * (this.y - p2.y)
+		);
+	}
+	len(): number {
+		return this.dist(new Vec2(0, 0));
+	}
+	unit(): Vec2 {
+		return this.scale(1 / this.len());
+	}
+	normal(): Vec2 {
+		return new Vec2(this.y, -this.x);
+	}
+	dot(p2: Vec2): number {
+		return this.x * p2.x + this.y * p2.y;
+	}
+	angle(...args): number {
+		const p2 = vec2(...args);
+		return rad2deg(Math.atan2(this.y - p2.y, this.x - p2.x));
+	}
+	lerp(p2: Vec2, t: number): Vec2 {
+		return new Vec2(lerp(this.x, p2.x, t), lerp(this.y, p2.y, t));
+	}
+	toFixed(n: number): Vec2 {
+		return new Vec2(Number(this.x.toFixed(n)), Number(this.y.toFixed(n)));
+	}
+	eq(other: Vec2): boolean {
+		return this.x === other.x && this.y === other.y;
+	}
+	toString(): string {
+		return `(${this.x.toFixed(2)}, ${this.y.toFixed(2)})`;
+	}
+	str(): string {
+		return this.toString();
+	}
+}
+
+export function vec2(...args): Vec2 {
 
 	if (args.length === 0) {
 		return vec2(0, 0);
@@ -66,71 +129,19 @@ function vec2(...args): Vec2 {
 	if (args.length === 1) {
 		if (typeof args[0] === "number") {
 			return vec2(args[0], args[0]);
-		} else if (isVec2(args[0])) {
+		} else if (args[0] instanceof Vec2) {
 			return vec2(args[0].x, args[0].y);
 		} else if (Array.isArray(args[0]) && args[0].length === 2) {
 			return vec2.apply(null, args[0]);
 		}
 	}
 
-	return {
-		x: args[0],
-		y: args[1],
-		clone(): Vec2 {
-			return vec2(this.x, this.y);
-		},
-		add(...args): Vec2 {
-			const p2 = vec2(...args);
-			return vec2(this.x + p2.x, this.y + p2.y);
-		},
-		sub(...args): Vec2 {
-			const p2 = vec2(...args);
-			return vec2(this.x - p2.x, this.y - p2.y);
-		},
-		scale(...args): Vec2 {
-			const s = vec2(...args);
-			return vec2(this.x * s.x, this.y * s.y);
-		},
-		dist(...args): number {
-			const p2 = vec2(...args);
-			return Math.sqrt(
-				(this.x - p2.x) * (this.x - p2.x)
-				+ (this.y - p2.y) * (this.y - p2.y)
-			);
-		},
-		len(): number {
-			return this.dist(vec2(0, 0));
-		},
-		unit(): Vec2 {
-			return this.scale(1 / this.len());
-		},
-		normal(): Vec2 {
-			return vec2(this.y, -this.x);
-		},
-		dot(p2: Vec2): number {
-			return this.x * p2.x + this.y * p2.y;
-		},
-		angle(...args): number {
-			const p2 = vec2(...args);
-			return rad2deg(Math.atan2(this.y - p2.y, this.x - p2.x));
-		},
-		lerp(p2: Vec2, t: number): Vec2 {
-			return vec2(lerp(this.x, p2.x, t), lerp(this.y, p2.y, t));
-		},
-		toFixed(n: number): Vec2 {
-			return vec2(this.x.toFixed(n), this.y.toFixed(n));
-		},
-		eq(other: Vec2): boolean {
-			return this.x === other.x && this.y === other.y;
-		},
-		str(): string {
-			return `(${this.x.toFixed(2)}, ${this.y.toFixed(2)})`;
-		},
-	};
+	return new Vec2(...args);
+
 }
 
 // TODO: Vec2.fromAngle
-function vec2FromAngle(deg: number): Vec2 {
+export function vec2FromAngle(deg: number): Vec2 {
 	const angle = deg2rad(deg);
 	return vec2(Math.cos(angle), Math.sin(angle));
 }
@@ -150,13 +161,6 @@ export class Vec3 {
 }
 
 export const vec3 = (x, y, z) => new Vec3(x, y, z);
-
-function isVec2(p: any): boolean {
-	return p !== undefined
-		&& p.x !== undefined
-		&& p.y !== undefined
-		;
-}
 
 export class Color {
 
@@ -210,6 +214,7 @@ export class Color {
 	}
 
 	str(): string {
+		deprecateMsg("str()", "toString()");
 		return `(${this.r}, ${this.g}, ${this.b})`;
 	}
 
@@ -244,33 +249,61 @@ export class Color {
 
 }
 
-export const rgb = (r, g, b) => new Color(r, g, b);
+export function rgb(...args): Color {
+	if (args.length === 0) {
+		return new Color(255, 255, 255);
+	} else if (args.length === 1) {
+		if (args[0] instanceof Color) {
+			return args[0].clone();
+		} else if (Array.isArray(args[0]) && args[0].length === 3) {
+			return Color.fromArray(args[0]);
+		}
+	} else if (args.length === 3) {
+		return new Color(args[0], args[1], args[2]);
+	}
+	throw new Error(`Invalid args to rgb(): ${[...args]}`);
+}
+
 export const hsl2rgb = (h, s, l) => Color.fromHSL(h, s, l);
 
-function quad(x: number, y: number, w: number, h: number): Quad {
-	return {
-		x: x ?? 0,
-		y: y ?? 0,
-		w: w ?? 1,
-		h: h ?? 1,
-		scale(other: Quad): Quad {
-			return quad(
-				this.x + this.w * other.x,
-				this.y + this.h * other.y,
-				this.w * other.w,
-				this.h * other.h
-			);
-		},
-		clone(): Quad {
-			return quad(this.x, this.y, this.w, this.h);
-		},
-		eq(other: Quad): boolean {
-			return this.x === other.x
-				&& this.y === other.y
-				&& this.w === other.w
-				&& this.h === other.h;
-		},
-	};
+export class Quad {
+	x: number = 0;
+	y: number = 0;
+	w: number = 1;
+	h: number = 1;
+	constructor(x, y, w, h) {
+		this.x = x;
+		this.y = y;
+		this.w = w;
+		this.h = h;
+	}
+	static full() {
+		return new Quad(0, 0, 1, 1);
+	}
+	scale(other: Quad): Quad {
+		return new Quad(
+			this.x + this.w * other.x,
+			this.y + this.h * other.y,
+			this.w * other.w,
+			this.h * other.h
+		);
+	}
+	clone(): Quad {
+		return new Quad(this.x, this.y, this.w, this.h);
+	}
+	eq(other: Quad): boolean {
+		return this.x === other.x
+			&& this.y === other.y
+			&& this.w === other.w
+			&& this.h === other.h;
+	}
+	toString(): string {
+		return `quad(${this.x}, ${this.y}, ${this.w}, ${this.h})`;
+	}
+}
+
+export function quad(x: number, y: number, w: number, h: number): Quad {
+	return new Quad(x, y, w, h);
 }
 
 export class Mat4 {
@@ -470,7 +503,7 @@ export class Mat4 {
 
 }
 
-function wave(lo: number, hi: number, t: number, f = Math.sin): number {
+export function wave(lo: number, hi: number, t: number, f = Math.sin): number {
 	return lo + (f(t) + 1) / 2 * (hi - lo);
 }
 
@@ -478,78 +511,85 @@ function wave(lo: number, hi: number, t: number, f = Math.sin): number {
 const A = 1103515245;
 const C = 12345;
 const M = 2147483648;
-// TODO: let user pass seed
-const defRNG = rng(Date.now());
 
-function rng(seed: number): RNG {
-	return {
-		seed: seed,
-		gen(...args) {
-			if (args.length === 0) {
-				this.seed = (A * this.seed + C) % M;
-				return this.seed / M;
-			} else if (args.length === 1) {
-				if (typeof args[0] === "number") {
-					return this.gen(0, args[0]);
-				} else if (isVec2(args[0])) {
-					return this.gen(vec2(0, 0), args[0]);
-				} else if (args[0] instanceof Color) {
-					return this.gen(rgb(0, 0, 0), args[0]);
-				}
-			} else if (args.length === 2) {
-				if (typeof args[0] === "number" && typeof args[1] === "number") {
-					return (this.gen() * (args[1] - args[0])) + args[0];
-				} else if (isVec2(args[0]) && isVec2(args[1])) {
-					return vec2(
-						this.gen(args[0].x, args[1].x),
-						this.gen(args[0].y, args[1].y),
-					);
-				} else if (args[0] instanceof Color && args[1] instanceof Color) {
-					return rgb(
-						this.gen(args[0].r, args[1].r),
-						this.gen(args[0].g, args[1].g),
-						this.gen(args[0].b, args[1].b),
-					);
-				}
+export class RNG {
+	seed: number;
+	constructor(seed: number) {
+		this.seed = seed;
+	}
+	gen(...args) {
+		if (args.length === 0) {
+			this.seed = (A * this.seed + C) % M;
+			return this.seed / M;
+		} else if (args.length === 1) {
+			if (typeof args[0] === "number") {
+				return this.gen(0, args[0]);
+			} else if (args[0] instanceof Vec2) {
+				return this.gen(vec2(0, 0), args[0]);
+			} else if (args[0] instanceof Color) {
+				return this.gen(rgb(0, 0, 0), args[0]);
 			}
-		},
-	};
+		} else if (args.length === 2) {
+			if (typeof args[0] === "number" && typeof args[1] === "number") {
+				return (this.gen() * (args[1] - args[0])) + args[0];
+			} else if (args[0] instanceof Vec2 && args[1] instanceof Vec2) {
+				return vec2(
+					this.gen(args[0].x, args[1].x),
+					this.gen(args[0].y, args[1].y),
+				);
+			} else if (args[0] instanceof Color && args[1] instanceof Color) {
+				return rgb(
+					this.gen(args[0].r, args[1].r),
+					this.gen(args[0].g, args[1].g),
+					this.gen(args[0].b, args[1].b),
+				);
+			}
+		}
+	}
 }
 
-function randSeed(seed?: number): number {
+// TODO: let user pass seed
+const defRNG = new RNG(Date.now());
+
+export function rng(seed: number): RNG {
+	deprecateMsg("rng()", "new RNG()");
+	return new RNG(seed);
+}
+
+export function randSeed(seed?: number): number {
 	if (seed != null) {
 		defRNG.seed = seed;
 	}
 	return defRNG.seed;
 }
 
-function rand(...args) {
+export function rand(...args) {
 	// @ts-ignore
 	return defRNG.gen(...args);
 }
 
 // TODO: randi() to return 0 / 1?
-function randi(...args) {
+export function randi(...args) {
 	return Math.floor(rand(...args));
 }
 
-function chance(p: number): boolean {
+export function chance(p: number): boolean {
 	return rand() <= p;
 }
 
-function choose<T>(list: T[]): T {
+export function choose<T>(list: T[]): T {
 	return list[randi(list.length)];
 }
 
 // TODO: better name
-function testRectRect2(r1: Rect, r2: Rect): boolean {
+export function testRectRect2(r1: Rect, r2: Rect): boolean {
 	return r1.p2.x >= r2.p1.x
 		&& r1.p1.x <= r2.p2.x
 		&& r1.p2.y >= r2.p1.y
 		&& r1.p1.y <= r2.p2.y;
 }
 
-function testRectRect(r1: Rect, r2: Rect): boolean {
+export function testRectRect(r1: Rect, r2: Rect): boolean {
 	return r1.p2.x > r2.p1.x
 		&& r1.p1.x < r2.p2.x
 		&& r1.p2.y > r2.p1.y
@@ -557,7 +597,7 @@ function testRectRect(r1: Rect, r2: Rect): boolean {
 }
 
 // TODO: better name
-function testLineLineT(l1: Line, l2: Line): number | null {
+export function testLineLineT(l1: Line, l2: Line): number | null {
 
 	if ((l1.p1.x === l1.p2.x && l1.p1.y === l1.p2.y) || (l2.p1.x === l2.p2.x && l2.p1.y === l2.p2.y)) {
 		return null;
@@ -582,7 +622,7 @@ function testLineLineT(l1: Line, l2: Line): number | null {
 
 }
 
-function testLineLine(l1: Line, l2: Line): Vec2 | null {
+export function testLineLine(l1: Line, l2: Line): Vec2 | null {
 	const t = testLineLineT(l1, l2);
 	if (!t) return null;
 	return vec2(
@@ -591,7 +631,7 @@ function testLineLine(l1: Line, l2: Line): Vec2 | null {
 	);
 }
 
-function testRectLine(r: Rect, l: Line): boolean {
+export function testRectLine(r: Rect, l: Line): boolean {
 	if (testRectPoint(r, l.p1) || testRectPoint(r, l.p2)) {
 		return true;
 	}
@@ -601,22 +641,22 @@ function testRectLine(r: Rect, l: Line): boolean {
 		|| !!testLineLine(l, new Line(vec2(r.p1.x, r.p2.y), r.p1));
 }
 
-function testRectPoint2(r: Rect, pt: Point): boolean {
+export function testRectPoint2(r: Rect, pt: Point): boolean {
 	return pt.x >= r.p1.x && pt.x <= r.p2.x && pt.y >= r.p1.y && pt.y <= r.p2.y;
 }
 
-function testRectPoint(r: Rect, pt: Point): boolean {
+export function testRectPoint(r: Rect, pt: Point): boolean {
 	return pt.x > r.p1.x && pt.x < r.p2.x && pt.y > r.p1.y && pt.y < r.p2.y;
 }
 
-function testRectCircle(r: Rect, c: Circle): boolean {
+export function testRectCircle(r: Rect, c: Circle): boolean {
 	const nx = Math.max(r.p1.x, Math.min(c.center.x, r.p2.x));
 	const ny = Math.max(r.p1.y, Math.min(c.center.y, r.p2.y));
 	const nearestPoint = vec2(nx, ny);
 	return nearestPoint.dist(c.center) <= c.radius;
 }
 
-function testRectPolygon(r: Rect, p: Polygon): boolean {
+export function testRectPolygon(r: Rect, p: Polygon): boolean {
 	return testPolygonPolygon(p, [
 		r.p1,
 		vec2(r.p2.x, r.p1.y),
@@ -626,16 +666,16 @@ function testRectPolygon(r: Rect, p: Polygon): boolean {
 }
 
 // TODO
-function testLinePoint(l: Line, pt: Vec2): boolean {
+export function testLinePoint(l: Line, pt: Vec2): boolean {
 	return false;
 }
 
 // TODO
-function testLineCircle(l: Line, c: Circle): boolean {
+export function testLineCircle(l: Line, c: Circle): boolean {
 	return false;
 }
 
-function testLinePolygon(l: Line, p: Polygon): boolean {
+export function testLinePolygon(l: Line, p: Polygon): boolean {
 
 	// test if line is inside
 	if (testPolygonPoint(p, l.p1) || testPolygonPoint(p, l.p2)) {
@@ -655,20 +695,20 @@ function testLinePolygon(l: Line, p: Polygon): boolean {
 
 }
 
-function testCirclePoint(c: Circle, p: Point): boolean {
+export function testCirclePoint(c: Circle, p: Point): boolean {
 	return c.center.dist(p) < c.radius;
 }
 
-function testCircleCircle(c1: Circle, c2: Circle): boolean {
+export function testCircleCircle(c1: Circle, c2: Circle): boolean {
 	return c1.center.dist(c2.center) < c1.radius + c2.radius;
 }
 
 // TODO
-function testCirclePolygon(c: Circle, p: Polygon): boolean {
+export function testCirclePolygon(c: Circle, p: Polygon): boolean {
 	return false;
 }
 
-function testPolygonPolygon(p1: Polygon, p2: Polygon): boolean {
+export function testPolygonPolygon(p1: Polygon, p2: Polygon): boolean {
 	for (let i = 0; i < p1.length; i++) {
 		const l = {
 			p1: p1[i],
@@ -682,7 +722,7 @@ function testPolygonPolygon(p1: Polygon, p2: Polygon): boolean {
 }
 
 // https://wrf.ecse.rpi.edu/Research/Short_Notes/pnpoly.html
-function testPolygonPoint(p: Polygon, pt: Point): boolean {
+export function testPolygonPoint(p: Polygon, pt: Point): boolean {
 
 	let c = false;
 
@@ -699,11 +739,11 @@ function testPolygonPoint(p: Polygon, pt: Point): boolean {
 
 }
 
-function testPointPoint(p1: Point, p2: Point): boolean {
+export function testPointPoint(p1: Point, p2: Point): boolean {
 	return p1.eq(p2);
 }
 
-function testAreaRect(a: Area, r: Rect): boolean {
+export function testAreaRect(a: Area, r: Rect): boolean {
 	switch (a.shape) {
 		case "rect": return testRectRect(r, a);
 		case "line": return testRectLine(r, a);
@@ -714,7 +754,7 @@ function testAreaRect(a: Area, r: Rect): boolean {
 	throw new Error(`Unknown area shape: ${(a as Area).shape}`);
 }
 
-function testAreaLine(a: Area, l: Line): boolean {
+export function testAreaLine(a: Area, l: Line): boolean {
 	switch (a.shape) {
 		case "rect": return testRectLine(a, l);
 		case "line": return Boolean(testLineLine(a, l));
@@ -725,7 +765,7 @@ function testAreaLine(a: Area, l: Line): boolean {
 	throw new Error(`Unknown area shape: ${(a as Area).shape}`);
 }
 
-function testAreaCircle(a: Area, c: Circle): boolean {
+export function testAreaCircle(a: Area, c: Circle): boolean {
 	switch (a.shape) {
 		case "rect": return testRectCircle(a, c);
 		case "line": return testLineCircle(a, c);
@@ -736,7 +776,7 @@ function testAreaCircle(a: Area, c: Circle): boolean {
 	throw new Error(`Unknown area shape: ${(a as Area).shape}`);
 }
 
-function testAreaPolygon(a: Area, p: Polygon): boolean {
+export function testAreaPolygon(a: Area, p: Polygon): boolean {
 	switch (a.shape) {
 		case "rect": return testRectPolygon(a, p);
 		case "line": return testLinePolygon(a, p);
@@ -747,7 +787,7 @@ function testAreaPolygon(a: Area, p: Polygon): boolean {
 	throw new Error(`Unknown area shape: ${(a as Area).shape}`);
 }
 
-function testAreaPoint(a: Area, p: Point): boolean {
+export function testAreaPoint(a: Area, p: Point): boolean {
 	switch (a.shape) {
 		case "rect": return testRectPoint(a, p);
 		case "line": return testLinePoint(a, p);
@@ -758,7 +798,7 @@ function testAreaPoint(a: Area, p: Point): boolean {
 	throw new Error(`Unknown area shape: ${(a as Area).shape}`);
 }
 
-function testAreaArea(a1: Area, a2: Area): boolean {
+export function testAreaArea(a1: Area, a2: Area): boolean {
 	switch (a2.shape) {
 		case "rect": return testAreaRect(a1, a2);
 		case "line": return testAreaLine(a1, a2);
@@ -769,7 +809,7 @@ function testAreaArea(a1: Area, a2: Area): boolean {
 	throw new Error(`Unknown area shape: ${(a2 as Area).shape}`);
 }
 
-function minkDiff(r1: Rect, r2: Rect): Rect {
+export function minkDiff(r1: Rect, r2: Rect): Rect {
 	return {
 		p1: vec2(r1.p1.x - r2.p2.x, r1.p1.y - r2.p2.y),
 		p2: vec2(r1.p2.x - r2.p1.x, r1.p2.y - r2.p1.y),
@@ -784,42 +824,3 @@ export class Line {
 		this.p2 = p2;
 	}
 }
-
-export {
-	vec2,
-	quad,
-	rng,
-	rand,
-	randi,
-	randSeed,
-	chance,
-	choose,
-	clamp,
-	lerp,
-	map,
-	mapc,
-	wave,
-	deg2rad,
-	rad2deg,
-	testAreaRect,
-	testAreaLine,
-	testAreaCircle,
-	testAreaPolygon,
-	testAreaPoint,
-	testAreaArea,
-	testLineLineT,
-	testRectRect2,
-	testLineLine,
-	testRectRect,
-	testRectLine,
-	testRectPoint,
-	testPolygonPoint,
-	testLinePolygon,
-	testPolygonPolygon,
-	testCircleCircle,
-	testCirclePoint,
-	testRectPolygon,
-	minkDiff,
-	vec2FromAngle,
-	isVec2,
-};

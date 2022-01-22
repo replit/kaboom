@@ -1651,19 +1651,7 @@ export interface KaboomCtx {
 		h2: number,
 	): number,
 	/**
-	 * Get directional vector from an angle.
-	 *
-	 * @example
-	 * ```js
-	 * // move toward bottom right in 45 degrees
-	 * player.onUpdate(() => {
-	 *     player.move(vec2FromAngle(45).scale(SPEED))
-	 * })
-	 * ```
-	 */
-	vec2FromAngle(deg: number): Vec2,
-	/**
-	 * @deprecated v2000.2 Use vec2FromAngle instead.
+	 * @deprecated v2000.2 Use Vec2.fromAngle instead.
 	 */
 	dir(deg: number): Vec2,
 	/**
@@ -3090,6 +3078,10 @@ export interface Vec2 {
 	 */
 	toFixed(n: number): Vec2,
 	eq(p: Vec2): boolean,
+	toString(): string,
+	/**
+	 * @deprecated v2000.2 Use toString() instead.
+	 */
 	str(): string,
 }
 
@@ -3110,16 +3102,16 @@ export interface Vec4 {
 export declare class Mat4 {
 	m: number[];
 	constructor(m?: number[]);
-	clone(): Mat4;
-	mult(other: Mat4): Mat4;
-	multVec4(p: Vec4): Vec4;
-	multVec3(p: Vec3): Vec3;
-	multVec2(p: Vec2): Vec2;
 	static translate(p: Vec2): Mat4;
 	static scale(s: Vec2): Mat4;
 	static rotateX(a: number): Mat4;
 	static rotateY(a: number): Mat4;
 	static rotateZ(a: number): Mat4;
+	clone(): Mat4;
+	mult(other: Mat4): Mat4;
+	multVec4(p: Vec4): Vec4;
+	multVec3(p: Vec3): Vec3;
+	multVec2(p: Vec2): Vec2;
 	translate(p: Vec2): Mat4;
 	scale(s: Vec2): Mat4;
 	rotateX(a: number): Mat4;
@@ -3160,8 +3152,11 @@ export declare class Color {
 	invert(): Color;
 	mult(other: Color): Color;
 	eq(c: Color): boolean;
-	str(): string;
 	toString(): string;
+	/**
+	 * @deprecated v2000.2 Use toString() instead.
+	 */
+	str(): string;
 }
 
 export interface Quad {
