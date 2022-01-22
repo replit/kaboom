@@ -1017,37 +1017,6 @@ function loadBean(name: string = "bean"): Promise<SpriteData> {
 	return loadSprite(name, beanSrc);
 }
 
-loadFont(
-	"apl386",
-	apl386Src,
-	45,
-	74,
-);
-
-loadFont(
-	"apl386o",
-	apl386oSrc,
-	45,
-	74,
-);
-
-loadFont(
-	"sink",
-	sinkSrc,
-	6,
-	8,
-	{
-		chars: `█☺☻♥♦♣♠●○▪□■◘♪♫≡►◄⌂ÞÀß×¥↑↓→←◌●▼▲ !"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_\`abcdefghijklmnopqrstuvwxyz{|}~Χ░▒▓ḀḁḂ│┬┤┌┐ḃḄ┼ḅḆḇḈḉḊḋḌ─├┴└┘ḍḎ⁞ḏḐḑḒḓḔḕḖḗḘ▄ḙḚḛḜ…ḝḞḟḠḡḢḣḤḥḦ▌▐ḧḨḩḪḫḬḭḮḯḰḱḲḳḴḵḶḷḸḹḺḻḼḽḾḿṀṁṂṃṄṅṆṇṈṉṊṋṌṍṎṏṐṑṒṓṔṕṖṗṘṙṚṛṜṝṞṟṠṡṢṣṤṥṦṧṨṩṪṫṬṭṮṯṰṱṲṳṴṵṶṷṸṹṺṻṼ`,
-	}
-);
-
-loadFont(
-	"sinko",
-	sinkoSrc,
-	8,
-	10,
-);
-
 // get / set master volume
 function volume(v?: number): number {
 	if (v !== undefined) {
@@ -5579,6 +5548,37 @@ window.addEventListener("error", (e) => {
 		}
 	});
 });
+
+loadFont(
+	"apl386",
+	apl386Src,
+	45,
+	74,
+);
+
+loadFont(
+	"apl386o",
+	apl386oSrc,
+	45,
+	74,
+);
+
+loadFont(
+	"sink",
+	sinkSrc,
+	6,
+	8,
+	{
+		chars: `█☺☻♥♦♣♠●○▪□■◘♪♫≡►◄⌂ÞÀß×¥↑↓→←◌●▼▲ !"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_\`abcdefghijklmnopqrstuvwxyz{|}~Χ░▒▓ḀḁḂ│┬┤┌┐ḃḄ┼ḅḆḇḈḉḊḋḌ─├┴└┘ḍḎ⁞ḏḐḑḒḓḔḕḖḗḘ▄ḙḚḛḜ…ḝḞḟḠḡḢḣḤḥḦ▌▐ḧḨḩḪḫḬḭḮḯḰḱḲḳḴḵḶḷḸḹḺḻḼḽḾḿṀṁṂṃṄṅṆṇṈṉṊṋṌṍṎṏṐṑṒṓṔṕṖṗṘṙṚṛṜṝṞṟṠṡṢṣṤṥṦṧṨṩṪṫṬṭṮṯṰṱṲṳṴṵṶṷṸṹṺṻṼ`,
+	}
+);
+
+loadFont(
+	"sinko",
+	sinkoSrc,
+	8,
+	10,
+);
 
 return ctx;
 
