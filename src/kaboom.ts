@@ -348,7 +348,7 @@ vec4 frag(vec3 pos, vec2 uv, vec4 color, sampler2D tex) {
 
 // transform the button state to the next state
 // e.g. a button might become "pressed" one frame, and it should become "down" next frame
-function getNextButtonState(s: ButtonState): ButtonState {
+function processButtonState(s: ButtonState): ButtonState {
 	if (s === "pressed" || s === "rpressed") {
 		return "down";
 	}
@@ -2919,7 +2919,6 @@ function on(event: string, tag: Tag, cb: (obj: GameObj, ...args) => void): Event
 	});
 }
 
-// TODO: detect if is currently in another action?
 // add update event to a tag or global update
 function onUpdate(tag: Tag | (() => void), cb?: (obj: GameObj) => void): EventCanceller {
 	if (typeof tag === "function" && cb === undefined) {
@@ -5243,43 +5242,70 @@ if (gopt.burp) {
 window.addEventListener("error", (e) => {
 	debug.error(`Error: ${e.error.message}`);
 	quit();
-	// TODO
-// 	run(() => {
-// 		if (loadProgress() === 1) {
-// 			frameStart();
-// 			drawDebug();
-// 			frameEnd();
-// 		}
-// 	});
+	run(() => {
+		if (loadProgress() === 1) {
+			frameStart();
+			drawDebug();
+			frameEnd();
+		}
+	});
 });
 
-// main game loop
-function frame(t: number) {
+function run(f: () => void) {
 
-	if (document.visibilityState !== "visible") {
-		s.loopID = requestAnimationFrame(frame);
-		return;
-	}
+	const frame = (t: number) => {
 
-	const realTime = t / 1000;
-	const realDt = realTime - s.realTime;
-
-	s.realTime = realTime;
-
-	if (!s.skipTime) {
-		s.dt = realDt;
-		s.time += s.dt;
-		s.fpsBuf.push(1 / s.dt);
-		s.fpsTimer += s.dt;
-		if (s.fpsTimer >= 1) {
-			s.fpsTimer = 0;
-			s.fps = Math.round(s.fpsBuf.reduce((a, b) => a + b) / s.fpsBuf.length);
-			s.fpsBuf = [];
+		if (document.visibilityState !== "visible") {
+			s.loopID = requestAnimationFrame(frame);
+			return;
 		}
-	}
 
-	s.skipTime = false;
-	s.numFrames++;
+		const realTime = t / 1000;
+		const realDt = realTime - s.realTime;
+
+		s.realTime = realTime;
+
+		if (!s.skipTime) {
+			s.dt = realDt;
+			s.time += s.dt;
+			s.fpsBuf.push(1 / s.dt);
+			s.fpsTimer += s.dt;
+			if (s.fpsTimer >= 1) {
+				s.fpsTimer = 0;
+				s.fps = Math.round(s.fpsBuf.reduce((a, b) => a + b) / s.fpsBuf.length);
+				s.fpsBuf = [];
+			}
+		}
+
+		s.skipTime = false;
+		s.numFrames++;
+
+		f();
+
+		for (const k in s.keyStates) {
+			s.keyStates[k] = processButtonState(s.keyStates[k]);
+		}
+
+		for (const m in s.mouseStates) {
+			s.mouseStates[m] = processButtonState(s.mouseStates[m]);
+		}
+
+		s.charInputted = [];
+		s.isMouseMoved = false;
+		s.isKeyPressed = false;
+		s.isKeyPressedRepeat = false;
+		s.isKeyReleased = false;
+		s.loopID = requestAnimationFrame(frame);
+
+	};
+
+	s.stopped = false;
+	s.loopID = requestAnimationFrame(frame);
+
+}
+
+// main game loop
+run(() => {
 
 	if (!s.loaded) {
 		frameStart();
@@ -5305,22 +5331,7 @@ function frame(t: number) {
 
 	}
 
-	for (const k in s.keyStates) {
-		s.keyStates[k] = getNextButtonState(s.keyStates[k]);
-	}
-
-	for (const m in s.mouseStates) {
-		s.mouseStates[m] = getNextButtonState(s.mouseStates[m]);
-	}
-
-	s.charInputted = [];
-	s.isMouseMoved = false;
-	s.isKeyPressed = false;
-	s.isKeyPressedRepeat = false;
-	s.isKeyReleased = false;
-	s.loopID = requestAnimationFrame(frame);
-
-}
+});
 
 loadFont(
 	"apl386",
@@ -5357,9 +5368,6 @@ updateSize();
 frameStart();
 frameEnd();
 s.cam.pos = center();
-
-s.stopped = false;
-s.loopID = requestAnimationFrame(frame);
 
 // the exported ctx handle
 const ctx: KaboomCtx = {
