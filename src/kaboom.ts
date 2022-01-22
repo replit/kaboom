@@ -156,6 +156,8 @@ import {
 	Kaboom,
 } from "./types";
 
+import FPSCounter from "./fps";
+
 // @ts-ignore
 import apl386Src from "./assets/apl386.png";
 // @ts-ignore
@@ -580,9 +582,7 @@ const s = (() => {
 		paused: false,
 
 		// TODO: take fps counter out pure
-		fps: 0,
-		fpsBuf: [],
-		fpsTimer: 0,
+		fpsCounter: new FPSCounter(),
 
 		// keep track of how many draw calls we're doing this frame
 		drawCalls: 0,
@@ -2462,10 +2462,6 @@ function time(): number {
 	return s.time;
 }
 
-function fps(): number {
-	return s.fps;
-}
-
 // get a base64 png image of canvas
 function screenshot(): string {
 	return s.canvas.toDataURL();
@@ -2500,7 +2496,7 @@ const debug: Debug = {
 	inspect: false,
 	timeScale: 1,
 	showLog: true,
-	fps: () => s.fps,
+	fps: () => s.fpsCounter.fps,
 	objCount(): number {
 		// TODO: recursive count
 		return s.root.children.length;
@@ -5080,7 +5076,7 @@ function drawDebug() {
 
 		}
 
-		drawInspectText(vec2(8 / s.scale), `FPS: ${s.fps}`);
+		drawInspectText(vec2(8 / s.scale), `FPS: ${debug.fps()}`);
 
 	}
 
@@ -5268,13 +5264,7 @@ function run(f: () => void) {
 		if (!s.skipTime) {
 			s.dt = realDt;
 			s.time += s.dt;
-			s.fpsBuf.push(1 / s.dt);
-			s.fpsTimer += s.dt;
-			if (s.fpsTimer >= 1) {
-				s.fpsTimer = 0;
-				s.fps = Math.round(s.fpsBuf.reduce((a, b) => a + b) / s.fpsBuf.length);
-				s.fpsBuf = [];
-			}
+			s.fpsCounter.tick(s.dt);
 		}
 
 		s.skipTime = false;
