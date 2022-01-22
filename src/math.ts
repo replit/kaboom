@@ -63,6 +63,10 @@ export class Vec2 {
 		this.x = x;
 		this.y = y;
 	}
+	static fromAngle(deg: number) {
+		const angle = deg2rad(deg);
+		return new Vec2(Math.cos(angle), Math.sin(angle));
+	}
 	static LEFT = new Vec2(-1, 0);
 	static RIGHT = new Vec2(1, 0);
 	static UP = new Vec2(0, -1);
@@ -131,12 +135,6 @@ export function vec2(...args): Vec2 {
 		}
 	}
 	return new Vec2(...args);
-}
-
-// TODO: Vec2.fromAngle
-export function vec2FromAngle(deg: number): Vec2 {
-	const angle = deg2rad(deg);
-	return vec2(Math.cos(angle), Math.sin(angle));
 }
 
 export class Vec3 {

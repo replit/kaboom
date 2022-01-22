@@ -5,7 +5,7 @@
 - added optional `transitions` argument in `state()` to define allowed transitions
 - added `StateComp#onStateTransition` to register event for specific transitions
 - added syntax to style a piece of text `"this is a [styled].wavy text"` and `style` option in `TextCompOpt` and `DrawTextOpt` to define the styles with `CharTransformFunc`
-- deprecated `dir()` in favor of `vec2FromAngle()`
+- deprecated `dir()` in favor of `Vec2.fromAngle()`
 - fixed `onTouchEnd()` fired on `touchmove`
 - added `outview()` component to control behavior when object leaves visible area
 - deprecated `cleanup(delay?: number)` in favor of `cleanup(opt?: CleanupOpt)`

@@ -1,5 +1,4 @@
 import {
-	vec2FromAngle,
 	vec2,
 	vec3,
 	Vec3,
@@ -3434,7 +3433,7 @@ function follow(obj: GameObj, offset?: Vec2): FollowComp {
 }
 
 function move(dir: number | Vec2, speed: number): MoveComp {
-	const d = typeof dir === "number" ? vec2FromAngle(dir) : dir.unit();
+	const d = typeof dir === "number" ? Vec2.fromAngle(dir) : dir.unit();
 	return {
 		id: "move",
 		require: [ "pos", ],
@@ -4886,7 +4885,7 @@ function drawFrame() {
 	// calculate camera matrix
 	const scale = vec2(-2 / width(), 2 / height());
 	const cam = s.cam;
-	const shake = vec2FromAngle(rand(0, 360)).scale(cam.shake).scale(scale);
+	const shake = Vec2.fromAngle(rand(0, 360)).scale(cam.shake).scale(scale);
 
 	cam.shake = lerp(cam.shake, 0, 5 * dt());
 	s.camMatrix = new Mat4()
@@ -5539,7 +5538,7 @@ const ctx: KaboomCtx = {
 	mouseIsClicked: deprecate("mouseIsClicked()", "isMousePressed()", isMousePressed),
 	mouseIsReleased: deprecate("mouseIsReleased()", "isMouseReleased()", isMouseReleased),
 	mouseIsMoved: deprecate("mouseIsMoved()", "isMouseMoved()", isMouseMoved),
-	dir: deprecate("dir()", "vec2FromAngle()", vec2FromAngle),
+	dir: deprecate("dir()", "Vec2.fromAngle()", Vec2.fromAngle),
 	action: deprecate("action()", "onUpdate()", onUpdate),
 	render: deprecate("render()", "onDraw()", onDraw),
 	collides: deprecate("collides()", "onCollide()", onCollide),

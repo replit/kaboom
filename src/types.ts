@@ -3035,6 +3035,10 @@ export declare class Vec2 {
 	static RIGHT: Vec2
 	static UP: Vec2
 	static DOWN: Vec2
+	static fromAngle(deg: number): Vec2
+	constructor(x: number, y: number)
+	constructor(xy: number)
+	constructor()
 	clone(): Vec2
 	/**
 	 * Returns the addition with another vector.
