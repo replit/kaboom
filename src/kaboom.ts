@@ -1,7 +1,13 @@
 import {
 	vec2,
 	vec3,
-	mat4,
+	Vec3,
+	Rect,
+	Color,
+	Vec2,
+	Mat4,
+	Quad,
+	RNG,
 	quad,
 	rgb,
 	hsl2rgb,
@@ -35,13 +41,8 @@ import {
 	testCirclePoint,
 	testRectPolygon,
 	minkDiff,
-	vec2FromAngle,
 	deg2rad,
 	rad2deg,
-	isVec2,
-	isVec3,
-	isMat4,
-	isColor,
 } from "./math";
 
 import {
@@ -82,18 +83,14 @@ import {
 	SpriteLoadOpt,
 	SpriteAtlasData,
 	FontLoadOpt,
-	Quad,
 	GfxTexData,
 	KaboomCtx,
 	KaboomOpt,
 	AudioPlay,
 	AudioPlayOpt,
-	Vec2,
-	Mat4,
 	DrawSpriteOpt,
 	DrawTextOpt,
 	GameObj,
-	Timer,
 	EventCanceller,
 	SceneID,
 	SceneDef,
@@ -132,7 +129,6 @@ import {
 	RectCompOpt,
 	UVQuadComp,
 	CircleComp,
-	Color,
 	OutlineComp,
 	TimerComp,
 	BodyComp,
@@ -157,6 +153,7 @@ import {
 } from "./types";
 
 import FPSCounter from "./fps";
+import Timer from "./timer";
 
 // @ts-ignore
 import apl386Src from "./assets/apl386.png";
@@ -242,23 +239,6 @@ const PREVENT_DEFAULT_KEYS = [
 // some default charsets for loading bitmap fonts
 const ASCII_CHARS = " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~";
 const CP437_CHARS = " ☺☻♥♦♣♠•◘○◙♂♀♪♫☼►◄↕‼¶§▬↨↑↓→←∟↔▲▼ !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~⌂ÇüéâäàåçêëèïîìÄÅÉæÆôöòûùÿÖÜ¢£¥₧ƒáíóúñÑªº¿⌐¬½¼¡«»░▒▓│┤╡╢╖╕╣║╗╝╜╛┐└┴┬├─┼╞╟╚╔╩╦╠═╬╧╨╤╥╙╘╒╓╫╪┘┌█▄▌▐▀αßΓπΣσµτΦΘΩδ∞φε∩≡±≥≤⌠⌡÷≈°∙·√ⁿ²■";
-
-// TODO: contain in a table?
-// directions
-const LEFT = vec2(-1, 0);
-const RIGHT = vec2(1, 0);
-const UP = vec2(0, -1);
-const DOWN = vec2(0, 1);
-
-// colors
-const RED = rgb(255, 0, 0);
-const GREEN = rgb(0, 255, 0);
-const BLUE = rgb(0, 0, 255);
-const YELLOW = rgb(255, 255, 0);
-const MAGENTA = rgb(255, 0, 255);
-const CYAN = rgb(0, 255, 255);
-const WHITE = rgb(255, 255, 255);
-const BLACK = rgb(0, 0, 0);
 
 // audio gain range
 const MIN_GAIN = 0;
@@ -480,7 +460,7 @@ const s = (() => {
 	const c = gopt.background ?? rgb(0, 0, 0);
 
 	if (gopt.background) {
-		const c = rgb(gopt.background);
+		const c = Color.fromArray(gopt.background);
 		gl.clearColor(c.r / 255, c.g / 255, c.b / 255, 1);
 	}
 
@@ -602,7 +582,7 @@ const s = (() => {
 		vqueue: [],
 		iqueue: [],
 
-		transform: mat4(),
+		transform: new Mat4(),
 		transformStack: [],
 
 		bgTex: bgTex,
@@ -646,7 +626,7 @@ const s = (() => {
 			shake: 0,
 		},
 		// cache camera matrix
-		camMatrix: mat4(),
+		camMatrix: new Mat4(),
 
 		// misc
 		layers: {},
@@ -777,7 +757,7 @@ function slice(x = 1, y = 1, dx = 0, dy = 0, w = 1, h = 1): Quad[] {
 	const qh = h / y;
 	for (let j = 0; j < y; j++) {
 		for (let i = 0; i < x; i++) {
-			frames.push(quad(
+			frames.push(new Quad(
 				dx + i * qw,
 				dy + j * qh,
 				qw,
@@ -919,7 +899,7 @@ function loadAseprite(
 					.then((data) => {
 						const size = data.meta.size;
 						sprite.frames = data.frames.map((f: any) => {
-							return quad(
+							return new Quad(
 								f.frame.x / size.w,
 								f.frame.y / size.h,
 								f.frame.w / size.w,
@@ -1335,16 +1315,16 @@ function makeShader(
 				const loc = gl.getUniformLocation(id, name);
 				if (typeof val === "number") {
 					gl.uniform1f(loc, val);
-				} else if (isMat4(val)) {
+				} else if (val instanceof Mat4) {
 					// @ts-ignore
 					gl.uniformMatrix4fv(loc, false, new Float32Array(val.m));
-				} else if (isColor(val)) {
+				} else if (val instanceof Color) {
 					// @ts-ignore
 					gl.uniform4f(loc, val.r, val.g, val.b, val.a);
-				} else if (isVec3(val)) {
+				} else if (val instanceof Vec3) {
 					// @ts-ignore
 					gl.uniform3f(loc, val.x, val.y, val.z);
-				} else if (isVec2(val)) {
+				} else if (val instanceof Vec2) {
 					// @ts-ignore
 					gl.uniform2f(loc, val.x, val.y);
 				}
@@ -1446,7 +1426,7 @@ function flush() {
 
 	s.curShader.send({
 		...s.curUniform,
-		"u_transform": s.curUniform["u_transform"] ?? mat4(),
+		"u_transform": s.curUniform["u_transform"] ?? new Mat4(),
 	});
 
 	s.gl.bindBuffer(s.gl.ARRAY_BUFFER, s.vbuf);
@@ -1477,7 +1457,7 @@ function frameStart() {
 		drawUVQuad({
 			width: width(),
 			height: height(),
-			quad: quad(
+			quad: new Quad(
 				0,
 				0,
 				width() * s.scale / BG_GRID_SIZE,
@@ -1489,7 +1469,7 @@ function frameStart() {
 
 	s.drawCalls = 0;
 	s.transformStack = [];
-	s.transform = mat4();
+	s.transform = new Mat4();
 
 }
 
@@ -1582,7 +1562,7 @@ function drawUVQuad(opt: DrawUVQuadOpt) {
 	const h = opt.height;
 	const origin = originPt(opt.origin || DEF_ORIGIN);
 	const offset = origin.scale(vec2(w, h).scale(-0.5));
-	const q = opt.quad || quad(0, 0, 1, 1);
+	const q = opt.quad || new Quad(0, 0, 1, 1);
 	const color = opt.color || rgb(255, 255, 255);
 	const opacity = opt.opacity ?? 1;
 
@@ -1630,7 +1610,7 @@ function drawTexture(opt: DrawTextureOpt) {
 		throw new Error("drawTexture() requires property \"tex\".");
 	}
 
-	const q = opt.quad ?? quad(0, 0, 1, 1);
+	const q = opt.quad ?? new Quad(0, 0, 1, 1);
 	const w = opt.tex.width * q.w;
 	const h = opt.tex.height * q.h;
 	const scale = vec2(1);
@@ -1723,10 +1703,10 @@ function drawSprite(opt: DrawSpriteOpt) {
 	drawTexture({
 		...opt,
 		tex: spr.tex,
-		quad: q.scale(opt.quad || quad(0, 0, 1, 1)),
+		quad: q.scale(opt.quad || new Quad(0, 0, 1, 1)),
 		uniform: {
 			...opt.uniform,
-			"u_transform": opt.fixed ? mat4() : s.camMatrix,
+			"u_transform": opt.fixed ? new Mat4() : s.camMatrix,
 		},
 	});
 
@@ -1836,7 +1816,7 @@ function drawLine(opt: DrawLineOpt) {
 	].map((p) => ({
 		pos: vec3(p.x, p.y, 0),
 		uv: vec2(0),
-		color: opt.color ?? rgb(),
+		color: opt.color ?? Color.WHITE,
 		opacity: opt.opacity ?? 1,
 	}));
 
@@ -1971,7 +1951,7 @@ function drawPolygon(opt: DrawPolygonOpt) {
 
 	if (opt.fill !== false) {
 
-		const color = opt.color ?? rgb();
+		const color = opt.color ?? Color.WHITE;
 
 		const verts = opt.pts.map((pt) => ({
 			pos: vec3(pt.x, pt.y, 0),
@@ -2157,7 +2137,7 @@ function formatText(opt: DrawTextOpt): FormattedText {
 			if (qpos) {
 				const fchar: FormattedChar = {
 					tex: font.tex,
-					quad: quad(qpos.x, qpos.y, font.qw, font.qh),
+					quad: new Quad(qpos.x, qpos.y, font.qw, font.qh),
 					ch: char,
 					pos: vec2(pos.x + x + ox + oxl, pos.y + y + oy),
 					opacity: opt.opacity,
@@ -2602,7 +2582,7 @@ function toScreen(p: Vec2): Vec2 {
 }
 
 function toWorld(p: Vec2): Vec2 {
-	return toScreen(s.camMatrix.invert().multVec2(screen2ndc(p)));
+	return ndc2screen(s.camMatrix.invert().multVec2(screen2ndc(p)));
 }
 
 const COMP_DESC = new Set([
@@ -2983,15 +2963,10 @@ function onHover(t: string, onHover: (obj: GameObj) => void, onNotHover?: (obj: 
 // add an event that'd be run after t
 function wait(t: number, f?: () => void): Promise<void> {
 	return new Promise((resolve) => {
-		s.timers.push({
-			time: t,
-			action: () => {
-				if (f) {
-					f();
-				}
-				resolve();
-			},
-		});
+		s.timers.push(new Timer(t, () => {
+			if (f) f();
+			resolve();
+		}))
 	});
 }
 
@@ -3458,7 +3433,7 @@ function follow(obj: GameObj, offset?: Vec2): FollowComp {
 }
 
 function move(dir: number | Vec2, speed: number): MoveComp {
-	const d = typeof dir === "number" ? vec2FromAngle(dir) : dir.unit();
+	const d = typeof dir === "number" ? Vec2.fromAngle(dir) : dir.unit();
 	return {
 		id: "move",
 		require: [ "pos", ],
@@ -3476,10 +3451,10 @@ function outview(opt: OutviewCompOpt = {}): OutviewComp {
 		require: [ "pos", "area", ],
 		isOutOfView(): boolean {
 			const offset = vec2(opt.offset ?? 0);
-			const screenRect = {
-				p1: vec2(0, 0).sub(offset),
-				p2: vec2(width(), height()).add(offset),
-			}
+			const screenRect = new Rect(
+				vec2(0, 0).sub(offset),
+				vec2(width(), height()).add(offset),
+			);
 			return !testAreaRect(this.screenArea(), screenRect);
 		},
 		onExitView(action: () => void): EventCanceller {
@@ -3570,7 +3545,7 @@ function area(opt: AreaCompOpt = {}): AreaComp {
 		},
 
 		isHovering() {
-			const mpos = this.fixed ? mousePos() : mouseWorldPos();
+			const mpos = this.fixed ? mousePos() : toWorld(mousePos());
 			return this.hasPoint(mpos);
 		},
 
@@ -3805,7 +3780,7 @@ function sprite(id: string | SpriteData, opt: SpriteCompOpt = {}): SpriteComp {
 		width: 0,
 		height: 0,
 		frame: opt.frame || 0,
-		quad: opt.quad || quad(0, 0, 1, 1),
+		quad: opt.quad || new Quad(0, 0, 1, 1),
 		animSpeed: opt.animSpeed ?? 1,
 
 		load() {
@@ -4107,27 +4082,19 @@ function outline(width: number = 1, color: Color = rgb(0, 0, 0)): OutlineComp {
 	};
 }
 
-function timer(n?: number, action?: () => void): TimerComp {
+function timer(time?: number, action?: () => void): TimerComp {
 	const timers: IDList<Timer> = new IDList();
-	if (n && action) {
-		timers.pushd({
-			time: n,
-			action: action,
-		});
+	if (time && action) {
+		timers.pushd(new Timer(time, action));
 	}
 	return {
 		id: "timer",
-		wait(n: number, action: () => void): EventCanceller {
-			return timers.pushd({
-				time: n,
-				action: action,
-			});
+		wait(time: number, action: () => void): EventCanceller {
+			return timers.pushd(new Timer(time, action));
 		},
 		update() {
 			timers.forEach((timer, id) => {
-				timer.time -= dt();
-				if (timer.time <= 0) {
-					timer.action.call(this);
+				if (timer.tick(dt())) {
 					timers.delete(id);
 				}
 			});
@@ -4521,7 +4488,7 @@ function go(id: SceneID, ...args) {
 			shake: 0,
 		};
 
-		s.camMatrix = mat4();
+		s.camMatrix = new Mat4();
 
 		s.layers = {};
 		s.defLayer = null;
@@ -4918,10 +4885,10 @@ function drawFrame() {
 	// calculate camera matrix
 	const scale = vec2(-2 / width(), 2 / height());
 	const cam = s.cam;
-	const shake = vec2FromAngle(rand(0, 360)).scale(cam.shake).scale(scale);
+	const shake = Vec2.fromAngle(rand(0, 360)).scale(cam.shake).scale(scale);
 
 	cam.shake = lerp(cam.shake, 0, 5 * dt());
-	s.camMatrix = mat4()
+	s.camMatrix = new Mat4()
 		.scale(cam.scale)
 		.rotateZ(cam.angle)
 		.translate(cam.pos.scale(scale).add(vec2(1, -1)).add(shake))
@@ -5017,7 +4984,7 @@ function drawDebug() {
 	if (debug.inspect) {
 
 		let inspecting = null;
-		const lcolor = rgb(gopt.inspectColor ?? [0, 0, 255]);
+		const lcolor = Color.fromArray(gopt.inspectColor ?? [0, 0, 255]);
 
 		// draw area outline
 		s.root.every((obj) => {
@@ -5052,7 +5019,7 @@ function drawDebug() {
 					color: lcolor,
 				},
 				uniform: {
-					"u_transform": obj.fixed ? mat4() : s.camMatrix,
+					"u_transform": obj.fixed ? new Mat4() : s.camMatrix,
 				},
 				fill: false,
 			});
@@ -5474,12 +5441,16 @@ const ctx: KaboomCtx = {
 	burp,
 	audioCtx: s.audioCtx,
 	// math
+	Vec2,
+	Color,
+	Mat4,
+	Quad,
+	RNG,
 	rng,
 	rand,
 	randi,
 	randSeed,
 	vec2,
-	vec2FromAngle,
 	rgb,
 	hsl2rgb,
 	quad,
@@ -5540,23 +5511,24 @@ const ctx: KaboomCtx = {
 	// char sets
 	ASCII_CHARS,
 	CP437_CHARS,
-	// dirs
-	LEFT,
-	RIGHT,
-	UP,
-	DOWN,
-	// colors
-	RED,
-	GREEN,
-	BLUE,
-	YELLOW,
-	MAGENTA,
-	CYAN,
-	WHITE,
-	BLACK,
 	// dom
 	canvas: s.canvas,
+	// misc
 	addKaboom,
+	// dirs
+	LEFT: Vec2.LEFT,
+	RIGHT: Vec2.RIGHT,
+	UP: Vec2.UP,
+	DOWN: Vec2.DOWN,
+	// colors
+	RED: Color.RED,
+	GREEN: Color.GREEN,
+	BLUE: Color.BLUE,
+	YELLOW: Color.YELLOW,
+	MAGENTA: Color.MAGENTA,
+	CYAN: Color.CYAN,
+	WHITE: Color.WHITE,
+	BLACK: Color.BLACK,
 	// deprecated
 	keyIsDown: deprecate("keyIsDown()", "isKeyDown()", isKeyDown),
 	keyIsPressed: deprecate("keyIsPressed()", "isKeyPressed()", isKeyPressed),
@@ -5566,7 +5538,7 @@ const ctx: KaboomCtx = {
 	mouseIsClicked: deprecate("mouseIsClicked()", "isMousePressed()", isMousePressed),
 	mouseIsReleased: deprecate("mouseIsReleased()", "isMouseReleased()", isMouseReleased),
 	mouseIsMoved: deprecate("mouseIsMoved()", "isMouseMoved()", isMouseMoved),
-	dir: deprecate("dir()", "vec2FromAngle()", vec2FromAngle),
+	dir: deprecate("dir()", "Vec2.fromAngle()", Vec2.fromAngle),
 	action: deprecate("action()", "onUpdate()", onUpdate),
 	render: deprecate("render()", "onDraw()", onDraw),
 	collides: deprecate("collides()", "onCollide()", onCollide),

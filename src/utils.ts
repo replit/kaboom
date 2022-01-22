@@ -67,8 +67,14 @@ export const uid = (() => {
 	return () => id++;
 })();
 
-export const deprecateMsg = (oldName: string, newName: string) =>
-	console.warn(`${oldName} is deprecated. Use ${newName} instead.`);
+const warned = new Set();
+
+export function deprecateMsg(oldName: string, newName: string) {
+	if (!warned.has(oldName)) {
+		warned.add(oldName);
+		console.warn(`${oldName} is deprecated. Use ${newName} instead.`);
+	}
+}
 
 export const deprecate = (oldName: string, newName: string, newFunc: (...args) => any) => (...args) => {
 	deprecateMsg(oldName, newName);

@@ -19,8 +19,6 @@ const tasks = [
 ];
 
 process.on("SIGINT", () => {
-	tasks.forEach((t) => {
-		process.kill(-t.pid);
-	});
+	tasks.forEach((t) => process.kill(-t.pid));
 	process.exit();
 });

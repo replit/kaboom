@@ -1651,19 +1651,7 @@ export interface KaboomCtx {
 		h2: number,
 	): number,
 	/**
-	 * Get directional vector from an angle.
-	 *
-	 * @example
-	 * ```js
-	 * // move toward bottom right in 45 degrees
-	 * player.onUpdate(() => {
-	 *     player.move(vec2FromAngle(45).scale(SPEED))
-	 * })
-	 * ```
-	 */
-	vec2FromAngle(deg: number): Vec2,
-	/**
-	 * @deprecated v2000.2 Use vec2FromAngle instead.
+	 * @deprecated v2000.2 Use Vec2.fromAngle instead.
 	 */
 	dir(deg: number): Vec2,
 	/**
@@ -3040,127 +3028,162 @@ export type Origin =
 	| "botright"
 	;
 
-export interface Vec2 {
-	x: number,
-	y: number,
-	clone(): Vec2,
+export declare class Vec2 {
+	x: number
+	y: number
+	static LEFT: Vec2
+	static RIGHT: Vec2
+	static UP: Vec2
+	static DOWN: Vec2
+	static fromAngle(deg: number): Vec2
+	constructor(x: number, y: number)
+	constructor(xy: number)
+	constructor()
+	clone(): Vec2
 	/**
 	 * Returns the addition with another vector.
 	 */
-	add(p: Vec2): Vec2,
-	add(x: number, y: number): Vec2,
+	add(p: Vec2): Vec2
+	add(x: number, y: number): Vec2
 	/**
 	 * Returns the subtraction with another vector.
 	 */
-	sub(p: Vec2): Vec2,
-	sub(x: number, y: number): Vec2,
+	sub(p: Vec2): Vec2
+	sub(x: number, y: number): Vec2
 	/**
 	 * Scale by another vector, or a single number.
 	 */
-	scale(p: Vec2): Vec2,
-	scale(s: number): Vec2,
-	scale(sx: number, sy: number): Vec2,
+	scale(p: Vec2): Vec2
+	scale(s: number): Vec2
+	scale(sx: number, sy: number): Vec2
 	/**
 	 * Get the dot product with another vector.
 	 */
-	dot(p: Vec2): number,
+	dot(p: Vec2): number
 	/**
 	 * Get distance between another vector.
 	 */
-	dist(p: Vec2): number,
-	len(): number,
+	dist(p: Vec2): number
+	len(): number
 	/**
 	 * Get the unit vector (length of 1).
 	 */
-	unit(): Vec2,
+	unit(): Vec2
 	/**
 	 * Get the perpendicular vector.
 	 */
-	normal(): Vec2,
+	normal(): Vec2
 	/**
 	 * Get the angle between another vector
 	 */
-	angle(p: Vec2): number,
+	angle(p: Vec2): number
 	/**
 	 * Linear interpolate to a destination vector
 	 */
-	lerp(p: Vec2, t: number): Vec2,
+	lerp(p: Vec2, t: number): Vec2
 	/**
 	 * To n precision floating point.
 	 */
-	toFixed(n: number): Vec2,
-	eq(p: Vec2): boolean,
-	str(): string,
+	toFixed(n: number): Vec2
+	eq(p: Vec2): boolean
+	toString(): string
+	/**
+	 * @deprecated v2000.2 Use toString() instead.
+	 */
+	str(): string
 }
 
-export interface Vec3 {
-	x: number,
-	y: number,
-	z: number,
-	xy(): Vec2,
+export declare class Vec3 {
+	x: number
+	y: number
+	z: number
+	constructor(x: number, y: number, z: number)
+	xy(): Vec2
 }
 
-export interface Vec4 {
-	x: number,
-	y: number,
-	z: number,
-	w: number,
+export declare class Vec4 {
+	x: number
+	y: number
+	z: number
+	w: number
 }
 
-export interface Mat4 {
-	m: number[],
-	clone(): Mat4,
-	mult(m: Mat4): Mat4,
-	multVec4(m: Vec4): Vec4,
-	multVec3(m: Vec3): Vec3,
-	multVec2(m: Vec2): Vec2,
-	scale(s: Vec2): Mat4,
-	translate(p: Vec2): Mat4,
-	rotateX(a: number): Mat4,
-	rotateY(a: number): Mat4,
-	rotateZ(a: number): Mat4,
-	invert(): Mat4,
+export declare class Mat4 {
+	m: number[];
+	constructor(m?: number[]);
+	static translate(p: Vec2): Mat4;
+	static scale(s: Vec2): Mat4;
+	static rotateX(a: number): Mat4;
+	static rotateY(a: number): Mat4;
+	static rotateZ(a: number): Mat4;
+	clone(): Mat4;
+	mult(other: Mat4): Mat4;
+	multVec4(p: Vec4): Vec4;
+	multVec3(p: Vec3): Vec3;
+	multVec2(p: Vec2): Vec2;
+	translate(p: Vec2): Mat4;
+	scale(s: Vec2): Mat4;
+	rotateX(a: number): Mat4;
+	rotateY(a: number): Mat4;
+	rotateZ(a: number): Mat4;
+	invert(): Mat4;
+	toString(): string;
 }
 
 /**
  * 0-255 RGBA color.
  */
-export interface Color {
+export declare class Color {
 	/**
 	 * Red (0-255).
 	 */
-	r: number,
+	r: number;
 	/**
 	 * Green (0-255).
 	 */
-	g: number,
+	g: number;
 	/**
 	 * Blue (0-255).
 	 */
-	b: number,
-	clone(): Color,
+	b: number;
+	constructor(r: number, g: number, b: number);
+	static fromArray(arr: number[]): Color;
+	static RED: Color;
+	static GREEN: Color;
+	static BLUE: Color;
+	static YELLOW: Color;
+	static MAGENTA: Color;
+	static CYAN: Color;
+	static WHITE: Color;
+	static BLACK: Color;
+	clone(): Color;
 	/**
 	 * Lighten the color (adds RGB by n).
 	 */
-	lighten(n: number): Color,
+	lighten(n: number): Color;
 	/**
 	 * Darkens the color (subtracts RGB by n).
 	 */
-	darken(n: number): Color,
-	invert(): Color,
-	mult(other: Color): Color,
-	eq(c: Color): boolean,
-	str(): string,
+	darken(n: number): Color;
+	invert(): Color;
+	mult(other: Color): Color;
+	eq(c: Color): boolean;
+	toString(): string;
+	/**
+	 * @deprecated v2000.2 Use toString() instead.
+	 */
+	str(): string;
 }
 
-export interface Quad {
-	x: number,
-	y: number,
-	w: number,
-	h: number,
-	scale(q: Quad): Quad,
-	clone(): Quad,
-	eq(q: Quad): boolean,
+export declare class Quad {
+	x: number
+	y: number
+	w: number
+	h: number
+	constructor(x: number, y: number, w: number, h: number)
+	scale(q: Quad): Quad
+	clone(): Quad
+	eq(q: Quad): boolean
 }
 
 export type RNGValue =
@@ -3176,19 +3199,22 @@ export interface RNG {
 	gen<T extends RNGValue>(a: T, b: T): T,
 }
 
-export interface Rect {
-	p1: Vec2,
-	p2: Vec2,
+export declare class Rect {
+	p1: Vec2
+	p2: Vec2
+	constructor(p1: Vec2, p2: Vec2)
 }
 
-export interface Line {
-	p1: Vec2,
-	p2: Vec2,
+export declare class Line {
+	p1: Vec2
+	p2: Vec2
+	constructor(p1: Vec2, p2: Vec2)
 }
 
-export interface Circle {
-	center: Vec2,
-	radius: number,
+export declare class Circle {
+	center: Vec2
+	radius: number
+	constructor(pos: Vec2, radius: number)
 }
 
 export type Polygon = Vec2[];
@@ -3880,15 +3906,20 @@ export interface BodyCompOpt {
 	solid?: boolean,
 }
 
-export interface Timer {
+export declare class Timer {
 	/**
-	 * Timer left.
+	 * Time left.
 	 */
-	time: number,
+	time: number
 	/**
-	 * The action to take after time is up.
+	 * The action to take when timer is up
 	 */
-	action(): void,
+	action: () => void
+	readonly finished: boolean
+	paused: boolean
+	constructor(time: number, action: () => void)
+	tick(dt: number): boolean
+	reset(time: number): void
 }
 
 export interface TimerComp extends Comp {

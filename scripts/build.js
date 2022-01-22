@@ -102,7 +102,7 @@ function buildTypes() {
 				const members = {};
 				for (const mem of v) {
 					const name = mem.name?.escapedText;
-					if (!name) {
+					if (!name || name === "toString") {
 						continue;
 					}
 					if (!members[name]) {
@@ -162,7 +162,7 @@ function buildTypes() {
 		if (stmt.name === "KaboomCtx") {
 
 			if (stmt.kind !== "InterfaceDeclaration") {
-				throw new Error("KaboomCtx has to be an interface.");
+				throw new Error("KaboomCtx must be an interface.");
 			}
 
 			for (const name in stmt.members) {
