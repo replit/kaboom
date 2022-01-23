@@ -618,6 +618,8 @@ const audio = (() => {
 		throw new Error("Failed to load burp.")
 	});
 
+	updateSize();
+
 	return {
 		ctx,
 		masterNode,
