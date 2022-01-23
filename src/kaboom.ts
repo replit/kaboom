@@ -2258,6 +2258,7 @@ function drawFormattedText(ftext: FormattedText) {
 function updateSize() {
 	const gl = app.gl;
 	if (isFullscreen()) {
+		// TODO: doesn't work with letterbox
 		// TODO: the other direction?
 		const r = window.innerHeight / app.gl.drawingBufferHeight;
 		const sw = app.gl.drawingBufferWidth * r;
@@ -2339,11 +2340,10 @@ function height(): number {
 
 // TODO: support remove events
 app.canvas.addEventListener("mousemove", (e) => {
-	const scale = vec2(
-		width() / gfx.viewport.width,
-		height() / gfx.viewport.height
+	app.mousePos = vec2(
+		(e.offsetX - gfx.viewport.x) * width() / gfx.viewport.width,
+		(e.offsetY - gfx.viewport.y) * height() / gfx.viewport.height,
 	);
-	app.mousePos = vec2(e.offsetX - gfx.viewport.x, e.offsetY - gfx.viewport.y).scale(scale);
 	app.mouseDeltaPos = vec2(e.movementX, e.movementY).scale(1 / app.scale);
 	app.isMouseMoved = true;
 });
@@ -5428,12 +5428,12 @@ const ctx: KaboomCtx = {
 	time,
 	screenshot,
 	record,
-	isFocused: isFocused,
-	focus: focus,
-	cursor: cursor,
+	isFocused,
+	focus,
+	cursor,
 	regCursor,
-	fullscreen: fullscreen,
-	isFullscreen: isFullscreen,
+	fullscreen,
+	isFullscreen,
 	onLoad,
 	isTouch: () => app.isTouch,
 	// misc

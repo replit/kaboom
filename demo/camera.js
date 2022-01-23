@@ -2,10 +2,10 @@
 
 // Start game
 kaboom({
-// 	width: 320,
-// 	height: 480,
-// 	stretch: true,
-// 	letterbox: true,
+	width: 320,
+	height: 480,
+	stretch: true,
+	letterbox: true,
 })
 
 onKeyPress("f", () => fullscreen(!isFullscreen()))
