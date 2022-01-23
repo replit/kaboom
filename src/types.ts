@@ -2199,11 +2199,53 @@ export interface GameObjRaw {
 	 */
 	add<T>(comps: CompList<T>): GameObj<T>,
 	/**
+	 * Remove and re-add the game obj.
+	 *
+	 * @since v2000.2.0
+	 */
+	readd(obj: GameObj): GameObj,
+	/**
 	 * Remove a child.
 	 *
 	 * @since v2000.2.0
 	 */
 	remove(obj: GameObj): void,
+	/**
+	 * Remove all children with a certain tag.
+	 *
+	 * @since v2000.2.0
+	 */
+	removeAll(tag: Tag): void,
+	/**
+	 * Get a list of all game objs with certain tag.
+	 *
+	 * @since v2000.2.0
+	 */
+	get(tag?: Tag | Tag[]): GameObj[],
+	/**
+	 * Iterate through children.
+	 *
+	 * @since v2000.2.0
+	 */
+	every<T>(action: (obj: GameObj) => T): void,
+	/**
+	 * Iterate through children.
+	 *
+	 * @since v2000.2.0
+	 */
+	every<T>(tag: Tag | Tag[], action: (obj: GameObj) => T): void,
+	/**
+	 * Iterate through children, in reverse.
+	 *
+	 * @since v2000.2.0
+	 */
+	revery<T>(action: (obj: GameObj) => T): void,
+	/**
+	 * Iterate through children, in reverse.
+	 *
+	 * @since v2000.2.0
+	 */
+	revery<T>(tag: Tag | Tag[], action: (obj: GameObj) => T): void,
 	/**
 	 * Get the parent game obj, if have any.
 	 *
@@ -2962,6 +3004,7 @@ export interface FormattedChar {
 	scale: Vec2,
 	angle: number,
 	color: Color,
+	fixed: boolean,
 	opacity: number,
 	uniform: Uniform,
 }
