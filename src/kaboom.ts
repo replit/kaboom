@@ -1431,6 +1431,7 @@ function drawRaw(
 
 	for (const v of verts) {
 
+		// TODO: cache camTransform * gfxTransform?
 		const transform = fixed ? gfx.transform : game.cam.transform.mult(gfx.transform);
 
 		// normalized world space coordinate [-1.0 ~ 1.0]
