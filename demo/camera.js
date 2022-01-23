@@ -78,3 +78,9 @@ add([
 	fixed(),
 	{ update() { this.text = score } },
 ])
+
+onClick(() => {
+	// Use toWorld() to transform a screen-space coordinate (like mousePos()) to the world-space coordinate, which has the camera transform applied
+	const worldMousePos = toWorld(mousePos())
+	addKaboom(worldMousePos)
+})
