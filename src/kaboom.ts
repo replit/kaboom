@@ -606,6 +606,8 @@ const gfx = (() => {
 
 })();
 
+updateSize();
+
 const audio = (() => {
 
 	// TODO: handle when audio context is unavailable
@@ -624,8 +626,6 @@ const audio = (() => {
 	}, () => {
 		throw new Error("Failed to load burp.")
 	});
-
-	updateSize();
 
 	return {
 		ctx,
