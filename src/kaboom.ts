@@ -275,10 +275,8 @@ varying vec3 v_pos;
 varying vec2 v_uv;
 varying vec4 v_color;
 
-uniform mat4 u_transform;
-
 vec4 def_vert() {
-	return u_transform * vec4(a_pos, 1.0);
+	return vec4(a_pos, 1.0);
 }
 
 {{user}}
@@ -329,6 +327,20 @@ vec4 frag(vec3 pos, vec2 uv, vec4 color, sampler2D tex) {
 	return def_frag();
 }
 `;
+
+const COMP_DESC = new Set([
+	"id",
+	"require",
+]);
+
+const COMP_EVENTS = new Set([
+	"add",
+	"load",
+	"update",
+	"draw",
+	"destroy",
+	"inspect",
+]);
 
 // transform the button state to the next state
 // e.g. a button might become "pressed" one frame, and it should become "down" next frame
@@ -389,8 +401,7 @@ function createEmptyAudioBuffer() {
 // only exports one kaboom() which contains all the state
 export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
-// init kaboom internal state
-const s = (() => {
+const app = (() => {
 
 	const root = gopt.root ?? document.body;
 
@@ -411,12 +422,12 @@ const s = (() => {
 	})();
 
 	// global pixel scale
-	const scale = gopt.scale ?? 1;
+	const gscale = gopt.scale ?? 1;
 
 	// adjust canvas size according to user size / viewport settings
 	if (gopt.width && gopt.height && !gopt.stretch) {
-		canvas.width = gopt.width * scale;
-		canvas.height = gopt.height * scale;
+		canvas.width = gopt.width * gscale;
+		canvas.height = gopt.height * gscale;
 	} else {
 		canvas.width = canvas.parentElement.offsetWidth;
 		canvas.height = canvas.parentElement.offsetHeight;
@@ -450,12 +461,63 @@ const s = (() => {
 			preserveDrawingBuffer: true,
 		});
 
-	const defShader = makeShader(gl, DEF_VERT, DEF_FRAG);
+	return {
+
+		canvas: canvas,
+		scale: gscale,
+		gl: gl,
+
+		// keep track of all button states
+		keyStates: {} as Record<Key, ButtonState>,
+		mouseStates: {} as Record<MouseButton, ButtonState>,
+
+		// input states from last frame, should reset every frame
+		charInputted: [],
+		isMouseMoved: false,
+		isKeyPressed: false,
+		isKeyPressedRepeat: false,
+		isKeyReleased: false,
+		mousePos: vec2(0, 0),
+		mouseDeltaPos: vec2(0, 0),
+
+		// total time elapsed
+		time: 0,
+		// real total time elapsed (including paused time)
+		realTime: 0,
+		// if we should skip next dt, to prevent the massive dt surge if user switch to another tab for a while and comeback
+		skipTime: false,
+		// how much time last frame took
+		dt: 0.0,
+		// total frames elapsed
+		numFrames: 0,
+
+		// if we're on a touch device
+		isTouch: ("ontouchstart" in window) || navigator.maxTouchPoints > 0,
+
+		// requestAnimationFrame id
+		loopID: null,
+		// if our game loop is currently stopped / paused
+		stopped: false,
+		paused: false,
+
+		// TODO: take fps counter out pure
+		fpsCounter: new FPSCounter(),
+
+		// if we finished loading all assets
+		loaded: false,
+
+	};
+
+})();
+
+const gfx = (() => {
+
+	const gl = app.gl;
+	const defShader = makeShader(DEF_VERT, DEF_FRAG);
 
 	// a 1x1 white texture to draw raw shapes like rectangles and polygons
 	// we use a texture for those so we can use only 1 pipeline for drawing sprites + shapes
 	const emptyTex = makeTex(
-		gl,
 		new ImageData(new Uint8ClampedArray([ 255, 255, 255, 255, ]), 1, 1)
 	);
 
@@ -494,7 +556,6 @@ const s = (() => {
 
 	// a checkerboard texture used for the default background
 	const bgTex = makeTex(
-		gl,
 		new ImageData(new Uint8ClampedArray([
 			128, 128, 128, 255,
 			190, 190, 190, 255,
@@ -506,65 +567,7 @@ const s = (() => {
 		},
 	);
 
-	// TODO: handle when audio context is unavailable
-	const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)() as AudioContext
-	const masterNode = audioCtx.createGain();
-	masterNode.connect(audioCtx.destination);
-
-	// by default browsers can only load audio async, we don't deal with that and just start with an empty audio buffer
-	const burpSnd = {
-		buf: createEmptyAudioBuffer(),
-	};
-
-	// load that burp sound
-	audioCtx.decodeAudioData(burpBytes.buffer.slice(0), (buf) => {
-		burpSnd.buf = buf;
-	}, () => {
-		throw new Error("Failed to load burp.")
-	});
-
-	// big fat state obj
 	return {
-
-		canvas: canvas,
-		gl: gl,
-		scale: scale,
-
-		// keep track of all button states
-		keyStates: {} as Record<Key, ButtonState>,
-		mouseStates: {} as Record<MouseButton, ButtonState>,
-
-		// input states from last frame, should reset every frame
-		charInputted: [],
-		isMouseMoved: false,
-		isKeyPressed: false,
-		isKeyPressedRepeat: false,
-		isKeyReleased: false,
-		mousePos: vec2(0, 0),
-		mouseDeltaPos: vec2(0, 0),
-
-		// total time elapsed
-		time: 0,
-		// real total time elapsed (including paused time)
-		realTime: 0,
-		// if we should skip next dt, to prevent the massive dt surge if user switch to another tab for a while and comeback
-		skipTime: false,
-		// how much time last frame took
-		dt: 0.0,
-		// total frames elapsed
-		numFrames: 0,
-
-		// if we're on a touch device
-		isTouch: ("ontouchstart" in window) || navigator.maxTouchPoints > 0,
-
-		// requestAnimationFrame id
-		loopID: null,
-		// if our game loop is currently stopped / paused
-		stopped: false,
-		paused: false,
-
-		// TODO: take fps counter out pure
-		fpsCounter: new FPSCounter(),
 
 		// keep track of how many draw calls we're doing this frame
 		drawCalls: 0,
@@ -592,72 +595,99 @@ const s = (() => {
 		width: gopt.width,
 		height: gopt.height,
 
-		// keep track of how many assets are loading / loaded, for calculaating progress
-		numLoading: 0,
-		numLoaded: 0,
-
-		// prefix for when loading from a url
-		urlPrefix: "",
-
-		// asset holders
-		sprites: {},
-		sounds: {},
-		shaders: {},
-		fonts: {},
-
-		audioCtx: audioCtx,
-		masterNode: masterNode,
-		burpSnd: burpSnd,
-
-		// if we finished loading all assets
-		loaded: false,
-
-		// event callbacks
-		events: {},
-		objEvents: {},
-
-		// in game pool
-		root: make([]),
-		timers: new IDList<Timer>(),
-
-		// camera
-		cam: {
-			pos: vec2(0),
-			scale: vec2(1),
-			angle: 0,
-			shake: 0,
-		},
-		// cache camera matrix
-		camMatrix: new Mat4(),
-
-		// misc
-		layers: {},
-		defLayer: null,
-		gravity: DEF_GRAVITY,
-		on<F>(ev: string, cb: F): EventCanceller {
-			if (!this.events[ev]) {
-				this.events[ev] = new IDList();
-			}
-			return this.events[ev].pushd(cb);
-		},
-		trigger(ev: string, ...args) {
-			if (this.events[ev]) {
-				this.events[ev].forEach((cb) => cb(...args));
-			}
-		},
-		scenes: {},
-
-		// on screen log
-		logs: [],
-
 	};
 
 })();
 
+const audio = (() => {
+
+	// TODO: handle when audio context is unavailable
+	const ctx = new (window.AudioContext || (window as any).webkitAudioContext)() as AudioContext
+	const masterNode = ctx.createGain();
+	masterNode.connect(ctx.destination);
+
+	// by default browsers can only load audio async, we don't deal with that and just start with an empty audio buffer
+	const burpSnd = {
+		buf: createEmptyAudioBuffer(),
+	};
+
+	// load that burp sound
+	ctx.decodeAudioData(burpBytes.buffer.slice(0), (buf) => {
+		burpSnd.buf = buf;
+	}, () => {
+		throw new Error("Failed to load burp.")
+	});
+
+	return {
+		ctx,
+		masterNode,
+		burpSnd,
+	};
+
+})();
+
+const assets = {
+
+	// keep track of how many assets are loading / loaded, for calculaating progress
+	numLoading: 0,
+	numLoaded: 0,
+
+	// prefix for when loading from a url
+	urlPrefix: "",
+
+	// asset holders
+	sprites: {},
+	sounds: {},
+	shaders: {},
+	fonts: {},
+
+};
+
+const game = {
+
+	// event callbacks
+	events: {},
+	objEvents: {},
+
+	// root game object
+	// these transforms are used as camera
+	root: make([
+		pos(0, 0),
+		scale(1),
+		rotate(0),
+	]),
+
+	timers: new IDList<Timer>(),
+
+	// camera
+	shake: 0,
+
+	// misc
+	layers: {},
+	defLayer: null,
+	gravity: DEF_GRAVITY,
+	on<F>(ev: string, cb: F): EventCanceller {
+		if (!this.events[ev]) {
+			this.events[ev] = new IDList();
+		}
+		return this.events[ev].pushd(cb);
+	},
+	trigger(ev: string, ...args) {
+		if (this.events[ev]) {
+			this.events[ev].forEach((cb) => cb(...args));
+		}
+	},
+	scenes: {},
+
+	// on screen log
+	logs: [],
+
+}
+
 // wrap individual loaders with global loader counter, for stuff like progress bar
 function load<T>(prom: Promise<T>): Promise<T> {
 
-	s.numLoading++;
+	assets.numLoading++;
 
 	// wrapping another layer of promise because we are catching errors here internally and we also want users be able to catch errors, however only one catch is allowed per promise chain
 	return new Promise((resolve, reject) => {
@@ -668,8 +698,8 @@ function load<T>(prom: Promise<T>): Promise<T> {
 				reject(err);
 			})
 			.finally(() => {
-				s.numLoading--;
-				s.numLoaded++;
+				assets.numLoading--;
+				assets.numLoaded++;
 			});
 	}) as Promise<T>;
 
@@ -677,20 +707,20 @@ function load<T>(prom: Promise<T>): Promise<T> {
 
 // get current load progress
 function loadProgress(): number {
-	return s.numLoaded / (s.numLoading + s.numLoaded);
+	return assets.numLoaded / (assets.numLoading + assets.numLoaded);
 }
 
 // global load path prefix
 function loadRoot(path?: string): string {
 	if (path !== undefined) {
-		s.urlPrefix = path;
+		assets.urlPrefix = path;
 	}
-	return s.urlPrefix;
+	return assets.urlPrefix;
 }
 
 // wrapper around fetch() that applies urlPrefix and basic error handling
 function fetchURL(path: string) {
-	const url = s.urlPrefix + path;
+	const url = assets.urlPrefix + path;
 	return fetch(url)
 		.then((res) => {
 			if (!res.ok) {
@@ -703,7 +733,7 @@ function fetchURL(path: string) {
 // wrapper around image loader to get a Promise
 function loadImg(src: string): Promise<HTMLImageElement> {
 	const img = new Image();
-	img.src = isDataURL(src) ? src : s.urlPrefix + src;
+	img.src = isDataURL(src) ? src : assets.urlPrefix + src;
 	img.crossOrigin = "anonymous";
 	return new Promise<HTMLImageElement>((resolve, reject) => {
 		img.onload = () => resolve(img);
@@ -723,13 +753,13 @@ function loadFont(
 	return load(loadImg(src)
 		.then((img) => {
 			const font = makeFont(
-				makeTex(s.gl, img, opt),
+				makeTex(img, opt),
 				gw,
 				gh,
 				opt.chars ?? ASCII_CHARS
 			);
 			if (name) {
-				s.fonts[name] = font;
+				assets.fonts[name] = font;
 			}
 			return font;
 		})
@@ -737,19 +767,19 @@ function loadFont(
 }
 
 function getSprite(name: string): SpriteData | null {
-	return s.sprites[name] ?? null;
+	return assets.sprites[name] ?? null;
 }
 
 function getSound(name: string): SoundData | null {
-	return s.sounds[name] ?? null;
+	return assets.sounds[name] ?? null;
 }
 
 function getFont(name: string): FontData | null {
-	return s.fonts[name] ?? null;
+	return assets.fonts[name] ?? null;
 }
 
 function getShader(name: string): ShaderData | null {
-	return s.shaders[name] ?? null;
+	return assets.shaders[name] ?? null;
 }
 
 // get an array of frames based on configuration on how to slice the image
@@ -791,7 +821,7 @@ function loadSpriteAtlas(
 				frames: slice(info.sliceX, info.sliceY, info.x / w, info.y / h, info.width / w, info.height / h),
 				anims: info.anims,
 			}
-			s.sprites[name] = spr;
+			assets.sprites[name] = spr;
 			map[name] = spr;
 		}
 		return map;
@@ -805,7 +835,7 @@ function loadRawSprite(
 	opt: SpriteLoadOpt = {}
 ) {
 
-	const tex = makeTex(s.gl, src, opt);
+	const tex = makeTex(src, opt);
 	const frames = slice(opt.sliceX || 1, opt.sliceY || 1);
 
 	const sprite = {
@@ -815,7 +845,7 @@ function loadRawSprite(
 	};
 
 	if (name) {
-		s.sprites[name] = sprite;
+		assets.sprites[name] = sprite;
 	}
 
 	return sprite;
@@ -944,9 +974,9 @@ function loadShader(
 		vert: string | null,
 		frag: string | null,
 	): ShaderData {
-		const shader = makeShader(s.gl, vert, frag);
+		const shader = makeShader(vert, frag);
 		if (name) {
-			s.shaders[name] = shader;
+			assets.shaders[name] = shader;
 		}
 		return shader;
 	}
@@ -1002,7 +1032,7 @@ function loadSound(
 				.then((res) => res.arrayBuffer())
 				.then((data) => {
 					return new Promise((resolve2, reject2) =>
-						s.audioCtx.decodeAudioData(data, resolve2, reject2)
+						audio.ctx.decodeAudioData(data, resolve2, reject2)
 					);
 				})
 				.then((buf: AudioBuffer) => {
@@ -1010,7 +1040,7 @@ function loadSound(
 						buf: buf,
 					}
 					if (name) {
-						s.sounds[name] = snd;
+						assets.sounds[name] = snd;
 					}
 					resolve(snd);
 				})
@@ -1028,9 +1058,9 @@ function loadBean(name: string = "bean"): Promise<SpriteData> {
 // get / set master volume
 function volume(v?: number): number {
 	if (v !== undefined) {
-		s.masterNode.gain.value = clamp(v, MIN_GAIN, MAX_GAIN);
+		audio.masterNode.gain.value = clamp(v, MIN_GAIN, MAX_GAIN);
 	}
-	return s.masterNode.gain.value;
+	return audio.masterNode.gain.value;
 }
 
 // plays a sound, returns a control handle
@@ -1053,7 +1083,7 @@ function play(
 		});
 
 		onLoad(() => {
-			const snd = s.sounds[src];
+			const snd = assets.sounds[src];
 			if (!snd) {
 				throw new Error(`Sound not found: "${src}"`);
 			}
@@ -1067,22 +1097,23 @@ function play(
 
 	}
 
+	const ctx = audio.ctx;
 	let stopped = false;
-	let srcNode = s.audioCtx.createBufferSource();
+	let srcNode = ctx.createBufferSource();
 
 	srcNode.buffer = src.buf;
 	srcNode.loop = opt.loop ? true : false;
 
-	const gainNode = s.audioCtx.createGain();
+	const gainNode = ctx.createGain();
 
 	srcNode.connect(gainNode);
-	gainNode.connect(s.masterNode);
+	gainNode.connect(audio.masterNode);
 
 	const pos = opt.seek ?? 0;
 
 	srcNode.start(0, pos);
 
-	let startTime = s.audioCtx.currentTime - pos;
+	let startTime = ctx.currentTime - pos;
 	let stopTime: number | null = null;
 
 	const handle = {
@@ -1092,7 +1123,7 @@ function play(
 				return;
 			}
 			this.pause();
-			startTime = s.audioCtx.currentTime;
+			startTime = ctx.currentTime;
 		},
 
 		play(seek?: number) {
@@ -1103,7 +1134,7 @@ function play(
 
 			const oldNode = srcNode;
 
-			srcNode = s.audioCtx.createBufferSource();
+			srcNode = ctx.createBufferSource();
 			srcNode.buffer = oldNode.buffer;
 			srcNode.loop = oldNode.loop;
 			srcNode.playbackRate.value = oldNode.playbackRate.value;
@@ -1117,7 +1148,7 @@ function play(
 			const pos = seek ?? this.time();
 
 			srcNode.start(0, pos);
-			startTime = s.audioCtx.currentTime - pos;
+			startTime = ctx.currentTime - pos;
 			stopped = false;
 			stopTime = null;
 
@@ -1129,7 +1160,7 @@ function play(
 			}
 			srcNode.stop();
 			stopped = true;
-			stopTime = s.audioCtx.currentTime;
+			stopTime = ctx.currentTime;
 		},
 
 		isPaused(): boolean {
@@ -1191,7 +1222,7 @@ function play(
 			if (stopped) {
 				return stopTime - startTime;
 			} else {
-				return s.audioCtx.currentTime - startTime;
+				return ctx.currentTime - startTime;
 			}
 		},
 
@@ -1207,16 +1238,16 @@ function play(
 
 // core kaboom logic
 function burp(opt?: AudioPlayOpt): AudioPlay {
-	return play(s.burpSnd, opt);
+	return play(audio.burpSnd, opt);
 }
 
 // TODO: take these webgl structures out pure
 function makeTex(
-	gl: WebGLRenderingContext,
 	data: GfxTexData,
 	opt: GfxTexOpt = {}
 ): GfxTexture {
 
+	const gl = app.gl;
 	const id = gl.createTexture();
 
 	gl.bindTexture(gl.TEXTURE_2D, id);
@@ -1258,11 +1289,11 @@ function makeTex(
 }
 
 function makeShader(
-	gl: WebGLRenderingContext,
 	vertSrc: string | null = DEF_VERT,
 	fragSrc: string | null = DEF_FRAG,
 ): GfxShader {
 
+	const gl = app.gl;
 	let msg;
 	const vcode = VERT_TEMPLATE.replace("{{user}}", vertSrc ?? DEF_VERT);
 	const fcode = FRAG_TEMPLATE.replace("{{user}}", fragSrc ?? DEF_FRAG);
@@ -1372,21 +1403,21 @@ function makeFont(
 function drawRaw(
 	verts: Vertex[],
 	indices: number[],
-	tex: GfxTexture = s.defTex,
-	shader: GfxShader = s.defShader,
+	tex: GfxTexture = gfx.defTex,
+	shader: GfxShader = gfx.defShader,
 	uniform: Uniform = {},
 ) {
 
-	tex = tex ?? s.defTex;
-	shader = shader ?? s.defShader;
+	tex = tex ?? gfx.defTex;
+	shader = shader ?? gfx.defShader;
 
 	// flush on texture / shader change and overflow
 	if (
-		tex !== s.curTex
-		|| shader !== s.curShader
-		|| !deepEq(s.curUniform, uniform)
-		|| s.vqueue.length + verts.length * STRIDE > QUEUE_COUNT
-		|| s.iqueue.length + indices.length > QUEUE_COUNT
+		tex !== gfx.curTex
+		|| shader !== gfx.curShader
+		|| !deepEq(gfx.curUniform, uniform)
+		|| gfx.vqueue.length + verts.length * STRIDE > QUEUE_COUNT
+		|| gfx.iqueue.length + indices.length > QUEUE_COUNT
 	) {
 		flush();
 	}
@@ -1394,9 +1425,9 @@ function drawRaw(
 	for (const v of verts) {
 
 		// normalized world space coordinate [-1.0 ~ 1.0]
-		const pt = screen2ndc(s.transform.multVec2(v.pos.xy()));
+		const pt = screen2ndc(gfx.transform.multVec2(v.pos.xy()));
 
-		s.vqueue.push(
+		gfx.vqueue.push(
 			pt.x, pt.y, v.pos.z,
 			v.uv.x, v.uv.y,
 			v.color.r / 255, v.color.g / 255, v.color.b / 255, v.opacity,
@@ -1405,12 +1436,12 @@ function drawRaw(
 	}
 
 	for (const i of indices) {
-		s.iqueue.push(i + s.vqueue.length / STRIDE - verts.length);
+		gfx.iqueue.push(i + gfx.vqueue.length / STRIDE - verts.length);
 	}
 
-	s.curTex = tex;
-	s.curShader = shader;
-	s.curUniform = uniform;
+	gfx.curTex = tex;
+	gfx.curShader = shader;
+	gfx.curUniform = uniform;
 
 }
 
@@ -1418,42 +1449,40 @@ function drawRaw(
 function flush() {
 
 	if (
-		!s.curTex
-		|| !s.curShader
-		|| s.vqueue.length === 0
-		|| s.iqueue.length === 0
+		!gfx.curTex
+		|| !gfx.curShader
+		|| gfx.vqueue.length === 0
+		|| gfx.iqueue.length === 0
 	) {
 		return;
 	}
 
-	s.curShader.send({
-		...s.curUniform,
-		"u_transform": s.curUniform["u_transform"] ?? new Mat4(),
-	});
+	const gl = app.gl;
 
-	s.gl.bindBuffer(s.gl.ARRAY_BUFFER, s.vbuf);
-	s.gl.bufferSubData(s.gl.ARRAY_BUFFER, 0, new Float32Array(s.vqueue));
-	s.gl.bindBuffer(s.gl.ELEMENT_ARRAY_BUFFER, s.ibuf);
-	s.gl.bufferSubData(s.gl.ELEMENT_ARRAY_BUFFER, 0, new Uint16Array(s.iqueue));
-	s.curShader.bind();
-	s.curTex.bind();
-	s.gl.drawElements(s.gl.TRIANGLES, s.iqueue.length, s.gl.UNSIGNED_SHORT, 0);
-	s.curTex.unbind();
-	s.curShader.unbind();
-	s.gl.bindBuffer(s.gl.ARRAY_BUFFER, null);
-	s.gl.bindBuffer(s.gl.ELEMENT_ARRAY_BUFFER, null);
+	gfx.curShader.send(gfx.curUniform);
+	gl.bindBuffer(gl.ARRAY_BUFFER, gfx.vbuf);
+	gl.bufferSubData(gl.ARRAY_BUFFER, 0, new Float32Array(gfx.vqueue));
+	gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, gfx.ibuf);
+	gl.bufferSubData(gl.ELEMENT_ARRAY_BUFFER, 0, new Uint16Array(gfx.iqueue));
+	gfx.curShader.bind();
+	gfx.curTex.bind();
+	gl.drawElements(gl.TRIANGLES, gfx.iqueue.length, gl.UNSIGNED_SHORT, 0);
+	gfx.curTex.unbind();
+	gfx.curShader.unbind();
+	gl.bindBuffer(gl.ARRAY_BUFFER, null);
+	gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
 
-	s.iqueue = [];
-	s.vqueue = [];
+	gfx.iqueue = [];
+	gfx.vqueue = [];
 
-	s.drawCalls++;
+	gfx.drawCalls++;
 
 }
 
 // start a rendering frame, reset some states
 function frameStart() {
 
-	s.gl.clear(s.gl.COLOR_BUFFER_BIT);
+	app.gl.clear(app.gl.COLOR_BUFFER_BIT);
 
 	if (!gopt.background) {
 		drawUVQuad({
@@ -1462,26 +1491,26 @@ function frameStart() {
 			quad: new Quad(
 				0,
 				0,
-				width() * s.scale / BG_GRID_SIZE,
-				height() * s.scale / BG_GRID_SIZE,
+				width() * app.scale / BG_GRID_SIZE,
+				height() * app.scale / BG_GRID_SIZE,
 			),
-			tex: s.bgTex,
+			tex: gfx.bgTex,
 		})
 	}
 
-	s.drawCalls = 0;
-	s.transformStack = [];
-	s.transform = new Mat4();
+	gfx.drawCalls = 0;
+	gfx.transformStack = [];
+	gfx.transform = new Mat4();
 
 }
 
 function frameEnd() {
 	flush();
-	s.lastDrawCalls = s.drawCalls;
+	gfx.lastDrawCalls = gfx.drawCalls;
 }
 
 function drawCalls() {
-	return s.lastDrawCalls;
+	return gfx.lastDrawCalls;
 }
 
 // convert a screen space coordinate to webgl normalized device coordinate
@@ -1501,51 +1530,51 @@ function ndc2screen(pt: Vec2): Vec2 {
 }
 
 function applyMatrix(m: Mat4) {
-	s.transform = m.clone();
+	gfx.transform = m.clone();
 }
 
 function pushTranslate(...args) {
 	if (args[0] === undefined) return;
 	const p = vec2(...args);
 	if (p.x === 0 && p.y === 0) return;
-	s.transform = s.transform.translate(p);
+	gfx.transform = gfx.transform.translate(p);
 }
 
 function pushScale(...args) {
 	if (args[0] === undefined) return;
 	const p = vec2(...args);
 	if (p.x === 1 && p.y === 1) return;
-	s.transform = s.transform.scale(p);
+	gfx.transform = gfx.transform.scale(p);
 }
 
 function pushRotateX(a: number) {
 	if (!a) {
 		return;
 	}
-	s.transform = s.transform.rotateX(a);
+	gfx.transform = gfx.transform.rotateX(a);
 }
 
 function pushRotateY(a: number) {
 	if (!a) {
 		return;
 	}
-	s.transform = s.transform.rotateY(a);
+	gfx.transform = gfx.transform.rotateY(a);
 }
 
 function pushRotateZ(a: number) {
 	if (!a) {
 		return;
 	}
-	s.transform = s.transform.rotateZ(a);
+	gfx.transform = gfx.transform.rotateZ(a);
 }
 
 function pushTransform() {
-	s.transformStack.push(s.transform.clone());
+	gfx.transformStack.push(gfx.transform.clone());
 }
 
 function popTransform() {
-	if (s.transformStack.length > 0) {
-		s.transform = s.transformStack.pop();
+	if (gfx.transformStack.length > 0) {
+		gfx.transform = gfx.transformStack.pop();
 	}
 }
 
@@ -1678,7 +1707,7 @@ function drawSprite(opt: DrawSpriteOpt) {
 		throw new Error(`drawSprite() requires property "sprite"`);
 	}
 
-	const spr = findAsset(opt.sprite, s.sprites);
+	const spr = findAsset(opt.sprite, assets.sprites);
 
 	if (!spr) {
 
@@ -1706,10 +1735,7 @@ function drawSprite(opt: DrawSpriteOpt) {
 		...opt,
 		tex: spr.tex,
 		quad: q.scale(opt.quad || new Quad(0, 0, 1, 1)),
-		uniform: {
-			...opt.uniform,
-			"u_transform": opt.fixed ? new Mat4() : s.camMatrix,
-		},
+		uniform: opt.uniform,
 	});
 
 }
@@ -1822,7 +1848,7 @@ function drawLine(opt: DrawLineOpt) {
 		opacity: opt.opacity ?? 1,
 	}));
 
-	drawRaw(verts, [0, 1, 3, 1, 2, 3], s.defTex, opt.shader, opt.uniform);
+	drawRaw(verts, [0, 1, 3, 1, 2, 3], gfx.defTex, opt.shader, opt.uniform);
 
 }
 
@@ -1967,7 +1993,7 @@ function drawPolygon(opt: DrawPolygonOpt) {
 			.map((n) => [0, n + 1, n + 2])
 			.flat();
 
-		drawRaw(verts, opt.indices ?? indices, s.defTex, opt.shader, opt.uniform);
+		drawRaw(verts, opt.indices ?? indices, gfx.defTex, opt.shader, opt.uniform);
 
 	}
 
@@ -2049,7 +2075,7 @@ function formatText(opt: DrawTextOpt): FormattedText {
 		throw new Error("formatText() requires property \"text\".");
 	}
 
-	const font = findAsset(opt.font ?? gopt.font, s.fonts, DEF_FONT);
+	const font = findAsset(opt.font ?? gopt.font, assets.fonts, DEF_FONT);
 
 	if (!font) {
 		throw new Error(`Font not found: ${opt.font}`);
@@ -2207,78 +2233,79 @@ function drawFormattedText(ftext: FormattedText) {
 }
 
 function updateSize() {
+	const gl = app.gl;
 	if (gopt.width && gopt.height && gopt.stretch) {
 		if (gopt.letterbox) {
 			// TODO: not working
-			const r1 = s.gl.drawingBufferWidth / s.gl.drawingBufferHeight;
+			const r1 = gl.drawingBufferWidth / gl.drawingBufferHeight;
 			const r2 = gopt.width / gopt.height;
 			if (r1 > r2) {
-				s.width = gopt.height * r1;
-				s.height = gopt.height;
-				const sw = s.gl.drawingBufferHeight * r2;
-				const sh = s.gl.drawingBufferHeight;
-				const x = (s.gl.drawingBufferWidth - sw) / 2;
-				s.gl.scissor(x, 0, sw, sh);
-				s.gl.viewport(x, 0, s.gl.drawingBufferWidth, s.gl.drawingBufferHeight);
+				gfx.width = gopt.height * r1;
+				gfx.height = gopt.height;
+				const sw = gl.drawingBufferHeight * r2;
+				const sh = gl.drawingBufferHeight;
+				const x = (gl.drawingBufferWidth - sw) / 2;
+				gl.scissor(x, 0, sw, sh);
+				gl.viewport(x, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
 			} else {
-				s.width = gopt.width;
-				s.height = gopt.width / r1;
-				const sw = s.gl.drawingBufferWidth;
-				const sh = s.gl.drawingBufferWidth / r2;
-				const y = (s.gl.drawingBufferHeight - sh) / 2;
-				s.gl.scissor(0, s.gl.drawingBufferHeight - sh - y, sw, sh);
-				s.gl.viewport(0, -y, s.gl.drawingBufferWidth, s.gl.drawingBufferHeight);
+				gfx.width = gopt.width;
+				gfx.height = gopt.width / r1;
+				const sw = gl.drawingBufferWidth;
+				const sh = gl.drawingBufferWidth / r2;
+				const y = (gl.drawingBufferHeight - sh) / 2;
+				gl.scissor(0, gl.drawingBufferHeight - sh - y, sw, sh);
+				gl.viewport(0, -y, gl.drawingBufferWidth, gl.drawingBufferHeight);
 			}
 		} else {
-			s.width = gopt.width;
-			s.height = gopt.height;
-			s.gl.viewport(0, 0, s.gl.drawingBufferWidth, s.gl.drawingBufferHeight);
+			gfx.width = gopt.width;
+			gfx.height = gopt.height;
+			gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
 		}
 	} else {
-		s.width = s.gl.drawingBufferWidth / s.scale;
-		s.height = s.gl.drawingBufferHeight / s.scale;
-		s.gl.viewport(0, 0, s.gl.drawingBufferWidth, s.gl.drawingBufferHeight);
+		gfx.width = gl.drawingBufferWidth / app.scale;
+		gfx.height = gl.drawingBufferHeight / app.scale;
+		gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
 	}
 }
 
 // get game width
 function width(): number {
-	return s.width;
+	return gfx.width;
 }
 
 // get game height
 function height(): number {
-	return s.height;
+	return gfx.height;
 }
 
 // TODO: support remove events
-s.canvas.addEventListener("mousemove", (e) => {
+app.canvas.addEventListener("mousemove", (e) => {
 	if (isFullscreen()) {
 		// in fullscreen mode browser adds letter box to preserve original canvas aspect ratio, but won't give us the transformed mouse position
 		// TODO
-		s.mousePos = vec2(e.offsetX, e.offsetY).scale(1 / s.scale);
+		app.mousePos = vec2(e.offsetX, e.offsetY).scale(1 / app.scale);
 	} else {
-		s.mousePos = vec2(e.offsetX, e.offsetY).scale(1 / s.scale);
+		app.mousePos = vec2(e.offsetX, e.offsetY).scale(1 / app.scale);
 	}
-	s.mouseDeltaPos = vec2(e.movementX, e.movementY).scale(1 / s.scale);
-	s.isMouseMoved = true;
+	app.mouseDeltaPos = vec2(e.movementX, e.movementY).scale(1 / app.scale);
+	app.isMouseMoved = true;
 });
 
-s.canvas.addEventListener("mousedown", (e) => {
+app.canvas.addEventListener("mousedown", (e) => {
 	const m = MOUSE_BUTTONS[e.button];
 	if (m) {
-		s.mouseStates[m] = "pressed";
+		app.mouseStates[m] = "pressed";
 	}
 });
 
-s.canvas.addEventListener("mouseup", (e) => {
+app.canvas.addEventListener("mouseup", (e) => {
 	const m = MOUSE_BUTTONS[e.button];
 	if (m) {
-		s.mouseStates[m] = "released";
+		app.mouseStates[m] = "released";
 	}
 });
 
-s.canvas.addEventListener("keydown", (e) => {
+app.canvas.addEventListener("keydown", (e) => {
 
 	const k = KEY_ALIAS[e.key] || e.key.toLowerCase();
 
@@ -2287,76 +2314,76 @@ s.canvas.addEventListener("keydown", (e) => {
 	}
 
 	if (k.length === 1) {
-		s.charInputted.push(e.key);
+		app.charInputted.push(e.key);
 	}
 
 	if (k === "space") {
-		s.charInputted.push(" ");
+		app.charInputted.push(" ");
 	}
 
 	if (e.repeat) {
-		s.isKeyPressedRepeat = true;
-		s.keyStates[k] = "rpressed";
+		app.isKeyPressedRepeat = true;
+		app.keyStates[k] = "rpressed";
 	} else {
-		s.isKeyPressed = true;
-		s.keyStates[k] = "pressed";
+		app.isKeyPressed = true;
+		app.keyStates[k] = "pressed";
 	}
 
 });
 
-s.canvas.addEventListener("keyup", (e: KeyboardEvent) => {
+app.canvas.addEventListener("keyup", (e: KeyboardEvent) => {
 	const k = KEY_ALIAS[e.key] || e.key.toLowerCase();
-	s.keyStates[k] = "released";
-	s.isKeyReleased = true;
+	app.keyStates[k] = "released";
+	app.isKeyReleased = true;
 });
 
-s.canvas.addEventListener("touchstart", (e) => {
+app.canvas.addEventListener("touchstart", (e) => {
 	if (!gopt.touchToMouse) return;
 	// disable long tap context menu
 	e.preventDefault();
 	const t = e.touches[0];
-	s.mousePos = vec2(t.clientX, t.clientY).scale(1 / s.scale);
-	s.mouseStates["left"] = "pressed";
+	app.mousePos = vec2(t.clientX, t.clientY).scale(1 / app.scale);
+	app.mouseStates["left"] = "pressed";
 });
 
-s.canvas.addEventListener("touchmove", (e) => {
+app.canvas.addEventListener("touchmove", (e) => {
 	if (!gopt.touchToMouse) return;
 	// disable scrolling
 	e.preventDefault();
 	const t = e.touches[0];
-	s.mousePos = vec2(t.clientX, t.clientY).scale(1 / s.scale);
-	s.isMouseMoved = true;
+	app.mousePos = vec2(t.clientX, t.clientY).scale(1 / app.scale);
+	app.isMouseMoved = true;
 });
 
-s.canvas.addEventListener("touchend", (e) => {
+app.canvas.addEventListener("touchend", (e) => {
 	if (!gopt.touchToMouse) return;
-	s.mouseStates["left"] = "released";
+	app.mouseStates["left"] = "released";
 });
 
-s.canvas.addEventListener("touchcancel", (e) => {
+app.canvas.addEventListener("touchcancel", (e) => {
 	if (!gopt.touchToMouse) return;
-	s.mouseStates["left"] = "released";
+	app.mouseStates["left"] = "released";
 });
 
-s.canvas.addEventListener("touchstart", (e) => {
+app.canvas.addEventListener("touchstart", (e) => {
 	[...e.changedTouches].forEach((t) => {
-		s.trigger("onTouchStart", t.identifier, vec2(t.clientX, t.clientY).scale(1 / s.scale));
+		game.trigger("onTouchStart", t.identifier, vec2(t.clientX, t.clientY).scale(1 / app.scale));
 	});
 });
 
-s.canvas.addEventListener("touchmove", (e) => {
+app.canvas.addEventListener("touchmove", (e) => {
 	[...e.changedTouches].forEach((t) => {
-		s.trigger("onTouchMove", t.identifier, vec2(t.clientX, t.clientY).scale(1 / s.scale));
+		game.trigger("onTouchMove", t.identifier, vec2(t.clientX, t.clientY).scale(1 / app.scale));
 	});
 });
 
-s.canvas.addEventListener("touchend", (e) => {
+app.canvas.addEventListener("touchend", (e) => {
 	[...e.changedTouches].forEach((t) => {
-		s.trigger("onTouchEnd", t.identifier, vec2(t.clientX, t.clientY).scale(1 / s.scale));
+		game.trigger("onTouchEnd", t.identifier, vec2(t.clientX, t.clientY).scale(1 / app.scale));
 	});
 });
 
-s.canvas.addEventListener("contextmenu", function (e) {
+app.canvas.addEventListener("contextmenu", function (e) {
 	e.preventDefault();
 });
 
@@ -2364,12 +2391,12 @@ document.addEventListener("visibilitychange", () => {
 	switch (document.visibilityState) {
 		case "visible":
 			// prevent a surge of dt() when switch back after the tab being hidden for a while
-			s.skipTime = true;
+			app.skipTime = true;
 			// TODO: don't resume if debug.paused
-			s.audioCtx.resume();
+			audio.ctx.resume();
 			break;
 		case "hidden":
-			s.audioCtx.suspend();
+			audio.ctx.suspend();
 			break;
 	}
 });
@@ -2377,89 +2404,89 @@ document.addEventListener("visibilitychange", () => {
 // TODO: not quite working
 // window.addEventListener("resize", () => {
 // 	if (!(gopt.width && gopt.height && !gopt.stretch)) {
-// 		s.canvas.width = s.canvas.parentElement.offsetWidth;
-// 		s.canvas.height = s.canvas.parentElement.offsetHeight;
+// 		app.canvas.width = app.canvas.parentElement.offsetWidth;
+// 		app.canvas.height = app.canvas.parentElement.offsetHeight;
 // 	}
 // });
 
 function mousePos(): Vec2 {
-	return s.mousePos.clone();
+	return app.mousePos.clone();
 }
 
 function mouseDeltaPos(): Vec2 {
-	return s.mouseDeltaPos.clone();
+	return app.mouseDeltaPos.clone();
 }
 
 function isMousePressed(m = "left"): boolean {
-	return s.mouseStates[m] === "pressed";
+	return app.mouseStates[m] === "pressed";
 }
 
 function isMouseDown(m = "left"): boolean {
-	return s.mouseStates[m] === "pressed" || s.mouseStates[m] === "down";
+	return app.mouseStates[m] === "pressed" || app.mouseStates[m] === "down";
 }
 
 function isMouseReleased(m = "left"): boolean {
-	return s.mouseStates[m] === "released";
+	return app.mouseStates[m] === "released";
 }
 
 function isMouseMoved(): boolean {
-	return s.isMouseMoved;
+	return app.isMouseMoved;
 }
 
 function isKeyPressed(k?: string): boolean {
 	if (k === undefined) {
-		return s.isKeyPressed;
+		return app.isKeyPressed;
 	} else {
-		return s.keyStates[k] === "pressed";
+		return app.keyStates[k] === "pressed";
 	}
 }
 
 function isKeyPressedRepeat(k: string): boolean {
 	if (k === undefined) {
-		return s.isKeyPressedRepeat;
+		return app.isKeyPressedRepeat;
 	} else {
-		return s.keyStates[k] === "pressed" || s.keyStates[k] === "rpressed";
+		return app.keyStates[k] === "pressed" || app.keyStates[k] === "rpressed";
 	}
 }
 
 function isKeyDown(k: string): boolean {
-	return s.keyStates[k] === "pressed"
-		|| s.keyStates[k] === "rpressed"
-		|| s.keyStates[k] === "down";
+	return app.keyStates[k] === "pressed"
+		|| app.keyStates[k] === "rpressed"
+		|| app.keyStates[k] === "down";
 }
 
 function isKeyReleased(k?: string): boolean {
 	if (k === undefined) {
-		return s.isKeyReleased;
+		return app.isKeyReleased;
 	} else {
-		return s.keyStates[k] === "released";
+		return app.keyStates[k] === "released";
 	}
 }
 
 function charInputted(): string[] {
-	return [...s.charInputted];
+	return [...app.charInputted];
 }
 
 function time(): number {
-	return s.time;
+	return app.time;
 }
 
 // get a base64 png image of canvas
 function screenshot(): string {
-	return s.canvas.toDataURL();
+	return app.canvas.toDataURL();
 }
 
 // TODO: custom cursor
 function cursor(c?: Cursor): Cursor {
 	if (c) {
-		s.canvas.style.cursor = c;
+		app.canvas.style.cursor = c;
 	}
-	return s.canvas.style.cursor;
+	return app.canvas.style.cursor;
 }
 
 function fullscreen(f: boolean = true) {
 	if (f) {
-		enterFullscreen(s.canvas);
+		enterFullscreen(app.canvas);
 	} else {
 		exitFullscreen();
 	}
@@ -2470,40 +2497,40 @@ function isFullscreen(): boolean {
 }
 
 function quit() {
-	cancelAnimationFrame(s.loopID);
-	s.stopped = true;
+	cancelAnimationFrame(app.loopID);
+	app.stopped = true;
 }
 
 const debug: Debug = {
 	inspect: false,
 	timeScale: 1,
 	showLog: true,
-	fps: () => s.fpsCounter.fps,
+	fps: () => app.fpsCounter.fps,
 	objCount(): number {
 		// TODO: recursive count
-		return s.root.children.length;
+		return game.root.children.length;
 	},
 	stepFrame: updateFrame,
-	drawCalls: () => s.drawCalls,
-	clearLog: () => s.logs = [],
-	log: (msg) => s.logs.unshift(`[${time().toFixed(2)}].time [${msg}].info`),
-	error: (msg) => s.logs.unshift(`[${time().toFixed(2)}].time [${msg}].error`),
+	drawCalls: () => gfx.drawCalls,
+	clearLog: () => game.logs = [],
+	log: (msg) => game.logs.unshift(`[${time().toFixed(2)}].time [${msg}].info`),
+	error: (msg) => game.logs.unshift(`[${time().toFixed(2)}].time [${msg}].error`),
 	curRecording: null,
 	get paused() {
-		return s.paused;
+		return app.paused;
 	},
 	set paused(v) {
-		s.paused = v;
+		app.paused = v;
 		if (v) {
-			s.audioCtx.suspend();
+			audio.ctx.suspend();
 		} else {
-			s.audioCtx.resume();
+			audio.ctx.resume();
 		}
 	}
 };
 
 function dt() {
-	return s.dt * debug.timeScale;
+	return app.dt * debug.timeScale;
 }
 
 function mouseWorldPos(): Vec2 {
@@ -2544,62 +2571,49 @@ type CharEvent = (ch: string) => void;
 function layers(list: string[], def?: string) {
 
 	list.forEach((name, idx) => {
-		s.layers[name] = idx + 1;
+		game.layers[name] = idx + 1;
 	});
 
 	if (def) {
-		s.defLayer = def;
+		game.defLayer = def;
 	}
 
 }
 
 function camPos(...pos): Vec2 {
 	if (pos.length > 0) {
-		s.cam.pos = vec2(...pos);
+		game.root.pos = vec2(...pos).scale(-1).add(center());
 	}
-	return s.cam.pos.clone();
+	return game.root.pos.clone().sub(center()).scale(-1);
 }
 
 function camScale(...scale): Vec2 {
 	if (scale.length > 0) {
-		s.cam.scale = vec2(...scale);
+		game.root.scale = vec2(...scale);
 	}
-	return s.cam.scale.clone();
+	return vec2(game.root.scale).clone();
 }
 
 function camRot(angle: number): number {
 	if (angle !== undefined) {
-		s.cam.angle = angle;
+		game.root.angle = angle;
 	}
-	return s.cam.angle;
+	return game.root.angle;
 }
 
 function shake(intensity: number = 12) {
-	s.cam.shake = intensity;
+	game.shake = intensity;
 }
 
-// TODO: bugged
 function toScreen(p: Vec2): Vec2 {
-	return s.camMatrix.multVec2(p);
+	return p;
+// 	return game.camMatrix.multVec2(p);
 }
 
 function toWorld(p: Vec2): Vec2 {
-	return ndc2screen(s.camMatrix.invert().multVec2(screen2ndc(p)));
+	return p;
+// 	return game.camMatrix.invert().multVec2(p);
 }
-
-const COMP_DESC = new Set([
-	"id",
-	"require",
-]);
-
-const COMP_EVENTS = new Set([
-	"add",
-	"load",
-	"update",
-	"draw",
-	"destroy",
-	"inspect",
-]);
 
 function make<T>(comps: CompList<T>): GameObj<T> {
 
@@ -2615,8 +2629,9 @@ function make<T>(comps: CompList<T>): GameObj<T> {
 		children: [],
 		parent: null,
 
+		// TODO: accept gameobj
 		add<T2>(comps: CompList<T2>): GameObj<T2> {
-			if (this !== s.root) {
+			if (this !== game.root) {
 				throw new Error("Children game object not supported yet");
 			}
 			const obj = make(comps);
@@ -2627,6 +2642,7 @@ function make<T>(comps: CompList<T>): GameObj<T> {
 			return obj;
 		},
 
+		// TODO: use add()
 		readd(obj: GameObj): GameObj {
 			this.remove(obj);
 			this.children.push(obj);
@@ -2731,22 +2747,21 @@ function make<T>(comps: CompList<T>): GameObj<T> {
 				}
 			};
 
+			// TODO
 			// check deps or run add event
-			if (this.exists()) {
-				if (comp.add) {
-					comp.add.call(this);
-				}
-				if (comp.load) {
-					onLoad(() => comp.load.call(this));
-				}
-				checkDeps();
-			} else {
-				if (comp.require) {
-					state.cleanups.push(this.on("add", () => {
-						checkDeps();
-					}));
-				}
-			}
+// 			if (this.exists()) {
+// 				if (comp.add) {
+// 					comp.add.call(this);
+// 				}
+// 				if (comp.load) {
+// 					onLoad(() => comp.load.call(this));
+// 				}
+// 				checkDeps();
+// 			} else {
+// 				if (comp.require) {
+// 					state.cleanups.push(this.on("add", checkDeps));
+// 				}
+// 			}
 
 		},
 
@@ -2771,8 +2786,8 @@ function make<T>(comps: CompList<T>): GameObj<T> {
 				.filter((child) => t ? child.is(t) : true)
 				.sort((o1, o2) => {
 					// TODO: layers are deprecated
-					const l1 = s.layers[o1.layer ?? s.defLayer] ?? 0;
-					const l2 = s.layers[o2.layer ?? s.defLayer] ?? 0;
+					const l1 = game.layers[o1.layer ?? game.defLayer] ?? 0;
+					const l2 = game.layers[o2.layer ?? game.defLayer] ?? 0;
 					// if on same layer, use "z" comp to decide which is on top, if given
 					if (l1 == l2) {
 						return (o1.z ?? 0) - (o2.z ?? 0);
@@ -2799,7 +2814,7 @@ function make<T>(comps: CompList<T>): GameObj<T> {
 		},
 
 		exists(): boolean {
-			if (this.parent === s.root) {
+			if (this.parent === game.root) {
 				return true;
 			} else {
 				return this.parent?.exists();
@@ -2840,7 +2855,7 @@ function make<T>(comps: CompList<T>): GameObj<T> {
 				events[ev].forEach((cb) => cb.call(this, ...args));
 			}
 
-			const gEvents = s.objEvents[ev];
+			const gEvents = game.objEvents[ev];
 
 			if (gEvents) {
 				gEvents.forEach((e) => {
@@ -2888,10 +2903,10 @@ function make<T>(comps: CompList<T>): GameObj<T> {
 
 // add an event to a tag
 function on(event: string, tag: Tag, cb: (obj: GameObj, ...args) => void): EventCanceller {
-	if (!s.objEvents[event]) {
-		s.objEvents[event] = new IDList();
+	if (!game.objEvents[event]) {
+		game.objEvents[event] = new IDList();
 	}
-	return s.objEvents[event].pushd({
+	return game.objEvents[event].pushd({
 		tag: tag,
 		cb: cb,
 	});
@@ -2900,7 +2915,7 @@ function on(event: string, tag: Tag, cb: (obj: GameObj, ...args) => void): Event
 // add update event to a tag or global update
 function onUpdate(tag: Tag | (() => void), cb?: (obj: GameObj) => void): EventCanceller {
 	if (typeof tag === "function" && cb === undefined) {
-		return s.root.onUpdate(tag);
+		return game.root.onUpdate(tag);
 	} else if (typeof tag === "string") {
 		return on("update", tag, cb);
 	}
@@ -2909,7 +2924,7 @@ function onUpdate(tag: Tag | (() => void), cb?: (obj: GameObj) => void): EventCa
 // add draw event to a tag or global draw
 function onDraw(tag: Tag | (() => void), cb?: (obj: GameObj) => void) {
 	if (typeof tag === "function" && cb === undefined) {
-		return s.root.onDraw(tag);
+		return game.root.onDraw(tag);
 	} else if (typeof tag === "string") {
 		return on("draw", tag, cb);
 	}
@@ -2965,7 +2980,7 @@ function onHover(t: string, onHover: (obj: GameObj) => void, onNotHover?: (obj: 
 // add an event that'd be run after t
 function wait(t: number, f?: () => void): Promise<void> {
 	return new Promise((resolve) => {
-		s.timers.push(new Timer(t, () => {
+		game.timers.push(new Timer(t, () => {
 			if (f) f();
 			resolve();
 		}))
@@ -2997,7 +3012,7 @@ function onKeyDown(k: Key | Key[], f: () => void): EventCanceller {
 		const cancellers = k.map((key) => onKeyDown(key, f));
 		return () => cancellers.forEach((cb) => cb());
 	} {
-		return s.on("input", () => isKeyDown(k) && f());
+		return game.on("input", () => isKeyDown(k) && f());
 	}
 }
 
@@ -3006,9 +3021,9 @@ function onKeyPress(k: Key | Key[] | (() => void), f?: () => void): EventCancell
 		const cancellers = k.map((key) => onKeyPress(key, f));
 		return () => cancellers.forEach((cb) => cb());
 	} else if (typeof k === "function") {
-		return s.on("input", () => isKeyPressed() && k());
+		return game.on("input", () => isKeyPressed() && k());
 	} else {
-		return s.on("input", () => isKeyPressed(k) && f());
+		return game.on("input", () => isKeyPressed(k) && f());
 	}
 }
 
@@ -3017,9 +3032,9 @@ function onKeyPressRepeat(k: Key | Key[] | (() => void), f?: () => void): EventC
 		const cancellers = k.map((key) => onKeyPressRepeat(key, f));
 		return () => cancellers.forEach((cb) => cb());
 	} else if (typeof k === "function") {
-		return s.on("input", () => isKeyPressed() && k());
+		return game.on("input", () => isKeyPressed() && k());
 	} else {
-		return s.on("input", () => isKeyPressedRepeat(k) && f());
+		return game.on("input", () => isKeyPressedRepeat(k) && f());
 	}
 }
 
@@ -3028,9 +3043,9 @@ function onKeyRelease(k: Key | Key[] | (() => void), f?: () => void): EventCance
 		const cancellers = k.map((key) => onKeyRelease(key, f));
 		return () => cancellers.forEach((cb) => cb());
 	} else if (typeof k === "function") {
-		return s.on("input", () => isKeyReleased() && k());
+		return game.on("input", () => isKeyReleased() && k());
 	} else {
-		return s.on("input", () => isKeyReleased(k) && f());
+		return game.on("input", () => isKeyReleased(k) && f());
 	}
 }
 
@@ -3039,9 +3054,9 @@ function onMouseDown(
 	action?: (pos?: Vec2) => void
 ): EventCanceller {
 	if (typeof m === "function") {
-		return s.on("input", () => isMouseDown() && m(mousePos()));
+		return game.on("input", () => isMouseDown() && m(mousePos()));
 	} else {
-		return s.on("input", () => isMouseDown(m) && action(mousePos()));
+		return game.on("input", () => isMouseDown(m) && action(mousePos()));
 	}
 }
 
@@ -3050,9 +3065,9 @@ function onMousePress(
 	action?: (pos?: Vec2) => void
 ): EventCanceller {
 	if (typeof m === "function") {
-		return s.on("input", () => isMousePressed() && m(mousePos()));
+		return game.on("input", () => isMousePressed() && m(mousePos()));
 	} else {
-		return s.on("input", () => isMousePressed(m) && action(mousePos()));
+		return game.on("input", () => isMousePressed(m) && action(mousePos()));
 	}
 }
 
@@ -3061,30 +3076,30 @@ function onMouseRelease(
 	action?: (pos?: Vec2) => void
 ): EventCanceller {
 	if (typeof m === "function") {
-		return s.on("input", () => isMouseReleased() && m(mousePos()));
+		return game.on("input", () => isMouseReleased() && m(mousePos()));
 	} else {
-		return s.on("input", () => isMouseReleased(m) && action(mousePos()));
+		return game.on("input", () => isMouseReleased(m) && action(mousePos()));
 	}
 }
 
 function onMouseMove(f: (pos: Vec2, dpos: Vec2) => void): EventCanceller {
-	return s.on("input", () => isMouseMoved() && f(mousePos(), mouseDeltaPos()));
+	return game.on("input", () => isMouseMoved() && f(mousePos(), mouseDeltaPos()));
 }
 
 function onCharInput(f: (ch: string) => void): EventCanceller {
-	return s.on("input", () => charInputted().forEach((ch) => f(ch)));
+	return game.on("input", () => charInputted().forEach((ch) => f(ch)));
 }
 
 function onTouchStart(f: (id: TouchID, pos: Vec2) => void): EventCanceller {
-	return s.on("onTouchStart", f);
+	return game.on("onTouchStart", f);
 }
 
 function onTouchMove(f: (id: TouchID, pos: Vec2) => void): EventCanceller {
-	return s.on("onTouchMove", f);
+	return game.on("onTouchMove", f);
 }
 
 function onTouchEnd(f: (id: TouchID, pos: Vec2) => void): EventCanceller {
-	return s.on("onTouchEnd", f);
+	return game.on("onTouchEnd", f);
 }
 
 function enterDebugMode() {
@@ -3135,9 +3150,9 @@ function enterBurpMode() {
 // get / set gravity
 function gravity(g?: number): number {
 	if (g !== undefined) {
-		s.gravity = g;
+		game.gravity = g;
 	}
-	return s.gravity;
+	return game.gravity;
 }
 
 function regCursor(c: Cursor, draw: string | ((mpos: Vec2) => void)) {
@@ -3176,7 +3191,7 @@ function pos(...args): PosComp {
 				let a1 = this.worldArea();
 
 				// TODO: definitely shouln't iterate through all solid objs
-				s.root.every((other) => {
+				game.root.every((other) => {
 
 					// make sure we still exist, don't check with self, and only
 					// check with other solid objects
@@ -3304,6 +3319,7 @@ function pos(...args): PosComp {
 			this.move(diff.unit().scale(speed));
 		},
 
+		// TODO
 		// get the screen position (transformed by camera)
 		screenPos(): Vec2 {
 			if (this.fixed) {
@@ -3398,7 +3414,7 @@ function layer(l: string): LayerComp {
 		id: "layer",
 		layer: l,
 		inspect() {
-			return this.layer ?? s.defLayer;
+			return this.layer ?? game.defLayer;
 		},
 	};
 }
@@ -3657,13 +3673,13 @@ function area(opt: AreaCompOpt = {}): AreaComp {
 
 		// push object out of other solid objects
 		pushOutAll() {
-			s.root.every(this.pushOut);
+			game.root.every(this.pushOut);
 		},
 
 		// @ts-ignore
 		_checkCollisions(tag: Tag) {
 
-			s.root.every(tag, (obj) => {
+			game.root.every(tag, (obj) => {
 
 				if (this === obj || !this.exists() || colliding[obj._id]) {
 					return;
@@ -3722,8 +3738,8 @@ function area(opt: AreaCompOpt = {}): AreaComp {
 			} else {
 				return {
 					shape: "rect",
-					p1: s.camMatrix.multVec2(area.p1),
-					p2: s.camMatrix.multVec2(area.p2),
+					p1: toScreen(area.p1),
+					p2: toScreen(area.p2),
 				};
 			}
 		},
@@ -3740,7 +3756,7 @@ function getRenderProps(obj: GameObj<any>) {
 		origin: obj.origin,
 		outline: obj.outline,
 		fixed: obj.fixed,
-		shader: s.shaders[obj.shader],
+		shader: assets.shaders[obj.shader],
 		uniform: obj.uniform,
 	};
 }
@@ -3788,7 +3804,7 @@ function sprite(id: string | SpriteData, opt: SpriteCompOpt = {}): SpriteComp {
 		load() {
 
 			if (typeof id === "string") {
-				spr = s.sprites[id];
+				spr = assets.sprites[id];
 			} else {
 				spr = id;
 			}
@@ -4249,7 +4265,7 @@ function body(opt: BodyCompOpt = {}): BodyComp {
 }
 
 function shader(id: string, uniform: Uniform = {}): ShaderComp {
-	const shader = s.shaders[id];
+	const shader = assets.shaders[id];
 	return {
 		id: "shader",
 		shader: id,
@@ -4446,57 +4462,51 @@ function state(
 }
 
 function onLoad(cb: () => void): void {
-	if (s.loaded) {
+	if (app.loaded) {
 		cb();
 	} else {
-		s.on("load", cb);
+		game.on("load", cb);
 	}
 }
 
 function scene(id: SceneID, def: SceneDef) {
-	s.scenes[id] = def;
+	game.scenes[id] = def;
 }
 
 function go(id: SceneID, ...args) {
 
-	if (!s.scenes[id]) {
+	if (!game.scenes[id]) {
 		throw new Error(`scene not found: ${id}`);
 	}
 
-	const cancel = s.on("updateStart", () => {
+	const cancel = game.on("updateStart", () => {
 
-		s.events = {};
+		game.events = {};
 
-		s.objEvents = {
+		game.objEvents = {
 			add: new IDList(),
 			update: new IDList(),
 			draw: new IDList(),
 			destroy: new IDList(),
 		};
 
-		s.root.every((obj) => {
+		game.root.every((obj) => {
 			if (!obj.is("stay")) {
-				s.root.remove(obj);
+				game.root.remove(obj);
 			}
 		})
 
-		s.timers = new IDList();
+		game.timers = new IDList();
 
 		// cam
-		s.cam = {
-			pos: center(),
-			scale: vec2(1, 1),
-			angle: 0,
-			shake: 0,
-		};
+		game.shake = 0;
+// 		game.camMatrix = new Mat4();
 
-		s.camMatrix = new Mat4();
+		game.layers = {};
+		game.defLayer = null;
+		game.gravity = DEF_GRAVITY;
 
-		s.layers = {};
-		s.defLayer = null;
-		s.gravity = DEF_GRAVITY;
-
-		s.scenes[id](...args);
+		game.scenes[id](...args);
 
 		if (gopt.debug !== false) {
 			enterDebugMode();
@@ -4649,7 +4659,7 @@ function addLevel(map: string[], opt: LevelOpt): Level {
 			comps.push(pos(posComp));
 			comps.push(grid(this, p));
 
-			const obj = s.root.add(comps);
+			const obj = game.root.add(comps);
 
 			objs.push(obj);
 
@@ -4691,10 +4701,10 @@ function addLevel(map: string[], opt: LevelOpt): Level {
 
 function record(frameRate?): Recording {
 
-	const stream = s.canvas.captureStream(frameRate);
-	const audioDest = s.audioCtx.createMediaStreamDestination();
+	const stream = app.canvas.captureStream(frameRate);
+	const audioDest = audio.ctx.createMediaStreamDestination();
 
-	s.masterNode.connect(audioDest)
+	audio.masterNode.connect(audioDest)
 
 	const audioStream = audioDest.stream;
 	const [firstAudioTrack] = audioStream.getAudioTracks();
@@ -4712,7 +4722,7 @@ function record(frameRate?): Recording {
 	};
 
 	recorder.onerror = (e) => {
-		s.masterNode.disconnect(audioDest)
+		audio.masterNode.disconnect(audioDest)
 		stream.getTracks().forEach(t => t.stop());
 	};
 
@@ -4738,7 +4748,7 @@ function record(frameRate?): Recording {
 
 			recorder.stop();
 			// cleanup
-			s.masterNode.disconnect(audioDest)
+			audio.masterNode.disconnect(audioDest)
 			stream.getTracks().forEach(t => t.stop());
 
 		},
@@ -4748,7 +4758,7 @@ function record(frameRate?): Recording {
 }
 
 function isFocused(): boolean {
-	return document.activeElement === s.canvas;
+	return document.activeElement === app.canvas;
 }
 
 interface BoomOpt {
@@ -4772,31 +4782,33 @@ interface BoomOpt {
 
 // aliases for root game obj operations
 function add<T>(comps: CompList<T>): GameObj<T> {
-	return s.root.add(comps);
+	return game.root.add(comps);
 }
 
 function readd<T>(obj: GameObj<T>): GameObj<T> {
-	return s.root.readd(obj);
+	return game.root.readd(obj);
 }
 
 function destroy(obj: GameObj) {
-	return s.root.remove(obj);
+	return game.root.remove(obj);
 }
 
-function destroyAll(...args) {
-	return s.root.removeAll(...args);
+function destroyAll(tag: Tag) {
+	return game.root.removeAll(tag);
 }
 
 function get(...args) {
-	return s.root.get(...args);
+	return game.root.get(...args);
 }
 
 function every(...args) {
-	return s.root.every(...args);
+	// @ts-ignore
+	return game.root.every(...args);
 }
 
 function revery(...args) {
-	return s.root.revery(...args);
+	// @ts-ignore
+	return game.root.revery(...args);
 }
 
 interface ExplodeComp extends Comp {
@@ -4860,44 +4872,32 @@ function addKaboom(p: Vec2, opt: BoomOpt = {}): Kaboom {
 }
 
 function frames() {
-	return s.numFrames;
+	return app.numFrames;
 }
 
 function updateFrame() {
 
-	s.trigger("updateStart");
+	game.trigger("updateStart");
 
 	// update timers
-	s.timers.forEach((t, id) => {
+	game.timers.forEach((t, id) => {
 		t.time -= dt();
 		if (t.time <= 0) {
 			// TODO: some timer action causes crash on FF when dt is really high, not sure why
 			t.action();
-			s.timers.delete(id);
+			game.timers.delete(id);
 		}
 	});
 
 	// update every obj
-	s.root.update();
+	game.root.update();
 
 }
 
 function drawFrame() {
-
-	// calculate camera matrix
-	const scale = vec2(-2 / width(), 2 / height());
-	const cam = s.cam;
-	const shake = Vec2.fromAngle(rand(0, 360)).scale(cam.shake).scale(scale);
-
-	cam.shake = lerp(cam.shake, 0, 5 * dt());
-	s.camMatrix = new Mat4()
-		.scale(cam.scale)
-		.rotateZ(cam.angle)
-		.translate(cam.pos.scale(scale).add(vec2(1, -1)).add(shake))
-		;
-
-	s.root.draw();
-
+	const shake = Vec2.fromAngle(rand(0, 360)).scale(game.shake);
+	game.shake = lerp(game.shake, 0, 5 * dt());
+	game.root.draw();
 }
 
 function drawLoadScreen() {
@@ -4906,12 +4906,12 @@ function drawLoadScreen() {
 	const progress = loadProgress();
 
 	if (progress === 1) {
-		s.loaded = true;
-		s.trigger("load");
+		app.loaded = true;
+		game.trigger("load");
 	} else {
 
 		const w = width() / 2;
-		const h = 24 / s.scale;
+		const h = 24 / app.scale;
 		const pos = vec2(width() / 2, height() / 2).sub(vec2(w / 2, h / 2));
 
 		drawRect({
@@ -4927,7 +4927,7 @@ function drawLoadScreen() {
 			height: h,
 			fill: false,
 			outline: {
-				width: 4 / s.scale,
+				width: 4 / app.scale,
 			},
 		});
 
@@ -4947,11 +4947,11 @@ function drawInspectText(pos, txt) {
 
 	pushTransform();
 	pushTranslate(pos);
-	pushScale(1 / s.scale);
+	pushScale(1 / app.scale);
 
 	const ftxt = formatText({
 		text: txt,
-		font: s.fonts[DBG_FONT],
+		font: assets.fonts[DBG_FONT],
 		size: 16,
 		pos: pad,
 		color: rgb(255, 255, 255),
@@ -4960,11 +4960,11 @@ function drawInspectText(pos, txt) {
 	const bw = ftxt.width + pad.x * 2;
 	const bh = ftxt.height + pad.x * 2;
 
-	if (pos.x + bw / s.scale >= width()) {
+	if (pos.x + bw / app.scale >= width()) {
 		pushTranslate(vec2(-bw, 0));
 	}
 
-	if (pos.y + bh / s.scale >= height()) {
+	if (pos.y + bh / app.scale >= height()) {
 		pushTranslate(vec2(0, -bh));
 	}
 
@@ -4989,7 +4989,7 @@ function drawDebug() {
 		const lcolor = Color.fromArray(gopt.inspectColor ?? [0, 0, 255]);
 
 		// draw area outline
-		s.root.every((obj) => {
+		game.root.every((obj) => {
 
 			if (!obj.area) {
 				return;
@@ -4999,15 +4999,13 @@ function drawDebug() {
 				return;
 			}
 
-			const scale = s.scale * (obj.fixed ? 1: (s.cam.scale.x + s.cam.scale.y) / 2);
-
 			if (!inspecting) {
 				if (obj.isHovering()) {
 					inspecting = obj;
 				}
 			}
 
-			const lwidth = (inspecting === obj ? 8 : 4) / scale;
+			const lwidth = (inspecting === obj ? 8 : 4);
 			const a = obj.worldArea();
 			const w = a.p2.x - a.p1.x;
 			const h = a.p2.y - a.p1.y;
@@ -5019,9 +5017,6 @@ function drawDebug() {
 				outline: {
 					width: lwidth,
 					color: lcolor,
-				},
-				uniform: {
-					"u_transform": obj.fixed ? new Mat4() : s.camMatrix,
 				},
 				fill: false,
 			});
@@ -5045,7 +5040,7 @@ function drawDebug() {
 
 		}
 
-		drawInspectText(vec2(8 / s.scale), `FPS: ${debug.fps()}`);
+		drawInspectText(vec2(8 / app.scale), `FPS: ${debug.fps()}`);
 
 	}
 
@@ -5054,7 +5049,7 @@ function drawDebug() {
 		// top right corner
 		pushTransform();
 		pushTranslate(width(), 0);
-		pushScale(1 / s.scale);
+		pushScale(1 / app.scale);
 		pushTranslate(-8, 8);
 
 		const size = 32;
@@ -5090,7 +5085,7 @@ function drawDebug() {
 		// bottom right corner
 		pushTransform();
 		pushTranslate(width(), height());
-		pushScale(1 / s.scale);
+		pushScale(1 / app.scale);
 		pushTranslate(-8, -8);
 
 		const pad = 8;
@@ -5098,7 +5093,7 @@ function drawDebug() {
 		// format text first to get text size
 		const ftxt = formatText({
 			text: debug.timeScale.toFixed(1),
-			font: s.fonts[DBG_FONT],
+			font: assets.fonts[DBG_FONT],
 			size: 16,
 			color: rgb(255, 255, 255),
 			pos: vec2(-pad),
@@ -5138,7 +5133,7 @@ function drawDebug() {
 
 		pushTransform();
 		pushTranslate(0, height());
-		pushScale(1 / s.scale);
+		pushScale(1 / app.scale);
 		pushTranslate(24, -24);
 
 		drawCircle({
@@ -5151,27 +5146,27 @@ function drawDebug() {
 
 	}
 
-	if (debug.showLog && s.logs.length > 0) {
+	if (debug.showLog && game.logs.length > 0) {
 
 		pushTransform();
 		pushTranslate(0, height());
-		pushScale(1 / s.scale);
+		pushScale(1 / app.scale);
 		pushTranslate(8, -8);
 
 		const pad = 8;
 		const max = gopt.logMax ?? 1;
 
-		if (s.logs.length > max) {
-			s.logs = s.logs.slice(0, max);
+		if (game.logs.length > max) {
+			game.logs = game.logs.slice(0, max);
 		}
 
 		const ftext = formatText({
-			text: s.logs.join("\n"),
-			font: s.fonts[DBG_FONT],
+			text: game.logs.join("\n"),
+			font: assets.fonts[DBG_FONT],
 			pos: vec2(pad, -pad),
 			origin: "botleft",
 			size: 16,
-			width: width() * s.scale * 0.6,
+			width: width() * app.scale * 0.6,
 			lineSpacing: pad / 2,
 			styles: {
 				"time": { color: rgb(127, 127, 127) },
@@ -5221,59 +5216,59 @@ function run(f: () => void) {
 	const frame = (t: number) => {
 
 		if (document.visibilityState !== "visible") {
-			s.loopID = requestAnimationFrame(frame);
+			app.loopID = requestAnimationFrame(frame);
 			return;
 		}
 
 		const realTime = t / 1000;
-		const realDt = realTime - s.realTime;
+		const realDt = realTime - app.realTime;
 
-		s.realTime = realTime;
+		app.realTime = realTime;
 
-		if (!s.skipTime) {
-			s.dt = realDt;
-			s.time += s.dt;
-			s.fpsCounter.tick(s.dt);
+		if (!app.skipTime) {
+			app.dt = realDt;
+			app.time += app.dt;
+			app.fpsCounter.tick(app.dt);
 		}
 
-		s.skipTime = false;
-		s.numFrames++;
+		app.skipTime = false;
+		app.numFrames++;
 
 		f();
 
-		for (const k in s.keyStates) {
-			s.keyStates[k] = processButtonState(s.keyStates[k]);
+		for (const k in app.keyStates) {
+			app.keyStates[k] = processButtonState(app.keyStates[k]);
 		}
 
-		for (const m in s.mouseStates) {
-			s.mouseStates[m] = processButtonState(s.mouseStates[m]);
+		for (const m in app.mouseStates) {
+			app.mouseStates[m] = processButtonState(app.mouseStates[m]);
 		}
 
-		s.charInputted = [];
-		s.isMouseMoved = false;
-		s.isKeyPressed = false;
-		s.isKeyPressedRepeat = false;
-		s.isKeyReleased = false;
-		s.loopID = requestAnimationFrame(frame);
+		app.charInputted = [];
+		app.isMouseMoved = false;
+		app.isKeyPressed = false;
+		app.isKeyPressedRepeat = false;
+		app.isKeyReleased = false;
+		app.loopID = requestAnimationFrame(frame);
 
 	};
 
-	s.stopped = false;
-	s.loopID = requestAnimationFrame(frame);
+	app.stopped = false;
+	app.loopID = requestAnimationFrame(frame);
 
 }
 
 // main game loop
 run(() => {
 
-	if (!s.loaded) {
+	if (!app.loaded) {
 		frameStart();
 		drawLoadScreen();
 		frameEnd();
 	} else {
 
 		// TODO: this gives the latest mousePos in input handlers but uses cam matrix from last frame
-		s.trigger("input");
+		game.trigger("input");
 
 		if (!debug.paused && gopt.debug !== false) {
 			updateFrame();
@@ -5326,7 +5321,6 @@ loadFont(
 updateSize();
 frameStart();
 frameEnd();
-s.cam.pos = center();
 
 // the exported ctx handle
 const ctx: KaboomCtx = {
@@ -5356,7 +5350,7 @@ const ctx: KaboomCtx = {
 	fullscreen: fullscreen,
 	isFullscreen: isFullscreen,
 	onLoad,
-	isTouch: () => s.isTouch,
+	isTouch: () => app.isTouch,
 	// misc
 	layers,
 	camPos,
@@ -5441,7 +5435,7 @@ const ctx: KaboomCtx = {
 	play,
 	volume,
 	burp,
-	audioCtx: s.audioCtx,
+	audioCtx: audio.ctx,
 	// math
 	Timer,
 	Line,
@@ -5518,7 +5512,7 @@ const ctx: KaboomCtx = {
 	ASCII_CHARS,
 	CP437_CHARS,
 	// dom
-	canvas: s.canvas,
+	canvas: app.canvas,
 	// misc
 	addKaboom,
 	// dirs
