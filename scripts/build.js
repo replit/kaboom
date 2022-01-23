@@ -32,6 +32,7 @@ fmts.forEach((fmt) => {
 	esbuild.build({
 		bundle: true,
 		sourcemap: true,
+		target: "es6",
 		minify: !dev,
 		keepNames: true,
 		loader: {
