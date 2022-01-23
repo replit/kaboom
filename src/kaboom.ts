@@ -2017,6 +2017,7 @@ function drawPolygon(opt: DrawPolygonOpt) {
 			width: opt.outline.width,
 			color: opt.outline.color,
 			uniform: opt.uniform,
+			fixed: opt.fixed,
 		});
 	}
 
@@ -4985,6 +4986,7 @@ function drawInspectText(pos, txt) {
 		size: 16,
 		pos: pad,
 		color: rgb(255, 255, 255),
+		fixed: true,
 	});
 
 	const bw = ftxt.width + pad.x * 2;
@@ -5004,6 +5006,7 @@ function drawInspectText(pos, txt) {
 		color: rgb(0, 0, 0),
 		radius: 4,
 		opacity: 0.8,
+		fixed: true,
 	});
 
 	drawFormattedText(ftxt);
@@ -5049,6 +5052,7 @@ function drawDebug() {
 					color: lcolor,
 				},
 				fill: false,
+				fixed: obj.fixed,
 			});
 
 		});
@@ -5092,6 +5096,7 @@ function drawDebug() {
 			color: rgb(0, 0, 0),
 			opacity: 0.8,
 			radius: 4,
+			fixed: true,
 		});
 
 		// pause icon
@@ -5103,6 +5108,7 @@ function drawDebug() {
 				pos: vec2(-size / 3 * i, size * 0.5),
 				color: rgb(255, 255, 255),
 				radius: 2,
+				fixed: true,
 			});
 		}
 
@@ -5128,6 +5134,7 @@ function drawDebug() {
 			color: rgb(255, 255, 255),
 			pos: vec2(-pad),
 			origin: "botright",
+			fixed: true,
 		});
 
 		// bg
@@ -5138,6 +5145,7 @@ function drawDebug() {
 			color: rgb(0, 0, 0),
 			opacity: 0.8,
 			radius: 4,
+			fixed: true,
 		});
 
 		// fast forward / slow down icon
@@ -5149,6 +5157,7 @@ function drawDebug() {
 				p3: vec2(-ftxt.width - pad * (flipped ? 3.5 : 2), -pad - ftxt.height / 2),
 				pos: vec2(-i * pad * 1 + (flipped ? -pad * 0.5 : 0), 0),
 				color: rgb(255, 255, 255),
+				fixed: true,
 			});
 		}
 
@@ -5170,6 +5179,7 @@ function drawDebug() {
 			radius: 12,
 			color: rgb(255, 0, 0),
 			opacity: wave(0, 1, time() * 4),
+			fixed: true,
 		});
 
 		popTransform();
@@ -5198,6 +5208,7 @@ function drawDebug() {
 			size: 16,
 			width: width() * app.scale * 0.6,
 			lineSpacing: pad / 2,
+			fixed: true,
 			styles: {
 				"time": { color: rgb(127, 127, 127) },
 				"info": { color: rgb(255, 255, 255) },
@@ -5212,6 +5223,7 @@ function drawDebug() {
 			color: rgb(0, 0, 0),
 			radius: 4,
 			opacity: 0.8,
+			fixed: true,
 		});
 
 		drawFormattedText(ftext);
