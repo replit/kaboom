@@ -2296,13 +2296,7 @@ function height(): number {
 
 // TODO: support remove events
 app.canvas.addEventListener("mousemove", (e) => {
-	if (isFullscreen()) {
-		// in fullscreen mode browser adds letter box to preserve original canvas aspect ratio, but won't give us the transformed mouse position
-		// TODO
-		app.mousePos = vec2(e.offsetX, e.offsetY).scale(1 / app.scale);
-	} else {
-		app.mousePos = vec2(e.offsetX, e.offsetY).scale(1 / app.scale);
-	}
+	app.mousePos = vec2(e.offsetX, e.offsetY).scale(width() / app.canvas.width, height() / app.canvas.height);
 	app.mouseDeltaPos = vec2(e.movementX, e.movementY).scale(1 / app.scale);
 	app.isMouseMoved = true;
 });

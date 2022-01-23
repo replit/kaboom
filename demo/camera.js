@@ -1,7 +1,12 @@
 // Adjust camera / viewport
 
 // Start game
-kaboom()
+kaboom({
+	width: 320,
+	height: 480,
+	stretch: true,
+	letterbox: true,
+})
 
 // Load assets
 loadSprite("bean", "/sprites/bean.png")
