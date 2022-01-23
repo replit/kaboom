@@ -1,3 +1,7 @@
+# v2001.0.0 "A Kaboom Odyssey"
+
+- raised esbuild target to `esnext`
+
 # v2000.2.0 "Fancy Text Mode"
 
 - added `formatText()` and `drawFormattedText()`
