@@ -1,14 +1,7 @@
 // Adjust camera / viewport
 
 // Start game
-kaboom({
-	width: 320,
-	height: 480,
-	stretch: true,
-	letterbox: true,
-})
-
-onKeyPress("f", () => fullscreen(!isFullscreen()))
+kaboom()
 
 // Load assets
 loadSprite("bean", "/sprites/bean.png")
