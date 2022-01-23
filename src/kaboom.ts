@@ -2250,27 +2250,27 @@ function drawFormattedText(ftext: FormattedText) {
 
 function updateSize() {
 	const gl = app.gl;
+	// TODO: allow letterbox without stretch
 	if (gopt.width && gopt.height && gopt.stretch) {
 		if (gopt.letterbox) {
-			// TODO: not working
 			const r1 = gl.drawingBufferWidth / gl.drawingBufferHeight;
 			const r2 = gopt.width / gopt.height;
 			if (r1 > r2) {
-				gfx.width = gopt.height * r1;
-				gfx.height = gopt.height;
+				gfx.width = gl.drawingBufferHeight * r2;
+				gfx.height = gl.drawingBufferHeight;
 				const sw = gl.drawingBufferHeight * r2;
 				const sh = gl.drawingBufferHeight;
 				const x = (gl.drawingBufferWidth - sw) / 2;
 				gl.scissor(x, 0, sw, sh);
-				gl.viewport(x, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
+				gl.viewport(x, 0, sw, gl.drawingBufferHeight);
 			} else {
-				gfx.width = gopt.width;
-				gfx.height = gopt.width / r1;
+				gfx.width = gl.drawingBufferWidth;
+				gfx.height = gl.drawingBufferWidth / r2;
 				const sw = gl.drawingBufferWidth;
 				const sh = gl.drawingBufferWidth / r2;
 				const y = (gl.drawingBufferHeight - sh) / 2;
-				gl.scissor(0, gl.drawingBufferHeight - sh - y, sw, sh);
-				gl.viewport(0, -y, gl.drawingBufferWidth, gl.drawingBufferHeight);
+				gl.scissor(0, y, sw, sh);
+				gl.viewport(0, y, gl.drawingBufferWidth, sh);
 			}
 		} else {
 			gfx.width = gopt.width;
@@ -2296,7 +2296,16 @@ function height(): number {
 
 // TODO: support remove events
 app.canvas.addEventListener("mousemove", (e) => {
-	app.mousePos = vec2(e.offsetX, e.offsetY).scale(width() / app.canvas.width, height() / app.canvas.height);
+	const scale = vec2(
+		width() / app.canvas.width,
+		height() / app.canvas.height
+	);
+	if (isFullscreen()) {
+		// TODO
+		app.mousePos = vec2(e.offsetX, e.offsetY).scale(scale);
+	} else {
+		app.mousePos = vec2(e.offsetX, e.offsetY).scale(scale);
+	}
 	app.mouseDeltaPos = vec2(e.movementX, e.movementY).scale(1 / app.scale);
 	app.isMouseMoved = true;
 });

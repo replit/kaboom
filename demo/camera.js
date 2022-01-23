@@ -2,11 +2,15 @@
 
 // Start game
 kaboom({
-	width: 320,
-	height: 480,
+	width: 640,
+	height: 320,
 	stretch: true,
 	letterbox: true,
 })
+
+debug.log(width().toFixed(0) + ":" + height())
+
+onKeyPress("f", () => fullscreen(!isFullscreen()))
 
 // Load assets
 loadSprite("bean", "/sprites/bean.png")
