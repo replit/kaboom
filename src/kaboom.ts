@@ -595,6 +595,13 @@ const gfx = (() => {
 		width: gopt.width,
 		height: gopt.height,
 
+		viewport: {
+			x: 0,
+			y: 0,
+			width: gl.drawingBufferWidth,
+			height: gl.drawingBufferHeight,
+		},
+
 	};
 
 })();
@@ -2250,6 +2257,18 @@ function drawFormattedText(ftext: FormattedText) {
 
 function updateSize() {
 	const gl = app.gl;
+	if (isFullscreen()) {
+		// TODO: the other direction?
+		const r = window.innerHeight / app.gl.drawingBufferHeight;
+		const sw = app.gl.drawingBufferWidth * r;
+		gfx.viewport = {
+			x: (window.innerWidth - sw) / 2,
+			y: 0,
+			width: sw,
+			height: window.innerHeight,
+		};
+		return;
+	}
 	// TODO: allow letterbox without stretch
 	if (gopt.width && gopt.height && gopt.stretch) {
 		if (gopt.letterbox) {
@@ -2263,6 +2282,12 @@ function updateSize() {
 				const x = (gl.drawingBufferWidth - sw) / 2;
 				gl.scissor(x, 0, sw, sh);
 				gl.viewport(x, 0, sw, gl.drawingBufferHeight);
+				gfx.viewport = {
+					x: x,
+					y: 0,
+					width: sw,
+					height: gl.drawingBufferHeight,
+				};
 			} else {
 				gfx.width = gl.drawingBufferWidth;
 				gfx.height = gl.drawingBufferWidth / r2;
@@ -2271,16 +2296,34 @@ function updateSize() {
 				const y = (gl.drawingBufferHeight - sh) / 2;
 				gl.scissor(0, y, sw, sh);
 				gl.viewport(0, y, gl.drawingBufferWidth, sh);
+				gfx.viewport = {
+					x: 0,
+					y: y,
+					width: gl.drawingBufferWidth,
+					height: sh,
+				};
 			}
 		} else {
 			gfx.width = gopt.width;
 			gfx.height = gopt.height;
 			gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
+			gfx.viewport = {
+				x: 0,
+				y: 0,
+				width: gl.drawingBufferWidth,
+				height: gl.drawingBufferHeight,
+			};
 		}
 	} else {
 		gfx.width = gl.drawingBufferWidth / app.scale;
 		gfx.height = gl.drawingBufferHeight / app.scale;
 		gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
+		gfx.viewport = {
+			x: 0,
+			y: 0,
+			width: gl.drawingBufferWidth,
+			height: gl.drawingBufferHeight,
+		};
 	}
 }
 
@@ -2297,15 +2340,10 @@ function height(): number {
 // TODO: support remove events
 app.canvas.addEventListener("mousemove", (e) => {
 	const scale = vec2(
-		width() / app.canvas.width,
-		height() / app.canvas.height
+		width() / gfx.viewport.width,
+		height() / gfx.viewport.height
 	);
-	if (isFullscreen()) {
-		// TODO
-		app.mousePos = vec2(e.offsetX, e.offsetY).scale(scale);
-	} else {
-		app.mousePos = vec2(e.offsetX, e.offsetY).scale(scale);
-	}
+	app.mousePos = vec2(e.offsetX - gfx.viewport.x, e.offsetY - gfx.viewport.y).scale(scale);
 	app.mouseDeltaPos = vec2(e.movementX, e.movementY).scale(1 / app.scale);
 	app.isMouseMoved = true;
 });
@@ -5306,6 +5344,9 @@ function run(f: () => void) {
 // main game loop
 run(() => {
 
+	// running this every frame now mainly because isFullscreen() is not updated real time when requested fullscreen
+	updateSize();
+
 	if (!app.loaded) {
 		frameStart();
 		drawLoadScreen();
@@ -5363,7 +5404,6 @@ loadFont(
 	10,
 );
 
-updateSize();
 frameStart();
 frameEnd();
 
