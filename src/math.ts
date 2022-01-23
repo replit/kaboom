@@ -1,11 +1,4 @@
 import {
-	Vec4,
-	Point,
-	Polygon,
-	Area,
-} from "./types";
-
-import {
 	deprecateMsg,
 } from "./utils";
 
@@ -15,6 +8,13 @@ export function deg2rad(deg: number): number {
 
 export function rad2deg(rad: number): number {
 	return rad * 180 / Math.PI;
+}
+
+export declare class Vec4 {
+	x: number
+	y: number
+	z: number
+	w: number
 }
 
 export function clamp(
@@ -71,21 +71,30 @@ export class Vec2 {
 	static RIGHT = new Vec2(1, 0);
 	static UP = new Vec2(0, -1);
 	static DOWN = new Vec2(0, 1);
-	clone(): Vec2 {
-		return new Vec2(this.x, this.y);
-	}
+	/**
+	 * Returns the addition with another vector.
+	 */
 	add(...args): Vec2 {
 		const p2 = vec2(...args);
 		return new Vec2(this.x + p2.x, this.y + p2.y);
 	}
+	/**
+	 * Returns the subtraction with another vector.
+	 */
 	sub(...args): Vec2 {
 		const p2 = vec2(...args);
 		return new Vec2(this.x - p2.x, this.y - p2.y);
 	}
+	/**
+	 * Scale by another vector, or a single scaler.
+	 */
 	scale(...args): Vec2 {
 		const s = vec2(...args);
 		return new Vec2(this.x * s.x, this.y * s.y);
 	}
+	/**
+	 * Get the distance between another vector.
+	 */
 	dist(...args): number {
 		const p2 = vec2(...args);
 		return Math.sqrt(
@@ -93,36 +102,64 @@ export class Vec2 {
 			+ (this.y - p2.y) * (this.y - p2.y)
 		);
 	}
+	/**
+	 * Get the length of vector.
+	 */
 	len(): number {
 		return this.dist(new Vec2(0, 0));
 	}
+	/**
+	 * Get the unit vector (keep the direction but length of 1)
+	 */
 	unit(): Vec2 {
 		return this.scale(1 / this.len());
 	}
+	/**
+	 * Get the perpandicular vector.
+	 */
 	normal(): Vec2 {
 		return new Vec2(this.y, -this.x);
 	}
+	/**
+	 * Get the dot product with another vector.
+	 */
 	dot(p2: Vec2): number {
 		return this.x * p2.x + this.y * p2.y;
 	}
+	/**
+	 * Get the angle between another vector.
+	 */
 	angle(...args): number {
 		const p2 = vec2(...args);
 		return rad2deg(Math.atan2(this.y - p2.y, this.x - p2.x));
 	}
+	/**
+	 * Perform linear interpolation.
+	 */
 	lerp(p2: Vec2, t: number): Vec2 {
 		return new Vec2(lerp(this.x, p2.x, t), lerp(this.y, p2.y, t));
 	}
 	toFixed(n: number): Vec2 {
 		return new Vec2(Number(this.x.toFixed(n)), Number(this.y.toFixed(n)));
 	}
+	/**
+	 * Check if is the same with another vector
+	 */
 	eq(other: Vec2): boolean {
 		return this.x === other.x && this.y === other.y;
 	}
 	toString(): string {
 		return `(${this.x.toFixed(2)}, ${this.y.toFixed(2)})`;
 	}
+	/**
+	 * @deprecated v2000.2
+	 */
 	str(): string {
+		deprecateMsg("str()", "toString()");
 		return this.toString();
+	}
+	clone(): Vec2 {
+		return new Vec2(this.x, this.y);
 	}
 }
 
@@ -633,6 +670,9 @@ export function testRectLine(r: Rect, l: Line): boolean {
 		|| !!testLineLine(l, new Line(vec2(r.p1.x, r.p2.y), r.p1));
 }
 
+export type Polygon = Vec2[];
+export type Point = Vec2;
+
 export function testRectPoint2(r: Rect, pt: Point): boolean {
 	return pt.x >= r.p1.x && pt.x <= r.p2.x && pt.y >= r.p1.y && pt.y <= r.p2.y;
 }
@@ -730,6 +770,25 @@ export function testPolygonPoint(p: Polygon, pt: Point): boolean {
 	return c;
 
 }
+
+/**
+ * Union type for area / collider data of different shapes ("rect", "line", "circle", "point" and "polygon").
+ */
+export type Area =
+	| { shape: "rect" } & Rect
+	| { shape: "line" } & Line
+	| { shape: "circle" } & Circle
+	| { shape: "point" } & { pt: Point }
+	| { shape: "polygon" } & { pts: Polygon }
+	;
+
+export type Shape =
+	| "rect"
+	| "line"
+	| "point"
+	| "circle"
+	| "polygon"
+	;
 
 export function testPointPoint(p1: Point, p2: Point): boolean {
 	return p1.eq(p2);
