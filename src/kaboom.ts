@@ -3638,9 +3638,8 @@ function area(opt: AreaCompOpt = {}): AreaComp {
 
 		add() {
 			if (this.area.cursor) {
-				this.hovers(() => {
-					cursor(this.area.cursor);
-				});
+				// TODO: collect
+				this.onHover(() => cursor(this.area.cursor));
 			}
 		},
 
