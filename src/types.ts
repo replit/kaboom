@@ -3004,6 +3004,7 @@ export interface FormattedChar {
 	scale: Vec2,
 	angle: number,
 	color: Color,
+	fixed: boolean,
 	opacity: number,
 	uniform: Uniform,
 }

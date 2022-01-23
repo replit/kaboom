@@ -659,9 +659,6 @@ const game = {
 
 	timers: new IDList<Timer>(),
 
-	// camera
-	shake: 0,
-
 	// misc
 	layers: {},
 	defLayer: null,
@@ -681,6 +678,15 @@ const game = {
 
 	// on screen log
 	logs: [],
+
+	// camera
+	cam: {
+		pos: center(),
+		scale: vec2(1),
+		angle: 0,
+		shake: 0,
+		transform: new Mat4(),
+	},
 
 }
 
@@ -1403,6 +1409,7 @@ function makeFont(
 function drawRaw(
 	verts: Vertex[],
 	indices: number[],
+	fixed: boolean,
 	tex: GfxTexture = gfx.defTex,
 	shader: GfxShader = gfx.defShader,
 	uniform: Uniform = {},
@@ -1424,8 +1431,10 @@ function drawRaw(
 
 	for (const v of verts) {
 
+		const transform = fixed ? gfx.transform : game.cam.transform.mult(gfx.transform);
+
 		// normalized world space coordinate [-1.0 ~ 1.0]
-		const pt = screen2ndc(gfx.transform.multVec2(v.pos.xy()));
+		const pt = screen2ndc(transform.multVec2(v.pos.xy()));
 
 		gfx.vqueue.push(
 			pt.x, pt.y, v.pos.z,
@@ -1495,6 +1504,7 @@ function frameStart() {
 				height() * app.scale / BG_GRID_SIZE,
 			),
 			tex: gfx.bgTex,
+			fixed: true,
 		})
 	}
 
@@ -1628,7 +1638,7 @@ function drawUVQuad(opt: DrawUVQuadOpt) {
 			color: color,
 			opacity: opacity,
 		},
-	], [0, 1, 3, 1, 2, 3], opt.tex, opt.shader, opt.uniform);
+	], [0, 1, 3, 1, 2, 3], opt.fixed, opt.tex, opt.shader, opt.uniform);
 
 	popTransform();
 
@@ -1848,7 +1858,7 @@ function drawLine(opt: DrawLineOpt) {
 		opacity: opt.opacity ?? 1,
 	}));
 
-	drawRaw(verts, [0, 1, 3, 1, 2, 3], gfx.defTex, opt.shader, opt.uniform);
+	drawRaw(verts, [0, 1, 3, 1, 2, 3], opt.fixed, gfx.defTex, opt.shader, opt.uniform);
 
 }
 
@@ -1993,7 +2003,7 @@ function drawPolygon(opt: DrawPolygonOpt) {
 			.map((n) => [0, n + 1, n + 2])
 			.flat();
 
-		drawRaw(verts, opt.indices ?? indices, gfx.defTex, opt.shader, opt.uniform);
+		drawRaw(verts, opt.indices ?? indices, opt.fixed, gfx.defTex, opt.shader, opt.uniform);
 
 	}
 
@@ -2173,6 +2183,7 @@ function formatText(opt: DrawTextOpt): FormattedText {
 					scale: scale,
 					angle: 0,
 					uniform: opt.uniform,
+					fixed: opt.fixed,
 				}
 				if (opt.transform) {
 					const tr = typeof opt.transform === "function"
@@ -2228,6 +2239,7 @@ function drawFormattedText(ftext: FormattedText) {
 			// TODO: topleft
 			origin: "center",
 			uniform: ch.uniform,
+			fixed: ch.fixed,
 		});
 	}
 }
@@ -2582,37 +2594,35 @@ function layers(list: string[], def?: string) {
 
 function camPos(...pos): Vec2 {
 	if (pos.length > 0) {
-		game.root.pos = vec2(...pos).scale(-1).add(center());
+		game.cam.pos = vec2(...pos);
 	}
-	return game.root.pos.clone().sub(center()).scale(-1);
+	return game.cam.pos.clone();
 }
 
 function camScale(...scale): Vec2 {
 	if (scale.length > 0) {
-		game.root.scale = vec2(...scale);
+		game.cam.scale = vec2(...scale);
 	}
-	return vec2(game.root.scale).clone();
+	return game.cam.scale.clone();
 }
 
 function camRot(angle: number): number {
 	if (angle !== undefined) {
-		game.root.angle = angle;
+		game.cam.angle = angle;
 	}
-	return game.root.angle;
+	return game.cam.angle;
 }
 
 function shake(intensity: number = 12) {
-	game.shake = intensity;
+	game.cam.shake = intensity;
 }
 
 function toScreen(p: Vec2): Vec2 {
-	return p;
-// 	return game.camMatrix.multVec2(p);
+	return game.cam.transform.multVec2(p);
 }
 
 function toWorld(p: Vec2): Vec2 {
-	return p;
-// 	return game.camMatrix.invert().multVec2(p);
+	return game.cam.transform.invert().multVec2(p);
 }
 
 function make<T>(comps: CompList<T>): GameObj<T> {
@@ -4499,8 +4509,13 @@ function go(id: SceneID, ...args) {
 		game.timers = new IDList();
 
 		// cam
-		game.shake = 0;
-// 		game.camMatrix = new Mat4();
+		game.cam = {
+			pos: center(),
+			scale: vec2(1),
+			angle: 0,
+			shake: 0,
+			transform: new Mat4(),
+		};
 
 		game.layers = {};
 		game.defLayer = null;
@@ -4895,9 +4910,21 @@ function updateFrame() {
 }
 
 function drawFrame() {
-	const shake = Vec2.fromAngle(rand(0, 360)).scale(game.shake);
-	game.shake = lerp(game.shake, 0, 5 * dt());
+
+	// calculate camera matrix
+	const cam = game.cam;
+	const shake = Vec2.fromAngle(rand(0, 360)).scale(cam.shake);
+
+	cam.shake = lerp(cam.shake, 0, 5 * dt());
+	cam.transform = new Mat4()
+		.translate(center())
+		.scale(cam.scale)
+		.rotateZ(cam.angle)
+		.translate(cam.pos.scale(-1).add(shake))
+		;
+
 	game.root.draw();
+
 }
 
 function drawLoadScreen() {
