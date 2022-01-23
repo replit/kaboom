@@ -425,7 +425,7 @@ const app = (() => {
 	const gscale = gopt.scale ?? 1;
 
 	// adjust canvas size according to user size / viewport settings
-	if (gopt.width && gopt.height && !gopt.stretch) {
+	if (gopt.width && gopt.height && !gopt.stretch && !gopt.letterbox) {
 		canvas.width = gopt.width * gscale;
 		canvas.height = gopt.height * gscale;
 	} else {
@@ -606,7 +606,7 @@ const gfx = (() => {
 
 })();
 
-updateSize();
+updateViewport();
 
 const audio = (() => {
 
@@ -660,11 +660,7 @@ const game = {
 
 	// root game object
 	// these transforms are used as camera
-	root: make([
-		pos(0, 0),
-		scale(1),
-		rotate(0),
-	]),
+	root: make([]),
 
 	timers: new IDList<Timer>(),
 
@@ -2255,14 +2251,21 @@ function drawFormattedText(ftext: FormattedText) {
 	}
 }
 
-function updateSize() {
+/**
+ * Update viewport based on user setting and fullscreen state
+ */
+function updateViewport() {
+
 	const gl = app.gl;
+
 	// canvas size
 	const cw = gl.drawingBufferWidth;
 	const ch = gl.drawingBufferHeight;
+
 	// game size
 	const gw = width();
 	const gh = height();
+
 	if (isFullscreen()) {
 		// TODO: doesn't work with letterbox
 		const ww = window.innerWidth;
@@ -2288,62 +2291,83 @@ function updateSize() {
 		}
 		return;
 	}
-	// TODO: allow letterbox without stretch
-	if (gopt.width && gopt.height && gopt.stretch) {
-		if (gopt.letterbox) {
-			const rc = cw / ch;
-			const rg = gopt.width / gopt.height;
-			if (rc > rg) {
+
+	if (gopt.letterbox) {
+
+		if (!gopt.width || !gopt.height) {
+			throw new Error("Letterboxing requires width and height defined.");
+		}
+
+		const rc = cw / ch;
+		const rg = gopt.width / gopt.height;
+
+		if (rc > rg) {
+			if (!gopt.stretch) {
 				gfx.width = ch * rg;
 				gfx.height = ch;
-				const sw = ch * rg;
-				const sh = ch;
-				const x = (cw - sw) / 2;
-				gl.scissor(x, 0, sw, sh);
-				gl.viewport(x, 0, sw, ch);
-				gfx.viewport = {
-					x: x,
-					y: 0,
-					width: sw,
-					height: ch,
-				};
-			} else {
-				gfx.width = cw;
-				gfx.height = cw / rg;
-				const sw = cw;
-				const sh = cw / rg;
-				const y = (ch - sh) / 2;
-				gl.scissor(0, y, sw, sh);
-				gl.viewport(0, y, cw, sh);
-				gfx.viewport = {
-					x: 0,
-					y: y,
-					width: cw,
-					height: sh,
-				};
 			}
-		} else {
-			gfx.width = gopt.width;
-			gfx.height = gopt.height;
-			gl.viewport(0, 0, cw, ch);
+			const sw = ch * rg;
+			const sh = ch;
+			const x = (cw - sw) / 2;
+			gl.scissor(x, 0, sw, sh);
+			gl.viewport(x, 0, sw, ch);
 			gfx.viewport = {
-				x: 0,
+				x: x,
 				y: 0,
-				width: cw,
+				width: sw,
 				height: ch,
 			};
+		} else {
+			if (!gopt.stretch) {
+				gfx.width = cw;
+				gfx.height = cw / rg;
+			}
+			const sw = cw;
+			const sh = cw / rg;
+			const y = (ch - sh) / 2;
+			gl.scissor(0, y, sw, sh);
+			gl.viewport(0, y, cw, sh);
+			gfx.viewport = {
+				x: 0,
+				y: y,
+				width: cw,
+				height: sh,
+			};
 		}
-	} else {
-		gfx.width = cw / app.scale;
-		gfx.height = ch / app.scale;
+
+		return;
+
+	}
+
+	if (gopt.stretch) {
+
+		if (!gopt.width || !gopt.height) {
+			throw new Error("Stretching requires width and height defined.");
+		}
+
 		gl.viewport(0, 0, cw, ch);
+
 		gfx.viewport = {
 			x: 0,
 			y: 0,
 			width: cw,
 			height: ch,
 		};
+
+		return;
 	}
+
+	gfx.width = cw / app.scale;
+	gfx.height = ch / app.scale;
+	gl.viewport(0, 0, cw, ch);
+
+	gfx.viewport = {
+		x: 0,
+		y: 0,
+		width: cw,
+		height: ch,
+	};
+
 }
 
 // get game width
@@ -2820,21 +2844,20 @@ function make<T>(comps: CompList<T>): GameObj<T> {
 				}
 			};
 
-			// TODO
 			// check deps or run add event
-// 			if (this.exists()) {
-// 				if (comp.add) {
-// 					comp.add.call(this);
-// 				}
-// 				if (comp.load) {
-// 					onLoad(() => comp.load.call(this));
-// 				}
-// 				checkDeps();
-// 			} else {
-// 				if (comp.require) {
-// 					state.cleanups.push(this.on("add", checkDeps));
-// 				}
-// 			}
+			if (this.exists()) {
+				if (comp.add) {
+					comp.add.call(this);
+				}
+				if (comp.load) {
+					onLoad(() => comp.load.call(this));
+				}
+				checkDeps();
+			} else {
+				if (comp.require) {
+					state.cleanups.push(this.on("add", checkDeps));
+				}
+			}
 
 		},
 
@@ -3558,7 +3581,6 @@ function outview(opt: OutviewCompOpt = {}): OutviewComp {
 			if (this.isOutOfView()) {
 				if (!isOut) {
 					this.trigger("exitView");
-					debug.log("123")
 					isOut = true;
 				}
 				if (opt.delay) {
@@ -5363,7 +5385,7 @@ function run(f: () => void) {
 run(() => {
 
 	// running this every frame now mainly because isFullscreen() is not updated real time when requested fullscreen
-	updateSize();
+	updateViewport();
 
 	if (!app.loaded) {
 		frameStart();

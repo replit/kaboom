@@ -14,6 +14,7 @@
 - added classes `Vec2`, `Color`, `Mat4`, `Timer`, `Quad`, `RNG`, `Line`, `Rect`, `Circle`
 - added deprecation warning
 - fixed letterbox view mode
+- allow non-stretch letterbox
 - fixed mouse position malfunction in fullscreen, stretch and letterbox mode
 
 ### v2000.1.8
