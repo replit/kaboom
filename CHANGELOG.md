@@ -13,6 +13,8 @@
 - deprecated `rng()` in favor of `new RNG()`
 - added classes `Vec2`, `Color`, `Mat4`, `Timer`, `Quad`, `RNG`, `Line`, `Rect`, `Circle`
 - added deprecation warning
+- fixed letterbox view mode
+- fixed mouse position malfunction in fullscreen, stretch and letterbox mode
 
 ### v2000.1.8
 

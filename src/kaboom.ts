@@ -595,6 +595,13 @@ const gfx = (() => {
 		width: gopt.width,
 		height: gopt.height,
 
+		viewport: {
+			x: 0,
+			y: 0,
+			width: gl.drawingBufferWidth,
+			height: gl.drawingBufferHeight,
+		},
+
 	};
 
 })();
@@ -2250,37 +2257,92 @@ function drawFormattedText(ftext: FormattedText) {
 
 function updateSize() {
 	const gl = app.gl;
+	// canvas size
+	const cw = gl.drawingBufferWidth;
+	const ch = gl.drawingBufferHeight;
+	// game size
+	const gw = width();
+	const gh = height();
+	if (isFullscreen()) {
+		// TODO: doesn't work with letterbox
+		const ww = window.innerWidth;
+		const wh = window.innerHeight;
+		const rw = ww / wh;
+		const rc = cw / ch;
+		if (rw > rc) {
+			const sw = window.innerHeight * rc;
+			gfx.viewport = {
+				x: (ww - sw) / 2,
+				y: 0,
+				width: sw,
+				height: wh,
+			};
+		} else {
+			const sh = window.innerWidth / rc;
+			gfx.viewport = {
+				x: 0,
+				y: (wh - sh) / 2,
+				width: ww,
+				height: sh,
+			};
+		}
+		return;
+	}
+	// TODO: allow letterbox without stretch
 	if (gopt.width && gopt.height && gopt.stretch) {
 		if (gopt.letterbox) {
-			// TODO: not working
-			const r1 = gl.drawingBufferWidth / gl.drawingBufferHeight;
-			const r2 = gopt.width / gopt.height;
-			if (r1 > r2) {
-				gfx.width = gopt.height * r1;
-				gfx.height = gopt.height;
-				const sw = gl.drawingBufferHeight * r2;
-				const sh = gl.drawingBufferHeight;
-				const x = (gl.drawingBufferWidth - sw) / 2;
+			const rc = cw / ch;
+			const rg = gopt.width / gopt.height;
+			if (rc > rg) {
+				gfx.width = ch * rg;
+				gfx.height = ch;
+				const sw = ch * rg;
+				const sh = ch;
+				const x = (cw - sw) / 2;
 				gl.scissor(x, 0, sw, sh);
-				gl.viewport(x, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
+				gl.viewport(x, 0, sw, ch);
+				gfx.viewport = {
+					x: x,
+					y: 0,
+					width: sw,
+					height: ch,
+				};
 			} else {
-				gfx.width = gopt.width;
-				gfx.height = gopt.width / r1;
-				const sw = gl.drawingBufferWidth;
-				const sh = gl.drawingBufferWidth / r2;
-				const y = (gl.drawingBufferHeight - sh) / 2;
-				gl.scissor(0, gl.drawingBufferHeight - sh - y, sw, sh);
-				gl.viewport(0, -y, gl.drawingBufferWidth, gl.drawingBufferHeight);
+				gfx.width = cw;
+				gfx.height = cw / rg;
+				const sw = cw;
+				const sh = cw / rg;
+				const y = (ch - sh) / 2;
+				gl.scissor(0, y, sw, sh);
+				gl.viewport(0, y, cw, sh);
+				gfx.viewport = {
+					x: 0,
+					y: y,
+					width: cw,
+					height: sh,
+				};
 			}
 		} else {
 			gfx.width = gopt.width;
 			gfx.height = gopt.height;
-			gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
+			gl.viewport(0, 0, cw, ch);
+			gfx.viewport = {
+				x: 0,
+				y: 0,
+				width: cw,
+				height: ch,
+			};
 		}
 	} else {
-		gfx.width = gl.drawingBufferWidth / app.scale;
-		gfx.height = gl.drawingBufferHeight / app.scale;
-		gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
+		gfx.width = cw / app.scale;
+		gfx.height = ch / app.scale;
+		gl.viewport(0, 0, cw, ch);
+		gfx.viewport = {
+			x: 0,
+			y: 0,
+			width: cw,
+			height: ch,
+		};
 	}
 }
 
@@ -2296,13 +2358,10 @@ function height(): number {
 
 // TODO: support remove events
 app.canvas.addEventListener("mousemove", (e) => {
-	if (isFullscreen()) {
-		// in fullscreen mode browser adds letter box to preserve original canvas aspect ratio, but won't give us the transformed mouse position
-		// TODO
-		app.mousePos = vec2(e.offsetX, e.offsetY).scale(1 / app.scale);
-	} else {
-		app.mousePos = vec2(e.offsetX, e.offsetY).scale(1 / app.scale);
-	}
+	app.mousePos = vec2(
+		(e.offsetX - gfx.viewport.x) * width() / gfx.viewport.width,
+		(e.offsetY - gfx.viewport.y) * height() / gfx.viewport.height,
+	);
 	app.mouseDeltaPos = vec2(e.movementX, e.movementY).scale(1 / app.scale);
 	app.isMouseMoved = true;
 });
@@ -5303,6 +5362,9 @@ function run(f: () => void) {
 // main game loop
 run(() => {
 
+	// running this every frame now mainly because isFullscreen() is not updated real time when requested fullscreen
+	updateSize();
+
 	if (!app.loaded) {
 		frameStart();
 		drawLoadScreen();
@@ -5360,7 +5422,6 @@ loadFont(
 	10,
 );
 
-updateSize();
 frameStart();
 frameEnd();
 
@@ -5385,12 +5446,12 @@ const ctx: KaboomCtx = {
 	time,
 	screenshot,
 	record,
-	isFocused: isFocused,
-	focus: focus,
-	cursor: cursor,
+	isFocused,
+	focus,
+	cursor,
 	regCursor,
-	fullscreen: fullscreen,
-	isFullscreen: isFullscreen,
+	fullscreen,
+	isFullscreen,
 	onLoad,
 	isTouch: () => app.isTouch,
 	// misc
