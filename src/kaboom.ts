@@ -1,10 +1,14 @@
 import {
+	sat,
 	vec2,
 	vec3,
 	Vec3,
 	Rect,
 	Line,
 	Circle,
+	Ellipse,
+	Polygon,
+	Point,
 	Color,
 	Vec2,
 	Mat4,
@@ -23,12 +27,6 @@ import {
 	map,
 	mapc,
 	wave,
-	testAreaRect,
-	testAreaLine,
-	testAreaCircle,
-	testAreaPolygon,
-	testAreaPoint,
-	testAreaArea,
 	testLineLineT,
 	testRectRect2,
 	testLineLine,
@@ -41,7 +39,6 @@ import {
 	testCircleCircle,
 	testCirclePoint,
 	testRectPolygon,
-	minkDiff,
 	deg2rad,
 	rad2deg,
 } from "./math";
@@ -2703,6 +2700,7 @@ function make<T>(comps: CompList<T>): GameObj<T> {
 	const obj = {
 
 		_id: uid(),
+		_transform: new Mat4(),
 		hidden: false,
 		paused: false,
 		children: [],
@@ -2712,6 +2710,7 @@ function make<T>(comps: CompList<T>): GameObj<T> {
 		add<T2>(comps: CompList<T2>): GameObj<T2> {
 			const obj = make(comps);
 			obj.parent = this;
+			obj._transform = calcTransform(obj);
 			obj.trigger("add");
 			onLoad(() => obj.trigger("load"));
 			this.children.push(obj);
@@ -3234,17 +3233,6 @@ function regCursor(c: Cursor, draw: string | ((mpos: Vec2) => void)) {
 	// TODO
 }
 
-function makeCollision(target: GameObj<any>, dis: Vec2): Collision {
-	return {
-		target: target,
-		displacement: dis,
-		isTop: () => dis.y > 0,
-		isBottom: () => dis.y < 0,
-		isLeft: () => dis.x > 0,
-		isRight: () => dis.x < 0,
-	};
-}
-
 // TODO: manage global velocity here?
 function pos(...args): PosComp {
 
@@ -3254,124 +3242,12 @@ function pos(...args): PosComp {
 		pos: vec2(...args),
 
 		// TODO: clean
-		moveBy(...args): Collision | null {
-
-			const p = vec2(...args);
-			let dx = p.x;
-			let dy = p.y;
-			let col = null;
-
-			if (this.solid && this.area?.shape === "rect") {
-
-				let a1 = this.worldArea();
-
-				// TODO: definitely shouln't iterate through all solid objs
-				game.root.every((other) => {
-
-					// make sure we still exist, don't check with self, and only
-					// check with other solid objects
-					if (
-						!this.exists()
-						|| other === this
-						|| !other.solid
-						|| other.area?.shape !== "rect"
-					) {
-						return;
-					}
-
-					const a2 = other.worldArea();
-					let md = minkDiff(a2, a1);
-
-					// if they're already overlapping, push them away first
-					if (testRectPoint(md, vec2(0))) {
-
-						let dist = Math.min(
-							Math.abs(md.p1.x),
-							Math.abs(md.p2.x),
-							Math.abs(md.p1.y),
-							Math.abs(md.p2.y),
-						);
-
-						const res = (() => {
-							switch (dist) {
-								case Math.abs(md.p1.x): return vec2(dist, 0);
-								case Math.abs(md.p2.x): return vec2(-dist, 0);
-								case Math.abs(md.p1.y): return vec2(0, dist);
-								case Math.abs(md.p2.y): return vec2(0, -dist);
-							}
-						})();
-
-						this.pos = this.pos.sub(res);
-
-						// calculate new mink diff
-						a1 = this.worldArea();
-						md = minkDiff(a2, a1);
-
-					}
-
-					const ray = { p1: vec2(0), p2: vec2(dx, dy) };
-					let minT = 1;
-					const p1 = md.p1;
-					const p2 = vec2(md.p1.x, md.p2.y);
-					const p3 = md.p2;
-					const p4 = vec2(md.p2.x, md.p1.y);
-					let numCols = 0;
-					const lines = {
-						"right": { p1: p1, p2: p2, },
-						"top": { p1: p2, p2: p3, },
-						"left": { p1: p3, p2: p4, },
-						"bottom": { p1: p4, p2: p1, },
-					};
-
-					for (const s in lines) {
-						const line = lines[s];
-						// if moving along a side, we forgive
-						if (
-							(dx === 0 && line.p1.x === 0 && line.p2.x === 0)
-							||
-							(dy === 0 && line.p1.y === 0 && line.p2.y === 0)
-						) {
-							minT = 1;
-							break;
-						}
-						const t = testLineLineT(ray, line);
-						if (t != null) {
-							numCols++;
-							if (t < minT) {
-								minT = t;
-							}
-						}
-					}
-
-					// if moving away, we forgive
-					if (
-						minT < 1
-						&& !(minT === 0 && numCols == 1 && !testRectPoint(md, vec2(dx, dy)))
-					) {
-						const dis = vec2(-dx * (1 - minT), -dy * (1 - minT));
-						dx *= minT;
-						dy *= minT;
-						col = makeCollision(other, dis);
-					}
-
-				});
-
-			}
-
-			this.pos.x += dx;
-			this.pos.y += dy;
-
-			if (col) {
-				this.trigger("collide", col.target, col);
-				col.target.trigger("collide", this, makeCollision(this, col.displacement.scale(-1)));
-			}
-
-			return col;
-
+		moveBy(...args) {
+			this.pos = this.pos.add(...args);
 		},
 
 		// move with velocity (pixels per second)
-		move(...args): Collision | null {
+		move(...args) {
 			return this.moveBy(vec2(...args).scale(dt()));
 		},
 
@@ -3448,7 +3324,7 @@ function color(...args): ColorComp {
 		id: "color",
 		color: rgb(...args),
 		inspect() {
-			return this.color.str();
+			return this.color.toString();
 		},
 	};
 }
@@ -3478,7 +3354,7 @@ function origin(o: Origin | Vec2): OriginComp {
 			if (typeof this.origin === "string") {
 				return this.origin;
 			} else {
-				return this.origin.str();
+				return this.origin.toString();
 			}
 		},
 	};
@@ -3548,7 +3424,7 @@ function outview(opt: OutviewCompOpt = {}): OutviewComp {
 				vec2(0, 0).sub(offset),
 				vec2(width(), height()).add(offset),
 			);
-			return !testAreaRect(this.screenArea(), screenRect);
+			return !testRectRect(this.bbox(), screenRect);
 		},
 		onExitView(action: () => void): EventCanceller {
 			return this.on("exitView", action);
@@ -3604,12 +3480,17 @@ function area(opt: AreaCompOpt = {}): AreaComp {
 	return {
 
 		id: "area",
+		_worldArea: null,
 
 		add() {
 			if (this.area.cursor) {
 				// TODO: collect
 				this.onHover(() => cursor(this.area.cursor));
 			}
+		},
+
+		load() {
+			this._worldArea = this.localArea().transform(this._transform);
 		},
 
 		area: {
@@ -3630,13 +3511,22 @@ function area(opt: AreaCompOpt = {}): AreaComp {
 			return this.hasPoint(mpos);
 		},
 
-		isColliding(other) {
+		checkCollision(other: GameObj<AreaComp>) {
 			if (!other.area || !other.exists()) {
 				return false;
 			}
 			const a1 = this.worldArea();
 			const a2 = other.worldArea();
-			return testAreaArea(a1, a2);
+			return sat(a1, a2);
+		},
+
+		isColliding(other: GameObj<AreaComp>) {
+			if (!other.area || !other.exists()) {
+				return false;
+			}
+			const a1 = this.worldArea();
+			const a2 = other.worldArea();
+			return testPolygonPolygon(a1, a2);
 		},
 
 		isTouching(other) {
@@ -3676,47 +3566,12 @@ function area(opt: AreaCompOpt = {}): AreaComp {
 		},
 
 		hasPoint(pt: Vec2): boolean {
-			return testAreaPoint(this.worldArea(), pt);
+			return testPolygonPoint(this.worldArea(), Point.fromVec2(pt));
 		},
 
 		// push an obj out of another if they're overlapped
 		pushOut(obj: GameObj): Vec2 | null {
-
-			if (obj === this) {
-				return null;
-			}
-
-			// TODO: support other shapes
-			if (obj.area?.shape !== "rect") {
-				return null;
-			}
-
-			const a1 = this.worldArea();
-			const a2 = obj.worldArea();
-			const md = minkDiff(a1, a2);
-
-			if (!testRectPoint(md, vec2(0))) {
-				return null;
-			}
-
-			let dist = Math.min(
-				Math.abs(md.p1.x),
-				Math.abs(md.p2.x),
-				Math.abs(md.p1.y),
-				Math.abs(md.p2.y),
-			);
-
-			const res = (() => {
-				switch (dist) {
-					case Math.abs(md.p1.x): return vec2(dist, 0);
-					case Math.abs(md.p2.x): return vec2(-dist, 0);
-					case Math.abs(md.p1.y): return vec2(0, dist);
-					case Math.abs(md.p2.y): return vec2(0, -dist);
-				}
-			})();
-
-			this.pos = this.pos.add(res);
-
+			return null;
 		},
 
 		// push object out of other solid objects
@@ -3749,46 +3604,44 @@ function area(opt: AreaCompOpt = {}): AreaComp {
 
 		},
 
-		// TODO: doesn't work with nested parent transforms
-		// TODO: cache
-		// TODO: use matrix mult for more accuracy and rotation?
-		worldArea(): Area {
+		// TODO: area scale not working
+		// TODO: support custom polygon
+		// TODO: check for each render component instead of width / height?
+		localArea(): Rect {
 
 			let w = this.area.width ?? this.width;
 			let h = this.area.height ?? this.height;
 
-			if (w == null || h == null) {
+			if (!w || !h) {
 				throw new Error("failed to get area dimension");
 			}
 
-			const scale = vec2(this.scale ?? 1).scale(this.area.scale);
-
-			w *= scale.x;
-			h *= scale.y;
+			w *= this.area.scale.x;
+			h *= this.area.scale.y;
 
 			const orig = originPt(this.origin || DEF_ORIGIN);
-			const pos = (this.pos ?? vec2(0))
-				.add(this.area.offset)
-				.sub(orig.add(1, 1).scale(0.5).scale(w, h));
+			const pos = this.area.offset.sub(orig.add(1, 1).scale(0.5).scale(w, h));
 
-			return {
-				shape: "rect",
-				p1: pos,
-				p2: vec2(pos.x + w, pos.y + h),
-			};
+			return new Rect(pos, vec2(pos.x + w, pos.y + h));
 
 		},
 
-		screenArea(): Area {
+		// TODO: doesn't work with nested parent transforms
+		// TODO: cache
+		// TODO: use matrix mult for more accuracy and rotation?
+		worldArea(): Polygon {
+			if (!this._worldArea) {
+				throw new Error("World area not initialized. This should be a bug.");
+			}
+			return this._worldArea;
+		},
+
+		screenArea(): Polygon {
 			const area = this.worldArea();
 			if (this.fixed) {
 				return area;
 			} else {
-				return {
-					shape: "rect",
-					p1: toScreen(area.p1),
-					p2: toScreen(area.p2),
-				};
+				return area.transform(game.cam.transform);
 			}
 		},
 
@@ -4937,6 +4790,131 @@ function updateFrame() {
 
 }
 
+function calcTransform(obj: GameObj): Mat4 {
+	let tr = new Mat4();
+	if (obj.pos) tr = tr.translate(obj.pos)
+	if (obj.scale) tr = tr.scale(obj.scale)
+	if (obj.angle) tr = tr.rotateZ(obj.angle)
+	let p = obj.parent;
+	while (p) {
+		tr = p._transform.mult(tr);
+		p = p.parent;
+	}
+	return tr;
+}
+
+const DEF_HASH_GRID_SIZE = 64;
+
+class Collision {
+	target: GameObj;
+	displacement: Vec2;
+	resolved: boolean = false;
+	constructor(target: GameObj, dis: Vec2, resolved = false) {
+		this.target = target;
+		this.displacement = dis;
+		this.resolved = resolved;
+	}
+	isLeft() {
+		return this.displacement.x > 0;
+	}
+	isRight() {
+		return this.displacement.x < 0;
+	}
+	isTop() {
+		return this.displacement.y > 0;
+	}
+	isBottom() {
+		return this.displacement.y < 0;
+	}
+}
+
+function checkFrame() {
+
+	// TODO: persistent grid?
+	// start a spatial hash grid for more efficient collision detection
+	const grid: Record<number, Record<number, GameObj<AreaComp>[]>> = {};
+	const cellSize = gopt.hashGridSize || DEF_HASH_GRID_SIZE;
+
+	// current transform
+	let tr = new Mat4();
+
+	// a local transform stack
+	const stack = [];
+
+	function checkObj(obj: GameObj) {
+
+		stack.push(tr);
+
+		// Update object transform here. This will be the transform later used in rendering.
+		if (obj.pos) tr = tr.translate(obj.pos);
+		if (obj.scale) tr = tr.scale(obj.scale);
+		if (obj.angle) tr = tr.rotateZ(obj.angle);
+		obj._transform = tr.clone();
+
+		// TODO: this logic should be defined through external interface
+		if (obj.is("area")) {
+
+			// TODO: only update worldArea if transform changed
+			const aobj = obj as GameObj<AreaComp>;
+			const area = aobj.localArea().transform(tr);
+			const bbox = area.bbox();
+			aobj._worldArea = area;
+
+			// Get spatial hash grid coverage
+			const xmin = Math.floor(bbox.p1.x / cellSize);
+			const ymin = Math.floor(bbox.p1.y / cellSize);
+			const xmax = Math.ceil((bbox.p2.x) / cellSize);
+			const ymax = Math.ceil((bbox.p2.y) / cellSize);
+
+			// Cache objs that are already checked
+			const checked = new Set();
+
+			// insert & check against all covered grids
+			for (let x = xmin; x <= xmax; x++) {
+				for (let y = ymin; y <= ymax; y++) {
+					if(!grid[x]) {
+						grid[x] = {};
+						grid[x][y] = [aobj];
+					} else if(!grid[x][y]) {
+						grid[x][y] = [aobj];
+					} else {
+						const cell = grid[x][y];
+						for (const other of cell) {
+							if (!other.exists()) {
+								continue;
+							}
+							// TODO: whitelist / blacklist?
+							if (!checked.has(other._id)) {
+								const res = aobj.checkCollision(other);
+								if (res && !res.isZero()) {
+									const col1 = new Collision(other, res);
+									aobj.trigger("collide", other, col1);
+									// resolution only has to happen once
+									const col2 = new Collision(
+										aobj,
+										res.scale(-1),
+										col1.resolved
+									);
+									other.trigger("collide", aobj, col2);
+								}
+							}
+							checked.add(other._id);
+						}
+						cell.push(aobj);
+					}
+				}
+			}
+
+		}
+
+		obj.revery(checkObj);
+		tr = stack.pop();
+
+	}
+
+	checkObj(game.root);
+
+}
 function drawFrame() {
 
 	// calculate camera matrix
@@ -5062,15 +5040,12 @@ function drawDebug() {
 				}
 			}
 
+			const aobj = obj as GameObj<AreaComp>;
 			const lwidth = (inspecting === obj ? 8 : 4);
-			const a = obj.worldArea();
-			const w = a.p2.x - a.p1.x;
-			const h = a.p2.y - a.p1.y;
+			const a = aobj.worldArea();
 
-			drawRect({
-				pos: a.p1,
-				width: w,
-				height: h,
+			drawPolygon({
+				pts: a.pts,
 				outline: {
 					width: lwidth,
 					color: lcolor,
@@ -5343,6 +5318,8 @@ run(() => {
 			updateFrame();
 		}
 
+		checkFrame();
+
 		frameStart();
 		drawFrame();
 
@@ -5528,12 +5505,6 @@ const ctx: KaboomCtx = {
 	wave,
 	deg2rad,
 	rad2deg,
-	testAreaRect,
-	testAreaLine,
-	testAreaCircle,
-	testAreaPolygon,
-	testAreaPoint,
-	testAreaArea,
 	testLineLine,
 	testRectRect,
 	testRectLine,

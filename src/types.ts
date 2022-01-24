@@ -1569,7 +1569,7 @@ export interface KaboomCtx {
 	/**
 	 * Check if a point is inside a rectangle.
 	 */
-	testRectPoint(r: Rect, pt: Vec2): boolean,
+	testRectPoint(r: Rect, pt: Point): boolean,
 	/**
 	 * Define a scene.
 	 *
@@ -2030,6 +2030,10 @@ export interface KaboomOpt {
 	 * If translate touch events as mouse clicks (default true).
 	 */
 	touchToMouse?: boolean,
+	/**
+	 * Size of each spatial hashgrid cell used in collision detection. Defaults to 64.
+	 */
+	hashGridSize?: number,
 	/**
 	 * If import all kaboom functions to global (default true).
 	 */
@@ -2989,6 +2993,7 @@ export declare class Vec2 {
 	 */
 	toFixed(n: number): Vec2
 	eq(p: Vec2): boolean
+	isZero(): boolean
 	toString(): string
 }
 
@@ -3098,22 +3103,51 @@ export declare class Rect {
 	p1: Vec2
 	p2: Vec2
 	constructor(p1: Vec2, p2: Vec2)
+	transform(m: Mat4): Polygon
+	bbox(): Rect
 }
 
 export declare class Line {
 	p1: Vec2
 	p2: Vec2
 	constructor(p1: Vec2, p2: Vec2)
+	transform(m: Mat4): Line
+	bbox(): Rect
 }
 
 export declare class Circle {
 	center: Vec2
 	radius: number
 	constructor(pos: Vec2, radius: number)
+	transform(m: Mat4): Ellipse
+	bbox(): Rect
 }
 
-export type Polygon = Vec2[];
-export type Point = Vec2;
+export declare class Ellipse {
+	center: Vec2
+	radiusX: number
+	radiusY: number
+	constructor(pos: Vec2, rx: number, ry: number)
+	transform(m: Mat4): Ellipse
+	bbox(): Rect
+}
+
+export declare class Polygon {
+	pts: Vec2[]
+	constructor(pts: Vec2[])
+	transform(m: Mat4): Polygon
+	bbox(): Rect
+}
+
+export declare class Point {
+	x: number
+	y: number
+	constructor(x: number, y: number)
+	static fromVec2(p: Vec2): Point
+	toVec2(): Vec2
+	transform(tr: Mat4): Point
+	bbox(): Rect
+}
 
 export interface Comp {
 	/**
@@ -3295,34 +3329,33 @@ export interface CleanupCompOpt {
 export interface CleanupComp extends Comp {
 }
 
-/**
- * Collision resolution data.
- */
-export interface Collision {
+export declare class Collision {
 	/**
 	 * The game object that we collided into.
 	 */
-	target: GameObj,
+	target: GameObj;
 	/**
-	 * The displacement it'll need to separate us from the target.
+	 * The minimal displacement it'll need to separate us from the target.
 	 */
-	displacement: Vec2,
+	displacement: Vec2;
+	resolved: boolean;
+	constructor(target: GameObj, dis: Vec2, resolved?: boolean)
 	/**
 	 * If the collision happened (roughly) on the top side of us.
 	 */
-	isTop(): boolean,
+	isTop(): boolean
 	/**
 	 * If the collision happened (roughly) on the bottom side of us.
 	 */
-	isBottom(): boolean,
+	isBottom(): boolean
 	/**
 	 * If the collision happened (roughly) on the left side of us.
 	 */
-	isLeft(): boolean,
+	isLeft(): boolean
 	/**
 	 * If the collision happened (roughly) on the right side of us.
 	 */
-	isRight(): boolean,
+	isRight(): boolean
 }
 
 export interface AreaCompOpt {
@@ -3358,6 +3391,10 @@ export interface AreaComp extends Comp {
 	 */
 	area: AreaCompOpt,
 	/**
+	 * Current area in world space.
+	 */
+	_worldArea: Area,
+	/**
 	 * If was just clicked on last frame.
 	 */
 	isClicked(): boolean,
@@ -3365,6 +3402,12 @@ export interface AreaComp extends Comp {
 	 * If is being hovered on.
 	 */
 	isHovering(): boolean,
+	/**
+	 * If is being hovered on.
+	 *
+	 * @since v2001.0
+	 */
+	checkCollision(other: GameObj<AreaComp>): Vec2 | null,
 	/**
 	 * If is currently colliding with another game obj.
 	 */
@@ -3404,13 +3447,19 @@ export interface AreaComp extends Comp {
 	 */
 	pushOutAll(): void,
 	/**
+	 * Get the geometry data for the collider in local coordinate space.
+	 *
+	 * @since v2001.0
+	 */
+	localArea(): Rect,
+	/**
 	 * Get the geometry data for the collider in world coordinate space.
 	 */
-	worldArea(): Area,
+	worldArea(): Polygon,
 	/**
 	 * Get the geometry data for the collider in screen coordinate space.
 	 */
-	screenArea(): Area,
+	screenArea(): Polygon,
 }
 
 export interface SpriteCompOpt {
@@ -3613,11 +3662,11 @@ export interface UVQuadComp extends Comp {
  * Union type for area / collider data of different shapes ("rect", "line", "circle", "point" and "polygon").
  */
 export type Area =
-	| { shape: "rect" } & Rect
-	| { shape: "line" } & Line
-	| { shape: "circle" } & Circle
-	| { shape: "point" } & { pt: Point }
-	| { shape: "polygon" } & { pts: Polygon }
+	| Rect
+	| Line
+	| Circle
+	| Ellipse
+	| Polygon
 	;
 
 export type Shape =

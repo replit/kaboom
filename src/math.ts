@@ -1,7 +1,4 @@
 import {
-	Vec4,
-	Point,
-	Polygon,
 	Area,
 } from "./types";
 
@@ -114,6 +111,9 @@ export class Vec2 {
 	eq(other: Vec2): boolean {
 		return this.x === other.x && this.y === other.y;
 	}
+	isZero(): boolean {
+		return this.x === 0 && this.y === 0;
+	}
 	toString(): string {
 		return `(${this.x.toFixed(2)}, ${this.y.toFixed(2)})`;
 	}
@@ -141,6 +141,19 @@ export class Vec3 {
 	}
 	xy() {
 		return vec2(this.x, this.y);
+	}
+}
+
+export class Vec4 {
+	x: number = 0;
+	y: number = 0;
+	z: number = 0;
+	w: number = 0;
+	constructor(x: number, y: number, z: number, w: number) {
+		this.x = x;
+		this.y = y;
+		this.z = z;
+		this.w = w;
 	}
 }
 
@@ -607,7 +620,7 @@ export function testLineLine(l1: Line, l2: Line): Vec2 | null {
 }
 
 export function testRectLine(r: Rect, l: Line): boolean {
-	if (testRectPoint(r, l.p1) || testRectPoint(r, l.p2)) {
+	if (testRectPoint(r, Point.fromVec2(l.p1)) || testRectPoint(r, Point.fromVec2(l.p2))) {
 		return true;
 	}
 	return !!testLineLine(l, new Line(r.p1, vec2(r.p2.x, r.p1.y)))
@@ -632,12 +645,12 @@ export function testRectCircle(r: Rect, c: Circle): boolean {
 }
 
 export function testRectPolygon(r: Rect, p: Polygon): boolean {
-	return testPolygonPolygon(p, [
+	return testPolygonPolygon(p, new Polygon([
 		r.p1,
 		vec2(r.p2.x, r.p1.y),
 		r.p2,
 		vec2(r.p1.x, r.p2.y),
-	]);
+	]));
 }
 
 // TODO
@@ -653,15 +666,15 @@ export function testLineCircle(l: Line, c: Circle): boolean {
 export function testLinePolygon(l: Line, p: Polygon): boolean {
 
 	// test if line is inside
-	if (testPolygonPoint(p, l.p1) || testPolygonPoint(p, l.p2)) {
+	if (testPolygonPoint(p, Point.fromVec2(l.p1)) || testPolygonPoint(p, Point.fromVec2(l.p2))) {
 		return true;
 	}
 
 	// test each line
-	for (let i = 0; i < p.length; i++) {
-		const p1 = p[i];
-		const p2 = p[(i + 1) % p.length];
-		if (testLineLine(l, { p1, p2 })) {
+	for (let i = 0; i < p.pts.length; i++) {
+		const p1 = p.pts[i];
+		const p2 = p.pts[(i + 1) % p.pts.length];
+		if (testLineLine(l, new Line(p1, p2))) {
 			return true;
 		}
 	}
@@ -684,12 +697,8 @@ export function testCirclePolygon(c: Circle, p: Polygon): boolean {
 }
 
 export function testPolygonPolygon(p1: Polygon, p2: Polygon): boolean {
-	for (let i = 0; i < p1.length; i++) {
-		const l = {
-			p1: p1[i],
-			p2: p1[(i + 1) % p1.length],
-		};
-		if (testLinePolygon(l, p2)) {
+	for (let i = 0; i < p1.pts.length; i++) {
+		if (testLinePolygon(new Line(p1.pts[i], p1.pts[(i + 1) % p1.pts.length]), p2)) {
 			return true;
 		}
 	}
@@ -697,9 +706,10 @@ export function testPolygonPolygon(p1: Polygon, p2: Polygon): boolean {
 }
 
 // https://wrf.ecse.rpi.edu/Research/Short_Notes/pnpoly.html
-export function testPolygonPoint(p: Polygon, pt: Point): boolean {
+export function testPolygonPoint(poly: Polygon, pt: Point): boolean {
 
 	let c = false;
+	const p = poly.pts;
 
 	for (let i = 0, j = p.length - 1; i < p.length; j = i++) {
 		if (
@@ -715,80 +725,7 @@ export function testPolygonPoint(p: Polygon, pt: Point): boolean {
 }
 
 export function testPointPoint(p1: Point, p2: Point): boolean {
-	return p1.eq(p2);
-}
-
-export function testAreaRect(a: Area, r: Rect): boolean {
-	switch (a.shape) {
-		case "rect": return testRectRect(r, a);
-		case "line": return testRectLine(r, a);
-		case "circle": return testRectCircle(r, a);
-		case "polygon": return testRectPolygon(r, a.pts);
-		case "point": return testRectPoint(r, a.pt);
-	}
-	throw new Error(`Unknown area shape: ${(a as Area).shape}`);
-}
-
-export function testAreaLine(a: Area, l: Line): boolean {
-	switch (a.shape) {
-		case "rect": return testRectLine(a, l);
-		case "line": return Boolean(testLineLine(a, l));
-		case "circle": return testLineCircle(l, a);
-		case "polygon": return testLinePolygon(l, a.pts);
-		case "point": return testLinePoint(l, a.pt);
-	}
-	throw new Error(`Unknown area shape: ${(a as Area).shape}`);
-}
-
-export function testAreaCircle(a: Area, c: Circle): boolean {
-	switch (a.shape) {
-		case "rect": return testRectCircle(a, c);
-		case "line": return testLineCircle(a, c);
-		case "circle": return testCircleCircle(a, c);
-		case "polygon": return testCirclePolygon(c, a.pts);
-		case "point": return testCirclePoint(c, a.pt);
-	}
-	throw new Error(`Unknown area shape: ${(a as Area).shape}`);
-}
-
-export function testAreaPolygon(a: Area, p: Polygon): boolean {
-	switch (a.shape) {
-		case "rect": return testRectPolygon(a, p);
-		case "line": return testLinePolygon(a, p);
-		case "circle": return testCirclePolygon(a, p);
-		case "polygon": return testPolygonPolygon(p, a.pts);
-		case "point": return testPolygonPoint(p, a.pt);
-	}
-	throw new Error(`Unknown area shape: ${(a as Area).shape}`);
-}
-
-export function testAreaPoint(a: Area, p: Point): boolean {
-	switch (a.shape) {
-		case "rect": return testRectPoint(a, p);
-		case "line": return testLinePoint(a, p);
-		case "circle": return testCirclePoint(a, p);
-		case "polygon": return testPolygonPoint(a.pts, p);
-		case "point": return testPointPoint(a.pt, p);
-	}
-	throw new Error(`Unknown area shape: ${(a as Area).shape}`);
-}
-
-export function testAreaArea(a1: Area, a2: Area): boolean {
-	switch (a2.shape) {
-		case "rect": return testAreaRect(a1, a2);
-		case "line": return testAreaLine(a1, a2);
-		case "circle": return testAreaCircle(a1, a2);
-		case "polygon": return testAreaPolygon(a1, a2.pts);
-		case "point": return testAreaPoint(a1, a2.pt);
-	}
-	throw new Error(`Unknown area shape: ${(a2 as Area).shape}`);
-}
-
-export function minkDiff(r1: Rect, r2: Rect): Rect {
-	return {
-		p1: vec2(r1.p1.x - r2.p2.x, r1.p1.y - r2.p2.y),
-		p2: vec2(r1.p2.x - r2.p1.x, r1.p2.y - r2.p1.y),
-	};
+	return p1.x === p2.x && p1.y === p2.y;
 }
 
 export class Line {
@@ -797,6 +734,9 @@ export class Line {
 	constructor(p1: Vec2, p2: Vec2) {
 		this.p1 = p1;
 		this.p2 = p2;
+	}
+	transform(m: Mat4): Line {
+		return new Line(m.multVec2(this.p1), m.multVec2(this.p2));
 	}
 }
 
@@ -807,6 +747,17 @@ export class Rect {
 		this.p1 = p1;
 		this.p2 = p2;
 	}
+	transform(m: Mat4): Polygon {
+		return new Polygon([
+			this.p1,
+			vec2(this.p2.x, this.p1.y),
+			this.p2,
+			vec2(this.p1.x, this.p2.y),
+		].map((pt) => m.multVec2(pt)));
+	}
+	bbox(): Rect {
+		return new Rect(this.p1, this.p2);
+	}
 }
 
 export class Circle {
@@ -816,4 +767,118 @@ export class Circle {
 		this.center = center;
 		this.radius = radius;
 	}
+	transform(tr: Mat4): Ellipse {
+		return new Ellipse(this.center, this.radius, this.radius).transform(tr);
+	}
+	bbox(): Rect {
+		return new Rect(
+			this.center.sub(vec2(this.radius)),
+			this.center.add(vec2(this.radius)),
+		);
+	}
+}
+
+export class Ellipse {
+	center: Vec2;
+	radiusX: number;
+	radiusY: number;
+	constructor(center: Vec2, rx: number, ry: number) {
+		this.center = center;
+		this.radiusX = rx;
+		this.radiusY = ry;
+	}
+	transform(tr: Mat4): Ellipse {
+		return new Ellipse(
+			tr.multVec2(this.center),
+			tr.m[0] * this.radiusX,
+			tr.m[5] * this.radiusY
+		);
+	}
+	bbox(): Rect {
+		return new Rect(
+			this.center.sub(vec2(this.radiusX, this.radiusY)),
+			this.center.add(vec2(this.radiusX, this.radiusY)),
+		);
+	}
+}
+
+export class Polygon {
+	pts: Vec2[];
+	constructor(pts: Vec2[]) {
+		if (pts.length < 3) {
+			throw new Error("Polygons should have at least 3 vertices");
+		}
+		this.pts = pts;
+	}
+	transform(m: Mat4): Polygon {
+		return new Polygon(this.pts.map((pt) => m.multVec2(pt)));
+	}
+	bbox(): Rect {
+		const b = new Rect(vec2(Number.MAX_VALUE), vec2(-Number.MAX_VALUE));
+		for (const pt of this.pts) {
+			b.p1.x = Math.min(b.p1.x, pt.x);
+			b.p2.x = Math.max(b.p2.x, pt.x);
+			b.p1.y = Math.min(b.p1.y, pt.y);
+			b.p2.y = Math.max(b.p2.y, pt.y);
+		}
+		return b;
+	}
+}
+
+export class Point {
+	x: number;
+	y: number;
+	constructor(x: number, y: number) {
+		this.x = x;
+		this.y = y;
+	}
+	static fromVec2(p: Vec2): Point {
+		return new Point(p.x, p.y);
+	}
+	toVec2(): Vec2 {
+		return new Vec2(this.x, this.y);
+	}
+	transform(tr: Mat4): Point {
+		return Point.fromVec2(tr.multVec2(this.toVec2()));
+	}
+	bbox(): Rect {
+		return new Rect(this.toVec2(), this.toVec2());
+	}
+}
+
+export function sat(p1: Polygon, p2: Polygon): Vec2 | null {
+	let overlap = Number.MAX_VALUE;
+	let displacement = vec2(0);
+	for (const poly of [p1, p2]) {
+		for (let i = 0; i < poly.pts.length; i++) {
+			const a = poly.pts[i];
+			const b = poly.pts[(i + 1) % poly.pts.length];
+			const axisProj = b.sub(a).normal().unit();
+			let min1 = Number.MAX_VALUE;
+			let max1 = -Number.MAX_VALUE;
+			for (let j = 0; j < p1.pts.length; j++) {
+				const q = p1.pts[j].dot(axisProj);
+				min1 = Math.min(min1, q);
+				max1 = Math.max(max1, q);
+			}
+			let min2 = Number.MAX_VALUE;
+			let max2 = -Number.MAX_VALUE;
+			for (let j = 0; j < p2.pts.length; j++) {
+				const q = p2.pts[j].dot(axisProj);
+				min2 = Math.min(min2, q);
+				max2 = Math.max(max2, q);
+			}
+			const o = Math.min(max1, max2) - Math.max(min1, min2);
+			if (o < 0) {
+				return null;
+			}
+			if (o < Math.abs(overlap)) {
+				const o1 = max2 - min1;
+				const o2 = min2 - max1;
+				overlap = Math.abs(o1) < Math.abs(o2) ? o1 : o2;
+				displacement = axisProj.scale(overlap);
+			}
+		}
+	}
+	return displacement;
 }
