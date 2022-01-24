@@ -1665,7 +1665,7 @@ export interface KaboomCtx {
 	 *
 	 * @example
 	 * ```js
-	 * draRect({
+	 * drawRect({
 	 *     width: 120,
 	 *     height: 240,
 	 *     pos: vec2(20, 20),
