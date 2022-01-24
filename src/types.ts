@@ -2977,7 +2977,7 @@ export type DrawTextOpt = RenderProps & {
 	 */
 	transform?: CharTransform | CharTransformFunc,
 	/**
-	 * Stylesheet for styled chunks, in the syntax of "here comes a (styled):wavy word".
+	 * Stylesheet for styled chunks, in the syntax of "this is a [styled].stylename word".
 	 *
 	 * @since v2000.2
 	 */
@@ -3009,8 +3009,14 @@ export interface FormattedChar {
 	uniform: Uniform,
 }
 
+/**
+ * A function that returns a character transform config. Useful if you're generating dynamic styles.
+ */
 export type CharTransformFunc = (idx: number, ch: string) => CharTransform;
 
+/**
+ * Describes how to transform each character.
+ */
 export interface CharTransform {
 	pos?: Vec2,
 	scale?: Vec2 | number,
@@ -3722,7 +3728,7 @@ export interface TextCompOpt {
 	 */
 	transform?: CharTransform | CharTransformFunc,
 	/**
-	 * Stylesheet for styled chunks, in the syntax of "here comes a (styled):wavy word".
+	 * Stylesheet for styled chunks, in the syntax of "this is a [styled].stylename word".
 	 *
 	 * @since v2000.2
 	 */
