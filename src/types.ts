@@ -82,7 +82,17 @@ export interface KaboomCtx {
 	 * })
 	 * ```
 	 */
-	add<T>(comps: CompList<T>): GameObj<T>,
+	add<T>(comps: CompList<T> | GameObj<T>): GameObj<T>,
+	/**
+	 * Create a game object from a list of components, without adding it to the scene.
+	 *
+	 * @since v2001.0
+	 */
+	make<T>(comps?: CompList<T>): GameObj<T>,
+	/**
+	 * Remove and re-add the game obj, without triggering add / destroy events.
+	 */
+	readd(obj: GameObj),
 	/**
 	 * Get a list of all game objs with certain tag.
 	 *
@@ -123,16 +133,6 @@ export interface KaboomCtx {
 	 * Run callback on every game obj in reverse order.
 	 */
 	revery<T>(action: (obj: GameObj) => T): void,
-	/**
-	 * Remove and re-add the game obj.
-	 *
-	 * @example
-	 * ```js
-	 * // mainly useful when you want to make something to draw on top
-	 * readd(froggy)
-	 * ```
-	 */
-	readd(obj: GameObj): GameObj,
 	/**
 	 * Remove the game obj.
 	 *
@@ -2071,13 +2071,11 @@ export interface GameObjRaw {
 	 *
 	 * @since v2000.2.0
 	 */
-	add<T>(comps: CompList<T>): GameObj<T>,
+	add<T>(comps: CompList<T> | GameObj<T>): GameObj<T>,
 	/**
-	 * Remove and re-add the game obj.
-	 *
-	 * @since v2000.2.0
+	 * Remove and re-add the game obj, without triggering add / destroy events.
 	 */
-	readd(obj: GameObj): GameObj,
+	readd(obj: GameObj),
 	/**
 	 * Remove a child.
 	 *
