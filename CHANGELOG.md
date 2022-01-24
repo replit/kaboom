@@ -3,6 +3,8 @@
 - game objects can have children with `obj.add()` now which share the parent transform
 - removed all deprecated functions in v2000.2
 - raised esbuild target to `esnext`
+- added `make()` to make a game object without adding to the scene
+- `add()` supports adding unattached game objects to the scene `add(make([...comps]))`
 
 # v2000.2.0 "Fancy Text Mode"
 

@@ -2708,17 +2708,23 @@ function make<T>(comps: CompList<T>): GameObj<T> {
 		children: [],
 		parent: null,
 
-		// TODO: accept gameobj
-		add<T2>(comps: CompList<T2>): GameObj<T2> {
-			const obj = make(comps);
+		add<T2>(a: CompList<T2> | GameObj<T2>): GameObj<T2> {
+			const obj = (() => {
+				if (Array.isArray(a)) {
+					return make(a);
+				}
+				if (a.parent) {
+					throw new Error("Cannot add a game obj that already has a parent.");
+				}
+				return a;
+			})();
 			obj.parent = this;
-			obj.trigger("add");
+			obj.trigger("add", this);
 			onLoad(() => obj.trigger("load"));
 			this.children.push(obj);
 			return obj;
 		},
 
-		// TODO: use add()
 		readd(obj: GameObj): GameObj {
 			this.remove(obj);
 			this.children.push(obj);
@@ -2889,6 +2895,9 @@ function make<T>(comps: CompList<T>): GameObj<T> {
 		},
 
 		exists(): boolean {
+			if (!this.parent) {
+				return false;
+			}
 			if (this.parent === game.root) {
 				return true;
 			} else {
@@ -4824,11 +4833,11 @@ interface BoomOpt {
 }
 
 // aliases for root game obj operations
-function add<T>(comps: CompList<T>): GameObj<T> {
+function add<T>(comps: CompList<T> | GameObj<T>): GameObj<T> {
 	return game.root.add(comps);
 }
 
-function readd<T>(obj: GameObj<T>): GameObj<T> {
+function readd(obj: GameObj) {
 	return game.root.readd(obj);
 }
 
@@ -5430,12 +5439,13 @@ const ctx: KaboomCtx = {
 	gravity,
 	// obj
 	add,
-	readd,
+	make,
 	destroy,
 	destroyAll,
 	get,
 	every,
 	revery,
+	readd,
 	// comps
 	pos,
 	scale,
