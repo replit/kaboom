@@ -1,3 +1,7 @@
+### v2000.2.2
+
+- fixed doc for `TextCompOpt#styles` and `DrawTextOpt#styles`
+
 ### v2000.2.1
 
 - fixed updates not running at all when `kaboom({ debug: false })`
