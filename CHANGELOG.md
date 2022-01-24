@@ -6,7 +6,11 @@
 - added `make()` to make a game object without adding to the scene
 - `add()` supports adding unattached game objects to the scene `add(make([...comps]))`
 
-# v2000.2.0 "Fancy Text Mode"
+### v2000.2.1
+
+- fixed updates not running at all when `kaboom({ debug: false })`
+
+## v2000.2.0 "Fancy Text Mode"
 
 - added `formatText()` and `drawFormattedText()`
 - added `charSpacing` and `lineSpacing` in `TextCompOpt` and `DrawTextOpt`
@@ -54,7 +58,7 @@
 
 - fixed `StateComp#enterState()` not accepting any state
 
-# v2000.1.0 "Record Mode"
+## v2000.1.0 "Record Mode"
 
 - added `hsl2rgb()` for converting HSL color to kaboom RGB
 - added `record()` to start a screen recording
