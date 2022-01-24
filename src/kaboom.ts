@@ -13,7 +13,6 @@ import {
 	quad,
 	rgb,
 	hsl2rgb,
-	rng,
 	rand,
 	randi,
 	randSeed,
@@ -52,8 +51,6 @@ import {
 	downloadURL,
 	downloadBlob,
 	uid,
-	deprecate,
-	deprecateMsg,
 	isDataURL,
 	deepEq,
 } from "./utils";
@@ -1178,18 +1175,8 @@ function play(
 			return stopped;
 		},
 
-		paused(): boolean {
-			deprecateMsg("paused()", "isPaused()");
-			return this.isPaused();
-		},
-
 		isStopped(): boolean {
 			return stopped;
-		},
-
-		stopped(): boolean {
-			deprecateMsg("stopped()", "isStopped()");
-			return this.isStopped();
 		},
 
 		// TODO: affect time()
@@ -2632,11 +2619,6 @@ function dt() {
 	return app.dt * debug.timeScale;
 }
 
-function mouseWorldPos(): Vec2 {
-	deprecateMsg("mouseWorldPos()", "toWorld(mousePos())");
-	return toWorld(mousePos());
-}
-
 type Camera = {
 	pos: Vec2,
 	scale: Vec2,
@@ -2728,9 +2710,6 @@ function make<T>(comps: CompList<T>): GameObj<T> {
 
 		// TODO: accept gameobj
 		add<T2>(comps: CompList<T2>): GameObj<T2> {
-			if (this !== game.root) {
-				throw new Error("Children game object not supported yet");
-			}
 			const obj = make(comps);
 			obj.parent = this;
 			obj.trigger("add");
@@ -3606,17 +3585,7 @@ function outview(opt: OutviewCompOpt = {}): OutviewComp {
 	};
 }
 
-function cleanup(opt: (number | undefined) | CleanupCompOpt = {}): CleanupComp {
-	if (typeof opt === "number") {
-		deprecateMsg("clean(time)", "cleanup({ delay: time })");
-		return {
-			...outview({
-				destroy: true,
-				delay: opt,
-			}),
-			id: "cleanup",
-		};
-	}
+function cleanup(opt: CleanupCompOpt = {}): CleanupComp {
 	return {
 		...outview({
 			destroy: true,
@@ -3704,21 +3673,6 @@ function area(opt: AreaCompOpt = {}): AreaComp {
 			const e1 = this.onUpdate(() => this._checkCollisions(tag, f));
 			const e2 = this.on("collide", (obj, col) => obj.is(tag) && f(obj, col));
 			return () => [e1, e2].forEach((f) => f());
-		},
-
-		clicks(...args) {
-			deprecateMsg("clicks()", "onClick()");
-			return this.onClick(...args);
-		},
-
-		hovers(...args) {
-			deprecateMsg("hovers()", "onHover()");
-			return this.onHover(...args);
-		},
-
-		collides(...args) {
-			deprecateMsg("collides()", "onCollide()");
-			return this.onCollide(...args);
 		},
 
 		hasPoint(pt: Vec2): boolean {
@@ -4308,18 +4262,8 @@ function body(opt: BodyCompOpt = {}): BodyComp {
 			return curPlatform !== null;
 		},
 
-		grounded(): boolean {
-			deprecateMsg("grounded()", "isGrounded()");
-			return this.isGrounded();
-		},
-
 		isFalling(): boolean {
 			return velY > 0;
-		},
-
-		falling(): boolean {
-			deprecateMsg("falling()", "isFalling()");
-			return this.isFalling();
 		},
 
 		jump(force: number) {
@@ -5542,7 +5486,6 @@ const ctx: KaboomCtx = {
 	onTouchMove,
 	onTouchEnd,
 	mousePos,
-	mouseWorldPos,
 	mouseDeltaPos,
 	isKeyDown,
 	isKeyPressed,
@@ -5570,7 +5513,6 @@ const ctx: KaboomCtx = {
 	Mat4,
 	Quad,
 	RNG,
-	rng,
 	rand,
 	randi,
 	randSeed,
@@ -5653,35 +5595,6 @@ const ctx: KaboomCtx = {
 	CYAN: Color.CYAN,
 	WHITE: Color.WHITE,
 	BLACK: Color.BLACK,
-	// deprecated
-	keyIsDown: deprecate("keyIsDown()", "isKeyDown()", isKeyDown),
-	keyIsPressed: deprecate("keyIsPressed()", "isKeyPressed()", isKeyPressed),
-	keyIsPressedRep: deprecate("keyIsPressedRep()", "isKeyPressedRepeat()", isKeyPressedRepeat),
-	keyIsReleased: deprecate("keyIsReleased()", "isKeyReleased()", isKeyReleased),
-	mouseIsDown: deprecate("mouseIsDown()", "isMouseDown()", isMouseDown),
-	mouseIsClicked: deprecate("mouseIsClicked()", "isMousePressed()", isMousePressed),
-	mouseIsReleased: deprecate("mouseIsReleased()", "isMouseReleased()", isMouseReleased),
-	mouseIsMoved: deprecate("mouseIsMoved()", "isMouseMoved()", isMouseMoved),
-	dir: deprecate("dir()", "Vec2.fromAngle()", Vec2.fromAngle),
-	action: deprecate("action()", "onUpdate()", onUpdate),
-	render: deprecate("render()", "onDraw()", onDraw),
-	collides: deprecate("collides()", "onCollide()", onCollide),
-	clicks: deprecate("clicks()", "onClick()", onClick),
-	hovers: deprecate("hovers()", "onHover()", onHover),
-	keyDown: deprecate("keyDown()", "onKeyDown()", onKeyDown),
-	keyPress: deprecate("keyPress()", "onKeyPress()", onKeyPress),
-	keyPressRep: deprecate("keyPressRep()", "onKeyPressRepeat()", onKeyPressRepeat),
-	keyRelease: deprecate("keyRelease()", "onKeyRelease()", onKeyRelease),
-	mouseDown: deprecate("mouseDown()", "onMouseDown()", onMouseDown),
-	mouseClick: deprecate("mouseClick()", "onMousePress()", onMousePress),
-	mouseRelease: deprecate("mouseRelease()", "onMouseRelease()", onMouseRelease),
-	mouseMove: deprecate("mouseMove()", "onMouseMove()", onMouseMove),
-	charInput: deprecate("charInput()", "onCharInput()", onCharInput),
-	touchStart: deprecate("touchStart()", "onTouchStart()", onTouchStart),
-	touchMove: deprecate("touchMove()", "onTouchMove()", onTouchMove),
-	touchEnd: deprecate("touchEnd()", "onTouchEnd()", onTouchEnd),
-	focused: deprecate("focused()", "isFocused()", isFocused),
-	ready: deprecate("ready()", "onLoad()", onLoad),
 };
 
 if (gopt.plugins) {

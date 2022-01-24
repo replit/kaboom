@@ -1,5 +1,7 @@
 # v2001.0.0 "A Kaboom Odyssey"
 
+- game objects can have children with `obj.add()` now which share the parent transform
+- removed all deprecated functions in v2000.2
 - raised esbuild target to `esnext`
 
 # v2000.2.0 "Fancy Text Mode"

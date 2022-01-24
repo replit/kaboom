@@ -5,10 +5,6 @@ import {
 	Area,
 } from "./types";
 
-import {
-	deprecateMsg,
-} from "./utils";
-
 export function deg2rad(deg: number): number {
 	return deg * Math.PI / 180;
 }
@@ -121,9 +117,6 @@ export class Vec2 {
 	toString(): string {
 		return `(${this.x.toFixed(2)}, ${this.y.toFixed(2)})`;
 	}
-	str(): string {
-		return this.toString();
-	}
 }
 
 export function vec2(...args): Vec2 {
@@ -207,11 +200,6 @@ export class Color {
 			&& this.g === other.g
 			&& this.b === other.b
 			;
-	}
-
-	str(): string {
-		deprecateMsg("str()", "toString()");
-		return `(${this.r}, ${this.g}, ${this.b})`;
 	}
 
 	toString(): string {
@@ -542,11 +530,6 @@ export class RNG {
 
 // TODO: let user pass seed
 const defRNG = new RNG(Date.now());
-
-export function rng(seed: number): RNG {
-	deprecateMsg("rng()", "new RNG()");
-	return new RNG(seed);
-}
 
 export function randSeed(seed?: number): number {
 	if (seed != null) {
