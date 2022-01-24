@@ -80,3 +80,14 @@ export const deprecate = (oldName: string, newName: string, newFunc: (...args) =
 	deprecateMsg(oldName, newName);
 	return newFunc(...args);
 };
+
+export function struct<T>(create: (...args) => T) {
+	const st = (...args) => {
+		const obj = create(...args);
+		// @ts-ignore
+		obj.__type = st;
+		return obj;
+	};
+	return st;
+}
+
