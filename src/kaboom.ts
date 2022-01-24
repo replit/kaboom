@@ -5348,7 +5348,7 @@ run(() => {
 		// TODO: this gives the latest mousePos in input handlers but uses cam matrix from last frame
 		game.trigger("input");
 
-		if (!debug.paused && gopt.debug !== false) {
+		if (!debug.paused) {
 			updateFrame();
 		}
 
