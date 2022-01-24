@@ -3010,17 +3010,7 @@ function onCollide(
 	t2: Tag,
 	f: (a: GameObj, b: GameObj, col?: Collision) => void,
 ): EventCanceller {
-	const e1 = on("collide", t1, (a, b, col) => b.is(t2) && f(a, b, col));
-	const e2 = on("collide", t2, (a, b, col) => b.is(t1) && f(b, a, col));
-	const e3 = onUpdate(t1, (o1: GameObj) => {
-		if (!o1.area) {
-			throw new Error("onCollide() requires the object to have area() component");
-		}
-		o1._checkCollisions(t2, (o2) => {
-			f(o1, o2);
-		});
-	});
-	return () => [e1, e2, e3].forEach((f) => f());
+	return on("collide", t1, (a, b, col) => b.is(t2) && f(a, b, col));
 }
 
 // add an event that runs when objs with tag t is clicked
@@ -3513,7 +3503,7 @@ function area(opt: AreaCompOpt = {}): AreaComp {
 
 		checkCollision(other: GameObj<AreaComp>) {
 			if (!other.area || !other.exists()) {
-				return false;
+				return null;
 			}
 			const a1 = this.worldArea();
 			const a2 = other.worldArea();
@@ -3559,10 +3549,16 @@ function area(opt: AreaCompOpt = {}): AreaComp {
 			});
 		},
 
-		onCollide(tag: Tag, f: (o: GameObj, col?: Collision) => void): EventCanceller {
-			const e1 = this.onUpdate(() => this._checkCollisions(tag, f));
-			const e2 = this.on("collide", (obj, col) => obj.is(tag) && f(obj, col));
-			return () => [e1, e2].forEach((f) => f());
+		// TODO: update whitelist
+		onCollide(
+			tag: Tag | ((obj: GameObj, col?: Collision) => void),
+			cb?: (obj: GameObj, col?: Collision) => void
+		): EventCanceller {
+			if (typeof tag === "function" && cb === undefined) {
+				return this.on("collide", tag);
+			} else if (typeof tag === "string") {
+				return this.on("collide", (obj, col) => obj.is(tag) && cb(obj, col));
+			}
 		},
 
 		hasPoint(pt: Vec2): boolean {
@@ -3577,31 +3573,6 @@ function area(opt: AreaCompOpt = {}): AreaComp {
 		// push object out of other solid objects
 		pushOutAll() {
 			game.root.every(this.pushOut);
-		},
-
-		// @ts-ignore
-		_checkCollisions(tag: Tag) {
-
-			game.root.every(tag, (obj) => {
-
-				if (this === obj || !this.exists() || colliding[obj._id]) {
-					return;
-				}
-
-				if (this.isColliding(obj)) {
-					this.trigger("collide", obj, null);
-					colliding[obj._id] = obj;
-				}
-
-			});
-
-			for (const id in colliding) {
-				const obj = colliding[id];
-				if (!this.isColliding(obj)) {
-					delete colliding[id];
-				}
-			}
-
 		},
 
 		// TODO: area scale not working

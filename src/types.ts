@@ -2059,6 +2059,10 @@ export interface GameObjRaw {
 	 */
 	_id: number | null,
 	/**
+	 * Object transform matrix.
+	 */
+	_transform: Mat4,
+	/**
 	 * If draw the game obj (run "draw" event or not).
 	 */
 	hidden: boolean,
