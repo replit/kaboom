@@ -632,6 +632,34 @@ const audio = (() => {
 
 })();
 
+class AssetBucket<D> {
+	loading: Map<string, Promise<D>> = new Map();
+	loaded: Map<string, D> = new Map();
+	add(name: string, loader: Promise<D>): Promise<D> {
+		this.loading.set(name, loader);
+		return loader.then((data: D) => {
+			this.loaded.set(name, data);
+			return data;
+		}).finally(() => {
+			this.loading.delete(name);
+		});
+// 		return new Promise((resolve, reject) => {
+// 			loader.catch((err) => {
+// 				debug.error(err);
+// 				reject(err);
+// 			}).then((data: D) => {
+// 				this.loaded.set(name, data);
+// 				resolve(data);
+// 			}).finally(() => {
+// 				this.loading.delete(name);
+// 			});
+// 		});
+	}
+	get(name: string): D | null {
+		return this.loaded.get(name) ?? null;
+	}
+}
+
 const assets = {
 
 	// keep track of how many assets are loading / loaded, for calculaating progress
@@ -642,10 +670,11 @@ const assets = {
 	urlPrefix: "",
 
 	// asset holders
-	sprites: {},
-	sounds: {},
-	shaders: {},
-	fonts: {},
+	sprites: new AssetBucket<SpriteData>(),
+	custom: new AssetBucket<any>(),
+	sounds: new Map<string, SoundData>(),
+	shaders: new Map<string, ShaderData>(),
+	fonts: new Map<string, FontData>(),
 
 };
 
@@ -775,19 +804,19 @@ function loadFont(
 }
 
 function getSprite(name: string): SpriteData | null {
-	return assets.sprites[name] ?? null;
+	return assets.sprites.get(name);
 }
 
 function getSound(name: string): SoundData | null {
-	return assets.sounds[name] ?? null;
+	return assets.sounds.get(name) ?? null;
 }
 
 function getFont(name: string): FontData | null {
-	return assets.fonts[name] ?? null;
+	return assets.fonts.get(name) ?? null;
 }
 
 function getShader(name: string): ShaderData | null {
-	return assets.shaders[name] ?? null;
+	return assets.shaders.get(name) ?? null;
 }
 
 // get an array of frames based on configuration on how to slice the image
@@ -829,7 +858,7 @@ function loadSpriteAtlas(
 				frames: slice(info.sliceX, info.sliceY, info.x / w, info.y / h, info.width / w, info.height / h),
 				anims: info.anims,
 			}
-			assets.sprites[name] = spr;
+// 			assets.sprites[name] = spr;
 			map[name] = spr;
 		}
 		return map;
@@ -838,7 +867,6 @@ function loadSpriteAtlas(
 
 // synchronously load sprite from local pixel data
 function loadRawSprite(
-	name: string | null,
 	src: GfxTexData,
 	opt: SpriteLoadOpt = {}
 ) {
@@ -846,17 +874,11 @@ function loadRawSprite(
 	const tex = makeTex(src, opt);
 	const frames = slice(opt.sliceX || 1, opt.sliceY || 1);
 
-	const sprite = {
+	return {
 		tex: tex,
 		frames: frames,
 		anims: opt.anims || {},
 	};
-
-	if (name) {
-		assets.sprites[name] = sprite;
-	}
-
-	return sprite;
 
 }
 
@@ -871,7 +893,7 @@ function loadSprite(
 	},
 ): Promise<SpriteData> {
 
-	return load(new Promise<SpriteData>((resolve, reject) => {
+	return assets.sprites.add(name, new Promise((resolve, reject) => {
 
 		if (!src) {
 			return reject(`Expected sprite src for "${name}"`);
@@ -880,10 +902,10 @@ function loadSprite(
 		// from url
 		if (typeof(src) === "string") {
 			loadImg(src)
-				.then((img) => resolve(loadRawSprite(name, img, opt)))
+				.then((img) => resolve(loadRawSprite(img, opt)))
 				.catch(reject);
 		} else {
-			resolve(loadRawSprite(name, src, opt));
+			resolve(loadRawSprite(src, opt));
 		}
 
 	}));
@@ -1701,8 +1723,25 @@ function drawTexture(opt: DrawTextureOpt) {
 
 }
 
-// TODO: use native asset loader tracking
-const loading = new Set();
+function resolveSprite(id: string | SpriteData): SpriteData | Promise<SpriteData> {
+	if (typeof id === "string") {
+		const spr = getSprite(id)
+		if (!spr) {
+			// allow user directly passing resource src
+			const loading = assets.sprites.loading.get(id);
+			if (!loading) {
+				return loadSprite(id, id);
+			} else {
+				return loading;
+			}
+		} else {
+			return spr;
+		}
+	} else {
+		// TODO: Check for non string opt.sprite type
+		return id;
+	}
+}
 
 function drawSprite(opt: DrawSpriteOpt) {
 
@@ -1710,28 +1749,16 @@ function drawSprite(opt: DrawSpriteOpt) {
 		throw new Error(`drawSprite() requires property "sprite"`);
 	}
 
-	const spr = findAsset(opt.sprite, assets.sprites);
+	const spr = resolveSprite(opt.sprite);
 
-	if (!spr) {
-
-		// if passes a source url, we load it implicitly
-		if (typeof opt.sprite === "string") {
-			if (!loading.has(opt.sprite)) {
-				loading.add(opt.sprite);
-				loadSprite(opt.sprite, opt.sprite)
-					.then((a) => loading.delete(opt.sprite));
-			}
-			return;
-		} else {
-			throw new Error(`sprite not found: "${opt.sprite}"`);
-		}
-
+	if (spr instanceof Promise) {
+		return;
 	}
 
 	const q = spr.frames[opt.frame ?? 0];
 
 	if (!q) {
-		throw new Error(`frame not found: ${opt.frame ?? 0}`);
+		throw new Error(`Frame not found: ${opt.frame ?? 0}`);
 	}
 
 	drawTexture({
@@ -3830,10 +3857,14 @@ interface SpriteCurAnim {
 // TODO: clean
 function sprite(id: string | SpriteData, opt: SpriteCompOpt = {}): SpriteComp {
 
-	let spr = null;
+	let spriteData = null;
 	let curAnim: SpriteCurAnim | null = null;
 
-	function calcTexScale(tex: GfxTexture, q: Quad, w?: number, h?: number): Vec2 {
+	if (!id) {
+		throw new Error("Please pass the resource name or data to sprite()");
+	}
+
+	const calcTexScale = (tex: GfxTexture, q: Quad, w?: number, h?: number): Vec2 => {
 		const scale = vec2(1, 1);
 		if (w && h) {
 			scale.x = w / (tex.width * q.w);
@@ -3858,39 +3889,45 @@ function sprite(id: string | SpriteData, opt: SpriteCompOpt = {}): SpriteComp {
 		quad: opt.quad || new Quad(0, 0, 1, 1),
 		animSpeed: opt.animSpeed ?? 1,
 
-		load() {
+		add() {
 
-			if (typeof id === "string") {
-				spr = assets.sprites[id];
+			const init = (spr: SpriteData) => {
+
+				spriteData = spr;
+				let q = spr.frames[0].clone();
+
+				if (opt.quad) {
+					q = q.scale(opt.quad);
+				}
+
+				const scale = calcTexScale(spr.tex, q, opt.width, opt.height);
+
+				this.width = spr.tex.width * q.w * scale.x;
+				this.height = spr.tex.height * q.h * scale.y;
+
+				if (opt.anim) {
+					this.play(opt.anim);
+				}
+
+				this.trigger("spriteLoaded", spriteData);
+
+			};
+
+			const spr = resolveSprite(id);
+
+			if (spr instanceof Promise) {
+				spr.then(init);
 			} else {
-				spr = id;
-			}
-
-			if (!spr) {
-				throw new Error(`sprite not found: "${id}"`);
-			}
-
-			let q = { ...spr.frames[0] };
-
-			if (opt.quad) {
-				q = q.scale(opt.quad);
-			}
-
-			const scale = calcTexScale(spr.tex, q, opt.width, opt.height);
-
-			this.width = spr.tex.width * q.w * scale.x;
-			this.height = spr.tex.height * q.h * scale.y;
-
-			if (opt.anim) {
-				this.play(opt.anim);
+				init(spr);
 			}
 
 		},
 
 		draw() {
+			if (!spriteData) return;
 			drawSprite({
 				...getRenderProps(this),
-				sprite: spr,
+				sprite: spriteData,
 				frame: this.frame,
 				quad: this.quad,
 				flipX: opt.flipX,
@@ -3903,11 +3940,13 @@ function sprite(id: string | SpriteData, opt: SpriteCompOpt = {}): SpriteComp {
 
 		update() {
 
+			if (!spriteData) return;
+
 			if (!curAnim) {
 				return;
 			}
 
-			const anim = spr.anims[curAnim.name];
+			const anim = spriteData.anims[curAnim.name];
 
 			if (typeof anim === "number") {
 				this.frame = anim;
@@ -3953,14 +3992,13 @@ function sprite(id: string | SpriteData, opt: SpriteCompOpt = {}): SpriteComp {
 		// TODO: this opt should be used instead of the sprite data opt, if given
 		play(name: string, opt: SpriteAnimPlayOpt = {}) {
 
-			if (!spr) {
-				onLoad(() => {
+			if (!spriteData) {
+				this.on("spriteLoaded", () => {
 					this.play(name);
 				});
-				return;
-			}
+			};
 
-			const anim = spr.anims[name];
+			const anim = spriteData.anims[name];
 
 			if (anim == null) {
 				throw new Error(`anim not found: ${name}`);
@@ -4001,10 +4039,10 @@ function sprite(id: string | SpriteData, opt: SpriteCompOpt = {}): SpriteComp {
 		},
 
 		numFrames() {
-			if (!spr) {
+			if (!spriteData) {
 				return 0;
 			}
-			return spr.frames.length;
+			return spriteData.frames.length;
 		},
 
 		curAnim() {
@@ -5274,8 +5312,8 @@ if (gopt.burp) {
 	enterBurpMode();
 }
 
-window.addEventListener("error", (e) => {
-	debug.error(`Error: ${e.error.message}`);
+function handleErr(msg: string) {
+	debug.error(`Error: ${msg}`);
 	quit();
 	run(() => {
 		if (loadProgress() === 1) {
@@ -5284,6 +5322,14 @@ window.addEventListener("error", (e) => {
 			frameEnd();
 		}
 	});
+}
+
+window.addEventListener("error", (e) => {
+	handleErr(e.error.message);
+});
+
+window.addEventListener("unhandledrejection", (e) => {
+	handleErr(e.reason);
 });
 
 function run(f: () => void) {
@@ -5339,11 +5385,11 @@ run(() => {
 	// running this every frame now mainly because isFullscreen() is not updated real time when requested fullscreen
 	updateViewport();
 
-	if (!app.loaded) {
-		frameStart();
-		drawLoadScreen();
-		frameEnd();
-	} else {
+// 	if (!app.loaded) {
+// 		frameStart();
+// 		drawLoadScreen();
+// 		frameEnd();
+// 	} else {
 
 		// TODO: this gives the latest mousePos in input handlers but uses cam matrix from last frame
 		game.trigger("input");
@@ -5361,7 +5407,7 @@ run(() => {
 
 		frameEnd();
 
-	}
+// 	}
 
 });
 
