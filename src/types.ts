@@ -1076,6 +1076,7 @@ export interface KaboomCtx {
 	 * ```
 	 */
 	load<T>(l: Promise<T>): void,
+	loadProgress<T>(): number,
 	/**
 	 * Get the width of game.
 	 *

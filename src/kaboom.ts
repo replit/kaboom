@@ -656,24 +656,23 @@ class AssetBucket<D> {
 	getLoading(name: string): Promise<D> | null {
 		return this.loading.get(name) ?? null;
 	}
+	progress(): number {
+		if (this.loaded.size === this.loading.size) {
+			return 1;
+		}
+		return this.loaded.size / (this.loaded.size + this.loading.size);
+	}
 }
 
 const assets = {
-
-	// keep track of how many assets are loading / loaded, for calculaating progress
-	numLoading: 0,
-	numLoaded: 0,
-
 	// prefix for when loading from a url
 	urlPrefix: "",
-
 	// asset holders
 	sprites: new AssetBucket<SpriteData>(),
 	fonts: new AssetBucket<FontData>(),
 	sounds: new AssetBucket<SoundData>(),
 	shaders: new AssetBucket<ShaderData>(),
 	custom: new AssetBucket<any>(),
-
 };
 
 const game = {
@@ -721,28 +720,19 @@ const game = {
 
 // wrap individual loaders with global loader counter, for stuff like progress bar
 function load<T>(prom: Promise<T>): Promise<T> {
-
-	assets.numLoading++;
-
-	// wrapping another layer of promise because we are catching errors here internally and we also want users be able to catch errors, however only one catch is allowed per promise chain
-	return new Promise((resolve, reject) => {
-		prom
-			.then(resolve)
-			.catch((err) => {
-				debug.error(err);
-				reject(err);
-			})
-			.finally(() => {
-				assets.numLoading--;
-				assets.numLoaded++;
-			});
-	}) as Promise<T>;
-
+	return assets.custom.add(null, prom);
 }
 
 // get current load progress
 function loadProgress(): number {
-	return assets.numLoaded / (assets.numLoading + assets.numLoaded);
+	const buckets = [
+		assets.sprites,
+		assets.sounds,
+		assets.shaders,
+		assets.fonts,
+		assets.custom,
+	];
+	return buckets.reduce((n, bucket) => n + bucket.progress(), 0) / buckets.length;
 }
 
 // global load path prefix
@@ -5445,6 +5435,7 @@ frameEnd();
 const ctx: KaboomCtx = {
 	// asset load
 	loadRoot,
+	loadProgress,
 	loadSprite,
 	loadSpriteAtlas,
 	loadSound,

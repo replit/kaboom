@@ -41,10 +41,6 @@ debug.log("hi")
 
 onDraw(() => {
 
-	drawText({
-		text: "bean",
-	})
-
 	drawSprite({
 		sprite: "asd",
 	})
@@ -58,6 +54,10 @@ onDraw(() => {
 	drawSprite({
 		pos: vec2(60),
 		sprite: "/sprites/bean.png",
+	})
+
+	drawText({
+		text: loadProgress(),
 	})
 
 })
