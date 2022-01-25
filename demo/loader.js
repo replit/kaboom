@@ -13,6 +13,8 @@ loadSprite("bean", "/sprites/bean.png").catch((err) => {
 volume(0.1)
 
 loadSound("bug", "/sounds/bug.mp3")
+loadPedit("asd", "/sprites/test.pedit")
+loadAseprite("ghosty", "/sprites/ghosty2.png", "/sprites/ghosty2.json")
 
 onKeyPress("space", () => {
 	play("/sounds/bug.mp3")
@@ -21,7 +23,7 @@ onKeyPress("space", () => {
 play("bug")
 
 add([
-	sprite("bean"),
+	sprite("ghosty", { anim: "idle" }),
 	pos(120)
 ])
 
@@ -43,9 +45,9 @@ onDraw(() => {
 		text: "bean",
 	})
 
-// 	drawSprite({
-// 		sprite: "bean",
-// 	})
+	drawSprite({
+		sprite: "asd",
+	})
 
 	if (spr) {
 		drawSprite({

@@ -2280,6 +2280,13 @@ export interface SpriteAnimPlayOpt {
 	onEnd?: () => void,
 }
 
+export interface PeditFile {
+	width: number,
+	height: number,
+	frames: string[],
+	anims: SpriteAnims,
+}
+
 /**
  * A dict of name <-> animation.
  */

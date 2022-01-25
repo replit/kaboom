@@ -1,0 +1,50 @@
+{ "frames": [
+   {
+    "filename": "ghosty 0.ase",
+    "frame": { "x": 0, "y": 0, "w": 20, "h": 26 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 20, "h": 26 },
+    "sourceSize": { "w": 20, "h": 26 },
+    "duration": 100
+   },
+   {
+    "filename": "ghosty 1.ase",
+    "frame": { "x": 20, "y": 0, "w": 20, "h": 26 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 20, "h": 26 },
+    "sourceSize": { "w": 20, "h": 26 },
+    "duration": 100
+   },
+   {
+    "filename": "ghosty 2.ase",
+    "frame": { "x": 40, "y": 0, "w": 20, "h": 26 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 20, "h": 26 },
+    "sourceSize": { "w": 20, "h": 26 },
+    "duration": 100
+   },
+   {
+    "filename": "ghosty 3.ase",
+    "frame": { "x": 60, "y": 0, "w": 20, "h": 26 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 20, "h": 26 },
+    "sourceSize": { "w": 20, "h": 26 },
+    "duration": 100
+   }
+ ],
+ "meta": {
+  "app": "http://www.aseprite.org/",
+  "version": "1.2.25",
+  "image": "ghosty.png",
+  "format": "RGBA8888",
+  "size": { "w": 80, "h": 26 },
+  "scale": "1",
+  "frameTags": [
+   { "name": "idle", "from": 0, "to": 3, "direction": "forward" }
+  ]
+ }
+}

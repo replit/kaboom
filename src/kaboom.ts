@@ -149,6 +149,7 @@ import {
 	Cursor,
 	Recording,
 	Kaboom,
+	PeditFile,
 } from "./types";
 
 import FPSCounter from "./fps";
@@ -632,17 +633,18 @@ const audio = (() => {
 
 })();
 
-// TODO: support unamed asset
 class AssetBucket<D> {
 	loading: Map<string, Promise<D>> = new Map();
 	loaded: Map<string, D> = new Map();
-	add(name: string, loader: Promise<D>): Promise<D> {
-		this.loading.set(name, loader);
+	lastUID: number = 0;
+	add(name: string | null, loader: Promise<D>): Promise<D> {
+		const id = name ?? (this.lastUID++ + "");
+		this.loading.set(id, loader);
 		return loader.then((data: D) => {
-			this.loaded.set(name, data);
+			this.loaded.set(id, data);
 			return data;
 		}).finally(() => {
-			this.loading.delete(name);
+			this.loading.delete(id);
 		});
 	}
 	get(name: string): D | Promise<D> | null {
@@ -669,7 +671,7 @@ const assets = {
 	sprites: new AssetBucket<SpriteData>(),
 	fonts: new AssetBucket<FontData>(),
 	sounds: new AssetBucket<SoundData>(),
-	shaders: new Map<string, ShaderData>(),
+	shaders: new AssetBucket<ShaderData>(),
 	custom: new AssetBucket<any>(),
 
 };
@@ -763,6 +765,10 @@ function fetchURL(path: string) {
 		});
 }
 
+function fetchJSON(path: string) {
+	return fetchURL(path).then((res) => res.json());
+}
+
 // wrapper around image loader to get a Promise
 function loadImg(src: string): Promise<HTMLImageElement> {
 	const img = new Image();
@@ -807,7 +813,7 @@ function getFont(name: string): FontData | Promise<FontData> | null {
 	return assets.fonts.get(name);
 }
 
-function getShader(name: string): ShaderData | null {
+function getShader(name: string): ShaderData | Promise<ShaderData> | null {
 	return assets.shaders.get(name) ?? null;
 }
 
@@ -829,17 +835,17 @@ function slice(x = 1, y = 1, dx = 0, dy = 0, w = 1, h = 1): Quad[] {
 	return frames;
 }
 
+// TODO: no name squatting
 function loadSpriteAtlas(
 	src: SpriteLoadSrc,
 	data: SpriteAtlasData | string
 ): Promise<Record<string, SpriteData>> {
 	if (typeof data === "string") {
 		// TODO: this adds a new loader asyncly
-		return load(fetchURL(data)
-			.then((res) => res.json())
+		return assets.custom.add(null, fetchJSON(data)
 			.then((data2) => loadSpriteAtlas(src, data2)));
 	}
-	return load(loadSprite(null, src).then((atlas) => {
+	return loadSprite(null, src).then((atlas) => {
 		const map = {};
 		const w = atlas.tex.width;
 		const h = atlas.tex.height;
@@ -850,11 +856,11 @@ function loadSpriteAtlas(
 				frames: slice(info.sliceX, info.sliceY, info.x / w, info.y / h, info.width / w, info.height / h),
 				anims: info.anims,
 			}
-// 			assets.sprites[name] = spr;
+			assets.sprites.loaded.set(name, spr);
 			map[name] = spr;
 		}
 		return map;
-	}));
+	});
 }
 
 // synchronously load sprite from local pixel data
@@ -904,84 +910,65 @@ function loadSprite(
 
 }
 
-// TODO: accept raw json
-function loadPedit(name: string, src: string): Promise<SpriteData> {
+function loadPedit(name: string | null, src: string | PeditFile): Promise<SpriteData> {
 
-	return load(new Promise<SpriteData>((resolve, reject) => {
+	return assets.sprites.add(name, new Promise(async (resolve) => {
 
-		fetchURL(src)
-			.then((res) => res.json())
-			.then(async (data) => {
+		const data = typeof src === "string" ? await fetchJSON(src) : src;
+		const images = await Promise.all(data.frames.map(loadImg));
+		const canvas = document.createElement("canvas");
+		canvas.width = data.width;
+		canvas.height = data.height * data.frames.length;
 
-				const images = await Promise.all(data.frames.map(loadImg));
-				const canvas = document.createElement("canvas");
-				canvas.width = data.width;
-				canvas.height = data.height * data.frames.length;
+		const ctx = canvas.getContext("2d");
 
-				const ctx = canvas.getContext("2d");
+		images.forEach((img: HTMLImageElement, i) => {
+			ctx.drawImage(img, 0, i * data.height);
+		});
 
-				images.forEach((img: HTMLImageElement, i) => {
-					ctx.drawImage(img, 0, i * data.height);
-				});
+		const spr = await loadSprite(null, canvas, {
+			sliceY: data.frames.length,
+			anims: data.anims,
+		});
 
-				return loadSprite(name, canvas, {
-					sliceY: data.frames.length,
-					anims: data.anims,
-				});
-			})
-			.then(resolve)
-			.catch(reject)
-			;
+		resolve(spr);
 
 	}));
 
 }
 
-// TODO: accept raw json
 function loadAseprite(
 	name: string | null,
 	imgSrc: SpriteLoadSrc,
 	jsonSrc: string
 ): Promise<SpriteData> {
-
-	return load(new Promise<SpriteData>((resolve, reject) => {
-
-		loadSprite(name, imgSrc)
-			.then((sprite: SpriteData) => {
-				fetchURL(jsonSrc)
-					.then((res) => res.json())
-					.then((data) => {
-						const size = data.meta.size;
-						sprite.frames = data.frames.map((f: any) => {
-							return new Quad(
-								f.frame.x / size.w,
-								f.frame.y / size.h,
-								f.frame.w / size.w,
-								f.frame.h / size.h,
-							);
-						});
-						for (const anim of data.meta.frameTags) {
-							if (anim.from === anim.to) {
-								sprite.anims[anim.name] = anim.from
-							} else {
-								sprite.anims[anim.name] = {
-									from: anim.from,
-									to: anim.to,
-									// TODO: let users define these
-									speed: 10,
-									loop: true,
-								};
-							}
-						}
-						resolve(sprite);
-					})
-					.catch(reject)
-					;
-			})
-			.catch(reject);
-
+	return assets.sprites.add(name, new Promise(async (resolve, reject) => {
+		const spr = await loadSprite(null, imgSrc);
+		const data = typeof jsonSrc === "string" ? await fetchJSON(jsonSrc) : jsonSrc;
+		const size = data.meta.size;
+		spr.frames = data.frames.map((f: any) => {
+			return new Quad(
+				f.frame.x / size.w,
+				f.frame.y / size.h,
+				f.frame.w / size.w,
+				f.frame.h / size.h,
+			);
+		});
+		for (const anim of data.meta.frameTags) {
+			if (anim.from === anim.to) {
+				spr.anims[anim.name] = anim.from
+			} else {
+				spr.anims[anim.name] = {
+					from: anim.from,
+					to: anim.to,
+					// TODO: let users define these
+					speed: 10,
+					loop: true,
+				};
+			}
+		}
+		resolve(spr);
 	}));
-
 }
 
 function loadShader(
@@ -991,19 +978,7 @@ function loadShader(
 	isUrl: boolean = false,
 ): Promise<ShaderData> {
 
-	function loadRawShader(
-		name: string | null,
-		vert: string | null,
-		frag: string | null,
-	): ShaderData {
-		const shader = makeShader(vert, frag);
-		if (name) {
-			assets.shaders[name] = shader;
-		}
-		return shader;
-	}
-
-	return load(new Promise<ShaderData>((resolve, reject) => {
+	return assets.shaders.add(name, new Promise<ShaderData>((resolve, reject) => {
 
 		if (!vert && !frag) {
 			return reject("no shader");
@@ -1020,12 +995,12 @@ function loadShader(
 		if (isUrl) {
 			Promise.all([resolveUrl(vert), resolveUrl(frag)])
 				.then(([vcode, fcode]: [string | null, string | null]) => {
-					resolve(loadRawShader(name, vcode, fcode));
+					resolve(makeShader(vcode, fcode));
 				})
 				.catch(reject);
 		} else {
 			try {
-				resolve(loadRawShader(name, vert, frag));
+				resolve(makeShader(vert, frag));
 			} catch (err) {
 				reject(err);
 			}
@@ -1113,7 +1088,6 @@ function play(
 	},
 ): AudioPlay {
 
-	// TODO: support raw url
 	if (typeof src === "string") {
 
 		const pb = play({
@@ -3864,7 +3838,7 @@ function getRenderProps(obj: GameObj<any>) {
 		origin: obj.origin,
 		outline: obj.outline,
 		fixed: obj.fixed,
-		shader: assets.shaders[obj.shader],
+		shader: assets.shaders.getLoaded(obj.shader),
 		uniform: obj.uniform,
 	};
 }
@@ -3917,7 +3891,6 @@ function sprite(id: string | SpriteData, opt: SpriteCompOpt = {}): SpriteComp {
 
 			const init = (spr: SpriteData) => {
 
-				spriteData = spr;
 				let q = spr.frames[0].clone();
 
 				if (opt.quad) {
@@ -3933,6 +3906,7 @@ function sprite(id: string | SpriteData, opt: SpriteCompOpt = {}): SpriteComp {
 					this.play(opt.anim);
 				}
 
+				spriteData = spr;
 				this.trigger("spriteLoaded", spriteData);
 
 			};
@@ -4020,6 +3994,7 @@ function sprite(id: string | SpriteData, opt: SpriteCompOpt = {}): SpriteComp {
 				this.on("spriteLoaded", () => {
 					this.play(name);
 				});
+				return;
 			};
 
 			const anim = spriteData.anims[name];
@@ -4374,7 +4349,6 @@ function body(opt: BodyCompOpt = {}): BodyComp {
 }
 
 function shader(id: string, uniform: Uniform = {}): ShaderComp {
-	const shader = assets.shaders[id];
 	return {
 		id: "shader",
 		shader: id,
