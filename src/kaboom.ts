@@ -5371,11 +5371,11 @@ run(() => {
 	// running this every frame now mainly because isFullscreen() is not updated real time when requested fullscreen
 	updateViewport();
 
-// 	if (!app.loaded) {
-// 		frameStart();
-// 		drawLoadScreen();
-// 		frameEnd();
-// 	} else {
+	if (!app.loaded && (gopt.loadingScreen === undefined || gopt.loadingScreen === true)) {
+		frameStart();
+		drawLoadScreen();
+		frameEnd();
+	} else {
 
 		// TODO: this gives the latest mousePos in input handlers but uses cam matrix from last frame
 		game.trigger("input");
@@ -5393,7 +5393,7 @@ run(() => {
 
 		frameEnd();
 
-// 	}
+	}
 
 });
 

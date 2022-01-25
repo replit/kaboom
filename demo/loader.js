@@ -1,6 +1,8 @@
 // Weilding the asset loader
 
-kaboom()
+kaboom({
+	loadingScreen: false,
+})
 
 let spr = null
 
