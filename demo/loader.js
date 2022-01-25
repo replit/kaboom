@@ -10,6 +10,16 @@ loadSprite("bean", "/sprites/bean.png").catch((err) => {
 	spr = data
 })
 
+volume(0.1)
+
+loadSound("bug", "/sounds/bug.mp3")
+
+onKeyPress("space", () => {
+	play("/sounds/bug.mp3")
+})
+
+play("bug")
+
 add([
 	sprite("bean"),
 	pos(120)

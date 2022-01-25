@@ -668,7 +668,7 @@ const assets = {
 	// asset holders
 	sprites: new AssetBucket<SpriteData>(),
 	fonts: new AssetBucket<FontData>(),
-	sounds: new Map<string, SoundData>(),
+	sounds: new AssetBucket<SoundData>(),
 	shaders: new Map<string, ShaderData>(),
 	custom: new AssetBucket<any>(),
 
@@ -799,7 +799,7 @@ function getSprite(name: string): SpriteData | Promise<SpriteData> | null {
 	return assets.sprites.get(name);
 }
 
-function getSound(name: string): SoundData | null {
+function getSound(name: string): SoundData | Promise<SoundData> | null {
 	return assets.sounds.get(name) ?? null;
 }
 
@@ -1042,7 +1042,7 @@ function loadSound(
 	src: string,
 ): Promise<SoundData> {
 
-	return load(new Promise<SoundData>((resolve, reject) => {
+	return assets.sounds.add(name, new Promise<SoundData>((resolve, reject) => {
 
 		if (!src) {
 			return reject(`expected sound src for "${name}"`);
@@ -1058,13 +1058,9 @@ function loadSound(
 					);
 				})
 				.then((buf: AudioBuffer) => {
-					const snd = {
+					resolve({
 						buf: buf,
-					}
-					if (name) {
-						assets.sounds[name] = snd;
-					}
-					resolve(snd);
+					});
 				})
 				.catch(reject);
 		}
@@ -1085,6 +1081,26 @@ function volume(v?: number): number {
 	return audio.masterNode.gain.value;
 }
 
+function resolveSound(src: string | SoundData): SoundData | Promise<SoundData> {
+	if (typeof src === "string") {
+		const snd = assets.sounds.get(src)
+		if (!snd) {
+			// allow user directly passing resource src
+			const loading = assets.sounds.loading.get(src);
+			if (!loading) {
+				return loadSound(src, src);
+			} else {
+				return loading;
+			}
+		} else {
+			return snd;
+		}
+	} else {
+		// TODO: check type
+		return src;
+	}
+}
+
 // plays a sound, returns a control handle
 function play(
 	src: SoundData | string,
@@ -1097,23 +1113,27 @@ function play(
 	},
 ): AudioPlay {
 
-	// TODO: clean?
+	// TODO: support raw url
 	if (typeof src === "string") {
 
 		const pb = play({
 			buf: createEmptyAudioBuffer(),
 		});
 
-		onLoad(() => {
-			const snd = assets.sounds[src];
-			if (!snd) {
-				throw new Error(`Sound not found: "${src}"`);
-			}
+		const doPlay = (snd: SoundData) => {
 			const pb2 = play(snd, opt);
 			for (const k in pb2) {
 				pb[k] = pb2[k];
 			}
-		});
+		}
+
+		const snd = resolveSound(src);
+
+		if (snd instanceof Promise) {
+			snd.then(doPlay)
+		} else {
+			doPlay(snd);
+		}
 
 		return pb;
 
@@ -1715,14 +1735,14 @@ function drawTexture(opt: DrawTextureOpt) {
 
 }
 
-function resolveSprite(id: string | SpriteData): SpriteData | Promise<SpriteData> {
-	if (typeof id === "string") {
-		const spr = assets.sprites.get(id)
+function resolveSprite(src: string | SpriteData): SpriteData | Promise<SpriteData> {
+	if (typeof src === "string") {
+		const spr = assets.sprites.get(src)
 		if (!spr) {
 			// allow user directly passing resource src
-			const loading = assets.sprites.loading.get(id);
+			const loading = assets.sprites.loading.get(src);
 			if (!loading) {
-				return loadSprite(id, id);
+				return loadSprite(src, src);
 			} else {
 				return loading;
 			}
@@ -1731,7 +1751,7 @@ function resolveSprite(id: string | SpriteData): SpriteData | Promise<SpriteData
 		}
 	} else {
 		// TODO: check type
-		return id;
+		return src;
 	}
 }
 
