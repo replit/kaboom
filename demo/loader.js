@@ -2,28 +2,49 @@
 
 kaboom()
 
-// All loadXXX() functions return a Promise<Data> where you can handle however you want
+let spr = null
+
 loadSprite("bean", "/sprites/bean.png").catch((err) => {
 	console.error(err)
 }).then((data) => {
-	console.log(data)
+	spr = data
 })
 
 add([
 	sprite("bean"),
+	pos(120)
+])
+
+add([
+	sprite("/sprites/bean.png"),
+	pos(180)
+])
+
+add([
+	text("bean"),
 	pos(200)
 ])
 
+debug.log("hi")
+
 onDraw(() => {
 
-	// Reference "bean" you loaded above
-	drawSprite({
-		sprite: "bean",
+	drawText({
+		text: "bean",
 	})
 
-	// You can also pass resource url directly without loadXXX()
+// 	drawSprite({
+// 		sprite: "bean",
+// 	})
+
+	if (spr) {
+		drawSprite({
+			sprite: spr
+		})
+	}
+
 	drawSprite({
-		pos: vec2(100),
+		pos: vec2(60),
 		sprite: "/sprites/bean.png",
 	})
 

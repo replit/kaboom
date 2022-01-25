@@ -632,6 +632,7 @@ const audio = (() => {
 
 })();
 
+// TODO: support unamed asset
 class AssetBucket<D> {
 	loading: Map<string, Promise<D>> = new Map();
 	loaded: Map<string, D> = new Map();
@@ -643,20 +644,15 @@ class AssetBucket<D> {
 		}).finally(() => {
 			this.loading.delete(name);
 		});
-// 		return new Promise((resolve, reject) => {
-// 			loader.catch((err) => {
-// 				debug.error(err);
-// 				reject(err);
-// 			}).then((data: D) => {
-// 				this.loaded.set(name, data);
-// 				resolve(data);
-// 			}).finally(() => {
-// 				this.loading.delete(name);
-// 			});
-// 		});
 	}
-	get(name: string): D | null {
+	get(name: string): D | Promise<D> | null {
+		return this.getLoaded(name) ?? this.getLoading(name);
+	}
+	getLoaded(name: string): D | null {
 		return this.loaded.get(name) ?? null;
+	}
+	getLoading(name: string): Promise<D> | null {
+		return this.loading.get(name) ?? null;
 	}
 }
 
@@ -671,10 +667,10 @@ const assets = {
 
 	// asset holders
 	sprites: new AssetBucket<SpriteData>(),
-	custom: new AssetBucket<any>(),
+	fonts: new AssetBucket<FontData>(),
 	sounds: new Map<string, SoundData>(),
 	shaders: new Map<string, ShaderData>(),
-	fonts: new Map<string, FontData>(),
+	custom: new AssetBucket<any>(),
 
 };
 
@@ -787,23 +783,19 @@ function loadFont(
 	gh: number,
 	opt: FontLoadOpt = {},
 ): Promise<FontData> {
-	return load(loadImg(src)
+	return assets.fonts.add(name, loadImg(src)
 		.then((img) => {
-			const font = makeFont(
+			return makeFont(
 				makeTex(img, opt),
 				gw,
 				gh,
 				opt.chars ?? ASCII_CHARS
 			);
-			if (name) {
-				assets.fonts[name] = font;
-			}
-			return font;
 		})
 	);
 }
 
-function getSprite(name: string): SpriteData | null {
+function getSprite(name: string): SpriteData | Promise<SpriteData> | null {
 	return assets.sprites.get(name);
 }
 
@@ -811,8 +803,8 @@ function getSound(name: string): SoundData | null {
 	return assets.sounds.get(name) ?? null;
 }
 
-function getFont(name: string): FontData | null {
-	return assets.fonts.get(name) ?? null;
+function getFont(name: string): FontData | Promise<FontData> | null {
+	return assets.fonts.get(name);
 }
 
 function getShader(name: string): ShaderData | null {
@@ -1725,7 +1717,7 @@ function drawTexture(opt: DrawTextureOpt) {
 
 function resolveSprite(id: string | SpriteData): SpriteData | Promise<SpriteData> {
 	if (typeof id === "string") {
-		const spr = getSprite(id)
+		const spr = assets.sprites.get(id)
 		if (!spr) {
 			// allow user directly passing resource src
 			const loading = assets.sprites.loading.get(id);
@@ -1738,7 +1730,7 @@ function resolveSprite(id: string | SpriteData): SpriteData | Promise<SpriteData
 			return spr;
 		}
 	} else {
-		// TODO: Check for non string opt.sprite type
+		// TODO: check type
 		return id;
 	}
 }
@@ -2091,11 +2083,15 @@ function compileStyledText(text: string): {
 
 }
 
-function findAsset<T>(src: string | T, lib: Record<string, T>, def?: string): T | undefined {
-	if (src) {
-		return typeof src === "string" ? lib[src] : src;
-	} else if (def) {
-		return lib[def];
+function resolveFont(font: string | FontData | undefined): FontData | Promise<FontData> {
+	if (!font) {
+		return assets.fonts.get(DEF_FONT);
+	}
+	if (typeof font === "string") {
+		return assets.fonts.get(font);
+	} else {
+		// TODO: check type
+		return font;
 	}
 }
 
@@ -2106,7 +2102,15 @@ function formatText(opt: DrawTextOpt): FormattedText {
 		throw new Error("formatText() requires property \"text\".");
 	}
 
-	const font = findAsset(opt.font ?? gopt.font, assets.fonts, DEF_FONT);
+	const font = resolveFont(opt.font);
+
+	if (font instanceof Promise) {
+		return {
+			width: 0,
+			height: 0,
+			chars: [],
+		};
+	};
 
 	if (!font) {
 		throw new Error(`Font not found: ${opt.font}`);
@@ -5053,7 +5057,7 @@ function drawInspectText(pos, txt) {
 
 	const ftxt = formatText({
 		text: txt,
-		font: assets.fonts[DBG_FONT],
+		font: DBG_FONT,
 		size: 16,
 		pos: pad,
 		color: rgb(255, 255, 255),
@@ -5200,7 +5204,7 @@ function drawDebug() {
 		// format text first to get text size
 		const ftxt = formatText({
 			text: debug.timeScale.toFixed(1),
-			font: assets.fonts[DBG_FONT],
+			font: DBG_FONT,
 			size: 16,
 			color: rgb(255, 255, 255),
 			pos: vec2(-pad),
@@ -5273,7 +5277,7 @@ function drawDebug() {
 
 		const ftext = formatText({
 			text: game.logs.join("\n"),
-			font: assets.fonts[DBG_FONT],
+			font: DBG_FONT,
 			pos: vec2(pad, -pad),
 			origin: "botleft",
 			size: 16,
@@ -5316,11 +5320,9 @@ function handleErr(msg: string) {
 	debug.error(`Error: ${msg}`);
 	quit();
 	run(() => {
-		if (loadProgress() === 1) {
-			frameStart();
-			drawDebug();
-			frameEnd();
-		}
+		frameStart();
+		drawDebug();
+		frameEnd();
 	});
 }
 
