@@ -14,13 +14,13 @@ We're going to cover how to add the following:
 - The main events -  Adding trees, scores, player movement, and collisions in the main scene
 - The losing scene - Events for when our player loses the game
 
-![Runner](https://raw.githubusercontent.com/ritza-co/kaboom/kaboom-concept-tutorials/assets/screenshots/runner.png)
+![Runner](tutorials/runner.png)
 
 ## Getting started with the code
 
 The first thing we want to do is load the `kaboom()` library and initialize a Kaboom context. 
 
-```
+```js
 import kaboom from "kaboom";
 
 kaboom()
@@ -28,7 +28,7 @@ kaboom()
 
 Next, we want to load our player sprite.
 
-```
+```js
 loadSprite("bean", "/sprites/bean.png")
 ```
 
@@ -36,7 +36,7 @@ loadSprite("bean", "/sprites/bean.png")
 
 Before getting started with the main scene, the main game loop, we have to declare some constant variables. These variables include the height of the floor our player runs on, our player's jump force as well as the game speed.
 
-```
+```js
 const FLOOR_HEIGHT = 48
 const JUMP_FORCE = 800
 const SPEED = 480
@@ -44,13 +44,13 @@ const SPEED = 480
 
 We can experiment by altering these values but for now, we'll keep them constant. Inside the main scene, we can set a value for the gravity in the game so that our player can stay grounded to the floor when running.
 
-```
+```js
 gravity(2400)
 ```
 
 Next, we'll add a player character, giving it an initial position on the game screen and also giving it `area()` and `body()` components to handle collisions and gravity.
 
-```
+```js
 const player = add([
 	sprite("bean"),
 	pos(80, 40),
@@ -61,7 +61,7 @@ const player = add([
 
 Here we'll add the floor, positioned at the bottom of the game screen.
 
-```
+```js
 add([
 	rect(width(), FLOOR_HEIGHT),
 	outline(4),
@@ -79,7 +79,7 @@ Now we're going to create the main events of the game.
 
 Firstly, we need a function to create trees. We're passing this function `spawnTree()` inside `wait()` to ensure that it creates a new tree at random intervals during the game.
 
-```
+```js
 function spawnTree() {
 
 	add([
@@ -103,7 +103,7 @@ spawnTree()
 Now we're going to create a jump function that will check whether our player is grounded to the floor. If so, it allows them to jump when the space button is pressed or when the user clicks.
 
 
-```
+```js
 function jump() {
 	if (player.isGrounded()) {
 		player.jump(JUMP_FORCE)
@@ -117,7 +117,7 @@ onClick(jump)
 
 If our player collides with any of the trees, we will lose the game. We can add some fun sound effects using `burp()` during collisions.
 
-```
+```js
 player.onCollide("tree", () => {
 	go("lose", score)
 	burp()
@@ -127,7 +127,7 @@ player.onCollide("tree", () => {
 
 The score in the game increases per frame, so the longer our character lasts in the game, the higher our score will be. The score will be displayed at the top left of our game screen and updated with each frame.
 
-```
+```js
 let score = 0
 
 const scoreLabel = add([
@@ -143,7 +143,7 @@ onUpdate(() => {
 
 Our player loses the game when colliding with the screen. When this happens, our score will be displayed at the center of the screen along with our character.
 
-```
+```js
 add([
 	sprite("bean"),
 	pos(width() / 2, height() / 2 - 80),
@@ -161,7 +161,7 @@ add([
 
 At the end of a game, we can restart the game when the space button is pressed or when the user clicks.
 
-```
+```js
 onKeyPress("space", () => go("game"))
 onClick(() => go("game"))
 ```

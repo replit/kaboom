@@ -20,13 +20,13 @@ We're going to cover how to add the following:
 
 You can find the code we use at https://replit.com/@ritza/flappy-tutorial or you can try out the embedded repl below.
 
-![Flappy](https://raw.githubusercontent.com/ritza-co/kaboom/kaboom-concept-tutorials/assets/screenshots/flappy.png)
+![Flappy](tutorials/flappy.png)
 
 # Getting started with the code
 
 The first thing we want to do is load the `kaboom()` library and initialize a Kaboom context. 
 
-```
+```js
 import kaboom from "kaboom";
 
 kaboom();
@@ -34,7 +34,7 @@ kaboom();
 
 Next, we're going to load the assets we'll be using during the game. In this case, our player sprite and some cool sound effects.
 
-```
+```js
 loadSprite("bean", "/sprites/bean.png")
 loadSound("score", "/sounds/score.mp3")
 loadSound("wooosh", "/sounds/wooosh.mp3")
@@ -45,14 +45,14 @@ loadSound("hit", "/sounds/hit.mp3")
 
 Games usually run in a loop that can update the events that take place as we play, such as keys pressed or character behaviors. So, we are going to place most of our code inside the `scene()` function.
 
-```
+```js
 scene("game", () => {
 ```
 
 We have to add a player character for the game and also make sure to give the character an `area()` and a `body()` component. These two components will be used later when we program what happens when our player collides with the pipes and vertical edges as well as let our character respond to the gravity we've set in the game.
 
 
-```
+```js
 const bean = add([
     sprite("bean"),
     pos(width() / 4, 0),
@@ -63,7 +63,7 @@ const bean = add([
 
 We need to define some constant variables for the game, for the: gravity; distance of the opening between pipes; minimum sizes of the pipes; the jumping force of our player character; and the moving speed of the pipes.
 
-```
+```js
 gravity(3200)
 
 const PIPE_OPEN = 240
@@ -77,7 +77,7 @@ const CEILING = -60
 
 We want the pipes to appear in random heights every second to make the game more challenging. We're using a function called `spawnPipe()` to create new pipes and set their position at opposite vertical sides of the display.
 
-```
+```js
 function spawnPipe() {
     const h1 = rand(PIPE_MIN, height() - PIPE_MIN - PIPE_OPEN)
     const h2 = height() - h1 - PIPE_OPEN
@@ -86,7 +86,7 @@ function spawnPipe() {
 
 Next, we want to add pipes by assembling the components comprising each game object. In this case, we want the pipes to be rectangular, to have an `area()`, used for collision detection, and to be able to move. Using `move()` ensures that it glides along the left side of the screen as the game progresses, and `cleanup()`  will remove the rectangle after it leaves the screen.
 
-```
+```js
 add([
     pos(width(), 0),
     rect(64, h1),
@@ -114,7 +114,7 @@ add([
 
 By using `onUpdate()`, we can check when our player passes through the pipes successfully, so that we can add a score and let the game continue on. Each pipe is given a pipe tag which is passed in the update function.
 
-```
+```js
 onUpdate("pipe", (p) => {
     if (p.pos.x + p.width <= bean.pos.x && p.passed === false) {
         addScore()
@@ -125,7 +125,7 @@ onUpdate("pipe", (p) => {
 
 Lastly, for the pipes, we'll create a loop so it calls on our spawnPipe() function every second, thereby creating new pipes after each second.
 
-```
+```js
 loop(1, () => {
     spawnPipe()
 })
@@ -137,7 +137,7 @@ Here we're going to define the events for when our player character has a collis
 
 When a player reaches the vertical edges or has collisions, we want to switch to the losing scene and execute events for when our player loses.
 
-```
+```js
 // Check if player has reached vertical edges
 bean.onUpdate(() => {
 	if (bean.pos.y >= height() || bean.pos.y <= CEILING) {
@@ -157,7 +157,7 @@ bean.onCollide("pipe", () => {
 
 Our player has to keep jumping to pass through the pipes to avoid falling to their death, the bottom edge of the display screen. As such, we've set a constant jump force.
 
-```
+```js
 onKeyPress("space", () => {
 	bean.jump(JUMP_FORCE)
 })
@@ -172,7 +172,7 @@ onClick(() => {
 
 Our score is displayed on the screen and increments each time we pass through a pipe.
 
-```
+```js
 let score = 0
 
 const scoreLabel = add([
@@ -197,7 +197,7 @@ We need to define the events that would occur when our character loses, that is 
 
 Our player character would be repositioned to the middle of the screen, along with their final score.
 
-```
+```js
 scene("lose", (score) => {
 
     add([
@@ -219,7 +219,7 @@ scene("lose", (score) => {
 
 The code below allows us to restart the game when we lose.
 
-```
+```js
 onKeyPress("space", () => go("game"))
 // mobile
 onClick(() => go("game"))
