@@ -825,32 +825,35 @@ function slice(x = 1, y = 1, dx = 0, dy = 0, w = 1, h = 1): Quad[] {
 	return frames;
 }
 
-// TODO: no name squatting
 function loadSpriteAtlas(
 	src: SpriteLoadSrc,
 	data: SpriteAtlasData | string
 ): Promise<Record<string, SpriteData>> {
 	if (typeof data === "string") {
-		// TODO: this adds a new loader asyncly
-		return assets.custom.add(null, fetchJSON(data)
+		// TODO: no name squatting
+		return load(fetchJSON(data)
 			.then((data2) => loadSpriteAtlas(src, data2)));
 	}
-	return loadSprite(null, src).then((atlas) => {
+	return load(new Promise(async (resolve, reject) => {
 		const map = {};
-		const w = atlas.tex.width;
-		const h = atlas.tex.height;
-		for (const name in data) {
-			const info = data[name];
-			const spr = {
-				tex: atlas.tex,
-				frames: slice(info.sliceX, info.sliceY, info.x / w, info.y / h, info.width / w, info.height / h),
-				anims: info.anims,
-			}
-			assets.sprites.loaded.set(name, spr);
-			map[name] = spr;
-		}
-		return map;
-	});
+		const loader = loadSprite(null, src);
+		const tasks = Object.keys(data).map((name) => {
+			return assets.sprites.add(name, loader.then((atlas) => {
+				const w = atlas.tex.width;
+				const h = atlas.tex.height;
+				const info = data[name];
+				const spr = {
+					tex: atlas.tex,
+					frames: slice(info.sliceX, info.sliceY, info.x / w, info.y / h, info.width / w, info.height / h),
+					anims: info.anims,
+				}
+				map[name] = spr;
+				return spr;
+			}));
+		});
+		await Promise.all(tasks);
+		resolve(map);
+	}));
 }
 
 // synchronously load sprite from local pixel data
@@ -4994,6 +4997,8 @@ function drawLoadScreen() {
 
 	// if assets are not fully loaded, draw a progress bar
 	const progress = loadProgress();
+
+	console.log(progress)
 
 	if (progress === 1) {
 		app.loaded = true;

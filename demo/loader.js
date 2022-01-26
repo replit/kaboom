@@ -12,21 +12,20 @@ loadSprite("bean", "/sprites/bean.png").catch((err) => {
 	spr = data
 })
 
-volume(0.1)
-
 loadSound("bug", "/sounds/bug.mp3")
 loadPedit("asd", "/sprites/test.pedit")
 loadAseprite("ghosty", "/sprites/ghosty2.png", "/sprites/ghosty2.json")
 
-onKeyPress("space", () => {
-	play("/sounds/bug.mp3")
-})
+volume(0.1)
+
+onKeyPress("space", () => play("/sounds/bug.mp3"))
 
 play("bug")
 
 add([
 	sprite("ghosty", { anim: "idle" }),
-	pos(120)
+	pos(120),
+	scale(3),
 ])
 
 add([
