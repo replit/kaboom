@@ -2618,6 +2618,12 @@ export type DrawRectOpt = RenderProps & {
 	 */
 	outline?: Outline,
 	/**
+	 * Use gradient instead of solid color.
+	 *
+	 * @since v2001.0
+	 */
+	gradient?: [Color, Color],
+	/**
 	 * If fill the shape with color (set this to false if you only want an outline).
 	 */
 	fill?: boolean,
@@ -2630,7 +2636,6 @@ export type DrawRectOpt = RenderProps & {
 	 */
 	origin?: Origin | Vec2,
 }
-
 /**
  * How the line should look like.
  */
@@ -2797,6 +2802,12 @@ export type DrawPolygonOpt = RenderProps & {
 	 * The radius of each corner.
 	 */
 	radius?: number,
+	/**
+	 * The color of each vertice.
+	 *
+	 * @since v2001.0
+	 */
+	colors?: Color[],
 }
 
 export interface Outline {

@@ -1827,7 +1827,19 @@ function drawRect(opt: DrawRectOpt) {
 
 	}
 
-	drawPolygon({ ...opt, offset, pts });
+	drawPolygon({
+		...opt,
+		offset,
+		pts,
+		...(opt.gradient ? {
+			colors: [
+				opt.gradient[0],
+				opt.gradient[0],
+				opt.gradient[1],
+				opt.gradient[1],
+			],
+		} : {})
+	});
 
 }
 
@@ -1990,10 +2002,10 @@ function drawPolygon(opt: DrawPolygonOpt) {
 
 		const color = opt.color ?? Color.WHITE;
 
-		const verts = opt.pts.map((pt) => ({
+		const verts = opt.pts.map((pt, i) => ({
 			pos: vec3(pt.x, pt.y, 0),
 			uv: vec2(0, 0),
-			color: color,
+			color: opt.colors ? (opt.colors[i] ?? color) : color,
 			opacity: opt.opacity ?? 1,
 		}));
 
