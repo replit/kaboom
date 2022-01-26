@@ -149,6 +149,7 @@ import {
 	Cursor,
 	Recording,
 	Kaboom,
+	PeditFile,
 } from "./types";
 
 import FPSCounter from "./fps";
@@ -632,21 +633,46 @@ const audio = (() => {
 
 })();
 
+class AssetBucket<D> {
+	loading: Map<string, Promise<D>> = new Map();
+	loaded: Map<string, D> = new Map();
+	lastUID: number = 0;
+	add(name: string | null, loader: Promise<D>): Promise<D> {
+		const id = name ?? (this.lastUID++ + "");
+		this.loading.set(id, loader);
+		return loader.then((data: D) => {
+			this.loaded.set(id, data);
+			return data;
+		}).finally(() => {
+			this.loading.delete(id);
+		});
+	}
+	get(name: string): D | Promise<D> | null {
+		return this.getLoaded(name) ?? this.getLoading(name);
+	}
+	getLoaded(name: string): D | null {
+		return this.loaded.get(name) ?? null;
+	}
+	getLoading(name: string): Promise<D> | null {
+		return this.loading.get(name) ?? null;
+	}
+	progress(): number {
+		if (this.loaded.size === this.loading.size) {
+			return 1;
+		}
+		return this.loaded.size / (this.loaded.size + this.loading.size);
+	}
+}
+
 const assets = {
-
-	// keep track of how many assets are loading / loaded, for calculaating progress
-	numLoading: 0,
-	numLoaded: 0,
-
 	// prefix for when loading from a url
 	urlPrefix: "",
-
 	// asset holders
-	sprites: {},
-	sounds: {},
-	shaders: {},
-	fonts: {},
-
+	sprites: new AssetBucket<SpriteData>(),
+	fonts: new AssetBucket<FontData>(),
+	sounds: new AssetBucket<SoundData>(),
+	shaders: new AssetBucket<ShaderData>(),
+	custom: new AssetBucket<any>(),
 };
 
 const game = {
@@ -694,28 +720,19 @@ const game = {
 
 // wrap individual loaders with global loader counter, for stuff like progress bar
 function load<T>(prom: Promise<T>): Promise<T> {
-
-	assets.numLoading++;
-
-	// wrapping another layer of promise because we are catching errors here internally and we also want users be able to catch errors, however only one catch is allowed per promise chain
-	return new Promise((resolve, reject) => {
-		prom
-			.then(resolve)
-			.catch((err) => {
-				debug.error(err);
-				reject(err);
-			})
-			.finally(() => {
-				assets.numLoading--;
-				assets.numLoaded++;
-			});
-	}) as Promise<T>;
-
+	return assets.custom.add(null, prom);
 }
 
 // get current load progress
 function loadProgress(): number {
-	return assets.numLoaded / (assets.numLoading + assets.numLoaded);
+	const buckets = [
+		assets.sprites,
+		assets.sounds,
+		assets.shaders,
+		assets.fonts,
+		assets.custom,
+	];
+	return buckets.reduce((n, bucket) => n + bucket.progress(), 0) / buckets.length;
 }
 
 // global load path prefix
@@ -738,6 +755,10 @@ function fetchURL(path: string) {
 		});
 }
 
+function fetchJSON(path: string) {
+	return fetchURL(path).then((res) => res.json());
+}
+
 // wrapper around image loader to get a Promise
 function loadImg(src: string): Promise<HTMLImageElement> {
 	const img = new Image();
@@ -758,36 +779,32 @@ function loadFont(
 	gh: number,
 	opt: FontLoadOpt = {},
 ): Promise<FontData> {
-	return load(loadImg(src)
+	return assets.fonts.add(name, loadImg(src)
 		.then((img) => {
-			const font = makeFont(
+			return makeFont(
 				makeTex(img, opt),
 				gw,
 				gh,
 				opt.chars ?? ASCII_CHARS
 			);
-			if (name) {
-				assets.fonts[name] = font;
-			}
-			return font;
 		})
 	);
 }
 
-function getSprite(name: string): SpriteData | null {
-	return assets.sprites[name] ?? null;
+function getSprite(name: string): SpriteData | Promise<SpriteData> | null {
+	return assets.sprites.get(name);
 }
 
-function getSound(name: string): SoundData | null {
-	return assets.sounds[name] ?? null;
+function getSound(name: string): SoundData | Promise<SoundData> | null {
+	return assets.sounds.get(name) ?? null;
 }
 
-function getFont(name: string): FontData | null {
-	return assets.fonts[name] ?? null;
+function getFont(name: string): FontData | Promise<FontData> | null {
+	return assets.fonts.get(name);
 }
 
-function getShader(name: string): ShaderData | null {
-	return assets.shaders[name] ?? null;
+function getShader(name: string): ShaderData | Promise<ShaderData> | null {
+	return assets.shaders.get(name) ?? null;
 }
 
 // get an array of frames based on configuration on how to slice the image
@@ -813,32 +830,34 @@ function loadSpriteAtlas(
 	data: SpriteAtlasData | string
 ): Promise<Record<string, SpriteData>> {
 	if (typeof data === "string") {
-		// TODO: this adds a new loader asyncly
-		return load(fetchURL(data)
-			.then((res) => res.json())
+		// TODO: no name squatting
+		return load(fetchJSON(data)
 			.then((data2) => loadSpriteAtlas(src, data2)));
 	}
-	return load(loadSprite(null, src).then((atlas) => {
+	return load(new Promise(async (resolve, reject) => {
 		const map = {};
-		const w = atlas.tex.width;
-		const h = atlas.tex.height;
-		for (const name in data) {
-			const info = data[name];
-			const spr = {
-				tex: atlas.tex,
-				frames: slice(info.sliceX, info.sliceY, info.x / w, info.y / h, info.width / w, info.height / h),
-				anims: info.anims,
-			}
-			assets.sprites[name] = spr;
-			map[name] = spr;
-		}
-		return map;
+		const loader = loadSprite(null, src);
+		const tasks = Object.keys(data).map((name) => {
+			return assets.sprites.add(name, loader.then((atlas) => {
+				const w = atlas.tex.width;
+				const h = atlas.tex.height;
+				const info = data[name];
+				const spr = {
+					tex: atlas.tex,
+					frames: slice(info.sliceX, info.sliceY, info.x / w, info.y / h, info.width / w, info.height / h),
+					anims: info.anims,
+				}
+				map[name] = spr;
+				return spr;
+			}));
+		});
+		await Promise.all(tasks);
+		resolve(map);
 	}));
 }
 
 // synchronously load sprite from local pixel data
 function loadRawSprite(
-	name: string | null,
 	src: GfxTexData,
 	opt: SpriteLoadOpt = {}
 ) {
@@ -846,17 +865,11 @@ function loadRawSprite(
 	const tex = makeTex(src, opt);
 	const frames = slice(opt.sliceX || 1, opt.sliceY || 1);
 
-	const sprite = {
+	return {
 		tex: tex,
 		frames: frames,
 		anims: opt.anims || {},
 	};
-
-	if (name) {
-		assets.sprites[name] = sprite;
-	}
-
-	return sprite;
 
 }
 
@@ -871,7 +884,7 @@ function loadSprite(
 	},
 ): Promise<SpriteData> {
 
-	return load(new Promise<SpriteData>((resolve, reject) => {
+	return assets.sprites.add(name, new Promise((resolve, reject) => {
 
 		if (!src) {
 			return reject(`Expected sprite src for "${name}"`);
@@ -880,94 +893,75 @@ function loadSprite(
 		// from url
 		if (typeof(src) === "string") {
 			loadImg(src)
-				.then((img) => resolve(loadRawSprite(name, img, opt)))
+				.then((img) => resolve(loadRawSprite(img, opt)))
 				.catch(reject);
 		} else {
-			resolve(loadRawSprite(name, src, opt));
+			resolve(loadRawSprite(src, opt));
 		}
 
 	}));
 
 }
 
-// TODO: accept raw json
-function loadPedit(name: string, src: string): Promise<SpriteData> {
+function loadPedit(name: string | null, src: string | PeditFile): Promise<SpriteData> {
 
-	return load(new Promise<SpriteData>((resolve, reject) => {
+	return assets.sprites.add(name, new Promise(async (resolve) => {
 
-		fetchURL(src)
-			.then((res) => res.json())
-			.then(async (data) => {
+		const data = typeof src === "string" ? await fetchJSON(src) : src;
+		const images = await Promise.all(data.frames.map(loadImg));
+		const canvas = document.createElement("canvas");
+		canvas.width = data.width;
+		canvas.height = data.height * data.frames.length;
 
-				const images = await Promise.all(data.frames.map(loadImg));
-				const canvas = document.createElement("canvas");
-				canvas.width = data.width;
-				canvas.height = data.height * data.frames.length;
+		const ctx = canvas.getContext("2d");
 
-				const ctx = canvas.getContext("2d");
+		images.forEach((img: HTMLImageElement, i) => {
+			ctx.drawImage(img, 0, i * data.height);
+		});
 
-				images.forEach((img: HTMLImageElement, i) => {
-					ctx.drawImage(img, 0, i * data.height);
-				});
+		const spr = await loadSprite(null, canvas, {
+			sliceY: data.frames.length,
+			anims: data.anims,
+		});
 
-				return loadSprite(name, canvas, {
-					sliceY: data.frames.length,
-					anims: data.anims,
-				});
-			})
-			.then(resolve)
-			.catch(reject)
-			;
+		resolve(spr);
 
 	}));
 
 }
 
-// TODO: accept raw json
 function loadAseprite(
 	name: string | null,
 	imgSrc: SpriteLoadSrc,
 	jsonSrc: string
 ): Promise<SpriteData> {
-
-	return load(new Promise<SpriteData>((resolve, reject) => {
-
-		loadSprite(name, imgSrc)
-			.then((sprite: SpriteData) => {
-				fetchURL(jsonSrc)
-					.then((res) => res.json())
-					.then((data) => {
-						const size = data.meta.size;
-						sprite.frames = data.frames.map((f: any) => {
-							return new Quad(
-								f.frame.x / size.w,
-								f.frame.y / size.h,
-								f.frame.w / size.w,
-								f.frame.h / size.h,
-							);
-						});
-						for (const anim of data.meta.frameTags) {
-							if (anim.from === anim.to) {
-								sprite.anims[anim.name] = anim.from
-							} else {
-								sprite.anims[anim.name] = {
-									from: anim.from,
-									to: anim.to,
-									// TODO: let users define these
-									speed: 10,
-									loop: true,
-								};
-							}
-						}
-						resolve(sprite);
-					})
-					.catch(reject)
-					;
-			})
-			.catch(reject);
-
+	return assets.sprites.add(name, new Promise(async (resolve, reject) => {
+		const spr = await loadSprite(null, imgSrc);
+		const data = typeof jsonSrc === "string" ? await fetchJSON(jsonSrc) : jsonSrc;
+		const size = data.meta.size;
+		spr.frames = data.frames.map((f: any) => {
+			return new Quad(
+				f.frame.x / size.w,
+				f.frame.y / size.h,
+				f.frame.w / size.w,
+				f.frame.h / size.h,
+			);
+		});
+		for (const anim of data.meta.frameTags) {
+			if (anim.from === anim.to) {
+				spr.anims[anim.name] = anim.from
+			} else {
+				spr.anims[anim.name] = {
+					from: anim.from,
+					to: anim.to,
+					// TODO: let users define these
+					speed: 10,
+					loop: true,
+				};
+			}
+		}
+		resolve(spr);
 	}));
-
 }
 
 function loadShader(
@@ -977,19 +971,7 @@ function loadShader(
 	isUrl: boolean = false,
 ): Promise<ShaderData> {
 
-	function loadRawShader(
-		name: string | null,
-		vert: string | null,
-		frag: string | null,
-	): ShaderData {
-		const shader = makeShader(vert, frag);
-		if (name) {
-			assets.shaders[name] = shader;
-		}
-		return shader;
-	}
-
-	return load(new Promise<ShaderData>((resolve, reject) => {
+	return assets.shaders.add(name, new Promise<ShaderData>((resolve, reject) => {
 
 		if (!vert && !frag) {
 			return reject("no shader");
@@ -1006,12 +988,12 @@ function loadShader(
 		if (isUrl) {
 			Promise.all([resolveUrl(vert), resolveUrl(frag)])
 				.then(([vcode, fcode]: [string | null, string | null]) => {
-					resolve(loadRawShader(name, vcode, fcode));
+					resolve(makeShader(vcode, fcode));
 				})
 				.catch(reject);
 		} else {
 			try {
-				resolve(loadRawShader(name, vert, frag));
+				resolve(makeShader(vert, frag));
 			} catch (err) {
 				reject(err);
 			}
@@ -1028,7 +1010,7 @@ function loadSound(
 	src: string,
 ): Promise<SoundData> {
 
-	return load(new Promise<SoundData>((resolve, reject) => {
+	return assets.sounds.add(name, new Promise<SoundData>((resolve, reject) => {
 
 		if (!src) {
 			return reject(`expected sound src for "${name}"`);
@@ -1044,13 +1026,9 @@ function loadSound(
 					);
 				})
 				.then((buf: AudioBuffer) => {
-					const snd = {
+					resolve({
 						buf: buf,
-					}
-					if (name) {
-						assets.sounds[name] = snd;
-					}
-					resolve(snd);
+					});
 				})
 				.catch(reject);
 		}
@@ -1071,6 +1049,26 @@ function volume(v?: number): number {
 	return audio.masterNode.gain.value;
 }
 
+function resolveSound(src: string | SoundData): SoundData | Promise<SoundData> {
+	if (typeof src === "string") {
+		const snd = assets.sounds.get(src)
+		if (!snd) {
+			// allow user directly passing resource src
+			const loading = assets.sounds.loading.get(src);
+			if (!loading) {
+				return loadSound(src, src);
+			} else {
+				return loading;
+			}
+		} else {
+			return snd;
+		}
+	} else {
+		// TODO: check type
+		return src;
+	}
+}
+
 // plays a sound, returns a control handle
 function play(
 	src: SoundData | string,
@@ -1083,23 +1081,26 @@ function play(
 	},
 ): AudioPlay {
 
-	// TODO: clean?
 	if (typeof src === "string") {
 
 		const pb = play({
 			buf: createEmptyAudioBuffer(),
 		});
 
-		onLoad(() => {
-			const snd = assets.sounds[src];
-			if (!snd) {
-				throw new Error(`Sound not found: "${src}"`);
-			}
+		const doPlay = (snd: SoundData) => {
 			const pb2 = play(snd, opt);
 			for (const k in pb2) {
 				pb[k] = pb2[k];
 			}
-		});
+		}
+
+		const snd = resolveSound(src);
+
+		if (snd instanceof Promise) {
+			snd.then(doPlay)
+		} else {
+			doPlay(snd);
+		}
 
 		return pb;
 
@@ -1701,8 +1702,25 @@ function drawTexture(opt: DrawTextureOpt) {
 
 }
 
-// TODO: use native asset loader tracking
-const loading = new Set();
+function resolveSprite(src: string | SpriteData): SpriteData | Promise<SpriteData> {
+	if (typeof src === "string") {
+		const spr = assets.sprites.get(src)
+		if (!spr) {
+			// allow user directly passing resource src
+			const loading = assets.sprites.loading.get(src);
+			if (!loading) {
+				return loadSprite(src, src);
+			} else {
+				return loading;
+			}
+		} else {
+			return spr;
+		}
+	} else {
+		// TODO: check type
+		return src;
+	}
+}
 
 function drawSprite(opt: DrawSpriteOpt) {
 
@@ -1710,28 +1728,16 @@ function drawSprite(opt: DrawSpriteOpt) {
 		throw new Error(`drawSprite() requires property "sprite"`);
 	}
 
-	const spr = findAsset(opt.sprite, assets.sprites);
+	const spr = resolveSprite(opt.sprite);
 
-	if (!spr) {
-
-		// if passes a source url, we load it implicitly
-		if (typeof opt.sprite === "string") {
-			if (!loading.has(opt.sprite)) {
-				loading.add(opt.sprite);
-				loadSprite(opt.sprite, opt.sprite)
-					.then((a) => loading.delete(opt.sprite));
-			}
-			return;
-		} else {
-			throw new Error(`sprite not found: "${opt.sprite}"`);
-		}
-
+	if (spr instanceof Promise) {
+		return;
 	}
 
 	const q = spr.frames[opt.frame ?? 0];
 
 	if (!q) {
-		throw new Error(`frame not found: ${opt.frame ?? 0}`);
+		throw new Error(`Frame not found: ${opt.frame ?? 0}`);
 	}
 
 	drawTexture({
@@ -2064,11 +2070,15 @@ function compileStyledText(text: string): {
 
 }
 
-function findAsset<T>(src: string | T, lib: Record<string, T>, def?: string): T | undefined {
-	if (src) {
-		return typeof src === "string" ? lib[src] : src;
-	} else if (def) {
-		return lib[def];
+function resolveFont(font: string | FontData | undefined): FontData | Promise<FontData> {
+	if (!font) {
+		return assets.fonts.get(DEF_FONT);
+	}
+	if (typeof font === "string") {
+		return assets.fonts.get(font);
+	} else {
+		// TODO: check type
+		return font;
 	}
 }
 
@@ -2079,7 +2089,15 @@ function formatText(opt: DrawTextOpt): FormattedText {
 		throw new Error("formatText() requires property \"text\".");
 	}
 
-	const font = findAsset(opt.font ?? gopt.font, assets.fonts, DEF_FONT);
+	const font = resolveFont(opt.font);
+
+	if (font instanceof Promise) {
+		return {
+			width: 0,
+			height: 0,
+			chars: [],
+		};
+	};
 
 	if (!font) {
 		throw new Error(`Font not found: ${opt.font}`);
@@ -3813,7 +3831,7 @@ function getRenderProps(obj: GameObj<any>) {
 		origin: obj.origin,
 		outline: obj.outline,
 		fixed: obj.fixed,
-		shader: assets.shaders[obj.shader],
+		shader: assets.shaders.getLoaded(obj.shader),
 		uniform: obj.uniform,
 	};
 }
@@ -3830,10 +3848,14 @@ interface SpriteCurAnim {
 // TODO: clean
 function sprite(id: string | SpriteData, opt: SpriteCompOpt = {}): SpriteComp {
 
-	let spr = null;
+	let spriteData = null;
 	let curAnim: SpriteCurAnim | null = null;
 
-	function calcTexScale(tex: GfxTexture, q: Quad, w?: number, h?: number): Vec2 {
+	if (!id) {
+		throw new Error("Please pass the resource name or data to sprite()");
+	}
+
+	const calcTexScale = (tex: GfxTexture, q: Quad, w?: number, h?: number): Vec2 => {
 		const scale = vec2(1, 1);
 		if (w && h) {
 			scale.x = w / (tex.width * q.w);
@@ -3858,39 +3880,45 @@ function sprite(id: string | SpriteData, opt: SpriteCompOpt = {}): SpriteComp {
 		quad: opt.quad || new Quad(0, 0, 1, 1),
 		animSpeed: opt.animSpeed ?? 1,
 
-		load() {
+		add() {
 
-			if (typeof id === "string") {
-				spr = assets.sprites[id];
+			const init = (spr: SpriteData) => {
+
+				let q = spr.frames[0].clone();
+
+				if (opt.quad) {
+					q = q.scale(opt.quad);
+				}
+
+				const scale = calcTexScale(spr.tex, q, opt.width, opt.height);
+
+				this.width = spr.tex.width * q.w * scale.x;
+				this.height = spr.tex.height * q.h * scale.y;
+
+				if (opt.anim) {
+					this.play(opt.anim);
+				}
+
+				spriteData = spr;
+				this.trigger("spriteLoaded", spriteData);
+
+			};
+
+			const spr = resolveSprite(id);
+
+			if (spr instanceof Promise) {
+				spr.then(init);
 			} else {
-				spr = id;
-			}
-
-			if (!spr) {
-				throw new Error(`sprite not found: "${id}"`);
-			}
-
-			let q = { ...spr.frames[0] };
-
-			if (opt.quad) {
-				q = q.scale(opt.quad);
-			}
-
-			const scale = calcTexScale(spr.tex, q, opt.width, opt.height);
-
-			this.width = spr.tex.width * q.w * scale.x;
-			this.height = spr.tex.height * q.h * scale.y;
-
-			if (opt.anim) {
-				this.play(opt.anim);
+				init(spr);
 			}
 
 		},
 
 		draw() {
+			if (!spriteData) return;
 			drawSprite({
 				...getRenderProps(this),
-				sprite: spr,
+				sprite: spriteData,
 				frame: this.frame,
 				quad: this.quad,
 				flipX: opt.flipX,
@@ -3903,11 +3931,13 @@ function sprite(id: string | SpriteData, opt: SpriteCompOpt = {}): SpriteComp {
 
 		update() {
 
+			if (!spriteData) return;
+
 			if (!curAnim) {
 				return;
 			}
 
-			const anim = spr.anims[curAnim.name];
+			const anim = spriteData.anims[curAnim.name];
 
 			if (typeof anim === "number") {
 				this.frame = anim;
@@ -3953,14 +3983,14 @@ function sprite(id: string | SpriteData, opt: SpriteCompOpt = {}): SpriteComp {
 		// TODO: this opt should be used instead of the sprite data opt, if given
 		play(name: string, opt: SpriteAnimPlayOpt = {}) {
 
-			if (!spr) {
-				onLoad(() => {
+			if (!spriteData) {
+				this.on("spriteLoaded", () => {
 					this.play(name);
 				});
 				return;
-			}
+			};
 
-			const anim = spr.anims[name];
+			const anim = spriteData.anims[name];
 
 			if (anim == null) {
 				throw new Error(`anim not found: ${name}`);
@@ -4001,10 +4031,10 @@ function sprite(id: string | SpriteData, opt: SpriteCompOpt = {}): SpriteComp {
 		},
 
 		numFrames() {
-			if (!spr) {
+			if (!spriteData) {
 				return 0;
 			}
-			return spr.frames.length;
+			return spriteData.frames.length;
 		},
 
 		curAnim() {
@@ -4312,7 +4342,6 @@ function body(opt: BodyCompOpt = {}): BodyComp {
 }
 
 function shader(id: string, uniform: Uniform = {}): ShaderComp {
-	const shader = assets.shaders[id];
 	return {
 		id: "shader",
 		shader: id,
@@ -4966,42 +4995,33 @@ function drawFrame() {
 
 function drawLoadScreen() {
 
-	// if assets are not fully loaded, draw a progress bar
 	const progress = loadProgress();
+	const w = width() / 2;
+	const h = 24 / app.scale;
+	const pos = vec2(width() / 2, height() / 2).sub(vec2(w / 2, h / 2));
 
-	if (progress === 1) {
-		app.loaded = true;
-		game.trigger("load");
-	} else {
+	drawRect({
+		pos: vec2(0),
+		width: width(),
+		height: height(),
+		color: rgb(0, 0, 0),
+	});
 
-		const w = width() / 2;
-		const h = 24 / app.scale;
-		const pos = vec2(width() / 2, height() / 2).sub(vec2(w / 2, h / 2));
+	drawRect({
+		pos: pos,
+		width: w,
+		height: h,
+		fill: false,
+		outline: {
+			width: 4 / app.scale,
+		},
+	});
 
-		drawRect({
-			pos: vec2(0),
-			width: width(),
-			height: height(),
-			color: rgb(0, 0, 0),
-		});
-
-		drawRect({
-			pos: pos,
-			width: w,
-			height: h,
-			fill: false,
-			outline: {
-				width: 4 / app.scale,
-			},
-		});
-
-		drawRect({
-			pos: pos,
-			width: w * progress,
-			height: h,
-		});
-
-	}
+	drawRect({
+		pos: pos,
+		width: w * progress,
+		height: h,
+	});
 
 }
 
@@ -5015,7 +5035,7 @@ function drawInspectText(pos, txt) {
 
 	const ftxt = formatText({
 		text: txt,
-		font: assets.fonts[DBG_FONT],
+		font: DBG_FONT,
 		size: 16,
 		pos: pad,
 		color: rgb(255, 255, 255),
@@ -5162,7 +5182,7 @@ function drawDebug() {
 		// format text first to get text size
 		const ftxt = formatText({
 			text: debug.timeScale.toFixed(1),
-			font: assets.fonts[DBG_FONT],
+			font: DBG_FONT,
 			size: 16,
 			color: rgb(255, 255, 255),
 			pos: vec2(-pad),
@@ -5235,7 +5255,7 @@ function drawDebug() {
 
 		const ftext = formatText({
 			text: game.logs.join("\n"),
-			font: assets.fonts[DBG_FONT],
+			font: DBG_FONT,
 			pos: vec2(pad, -pad),
 			origin: "botleft",
 			size: 16,
@@ -5274,16 +5294,20 @@ if (gopt.burp) {
 	enterBurpMode();
 }
 
-window.addEventListener("error", (e) => {
-	debug.error(`Error: ${e.error.message}`);
+function handleErr(msg: string) {
+	debug.error(`Error: ${msg}`);
 	quit();
 	run(() => {
-		if (loadProgress() === 1) {
-			frameStart();
-			drawDebug();
-			frameEnd();
-		}
+		drawDebug();
 	});
+}
+
+window.addEventListener("error", (e) => {
+	handleErr(e.error.message);
+});
+
+window.addEventListener("unhandledrejection", (e) => {
+	handleErr(e.reason);
 });
 
 function run(f: () => void) {
@@ -5309,7 +5333,9 @@ function run(f: () => void) {
 		app.skipTime = false;
 		app.numFrames++;
 
+		frameStart();
 		f();
+		frameEnd();
 
 		for (const k in app.keyStates) {
 			app.keyStates[k] = processButtonState(app.keyStates[k]);
@@ -5329,41 +5355,9 @@ function run(f: () => void) {
 	};
 
 	app.stopped = false;
-	app.loopID = requestAnimationFrame(frame);
+	frame(0);
 
 }
-
-// main game loop
-run(() => {
-
-	// running this every frame now mainly because isFullscreen() is not updated real time when requested fullscreen
-	updateViewport();
-
-	if (!app.loaded) {
-		frameStart();
-		drawLoadScreen();
-		frameEnd();
-	} else {
-
-		// TODO: this gives the latest mousePos in input handlers but uses cam matrix from last frame
-		game.trigger("input");
-
-		if (!debug.paused) {
-			updateFrame();
-		}
-
-		frameStart();
-		drawFrame();
-
-		if (gopt.debug !== false) {
-			drawDebug();
-		}
-
-		frameEnd();
-
-	}
-
-});
 
 loadFont(
 	"apl386",
@@ -5396,13 +5390,40 @@ loadFont(
 	10,
 );
 
-frameStart();
-frameEnd();
+// main game loop
+run(() => {
+
+	// running this every frame now mainly because isFullscreen() is not updated real time when requested fullscreen
+	updateViewport();
+
+	if (!app.loaded) {
+		const progress = loadProgress();
+		if (progress === 1) {
+			app.loaded = true;
+			game.trigger("load");
+		}
+	}
+
+	if (!app.loaded && (gopt.loadingScreen === undefined || gopt.loadingScreen === true)) {
+		drawLoadScreen();
+	} else {
+		game.trigger("input");
+		if (!debug.paused) {
+			updateFrame();
+		}
+		drawFrame();
+		if (gopt.debug !== false) {
+			drawDebug();
+		}
+	}
+
+});
 
 // the exported ctx handle
 const ctx: KaboomCtx = {
 	// asset load
 	loadRoot,
+	loadProgress,
 	loadSprite,
 	loadSpriteAtlas,
 	loadSound,

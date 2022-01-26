@@ -1076,6 +1076,7 @@ export interface KaboomCtx {
 	 * ```
 	 */
 	load<T>(l: Promise<T>): void,
+	loadProgress<T>(): number,
 	/**
 	 * Get the width of game.
 	 *
@@ -2031,6 +2032,12 @@ export interface KaboomOpt {
 	 */
 	touchToMouse?: boolean,
 	/**
+	 * If kaboom should render a default loading screen when assets are not fully ready (default true).
+	 *
+	 * @since v2001.0
+	 */
+	loadingScreen?: boolean,
+	/**
 	 * If import all kaboom functions to global (default true).
 	 */
 	global?: boolean,
@@ -2274,6 +2281,13 @@ export interface SpriteAnimPlayOpt {
 	 * Runs when this animation ends.
 	 */
 	onEnd?: () => void,
+}
+
+export interface PeditFile {
+	width: number,
+	height: number,
+	frames: string[],
+	anims: SpriteAnims,
 }
 
 /**
