@@ -7,6 +7,8 @@
 - `add()` supports adding unattached game objects to the scene `add(make([...comps]))`
 - added `colors` option to `drawPolygon()`
 - added `gradient` option to `drawRect()`
+- added `loadProgress()` that returns a `0.0 - 1.0` that indicates current asset loading progress
+- added `kaboom()` option `loadingScreen` where you can turn off the default loading screen
 
 ### v2000.2.2
 
