@@ -1768,6 +1768,8 @@ export interface KaboomCtx {
 	/**
 	 * Draw a linear gradient.
 	 *
+	 * @since v2001.0
+	 *
 	 * @example
 	 * ```js
 	 * drawGradient({
