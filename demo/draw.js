@@ -23,6 +23,13 @@ onDraw(() => {
 	const my = (height() - py * 2) / 1
 	const p = (x, y) => vec2(x, y).scale(mx, my).add(px, py)
 
+	drawGradient({
+		p1: vec2(width() / 2, 0),
+		p2: vec2(width() / 2, height()),
+		width: width(),
+		steps: [rgb(128, 128, 255), rgb(60, 60, 255)],
+	})
+
 	// When "space" key is down, rotate the whole canvas from the center
 	if (isKeyDown("space")) {
 		pushTransform()

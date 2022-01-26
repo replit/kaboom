@@ -70,6 +70,7 @@ import {
 	DrawLinesOpt,
 	DrawTriangleOpt,
 	DrawPolygonOpt,
+	DrawGradientOpt,
 	DrawCircleOpt,
 	DrawEllipseOpt,
 	DrawUVQuadOpt,
@@ -2019,6 +2020,10 @@ function drawPolygon(opt: DrawPolygonOpt) {
 
 	popTransform();
 
+}
+
+function drawGradient(opt: DrawGradientOpt) {
+	// TODO
 }
 
 function applyCharTransform(fchar: FormattedChar, tr: CharTransform) {
@@ -5563,6 +5568,7 @@ const ctx: KaboomCtx = {
 	drawTriangle,
 	drawCircle,
 	drawEllipse,
+	drawGradient,
 	drawUVQuad,
 	drawPolygon,
 	drawFormattedText,

@@ -1766,6 +1766,20 @@ export interface KaboomCtx {
 	 */
 	drawPolygon(options: DrawPolygonOpt): void,
 	/**
+	 * Draw a linear gradient.
+	 *
+	 * @example
+	 * ```js
+	 * drawGradient({
+	 *     p1: vec2(width() / 2, 0),
+	 *     p2: vec2(width() / 2, height()),
+	 *     width: width(),
+	 *     steps: [rgb(128, 128, 255), rgb(60, 60, 255)],
+	 * })
+	 * ```
+	 */
+	drawGradient(options: DrawGradientOpt): void,
+	/**
 	 * Draw a rectangle with UV data.
 	 */
 	drawUVQuad(options: DrawUVQuadOpt): void,
@@ -2629,6 +2643,28 @@ export type DrawRectOpt = RenderProps & {
 	 * The origin point, or the pivot point. Default to "topleft".
 	 */
 	origin?: Origin | Vec2,
+}
+
+/**
+ * How the linear gradient should look like.
+ */
+export type DrawGradientOpt = RenderProps & {
+	/**
+	 * The starting point of gradient.
+	 */
+	p1: Vec2,
+	/**
+	 * The end point of gradient.
+	 */
+	p2: Vec2,
+	/**
+	 * The color steps.
+	 */
+	steps: Array<[number, Color]> | Color[],
+	/**
+	 * How wide the gradient is.
+	 */
+	width: number,
 }
 
 /**
