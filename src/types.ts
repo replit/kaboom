@@ -1766,22 +1766,6 @@ export interface KaboomCtx {
 	 */
 	drawPolygon(options: DrawPolygonOpt): void,
 	/**
-	 * Draw a linear gradient.
-	 *
-	 * @since v2001.0
-	 *
-	 * @example
-	 * ```js
-	 * drawGradient({
-	 *     p1: vec2(width() / 2, 0),
-	 *     p2: vec2(width() / 2, height()),
-	 *     width: width(),
-	 *     steps: [rgb(128, 128, 255), rgb(60, 60, 255)],
-	 * })
-	 * ```
-	 */
-	drawGradient(options: DrawGradientOpt): void,
-	/**
 	 * Draw a rectangle with UV data.
 	 */
 	drawUVQuad(options: DrawUVQuadOpt): void,
@@ -2634,6 +2618,12 @@ export type DrawRectOpt = RenderProps & {
 	 */
 	outline?: Outline,
 	/**
+	 * Use gradient instead of solid color.
+	 *
+	 * @since v2001.0
+	 */
+	gradient?: [Color, Color],
+	/**
 	 * If fill the shape with color (set this to false if you only want an outline).
 	 */
 	fill?: boolean,
@@ -2646,29 +2636,6 @@ export type DrawRectOpt = RenderProps & {
 	 */
 	origin?: Origin | Vec2,
 }
-
-/**
- * How the linear gradient should look like.
- */
-export type DrawGradientOpt = RenderProps & {
-	/**
-	 * The starting point of gradient.
-	 */
-	p1: Vec2,
-	/**
-	 * The end point of gradient.
-	 */
-	p2: Vec2,
-	/**
-	 * The color steps.
-	 */
-	steps: Array<[number, Color]> | Color[],
-	/**
-	 * How wide the gradient is.
-	 */
-	width: number,
-}
-
 /**
  * How the line should look like.
  */
@@ -2835,6 +2802,12 @@ export type DrawPolygonOpt = RenderProps & {
 	 * The radius of each corner.
 	 */
 	radius?: number,
+	/**
+	 * The color of each vertice.
+	 *
+	 * @since v2001.0
+	 */
+	colors?: Color[],
 }
 
 export interface Outline {

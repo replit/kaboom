@@ -70,7 +70,6 @@ import {
 	DrawLinesOpt,
 	DrawTriangleOpt,
 	DrawPolygonOpt,
-	DrawGradientOpt,
 	DrawCircleOpt,
 	DrawEllipseOpt,
 	DrawUVQuadOpt,
@@ -1828,7 +1827,19 @@ function drawRect(opt: DrawRectOpt) {
 
 	}
 
-	drawPolygon({ ...opt, offset, pts });
+	drawPolygon({
+		...opt,
+		offset,
+		pts,
+		...(opt.gradient ? {
+			colors: [
+				opt.gradient[0],
+				opt.gradient[0],
+				opt.gradient[1],
+				opt.gradient[1],
+			],
+		} : {})
+	});
 
 }
 
@@ -1991,10 +2002,10 @@ function drawPolygon(opt: DrawPolygonOpt) {
 
 		const color = opt.color ?? Color.WHITE;
 
-		const verts = opt.pts.map((pt) => ({
+		const verts = opt.pts.map((pt, i) => ({
 			pos: vec3(pt.x, pt.y, 0),
 			uv: vec2(0, 0),
-			color: color,
+			color: opt.colors ? (opt.colors[i] ?? color) : color,
 			opacity: opt.opacity ?? 1,
 		}));
 
@@ -2019,62 +2030,6 @@ function drawPolygon(opt: DrawPolygonOpt) {
 	}
 
 	popTransform();
-
-}
-
-function drawGradient(opt: DrawGradientOpt) {
-
-	const { p1, p2 } = opt;
-
-	if (!p1 || !p2 || !opt.width || !opt.steps) {
-		throw new Error(`drawGradient() requires properties "p1", "p2", "width" and "steps".`);
-	}
-
-	if (opt.steps.length < 2) {
-		throw new Error(`Gradient has to have at least 2 steps, found ${opt.steps.length}`);
-	}
-
-	// unify the step format to Array<[number, color]>
-	const steps = opt.steps[0] instanceof Color && !Array.isArray(opt.steps[0])
-		? opt.steps.map((c, i) => [ i / (opt.steps.length - 1), c ] as [number, Color])
-		: opt.steps as Array<[number, Color]>;
-
-	// make sure the step has head and tail
-	if (steps[0][0] !== 0) {
-		steps.unshift([0, steps[0][1]]);
-	}
-
-	if (steps[steps.length - 1][0] !== 1) {
-		steps.push([1, steps[steps.length - 1][1]]);
-	}
-
-	const w = opt.width || 1;
-	const diff = p2.sub(p1);
-	const dis = diff.unit().normal().scale(w * 0.5);
-
-	for (let i = 0; i < steps.length - 1; i++) {
-
-		const [ t1, c1 ] = steps[i];
-		const [ t2, c2 ] = steps[i + 1];
-		const pp1 = p1.add(diff.scale(t1));
-		const pp2 = p1.add(diff.scale(t2));
-
-		// calculate the 4 corner points of the line polygon
-		const verts = [
-			pp1.sub(dis),
-			pp1.add(dis),
-			pp2.add(dis),
-			pp2.sub(dis),
-		].map((p, i) => ({
-			pos: vec3(p.x, p.y, 0),
-			uv: vec2(0),
-			color: i <= 1 ? c1 : c2,
-			opacity: opt.opacity ?? 1,
-		}));
-
-		drawRaw(verts, [0, 1, 3, 1, 2, 3], opt.fixed, gfx.defTex, opt.shader, opt.uniform);
-
-	}
 
 }
 
@@ -5620,7 +5575,6 @@ const ctx: KaboomCtx = {
 	drawTriangle,
 	drawCircle,
 	drawEllipse,
-	drawGradient,
 	drawUVQuad,
 	drawPolygon,
 	drawFormattedText,
