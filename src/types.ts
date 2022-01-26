@@ -2033,6 +2033,8 @@ export interface KaboomOpt {
 	touchToMouse?: boolean,
 	/**
 	 * If kaboom should render a default loading screen when assets are not fully ready (default true).
+	 *
+	 * @since v2001.0
 	 */
 	loadingScreen?: boolean,
 	/**

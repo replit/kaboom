@@ -5359,35 +5359,6 @@ function run(f: () => void) {
 
 }
 
-// main game loop
-run(() => {
-
-	// running this every frame now mainly because isFullscreen() is not updated real time when requested fullscreen
-	updateViewport();
-
-	if (!app.loaded) {
-		const progress = loadProgress();
-		if (progress === 1) {
-			app.loaded = true;
-			game.trigger("load");
-		}
-	}
-
-	if (!app.loaded && (gopt.loadingScreen === undefined || gopt.loadingScreen === true)) {
-		drawLoadScreen();
-	} else {
-		game.trigger("input");
-		if (!debug.paused) {
-			updateFrame();
-		}
-		drawFrame();
-		if (gopt.debug !== false) {
-			drawDebug();
-		}
-	}
-
-});
-
 loadFont(
 	"apl386",
 	apl386Src,
@@ -5418,6 +5389,35 @@ loadFont(
 	8,
 	10,
 );
+
+// main game loop
+run(() => {
+
+	// running this every frame now mainly because isFullscreen() is not updated real time when requested fullscreen
+	updateViewport();
+
+	if (!app.loaded) {
+		const progress = loadProgress();
+		if (progress === 1) {
+			app.loaded = true;
+			game.trigger("load");
+		}
+	}
+
+	if (!app.loaded && (gopt.loadingScreen === undefined || gopt.loadingScreen === true)) {
+		drawLoadScreen();
+	} else {
+		game.trigger("input");
+		if (!debug.paused) {
+			updateFrame();
+		}
+		drawFrame();
+		if (gopt.debug !== false) {
+			drawDebug();
+		}
+	}
+
+});
 
 // the exported ctx handle
 const ctx: KaboomCtx = {
