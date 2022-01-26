@@ -4995,42 +4995,33 @@ function drawFrame() {
 
 function drawLoadScreen() {
 
-	// if assets are not fully loaded, draw a progress bar
 	const progress = loadProgress();
+	const w = width() / 2;
+	const h = 24 / app.scale;
+	const pos = vec2(width() / 2, height() / 2).sub(vec2(w / 2, h / 2));
 
-	if (progress === 1) {
-		app.loaded = true;
-		game.trigger("load");
-	} else {
+	drawRect({
+		pos: vec2(0),
+		width: width(),
+		height: height(),
+		color: rgb(0, 0, 0),
+	});
 
-		const w = width() / 2;
-		const h = 24 / app.scale;
-		const pos = vec2(width() / 2, height() / 2).sub(vec2(w / 2, h / 2));
+	drawRect({
+		pos: pos,
+		width: w,
+		height: h,
+		fill: false,
+		outline: {
+			width: 4 / app.scale,
+		},
+	});
 
-		drawRect({
-			pos: vec2(0),
-			width: width(),
-			height: height(),
-			color: rgb(0, 0, 0),
-		});
-
-		drawRect({
-			pos: pos,
-			width: w,
-			height: h,
-			fill: false,
-			outline: {
-				width: 4 / app.scale,
-			},
-		});
-
-		drawRect({
-			pos: pos,
-			width: w * progress,
-			height: h,
-		});
-
-	}
+	drawRect({
+		pos: pos,
+		width: w * progress,
+		height: h,
+	});
 
 }
 
@@ -5307,9 +5298,7 @@ function handleErr(msg: string) {
 	debug.error(`Error: ${msg}`);
 	quit();
 	run(() => {
-		frameStart();
 		drawDebug();
-		frameEnd();
 	});
 }
 
@@ -5344,7 +5333,9 @@ function run(f: () => void) {
 		app.skipTime = false;
 		app.numFrames++;
 
+		frameStart();
 		f();
+		frameEnd();
 
 		for (const k in app.keyStates) {
 			app.keyStates[k] = processButtonState(app.keyStates[k]);
@@ -5364,7 +5355,7 @@ function run(f: () => void) {
 	};
 
 	app.stopped = false;
-	app.loopID = requestAnimationFrame(frame);
+	frame(0);
 
 }
 
@@ -5374,28 +5365,25 @@ run(() => {
 	// running this every frame now mainly because isFullscreen() is not updated real time when requested fullscreen
 	updateViewport();
 
+	if (!app.loaded) {
+		const progress = loadProgress();
+		if (progress === 1) {
+			app.loaded = true;
+			game.trigger("load");
+		}
+	}
+
 	if (!app.loaded && (gopt.loadingScreen === undefined || gopt.loadingScreen === true)) {
-		frameStart();
 		drawLoadScreen();
-		frameEnd();
 	} else {
-
-		// TODO: this gives the latest mousePos in input handlers but uses cam matrix from last frame
 		game.trigger("input");
-
 		if (!debug.paused) {
 			updateFrame();
 		}
-
-		frameStart();
 		drawFrame();
-
 		if (gopt.debug !== false) {
 			drawDebug();
 		}
-
-		frameEnd();
-
 	}
 
 });
@@ -5430,9 +5418,6 @@ loadFont(
 	8,
 	10,
 );
-
-frameStart();
-frameEnd();
 
 // the exported ctx handle
 const ctx: KaboomCtx = {
