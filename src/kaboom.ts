@@ -2023,7 +2023,33 @@ function drawPolygon(opt: DrawPolygonOpt) {
 }
 
 function drawGradient(opt: DrawGradientOpt) {
-	// TODO
+
+	const { p1, p2 } = opt;
+
+	if (!p1 || !p2 || !opt.width || !opt.steps) {
+		throw new Error(`drawGradient() requires properties "p1", "p2", "width" and "steps".`);
+	}
+
+	const w = opt.width || 1;
+
+	// the displacement from the line end point to the corner point
+	const dis = p2.sub(p1).unit().normal().scale(w * 0.5);
+
+	// calculate the 4 corner points of the line polygon
+	const verts = [
+		p1.sub(dis),
+		p1.add(dis),
+		p2.add(dis),
+		p2.sub(dis),
+	].map((p, i) => ({
+		pos: vec3(p.x, p.y, 0),
+		uv: vec2(0),
+		color: opt.steps[Math.floor(i / 2)],
+		opacity: opt.opacity ?? 1,
+	}));
+
+	drawRaw(verts, [0, 1, 3, 1, 2, 3], opt.fixed, gfx.defTex, opt.shader, opt.uniform);
+
 }
 
 function applyCharTransform(fchar: FormattedChar, tr: CharTransform) {
