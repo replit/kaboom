@@ -4998,8 +4998,6 @@ function drawLoadScreen() {
 	// if assets are not fully loaded, draw a progress bar
 	const progress = loadProgress();
 
-	console.log(progress)
-
 	if (progress === 1) {
 		app.loaded = true;
 		game.trigger("load");
