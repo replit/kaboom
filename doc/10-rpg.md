@@ -16,13 +16,13 @@ We're going to learn how to add the following:
 
 You can find the code we use at https://replit.com/@ritza/rpg-tutorial or you can try out the embedded repl below.
 
-![RPG](https://raw.githubusercontent.com/ritza-co/kaboom/kaboom-concept-tutorials/assets/screenshots/rpg.png)
+![RPG](tutorials/rpg.png)
 
 # Getting started with the code
 
 The first thing we want to do is load the kaboom() library and initialize a Kaboom context.
 
-```
+```js
 import kaboom from "kaboom";
 
 kaboom()
@@ -30,7 +30,7 @@ kaboom()
 
 Next, we want to load the sprites we'll be using. The game will have various objects.
 
-```
+```js
 loadSprite("bag", "/sprites/bag.png")
 loadSprite("ghosty", "/sprites/ghosty.png")
 loadSprite("grass", "/sprites/grass.png")
@@ -46,7 +46,7 @@ This is the main game loop. Here we'll set up the game levels and the character 
 
 Firstly we'll create the characters and their dialogs:
 
-```
+```js
 scene("main", (levelIdx) => {
 
     const SPEED = 320
@@ -66,7 +66,7 @@ scene("main", (levelIdx) => {
 ### Levels
 Now we have to create the different layouts for the levels of the game. We store these levels in an array and for each of the levels we create, we will set up the positions for some of the sprites we loaded above. We will use symbols to represent the sprites in the array.
 
-```
+```js
     // level layouts
     const levels = [
         [
@@ -98,7 +98,7 @@ Now we have to create the different layouts for the levels of the game. We store
 
 Each of the symbols represents a specific sprite as shown below. Each symbol is an object with a sprite and its own components.
 
-```
+```js
 addLevel(levels[levelIdx], {
 	width: 64,
 	height: 64,
@@ -134,7 +134,7 @@ addLevel(levels[levelIdx], {
 
 Next, we'll add a special function called `any()` to the above array. `any()` gets called every time there's a symbol not defined above and is supposed to return what that symbol means.
 
-```
+```js
 any(ch) {
 	const char = characters[ch]
 	if (char) {
@@ -155,7 +155,7 @@ When our player character collides with the other characters in the game, a dial
 
 Here we'll create a function to add dialogs to the screen. These dialogs can be displayed, hidden, or destroyed depending on our player character's actions.
 
-```
+```js
 function addDialog() {
 	const h = 160
 	const pad = 16
@@ -201,7 +201,7 @@ function addDialog() {
 
 We can add a boolean variable to check when our player collides with the key character. If so, the key will disappear from the screen as our player 'obtains' it.
 
-```
+```js
 let hasKey = false
 const dialog = addDialog()
 
@@ -213,7 +213,7 @@ player.onCollide("key", (key) => {
 
 If our player collides with the door and has obtained the key, we can check if they haven't finished all levels in the game and still need to advance, or if they have, in which case they win the game. However, if our character collides with the door and has no key, they won't advance and a dialog message will be displayed to inform them.
 
-```
+```js
 player.onCollide("door", () => {
 	if (hasKey) {
 		if (levelIdx + 1 < levels.length) {
@@ -237,7 +237,7 @@ When our player collides with the barrier sprites, they won't be able to pass th
 
 This is the last part of the main scene. Here we create a dictionary of direction keys used to control our player's movements.
 
-```
+```js
 const dirs = {
 	"left": LEFT,
 	"right": RIGHT,
@@ -248,7 +248,7 @@ const dirs = {
 
 We also dismiss dialogs if our player has collided with other sprites and they move away.
 
-```
+```js
 for (const dir in dirs) {
 	onKeyPress(dir, () => {
 		dialog.dismiss()
@@ -263,7 +263,7 @@ for (const dir in dirs) {
 
 Lastly, we'll define the winning scene so that when our player finishes both levels in the game, it shows that we won!
 
-```
+```js
 scene("win", () => {
     add([
         text("You Win!"),

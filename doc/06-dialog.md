@@ -10,7 +10,7 @@ You can find the link to the code at https://replit.com/@ritza/dialog-tutorial o
 
 The first thing we want to do is load the `kaboom()` library and initialize a Kaboom context with a pink background. 
 
-```
+```js
 import kaboom from "kaboom";
 
 kaboom({
@@ -20,14 +20,14 @@ kaboom({
 
 Next, we want to load the sprites we'll be using. Introducing "Bean" the Frog and "Bobo" the Fish.
 
-```
+```js
 loadSprite("bean", "/sprites/bean.png")
 loadSprite("bobo", "/sprites/bobo.png")
 ```
 
 We want to define the dialogue data to display when the space bar is clicked. The data is stored in a nested array for easy access.
 
-```
+```js
 const dialogs = [
     [ "bean", "hi my butterfly" ],
     [ "bean", "i love u" ],
@@ -45,7 +45,7 @@ let curDialog = 0
 
 Now that we've defined our data, we want to define the properties for the textbox we'll be using to contain the dialog text. The `add()` function is used to assemble all the components that game objects comprise. 
 
-```
+```js
 // Textbox properties
 const textbox = add([
     rect(width() - 200, 120, { radius: 32 }),
@@ -57,7 +57,7 @@ const textbox = add([
 
 The code below is used to define the properties for the text to be displayed inside the textbox.
 
-```
+```js
 // Text properties
 const txt = add([
     text("", { size: 32, width: width() - 230 }),
@@ -68,7 +68,7 @@ const txt = add([
 
 Next, we want to add a sprite 'bean' to the screen, which is positioned at the center of the screen.
 
-```
+```js
 // Character avatar
 const avatar = add([
     sprite("bean"),
@@ -80,7 +80,7 @@ const avatar = add([
 
 Now we want to cycle through the dialog text every time the space bar is clicked. The `updateDialog()` function allows us to update the sprite from Bean to Bobo while also updating the text. 
 
-```
+```js
 onKeyPress("space", () => {
     // Cycle through the dialogs
     curDialog = (curDialog + 1) % dialogs.length
