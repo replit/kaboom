@@ -148,7 +148,7 @@ import {
 	LevelOpt,
 	Cursor,
 	Recording,
-	Kaboom,
+	BoomOpt,
 	PeditFile,
 } from "./types";
 
@@ -4842,25 +4842,6 @@ function isFocused(): boolean {
 	return document.activeElement === app.canvas;
 }
 
-interface BoomOpt {
-	/**
-	 * Animation speed.
-	 */
-	speed?: number,
-	/**
-	 * Scale.
-	 */
-	scale?: number,
-	/**
-	 * Additional ka components.
-	 */
-	kaComps?: () => CompList<any>,
-	/**
-	 * Additional boom components.
-	 */
-	boomComps?: () => CompList<any>,
-}
-
 // aliases for root game obj operations
 function add<T>(comps: CompList<T> | GameObj<T>): GameObj<T> {
 	return game.root.add(comps);
@@ -4903,7 +4884,7 @@ function explode(speed: number = 2, size: number = 1): ExplodeComp {
 		update() {
 			const s = Math.sin(time * speed) * size;
 			if (s < 0) {
-				destroy(this);
+				this.destroy();
 			}
 			this.scale = vec2(s);
 			time += dt();
@@ -4917,38 +4898,35 @@ let boomSprite = null;
 loadSprite(null, kaSrc).then((spr) => kaSprite = spr);
 loadSprite(null, boomSrc).then((spr) => boomSprite = spr);
 
-// TODO: use children obj
-function addKaboom(p: Vec2, opt: BoomOpt = {}): Kaboom {
+function addKaboom(p: Vec2, opt: BoomOpt = {}): GameObj {
+
+	const kaboom = add([
+		pos(p),
+		stay(),
+	]);
 
 	const speed = (opt.speed || 1) * 5;
 	const s = opt.scale || 1;
 
-	const boom = add([
-		pos(p),
+	const boom = kaboom.add([
 		sprite(boomSprite),
 		scale(0),
-		stay(),
 		origin("center"),
 		explode(speed, s),
 		...(opt.boomComps ?? (() => []))(),
 	]);
 
-	const ka = add([
-		pos(p),
+	const ka = kaboom.add([
 		sprite(kaSprite),
 		scale(0),
-		stay(),
 		origin("center"),
 		timer(0.4 / speed, () => ka.use(explode(speed, s))),
 		...(opt.kaComps ?? (() => []))(),
 	]);
 
-	return {
-		destroy() {
-			destroy(ka);
-			destroy(boom);
-		},
-	};
+	ka.onDestroy(() => kaboom.destroy());
+
+	return kaboom;
 
 }
 

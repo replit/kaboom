@@ -1895,6 +1895,10 @@ export interface KaboomCtx {
 	 */
 	record(frameRate?: number): Recording,
 	/**
+	 * Add an explosion
+	 */
+	addKaboom(pos: Vec2, opt?: BoomOpt): GameObj,
+	/**
 	 * All chars in ASCII.
 	 */
 	ASCII_CHARS: string,
@@ -3957,9 +3961,21 @@ export interface Level {
 	destroy(),
 }
 
-export interface Kaboom {
+export interface BoomOpt {
 	/**
-	 * Remove kaboom.
+	 * Animation speed.
 	 */
-	destroy(): void,
+	speed?: number,
+	/**
+	 * Scale.
+	 */
+	scale?: number,
+	/**
+	 * Additional ka components.
+	 */
+	kaComps?: () => CompList<any>,
+	/**
+	 * Additional boom components.
+	 */
+	boomComps?: () => CompList<any>,
 }
