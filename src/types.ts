@@ -2660,7 +2660,7 @@ export type DrawGradientOpt = RenderProps & {
 	/**
 	 * The color steps.
 	 */
-	steps: [Color, Color],
+	steps: Array<[number, Color]> | Color[],
 	/**
 	 * How wide the gradient is.
 	 */

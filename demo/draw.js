@@ -27,7 +27,10 @@ onDraw(() => {
 		p1: vec2(width() / 2, 0),
 		p2: vec2(width() / 2, height()),
 		width: width(),
-		steps: [rgb(180, 180, 255), rgb(20, 20, 255)],
+		steps: [
+			rgb(180, 180, 255),
+			rgb(20, 20, 255),
+		],
 	})
 
 	// When "space" key is down, rotate the whole canvas from the center
