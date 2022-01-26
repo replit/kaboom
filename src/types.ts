@@ -2032,6 +2032,10 @@ export interface KaboomOpt {
 	 */
 	logMax?: number,
 	/**
+	 * If log messages should include also print time.
+	 */
+	logTime?: boolean,
+	/**
 	 * If translate touch events as mouse clicks (default true).
 	 */
 	touchToMouse?: boolean,
@@ -3705,11 +3709,11 @@ export interface Debug {
 	/**
 	 * Log some text to on screen debug log.
 	 */
-	log(msg: string): void,
+	log(msg: string | { toString(): string }): void,
 	/**
 	 * Log an error message to on screen debug log.
 	 */
-	error(msg: string): void,
+	error(msg: string | { toString(): string }): void,
 	/**
 	 * The recording handle if currently in recording mode.
 	 *

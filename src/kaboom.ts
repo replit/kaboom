@@ -260,6 +260,8 @@ const BG_GRID_SIZE = 64;
 const DEF_FONT = "apl386o";
 const DBG_FONT = "sink";
 
+const LOG_MAX = 1;
+
 // vertex format stride (vec3 pos, vec2 uv, vec4 color)
 const STRIDE = 9;
 
@@ -2629,8 +2631,8 @@ const debug: Debug = {
 	stepFrame: updateFrame,
 	drawCalls: () => gfx.drawCalls,
 	clearLog: () => game.logs = [],
-	log: (msg) => game.logs.unshift(`[${time().toFixed(2)}].time [${msg}].info`),
-	error: (msg) => game.logs.unshift(`[${time().toFixed(2)}].time [${msg}].error`),
+	log: (msg) => game.logs.unshift(`${gopt.logTime ? `[${time().toFixed(2)}].time ` : ""}[${msg.toString ? msg.toString() : msg}].${msg instanceof Error ? "error" : "info"}`),
+	error: (msg) => debug.log(new Error(msg.toString ? msg.toString() : msg as string)),
 	curRecording: null,
 	get paused() {
 		return app.paused;
@@ -5237,7 +5239,7 @@ function drawDebug() {
 		pushTranslate(8, -8);
 
 		const pad = 8;
-		const max = gopt.logMax ?? 1;
+		const max = gopt.logMax ?? LOG_MAX;
 
 		if (game.logs.length > max) {
 			game.logs = game.logs.slice(0, max);
@@ -5285,11 +5287,9 @@ if (gopt.burp) {
 }
 
 function handleErr(msg: string) {
-	debug.error(`Error: ${msg}`);
+	debug.error(msg);
 	quit();
-	run(() => {
-		drawDebug();
-	});
+	run(drawDebug);
 }
 
 window.addEventListener("error", (e) => {
