@@ -5,8 +5,8 @@
 - raised esbuild target to `esnext`
 - added `make()` to make a game object without adding to the scene
 - `add()` supports adding unattached game objects to the scene `add(make([...comps]))`
-- added `colors` option to `drawPolygon()`
-- added `gradient` option to `drawRect()`
+- added `colors` option to `drawPolygon()` that controls the color of each corner
+- added `gradient` option to `drawRect()` that specifies the start and end color
 - added `loadProgress()` that returns a `0.0 - 1.0` that indicates current asset loading progress
 - added `kaboom()` option `loadingScreen` where you can turn off the default loading screen
 
