@@ -2,46 +2,133 @@
 
 import fs from "fs";
 import cp from "child_process"
-import readline from "readline"
+import https from "https"
 
 const help = `
 USAGE:
 
-  $ create-kaboom <dir> [FLAGS]
+  $ create-kaboom [OPTIONS] <dir>
 
     or
 
-  $ npm init kaboom <dir> [FLAGS]
+  $ npm init kaboom [OPTIONS] <dir>
 
-FLAGS:
+OPTIONS:
 
-  -t, --typescript   Use typescript
+  -h, --help          Print this message
+  -t, --typescript    Use typescript
+  -s, --start         Start the dev server right away
+  -d, --demo <name>   Start from a demo listed on kaboomjs.com/play
 `.trim()
 
-const dest = process.argv[2];
-const args = process.argv.slice(3);
-const has = (long, short) => args.includes(`--${long}`) || args.includes(`-${short}`)
-
-if (!dest || dest.startsWith("-")) {
-	console.error(`Please specify a directory to create the kaboom project!\n\n${help}`)
+const fail = (msg) => {
+	console.error(msg)
 	process.exit(1)
+}
+
+const optMap = [
+	{ long: "demo", short: "d", type: "value", },
+	{ long: "typescript", short: "t", type: "flag", },
+	{ long: "start", short: "s", type: "flag", },
+	{ long: "help", short: "h", type: "flag", },
+]
+
+const opts = {}
+const args = []
+
+iter: for (let i = 2; i < process.argv.length; i++) {
+	const arg = process.argv[i];
+	if (arg.startsWith("-")) {
+		for (const opt of optMap) {
+			if (arg === `--${opt.long}` || arg === `-${opt.short}`) {
+				if (opt.type === "flag") {
+					opts[opt.long] = true
+				} else if (opt.type === "value")  {
+					const val = process.argv[++i]
+					if (!val) {
+						fail(`Expected value after ${arg}`)
+					}
+					opts[opt.long] = val
+				}
+				continue iter
+			}
+		}
+		fail(`Unknown option "${arg}"\n\n${help}`)
+	} else {
+		args.push(arg)
+	}
+}
+
+if (opts["help"]) {
+	console.log(help)
+	process.exit()
+}
+
+const dest = args[0]
+
+if (!dest) {
+	fail(`Please specify a directory to create the kaboom project!\n\n${help}`)
 }
 
 if (fs.existsSync(dest)) {
-	console.error(`Directory "${dest}" already exists!`)
-	process.exit(1)
+	fail(`Directory "${dest}" already exists!`)
 }
 
-const ts = has("typescript", "t")
+const ts = opts["typescript"]
+
+const fetch = async (opt) => new Promise((resolve) => {
+
+	const req = https.request(opt, (res) => {
+		res.on("data", resolve)
+	})
+
+	req.on("error", fail)
+	req.end()
+
+})
+
+const exec = async (cmd, args, opts) => new Promise((resolve) => {
+	const proc = cp.spawn(cmd, args, opts)
+	proc.on("exit", resolve)
+	proc.on("error", fail)
+})
+
+let startCode = `
+import kaboom from "kaboom"
+
+kaboom()
+
+loadBean()
+
+add([
+	pos(120, 80),
+	sprite("bean"),
+])
+
+onClick(() => addKaboom(mousePos()))
+`.trim()
+
+// TODO: support pulling assets used by demo
+if (opts["demo"]) {
+
+	const demo = await fetch({
+		hostname: "raw.githubusercontent.com",
+		path: `replit/kaboom/master/demo/${opts["demo"]}.js`,
+		method: "GET",
+	})
+
+	startCode = `import kaboom from "kaboom"\n\n` + demo.toString().trim()
+
+}
 
 const file = (name, content) => ({
-	kind: "file",
+	type: "file",
 	name,
 	content: content.trim(),
 })
 
 const dir = (name, items) => ({
-	kind: "dir",
+	type: "dir",
 	name,
 	items,
 })
@@ -82,20 +169,16 @@ const template = dir(dest, [
 
 </html>
 	`),
-	file(`game.${ts ? "ts" : "js"}`, `
-import kaboom from "kaboom"
-
-kaboom()
-	`),
+	file(`game.${ts ? "ts" : "js"}`, startCode),
 ])
 
 const create = (dir) => {
 	fs.mkdirSync(dir.name)
 	process.chdir(dir.name)
 	for (const item of dir.items) {
-		if (item.kind === "dir") {
+		if (item.type === "dir") {
 			create(item)
-		} else if (item.kind === "file") {
+		} else if (item.type === "file") {
 			fs.writeFileSync(item.name, item.content)
 		}
 	}
@@ -104,9 +187,12 @@ const create = (dir) => {
 
 create(template)
 process.chdir(dest)
-const install = cp.spawn("npm", [ "install" ], { stdio: "inherit", })
 
-install.on("exit", () => {
+await exec("npm", [ "install", ], { stdio: "inherit", })
+
+if (opts["start"]) {
+	await exec("npm", [ "run", "dev", ], { stdio: "inherit", })
+} else {
 	console.log("")
 	console.log(`
 Success! Now
@@ -116,4 +202,4 @@ Success! Now
 
 and start editing game.${ts ? "ts" : "js"}!
 	`.trim())
-})
+}
