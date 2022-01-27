@@ -4,14 +4,26 @@ import fs from "fs";
 import cp from "child_process"
 import readline from "readline"
 
+const help = `
+USAGE:
+
+  $ create-kaboom <dir> [FLAGS]
+
+    or
+
+  $ npm init kaboom <dir> [FLAGS]
+
+FLAGS:
+
+  -t, --typescript   Use typescript
+`.trim()
+
 const dest = process.argv[2];
+const args = process.argv.slice(3);
+const has = (long, short) => args.includes(`--${long}`) || args.includes(`-${short}`)
 
-if (!dest) {
-	console.error(`
-Please specify a directory to create the kaboom project!
-
-  $ npm init kaboom <name>
-	`.trim())
+if (!dest || dest.startsWith("-")) {
+	console.error(`Please specify a directory to create the kaboom project!\n\n${help}`)
 	process.exit(1)
 }
 
@@ -19,6 +31,8 @@ if (fs.existsSync(dest)) {
 	console.error(`Directory "${dest}" already exists!`)
 	process.exit(1)
 }
+
+const ts = has("typescript", "t")
 
 const file = (name, content) => ({
 	kind: "file",
@@ -33,22 +47,26 @@ const dir = (name, items) => ({
 })
 
 const template = dir(dest, [
-	file("package.json", `
-{
-	"name": "kaboomdraw",
-	"scripts": {
-		"dev": "vite",
-		"build": "vite build",
-		"preview": "vite preview"
-	},
-	"dependencies": {
-		"kaboom": "^2000.2.2"
-	},
-	"devDependencies": {
-		"vite": "^2.7.13"
-	}
-}
-	`),
+	file("package.json", JSON.stringify({
+		"name": dest,
+		"scripts": {
+			"dev": "vite",
+			"build": "vite build",
+			"preview": "vite preview",
+			...(ts ? {
+				"check": "tsc --noEmit game.ts",
+			} : {}),
+		},
+		"dependencies": {
+			"kaboom": "^2000.2.2",
+		},
+		"devDependencies": {
+			"vite": "^2.7.13",
+			...(ts ? {
+				"typescript": "^4.5.5",
+			} : {}),
+		},
+	}, null, 4)),
 	file("index.html", `
 <!DOCTYPE html>
 
@@ -59,19 +77,19 @@ const template = dir(dest, [
 </head>
 
 <body>
-	<script type="module" src="/src/main.js"></script>
+	<script type="module" src="/game.${ts ? "ts" : "js"}"></script>
 </body>
 
 </html>
 	`),
-	file("game.js", `
+	file(`game.${ts ? "ts" : "js"}`, `
 import kaboom from "kaboom"
 
 kaboom()
 	`),
 ])
 
-function create(dir) {
+const create = (dir) => {
 	fs.mkdirSync(dir.name)
 	process.chdir(dir.name)
 	for (const item of dir.items) {
@@ -96,6 +114,6 @@ Success! Now
   $ cd ${dest}
   $ npm run dev
 
-and start editing game.js!
+and start editing game.${ts ? "ts" : "js"}!
 	`.trim())
 })
