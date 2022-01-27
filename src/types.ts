@@ -2640,6 +2640,12 @@ export type DrawRectOpt = RenderProps & {
 	 */
 	gradient?: [Color, Color],
 	/**
+	 * If the gradient should be horizontal.
+	 *
+	 * @since v2001.0
+	 */
+	horizontal?: boolean,
+	/**
 	 * If fill the shape with color (set this to false if you only want an outline).
 	 */
 	fill?: boolean,
@@ -2652,6 +2658,7 @@ export type DrawRectOpt = RenderProps & {
 	 */
 	origin?: Origin | Vec2,
 }
+
 /**
  * How the line should look like.
  */
@@ -2743,6 +2750,12 @@ export type DrawCircleOpt = Omit<RenderProps, "angle"> & {
 	 */
 	fill?: boolean,
 	/**
+	 * Use gradient instead of solid color.
+	 *
+	 * @since v2001.0
+	 */
+	gradient?: [Color, Color],
+	/**
 	 * Multipliyer for the number of polygon segments.
 	 */
 	resolution?: number,
@@ -2780,6 +2793,12 @@ export type DrawEllipseOpt = RenderProps & {
 	 * If fill the shape with color (set this to false if you only want an outline).
 	 */
 	fill?: boolean,
+	/**
+	 * Use gradient instead of solid color.
+	 *
+	 * @since v2001.0
+	 */
+	gradient?: [Color, Color],
 	/**
 	 * Multipliyer for the number of polygon segments.
 	 */
