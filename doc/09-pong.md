@@ -17,13 +17,13 @@ We're going to learn how to add the following:
 
 You can find the code we use for this tutorial at https://replit.com/@ritza/pong-tutorial or you can try the embedded repl below.
 
-![Pong](https://raw.githubusercontent.com/ritza-co/kaboom/kaboom-concept-tutorials/assets/screenshots/pong.png)
+![Pong](tutorials/pong.png)
 
 ## Getting started with the code
 
 The first thing we want to do is load the `kaboom()` library and initialize a Kaboom context with a yellow background. 
 
-```
+```js
 import kaboom from "kaboom";
 
 kaboom({
@@ -33,7 +33,7 @@ kaboom({
 
 Next, we're going to add our digital rackets. We're going to create two paddles, each positioned on the opposite ends of the screen, with strictly vertical movement.
 
-```
+```js
 add([
     pos(40, 0),
     rect(20, 80),
@@ -55,7 +55,7 @@ add([
 
 The two paddles in the pong game have synchronized movement. We can achieve this functionality by syncing the vertical movement of our mouse with the movement of our paddles.
 
-```
+```js
 onUpdate("paddle", (p) => {
     p.pos.y = mousePos().y
 })
@@ -63,7 +63,7 @@ onUpdate("paddle", (p) => {
 
 The ball in the pong game usually moves from the center when the game starts to one of the paddles. We can position it in the center of our display when the game starts.
 
-```
+```js
 const ball = add([
     pos(center()),
     circle(16),
@@ -77,7 +77,7 @@ When the ball touches either paddle it will bounce off it and change direction t
 
 Now we'll add the functionality for when the ball touches the vertical or horizontal edges.
 
-```
+```js
 ball.onUpdate(() => {
     ball.move(ball.vel.scale(speed))
     if (ball.pos.x < 0 || ball.pos.x > width()) {
@@ -94,7 +94,7 @@ ball.onUpdate(() => {
 
 Lastly, we'll add the functionality for when the ball touches the paddles. The ball will change direction and head towards the opposite end, depending on the angle at which it hit the paddle.
 
-```
+```js
 ball.onCollide("paddle", (p) => {
     speed += 60
     ball.vel = dir(ball.pos.angle(p.pos))

@@ -16,7 +16,7 @@ The main things that we want to consider are as follows:
 
 The first thing we want to do to is load the `kaboom()` library and initialize a kaboom context.
 
-```
+```js
 import kaboom from "kaboom";
 
 kaboom()
@@ -24,7 +24,7 @@ kaboom()
 
 Next, we want to keep track of the current object we're dragging. 
 
-```
+```js
 let curDraggin = null
 ```
 
@@ -34,7 +34,7 @@ This function is responsible for keeping track of the position of the mouse and 
 
 The code below shows the `drag()` function:
 
-```
+```js
 function drag() {
 
     // The displacement between object pos and mouse pos
@@ -74,7 +74,7 @@ function drag() {
 
 Now that we've defined our custom component, we want to register drop our sprite. For this, we use the `onMouseRelease()` event handler.
 
-```
+```js
 // drop
 onMouseRelease(() => {
     curDraggin = null
@@ -83,7 +83,7 @@ onMouseRelease(() => {
 
 Now we're ready to add our component:
 
-```
+```js
 // adding dragable objects
 add([
   sprite("bean"),
