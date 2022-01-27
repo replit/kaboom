@@ -3,7 +3,9 @@
 a script to help you start a kaboom project in no time
 
 ```
-USAGE:
+create-kaboom v1.2.0
+
+USAGE
 
   $ create-kaboom [OPTIONS] <dir>
 
@@ -11,7 +13,7 @@ USAGE:
 
   $ npm init kaboom -- [OPTIONS] <dir>
 
-OPTIONS:
+OPTIONS
 
   -h, --help             Print this message
   -t, --typescript       Use TypeScript
@@ -20,4 +22,18 @@ OPTIONS:
   -d, --demo <name>      Start from a demo listed on kaboomjs.com/play
       --spaces <num>     Use spaces instead of tabs for generated files
   -v, --version <label>  Use a specific kaboom version (default latest)
+
+EXAMPLE
+
+  # quick start with default config
+  $ npm init kaboom mygame
+
+  # need to put all args after -- if using with npm init
+  $ npm init kaboom -- --typescript --demo burp mygame
+
+  # can also install the create-kaboom binary
+  $ npm install -g create-kaboom
+
+  # everything is the same, except you don't need to use -- when passing options
+  $ create-kaboom -t -s -d burp mygame
 ```
