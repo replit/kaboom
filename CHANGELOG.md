@@ -1,5 +1,9 @@
 ### v2000.2.2
 
+- fixed `kaboom.d.ts` completely messed up
+
+### v2000.2.2
+
 - fixed doc for `TextCompOpt#styles` and `DrawTextOpt#styles`
 
 ### v2000.2.1
