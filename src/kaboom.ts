@@ -530,7 +530,12 @@ const gfx = (() => {
 
 	gl.enable(gl.BLEND);
 	gl.enable(gl.SCISSOR_TEST);
-	gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
+	gl.blendFuncSeparate(
+		gl.SRC_ALPHA,
+		gl.ONE_MINUS_SRC_ALPHA,
+		gl.ONE,
+		gl.ONE_MINUS_SRC_ALPHA
+	);
 
 	// we only use one vertex and index buffer that batches all draw calls
 	const vbuf = gl.createBuffer();
@@ -2032,6 +2037,50 @@ function drawPolygon(opt: DrawPolygonOpt) {
 	}
 
 	popTransform();
+
+}
+
+function drawMasked(mask: () => void, content: () => void) {
+
+	const gl = app.gl;
+
+	flush();
+	gl.enable(gl.STENCIL_TEST);
+
+	// don't perform test, pure write
+	gl.stencilFunc(
+	   gl.NEVER,
+	   1,
+	   0xFF,
+	);
+
+	// always replace since we're writing to the buffer
+	gl.stencilOp(
+		gl.REPLACE,
+		gl.REPLACE,
+		gl.REPLACE,
+	);
+
+	mask();
+	flush();
+
+	// only render when that spot is written
+	gl.stencilFunc(
+	   gl.EQUAL,
+	   1,
+	   0xFF,
+	);
+
+	// don't write since we're only testing
+	gl.stencilOp(
+		gl.KEEP,
+		gl.KEEP,
+		gl.KEEP,
+	);
+
+	content();
+	flush();
+	gl.disable(gl.STENCIL_TEST);
 
 }
 
@@ -5578,6 +5627,7 @@ const ctx: KaboomCtx = {
 	drawUVQuad,
 	drawPolygon,
 	drawFormattedText,
+	drawMasked,
 	pushTransform,
 	popTransform,
 	pushTranslate,

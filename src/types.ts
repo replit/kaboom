@@ -1791,6 +1791,12 @@ export interface KaboomCtx {
 	 */
 	drawFormattedText(text: FormattedText): void,
 	/**
+	 * Write everything drawn in the first function into stencil buffer, then draw content in the second function that performs stencil test.
+	 *
+	 * @since v2001.0
+	 */
+	drawMasked(mask: () => void, content: () => void): void,
+	/**
 	 * Push current transform matrix to the transform stack.
 	 *
 	 * @example
