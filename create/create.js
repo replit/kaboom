@@ -15,6 +15,7 @@ const optMap = [
 	{ long: "start", short: "s", desc: "Start the dev server right away", },
 	{ long: "no-hmr", desc: "Don't use vite hmr / hot reload", },
 	{ long: "demo", short: "d", value: "name", desc: "Start from a demo listed on kaboomjs.com/play", },
+	{ long: "spaces", value: "num", desc: "Use spaces instead of tabs for generated files", },
 	{ long: "version", short: "v", value: "label", desc: "Use a specific kaboom version (default latest)", },
 ]
 
@@ -150,11 +151,12 @@ const dir = (name, items) => ({
 	items,
 })
 
+const stringify = (obj) => JSON.stringify(obj, null, "\t")
 const ext = ts ? "ts" : "js";
 
 // describe files to generate
 const template = dir(dest, [
-	file("package.json", JSON.stringify({
+	file("package.json", stringify({
 		"name": dest,
 		"scripts": {
 			"dev": "vite",
@@ -164,7 +166,7 @@ const template = dir(dest, [
 				"check": "tsc --noEmit game.ts",
 			} : {}),
 		},
-	}, null, "\t")),
+	})),
 	file("index.html", `
 <!DOCTYPE html>
 
@@ -186,11 +188,11 @@ const template = dir(dest, [
 	file(`vite.config.${ext}`, `
 import { defineConfig } from "vite"
 
-export default defineConfig(${JSON.stringify(opts["no-hmr"] ? {
+export default defineConfig(${stringify(opts["no-hmr"] ? {
 	server: {
 		hmr: false,
 	},
-} : {}, null, "\t")})
+} : {})})
 	`)
 ])
 
@@ -201,7 +203,10 @@ const create = (dir) => {
 		if (item.type === "dir") {
 			create(item)
 		} else if (item.type === "file") {
-			fs.writeFileSync(item.name, item.content)
+			const content = opts["spaces"]
+				? item.content.replaceAll("\t", " ".repeat(opts["spaces"]))
+				: item.content
+			fs.writeFileSync(item.name, content)
 		}
 	}
 	process.chdir("..")
