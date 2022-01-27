@@ -1,4 +1,4 @@
-### v2000.2.2
+### v2000.2.3
 
 - fixed `kaboom.d.ts` completely messed up
 
