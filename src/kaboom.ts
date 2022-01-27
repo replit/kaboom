@@ -1980,19 +1980,22 @@ function drawEllipse(opt: DrawEllipseOpt) {
 		return;
 	}
 
+	const start = opt.start ?? 0;
+	const end = opt.end ?? 360;
+
 	const pts = getArcPts(
 		vec2(0),
 		opt.radiusX,
 		opt.radiusY,
-		opt.start ?? 0,
-		opt.end ?? 360,
+		start,
+		end,
 		opt.resolution
 	);
 
 	// center
 	pts.unshift(vec2(0));
 
-	drawPolygon({
+	const polyOpt = {
 		...opt,
 		pts,
 		radius: 0,
@@ -2001,8 +2004,26 @@ function drawEllipse(opt: DrawEllipseOpt) {
 				opt.gradient[0],
 				...Array(pts.length - 1).fill(opt.gradient[1]),
 			],
-		} : {})
-	});
+		} : {}),
+	};
+
+	// full circle with outline shouldn't have the center point
+	if (end - start >= 360 && opt.outline) {
+		if (opt.fill !== false) {
+			drawPolygon({
+				...polyOpt,
+				outline: null,
+			});
+		}
+		drawPolygon({
+			...polyOpt,
+			pts: pts.slice(1),
+			fill: false,
+		});
+		return;
+	}
+
+	drawPolygon(polyOpt);
 
 }
 
