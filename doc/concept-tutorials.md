@@ -11,4 +11,4 @@ If you're looking to add a specific feature to your game, you might find it here
 * [Runner](/doc/07-runner)
 * [Flappy](/doc/08-flappy)
 * [Pong](/doc/09-pong)
-* [Role-playing game](/doc/10-rpg.md)
+* [Role-playing game](/doc/10-rpg)
