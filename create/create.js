@@ -195,11 +195,11 @@ if (opts["start"]) {
 } else {
 	console.log("")
 	console.log(`
-	Success! Now
+Success! Now
 
-	  $ cd ${dest}
-	  $ npm run dev
+  $ cd ${dest}
+  $ npm run dev
 
-	and start editing game.${ts ? "ts" : "js"}!
+and start editing game.${ts ? "ts" : "js"}!
 	`.trim())
 }
