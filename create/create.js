@@ -4,9 +4,16 @@ import fs from "fs";
 import cp from "child_process"
 import https from "https"
 
-const fail = (msg) => {
-	console.error(msg)
+const c = (n, msg) => `\x1b[${n}m${msg}\x1b[0m`
+
+const fail = (msg, ifHelp) => {
+	console.error(c(31, msg))
+	if (ifHelp) console.error("\n" + help)
 	process.exit(1)
+}
+
+const info = (msg) => {
+	console.log(`\x1b[33m${msg}\x1b[0m`)
 }
 
 const optMap = [
@@ -28,7 +35,9 @@ const optDisplay = optMap.map((opt) => ({
 const usageLen = optDisplay.reduce((len, dis) => dis.usage.length > len ? dis.usage.length : len, 0)
 
 const help = `
-USAGE:
+create-kaboom v1.2.0
+
+${c(33, "USAGE")}
 
   $ create-kaboom [OPTIONS] <dir>
 
@@ -36,9 +45,20 @@ USAGE:
 
   $ npm init kaboom -- [OPTIONS] <dir>
 
-OPTIONS:
+${c(33, "OPTIONS")}
 
-  ${optDisplay.map((opt) => `${opt.usage} ${" ".repeat(usageLen - opt.usage.length)} ${opt.desc}`).join("\n  ")}
+  ${optDisplay.map((opt) => `${c(32, opt.usage)} ${" ".repeat(usageLen - opt.usage.length)} ${opt.desc}`).join("\n  ")}
+
+${c(33, "EXAMPLE")}
+
+  ${c(30, "# quick start with default config")}
+  $ npm init kaboom mygame
+
+  ${c(30, "# need to put all args after -- if using with npm init")}
+  $ npm init kaboom -- --typescript --demo burp mygame
+
+  ${c(30, "# if installed locally you don't need to use -- when passing options")}
+  $ create-kaboom -t -s -d burp mygame
 `.trim()
 
 const opts = {}
@@ -62,7 +82,7 @@ iterargs: for (let i = 2; i < process.argv.length; i++) {
 				continue iterargs
 			}
 		}
-		fail(`Unknown option "${arg}"\n\n${help}`)
+		fail(`Unknown option "${arg}"`, true)
 	} else {
 		args.push(arg)
 	}
@@ -76,7 +96,8 @@ if (opts["help"]) {
 const dest = args[0]
 
 if (!dest) {
-	fail(`Please specify a directory to create the kaboom project!\n\n${help}`)
+	console.log(help)
+	process.exit()
 }
 
 if (fs.existsSync(dest)) {
@@ -119,6 +140,8 @@ onClick(() => addKaboom(mousePos()))
 
 // TODO: support pulling assets used by demo
 if (opts["demo"]) {
+
+	info(`- fetching demo "${opts["demo"]}"`)
 
 	const demo = await fetch({
 		hostname: "raw.githubusercontent.com",
@@ -182,9 +205,6 @@ const template = dir(dest, [
 
 </html>
 	`),
-	dir("src", [
-		file(`game.${ext}`, startCode),
-	]),
 	file(`vite.config.${ext}`, `
 import { defineConfig } from "vite"
 
@@ -193,12 +213,18 @@ export default defineConfig(${stringify(opts["no-hmr"] ? {
 		hmr: false,
 	},
 } : {})})
-	`)
+	`),
+	dir("src", [
+		file(`game.${ext}`, startCode),
+	]),
 ])
+
+let curDir = []
 
 const create = (dir) => {
 	fs.mkdirSync(dir.name)
 	process.chdir(dir.name)
+	curDir.push(dir.name)
 	for (const item of dir.items) {
 		if (item.type === "dir") {
 			create(item)
@@ -206,19 +232,24 @@ const create = (dir) => {
 			const content = opts["spaces"]
 				? item.content.replaceAll("\t", " ".repeat(opts["spaces"]))
 				: item.content
+			info(`- creating ${curDir.join("/")}/${item.name}`)
 			fs.writeFileSync(item.name, content)
 		}
 	}
 	process.chdir("..")
+	curDir.pop()
 }
 
 create(template)
 process.chdir(dest)
 
-await exec("npm", [ "install", ...pkgs, ], { stdio: "inherit", })
-await exec("npm", [ "install", "-D", ...devPkgs, ], { stdio: "inherit", })
+info(`- installing packages ${pkgs.map((pkg) => `"${pkg}"`).join(", ")}`)
+await exec("npm", [ "install", ...pkgs, ], { stdio: [ "inherit", "ignore", "inherit" ], })
+info(`- installing dev packages ${devPkgs.map((pkg) => `"${pkg}"`).join(", ")}`)
+await exec("npm", [ "install", "-D", ...devPkgs, ], { stdio: [ "inherit", "ignore", "inherit" ], })
 
 if (opts["start"]) {
+	info(`- starting dev server`)
 	await exec("npm", [ "run", "dev", ], { stdio: "inherit", })
 } else {
 	console.log("")
