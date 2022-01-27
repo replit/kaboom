@@ -530,7 +530,12 @@ const gfx = (() => {
 
 	gl.enable(gl.BLEND);
 	gl.enable(gl.SCISSOR_TEST);
-	gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
+	gl.blendFuncSeparate(
+		gl.SRC_ALPHA,
+		gl.ONE_MINUS_SRC_ALPHA,
+		gl.ONE,
+		gl.ONE_MINUS_SRC_ALPHA
+	);
 
 	// we only use one vertex and index buffer that batches all draw calls
 	const vbuf = gl.createBuffer();
@@ -1487,7 +1492,9 @@ function flush() {
 // start a rendering frame, reset some states
 function frameStart() {
 
-	app.gl.clear(app.gl.COLOR_BUFFER_BIT);
+	const gl = app.gl;
+
+	gl.clear(gl.COLOR_BUFFER_BIT);
 
 	if (!gopt.background) {
 		drawUVQuad({
@@ -2033,6 +2040,59 @@ function drawPolygon(opt: DrawPolygonOpt) {
 
 	popTransform();
 
+}
+
+function drawStenciled(content: () => void, mask: () => void, test: number) {
+
+	const gl = app.gl;
+
+	flush();
+	gl.clear(gl.STENCIL_BUFFER_BIT);
+	gl.enable(gl.STENCIL_TEST);
+
+	// don't perform test, pure write
+	gl.stencilFunc(
+	   gl.NEVER,
+	   1,
+	   0xFF,
+	);
+
+	// always replace since we're writing to the buffer
+	gl.stencilOp(
+		gl.REPLACE,
+		gl.REPLACE,
+		gl.REPLACE,
+	);
+
+	mask();
+	flush();
+
+	// perform test
+	gl.stencilFunc(
+	   test,
+	   1,
+	   0xFF,
+	);
+
+	// don't write since we're only testing
+	gl.stencilOp(
+		gl.KEEP,
+		gl.KEEP,
+		gl.KEEP,
+	);
+
+	content();
+	flush();
+	gl.disable(gl.STENCIL_TEST);
+
+}
+
+function drawMasked(content: () => void, mask: () => void) {
+	drawStenciled(content, mask, app.gl.EQUAL);
+}
+
+function drawSubtracted(content: () => void, mask: () => void) {
+	drawStenciled(content, mask, app.gl.NOTEQUAL);
 }
 
 function applyCharTransform(fchar: FormattedChar, tr: CharTransform) {
@@ -5578,6 +5638,8 @@ const ctx: KaboomCtx = {
 	drawUVQuad,
 	drawPolygon,
 	drawFormattedText,
+	drawMasked,
+	drawSubtracted,
 	pushTransform,
 	popTransform,
 	pushTranslate,
