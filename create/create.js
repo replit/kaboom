@@ -58,7 +58,7 @@ const template = dir(dest, [
 			} : {}),
 		},
 		"dependencies": {
-			"kaboom": "^2000.2.2",
+			"kaboom": "^2000.2.3",
 		},
 		"devDependencies": {
 			"vite": "^2.7.13",
@@ -66,7 +66,7 @@ const template = dir(dest, [
 				"typescript": "^4.5.5",
 			} : {}),
 		},
-	}, null, 4)),
+	}, null, "\t")),
 	file("index.html", `
 <!DOCTYPE html>
 
