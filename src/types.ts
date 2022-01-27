@@ -82,7 +82,17 @@ export interface KaboomCtx {
 	 * })
 	 * ```
 	 */
-	add<T>(comps: CompList<T>): GameObj<T>,
+	add<T>(comps: CompList<T> | GameObj<T>): GameObj<T>,
+	/**
+	 * Create a game object from a list of components, without adding it to the scene.
+	 *
+	 * @since v2001.0
+	 */
+	make<T>(comps?: CompList<T>): GameObj<T>,
+	/**
+	 * Remove and re-add the game obj, without triggering add / destroy events.
+	 */
+	readd(obj: GameObj),
 	/**
 	 * Get a list of all game objs with certain tag.
 	 *
@@ -123,16 +133,6 @@ export interface KaboomCtx {
 	 * Run callback on every game obj in reverse order.
 	 */
 	revery<T>(action: (obj: GameObj) => T): void,
-	/**
-	 * Remove and re-add the game obj.
-	 *
-	 * @example
-	 * ```js
-	 * // mainly useful when you want to make something to draw on top
-	 * readd(froggy)
-	 * ```
-	 */
-	readd(obj: GameObj): GameObj,
 	/**
 	 * Remove the game obj.
 	 *
@@ -1028,7 +1028,7 @@ export interface KaboomCtx {
 	 * loadFont("04b03", "fonts/04b03.png", 6, 8)
 	 *
 	 * // load a font with custom characters
-	 * loadFont("cp437", "cp437.png", 6, 8, "☺☻♥♦♣♠")
+	 * loadFont("cp437", "cp437.png", 6, 8, {chars: "☺☻♥♦♣♠"})
 	 * ```
 	 */
 	loadFont(
@@ -1076,6 +1076,7 @@ export interface KaboomCtx {
 	 * ```
 	 */
 	load<T>(l: Promise<T>): void,
+	loadProgress<T>(): number,
 	/**
 	 * Get the width of game.
 	 *
@@ -1665,7 +1666,7 @@ export interface KaboomCtx {
 	 *
 	 * @example
 	 * ```js
-	 * draRect({
+	 * drawRect({
 	 *     width: 120,
 	 *     height: 240,
 	 *     pos: vec2(20, 20),
@@ -1790,6 +1791,18 @@ export interface KaboomCtx {
 	 */
 	drawFormattedText(text: FormattedText): void,
 	/**
+	 * Whatever drawn in content will only be drawn if it's also drawn in mask (mask will not be rendered).
+	 *
+	 * @since v2001.0
+	 */
+	drawMasked(content: () => void, mask: () => void): void,
+	/**
+	 * Subtract whatever drawn in content by whatever drawn in mask (mask will not be rendered).
+	 *
+	 * @since v2001.0
+	 */
+	drawSubtracted(content: () => void, mask: () => void): void,
+	/**
 	 * Push current transform matrix to the transform stack.
 	 *
 	 * @example
@@ -1893,6 +1906,10 @@ export interface KaboomCtx {
 	 * @since v2000.1
 	 */
 	record(frameRate?: number): Recording,
+	/**
+	 * Add an explosion
+	 */
+	addKaboom(pos: Vec2, opt?: BoomOpt): GameObj,
 	/**
 	 * All chars in ASCII.
 	 */
@@ -2027,13 +2044,25 @@ export interface KaboomOpt {
 	 */
 	logMax?: number,
 	/**
+	 * If log messages should include also print time.
+	 */
+	logTime?: boolean,
+	/**
 	 * If translate touch events as mouse clicks (default true).
 	 */
 	touchToMouse?: boolean,
 	/**
 	 * Size of each spatial hashgrid cell used in collision detection. Defaults to 64.
+	 *
+	 * @since v2001.0
 	 */
 	hashGridSize?: number,
+	/**
+	 * If kaboom should render a default loading screen when assets are not fully ready (default true).
+	 *
+	 * @since v2001.0
+	 */
+	loadingScreen?: boolean,
 	/**
 	 * If import all kaboom functions to global (default true).
 	 */
@@ -2079,13 +2108,11 @@ export interface GameObjRaw {
 	 *
 	 * @since v2000.2.0
 	 */
-	add<T>(comps: CompList<T>): GameObj<T>,
+	add<T>(comps: CompList<T> | GameObj<T>): GameObj<T>,
 	/**
-	 * Remove and re-add the game obj.
-	 *
-	 * @since v2000.2.0
+	 * Remove and re-add the game obj, without triggering add / destroy events.
 	 */
-	readd(obj: GameObj): GameObj,
+	readd(obj: GameObj),
 	/**
 	 * Remove a child.
 	 *
@@ -2284,6 +2311,13 @@ export interface SpriteAnimPlayOpt {
 	 * Runs when this animation ends.
 	 */
 	onEnd?: () => void,
+}
+
+export interface PeditFile {
+	width: number,
+	height: number,
+	frames: string[],
+	anims: SpriteAnims,
 }
 
 /**
@@ -2610,6 +2644,18 @@ export type DrawRectOpt = RenderProps & {
 	 */
 	outline?: Outline,
 	/**
+	 * Use gradient instead of solid color.
+	 *
+	 * @since v2001.0
+	 */
+	gradient?: [Color, Color],
+	/**
+	 * If the gradient should be horizontal.
+	 *
+	 * @since v2001.0
+	 */
+	horizontal?: boolean,
+	/**
 	 * If fill the shape with color (set this to false if you only want an outline).
 	 */
 	fill?: boolean,
@@ -2714,6 +2760,12 @@ export type DrawCircleOpt = Omit<RenderProps, "angle"> & {
 	 */
 	fill?: boolean,
 	/**
+	 * Use gradient instead of solid color.
+	 *
+	 * @since v2001.0
+	 */
+	gradient?: [Color, Color],
+	/**
 	 * Multipliyer for the number of polygon segments.
 	 */
 	resolution?: number,
@@ -2752,6 +2804,12 @@ export type DrawEllipseOpt = RenderProps & {
 	 */
 	fill?: boolean,
 	/**
+	 * Use gradient instead of solid color.
+	 *
+	 * @since v2001.0
+	 */
+	gradient?: [Color, Color],
+	/**
 	 * Multipliyer for the number of polygon segments.
 	 */
 	resolution?: number,
@@ -2789,6 +2847,12 @@ export type DrawPolygonOpt = RenderProps & {
 	 * The radius of each corner.
 	 */
 	radius?: number,
+	/**
+	 * The color of each vertice.
+	 *
+	 * @since v2001.0
+	 */
+	colors?: Color[],
 }
 
 export interface Outline {
@@ -2845,7 +2909,7 @@ export type DrawTextOpt = RenderProps & {
 	 */
 	transform?: CharTransform | CharTransformFunc,
 	/**
-	 * Stylesheet for styled chunks, in the syntax of "here comes a (styled):wavy word".
+	 * Stylesheet for styled chunks, in the syntax of "this is a [styled].stylename word".
 	 *
 	 * @since v2000.2
 	 */
@@ -2877,8 +2941,14 @@ export interface FormattedChar {
 	uniform: Uniform,
 }
 
+/**
+ * A function that returns a character transform config. Useful if you're generating dynamic styles.
+ */
 export type CharTransformFunc = (idx: number, ch: string) => CharTransform;
 
+/**
+ * Describes how to transform each character.
+ */
 export interface CharTransform {
 	pos?: Vec2,
 	scale?: Vec2 | number,
@@ -3615,7 +3685,7 @@ export interface TextCompOpt {
 	 */
 	transform?: CharTransform | CharTransformFunc,
 	/**
-	 * Stylesheet for styled chunks, in the syntax of "here comes a (styled):wavy word".
+	 * Stylesheet for styled chunks, in the syntax of "this is a [styled].stylename word".
 	 *
 	 * @since v2000.2
 	 */
@@ -3725,11 +3795,11 @@ export interface Debug {
 	/**
 	 * Log some text to on screen debug log.
 	 */
-	log(msg: string): void,
+	log(msg: string | { toString(): string }): void,
 	/**
 	 * Log an error message to on screen debug log.
 	 */
-	error(msg: string): void,
+	error(msg: string | { toString(): string }): void,
 	/**
 	 * The recording handle if currently in recording mode.
 	 *
@@ -3992,9 +4062,21 @@ export interface Level {
 	destroy(),
 }
 
-export interface Kaboom {
+export interface BoomOpt {
 	/**
-	 * Remove kaboom.
+	 * Animation speed.
 	 */
-	destroy(): void,
+	speed?: number,
+	/**
+	 * Scale.
+	 */
+	scale?: number,
+	/**
+	 * Additional ka components.
+	 */
+	kaComps?: () => CompList<any>,
+	/**
+	 * Additional boom components.
+	 */
+	boomComps?: () => CompList<any>,
 }

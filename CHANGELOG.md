@@ -3,8 +3,27 @@
 - game objects can have children with `obj.add()` now which share the parent transform
 - removed all deprecated functions in v2000.2
 - raised esbuild target to `esnext`
+- added `make()` to make a game object without adding to the scene
+- `add()` supports adding unattached game objects to the scene `add(make([...comps]))`
+- added `colors` option to `drawPolygon()` that controls the color of each corner
+- added `gradient` option to `drawRect()` that specifies the start and end color
+- added `loadProgress()` that returns a `0.0 - 1.0` that indicates current asset loading progress
+- added `kaboom()` option `loadingScreen` where you can turn off the default loading screen
+- added `drawMasked()` and `drawSubtracted()`
 
-# v2000.2.0 "Fancy Text Mode"
+### v2000.2.3
+
+- fixed `kaboom.d.ts` completely messed up
+
+### v2000.2.2
+
+- fixed doc for `TextCompOpt#styles` and `DrawTextOpt#styles`
+
+### v2000.2.1
+
+- fixed updates not running at all when `kaboom({ debug: false })`
+
+## v2000.2.0 "Fancy Text Mode"
 
 - added `formatText()` and `drawFormattedText()`
 - added `charSpacing` and `lineSpacing` in `TextCompOpt` and `DrawTextOpt`
@@ -52,7 +71,7 @@
 
 - fixed `StateComp#enterState()` not accepting any state
 
-# v2000.1.0 "Record Mode"
+## v2000.1.0 "Record Mode"
 
 - added `hsl2rgb()` for converting HSL color to kaboom RGB
 - added `record()` to start a screen recording

@@ -6,7 +6,7 @@ loadSprite("bean", "/sprites/bean.png")
 const t = (n = 1) => time() * n
 const w = (a, b, n) => wave(a, b, t(n))
 const px = 160
-const py = 200
+const py = 160
 const doodles = []
 const trail = []
 
@@ -15,21 +15,11 @@ const outline = {
 	color: rgb(0, 0, 0),
 }
 
-// onDraw() is similar to onUpdate(), it runs every frame, but after all update events.
-// All drawXXX() functions need to be called every frame if you want them to persist
-onDraw(() => {
+function drawStuff() {
 
 	const mx = (width() - px * 2) / 2
 	const my = (height() - py * 2) / 1
 	const p = (x, y) => vec2(x, y).scale(mx, my).add(px, py)
-
-	// When "space" key is down, rotate the whole canvas from the center
-	if (isKeyDown("space")) {
-		pushTransform()
-		pushTranslate(width() / 2, height() / 2)
-		pushRotate(t(240))
-		pushTranslate(-width() / 2, -height() / 2)
-	}
 
 	drawSprite({
 		sprite: "bean",
@@ -58,6 +48,7 @@ onDraw(() => {
 		start: 0,
 		end: w(180, 360, 1),
 		color: rgb(255, w(128, 255, 8), w(128, 255, 4)),
+// 		gradient: [ Color.RED, Color.BLUE ],
 		outline,
 	})
 
@@ -70,7 +61,18 @@ onDraw(() => {
 			vec2(-30, w(50, 70, 2)),
 			vec2(w(-50, -70, 4), 0),
 		],
-		color: rgb(w(128, 255, 8), 255, w(128, 255, 4)),
+		colors: [
+			rgb(w(128, 255, 8), 255, w(128, 255, 4)),
+			rgb(255, w(128, 255, 8), w(128, 255, 4)),
+			rgb(w(128, 255, 8), w(128, 255, 4), 255),
+			rgb(255, 128, w(128, 255, 4)),
+			rgb(w(128, 255, 8), w(128, 255, 4), 128),
+// 			Color.RED,
+// 			Color.BLUE,
+// 			Color.YELLOW,
+// 			Color.CYAN,
+// 			Color.GREEN,
+		],
 		outline,
 	})
 
@@ -81,13 +83,6 @@ onDraw(() => {
 		size: w(80, 120, 2),
 		color: rgb(w(128, 255, 4), w(128, 255, 8), w(128, 255, 2)),
 	})
-
-	// TODO: show a custom shader quad here
-
-	// pop to not affect the mouse trail and draw
-	if (isKeyDown("space")) {
-		popTransform()
-	}
 
 	drawLines({
 		...outline,
@@ -100,6 +95,28 @@ onDraw(() => {
 			pts: pts,
 		})
 	})
+
+}
+
+// onDraw() is similar to onUpdate(), it runs every frame, but after all update events.
+// All drawXXX() functions need to be called every frame if you want them to persist
+onDraw(() => {
+
+	const maskFunc = Math.floor(time()) % 2 === 0 ? drawSubtracted : drawMasked
+
+	if (isKeyDown("space")) {
+		maskFunc(() => {
+			drawRect({
+				width: width(),
+				height: height(),
+				gradient: [ Color.RED, Color.BLUE ],
+			})
+		}, drawStuff);
+	} else {
+		drawStuff()
+	}
+
+	// TODO: show a custom shader quad here
 
 })
 

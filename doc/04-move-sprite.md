@@ -22,7 +22,8 @@ You can check out the code to handle inputs and movements at https://replit.com/
 
 The first step we're going to do is to add a player game object using the code below:
 
-```// add a player game object to screen
+```js
+// add a player game object to screen
 const player = add([
 	// list of components
 	sprite("bean"),
@@ -42,7 +43,7 @@ The `move()` method essentially tells the player to move towards a certain direc
 
 We need to recognize the game as a grid on an X, Y axis. In the code example below, the direction is determined by the vector (320, 0). The direction is represented by a 'vec2' data type, which Kaboom uses to work with X and Y coordinates. In other words, the direction is (X: 320, Y: 0). This tells the sprite to move horizontally by 320 pixels per frame along the x-axis. 
 
-```
+```js
 const SPEED = 320;
 
 onKeyDown("right", () => {
@@ -54,7 +55,7 @@ onKeyDown("right", () => {
 
 We want to register movement to the left that's triggered every time the left arrow key is pressed. `onKeyDown()` and `move()` are used as seen in the previous example however, the direction is to the left therefore we use a negative sign to indicate horizontal movement towards the left side along the x-axis.
 
-```
+```js
 onKeyDown("left", () => {
 	player.move(-SPEED, 0)
 })
@@ -64,7 +65,7 @@ onKeyDown("left", () => {
 
 We want to register upward movement that's triggered every time the up arrow key is pressed. `onKeyDown()` and `move()` are used as previously seen however, the direction is upward therefore we use the number 0 to indicate no movement along the x-axis. A negative sign is used to indicate upward vertical movement along the y-axis.
 
-```
+```js
 onKeyDown("up", () => {
 	player.move(0, -SPEED)
 })
@@ -74,7 +75,7 @@ onKeyDown("up", () => {
 
 We want to register downward movement that's triggered every time the down arrow key is pressed. `onKeyDown()` and `move()` are used however, the direction is downward therefore we're still using the number 0 to indicate no movement along the x-axis. A positive number is used to indicate downward vertical movement along the y-axis.
 
-```
+```js
 onKeyDown("down", () => {
 	player.move(0, SPEED)
 })
@@ -86,7 +87,7 @@ What if we want to use a mouse to move sprites? Kaboom also enables us to regist
 
 `onClick()` registers an event that runs once when the left mouse is clicked while	`moveTo()` is provided by the `pos()` component and changes the position.
 
-```
+```js
 onClick(() => {
 	player.moveTo(mousePos())
 })

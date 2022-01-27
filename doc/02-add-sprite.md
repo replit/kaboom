@@ -12,7 +12,7 @@ You can find this code at https://replit.com/@ritza/add-sprite-tutorial
 
 The first thing we need to do is to import the `kaboom` library and initialize the context with the `kaboom()` function. This enables us to create a blank canvas with a nice checkerboard pattern as shown in the image below. Any sprite we'll need for the game will be added to this checkerboard screen.
 
-```
+```js
 import kaboom from "kaboom";
 
 kaboom();
@@ -22,13 +22,13 @@ kaboom();
 
 The code below allows us to load an image we'll use as a sprite. Introducing Frog the "Bean"! A happy frog that enjoys life. You'll see Bean a lot around here.
 
-```
+```js
 loadSprite("bean", "sprites/bean.png");
 ```
 
 Now we want to add Bean to the screen. 
 
-```
+```js
 add([
     sprite("bean"),
     pos(80, 40),
