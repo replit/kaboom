@@ -56,7 +56,7 @@ buildTypes();
 function buildTypes() {
 
 	let dts = fs.readFileSync(`${srcDir}/types.ts`, "utf-8")
-		.replace(/declare\s/g, "export default ");
+		.replace(/declare function kaboom/g, "export default function kaboom");
 
 	const f = ts.createSourceFile(
 		"ts",
