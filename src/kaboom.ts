@@ -1492,7 +1492,9 @@ function flush() {
 // start a rendering frame, reset some states
 function frameStart() {
 
-	app.gl.clear(app.gl.COLOR_BUFFER_BIT);
+	const gl = app.gl;
+
+	gl.clear(gl.COLOR_BUFFER_BIT);
 
 	if (!gopt.background) {
 		drawUVQuad({
@@ -2040,11 +2042,12 @@ function drawPolygon(opt: DrawPolygonOpt) {
 
 }
 
-function drawMasked(mask: () => void, content: () => void) {
+function drawStenciled(content: () => void, mask: () => void, test: number) {
 
 	const gl = app.gl;
 
 	flush();
+	gl.clear(gl.STENCIL_BUFFER_BIT);
 	gl.enable(gl.STENCIL_TEST);
 
 	// don't perform test, pure write
@@ -2066,7 +2069,7 @@ function drawMasked(mask: () => void, content: () => void) {
 
 	// only render when that spot is written
 	gl.stencilFunc(
-	   gl.EQUAL,
+	   test,
 	   1,
 	   0xFF,
 	);
@@ -2082,6 +2085,14 @@ function drawMasked(mask: () => void, content: () => void) {
 	flush();
 	gl.disable(gl.STENCIL_TEST);
 
+}
+
+function drawMasked(content: () => void, mask: () => void) {
+	drawStenciled(content, mask, app.gl.EQUAL);
+}
+
+function drawSubtracted(content: () => void, mask: () => void) {
+	drawStenciled(content, mask, app.gl.NOTEQUAL);
 }
 
 function applyCharTransform(fchar: FormattedChar, tr: CharTransform) {
@@ -5628,6 +5639,7 @@ const ctx: KaboomCtx = {
 	drawPolygon,
 	drawFormattedText,
 	drawMasked,
+	drawSubtracted,
 	pushTransform,
 	popTransform,
 	pushTranslate,
