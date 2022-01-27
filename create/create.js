@@ -15,6 +15,7 @@ const optMap = [
 	{ long: "start", short: "s", desc: "Start the dev server right away", },
 	{ long: "no-hmr", desc: "Don't use vite hmr / hot reload", },
 	{ long: "demo", short: "d", value: "name", desc: "Start from a demo listed on kaboomjs.com/play", },
+	{ long: "spaces", value: "num", desc: "Use spaces instead of tabs for generated files", },
 	{ long: "version", short: "v", value: "label", desc: "Use a specific kaboom version (default latest)", },
 ]
 
@@ -201,7 +202,10 @@ const create = (dir) => {
 		if (item.type === "dir") {
 			create(item)
 		} else if (item.type === "file") {
-			fs.writeFileSync(item.name, item.content)
+			const content = opts["spaces"]
+				? item.content.replaceAll("\t", " ".repeat(opts["spaces"]))
+				: item.content
+			fs.writeFileSync(item.name, content)
 		}
 	}
 	process.chdir("..")

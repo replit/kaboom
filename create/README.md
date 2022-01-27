@@ -18,5 +18,6 @@ OPTIONS:
   -s, --start            Start the dev server right away
       --no-hmr           Don't use vite hmr / hot reload
   -d, --demo <name>      Start from a demo listed on kaboomjs.com/play
+      --spaces <num>     Use spaces instead of tabs for generated files
   -v, --version <label>  Use a specific kaboom version (default latest)
-```
+  ```
