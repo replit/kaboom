@@ -11,6 +11,10 @@
 - added `kaboom()` option `loadingScreen` where you can turn off the default loading screen
 - added `drawMasked()` and `drawSubtracted()`
 
+### v2000.2.3
+
+- fixed `kaboom.d.ts` completely messed up
+
 ### v2000.2.2
 
 - fixed doc for `TextCompOpt#styles` and `DrawTextOpt#styles`

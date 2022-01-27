@@ -16,7 +16,7 @@ The steps in this tutorial are as follows:
 
 The first thing we want to do is load the `kaboom()` library and initialize a kaboom context. We can load anything we want as the game window say the typical checkerboard pattern or a solid colored background or anything else we'd like. In this case, we want the default checkerboard pattern.
 
-```
+```js
 import kaboom from "kaboom";
 
 kaboom();
@@ -24,7 +24,7 @@ kaboom();
 
 Next, we want to load the sprites we'll be using. You'll recognize some of these objects from other popular games.
 
-```
+```js
 loadSprite("bean", "/sprites/bean.png")
 loadSprite("ghosty", "/sprites/ghosty.png")
 loadSprite("grass", "/sprites/grass.png")
@@ -32,14 +32,14 @@ loadSprite("grass", "/sprites/grass.png")
 
 Next, we want to define the movement speed of the player. As such, we use the SPEED constant to move the player by 320 pixels per frame. This `SPEED` will be used to move the player along the X and Y axes. 
 
-```
+```js
 // Define player movement speed
 const SPEED = 320
 ```
 
 When adding the player game object, we're using our 'bean' sprite and defining components assembled with the `add()` function to determine how 'bean' will function. In this case, we want to use components that would allow us to determine the player position and properties. For instance, the `area()` component gives the object a collider, which enables collision checking and `solid()` ensures that the object can't move past other solid objects.
 
-```
+```js
 // Add player game object
 const player = add([
 	sprite("bean"),
@@ -51,7 +51,7 @@ const player = add([
 
 Now we want to register user input and handle sprite movement. `onKeyDown()` is used to register this movement. You can visit https://replit.com/@ritza/move-sprite-tutorial to learn more about handling user input and movement.
 
-```
+```js
 onKeyDown("left", () => {
 	player.move(-SPEED, 0)
 })
@@ -71,7 +71,7 @@ onKeyDown("down", () => {
 
 The code below allows us to add other game objects. In this case, we're adding enemies, represented by ghosts, to appear at random positions on the screen. Given that the `area()` component enables collision detection, we need to ensure that we add this component for any game object whose position we're interested in - either to destroy or move around. Please note that the 'grass' game object also has the `solid()` component, which ensures that our player won't be able to destroy or pass through.
 
-```
+```js
 // Add enemies
 for (let i = 0; i < 3; i++) {
 
@@ -96,7 +96,7 @@ add([
 
 `.onCollide()` is provided by the `area()` component. It registers an event that runs when an object collides with another object with a certain tag. In this case we destroy the enemy when the player hits one. You can check out https://kaboomjs.com#AreaComp for everything `area()` provides.
 
-```
+```js
 player.onCollide("enemy", (enemy) => {
 	destroy(enemy)
 })
