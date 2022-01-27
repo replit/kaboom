@@ -4,6 +4,26 @@ import fs from "fs";
 import cp from "child_process"
 import https from "https"
 
+const fail = (msg) => {
+	console.error(msg)
+	process.exit(1)
+}
+
+const optMap = [
+	{ long: "help", short: "h", desc: "Print this message", },
+	{ long: "typescript", short: "t", desc: "Use TypeScript", },
+	{ long: "start", short: "s", desc: "Start the dev server right away", },
+	{ long: "demo", short: "d", value: "name", desc: "Start from a demo listed on kaboomjs.com/play", },
+	{ long: "version", short: "v", value: "v", desc: "Use a specific kaboom version", },
+]
+
+const optDisplay = optMap.map((opt) => ({
+	usage: `-${opt.short} --${opt.long}${opt.value ? ` <${opt.value}>` : ""}`,
+	desc: opt.desc,
+}));
+
+const usageLen = optDisplay.reduce((len, dis) => dis.usage.length > len ? dis.usage.length : len, 0)
+
 const help = `
 USAGE:
 
@@ -11,27 +31,11 @@ USAGE:
 
     or
 
-  $ npm init kaboom [OPTIONS] <dir>
+  $ npm init kaboom -- [OPTIONS] <dir>
 
 OPTIONS:
-
-  -h, --help          Print this message
-  -t, --typescript    Use typescript
-  -s, --start         Start the dev server right away
-  -d, --demo <name>   Start from a demo listed on kaboomjs.com/play
+  ${optDisplay.map((opt) => `${opt.usage} ${" ".repeat(usageLen - opt.usage.length)} ${opt.desc}`).join("\n  ")}
 `.trim()
-
-const fail = (msg) => {
-	console.error(msg)
-	process.exit(1)
-}
-
-const optMap = [
-	{ long: "demo", short: "d", type: "value", },
-	{ long: "typescript", short: "t", type: "flag", },
-	{ long: "start", short: "s", type: "flag", },
-	{ long: "help", short: "h", type: "flag", },
-]
 
 const opts = {}
 const args = []
@@ -41,14 +45,14 @@ iter: for (let i = 2; i < process.argv.length; i++) {
 	if (arg.startsWith("-")) {
 		for (const opt of optMap) {
 			if (arg === `--${opt.long}` || arg === `-${opt.short}`) {
-				if (opt.type === "flag") {
-					opts[opt.long] = true
-				} else if (opt.type === "value")  {
+				if (opt.value) {
 					const val = process.argv[++i]
 					if (!val) {
 						fail(`Expected value after ${arg}`)
 					}
 					opts[opt.long] = val
+				} else {
+					opts[opt.long] = true
 				}
 				continue iter
 			}
@@ -133,6 +137,15 @@ const dir = (name, items) => ({
 	items,
 })
 
+const pkgs = [
+	`kaboom@${opts["version"] ?? "latest"}`,
+]
+
+const devPkgs = [
+	"vite@latest",
+	...(ts ? [ "typescript@latest" ] : []),
+]
+
 const template = dir(dest, [
 	file("package.json", JSON.stringify({
 		"name": dest,
@@ -142,15 +155,6 @@ const template = dir(dest, [
 			"preview": "vite preview",
 			...(ts ? {
 				"check": "tsc --noEmit game.ts",
-			} : {}),
-		},
-		"dependencies": {
-			"kaboom": "^2000.2.3",
-		},
-		"devDependencies": {
-			"vite": "^2.7.13",
-			...(ts ? {
-				"typescript": "^4.5.5",
 			} : {}),
 		},
 	}, null, "\t")),
@@ -188,7 +192,8 @@ const create = (dir) => {
 create(template)
 process.chdir(dest)
 
-await exec("npm", [ "install", ], { stdio: "inherit", })
+await exec("npm", [ "install", ...pkgs, ], { stdio: "inherit", })
+await exec("npm", [ "install", "-D", ...devPkgs, ], { stdio: "inherit", })
 
 if (opts["start"]) {
 	await exec("npm", [ "run", "dev", ], { stdio: "inherit", })

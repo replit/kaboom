@@ -1,11 +1,15 @@
 {
 	"name": "create-kaboom",
 	"description": "Start a kaboom project in no time",
-	"version": "0.0.4",
+	"version": "0.0.7",
 	"license": "MIT",
 	"homepage": "https://kaboomjs.com/",
 	"repository": "github:replit/kaboom",
 	"author": "tga <tga@space55.xyz>",
 	"type": "module",
-	"bin": "create.js"
+	"bin": "create.js",
+	"files": [
+		"create.js",
+		"README.md"
+	]
 }
