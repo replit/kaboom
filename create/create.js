@@ -7,18 +7,18 @@ import https from "https"
 const help = `
 USAGE:
 
-  $ create-kaboom [FLAGS] <name>
+  $ create-kaboom [OPTIONS] <dir>
 
     or
 
-  $ npm init kaboom [FLAGS] <name>
+  $ npm init kaboom [OPTIONS] <dir>
 
-FLAGS:
+OPTIONS:
 
-  -h, --help         Print this message
-  -t, --typescript   Use typescript
-  -d, --demo         Start from a demo listed on kaboomjs.com/play
-  -s, --start        Start the dev server right away
+  -h, --help          Print this message
+  -t, --typescript    Use typescript
+  -s, --start         Start the dev server right away
+  -d, --demo <name>   Start from a demo listed on kaboomjs.com/play
 `.trim()
 
 const fail = (msg) => {
