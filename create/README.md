@@ -13,9 +13,10 @@ USAGE:
 
 OPTIONS:
 
-  -h --help         Print this message
-  -t --typescript   Use TypeScript
-  -s --start        Start the dev server right away
-  -d --demo <name>  Start from a demo listed on kaboomjs.com/play
-  -v --version <v>  Use a specific kaboom version
+  -h, --help             Print this message
+  -t, --typescript       Use TypeScript
+  -s, --start            Start the dev server right away
+      --no-hmr           Don't use vite hmr / hot reload
+  -d, --demo <name>      Start from a demo listed on kaboomjs.com/play
+  -v, --version <label>  Use a specific kaboom version (default latest)
 ```
