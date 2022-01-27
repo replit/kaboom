@@ -510,11 +510,12 @@ const gfx = (() => {
 			preserveDrawingBuffer: true,
 		});
 
-	const defShader = makeShader(DEF_VERT, DEF_FRAG);
+	const defShader = makeShader(gl, DEF_VERT, DEF_FRAG);
 
 	// a 1x1 white texture to draw raw shapes like rectangles and polygons
 	// we use a texture for those so we can use only 1 pipeline for drawing sprites + shapes
 	const emptyTex = makeTex(
+		gl,
 		new ImageData(new Uint8ClampedArray([ 255, 255, 255, 255, ]), 1, 1)
 	);
 
@@ -558,6 +559,7 @@ const gfx = (() => {
 
 	// a checkerboard texture used for the default background
 	const bgTex = makeTex(
+		gl,
 		new ImageData(new Uint8ClampedArray([
 			128, 128, 128, 255,
 			190, 190, 190, 255,
@@ -788,7 +790,7 @@ function loadFont(
 	return assets.fonts.add(name, loadImg(src)
 		.then((img) => {
 			return makeFont(
-				makeTex(img, opt),
+				makeTex(gfx.gl, img, opt),
 				gw,
 				gh,
 				opt.chars ?? ASCII_CHARS
@@ -868,7 +870,7 @@ function loadRawSprite(
 	opt: SpriteLoadOpt = {}
 ) {
 
-	const tex = makeTex(src, opt);
+	const tex = makeTex(gfx.gl, src, opt);
 	const frames = slice(opt.sliceX || 1, opt.sliceY || 1);
 
 	return {
@@ -994,12 +996,12 @@ function loadShader(
 		if (isUrl) {
 			Promise.all([resolveUrl(vert), resolveUrl(frag)])
 				.then(([vcode, fcode]: [string | null, string | null]) => {
-					resolve(makeShader(vcode, fcode));
+					resolve(makeShader(gfx.gl, vcode, fcode));
 				})
 				.catch(reject);
 		} else {
 			try {
-				resolve(makeShader(vert, frag));
+				resolve(makeShader(gfx.gl, vert, frag));
 			} catch (err) {
 				reject(err);
 			}
@@ -1248,11 +1250,11 @@ function burp(opt?: AudioPlayOpt): AudioPlay {
 
 // TODO: take these webgl structures out pure
 function makeTex(
+	gl: WebGLRenderingContext,
 	data: GfxTexData,
 	opt: GfxTexOpt = {}
 ): GfxTexture {
 
-	const gl = gfx.gl;
 	const id = gl.createTexture();
 
 	gl.bindTexture(gl.TEXTURE_2D, id);
@@ -1294,11 +1296,11 @@ function makeTex(
 }
 
 function makeShader(
+	gl: WebGLRenderingContext,
 	vertSrc: string | null = DEF_VERT,
 	fragSrc: string | null = DEF_FRAG,
 ): GfxShader {
 
-	const gl = gfx.gl;
 	let msg;
 	const vcode = VERT_TEMPLATE.replace("{{user}}", vertSrc ?? DEF_VERT);
 	const fcode = FRAG_TEMPLATE.replace("{{user}}", fragSrc ?? DEF_FRAG);
