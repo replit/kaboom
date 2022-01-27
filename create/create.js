@@ -51,16 +51,13 @@ ${c(33, "OPTIONS")}
 
 ${c(33, "EXAMPLE")}
 
-  # quick start with default config
+  ${c(30, "# quick start with default config")}
   $ npm init kaboom mygame
 
-  # need to put all args after -- if using with npm init
+  ${c(30, "# need to put all args after -- if using with npm init")}
   $ npm init kaboom -- --typescript --demo burp mygame
 
-  # can also install the create-kaboom binary
-  $ npm install -g create-kaboom
-
-  # everything is the same, except you don't need to use -- when passing options
+  ${c(30, "# if installed locally you don't need to use -- when passing options")}
   $ create-kaboom -t -s -d burp mygame
 `.trim()
 
