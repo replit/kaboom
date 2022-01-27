@@ -2067,7 +2067,7 @@ function drawStenciled(content: () => void, mask: () => void, test: number) {
 	mask();
 	flush();
 
-	// only render when that spot is written
+	// perform test
 	gl.stencilFunc(
 	   test,
 	   1,
