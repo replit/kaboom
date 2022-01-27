@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 import fs from "fs";
 import cp from "child_process"
 import readline from "readline"
