@@ -2,7 +2,7 @@
 
 a script to help you start a kaboom project in no time
 
-```sh
+```
 USAGE:
 
   $ create-kaboom [OPTIONS] <dir>
@@ -20,4 +20,4 @@ OPTIONS:
   -d, --demo <name>      Start from a demo listed on kaboomjs.com/play
       --spaces <num>     Use spaces instead of tabs for generated files
   -v, --version <label>  Use a specific kaboom version (default latest)
-  ```
+```
