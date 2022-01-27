@@ -34,6 +34,7 @@ USAGE:
   $ npm init kaboom -- [OPTIONS] <dir>
 
 OPTIONS:
+
   ${optDisplay.map((opt) => `${opt.usage} ${" ".repeat(usageLen - opt.usage.length)} ${opt.desc}`).join("\n  ")}
 `.trim()
 

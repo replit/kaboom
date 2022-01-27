@@ -12,6 +12,7 @@ USAGE:
   $ npm init kaboom -- [OPTIONS] <dir>
 
 OPTIONS:
+
   -h --help         Print this message
   -t --typescript   Use TypeScript
   -s --start        Start the dev server right away
