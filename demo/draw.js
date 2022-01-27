@@ -101,8 +101,10 @@ function drawStuff() {
 // All drawXXX() functions need to be called every frame if you want them to persist
 onDraw(() => {
 
+	const maskFunc = Math.floor(time()) % 2 === 0 ? drawSubtracted : drawMasked
+
 	if (isKeyDown("space")) {
-		drawSubtracted(() => {
+		maskFunc(() => {
 			drawRect({
 				width: width(),
 				height: height(),
