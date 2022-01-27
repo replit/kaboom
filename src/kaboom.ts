@@ -451,21 +451,10 @@ const app = (() => {
 	// make canvas focusable
 	canvas.setAttribute("tabindex", "0");
 
-	// create webgl context
-	const gl = canvas
-		.getContext("webgl", {
-			antialias: true,
-			depth: true,
-			stencil: true,
-			alpha: true,
-			preserveDrawingBuffer: true,
-		});
-
 	return {
 
 		canvas: canvas,
 		scale: gscale,
-		gl: gl,
 
 		// keep track of all button states
 		keyStates: {} as Record<Key, ButtonState>,
@@ -512,7 +501,15 @@ const app = (() => {
 
 const gfx = (() => {
 
-	const gl = app.gl;
+	const gl = app.canvas
+		.getContext("webgl", {
+			antialias: true,
+			depth: true,
+			stencil: true,
+			alpha: true,
+			preserveDrawingBuffer: true,
+		});
+
 	const defShader = makeShader(DEF_VERT, DEF_FRAG);
 
 	// a 1x1 white texture to draw raw shapes like rectangles and polygons
@@ -573,6 +570,8 @@ const gfx = (() => {
 	);
 
 	return {
+
+		gl,
 
 		// keep track of how many draw calls we're doing this frame
 		drawCalls: 0,
@@ -1253,7 +1252,7 @@ function makeTex(
 	opt: GfxTexOpt = {}
 ): GfxTexture {
 
-	const gl = app.gl;
+	const gl = gfx.gl;
 	const id = gl.createTexture();
 
 	gl.bindTexture(gl.TEXTURE_2D, id);
@@ -1299,7 +1298,7 @@ function makeShader(
 	fragSrc: string | null = DEF_FRAG,
 ): GfxShader {
 
-	const gl = app.gl;
+	const gl = gfx.gl;
 	let msg;
 	const vcode = VERT_TEMPLATE.replace("{{user}}", vertSrc ?? DEF_VERT);
 	const fcode = FRAG_TEMPLATE.replace("{{user}}", fragSrc ?? DEF_FRAG);
@@ -1467,7 +1466,7 @@ function flush() {
 		return;
 	}
 
-	const gl = app.gl;
+	const gl = gfx.gl;
 
 	gfx.curShader.send(gfx.curUniform);
 	gl.bindBuffer(gl.ARRAY_BUFFER, gfx.vbuf);
@@ -1492,7 +1491,7 @@ function flush() {
 // start a rendering frame, reset some states
 function frameStart() {
 
-	const gl = app.gl;
+	const gl = gfx.gl;
 
 	gl.clear(gl.COLOR_BUFFER_BIT);
 
@@ -2082,7 +2081,7 @@ function drawPolygon(opt: DrawPolygonOpt) {
 
 function drawStenciled(content: () => void, mask: () => void, test: number) {
 
-	const gl = app.gl;
+	const gl = gfx.gl;
 
 	flush();
 	gl.clear(gl.STENCIL_BUFFER_BIT);
@@ -2126,11 +2125,11 @@ function drawStenciled(content: () => void, mask: () => void, test: number) {
 }
 
 function drawMasked(content: () => void, mask: () => void) {
-	drawStenciled(content, mask, app.gl.EQUAL);
+	drawStenciled(content, mask, gfx.gl.EQUAL);
 }
 
 function drawSubtracted(content: () => void, mask: () => void) {
-	drawStenciled(content, mask, app.gl.NOTEQUAL);
+	drawStenciled(content, mask, gfx.gl.NOTEQUAL);
 }
 
 function applyCharTransform(fchar: FormattedChar, tr: CharTransform) {
@@ -2373,7 +2372,7 @@ function drawFormattedText(ftext: FormattedText) {
  */
 function updateViewport() {
 
-	const gl = app.gl;
+	const gl = gfx.gl;
 
 	// canvas size
 	const cw = gl.drawingBufferWidth;
