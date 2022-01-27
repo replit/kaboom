@@ -13,12 +13,14 @@ const optMap = [
 	{ long: "help", short: "h", desc: "Print this message", },
 	{ long: "typescript", short: "t", desc: "Use TypeScript", },
 	{ long: "start", short: "s", desc: "Start the dev server right away", },
+	{ long: "no-hmr", desc: "Don't use vite hmr / hot reload", },
 	{ long: "demo", short: "d", value: "name", desc: "Start from a demo listed on kaboomjs.com/play", },
-	{ long: "version", short: "v", value: "v", desc: "Use a specific kaboom version", },
+	{ long: "version", short: "v", value: "label", desc: "Use a specific kaboom version (default latest)", },
 ]
 
+// constructing help msg
 const optDisplay = optMap.map((opt) => ({
-	usage: `-${opt.short} --${opt.long}${opt.value ? ` <${opt.value}>` : ""}`,
+	usage: `${opt.short ? `-${opt.short},` : "   "} --${opt.long}${opt.value ? ` <${opt.value}>` : ""}`,
 	desc: opt.desc,
 }));
 
@@ -41,7 +43,8 @@ OPTIONS:
 const opts = {}
 const args = []
 
-iter: for (let i = 2; i < process.argv.length; i++) {
+// process opts and args
+iterargs: for (let i = 2; i < process.argv.length; i++) {
 	const arg = process.argv[i];
 	if (arg.startsWith("-")) {
 		for (const opt of optMap) {
@@ -55,7 +58,7 @@ iter: for (let i = 2; i < process.argv.length; i++) {
 				} else {
 					opts[opt.long] = true
 				}
-				continue iter
+				continue iterargs
 			}
 		}
 		fail(`Unknown option "${arg}"\n\n${help}`)
@@ -126,6 +129,15 @@ if (opts["demo"]) {
 
 }
 
+const pkgs = [
+	`kaboom@${opts["version"] ?? "latest"}`,
+]
+
+const devPkgs = [
+	"vite@latest",
+	...(ts ? [ "typescript@latest" ] : []),
+]
+
 const file = (name, content) => ({
 	type: "file",
 	name,
@@ -138,15 +150,9 @@ const dir = (name, items) => ({
 	items,
 })
 
-const pkgs = [
-	`kaboom@${opts["version"] ?? "latest"}`,
-]
+const ext = ts ? "ts" : "js";
 
-const devPkgs = [
-	"vite@latest",
-	...(ts ? [ "typescript@latest" ] : []),
-]
-
+// describe files to generate
 const template = dir(dest, [
 	file("package.json", JSON.stringify({
 		"name": dest,
@@ -165,16 +171,27 @@ const template = dir(dest, [
 <html>
 
 <head>
-	<title>draw</title>
+	<title>${dest}</title>
 </head>
 
 <body>
-	<script type="module" src="/game.${ts ? "ts" : "js"}"></script>
+	<script type="module" src="/src/game.${ext}"></script>
 </body>
 
 </html>
 	`),
-	file(`game.${ts ? "ts" : "js"}`, startCode),
+	dir("src", [
+		file(`game.${ext}`, startCode),
+	]),
+	file(`vite.config.${ext}`, `
+import { defineConfig } from "vite"
+
+export default defineConfig(${JSON.stringify(opts["no-hmr"] ? {
+	server: {
+		hmr: false,
+	},
+} : {}, null, "\t")})
+	`)
 ])
 
 const create = (dir) => {
@@ -206,6 +223,6 @@ Success! Now
   $ cd ${dest}
   $ npm run dev
 
-and start editing game.${ts ? "ts" : "js"}!
+and start editing src/game.${ext}!
 	`.trim())
 }
