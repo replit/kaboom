@@ -151,11 +151,12 @@ const dir = (name, items) => ({
 	items,
 })
 
+const stringify = (obj) => JSON.stringify(obj, null, "\t")
 const ext = ts ? "ts" : "js";
 
 // describe files to generate
 const template = dir(dest, [
-	file("package.json", JSON.stringify({
+	file("package.json", stringify({
 		"name": dest,
 		"scripts": {
 			"dev": "vite",
@@ -165,7 +166,7 @@ const template = dir(dest, [
 				"check": "tsc --noEmit game.ts",
 			} : {}),
 		},
-	}, null, "\t")),
+	})),
 	file("index.html", `
 <!DOCTYPE html>
 
@@ -187,11 +188,11 @@ const template = dir(dest, [
 	file(`vite.config.${ext}`, `
 import { defineConfig } from "vite"
 
-export default defineConfig(${JSON.stringify(opts["no-hmr"] ? {
+export default defineConfig(${stringify(opts["no-hmr"] ? {
 	server: {
 		hmr: false,
 	},
-} : {}, null, "\t")})
+} : {})})
 	`)
 ])
 
