@@ -1813,6 +1813,7 @@ function drawRect(opt: DrawRectOpt) {
 		vec2(0, h),
 	];
 
+	// TODO: gradient for rounded rect
 	// TODO: drawPolygon should handle generic rounded corners
 	if (opt.radius) {
 
@@ -1841,7 +1842,12 @@ function drawRect(opt: DrawRectOpt) {
 		offset,
 		pts,
 		...(opt.gradient ? {
-			colors: [
+			colors: opt.horizontal ? [
+				opt.gradient[0],
+				opt.gradient[1],
+				opt.gradient[1],
+				opt.gradient[0],
+			] : [
 				opt.gradient[0],
 				opt.gradient[0],
 				opt.gradient[1],
@@ -1974,18 +1980,50 @@ function drawEllipse(opt: DrawEllipseOpt) {
 		return;
 	}
 
-	drawPolygon({
+	const start = opt.start ?? 0;
+	const end = opt.end ?? 360;
+
+	const pts = getArcPts(
+		vec2(0),
+		opt.radiusX,
+		opt.radiusY,
+		start,
+		end,
+		opt.resolution
+	);
+
+	// center
+	pts.unshift(vec2(0));
+
+	const polyOpt = {
 		...opt,
-		pts: getArcPts(
-			vec2(0),
-			opt.radiusX,
-			opt.radiusY,
-			opt.start ?? 0,
-			opt.end ?? 360,
-			opt.resolution
-		),
+		pts,
 		radius: 0,
-	});
+		...(opt.gradient ? {
+			colors: [
+				opt.gradient[0],
+				...Array(pts.length - 1).fill(opt.gradient[1]),
+			],
+		} : {}),
+	};
+
+	// full circle with outline shouldn't have the center point
+	if (end - start >= 360 && opt.outline) {
+		if (opt.fill !== false) {
+			drawPolygon({
+				...polyOpt,
+				outline: null,
+			});
+		}
+		drawPolygon({
+			...polyOpt,
+			pts: pts.slice(1),
+			fill: false,
+		});
+		return;
+	}
+
+	drawPolygon(polyOpt);
 
 }
 

@@ -6,7 +6,7 @@ loadSprite("bean", "/sprites/bean.png")
 const t = (n = 1) => time() * n
 const w = (a, b, n) => wave(a, b, t(n))
 const px = 160
-const py = 200
+const py = 160
 const doodles = []
 const trail = []
 
@@ -48,6 +48,7 @@ function drawStuff() {
 		start: 0,
 		end: w(180, 360, 1),
 		color: rgb(255, w(128, 255, 8), w(128, 255, 4)),
+// 		gradient: [ Color.RED, Color.BLUE ],
 		outline,
 	})
 
