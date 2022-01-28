@@ -1,0 +1,27 @@
+{
+	"order": [
+		"add",
+		"movement",
+		"collision",
+		"gravity",
+		"sprite",
+		"text",
+		"audio",
+		"level",
+		"scenes",
+		"timer",
+		"component",
+		"layer",
+		"camera",
+		"ai",
+		"button",
+		"dialog",
+		"draw",
+		"particle",
+		"shader",
+		"burp"
+	],
+	"hidden": [
+		"bench"
+	]
+}
