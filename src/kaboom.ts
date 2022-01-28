@@ -1401,7 +1401,7 @@ function makeFont(
 
 }
 
-const erroredShader = {};
+const erroredShaders = {};
 
 // TODO: expose
 function drawRaw(
@@ -1414,28 +1414,34 @@ function drawRaw(
 ) {
 
 	const shader = typeof shaderSrc === "string"
-		? getShader(shaderSrc)
+		? (() => {
+			const loaded = getShader(shaderSrc);
+			if (loaded instanceof Promise) {
+				return null;
+			} else if (loaded) {
+				return loaded as GfxShader;
+			} else {
+				// TODO: inline vert shader?
+				// TODO: support asset url like sprite?
+				// support inline frag shader
+				if (erroredShaders[shaderSrc]) {
+					debug.log(erroredShaders[shaderSrc]);
+				} else {
+					try {
+						const shader = makeShader(gfx.gl, DEF_VERT, shaderSrc);
+						assets.shaders.loaded.set(shaderSrc, shader);
+						return shader;
+					} catch (err) {
+						debug.log(err);
+						erroredShaders[shaderSrc] = err;
+					}
+				}
+			}
+		})()
 		: shaderSrc;
 
-	if (shader instanceof Promise) {
-		return;
-	}
-
-	if (!shader && typeof shaderSrc === "string") {
-		if (erroredShader[shaderSrc]) {
-			debug.log(erroredShader[shaderSrc]);
-		} else {
-			try {
-				assets.shaders.loaded.set(
-					shaderSrc,
-					makeShader(gfx.gl, DEF_VERT, shaderSrc)
-				);
-			} catch (err) {
-				debug.log(err);
-				erroredShader[shaderSrc] = err;
-			}
-		}
-		return;
+	if (!shader) {
+		return null;
 	}
 
 	// flush on texture / shader change and overflow
