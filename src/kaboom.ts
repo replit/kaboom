@@ -767,6 +767,10 @@ function fetchJSON(path: string) {
 	return fetchURL(path).then((res) => res.json());
 }
 
+function fetchText(path: string) {
+	return fetchURL(path).then((res) => res.text());
+}
+
 // wrapper around image loader to get a Promise
 function loadImg(src: string): Promise<HTMLImageElement> {
 	const img = new Image();
@@ -981,17 +985,10 @@ function loadShader(
 
 	return assets.shaders.add(name, new Promise<ShaderData>((resolve, reject) => {
 
-		if (!vert && !frag) {
-			return reject("no shader");
-		}
-
-		function resolveUrl(url?: string) {
-			return url ?
-				fetchURL(url)
-					.then((res) => res.text())
-					.catch(reject)
+		const resolveUrl = (url?: string) =>
+			url
+				? fetchText(url)
 				: new Promise((r) => r(null));
-		}
 
 		if (isUrl) {
 			Promise.all([resolveUrl(vert), resolveUrl(frag)])
@@ -1349,7 +1346,6 @@ function makeShader(
 		},
 
 		send(uniform: Uniform) {
-			this.bind();
 			for (const name in uniform) {
 				const val = uniform[name];
 				const loc = gl.getUniformLocation(id, name);
@@ -1369,7 +1365,6 @@ function makeShader(
 					gl.uniform2f(loc, val.x, val.y);
 				}
 			}
-			this.unbind();
 		},
 
 	};
@@ -1406,18 +1401,48 @@ function makeFont(
 
 }
 
+const erroredShaders = {};
+
 // TODO: expose
 function drawRaw(
 	verts: Vertex[],
 	indices: number[],
 	fixed: boolean,
 	tex: GfxTexture = gfx.defTex,
-	shader: GfxShader = gfx.defShader,
+	shaderSrc: GfxShader | string = gfx.defShader,
 	uniform: Uniform = {},
 ) {
 
-	tex = tex ?? gfx.defTex;
-	shader = shader ?? gfx.defShader;
+	const shader = typeof shaderSrc === "string"
+		? (() => {
+			const loaded = getShader(shaderSrc);
+			if (loaded instanceof Promise) {
+				return null;
+			} else if (loaded) {
+				return loaded as GfxShader;
+			} else {
+				// TODO: inline vert shader?
+				// TODO: support asset url like sprite?
+				// support inline frag shader
+				if (erroredShaders[shaderSrc]) {
+					debug.log(erroredShaders[shaderSrc]);
+				} else {
+					try {
+						const shader = makeShader(gfx.gl, DEF_VERT, shaderSrc);
+						assets.shaders.loaded.set(shaderSrc, shader);
+						return shader;
+					} catch (err) {
+						debug.log(err);
+						erroredShaders[shaderSrc] = err;
+					}
+				}
+			}
+		})()
+		: shaderSrc;
+
+	if (!shader) {
+		return null;
+	}
 
 	// flush on texture / shader change and overflow
 	if (
@@ -1470,12 +1495,12 @@ function flush() {
 
 	const gl = gfx.gl;
 
-	gfx.curShader.send(gfx.curUniform);
 	gl.bindBuffer(gl.ARRAY_BUFFER, gfx.vbuf);
 	gl.bufferSubData(gl.ARRAY_BUFFER, 0, new Float32Array(gfx.vqueue));
 	gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, gfx.ibuf);
 	gl.bufferSubData(gl.ELEMENT_ARRAY_BUFFER, 0, new Uint16Array(gfx.iqueue));
 	gfx.curShader.bind();
+	gfx.curShader.send(gfx.curUniform);
 	gfx.curTex.bind();
 	gl.drawElements(gl.TRIANGLES, gfx.iqueue.length, gl.UNSIGNED_SHORT, 0);
 	gfx.curTex.unbind();
@@ -2730,7 +2755,7 @@ const debug: Debug = {
 	stepFrame: updateFrame,
 	drawCalls: () => gfx.drawCalls,
 	clearLog: () => game.logs = [],
-	log: (msg) => game.logs.unshift(`${gopt.logTime ? `[${time().toFixed(2)}].time ` : ""}[${msg.toString ? msg.toString() : msg}].${msg instanceof Error ? "error" : "info"}`),
+	log: (msg) => game.logs.unshift(`${gopt.logTime ? `[${time().toFixed(2)}].time ` : ""}[${msg.toString ? msg.toString().trimEnd() : msg}].${msg instanceof Error ? "error" : "info"}`),
 	error: (msg) => debug.log(new Error(msg.toString ? msg.toString() : msg as string)),
 	curRecording: null,
 	get paused() {
@@ -3944,7 +3969,7 @@ function getRenderProps(obj: GameObj<any>) {
 		origin: obj.origin,
 		outline: obj.outline,
 		fixed: obj.fixed,
-		shader: assets.shaders.getLoaded(obj.shader),
+		shader: obj.shader,
 		uniform: obj.uniform,
 	};
 }
