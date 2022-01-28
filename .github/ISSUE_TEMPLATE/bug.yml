@@ -51,9 +51,3 @@ body:
       label: Live demo
       description: If there's a live demo of the bug
       placeholder: https://yourdomain.tld/game
-  - type: checkboxes
-    attributes:
-      label: Is there an existing issue for this?
-      options:
-      - label: I've searched and there is no existing issue for this bug
-        required: true
