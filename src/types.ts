@@ -1619,7 +1619,7 @@ export interface KaboomCtx {
 	 * })
 	 * ```
 	 */
-	addLevel(map: string[], options: LevelOpt): Level,
+	addLevel(map: string[], options: LevelOpt): GameObj<PosComp, LevelComp>,
 	/**
 	 * Get data from local storage, if not present can set to a default value.
 	 *
@@ -3974,6 +3974,17 @@ export interface StateComp extends Comp {
 	onStateDraw: (state: string, action: () => void) => void,
 }
 
+export interface LevelComp {
+	getPos(p: Vec2): Vec2,
+	getPos(x: number, y: number): Vec2,
+	spawn(sym: string, p: Vec2): GameObj,
+	spawn(sym: string, x: number, y: number): GameObj,
+	width(): number,
+	height(): number,
+	gridWidth(): number,
+	gridHeight(): number,
+}
+
 export interface LevelOpt {
 	/**
 	 * Width of each block.
@@ -3993,19 +4004,6 @@ export interface LevelOpt {
 	any?: (s: string, pos: Vec2) => CompList<any> | undefined,
 	// TODO: should return CompList<any>
 	[sym: string]: any,
-}
-
-export interface Level {
-	getPos(p: Vec2): Vec2,
-	getPos(x: number, y: number): Vec2,
-	spawn(sym: string, p: Vec2): GameObj,
-	spawn(sym: string, x: number, y: number): GameObj,
-	width(): number,
-	height(): number,
-	gridWidth(): number,
-	gridHeight(): number,
-	offset(): Vec2,
-	destroy(),
 }
 
 export interface BoomOpt {

@@ -144,7 +144,6 @@ import {
 	Debug,
 	KaboomPlugin,
 	MergeObj,
-	Level,
 	LevelOpt,
 	Cursor,
 	Recording,
@@ -4761,7 +4760,7 @@ function center(): Vec2 {
 	return vec2(width() / 2, height() / 2);
 }
 
-function grid(level: Level, p: Vec2) {
+function grid(p: Vec2) {
 
 	return {
 
@@ -4772,8 +4771,8 @@ function grid(level: Level, p: Vec2) {
 			const p = vec2(...args);
 			this.gridPos = p.clone();
 			this.pos = vec2(
-				level.offset().x + this.gridPos.x * level.gridWidth(),
-				level.offset().y + this.gridPos.y * level.gridHeight()
+				this.gridPos.x * this.parent.gridWidth(),
+				this.gridPos.y * this.parent.gridHeight()
 			);
 		},
 
@@ -4797,96 +4796,86 @@ function grid(level: Level, p: Vec2) {
 
 }
 
-function addLevel(map: string[], opt: LevelOpt): Level {
+function addLevel(map: string[], opt: LevelOpt): GameObj {
 
 	if (!opt.width || !opt.height) {
 		throw new Error("Must provide level grid width & height.");
 	}
 
-	const objs: GameObj[] = [];
-	const offset = vec2(opt.pos || vec2(0));
-	let longRow = 0;
+	const level = add([
 
-	const level = {
+		pos(opt.pos ?? vec2(0)),
 
-		offset() {
-			return offset.clone();
-		},
+		{
 
-		gridWidth() {
-			return opt.width;
-		},
+			gridWidth() {
+				return opt.width;
+			},
 
-		gridHeight() {
-			return opt.height;
-		},
+			gridHeight() {
+				return opt.height;
+			},
 
-		getPos(...args): Vec2 {
-			const p = vec2(...args);
-			return vec2(
-				offset.x + p.x * opt.width,
-				offset.y + p.y * opt.height
-			);
-		},
+			getPos(...args): Vec2 {
+				const p = vec2(...args);
+				return vec2(
+					p.x * opt.width,
+					p.y * opt.height
+				);
+			},
 
-		spawn(sym: string, ...args): GameObj {
+			spawn(sym: string, ...args): GameObj {
 
-			const p = vec2(...args);
+				const p = vec2(...args);
 
-			const comps = (() => {
-				if (opt[sym]) {
-					if (typeof opt[sym] !== "function") {
-						throw new Error("level symbol def must be a function returning a component list");
+				const comps = (() => {
+					if (opt[sym]) {
+						if (typeof opt[sym] !== "function") {
+							throw new Error("level symbol def must be a function returning a component list");
+						}
+						return opt[sym](p);
+					} else if (opt.any) {
+						return opt.any(sym, p);
 					}
-					return opt[sym](p);
-				} else if (opt.any) {
-					return opt.any(sym, p);
+				})();
+
+				if (!comps) {
+					return;
 				}
-			})();
 
-			if (!comps) {
-				return;
-			}
+				const posComp = vec2(
+					p.x * opt.width,
+					p.y * opt.height
+				);
 
-			const posComp = vec2(
-				offset.x + p.x * opt.width,
-				offset.y + p.y * opt.height
-			);
-
-			for (const comp of comps) {
-				if (comp.id === "pos") {
-					posComp.x += comp.pos.x;
-					posComp.y += comp.pos.y;
-					break;
+				for (const comp of comps) {
+					if (comp.id === "pos") {
+						posComp.x += comp.pos.x;
+						posComp.y += comp.pos.y;
+						break;
+					}
 				}
-			}
 
-			comps.push(pos(posComp));
-			comps.push(grid(this, p));
+				comps.push(pos(posComp));
+				comps.push(grid(p));
 
-			const obj = game.root.add(comps);
+				return this.add(comps);
 
-			objs.push(obj);
+			},
 
-			return obj;
+			width() {
+				return longRow * opt.width;
+			},
+
+			height() {
+				return map.length * opt.height;
+			},
 
 		},
 
-		width() {
-			return longRow * opt.width;
-		},
+	]);
 
-		height() {
-			return map.length * opt.height;
-		},
-
-		destroy() {
-			for (const obj of objs) {
-				obj.destroy();
-			}
-		},
-
-	};
+	let longRow = 0;
 
 	map.forEach((row, i) => {
 
