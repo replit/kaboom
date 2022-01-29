@@ -26,7 +26,7 @@ import Doc from "comps/Doc";
 import download from "lib/download";
 import wrapHTML from "lib/wrapHTML";
 import Ctx from "lib/Ctx";
-import DEMO_ORDER from "public/site/demo/order.json";
+import DEMO_CFG from "public/site/demo/demo.json";
 
 const DEF_DEMO = "add";
 
@@ -142,9 +142,9 @@ const Play: React.FC<PlayProps> = ({
 	// names not defined in the list just fall to their default order
 	const demoList = React.useMemo(() => {
 		return [...new Set([
-			...DEMO_ORDER,
+			...DEMO_CFG.order,
 			...Object.keys(demos),
-		])];
+		])].filter((name) => !DEMO_CFG.hidden.includes(name));
 	}, [ demos ]);
 
 	React.useEffect(() => {

@@ -496,23 +496,22 @@ const app = (() => {
 
 })();
 
+const gl = app.canvas
+	.getContext("webgl", {
+		antialias: true,
+		depth: true,
+		stencil: true,
+		alpha: true,
+		preserveDrawingBuffer: true,
+	});
+
 const gfx = (() => {
 
-	const gl = app.canvas
-		.getContext("webgl", {
-			antialias: true,
-			depth: true,
-			stencil: true,
-			alpha: true,
-			preserveDrawingBuffer: true,
-		});
-
-	const defShader = makeShader(gl, DEF_VERT, DEF_FRAG);
+	const defShader = makeShader(DEF_VERT, DEF_FRAG);
 
 	// a 1x1 white texture to draw raw shapes like rectangles and polygons
 	// we use a texture for those so we can use only 1 pipeline for drawing sprites + shapes
 	const emptyTex = makeTex(
-		gl,
 		new ImageData(new Uint8ClampedArray([ 255, 255, 255, 255, ]), 1, 1)
 	);
 
@@ -556,7 +555,6 @@ const gfx = (() => {
 
 	// a checkerboard texture used for the default background
 	const bgTex = makeTex(
-		gl,
 		new ImageData(new Uint8ClampedArray([
 			128, 128, 128, 255,
 			190, 190, 190, 255,
@@ -569,8 +567,6 @@ const gfx = (() => {
 	);
 
 	return {
-
-		gl,
 
 		// keep track of how many draw calls we're doing this frame
 		drawCalls: 0,
@@ -764,6 +760,10 @@ function fetchJSON(path: string) {
 	return fetchURL(path).then((res) => res.json());
 }
 
+function fetchText(path: string) {
+	return fetchURL(path).then((res) => res.text());
+}
+
 // wrapper around image loader to get a Promise
 function loadImg(src: string): Promise<HTMLImageElement> {
 	const img = new Image();
@@ -787,7 +787,7 @@ function loadFont(
 	return assets.fonts.add(name, loadImg(src)
 		.then((img) => {
 			return makeFont(
-				makeTex(gfx.gl, img, opt),
+				makeTex(img, opt),
 				gw,
 				gh,
 				opt.chars ?? ASCII_CHARS
@@ -867,7 +867,7 @@ function loadRawSprite(
 	opt: SpriteLoadOpt = {}
 ) {
 
-	const tex = makeTex(gfx.gl, src, opt);
+	const tex = makeTex(src, opt);
 	const frames = slice(opt.sliceX || 1, opt.sliceY || 1);
 
 	return {
@@ -978,27 +978,20 @@ function loadShader(
 
 	return assets.shaders.add(name, new Promise<ShaderData>((resolve, reject) => {
 
-		if (!vert && !frag) {
-			return reject("no shader");
-		}
-
-		function resolveUrl(url?: string) {
-			return url ?
-				fetchURL(url)
-					.then((res) => res.text())
-					.catch(reject)
+		const resolveUrl = (url?: string) =>
+			url
+				? fetchText(url)
 				: new Promise((r) => r(null));
-		}
 
 		if (isUrl) {
 			Promise.all([resolveUrl(vert), resolveUrl(frag)])
 				.then(([vcode, fcode]: [string | null, string | null]) => {
-					resolve(makeShader(gfx.gl, vcode, fcode));
+					resolve(makeShader(vcode, fcode));
 				})
 				.catch(reject);
 		} else {
 			try {
-				resolve(makeShader(gfx.gl, vert, frag));
+				resolve(makeShader(vert, frag));
 			} catch (err) {
 				reject(err);
 			}
@@ -1247,7 +1240,6 @@ function burp(opt?: AudioPlayOpt): AudioPlay {
 
 // TODO: take these webgl structures out pure
 function makeTex(
-	gl: WebGLRenderingContext,
 	data: GfxTexData,
 	opt: GfxTexOpt = {}
 ): GfxTexture {
@@ -1293,7 +1285,6 @@ function makeTex(
 }
 
 function makeShader(
-	gl: WebGLRenderingContext,
 	vertSrc: string | null = DEF_VERT,
 	fragSrc: string | null = DEF_FRAG,
 ): GfxShader {
@@ -1346,7 +1337,6 @@ function makeShader(
 		},
 
 		send(uniform: Uniform) {
-			this.bind();
 			for (const name in uniform) {
 				const val = uniform[name];
 				const loc = gl.getUniformLocation(id, name);
@@ -1366,7 +1356,6 @@ function makeShader(
 					gl.uniform2f(loc, val.x, val.y);
 				}
 			}
-			this.unbind();
 		},
 
 	};
@@ -1403,18 +1392,48 @@ function makeFont(
 
 }
 
+const erroredShaders = {};
+
 // TODO: expose
 function drawRaw(
 	verts: Vertex[],
 	indices: number[],
 	fixed: boolean,
 	tex: GfxTexture = gfx.defTex,
-	shader: GfxShader = gfx.defShader,
+	shaderSrc: GfxShader | string = gfx.defShader,
 	uniform: Uniform = {},
 ) {
 
-	tex = tex ?? gfx.defTex;
-	shader = shader ?? gfx.defShader;
+	const shader = typeof shaderSrc === "string"
+		? (() => {
+			const loaded = getShader(shaderSrc);
+			if (loaded instanceof Promise) {
+				return null;
+			} else if (loaded) {
+				return loaded as GfxShader;
+			} else {
+				// TODO: inline vert shader?
+				// TODO: support asset url like sprite?
+				// support inline frag shader
+				if (erroredShaders[shaderSrc]) {
+					debug.log(erroredShaders[shaderSrc]);
+				} else {
+					try {
+						const shader = makeShader(DEF_VERT, shaderSrc);
+						assets.shaders.loaded.set(shaderSrc, shader);
+						return shader;
+					} catch (err) {
+						debug.log(err);
+						erroredShaders[shaderSrc] = err;
+					}
+				}
+			}
+		})()
+		: shaderSrc;
+
+	if (!shader) {
+		return null;
+	}
 
 	// flush on texture / shader change and overflow
 	if (
@@ -1465,14 +1484,12 @@ function flush() {
 		return;
 	}
 
-	const gl = gfx.gl;
-
-	gfx.curShader.send(gfx.curUniform);
 	gl.bindBuffer(gl.ARRAY_BUFFER, gfx.vbuf);
 	gl.bufferSubData(gl.ARRAY_BUFFER, 0, new Float32Array(gfx.vqueue));
 	gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, gfx.ibuf);
 	gl.bufferSubData(gl.ELEMENT_ARRAY_BUFFER, 0, new Uint16Array(gfx.iqueue));
 	gfx.curShader.bind();
+	gfx.curShader.send(gfx.curUniform);
 	gfx.curTex.bind();
 	gl.drawElements(gl.TRIANGLES, gfx.iqueue.length, gl.UNSIGNED_SHORT, 0);
 	gfx.curTex.unbind();
@@ -1489,8 +1506,6 @@ function flush() {
 
 // start a rendering frame, reset some states
 function frameStart() {
-
-	const gl = gfx.gl;
 
 	gl.clear(gl.COLOR_BUFFER_BIT);
 
@@ -2080,8 +2095,6 @@ function drawPolygon(opt: DrawPolygonOpt) {
 
 function drawStenciled(content: () => void, mask: () => void, test: number) {
 
-	const gl = gfx.gl;
-
 	flush();
 	gl.clear(gl.STENCIL_BUFFER_BIT);
 	gl.enable(gl.STENCIL_TEST);
@@ -2124,11 +2137,11 @@ function drawStenciled(content: () => void, mask: () => void, test: number) {
 }
 
 function drawMasked(content: () => void, mask: () => void) {
-	drawStenciled(content, mask, gfx.gl.EQUAL);
+	drawStenciled(content, mask, gl.EQUAL);
 }
 
 function drawSubtracted(content: () => void, mask: () => void) {
-	drawStenciled(content, mask, gfx.gl.NOTEQUAL);
+	drawStenciled(content, mask, gl.NOTEQUAL);
 }
 
 function applyCharTransform(fchar: FormattedChar, tr: CharTransform) {
@@ -2370,8 +2383,6 @@ function drawFormattedText(ftext: FormattedText) {
  * Update viewport based on user setting and fullscreen state
  */
 function updateViewport() {
-
-	const gl = gfx.gl;
 
 	// canvas size
 	const cw = gl.drawingBufferWidth;
@@ -2727,7 +2738,7 @@ const debug: Debug = {
 	stepFrame: updateFrame,
 	drawCalls: () => gfx.drawCalls,
 	clearLog: () => game.logs = [],
-	log: (msg) => game.logs.unshift(`${gopt.logTime ? `[${time().toFixed(2)}].time ` : ""}[${msg.toString ? msg.toString() : msg}].${msg instanceof Error ? "error" : "info"}`),
+	log: (msg) => game.logs.unshift(`${gopt.logTime ? `[${time().toFixed(2)}].time ` : ""}[${msg.toString ? msg.toString().trimEnd() : msg}].${msg instanceof Error ? "error" : "info"}`),
 	error: (msg) => debug.log(new Error(msg.toString ? msg.toString() : msg as string)),
 	curRecording: null,
 	get paused() {
@@ -3768,7 +3779,7 @@ function getRenderProps(obj: GameObj<any>) {
 		origin: obj.origin,
 		outline: obj.outline,
 		fixed: obj.fixed,
-		shader: assets.shaders.getLoaded(obj.shader),
+		shader: obj.shader,
 		uniform: obj.uniform,
 	};
 }
