@@ -1450,7 +1450,7 @@ export interface KaboomCtx {
 	 * vec2(100, 80)
 	 *
 	 * // move to 150 degrees direction with by length 10
-	 * player.pos = pos.add(dir(150).scale(10))
+	 * player.pos = pos.add(Vec2.fromAngle(150).scale(10))
 	 * ```
 	 */
 	vec2(x: number, y: number): Vec2,
