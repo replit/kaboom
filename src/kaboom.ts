@@ -3355,7 +3355,10 @@ function enterDebugMode() {
 	});
 
 	onKeyPress("f5", () => {
-		downloadURL(screenshot(), "kaboom.png");
+		const dispose = game.on("drawEnd", () => {
+			downloadURL(screenshot(), "kaboom.png");
+			dispose();
+		});
 	});
 
 	onKeyPress("f6", () => {
@@ -5092,6 +5095,8 @@ function drawFrame() {
 		;
 
 	game.root.draw();
+
+	game.trigger("drawEnd");
 
 }
 
