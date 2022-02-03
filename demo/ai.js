@@ -13,16 +13,14 @@ const BULLET_SPEED = 800
 
 // Add player game object
 const player = add([
-	sprite("bean"),
+	sprite("bean", { origin: "center", }),
 	pos(80, 80),
 	area(),
-	origin("center"),
 ])
 
 const enemy = add([
-	sprite("ghosty"),
+	sprite("ghosty", { origin: "center", }),
 	pos(width() - 80, height() - 80),
-	origin("center"),
 	// This enemy cycle between 3 states, and start from "idle" state
 	state("move", [ "idle", "attack", "move", ]),
 ])
@@ -45,10 +43,9 @@ enemy.onStateEnter("attack", async () => {
 		add([
 			pos(enemy.pos),
 			move(dir, BULLET_SPEED),
-			rect(12, 12),
+			rect(12, 12, { origin: "center", }),
 			area(),
 			cleanup(),
-			origin("center"),
 			color(BLUE),
 			"bullet",
 		])

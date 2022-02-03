@@ -332,11 +332,10 @@ export interface KaboomCtx {
 	 * @example
 	 * ```js
 	 * add([
-	 *     sprite("flower"),
+	 *     sprite("flower", { origin: "center", }),
 	 *     // Scale to 0.6 of the generated area
 	 *     area({ scale: 0.6 }),
 	 *     // If we want the area scale to be calculated from the center
-	 *     origin("center"),
 	 * ])
 	 *
 	 * add([
@@ -347,20 +346,6 @@ export interface KaboomCtx {
 	 * ```
 	 */
 	area(options: AreaCompOpt): AreaComp,
-	/**
-	 * Origin point for render (default "topleft").
-	 *
-	 * @example
-	 * ```js
-	 * // set origin to "center" so it'll rotate from center
-	 * add([
-	 *     rect(40, 10),
-	 *     rotate(45),
-	 *     origin("center"),
-	 * ])
-	 * ```
-	 */
-	origin(o: Origin | Vec2): OriginComp,
 	/**
 	 * Which layer this object belongs to.
 	 */
@@ -3482,6 +3467,10 @@ export interface SpriteCompOpt {
 	 * If the sprite is loaded with multiple frames, or sliced, use the frame option to specify which frame to draw.
 	 */
 	frame?: number,
+	/**
+	 * The pivot point of the sprite
+	 */
+	origin?: Origin | Vec2,
 	/**
 	 * If provided width and height, don't stretch but instead render tiled.
 	 */

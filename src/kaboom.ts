@@ -3627,23 +3627,6 @@ function opacity(a: number): OpacityComp {
 	};
 }
 
-function origin(o: Origin | Vec2): OriginComp {
-	if (!o) {
-		throw new Error("please define an origin");
-	}
-	return {
-		id: "origin",
-		origin: o,
-		inspect() {
-			if (typeof this.origin === "string") {
-				return this.origin;
-			} else {
-				return this.origin.toString();
-			}
-		},
-	};
-}
-
 function layer(l: string): LayerComp {
 	return {
 		id: "layer",
@@ -3961,7 +3944,6 @@ function getRenderProps(obj: GameObj<any>) {
 	return {
 		color: obj.color,
 		opacity: obj.opacity,
-		origin: obj.origin,
 		outline: obj.outline,
 		fixed: obj.fixed,
 		shader: obj.shader,
@@ -4054,6 +4036,7 @@ function sprite(id: string | SpriteData, opt: SpriteCompOpt = {}): SpriteComp {
 				sprite: spriteData,
 				frame: this.frame,
 				quad: this.quad,
+				origin: opt.origin,
 				flipX: opt.flipX,
 				flipY: opt.flipY,
 				tiled: opt.tiled,
@@ -5042,17 +5025,15 @@ function addKaboom(p: Vec2, opt: BoomOpt = {}): GameObj {
 	const s = opt.scale || 1;
 
 	const boom = kaboom.add([
-		sprite(boomSprite),
+		sprite(boomSprite, { origin: "center", }),
 		scale(0),
-		origin("center"),
 		explode(speed, s),
 		...(opt.boomComps ?? (() => []))(),
 	]);
 
 	const ka = kaboom.add([
-		sprite(kaSprite),
+		sprite(kaSprite, { origin: "center", }),
 		scale(0),
-		origin("center"),
 		timer(0.4 / speed, () => ka.use(explode(speed, s))),
 		...(opt.kaComps ?? (() => []))(),
 	]);
@@ -5583,7 +5564,6 @@ const ctx: KaboomCtx = {
 	rotate,
 	color,
 	opacity,
-	origin,
 	layer,
 	area,
 	sprite,
