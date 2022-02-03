@@ -1104,7 +1104,7 @@ export interface KaboomCtx {
 	 * loadFont("04b03", "fonts/04b03.png", 6, 8)
 	 *
 	 * // load a font with custom characters
-	 * loadFont("cp437", "cp437.png", 6, 8, {chars: "☺☻♥♦♣♠"}) 
+	 * loadFont("cp437", "cp437.png", 6, 8, {chars: "☺☻♥♦♣♠"})
 	 * ```
 	 */
 	loadFont(
@@ -1200,6 +1200,8 @@ export interface KaboomCtx {
 	isFocused(): boolean,
 	/**
 	 * Focus on the game canvas.
+	 *
+	 * @deprecated v2000.2
 	 */
 	focus(): void,
 	/**

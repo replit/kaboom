@@ -4856,6 +4856,11 @@ function record(frameRate?): Recording {
 
 }
 
+function focus() {
+	deprecateMsg("focus()", "canvas.focus()");
+	app.canvas.focus();
+}
+
 function isFocused(): boolean {
 	return document.activeElement === app.canvas;
 }
