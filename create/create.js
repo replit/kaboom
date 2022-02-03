@@ -186,7 +186,7 @@ const template = dir(dest, [
 			"build": "vite build",
 			"preview": "vite preview",
 			...(ts ? {
-				"check": "tsc --noEmit game.ts",
+				"check": "tsc --noEmit src/game.ts",
 			} : {}),
 		},
 	})),
