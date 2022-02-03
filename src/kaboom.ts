@@ -4971,10 +4971,6 @@ function record(frameRate?): Recording {
 
 }
 
-function isFocused(): boolean {
-	return document.activeElement === app.canvas;
-}
-
 // aliases for root game obj operations
 function add<T>(comps: CompList<T> | GameObj<T>): GameObj<T> {
 	return game.root.add(comps);
@@ -5552,8 +5548,6 @@ const ctx: KaboomCtx = {
 	time,
 	screenshot,
 	record,
-	isFocused,
-	focus,
 	cursor,
 	regCursor,
 	fullscreen,
