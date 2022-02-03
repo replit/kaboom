@@ -262,8 +262,13 @@ const DBG_FONT = "sink";
 
 const LOG_MAX = 1;
 
-// vertex format stride (vec3 pos, vec2 uv, vec4 color)
-const STRIDE = 9;
+const VERTEX_FORMAT = [
+	{ name: "a_pos", size: 3, },
+	{ name: "a_uv", size: 2, },
+	{ name: "a_color", size: 4, },
+];
+
+const STRIDE = VERTEX_FORMAT.reduce((sum, f) => sum + f.size, 0);
 
 // vertex shader template, replace {{user}} with user vertex shader code
 const VERT_TEMPLATE = `
@@ -538,16 +543,16 @@ const gfx = (() => {
 	const vbuf = gl.createBuffer();
 
 	gl.bindBuffer(gl.ARRAY_BUFFER, vbuf);
-	// vec3 pos
-	gl.vertexAttribPointer(0, 3, gl.FLOAT, false, STRIDE * 4, 0);
-	gl.enableVertexAttribArray(0);
-	// vec2 uv
-	gl.vertexAttribPointer(1, 2, gl.FLOAT, false, STRIDE * 4, 12);
-	gl.enableVertexAttribArray(1);
-	// vec4 color
-	gl.vertexAttribPointer(2, 4, gl.FLOAT, false, STRIDE * 4, 20);
-	gl.enableVertexAttribArray(2);
 	gl.bufferData(gl.ARRAY_BUFFER, QUEUE_COUNT * 4, gl.DYNAMIC_DRAW);
+
+	const stride = VERTEX_FORMAT.reduce((sum, f) => sum + f.size, 0);
+
+	VERTEX_FORMAT.reduce((offset, f, i) => {
+		gl.vertexAttribPointer(i, f.size, gl.FLOAT, false, stride * 4, offset);
+		gl.enableVertexAttribArray(i);
+		return offset + f.size * 4;
+	}, 0);
+
 	gl.bindBuffer(gl.ARRAY_BUFFER, null);
 
 	const ibuf = gl.createBuffer();
