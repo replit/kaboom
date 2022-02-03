@@ -254,7 +254,6 @@ const MAX_DETUNE = 1200;
 
 const DEF_ORIGIN = "topleft";
 const DEF_GRAVITY = 1600;
-const QUEUE_COUNT = 65536;
 const BG_GRID_SIZE = 64;
 
 const DEF_FONT = "apl386o";
@@ -269,6 +268,10 @@ const VERTEX_FORMAT = [
 ];
 
 const STRIDE = VERTEX_FORMAT.reduce((sum, f) => sum + f.size, 0);
+
+const MAX_BATCHED_QUAD = 2048;
+const MAX_BATCHED_VERTS = MAX_BATCHED_QUAD * 4 * STRIDE;
+const MAX_BATCHED_INDICES = MAX_BATCHED_QUAD * 6;
 
 // vertex shader template, replace {{user}} with user vertex shader code
 const VERT_TEMPLATE = `
@@ -543,7 +546,7 @@ const gfx = (() => {
 	const vbuf = gl.createBuffer();
 
 	gl.bindBuffer(gl.ARRAY_BUFFER, vbuf);
-	gl.bufferData(gl.ARRAY_BUFFER, QUEUE_COUNT * 4, gl.DYNAMIC_DRAW);
+	gl.bufferData(gl.ARRAY_BUFFER, MAX_BATCHED_VERTS * 4, gl.DYNAMIC_DRAW);
 
 	VERTEX_FORMAT.reduce((offset, f, i) => {
 		gl.vertexAttribPointer(i, f.size, gl.FLOAT, false, STRIDE * 4, offset);
@@ -556,7 +559,7 @@ const gfx = (() => {
 	const ibuf = gl.createBuffer();
 
 	gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, ibuf);
-	gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, QUEUE_COUNT * 2, gl.DYNAMIC_DRAW);
+	gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, MAX_BATCHED_INDICES * 4, gl.DYNAMIC_DRAW);
 	gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
 
 	// a checkerboard texture used for the default background
@@ -1446,8 +1449,8 @@ function drawRaw(
 		tex !== gfx.curTex
 		|| shader !== gfx.curShader
 		|| !deepEq(gfx.curUniform, uniform)
-		|| gfx.vqueue.length + verts.length * STRIDE > QUEUE_COUNT
-		|| gfx.iqueue.length + indices.length > QUEUE_COUNT
+		|| gfx.vqueue.length + verts.length * STRIDE > MAX_BATCHED_VERTS
+		|| gfx.iqueue.length + indices.length > MAX_BATCHED_INDICES
 	) {
 		flush();
 	}
@@ -1503,8 +1506,8 @@ function flush() {
 	gl.bindBuffer(gl.ARRAY_BUFFER, null);
 	gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
 
-	gfx.iqueue = [];
 	gfx.vqueue = [];
+	gfx.iqueue = [];
 
 	gfx.drawCalls++;
 
