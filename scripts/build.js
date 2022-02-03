@@ -54,8 +54,7 @@ buildTypes();
 // generate .d.ts / docs data
 function buildTypes() {
 
-	let dts = fs.readFileSync(`${srcDir}/types.ts`, "utf-8")
-		.replace(/declare function kaboom/g, "export default function kaboom");
+	let dts = fs.readFileSync(`${srcDir}/types.ts`, "utf-8");
 
 	const f = ts.createSourceFile(
 		"ts",
@@ -148,7 +147,7 @@ function buildTypes() {
 	}];
 
 	// generate global decls for KaboomCtx members
-	dts += "declare global {\n";
+	dts += "\ndeclare global {\n";
 
 	for (const stmt of stmts) {
 

@@ -4026,3 +4026,5 @@ export interface BoomOpt {
 	 */
 	boomComps?: () => CompList<any>,
 }
+
+export default kaboom;
