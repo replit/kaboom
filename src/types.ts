@@ -1124,10 +1124,6 @@ export interface KaboomCtx {
 	 */
 	isFocused(): boolean,
 	/**
-	 * Focus on the game canvas.
-	 */
-	focus(): void,
-	/**
 	 * Is currently on a touch screen device.
 	 */
 	isTouch(): boolean,
