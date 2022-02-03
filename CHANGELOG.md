@@ -1,7 +1,7 @@
 # v2001.0.0 "A Kaboom Odyssey"
 
-- game objects can have children with `obj.add()` now which share the parent transform
 - removed all deprecated functions in v2000.2
+- game objects can have children with `obj.add()` now which share the parent transform
 - raised esbuild target to `esnext`
 - added `make()` to make a game object without adding to the scene
 - `add()` supports adding unattached game objects to the scene `add(make([...comps]))`
@@ -10,6 +10,11 @@
 - added `loadProgress()` that returns a `0.0 - 1.0` that indicates current asset loading progress
 - added `kaboom()` option `loadingScreen` where you can turn off the default loading screen
 - added `drawMasked()` and `drawSubtracted()`
+
+### v2000.2.4
+
+- fixed `focus()` not properly exported
+- deprecated `focus()` in favor of `canvas.focus()` due to name collision
 
 ### v2000.2.3
 
