@@ -545,10 +545,8 @@ const gfx = (() => {
 	gl.bindBuffer(gl.ARRAY_BUFFER, vbuf);
 	gl.bufferData(gl.ARRAY_BUFFER, QUEUE_COUNT * 4, gl.DYNAMIC_DRAW);
 
-	const stride = VERTEX_FORMAT.reduce((sum, f) => sum + f.size, 0);
-
 	VERTEX_FORMAT.reduce((offset, f, i) => {
-		gl.vertexAttribPointer(i, f.size, gl.FLOAT, false, stride * 4, offset);
+		gl.vertexAttribPointer(i, f.size, gl.FLOAT, false, STRIDE * 4, offset);
 		gl.enableVertexAttribArray(i);
 		return offset + f.size * 4;
 	}, 0);
