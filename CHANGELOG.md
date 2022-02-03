@@ -1,3 +1,8 @@
+### v2000.2.4
+
+- fixed `focus()` not properly exported
+- deprecated `focus()` in favor of `canvas.focus()` due to name collision
+
 ### v2000.2.3
 
 - fixed `kaboom.d.ts` completely messed up
