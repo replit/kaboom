@@ -14,7 +14,7 @@ const builtinFonts = [
 // Make a list of fonts that we cycle through
 const fonts = [
 	...builtinFonts,
-	"unscii"
+	"unscii",
 ]
 
 // Keep track which is the current font

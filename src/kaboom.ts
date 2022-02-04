@@ -251,7 +251,6 @@ const MAX_DETUNE = 1200;
 
 const DEF_ORIGIN = "topleft";
 const DEF_GRAVITY = 1600;
-const QUEUE_COUNT = 65536;
 const BG_GRID_SIZE = 64;
 
 const DEF_FONT = "apl386o";
@@ -259,8 +258,17 @@ const DBG_FONT = "sink";
 
 const LOG_MAX = 1;
 
-// vertex format stride (vec3 pos, vec2 uv, vec4 color)
-const STRIDE = 9;
+const VERTEX_FORMAT = [
+	{ name: "a_pos", size: 3, },
+	{ name: "a_uv", size: 2, },
+	{ name: "a_color", size: 4, },
+];
+
+const STRIDE = VERTEX_FORMAT.reduce((sum, f) => sum + f.size, 0);
+
+const MAX_BATCHED_QUAD = 2048;
+const MAX_BATCHED_VERTS = MAX_BATCHED_QUAD * 4 * STRIDE;
+const MAX_BATCHED_INDICES = MAX_BATCHED_QUAD * 6;
 
 // vertex shader template, replace {{user}} with user vertex shader code
 const VERT_TEMPLATE = `
@@ -535,22 +543,20 @@ const gfx = (() => {
 	const vbuf = gl.createBuffer();
 
 	gl.bindBuffer(gl.ARRAY_BUFFER, vbuf);
-	// vec3 pos
-	gl.vertexAttribPointer(0, 3, gl.FLOAT, false, STRIDE * 4, 0);
-	gl.enableVertexAttribArray(0);
-	// vec2 uv
-	gl.vertexAttribPointer(1, 2, gl.FLOAT, false, STRIDE * 4, 12);
-	gl.enableVertexAttribArray(1);
-	// vec4 color
-	gl.vertexAttribPointer(2, 4, gl.FLOAT, false, STRIDE * 4, 20);
-	gl.enableVertexAttribArray(2);
-	gl.bufferData(gl.ARRAY_BUFFER, QUEUE_COUNT * 4, gl.DYNAMIC_DRAW);
+	gl.bufferData(gl.ARRAY_BUFFER, MAX_BATCHED_VERTS * 4, gl.DYNAMIC_DRAW);
+
+	VERTEX_FORMAT.reduce((offset, f, i) => {
+		gl.vertexAttribPointer(i, f.size, gl.FLOAT, false, STRIDE * 4, offset);
+		gl.enableVertexAttribArray(i);
+		return offset + f.size * 4;
+	}, 0);
+
 	gl.bindBuffer(gl.ARRAY_BUFFER, null);
 
 	const ibuf = gl.createBuffer();
 
 	gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, ibuf);
-	gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, QUEUE_COUNT * 2, gl.DYNAMIC_DRAW);
+	gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, MAX_BATCHED_INDICES * 4, gl.DYNAMIC_DRAW);
 	gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
 
 	// a checkerboard texture used for the default background
@@ -1440,8 +1446,8 @@ function drawRaw(
 		tex !== gfx.curTex
 		|| shader !== gfx.curShader
 		|| !deepEq(gfx.curUniform, uniform)
-		|| gfx.vqueue.length + verts.length * STRIDE > QUEUE_COUNT
-		|| gfx.iqueue.length + indices.length > QUEUE_COUNT
+		|| gfx.vqueue.length + verts.length * STRIDE > MAX_BATCHED_VERTS
+		|| gfx.iqueue.length + indices.length > MAX_BATCHED_INDICES
 	) {
 		flush();
 	}
@@ -1497,8 +1503,8 @@ function flush() {
 	gl.bindBuffer(gl.ARRAY_BUFFER, null);
 	gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
 
-	gfx.iqueue = [];
 	gfx.vqueue = [];
+	gfx.iqueue = [];
 
 	gfx.drawCalls++;
 
@@ -2738,7 +2744,7 @@ const debug: Debug = {
 	stepFrame: updateFrame,
 	drawCalls: () => gfx.drawCalls,
 	clearLog: () => game.logs = [],
-	log: (msg) => game.logs.unshift(`${gopt.logTime ? `[${time().toFixed(2)}].time ` : ""}[${msg.toString ? msg.toString().trimEnd() : msg}].${msg instanceof Error ? "error" : "info"}`),
+	log: (msg) => game.logs.unshift(`${gopt.logTime ? `[${time().toFixed(2)}].time ` : ""}[${msg?.toString ? msg.toString().trimEnd() : msg}].${msg instanceof Error ? "error" : "info"}`),
 	error: (msg) => debug.log(new Error(msg.toString ? msg.toString() : msg as string)),
 	curRecording: null,
 	get paused() {
@@ -3344,7 +3350,10 @@ function enterDebugMode() {
 	});
 
 	onKeyPress("f5", () => {
-		downloadURL(screenshot(), "kaboom.png");
+		const dispose = game.on("drawEnd", () => {
+			downloadURL(screenshot(), "kaboom.png");
+			dispose();
+		});
 	});
 
 	onKeyPress("f6", () => {
@@ -4035,12 +4044,12 @@ function text(t: string, opt: TextCompOpt = {}): TextComp {
 			...getRenderProps(obj),
 			text: obj.text + "",
 			size: obj.textSize,
-			font: opt.font,
-			width: opt.width,
-			letterSpacing: opt.letterSpacing,
-			lineSpacing: opt.lineSpacing,
-			transform: opt.transform,
-			styles: opt.styles,
+			font: obj.font,
+			width: opt.width && obj.width,
+			letterSpacing: obj.letterSpacing,
+			lineSpacing: obj.lineSpacing,
+			transform: obj.transform,
+			styles: obj.styles,
 		});
 
 		obj.width = ftext.width / (obj.scale?.x || 1);
@@ -4056,8 +4065,12 @@ function text(t: string, opt: TextCompOpt = {}): TextComp {
 		text: t,
 		textSize: opt.size,
 		font: opt.font,
-		width: 0,
+		width: opt.width,
 		height: 0,
+		lineSpacing: opt.lineSpacing,
+		letterSpacing: opt.letterSpacing,
+		transform: opt.transform,
+		styles: opt.styles,
 
 		load() {
 			update(this);
@@ -5042,6 +5055,8 @@ function drawFrame() {
 
 	game.root.draw();
 
+	game.trigger("drawEnd");
+
 }
 
 function drawLoadScreen() {
@@ -5349,7 +5364,7 @@ function handleErr(msg: string) {
 }
 
 window.addEventListener("error", (e) => {
-	handleErr(e.error.message);
+	handleErr(e.error instanceof Error ? e.error.message : e.error);
 });
 
 window.addEventListener("unhandledrejection", (e) => {
@@ -5410,6 +5425,7 @@ loadFont(
 	apl386Src,
 	45,
 	74,
+	{ filter: "linear", }
 );
 
 loadFont(
@@ -5417,6 +5433,7 @@ loadFont(
 	apl386oSrc,
 	45,
 	74,
+	{ filter: "linear", }
 );
 
 loadFont(
@@ -5489,7 +5506,6 @@ const ctx: KaboomCtx = {
 	screenshot,
 	record,
 	isFocused,
-	focus,
 	cursor,
 	regCursor,
 	fullscreen,

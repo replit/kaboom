@@ -1124,10 +1124,6 @@ export interface KaboomCtx {
 	 */
 	isFocused(): boolean,
 	/**
-	 * Focus on the game canvas.
-	 */
-	focus(): void,
-	/**
 	 * Is currently on a touch screen device.
 	 */
 	isTouch(): boolean,
@@ -1450,7 +1446,7 @@ export interface KaboomCtx {
 	 * vec2(100, 80)
 	 *
 	 * // move to 150 degrees direction with by length 10
-	 * player.pos = pos.add(dir(150).scale(10))
+	 * player.pos = pos.add(Vec2.fromAngle(150).scale(10))
 	 * ```
 	 */
 	vec2(x: number, y: number): Vec2,
@@ -3651,6 +3647,30 @@ export interface TextComp extends Comp {
 	 * Height of text.
 	 */
 	height: number,
+	/**
+	 * The gap between each line.
+	 *
+	 * @since v2000.2
+	 */
+	lineSpacing: number,
+	/**
+	 * The gap between each character.
+	 *
+	 * @since v2000.2
+	 */
+	letterSpacing: number,
+	/**
+	 * Transform the pos, scale, rotation or color for each character based on the index or char.
+	 *
+	 * @since v2000.1
+	 */
+	transform: CharTransform | CharTransformFunc,
+	/**
+	 * Stylesheet for styled chunks, in the syntax of "this is a [styled].stylename word".
+	 *
+	 * @since v2000.2
+	 */
+	styles: Record<string, CharTransform | CharTransformFunc>,
 }
 
 export interface TextCompOpt {
@@ -4081,3 +4101,5 @@ export interface BoomOpt {
 	 */
 	boomComps?: () => CompList<any>,
 }
+
+export default kaboom;
