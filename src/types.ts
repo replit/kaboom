@@ -3696,6 +3696,30 @@ export interface TextComp extends Comp {
 	 * Height of text.
 	 */
 	height: number,
+	/**
+	 * The gap between each line.
+	 *
+	 * @since v2000.2
+	 */
+	lineSpacing: number,
+	/**
+	 * The gap between each character.
+	 *
+	 * @since v2000.2
+	 */
+	letterSpacing: number,
+	/**
+	 * Transform the pos, scale, rotation or color for each character based on the index or char.
+	 *
+	 * @since v2000.1
+	 */
+	transform: CharTransform | CharTransformFunc,
+	/**
+	 * Stylesheet for styled chunks, in the syntax of "this is a [styled].stylename word".
+	 *
+	 * @since v2000.2
+	 */
+	styles: Record<string, CharTransform | CharTransformFunc>,
 }
 
 export interface TextCompOpt {
