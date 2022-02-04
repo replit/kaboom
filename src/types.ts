@@ -1150,7 +1150,7 @@ export interface KaboomCtx {
 	 * })
 	 * ```
 	 */
-	isKeyDown(k: Key): boolean,
+	isKeyDown(k?: Key): boolean,
 	/**
 	 * If certain key is just pressed last frame.
 	 *
