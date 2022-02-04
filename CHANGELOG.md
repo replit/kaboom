@@ -11,6 +11,10 @@
 - added `kaboom()` option `loadingScreen` where you can turn off the default loading screen
 - added `drawMasked()` and `drawSubtracted()`
 
+### v2000.2.5
+
+- fixed updatinhg `font` property on gameobj not updating the text font
+
 ### v2000.2.4
 
 - fixed `focus()` not properly exported
