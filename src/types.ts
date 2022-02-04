@@ -362,10 +362,6 @@ export interface KaboomCtx {
 	 */
 	origin(o: Origin | Vec2): OriginComp,
 	/**
-	 * Which layer this object belongs to.
-	 */
-	layer(l: string): LayerComp,
-	/**
 	 * Determines the draw order for objects on the same layer. Object will be drawn on top if z value is bigger.
 	 */
 	z(z: number): ZComp,
@@ -1237,32 +1233,6 @@ export interface KaboomCtx {
 	 * Get / set gravity.
 	 */
 	gravity(g: number): number,
-	/**
-	 * Define layers (the last one will be on top).
-	 *
-	 * @example
-	 * ```js
-	 * // defining 3 layers, "ui" will be drawn on top most, with default layer being "game"
-	 * layers([
-	 *     "bg",
-	 *     "game",
-	 *     "ui",
-	 * ], "game")
-	 *
-	 * // use layer() comp to define which layer an obj belongs to
-	 * add([
-	 *     text(score),
-	 *     layer("ui"),
-	 *     fixed(),
-	 * ])
-	 *
-	 * // without layer() comp it'll fall back to default layer, which is "game"
-	 * add([
-	 *     sprite("froggy"),
-	 * ])
-	 * ```
-	 */
-	layers(list: string[], def?: string): void,
 	/**
 	 * Get / set the cursor (css). Cursor will be reset to "default" every frame so use this in an per-frame action.
 	 *
@@ -3269,13 +3239,6 @@ export interface OriginComp extends Comp {
 	 * Origin point for render.
 	 */
 	origin: Origin | Vec2,
-}
-
-export interface LayerComp extends Comp {
-	/**
-	 * Which layer this game obj belongs to.
-	 */
-	layer: string,
 }
 
 export interface ZComp extends Comp {
