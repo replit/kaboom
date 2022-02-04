@@ -2747,7 +2747,7 @@ const debug: Debug = {
 	stepFrame: updateFrame,
 	drawCalls: () => gfx.drawCalls,
 	clearLog: () => game.logs = [],
-	log: (msg) => game.logs.unshift(`${gopt.logTime ? `[${time().toFixed(2)}].time ` : ""}[${msg.toString ? msg.toString().trimEnd() : msg}].${msg instanceof Error ? "error" : "info"}`),
+	log: (msg) => game.logs.unshift(`${gopt.logTime ? `[${time().toFixed(2)}].time ` : ""}[${msg?.toString ? msg.toString().trimEnd() : msg}].${msg instanceof Error ? "error" : "info"}`),
 	error: (msg) => debug.log(new Error(msg.toString ? msg.toString() : msg as string)),
 	curRecording: null,
 	get paused() {
@@ -4220,7 +4220,7 @@ function text(t: string, opt: TextCompOpt = {}): TextComp {
 			...getRenderProps(obj),
 			text: obj.text + "",
 			size: obj.textSize,
-			font: opt.font,
+			font: obj.font,
 			width: opt.width,
 			letterSpacing: opt.letterSpacing,
 			lineSpacing: opt.lineSpacing,
@@ -5475,6 +5475,7 @@ loadFont(
 	apl386Src,
 	45,
 	74,
+	{ filter: "linear", }
 );
 
 loadFont(
@@ -5482,6 +5483,7 @@ loadFont(
 	apl386oSrc,
 	45,
 	74,
+	{ filter: "linear", }
 );
 
 loadFont(
