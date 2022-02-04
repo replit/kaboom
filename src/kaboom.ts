@@ -4221,7 +4221,7 @@ function text(t: string, opt: TextCompOpt = {}): TextComp {
 			text: obj.text + "",
 			size: obj.textSize,
 			font: obj.font,
-			width: opt.width,
+			width: obj.width,
 			letterSpacing: opt.letterSpacing,
 			lineSpacing: opt.lineSpacing,
 			transform: opt.transform,
