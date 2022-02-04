@@ -1,6 +1,11 @@
+### v2000.2.6
+
+- fixed text always being wrapped if updated
+- fixed text comp properties `letterSpacing`, `charSpacing`, `transform`, `styles` not being exposed
+
 ### v2000.2.5
 
-- fixed updatinhg `font` property on gameobj not updating the text font
+- fixed updating `font` property on gameobj not updating the text font
 
 ### v2000.2.4
 
