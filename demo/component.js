@@ -66,7 +66,7 @@ function funky() {
 const bean = add([
 	sprite("bean"),
 	pos(center()),
-	origin("center"),
+	anchor("center"),
 	scale(1),
 	color(),
 	area(),

@@ -70,7 +70,7 @@ scene("battle", () => {
 	add([
 		text("KILL", { size: 160 }),
 		pos(width() / 2, height() / 2),
-		origin("center"),
+		anchor("center"),
 		lifespan(1),
 		fixed(),
 	])
@@ -78,7 +78,7 @@ scene("battle", () => {
 	add([
 		text("THE", { size: 80 }),
 		pos(width() / 2, height() / 2),
-		origin("center"),
+		anchor("center"),
 		lifespan(2),
 		late(1),
 		fixed(),
@@ -87,7 +87,7 @@ scene("battle", () => {
 	add([
 		text(bossName.toUpperCase(), { size: 120 }),
 		pos(width() / 2, height() / 2),
-		origin("center"),
+		anchor("center"),
 		lifespan(4),
 		late(2),
 		fixed(),
@@ -137,7 +137,7 @@ scene("battle", () => {
 		sprite("bean"),
 		area(),
 		pos(width() / 2, height() - 64),
-		origin("center"),
+		anchor("center"),
 	])
 
 	onKeyDown("left", () => {
@@ -188,7 +188,7 @@ scene("battle", () => {
 						scale(1 * size, 1 * size),
 						lifespan(0.1),
 						grow(rand(48, 72) * size),
-						origin("center"),
+						anchor("center"),
 					])
 				}
 			})
@@ -200,7 +200,7 @@ scene("battle", () => {
 			rect(12, 48),
 			area(),
 			pos(p),
-			origin("center"),
+			anchor("center"),
 			color(127, 127, 255),
 			outline(4),
 			move(UP, BULLET_SPEED),
@@ -232,7 +232,7 @@ scene("battle", () => {
 			area(),
 			pos(rand(0, width()), 0),
 			health(OBJ_HEALTH),
-			origin("bot"),
+			anchor("bot"),
 			"trash",
 			"enemy",
 			{ speed: rand(TRASH_SPEED * 0.5, TRASH_SPEED * 1.5) },
@@ -246,7 +246,7 @@ scene("battle", () => {
 		pos(width() / 2, 40),
 		health(BOSS_HEALTH),
 		scale(3),
-		origin("top"),
+		anchor("top"),
 		"enemy",
 		{
 			dir: 1,
@@ -339,7 +339,7 @@ scene("battle", () => {
 
 	add([
 		text("UP: insane mode", { width: width() / 2, size: 32 }),
-		origin("botleft"),
+		anchor("botleft"),
 		pos(24, height() - 24),
 	])
 
@@ -360,14 +360,14 @@ scene("win", ({ time, boss }) => {
 	add([
 		sprite(boss),
 		color(255, 0, 0),
-		origin("center"),
+		anchor("center"),
 		scale(8),
 		pos(width() / 2, height() / 2),
 	])
 
 	add([
 		text(time.toFixed(2), 24),
-		origin("center"),
+		anchor("center"),
 		pos(width() / 2, height() / 2),
 	])
 

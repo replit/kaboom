@@ -1,9 +1,9 @@
 /**
  * Loads and merges multiple images from given URLs.
  * Images must have same size as first image, to get drawn over previously merged images.
- * 
+ *
  * The returned Promise<ImageData> can be used in loadSprite and loadSpriteAtlas as src-parameter
- * 
+ *
  * @param {string[]} urls - URLs of images to merge
  * @returns Promise<ImageData>
  */
@@ -61,21 +61,21 @@ kaboom({
 
 // animationsettings in Spriteatlas
 const anims = {
-    x: 0, 
-    y: 0, 
-    height: 1344, 
-    width: 832, 
-    sliceX: 13, 
+    x: 0,
+    y: 0,
+    height: 1344,
+    width: 832,
+    sliceX: 13,
     sliceY: 21,
     anims: {
-        'walk-up': {from: 104, to: 112}, 
-        'walk-left': {from: 117, to: 125}, 
-        'walk-down': {from: 130, to: 138}, 
-        'walk-right': {from: 143, to: 151}, 
-        'idle-up': {from: 104, to: 104}, 
-        'idle-left': {from: 117, to: 117}, 
-        'idle-down': {from: 130, to: 130}, 
-        'idle-right': {from: 143, to: 143}, 
+        'walk-up': {from: 104, to: 112},
+        'walk-left': {from: 117, to: 125},
+        'walk-down': {from: 130, to: 138},
+        'walk-right': {from: 143, to: 151},
+        'idle-up': {from: 104, to: 104},
+        'idle-left': {from: 117, to: 117},
+        'idle-down': {from: 130, to: 130},
+        'idle-right': {from: 143, to: 143},
     }
 }
 
@@ -97,7 +97,7 @@ const corpusAnims = {
 loadSpriteAtlas("/sprites/spritemerge_chest.png", chestAnims)
 // load Spriteatlas with body
 loadSpriteAtlas("/sprites/spritemerge_corpus.png", corpusAnims)
-// load and merge body and leather armor 
+// load and merge body and leather armor
 mergeImg(["/sprites/spritemerge_corpus.png", "/sprites/spritemerge_chest.png"]).then((img) =>
     loadSpriteAtlas(img, playerAnims)
 );
@@ -110,7 +110,7 @@ gravity(0)
 const player = add([
     sprite('player'),
     pos(center()),
-	origin("center"),
+	anchor("center"),
     area(),
     body()
 ])
@@ -119,7 +119,7 @@ const player = add([
 const corpus = add([
     sprite('corpus'),
     pos(center().add(-128, 0)),
-	origin("center"),
+	anchor("center"),
     area(),
     body()
 ])
@@ -128,7 +128,7 @@ const corpus = add([
 const chest = add([
     sprite('chest'),
     pos(center().add(128, 0)),
-	origin("center"),
+	anchor("center"),
     area(),
     body()
 ])

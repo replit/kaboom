@@ -24,7 +24,7 @@ let curDialog = 0
 // Text bubble
 const textbox = add([
 	rect(width() - 200, 120, { radius: 32 }),
-	origin("center"),
+	anchor("center"),
 	pos(center().x, height() - 100),
 	outline(2),
 ])
@@ -33,14 +33,14 @@ const textbox = add([
 const txt = add([
 	text("", { size: 32, width: width() - 230 }),
 	pos(textbox.pos),
-	origin("center")
+	anchor("center")
 ])
 
 // Character avatar
 const avatar = add([
 	sprite("bean"),
 	scale(3),
-	origin("center"),
+	anchor("center"),
 	pos(center().sub(0, 50))
 ])
 

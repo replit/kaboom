@@ -39,7 +39,7 @@ const player = add([
 	pos(width() / 2, height() - FLOOR_HEIGHT),
 	area(),
 	body(),
-	origin("bot"),
+	anchor("bot"),
 	z(100),
 ])
 
@@ -57,7 +57,7 @@ for (let i = 1; i <= maxRow; i++) {
 			pos(j * gw + (width() - w) / 2 + 32, height() - FLOOR_HEIGHT + 24 - (maxRow - i + 1) * gh),
 			area(),
 			solid(),
-			origin("bot"),
+			anchor("bot"),
 			// note: hsl2rgb is not released yet!
 			color(hsl2rgb((n * 20) / 255, 0.6, 0.7)),
 			bounce(),
@@ -97,7 +97,7 @@ for (let x = 0; x < width(); x += 64) {
 	add([
 		pos(x, height()),
 		sprite("grass"),
-		origin("botleft"),
+		anchor("botleft"),
 		area(),
 		solid(),
 	])
@@ -195,7 +195,7 @@ function spawnCloud() {
 		move(dir, rand(20, 60)),
 		cleanup(),
 		pos(dir.eq(LEFT) ? width() : 0, rand(-20, 480)),
-		origin("top"),
+		anchor("top"),
 		area(),
 		z(-50),
 	])
@@ -217,7 +217,7 @@ function spawnFriend() {
 		area(),
 		rotate(),
 		funky(),
-		origin("bot"),
+		anchor("bot"),
 		z(50),
 	])
 
@@ -230,7 +230,7 @@ spawnFriend()
 
 const sun = add([
 	sprite("sun"),
-	origin("center"),
+	anchor("center"),
 	pos(width() - 90, 90),
 	rotate(),
 	z(-100),

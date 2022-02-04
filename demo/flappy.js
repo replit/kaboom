@@ -108,7 +108,7 @@ scene("game", () => {
 	// display score
 	const scoreLabel = add([
 		text(score),
-		origin("center"),
+		anchor("center"),
 		pos(width() / 2, 80),
 		fixed(),
 	])
@@ -127,7 +127,7 @@ scene("lose", (score) => {
 		sprite("bean"),
 		pos(width() / 2, height() / 2 - 108),
 		scale(3),
-		origin("center"),
+		anchor("center"),
 	])
 
 	// display score
@@ -135,7 +135,7 @@ scene("lose", (score) => {
 		text(score),
 		pos(width() / 2, height() / 2 + 108),
 		scale(3),
-		origin("center"),
+		anchor("center"),
 	])
 
 	// go back to game with space is pressed

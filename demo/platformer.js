@@ -112,40 +112,40 @@ const levelConf = {
 		sprite("grass"),
 		area(),
 		solid(),
-		origin("bot"),
+		anchor("bot"),
 	],
 	"$": () => [
 		sprite("coin"),
 		area(),
 		pos(0, -9),
-		origin("bot"),
+		anchor("bot"),
 		"coin",
 	],
 	"%": () => [
 		sprite("prize"),
 		area(),
 		solid(),
-		origin("bot"),
+		anchor("bot"),
 		"prize",
 	],
 	"^": () => [
 		sprite("spike"),
 		area(),
 		solid(),
-		origin("bot"),
+		anchor("bot"),
 		"danger",
 	],
 	"#": () => [
 		sprite("apple"),
 		area(),
-		origin("bot"),
+		anchor("bot"),
 		body(),
 		"apple",
 	],
 	">": () => [
 		sprite("ghosty"),
 		area(),
-		origin("bot"),
+		anchor("bot"),
 		body(),
 		patrol(),
 		"enemy",
@@ -153,7 +153,7 @@ const levelConf = {
 	"@": () => [
 		sprite("portal"),
 		area({ scale: 0.5, }),
-		origin("bot"),
+		anchor("bot"),
 		pos(0, -12),
 		"portal",
 	],
@@ -176,7 +176,7 @@ scene("game", ({ levelId, coins } = { levelId: 0, coins: 0 }) => {
 		body(),
 		// the custom component we defined above
 		big(),
-		origin("bot"),
+		anchor("bot"),
 	])
 
 	// action() runs every frame

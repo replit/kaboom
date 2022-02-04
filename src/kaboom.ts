@@ -105,8 +105,8 @@ import {
 	RotateComp,
 	ColorComp,
 	OpacityComp,
-	Origin,
-	OriginComp,
+	Anchor,
+	AnchorComp,
 	LayerComp,
 	ZComp,
 	FollowComp,
@@ -188,7 +188,7 @@ type DrawTextureOpt = RenderProps & {
 	flipX?: boolean,
 	flipY?: boolean,
 	quad?: Quad,
-	origin?: Origin | Vec2,
+	anchor?: Anchor | Vec2,
 }
 
 interface GfxTexOpt {
@@ -382,8 +382,8 @@ function getFullscreenElement(): Element | void {
 		;
 };
 
-// convert origin string to a vec2 offset
-function originPt(orig: Origin | Vec2): Vec2 {
+// convert anchor string to a vec2 offset
+function anchorPt(orig: Anchor | Vec2): Vec2 {
 	switch (orig) {
 		case "topleft": return vec2(-1, -1);
 		case "top": return vec2(0, -1);
@@ -1626,8 +1626,8 @@ function drawUVQuad(opt: DrawUVQuadOpt) {
 
 	const w = opt.width;
 	const h = opt.height;
-	const origin = originPt(opt.origin || DEF_ORIGIN);
-	const offset = origin.scale(vec2(w, h).scale(-0.5));
+	const anchor = anchorPt(opt.anchor || DEF_ORIGIN);
+	const offset = anchor.scale(vec2(w, h).scale(-0.5));
 	const q = opt.quad || new Quad(0, 0, 1, 1);
 	const color = opt.color || rgb(255, 255, 255);
 	const opacity = opt.opacity ?? 1;
@@ -1686,8 +1686,8 @@ function drawTexture(opt: DrawTextureOpt) {
 		// TODO: draw fract
 		const repX = Math.ceil((opt.width || w) / w);
 		const repY = Math.ceil((opt.height || h) / h);
-		const origin = originPt(opt.origin || DEF_ORIGIN).add(vec2(1, 1)).scale(0.5);
-		const offset = origin.scale(repX * w, repY * h);
+		const anchor = anchorPt(opt.anchor || DEF_ORIGIN).add(vec2(1, 1)).scale(0.5);
+		const offset = anchor.scale(repX * w, repY * h);
 
 		// TODO: rotation
 		for (let i = 0; i < repX; i++) {
@@ -1701,7 +1701,7 @@ function drawTexture(opt: DrawTextureOpt) {
 					quad: q,
 					width: w,
 					height: h,
-					origin: "topleft",
+					anchor: "topleft",
 				});
 			}
 		}
@@ -1825,8 +1825,8 @@ function drawRect(opt: DrawRectOpt) {
 
 	const w = opt.width;
 	const h = opt.height;
-	const origin = originPt(opt.origin || DEF_ORIGIN).add(1, 1);
-	const offset = origin.scale(vec2(w, h).scale(-0.5));
+	const anchor = anchorPt(opt.anchor || DEF_ORIGIN).add(1, 1);
+	const offset = anchor.scale(vec2(w, h).scale(-0.5));
 
 	let pts = [
 		vec2(0, 0),
@@ -1971,7 +1971,7 @@ function drawTriangle(opt: DrawTriangleOpt) {
 	});
 }
 
-// TODO: origin
+// TODO: anchor
 function drawCircle(opt: DrawCircleOpt) {
 
 	if (!opt.radius) {
@@ -2301,7 +2301,7 @@ function formatText(opt: DrawTextOpt): FormattedText {
 	// whole text offset
 	const fchars = [];
 	const pos = vec2(opt.pos || 0);
-	const offset = originPt(opt.origin || DEF_ORIGIN).scale(0.5);
+	const offset = anchorPt(opt.anchor || DEF_ORIGIN).scale(0.5);
 	// this math is complicated i forgot how it works instantly
 	const ox = -offset.x * cw - (offset.x + 0.5) * (tw - cw);
 	const oy = -offset.y * ch - (offset.y + 0.5) * (th - ch);
@@ -2381,7 +2381,7 @@ function drawFormattedText(ftext: FormattedText) {
 			opacity: ch.opacity,
 			quad: ch.quad,
 			// TODO: topleft
-			origin: "center",
+			anchor: "center",
 			uniform: ch.uniform,
 			fixed: ch.fixed,
 		});
@@ -3627,18 +3627,18 @@ function opacity(a: number): OpacityComp {
 	};
 }
 
-function origin(o: Origin | Vec2): OriginComp {
+function anchor(o: Anchor | Vec2): AnchorComp {
 	if (!o) {
-		throw new Error("please define an origin");
+		throw new Error("please define an anchor");
 	}
 	return {
-		id: "origin",
-		origin: o,
+		id: "anchor",
+		anchor: o,
 		inspect() {
-			if (typeof this.origin === "string") {
-				return this.origin;
+			if (typeof this.anchor === "string") {
+				return this.anchor;
 			} else {
-				return this.origin.toString();
+				return this.anchor.toString();
 			}
 		},
 	};
@@ -3926,7 +3926,7 @@ function area(opt: AreaCompOpt = {}): AreaComp {
 			w *= scale.x;
 			h *= scale.y;
 
-			const orig = originPt(this.origin || DEF_ORIGIN);
+			const orig = anchorPt(this.anchor || DEF_ORIGIN);
 			const pos = (this.pos ?? vec2(0))
 				.add(this.area.offset)
 				.sub(orig.add(1, 1).scale(0.5).scale(w, h));
@@ -3956,12 +3956,12 @@ function area(opt: AreaCompOpt = {}): AreaComp {
 
 }
 
-// make the list of common render properties from the "pos", "scale", "color", "opacity", "rotate", "origin", "outline", and "shader" components of a character
+// make the list of common render properties from the "pos", "scale", "color", "opacity", "rotate", "anchor", "outline", and "shader" components of a character
 function getRenderProps(obj: GameObj<any>) {
 	return {
 		color: obj.color,
 		opacity: obj.opacity,
-		origin: obj.origin,
+		anchor: obj.anchor,
 		outline: obj.outline,
 		fixed: obj.fixed,
 		shader: obj.shader,
@@ -5044,7 +5044,7 @@ function addKaboom(p: Vec2, opt: BoomOpt = {}): GameObj {
 	const boom = kaboom.add([
 		sprite(boomSprite),
 		scale(0),
-		origin("center"),
+		anchor("center"),
 		explode(speed, s),
 		...(opt.boomComps ?? (() => []))(),
 	]);
@@ -5052,7 +5052,7 @@ function addKaboom(p: Vec2, opt: BoomOpt = {}): GameObj {
 	const ka = kaboom.add([
 		sprite(kaSprite),
 		scale(0),
-		origin("center"),
+		anchor("center"),
 		timer(0.4 / speed, () => ka.use(explode(speed, s))),
 		...(opt.kaComps ?? (() => []))(),
 	]);
@@ -5258,7 +5258,7 @@ function drawDebug() {
 		drawRect({
 			width: size,
 			height: size,
-			origin: "topright",
+			anchor: "topright",
 			color: rgb(0, 0, 0),
 			opacity: 0.8,
 			radius: 4,
@@ -5270,7 +5270,7 @@ function drawDebug() {
 			drawRect({
 				width: 4,
 				height: size * 0.6,
-				origin: "center",
+				anchor: "center",
 				pos: vec2(-size / 3 * i, size * 0.5),
 				color: rgb(255, 255, 255),
 				radius: 2,
@@ -5299,7 +5299,7 @@ function drawDebug() {
 			size: 16,
 			color: rgb(255, 255, 255),
 			pos: vec2(-pad),
-			origin: "botright",
+			anchor: "botright",
 			fixed: true,
 		});
 
@@ -5307,7 +5307,7 @@ function drawDebug() {
 		drawRect({
 			width: ftxt.width + pad * 2 + pad * 4,
 			height: ftxt.height + pad * 2,
-			origin: "botright",
+			anchor: "botright",
 			color: rgb(0, 0, 0),
 			opacity: 0.8,
 			radius: 4,
@@ -5370,7 +5370,7 @@ function drawDebug() {
 			text: game.logs.join("\n"),
 			font: DBG_FONT,
 			pos: vec2(pad, -pad),
-			origin: "botleft",
+			anchor: "botleft",
 			size: 16,
 			width: width() * app.scale * 0.6,
 			lineSpacing: pad / 2,
@@ -5385,7 +5385,7 @@ function drawDebug() {
 		drawRect({
 			width: ftext.width + pad * 2,
 			height: ftext.height + pad * 2,
-			origin: "botleft",
+			anchor: "botleft",
 			color: rgb(0, 0, 0),
 			radius: 4,
 			opacity: 0.8,
@@ -5583,7 +5583,7 @@ const ctx: KaboomCtx = {
 	rotate,
 	color,
 	opacity,
-	origin,
+	anchor,
 	layer,
 	area,
 	sprite,

@@ -24,14 +24,14 @@ scene("start", () => {
 		text("Eat All"),
 		pos(center().sub(0, 100)),
 		scale(2),
-		origin("center"),
+		anchor("center"),
 	])
 
 	add([
 		sprite("bomb"),
 		pos(center().add(0, 100)),
 		scale(2),
-		origin("center"),
+		anchor("center"),
 	])
 
 	wait(1.5, () => go("game"))
@@ -49,7 +49,7 @@ scene("game", () => {
 		sprite("bean"),
 		pos(40, 20),
 		area({ scale: 0.5 }),
-		origin("center"),
+		anchor("center"),
 	])
 
 	// make the layer move by mouse
@@ -114,7 +114,7 @@ scene("game", () => {
 			sprite(spriteName),
 			pos(x, y),
 			area({ scale: 0.5 }),
-			origin("center"),
+			anchor("center"),
 			"food",
 			isBomb ? "bomb" : "fruit",
 			{ speed: speed }
@@ -131,7 +131,7 @@ scene("lose", (score) => {
 		sprite("bean"),
 		pos(width() / 2, height() / 2 - 108),
 		scale(3),
-		origin("center"),
+		anchor("center"),
 	])
 
 	// display score
@@ -139,7 +139,7 @@ scene("lose", (score) => {
 		text(score),
 		pos(width() / 2, height() / 2 + 108),
 		scale(3),
-		origin("center"),
+		anchor("center"),
 	])
 
 	// go back to game with space is pressed

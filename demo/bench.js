@@ -13,14 +13,14 @@ onDraw(() => {
 		drawSprite({
 			sprite: "bean",
 			pos: vec2(rand(0, w), rand(0, h)),
-			origin: "center",
+			anchor: "center",
 		});
 	}
 
 	drawText({
 		text: debug.fps(),
 		pos: vec2(w / 2, h / 2),
-		origin: "center",
+		anchor: "center",
 		color: rgb(255, 127, 255),
 	});
 

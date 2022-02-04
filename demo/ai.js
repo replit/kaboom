@@ -16,13 +16,13 @@ const player = add([
 	sprite("bean"),
 	pos(80, 80),
 	area(),
-	origin("center"),
+	anchor("center"),
 ])
 
 const enemy = add([
 	sprite("ghosty"),
 	pos(width() - 80, height() - 80),
-	origin("center"),
+	anchor("center"),
 	// This enemy cycle between 3 states, and start from "idle" state
 	state("move", [ "idle", "attack", "move", ]),
 ])
@@ -48,7 +48,7 @@ enemy.onStateEnter("attack", async () => {
 			rect(12, 12),
 			area(),
 			cleanup(),
-			origin("center"),
+			anchor("center"),
 			color(BLUE),
 			"bullet",
 		])

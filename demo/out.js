@@ -32,7 +32,7 @@ function shoot() {
 	add([
 		pos(center),
 		sprite("bean"),
-		origin("center"),
+		anchor("center"),
 		handleout(),
 		"bean",
 		{ dir: mpos.sub(center).unit(), },

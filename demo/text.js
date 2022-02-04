@@ -104,7 +104,7 @@ add([
 		},
 	}),
 	pos(pad, height() - pad),
-	origin("botleft"),
+	anchor("botleft"),
 	// scale(0.5),
 ])
 

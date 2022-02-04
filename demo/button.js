@@ -9,7 +9,7 @@ function addButton(txt, p, f) {
 		pos(p),
 		area({ cursor: "pointer", }),
 		scale(1),
-		origin("center"),
+		anchor("center"),
 	])
 
 	btn.onClick(f)

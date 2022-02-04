@@ -30,25 +30,25 @@ const level = addLevel([
 		sprite("bean"),
 		area(),
 		body(),
-		origin("bot"),
+		anchor("bot"),
 		"player",
 	],
 	"=": () => [
 		sprite("grass"),
 		area(),
 		solid(),
-		origin("bot"),
+		anchor("bot"),
 	],
 	"$": () => [
 		sprite("coin"),
 		area(),
-		origin("bot"),
+		anchor("bot"),
 		"coin",
 	],
 	"^": () => [
 		sprite("spike"),
 		area(),
-		origin("bot"),
+		anchor("bot"),
 		"danger",
 	],
 })
@@ -71,7 +71,7 @@ onKeyDown("right", () => {
 	player.move(SPEED, 0)
 })
 
-// Back to the original position if hit a "danger" item
+// Back to the anchoral position if hit a "danger" item
 player.onCollide("danger", () => {
 	player.pos = level.getPos(0, 0)
 })
