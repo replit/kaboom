@@ -498,7 +498,6 @@ const app = (() => {
 		stopped: false,
 		paused: false,
 
-		// TODO: take fps counter out pure
 		fpsCounter: new FPSCounter(),
 
 		// if we finished loading all assets
@@ -774,6 +773,10 @@ function fetchText(path: string) {
 	return fetchURL(path).then((res) => res.text());
 }
 
+function fetchArrayBuffer(path: string) {
+	return fetchURL(path).then((res) => res.arrayBuffer());
+}
+
 // wrapper around image loader to get a Promise
 function loadImg(src: string): Promise<HTMLImageElement> {
 	const img = new Image();
@@ -781,7 +784,6 @@ function loadImg(src: string): Promise<HTMLImageElement> {
 	img.crossOrigin = "anonymous";
 	return new Promise<HTMLImageElement>((resolve, reject) => {
 		img.onload = () => resolve(img);
-		// TODO: truncate for long dataurl src
 		img.onerror = () => reject(`Failed to load image from "${src}"`);
 	});
 }
@@ -1026,8 +1028,7 @@ function loadSound(
 
 		// from url
 		if (typeof(src) === "string") {
-			fetchURL(src)
-				.then((res) => res.arrayBuffer())
+			fetchArrayBuffer(src)
 				.then((data) => {
 					return new Promise((resolve2, reject2) =>
 						audio.ctx.decodeAudioData(data, resolve2, reject2)
@@ -1992,7 +1993,6 @@ function drawCircle(opt: DrawCircleOpt) {
 
 }
 
-// TODO: use fan-like triangulation
 function drawEllipse(opt: DrawEllipseOpt) {
 
 	if (opt.radiusX === undefined || opt.radiusY === undefined) {
@@ -2630,8 +2630,9 @@ document.addEventListener("visibilitychange", () => {
 		case "visible":
 			// prevent a surge of dt() when switch back after the tab being hidden for a while
 			app.skipTime = true;
-			// TODO: don't resume if debug.paused
-			audio.ctx.resume();
+			if (!debug.paused) {
+				audio.ctx.resume();
+			}
 			break;
 		case "hidden":
 			audio.ctx.suspend();
@@ -2749,8 +2750,9 @@ const debug: Debug = {
 	showLog: true,
 	fps: () => app.fpsCounter.fps,
 	objCount(): number {
-		// TODO: recursive count
-		return game.root.children.length;
+		const count = (obj: GameObj) =>
+			obj.children.length + obj.children.reduce((num, c) => num + count(c), 0);
+		return count(game.root);
 	},
 	stepFrame: updateFrame,
 	drawCalls: () => gfx.drawCalls,
@@ -4121,7 +4123,6 @@ function sprite(id: string | SpriteData, opt: SpriteCompOpt = {}): SpriteComp {
 
 		},
 
-		// TODO: this opt should be used instead of the sprite data opt, if given
 		play(name: string, opt: SpriteAnimPlayOpt = {}) {
 
 			if (!spriteData) {
@@ -4156,8 +4157,6 @@ function sprite(id: string | SpriteData, opt: SpriteCompOpt = {}): SpriteComp {
 				this.frame = anim.from;
 			}
 
-			// TODO: "animPlay" is deprecated
-			this.trigger("animPlay", name);
 			this.trigger("animStart", name);
 
 		},
