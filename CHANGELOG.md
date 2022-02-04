@@ -1,3 +1,7 @@
+### v2000.2.5
+
+- fixed updatinhg `font` property on gameobj not updating the text font
+
 ### v2000.2.4
 
 - fixed `focus()` not properly exported
