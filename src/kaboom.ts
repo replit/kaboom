@@ -470,6 +470,7 @@ const app = (() => {
 
 		// input states from last frame, should reset every frame
 		charInputted: [],
+		numKeyDown: 0,
 		isMouseMoved: false,
 		isKeyPressed: false,
 		isKeyPressedRepeat: false,
@@ -2563,12 +2564,15 @@ app.canvas.addEventListener("keydown", (e) => {
 		app.keyStates[k] = "pressed";
 	}
 
+	app.numKeyDown++;
+
 });
 
 app.canvas.addEventListener("keyup", (e: KeyboardEvent) => {
 	const k = KEY_ALIAS[e.key] || e.key.toLowerCase();
 	app.keyStates[k] = "released";
 	app.isKeyReleased = true;
+	app.numKeyDown--;
 });
 
 app.canvas.addEventListener("touchstart", (e) => {
@@ -2675,7 +2679,7 @@ function isKeyPressed(k?: string): boolean {
 	}
 }
 
-function isKeyPressedRepeat(k: string): boolean {
+function isKeyPressedRepeat(k?: string): boolean {
 	if (k === undefined) {
 		return app.isKeyPressedRepeat;
 	} else {
@@ -2683,10 +2687,14 @@ function isKeyPressedRepeat(k: string): boolean {
 	}
 }
 
-function isKeyDown(k: string): boolean {
-	return app.keyStates[k] === "pressed"
-		|| app.keyStates[k] === "rpressed"
-		|| app.keyStates[k] === "down";
+function isKeyDown(k?: string): boolean {
+	if (k === undefined) {
+		return app.numKeyDown > 0;
+	} else {
+		return app.keyStates[k] === "pressed"
+			|| app.keyStates[k] === "rpressed"
+			|| app.keyStates[k] === "down";
+	}
 }
 
 function isKeyReleased(k?: string): boolean {

@@ -130,8 +130,6 @@ vec4 frag(vec3 pos, vec2 uv, vec4 color, sampler2D tex) {
 		drawStuff()
 	}
 
-	// TODO: show a custom shader quad here
-
 })
 
 // It's a common practice to put all input handling and state updates before rendering.
