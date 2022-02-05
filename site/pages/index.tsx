@@ -56,40 +56,12 @@ const Fun: React.FC = () => (
 
 const NARROW = 840;
 
-const Home: React.FC = () => {
+const DocContent: React.FC = () => {
 
 	const [ showType, setShowType ] = React.useState<string | null>(null);
-	const isNarrow = useMediaQuery(`(max-width: ${NARROW}px)`);
 	const router = useRouter();
 
-	return <Nav>
-		<Head title="Kaboom" scale={0.8} />
-		<Text select size="huge" color={1}>Kaboom is a Javascript game programming library that helps you make games fast and <Fun />.</Text>
-		<Markdown stretchX src={`
-\`\`\`js
-// start the game
-kaboom()
-
-// load a default sprite
-loadBean()
-
-// add character to screen, from a list of components
-const player = add([
-	sprite("bean"),  // renders as a sprite
-	pos(120, 80),    // position in world
-	area(),          // has a collider
-	body(),          // responds to physics and gravity
-])
-
-// jump when player presses "space" key
-onKeyPress("space", () => {
-	// .jump() is provided by the body() component
-	player.jump()
-})
-\`\`\`
-
-Play with it yourself or check out the examples in the [Playground](/play)!
-		`} />
+	return <>
 
 		{ doc.sections.map((sec) => (
 			<View stretchX gap={1} key={sec.name}>
@@ -143,11 +115,49 @@ Play with it yourself or check out the examples in the [Playground](/play)!
 			{ showType && <DocCard name={showType} /> }
 		</Portal>
 
+	</>;
+
+}
+
+const Home: React.FC = () => {
+
+	return <Nav>
+		<Head title="Kaboom" scale={0.8} />
+		<Text select size="huge" color={1}>Kaboom is a Javascript game programming library that helps you make games fast and <Fun />.</Text>
+		<Markdown stretchX src={`
+\`\`\`js
+// start the game
+kaboom()
+
+// load a default sprite
+loadBean()
+
+// add character to screen, from a list of components
+const player = add([
+	sprite("bean"),  // renders as a sprite
+	pos(120, 80),    // position in world
+	area(),          // has a collider
+	body(),          // responds to physics and gravity
+])
+
+// jump when player presses "space" key
+onKeyPress("space", () => {
+	// .jump() is provided by the body() component
+	player.jump()
+})
+\`\`\`
+
+Play with it yourself or check out the examples in the [Playground](/play)!
+		`} />
+
+		<DocContent />
+
 	</Nav>
 
 };
 
 const DocCard: React.FC<{ name: string }> = ({name}) => {
+	// TODO: useMousePos() is 0 at first
 	const [ mx, my ] = useMousePos();
 	const pad = 16;
 	if (mx === 0 && my === 0) {
@@ -160,11 +170,11 @@ const DocCard: React.FC<{ name: string }> = ({name}) => {
 			bg={1}
 			pad={2}
 			css={{
-				maxWidth: "640px",
+				maxWidth: 480,
 				position: "absolute",
 				pointerEvents: "none",
-				left: mx + pad + "px",
-				top: my + pad + "px",
+				left: mx + pad,
+				top: my + pad,
 				zIndex: 100,
 			}}
 			name={name}

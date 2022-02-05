@@ -153,7 +153,7 @@ const IndexContent: React.FC<IndexContentProps> = ({
 			: acc;
 	}, [])
 
-	return <>
+	return (
 
 		<View
 			dir="column"
@@ -220,7 +220,7 @@ const IndexContent: React.FC<IndexContentProps> = ({
 
 			}) }
 		</View>
-	</>;
+	);
 
 };
 
