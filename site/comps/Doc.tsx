@@ -101,11 +101,6 @@ const Tag: React.FC<TagProps> = ({ name }) => (
 	</View>
 );
 
-interface TitleProps {
-	data: any,
-	small?: boolean,
-}
-
 function isType(entry: any): boolean {
 	return [
 		"TypeAliasDeclaration",
@@ -114,7 +109,10 @@ function isType(entry: any): boolean {
 	].includes(entry.kind);
 }
 
-const Title: React.FC<TitleProps> = ({ data, small, children }) => (
+const Title: React.FC<{
+	data: any,
+	small?: boolean,
+}> = ({ data, small, children }) => (
 	<View gap={1} dir="row" align="center">
 		{ isType(data) && <Tag name="type" /> }
 		<Text
@@ -123,13 +121,17 @@ const Title: React.FC<TitleProps> = ({ data, small, children }) => (
 			select
 			size={small ? "normal" : "big"}
 		>
-			<DocCtx.Consumer>
-				{(ctx) => <Link href={`#${ctx.anchor}`}>
-					<a onClick={ctx.onAnchor}>
-						{data.name}
-					</a>
-				</Link>}
-			</DocCtx.Consumer>
+			{ small ? (
+				<>{data.name}</>
+			) : (
+				<DocCtx.Consumer>
+					{(ctx) => <Link href={`#${ctx.anchor}`}>
+						<a onClick={ctx.onAnchor}>
+							{data.name}
+						</a>
+					</Link>}
+				</DocCtx.Consumer>
+			) }
 			{children}
 		</Text>
 	</View>
