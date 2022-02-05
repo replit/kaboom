@@ -149,6 +149,7 @@ Play with it yourself or check out the examples in the [Playground](/play)!
 
 const DocCard: React.FC<{ name: string }> = ({name}) => {
 	const [ mx, my ] = useMousePos();
+	const pad = 16;
 	if (mx === 0 && my === 0) {
 		return null;
 	}
@@ -162,8 +163,8 @@ const DocCard: React.FC<{ name: string }> = ({name}) => {
 				maxWidth: "640px",
 				position: "absolute",
 				pointerEvents: "none",
-				left: mx + "px",
-				top: my + "px",
+				left: mx + pad + "px",
+				top: my + pad + "px",
 				zIndex: 100,
 			}}
 			name={name}
