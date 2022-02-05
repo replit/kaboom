@@ -80,3 +80,8 @@ export const deprecate = (oldName: string, newName: string, newFunc: (...args) =
 	deprecateMsg(oldName, newName);
 	return newFunc(...args);
 };
+
+export function genOutline(img: ImageData, width: number): ImageData {
+	// TODO
+	return img;
+}
