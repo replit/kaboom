@@ -18,27 +18,27 @@ export class IDList<T> extends Map<number, T> {
 	}
 }
 
-export class EventHandler {
-	private handlers: Map<string, IDList<(...args) => void>> = new Map();
-	on(name: string, action: (...args) => void): EventCanceller {
-		if (!this.handlers[name]) {
-			this.handlers[name] = new IDList();
+export class EventHandler<E = string> {
+	private handlers: Map<E, IDList<(...args) => void>> = new Map();
+	on(name: E, action: (...args) => void): EventCanceller {
+		if (!this.handlers.get(name)) {
+			this.handlers.set(name, new IDList());
 		}
-		return this.handlers[name].pushd(action);
+		return this.handlers.get(name).pushd(action);
 	}
-	onOnce(name: string, action: (...args) => void): EventCanceller {
+	onOnce(name: E, action: (...args) => void): EventCanceller {
 		const cancel = this.on(name, (...args) => {
 			action(...args);
 			cancel();
 		});
 		return cancel;
 	}
-	trigger(name: string, ...args) {
-		if (this.handlers[name]) {
-			this.handlers[name].forEach((action) => action(...args));
+	trigger(name: E, ...args) {
+		if (this.handlers.get(name)) {
+			this.handlers.get(name).forEach((action) => action(...args));
 		}
 	}
-	remove(name: string) {
+	remove(name: E) {
 		this.handlers.delete(name);
 	}
 }
