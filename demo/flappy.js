@@ -111,6 +111,7 @@ scene("game", () => {
 		origin("center"),
 		pos(width() / 2, 80),
 		fixed(),
+		z(100),
 	])
 
 	function addScore() {

@@ -5365,7 +5365,7 @@ function run(f: () => void) {
 
 		if (!app.skipTime) {
 			app.dt = realDt;
-			app.time += app.dt;
+			app.time += dt();
 			app.fpsCounter.tick(app.dt);
 		}
 
