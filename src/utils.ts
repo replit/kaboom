@@ -1,15 +1,15 @@
 import { EventCanceller } from "./types";
 
 export class IDList<T> extends Map<number, T> {
-	_lastID: number;
+	private lastID: number;
 	constructor(...args) {
 		super(...args);
-		this._lastID = 0;
+		this.lastID = 0;
 	}
 	push(v: T): number {
-		const id = this._lastID;
+		const id = this.lastID;
 		this.set(id, v);
-		this._lastID++;
+		this.lastID++;
 		return id;
 	}
 	pushd(v: T): () => void {
