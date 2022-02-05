@@ -155,6 +155,7 @@ const Page: React.FC = ({ children }) => {
 				`}
 			/>
 			<div
+				id="app"
 				className={theme}
 				css={{
 					background: `var(--color-bg1)`,

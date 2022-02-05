@@ -151,7 +151,6 @@ const View = React.forwardRef<HTMLDivElement, Props>(({
 			paddingRight: `${px}px`,
 			paddingTop: `${py}px`,
 			paddingBottom: `${py}px`,
-			position: "relative",
 			borderRadius: rounded ? 8 : 0,
 			boxShadow: outlined ? "0 0 0 2px var(--color-outline)" : "none",
 			gap: (gap ?? 0) * spaceUnit,

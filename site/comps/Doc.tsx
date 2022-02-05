@@ -39,7 +39,9 @@ const TypeSig: React.FC<EntryProps> = ({ data }) => (
 							{(ctx) => (
 								<span
 									css={{textDecoration: "underline", cursor: "pointer"}}
-									onClick={() => ctx.typeref && ctx.typeref(data.typeName)}
+									onClick={(e) => ctx.onTypeClick && ctx.onTypeClick(e, data.typeName)}
+									onMouseEnter={(e) => ctx.onTypeMouseEnter && ctx.onTypeMouseEnter(e, data.typeName)}
+									onMouseLeave={(e) => ctx.onTypeMouseLeave && ctx.onTypeMouseLeave(e, data.typeName)}
 								>
 									{data.typeName}
 								</span>
@@ -65,7 +67,7 @@ const TypeSig: React.FC<EntryProps> = ({ data }) => (
 		{ data?.typeArguments &&
 			<span>
 				{"<"}{data.typeArguments.map((arg: any, i: number) => (
-					<React.Fragment key={arg.typeName + i}>
+					<React.Fragment key={arg.typeName + "" + i}>
 						<TypeSig data={arg} />
 						{ i === data.typeArguments.length - 1 ? "" : ", " }
 					</React.Fragment>
@@ -295,13 +297,17 @@ const JSDoc: React.FC<EntryProps> = ({data}) => {
 interface DocProps {
 	name: string,
 	anchor?: string,
-	typeref?: (name: string) => void,
+	onTypeClick?: (e: React.MouseEvent, name: string) => void,
+	onTypeMouseEnter?: (e: React.MouseEvent, name: string) => void,
+	onTypeMouseLeave?: (e: React.MouseEvent, name: string) => void,
 }
 
 const Doc: React.FC<ViewPropsAnd<DocProps>> = ({
 	name,
 	anchor,
-	typeref,
+	onTypeClick,
+	onTypeMouseEnter,
+	onTypeMouseLeave,
 	...args
 }) => {
 
@@ -314,10 +320,12 @@ const Doc: React.FC<ViewPropsAnd<DocProps>> = ({
 
 	return (
 		<DocCtx.Provider value={{
-			typeref: typeref,
+			onTypeClick: onTypeClick,
+			onTypeMouseEnter: onTypeMouseEnter,
+			onTypeMouseLeave: onTypeMouseLeave,
 			anchor: anchor,
 		}}>
-			<View stretchX {...args} gap={3}>
+			<View {...args} gap={3}>
 				{entries.map((e: any, i: number) => <Entry key={`${e.name}-${i}`} data={e} />)}
 			</View>
 		</DocCtx.Provider>
@@ -327,11 +335,15 @@ const Doc: React.FC<ViewPropsAnd<DocProps>> = ({
 
 interface DocCtx {
 	anchor?: string,
-	typeref?: (name: string) => void,
+	onTypeClick?: (e: React.MouseEvent, name: string) => void,
+	onTypeMouseEnter?: (e: React.MouseEvent, name: string) => void,
+	onTypeMouseLeave?: (e: React.MouseEvent, name: string) => void,
 }
 
 const DocCtx = React.createContext<DocCtx>({
-	typeref: () => {},
+	onTypeClick: () => {},
+	onTypeMouseEnter: () => {},
+	onTypeMouseLeave: () => {},
 });
 
 export default Doc;

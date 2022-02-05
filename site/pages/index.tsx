@@ -1,5 +1,7 @@
 import * as React from "react";
+import * as ReactDOM from "react-dom";
 import Image from "next/image";
+import { useRouter } from "next/router";
 import { keyframes } from '@emotion/react';
 import Head from "comps/Head";
 import Nav from "comps/Nav";
@@ -8,7 +10,9 @@ import Text from "comps/Text";
 import Markdown from "comps/Markdown";
 import Drawer from "comps/Drawer";
 import Doc from "comps/Doc";
+import Portal from "comps/Portal";
 import useMediaQuery from "hooks/useMediaQuery";
+import useMousePos from "hooks/useMousePos";
 import doc from "doc.json";
 // @ts-ignore
 import fun from "lib/fun";
@@ -53,8 +57,11 @@ const Fun: React.FC = () => (
 const NARROW = 840;
 
 const Home: React.FC = () => {
+
 	const [ showType, setShowType ] = React.useState<string | null>(null);
 	const isNarrow = useMediaQuery(`(max-width: ${NARROW}px)`);
+	const router = useRouter();
+
 	return <Nav>
 		<Head title="Kaboom" scale={0.8} />
 		<Text select size="huge" color={1}>Kaboom is a Javascript game programming library that helps you make games fast and <Fun />.</Text>
@@ -93,11 +100,19 @@ Play with it yourself or check out the examples in the [Playground](/play)!
 				<View stretchX gap={3}>
 					{ sec.entries.map((name) => (
 						<Doc
+							stretchX
 							id={name}
 							key={name}
 							name={name}
 							anchor={name}
-							typeref={setShowType}
+							onTypeClick={(e, name) => {
+								router.push({
+									pathname: "/",
+									hash: name,
+								});
+							}}
+							onTypeMouseEnter={(e, name) => setShowType(name)}
+							onTypeMouseLeave={(e) => setShowType(null)}
 						/>
 					)) }
 				</View>
@@ -107,36 +122,53 @@ Play with it yourself or check out the examples in the [Playground](/play)!
 		{ Object.keys(doc.types).map((name) => {
 			if (name !== "KaboomCtx" && name !== "kaboom") {
 				return <Doc
+					stretchX
 					id={name}
 					key={name}
 					name={name}
 					anchor={name}
-					typeref={setShowType}
+					onTypeClick={(e, name) => {
+						router.push({
+							pathname: "/",
+							hash: name,
+						});
+					}}
+					onTypeMouseEnter={(e, name) => setShowType(name)}
+					onTypeMouseLeave={(e) => setShowType(null)}
 				/>
 			}
 		})}
 
-		<Drawer
-			dir="right"
-			pad={2}
-			height="64%"
-			paneWidth={isNarrow ? 320 : 360}
-			expanded={showType !== null}
-			setExpanded={(b) => {
-				if (b === false) {
-					setShowType(null);
-				}
-			}}
-		>
-			{ showType &&
-				<Doc
-					name={showType}
-					typeref={setShowType}
-				/>
-			}
-		</Drawer>
+		<Portal>
+			{ showType && <DocCard name={showType} /> }
+		</Portal>
 
-	</Nav>;
+	</Nav>
+
 };
+
+const DocCard: React.FC<{ name: string }> = ({name}) => {
+	const [ mx, my ] = useMousePos();
+	if (mx === 0 && my === 0) {
+		return null;
+	}
+	return (
+		<Doc
+			rounded
+			outlined
+			bg={1}
+			pad={2}
+			css={{
+				maxWidth: "640px",
+				position: "absolute",
+				pointerEvents: "none",
+				left: mx + "px",
+				top: my + "px",
+				zIndex: 100,
+			}}
+			name={name}
+		/>
+	)
+}
 
 export default Home;

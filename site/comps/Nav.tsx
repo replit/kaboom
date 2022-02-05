@@ -34,7 +34,8 @@ const Logo: React.FC = () => (
 				desc="Back to home"
 				rounded
 				css={{
-					"cursor": "pointer",
+					cursor: "pointer",
+					position: "relative",
 				}}
 			>
 				<img
