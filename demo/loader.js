@@ -29,11 +29,6 @@ add([
 ])
 
 add([
-	sprite("/sprites/bean.png"),
-	pos(180)
-])
-
-add([
 	text("bean"),
 	pos(200)
 ])
@@ -51,11 +46,6 @@ onDraw(() => {
 			sprite: spr
 		})
 	}
-
-	drawSprite({
-		pos: vec2(60),
-		sprite: "/sprites/bean.png",
-	})
 
 	drawText({
 		text: loadProgress(),
