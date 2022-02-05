@@ -687,11 +687,12 @@ const assets = {
 
 const game = {
 
+	// general events
+	ev: new EventHandler(),
 	// object events
-	objEvents: {},
+	objEvents: new EventHandler(),
 
 	// root game object
-	// these transforms are used as camera
 	root: make([]),
 
 	timers: new IDList<Timer>(),
@@ -700,7 +701,6 @@ const game = {
 	layers: {},
 	defLayer: null,
 	gravity: DEF_GRAVITY,
-	ev: new EventHandler(),
 	scenes: {},
 
 	// on screen log
@@ -3073,19 +3073,8 @@ function make<T>(comps: CompList<T>): GameObj<T> {
 		},
 
 		trigger(name: string, ...args): void {
-
 			ev.trigger(name, ...args);
-
-			const gEvents = game.objEvents[name];
-
-			if (gEvents) {
-				gEvents.forEach((e) => {
-					if (this.is(e.tag)) {
-						e.cb(this, ...args);
-					}
-				});
-			}
-
+			game.objEvents.trigger(name, this, ...args);
 		},
 
 		destroy() {
@@ -3127,9 +3116,10 @@ function on(event: string, tag: Tag, cb: (obj: GameObj, ...args) => void): Event
 	if (!game.objEvents[event]) {
 		game.objEvents[event] = new IDList();
 	}
-	return game.objEvents[event].pushd({
-		tag: tag,
-		cb: cb,
+	return game.objEvents.on(event, (obj, ...args) => {
+		if (obj.is(tag)) {
+			cb(obj, ...args);
+		}
 	});
 }
 
@@ -4678,13 +4668,7 @@ function go(id: SceneID, ...args) {
 	game.ev.onOnce("updateStart", () => {
 
 		game.ev = new EventHandler();
-
-		game.objEvents = {
-			add: new IDList(),
-			update: new IDList(),
-			draw: new IDList(),
-			destroy: new IDList(),
-		};
+		game.objEvents = new EventHandler();
 
 		game.root.every((obj) => {
 			if (!obj.is("stay")) {
