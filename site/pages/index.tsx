@@ -130,6 +130,8 @@ Play with it yourself or check out the examples in the [Playground](/play)!
 		>
 			{ showType &&
 				<Doc
+					anchor={showType}
+					onAnchor={() => setShowType(null)}
 					name={showType}
 					typeref={setShowType}
 				/>
