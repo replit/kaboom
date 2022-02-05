@@ -833,7 +833,6 @@ function loadSpriteAtlas(
 	data: SpriteAtlasData | string
 ): Promise<Record<string, SpriteData>> {
 	if (typeof data === "string") {
-		// TODO: no name squatting
 		return load(fetchJSON(data)
 			.then((data2) => loadSpriteAtlas(src, data2)));
 	}
@@ -1045,23 +1044,36 @@ function volume(v?: number): number {
 }
 
 function resolveSound(src: string | SoundData): SoundData | Promise<SoundData> {
+
 	if (typeof src === "string") {
+
 		const snd = assets.sounds.get(src)
-		if (!snd) {
-			// allow user directly passing resource src
-			const loading = assets.sounds.loading.get(src);
-			if (!loading) {
-				return loadSound(src, src);
-			} else {
-				return loading;
-			}
-		} else {
+
+		// if it's already loaded, return it
+		if (snd) {
 			return snd;
 		}
-	} else {
-		// TODO: check type
-		return src;
+
+		const loading = assets.sounds.loading.get(src);
+
+		if (loading) {
+			// if it's loading, return the promise handle
+			return loading;
+		}
+
+		// if there's any other ongoing loading task we return empty and don't error yet
+		if (loadProgress() < 1) {
+			return null;
+		}
+
+		// if all other assets are loaded and we still haven't found this sprite, throw
+		throw new Error(`Sprite not found: ${src}`);
+
 	}
+
+	// TODO: check type
+	return src;
+
 }
 
 // plays a sound, returns a control handle
@@ -1721,24 +1733,37 @@ function drawTexture(opt: DrawTextureOpt) {
 
 }
 
-function resolveSprite(src: string | SpriteData): SpriteData | Promise<SpriteData> {
+function resolveSprite(src: string | SpriteData): SpriteData | Promise<SpriteData> | null {
+
 	if (typeof src === "string") {
+
 		const spr = assets.sprites.get(src)
-		if (!spr) {
-			// allow user directly passing resource src
-			const loading = assets.sprites.loading.get(src);
-			if (!loading) {
-				return loadSprite(src, src);
-			} else {
-				return loading;
-			}
-		} else {
-			return spr;
+
+		// if it's already loaded, return it
+		if (spr) {
+			return spr
 		}
-	} else {
-		// TODO: check type
-		return src;
+
+		const loading = assets.sprites.loading.get(src);
+
+		if (loading) {
+			// if it's loading, return the promise handle
+			return loading;
+		}
+
+		// if there's any other ongoing loading task we return empty and don't error yet
+		if (loadProgress() < 1) {
+			return null;
+		}
+
+		// if all other assets are loaded and we still haven't found this sprite, throw
+		throw new Error(`Sprite not found: ${src}`);
+
 	}
+
+	// TODO: check type
+	return src;
+
 }
 
 function drawSprite(opt: DrawSpriteOpt) {
@@ -1749,7 +1774,7 @@ function drawSprite(opt: DrawSpriteOpt) {
 
 	const spr = resolveSprite(opt.sprite);
 
-	if (spr instanceof Promise) {
+	if (spr === null || spr instanceof Promise) {
 		return;
 	}
 
@@ -2191,7 +2216,7 @@ function compileStyledText(text: string): {
 
 function resolveFont(font: string | FontData | undefined): FontData | Promise<FontData> {
 	if (!font) {
-		return assets.fonts.get(DEF_FONT);
+		return assets.fonts.get(gopt.font ?? DEF_FONT);
 	}
 	if (typeof font === "string") {
 		return assets.fonts.get(font);
@@ -3950,9 +3975,30 @@ function sprite(id: string | SpriteData, opt: SpriteCompOpt = {}): SpriteComp {
 		quad: opt.quad || new Quad(0, 0, 1, 1),
 		animSpeed: opt.animSpeed ?? 1,
 
-		add() {
+		draw() {
+			if (!spriteData) return;
+			drawSprite({
+				...getRenderProps(this),
+				sprite: spriteData,
+				frame: this.frame,
+				quad: this.quad,
+				flipX: opt.flipX,
+				flipY: opt.flipY,
+				tiled: opt.tiled,
+				width: opt.width,
+				height: opt.height,
+			});
+		},
 
-			const init = (spr: SpriteData) => {
+		update() {
+
+			if (!spriteData) {
+
+				const spr = resolveSprite(id);
+
+				if (spr instanceof Promise || spr === null) {
+					return;
+				}
 
 				let q = spr.frames[0].clone();
 
@@ -3973,35 +4019,6 @@ function sprite(id: string | SpriteData, opt: SpriteCompOpt = {}): SpriteComp {
 				this.trigger("spriteLoaded", spriteData);
 
 			};
-
-			const spr = resolveSprite(id);
-
-			if (spr instanceof Promise) {
-				spr.then(init);
-			} else {
-				init(spr);
-			}
-
-		},
-
-		draw() {
-			if (!spriteData) return;
-			drawSprite({
-				...getRenderProps(this),
-				sprite: spriteData,
-				frame: this.frame,
-				quad: this.quad,
-				flipX: opt.flipX,
-				flipY: opt.flipY,
-				tiled: opt.tiled,
-				width: opt.width,
-				height: opt.height,
-			});
-		},
-
-		update() {
-
-			if (!spriteData) return;
 
 			if (!curAnim) {
 				return;
