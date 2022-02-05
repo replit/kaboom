@@ -2,21 +2,19 @@ kaboom()
 
 loadSprite("bean", "/sprites/bean.png")
 
-// layer "ui" will be on top of layer "game", with "game" layer being the default
-layers([
-	"game",
-	"ui",
-], "game")
+// Create a parent node that won't be affected by camera (fixed) and will be drawn on top (z of 100)
+const ui = add([
+	fixed(),
+	z(100),
+])
 
-add([
+// This will be on top, because the parent node has z(100)
+ui.add([
 	sprite("bean"),
 	scale(5),
-	// specify layer with layer() component
-	layer("ui"),
 	color(0, 0, 255),
 ])
 
-// this obj doesn't have a layer() component, fallback on default "game" layer
 add([
 	sprite("bean"),
 	pos(100, 100),

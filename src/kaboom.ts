@@ -107,7 +107,6 @@ import {
 	OpacityComp,
 	Origin,
 	OriginComp,
-	LayerComp,
 	ZComp,
 	FollowComp,
 	MoveComp,
@@ -697,8 +696,6 @@ const game = {
 	timers: new IDList<Timer>(),
 
 	// misc
-	layers: {},
-	defLayer: null,
 	gravity: DEF_GRAVITY,
 	on<F>(ev: string, cb: F): EventCanceller {
 		if (!this.events[ev]) {
@@ -2783,10 +2780,6 @@ type Camera = {
 	shake: number,
 };
 
-type Layer = {
-	order: number,
-}
-
 type TaggedEvent = {
 	tag: string,
 	cb: (...args) => void,
@@ -2805,18 +2798,6 @@ type LoadEvent = () => void;
 type NextFrameEvent = () => void;
 type MouseEvent = () => void;
 type CharEvent = (ch: string) => void;
-
-function layers(list: string[], def?: string) {
-
-	list.forEach((name, idx) => {
-		game.layers[name] = idx + 1;
-	});
-
-	if (def) {
-		game.defLayer = def;
-	}
-
-}
 
 function camPos(...pos): Vec2 {
 	if (pos.length > 0) {
@@ -3022,17 +3003,7 @@ function make<T>(comps: CompList<T>): GameObj<T> {
 		get(t?: Tag | Tag[]): GameObj[] {
 			return this.children
 				.filter((child) => t ? child.is(t) : true)
-				.sort((o1, o2) => {
-					// TODO: layers are deprecated
-					const l1 = game.layers[o1.layer ?? game.defLayer] ?? 0;
-					const l2 = game.layers[o2.layer ?? game.defLayer] ?? 0;
-					// if on same layer, use "z" comp to decide which is on top, if given
-					if (l1 == l2) {
-						return (o1.z ?? 0) - (o2.z ?? 0);
-					} else {
-						return l1 - l2;
-					}
-				});
+				.sort((o1, o2) => (o1.z ?? 0) - (o2.z ?? 0));
 		},
 
 		every<T>(t: Tag | Tag[] | ((obj: GameObj) => T), f?: (obj: GameObj) => T) {
@@ -3649,16 +3620,6 @@ function origin(o: Origin | Vec2): OriginComp {
 			} else {
 				return this.origin.toString();
 			}
-		},
-	};
-}
-
-function layer(l: string): LayerComp {
-	return {
-		id: "layer",
-		layer: l,
-		inspect() {
-			return this.layer ?? game.defLayer;
 		},
 	};
 }
@@ -4726,8 +4687,6 @@ function go(id: SceneID, ...args) {
 			transform: new Mat4(),
 		};
 
-		game.layers = {};
-		game.defLayer = null;
 		game.gravity = DEF_GRAVITY;
 
 		game.scenes[id](...args);
@@ -5572,7 +5531,6 @@ const ctx: KaboomCtx = {
 	onLoad,
 	isTouch: () => app.isTouch,
 	// misc
-	layers,
 	camPos,
 	camScale,
 	camRot,
@@ -5596,7 +5554,6 @@ const ctx: KaboomCtx = {
 	color,
 	opacity,
 	origin,
-	layer,
 	area,
 	sprite,
 	text,
