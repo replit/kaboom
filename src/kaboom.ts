@@ -794,22 +794,6 @@ function loadFont(
 	);
 }
 
-function getSprite(name: string): SpriteData | Promise<SpriteData> | null {
-	return assets.sprites.get(name);
-}
-
-function getSound(name: string): SoundData | Promise<SoundData> | null {
-	return assets.sounds.get(name) ?? null;
-}
-
-function getFont(name: string): FontData | Promise<FontData> | null {
-	return assets.fonts.get(name);
-}
-
-function getShader(name: string): ShaderData | Promise<ShaderData> | null {
-	return assets.shaders.get(name) ?? null;
-}
-
 // get an array of frames based on configuration on how to slice the image
 function slice(x = 1, y = 1, dx = 0, dy = 0, w = 1, h = 1): Quad[] {
 	const frames = [];
@@ -1035,45 +1019,97 @@ function loadBean(name: string = "bean"): Promise<SpriteData> {
 	return loadSprite(name, beanSrc);
 }
 
+function getSprite(name: string): SpriteData | Promise<SpriteData> | null {
+	return assets.sprites.get(name);
+}
+
+function getSound(name: string): SoundData | Promise<SoundData> | null {
+	return assets.sounds.get(name) ?? null;
+}
+
+function getFont(name: string): FontData | Promise<FontData> | null {
+	return assets.fonts.get(name);
+}
+
+function getShader(name: string): ShaderData | Promise<ShaderData> | null {
+	return assets.shaders.get(name) ?? null;
+}
+
+function resolveSprite(src: string | SpriteData): SpriteData | Promise<SpriteData> | null {
+	if (typeof src === "string") {
+		const spr = getSprite(src)
+		if (spr) {
+			// if it's already loaded or being loading, return it
+			return spr;
+		} else if (loadProgress() < 1) {
+			// if there's any other ongoing loading task we return empty and don't error yet
+			return null;
+		} else {
+			// if all other assets are loaded and we still haven't found this sprite, throw
+			throw new Error(`Sprite not found: ${src}`);
+		}
+	}
+	// TODO: check type
+	return src;
+}
+
+function resolveSound(src: string | SoundData): SoundData | Promise<SoundData> | null {
+	if (typeof src === "string") {
+		const snd = getSound(src)
+		if (snd) {
+			return snd;
+		} else if (loadProgress() < 1) {
+			return null;
+		} else {
+			throw new Error(`Sound not found: ${src}`);
+		}
+	}
+	// TODO: check type
+	return src;
+}
+
+function resolveShader(src: string | ShaderData | undefined): ShaderData | Promise<ShaderData> | null {
+	if (!src) {
+		return gfx.defShader;
+	}
+	if (typeof src === "string") {
+		const shader = getShader(src)
+		if (shader) {
+			return shader;
+		} else if (loadProgress() < 1) {
+			return null;
+		} else {
+			throw new Error(`Shader not found: ${src}`);
+		}
+	}
+	// TODO: check type
+	return src;
+}
+
+function resolveFont(src: string | FontData | undefined): FontData | Promise<FontData> {
+	if (!src) {
+		return getFont(gopt.font ?? DEF_FONT);
+	}
+	if (typeof src === "string") {
+		const font = getFont(src)
+		if (font) {
+			return font;
+		} else if (loadProgress() < 1) {
+			return null;
+		} else {
+			throw new Error(`Font not found: ${src}`);
+		}
+	}
+	// TODO: check type
+	return src;
+}
+
 // get / set master volume
 function volume(v?: number): number {
 	if (v !== undefined) {
 		audio.masterNode.gain.value = clamp(v, MIN_GAIN, MAX_GAIN);
 	}
 	return audio.masterNode.gain.value;
-}
-
-function resolveSound(src: string | SoundData): SoundData | Promise<SoundData> {
-
-	if (typeof src === "string") {
-
-		const snd = assets.sounds.get(src)
-
-		// if it's already loaded, return it
-		if (snd) {
-			return snd;
-		}
-
-		const loading = assets.sounds.loading.get(src);
-
-		if (loading) {
-			// if it's loading, return the promise handle
-			return loading;
-		}
-
-		// if there's any other ongoing loading task we return empty and don't error yet
-		if (loadProgress() < 1) {
-			return null;
-		}
-
-		// if all other assets are loaded and we still haven't found this sprite, throw
-		throw new Error(`Sprite not found: ${src}`);
-
-	}
-
-	// TODO: check type
-	return src;
-
 }
 
 // plays a sound, returns a control handle
@@ -1105,6 +1141,10 @@ function play(
 
 		if (snd instanceof Promise) {
 			snd.then(doPlay)
+		} else if (snd === null) {
+			onLoad(() => {
+				// TODO
+			});
 		} else {
 			doPlay(snd);
 		}
@@ -1401,8 +1441,6 @@ function makeFont(
 
 }
 
-const erroredShaders = {};
-
 // TODO: expose
 function drawRaw(
 	verts: Vertex[],
@@ -1413,35 +1451,10 @@ function drawRaw(
 	uniform: Uniform = {},
 ) {
 
-	const shader = typeof shaderSrc === "string"
-		? (() => {
-			const loaded = getShader(shaderSrc);
-			if (loaded instanceof Promise) {
-				return null;
-			} else if (loaded) {
-				return loaded as GfxShader;
-			} else {
-				// TODO: inline vert shader?
-				// TODO: support asset url like sprite?
-				// support inline frag shader
-				if (erroredShaders[shaderSrc]) {
-					debug.log(erroredShaders[shaderSrc]);
-				} else {
-					try {
-						const shader = makeShader(DEF_VERT, shaderSrc);
-						assets.shaders.loaded.set(shaderSrc, shader);
-						return shader;
-					} catch (err) {
-						debug.log(err);
-						erroredShaders[shaderSrc] = err;
-					}
-				}
-			}
-		})()
-		: shaderSrc;
+	const shader = resolveShader(shaderSrc);
 
 	if (!shader) {
-		return null;
+		return;
 	}
 
 	// flush on texture / shader change and overflow
@@ -1730,39 +1743,6 @@ function drawTexture(opt: DrawTextureOpt) {
 		});
 
 	}
-
-}
-
-function resolveSprite(src: string | SpriteData): SpriteData | Promise<SpriteData> | null {
-
-	if (typeof src === "string") {
-
-		const spr = assets.sprites.get(src)
-
-		// if it's already loaded, return it
-		if (spr) {
-			return spr
-		}
-
-		const loading = assets.sprites.loading.get(src);
-
-		if (loading) {
-			// if it's loading, return the promise handle
-			return loading;
-		}
-
-		// if there's any other ongoing loading task we return empty and don't error yet
-		if (loadProgress() < 1) {
-			return null;
-		}
-
-		// if all other assets are loaded and we still haven't found this sprite, throw
-		throw new Error(`Sprite not found: ${src}`);
-
-	}
-
-	// TODO: check type
-	return src;
 
 }
 
@@ -2212,18 +2192,6 @@ function compileStyledText(text: string): {
 		text: renderText,
 	};
 
-}
-
-function resolveFont(font: string | FontData | undefined): FontData | Promise<FontData> {
-	if (!font) {
-		return assets.fonts.get(gopt.font ?? DEF_FONT);
-	}
-	if (typeof font === "string") {
-		return assets.fonts.get(font);
-	} else {
-		// TODO: check type
-		return font;
-	}
 }
 
 // format text and return a list of chars with their calculated position
