@@ -48,6 +48,7 @@ import {
 
 import {
 	IDList,
+	EventHandler,
 	downloadURL,
 	downloadBlob,
 	uid,
@@ -686,8 +687,7 @@ const assets = {
 
 const game = {
 
-	// event callbacks
-	events: {},
+	// object events
 	objEvents: {},
 
 	// root game object
@@ -700,17 +700,7 @@ const game = {
 	layers: {},
 	defLayer: null,
 	gravity: DEF_GRAVITY,
-	on<F>(ev: string, cb: F): EventCanceller {
-		if (!this.events[ev]) {
-			this.events[ev] = new IDList();
-		}
-		return this.events[ev].pushd(cb);
-	},
-	trigger(ev: string, ...args) {
-		if (this.events[ev]) {
-			this.events[ev].forEach((cb) => cb(...args));
-		}
-	},
+	ev: new EventHandler(),
 	scenes: {},
 
 	// on screen log
@@ -2604,19 +2594,19 @@ app.canvas.addEventListener("touchcancel", (e) => {
 
 app.canvas.addEventListener("touchstart", (e) => {
 	[...e.changedTouches].forEach((t) => {
-		game.trigger("onTouchStart", t.identifier, vec2(t.clientX, t.clientY).scale(1 / app.scale));
+		game.ev.trigger("onTouchStart", t.identifier, vec2(t.clientX, t.clientY).scale(1 / app.scale));
 	});
 });
 
 app.canvas.addEventListener("touchmove", (e) => {
 	[...e.changedTouches].forEach((t) => {
-		game.trigger("onTouchMove", t.identifier, vec2(t.clientX, t.clientY).scale(1 / app.scale));
+		game.ev.trigger("onTouchMove", t.identifier, vec2(t.clientX, t.clientY).scale(1 / app.scale));
 	});
 });
 
 app.canvas.addEventListener("touchend", (e) => {
 	[...e.changedTouches].forEach((t) => {
-		game.trigger("onTouchEnd", t.identifier, vec2(t.clientX, t.clientY).scale(1 / app.scale));
+		game.ev.trigger("onTouchEnd", t.identifier, vec2(t.clientX, t.clientY).scale(1 / app.scale));
 	});
 });
 
@@ -2855,7 +2845,7 @@ function make<T>(comps: CompList<T>): GameObj<T> {
 
 	const compStates = new Map();
 	const customState = {};
-	const events = {};
+	const ev = new EventHandler();
 
 	const obj = {
 
@@ -3078,25 +3068,15 @@ function make<T>(comps: CompList<T>): GameObj<T> {
 			}
 		},
 
-		on(ev: string, cb): EventCanceller {
-			if (!events[ev]) {
-				events[ev] = new IDList();
-			}
-			return events[ev].pushd(cb);
+		on(name: string, cb: (...args) => void): EventCanceller {
+			return ev.on(name, cb.bind(this));
 		},
 
-		action(...args): EventCanceller {
-			console.warn("action() is deprecated. Use onUpdate() instead")
-			return this.onUpdate(...args);
-		},
+		trigger(name: string, ...args): void {
 
-		trigger(ev: string, ...args): void {
+			ev.trigger(name, ...args);
 
-			if (events[ev]) {
-				events[ev].forEach((cb) => cb.call(this, ...args));
-			}
-
-			const gEvents = game.objEvents[ev];
+			const gEvents = game.objEvents[name];
 
 			if (gEvents) {
 				gEvents.forEach((e) => {
@@ -3253,7 +3233,7 @@ function onKeyDown(k: Key | Key[], f: () => void): EventCanceller {
 		const cancellers = k.map((key) => onKeyDown(key, f));
 		return () => cancellers.forEach((cb) => cb());
 	} {
-		return game.on("input", () => isKeyDown(k) && f());
+		return game.ev.on("input", () => isKeyDown(k) && f());
 	}
 }
 
@@ -3262,9 +3242,9 @@ function onKeyPress(k: Key | Key[] | (() => void), f?: () => void): EventCancell
 		const cancellers = k.map((key) => onKeyPress(key, f));
 		return () => cancellers.forEach((cb) => cb());
 	} else if (typeof k === "function") {
-		return game.on("input", () => isKeyPressed() && k());
+		return game.ev.on("input", () => isKeyPressed() && k());
 	} else {
-		return game.on("input", () => isKeyPressed(k) && f());
+		return game.ev.on("input", () => isKeyPressed(k) && f());
 	}
 }
 
@@ -3273,9 +3253,9 @@ function onKeyPressRepeat(k: Key | Key[] | (() => void), f?: () => void): EventC
 		const cancellers = k.map((key) => onKeyPressRepeat(key, f));
 		return () => cancellers.forEach((cb) => cb());
 	} else if (typeof k === "function") {
-		return game.on("input", () => isKeyPressed() && k());
+		return game.ev.on("input", () => isKeyPressed() && k());
 	} else {
-		return game.on("input", () => isKeyPressedRepeat(k) && f());
+		return game.ev.on("input", () => isKeyPressedRepeat(k) && f());
 	}
 }
 
@@ -3284,9 +3264,9 @@ function onKeyRelease(k: Key | Key[] | (() => void), f?: () => void): EventCance
 		const cancellers = k.map((key) => onKeyRelease(key, f));
 		return () => cancellers.forEach((cb) => cb());
 	} else if (typeof k === "function") {
-		return game.on("input", () => isKeyReleased() && k());
+		return game.ev.on("input", () => isKeyReleased() && k());
 	} else {
-		return game.on("input", () => isKeyReleased(k) && f());
+		return game.ev.on("input", () => isKeyReleased(k) && f());
 	}
 }
 
@@ -3295,9 +3275,9 @@ function onMouseDown(
 	action?: (pos?: Vec2) => void
 ): EventCanceller {
 	if (typeof m === "function") {
-		return game.on("input", () => isMouseDown() && m(mousePos()));
+		return game.ev.on("input", () => isMouseDown() && m(mousePos()));
 	} else {
-		return game.on("input", () => isMouseDown(m) && action(mousePos()));
+		return game.ev.on("input", () => isMouseDown(m) && action(mousePos()));
 	}
 }
 
@@ -3306,9 +3286,9 @@ function onMousePress(
 	action?: (pos?: Vec2) => void
 ): EventCanceller {
 	if (typeof m === "function") {
-		return game.on("input", () => isMousePressed() && m(mousePos()));
+		return game.ev.on("input", () => isMousePressed() && m(mousePos()));
 	} else {
-		return game.on("input", () => isMousePressed(m) && action(mousePos()));
+		return game.ev.on("input", () => isMousePressed(m) && action(mousePos()));
 	}
 }
 
@@ -3317,30 +3297,30 @@ function onMouseRelease(
 	action?: (pos?: Vec2) => void
 ): EventCanceller {
 	if (typeof m === "function") {
-		return game.on("input", () => isMouseReleased() && m(mousePos()));
+		return game.ev.on("input", () => isMouseReleased() && m(mousePos()));
 	} else {
-		return game.on("input", () => isMouseReleased(m) && action(mousePos()));
+		return game.ev.on("input", () => isMouseReleased(m) && action(mousePos()));
 	}
 }
 
 function onMouseMove(f: (pos: Vec2, dpos: Vec2) => void): EventCanceller {
-	return game.on("input", () => isMouseMoved() && f(mousePos(), mouseDeltaPos()));
+	return game.ev.on("input", () => isMouseMoved() && f(mousePos(), mouseDeltaPos()));
 }
 
 function onCharInput(f: (ch: string) => void): EventCanceller {
-	return game.on("input", () => charInputted().forEach((ch) => f(ch)));
+	return game.ev.on("input", () => charInputted().forEach((ch) => f(ch)));
 }
 
 function onTouchStart(f: (id: TouchID, pos: Vec2) => void): EventCanceller {
-	return game.on("onTouchStart", f);
+	return game.ev.on("onTouchStart", f);
 }
 
 function onTouchMove(f: (id: TouchID, pos: Vec2) => void): EventCanceller {
-	return game.on("onTouchMove", f);
+	return game.ev.on("onTouchMove", f);
 }
 
 function onTouchEnd(f: (id: TouchID, pos: Vec2) => void): EventCanceller {
-	return game.on("onTouchEnd", f);
+	return game.ev.on("onTouchEnd", f);
 }
 
 function enterDebugMode() {
@@ -3370,7 +3350,7 @@ function enterDebugMode() {
 	});
 
 	onKeyPress("f5", () => {
-		const dispose = game.on("drawEnd", () => {
+		const dispose = game.ev.on("drawEnd", () => {
 			downloadURL(screenshot(), "kaboom.png");
 			dispose();
 		});
@@ -4684,7 +4664,7 @@ function onLoad(cb: () => void): void {
 	if (assets.loaded) {
 		cb();
 	} else {
-		game.on("load", cb);
+		game.ev.on("load", cb);
 	}
 }
 
@@ -4698,9 +4678,9 @@ function go(id: SceneID, ...args) {
 		throw new Error(`Scene not found: ${id}`);
 	}
 
-	const cancel = game.on("updateStart", () => {
+	const cancel = game.ev.on("updateStart", () => {
 
-		game.events = {};
+		game.ev = new EventHandler();
 
 		game.objEvents = {
 			add: new IDList(),
@@ -5079,7 +5059,7 @@ function frames() {
 
 function updateFrame() {
 
-	game.trigger("updateStart");
+	game.ev.trigger("updateStart");
 
 	// update timers
 	game.timers.forEach((t, id) => {
@@ -5112,7 +5092,7 @@ function drawFrame() {
 
 	game.root.draw();
 
-	game.trigger("drawEnd");
+	game.ev.trigger("drawEnd");
 
 }
 
@@ -5523,14 +5503,14 @@ run(() => {
 		const progress = loadProgress();
 		if (progress === 1) {
 			assets.loaded = true;
-			game.trigger("load");
+			game.ev.trigger("load");
 		}
 	}
 
 	if (!assets.loaded && (gopt.loadingScreen === undefined || gopt.loadingScreen === true)) {
 		drawLoadScreen();
 	} else {
-		game.trigger("input");
+		game.ev.trigger("input");
 		if (!debug.paused) {
 			updateFrame();
 		}

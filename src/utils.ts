@@ -1,3 +1,5 @@
+import { EventCanceller } from "./types";
+
 export class IDList<T> extends Map<number, T> {
 	_lastID: number;
 	constructor(...args) {
@@ -13,6 +15,21 @@ export class IDList<T> extends Map<number, T> {
 	pushd(v: T): () => void {
 		const id = this.push(v);
 		return () => this.delete(id);
+	}
+}
+
+export class EventHandler {
+	private handlers: Map<string, IDList<(...args) => void>> = new Map();
+	on(name: string, action: (...args) => void): EventCanceller {
+		if (!this.handlers[name]) {
+			this.handlers[name] = new IDList();
+		}
+		return this.handlers[name].pushd(action);
+	}
+	trigger(name: string, ...args) {
+		if (this.handlers[name]) {
+			this.handlers[name].forEach((action) => action(...args));
+		}
 	}
 }
 
