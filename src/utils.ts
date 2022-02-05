@@ -38,6 +38,9 @@ export class EventHandler {
 			this.handlers[name].forEach((action) => action(...args));
 		}
 	}
+	remove(name: string) {
+		this.handlers.delete(name);
+	}
 }
 
 export function deepEq(o1: any, o2: any): boolean {
