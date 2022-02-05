@@ -2152,11 +2152,11 @@ export interface GameObjRaw {
 	/**
 	 * Register an event.
 	 */
-	on(ev: string, action: () => void): EventCanceller,
+	on(event: string, action: () => void): EventCanceller,
 	/**
 	 * Trigger an event.
 	 */
-	trigger(ev: string, ...args): void,
+	trigger(event: string, ...args): void,
 	/**
 	 * Remove the game obj from scene.
 	 */

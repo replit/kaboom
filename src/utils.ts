@@ -1,18 +1,45 @@
+import { EventCanceller } from "./types";
+
 export class IDList<T> extends Map<number, T> {
-	_lastID: number;
+	private lastID: number;
 	constructor(...args) {
 		super(...args);
-		this._lastID = 0;
+		this.lastID = 0;
 	}
 	push(v: T): number {
-		const id = this._lastID;
+		const id = this.lastID;
 		this.set(id, v);
-		this._lastID++;
+		this.lastID++;
 		return id;
 	}
 	pushd(v: T): () => void {
 		const id = this.push(v);
 		return () => this.delete(id);
+	}
+}
+
+export class EventHandler {
+	private handlers: Map<string, IDList<(...args) => void>> = new Map();
+	on(name: string, action: (...args) => void): EventCanceller {
+		if (!this.handlers[name]) {
+			this.handlers[name] = new IDList();
+		}
+		return this.handlers[name].pushd(action);
+	}
+	onOnce(name: string, action: (...args) => void): EventCanceller {
+		const cancel = this.on(name, (...args) => {
+			action(...args);
+			cancel();
+		});
+		return cancel;
+	}
+	trigger(name: string, ...args) {
+		if (this.handlers[name]) {
+			this.handlers[name].forEach((action) => action(...args));
+		}
+	}
+	remove(name: string) {
+		this.handlers.delete(name);
 	}
 }
 
