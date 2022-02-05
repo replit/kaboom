@@ -500,9 +500,6 @@ const app = (() => {
 
 		fpsCounter: new FPSCounter(),
 
-		// if we finished loading all assets
-		loaded: false,
-
 	};
 
 })();
@@ -683,6 +680,8 @@ const assets = {
 	sounds: new AssetBucket<SoundData>(),
 	shaders: new AssetBucket<ShaderData>(),
 	custom: new AssetBucket<any>(),
+	// if we finished initially loading all assets
+	loaded: false,
 };
 
 const game = {
@@ -784,7 +783,7 @@ function loadImg(src: string): Promise<HTMLImageElement> {
 	img.crossOrigin = "anonymous";
 	return new Promise<HTMLImageElement>((resolve, reject) => {
 		img.onload = () => resolve(img);
-		img.onerror = () => reject(`Failed to load image from "${src}"`);
+		img.onerror = () => reject(new Error(`Failed to load image from "${src}"`));
 	});
 }
 
@@ -904,7 +903,7 @@ function loadSprite(
 	return assets.sprites.add(name, new Promise((resolve, reject) => {
 
 		if (!src) {
-			return reject(`Expected sprite src for "${name}"`);
+			return reject(new Error(`Expected sprite src for "${name}"`));
 		}
 
 		// from url
@@ -1023,7 +1022,7 @@ function loadSound(
 	return assets.sounds.add(name, new Promise<SoundData>((resolve, reject) => {
 
 		if (!src) {
-			return reject(`expected sound src for "${name}"`);
+			return reject(new Error(`Expected sound src for "${name}"`));
 		}
 
 		// from url
@@ -2982,7 +2981,7 @@ function make<T>(comps: CompList<T>): GameObj<T> {
 				}
 				for (const dep of comp.require) {
 					if (!this.c(dep)) {
-						throw new Error(`comp '${comp.id}' requires comp '${dep}'`);
+						throw new Error(`Component '${comp.id}' requires component '${dep}'`);
 					}
 				}
 			};
@@ -3639,7 +3638,7 @@ function opacity(a: number): OpacityComp {
 
 function origin(o: Origin | Vec2): OriginComp {
 	if (!o) {
-		throw new Error("please define an origin");
+		throw new Error("Please define an origin");
 	}
 	return {
 		id: "origin",
@@ -3928,7 +3927,7 @@ function area(opt: AreaCompOpt = {}): AreaComp {
 			let h = this.area.height ?? this.height;
 
 			if (w == null || h == null) {
-				throw new Error("failed to get area dimension");
+				throw new Error("Failed to get area dimension");
 			}
 
 			const scale = vec2(this.scale ?? 1).scale(this.area.scale);
@@ -4088,7 +4087,7 @@ function sprite(id: string | SpriteData, opt: SpriteCompOpt = {}): SpriteComp {
 			}
 
 			if (anim.speed === 0) {
-				throw new Error("sprite anim speed cannot be 0");
+				throw new Error("Sprite anim speed cannot be 0");
 			}
 
 			curAnim.timer += dt() * this.animSpeed;
@@ -4135,7 +4134,7 @@ function sprite(id: string | SpriteData, opt: SpriteCompOpt = {}): SpriteComp {
 			const anim = spriteData.anims[name];
 
 			if (anim == null) {
-				throw new Error(`anim not found: ${name}`);
+				throw new Error(`Anim not found: ${name}`);
 			}
 
 			if (curAnim) {
@@ -4682,7 +4681,7 @@ function state(
 }
 
 function onLoad(cb: () => void): void {
-	if (app.loaded) {
+	if (assets.loaded) {
 		cb();
 	} else {
 		game.on("load", cb);
@@ -4696,7 +4695,7 @@ function scene(id: SceneID, def: SceneDef) {
 function go(id: SceneID, ...args) {
 
 	if (!game.scenes[id]) {
-		throw new Error(`scene not found: ${id}`);
+		throw new Error(`Scene not found: ${id}`);
 	}
 
 	const cancel = game.on("updateStart", () => {
@@ -4856,7 +4855,7 @@ function addLevel(map: string[], opt: LevelOpt): Level {
 			const comps = (() => {
 				if (opt[sym]) {
 					if (typeof opt[sym] !== "function") {
-						throw new Error("level symbol def must be a function returning a component list");
+						throw new Error("Level symbol def must be a function returning a component list");
 					}
 					return opt[sym](p);
 				} else if (opt.any) {
@@ -5520,15 +5519,15 @@ run(() => {
 	// running this every frame now mainly because isFullscreen() is not updated real time when requested fullscreen
 	updateViewport();
 
-	if (!app.loaded) {
+	if (!assets.loaded) {
 		const progress = loadProgress();
 		if (progress === 1) {
-			app.loaded = true;
+			assets.loaded = true;
 			game.trigger("load");
 		}
 	}
 
-	if (!app.loaded && (gopt.loadingScreen === undefined || gopt.loadingScreen === true)) {
+	if (!assets.loaded && (gopt.loadingScreen === undefined || gopt.loadingScreen === true)) {
 		drawLoadScreen();
 	} else {
 		game.trigger("input");

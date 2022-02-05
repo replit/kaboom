@@ -922,7 +922,7 @@ export interface KaboomCtx {
 	 * ```
 	 */
 	loadSprite(
-		id: string | null,
+		name: string | null,
 		src: SpriteLoadSrc,
 		options?: SpriteLoadOpt,
 	): Promise<SpriteData>,
@@ -1015,7 +1015,7 @@ export interface KaboomCtx {
 	 * ```
 	 */
 	loadSound(
-		id: string,
+		name: string | null,
 		src: string,
 	): Promise<SoundData>,
 	/**
@@ -1032,7 +1032,7 @@ export interface KaboomCtx {
 	 * ```
 	 */
 	loadFont(
-		id: string,
+		name: string | null,
 		src: string,
 		gridWidth: number,
 		gridHeight: number,
@@ -1059,7 +1059,7 @@ export interface KaboomCtx {
 	 * ```
 	 */
 	loadShader(
-		name: string,
+		name: string | null,
 		vert?: string,
 		frag?: string,
 		isUrl?: boolean,
