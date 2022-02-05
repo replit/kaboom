@@ -3068,8 +3068,8 @@ function make<T>(comps: CompList<T>): GameObj<T> {
 			}
 		},
 
-		on(name: string, cb: (...args) => void): EventCanceller {
-			return ev.on(name, cb.bind(this));
+		on(name: string, action: (...args) => void): EventCanceller {
+			return ev.on(name, action.bind(this));
 		},
 
 		trigger(name: string, ...args): void {
@@ -3350,10 +3350,7 @@ function enterDebugMode() {
 	});
 
 	onKeyPress("f5", () => {
-		const dispose = game.ev.on("drawEnd", () => {
-			downloadURL(screenshot(), "kaboom.png");
-			dispose();
-		});
+		game.ev.onOnce("drawEnd", () => downloadURL(screenshot(), "kaboom.png"));
 	});
 
 	onKeyPress("f6", () => {
@@ -4678,7 +4675,7 @@ function go(id: SceneID, ...args) {
 		throw new Error(`Scene not found: ${id}`);
 	}
 
-	const cancel = game.ev.on("updateStart", () => {
+	game.ev.onOnce("updateStart", () => {
 
 		game.ev = new EventHandler();
 
@@ -4719,8 +4716,6 @@ function go(id: SceneID, ...args) {
 		if (gopt.burp) {
 			enterBurpMode();
 		}
-
-		cancel();
 
 	});
 

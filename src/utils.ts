@@ -26,6 +26,13 @@ export class EventHandler {
 		}
 		return this.handlers[name].pushd(action);
 	}
+	onOnce(name: string, action: (...args) => void): EventCanceller {
+		const cancel = this.on(name, (...args) => {
+			action(...args);
+			cancel();
+		});
+		return cancel;
+	}
 	trigger(name: string, ...args) {
 		if (this.handlers[name]) {
 			this.handlers[name].forEach((action) => action(...args));
