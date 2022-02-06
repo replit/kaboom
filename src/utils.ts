@@ -69,6 +69,20 @@ export function deepEq(o1: any, o2: any): boolean {
 	return o1 === o2;
 }
 
+export function base64ToArrayBuffer(base64: string): ArrayBuffer {
+	const binstr = window.atob(base64);
+	const len = binstr.length;
+	const bytes = new Uint8Array(len);
+	for (let i = 0; i < len; i++) {
+		bytes[i] = binstr.charCodeAt(i);
+	}
+	return bytes.buffer;
+}
+
+export function dataURLToArrayBuffer(url: string): ArrayBuffer {
+	return base64ToArrayBuffer(url.split(",")[1]);
+}
+
 export function downloadURL(url: string, filename: string) {
 	const a = document.createElement("a");
 	document.body.appendChild(a);

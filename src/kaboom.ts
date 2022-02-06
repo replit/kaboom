@@ -54,6 +54,7 @@ import {
 	uid,
 	isDataURL,
 	deepEq,
+	dataURLToArrayBuffer,
 } from "./utils";
 
 import {
@@ -75,8 +76,6 @@ import {
 	DrawEllipseOpt,
 	DrawUVQuadOpt,
 	Vertex,
-	SpriteData,
-	SoundData,
 	FontData,
 	ShaderData,
 	SpriteLoadSrc,
@@ -122,6 +121,7 @@ import {
 	SpriteCompOpt,
 	GfxTexture,
 	SpriteAnimPlayOpt,
+	SpriteAnims,
 	TextComp,
 	TextCompOpt,
 	RectComp,
@@ -828,11 +828,18 @@ function loadSpriteAtlas(
 				const w = atlas.tex.width;
 				const h = atlas.tex.height;
 				const info = data[name];
-				const spr = {
-					tex: atlas.tex,
-					frames: slice(info.sliceX, info.sliceY, info.x / w, info.y / h, info.width / w, info.height / h),
-					anims: info.anims,
-				}
+				const spr = new SpriteData(
+					atlas.tex,
+					slice(
+						info.sliceX,
+						info.sliceY,
+						info.x / w,
+						info.y / h,
+						info.width / w,
+						info.height / h
+					),
+					info.anims,
+				);
 				map[name] = spr;
 				return spr;
 			}));
@@ -842,20 +849,53 @@ function loadSpriteAtlas(
 	}));
 }
 
-// synchronously load sprite from local pixel data
-function loadRawSprite(
-	src: GfxTexData,
-	opt: SpriteLoadOpt = {}
-) {
+class SpriteData {
 
-	const tex = makeTex(src, opt);
-	const frames = slice(opt.sliceX || 1, opt.sliceY || 1);
+	tex: GfxTexture;
+	frames: Quad[] = [ new Quad(0, 0, 1, 1) ];
+	anims: SpriteAnims = {};
 
-	return {
-		tex: tex,
-		frames: frames,
-		anims: opt.anims || {},
-	};
+	constructor(tex: GfxTexture, frames?: Quad[], anims: SpriteAnims = {}) {
+		this.tex = tex;
+		if (frames) this.frames = frames;
+		this.anims = anims;
+	}
+
+	static fromImage(data: GfxTexData, opt: SpriteLoadOpt = {}): SpriteData {
+		return new SpriteData(
+			makeTex(data, opt),
+			slice(opt.sliceX || 1, opt.sliceY || 1),
+			opt.anims ?? {},
+		);
+	}
+
+	static fromURL(url: string, opt: SpriteLoadOpt = {}): Promise<SpriteData> {
+		return loadImg(url).then((img) => SpriteData.fromImage(img, opt));
+	}
+
+}
+
+class SoundData {
+
+	buf: AudioBuffer;
+
+	constructor(buf: AudioBuffer) {
+		this.buf = buf;
+	}
+
+	static fromArrayBuffer(buf: ArrayBuffer): Promise<SoundData> {
+		return new Promise((resolve, reject) =>
+			audio.ctx.decodeAudioData(buf, resolve, reject)
+		).then((buf: AudioBuffer) => new SoundData(buf));
+	}
+
+	static fromURL(url: string): Promise<SoundData> {
+		if (isDataURL(url)) {
+			return SoundData.fromArrayBuffer(dataURLToArrayBuffer(url));
+		} else {
+			return fetchArrayBuffer(url).then((buf) => SoundData.fromArrayBuffer(buf));
+		}
+	}
 
 }
 
@@ -869,24 +909,13 @@ function loadSprite(
 		anims: {},
 	},
 ): Promise<SpriteData> {
-
-	return assets.sprites.add(name, new Promise((resolve, reject) => {
-
-		if (!src) {
-			return reject(new Error(`Expected sprite src for "${name}"`));
-		}
-
-		// from url
-		if (typeof(src) === "string") {
-			loadImg(src)
-				.then((img) => resolve(loadRawSprite(img, opt)))
-				.catch(reject);
-		} else {
-			resolve(loadRawSprite(src, opt));
-		}
-
-	}));
-
+	return assets.sprites.add(
+		name,
+		typeof src === "string"
+			? SpriteData.fromURL(src)
+			: Promise.resolve(SpriteData.fromImage(src, opt)
+		)
+	);
 }
 
 function loadPedit(name: string | null, src: string | PeditFile): Promise<SpriteData> {
@@ -982,37 +1011,17 @@ function loadShader(
 
 }
 
-// TODO: accept dataurl
 // load a sound to asset manager
 function loadSound(
 	name: string | null,
-	src: string,
+	src: string | ArrayBuffer,
 ): Promise<SoundData> {
-
-	return assets.sounds.add(name, new Promise<SoundData>((resolve, reject) => {
-
-		if (!src) {
-			return reject(new Error(`Expected sound src for "${name}"`));
-		}
-
-		// from url
-		if (typeof(src) === "string") {
-			fetchArrayBuffer(src)
-				.then((data) => {
-					return new Promise((resolve2, reject2) =>
-						audio.ctx.decodeAudioData(data, resolve2, reject2)
-					);
-				})
-				.then((buf: AudioBuffer) => {
-					resolve({
-						buf: buf,
-					});
-				})
-				.catch(reject);
-		}
-
-	}));
-
+	return assets.sounds.add(
+		name,
+		typeof src === "string"
+			? SoundData.fromURL(src)
+			: SoundData.fromArrayBuffer(src)
+	);
 }
 
 function loadBean(name: string = "bean"): Promise<SpriteData> {
@@ -1048,9 +1057,11 @@ function resolveSprite(src: string | SpriteData): SpriteData | Promise<SpriteDat
 			// if all other assets are loaded and we still haven't found this sprite, throw
 			throw new Error(`Sprite not found: ${src}`);
 		}
+	} else if (src instanceof SpriteData) {
+		return src;
+	} else {
+		throw new Error(`Invalid sprite: ${src}`);
 	}
-	// TODO: check type
-	return src;
 }
 
 function resolveSound(src: string | SoundData): SoundData | Promise<SoundData> | null {
@@ -5439,6 +5450,8 @@ const ctx: KaboomCtx = {
 	loadPedit,
 	loadBean,
 	load,
+	SpriteData,
+	SoundData,
 	// query
 	width,
 	height,
