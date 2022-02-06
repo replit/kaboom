@@ -351,7 +351,7 @@ const COMP_EVENTS = new Set([
 ]);
 
 // transform the button state to the next state
-// e.g. a button might become "pressed" one frame, and it should become "down" next frame
+// e.g. if a button becomes "pressed" one frame, it should become "down" next frame
 function processButtonState(s: ButtonState): ButtonState {
 	if (s === "pressed" || s === "rpressed") {
 		return "down";
@@ -616,14 +616,14 @@ updateViewport();
 const audio = (() => {
 
 	// TODO: handle when audio context is unavailable
-	const ctx = new (window.AudioContext || (window as any).webkitAudioContext)() as AudioContext
+	const ctx = new (
+		window.AudioContext || (window as any).webkitAudioContext
+	)() as AudioContext
 	const masterNode = ctx.createGain();
 	masterNode.connect(ctx.destination);
 
 	// by default browsers can only load audio async, we don't deal with that and just start with an empty audio buffer
-	const burpSnd = {
-		buf: createEmptyAudioBuffer(),
-	};
+	const burpSnd = new SoundData(createEmptyAudioBuffer());
 
 	// load that burp sound
 	ctx.decodeAudioData(burpBytes.buffer.slice(0), (buf) => {
@@ -1137,9 +1137,7 @@ function play(
 
 	if (typeof src === "string") {
 
-		const pb = play({
-			buf: createEmptyAudioBuffer(),
-		});
+		const pb = play(new SoundData(createEmptyAudioBuffer()));
 
 		const doPlay = (snd: SoundData) => {
 			const pb2 = play(snd, opt);
