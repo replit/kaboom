@@ -1819,6 +1819,24 @@ export interface KaboomCtx {
 	 */
 	pushRotate(angle: number): void,
 	/**
+	 * Rotate all subsequent draws on X axis.
+	 *
+	 * @since v2001.0
+	 */
+	pushRotateX(angle: number): void,
+	/**
+	 * Rotate all subsequent draws on Y axis.
+	 *
+	 * @since v2001.0
+	 */
+	pushRotateY(angle: number): void,
+	/**
+	 * Rotate all subsequent draws on Z axis (the default).
+	 *
+	 * @since v2001.0
+	 */
+	pushRotateZ(angle: number): void,
+	/**
 	 * Format a piece of text without drawing (for getting dimensions, etc).
 	 *
 	 * @since v2000.2

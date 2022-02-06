@@ -1453,7 +1453,7 @@ function drawRaw(
 
 	const shader = resolveShader(shaderSrc);
 
-	if (!shader) {
+	if (!shader || shader instanceof Promise) {
 		return;
 	}
 
@@ -1616,6 +1616,8 @@ function pushRotateZ(a: number) {
 	gfx.transform = gfx.transform.rotateZ(a);
 }
 
+const pushRotate = pushRotateZ;
+
 function pushTransform() {
 	gfx.transformStack.push(gfx.transform.clone());
 }
@@ -1754,7 +1756,7 @@ function drawSprite(opt: DrawSpriteOpt) {
 
 	const spr = resolveSprite(opt.sprite);
 
-	if (spr === null || spr instanceof Promise) {
+	if (!spr || spr instanceof Promise) {
 		return;
 	}
 
@@ -3964,7 +3966,7 @@ function sprite(id: string | SpriteData, opt: SpriteCompOpt = {}): SpriteComp {
 
 				const spr = resolveSprite(id);
 
-				if (spr instanceof Promise || spr === null) {
+				if (!spr || spr instanceof Promise) {
 					return;
 				}
 
@@ -4889,35 +4891,13 @@ function isFocused(): boolean {
 }
 
 // aliases for root game obj operations
-function add<T>(comps: CompList<T> | GameObj<T>): GameObj<T> {
-	return game.root.add(comps);
-}
-
-function readd(obj: GameObj) {
-	return game.root.readd(obj);
-}
-
-function destroy(obj: GameObj) {
-	return game.root.remove(obj);
-}
-
-function destroyAll(tag: Tag) {
-	return game.root.removeAll(tag);
-}
-
-function get(...args) {
-	return game.root.get(...args);
-}
-
-function every(...args) {
-	// @ts-ignore
-	return game.root.every(...args);
-}
-
-function revery(...args) {
-	// @ts-ignore
-	return game.root.revery(...args);
-}
+const add = game.root.add.bind(game.root);
+const readd = game.root.readd.bind(game.root);
+const destroy = game.root.remove.bind(game.root);
+const destroyAll = game.root.removeAll.bind(game.root);
+const get = game.root.get.bind(game.root);
+const every = game.root.every.bind(game.root);
+const revery = game.root.revery.bind(game.root);
 
 interface ExplodeComp extends Comp {
 }
@@ -5616,7 +5596,10 @@ const ctx: KaboomCtx = {
 	pushTransform,
 	popTransform,
 	pushTranslate,
-	pushRotate: pushRotateZ,
+	pushRotate,
+	pushRotateX,
+	pushRotateY,
+	pushRotateZ,
 	pushScale,
 	// debug
 	debug,
