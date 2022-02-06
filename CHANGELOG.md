@@ -11,6 +11,7 @@
 - added `kaboom()` option `loadingScreen` where you can turn off the default loading screen
 - added `drawMasked()` and `drawSubtracted()`
 - removed `layers()` in favor of parent game objects (see "layers" demo)
+- added `pushRotateX()`, `pushRotateY()` and `pushRotateZ()`
 
 ### v2000.2.6
 
