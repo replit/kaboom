@@ -2349,12 +2349,20 @@ export interface SpriteAtlasEntry {
 
 export type SpriteLoadSrc = string | GfxTexData;
 
-export interface SpriteData {
-	tex: GfxTexture,
-	frames: Quad[],
-	anims: SpriteAnims,
-	filter?: TexFilter,
-	wrap?: TexWrap,
+export declare class SpriteData {
+	tex: GfxTexture;
+	frames: Quad[];
+	anims: SpriteAnims;
+	constructor(tex: GfxTexture, frames?: Quad[], anims?: SpriteAnims);
+	static fromImage(data: GfxTexData, opt?: SpriteLoadOpt): SpriteData;
+	static fromURL(url: string, opt?: SpriteLoadOpt): Promise<SpriteData>;
+}
+
+export declare class SoundData {
+	buf: AudioBuffer;
+	constructor(buf: AudioBuffer);
+	static fromArrayBuffer(buf: ArrayBuffer): Promise<SoundData>;
+	static fromURL(url: string): Promise<SoundData>;
 }
 
 export interface FontLoadOpt {
@@ -3199,7 +3207,7 @@ export interface Comp {
 	/**
 	 * Debug info for inspect mode.
 	 */
-	inspect?: () => string,
+	inspect?: () => string | void,
 }
 
 export type GameObjID = number;
