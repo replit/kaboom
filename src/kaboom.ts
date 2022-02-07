@@ -613,8 +613,8 @@ const gfx = (() => {
 		viewport: {
 			x: 0,
 			y: 0,
-			width: gl.drawingBufferWidth / app.pixelDensity,
-			height: gl.drawingBufferHeight / app.pixelDensity,
+			width: gl.drawingBufferWidth,
+			height: gl.drawingBufferHeight,
 		},
 
 	};
@@ -2402,9 +2402,9 @@ function drawFormattedText(ftext: FormattedText) {
 function updateViewport() {
 
 	// canvas size
-	const cw = gl.drawingBufferWidth / app.pixelDensity;
-	const ch = gl.drawingBufferHeight / app.pixelDensity;
 	const pd = app.pixelDensity;
+	const cw = gl.drawingBufferWidth / pd;
+	const ch = gl.drawingBufferHeight / pd;
 
 	// game size
 	const gw = width();
