@@ -101,16 +101,18 @@ const Tag: React.FC<TagProps> = ({ name }) => (
 	</View>
 );
 
-interface TitleProps {
+function isType(entry: any): boolean {
+	return [
+		"TypeAliasDeclaration",
+		"InterfaceDeclaration",
+		"ClassDeclaration",
+	].includes(entry.kind);
+}
+
+const Title: React.FC<{
 	data: any,
 	small?: boolean,
-}
-
-function isType(entry: any): boolean {
-	return entry.kind === "TypeAliasDeclaration" || entry.kind === "InterfaceDeclaration";
-}
-
-const Title: React.FC<TitleProps> = ({ data, small, children }) => (
+}> = ({ data, small, children }) => (
 	<View gap={1} dir="row" align="center">
 		{ isType(data) && <Tag name="type" /> }
 		<Text
@@ -119,7 +121,18 @@ const Title: React.FC<TitleProps> = ({ data, small, children }) => (
 			select
 			size={small ? "normal" : "big"}
 		>
-			{data.name}{children}
+			{ small ? (
+				<>{data.name}</>
+			) : (
+				<DocCtx.Consumer>
+					{(ctx) => <Link href={`#${ctx.anchor}`}>
+						<a onClick={ctx.onAnchor}>
+							{data.name}
+						</a>
+					</Link>}
+				</DocCtx.Consumer>
+			) }
+			{children}
 		</Text>
 	</View>
 );
@@ -209,11 +222,31 @@ const InterfaceDeclaration: React.FC<EntryProps> = ({ data }) => {
 	);
 };
 
+const ClassDeclaration: React.FC<EntryProps> = ({ data }) => {
+	return (
+		<View gap={2} stretchX>
+			<View gap={1} stretchX>
+				<Title data={data} />
+				<JSDoc data={data} />
+			</View>
+			{ Object.entries(data.members).map(([name, variants]: [string, any], i) =>
+				variants.map((mem: any, j: number) =>
+					<Member key={`${mem.name}-${i}-${j}`} data={mem} />
+				)
+			) }
+		</View>
+	);
+};
+
 const Member: React.FC<MemberProps> = ({ data }) => {
 	switch (data.kind) {
 		case "MethodSignature":
 			return <MethodSignature data={data} small />;
 		case "PropertySignature":
+			return <PropertySignature data={data} small />;
+		case "MethodDeclaration":
+			return <MethodSignature data={data} small />;
+		case "PropertyDeclaration":
 			return <PropertySignature data={data} small />;
 	}
 	return <></>;
@@ -235,6 +268,8 @@ const Entry: React.FC<EntryProps> = ({ data }) => {
 			return <TypeAliasDeclaration data={data} />;
 		case "InterfaceDeclaration":
 			return <InterfaceDeclaration data={data} />;
+		case "ClassDeclaration":
+			return <ClassDeclaration data={data} />;
 	}
 	return <></>;
 };
@@ -265,11 +300,15 @@ const JSDoc: React.FC<EntryProps> = ({data}) => {
 
 interface DocProps {
 	name: string,
+	anchor?: string,
+	onAnchor?: () => void,
 	typeref?: (name: string) => void,
 }
 
 const Doc: React.FC<ViewPropsAnd<DocProps>> = ({
 	name,
+	anchor,
+	onAnchor,
 	typeref,
 	...args
 }) => {
@@ -284,6 +323,8 @@ const Doc: React.FC<ViewPropsAnd<DocProps>> = ({
 	return (
 		<DocCtx.Provider value={{
 			typeref: typeref,
+			anchor: anchor,
+			onAnchor: onAnchor,
 		}}>
 			<View stretchX {...args} gap={3}>
 				{entries.map((e: any, i: number) => <Entry key={`${e.name}-${i}`} data={e} />)}
@@ -294,6 +335,8 @@ const Doc: React.FC<ViewPropsAnd<DocProps>> = ({
 };
 
 interface DocCtx {
+	anchor?: string,
+	onAnchor?: () => void,
 	typeref?: (name: string) => void,
 }
 

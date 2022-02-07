@@ -82,7 +82,17 @@ export interface KaboomCtx {
 	 * })
 	 * ```
 	 */
-	add<T>(comps: CompList<T>): GameObj<T>,
+	add<T>(comps: CompList<T> | GameObj<T>): GameObj<T>,
+	/**
+	 * Create a game object from a list of components, without adding it to the scene.
+	 *
+	 * @since v2001.0
+	 */
+	make<T>(comps?: CompList<T>): GameObj<T>,
+	/**
+	 * Remove and re-add the game obj, without triggering add / destroy events.
+	 */
+	readd(obj: GameObj),
 	/**
 	 * Get a list of all game objs with certain tag.
 	 *
@@ -123,16 +133,6 @@ export interface KaboomCtx {
 	 * Run callback on every game obj in reverse order.
 	 */
 	revery<T>(action: (obj: GameObj) => T): void,
-	/**
-	 * Remove and re-add the game obj.
-	 *
-	 * @example
-	 * ```js
-	 * // mainly useful when you want to make something to draw on top
-	 * readd(froggy)
-	 * ```
-	 */
-	readd(obj: GameObj): GameObj,
 	/**
 	 * Remove the game obj.
 	 *
@@ -362,10 +362,6 @@ export interface KaboomCtx {
 	 */
 	origin(o: Origin | Vec2): OriginComp,
 	/**
-	 * Which layer this object belongs to.
-	 */
-	layer(l: string): LayerComp,
-	/**
 	 * Determines the draw order for objects on the same layer. Object will be drawn on top if z value is bigger.
 	 */
 	z(z: number): ZComp,
@@ -388,15 +384,15 @@ export interface KaboomCtx {
 	 * ])
 	 *
 	 * // when froggy is grounded, press space to jump
-	 * // check out BodyComp for more methods
+	 * // check out #BodyComp for more methods
 	 * onKeyPress("space", () => {
 	 *     if (froggy.isGrounded()) {
 	 *         froggy.jump()
 	 *     }
 	 * })
 	 *
-	 * // a custom event provided by "body"
-	 * froggy.on("ground", () => {
+	 * // run something when froggy falls and hits a ground
+	 * froggy.onGround(() => {
 	 *     debug.log("oh no!")
 	 * })
 	 * ```
@@ -438,19 +434,33 @@ export interface KaboomCtx {
 	 */
 	move(direction: number | Vec2, speed: number): MoveComp,
 	/**
-	 * destroy() the character if it's out of screen. Optionally specify the amount of time it has to be off-screen before removal.
+	 * Control the behavior of object when it goes out of view.
+	 *
+	 * @since v2000.2
 	 *
 	 * @example
 	 * ```js
-	 * // remove this 3 seconds after it leaves screen
 	 * add([
-	 *     pos(80, 80),
-	 *     move(LEFT, 120),
-	 *     cleanup(3),
+	 *     pos(1200, 80),
+	 *     outview({ hide: true, pause: true }),
 	 * ])
 	 * ```
 	 */
-	cleanup(time?: number): CleanupComp,
+	outview(opt?: OutviewCompOpt): OutviewComp,
+	/**
+	 * destroy() the object if it goes out of screen. Optionally specify the amount of time it has to be off-screen before removal.
+	 *
+	 * @example
+	 * ```js
+	 * // destroy when it leaves screen
+	 * const bullet = add([
+	 *     pos(80, 80),
+	 *     move(LEFT, 960),
+	 *     cleanup(),
+	 * ])
+	 * ```
+	 */
+	cleanup(opt?: CleanupCompOpt): CleanupComp,
 	/**
 	 * Follow another game obj's position.
 	 */
@@ -464,11 +474,11 @@ export interface KaboomCtx {
 	 */
 	timer(n?: number, action?: () => void): TimerComp,
 	/**
-	 * Unaffected by camera.
+	 * Make object unaffected by camera or parent object transforms, and render at last.
 	 *
 	 * @example
 	 * ```js
-	 * // this score counter better be fixed on top left and not affected by camera
+	 * // this will be be fixed on top left and not affected by camera
 	 * const score = add([
 	 *     text(0),
 	 *     pos(12, 12),
@@ -540,7 +550,7 @@ export interface KaboomCtx {
 	/**
 	 * Finite state machine.
 	 *
-	 * @since v2000.1.0
+	 * @since v2000.1
 	 *
 	 * @example
 	 * ```js
@@ -575,7 +585,38 @@ export interface KaboomCtx {
 	 * })
 	 * ```
 	 */
-	state(initialState: string, stateList?: string[]): StateComp,
+	state(
+		initialState: string,
+		stateList?: string[],
+	): StateComp,
+	/**
+	 * state() with pre-defined transitions.
+	 *
+	 * @since v2000.2
+	 *
+	 * @example
+	 * ```js
+	 * const enemy = add([
+	 *     pos(80, 100),
+	 *     sprite("robot"),
+	 *     state("idle", ["idle", "attack", "move"], {
+	 *         "idle": "attack",
+	 *         "attack": "move",
+	 *         "move": [ "idle", "attack" ],
+	 *     }),
+	 * ])
+	 *
+	 * // this callback will only run once when enter "attack" state from "idle"
+	 * enemy.onStateTransition("idle", "attack", () => {
+	 *     checkHit(enemy, player)
+	 * })
+	 * ```
+	 */
+	state(
+		initialState: string,
+		stateList: string[],
+		transitions: Record<string, string | string[]>,
+	): StateComp,
 	/**
 	 * Register an event on all game objs with certain tag.
 	 *
@@ -595,7 +636,7 @@ export interface KaboomCtx {
 	/**
 	 * Register an event that runs every frame (~60 times per second) for all game objs with certain tag.
 	 *
-	 * @since v2000.1.0
+	 * @since v2000.1
 	 *
 	 * @example
 	 * ```js
@@ -613,7 +654,7 @@ export interface KaboomCtx {
 	/**
 	 * Register an event that runs every frame (~60 times per second).
 	 *
-	 * @since v2000.1.0
+	 * @since v2000.1
 	 *
 	 * @example
 	 * ```js
@@ -627,13 +668,13 @@ export interface KaboomCtx {
 	/**
 	 * Register an event that runs every frame (~60 times per second) for all game objs with certain tag (this is the same as onUpdate but all draw events are run after update events, drawXXX() functions only work in this phase).
 	 *
-	 * @since v2000.1.0
+	 * @since v2000.1
 	 */
 	onDraw(tag: Tag, action: (obj: GameObj) => void): EventCanceller,
 	/**
 	 * Register an event that runs every frame (~60 times per second) (this is the same as onUpdate but all draw events are run after update events, drawXXX() functions only work in this phase).
 	 *
-	 * @since v2000.1.0
+	 * @since v2000.1
 	 *
 	 * @example
 	 * ```js
@@ -650,7 +691,7 @@ export interface KaboomCtx {
 	/**
 	 * Register an event that runs when all assets finished loading.
 	 *
-	 * @since v2000.1.0
+	 * @since v2000.1
 	 *
 	 * @example
 	 * ```js
@@ -668,7 +709,7 @@ export interface KaboomCtx {
 	/**
 	 * Register an event that runs when 2 game objs with certain tags collides (required to have area() component).
 	 *
-	 * @since v2000.1.0
+	 * @since v2000.1
 	 *
 	 * @example
 	 * ```js
@@ -685,19 +726,31 @@ export interface KaboomCtx {
 	/**
 	 * Register an event that runs when game objs with certain tags are clicked (required to have the area() component).
 	 *
-	 * @since v2000.1.0
+	 * @since v2000.1
+	 *
+	 * @example
+	 * ```js
+	 * // click on any "chest" to open
+	 * onClick("chest", (chest) => chest.open())
+	 * ```
 	 */
 	onClick(tag: Tag, action: (a: GameObj) => void): EventCanceller,
 	/**
 	 * Register an event that runs when users clicks.
 	 *
-	 * @since v2000.1.0
+	 * @since v2000.1
+	 *
+	 * @example
+	 * ```js
+	 * // click on anywhere to go to "game" scene
+	 * onClick(() => go("game"))
+	 * ```
 	 */
 	onClick(action: () => void): EventCanceller,
 	/**
 	 * Register an event that runs when game objs with certain tags are hovered (required to have area() component).
 	 *
-	 * @since v2000.1.0
+	 * @since v2000.1
 	 */
 	onHover(
 		tag: Tag,
@@ -706,7 +759,7 @@ export interface KaboomCtx {
 	/**
 	 * Register an event that runs every frame when a key is held down.
 	 *
-	 * @since v2000.1.0
+	 * @since v2000.1
 	 *
 	 * @example
 	 * ```js
@@ -720,7 +773,7 @@ export interface KaboomCtx {
 	/**
 	 * Register an event that runs when user presses certain key.
 	 *
-	 * @since v2000.1.0
+	 * @since v2000.1
 	 *
 	 * @example
 	 * ```js
@@ -734,7 +787,7 @@ export interface KaboomCtx {
 	/**
 	 * Register an event that runs when user presses any key.
 	 *
-	 * @since v2000.1.0
+	 * @since v2000.1
 	 *
 	 * @example
 	 * ```js
@@ -748,7 +801,7 @@ export interface KaboomCtx {
 	/**
 	 * Register an event that runs when user presses certain key (also fires repeatedly when they key is being held down).
 	 *
-	 * @since v2000.1.0
+	 * @since v2000.1
 	 *
 	 * @example
 	 * ```js
@@ -763,19 +816,19 @@ export interface KaboomCtx {
 	/**
 	 * Register an event that runs when user releases certain key.
 	 *
-	 * @since v2000.1.0
+	 * @since v2000.1
 	 */
 	onKeyRelease(k: Key | Key[], action: () => void): EventCanceller,
 	onKeyRelease(action: () => void): EventCanceller,
 	/**
 	 * Register an event that runs when user inputs text.
 	 *
-	 * @since v2000.1.0
+	 * @since v2000.1
 	 *
 	 * @example
 	 * ```js
 	 * // type into input
-	 * onChatInput((ch) => {
+	 * onCharInput((ch) => {
 	 *     input.text += ch
 	 * })
 	 * ```
@@ -784,120 +837,48 @@ export interface KaboomCtx {
 	/**
 	 * Register an event that runs every frame when a mouse button is being held down.
 	 *
-	 * @since v2000.1.0
+	 * @since v2000.1
 	 */
 	onMouseDown(action: (pos: Vec2) => void): EventCanceller,
 	onMouseDown(button: MouseButton, action: (pos: Vec2) => void): EventCanceller,
 	/**
 	 * Register an event that runs when user clicks mouse.
 	 *
-	 * @since v2000.1.0
+	 * @since v2000.1
 	 */
 	onMousePress(action: (pos: Vec2) => void): EventCanceller,
 	onMousePress(button: MouseButton, action: (pos: Vec2) => void): EventCanceller,
 	/**
 	 * Register an event that runs when user releases mouse.
 	 *
-	 * @since v2000.1.0
+	 * @since v2000.1
 	 */
 	onMouseRelease(action: (pos: Vec2) => void): EventCanceller,
 	onMouseRelease(button: MouseButton, action: (pos: Vec2) => void): EventCanceller,
 	/**
 	 * Register an event that runs whenever user move the mouse.
 	 *
-	 * @since v2000.1.0
+	 * @since v2000.1
 	 */
 	onMouseMove(action: (pos: Vec2) => void): EventCanceller,
 	/**
 	 * Register an event that runs when a touch starts.
 	 *
-	 * @since v2000.1.0
+	 * @since v2000.1
 	 */
 	onTouchStart(action: (id: TouchID, pos: Vec2) => void): EventCanceller,
 	/**
 	 * Register an event that runs whenever touch moves.
 	 *
-	 * @since v2000.1.0
+	 * @since v2000.1
 	 */
 	onTouchMove(action: (id: TouchID, pos: Vec2) => void): EventCanceller,
 	/**
 	 * Register an event that runs when a touch ends.
 	 *
-	 * @since v2000.1.0
+	 * @since v2000.1
 	 */
 	onTouchEnd(action: (id: TouchID, pos: Vec2) => void): EventCanceller,
-	/**
-	 * @deprecated Use onUpdate() instead
-	 */
-	action: KaboomCtx["onUpdate"],
-	/**
-	 * @deprecated Use onDraw() instead
-	 */
-	render: KaboomCtx["onDraw"],
-	/**
-	 * @deprecated Use onLoad() instead.
-	 */
-	ready: KaboomCtx["onLoad"],
-	/**
-	 * @deprecated Use onCollide() instead
-	 */
-	collides: KaboomCtx["onCollide"],
-	/**
-	 * @deprecated Use onClick() instead
-	 */
-	clicks: KaboomCtx["onClick"],
-	/**
-	 * @deprecated Use onHover() instead
-	 */
-	hovers: KaboomCtx["onHover"],
-	/**
-	 * @deprecated Use onKeyDown() instead.
-	 */
-	keyDown: KaboomCtx["onKeyDown"],
-	/**
-	 * @deprecated Use onKeyPress() instead.
-	 */
-	keyPress: KaboomCtx["onKeyPress"],
-	/**
-	 * @deprecated Use onKeyPressRepeat() instead.
-	 */
-	keyPressRep: KaboomCtx["onKeyPressRepeat"],
-	/**
-	 * @deprecated Use onKeyPress() instead.
-	 */
-	keyRelease: KaboomCtx["onKeyRelease"],
-	/**
-	 * @deprecated Use onCharInput() instead.
-	 */
-	charInput: KaboomCtx["onCharInput"],
-	/**
-	 * @deprecated Use onClick() or onMousePress() instead.
-	 */
-	mouseClick: KaboomCtx["onMousePress"],
-	/**
-	 * @deprecated Use onMouseRelease() instead.
-	 */
-	mouseRelease: KaboomCtx["onMouseRelease"],
-	/**
-	 * @deprecated Use onMouseDown() instead.
-	 */
-	mouseDown: KaboomCtx["onMouseDown"],
-	/**
-	 * @deprecated Use onMouseMove() instead.
-	 */
-	mouseMove: KaboomCtx["onMouseMove"],
-	/**
-	 * @deprecated Use onTouchStart() instead.
-	 */
-	touchStart: KaboomCtx["onTouchStart"],
-	/**
-	 * @deprecated Use onTouchMove() instead.
-	 */
-	touchMove: KaboomCtx["onTouchMove"],
-	/**
-	 * @deprecated Use onTouchEnd() instead.
-	 */
-	touchEnd: KaboomCtx["onTouchEnd"],
 	/**
 	 * Sets the root for all subsequent resource urls.
 	 *
@@ -937,7 +918,7 @@ export interface KaboomCtx {
 	 * ```
 	 */
 	loadSprite(
-		id: string | null,
+		name: string | null,
 		src: SpriteLoadSrc,
 		options?: SpriteLoadOpt,
 	): Promise<SpriteData>,
@@ -1030,7 +1011,7 @@ export interface KaboomCtx {
 	 * ```
 	 */
 	loadSound(
-		id: string,
+		name: string | null,
 		src: string,
 	): Promise<SoundData>,
 	/**
@@ -1043,11 +1024,11 @@ export interface KaboomCtx {
 	 * loadFont("04b03", "fonts/04b03.png", 6, 8)
 	 *
 	 * // load a font with custom characters
-	 * loadFont("cp437", "cp437.png", 6, 8, "☺☻♥♦♣♠")
+	 * loadFont("myfont", "myfont.png", 6, 8, { chars: "☺☻♥♦♣♠" })
 	 * ```
 	 */
 	loadFont(
-		id: string,
+		name: string | null,
 		src: string,
 		gridWidth: number,
 		gridHeight: number,
@@ -1074,7 +1055,7 @@ export interface KaboomCtx {
 	 * ```
 	 */
 	loadShader(
-		name: string,
+		name: string | null,
 		vert?: string,
 		frag?: string,
 		isUrl?: boolean,
@@ -1091,6 +1072,7 @@ export interface KaboomCtx {
 	 * ```
 	 */
 	load<T>(l: Promise<T>): void,
+	loadProgress<T>(): number,
 	/**
 	 * Get the width of game.
 	 *
@@ -1134,13 +1116,9 @@ export interface KaboomCtx {
 	/**
 	 * If the game canvas is currently focused.
 	 *
-	 * @since v2000.1.0
+	 * @since v2000.1
 	 */
 	isFocused(): boolean,
-	/**
-	 * Focus on the game canvas.
-	 */
-	focus(): void,
 	/**
 	 * Is currently on a touch screen device.
 	 */
@@ -1150,17 +1128,13 @@ export interface KaboomCtx {
 	 */
 	mousePos(): Vec2,
 	/**
-	 * Get current mouse position (after camera transform)
-	 */
-	mouseWorldPos(): Vec2,
-	/**
 	 * How much mouse moved last frame.
 	 */
 	mouseDeltaPos(): Vec2,
 	/**
 	 * If certain key is currently down.
 	 *
-	 * @since v2000.1.0
+	 * @since v2000.1
 	 *
 	 * @example
 	 * ```js
@@ -1172,47 +1146,47 @@ export interface KaboomCtx {
 	 * })
 	 * ```
 	 */
-	isKeyDown(k: Key): boolean,
+	isKeyDown(k?: Key): boolean,
 	/**
 	 * If certain key is just pressed last frame.
 	 *
-	 * @since v2000.1.0
+	 * @since v2000.1
 	 */
 	isKeyPressed(k?: Key): boolean,
 	/**
 	 * If certain key is just pressed last frame (also fires repeatedly when the key is being held down).
 	 *
-	 * @since v2000.1.0
+	 * @since v2000.1
 	 */
 	isKeyPressedRepeat(k?: Key): boolean,
 	/**
 	 * If certain key is just released last frame.
 	 *
-	 * @since v2000.1.0
+	 * @since v2000.1
 	 */
 	isKeyReleased(k?: Key): boolean,
 	/**
 	 * If a mouse button is currently down.
 	 *
-	 * @since v2000.1.0
+	 * @since v2000.1
 	 */
 	isMouseDown(button?: MouseButton): boolean,
 	/**
 	 * If a mouse button is just clicked last frame.
 	 *
-	 * @since v2000.1.0
+	 * @since v2000.1
 	 */
 	isMousePressed(button?: MouseButton): boolean,
 	/**
 	 * If a mouse button is just released last frame.
 	 *
-	 * @since v2000.1.0
+	 * @since v2000.1
 	 */
 	isMouseReleased(button?: MouseButton): boolean,
 	/**
 	 * If mouse moved last frame.
 	 *
-	 * @since v2000.1.0
+	 * @since v2000.1
 	 */
 	isMouseMoved(): boolean,
 	/**
@@ -1260,32 +1234,6 @@ export interface KaboomCtx {
 	 */
 	gravity(g: number): number,
 	/**
-	 * Define layers (the last one will be on top).
-	 *
-	 * @example
-	 * ```js
-	 * // defining 3 layers, "ui" will be drawn on top most, with default layer being "game"
-	 * layers([
-	 *     "bg",
-	 *     "game",
-	 *     "ui",
-	 * ], "game")
-	 *
-	 * // use layer() comp to define which layer an obj belongs to
-	 * add([
-	 *     text(score),
-	 *     layer("ui"),
-	 *     fixed(),
-	 * ])
-	 *
-	 * // without layer() comp it'll fall back to default layer, which is "game"
-	 * add([
-	 *     sprite("froggy"),
-	 * ])
-	 * ```
-	 */
-	layers(list: string[], def?: string): void,
-	/**
 	 * Get / set the cursor (css). Cursor will be reset to "default" every frame so use this in an per-frame action.
 	 *
 	 * @example
@@ -1325,42 +1273,6 @@ export interface KaboomCtx {
 	 * If currently in fullscreen mode.
 	 */
 	isFullscreen(): boolean,
-	/**
-	 * @deprecated Use isKeyDown() instead.
-	 */
-	keyIsDown: KaboomCtx["isKeyDown"],
-	/**
-	 * @deprecated Use isKeyPressed() instead.
-	 */
-	keyIsPressed: KaboomCtx["isKeyPressed"],
-	/**
-	 * @deprecated Use isKeyPressedRepeat() instead.
-	 */
-	keyIsPressedRep: KaboomCtx["isKeyPressedRepeat"],
-	/**
-	 * @deprecated Use isKeyReleased() instead.
-	 */
-	keyIsReleased: KaboomCtx["isKeyReleased"],
-	/**
-	 * @deprecated Use isMouseDown() instead.
-	 */
-	mouseIsDown: KaboomCtx["isMouseDown"],
-	/**
-	 * @deprecated Use isMouseClicked() instead.
-	 */
-	mouseIsClicked: KaboomCtx["isMouseClicked"],
-	/**
-	 * @deprecated Use isMouseReleased() instead.
-	 */
-	mouseIsReleased: KaboomCtx["isMouseReleased"],
-	/**
-	 * @deprecated Use isMouseMoved() instead.
-	 */
-	mouseIsMoved: KaboomCtx["isMouseMoved"],
-	/**
-	 * @deprecated Use isFocused() instead.
-	 */
-	focused(): boolean,
 	/**
 	 * Run the callback after n seconds.
 	 *
@@ -1504,7 +1416,7 @@ export interface KaboomCtx {
 	 * vec2(100, 80)
 	 *
 	 * // move to 150 degrees direction with by length 10
-	 * player.pos = pos.add(dir(150).scale(10))
+	 * player.pos = pos.add(Vec2.fromAngle(150).scale(10))
 	 * ```
 	 */
 	vec2(x: number, y: number): Vec2,
@@ -1524,7 +1436,7 @@ export interface KaboomCtx {
 	/**
 	 * Convert HSL color (all values in 0.0 - 1.0 range) to RGB color.
 	 *
-	 * @since v2000.1.0
+	 * @since v2000.1
 	 *
 	 * @example
 	 * ```js
@@ -1588,18 +1500,6 @@ export interface KaboomCtx {
 		h2: number,
 	): number,
 	/**
-	 * Get directional vector from an angle
-	 *
-	 * @example
-	 * ```js
-	 * // move towards 80 deg direction at SPEED
-	 * player.onUpdate(() => {
-	 *     player.move(dir(80).scale(SPEED))
-	 * })
-	 * ```
-	 */
-	dir(deg: number): Vec2,
-	/**
 	 * Interpolate between 2 values (Optionally takes a custom periodic function, which default to Math.sin).
 	 *
 	 * @example
@@ -1621,10 +1521,6 @@ export interface KaboomCtx {
 	 * Convert radians to degrees.
 	 */
 	rad2deg(rad: number): number,
-	/**
-	 * Make a new random number generator.
-	 */
-	rng(seed: number): RNG,
 	/**
 	 * Check if 2 lines intersects, if yes returns the intersection point.
 	 */
@@ -1736,7 +1632,7 @@ export interface KaboomCtx {
 	 *
 	 * @example
 	 * ```js
-	 * draRect({
+	 * drawRect({
 	 *     width: 120,
 	 *     height: 240,
 	 *     pos: vec2(20, 20),
@@ -1842,7 +1738,7 @@ export interface KaboomCtx {
 	/**
 	 * Draw a piece of formatted text from formatText().
 	 *
-	 * @since v2000.2.0
+	 * @since v2000.2
 	 *
 	 * @example
 	 * ```js
@@ -1860,6 +1756,18 @@ export interface KaboomCtx {
 	 * ```
 	 */
 	drawFormattedText(text: FormattedText): void,
+	/**
+	 * Whatever drawn in content will only be drawn if it's also drawn in mask (mask will not be rendered).
+	 *
+	 * @since v2001.0
+	 */
+	drawMasked(content: () => void, mask: () => void): void,
+	/**
+	 * Subtract whatever drawn in content by whatever drawn in mask (mask will not be rendered).
+	 *
+	 * @since v2001.0
+	 */
+	drawSubtracted(content: () => void, mask: () => void): void,
 	/**
 	 * Push current transform matrix to the transform stack.
 	 *
@@ -1911,9 +1819,27 @@ export interface KaboomCtx {
 	 */
 	pushRotate(angle: number): void,
 	/**
+	 * Rotate all subsequent draws on X axis.
+	 *
+	 * @since v2001.0
+	 */
+	pushRotateX(angle: number): void,
+	/**
+	 * Rotate all subsequent draws on Y axis.
+	 *
+	 * @since v2001.0
+	 */
+	pushRotateY(angle: number): void,
+	/**
+	 * Rotate all subsequent draws on Z axis (the default).
+	 *
+	 * @since v2001.0
+	 */
+	pushRotateZ(angle: number): void,
+	/**
 	 * Format a piece of text without drawing (for getting dimensions, etc).
 	 *
-	 * @since v2000.2.0
+	 * @since v2000.2
 	 *
 	 * @example
 	 * ```js
@@ -1961,9 +1887,13 @@ export interface KaboomCtx {
 	 *
 	 * @returns A control handle.
 	 *
-	 * @since v2000.1.0
+	 * @since v2000.1
 	 */
 	record(frameRate?: number): Recording,
+	/**
+	 * Add an explosion
+	 */
+	addKaboom(pos: Vec2, opt?: BoomOpt): GameObj,
 	/**
 	 * All chars in ASCII.
 	 */
@@ -2098,9 +2028,19 @@ export interface KaboomOpt {
 	 */
 	logMax?: number,
 	/**
+	 * If log messages should include also print time.
+	 */
+	logTime?: boolean,
+	/**
 	 * If translate touch events as mouse clicks (default true).
 	 */
 	touchToMouse?: boolean,
+	/**
+	 * If kaboom should render a default loading screen when assets are not fully ready (default true).
+	 *
+	 * @since v2001.0
+	 */
+	loadingScreen?: boolean,
 	/**
 	 * If import all kaboom functions to global (default true).
 	 */
@@ -2138,6 +2078,82 @@ export interface GameObjRaw {
 	 */
 	exists(): boolean,
 	/**
+	 * Add a child.
+	 *
+	 * @since v2000.2.0
+	 */
+	add<T>(comps: CompList<T> | GameObj<T>): GameObj<T>,
+	/**
+	 * Remove and re-add the game obj, without triggering add / destroy events.
+	 */
+	readd(obj: GameObj),
+	/**
+	 * Remove a child.
+	 *
+	 * @since v2000.2.0
+	 */
+	remove(obj: GameObj): void,
+	/**
+	 * Remove all children with a certain tag.
+	 *
+	 * @since v2000.2.0
+	 */
+	removeAll(tag: Tag): void,
+	/**
+	 * Get a list of all game objs with certain tag.
+	 *
+	 * @since v2000.2.0
+	 */
+	get(tag?: Tag | Tag[]): GameObj[],
+	/**
+	 * Iterate through children.
+	 *
+	 * @since v2000.2.0
+	 */
+	every<T>(action: (obj: GameObj) => T): void,
+	/**
+	 * Iterate through children.
+	 *
+	 * @since v2000.2.0
+	 */
+	every<T>(tag: Tag | Tag[], action: (obj: GameObj) => T): void,
+	/**
+	 * Iterate through children, in reverse.
+	 *
+	 * @since v2000.2.0
+	 */
+	revery<T>(action: (obj: GameObj) => T): void,
+	/**
+	 * Iterate through children, in reverse.
+	 *
+	 * @since v2000.2.0
+	 */
+	revery<T>(tag: Tag | Tag[], action: (obj: GameObj) => T): void,
+	/**
+	 * Get the parent game obj, if have any.
+	 *
+	 * @since v2000.2.0
+	 */
+	parent: GameObj | null,
+	/**
+	 * Get all children game objects.
+	 *
+	 * @since v2000.2.0
+	 */
+	children: GameObj[],
+	/**
+	 * Update this game object and all children game objects.
+	 *
+	 * @since v2000.2.0
+	 */
+	update(): void,
+	/**
+	 * Draw this game object and all children game objects.
+	 *
+	 * @since v2000.2.0
+	 */
+	draw(): void,
+	/**
 	 * If there's certain tag(s) on the game obj.
 	 */
 	is(tag: Tag | Tag[]): boolean,
@@ -2154,11 +2170,11 @@ export interface GameObjRaw {
 	/**
 	 * Register an event.
 	 */
-	on(ev: string, action: () => void): EventCanceller,
+	on(event: string, action: () => void): EventCanceller,
 	/**
 	 * Trigger an event.
 	 */
-	trigger(ev: string, ...args): void,
+	trigger(event: string, ...args): void,
 	/**
 	 * Remove the game obj from scene.
 	 */
@@ -2174,27 +2190,21 @@ export interface GameObjRaw {
 	/**
 	 * Register an event that runs every frame as long as the game obj exists.
 	 *
-	 * @since v2000.1.0
+	 * @since v2000.1
 	 */
 	onUpdate(action: () => void): EventCanceller,
 	/**
 	 * Register an event that runs every frame as long as the game obj exists (this is the same as `onUpdate()`, but all draw events are run after all update events).
 	 *
-	 * @since v2000.1.0
+	 * @since v2000.1
 	 */
 	onDraw(action: () => void): EventCanceller,
 	/**
 	 * Register an event that runs when the game obj is destroyed.
 	 *
-	 * @since v2000.1.0
+	 * @since v2000.1
 	 */
 	onDestroy(action: () => void): EventCanceller,
-	/**
-	 * Register an event that runs every frame as long as the game obj exists (alias to onUpdate).
-	 *
-	 * @deprecated Use onUpdate() instead.
-	 */
-	action: GameObjRaw["onUpdate"],
 }
 
 /**
@@ -2275,6 +2285,13 @@ export interface SpriteAnimPlayOpt {
 	 * Runs when this animation ends.
 	 */
 	onEnd?: () => void,
+}
+
+export interface PeditFile {
+	width: number,
+	height: number,
+	frames: string[],
+	anims: SpriteAnims,
 }
 
 /**
@@ -2404,13 +2421,13 @@ export interface AudioPlay {
 	/**
 	 * If the sound is paused.
 	 *
-	 * @since v2000.1.0
+	 * @since v2000.1
 	 */
 	isPaused(): boolean,
 	/**
 	 * If the sound is stopped or ended.
 	 *
-	 * @since v2000.1.0
+	 * @since v2000.1
 	 */
 	isStopped(): boolean,
 	/**
@@ -2450,21 +2467,12 @@ export interface AudioPlay {
 	 * Set audio to not play in loop.
 	 */
 	unloop(): void,
-	/**
-	 * @deprecated Use isPaused() instead.
-	 */
-	paused(): boolean,
-	/**
-	 * @deprecated Use isStopped() instead.
-	 */
-	stopped(): boolean,
 }
 
 // TODO: hide
 export interface GfxShader {
 	bind(): void,
 	unbind(): void,
-	bindAttribs(): void,
 	send(uniform: Uniform): void,
 }
 
@@ -2515,7 +2523,8 @@ export interface RenderProps {
 	angle?: number,
 	color?: Color,
 	opacity?: number,
-	shader?: GfxShader,
+	fixed?: boolean,
+	shader?: GfxShader | string,
 	uniform?: Uniform,
 }
 
@@ -2608,6 +2617,18 @@ export type DrawRectOpt = RenderProps & {
 	 * If draw an outline around the shape.
 	 */
 	outline?: Outline,
+	/**
+	 * Use gradient instead of solid color.
+	 *
+	 * @since v2001.0
+	 */
+	gradient?: [Color, Color],
+	/**
+	 * If the gradient should be horizontal.
+	 *
+	 * @since v2001.0
+	 */
+	horizontal?: boolean,
 	/**
 	 * If fill the shape with color (set this to false if you only want an outline).
 	 */
@@ -2713,6 +2734,12 @@ export type DrawCircleOpt = Omit<RenderProps, "angle"> & {
 	 */
 	fill?: boolean,
 	/**
+	 * Use gradient instead of solid color.
+	 *
+	 * @since v2001.0
+	 */
+	gradient?: [Color, Color],
+	/**
 	 * Multipliyer for the number of polygon segments.
 	 */
 	resolution?: number,
@@ -2751,6 +2778,12 @@ export type DrawEllipseOpt = RenderProps & {
 	 */
 	fill?: boolean,
 	/**
+	 * Use gradient instead of solid color.
+	 *
+	 * @since v2001.0
+	 */
+	gradient?: [Color, Color],
+	/**
 	 * Multipliyer for the number of polygon segments.
 	 */
 	resolution?: number,
@@ -2788,6 +2821,12 @@ export type DrawPolygonOpt = RenderProps & {
 	 * The radius of each corner.
 	 */
 	radius?: number,
+	/**
+	 * The color of each vertice.
+	 *
+	 * @since v2001.0
+	 */
+	colors?: Color[],
 }
 
 export interface Outline {
@@ -2822,15 +2861,33 @@ export type DrawTextOpt = RenderProps & {
 	 */
 	width?: number,
 	/**
+	 * The gap between each line.
+	 *
+	 * @since v2000.2
+	 */
+	lineSpacing?: number,
+	/**
+	 * The gap between each character.
+	 *
+	 * @since v2000.2
+	 */
+	letterSpacing?: number,
+	/**
 	 * The origin point, or the pivot point. Default to "topleft".
 	 */
 	origin?: Origin | Vec2,
 	/**
 	 * Transform the pos, scale, rotation or color for each character based on the index or char.
 	 *
-	 * @since v2000.1.0
+	 * @since v2000.1
 	 */
-	transform?: (idx: number, ch: string) => CharTransform,
+	transform?: CharTransform | CharTransformFunc,
+	/**
+	 * Stylesheet for styled chunks, in the syntax of "this is a [styled].stylename word".
+	 *
+	 * @since v2000.2
+	 */
+	styles?: Record<string, CharTransform | CharTransformFunc>,
 }
 
 /**
@@ -2853,10 +2910,19 @@ export interface FormattedChar {
 	scale: Vec2,
 	angle: number,
 	color: Color,
+	fixed: boolean,
 	opacity: number,
-	origin: string,
+	uniform: Uniform,
 }
 
+/**
+ * A function that returns a character transform config. Useful if you're generating dynamic styles.
+ */
+export type CharTransformFunc = (idx: number, ch: string) => CharTransform;
+
+/**
+ * Describes how to transform each character.
+ */
 export interface CharTransform {
 	pos?: Vec2,
 	scale?: Vec2 | number,
@@ -2917,127 +2983,154 @@ export type Origin =
 	| "botright"
 	;
 
-export interface Vec2 {
-	x: number,
-	y: number,
-	clone(): Vec2,
+export declare class Vec2 {
+	x: number
+	y: number
+	static LEFT: Vec2
+	static RIGHT: Vec2
+	static UP: Vec2
+	static DOWN: Vec2
+	static fromAngle(deg: number): Vec2
+	constructor(x: number, y: number)
+	constructor(xy: number)
+	constructor()
+	clone(): Vec2
 	/**
 	 * Returns the addition with another vector.
 	 */
-	add(p: Vec2): Vec2,
-	add(x: number, y: number): Vec2,
+	add(p: Vec2): Vec2
+	add(x: number, y: number): Vec2
 	/**
 	 * Returns the subtraction with another vector.
 	 */
-	sub(p: Vec2): Vec2,
-	sub(x: number, y: number): Vec2,
+	sub(p: Vec2): Vec2
+	sub(x: number, y: number): Vec2
 	/**
 	 * Scale by another vector, or a single number.
 	 */
-	scale(p: Vec2): Vec2,
-	scale(s: number): Vec2,
-	scale(sx: number, sy: number): Vec2,
+	scale(p: Vec2): Vec2
+	scale(s: number): Vec2
+	scale(sx: number, sy: number): Vec2
 	/**
 	 * Get the dot product with another vector.
 	 */
-	dot(p: Vec2): number,
+	dot(p: Vec2): number
 	/**
 	 * Get distance between another vector.
 	 */
-	dist(p: Vec2): number,
-	len(): number,
+	dist(p: Vec2): number
+	len(): number
 	/**
 	 * Get the unit vector (length of 1).
 	 */
-	unit(): Vec2,
+	unit(): Vec2
 	/**
 	 * Get the perpendicular vector.
 	 */
-	normal(): Vec2,
+	normal(): Vec2
 	/**
 	 * Get the angle between another vector
 	 */
-	angle(p: Vec2): number,
+	angle(p: Vec2): number
 	/**
 	 * Linear interpolate to a destination vector
 	 */
-	lerp(p: Vec2, t: number): Vec2,
+	lerp(p: Vec2, t: number): Vec2
 	/**
 	 * To n precision floating point.
 	 */
-	toFixed(n: number): Vec2,
-	eq(p: Vec2): boolean,
-	str(): string,
+	toFixed(n: number): Vec2
+	eq(p: Vec2): boolean
+	toString(): string
 }
 
-export interface Vec3 {
-	x: number,
-	y: number,
-	z: number,
-	xy(): Vec2,
+export declare class Vec3 {
+	x: number
+	y: number
+	z: number
+	constructor(x: number, y: number, z: number)
+	xy(): Vec2
 }
 
-export interface Vec4 {
-	x: number,
-	y: number,
-	z: number,
-	w: number,
+export declare class Vec4 {
+	x: number
+	y: number
+	z: number
+	w: number
 }
 
-export interface Mat4 {
-	m: number[],
-	clone(): Mat4,
-	mult(m: Mat4): Mat4,
-	multVec4(m: Vec4): Vec4,
-	multVec3(m: Vec3): Vec3,
-	multVec2(m: Vec2): Vec2,
-	scale(s: Vec2): Mat4,
-	translate(p: Vec2): Mat4,
-	rotateX(a: number): Mat4,
-	rotateY(a: number): Mat4,
-	rotateZ(a: number): Mat4,
-	invert(): Mat4,
+export declare class Mat4 {
+	m: number[];
+	constructor(m?: number[]);
+	static translate(p: Vec2): Mat4;
+	static scale(s: Vec2): Mat4;
+	static rotateX(a: number): Mat4;
+	static rotateY(a: number): Mat4;
+	static rotateZ(a: number): Mat4;
+	clone(): Mat4;
+	mult(other: Mat4): Mat4;
+	multVec4(p: Vec4): Vec4;
+	multVec3(p: Vec3): Vec3;
+	multVec2(p: Vec2): Vec2;
+	translate(p: Vec2): Mat4;
+	scale(s: Vec2): Mat4;
+	rotateX(a: number): Mat4;
+	rotateY(a: number): Mat4;
+	rotateZ(a: number): Mat4;
+	invert(): Mat4;
+	toString(): string;
 }
 
 /**
  * 0-255 RGBA color.
  */
-export interface Color {
+export declare class Color {
 	/**
 	 * Red (0-255).
 	 */
-	r: number,
+	r: number;
 	/**
 	 * Green (0-255).
 	 */
-	g: number,
+	g: number;
 	/**
 	 * Blue (0-255).
 	 */
-	b: number,
-	clone(): Color,
+	b: number;
+	constructor(r: number, g: number, b: number);
+	static fromArray(arr: number[]): Color;
+	static RED: Color;
+	static GREEN: Color;
+	static BLUE: Color;
+	static YELLOW: Color;
+	static MAGENTA: Color;
+	static CYAN: Color;
+	static WHITE: Color;
+	static BLACK: Color;
+	clone(): Color;
 	/**
 	 * Lighten the color (adds RGB by n).
 	 */
-	lighten(n: number): Color,
+	lighten(n: number): Color;
 	/**
 	 * Darkens the color (subtracts RGB by n).
 	 */
-	darken(n: number): Color,
-	invert(): Color,
-	mult(other: Color): Color,
-	eq(c: Color): boolean,
-	str(): string,
+	darken(n: number): Color;
+	invert(): Color;
+	mult(other: Color): Color;
+	eq(c: Color): boolean;
+	toString(): string;
 }
 
-export interface Quad {
-	x: number,
-	y: number,
-	w: number,
-	h: number,
-	scale(q: Quad): Quad,
-	clone(): Quad,
-	eq(q: Quad): boolean,
+export declare class Quad {
+	x: number
+	y: number
+	w: number
+	h: number
+	constructor(x: number, y: number, w: number, h: number)
+	scale(q: Quad): Quad
+	clone(): Quad
+	eq(q: Quad): boolean
 }
 
 export type RNGValue =
@@ -3053,19 +3146,22 @@ export interface RNG {
 	gen<T extends RNGValue>(a: T, b: T): T,
 }
 
-export interface Rect {
-	p1: Vec2,
-	p2: Vec2,
+export declare class Rect {
+	p1: Vec2
+	p2: Vec2
+	constructor(p1: Vec2, p2: Vec2)
 }
 
-export interface Line {
-	p1: Vec2,
-	p2: Vec2,
+export declare class Line {
+	p1: Vec2
+	p2: Vec2
+	constructor(p1: Vec2, p2: Vec2)
 }
 
-export interface Circle {
-	center: Vec2,
-	radius: number,
+export declare class Circle {
+	center: Vec2
+	radius: number
+	constructor(pos: Vec2, radius: number)
 }
 
 export type Polygon = Vec2[];
@@ -3163,13 +3259,6 @@ export interface OriginComp extends Comp {
 	origin: Origin | Vec2,
 }
 
-export interface LayerComp extends Comp {
-	/**
-	 * Which layer this game obj belongs to.
-	 */
-	layer: string,
-}
-
 export interface ZComp extends Comp {
 	/**
 	 * Defines the z-index of this game obj
@@ -3185,6 +3274,67 @@ export interface FollowComp extends Comp {
 }
 
 export interface MoveComp extends Comp {
+}
+
+export interface OutviewCompOpt {
+	/**
+	 * If hide object when out of view.
+	 */
+	hide?: boolean,
+	/**
+	 * If pause object when out of view.
+	 */
+	pause?: boolean,
+	/**
+	 * If destroy object when out of view.
+	 */
+	destroy?: boolean,
+	/**
+	 * The screen bound offset.
+	 */
+	offset?: number | Vec2,
+	/**
+	 * If it needs to stay out of view for a period of time before proceed to action.
+	 */
+	delay?: number,
+	/**
+	 * Register an event that runs when object goes out of view.
+	 */
+	onExitView?: () => void,
+	/**
+	 * Register an event that runs when object enters view.
+	 */
+	onEnterView?: () => void,
+}
+
+export interface OutviewComp extends Comp {
+	/**
+	 * If object is currently out of view.
+	 */
+	isOutOfView(): boolean,
+	/**
+	 * Register an event that runs when object goes out of view.
+	 */
+	onExitView(action: () => void): EventCanceller,
+	/**
+	 * Register an event that runs when object enters view.
+	 */
+	onEnterView(action: () => void): EventCanceller,
+}
+
+export interface CleanupCompOpt {
+	/**
+	 * The screen bound offset.
+	 */
+	offset?: number | Vec2,
+	/**
+	 * If it needs to stay out of view for a period of time before proceed to destroy.
+	 */
+	delay?: number,
+	/**
+	 * Register an event that runs when object gets cleaned up.
+	 */
+	onCleanup?: () => void,
 }
 
 export interface CleanupComp extends Comp {
@@ -3271,19 +3421,19 @@ export interface AreaComp extends Comp {
 	/**
 	 * Register an event runs when clicked.
 	 *
-	 * @since v2000.1.0
+	 * @since v2000.1
 	 */
 	onClick(f: () => void): void,
 	/**
 	 * Register an event runs every frame when hovered.
 	 *
-	 * @since v2000.1.0
+	 * @since v2000.1
 	 */
 	onHover(onHover: () => void, onNotHover?: () => void): void,
 	/**
 	 * Register an event runs when collide with another game obj with certain tag.
 	 *
-	 * @since v2000.1.0
+	 * @since v2000.1
 	 */
 	onCollide(tag: Tag, f: (obj: GameObj, col?: Collision) => void): void,
 	/**
@@ -3306,18 +3456,6 @@ export interface AreaComp extends Comp {
 	 * Get the geometry data for the collider in screen coordinate space.
 	 */
 	screenArea(): Area,
-	/**
-	 * @deprecated Use onCollide() instead.
-	 */
-	collides: AreaComp["onCollide"],
-	/**
-	 * @deprecated Use onClick() instead.
-	 */
-	clicks: AreaComp["onClick"],
-	/**
-	 * @deprecated Use onHover() instead.
-	 */
-	hovers: AreaComp["onHover"],
 }
 
 export interface SpriteCompOpt {
@@ -3435,6 +3573,30 @@ export interface TextComp extends Comp {
 	 * Height of text.
 	 */
 	height: number,
+	/**
+	 * The gap between each line.
+	 *
+	 * @since v2000.2
+	 */
+	lineSpacing: number,
+	/**
+	 * The gap between each character.
+	 *
+	 * @since v2000.2
+	 */
+	letterSpacing: number,
+	/**
+	 * Transform the pos, scale, rotation or color for each character based on the index or char.
+	 *
+	 * @since v2000.1
+	 */
+	transform: CharTransform | CharTransformFunc,
+	/**
+	 * Stylesheet for styled chunks, in the syntax of "this is a [styled].stylename word".
+	 *
+	 * @since v2000.2
+	 */
+	styles: Record<string, CharTransform | CharTransformFunc>,
 }
 
 export interface TextCompOpt {
@@ -3451,9 +3613,29 @@ export interface TextCompOpt {
 	 */
 	width?: number,
 	/**
-	 * Transform the pos, scale, rotation or color for each character based on the index or char.
+	 * The gap between each line.
+	 *
+	 * @since v2000.2
 	 */
-	transform?: (idx: number, ch: string) => CharTransform,
+	lineSpacing?: number,
+	/**
+	 * The gap between each character.
+	 *
+	 * @since v2000.2
+	 */
+	letterSpacing?: number,
+	/**
+	 * Transform the pos, scale, rotation or color for each character based on the index or char.
+	 *
+	 * @since v2000.1
+	 */
+	transform?: CharTransform | CharTransformFunc,
+	/**
+	 * Stylesheet for styled chunks, in the syntax of "this is a [styled].stylename word".
+	 *
+	 * @since v2000.2
+	 */
+	styles?: Record<string, CharTransform | CharTransformFunc>,
 }
 
 export interface RectCompOpt {
@@ -3559,15 +3741,15 @@ export interface Debug {
 	/**
 	 * Log some text to on screen debug log.
 	 */
-	log(msg: string): void,
+	log(msg: string | { toString(): string }): void,
 	/**
 	 * Log an error message to on screen debug log.
 	 */
-	error(msg: string): void,
+	error(msg: string | { toString(): string }): void,
 	/**
 	 * The recording handle if currently in recording mode.
 	 *
-	 * @since v2000.1.0
+	 * @since v2000.1
 	 */
 	curRecording: Recording | null,
 }
@@ -3579,7 +3761,8 @@ export type UniformValue =
 	| Mat4
 	;
 
-export type Uniform = Record<string, UniformValue>;
+export type UniformKey = Exclude<string, "u_tex">;
+export type Uniform = Record<UniformKey, UniformValue>;
 
 export interface ShaderComp extends Comp {
 	uniform: Uniform,
@@ -3606,13 +3789,13 @@ export interface BodyComp extends Comp {
 	/**
 	 * If currently landing on a platform.
 	 *
-	 * @since v2000.1.0
+	 * @since v2000.1
 	 */
 	isGrounded(): boolean,
 	/**
 	 * If currently falling.
 	 *
-	 * @since v2000.1.0
+	 * @since v2000.1
 	 */
 	isFalling(): boolean,
 	/**
@@ -3626,35 +3809,27 @@ export interface BodyComp extends Comp {
 	/**
 	 * Register an event that runs when the object is grounded.
 	 *
-	 * @since v2000.1.0
+	 * @since v2000.1
 	 */
 	onGround(action: () => void): EventCanceller,
 	/**
 	 * Register an event that runs when the object starts falling.
 	 *
-	 * @since v2000.1.0
+	 * @since v2000.1
 	 */
 	onFall(action: () => void): EventCanceller,
 	/**
 	 * Register an event that runs when the object bumps into something on the head.
 	 *
-	 * @since v2000.1.0
+	 * @since v2000.1
 	 */
 	onHeadbutt(action: () => void): EventCanceller,
 	/**
 	 * Register an event that runs when the object performs the second jump when double jumping.
 	 *
-	 * @since v2000.1.0
+	 * @since v2000.1
 	 */
 	onDoubleJump(action: () => void): EventCanceller,
-	/**
-	 * @deprecated Use isGrounded() instead.
-	 */
-	grounded(): boolean,
-	/**
-	 * @deprecated Use isFalling() instead.
-	 */
-	falling(): boolean,
 }
 
 export interface BodyCompOpt {
@@ -3676,15 +3851,20 @@ export interface BodyCompOpt {
 	solid?: boolean,
 }
 
-export interface Timer {
+export declare class Timer {
 	/**
-	 * Timer left.
+	 * Time left.
 	 */
-	time: number,
+	time: number
 	/**
-	 * The action to take after time is up.
+	 * The action to take when timer is up
 	 */
-	action(): void,
+	action: () => void
+	readonly finished: boolean
+	paused: boolean
+	constructor(time: number, action: () => void)
+	tick(dt: number): boolean
+	reset(time: number): void
 }
 
 export interface TimerComp extends Comp {
@@ -3735,19 +3915,19 @@ export interface HealthComp extends Comp {
 	/**
 	 * Register an event that runs when hurt() is called upon the object.
 	 *
-	 * @since v2000.1.0
+	 * @since v2000.1
 	 */
 	onHurt(action: () => void): EventCanceller,
 	/**
 	 * Register an event that runs when heal() is called upon the object.
 	 *
-	 * @since v2000.1.0
+	 * @since v2000.1
 	 */
 	onHeal(action: () => void): EventCanceller,
 	/**
 	 * Register an event that runs when object's HP is equal or below 0.
 	 *
-	 * @since v2000.1.0
+	 * @since v2000.1
 	 */
 	onDeath(action: () => void): EventCanceller,
 }
@@ -3771,6 +3951,12 @@ export interface StateComp extends Comp {
 	 * Enter a state, trigger onStateLeave for previous state and onStateEnter for the new State state.
 	 */
 	enterState: (state: string, ...args) => void,
+	/**
+	 * Register event that runs once when a specific state transition happens. Accepts arguments passed from `enterState(name, ...args)`.
+	 *
+	 * @since v2000.2
+	 */
+	onStateTransition(from: string, to: string, action: () => void),
 	/**
 	 * Register event that runs once when enters a specific state. Accepts arguments passed from `enterState(name, ...args)`.
 	 */
@@ -3822,3 +4008,24 @@ export interface Level {
 	offset(): Vec2,
 	destroy(),
 }
+
+export interface BoomOpt {
+	/**
+	 * Animation speed.
+	 */
+	speed?: number,
+	/**
+	 * Scale.
+	 */
+	scale?: number,
+	/**
+	 * Additional ka components.
+	 */
+	kaComps?: () => CompList<any>,
+	/**
+	 * Additional boom components.
+	 */
+	boomComps?: () => CompList<any>,
+}
+
+export default kaboom;

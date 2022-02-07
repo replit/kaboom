@@ -40,11 +40,6 @@ scene("battle", () => {
 
 	const music = play("OtherworldlyFoe")
 
-	layers([
-		"game",
-		"ui",
-	], "game")
-
 	volume(0.5)
 
 	function grow(rate) {
@@ -78,7 +73,6 @@ scene("battle", () => {
 		origin("center"),
 		lifespan(1),
 		fixed(),
-		layer("ui"),
 	])
 
 	add([
@@ -88,7 +82,6 @@ scene("battle", () => {
 		lifespan(2),
 		late(1),
 		fixed(),
-		layer("ui"),
 	])
 
 	add([
@@ -98,7 +91,6 @@ scene("battle", () => {
 		lifespan(4),
 		late(2),
 		fixed(),
-		layer("ui"),
 	])
 
 	const sky = add([
@@ -279,7 +271,6 @@ scene("battle", () => {
 		text(0),
 		pos(12, 32),
 		fixed(),
-		layer("ui"),
 		{ time: 0, },
 	])
 
@@ -328,7 +319,6 @@ scene("battle", () => {
 		pos(0, 0),
 		color(127, 255, 127),
 		fixed(),
-		layer("ui"),
 		{
 			max: BOSS_HEALTH,
 			set(hp) {

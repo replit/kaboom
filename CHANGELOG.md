@@ -1,3 +1,84 @@
+# v2001.0.0 "A Kaboom Odyssey"
+
+- removed all deprecated functions in v2000.2
+- game objects can have children with `obj.add()` now which share the parent transform
+- raised esbuild target to `esnext`
+- added `make()` to make a game object without adding to the scene
+- `add()` supports adding unattached game objects to the scene `add(make([...comps]))`
+- added `colors` option to `drawPolygon()` that controls the color of each corner
+- added `gradient` option to `drawRect()` that specifies the start and end color
+- added `loadProgress()` that returns a `0.0 - 1.0` that indicates current asset loading progress
+- added `kaboom()` option `loadingScreen` where you can turn off the default loading screen
+- added `drawMasked()` and `drawSubtracted()`
+- removed `layers()` in favor of parent game objects (see "layers" demo)
+- added `pushRotateX()`, `pushRotateY()` and `pushRotateZ()`
+
+### v2000.2.6
+
+- fixed text always being wrapped if updated
+- fixed text comp properties `letterSpacing`, `charSpacing`, `transform`, `styles` not being exposed
+
+### v2000.2.5
+
+- fixed updating `font` property on gameobj not updating the text font
+
+### v2000.2.4
+
+- fixed `focus()` not properly exported
+- deprecated `focus()` in favor of `canvas.focus()` due to name collision
+
+### v2000.2.3
+
+- fixed `kaboom.d.ts` completely messed up
+
+### v2000.2.2
+
+- fixed doc for `TextCompOpt#styles` and `DrawTextOpt#styles`
+
+### v2000.2.1
+
+- fixed updates not running at all when `kaboom({ debug: false })`
+
+## v2000.2.0 "Fancy Text Mode"
+
+- added `formatText()` and `drawFormattedText()`
+- added `charSpacing` and `lineSpacing` in `TextCompOpt` and `DrawTextOpt`
+- added optional `transitions` argument in `state()` to define allowed transitions
+- added `StateComp#onStateTransition` to register event for specific transitions
+- added syntax to style a piece of text `"this is a [styled].wavy text"` and `style` option in `TextCompOpt` and `DrawTextOpt` to define the styles with `CharTransformFunc`
+- deprecated `dir()` in favor of `Vec2.fromAngle()`
+- fixed `onTouchEnd()` fired on `touchmove`
+- added `outview()` component to control behavior when object leaves visible area
+- deprecated `cleanup(delay?: number)` in favor of `cleanup(opt?: CleanupOpt)`
+- deprecated `mouseWorldPos()` in favor of `toWorld(mousePos())`
+- deprecated `rng()` in favor of `new RNG()`
+- added classes `Vec2`, `Color`, `Mat4`, `Timer`, `Quad`, `RNG`, `Line`, `Rect`, `Circle`
+- added deprecation warning
+- fixed letterbox view mode
+- allow non-stretch letterbox
+- fixed mouse position malfunction in fullscreen, stretch and letterbox mode
+
+### v2000.1.8
+
+- fixed `Color#eq()` not giving correct result
+
+### v2000.1.7
+
+- fixed not having export if installed from github repo with npm
+- fixed event canceller returned by raw `onUpdate()` and `onDraw()` crashing
+
+### v2000.1.6
+
+- fixed debug widget scale
+
+### v2000.1.5
+
+- fixed `enterState()` not passing args to `onStateEnter()` callback
+
+### v2000.1.4
+
+- fixed `state()` to not require registering `onStateUpdate()` before using any state
+
 ### v2000.1.2
 
 - fixed `onKeyRelease()` wrongfully check for key press instead of release
@@ -6,7 +87,7 @@
 
 - fixed `StateComp#enterState()` not accepting any state
 
-# v2000.1.0 "Record Mode"
+## v2000.1.0 "Record Mode"
 
 - added `hsl2rgb()` for converting HSL color to kaboom RGB
 - added `record()` to start a screen recording

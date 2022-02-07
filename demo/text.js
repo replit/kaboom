@@ -14,7 +14,7 @@ const builtinFonts = [
 // Make a list of fonts that we cycle through
 const fonts = [
 	...builtinFonts,
-	"unscii"
+	"unscii",
 ]
 
 // Keep track which is the current font
@@ -33,6 +33,8 @@ const input = add([
 		width: width() - pad * 2,
 		// The height of character
 		size: curSize,
+		lineSpacing: 8,
+		letterSpacing: 4,
 		// Transform each character for special effects
 		transform: (idx, ch) => ({
 			color: hsl2rgb((time() * 0.2 + idx * 0.1) % 1, 0.7, 0.8),
@@ -86,5 +88,24 @@ onKeyDown("down", () => {
 	curSize = Math.max(curSize - dt() * SIZE_SPEED, SIZE_MIN)
 	input.textSize = curSize
 })
+
+// Use this syntax and style option to style chunks of text, with CharTransformFunc.
+add([
+	text("[oh hi].green here's some [styled].wavy text", {
+		width: width(),
+		styles: {
+			"green": {
+				color: rgb(128, 128, 255),
+			},
+			"wavy": (idx, ch) => ({
+				color: hsl2rgb((time() * 0.2 + idx * 0.1) % 1, 0.7, 0.8),
+				pos: vec2(0, wave(-4, 4, time() * 6 + idx * 0.5)),
+			}),
+		},
+	}),
+	pos(pad, height() - pad),
+	origin("botleft"),
+	// scale(0.5),
+])
 
 // Check out https://kaboomjs.com#TextComp for everything text() offers

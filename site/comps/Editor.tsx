@@ -54,9 +54,15 @@ import { foldGutter } from "@codemirror/fold";
 import { javascript } from "@codemirror/lang-javascript";
 
 import useUpdateEffect from "hooks/useUpdateEffect";
-import View, { ViewProps } from "comps/View";
+import View, { ViewPropsAnd } from "comps/View";
 import Ctx from "lib/Ctx";
 import { themes } from "lib/ui";
+import { clamp, hex2rgb, rgb2hex } from "lib/math";
+
+import interact, { interactRule } from "cm/interact";
+import drop, { dropRule } from "cm/drop";
+import dropCursor from "cm/dropCursor";
+import img from "cm/img";
 
 // @ts-ignore
 const cmThemes: Record<Theme, [ Extension, HighlightStyle ]> = {};
@@ -89,8 +95,10 @@ Object.keys(themes).forEach((name) => {
 			".cm-content": {
 				caretColor: cursor,
 			},
-			"&.cm-focused .cm-cursor": {
+			".cm-cursor": {
 				borderLeftColor: cursor,
+				borderLeftWidth: "3px",
+				borderRadius: "3px",
 			},
 			"&.cm-focused .cm-selectionBackground, .cm-selectionBackground, .cm-content ::selection": {
 				backgroundColor: selection,
@@ -115,6 +123,10 @@ Object.keys(themes).forEach((name) => {
 			".cm-activeLine": {
 				backgroundColor: highlightBackground,
 			},
+			".cm-activeLineGutter": {
+				color: stone,
+				backgroundColor: highlightBackground,
+			},
 			".cm-selectionMatch": {
 				backgroundColor: "#aafe661a",
 			},
@@ -126,10 +138,6 @@ Object.keys(themes).forEach((name) => {
 				backgroundColor: background,
 				color: stone,
 				border: "none",
-			},
-			".cm-activeLineGutter": {
-				color: stone,
-				backgroundColor: highlightBackground,
 			},
 			".cm-foldPlaceholder": {
 				backgroundColor: theme["fg4"],
@@ -258,18 +266,19 @@ export interface EditorRef {
 	getSelection: () => string | null,
 	getWord: () => string | null,
 	setContent: (content: string) => void,
-	getCodeMirror: () => EditorView | null,
+	getView: () => EditorView | null,
+	focus: () => void,
 }
 
 interface EditorProps {
-	content?: string,
+	content?: string | (() => string),
 	placeholder?: string,
 	onChange?: (code: string) => void,
 	onSelect?: (code: string) => void,
 	keys?: KeyBinding[],
 };
 
-const Editor = React.forwardRef<EditorRef, EditorProps & ViewProps>(({
+const Editor = React.forwardRef<EditorRef, ViewPropsAnd<EditorProps>>(({
 	content,
 	placeholder,
 	keys,
@@ -279,129 +288,248 @@ const Editor = React.forwardRef<EditorRef, EditorProps & ViewProps>(({
 }, ref) => {
 
 	const editorDOMRef = React.useRef(null);
-	const cmRef = React.useRef<EditorView | null>(null);
-	const themeConfRef = React.useRef<Compartment | null>(null);
+	const [ view, setView ] = React.useState<EditorView | null>(null);
 	const { theme } = React.useContext(Ctx);
 
 	React.useImperativeHandle(ref, () => ({
 		getContent() {
-			if (!cmRef.current) return null;
-			const cm = cmRef.current;
-			return cm.state.doc.toString();
+			if (!view) return null;
+			return view.state.doc.toString();
 		},
 		getSelection() {
-			if (!cmRef.current) return null;
-			const cm = cmRef.current;
-			return cm.state.sliceDoc(
-				cm.state.selection.main.from,
-				cm.state.selection.main.to
-			)
+			if (!view) return null;
+			return view.state.sliceDoc(
+				view.state.selection.main.from,
+				view.state.selection.main.to
+			);
 		},
 		getWord() {
-			if (!cmRef.current) return null;
-			const cm = cmRef.current;
-			const range = cm.state.wordAt(cm.state.selection.main.head);
+			if (!view) return null;
+			const range = view.state.wordAt(view.state.selection.main.head);
 			if (range) {
-				return cm.state.sliceDoc(range.from, range.to);
+				return view.state.sliceDoc(range.from, range.to);
 			}
 			return null;
 		},
 		setContent(content: string) {
-			if (!cmRef.current) return null;
-			const cm = cmRef.current;
-			cm.dispatch({
+			view?.dispatch({
 				changes: {
 					from: 0,
-					to: cm.state.doc.length,
+					to: view.state.doc.length,
 					insert: content,
 				},
 			});
 		},
-		getCodeMirror() {
-			return cmRef.current;
+		getView() {
+			return view;
+		},
+		focus() {
+			view?.focus();
 		},
 	}));
 
 	React.useEffect(() => {
 
-		if (!editorDOMRef.current) return;
-		const editorDOM = editorDOMRef.current;
-
-		if (!cmRef.current) {
-			cmRef.current = new EditorView({
-				parent: editorDOM,
-			});
+		if (!editorDOMRef.current) {
+			throw new Error("Failed to start editor");
 		}
 
-		const cm = cmRef.current;
+		const editorDOM = editorDOMRef.current;
 		const themeConf = new Compartment();
 
-		themeConfRef.current = themeConf;
+		const origins = [
+			"topleft", "top", "topright",
+			"left", "center", "right",
+			"botleft", "bot", "botright",
+		].map((o) => `"${o}"`);
 
-		if (cmRef) {
-			cmRef.current = cm;
-		}
+		// TODO
+		const originState = {
+			x: 0,
+			y: 0,
+			idx: -1,
+		};
 
-		cm.setState(EditorState.create({
-			doc: content ?? "",
-			extensions: [
-				themeConf.of(cmThemes[theme]),
-				EditorState.tabSize.of(4),
-				EditorState.allowMultipleSelections.of(true),
-				indentUnit.of("\t"),
-				javascript(),
-				lineNumbers(),
-				highlightSpecialChars(),
-				highlightActiveLine(),
-				highlightActiveLineGutter(),
-				highlightSelectionMatches(),
-				cmPlaceholder(placeholder ?? ""),
-				history(),
-				foldGutter(),
-				bracketMatching(),
-				closeBrackets(),
-				indentOnInput(),
-				drawSelection(),
-				defaultHighlightStyle,
-				EditorView.updateListener.of((update) => {
-					const state = update.state;
-					if (update.docChanged) {
-						onChange && onChange(state.doc.toString());
-					}
-					if (update.selectionSet) {
-						const sel = state.sliceDoc(
-							state.selection.main.from,
-							state.selection.main.to
-						);
-						if (sel) {
-							onSelect && onSelect(sel);
+		const view = new EditorView({
+			parent: editorDOM,
+			state: EditorState.create({
+				doc: (typeof content === "function" ? content() : content) ?? "",
+				extensions: [
+					themeConf.of(cmThemes[theme]),
+					EditorState.tabSize.of(4),
+					EditorState.allowMultipleSelections.of(true),
+					indentUnit.of("\t"),
+					javascript(),
+					lineNumbers(),
+					highlightSpecialChars(),
+					highlightActiveLine(),
+					highlightActiveLineGutter(),
+					highlightSelectionMatches(),
+					cmPlaceholder(placeholder ?? ""),
+					history(),
+					foldGutter(),
+					bracketMatching(),
+					closeBrackets(),
+					indentOnInput(),
+					drawSelection(),
+					dropCursor,
+					defaultHighlightStyle,
+					EditorView.updateListener.of((update) => {
+						const state = update.state;
+						if (update.docChanged) {
+							onChange && onChange(state.doc.toString());
 						}
-					}
-				}),
-				keymap.of([
-					...defaultKeymap,
-					...historyKeymap,
-					...commentKeymap,
-					...searchKeymap,
-					indentWithTab,
-					...(keys ?? []),
-				]),
-			].filter((ext) => ext),
-		}));
+						if (update.selectionSet) {
+							const sel = state.sliceDoc(
+								state.selection.main.from,
+								state.selection.main.to
+							);
+							if (sel) {
+								onSelect && onSelect(sel);
+							}
+						}
+					}),
+					keymap.of([
+						...defaultKeymap,
+						...historyKeymap,
+						...commentKeymap,
+						...searchKeymap,
+						indentWithTab,
+						...(keys ?? []),
+					]),
+					interact,
+					// number slider
+					interactRule.of({
+						regexp: /-?\b\d+\.?\d*\b/g,
+						cursor: "ew-resize",
+						onDrag: (text, setText, e) => {
+							// TODO: size aware
+							// TODO: small interval with shift key?
+							const newVal = Number(text) + e.movementX;
+							if (isNaN(newVal)) return;
+							setText(newVal.toString());
+						}
+					}),
+					// bool toggler
+					interactRule.of({
+						regexp: /true|false/g,
+						cursor: "pointer",
+						onClick: (text, setText) => {
+							switch (text) {
+								case "true": return setText("false");
+								case "false": return setText("true");
+							}
+						},
+					}),
+					// kaboom vec2 slider
+					interactRule.of({
+						regexp: /vec2\(-?\b\d+\.?\d*\b\s*(,\s*-?\b\d+\.?\d*\b)?\)/g,
+						cursor: "move",
+						onDrag: (text, setText, e) => {
+							const res = /vec2\((?<x>-?\b\d+\.?\d*\b)\s*(,\s*(?<y>-?\b\d+\.?\d*\b))?\)/.exec(text);
+							let x = Number(res?.groups?.x);
+							let y = Number(res?.groups?.y);
+							if (isNaN(x)) return;
+							if (isNaN(y)) y = x;
+							setText(`vec2(${x + e.movementX}, ${y + e.movementY})`);
+						},
+					}),
+					// kaboom color picker
+					interactRule.of({
+						regexp: /rgb\(.*\)/g,
+						cursor: "pointer",
+						onClick: (text, setText, e) => {
+							const res = /rgb\((?<r>\d+)\s*,\s*(?<g>\d+)\s*,\s*(?<b>\d+)\)/.exec(text);
+							const r = Number(res?.groups?.r);
+							const g = Number(res?.groups?.g);
+							const b = Number(res?.groups?.b);
+							const sel = document.createElement("input");
+							sel.type = "color";
+							if (!isNaN(r + g + b)) sel.value = rgb2hex(r, g, b);
+							sel.addEventListener("input", (e) => {
+								const el = e.target as HTMLInputElement;
+								if (el.value) {
+									const [r, g, b] = hex2rgb(el.value);
+									setText(`rgb(${r}, ${g}, ${b})`)
+								}
+							});
+							sel.click();
+						},
+					}),
+					// kaboom origin slider
+					interactRule.of({
+						regexp: new RegExp(`${origins.join("|")}`, "g"),
+						cursor: "move",
+						onClick: (text) => {
+							const idx = origins.indexOf(text);
+							originState.x = 0;
+							originState.y = 0;
+							originState.idx = idx;
+						},
+						onDrag: (text, setText, e) => {
+							originState.x += e.movementX;
+							originState.y += e.movementY;
+							const { idx, x, y } = originState;
+							if (idx === -1) return;
+							const s = 80;
+							const sx = clamp(idx % 3 + Math.round(x / s), 0, 2);
+							const sy = clamp(Math.floor(idx / 3) + Math.round(y / s), 0, 2);
+							setText(origins[sy * 3 + sx]);
+						},
+					}),
+					// url clicker
+					interactRule.of({
+						regexp: /https?:\/\/[^ "]+/g,
+						cursor: "pointer",
+						onClick: (text) => {
+							window.open(text);
+						},
+					}),
+					drop,
+					dropRule.of({
+						kind: "data",
+						format: "code",
+					}),
+					dropRule.of({
+						kind: "file",
+						accept: /^image\//,
+						readAs: "dataURL",
+						process: (data) => {
+							if (typeof data === "string") {
+								return `"${data}"`;
+							}
+						},
+					}),
+					dropRule.of({
+						kind: "file",
+						accept: /^text\//,
+						readAs: "text",
+					}),
+					img,
+				].filter((ext) => ext),
+			}),
+		});
 
+		setView(view);
+
+	}, []);
+
+	useUpdateEffect(() => {
+		if (!view) return;
+		view.dispatch({
+			changes: {
+				from: 0,
+				to: view.state.doc.length,
+				insert: (typeof content === "function" ? content() : content) ?? "",
+			},
+		});
 	}, [ content ]);
 
 	useUpdateEffect(() => {
-
-		if (!cmRef.current) return;
-		const cm = cmRef.current;
-		if (!themeConfRef.current) return;
-		const themeConf = themeConfRef.current;
-
-		cm.dispatch({
+		const themeConf = new Compartment();
+		view?.dispatch({
 			effects: themeConf.reconfigure(cmThemes[theme])
 		});
-
 	}, [ theme ]);
 
 	return (

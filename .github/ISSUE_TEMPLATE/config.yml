@@ -1,0 +1,7 @@
+contact_links:
+  - name: Help
+    url: https://github.com/replit/kaboom/discussions/new?category=q-a
+    about: How to use certain Kaboom feature, or how to achieve something with Kaboom
+  - name: Suggestion
+    url: https://github.com/replit/kaboom/discussions/new?category=ideas
+    about: Features you'd like Kaboom to have

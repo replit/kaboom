@@ -27,15 +27,11 @@ fmts.forEach((fmt) => {
 
 	const srcPath = `${srcDir}/kaboom.ts`;
 	const distPath = `${distDir}/kaboom.${fmt.ext}`;
-
-	const postBuild = () => {
-		console.log(`-> ${distPath}`);
-	};
+	const log = () => console.log(`-> ${distPath}`);
 
 	esbuild.build({
 		bundle: true,
 		sourcemap: true,
-		target: "es6",
 		minify: !dev,
 		keepNames: true,
 		loader: {
@@ -43,25 +39,22 @@ fmts.forEach((fmt) => {
 			".glsl": "text",
 			".mp3": "binary",
 		},
-		watch: dev ? { onRebuild: postBuild } : false,
+		watch: dev ? { onRebuild: log } : false,
 		entryPoints: [ srcPath ],
 		globalName: "kaboom",
 		format: fmt.format,
 		outfile: distPath,
 		...(fmt.config ?? {})
-	}).then(postBuild);
+	}).then(log);
 
 });
 
-if (!dev) {
-	buildTypes();
-}
+buildTypes();
 
 // generate .d.ts / docs data
 function buildTypes() {
 
-	let dts = fs.readFileSync(`${srcDir}/types.ts`, "utf-8")
-		.replace(/declare\s/g, "export default ");
+	let dts = fs.readFileSync(`${srcDir}/types.ts`, "utf-8");
 
 	const f = ts.createSourceFile(
 		"ts",
@@ -107,7 +100,7 @@ function buildTypes() {
 				const members = {};
 				for (const mem of v) {
 					const name = mem.name?.escapedText;
-					if (!name) {
+					if (!name || name === "toString") {
 						continue;
 					}
 					if (!members[name]) {
@@ -154,7 +147,7 @@ function buildTypes() {
 	}];
 
 	// generate global decls for KaboomCtx members
-	dts += "declare global {\n";
+	dts += "\ndeclare global {\n";
 
 	for (const stmt of stmts) {
 
@@ -167,7 +160,7 @@ function buildTypes() {
 		if (stmt.name === "KaboomCtx") {
 
 			if (stmt.kind !== "InterfaceDeclaration") {
-				throw new Error("KaboomCtx has to be an interface.");
+				throw new Error("KaboomCtx must be an interface.");
 			}
 
 			for (const name in stmt.members) {

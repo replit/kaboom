@@ -1,0 +1,53 @@
+name: Bug Report
+description: File a bug report
+body:
+  - type: dropdown
+    id: version
+    attributes:
+      label: Version
+      description: What version of kaboom are you running?
+      options:
+        - master
+        - v2000.1
+        - v2000.0
+        - v0.x
+    validations:
+      required: true
+  - type: dropdown
+    id: browsers
+    attributes:
+      label: What browsers are you seeing the problem on?
+      multiple: true
+      options:
+        - Chrome
+        - Firefox
+        - Safari
+        - Microsoft Edge
+        - Other
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      placeholder: I see horror beyond imagination ...
+    validations:
+      required: true
+  - type: textarea
+    id: what-expected
+    attributes:
+      label: What's the expected behavior?
+      placeholder: It should do ...
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: Minimum reproducable code
+      description: If there's a small piece of code that can reliably reproduce the bug
+      placeholder: kaboom()
+      render: shell
+  - type: input
+    id: live-demo
+    attributes:
+      label: Live demo
+      description: If there's a live demo of the bug
+      placeholder: https://yourdomain.tld/game
