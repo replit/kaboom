@@ -1072,7 +1072,36 @@ export interface KaboomCtx {
 	 * ```
 	 */
 	load<T>(l: Promise<T>): void,
+	/**
+	 * Get the global asset loading progress (0.0 - 1.0).
+	 *
+	 * @since v2001.0
+	 */
 	loadProgress<T>(): number,
+	/**
+	 * Get SpriteData from handle.
+	 *
+	 * @since v2001.0
+	 */
+	getSprite(handle: string | Promise<SpriteData>): SpriteData | Promise<SpriteData> | null,
+	/**
+	 * Get SoundData from handle.
+	 *
+	 * @since v2001.0
+	 */
+	getSound(handle: string | Promise<SoundData>): SoundData | Promise<SoundData> | null,
+	/**
+	 * Get FontData from handle.
+	 *
+	 * @since v2001.0
+	 */
+	getFont(handle: string | Promise<FontData>): FontData | Promise<FontData> | null,
+	/**
+	 * Get ShaderData from handle.
+	 *
+	 * @since v2001.0
+	 */
+	getShader(handle: string | Promise<ShaderData>): ShaderData | Promise<ShaderData> | null,
 	/**
 	 * Get the width of game.
 	 *
