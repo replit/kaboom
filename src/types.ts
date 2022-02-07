@@ -3207,7 +3207,7 @@ export interface Comp {
 	/**
 	 * Debug info for inspect mode.
 	 */
-	inspect?: () => string,
+	inspect?: () => string | void,
 }
 
 export type GameObjID = number;

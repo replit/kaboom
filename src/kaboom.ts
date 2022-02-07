@@ -613,6 +613,56 @@ const gfx = (() => {
 
 updateViewport();
 
+class SpriteData {
+
+	tex: GfxTexture;
+	frames: Quad[] = [ new Quad(0, 0, 1, 1) ];
+	anims: SpriteAnims = {};
+
+	constructor(tex: GfxTexture, frames?: Quad[], anims: SpriteAnims = {}) {
+		this.tex = tex;
+		if (frames) this.frames = frames;
+		this.anims = anims;
+	}
+
+	static fromImage(data: GfxTexData, opt: SpriteLoadOpt = {}): SpriteData {
+		return new SpriteData(
+			makeTex(data, opt),
+			slice(opt.sliceX || 1, opt.sliceY || 1),
+			opt.anims ?? {},
+		);
+	}
+
+	static fromURL(url: string, opt: SpriteLoadOpt = {}): Promise<SpriteData> {
+		return loadImg(url).then((img) => SpriteData.fromImage(img, opt));
+	}
+
+}
+
+class SoundData {
+
+	buf: AudioBuffer;
+
+	constructor(buf: AudioBuffer) {
+		this.buf = buf;
+	}
+
+	static fromArrayBuffer(buf: ArrayBuffer): Promise<SoundData> {
+		return new Promise((resolve, reject) =>
+			audio.ctx.decodeAudioData(buf, resolve, reject)
+		).then((buf: AudioBuffer) => new SoundData(buf));
+	}
+
+	static fromURL(url: string): Promise<SoundData> {
+		if (isDataURL(url)) {
+			return SoundData.fromArrayBuffer(dataURLToArrayBuffer(url));
+		} else {
+			return fetchArrayBuffer(url).then((buf) => SoundData.fromArrayBuffer(buf));
+		}
+	}
+
+}
+
 const audio = (() => {
 
 	// TODO: handle when audio context is unavailable
@@ -847,56 +897,6 @@ function loadSpriteAtlas(
 		await Promise.all(tasks);
 		resolve(map);
 	}));
-}
-
-class SpriteData {
-
-	tex: GfxTexture;
-	frames: Quad[] = [ new Quad(0, 0, 1, 1) ];
-	anims: SpriteAnims = {};
-
-	constructor(tex: GfxTexture, frames?: Quad[], anims: SpriteAnims = {}) {
-		this.tex = tex;
-		if (frames) this.frames = frames;
-		this.anims = anims;
-	}
-
-	static fromImage(data: GfxTexData, opt: SpriteLoadOpt = {}): SpriteData {
-		return new SpriteData(
-			makeTex(data, opt),
-			slice(opt.sliceX || 1, opt.sliceY || 1),
-			opt.anims ?? {},
-		);
-	}
-
-	static fromURL(url: string, opt: SpriteLoadOpt = {}): Promise<SpriteData> {
-		return loadImg(url).then((img) => SpriteData.fromImage(img, opt));
-	}
-
-}
-
-class SoundData {
-
-	buf: AudioBuffer;
-
-	constructor(buf: AudioBuffer) {
-		this.buf = buf;
-	}
-
-	static fromArrayBuffer(buf: ArrayBuffer): Promise<SoundData> {
-		return new Promise((resolve, reject) =>
-			audio.ctx.decodeAudioData(buf, resolve, reject)
-		).then((buf: AudioBuffer) => new SoundData(buf));
-	}
-
-	static fromURL(url: string): Promise<SoundData> {
-		if (isDataURL(url)) {
-			return SoundData.fromArrayBuffer(dataURLToArrayBuffer(url));
-		} else {
-			return fetchArrayBuffer(url).then((buf) => SoundData.fromArrayBuffer(buf));
-		}
-	}
-
 }
 
 // load a sprite to asset manager
@@ -4129,13 +4129,9 @@ function sprite(id: string | SpriteData, opt: SpriteCompOpt = {}): SpriteComp {
 		},
 
 		inspect() {
-			let msg = "";
 			if (typeof id === "string") {
-				msg += JSON.stringify(id);
-			} else {
-				msg += "[blob]";
+				return `"${id}"`;
 			}
-			return msg;
 		},
 
 	};
@@ -4944,7 +4940,7 @@ function addKaboom(p: Vec2, opt: BoomOpt = {}): GameObj {
 	const s = opt.scale || 1;
 
 	const boom = kaboom.add([
-		sprite(boomSprite),
+		// TODO: this doesn't work on start up
 		scale(0),
 		origin("center"),
 		explode(speed, s),
@@ -4952,12 +4948,16 @@ function addKaboom(p: Vec2, opt: BoomOpt = {}): GameObj {
 	]);
 
 	const ka = kaboom.add([
-		sprite(kaSprite),
 		scale(0),
 		origin("center"),
 		timer(0.4 / speed, () => ka.use(explode(speed, s))),
 		...(opt.kaComps ?? (() => []))(),
 	]);
+
+	onLoad(() => {
+		ka.use(sprite(kaSprite));
+		boom.use(sprite(boomSprite));
+	});
 
 	ka.onDestroy(() => kaboom.destroy());
 
