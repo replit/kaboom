@@ -691,27 +691,33 @@ const audio = (() => {
 })();
 
 class AssetBucket<D> {
-	loading: Map<string, Promise<D>> = new Map();
-	loaded: Map<string, D> = new Map();
+	loading: Map<string | Promise<D>, Promise<D>> = new Map();
+	loaded: Map<string | Promise<D>, D> = new Map();
 	lastUID: number = 0;
 	add(name: string | null, loader: Promise<D>): Promise<D> {
+		// if user don't provide a name we use a generated one
 		const id = name ?? (this.lastUID++ + "");
 		this.loading.set(id, loader);
-		return loader.then((data: D) => {
+		// we also use the Promise returned as a key to allow query assets from the handles returned by loadXXX()
+		const handle = loader.then((data: D) => {
 			this.loaded.set(id, data);
+			this.loaded.set(handle, data);
 			return data;
 		}).finally(() => {
 			this.loading.delete(id);
+			this.loading.delete(handle);
 		});
+		this.loading.set(handle, loader);
+		return handle;
 	}
-	get(name: string): D | Promise<D> | null {
-		return this.getLoaded(name) ?? this.getLoading(name);
+	get(handle: string | Promise<D>): D | Promise<D> | null {
+		return this.getLoaded(handle) ?? this.getLoading(handle);
 	}
-	getLoaded(name: string): D | null {
-		return this.loaded.get(name) ?? null;
+	getLoaded(handle: string | Promise<D>): D | null {
+		return this.loaded.get(handle) ?? null;
 	}
-	getLoading(name: string): Promise<D> | null {
-		return this.loading.get(name) ?? null;
+	getLoading(handle: string | Promise<D>): Promise<D> | null {
+		return this.loading.get(handle) ?? null;
 	}
 	progress(): number {
 		if (this.loaded.size === this.loading.size) {
@@ -1028,24 +1034,26 @@ function loadBean(name: string = "bean"): Promise<SpriteData> {
 	return loadSprite(name, beanSrc);
 }
 
-function getSprite(name: string): SpriteData | Promise<SpriteData> | null {
-	return assets.sprites.get(name);
+function getSprite(handle: string | Promise<SpriteData>): SpriteData | Promise<SpriteData> | null {
+	return assets.sprites.get(handle);
 }
 
-function getSound(name: string): SoundData | Promise<SoundData> | null {
-	return assets.sounds.get(name) ?? null;
+function getSound(handle: string | Promise<SoundData>): SoundData | Promise<SoundData> | null {
+	return assets.sounds.get(handle) ?? null;
 }
 
-function getFont(name: string): FontData | Promise<FontData> | null {
-	return assets.fonts.get(name);
+function getFont(handle: string | Promise<FontData>): FontData | Promise<FontData> | null {
+	return assets.fonts.get(handle);
 }
 
-function getShader(name: string): ShaderData | Promise<ShaderData> | null {
-	return assets.shaders.get(name) ?? null;
+function getShader(handle: string | Promise<ShaderData>): ShaderData | Promise<ShaderData> | null {
+	return assets.shaders.get(handle) ?? null;
 }
 
-function resolveSprite(src: string | SpriteData): SpriteData | Promise<SpriteData> | null {
-	if (typeof src === "string") {
+function resolveSprite(
+	src: string | SpriteData | Promise<SpriteData>
+): SpriteData | Promise<SpriteData> | null {
+	if (typeof src === "string" || src instanceof Promise) {
 		const spr = getSprite(src)
 		if (spr) {
 			// if it's already loaded or being loading, return it
@@ -1064,8 +1072,10 @@ function resolveSprite(src: string | SpriteData): SpriteData | Promise<SpriteDat
 	}
 }
 
-function resolveSound(src: string | SoundData): SoundData | Promise<SoundData> | null {
-	if (typeof src === "string") {
+function resolveSound(
+	src: string | SoundData | Promise<SoundData>
+): SoundData | Promise<SoundData> | null {
+	if (typeof src === "string" || src instanceof Promise) {
 		const snd = getSound(src)
 		if (snd) {
 			return snd;
@@ -1079,11 +1089,13 @@ function resolveSound(src: string | SoundData): SoundData | Promise<SoundData> |
 	return src;
 }
 
-function resolveShader(src: string | ShaderData | undefined): ShaderData | Promise<ShaderData> | null {
+function resolveShader(
+	src: string | ShaderData | Promise<ShaderData> | undefined
+): ShaderData | Promise<ShaderData> | null {
 	if (!src) {
 		return gfx.defShader;
 	}
-	if (typeof src === "string") {
+	if (typeof src === "string" || src instanceof Promise) {
 		const shader = getShader(src)
 		if (shader) {
 			return shader;
@@ -1097,11 +1109,13 @@ function resolveShader(src: string | ShaderData | undefined): ShaderData | Promi
 	return src;
 }
 
-function resolveFont(src: string | FontData | undefined): FontData | Promise<FontData> {
+function resolveFont(
+	src: string | FontData | Promise<FontData> | undefined
+): FontData | Promise<FontData> {
 	if (!src) {
 		return getFont(gopt.font ?? DEF_FONT);
 	}
-	if (typeof src === "string") {
+	if (typeof src === "string" || src instanceof Promise) {
 		const font = getFont(src)
 		if (font) {
 			return font;
@@ -1135,38 +1149,31 @@ function play(
 	},
 ): AudioPlay {
 
-	if (typeof src === "string") {
+	const snd = resolveSound(src);
 
+	if (snd instanceof Promise) {
 		const pb = play(new SoundData(createEmptyAudioBuffer()));
-
 		const doPlay = (snd: SoundData) => {
 			const pb2 = play(snd, opt);
 			for (const k in pb2) {
 				pb[k] = pb2[k];
 			}
 		}
-
-		const snd = resolveSound(src);
-
-		if (snd instanceof Promise) {
-			snd.then(doPlay)
-		} else if (snd === null) {
-			onLoad(() => {
-				// TODO
-			});
-		} else {
-			doPlay(snd);
-		}
-
+		snd.then(doPlay)
 		return pb;
-
+	} else if (snd === null) {
+		const pb = play(new SoundData(createEmptyAudioBuffer()));
+		onLoad(() => {
+			// TODO: check again when every asset is loaded
+		});
+		return pb;
 	}
 
 	const ctx = audio.ctx;
 	let stopped = false;
 	let srcNode = ctx.createBufferSource();
 
-	srcNode.buffer = src.buf;
+	srcNode.buffer = snd.buf;
 	srcNode.loop = opt.loop ? true : false;
 
 	const gainNode = ctx.createGain();
@@ -1270,7 +1277,7 @@ function play(
 		},
 
 		duration(): number {
-			return src.buf.duration;
+			return snd.buf.duration;
 		},
 
 		time(): number {
@@ -3920,12 +3927,15 @@ interface SpriteCurAnim {
 }
 
 // TODO: clean
-function sprite(id: string | SpriteData, opt: SpriteCompOpt = {}): SpriteComp {
+function sprite(
+	src: string | SpriteData | Promise<SpriteData>,
+	opt: SpriteCompOpt = {}
+): SpriteComp {
 
 	let spriteData = null;
 	let curAnim: SpriteCurAnim | null = null;
 
-	if (!id) {
+	if (!src) {
 		throw new Error("Please pass the resource name or data to sprite()");
 	}
 
@@ -3973,7 +3983,7 @@ function sprite(id: string | SpriteData, opt: SpriteCompOpt = {}): SpriteComp {
 
 			if (!spriteData) {
 
-				const spr = resolveSprite(id);
+				const spr = resolveSprite(src);
 
 				if (!spr || spr instanceof Promise) {
 					return;
@@ -4129,8 +4139,8 @@ function sprite(id: string | SpriteData, opt: SpriteCompOpt = {}): SpriteComp {
 		},
 
 		inspect() {
-			if (typeof id === "string") {
-				return `"${id}"`;
+			if (typeof src === "string") {
+				return `"${src}"`;
 			}
 		},
 
@@ -4923,11 +4933,8 @@ function explode(speed: number = 2, size: number = 1): ExplodeComp {
 	};
 }
 
-let kaSprite = null;
-let boomSprite = null;
-
-loadSprite(null, kaSrc).then((spr) => kaSprite = spr);
-loadSprite(null, boomSrc).then((spr) => boomSprite = spr);
+const kaSprite = loadSprite(null, kaSrc);
+const boomSprite = loadSprite(null, boomSrc);
 
 function addKaboom(p: Vec2, opt: BoomOpt = {}): GameObj {
 
@@ -4940,7 +4947,7 @@ function addKaboom(p: Vec2, opt: BoomOpt = {}): GameObj {
 	const s = opt.scale || 1;
 
 	const boom = kaboom.add([
-		// TODO: this doesn't work on start up
+		sprite(boomSprite),
 		scale(0),
 		origin("center"),
 		explode(speed, s),
@@ -4948,16 +4955,12 @@ function addKaboom(p: Vec2, opt: BoomOpt = {}): GameObj {
 	]);
 
 	const ka = kaboom.add([
+		sprite(kaSprite),
 		scale(0),
 		origin("center"),
 		timer(0.4 / speed, () => ka.use(explode(speed, s))),
 		...(opt.kaComps ?? (() => []))(),
 	]);
-
-	onLoad(() => {
-		ka.use(sprite(kaSprite));
-		boom.use(sprite(boomSprite));
-	});
 
 	ka.onDestroy(() => kaboom.destroy());
 
