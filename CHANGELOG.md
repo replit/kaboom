@@ -12,6 +12,7 @@
 - added `drawMasked()` and `drawSubtracted()`
 - removed `layers()` in favor of parent game objects (see "layers" demo)
 - added `pushRotateX()`, `pushRotateY()` and `pushRotateZ()`
+- added `pixelDensity` option to `kaboom()`
 
 ### v2000.2.6
 
