@@ -2489,7 +2489,7 @@ function updateViewport() {
 			throw new Error("Stretching requires width and height defined.");
 		}
 
-		gl.viewport(0, 0, cw * 2, ch * pd);
+		gl.viewport(0, 0, cw * pd, ch * pd);
 
 		gfx.viewport = {
 			x: 0,
