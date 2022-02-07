@@ -2029,6 +2029,12 @@ export interface KaboomOpt {
 	 */
 	font?: string,
 	/**
+	 * Device pixel scale (defaults to window.devicePixelRatio, high pixel density will hurt performance).
+	 *
+	 * @since v2001.0
+	 */
+	pixelDensity?: number,
+	/**
 	 * Disable antialias and enable sharp pixel display.
 	 */
 	crisp?: boolean,

@@ -441,8 +441,17 @@ const app = (() => {
 		canvas.height = canvas.parentElement.offsetHeight;
 	}
 
+	const cw = canvas.width;
+	const ch = canvas.height;
+	const pixelDensity = gopt.pixelDensity || window.devicePixelRatio;
+
+	canvas.width *= pixelDensity;
+	canvas.height *= pixelDensity;
+
 	// canvas css styles
 	const styles = [
+		`width: ${cw}px`,
+		`height: ${ch}px`,
 		"outline: none",
 		"cursor: default",
 	];
@@ -463,6 +472,7 @@ const app = (() => {
 
 		canvas: canvas,
 		scale: gscale,
+		pixelDensity: pixelDensity,
 
 		// keep track of all button states
 		keyStates: {} as Record<Key, ButtonState>,
@@ -2392,8 +2402,9 @@ function drawFormattedText(ftext: FormattedText) {
 function updateViewport() {
 
 	// canvas size
-	const cw = gl.drawingBufferWidth;
-	const ch = gl.drawingBufferHeight;
+	const pd = app.pixelDensity;
+	const cw = gl.drawingBufferWidth / pd;
+	const ch = gl.drawingBufferHeight / pd;
 
 	// game size
 	const gw = width();
@@ -2442,8 +2453,8 @@ function updateViewport() {
 			const sw = ch * rg;
 			const sh = ch;
 			const x = (cw - sw) / 2;
-			gl.scissor(x, 0, sw, sh);
-			gl.viewport(x, 0, sw, ch);
+			gl.scissor(x * pd, 0, sw * pd, sh * pd);
+			gl.viewport(x * pd, 0, sw * pd, ch * pd);
 			gfx.viewport = {
 				x: x,
 				y: 0,
@@ -2458,8 +2469,8 @@ function updateViewport() {
 			const sw = cw;
 			const sh = cw / rg;
 			const y = (ch - sh) / 2;
-			gl.scissor(0, y, sw, sh);
-			gl.viewport(0, y, cw, sh);
+			gl.scissor(0, y * pd, sw * pd, sh * pd);
+			gl.viewport(0, y * pd, cw * pd, sh * pd);
 			gfx.viewport = {
 				x: 0,
 				y: y,
@@ -2478,7 +2489,7 @@ function updateViewport() {
 			throw new Error("Stretching requires width and height defined.");
 		}
 
-		gl.viewport(0, 0, cw, ch);
+		gl.viewport(0, 0, cw * pd, ch * pd);
 
 		gfx.viewport = {
 			x: 0,
@@ -2492,7 +2503,7 @@ function updateViewport() {
 
 	gfx.width = cw / app.scale;
 	gfx.height = ch / app.scale;
-	gl.viewport(0, 0, cw, ch);
+	gl.viewport(0, 0, cw * pd, ch * pd);
 
 	gfx.viewport = {
 		x: 0,
