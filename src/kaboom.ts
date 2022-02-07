@@ -5109,7 +5109,7 @@ function drawDebug() {
 				}
 			}
 
-			const lwidth = (inspecting === obj ? 8 : 4);
+			const lwidth = (inspecting === obj ? 8 : 4) / app.scale;
 			const a = obj.worldArea();
 			const w = a.p2.x - a.p1.x;
 			const h = a.p2.y - a.p1.y;
