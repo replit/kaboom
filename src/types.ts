@@ -2029,7 +2029,7 @@ export interface KaboomOpt {
 	 */
 	font?: string,
 	/**
-	 * Device pixel scale (defaults to window.devicePixelRatio).
+	 * Device pixel scale (defaults to window.devicePixelRatio, high pixel density will hurt performance).
 	 *
 	 * @since v2001.0
 	 */
