@@ -5415,14 +5415,14 @@ run(() => {
 	updateViewport();
 
 	if (!assets.loaded) {
-		const progress = loadProgress();
-		if (progress === 1) {
+		if (loadProgress() === 1) {
 			assets.loaded = true;
 			game.ev.trigger("load");
 		}
 	}
 
 	if (!assets.loaded && (gopt.loadingScreen === undefined || gopt.loadingScreen === true)) {
+		// TODO: Currently if assets are not initially loaded no updates or timers will be run, however they will run if loadingScreen is set to false. What's the desired behavior or should we make them consistent?
 		drawLoadScreen();
 	} else {
 		game.ev.trigger("input");

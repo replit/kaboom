@@ -1,6 +1,9 @@
 // Customizing the asset loader
 
-kaboom()
+kaboom({
+	// Turn off the default loading screen and make our own
+	loadingScreen: false,
+})
 
 let spr = null
 
