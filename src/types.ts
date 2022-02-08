@@ -2390,6 +2390,7 @@ export declare class Asset<D> {
 	static loaded<D>(data: D): Asset<D>
 	onLoad(action: (data: D) => void): Asset<D>
 	onError(action: (err: Error) => void): Asset<D>
+	onFinish(action: () => void): Asset<D>
 	then(action: (data: D) => void): Asset<D>
 	catch(action: (err: Error) => void): Asset<D>
 }

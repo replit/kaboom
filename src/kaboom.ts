@@ -714,6 +714,7 @@ class Asset<D> {
 	error: Error | null = null
 	private onLoadEvents: Event = new Event();
 	private onErrorEvents: Event = new Event();
+	private onFinishEvents: Event = new Event();
 	constructor(loader: Promise<D>) {
 		loader.then((data) => {
 			this.data = data
@@ -726,6 +727,7 @@ class Asset<D> {
 				throw err
 			}
 		}).finally(() => {
+			this.onFinishEvents.trigger()
 			this.done = true
 		})
 	}
@@ -741,6 +743,10 @@ class Asset<D> {
 	}
 	onError(action: (err: Error) => void): Asset<D> {
 		this.onErrorEvents.add(action)
+		return this
+	}
+	onFinish(action: () => void): Asset<D> {
+		this.onFinishEvents.add(action)
 		return this
 	}
 	then(action: (data: D) => void): Asset<D> {

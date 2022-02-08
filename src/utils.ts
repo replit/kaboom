@@ -18,6 +18,7 @@ export class IDList<T> extends Map<number, T> {
 	}
 }
 
+// TODO: typed event arguments
 export class Event {
 	private handlers: IDList<(...args) => void> = new IDList();
 	add(action: (...args) => void): EventCanceller {
