@@ -4720,6 +4720,7 @@ function state(
 		},
 
 		update() {
+			// execute the enter event for initState
 			if (!didFirstEnter) {
 				trigger("enter", initState);
 				didFirstEnter = true;
