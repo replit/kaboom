@@ -5017,7 +5017,7 @@ function drawFrame() {
 		;
 
 	game.root.draw();
-
+	flush();
 	game.ev.trigger("drawEnd");
 
 }
@@ -5391,7 +5391,6 @@ loadFont(
 	apl386Src,
 	45,
 	74,
-	{ filter: "linear", }
 );
 
 loadFont(
@@ -5399,7 +5398,6 @@ loadFont(
 	apl386oSrc,
 	45,
 	74,
-	{ filter: "linear", }
 );
 
 loadFont(
