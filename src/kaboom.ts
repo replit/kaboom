@@ -48,6 +48,7 @@ import {
 
 import {
 	IDList,
+	Event,
 	EventHandler,
 	downloadURL,
 	downloadBlob,
@@ -708,32 +709,38 @@ const audio = (() => {
 })();
 
 class Asset<D> {
-	loader: Promise<D>
-	loaded: boolean = false
+	done: boolean = false
 	data: D | null = null
+	error: Error | null = null
+	private onLoadEvents: Event = new Event();
+	private onErrorEvents: Event = new Event();
 	constructor(loader: Promise<D>) {
-		this.loader = loader
-		this.onLoad((data) => {
-			this.loaded = true
+		loader.then((data) => {
 			this.data = data
+			this.onLoadEvents.trigger(data)
+		}).catch((err) => {
+			this.error = err
+			if (this.onErrorEvents.numListeners() > 0) {
+				this.onErrorEvents.trigger(err)
+			} else {
+				throw err
+			}
+		}).finally(() => {
+			this.done = true
 		})
 	}
 	static loaded<D>(data: D): Asset<D> {
-		const asset = new Asset(Promise.resolve(data));
-		asset.data = data;
-		asset.loaded = true;
+		const asset = new Asset(Promise.resolve(data))
+		asset.data = data
+		asset.done = true
 		return asset;
 	}
 	onLoad(action: (data: D) => void): Asset<D> {
-		this.loader.then(action)
+		this.onLoadEvents.add(action)
 		return this
 	}
 	onError(action: (err: Error) => void): Asset<D> {
-		this.loader.catch(action)
-		return this
-	}
-	onEnd(action: () => void): Asset<D> {
-		this.loader.finally(action)
+		this.onErrorEvents.add(action)
 		return this
 	}
 	then(action: (data: D) => void): Asset<D> {
@@ -768,7 +775,7 @@ class AssetBucket<D> {
 		}
 		let loaded = 0;
 		this.assets.forEach((asset) => {
-			if (asset.loaded) {
+			if (asset.done) {
 				loaded++;
 			}
 		})
@@ -923,8 +930,11 @@ function loadSpriteAtlas(
 	data: SpriteAtlasData | string
 ): Asset<Record<string, SpriteData>> {
 	if (typeof data === "string") {
-		return load(fetchJSON(data)
-			.then((data2) => loadSpriteAtlas(src, data2).loader));
+		return load(new Promise((res, rej) => {
+			fetchJSON(data).then((data2) => {
+				loadSpriteAtlas(src, data2).onLoad(res).onError(rej)
+			})
+		}));
 	}
 	return load(new Promise(async (resolve, reject) => {
 		const map = {};
@@ -1127,7 +1137,7 @@ function resolveSound(
 	if (typeof src === "string") {
 		const snd = getSound(src)
 		if (snd) {
-			return snd.loaded ? snd.data : snd;
+			return snd.data ? snd.data : snd;
 		} else if (loadProgress() < 1) {
 			return null;
 		} else {
@@ -1136,7 +1146,7 @@ function resolveSound(
 	} else if (src instanceof SoundData) {
 		return src;
 	} else if (src instanceof Asset) {
-		return src.loaded ? src.data : src;
+		return src.data ? src.data : src;
 	} else {
 		throw new Error(`Invalid sound: ${src}`);
 	}
@@ -1151,14 +1161,14 @@ function resolveShader(
 	if (typeof src === "string") {
 		const shader = getShader(src)
 		if (shader) {
-			return shader.loaded ? shader.data : shader;
+			return shader.data ? shader.data : shader;
 		} else if (loadProgress() < 1) {
 			return null;
 		} else {
 			throw new Error(`Shader not found: ${src}`);
 		}
 	} else if (src instanceof Asset) {
-		return src.loaded ? src.data : src;
+		return src.data ? src.data : src;
 	}
 	// TODO: check type
 	return src;
@@ -1170,7 +1180,7 @@ function resolveFont(
 	if (!src) {
 		const font = getFont(gopt.font ?? DEF_FONT);
 		if (font) {
-			return font.loaded ? font.data : font;
+			return font.data ? font.data : font;
 		} else {
 			return null;
 		}
@@ -1178,14 +1188,14 @@ function resolveFont(
 	if (typeof src === "string") {
 		const font = getFont(src)
 		if (font) {
-			return font.loaded ? font.data : font;
+			return font.data ? font.data : font;
 		} else if (loadProgress() < 1) {
 			return null;
 		} else {
 			throw new Error(`Font not found: ${src}`);
 		}
 	} else if (src instanceof Asset) {
-		return src.loaded ? src.data : src;
+		return src.data ? src.data : src;
 	}
 	// TODO: check type
 	return src;
@@ -1834,7 +1844,7 @@ function drawSprite(opt: DrawSpriteOpt) {
 
 	const spr = resolveSprite(opt.sprite);
 
-	if (!spr || !spr.loaded) {
+	if (!spr || !spr.data) {
 		return;
 	}
 
@@ -4083,7 +4093,7 @@ function sprite(
 
 				const spr = resolveSprite(src);
 
-				if (!spr || !spr.loaded) {
+				if (!spr || !spr.data) {
 					return;
 				}
 
@@ -5428,6 +5438,7 @@ window.addEventListener("error", (e) => {
 });
 
 window.addEventListener("unhandledrejection", (e) => {
+	console.log("123")
 	handleErr(e.reason);
 });
 

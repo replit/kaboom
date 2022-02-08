@@ -133,6 +133,9 @@ loadSpriteAtlas("/sprites/dungeon.png", {
 	},
 })
 
+// Can also load from external JSON url
+// loadSpriteAtlas("/sprites/dungeon.png", "/sprites/dungeon.json")
+
 // floor
 addLevel([
 	"xxxxxxxxxx",

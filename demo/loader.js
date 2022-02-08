@@ -7,7 +7,7 @@ kaboom({
 
 let spr = null
 
-// Every loadXXX() function returns a Promise<Data>. You can customize the error handling, or deal with the raw asset data yourself instead of using a name.
+// Every loadXXX() function returns a Asset<Data> where you can customize the error handling (by default it'll stop the game and log on screen), or deal with the raw asset data yourself instead of using a name.
 loadSprite("bean", "/sprites/bean.png").onError((err) => {
 	alert("oh no we failed to load bean")
 }).onLoad((data) => {

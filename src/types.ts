@@ -2383,14 +2383,13 @@ export interface SpriteAtlasEntry {
 }
 
 export declare class Asset<D> {
-	loader: Promise<D>
-	loaded: boolean
+	done: boolean
 	data: D | null
+	error: Error | null
 	constructor(loader: Promise<D>)
 	static loaded<D>(data: D): Asset<D>
 	onLoad(action: (data: D) => void): Asset<D>
 	onError(action: (err: Error) => void): Asset<D>
-	onEnd(action: () => void): Asset<D>
 	then(action: (data: D) => void): Asset<D>
 	catch(action: (err: Error) => void): Asset<D>
 }
