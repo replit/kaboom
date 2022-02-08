@@ -4637,28 +4637,30 @@ function state(
 
 	const events = {};
 
-	function initStateHook(state: string) {
+	function initStateEvents(state: string) {
 		if (!events[state]) {
 			events[state] = {
-				enter: [],
-				leave: [],
-				update: [],
-				draw: [],
+				enter: new Event(),
+				leave: new Event(),
+				update: new Event(),
+				draw: new Event(),
 			};
 		}
 	}
 
 	function on(event, state, action) {
-		initStateHook(state);
-		events[state][event].push(action);
+		initStateEvents(state);
+		return events[state][event].add(action);
 	}
 
 	function trigger(event, state, ...args) {
-		initStateHook(state);
-		events[state][event].forEach((action) => action(...args));
+		initStateEvents(state);
+		events[state][event].trigger(...args);
 	}
 
-	return {
+	const onNextUpdateEvent = new Event();
+
+	const comp = {
 
 		id: "state",
 		state: initState,
@@ -4688,34 +4690,38 @@ function state(
 
 			}
 
-			trigger("leave", oldState, ...args);
-			this.state = state;
-			trigger("enter", state, ...args);
-			trigger("enter", `${oldState} -> ${state}`, ...args);
+			// execute the state events on next frame
+			onNextUpdateEvent.addOnce(() => {
+				trigger("leave", oldState, ...args);
+				this.state = state;
+				trigger("enter", state, ...args);
+				trigger("enter", `${oldState} -> ${state}`, ...args);
+			});
 
 		},
 
-		onStateTransition(from: string, to: string, action: () => void) {
-			on("enter", `${from} -> ${to}`, action);
+		onStateTransition(from: string, to: string, action: () => void): EventCanceller {
+			return on("enter", `${from} -> ${to}`, action);
 		},
 
-		onStateEnter(state: string, action: () => void) {
-			on("enter", state, action);
+		onStateEnter(state: string, action: () => void): EventCanceller {
+			return on("enter", state, action);
 		},
 
-		onStateUpdate(state: string, action: () => void) {
-			on("update", state, action);
+		onStateUpdate(state: string, action: () => void): EventCanceller {
+			return on("update", state, action);
 		},
 
-		onStateDraw(state: string, action: () => void) {
-			on("draw", state, action);
+		onStateDraw(state: string, action: () => void): EventCanceller {
+			return on("draw", state, action);
 		},
 
-		onStateLeave(state: string, action: () => void) {
-			on("leave", state, action);
+		onStateLeave(state: string, action: () => void): EventCanceller {
+			return on("leave", state, action);
 		},
 
 		update() {
+			onNextUpdateEvent.trigger();
 			trigger("update", this.state);
 		},
 
@@ -4728,6 +4734,11 @@ function state(
 		},
 
 	};
+
+	// TODO: this will check for initState -> initState which might not be in the state transition
+	comp.enterState(initState);
+
+	return comp;
 
 }
 
