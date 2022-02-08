@@ -4658,14 +4658,16 @@ function state(
 		events[state][event].trigger(...args);
 	}
 
-	const onNextUpdateEvent = new Event();
+	let didFirstEnter = false;
 
-	const comp = {
+	return {
 
 		id: "state",
 		state: initState,
 
 		enterState(state: string, ...args) {
+
+			didFirstEnter = true;
 
 			if (stateList && !stateList.includes(state)) {
 				throw new Error(`State not found: ${state}`);
@@ -4690,13 +4692,10 @@ function state(
 
 			}
 
-			// execute the state events on next frame
-			onNextUpdateEvent.addOnce(() => {
-				trigger("leave", oldState, ...args);
-				this.state = state;
-				trigger("enter", state, ...args);
-				trigger("enter", `${oldState} -> ${state}`, ...args);
-			});
+			trigger("leave", oldState, ...args);
+			this.state = state;
+			trigger("enter", state, ...args);
+			trigger("enter", `${oldState} -> ${state}`, ...args);
 
 		},
 
@@ -4721,7 +4720,10 @@ function state(
 		},
 
 		update() {
-			onNextUpdateEvent.trigger();
+			if (!didFirstEnter) {
+				trigger("enter", initState);
+				didFirstEnter = true;
+			}
 			trigger("update", this.state);
 		},
 
@@ -4734,11 +4736,6 @@ function state(
 		},
 
 	};
-
-	// TODO: this will check for initState -> initState which might not be in the state transition
-	comp.enterState(initState);
-
-	return comp;
 
 }
 
