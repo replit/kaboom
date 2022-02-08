@@ -73,9 +73,6 @@ enemy.onStateUpdate("move", () => {
 	enemy.move(dir.scale(ENEMY_SPEED))
 })
 
-// Have to manually call enterState() to trigger the onStateEnter("move") event we defined above.
-enemy.enterState("move")
-
 // Taking a bullet makes us disappear
 player.onCollide("bullet", (bullet) => {
 	destroy(bullet)

@@ -4637,26 +4637,28 @@ function state(
 
 	const events = {};
 
-	function initStateHook(state: string) {
+	function initStateEvents(state: string) {
 		if (!events[state]) {
 			events[state] = {
-				enter: [],
-				leave: [],
-				update: [],
-				draw: [],
+				enter: new Event(),
+				leave: new Event(),
+				update: new Event(),
+				draw: new Event(),
 			};
 		}
 	}
 
 	function on(event, state, action) {
-		initStateHook(state);
-		events[state][event].push(action);
+		initStateEvents(state);
+		return events[state][event].add(action);
 	}
 
 	function trigger(event, state, ...args) {
-		initStateHook(state);
-		events[state][event].forEach((action) => action(...args));
+		initStateEvents(state);
+		events[state][event].trigger(...args);
 	}
+
+	let didFirstEnter = false;
 
 	return {
 
@@ -4664,6 +4666,8 @@ function state(
 		state: initState,
 
 		enterState(state: string, ...args) {
+
+			didFirstEnter = true;
 
 			if (stateList && !stateList.includes(state)) {
 				throw new Error(`State not found: ${state}`);
@@ -4695,27 +4699,32 @@ function state(
 
 		},
 
-		onStateTransition(from: string, to: string, action: () => void) {
-			on("enter", `${from} -> ${to}`, action);
+		onStateTransition(from: string, to: string, action: () => void): EventCanceller {
+			return on("enter", `${from} -> ${to}`, action);
 		},
 
-		onStateEnter(state: string, action: () => void) {
-			on("enter", state, action);
+		onStateEnter(state: string, action: () => void): EventCanceller {
+			return on("enter", state, action);
 		},
 
-		onStateUpdate(state: string, action: () => void) {
-			on("update", state, action);
+		onStateUpdate(state: string, action: () => void): EventCanceller {
+			return on("update", state, action);
 		},
 
-		onStateDraw(state: string, action: () => void) {
-			on("draw", state, action);
+		onStateDraw(state: string, action: () => void): EventCanceller {
+			return on("draw", state, action);
 		},
 
-		onStateLeave(state: string, action: () => void) {
-			on("leave", state, action);
+		onStateLeave(state: string, action: () => void): EventCanceller {
+			return on("leave", state, action);
 		},
 
 		update() {
+			// execute the enter event for initState
+			if (!didFirstEnter) {
+				trigger("enter", initState);
+				didFirstEnter = true;
+			}
 			trigger("update", this.state);
 		},
 

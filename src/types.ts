@@ -4012,23 +4012,23 @@ export interface StateComp extends Comp {
 	 *
 	 * @since v2000.2
 	 */
-	onStateTransition(from: string, to: string, action: () => void),
+	onStateTransition(from: string, to: string, action: () => void): EventCanceller,
 	/**
 	 * Register event that runs once when enters a specific state. Accepts arguments passed from `enterState(name, ...args)`.
 	 */
-	onStateEnter: (state: string, action: (...args) => void) => void,
+	onStateEnter: (state: string, action: (...args) => void) => EventCanceller,
 	/**
 	 * Register an event that runs once when leaves a specific state.
 	 */
-	onStateLeave: (state: string, action: () => void) => void,
+	onStateLeave: (state: string, action: () => void) => EventCanceller,
 	/**
 	 * Register an event that runs every frame when in a specific state.
 	 */
-	onStateUpdate: (state: string, action: () => void) => void,
+	onStateUpdate: (state: string, action: () => void) => EventCanceller,
 	/**
 	 * Register an event that runs every frame when in a specific state.
 	 */
-	onStateDraw: (state: string, action: () => void) => void,
+	onStateDraw: (state: string, action: () => void) => EventCanceller,
 }
 
 export interface LevelOpt {
