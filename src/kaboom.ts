@@ -723,6 +723,9 @@ class Asset<D> {
 		this.loader.finally(action)
 		return this
 	}
+	then(action: (data: D) => void): Asset<D> {
+		return this.onLoad(action)
+	}
 }
 
 class AssetBucket<D> {
@@ -971,7 +974,7 @@ function loadPedit(name: string | null, src: string | PeditFile): Asset<SpriteDa
 			anims: data.anims,
 		});
 
-		resolve(spr.data);
+		resolve(spr);
 
 	}));
 
@@ -983,7 +986,7 @@ function loadAseprite(
 	jsonSrc: string
 ): Asset<SpriteData> {
 	return assets.sprites.add(name, new Promise(async (resolve, reject) => {
-		const spr = await loadSprite(null, imgSrc).loader;
+		const spr = await loadSprite(null, imgSrc);
 		const data = typeof jsonSrc === "string" ? await fetchJSON(jsonSrc) : jsonSrc;
 		const size = data.meta.size;
 		spr.frames = data.frames.map((f: any) => {
@@ -1149,7 +1152,12 @@ function resolveFont(
 	src: string | FontData | Asset<FontData> | undefined
 ): FontData | Asset<FontData> | void {
 	if (!src) {
-		return getFont(gopt.font ?? DEF_FONT);
+		const font = getFont(gopt.font ?? DEF_FONT);
+		if (font) {
+			return font.loaded ? font.data : font;
+		} else {
+			return null;
+		}
 	}
 	if (typeof src === "string") {
 		const font = getFont(src)
