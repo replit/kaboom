@@ -2524,31 +2524,38 @@ function height(): number {
 	return gfx.height;
 }
 
-// TODO: support remove events
-app.canvas.addEventListener("mousemove", (e) => {
+type EventList<M> = {
+	[event in keyof M]?: (event: M[event]) => void
+}
+
+const canvasEvents: EventList<HTMLElementEventMap> = {};
+const docEvents: EventList<DocumentEventMap> = {};
+const winEvents: EventList<WindowEventMap> = {};
+
+canvasEvents.mousemove = (e) => {
 	app.mousePos = vec2(
 		(e.offsetX - gfx.viewport.x) * width() / gfx.viewport.width,
 		(e.offsetY - gfx.viewport.y) * height() / gfx.viewport.height,
 	);
 	app.mouseDeltaPos = vec2(e.movementX, e.movementY).scale(1 / app.scale);
 	app.isMouseMoved = true;
-});
+}
 
-app.canvas.addEventListener("mousedown", (e) => {
+canvasEvents.mousedown = (e) => {
 	const m = MOUSE_BUTTONS[e.button];
 	if (m) {
 		app.mouseStates[m] = "pressed";
 	}
-});
+}
 
-app.canvas.addEventListener("mouseup", (e) => {
+canvasEvents.mouseup = (e) => {
 	const m = MOUSE_BUTTONS[e.button];
 	if (m) {
 		app.mouseStates[m] = "released";
 	}
-});
+}
 
-app.canvas.addEventListener("keydown", (e) => {
+canvasEvents.keydown = (e) => {
 
 	const k = KEY_ALIAS[e.key] || e.key.toLowerCase();
 
@@ -2574,66 +2581,66 @@ app.canvas.addEventListener("keydown", (e) => {
 
 	app.numKeyDown++;
 
-});
+};
 
-app.canvas.addEventListener("keyup", (e: KeyboardEvent) => {
+canvasEvents.keyup = (e: KeyboardEvent) => {
 	const k = KEY_ALIAS[e.key] || e.key.toLowerCase();
 	app.keyStates[k] = "released";
 	app.isKeyReleased = true;
 	app.numKeyDown--;
-});
+};
 
-app.canvas.addEventListener("touchstart", (e) => {
+canvasEvents.touchstart = (e) => {
 	if (!gopt.touchToMouse) return;
 	// disable long tap context menu
 	e.preventDefault();
 	const t = e.touches[0];
 	app.mousePos = vec2(t.clientX, t.clientY).scale(1 / app.scale);
 	app.mouseStates["left"] = "pressed";
-});
+};
 
-app.canvas.addEventListener("touchmove", (e) => {
+canvasEvents.touchmove = (e) => {
 	if (!gopt.touchToMouse) return;
 	// disable scrolling
 	e.preventDefault();
 	const t = e.touches[0];
 	app.mousePos = vec2(t.clientX, t.clientY).scale(1 / app.scale);
 	app.isMouseMoved = true;
-});
+};
 
-app.canvas.addEventListener("touchend", (e) => {
+canvasEvents.touchend = (e) => {
 	if (!gopt.touchToMouse) return;
 	app.mouseStates["left"] = "released";
-});
+};
 
-app.canvas.addEventListener("touchcancel", (e) => {
+canvasEvents.touchcancel = (e) => {
 	if (!gopt.touchToMouse) return;
 	app.mouseStates["left"] = "released";
-});
+};
 
-app.canvas.addEventListener("touchstart", (e) => {
+canvasEvents.touchstart = (e) => {
 	[...e.changedTouches].forEach((t) => {
 		game.ev.trigger("onTouchStart", t.identifier, vec2(t.clientX, t.clientY).scale(1 / app.scale));
 	});
-});
+};
 
-app.canvas.addEventListener("touchmove", (e) => {
+canvasEvents.touchmove = (e) => {
 	[...e.changedTouches].forEach((t) => {
 		game.ev.trigger("onTouchMove", t.identifier, vec2(t.clientX, t.clientY).scale(1 / app.scale));
 	});
-});
+};
 
-app.canvas.addEventListener("touchend", (e) => {
+canvasEvents.touchend = (e) => {
 	[...e.changedTouches].forEach((t) => {
 		game.ev.trigger("onTouchEnd", t.identifier, vec2(t.clientX, t.clientY).scale(1 / app.scale));
 	});
-});
+};
 
-app.canvas.addEventListener("contextmenu", function (e) {
+canvasEvents.contextmenu = function (e) {
 	e.preventDefault();
-});
+};
 
-document.addEventListener("visibilitychange", () => {
+docEvents.visibilitychange = () => {
 	switch (document.visibilityState) {
 		case "visible":
 			// prevent a surge of dt() when switch back after the tab being hidden for a while
@@ -2646,15 +2653,43 @@ document.addEventListener("visibilitychange", () => {
 			audio.ctx.suspend();
 			break;
 	}
-});
+};
 
 // TODO: not quite working
-// window.addEventListener("resize", () => {
+// winEvents.resize = () => {
 // 	if (!(gopt.width && gopt.height && !gopt.stretch)) {
 // 		app.canvas.width = app.canvas.parentElement.offsetWidth;
 // 		app.canvas.height = app.canvas.parentElement.offsetHeight;
 // 	}
-// });
+// };
+
+for (const name in canvasEvents) {
+	app.canvas.addEventListener(name, canvasEvents[name]);
+}
+
+for (const name in docEvents) {
+	document.addEventListener(name, docEvents[name]);
+}
+
+for (const name in winEvents) {
+	window.addEventListener(name, winEvents[name]);
+}
+
+function removeEvents() {
+
+	for (const name in canvasEvents) {
+		app.canvas.removeEventListener(name, canvasEvents[name]);
+	}
+
+	for (const name in docEvents) {
+		document.removeEventListener(name, docEvents[name]);
+	}
+
+	for (const name in winEvents) {
+		window.removeEventListener(name, winEvents[name]);
+	}
+
+}
 
 function mousePos(): Vec2 {
 	return app.mousePos.clone();
