@@ -18,13 +18,34 @@ export class IDList<T> extends Map<number, T> {
 	}
 }
 
+// TODO: typed event arguments
+export class Event {
+	private handlers: IDList<(...args) => void> = new IDList();
+	add(action: (...args) => void): EventCanceller {
+		return this.handlers.pushd(action);
+	}
+	addOnce(action: (...args) => void): EventCanceller {
+		const cancel = this.add((...args) => {
+			action(...args);
+			cancel();
+		});
+		return cancel;
+	}
+	trigger(...args) {
+		this.handlers.forEach((action) => action(...args));
+	}
+	numListeners(): number {
+		return this.handlers.size;
+	}
+}
+
 export class EventHandler<E = string> {
-	private handlers: Map<E, IDList<(...args) => void>> = new Map();
+	private handlers: Map<E, Event> = new Map();
 	on(name: E, action: (...args) => void): EventCanceller {
 		if (!this.handlers.get(name)) {
-			this.handlers.set(name, new IDList());
+			this.handlers.set(name, new Event());
 		}
-		return this.handlers.get(name).pushd(action);
+		return this.handlers.get(name).add(action);
 	}
 	onOnce(name: E, action: (...args) => void): EventCanceller {
 		const cancel = this.on(name, (...args) => {
@@ -35,11 +56,14 @@ export class EventHandler<E = string> {
 	}
 	trigger(name: E, ...args) {
 		if (this.handlers.get(name)) {
-			this.handlers.get(name).forEach((action) => action(...args));
+			this.handlers.get(name).trigger(...args);
 		}
 	}
 	remove(name: E) {
 		this.handlers.delete(name);
+	}
+	numListeners(name: E): number {
+		return this.handlers.get(name)?.numListeners() ?? 0;
 	}
 }
 

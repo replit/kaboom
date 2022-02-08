@@ -7,10 +7,10 @@ kaboom({
 
 let spr = null
 
-// Every loadXXX() function returns a Promise<Data>. You can customize the error handling, or deal with the raw asset data yourself instead of using a name.
-loadSprite("bean", "/sprites/bean.png").catch((err) => {
+// Every loadXXX() function returns a Asset<Data> where you can customize the error handling (by default it'll stop the game and log on screen), or deal with the raw asset data yourself instead of using a name.
+loadSprite("bean", "/sprites/bean.png").onError((err) => {
 	alert("oh no we failed to load bean")
-}).then((data) => {
+}).onLoad((data) => {
 	// The promise resolves to the raw sprite data
 	spr = data
 })
@@ -58,7 +58,7 @@ onDraw(() => {
 	if (spr) {
 		drawSprite({
 			// You can pass raw sprite data here instead of the name
-			sprite: spr
+			sprite: spr,
 		})
 	}
 

@@ -921,7 +921,7 @@ export interface KaboomCtx {
 		name: string | null,
 		src: SpriteLoadSrc,
 		options?: SpriteLoadOpt,
-	): Promise<SpriteData>,
+	): Asset<SpriteData>,
 	/**
 	 * Load sprites from a sprite atlas.
 	 *
@@ -953,7 +953,7 @@ export interface KaboomCtx {
 	loadSpriteAtlas(
 		src: SpriteLoadSrc,
 		data: SpriteAtlasData,
-	): Promise<Record<string, SpriteData>>,
+	): Asset<Record<string, SpriteData>>,
 	/**
 	 * Load sprites from a sprite atlas with URL.
 	 *
@@ -972,7 +972,7 @@ export interface KaboomCtx {
 	loadSpriteAtlas(
 		src: SpriteLoadSrc,
 		url: string,
-	): Promise<Record<string, SpriteData>>,
+	): Asset<Record<string, SpriteData>>,
 	/**
 	 * Load a sprite with aseprite spritesheet json.
 	 *
@@ -985,8 +985,8 @@ export interface KaboomCtx {
 		name: string | null,
 		imgSrc: SpriteLoadSrc,
 		jsonSrc: string
-	): Promise<SpriteData>,
-	loadPedit(name: string, src: string): Promise<SpriteData>,
+	): Asset<SpriteData>,
+	loadPedit(name: string, src: string): Asset<SpriteData>,
 	/**
 	 * Load default sprite "bean".
 	 *
@@ -1000,7 +1000,7 @@ export interface KaboomCtx {
 	 * ])
 	 * ```
 	 */
-	loadBean(name?: string): Promise<SpriteData>,
+	loadBean(name?: string): Asset<SpriteData>,
 	/**
 	 * Load a sound into asset manager, with name and resource url.
 	 *
@@ -1013,7 +1013,7 @@ export interface KaboomCtx {
 	loadSound(
 		name: string | null,
 		src: string,
-	): Promise<SoundData>,
+	): Asset<SoundData>,
 	/**
 	 * Load a bitmap font into asset manager, with name and resource url and infomation on the layout of the bitmap.
 	 *
@@ -1033,7 +1033,7 @@ export interface KaboomCtx {
 		gridWidth: number,
 		gridHeight: number,
 		options?: FontLoadOpt,
-	): Promise<FontData>,
+	): Asset<FontData>,
 	/**
 	 * Load a shader into asset manager with vertex and fragment code / file url.
 	 *
@@ -1059,7 +1059,7 @@ export interface KaboomCtx {
 		vert?: string,
 		frag?: string,
 		isUrl?: boolean,
-	): Promise<ShaderData>,
+	): Asset<ShaderData>,
 	/**
 	 * Add a new loader to wait for before starting the game.
 	 *
@@ -1071,7 +1071,7 @@ export interface KaboomCtx {
 	 * }))
 	 * ```
 	 */
-	load<T>(l: Promise<T>): void,
+	load<T>(l: Promise<T>): Asset<T>,
 	/**
 	 * Get the global asset loading progress (0.0 - 1.0).
 	 *
@@ -1083,25 +1083,25 @@ export interface KaboomCtx {
 	 *
 	 * @since v2001.0
 	 */
-	getSprite(handle: string | Promise<SpriteData>): SpriteData | Promise<SpriteData> | null,
+	getSprite(handle: string): Asset<SpriteData> | void,
 	/**
 	 * Get SoundData from handle.
 	 *
 	 * @since v2001.0
 	 */
-	getSound(handle: string | Promise<SoundData>): SoundData | Promise<SoundData> | null,
+	getSound(handle: string): Asset<SoundData> | void,
 	/**
 	 * Get FontData from handle.
 	 *
 	 * @since v2001.0
 	 */
-	getFont(handle: string | Promise<FontData>): FontData | Promise<FontData> | null,
+	getFont(handle: string): Asset<FontData> | void,
 	/**
 	 * Get ShaderData from handle.
 	 *
 	 * @since v2001.0
 	 */
-	getShader(handle: string | Promise<ShaderData>): ShaderData | Promise<ShaderData> | null,
+	getShader(handle: string): Asset<ShaderData> | void,
 	/**
 	 * Get the width of game.
 	 *
@@ -2380,6 +2380,19 @@ export interface SpriteAtlasEntry {
 	 * Animation configuration.
 	 */
 	anims?: SpriteAnims,
+}
+
+export declare class Asset<D> {
+	done: boolean
+	data: D | null
+	error: Error | null
+	constructor(loader: Promise<D>)
+	static loaded<D>(data: D): Asset<D>
+	onLoad(action: (data: D) => void): Asset<D>
+	onError(action: (err: Error) => void): Asset<D>
+	onFinish(action: () => void): Asset<D>
+	then(action: (data: D) => void): Asset<D>
+	catch(action: (err: Error) => void): Asset<D>
 }
 
 export type SpriteLoadSrc = string | GfxTexData;

@@ -48,6 +48,7 @@ import {
 
 import {
 	IDList,
+	Event,
 	EventHandler,
 	downloadURL,
 	downloadBlob,
@@ -635,6 +636,13 @@ class SpriteData {
 		this.anims = anims;
 	}
 
+	static from(src: SpriteLoadSrc, opt: SpriteLoadOpt = {}): Promise<SpriteData> {
+		return typeof src === "string"
+			? SpriteData.fromURL(src, opt)
+			: Promise.resolve(SpriteData.fromImage(src, opt)
+		)
+	}
+
 	static fromImage(data: GfxTexData, opt: SpriteLoadOpt = {}): SpriteData {
 		return new SpriteData(
 			makeTex(data, opt),
@@ -700,40 +708,84 @@ const audio = (() => {
 
 })();
 
+class Asset<D> {
+	done: boolean = false
+	data: D | null = null
+	error: Error | null = null
+	private onLoadEvents: Event = new Event();
+	private onErrorEvents: Event = new Event();
+	private onFinishEvents: Event = new Event();
+	constructor(loader: Promise<D>) {
+		loader.then((data) => {
+			this.data = data
+			this.onLoadEvents.trigger(data)
+		}).catch((err) => {
+			this.error = err
+			if (this.onErrorEvents.numListeners() > 0) {
+				this.onErrorEvents.trigger(err)
+			} else {
+				throw err
+			}
+		}).finally(() => {
+			this.onFinishEvents.trigger()
+			this.done = true
+		})
+	}
+	static loaded<D>(data: D): Asset<D> {
+		const asset = new Asset(Promise.resolve(data))
+		asset.data = data
+		asset.done = true
+		return asset;
+	}
+	onLoad(action: (data: D) => void): Asset<D> {
+		this.onLoadEvents.add(action)
+		return this
+	}
+	onError(action: (err: Error) => void): Asset<D> {
+		this.onErrorEvents.add(action)
+		return this
+	}
+	onFinish(action: () => void): Asset<D> {
+		this.onFinishEvents.add(action)
+		return this
+	}
+	then(action: (data: D) => void): Asset<D> {
+		return this.onLoad(action)
+	}
+	catch(action: (err: Error) => void): Asset<D> {
+		return this.onError(action)
+	}
+}
+
 class AssetBucket<D> {
-	loading: Map<string | Promise<D>, Promise<D>> = new Map();
-	loaded: Map<string | Promise<D>, D> = new Map();
+	assets: Map<string, Asset<D>> = new Map()
 	lastUID: number = 0;
-	add(name: string | null, loader: Promise<D>): Promise<D> {
+	add(name: string | null, loader: Promise<D>): Asset<D> {
 		// if user don't provide a name we use a generated one
 		const id = name ?? (this.lastUID++ + "");
-		this.loading.set(id, loader);
-		// we also use the Promise returned as a key to allow query assets from the handles returned by loadXXX()
-		const handle = loader.then((data: D) => {
-			this.loaded.set(id, data);
-			this.loaded.set(handle, data);
-			return data;
-		}).finally(() => {
-			this.loading.delete(id);
-			this.loading.delete(handle);
-		});
-		this.loading.set(handle, loader);
-		return handle;
+		const asset = new Asset(loader);
+		this.assets.set(id, asset);
+		return asset;
 	}
-	get(handle: string | Promise<D>): D | Promise<D> | null {
-		return this.getLoaded(handle) ?? this.getLoading(handle);
+	addLoaded(name: string | null, data: D) {
+		const id = name ?? (this.lastUID++ + "");
+		const asset = Asset.loaded(data);
+		this.assets.set(id, asset);
 	}
-	getLoaded(handle: string | Promise<D>): D | null {
-		return this.loaded.get(handle) ?? null;
-	}
-	getLoading(handle: string | Promise<D>): Promise<D> | null {
-		return this.loading.get(handle) ?? null;
+	get(handle: string): Asset<D> | void {
+		return this.assets.get(handle);
 	}
 	progress(): number {
-		if (this.loaded.size === this.loading.size) {
+		if (this.assets.size === 0) {
 			return 1;
 		}
-		return this.loaded.size / (this.loaded.size + this.loading.size);
+		let loaded = 0;
+		this.assets.forEach((asset) => {
+			if (asset.done) {
+				loaded++;
+			}
+		})
+		return loaded / this.assets.size;
 	}
 }
 
@@ -780,8 +832,9 @@ const game = {
 
 }
 
+// TODO: accept Asset<T>?
 // wrap individual loaders with global loader counter, for stuff like progress bar
-function load<T>(prom: Promise<T>): Promise<T> {
+function load<T>(prom: Promise<T>): Asset<T> {
 	return assets.custom.add(null, prom);
 }
 
@@ -847,7 +900,7 @@ function loadFont(
 	gw: number,
 	gh: number,
 	opt: FontLoadOpt = {},
-): Promise<FontData> {
+): Asset<FontData> {
 	return assets.fonts.add(name, loadImg(src)
 		.then((img) => {
 			return makeFont(
@@ -881,36 +934,36 @@ function slice(x = 1, y = 1, dx = 0, dy = 0, w = 1, h = 1): Quad[] {
 function loadSpriteAtlas(
 	src: SpriteLoadSrc,
 	data: SpriteAtlasData | string
-): Promise<Record<string, SpriteData>> {
+): Asset<Record<string, SpriteData>> {
 	if (typeof data === "string") {
-		return load(fetchJSON(data)
-			.then((data2) => loadSpriteAtlas(src, data2)));
+		return load(new Promise((res, rej) => {
+			fetchJSON(data).then((data2) => {
+				loadSpriteAtlas(src, data2).onLoad(res).onError(rej)
+			})
+		}));
 	}
 	return load(new Promise(async (resolve, reject) => {
 		const map = {};
-		const loader = loadSprite(null, src);
-		const tasks = Object.keys(data).map((name) => {
-			return assets.sprites.add(name, loader.then((atlas) => {
-				const w = atlas.tex.width;
-				const h = atlas.tex.height;
-				const info = data[name];
-				const spr = new SpriteData(
-					atlas.tex,
-					slice(
-						info.sliceX,
-						info.sliceY,
-						info.x / w,
-						info.y / h,
-						info.width / w,
-						info.height / h
-					),
-					info.anims,
-				);
-				map[name] = spr;
-				return spr;
-			}));
-		});
-		await Promise.all(tasks);
+		const atlas = await SpriteData.from(src);
+		for (const name in data) {
+			const w = atlas.tex.width;
+			const h = atlas.tex.height;
+			const info = data[name];
+			const spr = new SpriteData(
+				atlas.tex,
+				slice(
+					info.sliceX,
+					info.sliceY,
+					info.x / w,
+					info.y / h,
+					info.width / w,
+					info.height / h
+				),
+				info.anims,
+			);
+			assets.sprites.addLoaded(name, spr);
+			map[name] = spr;
+		}
 		resolve(map);
 	}));
 }
@@ -924,17 +977,17 @@ function loadSprite(
 		sliceY: 1,
 		anims: {},
 	},
-): Promise<SpriteData> {
+): Asset<SpriteData> {
 	return assets.sprites.add(
 		name,
 		typeof src === "string"
-			? SpriteData.fromURL(src)
+			? SpriteData.fromURL(src, opt)
 			: Promise.resolve(SpriteData.fromImage(src, opt)
 		)
 	);
 }
 
-function loadPedit(name: string | null, src: string | PeditFile): Promise<SpriteData> {
+function loadPedit(name: string | null, src: string | PeditFile): Asset<SpriteData> {
 
 	return assets.sprites.add(name, new Promise(async (resolve) => {
 
@@ -965,7 +1018,7 @@ function loadAseprite(
 	name: string | null,
 	imgSrc: SpriteLoadSrc,
 	jsonSrc: string
-): Promise<SpriteData> {
+): Asset<SpriteData> {
 	return assets.sprites.add(name, new Promise(async (resolve, reject) => {
 		const spr = await loadSprite(null, imgSrc);
 		const data = typeof jsonSrc === "string" ? await fetchJSON(jsonSrc) : jsonSrc;
@@ -1000,7 +1053,7 @@ function loadShader(
 	vert?: string,
 	frag?: string,
 	isUrl: boolean = false,
-): Promise<ShaderData> {
+): Asset<ShaderData> {
 
 	return assets.shaders.add(name, new Promise<ShaderData>((resolve, reject) => {
 
@@ -1031,7 +1084,7 @@ function loadShader(
 function loadSound(
 	name: string | null,
 	src: string | ArrayBuffer,
-): Promise<SoundData> {
+): Asset<SoundData> {
 	return assets.sounds.add(
 		name,
 		typeof src === "string"
@@ -1040,30 +1093,30 @@ function loadSound(
 	);
 }
 
-function loadBean(name: string = "bean"): Promise<SpriteData> {
+function loadBean(name: string = "bean"): Asset<SpriteData> {
 	return loadSprite(name, beanSrc);
 }
 
-function getSprite(handle: string | Promise<SpriteData>): SpriteData | Promise<SpriteData> | null {
+function getSprite(handle: string): Asset<SpriteData> | void {
 	return assets.sprites.get(handle);
 }
 
-function getSound(handle: string | Promise<SoundData>): SoundData | Promise<SoundData> | null {
-	return assets.sounds.get(handle) ?? null;
+function getSound(handle: string): Asset<SoundData> | void {
+	return assets.sounds.get(handle);
 }
 
-function getFont(handle: string | Promise<FontData>): FontData | Promise<FontData> | null {
+function getFont(handle: string): Asset<FontData> | void {
 	return assets.fonts.get(handle);
 }
 
-function getShader(handle: string | Promise<ShaderData>): ShaderData | Promise<ShaderData> | null {
-	return assets.shaders.get(handle) ?? null;
+function getShader(handle: string): Asset<ShaderData> | void {
+	return assets.shaders.get(handle);
 }
 
 function resolveSprite(
-	src: string | SpriteData | Promise<SpriteData>
-): SpriteData | Promise<SpriteData> | null {
-	if (typeof src === "string" || src instanceof Promise) {
+	src: string | SpriteData | Asset<SpriteData>
+): Asset<SpriteData> | null {
+	if (typeof src === "string") {
 		const spr = getSprite(src)
 		if (spr) {
 			// if it's already loaded or being loading, return it
@@ -1076,6 +1129,8 @@ function resolveSprite(
 			throw new Error(`Sprite not found: ${src}`);
 		}
 	} else if (src instanceof SpriteData) {
+		return Asset.loaded(src);
+	} else if (src instanceof Asset) {
 		return src;
 	} else {
 		throw new Error(`Invalid sprite: ${src}`);
@@ -1083,57 +1138,70 @@ function resolveSprite(
 }
 
 function resolveSound(
-	src: string | SoundData | Promise<SoundData>
-): SoundData | Promise<SoundData> | null {
-	if (typeof src === "string" || src instanceof Promise) {
+	src: string | SoundData | Asset<SoundData>
+): SoundData | Asset<SoundData> | null {
+	if (typeof src === "string") {
 		const snd = getSound(src)
 		if (snd) {
-			return snd;
+			return snd.data ? snd.data : snd;
 		} else if (loadProgress() < 1) {
 			return null;
 		} else {
 			throw new Error(`Sound not found: ${src}`);
 		}
+	} else if (src instanceof SoundData) {
+		return src;
+	} else if (src instanceof Asset) {
+		return src.data ? src.data : src;
+	} else {
+		throw new Error(`Invalid sound: ${src}`);
 	}
-	// TODO: check type
-	return src;
 }
 
 function resolveShader(
-	src: string | ShaderData | Promise<ShaderData> | undefined
-): ShaderData | Promise<ShaderData> | null {
+	src: string | ShaderData | Asset<ShaderData> | undefined
+): ShaderData | Asset<ShaderData> | null {
 	if (!src) {
 		return gfx.defShader;
 	}
-	if (typeof src === "string" || src instanceof Promise) {
+	if (typeof src === "string") {
 		const shader = getShader(src)
 		if (shader) {
-			return shader;
+			return shader.data ? shader.data : shader;
 		} else if (loadProgress() < 1) {
 			return null;
 		} else {
 			throw new Error(`Shader not found: ${src}`);
 		}
+	} else if (src instanceof Asset) {
+		return src.data ? src.data : src;
 	}
 	// TODO: check type
 	return src;
 }
 
 function resolveFont(
-	src: string | FontData | Promise<FontData> | undefined
-): FontData | Promise<FontData> {
+	src: string | FontData | Asset<FontData> | undefined
+): FontData | Asset<FontData> | void {
 	if (!src) {
-		return getFont(gopt.font ?? DEF_FONT);
+		const font = getFont(gopt.font ?? DEF_FONT);
+		if (font) {
+			return font.data ? font.data : font;
+		} else {
+			return null;
+		}
 	}
-	if (typeof src === "string" || src instanceof Promise) {
+	if (typeof src === "string") {
 		const font = getFont(src)
 		if (font) {
-			return font;
+			return font.data ? font.data : font;
 		} else if (loadProgress() < 1) {
 			return null;
 		} else {
 			throw new Error(`Font not found: ${src}`);
 		}
+	} else if (src instanceof Asset) {
+		return src.data ? src.data : src;
 	}
 	// TODO: check type
 	return src;
@@ -1161,7 +1229,7 @@ function play(
 
 	const snd = resolveSound(src);
 
-	if (snd instanceof Promise) {
+	if (snd instanceof Asset) {
 		const pb = play(new SoundData(createEmptyAudioBuffer()));
 		const doPlay = (snd: SoundData) => {
 			const pb2 = play(snd, opt);
@@ -1169,7 +1237,7 @@ function play(
 				pb[k] = pb2[k];
 			}
 		}
-		snd.then(doPlay)
+		snd.onLoad(doPlay)
 		return pb;
 	} else if (snd === null) {
 		const pb = play(new SoundData(createEmptyAudioBuffer()));
@@ -1479,7 +1547,7 @@ function drawRaw(
 
 	const shader = resolveShader(shaderSrc);
 
-	if (!shader || shader instanceof Promise) {
+	if (!shader || shader instanceof Asset) {
 		return;
 	}
 
@@ -1782,11 +1850,11 @@ function drawSprite(opt: DrawSpriteOpt) {
 
 	const spr = resolveSprite(opt.sprite);
 
-	if (!spr || spr instanceof Promise) {
+	if (!spr || !spr.data) {
 		return;
 	}
 
-	const q = spr.frames[opt.frame ?? 0];
+	const q = spr.data.frames[opt.frame ?? 0];
 
 	if (!q) {
 		throw new Error(`Frame not found: ${opt.frame ?? 0}`);
@@ -1794,7 +1862,7 @@ function drawSprite(opt: DrawSpriteOpt) {
 
 	drawTexture({
 		...opt,
-		tex: spr.tex,
+		tex: spr.data.tex,
 		quad: q.scale(opt.quad || new Quad(0, 0, 1, 1)),
 		uniform: opt.uniform,
 	});
@@ -2231,7 +2299,7 @@ function formatText(opt: DrawTextOpt): FormattedText {
 
 	const font = resolveFont(opt.font);
 
-	if (font instanceof Promise) {
+	if (font instanceof Asset) {
 		return {
 			width: 0,
 			height: 0,
@@ -3974,11 +4042,11 @@ interface SpriteCurAnim {
 
 // TODO: clean
 function sprite(
-	src: string | SpriteData | Promise<SpriteData>,
+	src: string | SpriteData | Asset<SpriteData>,
 	opt: SpriteCompOpt = {}
 ): SpriteComp {
 
-	let spriteData = null;
+	let spriteData: SpriteData | null = null;
 	let curAnim: SpriteCurAnim | null = null;
 
 	if (!src) {
@@ -4031,26 +4099,26 @@ function sprite(
 
 				const spr = resolveSprite(src);
 
-				if (!spr || spr instanceof Promise) {
+				if (!spr || !spr.data) {
 					return;
 				}
 
-				let q = spr.frames[0].clone();
+				let q = spr.data.frames[0].clone();
 
 				if (opt.quad) {
 					q = q.scale(opt.quad);
 				}
 
-				const scale = calcTexScale(spr.tex, q, opt.width, opt.height);
+				const scale = calcTexScale(spr.data.tex, q, opt.width, opt.height);
 
-				this.width = spr.tex.width * q.w * scale.x;
-				this.height = spr.tex.height * q.h * scale.y;
+				this.width = spr.data.tex.width * q.w * scale.x;
+				this.height = spr.data.tex.height * q.h * scale.y;
 
 				if (opt.anim) {
 					this.play(opt.anim);
 				}
 
-				spriteData = spr;
+				spriteData = spr.data;
 				this.trigger("spriteLoaded", spriteData);
 
 			};
@@ -4106,14 +4174,14 @@ function sprite(
 
 			if (!spriteData) {
 				this.on("spriteLoaded", () => {
-					this.play(name);
+					this.play(name, opt);
 				});
 				return;
 			};
 
 			const anim = spriteData.anims[name];
 
-			if (anim == null) {
+			if (!anim) {
 				throw new Error(`Anim not found: ${name}`);
 			}
 
@@ -4121,20 +4189,27 @@ function sprite(
 				this.stop();
 			}
 
-			curAnim = {
-				name: name,
-				timer: 0,
-				loop: opt.loop ?? anim.loop ?? false,
-				pingpong: opt.pingpong ?? anim.pingpong ?? false,
-				speed: opt.speed ?? anim.speed ?? 10,
-				onEnd: opt.onEnd ?? (() => {}),
-			};
+			curAnim = typeof anim === "number"
+				? {
+					name: name,
+					timer: 0,
+					loop: false,
+					pingpong: false,
+					speed: 0,
+					onEnd: () => {},
+				}
+				: {
+					name: name,
+					timer: 0,
+					loop: opt.loop ?? anim.loop ?? false,
+					pingpong: opt.pingpong ?? anim.pingpong ?? false,
+					speed: opt.speed ?? anim.speed ?? 10,
+					onEnd: opt.onEnd ?? (() => {}),
+				};
 
-			if (typeof anim === "number") {
-				this.frame = anim;
-			} else {
-				this.frame = anim.from;
-			}
+			this.frame = typeof anim === "number"
+				? anim
+				: anim.from
 
 			this.trigger("animStart", name);
 
@@ -5369,6 +5444,7 @@ window.addEventListener("error", (e) => {
 });
 
 window.addEventListener("unhandledrejection", (e) => {
+	console.log("123")
 	handleErr(e.reason);
 });
 
@@ -5499,6 +5575,7 @@ const ctx: KaboomCtx = {
 	getSound,
 	getFont,
 	getShader,
+	Asset,
 	SpriteData,
 	SoundData,
 	// query
