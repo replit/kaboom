@@ -635,6 +635,13 @@ class SpriteData {
 		this.anims = anims;
 	}
 
+	static from(src: SpriteLoadSrc, opt: SpriteLoadOpt = {}): Promise<SpriteData> {
+		return typeof src === "string"
+			? SpriteData.fromURL(src, opt)
+			: Promise.resolve(SpriteData.fromImage(src, opt)
+		)
+	}
+
 	static fromImage(data: GfxTexData, opt: SpriteLoadOpt = {}): SpriteData {
 		return new SpriteData(
 			makeTex(data, opt),
@@ -711,6 +718,12 @@ class Asset<D> {
 			this.data = data
 		})
 	}
+	static loaded<D>(data: D): Asset<D> {
+		const asset = new Asset(Promise.resolve(data));
+		asset.data = data;
+		asset.loaded = true;
+		return asset;
+	}
 	onLoad(action: (data: D) => void): Asset<D> {
 		this.loader.then(action)
 		return this
@@ -737,6 +750,11 @@ class AssetBucket<D> {
 		const asset = new Asset(loader);
 		this.assets.set(id, asset);
 		return asset;
+	}
+	addLoaded(name: string | null, data: D) {
+		const id = name ?? (this.lastUID++ + "");
+		const asset = Asset.loaded(data);
+		this.assets.set(id, asset);
 	}
 	get(handle: string): Asset<D> | void {
 		return this.assets.get(handle);
@@ -798,6 +816,7 @@ const game = {
 
 }
 
+// TODO: accept Asset<T>?
 // wrap individual loaders with global loader counter, for stuff like progress bar
 function load<T>(prom: Promise<T>): Asset<T> {
 	return assets.custom.add(null, prom);
@@ -899,39 +918,35 @@ function slice(x = 1, y = 1, dx = 0, dy = 0, w = 1, h = 1): Quad[] {
 function loadSpriteAtlas(
 	src: SpriteLoadSrc,
 	data: SpriteAtlasData | string
-) {
-// ): Asset<Record<string, SpriteData>> {
-// 	if (typeof data === "string") {
-// 		return load(fetchJSON(data)
-// 			.then((data2) => loadSpriteAtlas(src, data2)));
-// 	}
-// 	return load(new Promise(async (resolve, reject) => {
-// 		const map = {};
-// 		const loader = loadSprite(null, src);
-// 		const tasks = Object.keys(data).map((name) => {
-// 			return assets.sprites.add(name, loader.then((atlas) => {
-// 				const w = atlas.tex.width;
-// 				const h = atlas.tex.height;
-// 				const info = data[name];
-// 				const spr = new SpriteData(
-// 					atlas.tex,
-// 					slice(
-// 						info.sliceX,
-// 						info.sliceY,
-// 						info.x / w,
-// 						info.y / h,
-// 						info.width / w,
-// 						info.height / h
-// 					),
-// 					info.anims,
-// 				);
-// 				map[name] = spr;
-// 				return spr;
-// 			}));
-// 		});
-// 		await Promise.all(tasks);
-// 		resolve(map);
-// 	}));
+): Asset<Record<string, SpriteData>> {
+	if (typeof data === "string") {
+		return load(fetchJSON(data)
+			.then((data2) => loadSpriteAtlas(src, data2).loader));
+	}
+	return load(new Promise(async (resolve, reject) => {
+		const map = {};
+		const atlas = await SpriteData.from(src);
+		for (const name in data) {
+			const w = atlas.tex.width;
+			const h = atlas.tex.height;
+			const info = data[name];
+			const spr = new SpriteData(
+				atlas.tex,
+				slice(
+					info.sliceX,
+					info.sliceY,
+					info.x / w,
+					info.y / h,
+					info.width / w,
+					info.height / h
+				),
+				info.anims,
+			);
+			assets.sprites.addLoaded(name, spr);
+			map[name] = spr;
+		}
+		resolve(map);
+	}));
 }
 
 // load a sprite to asset manager
@@ -947,7 +962,7 @@ function loadSprite(
 	return assets.sprites.add(
 		name,
 		typeof src === "string"
-			? SpriteData.fromURL(src)
+			? SpriteData.fromURL(src, opt)
 			: Promise.resolve(SpriteData.fromImage(src, opt)
 		)
 	);
@@ -1081,12 +1096,12 @@ function getShader(handle: string): Asset<ShaderData> | void {
 
 function resolveSprite(
 	src: string | SpriteData | Asset<SpriteData>
-): SpriteData | Asset<SpriteData> | null {
+): Asset<SpriteData> | null {
 	if (typeof src === "string") {
 		const spr = getSprite(src)
 		if (spr) {
 			// if it's already loaded or being loading, return it
-			return spr.loaded ? spr.data : spr;
+			return spr;
 		} else if (loadProgress() < 1) {
 			// if there's any other ongoing loading task we return empty and don't error yet
 			return null;
@@ -1095,11 +1110,9 @@ function resolveSprite(
 			throw new Error(`Sprite not found: ${src}`);
 		}
 	} else if (src instanceof SpriteData) {
-		return src;
+		return Asset.loaded(src);
 	} else if (src instanceof Asset) {
-		if (src.loaded) {
-			return src.data;
-		}
+		return src;
 	} else {
 		throw new Error(`Invalid sprite: ${src}`);
 	}
@@ -1818,11 +1831,11 @@ function drawSprite(opt: DrawSpriteOpt) {
 
 	const spr = resolveSprite(opt.sprite);
 
-	if (!spr || spr instanceof Asset) {
+	if (!spr || !spr.loaded) {
 		return;
 	}
 
-	const q = spr.frames[opt.frame ?? 0];
+	const q = spr.data.frames[opt.frame ?? 0];
 
 	if (!q) {
 		throw new Error(`Frame not found: ${opt.frame ?? 0}`);
@@ -1830,7 +1843,7 @@ function drawSprite(opt: DrawSpriteOpt) {
 
 	drawTexture({
 		...opt,
-		tex: spr.tex,
+		tex: spr.data.tex,
 		quad: q.scale(opt.quad || new Quad(0, 0, 1, 1)),
 		uniform: opt.uniform,
 	});
@@ -4014,7 +4027,7 @@ function sprite(
 	opt: SpriteCompOpt = {}
 ): SpriteComp {
 
-	let spriteData = null;
+	let spriteData: SpriteData | null = null;
 	let curAnim: SpriteCurAnim | null = null;
 
 	if (!src) {
@@ -4067,26 +4080,26 @@ function sprite(
 
 				const spr = resolveSprite(src);
 
-				if (!spr || spr instanceof Asset) {
+				if (!spr || !spr.loaded) {
 					return;
 				}
 
-				let q = spr.frames[0].clone();
+				let q = spr.data.frames[0].clone();
 
 				if (opt.quad) {
 					q = q.scale(opt.quad);
 				}
 
-				const scale = calcTexScale(spr.tex, q, opt.width, opt.height);
+				const scale = calcTexScale(spr.data.tex, q, opt.width, opt.height);
 
-				this.width = spr.tex.width * q.w * scale.x;
-				this.height = spr.tex.height * q.h * scale.y;
+				this.width = spr.data.tex.width * q.w * scale.x;
+				this.height = spr.data.tex.height * q.h * scale.y;
 
 				if (opt.anim) {
 					this.play(opt.anim);
 				}
 
-				spriteData = spr;
+				spriteData = spr.data;
 				this.trigger("spriteLoaded", spriteData);
 
 			};
@@ -4142,14 +4155,14 @@ function sprite(
 
 			if (!spriteData) {
 				this.on("spriteLoaded", () => {
-					this.play(name);
+					this.play(name, opt);
 				});
 				return;
 			};
 
 			const anim = spriteData.anims[name];
 
-			if (anim == null) {
+			if (!anim) {
 				throw new Error(`Anim not found: ${name}`);
 			}
 
@@ -4166,11 +4179,9 @@ function sprite(
 				onEnd: opt.onEnd ?? (() => {}),
 			};
 
-			if (typeof anim === "number") {
-				this.frame = anim;
-			} else {
-				this.frame = anim.from;
-			}
+			this.frame = typeof anim === "number"
+				? anim
+				: anim.from
 
 			this.trigger("animStart", name);
 
