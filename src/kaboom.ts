@@ -739,6 +739,9 @@ class Asset<D> {
 	then(action: (data: D) => void): Asset<D> {
 		return this.onLoad(action)
 	}
+	catch(action: (err: Error) => void): Asset<D> {
+		return this.onError(action)
+	}
 }
 
 class AssetBucket<D> {
@@ -4170,14 +4173,23 @@ function sprite(
 				this.stop();
 			}
 
-			curAnim = {
-				name: name,
-				timer: 0,
-				loop: opt.loop ?? anim.loop ?? false,
-				pingpong: opt.pingpong ?? anim.pingpong ?? false,
-				speed: opt.speed ?? anim.speed ?? 10,
-				onEnd: opt.onEnd ?? (() => {}),
-			};
+			curAnim = typeof anim === "number"
+				? {
+					name: name,
+					timer: 0,
+					loop: false,
+					pingpong: false,
+					speed: 0,
+					onEnd: () => {},
+				}
+				: {
+					name: name,
+					timer: 0,
+					loop: opt.loop ?? anim.loop ?? false,
+					pingpong: opt.pingpong ?? anim.pingpong ?? false,
+					speed: opt.speed ?? anim.speed ?? 10,
+					onEnd: opt.onEnd ?? (() => {}),
+				};
 
 			this.frame = typeof anim === "number"
 				? anim

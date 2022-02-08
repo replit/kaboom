@@ -2387,9 +2387,12 @@ export declare class Asset<D> {
 	loaded: boolean
 	data: D | null
 	constructor(loader: Promise<D>)
+	static loaded<D>(data: D): Asset<D>
 	onLoad(action: (data: D) => void): Asset<D>
 	onError(action: (err: Error) => void): Asset<D>
 	onEnd(action: () => void): Asset<D>
+	then(action: (data: D) => void): Asset<D>
+	catch(action: (err: Error) => void): Asset<D>
 }
 
 export type SpriteLoadSrc = string | GfxTexData;
