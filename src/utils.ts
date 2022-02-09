@@ -18,10 +18,9 @@ export class IDList<T> extends Map<number, T> {
 	}
 }
 
-// TODO: typed event arguments
-export class Event {
-	private handlers: IDList<(...args) => void> = new IDList();
-	add(action: (...args) => void): EventCanceller {
+export class Event<Args extends any[] = any[]> {
+	private handlers: IDList<(...args: Args) => void> = new IDList();
+	add(action: (...args: Args) => void): EventCanceller {
 		return this.handlers.pushd(action);
 	}
 	addOnce(action: (...args) => void): EventCanceller {
@@ -31,7 +30,7 @@ export class Event {
 		});
 		return cancel;
 	}
-	trigger(...args) {
+	trigger(...args: Args) {
 		this.handlers.forEach((action) => action(...args));
 	}
 	numListeners(): number {
