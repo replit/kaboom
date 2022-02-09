@@ -1682,7 +1682,6 @@ export interface KaboomCtx {
 	 * ```
 	 */
 	drawText(options: DrawTextOpt): void,
-	drawText2(options: DrawTextOpt): void,
 	/**
 	 * Draw a rectangle.
 	 *
@@ -2419,6 +2418,7 @@ export declare class Asset<D> {
 	onFinish(action: () => void): Asset<D>
 	then(action: (data: D) => void): Asset<D>
 	catch(action: (err: Error) => void): Asset<D>
+	finally(action: () => void): Asset<D>
 }
 
 export type LoadSpriteSrc = string | GfxTexData;
@@ -2607,7 +2607,7 @@ export interface RenderProps {
 	color?: Color,
 	opacity?: number,
 	fixed?: boolean,
-	shader?: GfxShader | string,
+	shader?: string | ShaderData | Asset<ShaderData>,
 	uniform?: Uniform,
 }
 
@@ -2939,7 +2939,7 @@ export type DrawTextOpt = RenderProps & {
 	/**
 	 * The name of font to use.
 	 */
-	font?: string | BitmapFontData,
+	font?: string | FontData | Asset<FontData> | BitmapFontData | Asset<BitmapFontData>,
 	/**
 	 * The size of text (the height of each character).
 	 */
@@ -2987,11 +2987,17 @@ export type DrawTextOpt = RenderProps & {
 /**
  * Formatted text with info on how and where to render each character.
  */
-export interface FormattedText {
+export type FormattedText = {
 	width: number,
 	height: number,
+} & ({
+	isBitmap: true,
 	chars: FormattedChar[],
-}
+} | {
+	isBitmap: false,
+	tex: GfxTexture,
+	opt: DrawTextOpt,
+})
 
 /**
  * One formated character.

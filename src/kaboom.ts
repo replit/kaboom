@@ -261,6 +261,7 @@ const BG_GRID_SIZE = 64;
 
 const DEF_FONT = "apl386o";
 const DBG_FONT = "sink";
+const DEF_TEXT_SIZE = 32;
 
 const LOG_MAX = 1;
 
@@ -1174,7 +1175,7 @@ function resolveSound(
 }
 
 function resolveShader(
-	src: string | ShaderData | Asset<ShaderData> | undefined
+	src: RenderProps["shader"]
 ): ShaderData | Asset<ShaderData> | null {
 	if (!src) {
 		return gfx.defShader;
@@ -1196,8 +1197,14 @@ function resolveShader(
 }
 
 function resolveFont(
-	src: string | BitmapFontData | Asset<BitmapFontData> | undefined
-): BitmapFontData | Asset<BitmapFontData> | void {
+	src: DrawTextOpt["font"]
+):
+	| FontData
+	| Asset<FontData>
+	| BitmapFontData
+	| Asset<BitmapFontData>
+	| string
+	| void {
 	if (!src) {
 		const font = getBitmapFont(gopt.font ?? DEF_FONT);
 		if (font) {
@@ -1210,6 +1217,8 @@ function resolveFont(
 		const font = getBitmapFont(src)
 		if (font) {
 			return font.data ? font.data : font;
+		} else if (document.fonts.check(`16px ${src}`)) {
+			return src;
 		} else if (loadProgress() < 1) {
 			return null;
 		} else {
@@ -1556,7 +1565,7 @@ function drawRaw(
 	indices: number[],
 	fixed: boolean,
 	tex: GfxTexture = gfx.defTex,
-	shaderSrc: GfxShader | string = gfx.defShader,
+	shaderSrc: RenderProps["shader"] = gfx.defShader,
 	uniform: Uniform = {},
 ) {
 
@@ -2314,16 +2323,46 @@ function formatText(opt: DrawTextOpt): FormattedText {
 
 	const font = resolveFont(opt.font);
 
-	if (font instanceof Asset) {
+	// if it's still loading
+	if (font instanceof Asset || !font) {
 		return {
+			isBitmap: true,
 			width: 0,
 			height: 0,
 			chars: [],
 		};
 	};
 
-	if (!font) {
-		throw new Error(`Font not found: ${opt.font}`);
+	// if it's not bitmap font, we draw it with 2d canvas or use cached image
+	if (font instanceof FontFace || typeof font === "string") {
+		const fontName = font instanceof FontFace ? font.family : font;
+		// when these properties change, we redraw the text on canvas and
+		const cfg = "" + opt.text + opt.font + opt.align + opt.width
+		if (!text2DCache[cfg]) {
+			const c2d = app.canvas2.getContext("2d")
+			c2d.font = `${opt.size ?? DEF_TEXT_SIZE}px ${fontName}`
+			const metrics = c2d.measureText(opt.text)
+			// TODO: what if the text is wider than canvas width
+			const w = metrics.width
+			// actual + actual is often shorter, font + font is often taller, font + actual seem to get the best fit, not sure why
+			const h = metrics.fontBoundingBoxAscent + metrics.actualBoundingBoxDescent
+			c2d.clearRect(0, 0, app.canvas2.width, app.canvas2.height);
+			const size = opt.size ?? 32
+			c2d.font = `${size}px ${opt.font}`
+			c2d.textBaseline = "top"
+			c2d.textAlign = opt.align ?? "left"
+			c2d.fillStyle = "rgb(255, 255, 255)"
+			c2d.fillText(opt.text, 0, 0)
+			text2DCache[cfg] = makeTex(c2d.getImageData(0, 0, w, w))
+		}
+		const tex = text2DCache[cfg];
+		return {
+			isBitmap: false,
+			width: tex.width,
+			height: tex.height,
+			tex: tex,
+			opt: opt,
+		}
 	}
 
 	const { charStyleMap, text } = compileStyledText(opt.text + "");
@@ -2399,10 +2438,8 @@ function formatText(opt: DrawTextOpt): FormattedText {
 	let idx = 0;
 
 	flines.forEach((line, ln) => {
-
 		// line offset
 		const oxl = (tw - line.length * cw) * (offset.x + 0.5);
-
 		line.forEach((char, cn) => {
 			const qpos = font.map[char];
 			const x = cn * cw;
@@ -2447,6 +2484,7 @@ function formatText(opt: DrawTextOpt): FormattedText {
 	});
 
 	return {
+		isBitmap: true,
 		width: tw,
 		height: th,
 		chars: fchars,
@@ -2460,61 +2498,31 @@ function drawText(opt: DrawTextOpt) {
 
 const text2DCache = {}
 
-// TODO: doesn't seem to be affected by pixel density
-// TODO: integrate with drawText()
-function drawText2(opt: DrawTextOpt) {
-	if (opt.text === undefined) {
-		throw new Error("drawText2() requires property \"text\".");
-	}
-	const txt = opt.text
-	// when these properties change, we redraw the text on canvas and
-	const cfg = opt.text + opt.font + opt.align + opt.width
-	if (!text2DCache[cfg]) {
-		const c2d = app.canvas2.getContext("2d")
-		c2d.clearRect(0, 0, app.canvas2.width, app.canvas2.height);
-		const size = opt.size ?? 32
-		const fontStr = `${size}px ${opt.font}`
-		if (!document.fonts.check(fontStr)) {
-			throw new Error(`Font not found: "${opt.font}"`)
-		}
-		c2d.font = fontStr
-		const metrics = c2d.measureText(txt)
-		// TODO: what if the text is wider than canvas width
-		const w = metrics.width
-		// actual + actual is often shorter, font + font is often taller, font + actual seem to get the best fit, not sure why
-		const h = metrics.fontBoundingBoxAscent + metrics.actualBoundingBoxDescent
-		c2d.textBaseline = "top"
-		c2d.textAlign = opt.align ?? "left"
-		c2d.fillStyle = "rgb(255, 255, 255)"
-		c2d.fillText(txt, 0, 0)
-		const img = c2d.getImageData(0, 0, w, h)
-		text2DCache[cfg] = makeTex(img)
-	}
-	const tex = text2DCache[cfg]
-	drawTexture({
-		...opt,
-		tex: tex,
-		color: opt.color ?? Color.WHITE,
-	});
-}
-
 // TODO: rotation
 function drawFormattedText(ftext: FormattedText) {
-	for (const ch of ftext.chars) {
-		drawUVQuad({
-			tex: ch.tex,
-			width: ch.tex.width * ch.quad.w,
-			height: ch.tex.height * ch.quad.h,
-			pos: ch.pos,
-			scale: ch.scale,
-			angle: ch.angle,
-			color: ch.color,
-			opacity: ch.opacity,
-			quad: ch.quad,
-			// TODO: topleft
-			origin: "center",
-			uniform: ch.uniform,
-			fixed: ch.fixed,
+	if (ftext.isBitmap === true) {
+		for (const ch of ftext.chars) {
+			drawUVQuad({
+				tex: ch.tex,
+				width: ch.tex.width * ch.quad.w,
+				height: ch.tex.height * ch.quad.h,
+				pos: ch.pos,
+				scale: ch.scale,
+				angle: ch.angle,
+				color: ch.color,
+				opacity: ch.opacity,
+				quad: ch.quad,
+				// TODO: topleft
+				origin: "center",
+				uniform: ch.uniform,
+				fixed: ch.fixed,
+			});
+		}
+	} else {
+		drawTexture({
+			...ftext.opt,
+			tex: ftext.tex,
+			color: ftext.opt.color ?? Color.WHITE,
 		});
 	}
 }
@@ -5773,7 +5781,6 @@ const ctx: KaboomCtx = {
 	// raw draw
 	drawSprite,
 	drawText,
-	drawText2,
 	formatText,
 	drawRect,
 	drawLine,
