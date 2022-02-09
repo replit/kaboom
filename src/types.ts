@@ -1102,6 +1102,9 @@ export interface KaboomCtx {
 	 * @since v2001.0
 	 */
 	getShader(handle: string): Asset<ShaderData> | void,
+	Asset: typeof Asset,
+	SpriteData: typeof SpriteData,
+	SoundData: typeof SoundData,
 	/**
 	 * Get the width of game.
 	 *
@@ -1333,6 +1336,7 @@ export interface KaboomCtx {
 	 * ```
 	 */
 	loop(t: number, action: () => void): EventCanceller,
+	Timer: typeof Timer,
 	/**
 	 * Play a piece of audio.
 	 *
@@ -1566,6 +1570,14 @@ export interface KaboomCtx {
 	 * Check if a point is inside a rectangle.
 	 */
 	testRectPoint(r: Rect, pt: Vec2): boolean,
+	Line: typeof Line,
+	Rect: typeof Rect,
+	Circle: typeof Circle,
+	Vec2: typeof Vec2,
+	Color: typeof Color,
+	Mat4: typeof Mat4,
+	Quad: typeof Quad,
+	RNG: typeof RNG,
 	/**
 	 * Define a scene.
 	 *
@@ -1959,7 +1971,6 @@ export interface KaboomCtx {
 	 * The canvas DOM kaboom is currently using.
 	 */
 	canvas: HTMLCanvasElement,
-	[custom: string]: any,
 }
 
 export type Tag = string
@@ -3222,6 +3233,16 @@ export declare class Circle {
 
 export type Polygon = Vec2[];
 export type Point = Vec2;
+
+export declare class RNG {
+	seed: number
+	constructor(seed: number)
+	gen(): number
+	genNumber(a: number, b: number): number
+	genVec2(a: Vec2, b?: Vec2): Vec2
+	genColor(a: Color, b: Color): Color
+	genAny<T extends RNGValue>(...args: T[]): T;
+}
 
 export interface Comp {
 	/**
