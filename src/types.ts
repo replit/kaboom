@@ -3733,7 +3733,7 @@ export interface TextCompOpt {
 	 *
 	 * @since v2001.0
 	 */
-	align: TextAlign,
+	align?: TextAlign,
 	/**
 	 * The gap between each line.
 	 *

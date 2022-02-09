@@ -1217,12 +1217,7 @@ function resolveFont(
 	| string
 	| void {
 	if (!src) {
-		const font = getBitmapFont(gopt.font ?? DEF_FONT);
-		if (font) {
-			return font.data ? font.data : font;
-		} else {
-			return null;
-		}
+		return resolveFont(gopt.font ?? DEF_FONT);
 	}
 	if (typeof src === "string") {
 		const font = getBitmapFont(src)
@@ -2431,6 +2426,7 @@ function formatText(opt: DrawTextOpt): FormattedText {
 				c2d.fillText(opt.text, 0, 0)
 			}
 
+			// this can be memory intensive
 			text2DCache[cfg] = makeTex(c2d.getImageData(0, 0, w, h))
 
 		}
