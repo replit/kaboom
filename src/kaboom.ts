@@ -2315,6 +2315,34 @@ function compileStyledText(text: string): {
 
 }
 
+// TODO: '\n'
+// calculate each line based on text wrap width
+function getLines(
+	text: string,
+	maxWidth: number,
+	getWidth: (txt: string) => number
+): string[] {
+
+	const words = text.split(" ");
+	const lines: string[] = [];
+	let curLine = words[0];
+
+	for (const word of words.slice(1)) {
+		const width = getWidth(curLine + " " + word);
+		if (width < maxWidth) {
+			curLine += " " + word;
+		} else {
+			lines.push(curLine);
+			curLine = word;
+		}
+	}
+
+	lines.push(curLine);
+
+	return lines;
+
+}
+
 // format text and return a list of chars with their calculated position
 function formatText(opt: DrawTextOpt): FormattedText {
 
@@ -2325,7 +2353,7 @@ function formatText(opt: DrawTextOpt): FormattedText {
 	const font = resolveFont(opt.font);
 
 	// if it's still loading
-	if (font instanceof Asset || !font) {
+	if (opt.text === "" || font instanceof Asset || !font) {
 		return {
 			isBitmap: true,
 			width: 0,
@@ -2336,35 +2364,68 @@ function formatText(opt: DrawTextOpt): FormattedText {
 
 	// if it's not bitmap font, we draw it with 2d canvas or use cached image
 	if (font instanceof FontFace || typeof font === "string") {
+
 		const fontName = font instanceof FontFace ? font.family : font;
 		// when these properties change, we redraw the text on canvas and
-		const cfg = "" + opt.text + opt.size + opt.font + opt.align + opt.width
+		const cfg = [opt.text, opt.size, opt.font, opt.align, opt.width].join(",")
+
 		if (!text2DCache[cfg]) {
-			// TODO: wrap
+
 			// TODO: styles
 			// TODO: what if the text is wider than canvas width
 			if (opt.transform) {
 				warn(`"transform" isn't available for non-bitmap fonts yet`)
 			}
+
 			if (opt.styles) {
 				warn(`"styles" isn't available for non-bitmap fonts yet`)
 			}
+
+			if (opt.letterSpacing) {
+				warn(`"letterSpacing" isn't available for non-bitmap fonts yet`)
+			}
+
 			const c2d = app.canvas2.getContext("2d")
 			c2d.font = `${opt.size ?? DEF_TEXT_SIZE}px ${fontName}`
 			const metrics = c2d.measureText(opt.text)
-			const w = metrics.width
-			// actual + actual is often shorter, font + font is often taller, font + actual seem to get the best fit, not sure why
-			const h = metrics.fontBoundingBoxAscent + metrics.actualBoundingBoxDescent
 			c2d.clearRect(0, 0, app.canvas2.width, app.canvas2.height);
-			const size = opt.size ?? 32
-			c2d.font = `${size}px ${opt.font}`
 			c2d.textBaseline = "top"
-			c2d.textAlign = opt.align ?? "left"
+			c2d.textAlign = "left"
 			c2d.fillStyle = "rgb(255, 255, 255)"
-			c2d.fillText(opt.text, 0, 0)
-			text2DCache[cfg] = makeTex(c2d.getImageData(0, 0, w, w))
+
+			let w = 0
+			let h = 0
+
+			if (opt.width) {
+
+				const lines = getLines(
+					opt.text,
+					opt.width,
+					(text) => c2d.measureText(text).width
+				)
+
+				w = opt.width
+
+				for (const line of lines) {
+					const size = c2d.measureText(line)
+					c2d.fillText(line, 0, h)
+					// actual + actual is often shorter, font + font is often taller, font + actual seem to get the best fit, not sure why
+					h += metrics.fontBoundingBoxAscent + metrics.actualBoundingBoxDescent
+				}
+
+			} else {
+				w = metrics.width
+				// actual + actual is often shorter, font + font is often taller, font + actual seem to get the best fit, not sure why
+				h = metrics.fontBoundingBoxAscent + metrics.actualBoundingBoxDescent
+				c2d.fillText(opt.text, 0, 0)
+			}
+
+			text2DCache[cfg] = makeTex(c2d.getImageData(0, 0, w, h))
+
 		}
+
 		const tex = text2DCache[cfg];
+
 		return {
 			isBitmap: false,
 			width: tex.width,
@@ -2372,6 +2433,7 @@ function formatText(opt: DrawTextOpt): FormattedText {
 			tex: tex,
 			opt: opt,
 		}
+
 	}
 
 	const { charStyleMap, text } = compileStyledText(opt.text + "");
@@ -2532,6 +2594,8 @@ function drawFormattedText(ftext: FormattedText) {
 		drawTexture({
 			...ftext.opt,
 			tex: ftext.tex,
+			width: ftext.width,
+			height: ftext.height,
 			color: ftext.opt.color ?? Color.WHITE,
 		});
 	}
@@ -4358,7 +4422,10 @@ function text(t: string, opt: TextCompOpt = {}): TextComp {
 			styles: obj.styles,
 		});
 
-		obj.width = ftext.width / (obj.scale?.x || 1);
+		if (!opt.width) {
+			obj.width = ftext.width / (obj.scale?.x || 1);
+		}
+
 		obj.height = ftext.height / (obj.scale?.y || 1);
 
 		return ftext;
