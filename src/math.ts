@@ -3,6 +3,7 @@ import {
 	Point,
 	Polygon,
 	Area,
+	RNGValue,
 } from "./types";
 
 export function deg2rad(deg: number): number {
@@ -493,36 +494,48 @@ const C = 12345;
 const M = 2147483648;
 
 export class RNG {
-	seed: number;
+	seed: number
 	constructor(seed: number) {
-		this.seed = seed;
+		this.seed = seed
 	}
-	gen(...args) {
+	gen(): number {
+		this.seed = (A * this.seed + C) % M
+		return this.seed / M
+	}
+	genNumber(a: number, b: number): number {
+		return a + this.gen() * (b - a)
+	}
+	genVec2(a: Vec2, b?: Vec2): Vec2 {
+		return new Vec2(
+			this.genNumber(a.x, b.x),
+			this.genNumber(a.y, b.y),
+		)
+	}
+	genColor(a: Color, b: Color): Color {
+		return new Color(
+			this.genNumber(a.r, b.r),
+			this.genNumber(a.g, b.g),
+			this.genNumber(a.b, b.b),
+		)
+	}
+	genAny<T extends RNGValue>(...args: T[]): T {
 		if (args.length === 0) {
-			this.seed = (A * this.seed + C) % M;
-			return this.seed / M;
+			return this.gen() as T
 		} else if (args.length === 1) {
 			if (typeof args[0] === "number") {
-				return this.gen(0, args[0]);
+				return this.genNumber(0, args[0]) as T
 			} else if (args[0] instanceof Vec2) {
-				return this.gen(vec2(0, 0), args[0]);
+				return this.genVec2(vec2(0, 0), args[0]) as T
 			} else if (args[0] instanceof Color) {
-				return this.gen(rgb(0, 0, 0), args[0]);
+				return this.genColor(rgb(0, 0, 0), args[0]) as T
 			}
 		} else if (args.length === 2) {
 			if (typeof args[0] === "number" && typeof args[1] === "number") {
-				return (this.gen() * (args[1] - args[0])) + args[0];
+				return this.genNumber(args[0], args[1]) as T
 			} else if (args[0] instanceof Vec2 && args[1] instanceof Vec2) {
-				return vec2(
-					this.gen(args[0].x, args[1].x),
-					this.gen(args[0].y, args[1].y),
-				);
+				return this.genVec2(args[0], args[1]) as T
 			} else if (args[0] instanceof Color && args[1] instanceof Color) {
-				return rgb(
-					this.gen(args[0].r, args[1].r),
-					this.gen(args[0].g, args[1].g),
-					this.gen(args[0].b, args[1].b),
-				);
+				return this.genColor(args[0], args[1]) as T
 			}
 		}
 	}
@@ -540,11 +553,11 @@ export function randSeed(seed?: number): number {
 
 export function rand(...args) {
 	// @ts-ignore
-	return defRNG.gen(...args);
+	return defRNG.genAny(...args);
 }
 
 // TODO: randi() to return 0 / 1?
-export function randi(...args) {
+export function randi(...args: number[]) {
 	return Math.floor(rand(...args));
 }
 
