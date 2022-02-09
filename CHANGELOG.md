@@ -16,6 +16,7 @@
 - added support for non bitmap fonts
 - (**BREAK**) rename `loadFont()` to `loadBitmapFont()`
 - added `loadFont()` to load `.ttf`, `.otf`, `.woff2` or any font supported by browser `FontFace`
+- (**BREAK**) `origin` no longer controls text alignment, use `align` option instead
 
 ### v2000.2.6
 

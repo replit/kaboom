@@ -3684,6 +3684,12 @@ export interface TextComp extends Comp {
 	 */
 	height: number,
 	/**
+	 * Text alignment ("left", "center" or "right", default "left").
+	 *
+	 * @since v2001.0
+	 */
+	align: TextAlign,
+	/**
 	 * The gap between each line.
 	 *
 	 * @since v2000.2
@@ -3722,6 +3728,12 @@ export interface TextCompOpt {
 	 * Wrap text to a certain width.
 	 */
 	width?: number,
+	/**
+	 * Text alignment ("left", "center" or "right", default "left").
+	 *
+	 * @since v2001.0
+	 */
+	align: TextAlign,
 	/**
 	 * The gap between each line.
 	 *

@@ -40,6 +40,7 @@ const input = add([
 		width: width() - pad * 2,
 		// The height of character
 		size: curSize,
+		align: "right",
 		lineSpacing: 8,
 		letterSpacing: 4,
 		// Transform each character for special effects

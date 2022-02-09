@@ -92,6 +92,7 @@ import {
 	AudioPlayOpt,
 	DrawSpriteOpt,
 	DrawTextOpt,
+	TextAlign,
 	GameObj,
 	EventCanceller,
 	SceneID,
@@ -399,6 +400,15 @@ function originPt(orig: Origin | Vec2): Vec2 {
 		case "bot": return vec2(0, 1);
 		case "botright": return vec2(1, 1);
 		default: return orig;
+	}
+}
+
+function alignPt(align: TextAlign): number {
+	switch (align) {
+		case "left": return 0;
+		case "center": return 0.5;
+		case "right": return 1;
+		default: return 0;
 	}
 }
 
@@ -2315,6 +2325,7 @@ function compileStyledText(text: string): {
 
 }
 
+// TODO: single long line should also wrap
 // TODO: '\n'
 // calculate each line based on text wrap width
 function getLines(
@@ -2408,9 +2419,9 @@ function formatText(opt: DrawTextOpt): FormattedText {
 
 				for (const line of lines) {
 					const size = c2d.measureText(line)
-					c2d.fillText(line, 0, h)
-					// actual + actual is often shorter, font + font is often taller, font + actual seem to get the best fit, not sure why
-					h += metrics.fontBoundingBoxAscent + metrics.actualBoundingBoxDescent
+					const x = (w - size.width) * alignPt(opt.align)
+					c2d.fillText(line, x, h)
+					h += metrics.fontBoundingBoxAscent + metrics.fontBoundingBoxDescent + opt.lineSpacing ?? 0
 				}
 
 			} else {
@@ -4416,6 +4427,7 @@ function text(t: string, opt: TextCompOpt = {}): TextComp {
 			size: obj.textSize,
 			font: obj.font,
 			width: opt.width && obj.width,
+			align: obj.align,
 			letterSpacing: obj.letterSpacing,
 			lineSpacing: obj.lineSpacing,
 			transform: obj.transform,
@@ -4440,6 +4452,7 @@ function text(t: string, opt: TextCompOpt = {}): TextComp {
 		font: opt.font,
 		width: opt.width,
 		height: 0,
+		align: opt.align,
 		lineSpacing: opt.lineSpacing,
 		letterSpacing: opt.letterSpacing,
 		transform: opt.transform,
