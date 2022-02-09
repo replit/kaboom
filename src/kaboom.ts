@@ -465,13 +465,14 @@ const app = (() => {
 	// TODO: .style is supposed to be readonly? alternative?
 	// @ts-ignore
 	canvas.style = styles.join(";");
-
 	// make canvas focusable
 	canvas.setAttribute("tabindex", "0");
 
 	return {
 
 		canvas: canvas,
+		// for 2d context
+		canvas2: canvas.cloneNode() as HTMLCanvasElement,
 		scale: gscale,
 		pixelDensity: pixelDensity,
 
@@ -2441,6 +2442,29 @@ function formatText(opt: DrawTextOpt): FormattedText {
 
 function drawText(opt: DrawTextOpt) {
 	drawFormattedText(formatText(opt));
+}
+
+const text2DCache = {}
+
+function drawText2D(txt: string) {
+	if (!text2DCache[txt]) {
+		const c2d = app.canvas2.getContext("2d")
+		c2d.font = "64px Sans-Serif"
+		const metrics = c2d.measureText(txt)
+		const w = metrics.width
+		const h = metrics.actualBoundingBoxAscent + metrics.actualBoundingBoxDescent
+		c2d.fillStyle = "black"
+		c2d.fillRect(0, 0, w, h),
+		c2d.fillStyle = "red"
+		c2d.fillText(txt, 0, h)
+		const img = c2d.getImageData(0, 0, w, h)
+		text2DCache[txt] = makeTex(img)
+	}
+	const tex = text2DCache[txt]
+	drawTexture({
+		pos: vec2(100),
+		tex: tex,
+	});
 }
 
 // TODO: rotation
@@ -5710,25 +5734,14 @@ const ctx: KaboomCtx = {
 	wave,
 	deg2rad,
 	rad2deg,
-	testAreaRect,
-	testAreaLine,
-	testAreaCircle,
-	testAreaPolygon,
-	testAreaPoint,
-	testAreaArea,
 	testLineLine,
 	testRectRect,
 	testRectLine,
 	testRectPoint,
-	testPolygonPoint,
-	testLinePolygon,
-	testPolygonPolygon,
-	testCircleCircle,
-	testCirclePoint,
-	testRectPolygon,
 	// raw draw
 	drawSprite,
 	drawText,
+	drawText2D,
 	formatText,
 	drawRect,
 	drawLine,
