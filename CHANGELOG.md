@@ -13,6 +13,7 @@
 - removed `layers()` in favor of parent game objects (see "layers" demo)
 - added `pushRotateX()`, `pushRotateY()` and `pushRotateZ()`
 - added `pixelDensity` option to `kaboom()`
+- added support for non bitmap fonts
 
 ### v2000.2.6
 

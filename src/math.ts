@@ -116,7 +116,7 @@ export class Vec2 {
 		return this.x === other.x && this.y === other.y;
 	}
 	toString(): string {
-		return `(${this.x.toFixed(2)}, ${this.y.toFixed(2)})`;
+		return `vec2(${this.x.toFixed(2)}, ${this.y.toFixed(2)})`;
 	}
 }
 
@@ -204,7 +204,7 @@ export class Color {
 	}
 
 	toString(): string {
-		return `(${this.r}, ${this.g}, ${this.b})`;
+		return `rgb(${this.r}, ${this.g}, ${this.b})`;
 	}
 
 	static fromHSL(h: number, s: number, l: number) {

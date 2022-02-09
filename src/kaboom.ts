@@ -914,6 +914,16 @@ function loadFont(
 	);
 }
 
+function loadFont2(name: string, src: string): Asset<FontFace> {
+	const font = new FontFace(name, `url(${src})`)
+	return load(font.load().catch((err) => {
+		throw new Error(`Failed to load font from "${src}"`)
+	}).then(() => {
+		document.fonts.add(font)
+		return font
+	}))
+}
+
 // get an array of frames based on configuration on how to slice the image
 function slice(x = 1, y = 1, dx = 0, dy = 0, w = 1, h = 1): Quad[] {
 	const frames = [];
@@ -1865,7 +1875,6 @@ function drawSprite(opt: DrawSpriteOpt) {
 		...opt,
 		tex: spr.data.tex,
 		quad: q.scale(opt.quad || new Quad(0, 0, 1, 1)),
-		uniform: opt.uniform,
 	});
 
 }
@@ -2291,6 +2300,7 @@ function compileStyledText(text: string): {
 
 }
 
+// TODO: use align instead of origin for alignment
 // format text and return a list of chars with their calculated position
 function formatText(opt: DrawTextOpt): FormattedText {
 
@@ -2400,7 +2410,7 @@ function formatText(opt: DrawTextOpt): FormattedText {
 					ch: char,
 					pos: vec2(pos.x + x + ox + oxl, pos.y + y + oy),
 					opacity: opt.opacity,
-					color: opt.color ?? rgb(255, 255, 255),
+					color: opt.color ?? Color.WHITE,
 					scale: scale,
 					angle: 0,
 					uniform: opt.uniform,
@@ -2446,24 +2456,36 @@ function drawText(opt: DrawTextOpt) {
 
 const text2DCache = {}
 
-function drawText2(txt: string) {
-	if (!text2DCache[txt]) {
+function drawText2(opt: DrawTextOpt) {
+	if (opt.text === undefined) {
+		throw new Error("drawText2() requires property \"text\".");
+	}
+	const txt = opt.text
+	// when these properties change, we redraw the text on canvas and
+	const cfg = JSON.stringify([opt.text, opt.font, opt.align, opt.width])
+	if (!text2DCache[cfg]) {
 		const c2d = app.canvas2.getContext("2d")
-		c2d.font = "64px Sans-Serif"
+		c2d.clearRect(0, 0, app.canvas2.width, app.canvas2.height);
+		const size = 64
+		const fontStr = `${size}px ${opt.font}`
+		if (!document.fonts.check(fontStr)) {
+			throw new Error(`Failed to find font "${opt.font}"`)
+		}
+		c2d.font = fontStr
 		const metrics = c2d.measureText(txt)
 		const w = metrics.width
 		const h = metrics.actualBoundingBoxAscent + metrics.actualBoundingBoxDescent
-		c2d.fillStyle = "black"
-		c2d.fillRect(0, 0, w, h),
-		c2d.fillStyle = "red"
+		c2d.textAlign = opt.align ?? "left"
+		c2d.fillStyle = "rgb(255, 255, 255)"
 		c2d.fillText(txt, 0, h)
 		const img = c2d.getImageData(0, 0, w, h)
-		text2DCache[txt] = makeTex(img)
+		text2DCache[cfg] = makeTex(img)
 	}
-	const tex = text2DCache[txt]
+	const tex = text2DCache[cfg]
 	drawTexture({
-		pos: vec2(100),
+		...opt,
 		tex: tex,
+		color: opt.color ?? Color.WHITE,
 	});
 }
 
@@ -5599,6 +5621,7 @@ const ctx: KaboomCtx = {
 	loadSpriteAtlas,
 	loadSound,
 	loadFont,
+	loadFont2,
 	loadShader,
 	loadAseprite,
 	loadPedit,

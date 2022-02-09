@@ -1035,6 +1035,12 @@ export interface KaboomCtx {
 		options?: FontLoadOpt,
 	): Asset<FontData>,
 	/**
+	 * Load a truetype / opentype font.
+	 *
+	 * @since v2001.0
+	 */
+	loadFont2(name: string, src: string): Asset<FontFace>,
+	/**
 	 * Load a shader into asset manager with vertex and fragment code / file url.
 	 *
 	 * @example
@@ -1668,7 +1674,7 @@ export interface KaboomCtx {
 	 * ```
 	 */
 	drawText(options: DrawTextOpt): void,
-	drawText2(txt: string): void,
+	drawText2(options: DrawTextOpt): void,
 	/**
 	 * Draw a rectangle.
 	 *
@@ -2908,6 +2914,11 @@ export interface Outline {
 	color?: Color,
 }
 
+export type TextAlign =
+	| "center"
+	| "left"
+	| "right"
+
 /**
  * How the text should look like.
  */
@@ -2925,17 +2936,23 @@ export type DrawTextOpt = RenderProps & {
 	 */
 	size?: number,
 	/**
-	 * The maximum width. Will wrap around if exceed.
+	 * Text alignment (default "left")
+	 *
+	 * @since v2001.0
+	 */
+	align?: TextAlign,
+	/**
+	 * The maximum width. Will wrap word around if exceed.
 	 */
 	width?: number,
 	/**
-	 * The gap between each line.
+	 * The gap between each line (only available for bitmap fonts).
 	 *
 	 * @since v2000.2
 	 */
 	lineSpacing?: number,
 	/**
-	 * The gap between each character.
+	 * The gap between each character (only available for bitmap fonts).
 	 *
 	 * @since v2000.2
 	 */
@@ -2945,13 +2962,13 @@ export type DrawTextOpt = RenderProps & {
 	 */
 	origin?: Origin | Vec2,
 	/**
-	 * Transform the pos, scale, rotation or color for each character based on the index or char.
+	 * Transform the pos, scale, rotation or color for each character based on the index or char (only available for bitmap fonts).
 	 *
 	 * @since v2000.1
 	 */
 	transform?: CharTransform | CharTransformFunc,
 	/**
-	 * Stylesheet for styled chunks, in the syntax of "this is a [styled].stylename word".
+	 * Stylesheet for styled chunks, in the syntax of "this is a [styled].stylename word" (only available for bitmap fonts).
 	 *
 	 * @since v2000.2
 	 */
