@@ -919,8 +919,8 @@ export interface KaboomCtx {
 	 */
 	loadSprite(
 		name: string | null,
-		src: SpriteLoadSrc,
-		options?: SpriteLoadOpt,
+		src: LoadSpriteSrc,
+		options?: LoadSpriteOpt,
 	): Asset<SpriteData>,
 	/**
 	 * Load sprites from a sprite atlas.
@@ -951,7 +951,7 @@ export interface KaboomCtx {
 	 * ```
 	 */
 	loadSpriteAtlas(
-		src: SpriteLoadSrc,
+		src: LoadSpriteSrc,
 		data: SpriteAtlasData,
 	): Asset<Record<string, SpriteData>>,
 	/**
@@ -970,7 +970,7 @@ export interface KaboomCtx {
 	 * ```
 	 */
 	loadSpriteAtlas(
-		src: SpriteLoadSrc,
+		src: LoadSpriteSrc,
 		url: string,
 	): Asset<Record<string, SpriteData>>,
 	/**
@@ -983,7 +983,7 @@ export interface KaboomCtx {
 	 */
 	loadAseprite(
 		name: string | null,
-		imgSrc: SpriteLoadSrc,
+		imgSrc: LoadSpriteSrc,
 		jsonSrc: string
 	): Asset<SpriteData>,
 	loadPedit(name: string, src: string): Asset<SpriteData>,
@@ -1015,31 +1015,39 @@ export interface KaboomCtx {
 		src: string,
 	): Asset<SoundData>,
 	/**
+	 * Load a font through browser FontFace.
+	 *
+	 * @since v2001.0
+	 *
+	 * @example
+	 * ```js
+	 * // load a font from a .ttf file
+	 * loadFont("frogblock", "fonts/frogblock.ttf")
+	 * ```
+	 */
+	loadFont(name: string, src: string | ArrayBuffer): Asset<FontFace>,
+	/**
 	 * Load a bitmap font into asset manager, with name and resource url and infomation on the layout of the bitmap.
+	 *
+	 * @since v2001.0
 	 *
 	 * @example
 	 * ```js
 	 * // load a bitmap font called "04b03", with bitmap "fonts/04b03.png"
 	 * // each character on bitmap has a size of (6, 8), and contains default ASCII_CHARS
-	 * loadFont("04b03", "fonts/04b03.png", 6, 8)
+	 * loadBitmapFont("04b03", "fonts/04b03.png", 6, 8)
 	 *
 	 * // load a font with custom characters
-	 * loadFont("myfont", "myfont.png", 6, 8, { chars: "☺☻♥♦♣♠" })
+	 * loadBitmapFont("myfont", "myfont.png", 6, 8, { chars: "☺☻♥♦♣♠" })
 	 * ```
 	 */
-	loadFont(
+	loadBitmapFont(
 		name: string | null,
 		src: string,
 		gridWidth: number,
 		gridHeight: number,
-		options?: FontLoadOpt,
+		options?: LoadBitmapFontOpt,
 	): Asset<FontData>,
-	/**
-	 * Load a truetype / opentype font.
-	 *
-	 * @since v2001.0
-	 */
-	loadFont2(name: string, src: string | ArrayBuffer): Asset<FontFace>,
 	/**
 	 * Load a shader into asset manager with vertex and fragment code / file url.
 	 *
@@ -2356,7 +2364,7 @@ export type SpriteAnims = Record<string, SpriteAnim>
 /**
  * Sprite loading configuration.
  */
-export interface SpriteLoadOpt {
+export interface LoadSpriteOpt {
 	sliceX?: number,
 	sliceY?: number,
 	anims?: SpriteAnims,
@@ -2413,15 +2421,15 @@ export declare class Asset<D> {
 	catch(action: (err: Error) => void): Asset<D>
 }
 
-export type SpriteLoadSrc = string | GfxTexData;
+export type LoadSpriteSrc = string | GfxTexData;
 
 export declare class SpriteData {
 	tex: GfxTexture;
 	frames: Quad[];
 	anims: SpriteAnims;
 	constructor(tex: GfxTexture, frames?: Quad[], anims?: SpriteAnims);
-	static fromImage(data: GfxTexData, opt?: SpriteLoadOpt): SpriteData;
-	static fromURL(url: string, opt?: SpriteLoadOpt): Promise<SpriteData>;
+	static fromImage(data: GfxTexData, opt?: LoadSpriteOpt): SpriteData;
+	static fromURL(url: string, opt?: LoadSpriteOpt): Promise<SpriteData>;
 }
 
 export declare class SoundData {
@@ -2431,7 +2439,7 @@ export declare class SoundData {
 	static fromURL(url: string): Promise<SoundData>;
 }
 
-export interface FontLoadOpt {
+export interface LoadBitmapFontOpt {
 	chars?: string,
 	filter?: TexFilter,
 	wrap?: TexWrap,

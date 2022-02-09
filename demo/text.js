@@ -1,7 +1,7 @@
 kaboom()
 
-loadFont2("FROGBLOCK", "/fonts/FROGBLOCK.ttf")
-// loadFont2("zpix", "/fonts/zpix.ttf")
+loadFont("FROGBLOCK", "/fonts/FROGBLOCK.ttf")
+// loadFont("zpix", "/fonts/zpix.ttf")
 
 onDraw(() => {
 	drawText2({
@@ -14,7 +14,7 @@ onDraw(() => {
 	drawText2({
 		text: "我爱你",
 		font: "zpix",
-		size: 240,
+		size: 160,
 		color: rgb(0, 0, 255),
 		pos: vec2(100),
 	})

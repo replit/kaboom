@@ -79,10 +79,10 @@ import {
 	Vertex,
 	FontData,
 	ShaderData,
-	SpriteLoadSrc,
-	SpriteLoadOpt,
+	LoadSpriteSrc,
+	LoadSpriteOpt,
 	SpriteAtlasData,
-	FontLoadOpt,
+	LoadBitmapFontOpt,
 	GfxTexData,
 	KaboomCtx,
 	KaboomOpt,
@@ -637,14 +637,14 @@ class SpriteData {
 		this.anims = anims;
 	}
 
-	static from(src: SpriteLoadSrc, opt: SpriteLoadOpt = {}): Promise<SpriteData> {
+	static from(src: LoadSpriteSrc, opt: LoadSpriteOpt = {}): Promise<SpriteData> {
 		return typeof src === "string"
 			? SpriteData.fromURL(src, opt)
 			: Promise.resolve(SpriteData.fromImage(src, opt)
 		)
 	}
 
-	static fromImage(data: GfxTexData, opt: SpriteLoadOpt = {}): SpriteData {
+	static fromImage(data: GfxTexData, opt: LoadSpriteOpt = {}): SpriteData {
 		return new SpriteData(
 			makeTex(data, opt),
 			slice(opt.sliceX || 1, opt.sliceY || 1),
@@ -652,7 +652,7 @@ class SpriteData {
 		);
 	}
 
-	static fromURL(url: string, opt: SpriteLoadOpt = {}): Promise<SpriteData> {
+	static fromURL(url: string, opt: LoadSpriteOpt = {}): Promise<SpriteData> {
 		return loadImg(url).then((img) => SpriteData.fromImage(img, opt));
 	}
 
@@ -894,13 +894,13 @@ function loadImg(src: string): Promise<HTMLImageElement> {
 	});
 }
 
-// TODO: support SpriteLoadSrc
-function loadFont(
+// TODO: support LoadSpriteSrc
+function loadBitmapFont(
 	name: string | null,
 	src: string,
 	gw: number,
 	gh: number,
-	opt: FontLoadOpt = {},
+	opt: LoadBitmapFontOpt = {},
 ): Asset<FontData> {
 	return assets.fonts.add(name, loadImg(src)
 		.then((img) => {
@@ -914,7 +914,7 @@ function loadFont(
 	);
 }
 
-function loadFont2(name: string, src: string | ArrayBuffer): Asset<FontFace> {
+function loadFont(name: string, src: string | ArrayBuffer): Asset<FontFace> {
 	const font = new FontFace(name, typeof src === "string" ? `url(${src})` : src)
 	return load(font.load().catch((err) => {
 		throw new Error(`Failed to load font from "${src}"`)
@@ -943,7 +943,7 @@ function slice(x = 1, y = 1, dx = 0, dy = 0, w = 1, h = 1): Quad[] {
 }
 
 function loadSpriteAtlas(
-	src: SpriteLoadSrc,
+	src: LoadSpriteSrc,
 	data: SpriteAtlasData | string
 ): Asset<Record<string, SpriteData>> {
 	if (typeof data === "string") {
@@ -982,8 +982,8 @@ function loadSpriteAtlas(
 // load a sprite to asset manager
 function loadSprite(
 	name: string | null,
-	src: SpriteLoadSrc,
-	opt: SpriteLoadOpt = {
+	src: LoadSpriteSrc,
+	opt: LoadSpriteOpt = {
 		sliceX: 1,
 		sliceY: 1,
 		anims: {},
@@ -1027,7 +1027,7 @@ function loadPedit(name: string | null, src: string | PeditFile): Asset<SpriteDa
 
 function loadAseprite(
 	name: string | null,
-	imgSrc: SpriteLoadSrc,
+	imgSrc: LoadSpriteSrc,
 	jsonSrc: string
 ): Asset<SpriteData> {
 	return assets.sprites.add(name, new Promise(async (resolve, reject) => {
@@ -2457,7 +2457,7 @@ function drawText(opt: DrawTextOpt) {
 const text2DCache = {}
 
 // TODO: doesn't seem to be affected by pixel density
-
+// TODO: integrate with drawText()
 function drawText2(opt: DrawTextOpt) {
 	if (opt.text === undefined) {
 		throw new Error("drawText2() requires property \"text\".");
@@ -5557,21 +5557,21 @@ function run(f: () => void) {
 
 }
 
-loadFont(
+loadBitmapFont(
 	"apl386",
 	apl386Src,
 	45,
 	74,
 );
 
-loadFont(
+loadBitmapFont(
 	"apl386o",
 	apl386oSrc,
 	45,
 	74,
 );
 
-loadFont(
+loadBitmapFont(
 	"sink",
 	sinkSrc,
 	6,
@@ -5581,7 +5581,7 @@ loadFont(
 	}
 );
 
-loadFont(
+loadBitmapFont(
 	"sinko",
 	sinkoSrc,
 	8,
@@ -5625,8 +5625,8 @@ const ctx: KaboomCtx = {
 	loadSprite,
 	loadSpriteAtlas,
 	loadSound,
+	loadBitmapFont,
 	loadFont,
-	loadFont2,
 	loadShader,
 	loadAseprite,
 	loadPedit,

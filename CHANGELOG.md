@@ -14,6 +14,8 @@
 - added `pushRotateX()`, `pushRotateY()` and `pushRotateZ()`
 - added `pixelDensity` option to `kaboom()`
 - added support for non bitmap fonts
+- rename `loadFont()` to `loadBitmapFont()`
+- added `loadFont()` to load `.ttf`, `.otf`, `.woff2` or any font supported by browser `FontFace`
 
 ### v2000.2.6
 
