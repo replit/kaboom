@@ -1,3 +1,7 @@
+### v2000.2.7
+
+- fixed `quad` option on `sprite()` not working
+
 ### v2000.2.6
 
 - fixed text always being wrapped if updated

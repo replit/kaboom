@@ -3907,7 +3907,7 @@ function sprite(id: string | SpriteData, opt: SpriteCompOpt = {}): SpriteComp {
 				throw new Error(`sprite not found: "${id}"`);
 			}
 
-			let q = { ...spr.frames[0] };
+			let q = spr.frames[0].clone();
 
 			if (opt.quad) {
 				q = q.scale(opt.quad);
