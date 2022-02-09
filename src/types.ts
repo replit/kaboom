@@ -1668,6 +1668,7 @@ export interface KaboomCtx {
 	 * ```
 	 */
 	drawText(options: DrawTextOpt): void,
+	drawText2(txt: string): void,
 	/**
 	 * Draw a rectangle.
 	 *

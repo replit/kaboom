@@ -1,5 +1,5 @@
 kaboom()
 
 onDraw(() => {
-	drawText2D("123")
+	drawText2("123")
 })

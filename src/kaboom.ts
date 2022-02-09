@@ -2446,7 +2446,7 @@ function drawText(opt: DrawTextOpt) {
 
 const text2DCache = {}
 
-function drawText2D(txt: string) {
+function drawText2(txt: string) {
 	if (!text2DCache[txt]) {
 		const c2d = app.canvas2.getContext("2d")
 		c2d.font = "64px Sans-Serif"
@@ -5741,7 +5741,7 @@ const ctx: KaboomCtx = {
 	// raw draw
 	drawSprite,
 	drawText,
-	drawText2D,
+	drawText2,
 	formatText,
 	drawRect,
 	drawLine,
