@@ -56,6 +56,7 @@ import {
 	isDataURL,
 	deepEq,
 	dataURLToArrayBuffer,
+	warn,
 } from "./utils";
 
 import {
