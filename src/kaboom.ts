@@ -2462,22 +2462,25 @@ function drawText2(opt: DrawTextOpt) {
 	}
 	const txt = opt.text
 	// when these properties change, we redraw the text on canvas and
-	const cfg = JSON.stringify([opt.text, opt.font, opt.align, opt.width])
+	const cfg = opt.text + opt.font + opt.align + opt.width
 	if (!text2DCache[cfg]) {
 		const c2d = app.canvas2.getContext("2d")
 		c2d.clearRect(0, 0, app.canvas2.width, app.canvas2.height);
-		const size = 64
+		const size = opt.size ?? 32
 		const fontStr = `${size}px ${opt.font}`
 		if (!document.fonts.check(fontStr)) {
 			throw new Error(`Failed to find font "${opt.font}"`)
 		}
 		c2d.font = fontStr
 		const metrics = c2d.measureText(txt)
+		// TODO: what if the text is wider than canvas width
 		const w = metrics.width
 		const h = metrics.actualBoundingBoxAscent + metrics.actualBoundingBoxDescent
+		c2d.textBaseline = "top"
 		c2d.textAlign = opt.align ?? "left"
 		c2d.fillStyle = "rgb(255, 255, 255)"
-		c2d.fillText(txt, 0, h)
+		c2d.fillText(txt, 0, 0)
+		// TODO: the actual font seems to be taller sometimes
 		const img = c2d.getImageData(0, 0, w, h)
 		text2DCache[cfg] = makeTex(img)
 	}
