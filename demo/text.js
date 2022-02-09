@@ -5,7 +5,7 @@ loadFont2("FROGBLOCK", "/fonts/FROGBLOCK.ttf")
 
 onDraw(() => {
 	drawText2({
-		text: "123",
+		text: "123yygo^",
 		font: isMouseDown() ? "FROGBLOCK" : "Sans-Serif",
 		size: 64,
 // 		pos: vec2(100),

@@ -2456,6 +2456,8 @@ function drawText(opt: DrawTextOpt) {
 
 const text2DCache = {}
 
+// TODO: doesn't seem to be affected by pixel density
+
 function drawText2(opt: DrawTextOpt) {
 	if (opt.text === undefined) {
 		throw new Error("drawText2() requires property \"text\".");
@@ -2475,12 +2477,12 @@ function drawText2(opt: DrawTextOpt) {
 		const metrics = c2d.measureText(txt)
 		// TODO: what if the text is wider than canvas width
 		const w = metrics.width
-		const h = metrics.actualBoundingBoxAscent + metrics.actualBoundingBoxDescent
+		// actual + actual is often shorter, font + font is often taller, font + actual seem to get the best fit, not sure why
+		const h = metrics.fontBoundingBoxAscent + metrics.actualBoundingBoxDescent
 		c2d.textBaseline = "top"
 		c2d.textAlign = opt.align ?? "left"
 		c2d.fillStyle = "rgb(255, 255, 255)"
 		c2d.fillText(txt, 0, 0)
-		// TODO: the actual font seems to be taller sometimes
 		const img = c2d.getImageData(0, 0, w, h)
 		text2DCache[cfg] = makeTex(img)
 	}
