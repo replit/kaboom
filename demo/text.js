@@ -1,7 +1,21 @@
 kaboom()
 
-loadFont("FROGBLOCK", "/fonts/FROGBLOCK.ttf")
+loadFont("FROGBLOCK", "/fonts/FROGBLOCK.ttf").onLoad(() => {
+	console.log("---")
+	for (const v of document.fonts.values()) {
+		console.log(v)
+	}
+	console.log("---")
+})
 // loadFont("zpix", "/fonts/zpix.ttf")
+
+onLoad(() => {
+	console.log("2---")
+	for (const v of document.fonts.values()) {
+		console.log(v)
+	}
+	console.log("2---")
+})
 
 onDraw(() => {
 	drawText2({
@@ -12,7 +26,7 @@ onDraw(() => {
 		pos: mousePos(),
 	})
 	drawText2({
-		text: "我爱你",
+		text: "爱是宇宙",
 		font: "zpix",
 		size: 160,
 		color: rgb(0, 0, 255),

@@ -78,6 +78,7 @@ import {
 	DrawUVQuadOpt,
 	Vertex,
 	FontData,
+	BitmapFontData,
 	ShaderData,
 	LoadSpriteSrc,
 	LoadSpriteOpt,
@@ -796,6 +797,7 @@ const assets = {
 	// asset holders
 	sprites: new AssetBucket<SpriteData>(),
 	fonts: new AssetBucket<FontData>(),
+	bitmapFonts: new AssetBucket<BitmapFontData>(),
 	sounds: new AssetBucket<SoundData>(),
 	shaders: new AssetBucket<ShaderData>(),
 	custom: new AssetBucket<any>(),
@@ -845,7 +847,7 @@ function loadProgress(): number {
 		assets.sprites,
 		assets.sounds,
 		assets.shaders,
-		assets.fonts,
+		assets.bitmapFonts,
 		assets.custom,
 	];
 	return buckets.reduce((n, bucket) => n + bucket.progress(), 0) / buckets.length;
@@ -894,6 +896,14 @@ function loadImg(src: string): Promise<HTMLImageElement> {
 	});
 }
 
+function loadFont(name: string, src: string | ArrayBuffer): Asset<FontData> {
+	const font = new FontFace(name, typeof src === "string" ? `url(${src})` : src)
+	document.fonts.add(font)
+	return assets.fonts.add(name, font.load().catch(() => {
+		throw new Error(`Failed to load font from "${src}"`)
+	}))
+}
+
 // TODO: support LoadSpriteSrc
 function loadBitmapFont(
 	name: string | null,
@@ -901,8 +911,8 @@ function loadBitmapFont(
 	gw: number,
 	gh: number,
 	opt: LoadBitmapFontOpt = {},
-): Asset<FontData> {
-	return assets.fonts.add(name, loadImg(src)
+): Asset<BitmapFontData> {
+	return assets.bitmapFonts.add(name, loadImg(src)
 		.then((img) => {
 			return makeFont(
 				makeTex(img, opt),
@@ -912,16 +922,6 @@ function loadBitmapFont(
 			);
 		})
 	);
-}
-
-function loadFont(name: string, src: string | ArrayBuffer): Asset<FontFace> {
-	const font = new FontFace(name, typeof src === "string" ? `url(${src})` : src)
-	return load(font.load().catch((err) => {
-		throw new Error(`Failed to load font from "${src}"`)
-	}).then(() => {
-		document.fonts.add(font)
-		return font
-	}))
 }
 
 // get an array of frames based on configuration on how to slice the image
@@ -1116,8 +1116,8 @@ function getSound(handle: string): Asset<SoundData> | void {
 	return assets.sounds.get(handle);
 }
 
-function getFont(handle: string): Asset<FontData> | void {
-	return assets.fonts.get(handle);
+function getBitmapFont(handle: string): Asset<BitmapFontData> | void {
+	return assets.bitmapFonts.get(handle);
 }
 
 function getShader(handle: string): Asset<ShaderData> | void {
@@ -1192,10 +1192,10 @@ function resolveShader(
 }
 
 function resolveFont(
-	src: string | FontData | Asset<FontData> | undefined
-): FontData | Asset<FontData> | void {
+	src: string | BitmapFontData | Asset<BitmapFontData> | undefined
+): BitmapFontData | Asset<BitmapFontData> | void {
 	if (!src) {
-		const font = getFont(gopt.font ?? DEF_FONT);
+		const font = getBitmapFont(gopt.font ?? DEF_FONT);
 		if (font) {
 			return font.data ? font.data : font;
 		} else {
@@ -1203,7 +1203,7 @@ function resolveFont(
 		}
 	}
 	if (typeof src === "string") {
-		const font = getFont(src)
+		const font = getBitmapFont(src)
 		if (font) {
 			return font.data ? font.data : font;
 		} else if (loadProgress() < 1) {
@@ -2471,7 +2471,7 @@ function drawText2(opt: DrawTextOpt) {
 		const size = opt.size ?? 32
 		const fontStr = `${size}px ${opt.font}`
 		if (!document.fonts.check(fontStr)) {
-			throw new Error(`Failed to find font "${opt.font}"`)
+			throw new Error(`Font not found: "${opt.font}"`)
 		}
 		c2d.font = fontStr
 		const metrics = c2d.measureText(txt)
@@ -5634,7 +5634,7 @@ const ctx: KaboomCtx = {
 	load,
 	getSprite,
 	getSound,
-	getFont,
+	getBitmapFont,
 	getShader,
 	Asset,
 	SpriteData,

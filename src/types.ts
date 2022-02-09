@@ -1047,7 +1047,7 @@ export interface KaboomCtx {
 		gridWidth: number,
 		gridHeight: number,
 		options?: LoadBitmapFontOpt,
-	): Asset<FontData>,
+	): Asset<BitmapFontData>,
 	/**
 	 * Load a shader into asset manager with vertex and fragment code / file url.
 	 *
@@ -1105,11 +1105,11 @@ export interface KaboomCtx {
 	 */
 	getSound(handle: string): Asset<SoundData> | void,
 	/**
-	 * Get FontData from handle.
+	 * Get BitmapFontData from handle.
 	 *
 	 * @since v2001.0
 	 */
-	getFont(handle: string): Asset<FontData> | void,
+	getBitmapFont(handle: string): Asset<BitmapFontData> | void,
 	/**
 	 * Get ShaderData from handle.
 	 *
@@ -2449,7 +2449,8 @@ export interface SoundData {
 	buf: AudioBuffer,
 }
 
-export type FontData = GfxFont;
+export type FontData = FontFace;
+export type BitmapFontData = GfxFont;
 export type ShaderData = GfxShader;
 
 // TODO: enable setting on load, make part of SoundData
@@ -2938,7 +2939,7 @@ export type DrawTextOpt = RenderProps & {
 	/**
 	 * The name of font to use.
 	 */
-	font?: string | FontData,
+	font?: string | BitmapFontData,
 	/**
 	 * The size of text (the height of each character).
 	 */
@@ -3667,7 +3668,7 @@ export interface TextComp extends Comp {
 	/**
 	 * The font to use.
 	 */
-	font: string | FontData,
+	font: string | BitmapFontData,
 	/**
 	 * Width of text.
 	 */
@@ -3710,7 +3711,7 @@ export interface TextCompOpt {
 	/**
 	 * The font to use.
 	 */
-	font?: string | FontData,
+	font?: string | BitmapFontData,
 	/**
 	 * Wrap text to a certain width.
 	 */
