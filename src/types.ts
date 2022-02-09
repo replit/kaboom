@@ -1039,7 +1039,7 @@ export interface KaboomCtx {
 	 *
 	 * @since v2001.0
 	 */
-	loadFont2(name: string, src: string): Asset<FontFace>,
+	loadFont2(name: string, src: string | ArrayBuffer): Asset<FontFace>,
 	/**
 	 * Load a shader into asset manager with vertex and fragment code / file url.
 	 *

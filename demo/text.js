@@ -1,12 +1,12 @@
 kaboom()
 
-loadFont2("Mattone", "/fonts/Mattone.woff2")
+loadFont2("FROGBLOCK", "/fonts/FROGBLOCK.ttf")
 // loadFont2("zpix", "/fonts/zpix.ttf")
 
 onDraw(() => {
 	drawText2({
 		text: "123",
-		font: isMouseDown() ? "Mattone" : "Sans-Serif",
+		font: isMouseDown() ? "FROGBLOCK" : "Sans-Serif",
 		size: 64,
 // 		pos: vec2(100),
 		pos: mousePos(),

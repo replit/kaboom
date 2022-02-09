@@ -914,8 +914,8 @@ function loadFont(
 	);
 }
 
-function loadFont2(name: string, src: string): Asset<FontFace> {
-	const font = new FontFace(name, `url(${src})`)
+function loadFont2(name: string, src: string | ArrayBuffer): Asset<FontFace> {
+	const font = new FontFace(name, typeof src === "string" ? `url(${src})` : src)
 	return load(font.load().catch((err) => {
 		throw new Error(`Failed to load font from "${src}"`)
 	}).then(() => {
