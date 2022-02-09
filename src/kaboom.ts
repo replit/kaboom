@@ -1130,7 +1130,7 @@ function getShader(handle: string): Asset<ShaderData> | void {
 }
 
 function resolveSprite(
-	src: string | SpriteData | Asset<SpriteData>
+	src: DrawSpriteOpt["sprite"]
 ): Asset<SpriteData> | null {
 	if (typeof src === "string") {
 		const spr = getSprite(src)
@@ -1154,7 +1154,7 @@ function resolveSprite(
 }
 
 function resolveSound(
-	src: string | SoundData | Asset<SoundData>
+	src: Parameters<typeof play>[0]
 ): SoundData | Asset<SoundData> | null {
 	if (typeof src === "string") {
 		const snd = getSound(src)
@@ -1193,6 +1193,7 @@ function resolveShader(
 		return src.data ? src.data : src;
 	}
 	// TODO: check type
+	// @ts-ignore
 	return src;
 }
 
@@ -1228,6 +1229,7 @@ function resolveFont(
 		return src.data ? src.data : src;
 	}
 	// TODO: check type
+	// @ts-ignore
 	return src;
 }
 
@@ -1241,7 +1243,7 @@ function volume(v?: number): number {
 
 // plays a sound, returns a control handle
 function play(
-	src: SoundData | string,
+	src: string | SoundData | Asset<SoundData>,
 	opt: AudioPlayOpt = {
 		loop: false,
 		volume: 1,

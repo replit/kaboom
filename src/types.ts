@@ -1374,7 +1374,7 @@ export interface KaboomCtx {
 	 * music.play()
 	 * ```
 	 */
-	play(id: string, options?: AudioPlayOpt): AudioPlay,
+	play(src: string | SoundData | Asset<SoundData>, options?: AudioPlayOpt): AudioPlay,
 	/**
 	 * Yep.
 	 */
@@ -2618,7 +2618,7 @@ export type DrawSpriteOpt = RenderProps & {
 	/**
 	 * The sprite name in the asset manager, or the raw sprite data.
 	 */
-	sprite: string | SpriteData,
+	sprite: string | SpriteData | Asset<SpriteData>,
 	/**
 	 * If the sprite is loaded with multiple frames, or sliced, use the frame option to specify which frame to draw.
 	 */
