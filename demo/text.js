@@ -8,36 +8,20 @@ loadFont("FROGBLOCK", "/fonts/FROGBLOCK.ttf")
 // Load custom bitmap font, specifying the width and height of each character in the image
 loadBitmapFont("unscii", "/fonts/unscii_8x8.png", 8, 8)
 
-onDraw(() => {
-	drawText({
-		text: "123yygo^",
-		font: isMouseDown() ? "FROGBLOCK" : "Sans-Serif",
-		size: 64,
-// 		pos: vec2(100),
-		pos: mousePos(),
-	})
-	drawText({
-		text: "爱是宇宙",
-		font: "zpix",
-		size: 160,
-		color: rgb(0, 0, 255),
-		pos: vec2(40),
-	})
-})
-
 // List of built-in fonts ("o" at the end means the outlined version)
 const builtinFonts = [
 	"apl386o",
 	"apl386",
 	"sinko",
 	"sink",
-	"FROGBLOCK",
 ]
 
 // Make a list of fonts that we cycle through
 const fonts = [
 	...builtinFonts,
 	"unscii",
+	"FROGBLOCK",
+// 	"zpix",
 ]
 
 // Keep track which is the current font

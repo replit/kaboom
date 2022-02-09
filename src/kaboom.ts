@@ -2315,7 +2315,6 @@ function compileStyledText(text: string): {
 
 }
 
-// TODO: use align instead of origin for alignment
 // format text and return a list of chars with their calculated position
 function formatText(opt: DrawTextOpt): FormattedText {
 
@@ -2339,12 +2338,20 @@ function formatText(opt: DrawTextOpt): FormattedText {
 	if (font instanceof FontFace || typeof font === "string") {
 		const fontName = font instanceof FontFace ? font.family : font;
 		// when these properties change, we redraw the text on canvas and
-		const cfg = "" + opt.text + opt.font + opt.align + opt.width
+		const cfg = "" + opt.text + opt.size + opt.font + opt.align + opt.width
 		if (!text2DCache[cfg]) {
+			// TODO: wrap
+			// TODO: styles
+			// TODO: what if the text is wider than canvas width
+			if (opt.transform) {
+				warn(`"transform" isn't available for non-bitmap fonts yet`)
+			}
+			if (opt.styles) {
+				warn(`"styles" isn't available for non-bitmap fonts yet`)
+			}
 			const c2d = app.canvas2.getContext("2d")
 			c2d.font = `${opt.size ?? DEF_TEXT_SIZE}px ${fontName}`
 			const metrics = c2d.measureText(opt.text)
-			// TODO: what if the text is wider than canvas width
 			const w = metrics.width
 			// actual + actual is often shorter, font + font is often taller, font + actual seem to get the best fit, not sure why
 			const h = metrics.fontBoundingBoxAscent + metrics.actualBoundingBoxDescent
@@ -2433,6 +2440,7 @@ function formatText(opt: DrawTextOpt): FormattedText {
 	// whole text offset
 	const fchars = [];
 	const pos = vec2(opt.pos || 0);
+	// TODO: use align instead of origin for alignment
 	const offset = originPt(opt.origin || DEF_ORIGIN).scale(0.5);
 	// this math is complicated i forgot how it works instantly
 	const ox = -offset.x * cw - (offset.x + 0.5) * (tw - cw);
