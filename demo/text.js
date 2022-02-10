@@ -1,7 +1,12 @@
 kaboom()
 
+// Load a custom font from a .ttf file
+loadFont("FROGBLOCK", "/fonts/FROGBLOCK.ttf")
+// TODO: somehow this is not working
+// loadFont("zpix", "/fonts/zpix.ttf")
+
 // Load custom bitmap font, specifying the width and height of each character in the image
-loadFont("unscii", "/fonts/unscii_8x8.png", 8, 8)
+loadBitmapFont("unscii", "/fonts/unscii_8x8.png", 8, 8)
 
 // List of built-in fonts ("o" at the end means the outlined version)
 const builtinFonts = [
@@ -15,6 +20,8 @@ const builtinFonts = [
 const fonts = [
 	...builtinFonts,
 	"unscii",
+	"FROGBLOCK",
+// 	"zpix",
 ]
 
 // Keep track which is the current font
@@ -33,6 +40,8 @@ const input = add([
 		width: width() - pad * 2,
 		// The height of character
 		size: curSize,
+		// Text alignment ("left", "center", "right", default "left")
+ 		// align: "center",
 		lineSpacing: 8,
 		letterSpacing: 4,
 		// Transform each character for special effects
@@ -108,4 +117,3 @@ add([
 	// scale(0.5),
 ])
 
-// Check out https://kaboomjs.com#TextComp for everything text() offers

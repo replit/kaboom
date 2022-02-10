@@ -56,6 +56,7 @@ import {
 	isDataURL,
 	deepEq,
 	dataURLToArrayBuffer,
+	warn,
 } from "./utils";
 
 import {
@@ -78,11 +79,12 @@ import {
 	DrawUVQuadOpt,
 	Vertex,
 	FontData,
+	BitmapFontData,
 	ShaderData,
-	SpriteLoadSrc,
-	SpriteLoadOpt,
+	LoadSpriteSrc,
+	LoadSpriteOpt,
 	SpriteAtlasData,
-	FontLoadOpt,
+	LoadBitmapFontOpt,
 	GfxTexData,
 	KaboomCtx,
 	KaboomOpt,
@@ -90,6 +92,7 @@ import {
 	AudioPlayOpt,
 	DrawSpriteOpt,
 	DrawTextOpt,
+	TextAlign,
 	GameObj,
 	EventCanceller,
 	SceneID,
@@ -259,6 +262,7 @@ const BG_GRID_SIZE = 64;
 
 const DEF_FONT = "apl386o";
 const DBG_FONT = "sink";
+const DEF_TEXT_SIZE = 32;
 
 const LOG_MAX = 1;
 
@@ -399,6 +403,15 @@ function originPt(orig: Origin | Vec2): Vec2 {
 	}
 }
 
+function alignPt(align: TextAlign): number {
+	switch (align) {
+		case "left": return 0;
+		case "center": return 0.5;
+		case "right": return 1;
+		default: return 0;
+	}
+}
+
 function createEmptyAudioBuffer() {
 	return new AudioBuffer({
 		length: 1,
@@ -465,13 +478,14 @@ const app = (() => {
 	// TODO: .style is supposed to be readonly? alternative?
 	// @ts-ignore
 	canvas.style = styles.join(";");
-
 	// make canvas focusable
 	canvas.setAttribute("tabindex", "0");
 
 	return {
 
 		canvas: canvas,
+		// for 2d context
+		canvas2: canvas.cloneNode() as HTMLCanvasElement,
 		scale: gscale,
 		pixelDensity: pixelDensity,
 
@@ -636,14 +650,14 @@ class SpriteData {
 		this.anims = anims;
 	}
 
-	static from(src: SpriteLoadSrc, opt: SpriteLoadOpt = {}): Promise<SpriteData> {
+	static from(src: LoadSpriteSrc, opt: LoadSpriteOpt = {}): Promise<SpriteData> {
 		return typeof src === "string"
 			? SpriteData.fromURL(src, opt)
 			: Promise.resolve(SpriteData.fromImage(src, opt)
 		)
 	}
 
-	static fromImage(data: GfxTexData, opt: SpriteLoadOpt = {}): SpriteData {
+	static fromImage(data: GfxTexData, opt: LoadSpriteOpt = {}): SpriteData {
 		return new SpriteData(
 			makeTex(data, opt),
 			slice(opt.sliceX || 1, opt.sliceY || 1),
@@ -651,7 +665,7 @@ class SpriteData {
 		);
 	}
 
-	static fromURL(url: string, opt: SpriteLoadOpt = {}): Promise<SpriteData> {
+	static fromURL(url: string, opt: LoadSpriteOpt = {}): Promise<SpriteData> {
 		return loadImg(url).then((img) => SpriteData.fromImage(img, opt));
 	}
 
@@ -798,6 +812,7 @@ const assets = {
 	// asset holders
 	sprites: new AssetBucket<SpriteData>(),
 	fonts: new AssetBucket<FontData>(),
+	bitmapFonts: new AssetBucket<BitmapFontData>(),
 	sounds: new AssetBucket<SoundData>(),
 	shaders: new AssetBucket<ShaderData>(),
 	custom: new AssetBucket<any>(),
@@ -848,6 +863,7 @@ function loadProgress(): number {
 		assets.sounds,
 		assets.shaders,
 		assets.fonts,
+		assets.bitmapFonts,
 		assets.custom,
 	];
 	return buckets.reduce((n, bucket) => n + bucket.progress(), 0) / buckets.length;
@@ -896,15 +912,23 @@ function loadImg(src: string): Promise<HTMLImageElement> {
 	});
 }
 
-// TODO: support SpriteLoadSrc
-function loadFont(
+function loadFont(name: string, src: string | ArrayBuffer): Asset<FontData> {
+	const font = new FontFace(name, typeof src === "string" ? `url(${src})` : src)
+	document.fonts.add(font)
+	return assets.fonts.add(name, font.load().catch(() => {
+		throw new Error(`Failed to load font from "${src}"`)
+	}))
+}
+
+// TODO: support LoadSpriteSrc
+function loadBitmapFont(
 	name: string | null,
 	src: string,
 	gw: number,
 	gh: number,
-	opt: FontLoadOpt = {},
-): Asset<FontData> {
-	return assets.fonts.add(name, loadImg(src)
+	opt: LoadBitmapFontOpt = {},
+): Asset<BitmapFontData> {
+	return assets.bitmapFonts.add(name, loadImg(src)
 		.then((img) => {
 			return makeFont(
 				makeTex(img, opt),
@@ -935,7 +959,7 @@ function slice(x = 1, y = 1, dx = 0, dy = 0, w = 1, h = 1): Quad[] {
 }
 
 function loadSpriteAtlas(
-	src: SpriteLoadSrc,
+	src: LoadSpriteSrc,
 	data: SpriteAtlasData | string
 ): Asset<Record<string, SpriteData>> {
 	if (typeof data === "string") {
@@ -974,8 +998,8 @@ function loadSpriteAtlas(
 // load a sprite to asset manager
 function loadSprite(
 	name: string | null,
-	src: SpriteLoadSrc,
-	opt: SpriteLoadOpt = {
+	src: LoadSpriteSrc,
+	opt: LoadSpriteOpt = {
 		sliceX: 1,
 		sliceY: 1,
 		anims: {},
@@ -1019,7 +1043,7 @@ function loadPedit(name: string | null, src: string | PeditFile): Asset<SpriteDa
 
 function loadAseprite(
 	name: string | null,
-	imgSrc: SpriteLoadSrc,
+	imgSrc: LoadSpriteSrc,
 	jsonSrc: string
 ): Asset<SpriteData> {
 	return assets.sprites.add(name, new Promise(async (resolve, reject) => {
@@ -1108,8 +1132,8 @@ function getSound(handle: string): Asset<SoundData> | void {
 	return assets.sounds.get(handle);
 }
 
-function getFont(handle: string): Asset<FontData> | void {
-	return assets.fonts.get(handle);
+function getBitmapFont(handle: string): Asset<BitmapFontData> | void {
+	return assets.bitmapFonts.get(handle);
 }
 
 function getShader(handle: string): Asset<ShaderData> | void {
@@ -1117,7 +1141,7 @@ function getShader(handle: string): Asset<ShaderData> | void {
 }
 
 function resolveSprite(
-	src: string | SpriteData | Asset<SpriteData>
+	src: DrawSpriteOpt["sprite"]
 ): Asset<SpriteData> | null {
 	if (typeof src === "string") {
 		const spr = getSprite(src)
@@ -1141,7 +1165,7 @@ function resolveSprite(
 }
 
 function resolveSound(
-	src: string | SoundData | Asset<SoundData>
+	src: Parameters<typeof play>[0]
 ): SoundData | Asset<SoundData> | null {
 	if (typeof src === "string") {
 		const snd = getSound(src)
@@ -1162,7 +1186,7 @@ function resolveSound(
 }
 
 function resolveShader(
-	src: string | ShaderData | Asset<ShaderData> | undefined
+	src: RenderProps["shader"]
 ): ShaderData | Asset<ShaderData> | null {
 	if (!src) {
 		return gfx.defShader;
@@ -1180,24 +1204,28 @@ function resolveShader(
 		return src.data ? src.data : src;
 	}
 	// TODO: check type
+	// @ts-ignore
 	return src;
 }
 
 function resolveFont(
-	src: string | FontData | Asset<FontData> | undefined
-): FontData | Asset<FontData> | void {
+	src: DrawTextOpt["font"]
+):
+	| FontData
+	| Asset<FontData>
+	| BitmapFontData
+	| Asset<BitmapFontData>
+	| string
+	| void {
 	if (!src) {
-		const font = getFont(gopt.font ?? DEF_FONT);
-		if (font) {
-			return font.data ? font.data : font;
-		} else {
-			return null;
-		}
+		return resolveFont(gopt.font ?? DEF_FONT);
 	}
 	if (typeof src === "string") {
-		const font = getFont(src)
+		const font = getBitmapFont(src)
 		if (font) {
 			return font.data ? font.data : font;
+		} else if (document.fonts.check(`16px ${src}`)) {
+			return src;
 		} else if (loadProgress() < 1) {
 			return null;
 		} else {
@@ -1207,6 +1235,7 @@ function resolveFont(
 		return src.data ? src.data : src;
 	}
 	// TODO: check type
+	// @ts-ignore
 	return src;
 }
 
@@ -1220,7 +1249,7 @@ function volume(v?: number): number {
 
 // plays a sound, returns a control handle
 function play(
-	src: SoundData | string,
+	src: string | SoundData | Asset<SoundData>,
 	opt: AudioPlayOpt = {
 		loop: false,
 		volume: 1,
@@ -1544,7 +1573,7 @@ function drawRaw(
 	indices: number[],
 	fixed: boolean,
 	tex: GfxTexture = gfx.defTex,
-	shaderSrc: GfxShader | string = gfx.defShader,
+	shaderSrc: RenderProps["shader"] = gfx.defShader,
 	uniform: Uniform = {},
 ) {
 
@@ -1867,7 +1896,6 @@ function drawSprite(opt: DrawSpriteOpt) {
 		...opt,
 		tex: spr.data.tex,
 		quad: q.scale(opt.quad || new Quad(0, 0, 1, 1)),
-		uniform: opt.uniform,
 	});
 
 }
@@ -2293,6 +2321,35 @@ function compileStyledText(text: string): {
 
 }
 
+// TODO: single long line should also wrap
+// TODO: '\n'
+// calculate each line based on text wrap width
+function getLines(
+	text: string,
+	maxWidth: number,
+	getWidth: (txt: string) => number
+): string[] {
+
+	const words = text.split(" ");
+	const lines: string[] = [];
+	let curLine = words[0];
+
+	for (const word of words.slice(1)) {
+		const width = getWidth(curLine + " " + word);
+		if (width < maxWidth) {
+			curLine += " " + word;
+		} else {
+			lines.push(curLine);
+			curLine = word;
+		}
+	}
+
+	lines.push(curLine);
+
+	return lines;
+
+}
+
 // format text and return a list of chars with their calculated position
 function formatText(opt: DrawTextOpt): FormattedText {
 
@@ -2302,16 +2359,89 @@ function formatText(opt: DrawTextOpt): FormattedText {
 
 	const font = resolveFont(opt.font);
 
-	if (font instanceof Asset) {
+	// if it's still loading
+	if (opt.text === "" || font instanceof Asset || !font) {
 		return {
+			isBitmap: true,
 			width: 0,
 			height: 0,
 			chars: [],
 		};
 	};
 
-	if (!font) {
-		throw new Error(`Font not found: ${opt.font}`);
+	// if it's not bitmap font, we draw it with 2d canvas or use cached image
+	if (font instanceof FontFace || typeof font === "string") {
+
+		const fontName = font instanceof FontFace ? font.family : font;
+		// when these properties change, we redraw the text on canvas and
+		const cfg = [opt.text, opt.size, opt.font, opt.align, opt.width].join(",")
+
+		if (!text2DCache[cfg]) {
+
+			// TODO: styles
+			// TODO: what if the text is wider than canvas width
+			if (opt.transform) {
+				warn(`"transform" isn't available for non-bitmap fonts yet`)
+			}
+
+			if (opt.styles) {
+				warn(`"styles" isn't available for non-bitmap fonts yet`)
+			}
+
+			if (opt.letterSpacing) {
+				warn(`"letterSpacing" isn't available for non-bitmap fonts yet`)
+			}
+
+			const c2d = app.canvas2.getContext("2d")
+			c2d.font = `${opt.size ?? DEF_TEXT_SIZE}px ${fontName}`
+			const metrics = c2d.measureText(opt.text)
+			c2d.clearRect(0, 0, app.canvas2.width, app.canvas2.height);
+			c2d.textBaseline = "top"
+			c2d.textAlign = "left"
+			c2d.fillStyle = "rgb(255, 255, 255)"
+
+			let w = 0
+			let h = 0
+
+			if (opt.width) {
+
+				const lines = getLines(
+					opt.text,
+					opt.width,
+					(text) => c2d.measureText(text).width
+				)
+
+				w = opt.width
+
+				for (const line of lines) {
+					const size = c2d.measureText(line)
+					const x = (w - size.width) * alignPt(opt.align)
+					c2d.fillText(line, x, h)
+					h += metrics.fontBoundingBoxAscent + metrics.fontBoundingBoxDescent + opt.lineSpacing ?? 0
+				}
+
+			} else {
+				w = metrics.width
+				// actual + actual is often shorter, font + font is often taller, font + actual seem to get the best fit, not sure why
+				h = metrics.fontBoundingBoxAscent + metrics.actualBoundingBoxDescent
+				c2d.fillText(opt.text, 0, 0)
+			}
+
+			// this can be memory intensive
+			text2DCache[cfg] = makeTex(c2d.getImageData(0, 0, w, h))
+
+		}
+
+		const tex = text2DCache[cfg];
+
+		return {
+			isBitmap: false,
+			width: tex.width,
+			height: tex.height,
+			tex: tex,
+			opt: opt,
+		}
+
 	}
 
 	const { charStyleMap, text } = compileStyledText(opt.text + "");
@@ -2380,6 +2510,7 @@ function formatText(opt: DrawTextOpt): FormattedText {
 	// whole text offset
 	const fchars = [];
 	const pos = vec2(opt.pos || 0);
+	// TODO: use align instead of origin for alignment
 	const offset = originPt(opt.origin || DEF_ORIGIN).scale(0.5);
 	// this math is complicated i forgot how it works instantly
 	const ox = -offset.x * cw - (offset.x + 0.5) * (tw - cw);
@@ -2387,10 +2518,8 @@ function formatText(opt: DrawTextOpt): FormattedText {
 	let idx = 0;
 
 	flines.forEach((line, ln) => {
-
 		// line offset
 		const oxl = (tw - line.length * cw) * (offset.x + 0.5);
-
 		line.forEach((char, cn) => {
 			const qpos = font.map[char];
 			const x = cn * cw;
@@ -2402,7 +2531,7 @@ function formatText(opt: DrawTextOpt): FormattedText {
 					ch: char,
 					pos: vec2(pos.x + x + ox + oxl, pos.y + y + oy),
 					opacity: opt.opacity,
-					color: opt.color ?? rgb(255, 255, 255),
+					color: opt.color ?? Color.WHITE,
 					scale: scale,
 					angle: 0,
 					uniform: opt.uniform,
@@ -2435,6 +2564,7 @@ function formatText(opt: DrawTextOpt): FormattedText {
 	});
 
 	return {
+		isBitmap: true,
 		width: tw,
 		height: th,
 		chars: fchars,
@@ -2446,23 +2576,35 @@ function drawText(opt: DrawTextOpt) {
 	drawFormattedText(formatText(opt));
 }
 
+const text2DCache = {}
+
 // TODO: rotation
 function drawFormattedText(ftext: FormattedText) {
-	for (const ch of ftext.chars) {
-		drawUVQuad({
-			tex: ch.tex,
-			width: ch.tex.width * ch.quad.w,
-			height: ch.tex.height * ch.quad.h,
-			pos: ch.pos,
-			scale: ch.scale,
-			angle: ch.angle,
-			color: ch.color,
-			opacity: ch.opacity,
-			quad: ch.quad,
-			// TODO: topleft
-			origin: "center",
-			uniform: ch.uniform,
-			fixed: ch.fixed,
+	if (ftext.isBitmap === true) {
+		for (const ch of ftext.chars) {
+			drawUVQuad({
+				tex: ch.tex,
+				width: ch.tex.width * ch.quad.w,
+				height: ch.tex.height * ch.quad.h,
+				pos: ch.pos,
+				scale: ch.scale,
+				angle: ch.angle,
+				color: ch.color,
+				opacity: ch.opacity,
+				quad: ch.quad,
+				// TODO: topleft
+				origin: "center",
+				uniform: ch.uniform,
+				fixed: ch.fixed,
+			});
+		}
+	} else {
+		drawTexture({
+			...ftext.opt,
+			tex: ftext.tex,
+			width: ftext.width,
+			height: ftext.height,
+			color: ftext.opt.color ?? Color.WHITE,
 		});
 	}
 }
@@ -4282,13 +4424,17 @@ function text(t: string, opt: TextCompOpt = {}): TextComp {
 			size: obj.textSize,
 			font: obj.font,
 			width: opt.width && obj.width,
+			align: obj.align,
 			letterSpacing: obj.letterSpacing,
 			lineSpacing: obj.lineSpacing,
 			transform: obj.transform,
 			styles: obj.styles,
 		});
 
-		obj.width = ftext.width / (obj.scale?.x || 1);
+		if (!opt.width) {
+			obj.width = ftext.width / (obj.scale?.x || 1);
+		}
+
 		obj.height = ftext.height / (obj.scale?.y || 1);
 
 		return ftext;
@@ -4303,6 +4449,7 @@ function text(t: string, opt: TextCompOpt = {}): TextComp {
 		font: opt.font,
 		width: opt.width,
 		height: 0,
+		align: opt.align,
 		lineSpacing: opt.lineSpacing,
 		letterSpacing: opt.letterSpacing,
 		transform: opt.transform,
@@ -5456,7 +5603,6 @@ window.addEventListener("error", (e) => {
 });
 
 window.addEventListener("unhandledrejection", (e) => {
-	console.log("123")
 	handleErr(e.reason);
 });
 
@@ -5509,21 +5655,21 @@ function run(f: () => void) {
 
 }
 
-loadFont(
+loadBitmapFont(
 	"apl386",
 	apl386Src,
 	45,
 	74,
 );
 
-loadFont(
+loadBitmapFont(
 	"apl386o",
 	apl386oSrc,
 	45,
 	74,
 );
 
-loadFont(
+loadBitmapFont(
 	"sink",
 	sinkSrc,
 	6,
@@ -5533,7 +5679,7 @@ loadFont(
 	}
 );
 
-loadFont(
+loadBitmapFont(
 	"sinko",
 	sinkoSrc,
 	8,
@@ -5577,6 +5723,7 @@ const ctx: KaboomCtx = {
 	loadSprite,
 	loadSpriteAtlas,
 	loadSound,
+	loadBitmapFont,
 	loadFont,
 	loadShader,
 	loadAseprite,
@@ -5585,7 +5732,7 @@ const ctx: KaboomCtx = {
 	load,
 	getSprite,
 	getSound,
-	getFont,
+	getBitmapFont,
 	getShader,
 	Asset,
 	SpriteData,

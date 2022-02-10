@@ -43,7 +43,6 @@ const Head: React.FC<HeadProps> = ({
 			<meta name="twitter:player:width" content={`${twitterPlayer.width}`} />
 			<meta name="twitter:player:height" content={`${twitterPlayer.height}`} />
 		</> }
-		<script defer data-domain="kaboomjs.com" src="https://plausible.io/js/plausible.js" />
 	</NextHead>
 );
 

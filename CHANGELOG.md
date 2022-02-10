@@ -1,18 +1,22 @@
 # v2001.0.0 "A Kaboom Odyssey"
 
-- removed all deprecated functions in v2000.2
+- (**BREAK**) removed all deprecated functions in v2000.2
 - game objects can have children with `obj.add()` now which share the parent transform
-- raised esbuild target to `esnext`
+- (**BREAK**) raised esbuild target to `esnext`
 - added `make()` to make a game object without adding to the scene
-- `add()` supports adding unattached game objects to the scene `add(make([...comps]))`
+- added support for `add()` to add unattached game objects to the scene `add(make([...comps]))`
 - added `colors` option to `drawPolygon()` that controls the color of each corner
 - added `gradient` option to `drawRect()` that specifies the start and end color
 - added `loadProgress()` that returns a `0.0 - 1.0` that indicates current asset loading progress
 - added `kaboom()` option `loadingScreen` where you can turn off the default loading screen
 - added `drawMasked()` and `drawSubtracted()`
-- removed `layers()` in favor of parent game objects (see "layers" demo)
+- (**BREAK**) removed `layers()` in favor of parent game objects (see "layers" demo)
 - added `pushRotateX()`, `pushRotateY()` and `pushRotateZ()`
 - added `pixelDensity` option to `kaboom()`
+- added support for non bitmap fonts
+- (**BREAK**) rename `loadFont()` to `loadBitmapFont()`
+- added `loadFont()` to load `.ttf`, `.otf`, `.woff2` or any font supported by browser `FontFace`
+- (**BREAK**) `origin` no longer controls text alignment, use `align` option instead
 
 ### v2000.2.6
 

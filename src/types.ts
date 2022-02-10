@@ -919,8 +919,8 @@ export interface KaboomCtx {
 	 */
 	loadSprite(
 		name: string | null,
-		src: SpriteLoadSrc,
-		options?: SpriteLoadOpt,
+		src: LoadSpriteSrc,
+		options?: LoadSpriteOpt,
 	): Asset<SpriteData>,
 	/**
 	 * Load sprites from a sprite atlas.
@@ -951,7 +951,7 @@ export interface KaboomCtx {
 	 * ```
 	 */
 	loadSpriteAtlas(
-		src: SpriteLoadSrc,
+		src: LoadSpriteSrc,
 		data: SpriteAtlasData,
 	): Asset<Record<string, SpriteData>>,
 	/**
@@ -970,7 +970,7 @@ export interface KaboomCtx {
 	 * ```
 	 */
 	loadSpriteAtlas(
-		src: SpriteLoadSrc,
+		src: LoadSpriteSrc,
 		url: string,
 	): Asset<Record<string, SpriteData>>,
 	/**
@@ -983,7 +983,7 @@ export interface KaboomCtx {
 	 */
 	loadAseprite(
 		name: string | null,
-		imgSrc: SpriteLoadSrc,
+		imgSrc: LoadSpriteSrc,
 		jsonSrc: string
 	): Asset<SpriteData>,
 	loadPedit(name: string, src: string): Asset<SpriteData>,
@@ -1015,25 +1015,39 @@ export interface KaboomCtx {
 		src: string,
 	): Asset<SoundData>,
 	/**
+	 * Load a font through browser FontFace.
+	 *
+	 * @since v2001.0
+	 *
+	 * @example
+	 * ```js
+	 * // load a font from a .ttf file
+	 * loadFont("frogblock", "fonts/frogblock.ttf")
+	 * ```
+	 */
+	loadFont(name: string, src: string | ArrayBuffer): Asset<FontFace>,
+	/**
 	 * Load a bitmap font into asset manager, with name and resource url and infomation on the layout of the bitmap.
+	 *
+	 * @since v2001.0
 	 *
 	 * @example
 	 * ```js
 	 * // load a bitmap font called "04b03", with bitmap "fonts/04b03.png"
 	 * // each character on bitmap has a size of (6, 8), and contains default ASCII_CHARS
-	 * loadFont("04b03", "fonts/04b03.png", 6, 8)
+	 * loadBitmapFont("04b03", "fonts/04b03.png", 6, 8)
 	 *
 	 * // load a font with custom characters
-	 * loadFont("myfont", "myfont.png", 6, 8, { chars: "☺☻♥♦♣♠" })
+	 * loadBitmapFont("myfont", "myfont.png", 6, 8, { chars: "☺☻♥♦♣♠" })
 	 * ```
 	 */
-	loadFont(
+	loadBitmapFont(
 		name: string | null,
 		src: string,
 		gridWidth: number,
 		gridHeight: number,
-		options?: FontLoadOpt,
-	): Asset<FontData>,
+		options?: LoadBitmapFontOpt,
+	): Asset<BitmapFontData>,
 	/**
 	 * Load a shader into asset manager with vertex and fragment code / file url.
 	 *
@@ -1091,11 +1105,11 @@ export interface KaboomCtx {
 	 */
 	getSound(handle: string): Asset<SoundData> | void,
 	/**
-	 * Get FontData from handle.
+	 * Get BitmapFontData from handle.
 	 *
 	 * @since v2001.0
 	 */
-	getFont(handle: string): Asset<FontData> | void,
+	getBitmapFont(handle: string): Asset<BitmapFontData> | void,
 	/**
 	 * Get ShaderData from handle.
 	 *
@@ -1360,7 +1374,7 @@ export interface KaboomCtx {
 	 * music.play()
 	 * ```
 	 */
-	play(id: string, options?: AudioPlayOpt): AudioPlay,
+	play(src: string | SoundData | Asset<SoundData>, options?: AudioPlayOpt): AudioPlay,
 	/**
 	 * Yep.
 	 */
@@ -2349,7 +2363,7 @@ export type SpriteAnims = Record<string, SpriteAnim>
 /**
  * Sprite loading configuration.
  */
-export interface SpriteLoadOpt {
+export interface LoadSpriteOpt {
 	sliceX?: number,
 	sliceY?: number,
 	anims?: SpriteAnims,
@@ -2404,17 +2418,18 @@ export declare class Asset<D> {
 	onFinish(action: () => void): Asset<D>
 	then(action: (data: D) => void): Asset<D>
 	catch(action: (err: Error) => void): Asset<D>
+	finally(action: () => void): Asset<D>
 }
 
-export type SpriteLoadSrc = string | GfxTexData;
+export type LoadSpriteSrc = string | GfxTexData;
 
 export declare class SpriteData {
 	tex: GfxTexture;
 	frames: Quad[];
 	anims: SpriteAnims;
 	constructor(tex: GfxTexture, frames?: Quad[], anims?: SpriteAnims);
-	static fromImage(data: GfxTexData, opt?: SpriteLoadOpt): SpriteData;
-	static fromURL(url: string, opt?: SpriteLoadOpt): Promise<SpriteData>;
+	static fromImage(data: GfxTexData, opt?: LoadSpriteOpt): SpriteData;
+	static fromURL(url: string, opt?: LoadSpriteOpt): Promise<SpriteData>;
 }
 
 export declare class SoundData {
@@ -2424,7 +2439,7 @@ export declare class SoundData {
 	static fromURL(url: string): Promise<SoundData>;
 }
 
-export interface FontLoadOpt {
+export interface LoadBitmapFontOpt {
 	chars?: string,
 	filter?: TexFilter,
 	wrap?: TexWrap,
@@ -2434,7 +2449,8 @@ export interface SoundData {
 	buf: AudioBuffer,
 }
 
-export type FontData = GfxFont;
+export type FontData = FontFace;
+export type BitmapFontData = GfxFont;
 export type ShaderData = GfxShader;
 
 // TODO: enable setting on load, make part of SoundData
@@ -2591,7 +2607,7 @@ export interface RenderProps {
 	color?: Color,
 	opacity?: number,
 	fixed?: boolean,
-	shader?: GfxShader | string,
+	shader?: string | ShaderData | Asset<ShaderData>,
 	uniform?: Uniform,
 }
 
@@ -2602,7 +2618,7 @@ export type DrawSpriteOpt = RenderProps & {
 	/**
 	 * The sprite name in the asset manager, or the raw sprite data.
 	 */
-	sprite: string | SpriteData,
+	sprite: string | SpriteData | Asset<SpriteData>,
 	/**
 	 * If the sprite is loaded with multiple frames, or sliced, use the frame option to specify which frame to draw.
 	 */
@@ -2907,6 +2923,11 @@ export interface Outline {
 	color?: Color,
 }
 
+export type TextAlign =
+	| "center"
+	| "left"
+	| "right"
+
 /**
  * How the text should look like.
  */
@@ -2918,23 +2939,29 @@ export type DrawTextOpt = RenderProps & {
 	/**
 	 * The name of font to use.
 	 */
-	font?: string | FontData,
+	font?: string | FontData | Asset<FontData> | BitmapFontData | Asset<BitmapFontData>,
 	/**
 	 * The size of text (the height of each character).
 	 */
 	size?: number,
 	/**
-	 * The maximum width. Will wrap around if exceed.
+	 * Text alignment (default "left")
+	 *
+	 * @since v2001.0
+	 */
+	align?: TextAlign,
+	/**
+	 * The maximum width. Will wrap word around if exceed.
 	 */
 	width?: number,
 	/**
-	 * The gap between each line.
+	 * The gap between each line (only available for bitmap fonts).
 	 *
 	 * @since v2000.2
 	 */
 	lineSpacing?: number,
 	/**
-	 * The gap between each character.
+	 * The gap between each character (only available for bitmap fonts).
 	 *
 	 * @since v2000.2
 	 */
@@ -2944,13 +2971,13 @@ export type DrawTextOpt = RenderProps & {
 	 */
 	origin?: Origin | Vec2,
 	/**
-	 * Transform the pos, scale, rotation or color for each character based on the index or char.
+	 * Transform the pos, scale, rotation or color for each character based on the index or char (only available for bitmap fonts).
 	 *
 	 * @since v2000.1
 	 */
 	transform?: CharTransform | CharTransformFunc,
 	/**
-	 * Stylesheet for styled chunks, in the syntax of "this is a [styled].stylename word".
+	 * Stylesheet for styled chunks, in the syntax of "this is a [styled].stylename word" (only available for bitmap fonts).
 	 *
 	 * @since v2000.2
 	 */
@@ -2960,11 +2987,17 @@ export type DrawTextOpt = RenderProps & {
 /**
  * Formatted text with info on how and where to render each character.
  */
-export interface FormattedText {
+export type FormattedText = {
 	width: number,
 	height: number,
+} & ({
+	isBitmap: true,
 	chars: FormattedChar[],
-}
+} | {
+	isBitmap: false,
+	tex: GfxTexture,
+	opt: DrawTextOpt,
+})
 
 /**
  * One formated character.
@@ -3641,7 +3674,7 @@ export interface TextComp extends Comp {
 	/**
 	 * The font to use.
 	 */
-	font: string | FontData,
+	font: string | BitmapFontData,
 	/**
 	 * Width of text.
 	 */
@@ -3650,6 +3683,12 @@ export interface TextComp extends Comp {
 	 * Height of text.
 	 */
 	height: number,
+	/**
+	 * Text alignment ("left", "center" or "right", default "left").
+	 *
+	 * @since v2001.0
+	 */
+	align: TextAlign,
 	/**
 	 * The gap between each line.
 	 *
@@ -3684,11 +3723,17 @@ export interface TextCompOpt {
 	/**
 	 * The font to use.
 	 */
-	font?: string | FontData,
+	font?: string | BitmapFontData,
 	/**
 	 * Wrap text to a certain width.
 	 */
 	width?: number,
+	/**
+	 * Text alignment ("left", "center" or "right", default "left").
+	 *
+	 * @since v2001.0
+	 */
+	align?: TextAlign,
 	/**
 	 * The gap between each line.
 	 *
