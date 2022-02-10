@@ -1421,10 +1421,10 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		opt: GfxTexOpt = {},
 	): GfxTexture {
 
-		const id = gl.createTexture()
+		const tex = gl.createTexture()
 
-		gc.push(() => gl.deleteTexture(id))
-		gl.bindTexture(gl.TEXTURE_2D, id)
+		gc.push(() => gl.deleteTexture(tex))
+		gl.bindTexture(gl.TEXTURE_2D, tex)
 		gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, data)
 
 		const filter = (() => {
@@ -1453,13 +1453,13 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			width: data.width,
 			height: data.height,
 			bind() {
-				gl.bindTexture(gl.TEXTURE_2D, id)
+				gl.bindTexture(gl.TEXTURE_2D, tex)
 			},
 			unbind() {
 				gl.bindTexture(gl.TEXTURE_2D, null)
 			},
 			delete() {
-				gl.deleteTexture(id)
+				gl.deleteTexture(tex)
 			},
 		}
 
@@ -1470,7 +1470,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		fragSrc: string | null = DEF_FRAG,
 	): GfxShader {
 
-		let msg
 		const vcode = VERT_TEMPLATE.replace("{{user}}", vertSrc ?? DEF_VERT)
 		const fcode = FRAG_TEMPLATE.replace("{{user}}", fragSrc ?? DEF_FRAG)
 		const vertShader = gl.createShader(gl.VERTEX_SHADER)
@@ -1481,31 +1480,46 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		gl.compileShader(vertShader)
 		gl.compileShader(fragShader)
 
-		if ((msg = gl.getShaderInfoLog(vertShader))) {
-			throw new Error(msg)
-		}
+		const prog = gl.createProgram()
 
-		if ((msg = gl.getShaderInfoLog(fragShader))) {
-			throw new Error(msg)
-		}
+		gc.push(() => gl.deleteProgram(prog))
+		gl.attachShader(prog, vertShader)
+		gl.attachShader(prog, fragShader)
 
-		const id = gl.createProgram()
+		gl.bindAttribLocation(prog, 0, "a_pos")
+		gl.bindAttribLocation(prog, 1, "a_uv")
+		gl.bindAttribLocation(prog, 2, "a_color")
 
-		gc.push(() => gl.deleteProgram(id))
-		gl.attachShader(id, vertShader)
-		gl.attachShader(id, fragShader)
+		gl.linkProgram(prog)
 
-		gl.bindAttribLocation(id, 0, "a_pos")
-		gl.bindAttribLocation(id, 1, "a_uv")
-		gl.bindAttribLocation(id, 2, "a_color")
+		if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) {
 
-		gl.linkProgram(id)
-
-		if ((msg = gl.getProgramInfoLog(id))) {
-		// for some reason on safari it always has a "\n" msg
-			if (msg !== "\n") {
-				throw new Error(msg)
+			const formatShaderError = (msg: string) => {
+				const FMT = /^ERROR:\s0:(?<line>\d+):\s(?<msg>.+)/
+				const match = msg.match(FMT)
+				return {
+					line: Number(match.groups.line),
+					// seem to be a \n\0 at the end of error messages, causing unwanted line break
+					msg: match.groups.msg.replace(/\n\0$/, ""),
+				}
 			}
+
+			const vertError = gl.getShaderInfoLog(vertShader)
+			const fragError = gl.getShaderInfoLog(fragShader)
+			let msg = ""
+
+			if (vertError) {
+				const err = formatShaderError(vertError)
+				msg += `Vertex shader line ${err.line - 14}: ${err.msg}`
+			}
+
+			if (fragError) {
+				const err = formatShaderError(fragError)
+				msg += `Fragment shader line ${err.line - 14}: ${err.msg}`
+			}
+
+			throw new Error(msg)
+
 		}
 
 		gl.deleteShader(vertShader)
@@ -1514,7 +1528,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		return {
 
 			bind() {
-				gl.useProgram(id)
+				gl.useProgram(prog)
 			},
 
 			unbind() {
@@ -1522,13 +1536,13 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			},
 
 			delete() {
-				gl.deleteProgram(id)
+				gl.deleteProgram(prog)
 			},
 
 			send(uniform: Uniform) {
 				for (const name in uniform) {
 					const val = uniform[name]
-					const loc = gl.getUniformLocation(id, name)
+					const loc = gl.getUniformLocation(prog, name)
 					if (typeof val === "number") {
 						gl.uniform1f(loc, val)
 					} else if (val instanceof Mat4) {
@@ -2384,6 +2398,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 				// TODO: styles
 				// TODO: what if the text is wider than canvas width
+				// TODO: this can be very memory intensive
 				if (opt.transform) {
 					warn("\"transform\" isn't available for non-bitmap fonts yet")
 				}
@@ -2431,7 +2446,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 					c2d.fillText(opt.text, 0, 0)
 				}
 
-				// this can be memory intensive
 				text2DCache[cfg] = makeTex(c2d.getImageData(0, 0, w, h))
 
 			}
@@ -5516,13 +5530,13 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		enterBurpMode()
 	}
 
-	function handleErr(msg: string) {
-		debug.error(msg)
+	function handleErr(err: Error) {
+		debug.log(err)
 		run(drawDebug)
 	}
 
 	window.addEventListener("error", (e) => {
-		handleErr(e.error instanceof Error ? e.error.message : e.error)
+		handleErr(e.error)
 	})
 
 	window.addEventListener("unhandledrejection", (e) => {
@@ -5593,7 +5607,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			app.stopped = true
 
 			// clear canvas
-			gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+			gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT | gl.STENCIL_BUFFER_BIT)
 
 			// unbind everything
 			const numTextureUnits = gl.getParameter(gl.MAX_TEXTURE_IMAGE_UNITS)
