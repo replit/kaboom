@@ -1093,25 +1093,31 @@ export interface KaboomCtx {
 	 */
 	loadProgress(): number,
 	/**
-	 * Get SpriteData from handle.
+	 * Get SpriteData from handle if loaded.
 	 *
 	 * @since v2001.0
 	 */
 	getSprite(handle: string): Asset<SpriteData> | void,
 	/**
-	 * Get SoundData from handle.
+	 * Get SoundData from handle if loaded.
 	 *
 	 * @since v2001.0
 	 */
 	getSound(handle: string): Asset<SoundData> | void,
 	/**
-	 * Get BitmapFontData from handle.
+	 * Get FontData from handle if loaded.
+	 *
+	 * @since v2001.0
+	 */
+	getFont(handle: string): Asset<FontData> | void,
+	/**
+	 * Get BitmapFontData from handle if loaded.
 	 *
 	 * @since v2001.0
 	 */
 	getBitmapFont(handle: string): Asset<BitmapFontData> | void,
 	/**
-	 * Get ShaderData from handle.
+	 * Get ShaderData from handle if loaded.
 	 *
 	 * @since v2001.0
 	 */

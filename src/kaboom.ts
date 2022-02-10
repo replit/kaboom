@@ -1134,6 +1134,10 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		return assets.sounds.get(handle)
 	}
 
+	function getFont(handle: string): Asset<FontData> | void {
+		return assets.fonts.get(handle)
+	}
+
 	function getBitmapFont(handle: string): Asset<BitmapFontData> | void {
 		return assets.bitmapFonts.get(handle)
 	}
@@ -5724,6 +5728,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		load,
 		getSprite,
 		getSound,
+		getFont,
 		getBitmapFont,
 		getShader,
 		Asset,
