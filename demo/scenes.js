@@ -120,14 +120,14 @@ scene("game", ({ levelIdx, score }) => {
 			})
 		} else {
 			// Otherwise we have reached the end of game, go to "win" scene!
-			go("win", { score: score, })
+			go("win", { score: score })
 		}
 	})
 
 	// Score counter text
 	const scoreLabel = add([
 		text(score),
-		pos(12)
+		pos(12),
 	])
 
 })

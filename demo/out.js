@@ -35,7 +35,7 @@ function shoot() {
 		origin("center"),
 		handleout(),
 		"bean",
-		{ dir: mpos.sub(center).unit(), },
+		{ dir: mpos.sub(center).unit() },
 	])
 }
 

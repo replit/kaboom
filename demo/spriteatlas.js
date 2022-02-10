@@ -16,16 +16,16 @@ loadSpriteAtlas("/sprites/dungeon.png", {
 				"from": 0,
 				"to": 3,
 				"speed": 3,
-				"loop": true
+				"loop": true,
 			},
 			"run": {
 				"from": 4,
 				"to": 7,
 				"speed": 10,
-				"loop": true
+				"loop": true,
 			},
-			"hit": 8
-		}
+			"hit": 8,
+		},
 	},
 	"ogre": {
 		"x": 16,
@@ -38,15 +38,15 @@ loadSpriteAtlas("/sprites/dungeon.png", {
 				"from": 0,
 				"to": 3,
 				"speed": 3,
-				"loop": true
+				"loop": true,
 			},
 			"run": {
 				"from": 4,
 				"to": 7,
 				"speed": 10,
-				"loop": true
-			}
-		}
+				"loop": true,
+			},
+		},
 	},
 	"floor": {
 		"x": 16,
@@ -54,7 +54,7 @@ loadSpriteAtlas("/sprites/dungeon.png", {
 		"width": 48,
 		"height": 48,
 		"sliceX": 3,
-		"sliceY": 3
+		"sliceY": 3,
 	},
 	"chest": {
 		"x": 304,
@@ -67,69 +67,69 @@ loadSpriteAtlas("/sprites/dungeon.png", {
 				"from": 0,
 				"to": 2,
 				"speed": 20,
-				"loop": false
+				"loop": false,
 			},
 			"close": {
 				"from": 2,
 				"to": 0,
 				"speed": 20,
-				"loop": false
-			}
-		}
+				"loop": false,
+			},
+		},
 	},
 	"sword": {
 		"x": 322,
 		"y": 81,
 		"width": 12,
-		"height": 30
+		"height": 30,
 	},
 	"wall": {
 		"x": 16,
 		"y": 16,
 		"width": 16,
-		"height": 16
+		"height": 16,
 	},
 	"wall_top": {
 		"x": 16,
 		"y": 0,
 		"width": 16,
-		"height": 16
+		"height": 16,
 	},
 	"wall_left": {
 		"x": 16,
 		"y": 128,
 		"width": 16,
-		"height": 16
+		"height": 16,
 	},
 	"wall_right": {
 		"x": 0,
 		"y": 128,
 		"width": 16,
-		"height": 16
+		"height": 16,
 	},
 	"wall_topleft": {
 		"x": 32,
 		"y": 128,
 		"width": 16,
-		"height": 16
+		"height": 16,
 	},
 	"wall_topright": {
 		"x": 48,
 		"y": 128,
 		"width": 16,
-		"height": 16
+		"height": 16,
 	},
 	"wall_botleft": {
 		"x": 32,
 		"y": 144,
 		"width": 16,
-		"height": 16
+		"height": 16,
 	},
 	"wall_botright": {
 		"x": 48,
 		"y": 144,
 		"width": 16,
-		"height": 16
+		"height": 16,
 	},
 })
 
@@ -175,7 +175,7 @@ const map = addLevel([
 		sprite("chest"),
 		area(),
 		solid(),
-		{ opened: false, },
+		{ opened: false },
 		"chest",
 	],
 	"a": () => [
@@ -210,7 +210,7 @@ const map = addLevel([
 	],
 	"l": () => [
 		sprite("wall_left"),
-		area({ width: 4, }),
+		area({ width: 4 }),
 		solid(),
 	],
 	"r": () => [

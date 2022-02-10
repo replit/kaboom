@@ -20,6 +20,7 @@
 		"linebreak-style": [ "error", "unix" ],
 		"quotes": [ "error", "double" ],
 		"semi": [ "error", "never" ],
+		"comma-dangle": [ "error", "always-multiline" ],
 		"no-empty-function": "off",
 		"@typescript-eslint/ban-ts-comment": "off",
 		"@typescript-eslint/no-explicit-any": "off",

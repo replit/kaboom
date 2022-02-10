@@ -34,7 +34,7 @@ add([
 	pos(center()),
 	origin("center"),
 	z(50),
-	{ update() { this.text = score }}
+	{ update() { this.text = score }},
 ])
 
 // ball

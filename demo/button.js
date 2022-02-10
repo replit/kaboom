@@ -7,7 +7,7 @@ function addButton(txt, p, f) {
 	const btn = add([
 		text(txt),
 		pos(p),
-		area({ cursor: "pointer", }),
+		area({ cursor: "pointer" }),
 		scale(1),
 		origin("center"),
 	])

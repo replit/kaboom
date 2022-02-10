@@ -1,7 +1,7 @@
 // Simple dialogues
 
 kaboom({
-	background: [ 255, 209, 253 ]
+	background: [ 255, 209, 253 ],
 })
 
 loadSprite("bean", "/sprites/bean.png")
@@ -33,7 +33,7 @@ const textbox = add([
 const txt = add([
 	text("", { size: 32, width: width() - 230 }),
 	pos(textbox.pos),
-	origin("center")
+	origin("center"),
 ])
 
 // Character avatar
@@ -41,7 +41,7 @@ const avatar = add([
 	sprite("bean"),
 	scale(3),
 	origin("center"),
-	pos(center().sub(0, 50))
+	pos(center().sub(0, 50)),
 ])
 
 onKeyPress("space", () => {

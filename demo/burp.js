@@ -1,6 +1,6 @@
 // Start the game in burp mode
 kaboom({
-	burp: true
+	burp: true,
 })
 
 // "b" triggers a burp in burp mode

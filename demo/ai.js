@@ -24,7 +24,7 @@ const enemy = add([
 	pos(width() - 80, height() - 80),
 	origin("center"),
 	// This enemy cycle between 3 states, and start from "idle" state
-	state("move", [ "idle", "attack", "move", ]),
+	state("move", [ "idle", "attack", "move" ]),
 ])
 
 // Run the callback once every time we enter "idle" state.

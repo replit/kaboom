@@ -19,7 +19,7 @@ loadSound("portal", "/sounds/portal.mp3")
 function patrol(speed = 60, dir = 1) {
 	return {
 		id: "patrol",
-		require: [ "pos", "area", ],
+		require: [ "pos", "area" ],
 		add() {
 			this.on("collide", (obj, col) => {
 				if (col.isLeft() || col.isRight()) {
@@ -152,7 +152,7 @@ const levelConf = {
 	],
 	"@": () => [
 		sprite("portal"),
-		area({ scale: 0.5, }),
+		area({ scale: 0.5 }),
 		origin("bot"),
 		pos(0, -12),
 		"portal",

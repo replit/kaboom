@@ -55,19 +55,19 @@ const anims = {
 		"idle-left": {from: 117, to: 117},
 		"idle-down": {from: 130, to: 130},
 		"idle-right": {from: 143, to: 143},
-	}
+	},
 }
 
 const playerAnims = {
-	player: anims
+	player: anims,
 }
 
 const chestAnims = {
-	chest: anims
+	chest: anims,
 }
 
 const corpusAnims = {
-	corpus: anims
+	corpus: anims,
 }
 
 // Sprites are taken from https://github.com/gaconkzk/Universal-LPC-spritesheet
@@ -79,7 +79,7 @@ loadSpriteAtlas("/sprites/spritemerge_corpus.png", corpusAnims)
 // load and merge body and leather armor
 load(
 	mergeImg(["/sprites/spritemerge_corpus.png", "/sprites/spritemerge_chest.png"])
-		.then((img) => loadSpriteAtlas(img, playerAnims))
+		.then((img) => loadSpriteAtlas(img, playerAnims)),
 )
 
 let DIRECTION = "down"
@@ -92,7 +92,7 @@ const player = add([
 	pos(center()),
 	origin("center"),
 	area(),
-	body()
+	body(),
 ])
 
 // add only body
@@ -101,7 +101,7 @@ const corpus = add([
 	pos(center().add(-128, 0)),
 	origin("center"),
 	area(),
-	body()
+	body(),
 ])
 
 // add only leather armor
@@ -110,7 +110,7 @@ const chest = add([
 	pos(center().add(128, 0)),
 	origin("center"),
 	area(),
-	body()
+	body(),
 ])
 
 // .play is provided by sprite() component, it starts playing the specified animation (the animation information of "idle" is defined above in loadSprite)

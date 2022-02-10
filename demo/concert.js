@@ -46,7 +46,7 @@ const player = add([
 const gw = 200
 const gh = 140
 const maxRow = 4
-const notes = [ 0, 2, 4, 5, 6, 7, 8, 9, 11, 12, ]
+const notes = [ 0, 2, 4, 5, 6, 7, 8, 9, 11, 12 ]
 
 for (let i = 1; i <= maxRow; i++) {
 	for (let j = 0; j < i; j++) {
@@ -63,7 +63,7 @@ for (let i = 1; i <= maxRow; i++) {
 			bounce(),
 			scale(1),
 			n === 0 ? "burp" : "note",
-			{ detune: notes[9 - n] * 100 + -800, },
+			{ detune: notes[9 - n] * 100 + -800 },
 		])
 	}
 }
@@ -118,7 +118,7 @@ player.onHeadbutt((block) => {
 	if (block.is("note")) {
 		play("bell", {
 			detune: block.detune,
-			volume: 0.1
+			volume: 0.1,
 		})
 		addKaboom(block.pos)
 		shake(1)
@@ -178,7 +178,7 @@ function funky() {
 	let timer = 0
 	return {
 		id: "funky",
-		require: [ "pos", "rotate", ],
+		require: [ "pos", "rotate" ],
 		update() {
 			timer += dt()
 			this.angle = wave(-9, 9, timer * 4)

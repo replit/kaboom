@@ -14,7 +14,7 @@ const NUM_PLATFORMS = 5
 function spin(speed = 1200) {
 	let spinning = false
 	return {
-		require: [ "rotate", ],
+		require: [ "rotate" ],
 		update() {
 			if (!spinning) {
 				return
@@ -48,7 +48,7 @@ scene("game", () => {
 		area(),
 		origin("center"),
 		pos(0, 0),
-		body({ jumpForce: JUMP_FORCE, }),
+		body({ jumpForce: JUMP_FORCE }),
 		rotate(0),
 		spin(),
 	])
@@ -86,7 +86,7 @@ scene("game", () => {
 			area(),
 			follow(plat, vec2(0, -60)),
 			"coin",
-			{ idx: idx, },
+			{ idx: idx },
 		])
 	}
 

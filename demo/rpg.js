@@ -94,7 +94,7 @@ scene("main", (levelIdx) => {
 					area(),
 					solid(),
 					"character",
-					{ msg: char.msg, },
+					{ msg: char.msg },
 				]
 			}
 		},

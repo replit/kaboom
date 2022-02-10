@@ -18,7 +18,7 @@ function funky() {
 		// The name of the component
 		id: "funky",
 		// If this component depend on any other components
-		require: [ "scale", "color", ],
+		require: [ "scale", "color" ],
 
 		// Runs when the host object is added to the game
 		add() {

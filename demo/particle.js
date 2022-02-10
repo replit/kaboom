@@ -24,7 +24,7 @@ loop(0.1, () => {
 		origin("center"),
 		scale(rand(0.5, 1)),
 		area(),
-		body({ solid: false, }),
+		body({ solid: false }),
 		lifespan(1, { fade: 0.5 }),
 		move(choose([LEFT, RIGHT]), rand(60, 240)),
 	])

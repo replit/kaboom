@@ -17,7 +17,7 @@ function drag() {
 		// Name of the component
 		id: "drag",
 		// This component requires the "pos" and "area" component to work
-		require: [ "pos", "area", ],
+		require: [ "pos", "area" ],
 		// "add" is a lifecycle method gets called when the obj is added to scene
 		add() {
 			// TODO: these need to be checked in reverse order

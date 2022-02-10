@@ -2554,6 +2554,7 @@ export interface GfxShader {
 	bind(): void,
 	unbind(): void,
 	send(uniform: Uniform): void,
+	delete(): void,
 }
 
 // TODO: hide
@@ -2562,6 +2563,7 @@ export interface GfxTexture {
 	height: number,
 	bind(): void,
 	unbind(): void,
+	delete(): void,
 }
 
 export type GfxTexData =

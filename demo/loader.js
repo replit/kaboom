@@ -36,7 +36,7 @@ add([
 
 add([
 	text("bean"),
-	pos(200)
+	pos(200),
 ])
 
 onDraw(() => {

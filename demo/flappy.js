@@ -77,7 +77,7 @@ scene("game", () => {
 			// give it tags to easier define behaviors see below
 			"pipe",
 			// raw obj just assigns every field to the game obj
-			{ passed: false, },
+			{ passed: false },
 		])
 
 	}

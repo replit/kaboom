@@ -117,7 +117,7 @@ scene("game", () => {
 			origin("center"),
 			"food",
 			isBomb ? "bomb" : "fruit",
-			{ speed: speed }
+			{ speed: speed },
 		])
 
 	})

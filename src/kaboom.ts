@@ -426,6 +426,8 @@ function createEmptyAudioBuffer() {
 // only exports one kaboom() which contains all the state
 export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
+	const gc = []
+
 	const app = (() => {
 
 		const root = gopt.root ?? document.body
@@ -1067,7 +1069,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 					spr.anims[anim.name] = {
 						from: anim.from,
 						to: anim.to,
-						// TODO: let users define these
 						speed: 10,
 						loop: true,
 					}
@@ -1415,7 +1416,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		return play(audio.burpSnd, opt)
 	}
 
-	// TODO: take these webgl structures out pure
 	function makeTex(
 		data: GfxTexData,
 		opt: GfxTexOpt = {},
@@ -1423,6 +1423,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 		const id = gl.createTexture()
 
+		gc.push(() => gl.deleteTexture(id))
 		gl.bindTexture(gl.TEXTURE_2D, id)
 		gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, data)
 
@@ -1457,6 +1458,9 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			unbind() {
 				gl.bindTexture(gl.TEXTURE_2D, null)
 			},
+			delete() {
+				gl.deleteTexture(id)
+			},
 		}
 
 	}
@@ -1487,6 +1491,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 		const id = gl.createProgram()
 
+		gc.push(() => gl.deleteProgram(id))
 		gl.attachShader(id, vertShader)
 		gl.attachShader(id, fragShader)
 
@@ -1503,6 +1508,9 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			}
 		}
 
+		gl.deleteShader(vertShader)
+		gl.deleteShader(fragShader)
+
 		return {
 
 			bind() {
@@ -1511,6 +1519,10 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 			unbind() {
 				gl.useProgram(null)
+			},
+
+			delete() {
+				gl.deleteProgram(id)
 			},
 
 			send(uniform: Uniform) {
@@ -2962,25 +2974,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		return Boolean(getFullscreenElement())
 	}
 
-	function quit() {
-
-		// TODO: not cancelling
-		cancelAnimationFrame(app.loopID)
-
-		for (const name in canvasEvents) {
-			app.canvas.removeEventListener(name, canvasEvents[name])
-		}
-
-		for (const name in docEvents) {
-			document.removeEventListener(name, docEvents[name])
-		}
-
-		for (const name in winEvents) {
-			window.removeEventListener(name, winEvents[name])
-		}
-
-	}
-
 	const debug: Debug = {
 		inspect: false,
 		timeScale: 1,
@@ -3536,7 +3529,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		})
 
 		onKeyPress("f5", () => {
-			game.ev.onOnce("drawEnd", () => downloadURL(screenshot(), "kaboom.png"))
+			game.ev.onOnce("frameEnd", () => downloadURL(screenshot(), "kaboom.png"))
 		})
 
 		onKeyPress("f6", () => {
@@ -4849,7 +4842,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			throw new Error(`Scene not found: ${id}`)
 		}
 
-		game.ev.onOnce("updateStart", () => {
+		game.ev.onOnce("frameEnd", () => {
 
 			game.ev = new EventHandler()
 			game.objEvents = new EventHandler()
@@ -5188,8 +5181,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 	function updateFrame() {
 
-		game.ev.trigger("updateStart")
-
 		// update timers
 		game.timers.forEach((t, id) => {
 			t.time -= dt()
@@ -5221,7 +5212,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 		game.root.draw()
 		flush()
-		game.ev.trigger("drawEnd")
 
 	}
 
@@ -5547,6 +5537,8 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 		const frame = (t: number) => {
 
+			if (app.stopped) return
+
 			if (document.visibilityState !== "visible") {
 				app.loopID = requestAnimationFrame(frame)
 				return
@@ -5585,9 +5577,59 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			app.isKeyReleased = false
 			app.loopID = requestAnimationFrame(frame)
 
+			game.ev.trigger("frameEnd")
+
 		}
 
 		frame(0)
+
+	}
+
+	function quit() {
+
+		game.ev.onOnce("frameEnd", () => {
+
+			// stop the loop
+			app.stopped = true
+
+			// clear canvas
+			gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+
+			// unbind everything
+			const numTextureUnits = gl.getParameter(gl.MAX_TEXTURE_IMAGE_UNITS)
+
+			for (let unit = 0; unit < numTextureUnits; unit++) {
+				gl.activeTexture(gl.TEXTURE0 + unit)
+				gl.bindTexture(gl.TEXTURE_2D, null)
+				gl.bindTexture(gl.TEXTURE_CUBE_MAP, null)
+			}
+
+			gl.bindBuffer(gl.ARRAY_BUFFER, null)
+			gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null)
+			gl.bindRenderbuffer(gl.RENDERBUFFER, null)
+			gl.bindFramebuffer(gl.FRAMEBUFFER, null)
+
+			// run all scattered gc events
+			gc.forEach((f) => f())
+
+			// delete webgl buffers
+			gl.deleteBuffer(gfx.vbuf)
+			gl.deleteBuffer(gfx.ibuf)
+
+			// unregister events
+			for (const name in canvasEvents) {
+				app.canvas.removeEventListener(name, canvasEvents[name])
+			}
+
+			for (const name in docEvents) {
+				document.removeEventListener(name, docEvents[name])
+			}
+
+			for (const name in winEvents) {
+				window.removeEventListener(name, winEvents[name])
+			}
+
+		})
 
 	}
 

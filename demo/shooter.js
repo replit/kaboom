@@ -271,7 +271,7 @@ scene("battle", () => {
 		text(0),
 		pos(12, 32),
 		fixed(),
-		{ time: 0, },
+		{ time: 0 },
 	])
 
 	timer.onUpdate(() => {

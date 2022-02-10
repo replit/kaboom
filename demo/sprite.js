@@ -29,7 +29,7 @@ loadSprite("dino", "/sprites/dino.png", {
 			loop: true,
 		},
 		// This animation only has 1 frame
-		"jump": 8
+		"jump": 8,
 	},
 })
 
