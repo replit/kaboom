@@ -2343,8 +2343,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 	}
 
-	// TODO: single long line should also wrap
-	// TODO: '\n'
 	// calculate each line based on text wrap width
 	function getLines(
 		text: string,
@@ -2352,21 +2350,28 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		getWidth: (txt: string) => number,
 	): string[] {
 
-		const words = text.split(" ")
 		const lines: string[] = []
-		let curLine = words[0]
 
-		for (const word of words.slice(1)) {
-			const width = getWidth(curLine + " " + word)
-			if (width < maxWidth) {
-				curLine += " " + word
-			} else {
-				lines.push(curLine)
-				curLine = word
+		for (const line of text.split("\n")) {
+
+			const words = line.split(" ")
+			let curLine = words[0]
+
+			// TODO: single long line should also wrap
+
+			for (const word of words.slice(1)) {
+				const width = getWidth(curLine + " " + word)
+				if (width <= maxWidth) {
+					curLine += " " + word
+				} else {
+					lines.push(curLine)
+					curLine = word
+				}
 			}
-		}
 
-		lines.push(curLine)
+			lines.push(curLine)
+
+		}
 
 		return lines
 
