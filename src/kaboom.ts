@@ -2396,6 +2396,8 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			}
 		}
 
+		const { charStyleMap, text } = compileStyledText(opt.text + "")
+
 		// if it's not bitmap font, we draw it with 2d canvas or use cached image
 		if (font instanceof FontFace || typeof font === "string") {
 
@@ -2422,14 +2424,14 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 				const c2d = app.canvas2.getContext("2d")
 				c2d.font = `${opt.size ?? DEF_TEXT_SIZE}px ${fontName}`
-				const metrics = c2d.measureText(opt.text)
+				const metrics = c2d.measureText(text)
 				c2d.clearRect(0, 0, app.canvas2.width, app.canvas2.height)
 				c2d.textBaseline = "top"
 				c2d.textAlign = "left"
 				c2d.fillStyle = "rgb(255, 255, 255)"
 
 				const lines = getLines(
-					opt.text,
+					text,
 					opt.width ?? Number.MAX_VALUE,
 					(text) => c2d.measureText(text).width,
 				)
@@ -2465,7 +2467,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 		}
 
-		const { charStyleMap, text } = compileStyledText(opt.text + "")
 		const chars = text.split("")
 		const gw = font.qw * font.tex.width
 		const gh = font.qh * font.tex.height
