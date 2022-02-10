@@ -970,9 +970,8 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				})
 			}))
 		}
-		return load(new Promise(async (resolve) => {
+		return load(SpriteData.from(src).then((atlas) => {
 			const map = {}
-			const atlas = await SpriteData.from(src)
 			for (const name in data) {
 				const w = atlas.tex.width
 				const h = atlas.tex.height
@@ -992,7 +991,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				assets.sprites.addLoaded(name, spr)
 				map[name] = spr
 			}
-			resolve(map)
+			return map
 		}))
 	}
 
@@ -1017,6 +1016,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 	function loadPedit(name: string | null, src: string | PeditFile): Asset<SpriteData> {
 
+		// eslint-disable-next-line
 		return assets.sprites.add(name, new Promise(async (resolve) => {
 
 			const data = typeof src === "string" ? await fetchJSON(src) : src
@@ -1047,6 +1047,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		imgSrc: LoadSpriteSrc,
 		jsonSrc: string,
 	): Asset<SpriteData> {
+		// eslint-disable-next-line
 		return assets.sprites.add(name, new Promise(async (resolve) => {
 			const spr = await loadSprite(null, imgSrc)
 			const data = typeof jsonSrc === "string" ? await fetchJSON(jsonSrc) : jsonSrc
@@ -2040,6 +2041,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				minLen = Math.min(pts[i].dist(pts[i + 1]), minLen)
 			}
 
+			// eslint-disable-next-line
 			const radius = Math.min(opt.radius, minLen / 2)
 
 			drawLine({ ...opt, p1: pts[0], p2: pts[1] })
@@ -2270,6 +2272,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	}
 
 	// TODO: escape
+	// eslint-disable-next-line
 	const TEXT_STYLE_RE = /\[(?<text>[^\]]*)\]\.(?<style>[\w\.]+)+/g
 
 	function compileStyledText(text: string): {
