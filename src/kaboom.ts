@@ -172,7 +172,6 @@ type ButtonState =
 	| "rpressed"
 	| "down"
 	| "released"
-	;
 
 type DrawTextureOpt = RenderProps & {
 	tex: GfxTexture,
@@ -702,8 +701,8 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 		// TODO: handle when audio context is unavailable
 		const ctx = new (
-		window.AudioContext || (window as any).webkitAudioContext
-	)() as AudioContext
+			window.AudioContext || (window as any).webkitAudioContext
+		)() as AudioContext
 		const masterNode = ctx.createGain()
 		masterNode.connect(ctx.destination)
 
@@ -1214,12 +1213,13 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	function resolveFont(
 		src: DrawTextOpt["font"],
 	):
-	| FontData
-	| Asset<FontData>
-	| BitmapFontData
-	| Asset<BitmapFontData>
-	| string
-	| void {
+		| FontData
+		| Asset<FontData>
+		| BitmapFontData
+		| Asset<BitmapFontData>
+		| string
+		| void
+	{
 		if (!src) {
 			return resolveFont(gopt.font ?? DEF_FONT)
 		}
@@ -2302,12 +2302,12 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	const TEXT_STYLE_RE = /\[(?<text>[^\]]*)\]\.(?<style>[\w\.]+)+/g
 
 	function compileStyledText(text: string): {
-	charStyleMap: Record<number, {
-		localIdx: number,
-		styles: string[],
-	}>,
-	text: string,
-} {
+		charStyleMap: Record<number, {
+			localIdx: number,
+			styles: string[],
+		}>,
+		text: string,
+	} {
 
 		const charStyleMap = {}
 		// get the text without the styling syntax

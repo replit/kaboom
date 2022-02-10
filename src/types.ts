@@ -30,7 +30,7 @@
  * k.vec2(...)
  * ```
  */
-declare function kaboom(options?: KaboomOpt): KaboomCtx;
+declare function kaboom(options?: KaboomOpt): KaboomCtx
 
 /**
  * Context handle that contains every kaboom function.
@@ -2004,14 +2004,12 @@ export type Key =
 	| "backspace" | "enter" | "tab" | "space" | " "
 	| "left" | "right" | "up" | "down"
 
-
 export type MouseButton =
 	| "left"
 	| "right"
 	| "middle"
 	| "back"
 	| "forward"
-
 
 /**
  * Inspect info for a character.
@@ -2267,16 +2265,16 @@ export interface GameObjRaw {
 /**
  * The basic unit of object in Kaboom. The player, a butterfly, a tree, or even a piece of text.
  */
-export type GameObj<T = any> = GameObjRaw & MergeComps<T>;
+export type GameObj<T = any> = GameObjRaw & MergeComps<T>
 
-export type SceneID = string;
-export type SceneDef = (...args) => void;
-export type TouchID = number;
+export type SceneID = string
+export type SceneDef = (...args) => void
+export type TouchID = number
 
 /**
  * Cancel the event.
  */
-export type EventCanceller = () => void;
+export type EventCanceller = () => void
 
 /**
  * Screen recording control handle.
@@ -2368,7 +2366,7 @@ export interface LoadSpriteOpt {
 	wrap?: TexWrap,
 }
 
-export type SpriteAtlasData = Record<string, SpriteAtlasEntry>;
+export type SpriteAtlasData = Record<string, SpriteAtlasEntry>
 
 /**
  * A sprite in a sprite atlas.
@@ -2418,22 +2416,22 @@ export declare class Asset<D> {
 	finally(action: () => void): Asset<D>
 }
 
-export type LoadSpriteSrc = string | GfxTexData;
+export type LoadSpriteSrc = string | GfxTexData
 
 export declare class SpriteData {
 	tex: GfxTexture
 	frames: Quad[]
 	anims: SpriteAnims
-	constructor(tex: GfxTexture, frames?: Quad[], anims?: SpriteAnims);
-	static fromImage(data: GfxTexData, opt?: LoadSpriteOpt): SpriteData;
-	static fromURL(url: string, opt?: LoadSpriteOpt): Promise<SpriteData>;
+	constructor(tex: GfxTexture, frames?: Quad[], anims?: SpriteAnims)
+	static fromImage(data: GfxTexData, opt?: LoadSpriteOpt): SpriteData
+	static fromURL(url: string, opt?: LoadSpriteOpt): Promise<SpriteData>
 }
 
 export declare class SoundData {
 	buf: AudioBuffer
-	constructor(buf: AudioBuffer);
-	static fromArrayBuffer(buf: ArrayBuffer): Promise<SoundData>;
-	static fromURL(url: string): Promise<SoundData>;
+	constructor(buf: AudioBuffer)
+	static fromArrayBuffer(buf: ArrayBuffer): Promise<SoundData>
+	static fromURL(url: string): Promise<SoundData>
 }
 
 export interface LoadBitmapFontOpt {
@@ -2446,9 +2444,9 @@ export interface SoundData {
 	buf: AudioBuffer,
 }
 
-export type FontData = FontFace;
-export type BitmapFontData = GfxFont;
-export type ShaderData = GfxShader;
+export type FontData = FontFace
+export type BitmapFontData = GfxFont
+export type ShaderData = GfxShader
 
 // TODO: enable setting on load, make part of SoundData
 /**
@@ -2571,7 +2569,6 @@ export type GfxTexData =
 	| HTMLCanvasElement
 	| ImageData
 	| ImageBitmap
-	;
 
 export interface GfxFont {
 	tex: GfxTexture,
@@ -2593,8 +2590,8 @@ export interface Vertex {
 /**
  * Texture scaling filter. "nearest" is mainly for sharp pixelated scaling, "linear" means linear interpolation.
  */
-export type TexFilter = "nearest" | "linear";
-export type TexWrap = "repeat" | "clampToEdge";
+export type TexFilter = "nearest" | "linear"
+export type TexWrap = "repeat" | "clampToEdge"
 
 /**
  * Common render properties.
@@ -3017,7 +3014,7 @@ export interface FormattedChar {
 /**
  * A function that returns a character transform config. Useful if you're generating dynamic styles.
  */
-export type CharTransformFunc = (idx: number, ch: string) => CharTransform;
+export type CharTransformFunc = (idx: number, ch: string) => CharTransform
 
 /**
  * Describes how to transform each character.
@@ -3068,7 +3065,6 @@ export type Cursor =
 	| "nwse-resize"
 	| "zoom-int"
 	| "zoom-out"
-	;
 
 export type Origin =
 	"topleft"
@@ -3080,7 +3076,6 @@ export type Origin =
 	| "botleft"
 	| "bot"
 	| "botright"
-	;
 
 export declare class Vec2 {
 	x: number
@@ -3160,24 +3155,24 @@ export declare class Vec4 {
 
 export declare class Mat4 {
 	m: number[]
-	constructor(m?: number[]);
-	static translate(p: Vec2): Mat4;
-	static scale(s: Vec2): Mat4;
-	static rotateX(a: number): Mat4;
-	static rotateY(a: number): Mat4;
-	static rotateZ(a: number): Mat4;
-	clone(): Mat4;
-	mult(other: Mat4): Mat4;
-	multVec4(p: Vec4): Vec4;
-	multVec3(p: Vec3): Vec3;
-	multVec2(p: Vec2): Vec2;
-	translate(p: Vec2): Mat4;
-	scale(s: Vec2): Mat4;
-	rotateX(a: number): Mat4;
-	rotateY(a: number): Mat4;
-	rotateZ(a: number): Mat4;
-	invert(): Mat4;
-	toString(): string;
+	constructor(m?: number[])
+	static translate(p: Vec2): Mat4
+	static scale(s: Vec2): Mat4
+	static rotateX(a: number): Mat4
+	static rotateY(a: number): Mat4
+	static rotateZ(a: number): Mat4
+	clone(): Mat4
+	mult(other: Mat4): Mat4
+	multVec4(p: Vec4): Vec4
+	multVec3(p: Vec3): Vec3
+	multVec2(p: Vec2): Vec2
+	translate(p: Vec2): Mat4
+	scale(s: Vec2): Mat4
+	rotateX(a: number): Mat4
+	rotateY(a: number): Mat4
+	rotateZ(a: number): Mat4
+	invert(): Mat4
+	toString(): string
 }
 
 /**
@@ -3196,8 +3191,8 @@ export declare class Color {
 	 * Blue (0-255).
 	 */
 	b: number
-	constructor(r: number, g: number, b: number);
-	static fromArray(arr: number[]): Color;
+	constructor(r: number, g: number, b: number)
+	static fromArray(arr: number[]): Color
 	static RED: Color
 	static GREEN: Color
 	static BLUE: Color
@@ -3206,19 +3201,19 @@ export declare class Color {
 	static CYAN: Color
 	static WHITE: Color
 	static BLACK: Color
-	clone(): Color;
+	clone(): Color
 	/**
 	 * Lighten the color (adds RGB by n).
 	 */
-	lighten(n: number): Color;
+	lighten(n: number): Color
 	/**
 	 * Darkens the color (subtracts RGB by n).
 	 */
-	darken(n: number): Color;
-	invert(): Color;
-	mult(other: Color): Color;
-	eq(c: Color): boolean;
-	toString(): string;
+	darken(n: number): Color
+	invert(): Color
+	mult(other: Color): Color
+	eq(c: Color): boolean
+	toString(): string
 }
 
 export declare class Quad {
@@ -3236,7 +3231,6 @@ export type RNGValue =
 	number
 	| Vec2
 	| Color
-	;
 
 export interface RNG {
 	seed: number,
@@ -3263,8 +3257,8 @@ export declare class Circle {
 	constructor(pos: Vec2, radius: number)
 }
 
-export type Polygon = Vec2[];
-export type Point = Vec2;
+export type Polygon = Vec2[]
+export type Point = Vec2
 
 export declare class RNG {
 	seed: number
@@ -3273,7 +3267,7 @@ export declare class RNG {
 	genNumber(a: number, b: number): number
 	genVec2(a: Vec2, b?: Vec2): Vec2
 	genColor(a: Color, b: Color): Color
-	genAny<T extends RNGValue>(...args: T[]): T;
+	genAny<T extends RNGValue>(...args: T[]): T
 }
 
 export interface Comp {
@@ -3311,7 +3305,7 @@ export interface Comp {
 	inspect?: () => string | void,
 }
 
-export type GameObjID = number;
+export type GameObjID = number
 
 export interface PosComp extends Comp {
 	/**
@@ -3806,7 +3800,7 @@ export type Area =
 	| { shape: "circle" } & Circle
 	| { shape: "point" } & { pt: Point }
 	| { shape: "polygon" } & { pts: Polygon }
-	;
+
 
 export type Shape =
 	| "rect"
@@ -3814,7 +3808,7 @@ export type Shape =
 	| "point"
 	| "circle"
 	| "polygon"
-	;
+
 
 export interface OutlineComp extends Comp {
 	outline: Outline,
@@ -3878,10 +3872,9 @@ export type UniformValue =
 	| Vec3
 	| Color
 	| Mat4
-	;
 
-export type UniformKey = Exclude<string, "u_tex">;
-export type Uniform = Record<UniformKey, UniformValue>;
+export type UniformKey = Exclude<string, "u_tex">
+export type Uniform = Record<UniformKey, UniformValue>
 
 export interface ShaderComp extends Comp {
 	uniform: Uniform,

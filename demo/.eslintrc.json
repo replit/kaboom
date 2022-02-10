@@ -17,7 +17,6 @@
 		"semi": [ "error", "never" ],
 		"comma-dangle": [ "error", "always-multiline" ],
 		"no-unused-vars": "warn",
-		"no-empty-function": "off",
 		"no-inner-declarations": "off",
 		"no-undef": "off"
 	}
