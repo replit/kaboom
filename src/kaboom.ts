@@ -2428,31 +2428,25 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				c2d.textAlign = "left"
 				c2d.fillStyle = "rgb(255, 255, 255)"
 
+				const lines = getLines(
+					opt.text,
+					opt.width ?? Number.MAX_VALUE,
+					(text) => c2d.measureText(text).width,
+				)
+
 				let w = 0
 				let h = 0
 
+				for (const line of lines) {
+					const size = c2d.measureText(line)
+					const x = (w - size.width) * alignPt(opt.align)
+					c2d.fillText(line, x, h)
+					w = Math.max(w, size.width)
+					h += metrics.fontBoundingBoxAscent + metrics.fontBoundingBoxDescent + opt.lineSpacing ?? 0
+				}
+
 				if (opt.width) {
-
-					const lines = getLines(
-						opt.text,
-						opt.width,
-						(text) => c2d.measureText(text).width,
-					)
-
 					w = opt.width
-
-					for (const line of lines) {
-						const size = c2d.measureText(line)
-						const x = (w - size.width) * alignPt(opt.align)
-						c2d.fillText(line, x, h)
-						h += metrics.fontBoundingBoxAscent + metrics.fontBoundingBoxDescent + opt.lineSpacing ?? 0
-					}
-
-				} else {
-					w = metrics.width
-					// actual + actual is often shorter, font + font is often taller, font + actual seem to get the best fit, not sure why
-					h = metrics.fontBoundingBoxAscent + metrics.actualBoundingBoxDescent
-					c2d.fillText(opt.text, 0, 0)
 				}
 
 				text2DCache[cfg] = makeTex(c2d.getImageData(0, 0, w, h))
