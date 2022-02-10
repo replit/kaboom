@@ -14,7 +14,7 @@ const SPEED = 480
 gravity(2400)
 
 // Setup a basic level
-const level = addLevel([
+addLevel([
 	"@  =  $",
 	"=======",
 ], {

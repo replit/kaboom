@@ -17,6 +17,7 @@
 		"semi": [ "error", "never" ],
 		"no-unused-vars": "warn",
 		"no-empty-function": "off",
+		"no-inner-declarations": "off",
 		"no-undef": "off"
 	}
 }

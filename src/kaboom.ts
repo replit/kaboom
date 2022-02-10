@@ -1587,10 +1587,10 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		// flush on texture / shader change and overflow
 		if (
 			tex !== gfx.curTex
-		|| shader !== gfx.curShader
-		|| !deepEq(gfx.curUniform, uniform)
-		|| gfx.vqueue.length + verts.length * STRIDE > MAX_BATCHED_VERTS
-		|| gfx.iqueue.length + indices.length > MAX_BATCHED_INDICES
+			|| shader !== gfx.curShader
+			|| !deepEq(gfx.curUniform, uniform)
+			|| gfx.vqueue.length + verts.length * STRIDE > MAX_BATCHED_VERTS
+			|| gfx.iqueue.length + indices.length > MAX_BATCHED_INDICES
 		) {
 			flush()
 		}
@@ -1626,9 +1626,9 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 		if (
 			!gfx.curTex
-		|| !gfx.curShader
-		|| gfx.vqueue.length === 0
-		|| gfx.iqueue.length === 0
+			|| !gfx.curShader
+			|| gfx.vqueue.length === 0
+			|| gfx.iqueue.length === 0
 		) {
 			return
 		}
@@ -5651,7 +5651,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 	// the exported ctx handle
 	const ctx: KaboomCtx = {
-	// asset load
+		// asset load
 		loadRoot,
 		loadProgress,
 		loadSprite,
