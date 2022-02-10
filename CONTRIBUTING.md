@@ -6,6 +6,7 @@
 1. Go to http://localhost:3000/play
 1. Edit demos in `demo/` to test
 1. Make sure not to break any existing demos
+1. Remember to `npm run check` to check typescript, `npm run lint` to check eslint before commit, or use `npm run fmt` to auto format with eslint
 
 ## Documentation
 

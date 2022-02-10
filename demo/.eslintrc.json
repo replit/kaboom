@@ -1,0 +1,24 @@
+{
+	"env": {
+		"browser": true,
+		"es2021": true
+	},
+	"extends": [
+		"eslint:recommended"
+	],
+	"parserOptions": {
+		"ecmaVersion": 13,
+		"sourceType": "module"
+	},
+	"rules": {
+		"indent": [ "error", "tab", { "SwitchCase": 1 } ],
+		"linebreak-style": [ "error", "unix" ],
+		"quotes": [ "error", "double" ],
+		"semi": [ "error", "never" ],
+		"no-unused-vars": "warn",
+		"no-empty-function": "off",
+		"no-inner-declarations": "off",
+		"no-undef": "off"
+	}
+}
+

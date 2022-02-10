@@ -60,7 +60,7 @@ function drawStuff() {
 		start: 0,
 		end: w(180, 360, 1),
 		color: rgb(255, w(128, 255, 8), w(128, 255, 4)),
-// 		gradient: [ Color.RED, Color.BLUE ],
+		// 		gradient: [ Color.RED, Color.BLUE ],
 		outline,
 	})
 
@@ -79,11 +79,11 @@ function drawStuff() {
 			rgb(w(128, 255, 8), w(128, 255, 4), 255),
 			rgb(255, 128, w(128, 255, 4)),
 			rgb(w(128, 255, 8), w(128, 255, 4), 128),
-// 			Color.RED,
-// 			Color.BLUE,
-// 			Color.YELLOW,
-// 			Color.CYAN,
-// 			Color.GREEN,
+			// 			Color.RED,
+			// 			Color.BLUE,
+			// 			Color.YELLOW,
+			// 			Color.CYAN,
+			// 			Color.GREEN,
 		],
 		outline,
 	})
@@ -127,7 +127,7 @@ onDraw(() => {
 					"u_mpos": mousePos().scale(1 / width(), 1 / height()),
 				},
 			})
-		}, drawStuff);
+		}, drawStuff)
 	} else {
 		drawStuff()
 	}

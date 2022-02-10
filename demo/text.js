@@ -41,7 +41,7 @@ const input = add([
 		// The height of character
 		size: curSize,
 		// Text alignment ("left", "center", "right", default "left")
- 		// align: "center",
+		// align: "center",
 		lineSpacing: 8,
 		letterSpacing: 4,
 		// Transform each character for special effects
