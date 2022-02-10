@@ -6,25 +6,25 @@ export default class Timer {
 	paused: boolean = false
 
 	constructor(time: number, action: () => void) {
-		this.time = time;
-		this.action = action;
+		this.time = time
+		this.action = action
 	}
 
 	tick(dt: number): boolean {
-		if (this.finished || this.paused) return false;
-		this.time -= dt;
+		if (this.finished || this.paused) return false
+		this.time -= dt
 		if (this.time <= 0) {
-			this.action();
-			this.finished = true;
-			this.time = 0;
-			return true;
+			this.action()
+			this.finished = true
+			this.time = 0
+			return true
 		}
-		return false;
+		return false
 	}
 
 	reset(time) {
-		this.time = time;
-		this.finished = false;
+		this.time = time
+		this.finished = false
 	}
 
 }

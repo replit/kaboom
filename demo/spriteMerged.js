@@ -79,7 +79,7 @@ loadSpriteAtlas("/sprites/spritemerge_corpus.png", corpusAnims)
 // load and merge body and leather armor
 load(
 	mergeImg(["/sprites/spritemerge_corpus.png", "/sprites/spritemerge_chest.png"])
-	.then((img) => loadSpriteAtlas(img, playerAnims))
+		.then((img) => loadSpriteAtlas(img, playerAnims))
 )
 
 let DIRECTION = "down"

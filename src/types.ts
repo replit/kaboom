@@ -1091,7 +1091,7 @@ export interface KaboomCtx {
 	 *
 	 * @since v2001.0
 	 */
-	loadProgress<T>(): number,
+	loadProgress(): number,
 	/**
 	 * Get SpriteData from handle.
 	 *
@@ -1290,19 +1290,6 @@ export interface KaboomCtx {
 	 * ```
 	 */
 	cursor(c?: Cursor): Cursor,
-	/**
-	 * Load a cursor from a sprite, or custom drawing function.
-	 *
-	 * @example
-	 * ```js
-	 * loadSprite("froggy", "sprites/froggy.png")
-	 *
-	 * // use sprite as cursor
-	 * regCursor("default", "froggy")
-	 * regCursor("pointer", "apple")
-	 * ```
-	 */
-	regCursor(c: string, draw: string | ((mpos: Vec2) => void)): void,
 	/**
 	 * Enter / exit fullscreen mode. (note: mouse position is not working in fullscreen mode at the moment)
 	 *
@@ -2424,16 +2411,16 @@ export declare class Asset<D> {
 export type LoadSpriteSrc = string | GfxTexData;
 
 export declare class SpriteData {
-	tex: GfxTexture;
-	frames: Quad[];
-	anims: SpriteAnims;
+	tex: GfxTexture
+	frames: Quad[]
+	anims: SpriteAnims
 	constructor(tex: GfxTexture, frames?: Quad[], anims?: SpriteAnims);
 	static fromImage(data: GfxTexData, opt?: LoadSpriteOpt): SpriteData;
 	static fromURL(url: string, opt?: LoadSpriteOpt): Promise<SpriteData>;
 }
 
 export declare class SoundData {
-	buf: AudioBuffer;
+	buf: AudioBuffer
 	constructor(buf: AudioBuffer);
 	static fromArrayBuffer(buf: ArrayBuffer): Promise<SoundData>;
 	static fromURL(url: string): Promise<SoundData>;
@@ -3160,7 +3147,7 @@ export declare class Vec4 {
 }
 
 export declare class Mat4 {
-	m: number[];
+	m: number[]
 	constructor(m?: number[]);
 	static translate(p: Vec2): Mat4;
 	static scale(s: Vec2): Mat4;
@@ -3188,25 +3175,25 @@ export declare class Color {
 	/**
 	 * Red (0-255).
 	 */
-	r: number;
+	r: number
 	/**
 	 * Green (0-255).
 	 */
-	g: number;
+	g: number
 	/**
 	 * Blue (0-255).
 	 */
-	b: number;
+	b: number
 	constructor(r: number, g: number, b: number);
 	static fromArray(arr: number[]): Color;
-	static RED: Color;
-	static GREEN: Color;
-	static BLUE: Color;
-	static YELLOW: Color;
-	static MAGENTA: Color;
-	static CYAN: Color;
-	static WHITE: Color;
-	static BLACK: Color;
+	static RED: Color
+	static GREEN: Color
+	static BLUE: Color
+	static YELLOW: Color
+	static MAGENTA: Color
+	static CYAN: Color
+	static WHITE: Color
+	static BLACK: Color
 	clone(): Color;
 	/**
 	 * Lighten the color (adds RGB by n).
@@ -3383,8 +3370,7 @@ export interface FollowComp extends Comp {
 	},
 }
 
-export interface MoveComp extends Comp {
-}
+export type MoveComp = Comp
 
 export interface OutviewCompOpt {
 	/**
@@ -3447,8 +3433,7 @@ export interface CleanupCompOpt {
 	onCleanup?: () => void,
 }
 
-export interface CleanupComp extends Comp {
-}
+export type CleanupComp = Comp
 
 /**
  * Collision resolution data.
@@ -4054,8 +4039,7 @@ export interface HealthComp extends Comp {
 	onDeath(action: () => void): EventCanceller,
 }
 
-export interface LifespanComp extends Comp {
-}
+export type LifespanComp = Comp
 
 export interface LifespanCompOpt {
 	/**
@@ -4150,4 +4134,4 @@ export interface BoomOpt {
 	boomComps?: () => CompList<any>,
 }
 
-export default kaboom;
+export default kaboom

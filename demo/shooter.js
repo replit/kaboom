@@ -112,26 +112,26 @@ scene("battle", () => {
 		}
 	})
 
-// 	add([
-// 		sprite("stars"),
-// 		scale(width() / 240, height() / 240),
-// 		pos(0, 0),
-// 		"stars",
-// 	])
+	// 	add([
+	// 		sprite("stars"),
+	// 		scale(width() / 240, height() / 240),
+	// 		pos(0, 0),
+	// 		"stars",
+	// 	])
 
-// 	add([
-// 		sprite("stars"),
-// 		scale(width() / 240, height() / 240),
-// 		pos(0, -height()),
-// 		"stars",
-// 	])
+	// 	add([
+	// 		sprite("stars"),
+	// 		scale(width() / 240, height() / 240),
+	// 		pos(0, -height()),
+	// 		"stars",
+	// 	])
 
-// 	onUpdate("stars", (r) => {
-// 		r.move(0, STAR_SPEED * (insaneMode ? 10 : 1))
-// 		if (r.pos.y >= height()) {
-// 			r.pos.y -= height() * 2
-// 		}
-// 	})
+	// 	onUpdate("stars", (r) => {
+	// 		r.move(0, STAR_SPEED * (insaneMode ? 10 : 1))
+	// 		if (r.pos.y >= height()) {
+	// 			r.pos.y -= height() * 2
+	// 		}
+	// 	})
 
 	const player = add([
 		sprite("bean"),
