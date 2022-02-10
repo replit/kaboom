@@ -1879,6 +1879,12 @@ export interface KaboomCtx {
 	 */
 	pushRotateZ(angle: number): void,
 	/**
+	 * Apply a transform matrix, ignore all prior transforms.
+	 *
+	 * @since v2001.0
+	 */
+	pushMatrix(mat: Mat4): void,
+	/**
 	 * Format a piece of text without drawing (for getting dimensions, etc).
 	 *
 	 * @since v2000.2
@@ -1972,6 +1978,10 @@ export interface KaboomCtx {
 	 * The canvas DOM kaboom is currently using.
 	 */
 	canvas: HTMLCanvasElement,
+	/**
+	 * End everything.
+	 */
+	quit: () => void,
 }
 
 export type Tag = string

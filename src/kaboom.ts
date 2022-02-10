@@ -1692,7 +1692,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		)
 	}
 
-	function applyMatrix(m: Mat4) {
+	function pushMatrix(m: Mat4) {
 		gfx.transform = m.clone()
 	}
 
@@ -2802,16 +2802,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		app.isMouseMoved = true
 	}
 
-	canvasEvents.touchend = (e) => {
-		if (!gopt.touchToMouse) return
-		app.mouseStates["left"] = "released"
-	}
-
-	canvasEvents.touchcancel = (e) => {
-		if (!gopt.touchToMouse) return
-		app.mouseStates["left"] = "released"
-	}
-
 	canvasEvents.touchstart = (e) => {
 		[...e.changedTouches].forEach((t) => {
 			game.ev.trigger("onTouchStart", t.identifier, vec2(t.clientX, t.clientY).scale(1 / app.scale))
@@ -2828,6 +2818,15 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		[...e.changedTouches].forEach((t) => {
 			game.ev.trigger("onTouchEnd", t.identifier, vec2(t.clientX, t.clientY).scale(1 / app.scale))
 		})
+		if (gopt.touchToMouse) {
+			app.mouseStates["left"] = "released"
+		}
+	}
+
+	canvasEvents.touchcancel = () => {
+		if (gopt.touchToMouse) {
+			app.mouseStates["left"] = "released"
+		}
 	}
 
 	canvasEvents.contextmenu = function (e) {
@@ -2867,22 +2866,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 	for (const name in winEvents) {
 		window.addEventListener(name, winEvents[name])
-	}
-
-	function removeEvents() {
-
-		for (const name in canvasEvents) {
-			app.canvas.removeEventListener(name, canvasEvents[name])
-		}
-
-		for (const name in docEvents) {
-			document.removeEventListener(name, docEvents[name])
-		}
-
-		for (const name in winEvents) {
-			window.removeEventListener(name, winEvents[name])
-		}
-
 	}
 
 	function mousePos(): Vec2 {
@@ -2977,8 +2960,22 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	}
 
 	function quit() {
+
+		// TODO: not cancelling
 		cancelAnimationFrame(app.loopID)
-		app.stopped = true
+
+		for (const name in canvasEvents) {
+			app.canvas.removeEventListener(name, canvasEvents[name])
+		}
+
+		for (const name in docEvents) {
+			document.removeEventListener(name, docEvents[name])
+		}
+
+		for (const name in winEvents) {
+			window.removeEventListener(name, winEvents[name])
+		}
+
 	}
 
 	const debug: Debug = {
@@ -5071,10 +5068,10 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 		audio.masterNode.connect(audioDest)
 
-		const audioStream = audioDest.stream
-		const [firstAudioTrack] = audioStream.getAudioTracks()
-
 		// TODO: Enabling audio results in empty video if no audio received
+		// const audioStream = audioDest.stream
+		// const [firstAudioTrack] = audioStream.getAudioTracks()
+
 		// stream.addTrack(firstAudioTrack);
 
 		const recorder = new MediaRecorder(stream)
@@ -5086,7 +5083,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			}
 		}
 
-		recorder.onerror = (e) => {
+		recorder.onerror = () => {
 			audio.masterNode.disconnect(audioDest)
 			stream.getTracks().forEach(t => t.stop())
 		}
@@ -5528,7 +5525,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 	function handleErr(msg: string) {
 		debug.error(msg)
-		quit()
 		run(drawDebug)
 	}
 
@@ -5541,6 +5537,10 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	})
 
 	function run(f: () => void) {
+
+		if (app.loopID !== null) {
+			cancelAnimationFrame(app.loopID)
+		}
 
 		const frame = (t: number) => {
 
@@ -5584,7 +5584,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 		}
 
-		app.stopped = false
 		frame(0)
 
 	}
@@ -5815,11 +5814,12 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		pushTransform,
 		popTransform,
 		pushTranslate,
+		pushScale,
 		pushRotate,
 		pushRotateX,
 		pushRotateY,
 		pushRotateZ,
-		pushScale,
+		pushMatrix,
 		// debug
 		debug,
 		// scene
@@ -5853,6 +5853,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		CYAN: Color.CYAN,
 		WHITE: Color.WHITE,
 		BLACK: Color.BLACK,
+		quit,
 	}
 
 	if (gopt.plugins) {

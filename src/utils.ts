@@ -38,6 +38,7 @@ export class Event<Args extends any[] = any[]> {
 	}
 }
 
+// TODO: be able to type each event
 export class EventHandler<E = string> {
 	private handlers: Map<E, Event> = new Map()
 	on(name: E, action: (...args) => void): EventCanceller {
