@@ -18,19 +18,11 @@ function drag() {
 		id: "drag",
 		// This component requires the "pos" and "area" component to work
 		require: [ "pos", "area" ],
-		// "add" is a lifecycle method gets called when the obj is added to scene
-		add() {
-			// TODO: these need to be checked in reverse order
-			// "this" in all methods refer to the obj
-			this.onClick(() => {
-				if (curDraggin) {
-					return
-				}
-				curDraggin = this
-				offset = mousePos().sub(this.pos)
-				// Remove the object and re-add it, so it'll be drawn on top
-				readd(this)
-			})
+		startDrag() {
+			curDraggin = this
+			offset = mousePos().sub(this.pos)
+			// Remove the object and re-add it, so it'll be drawn on top
+			readd(this)
 		},
 		// "update" is a lifecycle method gets called every frame the obj is in scene
 		update() {
@@ -43,11 +35,6 @@ function drag() {
 
 }
 
-// drop
-onMouseRelease(() => {
-	curDraggin = null
-})
-
 // adding dragable objects
 for (let i = 0; i < 48; i++) {
 	add([
@@ -59,8 +46,30 @@ for (let i = 0; i < 48; i++) {
 		// using our custom component here
 		drag(),
 		i !== 0 ? color(255, 255, 255) : color(255, 0, 255),
+		"bean",
 	])
 }
 
-// reset cursor to default at frame start for easier cursor management
-onUpdate(() => cursor("default"))
+// Check if someone is picked
+onMousePress(() => {
+	if (curDraggin) {
+		return
+	}
+	// Loop all "bean"s in reverse, so we pick the topmost one
+	for (const obj of get("bean").reverse()) {
+		if (obj.isClicked()) {
+			obj.startDrag()
+			break
+		}
+	}
+})
+
+// Drop whatever is dragged on mouse release
+onMouseRelease(() => {
+	curDraggin = null
+})
+
+// Reset cursor to default at frame start for easier cursor management
+onUpdate(() => {
+	cursor("default")
+})

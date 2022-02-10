@@ -16,12 +16,12 @@
 		"@typescript-eslint"
 	],
 	"rules": {
-		"indent": [ "error", "tab", { "SwitchCase": 1 } ],
+		"indent": [ "error", "tab", { "SwitchCase": 1, "ignoreComments": true } ],
 		"quotes": [ "error", "double" ],
 		"semi": [ "error", "never" ],
 		"comma-dangle": [ "error", "always-multiline" ],
 		"linebreak-style": [ "error", "unix" ],
-		"@typescript-eslint/indent": [ "error", "tab", { "SwitchCase": 1 } ],
+		"@typescript-eslint/indent": [ "error", "tab", { "SwitchCase": 1, "ignoreComments": true } ],
 		"@typescript-eslint/quotes": [ "error", "double" ],
 		"@typescript-eslint/semi": [ "error", "never" ],
 		"@typescript-eslint/comma-dangle": [ "error", "always-multiline" ],

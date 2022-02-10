@@ -19,6 +19,7 @@
 - (**BREAK**) `origin` no longer controls text alignment, use `align` option instead
 - added `quit()` to end everything
 - shader error logs now yields the correct line number
+- changed object update order from reversed to not reversed
 
 ### v2000.2.6
 

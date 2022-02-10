@@ -1281,7 +1281,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		} else if (snd === null) {
 			const pb = play(new SoundData(createEmptyAudioBuffer()))
 			onLoad(() => {
-			// TODO: check again when every asset is loaded
+				// TODO: check again when every asset is loaded
 			})
 			return pb
 		}
@@ -2630,9 +2630,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		}
 	}
 
-	/**
- * Update viewport based on user setting and fullscreen state
- */
+	// update viewport based on user setting and fullscreen state
 	function updateViewport() {
 
 		// canvas size
@@ -2641,7 +2639,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		const ch = gl.drawingBufferHeight / pd
 
 		if (isFullscreen()) {
-		// TODO: doesn't work with letterbox
+			// TODO: doesn't work with letterbox
 			const ww = window.innerWidth
 			const wh = window.innerHeight
 			const rw = ww / wh
@@ -2881,12 +2879,15 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	}
 
 	// TODO: not quite working
-	// winEvents.resize = () => {
-	// 	if (!(gopt.width && gopt.height && !gopt.stretch)) {
-	// 		app.canvas.width = app.canvas.parentElement.offsetWidth;
-	// 		app.canvas.height = app.canvas.parentElement.offsetHeight;
-	// 	}
-	// };
+	winEvents.resize = () => {
+		// if (!(gopt.width && gopt.height && !gopt.stretch)) {
+			// app.canvas.width = app.canvas.parentElement.offsetWidth
+			// app.canvas.height = app.canvas.parentElement.offsetHeight
+		// }
+	}
+
+	winEvents.error = (e) => handleErr(e.error)
+	winEvents.unhandledrejection = (e) => handleErr(e.reason)
 
 	for (const name in canvasEvents) {
 		app.canvas.addEventListener(name, canvasEvents[name])
@@ -3063,6 +3064,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		const customState = {}
 		const ev = new EventHandler()
 
+		// TODO: "this" should be typed here
 		const obj = {
 
 			_id: uid(),
@@ -3109,7 +3111,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 			update() {
 				if (this.paused) return
-				this.revery((child) => child.update())
+				this.every((child) => child.update())
 				this.trigger("update")
 			},
 
@@ -3935,7 +3937,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 			add() {
 				if (this.area.cursor) {
-				// TODO: collect
+					// TODO: collect
 					this.onHover(() => cursor(this.area.cursor))
 				}
 			},
@@ -4551,8 +4553,8 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 						justFall = true
 					} else {
 						if (lastPlatformPos && curPlatform.pos) {
-						// TODO: moveBy?
-						// sticky platform
+							// TODO: moveBy?
+							// sticky platform
 							this.pos = this.pos.add(curPlatform.pos.sub(lastPlatformPos))
 							lastPlatformPos = curPlatform.pos.clone()
 						}
@@ -5202,7 +5204,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		game.timers.forEach((t, id) => {
 			t.time -= dt()
 			if (t.time <= 0) {
-			// TODO: some timer action causes crash on FF when dt is really high, not sure why
+				// TODO: some timer action causes crash on FF when dt is really high, not sure why
 				t.action()
 				game.timers.delete(id)
 			}
@@ -5538,14 +5540,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		run(drawDebug)
 	}
 
-	window.addEventListener("error", (e) => {
-		handleErr(e.error)
-	})
-
-	window.addEventListener("unhandledrejection", (e) => {
-		handleErr(e.reason)
-	})
-
 	function run(f: () => void) {
 
 		if (app.loopID !== null) {
@@ -5695,7 +5689,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		}
 
 		if (!assets.loaded && gopt.loadingScreen !== false) {
-		// TODO: Currently if assets are not initially loaded no updates or timers will be run, however they will run if loadingScreen is set to false. What's the desired behavior or should we make them consistent?
+			// TODO: Currently if assets are not initially loaded no updates or timers will be run, however they will run if loadingScreen is set to false. What's the desired behavior or should we make them consistent?
 			drawLoadScreen()
 		} else {
 			game.ev.trigger("input")
