@@ -18,7 +18,8 @@ function drag() {
 		id: "drag",
 		// This component requires the "pos" and "area" component to work
 		require: [ "pos", "area" ],
-		startDrag() {
+		pick() {
+			// Set the current global dragged object to this
 			curDraggin = this
 			offset = mousePos().sub(this.pos)
 			// Remove the object and re-add it, so it'll be drawn on top
@@ -57,8 +58,9 @@ onMousePress(() => {
 	}
 	// Loop all "bean"s in reverse, so we pick the topmost one
 	for (const obj of get("bean").reverse()) {
-		if (obj.isClicked()) {
-			obj.startDrag()
+		// If mouse is pressed and mouse position is inside, we pick
+		if (obj.isHovering()) {
+			obj.pick()
 			break
 		}
 	}
