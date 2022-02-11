@@ -107,19 +107,25 @@ export function dataURLToArrayBuffer(url: string): ArrayBuffer {
 	return base64ToArrayBuffer(url.split(",")[1])
 }
 
-export function downloadURL(url: string, filename: string) {
+export function download(filename: string, url: string) {
 	const a = document.createElement("a")
-	document.body.appendChild(a)
 	a.setAttribute("style", "display: none")
 	a.href = url
 	a.download = filename
 	a.click()
-	document.body.removeChild(a)
 }
 
-export function downloadBlob(blob: Blob, filename: string) {
+export function downloadText(filename: string, text: string) {
+	download(filename, "data:text/plain;charset=utf-8," + text)
+}
+
+export function downloadJSON(filename: string, data: any) {
+	downloadText(filename, JSON.stringify(data))
+}
+
+export function downloadBlob(filename: string, blob: Blob) {
 	const url = URL.createObjectURL(blob)
-	downloadURL(url, filename)
+	download(filename, url)
 	URL.revokeObjectURL(url)
 }
 

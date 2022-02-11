@@ -1937,6 +1937,30 @@ export interface KaboomCtx {
 	 */
 	screenshot(): string,
 	/**
+	 * Trigger a file download from a url.
+	 *
+	 * @since v2001.0
+	 */
+	download(filename: string, dataurl: string): void,
+	/**
+	 * Trigger a text file download.
+	 *
+	 * @since v2001.0
+	 */
+	downloadText(filename: string, text: string): void,
+	/**
+	 * Trigger a json download from a .
+	 *
+	 * @since v2001.0
+	 */
+	downloadJSON(filename: string, data: any): void,
+	/**
+	 * Trigger a file download from a blob.
+	 *
+	 * @since v2001.0
+	 */
+	downloadBlob(filename: string, blob: Blob): void,
+	/**
 	 * Start recording the canvas into a video. If framerate is not specified, a new frame will be captured each time the canvas changes.
 	 *
 	 * @returns A control handle.
@@ -2291,11 +2315,17 @@ export interface Recording {
 	 */
 	pause(): void,
 	/**
-	 * Resumes the recording.
+	 * Resume the recording.
 	 */
 	resume(): void,
 	/**
-	 * Stops the recording and downloads the file as mp4. Trying to resume later will lead to error.
+	 * Stop the recording and get the video data as mp4 Blob.
+	 *
+	 * @since v2001.0
+	 */
+	stop(): Promise<Blob>,
+	/**
+	 * Stop the recording and downloads the file as mp4. Trying to resume later will lead to error.
 	 */
 	download(filename?: string): void,
 }
