@@ -41,7 +41,9 @@ import {
 	IDList,
 	Event,
 	EventHandler,
-	downloadURL,
+	download,
+	downloadText,
+	downloadJSON,
 	downloadBlob,
 	uid,
 	isDataURL,
@@ -3549,7 +3551,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		})
 
 		onKeyPress("f5", () => {
-			game.ev.onOnce("frameEnd", () => downloadURL(screenshot(), "kaboom.png"))
+			game.ev.onOnce("frameEnd", () => download("kaboom.png", screenshot()))
 		})
 
 		onKeyPress("f6", () => {
@@ -4868,7 +4870,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			game.objEvents = new EventHandler()
 
 			game.root.every((obj) => {
-				if (!obj.is("stay")) {
+				if (!obj.stay) {
 					game.root.remove(obj)
 				}
 			})
@@ -4920,10 +4922,10 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	function plug<T>(plugin: KaboomPlugin<T>): MergeObj<T> & KaboomCtx {
 		const funcs = plugin(ctx)
 		for (const k in funcs) {
-		// @ts-ignore
+			// @ts-ignore
 			ctx[k] = funcs[k]
 			if (gopt.global !== false) {
-			// @ts-ignore
+				// @ts-ignore
 				window[k] = funcs[k]
 			}
 		}
@@ -5116,19 +5118,22 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				recorder.pause()
 			},
 
-			download(filename = "kaboom.mp4") {
-
-				recorder.onstop = () => {
-					downloadBlob(new Blob(chunks, {
-						type: "video/mp4",
-					}), filename)
-				}
-
+			stop(): Promise<Blob> {
 				recorder.stop()
 				// cleanup
 				audio.masterNode.disconnect(audioDest)
 				stream.getTracks().forEach(t => t.stop())
+				return new Promise((resolve) => {
+					recorder.onstop = () => {
+						resolve(new Blob(chunks, {
+							type: "video/mp4",
+						}))
+					}
+				})
+			},
 
+			download(filename = "kaboom.mp4") {
+				this.stop().then((blob) => downloadBlob(filename, blob))
 			},
 
 		}
@@ -5888,6 +5893,10 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		// storage
 		getData,
 		setData,
+		download,
+		downloadJSON,
+		downloadText,
+		downloadBlob,
 		// plugin
 		plug,
 		// char sets
