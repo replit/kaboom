@@ -22,6 +22,7 @@
 - changed object update order from reversed to not reversed
 - added `download()`, `downloadText()`, `downloadJSON()`, `downloadBlob()`
 - added `Recording#stop()` to stop the recording and returns the video data as mp4 Blob
+- added `debug.numFrames()` to get the total number of frames elapsed
 
 ### v2000.2.6
 

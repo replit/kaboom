@@ -50,6 +50,8 @@ import {
 	deepEq,
 	dataURLToArrayBuffer,
 	warn,
+	// eslint-disable-next-line
+	benchmark,
 } from "./utils"
 
 import {
@@ -2537,7 +2539,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 			// check new line
 			if (char === "\n") {
-			// always new line on '\n'
+				// always new line on '\n'
 				th += ch
 				curX = 0
 				lastSpace = null
@@ -3047,6 +3049,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		timeScale: 1,
 		showLog: true,
 		fps: () => app.fpsCounter.fps,
+		numFrames: () => app.numFrames,
 		objCount(): number {
 			const count = (obj: GameObj) =>
 				obj.children.length + obj.children.reduce((num, c) => num + count(c), 0)
@@ -3055,7 +3058,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		stepFrame: updateFrame,
 		drawCalls: () => gfx.drawCalls,
 		clearLog: () => game.logs = [],
-		log: (msg) => game.logs.unshift(`${gopt.logTime ? `[${time().toFixed(2)}].time ` : ""}[${msg?.toString ? msg.toString().trimEnd() : msg}].${msg instanceof Error ? "error" : "info"}`),
+		log: (msg) => game.logs.unshift(`${gopt.logTime ? `[${time().toFixed(2)}].time ` : ""}[${msg?.toString ? msg.toString() : msg}].${msg instanceof Error ? "error" : "info"}`),
 		error: (msg) => debug.log(new Error(msg.toString ? msg.toString() : msg as string)),
 		curRecording: null,
 		get paused() {

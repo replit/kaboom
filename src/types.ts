@@ -3872,6 +3872,12 @@ export interface Debug {
 	 */
 	fps(): number,
 	/**
+	 * Total number of frames elapsed.
+	 *
+	 * @since v2001.0
+	 */
+	numFrames(): number,
+	/**
 	 * Number of all existing game objects.
 	 */
 	objCount(): number,

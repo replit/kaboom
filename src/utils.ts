@@ -150,7 +150,18 @@ export function deprecateMsg(oldName: string, newName: string) {
 	warn(`${oldName} is deprecated. Use ${newName} instead.`)
 }
 
-export const deprecate = (oldName: string, newName: string, newFunc: (...args) => any) => (...args) => {
-	deprecateMsg(oldName, newName)
-	return newFunc(...args)
+export function deprecate(oldName: string, newName: string, newFunc: (...args) => any) {
+	return (...args) => {
+		deprecateMsg(oldName, newName)
+		return newFunc(...args)
+	}
+}
+
+export function benchmark(task: () => any, times: number = 1) {
+	const t1 = performance.now()
+	for (let i = 0; i < times; i++) {
+		task()
+	}
+	const t2 = performance.now()
+	return t2 - t1
 }
