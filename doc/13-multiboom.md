@@ -1,15 +1,14 @@
-# Multiboom with kaboom
+# Multiboom with Kaboom
 
-Multiboom is a fun kaboom feature that lets us play with kaboom by creating two kaboom contexts on one page. 
+Multiboom is a fun Kaboom feature that lets you play with Kaboom by creating two Kaboom contexts on one page. 
 
-In this tutorial, we'll use multiboom to create two similar contexts consisting of two sprites with a spin and scale effect.
-You can find the code we use in this tutorial at [https://replit.com/@ritza/multiboom](https://replit.com/@ritza/multiboom)
+In this tutorial, we'll use Multiboom to create two similar contexts consisting of two sprites with a spin and scale effect. You can find the code we use in this tutorial in [our repl](https://replit.com/@ritza/multiboom).
 
 ![multiboom](multiboom.png)
 
 # Getting started with the code
 
-The first thing we want to do is load the kaboom() library and initialize a Kaboom context.
+The first thing we want to do is load the `kaboom()` library and initialize a Kaboom context:
 
 ```
 import kaboom from "kaboom";
@@ -17,7 +16,7 @@ import kaboom from "kaboom";
 kaboom()
 ```
 
-Next, we'll start creating a list of the background colors of each context.
+Next, we'll create a list of the background colors of each context:
 
 ```
 const backgrounds = [
@@ -28,10 +27,9 @@ const backgrounds = [
 ```
 
 
-Using a for loop, we're going to generate a new context in each iteration to avoid writing repetitive code for each.
-The rest of the code for this program will be placed inside the loop.
+Using a for loop, we're going to generate a new context in each iteration to avoid writing repetitive code for each. The rest of the code for this program will be placed inside this loop.
 
-We'll create an object "k" which will represent a single context's attributes, i.e the background color, width, and height.
+We'll create an object, "k", that will represent a single context's attributes: the background color, width, and height.
 
 ```
 for (let i = 0; i < 2; i++) {
@@ -44,13 +42,13 @@ for (let i = 0; i < 2; i++) {
     })
 ```
 
-Next, we'll load our sprite onto each context 
+Now let's load our sprite onto each context:
 
 ```
     k.loadBean()
 ```
 
-Let's create a "spin()" function to animate the sprite so it keeps spinning while our program is running.
+Create a `spin()` function to animate the sprite so it keeps spinning while our program is running:
 
 ```
     function spin() {
@@ -64,7 +62,7 @@ Let's create a "spin()" function to animate the sprite so it keeps spinning whil
     }
 ```
 
-Mow we'll add our sprite to each context.
+Now we can add our sprite to each context:
 
 ```
     k.add([
@@ -77,7 +75,7 @@ Mow we'll add our sprite to each context.
     ])
 
 ```
-Lastly, we want to add a numbering system to represent the different contexts generated.
+Lastly, we want to add a numbering system to represent the different contexts generated:
 
 ```
     k.add([
@@ -89,12 +87,12 @@ Lastly, we want to add a numbering system to represent the different contexts ge
 
 ### Components
 
-* rotate() - used to change the angle of a game object
-* origin() - origin for rendering our objects
+* `rotate()` - used to change the angle of a game object
+* `origin()` - origin for rendering our objects
 
 # Things to try
 
 Here are some challenges to try to out on your own:
-- add more frames to the screen
-- generate a random background color for each frame 
+- Add more frames to the screen.
+- Generate a random background color for each frame.
 
