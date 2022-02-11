@@ -109,7 +109,6 @@ export function dataURLToArrayBuffer(url: string): ArrayBuffer {
 
 export function download(filename: string, url: string) {
 	const a = document.createElement("a")
-	a.setAttribute("style", "display: none")
 	a.href = url
 	a.download = filename
 	a.click()

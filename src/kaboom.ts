@@ -2345,37 +2345,92 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 	}
 
+	type FormattedLine = {
+		text: string,
+		width: number,
+		height: number,
+		x: number,
+		y: number,
+	}
+
+	// TODO: FormattedChar
+	// TODO: rename formatText() to prepareText() and rename this to formatText()?
 	// calculate each line based on text wrap width
 	function getLines(
 		text: string,
-		maxWidth: number,
-		getWidth: (txt: string) => number,
-	): string[] {
+		getSize: (txt: string) => [number, number],
+		opt: DrawTextOpt,
+	): {
+			lines: FormattedLine[],
+			width: number,
+			height: number,
+		} {
 
-		const lines: string[] = []
+		const lines: FormattedLine[] = []
 
 		for (const line of text.split("\n")) {
-
-			const words = line.split(" ")
-			let curLine = words[0]
-
-			// TODO: single long line should also wrap
-
-			for (const word of words.slice(1)) {
-				const width = getWidth(curLine + " " + word)
-				if (width <= maxWidth) {
-					curLine += " " + word
-				} else {
-					lines.push(curLine)
-					curLine = word
+			if (opt.width) {
+				const words = line.split(" ")
+				let curLine = words[0]
+				// TODO: single long line should also wrap
+				for (const word of words.slice(1)) {
+					const width = getSize(curLine + " " + word)[0]
+					if (width <= opt.width) {
+						curLine += " " + word
+					} else {
+						lines.push({
+							text: curLine,
+							x: 0,
+							y: 0,
+							width: 0,
+							height: 0,
+						})
+						curLine = word
+					}
 				}
+				lines.push({
+					text: curLine,
+					x: 0,
+					y: 0,
+					width: 0,
+					height: 0,
+				})
+			} else {
+				lines.push({
+					text: line,
+					x: 0,
+					y: 0,
+					width: 0,
+					height: 0,
+				})
 			}
-
-			lines.push(curLine)
-
 		}
 
-		return lines
+		let tw = 0
+		let th = 0
+
+		for (const line of lines) {
+			const [ w, h ] = getSize(line.text)
+			line.width = w
+			line.height = h
+			line.y = th
+			tw = Math.max(tw, w)
+			th += h + (opt.lineSpacing ?? 0)
+		}
+
+		if (opt.width) {
+			tw = opt.width
+		}
+
+		for (const line of lines) {
+			line.x = (tw - line.width) * alignPt(opt.align)
+		}
+
+		return {
+			lines: lines,
+			width: tw,
+			height: th,
+		}
 
 	}
 
@@ -2426,34 +2481,26 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 				const c2d = app.canvas2.getContext("2d")
 				c2d.font = `${opt.size ?? DEF_TEXT_SIZE}px ${fontName}`
-				const metrics = c2d.measureText(text)
 				c2d.clearRect(0, 0, app.canvas2.width, app.canvas2.height)
 				c2d.textBaseline = "top"
 				c2d.textAlign = "left"
 				c2d.fillStyle = "rgb(255, 255, 255)"
 
-				const lines = getLines(
-					text,
-					opt.width ?? Number.MAX_VALUE,
-					(text) => c2d.measureText(text).width,
-				)
-
-				let w = 0
-				let h = 0
-
-				for (const line of lines) {
-					const size = c2d.measureText(line)
-					const x = (w - size.width) * alignPt(opt.align)
-					c2d.fillText(line, x, h)
-					w = Math.max(w, size.width)
-					h += metrics.fontBoundingBoxAscent + metrics.fontBoundingBoxDescent + opt.lineSpacing ?? 0
+				const getSize = (text): [number, number] => {
+					const m = c2d.measureText(text)
+					return [
+						m.width,
+						m.fontBoundingBoxAscent + m.fontBoundingBoxDescent,
+					]
 				}
 
-				if (opt.width) {
-					w = opt.width
+				const ftext = getLines(text, getSize, opt)
+
+				for (const line of ftext.lines) {
+					c2d.fillText(line.text, line.x, line.y)
 				}
 
-				text2DCache[cfg] = makeTex(c2d.getImageData(0, 0, w, h))
+				text2DCache[cfg] = makeTex(c2d.getImageData(0, 0, ftext.width, ftext.height))
 
 			}
 
@@ -2498,7 +2545,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				flines.push(curLine)
 				curLine = []
 			} else if ((opt.width ? (curX + cw > opt.width) : false)) {
-			// new line on last word if width exceeds
+				// new line on last word if width exceeds
 				th += ch
 				curX = 0
 				if (lastSpace != null) {
