@@ -283,6 +283,7 @@ const STRIDE = VERTEX_FORMAT.reduce((sum, f) => sum + f.size, 0)
 const MAX_BATCHED_QUAD = 2048
 const MAX_BATCHED_VERTS = MAX_BATCHED_QUAD * 4 * STRIDE
 const MAX_BATCHED_INDICES = MAX_BATCHED_QUAD * 6
+const TEXT_CACHE_SIZE = 128
 
 // vertex shader template, replace {{user}} with user vertex shader code
 const VERT_TEMPLATE = `
@@ -429,7 +430,7 @@ function createEmptyAudioBuffer() {
 // only exports one kaboom() which contains all the state
 export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
-	const gc = []
+	const gc: Array<() => void> = []
 
 	const app = (() => {
 
@@ -1466,7 +1467,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			unbind() {
 				gl.bindTexture(gl.TEXTURE_2D, null)
 			},
-			delete() {
+			free() {
 				gl.deleteTexture(tex)
 			},
 		}
@@ -1543,7 +1544,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				gl.useProgram(null)
 			},
 
-			delete() {
+			free() {
 				gl.deleteProgram(prog)
 			},
 
@@ -2436,6 +2437,8 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 	}
 
+	const text2DCache = new Map<string, GfxTexture>()
+
 	// format text and return a list of chars with their calculated position
 	function formatText(opt: DrawTextOpt): FormattedText {
 
@@ -2464,11 +2467,11 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			// when these properties change, we redraw the text on canvas and
 			const cfg = [opt.text, opt.size, opt.font, opt.align, opt.width].join(",")
 
-			if (!text2DCache[cfg]) {
+			if (!text2DCache.get(cfg)) {
 
 				// TODO: styles
 				// TODO: what if the text is wider than canvas width
-				// TODO: this can be very memory intensive
+				// this can be memory / cpu intensive if a lot of text changing a lot
 				if (opt.transform) {
 					warn("\"transform\" isn't available for non-bitmap fonts yet")
 				}
@@ -2502,11 +2505,23 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 					c2d.fillText(line.text, line.x, line.y)
 				}
 
-				text2DCache[cfg] = makeTex(c2d.getImageData(0, 0, ftext.width, ftext.height))
+				text2DCache.set(
+					cfg,
+					makeTex(c2d.getImageData(0, 0, ftext.width, ftext.height)),
+				)
+
+				// free textures if cache exceeds certain size
+				if (text2DCache.size > TEXT_CACHE_SIZE) {
+					const toDelete = [...text2DCache.entries()].slice(0, text2DCache.size - TEXT_CACHE_SIZE)
+					for (const [k, v] of toDelete) {
+						text2DCache.delete(k)
+						v.free()
+					}
+				}
 
 			}
 
-			const tex = text2DCache[cfg]
+			const tex = text2DCache.get(cfg)
 
 			return {
 				isBitmap: false,
@@ -2648,8 +2663,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	function drawText(opt: DrawTextOpt) {
 		drawFormattedText(formatText(opt))
 	}
-
-	const text2DCache = {}
 
 	// TODO: rotation
 	function drawFormattedText(ftext: FormattedText) {
