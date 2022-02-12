@@ -2512,7 +2512,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 				// free textures if cache exceeds certain size
 				if (text2DCache.size > TEXT_CACHE_SIZE) {
-					console.log("collect")
 					const toDelete = [...text2DCache.entries()].slice(0, text2DCache.size - TEXT_CACHE_SIZE)
 					for (const [k, v] of toDelete) {
 						text2DCache.delete(k)
