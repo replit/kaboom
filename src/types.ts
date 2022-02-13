@@ -2399,7 +2399,6 @@ export interface LoadSpriteOpt {
 	sliceY?: number,
 	anims?: SpriteAnims,
 	filter?: TexFilter,
-	wrap?: TexWrap,
 }
 
 export type SpriteAtlasData = Record<string, SpriteAtlasEntry>
@@ -2473,7 +2472,6 @@ export declare class SoundData {
 export interface LoadBitmapFontOpt {
 	chars?: string,
 	filter?: TexFilter,
-	wrap?: TexWrap,
 }
 
 export interface SoundData {
@@ -2593,7 +2591,6 @@ export interface GfxShader {
 
 export type TextureOpt = {
 	filter?: TexFilter,
-	wrap?: TexWrap,
 }
 
 export declare class Texture {
@@ -2625,7 +2622,6 @@ export interface Vertex {
  * Texture scaling filter. "nearest" is mainly for sharp pixelated scaling, "linear" means linear interpolation.
  */
 export type TexFilter = "nearest" | "linear"
-export type TexWrap = "repeat" | "clampToEdge"
 
 /**
  * Common render properties.

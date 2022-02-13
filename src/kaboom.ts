@@ -49,6 +49,7 @@ import {
 	isDataURL,
 	deepEq,
 	dataURLToArrayBuffer,
+	// eslint-disable-next-line
 	warn,
 	// eslint-disable-next-line
 	benchmark,
@@ -252,6 +253,7 @@ const BG_GRID_SIZE = 64
 const DEF_FONT = "apl386o"
 const DBG_FONT = "sink"
 const DEF_TEXT_SIZE = 32
+const FONT_ATLAS_SIZE = 1024
 
 const LOG_MAX = 1
 
@@ -2389,6 +2391,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 	const fontAtlases: Record<string, FontAtlas> = {}
 
+	// TODO: cache formatted text
 	// format text and return a list of chars with their calculated position
 	function formatText(opt: DrawTextOpt): FormattedText {
 
@@ -2411,19 +2414,16 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		const { charStyleMap, text } = compileStyledText(opt.text + "")
 		const chars = text.split("")
 
-		// TODO: put characters in a bitmap texture, convert to a bitmap font
 		// if it's not bitmap font, we draw it with 2d canvas or use cached image
 		if (font instanceof FontFace || typeof font === "string") {
 
 			const fontName = font instanceof FontFace ? font.family : font
 
-			const TEXT_SIZE = 32
-
 			const atlas = fontAtlases[fontName] ?? {
-				tex: new Texture(1024, 1024),
+				tex: new Texture(FONT_ATLAS_SIZE, FONT_ATLAS_SIZE),
 				map: {},
 				pos: vec2(0),
-				size: TEXT_SIZE,
+				size: DEF_TEXT_SIZE,
 			}
 
 			if (!fontAtlases[fontName]) {
@@ -2433,25 +2433,35 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			font = atlas
 
 			for (const ch of chars) {
+
 				if (!atlas.map[ch]) {
+
 					const c2d = app.canvas2.getContext("2d")
-					c2d.font = `32px ${fontName}`
+					c2d.font = `${font.size}px ${fontName}`
 					c2d.clearRect(0, 0, app.canvas2.width, app.canvas2.height)
 					c2d.textBaseline = "top"
 					c2d.textAlign = "left"
 					c2d.fillStyle = "rgb(255, 255, 255)"
 					c2d.fillText(ch, 0, 0)
-					const w = c2d.measureText(ch).width
-					const img = c2d.getImageData(0, 0, w, TEXT_SIZE)
-					if (atlas.pos.x + w > 1024) {
+					const w = Math.ceil(c2d.measureText(ch).width)
+					const img = c2d.getImageData(0, 0, w, font.size)
+
+					// if we are about to exceed the X axis of the texture, go to another line
+					if (atlas.pos.x + w > FONT_ATLAS_SIZE) {
 						atlas.pos.x = 0
-						atlas.pos.y += TEXT_SIZE
-						// TODO: handle y overflow
+						atlas.pos.y += font.size
+						if (atlas.pos.y > FONT_ATLAS_SIZE) {
+							// TODO: create another tex
+							throw new Error("Font atlas overload")
+						}
 					}
+
 					atlas.tex.update(atlas.pos.x, atlas.pos.y, img)
-					atlas.map[ch] = new Quad(atlas.pos.x, atlas.pos.y, w, TEXT_SIZE)
+					atlas.map[ch] = new Quad(atlas.pos.x, atlas.pos.y, w, font.size)
 					atlas.pos.x += w
+
 				}
+
 			}
 
 		}
@@ -2474,10 +2484,10 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 		while (cursor < chars.length) {
 
-			let char = chars[cursor]
+			let ch = chars[cursor]
 
 			// always new line on '\n'
-			if (char === "\n") {
+			if (ch === "\n") {
 
 				th += size + lineSpacing
 				lastSpace = null
@@ -2493,7 +2503,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 			} else {
 
-				const q = font.map[char]
+				const q = font.map[ch]
 				const gw = q.w * scale.x
 
 				if (q) {
@@ -2503,7 +2513,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 						th += size + lineSpacing
 						if (lastSpace != null) {
 							cursor -= curLine.length - lastSpace
-							char = chars[cursor]
+							ch = chars[cursor]
 							curLine = curLine.slice(0, lastSpace)
 							curX = lastSpaceWidth
 						}
@@ -2518,10 +2528,10 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 					}
 
 					// push char
-					curLine.push(char)
+					curLine.push(ch)
 					curX += gw
 
-					if (char === " ") {
+					if (ch === " ") {
 						lastSpace = curLine.length
 						lastSpaceWidth = curX
 					}
