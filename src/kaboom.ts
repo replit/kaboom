@@ -3375,6 +3375,10 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				return this.on("destroy", action)
 			},
 
+			clearEvents() {
+				ev.clear()
+			},
+
 		}
 
 		for (const comp of comps) {
@@ -4938,6 +4942,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				}
 			})
 
+			game.root.clearEvents()
 			game.timers = new IDList()
 
 			// cam
