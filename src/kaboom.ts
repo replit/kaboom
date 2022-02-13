@@ -591,9 +591,9 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			return tex
 		}
 
-		update(w: number, h: number, data: ArrayBufferView) {
+		update(x: number, y: number, img: TexImageSource) {
 			this.bind()
-			gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, w, h, gl.RGBA, gl.UNSIGNED_BYTE, data)
+			gl.texSubImage2D(gl.TEXTURE_2D, 0, x, y, gl.RGBA, gl.UNSIGNED_BYTE, img)
 			this.unbind()
 		}
 
@@ -1300,7 +1300,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			const font = getBitmapFont(src)
 			if (font) {
 				return font.data ? font.data : font
-			} else if (document.fonts.check(`16px ${src}`)) {
+			} else if (document.fonts.check(`32px ${src}`)) {
 				return src
 			} else if (loadProgress() < 1) {
 				return null
@@ -2380,14 +2380,14 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		y: number,
 	}
 
-	const fontAtlases = {}
-
 	type FontAtlas = {
 		tex: Texture,
 		map: Record<string, Quad>,
-		img: ImageData,
-		curPos: Vec2,
+		pos: Vec2,
+		size: number,
 	}
+
+	const fontAtlases: Record<string, FontAtlas> = {}
 
 	// format text and return a list of chars with their calculated position
 	function formatText(opt: DrawTextOpt): FormattedText {
@@ -2396,7 +2396,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			throw new Error("formatText() requires property \"text\".")
 		}
 
-		const font = resolveFont(opt.font)
+		let font = resolveFont(opt.font)
 
 		// if it's still loading
 		if (opt.text === "" || font instanceof Asset || !font) {
@@ -2417,35 +2417,41 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 			const fontName = font instanceof FontFace ? font.family : font
 
+			const TEXT_SIZE = 32
+
 			const atlas = fontAtlases[fontName] ?? {
 				tex: new Texture(1024, 1024),
 				map: {},
-				img: new ImageData(1024, 1024),
-				curPos: vec2(0),
+				pos: vec2(0),
+				size: TEXT_SIZE,
 			}
 
-			if (fontAtlases[fontName]) {
+			if (!fontAtlases[fontName]) {
 				fontAtlases[fontName] = atlas
 			}
 
+			font = atlas
+
 			for (const ch of chars) {
 				if (!atlas.map[ch]) {
-// 					const c2d = app.canvas2.getContext("2d")
-// 					c2d.font = `${opt.size ?? DEF_TEXT_SIZE}px ${fontName}`
-// 					c2d.clearRect(0, 0, app.canvas2.width, app.canvas2.height)
-// 					c2d.textBaseline = "top"
-// 					c2d.textAlign = "left"
-// 					c2d.fillStyle = "rgb(255, 255, 255)"
-// 					c2d.fillText(ch, 0, 0)
+					const c2d = app.canvas2.getContext("2d")
+					c2d.font = `32px ${fontName}`
+					c2d.clearRect(0, 0, app.canvas2.width, app.canvas2.height)
+					c2d.textBaseline = "top"
+					c2d.textAlign = "left"
+					c2d.fillStyle = "rgb(255, 255, 255)"
+					c2d.fillText(ch, 0, 0)
+					const w = c2d.measureText(ch).width
+					const img = c2d.getImageData(0, 0, w, TEXT_SIZE)
+					if (atlas.pos.x + w > 1024) {
+						atlas.pos.x = 0
+						atlas.pos.y += TEXT_SIZE
+						// TODO: handle y overflow
+					}
+					atlas.tex.update(atlas.pos.x, atlas.pos.y, img)
+					atlas.map[ch] = new Quad(atlas.pos.x, atlas.pos.y, w, TEXT_SIZE)
+					atlas.pos.x += w
 				}
-			}
-
-
-			return {
-				width: 0,
-				height: 0,
-				chars: [],
-				opt: opt,
 			}
 
 		}
