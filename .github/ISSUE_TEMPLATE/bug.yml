@@ -8,6 +8,7 @@ body:
       description: What version of kaboom are you running?
       options:
         - master
+        - v2000.2
         - v2000.1
         - v2000.0
         - v0.x
