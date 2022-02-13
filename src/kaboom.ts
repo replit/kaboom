@@ -61,6 +61,7 @@ import {
 	RenderProps,
 	CharTransform,
 	TexWrap,
+	TextureOpt,
 	FormattedText,
 	FormattedChar,
 	DrawRectOpt,
@@ -79,7 +80,6 @@ import {
 	LoadSpriteOpt,
 	SpriteAtlasData,
 	LoadBitmapFontOpt,
-	GfxTexData,
 	KaboomCtx,
 	KaboomOpt,
 	AudioPlay,
@@ -117,7 +117,6 @@ import {
 	Area,
 	SpriteComp,
 	SpriteCompOpt,
-	GfxTexture,
 	SpriteAnimPlayOpt,
 	SpriteAnims,
 	TextComp,
@@ -177,24 +176,8 @@ type ButtonState =
 	| "down"
 	| "released"
 
-type DrawTextureOpt = RenderProps & {
-	tex: GfxTexture,
-	width?: number,
-	height?: number,
-	tiled?: boolean,
-	flipX?: boolean,
-	flipY?: boolean,
-	quad?: Quad,
-	origin?: Origin | Vec2,
-}
-
 type EventList<M> = {
 	[event in keyof M]?: (event: M[event]) => void
-}
-
-interface GfxTexOpt {
-	filter?: TexFilter,
-	wrap?: TexWrap,
 }
 
 interface SpriteCurAnim {
@@ -546,13 +529,95 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			preserveDrawingBuffer: true,
 		})
 
+	class Texture {
+
+		glTex: WebGLTexture
+		width: number
+		height: number
+
+		constructor(w: number, h: number, opt: TextureOpt = {}) {
+
+			this.glTex = gl.createTexture()
+			gc.push(() => this.free())
+			this.bind()
+
+			if (w && h) {
+				gl.texImage2D(
+					gl.TEXTURE_2D,
+					0, gl.RGBA,
+					w,
+					h,
+					0,
+					gl.RGBA,
+					gl.UNSIGNED_BYTE,
+					null,
+				)
+			}
+
+			this.width = w
+			this.height = h
+
+			const filter = (() => {
+				switch (opt.filter ?? gopt.texFilter) {
+					case "linear": return gl.LINEAR
+					case "nearest": return gl.NEAREST
+					default: return gl.NEAREST
+				}
+			})()
+
+			const wrap = (() => {
+				switch (opt.wrap) {
+					case "repeat": return gl.REPEAT
+					case "clampToEdge": return gl.CLAMP_TO_EDGE
+					default: return gl.CLAMP_TO_EDGE
+				}
+			})()
+
+			gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, filter)
+			gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, filter)
+			gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, wrap)
+			gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, wrap)
+			this.unbind()
+
+		}
+
+		static fromImage(img: TexImageSource, opt: TextureOpt = {}): Texture {
+			const tex = new Texture(0, 0, opt)
+			tex.bind()
+			gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, img)
+			tex.width = img.width
+			tex.height = img.height
+			tex.unbind()
+			return tex
+		}
+
+		update(w: number, h: number, data: ArrayBufferView) {
+			this.bind()
+			gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, w, h, gl.RGBA, gl.UNSIGNED_BYTE, data)
+			this.unbind()
+		}
+
+		bind() {
+			gl.bindTexture(gl.TEXTURE_2D, this.glTex)
+		}
+
+		unbind() {
+			gl.bindTexture(gl.TEXTURE_2D, null)
+		}
+
+		free() {
+			gl.deleteTexture(this.glTex)
+		}
+
+	}
+
 	const gfx = (() => {
 
 		const defShader = makeShader(DEF_VERT, DEF_FRAG)
 
 		// a 1x1 white texture to draw raw shapes like rectangles and polygons
 		// we use a texture for those so we can use only 1 pipeline for drawing sprites + shapes
-		const emptyTex = makeTex(
+		const emptyTex = Texture.fromImage(
 			new ImageData(new Uint8ClampedArray([ 255, 255, 255, 255 ]), 1, 1),
 		)
 
@@ -591,7 +656,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null)
 
 		// a checkerboard texture used for the default background
-		const bgTex = makeTex(
+		const bgTex = Texture.fromImage(
 			new ImageData(new Uint8ClampedArray([
 				128, 128, 128, 255,
 				190, 190, 190, 255,
@@ -646,11 +711,11 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 	class SpriteData {
 
-		tex: GfxTexture
+		tex: Texture
 		frames: Quad[] = [ new Quad(0, 0, 1, 1) ]
 		anims: SpriteAnims = {}
 
-		constructor(tex: GfxTexture, frames?: Quad[], anims: SpriteAnims = {}) {
+		constructor(tex: Texture, frames?: Quad[], anims: SpriteAnims = {}) {
 			this.tex = tex
 			if (frames) this.frames = frames
 			this.anims = anims
@@ -663,9 +728,9 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				)
 		}
 
-		static fromImage(data: GfxTexData, opt: LoadSpriteOpt = {}): SpriteData {
+		static fromImage(data: TexImageSource, opt: LoadSpriteOpt = {}): SpriteData {
 			return new SpriteData(
-				makeTex(data, opt),
+				Texture.fromImage(data, opt),
 				slice(opt.sliceX || 1, opt.sliceY || 1),
 				opt.anims ?? {},
 			)
@@ -937,7 +1002,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		return assets.bitmapFonts.add(name, loadImg(src)
 			.then((img) => {
 				return makeFont(
-					makeTex(img, opt),
+					Texture.fromImage(img, opt),
 					gw,
 					gh,
 					opt.chars ?? ASCII_CHARS,
@@ -1424,53 +1489,15 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		return play(audio.burpSnd, opt)
 	}
 
-	function makeTex(
-		data: GfxTexData,
-		opt: GfxTexOpt = {},
-	): GfxTexture {
-
-		const tex = gl.createTexture()
-
-		gc.push(() => gl.deleteTexture(tex))
-		gl.bindTexture(gl.TEXTURE_2D, tex)
-		gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, data)
-
-		const filter = (() => {
-			switch (opt.filter ?? gopt.texFilter) {
-				case "linear": return gl.LINEAR
-				case "nearest": return gl.NEAREST
-				default: return gl.NEAREST
-			}
-		})()
-
-		const wrap = (() => {
-			switch (opt.wrap) {
-				case "repeat": return gl.REPEAT
-				case "clampToEdge": return gl.CLAMP_TO_EDGE
-				default: return gl.CLAMP_TO_EDGE
-			}
-		})()
-
-		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, filter)
-		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, filter)
-		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, wrap)
-		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, wrap)
-		gl.bindTexture(gl.TEXTURE_2D, null)
-
-		return {
-			width: data.width,
-			height: data.height,
-			bind() {
-				gl.bindTexture(gl.TEXTURE_2D, tex)
-			},
-			unbind() {
-				gl.bindTexture(gl.TEXTURE_2D, null)
-			},
-			free() {
-				gl.deleteTexture(tex)
-			},
-		}
-
+	type DrawTextureOpt = RenderProps & {
+		tex: Texture,
+		width?: number,
+		height?: number,
+		tiled?: boolean,
+		flipX?: boolean,
+		flipY?: boolean,
+		quad?: Quad,
+		origin?: Origin | Vec2,
 	}
 
 	function makeShader(
@@ -1574,7 +1601,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	}
 
 	function makeFont(
-		tex: GfxTexture,
+		tex: Texture,
 		gw: number,
 		gh: number,
 		chars: string,
@@ -1606,7 +1633,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		verts: Vertex[],
 		indices: number[],
 		fixed: boolean,
-		tex: GfxTexture = gfx.defTex,
+		tex: Texture = gfx.defTex,
 		shaderSrc: RenderProps["shader"] = gfx.defShader,
 		uniform: Uniform = {},
 	) {
@@ -2356,9 +2383,10 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	const fontAtlases = {}
 
 	type FontAtlas = {
-		tex: GfxTexture,
+		tex: Texture,
 		map: Record<string, Quad>,
 		img: ImageData,
+		curPos: Vec2,
 	}
 
 	// format text and return a list of chars with their calculated position
@@ -2376,10 +2404,12 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				width: 0,
 				height: 0,
 				chars: [],
+				opt: opt,
 			}
 		}
 
 		const { charStyleMap, text } = compileStyledText(opt.text + "")
+		const chars = text.split("")
 
 		// TODO: put characters in a bitmap texture, convert to a bitmap font
 		// if it's not bitmap font, we draw it with 2d canvas or use cached image
@@ -2387,27 +2417,39 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 			const fontName = font instanceof FontFace ? font.family : font
 
-// 				const c2d = app.canvas2.getContext("2d")
-// 				c2d.font = `${opt.size ?? DEF_TEXT_SIZE}px ${fontName}`
-// 				c2d.clearRect(0, 0, app.canvas2.width, app.canvas2.height)
-// 				c2d.textBaseline = "top"
-// 				c2d.textAlign = "left"
-// 				c2d.fillStyle = "rgb(255, 255, 255)"
-// 				c2d.fillText(line.text, line.x, line.y)
+			const atlas = fontAtlases[fontName] ?? {
+				tex: new Texture(1024, 1024),
+				map: {},
+				img: new ImageData(1024, 1024),
+				curPos: vec2(0),
+			}
 
-// 			return {
-// 				isBitmap: false,
-// 				width: tex.width,
-// 				height: tex.height,
-// 				tex: tex,
-// 				opt: opt,
-// 			}
+			if (fontAtlases[fontName]) {
+				fontAtlases[fontName] = atlas
+			}
 
-			throw new Error("TODO")
+			for (const ch of chars) {
+				if (!atlas.map[ch]) {
+// 					const c2d = app.canvas2.getContext("2d")
+// 					c2d.font = `${opt.size ?? DEF_TEXT_SIZE}px ${fontName}`
+// 					c2d.clearRect(0, 0, app.canvas2.width, app.canvas2.height)
+// 					c2d.textBaseline = "top"
+// 					c2d.textAlign = "left"
+// 					c2d.fillStyle = "rgb(255, 255, 255)"
+// 					c2d.fillText(ch, 0, 0)
+				}
+			}
+
+
+			return {
+				width: 0,
+				height: 0,
+				chars: [],
+				opt: opt,
+			}
 
 		}
 
-		const chars = text.split("")
 		const size = opt.size || font.size
 		const scale = vec2(opt.scale ?? 1).scale(size / font.size)
 		const lineSpacing = opt.lineSpacing ?? 0
@@ -4130,7 +4172,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			throw new Error("Please pass the resource name or data to sprite()")
 		}
 
-		const calcTexScale = (tex: GfxTexture, q: Quad, w?: number, h?: number): Vec2 => {
+		const calcTexScale = (tex: Texture, q: Quad, w?: number, h?: number): Vec2 => {
 			const scale = vec2(1, 1)
 			if (w && h) {
 				scale.x = w / (tex.width * q.w)
