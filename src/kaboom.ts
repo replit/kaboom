@@ -2716,7 +2716,7 @@ function make<T>(comps: CompList<T>): GameObj<T> {
 
 	const compStates = new Map();
 	const customState = {};
-	const events = {};
+	let events = {};
 
 	const obj = {
 
@@ -2985,6 +2985,10 @@ function make<T>(comps: CompList<T>): GameObj<T> {
 
 		onDestroy(action: () => void): EventCanceller {
 			return this.on("destroy", action);
+		},
+
+		clearEvents() {
+			events = {}
 		},
 
 	};
@@ -4594,6 +4598,7 @@ function go(id: SceneID, ...args) {
 			}
 		})
 
+		game.root.clearEvents();
 		game.timers = new IDList();
 
 		// cam

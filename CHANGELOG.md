@@ -1,3 +1,7 @@
+### v2000.2.8
+
+- fixed `onUpdate()` and `onDraw()` events kept running when scene changes
+
 ### v2000.2.7
 
 - fixed `quad` option on `sprite()` not working
