@@ -62,6 +62,9 @@ export class EventHandler<E = string> {
 	remove(name: E) {
 		this.handlers.delete(name)
 	}
+	clear() {
+		this.handlers = new Map()
+	}
 	numListeners(name: E): number {
 		return this.handlers.get(name)?.numListeners() ?? 0
 	}

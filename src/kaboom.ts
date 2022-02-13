@@ -3375,6 +3375,10 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				return this.on("destroy", action)
 			},
 
+			clearEvents() {
+				ev.clear()
+			},
+
 		}
 
 		for (const comp of comps) {
@@ -3400,8 +3404,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	// add update event to a tag or global update
 	function onUpdate(tag: Tag | (() => void), cb?: (obj: GameObj) => void): EventCanceller {
 		if (typeof tag === "function" && cb === undefined) {
-			const obj = add([{ update: tag }])
-			return () => obj.destroy()
+			return game.root.onUpdate(tag)
 		} else if (typeof tag === "string") {
 			return on("update", tag, cb)
 		}
@@ -3410,8 +3413,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	// add draw event to a tag or global draw
 	function onDraw(tag: Tag | (() => void), cb?: (obj: GameObj) => void) {
 		if (typeof tag === "function" && cb === undefined) {
-			const obj = add([{ draw: tag }])
-			return () => obj.destroy()
+			return game.root.onDraw(tag)
 		} else if (typeof tag === "string") {
 			return on("draw", tag, cb)
 		}
@@ -4940,6 +4942,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				}
 			})
 
+			game.root.clearEvents()
 			game.timers = new IDList()
 
 			// cam
