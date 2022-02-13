@@ -3400,7 +3400,8 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	// add update event to a tag or global update
 	function onUpdate(tag: Tag | (() => void), cb?: (obj: GameObj) => void): EventCanceller {
 		if (typeof tag === "function" && cb === undefined) {
-			return game.root.onUpdate(tag)
+			const obj = add([{ update: tag }])
+			return () => obj.destroy()
 		} else if (typeof tag === "string") {
 			return on("update", tag, cb)
 		}
@@ -3409,7 +3410,8 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	// add draw event to a tag or global draw
 	function onDraw(tag: Tag | (() => void), cb?: (obj: GameObj) => void) {
 		if (typeof tag === "function" && cb === undefined) {
-			return game.root.onDraw(tag)
+			const obj = add([{ draw: tag }])
+			return () => obj.destroy()
 		} else if (typeof tag === "string") {
 			return on("draw", tag, cb)
 		}
