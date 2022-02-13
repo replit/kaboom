@@ -58,10 +58,8 @@ import {
 import {
 	GfxShader,
 	GfxFont,
-	TexFilter,
 	RenderProps,
 	CharTransform,
-	TexWrap,
 	TextureOpt,
 	FormattedText,
 	FormattedChar,
@@ -252,7 +250,7 @@ const BG_GRID_SIZE = 64
 
 const DEF_FONT = "apl386o"
 const DBG_FONT = "sink"
-const DEF_TEXT_SIZE = 32
+const DEF_TEXT_SIZE = 64
 const FONT_ATLAS_SIZE = 1024
 
 const LOG_MAX = 1
@@ -1302,7 +1300,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			const font = getBitmapFont(src)
 			if (font) {
 				return font.data ? font.data : font
-			} else if (document.fonts.check(`32px ${src}`)) {
+			} else if (document.fonts.check(`${DEF_TEXT_SIZE}px ${src}`)) {
 				return src
 			} else if (loadProgress() < 1) {
 				return null
@@ -2374,14 +2372,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 	}
 
-	type FormattedLine = {
-		text: string,
-		width: number,
-		height: number,
-		x: number,
-		y: number,
-	}
-
 	type FontAtlas = {
 		tex: Texture,
 		map: Record<string, Quad>,
@@ -2472,26 +2462,22 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		const letterSpacing = opt.letterSpacing ?? 0
 		let curX = 0
 		let tw = 0
-		let th = size
+		let th = 0
 		const lines: Array<{
 			width: number,
-			chars: string[],
+			chars: FormattedChar[],
 		}> = []
-		let curLine: string[] = []
-		let lastSpace = null
-		let lastSpaceWidth = null
+		let curLine: FormattedChar[] = []
 		let cursor = 0
 
 		while (cursor < chars.length) {
 
-			let ch = chars[cursor]
+			const ch = chars[cursor]
 
 			// always new line on '\n'
 			if (ch === "\n") {
 
 				th += size + lineSpacing
-				lastSpace = null
-				lastSpaceWidth = null
 
 				lines.push({
 					width: curX - letterSpacing,
@@ -2511,14 +2497,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 					if (opt.width && curX + gw > opt.width) {
 						// new line on last word if width exceeds
 						th += size + lineSpacing
-						if (lastSpace != null) {
-							cursor -= curLine.length - lastSpace
-							ch = chars[cursor]
-							curLine = curLine.slice(0, lastSpace)
-							curX = lastSpaceWidth
-						}
-						lastSpace = null
-						lastSpaceWidth = null
 						lines.push({
 							width: curX - letterSpacing,
 							chars: curLine,
@@ -2528,12 +2506,27 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 					}
 
 					// push char
-					curLine.push(ch)
+					curLine.push({
+						tex: font.tex,
+						width: q.w,
+						height: q.h,
+						quad: new Quad(
+							q.x / font.tex.width,
+							q.y / font.tex.height,
+							q.w / font.tex.width,
+							q.h / font.tex.height,
+						),
+						ch: ch,
+						pos: vec2(curX, th),
+						opacity: opt.opacity ?? 1,
+						color: opt.color ?? Color.WHITE,
+						scale: vec2(scale),
+						angle: 0,
+					})
 					curX += gw
 
 					if (ch === " ") {
-						lastSpace = curLine.length
-						lastSpaceWidth = curX
+						// TODO
 					}
 
 					tw = Math.max(tw, curX)
@@ -2552,6 +2545,8 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			chars: curLine,
 		})
 
+		th += size
+
 		if (opt.width) {
 			tw = opt.width
 		}
@@ -2564,62 +2559,40 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 			const ox = (tw - line.width) * alignPt(opt.align ?? "left")
 
-			line.chars.forEach((ch, cn) => {
+			line.chars.forEach((fchar, cn) => {
 
-				const q = font.map[ch]
-				const x = cn * (q.w * scale.x + letterSpacing)
-				const y = ln * (q.h * scale.y + lineSpacing)
+				const q = font.map[fchar.ch]
 
 				if (idx === 0) {
 					offset.x = q.w * scale.x * 0.5
 					offset.y = q.h * scale.y * 0.5
 				}
 
-				if (q) {
+				fchar.pos = fchar.pos.add(ox, 0).add(offset)
 
-					const fchar: FormattedChar = {
-						tex: font.tex,
-						width: q.w,
-						height: q.h,
-						quad: new Quad(
-							q.x / font.tex.width,
-							q.y / font.tex.height,
-							q.w / font.tex.width,
-							q.h / font.tex.height,
-						),
-						ch: ch,
-						pos: vec2(x + ox, y).add(offset),
-						opacity: opt.opacity ?? 1,
-						color: opt.color ?? Color.WHITE,
-						scale: vec2(scale),
-						angle: 0,
+				if (opt.transform) {
+					const tr = typeof opt.transform === "function"
+						? opt.transform(idx, fchar.ch)
+						: opt.transform
+					if (tr) {
+						applyCharTransform(fchar, tr)
 					}
+				}
 
-					if (opt.transform) {
-						const tr = typeof opt.transform === "function"
-							? opt.transform(idx, ch)
-							: opt.transform
+				if (charStyleMap[idx]) {
+					const { styles, localIdx } = charStyleMap[idx]
+					for (const name of styles) {
+						const style = opt.styles[name]
+						const tr = typeof style === "function"
+							? style(localIdx, fchar.ch)
+							: style
 						if (tr) {
 							applyCharTransform(fchar, tr)
 						}
 					}
-
-					if (charStyleMap[idx]) {
-						const { styles, localIdx } = charStyleMap[idx]
-						for (const name of styles) {
-							const style = opt.styles[name]
-							const tr = typeof style === "function"
-								? style(localIdx, ch)
-								: style
-							if (tr) {
-								applyCharTransform(fchar, tr)
-							}
-						}
-					}
-
-					fchars.push(fchar)
-
 				}
+
+				fchars.push(fchar)
 
 				idx += 1
 
