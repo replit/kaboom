@@ -2608,12 +2608,8 @@ export type GfxTexData =
 
 export interface GfxFont {
 	tex: GfxTexture,
-	map: Record<string, Vec2>,
-	/**
-	 * The quad width of each character.
-	 */
-	qw: number,
-	qh: number,
+	map: Record<string, Quad>,
+	size: number,
 }
 
 export interface Vertex {
@@ -3022,29 +3018,24 @@ export type DrawTextOpt = RenderProps & {
 export type FormattedText = {
 	width: number,
 	height: number,
-} & ({
-	isBitmap: true,
 	chars: FormattedChar[],
-} | {
-	isBitmap: false,
-	tex: GfxTexture,
 	opt: DrawTextOpt,
-})
+}
 
 /**
  * One formated character.
  */
 export interface FormattedChar {
 	tex: GfxTexture,
+	width: number,
+	height: number,
 	quad: Quad,
 	ch: string,
 	pos: Vec2,
 	scale: Vec2,
 	angle: number,
 	color: Color,
-	fixed: boolean,
 	opacity: number,
-	uniform: Uniform,
 }
 
 /**

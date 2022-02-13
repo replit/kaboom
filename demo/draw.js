@@ -79,11 +79,6 @@ function drawStuff() {
 			rgb(w(128, 255, 8), w(128, 255, 4), 255),
 			rgb(255, 128, w(128, 255, 4)),
 			rgb(w(128, 255, 8), w(128, 255, 4), 128),
-			// 			Color.RED,
-			// 			Color.BLUE,
-			// 			Color.YELLOW,
-			// 			Color.CYAN,
-			// 			Color.GREEN,
 		],
 		outline,
 	})
