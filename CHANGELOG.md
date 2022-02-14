@@ -24,6 +24,7 @@
 - added `Recording#stop()` to stop the recording and returns the video data as mp4 Blob
 - added `debug.numFrames()` to get the total number of frames elapsed
 - fixed visual artifacts on text
+- added `onError()` to handle error or even custom error screen
 
 ### v2000.2.6
 
