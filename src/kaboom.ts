@@ -2469,10 +2469,13 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		}> = []
 		let curLine: FormattedChar[] = []
 		let cursor = 0
+		let lastSpace = null
+		let lastSpaceWidth = null
 
+		// TODO: word break
 		while (cursor < chars.length) {
 
-			const ch = chars[cursor]
+			let ch = chars[cursor]
 
 			// always new line on '\n'
 			if (ch === "\n") {
@@ -2484,19 +2487,32 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 					chars: curLine,
 				})
 
+				lastSpace = null
+				lastSpaceWidth = null
 				curX = 0
 				curLine = []
 
 			} else {
 
-				const q = font.map[ch]
-				const gw = q.w * scale.x
+				let q = font.map[ch]
+				let gw = q.w * scale.x
 
 				if (q) {
 
 					if (opt.width && curX + gw > opt.width) {
 						// new line on last word if width exceeds
 						th += size + lineSpacing
+						if (lastSpace != null) {
+							cursor -= curLine.length - lastSpace
+							ch = chars[cursor]
+							q = font.map[ch]
+							gw = q.w * scale.x
+							// omit trailing space
+							curLine = curLine.slice(0, lastSpace - 1)
+							curX = lastSpaceWidth
+						}
+						lastSpace = null
+						lastSpaceWidth = null
 						lines.push({
 							width: curX - letterSpacing,
 							chars: curLine,
@@ -2523,12 +2539,13 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 						scale: vec2(scale),
 						angle: 0,
 					})
-					curX += gw
 
 					if (ch === " ") {
-						// TODO
+						lastSpace = curLine.length
+						lastSpaceWidth = curX
 					}
 
+					curX += gw
 					tw = Math.max(tw, curX)
 					curX += letterSpacing
 
@@ -2544,6 +2561,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			width: curX - letterSpacing,
 			chars: curLine,
 		})
+		console.log(lines)
 
 		th += size
 
