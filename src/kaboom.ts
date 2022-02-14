@@ -247,12 +247,12 @@ const MAX_DETUNE = 1200
 const DEF_ORIGIN = "topleft"
 const DEF_GRAVITY = 1600
 const BG_GRID_SIZE = 64
-const TEXT_QUAD_PAD = 0.05
 
 const DEF_FONT = "apl386o"
 const DBG_FONT = "sink"
 const DEF_TEXT_SIZE = 64
 const FONT_ATLAS_SIZE = 1024
+const TEXT_QUAD_PAD = 0.05
 
 const LOG_MAX = 1
 
@@ -2374,10 +2374,8 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	}
 
 	type FontAtlas = {
-		tex: Texture,
-		map: Record<string, Quad>,
-		pos: Vec2,
-		size: number,
+		font: BitmapFontData,
+		cursor: Vec2,
 	}
 
 	const fontAtlases: Record<string, FontAtlas> = {}
@@ -2410,22 +2408,24 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 			const fontName = font instanceof FontFace ? font.family : font
 
-			const atlas = fontAtlases[fontName] ?? {
-				tex: new Texture(FONT_ATLAS_SIZE, FONT_ATLAS_SIZE),
-				map: {},
-				pos: vec2(0),
-				size: DEF_TEXT_SIZE,
+			const atlas: FontAtlas = fontAtlases[fontName] ?? {
+				font: {
+					tex: new Texture(FONT_ATLAS_SIZE, FONT_ATLAS_SIZE),
+					map: {},
+					size: DEF_TEXT_SIZE,
+				},
+				cursor: vec2(0),
 			}
 
 			if (!fontAtlases[fontName]) {
 				fontAtlases[fontName] = atlas
 			}
 
-			font = atlas
+			font = atlas.font
 
 			for (const ch of chars) {
 
-				if (!atlas.map[ch]) {
+				if (!atlas.font.map[ch]) {
 
 					const c2d = app.canvas2.getContext("2d")
 					c2d.font = `${font.size}px ${fontName}`
@@ -2439,18 +2439,18 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 					const img = c2d.getImageData(0, 0, w, font.size)
 
 					// if we are about to exceed the X axis of the texture, go to another line
-					if (atlas.pos.x + w > FONT_ATLAS_SIZE) {
-						atlas.pos.x = 0
-						atlas.pos.y += font.size
-						if (atlas.pos.y > FONT_ATLAS_SIZE) {
+					if (atlas.cursor.x + w > FONT_ATLAS_SIZE) {
+						atlas.cursor.x = 0
+						atlas.cursor.y += font.size
+						if (atlas.cursor.y > FONT_ATLAS_SIZE) {
 							// TODO: create another tex
-							throw new Error("Font atlas overload")
+							throw new Error("Font atlas exceeds character limit")
 						}
 					}
 
-					atlas.tex.update(atlas.pos.x, atlas.pos.y, img)
-					atlas.map[ch] = new Quad(atlas.pos.x, atlas.pos.y, w, font.size)
-					atlas.pos.x += w
+					font.tex.update(atlas.cursor.x, atlas.cursor.y, img)
+					font.map[ch] = new Quad(atlas.cursor.x, atlas.cursor.y, w, font.size)
+					atlas.cursor.x += w
 
 				}
 
