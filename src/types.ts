@@ -707,6 +707,12 @@ export interface KaboomCtx {
 	 */
 	onLoad(action: () => void): void,
 	/**
+	 * Register a custom loading screen. The callback is run every frame during loading.
+	 *
+	 * @since v2001.0
+	 */
+	onLoading(action: (err: Error) => void): void,
+	/**
 	 * Register a custom error handler. Can be used to draw a custom error screen.
 	 *
 	 * @since v2001.0

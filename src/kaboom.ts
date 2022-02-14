@@ -5570,12 +5570,17 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		enterBurpMode()
 	}
 
+	function onLoading(action: (err: Error) => void) {
+		game.ev.on("loading", action)
+	}
+
 	function onError(action: (err: Error) => void) {
 		game.ev.on("error", action)
 	}
 
 	function handleErr(err: Error) {
 
+		// TODO: this should only run once
 		run(() => {
 
 			// TODO: better tool for drawing without app.scale
@@ -5620,10 +5625,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			game.ev.trigger("error", err)
 
 		})
-
-		// only run that once
-		app.stopped = true
-		cancelAnimationFrame(app.loopID)
 
 	}
 
@@ -5768,8 +5769,10 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		// running this every frame now mainly because isFullscreen() is not updated real time when requested fullscreen
 		updateViewport()
 
+		const lp = loadProgress()
+
 		if (!assets.loaded) {
-			if (loadProgress() === 1) {
+			if (lp === 1) {
 				assets.loaded = true
 				game.ev.trigger("load")
 			}
@@ -5778,6 +5781,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		if (!assets.loaded && gopt.loadingScreen !== false) {
 			// TODO: Currently if assets are not initially loaded no updates or timers will be run, however they will run if loadingScreen is set to false. What's the desired behavior or should we make them consistent?
 			drawLoadScreen()
+			game.ev.trigger("loading", lp)
 		} else {
 			game.ev.trigger("input")
 			if (!debug.paused) {
@@ -5827,6 +5831,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		fullscreen,
 		isFullscreen,
 		onLoad,
+		onLoading,
 		onError,
 		isTouch: () => app.isTouch,
 		// misc

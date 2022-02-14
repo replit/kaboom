@@ -1,8 +1,9 @@
 // Customizing the asset loader
 
 kaboom({
-	// Turn off the default loading screen and make our own
-	loadingScreen: false,
+	// Optionally turn off loading screen entirely
+	// Unloaded assets simply won't be drawn
+	// loadingScreen: false,
 })
 
 let spr = null
@@ -17,8 +18,12 @@ loadSprite("bean", "/sprites/bean.png").onError((err) => {
 
 // load() adds a Promise under kaboom's management, which affects loadProgress()
 // Here we intentionally stall the loading by 1sec to see the loading screen
-load(wait(1, () => {
-	loadAseprite("ghosty", "/sprites/ghosty2.png", "/sprites/ghosty2.json")
+load(new Promise((res) => {
+	// wait() won't work here because timers are not run during loading so we use setTimeout
+	setTimeout(() => {
+		loadAseprite("ghosty", "/sprites/ghosty2.png", "/sprites/ghosty2.json")
+		res()
+	}, 1000)
 }))
 
 // You can also use the handle returned by loadXXX() as the resource handle
@@ -39,27 +44,37 @@ add([
 	pos(200),
 ])
 
+// Custom loading screen
+onLoading((progress) => {
+
+	// Draw a fullscreen rect to cover up the default screen
+	drawRect({
+		width: width(),
+		height: height(),
+		color: rgb(0, 0, 0),
+	})
+
+	drawCircle({
+		pos: center(),
+		radius: 32,
+		end: map(progress, 0, 1, 0, 360),
+	})
+
+	drawText({
+		text: "loading" + ".".repeat(wave(1, 4, time() * 12)),
+		font: "sink",
+		size: 24,
+		origin: "center",
+		pos: center().add(0, 80),
+	})
+
+})
+
 onDraw(() => {
-
-	// A custom loading screen
-	// loadProgress() gives you the current loading progress of all assets
-	if (loadProgress() < 1) {
-		drawRect({
-			width: width(),
-			height: height(),
-			color: Color.BLUE,
-		})
-		drawText({
-			text: loadProgress(),
-		})
-		return
-	}
-
 	if (spr) {
 		drawSprite({
 			// You can pass raw sprite data here instead of the name
 			sprite: spr,
 		})
 	}
-
 })

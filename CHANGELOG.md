@@ -25,6 +25,7 @@
 - added `debug.numFrames()` to get the total number of frames elapsed
 - fixed visual artifacts on text
 - added `onError()` to handle error or even custom error screen
+- added `onLoading()` to register a custom loading screen (see "loader" example)
 
 ### v2000.2.6
 
