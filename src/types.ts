@@ -707,6 +707,12 @@ export interface KaboomCtx {
 	 */
 	onLoad(action: () => void): void,
 	/**
+	 * Register a custom error handler. Can be used to draw a custom error screen.
+	 *
+	 * @since v2001.0
+	 */
+	onError(action: (err: Error) => void): void,
+	/**
 	 * Register an event that runs when 2 game objs with certain tags collides (required to have area() component).
 	 *
 	 * @since v2000.1
