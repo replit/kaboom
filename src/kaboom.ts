@@ -2573,11 +2573,11 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 		const fchars: FormattedChar[] = []
 
-		lines.forEach((line, ln) => {
+		for (const line of lines) {
 
 			const ox = (tw - line.width) * alignPt(opt.align ?? "left")
 
-			line.chars.forEach((fchar, cn) => {
+			for (const fchar of line.chars) {
 
 				const q = font.map[fchar.ch]
 				const idx = fchars.length
@@ -2613,9 +2613,9 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 				fchars.push(fchar)
 
-			})
+			}
 
-		})
+		}
 
 		return {
 			width: tw,
