@@ -20,7 +20,8 @@ const builtinFonts = [
 const fonts = [
 	...builtinFonts,
 	"unscii",
-	"FROGBLOCK",
+// 	"FROGBLOCK",
+	"Sans-Serif",
 // 	"zpix",
 ]
 
@@ -41,7 +42,7 @@ const input = add([
 		// The height of character
 		size: curSize,
 		// Text alignment ("left", "center", "right", default "left")
-		// align: "center",
+		align: "left",
 		lineSpacing: 8,
 		letterSpacing: 4,
 		// Transform each character for special effects

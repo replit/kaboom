@@ -49,6 +49,7 @@ import {
 	isDataURL,
 	deepEq,
 	dataURLToArrayBuffer,
+	// eslint-disable-next-line
 	warn,
 	// eslint-disable-next-line
 	benchmark,
@@ -57,10 +58,9 @@ import {
 import {
 	GfxShader,
 	GfxFont,
-	TexFilter,
 	RenderProps,
 	CharTransform,
-	TexWrap,
+	TextureOpt,
 	FormattedText,
 	FormattedChar,
 	DrawRectOpt,
@@ -79,7 +79,6 @@ import {
 	LoadSpriteOpt,
 	SpriteAtlasData,
 	LoadBitmapFontOpt,
-	GfxTexData,
 	KaboomCtx,
 	KaboomOpt,
 	AudioPlay,
@@ -117,7 +116,6 @@ import {
 	Area,
 	SpriteComp,
 	SpriteCompOpt,
-	GfxTexture,
 	SpriteAnimPlayOpt,
 	SpriteAnims,
 	TextComp,
@@ -177,24 +175,8 @@ type ButtonState =
 	| "down"
 	| "released"
 
-type DrawTextureOpt = RenderProps & {
-	tex: GfxTexture,
-	width?: number,
-	height?: number,
-	tiled?: boolean,
-	flipX?: boolean,
-	flipY?: boolean,
-	quad?: Quad,
-	origin?: Origin | Vec2,
-}
-
 type EventList<M> = {
 	[event in keyof M]?: (event: M[event]) => void
-}
-
-interface GfxTexOpt {
-	filter?: TexFilter,
-	wrap?: TexWrap,
 }
 
 interface SpriteCurAnim {
@@ -268,7 +250,9 @@ const BG_GRID_SIZE = 64
 
 const DEF_FONT = "apl386o"
 const DBG_FONT = "sink"
-const DEF_TEXT_SIZE = 32
+const DEF_TEXT_SIZE = 64
+const FONT_ATLAS_SIZE = 1024
+const TEXT_QUAD_PAD = 0.05
 
 const LOG_MAX = 1
 
@@ -283,7 +267,6 @@ const STRIDE = VERTEX_FORMAT.reduce((sum, f) => sum + f.size, 0)
 const MAX_BATCHED_QUAD = 2048
 const MAX_BATCHED_VERTS = MAX_BATCHED_QUAD * 4 * STRIDE
 const MAX_BATCHED_INDICES = MAX_BATCHED_QUAD * 6
-const TEXT_CACHE_SIZE = 128
 
 // vertex shader template, replace {{user}} with user vertex shader code
 const VERT_TEMPLATE = `
@@ -547,13 +530,95 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			preserveDrawingBuffer: true,
 		})
 
+	class Texture {
+
+		glTex: WebGLTexture
+		width: number
+		height: number
+
+		constructor(w: number, h: number, opt: TextureOpt = {}) {
+
+			this.glTex = gl.createTexture()
+			gc.push(() => this.free())
+			this.bind()
+
+			if (w && h) {
+				gl.texImage2D(
+					gl.TEXTURE_2D,
+					0, gl.RGBA,
+					w,
+					h,
+					0,
+					gl.RGBA,
+					gl.UNSIGNED_BYTE,
+					null,
+				)
+			}
+
+			this.width = w
+			this.height = h
+
+			const filter = (() => {
+				switch (opt.filter ?? gopt.texFilter) {
+					case "linear": return gl.LINEAR
+					case "nearest": return gl.NEAREST
+					default: return gl.NEAREST
+				}
+			})()
+
+			const wrap = (() => {
+				switch (opt.wrap) {
+					case "repeat": return gl.REPEAT
+					case "clampToEdge": return gl.CLAMP_TO_EDGE
+					default: return gl.CLAMP_TO_EDGE
+				}
+			})()
+
+			gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, filter)
+			gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, filter)
+			gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, wrap)
+			gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, wrap)
+			this.unbind()
+
+		}
+
+		static fromImage(img: TexImageSource, opt: TextureOpt = {}): Texture {
+			const tex = new Texture(0, 0, opt)
+			tex.bind()
+			gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, img)
+			tex.width = img.width
+			tex.height = img.height
+			tex.unbind()
+			return tex
+		}
+
+		update(x: number, y: number, img: TexImageSource) {
+			this.bind()
+			gl.texSubImage2D(gl.TEXTURE_2D, 0, x, y, gl.RGBA, gl.UNSIGNED_BYTE, img)
+			this.unbind()
+		}
+
+		bind() {
+			gl.bindTexture(gl.TEXTURE_2D, this.glTex)
+		}
+
+		unbind() {
+			gl.bindTexture(gl.TEXTURE_2D, null)
+		}
+
+		free() {
+			gl.deleteTexture(this.glTex)
+		}
+
+	}
+
 	const gfx = (() => {
 
 		const defShader = makeShader(DEF_VERT, DEF_FRAG)
 
 		// a 1x1 white texture to draw raw shapes like rectangles and polygons
 		// we use a texture for those so we can use only 1 pipeline for drawing sprites + shapes
-		const emptyTex = makeTex(
+		const emptyTex = Texture.fromImage(
 			new ImageData(new Uint8ClampedArray([ 255, 255, 255, 255 ]), 1, 1),
 		)
 
@@ -592,7 +657,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null)
 
 		// a checkerboard texture used for the default background
-		const bgTex = makeTex(
+		const bgTex = Texture.fromImage(
 			new ImageData(new Uint8ClampedArray([
 				128, 128, 128, 255,
 				190, 190, 190, 255,
@@ -647,11 +712,11 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 	class SpriteData {
 
-		tex: GfxTexture
+		tex: Texture
 		frames: Quad[] = [ new Quad(0, 0, 1, 1) ]
 		anims: SpriteAnims = {}
 
-		constructor(tex: GfxTexture, frames?: Quad[], anims: SpriteAnims = {}) {
+		constructor(tex: Texture, frames?: Quad[], anims: SpriteAnims = {}) {
 			this.tex = tex
 			if (frames) this.frames = frames
 			this.anims = anims
@@ -664,9 +729,9 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				)
 		}
 
-		static fromImage(data: GfxTexData, opt: LoadSpriteOpt = {}): SpriteData {
+		static fromImage(data: TexImageSource, opt: LoadSpriteOpt = {}): SpriteData {
 			return new SpriteData(
-				makeTex(data, opt),
+				Texture.fromImage(data, opt),
 				slice(opt.sliceX || 1, opt.sliceY || 1),
 				opt.anims ?? {},
 			)
@@ -938,7 +1003,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		return assets.bitmapFonts.add(name, loadImg(src)
 			.then((img) => {
 				return makeFont(
-					makeTex(img, opt),
+					Texture.fromImage(img, opt),
 					gw,
 					gh,
 					opt.chars ?? ASCII_CHARS,
@@ -1236,7 +1301,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			const font = getBitmapFont(src)
 			if (font) {
 				return font.data ? font.data : font
-			} else if (document.fonts.check(`16px ${src}`)) {
+			} else if (document.fonts.check(`${DEF_TEXT_SIZE}px ${src}`)) {
 				return src
 			} else if (loadProgress() < 1) {
 				return null
@@ -1425,53 +1490,15 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		return play(audio.burpSnd, opt)
 	}
 
-	function makeTex(
-		data: GfxTexData,
-		opt: GfxTexOpt = {},
-	): GfxTexture {
-
-		const tex = gl.createTexture()
-
-		gc.push(() => gl.deleteTexture(tex))
-		gl.bindTexture(gl.TEXTURE_2D, tex)
-		gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, data)
-
-		const filter = (() => {
-			switch (opt.filter ?? gopt.texFilter) {
-				case "linear": return gl.LINEAR
-				case "nearest": return gl.NEAREST
-				default: return gl.NEAREST
-			}
-		})()
-
-		const wrap = (() => {
-			switch (opt.wrap) {
-				case "repeat": return gl.REPEAT
-				case "clampToEdge": return gl.CLAMP_TO_EDGE
-				default: return gl.CLAMP_TO_EDGE
-			}
-		})()
-
-		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, filter)
-		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, filter)
-		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, wrap)
-		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, wrap)
-		gl.bindTexture(gl.TEXTURE_2D, null)
-
-		return {
-			width: data.width,
-			height: data.height,
-			bind() {
-				gl.bindTexture(gl.TEXTURE_2D, tex)
-			},
-			unbind() {
-				gl.bindTexture(gl.TEXTURE_2D, null)
-			},
-			free() {
-				gl.deleteTexture(tex)
-			},
-		}
-
+	type DrawTextureOpt = RenderProps & {
+		tex: Texture,
+		width?: number,
+		height?: number,
+		tiled?: boolean,
+		flipX?: boolean,
+		flipY?: boolean,
+		quad?: Quad,
+		origin?: Origin | Vec2,
 	}
 
 	function makeShader(
@@ -1575,31 +1602,29 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	}
 
 	function makeFont(
-		tex: GfxTexture,
+		tex: Texture,
 		gw: number,
 		gh: number,
 		chars: string,
 	): GfxFont {
 
 		const cols = tex.width / gw
-		const rows = tex.height / gh
-		const qw = 1.0 / cols
-		const qh = 1.0 / rows
-		const map: Record<string, Vec2> = {}
+		const map: Record<string, Quad> = {}
 		const charMap = chars.split("").entries()
 
 		for (const [i, ch] of charMap) {
-			map[ch] = vec2(
-				(i % cols) * qw,
-				Math.floor(i / cols) * qh,
+			map[ch] = new Quad(
+				(i % cols) * gw,
+				Math.floor(i / cols) * gh,
+				gw,
+				gh,
 			)
 		}
 
 		return {
 			tex: tex,
 			map: map,
-			qw: qw,
-			qh: qh,
+			size: gh,
 		}
 
 	}
@@ -1609,7 +1634,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		verts: Vertex[],
 		indices: number[],
 		fixed: boolean,
-		tex: GfxTexture = gfx.defTex,
+		tex: Texture = gfx.defTex,
 		shaderSrc: RenderProps["shader"] = gfx.defShader,
 		uniform: Uniform = {},
 	) {
@@ -2348,97 +2373,14 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 	}
 
-	type FormattedLine = {
-		text: string,
-		width: number,
-		height: number,
-		x: number,
-		y: number,
+	type FontAtlas = {
+		font: BitmapFontData,
+		cursor: Vec2,
 	}
 
-	// TODO: FormattedChar
-	// TODO: rename formatText() to prepareText() and rename this to formatText()?
-	// calculate each line based on text wrap width
-	function getLines(
-		text: string,
-		getSize: (txt: string) => [number, number],
-		opt: DrawTextOpt,
-	): {
-			lines: FormattedLine[],
-			width: number,
-			height: number,
-		} {
+	const fontAtlases: Record<string, FontAtlas> = {}
 
-		const lines: FormattedLine[] = []
-
-		for (const line of text.split("\n")) {
-			if (opt.width) {
-				const words = line.split(" ")
-				let curLine = words[0]
-				// TODO: single long line should also wrap
-				for (const word of words.slice(1)) {
-					const width = getSize(curLine + " " + word)[0]
-					if (width <= opt.width) {
-						curLine += " " + word
-					} else {
-						lines.push({
-							text: curLine,
-							x: 0,
-							y: 0,
-							width: 0,
-							height: 0,
-						})
-						curLine = word
-					}
-				}
-				lines.push({
-					text: curLine,
-					x: 0,
-					y: 0,
-					width: 0,
-					height: 0,
-				})
-			} else {
-				lines.push({
-					text: line,
-					x: 0,
-					y: 0,
-					width: 0,
-					height: 0,
-				})
-			}
-		}
-
-		let tw = 0
-		let th = 0
-
-		for (const line of lines) {
-			const [ w, h ] = getSize(line.text)
-			line.width = w
-			line.height = h
-			line.y = th
-			tw = Math.max(tw, w)
-			th += h + (opt.lineSpacing ?? 0)
-		}
-
-		if (opt.width) {
-			tw = opt.width
-		}
-
-		for (const line of lines) {
-			line.x = (tw - line.width) * alignPt(opt.align)
-		}
-
-		return {
-			lines: lines,
-			width: tw,
-			height: th,
-		}
-
-	}
-
-	const text2DCache = new Map<string, GfxTexture>()
-
+	// TODO: cache formatted text
 	// format text and return a list of chars with their calculated position
 	function formatText(opt: DrawTextOpt): FormattedText {
 
@@ -2446,216 +2388,240 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			throw new Error("formatText() requires property \"text\".")
 		}
 
-		const font = resolveFont(opt.font)
+		let font = resolveFont(opt.font)
 
 		// if it's still loading
 		if (opt.text === "" || font instanceof Asset || !font) {
 			return {
-				isBitmap: true,
 				width: 0,
 				height: 0,
 				chars: [],
+				opt: opt,
 			}
 		}
 
 		const { charStyleMap, text } = compileStyledText(opt.text + "")
+		const chars = text.split("")
 
 		// if it's not bitmap font, we draw it with 2d canvas or use cached image
 		if (font instanceof FontFace || typeof font === "string") {
 
 			const fontName = font instanceof FontFace ? font.family : font
-			// when these properties change, we redraw the text on canvas and
-			const cfg = [opt.text, opt.size, opt.font, opt.align, opt.width].join(",")
 
-			if (!text2DCache.get(cfg)) {
-
-				// TODO: styles
-				// TODO: what if the text is wider than canvas width
-				// this can be memory / cpu intensive if a lot of text changing a lot
-				if (opt.transform) {
-					warn("\"transform\" isn't available for non-bitmap fonts yet")
-				}
-
-				if (opt.styles) {
-					warn("\"styles\" isn't available for non-bitmap fonts yet")
-				}
-
-				if (opt.letterSpacing) {
-					warn("\"letterSpacing\" isn't available for non-bitmap fonts yet")
-				}
-
-				const c2d = app.canvas2.getContext("2d")
-				c2d.font = `${opt.size ?? DEF_TEXT_SIZE}px ${fontName}`
-				c2d.clearRect(0, 0, app.canvas2.width, app.canvas2.height)
-				c2d.textBaseline = "top"
-				c2d.textAlign = "left"
-				c2d.fillStyle = "rgb(255, 255, 255)"
-
-				const getSize = (text): [number, number] => {
-					const m = c2d.measureText(text)
-					return [
-						m.width,
-						m.fontBoundingBoxAscent + m.fontBoundingBoxDescent,
-					]
-				}
-
-				const ftext = getLines(text, getSize, opt)
-
-				for (const line of ftext.lines) {
-					c2d.fillText(line.text, line.x, line.y)
-				}
-
-				text2DCache.set(
-					cfg,
-					makeTex(c2d.getImageData(0, 0, ftext.width, ftext.height)),
-				)
-
-				// free textures if cache exceeds certain size
-				if (text2DCache.size > TEXT_CACHE_SIZE) {
-					const toDelete = [...text2DCache.entries()].slice(0, text2DCache.size - TEXT_CACHE_SIZE)
-					for (const [k, v] of toDelete) {
-						text2DCache.delete(k)
-						v.free()
-					}
-				}
-
+			const atlas: FontAtlas = fontAtlases[fontName] ?? {
+				font: {
+					tex: new Texture(FONT_ATLAS_SIZE, FONT_ATLAS_SIZE),
+					map: {},
+					size: DEF_TEXT_SIZE,
+				},
+				cursor: vec2(0),
 			}
 
-			const tex = text2DCache.get(cfg)
+			if (!fontAtlases[fontName]) {
+				fontAtlases[fontName] = atlas
+			}
 
-			return {
-				isBitmap: false,
-				width: tex.width,
-				height: tex.height,
-				tex: tex,
-				opt: opt,
+			font = atlas.font
+
+			for (const ch of chars) {
+
+				if (!atlas.font.map[ch]) {
+
+					const c2d = app.canvas2.getContext("2d")
+					c2d.font = `${font.size}px ${fontName}`
+					c2d.clearRect(0, 0, app.canvas2.width, app.canvas2.height)
+					c2d.textBaseline = "top"
+					c2d.textAlign = "left"
+					c2d.fillStyle = "rgb(255, 255, 255)"
+					c2d.fillText(ch, 0, 0)
+					const m = c2d.measureText(ch)
+					const w = Math.ceil(m.width)
+					const img = c2d.getImageData(0, 0, w, font.size)
+
+					// if we are about to exceed the X axis of the texture, go to another line
+					if (atlas.cursor.x + w > FONT_ATLAS_SIZE) {
+						atlas.cursor.x = 0
+						atlas.cursor.y += font.size
+						if (atlas.cursor.y > FONT_ATLAS_SIZE) {
+							// TODO: create another tex
+							throw new Error("Font atlas exceeds character limit")
+						}
+					}
+
+					font.tex.update(atlas.cursor.x, atlas.cursor.y, img)
+					font.map[ch] = new Quad(atlas.cursor.x, atlas.cursor.y, w, font.size)
+					atlas.cursor.x += w
+
+				}
+
 			}
 
 		}
 
-		const chars = text.split("")
-		const gw = font.qw * font.tex.width
-		const gh = font.qh * font.tex.height
-		const size = opt.size || gh
-		const scale = vec2(size / gh).scale(vec2(opt.scale || 1))
-		const cw = scale.x * gw + (opt.letterSpacing ?? 0)
-		const ch = scale.y * gh + (opt.lineSpacing ?? 0)
+		const size = opt.size || font.size
+		const scale = vec2(opt.scale ?? 1).scale(size / font.size)
+		const lineSpacing = opt.lineSpacing ?? 0
+		const letterSpacing = opt.letterSpacing ?? 0
 		let curX = 0
-		let th = ch
 		let tw = 0
-		const flines = []
-		let curLine = []
-		let lastSpace = null
+		let th = 0
+		const lines: Array<{
+			width: number,
+			chars: FormattedChar[],
+		}> = []
+		let curLine: FormattedChar[] = []
 		let cursor = 0
+		let lastSpace = null
+		let lastSpaceWidth = null
 
+		// TODO: word break
 		while (cursor < chars.length) {
 
-			let char = chars[cursor]
+			let ch = chars[cursor]
 
-			// check new line
-			if (char === "\n") {
-				// always new line on '\n'
-				th += ch
-				curX = 0
+			// always new line on '\n'
+			if (ch === "\n") {
+
+				th += size + lineSpacing
+
+				lines.push({
+					width: curX - letterSpacing,
+					chars: curLine,
+				})
+
 				lastSpace = null
-				curLine.push(char)
-				flines.push(curLine)
-				curLine = []
-			} else if ((opt.width ? (curX + cw > opt.width) : false)) {
-				// new line on last word if width exceeds
-				th += ch
+				lastSpaceWidth = null
 				curX = 0
-				if (lastSpace != null) {
-					cursor -= curLine.length - lastSpace
-					char = chars[cursor]
-					curLine = curLine.slice(0, lastSpace)
+				curLine = []
+
+			} else {
+
+				let q = font.map[ch]
+				let gw = q.w * scale.x
+
+				if (q) {
+
+					if (opt.width && curX + gw > opt.width) {
+						// new line on last word if width exceeds
+						th += size + lineSpacing
+						if (lastSpace != null) {
+							cursor -= curLine.length - lastSpace
+							ch = chars[cursor]
+							q = font.map[ch]
+							gw = q.w * scale.x
+							// omit trailing space
+							curLine = curLine.slice(0, lastSpace - 1)
+							curX = lastSpaceWidth
+						}
+						lastSpace = null
+						lastSpaceWidth = null
+						lines.push({
+							width: curX - letterSpacing,
+							chars: curLine,
+						})
+						curX = 0
+						curLine = []
+					}
+
+					// push char
+					curLine.push({
+						tex: font.tex,
+						width: q.w,
+						height: q.h,
+						// without some padding there'll be visual artifacts on edges
+						quad: new Quad(
+							(q.x + TEXT_QUAD_PAD) / font.tex.width,
+							(q.y + TEXT_QUAD_PAD) / font.tex.height,
+							(q.w - TEXT_QUAD_PAD * 2) / font.tex.width,
+							(q.h - TEXT_QUAD_PAD * 2) / font.tex.height,
+						),
+						ch: ch,
+						pos: vec2(curX, th),
+						opacity: opt.opacity ?? 1,
+						color: opt.color ?? Color.WHITE,
+						scale: vec2(scale),
+						angle: 0,
+					})
+
+					if (ch === " ") {
+						lastSpace = curLine.length
+						lastSpaceWidth = curX
+					}
+
+					curX += gw
+					tw = Math.max(tw, curX)
+					curX += letterSpacing
+
 				}
-				lastSpace = null
-				flines.push(curLine)
-				curLine = []
+
 			}
 
-			// push char
-			if (char !== "\n") {
-				curLine.push(char)
-				curX += cw
-				if (char === " ") {
-					lastSpace = curLine.length
-				}
-			}
-
-			tw = Math.max(tw, curX)
 			cursor++
 
 		}
 
-		flines.push(curLine)
+		lines.push({
+			width: curX - letterSpacing,
+			chars: curLine,
+		})
+
+		th += size
 
 		if (opt.width) {
 			tw = opt.width
 		}
 
-		// whole text offset
-		const fchars = []
-		const pos = vec2(opt.pos || 0)
-		// TODO: use align instead of origin for alignment
-		const offset = originPt(opt.origin || DEF_ORIGIN).scale(0.5)
-		// this math is complicated i forgot how it works instantly
-		const ox = -offset.x * cw - (offset.x + 0.5) * (tw - cw)
-		const oy = -offset.y * ch - (offset.y + 0.5) * (th - ch)
-		let idx = 0
+		const fchars: FormattedChar[] = []
 
-		flines.forEach((line, ln) => {
-		// line offset
-			const oxl = (tw - line.length * cw) * (offset.x + 0.5)
-			line.forEach((char, cn) => {
-				const qpos = font.map[char]
-				const x = cn * cw
-				const y = ln * ch
-				if (qpos) {
-					const fchar: FormattedChar = {
-						tex: font.tex,
-						quad: new Quad(qpos.x, qpos.y, font.qw, font.qh),
-						ch: char,
-						pos: vec2(pos.x + x + ox + oxl, pos.y + y + oy),
-						opacity: opt.opacity,
-						color: opt.color ?? Color.WHITE,
-						scale: scale,
-						angle: 0,
-						uniform: opt.uniform,
-						fixed: opt.fixed,
+		for (const line of lines) {
+
+			const ox = (tw - line.width) * alignPt(opt.align ?? "left")
+
+			for (const fchar of line.chars) {
+
+				const q = font.map[fchar.ch]
+				const idx = fchars.length
+
+				const offset = new Vec2(
+					q.w * scale.x * 0.5,
+					q.h * scale.y * 0.5,
+				)
+
+				fchar.pos = fchar.pos.add(ox, 0).add(offset)
+
+				if (opt.transform) {
+					const tr = typeof opt.transform === "function"
+						? opt.transform(idx, fchar.ch)
+						: opt.transform
+					if (tr) {
+						applyCharTransform(fchar, tr)
 					}
-					if (opt.transform) {
-						const tr = typeof opt.transform === "function"
-							? opt.transform(idx, char)
-							: opt.transform
+				}
+
+				if (charStyleMap[idx]) {
+					const { styles, localIdx } = charStyleMap[idx]
+					for (const name of styles) {
+						const style = opt.styles[name]
+						const tr = typeof style === "function"
+							? style(localIdx, fchar.ch)
+							: style
 						if (tr) {
 							applyCharTransform(fchar, tr)
 						}
 					}
-					if (charStyleMap[idx]) {
-						const { styles, localIdx } = charStyleMap[idx]
-						for (const name of styles) {
-							const style = opt.styles[name]
-							const tr = typeof style === "function"
-								? style(localIdx, char)
-								: style
-							if (tr) {
-								applyCharTransform(fchar, tr)
-							}
-						}
-					}
-					fchars.push(fchar)
 				}
-				idx += 1
-			})
-		})
+
+				fchars.push(fchar)
+
+			}
+
+		}
 
 		return {
-			isBitmap: true,
 			width: tw,
 			height: th,
 			chars: fchars,
+			opt: opt,
 		}
 
 	}
@@ -2664,35 +2630,29 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		drawFormattedText(formatText(opt))
 	}
 
-	// TODO: rotation
 	function drawFormattedText(ftext: FormattedText) {
-		if (ftext.isBitmap === true) {
-			for (const ch of ftext.chars) {
-				drawUVQuad({
-					tex: ch.tex,
-					width: ch.tex.width * ch.quad.w,
-					height: ch.tex.height * ch.quad.h,
-					pos: ch.pos,
-					scale: ch.scale,
-					angle: ch.angle,
-					color: ch.color,
-					opacity: ch.opacity,
-					quad: ch.quad,
-					// TODO: topleft
-					origin: "center",
-					uniform: ch.uniform,
-					fixed: ch.fixed,
-				})
-			}
-		} else {
-			drawTexture({
-				...ftext.opt,
-				tex: ftext.tex,
-				width: ftext.width,
-				height: ftext.height,
-				color: ftext.opt.color ?? Color.WHITE,
+		pushTransform()
+		pushTranslate(ftext.opt.pos)
+		pushRotateZ(ftext.opt.angle)
+		pushTranslate(originPt(ftext.opt.origin ?? "topleft").add(1, 1).scale(ftext.width, ftext.height).scale(-0.5))
+		ftext.chars.forEach((ch) => {
+			drawUVQuad({
+				tex: ch.tex,
+				width: ch.width,
+				height: ch.height,
+				pos: ch.pos,
+				scale: ch.scale,
+				angle: ch.angle,
+				color: ch.color,
+				opacity: ch.opacity,
+				quad: ch.quad,
+				origin: "center",
+				uniform: ftext.opt.uniform,
+				shader: ftext.opt.shader,
+				fixed: ftext.opt.fixed,
 			})
-		}
+		})
+		popTransform()
 	}
 
 	// update viewport based on user setting and fullscreen state
@@ -4222,7 +4182,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			throw new Error("Please pass the resource name or data to sprite()")
 		}
 
-		const calcTexScale = (tex: GfxTexture, q: Quad, w?: number, h?: number): Vec2 => {
+		const calcTexScale = (tex: Texture, q: Quad, w?: number, h?: number): Vec2 => {
 			const scale = vec2(1, 1)
 			if (w && h) {
 				scale.x = w / (tex.width * q.w)

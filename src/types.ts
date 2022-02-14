@@ -2452,14 +2452,14 @@ export declare class Asset<D> {
 	finally(action: () => void): Asset<D>
 }
 
-export type LoadSpriteSrc = string | GfxTexData
+export type LoadSpriteSrc = string | TexImageSource
 
 export declare class SpriteData {
-	tex: GfxTexture
+	tex: Texture
 	frames: Quad[]
 	anims: SpriteAnims
-	constructor(tex: GfxTexture, frames?: Quad[], anims?: SpriteAnims)
-	static fromImage(data: GfxTexData, opt?: LoadSpriteOpt): SpriteData
+	constructor(tex: Texture, frames?: Quad[], anims?: SpriteAnims)
+	static fromImage(data: TexImageSource, opt?: LoadSpriteOpt): SpriteData
 	static fromURL(url: string, opt?: LoadSpriteOpt): Promise<SpriteData>
 }
 
@@ -2473,7 +2473,6 @@ export declare class SoundData {
 export interface LoadBitmapFontOpt {
 	chars?: string,
 	filter?: TexFilter,
-	wrap?: TexWrap,
 }
 
 export interface SoundData {
@@ -2591,29 +2590,27 @@ export interface GfxShader {
 	free(): void,
 }
 
-// TODO: hide
-export interface GfxTexture {
-	width: number,
-	height: number,
-	bind(): void,
-	unbind(): void,
-	free(): void,
+export type TextureOpt = {
+	filter?: TexFilter,
+	wrap?: TexWrap,
 }
 
-export type GfxTexData =
-	HTMLImageElement
-	| HTMLCanvasElement
-	| ImageData
-	| ImageBitmap
+export declare class Texture {
+	glTex: WebGLTexture
+	width: number
+	height: number
+	constructor(w: number, h: number, opt?: TextureOpt)
+	static fromImage(img: TexImageSource, opt?: TextureOpt): Texture
+	update(x: number, y: number, img: TexImageSource)
+	bind()
+	unbind()
+	free()
+}
 
 export interface GfxFont {
-	tex: GfxTexture,
-	map: Record<string, Vec2>,
-	/**
-	 * The quad width of each character.
-	 */
-	qw: number,
-	qh: number,
+	tex: Texture,
+	map: Record<string, Quad>,
+	size: number,
 }
 
 export interface Vertex {
@@ -2705,7 +2702,7 @@ export type DrawUVQuadOpt = RenderProps & {
 	/**
 	 * The texture to sample for this quad.
 	 */
-	tex?: GfxTexture,
+	tex?: Texture,
 	/**
 	 * The texture sampling area.
 	 */
@@ -3022,29 +3019,24 @@ export type DrawTextOpt = RenderProps & {
 export type FormattedText = {
 	width: number,
 	height: number,
-} & ({
-	isBitmap: true,
 	chars: FormattedChar[],
-} | {
-	isBitmap: false,
-	tex: GfxTexture,
 	opt: DrawTextOpt,
-})
+}
 
 /**
  * One formated character.
  */
 export interface FormattedChar {
-	tex: GfxTexture,
-	quad: Quad,
 	ch: string,
+	tex: Texture,
+	width: number,
+	height: number,
+	quad: Quad,
 	pos: Vec2,
 	scale: Vec2,
 	angle: number,
 	color: Color,
-	fixed: boolean,
 	opacity: number,
-	uniform: Uniform,
 }
 
 /**
