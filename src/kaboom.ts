@@ -5570,58 +5570,61 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		enterBurpMode()
 	}
 
-	let errHandler = (err: Error) => {
-
-		// TODO: better tool for drawing without app.scale
-		pushTransform()
-		pushScale(1 / app.scale)
-
-		const pad = 32
-		const gap = 16
-		const gw = width() * app.scale
-		const gh = height() * app.scale
-
-		const textStyle = {
-			size: 24,
-			width: gw - pad * 2,
-			letterSpacing: 4,
-			lineSpacing: 4,
-			font: DBG_FONT,
-		}
-
-		drawRect({
-			width: gw,
-			height: gh,
-			color: rgb(0, 0, 255),
-		})
-
-		const title = formatText({
-			...textStyle,
-			text: err.name,
-			pos: vec2(pad),
-			color: rgb(255, 128, 0),
-		})
-
-		drawFormattedText(title)
-
-		drawText({
-			...textStyle,
-			text: err.message,
-			pos: vec2(pad, pad + title.height + gap),
-		})
-
-		popTransform()
-
-	}
-
 	function onError(action: (err: Error) => void) {
-		errHandler = action
+		game.ev.on("error", action)
 	}
 
 	function handleErr(err: Error) {
-		run(() => errHandler(err))
+
+		run(() => {
+
+			// TODO: better tool for drawing without app.scale
+			pushTransform()
+			pushScale(1 / app.scale)
+
+			const pad = 32
+			const gap = 16
+			const gw = width() * app.scale
+			const gh = height() * app.scale
+
+			const textStyle = {
+				size: 24,
+				width: gw - pad * 2,
+				letterSpacing: 4,
+				lineSpacing: 4,
+				font: DBG_FONT,
+			}
+
+			drawRect({
+				width: gw,
+				height: gh,
+				color: rgb(0, 0, 255),
+			})
+
+			const title = formatText({
+				...textStyle,
+				text: err.name,
+				pos: vec2(pad),
+				color: rgb(255, 128, 0),
+			})
+
+			drawFormattedText(title)
+
+			drawText({
+				...textStyle,
+				text: err.message,
+				pos: vec2(pad, pad + title.height + gap),
+			})
+
+			popTransform()
+			game.ev.trigger("error", err)
+
+		})
+
+		// only run that once
 		app.stopped = true
 		cancelAnimationFrame(app.loopID)
+
 	}
 
 	function run(f: () => void) {
