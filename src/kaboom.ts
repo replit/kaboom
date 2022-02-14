@@ -2434,7 +2434,8 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 					c2d.textAlign = "left"
 					c2d.fillStyle = "rgb(255, 255, 255)"
 					c2d.fillText(ch, 0, 0)
-					const w = Math.ceil(c2d.measureText(ch).width)
+					const m = c2d.measureText(ch)
+					const w = Math.ceil(m.width)
 					const img = c2d.getImageData(0, 0, w, font.size)
 
 					// if we are about to exceed the X axis of the texture, go to another line
@@ -2570,9 +2571,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			tw = opt.width
 		}
 
-		let idx = 0
 		const fchars: FormattedChar[] = []
-		const offset = vec2(0)
 
 		lines.forEach((line, ln) => {
 
@@ -2581,11 +2580,12 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			line.chars.forEach((fchar, cn) => {
 
 				const q = font.map[fchar.ch]
+				const idx = fchars.length
 
-				if (idx === 0) {
-					offset.x = q.w * scale.x * 0.5
-					offset.y = q.h * scale.y * 0.5
-				}
+				const offset = new Vec2(
+					q.w * scale.x * 0.5,
+					q.h * scale.y * 0.5,
+				)
 
 				fchar.pos = fchar.pos.add(ox, 0).add(offset)
 
@@ -2612,8 +2612,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				}
 
 				fchars.push(fchar)
-
-				idx += 1
 
 			})
 
