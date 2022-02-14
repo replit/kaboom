@@ -20,6 +20,7 @@ const builtinFonts = [
 const fonts = [
 	...builtinFonts,
 	"unscii",
+// 	"FROGBLOCK",
 	"Sans-Serif",
 // 	"zpix",
 ]

@@ -247,6 +247,7 @@ const MAX_DETUNE = 1200
 const DEF_ORIGIN = "topleft"
 const DEF_GRAVITY = 1600
 const BG_GRID_SIZE = 64
+const TEXT_QUAD_PAD = 0.05
 
 const DEF_FONT = "apl386o"
 const DBG_FONT = "sink"
@@ -2526,11 +2527,12 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 						tex: font.tex,
 						width: q.w,
 						height: q.h,
+						// without some padding there'll be visual artifacts on edges
 						quad: new Quad(
-							q.x / font.tex.width,
-							q.y / font.tex.height,
-							q.w / font.tex.width,
-							q.h / font.tex.height,
+							(q.x + TEXT_QUAD_PAD) / font.tex.width,
+							(q.y + TEXT_QUAD_PAD) / font.tex.height,
+							(q.w - TEXT_QUAD_PAD * 2) / font.tex.width,
+							(q.h - TEXT_QUAD_PAD * 2) / font.tex.height,
 						),
 						ch: ch,
 						pos: vec2(curX, th),
@@ -2561,7 +2563,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			width: curX - letterSpacing,
 			chars: curLine,
 		})
-		console.log(lines)
 
 		th += size
 
