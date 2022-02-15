@@ -2,15 +2,15 @@
 
 Kaboom is a fun library to use for creating simple games.
 
-In Kaboom, the characters such as players, bullets, rocks, clouds, text etc. that we add to a game are called Game Objects. In other words, a game object is the basic unit of entity in a Kaboom world. 
+In Kaboom, all the elements we add to the game – such as players, bullets, rocks, clouds, text, and so on – are called "game objects".
 
-In this tutorial, we'll look at how game objects, also known as sprites, are added to a game. The code we'll look at is considered boilerplate code (or rather a template) for starting most games we can create with Kaboom. For any game you may want to create, you need to know how to add sprites as a result, we'll discuss it at length to form a good foundation for game development in Kaboom. 
+In this tutorial, we'll show you how to add game objects (also known as sprites) to a game.
 
-You can find this code at https://replit.com/@ritza/add-sprite-tutorial 
+We'll be using boilerplate code, which is like a template, that you can use for starting most games created with Kaboom. You can find the code [in our repl](https://replit.com/@ritza/add-sprite-tutorial), and we'll explain it in detail here to help you form a good foundation for game development in Kaboom.
 
 ## Understanding the code
 
-The first thing we need to do is to import the `kaboom` library and initialize the context with the `kaboom()` function. This enables us to create a blank canvas with a nice checkerboard pattern as shown in the image below. Any sprite we'll need for the game will be added to this checkerboard screen.
+First, we need to import the Kaboom library and initialize the context with the `kaboom()` function. This creates a blank canvas with a nice checkerboard pattern, as shown in the image below. Any sprite we'll need for the game will be added to this checkerboard screen.
 
 ```js
 import kaboom from "kaboom";
@@ -20,13 +20,15 @@ kaboom();
 
 ![Checkerboard pattern](https://kaboomjs.com/site/doc/intro/empty.png)
 
-The code below allows us to load an image we'll use as a sprite. Introducing Frog the "Bean"! A happy frog that enjoys life. You'll see Bean a lot around here.
+Here's the code to load a sprite to make it available in our game:
 
 ```js
 loadSprite("bean", "sprites/bean.png");
 ```
 
-Now we want to add Bean to the screen. 
+Introducing Frog the "Bean"! A happy frog that enjoys life. You'll see Bean a lot around here.
+
+Now we want to add Bean to the screen:
 
 ```js
 add([
@@ -37,23 +39,23 @@ add([
 ]);
 ```
 
-Each game object is composed from multiple components. For example, some component might decide the shape, another might decide if it should be subject to gravity, another might decide what color it is in and so on. Each component provides different functionalities and in the code example above, `add()` is the function used to assemble all the components into a game object in Kaboom.
+Here we use the `add()` function to add the game object to our canvas, and we can include multiple components to our function to give the object its different features, such as shape, position, color, collision area, and whether it should be subject to gravity.
 
-A closer look at the components used:
+Let's take a look at the components we used:
 
-- `sprite()` makes it render a sprite with the 'bean' we just loaded with `loadSprite()`
-- `pos()` gives it a position on the screen, at X:80 Y:40
-- `area()` gives it a collider area and enables collision detection
-- `color()` changes the color to blue
+- `sprite()` - to render our sprite with the "Bean" graphic we loaded.
+- `pos()` - to give Bean a position on our screen expressed as XY coordinates. In this case, Bean is placed at X=80 and Y=40.
+- `area()` - to give Bean a collider area and enable collision detection.
+- `color()` - to give Bean the color blue.
 
-There are many more components that can be used. More information on these can be found at https://kaboomjs.com/.
+There are many more components you can use when you add game objects. Visit the [Kaboom.js website](https://kaboomjs.com/) to explore them.
 
 ## Things to try
 
-Here are some suggestions of how you can extend this code further:
+Here are some you can try to extend this code:
 
-- Add other components to Bean's character. Can you change the shape?
-- Play around with different sprites, positions, rotations, and scale 
+- Add other components to Bean's character. Can you change Bean's shape?
+- Play around with different sprites, positions, rotations, and scale.
 
 You can try out the code in the embedded repl below:
 
