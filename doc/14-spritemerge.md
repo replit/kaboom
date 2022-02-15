@@ -1,35 +1,32 @@
-# Merging Sprites with kaboom
-
-Kaboom is a fun library to use for creating simple games.
+# Merging sprites with Kaboom
 
 In this tutorial, we are going to learn how to merge two different sprite images into one. This could be useful for games in which you would like your player character to have some cool features, like an armory or new clothing.
 
-
 ## Steps to follow 
 
-We'll cover how to add the following:
+We'll cover the following:
 
-* Merge function
-* Sprites
-* Animation
+* The merge function
+* Adding sprites
+* Adding animation
 
-You can find the code we use in this tutorial at https://replit.com/@ritza/sprite-merge or try out the embedded repl below.
+You can find the code we use in this tutorial [in our repl](https://replit.com/@ritza/sprite-merge), or try out the embedded repl at the end of this tutorial.
 
 ![sprite merge](spritemerge.png)
 
 ## Getting started with the code
 
-The first thing we want to do is set up our game by loading the kaboom() library.
+The first thing we want to do is set up our game by loading the Kaboom library:
 
 ```javascript
 import kaboom from "kaboom";
 ```
 
-Before we initialize a kaboom context, we'll first create a merge function for our sprites.
+Before we initialize a Kaboom context, let's create a merge function for our sprites.
 
-## Merge Function
+## Merge function
 
-Let's create a function `mergeImg()`, that takes the URLs of the sprites we want to merge as an argument and returns a merged image. 
+The `mergeImg()` function takes the URLs of the sprites we want to merge as an argument, and returns the merged image:
 
 ```javascript
 function mergeImg(urls) {
@@ -71,7 +68,9 @@ function mergeImg(urls) {
 }
 ```
 
-Now we'll initialize a kaboom context and set up the scale and font of our game.
+## Setting up our game
+
+Let's initialize a Kaboom context and set up the scale and font of our game:
 
 ```javascript
 kaboom({
@@ -81,7 +80,7 @@ kaboom({
 
 ```
 
-Let's create an animation object `anims` which will animate our sprites so they move in place.
+Next we'll create an animation object `anims`, which will animate our sprites so they move in place:
 
 ```javascript
 const anims = {
@@ -104,7 +103,8 @@ const anims = {
 }
 
 ```
-Next, we'll add 3 more objects to represent our sprites and the merged sprites. These objects will have the same animation properties we've provided for the 'anims' object. 
+
+We'll add three more objects to represent our sprites and the merged sprites. These objects will have the same animation properties we've provided for the 'anims' object:
 
 ```javascript
 const playerAnims = {
@@ -121,17 +121,16 @@ const corpusAnims = {
 ```
 
 
-## Adding Sprites
+## Adding sprites
 
-Let's load our sprites onto kaboom.
-Let's load our sprites onto kaboom. We'll load two of the sprites to the sprite objects 'chestAnims' and 'corpusAnims' that we created.
+Now let's load our sprites onto Kaboom. We'll load a sprite to each of the sprite objects `chestAnims` and `corpusAnims` we created:
 
 ```javascript
 loadSpriteAtlas("/sprites/spritemerge_chest.png", chestAnims)
 loadSpriteAtlas("/sprites/spritemerge_corpus.png", corpusAnims)
 ```
 
-For the last object 'playerAnims', we'll merge the two other sprites using our function `mergeImg()` into one sprite.
+For the last object 'playerAnims', we'll merge the two other sprites into one using our function `mergeImg()`:
 
 ```javascript
 mergeImg(["sprites/spritemerge_corpus.png", "/sprites/spritemerge_chest.png"]).then((img) =>
@@ -139,7 +138,7 @@ mergeImg(["sprites/spritemerge_corpus.png", "/sprites/spritemerge_chest.png"]).t
 );
 ```
 
-We'll add some functionality to our objects to position them on the game screen. The `gravity()` function makes sure the objects will not be drawn to the edge of the screen. `body()` gives our objects a "body" that reacts to the game's gravity. The `area()` makes our objects solid so no other objects can pass through them. `pos()` and `origin()` provide our objects with an origin position each time the game is initiated.
+Next we'll add some functionality to our objects to position them on the game screen:
 
 ```javascript
 
@@ -173,16 +172,22 @@ const chest = add([
 ])
 ```
 
-## Adding Animation
+- The `gravity()` function makes sure the objects will not be drawn to the edge of the screen.
+- The `body()` component gives our objects a "body" that reacts to the game's gravity.
+- The `area()` component makes our objects solid, so that no other objects can pass through them.
+- We use `pos()` and `origin()` to provide our objects with an origin position each time the game is initiated.
 
-Now, we'll focus on the animation of our sprites. We'll use the `play()` function provided by the `sprite()` component to display the specified animations.
+## Adding animation
+
+Now we can focus animating our sprites. We'll use the `play()` function provided by the `sprite()` component to display the specified animations:
 
 ```javascript
 player.play("idle-down")
 chest.play("idle-down")
 corpus.play("idle-down")
 ```
-Here we'll set up the direction keys on our keyboard to control the directional movement of our objects,  we'll implement this using the `switchAnimation()` function.
+
+Let's set up the direction keys on our keyboard to control the directional movement of our objects. We can implement this using the `switchAnimation()` function:
 
 ```javascript
 onKeyDown('left', () => {
@@ -218,8 +223,7 @@ function switchAnimation(type) {
 }
 ```
 
-Let's add some text to the screen to represent our objects' current state.
-We'll create the `getInfo()` function to hold the information about our objects' current animation as well as the frame number of their current stance.
+Now we'll add some text to the screen to represent our objects' current state. We'll create the `getInfo()` function to hold the information about our objects' current animation, as well as the frame number of their current stance:
 
 ```javascript
 const getInfo = () => `
@@ -228,7 +232,8 @@ Frame: ${player.frame}
 `.trim()
 ```
 
-The `label` object will be used to render `getInfo()` onto the screen and we'll use the `onUpdate()` function so it updates the text each time our objects change frames or direction.
+We'll use the `label` object to render `getInfo()` onto our screen. The `onUpdate()` function updates the text each time our objects change frames or direction:
+
 ```
 const label = add([
     text(getInfo()),
@@ -243,12 +248,10 @@ label.onUpdate(() => {
 
 ## Things to try:
 
-You can visit https://kaboomjs.com/ to learn more about the Kaboom library.
+Here are some things you can try to enhance the game:
 
-Here are some suggestions on how to enhance the game:
-
-* Add more armory/clothing sprites to merge with the player.
-* Add a platform and some levels to the game so the player has quests and can discover a new armor in each level. 
+* Add more armory or clothing sprites to merge with the player.
+* Add a platform and some levels to the game so the player has quests and can discover new armor in each level. 
 
 You can also try out the repl below:
 
