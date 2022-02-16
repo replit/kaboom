@@ -1,20 +1,18 @@
-# Drag game objects with Kaboom 
+# Drag game objects in Kaboom 
 
-Creating simple games is easy and fun with Kaboom.
-
-In this tutorial, we're going to see how to drag game objects, also known as sprites. You can find the link to the code at https://replit.com/@ritza/drag-sprite-tutorial or check out the embedded code at the bottom of this tutorial.
+In this tutorial, we'll show you how to drag game objects, also known as sprites. You can find the the code [on our repl](https://replit.com/@ritza/drag-sprite-tutorial) or check out the embedded code at the end of this tutorial.
 
 ## Things to consider
 
-The main things that we want to consider are as follows:
+To drag game objects, we need to:
 
-- We want to keep track of the sprite we're dragging
-- We want to create a custom component for handling drag and drop behaviour
-- We want to add sprites that are draggable
+- keep track of the sprite we're dragging,
+- create a custom component for handling drag-and-drop behaviour, and
+- add sprites that are draggable.
 
 ## Getting started with the code
 
-The first thing we want to do to is load the `kaboom()` library and initialize a kaboom context.
+Let's start by loading the Kaboom library and initializing a Kaboom context:
 
 ```js
 import kaboom from "kaboom";
@@ -22,17 +20,19 @@ import kaboom from "kaboom";
 kaboom()
 ```
 
-Next, we want to keep track of the current object we're dragging. 
+## Keeping track of the object
+
+Next, we'll initialize a variable so that we can keep track of the object when we drag it. 
 
 ```js
 let curDraggin = null
 ```
 
-In Kaboom, each game object comprises a list of components that define the functionality of that object, which are assembled in the `add()` function. As a result, we're going to create a custom component that allows us to handle drag and drop behaviour. We're going to create a function called `drag()` in which we'll assemble all the components required to drag and drop objects. 
+## Creating a custom component to handle drag-and-drop behaviour
 
-This function is responsible for keeping track of the position of the mouse and that of the object we're currently dragging. The position is represented as a 2D vector (vec2), using X and Y coordinates.
+In Kaboom, each game object comprises a list of components that define the functionality of that object. Components are assembled in the `add()` function.
 
-The code below shows the `drag()` function:
+We're going to create a custom component that allows us to handle drag-and-drop behaviour. We'll call our function `drag()`. Here's the code:
 
 ```js
 function drag() {
@@ -72,7 +72,9 @@ function drag() {
 }
 ```
 
-Now that we've defined our custom component, we want to register drop our sprite. For this, we use the `onMouseRelease()` event handler.
+Here we've assembled all the components we need to drag and drop objects. Our `drag()` function keeps track of the position of the mouse, and the position of the object we're currently dragging. Position is represented as a 2D vector (vec2), using XY coordinates.
+
+Now that we've defined our custom component, we want to register when we drop our sprite. For this, we use the `onMouseRelease()` event handler:
 
 ```js
 // drop
@@ -81,10 +83,12 @@ onMouseRelease(() => {
 })
 ```
 
-Now we're ready to add our component:
+## Adding a draggable object
+
+Now we're ready to add an object with our custom component:
 
 ```js
-// adding dragable objects
+// adding draggable objects
 add([
   sprite("bean"),
   pos(rand(width()), rand(height())),
@@ -101,9 +105,7 @@ onUpdate(() => cursor("default"))
 
 ## Things to try
 
-Here are some suggestions of how you can extend this code further:
-
-- Add multiple game objects to the screen that you can drag and drop
+If you'd like to extend this code further, you could try adding multiple game objects to the screen that you can drag and drop.
 
 You can try out the code in the embedded repl below:
 
