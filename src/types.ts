@@ -2159,22 +2159,6 @@ export type KaboomPlugin<T> = (k: KaboomCtx) => T
  */
 export interface GameObjRaw {
 	/**
-	 * Internal GameObj ID.
-	 */
-	_id: number | null,
-	/**
-	 * If draw the game obj (run "draw" event or not).
-	 */
-	hidden: boolean,
-	/**
-	 * If update the game obj (run "update" event or not).
-	 */
-	paused: boolean,
-	/**
-	 * If game obj exists in scene.
-	 */
-	exists(): boolean,
-	/**
 	 * Add a child.
 	 *
 	 * @since v2000.2.0
@@ -2302,6 +2286,28 @@ export interface GameObjRaw {
 	 * @since v2000.1
 	 */
 	onDestroy(action: () => void): EventCanceller,
+	/**
+	 * If game obj exists in scene.
+	 */
+	exists(): boolean,
+	/**
+	 * Check if is an ancestor (recursive parent) of another game object
+	 *
+	 * @since v2001.0
+	 */
+	isAncestorOf(obj: GameObj): boolean,
+	/**
+	 * If draw the game obj (run "draw" event or not).
+	 */
+	hidden: boolean,
+	/**
+	 * If update the game obj (run "update" event or not).
+	 */
+	paused: boolean,
+	/**
+	 * Internal GameObj ID.
+	 */
+	_id: number | null,
 }
 
 /**

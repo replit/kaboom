@@ -3275,15 +3275,15 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				}
 			},
 
-			exists(): boolean {
-				if (!this.parent) {
+			isAncestorOf(obj: GameObj) {
+				if (!obj.parent) {
 					return false
 				}
-				if (this.parent === game.root) {
-					return true
-				} else {
-					return this.parent?.exists()
-				}
+				return obj.parent === this || this.isAncestorOf(obj.parent)
+			},
+
+			exists(): boolean {
+				return game.root.isAncestorOf(this)
 			},
 
 			is(tag: Tag | Tag[]): boolean {
