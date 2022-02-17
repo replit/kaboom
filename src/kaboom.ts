@@ -5335,6 +5335,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 	}
 
+	// TODO: use drawUnscaled()
 	function drawInspectText(pos, txt) {
 
 		const pad = vec2(8)
@@ -5444,154 +5445,166 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 		if (debug.paused) {
 
-			// top right corner
-			pushTransform()
-			pushTranslate(width(), 0)
-			pushScale(1 / app.scale)
-			pushTranslate(-8, 8)
+			drawUnscaled(() => {
 
-			const size = 32
+				// top right corner
+				pushTransform()
+				pushTranslate(width(), 0)
+				pushTranslate(-8, 8)
 
-			// bg
-			drawRect({
-				width: size,
-				height: size,
-				origin: "topright",
-				color: rgb(0, 0, 0),
-				opacity: 0.8,
-				radius: 4,
-				fixed: true,
-			})
+				const size = 32
 
-			// pause icon
-			for (let i = 1; i <= 2; i++) {
+				// bg
 				drawRect({
-					width: 4,
-					height: size * 0.6,
-					origin: "center",
-					pos: vec2(-size / 3 * i, size * 0.5),
-					color: rgb(255, 255, 255),
-					radius: 2,
+					width: size,
+					height: size,
+					origin: "topright",
+					color: rgb(0, 0, 0),
+					opacity: 0.8,
+					radius: 4,
 					fixed: true,
 				})
-			}
 
-			popTransform()
+				// pause icon
+				for (let i = 1; i <= 2; i++) {
+					drawRect({
+						width: 4,
+						height: size * 0.6,
+						origin: "center",
+						pos: vec2(-size / 3 * i, size * 0.5),
+						color: rgb(255, 255, 255),
+						radius: 2,
+						fixed: true,
+					})
+				}
+
+				popTransform()
+
+			})
 
 		}
 
 		if (debug.timeScale !== 1) {
 
-			// bottom right corner
-			pushTransform()
-			pushTranslate(width(), height())
-			pushScale(1 / app.scale)
-			pushTranslate(-8, -8)
+			drawUnscaled(() => {
 
-			const pad = 8
+				// bottom right corner
+				pushTransform()
+				pushTranslate(width(), height())
+				pushTranslate(-8, -8)
 
-			// format text first to get text size
-			const ftxt = formatText({
-				text: debug.timeScale.toFixed(1),
-				font: DBG_FONT,
-				size: 16,
-				color: rgb(255, 255, 255),
-				pos: vec2(-pad),
-				origin: "botright",
-				fixed: true,
-			})
+				const pad = 8
 
-			// bg
-			drawRect({
-				width: ftxt.width + pad * 2 + pad * 4,
-				height: ftxt.height + pad * 2,
-				origin: "botright",
-				color: rgb(0, 0, 0),
-				opacity: 0.8,
-				radius: 4,
-				fixed: true,
-			})
-
-			// fast forward / slow down icon
-			for (let i = 0; i < 2; i++) {
-				const flipped = debug.timeScale < 1
-				drawTriangle({
-					p1: vec2(-ftxt.width - pad * (flipped ? 2 : 3.5), -pad),
-					p2: vec2(-ftxt.width - pad * (flipped ? 2 : 3.5), -pad - ftxt.height),
-					p3: vec2(-ftxt.width - pad * (flipped ? 3.5 : 2), -pad - ftxt.height / 2),
-					pos: vec2(-i * pad * 1 + (flipped ? -pad * 0.5 : 0), 0),
+				// format text first to get text size
+				const ftxt = formatText({
+					text: debug.timeScale.toFixed(1),
+					font: DBG_FONT,
+					size: 16,
 					color: rgb(255, 255, 255),
+					pos: vec2(-pad),
+					origin: "botright",
 					fixed: true,
 				})
-			}
 
-			// text
-			drawFormattedText(ftxt)
+				// bg
+				drawRect({
+					width: ftxt.width + pad * 2 + pad * 4,
+					height: ftxt.height + pad * 2,
+					origin: "botright",
+					color: rgb(0, 0, 0),
+					opacity: 0.8,
+					radius: 4,
+					fixed: true,
+				})
 
-			popTransform()
+				// fast forward / slow down icon
+				for (let i = 0; i < 2; i++) {
+					const flipped = debug.timeScale < 1
+					drawTriangle({
+						p1: vec2(-ftxt.width - pad * (flipped ? 2 : 3.5), -pad),
+						p2: vec2(-ftxt.width - pad * (flipped ? 2 : 3.5), -pad - ftxt.height),
+						p3: vec2(-ftxt.width - pad * (flipped ? 3.5 : 2), -pad - ftxt.height / 2),
+						pos: vec2(-i * pad * 1 + (flipped ? -pad * 0.5 : 0), 0),
+						color: rgb(255, 255, 255),
+						fixed: true,
+					})
+				}
+
+				// text
+				drawFormattedText(ftxt)
+
+				popTransform()
+
+			})
 
 		}
 
 		if (debug.curRecording) {
 
-			pushTransform()
-			pushTranslate(0, height())
-			pushScale(1 / app.scale)
-			pushTranslate(24, -24)
+			drawUnscaled(() => {
 
-			drawCircle({
-				radius: 12,
-				color: rgb(255, 0, 0),
-				opacity: wave(0, 1, time() * 4),
-				fixed: true,
+				pushTransform()
+				pushTranslate(0, height())
+				pushTranslate(24, -24)
+
+				drawCircle({
+					radius: 12,
+					color: rgb(255, 0, 0),
+					opacity: wave(0, 1, time() * 4),
+					fixed: true,
+				})
+
+				popTransform()
+
 			})
-
-			popTransform()
 
 		}
 
 		if (debug.showLog && game.logs.length > 0) {
 
-			pushTransform()
-			pushTranslate(0, height())
-			pushScale(1 / app.scale)
-			pushTranslate(8, -8)
+			drawUnscaled(() => {
 
-			const pad = 8
-			const max = gopt.logMax ?? LOG_MAX
+				pushTransform()
+				pushTranslate(0, height())
+				pushTranslate(8, -8)
 
-			if (game.logs.length > max) {
-				game.logs = game.logs.slice(0, max)
-			}
+				const pad = 8
+				const max = gopt.logMax ?? LOG_MAX
 
-			const ftext = formatText({
-				text: game.logs.join("\n"),
-				font: DBG_FONT,
-				pos: vec2(pad, -pad),
-				origin: "botleft",
-				size: 16,
-				width: width() * app.scale * 0.6,
-				lineSpacing: pad / 2,
-				fixed: true,
-				styles: {
-					"time": { color: rgb(127, 127, 127) },
-					"info": { color: rgb(255, 255, 255) },
-					"error": { color: rgb(255, 0, 127) },
-				},
+				if (game.logs.length > max) {
+					game.logs = game.logs.slice(0, max)
+				}
+
+				const ftext = formatText({
+					text: game.logs.join("\n"),
+					font: DBG_FONT,
+					pos: vec2(pad, -pad),
+					origin: "botleft",
+					size: 16,
+					width: width() * 0.6,
+					lineSpacing: pad / 2,
+					fixed: true,
+					styles: {
+						"time": { color: rgb(127, 127, 127) },
+						"info": { color: rgb(255, 255, 255) },
+						"error": { color: rgb(255, 0, 127) },
+					},
+				})
+
+				drawRect({
+					width: ftext.width + pad * 2,
+					height: ftext.height + pad * 2,
+					origin: "botleft",
+					color: rgb(0, 0, 0),
+					radius: 4,
+					opacity: 0.8,
+					fixed: true,
+				})
+
+				drawFormattedText(ftext)
+				popTransform()
+
 			})
-
-			drawRect({
-				width: ftext.width + pad * 2,
-				height: ftext.height + pad * 2,
-				origin: "botleft",
-				color: rgb(0, 0, 0),
-				radius: 4,
-				opacity: 0.8,
-				fixed: true,
-			})
-
-			drawFormattedText(ftext)
-			popTransform()
 
 		}
 
