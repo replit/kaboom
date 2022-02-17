@@ -492,6 +492,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			isKeyPressed: false,
 			isKeyPressedRepeat: false,
 			isKeyReleased: false,
+			mouseStarted: false,
 			mousePos: vec2(0, 0),
 			mouseDeltaPos: vec2(0, 0),
 
@@ -1720,17 +1721,19 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		gl.clear(gl.COLOR_BUFFER_BIT)
 
 		if (!gopt.background) {
-			drawUVQuad({
-				width: width(),
-				height: height(),
-				quad: new Quad(
-					0,
-					0,
-					width() * app.scale / BG_GRID_SIZE,
-					height() * app.scale / BG_GRID_SIZE,
-				),
-				tex: gfx.bgTex,
-				fixed: true,
+			drawUnscaled(() => {
+				drawUVQuad({
+					width: width(),
+					height: height(),
+					quad: new Quad(
+						0,
+						0,
+						width() / BG_GRID_SIZE,
+						height() / BG_GRID_SIZE,
+					),
+					tex: gfx.bgTex,
+					fixed: true,
+				})
 			})
 		}
 
@@ -2323,6 +2326,18 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		drawStenciled(content, mask, gl.NOTEQUAL)
 	}
 
+	function drawUnscaled(content: () => void) {
+		flush()
+		const ow = gfx.width
+		const oh = gfx.height
+		gfx.width = gfx.viewport.width
+		gfx.height = gfx.viewport.height
+		content()
+		flush()
+		gfx.width = ow
+		gfx.height = oh
+	}
+
 	function applyCharTransform(fchar: FormattedChar, tr: CharTransform) {
 		if (tr.pos) fchar.pos = fchar.pos.add(tr.pos)
 		if (tr.scale) fchar.scale = fchar.scale.scale(vec2(tr.scale))
@@ -2658,6 +2673,10 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	// update viewport based on user setting and fullscreen state
 	function updateViewport() {
 
+		// content size (scaled content size, with scale, stretch and letterbox)
+		// view size (unscaled viewport size)
+		// window size (will be the same as view size except letterbox mode)
+
 		// canvas size
 		const pd = app.pixelDensity
 		const cw = gl.drawingBufferWidth / pd
@@ -2781,13 +2800,27 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	const docEvents: EventList<DocumentEventMap> = {}
 	const winEvents: EventList<WindowEventMap> = {}
 
-	canvasEvents.mousemove = (e) => {
-		app.mousePos = vec2(
-			(e.offsetX - gfx.viewport.x) * width() / gfx.viewport.width,
-			(e.offsetY - gfx.viewport.y) * height() / gfx.viewport.height,
+	// transform a point from window space to content space
+	function toContent(x: number, y: number) {
+		return vec2(
+			(x - gfx.viewport.x) * width() / gfx.viewport.width,
+			(y - gfx.viewport.y) * height() / gfx.viewport.height,
 		)
-		app.mouseDeltaPos = vec2(e.movementX, e.movementY).scale(1 / app.scale)
+	}
+
+	// set game mouse pos from window mouse pos
+	function setMousePos(x: number, y: number) {
+		const mpos = toContent(x, y)
+		if (app.mouseStarted) {
+			app.mouseDeltaPos = mpos.sub(app.mousePos)
+		}
+		app.mousePos = mpos
+		app.mouseStarted = true
 		app.isMouseMoved = true
+	}
+
+	canvasEvents.mousemove = (e) => {
+		setMousePos(e.offsetX, e.offsetY)
 	}
 
 	canvasEvents.mousedown = (e) => {
@@ -2840,46 +2873,42 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	}
 
 	canvasEvents.touchstart = (e) => {
-		if (!gopt.touchToMouse) return
 		// disable long tap context menu
 		e.preventDefault()
-		const t = e.touches[0]
-		app.mousePos = vec2(t.clientX, t.clientY).scale(1 / app.scale)
-		app.mouseStates["left"] = "pressed"
+		const touches = [...e.changedTouches]
+		touches.forEach((t) => {
+			game.ev.trigger("onTouchStart", t.identifier, toContent(t.clientX, t.clientY))
+		})
+		if (gopt.touchToMouse !== false) {
+			setMousePos(touches[0].clientX, touches[0].clientY)
+			app.mouseStates["left"] = "pressed"
+		}
 	}
 
 	canvasEvents.touchmove = (e) => {
-		if (!gopt.touchToMouse) return
 		// disable scrolling
 		e.preventDefault()
-		const t = e.touches[0]
-		app.mousePos = vec2(t.clientX, t.clientY).scale(1 / app.scale)
-		app.isMouseMoved = true
-	}
-
-	canvasEvents.touchstart = (e) => {
-		[...e.changedTouches].forEach((t) => {
-			game.ev.trigger("onTouchStart", t.identifier, vec2(t.clientX, t.clientY).scale(1 / app.scale))
+		const touches = [...e.changedTouches]
+		touches.forEach((t) => {
+			game.ev.trigger("onTouchMove", t.identifier, toContent(t.clientX, t.clientY))
 		})
-	}
-
-	canvasEvents.touchmove = (e) => {
-		[...e.changedTouches].forEach((t) => {
-			game.ev.trigger("onTouchMove", t.identifier, vec2(t.clientX, t.clientY).scale(1 / app.scale))
-		})
+		if (gopt.touchToMouse !== false) {
+			setMousePos(touches[0].clientX, touches[0].clientY)
+		}
 	}
 
 	canvasEvents.touchend = (e) => {
-		[...e.changedTouches].forEach((t) => {
-			game.ev.trigger("onTouchEnd", t.identifier, vec2(t.clientX, t.clientY).scale(1 / app.scale))
+		const touches = [...e.changedTouches]
+		touches.forEach((t) => {
+			game.ev.trigger("onTouchEnd", t.identifier, toContent(t.clientX, t.clientY))
 		})
-		if (gopt.touchToMouse) {
+		if (gopt.touchToMouse !== false) {
 			app.mouseStates["left"] = "released"
 		}
 	}
 
 	canvasEvents.touchcancel = () => {
-		if (gopt.touchToMouse) {
+		if (gopt.touchToMouse !== false) {
 			app.mouseStates["left"] = "released"
 		}
 	}
@@ -5262,7 +5291,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			.rotateZ(cam.angle)
 			.translate(cam.pos.scale(-1).add(shake))
 
-
 		game.root.draw()
 		flush()
 
@@ -5271,32 +5299,39 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	function drawLoadScreen() {
 
 		const progress = loadProgress()
-		const w = width() / 2
-		const h = 24 / app.scale
-		const pos = vec2(width() / 2, height() / 2).sub(vec2(w / 2, h / 2))
 
-		drawRect({
-			pos: vec2(0),
-			width: width(),
-			height: height(),
-			color: rgb(0, 0, 0),
+		drawUnscaled(() => {
+
+			const w = width() / 2
+			const h = 24
+			const pos = vec2(width() / 2, height() / 2).sub(vec2(w / 2, h / 2))
+
+			drawRect({
+				pos: vec2(0),
+				width: width(),
+				height: height(),
+				color: rgb(0, 0, 0),
+			})
+
+			drawRect({
+				pos: pos,
+				width: w,
+				height: h,
+				fill: false,
+				outline: {
+					width: 4,
+				},
+			})
+
+			drawRect({
+				pos: pos,
+				width: w * progress,
+				height: h,
+			})
+
 		})
 
-		drawRect({
-			pos: pos,
-			width: w,
-			height: h,
-			fill: false,
-			outline: {
-				width: 4 / app.scale,
-			},
-		})
-
-		drawRect({
-			pos: pos,
-			width: w * progress,
-			height: h,
-		})
+		game.ev.trigger("loading", progress)
 
 	}
 
@@ -5583,46 +5618,46 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		// TODO: this should only run once
 		run(() => {
 
-			// TODO: better tool for drawing without app.scale
-			pushTransform()
-			pushScale(1 / app.scale)
+			drawUnscaled(() => {
 
-			const pad = 32
-			const gap = 16
-			const gw = width() * app.scale
-			const gh = height() * app.scale
+				const pad = 32
+				const gap = 16
+				const gw = width()
+				const gh = height()
 
-			const textStyle = {
-				size: 24,
-				width: gw - pad * 2,
-				letterSpacing: 4,
-				lineSpacing: 4,
-				font: DBG_FONT,
-			}
+				const textStyle = {
+					size: 24,
+					width: gw - pad * 2,
+					letterSpacing: 4,
+					lineSpacing: 4,
+					font: DBG_FONT,
+				}
 
-			drawRect({
-				width: gw,
-				height: gh,
-				color: rgb(0, 0, 255),
+				drawRect({
+					width: gw,
+					height: gh,
+					color: rgb(0, 0, 255),
+				})
+
+				const title = formatText({
+					...textStyle,
+					text: err.name,
+					pos: vec2(pad),
+					color: rgb(255, 128, 0),
+				})
+
+				drawFormattedText(title)
+
+				drawText({
+					...textStyle,
+					text: err.message,
+					pos: vec2(pad, pad + title.height + gap),
+				})
+
+				popTransform()
+				game.ev.trigger("error", err)
+
 			})
-
-			const title = formatText({
-				...textStyle,
-				text: err.name,
-				pos: vec2(pad),
-				color: rgb(255, 128, 0),
-			})
-
-			drawFormattedText(title)
-
-			drawText({
-				...textStyle,
-				text: err.message,
-				pos: vec2(pad, pad + title.height + gap),
-			})
-
-			popTransform()
-			game.ev.trigger("error", err)
 
 		})
 
@@ -5781,7 +5816,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		if (!assets.loaded && gopt.loadingScreen !== false) {
 			// TODO: Currently if assets are not initially loaded no updates or timers will be run, however they will run if loadingScreen is set to false. What's the desired behavior or should we make them consistent?
 			drawLoadScreen()
-			game.ev.trigger("loading", lp)
 		} else {
 			game.ev.trigger("input")
 			if (!debug.paused) {
