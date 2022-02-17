@@ -26,6 +26,8 @@
 - fixed visual artifacts on text
 - added `onError()` to handle error or even custom error screen
 - added `onLoading()` to register a custom loading screen (see "loader" example)
+- fixed touches not treated as mouse
+- (**BREAK**) changed `onTouchStart()`, `onTouchMove()` and `onTouchEnd()` callback signature to `(pos: Vec2, touch: Touch) => void` (exposes the native `Touch` object)
 
 ### v2000.2.6
 
