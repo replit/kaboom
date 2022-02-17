@@ -95,7 +95,6 @@ import {
 	Tag,
 	Key,
 	MouseButton,
-	TouchID,
 	Collision,
 	PosComp,
 	ScaleComp,
@@ -2801,16 +2800,24 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	const winEvents: EventList<WindowEventMap> = {}
 
 	// transform a point from window space to content space
-	function toContent(x: number, y: number) {
+	function windowToContent(pt: Vec2) {
 		return vec2(
-			(x - gfx.viewport.x) * width() / gfx.viewport.width,
-			(y - gfx.viewport.y) * height() / gfx.viewport.height,
+			(pt.x - gfx.viewport.x) * width() / gfx.viewport.width,
+			(pt.y - gfx.viewport.y) * height() / gfx.viewport.height,
+		)
+	}
+
+	// transform a point from content space to view space
+	function contentToView(pt: Vec2) {
+		return vec2(
+			pt.x * gfx.viewport.width / gfx.width,
+			pt.y * gfx.viewport.height / gfx.height,
 		)
 	}
 
 	// set game mouse pos from window mouse pos
 	function setMousePos(x: number, y: number) {
-		const mpos = toContent(x, y)
+		const mpos = windowToContent(vec2(x, y))
 		if (app.mouseStarted) {
 			app.mouseDeltaPos = mpos.sub(app.mousePos)
 		}
@@ -2877,7 +2884,11 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		e.preventDefault()
 		const touches = [...e.changedTouches]
 		touches.forEach((t) => {
-			game.ev.trigger("onTouchStart", t.identifier, toContent(t.clientX, t.clientY))
+			game.ev.trigger(
+				"onTouchStart",
+				windowToContent(vec2(t.clientX, t.clientY)),
+				t,
+			)
 		})
 		if (gopt.touchToMouse !== false) {
 			setMousePos(touches[0].clientX, touches[0].clientY)
@@ -2890,7 +2901,11 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		e.preventDefault()
 		const touches = [...e.changedTouches]
 		touches.forEach((t) => {
-			game.ev.trigger("onTouchMove", t.identifier, toContent(t.clientX, t.clientY))
+			game.ev.trigger(
+				"onTouchMove",
+				windowToContent(vec2(t.clientX, t.clientY)),
+				t,
+			)
 		})
 		if (gopt.touchToMouse !== false) {
 			setMousePos(touches[0].clientX, touches[0].clientY)
@@ -2900,7 +2915,11 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	canvasEvents.touchend = (e) => {
 		const touches = [...e.changedTouches]
 		touches.forEach((t) => {
-			game.ev.trigger("onTouchEnd", t.identifier, toContent(t.clientX, t.clientY))
+			game.ev.trigger(
+				"onTouchEnd",
+				windowToContent(vec2(t.clientX, t.clientY)),
+				t,
+			)
 		})
 		if (gopt.touchToMouse !== false) {
 			app.mouseStates["left"] = "released"
@@ -3568,15 +3587,15 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		return game.ev.on("input", () => charInputted().forEach((ch) => f(ch)))
 	}
 
-	function onTouchStart(f: (id: TouchID, pos: Vec2) => void): EventCanceller {
+	function onTouchStart(f: (pos: Vec2, t: Touch) => void): EventCanceller {
 		return game.ev.on("onTouchStart", f)
 	}
 
-	function onTouchMove(f: (id: TouchID, pos: Vec2) => void): EventCanceller {
+	function onTouchMove(f: (pos: Vec2, t: Touch) => void): EventCanceller {
 		return game.ev.on("onTouchMove", f)
 	}
 
-	function onTouchEnd(f: (id: TouchID, pos: Vec2) => void): EventCanceller {
+	function onTouchEnd(f: (pos: Vec2, t: Touch) => void): EventCanceller {
 		return game.ev.on("onTouchEnd", f)
 	}
 
@@ -5335,46 +5354,48 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 	}
 
-	// TODO: use drawUnscaled()
 	function drawInspectText(pos, txt) {
 
-		const pad = vec2(8)
+		drawUnscaled(() => {
 
-		pushTransform()
-		pushTranslate(pos)
-		pushScale(1 / app.scale)
+			const pad = vec2(8)
 
-		const ftxt = formatText({
-			text: txt,
-			font: DBG_FONT,
-			size: 16,
-			pos: pad,
-			color: rgb(255, 255, 255),
-			fixed: true,
+			pushTransform()
+			pushTranslate(pos)
+
+			const ftxt = formatText({
+				text: txt,
+				font: DBG_FONT,
+				size: 16,
+				pos: pad,
+				color: rgb(255, 255, 255),
+				fixed: true,
+			})
+
+			const bw = ftxt.width + pad.x * 2
+			const bh = ftxt.height + pad.x * 2
+
+			if (pos.x + bw >= width()) {
+				pushTranslate(vec2(-bw, 0))
+			}
+
+			if (pos.y + bh >= height()) {
+				pushTranslate(vec2(0, -bh))
+			}
+
+			drawRect({
+				width: bw,
+				height: bh,
+				color: rgb(0, 0, 0),
+				radius: 4,
+				opacity: 0.8,
+				fixed: true,
+			})
+
+			drawFormattedText(ftxt)
+			popTransform()
+
 		})
-
-		const bw = ftxt.width + pad.x * 2
-		const bh = ftxt.height + pad.x * 2
-
-		if (pos.x + bw / app.scale >= width()) {
-			pushTranslate(vec2(-bw, 0))
-		}
-
-		if (pos.y + bh / app.scale >= height()) {
-			pushTranslate(vec2(0, -bh))
-		}
-
-		drawRect({
-			width: bw,
-			height: bh,
-			color: rgb(0, 0, 0),
-			radius: 4,
-			opacity: 0.8,
-			fixed: true,
-		})
-
-		drawFormattedText(ftxt)
-		popTransform()
 
 	}
 
@@ -5403,11 +5424,12 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 					}
 				}
 
-				const lwidth = (inspecting === obj ? 8 : 4) / app.scale
+				const lwidth = (inspecting === obj ? 8 : 4)
 				const a = obj.worldArea()
 				const w = a.p2.x - a.p1.x
 				const h = a.p2.y - a.p1.y
 
+				// TODO: lines should be drawUnscaled()
 				drawRect({
 					pos: a.p1,
 					width: w,
@@ -5435,11 +5457,11 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 					}
 				}
 
-				drawInspectText(mousePos(), lines.join("\n"))
+				drawInspectText(contentToView(mousePos()), lines.join("\n"))
 
 			}
 
-			drawInspectText(vec2(8 / app.scale), `FPS: ${debug.fps()}`)
+			drawInspectText(vec2(8), `FPS: ${debug.fps()}`)
 
 		}
 
