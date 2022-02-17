@@ -878,19 +878,19 @@ export interface KaboomCtx {
 	 *
 	 * @since v2000.1
 	 */
-	onTouchStart(action: (id: TouchID, pos: Vec2) => void): EventCanceller,
+	onTouchStart(action: (pos: Vec2, t: Touch) => void): EventCanceller,
 	/**
 	 * Register an event that runs whenever touch moves.
 	 *
 	 * @since v2000.1
 	 */
-	onTouchMove(action: (id: TouchID, pos: Vec2) => void): EventCanceller,
+	onTouchMove(action: (pos: Vec2, t: Touch) => void): EventCanceller,
 	/**
 	 * Register an event that runs when a touch ends.
 	 *
 	 * @since v2000.1
 	 */
-	onTouchEnd(action: (id: TouchID, pos: Vec2) => void): EventCanceller,
+	onTouchEnd(action: (pos: Vec2, t: Touch) => void): EventCanceller,
 	/**
 	 * Sets the root for all subsequent resource urls.
 	 *
@@ -2317,7 +2317,6 @@ export type GameObj<T = any> = GameObjRaw & MergeComps<T>
 
 export type SceneID = string
 export type SceneDef = (...args) => void
-export type TouchID = number
 
 /**
  * Cancel the event.

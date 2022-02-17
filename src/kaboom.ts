@@ -95,7 +95,6 @@ import {
 	Tag,
 	Key,
 	MouseButton,
-	TouchID,
 	Collision,
 	PosComp,
 	ScaleComp,
@@ -492,6 +491,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			isKeyPressed: false,
 			isKeyPressedRepeat: false,
 			isKeyReleased: false,
+			mouseStarted: false,
 			mousePos: vec2(0, 0),
 			mouseDeltaPos: vec2(0, 0),
 
@@ -1720,17 +1720,19 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		gl.clear(gl.COLOR_BUFFER_BIT)
 
 		if (!gopt.background) {
-			drawUVQuad({
-				width: width(),
-				height: height(),
-				quad: new Quad(
-					0,
-					0,
-					width() * app.scale / BG_GRID_SIZE,
-					height() * app.scale / BG_GRID_SIZE,
-				),
-				tex: gfx.bgTex,
-				fixed: true,
+			drawUnscaled(() => {
+				drawUVQuad({
+					width: width(),
+					height: height(),
+					quad: new Quad(
+						0,
+						0,
+						width() / BG_GRID_SIZE,
+						height() / BG_GRID_SIZE,
+					),
+					tex: gfx.bgTex,
+					fixed: true,
+				})
 			})
 		}
 
@@ -2323,6 +2325,18 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		drawStenciled(content, mask, gl.NOTEQUAL)
 	}
 
+	function drawUnscaled(content: () => void) {
+		flush()
+		const ow = gfx.width
+		const oh = gfx.height
+		gfx.width = gfx.viewport.width
+		gfx.height = gfx.viewport.height
+		content()
+		flush()
+		gfx.width = ow
+		gfx.height = oh
+	}
+
 	function applyCharTransform(fchar: FormattedChar, tr: CharTransform) {
 		if (tr.pos) fchar.pos = fchar.pos.add(tr.pos)
 		if (tr.scale) fchar.scale = fchar.scale.scale(vec2(tr.scale))
@@ -2658,6 +2672,10 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	// update viewport based on user setting and fullscreen state
 	function updateViewport() {
 
+		// content size (scaled content size, with scale, stretch and letterbox)
+		// view size (unscaled viewport size)
+		// window size (will be the same as view size except letterbox mode)
+
 		// canvas size
 		const pd = app.pixelDensity
 		const cw = gl.drawingBufferWidth / pd
@@ -2781,13 +2799,35 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	const docEvents: EventList<DocumentEventMap> = {}
 	const winEvents: EventList<WindowEventMap> = {}
 
-	canvasEvents.mousemove = (e) => {
-		app.mousePos = vec2(
-			(e.offsetX - gfx.viewport.x) * width() / gfx.viewport.width,
-			(e.offsetY - gfx.viewport.y) * height() / gfx.viewport.height,
+	// transform a point from window space to content space
+	function windowToContent(pt: Vec2) {
+		return vec2(
+			(pt.x - gfx.viewport.x) * width() / gfx.viewport.width,
+			(pt.y - gfx.viewport.y) * height() / gfx.viewport.height,
 		)
-		app.mouseDeltaPos = vec2(e.movementX, e.movementY).scale(1 / app.scale)
+	}
+
+	// transform a point from content space to view space
+	function contentToView(pt: Vec2) {
+		return vec2(
+			pt.x * gfx.viewport.width / gfx.width,
+			pt.y * gfx.viewport.height / gfx.height,
+		)
+	}
+
+	// set game mouse pos from window mouse pos
+	function setMousePos(x: number, y: number) {
+		const mpos = windowToContent(vec2(x, y))
+		if (app.mouseStarted) {
+			app.mouseDeltaPos = mpos.sub(app.mousePos)
+		}
+		app.mousePos = mpos
+		app.mouseStarted = true
 		app.isMouseMoved = true
+	}
+
+	canvasEvents.mousemove = (e) => {
+		setMousePos(e.offsetX, e.offsetY)
 	}
 
 	canvasEvents.mousedown = (e) => {
@@ -2840,46 +2880,54 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	}
 
 	canvasEvents.touchstart = (e) => {
-		if (!gopt.touchToMouse) return
 		// disable long tap context menu
 		e.preventDefault()
-		const t = e.touches[0]
-		app.mousePos = vec2(t.clientX, t.clientY).scale(1 / app.scale)
-		app.mouseStates["left"] = "pressed"
+		const touches = [...e.changedTouches]
+		touches.forEach((t) => {
+			game.ev.trigger(
+				"onTouchStart",
+				windowToContent(vec2(t.clientX, t.clientY)),
+				t,
+			)
+		})
+		if (gopt.touchToMouse !== false) {
+			setMousePos(touches[0].clientX, touches[0].clientY)
+			app.mouseStates["left"] = "pressed"
+		}
 	}
 
 	canvasEvents.touchmove = (e) => {
-		if (!gopt.touchToMouse) return
 		// disable scrolling
 		e.preventDefault()
-		const t = e.touches[0]
-		app.mousePos = vec2(t.clientX, t.clientY).scale(1 / app.scale)
-		app.isMouseMoved = true
-	}
-
-	canvasEvents.touchstart = (e) => {
-		[...e.changedTouches].forEach((t) => {
-			game.ev.trigger("onTouchStart", t.identifier, vec2(t.clientX, t.clientY).scale(1 / app.scale))
+		const touches = [...e.changedTouches]
+		touches.forEach((t) => {
+			game.ev.trigger(
+				"onTouchMove",
+				windowToContent(vec2(t.clientX, t.clientY)),
+				t,
+			)
 		})
-	}
-
-	canvasEvents.touchmove = (e) => {
-		[...e.changedTouches].forEach((t) => {
-			game.ev.trigger("onTouchMove", t.identifier, vec2(t.clientX, t.clientY).scale(1 / app.scale))
-		})
+		if (gopt.touchToMouse !== false) {
+			setMousePos(touches[0].clientX, touches[0].clientY)
+		}
 	}
 
 	canvasEvents.touchend = (e) => {
-		[...e.changedTouches].forEach((t) => {
-			game.ev.trigger("onTouchEnd", t.identifier, vec2(t.clientX, t.clientY).scale(1 / app.scale))
+		const touches = [...e.changedTouches]
+		touches.forEach((t) => {
+			game.ev.trigger(
+				"onTouchEnd",
+				windowToContent(vec2(t.clientX, t.clientY)),
+				t,
+			)
 		})
-		if (gopt.touchToMouse) {
+		if (gopt.touchToMouse !== false) {
 			app.mouseStates["left"] = "released"
 		}
 	}
 
 	canvasEvents.touchcancel = () => {
-		if (gopt.touchToMouse) {
+		if (gopt.touchToMouse !== false) {
 			app.mouseStates["left"] = "released"
 		}
 	}
@@ -3539,15 +3587,15 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		return game.ev.on("input", () => charInputted().forEach((ch) => f(ch)))
 	}
 
-	function onTouchStart(f: (id: TouchID, pos: Vec2) => void): EventCanceller {
+	function onTouchStart(f: (pos: Vec2, t: Touch) => void): EventCanceller {
 		return game.ev.on("onTouchStart", f)
 	}
 
-	function onTouchMove(f: (id: TouchID, pos: Vec2) => void): EventCanceller {
+	function onTouchMove(f: (pos: Vec2, t: Touch) => void): EventCanceller {
 		return game.ev.on("onTouchMove", f)
 	}
 
-	function onTouchEnd(f: (id: TouchID, pos: Vec2) => void): EventCanceller {
+	function onTouchEnd(f: (pos: Vec2, t: Touch) => void): EventCanceller {
 		return game.ev.on("onTouchEnd", f)
 	}
 
@@ -5262,7 +5310,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			.rotateZ(cam.angle)
 			.translate(cam.pos.scale(-1).add(shake))
 
-
 		game.root.draw()
 		flush()
 
@@ -5271,74 +5318,84 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	function drawLoadScreen() {
 
 		const progress = loadProgress()
-		const w = width() / 2
-		const h = 24 / app.scale
-		const pos = vec2(width() / 2, height() / 2).sub(vec2(w / 2, h / 2))
 
-		drawRect({
-			pos: vec2(0),
-			width: width(),
-			height: height(),
-			color: rgb(0, 0, 0),
+		drawUnscaled(() => {
+
+			const w = width() / 2
+			const h = 24
+			const pos = vec2(width() / 2, height() / 2).sub(vec2(w / 2, h / 2))
+
+			drawRect({
+				pos: vec2(0),
+				width: width(),
+				height: height(),
+				color: rgb(0, 0, 0),
+			})
+
+			drawRect({
+				pos: pos,
+				width: w,
+				height: h,
+				fill: false,
+				outline: {
+					width: 4,
+				},
+			})
+
+			drawRect({
+				pos: pos,
+				width: w * progress,
+				height: h,
+			})
+
 		})
 
-		drawRect({
-			pos: pos,
-			width: w,
-			height: h,
-			fill: false,
-			outline: {
-				width: 4 / app.scale,
-			},
-		})
-
-		drawRect({
-			pos: pos,
-			width: w * progress,
-			height: h,
-		})
+		game.ev.trigger("loading", progress)
 
 	}
 
 	function drawInspectText(pos, txt) {
 
-		const pad = vec2(8)
+		drawUnscaled(() => {
 
-		pushTransform()
-		pushTranslate(pos)
-		pushScale(1 / app.scale)
+			const pad = vec2(8)
 
-		const ftxt = formatText({
-			text: txt,
-			font: DBG_FONT,
-			size: 16,
-			pos: pad,
-			color: rgb(255, 255, 255),
-			fixed: true,
+			pushTransform()
+			pushTranslate(pos)
+
+			const ftxt = formatText({
+				text: txt,
+				font: DBG_FONT,
+				size: 16,
+				pos: pad,
+				color: rgb(255, 255, 255),
+				fixed: true,
+			})
+
+			const bw = ftxt.width + pad.x * 2
+			const bh = ftxt.height + pad.x * 2
+
+			if (pos.x + bw >= width()) {
+				pushTranslate(vec2(-bw, 0))
+			}
+
+			if (pos.y + bh >= height()) {
+				pushTranslate(vec2(0, -bh))
+			}
+
+			drawRect({
+				width: bw,
+				height: bh,
+				color: rgb(0, 0, 0),
+				radius: 4,
+				opacity: 0.8,
+				fixed: true,
+			})
+
+			drawFormattedText(ftxt)
+			popTransform()
+
 		})
-
-		const bw = ftxt.width + pad.x * 2
-		const bh = ftxt.height + pad.x * 2
-
-		if (pos.x + bw / app.scale >= width()) {
-			pushTranslate(vec2(-bw, 0))
-		}
-
-		if (pos.y + bh / app.scale >= height()) {
-			pushTranslate(vec2(0, -bh))
-		}
-
-		drawRect({
-			width: bw,
-			height: bh,
-			color: rgb(0, 0, 0),
-			radius: 4,
-			opacity: 0.8,
-			fixed: true,
-		})
-
-		drawFormattedText(ftxt)
-		popTransform()
 
 	}
 
@@ -5367,11 +5424,12 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 					}
 				}
 
-				const lwidth = (inspecting === obj ? 8 : 4) / app.scale
+				const lwidth = (inspecting === obj ? 8 : 4)
 				const a = obj.worldArea()
 				const w = a.p2.x - a.p1.x
 				const h = a.p2.y - a.p1.y
 
+				// TODO: lines should be drawUnscaled()
 				drawRect({
 					pos: a.p1,
 					width: w,
@@ -5399,164 +5457,176 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 					}
 				}
 
-				drawInspectText(mousePos(), lines.join("\n"))
+				drawInspectText(contentToView(mousePos()), lines.join("\n"))
 
 			}
 
-			drawInspectText(vec2(8 / app.scale), `FPS: ${debug.fps()}`)
+			drawInspectText(vec2(8), `FPS: ${debug.fps()}`)
 
 		}
 
 		if (debug.paused) {
 
-			// top right corner
-			pushTransform()
-			pushTranslate(width(), 0)
-			pushScale(1 / app.scale)
-			pushTranslate(-8, 8)
+			drawUnscaled(() => {
 
-			const size = 32
+				// top right corner
+				pushTransform()
+				pushTranslate(width(), 0)
+				pushTranslate(-8, 8)
 
-			// bg
-			drawRect({
-				width: size,
-				height: size,
-				origin: "topright",
-				color: rgb(0, 0, 0),
-				opacity: 0.8,
-				radius: 4,
-				fixed: true,
-			})
+				const size = 32
 
-			// pause icon
-			for (let i = 1; i <= 2; i++) {
+				// bg
 				drawRect({
-					width: 4,
-					height: size * 0.6,
-					origin: "center",
-					pos: vec2(-size / 3 * i, size * 0.5),
-					color: rgb(255, 255, 255),
-					radius: 2,
+					width: size,
+					height: size,
+					origin: "topright",
+					color: rgb(0, 0, 0),
+					opacity: 0.8,
+					radius: 4,
 					fixed: true,
 				})
-			}
 
-			popTransform()
+				// pause icon
+				for (let i = 1; i <= 2; i++) {
+					drawRect({
+						width: 4,
+						height: size * 0.6,
+						origin: "center",
+						pos: vec2(-size / 3 * i, size * 0.5),
+						color: rgb(255, 255, 255),
+						radius: 2,
+						fixed: true,
+					})
+				}
+
+				popTransform()
+
+			})
 
 		}
 
 		if (debug.timeScale !== 1) {
 
-			// bottom right corner
-			pushTransform()
-			pushTranslate(width(), height())
-			pushScale(1 / app.scale)
-			pushTranslate(-8, -8)
+			drawUnscaled(() => {
 
-			const pad = 8
+				// bottom right corner
+				pushTransform()
+				pushTranslate(width(), height())
+				pushTranslate(-8, -8)
 
-			// format text first to get text size
-			const ftxt = formatText({
-				text: debug.timeScale.toFixed(1),
-				font: DBG_FONT,
-				size: 16,
-				color: rgb(255, 255, 255),
-				pos: vec2(-pad),
-				origin: "botright",
-				fixed: true,
-			})
+				const pad = 8
 
-			// bg
-			drawRect({
-				width: ftxt.width + pad * 2 + pad * 4,
-				height: ftxt.height + pad * 2,
-				origin: "botright",
-				color: rgb(0, 0, 0),
-				opacity: 0.8,
-				radius: 4,
-				fixed: true,
-			})
-
-			// fast forward / slow down icon
-			for (let i = 0; i < 2; i++) {
-				const flipped = debug.timeScale < 1
-				drawTriangle({
-					p1: vec2(-ftxt.width - pad * (flipped ? 2 : 3.5), -pad),
-					p2: vec2(-ftxt.width - pad * (flipped ? 2 : 3.5), -pad - ftxt.height),
-					p3: vec2(-ftxt.width - pad * (flipped ? 3.5 : 2), -pad - ftxt.height / 2),
-					pos: vec2(-i * pad * 1 + (flipped ? -pad * 0.5 : 0), 0),
+				// format text first to get text size
+				const ftxt = formatText({
+					text: debug.timeScale.toFixed(1),
+					font: DBG_FONT,
+					size: 16,
 					color: rgb(255, 255, 255),
+					pos: vec2(-pad),
+					origin: "botright",
 					fixed: true,
 				})
-			}
 
-			// text
-			drawFormattedText(ftxt)
+				// bg
+				drawRect({
+					width: ftxt.width + pad * 2 + pad * 4,
+					height: ftxt.height + pad * 2,
+					origin: "botright",
+					color: rgb(0, 0, 0),
+					opacity: 0.8,
+					radius: 4,
+					fixed: true,
+				})
 
-			popTransform()
+				// fast forward / slow down icon
+				for (let i = 0; i < 2; i++) {
+					const flipped = debug.timeScale < 1
+					drawTriangle({
+						p1: vec2(-ftxt.width - pad * (flipped ? 2 : 3.5), -pad),
+						p2: vec2(-ftxt.width - pad * (flipped ? 2 : 3.5), -pad - ftxt.height),
+						p3: vec2(-ftxt.width - pad * (flipped ? 3.5 : 2), -pad - ftxt.height / 2),
+						pos: vec2(-i * pad * 1 + (flipped ? -pad * 0.5 : 0), 0),
+						color: rgb(255, 255, 255),
+						fixed: true,
+					})
+				}
+
+				// text
+				drawFormattedText(ftxt)
+
+				popTransform()
+
+			})
 
 		}
 
 		if (debug.curRecording) {
 
-			pushTransform()
-			pushTranslate(0, height())
-			pushScale(1 / app.scale)
-			pushTranslate(24, -24)
+			drawUnscaled(() => {
 
-			drawCircle({
-				radius: 12,
-				color: rgb(255, 0, 0),
-				opacity: wave(0, 1, time() * 4),
-				fixed: true,
+				pushTransform()
+				pushTranslate(0, height())
+				pushTranslate(24, -24)
+
+				drawCircle({
+					radius: 12,
+					color: rgb(255, 0, 0),
+					opacity: wave(0, 1, time() * 4),
+					fixed: true,
+				})
+
+				popTransform()
+
 			})
-
-			popTransform()
 
 		}
 
 		if (debug.showLog && game.logs.length > 0) {
 
-			pushTransform()
-			pushTranslate(0, height())
-			pushScale(1 / app.scale)
-			pushTranslate(8, -8)
+			drawUnscaled(() => {
 
-			const pad = 8
-			const max = gopt.logMax ?? LOG_MAX
+				pushTransform()
+				pushTranslate(0, height())
+				pushTranslate(8, -8)
 
-			if (game.logs.length > max) {
-				game.logs = game.logs.slice(0, max)
-			}
+				const pad = 8
+				const max = gopt.logMax ?? LOG_MAX
 
-			const ftext = formatText({
-				text: game.logs.join("\n"),
-				font: DBG_FONT,
-				pos: vec2(pad, -pad),
-				origin: "botleft",
-				size: 16,
-				width: width() * app.scale * 0.6,
-				lineSpacing: pad / 2,
-				fixed: true,
-				styles: {
-					"time": { color: rgb(127, 127, 127) },
-					"info": { color: rgb(255, 255, 255) },
-					"error": { color: rgb(255, 0, 127) },
-				},
+				if (game.logs.length > max) {
+					game.logs = game.logs.slice(0, max)
+				}
+
+				const ftext = formatText({
+					text: game.logs.join("\n"),
+					font: DBG_FONT,
+					pos: vec2(pad, -pad),
+					origin: "botleft",
+					size: 16,
+					width: width() * 0.6,
+					lineSpacing: pad / 2,
+					fixed: true,
+					styles: {
+						"time": { color: rgb(127, 127, 127) },
+						"info": { color: rgb(255, 255, 255) },
+						"error": { color: rgb(255, 0, 127) },
+					},
+				})
+
+				drawRect({
+					width: ftext.width + pad * 2,
+					height: ftext.height + pad * 2,
+					origin: "botleft",
+					color: rgb(0, 0, 0),
+					radius: 4,
+					opacity: 0.8,
+					fixed: true,
+				})
+
+				drawFormattedText(ftext)
+				popTransform()
+
 			})
-
-			drawRect({
-				width: ftext.width + pad * 2,
-				height: ftext.height + pad * 2,
-				origin: "botleft",
-				color: rgb(0, 0, 0),
-				radius: 4,
-				opacity: 0.8,
-				fixed: true,
-			})
-
-			drawFormattedText(ftext)
-			popTransform()
 
 		}
 
@@ -5583,46 +5653,46 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		// TODO: this should only run once
 		run(() => {
 
-			// TODO: better tool for drawing without app.scale
-			pushTransform()
-			pushScale(1 / app.scale)
+			drawUnscaled(() => {
 
-			const pad = 32
-			const gap = 16
-			const gw = width() * app.scale
-			const gh = height() * app.scale
+				const pad = 32
+				const gap = 16
+				const gw = width()
+				const gh = height()
 
-			const textStyle = {
-				size: 24,
-				width: gw - pad * 2,
-				letterSpacing: 4,
-				lineSpacing: 4,
-				font: DBG_FONT,
-			}
+				const textStyle = {
+					size: 24,
+					width: gw - pad * 2,
+					letterSpacing: 4,
+					lineSpacing: 4,
+					font: DBG_FONT,
+				}
 
-			drawRect({
-				width: gw,
-				height: gh,
-				color: rgb(0, 0, 255),
+				drawRect({
+					width: gw,
+					height: gh,
+					color: rgb(0, 0, 255),
+				})
+
+				const title = formatText({
+					...textStyle,
+					text: err.name,
+					pos: vec2(pad),
+					color: rgb(255, 128, 0),
+				})
+
+				drawFormattedText(title)
+
+				drawText({
+					...textStyle,
+					text: err.message,
+					pos: vec2(pad, pad + title.height + gap),
+				})
+
+				popTransform()
+				game.ev.trigger("error", err)
+
 			})
-
-			const title = formatText({
-				...textStyle,
-				text: err.name,
-				pos: vec2(pad),
-				color: rgb(255, 128, 0),
-			})
-
-			drawFormattedText(title)
-
-			drawText({
-				...textStyle,
-				text: err.message,
-				pos: vec2(pad, pad + title.height + gap),
-			})
-
-			popTransform()
-			game.ev.trigger("error", err)
 
 		})
 
@@ -5781,7 +5851,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		if (!assets.loaded && gopt.loadingScreen !== false) {
 			// TODO: Currently if assets are not initially loaded no updates or timers will be run, however they will run if loadingScreen is set to false. What's the desired behavior or should we make them consistent?
 			drawLoadScreen()
-			game.ev.trigger("loading", lp)
 		} else {
 			game.ev.trigger("input")
 			if (!debug.paused) {
