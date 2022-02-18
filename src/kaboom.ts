@@ -437,13 +437,17 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		// global pixel scale
 		const gscale = gopt.scale ?? 1
 
+		const stretchToParent = !(gopt.width && gopt.height && !gopt.stretch && !gopt.letterbox)
+		const pw = canvas.parentElement.offsetWidth
+		const ph = canvas.parentElement.offsetHeight
+
 		// adjust canvas size according to user size / viewport settings
-		if (gopt.width && gopt.height && !gopt.stretch && !gopt.letterbox) {
+		if (stretchToParent) {
+			canvas.width = pw
+			canvas.height = ph
+		} else {
 			canvas.width = gopt.width * gscale
 			canvas.height = gopt.height * gscale
-		} else {
-			canvas.width = canvas.parentElement.offsetWidth
-			canvas.height = canvas.parentElement.offsetHeight
 		}
 
 		const cw = canvas.width
@@ -477,8 +481,11 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			canvas: canvas,
 			// for 2d context
 			canvas2: canvas.cloneNode() as HTMLCanvasElement,
-			scale: gscale,
 			pixelDensity: pixelDensity,
+
+			stretchToParent: stretchToParent,
+			lastParentWidth: pw,
+			lastParentHeight: ph,
 
 			// keep track of all button states
 			keyStates: {} as Record<Key, ButtonState>,
@@ -2676,6 +2683,20 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		// view size (unscaled viewport size)
 		// window size (will be the same as view size except letterbox mode)
 
+		// check for resize
+		if (app.stretchToParent) {
+			const pw = app.canvas.parentElement.offsetWidth
+			const ph = app.canvas.parentElement.offsetHeight
+			if (pw !== app.lastParentWidth || ph !== app.lastParentHeight) {
+				app.canvas.width = pw * app.pixelDensity
+				app.canvas.height = ph * app.pixelDensity
+				app.canvas.style.width = pw + "px"
+				app.canvas.style.height = ph + "px"
+			}
+			app.lastParentWidth = pw
+			app.lastParentHeight = ph
+		}
+
 		// canvas size
 		const pd = app.pixelDensity
 		const cw = gl.drawingBufferWidth / pd
@@ -2772,8 +2793,10 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			return
 		}
 
-		gfx.width = cw / app.scale
-		gfx.height = ch / app.scale
+		const scale = gopt.scale ?? 1
+
+		gfx.width = cw / scale
+		gfx.height = ch / scale
 		gl.viewport(0, 0, cw * pd, ch * pd)
 
 		gfx.viewport = {
@@ -2949,14 +2972,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				audio.ctx.suspend()
 				break
 		}
-	}
-
-	// TODO: not quite working
-	winEvents.resize = () => {
-		// if (!(gopt.width && gopt.height && !gopt.stretch)) {
-			// app.canvas.width = app.canvas.parentElement.offsetWidth
-			// app.canvas.height = app.canvas.parentElement.offsetHeight
-		// }
 	}
 
 	winEvents.error = (e) => handleErr(e.error)
