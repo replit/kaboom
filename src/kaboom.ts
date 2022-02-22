@@ -920,7 +920,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 		// camera
 		cam: {
-			pos: center(),
+			pos: null,
 			scale: vec2(1),
 			angle: 0,
 			shake: 0,
@@ -2697,7 +2697,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			app.lastParentWidth = pw
 			app.lastParentHeight = ph
 			// TODO: pass window / view / game size?
-			game.ev.trigger("resize")
+// 			game.ev.trigger("resize")
 		}
 
 		// canvas size
@@ -4974,7 +4974,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 			// cam
 			game.cam = {
-				pos: center(),
+				pos: null,
 				scale: vec2(1),
 				angle: 0,
 				shake: 0,
@@ -5327,7 +5327,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			.translate(center())
 			.scale(cam.scale)
 			.rotateZ(cam.angle)
-			.translate(cam.pos.scale(-1).add(shake))
+			.translate((cam.pos ?? center()).scale(-1).add(shake))
 
 		game.root.draw()
 		flush()
