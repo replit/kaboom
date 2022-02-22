@@ -2685,6 +2685,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 		// check for resize
 		if (app.stretchToParent) {
+			// TODO: update cam pos
 			const pw = app.canvas.parentElement.offsetWidth
 			const ph = app.canvas.parentElement.offsetHeight
 			if (pw !== app.lastParentWidth || ph !== app.lastParentHeight) {
@@ -2695,6 +2696,8 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			}
 			app.lastParentWidth = pw
 			app.lastParentHeight = ph
+			// TODO: pass window / view / game size?
+			game.ev.trigger("resize")
 		}
 
 		// canvas size
@@ -2906,6 +2909,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		// disable long tap context menu
 		e.preventDefault()
 		const touches = [...e.changedTouches]
+		// TODO: pass touchlist instead of individual touches
 		touches.forEach((t) => {
 			game.ev.trigger(
 				"onTouchStart",
