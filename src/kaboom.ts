@@ -1724,6 +1724,9 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	// start a rendering frame, reset some states
 	function frameStart() {
 
+		// running this every frame now mainly because isFullscreen() is not updated real time when requested fullscreen
+		updateViewport()
+
 		gl.clear(gl.COLOR_BUFFER_BIT)
 
 		if (!gopt.background) {
@@ -5854,9 +5857,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 	// main game loop
 	run(() => {
-
-		// running this every frame now mainly because isFullscreen() is not updated real time when requested fullscreen
-		updateViewport()
 
 		const lp = loadProgress()
 
