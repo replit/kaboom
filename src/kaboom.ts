@@ -713,8 +713,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 	})()
 
-	updateViewport()
-
 	class SpriteData {
 
 		tex: Texture
@@ -2694,11 +2692,16 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				app.canvas.height = ph * app.pixelDensity
 				app.canvas.style.width = pw + "px"
 				app.canvas.style.height = ph + "px"
+				const prevWidth = width()
+				const prevHeight = height()
+				// trigger "resize" on frame end so width() and height() will get the updated value
+				game.ev.onOnce("frameEnd", () => {
+					// should we also pass window / view size?
+					game.ev.trigger("resize", prevWidth, prevHeight, width(), height())
+				})
 			}
 			app.lastParentWidth = pw
 			app.lastParentHeight = ph
-			// TODO: pass window / view / game size?
-// 			game.ev.trigger("resize")
 		}
 
 		// canvas size
@@ -5601,6 +5604,15 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		game.ev.on("loading", action)
 	}
 
+	function onResize(action: (
+		prevWidth: number,
+		prevHeight: number,
+		curWidth: number,
+		curHeight: number,
+	) => void) {
+		game.ev.on("resize", action)
+	}
+
 	function onError(action: (err: Error) => void) {
 		game.ev.on("error", action)
 	}
@@ -5856,6 +5868,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		isFullscreen,
 		onLoad,
 		onLoading,
+		onResize,
 		onError,
 		isTouch: () => app.isTouch,
 		// misc
