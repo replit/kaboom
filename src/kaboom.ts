@@ -525,7 +525,7 @@ const gfx = (() => {
 
 	if (gopt.background) {
 		const c = Color.fromArray(gopt.background);
-		gl.clearColor(c.r / 255, c.g / 255, c.b / 255, 1);
+		gl.clearColor(c.r / 255, c.g / 255, c.b / 255, gopt.background[3] ?? 1);
 	}
 
 	gl.enable(gl.BLEND);

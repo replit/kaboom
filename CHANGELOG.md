@@ -1,3 +1,7 @@
+### v2000.2.9
+
+- allow transparent background with the 4th element in `background` option to `kaboom()`, e.g. `[0, 0, 0, 0]`
+
 ### v2000.2.8
 
 - fixed `onUpdate()` and `onDraw()` events kept running when scene changes
