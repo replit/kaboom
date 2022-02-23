@@ -3303,10 +3303,12 @@ export interface RNG {
 }
 
 export declare class Rect {
-	p1: Vec2
-	p2: Vec2
-	constructor(p1: Vec2, p2: Vec2)
-	static fromSize(pos: Vec2, width: number, height: number): Rect
+	pos: Vec2
+	width: number
+	height: number
+	constructor(pos: Vec2, width: number, height: number)
+	static fromPoints(p1: Vec2, p2: Vec2): Rect
+	points(): [Vec2, Vec2, Vec2, Vec2]
 	transform(m: Mat4): Polygon
 	bbox(): Rect
 }

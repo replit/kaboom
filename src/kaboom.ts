@@ -3848,7 +3848,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			require: [ "pos", "area" ],
 			isOutOfView(): boolean {
 				const offset = vec2(opt.offset ?? 0)
-				const screenRect = new Rect(
+				const screenRect = Rect.fromPoints(
 					vec2(0, 0).sub(offset),
 					vec2(width(), height()).add(offset),
 				)
@@ -4013,7 +4013,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				const orig = originPt(this.origin || DEF_ORIGIN).add(1, 1).scale(-0.5)
 				const bbox = localArea.bbox()
 				const transform = this.transform
-					.translate(orig.scale(bbox.p2.x - bbox.p1.x, bbox.p2.y - bbox.p1.y))
+					.translate(orig.scale(bbox.width, bbox.height))
 					.translate(this.area.offset)
 					.scale(this.area.scale)
 				return localArea.transform(transform)
@@ -4265,7 +4265,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			},
 
 			renderArea() {
-				return new Rect(vec2(0), vec2(this.width, this.height))
+				return new Rect(vec2(0), this.width, this.height)
 			},
 
 			inspect() {
@@ -4328,7 +4328,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			},
 
 			renderArea() {
-				return new Rect(vec2(0), vec2(this.width, this.height))
+				return new Rect(vec2(0), this.width, this.height)
 			},
 
 		}
@@ -4350,7 +4350,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				})
 			},
 			renderArea() {
-				return new Rect(vec2(0), vec2(this.width, this.height))
+				return new Rect(vec2(0), this.width, this.height)
 			},
 			inspect() {
 				return `${Math.ceil(this.width)}, ${Math.ceil(this.height)}`
@@ -4371,7 +4371,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				})
 			},
 			renderArea() {
-				return new Rect(vec2(0), vec2(this.width, this.height))
+				return new Rect(vec2(0), this.width, this.height)
 			},
 			inspect() {
 				return `${Math.ceil(this.width)}, ${Math.ceil(this.height)}`
@@ -5199,10 +5199,10 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				const bbox = area.bbox()
 
 				// Get spatial hash grid coverage
-				const xmin = Math.floor(bbox.p1.x / cellSize)
-				const ymin = Math.floor(bbox.p1.y / cellSize)
-				const xmax = Math.ceil((bbox.p2.x) / cellSize)
-				const ymax = Math.ceil((bbox.p2.y) / cellSize)
+				const xmin = Math.floor(bbox.pos.x / cellSize)
+				const ymin = Math.floor(bbox.pos.y / cellSize)
+				const xmax = Math.ceil((bbox.pos.x + bbox.width) / cellSize)
+				const ymax = Math.ceil((bbox.pos.y + bbox.height) / cellSize)
 
 				// Cache objs that are already checked
 				const checked = new Set()

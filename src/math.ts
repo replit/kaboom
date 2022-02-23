@@ -571,17 +571,17 @@ export function choose<T>(list: T[]): T {
 
 // TODO: better name
 export function testRectRect2(r1: Rect, r2: Rect): boolean {
-	return r1.p2.x >= r2.p1.x
-		&& r1.p1.x <= r2.p2.x
-		&& r1.p2.y >= r2.p1.y
-		&& r1.p1.y <= r2.p2.y
+	return r1.pos.x + r1.width >= r2.pos.x
+		&& r1.pos.x <= r2.pos.x + r1.width
+		&& r1.pos.y + r1.height >= r2.pos.y
+		&& r1.pos.y <= r2.pos.y + r2.height
 }
 
 export function testRectRect(r1: Rect, r2: Rect): boolean {
-	return r1.p2.x > r2.p1.x
-		&& r1.p1.x < r2.p2.x
-		&& r1.p2.y > r2.p1.y
-		&& r1.p1.y < r2.p2.y
+	return r1.pos.x + r1.width > r2.pos.x
+		&& r1.pos.x < r2.pos.x + r1.width
+		&& r1.pos.y + r1.height > r2.pos.y
+		&& r1.pos.y < r2.pos.y + r2.height
 }
 
 // TODO: better name
@@ -623,34 +623,36 @@ export function testRectLine(r: Rect, l: Line): boolean {
 	if (testRectPoint(r, Point.fromVec2(l.p1)) || testRectPoint(r, Point.fromVec2(l.p2))) {
 		return true
 	}
-	return !!testLineLine(l, new Line(r.p1, vec2(r.p2.x, r.p1.y)))
-		|| !!testLineLine(l, new Line(vec2(r.p2.x, r.p1.y), r.p2))
-		|| !!testLineLine(l, new Line(r.p2, vec2(r.p1.x, r.p2.y)))
-		|| !!testLineLine(l, new Line(vec2(r.p1.x, r.p2.y), r.p1))
+	const pts = r.points()
+	return !!testLineLine(l, new Line(pts[0], pts[1]))
+		|| !!testLineLine(l, new Line(pts[1], pts[2]))
+		|| !!testLineLine(l, new Line(pts[2], pts[3]))
+		|| !!testLineLine(l, new Line(pts[3], pts[0]))
 }
 
 export function testRectPoint2(r: Rect, pt: Point): boolean {
-	return pt.x >= r.p1.x && pt.x <= r.p2.x && pt.y >= r.p1.y && pt.y <= r.p2.y
+	return pt.x >= r.pos.x
+		&& pt.x <= r.pos.x + r.width
+		&& pt.y >= r.pos.y
+		&& pt.y <= r.pos.y + r.height
 }
 
 export function testRectPoint(r: Rect, pt: Point): boolean {
-	return pt.x > r.p1.x && pt.x < r.p2.x && pt.y > r.p1.y && pt.y < r.p2.y
+	return pt.x > r.pos.x
+		&& pt.x < r.pos.x + r.width
+		&& pt.y > r.pos.y
+		&& pt.y < r.pos.y + r.height
 }
 
 export function testRectCircle(r: Rect, c: Circle): boolean {
-	const nx = Math.max(r.p1.x, Math.min(c.center.x, r.p2.x))
-	const ny = Math.max(r.p1.y, Math.min(c.center.y, r.p2.y))
+	const nx = Math.max(r.pos.x, Math.min(c.center.x, r.pos.x + r.width))
+	const ny = Math.max(r.pos.y, Math.min(c.center.y, r.pos.y + r.height))
 	const nearestPoint = vec2(nx, ny)
 	return nearestPoint.dist(c.center) <= c.radius
 }
 
 export function testRectPolygon(r: Rect, p: Polygon): boolean {
-	return testPolygonPolygon(p, new Polygon([
-		r.p1,
-		vec2(r.p2.x, r.p1.y),
-		r.p2,
-		vec2(r.p1.x, r.p2.y),
-	]))
+	return testPolygonPolygon(p, new Polygon(r.points()))
 }
 
 // TODO
@@ -739,30 +741,35 @@ export class Line {
 		return new Line(m.multVec2(this.p1), m.multVec2(this.p2))
 	}
 	bbox(): Rect {
-		return new Rect(this.p1, this.p2)
+		return Rect.fromPoints(this.p1, this.p2)
 	}
 }
 
 export class Rect {
-	p1: Vec2
-	p2: Vec2
-	constructor(p1: Vec2, p2: Vec2) {
-		this.p1 = p1
-		this.p2 = p2
+	pos: Vec2
+	width: number
+	height: number
+	constructor(pos: Vec2, width: number, height: number) {
+		this.pos = pos
+		this.width = width
+		this.height = height
 	}
-	static fromSize(pos: Vec2, width: number, height: number): Rect {
-		return new Rect(pos, pos.add(width, height))
+	static fromPoints(p1: Vec2, p2: Vec2): Rect {
+		return new Rect(p1.clone(), p2.x - p1.x, p2.y - p1.y)
+	}
+	points(): [Vec2, Vec2, Vec2, Vec2] {
+		return [
+			this.pos,
+			this.pos.add(this.width, 0),
+			this.pos.add(this.width, this.height),
+			this.pos.add(0, this.height),
+		]
 	}
 	transform(m: Mat4): Polygon {
-		return new Polygon([
-			this.p1,
-			vec2(this.p2.x, this.p1.y),
-			this.p2,
-			vec2(this.p1.x, this.p2.y),
-		].map((pt) => m.multVec2(pt)))
+		return new Polygon(this.points().map((pt) => m.multVec2(pt)))
 	}
 	bbox(): Rect {
-		return new Rect(this.p1, this.p2)
+		return new Rect(this.pos.clone(), this.width, this.height)
 	}
 }
 
@@ -777,7 +784,7 @@ export class Circle {
 		return new Ellipse(this.center, this.radius, this.radius).transform(tr)
 	}
 	bbox(): Rect {
-		return new Rect(
+		return Rect.fromPoints(
 			this.center.sub(vec2(this.radius)),
 			this.center.add(vec2(this.radius)),
 		)
@@ -801,7 +808,7 @@ export class Ellipse {
 		)
 	}
 	bbox(): Rect {
-		return new Rect(
+		return Rect.fromPoints(
 			this.center.sub(vec2(this.radiusX, this.radiusY)),
 			this.center.add(vec2(this.radiusX, this.radiusY)),
 		)
@@ -820,14 +827,15 @@ export class Polygon {
 		return new Polygon(this.pts.map((pt) => m.multVec2(pt)))
 	}
 	bbox(): Rect {
-		const b = new Rect(vec2(Number.MAX_VALUE), vec2(-Number.MAX_VALUE))
+		const p1 = vec2(Number.MAX_VALUE)
+		const p2 = vec2(-Number.MAX_VALUE)
 		for (const pt of this.pts) {
-			b.p1.x = Math.min(b.p1.x, pt.x)
-			b.p2.x = Math.max(b.p2.x, pt.x)
-			b.p1.y = Math.min(b.p1.y, pt.y)
-			b.p2.y = Math.max(b.p2.y, pt.y)
+			p1.x = Math.min(p1.x, pt.x)
+			p2.x = Math.max(p2.x, pt.x)
+			p1.y = Math.min(p1.y, pt.y)
+			p2.y = Math.max(p2.y, pt.y)
 		}
-		return b
+		return Rect.fromPoints(p1, p2)
 	}
 }
 
@@ -848,7 +856,7 @@ export class Point {
 		return Point.fromVec2(tr.multVec2(this.toVec2()))
 	}
 	bbox(): Rect {
-		return new Rect(this.toVec2(), this.toVec2())
+		return new Rect(this.toVec2(), 0, 0)
 	}
 }
 
@@ -887,11 +895,4 @@ export function sat(p1: Polygon, p2: Polygon): Vec2 | null {
 		}
 	}
 	return displacement
-}
-
-export function minkDiff(r1: Rect, r2: Rect): Rect {
-	return new Rect(
-		vec2(r1.p1.x - r2.p2.x, r1.p1.y - r2.p2.y),
-		vec2(r1.p2.x - r2.p1.x, r1.p2.y - r2.p1.y),
-	)
 }
