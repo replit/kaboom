@@ -160,7 +160,7 @@ export function deprecate(oldName: string, newName: string, newFunc: (...args) =
 	}
 }
 
-export function benchmark(task: () => any, times: number = 1) {
+export function benchmark(task: () => void, times: number = 1) {
 	const t1 = performance.now()
 	for (let i = 0; i < times; i++) {
 		task()

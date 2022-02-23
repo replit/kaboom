@@ -1588,7 +1588,7 @@ export interface KaboomCtx {
 	/**
 	 * Check if a point is inside a rectangle.
 	 */
-	testRectPoint(r: Rect, pt: Vec2): boolean,
+	testRectPoint(r: Rect, pt: Point): boolean,
 	Line: typeof Line,
 	Rect: typeof Rect,
 	Circle: typeof Circle,
@@ -2129,6 +2129,12 @@ export interface KaboomOpt {
 	 */
 	logTime?: boolean,
 	/**
+	 * Size of the spatial hash grid for collision detection (default 64)
+	 *
+	 * @since v2001.0
+	 */
+	hashGridSize?: number,
+	/**
 	 * If translate touch events as mouse clicks (default true).
 	 */
 	touchToMouse?: boolean,
@@ -2287,7 +2293,7 @@ export interface GameObjRaw {
 	 */
 	onDestroy(action: () => void): EventCanceller,
 	/**
-	 * If game obj exists in scene.
+	 * If game obj is attached to the scene graph.
 	 */
 	exists(): boolean,
 	/**
@@ -2296,6 +2302,12 @@ export interface GameObjRaw {
 	 * @since v2001.0
 	 */
 	isAncestorOf(obj: GameObj): boolean,
+	/**
+	 * Calculated transform matrix of a game object.
+	 *
+	 * @since v2001.0
+	 */
+	transform: Mat4,
 	/**
 	 * If draw the game obj (run "draw" event or not).
 	 */
@@ -3176,6 +3188,12 @@ export declare class Vec2 {
 	 */
 	lerp(p: Vec2, t: number): Vec2
 	/**
+	 * If both x and y is 0.
+	 *
+	 * @since v2001.0
+	 */
+	isZero(): boolean
+	/**
 	 * To n precision floating point.
 	 */
 	toFixed(n: number): Vec2
@@ -3288,22 +3306,52 @@ export declare class Rect {
 	p1: Vec2
 	p2: Vec2
 	constructor(p1: Vec2, p2: Vec2)
+	static fromSize(pos: Vec2, width: number, height: number): Rect
+	transform(m: Mat4): Polygon
+	bbox(): Rect
 }
 
 export declare class Line {
 	p1: Vec2
 	p2: Vec2
 	constructor(p1: Vec2, p2: Vec2)
+	transform(m: Mat4): Line
+	bbox(): Rect
 }
 
 export declare class Circle {
 	center: Vec2
 	radius: number
 	constructor(pos: Vec2, radius: number)
+	transform(m: Mat4): Ellipse
+	bbox(): Rect
 }
 
-export type Polygon = Vec2[]
-export type Point = Vec2
+export declare class Ellipse {
+	center: Vec2
+	radiusX: number
+	radiusY: number
+	constructor(pos: Vec2, rx: number, ry: number)
+	transform(m: Mat4): Ellipse
+	bbox(): Rect
+}
+
+export declare class Polygon {
+	pts: Vec2[]
+	constructor(pts: Vec2[])
+	transform(m: Mat4): Polygon
+	bbox(): Rect
+}
+
+export declare class Point {
+	x: number
+	y: number
+	constructor(x: number, y: number)
+	static fromVec2(p: Vec2): Point
+	toVec2(): Vec2
+	transform(tr: Mat4): Point
+	bbox(): Rect
+}
 
 export declare class RNG {
 	seed: number
@@ -3522,21 +3570,13 @@ export interface AreaCompOpt {
 	 */
 	shape?: Shape,
 	/**
-	 * Position of area relative to position of the object.
-	 */
-	offset?: Vec2,
-	/**
-	 * Width of area.
-	 */
-	width?: number,
-	/**
-	 * Height of area.
-	 */
-	height?: number,
-	/**
 	 * Area scale.
 	 */
 	scale?: number | Vec2,
+	/**
+	 * Area offset.
+	 */
+	offset?: Vec2,
 	/**
 	 * Cursor on hover.
 	 */
@@ -3547,7 +3587,24 @@ export interface AreaComp extends Comp {
 	/**
 	 * Collider area info.
 	 */
-	area: AreaCompOpt,
+	area: {
+		/**
+		 * If we use a custom shape over render shape.
+		 */
+		shape: Shape | null,
+		/**
+		 * Area scale.
+		 */
+		scale: number | Vec2,
+		/**
+		 * Area offset.
+		 */
+		offset: Vec2,
+		/**
+		 * Cursor on hover.
+		 */
+		cursor: Cursor | null,
+	},
 	/**
 	 * If was just clicked on last frame.
 	 */
@@ -3557,9 +3614,16 @@ export interface AreaComp extends Comp {
 	 */
 	isHovering(): boolean,
 	/**
+	 * Check collision with another game obj.
+	 *
+	 * @since v2001.0
+	 * @returns The minimal displacement vector if collided
+	 */
+	checkCollision(other: GameObj<AreaComp>): Vec2 | null,
+	/**
 	 * If is currently colliding with another game obj.
 	 */
-	isColliding(o: GameObj): boolean,
+	isColliding(o: GameObj<AreaComp>): boolean,
 	/**
 	 * If is currently touching another game obj.
 	 */
@@ -3597,11 +3661,11 @@ export interface AreaComp extends Comp {
 	/**
 	 * Get the geometry data for the collider in world coordinate space.
 	 */
-	worldArea(): Area,
+	worldArea(): Polygon,
 	/**
 	 * Get the geometry data for the collider in screen coordinate space.
 	 */
-	screenArea(): Area,
+	screenArea(): Polygon,
 }
 
 export interface SpriteCompOpt {
@@ -3696,6 +3760,10 @@ export interface SpriteComp extends Comp {
 	 * Register an event that runs when an animation is ended.
 	 */
 	onAnimEnd(name: string, action: () => void): EventCanceller,
+	/**
+	 * @since v2001.0
+	 */
+	renderArea(): Rect,
 }
 
 export interface TextComp extends Comp {
@@ -3742,13 +3810,17 @@ export interface TextComp extends Comp {
 	 *
 	 * @since v2000.1
 	 */
-	transform: CharTransform | CharTransformFunc,
+	textTransform: CharTransform | CharTransformFunc,
 	/**
 	 * Stylesheet for styled chunks, in the syntax of "this is a [styled].stylename word".
 	 *
 	 * @since v2000.2
 	 */
-	styles: Record<string, CharTransform | CharTransformFunc>,
+	textStyles: Record<string, CharTransform | CharTransformFunc>,
+	/**
+	 * @since v2001.0
+	 */
+	renderArea(): Rect,
 }
 
 export interface TextCompOpt {
@@ -3816,6 +3888,10 @@ export interface RectComp extends Comp {
 	 * The radius of each corner.
 	 */
 	radius?: number,
+	/**
+	 * @since v2001.0
+	 */
+	renderArea(): Rect,
 }
 
 export interface CircleComp extends Comp {
@@ -3823,6 +3899,10 @@ export interface CircleComp extends Comp {
 	 * Radius of circle.
 	 */
 	radius: number,
+	/**
+	 * @since v2001.0
+	 */
+	renderArea(): Circle,
 }
 
 export interface UVQuadComp extends Comp {
@@ -3834,26 +3914,19 @@ export interface UVQuadComp extends Comp {
 	 * Height of height.
 	 */
 	height: number,
+	/**
+	 * @since v2001.0
+	 */
+	renderArea(): Rect,
 }
 
-/**
- * Union type for area / collider data of different shapes ("rect", "line", "circle", "point" and "polygon").
- */
-export type Area =
-	| { shape: "rect" } & Rect
-	| { shape: "line" } & Line
-	| { shape: "circle" } & Circle
-	| { shape: "point" } & { pt: Point }
-	| { shape: "polygon" } & { pts: Polygon }
-
-
 export type Shape =
-	| "rect"
-	| "line"
-	| "point"
-	| "circle"
-	| "polygon"
-
+	| Rect
+	| Line
+	| Point
+	| Circle
+	| Ellipse
+	| Polygon
 
 export interface OutlineComp extends Comp {
 	outline: Outline,
