@@ -4006,6 +4006,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				game.root.every(this.pushOut)
 			},
 
+			// TODO: cache
 			worldArea(): Polygon {
 				const localArea = this.area.shape
 					? this.area.shape
@@ -4013,9 +4014,9 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				const orig = originPt(this.origin || DEF_ORIGIN).add(1, 1).scale(-0.5)
 				const bbox = localArea.bbox()
 				const transform = this.transform
+					.scale(vec2(this.area.scale ?? 1))
 					.translate(orig.scale(bbox.width, bbox.height))
 					.translate(this.area.offset)
-					.scale(this.area.scale)
 				return localArea.transform(transform)
 			},
 
