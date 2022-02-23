@@ -5364,8 +5364,9 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			let inspecting = null
 			const lcolor = Color.fromArray(gopt.inspectColor ?? [0, 0, 255])
 
-			// draw area outline
-			game.root.every((obj) => {
+			const drawObjDebug = (obj: GameObj) => {
+
+				obj.every(drawObjDebug)
 
 				if (!obj.area) {
 					return
@@ -5396,7 +5397,9 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 					fixed: obj.fixed,
 				})
 
-			})
+			}
+
+			game.root.every(drawObjDebug)
 
 			if (inspecting) {
 
