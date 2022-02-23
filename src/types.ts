@@ -719,6 +719,17 @@ export interface KaboomCtx {
 	 */
 	onError(action: (err: Error) => void): void,
 	/**
+	 * Register an event that runs when the canvas resizes
+	 *
+	 * @since v2001.0
+	 */
+	onResize(action: (
+		prevWidth: number,
+		prevHeight: number,
+		curWidth: number,
+		curHeight: number,
+	) => void): void,
+	/**
 	 * Register an event that runs when 2 game objs with certain tags collides (required to have area() component).
 	 *
 	 * @since v2000.1
