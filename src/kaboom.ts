@@ -251,7 +251,8 @@ const DEF_FONT = "apl386o"
 const DBG_FONT = "sink"
 const DEF_TEXT_SIZE = 64
 const FONT_ATLAS_SIZE = 1024
-const TEXT_QUAD_PAD = 0.05
+// 0.05 pixel padding to quads to prevent artifact
+const QUAD_PAD = 0.05
 
 const LOG_MAX = 1
 
@@ -1024,6 +1025,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		const qh = h / y
 		for (let j = 0; j < y; j++) {
 			for (let i = 0; i < x; i++) {
+				// TODO: apply QUAD_PAD
 				frames.push(new Quad(
 					dx + i * qw,
 					dy + j * qh,
@@ -1130,10 +1132,10 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			const size = data.meta.size
 			spr.frames = data.frames.map((f: any) => {
 				return new Quad(
-					f.frame.x / size.w,
-					f.frame.y / size.h,
-					f.frame.w / size.w,
-					f.frame.h / size.h,
+					(f.frame.x + QUAD_PAD) / size.w,
+					(f.frame.y + QUAD_PAD) / size.h,
+					(f.frame.w - QUAD_PAD * 2) / size.w,
+					(f.frame.h - QUAD_PAD * 2) / size.h,
 				)
 			})
 			for (const anim of data.meta.frameTags) {
@@ -2552,10 +2554,10 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 						height: q.h,
 						// without some padding there'll be visual artifacts on edges
 						quad: new Quad(
-							(q.x + TEXT_QUAD_PAD) / font.tex.width,
-							(q.y + TEXT_QUAD_PAD) / font.tex.height,
-							(q.w - TEXT_QUAD_PAD * 2) / font.tex.width,
-							(q.h - TEXT_QUAD_PAD * 2) / font.tex.height,
+							(q.x + QUAD_PAD) / font.tex.width,
+							(q.y + QUAD_PAD) / font.tex.height,
+							(q.w - QUAD_PAD * 2) / font.tex.width,
+							(q.h - QUAD_PAD * 2) / font.tex.height,
 						),
 						ch: ch,
 						pos: vec2(curX, th),
