@@ -1851,37 +1851,25 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		drawRaw([
 			{
 				pos: vec3(-w / 2, h / 2, 0),
-				uv: vec2(
-					opt.flipX ? qx + qw : qx,
-					opt.flipY ? qy : qy + qh,
-				),
+				uv: vec2(opt.flipX ? qx + qw : qx, opt.flipY ? qy : qy + qh),
 				color: color,
 				opacity: opacity,
 			},
 			{
 				pos: vec3(-w / 2, -h / 2, 0),
-				uv: vec2(
-					opt.flipX ? qx + qw : qx,
-					opt.flipY ? qy + qh : qy,
-				),
+				uv: vec2(opt.flipX ? qx + qw : qx, opt.flipY ? qy + qh : qy),
 				color: color,
 				opacity: opacity,
 			},
 			{
 				pos: vec3(w / 2, -h / 2, 0),
-				uv: vec2(
-					opt.flipX ? qx : qx + qw,
-					opt.flipY ? qy + qh : qy,
-				),
+				uv: vec2(opt.flipX ? qx : qx + qw, opt.flipY ? qy + qh : qy),
 				color: color,
 				opacity: opacity,
 			},
 			{
 				pos: vec3(w / 2, h / 2, 0),
-				uv: vec2(
-					opt.flipX ? qx : qx + qw,
-					opt.flipY ? qy : qy + qh,
-				),
+				uv: vec2(opt.flipX ? qx : qx + qw, opt.flipY ? qy : qy + qh),
 				color: color,
 				opacity: opacity,
 			},
