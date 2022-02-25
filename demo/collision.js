@@ -18,8 +18,8 @@ const player = add([
 	color(),
 	// area() component gives the object a collider, which enables collision checking
 	area(),
-	// solid() component makes the object can't move pass other solid objects
-	solid(),
+	// body() component makes an object respond to physics
+	body(),
 ])
 
 // Register input handlers & movement
@@ -59,8 +59,8 @@ add([
 	sprite("grass"),
 	pos(center()),
 	area(),
-	// This game object also has solid(), so our player won't be able to move pass this
-	solid(),
+	// This game object also has isStatic, so our player won't be able to move pass this
+	body({ isStatic: true }),
 ])
 
 // .onCollide() is provided by area() component, it registers an event that runs when an objects collides with another object with certain tag

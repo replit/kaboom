@@ -399,24 +399,11 @@ export interface KaboomCtx {
 	 */
 	body(options?: BodyCompOpt): BodyComp,
 	/**
-	 * Make other objects cannot move pass. Requires "area" comp.
+	 * Alias for body({ isStatic: true })
 	 *
-	 * @example
-	 * ```js
-	 * add([
-	 *     sprite("rock"),
-	 *     pos(30, 120),
-	 *     area(),
-	 *     solid(),
-	 * ])
-	 *
-	 * // only do collision checking when a block is close to player for performance
-	 * onUpdate("block", (b) => {
-	 *     b.solid = b.pos.dist(player.pos) <= 64
-	 * })
-	 * ```
+	 * @deprecated v2001.0
 	 */
-	solid(): SolidComp,
+	solid(): BodyComp,
 	/**
 	 * Move towards a direction infinitely, and destroys when it leaves game view. Requires "pos" comp.
 	 *
@@ -4020,9 +4007,9 @@ export interface ShaderComp extends Comp {
 
 export interface BodyComp extends Comp {
 	/**
-	 * If should collide with other solid objects.
+	 * If object is static, won't move, and all non static objects won't move past it.
 	 */
-	solid: boolean,
+	isStatic?: boolean,
 	/**
 	 * Initial speed in pixels per second for jump().
 	 */
@@ -4030,7 +4017,7 @@ export interface BodyComp extends Comp {
 	/**
 	 * Gravity multiplier.
 	 */
-	weight: number,
+	gravityScale: number,
 	/**
 	 * Current platform landing on.
 	 */
@@ -4093,11 +4080,11 @@ export interface BodyCompOpt {
 	/**
 	 * Gravity multiplier.
 	 */
-	weight?: number,
+	gravityScale?: number,
 	/**
-	 * If should not move through other solid objects.
+	 * If object is static, won't move, and all non static objects won't move past it.
 	 */
-	solid?: boolean,
+	isStatic?: boolean,
 }
 
 export declare class Timer {
@@ -4121,13 +4108,6 @@ export interface TimerComp extends Comp {
 	 * Run the callback after n seconds.
 	 */
 	wait(n: number, action: () => void): EventCanceller,
-}
-
-export interface SolidComp extends Comp {
-	/**
-	 * If should stop other solid objects from moving through.
-	 */
-	solid: boolean,
 }
 
 export interface FixedComp extends Comp {

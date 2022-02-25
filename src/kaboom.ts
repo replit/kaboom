@@ -26,12 +26,10 @@ import {
 	map,
 	mapc,
 	wave,
-	testRectRect2,
 	testLineLine,
 	testRectRect,
 	testRectLine,
 	testRectPoint,
-	testPolygonPolygon,
 	testPolygonPoint,
 	deg2rad,
 	rad2deg,
@@ -127,7 +125,6 @@ import {
 	BodyCompOpt,
 	Uniform,
 	ShaderComp,
-	SolidComp,
 	FixedComp,
 	StayComp,
 	HealthComp,
@@ -242,7 +239,6 @@ const MIN_DETUNE = -1200
 const MAX_DETUNE = 1200
 
 const DEF_ORIGIN = "topleft"
-const DEF_GRAVITY = 1600
 const BG_GRID_SIZE = 64
 
 const DEF_FONT = "apl386o"
@@ -909,7 +905,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		timers: new IDList<Timer>(),
 
 		// misc
-		gravity: DEF_GRAVITY,
+		gravity: 0,
 		scenes: {},
 
 		// on screen log
@@ -4001,10 +3997,10 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				if (res) {
 					this.pos = this.pos.add(res)
 				}
-				// TODO: resolve
 				return res
 			},
 
+			// TODO: recursive
 			// push object out of other solid objects
 			pushOutAll() {
 				game.root.every(this.pushOut)
@@ -4450,71 +4446,41 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			id: "body",
 			require: [ "pos", "area" ],
 			jumpForce: opt.jumpForce ?? DEF_JUMP_FORCE,
-			weight: opt.weight ?? 1,
-			solid: opt.solid ?? true,
+			gravityScale: opt.gravityScale ?? 1,
+			isStatic: opt.isStatic ?? false,
+
+			add() {
+
+				// static vs static: don't resolve
+				// static vs non-static: always resolve non-static
+				// non-static vs non-static: resolve the first one
+				this.onCollide((other, col) => {
+
+					if (!other.is("body")) {
+						return
+					}
+
+					if (col.resolved) {
+						return
+					}
+
+					if (this.isStatic && other.isStatic) {
+						return
+					}
+
+					const target = (this.isStatic && !other.isStatic) ? other : this
+					const displacement = target === this
+						? col.displacement
+						: col.displacement.scale(-1)
+					target.pos = target.pos.add(displacement)
+					target.transform = calcTransform(target)
+					col.resolved = true
+
+				})
+
+			},
 
 			update() {
-
-				let justFall = false
-
-				// check if loses current platform
-				if (curPlatform) {
-
-					const a1 = this.worldArea()
-					const a2 = curPlatform.worldArea()
-					const y1 = a1.p2.y
-					const y2 = a2.p1.y
-					const x1 = a1.p1.x
-					const x2 = a1.p2.x
-					const x3 = a2.p1.x
-					const x4 = a2.p2.x
-
-					if (
-						!curPlatform.exists()
-					|| y1 !== y2
-					|| x2 < x3
-					|| x1 > x4
-					) {
-						this.trigger("fall", curPlatform)
-						curPlatform = null
-						lastPlatformPos = null
-						justFall = true
-					} else {
-						if (lastPlatformPos && curPlatform.pos) {
-							// TODO: moveBy?
-							// sticky platform
-							this.pos = this.pos.add(curPlatform.pos.sub(lastPlatformPos))
-							lastPlatformPos = curPlatform.pos.clone()
-						}
-					}
-				}
-
-				if (!curPlatform) {
-
-					const col = this.move(0, velY)
-
-					// check if grounded to a new platform
-					if (col) {
-						if (col.isBottom()) {
-							curPlatform = col.target
-							velY = 0
-							if (curPlatform.pos) {
-								lastPlatformPos = curPlatform.pos.clone()
-							}
-							if (!justFall) {
-								this.trigger("ground", curPlatform)
-								canDouble = true
-							}
-						} else if (col.isTop()) {
-							velY = 0
-							this.trigger("headbutt", col.target)
-						}
-					}
-
-					velY += gravity() * this.weight * dt()
-					velY = Math.min(velY, opt.maxVel ?? MAX_VEL)
-
-				}
 
 			},
 
@@ -4574,12 +4540,10 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		}
 	}
 
-	function solid(): SolidComp {
-		return {
-			id: "solid",
-			require: [ "area" ],
-			solid: true,
-		}
+	function solid(): BodyComp {
+		return body({
+			isStatic: true,
+		})
 	}
 
 	function fixed(): FixedComp {
@@ -4812,7 +4776,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				transform: new Mat4(),
 			}
 
-			game.gravity = DEF_GRAVITY
+			game.gravity = 0
 
 			game.scenes[id](...args)
 
