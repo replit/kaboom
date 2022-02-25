@@ -1023,16 +1023,13 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		const frames = []
 		const qw = w / x
 		const qh = h / y
-		const padx = tw ? QUAD_PAD / tw : 0
-		const pady = th ? QUAD_PAD / th : 0
 		for (let j = 0; j < y; j++) {
 			for (let i = 0; i < x; i++) {
-				// TODO: apply QUAD_PAD
 				frames.push(new Quad(
-					dx + i * qw + padx,
-					dy + j * qh + pady,
-					qw - padx * 2,
-					qh - pady * 2,
+					dx + i * qw,
+					dy + j * qh,
+					qw,
+					qh,
 				))
 			}
 		}
@@ -1136,10 +1133,10 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			const size = data.meta.size
 			spr.frames = data.frames.map((f: any) => {
 				return new Quad(
-					(f.frame.x + QUAD_PAD) / size.w,
-					(f.frame.y + QUAD_PAD) / size.h,
-					(f.frame.w - QUAD_PAD * 2) / size.w,
-					(f.frame.h - QUAD_PAD * 2) / size.h,
+					f.frame.x / size.w,
+					f.frame.y / size.h,
+					f.frame.w / size.w,
+					f.frame.h / size.h,
 				)
 			})
 			for (const anim of data.meta.frameTags) {
@@ -1839,6 +1836,14 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		const color = opt.color || rgb(255, 255, 255)
 		const opacity = opt.opacity ?? 1
 
+		// apply uv padding to avoid artifacts
+		const uvPadX = opt.tex ? QUAD_PAD / opt.tex.width : 0
+		const uvPadY = opt.tex ? QUAD_PAD / opt.tex.height : 0
+		const qx = q.x + uvPadX
+		const qy = q.y + uvPadY
+		const qw = q.w - uvPadX * 2
+		const qh = q.h - uvPadY * 2
+
 		pushTransform()
 		pushTranslate(opt.pos)
 		pushRotateZ(opt.angle)
@@ -1848,25 +1853,37 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		drawRaw([
 			{
 				pos: vec3(-w / 2, h / 2, 0),
-				uv: vec2(opt.flipX ? q.x + q.w : q.x, opt.flipY ? q.y : q.y + q.h),
+				uv: vec2(
+					opt.flipX ? qx + qw : qx,
+					opt.flipY ? qy : qy + qh,
+				),
 				color: color,
 				opacity: opacity,
 			},
 			{
 				pos: vec3(-w / 2, -h / 2, 0),
-				uv: vec2(opt.flipX ? q.x + q.w : q.x, opt.flipY ? q.y + q.h : q.y),
+				uv: vec2(
+					opt.flipX ? qx + qw : qx,
+					opt.flipY ? qy + qh : qy,
+				),
 				color: color,
 				opacity: opacity,
 			},
 			{
 				pos: vec3(w / 2, -h / 2, 0),
-				uv: vec2(opt.flipX ? q.x : q.x + q.w, opt.flipY ? q.y + q.h : q.y),
+				uv: vec2(
+					opt.flipX ? qx : qx + qw,
+					opt.flipY ? qy + qh : qy,
+				),
 				color: color,
 				opacity: opacity,
 			},
 			{
 				pos: vec3(w / 2, h / 2, 0),
-				uv: vec2(opt.flipX ? q.x : q.x + q.w, opt.flipY ? q.y : q.y + q.h),
+				uv: vec2(
+					opt.flipX ? qx : qx + qw,
+					opt.flipY ? qy : qy + qh,
+				),
 				color: color,
 				opacity: opacity,
 			},
@@ -2558,10 +2575,10 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 						height: q.h,
 						// without some padding there'll be visual artifacts on edges
 						quad: new Quad(
-							(q.x + QUAD_PAD) / font.tex.width,
-							(q.y + QUAD_PAD) / font.tex.height,
-							(q.w - QUAD_PAD * 2) / font.tex.width,
-							(q.h - QUAD_PAD * 2) / font.tex.height,
+							q.x / font.tex.width,
+							q.y / font.tex.height,
+							q.w / font.tex.width,
+							q.h / font.tex.height,
 						),
 						ch: ch,
 						pos: vec2(curX, th),
