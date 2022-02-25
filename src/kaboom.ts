@@ -251,8 +251,8 @@ const DEF_FONT = "apl386o"
 const DBG_FONT = "sink"
 const DEF_TEXT_SIZE = 64
 const FONT_ATLAS_SIZE = 1024
-// 0.05 pixel padding to quads to prevent artifact
-const QUAD_PAD = 0.05
+// 0.05 pixel padding to texture coordinates to prevent artifact
+const UV_PAD = 0.05
 
 const LOG_MAX = 1
 
@@ -1835,8 +1835,8 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		const opacity = opt.opacity ?? 1
 
 		// apply uv padding to avoid artifacts
-		const uvPadX = opt.tex ? QUAD_PAD / opt.tex.width : 0
-		const uvPadY = opt.tex ? QUAD_PAD / opt.tex.height : 0
+		const uvPadX = opt.tex ? UV_PAD / opt.tex.width : 0
+		const uvPadY = opt.tex ? UV_PAD / opt.tex.height : 0
 		const qx = q.x + uvPadX
 		const qy = q.y + uvPadY
 		const qw = q.w - uvPadX * 2
