@@ -251,7 +251,8 @@ const DEF_FONT = "apl386o"
 const DBG_FONT = "sink"
 const DEF_TEXT_SIZE = 64
 const FONT_ATLAS_SIZE = 1024
-const TEXT_QUAD_PAD = 0.05
+// 0.05 pixel padding to texture coordinates to prevent artifact
+const UV_PAD = 0.05
 
 const LOG_MAX = 1
 
@@ -1833,6 +1834,14 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		const color = opt.color || rgb(255, 255, 255)
 		const opacity = opt.opacity ?? 1
 
+		// apply uv padding to avoid artifacts
+		const uvPadX = opt.tex ? UV_PAD / opt.tex.width : 0
+		const uvPadY = opt.tex ? UV_PAD / opt.tex.height : 0
+		const qx = q.x + uvPadX
+		const qy = q.y + uvPadY
+		const qw = q.w - uvPadX * 2
+		const qh = q.h - uvPadY * 2
+
 		pushTransform()
 		pushTranslate(opt.pos)
 		pushRotateZ(opt.angle)
@@ -1842,25 +1851,25 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		drawRaw([
 			{
 				pos: vec3(-w / 2, h / 2, 0),
-				uv: vec2(opt.flipX ? q.x + q.w : q.x, opt.flipY ? q.y : q.y + q.h),
+				uv: vec2(opt.flipX ? qx + qw : qx, opt.flipY ? qy : qy + qh),
 				color: color,
 				opacity: opacity,
 			},
 			{
 				pos: vec3(-w / 2, -h / 2, 0),
-				uv: vec2(opt.flipX ? q.x + q.w : q.x, opt.flipY ? q.y + q.h : q.y),
+				uv: vec2(opt.flipX ? qx + qw : qx, opt.flipY ? qy + qh : qy),
 				color: color,
 				opacity: opacity,
 			},
 			{
 				pos: vec3(w / 2, -h / 2, 0),
-				uv: vec2(opt.flipX ? q.x : q.x + q.w, opt.flipY ? q.y + q.h : q.y),
+				uv: vec2(opt.flipX ? qx : qx + qw, opt.flipY ? qy + qh : qy),
 				color: color,
 				opacity: opacity,
 			},
 			{
 				pos: vec3(w / 2, h / 2, 0),
-				uv: vec2(opt.flipX ? q.x : q.x + q.w, opt.flipY ? q.y : q.y + q.h),
+				uv: vec2(opt.flipX ? qx : qx + qw, opt.flipY ? qy : qy + qh),
 				color: color,
 				opacity: opacity,
 			},
@@ -2552,10 +2561,10 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 						height: q.h,
 						// without some padding there'll be visual artifacts on edges
 						quad: new Quad(
-							(q.x + TEXT_QUAD_PAD) / font.tex.width,
-							(q.y + TEXT_QUAD_PAD) / font.tex.height,
-							(q.w - TEXT_QUAD_PAD * 2) / font.tex.width,
-							(q.h - TEXT_QUAD_PAD * 2) / font.tex.height,
+							q.x / font.tex.width,
+							q.y / font.tex.height,
+							q.w / font.tex.width,
+							q.h / font.tex.height,
 						),
 						ch: ch,
 						pos: vec2(curX, th),
