@@ -3943,7 +3943,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			},
 
 			checkCollision(other: GameObj<AreaComp>) {
-				if (!other.area || !other.exists()) {
+				if (this === other || !other.area || !other.exists()) {
 					return null
 				}
 				const a1 = this.worldArea()
@@ -3952,22 +3952,11 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			},
 
 			isColliding(other: GameObj<AreaComp>) {
-				if (!other.area || !other.exists()) {
-					return false
-				}
-				const a1 = this.worldArea()
-				const a2 = other.worldArea()
-				return testPolygonPolygon(a1, a2)
+				return Boolean(this.checkCollision(other))
 			},
 
 			isTouching(other) {
-				if (!other.area || !other.exists()) {
-					return false
-				}
-				// TODO: support other shapes
-				const a1 = this.worldArea()
-				const a2 = other.worldArea()
-				return testRectRect2(a1, a2)
+				return Boolean(this.checkCollision(other)?.isZero())
 			},
 
 			onClick(f: () => void): EventCanceller {
@@ -4009,6 +3998,9 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			// push an obj out of another if they're overlapped
 			pushOut(obj: GameObj<AreaComp>): Vec2 | null {
 				const res = this.checkCollision(obj)
+				if (res) {
+					this.pos = this.pos.add(res)
+				}
 				// TODO: resolve
 				return res
 			},
