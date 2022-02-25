@@ -3653,6 +3653,12 @@ export interface AreaComp extends Comp {
 	 */
 	pushOutAll(): void,
 	/**
+	 * Get the geometry data for the collider in local coordinate space.
+	 *
+	 * @since v2001.0
+	 */
+	localArea(): Shape,
+	/**
 	 * Get the geometry data for the collider in world coordinate space.
 	 */
 	worldArea(): Polygon,

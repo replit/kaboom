@@ -140,6 +140,7 @@ import {
 	Recording,
 	BoomOpt,
 	PeditFile,
+	Shape,
 } from "./types"
 
 import FPSCounter from "./fps"
@@ -4006,11 +4007,15 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				game.root.every(this.pushOut)
 			},
 
-			// TODO: cache
-			worldArea(): Polygon {
-				const localArea = this.area.shape
+			localArea(): Shape {
+				return this.area.shape
 					? this.area.shape
 					: this.renderArea()
+			},
+
+			// TODO: cache
+			worldArea(): Polygon {
+				const localArea = this.localArea()
 				const orig = originPt(this.origin || DEF_ORIGIN).add(1, 1).scale(-0.5)
 				const bbox = localArea.bbox()
 				const transform = this.transform
