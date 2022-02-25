@@ -1062,8 +1062,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 						info.y / h,
 						info.width / w,
 						info.height / h,
-						w,
-						h,
 					),
 					info.anims,
 				)
