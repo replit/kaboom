@@ -399,12 +399,6 @@ export interface KaboomCtx {
 	 */
 	body(options?: BodyCompOpt): BodyComp,
 	/**
-	 * Alias for body({ isStatic: true })
-	 *
-	 * @deprecated v2001.0
-	 */
-	solid(): BodyComp,
-	/**
 	 * Move towards a direction infinitely, and destroys when it leaves game view. Requires "pos" comp.
 	 *
 	 * @example

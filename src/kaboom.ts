@@ -4482,6 +4482,8 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 			update() {
 
+				// TODO
+
 			},
 
 			curPlatform(): GameObj | null {
@@ -4538,12 +4540,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			shader: id,
 			uniform: uniform,
 		}
-	}
-
-	function solid(): BodyComp {
-		return body({
-			isStatic: true,
-		})
 	}
 
 	function fixed(): FixedComp {
@@ -5870,7 +5866,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		body,
 		shader,
 		timer,
-		solid,
 		fixed,
 		stay,
 		health,

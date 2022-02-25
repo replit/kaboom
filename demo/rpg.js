@@ -59,12 +59,12 @@ scene("main", (levelIdx) => {
 		"=": () => [
 			sprite("grass"),
 			area(),
-			solid(),
+			body({ isStatic: true }),
 		],
 		"-": () => [
 			sprite("steel"),
 			area(),
-			solid(),
+			body({ isStatic: true }),
 		],
 		"$": () => [
 			sprite("key"),
@@ -74,13 +74,13 @@ scene("main", (levelIdx) => {
 		"@": () => [
 			sprite("bean"),
 			area(),
-			solid(),
+			body(),
 			"player",
 		],
 		"|": () => [
 			sprite("door"),
 			area(),
-			solid(),
+			body({ isStatic: true }),
 			"door",
 		],
 		// any() is a special function that gets called everytime there's a
@@ -92,7 +92,7 @@ scene("main", (levelIdx) => {
 				return [
 					sprite(char.sprite),
 					area(),
-					solid(),
+					body({ isStatic: true }),
 					"character",
 					{ msg: char.msg },
 				]
