@@ -738,7 +738,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		static fromImage(data: TexImageSource, opt: LoadSpriteOpt = {}): SpriteData {
 			return new SpriteData(
 				Texture.fromImage(data, opt),
-				slice(opt.sliceX || 1, opt.sliceY || 1),
+				slice(opt.sliceX || 1, opt.sliceY || 1, 0, 0, 1, 1, data.width, data.height),
 				opt.anims ?? {},
 			)
 		}
@@ -1019,18 +1019,20 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	}
 
 	// get an array of frames based on configuration on how to slice the image
-	function slice(x = 1, y = 1, dx = 0, dy = 0, w = 1, h = 1): Quad[] {
+	function slice(x = 1, y = 1, dx = 0, dy = 0, w = 1, h = 1, tw = null, th = null): Quad[] {
 		const frames = []
 		const qw = w / x
 		const qh = h / y
+		const padx = tw ? QUAD_PAD / tw : 0
+		const pady = th ? QUAD_PAD / th : 0
 		for (let j = 0; j < y; j++) {
 			for (let i = 0; i < x; i++) {
 				// TODO: apply QUAD_PAD
 				frames.push(new Quad(
-					dx + i * qw,
-					dy + j * qh,
-					qw,
-					qh,
+					dx + i * qw + padx,
+					dy + j * qh + pady,
+					qw - padx * 2,
+					qh - pady * 2,
 				))
 			}
 		}
@@ -1063,6 +1065,8 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 						info.y / h,
 						info.width / w,
 						info.height / h,
+						w,
+						h,
 					),
 					info.anims,
 				)
