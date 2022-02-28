@@ -34,7 +34,10 @@ export default function matter(k: KaboomCtx): MatterPlugin {
 						this.pos.y,
 						area.width,
 						area.height,
-						{ isStatic: opt.isStatic ?? false, }
+						{
+							isStatic: opt.isStatic ?? false,
+							angle: deg2rad(this.angle ?? 0),
+						},
 					)
 				} else {
 					throw new Error("Only support rect for now")
@@ -47,6 +50,7 @@ export default function matter(k: KaboomCtx): MatterPlugin {
 				}
 				this.pos.x = this.body.position.x
 				this.pos.y = this.body.position.y
+				this.angle = rad2deg(this.body.angle)
 			}
 		}
 	}
@@ -61,15 +65,20 @@ const k = kaboom()
 const { mbody } = matter(k)
 
 k.add([
-	k.pos(12, 12),
+	k.pos(60, 48),
 	k.rect(48, 24),
 	k.area(),
+	k.rotate(45),
+	k.origin("center"),
 	mbody(),
 ])
 
 k.add([
-	k.pos(48, 160),
+	k.pos(200, 160),
 	k.rect(240, 24),
 	k.area(),
+	k.origin("center"),
 	mbody({ isStatic: true }),
 ])
+
+k.debug.inspect = true
