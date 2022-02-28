@@ -2528,9 +2528,11 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			} else {
 
 				let q = font.map[ch]
-				let gw = q.w * scale.x
 
+				// TODO: leave space if character not found?
 				if (q) {
+
+					let gw = q.w * scale.x
 
 					if (opt.width && curX + gw > opt.width) {
 						// new line on last word if width exceeds
