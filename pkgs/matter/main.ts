@@ -1,4 +1,4 @@
-import kaboom, { KaboomCtx, Comp } from "kaboom"
+import kaboom, { KaboomCtx, Comp, Origin, Vec2 } from "kaboom"
 import * as Matter from "matter-js"
 
 type MatterBodyOpt = {
@@ -11,6 +11,21 @@ type MatterBodyComp = Comp & {
 
 type MatterPlugin = {
 	mbody(opt?: MatterBodyOpt): MatterBodyComp,
+}
+
+function originPt(orig: Origin | Vec2): Vec2 {
+	switch (orig) {
+		case "topleft": return vec2(-1, -1)
+		case "top": return vec2(0, -1)
+		case "topright": return vec2(1, -1)
+		case "left": return vec2(-1, 0)
+		case "center": return vec2(0, 0)
+		case "right": return vec2(1, 0)
+		case "botleft": return vec2(-1, 1)
+		case "bot": return vec2(0, 1)
+		case "botright": return vec2(1, 1)
+		default: return orig
+	}
 }
 
 export default function matter(k: KaboomCtx): MatterPlugin {
@@ -29,9 +44,12 @@ export default function matter(k: KaboomCtx): MatterPlugin {
 			add() {
 				const area = this.localArea()
 				if (area instanceof Rect) {
+					const offset = originPt(this.origin ?? "topleft")
+						.scale(area.width, area.height)
+						.scale(-0.5)
 					this.body = Matter.Bodies.rectangle(
-						this.pos.x,
-						this.pos.y,
+						this.pos.x + offset.x,
+						this.pos.y + offset.y,
 						area.width,
 						area.height,
 						{
@@ -48,9 +66,19 @@ export default function matter(k: KaboomCtx): MatterPlugin {
 				if (!this.body) {
 					return
 				}
-				this.pos.x = this.body.position.x
-				this.pos.y = this.body.position.y
-				this.angle = rad2deg(this.body.angle)
+				const area = this.localArea()
+				if (area instanceof Rect) {
+					const offset = originPt(this.origin ?? "topleft")
+						.scale(area.width, area.height)
+						.scale(-0.5)
+					const angle = rad2deg(this.body.angle)
+					const o = Mat4.rotateZ(angle).multVec2(offset)
+					this.pos.x = this.body.position.x - o.x
+					this.pos.y = this.body.position.y - o.y
+					this.angle = rad2deg(this.body.angle)
+				} else {
+					throw new Error("Only support rect for now")
+				}
 			}
 		}
 	}
@@ -69,15 +97,15 @@ k.add([
 	k.rect(48, 24),
 	k.area(),
 	k.rotate(45),
-	k.origin("center"),
+// 	k.origin("center"),
 	mbody(),
 ])
 
 k.add([
-	k.pos(200, 160),
+	k.pos(60, 160),
 	k.rect(240, 24),
 	k.area(),
-	k.origin("center"),
+// 	k.origin("center"),
 	mbody({ isStatic: true }),
 ])
 
