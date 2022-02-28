@@ -1,9 +1,8 @@
-# Adding text with kaboom
+# Adding text in Kaboom
 
 Kaboom is a fun library to create simple games.
 
-In this tutorial, we're going to learn how to add text to the screen with kaboom. You can find the link to this repl at 
-[https://replit.com/@ritza/text-tutorial](https://replit.com/@ritza/text-tutorial).
+In this tutorial, we'll show you how to add text to the screen in Kaboom. You can find the [link to the repl here](https://replit.com/@ritza/text-tutorial).
 
 ## Steps to follow
 
@@ -17,7 +16,7 @@ We're going to learn how to:
 
 ## Getting started with the code
 
-The first thing we want to do is load the kaboom() library and initialize a Kaboom context.
+The first thing we'll do is load the `kaboom()` library and initialize a Kaboom context:
 
 ```
 import kaboom from "kaboom";
@@ -25,13 +24,13 @@ import kaboom from "kaboom";
 kaboom()
 ```
 ## Adding fonts
-Now, we'll load the fonts we want to use for our text. We'll start by loading a custom bitmap font specifying the width and height for each character.
+Next we'll load the fonts we want to use for our text. We'll start by loading a custom bitmap font specifying the width and height for each character:
 
 ```
 loadFont("unscii", "/fonts/unscii_8x8.png", 8, 8)
 ```
 
-Next, we'll create a list of built-in fonts that we can cycle through.
+Now we'll create a list of built-in fonts that we can cycle through:
 
 ```
 const builtinFonts = [
@@ -41,8 +40,7 @@ const builtinFonts = [
     "sink",
 ]
 ```
-The "fonts" list will contain the list of built-in fonts as well as the custom font we previously added.
-This we'll make it easier for us to cycle between both custom and built-in fonts without having to call them each separately.
+The `fonts` list will contain the list of built-in fonts, as well as the custom font we added. This will make it easier for us to cycle between custom and built-in fonts without having to call them each separately.
 ```
 const fonts = [
     ...builtinFonts,
@@ -50,8 +48,7 @@ const fonts = [
 ]
 ```
 
-We want to keep track of what font is currently being used as well as the font size and the padding between the text and edges of the screen.
-Let's create a variable for each of these qualities.
+To keep track of which font is currently being used, the font size, and the padding between the text and the edges of the screen, we'll create a variable for each:
 
 ```
 let curFont = 0
@@ -62,7 +59,7 @@ const pad = 24
 
 ## Adding text and animation
 
-Now we'll create a new game object "input" that we'll use to render text to the screen.
+Now we'll create a new game object, `input`, that we'll use to render text to the screen:
 
 ```
 const input = add([
@@ -76,7 +73,7 @@ const input = add([
         letterSpacing: 4,
 ```
 
-The following block code creates an animation effect for our text, giving it a wavy motion effect and rainbow colors.
+The following code creates an animation effect for our text, giving it a wavy motion effect and rainbow colors:
 
 ```
         transform: (idx, ch) => ({
@@ -89,18 +86,18 @@ The following block code creates an animation effect for our text, giving it a w
 ])
 ```
 
-## Register keyboard input
+## Registering keyboard input
 
-Now we're going to add functionality that will allow us to type in and modify our text using the keyboard.
+We can add functionality that will allow us to type in and modify our text using the keyboard.
 
-We'll start by registering an event that runs when we input text. "onCharInput()" will call our input object's text attribute to add what we type in on the keyboard.
+We'll start by registering an event that runs when we input text. The `onCharInput()` event calls our input object's text attribute and adds in what we type on the keyboard.
 
 ```
 onCharInput((ch) => {
     input.text += ch
 })
 ```
-Here we'll use "onKeyPressRepeat()" to register when we press enter to insert a new line or backspace to delete the last character.
+We'll use `onKeyPressRepeat()` to register when we press enter to insert a new line, or backspace to delete the last character.
 ```
 onKeyPressRepeat("enter", () => {
     input.text += "\n"
@@ -112,7 +109,7 @@ onKeyPressRepeat("backspace", () => {
 })
 ```
 
-Lastly, we want to be able to use the arrow keys to switch back and forth between the fonts we have. The left key will go to the previous font and the right key will go to the next font.
+We want to be able to use the arrow keys to switch between the fonts. The left key will go to the previous font and the right key will go to the next font.
 
 ```
 onKeyPress("left", () => {
@@ -126,7 +123,7 @@ onKeyPress("right", () => {
 })
 ```
 
-We're going to create variables to control the size of the text, the speed at which the text increases in size when we use it, and the maximum size of our text.
+Let's create variables to control the size of the text, the speed at which the text increases in size when we use it, and the maximum size of our text:
 
 ```
 const SIZE_SPEED = 32
@@ -134,7 +131,7 @@ const SIZE_MIN = 12
 const SIZE_MAX = 120
 ```
 
-The up and down keys will be used to increase and decrease the size of the text. 
+The up and down keys will be used to increase and decrease the size of the text: 
 
 ```
 onKeyDown("up", () => {
@@ -148,7 +145,7 @@ onKeyDown("down", () => {
 })
 ```
 
-we can use the following syntax and style options to style chunks of text.
+We can use the following syntax and style options to style chunks of text:
 ```
 add([
     text("[oh hi].green here's some [styled].wavy text", {
@@ -167,20 +164,20 @@ add([
     origin("botleft"),
 ])
 ```
-That's it on how to add text to the screen with kaboom.
+
 
 ### Components we used
 
-* pos() - Used to set the position of the text
-* hsl2rgb() - Convert HSL color (all values in 0.0 - 1.0 range) to RGB color giving our text a rainbow color effect.
-* vec2() - adds a 2d vector to the text
-* wave() - adds a wavy effect to the text, interpolating it between two values/points.
-* scale() - adds a scaling effect to the text, making text shrink and expand.
-* angle() -  handles the slight rotation effect of the texts.
+* `pos()` - sets the position of the text
+* `hsl2rgb()` - converts HSL color (all values in 0.0 - 1.0 range) to RGB color to give our text a rainbow color effect
+* `vec2()` - adds a 2d vector to the text
+* `wave()` - adds a wavy effect to the text, interpolating it between two values/points
+* `scale()` - adds a scaling effect to the text, making text shrink and expand
+* `angle()` -  handles the slight rotation effect of the texts
 
 ## Things to try
 
-If you'd like to challenge yourself here are some things you can try out yourself:
+If you'd like to challenge yourself, here are some things you can try:
 
-- add a random font style to each new character you type in.
-- create a dialog response for user input
+- Add a random font style to each new character you type in.
+- Create a dialog response for user input.
