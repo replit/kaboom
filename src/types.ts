@@ -3300,6 +3300,7 @@ export declare class Rect {
 	height: number
 	constructor(pos: Vec2, width: number, height: number)
 	static fromPoints(p1: Vec2, p2: Vec2): Rect
+	center(): Vec2
 	points(): [Vec2, Vec2, Vec2, Vec2]
 	transform(m: Mat4): Polygon
 	bbox(): Rect

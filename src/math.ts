@@ -757,6 +757,9 @@ export class Rect {
 	static fromPoints(p1: Vec2, p2: Vec2): Rect {
 		return new Rect(p1.clone(), p2.x - p1.x, p2.y - p1.y)
 	}
+	center(): Vec2 {
+		return new Vec2(this.pos.x + this.width / 2, this.pos.y + this.height / 2)
+	}
 	points(): [Vec2, Vec2, Vec2, Vec2] {
 		return [
 			this.pos,
