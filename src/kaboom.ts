@@ -3915,11 +3915,31 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		return {
 
 			id: "area",
+			colliding: {},
 
 			add() {
+
 				if (this.area.cursor) {
 					// TODO: collect
 					this.onHover(() => cursor(this.area.cursor))
+				}
+
+				this.onCollide((obj, col) => {
+					if (!this.colliding[obj._id]) {
+						this.trigger("collideEnter", obj, col)
+					}
+					this.colliding[obj._id] = col
+				})
+
+			},
+
+			update() {
+				for (const id in this.colliding) {
+					const col = this.colliding[id]
+					if (!this.checkCollision(col.target)) {
+						delete this.colliding[id]
+						this.trigger("collideExit", col.target, col)
+					}
 				}
 			},
 
@@ -3943,17 +3963,21 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				if (this === other || !other.area || !other.exists()) {
 					return null
 				}
+// 				if (this.colliding[other._id]) {
+// 					return this.colliding[other._id]
+// 				}
 				const a1 = this.worldArea()
 				const a2 = other.worldArea()
 				return sat(a1, a2)
 			},
 
 			isColliding(other: GameObj<AreaComp>) {
-				return Boolean(this.checkCollision(other))
+				const res = this.checkCollision(other)
+				return res && !res.isZero()
 			},
 
 			isTouching(other) {
-				return Boolean(this.checkCollision(other)?.isZero())
+				return Boolean(this.checkCollision(other))
 			},
 
 			onClick(f: () => void): EventCanceller {
@@ -3976,7 +4000,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				})
 			},
 
-			// TODO: update whitelist
 			onCollide(
 				tag: Tag | ((obj: GameObj, col?: Collision) => void),
 				cb?: (obj: GameObj, col?: Collision) => void,
@@ -3985,6 +4008,28 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 					return this.on("collide", tag)
 				} else if (typeof tag === "string") {
 					return this.on("collide", (obj, col) => obj.is(tag) && cb(obj, col))
+				}
+			},
+
+			onCollideEnter(
+				tag: Tag | ((obj: GameObj, col?: Collision) => void),
+				cb?: (obj: GameObj, col?: Collision) => void,
+			): EventCanceller {
+				if (typeof tag === "function" && cb === undefined) {
+					return this.on("collideEnter", tag)
+				} else if (typeof tag === "string") {
+					return this.on("collideEnter", (obj, col) => obj.is(tag) && cb(obj, col))
+				}
+			},
+
+			onCollideExit(
+				tag: Tag | ((obj: GameObj) => void),
+				cb?: (obj: GameObj) => void,
+			): EventCanceller {
+				if (typeof tag === "function" && cb === undefined) {
+					return this.on("collideExit", tag)
+				} else if (typeof tag === "string") {
+					return this.on("collideExit", (obj) => obj.is(tag) && cb(obj))
 				}
 			},
 
@@ -4453,6 +4498,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			jumpForce: opt.jumpForce ?? DEF_JUMP_FORCE,
 			gravityScale: opt.gravityScale ?? 1,
 			isStatic: opt.isStatic ?? false,
+			mass: opt.mass ?? 0,
 
 			add() {
 
@@ -4472,6 +4518,8 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 					if (this.isStatic && other.isStatic) {
 						return
 					}
+
+					// TODO: use mass
 
 					const target = (this.isStatic && !other.isStatic) ? other : this
 					const displacement = target === this
@@ -5137,6 +5185,8 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		}
 	}
 
+	const colliding = {}
+
 	function checkFrame() {
 
 		// TODO: persistent grid?
@@ -5191,20 +5241,22 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 								if (!other.exists()) {
 									continue
 								}
+								if (checked.has(other._id)) {
+									continue
+								}
 								// TODO: whitelist / blacklist?
-								if (!checked.has(other._id)) {
-									const res = aobj.checkCollision(other)
-									if (res && !res.isZero()) {
-										const col1 = new Collision(other, res)
-										aobj.trigger("collide", other, col1)
-										// resolution only has to happen once
-										const col2 = new Collision(
-											aobj,
-											res.scale(-1),
-											col1.resolved,
-										)
-										other.trigger("collide", aobj, col2)
-									}
+								const res = aobj.checkCollision(other)
+								if (res && !res.isZero()) {
+									const col1 = new Collision(other, res)
+									// TODO: don't trigger if already triggered once
+									aobj.trigger("collide", other, col1)
+									// resolution only has to happen once
+									const col2 = new Collision(
+										aobj,
+										res.scale(-1),
+										col1.resolved,
+									)
+									other.trigger("collide", aobj, col2)
 								}
 								checked.add(other._id)
 							}
