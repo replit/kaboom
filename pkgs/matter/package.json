@@ -7,12 +7,12 @@
 	"repository": "github:replit/kaboom",
 	"author": "tga <tga@space55.xyz>",
 	"type": "module",
-	"main": "./dist/kaboom.cjs",
-	"module": "./dist/kaboom.mjs",
-	"types": "./dist/kaboom.d.ts",
+	"main": "./dist/kmatter.cjs",
+	"module": "./dist/kmatter.mjs",
+	"types": "./dist/kmatter.d.ts",
 	"exports": {
-		"import": "./dist/kaboom.mjs",
-		"require": "./dist/kaboom.cjs"
+		"import": "./dist/kmatter.mjs",
+		"require": "./dist/kmatter.cjs"
 	},
 	"files": [
 		"dist/",
@@ -20,8 +20,8 @@
 		"CHANGELOG.md"
 	],
 	"scripts": {
-		"build": "esbuild --watch --bundle main.ts --outfile=main.js",
-		"dev": "open test.html"
+		"build": "node build.js",
+		"dev": "env NODE_ENV=development node build.js"
 	},
 	"devDependencies": {
 		"@types/matter-js": "^0.17.7",

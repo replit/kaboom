@@ -78,15 +78,11 @@ export default function matter(k: KaboomCtx): MatterPlugin {
 
 				// apply changes from outside
 				if (!lastPos.eq(this.pos)) {
-					const movement = this.pos.sub(lastPos)
-					Matter.Body.setPosition(this.body, {
-						x: this.body.position.x + movement.x,
-						y: this.body.position.y + movement.y,
-					})
+					Matter.Body.translate(this.body, this.pos.sub(lastPos))
 				}
 
 				if (lastAngle !== this.angle) {
-					Matter.Body.setAngle(this.body, this.body.angle + deg2rad(this.angle - lastAngle))
+					Matter.Body.rotate(this.body, deg2rad(this.angle - lastAngle))
 				}
 
 				// syncing matter.js body transform to kaboom object transform
