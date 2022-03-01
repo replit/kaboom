@@ -1,12 +1,11 @@
 import kaboom, { KaboomCtx, Comp, Origin, Vec2 } from "kaboom"
 import * as Matter from "matter-js"
 
-type MatterBodyOpt = {
-	isStatic?: boolean,
-}
+type MatterBodyOpt = Matter.IBodyDefinition & {}
 
 type MatterBodyComp = Comp & {
-	body: any,
+	body: Matter.Body | null,
+	applyForce(pos: Vec2, force: Vec2): void,
 }
 
 type MatterPlugin = {
@@ -37,10 +36,16 @@ export default function matter(k: KaboomCtx): MatterPlugin {
 	})
 
 	function mbody(opt: MatterBodyOpt = {}): MatterBodyComp {
+
+		let lastPos: Vec2 | null = null
+		let lastAngle: number | null = null
+
 		return {
+
 			id: "mbody",
 			require: [ "pos", "area", ],
 			body: null,
+
 			add() {
 				const area = this.localArea()
 				if (area instanceof Rect) {
@@ -53,7 +58,7 @@ export default function matter(k: KaboomCtx): MatterPlugin {
 						area.width,
 						area.height,
 						{
-							isStatic: opt.isStatic ?? false,
+							...opt,
 							angle: deg2rad(this.angle ?? 0),
 						},
 					)
@@ -61,12 +66,32 @@ export default function matter(k: KaboomCtx): MatterPlugin {
 					throw new Error("Only support rect for now")
 				}
 				Matter.Composite.add(engine.world, this.body)
+				lastPos = this.pos
+				lastAngle = this.angle
 			},
+
 			update() {
+
 				if (!this.body) {
 					return
 				}
+
+				// apply changes from outside
+				if (!lastPos.eq(this.pos)) {
+					const movement = this.pos.sub(lastPos)
+					Matter.Body.setPosition(this.body, {
+						x: this.body.position.x + movement.x,
+						y: this.body.position.y + movement.y,
+					})
+				}
+
+				if (lastAngle !== this.angle) {
+					Matter.Body.setAngle(this.body, this.body.angle + deg2rad(this.angle - lastAngle))
+				}
+
+				// syncing matter.js body transform to kaboom object transform
 				const area = this.localArea()
+
 				if (area instanceof Rect) {
 					const offset = originPt(this.origin ?? "topleft")
 						.scale(area.width, area.height)
@@ -79,7 +104,20 @@ export default function matter(k: KaboomCtx): MatterPlugin {
 				} else {
 					throw new Error("Only support rect for now")
 				}
-			}
+
+				lastPos = this.pos
+				lastAngle = this.angle
+
+			},
+
+			applyForce(pos, force) {
+				if (!this.body) {
+					return
+				}
+// 				Matter.Body.applyForce(this.body, pos, force)
+				Matter.Body.applyForce(this.body, this.body.position, force)
+			},
+
 		}
 	}
 
@@ -92,7 +130,7 @@ export default function matter(k: KaboomCtx): MatterPlugin {
 const k = kaboom()
 const { mbody } = matter(k)
 
-k.add([
+const me = k.add([
 	k.pos(60, 48),
 	k.rect(48, 24),
 	k.area(),
@@ -102,11 +140,38 @@ k.add([
 ])
 
 k.add([
-	k.pos(60, 160),
+	k.pos(90, 120),
+	k.rect(48, 24),
+	k.area(),
+	k.rotate(45),
+// 	k.origin("center"),
+	mbody(),
+])
+
+k.add([
+	k.pos(40, 160),
 	k.rect(240, 24),
 	k.area(),
 // 	k.origin("center"),
 	mbody({ isStatic: true }),
 ])
 
+k.onKeyDown("left", () => {
+	// .move() is provided by pos() component, move by pixels per second
+	me.move(-320, 0)
+})
+
+k.onKeyDown("right", () => {
+	me.move(320, 0)
+})
+
+k.onKeyPress("space", () => {
+	me.applyForce(mousePos(), vec2(0, -0.02))
+})
+
+k.onKeyPress("r", () => {
+	me.angle = 90
+})
+
 k.debug.inspect = true
+k.canvas.focus()
