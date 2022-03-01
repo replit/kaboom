@@ -1,15 +1,15 @@
-import kaboom, { KaboomCtx, Comp, Origin, Vec2 } from "kaboom"
+import { KaboomCtx, Comp, Origin, Vec2 } from "kaboom"
 import * as Matter from "matter-js"
 
-type MatterBodyOpt = Matter.IBodyDefinition & {}
-
-type MatterBodyComp = Comp & {
-	body: Matter.Body | null,
-	applyForce(pos: Vec2, force: Vec2): void,
+export type MatterPlugin = {
+	mbody(opt?: MatterBodyOpt): MatterBodyComp,
 }
 
-type MatterPlugin = {
-	mbody(opt?: MatterBodyOpt): MatterBodyComp,
+export type MatterBodyOpt = Matter.IBodyDefinition & {}
+
+export type MatterBodyComp = Comp & {
+	body: Matter.Body | null,
+	applyForce(pos: Vec2, force: Vec2): void,
 }
 
 function originPt(orig: Origin | Vec2): Vec2 {
@@ -27,7 +27,7 @@ function originPt(orig: Origin | Vec2): Vec2 {
 	}
 }
 
-export default function matter(k: KaboomCtx): MatterPlugin {
+export default (k: KaboomCtx): MatterPlugin => {
 
 	const engine = Matter.Engine.create()
 
@@ -122,52 +122,3 @@ export default function matter(k: KaboomCtx): MatterPlugin {
 	}
 
 }
-
-const k = kaboom()
-const { mbody } = matter(k)
-
-const me = k.add([
-	k.pos(60, 48),
-	k.rect(48, 24),
-	k.area(),
-	k.rotate(45),
-// 	k.origin("center"),
-	mbody(),
-])
-
-k.add([
-	k.pos(90, 120),
-	k.rect(48, 24),
-	k.area(),
-	k.rotate(45),
-// 	k.origin("center"),
-	mbody(),
-])
-
-k.add([
-	k.pos(40, 160),
-	k.rect(240, 24),
-	k.area(),
-// 	k.origin("center"),
-	mbody({ isStatic: true }),
-])
-
-k.onKeyDown("left", () => {
-	// .move() is provided by pos() component, move by pixels per second
-	me.move(-320, 0)
-})
-
-k.onKeyDown("right", () => {
-	me.move(320, 0)
-})
-
-k.onKeyPress("space", () => {
-	me.applyForce(mousePos(), vec2(0, -0.02))
-})
-
-k.onKeyPress("r", () => {
-	me.angle = 90
-})
-
-k.debug.inspect = true
-k.canvas.focus()
