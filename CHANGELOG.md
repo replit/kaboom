@@ -29,6 +29,7 @@
 - fixed touches not treated as mouse
 - (**BREAK**) changed `onTouchStart()`, `onTouchMove()` and `onTouchEnd()` callback signature to `(pos: Vec2, touch: Touch) => void` (exposes the native `Touch` object)
 - added `onResize()` to register an event that runs when canvas resizes
+- (**BREAK**) `GameObj#_id` has been renamed to `GameObj#id`
 
 ### v2000.2.6
 

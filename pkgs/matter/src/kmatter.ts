@@ -45,7 +45,6 @@ export default (k: KaboomCtx): MatterPlugin => {
 				return
 			}
 			if (!positions[id].eq(obj.pos)) {
-				console.log(positions[id].toString(), obj.pos.toString())
 				Matter.Body.translate(obj.body, obj.pos.sub(positions[id]))
 			}
 			if (angles[id] !== obj.angle) {

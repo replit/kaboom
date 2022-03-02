@@ -2311,7 +2311,7 @@ export interface GameObjRaw {
 	 */
 	paused: boolean,
 	/**
-	 * Internal GameObj ID.
+	 * A unique number ID for each game object in each kaboom instance.
 	 */
 	id: number | null,
 }
