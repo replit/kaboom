@@ -1584,6 +1584,8 @@ export interface KaboomCtx {
 	Line: typeof Line,
 	Rect: typeof Rect,
 	Circle: typeof Circle,
+	Polygon: typeof Polygon,
+	Point: typeof Point,
 	Vec2: typeof Vec2,
 	Color: typeof Color,
 	Mat4: typeof Mat4,
@@ -2311,7 +2313,7 @@ export interface GameObjRaw {
 	/**
 	 * Internal GameObj ID.
 	 */
-	_id: number | null,
+	id: number | null,
 }
 
 /**

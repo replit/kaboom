@@ -3180,7 +3180,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		// TODO: "this" should be typed here
 		const obj = {
 
-			_id: uid(),
+			id: uid(),
 			hidden: false,
 			paused: false,
 			transform: new Mat4(),
@@ -3927,10 +3927,10 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				}
 
 				this.onCollide((obj, col) => {
-					if (!this.colliding[obj._id]) {
+					if (!this.colliding[obj.id]) {
 						this.trigger("collideEnter", obj, col)
 					}
-					this.colliding[obj._id] = col
+					this.colliding[obj.id] = col
 				})
 
 			},
@@ -3965,8 +3965,8 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				if (this === other || !other.area || !other.exists()) {
 					return null
 				}
-// 				if (this.colliding[other._id]) {
-// 					return this.colliding[other._id]
+// 				if (this.colliding[other.id]) {
+// 					return this.colliding[other.id]
 // 				}
 				const a1 = this.worldArea()
 				const a2 = other.worldArea()
@@ -5243,7 +5243,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 								if (!other.exists()) {
 									continue
 								}
-								if (checked.has(other._id)) {
+								if (checked.has(other.id)) {
 									continue
 								}
 								// TODO: whitelist / blacklist?
@@ -5260,7 +5260,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 									)
 									other.trigger("collide", aobj, col2)
 								}
-								checked.add(other._id)
+								checked.add(other.id)
 							}
 							cell.push(aobj)
 						}
@@ -5978,6 +5978,8 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		Line,
 		Rect,
 		Circle,
+		Polygon,
+		Point,
 		Vec2,
 		Color,
 		Mat4,
