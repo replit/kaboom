@@ -23,10 +23,13 @@
 		"build": "node build.js",
 		"dev": "env NODE_ENV=development node build.js",
 		"check": "tsc --noEmit",
-		"lint": "eslint src",
-		"fmt": "eslint --fix src",
+		"lint": "eslint src demo",
+		"fmt": "eslint --fix src demo",
 		"test": "",
 		"prepare": "npm run build"
+	},
+	"peerDependencies": {
+		"kaboom": "2001.x"
 	},
 	"devDependencies": {
 		"@types/matter-js": "^0.17.7",

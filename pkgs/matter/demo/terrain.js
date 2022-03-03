@@ -1,40 +1,30 @@
-<html>
-
-<head>
-	<meta charset="utf-8">
-</head>
-
-<body>
-	<script src="node_modules/kaboom/dist/kaboom.js"></script>
-	<script src="dist/kmatter.js"></script>
-	<script>
 const k = kaboom()
-const { mbody } = kmatter(k)
+const { marea, mbody } = kmatter(k)
 
 const me = k.add([
 	k.pos(60, 48),
 	k.rect(48, 24),
-	k.area(),
+	marea(),
 	k.rotate(45),
-// 	k.origin("center"),
-	mbody(),
+	k.origin("center"),
+// 	mbody(),
 ])
 
 k.add([
 	k.pos(90, 120),
 	k.rect(48, 24),
-	k.area(),
+	marea(),
 	k.rotate(45),
-// 	k.origin("center"),
-	mbody(),
+	k.origin("center"),
+// 	mbody(),
 ])
 
 k.add([
 	k.pos(40, 160),
 	k.rect(240, 24),
-	k.area(),
-// 	k.origin("center"),
-	mbody({ isStatic: true }),
+	marea(),
+	k.origin("center"),
+// 	mbody({ isStatic: true }),
 ])
 
 k.onKeyDown("left", () => {
@@ -56,7 +46,3 @@ k.onKeyPress("r", () => {
 
 k.debug.inspect = true
 k.canvas.focus()
-	</script>
-</body>
-
-</html>

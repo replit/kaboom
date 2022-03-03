@@ -69,13 +69,13 @@ player.onCollide("enemy", (enemy) => {
 	destroy(enemy)
 })
 
-// .onCollideEnter() runs only once when an object collides with another object
-player.onCollideEnter("enemy", () => {
+// .onCollideEnter() runs every frame when an object collides with another object
+player.onCollideActive("enemy", () => {
 	// ...
 })
 
-// .onCollideExit() runs once when an object stopped colliding with another object
-player.onCollideExit("enemy", () => {
+// .onCollideEnd() runs once when an object stopped colliding with another object
+player.onCollideEnd("enemy", () => {
 	// ...
 })
 

@@ -1,7 +1,8 @@
-import type { KaboomCtx, GameObj, Comp, Origin, Vec2, PosComp, RotateComp, AreaComp, OriginComp } from "kaboom"
+import type { KaboomCtx, GameObj, Comp, Origin, Vec2, PosComp, RotateComp, AreaComp, AreaCompOpt, OriginComp, Shape } from "kaboom"
 import * as Matter from "matter-js"
 
 export type MatterPlugin = {
+	marea(opt?: AreaCompOpt): MatterAreaComp,
 	mbody(opt?: MatterBodyOpt): MatterBodyComp,
 	Matter: typeof Matter,
 }
@@ -9,8 +10,11 @@ export type MatterPlugin = {
 export type MatterBodyOpt = Matter.IBodyDefinition & {}
 
 export type MatterBodyComp = Comp & {
-	body: Matter.Body | null,
 	applyForce(pos: Vec2, force: Vec2): void,
+}
+
+export type MatterAreaComp = AreaComp & {
+	body: Matter.Body | null,
 }
 
 function originPt(orig: Origin | Vec2): Vec2 {
@@ -32,14 +36,14 @@ export default (k: KaboomCtx): MatterPlugin => {
 
 	const engine = Matter.Engine.create()
 
-	// cache the last positions and angles of all objects
+	// cache the last positions and angles of all objects so we know what objects transforms are changed on kaboom side
 	const positions: Record<number, Vec2> = {}
 	const angles: Record<number, number> = {}
 
 	k.onUpdate(() => {
 
 		// apply transform changes outside of matter
-		every("mbody", (obj: GameObj<MatterBodyComp | PosComp | RotateComp>) => {
+		every("marea", (obj: GameObj<MatterAreaComp | PosComp | RotateComp>) => {
 			const id = obj.id
 			if (!obj.body || positions[id] === undefined || angles[id] === undefined) {
 				return
@@ -56,37 +60,47 @@ export default (k: KaboomCtx): MatterPlugin => {
 		Matter.Engine.update(engine, k.dt() * 1000)
 
 		// sync kaboom object transform with matter object transform
-		every("mbody", (obj: GameObj<MatterBodyComp | PosComp | RotateComp | AreaComp | OriginComp>) => {
+		every("marea", (obj: GameObj<MatterAreaComp | MatterBodyComp | PosComp | RotateComp | AreaComp | OriginComp>) => {
 			if (!obj.body) {
 				return
 			}
-			// syncing matter.js body transform to kaboom object transform
-			const area = obj.localArea()
-			const bbox = area.bbox()
-			const offset = originPt(obj.origin ?? "topleft")
-				.scale(bbox.width, bbox.height)
-				.scale(-0.5)
-			const angle = rad2deg(obj.body.angle)
-			const o = Mat4.rotateZ(angle).multVec2(offset)
-			obj.pos.x = obj.body.position.x - o.x
-			obj.pos.y = obj.body.position.y - o.y
-			obj.angle = rad2deg(obj.body.angle)
+			if (obj.c("mbody")) {
+				// syncing matter.js body transform to kaboom object transform
+				const area = obj.localArea()
+				const bbox = area.bbox()
+				const offset = originPt(obj.origin ?? "topleft")
+					.scale(bbox.width, bbox.height)
+					.scale(-0.5)
+				const angle = rad2deg(obj.body.angle)
+				const o = Mat4.rotateZ(angle).multVec2(offset)
+				obj.pos.x = obj.body.position.x - o.x
+				obj.pos.y = obj.body.position.y - o.y
+				obj.angle = rad2deg(obj.body.angle)
+			}
 			positions[obj.id] = obj.pos
 			angles[obj.id] = obj.angle
 		})
 
 	})
 
-	function mbody(opt: MatterBodyOpt = {}): MatterBodyComp {
+	function marea(opt: AreaCompOpt = {}): MatterAreaComp {
 
 		return {
 
-			id: "mbody",
-			require: [ "pos", "area", ],
+			id: "marea",
 			body: null,
 
+			area: {
+				shape: opt.shape ?? null,
+				scale: opt.scale ?? vec2(1),
+				offset: opt.offset ?? vec2(0),
+				cursor: opt.cursor ?? null,
+			},
+
 			add() {
+
 				const area = this.localArea()
+
 				if (area instanceof k.Rect) {
 					const offset = originPt(this.origin ?? "topleft")
 						.scale(area.width, area.height)
@@ -99,6 +113,7 @@ export default (k: KaboomCtx): MatterPlugin => {
 						{
 							...opt,
 							angle: deg2rad(this.angle ?? 0),
+							isSensor: true,
 						},
 					)
 				} else if (area instanceof k.Circle) {
@@ -109,6 +124,7 @@ export default (k: KaboomCtx): MatterPlugin => {
 						{
 							...opt,
 							angle: deg2rad(this.angle ?? 0),
+							isSensor: true,
 						},
 					)
 				} else if (area instanceof k.Polygon) {
@@ -119,12 +135,37 @@ export default (k: KaboomCtx): MatterPlugin => {
 						{
 							...opt,
 							angle: deg2rad(this.angle ?? 0),
+							isSensor: true,
 						},
 					)
 				} else {
 					throw new Error("Only support rect for now")
 				}
+
 				Matter.Composite.add(engine.world, this.body)
+
+			},
+
+			localArea(): Shape {
+				return this.area.shape
+					? this.area.shape
+					: this.renderArea()
+			},
+
+		}
+
+	}
+
+	function mbody(opt: MatterBodyOpt = {}): MatterBodyComp {
+
+		return {
+
+			id: "mbody",
+			require: [ "pos", "marea", ],
+
+			add() {
+				this.body.isSensor = false
+				this.body.isStatic = opt.isStatic ?? false
 			},
 
 			applyForce(pos, force) {
@@ -138,7 +179,23 @@ export default (k: KaboomCtx): MatterPlugin => {
 		}
 	}
 
+	Matter.Events.on(engine, "collisionStart", (event) => {
+		const pairs = event.pairs
+		console.log(k.time(), pairs)
+	})
+
+	Matter.Events.on(engine, "collisionActive", (event) => {
+		const pairs = event.pairs
+// 		console.log(k.time(), pairs)
+	})
+
+	Matter.Events.on(engine, "collisionEnd", (event) => {
+		const pairs = event.pairs
+// 		console.log(k.time(), pairs)
+	})
+
 	return {
+		marea,
 		mbody,
 		Matter,
 	}

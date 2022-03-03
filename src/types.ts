@@ -3639,41 +3639,41 @@ export interface AreaComp extends Comp {
 	 */
 	onHover(onHover: () => void, onNotHover?: () => void): void,
 	/**
-	 * Register an event runs every frame when collide with another game obj with certain tag.
+	 * Register an event runs once when collide with another game obj with certain tag.
 	 *
 	 * @since v2000.1
 	 */
 	onCollide(tag: Tag, f: (obj: GameObj, col?: Collision) => void): void,
 	/**
-	 * Register an event runs every frame when collide with another game obj.
+	 * Register an event runs once when collide with another game obj.
 	 *
 	 * @since v2000.1
 	 */
 	onCollide(f: (obj: GameObj, col?: Collision) => void): void,
 	/**
-	 * Register an event runs once when collide with another game obj with certain tag.
+	 * Register an event runs every frame when collide with another game obj with certain tag.
 	 *
 	 * @since v2001.0
 	 */
-	onCollideEnter(tag: Tag, f: (obj: GameObj, col?: Collision) => void): void,
+	onCollideActive(tag: Tag, f: (obj: GameObj, col?: Collision) => void): void,
 	/**
-	 * Register an event runs once when collide with another game obj.
+	 * Register an event runs every frame when collide with another game obj.
 	 *
 	 * @since v2001.0
 	 */
-	onCollideEnter(f: (obj: GameObj, col?: Collision) => void): void,
+	onCollideActive(f: (obj: GameObj, col?: Collision) => void): void,
 	/**
 	 * Register an event runs once when stopped colliding with another game obj with certain tag.
 	 *
 	 * @since v2001.0
 	 */
-	onCollideExit(tag: Tag, f: (obj: GameObj) => void): void,
+	onCollideEnd(tag: Tag, f: (obj: GameObj) => void): void,
 	/**
 	 * Register an event runs once when stopped colliding with another game obj.
 	 *
 	 * @since v2001.0
 	 */
-	onCollideExit(f: (obj: GameObj) => void): void,
+	onCollideEnd(f: (obj: GameObj) => void): void,
 	/**
 	 * If has a certain point inside collider.
 	 */

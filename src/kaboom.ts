@@ -2990,7 +2990,14 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		}
 	}
 
-	winEvents.error = (e) => handleErr(e.error)
+	winEvents.error = (e) => {
+		if (e.error) {
+			handleErr(e.error)
+		} else {
+			handleErr(new Error(e.message))
+		}
+	}
+
 	winEvents.unhandledrejection = (e) => handleErr(e.reason)
 
 	for (const name in canvasEvents) {
@@ -3926,9 +3933,9 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 					this.onHover(() => cursor(this.area.cursor))
 				}
 
-				this.onCollide((obj, col) => {
+				this.onCollideActive((obj, col) => {
 					if (!this.colliding[obj.id]) {
-						this.trigger("collideEnter", obj, col)
+						this.trigger("collide", obj, col)
 					}
 					this.colliding[obj.id] = col
 				})
@@ -3940,7 +3947,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 					const col = this.colliding[id]
 					if (!this.checkCollision(col.target)) {
 						delete this.colliding[id]
-						this.trigger("collideExit", col.target, col)
+						this.trigger("collideEnd", col.target, col)
 					}
 				}
 			},
@@ -4013,25 +4020,25 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				}
 			},
 
-			onCollideEnter(
+			onCollideActive(
 				tag: Tag | ((obj: GameObj, col?: Collision) => void),
 				cb?: (obj: GameObj, col?: Collision) => void,
 			): EventCanceller {
 				if (typeof tag === "function" && cb === undefined) {
-					return this.on("collideEnter", tag)
+					return this.on("collideActive", tag)
 				} else if (typeof tag === "string") {
-					return this.on("collideEnter", (obj, col) => obj.is(tag) && cb(obj, col))
+					return this.on("collideActive", (obj, col) => obj.is(tag) && cb(obj, col))
 				}
 			},
 
-			onCollideExit(
+			onCollideEnd(
 				tag: Tag | ((obj: GameObj) => void),
 				cb?: (obj: GameObj) => void,
 			): EventCanceller {
 				if (typeof tag === "function" && cb === undefined) {
-					return this.on("collideExit", tag)
+					return this.on("collideEnd", tag)
 				} else if (typeof tag === "string") {
-					return this.on("collideExit", (obj) => obj.is(tag) && cb(obj))
+					return this.on("collideEnd", (obj) => obj.is(tag) && cb(obj))
 				}
 			},
 
@@ -5213,7 +5220,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			obj.transform = tr.clone()
 
 			// TODO: this logic should be defined through external interface
-			if (obj.is("area")) {
+			if (obj.c("area")) {
 
 				// TODO: only update worldArea if transform changed
 				const aobj = obj as GameObj<AreaComp>
@@ -5251,14 +5258,14 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 								if (res && !res.isZero()) {
 									const col1 = new Collision(other, res)
 									// TODO: don't trigger if already triggered once
-									aobj.trigger("collide", other, col1)
+									aobj.trigger("collideActive", other, col1)
 									// resolution only has to happen once
 									const col2 = new Collision(
 										aobj,
 										res.scale(-1),
 										col1.resolved,
 									)
-									other.trigger("collide", aobj, col2)
+									other.trigger("collideActive", aobj, col2)
 								}
 								checked.add(other.id)
 							}
@@ -5391,7 +5398,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 				obj.every(drawObjDebug)
 
-				if (!obj.area) {
+				if (!obj.c("area")) {
 					return
 				}
 
