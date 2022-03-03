@@ -3981,11 +3981,16 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 				const a = this.localArea()
 
+				pushTransform()
+				pushScale(this.area.scale)
+				pushTranslate(this.area.offset)
+
 				const opts = {
 					outline: {
 						width: 4,
 						color: rgb(0, 0, 255),
 					},
+					origin: this.origin,
 					fill: false,
 					fixed: this.fixed,
 				}
@@ -3997,7 +4002,20 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 						width: a.width,
 						height: a.height,
 					})
+				} else if (a instanceof Polygon) {
+					drawPolygon({
+						...opts,
+						pts: a.pts,
+					})
+				} else if (a instanceof Circle) {
+					drawCircle({
+						...opts,
+						pos: a.center,
+						radius: a.radius,
+					})
 				}
+
+				popTransform()
 
 			},
 
@@ -4118,14 +4136,23 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 			// TODO: cache
 			worldArea(): Polygon {
+
 				const localArea = this.localArea()
-				const orig = originPt(this.origin || DEF_ORIGIN).add(1, 1).scale(-0.5)
-				const bbox = localArea.bbox()
-				const transform = this.transform
+				let transform = this.transform
 					.scale(vec2(this.area.scale ?? 1))
-					.translate(orig.scale(bbox.width, bbox.height))
 					.translate(this.area.offset)
+
+				if (localArea instanceof Rect) {
+					const bbox = localArea.bbox()
+					const offset = originPt(this.origin || DEF_ORIGIN)
+						.add(1, 1)
+						.scale(-0.5)
+						.scale(bbox.width, bbox.height)
+					transform = transform.translate(offset)
+				}
+
 				return localArea.transform(transform)
+
 			},
 
 			screenArea(): Polygon {

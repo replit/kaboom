@@ -16,9 +16,13 @@ const player = add([
 	sprite("bean"),
 	pos(80, 40),
 	color(),
+	origin("center"),
 	rotate(0),
 	// area() component gives the object a collider, which enables collision checking
 	area(),
+// 	area({ shape: new Polygon([vec2(0), vec2(100), vec2(-100, 100)]) }),
+// 	area({ shape: new Rect(vec2(0), 12, 120) }),
+// 	area({ offset: vec2(20), scale: 0.5 }),
 	// body() component makes an object respond to physics
 	body(),
 ])
@@ -44,7 +48,7 @@ onKeyDown("q", () => {
 	player.rotate(-SPEED)
 })
 
-onKeyDown("r", () => {
+onKeyDown("e", () => {
 	player.rotate(SPEED)
 })
 

@@ -302,54 +302,6 @@ export class Mat4 {
 		}
 	}
 
-	clone(): Mat4 {
-		return new Mat4(this.m)
-	}
-
-	mult(other: Mat4): Mat4 {
-
-		const out = []
-
-		for (let i = 0; i < 4; i++) {
-			for (let j = 0; j < 4; j++) {
-				out[i * 4 + j] =
-					this.m[0 * 4 + j] * other.m[i * 4 + 0] +
-					this.m[1 * 4 + j] * other.m[i * 4 + 1] +
-					this.m[2 * 4 + j] * other.m[i * 4 + 2] +
-					this.m[3 * 4 + j] * other.m[i * 4 + 3]
-			}
-		}
-
-		return new Mat4(out)
-
-	}
-
-	multVec4(p: Vec4): Vec4 {
-		return {
-			x: p.x * this.m[0] + p.y * this.m[4] + p.z * this.m[8] + p.w * this.m[12],
-			y: p.x * this.m[1] + p.y * this.m[5] + p.z * this.m[9] + p.w * this.m[13],
-			z: p.x * this.m[2] + p.y * this.m[6] + p.z * this.m[10] + p.w * this.m[14],
-			w: p.x * this.m[3] + p.y * this.m[7] + p.z * this.m[11] + p.w * this.m[15],
-		}
-	}
-
-	multVec3(p: Vec3): Vec3 {
-		const p4 = this.multVec4({
-			x: p.x,
-			y: p.y,
-			z: p.z,
-			w: 1.0,
-		})
-		return vec3(p4.x, p4.y, p4.z)
-	}
-
-	multVec2(p: Vec2): Vec2 {
-		return vec2(
-			p.x * this.m[0] + p.y * this.m[4] + 0 * this.m[8] + 1 * this.m[12],
-			p.x * this.m[1] + p.y * this.m[5] + 0 * this.m[9] + 1 * this.m[13],
-		)
-	}
-
 	static translate(p: Vec2): Mat4 {
 		return new Mat4([
 			1, 0, 0, 0,
@@ -418,6 +370,50 @@ export class Mat4 {
 		return this.mult(Mat4.rotateZ(a))
 	}
 
+	mult(other: Mat4): Mat4 {
+
+		const out = []
+
+		for (let i = 0; i < 4; i++) {
+			for (let j = 0; j < 4; j++) {
+				out[i * 4 + j] =
+					this.m[0 * 4 + j] * other.m[i * 4 + 0] +
+					this.m[1 * 4 + j] * other.m[i * 4 + 1] +
+					this.m[2 * 4 + j] * other.m[i * 4 + 2] +
+					this.m[3 * 4 + j] * other.m[i * 4 + 3]
+			}
+		}
+
+		return new Mat4(out)
+
+	}
+
+	multVec4(p: Vec4): Vec4 {
+		return {
+			x: p.x * this.m[0] + p.y * this.m[4] + p.z * this.m[8] + p.w * this.m[12],
+			y: p.x * this.m[1] + p.y * this.m[5] + p.z * this.m[9] + p.w * this.m[13],
+			z: p.x * this.m[2] + p.y * this.m[6] + p.z * this.m[10] + p.w * this.m[14],
+			w: p.x * this.m[3] + p.y * this.m[7] + p.z * this.m[11] + p.w * this.m[15],
+		}
+	}
+
+	multVec3(p: Vec3): Vec3 {
+		const p4 = this.multVec4({
+			x: p.x,
+			y: p.y,
+			z: p.z,
+			w: 1.0,
+		})
+		return vec3(p4.x, p4.y, p4.z)
+	}
+
+	multVec2(p: Vec2): Vec2 {
+		return vec2(
+			p.x * this.m[0] + p.y * this.m[4] + 0 * this.m[8] + 1 * this.m[12],
+			p.x * this.m[1] + p.y * this.m[5] + 0 * this.m[9] + 1 * this.m[13],
+		)
+	}
+
 	invert(): Mat4 {
 
 		const out = []
@@ -476,6 +472,10 @@ export class Mat4 {
 
 		return new Mat4(out)
 
+	}
+
+	clone(): Mat4 {
+		return new Mat4(this.m)
 	}
 
 	toString(): string {
