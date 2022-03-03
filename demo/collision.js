@@ -16,6 +16,7 @@ const player = add([
 	sprite("bean"),
 	pos(80, 40),
 	color(),
+	rotate(0),
 	// area() component gives the object a collider, which enables collision checking
 	area(),
 	// body() component makes an object respond to physics
@@ -37,6 +38,14 @@ onKeyDown("up", () => {
 
 onKeyDown("down", () => {
 	player.move(0, SPEED)
+})
+
+onKeyDown("q", () => {
+	player.rotate(-SPEED)
+})
+
+onKeyDown("r", () => {
+	player.rotate(SPEED)
 })
 
 // Add enemies

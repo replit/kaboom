@@ -338,6 +338,7 @@ const COMP_EVENTS = new Set([
 	"draw",
 	"destroy",
 	"inspect",
+	"drawInspect",
 ])
 
 // transform the button state to the next state
@@ -3248,6 +3249,17 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				popTransform()
 			},
 
+			drawInspect() {
+				if (this.hidden) return
+				pushTransform()
+				pushTranslate(this.pos)
+				pushScale(this.scale)
+				pushRotateZ(this.angle)
+				this.every((child) => child.drawInspect())
+				this.trigger("drawInspect")
+				popTransform()
+			},
+
 			// use a comp, or tag
 			use(comp: Comp | Tag) {
 
@@ -3740,6 +3752,13 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				return `(${Math.round(this.pos.x)}, ${Math.round(this.pos.y)})`
 			},
 
+			drawInspect() {
+				drawCircle({
+					color: rgb(255, 0, 0),
+					radius: 5,
+				})
+			},
+
 		}
 
 	}
@@ -3769,6 +3788,12 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		return {
 			id: "rotate",
 			angle: r ?? 0,
+			rotate(angle: number) {
+				this.rotateBy(angle * dt())
+			},
+			rotateBy(angle: number) {
+				this.angle += angle
+			},
 			inspect() {
 				return `${Math.round(this.angle)}`
 			},
@@ -3950,6 +3975,30 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 						this.trigger("collideEnd", col.target, col)
 					}
 				}
+			},
+
+			drawInspect() {
+
+				const a = this.localArea()
+
+				const opts = {
+					outline: {
+						width: 4,
+						color: rgb(0, 0, 255),
+					},
+					fill: false,
+					fixed: this.fixed,
+				}
+
+				if (a instanceof Rect) {
+					drawRect({
+						...opts,
+						pos: a.pos,
+						width: a.width,
+						height: a.height,
+					})
+				}
+
 			},
 
 			area: {
@@ -4514,7 +4563,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				// static vs static: don't resolve
 				// static vs non-static: always resolve non-static
 				// non-static vs non-static: resolve the first one
-				this.onCollide((other, col) => {
+				this.onCollideActive((other, col) => {
 
 					if (!other.is("body")) {
 						return
@@ -5194,8 +5243,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		}
 	}
 
-	const colliding = {}
-
 	function checkFrame() {
 
 		// TODO: persistent grid?
@@ -5391,63 +5438,27 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 		if (debug.inspect) {
 
-			let inspecting = null
-			const lcolor = Color.fromArray(gopt.inspectColor ?? [0, 0, 255])
+// 			let inspecting = null
+// 			const lcolor = Color.fromArray(gopt.inspectColor ?? [0, 0, 255])
 
-			const drawObjDebug = (obj: GameObj) => {
+// 			if (inspecting) {
 
-				obj.every(drawObjDebug)
+// 				const lines = []
+// 				const data = inspecting.inspect()
 
-				if (!obj.c("area")) {
-					return
-				}
+// 				for (const tag in data) {
+// 					if (data[tag]) {
+// 						lines.push(`${tag}: ${data[tag]}`)
+// 					} else {
+// 						lines.push(`${tag}`)
+// 					}
+// 				}
 
-				if (obj.hidden) {
-					return
-				}
+// 				drawInspectText(contentToView(mousePos()), lines.join("\n"))
 
-				if (!inspecting) {
-					if (obj.isHovering()) {
-						inspecting = obj
-					}
-				}
+// 			}
 
-				const aobj = obj as GameObj<AreaComp>
-				const lwidth = (inspecting === obj ? 8 : 4)
-				const a = aobj.worldArea()
-
-				// TODO: lines should be drawUnscaled()
-				drawPolygon({
-					pts: a.pts,
-					outline: {
-						width: lwidth,
-						color: lcolor,
-					},
-					fill: false,
-					fixed: obj.fixed,
-				})
-
-			}
-
-			game.root.every(drawObjDebug)
-
-			if (inspecting) {
-
-				const lines = []
-				const data = inspecting.inspect()
-
-				for (const tag in data) {
-					if (data[tag]) {
-						lines.push(`${tag}: ${data[tag]}`)
-					} else {
-						lines.push(`${tag}`)
-					}
-				}
-
-				drawInspectText(contentToView(mousePos()), lines.join("\n"))
-
-			}
-
+			game.root.drawInspect()
 			drawInspectText(vec2(8), `FPS: ${debug.fps()}`)
 
 		}

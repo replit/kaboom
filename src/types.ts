@@ -2107,10 +2107,6 @@ export interface KaboomOpt {
 	 */
 	background?: number[],
 	/**
-	 * The color to draw collider boxes etc.
-	 */
-	inspectColor?: number[],
-	/**
 	 * Default texture filter.
 	 */
 	texFilter?: TexFilter,
@@ -3393,6 +3389,12 @@ export interface Comp {
 	 * Debug info for inspect mode.
 	 */
 	inspect?: () => string | void,
+	/**
+	 * Draw debug info in inspect mode
+	 *
+	 * @since v2001.0
+	 */
+	drawInspect?: () => void,
 }
 
 export type GameObjID = number
@@ -3435,6 +3437,14 @@ export interface RotateComp extends Comp {
 	 * Angle in degrees.
 	 */
 	angle: number,
+	/**
+	 * Rotate in degrees (in angle per second, dt multiplied)
+	 */
+	rotate(angle: number): void,
+	/**
+	 * Rotate in degrees (without dt multiplied, directly adding angle to current angle)
+	 */
+	rotateBy(angle: number): void,
 }
 
 export interface ColorComp extends Comp {
