@@ -4083,7 +4083,11 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				if (typeof tag === "function" && cb === undefined) {
 					return this.on("collide", tag)
 				} else if (typeof tag === "string") {
-					return this.on("collide", (obj, col) => obj.is(tag) && cb(obj, col))
+					return this.onCollide((obj, col) => {
+						if (obj.is(tag)) {
+							cb(obj, col)
+						}
+					})
 				}
 			},
 
@@ -4114,12 +4118,11 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			},
 
 			// push an obj out of another if they're overlapped
-			pushOut(obj: GameObj<AreaComp>): Vec2 | null {
+			pushOut(obj: GameObj<AreaComp>) {
 				const res = this.checkCollision(obj)
 				if (res) {
 					this.pos = this.pos.add(res)
 				}
-				return res
 			},
 
 			// TODO: recursive
@@ -5168,10 +5171,13 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		return document.activeElement === app.canvas
 	}
 
+	function destroy(obj: GameObj) {
+		obj.destroy()
+	}
+
 	// aliases for root game obj operations
 	const add = game.root.add.bind(game.root)
 	const readd = game.root.readd.bind(game.root)
-	const destroy = game.root.remove.bind(game.root)
 	const destroyAll = game.root.removeAll.bind(game.root)
 	const get = game.root.get.bind(game.root)
 	const every = game.root.every.bind(game.root)
