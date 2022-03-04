@@ -3592,6 +3592,12 @@ export interface AreaCompOpt {
 	 * Cursor on hover.
 	 */
 	cursor?: Cursor,
+	/**
+	 * If this object should ignore collisions against certain other objects.
+	 *
+	 * @since v2001.0
+	 */
+	collisionIgnore?: Tag[],
 }
 
 export interface AreaComp extends Comp {
@@ -3616,6 +3622,12 @@ export interface AreaComp extends Comp {
 		 */
 		cursor: Cursor | null,
 	},
+	/**
+	 * If this object should ignore collisions against certain other objects.
+	 *
+	 * @since v2001.0
+	 */
+	collisionIgnore: Tag[],
 	colliding: Record<number, Collision>,
 	/**
 	 * If was just clicked on last frame.

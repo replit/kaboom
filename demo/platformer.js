@@ -189,6 +189,11 @@ scene("game", ({ levelId, coins } = { levelId: 0, coins: 0 }) => {
 		}
 	})
 
+	player.onCollisionResolve(() => {
+		// Set the viewport center to player.pos
+		camPos(player.pos)
+	})
+
 	// if player onCollide with any obj with "danger" tag, lose
 	player.onCollide("danger", () => {
 		go("lose")

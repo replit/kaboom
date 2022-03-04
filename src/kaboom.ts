@@ -3950,6 +3950,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 			id: "area",
 			colliding: {},
+			collisionIgnore: opt.collisionIgnore ?? [],
 
 			add() {
 
@@ -4622,7 +4623,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 				this.onCollisionResolve((col) => {
 					if (game.gravity) {
-						if (col.isBottom()) {
+						if (col.isBottom() && this.isFalling()) {
 							velY = 0
 							curPlatform = col.target
 							lastPlatformPos = col.target.pos
@@ -4632,9 +4633,9 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 								canDouble = true
 								this.trigger("ground", curPlatform)
 							}
-						} else if (col.isTop()) {
+						} else if (col.isTop() && this.isRising()) {
 							velY = 0
-							this.trigger("headbutt")
+							this.trigger("headbutt", col.target)
 						}
 					}
 				})
@@ -5408,7 +5409,17 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 								if (checked.has(other.id)) {
 									continue
 								}
-								// TODO: whitelist / blacklist?
+								// TODO: is this too slow
+								for (const ig of aobj.collisionIgnore) {
+									if (other.is(ig)) {
+										continue
+									}
+								}
+								for (const ig of other.collisionIgnore) {
+									if (aobj.is(ig)) {
+										continue
+									}
+								}
 								const res = aobj.checkCollision(other)
 								if (res && !res.isZero()) {
 									const col1 = new Collision(aobj, other, res)
@@ -5427,7 +5438,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 			}
 
-			obj.revery(checkObj)
+			obj.every(checkObj)
 			tr = stack.pop()
 
 		}
@@ -5776,12 +5787,14 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 					letterSpacing: 4,
 					lineSpacing: 4,
 					font: DBG_FONT,
+					fixed: true,
 				}
 
 				drawRect({
 					width: gw,
 					height: gh,
 					color: rgb(0, 0, 255),
+					fixed: true,
 				})
 
 				const title = formatText({
@@ -5789,6 +5802,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 					text: err.name,
 					pos: vec2(pad),
 					color: rgb(255, 128, 0),
+					fixed: true,
 				})
 
 				drawFormattedText(title)
@@ -5797,6 +5811,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 					...textStyle,
 					text: err.message,
 					pos: vec2(pad, pad + title.height + gap),
+					fixed: true,
 				})
 
 				popTransform()

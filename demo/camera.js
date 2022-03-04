@@ -47,7 +47,12 @@ const player = get("player")[0]
 
 player.onUpdate(() => {
 	// Set the viewport center to player.pos
-// 	camPos(player.pos)
+	camPos(player.pos)
+})
+
+player.onCollisionResolve(() => {
+	// Set the viewport center to player.pos
+	camPos(player.pos)
 })
 
 player.onCollide("coin", (coin) => {
