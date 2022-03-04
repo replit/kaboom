@@ -4087,6 +4087,12 @@ export interface BodyComp extends Comp {
 	 */
 	isFalling(): boolean,
 	/**
+	 * If currently rising.
+	 *
+	 * @since v2001.0
+	 */
+	isRising(): boolean,
+	/**
 	 * Upward thrust.
 	 */
 	jump(force?: number): void,
@@ -4112,6 +4118,12 @@ export interface BodyComp extends Comp {
 	 * @since v2000.1
 	 */
 	onFall(action: () => void): EventCanceller,
+	/**
+	 * Register an event that runs when the object falls off platform.
+	 *
+	 * @since v2001.0
+	 */
+	onFallOff(action: () => void): EventCanceller,
 	/**
 	 * Register an event that runs when the object bumps into something on the head.
 	 *

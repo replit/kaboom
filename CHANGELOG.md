@@ -31,6 +31,7 @@
 - added `onResize()` to register an event that runs when canvas resizes
 - (**BREAK**) `GameObj#_id` has been renamed to `GameObj#id`
 - (**BREAK**) removed `load()` event for components, use `onLoad()` in `add()` event
+- (**BREAK**) renamed `Body#onFall()` to `Body#onFallOff()` which triggers when object fall off a platform, added `Body#onFall()` which fires when object starts falling
 
 ### v2000.2.6
 

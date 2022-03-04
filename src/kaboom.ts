@@ -4608,8 +4608,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 						return
 					}
 
-					// TODO: if both not static, should resolve the moving one
-					// TODO: if both not static, use mass
+					// TODO: if both not static, use mass, or use velocity
 
 					// resolve the non static one
 					col.resolved = true
@@ -4655,22 +4654,28 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				if (wantFall) {
 					curPlatform = null
 					lastPlatformPos = null
-					this.trigger("fall")
+					this.trigger("fallOff")
+					wantFall = false
 				}
 
 				if (curPlatform) {
 					if (!this.isTouching(curPlatform)) {
 						wantFall = true
+					} else {
+						if (!curPlatform.pos.eq(lastPlatformPos)) {
+							this.moveBy(curPlatform.pos.sub(lastPlatformPos))
+						}
+						lastPlatformPos = curPlatform.pos
+						return
 					}
-					if (!curPlatform.pos.eq(lastPlatformPos)) {
-						this.moveBy(curPlatform.pos.sub(lastPlatformPos))
-					}
-					lastPlatformPos = curPlatform.pos
-					return
 				}
 
+				const prevVelY = velY
 				velY += game.gravity * this.gravityScale * dt()
 				velY = Math.min(velY, opt.maxVelocity ?? MAX_VEL)
+				if (prevVelY < 0 && velY >= 0) {
+					this.trigger("fall")
+				}
 				this.move(0, velY)
 
 			},
@@ -4689,6 +4694,10 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 			isFalling(): boolean {
 				return velY > 0
+			},
+
+			isRising(): boolean {
+				return velY < 0
 			},
 
 			jump(force: number) {
@@ -4713,6 +4722,10 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 			onFall(action: () => void): EventCanceller {
 				return this.on("fall", action)
+			},
+
+			onFallOff(action: () => void): EventCanceller {
+				return this.on("fallOff", action)
 			},
 
 			onHeadbutt(action: () => void): EventCanceller {
