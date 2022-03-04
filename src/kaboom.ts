@@ -4626,9 +4626,11 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 						if (col.isBottom()) {
 							velY = 0
 							curPlatform = col.target
+							lastPlatformPos = col.target.pos
 							if (wantFall) {
 								wantFall = false
 							} else {
+								canDouble = true
 								this.trigger("ground", curPlatform)
 							}
 						} else if (col.isTop()) {
@@ -4652,6 +4654,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 				if (wantFall) {
 					curPlatform = null
+					lastPlatformPos = null
 					this.trigger("fall")
 				}
 
@@ -4659,6 +4662,10 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 					if (!this.isTouching(curPlatform)) {
 						wantFall = true
 					}
+					if (!curPlatform.pos.eq(lastPlatformPos)) {
+						this.moveBy(curPlatform.pos.sub(lastPlatformPos))
+					}
+					lastPlatformPos = curPlatform.pos
 					return
 				}
 

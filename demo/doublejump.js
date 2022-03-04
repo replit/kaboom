@@ -58,7 +58,7 @@ scene("game", () => {
 			sprite("grass"),
 			area(),
 			pos(rand(0, width()), i * height() / NUM_PLATFORMS),
-			solid(),
+			body({ isStatic: true }),
 			origin("center"),
 			"platform",
 			{
