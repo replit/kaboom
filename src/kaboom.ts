@@ -333,7 +333,6 @@ const COMP_DESC = new Set([
 
 const COMP_EVENTS = new Set([
 	"add",
-	"load",
 	"update",
 	"draw",
 	"destroy",
@@ -3277,13 +3276,13 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				// clear if overwrite
 				if (comp.id) {
 					this.unuse(comp.id)
-					compStates.set(comp.id, {})
+					compStates.set(comp.id, {
+						cleanups: [],
+					})
 				}
 
 				// state source location
 				const state = comp.id ? compStates.get(comp.id) : customState
-
-				state.cleanups = []
 
 				for (const k in comp) {
 
@@ -3297,6 +3296,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 						if (COMP_EVENTS.has(k)) {
 							state.cleanups.push(this.on(k, func))
 							state[k] = func
+							// don't bind to game object if it's an event
 							continue
 						} else {
 							state[k] = func
@@ -3306,40 +3306,32 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 					}
 
 					if (this[k] === undefined) {
-					// assign comp fields to game obj
+						// assign comp fields to game obj
 						Object.defineProperty(this, k, {
 							get: () => state[k],
 							set: (val) => state[k] = val,
 							configurable: true,
 							enumerable: true,
 						})
+					} else {
+						throw new Error(`Duplicate component property: "${k}"`)
 					}
 
 				}
 
-				const checkDeps = () => {
-					if (!comp.require) {
-						return
-					}
+				// check for component dependencies
+				if (comp.require) {
 					for (const dep of comp.require) {
 						if (!this.c(dep)) {
-							throw new Error(`Component '${comp.id}' requires component '${dep}'`)
+							throw new Error(`Component "${comp.id}" requires component "${dep}"`)
 						}
 					}
 				}
 
-				// check deps or run add event
+				// manually trigger add event if object already exist
 				if (this.exists()) {
 					if (comp.add) {
 						comp.add.call(this)
-					}
-					if (comp.load) {
-						onLoad(() => comp.load.call(this))
-					}
-					checkDeps()
-				} else {
-					if (comp.require) {
-						state.cleanups.push(this.on("add", checkDeps))
 					}
 				}
 
@@ -5471,25 +5463,24 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 		if (debug.inspect) {
 
-// 			let inspecting = null
-// 			const lcolor = Color.fromArray(gopt.inspectColor ?? [0, 0, 255])
+			let inspecting = null
 
-// 			if (inspecting) {
+			if (inspecting) {
 
-// 				const lines = []
-// 				const data = inspecting.inspect()
+				const lines = []
+				const data = inspecting.inspect()
 
-// 				for (const tag in data) {
-// 					if (data[tag]) {
-// 						lines.push(`${tag}: ${data[tag]}`)
-// 					} else {
-// 						lines.push(`${tag}`)
-// 					}
-// 				}
+				for (const tag in data) {
+					if (data[tag]) {
+						lines.push(`${tag}: ${data[tag]}`)
+					} else {
+						lines.push(`${tag}`)
+					}
+				}
 
-// 				drawInspectText(contentToView(mousePos()), lines.join("\n"))
+				drawInspectText(contentToView(mousePos()), lines.join("\n"))
 
-// 			}
+			}
 
 			game.root.drawInspect()
 			drawInspectText(vec2(8), `FPS: ${debug.fps()}`)

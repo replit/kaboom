@@ -3370,10 +3370,6 @@ export interface Comp {
 	 */
 	add?: () => void,
 	/**
-	 * Event that runs when host game obj is added to scene and game is loaded.
-	 */
-	load?: () => void,
-	/**
 	 * Event that runs every frame.
 	 */
 	update?: () => void,
