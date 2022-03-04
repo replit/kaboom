@@ -4603,11 +4603,10 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 					// TODO: if both not static, use mass
 
 					// resolve the non static one
+					col.resolved = true
 					const col2 = (!this.isStatic && other.isStatic) ? col : col.reverse()
 					col2.source.pos = col2.source.pos.add(col2.displacement)
 					col2.source.transform = calcTransform(col2.source)
-					col2.resolved = true
-					col.resolved = true
 					col2.source.trigger("collisionResolve", col2)
 					col2.target.trigger("collisionResolve", col2.reverse())
 
@@ -4616,9 +4615,12 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				this.onCollisionResolve((col) => {
 					if (game.gravity) {
 						if (col.isBottom()) {
-							this.trigger("ground")
 							velY = 0
 							curPlatform = col.target
+							this.trigger("ground", curPlatform)
+						} else if (col.isTop()) {
+							velY = 0
+							this.trigger("headbutt")
 						}
 					}
 				})
@@ -4638,6 +4640,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				if (curPlatform) {
 					if (!this.isTouching(curPlatform)) {
 						curPlatform = null
+						this.trigger("fall")
 					} else {
 						return
 					}
