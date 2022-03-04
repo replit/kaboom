@@ -3374,7 +3374,7 @@ export interface Comp {
 	 */
 	update?: () => void,
 	/**
-	 * Event that runs every frame.
+	 * Event that runs every frame after update.
 	 */
 	draw?: () => void,
 	/**
@@ -3542,27 +3542,35 @@ export type CleanupComp = Comp
  */
 export interface Collision {
 	/**
-	 * The game object that we collided into.
+	 * The first game object in the collision.
+	 */
+	source: GameObj,
+	/**
+	 * The second game object in the collision.
 	 */
 	target: GameObj,
 	/**
-	 * The displacement it'll need to separate us from the target.
+	 * The displacement source game object have to make to avoid the collision.
 	 */
 	displacement: Vec2,
 	/**
-	 * If the collision happened (roughly) on the top side of us.
+	 * Get a new collision with reversed source and target relationship.
+	 */
+	reverse(): Collision,
+	/**
+	 * If the collision happened (roughly) on the top side.
 	 */
 	isTop(): boolean,
 	/**
-	 * If the collision happened (roughly) on the bottom side of us.
+	 * If the collision happened (roughly) on the bottom side.
 	 */
 	isBottom(): boolean,
 	/**
-	 * If the collision happened (roughly) on the left side of us.
+	 * If the collision happened (roughly) on the left side.
 	 */
 	isLeft(): boolean,
 	/**
-	 * If the collision happened (roughly) on the right side of us.
+	 * If the collision happened (roughly) on the right side.
 	 */
 	isRight(): boolean,
 }
@@ -3661,25 +3669,25 @@ export interface AreaComp extends Comp {
 	 *
 	 * @since v2001.0
 	 */
-	onCollideActive(tag: Tag, f: (obj: GameObj, col?: Collision) => void): void,
+	onCollisionActive(tag: Tag, f: (obj: GameObj, col?: Collision) => void): void,
 	/**
 	 * Register an event runs every frame when collide with another game obj.
 	 *
 	 * @since v2001.0
 	 */
-	onCollideActive(f: (obj: GameObj, col?: Collision) => void): void,
+	onCollisionActive(f: (obj: GameObj, col?: Collision) => void): void,
 	/**
 	 * Register an event runs once when stopped colliding with another game obj with certain tag.
 	 *
 	 * @since v2001.0
 	 */
-	onCollideEnd(tag: Tag, f: (obj: GameObj) => void): void,
+	onCollisionEnd(tag: Tag, f: (obj: GameObj) => void): void,
 	/**
 	 * Register an event runs once when stopped colliding with another game obj.
 	 *
 	 * @since v2001.0
 	 */
-	onCollideEnd(f: (obj: GameObj) => void): void,
+	onCollisionEnd(f: (obj: GameObj) => void): void,
 	/**
 	 * If has a certain point inside collider.
 	 */
@@ -4087,6 +4095,12 @@ export interface BodyComp extends Comp {
 	 */
 	doubleJump(f?: number): void,
 	/**
+	 * Register an event that runs when a collision is resolved.
+	 *
+	 * @since v2001.0
+	 */
+	onCollisionResolve(action: (col: Collision) => void): EventCanceller,
+	/**
 	 * Register an event that runs when the object is grounded.
 	 *
 	 * @since v2000.1
@@ -4120,7 +4134,7 @@ export interface BodyCompOpt {
 	/**
 	 * Maximum velocity when falling.
 	 */
-	maxVel?: number,
+	maxVelocity?: number,
 	/**
 	 * Gravity multiplier.
 	 */

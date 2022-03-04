@@ -83,12 +83,12 @@ player.onCollide("enemy", (enemy) => {
 })
 
 // .onCollideEnter() runs every frame when an object collides with another object
-player.onCollideActive("enemy", () => {
+player.onCollisionActive("enemy", () => {
 	// ...
 })
 
 // .onCollideEnd() runs once when an object stopped colliding with another object
-player.onCollideEnd("enemy", () => {
+player.onCollisionEnd("enemy", () => {
 	// ...
 })
 

@@ -3950,7 +3950,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 					this.onHover(() => cursor(this.area.cursor))
 				}
 
-				this.onCollideActive((obj, col) => {
+				this.onCollisionActive((obj, col) => {
 					if (!this.colliding[obj.id]) {
 						this.trigger("collide", obj, col)
 					}
@@ -3964,7 +3964,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 					const col = this.colliding[id]
 					if (!this.checkCollision(col.target)) {
 						delete this.colliding[id]
-						this.trigger("collideEnd", col.target, col)
+						this.trigger("collisionEnd", col.target, col)
 					}
 				}
 			},
@@ -4083,25 +4083,25 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				}
 			},
 
-			onCollideActive(
+			onCollisionActive(
 				tag: Tag | ((obj: GameObj, col?: Collision) => void),
 				cb?: (obj: GameObj, col?: Collision) => void,
 			): EventCanceller {
 				if (typeof tag === "function" && cb === undefined) {
-					return this.on("collideActive", tag)
+					return this.on("collisionActive", tag)
 				} else if (typeof tag === "string") {
-					return this.on("collideActive", (obj, col) => obj.is(tag) && cb(obj, col))
+					return this.on("collisionActive", (obj, col) => obj.is(tag) && cb(obj, col))
 				}
 			},
 
-			onCollideEnd(
+			onCollisionEnd(
 				tag: Tag | ((obj: GameObj) => void),
 				cb?: (obj: GameObj) => void,
 			): EventCanceller {
 				if (typeof tag === "function" && cb === undefined) {
-					return this.on("collideEnd", tag)
+					return this.on("collisionEnd", tag)
 				} else if (typeof tag === "string") {
-					return this.on("collideEnd", (obj) => obj.is(tag) && cb(obj))
+					return this.on("collisionEnd", (obj) => obj.is(tag) && cb(obj))
 				}
 			},
 
@@ -4450,8 +4450,8 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			textTransform: opt.transform,
 			textStyles: opt.styles,
 
-			load() {
-				update(this)
+			add() {
+				onLoad(() => update(this))
 			},
 
 			draw() {
@@ -4585,7 +4585,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				// static vs static: don't resolve
 				// static vs non-static: always resolve non-static
 				// non-static vs non-static: resolve the first one
-				this.onCollideActive((other, col) => {
+				this.onCollisionActive((other, col) => {
 
 					if (!other.is("body")) {
 						return
@@ -4599,24 +4599,58 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 						return
 					}
 
-					// TODO: use mass
+					// TODO: if both not static, should resolve the moving one
+					// TODO: if both not static, use mass
 
-					const target = (this.isStatic && !other.isStatic) ? other : this
-					const displacement = target === this
-						? col.displacement
-						: col.displacement.scale(-1)
-					target.pos = target.pos.add(displacement)
-					target.transform = calcTransform(target)
+					// resolve the non static one
+					const col2 = (!this.isStatic && other.isStatic) ? col : col.reverse()
+					col2.source.pos = col2.source.pos.add(col2.displacement)
+					col2.source.transform = calcTransform(col2.source)
+					col2.resolved = true
 					col.resolved = true
+					col2.source.trigger("collisionResolve", col2)
+					col2.target.trigger("collisionResolve", col2.reverse())
 
+				})
+
+				this.onCollisionResolve((col) => {
+					if (game.gravity) {
+						if (col.isBottom()) {
+							this.trigger("ground")
+							velY = 0
+							curPlatform = col.target
+						}
+					}
 				})
 
 			},
 
 			update() {
 
-				// TODO
+				if (!game.gravity) {
+					return
+				}
 
+				if (this.isStatic) {
+					return
+				}
+
+				if (curPlatform) {
+					if (!this.isTouching(curPlatform)) {
+						curPlatform = null
+					} else {
+						return
+					}
+				}
+
+				velY += game.gravity * this.gravityScale * dt()
+				velY = Math.min(velY, opt.maxVelocity ?? MAX_VEL)
+				this.move(0, velY)
+
+			},
+
+			onCollisionResolve(action) {
+				return this.on("collisionResolve", action)
 			},
 
 			curPlatform(): GameObj | null {
@@ -5246,13 +5280,23 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	const DEF_HASH_GRID_SIZE = 64
 
 	class Collision {
+		source: GameObj
 		target: GameObj
 		displacement: Vec2
 		resolved: boolean = false
-		constructor(target: GameObj, dis: Vec2, resolved = false) {
+		constructor(source: GameObj, target: GameObj, dis: Vec2, resolved = false) {
+			this.source = source
 			this.target = target
 			this.displacement = dis
 			this.resolved = resolved
+		}
+		reverse() {
+			return new Collision(
+				this.target,
+				this.source,
+				this.displacement.scale(-1),
+				this.resolved,
+			)
 		}
 		isLeft() {
 			return this.displacement.x > 0
@@ -5328,16 +5372,12 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 								// TODO: whitelist / blacklist?
 								const res = aobj.checkCollision(other)
 								if (res && !res.isZero()) {
-									const col1 = new Collision(other, res)
-									// TODO: don't trigger if already triggered once
-									aobj.trigger("collideActive", other, col1)
+									const col1 = new Collision(aobj, other, res)
+									aobj.trigger("collisionActive", other, col1)
+									const col2 = col1.reverse()
 									// resolution only has to happen once
-									const col2 = new Collision(
-										aobj,
-										res.scale(-1),
-										col1.resolved,
-									)
-									other.trigger("collideActive", aobj, col2)
+									col2.resolved = col1.resolved
+									other.trigger("collisionActive", aobj, col2)
 								}
 								checked.add(other.id)
 							}

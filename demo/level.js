@@ -27,6 +27,7 @@ const level = addLevel([
 	pos: vec2(100, 200),
 	// Define what each symbol means (in components)
 	"@": () => [
+		pos(),
 		sprite("bean"),
 		area(),
 		body(),
@@ -34,9 +35,10 @@ const level = addLevel([
 		"player",
 	],
 	"=": () => [
+		pos(),
 		sprite("grass"),
 		area(),
-		solid(),
+		body({ isStatic: true }),
 		origin("bot"),
 	],
 	"$": () => [
