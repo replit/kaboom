@@ -56,7 +56,7 @@ for (let i = 1; i <= maxRow; i++) {
 			sprite("note"),
 			pos(j * gw + (width() - w) / 2 + 32, height() - FLOOR_HEIGHT + 24 - (maxRow - i + 1) * gh),
 			area(),
-			solid(),
+			body({ isStatic: true }),
 			origin("bot"),
 			// note: hsl2rgb is not released yet!
 			color(hsl2rgb((n * 20) / 255, 0.6, 0.7)),
@@ -99,7 +99,7 @@ for (let x = 0; x < width(); x += 64) {
 		sprite("grass"),
 		origin("botleft"),
 		area(),
-		solid(),
+		body({ isStatic: true }),
 	])
 }
 

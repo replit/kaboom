@@ -29,7 +29,7 @@ scene("game", () => {
 		pos(0, height()),
 		origin("botleft"),
 		area(),
-		solid(),
+		body({ isStatic: true }),
 		color(127, 200, 255),
 	])
 

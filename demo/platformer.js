@@ -111,7 +111,7 @@ const levelConf = {
 	"=": () => [
 		sprite("grass"),
 		area(),
-		solid(),
+		body({ isStatic: true }),
 		origin("bot"),
 	],
 	"$": () => [
@@ -124,14 +124,14 @@ const levelConf = {
 	"%": () => [
 		sprite("prize"),
 		area(),
-		solid(),
+		body({ isStatic: true }),
 		origin("bot"),
 		"prize",
 	],
 	"^": () => [
 		sprite("spike"),
 		area(),
-		solid(),
+		body({ isStatic: true }),
 		origin("bot"),
 		"danger",
 	],

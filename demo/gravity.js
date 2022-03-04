@@ -37,8 +37,8 @@ add([
 	outline(4),
 	area(),
 	pos(0, height() - 48),
-	// Give objects a solid() component if you don't want other solid objects pass through
-	solid(),
+	// Give objects a body() component if you don't want other solid objects pass through
+	body({ isStatic: true }),
 ])
 
 add([
