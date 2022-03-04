@@ -3283,6 +3283,22 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 				// state source location
 				const state = comp.id ? compStates.get(comp.id) : customState
+				const cleanups = comp.id ? state.cleanups : []
+
+				// check for component dependencies
+				const checkDeps = () => {
+					if (comp.require) {
+						for (const dep of comp.require) {
+							if (!this.c(dep)) {
+								throw new Error(`Component "${comp.id}" requires component "${dep}"`)
+							}
+						}
+					}
+				}
+
+				if (comp.require && !this.exists() && state.cleanups) {
+					cleanups.push(this.on("add", checkDeps))
+				}
 
 				for (const k in comp) {
 
@@ -3294,7 +3310,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 					if (typeof comp[k] === "function") {
 						const func = comp[k].bind(this)
 						if (COMP_EVENTS.has(k)) {
-							state.cleanups.push(this.on(k, func))
+							cleanups.push(this.on(k, func))
 							state[k] = func
 							// don't bind to game object if it's an event
 							continue
@@ -3319,17 +3335,9 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 				}
 
-				// check for component dependencies
-				if (comp.require) {
-					for (const dep of comp.require) {
-						if (!this.c(dep)) {
-							throw new Error(`Component "${comp.id}" requires component "${dep}"`)
-						}
-					}
-				}
-
 				// manually trigger add event if object already exist
 				if (this.exists()) {
+					checkDeps()
 					if (comp.add) {
 						comp.add.call(this)
 					}
@@ -4570,6 +4578,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		let curPlatform: GameObj | null = null
 		let lastPlatformPos = null
 		let canDouble = true
+		let wantFall = false
 
 		return {
 
@@ -4617,7 +4626,11 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 						if (col.isBottom()) {
 							velY = 0
 							curPlatform = col.target
-							this.trigger("ground", curPlatform)
+							if (wantFall) {
+								wantFall = false
+							} else {
+								this.trigger("ground", curPlatform)
+							}
 						} else if (col.isTop()) {
 							velY = 0
 							this.trigger("headbutt")
@@ -4637,13 +4650,16 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 					return
 				}
 
+				if (wantFall) {
+					curPlatform = null
+					this.trigger("fall")
+				}
+
 				if (curPlatform) {
 					if (!this.isTouching(curPlatform)) {
-						curPlatform = null
-						this.trigger("fall")
-					} else {
-						return
+						wantFall = true
 					}
+					return
 				}
 
 				velY += game.gravity * this.gravityScale * dt()
