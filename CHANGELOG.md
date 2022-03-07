@@ -37,6 +37,7 @@
 - (**BREAK**) renamed `Body#weight` to `Body#gravityScale`
 - (**BREAK**) removed `GameObj#every()` and `GameObj#revery()` in favor of `obj.get().forEach()`
 - added `GameObj#getAll()` for recursively getting children game objects (`get()` only gets from direct children)
+- added `Area#onCollisionActive()` and `Area#onCollisionEnd()` events
 
 ### v2000.2.6
 
