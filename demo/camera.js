@@ -31,7 +31,7 @@ addLevel([
 	"=": () => [
 		sprite("grass"),
 		area(),
-		body({ isStatic: true, }),
+		body({ isStatic: true }),
 		origin("bot"),
 	],
 	"$": () => [
