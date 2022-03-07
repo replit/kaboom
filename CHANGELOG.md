@@ -34,6 +34,9 @@
 - (**BREAK**) renamed `Body#onFall()` to `Body#onFallOff()` which triggers when object fall off a platform, added `Body#onFall()` which fires when object starts falling
 - (**BREAK**) `addLevel()` now returns a `GameObj` which has all individual grid objects as its children game objects, with `LevelComp` containing its previous methods
 - (**BREAK**) defining `gravity()` is now required for enabling gravity, `body()` by default will only prevent objects from going through each other, removed `solid()` in favor of `body({ isStatic: true })`
+- (**BREAK**) renamed `Body#weight` to `Body#gravityScale`
+- (**BREAK**) removed `GameObj#every()` and `GameObj#revery()` in favor of `obj.get().forEach()`
+- added `GameObj#getAll()` for recursively getting children game objects (`get()` only gets from direct children)
 
 ### v2000.2.6
 

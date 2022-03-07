@@ -107,32 +107,11 @@ export interface KaboomCtx {
 	 */
 	get(tag?: Tag | Tag[]): GameObj[],
 	/**
-	 * Run callback on every game obj with certain tag.
+	 * Recursively a list of all game objs with certain tag including children of children.
 	 *
-	 * @example
-	 * ```js
-	 * // Destroy all game obj with tag "fruit"
-	 * every("fruit", destroy)
-	 * ```
+	 * @since v2001.0
 	 */
-	every<T>(tag: Tag | Tag[], action: (obj: GameObj) => T): void,
-	/**
-	 * Run callback on every game obj.
-	 *
-	 * @example
-	 * ```js
-	 * every((obj) => {})
-	 * ```
-	 */
-	every<T>(action: (obj: GameObj) => T): void,
-	/**
-	 * Run callback on every game obj with certain tag in reverse order.
-	 */
-	revery<T>(tag: Tag | Tag[], action: (obj: GameObj) => T): void,
-	/**
-	 * Run callback on every game obj in reverse order.
-	 */
-	revery<T>(action: (obj: GameObj) => T): void,
+	getAll(tag?: Tag | Tag[]): GameObj[],
 	/**
 	 * Remove the game obj.
 	 *
@@ -2157,7 +2136,7 @@ export interface GameObjRaw {
 	/**
 	 * Add a child.
 	 *
-	 * @since v2000.2.0
+	 * @since v2001.0
 	 */
 	add<T>(comps: CompList<T> | GameObj<T>): GameObj<T>,
 	/**
@@ -2167,67 +2146,49 @@ export interface GameObjRaw {
 	/**
 	 * Remove a child.
 	 *
-	 * @since v2000.2.0
+	 * @since v2001.0
 	 */
 	remove(obj: GameObj): void,
 	/**
 	 * Remove all children with a certain tag.
 	 *
-	 * @since v2000.2.0
+	 * @since v2001.0
 	 */
 	removeAll(tag: Tag): void,
 	/**
 	 * Get a list of all game objs with certain tag.
 	 *
-	 * @since v2000.2.0
+	 * @since v2001.0
 	 */
 	get(tag?: Tag | Tag[]): GameObj[],
 	/**
-	 * Iterate through children.
+	 * Recursively a list of all game objs with certain tag including children of children.
 	 *
-	 * @since v2000.2.0
+	 * @since v2001.0
 	 */
-	every<T>(action: (obj: GameObj) => T): void,
-	/**
-	 * Iterate through children.
-	 *
-	 * @since v2000.2.0
-	 */
-	every<T>(tag: Tag | Tag[], action: (obj: GameObj) => T): void,
-	/**
-	 * Iterate through children, in reverse.
-	 *
-	 * @since v2000.2.0
-	 */
-	revery<T>(action: (obj: GameObj) => T): void,
-	/**
-	 * Iterate through children, in reverse.
-	 *
-	 * @since v2000.2.0
-	 */
-	revery<T>(tag: Tag | Tag[], action: (obj: GameObj) => T): void,
+	getAll(tag?: Tag | Tag[]): GameObj[],
 	/**
 	 * Get the parent game obj, if have any.
 	 *
-	 * @since v2000.2.0
+	 * @since v2001.0
 	 */
 	parent: GameObj | null,
 	/**
 	 * Get all children game objects.
 	 *
-	 * @since v2000.2.0
+	 * @since v2001.0
 	 */
 	children: GameObj[],
 	/**
 	 * Update this game object and all children game objects.
 	 *
-	 * @since v2000.2.0
+	 * @since v2001.0
 	 */
 	update(): void,
 	/**
 	 * Draw this game object and all children game objects.
 	 *
-	 * @since v2000.2.0
+	 * @since v2001.0
 	 */
 	draw(): void,
 	/**

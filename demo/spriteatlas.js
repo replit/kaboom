@@ -266,7 +266,7 @@ function spin() {
 
 onKeyPress("space", () => {
 	let interacted = false
-	every("chest", (c) => {
+	getAll("chest").forEach((c) => {
 		if (player.isTouching(c)) {
 			if (c.opened) {
 				c.play("close")

@@ -3227,12 +3227,12 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			},
 
 			removeAll(tag: Tag) {
-				this.every(tag, (obj) => this.remove(obj))
+				this.get().forEach(tag, (obj) => this.remove(obj))
 			},
 
 			update() {
 				if (this.paused) return
-				this.every((child) => child.update())
+				this.get().forEach((child) => child.update())
 				this.trigger("update")
 			},
 
@@ -3242,7 +3242,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				pushTranslate(this.pos)
 				pushScale(this.scale)
 				pushRotateZ(this.angle)
-				this.every((child) => child.draw())
+				this.get().forEach((child) => child.draw())
 				this.trigger("draw")
 				popTransform()
 			},
@@ -3253,7 +3253,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				pushTranslate(this.pos)
 				pushScale(this.scale)
 				pushRotateZ(this.angle)
-				this.every((child) => child.drawInspect())
+				this.get().forEach((child) => child.drawInspect())
 				this.trigger("drawInspect")
 				popTransform()
 			},
@@ -3359,27 +3359,18 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				return compStates.get(id)
 			},
 
-			// TODO: a recursive variant
+			// TODO: cache sorted list? update each frame?
 			get(t?: Tag | Tag[]): GameObj[] {
 				return this.children
 					.filter((child) => t ? child.is(t) : true)
 					.sort((o1, o2) => (o1.z ?? 0) - (o2.z ?? 0))
 			},
 
-			every<T>(t: Tag | Tag[] | ((obj: GameObj) => T), f?: (obj: GameObj) => T) {
-				if (typeof t === "function" && f === undefined) {
-					return this.get().forEach((obj) => t(obj))
-				} else if (typeof t === "string" || Array.isArray(t)) {
-					return this.get(t).forEach((obj) => f(obj))
-				}
-			},
-
-			revery<T>(t: Tag | Tag[] | ((obj: GameObj) => T), f?: (obj: GameObj) => T) {
-				if (typeof t === "function" && f === undefined) {
-					return this.get().reverse().forEach((obj) => t(obj))
-				} else if (typeof t === "string" || Array.isArray(t)) {
-					return this.get(t).reverse().forEach((obj) => f(obj))
-				}
+			getAll(t?: Tag | Tag[]): GameObj[] {
+				return this.children
+					.sort((o1, o2) => (o1.z ?? 0) - (o2.z ?? 0))
+					.flatMap((child) => [child, ...child.getAll(t)])
+					.filter((child) => t ? child.is(t) : true)
 			},
 
 			isAncestorOf(obj: GameObj) {
@@ -4128,7 +4119,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			// TODO: recursive
 			// push object out of other solid objects
 			pushOutAll() {
-				game.root.every(this.pushOut)
+				game.root.getAll().forEach(this.pushOut)
 			},
 
 			localArea(): Shape {
@@ -4960,7 +4951,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			game.ev = new EventHandler()
 			game.objEvents = new EventHandler()
 
-			game.root.every((obj) => {
+			game.root.get().forEach((obj) => {
 				if (!obj.stay) {
 					game.root.remove(obj)
 				}
@@ -5237,8 +5228,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	const readd = game.root.readd.bind(game.root)
 	const destroyAll = game.root.removeAll.bind(game.root)
 	const get = game.root.get.bind(game.root)
-	const every = game.root.every.bind(game.root)
-	const revery = game.root.revery.bind(game.root)
+	const getAll = game.root.getAll.bind(game.root)
 
 	function explode(speed: number = 2, size: number = 1): Comp {
 		let time = 0
@@ -5429,7 +5419,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 			}
 
-			obj.every(checkObj)
+			obj.get().forEach(checkObj)
 			tr = stack.pop()
 
 		}
@@ -6032,8 +6022,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		destroy,
 		destroyAll,
 		get,
-		every,
-		revery,
+		getAll,
 		readd,
 		// comps
 		pos,
