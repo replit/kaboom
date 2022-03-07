@@ -134,7 +134,7 @@ import {
 	Debug,
 	KaboomPlugin,
 	MergeObj,
-	Level,
+	LevelComp,
 	LevelOpt,
 	Cursor,
 	Recording,
@@ -5029,7 +5029,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		return vec2(width() / 2, height() / 2)
 	}
 
-	function grid(level: Level, p: Vec2) {
+	function grid(level: GameObj<LevelComp>, p: Vec2) {
 
 		return {
 
@@ -5040,8 +5040,8 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				const p = vec2(...args)
 				this.gridPos = p.clone()
 				this.pos = vec2(
-					level.offset().x + this.gridPos.x * level.gridWidth(),
-					level.offset().y + this.gridPos.y * level.gridHeight(),
+					this.gridPos.x * level.gridWidth(),
+					this.gridPos.y * level.gridHeight(),
 				)
 			},
 
@@ -5065,21 +5065,21 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 	}
 
-	function addLevel(map: string[], opt: LevelOpt): Level {
+	function addLevel(map: string[], opt: LevelOpt): GameObj<PosComp | LevelComp> {
 
 		if (!opt.width || !opt.height) {
 			throw new Error("Must provide level grid width & height.")
 		}
 
-		const objs: GameObj[] = []
-		const offset = vec2(opt.pos || vec2(0))
-		let longRow = 0
+		const level = add([
+			pos(opt.pos ?? vec2(0)),
+		])
 
-		const level = {
+		let maxRowLen = 0
 
-			offset() {
-				return offset.clone()
-			},
+		const levelComp: LevelComp = {
+
+			id: "level",
 
 			gridWidth() {
 				return opt.width
@@ -5092,23 +5092,23 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			getPos(...args): Vec2 {
 				const p = vec2(...args)
 				return vec2(
-					offset.x + p.x * opt.width,
-					offset.y + p.y * opt.height,
+					p.x * opt.width,
+					p.y * opt.height,
 				)
 			},
 
-			spawn(sym: string, ...args): GameObj {
+			spawn(key: string, ...args): GameObj {
 
 				const p = vec2(...args)
 
 				const comps = (() => {
-					if (opt[sym]) {
-						if (typeof opt[sym] !== "function") {
+					if (opt[key]) {
+						if (typeof opt[key] !== "function") {
 							throw new Error("Level symbol def must be a function returning a component list")
 						}
-						return opt[sym](p)
+						return opt[key](p)
 					} else if (opt.any) {
-						return opt.any(sym, p)
+						return opt.any(key, p)
 					}
 				})()
 
@@ -5117,8 +5117,8 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				}
 
 				const posComp = vec2(
-					offset.x + p.x * opt.width,
-					offset.y + p.y * opt.height,
+					p.x * opt.width,
+					p.y * opt.height,
 				)
 
 				for (const comp of comps) {
@@ -5132,38 +5132,30 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				comps.push(pos(posComp))
 				comps.push(grid(this, p))
 
-				const obj = game.root.add(comps)
-
-				objs.push(obj)
-
-				return obj
+				return level.add(comps)
 
 			},
 
-			width() {
-				return longRow * opt.width
+			levelWidth() {
+				return maxRowLen * opt.width
 			},
 
-			height() {
+			levelHeight() {
 				return map.length * opt.height
-			},
-
-			destroy() {
-				for (const obj of objs) {
-					obj.destroy()
-				}
 			},
 
 		}
 
+		level.use(levelComp)
+
 		map.forEach((row, i) => {
 
-			const syms = row.split("")
+			const keys = row.split("")
 
-			longRow = Math.max(syms.length, longRow)
+			maxRowLen = Math.max(keys.length, maxRowLen)
 
-			syms.forEach((sym, j) => {
-				level.spawn(sym, vec2(j, i))
+			keys.forEach((key, j) => {
+				level.spawn(key, vec2(j, i))
 			})
 
 		})

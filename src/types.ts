@@ -1639,7 +1639,7 @@ export interface KaboomCtx {
 	 * })
 	 * ```
 	 */
-	addLevel(map: string[], options: LevelOpt): Level,
+	addLevel(map: string[], options: LevelOpt): GameObj,
 	/**
 	 * Get data from local storage, if not present can set to a default value.
 	 *
@@ -4310,17 +4310,15 @@ export interface LevelOpt {
 	[sym: string]: any,
 }
 
-export interface Level {
+export interface LevelComp extends Comp {
+	gridWidth(): number,
+	gridHeight(): number,
 	getPos(p: Vec2): Vec2,
 	getPos(x: number, y: number): Vec2,
 	spawn(sym: string, p: Vec2): GameObj,
 	spawn(sym: string, x: number, y: number): GameObj,
-	width(): number,
-	height(): number,
-	gridWidth(): number,
-	gridHeight(): number,
-	offset(): Vec2,
-	destroy(),
+	levelWidth(): number,
+	levelHeight(): number,
 }
 
 export interface BoomOpt {
