@@ -345,11 +345,11 @@ const COMP_EVENTS = new Set([
 function processButtonState(s: ButtonState): ButtonState {
 	if (s === "pressed" || s === "rpressed") {
 		return "down"
-	}
-	if (s === "released") {
+	} else if (s === "released") {
 		return "up"
+	} else {
+		return s
 	}
-	return s
 }
 
 // wrappers around full screen functions to work across browsers
@@ -369,7 +369,6 @@ function getFullscreenElement(): Element | void {
 	return document.fullscreenElement
 		// @ts-ignore
 		|| document.webkitFullscreenElement
-
 }
 
 // convert origin string to a vec2 offset

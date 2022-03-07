@@ -32,6 +32,7 @@
 - (**BREAK**) `GameObj#_id` has been renamed to `GameObj#id`
 - (**BREAK**) removed `load()` event for components, use `onLoad()` in `add()` event
 - (**BREAK**) renamed `Body#onFall()` to `Body#onFallOff()` which triggers when object fall off a platform, added `Body#onFall()` which fires when object starts falling
+- (**BREAK**) `addLevel()` now returns a `GameObj` which has all individual grid objects as its children game objects, with `LevelComp` containing its previous methods
 
 ### v2000.2.6
 
