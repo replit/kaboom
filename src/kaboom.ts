@@ -5536,6 +5536,15 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 			let inspecting = null
 
+			for (const obj of getAll()) {
+				if (obj.c("area") && obj.isHovering()) {
+					inspecting = obj
+					break
+				}
+			}
+
+			game.root.drawInspect()
+
 			if (inspecting) {
 
 				const lines = []
@@ -5553,7 +5562,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 			}
 
-			game.root.drawInspect()
 			drawInspectText(vec2(8), `FPS: ${debug.fps()}`)
 
 		}
