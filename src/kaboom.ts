@@ -3295,6 +3295,10 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 					}
 				}
 
+				if (comp.destroy) {
+					cleanups.push(comp.destroy)
+				}
+
 				if (comp.require && !this.exists() && state.cleanups) {
 					cleanups.push(this.on("add", checkDeps))
 				}
@@ -3936,6 +3940,8 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 	function area(opt: AreaCompOpt = {}): AreaComp {
 
+		const cleanups: Array<() => void> = []
+
 		return {
 
 			id: "area",
@@ -3945,16 +3951,15 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			add() {
 
 				if (this.area.cursor) {
-					// TODO: collect
-					this.onHover(() => cursor(this.area.cursor))
+					cleanups.push(this.onHover(() => cursor(this.area.cursor)))
 				}
 
-				this.onCollisionActive((obj, col) => {
+				cleanups.push(this.onCollisionActive((obj, col) => {
 					if (!this.colliding[obj.id]) {
 						this.trigger("collide", obj, col)
 					}
 					this.colliding[obj.id] = col
-				})
+				}))
 
 			},
 
@@ -4008,6 +4013,10 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 				popTransform()
 
+			},
+
+			destroy() {
+				cleanups.forEach((f) => f())
 			},
 
 			area: {
@@ -4570,6 +4579,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		let lastPlatformPos = null
 		let canDouble = true
 		let wantFall = false
+		const cleanups: Array<() => void> = []
 
 		return {
 
@@ -4585,7 +4595,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				// static vs static: don't resolve
 				// static vs non-static: always resolve non-static
 				// non-static vs non-static: resolve the first one
-				this.onCollisionActive((other, col) => {
+				cleanups.push(this.onCollisionActive((other, col) => {
 
 					if (!other.is("body")) {
 						return
@@ -4609,9 +4619,9 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 					col2.source.trigger("collisionResolve", col2)
 					col2.target.trigger("collisionResolve", col2.reverse())
 
-				})
+				}))
 
-				this.onCollisionResolve((col) => {
+				cleanups.push(this.onCollisionResolve((col) => {
 					if (game.gravity) {
 						if (col.isBottom() && this.isFalling()) {
 							velY = 0
@@ -4628,7 +4638,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 							this.trigger("headbutt", col.target)
 						}
 					}
-				})
+				}))
 
 			},
 
@@ -4650,7 +4660,11 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				}
 
 				if (curPlatform) {
-					if (!this.isTouching(curPlatform)) {
+					if (
+						!this.isTouching(curPlatform)
+						|| !curPlatform.exists()
+						|| !curPlatform.is("body")
+					) {
 						wantFall = true
 					} else {
 						if (!curPlatform.pos.eq(lastPlatformPos)) {
@@ -4669,6 +4683,10 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				}
 				this.move(0, velY)
 
+			},
+
+			destroy() {
+				cleanups.forEach((f) => f())
 			},
 
 			onCollisionResolve(action) {
