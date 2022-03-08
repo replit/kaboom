@@ -174,49 +174,49 @@ const map = addLevel([
 	"$": () => [
 		sprite("chest"),
 		area(),
-		solid(),
+		body({ isStatic: true }),
 		{ opened: false },
 		"chest",
 	],
 	"a": () => [
 		sprite("wall_botleft"),
 		area({ width: 4 }),
-		solid(),
+		body({ isStatic: true }),
 	],
 	"b": () => [
 		sprite("wall_botright"),
 		area({ width: 4, offset: vec2(12, 0) }),
-		solid(),
+		body({ isStatic: true }),
 	],
 	"c": () => [
 		sprite("wall_topleft"),
 		area(),
-		solid(),
+		body({ isStatic: true }),
 	],
 	"d": () => [
 		sprite("wall_topright"),
 		area(),
-		solid(),
+		body({ isStatic: true }),
 	],
 	"w": () => [
 		sprite("wall"),
 		area(),
-		solid(),
+		body({ isStatic: true }),
 	],
 	"t": () => [
 		sprite("wall_top"),
 		area({ height: 4, offset: vec2(0, 12) }),
-		solid(),
+		body({ isStatic: true }),
 	],
 	"l": () => [
 		sprite("wall_left"),
 		area({ width: 4 }),
-		solid(),
+		body({ isStatic: true }),
 	],
 	"r": () => [
 		sprite("wall_right"),
 		area({ width: 4, offset: vec2(12, 0) }),
-		solid(),
+		body({ isStatic: true }),
 	],
 })
 
@@ -224,7 +224,7 @@ const player = add([
 	pos(map.getPos(2, 2)),
 	sprite("hero", { anim: "idle" }),
 	area({ width: 12, height: 12, offset: vec2(0, 6) }),
-	solid(),
+	body({ isStatic: true }),
 	origin("center"),
 ])
 
@@ -233,7 +233,7 @@ const ogre = add([
 	pos(map.getPos(4, 4)),
 	origin("bot"),
 	area({ scale: 0.5 }),
-	solid(),
+	body({ isStatic: true }),
 ])
 
 const sword = add([
@@ -266,7 +266,7 @@ function spin() {
 
 onKeyPress("space", () => {
 	let interacted = false
-	every("chest", (c) => {
+	getAll("chest").forEach((c) => {
 		if (player.isTouching(c)) {
 			if (c.opened) {
 				c.play("close")

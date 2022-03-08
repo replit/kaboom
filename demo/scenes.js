@@ -48,7 +48,7 @@ scene("game", ({ levelIdx, score }) => {
 		"=": () => [
 			sprite("grass"),
 			area(),
-			solid(),
+			body({ isStatic: true }),
 			origin("bot"),
 		],
 		"$": () => [

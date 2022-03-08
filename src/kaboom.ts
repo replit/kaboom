@@ -1,8 +1,11 @@
 import {
+	sat,
 	vec2,
 	vec3,
 	Vec3,
 	Rect,
+	Point,
+	Polygon,
 	Line,
 	Circle,
 	Color,
@@ -23,16 +26,11 @@ import {
 	map,
 	mapc,
 	wave,
-	testAreaRect,
-	testAreaPoint,
-	testAreaArea,
-	testLineLineT,
-	testRectRect2,
 	testLineLine,
 	testRectRect,
 	testRectLine,
 	testRectPoint,
-	minkDiff,
+	testPolygonPoint,
 	deg2rad,
 	rad2deg,
 } from "./math"
@@ -95,7 +93,6 @@ import {
 	Tag,
 	Key,
 	MouseButton,
-	Collision,
 	PosComp,
 	ScaleComp,
 	RotateComp,
@@ -112,7 +109,6 @@ import {
 	CleanupComp,
 	AreaCompOpt,
 	AreaComp,
-	Area,
 	SpriteComp,
 	SpriteCompOpt,
 	SpriteAnimPlayOpt,
@@ -129,7 +125,6 @@ import {
 	BodyCompOpt,
 	Uniform,
 	ShaderComp,
-	SolidComp,
 	FixedComp,
 	StayComp,
 	HealthComp,
@@ -139,12 +134,13 @@ import {
 	Debug,
 	KaboomPlugin,
 	MergeObj,
-	Level,
+	LevelComp,
 	LevelOpt,
 	Cursor,
 	Recording,
 	BoomOpt,
 	PeditFile,
+	Shape,
 } from "./types"
 
 import FPSCounter from "./fps"
@@ -244,7 +240,6 @@ const MIN_DETUNE = -1200
 const MAX_DETUNE = 1200
 
 const DEF_ORIGIN = "topleft"
-const DEF_GRAVITY = 1600
 const BG_GRID_SIZE = 64
 
 const DEF_FONT = "apl386o"
@@ -338,11 +333,11 @@ const COMP_DESC = new Set([
 
 const COMP_EVENTS = new Set([
 	"add",
-	"load",
 	"update",
 	"draw",
 	"destroy",
 	"inspect",
+	"drawInspect",
 ])
 
 // transform the button state to the next state
@@ -350,11 +345,11 @@ const COMP_EVENTS = new Set([
 function processButtonState(s: ButtonState): ButtonState {
 	if (s === "pressed" || s === "rpressed") {
 		return "down"
-	}
-	if (s === "released") {
+	} else if (s === "released") {
 		return "up"
+	} else {
+		return s
 	}
-	return s
 }
 
 // wrappers around full screen functions to work across browsers
@@ -374,7 +369,6 @@ function getFullscreenElement(): Element | void {
 	return document.fullscreenElement
 		// @ts-ignore
 		|| document.webkitFullscreenElement
-
 }
 
 // convert origin string to a vec2 offset
@@ -911,7 +905,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		timers: new IDList<Timer>(),
 
 		// misc
-		gravity: DEF_GRAVITY,
+		gravity: 0,
 		scenes: {},
 
 		// on screen log
@@ -2995,7 +2989,14 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		}
 	}
 
-	winEvents.error = (e) => handleErr(e.error)
+	winEvents.error = (e) => {
+		if (e.error) {
+			handleErr(e.error)
+		} else {
+			handleErr(new Error(e.message))
+		}
+	}
+
 	winEvents.unhandledrejection = (e) => handleErr(e.reason)
 
 	for (const name in canvasEvents) {
@@ -3107,15 +3108,16 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		showLog: true,
 		fps: () => app.fpsCounter.fps,
 		numFrames: () => app.numFrames,
-		objCount(): number {
-			const count = (obj: GameObj) =>
-				obj.children.length + obj.children.reduce((num, c) => num + count(c), 0)
-			return count(game.root)
-		},
 		stepFrame: updateFrame,
 		drawCalls: () => gfx.drawCalls,
 		clearLog: () => game.logs = [],
-		log: (msg) => game.logs.unshift(`${gopt.logTime ? `[${time().toFixed(2)}].time ` : ""}[${msg?.toString ? msg.toString() : msg}].${msg instanceof Error ? "error" : "info"}`),
+		log: (msg) => {
+			const max = gopt.logMax ?? LOG_MAX
+			game.logs.unshift(`${gopt.logTime ? `[${time().toFixed(2)}].time ` : ""}[${msg?.toString ? msg.toString() : msg}].${msg instanceof Error ? "error" : "info"}`)
+			if (game.logs.length > max) {
+				game.logs = game.logs.slice(0, max)
+			}
+		},
 		error: (msg) => debug.log(new Error(msg.toString ? msg.toString() : msg as string)),
 		curRecording: null,
 		get paused() {
@@ -3168,6 +3170,14 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		return game.cam.transform.invert().multVec2(p)
 	}
 
+	function calcTransform(obj: GameObj): Mat4 {
+		let tr = new Mat4()
+		if (obj.pos) tr = tr.translate(obj.pos)
+		if (obj.scale) tr = tr.scale(obj.scale)
+		if (obj.angle) tr = tr.rotateZ(obj.angle)
+		return obj.parent ? tr.mult(obj.parent.transform) : tr
+	}
+
 	function make<T>(comps: CompList<T>): GameObj<T> {
 
 		const compStates = new Map()
@@ -3177,9 +3187,10 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		// TODO: "this" should be typed here
 		const obj = {
 
-			_id: uid(),
+			id: uid(),
 			hidden: false,
 			paused: false,
+			transform: new Mat4(),
 			children: [],
 			parent: null,
 
@@ -3194,6 +3205,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 					return a
 				})()
 				obj.parent = this
+				obj.transform = calcTransform(obj)
 				obj.trigger("add", this)
 				onLoad(() => obj.trigger("load"))
 				this.children.push(obj)
@@ -3216,12 +3228,12 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			},
 
 			removeAll(tag: Tag) {
-				this.every(tag, (obj) => this.remove(obj))
+				this.get().forEach(tag, (obj) => this.remove(obj))
 			},
 
 			update() {
 				if (this.paused) return
-				this.every((child) => child.update())
+				this.get().forEach((child) => child.update())
 				this.trigger("update")
 			},
 
@@ -3231,8 +3243,19 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				pushTranslate(this.pos)
 				pushScale(this.scale)
 				pushRotateZ(this.angle)
-				this.every((child) => child.draw())
+				this.get().forEach((child) => child.draw())
 				this.trigger("draw")
+				popTransform()
+			},
+
+			drawInspect() {
+				if (this.hidden) return
+				pushTransform()
+				pushTranslate(this.pos)
+				pushScale(this.scale)
+				pushRotateZ(this.angle)
+				this.get().forEach((child) => child.drawInspect())
+				this.trigger("drawInspect")
 				popTransform()
 			},
 
@@ -3253,13 +3276,33 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				// clear if overwrite
 				if (comp.id) {
 					this.unuse(comp.id)
-					compStates.set(comp.id, {})
+					compStates.set(comp.id, {
+						cleanups: [],
+					})
 				}
 
 				// state source location
 				const state = comp.id ? compStates.get(comp.id) : customState
+				const cleanups = comp.id ? state.cleanups : []
 
-				state.cleanups = []
+				// check for component dependencies
+				const checkDeps = () => {
+					if (comp.require) {
+						for (const dep of comp.require) {
+							if (!this.c(dep)) {
+								throw new Error(`Component "${comp.id}" requires component "${dep}"`)
+							}
+						}
+					}
+				}
+
+				if (comp.destroy) {
+					cleanups.push(comp.destroy)
+				}
+
+				if (comp.require && !this.exists() && state.cleanups) {
+					cleanups.push(this.on("add", checkDeps))
+				}
 
 				for (const k in comp) {
 
@@ -3271,8 +3314,9 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 					if (typeof comp[k] === "function") {
 						const func = comp[k].bind(this)
 						if (COMP_EVENTS.has(k)) {
-							state.cleanups.push(this.on(k, func))
+							cleanups.push(this.on(k, func))
 							state[k] = func
+							// don't bind to game object if it's an event
 							continue
 						} else {
 							state[k] = func
@@ -3282,40 +3326,24 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 					}
 
 					if (this[k] === undefined) {
-					// assign comp fields to game obj
+						// assign comp fields to game obj
 						Object.defineProperty(this, k, {
 							get: () => state[k],
 							set: (val) => state[k] = val,
 							configurable: true,
 							enumerable: true,
 						})
+					} else {
+						throw new Error(`Duplicate component property: "${k}"`)
 					}
 
 				}
 
-				const checkDeps = () => {
-					if (!comp.require) {
-						return
-					}
-					for (const dep of comp.require) {
-						if (!this.c(dep)) {
-							throw new Error(`Component '${comp.id}' requires component '${dep}'`)
-						}
-					}
-				}
-
-				// check deps or run add event
+				// manually trigger add event if object already exist
 				if (this.exists()) {
+					checkDeps()
 					if (comp.add) {
 						comp.add.call(this)
-					}
-					if (comp.load) {
-						onLoad(() => comp.load.call(this))
-					}
-					checkDeps()
-				} else {
-					if (comp.require) {
-						state.cleanups.push(this.on("add", checkDeps))
 					}
 				}
 
@@ -3336,27 +3364,18 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				return compStates.get(id)
 			},
 
-			// TODO: a recursive variant
+			// TODO: cache sorted list? update each frame?
 			get(t?: Tag | Tag[]): GameObj[] {
 				return this.children
 					.filter((child) => t ? child.is(t) : true)
 					.sort((o1, o2) => (o1.z ?? 0) - (o2.z ?? 0))
 			},
 
-			every<T>(t: Tag | Tag[] | ((obj: GameObj) => T), f?: (obj: GameObj) => T) {
-				if (typeof t === "function" && f === undefined) {
-					return this.get().forEach((obj) => t(obj))
-				} else if (typeof t === "string" || Array.isArray(t)) {
-					return this.get(t).forEach((obj) => f(obj))
-				}
-			},
-
-			revery<T>(t: Tag | Tag[] | ((obj: GameObj) => T), f?: (obj: GameObj) => T) {
-				if (typeof t === "function" && f === undefined) {
-					return this.get().reverse().forEach((obj) => t(obj))
-				} else if (typeof t === "string" || Array.isArray(t)) {
-					return this.get(t).reverse().forEach((obj) => f(obj))
-				}
+			getAll(t?: Tag | Tag[]): GameObj[] {
+				return this.children
+					.sort((o1, o2) => (o1.z ?? 0) - (o2.z ?? 0))
+					.flatMap((child) => [child, ...child.getAll(t)])
+					.filter((child) => t ? child.is(t) : true)
 			},
 
 			isAncestorOf(obj: GameObj) {
@@ -3469,17 +3488,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		t2: Tag,
 		f: (a: GameObj, b: GameObj, col?: Collision) => void,
 	): EventCanceller {
-		const e1 = on("collide", t1, (a, b, col) => b.is(t2) && f(a, b, col))
-		const e2 = on("collide", t2, (a, b, col) => b.is(t1) && f(b, a, col))
-		const e3 = onUpdate(t1, (o1: GameObj) => {
-			if (!o1.area) {
-				throw new Error("onCollide() requires the object to have area() component")
-			}
-			o1._checkCollisions(t2, (o2) => {
-				f(o1, o2)
-			})
-		})
-		return () => [e1, e2, e3].forEach((f) => f())
+		return on("collide", t1, (a, b, col) => b.is(t2) && f(a, b, col))
 	}
 
 	// add an event that runs when objs with tag t is clicked
@@ -3688,17 +3697,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		return game.gravity
 	}
 
-	function makeCollision(target: GameObj<any>, dis: Vec2): Collision {
-		return {
-			target: target,
-			displacement: dis,
-			isTop: () => dis.y > 0,
-			isBottom: () => dis.y < 0,
-			isLeft: () => dis.x > 0,
-			isRight: () => dis.x < 0,
-		}
-	}
-
 	// TODO: manage global velocity here?
 	function pos(...args): PosComp {
 
@@ -3707,126 +3705,13 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			id: "pos",
 			pos: vec2(...args),
 
-			// TODO: clean
-			moveBy(...args): Collision | null {
-
-				const p = vec2(...args)
-				let dx = p.x
-				let dy = p.y
-				let col = null
-
-				if (this.solid && this.area?.shape === "rect") {
-
-					let a1 = this.worldArea()
-
-					// TODO: definitely shouln't iterate through all solid objs
-					game.root.every((other) => {
-
-						// make sure we still exist, don't check with self, and only
-						// check with other solid objects
-						if (
-							!this.exists()
-						|| other === this
-						|| !other.solid
-						|| other.area?.shape !== "rect"
-						) {
-							return
-						}
-
-						const a2 = other.worldArea()
-						let md = minkDiff(a2, a1)
-
-						// if they're already overlapping, push them away first
-						if (testRectPoint(md, vec2(0))) {
-
-							const dist = Math.min(
-								Math.abs(md.p1.x),
-								Math.abs(md.p2.x),
-								Math.abs(md.p1.y),
-								Math.abs(md.p2.y),
-							)
-
-							const res = (() => {
-								switch (dist) {
-									case Math.abs(md.p1.x): return vec2(dist, 0)
-									case Math.abs(md.p2.x): return vec2(-dist, 0)
-									case Math.abs(md.p1.y): return vec2(0, dist)
-									case Math.abs(md.p2.y): return vec2(0, -dist)
-								}
-							})()
-
-							this.pos = this.pos.sub(res)
-
-							// calculate new mink diff
-							a1 = this.worldArea()
-							md = minkDiff(a2, a1)
-
-						}
-
-						const ray = { p1: vec2(0), p2: vec2(dx, dy) }
-						let minT = 1
-						const p1 = md.p1
-						const p2 = vec2(md.p1.x, md.p2.y)
-						const p3 = md.p2
-						const p4 = vec2(md.p2.x, md.p1.y)
-						let numCols = 0
-						const lines = {
-							"right": { p1: p1, p2: p2 },
-							"top": { p1: p2, p2: p3 },
-							"left": { p1: p3, p2: p4 },
-							"bottom": { p1: p4, p2: p1 },
-						}
-
-						for (const s in lines) {
-							const line = lines[s]
-							// if moving along a side, we forgive
-							if (
-								(dx === 0 && line.p1.x === 0 && line.p2.x === 0)
-							||
-							(dy === 0 && line.p1.y === 0 && line.p2.y === 0)
-							) {
-								minT = 1
-								break
-							}
-							const t = testLineLineT(ray, line)
-							if (t != null) {
-								numCols++
-								if (t < minT) {
-									minT = t
-								}
-							}
-						}
-
-						// if moving away, we forgive
-						if (
-							minT < 1
-						&& !(minT === 0 && numCols == 1 && !testRectPoint(md, vec2(dx, dy)))
-						) {
-							const dis = vec2(-dx * (1 - minT), -dy * (1 - minT))
-							dx *= minT
-							dy *= minT
-							col = makeCollision(other, dis)
-						}
-
-					})
-
-				}
-
-				this.pos.x += dx
-				this.pos.y += dy
-
-				if (col) {
-					this.trigger("collide", col.target, col)
-					col.target.trigger("collide", this, makeCollision(this, col.displacement.scale(-1)))
-				}
-
-				return col
-
+			moveBy(...args) {
+				this.pos = this.pos.add(...args)
 			},
 
 			// move with velocity (pixels per second)
-			move(...args): Collision | null {
-				return this.moveBy(vec2(...args).scale(dt()))
+			move(...args) {
+				this.moveBy(vec2(...args).scale(dt()))
 			},
 
 			// move to a destination, with optional speed
@@ -3862,6 +3747,13 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				return `(${Math.round(this.pos.x)}, ${Math.round(this.pos.y)})`
 			},
 
+			drawInspect() {
+				drawCircle({
+					color: rgb(255, 0, 0),
+					radius: 5,
+				})
+			},
+
 		}
 
 	}
@@ -3891,6 +3783,12 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		return {
 			id: "rotate",
 			angle: r ?? 0,
+			rotate(angle: number) {
+				this.rotateBy(angle * dt())
+			},
+			rotateBy(angle: number) {
+				this.angle += angle
+			},
 			inspect() {
 				return `${Math.round(this.angle)}`
 			},
@@ -3988,11 +3886,11 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			require: [ "pos", "area" ],
 			isOutOfView(): boolean {
 				const offset = vec2(opt.offset ?? 0)
-				const screenRect = new Rect(
+				const screenRect = Rect.fromPoints(
 					vec2(0, 0).sub(offset),
 					vec2(width(), height()).add(offset),
 				)
-				return !testAreaRect(this.screenArea(), screenRect)
+				return !testRectRect(this.bbox(), screenRect)
 			},
 			onExitView(action: () => void): EventCanceller {
 				return this.on("exitView", action)
@@ -4043,26 +3941,90 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 	function area(opt: AreaCompOpt = {}): AreaComp {
 
-		const colliding = {}
+		const cleanups: Array<() => void> = []
 
 		return {
 
 			id: "area",
+			colliding: {},
+			collisionIgnore: opt.collisionIgnore ?? [],
 
 			add() {
+
 				if (this.area.cursor) {
-					// TODO: collect
-					this.onHover(() => cursor(this.area.cursor))
+					cleanups.push(this.onHover(() => cursor(this.area.cursor)))
+				}
+
+				cleanups.push(this.onCollisionActive((obj, col) => {
+					if (!this.colliding[obj.id]) {
+						this.trigger("collide", obj, col)
+					}
+					this.colliding[obj.id] = col
+				}))
+
+			},
+
+			update() {
+				for (const id in this.colliding) {
+					const col = this.colliding[id]
+					if (!this.checkCollision(col.target)) {
+						delete this.colliding[id]
+						this.trigger("collisionEnd", col.target, col)
+					}
 				}
 			},
 
+			drawInspect() {
+
+				const a = this.localArea()
+
+				pushTransform()
+				pushScale(this.area.scale)
+				pushTranslate(this.area.offset)
+
+				const opts = {
+					outline: {
+						width: 4,
+						color: rgb(0, 0, 255),
+					},
+					origin: this.origin,
+					fill: false,
+					fixed: this.fixed,
+				}
+
+				if (a instanceof Rect) {
+					drawRect({
+						...opts,
+						pos: a.pos,
+						width: a.width,
+						height: a.height,
+					})
+				} else if (a instanceof Polygon) {
+					drawPolygon({
+						...opts,
+						pts: a.pts,
+					})
+				} else if (a instanceof Circle) {
+					drawCircle({
+						...opts,
+						pos: a.center,
+						radius: a.radius,
+					})
+				}
+
+				popTransform()
+
+			},
+
+			destroy() {
+				cleanups.forEach((f) => f())
+			},
+
 			area: {
-				shape: "rect",
-				offset: opt.offset ?? vec2(0),
-				width: opt.width,
-				height: opt.height,
+				shape: opt.shape ?? null,
 				scale: opt.scale ?? vec2(1),
-				cursor: opt.cursor,
+				offset: opt.offset ?? vec2(0),
+				cursor: opt.cursor ?? null,
 			},
 
 			isClicked(): boolean {
@@ -4074,23 +4036,25 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				return this.hasPoint(mpos)
 			},
 
-			isColliding(other) {
-				if (!other.area || !other.exists()) {
-					return false
+			checkCollision(other: GameObj<AreaComp>) {
+				if (this === other || !other.area || !other.exists()) {
+					return null
 				}
+// 				if (this.colliding[other.id]) {
+// 					return this.colliding[other.id]
+// 				}
 				const a1 = this.worldArea()
 				const a2 = other.worldArea()
-				return testAreaArea(a1, a2)
+				return sat(a1, a2)
+			},
+
+			isColliding(other: GameObj<AreaComp>) {
+				const res = this.checkCollision(other)
+				return res && !res.isZero()
 			},
 
 			isTouching(other) {
-				if (!other.area || !other.exists()) {
-					return false
-				}
-				// TODO: support other shapes
-				const a1 = this.worldArea()
-				const a2 = other.worldArea()
-				return testRectRect2(a1, a2)
+				return Boolean(this.checkCollision(other))
 			},
 
 			onClick(f: () => void): EventCanceller {
@@ -4113,126 +4077,94 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				})
 			},
 
-			onCollide(tag: Tag, f: (o: GameObj, col?: Collision) => void): EventCanceller {
-				const e1 = this.onUpdate(() => this._checkCollisions(tag, f))
-				const e2 = this.on("collide", (obj, col) => obj.is(tag) && f(obj, col))
-				return () => [e1, e2].forEach((f) => f())
+			onCollide(
+				tag: Tag | ((obj: GameObj, col?: Collision) => void),
+				cb?: (obj: GameObj, col?: Collision) => void,
+			): EventCanceller {
+				if (typeof tag === "function" && cb === undefined) {
+					return this.on("collide", tag)
+				} else if (typeof tag === "string") {
+					return this.onCollide((obj, col) => {
+						if (obj.is(tag)) {
+							cb(obj, col)
+						}
+					})
+				}
+			},
+
+			onCollisionActive(
+				tag: Tag | ((obj: GameObj, col?: Collision) => void),
+				cb?: (obj: GameObj, col?: Collision) => void,
+			): EventCanceller {
+				if (typeof tag === "function" && cb === undefined) {
+					return this.on("collisionActive", tag)
+				} else if (typeof tag === "string") {
+					return this.on("collisionActive", (obj, col) => obj.is(tag) && cb(obj, col))
+				}
+			},
+
+			onCollisionEnd(
+				tag: Tag | ((obj: GameObj) => void),
+				cb?: (obj: GameObj) => void,
+			): EventCanceller {
+				if (typeof tag === "function" && cb === undefined) {
+					return this.on("collisionEnd", tag)
+				} else if (typeof tag === "string") {
+					return this.on("collisionEnd", (obj) => obj.is(tag) && cb(obj))
+				}
 			},
 
 			hasPoint(pt: Vec2): boolean {
-				return testAreaPoint(this.worldArea(), pt)
+				return testPolygonPoint(this.worldArea(), Point.fromVec2(pt))
 			},
 
 			// push an obj out of another if they're overlapped
-			pushOut(obj: GameObj): Vec2 | null {
-
-				if (obj === this) {
-					return null
+			pushOut(obj: GameObj<AreaComp>) {
+				const res = this.checkCollision(obj)
+				if (res) {
+					this.pos = this.pos.add(res)
 				}
-
-				// TODO: support other shapes
-				if (obj.area?.shape !== "rect") {
-					return null
-				}
-
-				const a1 = this.worldArea()
-				const a2 = obj.worldArea()
-				const md = minkDiff(a1, a2)
-
-				if (!testRectPoint(md, vec2(0))) {
-					return null
-				}
-
-				const dist = Math.min(
-					Math.abs(md.p1.x),
-					Math.abs(md.p2.x),
-					Math.abs(md.p1.y),
-					Math.abs(md.p2.y),
-				)
-
-				const res = (() => {
-					switch (dist) {
-						case Math.abs(md.p1.x): return vec2(dist, 0)
-						case Math.abs(md.p2.x): return vec2(-dist, 0)
-						case Math.abs(md.p1.y): return vec2(0, dist)
-						case Math.abs(md.p2.y): return vec2(0, -dist)
-					}
-				})()
-
-				this.pos = this.pos.add(res)
-
 			},
 
+			// TODO: recursive
 			// push object out of other solid objects
 			pushOutAll() {
-				game.root.every(this.pushOut)
+				game.root.getAll().forEach(this.pushOut)
 			},
 
-			// @ts-ignore
-			_checkCollisions(tag: Tag) {
-
-				game.root.every(tag, (obj) => {
-
-					if (this === obj || !this.exists() || colliding[obj._id]) {
-						return
-					}
-
-					if (this.isColliding(obj)) {
-						this.trigger("collide", obj, null)
-						colliding[obj._id] = obj
-					}
-
-				})
-
-				for (const id in colliding) {
-					const obj = colliding[id]
-					if (!this.isColliding(obj)) {
-						delete colliding[id]
-					}
-				}
-
+			localArea(): Shape {
+				return this.area.shape
+					? this.area.shape
+					: this.renderArea()
 			},
 
-			// TODO: doesn't work with nested parent transforms
 			// TODO: cache
-			// TODO: use matrix mult for more accuracy and rotation?
-			worldArea(): Area {
+			worldArea(): Polygon {
 
-				let w = this.area.width ?? this.width
-				let h = this.area.height ?? this.height
+				const localArea = this.localArea()
+				let transform = this.transform
+					.scale(vec2(this.area.scale ?? 1))
+					.translate(this.area.offset)
 
-				if (w == null || h == null) {
-					throw new Error("Failed to get area dimension")
+				if (localArea instanceof Rect) {
+					const bbox = localArea.bbox()
+					const offset = originPt(this.origin || DEF_ORIGIN)
+						.add(1, 1)
+						.scale(-0.5)
+						.scale(bbox.width, bbox.height)
+					transform = transform.translate(offset)
 				}
 
-				const scale = vec2(this.scale ?? 1).scale(this.area.scale)
-
-				w *= scale.x
-				h *= scale.y
-
-				const orig = originPt(this.origin || DEF_ORIGIN)
-				const pos = (this.pos ?? vec2(0))
-					.add(this.area.offset)
-					.sub(orig.add(1, 1).scale(0.5).scale(w, h))
-
-				return {
-					shape: "rect",
-					p1: pos,
-					p2: vec2(pos.x + w, pos.y + h),
-				}
+				return localArea.transform(transform)
 
 			},
 
-			screenArea(): Area {
+			screenArea(): Polygon {
 				const area = this.worldArea()
 				if (this.fixed) {
 					return area
 				} else {
-					return {
-						shape: "rect",
-						p1: toScreen(area.p1),
-						p2: toScreen(area.p2),
-					}
+					return area.transform(game.cam.transform)
 				}
 			},
 
@@ -4472,6 +4404,10 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				})
 			},
 
+			renderArea() {
+				return new Rect(vec2(0), this.width, this.height)
+			},
+
 			inspect() {
 				if (typeof src === "string") {
 					return `"${src}"`
@@ -4495,8 +4431,8 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				align: obj.align,
 				letterSpacing: obj.letterSpacing,
 				lineSpacing: obj.lineSpacing,
-				transform: obj.transform,
-				styles: obj.styles,
+				transform: obj.textTransform,
+				styles: obj.textStyles,
 			})
 
 			if (!opt.width) {
@@ -4520,15 +4456,19 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			align: opt.align,
 			lineSpacing: opt.lineSpacing,
 			letterSpacing: opt.letterSpacing,
-			transform: opt.transform,
-			styles: opt.styles,
+			textTransform: opt.transform,
+			textStyles: opt.styles,
 
-			load() {
-				update(this)
+			add() {
+				onLoad(() => update(this))
 			},
 
 			draw() {
 				drawFormattedText(update(this))
+			},
+
+			renderArea() {
+				return new Rect(vec2(0), this.width, this.height)
 			},
 
 		}
@@ -4549,6 +4489,9 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 					radius: this.radius,
 				})
 			},
+			renderArea() {
+				return new Rect(vec2(0), this.width, this.height)
+			},
 			inspect() {
 				return `${Math.ceil(this.width)}, ${Math.ceil(this.height)}`
 			},
@@ -4567,6 +4510,9 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 					height: this.height,
 				})
 			},
+			renderArea() {
+				return new Rect(vec2(0), this.width, this.height)
+			},
 			inspect() {
 				return `${Math.ceil(this.width)}, ${Math.ceil(this.height)}`
 			},
@@ -4582,6 +4528,9 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 					...getRenderProps(this),
 					radius: this.radius,
 				})
+			},
+			renderArea() {
+				return new Circle(vec2(0), this.radius)
 			},
 			inspect() {
 				return `${Math.ceil(this.radius)}`
@@ -4630,78 +4579,119 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		let curPlatform: GameObj | null = null
 		let lastPlatformPos = null
 		let canDouble = true
+		let wantFall = false
+		const cleanups: Array<() => void> = []
 
 		return {
 
 			id: "body",
 			require: [ "pos", "area" ],
 			jumpForce: opt.jumpForce ?? DEF_JUMP_FORCE,
-			weight: opt.weight ?? 1,
-			solid: opt.solid ?? true,
+			gravityScale: opt.gravityScale ?? 1,
+			isStatic: opt.isStatic ?? false,
+			mass: opt.mass ?? 0,
 
-			update() {
+			add() {
 
-				let justFall = false
+				// static vs static: don't resolve
+				// static vs non-static: always resolve non-static
+				// non-static vs non-static: resolve the first one
+				cleanups.push(this.onCollisionActive((other, col) => {
 
-				// check if loses current platform
-				if (curPlatform) {
-
-					const a1 = this.worldArea()
-					const a2 = curPlatform.worldArea()
-					const y1 = a1.p2.y
-					const y2 = a2.p1.y
-					const x1 = a1.p1.x
-					const x2 = a1.p2.x
-					const x3 = a2.p1.x
-					const x4 = a2.p2.x
-
-					if (
-						!curPlatform.exists()
-					|| y1 !== y2
-					|| x2 < x3
-					|| x1 > x4
-					) {
-						this.trigger("fall", curPlatform)
-						curPlatform = null
-						lastPlatformPos = null
-						justFall = true
-					} else {
-						if (lastPlatformPos && curPlatform.pos) {
-							// TODO: moveBy?
-							// sticky platform
-							this.pos = this.pos.add(curPlatform.pos.sub(lastPlatformPos))
-							lastPlatformPos = curPlatform.pos.clone()
-						}
+					if (!other.is("body")) {
+						return
 					}
-				}
 
-				if (!curPlatform) {
+					if (col.resolved) {
+						return
+					}
 
-					const col = this.move(0, velY)
+					if (this.isStatic && other.isStatic) {
+						return
+					}
 
-					// check if grounded to a new platform
-					if (col) {
-						if (col.isBottom()) {
-							curPlatform = col.target
+					// TODO: if both not static, use mass, or use velocity
+
+					// resolve the non static one
+					col.resolved = true
+					const col2 = (!this.isStatic && other.isStatic) ? col : col.reverse()
+					col2.source.pos = col2.source.pos.add(col2.displacement)
+					col2.source.transform = calcTransform(col2.source)
+					col2.source.trigger("collisionResolve", col2)
+					col2.target.trigger("collisionResolve", col2.reverse())
+
+				}))
+
+				cleanups.push(this.onCollisionResolve((col) => {
+					if (game.gravity) {
+						if (col.isBottom() && this.isFalling()) {
 							velY = 0
-							if (curPlatform.pos) {
-								lastPlatformPos = curPlatform.pos.clone()
-							}
-							if (!justFall) {
-								this.trigger("ground", curPlatform)
+							curPlatform = col.target
+							lastPlatformPos = col.target.pos
+							if (wantFall) {
+								wantFall = false
+							} else {
 								canDouble = true
+								this.trigger("ground", curPlatform)
 							}
-						} else if (col.isTop()) {
+						} else if (col.isTop() && this.isRising()) {
 							velY = 0
 							this.trigger("headbutt", col.target)
 						}
 					}
+				}))
 
-					velY += gravity() * this.weight * dt()
-					velY = Math.min(velY, opt.maxVel ?? MAX_VEL)
+			},
 
+			update() {
+
+				if (!game.gravity) {
+					return
 				}
 
+				if (this.isStatic) {
+					return
+				}
+
+				if (wantFall) {
+					curPlatform = null
+					lastPlatformPos = null
+					this.trigger("fallOff")
+					wantFall = false
+				}
+
+				if (curPlatform) {
+					if (
+						!this.isTouching(curPlatform)
+						|| !curPlatform.exists()
+						|| !curPlatform.is("body")
+					) {
+						wantFall = true
+					} else {
+						if (!curPlatform.pos.eq(lastPlatformPos)) {
+							this.moveBy(curPlatform.pos.sub(lastPlatformPos))
+						}
+						lastPlatformPos = curPlatform.pos
+						return
+					}
+				}
+
+				const prevVelY = velY
+				velY += game.gravity * this.gravityScale * dt()
+				velY = Math.min(velY, opt.maxVelocity ?? MAX_VEL)
+				if (prevVelY < 0 && velY >= 0) {
+					this.trigger("fall")
+				}
+				this.move(0, velY)
+
+			},
+
+			destroy() {
+				cleanups.forEach((f) => f())
+			},
+
+			onCollisionResolve(action) {
+				return this.on("collisionResolve", action)
 			},
 
 			curPlatform(): GameObj | null {
@@ -4714,6 +4704,10 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 			isFalling(): boolean {
 				return velY > 0
+			},
+
+			isRising(): boolean {
+				return velY < 0
 			},
 
 			jump(force: number) {
@@ -4740,6 +4734,10 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				return this.on("fall", action)
 			},
 
+			onFallOff(action: () => void): EventCanceller {
+				return this.on("fallOff", action)
+			},
+
 			onHeadbutt(action: () => void): EventCanceller {
 				return this.on("headbutt", action)
 			},
@@ -4757,14 +4755,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			id: "shader",
 			shader: id,
 			uniform: uniform,
-		}
-	}
-
-	function solid(): SolidComp {
-		return {
-			id: "solid",
-			require: [ "area" ],
-			solid: true,
 		}
 	}
 
@@ -4980,7 +4970,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			game.ev = new EventHandler()
 			game.objEvents = new EventHandler()
 
-			game.root.every((obj) => {
+			game.root.get().forEach((obj) => {
 				if (!obj.stay) {
 					game.root.remove(obj)
 				}
@@ -4998,7 +4988,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				transform: new Mat4(),
 			}
 
-			game.gravity = DEF_GRAVITY
+			game.gravity = 0
 
 			game.scenes[id](...args)
 
@@ -5048,7 +5038,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		return vec2(width() / 2, height() / 2)
 	}
 
-	function grid(level: Level, p: Vec2) {
+	function grid(level: GameObj<LevelComp>, p: Vec2) {
 
 		return {
 
@@ -5059,8 +5049,8 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				const p = vec2(...args)
 				this.gridPos = p.clone()
 				this.pos = vec2(
-					level.offset().x + this.gridPos.x * level.gridWidth(),
-					level.offset().y + this.gridPos.y * level.gridHeight(),
+					this.gridPos.x * level.gridWidth(),
+					this.gridPos.y * level.gridHeight(),
 				)
 			},
 
@@ -5084,21 +5074,21 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 	}
 
-	function addLevel(map: string[], opt: LevelOpt): Level {
+	function addLevel(map: string[], opt: LevelOpt): GameObj<PosComp | LevelComp> {
 
 		if (!opt.width || !opt.height) {
 			throw new Error("Must provide level grid width & height.")
 		}
 
-		const objs: GameObj[] = []
-		const offset = vec2(opt.pos || vec2(0))
-		let longRow = 0
+		const level = add([
+			pos(opt.pos ?? vec2(0)),
+		])
 
-		const level = {
+		let maxRowLen = 0
 
-			offset() {
-				return offset.clone()
-			},
+		const levelComp: LevelComp = {
+
+			id: "level",
 
 			gridWidth() {
 				return opt.width
@@ -5111,23 +5101,23 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			getPos(...args): Vec2 {
 				const p = vec2(...args)
 				return vec2(
-					offset.x + p.x * opt.width,
-					offset.y + p.y * opt.height,
+					p.x * opt.width,
+					p.y * opt.height,
 				)
 			},
 
-			spawn(sym: string, ...args): GameObj {
+			spawn(key: string, ...args): GameObj {
 
 				const p = vec2(...args)
 
 				const comps = (() => {
-					if (opt[sym]) {
-						if (typeof opt[sym] !== "function") {
+					if (opt[key]) {
+						if (typeof opt[key] !== "function") {
 							throw new Error("Level symbol def must be a function returning a component list")
 						}
-						return opt[sym](p)
+						return opt[key](p)
 					} else if (opt.any) {
-						return opt.any(sym, p)
+						return opt.any(key, p)
 					}
 				})()
 
@@ -5136,8 +5126,8 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				}
 
 				const posComp = vec2(
-					offset.x + p.x * opt.width,
-					offset.y + p.y * opt.height,
+					p.x * opt.width,
+					p.y * opt.height,
 				)
 
 				for (const comp of comps) {
@@ -5151,38 +5141,30 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				comps.push(pos(posComp))
 				comps.push(grid(this, p))
 
-				const obj = game.root.add(comps)
-
-				objs.push(obj)
-
-				return obj
+				return level.add(comps)
 
 			},
 
-			width() {
-				return longRow * opt.width
+			levelWidth() {
+				return maxRowLen * opt.width
 			},
 
-			height() {
+			levelHeight() {
 				return map.length * opt.height
-			},
-
-			destroy() {
-				for (const obj of objs) {
-					obj.destroy()
-				}
 			},
 
 		}
 
+		level.use(levelComp)
+
 		map.forEach((row, i) => {
 
-			const syms = row.split("")
+			const keys = row.split("")
 
-			longRow = Math.max(syms.length, longRow)
+			maxRowLen = Math.max(keys.length, maxRowLen)
 
-			syms.forEach((sym, j) => {
-				level.spawn(sym, vec2(j, i))
+			keys.forEach((key, j) => {
+				level.spawn(key, vec2(j, i))
 			})
 
 		})
@@ -5256,14 +5238,16 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		return document.activeElement === app.canvas
 	}
 
+	function destroy(obj: GameObj) {
+		obj.destroy()
+	}
+
 	// aliases for root game obj operations
 	const add = game.root.add.bind(game.root)
 	const readd = game.root.readd.bind(game.root)
-	const destroy = game.root.remove.bind(game.root)
 	const destroyAll = game.root.removeAll.bind(game.root)
 	const get = game.root.get.bind(game.root)
-	const every = game.root.every.bind(game.root)
-	const revery = game.root.revery.bind(game.root)
+	const getAll = game.root.getAll.bind(game.root)
 
 	function explode(speed: number = 2, size: number = 1): Comp {
 		let time = 0
@@ -5330,6 +5314,135 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 		// update every obj
 		game.root.update()
+
+	}
+
+	const DEF_HASH_GRID_SIZE = 64
+
+	class Collision {
+		source: GameObj
+		target: GameObj
+		displacement: Vec2
+		resolved: boolean = false
+		constructor(source: GameObj, target: GameObj, dis: Vec2, resolved = false) {
+			this.source = source
+			this.target = target
+			this.displacement = dis
+			this.resolved = resolved
+		}
+		reverse() {
+			return new Collision(
+				this.target,
+				this.source,
+				this.displacement.scale(-1),
+				this.resolved,
+			)
+		}
+		isLeft() {
+			return this.displacement.x > 0
+		}
+		isRight() {
+			return this.displacement.x < 0
+		}
+		isTop() {
+			return this.displacement.y > 0
+		}
+		isBottom() {
+			return this.displacement.y < 0
+		}
+	}
+
+	function checkFrame() {
+
+		// TODO: persistent grid?
+		// start a spatial hash grid for more efficient collision detection
+		const grid: Record<number, Record<number, GameObj<AreaComp>[]>> = {}
+		const cellSize = gopt.hashGridSize || DEF_HASH_GRID_SIZE
+
+		// current transform
+		let tr = new Mat4()
+
+		// a local transform stack
+		const stack = []
+
+		function checkObj(obj: GameObj) {
+
+			stack.push(tr)
+
+			// Update object transform here. This will be the transform later used in rendering.
+			if (obj.pos) tr = tr.translate(obj.pos)
+			if (obj.scale) tr = tr.scale(obj.scale)
+			if (obj.angle) tr = tr.rotateZ(obj.angle)
+			obj.transform = tr.clone()
+
+			if (obj.c("area") && !obj.paused) {
+
+				// TODO: only update worldArea if transform changed
+				const aobj = obj as GameObj<AreaComp>
+				const area = aobj.worldArea()
+				const bbox = area.bbox()
+
+				// Get spatial hash grid coverage
+				const xmin = Math.floor(bbox.pos.x / cellSize)
+				const ymin = Math.floor(bbox.pos.y / cellSize)
+				const xmax = Math.ceil((bbox.pos.x + bbox.width) / cellSize)
+				const ymax = Math.ceil((bbox.pos.y + bbox.height) / cellSize)
+
+				// Cache objs that are already checked
+				const checked = new Set()
+
+				// insert & check against all covered grids
+				for (let x = xmin; x <= xmax; x++) {
+					for (let y = ymin; y <= ymax; y++) {
+						if(!grid[x]) {
+							grid[x] = {}
+							grid[x][y] = [aobj]
+						} else if(!grid[x][y]) {
+							grid[x][y] = [aobj]
+						} else {
+							const cell = grid[x][y]
+							for (const other of cell) {
+								if (!other.exists()) {
+									continue
+								}
+								if (checked.has(other.id)) {
+									continue
+								}
+								// TODO: is this too slow
+								for (const ig of aobj.collisionIgnore) {
+									if (other.is(ig)) {
+										continue
+									}
+								}
+								for (const ig of other.collisionIgnore) {
+									if (aobj.is(ig)) {
+										continue
+									}
+								}
+								const res = aobj.checkCollision(other)
+								if (res && !res.isZero()) {
+									const col1 = new Collision(aobj, other, res)
+									aobj.trigger("collisionActive", other, col1)
+									const col2 = col1.reverse()
+									// resolution only has to happen once
+									col2.resolved = col1.resolved
+									other.trigger("collisionActive", aobj, col2)
+								}
+								checked.add(other.id)
+							}
+							cell.push(aobj)
+						}
+					}
+				}
+
+			}
+
+			obj.get().forEach(checkObj)
+			tr = stack.pop()
+
+		}
+
+		checkObj(game.root)
 
 	}
 
@@ -5435,50 +5548,20 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 	}
 
-	// TODO: reset transform
 	function drawDebug() {
 
 		if (debug.inspect) {
 
 			let inspecting = null
-			const lcolor = Color.fromArray(gopt.inspectColor ?? [0, 0, 255])
 
-			// draw area outline
-			game.root.every((obj) => {
-
-				if (!obj.area) {
-					return
+			for (const obj of getAll()) {
+				if (obj.c("area") && obj.isHovering()) {
+					inspecting = obj
+					break
 				}
+			}
 
-				if (obj.hidden) {
-					return
-				}
-
-				if (!inspecting) {
-					if (obj.isHovering()) {
-						inspecting = obj
-					}
-				}
-
-				const lwidth = (inspecting === obj ? 8 : 4)
-				const a = obj.worldArea()
-				const w = a.p2.x - a.p1.x
-				const h = a.p2.y - a.p1.y
-
-				// TODO: lines should be drawUnscaled()
-				drawRect({
-					pos: a.p1,
-					width: w,
-					height: h,
-					outline: {
-						width: lwidth,
-						color: lcolor,
-					},
-					fill: false,
-					fixed: obj.fixed,
-				})
-
-			})
+			game.root.drawInspect()
 
 			if (inspecting) {
 
@@ -5627,11 +5710,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				pushTranslate(8, -8)
 
 				const pad = 8
-				const max = gopt.logMax ?? LOG_MAX
-
-				if (game.logs.length > max) {
-					game.logs = game.logs.slice(0, max)
-				}
 
 				const ftext = formatText({
 					text: game.logs.join("\n"),
@@ -5711,12 +5789,14 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 					letterSpacing: 4,
 					lineSpacing: 4,
 					font: DBG_FONT,
+					fixed: true,
 				}
 
 				drawRect({
 					width: gw,
 					height: gh,
 					color: rgb(0, 0, 255),
+					fixed: true,
 				})
 
 				const title = formatText({
@@ -5724,6 +5804,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 					text: err.name,
 					pos: vec2(pad),
 					color: rgb(255, 128, 0),
+					fixed: true,
 				})
 
 				drawFormattedText(title)
@@ -5732,6 +5813,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 					...textStyle,
 					text: err.message,
 					pos: vec2(pad, pad + title.height + gap),
+					fixed: true,
 				})
 
 				popTransform()
@@ -5898,6 +5980,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			if (!debug.paused) {
 				updateFrame()
 			}
+			checkFrame()
 			drawFrame()
 			if (gopt.debug !== false) {
 				drawDebug()
@@ -5960,8 +6043,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		destroy,
 		destroyAll,
 		get,
-		every,
-		revery,
+		getAll,
 		readd,
 		// comps
 		pos,
@@ -5980,7 +6062,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		body,
 		shader,
 		timer,
-		solid,
 		fixed,
 		stay,
 		health,
@@ -6034,6 +6115,8 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		Line,
 		Rect,
 		Circle,
+		Polygon,
+		Point,
 		Vec2,
 		Color,
 		Mat4,

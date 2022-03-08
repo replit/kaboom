@@ -36,7 +36,7 @@ const level = addLevel([
 	"=": () => [
 		sprite("grass"),
 		area(),
-		solid(),
+		body({ isStatic: true }),
 		origin("bot"),
 	],
 	"$": () => [
@@ -54,7 +54,7 @@ const level = addLevel([
 })
 
 // Get the player object from tag
-const player = get("player")[0]
+const player = level.get("player")[0]
 
 // Movements
 onKeyPress("space", () => {

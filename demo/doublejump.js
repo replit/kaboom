@@ -58,7 +58,7 @@ scene("game", () => {
 			sprite("grass"),
 			area(),
 			pos(rand(0, width()), i * height() / NUM_PLATFORMS),
-			solid(),
+			body({ isStatic: true }),
 			origin("center"),
 			"platform",
 			{
@@ -140,20 +140,20 @@ scene("game", () => {
 		bean.move(PLAYER_SPEED, 0)
 	})
 
-	let time = 30
+	let timeLeft = 30
 
 	const timer = add([
 		origin("topright"),
 		pos(width() - 24, 24),
-		text(time),
+		text(timeLeft),
 	])
 
 	onUpdate(() => {
-		time -= dt()
-		if (time <= 0) {
+		timeLeft -= dt()
+		if (timeLeft <= 0) {
 			go("win", score.value)
 		}
-		timer.text = time.toFixed(2)
+		timer.text = timeLeft.toFixed(2)
 	})
 
 })

@@ -107,32 +107,11 @@ export interface KaboomCtx {
 	 */
 	get(tag?: Tag | Tag[]): GameObj[],
 	/**
-	 * Run callback on every game obj with certain tag.
+	 * Recursively a list of all game objs with certain tag including children of children.
 	 *
-	 * @example
-	 * ```js
-	 * // Destroy all game obj with tag "fruit"
-	 * every("fruit", destroy)
-	 * ```
+	 * @since v2001.0
 	 */
-	every<T>(tag: Tag | Tag[], action: (obj: GameObj) => T): void,
-	/**
-	 * Run callback on every game obj.
-	 *
-	 * @example
-	 * ```js
-	 * every((obj) => {})
-	 * ```
-	 */
-	every<T>(action: (obj: GameObj) => T): void,
-	/**
-	 * Run callback on every game obj with certain tag in reverse order.
-	 */
-	revery<T>(tag: Tag | Tag[], action: (obj: GameObj) => T): void,
-	/**
-	 * Run callback on every game obj in reverse order.
-	 */
-	revery<T>(action: (obj: GameObj) => T): void,
+	getAll(tag?: Tag | Tag[]): GameObj[],
 	/**
 	 * Remove the game obj.
 	 *
@@ -398,25 +377,6 @@ export interface KaboomCtx {
 	 * ```
 	 */
 	body(options?: BodyCompOpt): BodyComp,
-	/**
-	 * Make other objects cannot move pass. Requires "area" comp.
-	 *
-	 * @example
-	 * ```js
-	 * add([
-	 *     sprite("rock"),
-	 *     pos(30, 120),
-	 *     area(),
-	 *     solid(),
-	 * ])
-	 *
-	 * // only do collision checking when a block is close to player for performance
-	 * onUpdate("block", (b) => {
-	 *     b.solid = b.pos.dist(player.pos) <= 64
-	 * })
-	 * ```
-	 */
-	solid(): SolidComp,
 	/**
 	 * Move towards a direction infinitely, and destroys when it leaves game view. Requires "pos" comp.
 	 *
@@ -1599,10 +1559,12 @@ export interface KaboomCtx {
 	/**
 	 * Check if a point is inside a rectangle.
 	 */
-	testRectPoint(r: Rect, pt: Vec2): boolean,
+	testRectPoint(r: Rect, pt: Point): boolean,
 	Line: typeof Line,
 	Rect: typeof Rect,
 	Circle: typeof Circle,
+	Polygon: typeof Polygon,
+	Point: typeof Point,
 	Vec2: typeof Vec2,
 	Color: typeof Color,
 	Mat4: typeof Mat4,
@@ -1656,7 +1618,7 @@ export interface KaboomCtx {
 	 * })
 	 * ```
 	 */
-	addLevel(map: string[], options: LevelOpt): Level,
+	addLevel(map: string[], options: LevelOpt): GameObj,
 	/**
 	 * Get data from local storage, if not present can set to a default value.
 	 *
@@ -2124,10 +2086,6 @@ export interface KaboomOpt {
 	 */
 	background?: number[],
 	/**
-	 * The color to draw collider boxes etc.
-	 */
-	inspectColor?: number[],
-	/**
 	 * Default texture filter.
 	 */
 	texFilter?: TexFilter,
@@ -2139,6 +2097,12 @@ export interface KaboomOpt {
 	 * If log messages should include also print time.
 	 */
 	logTime?: boolean,
+	/**
+	 * Size of the spatial hash grid for collision detection (default 64)
+	 *
+	 * @since v2001.0
+	 */
+	hashGridSize?: number,
 	/**
 	 * If translate touch events as mouse clicks (default true).
 	 */
@@ -2172,7 +2136,7 @@ export interface GameObjRaw {
 	/**
 	 * Add a child.
 	 *
-	 * @since v2000.2.0
+	 * @since v2001.0
 	 */
 	add<T>(comps: CompList<T> | GameObj<T>): GameObj<T>,
 	/**
@@ -2182,67 +2146,49 @@ export interface GameObjRaw {
 	/**
 	 * Remove a child.
 	 *
-	 * @since v2000.2.0
+	 * @since v2001.0
 	 */
 	remove(obj: GameObj): void,
 	/**
 	 * Remove all children with a certain tag.
 	 *
-	 * @since v2000.2.0
+	 * @since v2001.0
 	 */
 	removeAll(tag: Tag): void,
 	/**
 	 * Get a list of all game objs with certain tag.
 	 *
-	 * @since v2000.2.0
+	 * @since v2001.0
 	 */
 	get(tag?: Tag | Tag[]): GameObj[],
 	/**
-	 * Iterate through children.
+	 * Recursively a list of all game objs with certain tag including children of children.
 	 *
-	 * @since v2000.2.0
+	 * @since v2001.0
 	 */
-	every<T>(action: (obj: GameObj) => T): void,
-	/**
-	 * Iterate through children.
-	 *
-	 * @since v2000.2.0
-	 */
-	every<T>(tag: Tag | Tag[], action: (obj: GameObj) => T): void,
-	/**
-	 * Iterate through children, in reverse.
-	 *
-	 * @since v2000.2.0
-	 */
-	revery<T>(action: (obj: GameObj) => T): void,
-	/**
-	 * Iterate through children, in reverse.
-	 *
-	 * @since v2000.2.0
-	 */
-	revery<T>(tag: Tag | Tag[], action: (obj: GameObj) => T): void,
+	getAll(tag?: Tag | Tag[]): GameObj[],
 	/**
 	 * Get the parent game obj, if have any.
 	 *
-	 * @since v2000.2.0
+	 * @since v2001.0
 	 */
 	parent: GameObj | null,
 	/**
 	 * Get all children game objects.
 	 *
-	 * @since v2000.2.0
+	 * @since v2001.0
 	 */
 	children: GameObj[],
 	/**
 	 * Update this game object and all children game objects.
 	 *
-	 * @since v2000.2.0
+	 * @since v2001.0
 	 */
 	update(): void,
 	/**
 	 * Draw this game object and all children game objects.
 	 *
-	 * @since v2000.2.0
+	 * @since v2001.0
 	 */
 	draw(): void,
 	/**
@@ -2298,7 +2244,7 @@ export interface GameObjRaw {
 	 */
 	onDestroy(action: () => void): EventCanceller,
 	/**
-	 * If game obj exists in scene.
+	 * If game obj is attached to the scene graph.
 	 */
 	exists(): boolean,
 	/**
@@ -2308,6 +2254,12 @@ export interface GameObjRaw {
 	 */
 	isAncestorOf(obj: GameObj): boolean,
 	/**
+	 * Calculated transform matrix of a game object.
+	 *
+	 * @since v2001.0
+	 */
+	transform: Mat4,
+	/**
 	 * If draw the game obj (run "draw" event or not).
 	 */
 	hidden: boolean,
@@ -2316,9 +2268,9 @@ export interface GameObjRaw {
 	 */
 	paused: boolean,
 	/**
-	 * Internal GameObj ID.
+	 * A unique number ID for each game object in each kaboom instance.
 	 */
-	_id: number | null,
+	id: number | null,
 }
 
 /**
@@ -3187,6 +3139,12 @@ export declare class Vec2 {
 	 */
 	lerp(p: Vec2, t: number): Vec2
 	/**
+	 * If both x and y is 0.
+	 *
+	 * @since v2001.0
+	 */
+	isZero(): boolean
+	/**
 	 * To n precision floating point.
 	 */
 	toFixed(n: number): Vec2
@@ -3296,25 +3254,58 @@ export interface RNG {
 }
 
 export declare class Rect {
-	p1: Vec2
-	p2: Vec2
-	constructor(p1: Vec2, p2: Vec2)
+	pos: Vec2
+	width: number
+	height: number
+	constructor(pos: Vec2, width: number, height: number)
+	static fromPoints(p1: Vec2, p2: Vec2): Rect
+	center(): Vec2
+	points(): [Vec2, Vec2, Vec2, Vec2]
+	transform(m: Mat4): Polygon
+	bbox(): Rect
 }
 
 export declare class Line {
 	p1: Vec2
 	p2: Vec2
 	constructor(p1: Vec2, p2: Vec2)
+	transform(m: Mat4): Line
+	bbox(): Rect
 }
 
 export declare class Circle {
 	center: Vec2
 	radius: number
 	constructor(pos: Vec2, radius: number)
+	transform(m: Mat4): Ellipse
+	bbox(): Rect
 }
 
-export type Polygon = Vec2[]
-export type Point = Vec2
+export declare class Ellipse {
+	center: Vec2
+	radiusX: number
+	radiusY: number
+	constructor(pos: Vec2, rx: number, ry: number)
+	transform(m: Mat4): Ellipse
+	bbox(): Rect
+}
+
+export declare class Polygon {
+	pts: Vec2[]
+	constructor(pts: Vec2[])
+	transform(m: Mat4): Polygon
+	bbox(): Rect
+}
+
+export declare class Point {
+	x: number
+	y: number
+	constructor(x: number, y: number)
+	static fromVec2(p: Vec2): Point
+	toVec2(): Vec2
+	transform(tr: Mat4): Point
+	bbox(): Rect
+}
 
 export declare class RNG {
 	seed: number
@@ -3340,15 +3331,11 @@ export interface Comp {
 	 */
 	add?: () => void,
 	/**
-	 * Event that runs when host game obj is added to scene and game is loaded.
-	 */
-	load?: () => void,
-	/**
 	 * Event that runs every frame.
 	 */
 	update?: () => void,
 	/**
-	 * Event that runs every frame.
+	 * Event that runs every frame after update.
 	 */
 	draw?: () => void,
 	/**
@@ -3359,6 +3346,12 @@ export interface Comp {
 	 * Debug info for inspect mode.
 	 */
 	inspect?: () => string | void,
+	/**
+	 * Draw debug info in inspect mode
+	 *
+	 * @since v2001.0
+	 */
+	drawInspect?: () => void,
 }
 
 export type GameObjID = number
@@ -3401,6 +3394,14 @@ export interface RotateComp extends Comp {
 	 * Angle in degrees.
 	 */
 	angle: number,
+	/**
+	 * Rotate in degrees (in angle per second, dt multiplied)
+	 */
+	rotate(angle: number): void,
+	/**
+	 * Rotate in degrees (without dt multiplied, directly adding angle to current angle)
+	 */
+	rotateBy(angle: number): void,
 }
 
 export interface ColorComp extends Comp {
@@ -3502,27 +3503,35 @@ export type CleanupComp = Comp
  */
 export interface Collision {
 	/**
-	 * The game object that we collided into.
+	 * The first game object in the collision.
+	 */
+	source: GameObj,
+	/**
+	 * The second game object in the collision.
 	 */
 	target: GameObj,
 	/**
-	 * The displacement it'll need to separate us from the target.
+	 * The displacement source game object have to make to avoid the collision.
 	 */
 	displacement: Vec2,
 	/**
-	 * If the collision happened (roughly) on the top side of us.
+	 * Get a new collision with reversed source and target relationship.
+	 */
+	reverse(): Collision,
+	/**
+	 * If the collision happened (roughly) on the top side.
 	 */
 	isTop(): boolean,
 	/**
-	 * If the collision happened (roughly) on the bottom side of us.
+	 * If the collision happened (roughly) on the bottom side.
 	 */
 	isBottom(): boolean,
 	/**
-	 * If the collision happened (roughly) on the left side of us.
+	 * If the collision happened (roughly) on the left side.
 	 */
 	isLeft(): boolean,
 	/**
-	 * If the collision happened (roughly) on the right side of us.
+	 * If the collision happened (roughly) on the right side.
 	 */
 	isRight(): boolean,
 }
@@ -3533,32 +3542,54 @@ export interface AreaCompOpt {
 	 */
 	shape?: Shape,
 	/**
-	 * Position of area relative to position of the object.
-	 */
-	offset?: Vec2,
-	/**
-	 * Width of area.
-	 */
-	width?: number,
-	/**
-	 * Height of area.
-	 */
-	height?: number,
-	/**
 	 * Area scale.
 	 */
 	scale?: number | Vec2,
 	/**
+	 * Area offset.
+	 */
+	offset?: Vec2,
+	/**
 	 * Cursor on hover.
 	 */
 	cursor?: Cursor,
+	/**
+	 * If this object should ignore collisions against certain other objects.
+	 *
+	 * @since v2001.0
+	 */
+	collisionIgnore?: Tag[],
 }
 
 export interface AreaComp extends Comp {
 	/**
 	 * Collider area info.
 	 */
-	area: AreaCompOpt,
+	area: {
+		/**
+		 * If we use a custom shape over render shape.
+		 */
+		shape: Shape | null,
+		/**
+		 * Area scale.
+		 */
+		scale: number | Vec2,
+		/**
+		 * Area offset.
+		 */
+		offset: Vec2,
+		/**
+		 * Cursor on hover.
+		 */
+		cursor: Cursor | null,
+	},
+	/**
+	 * If this object should ignore collisions against certain other objects.
+	 *
+	 * @since v2001.0
+	 */
+	collisionIgnore: Tag[],
+	colliding: Record<number, Collision>,
 	/**
 	 * If was just clicked on last frame.
 	 */
@@ -3568,9 +3599,16 @@ export interface AreaComp extends Comp {
 	 */
 	isHovering(): boolean,
 	/**
+	 * Check collision with another game obj.
+	 *
+	 * @since v2001.0
+	 * @returns The minimal displacement vector if collided
+	 */
+	checkCollision(other: GameObj<AreaComp>): Vec2 | null,
+	/**
 	 * If is currently colliding with another game obj.
 	 */
-	isColliding(o: GameObj): boolean,
+	isColliding(o: GameObj<AreaComp>): boolean,
 	/**
 	 * If is currently touching another game obj.
 	 */
@@ -3588,11 +3626,41 @@ export interface AreaComp extends Comp {
 	 */
 	onHover(onHover: () => void, onNotHover?: () => void): void,
 	/**
-	 * Register an event runs when collide with another game obj with certain tag.
+	 * Register an event runs once when collide with another game obj with certain tag.
 	 *
 	 * @since v2000.1
 	 */
 	onCollide(tag: Tag, f: (obj: GameObj, col?: Collision) => void): void,
+	/**
+	 * Register an event runs once when collide with another game obj.
+	 *
+	 * @since v2000.1
+	 */
+	onCollide(f: (obj: GameObj, col?: Collision) => void): void,
+	/**
+	 * Register an event runs every frame when collide with another game obj with certain tag.
+	 *
+	 * @since v2001.0
+	 */
+	onCollisionActive(tag: Tag, f: (obj: GameObj, col?: Collision) => void): void,
+	/**
+	 * Register an event runs every frame when collide with another game obj.
+	 *
+	 * @since v2001.0
+	 */
+	onCollisionActive(f: (obj: GameObj, col?: Collision) => void): void,
+	/**
+	 * Register an event runs once when stopped colliding with another game obj with certain tag.
+	 *
+	 * @since v2001.0
+	 */
+	onCollisionEnd(tag: Tag, f: (obj: GameObj) => void): void,
+	/**
+	 * Register an event runs once when stopped colliding with another game obj.
+	 *
+	 * @since v2001.0
+	 */
+	onCollisionEnd(f: (obj: GameObj) => void): void,
 	/**
 	 * If has a certain point inside collider.
 	 */
@@ -3606,13 +3674,19 @@ export interface AreaComp extends Comp {
 	 */
 	pushOutAll(): void,
 	/**
+	 * Get the geometry data for the collider in local coordinate space.
+	 *
+	 * @since v2001.0
+	 */
+	localArea(): Shape,
+	/**
 	 * Get the geometry data for the collider in world coordinate space.
 	 */
-	worldArea(): Area,
+	worldArea(): Polygon,
 	/**
 	 * Get the geometry data for the collider in screen coordinate space.
 	 */
-	screenArea(): Area,
+	screenArea(): Polygon,
 }
 
 export interface SpriteCompOpt {
@@ -3707,6 +3781,10 @@ export interface SpriteComp extends Comp {
 	 * Register an event that runs when an animation is ended.
 	 */
 	onAnimEnd(name: string, action: () => void): EventCanceller,
+	/**
+	 * @since v2001.0
+	 */
+	renderArea(): Rect,
 }
 
 export interface TextComp extends Comp {
@@ -3753,13 +3831,17 @@ export interface TextComp extends Comp {
 	 *
 	 * @since v2000.1
 	 */
-	transform: CharTransform | CharTransformFunc,
+	textTransform: CharTransform | CharTransformFunc,
 	/**
 	 * Stylesheet for styled chunks, in the syntax of "this is a [styled].stylename word".
 	 *
 	 * @since v2000.2
 	 */
-	styles: Record<string, CharTransform | CharTransformFunc>,
+	textStyles: Record<string, CharTransform | CharTransformFunc>,
+	/**
+	 * @since v2001.0
+	 */
+	renderArea(): Rect,
 }
 
 export interface TextCompOpt {
@@ -3827,6 +3909,10 @@ export interface RectComp extends Comp {
 	 * The radius of each corner.
 	 */
 	radius?: number,
+	/**
+	 * @since v2001.0
+	 */
+	renderArea(): Rect,
 }
 
 export interface CircleComp extends Comp {
@@ -3834,6 +3920,10 @@ export interface CircleComp extends Comp {
 	 * Radius of circle.
 	 */
 	radius: number,
+	/**
+	 * @since v2001.0
+	 */
+	renderArea(): Circle,
 }
 
 export interface UVQuadComp extends Comp {
@@ -3845,26 +3935,19 @@ export interface UVQuadComp extends Comp {
 	 * Height of height.
 	 */
 	height: number,
+	/**
+	 * @since v2001.0
+	 */
+	renderArea(): Rect,
 }
 
-/**
- * Union type for area / collider data of different shapes ("rect", "line", "circle", "point" and "polygon").
- */
-export type Area =
-	| { shape: "rect" } & Rect
-	| { shape: "line" } & Line
-	| { shape: "circle" } & Circle
-	| { shape: "point" } & { pt: Point }
-	| { shape: "polygon" } & { pts: Polygon }
-
-
 export type Shape =
-	| "rect"
-	| "line"
-	| "point"
-	| "circle"
-	| "polygon"
-
+	| Rect
+	| Line
+	| Point
+	| Circle
+	| Ellipse
+	| Polygon
 
 export interface OutlineComp extends Comp {
 	outline: Outline,
@@ -3897,10 +3980,6 @@ export interface Debug {
 	 * @since v2001.0
 	 */
 	numFrames(): number,
-	/**
-	 * Number of all existing game objects.
-	 */
-	objCount(): number,
 	/**
 	 * Number of draw calls made last frame.
 	 */
@@ -3945,9 +4024,9 @@ export interface ShaderComp extends Comp {
 
 export interface BodyComp extends Comp {
 	/**
-	 * If should collide with other solid objects.
+	 * If object is static, won't move, and all non static objects won't move past it.
 	 */
-	solid: boolean,
+	isStatic?: boolean,
 	/**
 	 * Initial speed in pixels per second for jump().
 	 */
@@ -3955,7 +4034,11 @@ export interface BodyComp extends Comp {
 	/**
 	 * Gravity multiplier.
 	 */
-	weight: number,
+	gravityScale: number,
+	/**
+	 * Decides how much objects can push another.
+	 */
+	mass?: number,
 	/**
 	 * Current platform landing on.
 	 */
@@ -3973,6 +4056,12 @@ export interface BodyComp extends Comp {
 	 */
 	isFalling(): boolean,
 	/**
+	 * If currently rising.
+	 *
+	 * @since v2001.0
+	 */
+	isRising(): boolean,
+	/**
 	 * Upward thrust.
 	 */
 	jump(force?: number): void,
@@ -3980,6 +4069,12 @@ export interface BodyComp extends Comp {
 	 * Performs double jump (the initial jump only happens if player is grounded).
 	 */
 	doubleJump(f?: number): void,
+	/**
+	 * Register an event that runs when a collision is resolved.
+	 *
+	 * @since v2001.0
+	 */
+	onCollisionResolve(action: (col: Collision) => void): EventCanceller,
 	/**
 	 * Register an event that runs when the object is grounded.
 	 *
@@ -3992,6 +4087,12 @@ export interface BodyComp extends Comp {
 	 * @since v2000.1
 	 */
 	onFall(action: () => void): EventCanceller,
+	/**
+	 * Register an event that runs when the object falls off platform.
+	 *
+	 * @since v2001.0
+	 */
+	onFallOff(action: () => void): EventCanceller,
 	/**
 	 * Register an event that runs when the object bumps into something on the head.
 	 *
@@ -4014,15 +4115,19 @@ export interface BodyCompOpt {
 	/**
 	 * Maximum velocity when falling.
 	 */
-	maxVel?: number,
+	maxVelocity?: number,
 	/**
 	 * Gravity multiplier.
 	 */
-	weight?: number,
+	gravityScale?: number,
 	/**
-	 * If should not move through other solid objects.
+	 * If object is static, won't move, and all non static objects won't move past it.
 	 */
-	solid?: boolean,
+	isStatic?: boolean,
+	/**
+	 * Decides how much objects can push another.
+	 */
+	mass?: number,
 }
 
 export declare class Timer {
@@ -4046,13 +4151,6 @@ export interface TimerComp extends Comp {
 	 * Run the callback after n seconds.
 	 */
 	wait(n: number, action: () => void): EventCanceller,
-}
-
-export interface SolidComp extends Comp {
-	/**
-	 * If should stop other solid objects from moving through.
-	 */
-	solid: boolean,
 }
 
 export interface FixedComp extends Comp {
@@ -4169,17 +4267,15 @@ export interface LevelOpt {
 	[sym: string]: any,
 }
 
-export interface Level {
+export interface LevelComp extends Comp {
+	gridWidth(): number,
+	gridHeight(): number,
 	getPos(p: Vec2): Vec2,
 	getPos(x: number, y: number): Vec2,
 	spawn(sym: string, p: Vec2): GameObj,
 	spawn(sym: string, x: number, y: number): GameObj,
-	width(): number,
-	height(): number,
-	gridWidth(): number,
-	gridHeight(): number,
-	offset(): Vec2,
-	destroy(),
+	levelWidth(): number,
+	levelHeight(): number,
 }
 
 export interface BoomOpt {

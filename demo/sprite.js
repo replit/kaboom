@@ -56,7 +56,7 @@ add([
 	area(),
 	outline(1),
 	pos(0, height() - 24),
-	solid(),
+	body({ isStatic: true }),
 ])
 
 // Switch to "idle" or "run" animation when player hits ground

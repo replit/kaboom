@@ -111,7 +111,7 @@ const levelConf = {
 	"=": () => [
 		sprite("grass"),
 		area(),
-		solid(),
+		body({ isStatic: true }),
 		origin("bot"),
 	],
 	"$": () => [
@@ -124,14 +124,14 @@ const levelConf = {
 	"%": () => [
 		sprite("prize"),
 		area(),
-		solid(),
+		body({ isStatic: true }),
 		origin("bot"),
 		"prize",
 	],
 	"^": () => [
 		sprite("spike"),
 		area(),
-		solid(),
+		body({ isStatic: true }),
 		origin("bot"),
 		"danger",
 	],
@@ -187,6 +187,11 @@ scene("game", ({ levelId, coins } = { levelId: 0, coins: 0 }) => {
 		if (player.pos.y >= FALL_DEATH) {
 			go("lose")
 		}
+	})
+
+	player.onCollisionResolve(() => {
+		// Set the viewport center to player.pos
+		camPos(player.pos)
 	})
 
 	// if player onCollide with any obj with "danger" tag, lose

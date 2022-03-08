@@ -16,10 +16,14 @@ const player = add([
 	sprite("bean"),
 	pos(80, 40),
 	color(),
+	rotate(0),
 	// area() component gives the object a collider, which enables collision checking
 	area(),
-	// solid() component makes the object can't move pass other solid objects
-	solid(),
+// 	area({ shape: new Polygon([vec2(0), vec2(100), vec2(-100, 100)]) }),
+// 	area({ shape: new Rect(vec2(0), 12, 120) }),
+// 	area({ offset: vec2(20), scale: 0.5 }),
+	// body() component makes an object respond to physics
+	body(),
 ])
 
 // Register input handlers & movement
@@ -37,6 +41,14 @@ onKeyDown("up", () => {
 
 onKeyDown("down", () => {
 	player.move(0, SPEED)
+})
+
+onKeyDown("q", () => {
+	player.rotate(-SPEED)
+})
+
+onKeyDown("e", () => {
+	player.rotate(SPEED)
 })
 
 // Add enemies
@@ -59,14 +71,24 @@ add([
 	sprite("grass"),
 	pos(center()),
 	area(),
-	// This game object also has solid(), so our player won't be able to move pass this
-	solid(),
+	// This game object also has isStatic, so our player won't be able to move pass this
+	body({ isStatic: true }),
 ])
 
 // .onCollide() is provided by area() component, it registers an event that runs when an objects collides with another object with certain tag
 // In this case we destroy (remove from game) the enemy when player hits one
 player.onCollide("enemy", (enemy) => {
 	destroy(enemy)
+})
+
+// .onCollideEnter() runs every frame when an object collides with another object
+player.onCollisionActive("enemy", () => {
+	// ...
+})
+
+// .onCollideEnd() runs once when an object stopped colliding with another object
+player.onCollisionEnd("enemy", () => {
+	// ...
 })
 
 // .clicks() is provided by area() component, it registers an event that runs when the object is clicked
