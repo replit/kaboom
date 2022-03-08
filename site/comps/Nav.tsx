@@ -136,6 +136,45 @@ interface IndexContentProps {
 	shrink: () => void,
 }
 
+const Section: React.FC<{
+	name: string,
+}> = ({ name, children }) => {
+
+	const [ isCollapsed, setIsCollpased ] = React.useState(false)
+
+	return (
+		<View stretchX gap={1}>
+			<View align="center" justify="between" dir="row" stretchX>
+				<Text size="big" color={3}>{name}</Text>
+				<View
+					rounded
+					width={24}
+					height={24}
+					align="center"
+					justify="center"
+					css={{
+						cursor: "pointer",
+						transform: isCollapsed ? "rotate(0deg)" : "rotate(90deg)",
+						userSelect: "none",
+						color: "var(--color-bg4)",
+						fontWeight: "bold",
+						":hover": {
+							background: "var(--color-bg3)",
+						},
+					}}
+					onClick={() => {
+						setIsCollpased((is) => !is)
+					}}
+				>
+					{">"}
+				</View>
+			</View>
+			{ !isCollapsed && children }
+		</View>
+	)
+
+}
+
 const IndexContent: React.FC<IndexContentProps> = ({
 	shrink,
 }) => {
@@ -178,45 +217,42 @@ const IndexContent: React.FC<IndexContentProps> = ({
 			<Input value={query} onChange={setQuery} placeholder="Search in doc" />
 
 			{ filteredSections.map(([sectionName, entries]) => {
-
 				return (
-					<View stretchX gap={1} key={sectionName}>
-						<Text size="big" color={3}>{sectionName}</Text>
-							<View>
-								{ entries.map((name) => {
+					<Section name={sectionName} key={sectionName}>
+						<View>
+							{ entries.map((name) => {
 
-									const mem = (doc as any).types["KaboomCtx"][0].members[name]?.[0] || (doc as any).types[name]?.[0];
+								const mem = (doc as any).types["KaboomCtx"][0].members[name]?.[0] || (doc as any).types[name]?.[0];
 
-									if (mem.jsDoc?.tags["deprecated"]) {
-										return
-									}
+								if (mem.jsDoc?.tags["deprecated"]) {
+									return
+								}
 
-									const isFunc = mem.kind === "MethodSignature" || mem.kind === "FunctionDeclaration";
+								const isFunc = mem.kind === "MethodSignature" || mem.kind === "FunctionDeclaration";
 
-									return (
-										<a key={name} href={`/#${name}`}>
-											<View
-												padX={1}
-												padY={0.5}
-												onClick={shrink}
-												css={{
-													cursor: "pointer",
-													borderRadius: 8,
-													":hover": {
-														background: "var(--color-bg3)",
-													},
-												}}
-											>
-												<Text color={2} code>{name}{isFunc ? "()" : ""}</Text>
-											</View>
-										</a>
-									);
+								return (
+									<a key={name} href={`/#${name}`}>
+										<View
+											padX={1}
+											padY={0.5}
+											onClick={shrink}
+											css={{
+												cursor: "pointer",
+												borderRadius: 8,
+												":hover": {
+													background: "var(--color-bg3)",
+												},
+											}}
+										>
+											<Text color={2} code>{name}{isFunc ? "()" : ""}</Text>
+										</View>
+									</a>
+								);
 
-								}) }
-							</View>
-					</View>
+							}) }
+						</View>
+					</Section>
 				);
-
 			}) }
 		</View>
 	</>;
