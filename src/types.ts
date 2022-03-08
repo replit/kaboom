@@ -3981,10 +3981,6 @@ export interface Debug {
 	 */
 	numFrames(): number,
 	/**
-	 * Number of all existing game objects.
-	 */
-	objCount(): number,
-	/**
 	 * Number of draw calls made last frame.
 	 */
 	drawCalls(): number,

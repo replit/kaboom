@@ -3108,15 +3108,16 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		showLog: true,
 		fps: () => app.fpsCounter.fps,
 		numFrames: () => app.numFrames,
-		objCount(): number {
-			const count = (obj: GameObj) =>
-				obj.children.length + obj.children.reduce((num, c) => num + count(c), 0)
-			return count(game.root)
-		},
 		stepFrame: updateFrame,
 		drawCalls: () => gfx.drawCalls,
 		clearLog: () => game.logs = [],
-		log: (msg) => game.logs.unshift(`${gopt.logTime ? `[${time().toFixed(2)}].time ` : ""}[${msg?.toString ? msg.toString() : msg}].${msg instanceof Error ? "error" : "info"}`),
+		log: (msg) => {
+			const max = gopt.logMax ?? LOG_MAX
+			game.logs.unshift(`${gopt.logTime ? `[${time().toFixed(2)}].time ` : ""}[${msg?.toString ? msg.toString() : msg}].${msg instanceof Error ? "error" : "info"}`)
+			if (game.logs.length > max) {
+				game.logs = game.logs.slice(0, max)
+			}
+		},
 		error: (msg) => debug.log(new Error(msg.toString ? msg.toString() : msg as string)),
 		curRecording: null,
 		get paused() {
@@ -5374,8 +5375,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			if (obj.angle) tr = tr.rotateZ(obj.angle)
 			obj.transform = tr.clone()
 
-			// TODO: this logic should be defined through external interface
-			if (obj.c("area")) {
+			if (obj.c("area") && !obj.paused) {
 
 				// TODO: only update worldArea if transform changed
 				const aobj = obj as GameObj<AreaComp>
@@ -5710,11 +5710,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				pushTranslate(8, -8)
 
 				const pad = 8
-				const max = gopt.logMax ?? LOG_MAX
-
-				if (game.logs.length > max) {
-					game.logs = game.logs.slice(0, max)
-				}
 
 				const ftext = formatText({
 					text: game.logs.join("\n"),

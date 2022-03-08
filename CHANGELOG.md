@@ -38,6 +38,8 @@
 - (**BREAK**) removed `GameObj#every()` and `GameObj#revery()` in favor of `obj.get().forEach()`
 - added `GameObj#getAll()` for recursively getting children game objects (`get()` only gets from direct children)
 - added `Area#onCollisionActive()` and `Area#onCollisionEnd()` events
+- removed `debug.objCount()` in favor of `getAll().length`
+- added `debug.numFrames()` to get the current frame count
 
 ### v2000.2.6
 

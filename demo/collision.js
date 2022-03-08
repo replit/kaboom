@@ -16,7 +16,6 @@ const player = add([
 	sprite("bean"),
 	pos(80, 40),
 	color(),
-	origin("center"),
 	rotate(0),
 	// area() component gives the object a collider, which enables collision checking
 	area(),
