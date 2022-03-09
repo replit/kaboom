@@ -9,7 +9,7 @@ const wait = (time) => new Promise((resolve) => setTimeout(() => resolve(), time
 
 const run = async () => {
 
-	let hasError = false
+	let failed = false
 	console.log("launching browser")
 	const browser = await puppeteer.launch();
 	console.log("getting demo list")
@@ -21,11 +21,11 @@ const run = async () => {
 		console.log(`testing ${demo}`)
 		const page = await browser.newPage();
 		page.on("pageerror", (err) => {
-			hasError = true
+			failed = true
 			console.error(demo, err)
 		})
 		page.on("error", (err) => {
-			hasError = true
+			failed = true
 			console.error(demo, err)
 		})
 		await page.goto(`http://localhost:${port}/demo/${demo}`)
@@ -36,8 +36,8 @@ const run = async () => {
 	browser.close()
 	server.close()
 
-	console.log(hasError ? "test failed" : "test success")
-	process.exit(hasError ? 1 : 0)
+	console.log(failed ? "test failed" : "test success")
+	process.exit(failed ? 1 : 0)
 
 }
 
