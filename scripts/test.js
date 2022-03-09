@@ -5,12 +5,11 @@ import serve from "./serve.js"
 
 const port = process.env.PORT || 8000
 const server = serve()
-
 const wait = (time) => new Promise((resolve) => setTimeout(() => resolve(), time))
-let hasError = false
 
 const run = async () => {
 
+	let hasError = false
 	console.log("launching browser")
 	const browser = await puppeteer.launch();
 	console.log("getting demo list")
@@ -38,10 +37,8 @@ const run = async () => {
 	browser.close()
 	server.close()
 
+	process.exit(hasError ? 1 : 0)
+
 }
 
 run()
-
-if (hasError) {
-	process.exit(1)
-}
