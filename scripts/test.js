@@ -11,7 +11,7 @@ const run = async () => {
 
 	let failed = false
 	console.log("launching browser")
-	const browser = await puppeteer.launch();
+	const browser = await puppeteer.launch()
 	console.log("getting demo list")
 	const demos = (await fs.readdir("demo"))
 		.filter((p) => !p.startsWith(".") && p.endsWith(".js"))
@@ -19,7 +19,7 @@ const run = async () => {
 
 	for (const demo of demos) {
 		console.log(`testing ${demo}`)
-		const page = await browser.newPage();
+		const page = await browser.newPage()
 		page.on("pageerror", (err) => {
 			failed = true
 			console.error(demo, err)

@@ -1,8 +1,0 @@
-language = "kaboom"
-run = "node run.js"
-entrypoint = "code/main.js"
-
-[packager]
-language="nodejs"
-[packager.features]
-packageSearch = true
