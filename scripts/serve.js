@@ -2,10 +2,9 @@ import express from "express"
 import fs from "fs"
 import path from "path"
 
-const port = process.env.PORT || 8000
+export default (opt = {}) => {
 
-export default () => {
-
+	const port = opt.port || process.env.PORT || 8000
 	const app = express()
 
 	app.use(express.static("assets"))

@@ -3,8 +3,8 @@ import path from "path"
 import fs from "fs/promises"
 import serve from "./serve.js"
 
-const port = process.env.PORT || 8000
-const server = serve()
+const port = process.env.PORT || 8001
+const server = serve({ port: port })
 const wait = (time) => new Promise((resolve) => setTimeout(() => resolve(), time))
 
 const run = async () => {
@@ -13,11 +13,11 @@ const run = async () => {
 	console.log("launching browser")
 	const browser = await puppeteer.launch();
 	console.log("getting demo list")
-	const demodir = (await fs.readdir("demo"))
-		.filter((p) => !p.startsWith("."))
+	const demos = (await fs.readdir("demo"))
+		.filter((p) => !p.startsWith(".") && p.endsWith(".js"))
 		.map((d) => path.basename(d, ".js"))
 
-	for (const demo of demodir) {
+	for (const demo of demos) {
 		console.log(`testing ${demo}`)
 		const page = await browser.newPage();
 		page.on("pageerror", (err) => {
@@ -33,10 +33,10 @@ const run = async () => {
 		await page.close()
 	}
 
-	console.log("done")
 	browser.close()
 	server.close()
 
+	console.log(hasError ? "test failed" : "test success")
 	process.exit(hasError ? 1 : 0)
 
 }

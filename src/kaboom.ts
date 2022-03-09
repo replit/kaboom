@@ -28,6 +28,7 @@ import {
 	wave,
 	testLineLine,
 	testRectRect,
+	testRectRect2,
 	testRectLine,
 	testRectPoint,
 	testPolygonPoint,
@@ -3733,14 +3734,17 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				this.move(diff.unit().scale(speed))
 			},
 
-			// TODO
+			worldPos(): Vec2 {
+				return this.parent
+					? this.parent.transform.multVec2(this.pos)
+					: this.pos
+			},
+
 			// get the screen position (transformed by camera)
 			screenPos(): Vec2 {
-				if (this.fixed) {
-					return this.pos
-				} else {
-					return toScreen(this.pos)
-				}
+				return this.fixed
+					? this.pos
+					: toScreen(this.pos)
 			},
 
 			inspect() {
@@ -3884,13 +3888,14 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		return {
 			id: "outview",
 			require: [ "pos", "area" ],
+			// TODO: expensive
 			isOutOfView(): boolean {
 				const offset = vec2(opt.offset ?? 0)
 				const screenRect = Rect.fromPoints(
 					vec2(0, 0).sub(offset),
 					vec2(width(), height()).add(offset),
 				)
-				return !testRectRect(this.bbox(), screenRect)
+				return !testRectRect2(this.screenArea().bbox(), screenRect)
 			},
 			onExitView(action: () => void): EventCanceller {
 				return this.on("exitView", action)

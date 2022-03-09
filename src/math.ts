@@ -572,14 +572,14 @@ export function choose<T>(list: T[]): T {
 // TODO: better name
 export function testRectRect2(r1: Rect, r2: Rect): boolean {
 	return r1.pos.x + r1.width >= r2.pos.x
-		&& r1.pos.x <= r2.pos.x + r1.width
+		&& r1.pos.x <= r2.pos.x + r2.width
 		&& r1.pos.y + r1.height >= r2.pos.y
 		&& r1.pos.y <= r2.pos.y + r2.height
 }
 
 export function testRectRect(r1: Rect, r2: Rect): boolean {
 	return r1.pos.x + r1.width > r2.pos.x
-		&& r1.pos.x < r2.pos.x + r1.width
+		&& r1.pos.x < r2.pos.x + r2.width
 		&& r1.pos.y + r1.height > r2.pos.y
 		&& r1.pos.y < r2.pos.y + r2.height
 }
