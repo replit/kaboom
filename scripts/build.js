@@ -2,10 +2,15 @@ import fs from "fs";
 import path from "path";
 import esbuild from "esbuild";
 import ts from "typescript";
+import serve from "./serve.js"
 
-const dev = process.env.NODE_ENV === "development";
+const isDev = process.env.NODE_ENV === "development";
 const srcDir = "src";
 const distDir = "dist";
+
+if (isDev) {
+	serve()
+}
 
 const fmts = [
 	{
@@ -17,7 +22,7 @@ const fmts = [
 			},
 		},
 	},
-	...(dev ? [] : [
+	...(isDev ? [] : [
 		{ format: "cjs",  ext: "cjs", },
 		{ format: "esm",  ext: "mjs", },
 	]),
@@ -32,14 +37,14 @@ fmts.forEach((fmt) => {
 	esbuild.build({
 		bundle: true,
 		sourcemap: true,
-		minify: !dev,
+		minify: !isDev,
 		keepNames: true,
 		loader: {
 			".png": "dataurl",
 			".glsl": "text",
 			".mp3": "binary",
 		},
-		watch: dev ? { onRebuild: log } : false,
+		watch: isDev ? { onRebuild: log } : false,
 		entryPoints: [ srcPath ],
 		globalName: "kaboom",
 		format: fmt.format,

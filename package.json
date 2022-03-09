@@ -26,14 +26,14 @@
 	],
 	"scripts": {
 		"setup": "npm install && cd site; npm install",
-		"dev": "NODE_ENV=development node scripts/run.js 'node scripts/build.js' 'node scripts/serve.js'",
+		"dev": "NODE_ENV=development node scripts/build.js",
 		"site": "cd site && npm run build && npm run start",
 		"devsite": "cd site && npm run dev",
 		"build": "node scripts/build.js",
 		"check": "tsc --noEmit",
 		"lint": "eslint src demo",
 		"fmt": "eslint --fix src demo",
-		"test": "node scripts/run.js 'node scripts/serve.js' 'node scripts/test.js'",
+		"test": "node scripts/test.js",
 		"prepare": "npm run build"
 	},
 	"devDependencies": {
