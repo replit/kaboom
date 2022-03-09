@@ -3,6 +3,8 @@
 // Start a kaboom game
 kaboom()
 
+// throw new Error("oh hoo")
+
 // Load a sprite asset from "sprites/bean.png", with the name "bean"
 loadSprite("bean", "/sprites/bean.png")
 loadSprite("ghosty", "/sprites/ghosty.png")

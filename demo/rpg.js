@@ -52,7 +52,7 @@ scene("main", (levelIdx) => {
 		],
 	]
 
-	addLevel(levels[levelIdx], {
+	const level = addLevel(levels[levelIdx], {
 		width: 64,
 		height: 64,
 		pos: vec2(64, 64),
@@ -101,7 +101,7 @@ scene("main", (levelIdx) => {
 	})
 
 	// get the player game obj by tag
-	const player = get("player")[0]
+	const player = level.get("player")[0]
 
 	function addDialog() {
 		const h = 160
