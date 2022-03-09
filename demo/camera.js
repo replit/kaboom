@@ -14,7 +14,7 @@ const SPEED = 480
 gravity(2400)
 
 // Setup a basic level
-addLevel([
+const level = addLevel([
 	"@  =  $",
 	"=======",
 ], {
@@ -43,16 +43,16 @@ addLevel([
 })
 
 // Get the player object from tag
-const player = get("player")[0]
+const player = level.get("player")[0]
 
 player.onUpdate(() => {
 	// Set the viewport center to player.pos
-	camPos(player.pos)
+	camPos(player.worldPos())
 })
 
 player.onCollisionResolve(() => {
 	// Set the viewport center to player.pos
-	camPos(player.pos)
+	camPos(player.worldPos())
 })
 
 player.onCollide("coin", (coin) => {

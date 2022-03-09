@@ -3380,6 +3380,10 @@ export interface PosComp extends Comp {
 	 * Get position on screen after camera transform.
 	 */
 	screenPos(): Vec2,
+	/**
+	 * Get position on screen after camera transform.
+	 */
+	worldPos(): Vec2,
 }
 
 export interface ScaleComp extends Comp {

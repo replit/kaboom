@@ -8,7 +8,7 @@ const fruits = [
 ]
 
 for (const fruit of fruits) {
-	loadSprite(fruit, `sprites/${fruit}.png`)
+	loadSprite(fruit, `/sprites/${fruit}.png`)
 }
 
 loadSprite("bean", "/sprites/bean.png")

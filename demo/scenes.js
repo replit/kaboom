@@ -72,7 +72,7 @@ scene("game", ({ levelIdx, score }) => {
 	})
 
 	// Get the player object from tag
-	const player = get("player")[0]
+	const player = level.get("player")[0]
 
 	// Movements
 	onKeyPress("space", () => {
