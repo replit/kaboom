@@ -2691,7 +2691,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		// window size (will be the same as view size except letterbox mode)
 
 		// check for resize
-		if (app.stretchToParent) {
+		if (app.stretchToParent && !isFullscreen()) {
 			// TODO: update cam pos
 			const pw = app.canvas.parentElement.offsetWidth
 			const ph = app.canvas.parentElement.offsetHeight
