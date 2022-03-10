@@ -851,7 +851,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		assets: Map<string, Asset<D>> = new Map()
 		lastUID: number = 0
 		add(name: string | null, loader: Promise<D>): Asset<D> {
-		// if user don't provide a name we use a generated one
+			// if user don't provide a name we use a generated one
 			const id = name ?? (this.lastUID++ + "")
 			const asset = new Asset(loader)
 			this.assets.set(id, asset)
@@ -5429,6 +5429,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 								}
 								const res = aobj.checkCollision(other)
 								if (res && !res.isZero()) {
+									// TODO: rehash if the object position is changed after resolution?
 									const col1 = new Collision(aobj, other, res)
 									aobj.trigger("collisionActive", other, col1)
 									const col2 = col1.reverse()
