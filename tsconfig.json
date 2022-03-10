@@ -1,8 +1,13 @@
 {
 	"compilerOptions": {
-		"target": "esnext"
+		"noEmit": true,
+		"checkJs": true,
+		"esModuleInterop": true,
+		"target": "esnext",
+		"moduleResolution": "node"
 	},
 	"include": [
+		"scripts/*.js",
 		"src/**/*.ts"
 	]
 }

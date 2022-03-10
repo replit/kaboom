@@ -23,8 +23,8 @@ const fmts = [
 		},
 	},
 	...(isDev ? [] : [
-		{ format: "cjs",  ext: "cjs", },
-		{ format: "esm",  ext: "mjs", },
+		{ format: "cjs", ext: "cjs" },
+		{ format: "esm", ext: "mjs" },
 	]),
 ]
 
@@ -47,9 +47,10 @@ fmts.forEach((fmt) => {
 		watch: isDev ? { onRebuild: log } : false,
 		entryPoints: [ srcPath ],
 		globalName: "kaboom",
+		// @ts-ignore
 		format: fmt.format,
 		outfile: distPath,
-		...(fmt.config ?? {})
+		...(fmt.config ?? {}),
 	}).then(log)
 
 })
@@ -65,7 +66,7 @@ function buildTypes() {
 		"ts",
 		dts,
 		ts.ScriptTarget.Latest,
-		true
+		true,
 	)
 
 	function transform(o, f) {
@@ -210,12 +211,12 @@ function buildTypes() {
 		throw new Error("KaboomCtx not found, failed to generate global defs.")
 	}
 
-	fs.writeFileSync(`site/doc.json`, JSON.stringify({
+	fs.writeFileSync("site/doc.json", JSON.stringify({
 		types,
 		sections,
 	}))
 
-	console.log(`-> site/doc.json`)
+	console.log("-> site/doc.json")
 
 	fs.writeFileSync(`${distDir}/kaboom.d.ts`, dts)
 	console.log(`-> ${distDir}/kaboom.d.ts`)

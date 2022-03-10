@@ -36,7 +36,7 @@ const run = async () => {
 	browser.close()
 	server.close()
 
-	console.log(failed ? "test failed" : "test success")
+	console.log(failed ? "fail" : "success")
 	process.exit(failed ? 1 : 0)
 
 }

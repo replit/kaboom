@@ -4615,12 +4615,13 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 						return
 					}
 
-					// TODO: if both not static, use mass, or use velocity
+					// TODO: if both not static, use mass, or use velocity?
 
 					// resolve the non static one
 					col.resolved = true
 					const col2 = (!this.isStatic && other.isStatic) ? col : col.reverse()
 					col2.source.pos = col2.source.pos.add(col2.displacement)
+					// TODO: update all children transform?
 					col2.source.transform = calcTransform(col2.source)
 					col2.source.trigger("collisionResolve", col2)
 					col2.target.trigger("collisionResolve", col2.reverse())
