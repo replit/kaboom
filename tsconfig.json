@@ -1,7 +1,7 @@
 {
 	"compilerOptions": {
 		"noEmit": true,
-		"checkJs": true,
+		"allowJs": true,
 		"esModuleInterop": true,
 		"target": "esnext",
 		"moduleResolution": "node"

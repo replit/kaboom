@@ -47,7 +47,6 @@ fmts.forEach((fmt) => {
 		watch: isDev ? { onRebuild: log } : false,
 		entryPoints: [ srcPath ],
 		globalName: "kaboom",
-		// @ts-ignore
 		format: fmt.format,
 		outfile: distPath,
 		...(fmt.config ?? {}),
