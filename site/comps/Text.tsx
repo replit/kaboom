@@ -1,5 +1,5 @@
-import * as React from "react";
-import { FontSize } from "lib/ui";
+import * as React from "react"
+import { FontSize } from "lib/ui"
 
 interface TextProps {
 	color?: number | string,
@@ -40,6 +40,6 @@ const Text: React.FC<Props> = (({
 	>
 		{children}
 	</span>
-));
+))
 
-export default Text;
+export default Text

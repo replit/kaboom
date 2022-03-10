@@ -1,22 +1,22 @@
-import * as React from "react";
-import Link from "next/link";
-import Head from "comps/Head";
-import Editor, { EditorRef } from "comps/Editor";
-import GameView, { GameViewRef } from "comps/GameView";
-import Button from "comps/Button";
-import Toggle from "comps/Toggle";
-import ThemeSwitch from "comps/ThemeSwitch";
-import Text from "comps/Text";
-import Select from "comps/Select";
-import View, { ViewProps } from "comps/View";
-import Menu from "comps/Menu";
-import Input from "comps/Input";
-import Markdown from "comps/Markdown";
-import Inspect from "comps/Inspect";
-import Background from "comps/Background";
-import Doc from "comps/Doc";
-import Drop from "comps/Drop";
-import Modal from "comps/Modal";
+import * as React from "react"
+import Link from "next/link"
+import Head from "comps/Head"
+import Editor, { EditorRef } from "comps/Editor"
+import GameView, { GameViewRef } from "comps/GameView"
+import Button from "comps/Button"
+import Toggle from "comps/Toggle"
+import ThemeSwitch from "comps/ThemeSwitch"
+import Text from "comps/Text"
+import Select from "comps/Select"
+import View, { ViewProps } from "comps/View"
+import Menu from "comps/Menu"
+import Input from "comps/Input"
+import Markdown from "comps/Markdown"
+import Inspect from "comps/Inspect"
+import Background from "comps/Background"
+import Doc from "comps/Doc"
+import Drop from "comps/Drop"
+import Modal from "comps/Modal"
 
 interface ExampleProps {
 	thing: string,
@@ -31,7 +31,7 @@ const Example: React.FC<ExampleProps & ViewProps> = ({
 		<Text color={4} size="huge">here{"'"}s {thing}</Text>
 		{children}
 	</View>
-);
+)
 
 const UI: React.FC = () => (
 	<Background pad={6} dir="column" gap={6} css={{ overflow: "scroll" }}>
@@ -137,6 +137,6 @@ pos(80, 40),
 			</Drop>
 		</Example>
 	</Background>
-);
+)
 
-export default UI;
+export default UI

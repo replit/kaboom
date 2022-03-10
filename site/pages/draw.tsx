@@ -1,31 +1,31 @@
-import fs from "fs/promises";
-import path from "path";
-import * as React from "react";
-import { GetServerSideProps } from "next";
-import Link from "next/link";
-import { useRouter } from "next/router";
-import useKey from "hooks/useKey";
-import useSavedState from "hooks/useSavedState";
-import useClickOutside from "hooks/useClickOutside";
-import useSpaceUsed from "hooks/useSpaceUsed";
-import useMediaQuery from "hooks/useMediaQuery";
-import Head from "comps/Head";
-import Editor, { EditorRef } from "comps/Editor";
-import GameView, { GameViewRef } from "comps/GameView";
-import Button from "comps/Button";
-import ThemeSwitch from "comps/ThemeSwitch";
-import Select from "comps/Select";
-import View from "comps/View";
-import Text from "comps/Text";
-import Menu from "comps/Menu";
-import Inspect from "comps/Inspect";
-import Drop from "comps/Drop";
-import Drawer from "comps/Drawer";
-import Background from "comps/Background";
-import Doc from "comps/Doc";
-import download from "lib/download";
-import wrapHTML from "lib/wrapHTML";
-import Ctx from "lib/Ctx";
+import fs from "fs/promises"
+import path from "path"
+import * as React from "react"
+import { GetServerSideProps } from "next"
+import Link from "next/link"
+import { useRouter } from "next/router"
+import useKey from "hooks/useKey"
+import useSavedState from "hooks/useSavedState"
+import useClickOutside from "hooks/useClickOutside"
+import useSpaceUsed from "hooks/useSpaceUsed"
+import useMediaQuery from "hooks/useMediaQuery"
+import Head from "comps/Head"
+import Editor, { EditorRef } from "comps/Editor"
+import GameView, { GameViewRef } from "comps/GameView"
+import Button from "comps/Button"
+import ThemeSwitch from "comps/ThemeSwitch"
+import Select from "comps/Select"
+import View from "comps/View"
+import Text from "comps/Text"
+import Menu from "comps/Menu"
+import Inspect from "comps/Inspect"
+import Drop from "comps/Drop"
+import Drawer from "comps/Drawer"
+import Background from "comps/Background"
+import Doc from "comps/Doc"
+import download from "lib/download"
+import wrapHTML from "lib/wrapHTML"
+import Ctx from "lib/Ctx"
 
 // TODO: CLEAN
 
@@ -75,7 +75,7 @@ drawEllipse({
 	color: rgb(255, 255, 128),
 	outline,
 })
-`.trim();
+`.trim()
 
 const template = `
 kaboom()
@@ -130,7 +130,7 @@ onDraw(() => {
 		}
 	}
 })
-`.trim();
+`.trim()
 
 interface Sprite {
 	name: string,
@@ -222,7 +222,7 @@ drawText({
 })
 		`.trim(),
 	},
-];
+]
 
 const ShapeEntry: React.FC<ShapeEntryProps> = ({ img, code, onDragStart }) => (
 	<View
@@ -235,8 +235,8 @@ const ShapeEntry: React.FC<ShapeEntryProps> = ({ img, code, onDragStart }) => (
 		rounded
 		height={64}
 		onDragStart={(e) => {
-			e.dataTransfer.setData("code", code);
-			onDragStart && onDragStart();
+			e.dataTransfer.setData("code", code)
+			onDragStart && onDragStart()
 		}}
 		css={{
 			"overflow": "hidden",
@@ -254,7 +254,7 @@ const ShapeEntry: React.FC<ShapeEntryProps> = ({ img, code, onDragStart }) => (
 			}}
 		/>
 	</View>
-);
+)
 
 const SpriteEntry: React.FC<SpriteEntryProps> = ({
 	name,
@@ -272,8 +272,8 @@ const SpriteEntry: React.FC<SpriteEntryProps> = ({
 		rounded
 		height={64}
 		onDragStart={(e) => {
-			e.dataTransfer.setData("code", `"${src}"`);
-			onDragStart && onDragStart();
+			e.dataTransfer.setData("code", `"${src}"`)
+			onDragStart && onDragStart()
 		}}
 		css={{
 			"overflow": "hidden",
@@ -297,7 +297,7 @@ const SpriteEntry: React.FC<SpriteEntryProps> = ({
 		</View>
 		<Text>{path.basename(name)}</Text>
 	</View>
-);
+)
 
 interface SoundEntryProps {
 	name: string,
@@ -331,7 +331,7 @@ const SoundEntry: React.FC<SoundEntryProps> = ({
 	>
 		<Text>{path.basename(name)}</Text>
 	</View>
-);
+)
 
 interface Sound {
 	name: string,
@@ -340,24 +340,24 @@ interface Sound {
 
 const Play: React.FC = () => {
 
-	const gameviewRef = React.useRef<GameViewRef | null>(null);
-	const isNarrow = useMediaQuery("(max-aspect-ratio: 1/1)");;
-	const [ backpackOpen, setBackpackOpen ] = React.useState(false);
-	const [ sprites, setSprites ] = useSavedState<Sprite[]>("sprites", []);
-	const [ sounds, setSounds ] = useSavedState<Sound[]>("sounds", []);
-	const spaceUsed = useSpaceUsed();
-	const editorRef = React.useRef<EditorRef | null>(null);
-	const getInitCode = React.useCallback(() => localStorage["drawCode"] ?? DRAW_CODE, []);
+	const gameviewRef = React.useRef<GameViewRef | null>(null)
+	const isNarrow = useMediaQuery("(max-aspect-ratio: 1/1)")
+	const [ backpackOpen, setBackpackOpen ] = React.useState(false)
+	const [ sprites, setSprites ] = useSavedState<Sprite[]>("sprites", [])
+	const [ sounds, setSounds ] = useSavedState<Sound[]>("sounds", [])
+	const spaceUsed = useSpaceUsed()
+	const editorRef = React.useRef<EditorRef | null>(null)
+	const getInitCode = React.useCallback(() => localStorage["drawCode"] ?? DRAW_CODE, [])
 
 	useKey("Escape", () => {
-		setBackpackOpen(false);
-	}, [ setBackpackOpen ]);
+		setBackpackOpen(false)
+	}, [ setBackpackOpen ])
 
 	useKey("b", (e) => {
-		if (!e.metaKey) return;
-		e.preventDefault();
-		setBackpackOpen((b) => !b);
-	}, [ setBackpackOpen ]);
+		if (!e.metaKey) return
+		e.preventDefault()
+		setBackpackOpen((b) => !b)
+	}, [ setBackpackOpen ])
 
 	return <>
 		<Head
@@ -404,9 +404,9 @@ const Play: React.FC = () => {
 						desc="Clear stored code"
 						text="Reset"
 						action={() => {
-							editorRef.current?.setContent(DRAW_CODE);
-							delete localStorage["drawCode"];
-							gameviewRef.current?.run(template);
+							editorRef.current?.setContent(DRAW_CODE)
+							delete localStorage["drawCode"]
+							gameviewRef.current?.run(template)
 						}}
 					/>
 					{ !isNarrow &&
@@ -443,8 +443,8 @@ const Play: React.FC = () => {
 						name="Draw Code Editor"
 						desc="Code here runs every frame, changes are reflected in output immediately."
 						onChange={(code) => {
-							gameviewRef.current?.send({ drawCode: code });
-							localStorage["drawCode"] = code;
+							gameviewRef.current?.send({ drawCode: code })
+							localStorage["drawCode"] = code
 						}}
 						stretch
 						css={{
@@ -457,8 +457,8 @@ const Play: React.FC = () => {
 							{
 								key: "Mod-s",
 								run: () => {
-									gameviewRef.current?.run(template);
-									return false;
+									gameviewRef.current?.run(template)
+									return false
 								},
 								preventDefault: true,
 							},
@@ -472,8 +472,8 @@ const Play: React.FC = () => {
 					code={template}
 					onLoad={() => {
 						gameviewRef.current?.send({
-							drawCode: localStorage["drawCode"] ?? DRAW_CODE
-						});
+							drawCode: localStorage["drawCode"] ?? DRAW_CODE,
+						})
 					}}
 					width={isNarrow ? "100%" : "auto"}
 					height={isNarrow ? "auto" : "100%"}
@@ -530,7 +530,7 @@ const Play: React.FC = () => {
 								for (const spr of prev) {
 									if (spr.src === content) {
 										// TODO: err msg?
-										return prev;
+										return prev
 									}
 								}
 								return [
@@ -539,7 +539,7 @@ const Play: React.FC = () => {
 										name: file.name,
 										src: content,
 									},
-								];
+								]
 							})
 						}}
 					>
@@ -569,7 +569,7 @@ const Play: React.FC = () => {
 								for (const snd of prev) {
 									if (snd.src === content) {
 										// TODO: err msg?
-										return prev;
+										return prev
 									}
 								}
 								return [
@@ -578,7 +578,7 @@ const Play: React.FC = () => {
 										name: file.name,
 										src: content,
 									},
-								];
+								]
 							})
 						}}
 					>
@@ -602,8 +602,8 @@ const Play: React.FC = () => {
 				</Drawer>
 			}
 		</Background>
-	</>;
+	</>
 
-};
+}
 
-export default Play;
+export default Play

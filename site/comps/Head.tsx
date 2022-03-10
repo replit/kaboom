@@ -1,4 +1,4 @@
-import NextHead from "next/head";
+import NextHead from "next/head"
 
 interface TwitterPlayer {
 	width: number,
@@ -15,10 +15,10 @@ interface HeadProps {
 	twitterPlayer?: TwitterPlayer,
 }
 
-const DEF_TITLE = "Kaboom";
-const DEF_DESC = "JavaScript game programming library that helps you make games fast and fun";
-const DEF_ICON = "/site/img/k.png";
-const DEF_IMG = "https://kaboomjs.com/site/img/k.png";
+const DEF_TITLE = "Kaboom"
+const DEF_DESC = "JavaScript game programming library that helps you make games fast and fun"
+const DEF_ICON = "/site/img/k.png"
+const DEF_IMG = "https://kaboomjs.com/site/img/k.png"
 
 const Head: React.FC<HeadProps> = ({
 	title,
@@ -44,6 +44,6 @@ const Head: React.FC<HeadProps> = ({
 			<meta name="twitter:player:height" content={`${twitterPlayer.height}`} />
 		</> }
 	</NextHead>
-);
+)
 
-export default Head;
+export default Head

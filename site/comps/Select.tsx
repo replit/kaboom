@@ -1,8 +1,8 @@
-import * as React from "react";
-import View, { ViewProps } from "comps/View";
-import Text from "comps/Text";
-import useClickOutside from "hooks/useClickOutside";
-import useKey from "hooks/useKey";
+import * as React from "react"
+import View, { ViewProps } from "comps/View"
+import Text from "comps/Text"
+import useClickOutside from "hooks/useClickOutside"
+import useKey from "hooks/useKey"
 
 interface PromptProps {
 	name: string,
@@ -18,8 +18,8 @@ const Prompt: React.FC<PromptProps> = ({
 
 	const longest = React.useMemo(
 		() => options.reduce((a, b) => a.length > b.length ? a : b),
-		[ options, ]
-	);
+		[ options ],
+	)
 
 	return (
 		<View
@@ -56,8 +56,8 @@ const Prompt: React.FC<PromptProps> = ({
 				</Text>
 			</View>
 		</View>
-	);
-};
+	)
+}
 
 interface SelectProps {
 	options: string[],
@@ -76,30 +76,30 @@ const Select: React.FC<SelectProps & ViewProps> = ({
 	...args
 }) => {
 
-	const dropdownRef = React.useRef<HTMLDivElement>(null);
-	const [ curItem, setCurItem ] = React.useState(value ?? options[0]);
-	const [ expanded, setExpanded ] = React.useState(false);
+	const dropdownRef = React.useRef<HTMLDivElement>(null)
+	const [ curItem, setCurItem ] = React.useState(value ?? options[0])
+	const [ expanded, setExpanded ] = React.useState(false)
 
-	useClickOutside(dropdownRef, () => setExpanded(false), [ setExpanded ]);
-	useKey("Escape", () => setExpanded(false), [ setExpanded ]);
+	useClickOutside(dropdownRef, () => setExpanded(false), [ setExpanded ])
+	useKey("Escape", () => setExpanded(false), [ setExpanded ])
 
 	React.useEffect(() => {
-		if (!dropdownRef.current) return;
-		const dropdown = dropdownRef.current;
+		if (!dropdownRef.current) return
+		const dropdown = dropdownRef.current
 		if (expanded) {
-			dropdown.focus();
-			const selected = dropdown.querySelector(".selected") as HTMLElement;
+			dropdown.focus()
+			const selected = dropdown.querySelector(".selected") as HTMLElement
 			if (selected) {
-				dropdown.scrollTop = selected.offsetTop;
+				dropdown.scrollTop = selected.offsetTop
 			}
 		}
-	}, [ expanded ]);
+	}, [ expanded ])
 
 	React.useEffect(() => {
 		if (value != null) {
-			setCurItem(value);
+			setCurItem(value)
 		}
-	}, [ value ]);
+	}, [ value ])
 
 	return (
 		<View
@@ -144,7 +144,7 @@ const Select: React.FC<SelectProps & ViewProps> = ({
 					bg={2}
 					onKeyDown={(e) => {
 						// TODO
-						console.log(e.key);
+						console.log(e.key)
 					}}
 					css={{
 						overflowY: "auto",
@@ -169,8 +169,8 @@ const Select: React.FC<SelectProps & ViewProps> = ({
 								},
 							}}
 							onClick={() => {
-								setCurItem(opt);
-								onChange && onChange(opt);
+								setCurItem(opt)
+								onChange && onChange(opt)
 							}}
 						>
 							<Text>{opt}</Text>
@@ -179,8 +179,8 @@ const Select: React.FC<SelectProps & ViewProps> = ({
 				</View>
 			</View>}
 		</View>
-	);
+	)
 
-};
+}
 
-export default Select;
+export default Select

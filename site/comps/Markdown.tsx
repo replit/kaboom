@@ -1,26 +1,26 @@
-import * as React from "react";
-import { marked } from "marked";
-import hljs from "highlight.js/lib/core";
-import javascript from "highlight.js/lib/languages/javascript";
-import typescript from "highlight.js/lib/languages/typescript";
-import xml from "highlight.js/lib/languages/xml";
-import shell from "highlight.js/lib/languages/shell";
-import bash from "highlight.js/lib/languages/bash";
-import View, { ViewProps } from "comps/View";
+import * as React from "react"
+import { marked } from "marked"
+import hljs from "highlight.js/lib/core"
+import javascript from "highlight.js/lib/languages/javascript"
+import typescript from "highlight.js/lib/languages/typescript"
+import xml from "highlight.js/lib/languages/xml"
+import shell from "highlight.js/lib/languages/shell"
+import bash from "highlight.js/lib/languages/bash"
+import View, { ViewProps } from "comps/View"
 
-hljs.registerLanguage("javascript", javascript);
-hljs.registerLanguage("typescript", typescript);
-hljs.registerLanguage("xml", xml);
-hljs.registerLanguage("shell", shell);
-hljs.registerLanguage("bash", bash);
+hljs.registerLanguage("javascript", javascript)
+hljs.registerLanguage("typescript", typescript)
+hljs.registerLanguage("xml", xml)
+hljs.registerLanguage("shell", shell)
+hljs.registerLanguage("bash", bash)
 
 marked.setOptions({
 	highlight: (code, lang) => {
 		return hljs.highlight(code, {
 			language: lang,
-		}).value;
+		}).value
 	},
-});
+})
 
 interface MarkdownProps {
 	src: string,
@@ -175,6 +175,6 @@ const Markdown: React.FC<MarkdownProps & ViewProps> = ({
 		}}
 		{...args}
 	/>
-);
+)
 
-export default Markdown;
+export default Markdown

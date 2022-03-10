@@ -1,19 +1,19 @@
-import * as React from "react";
-import Link from "next/link";
-import Image from "next/image";
-import { keyframes } from '@emotion/react';
+import * as React from "react"
+import Link from "next/link"
+import Image from "next/image"
+import { keyframes } from "@emotion/react"
 
-import useMediaQuery from "hooks/useMediaQuery";
-import useClickOutside from "hooks/useClickOutside";
-import useUpdateEffect from "hooks/useUpdateEffect";
-import Background from "comps/Background";
-import View from "comps/View";
-import Text from "comps/Text";
-import Markdown from "comps/Markdown";
-import Input from "comps/Input";
-import Drawer from "comps/Drawer";
-import ThemeSwitch from "comps/ThemeSwitch";
-import doc from "doc.json";
+import useMediaQuery from "hooks/useMediaQuery"
+import useClickOutside from "hooks/useClickOutside"
+import useUpdateEffect from "hooks/useUpdateEffect"
+import Background from "comps/Background"
+import View from "comps/View"
+import Text from "comps/Text"
+import Markdown from "comps/Markdown"
+import Input from "comps/Input"
+import Drawer from "comps/Drawer"
+import ThemeSwitch from "comps/ThemeSwitch"
+import doc from "doc.json"
 
 const popping = keyframes(`
 	0% {
@@ -25,7 +25,7 @@ const popping = keyframes(`
 	10% {
 		transform: scale(1);
 	}
-`);
+`)
 
 const Logo: React.FC = () => (
 	<Link href="/" passHref>
@@ -62,7 +62,7 @@ const Logo: React.FC = () => (
 			</View>
 		</a>
 	</Link>
-);
+)
 
 interface NavLinkProps {
 	text: string,
@@ -96,19 +96,19 @@ const NavLink: React.FC<NavLinkProps> = ({
 			</View>
 		</a>
 	</Link>
-);
+)
 
-const NARROW = 840;
-const MOBILE = 640;
+const NARROW = 840
+const MOBILE = 640
 
 const Index: React.FC = () => {
 
-	const isNarrow = useMediaQuery(`(max-width: ${NARROW}px)`);
-	const [ expanded, setExpanded ] = React.useState(false);
+	const isNarrow = useMediaQuery(`(max-width: ${NARROW}px)`)
+	const [ expanded, setExpanded ] = React.useState(false)
 
 	useUpdateEffect(() => {
-		setExpanded(!isNarrow);
-	}, [ isNarrow ]);
+		setExpanded(!isNarrow)
+	}, [ isNarrow ])
 
 	return isNarrow ? (
 		<Drawer
@@ -126,9 +126,9 @@ const Index: React.FC = () => {
 		>
 			<IndexContent shrink={() => setExpanded(false)} />
 		</View>
-	);
+	)
 
-};
+}
 
 type SectionTuple = [string, string[]]
 
@@ -140,16 +140,16 @@ const IndexContent: React.FC<IndexContentProps> = ({
 	shrink,
 }) => {
 
-	const [ query, setQuery ] = React.useState("");
+	const [ query, setQuery ] = React.useState("")
 
 	const filteredSections = doc.sections.reduce((acc: SectionTuple[], cur) => {
 		const filteredEntries = cur.entries
-			.filter(name => query ? name.match(new RegExp(query, "i")) : true);
+			.filter(name => query ? name.match(new RegExp(query, "i")) : true)
 
 		// Exclude sections that have no matching entries.
 		return filteredEntries.length > 0
 			? acc.concat([[cur.name, filteredEntries]])
-			: acc;
+			: acc
 	}, [])
 
 	return <>
@@ -182,46 +182,46 @@ const IndexContent: React.FC<IndexContentProps> = ({
 				return (
 					<View stretchX gap={1} key={sectionName}>
 						<Text size="big" color={3}>{sectionName}</Text>
-							<View>
-								{ entries.map((name) => {
+						<View>
+							{ entries.map((name) => {
 
-									const mem = (doc as any).types["KaboomCtx"][0].members[name]?.[0] || (doc as any).types[name]?.[0];
+								const mem = (doc as any).types["KaboomCtx"][0].members[name]?.[0] || (doc as any).types[name]?.[0]
 
-									if (mem.jsDoc?.tags["deprecated"]) {
-										return
-									}
+								if (mem.jsDoc?.tags["deprecated"]) {
+									return
+								}
 
-									const isFunc = mem.kind === "MethodSignature" || mem.kind === "FunctionDeclaration";
+								const isFunc = mem.kind === "MethodSignature" || mem.kind === "FunctionDeclaration"
 
-									return (
-										<a key={name} href={`/#${name}`}>
-											<View
-												padX={1}
-												padY={0.5}
-												onClick={shrink}
-												css={{
-													cursor: "pointer",
-													borderRadius: 8,
-													":hover": {
-														background: "var(--color-bg3)",
-													},
-												}}
-											>
-												<Text color={2} code>{name}{isFunc ? "()" : ""}</Text>
-											</View>
-										</a>
-									);
+								return (
+									<a key={name} href={`/#${name}`}>
+										<View
+											padX={1}
+											padY={0.5}
+											onClick={shrink}
+											css={{
+												cursor: "pointer",
+												borderRadius: 8,
+												":hover": {
+													background: "var(--color-bg3)",
+												},
+											}}
+										>
+											<Text color={2} code>{name}{isFunc ? "()" : ""}</Text>
+										</View>
+									</a>
+								)
 
-								}) }
-							</View>
+							}) }
+						</View>
 					</View>
-				);
+				)
 
 			}) }
 		</View>
-	</>;
+	</>
 
-};
+}
 
 const Nav: React.FC = ({children}) => (
 	<Background pad={3} css={{
@@ -267,6 +267,6 @@ const Nav: React.FC = ({children}) => (
 			</View>
 		</View>
 	</Background>
-);
+)
 
-export default Nav;
+export default Nav

@@ -1,15 +1,15 @@
-import * as React from "react";
-import View, { ViewProps } from "comps/View";
-import { keyframes } from '@emotion/react';
-import { themes } from "lib/ui";
-import Ctx from "lib/Ctx";
+import * as React from "react"
+import View, { ViewProps } from "comps/View"
+import { keyframes } from "@emotion/react"
+import { themes } from "lib/ui"
+import Ctx from "lib/Ctx"
 
 const Background: React.FC<ViewProps> = ({
 	children,
 	...args
 }) => {
-	const { theme } = React.useContext(Ctx);
-	const patColor = themes[theme]["bgpat"];
+	const { theme } = React.useContext(Ctx)
+	const patColor = themes[theme]["bgpat"]
 	return (
 		<View
 			stretch
@@ -20,7 +20,7 @@ const Background: React.FC<ViewProps> = ({
 		>
 			{children}
 		</View>
-	);
-};
+	)
+}
 
-export default Background;
+export default Background

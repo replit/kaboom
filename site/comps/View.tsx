@@ -1,7 +1,7 @@
-import * as React from "react";
-import Ctx from "lib/Ctx";
-import useTooltip from "hooks/useTooltip";
-import { space as spaceUnit } from "lib/ui";
+import * as React from "react"
+import Ctx from "lib/Ctx"
+import useTooltip from "hooks/useTooltip"
+import { space as spaceUnit } from "lib/ui"
 
 type StackDir =
 	| "row"
@@ -18,11 +18,11 @@ type Align =
 
 const toAlign = (a: Align) => {
 	switch (a) {
-		case "start": return "flex-start";
-		case "end": return "flex-end";
-		case "center": return "center";
-		case "stretch": return "stretch";
-		case "baseline": return "baseline";
+		case "start": return "flex-start"
+		case "end": return "flex-end"
+		case "center": return "center"
+		case "stretch": return "stretch"
+		case "baseline": return "baseline"
 	}
 }
 
@@ -37,12 +37,12 @@ type Justify =
 
 const toJustify = (j: Justify) => {
 	switch (j) {
-		case "start": return "flex-start";
-		case "end": return "flex-end";
-		case "center": return "center";
-		case "between": return "space-between";
-		case "around": return "space-around";
-		case "even": return "space-evenly";
+		case "start": return "flex-start"
+		case "end": return "flex-end"
+		case "center": return "center"
+		case "between": return "space-between"
+		case "around": return "space-around"
+		case "even": return "space-evenly"
 	}
 }
 
@@ -106,35 +106,35 @@ const View = React.forwardRef<HTMLDivElement, Props>(({
 	...props
 }, ref) => {
 
-	const marginSide = dir === "row" ? "marginRight" : "marginBottom";
-	const px = (padX ?? pad ?? 0) * 8;
-	const py = (padY ?? pad ?? 0) * 8;
-	const { inspect } = React.useContext(Ctx);
-	const [ pushTooltip, popTooltip ] = useTooltip();
-	const localRef = React.useRef(null);
-	const curRef = ref ?? localRef;
+	const marginSide = dir === "row" ? "marginRight" : "marginBottom"
+	const px = (padX ?? pad ?? 0) * 8
+	const py = (padY ?? pad ?? 0) * 8
+	const { inspect } = React.useContext(Ctx)
+	const [ pushTooltip, popTooltip ] = useTooltip()
+	const localRef = React.useRef(null)
+	const curRef = ref ?? localRef
 
 	// if dom is hovered when entering inspect mode, push tooltip
 	React.useEffect(() => {
 		if (inspect && desc) {
 			// @ts-ignore
 			if (curRef?.current?.matches(":hover")) {
-				pushTooltip({ name, desc });
+				pushTooltip({ name, desc })
 			}
 		}
-	}, [ inspect, name, desc, pushTooltip, ]);
+	}, [ inspect, name, desc, pushTooltip ])
 
 	return <div
 		ref={curRef}
-		onMouseEnter={(inspect && desc) ? () => pushTooltip({ name, desc, }) : undefined}
+		onMouseEnter={(inspect && desc) ? () => pushTooltip({ name, desc }) : undefined}
 		onMouseLeave={(inspect && desc) ? popTooltip : undefined}
 		onKeyDown={(focusable || onKeyDown) ? (e) => {
 			if (focusable) {
 				if (e.key === "Enter") {
-					e.currentTarget.click();
+					e.currentTarget.click()
 				}
 			}
-			onKeyDown && onKeyDown(e);
+			onKeyDown && onKeyDown(e)
 		} : undefined}
 		tabIndex={focusable ? 0 : undefined}
 		// @ts-ignore
@@ -170,6 +170,6 @@ const View = React.forwardRef<HTMLDivElement, Props>(({
 		{children}
 	</div>
 
-});
+})
 
-export default View;
+export default View

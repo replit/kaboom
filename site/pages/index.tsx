@@ -1,17 +1,17 @@
-import * as React from "react";
-import Image from "next/image";
-import { keyframes } from '@emotion/react';
-import Head from "comps/Head";
-import Nav from "comps/Nav";
-import View from "comps/View";
-import Text from "comps/Text";
-import Markdown from "comps/Markdown";
-import Drawer from "comps/Drawer";
-import Doc from "comps/Doc";
-import useMediaQuery from "hooks/useMediaQuery";
-import doc from "doc.json";
+import * as React from "react"
+import Image from "next/image"
+import { keyframes } from "@emotion/react"
+import Head from "comps/Head"
+import Nav from "comps/Nav"
+import View from "comps/View"
+import Text from "comps/Text"
+import Markdown from "comps/Markdown"
+import Drawer from "comps/Drawer"
+import Doc from "comps/Doc"
+import useMediaQuery from "hooks/useMediaQuery"
+import doc from "doc.json"
 // @ts-ignore
-import fun from "lib/fun";
+import fun from "lib/fun"
 
 const flashy = keyframes(`
 	0% {
@@ -32,7 +32,7 @@ const flashy = keyframes(`
 	100% {
 		color: blue;
 	}
-`);
+`)
 
 const Fun: React.FC = () => (
 	<span
@@ -48,13 +48,13 @@ const Fun: React.FC = () => (
 	>
 		fun
 	</span>
-);
+)
 
-const NARROW = 840;
+const NARROW = 840
 
 const Home: React.FC = () => {
-	const [ showType, setShowType ] = React.useState<string | null>(null);
-	const isNarrow = useMediaQuery(`(max-width: ${NARROW}px)`);
+	const [ showType, setShowType ] = React.useState<string | null>(null)
+	const isNarrow = useMediaQuery(`(max-width: ${NARROW}px)`)
 	return <Nav>
 		<Head title="Kaboom" scale={0.8} />
 		<Text select size="huge" color={1}>Kaboom is a Javascript game programming library that helps you make games fast and <Fun />.</Text>
@@ -124,7 +124,7 @@ Play with it yourself or check out the examples in the [Playground](/play)!
 			expanded={showType !== null}
 			setExpanded={(b) => {
 				if (b === false) {
-					setShowType(null);
+					setShowType(null)
 				}
 			}}
 		>
@@ -138,7 +138,7 @@ Play with it yourself or check out the examples in the [Playground](/play)!
 			}
 		</Drawer>
 
-	</Nav>;
-};
+	</Nav>
+}
 
-export default Home;
+export default Home

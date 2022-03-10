@@ -9,12 +9,12 @@ import {
 	PluginValue,
 	DecorationSet,
 	Decoration,
-} from "@codemirror/view";
+} from "@codemirror/view"
 
 import {
 	StateEffect,
 	Facet,
-} from "@codemirror/state";
+} from "@codemirror/state"
 
 type Target = {
 	pos: number,
@@ -30,17 +30,17 @@ export type InteractRule = {
 	onDrag?: (text: string, setText: (t: string) => void, e: MouseEvent) => void,
 }
 
-const mark = Decoration.mark({ class: "cm-interact" });
-const setInteract = StateEffect.define<Target | null>();
+const mark = Decoration.mark({ class: "cm-interact" })
+const setInteract = StateEffect.define<Target | null>()
 
 const interactTheme = EditorView.theme({
 	".cm-interact": {
 		background: "rgba(128, 128, 255, 0.2)",
 		borderRadius: "4px",
 	},
-});
+})
 
-export const interactRule = Facet.define<InteractRule>();
+export const interactRule = Facet.define<InteractRule>()
 
 type ViewState = PluginValue & {
 	dragging: Target | null,
@@ -64,32 +64,32 @@ const interactViewPlugin = ViewPlugin.define<ViewState>((view) => ({
 
 	getMatch() {
 
-		const rules = view.state.facet(interactRule);
-		const pos = view.posAtCoords({ x: this.mouseX, y: this.mouseY });
-		if (!pos) return null;
-		const line = view.state.doc.lineAt(pos);
-		const lpos = pos - line.from;
-		let match = null;
+		const rules = view.state.facet(interactRule)
+		const pos = view.posAtCoords({ x: this.mouseX, y: this.mouseY })
+		if (!pos) return null
+		const line = view.state.doc.lineAt(pos)
+		const lpos = pos - line.from
+		let match = null
 
 		for (const rule of rules) {
 			for (const m of line.text.matchAll(rule.regexp)) {
-				if (m.index === undefined) continue;
-				const text = m[0];
-				if (!text) continue;
-				const start = m.index;
-				const end = m.index + text.length;
-				if (lpos < start || lpos > end) continue;
+				if (m.index === undefined) continue
+				const text = m[0]
+				if (!text) continue
+				const start = m.index
+				const end = m.index + text.length
+				if (lpos < start || lpos > end) continue
 				if (!match || text.length < match.text.length) {
 					match = {
 						rule: rule,
 						pos: line.from + start,
 						text: text,
-					};
+					}
 				}
 			}
 		}
 
-		return match;
+		return match
 
 	},
 
@@ -101,25 +101,25 @@ const interactViewPlugin = ViewPlugin.define<ViewState>((view) => ({
 					to: target.pos + target.text.length,
 					insert: text,
 				},
-			});
-			target.text = text;
-		};
+			})
+			target.text = text
+		}
 	},
 
 	focus(target) {
 		if (target.rule.cursor) {
-			document.body.style.cursor = target.rule.cursor;
+			document.body.style.cursor = target.rule.cursor
 		}
 		view.dispatch({
 			effects: setInteract.of(target),
-		});
+		})
 	},
 
 	unfocus() {
-		document.body.style.cursor = "auto";
+		document.body.style.cursor = "auto"
 		view.dispatch({
 			effects: setInteract.of(null),
-		});
+		})
 	},
 
 	update(update) {
@@ -128,9 +128,9 @@ const interactViewPlugin = ViewPlugin.define<ViewState>((view) => ({
 				if (e.is(setInteract)) {
 					const decos = e.value ? mark.range(
 						e.value.pos,
-						e.value.pos + e.value.text.length
-					) : [];
-					this.deco = Decoration.set(decos);
+						e.value.pos + e.value.text.length,
+					) : []
+					this.deco = Decoration.set(decos)
 				}
 			}
 		}
@@ -144,66 +144,66 @@ const interactViewPlugin = ViewPlugin.define<ViewState>((view) => ({
 
 		mousedown(e, view) {
 
-			if (!e.altKey) return;
-			const match = this.getMatch();
-			if (!match) return;
-			e.preventDefault();
+			if (!e.altKey) return
+			const match = this.getMatch()
+			if (!match) return
+			e.preventDefault()
 
 			if (match.rule.onClick) {
-				match.rule.onClick(match.text, this.updateText(match), e);
-			};
+				match.rule.onClick(match.text, this.updateText(match), e)
+			}
 
 			if (match.rule.onDrag) {
 				this.dragging = {
 					rule: match.rule,
 					pos: match.pos,
 					text: match.text,
-				};
+				}
 			}
 
 		},
 
 		mousemove(e, view) {
 
-			this.mouseX = e.clientX;
-			this.mouseY = e.clientY;
+			this.mouseX = e.clientX
+			this.mouseY = e.clientY
 
-			if (!e.altKey) return;
+			if (!e.altKey) return
 
 			if (this.dragging) {
-				this.focus(this.dragging);
+				this.focus(this.dragging)
 				if (this.dragging.rule.onDrag) {
-					this.dragging.rule.onDrag(this.dragging.text, this.updateText(this.dragging), e);
+					this.dragging.rule.onDrag(this.dragging.text, this.updateText(this.dragging), e)
 				}
 			} else {
-				this.hovering = this.getMatch();
+				this.hovering = this.getMatch()
 				if (this.hovering) {
-					this.focus(this.hovering);
+					this.focus(this.hovering)
 				} else {
-					this.unfocus();
+					this.unfocus()
 				}
 			}
 
 		},
 
 		mouseup(e, view) {
-			this.dragging = null;
+			this.dragging = null
 			if (!this.hovering) {
-				this.unfocus();
+				this.unfocus()
 			}
 		},
 
 		keydown(e, view) {
-			if (!e.altKey) return;
-			this.hovering = this.getMatch();
+			if (!e.altKey) return
+			this.hovering = this.getMatch()
 			if (this.hovering) {
-				this.focus(this.hovering);
+				this.focus(this.hovering)
 			}
 		},
 
 		keyup(e, view) {
 			if (!e.altKey) {
-				this.unfocus();
+				this.unfocus()
 			}
 		},
 
@@ -213,4 +213,4 @@ const interactViewPlugin = ViewPlugin.define<ViewState>((view) => ({
 export default [
 	interactTheme,
 	interactViewPlugin,
-];
+]

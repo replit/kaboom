@@ -1,34 +1,34 @@
-import fs from "fs/promises";
-import path from "path";
-import * as React from "react";
-import { GetServerSideProps } from "next";
-import Link from "next/link";
-import { useRouter } from "next/router";
-import useKey from "hooks/useKey";
-import useSavedState from "hooks/useSavedState";
-import useClickOutside from "hooks/useClickOutside";
-import useSpaceUsed from "hooks/useSpaceUsed";
-import useMediaQuery from "hooks/useMediaQuery";
-import Head from "comps/Head";
-import Editor, { EditorRef } from "comps/Editor";
-import GameView, { GameViewRef } from "comps/GameView";
-import Button from "comps/Button";
-import ThemeSwitch from "comps/ThemeSwitch";
-import Select from "comps/Select";
-import View from "comps/View";
-import Text from "comps/Text";
-import Menu from "comps/Menu";
-import Inspect from "comps/Inspect";
-import Drop from "comps/Drop";
-import Drawer from "comps/Drawer";
-import Background from "comps/Background";
-import Doc from "comps/Doc";
-import download from "lib/download";
-import wrapHTML from "lib/wrapHTML";
-import Ctx from "lib/Ctx";
-import DEMO_CFG from "public/site/demo/demo.json";
+import fs from "fs/promises"
+import path from "path"
+import * as React from "react"
+import { GetServerSideProps } from "next"
+import Link from "next/link"
+import { useRouter } from "next/router"
+import useKey from "hooks/useKey"
+import useSavedState from "hooks/useSavedState"
+import useClickOutside from "hooks/useClickOutside"
+import useSpaceUsed from "hooks/useSpaceUsed"
+import useMediaQuery from "hooks/useMediaQuery"
+import Head from "comps/Head"
+import Editor, { EditorRef } from "comps/Editor"
+import GameView, { GameViewRef } from "comps/GameView"
+import Button from "comps/Button"
+import ThemeSwitch from "comps/ThemeSwitch"
+import Select from "comps/Select"
+import View from "comps/View"
+import Text from "comps/Text"
+import Menu from "comps/Menu"
+import Inspect from "comps/Inspect"
+import Drop from "comps/Drop"
+import Drawer from "comps/Drawer"
+import Background from "comps/Background"
+import Doc from "comps/Doc"
+import download from "lib/download"
+import wrapHTML from "lib/wrapHTML"
+import Ctx from "lib/Ctx"
+import DEMO_CFG from "public/site/demo/demo.json"
 
-const DEF_DEMO = "add";
+const DEF_DEMO = "add"
 
 interface SpriteEntryProps {
 	name: string,
@@ -72,7 +72,7 @@ const SpriteEntry: React.FC<SpriteEntryProps> = ({
 		</View>
 		<Text>{path.basename(name)}</Text>
 	</View>
-);
+)
 
 interface SoundEntryProps {
 	name: string,
@@ -104,7 +104,7 @@ const SoundEntry: React.FC<SoundEntryProps> = ({
 	>
 		<Text>{path.basename(name)}</Text>
 	</View>
-);
+)
 
 interface Sprite {
 	name: string,
@@ -124,19 +124,19 @@ const Play: React.FC<PlayProps> = ({
 	demos,
 }) => {
 
-	const router = useRouter();
-	const demo = router.query.demo as string || DEF_DEMO;
-	const code = demos[demo];
-	const [ backpackOpen, setBackpackOpen ] = React.useState(false);
-	const [ sprites, setSprites ] = useSavedState<Sprite[]>("sprites", []);
-	const [ sounds, setSounds ] = useSavedState<Sound[]>("sounds", []);
-	const [ blackboard, setBlackboard ] = React.useState<string | null>(null);
-	const editorRef = React.useRef<EditorRef | null>(null);
-	const gameviewRef = React.useRef<GameViewRef | null>(null);
-	const blackboardRef = React.useRef(null);
-	const isNarrow = useMediaQuery("(max-aspect-ratio: 1/1)");;
-	const spaceUsed = useSpaceUsed();
-	const [ make, setMake ] = React.useState(false);
+	const router = useRouter()
+	const demo = router.query.demo as string || DEF_DEMO
+	const code = demos[demo]
+	const [ backpackOpen, setBackpackOpen ] = React.useState(false)
+	const [ sprites, setSprites ] = useSavedState<Sprite[]>("sprites", [])
+	const [ sounds, setSounds ] = useSavedState<Sound[]>("sounds", [])
+	const [ blackboard, setBlackboard ] = React.useState<string | null>(null)
+	const editorRef = React.useRef<EditorRef | null>(null)
+	const gameviewRef = React.useRef<GameViewRef | null>(null)
+	const blackboardRef = React.useRef(null)
+	const isNarrow = useMediaQuery("(max-aspect-ratio: 1/1)")
+	const spaceUsed = useSpaceUsed()
+	const [ make, setMake ] = React.useState(false)
 
 	// DEMO_ORDER defines the demos that should appear at the top of the list
 	// names not defined in the list just fall to their default order
@@ -144,8 +144,8 @@ const Play: React.FC<PlayProps> = ({
 		return [...new Set([
 			...DEMO_CFG.order,
 			...Object.keys(demos),
-		])].filter((name) => !DEMO_CFG.hidden.includes(name));
-	}, [ demos ]);
+		])].filter((name) => !DEMO_CFG.hidden.includes(name))
+	}, [ demos ])
 
 	React.useEffect(() => {
 		if (router.isReady && !router.query.demo) {
@@ -153,22 +153,22 @@ const Play: React.FC<PlayProps> = ({
 				query: {
 					demo: DEF_DEMO,
 				},
-			}, undefined, { shallow: true, });
+			}, undefined, { shallow: true })
 		}
-	}, [ router ]);
+	}, [ router ])
 
 	useKey("Escape", () => {
-		setBackpackOpen(false);
-		setBlackboard(null);
-	}, [ setBackpackOpen, setBlackboard ]);
+		setBackpackOpen(false)
+		setBlackboard(null)
+	}, [ setBackpackOpen, setBlackboard ])
 
 	useKey("b", (e) => {
-		if (!e.metaKey) return;
-		e.preventDefault();
-		setBackpackOpen((b) => !b);
-	}, [ setBackpackOpen ]);
+		if (!e.metaKey) return
+		e.preventDefault()
+		setBackpackOpen((b) => !b)
+	}, [ setBackpackOpen ])
 
-	useClickOutside(blackboardRef, () => setBlackboard(null), [ setBlackboard ]);
+	useClickOutside(blackboardRef, () => setBlackboard(null), [ setBlackboard ])
 
 	return <>
 		<Head
@@ -217,7 +217,7 @@ const Play: React.FC<PlayProps> = ({
 								query: {
 									demo: demo,
 								},
-							}, undefined, { shallow: true, })}
+							}, undefined, { shallow: true })}
 						/>
 					}
 					<Button
@@ -225,11 +225,11 @@ const Play: React.FC<PlayProps> = ({
 						desc="Run current code (Cmd+s)"
 						text="Run"
 						action={() => {
-							if (!editorRef.current) return;
-							if (!gameviewRef.current) return;
-							const content = editorRef.current.getContent();
+							if (!editorRef.current) return
+							if (!gameviewRef.current) return
+							const content = editorRef.current.getContent()
 							if (content) {
-								gameviewRef.current.run(content);
+								gameviewRef.current.run(content)
 							}
 						}}
 					/>
@@ -243,10 +243,10 @@ const Play: React.FC<PlayProps> = ({
 							{
 								name: "Export",
 								action: () => {
-									const name = prompt("File name: ");
-									download(`${name}.html`, wrapHTML(code));
+									const name = prompt("File name: ")
+									download(`${name}.html`, wrapHTML(code))
 								},
-							}
+							},
 						]} />
 					}
 				</View>
@@ -282,23 +282,23 @@ const Play: React.FC<PlayProps> = ({
 						{
 							key: "Mod-s",
 							run: () => {
-								if (!gameviewRef.current) return false;
-								const gameview = gameviewRef.current;
-								if (!editorRef.current) return false;
-								const editor = editorRef.current;
-								gameview.run(editor.getContent() ?? "");
-								return false;
+								if (!gameviewRef.current) return false
+								const gameview = gameviewRef.current
+								if (!editorRef.current) return false
+								const editor = editorRef.current
+								gameview.run(editor.getContent() ?? "")
+								return false
 							},
 							preventDefault: true,
 						},
 						{
 							key: "Mod-e",
 							run: () => {
-								if (!editorRef.current) return false;
-								const editor = editorRef.current;
-								const sel = editor.getSelection() || editor.getWord();
-								setBlackboard(sel);
-								return false;
+								if (!editorRef.current) return false
+								const editor = editorRef.current
+								const sel = editor.getSelection() || editor.getWord()
+								setBlackboard(sel)
+								return false
 							},
 							preventDefault: true,
 						},
@@ -369,7 +369,7 @@ const Play: React.FC<PlayProps> = ({
 								for (const spr of prev) {
 									if (spr.src === content) {
 										// TODO: err msg?
-										return prev;
+										return prev
 									}
 								}
 								return [
@@ -378,7 +378,7 @@ const Play: React.FC<PlayProps> = ({
 										name: file.name,
 										src: content,
 									},
-								];
+								]
 							})
 						}}
 					>
@@ -407,7 +407,7 @@ const Play: React.FC<PlayProps> = ({
 								for (const snd of prev) {
 									if (snd.src === content) {
 										// TODO: err msg?
-										return prev;
+										return prev
 									}
 								}
 								return [
@@ -416,7 +416,7 @@ const Play: React.FC<PlayProps> = ({
 										name: file.name,
 										src: content,
 									},
-								];
+								]
 							})
 						}}
 					>
@@ -439,13 +439,13 @@ const Play: React.FC<PlayProps> = ({
 				</Drawer>
 			}
 		</Background>
-	</>;
+	</>
 
-};
+}
 
 // TODO: getServerSideProps is handy for dev when you're changing demos, but getStaticProps makes more sense for prod since it won't change
 export const getServerSideProps: GetServerSideProps = async (ctx) => {
-	const { demo } = ctx.query;
+	const { demo } = ctx.query
 	const demodir = (await fs.readdir("public/site/demo"))
 		.filter((p) => !p.startsWith("."))
 	const demos: Record<string, string> = {}
@@ -453,7 +453,7 @@ export const getServerSideProps: GetServerSideProps = async (ctx) => {
 		const ext = path.extname(file)
 		const name = path.basename(file, ext)
 		if (ext === ".js") {
-			demos[name] = await fs.readFile(`public/site/demo/${file}`, "utf8");
+			demos[name] = await fs.readFile(`public/site/demo/${file}`, "utf8")
 		}
 	}
 	if (!demo || demos[demo as string]) {
@@ -461,12 +461,12 @@ export const getServerSideProps: GetServerSideProps = async (ctx) => {
 			props: {
 				demos,
 			},
-		};
+		}
 	} else {
 		return {
 			notFound: true,
-		};
+		}
 	}
 }
 
-export default Play;
+export default Play

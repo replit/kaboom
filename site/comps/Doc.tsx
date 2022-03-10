@@ -1,10 +1,10 @@
-import * as React from "react";
-import Link from "next/link";
-import View, { ViewPropsAnd } from "comps/View";
-import Text from "comps/Text";
-import Markdown from "comps/Markdown";
+import * as React from "react"
+import Link from "next/link"
+import View, { ViewPropsAnd } from "comps/View"
+import Text from "comps/Text"
+import Markdown from "comps/Markdown"
 // @ts-ignore
-import doc from "doc.json";
+import doc from "doc.json"
 
 const TypeSig: React.FC<EntryProps> = ({ data }) => (
 	<span
@@ -14,52 +14,52 @@ const TypeSig: React.FC<EntryProps> = ({ data }) => (
 	>
 		{(() => {
 			switch (data?.kind) {
-				case "StringKeyword": return "string";
-				case "NumberKeyword": return "number";
-				case "BooleanKeyword": return "boolean";
-				case "VoidKeyword": return "void";
-				case "AnyKeyword": return "any";
-				case "NullKeyword": return "null";
-				case "StringLiteral": return `"${data.text}"`;
-				case "LiteralType": return <TypeSig data={data.literal} />;
-				case "ArrayType": return <><TypeSig data={data.elementType} />[]</>;
-				case "ParenthesizedType": return <>(<TypeSig data={data.type} />)</>;
+				case "StringKeyword": return "string"
+				case "NumberKeyword": return "number"
+				case "BooleanKeyword": return "boolean"
+				case "VoidKeyword": return "void"
+				case "AnyKeyword": return "any"
+				case "NullKeyword": return "null"
+				case "StringLiteral": return `"${data.text}"`
+				case "LiteralType": return <TypeSig data={data.literal} />
+				case "ArrayType": return <><TypeSig data={data.elementType} />[]</>
+				case "ParenthesizedType": return <>(<TypeSig data={data.type} />)</>
 				case "FunctionType": return <>
-					(<FuncParams data={data} />) {'=>'} <TypeSig data={data.type} />
-				</>;
+					(<FuncParams data={data} />) {"=>"} <TypeSig data={data.type} />
+				</>
 				case "UnionType": return data.types.map((t: any, i: number) => (
 					<React.Fragment key={i}>
 						<TypeSig data={t} />
 						{i === data.types.length - 1 ? "" : " | "}
 					</React.Fragment>
-				));
+				))
 				case "TypeReference": return (doc as any).types[data.typeName]
 					?
-						<DocCtx.Consumer>
-							{(ctx) => (
-								<span
-									css={{textDecoration: "underline", cursor: "pointer"}}
-									onClick={() => ctx.typeref && ctx.typeref(data.typeName)}
-								>
-									{data.typeName}
-								</span>
-							)}
-						</DocCtx.Consumer>
-					: data.typeName;
+					<DocCtx.Consumer>
+						{(ctx) => (
+							<span
+								css={{textDecoration: "underline", cursor: "pointer"}}
+								onClick={() => ctx.typeref && ctx.typeref(data.typeName)}
+							>
+								{data.typeName}
+							</span>
+						)}
+					</DocCtx.Consumer>
+					: data.typeName
 				case "TypeLiteral":
 					return <View gap={2} stretchX>
 						{
 							Object.entries(data.members).map(([name, variants]: [string, any]) =>
 								variants.map((mem: any) =>
-									<Member key={mem.name} data={mem} />
-								)
+									<Member key={mem.name} data={mem} />,
+								),
 							)
 						}
-					</View>;
+					</View>
 				case "IndexedAccessType":
-					return <><TypeSig data={data.objectType} />[<TypeSig data={data.indexType} />]</>;
+					return <><TypeSig data={data.objectType} />[<TypeSig data={data.indexType} />]</>
 				default:
-					return "unknown";
+					return "unknown"
 			}
 		})()}
 		{ data?.typeArguments &&
@@ -73,7 +73,7 @@ const TypeSig: React.FC<EntryProps> = ({ data }) => (
 			</span>
 		}
 	</span>
-);
+)
 
 const FuncParams: React.FC<EntryProps> = ({ data }) => data.parameters.map((p: any, i: number) => (
 	<span key={p.name}>
@@ -82,7 +82,7 @@ const FuncParams: React.FC<EntryProps> = ({ data }) => data.parameters.map((p: a
 		: {p.dotDotDotToken ? "..." : <TypeSig data={p.type} />}
 		{i === data.parameters.length - 1 ? "" : ", "}
 	</span>
-));
+))
 
 interface TagProps {
 	name: string,
@@ -99,14 +99,14 @@ const Tag: React.FC<TagProps> = ({ name }) => (
 			{name}
 		</Text>
 	</View>
-);
+)
 
 function isType(entry: any): boolean {
 	return [
 		"TypeAliasDeclaration",
 		"InterfaceDeclaration",
 		"ClassDeclaration",
-	].includes(entry.kind);
+	].includes(entry.kind)
 }
 
 const Title: React.FC<{
@@ -135,7 +135,7 @@ const Title: React.FC<{
 			{children}
 		</Text>
 	</View>
-);
+)
 
 interface MemberProps {
 	data: any,
@@ -150,14 +150,14 @@ const MethodSignature: React.FC<MemberProps> = ({ data, small }) => (
 		</Title>
 		<JSDoc data={data} />
 	</View>
-);
+)
 
 const PropertySignature: React.FC<MemberProps> = ({ data, small }) => (
 	<View gap={1} stretchX>
 		<Title data={data} small={small}>{data.questionToken ? "?" : ""}: <TypeSig data={data.type} /></Title>
 		<JSDoc data={data} />
 	</View>
-);
+)
 
 const FunctionDeclaration: React.FC<EntryProps> = ({ data }) => (
 	<View gap={1} stretchX>
@@ -171,7 +171,7 @@ const FunctionDeclaration: React.FC<EntryProps> = ({ data }) => (
 		</Text>
 		<JSDoc data={data} />
 	</View>
-);
+)
 
 const TypeAliasDeclaration: React.FC<EntryProps> = ({ data }) => (
 	<View gap={1} stretchX>
@@ -181,9 +181,9 @@ const TypeAliasDeclaration: React.FC<EntryProps> = ({ data }) => (
 				case "TypeLiteral":
 					return Object.entries(data.type.members).map(([name, variants]: [string, any]) =>
 						variants.map((mem: any) =>
-							<Entry key={mem.name} data={mem} />
-						)
-					);
+							<Entry key={mem.name} data={mem} />,
+						),
+					)
 				case "TypeReference":
 				case "UnionType":
 				case "StringKeyword":
@@ -197,14 +197,14 @@ const TypeAliasDeclaration: React.FC<EntryProps> = ({ data }) => (
 				case "IntersectionType":
 					return data.type.types.map((t: any, i: number) => (
 						<React.Fragment key={i}><TypeSig data={t} />{i === data.type.types.length - 1 ? "" : "&"}</React.Fragment>
-					));
+					))
 				default:
-					return <></>;
+					return <></>
 			}
 			<JSDoc data={data} />
 		})()}
 	</View>
-);
+)
 
 const InterfaceDeclaration: React.FC<EntryProps> = ({ data }) => {
 	return (
@@ -215,12 +215,12 @@ const InterfaceDeclaration: React.FC<EntryProps> = ({ data }) => {
 			</View>
 			{ Object.entries(data.members).map(([name, variants]: [string, any], i) =>
 				variants.map((mem: any, j: number) =>
-					<Member key={`${mem.name}-${i}-${j}`} data={mem} />
-				)
+					<Member key={`${mem.name}-${i}-${j}`} data={mem} />,
+				),
 			) }
 		</View>
-	);
-};
+	)
+}
 
 const ClassDeclaration: React.FC<EntryProps> = ({ data }) => {
 	return (
@@ -231,26 +231,26 @@ const ClassDeclaration: React.FC<EntryProps> = ({ data }) => {
 			</View>
 			{ Object.entries(data.members).map(([name, variants]: [string, any], i) =>
 				variants.map((mem: any, j: number) =>
-					<Member key={`${mem.name}-${i}-${j}`} data={mem} />
-				)
+					<Member key={`${mem.name}-${i}-${j}`} data={mem} />,
+				),
 			) }
 		</View>
-	);
-};
+	)
+}
 
 const Member: React.FC<MemberProps> = ({ data }) => {
 	switch (data.kind) {
 		case "MethodSignature":
-			return <MethodSignature data={data} small />;
+			return <MethodSignature data={data} small />
 		case "PropertySignature":
-			return <PropertySignature data={data} small />;
+			return <PropertySignature data={data} small />
 		case "MethodDeclaration":
-			return <MethodSignature data={data} small />;
+			return <MethodSignature data={data} small />
 		case "PropertyDeclaration":
-			return <PropertySignature data={data} small />;
+			return <PropertySignature data={data} small />
 	}
-	return <></>;
-};
+	return <></>
+}
 
 interface EntryProps {
 	data: any,
@@ -259,20 +259,20 @@ interface EntryProps {
 const Entry: React.FC<EntryProps> = ({ data }) => {
 	switch (data.kind) {
 		case "MethodSignature":
-			return <MethodSignature data={data} />;
+			return <MethodSignature data={data} />
 		case "PropertySignature":
-			return <PropertySignature data={data} />;
+			return <PropertySignature data={data} />
 		case "FunctionDeclaration":
-			return <FunctionDeclaration data={data} />;
+			return <FunctionDeclaration data={data} />
 		case "TypeAliasDeclaration":
-			return <TypeAliasDeclaration data={data} />;
+			return <TypeAliasDeclaration data={data} />
 		case "InterfaceDeclaration":
-			return <InterfaceDeclaration data={data} />;
+			return <InterfaceDeclaration data={data} />
 		case "ClassDeclaration":
-			return <ClassDeclaration data={data} />;
+			return <ClassDeclaration data={data} />
 	}
-	return <></>;
-};
+	return <></>
+}
 
 const JSDoc: React.FC<EntryProps> = ({data}) => {
 	return data.jsDoc ? (
@@ -283,20 +283,20 @@ const JSDoc: React.FC<EntryProps> = ({data}) => {
 			{ Object.entries(data.jsDoc.tags).map(([name, items]) => {
 				return (items as string[]).map((content) => {
 					switch (name) {
-						case "section": return;
-						case "example": return <Markdown padY={1} key={content} src={content} />;
+						case "section": return
+						case "example": return <Markdown padY={1} key={content} src={content} />
 						default: return (
 							<View key={content} gap={1} dir="row">
 								<Tag name={name} />
 								<Text select color={3}>{content}</Text>
 							</View>
-						);
+						)
 					}
 				})
 			}) }
 		</View>
-	) : <></>;
-};
+	) : <></>
+}
 
 interface DocProps {
 	name: string,
@@ -314,10 +314,10 @@ const Doc: React.FC<ViewPropsAnd<DocProps>> = ({
 }) => {
 
 	const entries = (doc as any).types[name]
-		|| (doc as any).types["KaboomCtx"][0].members[name];
+		|| (doc as any).types["KaboomCtx"][0].members[name]
 
 	if (!entries) {
-		return <Text color={3}>Entry not found: {name}</Text>;
+		return <Text color={3}>Entry not found: {name}</Text>
 	}
 
 	return (
@@ -330,9 +330,9 @@ const Doc: React.FC<ViewPropsAnd<DocProps>> = ({
 				{entries.map((e: any, i: number) => <Entry key={`${e.name}-${i}`} data={e} />)}
 			</View>
 		</DocCtx.Provider>
-	);
+	)
 
-};
+}
 
 interface DocCtx {
 	anchor?: string,
@@ -342,6 +342,6 @@ interface DocCtx {
 
 const DocCtx = React.createContext<DocCtx>({
 	typeref: () => {},
-});
+})
 
-export default Doc;
+export default Doc

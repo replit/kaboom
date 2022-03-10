@@ -1,5 +1,5 @@
-import * as React from "react";
-import View from "comps/View";
+import * as React from "react"
+import View from "comps/View"
 
 interface ToggleProps {
 	offIcon?: string,
@@ -18,15 +18,15 @@ const Toggle: React.FC<ToggleProps> = ({
 	...args
 }) => {
 
-	const stripWidth = 54;
-	const size = 32;
-	const [ isOn, setIsOn ] = React.useState(on ?? false);
+	const stripWidth = 54
+	const size = 32
+	const [ isOn, setIsOn ] = React.useState(on ?? false)
 
 	React.useEffect(() => {
 		if (on != null) {
-			setIsOn(on);
+			setIsOn(on)
 		}
-	}, [on]);
+	}, [on])
 
 	return (
 		<View
@@ -51,8 +51,8 @@ const Toggle: React.FC<ToggleProps> = ({
 				},
 			}}
 			onClick={() => {
-				onChange && onChange(!isOn);
-				setIsOn(!isOn);
+				onChange && onChange(!isOn)
+				setIsOn(!isOn)
 			}}
 			{...args}
 		>
@@ -67,15 +67,15 @@ const Toggle: React.FC<ToggleProps> = ({
 							backgroundImage: `url(${onIcon})`,
 						} : {
 							backgroundImage: `url(${offIcon})`,
-						})
+						}),
 					} : {}),
 					backgroundSize: "60% 60%",
 				}}
 			>
 			</View>
 		</View>
-	);
+	)
 
-};
+}
 
-export default Toggle;
+export default Toggle

@@ -1,9 +1,9 @@
-import * as React from "react";
-import { cssVars } from "lib/ui";
-import View, { ViewProps } from "comps/View";
-import Ctx from "lib/Ctx";
-import { themes } from "lib/ui";
-import useUpdateEffect from "hooks/useUpdateEffect";
+import * as React from "react"
+import { cssVars } from "lib/ui"
+import View, { ViewProps } from "comps/View"
+import Ctx from "lib/Ctx"
+import { themes } from "lib/ui"
+import useUpdateEffect from "hooks/useUpdateEffect"
 
 export interface GameViewRef {
 	run: (code: string) => void,
@@ -43,7 +43,7 @@ const wrapGame = (code: string) => `
 ${code}
 	</script>
 </body>
-`;
+`
 
 interface GameViewProps {
 	code: string,
@@ -56,34 +56,34 @@ const GameView = React.forwardRef<GameViewRef, GameViewProps & ViewProps>(({
 	...args
 }, ref) => {
 
-	const iframeRef = React.useRef<HTMLIFrameElement>(null);
-	const { theme } = React.useContext(Ctx);
+	const iframeRef = React.useRef<HTMLIFrameElement>(null)
+	const { theme } = React.useContext(Ctx)
 
 	React.useImperativeHandle(ref, () => ({
 		run(code: string, msg?: any) {
-			if (!iframeRef.current) return;
-			const iframe = iframeRef.current;
-			iframe.srcdoc = wrapGame(code);
+			if (!iframeRef.current) return
+			const iframe = iframeRef.current
+			iframe.srcdoc = wrapGame(code)
 		},
 		send(msg: any, origin: string = "*") {
-			if (!iframeRef.current) return;
-			const iframe = iframeRef.current;
-			iframe.contentWindow?.postMessage(JSON.stringify(msg), origin);
+			if (!iframeRef.current) return
+			const iframe = iframeRef.current
+			iframe.contentWindow?.postMessage(JSON.stringify(msg), origin)
 		},
-	}));
+	}))
 
 	useUpdateEffect(() => {
-		if (!iframeRef.current) return;
-		const iframe = iframeRef.current;
-		iframe.srcdoc = wrapGame(code);
-	}, [ code ]);
+		if (!iframeRef.current) return
+		const iframe = iframeRef.current
+		iframe.srcdoc = wrapGame(code)
+	}, [ code ])
 
 	React.useEffect(() => {
-		const body = iframeRef.current?.contentWindow?.document?.body;
+		const body = iframeRef.current?.contentWindow?.document?.body
 		if (body) {
-			body.className = theme;
+			body.className = theme
 		}
-	}, [ theme ]);
+	}, [ theme ])
 
 	return (
 		<View rounded {...args}>
@@ -101,8 +101,8 @@ const GameView = React.forwardRef<GameViewRef, GameViewProps & ViewProps>(({
 				srcDoc={wrapGame(code ?? "")}
 			/>
 		</View>
-	);
+	)
 
-});
+})
 
-export default GameView;
+export default GameView

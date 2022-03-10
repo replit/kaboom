@@ -1,5 +1,5 @@
-import * as React from "react";
-import View from "comps/View";
+import * as React from "react"
+import View from "comps/View"
 
 interface ModalProps {
 	isOpen: boolean,
@@ -39,6 +39,6 @@ const Modal: React.FC<ModalProps> = ({
 			{children}
 		</View>
 	</>
-) : (<></>);
+) : (<></>)
 
-export default Modal;
+export default Modal

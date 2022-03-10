@@ -1,6 +1,6 @@
-import * as React from "react";
-import { DEF_THEME } from "lib/ui";
-import { Tooltip } from "lib/tooltip";
+import * as React from "react"
+import { DEF_THEME } from "lib/ui"
+import { Tooltip } from "lib/tooltip"
 
 interface PageCtx {
 	theme: string,
@@ -18,4 +18,4 @@ export default React.createContext<PageCtx>({
 	setInspect: () => {},
 	pushTooltip: () => Promise.reject(),
 	popTooltip: () => {},
-});
+})

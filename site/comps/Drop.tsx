@@ -1,7 +1,7 @@
 // TODO: accept DOM / dataTransfer drop
 
-import * as React from "react";
-import View, { ViewPropsAnd } from "comps/View";
+import * as React from "react"
+import View, { ViewPropsAnd } from "comps/View"
 
 type FileType =
 	| "arrayBuffer"
@@ -41,140 +41,140 @@ const Drop = React.forwardRef<HTMLDivElement, ViewPropsAnd<DropProps>>(({
 	...args
 }, ref) => {
 
-	const [ counter, setCounter ] = React.useState(0);
-	const [ refuse, setRefuse ] = React.useState(false);
-	const draggin = counter > 0;
+	const [ counter, setCounter ] = React.useState(0)
+	const [ refuse, setRefuse ] = React.useState(false)
+	const draggin = counter > 0
 
 	const checkAccept = React.useCallback((mime: string) => {
 
 		// accept anything if no accept is passed
 		if (!accept) {
-			return true;
+			return true
 		}
 
-		const acceptList = Array.isArray(accept) ? accept : [accept];
+		const acceptList = Array.isArray(accept) ? accept : [accept]
 
 		for (const pat of acceptList) {
 			if (!mime.match(pat)) {
-				return false;
+				return false
 			}
 		}
 
-		return true;
+		return true
 
-	}, [ accept, ]);
+	}, [ accept ])
 
 	return (
 		<View
 			bg={refuse ? "var(--color-errbg)" : (draggin ? (dragColor ?? 2) : bg)}
 			onDragEnter={(e) => {
 
-				e.preventDefault();
+				e.preventDefault()
 
-				const items = e.dataTransfer.items;
-				if (!items?.length) return;
+				const items = e.dataTransfer.items
+				if (!items?.length) return
 
 				for (let i = 0; i < items.length; i++) {
 					if (items[i].kind !== "file") {
-						return;
-					};
+						return
+					}
 					if (!checkAccept(items[i].type)) {
-						setRefuse(true);
-						break;
+						setRefuse(true)
+						break
 					}
 				}
 
 				setCounter((c) => {
 					if (c == 0) {
-						onEnter && onEnter();
+						onEnter && onEnter()
 					}
-					return c + 1;
-				});
+					return c + 1
+				})
 
 			}}
 			onDragLeave={(e) => {
 
-				e.preventDefault();
+				e.preventDefault()
 
-				const items = e.dataTransfer.items;
-				if (!items?.length) return;
+				const items = e.dataTransfer.items
+				if (!items?.length) return
 
 				for (let i = 0; i < items.length; i++) {
 					if (items[i].kind !== "file") {
-						return;
-					};
+						return
+					}
 				}
 
 				setCounter((c) => {
 					if (c - 1 === 0) {
-						onLeave && onLeave();
-						setRefuse(false);
+						onLeave && onLeave()
+						setRefuse(false)
 					}
-					return c - 1;
-				});
+					return c - 1
+				})
 
 			}}
 			onDragOver={(e) => {
 
-				const items = e.dataTransfer.items;
-				if (!items?.length) return;
+				const items = e.dataTransfer.items
+				if (!items?.length) return
 
 				for (let i = 0; i < items.length; i++) {
 					if (items[i].kind !== "file") {
-						return;
-					};
+						return
+					}
 				}
 
-				e.preventDefault();
+				e.preventDefault()
 
 			}}
 			onDrop={(e) => {
 
-				e.preventDefault();
-				setCounter(0);
-				setRefuse(false);
+				e.preventDefault()
+				setCounter(0)
+				setRefuse(false)
 
-				if (refuse || !draggin || !onLoad || !readAs) return;
+				if (refuse || !draggin || !onLoad || !readAs) return
 
-				const items = e.dataTransfer.items;
-				if (!items?.length) return;
+				const items = e.dataTransfer.items
+				if (!items?.length) return
 
 				for (let i = 0; i < items.length; i++) {
 
-					if (items[i].kind !== "file") continue;
-					const file = items[i].getAsFile();
-					if (!file) continue;
+					if (items[i].kind !== "file") continue
+					const file = items[i].getAsFile()
+					if (!file) continue
 
 					// get the desired read method of the file
-					const ty = typeof readAs === "string" ? readAs : readAs(file);
+					const ty = typeof readAs === "string" ? readAs : readAs(file)
 
 					// init reader
-					const reader = new FileReader();
+					const reader = new FileReader()
 
 					// register events
 					reader.onload = (e) => {
 						if (e.target?.result) {
-							onLoad(file, e.target.result);
+							onLoad(file, e.target.result)
 						}
-					};
+					}
 
-					reader.onerror = (e) => onErr && onErr(file);
-					reader.onabort = (e) => onAbort && onAbort(file);
+					reader.onerror = (e) => onErr && onErr(file)
+					reader.onabort = (e) => onAbort && onAbort(file)
 
 					// start the reading based on type
 					switch (ty) {
 						case "dataURL":
-							reader.readAsDataURL(file);
-							break;
+							reader.readAsDataURL(file)
+							break
 						case "arrayBuffer":
-							reader.readAsArrayBuffer(file);
-							break;
+							reader.readAsArrayBuffer(file)
+							break
 						case "text":
-							reader.readAsText(file);
-							break;
+							reader.readAsText(file)
+							break
 						case "binaryString":
-							reader.readAsBinaryString(file);
-							break;
+							reader.readAsBinaryString(file)
+							break
 					}
 
 				}
@@ -184,8 +184,8 @@ const Drop = React.forwardRef<HTMLDivElement, ViewPropsAnd<DropProps>>(({
 		>
 			{children}
 		</View>
-	);
+	)
 
-});
+})
 
-export default Drop;
+export default Drop

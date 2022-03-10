@@ -1,5 +1,5 @@
-import View, { ViewProps } from "comps/View";
-import Text from "comps/Text";
+import View, { ViewProps } from "comps/View"
+import Text from "comps/Text"
 
 interface ButtonProps {
 	text: string,
@@ -36,6 +36,6 @@ const Button: React.FC<ButtonProps & ViewProps> = ({
 	>
 		<Text color={1}>{text}</Text>
 	</View>
-);
+)
 
-export default Button;
+export default Button

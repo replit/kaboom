@@ -21,5 +21,5 @@ export default function wrapHTML(code: string) {
 ${code}
 	</script>
 </body>
-	`;
+	`
 }

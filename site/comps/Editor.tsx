@@ -1,10 +1,10 @@
-import * as React from "react";
+import * as React from "react"
 
 import {
 	EditorState,
 	Compartment,
 	Extension,
-} from "@codemirror/state";
+} from "@codemirror/state"
 
 import {
 	EditorView,
@@ -13,78 +13,78 @@ import {
 	highlightActiveLine,
 	drawSelection,
 	placeholder as cmPlaceholder,
-	KeyBinding
-} from "@codemirror/view";
+	KeyBinding,
+} from "@codemirror/view"
 
 import {
 	defaultHighlightStyle,
 	HighlightStyle,
-	tags as t
-} from "@codemirror/highlight";
+	tags as t,
+} from "@codemirror/highlight"
 
 import {
 	defaultKeymap,
 	indentWithTab,
-} from "@codemirror/commands";
+} from "@codemirror/commands"
 
 import {
 	indentUnit,
 	indentOnInput,
-} from "@codemirror/language";
+} from "@codemirror/language"
 
 import {
 	lineNumbers,
 	highlightActiveLineGutter,
-} from "@codemirror/gutter";
+} from "@codemirror/gutter"
 
 import {
 	history,
 	historyKeymap,
-} from "@codemirror/history";
+} from "@codemirror/history"
 
 import {
 	searchKeymap,
 	highlightSelectionMatches,
-} from "@codemirror/search";
+} from "@codemirror/search"
 
-import { bracketMatching } from "@codemirror/matchbrackets";
-import { closeBrackets } from "@codemirror/closebrackets";
-import { commentKeymap } from "@codemirror/comment";
-import { foldGutter } from "@codemirror/fold";
-import { javascript } from "@codemirror/lang-javascript";
+import { bracketMatching } from "@codemirror/matchbrackets"
+import { closeBrackets } from "@codemirror/closebrackets"
+import { commentKeymap } from "@codemirror/comment"
+import { foldGutter } from "@codemirror/fold"
+import { javascript } from "@codemirror/lang-javascript"
 
-import useUpdateEffect from "hooks/useUpdateEffect";
-import View, { ViewPropsAnd } from "comps/View";
-import Ctx from "lib/Ctx";
-import { themes } from "lib/ui";
-import { clamp, hex2rgb, rgb2hex } from "lib/math";
+import useUpdateEffect from "hooks/useUpdateEffect"
+import View, { ViewPropsAnd } from "comps/View"
+import Ctx from "lib/Ctx"
+import { themes } from "lib/ui"
+import { clamp, hex2rgb, rgb2hex } from "lib/math"
 
-import interact, { interactRule } from "cm/interact";
-import drop, { dropRule } from "cm/drop";
-import dropCursor from "cm/dropCursor";
-import img from "cm/img";
+import interact, { interactRule } from "lib/cm/interact"
+import drop, { dropRule } from "lib/cm/drop"
+import dropCursor from "lib/cm/dropCursor"
+import img from "lib/cm/img"
 
 // @ts-ignore
-const cmThemes: Record<Theme, [ Extension, HighlightStyle ]> = {};
+const cmThemes: Record<Theme, [ Extension, HighlightStyle ]> = {}
 
 Object.keys(themes).forEach((name) => {
 
-	const theme = themes[name];
-	const yellow = "#e5c07b";
-	const red = "#e06c75";
-	const cyan = "#56b6c2";
-	const ivory = theme["fg2"];
-	const stone = theme["fg4"];
-	const invalid = theme["fg4"];
-	const blue = "#61afef";
-	const green = "#98d379";
-	const whiskey = "#d19a66";
-	const magenta = "#c678dd";
-	const darkBackground = theme["bg1"];
-	const highlightBackground = theme["bg3"];
-	const background = theme["bg2"];
-	const selection = theme["bg4"];
-	const cursor = theme["highlight"];
+	const theme = themes[name]
+	const yellow = "#e5c07b"
+	const red = "#e06c75"
+	const cyan = "#56b6c2"
+	const ivory = theme["fg2"]
+	const stone = theme["fg4"]
+	const invalid = theme["fg4"]
+	const blue = "#61afef"
+	const green = "#98d379"
+	const whiskey = "#d19a66"
+	const magenta = "#c678dd"
+	const darkBackground = theme["bg1"]
+	const highlightBackground = theme["bg3"]
+	const background = theme["bg2"]
+	const selection = theme["bg4"]
+	const cursor = theme["highlight"]
 
 	cmThemes[name] = [
 		EditorView.theme({
@@ -144,11 +144,11 @@ Object.keys(themes).forEach((name) => {
 				border: "none",
 				color: theme["fg1"],
 			},
-		}, { dark: true, }),
+		}, { dark: true }),
 		HighlightStyle.define([
 			{
 				tag: t.keyword,
-				color: magenta
+				color: magenta,
 			},
 			{
 				tag: [
@@ -203,7 +203,7 @@ Object.keys(themes).forEach((name) => {
 					t.escape,
 					t.regexp,
 					t.link,
-					t.special(t.string)
+					t.special(t.string),
 				],
 				color: cyan,
 			},
@@ -257,9 +257,9 @@ Object.keys(themes).forEach((name) => {
 				color: invalid,
 			},
 		]),
-	];
+	]
 
-});
+})
 
 export interface EditorRef {
 	getContent: () => string | null,
@@ -276,7 +276,7 @@ interface EditorProps {
 	onChange?: (code: string) => void,
 	onSelect?: (code: string) => void,
 	keys?: KeyBinding[],
-};
+}
 
 const Editor = React.forwardRef<EditorRef, ViewPropsAnd<EditorProps>>(({
 	content,
@@ -287,29 +287,29 @@ const Editor = React.forwardRef<EditorRef, ViewPropsAnd<EditorProps>>(({
 	...args
 }, ref) => {
 
-	const editorDOMRef = React.useRef(null);
-	const [ view, setView ] = React.useState<EditorView | null>(null);
-	const { theme } = React.useContext(Ctx);
+	const editorDOMRef = React.useRef(null)
+	const [ view, setView ] = React.useState<EditorView | null>(null)
+	const { theme } = React.useContext(Ctx)
 
 	React.useImperativeHandle(ref, () => ({
 		getContent() {
-			if (!view) return null;
-			return view.state.doc.toString();
+			if (!view) return null
+			return view.state.doc.toString()
 		},
 		getSelection() {
-			if (!view) return null;
+			if (!view) return null
 			return view.state.sliceDoc(
 				view.state.selection.main.from,
-				view.state.selection.main.to
-			);
+				view.state.selection.main.to,
+			)
 		},
 		getWord() {
-			if (!view) return null;
-			const range = view.state.wordAt(view.state.selection.main.head);
+			if (!view) return null
+			const range = view.state.wordAt(view.state.selection.main.head)
 			if (range) {
-				return view.state.sliceDoc(range.from, range.to);
+				return view.state.sliceDoc(range.from, range.to)
 			}
-			return null;
+			return null
 		},
 		setContent(content: string) {
 			view?.dispatch({
@@ -318,37 +318,37 @@ const Editor = React.forwardRef<EditorRef, ViewPropsAnd<EditorProps>>(({
 					to: view.state.doc.length,
 					insert: content,
 				},
-			});
+			})
 		},
 		getView() {
-			return view;
+			return view
 		},
 		focus() {
-			view?.focus();
+			view?.focus()
 		},
-	}));
+	}))
 
 	React.useEffect(() => {
 
 		if (!editorDOMRef.current) {
-			throw new Error("Failed to start editor");
+			throw new Error("Failed to start editor")
 		}
 
-		const editorDOM = editorDOMRef.current;
-		const themeConf = new Compartment();
+		const editorDOM = editorDOMRef.current
+		const themeConf = new Compartment()
 
 		const origins = [
 			"topleft", "top", "topright",
 			"left", "center", "right",
 			"botleft", "bot", "botright",
-		].map((o) => `"${o}"`);
+		].map((o) => `"${o}"`)
 
 		// TODO
 		const originState = {
 			x: 0,
 			y: 0,
 			idx: -1,
-		};
+		}
 
 		const view = new EditorView({
 			parent: editorDOM,
@@ -375,17 +375,17 @@ const Editor = React.forwardRef<EditorRef, ViewPropsAnd<EditorProps>>(({
 					dropCursor,
 					defaultHighlightStyle,
 					EditorView.updateListener.of((update) => {
-						const state = update.state;
+						const state = update.state
 						if (update.docChanged) {
-							onChange && onChange(state.doc.toString());
+							onChange && onChange(state.doc.toString())
 						}
 						if (update.selectionSet) {
 							const sel = state.sliceDoc(
 								state.selection.main.from,
-								state.selection.main.to
-							);
+								state.selection.main.to,
+							)
 							if (sel) {
-								onSelect && onSelect(sel);
+								onSelect && onSelect(sel)
 							}
 						}
 					}),
@@ -405,10 +405,10 @@ const Editor = React.forwardRef<EditorRef, ViewPropsAnd<EditorProps>>(({
 						onDrag: (text, setText, e) => {
 							// TODO: size aware
 							// TODO: small interval with shift key?
-							const newVal = Number(text) + e.movementX;
-							if (isNaN(newVal)) return;
-							setText(newVal.toString());
-						}
+							const newVal = Number(text) + e.movementX
+							if (isNaN(newVal)) return
+							setText(newVal.toString())
+						},
 					}),
 					// bool toggler
 					interactRule.of({
@@ -416,8 +416,8 @@ const Editor = React.forwardRef<EditorRef, ViewPropsAnd<EditorProps>>(({
 						cursor: "pointer",
 						onClick: (text, setText) => {
 							switch (text) {
-								case "true": return setText("false");
-								case "false": return setText("true");
+								case "true": return setText("false")
+								case "false": return setText("true")
 							}
 						},
 					}),
@@ -426,12 +426,12 @@ const Editor = React.forwardRef<EditorRef, ViewPropsAnd<EditorProps>>(({
 						regexp: /vec2\(-?\b\d+\.?\d*\b\s*(,\s*-?\b\d+\.?\d*\b)?\)/g,
 						cursor: "move",
 						onDrag: (text, setText, e) => {
-							const res = /vec2\((?<x>-?\b\d+\.?\d*\b)\s*(,\s*(?<y>-?\b\d+\.?\d*\b))?\)/.exec(text);
-							let x = Number(res?.groups?.x);
-							let y = Number(res?.groups?.y);
-							if (isNaN(x)) return;
-							if (isNaN(y)) y = x;
-							setText(`vec2(${x + e.movementX}, ${y + e.movementY})`);
+							const res = /vec2\((?<x>-?\b\d+\.?\d*\b)\s*(,\s*(?<y>-?\b\d+\.?\d*\b))?\)/.exec(text)
+							let x = Number(res?.groups?.x)
+							let y = Number(res?.groups?.y)
+							if (isNaN(x)) return
+							if (isNaN(y)) y = x
+							setText(`vec2(${x + e.movementX}, ${y + e.movementY})`)
 						},
 					}),
 					// kaboom color picker
@@ -439,21 +439,21 @@ const Editor = React.forwardRef<EditorRef, ViewPropsAnd<EditorProps>>(({
 						regexp: /rgb\(.*\)/g,
 						cursor: "pointer",
 						onClick: (text, setText, e) => {
-							const res = /rgb\((?<r>\d+)\s*,\s*(?<g>\d+)\s*,\s*(?<b>\d+)\)/.exec(text);
-							const r = Number(res?.groups?.r);
-							const g = Number(res?.groups?.g);
-							const b = Number(res?.groups?.b);
-							const sel = document.createElement("input");
-							sel.type = "color";
-							if (!isNaN(r + g + b)) sel.value = rgb2hex(r, g, b);
+							const res = /rgb\((?<r>\d+)\s*,\s*(?<g>\d+)\s*,\s*(?<b>\d+)\)/.exec(text)
+							const r = Number(res?.groups?.r)
+							const g = Number(res?.groups?.g)
+							const b = Number(res?.groups?.b)
+							const sel = document.createElement("input")
+							sel.type = "color"
+							if (!isNaN(r + g + b)) sel.value = rgb2hex(r, g, b)
 							sel.addEventListener("input", (e) => {
-								const el = e.target as HTMLInputElement;
+								const el = e.target as HTMLInputElement
 								if (el.value) {
-									const [r, g, b] = hex2rgb(el.value);
+									const [r, g, b] = hex2rgb(el.value)
 									setText(`rgb(${r}, ${g}, ${b})`)
 								}
-							});
-							sel.click();
+							})
+							sel.click()
 						},
 					}),
 					// kaboom origin slider
@@ -461,20 +461,20 @@ const Editor = React.forwardRef<EditorRef, ViewPropsAnd<EditorProps>>(({
 						regexp: new RegExp(`${origins.join("|")}`, "g"),
 						cursor: "move",
 						onClick: (text) => {
-							const idx = origins.indexOf(text);
-							originState.x = 0;
-							originState.y = 0;
-							originState.idx = idx;
+							const idx = origins.indexOf(text)
+							originState.x = 0
+							originState.y = 0
+							originState.idx = idx
 						},
 						onDrag: (text, setText, e) => {
-							originState.x += e.movementX;
-							originState.y += e.movementY;
-							const { idx, x, y } = originState;
-							if (idx === -1) return;
-							const s = 80;
-							const sx = clamp(idx % 3 + Math.round(x / s), 0, 2);
-							const sy = clamp(Math.floor(idx / 3) + Math.round(y / s), 0, 2);
-							setText(origins[sy * 3 + sx]);
+							originState.x += e.movementX
+							originState.y += e.movementY
+							const { idx, x, y } = originState
+							if (idx === -1) return
+							const s = 80
+							const sx = clamp(idx % 3 + Math.round(x / s), 0, 2)
+							const sy = clamp(Math.floor(idx / 3) + Math.round(y / s), 0, 2)
+							setText(origins[sy * 3 + sx])
 						},
 					}),
 					// url clicker
@@ -482,7 +482,7 @@ const Editor = React.forwardRef<EditorRef, ViewPropsAnd<EditorProps>>(({
 						regexp: /https?:\/\/[^ "]+/g,
 						cursor: "pointer",
 						onClick: (text) => {
-							window.open(text);
+							window.open(text)
 						},
 					}),
 					drop,
@@ -496,7 +496,7 @@ const Editor = React.forwardRef<EditorRef, ViewPropsAnd<EditorProps>>(({
 						readAs: "dataURL",
 						process: (data) => {
 							if (typeof data === "string") {
-								return `"${data}"`;
+								return `"${data}"`
 							}
 						},
 					}),
@@ -508,29 +508,29 @@ const Editor = React.forwardRef<EditorRef, ViewPropsAnd<EditorProps>>(({
 					img,
 				].filter((ext) => ext),
 			}),
-		});
+		})
 
-		setView(view);
+		setView(view)
 
-	}, []);
+	}, [])
 
 	useUpdateEffect(() => {
-		if (!view) return;
+		if (!view) return
 		view.dispatch({
 			changes: {
 				from: 0,
 				to: view.state.doc.length,
 				insert: (typeof content === "function" ? content() : content) ?? "",
 			},
-		});
-	}, [ content ]);
+		})
+	}, [ content ])
 
 	useUpdateEffect(() => {
-		const themeConf = new Compartment();
+		const themeConf = new Compartment()
 		view?.dispatch({
-			effects: themeConf.reconfigure(cmThemes[theme])
-		});
-	}, [ theme ]);
+			effects: themeConf.reconfigure(cmThemes[theme]),
+		})
+	}, [ theme ])
 
 	return (
 		<View
@@ -556,7 +556,7 @@ const Editor = React.forwardRef<EditorRef, ViewPropsAnd<EditorProps>>(({
 			}}
 			{...args}
 		/>
-	);
-});
+	)
+})
 
-export default Editor;
+export default Editor
