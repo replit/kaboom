@@ -13,7 +13,7 @@ export default (opt = {}) => {
 
 	app.get("/", (req, res) => {
 		const demos = (fs.readdirSync("demo"))
-			.filter((p) => !p.startsWith("."))
+			.filter((p) => !p.startsWith(".") && p.endsWith(".js"))
 			.map((d) => path.basename(d, ".js"))
 		res.setHeader("Content-Type", "text/html")
 		res.send(`

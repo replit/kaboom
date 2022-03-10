@@ -29,6 +29,7 @@ const run = async () => {
 			console.error(demo, err)
 		})
 		await page.goto(`http://localhost:${port}/demo/${demo}`)
+		await page.addScriptTag({ path: "scripts/autoinput.js" })
 		await wait(1000)
 		await page.close()
 	}
