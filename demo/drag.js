@@ -28,7 +28,7 @@ function drag() {
 		// "update" is a lifecycle method gets called every frame the obj is in scene
 		update() {
 			if (curDraggin === this) {
-				cursor("move")
+				setCursor("move")
 				this.pos = mousePos().sub(offset)
 			}
 		},
@@ -36,12 +36,15 @@ function drag() {
 
 }
 
-// adding dragable objects
+// Reset cursor to default at frame start for easier cursor management
+onUpdate(() => setCursor("default"))
+
+// Add dragable objects
 for (let i = 0; i < 48; i++) {
 	add([
 		sprite("bean"),
 		pos(rand(width()), rand(height())),
-		area(),
+		area({ cursor: "pointer" }),
 		scale(5),
 		origin("center"),
 		// using our custom component here
@@ -69,9 +72,4 @@ onMousePress(() => {
 // Drop whatever is dragged on mouse release
 onMouseRelease(() => {
 	curDraggin = null
-})
-
-// Reset cursor to default at frame start for easier cursor management
-onUpdate(() => {
-	cursor("default")
 })

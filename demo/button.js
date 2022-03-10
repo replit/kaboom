@@ -2,16 +2,21 @@
 
 kaboom()
 
+// reset cursor to default on frame start for easier cursor management
+onUpdate(() => setCursor("default"))
+
 function addButton(txt, p, f) {
 
 	const btn = add([
 		text(txt),
 		pos(p),
-		area({ cursor: "pointer" }),
+		area(),
 		scale(1),
 		origin("center"),
 	])
 
+	// set cursor to "pointer" when button is hovered
+	btn.onHover(() => setCursor("pointer"))
 	btn.onClick(f)
 
 	btn.onUpdate(() => {
@@ -33,6 +38,3 @@ function addButton(txt, p, f) {
 
 addButton("Start", vec2(200, 100), () => debug.log("oh hi"))
 addButton("Quit", vec2(200, 200), () => debug.log("bye"))
-
-// reset cursor to default at frame start for easier cursor management
-onUpdate(() => cursor("default"))

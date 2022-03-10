@@ -40,6 +40,8 @@
 - added `Area#onCollisionActive()` and `Area#onCollisionEnd()` events
 - removed `debug.objCount()` in favor of `getAll().length`
 - added `debug.numFrames()` to get the current frame count
+- (**BREAK**) renamed `cursor()` to `setCursor()`
+- (**BREAK**) renamed `fullscreen()` to `setFullscreen()`
 
 ### v2000.2.6
 

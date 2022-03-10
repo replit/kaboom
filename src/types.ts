@@ -1273,12 +1273,12 @@ export interface KaboomCtx {
 	 *
 	 * @example
 	 * ```js
-	 * onHover("clickable", (c) => {
-	 *     cursor("pointer")
+	 * button.onHover((c) => {
+	 *     setCursor("pointer")
 	 * })
 	 * ```
 	 */
-	cursor(c?: Cursor): Cursor,
+	setCursor(c?: Cursor): Cursor,
 	/**
 	 * Enter / exit fullscreen mode. (note: mouse position is not working in fullscreen mode at the moment)
 	 *
@@ -1290,7 +1290,7 @@ export interface KaboomCtx {
 	 * })
 	 * ```
 	 */
-	fullscreen(f?: boolean): void,
+	setFullscreen(f?: boolean): void,
 	/**
 	 * If currently in fullscreen mode.
 	 */

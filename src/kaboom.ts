@@ -3084,14 +3084,14 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	}
 
 	// TODO: custom cursor
-	function cursor(c?: Cursor): Cursor {
+	function setCursor(c?: Cursor): Cursor {
 		if (c) {
 			app.canvas.style.cursor = c
 		}
 		return app.canvas.style.cursor
 	}
 
-	function fullscreen(f: boolean = true) {
+	function setFullscreen(f: boolean = true) {
 		if (f) {
 			enterFullscreen(app.canvas)
 		} else {
@@ -3468,7 +3468,8 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	// add update event to a tag or global update
 	function onUpdate(tag: Tag | (() => void), cb?: (obj: GameObj) => void): EventCanceller {
 		if (typeof tag === "function" && cb === undefined) {
-			return game.root.onUpdate(tag)
+			const obj = add([{ update: tag }])
+			return () => obj.destroy()
 		} else if (typeof tag === "string") {
 			return on("update", tag, cb)
 		}
@@ -3477,7 +3478,8 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	// add draw event to a tag or global draw
 	function onDraw(tag: Tag | (() => void), cb?: (obj: GameObj) => void) {
 		if (typeof tag === "function" && cb === undefined) {
-			return game.root.onDraw(tag)
+			const obj = add([{ draw: tag }])
+			return () => obj.destroy()
 		} else if (typeof tag === "string") {
 			return on("draw", tag, cb)
 		}
@@ -3957,7 +3959,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			add() {
 
 				if (this.area.cursor) {
-					cleanups.push(this.onHover(() => cursor(this.area.cursor)))
+					cleanups.push(this.onHover(() => setCursor(this.area.cursor)))
 				}
 
 				cleanups.push(this.onCollisionActive((obj, col) => {
@@ -6027,14 +6029,14 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		screenshot,
 		record,
 		isFocused,
-		cursor,
-		fullscreen,
+		setCursor,
+		setFullscreen,
 		isFullscreen,
+		isTouch: () => app.isTouch,
 		onLoad,
 		onLoading,
 		onResize,
 		onError,
-		isTouch: () => app.isTouch,
 		// misc
 		camPos,
 		camScale,
