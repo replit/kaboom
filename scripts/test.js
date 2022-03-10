@@ -18,7 +18,7 @@ const run = async () => {
 		.map((d) => path.basename(d, ".js"))
 
 	for (const demo of demos) {
-		console.log(`testing ${demo}`)
+		console.log(`testing demo "${demo}"`)
 		const page = await browser.newPage()
 		page.on("pageerror", (err) => {
 			failed = true
