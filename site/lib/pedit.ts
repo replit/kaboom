@@ -702,8 +702,6 @@ export default class Pedit {
 
 		}
 
-		let n = 12
-
 		render()
 
 	}
