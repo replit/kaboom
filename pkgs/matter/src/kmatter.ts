@@ -7,7 +7,7 @@ export type MatterPlugin = {
 	Matter: typeof Matter,
 }
 
-export type MatterBodyOpt = Matter.IBodyDefinition & {}
+export type MatterBodyOpt = Matter.IBodyDefinition
 
 export type MatterBodyComp = Comp & {
 	applyForce(pos: Vec2, force: Vec2): void,
@@ -42,8 +42,10 @@ export default (k: KaboomCtx): MatterPlugin => {
 
 	k.onUpdate(() => {
 
+		const objs = get("marea")
+
 		// apply transform changes outside of matter
-		every("marea", (obj: GameObj<MatterAreaComp | PosComp | RotateComp>) => {
+		objs.forEach((obj: GameObj<MatterAreaComp | PosComp | RotateComp>) => {
 			const id = obj.id
 			if (!obj.body || positions[id] === undefined || angles[id] === undefined) {
 				return
@@ -60,7 +62,7 @@ export default (k: KaboomCtx): MatterPlugin => {
 		Matter.Engine.update(engine, k.dt() * 1000)
 
 		// sync kaboom object transform with matter object transform
-		every("marea", (obj: GameObj<MatterAreaComp | MatterBodyComp | PosComp | RotateComp | AreaComp | OriginComp>) => {
+		objs.forEach((obj: GameObj<MatterAreaComp | MatterBodyComp | PosComp | RotateComp | AreaComp | OriginComp>) => {
 			if (!obj.body) {
 				return
 			}
@@ -142,14 +144,61 @@ export default (k: KaboomCtx): MatterPlugin => {
 					throw new Error("Only support rect for now")
 				}
 
-				Matter.Composite.add(engine.world, this.body)
+				Matter.World.add(engine.world, this.body)
 
+			},
+
+			destroy() {
+				Matter.World.remove(engine.world, this.body)
 			},
 
 			localArea(): Shape {
 				return this.area.shape
 					? this.area.shape
 					: this.renderArea()
+			},
+
+			drawInspect() {
+
+				const a = this.localArea()
+
+				pushTransform()
+				pushScale(this.area.scale)
+				pushTranslate(this.area.offset)
+
+				const opts = {
+					outline: {
+						width: 4,
+						color: rgb(0, 0, 255),
+					},
+					origin: this.origin,
+					fill: false,
+					fixed: this.fixed,
+				}
+
+				if (a instanceof Rect) {
+					drawRect({
+						...opts,
+						pos: a.pos,
+						width: a.width,
+						height: a.height,
+					})
+				} else if (a instanceof Polygon) {
+					drawPolygon({
+						...opts,
+						pts: a.pts,
+					})
+				} else if (a instanceof Circle) {
+					drawCircle({
+						...opts,
+						pos: a.center,
+						radius: a.radius,
+					})
+				}
+
+				popTransform()
+
+
 			},
 
 		}
@@ -161,7 +210,7 @@ export default (k: KaboomCtx): MatterPlugin => {
 		return {
 
 			id: "mbody",
-			require: [ "pos", "marea", ],
+			require: [ "pos", "marea" ],
 
 			add() {
 				this.body.isSensor = false
