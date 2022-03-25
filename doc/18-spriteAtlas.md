@@ -4,7 +4,7 @@ In this tutorial, we will learn how to create game objects from a sprite atlas a
 
 ![spriteAtlas](spriteatlas.png)
 
-You can find the code for this tutorial at this [link](https://replit.com/@ritza/spriteAtlas).
+You can find the code for this tutorial at this [link](https://replit.com/@ritza/spriteAtlas-1).
 
 
 ## Getting started with the code
@@ -423,3 +423,7 @@ If you run the program now, you can try out the functionality we've implemented 
 
 * Use sprites from a sprite atlas image to merge different sprites
 * Create different game levels or maps from the sprites in the same atlas.
+
+Try out the embedded repl:
+
+<iframe frameborder="0" width="100%" height="500px" src="https://replit.com/@ritza/spriteAtlas-1?embed=true"></iframe>
