@@ -1,8 +1,16 @@
-![Kaboom Logo](kaboom.png)
-
-[**Kaboom.js**](https://kaboomjs.com/) is a JavaScript library that helps you make games fast and fun!
-
-Start playing around with it in the [Kaboom Playground](https://kaboomjs.com/play)
+<div align="center">
+    <img src="kaboom.png" alt="Kaboom Logo">
+    <h3>:boom: KABOOM.JS :boom:</h3>
+    <p><a href="https://kaboomjs.com/"><b>Kaboom</b></a> is a JavaScript library that helps you make games fast and fun!</p>
+    <img alt="GitHub" src="https://img.shields.io/github/license/replit/kaboom">
+    <img alt="GitHub issues" src="https://img.shields.io/github/issues/replit/kaboom">
+    <img alt="GitHub last commit" src="https://img.shields.io/github/last-commit/replit/kaboom">
+    <h6>Start playing around with it in the <a href="https://kaboomjs.com/play">Kaboom Playground</a></h6>
+    <br>
+    <h4>Community</h4>
+    <!-- ! Please add discord online people - need discord ID -->
+    <img alt="Twitter Follow" src="https://img.shields.io/twitter/follow/Kaboomjs?style=social">
+</div>
 
 ## Examples
 
