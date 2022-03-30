@@ -1411,7 +1411,25 @@ export interface KaboomCtx {
 	 *
 	 * @example
 	 * ```js
-	 * randi(0, 3) // will give either 0, 1, or 2
+	 * randi(10) // returns 0 to 9
+	 * ```
+	 */
+	randi(n: number): number,
+	/**
+	 * rand() but floored to integer.
+	 *
+	 * @example
+	 * ```js
+	 * randi(0, 3) // returns 0, 1, or 2
+	 * ```
+	 */
+	randi(a: number, b: number): number,
+	/**
+	 * rand() but floored to integer.
+	 *
+	 * @example
+	 * ```js
+	 * randi() // returns either 0 or 1
 	 * ```
 	 */
 	randi(): number,
