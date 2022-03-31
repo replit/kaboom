@@ -21,7 +21,7 @@ This code will scale up the size of our context (so that our sprites seem bigger
 
 ## Importing sprites
 
-A sprite atlas is an image containing a batch of smaller images that have the same size but varying characteristics. The individual images are obtained using custom texture coordinates to pick them out of the atlas.
+A sprite atlas is an image containing a batch of smaller images that can either have the same size or varying dimensions. The individual images are obtained using custom texture coordinates to pick them out of the atlas.
 
 Let's import the "dungeon" image from Kaboom. Add the following block of code:
 
