@@ -83,3 +83,7 @@ Here we use a `loop()` function to spawn a new bean sprite every 0.5 seconds, an
 
 * Create a timer for a runner game that increases the game speed as the time increases.
 * Create a timer to change the background colors of the game screen every five seconds while the program runs.
+
+You can find the code for this tutorial here:
+
+<iframe frameborder="0" width="100%" height="500px" src="https://replit.com/@ritza/timer-kaboom?embed=true"></iframe>
