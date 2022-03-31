@@ -4,7 +4,7 @@ In this tutorial, we will learn how to create game objects from a sprite atlas, 
 
 ![spriteAtlas](spriteatlas.png)
 
-You can find the code for this tutorial [on our repl](https://replit.com/@ritza/spriteAtlas-1).
+You can find the code for this tutorial [on our repl](https://replit.com/@ritza/sprite-atlas).
 
 ## Getting started with the code
 
@@ -426,4 +426,4 @@ If you run the program now, you should be able to move our hero around the map a
 
 Try out the embedded repl:
 
-<iframe frameborder="0" width="100%" height="500px" src="https://replit.com/@ritza/spriteAtlas-1?embed=true"></iframe>
+<iframe frameborder="0" width="100%" height="500px" src="https://replit.com/@ritza/sprite-atlas?embed=true"></iframe>
