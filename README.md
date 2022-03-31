@@ -157,23 +157,20 @@ also check out [CONTRIBUTION.md](CONTRIBUTING.md)
 
 ## Community
 
-[GitHub Discussions](https://github.com/replit/kaboom/discussions)
-
-[Discord](https://discord.gg/aQ6RuQm3TF)
-
+[Itch.io Community](https://kaboomjs.itch.io/kaboom/community) <br>
+[Discord Server](https://discord.gg/aQ6RuQm3TF) <br>
+[GitHub Discussions](https://github.com/replit/kaboom/discussions) <br>
 [Twitter](https://twitter.com/Kaboomjs)
 
 ## Games
 
-[**on Itch.io**](https://itch.io/games/tag-kaboomjs)
+[on Itch.io](https://itch.io/games/tag-kaboomjs) <br>
+[on Replit](https://replit.com/apps/kaboom) <br>
+[on Newgrounds](https://www.newgrounds.com/search/conduct/games?tags=kaboomjs)
 
-[**on Replit**](https://replit.com/apps/kaboom)
+## Misc
 
-[**on Newgrounds**](https://www.newgrounds.com/search/conduct/games?tags=kaboomjs)
-
-### Misc
-
-- Thanks to [LaJBel](https://lajbel.repl.co/) for help building the Kaboom community
+- Thanks to [LaJBel](https://lajbel.land/) for help building the Kaboom community
 - Thanks to [abrudz](https://github.com/abrudz) for the amazing [APL386 font](https://abrudz.github.io/APL386/)
 - Thanks to [Polyducks](http://polyducks.co.uk/) for the amazing [kitchen sink font](https://polyducks.itch.io/kitchen-sink-textmode-font) font
 - Thanks to [0x72](https://0x72.itch.io/) for the amazing [Dungeon Tileset](https://0x72.itch.io/dungeontileset-ii)
