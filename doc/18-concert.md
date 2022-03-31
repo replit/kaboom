@@ -1,6 +1,6 @@
 # Sprite concert with Kaboom
 
-In this tutorial, we'll learn about several concepts from the Kaboom framework by creating an outdoor concert, which is a fun way to learn how to implement these concepts so that they work together.
+In this tutorial, we'll learn about several concepts from the Kaboom framework by creating an outdoor concert.
 
 Some of the concepts we're going to learn about include:
 
@@ -81,7 +81,7 @@ for (let x = 0; x < width(); x += 64) {
 }
 ```
 
-Using the for loop above, we use the `"grass"` sprite to create a platform for the game. The parameters `let x = 0; x < width(); x += 64` let us keep adding a new grass sprite to the screen until we cover the entire width of the game screen, in which case x will be greater than the screen width.
+Using the for loop above, we use the `"grass"` sprite to create a platform for the game. The parameters `let x = 0; x < width(); x += 64` let us keep adding a new grass sprite to the screen until we cover the entire width of the game screen, in which case `x` will be greater than the screen width.
 
 We need to add our player sprite so that we can test some of the functionality as we implement our program. Add the following code below the previous for loop:
 
@@ -242,7 +242,7 @@ The `transform()` function is used to glide the text across the screen. The `sca
 
 ## Camera positioning
 
-Another cool function to use in Kaboom is the `CamPos()` function. Using this function, we can move the camera to focus on the player position. The `camScale()` can scale up on the player's position, creating a camera zoom-in effect. We'll add this function for when our "player" sprite collides with the "burp" sprite.
+Another cool function to use in Kaboom is the `camPos()` function. Using this function, we can move the camera to focus on the player position. The `camScale()` can scale up on the player's position, creating a camera zoom-in effect. We'll add this function for when our "player" sprite collides with the "burp" sprite.
 
 
 Add the following function below `caption.paused = true` variable:
@@ -328,7 +328,7 @@ function spawnFriend() {
 }
 ```
 
-The function `spawnFriend()` above chooses a random sprite from our list of members and adds them in different locations. Initially, each sprite is facing the towards the right. The line `sprite(member, { flipX: dir.eq(LEFT) })` flips the sprite to face left.
+The function `spawnFriend()` above chooses a random sprite from our list of members and adds them in different locations. Initially, each sprite is facing towards the right. The line `sprite(member, { flipX: dir.eq(LEFT) })` flips the sprite to face left.
 
 We use the timer function `wait()` to specify that our program should wait for a randomly chosen interval of between one and three seconds before adding a new friend.
 
@@ -373,7 +373,7 @@ function spawnCloud() {
 }
 ```
 
-This spawn function spawns a random cloud from a different direction every six to twelve seconds. Let's call both these functions to execute the spawning. Add the following code below the functions:
+This `spawn()` function spawns a random cloud from a different direction every six to twelve seconds. Let's call both these functions to execute the spawning. Add the following code below the functions:
 
 ```javascript
 
@@ -403,13 +403,13 @@ sun.onUpdate(() => {
 
 In the line `sun.angle += dt() * 12` we set the "sun" sprite to rotate at a 12 degree angle infinitely.
 
-That's it for our Kaboom concert. Run the program now to try out all the functionality we've implemented. To see the `CamPos()` function in effect, make the "player" sprite collide with the last note.
+That's it for our Kaboom concert. Run the program now to try out all the functionality we've implemented. To see the `camPos()` function in effect, make the "player" sprite collide with the last note.
 
 ### Things to try
 
 Here are some ideas to try:
 
-* Create an imitation *Mario* game and add the `CamPos()` function to follow Mario as he moves across the screen.
+* Create an imitation *Mario* game and add the `camPos()` function to follow Mario as he moves across the screen.
 * Create a karaoke machine with a list of songs a user can choose from to display the lyrics onscreen.
 
 Try out the embedded repl below:
