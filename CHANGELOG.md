@@ -1,5 +1,6 @@
 # v2001.0.0 "A Kaboom Odyssey"
 
+- brought back `loadMark()`
 - (**BREAK**) removed all deprecated functions in v2000.2
 - game objects can have children with `obj.add()` now which share the parent transform
 - (**BREAK**) raised esbuild target to `esnext`
