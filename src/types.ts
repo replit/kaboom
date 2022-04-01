@@ -985,6 +985,20 @@ export interface KaboomCtx {
 	 */
 	loadBean(name?: string): Asset<SpriteData>,
 	/**
+	 * Load default sprite "mark".
+	 *
+	 * @example
+	 * ```js
+	 * loadMark()
+	 *
+	 * // use it right away
+	 * add([
+	 *     sprite("mark"),
+	 * ])
+	 * ```
+	 */
+	loadMark(name?: string): Asset<SpriteData>,
+	/**
 	 * Load a sound into asset manager, with name and resource url.
 	 *
 	 * @example

@@ -158,6 +158,8 @@ import sinkoSrc from "./assets/sinko.png"
 // @ts-ignore
 import beanSrc from "./assets/bean.png"
 // @ts-ignore
+import markSrc from "./assets/mark.png"
+// @ts-ignore
 import burpBytes from "./assets/burp.mp3"
 // @ts-ignore
 import kaSrc from "./assets/ka.png"
@@ -1195,6 +1197,10 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 	function loadBean(name: string = "bean"): Asset<SpriteData> {
 		return loadSprite(name, beanSrc)
+	}
+
+	function loadMark(name: string = "mark"): Asset<SpriteData> {
+		return loadSprite(name, markSrc)
 	}
 
 	function getSprite(handle: string): Asset<SpriteData> | void {
@@ -6012,6 +6018,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		loadAseprite,
 		loadPedit,
 		loadBean,
+		loadMark,
 		load,
 		getSprite,
 		getSound,
