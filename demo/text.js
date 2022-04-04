@@ -1,7 +1,7 @@
 kaboom()
 
 // Load a custom font from a .ttf file
-loadFont("FROGBLOCK", "/fonts/FROGBLOCK.ttf")
+loadFont("FROGBLOCK", "/fonts/FROGBLOCK_by_Polyducks.ttf")
 // TODO: somehow this is not working
 // loadFont("zpix", "/fonts/zpix.ttf")
 
