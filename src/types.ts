@@ -971,6 +971,17 @@ export interface KaboomCtx {
 	): Asset<SpriteData>,
 	loadPedit(name: string, src: string): Asset<SpriteData>,
 	/**
+	 * Load tile maps made in Tiled
+	 *
+	 * @since v2001.0
+	 *
+	 * @example
+	 * ```js
+	 * loadTiled("maps/map.tmx")
+	 * ```
+	 */
+	loadTiled(filepath: string),
+	/**
 	 * Load default sprite "bean".
 	 *
 	 * @example

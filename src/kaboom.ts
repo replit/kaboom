@@ -958,7 +958,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		return fetch(url)
 			.then((res) => {
 				if (!res.ok) {
-					throw new Error(`Failed to fetch ${url}`)
+					throw new Error(`Failed to fetch "${url}"`)
 				}
 				return res
 			})
@@ -1148,6 +1148,19 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			}
 			resolve(spr)
 		}))
+	}
+
+	async function loadTiled(filepath: string) {
+		const parser = new DOMParser()
+		const xmlStr = await fetchText(filepath)
+		const doc = parser.parseFromString(xmlStr, "application/xml")
+		const mapEl = doc.querySelector("map")
+		const tileWidth = mapEl.getAttribute("tilewidth")
+		const tileHeight = mapEl.getAttribute("tileheight")
+		const dataEl = doc.querySelector("data")
+		const tilesetEl = doc.querySelector("tileset")
+		const tilesetSrc = tilesetEl.getAttribute("source")
+		const data = dataEl.textContent.trim().split("\n").map((strip) => strip.split(","))
 	}
 
 	function loadShader(
@@ -6021,6 +6034,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		loadShader,
 		loadAseprite,
 		loadPedit,
+		loadTiled,
 		loadBean,
 		loadMark,
 		load,

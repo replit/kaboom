@@ -168,3 +168,13 @@ export function benchmark(task: () => void, times: number = 1) {
 	const t2 = performance.now()
 	return t2 - t1
 }
+
+// TODO
+export function parentPath(path: string): string {
+	return path
+}
+
+// TODO
+export function resolvePath(base: string, relative: string): string {
+	return base
+}
