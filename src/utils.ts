@@ -169,12 +169,20 @@ export function benchmark(task: () => void, times: number = 1) {
 	return t2 - t1
 }
 
-// TODO
 export function parentPath(path: string): string {
-	return path
+	return path.split("/").slice(0, -1).join("/")
 }
 
-// TODO
 export function resolvePath(base: string, relative: string): string {
-	return base
+	const parts = relative.split("/")
+	base = parentPath(base)
+	for (let i = 0; i < parts.length; i++) {
+		if (parts[i] === "..") {
+			base = parentPath(base)
+		} else {
+			relative = parts.slice(i).join("/")
+			break
+		}
+	}
+	return base + "/" + relative
 }

@@ -52,6 +52,7 @@ import {
 	warn,
 	// eslint-disable-next-line
 	benchmark,
+	resolvePath,
 } from "./utils"
 
 import {
@@ -1152,15 +1153,33 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 	async function loadTiled(filepath: string) {
 		const parser = new DOMParser()
-		const xmlStr = await fetchText(filepath)
-		const doc = parser.parseFromString(xmlStr, "application/xml")
-		const mapEl = doc.querySelector("map")
+		const docStr = await fetchText(filepath)
+		const mapDoc = parser.parseFromString(docStr, "application/xml")
+		const mapEl = mapDoc.querySelector("map")
 		const tileWidth = mapEl.getAttribute("tilewidth")
 		const tileHeight = mapEl.getAttribute("tileheight")
-		const dataEl = doc.querySelector("data")
-		const tilesetEl = doc.querySelector("tileset")
+		const dataEl = mapDoc.querySelector("data")
+		const tilesetEl = mapDoc.querySelector("tileset")
 		const tilesetSrc = tilesetEl.getAttribute("source")
 		const data = dataEl.textContent.trim().split("\n").map((strip) => strip.split(","))
+		const tilesetPath = resolvePath(filepath, tilesetSrc)
+		const tilesetStr = await fetchText(tilesetPath)
+		const tilesetDoc = parser.parseFromString(tilesetStr, "application/xml")
+		const tileEls = tilesetDoc.querySelectorAll("tile")
+		const tiles = []
+		for (const el of tileEls) {
+			const id = el.getAttribute("id")
+			const imgEl = el.querySelector("image")
+			const imgPath = resolvePath(tilesetPath, imgEl.getAttribute("source"))
+			const w = imgEl.getAttribute("width")
+			const h = imgEl.getAttribute("height")
+			tiles[id] = {
+				sprite: await loadSprite(null, imgPath),
+				width: w,
+				height: h,
+			}
+		}
+		console.log(tiles)
 	}
 
 	function loadShader(
