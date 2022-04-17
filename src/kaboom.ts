@@ -1636,7 +1636,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 	}
 
-	// TODO: expose
 	function drawRaw(
 		verts: Vertex[],
 		indices: number[],
@@ -6176,6 +6175,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		drawFormattedText,
 		drawMasked,
 		drawSubtracted,
+		drawRaw,
 		pushTransform,
 		popTransform,
 		pushTranslate,
