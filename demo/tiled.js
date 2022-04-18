@@ -1,6 +1,6 @@
 kaboom()
 
-const mapl = loadTiled("/maps/map.tmx")
+const mapl = loadTiled("/maps/test.tmx")
 
 mapl.then((map) => {
 	const opt = {

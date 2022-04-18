@@ -1153,28 +1153,71 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 	// TODO: use asset bucket
 	async function loadTiled(filepath: string) {
+
 		const parser = new DOMParser()
 		const docStr = await fetchText(filepath)
 		const mapDoc = parser.parseFromString(docStr, "application/xml")
-		const mapEl = mapDoc.querySelector("map")
-		const tileWidth = mapEl.getAttribute("tilewidth")
-		const tileHeight = mapEl.getAttribute("tileheight")
-		const dataEl = mapDoc.querySelector("data")
-		const tilesetEl = mapDoc.querySelector("tileset")
-		const tilesetSrc = tilesetEl.getAttribute("source")
-		const data = dataEl.textContent.trim().split("\n").map((strip) => strip.split(","))
+		const mapNode = mapDoc.querySelector("map")
+		const tileWidth = Number(mapNode.getAttribute("tilewidth"))
+		const tileHeight = Number(mapNode.getAttribute("tileheight"))
+		const numCols = Number(mapNode.getAttribute("width"))
+		const numRows = Number(mapNode.getAttribute("height"))
+		const dataNode = mapDoc.querySelector("data")
+
+		const dataEncoding = dataNode.getAttribute("encoding")
+		const dataCompression = dataNode.getAttribute("compression")
+
+		if (dataCompression) {
+			throw new Error("Tiled map data compression not supported.")
+		}
+
+		const data = (() => {
+			switch (dataEncoding) {
+				case "csv": {
+					return dataNode
+						.textContent
+						.trim()
+						.split("\n")
+						.map((strip) => strip.split(","))
+				}
+				case "base64": {
+					const binStr = window.atob(dataNode.textContent.trim())
+					const bytes = new Array(binStr.length / 4)
+					for (let i = 0; i < binStr.length; i += 4) {
+						bytes[i / 4] = ((
+							binStr.charCodeAt(i) |
+							binStr.charCodeAt(i + 1) << 8 |
+							binStr.charCodeAt(i + 2) << 16 |
+							binStr.charCodeAt(i + 3) << 24
+						) >>> 0).toString()
+					}
+					const data = new Array(numRows)
+					for (let i = 0; i < numRows; i++) {
+						data[i] = bytes.slice(i * numCols, (i + 1) * numCols)
+					}
+					return data
+				}
+				default:
+					throw new Error(`Tiled map data encoding not supported: "${dataEncoding}"`)
+			}
+		})()
+
+		const tilesetNode = mapDoc.querySelector("tileset")
+		const tilesetFirstGID = Number(tilesetNode.getAttribute("firstgid"))
+		const tilesetSrc = tilesetNode.getAttribute("source")
 		const tilesetPath = resolvePath(filepath, tilesetSrc)
 		const tilesetStr = await fetchText(tilesetPath)
 		const tilesetDoc = parser.parseFromString(tilesetStr, "application/xml")
-		const tileEls = tilesetDoc.querySelectorAll("tile")
+		const tileNodes = tilesetDoc.querySelectorAll("tile")
 		const tiles = {}
-		for (const el of tileEls) {
-			const id = el.getAttribute("id")
+
+		for (const el of tileNodes) {
+			const id = Number(el.getAttribute("id"))
 			const imgEl = el.querySelector("image")
 			const imgPath = resolvePath(tilesetPath, imgEl.getAttribute("source"))
 			const w = imgEl.getAttribute("width")
 			const h = imgEl.getAttribute("height")
-			tiles[id] = {
+			tiles[id + tilesetFirstGID] = {
 				sprite: await loadSprite(null, imgPath),
 				width: w,
 				height: h,
