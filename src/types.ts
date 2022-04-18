@@ -1661,7 +1661,7 @@ export interface KaboomCtx {
 	 * })
 	 * ```
 	 */
-	addLevel(map: string[], options: LevelOpt): GameObj,
+	addLevel(map: string[] | string[][] | number[][], options: LevelOpt): GameObj,
 	/**
 	 * Get data from local storage, if not present can set to a default value.
 	 *

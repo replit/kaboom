@@ -1151,6 +1151,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		}))
 	}
 
+	// TODO: use asset bucket
 	async function loadTiled(filepath: string) {
 		const parser = new DOMParser()
 		const docStr = await fetchText(filepath)
@@ -1166,7 +1167,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		const tilesetStr = await fetchText(tilesetPath)
 		const tilesetDoc = parser.parseFromString(tilesetStr, "application/xml")
 		const tileEls = tilesetDoc.querySelectorAll("tile")
-		const tiles = []
+		const tiles = {}
 		for (const el of tileEls) {
 			const id = el.getAttribute("id")
 			const imgEl = el.querySelector("image")
@@ -1179,7 +1180,12 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				height: h,
 			}
 		}
-		console.log(tiles)
+		return {
+			map: data,
+			tiles: tiles,
+			tileWidth: tileWidth,
+			tileHeight: tileHeight,
+		}
 	}
 
 	function loadShader(
@@ -5124,7 +5130,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 	}
 
-	function addLevel(map: string[], opt: LevelOpt): GameObj<PosComp | LevelComp> {
+	function addLevel(map: string[] | string[][] | number[][], opt: LevelOpt): GameObj<PosComp | LevelComp> {
 
 		if (!opt.width || !opt.height) {
 			throw new Error("Must provide level grid width & height.")
@@ -5209,8 +5215,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 		map.forEach((row, i) => {
 
-			const keys = row.split("")
-
+			const keys = typeof row === "string" ? row.split("") : row
 			maxRowLen = Math.max(keys.length, maxRowLen)
 
 			keys.forEach((key, j) => {
