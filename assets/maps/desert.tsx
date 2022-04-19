@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <tileset version="1.4" tiledversion="1.4.3" name="Desert" tilewidth="32" tileheight="32" spacing="1" margin="1" tilecount="48" columns="8">
- <image source="tmw_desert_spacing.png" width="265" height="199"/>
+ <image source="desert.png" width="265" height="199"/>
  <tile id="30" probability="0.01"/>
  <tile id="31" probability="0.01"/>
  <tile id="37" probability="0.01"/>

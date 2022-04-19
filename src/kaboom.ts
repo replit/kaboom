@@ -1151,10 +1151,11 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		}))
 	}
 
+	// TODO: layers
 	// TODO: use asset bucket
 	async function loadTiled(filepath: string) {
 
-		const parser = new DOMParser()
+		const parser = new window.DOMParser()
 		const docStr = await fetchText(filepath)
 		const mapDoc = parser.parseFromString(docStr, "application/xml")
 		const mapNode = mapDoc.querySelector("map")
@@ -1211,24 +1212,29 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		const tileNodes = tilesetDoc.querySelectorAll("tile")
 		const tiles = {}
 
-		for (const el of tileNodes) {
-			const id = Number(el.getAttribute("id"))
-			const imgEl = el.querySelector("image")
-			const imgPath = resolvePath(tilesetPath, imgEl.getAttribute("source"))
-			const w = imgEl.getAttribute("width")
-			const h = imgEl.getAttribute("height")
+		for (const tileNode of tileNodes) {
+			const id = Number(tileNode.getAttribute("id"))
+			const imgNode = tileNode.querySelector(":scope > image")
+			if (!imgNode) {
+				throw new Error("Tile without image node is not supported.")
+			}
+			const imgPath = resolvePath(tilesetPath, imgNode.getAttribute("source"))
+			const w = imgNode.getAttribute("width")
+			const h = imgNode.getAttribute("height")
 			tiles[id + tilesetFirstGID] = {
 				sprite: await loadSprite(null, imgPath),
 				width: w,
 				height: h,
 			}
 		}
+
 		return {
 			map: data,
 			tiles: tiles,
 			tileWidth: tileWidth,
 			tileHeight: tileHeight,
 		}
+
 	}
 
 	function loadShader(
