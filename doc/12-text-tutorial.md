@@ -18,7 +18,7 @@ We're going to learn how to:
 
 The first thing we'll do is load the `kaboom()` library and initialize a Kaboom context:
 
-```
+```javascript
 import kaboom from "kaboom";
 
 kaboom()
@@ -26,13 +26,13 @@ kaboom()
 ## Adding fonts
 Next we'll load the fonts we want to use for our text. We'll start by loading a custom bitmap font specifying the width and height for each character:
 
-```
+```javascript
 loadFont("unscii", "/fonts/unscii_8x8.png", 8, 8)
 ```
 
 Now we'll create a list of built-in fonts that we can cycle through:
 
-```
+```javascript
 const builtinFonts = [
     "apl386o",
     "apl386",
@@ -40,8 +40,10 @@ const builtinFonts = [
     "sink",
 ]
 ```
+
 The `fonts` list will contain the list of built-in fonts, as well as the custom font we added. This will make it easier for us to cycle between custom and built-in fonts without having to call them each separately.
-```
+
+```javascript
 const fonts = [
     ...builtinFonts,
     "unscii"
@@ -50,7 +52,7 @@ const fonts = [
 
 To keep track of which font is currently being used, the font size, and the padding between the text and the edges of the screen, we'll create a variable for each:
 
-```
+```javascript
 let curFont = 0
 let curSize = 48
 const pad = 24
@@ -61,7 +63,7 @@ const pad = 24
 
 Now we'll create a new game object, `input`, that we'll use to render text to the screen:
 
-```
+```javascript
 const input = add([
     pos(pad),
     // Render text with the text() component
@@ -75,7 +77,7 @@ const input = add([
 
 The following code creates an animation effect for our text, giving it a wavy motion effect and rainbow colors:
 
-```
+```javascript
         transform: (idx, ch) => ({
             color: hsl2rgb((time() * 0.2 + idx * 0.1) % 1, 0.7, 0.8),
             pos: vec2(0, wave(-4, 4, time() * 4 + idx * 0.5)),
@@ -92,13 +94,15 @@ We can add functionality that will allow us to type in and modify our text using
 
 We'll start by registering an event that runs when we input text. The `onCharInput()` event calls our input object's text attribute and adds in what we type on the keyboard.
 
-```
+```javascript
 onCharInput((ch) => {
     input.text += ch
 })
 ```
+
 We'll use `onKeyPressRepeat()` to register when we press enter to insert a new line, or backspace to delete the last character.
-```
+
+```javascript
 onKeyPressRepeat("enter", () => {
     input.text += "\n"
 })
@@ -111,7 +115,7 @@ onKeyPressRepeat("backspace", () => {
 
 We want to be able to use the arrow keys to switch between the fonts. The left key will go to the previous font and the right key will go to the next font.
 
-```
+```javascript
 onKeyPress("left", () => {
     if (--curFont < 0) curFont = fonts.length - 1
     input.font = fonts[curFont]
@@ -125,7 +129,7 @@ onKeyPress("right", () => {
 
 Let's create variables to control the size of the text, the speed at which the text increases in size when we use it, and the maximum size of our text:
 
-```
+```javascript
 const SIZE_SPEED = 32
 const SIZE_MIN = 12
 const SIZE_MAX = 120
@@ -133,7 +137,7 @@ const SIZE_MAX = 120
 
 The up and down keys will be used to increase and decrease the size of the text: 
 
-```
+```javascript
 onKeyDown("up", () => {
     curSize = Math.min(curSize + dt() * SIZE_SPEED, SIZE_MAX)
     input.textSize = curSize
@@ -146,7 +150,8 @@ onKeyDown("down", () => {
 ```
 
 We can use the following syntax and style options to style chunks of text:
-```
+
+```javascript
 add([
     text("[oh hi].green here's some [styled].wavy text", {
         width: width(),
@@ -181,3 +186,7 @@ If you'd like to challenge yourself, here are some things you can try:
 
 - Add a random font style to each new character you type in.
 - Create a dialog response for user input.
+
+You can find the code for this tutorial here:
+
+<iframe frameborder="0" width="100%" height="500px" src="https://replit.com/@ritza/text-tutorial?embed=true"></iframe>
