@@ -2409,12 +2409,24 @@ export type SpriteAnims = Record<string, SpriteAnim>
 export interface LoadSpriteOpt {
 	sliceX?: number,
 	sliceY?: number,
+	/**
+	 * The margin of sprite content to the edge.
+	 */
+	margin?: number,
+	/**
+	 * The spacing between each frame.
+	 */
+	spacing?: number,
 	anims?: SpriteAnims,
 	filter?: TexFilter,
 	wrap?: TexWrap,
 }
 
-export type SpriteAtlasData = Record<string, SpriteAtlasEntry>
+export type SpriteAtlasData = {
+	spacing: number,
+	margin: number,
+	sprites: Record<string, SpriteAtlasEntry>,
+}
 
 /**
  * A sprite in a sprite atlas.

@@ -1046,10 +1046,10 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		}
 		return load(SpriteData.from(src).then((atlas) => {
 			const map = {}
-			for (const name in data) {
+			for (const name in data.sprites) {
 				const w = atlas.tex.width
 				const h = atlas.tex.height
-				const info = data[name]
+				const info = data.sprites[name]
 				const spr = new SpriteData(
 					atlas.tex,
 					slice(
@@ -1076,6 +1076,8 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		opt: LoadSpriteOpt = {
 			sliceX: 1,
 			sliceY: 1,
+			spacing: 0,
+			margin: 0,
 			anims: {},
 		},
 	): Asset<SpriteData> {
