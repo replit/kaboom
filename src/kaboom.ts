@@ -1204,6 +1204,8 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		})()
 
 		const tilesetNode = mapDoc.querySelector("tileset")
+		const tilesetMargin = Number(tilesetNode.querySelector("margin"))
+		const tilesetSpacing = Number(tilesetNode.querySelector("spacing"))
 		const tilesetFirstGID = Number(tilesetNode.getAttribute("firstgid"))
 		const tilesetSrc = tilesetNode.getAttribute("source")
 		const tilesetPath = resolvePath(filepath, tilesetSrc)
