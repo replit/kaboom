@@ -1,7 +1,9 @@
 // Collision handling
 
 // Start kaboom
-kaboom()
+kaboom({
+	scale: 2,
+})
 
 // Load assets
 loadSprite("bean", "/sprites/bean.png")
@@ -20,8 +22,8 @@ const player = add([
 	// area() component gives the object a collider, which enables collision checking
 	area(),
 // 	area({ shape: new Polygon([vec2(0), vec2(100), vec2(-100, 100)]) }),
-// 	area({ shape: new Rect(vec2(0), 12, 120) }),
-// 	area({ offset: vec2(20), scale: 0.5 }),
+	area({ shape: new Rect(vec2(0), 12, 120) }),
+// 	area({ scale: 0.5 }),
 	// body() component makes an object respond to physics
 	body(),
 ])
