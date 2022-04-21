@@ -180,12 +180,12 @@ const map = addLevel([
 	],
 	"a": () => [
 		sprite("wall_botleft"),
-		area({ width: 4 }),
+		area({ shape: new Rect(vec2(0), 4, 16) }),
 		body({ isStatic: true }),
 	],
 	"b": () => [
 		sprite("wall_botright"),
-		area({ width: 4, offset: vec2(12, 0) }),
+		area({ shape: new Rect(vec2(12, 0), 4, 16) }),
 		body({ isStatic: true }),
 	],
 	"c": () => [
@@ -205,17 +205,17 @@ const map = addLevel([
 	],
 	"t": () => [
 		sprite("wall_top"),
-		area({ height: 4, offset: vec2(0, 12) }),
+		area({ shape: new Rect(vec2(0, 12), 16, 4) }),
 		body({ isStatic: true }),
 	],
 	"l": () => [
 		sprite("wall_left"),
-		area({ width: 4 }),
+		area({ shape: new Rect(vec2(0), 4, 16) }),
 		body({ isStatic: true }),
 	],
 	"r": () => [
 		sprite("wall_right"),
-		area({ width: 4, offset: vec2(12, 0) }),
+		area({ shape: new Rect(vec2(12, 0), 4, 16) }),
 		body({ isStatic: true }),
 	],
 })
@@ -223,8 +223,8 @@ const map = addLevel([
 const player = add([
 	pos(map.getPos(2, 2)),
 	sprite("hero", { anim: "idle" }),
-	area({ width: 12, height: 12, offset: vec2(0, 6) }),
-	body({ isStatic: true }),
+	area({ shape: new Rect(vec2(0, 6), 12, 12) }),
+	body(),
 	origin("center"),
 ])
 
@@ -293,6 +293,11 @@ const dirs = {
 }
 
 player.onUpdate(() => {
+	camPos(player.pos)
+})
+
+player.onCollisionResolve(() => {
+	// Set the viewport center to player.pos
 	camPos(player.pos)
 })
 
