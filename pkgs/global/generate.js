@@ -1,5 +1,4 @@
 import fs from "fs"
-import path from "path"
 import ts from "typescript"
 
 const f = ts.createSourceFile(
@@ -85,13 +84,7 @@ const overwrites = new Set([
 	"focus",
 ])
 
-// contain the type data for doc gen
-const types = {}
-const sections = [{
-	name: "Start",
-	entries: [ "kaboom" ],
-}]
-
+// the generated file
 let dts = ""
 
 dts += `import { KaboomCtx } from "kaboom"\n`
@@ -100,53 +93,18 @@ dts += `import { KaboomCtx } from "kaboom"\n`
 dts += "declare global {\n"
 
 for (const stmt of stmts) {
-
-	if (!types[stmt.name]) {
-		types[stmt.name] = []
-	}
-
-	types[stmt.name].push(stmt)
-
 	if (stmt.name === "KaboomCtx") {
-
 		if (stmt.kind !== "InterfaceDeclaration") {
 			throw new Error("KaboomCtx must be an interface.")
 		}
-
 		for (const name in stmt.members) {
-
-			const mem = stmt.members[name]
-
 			if (overwrites.has(name)) {
 				dts += "\t// @ts-ignore\n"
 			}
-
 			dts += `\tconst ${name}: KaboomCtx["${name}"]\n`
-
-			const tags = mem[0].jsDoc?.tags ?? {}
-
-			if (tags["section"]) {
-				const name = tags["section"][0]
-				const docPath = path.resolve(`doc/sections/${name}.md`)
-				sections.push({
-					name: name,
-					entries: [],
-					doc: fs.existsSync(docPath) ? fs.readFileSync(docPath, "utf8") : null,
-				})
-			}
-
-			const curSection = sections[sections.length - 1]
-
-			if (name && !curSection.entries.includes(name)) {
-				curSection.entries.push(name)
-			}
-
 		}
-
 		globalGenerated = true
-
 	}
-
 }
 
 dts += "}\n"
