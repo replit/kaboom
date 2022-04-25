@@ -4,7 +4,7 @@ import ts from "typescript"
 
 const f = ts.createSourceFile(
 	"ts",
-	fs.readFileSync("../../src/types.ts", "utf-8"),
+	fs.readFileSync("node_modules/kaboom/src/types.ts", "utf-8"),
 	ts.ScriptTarget.Latest,
 	true,
 )
