@@ -91,7 +91,8 @@ export class Vec2 {
 		return this.dist(new Vec2(0, 0))
 	}
 	unit(): Vec2 {
-		return this.scale(1 / this.len())
+		const len = this.len()
+		return len === 0 ? new Vec2(0) : this.scale(1 / len)
 	}
 	normal(): Vec2 {
 		return new Vec2(this.y, -this.x)
