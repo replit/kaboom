@@ -135,24 +135,12 @@ function buildTypes() {
 		}
 	})
 
-	// check if global defs are being generated
-	let globalGenerated = false
-
-	// window attribs to overwrite
-	const overwrites = new Set([
-		"origin",
-		"focus",
-	])
-
 	// contain the type data for doc gen
 	const types = {}
 	const sections = [{
 		name: "Start",
 		entries: [ "kaboom" ],
 	}]
-
-	// generate global decls for KaboomCtx members
-	dts += "\ndeclare global {\n"
 
 	for (const stmt of stmts) {
 
@@ -171,13 +159,6 @@ function buildTypes() {
 			for (const name in stmt.members) {
 
 				const mem = stmt.members[name]
-
-				if (overwrites.has(name)) {
-					dts += "\t// @ts-ignore\n"
-				}
-
-				dts += `\tconst ${name}: KaboomCtx["${name}"]\n`
-
 				const tags = mem[0].jsDoc?.tags ?? {}
 
 				if (tags["section"]) {
@@ -198,16 +179,8 @@ function buildTypes() {
 
 			}
 
-			globalGenerated = true
-
 		}
 
-	}
-
-	dts += "}\n"
-
-	if (!globalGenerated) {
-		throw new Error("KaboomCtx not found, failed to generate global defs.")
 	}
 
 	fs.writeFileSync("site/doc.json", JSON.stringify({
