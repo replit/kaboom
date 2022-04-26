@@ -10,6 +10,11 @@
 	"main": "./dist/kaboom.cjs",
 	"module": "./dist/kaboom.mjs",
 	"types": "./dist/kaboom.d.ts",
+	"typesVersions": {
+		"*": {
+			"global": [ "./dist/kaboomGlobal.d.ts" ]
+		}
+	},
 	"exports": {
 		"import": "./dist/kaboom.mjs",
 		"require": "./dist/kaboom.cjs"

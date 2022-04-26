@@ -54,6 +54,11 @@ fmts.forEach((fmt) => {
 
 })
 
+function writeFile(path, content) {
+	fs.writeFileSync(path, content)
+	console.log(`-> ${path}`)
+}
+
 buildTypes()
 
 // generate .d.ts / docs data
@@ -152,7 +157,10 @@ function buildTypes() {
 	}]
 
 	// generate global decls for KaboomCtx members
-	dts += "\ndeclare global {\n"
+	let globalDts = ""
+
+	globalDts += `import { KaboomCtx } from "kaboom"\n`
+	globalDts += "declare global {\n"
 
 	for (const stmt of stmts) {
 
@@ -173,10 +181,10 @@ function buildTypes() {
 				const mem = stmt.members[name]
 
 				if (overwrites.has(name)) {
-					dts += "\t// @ts-ignore\n"
+					globalDts += "\t// @ts-ignore\n"
 				}
 
-				dts += `\tconst ${name}: KaboomCtx["${name}"]\n`
+				globalDts += `\tconst ${name}: KaboomCtx["${name}"]\n`
 
 				const tags = mem[0].jsDoc?.tags ?? {}
 
@@ -204,20 +212,18 @@ function buildTypes() {
 
 	}
 
-	dts += "}\n"
+	globalDts += "}\n"
 
 	if (!globalGenerated) {
 		throw new Error("KaboomCtx not found, failed to generate global defs.")
 	}
 
-	fs.writeFileSync("site/doc.json", JSON.stringify({
+	writeFile("site/doc.json", JSON.stringify({
 		types,
 		sections,
 	}))
 
-	console.log("-> site/doc.json")
-
-	fs.writeFileSync(`${distDir}/kaboom.d.ts`, dts)
-	console.log(`-> ${distDir}/kaboom.d.ts`)
+	writeFile(`${distDir}/kaboom.d.ts`, dts)
+	writeFile(`${distDir}/kaboomGlobal.d.ts`, globalDts)
 
 }
