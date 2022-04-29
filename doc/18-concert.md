@@ -10,7 +10,7 @@ Some of the concepts we're going to learn about include:
 * Spawning game objects
 * Animating sprites
 
-![concert](concert.png)
+![concert](tutorials/concert.png)
 
 You can find the code for this tutorial [on our repl](https://replit.com/@ritza/kaboom-concert).
 

@@ -4,7 +4,7 @@ In this tutorial, we'll create a minigame called "Eatbomb" to learn how we can c
 
 In our game, the player has to dodge all incoming "fruit" sprites and consume only "bomb" sprites to gain points. The player loses if any "bomb" sprites are left uneaten.
 
-![eat-bombs](eatbombs.png)
+![eat-bombs](tutorials/eatbombs.png)
 
 You can find the code for this tutorial [on our repl](https://replit.com/@ritza/eatbomb), or in the embedded repl at the end of this tutorial.
 

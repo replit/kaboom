@@ -2,7 +2,7 @@
 
 In this tutorial, we'll create a coin collector game to learn how game scenes work in Kaboom. In our game, our player will advance through to different levels by collecting all the coins at each level.
 
-![scenes](scenes.png)
+![scenes](tutorials/scenes.png)
 
 You can find the code we use here [on our repl](https://replit.com/@ritza/scenes), or in the embedded repl at the end of this tutorial.
 

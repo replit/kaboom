@@ -2,7 +2,7 @@
 
 In this tutorial, we'll learn how to use the double jump function with our sprite objects.
 
-![double jump](double-jump.png)
+![double jump](tutorials/double-jump.png)
 
 The code for this tutorial can be found on [our repl](https://replit.com/@ritza/double-jump) or you can try out the embedded repl below.
 

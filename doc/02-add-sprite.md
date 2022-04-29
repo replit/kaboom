@@ -18,7 +18,7 @@ import kaboom from "kaboom";
 kaboom();
 ```
 
-![Checkerboard pattern](https://kaboomjs.com/site/doc/intro/empty.png)
+![Checkerboard pattern](tutorials/empty.png)
 
 The code below allows us to load an image we'll use as a sprite. Introducing Frog the "Bean"! A happy frog that enjoys life. You'll see Bean a lot around here.
 

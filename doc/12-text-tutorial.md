@@ -12,7 +12,7 @@ We're going to learn how to:
 * Add text input and animation
 * Register keyboard input
 
-![add text](add-text.png)
+![add text](tutorials/add-text.png)
 
 ## Getting started with the code
 
