@@ -4,7 +4,7 @@ Multiboom is a fun Kaboom feature that lets you play with Kaboom by creating two
 
 In this tutorial, we'll use Multiboom to create two similar contexts consisting of two sprites with a spin-and-scale effect. You can find the code we use in [our repl](https://replit.com/@ritza/multiboom).
 
-![multiboom](multiboom.png)
+![multiboom](tutorials/multiboom.png)
 
 # Getting started with the code
 
