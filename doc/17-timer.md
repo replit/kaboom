@@ -4,7 +4,7 @@ In this tutorial, we'll show you how to create or add timers to your games so th
 
 You can find the code for this tutorial [on our repl](https://replit.com/@ritza/timer-kaboom).
 
-![timer](timer.png)
+![timer](tutorials/timer.png)
 
 ## Getting started
 

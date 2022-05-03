@@ -12,7 +12,7 @@ We'll cover the following:
 
 You can find the code we use in this tutorial [in our repl](https://replit.com/@ritza/sprite-merge), or try out the embedded repl at the end of this tutorial.
 
-![sprite merge](spritemerge.png)
+![sprite merge](tutorials/spritemerge.png)
 
 ## Getting started with the code
 

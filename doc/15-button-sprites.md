@@ -7,7 +7,7 @@ When we're done, you should know how to:
 * Give sprites button-like behavior
 * Program sprites to talk to each other
 
-![display](button-sprites.png)
+![display](tutorials/button-sprites.png)
 
 You can find the code for this tutorial [on our repl](https://replit.com/@ritza/buttons-and-dialogs).
 

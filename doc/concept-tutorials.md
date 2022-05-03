@@ -21,3 +21,7 @@ If you're looking to add a specific feature to your game, you might find it here
 * [Timer](/doc/17-timer)
 * [Concert](/doc/18-concert)
 * [Sprite Atlas](/doc/19-sprite-atlas)
+* [Eat bombs](/doc/20-eatbomb)
+* [Scenes](/doc/21-scenes)
+* [Gravity](/doc/22-gravity)
+

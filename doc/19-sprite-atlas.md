@@ -2,7 +2,7 @@
 
 In this tutorial, we will learn how to create game objects from a sprite atlas, and how to animate them and give them unique behaviors.
 
-![spriteAtlas](spriteatlas.png)
+![spriteAtlas](tutorials/spriteatlas.png)
 
 You can find the code for this tutorial [on our repl](https://replit.com/@ritza/sprite-atlas).
 
