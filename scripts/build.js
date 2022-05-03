@@ -224,6 +224,6 @@ function buildTypes() {
 	}))
 
 	writeFile(`${distDir}/kaboom.d.ts`, dts)
-	writeFile(`${distDir}/kaboomGlobal.d.ts`, globalDts)
+	writeFile(`${distDir}/global.d.ts`, globalDts)
 
 }

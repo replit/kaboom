@@ -12,7 +12,7 @@
 	"types": "./dist/kaboom.d.ts",
 	"typesVersions": {
 		"*": {
-			"global": [ "./dist/kaboomGlobal.d.ts" ]
+			"global": [ "./dist/global.d.ts" ]
 		}
 	},
 	"exports": {
