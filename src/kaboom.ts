@@ -3661,7 +3661,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		return game.ev.on("onTouchEnd", f)
 	}
 
-	function enterDebugMode() {
+	function bindDebugKeys() {
 
 		onKeyPress("f1", () => {
 			debug.inspect = !debug.inspect
@@ -3685,19 +3685,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 		onKeyPress("f10", () => {
 			debug.stepFrame()
-		})
-
-		onKeyPress("f5", () => {
-			game.ev.onOnce("frameEnd", () => download("kaboom.png", screenshot()))
-		})
-
-		onKeyPress("f6", () => {
-			if (debug.curRecording) {
-				debug.curRecording.download()
-				debug.curRecording = null
-			} else {
-				debug.curRecording = record()
-			}
 		})
 
 	}
@@ -5014,10 +5001,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 			game.scenes[id](...args)
 
-			if (gopt.debug !== false) {
-				enterDebugMode()
-			}
-
 			if (gopt.burp) {
 				enterBurpMode()
 			}
@@ -5769,10 +5752,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 	}
 
-	if (gopt.debug !== false) {
-		enterDebugMode()
-	}
-
 	if (gopt.burp) {
 		enterBurpMode()
 	}
@@ -6005,9 +5984,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			}
 			checkFrame()
 			drawFrame()
-			if (gopt.debug !== false) {
-				drawDebug()
-			}
+			drawDebug()
 		}
 
 	})
@@ -6191,6 +6168,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		pushMatrix,
 		// debug
 		debug,
+		bindDebugKeys,
 		// scene
 		scene,
 		go,

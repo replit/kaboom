@@ -44,6 +44,7 @@
 - (**BREAK**) renamed `cursor()` to `setCursor()`
 - (**BREAK**) renamed `fullscreen()` to `setFullscreen()`
 - moved type defs for global functions to `import "kaboom/global"`
+- removed `debug` mode, manually bind keys to enter `debug.inspect` or use helper `bindDebugKeys()` to use the previous debug key layout
 
 ### v2000.2.6
 

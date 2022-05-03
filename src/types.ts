@@ -1942,6 +1942,12 @@ export interface KaboomCtx {
 	 */
 	debug: Debug,
 	/**
+	 * Bind some default keys to certain debug actions. (F1 to toggle debug.inspect, F2 to clear debug log, F8 to toggle debug.paused, F7 to slow time, F9 to fast foward time, F10 to step to next frame)
+	 *
+	 * @since v20001.0
+	 */
+	bindDebugKeys: () => void,
+	/**
 	 * Import a plugin.
 	 *
 	 * @section Misc
@@ -2087,10 +2093,6 @@ export interface KaboomOpt {
 	 * When stretching if keep aspect ratio and leave black bars on remaining spaces. (note: not working properly at the moment.)
 	 */
 	letterbox?: boolean,
-	/**
-	 * If register debug buttons (default true)
-	 */
-	debug?: boolean,
 	/**
 	 * Default font (defaults to "apl386o", with "apl386", "sink", "sinko" as other built-in options).
 	 */
