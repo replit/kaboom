@@ -3429,7 +3429,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				if (this.parent) {
 					this.parent.remove(this)
 				} else {
-					throw new Error("Cannot to destroy parentless object.")
+					throw new Error("Cannot destroy parentless object.")
 				}
 			},
 
