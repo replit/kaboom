@@ -15,42 +15,45 @@ const SPEED = 480
 
 gravity(2400)
 
-const level = addLevel([
-	// Design the level layout with symbols
-	"@  ^ $$",
-	"=======",
-], {
+const level = addLevel({
+	map: [
+		// Design the level layout with symbols
+		"@  ^ $$",
+		"=======",
+	],
 	// The size of each grid
-	width: 64,
-	height: 64,
+	tileWidth: 64,
+	tileHeight: 64,
 	// The position of the top left block
 	pos: vec2(100, 200),
 	// Define what each symbol means (in components)
-	"@": () => [
-		sprite("bean"),
-		area(),
-		body(),
-		origin("bot"),
-		"player",
-	],
-	"=": () => [
-		sprite("grass"),
-		area(),
-		body({ isStatic: true }),
-		origin("bot"),
-	],
-	"$": () => [
-		sprite("coin"),
-		area(),
-		origin("bot"),
-		"coin",
-	],
-	"^": () => [
-		sprite("spike"),
-		area(),
-		origin("bot"),
-		"danger",
-	],
+	tiles: {
+		"@": () => [
+			sprite("bean"),
+			area(),
+			body(),
+			origin("bot"),
+			"player",
+		],
+		"=": () => [
+			sprite("grass"),
+			area(),
+			body({ isStatic: true }),
+			origin("bot"),
+		],
+		"$": () => [
+			sprite("coin"),
+			area(),
+			origin("bot"),
+			"coin",
+		],
+		"^": () => [
+			sprite("spike"),
+			area(),
+			origin("bot"),
+			"danger",
+		],
+	},
 })
 
 // Get the player object from tag

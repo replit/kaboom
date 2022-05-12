@@ -1650,7 +1650,7 @@ export interface KaboomCtx {
 	 * })
 	 * ```
 	 */
-	addLevel(map: string[], options: LevelOpt): GameObj,
+	addLevel(data: LevelData): GameObj,
 	/**
 	 * Get data from local storage, if not present can set to a default value.
 	 *
@@ -4282,15 +4282,19 @@ export interface StateComp extends Comp {
 	onStateDraw: (state: string, action: () => void) => EventCanceller,
 }
 
-export interface LevelOpt {
+export interface LevelData {
 	/**
-	 * Width of each block.
+	 * The level data as ascii drawing.
 	 */
-	width: number,
+	map: string[],
 	/**
-	 * Height of each block.
+	 * Width of each tile.
 	 */
-	height: number,
+	tileWidth: number,
+	/**
+	 * Height of each tile.
+	 */
+	tileHeight: number,
 	/**
 	 * Position of the first block.
 	 */
@@ -4298,14 +4302,18 @@ export interface LevelOpt {
 	/**
 	 * Called when encountered an undefined symbol.
 	 */
-	any?: (s: string, pos: Vec2) => CompList<any> | undefined,
-	// TODO: should return CompList<any>
-	[sym: string]: any,
+	wildcardTile?: (sym: string, pos: Vec2) => CompList<any> | undefined,
+	/**
+	 * Definition of each tile.
+	 */
+	tiles: {
+		[sym: string]: (pos: Vec2) => CompList<any>,
+	},
 }
 
 export interface LevelComp extends Comp {
-	gridWidth(): number,
-	gridHeight(): number,
+	tileWidth(): number,
+	tileHeight(): number,
 	getPos(p: Vec2): Vec2,
 	getPos(x: number, y: number): Vec2,
 	spawn(sym: string, p: Vec2): GameObj,

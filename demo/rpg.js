@@ -27,7 +27,7 @@ scene("main", (levelIdx) => {
 	}
 
 	// level layouts
-	const levels = [
+	const maps = [
 		[
 			"=====|===",
 			"=       =",
@@ -52,41 +52,44 @@ scene("main", (levelIdx) => {
 		],
 	]
 
-	const level = addLevel(levels[levelIdx], {
-		width: 64,
-		height: 64,
+	const level = addLevel({
+		map: maps[levelIdx],
+		tileWidth: 64,
+		tileHeight: 64,
 		pos: vec2(64, 64),
-		"=": () => [
-			sprite("grass"),
-			area(),
-			body({ isStatic: true }),
-		],
-		"-": () => [
-			sprite("steel"),
-			area(),
-			body({ isStatic: true }),
-		],
-		"$": () => [
-			sprite("key"),
-			area(),
-			"key",
-		],
-		"@": () => [
-			sprite("bean"),
-			area(),
-			body(),
-			"player",
-		],
-		"|": () => [
-			sprite("door"),
-			area(),
-			body({ isStatic: true }),
-			"door",
-		],
-		// any() is a special function that gets called everytime there's a
+		tiles: {
+			"=": () => [
+				sprite("grass"),
+				area(),
+				body({ isStatic: true }),
+			],
+			"-": () => [
+				sprite("steel"),
+				area(),
+				body({ isStatic: true }),
+			],
+			"$": () => [
+				sprite("key"),
+				area(),
+				"key",
+			],
+			"@": () => [
+				sprite("bean"),
+				area(),
+				body(),
+				"player",
+			],
+			"|": () => [
+				sprite("door"),
+				area(),
+				body({ isStatic: true }),
+				"door",
+			],
+		},
+		// wildcardTile is a special function that gets called everytime there's a
 		// symbole not defined above and is supposed to return what that symbol
 		// means
-		any(ch) {
+		wildcardTile: (ch) => {
 			const char = characters[ch]
 			if (char) {
 				return [
@@ -155,7 +158,7 @@ scene("main", (levelIdx) => {
 
 	player.onCollide("door", () => {
 		if (hasKey) {
-			if (levelIdx + 1 < levels.length) {
+			if (levelIdx + 1 < maps.length) {
 				go("main", levelIdx + 1)
 			} else {
 				go("win")

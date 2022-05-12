@@ -137,87 +137,93 @@ loadSpriteAtlas("/sprites/dungeon.png", {
 // loadSpriteAtlas("/sprites/dungeon.png", "/sprites/dungeon.json")
 
 // floor
-addLevel([
-	"xxxxxxxxxx",
-	"          ",
-	"          ",
-	"          ",
-	"          ",
-	"          ",
-	"          ",
-	"          ",
-	"          ",
-	"          ",
-], {
-	width: 16,
-	height: 16,
-	" ": () => [
-		sprite("floor", { frame: ~~rand(0, 8) }),
+addLevel({
+	map: [
+		"xxxxxxxxxx",
+		"          ",
+		"          ",
+		"          ",
+		"          ",
+		"          ",
+		"          ",
+		"          ",
+		"          ",
+		"          ",
 	],
+	tileWidth: 16,
+	tileHeight: 16,
+	tiles: {
+		" ": () => [
+			sprite("floor", { frame: ~~rand(0, 8) }),
+		],
+	},
 })
 
 // objects
-const map = addLevel([
-	"tttttttttt",
-	"cwwwwwwwwd",
-	"l        r",
-	"l        r",
-	"l        r",
-	"l      $ r",
-	"l        r",
-	"l $      r",
-	"attttttttb",
-	"wwwwwwwwww",
-], {
-	width: 16,
-	height: 16,
-	"$": () => [
-		sprite("chest"),
-		area(),
-		body({ isStatic: true }),
-		{ opened: false },
-		"chest",
+const map = addLevel({
+	map: [
+		"tttttttttt",
+		"cwwwwwwwwd",
+		"l        r",
+		"l        r",
+		"l        r",
+		"l      $ r",
+		"l        r",
+		"l $      r",
+		"attttttttb",
+		"wwwwwwwwww",
 	],
-	"a": () => [
-		sprite("wall_botleft"),
-		area({ shape: new Rect(vec2(0), 4, 16) }),
-		body({ isStatic: true }),
-	],
-	"b": () => [
-		sprite("wall_botright"),
-		area({ shape: new Rect(vec2(12, 0), 4, 16) }),
-		body({ isStatic: true }),
-	],
-	"c": () => [
-		sprite("wall_topleft"),
-		area(),
-		body({ isStatic: true }),
-	],
-	"d": () => [
-		sprite("wall_topright"),
-		area(),
-		body({ isStatic: true }),
-	],
-	"w": () => [
-		sprite("wall"),
-		area(),
-		body({ isStatic: true }),
-	],
-	"t": () => [
-		sprite("wall_top"),
-		area({ shape: new Rect(vec2(0, 12), 16, 4) }),
-		body({ isStatic: true }),
-	],
-	"l": () => [
-		sprite("wall_left"),
-		area({ shape: new Rect(vec2(0), 4, 16) }),
-		body({ isStatic: true }),
-	],
-	"r": () => [
-		sprite("wall_right"),
-		area({ shape: new Rect(vec2(12, 0), 4, 16) }),
-		body({ isStatic: true }),
-	],
+	tileWidth: 16,
+	tileHeight: 16,
+	tiles: {
+		"$": () => [
+			sprite("chest"),
+			area(),
+			body({ isStatic: true }),
+			{ opened: false },
+			"chest",
+		],
+		"a": () => [
+			sprite("wall_botleft"),
+			area({ shape: new Rect(vec2(0), 4, 16) }),
+			body({ isStatic: true }),
+		],
+		"b": () => [
+			sprite("wall_botright"),
+			area({ shape: new Rect(vec2(12, 0), 4, 16) }),
+			body({ isStatic: true }),
+		],
+		"c": () => [
+			sprite("wall_topleft"),
+			area(),
+			body({ isStatic: true }),
+		],
+		"d": () => [
+			sprite("wall_topright"),
+			area(),
+			body({ isStatic: true }),
+		],
+		"w": () => [
+			sprite("wall"),
+			area(),
+			body({ isStatic: true }),
+		],
+		"t": () => [
+			sprite("wall_top"),
+			area({ shape: new Rect(vec2(0, 12), 16, 4) }),
+			body({ isStatic: true }),
+		],
+		"l": () => [
+			sprite("wall_left"),
+			area({ shape: new Rect(vec2(0), 4, 16) }),
+			body({ isStatic: true }),
+		],
+		"r": () => [
+			sprite("wall_right"),
+			area({ shape: new Rect(vec2(12, 0), 4, 16) }),
+			body({ isStatic: true }),
+		],
+	},
 })
 
 const player = add([

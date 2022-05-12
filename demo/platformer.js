@@ -105,58 +105,60 @@ const LEVELS = [
 // define what each symbol means in the level graph
 const levelConf = {
 	// grid size
-	width: 64,
-	height: 64,
+	tileWidth: 64,
+	tileHeight: 64,
 	// define each object as a list of components
-	"=": () => [
-		sprite("grass"),
-		area(),
-		body({ isStatic: true }),
-		origin("bot"),
-	],
-	"$": () => [
-		sprite("coin"),
-		area(),
-		pos(0, -9),
-		origin("bot"),
-		"coin",
-	],
-	"%": () => [
-		sprite("prize"),
-		area(),
-		body({ isStatic: true }),
-		origin("bot"),
-		"prize",
-	],
-	"^": () => [
-		sprite("spike"),
-		area(),
-		body({ isStatic: true }),
-		origin("bot"),
-		"danger",
-	],
-	"#": () => [
-		sprite("apple"),
-		area(),
-		origin("bot"),
-		body(),
-		"apple",
-	],
-	">": () => [
-		sprite("ghosty"),
-		area(),
-		origin("bot"),
-		body(),
-		patrol(),
-		"enemy",
-	],
-	"@": () => [
-		sprite("portal"),
-		area({ scale: 0.5 }),
-		origin("bot"),
-		pos(0, -12),
-		"portal",
-	],
+	tiles: {
+		"=": () => [
+			sprite("grass"),
+			area(),
+			body({ isStatic: true }),
+			origin("bot"),
+		],
+		"$": () => [
+			sprite("coin"),
+			area(),
+			pos(0, -9),
+			origin("bot"),
+			"coin",
+		],
+		"%": () => [
+			sprite("prize"),
+			area(),
+			body({ isStatic: true }),
+			origin("bot"),
+			"prize",
+		],
+		"^": () => [
+			sprite("spike"),
+			area(),
+			body({ isStatic: true }),
+			origin("bot"),
+			"danger",
+		],
+		"#": () => [
+			sprite("apple"),
+			area(),
+			origin("bot"),
+			body(),
+			"apple",
+		],
+		">": () => [
+			sprite("ghosty"),
+			area(),
+			origin("bot"),
+			body(),
+			patrol(),
+			"enemy",
+		],
+		"@": () => [
+			sprite("portal"),
+			area({ scale: 0.5 }),
+			origin("bot"),
+			pos(0, -12),
+			"portal",
+		],
+	},
 }
 
 scene("game", ({ levelId, coins } = { levelId: 0, coins: 0 }) => {
@@ -164,7 +166,10 @@ scene("game", ({ levelId, coins } = { levelId: 0, coins: 0 }) => {
 	gravity(3200)
 
 	// add level to scene
-	const level = addLevel(LEVELS[levelId ?? 0], levelConf)
+	const level = addLevel({
+		map: LEVELS[levelId ?? 0],
+		...levelConf,
+	})
 
 	// define player object
 	const player = add([
@@ -234,7 +239,7 @@ scene("game", ({ levelId, coins } = { levelId: 0, coins: 0 }) => {
 	// grow an apple if player's head bumps into an obj with "prize" tag
 	player.onHeadbutt((obj) => {
 		if (obj.is("prize") && !hasApple) {
-			const apple = level.spawn("#", obj.gridPos.sub(0, 1))
+			const apple = level.spawn("#", obj.tilePos.sub(0, 1))
 			apple.jump()
 			hasApple = true
 			play("blip")

@@ -14,32 +14,35 @@ const SPEED = 480
 gravity(2400)
 
 // Setup a basic level
-const level = addLevel([
-	"@  =  $",
-	"=======",
-], {
-	width: 64,
-	height: 64,
+const level = addLevel({
+	map: [
+		"@  =  $",
+		"=======",
+	],
+	tileWidth: 64,
+	tileHeight: 64,
 	pos: vec2(100, 200),
-	"@": () => [
-		sprite("bean"),
-		area(),
-		body(),
-		origin("bot"),
-		"player",
-	],
-	"=": () => [
-		sprite("grass"),
-		area(),
-		body({ isStatic: true }),
-		origin("bot"),
-	],
-	"$": () => [
-		sprite("coin"),
-		area(),
-		origin("bot"),
-		"coin",
-	],
+	tiles: {
+		"@": () => [
+			sprite("bean"),
+			area(),
+			body(),
+			origin("bot"),
+			"player",
+		],
+		"=": () => [
+			sprite("grass"),
+			area(),
+			body({ isStatic: true }),
+			origin("bot"),
+		],
+		"$": () => [
+			sprite("coin"),
+			area(),
+			origin("bot"),
+			"coin",
+		],
+	},
 })
 
 // Get the player object from tag

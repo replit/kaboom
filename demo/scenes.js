@@ -16,7 +16,7 @@ loadSound("portal", "/sounds/portal.mp3")
 const SPEED = 480
 
 // Design 2 levels
-const LEVELS = [
+const MAPS = [
 	[
 		"@  ^ $$ >",
 		"=========",
@@ -34,41 +34,44 @@ scene("game", ({ levelIdx, score }) => {
 	gravity(2400)
 
 	// Use the level passed, or first level
-	const level = addLevel(LEVELS[levelIdx || 0], {
-		width: 64,
-		height: 64,
+	const level = addLevel({
+		map: MAPS[levelIdx || 0],
+		tileWidth: 64,
+		tileHeight: 64,
 		pos: vec2(100, 200),
-		"@": () => [
-			sprite("bean"),
-			area(),
-			body(),
-			origin("bot"),
-			"player",
-		],
-		"=": () => [
-			sprite("grass"),
-			area(),
-			body({ isStatic: true }),
-			origin("bot"),
-		],
-		"$": () => [
-			sprite("coin"),
-			area(),
-			origin("bot"),
-			"coin",
-		],
-		"^": () => [
-			sprite("spike"),
-			area(),
-			origin("bot"),
-			"danger",
-		],
-		">": () => [
-			sprite("portal"),
-			area(),
-			origin("bot"),
-			"portal",
-		],
+		tiles: {
+			"@": () => [
+				sprite("bean"),
+				area(),
+				body(),
+				origin("bot"),
+				"player",
+			],
+			"=": () => [
+				sprite("grass"),
+				area(),
+				body({ isStatic: true }),
+				origin("bot"),
+			],
+			"$": () => [
+				sprite("coin"),
+				area(),
+				origin("bot"),
+				"coin",
+			],
+			"^": () => [
+				sprite("spike"),
+				area(),
+				origin("bot"),
+				"danger",
+			],
+			">": () => [
+				sprite("portal"),
+				area(),
+				origin("bot"),
+				"portal",
+			],
+		},
 	})
 
 	// Get the player object from tag
@@ -112,7 +115,7 @@ scene("game", ({ levelIdx, score }) => {
 	// Enter the next level on portal
 	player.onCollide("portal", () => {
 		play("portal")
-		if (levelIdx < LEVELS.length - 1) {
+		if (levelIdx < MAPS.length - 1) {
 			// If there's a next level, go() to the same scene but load the next level
 			go("game", {
 				levelIdx: levelIdx + 1,

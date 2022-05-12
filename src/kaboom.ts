@@ -136,7 +136,7 @@ import {
 	KaboomPlugin,
 	MergeObj,
 	LevelComp,
-	LevelOpt,
+	LevelData,
 	Cursor,
 	Recording,
 	BoomOpt,
@@ -5060,50 +5060,58 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		return vec2(width() / 2, height() / 2)
 	}
 
-	function grid(level: GameObj<LevelComp>, p: Vec2) {
+	function tile(level: GameObj<LevelComp>, p: Vec2) {
 
 		return {
 
-			id: "grid",
-			gridPos: p.clone(),
+			id: "tile",
+			tilePos: p.clone(),
 
-			setGridPos(...args) {
+			setTilePos(...args) {
 				const p = vec2(...args)
-				this.gridPos = p.clone()
+				this.tilePos = p.clone()
 				this.pos = vec2(
-					this.gridPos.x * level.gridWidth(),
-					this.gridPos.y * level.gridHeight(),
+					this.tilePos.x * level.tileWidth(),
+					this.tilePos.y * level.tileHeight(),
 				)
 			},
 
 			moveLeft() {
-				this.setGridPos(this.gridPos.add(vec2(-1, 0)))
+				this.setTilePos(this.tilePos.add(vec2(-1, 0)))
 			},
 
 			moveRight() {
-				this.setGridPos(this.gridPos.add(vec2(1, 0)))
+				this.setTilePos(this.tilePos.add(vec2(1, 0)))
 			},
 
 			moveUp() {
-				this.setGridPos(this.gridPos.add(vec2(0, -1)))
+				this.setTilePos(this.tilePos.add(vec2(0, -1)))
 			},
 
 			moveDown() {
-				this.setGridPos(this.gridPos.add(vec2(0, 1)))
+				this.settilePos(this.tilePos.add(vec2(0, 1)))
 			},
 
 		}
 
 	}
 
-	function addLevel(map: string[], opt: LevelOpt): GameObj<PosComp | LevelComp> {
+	function addLevel(data: LevelData): GameObj<PosComp | LevelComp> {
 
-		if (!opt.width || !opt.height) {
+		if (!data.tileWidth || !data.tileHeight) {
 			throw new Error("Must provide level grid width & height.")
 		}
 
+		if (!data.map) {
+			throw new Error("Must provide level map data.")
+		}
+
+		if (!data.tiles) {
+			throw new Error("Must provide tile definitions.")
+		}
+
 		const level = add([
-			pos(opt.pos ?? vec2(0)),
+			pos(data.pos ?? vec2(0)),
 		])
 
 		let maxRowLen = 0
@@ -5112,19 +5120,19 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 			id: "level",
 
-			gridWidth() {
-				return opt.width
+			tileWidth() {
+				return data.tileWidth
 			},
 
-			gridHeight() {
-				return opt.height
+			tileHeight() {
+				return data.tileHeight
 			},
 
 			getPos(...args): Vec2 {
 				const p = vec2(...args)
 				return vec2(
-					p.x * opt.width,
-					p.y * opt.height,
+					p.x * data.tileWidth,
+					p.y * data.tileHeight,
 				)
 			},
 
@@ -5133,13 +5141,13 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				const p = vec2(...args)
 
 				const comps = (() => {
-					if (opt[key]) {
-						if (typeof opt[key] !== "function") {
+					if (data.tiles[key]) {
+						if (typeof data.tiles[key] !== "function") {
 							throw new Error("Level symbol def must be a function returning a component list")
 						}
-						return opt[key](p)
-					} else if (opt.any) {
-						return opt.any(key, p)
+						return data.tiles[key](p)
+					} else if (data.wildcardTile) {
+						return data.wildcardTile(key, p)
 					}
 				})()
 
@@ -5148,8 +5156,8 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				}
 
 				const posComp = vec2(
-					p.x * opt.width,
-					p.y * opt.height,
+					p.x * data.tileWidth,
+					p.y * data.tileHeight,
 				)
 
 				for (const comp of comps) {
@@ -5161,25 +5169,25 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				}
 
 				comps.push(pos(posComp))
-				comps.push(grid(this, p))
+				comps.push(tile(this, p))
 
 				return level.add(comps)
 
 			},
 
 			levelWidth() {
-				return maxRowLen * opt.width
+				return maxRowLen * data.tileWidth
 			},
 
 			levelHeight() {
-				return map.length * opt.height
+				return map.length * data.tileHeight
 			},
 
 		}
 
 		level.use(levelComp)
 
-		map.forEach((row, i) => {
+		data.map.forEach((row, i) => {
 
 			const keys = row.split("")
 
