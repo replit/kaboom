@@ -1,31 +1,36 @@
-# Platformer with kaboom
- Platform games are often games where the main objective is to move the player character between points in a rendered environment. These games require players to run, jump and climb in the rendered environment to navigate it and reach their goal.
+# Platformer with Kaboom
+Platform games are often games where the main objective is to move the player character between points in a rendered environment. These games require players to run, jump and climb in the rendered environment to navigate it and reach their goal.
 
 In this tutorial, we're going to create a multi-level platform game where a player navigates their environment collecting food and coins for points.
 
 ## Steps to follow
 
-We're going to learn how to add the following:
+We're going to cover how to do the following:
 
-- Game objects - Loading the necessary characters
-- The main scene - Adding game levels and positioning our characters and game events
-- Player movement - Setting up control keys
-- Collisions - Events for when our character collides with other objects in the game
+- Load game objects
+- Create the main scene
+- Handle player movement
+- Handle collisions
+- Create the winning and losing scene
 
 ![platformer](platformer.png)
 
+The code for this tutorial can be found on [our repl](https://replit.com/@ritza/platformer) or you can try out the embedded repl below.
+
+
 ## Getting Started
-Let's add the following code to our project to initialize a kaboom context:
+Let's add the following code to our project to initialize a Kaboom context:
 
 ```javascript
 import kaboom from "kaboom"
 
 kaboom()
 ```
+
+## Loading game objects
 To import all the sprites and sound assets we will need for the game, add the following code below  the `kaboom()` function:
 
 ```javascript
-
 loadSprite("bean", "/sprites/bean.png")
 loadSprite("ghosty", "/sprites/ghosty.png")
 loadSprite("spike", "/sprites/spike.png")
@@ -41,16 +46,18 @@ loadSound("hit", "/sounds/hit.mp3")
 loadSound("portal", "/sounds/portal.mp3")
 
 ```
-## Creating constant game variables and functions
 
-Let's declare some constant values for the jumping force and moving speed of our game objects. Add the following code below the imported assets:
+### Creating constant game variables and functions
+
+Let's declare some constant values for the jumping force and moving speed of our game objects. `FALL_DEATH` defines the speed at which the player falls off the platform to its death. Add the following code below the imported assets:
 
 ```javascript
 const JUMP_FORCE = 1320
 const MOVE_SPEED = 480
 const FALL_DEATH = 2400
 ```
-One of the component functions we will need for the game is a `patrol()` for enemies to patrol certain parts of the environment. Add the following code below the variables:
+
+One of the component functions we will need for the game is a `patrol()` function for enemies to patrol certain parts of the environment. When the enemy game object collides with another game object, for example a grass block, it'll change its direction to the opposite direction. Add the following code below the variables:
 
 ```javascript
 function patrol(speed = 60, dir = 1) {
@@ -71,7 +78,9 @@ function patrol(speed = 60, dir = 1) {
 }
 ```
 
-Another component function we will need is one that makes objects grow big. Add the following code below the `patriol()` function:
+Another component function we will need is one that makes objects grow big. The `big()` function will make objects big if they are small and vice versa.
+Add the following code below the `patrol()` function:
+
 ```javacript
 function big() {
 	let timer = 0
@@ -108,11 +117,11 @@ function big() {
 }
 ```
 
-The `big()` function above, will make objects big if they are small and vice versa.
 
-## Building platform maps
+### Building platform maps
 
-In this section, we're going to create a map for the layout of the different levels of the game. Our game will consist of two levels, which we will store in an array.
+In this section, we're going to create a map for the layout of the different levels of the game. Our game will consist of two levels, which we will store in an array. Each level in the array consists of different symbols, each of which represents the positions of a specific game object.
+
 
 Add the following code below the `big()` function:
 
@@ -146,9 +155,7 @@ const LEVELS = [
 
 ```
 
-In the array above,  each level the array consists of different symbols, each of which represents the positions of a specific game object.
-
-Add the following code below the "LEVELS" array:
+Next, we want to map the different symbols to their corresponding game object. Add the following code below the "LEVELS" array:
 
 ```javascript
 
@@ -208,10 +215,9 @@ const levelConf = {
 }
 ```
 
-In the code above, we've assigned a sprite to each symbol in the level maps.  Each symbol is given a tag/name. The components `area()` and `body()`  give the sprite objects a physical body that can react to collisions with other objects and the gravity in the game. The `solid()` component makes sure that no other game objects can pass through the object with this component.
+We've assigned a sprite to each symbol in the level maps.  Each symbol is given a tag/name. The components `area()` and `body()`  give the sprite objects a physical body that can react to collisions with other objects and the gravity in the game. The `solid()` component makes sure that no other game objects can pass through the object with this component.
 
 ## Creating the main scene
-
 This is the main scene of the game, which is the game environment that will be active as long as the player has not yet won or lost the game. This is where most of the behavior occurs.
 
 All the code in this section will be placed inside the `scene()` function with the tag "game". Add the following code below the "levelConf" map:
@@ -223,11 +229,12 @@ scene("game", ({ levelId, coins } = { levelId: 0, coins: 0 }) => {
   
 	const level = addLevel(LEVELS[levelId ?? 0],levelConf)
 ```
-In the code above, we pass the name "game" as the name of the scene, as well as the id of the current game level id and coins a player collected, initially, these values will be 0.
 
-The `gravity()` function describes the amount of gravity in the game. The level variable will hold the id of the current game level and its map.
+In the code above, we pass "game" as the name of the scene; the "levelId" of the current game level id and "coins" a player has collected. Initially, these values will be 0.
 
-Next, we'll add a player object for the "bean" sprite. Add the following code below the "level" variable:
+The `gravity()` function describes the amount of gravity in the game. The `level` variable will hold the ID of the current game level and its map.
+
+Next, we'll add a player object for the "bean" sprite. Add the following code below the `level` variable:
 
 ```javascript
  const player = add([
@@ -241,7 +248,8 @@ Next, we'll add a player object for the "bean" sprite. Add the following code be
 	])
 
  ```
- The player is given the `big()` component we defined earlier in the tutorial. The `scale()` function determines the size of the player sprite relative to the game screen.
+ 
+The player is given the `big()` component we defined earlier in the tutorial. The `scale()` function determines the size of the player sprite relative to the game screen.
 
 Add the next block of code below the "player" object:
 
@@ -254,13 +262,14 @@ Add the next block of code below the "player" object:
 	})
 
 ```
-The `onUpdate()` function in the code above will update the state of the player's position in every frame. `camPos()` function will make the game screen or "camera" follow the player's movement as the game progresses.
+
+The `onUpdate()` function will update the state of the player's position in every frame. `camPos()` function will make the game screen or "camera" follow the player's movement as the game progresses.
 
 The if statement in the update function will check if the player falls from a platform dies, in which case it will switch to the losing scene which we are yet to implement. 
 
-### Adding player movement
+## Handling player movement
 
-To control our player's movements, we will the keyboard arrow keys. We will also use the space key to make our layer jump. Add the following code below the `onUpdate()` function to implement the control keys:
+To control our player's movements, we will use the keyboard arrow keys. We will also use the space key to make our player jump. Add the following code below the `onUpdate()` function to implement the control keys:
 
 ```javascript
 
@@ -293,13 +302,13 @@ To control our player's movements, we will the keyboard arrow keys. We will also
 })
 ```
 
-The `onKeyDown()` and `onKeyPress()` functions allow the program to register which of the keyboard keys we specify are pressed. The `isGrounded()` and `jump()` functions are provided by the `body()` component. `isGrounded()` checks if the player is standing on a platform/ solid object in order for them to be able to jump.
+The `onKeyDown()` and `onKeyPress()` functions allow the program to register which of the keyboard keys we specify are pressed. The `isGrounded()` and `jump()` functions are provided by the `body()` component. `isGrounded()` checks if the player is standing on a platform or solid object to enable them to jump.
 
 The "f" key will make use of the `fullscreen()` function to switch our game screen to fullscreen when pressed. This is where the "game" scene ends.
 
-### Detecting collisions
+## Handling collisions
 
-Our player will collide with other objects in the game, such as food, coins, spikes, portals, and even enemies. we need to add the behavior that will occur if these collisions happen.
+Our player will collide with other objects in the game, such as food, coins, spikes, portals, and even enemies. We need to add the behavior that will occur if these collisions happen.
 
 Add the following code below the last `onKeyPress()` function outside of the "game" scene function:
 
@@ -309,6 +318,7 @@ Add the following code below the last `onKeyPress()` function outside of the "ga
 		play("hit")
 	})
 ```
+
 If the player collides with the spike objects, they will lose. These objects have the tag "danger" and if the player collides, they will die. 
 
 Add the next block code below the "danger" collision function:
@@ -326,7 +336,8 @@ Add the next block code below the "danger" collision function:
 		}
 	})
 ```
-The code above implements what happens when the player collides with a portal object. If the player reaches a portal, they will go to the game scene of the next level, with a different and also keep the number of coins they collected in the previous level. If the player has completed all the levels, they will go to the winning scene instead.
+
+The code above implements what happens when the player collides with a portal object. If the player reaches a portal, they will go to the game scene of the next level, with a different levelId. The game also keeps track of the number of coins they collected in the previous level. If the player has completed all the levels, they will go to the winning scene instead.
 
 Add the following code below the "portal" collision function:
 
@@ -348,7 +359,8 @@ Add the following code below the "portal" collision function:
 		}
 	})
 ```
-The code above registers the collisions between the player and enemy objects. The `onGround()` function checks whether a player landed on top of an enemy, in which case, the player will be able to jump from on top of them.
+
+The code above registers the collisions between the player and enemy objects. The `onGround()` function checks whether a player landed on top of an enemy, in which case, the player will be able to jump from on top of them and destroy it.
 
 However, if the player collides with the enemy instead, and it's not from the top, the player will die and the game will switch to the losing scene. The `play()` function plays the specified sound clip each time each of these collisions occurs.
 
@@ -372,11 +384,13 @@ Add the folowing code below the "enemy" collision function:
 		play("powerup")
 	})
 ```
-The `onHeadButt()` function checks whether the layer collides with the prize object from the top, in which case it will spawn an apple if it has not already done so.
+
+The `onHeadButt()` function checks whether the player collides with the prize object from the top, in which case it will spawn an apple if it has not already done so.
 
 If the player collides with the "apple" object, it will grow bigger and the apple will be destroyed or "eaten" by the player. The `biggify()` component is the one we defined earlier in the tutorial inside the `big()` component function.
 
 Add the following code below the "apple" collision function:
+
 ```javascript
 	let coinPitch = 0
 
@@ -396,9 +410,10 @@ Add the following code below the "apple" collision function:
 		coinsLabel.text = coins
 	})
 ```
-The code above implements what happens when a player collides with the objects tagged "coins".If a player collides with a coin it will be destroyed and the `coin` count increases.
 
-The `coinPitch` variable will be used to "detune" the pitch of the sound played as the player collects coins, especially consecutively.
+The code above implements what happens when a player collides with the objects tagged "coins": it will be destroyed and the `coin` count increased.
+
+The `coinPitch` variable will be used to "detune" the pitch of the sound played as the player collects coins.
 
 Add the following code below the "coin" collision function to display the coin count text on the game screen:
 
@@ -409,6 +424,7 @@ Add the following code below the "coin" collision function to display the coin c
 		fixed(),
 	])
 ```
+
 This will be displayed on the top-left corner of the screen.
 
 ## Creating the winning and losing scene
@@ -416,6 +432,7 @@ This will be displayed on the top-left corner of the screen.
 In this section, we will implement the "win" and "lose" games scenes for when the player loses or wins the game.
 
 Add the following code below the "coinsLabel" object:
+
 ```javascript
 scene("lose", () => {
 	add([
@@ -432,14 +449,16 @@ scene("win", () => {
 })
 ```
 
-The `text()` function will e used to render a message on the screen to let the player know if they have won or lost the game. In either case, if the player presses any key on the keyboard, the game will switch to the initial scene which is the "game" scene, and the player will be able to restart the game.
+The `text()` function will be used to render a message on the screen to let the player know if they have won or lost the game. In either case, if the player presses any key on the keyboard, the game will switch to the initial scene which is the "game" scene, and the player will be able to restart the game.
 
 
 Add this last line of code below the "win" scene to initiate the game with the "game" scene when the program starts.
+
 ```javascript
 go("game")
 
 ```
+
 The `go()` function is the one that will go to the scene with the name passed in.
 
 That's it for the platformer game!
@@ -448,8 +467,9 @@ That's it for the platformer game!
 
 Here are some ideas to try out to make the game more entertaining:
 
-- add background music to play as the game progresses
-- given the player temporary flying abilities when they eat an apple
+- Add background music to play as the game progresses
+- Give the player temporary flying abilities when they eat an apple
 
 Try out the embedded repl below:
-<iframe height="400px" width="100%" src="https://replit.com/@ritza/platformer?embed=true" scrolling="no" frameborder="no" allowtransparency="true" allowfullscreen="true" sandbox="allow-forms allow-pointer-lock allow-popups allow-same-origin allow-scripts allow-modals"></iframe>
+
+<iframe frameborder="0" width="100%" height="500px" src="https://replit.com/@ritza/platformer?embed=true"></iframe>
