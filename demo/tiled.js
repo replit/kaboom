@@ -3,13 +3,14 @@ kaboom()
 const mapl = loadTiled("/maps/test.tmx")
 
 mapl.then((map) => {
+	console.log(map)
 	const opt = {
 		width: map.tileWidth,
 		height: map.tileHeight,
 	}
-	for (const k in map.tiles) {
+	for (const k in map.sprites) {
 		opt[k] = () => [
-			sprite(map.tiles[k].sprite),
+			sprite(map.sprites[k]),
 		]
 	}
 	addLevel(map.map, opt)

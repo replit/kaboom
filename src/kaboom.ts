@@ -79,6 +79,7 @@ import {
 	LoadSpriteOpt,
 	SpriteAtlasData,
 	LoadBitmapFontOpt,
+	TiledMapData,
 	KaboomCtx,
 	KaboomOpt,
 	AudioPlay,
@@ -1153,7 +1154,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 	// TODO: layers
 	// TODO: use asset bucket
-	async function loadTiled(filepath: string) {
+	async function loadTiled(filepath: string): Promise<TiledMapData> {
 
 		const parser = new window.DOMParser()
 		const docStr = await fetchText(filepath)
@@ -1204,15 +1205,15 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		})()
 
 		const tilesetNode = mapDoc.querySelector("tileset")
-		const tilesetMargin = Number(tilesetNode.querySelector("margin"))
-		const tilesetSpacing = Number(tilesetNode.querySelector("spacing"))
+// 		const tilesetMargin = Number(tilesetNode.querySelector("margin"))
+// 		const tilesetSpacing = Number(tilesetNode.querySelector("spacing"))
 		const tilesetFirstGID = Number(tilesetNode.getAttribute("firstgid"))
 		const tilesetSrc = tilesetNode.getAttribute("source")
 		const tilesetPath = resolvePath(filepath, tilesetSrc)
 		const tilesetStr = await fetchText(tilesetPath)
 		const tilesetDoc = parser.parseFromString(tilesetStr, "application/xml")
 		const tileNodes = tilesetDoc.querySelectorAll("tile")
-		const tiles = {}
+		const sprites = {}
 
 		for (const tileNode of tileNodes) {
 			const id = Number(tileNode.getAttribute("id"))
@@ -1221,18 +1222,14 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				throw new Error("Tile without image node is not supported.")
 			}
 			const imgPath = resolvePath(tilesetPath, imgNode.getAttribute("source"))
-			const w = imgNode.getAttribute("width")
-			const h = imgNode.getAttribute("height")
-			tiles[id + tilesetFirstGID] = {
-				sprite: await loadSprite(null, imgPath),
-				width: w,
-				height: h,
-			}
+// 			const w = imgNode.getAttribute("width")
+// 			const h = imgNode.getAttribute("height")
+			sprites[id + tilesetFirstGID] = await loadSprite(null, imgPath)
 		}
 
 		return {
 			map: data,
-			tiles: tiles,
+			sprites: sprites,
 			tileWidth: tileWidth,
 			tileHeight: tileHeight,
 		}

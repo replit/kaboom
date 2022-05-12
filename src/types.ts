@@ -980,7 +980,7 @@ export interface KaboomCtx {
 	 * loadTiled("maps/map.tmx")
 	 * ```
 	 */
-	loadTiled(filepath: string),
+	loadTiled(filepath: string): Promise<TiledMapData>,
 	/**
 	 * Load default sprite "bean".
 	 *
@@ -4291,6 +4291,18 @@ export interface StateComp extends Comp {
 	 * Register an event that runs every frame when in a specific state.
 	 */
 	onStateDraw: (state: string, action: () => void) => EventCanceller,
+}
+
+/**
+ * Represents the data loaded from a .tmx tiled file
+ */
+export type TiledMapData = {
+	tileWidth: number,
+	tileHeight: number,
+	map: string[][],
+	sprites: {
+		[key: string]: SpriteData,
+	}
 }
 
 export interface LevelOpt {
