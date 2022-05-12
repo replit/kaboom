@@ -14,7 +14,7 @@ The steps in the tutorial are as follows:
 * Adding text to display audio state and changes
 * Adding audio control keys
 
-![audio display](audio-display.png)
+![audio display](tutorials/audio.png)
 
 ## Getting started with the code
 

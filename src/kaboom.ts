@@ -2432,6 +2432,10 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		drawStenciled(content, mask, gl.NOTEQUAL)
 	}
 
+	function getViewportScale() {
+		return (gfx.viewport.width + gfx.viewport.height) / (gfx.width + gfx.height)
+	}
+
 	function drawUnscaled(content: () => void) {
 		flush()
 		const ow = gfx.width
@@ -3514,7 +3518,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				if (this.parent) {
 					this.parent.remove(this)
 				} else {
-					throw new Error("Cannot to destroy parentless object.")
+					throw new Error("Cannot destroy parentless object.")
 				}
 			},
 
@@ -3855,7 +3859,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			drawInspect() {
 				drawCircle({
 					color: rgb(255, 0, 0),
-					radius: 5,
+					radius: 4 / getViewportScale(),
 				})
 			},
 
@@ -4090,7 +4094,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 				const opts = {
 					outline: {
-						width: 4,
+						width: 4 / getViewportScale(),
 						color: rgb(0, 0, 255),
 					},
 					origin: this.origin,

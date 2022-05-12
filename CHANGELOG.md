@@ -43,6 +43,7 @@
 - added `debug.numFrames()` to get the current frame count
 - (**BREAK**) renamed `cursor()` to `setCursor()`
 - (**BREAK**) renamed `fullscreen()` to `setFullscreen()`
+- moved type defs for global functions to `import "kaboom/global"`
 
 ### v2000.2.6
 
