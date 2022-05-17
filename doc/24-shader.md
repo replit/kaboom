@@ -1,4 +1,4 @@
-# Shade Sprites with Kaboom
+# Shading sprites with Kaboom
 
 In this tutorial, we'll learn about the Kaboom shader function `loadShader()` and how to change the color of sprites or other game objects.
 
@@ -40,7 +40,7 @@ vec4 frag(vec3 pos, vec2 uv, vec4 color, sampler2D tex) {
 
 The function takes four arguments: the tag or name of the function (`"invert"` in this case), a vertex position (`null` in this case), the fragment shader, and a boolean to indicate whether the fragment shader is loaded from a file URL. It is false in this case because we've added a custom fragment shader.
 
-For the fragment shader, the line `uniform float u_time` declares the uniform time variable `u_time`, which will be used to keep shading our sprite as long as the program runs. The `frag()` function is used to create a fragment color composed of the vertex position, texture coordinates, vertex color, and texture that it receives as arguments. 
+For the fragment shader, the line `uniform float u_time` declares the uniform time variable `u_time` which will be used to run keep shading our sprite as long as the program runs. The `frag()` function is used to create a fragment color composed of the vertex position, texture coordinates, vertex color, and texture that it receives as arguments.The `def_frag()` function returns the default fragment color of the sprite that the `frag()` function is being applied to. The `mix()` function returns the ever-changing-color effect as it switches between the default color and the fragment shader color for as  long as the program runs.
 
 The `def_frag()` function returns the default fragment color.
 
