@@ -234,7 +234,7 @@ Frame: ${player.frame}
 
 We'll use the `label` object to render `getInfo()` onto our screen. The `onUpdate()` function updates the text each time our objects change frames or direction:
 
-```
+```javascript
 const label = add([
     text(getInfo()),
     pos(4),
