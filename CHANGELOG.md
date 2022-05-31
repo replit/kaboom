@@ -44,6 +44,7 @@
 - (**BREAK**) renamed `cursor()` to `setCursor()`
 - (**BREAK**) renamed `fullscreen()` to `setFullscreen()`
 - moved type defs for global functions to `import "kaboom/global"`
+- (**BREAK**) removed `apl386` and `apl386o` as default fonts, default font changed to `sink`,, and added a default font size of `16`
 
 ### v2000.2.6
 
