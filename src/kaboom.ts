@@ -148,10 +148,6 @@ import FPSCounter from "./fps"
 import Timer from "./timer"
 
 // @ts-ignore
-import apl386Src from "./assets/apl386.png"
-// @ts-ignore
-import apl386oSrc from "./assets/apl386o.png"
-// @ts-ignore
 import sinkSrc from "./assets/sink.png"
 // @ts-ignore
 import sinkoSrc from "./assets/sinko.png"
@@ -245,9 +241,10 @@ const MAX_DETUNE = 1200
 const DEF_ORIGIN = "topleft"
 const BG_GRID_SIZE = 64
 
-const DEF_FONT = "apl386o"
+const DEF_FONT = "sink"
 const DBG_FONT = "sink"
-const DEF_TEXT_SIZE = 64
+const DEF_TEXT_SIZE = 16
+const DEF_TEXT_CACHE_SIZE = 64
 const FONT_ATLAS_SIZE = 1024
 // 0.05 pixel padding to texture coordinates to prevent artifact
 const UV_PAD = 0.05
@@ -1308,7 +1305,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			const font = getBitmapFont(src)
 			if (font) {
 				return font.data ? font.data : font
-			} else if (document.fonts.check(`${DEF_TEXT_SIZE}px ${src}`)) {
+			} else if (document.fonts.check(`${DEF_TEXT_CACHE_SIZE}px ${src}`)) {
 				return src
 			} else if (loadProgress() < 1) {
 				return null
@@ -2448,7 +2445,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				font: {
 					tex: new Texture(FONT_ATLAS_SIZE, FONT_ATLAS_SIZE),
 					map: {},
-					size: DEF_TEXT_SIZE,
+					size: DEF_TEXT_CACHE_SIZE,
 				},
 				cursor: vec2(0),
 			}
@@ -4470,7 +4467,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 			id: "text",
 			text: t,
-			textSize: opt.size,
+			textSize: opt.size ?? DEF_TEXT_SIZE,
 			font: opt.font,
 			width: opt.width,
 			height: 0,
@@ -5951,20 +5948,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		})
 
 	}
-
-	loadBitmapFont(
-		"apl386",
-		apl386Src,
-		45,
-		74,
-	)
-
-	loadBitmapFont(
-		"apl386o",
-		apl386oSrc,
-		45,
-		74,
-	)
 
 	loadBitmapFont(
 		"sink",
