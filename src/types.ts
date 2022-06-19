@@ -52,7 +52,6 @@ export interface KaboomCtx {
 	 *     area(),
 	 *     body(),
 	 *     health(8),
-	 *     doubleJump(),
 	 *     // Plain strings are tags, a quicker way to let us define behaviors for a group
 	 *     "player",
 	 *     "friendly",
