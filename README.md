@@ -8,8 +8,7 @@
     <h6>Start playing around with it in the <a href="https://kaboomjs.com/play">Kaboom Playground</a></h6>
     <br>
     <h4>Community</h4>
-    <!-- ! Please add discord online people - need discord ID -->
-    <img alt="Twitter Follow" src="https://img.shields.io/twitter/follow/Kaboomjs?style=social">
+    <a href="https://twitter.com/kaboomjs" target="_blank"><img alt="Twitter Follow" src="https://img.shields.io/twitter/follow/Kaboomjs?style=social"></a>
 </div>
 
 ## Examples
