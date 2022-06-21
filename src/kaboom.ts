@@ -1140,6 +1140,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 						to: anim.to,
 						speed: 10,
 						loop: true,
+						pingpong: anim.direction === "pingpong",
 					}
 				}
 			}
