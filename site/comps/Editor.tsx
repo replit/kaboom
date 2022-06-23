@@ -508,6 +508,8 @@ const Editor = React.forwardRef<EditorRef, ViewPropsAnd<EditorProps>>(({
 
 		setView(view)
 
+		return () => view.destroy()
+
 	}, [])
 
 	useUpdateEffect(() => {
