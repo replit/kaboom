@@ -2,7 +2,6 @@ import * as React from "react"
 
 import {
 	EditorState,
-	Compartment,
 	Extension,
 } from "@codemirror/state"
 
@@ -16,6 +15,7 @@ import {
 	KeyBinding,
 	lineNumbers,
 	highlightActiveLineGutter,
+	ViewUpdate,
 } from "@codemirror/view"
 
 import {
@@ -269,6 +269,7 @@ interface EditorProps {
 	content?: string | (() => string),
 	placeholder?: string,
 	onChange?: (code: string) => void,
+	onUpdate?: (update: ViewUpdate) => void,
 	onSelect?: (code: string) => void,
 	keys?: KeyBinding[],
 }
@@ -278,6 +279,7 @@ const Editor = React.forwardRef<EditorRef, ViewPropsAnd<EditorProps>>(({
 	placeholder,
 	keys,
 	onChange,
+	onUpdate,
 	onSelect,
 	...args
 }, ref) => {
@@ -373,6 +375,7 @@ const Editor = React.forwardRef<EditorRef, ViewPropsAnd<EditorProps>>(({
 					syntaxHighlighting(defaultHighlightStyle),
 					EditorView.updateListener.of((update) => {
 						const state = update.state
+						onUpdate && onUpdate(update)
 						if (update.docChanged) {
 							onChange && onChange(state.doc.toString())
 						}
