@@ -6,7 +6,6 @@ import {
 	Decoration,
 	WidgetType,
 	MatchDecorator,
-	PluginField,
 } from "@codemirror/view"
 
 import Pedit from "lib/pedit"
@@ -157,7 +156,8 @@ const imgViewPlugin = ViewPlugin.define<ViewState>((view) => {
 }, {
 
 	decorations: (v) => v.deco,
-	provide: PluginField.atomicRanges.from((v) => v.deco),
+	// TODO
+// 	provide: () => EditorView.atomicRanges.from((v) => v.deco),
 
 	eventHandlers: {
 
