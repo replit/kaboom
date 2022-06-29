@@ -1,15 +1,14 @@
 import * as React from "react"
 import View from "comps/View"
 
-interface ModalProps {
-	isOpen: boolean,
-	close: () => void,
-}
-
-const Modal: React.FC<ModalProps> = ({
+const Modal = ({
 	isOpen,
 	close,
 	children,
+}: {
+	isOpen: boolean,
+	close: () => void,
+	children?: React.ReactNode,
 }) => isOpen ? (
 	<>
 		<View

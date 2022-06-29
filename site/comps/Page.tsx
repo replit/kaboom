@@ -11,7 +11,11 @@ import useSavedState from "hooks/useSavedState"
 import useKey from "hooks/useKey"
 import IDList from "lib/idlist"
 
-const Page: React.FC = ({ children }) => {
+const Page = ({
+	children,
+}: {
+	children?: React.ReactNode,
+}) => {
 
 	const [ theme, setTheme ] = useSavedState("theme", DEF_THEME)
 	const [ inspect, setInspect ] = React.useState(false)

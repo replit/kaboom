@@ -1,6 +1,5 @@
 import * as React from "react"
 import View, { ViewProps } from "comps/View"
-import { keyframes } from "@emotion/react"
 import { themes } from "lib/ui"
 import Ctx from "lib/Ctx"
 

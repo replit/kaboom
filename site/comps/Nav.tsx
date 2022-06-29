@@ -223,7 +223,11 @@ const IndexContent: React.FC<IndexContentProps> = ({
 
 }
 
-const Nav: React.FC = ({children}) => (
+const Nav = ({
+	children,
+}: {
+	children?: React.ReactNode,
+}) => (
 	<Background pad={3} css={{
 		[`@media (max-width: ${MOBILE}px)`]: {
 			padding: "0 !important",
