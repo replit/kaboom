@@ -5,24 +5,24 @@ import Markdown from "comps/Markdown"
 import Nav from "comps/Nav"
 import { capitalize } from "lib/str"
 
-interface DocProps {
+interface BlogProps {
 	name: string,
 	src: string,
 }
 
-const Doc: React.FC<DocProps> = ({
+const Blog: React.FC<BlogProps> = ({
 	src,
 	name,
 }) => (
 	<Nav>
 		<Head title={`Kaboom - ${capitalize(name)}`} />
-		<Markdown src={src} baseUrl="/site/doc/" />
+		<Markdown src={src} baseUrl="/site/blog/" />
 	</Nav>
 )
 
 export const getServerSideProps: GetServerSideProps = async (ctx) => {
 	const { name } = ctx.query
-	const path = `public/site/doc/${name}.md`
+	const path = `public/site/blog/${name}.md`
 	try {
 		return {
 			props: {
@@ -37,4 +37,4 @@ export const getServerSideProps: GetServerSideProps = async (ctx) => {
 	}
 }
 
-export default Doc
+export default Blog
