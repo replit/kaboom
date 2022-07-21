@@ -178,11 +178,19 @@ export class Color {
 	}
 
 	lighten(a: number): Color {
-		return new Color(this.r + a, this.g + a, this.b + a)
+		return new Color(
+			(255 - this.r) * a + this.r,
+			(255 - this.g) * a + this.g,
+			(255 - this.b) * a + this.b
+		)
 	}
 
 	darken(a: number): Color {
-		return this.lighten(-a)
+		return new Color(
+			this.r * (1-a),
+			this.g * (1-a),
+			this.b * (1-a)
+		)
 	}
 
 	invert(): Color {
@@ -194,6 +202,14 @@ export class Color {
 			this.r * other.r / 255,
 			this.g * other.g / 255,
 			this.b * other.b / 255,
+		)
+	}
+	
+	screen(other: Color): Color {
+		return new Color(
+			255 - (255-this.r) * (255-other.r) / 255,
+			255 - (255-this.g) * (255-other.g) / 255,
+			255 - (255-this.b) * (255-other.b) / 255,
 		)
 	}
 
