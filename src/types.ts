@@ -3247,16 +3247,43 @@ export declare class Color {
 	static WHITE: Color
 	static BLACK: Color
 	clone(): Color
+	
 	/**
-	 * Lighten the color (adds RGB by n).
+	 * Lighten color by a certain percentage
+	 * @param percent Number between 0-1 indicating how light to make color
+	 * @example
+	 * color.lighten(0); // Does nothing
+	 * color.lighten(0.5); // 50% lighter
+	 * color.lighten(1); // White
+	 * @returns Lightened color
 	 */
-	lighten(n: number): Color
+	lighten(percent: number): Color
 	/**
-	 * Darkens the color (subtracts RGB by n).
+	 * Darken color by a certain percentage
+	 * @param percent Number between 0-1 indicating how dark to make color
+	 * @example
+	 * color.darken(0); // Does nothing
+	 * color.darken(0.5); // 50% darker
+	 * color.darken(1); // Black
+	 * @returns Darkened color
 	 */
-	darken(n: number): Color
+	darken(percent: number): Color
 	invert(): Color
+	
+	/**
+	 * Apply multiply blend mode on color
+	 * @param other Color to blend with
+	 * @returns Result of blended colors
+	 */
 	mult(other: Color): Color
+	
+	/**
+	 * Apply screen blend mode on color
+	 * @param other Color to blend with
+	 * @returns Result of blended colors
+	 */
+	screen(other: Color): Color
+	
 	eq(c: Color): boolean
 	toString(): string
 }
