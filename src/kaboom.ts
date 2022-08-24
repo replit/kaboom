@@ -4835,15 +4835,18 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			throw new Error("lifespan() requires time")
 		}
 		let timer = 0
+		let startOpacity = 0
 		const fade = opt.fade ?? 0
 		const startFade = Math.max((time - fade), 0)
 		return {
 			id: "lifespan",
 			update() {
 				timer += dt()
-				// TODO: don't assume 1 as start opacity
+				
 				if (timer >= startFade) {
-					this.opacity = map(timer, startFade, time, 1, 0)
+					if(!startOpacity) startOpacity = this.opacity
+					
+					this.opacity = map(timer, startFade, time, startOpacity, 0)
 				}
 				if (timer >= time) {
 					this.destroy()
