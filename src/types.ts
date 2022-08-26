@@ -4105,6 +4105,10 @@ export interface BodyComp extends Comp {
 	 */
 	doubleJump(f?: number): void,
 	/**
+	 * Performs multiple jump (the initial jump only happens if player is grounded).
+	 */
+	multiJump(n: number, f?: number): void,
+	/**
 	 * Register an event that runs when a collision is resolved.
 	 *
 	 * @since v2001.0
@@ -4140,6 +4144,13 @@ export interface BodyComp extends Comp {
 	 * @since v2000.1
 	 */
 	onDoubleJump(action: () => void): EventCanceller,
+
+	/**
+	 * Register an event that runs when the object performs the non-first jump when multiple jumping.
+	 *
+	 * @since v2001.0
+	 */
+	onMultiJump(action: () => void): EventCanceller,
 }
 
 export interface BodyCompOpt {

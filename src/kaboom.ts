@@ -4598,6 +4598,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		let curPlatform: GameObj | null = null
 		let lastPlatformPos = null
 		let canDouble = true
+		let jumpsEffected = 0
 		let wantFall = false
 		const cleanups: Array<() => void> = []
 
@@ -4652,6 +4653,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 								wantFall = false
 							} else {
 								canDouble = true
+								jumpsEffected = 0
 								this.trigger("ground", curPlatform)
 							}
 						} else if (col.isTop() && this.isRising()) {
@@ -4746,6 +4748,20 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				}
 			},
 
+			multiJump(n: number, force: number) {
+				if (this.isGrounded()) {
+					this.jump(force)
+					jumpsEffected++
+				} else if (jumpsEffected < n) {
+					this.jump(force)
+					jumpsEffected++
+					this.trigger("multiJump")
+				}
+				else {
+					jumpsEffected = 0
+				}
+			},
+
 			onGround(action: () => void): EventCanceller {
 				return this.on("ground", action)
 			},
@@ -4766,6 +4782,9 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				return this.on("doubleJump", action)
 			},
 
+			onMultiJump(action: () => void): EventCanceller {
+				return this.on("multiJump", action)
+			}
 		}
 
 	}
