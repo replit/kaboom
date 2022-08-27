@@ -734,10 +734,19 @@ export interface KaboomCtx {
 	 *
 	 * @since v2000.1
 	 */
-	onHover(
-		tag: Tag,
-		action: (a: GameObj) => void,
-	): EventCanceller,
+	onHover(tag: Tag, onHover: (a: GameObj) => void, onNotHover: (a: GameObj) => void): EventCanceller,
+	/**
+	 * Register an event that runs once when game objs with certain tags is hovered (required to have area() component).
+	 *
+	 * @since v2001.0
+	 */
+	onHoverEnter(tag: Tag, action: (a: GameObj) => void): EventCanceller,
+	/**
+	 * Register an event that runs once when game objs with certain tags is unhovered (required to have area() component).
+	 *
+	 * @since v2001.0
+	 */
+	onHoverExit(tag: Tag, action: (a: GameObj) => void): EventCanceller,
 	/**
 	 * Register an event that runs every frame when a key is held down.
 	 *
@@ -3660,6 +3669,18 @@ export interface AreaComp extends Comp {
 	 * @since v2000.1
 	 */
 	onHover(onHover: () => void, onNotHover?: () => void): void,
+	/**
+	 * Register an event runs once when hovered.
+	 *
+	 * @since v2001.0
+	 */
+	onHoverEnter(action: () => void): void,
+	/**
+	 * Register an event runs once when unhovered.
+	 *
+	 * @since v2001.0
+	 */
+	onHoverExit(action: () => void): void,
 	/**
 	 * Register an event runs once when collide with another game obj with certain tag.
 	 *
