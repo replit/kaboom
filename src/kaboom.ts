@@ -4844,7 +4844,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				timer += dt()
 				
 				if (timer >= startFade) {
-					if(!startOpacity) startOpacity = this.opacity
+					if(!startOpacity) startOpacity = this.opacity ?? 1
 					
 					this.opacity = map(timer, startFade, time, startOpacity, 0)
 				}
