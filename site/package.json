@@ -4,7 +4,7 @@
 		"build": "next build",
 		"start": "next start",
 		"lint": "next lint",
-		"fmt": "eslint --fix pages lib comps cm",
+		"fmt": "eslint --fix pages lib comps",
 		"check": "tsc --noEmit"
 	},
 	"dependencies": {

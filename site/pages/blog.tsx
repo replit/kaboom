@@ -6,7 +6,7 @@ import Nav from "comps/Nav"
 import Text from "comps/Text"
 import Head from "comps/Head"
 import BlogEntry from "comps/BlogEntry"
-import matter from 'gray-matter'
+import matter from "gray-matter"
 
 interface Blog {
 	title: string;
@@ -39,7 +39,7 @@ const BlogEntries: React.FC<BlogProps> = ({ blogs }) => {
 	)
 }
 const Blog: React.FC<BlogProps> = ({
-	blogs
+	blogs,
 }) => {
 	return (
 		<Nav>
@@ -69,8 +69,8 @@ export const getServerSideProps: GetServerSideProps = async () => {
 
 	// sort by date and reverse
 	blogs.sort((a, b) => {
-		var c = new Date(a.date).getTime()
-		var d = new Date(b.date).getTime()
+		const c = new Date(a.date).getTime()
+		const d = new Date(b.date).getTime()
 		
 		return c - d
 	}).reverse()

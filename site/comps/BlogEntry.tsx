@@ -1,7 +1,7 @@
 import * as React from "react"
 import View, { ViewProps } from "comps/View"
 import { themes } from "lib/ui"
-import Text from "comps/Text";
+import Text from "comps/Text"
 import Ctx from "lib/Ctx"
 
 interface BlogEntryProps {
@@ -39,7 +39,7 @@ const BlogEntry: React.FC<BlogEntryProps & ViewProps> = ({
 				marginRight: 14,
 				[`@media (max-width: ${MOBILE}px)`]: {
 					width: "100%",
-					height: "30%"
+					height: "30%",
 				},
 			}}/>
 
