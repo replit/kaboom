@@ -7,6 +7,7 @@ import Text from "comps/Text"
 import Head from "comps/Head"
 import BlogEntry from "comps/BlogEntry"
 import matter from "gray-matter"
+import View from "comps/View"
 
 interface Blog {
 	title: string;
@@ -22,20 +23,18 @@ interface BlogProps {
 }
 
 const BlogEntries: React.FC<BlogProps> = ({ blogs }) => {
-	const blogsEntries = []
-
-	for(const blog of blogs) {
-		blogsEntries.push(<a href={blog.link} css={{ width: "100%" }}><BlogEntry
-			title={blog.title}
-			author={blog.author}
-			date={blog.date}
-			description={blog.description}
-			image={`site/blog/banners/${blog.image}`}
-		/></a>)
-	}
-
-	return (
-		<>{blogsEntries}</>
+	return(
+		<View gap={4}>
+			{blogs.map((blog) => (
+				<a href={blog.link} css={{ width: "100%" }}>
+					<BlogEntry
+						title={blog.title}
+						author={blog.author}
+						date={blog.date}
+						description={blog.description}
+						image={`site/blog/banners/${blog.image}`}
+					/></a>))}
+		</View>
 	)
 }
 const Blog: React.FC<BlogProps> = ({

@@ -24,7 +24,7 @@ const BlogEntry: React.FC<BlogEntryProps & ViewProps> = ({
 	...args
 }) => {
 	return (
-		<View stretchX={true} height={180} dir="row" outlined={true} rounded={true} bg={3} padX={1} padY={1} css={{
+		<View stretchX outlined rounded  height={180} dir="row" bg={3} padX={1} padY={1} css={{
 			[`@media (max-width: ${MOBILE}px)`]: {
 				flexDirection: "column",
 				height: 320,
@@ -46,10 +46,7 @@ const BlogEntry: React.FC<BlogEntryProps & ViewProps> = ({
 			<View bg={"none"} dir="column">
 				<Text size="huge">{title}</Text>
 
-				<Text size="small" css={{
-					fontStyle: "italic",
-					color: "var(--color-fg3)",
-				}}>{author}, {date}</Text>
+				<Text size="small" italic color={3}>{author}, {date}</Text>
 
 				<Text size="normal">{description}</Text>
 			</View>
