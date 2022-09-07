@@ -24,7 +24,7 @@ const BlogEntry: React.FC<BlogEntryProps & ViewProps> = ({
 	...args
 }) => {
 	return (
-		<View stretchX outlined rounded  height={180} dir="row" bg={3} padX={1} padY={1} css={{
+		<View stretchX outlined rounded height={180} dir="row" bg={3} padX={1} padY={1} css={{
 			[`@media (max-width: ${MOBILE}px)`]: {
 				flexDirection: "column",
 				height: 320,
