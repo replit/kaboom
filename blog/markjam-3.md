@@ -1,4 +1,12 @@
-# Mark Jam 3 Announcement
+---
+title: MarkJam 3 Announcement
+author: lajbel
+date: 7/16/2022
+description: We are glad to announce MarkJam 3, the next jam official by kaboom
+image: markjam-3.png
+---
+
+# MarkJam 3 Announcement
 
 > lajbel, 7/16/2022
 
