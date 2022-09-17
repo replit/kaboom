@@ -1,4 +1,5 @@
 import * as React from "react"
+import matter from "gray-matter"
 import Background from "comps/Background"
 import fs from "fs/promises"
 import { GetServerSideProps } from "next"
@@ -6,7 +7,6 @@ import Nav from "comps/Nav"
 import Text from "comps/Text"
 import Head from "comps/Head"
 import BlogEntry from "comps/BlogEntry"
-import matter from "gray-matter"
 import View from "comps/View"
 
 interface Blog {
@@ -26,7 +26,7 @@ const BlogEntries: React.FC<BlogProps> = ({ blogs }) => {
 	return(
 		<View gap={4}>
 			{blogs.map((blog) => (
-				<a href={blog.link} css={{ width: "100%" }}>
+				<a key={blog.link} href={blog.link} css={{ width: "100%" }}>
 					<BlogEntry
 						title={blog.title}
 						author={blog.author}
@@ -43,7 +43,7 @@ const Blog: React.FC<BlogProps> = ({
 	return (
 		<Nav>
 			<Head title="KaBlog" />
-			
+
 			<Text size="huge" bold>Blog</Text>
 			<Text size="normal">Welcome to the KaBlog, where we share news, jams and cool stuff arround Kaboom :&gt;</Text>
 
@@ -63,23 +63,23 @@ export const getServerSideProps: GetServerSideProps = async () => {
 
 		data.link = `blog/${blogEntry.substring(0, blogEntry.length - 3)}`
 
-		blogs.push(data) 
+		blogs.push(data)
 	}
 
 	// sort by date and reverse
 	blogs.sort((a, b) => {
 		const c = new Date(a.date).getTime()
 		const d = new Date(b.date).getTime()
-		
+
 		return c - d
 	}).reverse()
-		
+
 	return {
 		props: {
 			blogs: blogs,
 		},
 	}
-	
+
 }
 
 export default Blog
