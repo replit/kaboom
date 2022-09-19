@@ -3522,23 +3522,17 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 	// add an event that runs once when objs with tag t is hovered
 	function onHover(t: string, action: (obj: GameObj) => void): EventCanceller {
-		return onUpdate(t, (o: GameObj) => {
+		return on("hover", t, (o) => {
 			if (!o.area) throw new Error("onHover() requires the object to have area() component")
-			
-			if (o.isHovering()) {
-				if (o.hoverStarted) return
-				o.hoverStarted = true
-				o.hoverEnded = false
 
-				action(o)
-			}
+			action(o)
 		})
 	}
 
 	// add an event that runs once when objs with tag t is hovered
 	function onHoverUpdate(t: string, onHover: (obj: GameObj) => void, onNotHover?: (obj: GameObj) => void): EventCanceller {
 		return onUpdate(t, (o: GameObj) => {
-			if (!o.area) throw new Error("onHover() requires the object to have area() component")
+			if (!o.area) throw new Error("onHoverUpdate() requires the object to have area() component")
 			if (o.isHovering()) {
 				onHover(o)
 			} else {
@@ -3551,16 +3545,10 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	
 	// add an event that runs once when objs with tag t is unhovered
 	function onHoverEnd(t: string, action: (obj: GameObj) => void): EventCanceller {
-		return onUpdate(t, (o: GameObj) => {
-			if (!o.area) throw new Error("onHoverExit() requires the object to have area() component")
-			
-			if (!o.isHovering()) {
-				if (o.hoverEnded || !o.hoverStarted) return
-				o.hoverEnded = true
-				o.hoverStarted = false
+		return on("hoverEnd", t, (o) => {
+			if (!o.area) throw new Error("onHoverEnd() requires the object to have area() component")
 
-				action(o)
-			}
+			action(o)
 		})
 	}
 
@@ -3998,7 +3986,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			colliding: {},
 			collisionIgnore: opt.collisionIgnore ?? [],
 			hoverStarted: false,
-			hoverEnded: false,
+			hoverEnded: true,
 
 			add() {
 
@@ -4022,6 +4010,21 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 						delete this.colliding[id]
 						this.trigger("collideEnd", col.target, col)
 					}
+				}
+
+				if (this.isHovering()) {
+					if (this.hoverStarted) return
+					this.hoverStarted = true
+					this.hoverEnded = false
+
+					this.trigger("hover")
+				}
+				else {
+					if (this.hoverEnded || !this.hoverStarted) return
+					this.hoverEnded = true
+					this.hoverStarted = false
+
+					this.trigger("hoverEnd")
 				}
 			},
 
@@ -4117,13 +4120,8 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			},
 
 			onHover(action: () => void): EventCanceller {
-				return this.onUpdate(() => {
-					if(this.isHovering()) {
-						if (this.hoverStarted) return
-						this.hoverStarted = true
-						this.hoverEnded = false
-						action()
-					}
+				return this.on("hover", () => {
+					action()
 				})
 			},
 
@@ -4140,13 +4138,8 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			},
 
 			onHoverEnd(action: () => void): EventCanceller {
-				return this.onUpdate(() => {
-					if(!this.isHovering()) {
-						if (this.hoverEnded || !this.hoverStarted) return
-						this.hoverEnded = true
-						this.hoverStarted = false
-						action()
-					}
+				return this.on("hoverEnd", () => {
+					action()
 				})
 			},
 
