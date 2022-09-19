@@ -2301,7 +2301,7 @@ export interface GameObjRaw {
 	/**
 	 * A unique number ID for each game object in each kaboom instance.
 	 */
-	id: number | null,
+	id: GameObjID | null,
 }
 
 /**
@@ -3624,7 +3624,12 @@ export interface AreaComp extends Comp {
 	 * @since v3000.0
 	 */
 	collisionIgnore: Tag[],
-	colliding: Record<number, Collision>,
+	/**
+	 * A list of all collisions happening at the moment.
+	 *
+	 * @since v3000.0
+	 */
+	colliding: Record<GameObjID, Collision>,
 	/**
 	 * If was just clicked on last frame.
 	 */
