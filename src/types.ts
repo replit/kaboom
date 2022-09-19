@@ -3638,7 +3638,7 @@ export interface AreaComp extends Comp {
 	 *
 	 * @since v3000.0
 	 */
-	colliding: Record<number, Collision>,
+	colliding: Record<GameObjID, Collision>,
 	/**
 	 * If this object has started its hover.
 	 */
