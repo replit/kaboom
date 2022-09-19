@@ -732,7 +732,7 @@ export interface KaboomCtx {
 	/**
 	 * Register an event that runs once when game objs with certain tags are hovered (required to have area() component).
 	 *
-	 * @since v2000.1
+	 * @since v3000.0
 	 */
 	onHover(tag: Tag, action: (a: GameObj) => void): EventCanceller,
 	/**
@@ -744,7 +744,7 @@ export interface KaboomCtx {
 	/**
 	 * Register an event that runs once when game objs with certain tags are unhovered (required to have area() component).
 	 *
-	 * @since v2001.0
+	 * @since v3000.0
 	 */
 	onHoverEnd(tag: Tag, action: (a: GameObj) => void): EventCanceller,
 	/**
@@ -3635,6 +3635,14 @@ export interface AreaComp extends Comp {
 	collisionIgnore: Tag[],
 	colliding: Record<number, Collision>,
 	/**
+	 * If this object has started its hover.
+	 */
+	hoverStarted: boolean;
+	/**
+	 * If this object has ended its hover.
+	 */
+	 hoverEnded: boolean;
+	/**
 	 * If was just clicked on last frame.
 	 */
 	isClicked(): boolean,
@@ -3666,7 +3674,7 @@ export interface AreaComp extends Comp {
 	/**
 	 * Register an event runs once when hovered.
 	 *
-	 * @since v2000.1
+	 * @since v3000.0
 	 */
 	onHover(action: () => void): void,
 	/**
@@ -3684,7 +3692,7 @@ export interface AreaComp extends Comp {
 	/**
 	 * Register an event runs once when collide with another game obj with certain tag.
 	 *
-	 * @since v3000.0
+	 * @since v2001.0
 	 */
 	onCollide(tag: Tag, f: (obj: GameObj, col?: Collision) => void): void,
 	/**
