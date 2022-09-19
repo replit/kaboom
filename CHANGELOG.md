@@ -38,7 +38,7 @@
 - (**BREAK**) renamed `Body#weight` to `Body#gravityScale`
 - (**BREAK**) removed `GameObj#every()` and `GameObj#revery()` in favor of `obj.get().forEach()`
 - added `GameObj#getAll()` for recursively getting children game objects (`get()` only gets from direct children)
-- added `Area#onCollisionActive()` and `Area#onCollisionEnd()` events
+- added `Area#onCollideUpdate()` and `Area#onCollideEnd()` events
 - removed `debug.objCount()` in favor of `getAll().length`
 - added `debug.numFrames()` to get the current frame count
 - (**BREAK**) renamed `cursor()` to `setCursor()`

@@ -3677,25 +3677,25 @@ export interface AreaComp extends Comp {
 	 *
 	 * @since v3000.0
 	 */
-	onCollisionActive(tag: Tag, f: (obj: GameObj, col?: Collision) => void): void,
+	onCollideUpdate(tag: Tag, f: (obj: GameObj, col?: Collision) => void): void,
 	/**
 	 * Register an event runs every frame when collide with another game obj.
 	 *
 	 * @since v3000.0
 	 */
-	onCollisionActive(f: (obj: GameObj, col?: Collision) => void): void,
+	onCollideUpdate(f: (obj: GameObj, col?: Collision) => void): void,
 	/**
 	 * Register an event runs once when stopped colliding with another game obj with certain tag.
 	 *
 	 * @since v3000.0
 	 */
-	onCollisionEnd(tag: Tag, f: (obj: GameObj) => void): void,
+	onCollideEnd(tag: Tag, f: (obj: GameObj) => void): void,
 	/**
 	 * Register an event runs once when stopped colliding with another game obj.
 	 *
 	 * @since v3000.0
 	 */
-	onCollisionEnd(f: (obj: GameObj) => void): void,
+	onCollideEnd(f: (obj: GameObj) => void): void,
 	/**
 	 * If has a certain point inside collider.
 	 */
@@ -4109,7 +4109,7 @@ export interface BodyComp extends Comp {
 	 *
 	 * @since v3000.0
 	 */
-	onCollisionResolve(action: (col: Collision) => void): EventCanceller,
+	onPhysicsResolve(action: (col: Collision) => void): EventCanceller,
 	/**
 	 * Register an event that runs when the object is grounded.
 	 *
@@ -4254,7 +4254,7 @@ export interface StateComp extends Comp {
 	 */
 	state: string,
 	/**
-	 * Enter a state, trigger onStateLeave for previous state and onStateEnter for the new State state.
+	 * Enter a state, trigger onStateEnd for previous state and onStateEnter for the new State state.
 	 */
 	enterState: (state: string, ...args) => void,
 	/**
@@ -4270,7 +4270,7 @@ export interface StateComp extends Comp {
 	/**
 	 * Register an event that runs once when leaves a specific state.
 	 */
-	onStateLeave: (state: string, action: () => void) => EventCanceller,
+	onStateEnd: (state: string, action: () => void) => EventCanceller,
 	/**
 	 * Register an event that runs every frame when in a specific state.
 	 */
