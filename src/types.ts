@@ -2310,7 +2310,7 @@ export interface GameObjRaw {
 	/**
 	 * A unique number ID for each game object in each kaboom instance.
 	 */
-	id: GameObjID | null,
+	id: number | null,
 }
 
 /**
@@ -3633,12 +3633,7 @@ export interface AreaComp extends Comp {
 	 * @since v3000.0
 	 */
 	collisionIgnore: Tag[],
-	/**
-	 * A list of all collisions happening at the moment.
-	 *
-	 * @since v3000.0
-	 */
-	colliding: Record<GameObjID, Collision>,
+	colliding: Record<number, Collision>,
 	/**
 	 * If this object has started its hover.
 	 */
@@ -3646,7 +3641,7 @@ export interface AreaComp extends Comp {
 	/**
 	 * If this object has ended its hover.
 	 */
-	 hoverEnded: boolean;
+	hoverEnded: boolean;
 	/**
 	 * If was just clicked on last frame.
 	 */
