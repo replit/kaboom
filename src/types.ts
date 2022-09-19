@@ -85,7 +85,7 @@ export interface KaboomCtx {
 	/**
 	 * Create a game object from a list of components, without adding it to the scene.
 	 *
-	 * @since v2001.0
+	 * @since v3000.0
 	 */
 	make<T>(comps?: CompList<T>): GameObj<T>,
 	/**
@@ -108,7 +108,7 @@ export interface KaboomCtx {
 	/**
 	 * Recursively a list of all game objs with certain tag including children of children.
 	 *
-	 * @since v2001.0
+	 * @since v3000.0
 	 */
 	getAll(tag?: Tag | Tag[]): GameObj[],
 	/**
@@ -668,19 +668,19 @@ export interface KaboomCtx {
 	/**
 	 * Register a custom loading screen. The callback is run every frame during loading.
 	 *
-	 * @since v2001.0
+	 * @since v3000.0
 	 */
 	onLoading(action: (err: Error) => void): void,
 	/**
 	 * Register a custom error handler. Can be used to draw a custom error screen.
 	 *
-	 * @since v2001.0
+	 * @since v3000.0
 	 */
 	onError(action: (err: Error) => void): void,
 	/**
 	 * Register an event that runs when the canvas resizes
 	 *
-	 * @since v2001.0
+	 * @since v3000.0
 	 */
 	onResize(action: (
 		prevWidth: number,
@@ -1011,9 +1011,9 @@ export interface KaboomCtx {
 		src: string,
 	): Asset<SoundData>,
 	/**
-	 * Load a font through browser FontFace.
+	 * Load a font (any format supported by the browser, e.g. ttf, otf, woff)
 	 *
-	 * @since v2001.0
+	 * @since v3000.0
 	 *
 	 * @example
 	 * ```js
@@ -1025,7 +1025,7 @@ export interface KaboomCtx {
 	/**
 	 * Load a bitmap font into asset manager, with name and resource url and infomation on the layout of the bitmap.
 	 *
-	 * @since v2001.0
+	 * @since v3000.0
 	 *
 	 * @example
 	 * ```js
@@ -1085,37 +1085,37 @@ export interface KaboomCtx {
 	/**
 	 * Get the global asset loading progress (0.0 - 1.0).
 	 *
-	 * @since v2001.0
+	 * @since v3000.0
 	 */
 	loadProgress(): number,
 	/**
 	 * Get SpriteData from handle if loaded.
 	 *
-	 * @since v2001.0
+	 * @since v3000.0
 	 */
 	getSprite(handle: string): Asset<SpriteData> | void,
 	/**
 	 * Get SoundData from handle if loaded.
 	 *
-	 * @since v2001.0
+	 * @since v3000.0
 	 */
 	getSound(handle: string): Asset<SoundData> | void,
 	/**
 	 * Get FontData from handle if loaded.
 	 *
-	 * @since v2001.0
+	 * @since v3000.0
 	 */
 	getFont(handle: string): Asset<FontData> | void,
 	/**
 	 * Get BitmapFontData from handle if loaded.
 	 *
-	 * @since v2001.0
+	 * @since v3000.0
 	 */
 	getBitmapFont(handle: string): Asset<BitmapFontData> | void,
 	/**
 	 * Get ShaderData from handle if loaded.
 	 *
-	 * @since v2001.0
+	 * @since v3000.0
 	 */
 	getShader(handle: string): Asset<ShaderData> | void,
 	Asset: typeof Asset,
@@ -1823,13 +1823,13 @@ export interface KaboomCtx {
 	/**
 	 * Whatever drawn in content will only be drawn if it's also drawn in mask (mask will not be rendered).
 	 *
-	 * @since v2001.0
+	 * @since v3000.0
 	 */
 	drawMasked(content: () => void, mask: () => void): void,
 	/**
 	 * Subtract whatever drawn in content by whatever drawn in mask (mask will not be rendered).
 	 *
-	 * @since v2001.0
+	 * @since v3000.0
 	 */
 	drawSubtracted(content: () => void, mask: () => void): void,
 	/**
@@ -1885,25 +1885,25 @@ export interface KaboomCtx {
 	/**
 	 * Rotate all subsequent draws on X axis.
 	 *
-	 * @since v2001.0
+	 * @since v3000.0
 	 */
 	pushRotateX(angle: number): void,
 	/**
 	 * Rotate all subsequent draws on Y axis.
 	 *
-	 * @since v2001.0
+	 * @since v3000.0
 	 */
 	pushRotateY(angle: number): void,
 	/**
 	 * Rotate all subsequent draws on Z axis (the default).
 	 *
-	 * @since v2001.0
+	 * @since v3000.0
 	 */
 	pushRotateZ(angle: number): void,
 	/**
 	 * Apply a transform matrix, ignore all prior transforms.
 	 *
-	 * @since v2001.0
+	 * @since v3000.0
 	 */
 	pushMatrix(mat: Mat4): void,
 	/**
@@ -1955,25 +1955,25 @@ export interface KaboomCtx {
 	/**
 	 * Trigger a file download from a url.
 	 *
-	 * @since v2001.0
+	 * @since v3000.0
 	 */
 	download(filename: string, dataurl: string): void,
 	/**
 	 * Trigger a text file download.
 	 *
-	 * @since v2001.0
+	 * @since v3000.0
 	 */
 	downloadText(filename: string, text: string): void,
 	/**
 	 * Trigger a json download from a .
 	 *
-	 * @since v2001.0
+	 * @since v3000.0
 	 */
 	downloadJSON(filename: string, data: any): void,
 	/**
 	 * Trigger a file download from a blob.
 	 *
-	 * @since v2001.0
+	 * @since v3000.0
 	 */
 	downloadBlob(filename: string, blob: Blob): void,
 	/**
@@ -2097,7 +2097,7 @@ export interface KaboomOpt {
 	/**
 	 * Device pixel scale (defaults to window.devicePixelRatio, high pixel density will hurt performance).
 	 *
-	 * @since v2001.0
+	 * @since v3000.0
 	 */
 	pixelDensity?: number,
 	/**
@@ -2131,7 +2131,7 @@ export interface KaboomOpt {
 	/**
 	 * Size of the spatial hash grid for collision detection (default 64)
 	 *
-	 * @since v2001.0
+	 * @since v3000.0
 	 */
 	hashGridSize?: number,
 	/**
@@ -2141,7 +2141,7 @@ export interface KaboomOpt {
 	/**
 	 * If kaboom should render a default loading screen when assets are not fully ready (default true).
 	 *
-	 * @since v2001.0
+	 * @since v3000.0
 	 */
 	loadingScreen?: boolean,
 	/**
@@ -2167,7 +2167,7 @@ export interface GameObjRaw {
 	/**
 	 * Add a child.
 	 *
-	 * @since v2001.0
+	 * @since v3000.0
 	 */
 	add<T>(comps: CompList<T> | GameObj<T>): GameObj<T>,
 	/**
@@ -2177,49 +2177,49 @@ export interface GameObjRaw {
 	/**
 	 * Remove a child.
 	 *
-	 * @since v2001.0
+	 * @since v3000.0
 	 */
 	remove(obj: GameObj): void,
 	/**
 	 * Remove all children with a certain tag.
 	 *
-	 * @since v2001.0
+	 * @since v3000.0
 	 */
 	removeAll(tag: Tag): void,
 	/**
 	 * Get a list of all game objs with certain tag.
 	 *
-	 * @since v2001.0
+	 * @since v3000.0
 	 */
 	get(tag?: Tag | Tag[]): GameObj[],
 	/**
 	 * Recursively a list of all game objs with certain tag including children of children.
 	 *
-	 * @since v2001.0
+	 * @since v3000.0
 	 */
 	getAll(tag?: Tag | Tag[]): GameObj[],
 	/**
 	 * Get the parent game obj, if have any.
 	 *
-	 * @since v2001.0
+	 * @since v3000.0
 	 */
 	parent: GameObj | null,
 	/**
 	 * Get all children game objects.
 	 *
-	 * @since v2001.0
+	 * @since v3000.0
 	 */
 	children: GameObj[],
 	/**
 	 * Update this game object and all children game objects.
 	 *
-	 * @since v2001.0
+	 * @since v3000.0
 	 */
 	update(): void,
 	/**
 	 * Draw this game object and all children game objects.
 	 *
-	 * @since v2001.0
+	 * @since v3000.0
 	 */
 	draw(): void,
 	/**
@@ -2281,13 +2281,13 @@ export interface GameObjRaw {
 	/**
 	 * Check if is an ancestor (recursive parent) of another game object
 	 *
-	 * @since v2001.0
+	 * @since v3000.0
 	 */
 	isAncestorOf(obj: GameObj): boolean,
 	/**
 	 * Calculated transform matrix of a game object.
 	 *
-	 * @since v2001.0
+	 * @since v3000.0
 	 */
 	transform: Mat4,
 	/**
@@ -2332,7 +2332,7 @@ export interface Recording {
 	/**
 	 * Stop the recording and get the video data as mp4 Blob.
 	 *
-	 * @since v2001.0
+	 * @since v3000.0
 	 */
 	stop(): Promise<Blob>,
 	/**
@@ -2743,13 +2743,13 @@ export type DrawRectOpt = RenderProps & {
 	/**
 	 * Use gradient instead of solid color.
 	 *
-	 * @since v2001.0
+	 * @since v3000.0
 	 */
 	gradient?: [Color, Color],
 	/**
 	 * If the gradient should be horizontal.
 	 *
-	 * @since v2001.0
+	 * @since v3000.0
 	 */
 	horizontal?: boolean,
 	/**
@@ -2859,7 +2859,7 @@ export type DrawCircleOpt = Omit<RenderProps, "angle"> & {
 	/**
 	 * Use gradient instead of solid color.
 	 *
-	 * @since v2001.0
+	 * @since v3000.0
 	 */
 	gradient?: [Color, Color],
 	/**
@@ -2903,7 +2903,7 @@ export type DrawEllipseOpt = RenderProps & {
 	/**
 	 * Use gradient instead of solid color.
 	 *
-	 * @since v2001.0
+	 * @since v3000.0
 	 */
 	gradient?: [Color, Color],
 	/**
@@ -2947,7 +2947,7 @@ export type DrawPolygonOpt = RenderProps & {
 	/**
 	 * The color of each vertice.
 	 *
-	 * @since v2001.0
+	 * @since v3000.0
 	 */
 	colors?: Color[],
 }
@@ -2987,7 +2987,7 @@ export type DrawTextOpt = RenderProps & {
 	/**
 	 * Text alignment (default "left")
 	 *
-	 * @since v2001.0
+	 * @since v3000.0
 	 */
 	align?: TextAlign,
 	/**
@@ -3172,7 +3172,7 @@ export declare class Vec2 {
 	/**
 	 * If both x and y is 0.
 	 *
-	 * @since v2001.0
+	 * @since v3000.0
 	 */
 	isZero(): boolean
 	/**
@@ -3380,7 +3380,7 @@ export interface Comp {
 	/**
 	 * Draw debug info in inspect mode
 	 *
-	 * @since v2001.0
+	 * @since v3000.0
 	 */
 	drawInspect?: () => void,
 }
@@ -3591,7 +3591,7 @@ export interface AreaCompOpt {
 	/**
 	 * If this object should ignore collisions against certain other objects.
 	 *
-	 * @since v2001.0
+	 * @since v3000.0
 	 */
 	collisionIgnore?: Tag[],
 }
@@ -3621,7 +3621,7 @@ export interface AreaComp extends Comp {
 	/**
 	 * If this object should ignore collisions against certain other objects.
 	 *
-	 * @since v2001.0
+	 * @since v3000.0
 	 */
 	collisionIgnore: Tag[],
 	colliding: Record<number, Collision>,
@@ -3636,7 +3636,7 @@ export interface AreaComp extends Comp {
 	/**
 	 * Check collision with another game obj.
 	 *
-	 * @since v2001.0
+	 * @since v3000.0
 	 * @returns The minimal displacement vector if collided
 	 */
 	checkCollision(other: GameObj<AreaComp>): Vec2 | null,
@@ -3675,25 +3675,25 @@ export interface AreaComp extends Comp {
 	/**
 	 * Register an event runs every frame when collide with another game obj with certain tag.
 	 *
-	 * @since v2001.0
+	 * @since v3000.0
 	 */
 	onCollisionActive(tag: Tag, f: (obj: GameObj, col?: Collision) => void): void,
 	/**
 	 * Register an event runs every frame when collide with another game obj.
 	 *
-	 * @since v2001.0
+	 * @since v3000.0
 	 */
 	onCollisionActive(f: (obj: GameObj, col?: Collision) => void): void,
 	/**
 	 * Register an event runs once when stopped colliding with another game obj with certain tag.
 	 *
-	 * @since v2001.0
+	 * @since v3000.0
 	 */
 	onCollisionEnd(tag: Tag, f: (obj: GameObj) => void): void,
 	/**
 	 * Register an event runs once when stopped colliding with another game obj.
 	 *
-	 * @since v2001.0
+	 * @since v3000.0
 	 */
 	onCollisionEnd(f: (obj: GameObj) => void): void,
 	/**
@@ -3711,7 +3711,7 @@ export interface AreaComp extends Comp {
 	/**
 	 * Get the geometry data for the collider in local coordinate space.
 	 *
-	 * @since v2001.0
+	 * @since v3000.0
 	 */
 	localArea(): Shape,
 	/**
@@ -3817,7 +3817,7 @@ export interface SpriteComp extends Comp {
 	 */
 	onAnimEnd(name: string, action: () => void): EventCanceller,
 	/**
-	 * @since v2001.0
+	 * @since v3000.0
 	 */
 	renderArea(): Rect,
 }
@@ -3846,7 +3846,7 @@ export interface TextComp extends Comp {
 	/**
 	 * Text alignment ("left", "center" or "right", default "left").
 	 *
-	 * @since v2001.0
+	 * @since v3000.0
 	 */
 	align: TextAlign,
 	/**
@@ -3874,7 +3874,7 @@ export interface TextComp extends Comp {
 	 */
 	textStyles: Record<string, CharTransform | CharTransformFunc>,
 	/**
-	 * @since v2001.0
+	 * @since v3000.0
 	 */
 	renderArea(): Rect,
 }
@@ -3895,7 +3895,7 @@ export interface TextCompOpt {
 	/**
 	 * Text alignment ("left", "center" or "right", default "left").
 	 *
-	 * @since v2001.0
+	 * @since v3000.0
 	 */
 	align?: TextAlign,
 	/**
@@ -3945,7 +3945,7 @@ export interface RectComp extends Comp {
 	 */
 	radius?: number,
 	/**
-	 * @since v2001.0
+	 * @since v3000.0
 	 */
 	renderArea(): Rect,
 }
@@ -3956,7 +3956,7 @@ export interface CircleComp extends Comp {
 	 */
 	radius: number,
 	/**
-	 * @since v2001.0
+	 * @since v3000.0
 	 */
 	renderArea(): Circle,
 }
@@ -3971,7 +3971,7 @@ export interface UVQuadComp extends Comp {
 	 */
 	height: number,
 	/**
-	 * @since v2001.0
+	 * @since v3000.0
 	 */
 	renderArea(): Rect,
 }
@@ -4012,7 +4012,7 @@ export interface Debug {
 	/**
 	 * Total number of frames elapsed.
 	 *
-	 * @since v2001.0
+	 * @since v3000.0
 	 */
 	numFrames(): number,
 	/**
@@ -4093,7 +4093,7 @@ export interface BodyComp extends Comp {
 	/**
 	 * If currently rising.
 	 *
-	 * @since v2001.0
+	 * @since v3000.0
 	 */
 	isRising(): boolean,
 	/**
@@ -4107,7 +4107,7 @@ export interface BodyComp extends Comp {
 	/**
 	 * Register an event that runs when a collision is resolved.
 	 *
-	 * @since v2001.0
+	 * @since v3000.0
 	 */
 	onCollisionResolve(action: (col: Collision) => void): EventCanceller,
 	/**
@@ -4125,7 +4125,7 @@ export interface BodyComp extends Comp {
 	/**
 	 * Register an event that runs when the object falls off platform.
 	 *
-	 * @since v2001.0
+	 * @since v3000.0
 	 */
 	onFallOff(action: () => void): EventCanceller,
 	/**

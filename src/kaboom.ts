@@ -148,19 +148,19 @@ import FPSCounter from "./fps"
 import Timer from "./timer"
 
 // @ts-ignore
-import sinkSrc from "./assets/sink.png"
+import sinkFontSrc from "./assets/sink.png"
 // @ts-ignore
-import sinkoSrc from "./assets/sinko.png"
+import sinkoFontSrc from "./assets/sinko.png"
 // @ts-ignore
-import beanSrc from "./assets/bean.png"
+import beanSpriteSrc from "./assets/bean.png"
 // @ts-ignore
-import markSrc from "./assets/mark.png"
+import markSpriteSrc from "./assets/mark.png"
 // @ts-ignore
-import burpBytes from "./assets/burp.mp3"
+import burpSoundSrc from "./assets/burp.mp3"
 // @ts-ignore
-import kaSrc from "./assets/ka.png"
+import kaSpriteSrc from "./assets/ka.png"
 // @ts-ignore
-import boomSrc from "./assets/boom.png"
+import boomSpriteSrc from "./assets/boom.png"
 
 type ButtonState =
 	"up"
@@ -780,7 +780,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		const burpSnd = new SoundData(createEmptyAudioBuffer())
 
 		// load that burp sound
-		ctx.decodeAudioData(burpBytes.buffer.slice(0), (buf) => {
+		ctx.decodeAudioData(burpSoundSrc.buffer.slice(0), (buf) => {
 			burpSnd.buf = buf
 		}, () => {
 			throw new Error("Failed to load burp.")
@@ -1194,11 +1194,11 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	}
 
 	function loadBean(name: string = "bean"): Asset<SpriteData> {
-		return loadSprite(name, beanSrc)
+		return loadSprite(name, beanSpriteSrc)
 	}
 
 	function loadMark(name: string = "mark"): Asset<SpriteData> {
-		return loadSprite(name, markSrc)
+		return loadSprite(name, markSpriteSrc)
 	}
 
 	function getSprite(handle: string): Asset<SpriteData> | void {
@@ -5285,8 +5285,8 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		}
 	}
 
-	const kaSprite = loadSprite(null, kaSrc)
-	const boomSprite = loadSprite(null, boomSrc)
+	const kaSprite = loadSprite(null, kaSpriteSrc)
+	const boomSprite = loadSprite(null, boomSpriteSrc)
 
 	function addKaboom(p: Vec2, opt: BoomOpt = {}): GameObj {
 
@@ -5952,7 +5952,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 	loadBitmapFont(
 		"sink",
-		sinkSrc,
+		sinkFontSrc,
 		6,
 		8,
 		{
@@ -5962,7 +5962,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 	loadBitmapFont(
 		"sinko",
-		sinkoSrc,
+		sinkoFontSrc,
 		8,
 		10,
 	)
