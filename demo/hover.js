@@ -49,10 +49,10 @@ redBean.onHoverEnd(() => {
 blueBean.onHoverUpdate(() => {
 	const t = time() * 10
 	blueBean.color = rgb(
-			wave(0, 255, t),
-			wave(0, 255, t + 2),
-			wave(0, 255, t + 4),
-		)
+		wave(0, 255, t),
+		wave(0, 255, t + 2),
+		wave(0, 255, t + 4),
+	)
 
 	debug.log("blue bean on hover")
 })
