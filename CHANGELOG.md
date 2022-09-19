@@ -1,9 +1,9 @@
-# v2001.0.0 "A Kaboom Odyssey"
+# v3000.0.0 (Unreleased)
 
 - brought back `loadMark()`
 - (**BREAK**) removed all deprecated functions in v2000.2
-- game objects can have children with `obj.add()` now which share the parent transform
 - (**BREAK**) raised esbuild target to `esnext`
+- game objects can have children with `obj.add()` now which share the parent transform
 - added `make()` to make a game object without adding to the scene
 - added support for `add()` to add unattached game objects to the scene `add(make([...comps]))`
 - added `colors` option to `drawPolygon()` that controls the color of each corner
@@ -38,7 +38,7 @@
 - (**BREAK**) renamed `Body#weight` to `Body#gravityScale`
 - (**BREAK**) removed `GameObj#every()` and `GameObj#revery()` in favor of `obj.get().forEach()`
 - added `GameObj#getAll()` for recursively getting children game objects (`get()` only gets from direct children)
-- added `Area#onCollisionActive()` and `Area#onCollisionEnd()` events
+- added `Area#onCollideUpdate()` and `Area#onCollideEnd()` events
 - removed `debug.objCount()` in favor of `getAll().length`
 - added `debug.numFrames()` to get the current frame count
 - (**BREAK**) renamed `cursor()` to `setCursor()`

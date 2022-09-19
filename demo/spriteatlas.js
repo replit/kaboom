@@ -296,7 +296,7 @@ player.onUpdate(() => {
 	camPos(player.pos)
 })
 
-player.onCollisionResolve(() => {
+player.onPhysicsResolve(() => {
 	// Set the viewport center to player.pos
 	camPos(player.pos)
 })

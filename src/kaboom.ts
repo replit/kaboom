@@ -148,19 +148,19 @@ import FPSCounter from "./fps"
 import Timer from "./timer"
 
 // @ts-ignore
-import sinkSrc from "./assets/sink.png"
+import sinkFontSrc from "./assets/sink.png"
 // @ts-ignore
-import sinkoSrc from "./assets/sinko.png"
+import sinkoFontSrc from "./assets/sinko.png"
 // @ts-ignore
-import beanSrc from "./assets/bean.png"
+import beanSpriteSrc from "./assets/bean.png"
 // @ts-ignore
-import markSrc from "./assets/mark.png"
+import markSpriteSrc from "./assets/mark.png"
 // @ts-ignore
-import burpBytes from "./assets/burp.mp3"
+import burpSoundSrc from "./assets/burp.mp3"
 // @ts-ignore
-import kaSrc from "./assets/ka.png"
+import kaSpriteSrc from "./assets/ka.png"
 // @ts-ignore
-import boomSrc from "./assets/boom.png"
+import boomSpriteSrc from "./assets/boom.png"
 
 type ButtonState =
 	"up"
@@ -780,7 +780,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		const burpSnd = new SoundData(createEmptyAudioBuffer())
 
 		// load that burp sound
-		ctx.decodeAudioData(burpBytes.buffer.slice(0), (buf) => {
+		ctx.decodeAudioData(burpSoundSrc.buffer.slice(0), (buf) => {
 			burpSnd.buf = buf
 		}, () => {
 			throw new Error("Failed to load burp.")
@@ -1194,11 +1194,11 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	}
 
 	function loadBean(name: string = "bean"): Asset<SpriteData> {
-		return loadSprite(name, beanSrc)
+		return loadSprite(name, beanSpriteSrc)
 	}
 
 	function loadMark(name: string = "mark"): Asset<SpriteData> {
-		return loadSprite(name, markSrc)
+		return loadSprite(name, markSpriteSrc)
 	}
 
 	function getSprite(handle: string): Asset<SpriteData> | void {
@@ -4004,7 +4004,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 					cleanups.push(this.onHover(() => setCursor(this.area.cursor)))
 				}
 
-				cleanups.push(this.onCollisionActive((obj, col) => {
+				cleanups.push(this.onCollideUpdate((obj, col) => {
 					if (!this.colliding[obj.id]) {
 						this.trigger("collide", obj, col)
 					}
@@ -4018,7 +4018,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 					const col = this.colliding[id]
 					if (!this.checkCollision(col.target)) {
 						delete this.colliding[id]
-						this.trigger("collisionEnd", col.target, col)
+						this.trigger("collideEnd", col.target, col)
 					}
 				}
 			},
@@ -4165,25 +4165,25 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				}
 			},
 
-			onCollisionActive(
+			onCollideUpdate(
 				tag: Tag | ((obj: GameObj, col?: Collision) => void),
 				cb?: (obj: GameObj, col?: Collision) => void,
 			): EventCanceller {
 				if (typeof tag === "function" && cb === undefined) {
-					return this.on("collisionActive", tag)
+					return this.on("collideUpdate", tag)
 				} else if (typeof tag === "string") {
-					return this.on("collisionActive", (obj, col) => obj.is(tag) && cb(obj, col))
+					return this.on("collideUpdate", (obj, col) => obj.is(tag) && cb(obj, col))
 				}
 			},
 
-			onCollisionEnd(
+			onCollideEnd(
 				tag: Tag | ((obj: GameObj) => void),
 				cb?: (obj: GameObj) => void,
 			): EventCanceller {
 				if (typeof tag === "function" && cb === undefined) {
-					return this.on("collisionEnd", tag)
+					return this.on("collideEnd", tag)
 				} else if (typeof tag === "string") {
-					return this.on("collisionEnd", (obj) => obj.is(tag) && cb(obj))
+					return this.on("collideEnd", (obj) => obj.is(tag) && cb(obj))
 				}
 			},
 
@@ -4669,7 +4669,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				// static vs static: don't resolve
 				// static vs non-static: always resolve non-static
 				// non-static vs non-static: resolve the first one
-				cleanups.push(this.onCollisionActive((other, col) => {
+				cleanups.push(this.onCollideUpdate((other, col) => {
 
 					if (!other.is("body")) {
 						return
@@ -4691,12 +4691,12 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 					col2.source.pos = col2.source.pos.add(col2.displacement)
 					// TODO: update all children transform?
 					col2.source.transform = calcTransform(col2.source)
-					col2.source.trigger("collisionResolve", col2)
-					col2.target.trigger("collisionResolve", col2.reverse())
+					col2.source.trigger("physicsResolve", col2)
+					col2.target.trigger("physicsResolve", col2.reverse())
 
 				}))
 
-				cleanups.push(this.onCollisionResolve((col) => {
+				cleanups.push(this.onPhysicsResolve((col) => {
 					if (game.gravity) {
 						if (col.isBottom() && this.isFalling()) {
 							velY = 0
@@ -4764,8 +4764,8 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				cleanups.forEach((f) => f())
 			},
 
-			onCollisionResolve(action) {
-				return this.on("collisionResolve", action)
+			onPhysicsResolve(action) {
+				return this.on("physicsResolve", action)
 			},
 
 			curPlatform(): GameObj | null {
@@ -4922,7 +4922,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			if (!events[state]) {
 				events[state] = {
 					enter: new Event(),
-					leave: new Event(),
+					end: new Event(),
 					update: new Event(),
 					draw: new Event(),
 				}
@@ -4973,7 +4973,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 				}
 
-				trigger("leave", oldState, ...args)
+				trigger("end", oldState, ...args)
 				this.state = state
 				trigger("enter", state, ...args)
 				trigger("enter", `${oldState} -> ${state}`, ...args)
@@ -4996,8 +4996,8 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				return on("draw", state, action)
 			},
 
-			onStateLeave(state: string, action: () => void): EventCanceller {
-				return on("leave", state, action)
+			onStateEnd(state: string, action: () => void): EventCanceller {
+				return on("end", state, action)
 			},
 
 			update() {
@@ -5339,8 +5339,8 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		}
 	}
 
-	const kaSprite = loadSprite(null, kaSrc)
-	const boomSprite = loadSprite(null, boomSrc)
+	const kaSprite = loadSprite(null, kaSpriteSrc)
+	const boomSprite = loadSprite(null, boomSpriteSrc)
 
 	function addKaboom(p: Vec2, opt: BoomOpt = {}): GameObj {
 
@@ -5497,11 +5497,11 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 								if (res && !res.isZero()) {
 									// TODO: rehash if the object position is changed after resolution?
 									const col1 = new Collision(aobj, other, res)
-									aobj.trigger("collisionActive", other, col1)
+									aobj.trigger("collideUpdate", other, col1)
 									const col2 = col1.reverse()
 									// resolution only has to happen once
 									col2.resolved = col1.resolved
-									other.trigger("collisionActive", aobj, col2)
+									other.trigger("collideUpdate", aobj, col2)
 								}
 								checked.add(other.id)
 							}
@@ -6006,7 +6006,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 	loadBitmapFont(
 		"sink",
-		sinkSrc,
+		sinkFontSrc,
 		6,
 		8,
 		{
@@ -6016,7 +6016,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 	loadBitmapFont(
 		"sinko",
-		sinkoSrc,
+		sinkoFontSrc,
 		8,
 		10,
 	)
