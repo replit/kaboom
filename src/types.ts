@@ -3633,6 +3633,11 @@ export interface AreaComp extends Comp {
 	 * @since v3000.0
 	 */
 	collisionIgnore: Tag[],
+	/**
+	 * A list of all collisions happening at the moment.
+	 *
+	 * @since v3000.0
+	 */
 	colliding: Record<number, Collision>,
 	/**
 	 * If this object has started its hover.
