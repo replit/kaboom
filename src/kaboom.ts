@@ -3997,6 +3997,8 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			id: "area",
 			colliding: {},
 			collisionIgnore: opt.collisionIgnore ?? [],
+			hoverStarted: false,
+			hoverEnded: false,
 
 			add() {
 
