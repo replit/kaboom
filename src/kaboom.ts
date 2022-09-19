@@ -3520,8 +3520,23 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		}
 	}
 
-	// add an event that runs when objs with tag t is hovered
-	function onHover(t: string, onHover: (obj: GameObj) => void, onNotHover?: (obj: GameObj) => void): EventCanceller {
+	// add an event that runs once when objs with tag t is hovered
+	function onHover(t: string, action: (obj: GameObj) => void): EventCanceller {
+		return onUpdate(t, (o: GameObj) => {
+			if (!o.area) throw new Error("onHover() requires the object to have area() component")
+			
+			if (o.isHovering()) {
+				if (o.hoverStarted) return
+				o.hoverStarted = true
+				o.hoverEnded = false
+
+				action(o)
+			}
+		})
+	}
+
+	// add an event that runs once when objs with tag t is hovered
+	function onHoverUpdate(t: string, onHover: (obj: GameObj) => void, onNotHover?: (obj: GameObj) => void): EventCanceller {
 		return onUpdate(t, (o: GameObj) => {
 			if (!o.area) throw new Error("onHover() requires the object to have area() component")
 			if (o.isHovering()) {
@@ -3530,6 +3545,21 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				if (onNotHover) {
 					onNotHover(o)
 				}
+			}
+		})
+	}
+	
+	// add an event that runs once when objs with tag t is unhovered
+	function onHoverEnd(t: string, action: (obj: GameObj) => void): EventCanceller {
+		return onUpdate(t, (o: GameObj) => {
+			if (!o.area) throw new Error("onHoverExit() requires the object to have area() component")
+			
+			if (!o.isHovering()) {
+				if (o.hoverEnded || !o.hoverStarted) return
+				o.hoverEnded = true
+				o.hoverStarted = false
+
+				action(o)
 			}
 		})
 	}
@@ -3967,6 +3997,8 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			id: "area",
 			colliding: {},
 			collisionIgnore: opt.collisionIgnore ?? [],
+			hoverStarted: false,
+			hoverEnded: false,
 
 			add() {
 
@@ -4084,7 +4116,18 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				})
 			},
 
-			onHover(onHover: () => void, onNotHover: () => void): EventCanceller {
+			onHover(action: () => void): EventCanceller {
+				return this.onUpdate(() => {
+					if(this.isHovering()) {
+						if (this.hoverStarted) return
+						this.hoverStarted = true
+						this.hoverEnded = false
+						action()
+					}
+				})
+			},
+
+			onHoverUpdate(onHover: () => void, onNotHover: () => void): EventCanceller {
 				return this.onUpdate(() => {
 					if (this.isHovering()) {
 						onHover()
@@ -4092,6 +4135,17 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 						if (onNotHover) {
 							onNotHover()
 						}
+					}
+				})
+			},
+
+			onHoverEnd(action: () => void): EventCanceller {
+				return this.onUpdate(() => {
+					if(!this.isHovering()) {
+						if (this.hoverEnded || !this.hoverStarted) return
+						this.hoverEnded = true
+						this.hoverStarted = false
+						action()
 					}
 				})
 			},
@@ -6087,6 +6141,8 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		onCollide,
 		onClick,
 		onHover,
+		onHoverUpdate,
+		onHoverEnd,
 		// input
 		onKeyDown,
 		onKeyPress,
