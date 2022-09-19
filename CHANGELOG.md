@@ -45,6 +45,8 @@
 - (**BREAK**) renamed `fullscreen()` to `setFullscreen()`
 - moved type defs for global functions to `import "kaboom/global"`
 - (**BREAK**) removed `apl386` and `apl386o` as default fonts, default font changed to `sink`,, and added a default font size of `16`
+- (**BREAK**) renamed `onHover()` to `onHoverUpdate()`, now onHover runs only once. The same for `Area#onHover()` and `Area#onHoverUpdate()`
+- added `onHoverEnd()` and `Area#onHoverEnd()` to register an event once when a tag/object is unhovered
 
 ### v2000.2.6
 

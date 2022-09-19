@@ -730,23 +730,23 @@ export interface KaboomCtx {
 	 */
 	onClick(action: () => void): EventCanceller,
 	/**
-	 * Register an event that runs when game objs with certain tags are hovered (required to have area() component).
+	 * Register an event that runs once when game objs with certain tags are hovered (required to have area() component).
 	 *
 	 * @since v2000.1
 	 */
-	onHover(tag: Tag, onHover: (a: GameObj) => void, onNotHover: (a: GameObj) => void): EventCanceller,
+	onHover(tag: Tag, action: (a: GameObj) => void): EventCanceller,
 	/**
-	 * Register an event that runs once when game objs with certain tags is hovered (required to have area() component).
+	 * Register an event that runs every frame when game objs with certain tags are hovered (required to have area() component).
+	 *
+	 * @since v3000.0
+	 */
+	onHoverUpdate(tag: Tag, onHover: (a: GameObj) => void, onNotHover: (a: GameObj) => void): EventCanceller,
+	/**
+	 * Register an event that runs once when game objs with certain tags are unhovered (required to have area() component).
 	 *
 	 * @since v2001.0
 	 */
-	onHoverEnter(tag: Tag, action: (a: GameObj) => void): EventCanceller,
-	/**
-	 * Register an event that runs once when game objs with certain tags is unhovered (required to have area() component).
-	 *
-	 * @since v2001.0
-	 */
-	onHoverExit(tag: Tag, action: (a: GameObj) => void): EventCanceller,
+	onHoverEnd(tag: Tag, action: (a: GameObj) => void): EventCanceller,
 	/**
 	 * Register an event that runs every frame when a key is held down.
 	 *
@@ -3664,27 +3664,27 @@ export interface AreaComp extends Comp {
 	 */
 	onClick(f: () => void): void,
 	/**
-	 * Register an event runs every frame when hovered.
+	 * Register an event runs once when hovered.
 	 *
 	 * @since v2000.1
 	 */
-	onHover(onHover: () => void, onNotHover?: () => void): void,
+	onHover(action: () => void): void,
 	/**
-	 * Register an event runs once when hovered.
+	 * Register an event runs every frame when hovered.
 	 *
-	 * @since v2001.0
+	 * @since v3000.0
 	 */
-	onHoverEnter(action: () => void): void,
+	onHoverUpdate(onHover: () => void, onNotHover?: () => void): void,
 	/**
 	 * Register an event runs once when unhovered.
 	 *
-	 * @since v2001.0
+	 * @since v3000.0
 	 */
-	onHoverExit(action: () => void): void,
+	onHoverEnd(action: () => void): void,
 	/**
 	 * Register an event runs once when collide with another game obj with certain tag.
 	 *
-	 * @since v2000.1
+	 * @since v3000.0
 	 */
 	onCollide(tag: Tag, f: (obj: GameObj, col?: Collision) => void): void,
 	/**
