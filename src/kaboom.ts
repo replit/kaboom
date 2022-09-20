@@ -3517,6 +3517,8 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			return onMousePress(tag)
 		} else {
 			return forAllCurrentAndFuture(tag, (obj) => {
+				if (!obj.area)
+					throw new Error("onClick() requires the object to have area() component")
 				obj.onClick(() => action(obj))
 			})
 		}
@@ -3538,6 +3540,8 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	// add an event that runs once when objs with tag t is hovered
 	function onHover(t: Tag, action: (obj: GameObj) => void): EventCanceller {
 		return forAllCurrentAndFuture(t, (obj) => {
+			if (!obj.area)
+				throw new Error("onHover() requires the object to have area() component")
 			obj.onHover(() => action(obj))
 		})
 	}
@@ -3545,6 +3549,8 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	// add an event that runs once when objs with tag t is hovered
 	function onHoverUpdate(t: Tag, action: (obj: GameObj) => void): EventCanceller {
 		return forAllCurrentAndFuture(t, (obj) => {
+			if (!obj.area)
+				throw new Error("onHoverUpdate() requires the object to have area() component")
 			obj.onHoverUpdate(() => action(obj))
 		})
 	}
@@ -3552,6 +3558,8 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	// add an event that runs once when objs with tag t is unhovered
 	function onHoverEnd(t: Tag, action: (obj: GameObj) => void): EventCanceller {
 		return forAllCurrentAndFuture(t, (obj) => {
+			if (!obj.area)
+				throw new Error("onHoverEnd() requires the object to have area() component")
 			obj.onHoverEnd(() => action(obj))
 		})
 	}
