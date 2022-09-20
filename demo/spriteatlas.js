@@ -225,13 +225,13 @@ const player = add([
 	sprite("hero", { anim: "idle" }),
 	area({ shape: new Rect(vec2(0, 6), 12, 12) }),
 	body(),
-	origin("center"),
+	anchor("center"),
 ])
 
 const ogre = add([
 	sprite("ogre"),
 	pos(map.getPos(4, 4)),
-	origin("bot"),
+	anchor("bot"),
 	area({ scale: 0.5 }),
 	body({ isStatic: true }),
 ])
@@ -239,7 +239,7 @@ const ogre = add([
 const sword = add([
 	pos(),
 	sprite("sword"),
-	origin("bot"),
+	anchor("bot"),
 	rotate(0),
 	follow(player, vec2(-4, 9)),
 	spin(),

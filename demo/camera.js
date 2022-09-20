@@ -25,19 +25,19 @@ const level = addLevel([
 		sprite("bean"),
 		area(),
 		body(),
-		origin("bot"),
+		anchor("bot"),
 		"player",
 	],
 	"=": () => [
 		sprite("grass"),
 		area(),
 		body({ isStatic: true }),
-		origin("bot"),
+		anchor("bot"),
 	],
 	"$": () => [
 		sprite("coin"),
 		area(),
-		origin("bot"),
+		anchor("bot"),
 		"coin",
 	],
 })

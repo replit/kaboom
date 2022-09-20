@@ -192,7 +192,7 @@ scene("win", () => {
 	add([
 		text("You Win!"),
 		pos(width() / 2, height() / 2),
-		origin("center"),
+		anchor("center"),
 	])
 })
 

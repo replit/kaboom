@@ -49,7 +49,7 @@ function addFlamebar(position = vec2(0), angle = 0, num = 6) {
 			sprite("pineapple"),
 			pos(0, i * 48),
 			area(),
-			origin("center"),
+			anchor("center"),
 			"flame",
 		])
 	}

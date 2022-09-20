@@ -37,7 +37,7 @@ function drawStuff() {
 		sprite: "bean",
 		pos: p(0, 0),
 		angle: t(40),
-		origin: "center",
+		anchor: "center",
 		scale: w(1, 1.5, 4),
 		color: rgb(w(128, 255, 4), w(128, 255, 8), 255),
 	})
@@ -46,7 +46,7 @@ function drawStuff() {
 		pos: p(1, 0),
 		width: w(60, 120, 4),
 		height: w(100, 140, 8),
-		origin: "center",
+		anchor: "center",
 		radius: w(0, 32, 4),
 		angle: t(80),
 		color: rgb(w(128, 255, 4), 255, w(128, 255, 8)),
@@ -86,7 +86,7 @@ function drawStuff() {
 	drawText({
 		text: "yo",
 		pos: p(1, 1),
-		origin: "center",
+		anchor: "center",
 		size: w(80, 120, 2),
 		color: rgb(w(128, 255, 4), w(128, 255, 8), w(128, 255, 2)),
 	})

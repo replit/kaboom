@@ -10,7 +10,7 @@ const player = add([
 	sprite("bean"),
 	pos(center()),
 	scale(2),
-	origin("center"),
+	anchor("center"),
 	z(50),
 ])
 
@@ -54,7 +54,7 @@ onKeyPress("space", () => {
 		sprite("egg"),
 		pos(player.pos.add(0, 24)),
 		rotate(0),
-		origin("bot"),
+		anchor("bot"),
 		rock(),
 		"egg",
 		{ stage: 0 },

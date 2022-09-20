@@ -42,7 +42,7 @@ gravity(640)
 const player = add([
 	sprite("dino"),
 	pos(center()),
-	origin("center"),
+	anchor("center"),
 	area(),
 	body(),
 ])

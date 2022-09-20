@@ -11,7 +11,7 @@ function mergeImg(urls) {
 	return Promise.all(urls.map((url) => new Promise((resolve, reject) => {
 		const img = new Image()
 		img.src = url
-		img.crossOrigin = "anonymous"
+		img.crossanchor = "anonymous"
 		img.onload = () => resolve(img)
 		img.onerror = () => reject(new Error(`Failed to load ${url}`))
 	}))).then((images) => {
@@ -90,7 +90,7 @@ gravity(0)
 const player = add([
 	sprite("player"),
 	pos(center()),
-	origin("center"),
+	anchor("center"),
 	area(),
 	body(),
 ])
@@ -99,7 +99,7 @@ const player = add([
 const corpus = add([
 	sprite("corpus"),
 	pos(center().add(-128, 0)),
-	origin("center"),
+	anchor("center"),
 	area(),
 	body(),
 ])
@@ -108,7 +108,7 @@ const corpus = add([
 const chest = add([
 	sprite("chest"),
 	pos(center().add(128, 0)),
-	origin("center"),
+	anchor("center"),
 	area(),
 	body(),
 ])

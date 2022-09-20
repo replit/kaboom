@@ -99,8 +99,8 @@ import {
 	RotateComp,
 	ColorComp,
 	OpacityComp,
-	Origin,
-	OriginComp,
+	Anchor,
+	AnchorComp,
 	ZComp,
 	FollowComp,
 	MoveComp,
@@ -238,7 +238,7 @@ const MAX_SPEED = 3
 const MIN_DETUNE = -1200
 const MAX_DETUNE = 1200
 
-const DEF_ORIGIN = "topleft"
+const DEF_ANCHOR = "topleft"
 const BG_GRID_SIZE = 64
 
 const DEF_FONT = "sink"
@@ -371,8 +371,8 @@ function getFullscreenElement(): Element | void {
 		|| document.webkitFullscreenElement
 }
 
-// convert origin string to a vec2 offset
-function originPt(orig: Origin | Vec2): Vec2 {
+// convert anchor string to a vec2 offset
+function anchorPt(orig: Anchor | Vec2): Vec2 {
 	switch (orig) {
 		case "topleft": return vec2(-1, -1)
 		case "top": return vec2(0, -1)
@@ -1503,7 +1503,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		flipX?: boolean,
 		flipY?: boolean,
 		quad?: Quad,
-		origin?: Origin | Vec2,
+		anchor?: Anchor | Vec2,
 	}
 
 	function makeShader(
@@ -1827,8 +1827,8 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 		const w = opt.width
 		const h = opt.height
-		const origin = originPt(opt.origin || DEF_ORIGIN)
-		const offset = origin.scale(vec2(w, h).scale(-0.5))
+		const anchor = anchorPt(opt.anchor || DEF_ANCHOR)
+		const offset = anchor.scale(vec2(w, h).scale(-0.5))
 		const q = opt.quad || new Quad(0, 0, 1, 1)
 		const color = opt.color || rgb(255, 255, 255)
 		const opacity = opt.opacity ?? 1
@@ -1895,8 +1895,8 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			// TODO: draw fract
 			const repX = Math.ceil((opt.width || w) / w)
 			const repY = Math.ceil((opt.height || h) / h)
-			const origin = originPt(opt.origin || DEF_ORIGIN).add(vec2(1, 1)).scale(0.5)
-			const offset = origin.scale(repX * w, repY * h)
+			const anchor = anchorPt(opt.anchor || DEF_ANCHOR).add(vec2(1, 1)).scale(0.5)
+			const offset = anchor.scale(repX * w, repY * h)
 
 			// TODO: rotation
 			for (let i = 0; i < repX; i++) {
@@ -1910,7 +1910,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 						quad: q,
 						width: w,
 						height: h,
-						origin: "topleft",
+						anchor: "topleft",
 					})
 				}
 			}
@@ -2013,8 +2013,8 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 		const w = opt.width
 		const h = opt.height
-		const origin = originPt(opt.origin || DEF_ORIGIN).add(1, 1)
-		const offset = origin.scale(vec2(w, h).scale(-0.5))
+		const anchor = anchorPt(opt.anchor || DEF_ANCHOR).add(1, 1)
+		const offset = anchor.scale(vec2(w, h).scale(-0.5))
 
 		let pts = [
 			vec2(0, 0),
@@ -2160,7 +2160,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		})
 	}
 
-	// TODO: origin
+	// TODO: anchor
 	function drawCircle(opt: DrawCircleOpt) {
 
 		if (!opt.radius) {
@@ -2670,7 +2670,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		pushTransform()
 		pushTranslate(ftext.opt.pos)
 		pushRotateZ(ftext.opt.angle)
-		pushTranslate(originPt(ftext.opt.origin ?? "topleft").add(1, 1).scale(ftext.width, ftext.height).scale(-0.5))
+		pushTranslate(anchorPt(ftext.opt.anchor ?? "topleft").add(1, 1).scale(ftext.width, ftext.height).scale(-0.5))
 		ftext.chars.forEach((ch) => {
 			drawUVQuad({
 				tex: ch.tex,
@@ -2682,7 +2682,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				color: ch.color,
 				opacity: ch.opacity,
 				quad: ch.quad,
-				origin: "center",
+				anchor: "center",
 				uniform: ftext.opt.uniform,
 				shader: ftext.opt.shader,
 				fixed: ftext.opt.fixed,
@@ -3877,18 +3877,18 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		}
 	}
 
-	function origin(o: Origin | Vec2): OriginComp {
+	function anchor(o: Anchor | Vec2): AnchorComp {
 		if (!o) {
-			throw new Error("Please define an origin")
+			throw new Error("Please define an anchor")
 		}
 		return {
-			id: "origin",
-			origin: o,
+			id: "anchor",
+			anchor: o,
 			inspect() {
-				if (typeof this.origin === "string") {
-					return this.origin
+				if (typeof this.anchor === "string") {
+					return this.anchor
 				} else {
-					return this.origin.toString()
+					return this.anchor.toString()
 				}
 			},
 		}
@@ -4046,7 +4046,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 						width: 4 / getViewportScale(),
 						color: rgb(0, 0, 255),
 					},
-					origin: this.origin,
+					anchor: this.anchor,
 					fill: false,
 					fixed: this.fixed,
 				}
@@ -4235,7 +4235,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 				if (localArea instanceof Rect) {
 					const bbox = localArea.bbox()
-					const offset = originPt(this.origin || DEF_ORIGIN)
+					const offset = anchorPt(this.anchor || DEF_ANCHOR)
 						.add(1, 1)
 						.scale(-0.5)
 						.scale(bbox.width, bbox.height)
@@ -4259,12 +4259,12 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 	}
 
-	// make the list of common render properties from the "pos", "scale", "color", "opacity", "rotate", "origin", "outline", and "shader" components of a game object
+	// make the list of common render properties from the "pos", "scale", "color", "opacity", "rotate", "anchor", "outline", and "shader" components of a game object
 	function getRenderProps(obj: GameObj<any>) {
 		return {
 			color: obj.color,
 			opacity: obj.opacity,
-			origin: obj.origin,
+			anchor: obj.anchor,
 			outline: obj.outline,
 			fixed: obj.fixed,
 			shader: obj.shader,
@@ -5369,7 +5369,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		kaboom.add([
 			sprite(boomSprite),
 			scale(0),
-			origin("center"),
+			anchor("center"),
 			explode(speed, s),
 			...(opt.boomComps ?? (() => []))(),
 		])
@@ -5377,7 +5377,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		const ka = kaboom.add([
 			sprite(kaSprite),
 			scale(0),
-			origin("center"),
+			anchor("center"),
 			timer(0.4 / speed, () => ka.use(explode(speed, s))),
 			...(opt.kaComps ?? (() => []))(),
 		])
@@ -5688,7 +5688,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				drawRect({
 					width: size,
 					height: size,
-					origin: "topright",
+					anchor: "topright",
 					color: rgb(0, 0, 0),
 					opacity: 0.8,
 					radius: 4,
@@ -5700,7 +5700,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 					drawRect({
 						width: 4,
 						height: size * 0.6,
-						origin: "center",
+						anchor: "center",
 						pos: vec2(-size / 3 * i, size * 0.5),
 						color: rgb(255, 255, 255),
 						radius: 2,
@@ -5732,7 +5732,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 					size: 16,
 					color: rgb(255, 255, 255),
 					pos: vec2(-pad),
-					origin: "botright",
+					anchor: "botright",
 					fixed: true,
 				})
 
@@ -5740,7 +5740,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				drawRect({
 					width: ftxt.width + pad * 2 + pad * 4,
 					height: ftxt.height + pad * 2,
-					origin: "botright",
+					anchor: "botright",
 					color: rgb(0, 0, 0),
 					opacity: 0.8,
 					radius: 4,
@@ -5804,7 +5804,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 					text: game.logs.join("\n"),
 					font: DBG_FONT,
 					pos: vec2(pad, -pad),
-					origin: "botleft",
+					anchor: "botleft",
 					size: 16,
 					width: width() * 0.6,
 					lineSpacing: pad / 2,
@@ -5819,7 +5819,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				drawRect({
 					width: ftext.width + pad * 2,
 					height: ftext.height + pad * 2,
-					origin: "botleft",
+					anchor: "botleft",
 					color: rgb(0, 0, 0),
 					radius: 4,
 					opacity: 0.8,
@@ -6127,7 +6127,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		rotate,
 		color,
 		opacity,
-		origin,
+		anchor,
 		area,
 		sprite,
 		text,

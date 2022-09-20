@@ -64,7 +64,7 @@ onLoading((progress) => {
 		text: "loading" + ".".repeat(wave(1, 4, time() * 12)),
 		font: "sink",
 		size: 24,
-		origin: "center",
+		anchor: "center",
 		pos: center().add(0, 80),
 	})
 

@@ -21,7 +21,7 @@ const redBean = add([
 	sprite("bean"),
 	color(RED),
 	pos(130, 140),
-	origin("center"),
+	anchor("center"),
 	area(),
 ])
 
@@ -29,7 +29,7 @@ const blueBean = add([
 	sprite("bean"),
 	color(BLUE),
 	pos(290, 130),
-	origin("center"),
+	anchor("center"),
 	area(),
 ])
 

@@ -46,7 +46,7 @@ for (let i = 0; i < 48; i++) {
 		pos(rand(width()), rand(height())),
 		area({ cursor: "pointer" }),
 		scale(5),
-		origin("center"),
+		anchor("center"),
 		// using our custom component here
 		drag(),
 		i !== 0 ? color(255, 255, 255) : color(255, 0, 255),
