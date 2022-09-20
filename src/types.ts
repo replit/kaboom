@@ -3640,14 +3640,6 @@ export interface AreaComp extends Comp {
 	 */
 	colliding: Record<GameObjID, Collision>,
 	/**
-	 * If this object has started its hover.
-	 */
-	hoverStarted: boolean;
-	/**
-	 * If this object has ended its hover.
-	 */
-	 hoverEnded: boolean;
-	/**
 	 * If was just clicked on last frame.
 	 */
 	isClicked(): boolean,

@@ -3215,9 +3215,10 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				})()
 				obj.parent = this
 				obj.transform = calcTransform(obj)
-				obj.trigger("add", this)
-				onLoad(() => obj.trigger("load"))
 				this.children.push(obj)
+				obj.trigger("add", this)
+				game.ev.trigger("add", this)
+				onLoad(() => obj.trigger("load"))
 				return obj
 			},
 
@@ -3497,6 +3498,10 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		}
 	}
 
+	function onAdd(action: (obj: GameObj) => void) {
+		return game.ev.on("add", action)
+	}
+
 	// add an event that runs with objs with t1 collides with objs with t2
 	function onCollide(
 		t1: Tag,
@@ -3507,60 +3512,55 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	}
 
 	// add an event that runs when objs with tag t is clicked
-	function onClick(tag: Tag | (() => void), cb?: (obj: GameObj) => void): EventCanceller {
+	function onClick(tag: Tag | (() => void), action?: (obj: GameObj) => void): EventCanceller {
 		if (typeof tag === "function") {
 			return onMousePress(tag)
 		} else {
-			return onUpdate(tag, (o: GameObj) => {
-				if (!o.area) throw new Error("onClick() requires the object to have area() component")
-				if (o.isClicked()) {
-					cb(o)
-				}
+			return forAllCurrentAndFuture(tag, (obj) => {
+				if (!obj.area)
+					throw new Error("onClick() requires the object to have area() component")
+				obj.onClick(() => action(obj))
 			})
 		}
 	}
 
-	// add an event that runs once when objs with tag t is hovered
-	function onHover(t: string, action: (obj: GameObj) => void): EventCanceller {
-		return onUpdate(t, (o: GameObj) => {
-			if (!o.area) throw new Error("onHover() requires the object to have area() component")
-			
-			if (o.isHovering()) {
-				if (o.hoverStarted) return
-				o.hoverStarted = true
-				o.hoverEnded = false
-
-				action(o)
+	function forAllCurrentAndFuture(t: Tag, action: (obj: GameObj) => void): EventCanceller {
+		const a = get(t).forEach(action)
+		const b = onAdd((obj) => {
+			if (obj.is(t)) {
+				action(obj)
 			}
+		})
+		return () => {
+			a()
+			b()
+		}
+	}
+
+	// add an event that runs once when objs with tag t is hovered
+	function onHover(t: Tag, action: (obj: GameObj) => void): EventCanceller {
+		return forAllCurrentAndFuture(t, (obj) => {
+			if (!obj.area)
+				throw new Error("onHover() requires the object to have area() component")
+			obj.onHover(() => action(obj))
 		})
 	}
 
 	// add an event that runs once when objs with tag t is hovered
-	function onHoverUpdate(t: string, onHover: (obj: GameObj) => void, onNotHover?: (obj: GameObj) => void): EventCanceller {
-		return onUpdate(t, (o: GameObj) => {
-			if (!o.area) throw new Error("onHover() requires the object to have area() component")
-			if (o.isHovering()) {
-				onHover(o)
-			} else {
-				if (onNotHover) {
-					onNotHover(o)
-				}
-			}
+	function onHoverUpdate(t: Tag, action: (obj: GameObj) => void): EventCanceller {
+		return forAllCurrentAndFuture(t, (obj) => {
+			if (!obj.area)
+				throw new Error("onHoverUpdate() requires the object to have area() component")
+			obj.onHoverUpdate(() => action(obj))
 		})
 	}
-	
+
 	// add an event that runs once when objs with tag t is unhovered
-	function onHoverEnd(t: string, action: (obj: GameObj) => void): EventCanceller {
-		return onUpdate(t, (o: GameObj) => {
-			if (!o.area) throw new Error("onHoverExit() requires the object to have area() component")
-			
-			if (!o.isHovering()) {
-				if (o.hoverEnded || !o.hoverStarted) return
-				o.hoverEnded = true
-				o.hoverStarted = false
-
-				action(o)
-			}
+	function onHoverEnd(t: Tag, action: (obj: GameObj) => void): EventCanceller {
+		return forAllCurrentAndFuture(t, (obj) => {
+			if (!obj.area)
+				throw new Error("onHoverEnd() requires the object to have area() component")
+			obj.onHoverEnd(() => action(obj))
 		})
 	}
 
@@ -3997,8 +3997,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			id: "area",
 			colliding: {},
 			collisionIgnore: opt.collisionIgnore ?? [],
-			hoverStarted: false,
-			hoverEnded: false,
 
 			add() {
 
@@ -4091,9 +4089,9 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				if (this === other || !other.area || !other.exists()) {
 					return null
 				}
-// 				if (this.colliding[other.id]) {
-// 					return this.colliding[other.id]
-// 				}
+				// if (this.colliding[other.id]) {
+					// return this.colliding[other.id]
+				// }
 				const a1 = this.worldArea()
 				const a2 = other.worldArea()
 				return sat(a1, a2)
@@ -4117,12 +4115,15 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			},
 
 			onHover(action: () => void): EventCanceller {
+				let hovering = false
 				return this.onUpdate(() => {
-					if(this.isHovering()) {
-						if (this.hoverStarted) return
-						this.hoverStarted = true
-						this.hoverEnded = false
-						action()
+					if (!hovering) {
+						if (this.isHovering()) {
+							hovering = true
+							action()
+						}
+					} else {
+						hovering = this.isHovering()
 					}
 				})
 			},
@@ -4140,12 +4141,15 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			},
 
 			onHoverEnd(action: () => void): EventCanceller {
+				let hovering = false
 				return this.onUpdate(() => {
-					if(!this.isHovering()) {
-						if (this.hoverEnded || !this.hoverStarted) return
-						this.hoverEnded = true
-						this.hoverStarted = false
-						action()
+					if (hovering) {
+						if (!this.isHovering()) {
+							hovering = false
+							action()
+						}
+					} else {
+						hovering = this.isHovering()
 					}
 				})
 			},
@@ -4245,7 +4249,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 	}
 
-	// make the list of common render properties from the "pos", "scale", "color", "opacity", "rotate", "origin", "outline", and "shader" components of a character
+	// make the list of common render properties from the "pos", "scale", "color", "opacity", "rotate", "origin", "outline", and "shader" components of a game object
 	function getRenderProps(obj: GameObj<any>) {
 		return {
 			color: obj.color,
