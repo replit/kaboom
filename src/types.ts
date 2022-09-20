@@ -2327,6 +2327,22 @@ export type SceneDef = (...args) => void
 export type EventCanceller = () => void
 
 /**
+ * Control the behavior of an event handler.
+ *
+ * @since v3000.0
+ */
+export type EventController = {
+	/*
+	 * Cancel the event.
+	 */
+	cancel(): void,
+	/*
+	 * If the event handler is currently paused.
+	 */
+	paused: boolean,
+}
+
+/**
  * Screen recording control handle.
  */
 export interface Recording {
