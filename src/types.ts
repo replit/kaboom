@@ -3646,7 +3646,7 @@ export interface AreaComp extends Comp {
 	/**
 	 * If this object has ended its hover.
 	 */
-	 hoverEnded: boolean;
+	hoverEnded: boolean;
 	/**
 	 * If was just clicked on last frame.
 	 */
