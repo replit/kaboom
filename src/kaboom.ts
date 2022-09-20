@@ -3519,22 +3519,32 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			return forAllCurrentAndFuture(tag, (obj) => {
 				if (!obj.area)
 					throw new Error("onClick() requires the object to have area() component")
-				obj.onClick(() => action(obj))
+				return obj.onClick(() => action(obj))
 			})
 		}
 	}
 
-	function forAllCurrentAndFuture(t: Tag, action: (obj: GameObj) => void): EventCanceller {
-		const a = get(t).forEach(action)
-		const b = onAdd((obj) => {
-			if (obj.is(t)) {
-				action(obj)
-			}
+	function forAllCurrentAndFuture(
+		t: Tag,
+		action: (obj: GameObj) => EventCanceller | void,
+	): EventCanceller {
+
+		const gc: EventCanceller[] = []
+
+		get(t).forEach((obj) => {
+			const cleanup = action(obj)
+			if (cleanup) gc.push(cleanup)
 		})
-		return () => {
-			a()
-			b()
-		}
+
+		gc.push(onAdd((obj) => {
+			if (obj.is(t)) {
+				const cleanup = action(obj)
+				if (cleanup) gc.push(cleanup)
+			}
+		}))
+
+		return () => gc.forEach((cleanup) => cleanup())
+
 	}
 
 	// add an event that runs once when objs with tag t is hovered
@@ -3542,7 +3552,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		return forAllCurrentAndFuture(t, (obj) => {
 			if (!obj.area)
 				throw new Error("onHover() requires the object to have area() component")
-			obj.onHover(() => action(obj))
+			return obj.onHover(() => action(obj))
 		})
 	}
 
@@ -3551,7 +3561,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		return forAllCurrentAndFuture(t, (obj) => {
 			if (!obj.area)
 				throw new Error("onHoverUpdate() requires the object to have area() component")
-			obj.onHoverUpdate(() => action(obj))
+			return obj.onHoverUpdate(() => action(obj))
 		})
 	}
 
@@ -3560,7 +3570,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		return forAllCurrentAndFuture(t, (obj) => {
 			if (!obj.area)
 				throw new Error("onHoverEnd() requires the object to have area() component")
-			obj.onHoverEnd(() => action(obj))
+			return obj.onHoverEnd(() => action(obj))
 		})
 	}
 
