@@ -46,7 +46,7 @@ scene("game", () => {
 	const bean = add([
 		sprite("bean"),
 		area(),
-		origin("center"),
+		anchor("center"),
 		pos(0, 0),
 		body({ jumpForce: JUMP_FORCE }),
 		rotate(0),
@@ -59,7 +59,7 @@ scene("game", () => {
 			area(),
 			pos(rand(0, width()), i * height() / NUM_PLATFORMS),
 			body({ isStatic: true }),
-			origin("center"),
+			anchor("center"),
 			"platform",
 			{
 				speed: rand(120, 320),
@@ -81,7 +81,7 @@ scene("game", () => {
 		const plat = plats[idx]
 		add([
 			pos(),
-			origin("center"),
+			anchor("center"),
 			sprite("coin"),
 			area(),
 			follow(plat, vec2(0, -60)),
@@ -97,7 +97,7 @@ scene("game", () => {
 			pos(i * 64, height()),
 			sprite("spike"),
 			area(),
-			origin("bot"),
+			anchor("bot"),
 			scale(),
 			"danger",
 		])
@@ -143,7 +143,7 @@ scene("game", () => {
 	let timeLeft = 30
 
 	const timer = add([
-		origin("topright"),
+		anchor("topright"),
 		pos(width() - 24, 24),
 		text(timeLeft),
 	])
@@ -164,7 +164,7 @@ scene("win", (score) => {
 		sprite("bean"),
 		pos(width() / 2, height() / 2 - 80),
 		scale(2),
-		origin("center"),
+		anchor("center"),
 	])
 
 	// display score
@@ -172,7 +172,7 @@ scene("win", (score) => {
 		text(score),
 		pos(width() / 2, height() / 2 + 80),
 		scale(2),
-		origin("center"),
+		anchor("center"),
 	])
 
 	// go back to game with space is pressed

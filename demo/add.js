@@ -16,7 +16,7 @@ const player = add([
 	sprite("bean"),   // sprite() component makes it render as a sprite
 	pos(120, 80),     // pos() component gives it position, also enables movement
 	rotate(0),        // rotate() component gives it rotation
-	origin("center"), // origin() component defines the pivot point (defaults to "topleft")
+	anchor("center"), // anchor() component defines the pivot point (defaults to "topleft")
 ])
 
 // .onUpdate() is a method on all game objects, it registers an event that runs every frame

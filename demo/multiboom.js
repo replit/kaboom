@@ -33,7 +33,7 @@ for (let i = 0; i < 2; i++) {
 		k.scale(6),
 		k.rotate(0),
 		spin(),
-		k.origin("center"),
+		k.anchor("center"),
 	])
 
 	k.add([

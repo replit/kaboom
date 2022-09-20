@@ -143,12 +143,6 @@ function buildTypes() {
 	// check if global defs are being generated
 	let globalGenerated = false
 
-	// window attribs to overwrite
-	const overwrites = new Set([
-		"origin",
-		"focus",
-	])
-
 	// contain the type data for doc gen
 	const types = {}
 	const sections = [{
@@ -179,10 +173,6 @@ function buildTypes() {
 			for (const name in stmt.members) {
 
 				const mem = stmt.members[name]
-
-				if (overwrites.has(name)) {
-					globalDts += "\t// @ts-ignore\n"
-				}
 
 				globalDts += `\tconst ${name}: KaboomCtx["${name}"]\n`
 

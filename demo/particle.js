@@ -21,7 +21,7 @@ loop(0.1, () => {
 	const item = add([
 		pos(mousePos()),
 		sprite(choose(sprites)),
-		origin("center"),
+		anchor("center"),
 		scale(rand(0.5, 1)),
 		area(),
 		body({ solid: false }),

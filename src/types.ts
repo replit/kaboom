@@ -314,7 +314,7 @@ export interface KaboomCtx {
 	 *     // Scale to 0.6 of the generated area
 	 *     area({ scale: 0.6 }),
 	 *     // If we want the area scale to be calculated from the center
-	 *     origin("center"),
+	 *     anchor("center"),
 	 * ])
 	 *
 	 * add([
@@ -326,19 +326,19 @@ export interface KaboomCtx {
 	 */
 	area(options: AreaCompOpt): AreaComp,
 	/**
-	 * Origin point for render (default "topleft").
+	 * Anchor point for render (default "topleft").
 	 *
 	 * @example
 	 * ```js
-	 * // set origin to "center" so it'll rotate from center
+	 * // set anchor to "center" so it'll rotate from center
 	 * add([
 	 *     rect(40, 10),
 	 *     rotate(45),
-	 *     origin("center"),
+	 *     anchor("center"),
 	 * ])
 	 * ```
 	 */
-	origin(o: Origin | Vec2): OriginComp,
+	anchor(o: Anchor | Vec2): AnchorComp,
 	/**
 	 * Determines the draw order for objects on the same layer. Object will be drawn on top if z value is bigger.
 	 */
@@ -2697,9 +2697,9 @@ export type DrawSpriteOpt = RenderProps & {
 	 */
 	quad?: Quad,
 	/**
-	 * The origin point, or the pivot point. Default to "topleft".
+	 * The anchor point, or the pivot point. Default to "topleft".
 	 */
-	origin?: Origin | Vec2,
+	anchor?: Anchor | Vec2,
 }
 
 export type DrawUVQuadOpt = RenderProps & {
@@ -2728,9 +2728,9 @@ export type DrawUVQuadOpt = RenderProps & {
 	 */
 	quad?: Quad,
 	/**
-	 * The origin point, or the pivot point. Default to "topleft".
+	 * The anchor point, or the pivot point. Default to "topleft".
 	 */
-	origin?: Origin | Vec2,
+	anchor?: Anchor | Vec2,
 }
 
 /**
@@ -2770,9 +2770,9 @@ export type DrawRectOpt = RenderProps & {
 	 */
 	radius?: number,
 	/**
-	 * The origin point, or the pivot point. Default to "topleft".
+	 * The anchor point, or the pivot point. Default to "topleft".
 	 */
-	origin?: Origin | Vec2,
+	anchor?: Anchor | Vec2,
 }
 
 /**
@@ -2876,9 +2876,9 @@ export type DrawCircleOpt = Omit<RenderProps, "angle"> & {
 	 */
 	resolution?: number,
 	/**
-	 * The origin point, or the pivot point. Default to "topleft".
+	 * The anchor point, or the pivot point. Default to "topleft".
 	 */
-	origin?: Origin | Vec2,
+	anchor?: Anchor | Vec2,
 }
 
 /**
@@ -2920,9 +2920,9 @@ export type DrawEllipseOpt = RenderProps & {
 	 */
 	resolution?: number,
 	/**
-	 * The origin point, or the pivot point. Default to "topleft".
+	 * The anchor point, or the pivot point. Default to "topleft".
 	 */
-	origin?: Origin | Vec2,
+	anchor?: Anchor | Vec2,
 }
 
 /**
@@ -3016,9 +3016,9 @@ export type DrawTextOpt = RenderProps & {
 	 */
 	letterSpacing?: number,
 	/**
-	 * The origin point, or the pivot point. Default to "topleft".
+	 * The anchor point, or the pivot point. Default to "topleft".
 	 */
-	origin?: Origin | Vec2,
+	anchor?: Anchor | Vec2,
 	/**
 	 * Transform the pos, scale, rotation or color for each character based on the index or char (only available for bitmap fonts).
 	 *
@@ -3114,7 +3114,7 @@ export type Cursor =
 	| "zoom-int"
 	| "zoom-out"
 
-export type Origin =
+export type Anchor =
 	"topleft"
 	| "top"
 	| "topright"
@@ -3456,11 +3456,11 @@ export interface OpacityComp extends Comp {
 	opacity: number,
 }
 
-export interface OriginComp extends Comp {
+export interface AnchorComp extends Comp {
 	/**
-	 * Origin point for render.
+	 * Anchor point for render.
 	 */
-	origin: Origin | Vec2,
+	anchor: Anchor | Vec2,
 }
 
 export interface ZComp extends Comp {

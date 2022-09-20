@@ -12,11 +12,11 @@ function addButton(txt, p, f) {
 		pos(p),
 		area(),
 		scale(1),
-		origin("center"),
+		anchor("center"),
 	])
 
 	// set cursor to "pointer" when button is hovered
-	btn.onHover(() => setCursor("pointer"))
+	btn.onHoverUpdate(() => setCursor("pointer"))
 	btn.onClick(f)
 
 	btn.onUpdate(() => {

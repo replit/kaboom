@@ -7,7 +7,7 @@ add([
 	pos(40, 0),
 	rect(20, 80),
 	outline(4),
-	origin("center"),
+	anchor("center"),
 	area(),
 	"paddle",
 ])
@@ -16,7 +16,7 @@ add([
 	pos(width() - 40, 0),
 	rect(20, 80),
 	outline(4),
-	origin("center"),
+	anchor("center"),
 	area(),
 	"paddle",
 ])
@@ -32,7 +32,7 @@ let score = 0
 add([
 	text(score),
 	pos(center()),
-	origin("center"),
+	anchor("center"),
 	z(50),
 	{ update() { this.text = score }},
 ])

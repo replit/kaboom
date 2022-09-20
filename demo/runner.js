@@ -27,7 +27,7 @@ scene("game", () => {
 		rect(width(), FLOOR_HEIGHT),
 		outline(4),
 		pos(0, height()),
-		origin("botleft"),
+		anchor("botleft"),
 		area(),
 		body({ isStatic: true }),
 		color(127, 200, 255),
@@ -51,7 +51,7 @@ scene("game", () => {
 			area(),
 			outline(4),
 			pos(width(), height() - FLOOR_HEIGHT),
-			origin("botleft"),
+			anchor("botleft"),
 			color(255, 180, 255),
 			move(LEFT, SPEED),
 			cleanup(),
@@ -96,7 +96,7 @@ scene("lose", (score) => {
 		sprite("bean"),
 		pos(width() / 2, height() / 2 - 80),
 		scale(2),
-		origin("center"),
+		anchor("center"),
 	])
 
 	// display score
@@ -104,7 +104,7 @@ scene("lose", (score) => {
 		text(score),
 		pos(width() / 2, height() / 2 + 80),
 		scale(2),
-		origin("center"),
+		anchor("center"),
 	])
 
 	// go back to game with space is pressed
