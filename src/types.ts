@@ -377,7 +377,13 @@ export interface KaboomCtx {
 	 */
 	body(options?: BodyCompOpt): BodyComp,
 	/**
-	 * Move towards a direction infinitely, and destroys when it leaves game view. Requires "pos" comp.
+	 * Enables double jump. Requires "body" component.
+	 *
+	 * @since v3000.0
+	 */
+	doubleJump(): DoubleJumpComp,
+	/**
+	 * Move towards a direction infinitely, and destroys when it leaves game view. Requires "pos" component.
 	 *
 	 * @example
 	 * ```js
@@ -4127,10 +4133,6 @@ export interface BodyComp extends Comp {
 	 */
 	jump(force?: number): void,
 	/**
-	 * Performs double jump (the initial jump only happens if player is grounded).
-	 */
-	doubleJump(f?: number): void,
-	/**
 	 * Register an event that runs when a collision is resolved.
 	 *
 	 * @since v3000.0
@@ -4160,10 +4162,15 @@ export interface BodyComp extends Comp {
 	 * @since v2000.1
 	 */
 	onHeadbutt(action: () => void): EventCanceller,
+}
+
+export interface DoubleJumpComp extends Comp {
+	/**
+	 * Performs double jump (the initial jump only happens if player is grounded).
+	 */
+	doubleJump(force?: number): void,
 	/**
 	 * Register an event that runs when the object performs the second jump when double jumping.
-	 *
-	 * @since v2000.1
 	 */
 	onDoubleJump(action: () => void): EventCanceller,
 }

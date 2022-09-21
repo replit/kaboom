@@ -49,6 +49,7 @@ scene("game", () => {
 		anchor("center"),
 		pos(0, 0),
 		body({ jumpForce: JUMP_FORCE }),
+		doubleJump(),
 		rotate(0),
 		spin(),
 	])

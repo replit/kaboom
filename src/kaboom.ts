@@ -142,6 +142,7 @@ import {
 	BoomOpt,
 	PeditFile,
 	Shape,
+	DoubleJumpComp,
 } from "./types"
 
 import FPSCounter from "./fps"
@@ -879,7 +880,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	}
 
 	const assets = {
-	// prefix for when loading from a url
+		// prefix for when loading from a url
 		urlPrefix: "",
 		// asset holders
 		sprites: new AssetBucket<SpriteData>(),
@@ -4665,7 +4666,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		let velY = 0
 		let curPlatform: GameObj | null = null
 		let lastPlatformPos = null
-		let canDouble = true
 		let wantFall = false
 		const cleanups: Array<() => void> = []
 
@@ -4719,7 +4719,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 							if (wantFall) {
 								wantFall = false
 							} else {
-								canDouble = true
 								this.trigger("ground", curPlatform)
 							}
 						} else if (col.isTop() && this.isRising()) {
@@ -4804,16 +4803,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				velY = -force || -this.jumpForce
 			},
 
-			doubleJump(force: number) {
-				if (this.isGrounded()) {
-					this.jump(force)
-				} else if (canDouble) {
-					canDouble = false
-					this.jump(force)
-					this.trigger("doubleJump")
-				}
-			},
-
 			onGround(action: () => void): EventCanceller {
 				return this.on("ground", action)
 			},
@@ -4830,12 +4819,37 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				return this.on("headbutt", action)
 			},
 
+		}
+
+	}
+
+	// TODO: enable multi jump
+	function doubleJump(): DoubleJumpComp {
+		let canDouble = true
+		const cleanups = []
+		return {
+			require: [ "body" ],
+			add() {
+				cleanups.push(this.onGround(() => {
+					canDouble = true
+				}))
+			},
+			destroy() {
+				cleanups.forEach((f) => f())
+			},
+			doubleJump(force: number) {
+				if (this.isGrounded()) {
+					this.jump(force)
+				} else if (canDouble) {
+					canDouble = false
+					this.jump(force)
+					this.trigger("doubleJump")
+				}
+			},
 			onDoubleJump(action: () => void): EventCanceller {
 				return this.on("doubleJump", action)
 			},
-
 		}
-
 	}
 
 	function shader(id: string, uniform: Uniform = {}): ShaderComp {
@@ -6136,6 +6150,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		uvquad,
 		outline,
 		body,
+		doubleJump,
 		shader,
 		timer,
 		fixed,
