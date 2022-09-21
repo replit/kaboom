@@ -3,6 +3,7 @@
 - brought back `loadMark()`
 - (**BREAK**) removed all deprecated functions in v2000.2
 - (**BREAK**) raised esbuild target to `esnext`
+- (**BREAK**) renamed `origin()` to `anchor()`, so it won't mess up typescript in global context
 - game objects can have children with `obj.add()` now which share the parent transform
 - added `make()` to make a game object without adding to the scene
 - added support for `add()` to add unattached game objects to the scene `add(make([...comps]))`
@@ -17,7 +18,7 @@
 - added support for non bitmap fonts
 - (**BREAK**) rename `loadFont()` to `loadBitmapFont()`
 - added `loadFont()` to load `.ttf`, `.otf`, `.woff2` or any font supported by browser `FontFace`
-- (**BREAK**) `origin` no longer controls text alignment, use `align` option instead
+- (**BREAK**) `anchor` (previously `origin`) no longer controls text alignment, use `align` option instead
 - added `quit()` to end everything
 - shader error logs now yields the correct line number
 - changed object update order from reversed to not reversed
