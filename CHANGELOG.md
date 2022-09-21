@@ -26,7 +26,7 @@
 - added `debug.numFrames()` to get the total number of frames elapsed
 - fixed visual artifacts on text
 - added `onError()` to handle error or even custom error screen
-- added `onLoading()` to register a custom loading screen (see "loader" example)
+- added `onLoadUpdate()` to register a custom loading screen (see "loader" example)
 - fixed touches not treated as mouse
 - (**BREAK**) changed `onTouchStart()`, `onTouchMove()` and `onTouchEnd()` callback signature to `(pos: Vec2, touch: Touch) => void` (exposes the native `Touch` object)
 - added `onResize()` to register an event that runs when canvas resizes
@@ -45,8 +45,9 @@
 - (**BREAK**) renamed `fullscreen()` to `setFullscreen()`
 - moved type defs for global functions to `import "kaboom/global"`
 - (**BREAK**) removed `apl386` and `apl386o` as default fonts, default font changed to `sink`,, and added a default font size of `16`
-- (**BREAK**) renamed `onHover()` to `onHoverUpdate()`, now onHover runs only once. The same for `Area#onHover()` and `Area#onHoverUpdate()`
-- added `onHoverEnd()` and `Area#onHoverEnd()` to register an event once when a tag/object is unhovered
+- (**BREAK**) renamed `onHover()` to `onHoverUpdate()` (it registers an event that runs every frame when an object is hovered)
+- added `Area#onHover()` and `onHover()` to register an event that runs once when an object(s) is hovered
+- added `Area#onHoverEnd()` and `onHoverEnd()` to register an event that runs once when an object(s) stopped being hovered
 
 ### v2000.2.6
 

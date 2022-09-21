@@ -676,7 +676,7 @@ export interface KaboomCtx {
 	 *
 	 * @since v3000.0
 	 */
-	onLoading(action: (err: Error) => void): void,
+	onLoadUpdate(action: (err: Error) => void): void,
 	/**
 	 * Register a custom error handler. Can be used to draw a custom error screen.
 	 *

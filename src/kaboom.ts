@@ -3219,7 +3219,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				this.children.push(obj)
 				obj.trigger("add", this)
 				game.ev.trigger("add", this)
-				onLoad(() => obj.trigger("load"))
 				return obj
 			},
 
@@ -5857,7 +5856,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		enterBurpMode()
 	}
 
-	function onLoading(action: (err: Error) => void) {
+	function onLoadUpdate(action: (err: Error) => void) {
 		game.ev.on("loading", action)
 	}
 
@@ -6116,7 +6115,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		isFullscreen,
 		isTouch: () => app.isTouch,
 		onLoad,
-		onLoading,
+		onLoadUpdate,
 		onResize,
 		onError,
 		// misc

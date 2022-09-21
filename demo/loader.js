@@ -45,7 +45,7 @@ add([
 ])
 
 // Custom loading screen
-onLoading((progress) => {
+onLoadUpdate((progress) => {
 
 	// Draw a fullscreen rect to cover up the default screen
 	drawRect({
