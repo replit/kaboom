@@ -142,6 +142,8 @@ import {
 	BoomOpt,
 	PeditFile,
 	Shape,
+	IsometricLevelOpt,
+	IsometricLevel,
 } from "./types"
 
 import FPSCounter from "./fps"
@@ -5162,6 +5164,18 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 	}
 
+	function isometricGrid(isometricLevel: IsometricLevel, position: Vec2) {
+
+		return {
+
+			id: "isometricGrid",
+			gridPos: position.clone(),
+			level: isometricLevel,
+
+		}
+
+	}
+
 	function addLevel(map: string[], opt: LevelOpt): GameObj<PosComp | LevelComp> {
 
 		if (!opt.width || !opt.height) {
@@ -5259,6 +5273,106 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 		return level
 
+	}
+
+	function addIsometricLevel(map: string[], options: IsometricLevelOpt): IsometricLevel {
+		if (!options.width || !options.height) {
+			throw new Error("Must provide isometric level tile width & height.")
+		}
+
+		const objects: GameObj[] = []
+		const offset = vec2(options.pos || vec2(0))
+
+		const halfTileWidth = Math.floor(options.width / 2)
+		const halfTileHeight = Math.floor(options.height / 2)
+
+		const maxWidthInTiles = map.reduce((width, row): number => Math.max(width, row.length), 0)
+		const heightInTiles = map.length
+
+		const isometricLevel = {
+			offset() {
+				return offset.clone()
+			},
+
+			gridWidth() {
+				return options.width
+			},
+
+			gridHeight() {
+				return options.height
+			},
+
+			getPos: (...args): Vec2 => {
+				const p = vec2(...args)
+				return vec2((p.x - p.y) * halfTileWidth, (p.x + p.y) * halfTileHeight)
+			},
+
+			spawn: (position: Vec2, symbol: string): GameObj => {
+				const comps = (() => {
+					if (options[symbol]) {
+						if (typeof options[symbol] !== "function") {
+							throw new Error("isometric level symbol def must be a function returning a component list")
+						}
+						return options[symbol](position)
+					} else if (options.any) {
+						return options.any(symbol, position)
+					}
+				})()
+
+				if (!comps) {
+					return
+				}
+
+				const posComp = vec2(
+					offset.x + position.x,
+					offset.y + position.y,
+				)
+
+				for (const comp of comps) {
+					if (comp.id === "pos") {
+						posComp.x += comp.pos.x
+						posComp.y += comp.pos.y
+
+						break
+					}
+				}
+
+				comps.push(pos(posComp))
+				comps.push(isometricGrid(this, position))
+
+				const object = add(comps)
+				objects.push(object)
+
+				return object
+			},
+
+			width() {
+				return maxWidthInTiles * options.width
+			},
+
+			height() {
+				return heightInTiles * options.height
+			},
+
+			destroy() {
+				for (const someObject of objects) {
+					destroy(someObject)
+				}
+			},
+		}
+
+		for (let row = 0; row < heightInTiles; row++) {
+			for (let col = 0; col < maxWidthInTiles; col++) {
+				const position = isometricLevel.getPos(col, row)
+				const rowContent: string = map[row]
+				const symbols: string[] = rowContent.split("")
+				const symbol = symbols[col]
+
+				isometricLevel.spawn(position, symbol)
+			}
+		}
+
+		return isometricLevel
 	}
 
 	function record(frameRate?): Recording {
@@ -6250,6 +6364,8 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		go,
 		// level
 		addLevel,
+		// isometric level
+		addIsometricLevel,
 		// storage
 		getData,
 		setData,

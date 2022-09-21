@@ -1659,6 +1659,46 @@ export interface KaboomCtx {
 	 * ```
 	 */
 	addLevel(map: string[], options: LevelOpt): GameObj,
+		/**
+	 * Construct a isometric level based on symbols.
+	 *
+	 * @section IsometricLevel
+	 *
+	 * @example
+	 * ```js
+	 * addIsometricLevel([
+	 * 	// Design the isometric level layout with symbols
+	 * 	// 15x15 grid in this case so we have a perfect tiled square diamond shaped map
+	 * 	"@@@@@@@@@@@@@@@",
+	 * 	"@@@@@@@@@@@@@@@",
+	 * 	"@@@@@@@@@@@@@@@",
+	 * 	"@@@@!@@@@!@@@@@",
+	 * 	"@@@@@@@@@@@@@@@",
+	 * 	"@@@@@@@@@@@@@@@",
+	 * 	"@@@@@!@@@!@@@@@",
+	 * 	"@@@@@@!!!@@@@@@",
+	 * 	"@@@@@@@@@@@@@@@",
+	 * 	"@@@@@@@@@@@@@@@",
+	 * 	"@@@@@@@@@@@@@@@",
+	 * 	"@@@@@@@@@@@@@@@",
+	 * 	"@@@@@@@@@@@@@@@",
+	 * 	"@@@@@@@@@@@@@@@",
+	 * 	"@@@@@@@@@@@@@@@",
+	 * ], {
+	 * 	// The size of each grid
+	 * 	width: 144,
+	 * 	height: 71,
+	 * 	// Define what each symbol means (in components)
+	 * 	"@": () => [
+	 * 		sprite("grass"),
+	 * 	],
+	 * 	"!": () => [
+	 * 		sprite("darker_grass"),
+	 * 	],
+	 * })
+	 * ```
+	 */
+	addIsometricLevel(map: string[], options: IsometricLevelOpt): IsometricLevel,
 	/**
 	 * Get data from local storage, if not present can set to a default value.
 	 *
@@ -4337,6 +4377,39 @@ export interface LevelComp extends Comp {
 	spawn(sym: string, x: number, y: number): GameObj,
 	levelWidth(): number,
 	levelHeight(): number,
+}
+
+export interface IsometricLevelOpt {
+	/**
+	 * Width of each block.
+	 */
+	width: number,
+	/**
+	 * Height of each block.
+	 */
+	height: number,
+	/**
+	 * Position of the first block.
+	 */
+	pos?: Vec2,
+	/**
+	 * Called when encountered an undefined symbol.
+	 */
+	any?: (s: string, pos: Vec2) => CompList<any> | undefined,
+	// TODO: should return CompList<any>
+	[sym: string]: any,
+}
+
+export interface IsometricLevel {
+	spawn(position: Vec2, symbol: string): GameObj,
+	gridWidth(): number,
+	gridHeight(): number,
+	offset(): Vec2,
+	getPos(p: Vec2): Vec2,
+	getPos(x: number, y: number): Vec2,
+	width(): number,
+	height(): number,
+	destroy(): void,
 }
 
 export interface BoomOpt {
