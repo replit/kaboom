@@ -3223,8 +3223,11 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			},
 
 			readd(obj: GameObj): GameObj {
-				this.remove(obj)
-				this.children.push(obj)
+				const idx = this.children.indexOf(obj)
+				if (idx !== -1) {
+					this.children.splice(idx, 1)
+					this.children.push(obj)
+				}
 				return obj
 			},
 
@@ -3233,6 +3236,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				if (idx !== -1) {
 					obj.parent = null
 					obj.trigger("destroy")
+					game.ev.trigger("destroy", obj)
 					this.children.splice(idx, 1)
 				}
 			},
@@ -3440,6 +3444,10 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				return info
 			},
 
+			onAdd(cb: () => void): EventCanceller {
+				return this.on("add", cb)
+			},
+
 			onUpdate(cb: () => void): EventCanceller {
 				return this.on("update", cb)
 			},
@@ -3500,6 +3508,10 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 	function onAdd(action: (obj: GameObj) => void) {
 		return game.ev.on("add", action)
+	}
+
+	function onDestroy(action: (obj: GameObj) => void) {
+		return game.ev.on("destroy", action)
 	}
 
 	// add an event that runs with objs with t1 collides with objs with t2
