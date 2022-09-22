@@ -4,7 +4,8 @@
 		"allowJs": true,
 		"esModuleInterop": true,
 		"target": "esnext",
-		"moduleResolution": "node"
+		"moduleResolution": "node",
+		"noImplicitThis": true
 	},
 	"include": [
 		"scripts/*.js",

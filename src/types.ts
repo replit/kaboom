@@ -2254,7 +2254,7 @@ export interface GameObjRaw {
 	/**
 	 * Register an event.
 	 */
-	on(event: string, action: () => void): EventCanceller,
+	on(event: string, action: (...args) => void): EventCanceller,
 	/**
 	 * Trigger an event.
 	 */
@@ -3565,6 +3565,10 @@ export interface Collision {
 	 */
 	displacement: Vec2,
 	/**
+	 * If the collision is resolved.
+	 */
+	resolved: boolean,
+	/**
 	 * Get a new collision with reversed source and target relationship.
 	 */
 	reverse(): Collision,
@@ -3667,7 +3671,7 @@ export interface AreaComp extends Comp {
 	/**
 	 * If is currently touching another game obj.
 	 */
-	isTouching(o: GameObj): boolean,
+	isTouching(o: GameObj<AreaComp>): boolean,
 	/**
 	 * Register an event runs when clicked.
 	 *
@@ -3679,19 +3683,19 @@ export interface AreaComp extends Comp {
 	 *
 	 * @since v3000.0
 	 */
-	onHover(action: () => void): void,
+	onHover(action: () => void): EventCanceller,
 	/**
 	 * Register an event runs every frame when hovered.
 	 *
 	 * @since v3000.0
 	 */
-	onHoverUpdate(onHover: () => void, onNotHover?: () => void): void,
+	onHoverUpdate(action: () => void): EventCanceller,
 	/**
 	 * Register an event runs once when unhovered.
 	 *
 	 * @since v3000.0
 	 */
-	onHoverEnd(action: () => void): void,
+	onHoverEnd(action: () => void): EventCanceller,
 	/**
 	 * Register an event runs once when collide with another game obj with certain tag.
 	 *
@@ -3709,19 +3713,19 @@ export interface AreaComp extends Comp {
 	 *
 	 * @since v3000.0
 	 */
-	onCollideUpdate(tag: Tag, f: (obj: GameObj, col?: Collision) => void): void,
+	onCollideUpdate(tag: Tag, f: (obj: GameObj, col?: Collision) => void): EventCanceller,
 	/**
 	 * Register an event runs every frame when collide with another game obj.
 	 *
 	 * @since v3000.0
 	 */
-	onCollideUpdate(f: (obj: GameObj, col?: Collision) => void): void,
+	onCollideUpdate(f: (obj: GameObj, col?: Collision) => void): EventCanceller,
 	/**
 	 * Register an event runs once when stopped colliding with another game obj with certain tag.
 	 *
 	 * @since v3000.0
 	 */
-	onCollideEnd(tag: Tag, f: (obj: GameObj) => void): void,
+	onCollideEnd(tag: Tag, f: (obj: GameObj) => void): EventCanceller,
 	/**
 	 * Register an event runs once when stopped colliding with another game obj.
 	 *

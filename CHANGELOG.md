@@ -1,54 +1,75 @@
 # v3000.0.0 (Unreleased)
 
-- brought back `loadMark()`
-- (**BREAK**) removed all deprecated functions in v2000.2
-- (**BREAK**) raised esbuild target to `esnext`
-- (**BREAK**) renamed `origin()` to `anchor()`, so it won't mess up typescript in global context
-- game objects can have children with `obj.add()` now which share the parent transform
+## Game Objects
+
+- added scene graph, game objects can now have children with `obj.add()`
 - added `make()` to make a game object without adding to the scene
 - added support for `add()` to add unattached game objects to the scene `add(make([...comps]))`
+- added `GameObj#getAll()` for recursively getting children game objects (`get()` only gets from direct children)
+- changed object update order from reversed to not reversed
+- (**BREAK**) removed `GameObj#every()` and `GameObj#revery()` in favor of `obj.get().forEach()`
+- (**BREAK**) renamed `GameObj#_id` to `GameObj#id`
+- (**BREAK**) `addLevel()` now returns a `GameObj` which has all individual grid objects as its children game objects, with `LevelComp` containing its previous methods
+
+## Components
+
+- added collision support for rotate shapes
+- added `Area#onCollideUpdate()` and `Area#onCollideEnd()` events
+- added `Area#onHover()` and `onHover()` to register an event that runs once when an object(s) is hovered
+- added `Area#onHoverEnd()` and `onHoverEnd()` to register an event that runs once when an object(s) stopped being hovered
+- (**BREAK**) renamed `onHover()` to `onHoverUpdate()` (it registers an event that runs every frame when an object is hovered)
+- added `Body#onFall()` which fires when object starts falling
+- (**BREAK**) renamed `Body#weight` to `Body#gravityScale`
+- (**BREAK**) renamed `Body#onFall()` to `Body#onFallOff()` which triggers when object fall off a platform
+- (**BREAK**) removed `solid()` in favor of `body({ isStatic: true })`
+- (**BREAK**) defining `gravity()` is now required for enabling gravity, `body()` by default will only prevent objects from going through each other
+- (**BREAK**) renamed `origin()` to `anchor()`, so it won't mess up typescript in global context
+- (**BREAK**) `anchor` (previously `origin`) no longer controls text alignment, use `align` option instead
+
+## Assets
+
+- added `loadProgress()` that returns a `0.0 - 1.0` that indicates current asset loading progress
+- added `onLoadUpdate()` to register a custom loading screen (see "loader" example)
+
+## Font
+
+- added `loadFont()` to load `.ttf`, `.otf`, `.woff2` or any font supported by browser `FontFace`
+- (**BREAK**) renamed previous `loadFont()` to `loadBitmapFont()`
+- (**BREAK**) removed `apl386` and `apl386o` as default fonts, default font changed to `sink`,, and added a default font size of `16`
+
+## Drawing
+
+- fixed visual artifacts on text rendering
 - added `colors` option to `drawPolygon()` that controls the color of each corner
 - added `gradient` option to `drawRect()` that specifies the start and end color
-- added `loadProgress()` that returns a `0.0 - 1.0` that indicates current asset loading progress
-- added `kaboom()` option `loadingScreen` where you can turn off the default loading screen
+- added option `loadingScreen` to `kaboom()` where you can turn off the default loading screen
 - added `drawMasked()` and `drawSubtracted()`
-- (**BREAK**) removed `layers()` in favor of parent game objects (see "layers" demo)
 - added `pushRotateX()`, `pushRotateY()` and `pushRotateZ()`
 - added `pixelDensity` option to `kaboom()`
-- added support for non bitmap fonts
-- (**BREAK**) rename `loadFont()` to `loadBitmapFont()`
-- added `loadFont()` to load `.ttf`, `.otf`, `.woff2` or any font supported by browser `FontFace`
-- (**BREAK**) `anchor` (previously `origin`) no longer controls text alignment, use `align` option instead
-- added `quit()` to end everything
 - shader error logs now yields the correct line number
-- changed object update order from reversed to not reversed
+
+## Input
+
+- fixed touches not treated as mouse
+- (**BREAK**) changed `onTouchStart()`, `onTouchMove()` and `onTouchEnd()` callback signature to `(pos: Vec2, touch: Touch) => void` (exposes the native `Touch` object)
+
+## Misc
+
+- moved type defs for global functions to `import "kaboom/global"`
+- (**BREAK**) removed all deprecated functions in v2000.2
+- (**BREAK**) raised esbuild target to `esnext`
+- added `quit()` to end everything
 - added `download()`, `downloadText()`, `downloadJSON()`, `downloadBlob()`
 - added `Recording#stop()` to stop the recording and returns the video data as mp4 Blob
 - added `debug.numFrames()` to get the total number of frames elapsed
-- fixed visual artifacts on text
 - added `onError()` to handle error or even custom error screen
-- added `onLoadUpdate()` to register a custom loading screen (see "loader" example)
-- fixed touches not treated as mouse
-- (**BREAK**) changed `onTouchStart()`, `onTouchMove()` and `onTouchEnd()` callback signature to `(pos: Vec2, touch: Touch) => void` (exposes the native `Touch` object)
 - added `onResize()` to register an event that runs when canvas resizes
-- (**BREAK**) `GameObj#_id` has been renamed to `GameObj#id`
-- (**BREAK**) removed `load()` event for components, use `onLoad()` in `add()` event
-- (**BREAK**) renamed `Body#onFall()` to `Body#onFallOff()` which triggers when object fall off a platform, added `Body#onFall()` which fires when object starts falling
-- (**BREAK**) `addLevel()` now returns a `GameObj` which has all individual grid objects as its children game objects, with `LevelComp` containing its previous methods
-- (**BREAK**) defining `gravity()` is now required for enabling gravity, `body()` by default will only prevent objects from going through each other, removed `solid()` in favor of `body({ isStatic: true })`
-- (**BREAK**) renamed `Body#weight` to `Body#gravityScale`
-- (**BREAK**) removed `GameObj#every()` and `GameObj#revery()` in favor of `obj.get().forEach()`
-- added `GameObj#getAll()` for recursively getting children game objects (`get()` only gets from direct children)
-- added `Area#onCollideUpdate()` and `Area#onCollideEnd()` events
-- (**BREAK**) removed `debug.objCount()` in favor of `getAll().length`
-- added `debug.numFrames()` to get the current frame count
 - (**BREAK**) renamed `cursor()` to `setCursor()`
 - (**BREAK**) renamed `fullscreen()` to `setFullscreen()`
-- moved type defs for global functions to `import "kaboom/global"`
-- (**BREAK**) removed `apl386` and `apl386o` as default fonts, default font changed to `sink`,, and added a default font size of `16`
-- (**BREAK**) renamed `onHover()` to `onHoverUpdate()` (it registers an event that runs every frame when an object is hovered)
-- added `Area#onHover()` and `onHover()` to register an event that runs once when an object(s) is hovered
-- added `Area#onHoverEnd()` and `onHoverEnd()` to register an event that runs once when an object(s) stopped being hovered
+- (**BREAK**) removed `layers()` in favor of parent game objects (see "layers" demo)
+- (**BREAK**) removed `load()` event for components, use `onLoad()` in `add()` event
+- (**BREAK**) removed `debug.objCount()` in favor of `getAll().length`
+- added `debug.numFrames()` to get the current frame count
 
 ### v2000.2.6
 

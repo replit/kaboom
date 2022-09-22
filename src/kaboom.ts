@@ -3238,7 +3238,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			},
 
 			removeAll(tag: Tag) {
-				this.get().forEach(tag, (obj) => this.remove(obj))
+				this.get(tag).forEach((obj) => this.remove(obj))
 			},
 
 			update() {
@@ -3247,7 +3247,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				this.trigger("update")
 			},
 
-			draw() {
+			draw(this: GameObj<PosComp | ScaleComp | RotateComp>) {
 				if (this.hidden) return
 				pushTransform()
 				pushTranslate(this.pos)
@@ -3258,7 +3258,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				popTransform()
 			},
 
-			drawInspect() {
+			drawInspect(this: GameObj<PosComp | ScaleComp | RotateComp>) {
 				if (this.hidden) return
 				pushTransform()
 				pushTranslate(this.pos)
@@ -3761,7 +3761,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			pos: vec2(...args),
 
 			moveBy(...args) {
-				this.pos = this.pos.add(...args)
+				this.pos = this.pos.add(vec2(...args))
 			},
 
 			// move with velocity (pixels per second)
@@ -3788,14 +3788,14 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				this.move(diff.unit().scale(speed))
 			},
 
-			worldPos(): Vec2 {
+			worldPos(this: GameObj<PosComp>): Vec2 {
 				return this.parent
 					? this.parent.transform.multVec2(this.pos)
 					: this.pos
 			},
 
 			// get the screen position (transformed by camera)
-			screenPos(): Vec2 {
+			screenPos(this: GameObj<PosComp | FixedComp>): Vec2 {
 				return this.fixed
 					? this.pos
 					: toScreen(this.pos)
@@ -3912,12 +3912,12 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				obj: obj,
 				offset: offset ?? vec2(0),
 			},
-			add() {
+			add(this: GameObj<FollowComp | PosComp>) {
 				if (obj.exists()) {
 					this.pos = this.follow.obj.pos.add(this.follow.offset)
 				}
 			},
-			update() {
+			update(this: GameObj<FollowComp | PosComp>) {
 				if (obj.exists()) {
 					this.pos = this.follow.obj.pos.add(this.follow.offset)
 				}
@@ -3930,7 +3930,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		return {
 			id: "move",
 			require: [ "pos" ],
-			update() {
+			update(this: GameObj<PosComp>) {
 				this.move(d.scale(speed))
 			},
 		}
@@ -3943,7 +3943,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			id: "outview",
 			require: [ "pos", "area" ],
 			// TODO: expensive
-			isOutOfView(): boolean {
+			isOutOfView(this: GameObj<AreaComp>): boolean {
 				const offset = vec2(opt.offset ?? 0)
 				const screenRect = Rect.fromPoints(
 					vec2(0, 0).sub(offset),
@@ -3951,13 +3951,13 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				)
 				return !testRectRect2(this.screenArea().bbox(), screenRect)
 			},
-			onExitView(action: () => void): EventCanceller {
+			onExitView(this: GameObj, action: () => void): EventCanceller {
 				return this.on("exitView", action)
 			},
-			onEnterView(action: () => void): EventCanceller {
+			onEnterView(this: GameObj, action: () => void): EventCanceller {
 				return this.on("enterView", action)
 			},
-			update() {
+			update(this: GameObj) {
 				if (this.isOutOfView()) {
 					if (!isOut) {
 						this.trigger("exitView")
@@ -3981,7 +3981,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				}
 			},
 			inspect() {
-				return this.isOutOfView()
+				return `${this.isOutOfView()}`
 			},
 		}
 	}
@@ -4008,7 +4008,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			colliding: {},
 			collisionIgnore: opt.collisionIgnore ?? [],
 
-			add() {
+			add(this: GameObj<AreaComp>) {
 
 				if (this.area.cursor) {
 					cleanups.push(this.onHover(() => setCursor(this.area.cursor)))
@@ -4023,17 +4023,17 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 			},
 
-			update() {
+			update(this: GameObj) {
 				for (const id in this.colliding) {
 					const col = this.colliding[id]
-					if (!this.checkCollision(col.target)) {
+					if (!this.checkCollision(col.target as GameObj<AreaComp>)) {
 						delete this.colliding[id]
 						this.trigger("collideEnd", col.target, col)
 					}
 				}
 			},
 
-			drawInspect() {
+			drawInspect(this: GameObj<AreaComp | AnchorComp | FixedComp>) {
 
 				const a = this.localArea()
 
@@ -4090,12 +4090,12 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				return isMousePressed() && this.isHovering()
 			},
 
-			isHovering() {
+			isHovering(this: GameObj) {
 				const mpos = this.fixed ? mousePos() : toWorld(mousePos())
 				return this.hasPoint(mpos)
 			},
 
-			checkCollision(other: GameObj<AreaComp>) {
+			checkCollision(this: GameObj, other: GameObj<AreaComp>) {
 				if (this === other || !other.area || !other.exists()) {
 					return null
 				}
@@ -4116,7 +4116,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				return Boolean(this.checkCollision(other))
 			},
 
-			onClick(f: () => void): EventCanceller {
+			onClick(this: GameObj, f: () => void): EventCanceller {
 				return this.onUpdate(() => {
 					if (this.isClicked()) {
 						f()
@@ -4124,7 +4124,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				})
 			},
 
-			onHover(action: () => void): EventCanceller {
+			onHover(this: GameObj, action: () => void): EventCanceller {
 				let hovering = false
 				return this.onUpdate(() => {
 					if (!hovering) {
@@ -4138,19 +4138,15 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				})
 			},
 
-			onHoverUpdate(onHover: () => void, onNotHover: () => void): EventCanceller {
+			onHoverUpdate(this: GameObj, onHover: () => void): EventCanceller {
 				return this.onUpdate(() => {
 					if (this.isHovering()) {
 						onHover()
-					} else {
-						if (onNotHover) {
-							onNotHover()
-						}
 					}
 				})
 			},
 
-			onHoverEnd(action: () => void): EventCanceller {
+			onHoverEnd(this: GameObj, action: () => void): EventCanceller {
 				let hovering = false
 				return this.onUpdate(() => {
 					if (hovering) {
@@ -4165,6 +4161,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			},
 
 			onCollide(
+				this: GameObj,
 				tag: Tag | ((obj: GameObj, col?: Collision) => void),
 				cb?: (obj: GameObj, col?: Collision) => void,
 			): EventCanceller {
@@ -4180,6 +4177,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			},
 
 			onCollideUpdate(
+				this: GameObj<AreaComp>,
 				tag: Tag | ((obj: GameObj, col?: Collision) => void),
 				cb?: (obj: GameObj, col?: Collision) => void,
 			): EventCanceller {
@@ -4191,6 +4189,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			},
 
 			onCollideEnd(
+				this: GameObj<AreaComp>,
 				tag: Tag | ((obj: GameObj) => void),
 				cb?: (obj: GameObj) => void,
 			): EventCanceller {
@@ -4206,7 +4205,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			},
 
 			// push an obj out of another if they're overlapped
-			pushOut(obj: GameObj<AreaComp>) {
+			pushOut(this: GameObj<AreaComp | PosComp>, obj: GameObj<AreaComp>) {
 				const res = this.checkCollision(obj)
 				if (res) {
 					this.pos = this.pos.add(res)
@@ -4219,16 +4218,21 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				game.root.getAll().forEach(this.pushOut)
 			},
 
-			localArea(): Shape {
+			localArea(this: GameObj<AreaComp | { renderArea(): Shape }>): Shape {
 				return this.area.shape
 					? this.area.shape
 					: this.renderArea()
 			},
 
 			// TODO: cache
-			worldArea(): Polygon {
+			worldArea(this: GameObj<AreaComp | AnchorComp>): Polygon {
 
 				const localArea = this.localArea()
+
+				if (!(localArea instanceof Polygon || localArea instanceof Rect)) {
+					throw new Error("Only support polygon and rect shapes for now")
+				}
+
 				let transform = this.transform
 					.scale(vec2(this.area.scale ?? 1))
 					.translate(this.area.offset)
@@ -4242,11 +4246,11 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 					transform = transform.translate(offset)
 				}
 
-				return localArea.transform(transform)
+				return localArea.transform(transform) as Polygon
 
 			},
 
-			screenArea(): Polygon {
+			screenArea(this: GameObj<AreaComp | FixedComp>): Polygon {
 				const area = this.worldArea()
 				if (this.fixed) {
 					return area
@@ -4310,7 +4314,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			quad: opt.quad || new Quad(0, 0, 1, 1),
 			animSpeed: opt.animSpeed ?? 1,
 
-			draw() {
+			draw(this: GameObj<SpriteComp>) {
 				if (!spriteData) return
 				drawSprite({
 					...getRenderProps(this),
@@ -4325,7 +4329,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				})
 			},
 
-			update() {
+			update(this: GameObj<SpriteComp>) {
 
 				if (!spriteData) {
 
@@ -4402,7 +4406,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 			},
 
-			play(name: string, opt: SpriteAnimPlayOpt = {}) {
+			play(this: GameObj<SpriteComp>, name: string, opt: SpriteAnimPlayOpt = {}) {
 
 				if (!spriteData) {
 					this.on("spriteLoaded", () => {
@@ -4447,7 +4451,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 			},
 
-			stop() {
+			stop(this: GameObj<SpriteComp>) {
 				if (!curAnim) {
 					return
 				}
@@ -4475,7 +4479,11 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				opt.flipY = b
 			},
 
-			onAnimEnd(name: string, action: () => void): EventCanceller {
+			onAnimEnd(
+				this: GameObj<SpriteComp>,
+				name: string,
+				action: () => void,
+			): EventCanceller {
 				return this.on("animEnd", (anim) => {
 					if (anim === name) {
 						action()
@@ -4483,7 +4491,11 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				})
 			},
 
-			onAnimStart(name: string, action: () => void): EventCanceller {
+			onAnimStart(
+				this: GameObj<SpriteComp>,
+				name: string,
+				action: () => void,
+			): EventCanceller {
 				return this.on("animStart", (anim) => {
 					if (anim === name) {
 						action()
@@ -4546,11 +4558,11 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			textTransform: opt.transform,
 			textStyles: opt.styles,
 
-			add() {
+			add(this: GameObj<TextComp>) {
 				onLoad(() => update(this))
 			},
 
-			draw() {
+			draw(this: GameObj<TextComp>) {
 				drawFormattedText(update(this))
 			},
 
@@ -4568,7 +4580,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			width: w,
 			height: h,
 			radius: opt.radius || 0,
-			draw() {
+			draw(this: GameObj<RectComp>) {
 				drawRect({
 					...getRenderProps(this),
 					width: this.width,
@@ -4590,7 +4602,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			id: "rect",
 			width: w,
 			height: h,
-			draw() {
+			draw(this: GameObj<UVQuadComp>) {
 				drawUVQuad({
 					...getRenderProps(this),
 					width: this.width,
@@ -4610,7 +4622,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		return {
 			id: "circle",
 			radius: radius,
-			draw() {
+			draw(this: GameObj<CircleComp>) {
 				drawCircle({
 					...getRenderProps(this),
 					radius: this.radius,
@@ -4663,7 +4675,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	function body(opt: BodyCompOpt = {}): BodyComp {
 
 		let velY = 0
-		let curPlatform: GameObj | null = null
+		let curPlatform: GameObj<PosComp | AreaComp | BodyComp> | null = null
 		let lastPlatformPos = null
 		let wantFall = false
 		const cleanups: Array<() => void> = []
@@ -4677,8 +4689,9 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			isStatic: opt.isStatic ?? false,
 			mass: opt.mass ?? 0,
 
-			add() {
+			add(this: GameObj<BodyComp | AreaComp>) {
 
+				// TODO
 				// static vs static: don't resolve
 				// static vs non-static: always resolve non-static
 				// non-static vs non-static: resolve the first one
@@ -4713,7 +4726,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 					if (game.gravity) {
 						if (col.isBottom() && this.isFalling()) {
 							velY = 0
-							curPlatform = col.target
+							curPlatform = col.target as GameObj<PosComp | BodyComp | AreaComp>
 							lastPlatformPos = col.target.pos
 							if (wantFall) {
 								wantFall = false
@@ -4729,7 +4742,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 			},
 
-			update() {
+			update(this: GameObj<PosComp | BodyComp | AreaComp>) {
 
 				if (!game.gravity) {
 					return
@@ -4776,7 +4789,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				cleanups.forEach((f) => f())
 			},
 
-			onPhysicsResolve(action) {
+			onPhysicsResolve(this: GameObj, action) {
 				return this.on("physicsResolve", action)
 			},
 
@@ -4802,19 +4815,19 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				velY = -force || -this.jumpForce
 			},
 
-			onGround(action: () => void): EventCanceller {
+			onGround(this: GameObj, action: () => void): EventCanceller {
 				return this.on("ground", action)
 			},
 
-			onFall(action: () => void): EventCanceller {
+			onFall(this: GameObj, action: () => void): EventCanceller {
 				return this.on("fall", action)
 			},
 
-			onFallOff(action: () => void): EventCanceller {
+			onFallOff(this: GameObj, action: () => void): EventCanceller {
 				return this.on("fallOff", action)
 			},
 
-			onHeadbutt(action: () => void): EventCanceller {
+			onHeadbutt(this: GameObj, action: () => void): EventCanceller {
 				return this.on("headbutt", action)
 			},
 
@@ -4828,7 +4841,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		const cleanups = []
 		return {
 			require: [ "body" ],
-			add() {
+			add(this: GameObj) {
 				cleanups.push(this.onGround(() => {
 					canDouble = true
 				}))
@@ -4836,7 +4849,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			destroy() {
 				cleanups.forEach((f) => f())
 			},
-			doubleJump(force: number) {
+			doubleJump(this: GameObj<BodyComp>, force: number) {
 				if (this.isGrounded()) {
 					this.jump(force)
 				} else if (canDouble) {
@@ -4845,7 +4858,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 					this.trigger("doubleJump")
 				}
 			},
-			onDoubleJump(action: () => void): EventCanceller {
+			onDoubleJump(this: GameObj, action: () => void): EventCanceller {
 				return this.on("doubleJump", action)
 			},
 		}
@@ -4879,30 +4892,30 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		}
 		return {
 			id: "health",
-			hurt(n: number = 1) {
+			hurt(this: GameObj, n: number = 1) {
 				this.setHP(hp - n)
 				this.trigger("hurt")
 			},
-			heal(n: number = 1) {
+			heal(this: GameObj, n: number = 1) {
 				this.setHP(hp + n)
 				this.trigger("heal")
 			},
 			hp(): number {
 				return hp
 			},
-			setHP(n: number) {
+			setHP(this: GameObj, n: number) {
 				hp = n
 				if (hp <= 0) {
 					this.trigger("death")
 				}
 			},
-			onHurt(action: () => void): EventCanceller {
+			onHurt(this: GameObj, action: () => void): EventCanceller {
 				return this.on("hurt", action)
 			},
-			onHeal(action: () => void): EventCanceller {
+			onHeal(this: GameObj, action: () => void): EventCanceller {
 				return this.on("heal", action)
 			},
-			onDeath(action: () => void): EventCanceller {
+			onDeath(this: GameObj, action: () => void): EventCanceller {
 				return this.on("death", action)
 			},
 			inspect() {
@@ -4920,7 +4933,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		const startFade = Math.max((time - fade), 0)
 		return {
 			id: "lifespan",
-			update() {
+			update(this: GameObj<OpacityComp>) {
 				timer += dt()
 				// TODO: don't assume 1 as start opacity
 				if (timer >= startFade) {
@@ -5139,14 +5152,23 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		return vec2(width() / 2, height() / 2)
 	}
 
-	function grid(level: GameObj<LevelComp>, p: Vec2) {
+	interface GridComp extends Comp {
+		gridPos: Vec2,
+		setGridPos(...args),
+		moveLeft(),
+		moveRight(),
+		moveUp(),
+		moveDown(),
+	}
+
+	function grid(level: GameObj<LevelComp>, p: Vec2): GridComp {
 
 		return {
 
 			id: "grid",
 			gridPos: p.clone(),
 
-			setGridPos(...args) {
+			setGridPos(this: GameObj<GridComp | PosComp>, ...args) {
 				const p = vec2(...args)
 				this.gridPos = p.clone()
 				this.pos = vec2(
@@ -5207,7 +5229,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				)
 			},
 
-			spawn(key: string, ...args): GameObj {
+			spawn(this: GameObj<LevelComp>, key: string, ...args): GameObj {
 
 				const p = vec2(...args)
 
@@ -5355,7 +5377,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		return {
 			id: "explode",
 			require: [ "scale" ],
-			update() {
+			update(this: GameObj<ScaleComp>) {
 				const s = Math.sin(time * speed) * size
 				if (s < 0) {
 					this.destroy()
