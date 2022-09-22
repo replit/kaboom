@@ -653,6 +653,10 @@ export interface KaboomCtx {
 	 * ```
 	 */
 	onDraw(action: () => void): EventCanceller,
+	onAdd(tag: Tag, action: (obj: GameObj) => void): EventCanceller,
+	onAdd(action: (obj: GameObj) => void): EventCanceller,
+	onDestroy(tag: Tag, action: (obj: GameObj) => void): EventCanceller,
+	onDestroy(action: (obj: GameObj) => void): EventCanceller,
 	/**
 	 * Register an event that runs when all assets finished loading.
 	 *

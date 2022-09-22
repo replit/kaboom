@@ -3487,31 +3487,41 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	}
 
 	// add update event to a tag or global update
-	function onUpdate(tag: Tag | (() => void), cb?: (obj: GameObj) => void): EventCanceller {
-		if (typeof tag === "function" && cb === undefined) {
+	function onUpdate(tag: Tag | (() => void), action?: (obj: GameObj) => void) {
+		if (typeof tag === "function" && action === undefined) {
 			const obj = add([{ update: tag }])
 			return () => obj.destroy()
 		} else if (typeof tag === "string") {
-			return on("update", tag, cb)
+			return on("update", tag, action)
 		}
 	}
 
 	// add draw event to a tag or global draw
-	function onDraw(tag: Tag | (() => void), cb?: (obj: GameObj) => void) {
-		if (typeof tag === "function" && cb === undefined) {
+	function onDraw(tag: Tag | (() => void), action?: (obj: GameObj) => void) {
+		if (typeof tag === "function" && action === undefined) {
 			const obj = add([{ draw: tag }])
 			return () => obj.destroy()
 		} else if (typeof tag === "string") {
-			return on("draw", tag, cb)
+			return on("draw", tag, action)
 		}
 	}
 
-	function onAdd(action: (obj: GameObj) => void) {
-		return game.ev.on("add", action)
+	function onAdd(tag: Tag | ((obj: GameObj) => void), action?: (obj: GameObj) => void) {
+		if (typeof tag === "function" && action === undefined) {
+			const obj = add([{ draw: tag }])
+			return () => obj.destroy()
+		} else if (typeof tag === "string") {
+			return on("add", tag, action)
+		}
 	}
 
-	function onDestroy(action: (obj: GameObj) => void) {
-		return game.ev.on("destroy", action)
+	function onDestroy(tag: Tag | ((obj: GameObj) => void), action?: (obj: GameObj) => void) {
+		if (typeof tag === "function" && action === undefined) {
+			const obj = add([{ draw: tag }])
+			return () => obj.destroy()
+		} else if (typeof tag === "string") {
+			return on("destroy", tag, action)
+		}
 	}
 
 	// add an event that runs with objs with t1 collides with objs with t2
@@ -3523,67 +3533,57 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		return on("collide", t1, (a, b, col) => b.is(t2) && f(a, b, col))
 	}
 
+	function forAllCurrentAndFuture(t: Tag, action: (obj: GameObj) => void) {
+		get(t).forEach(action)
+		onAdd(t, action)
+	}
+
 	// add an event that runs when objs with tag t is clicked
 	function onClick(tag: Tag | (() => void), action?: (obj: GameObj) => void): EventCanceller {
 		if (typeof tag === "function") {
 			return onMousePress(tag)
 		} else {
-			return forAllCurrentAndFuture(tag, (obj) => {
+			const cleanups = []
+			forAllCurrentAndFuture(tag, (obj) => {
 				if (!obj.area)
 					throw new Error("onClick() requires the object to have area() component")
-				return obj.onClick(() => action(obj))
+				cleanups.push(obj.onClick(() => action(obj)))
 			})
+			return () => cleanups.forEach((f) => f())
 		}
-	}
-
-	function forAllCurrentAndFuture(
-		t: Tag,
-		action: (obj: GameObj) => EventCanceller | void,
-	): EventCanceller {
-
-		const gc: EventCanceller[] = []
-
-		get(t).forEach((obj) => {
-			const cleanup = action(obj)
-			if (cleanup) gc.push(cleanup)
-		})
-
-		gc.push(onAdd((obj) => {
-			if (obj.is(t)) {
-				const cleanup = action(obj)
-				if (cleanup) gc.push(cleanup)
-			}
-		}))
-
-		return () => gc.forEach((cleanup) => cleanup())
-
 	}
 
 	// add an event that runs once when objs with tag t is hovered
 	function onHover(t: Tag, action: (obj: GameObj) => void): EventCanceller {
-		return forAllCurrentAndFuture(t, (obj) => {
+		const cleanups = []
+		forAllCurrentAndFuture(t, (obj) => {
 			if (!obj.area)
 				throw new Error("onHover() requires the object to have area() component")
-			return obj.onHover(() => action(obj))
+			cleanups.push(obj.onHover(() => action(obj)))
 		})
+		return () => cleanups.forEach((f) => f())
 	}
 
 	// add an event that runs once when objs with tag t is hovered
 	function onHoverUpdate(t: Tag, action: (obj: GameObj) => void): EventCanceller {
-		return forAllCurrentAndFuture(t, (obj) => {
+		const cleanups = []
+		forAllCurrentAndFuture(t, (obj) => {
 			if (!obj.area)
 				throw new Error("onHoverUpdate() requires the object to have area() component")
-			return obj.onHoverUpdate(() => action(obj))
+			cleanups.push(obj.onHoverUpdate(() => action(obj)))
 		})
+		return () => cleanups.forEach((f) => f())
 	}
 
 	// add an event that runs once when objs with tag t is unhovered
 	function onHoverEnd(t: Tag, action: (obj: GameObj) => void): EventCanceller {
-		return forAllCurrentAndFuture(t, (obj) => {
+		const cleanups = []
+		forAllCurrentAndFuture(t, (obj) => {
 			if (!obj.area)
 				throw new Error("onHoverEnd() requires the object to have area() component")
-			return obj.onHoverEnd(() => action(obj))
+			cleanups.push(obj.onHoverEnd(() => action(obj)))
 		})
+		return () => cleanups.forEach((f) => f())
 	}
 
 	// add an event that'd be run after t
@@ -6200,6 +6200,8 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		on,
 		onUpdate,
 		onDraw,
+		onAdd,
+		onDestroy,
 		onCollide,
 		onClick,
 		onHover,
