@@ -432,7 +432,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 		// global pixel scale
 		const gscale = gopt.scale ?? 1
-
 		const stretchToParent = !(gopt.width && gopt.height && !gopt.stretch && !gopt.letterbox)
 		const pw = canvas.parentElement.offsetWidth
 		const ph = canvas.parentElement.offsetHeight
@@ -462,15 +461,14 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		]
 
 		if (gopt.crisp) {
+			// chrome only supports pixelated and firefox only supports crisp-edges
 			styles.push("image-rendering: pixelated")
 			styles.push("image-rendering: crisp-edges")
 		}
 
-		// TODO: .style is supposed to be readonly? alternative?
-		// @ts-ignore
-		canvas.style = styles.join(";")
+		canvas.style.cssText = styles.join(";")
 		// make canvas focusable
-		canvas.setAttribute("tabindex", "0")
+		canvas.tabIndex = 0
 
 		return {
 
@@ -1588,16 +1586,13 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 					if (typeof val === "number") {
 						gl.uniform1f(loc, val)
 					} else if (val instanceof Mat4) {
-					// @ts-ignore
 						gl.uniformMatrix4fv(loc, false, new Float32Array(val.m))
 					} else if (val instanceof Color) {
-					// @ts-ignore
-						gl.uniform4f(loc, val.r, val.g, val.b, val.a)
+						// TODO: opacity?
+						gl.uniform3f(loc, val.r, val.g, val.b)
 					} else if (val instanceof Vec3) {
-					// @ts-ignore
 						gl.uniform3f(loc, val.x, val.y, val.z)
 					} else if (val instanceof Vec2) {
-					// @ts-ignore
 						gl.uniform2f(loc, val.x, val.y)
 					}
 				}
@@ -1905,7 +1900,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 					drawUVQuad({
 						...opt,
 						pos: (opt.pos || vec2(0)).add(vec2(w * i, h * j)).sub(offset),
-						// @ts-ignore
 						scale: scale.scale(opt.scale || vec2(1)),
 						tex: opt.tex,
 						quad: q,
@@ -1931,7 +1925,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 			drawUVQuad({
 				...opt,
-				// @ts-ignore
 				scale: scale.scale(opt.scale || vec2(1)),
 				tex: opt.tex,
 				quad: q,
@@ -5115,7 +5108,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			}
 
 			game.gravity = 0
-
 			game.scenes[id](...args)
 
 			if (gopt.debug !== false) {
