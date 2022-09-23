@@ -2695,6 +2695,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		// check for resize
 		if (app.stretchToParent && !isFullscreen()) {
 			// TODO: update cam pos
+			// TODO: if <html>/<body> height not set to 100% the height keeps growing
 			const pw = app.canvas.parentElement.offsetWidth
 			const ph = app.canvas.parentElement.offsetHeight
 			if (pw !== app.lastParentWidth || ph !== app.lastParentHeight) {
@@ -3728,19 +3729,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 		onKeyPress("f10", () => {
 			debug.stepFrame()
-		})
-
-		onKeyPress("f5", () => {
-			game.ev.onOnce("frameEnd", () => download("kaboom.png", screenshot()))
-		})
-
-		onKeyPress("f6", () => {
-			if (debug.curRecording) {
-				debug.curRecording.download()
-				debug.curRecording = null
-			} else {
-				debug.curRecording = record()
-			}
 		})
 
 	}
