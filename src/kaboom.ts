@@ -1,3 +1,5 @@
+const VERSION = "3000.0.0-alpha.0"
+
 import {
 	sat,
 	vec2,
@@ -32,6 +34,7 @@ import {
 	testRectLine,
 	testRectPoint,
 	testPolygonPoint,
+	testCirclePoint,
 	deg2rad,
 	rad2deg,
 } from "./math"
@@ -143,6 +146,7 @@ import {
 	PeditFile,
 	Shape,
 	DoubleJumpComp,
+	VirtualButton,
 } from "./types"
 
 import FPSCounter from "./fps"
@@ -484,6 +488,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			// keep track of all button states
 			keyStates: {} as Record<Key, ButtonState>,
 			mouseStates: {} as Record<MouseButton, ButtonState>,
+			virtualButtonStates: {} as Record<VirtualButton, ButtonState>,
 
 			// input states from last frame, should reset every frame
 			charInputted: [],
@@ -3023,15 +3028,15 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		return app.mouseDeltaPos.clone()
 	}
 
-	function isMousePressed(m = "left"): boolean {
+	function isMousePressed(m: MouseButton = "left"): boolean {
 		return app.mouseStates[m] === "pressed"
 	}
 
-	function isMouseDown(m = "left"): boolean {
+	function isMouseDown(m: MouseButton = "left"): boolean {
 		return app.mouseStates[m] === "pressed" || app.mouseStates[m] === "down"
 	}
 
-	function isMouseReleased(m = "left"): boolean {
+	function isMouseReleased(m: MouseButton = "left"): boolean {
 		return app.mouseStates[m] === "released"
 	}
 
@@ -3073,6 +3078,19 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		}
 	}
 
+	function isVirtualButtonPressed(btn: VirtualButton): boolean {
+		return app.virtualButtonStates[btn] === "pressed"
+	}
+
+	function isVirtualButtonDown(btn: VirtualButton): boolean {
+		return app.virtualButtonStates[btn] === "pressed"
+			|| app.virtualButtonStates[btn] === "down"
+	}
+
+	function isVirtualButtonReleased(btn: VirtualButton): boolean {
+		return app.virtualButtonStates[btn] === "released"
+	}
+
 	function charInputted(): string[] {
 		return [...app.charInputted]
 	}
@@ -3086,7 +3104,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		return app.canvas.toDataURL()
 	}
 
-	// TODO: custom cursor
 	function setCursor(c?: Cursor): Cursor {
 		if (c) {
 			app.canvas.style.cursor = c
@@ -3703,6 +3720,18 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 	function onTouchEnd(f: (pos: Vec2, t: Touch) => void): EventCanceller {
 		return game.ev.on("onTouchEnd", f)
+	}
+
+	function onVirtualButtonPress(btn: VirtualButton, action: () => void): EventCanceller {
+		return game.ev.on("input", () => isVirtualButtonPressed(btn) && action())
+	}
+
+	function onVirtualButtonDown(btn: VirtualButton, action: () => void): EventCanceller {
+		return game.ev.on("input", () => isVirtualButtonDown(btn) && action())
+	}
+
+	function onVirtualButtonRelease(btn: VirtualButton, action: () => void): EventCanceller {
+		return game.ev.on("input", () => isVirtualButtonReleased(btn) && action())
 	}
 
 	function enterDebugMode() {
@@ -5862,6 +5891,42 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 	}
 
+	function drawVirtualControls() {
+
+		const drawButton = (pos: Vec2, btn: VirtualButton) => {
+			// TODO: mousePos incorrect in "stretch" mode
+			const mpos = mousePos()
+			const size = 64
+			drawCircle({
+				radius: size / 2,
+				pos: pos,
+				outline: { width: 4, color: rgb(0, 0, 0) },
+			})
+			drawText({
+				text: btn,
+				pos: pos,
+				color: rgb(0, 0, 0),
+				size: 40,
+				anchor: "center",
+			})
+			// TODO: touch
+			if (isMousePressed("left")) {
+				if (testCirclePoint(new Circle(pos, size / 2), Point.fromVec2(mpos))) {
+					// TODO: not staying "pressed"
+					app.virtualButtonStates[btn] = "pressed"
+				}
+			}
+			if (isMouseReleased("left")) {
+				app.virtualButtonStates[btn] = "released"
+			}
+		}
+
+		drawUnscaled(() => {
+			drawButton(vec2(width() - 64, height() - 140), "A")
+			drawButton(vec2(width() - 140, height() - 64), "B")
+		})
+	}
+
 	if (gopt.debug !== false) {
 		enterDebugMode()
 	}
@@ -5982,6 +6047,12 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				app.mouseStates[m] = processButtonState(app.mouseStates[m])
 			}
 
+			if (gopt.virtualControls) {
+				for (const b in app.virtualButtonStates) {
+					app.virtualButtonStates[b] = processButtonState(app.virtualButtonStates[b])
+				}
+			}
+
 			app.charInputted = []
 			app.isMouseMoved = false
 			app.isKeyPressed = false
@@ -6065,34 +6136,44 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	// main game loop
 	run(() => {
 
-		const lp = loadProgress()
-
 		if (!assets.loaded) {
-			if (lp === 1) {
+			if (loadProgress() === 1) {
 				assets.loaded = true
 				game.ev.trigger("load")
 			}
 		}
 
 		if (!assets.loaded && gopt.loadingScreen !== false) {
+
 			// TODO: Currently if assets are not initially loaded no updates or timers will be run, however they will run if loadingScreen is set to false. What's the desired behavior or should we make them consistent?
 			drawLoadScreen()
+
 		} else {
+
 			game.ev.trigger("input")
+
 			if (!debug.paused) {
 				updateFrame()
 			}
+
 			checkFrame()
 			drawFrame()
+
 			if (gopt.debug !== false) {
 				drawDebug()
 			}
+
+			if (gopt.virtualControls) {
+				drawVirtualControls()
+			}
+
 		}
 
 	})
 
 	// the exported ctx handle
 	const ctx: KaboomCtx = {
+		VERSION,
 		// asset load
 		loadRoot,
 		loadProgress,
@@ -6200,6 +6281,9 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		onTouchStart,
 		onTouchMove,
 		onTouchEnd,
+		onVirtualButtonPress,
+		onVirtualButtonDown,
+		onVirtualButtonRelease,
 		mousePos,
 		mouseDeltaPos,
 		isKeyDown,
@@ -6210,6 +6294,9 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		isMousePressed,
 		isMouseReleased,
 		isMouseMoved,
+		isVirtualButtonPressed,
+		isVirtualButtonDown,
+		isVirtualButtonReleased,
 		// timer
 		loop,
 		wait,

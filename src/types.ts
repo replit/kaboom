@@ -881,6 +881,24 @@ export interface KaboomCtx {
 	 */
 	onTouchEnd(action: (pos: Vec2, t: Touch) => void): EventCanceller,
 	/**
+	 * Register an event that runs when a virtual control button is pressed.
+	 *
+	 * @since v3000.0
+	 */
+	onVirtualButtonPress(btn: VirtualButton, action: () => void): EventCanceller,
+	/**
+	 * Register an event that runs when a virtual control button is pressed.
+	 *
+	 * @since v3000.0
+	 */
+	onVirtualButtonDown(btn: VirtualButton, action: () => void): EventCanceller,
+	/**
+	 * Register an event that runs when a virtual control button is pressed.
+	 *
+	 * @since v3000.0
+	 */
+	onVirtualButtonRelease(btn: VirtualButton, action: () => void): EventCanceller,
+	/**
 	 * Sets the root for all subsequent resource urls.
 	 *
 	 * @section Assets
@@ -1256,6 +1274,24 @@ export interface KaboomCtx {
 	 * @since v2000.1
 	 */
 	isMouseMoved(): boolean,
+	/**
+	 * If a virtual button is just pressed last frame.
+	 *
+	 * @since v3000.0
+	 */
+	isVirtualButtonPressed(btn: VirtualButton): boolean,
+	/**
+	 * If a virtual button is currently held down.
+	 *
+	 * @since v3000.0
+	 */
+	isVirtualButtonDown(btn: VirtualButton): boolean,
+	/**
+	 * If a virtual button is just released last frame.
+	 *
+	 * @since v3000.0
+	 */
+	isVirtualButtonReleased(btn: VirtualButton): boolean,
 	/**
 	 * Camera shake.
 	 *
@@ -2047,6 +2083,12 @@ export interface KaboomCtx {
 	 * End everything.
 	 */
 	quit: () => void,
+	/**
+	 * Current Kaboom library version.
+	 *
+	 * @since v3000.0
+	 */
+	VERSION: string,
 }
 
 export type Tag = string
@@ -2163,6 +2205,12 @@ export interface KaboomOpt {
 	 * @since v3000.0
 	 */
 	loadingScreen?: boolean,
+	/**
+	 * If enable virtual controls for mobile (default false).
+	 *
+	 * @since v3000.0
+	 */
+	virtualControls?: boolean,
 	/**
 	 * If import all kaboom functions to global (default true).
 	 */
@@ -4372,5 +4420,9 @@ export interface BoomOpt {
 	 */
 	boomComps?: () => CompList<any>,
 }
+
+export type VirtualButton =
+	| "A"
+	| "B"
 
 export default kaboom
