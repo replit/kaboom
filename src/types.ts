@@ -4422,7 +4422,11 @@ export interface BoomOpt {
 }
 
 export type VirtualButton =
-	| "A"
-	| "B"
+	| "a"
+	| "b"
+	| "left"
+	| "right"
+	| "up"
+	| "down"
 
 export default kaboom

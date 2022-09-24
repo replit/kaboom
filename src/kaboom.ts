@@ -5893,38 +5893,95 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 	function drawVirtualControls() {
 
-		const drawButton = (pos: Vec2, btn: VirtualButton) => {
-			// TODO: mousePos incorrect in "stretch" mode
-			const mpos = mousePos()
+		// TODO: mousePos incorrect in "stretch" mode
+		const mpos = mousePos()
+
+		const drawCircleButton = (pos: Vec2, btn: VirtualButton, text?: string) => {
+
 			const size = 64
+
 			drawCircle({
 				radius: size / 2,
 				pos: pos,
 				outline: { width: 4, color: rgb(0, 0, 0) },
 			})
-			drawText({
-				text: btn,
-				pos: pos,
-				color: rgb(0, 0, 0),
-				size: 40,
-				anchor: "center",
-			})
+
+			if (text) {
+				drawText({
+					text: text,
+					pos: pos,
+					color: rgb(0, 0, 0),
+					size: 40,
+					anchor: "center",
+				})
+			}
+
 			// TODO: touch
 			if (isMousePressed("left")) {
 				if (testCirclePoint(new Circle(pos, size / 2), Point.fromVec2(mpos))) {
-					// TODO: not staying "pressed"
 					app.virtualButtonStates[btn] = "pressed"
 				}
 			}
+
 			if (isMouseReleased("left")) {
 				app.virtualButtonStates[btn] = "released"
 			}
+
+		}
+
+		const drawSquareButton = (pos: Vec2, btn: VirtualButton, text?: string) => {
+
+			// TODO: mousePos incorrect in "stretch" mode
+			const size = 48
+
+			drawRect({
+				width: size,
+				height: size,
+				pos: pos,
+				outline: { width: 4, color: rgb(0, 0, 0) },
+				radius: 4,
+				anchor: "center",
+			})
+
+			if (text) {
+				drawText({
+					text: text,
+					pos: pos,
+					color: rgb(0, 0, 0),
+					size: 40,
+					anchor: "center",
+				})
+			}
+
+			// TODO: touch
+			if (isMousePressed("left")) {
+				if (testRectPoint(
+					new Rect(pos.add(-size / 2, -size / 2), size, size),
+					Point.fromVec2(mpos),
+				)) {
+					app.virtualButtonStates[btn] = "pressed"
+				}
+			}
+
+			if (isMouseReleased("left")) {
+				app.virtualButtonStates[btn] = "released"
+			}
+
+		}
+
+		for (const b in app.virtualButtonStates) {
+			app.virtualButtonStates[b] = processButtonState(app.virtualButtonStates[b])
 		}
 
 		drawUnscaled(() => {
-			drawButton(vec2(width() - 64, height() - 140), "A")
-			drawButton(vec2(width() - 140, height() - 64), "B")
+			drawCircleButton(vec2(width() - 64, height() - 128), "a", "A")
+			drawCircleButton(vec2(width() - 128, height() - 64), "b", "B")
+			drawSquareButton(vec2(48, height() - 112), "left")
+			drawSquareButton(vec2(144, height() - 112), "right")
+			drawSquareButton(vec2(96, height() - 160), "up")
+			drawSquareButton(vec2(96, height() - 64), "down")
 		})
+
 	}
 
 	if (gopt.debug !== false) {
@@ -6045,12 +6102,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 			for (const m in app.mouseStates) {
 				app.mouseStates[m] = processButtonState(app.mouseStates[m])
-			}
-
-			if (gopt.virtualControls) {
-				for (const b in app.virtualButtonStates) {
-					app.virtualButtonStates[b] = processButtonState(app.virtualButtonStates[b])
-				}
 			}
 
 			app.charInputted = []

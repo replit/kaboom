@@ -24,6 +24,24 @@ const player = add([
 	anchor("center"), // anchor() component defines the pivot point (defaults to "topleft")
 ])
 
-onVirtualButtonDown("A", () => {
-	player.move(100, 100)
+const SPEED = 120
+
+onVirtualButtonPress("a", () => {
+	// TODO
+})
+
+onVirtualButtonDown("left", () => {
+	player.move(-SPEED, 0)
+})
+
+onVirtualButtonDown("right", () => {
+	player.move(SPEED, 0)
+})
+
+onVirtualButtonDown("up", () => {
+	player.move(0, -SPEED)
+})
+
+onVirtualButtonDown("down", () => {
+	player.move(0, SPEED)
 })
