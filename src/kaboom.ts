@@ -157,8 +157,6 @@ import happyFontSrc from "./assets/happy_28x36.png"
 // @ts-ignore
 import beanSpriteSrc from "./assets/bean.png"
 // @ts-ignore
-import markSpriteSrc from "./assets/mark.png"
-// @ts-ignore
 import burpSoundSrc from "./assets/burp.mp3"
 // @ts-ignore
 import kaSpriteSrc from "./assets/ka.png"
