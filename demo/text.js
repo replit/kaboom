@@ -3,9 +3,7 @@ kaboom({
 })
 
 // Load a custom font from a .ttf file
-loadFont("FROGBLOCK", "/fonts/FROGBLOCK_by_Polyducks.ttf")
-// TODO: somehow this is not working
-// loadFont("zpix", "/fonts/zpix.ttf")
+loadFont("FlowerSketches", "/fonts/FlowerSketches.ttf")
 
 // Load custom bitmap font, specifying the width and height of each character in the image
 loadBitmapFont("unscii", "/fonts/unscii_8x8.png", 8, 8)
@@ -19,10 +17,8 @@ const builtinFonts = [
 const fonts = [
 	...builtinFonts,
 	"unscii",
-	"happy",
-	"FROGBLOCK",
+	"FlowerSketches",
 	"Sans-Serif",
-// 	"zpix",
 ]
 
 // Keep track which is the current font

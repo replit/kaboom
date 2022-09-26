@@ -2,6 +2,7 @@
 
 kaboom({
 	background: [74, 48, 82],
+	virtualControls: true,
 })
 
 loadSprite("bag", "/sprites/bag.png")

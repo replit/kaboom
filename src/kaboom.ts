@@ -246,8 +246,8 @@ const DBG_FONT = "monospace"
 const DEF_TEXT_SIZE = 36
 const DEF_TEXT_CACHE_SIZE = 64
 const FONT_ATLAS_SIZE = 1024
-// 0.05 pixel padding to texture coordinates to prevent artifact
-const UV_PAD = 0.05
+// 0.1 pixel padding to texture coordinates to prevent artifact
+const UV_PAD = 0.1
 
 const LOG_MAX = 1
 
@@ -2273,6 +2273,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				color: opt.outline.color,
 				uniform: opt.uniform,
 				fixed: opt.fixed,
+				opacity: opt.opacity,
 			})
 		}
 
@@ -5891,12 +5892,13 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 		const drawCircleButton = (pos: Vec2, btn: VirtualButton, text?: string) => {
 
-			const size = 64
+			const size = 80
 
 			drawCircle({
 				radius: size / 2,
 				pos: pos,
 				outline: { width: 4, color: rgb(0, 0, 0) },
+				opacity: 0.5,
 			})
 
 			if (text) {
@@ -5906,6 +5908,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 					color: rgb(0, 0, 0),
 					size: 40,
 					anchor: "center",
+					opacity: 0.5,
 				})
 			}
 
@@ -5925,7 +5928,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		const drawSquareButton = (pos: Vec2, btn: VirtualButton, text?: string) => {
 
 			// TODO: mousePos incorrect in "stretch" mode
-			const size = 48
+			const size = 64
 
 			drawRect({
 				width: size,
@@ -5934,6 +5937,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				outline: { width: 4, color: rgb(0, 0, 0) },
 				radius: 4,
 				anchor: "center",
+				opacity: 0.5,
 			})
 
 			if (text) {
@@ -5943,6 +5947,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 					color: rgb(0, 0, 0),
 					size: 40,
 					anchor: "center",
+					opacity: 0.5,
 				})
 			}
 
@@ -5967,12 +5972,12 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		}
 
 		drawUnscaled(() => {
-			drawCircleButton(vec2(width() - 64, height() - 128), "a", "A")
-			drawCircleButton(vec2(width() - 128, height() - 64), "b", "B")
-			drawSquareButton(vec2(48, height() - 112), "left")
-			drawSquareButton(vec2(144, height() - 112), "right")
-			drawSquareButton(vec2(96, height() - 160), "up")
-			drawSquareButton(vec2(96, height() - 64), "down")
+			drawCircleButton(vec2(width() - 80, height() - 160), "a")
+			drawCircleButton(vec2(width() - 160, height() - 80), "b")
+			drawSquareButton(vec2(60, height() - 124), "left")
+			drawSquareButton(vec2(188, height() - 124), "right")
+			drawSquareButton(vec2(124, height() - 188), "up")
+			drawSquareButton(vec2(124, height() - 60), "down")
 		})
 
 	}
