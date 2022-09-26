@@ -9,7 +9,6 @@ loadSprite("egg_crack", "/sprites/egg_crack.png")
 const player = add([
 	sprite("bean"),
 	pos(center()),
-	scale(2),
 	anchor("center"),
 	z(50),
 ])
