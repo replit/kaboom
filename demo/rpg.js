@@ -20,37 +20,33 @@ scene("main", (levelIdx) => {
 	const characters = {
 		"a": {
 			sprite: "bag",
-			msg: "ohhi how are you?",
+			msg: "Hi Bean! You should get that key!",
 		},
 		"b": {
 			sprite: "ghosty",
-			msg: "get out!",
+			msg: "Who are you? You can see me??",
 		},
 	}
 
 	// level layouts
 	const levels = [
 		[
-			"=====|===",
-			"=       =",
-			"= a     =",
-			"=       =",
-			"=       =",
-			"=    $  =",
-			"=       =",
-			"=   @   =",
-			"=========",
+			"===|====",
+			"=      =",
+			"= $    =",
+			"=    a =",
+			"=      =",
+			"=   @  =",
+			"========",
 		],
 		[
-			"---------",
-			"-       -",
-			"-       -",
-			"-  $    -",
-			"|       -",
-			"-       -",
-			"-     b -",
-			"-   @   -",
-			"---------",
+			"--------",
+			"-      -",
+			"-   $  -",
+			"|      -",
+			"-    b -",
+			"-  @   -",
+			"--------",
 		],
 	]
 
@@ -62,27 +58,32 @@ scene("main", (levelIdx) => {
 			sprite("grass"),
 			area(),
 			body({ isStatic: true }),
+			anchor("center"),
 		],
 		"-": () => [
 			sprite("steel"),
 			area(),
 			body({ isStatic: true }),
+			anchor("center"),
 		],
 		"$": () => [
 			sprite("key"),
 			area(),
+			anchor("center"),
 			"key",
 		],
 		"@": () => [
 			sprite("bean"),
 			area(),
 			body(),
+			anchor("center"),
 			"player",
 		],
 		"|": () => [
 			sprite("door"),
 			area(),
 			body({ isStatic: true }),
+			anchor("center"),
 			"door",
 		],
 		// any() is a special function that gets called everytime there's a
@@ -95,6 +96,7 @@ scene("main", (levelIdx) => {
 					sprite(char.sprite),
 					area(),
 					body({ isStatic: true }),
+					anchor("center"),
 					"character",
 					{ msg: char.msg },
 				]
