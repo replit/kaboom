@@ -1021,20 +1021,6 @@ export interface KaboomCtx {
 	 */
 	loadBean(name?: string): Asset<SpriteData>,
 	/**
-	 * Load default sprite "mark".
-	 *
-	 * @example
-	 * ```js
-	 * loadMark()
-	 *
-	 * // use it right away
-	 * add([
-	 *     sprite("mark"),
-	 * ])
-	 * ```
-	 */
-	loadMark(name?: string): Asset<SpriteData>,
-	/**
 	 * Load a sound into asset manager, with name and resource url.
 	 *
 	 * @example
@@ -2047,10 +2033,6 @@ export interface KaboomCtx {
 	 * All chars in ASCII.
 	 */
 	ASCII_CHARS: string,
-	/**
-	 * All chars in CP437.
-	 */
-	CP437_CHARS: string,
 	/**
 	 * Left directional vector vec2(-1, 0).
 	 */

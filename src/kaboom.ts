@@ -153,9 +153,7 @@ import FPSCounter from "./fps"
 import Timer from "./timer"
 
 // @ts-ignore
-import sinkFontSrc from "./assets/sink.png"
-// @ts-ignore
-import sinkoFontSrc from "./assets/sinko.png"
+import happyFontSrc from "./assets/happy_28x36.png"
 // @ts-ignore
 import beanSpriteSrc from "./assets/bean.png"
 // @ts-ignore
@@ -245,9 +243,9 @@ const MAX_DETUNE = 1200
 const DEF_ANCHOR = "topleft"
 const BG_GRID_SIZE = 64
 
-const DEF_FONT = "sink"
-const DBG_FONT = "sink"
-const DEF_TEXT_SIZE = 16
+const DEF_FONT = "happy"
+const DBG_FONT = "monospace"
+const DEF_TEXT_SIZE = 36
 const DEF_TEXT_CACHE_SIZE = 64
 const FONT_ATLAS_SIZE = 1024
 // 0.05 pixel padding to texture coordinates to prevent artifact
@@ -1198,10 +1196,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 	function loadBean(name: string = "bean"): Asset<SpriteData> {
 		return loadSprite(name, beanSpriteSrc)
-	}
-
-	function loadMark(name: string = "mark"): Asset<SpriteData> {
-		return loadSprite(name, markSpriteSrc)
 	}
 
 	function getSprite(handle: string): Asset<SpriteData> | void {
@@ -2442,7 +2436,9 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 			const atlas: FontAtlas = fontAtlases[fontName] ?? {
 				font: {
-					tex: new Texture(FONT_ATLAS_SIZE, FONT_ATLAS_SIZE),
+					tex: new Texture(FONT_ATLAS_SIZE, FONT_ATLAS_SIZE, {
+						filter: "linear",
+					}),
 					map: {},
 					size: DEF_TEXT_CACHE_SIZE,
 				},
@@ -6021,7 +6017,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				const gh = height()
 
 				const textStyle = {
-					size: 24,
+					size: 36,
 					width: gw - pad * 2,
 					letterSpacing: 4,
 					lineSpacing: 4,
@@ -6167,20 +6163,10 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	}
 
 	loadBitmapFont(
-		"sink",
-		sinkFontSrc,
-		6,
-		8,
-		{
-			chars: "█☺☻♥♦♣♠●○▪□■◘♪♫≡►◄⌂ÞÀß×¥↑↓→←◌●▼▲ !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~Χ░▒▓ḀḁḂ│┬┤┌┐ḃḄ┼ḅḆḇḈḉḊḋḌ─├┴└┘ḍḎ⁞ḏḐḑḒḓḔḕḖḗḘ▄ḙḚḛḜ…ḝḞḟḠḡḢḣḤḥḦ▌▐ḧḨḩḪḫḬḭḮḯḰḱḲḳḴḵḶḷḸḹḺḻḼḽḾḿṀṁṂṃṄṅṆṇṈṉṊṋṌṍṎṏṐṑṒṓṔṕṖṗṘṙṚṛṜṝṞṟṠṡṢṣṤṥṦṧṨṩṪṫṬṭṮṯṰṱṲṳṴṵṶṷṸṹṺṻṼ",
-		},
-	)
-
-	loadBitmapFont(
-		"sinko",
-		sinkoFontSrc,
-		8,
-		10,
+		"happy",
+		happyFontSrc,
+		28,
+		36,
 	)
 
 	// main game loop
@@ -6236,7 +6222,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		loadAseprite,
 		loadPedit,
 		loadBean,
-		loadMark,
 		load,
 		getSprite,
 		getSound,
