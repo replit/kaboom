@@ -3,7 +3,9 @@ const JUMP_FORCE = 800
 const SPEED = 480
 
 // initialize context
-kaboom()
+kaboom({
+	background: [141, 183, 255],
+})
 
 // load assets
 loadSprite("bean", "/sprites/bean.png")
@@ -30,7 +32,7 @@ scene("game", () => {
 		anchor("botleft"),
 		area(),
 		body({ isStatic: true }),
-		color(127, 200, 255),
+		color(132, 101, 236),
 	])
 
 	function jump() {
@@ -52,7 +54,7 @@ scene("game", () => {
 			outline(4),
 			pos(width(), height() - FLOOR_HEIGHT),
 			anchor("botleft"),
-			color(255, 180, 255),
+			color(238, 143, 203),
 			move(LEFT, SPEED),
 			cleanup(),
 			"tree",
@@ -94,7 +96,7 @@ scene("lose", (score) => {
 
 	add([
 		sprite("bean"),
-		pos(width() / 2, height() / 2 - 80),
+		pos(width() / 2, height() / 2 - 64),
 		scale(2),
 		anchor("center"),
 	])
@@ -102,7 +104,7 @@ scene("lose", (score) => {
 	// display score
 	add([
 		text(score),
-		pos(width() / 2, height() / 2 + 80),
+		pos(width() / 2, height() / 2 + 64),
 		scale(2),
 		anchor("center"),
 	])
