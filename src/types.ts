@@ -3305,6 +3305,20 @@ export declare class Color {
 	b: number
 	constructor(r: number, g: number, b: number)
 	static fromArray(arr: number[]): Color
+	static fromHSL(h: number, s: number, l: number): Color
+	/**
+	 * Create color from hex string or literal.
+	 *
+	 * @example
+	 * ```js
+	 * Color.fromHex(0xfcef8d)
+	 * Color.fromHex("#5ba675")
+	 * Color.fromHex("d46eb3")
+	 * ```
+	 *
+	 * @since v3000.0
+	 */
+	static fromHex(hex: number | string): Color
 	static RED: Color
 	static GREEN: Color
 	static BLUE: Color
@@ -3326,6 +3340,12 @@ export declare class Color {
 	mult(other: Color): Color
 	eq(c: Color): boolean
 	toString(): string
+	/**
+	 * Return the hex string of color.
+	 *
+	 * @since v3000.0
+	 */
+	toHex(): string
 }
 
 export declare class Quad {

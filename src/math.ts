@@ -164,6 +164,48 @@ export class Color {
 		return new Color(arr[0], arr[1], arr[2])
 	}
 
+	static fromHex(hex: string | number) {
+		if (typeof hex === "number") {
+			return new Color(
+				(hex >> 16) & 0xff,
+				(hex >> 8) & 0xff,
+				(hex >> 0) & 0xff,
+			)
+		} else {
+			const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex)
+			return new Color(
+				parseInt(result[1], 16),
+				parseInt(result[2], 16),
+				parseInt(result[3], 16),
+			)
+		}
+	}
+
+	static fromHSL(h: number, s: number, l: number) {
+
+		if (s == 0){
+			return rgb(255 * l, 255 * l, 255 * l)
+		}
+
+		const hue2rgb = (p, q, t) => {
+			if (t < 0) t += 1
+			if (t > 1) t -= 1
+			if (t < 1 / 6) return p + (q - p) * 6 * t
+			if (t < 1 / 2) return q
+			if (t < 2 / 3) return p + (q - p) * (2/3 - t) * 6
+			return p
+		}
+
+		const q = l < 0.5 ? l * (1 + s) : l + s - l * s
+		const p = 2 * l - q
+		const r = hue2rgb(p, q, h + 1 / 3)
+		const g = hue2rgb(p, q, h)
+		const b = hue2rgb(p, q, h - 1 / 3)
+
+		return new Color(Math.round(r * 255), Math.round(g * 255), Math.round(b * 255))
+
+	}
+
 	static RED = rgb(255, 0, 0)
 	static GREEN = rgb(0, 255, 0)
 	static BLUE = rgb(0, 0, 255)
@@ -208,29 +250,8 @@ export class Color {
 		return `rgb(${this.r}, ${this.g}, ${this.b})`
 	}
 
-	static fromHSL(h: number, s: number, l: number) {
-
-		if (s == 0){
-			return rgb(255 * l, 255 * l, 255 * l)
-		}
-
-		const hue2rgb = (p, q, t) => {
-			if (t < 0) t += 1
-			if (t > 1) t -= 1
-			if (t < 1 / 6) return p + (q - p) * 6 * t
-			if (t < 1 / 2) return q
-			if (t < 2 / 3) return p + (q - p) * (2/3 - t) * 6
-			return p
-		}
-
-		const q = l < 0.5 ? l * (1 + s) : l + s - l * s
-		const p = 2 * l - q
-		const r = hue2rgb(p, q, h + 1 / 3)
-		const g = hue2rgb(p, q, h)
-		const b = hue2rgb(p, q, h - 1 / 3)
-
-		return new Color(Math.round(r * 255), Math.round(g * 255), Math.round(b * 255))
-
+	toHex(): string {
+		return "#" + ((1 << 24) + (this.r << 16) + (this.g << 8) + this.b).toString(16).slice(1)
 	}
 
 }
