@@ -5915,12 +5915,19 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			// TODO: touch
 			if (isMousePressed("left")) {
 				if (testCirclePoint(new Circle(pos, size / 2), Point.fromVec2(mpos))) {
-					app.virtualButtonStates[btn] = "pressed"
+					game.ev.onOnce("frameEnd", () => {
+						app.virtualButtonStates[btn] = "pressed"
+						// TODO: caller specify another value as connected key?
+						app.keyStates[btn] = "pressed"
+					})
 				}
 			}
 
 			if (isMouseReleased("left")) {
-				app.virtualButtonStates[btn] = "released"
+				game.ev.onOnce("frameEnd", () => {
+					app.virtualButtonStates[btn] = "released"
+					app.keyStates[btn] = "released"
+				})
 			}
 
 		}
@@ -5957,18 +5964,20 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 					new Rect(pos.add(-size / 2, -size / 2), size, size),
 					Point.fromVec2(mpos),
 				)) {
-					app.virtualButtonStates[btn] = "pressed"
+					game.ev.onOnce("frameEnd", () => {
+						app.virtualButtonStates[btn] = "pressed"
+						app.keyStates[btn] = "pressed"
+					})
 				}
 			}
 
 			if (isMouseReleased("left")) {
-				app.virtualButtonStates[btn] = "released"
+				game.ev.onOnce("frameEnd", () => {
+					app.virtualButtonStates[btn] = "released"
+					app.keyStates[btn] = "released"
+				})
 			}
 
-		}
-
-		for (const b in app.virtualButtonStates) {
-			app.virtualButtonStates[b] = processButtonState(app.virtualButtonStates[b])
 		}
 
 		drawUnscaled(() => {
@@ -6061,6 +6070,28 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 	}
 
+	function resetInputState() {
+
+		for (const k in app.keyStates) {
+			app.keyStates[k] = processButtonState(app.keyStates[k])
+		}
+
+		for (const m in app.mouseStates) {
+			app.mouseStates[m] = processButtonState(app.mouseStates[m])
+		}
+
+		for (const b in app.virtualButtonStates) {
+			app.virtualButtonStates[b] = processButtonState(app.virtualButtonStates[b])
+		}
+
+		app.charInputted = []
+		app.isMouseMoved = false
+		app.isKeyPressed = false
+		app.isKeyPressedRepeat = false
+		app.isKeyReleased = false
+
+	}
+
 	function run(f: () => void) {
 
 		if (app.loopID !== null) {
@@ -6094,22 +6125,9 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			f()
 			frameEnd()
 
-			for (const k in app.keyStates) {
-				app.keyStates[k] = processButtonState(app.keyStates[k])
-			}
-
-			for (const m in app.mouseStates) {
-				app.mouseStates[m] = processButtonState(app.mouseStates[m])
-			}
-
-			app.charInputted = []
-			app.isMouseMoved = false
-			app.isKeyPressed = false
-			app.isKeyPressedRepeat = false
-			app.isKeyReleased = false
-			app.loopID = requestAnimationFrame(frame)
-
+			resetInputState()
 			game.ev.trigger("frameEnd")
+			app.loopID = requestAnimationFrame(frame)
 
 		}
 
