@@ -1,4 +1,6 @@
-kaboom()
+kaboom({
+	background: [212, 110, 179],
+})
 
 // Load a custom font from a .ttf file
 loadFont("FROGBLOCK", "/fonts/FROGBLOCK_by_Polyducks.ttf")
@@ -7,12 +9,10 @@ loadFont("FROGBLOCK", "/fonts/FROGBLOCK_by_Polyducks.ttf")
 
 // Load custom bitmap font, specifying the width and height of each character in the image
 loadBitmapFont("unscii", "/fonts/unscii_8x8.png", 8, 8)
-loadBitmapFont("happy", "/sprites/font.png", 28, 36)
 
 // List of built-in fonts ("o" at the end means the outlined version)
 const builtinFonts = [
-	"sinko",
-	"sink",
+	"happy",
 ]
 
 // Make a list of fonts that we cycle through

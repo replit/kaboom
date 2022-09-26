@@ -10,7 +10,7 @@
  * kaboom({
  *     width: 320,
  *     height: 240,
- *     font: "sinko",
+ *     font: "sans-serif",
  *     canvas: document.querySelector("#mycanvas"),
  *     background: [ 0, 0, 255, ],
  * })
@@ -233,7 +233,7 @@ export interface KaboomCtx {
 	 *     text("ohhi", {
 	 *         size: 48, // 48 pixels tall
 	 *         width: 320, // it'll wrap to next line when width exceeds this value
-	 *         font: "sink", // there're 4 built-in fonts: "apl386", "apl386o", "sink", and "sinko"
+	 *         font: "happy", // specify any font you loaded or browser built-in ("happy" is the kaboom built-in font)
 	 *     }),
 	 * ])
 	 * ```
@@ -1724,7 +1724,7 @@ export interface KaboomCtx {
 	 * drawText({
 	 *     text: "oh hi",
 	 *     size: 48,
-	 *     font: "sink",
+	 *     font: "sans-serif",
 	 *     width: 120,
 	 *     pos: vec2(100, 200),
 	 *     color: rgb(0, 0, 255),
@@ -2134,7 +2134,7 @@ export interface KaboomOpt {
 	 */
 	debug?: boolean,
 	/**
-	 * Default font (defaults to "apl386o", with "apl386", "sink", "sinko" as other built-in options).
+	 * Default font (defaults to "happy").
 	 */
 	font?: string,
 	/**
