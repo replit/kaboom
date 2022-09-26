@@ -6,9 +6,9 @@ kaboom({
 })
 
 // Load assets
-loadSprite("bean", "/sprites/bean.png")
-loadSprite("ghosty", "/sprites/ghosty.png")
-loadSprite("grass", "/sprites/grass.png")
+loadSprite("bean", "/newsprites/bean.png")
+loadSprite("ghosty", "/newsprites/ghosty.png")
+loadSprite("grass", "/newsprites/grass.png")
 
 // Define player movement speed
 const SPEED = 320
@@ -21,9 +21,9 @@ const player = add([
 	rotate(0),
 	// area() component gives the object a collider, which enables collision checking
 	area(),
-// 	area({ shape: new Polygon([vec2(0), vec2(100), vec2(-100, 100)]) }),
-	area({ shape: new Rect(vec2(0), 12, 120) }),
-// 	area({ scale: 0.5 }),
+	// area({ shape: new Polygon([vec2(0), vec2(100), vec2(-100, 100)]) }),
+	// area({ shape: new Rect(vec2(0), 12, 120) }),
+	// area({ scale: 0.5 }),
 	// body() component makes an object respond to physics
 	body(),
 ])
