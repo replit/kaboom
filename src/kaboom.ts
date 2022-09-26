@@ -784,10 +784,10 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		const burpSnd = new SoundData(createEmptyAudioBuffer())
 
 		// load that burp sound
-		ctx.decodeAudioData(burpSoundSrc.buffer.slice(0), (buf) => {
+		ctx.decodeAudioData(burpSoundSrc.buffer.slice(0)).then((buf) => {
 			burpSnd.buf = buf
-		}, () => {
-			throw new Error("Failed to load burp.")
+		}).catch((err) => {
+			console.error("Failed to load burp: ", err)
 		})
 
 		return {
