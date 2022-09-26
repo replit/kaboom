@@ -1,4 +1,6 @@
-kaboom()
+kaboom({
+	background: [141, 183, 255],
+})
 
 // load assets
 loadSprite("bean", "/sprites/bean.png")

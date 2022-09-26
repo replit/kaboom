@@ -12,7 +12,7 @@ for (const fruit of fruits) {
 }
 
 loadSprite("bean", "/sprites/bean.png")
-loadSprite("bomb", "/sprites/bomb.png")
+loadSprite("love", "/sprites/love.png")
 loadSound("hit", "/sounds/hit.mp3")
 loadSound("wooosh", "/sounds/wooosh.mp3")
 
@@ -28,7 +28,7 @@ scene("start", () => {
 	])
 
 	add([
-		sprite("bomb"),
+		sprite("love"),
 		pos(center().add(0, 100)),
 		scale(2),
 		anchor("center"),
@@ -58,7 +58,7 @@ scene("game", () => {
 	})
 
 	// game over if player eats a fruit
-	player.onCollide("fruit", (fruit) => {
+	player.onCollide("fruit", () => {
 		go("lose", score)
 		play("hit")
 	})
@@ -71,11 +71,11 @@ scene("game", () => {
 		}
 	})
 
-	onUpdate("bomb", (bomb) => {
-		if (bomb.pos.x <= 0) {
+	onUpdate("love", (love) => {
+		if (love.pos.x <= 0) {
 			go("lose", score)
 			play("hit")
-			addKaboom(bomb.pos)
+			addKaboom(love.pos)
 		}
 	})
 
@@ -87,11 +87,11 @@ scene("game", () => {
 		pos(12, 12),
 	])
 
-	// increment score if player eats a bomb
-	player.onCollide("bomb", (bomb) => {
+	// increment score if player eats a love
+	player.onCollide("love", (love) => {
 		addKaboom(player.pos)
 		score += 1
-		destroy(bomb)
+		destroy(love)
 		scoreLabel.text = score
 		burp()
 		shake(12)
@@ -106,9 +106,9 @@ scene("game", () => {
 		const y = rand(0, height())
 		// get a random speed
 		const speed = rand(SPEED_MIN, SPEED_MAX)
-		// 50% percent chance is bomb
-		const isBomb = chance(0.5)
-		const spriteName = isBomb ? "bomb" : choose(fruits)
+		// 50% percent chance is love
+		const isLove = chance(0.5)
+		const spriteName = isLove ? "love" : choose(fruits)
 
 		add([
 			sprite(spriteName),
@@ -116,7 +116,7 @@ scene("game", () => {
 			area({ scale: 0.5 }),
 			anchor("center"),
 			"food",
-			isBomb ? "bomb" : "fruit",
+			isLove ? "love" : "fruit",
 			{ speed: speed },
 		])
 
