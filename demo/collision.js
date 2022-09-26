@@ -6,9 +6,9 @@ kaboom({
 })
 
 // Load assets
-loadSprite("bean", "/newsprites/bean.png")
-loadSprite("ghosty", "/newsprites/ghosty.png")
-loadSprite("grass", "/newsprites/grass.png")
+loadSprite("bean", "/sprites/bean.png")
+loadSprite("ghosty", "/sprites/ghosty.png")
+loadSprite("grass", "/sprites/grass.png")
 
 // Define player movement speed
 const SPEED = 320

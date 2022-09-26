@@ -4,8 +4,8 @@
 kaboom()
 
 // Load a sprite asset from "sprites/bean.png", with the name "bean"
-loadSprite("bean", "/newsprites/bean.png")
-loadSprite("ghosty", "/newsprites/ghosty.png")
+loadSprite("bean", "/sprites/bean.png")
+loadSprite("ghosty", "/sprites/ghosty.png")
 
 // A "Game Object" is the basic unit of entity in kaboom
 // Game objects are composed from components
