@@ -1,6 +1,8 @@
 // simple rpg style walk and talk
 
-kaboom()
+kaboom({
+	background: [74, 48, 82],
+})
 
 loadSprite("bag", "/sprites/bag.png")
 loadSprite("ghosty", "/sprites/ghosty.png")
