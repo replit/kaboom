@@ -3309,14 +3309,14 @@ export declare class Color {
 	/**
 	 * Create color from hex string or literal.
 	 *
+	 * @since v3000.0
+	 *
 	 * @example
 	 * ```js
 	 * Color.fromHex(0xfcef8d)
 	 * Color.fromHex("#5ba675")
 	 * Color.fromHex("d46eb3")
 	 * ```
-	 *
-	 * @since v3000.0
 	 */
 	static fromHex(hex: number | string): Color
 	static RED: Color
