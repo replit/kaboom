@@ -1,4 +1,6 @@
-kaboom()
+kaboom({
+	background: [141, 183, 255],
+})
 
 loadSprite("bean", "/sprites/bean.png")
 loadSprite("coin", "/sprites/coin.png")

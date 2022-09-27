@@ -36,8 +36,8 @@
 		"devsite": "cd site && npm run dev",
 		"build": "node scripts/build.js",
 		"check": "tsc",
-		"lint": "eslint src demo",
-		"fmt": "eslint --fix src demo",
+		"lint": "eslint src examples",
+		"fmt": "eslint --fix src examples",
 		"test": "node scripts/test.js",
 		"prepare": "npm run build"
 	},
