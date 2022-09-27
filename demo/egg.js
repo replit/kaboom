@@ -1,6 +1,8 @@
 // Egg minigames (yes, like Peppa)
 
-kaboom()
+kaboom({
+	background: [135, 62, 132],
+})
 
 loadSprite("bean", "/sprites/bean.png")
 loadSprite("egg", "/sprites/egg.png")

@@ -2157,10 +2157,6 @@ export interface KaboomOpt {
 	 */
 	logMax?: number,
 	/**
-	 * If log messages should include also print time.
-	 */
-	logTime?: boolean,
-	/**
 	 * Size of the spatial hash grid for collision detection (default 64)
 	 *
 	 * @since v3000.0

@@ -3128,7 +3128,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		clearLog: () => game.logs = [],
 		log: (msg) => {
 			const max = gopt.logMax ?? LOG_MAX
-			game.logs.unshift(`${gopt.logTime ? `[${time().toFixed(2)}].time ` : ""}[${msg?.toString ? msg.toString() : msg}].${msg instanceof Error ? "error" : "info"}`)
+			game.logs.unshift(`${`[${time().toFixed(2)}].time `}[${msg?.toString ? msg.toString() : msg}].${msg instanceof Error ? "error" : "info"}`)
 			if (game.logs.length > max) {
 				game.logs = game.logs.slice(0, max)
 			}
@@ -3262,8 +3262,8 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				pushTranslate(this.pos)
 				pushScale(this.scale)
 				pushRotateZ(this.angle)
-				this.get().forEach((child) => child.draw())
 				this.trigger("draw")
+				this.get().forEach((child) => child.draw())
 				popTransform()
 			},
 
