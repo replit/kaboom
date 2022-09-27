@@ -1,6 +1,8 @@
 // TODO: document
 
-kaboom()
+kaboom({
+	background: [74, 48, 82],
+})
 
 const objs = [
 	"apple",
@@ -9,7 +11,6 @@ const objs = [
 	"egg",
 	"key",
 	"door",
-	"bomb",
 	"meat",
 	"mushroom",
 ]
@@ -184,7 +185,6 @@ scene("battle", () => {
 					add([
 						pos(p.add(rand(vec2(-rad), vec2(rad)))),
 						rect(4, 4),
-						outline(4),
 						scale(1 * size, 1 * size),
 						lifespan(0.1),
 						grow(rand(48, 72) * size),
@@ -317,7 +317,7 @@ scene("battle", () => {
 	const healthbar = add([
 		rect(width(), 24),
 		pos(0, 0),
-		color(127, 255, 127),
+		color(107, 201, 108),
 		fixed(),
 		{
 			max: BOSS_HEALTH,

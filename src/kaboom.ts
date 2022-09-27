@@ -3436,8 +3436,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			destroy() {
 				if (this.parent) {
 					this.parent.remove(this)
-				} else {
-					throw new Error("Cannot destroy parentless object.")
 				}
 			},
 
