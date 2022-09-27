@@ -174,6 +174,7 @@ also check out [CONTRIBUTION.md](CONTRIBUTING.md)
 - Thanks to [Polyducks](http://polyducks.co.uk/) for the amazing [kitchen sink font](https://polyducks.itch.io/kitchen-sink-textmode-font) font
 - Thanks to [0x72](https://0x72.itch.io/) for the amazing [Dungeon Tileset](https://0x72.itch.io/dungeontileset-ii)
 - Thanks to [Kenney](https://kenney.nl/) for the amazing [1-Bit Platformer Pack](https://kenney.nl/assets/bit-platformer-pack)
+- Thanks to [mulfok](https://twitter.com/MulfoK) for the amazing [mulfok32](https://lospec.com/palette-list/mulfok32) color palette
 - Find bitmap fonts: [Oldschool PC Font](https://int10h.org/oldschool-pc-fonts)
 - Featured on [Console 50](https://console.substack.com/p/console-50)
 - Thanks to [Umayr](https://github.com/umayr) for kindly offering the "kaboom" npm package name
