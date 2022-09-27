@@ -7,12 +7,7 @@ kaboom({
 
 loadSprite("bean", "/sprites/bean.png")
 loadSprite("bag", "/sprites/bag.png")
-loadSprite("bobo", "/sprites/bobo.png")
-loadSprite("onion", "/sprites/onion.png")
 loadSprite("ghosty", "/sprites/ghosty.png")
-loadSprite("lamp", "/sprites/lamp.png")
-loadSprite("goldfly", "/sprites/goldfly.png")
-loadSprite("gigagantrum", "/sprites/gigagantrum.png")
 loadSprite("note", "/sprites/note.png")
 loadSprite("grass", "/sprites/grass.png")
 loadSprite("cloud", "/sprites/cloud.png")
@@ -166,12 +161,7 @@ caption.paused = true
 
 const guys = [
 	"bag",
-	"bobo",
-	"onion",
 	"ghosty",
-	"lamp",
-	"gigagantrum",
-	"goldfly",
 ]
 
 function funky() {

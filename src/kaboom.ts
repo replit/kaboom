@@ -3156,7 +3156,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		if (pos.length > 0) {
 			game.cam.pos = vec2(...pos)
 		}
-		return game.cam.pos.clone()
+		return game.cam.pos ? game.cam.pos.clone() : center()
 	}
 
 	function camScale(...scale): Vec2 {
