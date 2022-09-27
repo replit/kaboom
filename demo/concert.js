@@ -5,9 +5,19 @@ kaboom({
 	background: [ 128, 180, 255 ],
 })
 
+// TODO: add more friends
+const friends = [
+	"bag",
+	"ghosty",
+	"bobo",
+	"gigagantrum",
+]
+
+for (const friend of friends) {
+	loadSprite(friend, `/sprites/${friend}.png`)
+}
+
 loadSprite("bean", "/sprites/bean.png")
-loadSprite("bag", "/sprites/bag.png")
-loadSprite("ghosty", "/sprites/ghosty.png")
 loadSprite("note", "/sprites/note.png")
 loadSprite("grass", "/sprites/grass.png")
 loadSprite("cloud", "/sprites/cloud.png")
@@ -143,8 +153,7 @@ const lyrics = "kaboom2000 is out today, i have to go and try it out now... oh i
 
 const caption = add([
 	text(lyrics, {
-		// note: character transform is not released yet!
-		transform(idx, ch) {
+		transform(idx) {
 			return {
 				color: hsl2rgb(((time() * 60 + idx * 20) % 255) / 255, 0.7, 0.8),
 				scale: wave(1, 1.2, time() * 3 + idx),
@@ -158,11 +167,6 @@ const caption = add([
 
 caption.hidden = true
 caption.paused = true
-
-const guys = [
-	"bag",
-	"ghosty",
-]
 
 function funky() {
 	let timer = 0
@@ -196,11 +200,11 @@ function spawnCloud() {
 
 function spawnFriend() {
 
-	const guy = choose(guys)
+	const friend = choose(friends)
 	const dir = choose([LEFT, RIGHT])
 
 	add([
-		sprite(guy, { flipX: dir.eq(LEFT) }),
+		sprite(friend, { flipX: dir.eq(LEFT) }),
 		move(dir, rand(120, 320)),
 		outview({ destroy: true }),
 		pos(dir.eq(LEFT) ? width() : 0, height() - FLOOR_HEIGHT),

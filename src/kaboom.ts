@@ -5399,7 +5399,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			scale(0),
 			anchor("center"),
 			explode(speed, s),
-			...(opt.boomComps ?? (() => []))(),
+			...opt.comps ?? [],
 		])
 
 		const ka = kaboom.add([
@@ -5407,7 +5407,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			scale(0),
 			anchor("center"),
 			timer(0.4 / speed, () => ka.use(explode(speed, s))),
-			...(opt.kaComps ?? (() => []))(),
+			...opt.comps ?? [],
 		])
 
 		ka.onDestroy(() => kaboom.destroy())

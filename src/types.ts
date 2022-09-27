@@ -4377,13 +4377,11 @@ export interface BoomOpt {
 	 */
 	scale?: number,
 	/**
-	 * Additional ka components.
+	 * Additional components.
+	 *
+	 * @since v3000.0
 	 */
-	kaComps?: () => CompList<any>,
-	/**
-	 * Additional boom components.
-	 */
-	boomComps?: () => CompList<any>,
+	comps?: CompList<any>,
 }
 
 export type VirtualButton =
