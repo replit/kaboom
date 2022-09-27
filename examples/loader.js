@@ -21,7 +21,8 @@ loadSprite("bean", "/sprites/bean.png").onError((err) => {
 load(new Promise((res) => {
 	// wait() won't work here because timers are not run during loading so we use setTimeout
 	setTimeout(() => {
-		loadAseprite("ghosty", "/sprites/ghosty2.png", "/sprites/ghosty2.json")
+		// loadAseprite("ghosty", "/sprites/ghosty2.png", "/sprites/ghosty2.json")
+		loadSprite("ghosty", "/sprites/ghosty.png")
 		res()
 	}, 1000)
 }))
@@ -34,17 +35,12 @@ volume(0.1)
 onKeyPress("space", () => play(bugSound))
 
 add([
-	sprite("ghosty", { anim: "idle" }),
+	sprite("ghosty"),
 	pos(120),
-	scale(3),
-])
-
-add([
-	text("bean"),
-	pos(200),
 ])
 
 // Custom loading screen
+// Runs the callback every frame during loading
 onLoadUpdate((progress) => {
 
 	// Draw a fullscreen rect to cover up the default screen
@@ -62,10 +58,10 @@ onLoadUpdate((progress) => {
 
 	drawText({
 		text: "loading" + ".".repeat(wave(1, 4, time() * 12)),
-		font: "sink",
+		font: "monospace",
 		size: 24,
 		anchor: "center",
-		pos: center().add(0, 80),
+		pos: center().add(0, 70),
 	})
 
 })

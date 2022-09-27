@@ -63,7 +63,6 @@ for (let i = 1; i <= maxRow; i++) {
 			area(),
 			body({ isStatic: true }),
 			anchor("bot"),
-			// note: hsl2rgb is not released yet!
 			color(hsl2rgb((n * 20) / 255, 0.6, 0.7)),
 			bounce(),
 			scale(1),

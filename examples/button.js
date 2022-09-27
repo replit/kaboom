@@ -30,11 +30,7 @@ function addButton(txt, p, f) {
 	// it runs every frame when the object is being hovered
 	btn.onHoverUpdate(() => {
 		const t = time() * 10
-		btn.color = rgb(
-			wave(0, 255, t),
-			wave(0, 255, t + 2),
-			wave(0, 255, t + 4),
-		)
+		btn.color = hsl2rgb((t / 10) % 1, 0.6, 0.7)
 		btn.scale = vec2(1.2)
 		setCursor("pointer")
 	})

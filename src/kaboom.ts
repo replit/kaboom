@@ -4825,6 +4825,10 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				return this.on("headbutt", action)
 			},
 
+			inspect() {
+				return `${this.isGrounded() ? "grounded" : this.isRising() ? "jumping" : "falling"}`
+			},
+
 		}
 
 	}
@@ -5525,13 +5529,13 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 									continue
 								}
 								// TODO: is this too slow
-								for (const ig of aobj.collisionIgnore) {
-									if (other.is(ig)) {
+								for (const tag of aobj.collisionIgnore) {
+									if (other.is(tag)) {
 										continue
 									}
 								}
-								for (const ig of other.collisionIgnore) {
-									if (aobj.is(ig)) {
+								for (const tag of other.collisionIgnore) {
+									if (aobj.is(tag)) {
 										continue
 									}
 								}

@@ -1,10 +1,10 @@
 kaboom({
 	scale: 4,
-	clearColor: [0, 0, 0],
+	background: [0, 0, 0],
 })
 
 // https://0x72.itch.io/dungeontileset-ii
-loadSpriteAtlas("/sprites/dungeon.png", {
+loadSpriteAtlas("/examples/sprites/dungeon.png", {
 	"hero": {
 		"x": 128,
 		"y": 196,

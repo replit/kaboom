@@ -5,11 +5,11 @@ kaboom({
 	// Scale the whole game up
 	scale: 4,
 	// Set the default font
-	font: "sinko",
+	font: "monospace",
 })
 
 // Loading a multi-frame sprite
-loadSprite("dino", "/sprites/dino.png", {
+loadSprite("dino", "/examples/sprites/dino.png", {
 	// The image contains 9 frames layed out horizontally, slice it into individual frames
 	sliceX: 9,
 	// Define animations
@@ -110,7 +110,8 @@ Frame: ${player.frame}
 
 // Add some text to show the current animation
 const label = add([
-	text(getInfo()),
+	text(getInfo(), { size: 12 }),
+	color(0, 0, 0),
 	pos(4),
 ])
 

@@ -3,10 +3,9 @@ kaboom({
 })
 
 // Load a custom font from a .ttf file
-loadFont("FlowerSketches", "/fonts/FlowerSketches.ttf")
-
+loadFont("FlowerSketches", "/examples/fonts/FlowerSketches.ttf")
 // Load custom bitmap font, specifying the width and height of each character in the image
-loadBitmapFont("unscii", "/fonts/unscii_8x8.png", 8, 8)
+loadBitmapFont("unscii", "/examples/fonts/unscii_8x8.png", 8, 8)
 
 // List of built-in fonts ("o" at the end means the outlined version)
 const builtinFonts = [
