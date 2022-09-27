@@ -10,8 +10,8 @@ loadSprite("spike", "/sprites/spike.png")
 loadSprite("grass", "/sprites/grass.png")
 loadSprite("ghosty", "/sprites/ghosty.png")
 loadSprite("portal", "/sprites/portal.png")
-loadSound("score", "/sounds/score.mp3")
-loadSound("portal", "/sounds/portal.mp3")
+loadSound("score", "/examples/sounds/score.mp3")
+loadSound("portal", "/examples/sounds/portal.mp3")
 
 const SPEED = 480
 

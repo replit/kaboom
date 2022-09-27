@@ -12,23 +12,23 @@ const run = async () => {
 	let failed = false
 	console.log("launching browser")
 	const browser = await puppeteer.launch()
-	console.log("getting demo list")
-	const demos = (await fs.readdir("demo"))
+	console.log("getting examples list")
+	const examples = (await fs.readdir("examples"))
 		.filter((p) => !p.startsWith(".") && p.endsWith(".js"))
 		.map((d) => path.basename(d, ".js"))
 
-	for (const demo of demos) {
-		console.log(`testing demo "${demo}"`)
+	for (const example of examples) {
+		console.log(`testing example "${example}"`)
 		const page = await browser.newPage()
 		page.on("pageerror", (err) => {
 			failed = true
-			console.error(demo, err)
+			console.error(example, err)
 		})
 		page.on("error", (err) => {
 			failed = true
-			console.error(demo, err)
+			console.error(example, err)
 		})
-		await page.goto(`http://localhost:${port}/demo/${demo}`)
+		await page.goto(`http://localhost:${port}/${example}`)
 		await page.addScriptTag({ path: "scripts/autoinput.js" })
 		await wait(1000)
 		await page.close()

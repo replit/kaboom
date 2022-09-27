@@ -35,7 +35,9 @@ kaboom({
 	// Scale the whole game up
 	scale: 2,
 	// Set the default font
-	font: "sinko",
+	font: "monospace",
+	// Set background color
+	background: [0, 0, 0],
 })
 
 // animationsettings in Spriteatlas
@@ -73,12 +75,12 @@ const corpusAnims = {
 // Sprites are taken from https://github.com/gaconkzk/Universal-LPC-spritesheet
 // under Licenses GNU GPL 3.0 (http://creativecommons.org/licenses/by-sa/3.0/) and CC-BY-SA 3.0 (http://www.gnu.org/licenses/gpl-3.0.html)
 // load Spriteatlas with leather armor
-loadSpriteAtlas("/sprites/spritemerge_chest.png", chestAnims)
+loadSpriteAtlas("/examples/sprites/spritemerge_chest.png", chestAnims)
 // load Spriteatlas with body
-loadSpriteAtlas("/sprites/spritemerge_corpus.png", corpusAnims)
+loadSpriteAtlas("/examples/sprites/spritemerge_corpus.png", corpusAnims)
 // load and merge body and leather armor
 load(
-	mergeImg(["/sprites/spritemerge_corpus.png", "/sprites/spritemerge_chest.png"])
+	mergeImg(["/examples/sprites/spritemerge_corpus.png", "/examples/sprites/spritemerge_chest.png"])
 		.then((img) => loadSpriteAtlas(img, playerAnims)),
 )
 

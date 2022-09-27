@@ -20,10 +20,10 @@ for (const obj of objs) {
 }
 
 loadBean()
-loadSound("hit", "/sounds/hit.mp3")
-loadSound("shoot", "/sounds/shoot.mp3")
-loadSound("explode", "/sounds/explode.mp3")
-loadSound("OtherworldlyFoe", "/sounds/OtherworldlyFoe.mp3")
+loadSound("hit", "/examples/sounds/hit.mp3")
+loadSound("shoot", "/examples/sounds/shoot.mp3")
+loadSound("explode", "/examples/sounds/explode.mp3")
+loadSound("OtherworldlyFoe", "/examples/sounds/OtherworldlyFoe.mp3")
 
 scene("battle", () => {
 

@@ -22,8 +22,8 @@ loadSprite("note", "/sprites/note.png")
 loadSprite("grass", "/sprites/grass.png")
 loadSprite("cloud", "/sprites/cloud.png")
 loadSprite("sun", "/sprites/sun.png")
-loadSound("bell", "/sounds/bell.mp3")
-loadSound("kaboom2000", "/sounds/kaboom2000.mp3")
+loadSound("bell", "/examples/sounds/bell.mp3")
+loadSound("kaboom2000", "/examples/sounds/kaboom2000.mp3")
 
 const FLOOR_HEIGHT = 64
 const JUMP_FORCE = 1320

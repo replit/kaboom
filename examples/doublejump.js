@@ -4,7 +4,7 @@ loadSprite("bean", "/sprites/bean.png")
 loadSprite("coin", "/sprites/coin.png")
 loadSprite("grass", "/sprites/grass.png")
 loadSprite("spike", "/sprites/spike.png")
-loadSound("coin", "/sounds/score.mp3")
+loadSound("coin", "/examples/sounds/score.mp3")
 
 const PLAYER_SPEED = 640
 const JUMP_FORCE = 1200

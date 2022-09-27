@@ -2,8 +2,8 @@
 
 kaboom()
 
-loadSound("bell", "/sounds/bell.mp3")
-loadSound("OtherworldlyFoe", "/sounds/OtherworldlyFoe.mp3")
+loadSound("bell", "/examples/sounds/bell.mp3")
+loadSound("OtherworldlyFoe", "/examples/sounds/OtherworldlyFoe.mp3")
 
 // play() to play audio
 // (This might not play until user input due to browser policy)
