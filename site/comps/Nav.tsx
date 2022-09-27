@@ -38,7 +38,7 @@ const Logo: React.FC = () => (
 				}}
 			>
 				<img
-					src="/site/img/boom.svg"
+					src="/static/img/boom.svg"
 					alt="boom"
 					css={{
 						position: "relative",
@@ -48,7 +48,7 @@ const Logo: React.FC = () => (
 					}}
 				/>
 				<img
-					src="/site/img/ka.svg"
+					src="/static/img/ka.svg"
 					alt="ka"
 					css={{
 						width: "90%",

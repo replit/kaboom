@@ -17,13 +17,13 @@ const Blog: React.FC<BlogProps> = ({
 }) => (
 	<Nav>
 		<Head title={`Kaboom - ${capitalize(name)}`} />
-		<Markdown src={matter(src).content} baseUrl="/site/blog/" />
+		<Markdown src={matter(src).content} baseUrl="/static/blog/" />
 	</Nav>
 )
 
 export const getServerSideProps: GetServerSideProps = async (ctx) => {
 	const { name } = ctx.query
-	const path = `public/site/blog/${name}.md`
+	const path = `public/static/blog/${name}.md`
 	try {
 		return {
 			props: {

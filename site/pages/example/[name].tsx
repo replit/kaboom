@@ -4,7 +4,7 @@ import { capitalize } from "lib/str"
 
 export const getServerSideProps: GetServerSideProps = async (ctx) => {
 	const { name } = ctx.query
-	const path = `public/site/demo/${name}.js`
+	const path = `public/static/example/${name}.js`
 	let code = ""
 	try {
 		code = await fs.readFile(path, "utf8")
@@ -19,11 +19,11 @@ export const getServerSideProps: GetServerSideProps = async (ctx) => {
 <!DOCTYPE html>
 <head>
 	<title>${title}</title>
-	<link rel="icon" href="/site/img/k.png" />
+	<link rel="icon" href="/static/img/k.png" />
 	<meta name="twitter:card" content="player" />
 	<meta name="twitter:title" content="${title}" />
 	<meta name="twitter:site" content="@kaboomjs" />
-	<meta name="twitter:player" content="https://kaboomjs.com/demo/${name}" />
+	<meta name="twitter:player" content="https://kaboomjs.com/example/${name}" />
 	<meta name="twitter:player:width" content="480" />
 	<meta name="twitter:player:height" content="480" />
 	<style>

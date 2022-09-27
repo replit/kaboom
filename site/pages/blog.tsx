@@ -32,7 +32,7 @@ const BlogEntries: React.FC<BlogProps> = ({ blogs }) => {
 						author={blog.author}
 						date={blog.date}
 						description={blog.description}
-						image={`site/blog/banners/${blog.image}`}
+						image={`static/blog/banners/${blog.image}`}
 					/></a>))}
 		</View>
 	)
@@ -55,10 +55,10 @@ const Blog: React.FC<BlogProps> = ({
 export const getServerSideProps: GetServerSideProps = async () => {
 	const blogs = []
 
-	for await (const blogEntry of await fs.readdir("public/site/blog")) {
+	for await (const blogEntry of await fs.readdir("public/static/blog")) {
 		if(!blogEntry.endsWith("md")) continue
 
-		const blog = await fs.readFile(`public/site/blog/${blogEntry}`, "utf8")
+		const blog = await fs.readFile(`public/static/blog/${blogEntry}`, "utf8")
 		const data = matter(blog).data
 
 		data.link = `blog/${blogEntry.substring(0, blogEntry.length - 3)}`
