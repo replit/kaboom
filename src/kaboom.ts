@@ -6,7 +6,6 @@ import {
 	vec3,
 	Vec3,
 	Rect,
-	Point,
 	Polygon,
 	Line,
 	Circle,
@@ -30,7 +29,6 @@ import {
 	wave,
 	testLineLine,
 	testRectRect,
-	testRectRect2,
 	testRectLine,
 	testRectPoint,
 	testPolygonPoint,
@@ -109,8 +107,6 @@ import {
 	MoveComp,
 	OutviewCompOpt,
 	OutviewComp,
-	CleanupCompOpt,
-	CleanupComp,
 	AreaCompOpt,
 	AreaComp,
 	SpriteComp,
@@ -508,7 +504,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			numFrames: 0,
 
 			// if we're on a touch device
-			isTouch: ("ontouchstart" in window) || navigator.maxTouchPoints > 0,
+			isTouchScreen: ("ontouchstart" in window) || navigator.maxTouchPoints > 0,
 
 			// requestAnimationFrame id
 			loopID: null,
@@ -3117,6 +3113,10 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		return Boolean(getFullscreenElement())
 	}
 
+	function isTouchScreen() {
+		return app.isTouchScreen
+	}
+
 	const debug: Debug = {
 		inspect: false,
 		timeScale: 1,
@@ -3953,19 +3953,16 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	}
 
 	function outview(opt: OutviewCompOpt = {}): OutviewComp {
-		let timer = 0
+		const distance = opt.distance ?? 64
 		let isOut = false
 		return {
 			id: "outview",
-			require: [ "pos", "area" ],
-			// TODO: expensive
-			isOutOfView(this: GameObj<AreaComp>): boolean {
-				const offset = vec2(opt.offset ?? 0)
-				const screenRect = Rect.fromPoints(
-					vec2(0, 0).sub(offset),
-					vec2(width(), height()).add(offset),
-				)
-				return !testRectRect2(this.screenArea().bbox(), screenRect)
+			require: [ "pos" ],
+			isOutOfView(this: GameObj<PosComp>): boolean {
+				const pos = toScreen(this.pos)
+				const screenRect = new Rect(vec2(0), width(), height())
+				return !testRectPoint(screenRect, pos)
+					&& screenRect.distToPoint(pos) > distance
 			},
 			onExitView(this: GameObj, action: () => void): EventCanceller {
 				return this.on("exitView", action)
@@ -3979,10 +3976,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 						this.trigger("exitView")
 						isOut = true
 					}
-					if (opt.delay) {
-						timer += dt()
-						if (timer < opt.delay) return
-					}
 					if (opt.hide) this.hidden = true
 					if (opt.pause) this.paused = true
 					if (opt.destroy) this.destroy()
@@ -3991,7 +3984,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 						this.trigger("enterView")
 						isOut = false
 					}
-					timer = 0
 					if (opt.hide) this.hidden = false
 					if (opt.pause) this.paused = false
 				}
@@ -3999,18 +3991,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			inspect() {
 				return `${this.isOutOfView()}`
 			},
-		}
-	}
-
-	function cleanup(opt: CleanupCompOpt = {}): CleanupComp {
-		return {
-			...outview({
-				destroy: true,
-				onExitView: opt.onCleanup,
-				offset: opt.offset,
-				delay: opt.delay,
-			}),
-			id: "cleanup",
 		}
 	}
 
@@ -4217,7 +4197,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			},
 
 			hasPoint(pt: Vec2): boolean {
-				return testPolygonPoint(this.worldArea(), Point.fromVec2(pt))
+				return testPolygonPoint(this.worldArea(), pt)
 			},
 
 			// push an obj out of another if they're overlapped
@@ -5914,7 +5894,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 			// TODO: touch
 			if (isMousePressed("left")) {
-				if (testCirclePoint(new Circle(pos, size / 2), Point.fromVec2(mpos))) {
+				if (testCirclePoint(new Circle(pos, size / 2), mpos)) {
 					game.ev.onOnce("frameEnd", () => {
 						app.virtualButtonStates[btn] = "pressed"
 						// TODO: caller specify another value as connected key?
@@ -5960,10 +5940,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 			// TODO: touch
 			if (isMousePressed("left")) {
-				if (testRectPoint(
-					new Rect(pos.add(-size / 2, -size / 2), size, size),
-					Point.fromVec2(mpos),
-				)) {
+				if (testRectPoint(new Rect(pos.add(-size / 2, -size / 2), size, size), mpos)) {
 					game.ev.onOnce("frameEnd", () => {
 						app.virtualButtonStates[btn] = "pressed"
 						app.keyStates[btn] = "pressed"
@@ -6220,7 +6197,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				drawDebug()
 			}
 
-			if (gopt.virtualControls) {
+			if (gopt.virtualControls && isTouchScreen()) {
 				drawVirtualControls()
 			}
 
@@ -6264,7 +6241,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		setCursor,
 		setFullscreen,
 		isFullscreen,
-		isTouch: () => app.isTouch,
+		isTouchScreen,
 		onLoad,
 		onLoadUpdate,
 		onResize,
@@ -6310,7 +6287,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		z,
 		move,
 		outview,
-		cleanup,
 		follow,
 		state,
 		// group events
@@ -6367,7 +6343,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		Rect,
 		Circle,
 		Polygon,
-		Point,
 		Vec2,
 		Color,
 		Mat4,

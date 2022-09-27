@@ -25,6 +25,9 @@
 - (**BREAK**) defining `gravity()` is now required for enabling gravity, `body()` by default will only prevent objects from going through each other
 - (**BREAK**) renamed `origin()` to `anchor()`, so it won't mess up typescript in global context
 - (**BREAK**) `anchor` (previously `origin`) no longer controls text alignment, use `align` option instead
+- (**BREAK**) removed `cleanup()` component in favor of `outview({ destroy: true })`
+- (**BREAK**) removed `offset` option in `outview()` in favor of simpler `distance` option
+- changed `outview()` to use a much more performant but slightly less accurate mechanism to determine if object is out of view
 
 ## Assets
 
@@ -69,6 +72,7 @@
 - added `onResize()` to register an event that runs when canvas resizes
 - (**BREAK**) renamed `cursor()` to `setCursor()`
 - (**BREAK**) renamed `fullscreen()` to `setFullscreen()`
+- (**BREAK**) renamed `isTouch()` to `isTouchScreen()`
 - (**BREAK**) removed `layers()` in favor of parent game objects (see "layers" demo)
 - (**BREAK**) removed `load()` event for components, use `onLoad()` in `add()` event
 - (**BREAK**) removed `debug.objCount()` in favor of `getAll().length`

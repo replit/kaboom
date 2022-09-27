@@ -61,7 +61,7 @@ scene("game", () => {
 			outline(4),
 			area(),
 			move(LEFT, SPEED),
-			cleanup(),
+			outview({ destroy: true }),
 			// give it tags to easier define behaviors see below
 			"pipe",
 		])
@@ -73,7 +73,7 @@ scene("game", () => {
 			outline(4),
 			area(),
 			move(LEFT, SPEED),
-			cleanup(),
+			outview({ destroy: true }),
 			// give it tags to easier define behaviors see below
 			"pipe",
 			// raw obj just assigns every field to the game obj

@@ -56,7 +56,7 @@ scene("game", () => {
 			anchor("botleft"),
 			color(238, 143, 203),
 			move(LEFT, SPEED),
-			cleanup(),
+			outview({ destroy: true }),
 			"tree",
 		])
 

@@ -1,5 +1,6 @@
 import {
 	Vec4,
+	Point,
 	RNGValue,
 } from "./types"
 
@@ -642,7 +643,7 @@ export function testLineLine(l1: Line, l2: Line): Vec2 | null {
 }
 
 export function testRectLine(r: Rect, l: Line): boolean {
-	if (testRectPoint(r, Point.fromVec2(l.p1)) || testRectPoint(r, Point.fromVec2(l.p2))) {
+	if (testRectPoint(r, l.p1) || testRectPoint(r, l.p2)) {
 		return true
 	}
 	const pts = r.points()
@@ -690,7 +691,7 @@ export function testLineCircle(l: Line, c: Circle): boolean {
 export function testLinePolygon(l: Line, p: Polygon): boolean {
 
 	// test if line is inside
-	if (testPolygonPoint(p, Point.fromVec2(l.p1)) || testPolygonPoint(p, Point.fromVec2(l.p2))) {
+	if (testPolygonPoint(p, l.p1) || testPolygonPoint(p, l.p2)) {
 		return true
 	}
 
@@ -708,7 +709,7 @@ export function testLinePolygon(l: Line, p: Polygon): boolean {
 }
 
 export function testCirclePoint(c: Circle, p: Point): boolean {
-	return c.center.dist(p.toVec2()) < c.radius
+	return c.center.dist(p) < c.radius
 }
 
 export function testCircleCircle(c1: Circle, c2: Circle): boolean {
@@ -796,6 +797,13 @@ export class Rect {
 	bbox(): Rect {
 		return new Rect(this.pos.clone(), this.width, this.height)
 	}
+	distToPoint(p: Vec2): number {
+		const min = this.pos
+		const max = this.pos.add(this.width, this.height)
+		const dx = Math.max(min.x - p.x, 0, p.x - max.x)
+		const dy = Math.max(min.y - p.y, 0, p.y - max.y)
+		return Math.sqrt(dx * dx + dy * dy)
+	}
 }
 
 export class Circle {
@@ -861,27 +869,6 @@ export class Polygon {
 			p2.y = Math.max(p2.y, pt.y)
 		}
 		return Rect.fromPoints(p1, p2)
-	}
-}
-
-export class Point {
-	x: number
-	y: number
-	constructor(x: number, y: number) {
-		this.x = x
-		this.y = y
-	}
-	static fromVec2(p: Vec2): Point {
-		return new Point(p.x, p.y)
-	}
-	toVec2(): Vec2 {
-		return new Vec2(this.x, this.y)
-	}
-	transform(tr: Mat4): Point {
-		return Point.fromVec2(tr.multVec2(this.toVec2()))
-	}
-	bbox(): Rect {
-		return new Rect(this.toVec2(), 0, 0)
 	}
 }
 

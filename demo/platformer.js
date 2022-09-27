@@ -4,9 +4,11 @@ kaboom({
 
 // load assets
 loadSprite("bean", "/sprites/bean.png")
+loadSprite("bag", "/sprites/bag.png")
 loadSprite("ghosty", "/sprites/ghosty.png")
 loadSprite("spike", "/sprites/spike.png")
 loadSprite("grass", "/sprites/grass.png")
+loadSprite("steel", "/sprites/steel.png")
 loadSprite("prize", "/sprites/jumpy.png")
 loadSprite("apple", "/sprites/apple.png")
 loadSprite("portal", "/sprites/portal.png")
@@ -79,6 +81,15 @@ const FALL_DEATH = 2400
 
 const LEVELS = [
 	[
+		"    0       ",
+		"   --       ",
+		"       $$   ",
+		" %    ===   ",
+		"            ",
+		"   ^^  > = @",
+		"============",
+	],
+	[
 		"                          $",
 		"                          $",
 		"                          $",
@@ -112,6 +123,18 @@ const levelConf = {
 	// define each object as a list of components
 	"=": () => [
 		sprite("grass"),
+		area(),
+		body({ isStatic: true }),
+		anchor("bot"),
+	],
+	"-": () => [
+		sprite("steel"),
+		area(),
+		body({ isStatic: true }),
+		anchor("bot"),
+	],
+	"0": () => [
+		sprite("bag"),
 		area(),
 		body({ isStatic: true }),
 		anchor("bot"),

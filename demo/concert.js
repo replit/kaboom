@@ -193,7 +193,7 @@ function spawnCloud() {
 	add([
 		sprite("cloud", { flipX: dir.eq(LEFT) }),
 		move(dir, rand(20, 60)),
-		cleanup(),
+		outview({ destroy: true }),
 		pos(dir.eq(LEFT) ? width() : 0, rand(-20, 480)),
 		anchor("top"),
 		area(),
@@ -212,7 +212,7 @@ function spawnFriend() {
 	add([
 		sprite(guy, { flipX: dir.eq(LEFT) }),
 		move(dir, rand(120, 320)),
-		cleanup(),
+		outview({ destroy: true }),
 		pos(dir.eq(LEFT) ? width() : 0, height() - FLOOR_HEIGHT),
 		area(),
 		rotate(),

@@ -393,7 +393,7 @@ export interface KaboomCtx {
 	 *     pos(enemy.pos),
 	 *     area(),
 	 *     move(player.pos.angle(enemy.pos), 1200),
-	 *     cleanup(),
+	 *     outview({ destroy: true }),
 	 * ])
 	 * ```
 	 */
@@ -406,26 +406,14 @@ export interface KaboomCtx {
 	 * @example
 	 * ```js
 	 * add([
-	 *     pos(1200, 80),
-	 *     outview({ hide: true, pause: true }),
+	 *     pos(player.pos),
+	 *     sprite("bullet"),
+	 *     outview({ destroy: true }),
+	 *     "projectile",
 	 * ])
 	 * ```
 	 */
 	outview(opt?: OutviewCompOpt): OutviewComp,
-	/**
-	 * destroy() the object if it goes out of screen. Optionally specify the amount of time it has to be off-screen before removal.
-	 *
-	 * @example
-	 * ```js
-	 * // destroy when it leaves screen
-	 * const bullet = add([
-	 *     pos(80, 80),
-	 *     move(LEFT, 960),
-	 *     cleanup(),
-	 * ])
-	 * ```
-	 */
-	cleanup(opt?: CleanupCompOpt): CleanupComp,
 	/**
 	 * Follow another game obj's position.
 	 */
@@ -1192,8 +1180,10 @@ export interface KaboomCtx {
 	isFocused(): boolean,
 	/**
 	 * Is currently on a touch screen device.
+	 *
+	 * @since v3000.0
 	 */
-	isTouch(): boolean,
+	isTouchScreen(): boolean,
 	/**
 	 * Get current mouse position (without camera transform).
 	 */
@@ -1636,7 +1626,6 @@ export interface KaboomCtx {
 	Rect: typeof Rect,
 	Circle: typeof Circle,
 	Polygon: typeof Polygon,
-	Point: typeof Point,
 	Vec2: typeof Vec2,
 	Color: typeof Color,
 	Mat4: typeof Mat4,
@@ -3363,6 +3352,7 @@ export declare class Rect {
 	points(): [Vec2, Vec2, Vec2, Vec2]
 	transform(m: Mat4): Polygon
 	bbox(): Rect
+	distToPoint(p: Vec2): number
 }
 
 export declare class Line {
@@ -3397,15 +3387,7 @@ export declare class Polygon {
 	bbox(): Rect
 }
 
-export declare class Point {
-	x: number
-	y: number
-	constructor(x: number, y: number)
-	static fromVec2(p: Vec2): Point
-	toVec2(): Vec2
-	transform(tr: Mat4): Point
-	bbox(): Rect
-}
+export type Point = Vec2
 
 export declare class RNG {
 	seed: number
@@ -3553,13 +3535,11 @@ export interface OutviewCompOpt {
 	 */
 	destroy?: boolean,
 	/**
-	 * The screen bound offset.
+	 * The distance when out of view is triggered (default 64).
+	 *
+	 * @since v3000.0
 	 */
-	offset?: number | Vec2,
-	/**
-	 * If it needs to stay out of view for a period of time before proceed to action.
-	 */
-	delay?: number,
+	distance?: number,
 	/**
 	 * Register an event that runs when object goes out of view.
 	 */
@@ -3584,23 +3564,6 @@ export interface OutviewComp extends Comp {
 	 */
 	onEnterView(action: () => void): EventCanceller,
 }
-
-export interface CleanupCompOpt {
-	/**
-	 * The screen bound offset.
-	 */
-	offset?: number | Vec2,
-	/**
-	 * If it needs to stay out of view for a period of time before proceed to destroy.
-	 */
-	delay?: number,
-	/**
-	 * Register an event that runs when object gets cleaned up.
-	 */
-	onCleanup?: () => void,
-}
-
-export type CleanupComp = Comp
 
 /**
  * Collision resolution data.
