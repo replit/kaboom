@@ -148,9 +148,9 @@ works all CDNs that supports NPM packages, e.g. jsdelivr, skypack
 
 1. `npm run setup` to setup first time (installing dev packages)
 1. `npm run dev` to watch & build lib and the website (the website might take some time to build for the first time)
-1. go to http://localhost:3000/play
-1. edit demos in `demo/` to test
-1. make sure not to break any existing demos
+1. go to http://localhost:3000/
+1. edit examples in `examples/` to test
+1. make sure not to break any existing examples
 
 also check out [CONTRIBUTION.md](CONTRIBUTING.md)
 
