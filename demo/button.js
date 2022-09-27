@@ -9,6 +9,7 @@ onUpdate(() => setCursor("default"))
 
 function addButton(txt, p, f) {
 
+	// add a parent background object
 	const btn = add([
 		rect(240, 80, { radius: 8 }),
 		pos(p),
@@ -18,12 +19,15 @@ function addButton(txt, p, f) {
 		outline(4),
 	])
 
+	// add a child object that displays the text
 	btn.add([
 		text(txt),
 		anchor("center"),
 		color(0, 0, 0),
 	])
 
+	// onHoverUpdate() comes from area() component
+	// it runs every frame when the object is being hovered
 	btn.onHoverUpdate(() => {
 		const t = time() * 10
 		btn.color = rgb(
@@ -35,12 +39,15 @@ function addButton(txt, p, f) {
 		setCursor("pointer")
 	})
 
+	// onHoverEnd() comes from area() component
+	// it runs once when the object stopped being hovered
 	btn.onHoverEnd(() => {
 		btn.scale = vec2(1)
 		btn.color = rgb()
 	})
 
-	// set cursor to "pointer" when button is hovered
+	// onClick() comes from area() component
+	// it runs once when the object is clicked
 	btn.onClick(f)
 
 	return btn
