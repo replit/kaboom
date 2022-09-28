@@ -134,6 +134,7 @@ const Play: React.FC<PlayProps> = ({
 	const blackboardRef = React.useRef(null)
 	const isNarrow = useMediaQuery("(max-aspect-ratio: 1/1)")
 	const spaceUsed = useSpaceUsed()
+	const [ make, setMake ] = React.useState(false)
 
 	// EXAMPLE_ORDER defines the demos that should appear at the top of the list
 	// names not defined in the list just fall to their default order
