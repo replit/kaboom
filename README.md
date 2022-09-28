@@ -92,7 +92,24 @@ onKeyDown("w", () => {
 
 ## Usage
 
-### NPM
+### Start a Project With `create-kaboom`
+
+The fastest way to start a Kaboom game is with [`create-kaboom`](https://github.com/replit/kaboom/tree/master/pkgs/create)
+
+```sh
+$ npm init kaboom mygame
+```
+
+This will create a directory called `mygame` for you, containing all the files we need
+
+```sh
+$ cd mygame
+$ npm run dev
+```
+
+Then open http://localhost:5173 and edit `src/game.js`
+
+### Install as NPM Package
 
 ```sh
 $ npm install kaboom
