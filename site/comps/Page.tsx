@@ -98,11 +98,11 @@ const Page = ({
 					${cssVars}
 					@font-face {
 						font-family: IBM Plex Sans;
-						src: url(/fonts/IBMPlexSans-Regular.ttf) format("truetype");
+						src: url(/static/fonts/IBMPlexSans-Regular.ttf) format("truetype");
 					}
 					@font-face {
 						font-family: IBM Plex Mono;
-						src: url(/fonts/IBMPlexMono-Regular.ttf) format("truetype");
+						src: url(/static/fonts/IBMPlexMono-Regular.ttf) format("truetype");
 					}
 					* {
 						margin: 0;
