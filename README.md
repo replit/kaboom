@@ -12,11 +12,11 @@ Start playing around with it in the [Kaboom Playground](https://kaboomjs.com/pla
 // initialize context
 kaboom()
 
-// load a sprite called "froggy"
-loadSprite("froggy", "sprites/froggy.png")
+// load a sprite called "bean"
+loadSprite("bean", "sprites/bean.png")
 
 // compose the player game object from multiple components and add it to the game
-const froggy = add([
+const bean = add([
     sprite("bean"),
     pos(80, 40),
     area(),
@@ -26,7 +26,7 @@ const froggy = add([
 // press space to jump
 onKeyPress("space", () => {
     // this method is provided by the "body" component above
-    froggy.jump()
+    bean.jump()
 })
 ```
 
@@ -141,13 +141,12 @@ works all CDNs that supports NPM packages, e.g. jsdelivr, skypack
 
 ## Dev
 
-1. `npm run setup` to setup first time (installing dev packages)
-1. `npm run dev` to watch & build lib and the website (the website might take some time to build for the first time)
-1. go to http://localhost:3000/
+1. `npm install` to install dev packages
+1. `npm run dev` to start dev server
+1. go to http://localhost:8000/ and pick an example
 1. edit examples in `examples/` to test
-1. make sure not to break any existing examples
 
-also check out [CONTRIBUTION.md](CONTRIBUTING.md)
+Check out [CONTRIBUTION.md](CONTRIBUTING.md) for more
 
 ## Community
 
