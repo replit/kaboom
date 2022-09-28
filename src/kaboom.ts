@@ -971,8 +971,8 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	// wrapper around image loader to get a Promise
 	function loadImg(src: string): Promise<HTMLImageElement> {
 		const img = new Image()
-		img.src = isDataURL(src) ? src : assets.urlPrefix + src
 		img.crossOrigin = "anonymous"
+		img.src = isDataURL(src) ? src : assets.urlPrefix + src
 		return new Promise<HTMLImageElement>((resolve, reject) => {
 			img.onload = () => resolve(img)
 			img.onerror = () => reject(new Error(`Failed to load image from "${src}"`))
