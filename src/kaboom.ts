@@ -4706,11 +4706,19 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 					// TODO: if both not static, use mass, or use velocity?
 
 					// resolve the non static one
-					col.resolved = true
 					const col2 = (!this.isStatic && other.isStatic) ? col : col.reverse()
+					col2.source.trigger("beforePhysicsResolve", col2)
+					col2.target.trigger("beforePhysicsResolve", col2.reverse())
+
+					// user can mark 'resolved' in beforePhysicsResolve to stop a resolution
+					if (col.resolved) {
+						return
+					}
+
 					col2.source.pos = col2.source.pos.add(col2.displacement)
 					// TODO: update all children transform?
 					col2.source.transform = calcTransform(col2.source)
+					col.resolved = true
 					col2.source.trigger("physicsResolve", col2)
 					col2.target.trigger("physicsResolve", col2.reverse())
 
@@ -4785,6 +4793,10 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 			onPhysicsResolve(this: GameObj, action) {
 				return this.on("physicsResolve", action)
+			},
+
+			onBeforePhysicsResolve(this: GameObj, action) {
+				return this.on("beforePhysicsResolve", action)
 			},
 
 			curPlatform(): GameObj | null {

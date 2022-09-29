@@ -4156,6 +4156,12 @@ export interface BodyComp extends Comp {
 	 */
 	onPhysicsResolve(action: (col: Collision) => void): EventCanceller,
 	/**
+	 * Register an event that runs before a collision would be resolved.
+	 *
+	 * @since v3000.0
+	 */
+	onBeforePhysicsResolve(action: (col: Collision) => void): EventCanceller,
+	/**
 	 * Register an event that runs when the object is grounded.
 	 *
 	 * @since v2000.1

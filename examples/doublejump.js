@@ -40,9 +40,7 @@ scene("game", () => {
 	const score = add([
 		text("0", 24),
 		pos(24, 24),
-		{
-			value: 0,
-		},
+		{ value: 0 },
 	])
 
 	const bean = add([

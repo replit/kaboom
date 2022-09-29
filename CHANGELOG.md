@@ -19,6 +19,7 @@
 - added `Area#onHoverEnd()` and `onHoverEnd()` to register an event that runs once when an object(s) stopped being hovered
 - (**BREAK**) renamed `onHover()` to `onHoverUpdate()` (it registers an event that runs every frame when an object is hovered)
 - added `Body#onFall()` which fires when object starts falling
+- added `Body#onPhysicsResolve()` and `Body#onBeforePhysicsResolve()` to register events relating to collision resolution
 - (**BREAK**) renamed `Body#weight` to `Body#gravityScale`
 - (**BREAK**) renamed `Body#onFall()` to `Body#onFallOff()` which triggers when object fall off a platform
 - (**BREAK**) removed `solid()` in favor of `body({ isStatic: true })`
