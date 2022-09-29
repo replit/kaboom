@@ -123,7 +123,7 @@ const exec = async (cmd, args, opts) => new Promise((resolve) => {
 })
 
 let startCode = `
-import kaboom from "kaboom"
+import kaboom from "kaboom"${ts ? "\nimport \"kaboom/global\"" : ""}
 
 kaboom()
 

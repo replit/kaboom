@@ -5392,10 +5392,11 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	const get = game.root.get.bind(game.root)
 	const getAll = game.root.getAll.bind(game.root)
 
-	function explode(speed: number = 2, size: number = 1): Comp {
+	// TODO: expose this
+	function boom(speed: number = 2, size: number = 1): Comp {
 		let time = 0
 		return {
-			id: "explode",
+			id: "boom",
 			require: [ "scale" ],
 			update(this: GameObj<ScaleComp>) {
 				const s = Math.sin(time * speed) * size
@@ -5425,7 +5426,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			sprite(boomSprite),
 			scale(0),
 			anchor("center"),
-			explode(speed, s),
+			boom(speed, s),
 			...opt.comps ?? [],
 		])
 
@@ -5433,7 +5434,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			sprite(kaSprite),
 			scale(0),
 			anchor("center"),
-			timer(0.4 / speed, () => ka.use(explode(speed, s))),
+			timer(0.4 / speed, () => ka.use(boom(speed, s))),
 			...opt.comps ?? [],
 		])
 

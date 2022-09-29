@@ -10,17 +10,17 @@
 	"main": "./dist/kaboom.cjs",
 	"module": "./dist/kaboom.mjs",
 	"types": "./dist/kaboom.d.ts",
-	"typesVersions": {
-		"*": {
-			"global": [ "./dist/global.d.ts" ]
-		}
-	},
 	"exports": {
 		".": {
 			"import": "./dist/kaboom.mjs",
 			"require": "./dist/kaboom.cjs"
 		},
 		"./global": "./dist/global.js"
+	},
+	"typesVersions": {
+		"*": {
+			"global": [ "./dist/global.d.ts" ]
+		}
 	},
 	"keywords": [
 		"game",
