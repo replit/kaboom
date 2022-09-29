@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import fs from "fs";
+import fs from "fs"
 import cp from "child_process"
 import https from "https"
 
@@ -17,20 +17,19 @@ const info = (msg) => {
 }
 
 const optMap = [
-	{ long: "help", short: "h", desc: "Print this message", },
-	{ long: "typescript", short: "t", desc: "Use TypeScript", },
-	{ long: "start", short: "s", desc: "Start the dev server right away", },
-	{ long: "no-hmr", desc: "Don't use vite hmr / hot reload", },
-	{ long: "demo", short: "d", value: "name", desc: "Start from a demo listed on kaboomjs.com/play", },
-	{ long: "spaces", value: "num", desc: "Use spaces instead of tabs for generated files", },
-	{ long: "version", short: "v", value: "label", desc: "Use a specific kaboom version (default latest)", },
+	{ long: "help", short: "h", desc: "Print this message" },
+	{ long: "typescript", short: "t", desc: "Use TypeScript" },
+	{ long: "start", short: "s", desc: "Start the dev server right away" },
+	{ long: "example", short: "e", value: "name", desc: "Start from a example listed on kaboomjs.com/play" },
+	{ long: "spaces", value: "level", desc: "Use spaces instead of tabs for generated files" },
+	{ long: "version", short: "v", value: "label", desc: "Use a specific kaboom version (default latest)" },
 ]
 
 // constructing help msg
 const optDisplay = optMap.map((opt) => ({
 	usage: `${opt.short ? `-${opt.short},` : "   "} --${opt.long}${opt.value ? ` <${opt.value}>` : ""}`,
 	desc: opt.desc,
-}));
+}))
 
 const usageLen = optDisplay.reduce((len, dis) => dis.usage.length > len ? dis.usage.length : len, 0)
 
@@ -55,7 +54,7 @@ ${c(33, "EXAMPLE")}
   $ npm init kaboom mygame
 
   ${c(30, "# need to put all args after -- if using with npm init")}
-  $ npm init kaboom -- --typescript --demo burp mygame
+  $ npm init kaboom -- --typescript --example burp mygame
 
   ${c(30, "# if installed locally you don't need to use -- when passing options")}
   $ create-kaboom -t -s -d burp mygame
@@ -66,7 +65,7 @@ const args = []
 
 // process opts and args
 iterargs: for (let i = 2; i < process.argv.length; i++) {
-	const arg = process.argv[i];
+	const arg = process.argv[i]
 	if (arg.startsWith("-")) {
 		for (const opt of optMap) {
 			if (arg === `--${opt.long}` || arg === `-${opt.short}`) {
@@ -138,18 +137,18 @@ add([
 onClick(() => addKaboom(mousePos()))
 `.trim()
 
-// TODO: support pulling assets used by demo
-if (opts["demo"]) {
+// TODO: support pulling assets used by example
+if (opts["example"]) {
 
-	info(`- fetching demo "${opts["demo"]}"`)
+	info(`- fetching example "${opts["example"]}"`)
 
-	const demo = await fetch({
+	const example = await fetch({
 		hostname: "raw.githubusercontent.com",
-		path: `replit/kaboom/master/demo/${opts["demo"]}.js`,
+		path: `replit/kaboom/master/example/${opts["example"]}.js`,
 		method: "GET",
 	})
 
-	startCode = `import kaboom from "kaboom"\n\n` + demo.toString().trim()
+	startCode = "import kaboom from \"kaboom\"\n\n" + example.toString().trim()
 
 }
 
@@ -158,7 +157,7 @@ const pkgs = [
 ]
 
 const devPkgs = [
-	"vite@latest",
+	"esbuild@latest",
 	...(ts ? [ "typescript@latest" ] : []),
 ]
 
@@ -175,45 +174,34 @@ const dir = (name, items) => ({
 })
 
 const stringify = (obj) => JSON.stringify(obj, null, "\t")
-const ext = ts ? "ts" : "js";
+const ext = ts ? "ts" : "js"
 
 // describe files to generate
 const template = dir(dest, [
 	file("package.json", stringify({
-		"name": dest,
-		"scripts": {
-			"dev": "vite",
-			"build": "vite build",
-			"preview": "vite preview",
+		name: dest,
+		scripts: {
+			build: "esbuild --bundle src/game.ts --outfile=www/main.js",
+			dev: "esbuild --bundle src/game.ts --outfile=www/main.js --servedir=www",
+			watch: "esbuild --bundle src/game.ts --outfile=www/main.js --watch",
 			...(ts ? {
-				"check": "tsc --noEmit src/game.ts",
+				check: "tsc --noEmit src/game.ts",
 			} : {}),
 		},
 	})),
-	file("index.html", `
+	dir("www", [
+		file("index.html", `
 <!DOCTYPE html>
-
 <html>
-
 <head>
 	<title>${dest}</title>
 </head>
-
 <body>
-	<script type="module" src="/src/game.${ext}"></script>
+	<script src="/main.js"></script>
 </body>
-
 </html>
-	`),
-	file(`vite.config.${ext}`, `
-import { defineConfig } from "vite"
-
-export default defineConfig(${stringify(opts["no-hmr"] ? {
-	server: {
-		hmr: false,
-	},
-} : {})})
-	`),
+		`.trim()),
+	]),
 	dir("src", [
 		file(`game.${ext}`, startCode),
 	]),
@@ -244,13 +232,13 @@ create(template)
 process.chdir(dest)
 
 info(`- installing packages ${pkgs.map((pkg) => `"${pkg}"`).join(", ")}`)
-await exec("npm", [ "install", ...pkgs, ], { stdio: [ "inherit", "ignore", "inherit" ], })
+await exec("npm", [ "install", ...pkgs ], { stdio: [ "inherit", "ignore", "inherit" ] })
 info(`- installing dev packages ${devPkgs.map((pkg) => `"${pkg}"`).join(", ")}`)
-await exec("npm", [ "install", "-D", ...devPkgs, ], { stdio: [ "inherit", "ignore", "inherit" ], })
+await exec("npm", [ "install", "-D", ...devPkgs ], { stdio: [ "inherit", "ignore", "inherit" ] })
 
 if (opts["start"]) {
-	info(`- starting dev server`)
-	await exec("npm", [ "run", "dev", ], { stdio: "inherit", })
+	info("- starting dev server")
+	await exec("npm", [ "run", "dev" ], { stdio: "inherit" })
 } else {
 	console.log("")
 	console.log(`

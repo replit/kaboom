@@ -13,7 +13,7 @@
 
 ## Components
 
-- added collision support for rotate shapes
+- added collision support for rotate shapes and polygons
 - added `Area#onCollideUpdate()` and `Area#onCollideEnd()` events
 - added `Area#onHover()` and `onHover()` to register an event that runs once when an object(s) is hovered
 - added `Area#onHoverEnd()` and `onHoverEnd()` to register an event that runs once when an object(s) stopped being hovered
@@ -77,7 +77,7 @@
 - (**BREAK**) renamed `cursor()` to `setCursor()`
 - (**BREAK**) renamed `fullscreen()` to `setFullscreen()`
 - (**BREAK**) renamed `isTouch()` to `isTouchScreen()`
-- (**BREAK**) removed `layers()` in favor of parent game objects (see "layers" demo)
+- (**BREAK**) removed `layers()` in favor of parent game objects (see "layers" example)
 - (**BREAK**) removed `load()` event for components, use `onLoad()` in `add()` event
 - (**BREAK**) removed `debug.objCount()` in favor of `getAll().length`
 - added `debug.numFrames()` to get the current frame count
