@@ -21,6 +21,8 @@
 - added `Body#onFall()` which fires when object starts falling
 - added `Body#onPhysicsResolve()` and `Body#onBeforePhysicsResolve()` to register events relating to collision resolution
 - added `body({ stickToPlatform: false })` option to turn off object moving with platform
+- added `doubleJump()` component to enable double jump
+- (**BREAK**) removed `Body#doubleJump()` in favor of `doubleJump()` component
 - (**BREAK**) renamed `Body#weight` to `Body#gravityScale`
 - (**BREAK**) renamed `Body#onFall()` to `Body#onFallOff()` which triggers when object fall off a platform
 - (**BREAK**) removed `solid()` in favor of `body({ isStatic: true })`

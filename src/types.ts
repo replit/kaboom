@@ -381,7 +381,7 @@ export interface KaboomCtx {
 	 *
 	 * @since v3000.0
 	 */
-	doubleJump(): DoubleJumpComp,
+	doubleJump(numJumps?: number): DoubleJumpComp,
 	/**
 	 * Move towards a direction infinitely, and destroys when it leaves game view. Requires "pos" component.
 	 *
@@ -4194,6 +4194,10 @@ export interface BodyComp extends Comp {
 }
 
 export interface DoubleJumpComp extends Comp {
+	/**
+	 * Number of jumps allowed.
+	 */
+	numJumps: number,
 	/**
 	 * Performs double jump (the initial jump only happens if player is grounded).
 	 */

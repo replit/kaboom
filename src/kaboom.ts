@@ -4848,31 +4848,36 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 	}
 
-	// TODO: enable multi jump
-	function doubleJump(): DoubleJumpComp {
-		let canDouble = true
+	function doubleJump(numJumps: number = 2): DoubleJumpComp {
+		let jumpsLeft = numJumps
 		const cleanups = []
 		return {
+			id: "doubleJump",
 			require: [ "body" ],
-			add(this: GameObj) {
+			numJumps: numJumps,
+			add(this: GameObj<BodyComp | DoubleJumpComp>) {
 				cleanups.push(this.onGround(() => {
-					canDouble = true
+					jumpsLeft = this.numJumps
 				}))
 			},
 			destroy() {
 				cleanups.forEach((f) => f())
 			},
-			doubleJump(this: GameObj<BodyComp>, force: number) {
-				if (this.isGrounded()) {
-					this.jump(force)
-				} else if (canDouble) {
-					canDouble = false
-					this.jump(force)
+			doubleJump(this: GameObj<BodyComp | DoubleJumpComp>, force?: number) {
+				if (jumpsLeft <= 0) {
+					return
+				}
+				if (jumpsLeft < this.numJumps) {
 					this.trigger("doubleJump")
 				}
+				jumpsLeft--
+				this.jump(force)
 			},
 			onDoubleJump(this: GameObj, action: () => void): EventCanceller {
 				return this.on("doubleJump", action)
+			},
+			inspect(this: GameObj<BodyComp | DoubleJumpComp>) {
+				return `${jumpsLeft}`
 			},
 		}
 	}

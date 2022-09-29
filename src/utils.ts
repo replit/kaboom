@@ -142,7 +142,7 @@ export const uid = (() => {
 
 const warned = new Set()
 
-export function warn(msg) {
+export function warn(msg: string) {
 	if (!warned.has(msg)) {
 		warned.add(msg)
 		console.warn(msg)

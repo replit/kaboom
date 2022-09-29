@@ -126,7 +126,6 @@ const levelConf = {
 		area(),
 		body({ isStatic: true }),
 		anchor("bot"),
-		"platform",
 	],
 	"-": () => [
 		sprite("steel"),
@@ -256,12 +255,6 @@ scene("game", ({ levelId, coins } = { levelId: 0, coins: 0 }) => {
 	})
 
 	let hasApple = false
-
-	player.onBeforePhysicsResolve((col) => {
-		if (col.target.is("platform") && player.isJumping()) {
-			col.resolved = true
-		}
-	})
 
 	// grow an apple if player's head bumps into an obj with "prize" tag
 	player.onHeadbutt((obj) => {
