@@ -258,7 +258,7 @@ scene("game", ({ levelId, coins } = { levelId: 0, coins: 0 }) => {
 	let hasApple = false
 
 	player.onBeforePhysicsResolve((col) => {
-		if (col.target.is("platform") && player.isRising()) {
+		if (col.target.is("platform") && player.isJumping()) {
 			col.resolved = true
 		}
 	})

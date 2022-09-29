@@ -4735,7 +4735,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 							} else {
 								this.trigger("ground", curPlatform)
 							}
-						} else if (col.isTop() && this.isRising()) {
+						} else if (col.isTop() && this.isJumping()) {
 							velY = 0
 							this.trigger("headbutt", col.target)
 						}
@@ -4769,7 +4769,10 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 					) {
 						wantFall = true
 					} else {
-						if (!curPlatform.pos.eq(lastPlatformPos)) {
+						if (
+							!curPlatform.pos.eq(lastPlatformPos)
+							&& opt.stickToPlatform !== false
+						) {
 							this.moveBy(curPlatform.pos.sub(lastPlatformPos))
 						}
 						lastPlatformPos = curPlatform.pos
@@ -4811,7 +4814,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				return velY > 0
 			},
 
-			isRising(): boolean {
+			isJumping(): boolean {
 				return velY < 0
 			},
 
@@ -4838,7 +4841,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			},
 
 			inspect() {
-				return `${this.isGrounded() ? "grounded" : this.isRising() ? "jumping" : "falling"}`
+				return `${this.isGrounded() ? "grounded" : this.isJumping() ? "jumping" : "falling"}`
 			},
 
 		}

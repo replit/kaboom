@@ -20,6 +20,7 @@
 - (**BREAK**) renamed `onHover()` to `onHoverUpdate()` (it registers an event that runs every frame when an object is hovered)
 - added `Body#onFall()` which fires when object starts falling
 - added `Body#onPhysicsResolve()` and `Body#onBeforePhysicsResolve()` to register events relating to collision resolution
+- added `body({ stickToPlatform: false })` option to turn off object moving with platform
 - (**BREAK**) renamed `Body#weight` to `Body#gravityScale`
 - (**BREAK**) renamed `Body#onFall()` to `Body#onFallOff()` which triggers when object fall off a platform
 - (**BREAK**) removed `solid()` in favor of `body({ isStatic: true })`

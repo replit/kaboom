@@ -4124,6 +4124,12 @@ export interface BodyComp extends Comp {
 	 */
 	mass?: number,
 	/**
+	 * If object should move with moving platform (default true).
+	 *
+	 * @since v3000.0
+	 */
+	stickToPlatform?: boolean,
+	/**
 	 * Current platform landing on.
 	 */
 	curPlatform(): GameObj | null,
@@ -4144,7 +4150,7 @@ export interface BodyComp extends Comp {
 	 *
 	 * @since v3000.0
 	 */
-	isRising(): boolean,
+	isJumping(): boolean,
 	/**
 	 * Upward thrust.
 	 */
@@ -4213,8 +4219,16 @@ export interface BodyCompOpt {
 	gravityScale?: number,
 	/**
 	 * If object is static, won't move, and all non static objects won't move past it.
+	 *
+	 * @since v3000.0
 	 */
 	isStatic?: boolean,
+	/**
+	 * If object should move with moving platform (default true).
+	 *
+	 * @since v3000.0
+	 */
+	stickToPlatform?: boolean,
 	/**
 	 * Decides how much objects can push another.
 	 */
