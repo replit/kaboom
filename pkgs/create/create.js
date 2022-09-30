@@ -1,5 +1,8 @@
 #!/usr/bin/env node
 
+// TODO: desktop / itch.io / newgrounds packaging
+// TODO: interactive setup if no args
+
 import fs from "fs"
 import cp from "child_process"
 import https from "https"
@@ -19,7 +22,7 @@ const info = (msg) => {
 const optMap = [
 	{ long: "help", short: "h", desc: "Print this message" },
 	{ long: "typescript", short: "t", desc: "Use TypeScript" },
-	{ long: "start", short: "s", desc: "Start the dev server right away" },
+	{ long: "desktop", short: "d", desc: "Enable packaging for desktop release" },
 	{ long: "example", short: "e", value: "name", desc: "Start from a example listed on kaboomjs.com/play" },
 	{ long: "spaces", value: "level", desc: "Use spaces instead of tabs for generated files" },
 	{ long: "version", short: "v", value: "label", desc: "Use a specific kaboom version (default latest)" },
@@ -159,6 +162,7 @@ const pkgs = [
 const devPkgs = [
 	"esbuild@latest",
 	...(ts ? [ "typescript@latest" ] : []),
+	...(opts["desktop"] ? [ "@neutralinojs/neu@latest" ] : []),
 ]
 
 const file = (name, content) => ({
@@ -182,10 +186,13 @@ const template = dir(dest, [
 		name: dest,
 		scripts: {
 			build: "esbuild --bundle src/game.ts --outfile=www/main.js",
-			dev: "esbuild --bundle src/game.ts --outfile=www/main.js --servedir=www",
 			watch: "esbuild --bundle src/game.ts --outfile=www/main.js --watch",
+			dev: "esbuild --bundle src/game.ts --outfile=www/main.js --servedir=www",
 			...(ts ? {
 				check: "tsc --noEmit src/game.ts",
+			} : {}),
+			...(opts["desktop"] ? {
+				desktop: "neu build --release",
 			} : {}),
 		},
 	})),
@@ -205,6 +212,43 @@ const template = dir(dest, [
 	dir("src", [
 		file(`game.${ext}`, startCode),
 	]),
+	...(opts["desktop"] ? [file("neutralino.config.json", stringify({
+		// TODO: use own template
+		applicationId: "js.neutralino.sample",
+		version: "1.0.0",
+		defaultMode: "window",
+		port: 0,
+		documentRoot: "/www/",
+		url: "/",
+		enableServer: true,
+		enableNativeAPI: true,
+		modes: {
+			window: {
+				title: "neutest",
+				icon: "/www/icon.png",
+				width: 640,
+				height: 480,
+				minWidth: 400,
+				minHeight: 200,
+				fullScreen: false,
+				alwaysOnTop: false,
+				enableInspector: true,
+				borderless: false,
+				maximize: false,
+				hidden: false,
+				resizable: true,
+				exitProcessOnClose: true,
+			},
+		},
+		cli: {
+			binaryName: "dest",
+			resourcesPath: "/www/",
+			extensionsPath: "/extensions/",
+			clientLibrary: "/www/neutralino.js",
+			binaryVersion: "4.7.0",
+			clientVersion: "3.6.0",
+		},
+	}))] : []),
 ])
 
 let curDir = []
@@ -236,17 +280,28 @@ await exec("npm", [ "install", ...pkgs ], { stdio: [ "inherit", "ignore", "inher
 info(`- installing dev packages ${devPkgs.map((pkg) => `"${pkg}"`).join(", ")}`)
 await exec("npm", [ "install", "-D", ...devPkgs ], { stdio: [ "inherit", "ignore", "inherit" ] })
 
-if (opts["start"]) {
-	info("- starting dev server")
-	await exec("npm", [ "run", "dev" ], { stdio: "inherit" })
-} else {
-	console.log("")
-	console.log(`
+if (opts["desktop"]) {
+	info("- creating neutralino files")
+	await exec("npx", [
+		"neu",
+		"create",
+		"neu",
+		"--template",
+		"neutralinojs/neutralinojs-zero",
+	], { stdio: "inherit" })
+	info("- copying neutralino files")
+	fs.cpSync("neu/bin", "bin", { recursive: true })
+	fs.copyFileSync("neu/www/neutralino.js", "www/neutralino.js")
+	fs.copyFileSync("neu/www/icon.png", "www/icon.png")
+	fs.rmSync("neu/", { recursive: true, force: true })
+}
+
+console.log("")
+console.log(`
 Success! Now
 
   $ cd ${dest}
   $ npm run dev
 
 and start editing src/game.${ext}!
-	`.trim())
-}
+`.trim())
