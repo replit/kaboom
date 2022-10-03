@@ -3,6 +3,10 @@
 // TODO: itch.io / newgrounds packaging
 // TODO: interactive setup if no args
 // TODO: create README.md with guide
+// TODO: .gitignore
+// TODO: deal with www/main.js and www/neutralino.js
+
+const VERSION = "2.1.1"
 
 import fs from "fs"
 import cp from "child_process"
@@ -38,7 +42,7 @@ const optDisplay = optMap.map((opt) => ({
 const usageLen = optDisplay.reduce((len, dis) => dis.usage.length > len ? dis.usage.length : len, 0)
 
 const help = `
-create-kaboom v1.2.0
+create-kaboom v${VERSION}
 
 ${c(33, "USAGE")}
 
