@@ -126,6 +126,7 @@ const levelConf = {
 		area(),
 		body({ isStatic: true }),
 		anchor("bot"),
+		"platform",
 	],
 	"-": () => [
 		sprite("steel"),
@@ -211,6 +212,12 @@ scene("game", ({ levelId, coins } = { levelId: 0, coins: 0 }) => {
 		// check fall death
 		if (player.pos.y >= FALL_DEATH) {
 			go("lose")
+		}
+	})
+
+	player.onBeforePhysicsResolve((collision) => {
+		if (collision.target.is("platform") && player.isJumping()) {
+			collision.preventResolve()
 		}
 	})
 

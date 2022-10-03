@@ -5494,6 +5494,10 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		isBottom() {
 			return this.displacement.y < 0
 		}
+		preventResolve() {
+			this.resolved = true
+		}
+
 	}
 
 	function checkFrame() {

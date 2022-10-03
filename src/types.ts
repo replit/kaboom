@@ -3582,6 +3582,12 @@ export interface Collision {
 	 */
 	resolved: boolean,
 	/**
+	 * Prevent collision resolution if not yet resolved.
+	 *
+	 * @since v3000.0
+	 */
+	preventResolve(): void,
+	/**
 	 * Get a new collision with reversed source and target relationship.
 	 */
 	reverse(): Collision,

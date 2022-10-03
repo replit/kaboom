@@ -6,12 +6,13 @@
 // TODO: .gitignore
 // TODO: deal with www/main.js and www/neutralino.js
 
-const VERSION = "2.1.1"
+const VERSION = "2.1.2"
 
 import fs from "fs"
 import cp from "child_process"
 import https from "https"
 
+const cwd = process.cwd()
 const c = (n, msg) => `\x1b[${n}m${msg}\x1b[0m`
 
 const fail = (msg, ifHelp) => {
@@ -193,8 +194,6 @@ const dir = (name, items) => ({
 	items,
 })
 
-const cwd = process.cwd()
-
 const create = (item) => {
 	if (item.type === "dir") {
 		fs.mkdirSync(item.name)
@@ -210,6 +209,8 @@ const create = (item) => {
 		fs.writeFileSync(item.name, content)
 	}
 }
+
+const toAlphaNumeric = (text) => text.toLowerCase().replace(/[^a-z0-9]/g, "")
 
 // generate core files
 create(dir(dest, [
@@ -244,6 +245,33 @@ create(dir(dest, [
 	dir("src", [
 		file(`game.${ext}`, startCode),
 	]),
+	...(desktop ? [
+		file("neutralino.config.json", stringify({
+			"applicationId": `com.kaboomjs.${toAlphaNumeric(dest)}`,
+			"version": "1.0.0",
+			"defaultMode": "window",
+			"documentRoot": "/www/",
+			"url": "/",
+			"enableServer": true,
+			"enableNativeAPI": true,
+			"modes": {
+				"window": {
+					"title": dest,
+					"icon": "/www/icon.png",
+					"width": 640,
+					"height": 480,
+				},
+			},
+			"cli": {
+				"binaryName": dest,
+				"resourcesPath": "/www/",
+				"extensionsPath": "/extensions/",
+				"clientLibrary": "/www/neutralino.js",
+				"binaryVersion": "4.7.0",
+				"clientVersion": "3.6.0",
+			},
+		})),
+	] : []),
 ]))
 
 process.chdir(dest)
@@ -253,41 +281,9 @@ await exec("npm", [ "install", ...pkgs ], { stdio: [ "inherit", "ignore", "inher
 info(`- installing dev packages ${devPkgs.map((pkg) => `"${pkg}"`).join(", ")}`)
 await exec("npm", [ "install", "-D", ...devPkgs ], { stdio: [ "inherit", "ignore", "inherit" ] })
 
-const toAlphaNumeric = (text) => text.toLowerCase().replace(/[^a-z0-9]/g, "")
-
 if (desktop) {
 	info("- downloading neutralino files")
-	await exec("npx", [ "neu", "create", "neu" ], { stdio: "inherit" })
-	info("- processing neutralino files")
-	fs.cpSync("neu/bin", "bin", { recursive: true })
-	fs.copyFileSync("neu/resources/js/neutralino.js", "www/neutralino.js")
-	const config = JSON.parse(fs.readFileSync("neu/neutralino.config.json", "utf-8"))
-	create(file("neutralino.config.json", stringify({
-		"applicationId": `com.kaboomjs.${toAlphaNumeric(dest)}`,
-		"version": "1.0.0",
-		"defaultMode": "window",
-		"documentRoot": "/www/",
-		"url": "/",
-		"enableServer": true,
-		"enableNativeAPI": true,
-		"modes": {
-			"window": {
-				"title": dest,
-				"icon": "/www/icon.png",
-				"width": 640,
-				"height": 480,
-			},
-		},
-		"cli": {
-			"binaryName": dest,
-			"resourcesPath": "/www/",
-			"extensionsPath": "/extensions/",
-			"clientLibrary": "/www/neutralino.js",
-			"binaryVersion": config.cli.binaryVersion,
-			"clientVersion": config.cli.clientVersion,
-		},
-	})))
-	fs.rmSync("neu/", { recursive: true, force: true })
+	await exec("npx", [ "neu", "update" ], { stdio: "inherit" })
 	info("- downloading icon")
 	await download(
 		"https://raw.githubusercontent.com/replit/kaboom/master/sprites/k.png",

@@ -1,0 +1,8 @@
+INFO 2022-10-03 18:25:29,307 Auth info was exported to ./.tmp/auth_info.json api/debug/debug.cpp:14 tga@unknown-host
+ERROR 2022-10-03 18:25:29,494 Unable to open ./www/main.js api/debug/debug.cpp:16 tga@unknown-host
+INFO 2022-10-03 18:25:52,459 Auth info was exported to ./.tmp/auth_info.json api/debug/debug.cpp:14 tga@unknown-host
+ERROR 2022-10-03 18:25:52,662 Unable to open ./www/dist/kaboom.js api/debug/debug.cpp:16 tga@unknown-host
+ERROR 2022-10-03 18:25:52,662 Unable to open ./www/main.js api/debug/debug.cpp:16 tga@unknown-host
+INFO 2022-10-03 18:26:05,641 Auth info was exported to ./.tmp/auth_info.json api/debug/debug.cpp:14 tga@unknown-host
+ERROR 2022-10-03 18:26:05,827 Unable to open ./www/dist/kaboom.js api/debug/debug.cpp:16 tga@unknown-host
+ERROR 2022-10-03 18:26:05,827 Unable to open ./www/examples/platformer.js api/debug/debug.cpp:16 tga@unknown-host

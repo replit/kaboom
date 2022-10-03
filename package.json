@@ -19,7 +19,9 @@
 	},
 	"typesVersions": {
 		"*": {
-			"global": [ "./dist/global.d.ts" ]
+			"global": [
+				"./dist/global.d.ts"
+			]
 		}
 	},
 	"keywords": [
@@ -39,9 +41,11 @@
 		"lint": "eslint src examples",
 		"fmt": "eslint --fix src examples",
 		"test": "node scripts/test.js",
+		"run:desktop": "neu run",
 		"prepare": "npm run build"
 	},
 	"devDependencies": {
+		"@neutralinojs/neu": "^9.3.1",
 		"@typescript-eslint/eslint-plugin": "^5.38.1",
 		"esbuild": "^0.15.9",
 		"eslint": "^8.24.0",
