@@ -5497,7 +5497,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		preventResolve() {
 			this.resolved = true
 		}
-
 	}
 
 	function checkFrame() {
