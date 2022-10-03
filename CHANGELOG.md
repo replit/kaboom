@@ -3,8 +3,6 @@
 ## Game Objects
 
 - added scene graph, game objects can now have children with `obj.add()`
-- added `make()` to make a game object without adding to the scene
-- added support for `add()` to add unattached game objects to the scene `add(make([...comps]))`
 - added `GameObj#getAll()` for recursively getting children game objects (`get()` only gets from direct children)
 - changed object update order from reversed to not reversed
 - (**BREAK**) removed `GameObj#every()` and `GameObj#revery()` in favor of `obj.get().forEach()`

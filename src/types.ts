@@ -83,12 +83,6 @@ export interface KaboomCtx {
 	 */
 	add<T>(comps: CompList<T> | GameObj<T>): GameObj<T>,
 	/**
-	 * Create a game object from a list of components, without adding it to the scene.
-	 *
-	 * @since v3000.0
-	 */
-	make<T>(comps?: CompList<T>): GameObj<T>,
-	/**
 	 * Remove and re-add the game obj, without triggering add / destroy events.
 	 */
 	readd(obj: GameObj),

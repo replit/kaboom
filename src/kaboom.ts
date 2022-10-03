@@ -6285,7 +6285,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		gravity,
 		// obj
 		add,
-		make,
 		destroy,
 		destroyAll,
 		get,
