@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 
-// TODO: desktop / itch.io / newgrounds packaging
+// TODO: itch.io / newgrounds packaging
 // TODO: interactive setup if no args
+// TODO: create README.md with guide
 
 import fs from "fs"
 import cp from "child_process"
@@ -106,17 +107,28 @@ if (fs.existsSync(dest)) {
 	fail(`Directory "${dest}" already exists!`)
 }
 
+const stringify = (obj) => JSON.stringify(obj, null, "\t")
 const ts = opts["typescript"]
+const desktop = opts["desktop"]
+const ext = ts ? "ts" : "js"
 
-const fetch = async (opt) => new Promise((resolve) => {
+const download = async (url, to) => new Promise((resolve) => {
+	const file = fs.createWriteStream(to)
+	https.get(url, (res) => {
+		res.pipe(file)
+		file.on("finish", () => {
+			file.close()
+			resolve()
+		})
+	})
+})
 
+const request = async (opt) => new Promise((resolve) => {
 	const req = https.request(opt, (res) => {
 		res.on("data", resolve)
 	})
-
 	req.on("error", fail)
 	req.end()
-
 })
 
 const exec = async (cmd, args, opts) => new Promise((resolve) => {
@@ -145,7 +157,7 @@ if (opts["example"]) {
 
 	info(`- fetching example "${opts["example"]}"`)
 
-	const example = await fetch({
+	const example = await request({
 		hostname: "raw.githubusercontent.com",
 		path: `replit/kaboom/master/example/${opts["example"]}.js`,
 		method: "GET",
@@ -162,7 +174,7 @@ const pkgs = [
 const devPkgs = [
 	"esbuild@latest",
 	...(ts ? [ "typescript@latest" ] : []),
-	...(opts["desktop"] ? [ "@neutralinojs/neu@latest" ] : []),
+	...(desktop ? [ "@neutralinojs/neu@latest" ] : []),
 ]
 
 const file = (name, content) => ({
@@ -177,22 +189,38 @@ const dir = (name, items) => ({
 	items,
 })
 
-const stringify = (obj) => JSON.stringify(obj, null, "\t")
-const ext = ts ? "ts" : "js"
+const cwd = process.cwd()
 
-// describe files to generate
-const template = dir(dest, [
+const create = (item) => {
+	if (item.type === "dir") {
+		fs.mkdirSync(item.name)
+		process.chdir(item.name)
+		item.items.forEach(create)
+		process.chdir("..")
+	} else if (item.type === "file") {
+		const content = opts["spaces"]
+			? item.content.replaceAll("\t", " ".repeat(opts["spaces"]))
+			: item.content
+		const dir = process.cwd().replace(new RegExp(`^${cwd}/`), "")
+		info(`- creating ${dir}/${item.name}`)
+		fs.writeFileSync(item.name, content)
+	}
+}
+
+// generate core files
+create(dir(dest, [
 	file("package.json", stringify({
-		name: dest,
-		scripts: {
-			build: "esbuild --bundle src/game.ts --outfile=www/main.js",
-			watch: "esbuild --bundle src/game.ts --outfile=www/main.js --watch",
-			dev: "esbuild --bundle src/game.ts --outfile=www/main.js --servedir=www",
+		"name": dest,
+		"scripts": {
+			"watch": "esbuild --bundle src/game.ts --outfile=www/main.js --watch",
+			"build": "esbuild --bundle src/game.ts --outfile=www/main.js",
+			"dev": "esbuild --bundle src/game.ts --outfile=www/main.js --servedir=www",
 			...(ts ? {
-				check: "tsc --noEmit src/game.ts",
+				"check": "tsc --noEmit src/game.ts",
 			} : {}),
-			...(opts["desktop"] ? {
-				desktop: "neu build --release",
+			...(desktop ? {
+				"run:desktop": "neu run",
+				"build:desktop": "neu build --release",
 			} : {}),
 		},
 	})),
@@ -207,72 +235,13 @@ const template = dir(dest, [
 	<script src="/main.js"></script>
 </body>
 </html>
-		`.trim()),
+		`),
 	]),
 	dir("src", [
 		file(`game.${ext}`, startCode),
 	]),
-	...(opts["desktop"] ? [file("neutralino.config.json", stringify({
-		// TODO: use own template
-		applicationId: "js.neutralino.sample",
-		version: "1.0.0",
-		defaultMode: "window",
-		port: 0,
-		documentRoot: "/www/",
-		url: "/",
-		enableServer: true,
-		enableNativeAPI: true,
-		modes: {
-			window: {
-				title: "neutest",
-				icon: "/www/icon.png",
-				width: 640,
-				height: 480,
-				minWidth: 400,
-				minHeight: 200,
-				fullScreen: false,
-				alwaysOnTop: false,
-				enableInspector: true,
-				borderless: false,
-				maximize: false,
-				hidden: false,
-				resizable: true,
-				exitProcessOnClose: true,
-			},
-		},
-		cli: {
-			binaryName: "dest",
-			resourcesPath: "/www/",
-			extensionsPath: "/extensions/",
-			clientLibrary: "/www/neutralino.js",
-			binaryVersion: "4.7.0",
-			clientVersion: "3.6.0",
-		},
-	}))] : []),
-])
+]))
 
-let curDir = []
-
-const create = (dir) => {
-	fs.mkdirSync(dir.name)
-	process.chdir(dir.name)
-	curDir.push(dir.name)
-	for (const item of dir.items) {
-		if (item.type === "dir") {
-			create(item)
-		} else if (item.type === "file") {
-			const content = opts["spaces"]
-				? item.content.replaceAll("\t", " ".repeat(opts["spaces"]))
-				: item.content
-			info(`- creating ${curDir.join("/")}/${item.name}`)
-			fs.writeFileSync(item.name, content)
-		}
-	}
-	process.chdir("..")
-	curDir.pop()
-}
-
-create(template)
 process.chdir(dest)
 
 info(`- installing packages ${pkgs.map((pkg) => `"${pkg}"`).join(", ")}`)
@@ -280,20 +249,46 @@ await exec("npm", [ "install", ...pkgs ], { stdio: [ "inherit", "ignore", "inher
 info(`- installing dev packages ${devPkgs.map((pkg) => `"${pkg}"`).join(", ")}`)
 await exec("npm", [ "install", "-D", ...devPkgs ], { stdio: [ "inherit", "ignore", "inherit" ] })
 
-if (opts["desktop"]) {
-	info("- creating neutralino files")
-	await exec("npx", [
-		"neu",
-		"create",
-		"neu",
-		"--template",
-		"neutralinojs/neutralinojs-zero",
-	], { stdio: "inherit" })
-	info("- copying neutralino files")
+const toAlphaNumeric = (text) => text.toLowerCase().replace(/[^a-z0-9]/g, "")
+
+if (desktop) {
+	info("- downloading neutralino files")
+	await exec("npx", [ "neu", "create", "neu" ], { stdio: "inherit" })
+	info("- processing neutralino files")
 	fs.cpSync("neu/bin", "bin", { recursive: true })
-	fs.copyFileSync("neu/www/neutralino.js", "www/neutralino.js")
-	fs.copyFileSync("neu/www/icon.png", "www/icon.png")
+	fs.copyFileSync("neu/resources/js/neutralino.js", "www/neutralino.js")
+	const config = JSON.parse(fs.readFileSync("neu/neutralino.config.json", "utf-8"))
+	create(file("neutralino.config.json", stringify({
+		"applicationId": `com.kaboomjs.${toAlphaNumeric(dest)}`,
+		"version": "1.0.0",
+		"defaultMode": "window",
+		"documentRoot": "/www/",
+		"url": "/",
+		"enableServer": true,
+		"enableNativeAPI": true,
+		"modes": {
+			"window": {
+				"title": dest,
+				"icon": "/www/icon.png",
+				"width": 640,
+				"height": 480,
+			},
+		},
+		"cli": {
+			"binaryName": dest,
+			"resourcesPath": "/www/",
+			"extensionsPath": "/extensions/",
+			"clientLibrary": "/www/neutralino.js",
+			"binaryVersion": config.cli.binaryVersion,
+			"clientVersion": config.cli.clientVersion,
+		},
+	})))
 	fs.rmSync("neu/", { recursive: true, force: true })
+	info("- downloading icon")
+	await download(
+		"https://raw.githubusercontent.com/replit/kaboom/master/sprites/k.png",
+		"www/icon.png",
+	)
 }
 
 console.log("")
