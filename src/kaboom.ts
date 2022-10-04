@@ -144,7 +144,7 @@ import {
 	Shape,
 	DoubleJumpComp,
 	VirtualButton,
-	LineJoin,
+	TweenController,
 } from "./types"
 
 import FPSCounter from "./fps"
@@ -6252,15 +6252,30 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		duration: number,
 		setter: (value: number) => void,
 		easeFunc = easings.linear,
-	) {
+	): TweenController {
 		let curTime = 0
+		let paused = false
+		const onFinishEvents: Event = new Event()
 		const stop = onUpdate(() => {
+			if (paused) return
 			curTime += dt()
 			const t = Math.min(curTime / duration, 1)
 			setter(lerp(min, max, easeFunc(t)))
-			if (t === 1) stop()
+			if (t === 1) {
+				onFinishEvents.trigger()
+				stop()
+			}
 		})
-		return stop
+		return {
+			onFinish: (action: () => void) => onFinishEvents.add(action),
+			pause: () => paused = true,
+			start: () => paused = false,
+			then: (action: () => void) => onFinishEvents.add(action),
+			stop: () => {
+				onFinishEvents.trigger()
+				stop()
+			},
+		}
 	}
 
 	// the exported ctx handle

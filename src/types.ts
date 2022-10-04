@@ -1575,7 +1575,7 @@ export interface KaboomCtx {
 		duration: number,
 		setter: (value: number) => void,
 		easeFunc: (t: number) => number,
-	): EventCanceller,
+	): TweenController,
 	/**
 	 * A collection of easing functions for tweening.
 	 *
@@ -4481,5 +4481,13 @@ export type EaseFuncs =
 	| "easeInBounce"
 	| "easeOutBounce"
 	| "easeInOutBounce"
+
+export type TweenController = {
+	onFinish(action: () => void): void,
+	then(action: () => void): void,
+	pause(): void,
+	start(): void,
+	stop(): void,
+}
 
 export default kaboom
