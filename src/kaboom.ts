@@ -147,6 +147,7 @@ import {
 
 import FPSCounter from "./fps"
 import Timer from "./timer"
+import easings from "./tween"
 
 // @ts-ignore
 import happyFontSrc from "./assets/happy_28x36.png"
@@ -6234,6 +6235,24 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 	})
 
+	function tween(
+		min: number,
+		max: number,
+		duration: number,
+		setter: (value: number) => void,
+		ease = "linear",
+	) {
+		const easeFunc = easings[ease]
+		let curTime = 0
+		const stop = onUpdate(() => {
+			curTime += dt()
+			const t = Math.min(curTime / duration, 1)
+			setter(lerp(min, max, easeFunc(t)))
+			if (t === 1) stop()
+		})
+		return stop
+	}
+
 	// the exported ctx handle
 	const ctx: KaboomCtx = {
 		VERSION,
@@ -6386,6 +6405,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		choose,
 		chance,
 		lerp,
+		tween,
 		map,
 		mapc,
 		wave,

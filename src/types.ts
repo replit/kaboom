@@ -1559,6 +1559,25 @@ export interface KaboomCtx {
 	 */
 	lerp(from: number, to: number, t: number): number,
 	/**
+	 * Tweeeeeeeening!
+	 *
+	 * @since v3000.0
+	 *
+	 * @example
+	 * ```js
+	 * tween(bean.pos.x, mousePos().x, 1, (val) => bean.pos.x = val, "easeOutBounce")
+	 * tween(bean.pos.y, mousePos().y, 1, (val) => bean.pos.y = val, "easeOutBounce")
+	 * ```
+	 */
+	tween(
+		min: number,
+		max: number,
+		duration: number,
+		setter: (value: number) => void,
+		// TODO: EaseType
+		ease: string,
+	): EventCanceller,
+	/**
 	 * Map a value from one range to another range.
 	 */
 	map(

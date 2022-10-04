@@ -63,6 +63,7 @@
 
 ## Misc
 
+- added `tween()` for tweening
 - moved type defs for global functions to `import "kaboom/global"`
 - (**BREAK**) removed all deprecated functions in v2000.2
 - (**BREAK**) raised esbuild target to `esnext`
