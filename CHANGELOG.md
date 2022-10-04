@@ -2,7 +2,34 @@
 
 ## Game Objects
 
-- added scene graph, game objects can now have children with `obj.add()`
+- added scene graph, game objects are now stored in a tree-like structure and can have children with `obj.add()`
+
+```js
+const bean = add([
+    sprite("bean"),
+    pos(160, 120),
+])
+
+const sword = bean.add([
+    sprite("sword"),
+    // transforms will be relative to parent bean object
+    pos(20, 20),
+    rotate(20),
+])
+
+const hat = bean.add([
+    sprite("hat"),
+    // transforms will be relative to parent bean object
+    pos(0, -10),
+])
+
+// children will be moved alongside the parent
+bean.moveBy(100, 200)
+
+// children will be destroyed alongside the parent
+bean.destroy()
+```
+
 - added `GameObj#getAll()` for recursively getting children game objects (`get()` only gets from direct children)
 - changed object update order from reversed to not reversed
 - (**BREAK**) removed `GameObj#every()` and `GameObj#revery()` in favor of `obj.get().forEach()`
@@ -63,10 +90,39 @@
 
 ## Misc
 
-- added `tween()` for tweening
-- moved type defs for global functions to `import "kaboom/global"`
 - (**BREAK**) removed all deprecated functions in v2000.2
 - (**BREAK**) raised esbuild target to `esnext`
+- moved type defs for global functions to `import "kaboom/global"`
+
+```js
+// if use global functions
+import "kaboom"
+import "kaboom/global" // required to load global types
+
+kaboom()
+
+// will have definition
+add()
+
+
+// if don't use global function
+import "kaboom"
+
+kaboom({ global: false })
+
+// type error, won't pollute global namespace if not manually import "kaboom/global"
+add()
+```
+
+- added `tween()` for tweening, and a set of built-in easing functions in `easings`
+
+```js
+onMousePress(() => {
+	tween(bean.pos.x, mousePos().x, 1, (val) => bean.pos.x = val, easings.easeOutBounce)
+	tween(bean.pos.y, mousePos().y, 1, (val) => bean.pos.y = val, easings.easeOutBounce)
+})
+```
+
 - added `quit()` to end everything
 - added `download()`, `downloadText()`, `downloadJSON()`, `downloadBlob()`
 - added `Recording#stop()` to stop the recording and returns the video data as mp4 Blob
