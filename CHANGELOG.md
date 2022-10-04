@@ -67,7 +67,9 @@ bean.destroy()
 
 - added `loadFont()` to load `.ttf`, `.otf`, `.woff2` or any font supported by browser `FontFace`
 - (**BREAK**) renamed previous `loadFont()` to `loadBitmapFont()`
-- (**BREAK**) removed `apl386` and `apl386o` as default fonts, default font changed to `sink`,, and added a default font size of `16`
+- (**BREAK**) removed built-in `apl386`, `apl386o`, `sink`, `sinko` (still available under `examples/fonts`)
+- added default font `happy`
+- changed default font size to `36`
 
 ## Drawing
 
@@ -121,6 +123,28 @@ onMousePress(() => {
 	tween(bean.pos.x, mousePos().x, 1, (val) => bean.pos.x = val, easings.easeOutBounce)
 	tween(bean.pos.y, mousePos().y, 1, (val) => bean.pos.y = val, easings.easeOutBounce)
 })
+```
+
+- (**BREAK**) changed all event handlers to return a `EventController` object instead of a function to cancel event
+
+```js
+// previous
+const cancel = onUpdate(() => { /* ... */ })
+cancel()
+
+// now, can do more stuff
+const ev = onUpdate(() => { /* ... */ })
+ev.pause()
+ev.start()
+ev.cancel()
+```
+
+- timers can now be paused
+
+```js
+const timer = wait(4, () => { /* ... */ })
+timer.pause()
+timer.resume()
 ```
 
 - added `quit()` to end everything

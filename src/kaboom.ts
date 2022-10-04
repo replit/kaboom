@@ -88,7 +88,7 @@ import {
 	DrawTextOpt,
 	TextAlign,
 	GameObj,
-	EventCanceller,
+	EventController,
 	SceneID,
 	SceneDef,
 	CompList,
@@ -144,7 +144,7 @@ import {
 	Shape,
 	DoubleJumpComp,
 	VirtualButton,
-	TweenController,
+	TimerController,
 } from "./types"
 
 import FPSCounter from "./fps"
@@ -394,12 +394,8 @@ function alignPt(align: TextAlign): number {
 	}
 }
 
-function createEmptyAudioBuffer() {
-	return new AudioBuffer({
-		length: 1,
-		numberOfChannels: 1,
-		sampleRate: 44100,
-	})
+function createEmptyAudioBuffer(ctx: AudioContext) {
+	return ctx.createBuffer(1, 1, 44100)
 }
 
 // only exports one kaboom() which contains all the state
@@ -774,7 +770,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		masterNode.connect(ctx.destination)
 
 		// by default browsers can only load audio async, we don't deal with that and just start with an empty audio buffer
-		const burpSnd = new SoundData(createEmptyAudioBuffer())
+		const burpSnd = new SoundData(createEmptyAudioBuffer(ctx))
 
 		// load that burp sound
 		ctx.decodeAudioData(burpSoundSrc.buffer.slice(0)).then((buf) => {
@@ -898,8 +894,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 		// root game object
 		root: make([]),
-
-		timers: new IDList<Timer>(),
 
 		// misc
 		gravity: 0,
@@ -1337,7 +1331,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		const snd = resolveSound(src)
 
 		if (snd instanceof Asset) {
-			const pb = play(new SoundData(createEmptyAudioBuffer()))
+			const pb = play(new SoundData(createEmptyAudioBuffer(audio.ctx)))
 			const doPlay = (snd: SoundData) => {
 				const pb2 = play(snd, opt)
 				for (const k in pb2) {
@@ -1347,7 +1341,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			snd.onLoad(doPlay)
 			return pb
 		} else if (snd === null) {
-			const pb = play(new SoundData(createEmptyAudioBuffer()))
+			const pb = play(new SoundData(createEmptyAudioBuffer(audio.ctx)))
 			onLoad(() => {
 				// TODO: check again when every asset is loaded
 			})
@@ -3383,7 +3377,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			unuse(id: Tag) {
 				if (compStates.has(id)) {
 					const comp = compStates.get(id)
-					comp.cleanups.forEach((f) => f())
+					comp.cleanups.forEach((e) => e.cancel())
 					for (const k in comp) {
 						delete comp[k]
 					}
@@ -3436,7 +3430,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				}
 			},
 
-			on(name: string, action: (...args) => void): EventCanceller {
+			on(name: string, action: (...args) => void): EventController {
 				return ev.on(name, action.bind(this))
 			},
 
@@ -3459,19 +3453,19 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				return info
 			},
 
-			onAdd(cb: () => void): EventCanceller {
+			onAdd(cb: () => void): EventController {
 				return this.on("add", cb)
 			},
 
-			onUpdate(cb: () => void): EventCanceller {
+			onUpdate(cb: () => void): EventController {
 				return this.on("update", cb)
 			},
 
-			onDraw(cb: () => void): EventCanceller {
+			onDraw(cb: () => void): EventController {
 				return this.on("draw", cb)
 			},
 
-			onDestroy(action: () => void): EventCanceller {
+			onDestroy(action: () => void): EventController {
 				return this.on("destroy", action)
 			},
 
@@ -3490,7 +3484,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	}
 
 	// add an event to a tag
-	function on(event: string, tag: Tag, cb: (obj: GameObj, ...args) => void): EventCanceller {
+	function on(event: string, tag: Tag, cb: (obj: GameObj, ...args) => void): EventController {
 		if (!game.objEvents[event]) {
 			game.objEvents[event] = new IDList()
 		}
@@ -3505,7 +3499,11 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	function onUpdate(tag: Tag | (() => void), action?: (obj: GameObj) => void) {
 		if (typeof tag === "function" && action === undefined) {
 			const obj = add([{ update: tag }])
-			return () => obj.destroy()
+			return {
+				start: () => obj.paused = false,
+				pause: () => obj.paused = true,
+				cancel: () => obj.destroy(),
+			}
 		} else if (typeof tag === "string") {
 			return on("update", tag, action)
 		}
@@ -3515,7 +3513,11 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	function onDraw(tag: Tag | (() => void), action?: (obj: GameObj) => void) {
 		if (typeof tag === "function" && action === undefined) {
 			const obj = add([{ draw: tag }])
-			return () => obj.destroy()
+			return {
+				start: () => obj.hidden = false,
+				pause: () => obj.hidden = true,
+				cancel: () => obj.destroy(),
+			}
 		} else if (typeof tag === "string") {
 			return on("draw", tag, action)
 		}
@@ -3523,8 +3525,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 	function onAdd(tag: Tag | ((obj: GameObj) => void), action?: (obj: GameObj) => void) {
 		if (typeof tag === "function" && action === undefined) {
-			const obj = add([{ draw: tag }])
-			return () => obj.destroy()
+			return game.ev.on("add", tag)
 		} else if (typeof tag === "string") {
 			return on("add", tag, action)
 		}
@@ -3532,8 +3533,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 	function onDestroy(tag: Tag | ((obj: GameObj) => void), action?: (obj: GameObj) => void) {
 		if (typeof tag === "function" && action === undefined) {
-			const obj = add([{ draw: tag }])
-			return () => obj.destroy()
+			return game.ev.on("destroy", tag)
 		} else if (typeof tag === "string") {
 			return on("destroy", tag, action)
 		}
@@ -3544,7 +3544,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		t1: Tag,
 		t2: Tag,
 		f: (a: GameObj, b: GameObj, col?: Collision) => void,
-	): EventCanceller {
+	): EventController {
 		return on("collide", t1, (a, b, col) => b.is(t2) && f(a, b, col))
 	}
 
@@ -3554,96 +3554,116 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	}
 
 	// add an event that runs when objs with tag t is clicked
-	function onClick(tag: Tag | (() => void), action?: (obj: GameObj) => void): EventCanceller {
+	function onClick(tag: Tag | (() => void), action?: (obj: GameObj) => void): EventController {
 		if (typeof tag === "function") {
 			return onMousePress(tag)
 		} else {
-			const cleanups = []
+			const events = []
 			forAllCurrentAndFuture(tag, (obj) => {
 				if (!obj.area)
 					throw new Error("onClick() requires the object to have area() component")
-				cleanups.push(obj.onClick(() => action(obj)))
+				events.push(obj.onClick(() => action(obj)))
 			})
-			return () => cleanups.forEach((f) => f())
+			return joinEventControllers(events)
 		}
 	}
 
 	// add an event that runs once when objs with tag t is hovered
-	function onHover(t: Tag, action: (obj: GameObj) => void): EventCanceller {
-		const cleanups = []
+	function onHover(t: Tag, action: (obj: GameObj) => void): EventController {
+		const events = []
 		forAllCurrentAndFuture(t, (obj) => {
 			if (!obj.area)
 				throw new Error("onHover() requires the object to have area() component")
-			cleanups.push(obj.onHover(() => action(obj)))
+			events.push(obj.onHover(() => action(obj)))
 		})
-		return () => cleanups.forEach((f) => f())
+		return joinEventControllers(events)
 	}
 
 	// add an event that runs once when objs with tag t is hovered
-	function onHoverUpdate(t: Tag, action: (obj: GameObj) => void): EventCanceller {
-		const cleanups = []
+	function onHoverUpdate(t: Tag, action: (obj: GameObj) => void): EventController {
+		const events = []
 		forAllCurrentAndFuture(t, (obj) => {
 			if (!obj.area)
 				throw new Error("onHoverUpdate() requires the object to have area() component")
-			cleanups.push(obj.onHoverUpdate(() => action(obj)))
+			events.push(obj.onHoverUpdate(() => action(obj)))
 		})
-		return () => cleanups.forEach((f) => f())
+		return joinEventControllers(events)
 	}
 
 	// add an event that runs once when objs with tag t is unhovered
-	function onHoverEnd(t: Tag, action: (obj: GameObj) => void): EventCanceller {
-		const cleanups = []
+	function onHoverEnd(t: Tag, action: (obj: GameObj) => void): EventController {
+		const events = []
 		forAllCurrentAndFuture(t, (obj) => {
 			if (!obj.area)
 				throw new Error("onHoverEnd() requires the object to have area() component")
-			cleanups.push(obj.onHoverEnd(() => action(obj)))
+			events.push(obj.onHoverEnd(() => action(obj)))
 		})
-		return () => cleanups.forEach((f) => f())
+		return joinEventControllers(events)
 	}
 
+	// TODO: use PromiseLike?
 	// add an event that'd be run after t
-	function wait(t: number, f?: () => void): Promise<void> {
-		return new Promise((resolve) => {
-			game.timers.push(new Timer(t, () => {
-				if (f) f()
-				resolve()
-			}))
+	function wait(time: number, action?: () => void): TimerController {
+		let t = 0
+		const actions = []
+		if (action) actions.push(action)
+		const ev = onUpdate(() => {
+			t += dt()
+			if (t >= time) {
+				ev.cancel()
+				actions.forEach((action) => action())
+			}
 		})
+		return {
+			start: ev.start,
+			pause: ev.pause,
+			cancel: ev.cancel,
+			onFinish: (action) => actions.push(action),
+			then: (action) => actions.push(action),
+		}
 	}
 
 	// add an event that's run every t seconds
-	function loop(t: number, f: () => void): EventCanceller {
+	function loop(t: number, f: () => void): EventController {
 
-		let stopped = false
+		let curTimer: null | TimerController = null
 
 		const newF = () => {
-			if (stopped) {
-				return
-			}
+			// TODO: should f be execute right away as loop() is called?
 			f()
-			wait(t, newF)
+			curTimer = wait(t, newF)
 		}
 
 		newF()
 
-		return () => stopped = true
+		return {
+			start: () => curTimer.start(),
+			pause: () => curTimer.pause(),
+			cancel: () => curTimer.cancel(),
+		}
 
 	}
 
+	function joinEventControllers(events: EventController[]): EventController {
+		return {
+			pause: () => events.forEach((e) => e.pause()),
+			start: () => events.forEach((e) => e.start()),
+			cancel: () => events.forEach((e) => e.cancel()),
+		}
+	}
+
 	// input callbacks
-	function onKeyDown(k: Key | Key[], f: () => void): EventCanceller {
+	function onKeyDown(k: Key | Key[], f: () => void): EventController {
 		if (Array.isArray(k)) {
-			const cancellers = k.map((key) => onKeyDown(key, f))
-			return () => cancellers.forEach((cb) => cb())
-		} {
+			return joinEventControllers(k.map((key) => onKeyDown(key, f)))
+		} else {
 			return game.ev.on("input", () => isKeyDown(k) && f())
 		}
 	}
 
-	function onKeyPress(k: Key | Key[] | (() => void), f?: () => void): EventCanceller {
+	function onKeyPress(k: Key | Key[] | (() => void), f?: () => void): EventController {
 		if (Array.isArray(k)) {
-			const cancellers = k.map((key) => onKeyPress(key, f))
-			return () => cancellers.forEach((cb) => cb())
+			return joinEventControllers(k.map((key) => onKeyPress(key, f)))
 		} else if (typeof k === "function") {
 			return game.ev.on("input", () => isKeyPressed() && k())
 		} else {
@@ -3651,10 +3671,9 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		}
 	}
 
-	function onKeyPressRepeat(k: Key | Key[] | (() => void), f?: () => void): EventCanceller {
+	function onKeyPressRepeat(k: Key | Key[] | (() => void), f?: () => void): EventController {
 		if (Array.isArray(k)) {
-			const cancellers = k.map((key) => onKeyPressRepeat(key, f))
-			return () => cancellers.forEach((cb) => cb())
+			return joinEventControllers(k.map((key) => onKeyPressRepeat(key, f)))
 		} else if (typeof k === "function") {
 			return game.ev.on("input", () => isKeyPressed() && k())
 		} else {
@@ -3662,10 +3681,9 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		}
 	}
 
-	function onKeyRelease(k: Key | Key[] | (() => void), f?: () => void): EventCanceller {
+	function onKeyRelease(k: Key | Key[] | (() => void), f?: () => void): EventController {
 		if (Array.isArray(k)) {
-			const cancellers = k.map((key) => onKeyRelease(key, f))
-			return () => cancellers.forEach((cb) => cb())
+			return joinEventControllers(k.map((key) => onKeyRelease(key, f)))
 		} else if (typeof k === "function") {
 			return game.ev.on("input", () => isKeyReleased() && k())
 		} else {
@@ -3676,7 +3694,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	function onMouseDown(
 		m: MouseButton | ((pos?: Vec2) => void),
 		action?: (pos?: Vec2) => void,
-	): EventCanceller {
+	): EventController {
 		if (typeof m === "function") {
 			return game.ev.on("input", () => isMouseDown() && m(mousePos()))
 		} else {
@@ -3687,7 +3705,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	function onMousePress(
 		m: MouseButton | ((pos?: Vec2) => void),
 		action?: (pos?: Vec2) => void,
-	): EventCanceller {
+	): EventController {
 		if (typeof m === "function") {
 			return game.ev.on("input", () => isMousePressed() && m(mousePos()))
 		} else {
@@ -3698,7 +3716,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	function onMouseRelease(
 		m: MouseButton | ((pos?: Vec2) => void),
 		action?: (pos?: Vec2) => void,
-	): EventCanceller {
+	): EventController {
 		if (typeof m === "function") {
 			return game.ev.on("input", () => isMouseReleased() && m(mousePos()))
 		} else {
@@ -3706,35 +3724,35 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		}
 	}
 
-	function onMouseMove(f: (pos: Vec2, dpos: Vec2) => void): EventCanceller {
+	function onMouseMove(f: (pos: Vec2, dpos: Vec2) => void): EventController {
 		return game.ev.on("input", () => isMouseMoved() && f(mousePos(), mouseDeltaPos()))
 	}
 
-	function onCharInput(f: (ch: string) => void): EventCanceller {
+	function onCharInput(f: (ch: string) => void): EventController {
 		return game.ev.on("input", () => charInputted().forEach((ch) => f(ch)))
 	}
 
-	function onTouchStart(f: (pos: Vec2, t: Touch) => void): EventCanceller {
+	function onTouchStart(f: (pos: Vec2, t: Touch) => void): EventController {
 		return game.ev.on("onTouchStart", f)
 	}
 
-	function onTouchMove(f: (pos: Vec2, t: Touch) => void): EventCanceller {
+	function onTouchMove(f: (pos: Vec2, t: Touch) => void): EventController {
 		return game.ev.on("onTouchMove", f)
 	}
 
-	function onTouchEnd(f: (pos: Vec2, t: Touch) => void): EventCanceller {
+	function onTouchEnd(f: (pos: Vec2, t: Touch) => void): EventController {
 		return game.ev.on("onTouchEnd", f)
 	}
 
-	function onVirtualButtonPress(btn: VirtualButton, action: () => void): EventCanceller {
+	function onVirtualButtonPress(btn: VirtualButton, action: () => void): EventController {
 		return game.ev.on("input", () => isVirtualButtonPressed(btn) && action())
 	}
 
-	function onVirtualButtonDown(btn: VirtualButton, action: () => void): EventCanceller {
+	function onVirtualButtonDown(btn: VirtualButton, action: () => void): EventController {
 		return game.ev.on("input", () => isVirtualButtonDown(btn) && action())
 	}
 
-	function onVirtualButtonRelease(btn: VirtualButton, action: () => void): EventCanceller {
+	function onVirtualButtonRelease(btn: VirtualButton, action: () => void): EventController {
 		return game.ev.on("input", () => isVirtualButtonReleased(btn) && action())
 	}
 
@@ -3974,10 +3992,10 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				return !testRectPoint(screenRect, pos)
 					&& screenRect.distToPoint(pos) > distance
 			},
-			onExitView(this: GameObj, action: () => void): EventCanceller {
+			onExitView(this: GameObj, action: () => void): EventController {
 				return this.on("exitView", action)
 			},
-			onEnterView(this: GameObj, action: () => void): EventCanceller {
+			onEnterView(this: GameObj, action: () => void): EventController {
 				return this.on("enterView", action)
 			},
 			update(this: GameObj) {
@@ -4006,7 +4024,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 	function area(opt: AreaCompOpt = {}): AreaComp {
 
-		const cleanups: Array<() => void> = []
+		const events: Array<EventController> = []
 
 		return {
 
@@ -4017,10 +4035,10 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			add(this: GameObj<AreaComp>) {
 
 				if (this.area.cursor) {
-					cleanups.push(this.onHover(() => setCursor(this.area.cursor)))
+					events.push(this.onHover(() => setCursor(this.area.cursor)))
 				}
 
-				cleanups.push(this.onCollideUpdate((obj, col) => {
+				events.push(this.onCollideUpdate((obj, col) => {
 					if (!this.colliding[obj.id]) {
 						this.trigger("collide", obj, col)
 					}
@@ -4082,7 +4100,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			},
 
 			destroy() {
-				cleanups.forEach((f) => f())
+				events.forEach((e) => e.cancel())
 			},
 
 			area: {
@@ -4122,7 +4140,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				return Boolean(this.checkCollision(other))
 			},
 
-			onClick(this: GameObj, f: () => void): EventCanceller {
+			onClick(this: GameObj, f: () => void): EventController {
 				return this.onUpdate(() => {
 					if (this.isClicked()) {
 						f()
@@ -4130,7 +4148,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				})
 			},
 
-			onHover(this: GameObj, action: () => void): EventCanceller {
+			onHover(this: GameObj, action: () => void): EventController {
 				let hovering = false
 				return this.onUpdate(() => {
 					if (!hovering) {
@@ -4144,7 +4162,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				})
 			},
 
-			onHoverUpdate(this: GameObj, onHover: () => void): EventCanceller {
+			onHoverUpdate(this: GameObj, onHover: () => void): EventController {
 				return this.onUpdate(() => {
 					if (this.isHovering()) {
 						onHover()
@@ -4152,7 +4170,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				})
 			},
 
-			onHoverEnd(this: GameObj, action: () => void): EventCanceller {
+			onHoverEnd(this: GameObj, action: () => void): EventController {
 				let hovering = false
 				return this.onUpdate(() => {
 					if (hovering) {
@@ -4170,7 +4188,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				this: GameObj,
 				tag: Tag | ((obj: GameObj, col?: Collision) => void),
 				cb?: (obj: GameObj, col?: Collision) => void,
-			): EventCanceller {
+			): EventController {
 				if (typeof tag === "function" && cb === undefined) {
 					return this.on("collide", tag)
 				} else if (typeof tag === "string") {
@@ -4186,7 +4204,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				this: GameObj<AreaComp>,
 				tag: Tag | ((obj: GameObj, col?: Collision) => void),
 				cb?: (obj: GameObj, col?: Collision) => void,
-			): EventCanceller {
+			): EventController {
 				if (typeof tag === "function" && cb === undefined) {
 					return this.on("collideUpdate", tag)
 				} else if (typeof tag === "string") {
@@ -4198,7 +4216,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				this: GameObj<AreaComp>,
 				tag: Tag | ((obj: GameObj) => void),
 				cb?: (obj: GameObj) => void,
-			): EventCanceller {
+			): EventController {
 				if (typeof tag === "function" && cb === undefined) {
 					return this.on("collideEnd", tag)
 				} else if (typeof tag === "string") {
@@ -4489,7 +4507,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				this: GameObj<SpriteComp>,
 				name: string,
 				action: () => void,
-			): EventCanceller {
+			): EventController {
 				return this.on("animEnd", (anim) => {
 					if (anim === name) {
 						action()
@@ -4501,7 +4519,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				this: GameObj<SpriteComp>,
 				name: string,
 				action: () => void,
-			): EventCanceller {
+			): EventController {
 				return this.on("animStart", (anim) => {
 					if (anim === name) {
 						action()
@@ -4660,8 +4678,14 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		}
 		return {
 			id: "timer",
-			wait(time: number, action: () => void): EventCanceller {
-				return timers.pushd(new Timer(time, action))
+			wait(time: number, action: () => void): EventController {
+				const timer = new Timer(time, action)
+				const cancel = timers.pushd(timer)
+				return {
+					pause: () => timer.paused = true,
+					start: () => timer.paused = false,
+					cancel: cancel,
+				}
 			},
 			update() {
 				timers.forEach((timer, id) => {
@@ -4684,7 +4708,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		let curPlatform: GameObj<PosComp | AreaComp | BodyComp> | null = null
 		let lastPlatformPos = null
 		let wantFall = false
-		const cleanups: Array<() => void> = []
+		const events: Array<EventController> = []
 
 		return {
 
@@ -4701,7 +4725,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				// static vs static: don't resolve
 				// static vs non-static: always resolve non-static
 				// non-static vs non-static: resolve the first one
-				cleanups.push(this.onCollideUpdate((other, col) => {
+				events.push(this.onCollideUpdate((other, col) => {
 
 					if (!other.is("body")) {
 						return
@@ -4736,7 +4760,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 				}))
 
-				cleanups.push(this.onPhysicsResolve((col) => {
+				events.push(this.onPhysicsResolve((col) => {
 					if (game.gravity) {
 						if (col.isBottom() && this.isFalling()) {
 							velY = 0
@@ -4803,7 +4827,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			},
 
 			destroy() {
-				cleanups.forEach((f) => f())
+				events.forEach((e) => e.cancel())
 			},
 
 			onPhysicsResolve(this: GameObj, action) {
@@ -4836,19 +4860,19 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				velY = -force || -this.jumpForce
 			},
 
-			onGround(this: GameObj, action: () => void): EventCanceller {
+			onGround(this: GameObj, action: () => void): EventController {
 				return this.on("ground", action)
 			},
 
-			onFall(this: GameObj, action: () => void): EventCanceller {
+			onFall(this: GameObj, action: () => void): EventController {
 				return this.on("fall", action)
 			},
 
-			onFallOff(this: GameObj, action: () => void): EventCanceller {
+			onFallOff(this: GameObj, action: () => void): EventController {
 				return this.on("fallOff", action)
 			},
 
-			onHeadbutt(this: GameObj, action: () => void): EventCanceller {
+			onHeadbutt(this: GameObj, action: () => void): EventController {
 				return this.on("headbutt", action)
 			},
 
@@ -4862,18 +4886,18 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 	function doubleJump(numJumps: number = 2): DoubleJumpComp {
 		let jumpsLeft = numJumps
-		const cleanups = []
+		const events = []
 		return {
 			id: "doubleJump",
 			require: [ "body" ],
 			numJumps: numJumps,
 			add(this: GameObj<BodyComp | DoubleJumpComp>) {
-				cleanups.push(this.onGround(() => {
+				events.push(this.onGround(() => {
 					jumpsLeft = this.numJumps
 				}))
 			},
 			destroy() {
-				cleanups.forEach((f) => f())
+				events.forEach((e) => e.cancel())
 			},
 			doubleJump(this: GameObj<BodyComp | DoubleJumpComp>, force?: number) {
 				if (jumpsLeft <= 0) {
@@ -4885,7 +4909,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				jumpsLeft--
 				this.jump(force)
 			},
-			onDoubleJump(this: GameObj, action: () => void): EventCanceller {
+			onDoubleJump(this: GameObj, action: () => void): EventController {
 				return this.on("doubleJump", action)
 			},
 			inspect(this: GameObj<BodyComp | DoubleJumpComp>) {
@@ -4939,13 +4963,13 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 					this.trigger("death")
 				}
 			},
-			onHurt(this: GameObj, action: () => void): EventCanceller {
+			onHurt(this: GameObj, action: () => void): EventController {
 				return this.on("hurt", action)
 			},
-			onHeal(this: GameObj, action: () => void): EventCanceller {
+			onHeal(this: GameObj, action: () => void): EventController {
 				return this.on("heal", action)
 			},
-			onDeath(this: GameObj, action: () => void): EventCanceller {
+			onDeath(this: GameObj, action: () => void): EventController {
 				return this.on("death", action)
 			},
 			inspect() {
@@ -5053,23 +5077,23 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 			},
 
-			onStateTransition(from: string, to: string, action: () => void): EventCanceller {
+			onStateTransition(from: string, to: string, action: () => void): EventController {
 				return on("enter", `${from} -> ${to}`, action)
 			},
 
-			onStateEnter(state: string, action: () => void): EventCanceller {
+			onStateEnter(state: string, action: () => void): EventController {
 				return on("enter", state, action)
 			},
 
-			onStateUpdate(state: string, action: () => void): EventCanceller {
+			onStateUpdate(state: string, action: () => void): EventController {
 				return on("update", state, action)
 			},
 
-			onStateDraw(state: string, action: () => void): EventCanceller {
+			onStateDraw(state: string, action: () => void): EventController {
 				return on("draw", state, action)
 			},
 
-			onStateEnd(state: string, action: () => void): EventCanceller {
+			onStateEnd(state: string, action: () => void): EventController {
 				return on("end", state, action)
 			},
 
@@ -5124,7 +5148,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			})
 
 			game.root.clearEvents()
-			game.timers = new IDList()
 
 			// cam
 			game.cam = {
@@ -5457,16 +5480,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	}
 
 	function updateFrame() {
-
-		// update timers
-		game.timers.forEach((t, id) => {
-			t.time -= dt()
-			if (t.time <= 0) {
-				// TODO: some timer action causes crash on FF when dt is really high, not sure why
-				t.action()
-				game.timers.delete(id)
-			}
-		})
 
 		// update every obj
 		game.root.update()
@@ -6252,18 +6265,18 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		duration: number,
 		setter: (value: number) => void,
 		easeFunc = easings.linear,
-	): TweenController {
+	): TimerController {
 		let curTime = 0
 		let paused = false
 		const onFinishEvents: Event = new Event()
-		const stop = onUpdate(() => {
+		const ev = onUpdate(() => {
 			if (paused) return
 			curTime += dt()
 			const t = Math.min(curTime / duration, 1)
 			setter(lerp(min, max, easeFunc(t)))
 			if (t === 1) {
 				onFinishEvents.trigger()
-				stop()
+				ev.cancel()
 			}
 		})
 		return {
@@ -6271,7 +6284,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			pause: () => paused = true,
 			start: () => paused = false,
 			then: (action: () => void) => onFinishEvents.add(action),
-			stop: () => {
+			cancel: () => {
 				onFinishEvents.trigger()
 				stop()
 			},

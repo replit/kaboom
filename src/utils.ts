@@ -1,4 +1,4 @@
-import { EventCanceller } from "./types"
+import { EventController } from "./types"
 
 export class IDList<T> extends Map<number, T> {
 	private lastID: number
@@ -20,15 +20,24 @@ export class IDList<T> extends Map<number, T> {
 
 export class Event<Args extends any[] = any[]> {
 	private handlers: IDList<(...args: Args) => void> = new IDList()
-	add(action: (...args: Args) => void): EventCanceller {
-		return this.handlers.pushd(action)
-	}
-	addOnce(action: (...args) => void): EventCanceller {
-		const cancel = this.add((...args) => {
+	add(action: (...args: Args) => void): EventController {
+		let paused = false
+		const cancel = this.handlers.pushd((...args: Args) => {
+			if (paused) return
 			action(...args)
-			cancel()
 		})
-		return cancel
+		return {
+			pause: () => paused = true,
+			start: () => paused = false,
+			cancel: cancel,
+		}
+	}
+	addOnce(action: (...args) => void): EventController {
+		const ev = this.add((...args) => {
+			action(...args)
+			ev.cancel()
+		})
+		return ev
 	}
 	trigger(...args: Args) {
 		this.handlers.forEach((action) => action(...args))
@@ -41,18 +50,18 @@ export class Event<Args extends any[] = any[]> {
 // TODO: be able to type each event
 export class EventHandler<E = string> {
 	private handlers: Map<E, Event> = new Map()
-	on(name: E, action: (...args) => void): EventCanceller {
+	on(name: E, action: (...args) => void): EventController {
 		if (!this.handlers.get(name)) {
 			this.handlers.set(name, new Event())
 		}
 		return this.handlers.get(name).add(action)
 	}
-	onOnce(name: E, action: (...args) => void): EventCanceller {
-		const cancel = this.on(name, (...args) => {
+	onOnce(name: E, action: (...args) => void): EventController {
+		const ev = this.on(name, (...args) => {
 			action(...args)
-			cancel()
+			ev.cancel()
 		})
-		return cancel
+		return ev
 	}
 	trigger(name: E, ...args) {
 		if (this.handlers.get(name)) {
