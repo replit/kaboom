@@ -909,6 +909,13 @@ export function sat(p1: Polygon, p2: Polygon): Vec2 | null {
 	return displacement
 }
 
+// https://easings.net/
+const c1 = 1.70158
+const c2 = c1 * 1.525
+const c3 = c1 + 1
+const c4 = (2 * Math.PI) / 3
+const c5 = (2 * Math.PI) / 4.5
+
 export const easings = {
 	linear: (x) => x,
 	easeInSine: (x) => 1 - Math.cos((x * Math.PI) / 2),
@@ -933,7 +940,8 @@ export const easings = {
 			? 0
 			: x === 1
 				? 1
-				: x < 0.5 ? Math.pow(2, 20 * x - 10) / 2
+				: x < 0.5
+					? Math.pow(2, 20 * x - 10) / 2
 					: (2 - Math.pow(2, -20 * x + 10)) / 2
 	},
 	easeInCirc: (x) => 1 - Math.sqrt(1 - Math.pow(x, 2)),
@@ -943,22 +951,35 @@ export const easings = {
 			? (1 - Math.sqrt(1 - Math.pow(2 * x, 2))) / 2
 			: (Math.sqrt(1 - Math.pow(-2 * x + 2, 2)) + 1) / 2
 	},
-	easeInBack: (x) => {
-		const c1 = 1.70158
-		const c3 = c1 + 1
-		return c3 * x * x * x - c1 * x * x
-	},
-	easeOutBack: (x) => {
-		const c1 = 1.70158
-		const c3 = c1 + 1
-		return 1 + c3 * Math.pow(x - 1, 3) + c1 * Math.pow(x - 1, 2)
-	},
+	easeInBack: (x) => c3 * x * x * x - c1 * x * x,
+	easeOutBack: (x) => 1 + c3 * Math.pow(x - 1, 3) + c1 * Math.pow(x - 1, 2),
 	easeInOutBack: (x) => {
-		const c1 = 1.70158
-		const c2 = c1 * 1.525
 		return x < 0.5
 			? (Math.pow(2 * x, 2) * ((c2 + 1) * 2 * x - c2)) / 2
 			: (Math.pow(2 * x - 2, 2) * ((c2 + 1) * (x * 2 - 2) + c2) + 2) / 2
+	},
+	easeInElastic: (x) => {
+		return x === 0
+			? 0
+			: x === 1
+				? 1
+				: -Math.pow(2, 10 * x - 10) * Math.sin((x * 10 - 10.75) * c4)
+	},
+	easeOutElastic: (x) => {
+		return x === 0
+			? 0
+			: x === 1
+				? 1
+				: Math.pow(2, -10 * x) * Math.sin((x * 10 - 0.75) * c4) + 1
+	},
+	easeInOutElastic: (x) => {
+		return x === 0
+			? 0
+			: x === 1
+				? 1
+				: x < 0.5
+					? -(Math.pow(2, 20 * x - 10) * Math.sin((20 * x - 11.125) * c5)) / 2
+					: (Math.pow(2, -20 * x + 10) * Math.sin((20 * x - 11.125) * c5)) / 2 + 1
 	},
 	easeInBounce: (x) => 1 - easings.easeOutBounce(1 - x),
 	easeOutBounce: (x) => {
