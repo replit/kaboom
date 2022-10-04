@@ -6304,10 +6304,11 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			set paused(p) {
 				ev.paused = p
 			},
+			// TODO: chainable?
 			then: (action: () => void) => onFinishEvents.add(action),
 			cancel: () => {
 				onFinishEvents.trigger()
-				stop()
+				ev.cancel()
 			},
 		}
 	}
