@@ -1565,8 +1565,8 @@ export interface KaboomCtx {
 	 *
 	 * @example
 	 * ```js
-	 * tween(bean.pos.x, mousePos().x, 1, (val) => bean.pos.x = val, "easeOutBounce")
-	 * tween(bean.pos.y, mousePos().y, 1, (val) => bean.pos.y = val, "easeOutBounce")
+	 * tween(bean.pos.x, mousePos().x, 1, (val) => bean.pos.x = val, easings.easeOutBounce)
+	 * tween(bean.pos.y, mousePos().y, 1, (val) => bean.pos.y = val, easings.easeOutBounce)
 	 * ```
 	 */
 	tween(
@@ -1574,9 +1574,14 @@ export interface KaboomCtx {
 		max: number,
 		duration: number,
 		setter: (value: number) => void,
-		// TODO: EaseType
-		ease: string,
+		easeFunc: (t: number) => number,
 	): EventCanceller,
+	/**
+	 * A collection of easing functions for tweening.
+	 *
+	 * @since v3000.0
+	 */
+	easings: Record<EaseFuncs, (t: number) => number>,
 	/**
 	 * Map a value from one range to another range.
 	 */
@@ -4430,5 +4435,35 @@ export type VirtualButton =
 	| "right"
 	| "up"
 	| "down"
+
+export type EaseFuncs =
+	| "linear"
+	| "easeInSine"
+	| "easeOutSine"
+	| "easeInOutSine"
+	| "easeInQuad"
+	| "easeOutQuad"
+	| "easeInOutQuad"
+	| "easeInCubic"
+	| "easeOutCubic"
+	| "easeInOutCubic"
+	| "easeInQuart"
+	| "easeOutQuart"
+	| "easeInOutQuart"
+	| "easeInQuint"
+	| "easeOutQuint"
+	| "easeInOutQuint"
+	| "easeInExpo"
+	| "easeOutExpo"
+	| "easeInOutExpo"
+	| "easeInCirc"
+	| "easeOutCirc"
+	| "easeInOutCirc"
+	| "easeInBack"
+	| "easeOutBack"
+	| "easeInOutBack"
+	| "easeInBounce"
+	| "easeOutBounce"
+	| "easeInOutBounce"
 
 export default kaboom

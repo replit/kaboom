@@ -35,6 +35,7 @@ import {
 	testCirclePoint,
 	deg2rad,
 	rad2deg,
+	easings,
 } from "./math"
 
 import {
@@ -147,7 +148,6 @@ import {
 
 import FPSCounter from "./fps"
 import Timer from "./timer"
-import easings from "./tween"
 
 // @ts-ignore
 import happyFontSrc from "./assets/happy_28x36.png"
@@ -6240,9 +6240,8 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		max: number,
 		duration: number,
 		setter: (value: number) => void,
-		ease = "linear",
+		easeFunc = easings.linear,
 	) {
-		const easeFunc = easings[ease]
 		let curTime = 0
 		const stop = onUpdate(() => {
 			curTime += dt()
@@ -6406,6 +6405,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		chance,
 		lerp,
 		tween,
+		easings,
 		map,
 		mapc,
 		wave,

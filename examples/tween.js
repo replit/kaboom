@@ -14,6 +14,6 @@ const bean = add([
 ])
 
 onMousePress(() => {
-	tween(bean.pos.x, mousePos().x, 1, (val) => bean.pos.x = val, "easeOutBounce")
-	tween(bean.pos.y, mousePos().y, 1, (val) => bean.pos.y = val, "easeOutBounce")
+	tween(bean.pos.x, mousePos().x, 1, (val) => bean.pos.x = val, easings.easeOutBounce)
+	tween(bean.pos.y, mousePos().y, 1, (val) => bean.pos.y = val, easings.easeOutBounce)
 })
