@@ -6,7 +6,7 @@
 // TODO: .gitignore
 // TODO: deal with www/main.js and www/neutralino.js
 
-const VERSION = "2.1.2"
+const VERSION = "2.1.3"
 
 import fs from "fs"
 import cp from "child_process"
