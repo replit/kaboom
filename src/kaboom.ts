@@ -1,4 +1,4 @@
-const VERSION = "3000.0.0-alpha.2"
+const VERSION = "3000.0.0-alpha.4"
 
 import {
 	sat,
@@ -144,6 +144,7 @@ import {
 	Shape,
 	DoubleJumpComp,
 	VirtualButton,
+	LineJoin,
 } from "./types"
 
 import FPSCounter from "./fps"
@@ -2133,7 +2134,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 					p2: pts[i + 1],
 				})
 				// TODO: other line join types
-				if (opt.join === "round") {
+				if (opt.join !== "none") {
 					drawCircle({
 						...opt,
 						pos: pts[i],
