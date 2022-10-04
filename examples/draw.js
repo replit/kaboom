@@ -60,7 +60,7 @@ function drawStuff() {
 		start: 0,
 		end: w(180, 360, 1),
 		color: rgb(255, w(128, 255, 8), w(128, 255, 4)),
-		// 		gradient: [ Color.RED, Color.BLUE ],
+		// gradient: [ Color.RED, Color.BLUE ],
 		outline,
 	})
 

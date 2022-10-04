@@ -1,19 +1,45 @@
-// Adding game objects to screen
+// Tweeeeeening!
 
-// Start a kaboom game
-kaboom()
+kaboom({
+	background: [141, 183, 255],
+})
 
-// Load a sprite asset from "sprites/bean.png", with the name "bean"
 loadSprite("bean", "/sprites/bean.png")
 
+const duration = 1
+const easeTypes = Object.keys(easings)
+let curEaseType = 0
+
 const bean = add([
-	sprite("bean"),   // sprite() component makes it render as a sprite
-	pos(120, 80),     // pos() component gives it position, also enables movement
-	rotate(0),        // rotate() component gives it rotation
-	anchor("center"), // anchor() component defines the pivot point (defaults to "topleft")
+	sprite("bean"),
+	pos(center()),
+	rotate(0),
+	anchor("center"),
 ])
 
+const label = add([
+	text(easeTypes[curEaseType], { size: 64 }),
+	pos(24, 24),
+])
+
+add([
+	text("Click anywhere & use arrow keys", { width: width() }),
+	anchor("botleft"),
+	pos(24, height() - 24),
+])
+
+onKeyPress("left", () => {
+	curEaseType = curEaseType === 0 ? easeTypes.length - 1 : curEaseType - 1
+	label.text = easeTypes[curEaseType]
+})
+
+onKeyPress("right", () => {
+	curEaseType = (curEaseType + 1) % easeTypes.length
+	label.text = easeTypes[curEaseType]
+})
+
 onMousePress(() => {
-	tween(bean.pos.x, mousePos().x, 1, (val) => bean.pos.x = val, easings.easeOutBounce)
-	tween(bean.pos.y, mousePos().y, 1, (val) => bean.pos.y = val, easings.easeOutBounce)
+	const easeType = easeTypes[curEaseType]
+	tween(bean.pos.x, mousePos().x, duration, (val) => bean.pos.x = val, easings[easeType])
+	tween(bean.pos.y, mousePos().y, duration, (val) => bean.pos.y = val, easings[easeType])
 })

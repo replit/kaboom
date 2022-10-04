@@ -2836,6 +2836,12 @@ export type DrawLineOpt = Omit<RenderProps, "angle" | "scale"> & {
 	width?: number,
 }
 
+export type LineJoin =
+	| "none"
+	| "round"
+	| "bevel"
+	| "miter"
+
 /**
  * How the lines should look like.
  */
@@ -2852,6 +2858,10 @@ export type DrawLinesOpt = Omit<RenderProps, "angle" | "scale"> & {
 	 * The radius of each corner.
 	 */
 	radius?: number,
+	/**
+	 * Line join style (default "none").
+	 */
+	join?: LineJoin,
 }
 
 /**
@@ -3013,6 +3023,12 @@ export interface Outline {
 	 * The color of the line.
 	 */
 	color?: Color,
+	/**
+	 * Line join.
+	 *
+	 * @since v3000.0
+	 */
+	join?: LineJoin,
 }
 
 export type TextAlign =

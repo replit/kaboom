@@ -2099,6 +2099,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 		if (opt.radius && pts.length >= 3) {
 
+			// TODO: line joines
 			// TODO: rounded vertices for arbitury polygonic shape
 			let minLen = pts[0].dist(pts[1])
 
@@ -2131,6 +2132,14 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 					p1: pts[i],
 					p2: pts[i + 1],
 				})
+				// TODO: other line join types
+				if (opt.join === "round") {
+					drawCircle({
+						...opt,
+						pos: pts[i],
+						radius: opt.width / 2,
+					})
+				}
 			}
 
 		}
@@ -2268,6 +2277,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				radius: opt.radius,
 				width: opt.outline.width,
 				color: opt.outline.color,
+				join: opt.outline.join,
 				uniform: opt.uniform,
 				fixed: opt.fixed,
 				opacity: opt.opacity,
