@@ -3500,8 +3500,12 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		if (typeof tag === "function" && action === undefined) {
 			const obj = add([{ update: tag }])
 			return {
-				start: () => obj.paused = false,
-				pause: () => obj.paused = true,
+				get paused() {
+					return obj.paused
+				},
+				set paused(p) {
+					obj.paused = p
+				},
 				cancel: () => obj.destroy(),
 			}
 		} else if (typeof tag === "string") {
@@ -3514,8 +3518,12 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		if (typeof tag === "function" && action === undefined) {
 			const obj = add([{ draw: tag }])
 			return {
-				start: () => obj.hidden = false,
-				pause: () => obj.hidden = true,
+				get paused() {
+					return obj.hidden
+				},
+				set paused(p) {
+					obj.hidden = p
+				},
 				cancel: () => obj.destroy(),
 			}
 		} else if (typeof tag === "string") {
@@ -3615,8 +3623,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			}
 		})
 		return {
-			start: ev.start,
-			pause: ev.pause,
+			paused: ev.paused,
 			cancel: ev.cancel,
 			onFinish: (action) => actions.push(action),
 			then: (action) => actions.push(action),
@@ -3637,8 +3644,12 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		newF()
 
 		return {
-			start: () => curTimer.start(),
-			pause: () => curTimer.pause(),
+			get paused() {
+				return curTimer.paused
+			},
+			set paused(p) {
+				curTimer.paused = p
+			},
 			cancel: () => curTimer.cancel(),
 		}
 
@@ -3646,8 +3657,12 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 	function joinEventControllers(events: EventController[]): EventController {
 		return {
-			pause: () => events.forEach((e) => e.pause()),
-			start: () => events.forEach((e) => e.start()),
+			get paused() {
+				return events[0].paused
+			},
+			set paused(p) {
+				events.forEach((e) => e.paused = p)
+			},
 			cancel: () => events.forEach((e) => e.cancel()),
 		}
 	}
@@ -4682,8 +4697,12 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				const timer = new Timer(time, action)
 				const cancel = timers.pushd(timer)
 				return {
-					pause: () => timer.paused = true,
-					start: () => timer.paused = false,
+					get paused() {
+						return timer.paused
+					},
+					set paused(p) {
+						timer.paused = p
+					},
 					cancel: cancel,
 				}
 			},
@@ -6267,10 +6286,8 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		easeFunc = easings.linear,
 	): TimerController {
 		let curTime = 0
-		let paused = false
 		const onFinishEvents: Event = new Event()
 		const ev = onUpdate(() => {
-			if (paused) return
 			curTime += dt()
 			const t = Math.min(curTime / duration, 1)
 			setter(lerp(min, max, easeFunc(t)))
@@ -6281,8 +6298,12 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		})
 		return {
 			onFinish: (action: () => void) => onFinishEvents.add(action),
-			pause: () => paused = true,
-			start: () => paused = false,
+			get paused() {
+				return ev.paused
+			},
+			set paused(p) {
+				ev.paused = p
+			},
 			then: (action: () => void) => onFinishEvents.add(action),
 			cancel: () => {
 				onFinishEvents.trigger()

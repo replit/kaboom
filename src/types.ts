@@ -4490,14 +4490,12 @@ export type EaseFuncs =
 export type TimerController = {
 	onFinish(action: () => void): void,
 	then(action: () => void): void,
-	pause(): void,
-	start(): void,
+	paused: boolean,
 	cancel(): void,
 }
 
 export type EventController = {
-	pause(): void,
-	start(): void,
+	paused: boolean,
 	cancel(): void,
 }
 

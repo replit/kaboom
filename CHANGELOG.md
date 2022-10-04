@@ -134,8 +134,7 @@ cancel()
 
 // now, can do more stuff
 const ev = onUpdate(() => { /* ... */ })
-ev.pause()
-ev.start()
+ev.pause = true
 ev.cancel()
 ```
 

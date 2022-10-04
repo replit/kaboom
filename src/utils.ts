@@ -21,16 +21,15 @@ export class IDList<T> extends Map<number, T> {
 export class Event<Args extends any[] = any[]> {
 	private handlers: IDList<(...args: Args) => void> = new IDList()
 	add(action: (...args: Args) => void): EventController {
-		let paused = false
 		const cancel = this.handlers.pushd((...args: Args) => {
-			if (paused) return
+			if (handle.paused) return
 			action(...args)
 		})
-		return {
-			pause: () => paused = true,
-			start: () => paused = false,
+		const handle = {
+			paused: false,
 			cancel: cancel,
 		}
+		return handle
 	}
 	addOnce(action: (...args) => void): EventController {
 		const ev = this.add((...args) => {
