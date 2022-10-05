@@ -3931,12 +3931,13 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		return Number(n.toFixed(f))
 	}
 
+	// TODO: fadeIn here?
 	function opacity(a: number): OpacityComp {
 		return {
 			id: "opacity",
 			opacity: a ?? 1,
 			inspect() {
-				return `${toFixed(this.opacity, 2)}`
+				return `${toFixed(this.opacity, 1)}`
 			},
 			fadeOut(time, easeFunc = easings.linear) {
 				return tween(this.opacity, 0, time, (a) => this.opacity = a, easeFunc)
@@ -5009,29 +5010,16 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		if (time == null) {
 			throw new Error("lifespan() requires time")
 		}
-		let timer = 0
-		let startOpacity = null
 		const fade = opt.fade ?? 0
-		const startFade = Math.max((time - fade), 0)
 		return {
 			id: "lifespan",
-			add() {
-				wait(time, () => {
-					if (fade <= 0 || !this.opacity) return
-					tween(this.opacity, 0, fade, (a) => this.opacity = a, easings.linear)
-				})
-			},
-			update(this: GameObj<OpacityComp>) {
-				timer += dt()
-				if (timer >= startFade) {
-					if (startOpacity === null) {
-						startOpacity = this.opacity ?? 1
-					}
-					this.opacity = map(timer, startFade, time, startOpacity, 0)
+			async add(this: GameObj<OpacityComp>) {
+				await wait(time)
+				// TODO: this secretively requires opacity comp, make opacity on every game obj?
+				if (fade > 0 && this.opacity) {
+					await tween(this.opacity, 0, fade, (a) => this.opacity = a, easings.linear)
 				}
-				if (timer >= time) {
-					this.destroy()
-				}
+				this.destroy()
 			},
 		}
 	}
