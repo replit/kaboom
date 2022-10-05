@@ -57,6 +57,8 @@ bean.destroy()
 - (**BREAK**) removed `cleanup()` component in favor of `outview({ destroy: true })`
 - (**BREAK**) removed `offset` option in `outview()` in favor of simpler `distance` option
 - changed `outview()` to use a much more performant but slightly less accurate mechanism to determine if object is out of view
+- added `OpacityComp#fadeOut()`
+- added `fadeIn()` component
 
 ## Assets
 

@@ -565,6 +565,12 @@ export interface KaboomCtx {
 		transitions: Record<string, string | string[]>,
 	): StateComp,
 	/**
+	 * Fade object in.
+	 *
+	 * @since v3000.0
+	 */
+	fadeIn(time: number): Comp,
+	/**
 	 * Register an event on all game objs with certain tag.
 	 *
 	 * @section Events
@@ -1588,7 +1594,7 @@ export interface KaboomCtx {
 	 *
 	 * @since v3000.0
 	 */
-	easings: Record<EaseFuncs, (t: number) => number>,
+	easings: Record<EaseFuncs, EaseFunc>,
 	/**
 	 * Map a value from one range to another range.
 	 */
@@ -3528,6 +3534,7 @@ export interface ColorComp extends Comp {
 
 export interface OpacityComp extends Comp {
 	opacity: number,
+	fadeOut(time: number, easeFunc?: EaseFunc): TimerController,
 }
 
 export interface AnchorComp extends Comp {
@@ -4487,9 +4494,11 @@ export type EaseFuncs =
 	| "easeOutBounce"
 	| "easeInOutBounce"
 
+export type EaseFunc = (t: number) => number
+
 export type TimerController = {
-	onFinish(action: () => void): void,
-	then(action: () => void): void,
+	onFinish(action: () => void): TimerController,
+	then(action: () => void): TimerController,
 	paused: boolean,
 	cancel(): void,
 }

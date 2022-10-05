@@ -1214,13 +1214,13 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		if (typeof src === "string") {
 			const spr = getSprite(src)
 			if (spr) {
-			// if it's already loaded or being loading, return it
+				// if it's already loaded or being loading, return it
 				return spr
 			} else if (loadProgress() < 1) {
-			// if there's any other ongoing loading task we return empty and don't error yet
+				// if there's any other ongoing loading task we return empty and don't error yet
 				return null
 			} else {
-			// if all other assets are loaded and we still haven't found this sprite, throw
+				// if all other assets are loaded and we still haven't found this sprite, throw
 				throw new Error(`Sprite not found: ${src}`)
 			}
 		} else if (src instanceof SpriteData) {
@@ -3625,8 +3625,13 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		return {
 			paused: ev.paused,
 			cancel: ev.cancel,
-			onFinish: (action) => actions.push(action),
-			then: (action) => actions.push(action),
+			onFinish(action) {
+				actions.push(action)
+				return this
+			},
+			then(action) {
+				return this.onFinish(action)
+			},
 		}
 	}
 
@@ -3932,6 +3937,9 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			opacity: a ?? 1,
 			inspect() {
 				return `${toFixed(this.opacity, 2)}`
+			},
+			fadeOut(time, easeFunc = easings.linear) {
+				return tween(this.opacity, 0, time, (a) => this.opacity = a, easeFunc)
 			},
 		}
 	}
@@ -5007,6 +5015,12 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		const startFade = Math.max((time - fade), 0)
 		return {
 			id: "lifespan",
+			add() {
+				wait(time, () => {
+					if (fade <= 0 || !this.opacity) return
+					tween(this.opacity, 0, fade, (a) => this.opacity = a, easings.linear)
+				})
+			},
 			update(this: GameObj<OpacityComp>) {
 				timer += dt()
 				if (timer >= startFade) {
@@ -5135,6 +5149,26 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 		}
 
+	}
+
+	function fadeIn(time: number = 1): Comp {
+		let t = 0
+		let done = false
+		return {
+			require: [ "opacity" ],
+			add(this: GameObj<OpacityComp>) {
+				this.opacity = 0
+			},
+			update(this: GameObj<OpacityComp>) {
+				if (done) return
+				t += dt()
+				this.opacity = map(t, 0, time, 0, 1)
+				if (t >= time) {
+					this.opacity = 1
+					done = true
+				}
+			},
+		}
 	}
 
 	function onLoad(cb: () => void): void {
@@ -6286,28 +6320,31 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		easeFunc = easings.linear,
 	): TimerController {
 		let curTime = 0
-		const onFinishEvents: Event = new Event()
+		const onFinishEvents: Array<() => void> = []
 		const ev = onUpdate(() => {
 			curTime += dt()
 			const t = Math.min(curTime / duration, 1)
 			setter(lerp(min, max, easeFunc(t)))
 			if (t === 1) {
-				onFinishEvents.trigger()
+				onFinishEvents.forEach((action) => action())
 				ev.cancel()
 			}
 		})
 		return {
-			onFinish: (action: () => void) => onFinishEvents.add(action),
 			get paused() {
 				return ev.paused
 			},
 			set paused(p) {
 				ev.paused = p
 			},
-			// TODO: chainable?
-			then: (action: () => void) => onFinishEvents.add(action),
-			cancel: () => {
-				onFinishEvents.trigger()
+			onFinish(action: () => void) {
+				onFinishEvents.push(action)
+				return this
+			},
+			then(action: () => void) {
+				return this.onFinish(action)
+			},
+			cancel() {
 				ev.cancel()
 			},
 		}
@@ -6396,6 +6433,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		outview,
 		follow,
 		state,
+		fadeIn,
 		// group events
 		on,
 		onUpdate,
