@@ -1,7 +1,7 @@
 {
 	"name": "create-kaboom",
 	"description": "Start a kaboom project in no time",
-	"version": "2.1.3",
+	"version": "2.1.4",
 	"license": "MIT",
 	"homepage": "https://kaboomjs.com/",
 	"repository": "github:replit/kaboom",

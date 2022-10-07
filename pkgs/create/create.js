@@ -6,7 +6,7 @@
 // TODO: .gitignore
 // TODO: deal with www/main.js and www/neutralino.js
 
-const VERSION = "2.1.3"
+const VERSION = "2.1.4"
 
 import fs from "fs"
 import cp from "child_process"
@@ -148,7 +148,7 @@ import kaboom from "kaboom"${ts ? "\nimport \"kaboom/global\"" : ""}
 
 kaboom()
 
-loadBean()
+loadSprite("bean", "sprites/bean.png")
 
 add([
 	pos(120, 80),
@@ -242,6 +242,7 @@ create(dir(dest, [
 </body>
 </html>
 		`),
+		dir("sprites", []),
 	]),
 	dir("src", [
 		file(`game.${ext}`, startCode),
@@ -267,7 +268,7 @@ create(dir(dest, [
 				"binaryName": dest,
 				"resourcesPath": "/www/",
 				"extensionsPath": "/extensions/",
-				"clientLibrary": "/www/neutralino.js",
+				"clientLibrary": "/bin/neutralino.js",
 				"binaryVersion": "4.7.0",
 				"clientVersion": "3.6.0",
 			},
@@ -276,6 +277,12 @@ create(dir(dest, [
 ]))
 
 process.chdir(dest)
+
+info("- downloading default sprites")
+await download(
+	"https://raw.githubusercontent.com/replit/kaboom/master/sprites/bean.png",
+	"www/sprites/bean.png",
+)
 
 info(`- installing packages ${pkgs.map((pkg) => `"${pkg}"`).join(", ")}`)
 await exec("npm", [ "install", ...pkgs ], { stdio: [ "inherit", "ignore", "inherit" ] })

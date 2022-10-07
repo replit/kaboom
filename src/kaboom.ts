@@ -816,26 +816,26 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			asset.done = true
 			return asset
 		}
-		onLoad(action: (data: D) => void): Asset<D> {
+		onLoad(action: (data: D) => void) {
 			this.onLoadEvents.add(action)
-			return this
 		}
-		onError(action: (err: Error) => void): Asset<D> {
+		onError(action: (err: Error) => void) {
 			this.onErrorEvents.add(action)
-			return this
 		}
-		onFinish(action: () => void): Asset<D> {
+		onFinish(action: () => void) {
 			this.onFinishEvents.add(action)
-			return this
 		}
 		then(action: (data: D) => void): Asset<D> {
-			return this.onLoad(action)
+			this.onLoad(action)
+			return this
 		}
 		catch(action: (err: Error) => void): Asset<D> {
-			return this.onError(action)
+			this.onError(action)
+			return this
 		}
 		finally(action: () => void): Asset<D> {
-			return this.onFinish(action)
+			this.onFinish(action)
+			return this
 		}
 	}
 
@@ -1028,7 +1028,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		if (typeof data === "string") {
 			return load(new Promise((res, rej) => {
 				fetchJSON(data).then((data2) => {
-					loadSpriteAtlas(src, data2).onLoad(res).onError(rej)
+					loadSpriteAtlas(src, data2).then(res).catch(rej)
 				})
 			}))
 		}
@@ -2979,6 +2979,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		e.preventDefault()
 	}
 
+	// TODO: cancel all pressed key on hide?
 	docEvents.visibilitychange = () => {
 		switch (document.visibilityState) {
 			case "visible":
@@ -6327,10 +6328,10 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			},
 			onFinish(action: () => void) {
 				onFinishEvents.push(action)
-				return this
 			},
 			then(action: () => void) {
-				return this.onFinish(action)
+				this.onFinish(action)
+				return this
 			},
 			cancel() {
 				ev.cancel()

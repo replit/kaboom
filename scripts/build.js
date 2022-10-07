@@ -153,7 +153,7 @@ function buildTypes() {
 	// generate global decls for KaboomCtx members
 	let globalDts = ""
 
-	globalDts += "import { KaboomCtx } from \"kaboom\"\n"
+	globalDts += "import { KaboomCtx } from \"./kaboom\"\n"
 	globalDts += "declare global {\n"
 
 	for (const stmt of stmts) {

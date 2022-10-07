@@ -247,7 +247,7 @@ export interface KaboomCtx {
 	 * ])
 	 * ```
 	 */
-	rect(w: number, h: number): RectComp,
+	rect(w: number, h: number, opt?: RectCompOpt): RectComp,
 	/**
 	 * Render as a circle.
 	 *
@@ -2509,15 +2509,16 @@ export interface SpriteAtlasEntry {
 	anims?: SpriteAnims,
 }
 
+// TODO: use PromiseLike or extend Promise?
 export declare class Asset<D> {
 	done: boolean
 	data: D | null
 	error: Error | null
 	constructor(loader: Promise<D>)
 	static loaded<D>(data: D): Asset<D>
-	onLoad(action: (data: D) => void): Asset<D>
-	onError(action: (err: Error) => void): Asset<D>
-	onFinish(action: () => void): Asset<D>
+	onLoad(action: (data: D) => void): void
+	onError(action: (err: Error) => void): void
+	onFinish(action: () => void): void
 	then(action: (data: D) => void): Asset<D>
 	catch(action: (err: Error) => void): Asset<D>
 	finally(action: () => void): Asset<D>
@@ -4496,8 +4497,9 @@ export type EaseFuncs =
 
 export type EaseFunc = (t: number) => number
 
+// TODO: use PromiseLike or extend Promise?
 export type TimerController = {
-	onFinish(action: () => void): TimerController,
+	onFinish(action: () => void): void,
 	then(action: () => void): TimerController,
 	paused: boolean,
 	cancel(): void,
