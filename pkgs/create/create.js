@@ -3,7 +3,7 @@
 // TODO: interactive setup if no args
 // TODO: create README.md with guide
 
-const VERSION = "2.3.0"
+const VERSION = "2.3.2"
 
 import fs from "fs"
 import cp from "child_process"
@@ -218,7 +218,7 @@ create(dir(dest, [
 			"watch": "esbuild --bundle src/game.ts --outfile=www/main.js --watch",
 			"build": "esbuild --bundle src/game.ts --outfile=www/main.js",
 			"dev": "esbuild --bundle src/game.ts --outfile=www/main.js --servedir=www",
-			"zip": "npm run build && zip -r www.zip www -x \"**/.DS_Store\"",
+			"zip": "npm run build && mkdir -p dist && zip -r dist/game.zip www -x \"**/.DS_Store\"",
 			...(ts ? {
 				"check": "tsc --noEmit src/game.ts",
 			} : {}),
@@ -274,6 +274,7 @@ create(dir(dest, [
 	] : []),
 	file(".gitignore", `
 www/main.js
+dist/
 ${desktop ? "bin/" : ""}
 	`),
 ]))
