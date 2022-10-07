@@ -3,10 +3,8 @@
 // TODO: itch.io / newgrounds packaging
 // TODO: interactive setup if no args
 // TODO: create README.md with guide
-// TODO: .gitignore
-// TODO: deal with www/main.js and www/neutralino.js
 
-const VERSION = "2.1.4"
+const VERSION = "2.2.0"
 
 import fs from "fs"
 import cp from "child_process"
@@ -274,6 +272,10 @@ create(dir(dest, [
 			},
 		})),
 	] : []),
+	file(".gitignore", `
+www/main.js
+${desktop ? "bin/" : ""}
+	`),
 ]))
 
 process.chdir(dest)
