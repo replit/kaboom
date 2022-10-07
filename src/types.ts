@@ -2516,9 +2516,9 @@ export declare class Asset<D> {
 	error: Error | null
 	constructor(loader: Promise<D>)
 	static loaded<D>(data: D): Asset<D>
-	onLoad(action: (data: D) => void): void
-	onError(action: (err: Error) => void): void
-	onFinish(action: () => void): void
+	onLoad(action: (data: D) => void): Asset<D>
+	onError(action: (err: Error) => void): Asset<D>
+	onFinish(action: () => void): Asset<D>
 	then(action: (data: D) => void): Asset<D>
 	catch(action: (err: Error) => void): Asset<D>
 	finally(action: () => void): Asset<D>

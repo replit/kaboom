@@ -818,24 +818,24 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		}
 		onLoad(action: (data: D) => void) {
 			this.onLoadEvents.add(action)
+			return this
 		}
 		onError(action: (err: Error) => void) {
 			this.onErrorEvents.add(action)
+			return this
 		}
 		onFinish(action: () => void) {
 			this.onFinishEvents.add(action)
+			return this
 		}
 		then(action: (data: D) => void): Asset<D> {
-			this.onLoad(action)
-			return this
+			return this.onLoad(action)
 		}
 		catch(action: (err: Error) => void): Asset<D> {
-			this.onError(action)
-			return this
+			return this.onError(action)
 		}
 		finally(action: () => void): Asset<D> {
-			this.onFinish(action)
-			return this
+			return this.onFinish(action)
 		}
 	}
 
