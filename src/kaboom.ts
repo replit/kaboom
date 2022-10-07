@@ -3628,10 +3628,10 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			cancel: ev.cancel,
 			onFinish(action) {
 				actions.push(action)
-				return this
 			},
 			then(action) {
-				return this.onFinish(action)
+				this.onFinish(action)
+				return this
 			},
 		}
 	}
