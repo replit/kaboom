@@ -15,8 +15,8 @@ OPTIONS
 
   -h, --help             Print this message
   -t, --typescript       Use TypeScript
-  -s, --start            Start the dev server right away
-  -d, --example <name>   Start from a example listed on kaboomjs.com/play
+  -d, --desktop          Enable packaging for desktop release
+  -e, --example <name>   Start from a example listed on kaboomjs.com/play
       --spaces <level>   Use spaces instead of tabs for generated files
   -v, --version <label>  Use a specific kaboom version (default latest)
 
@@ -30,4 +30,4 @@ EXAMPLE
 
   # if installed locally you don't need to use -- when passing options
   $ create-kaboom -t -s -d burp mygame
-```
+  ```

@@ -1,10 +1,9 @@
 #!/usr/bin/env node
 
-// TODO: itch.io / newgrounds packaging
 // TODO: interactive setup if no args
 // TODO: create README.md with guide
 
-const VERSION = "2.2.0"
+const VERSION = "2.3.0"
 
 import fs from "fs"
 import cp from "child_process"
@@ -219,12 +218,13 @@ create(dir(dest, [
 			"watch": "esbuild --bundle src/game.ts --outfile=www/main.js --watch",
 			"build": "esbuild --bundle src/game.ts --outfile=www/main.js",
 			"dev": "esbuild --bundle src/game.ts --outfile=www/main.js --servedir=www",
+			"zip": "npm run build && zip -r www.zip www -x \"**/.DS_Store\"",
 			...(ts ? {
 				"check": "tsc --noEmit src/game.ts",
 			} : {}),
 			...(desktop ? {
-				"run:desktop": "neu run",
-				"build:desktop": "neu build --release",
+				"run:desktop": "npm run build && neu run",
+				"build:desktop": "npm run build && neu build --release",
 			} : {}),
 		},
 	})),
@@ -236,7 +236,7 @@ create(dir(dest, [
 	<title>${dest}</title>
 </head>
 <body>
-	<script src="/main.js"></script>
+	<script src="main.js"></script>
 </body>
 </html>
 		`),
