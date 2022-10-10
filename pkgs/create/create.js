@@ -1,8 +1,5 @@
 #!/usr/bin/env node
 
-// TODO: interactive setup if no args
-// TODO: create README.md with guide
-
 const VERSION = "2.3.2"
 
 import fs from "fs"
@@ -38,7 +35,8 @@ const optDisplay = optMap.map((opt) => ({
 	desc: opt.desc,
 }))
 
-const usageLen = optDisplay.reduce((len, dis) => dis.usage.length > len ? dis.usage.length : len, 0)
+const usageLen = optDisplay
+	.reduce((len, dis) => dis.usage.length > len ? dis.usage.length : len, 0)
 
 const help = `
 create-kaboom v${VERSION}
@@ -101,6 +99,7 @@ if (opts["help"]) {
 
 const dest = args[0]
 
+// TODO: interactive creation
 if (!dest) {
 	console.log(help)
 	process.exit()
@@ -155,7 +154,7 @@ add([
 onClick(() => addKaboom(mousePos()))
 `.trim()
 
-// TODO: support pulling assets used by example
+// TODO: pull assets used by example
 if (opts["example"]) {
 
 	info(`- fetching example "${opts["example"]}"`)
@@ -210,6 +209,7 @@ const create = (item) => {
 
 const toAlphaNumeric = (text) => text.toLowerCase().replace(/[^a-z0-9]/g, "")
 
+// TODO: create README.md with guide
 // generate core files
 create(dir(dest, [
 	file("package.json", stringify({

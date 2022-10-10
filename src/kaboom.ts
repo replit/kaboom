@@ -2979,11 +2979,10 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		e.preventDefault()
 	}
 
-	// TODO: cancel all pressed key on hide?
 	docEvents.visibilitychange = () => {
 		switch (document.visibilityState) {
 			case "visible":
-			// prevent a surge of dt() when switch back after the tab being hidden for a while
+				// prevent a surge of dt() when switch back after the tab being hidden for a while
 				app.skipTime = true
 				if (!debug.paused) {
 					audio.ctx.resume()
