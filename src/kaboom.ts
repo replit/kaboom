@@ -4954,6 +4954,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		}
 	}
 
+	// TODO: all children should be fixed
 	function fixed(): FixedComp {
 		return {
 			id: "fixed",
@@ -6300,6 +6301,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 	})
 
+	// TODO: tween vec2
 	function tween(
 		min: number,
 		max: number,

@@ -27,6 +27,9 @@ load(new Promise((res) => {
 	}, 1000)
 }))
 
+// make loader wait for a fetch() call
+load(fetch("https://kaboomjs.com/"))
+
 // You can also use the handle returned by loadXXX() as the resource handle
 const bugSound = loadSound("bug", "/examples/sounds/bug.mp3")
 
