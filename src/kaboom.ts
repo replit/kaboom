@@ -1,4 +1,4 @@
-const VERSION = "3000.0.0-alpha.7"
+const VERSION = "3000.0.0-alpha.8"
 
 import {
 	sat,
@@ -145,6 +145,7 @@ import {
 	DoubleJumpComp,
 	VirtualButton,
 	TimerController,
+	TweenController,
 } from "./types"
 
 import FPSCounter from "./fps"
@@ -3209,6 +3210,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		const obj = {
 
 			id: uid(),
+			// TODO: a nice way to hide / pause when add()-ing
 			hidden: false,
 			paused: false,
 			transform: new Mat4(),
@@ -4004,8 +4006,10 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		}
 	}
 
+	const DEF_OFFSCREEN_DIS = 200
+
 	function offscreen(opt: OffScreenCompOpt = {}): OffScreenComp {
-		const distance = opt.distance ?? 64
+		const distance = opt.distance ?? DEF_OFFSCREEN_DIS
 		let isOut = false
 		return {
 			id: "offscreen",
@@ -6261,18 +6265,19 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		min: number,
 		max: number,
 		duration: number,
-		setter: (value: number) => void,
+		setValue: (value: number) => void,
 		easeFunc = easings.linear,
-	): TimerController {
+	): TweenController {
 		let curTime = 0
 		const onFinishEvents: Array<() => void> = []
 		const ev = onUpdate(() => {
 			curTime += dt()
 			const t = Math.min(curTime / duration, 1)
-			setter(lerp(min, max, easeFunc(t)))
+			setValue(lerp(min, max, easeFunc(t)))
 			if (t === 1) {
-				onFinishEvents.forEach((action) => action())
 				ev.cancel()
+				setValue(max)
+				onFinishEvents.forEach((action) => action())
 			}
 		})
 		return {
@@ -6291,6 +6296,11 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			},
 			cancel() {
 				ev.cancel()
+			},
+			finish() {
+				ev.cancel()
+				setValue(max)
+				onFinishEvents.forEach((action) => action())
 			},
 		}
 	}

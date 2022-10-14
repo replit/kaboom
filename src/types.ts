@@ -1586,9 +1586,9 @@ export interface KaboomCtx {
 		min: number,
 		max: number,
 		duration: number,
-		setter: (value: number) => void,
+		setValue: (value: number) => void,
 		easeFunc: (t: number) => number,
-	): TimerController,
+	): TweenController,
 	/**
 	 * A collection of easing functions for tweening.
 	 *
@@ -4494,15 +4494,29 @@ export type EaseFuncs =
 export type EaseFunc = (t: number) => number
 
 // TODO: use PromiseLike or extend Promise?
-export type TimerController = {
+export type TimerController = EventController & {
+	/**
+	 * Register an event when finished.
+	 */
 	onFinish(action: () => void): void,
 	then(action: () => void): TimerController,
-	paused: boolean,
-	cancel(): void,
+}
+
+export type TweenController = TimerController & {
+	/**
+	 * Finish the tween now and cancel.
+	 */
+	finish(): void,
 }
 
 export type EventController = {
+	/**
+	 * If the event handler is paused.
+	 */
 	paused: boolean,
+	/**
+	 * Cancel the event handler.
+	 */
 	cancel(): void,
 }
 

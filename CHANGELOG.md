@@ -138,7 +138,7 @@ cancel()
 
 // now, can do more stuff
 const ev = onUpdate(() => { /* ... */ })
-ev.pause = true
+ev.paused = true
 ev.cancel()
 ```
 
@@ -146,7 +146,11 @@ ev.cancel()
 
 ```js
 const timer = wait(4, () => { /* ... */ })
-timer.pause()
+timer.paused = true
+timer.resume()
+
+const timer = loop(1, () => { /* ... */ })
+timer.paused = true
 timer.resume()
 ```
 
