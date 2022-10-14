@@ -106,8 +106,8 @@ import {
 	ZComp,
 	FollowComp,
 	MoveComp,
-	OutviewCompOpt,
-	OutviewComp,
+	OffScreenCompOpt,
+	OffScreenComp,
 	AreaCompOpt,
 	AreaComp,
 	SpriteComp,
@@ -4004,26 +4004,26 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		}
 	}
 
-	function outview(opt: OutviewCompOpt = {}): OutviewComp {
+	function offscreen(opt: OffScreenCompOpt = {}): OffScreenComp {
 		const distance = opt.distance ?? 64
 		let isOut = false
 		return {
-			id: "outview",
+			id: "offscreen",
 			require: [ "pos" ],
-			isOutOfView(this: GameObj<PosComp>): boolean {
+			isOffScreen(this: GameObj<PosComp>): boolean {
 				const pos = toScreen(this.pos)
 				const screenRect = new Rect(vec2(0), width(), height())
 				return !testRectPoint(screenRect, pos)
 					&& screenRect.distToPoint(pos) > distance
 			},
-			onExitView(this: GameObj, action: () => void): EventController {
+			onExitScreen(this: GameObj, action: () => void): EventController {
 				return this.on("exitView", action)
 			},
-			onEnterView(this: GameObj, action: () => void): EventController {
+			onEnterScreen(this: GameObj, action: () => void): EventController {
 				return this.on("enterView", action)
 			},
 			update(this: GameObj) {
-				if (this.isOutOfView()) {
+				if (this.isOffScreen()) {
 					if (!isOut) {
 						this.trigger("exitView")
 						isOut = true
@@ -4041,7 +4041,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				}
 			},
 			inspect() {
-				return `${this.isOutOfView()}`
+				return `${this.isOffScreen()}`
 			},
 		}
 	}
@@ -4902,10 +4902,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 			onHeadbutt(this: GameObj, action: () => void): EventController {
 				return this.on("headbutt", action)
-			},
-
-			inspect() {
-				return `${this.isGrounded() ? "grounded" : this.isJumping() ? "jumping" : "falling"}`
 			},
 
 		}
@@ -6420,7 +6416,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		lifespan,
 		z,
 		move,
-		outview,
+		offscreen,
 		follow,
 		state,
 		fadeIn,

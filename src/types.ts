@@ -387,7 +387,7 @@ export interface KaboomCtx {
 	 *     pos(enemy.pos),
 	 *     area(),
 	 *     move(player.pos.angle(enemy.pos), 1200),
-	 *     outview({ destroy: true }),
+	 *     offscreen({ destroy: true }),
 	 * ])
 	 * ```
 	 */
@@ -402,12 +402,12 @@ export interface KaboomCtx {
 	 * add([
 	 *     pos(player.pos),
 	 *     sprite("bullet"),
-	 *     outview({ destroy: true }),
+	 *     offscreen({ destroy: true }),
 	 *     "projectile",
 	 * ])
 	 * ```
 	 */
-	outview(opt?: OutviewCompOpt): OutviewComp,
+	offscreen(opt?: OffScreenCompOpt): OffScreenComp,
 	/**
 	 * Follow another game obj's position.
 	 */
@@ -3561,7 +3561,7 @@ export interface FollowComp extends Comp {
 
 export type MoveComp = Comp
 
-export interface OutviewCompOpt {
+export interface OffScreenCompOpt {
 	/**
 	 * If hide object when out of view.
 	 */
@@ -3580,29 +3580,21 @@ export interface OutviewCompOpt {
 	 * @since v3000.0
 	 */
 	distance?: number,
-	/**
-	 * Register an event that runs when object goes out of view.
-	 */
-	onExitView?: () => void,
-	/**
-	 * Register an event that runs when object enters view.
-	 */
-	onEnterView?: () => void,
 }
 
-export interface OutviewComp extends Comp {
+export interface OffScreenComp extends Comp {
 	/**
 	 * If object is currently out of view.
 	 */
-	isOutOfView(): boolean,
+	isOffScreen(): boolean,
 	/**
 	 * Register an event that runs when object goes out of view.
 	 */
-	onExitView(action: () => void): EventController,
+	onExitScreen(action: () => void): EventController,
 	/**
 	 * Register an event that runs when object enters view.
 	 */
-	onEnterView(action: () => void): EventController,
+	onEnterScreen(action: () => void): EventController,
 }
 
 /**

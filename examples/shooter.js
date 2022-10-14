@@ -204,7 +204,7 @@ scene("battle", () => {
 			color(127, 127, 255),
 			outline(4),
 			move(UP, BULLET_SPEED),
-			outview({ destroy: true }),
+			offscreen({ destroy: true }),
 			// strings here means a tag
 			"bullet",
 		])

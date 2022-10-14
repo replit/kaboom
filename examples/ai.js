@@ -47,7 +47,7 @@ enemy.onStateEnter("attack", async () => {
 			move(dir, BULLET_SPEED),
 			rect(12, 12),
 			area(),
-			outview({ destroy: true }),
+			offscreen({ destroy: true }),
 			anchor("center"),
 			color(BLUE),
 			"bullet",
