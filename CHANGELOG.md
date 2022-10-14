@@ -54,10 +54,13 @@ bean.destroy()
 - (**BREAK**) defining `gravity()` is now required for enabling gravity, `body()` by default will only prevent objects from going through each other
 - (**BREAK**) renamed `origin()` to `anchor()`, so it won't mess up typescript in global context
 - (**BREAK**) `anchor` (previously `origin`) no longer controls text alignment, use `align` option instead
-- (**BREAK**) changed `outview()` to `offscreen()`, and uses a much more performant check for if object is offscreen, removed `offset` option and added a simpler `distance` option
+- (**BREAK**) changed `outview()` to `offscreen()`, and uses a much more performant check for if object is offscreen
+  - removed `offset` option in favor of a simpler `distance` option
+  - renamed `onExitView()` and `onEnterView()` to `onExitScreen()` and `onEnterScreen()`
 - (**BREAK**) removed `cleanup()` component in favor of `offscreen({ destroy: true })`
 - added `OpacityComp#fadeOut()`
 - added `fadeIn()` component
+- `stay()` now accepts a list of scenes to stay for, like `stay(["gameover", "menu"])`
 
 ## Assets
 
