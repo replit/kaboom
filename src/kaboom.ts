@@ -4958,10 +4958,11 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		}
 	}
 
-	function stay(): StayComp {
+	function stay(scenesToStay?: string[]): StayComp {
 		return {
 			id: "stay",
 			stay: true,
+			scenesToStay: scenesToStay,
 		}
 	}
 
@@ -5180,9 +5181,8 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			game.objEvents = new EventHandler()
 
 			game.root.get().forEach((obj) => {
-				if (!obj.stay) {
+				if (!obj.stay || (obj.scenesToStay != null && !obj.scenesToStay.includes(id)))
 					game.root.remove(obj)
-				}
 			})
 
 			game.root.clearEvents()
