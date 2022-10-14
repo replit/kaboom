@@ -170,6 +170,6 @@ add([
 	anchor("center"),
 	text("Haven't Died Yet!"),
 	stay(["game", "win"]),
-]);
+])
 
 start()
