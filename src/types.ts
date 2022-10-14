@@ -3845,7 +3845,7 @@ export interface SpriteCompOpt {
 	 */
 	anim?: string,
 	/**
-	 * Animation speed scale multiplier.
+	 * Speed multiplier for all animations (for the actual fps for an anim use .play("anim", { speed: 10 })).
 	 */
 	animSpeed?: number,
 	/**
@@ -3896,7 +3896,7 @@ export interface SpriteComp extends Comp {
 	 */
 	curAnim(): string,
 	/**
-	 * Frame animation speed scale multiplier.
+	 * Speed multiplier for all animations (for the actual fps for an anim use .play("anim", { speed: 10 })).
 	 */
 	animSpeed: number,
 	/**
