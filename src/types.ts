@@ -450,7 +450,7 @@ export interface KaboomCtx {
 	 * })
 	 * ```
 	 */
-	stay(scenes?: string[]): StayComp,
+	stay(scenesToStay?: string[]): StayComp,
 	/**
 	 * Handles health related logic and events.
 	 *
@@ -4327,7 +4327,7 @@ export interface StayComp extends Comp {
 	/**
 	 * Array of scenes that the obj will stay on.
 	 */
-	scenes: string[],
+	scenesToStay: string[],
 }
 
 export interface HealthComp extends Comp {
