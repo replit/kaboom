@@ -169,7 +169,7 @@ add([
 	pos(width()/2, height()-100),
 	anchor("center"),
 	text("Haven't Died Yet!"),
-	stay(["lose"], false),
+	stay(["game", "win"]),
 ]);
 
 start()
