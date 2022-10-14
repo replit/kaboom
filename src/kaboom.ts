@@ -4962,10 +4962,12 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		}
 	}
 
-	function stay(): StayComp {
+	function stay(scenes?: string[], sceneStay?: boolean): StayComp {
 		return {
 			id: "stay",
 			stay: true,
+			scenes: scenes,
+			sceneStay: sceneStay,
 		}
 	}
 
@@ -5185,9 +5187,21 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 			game.root.get().forEach((obj) => {
 				if (!obj.stay) {
-					game.root.remove(obj)
+					game.root.remove(obj);
+				} else {
+					var inScenes = false;
+					var s = obj.sceneStay != null ? obj.sceneStay : true;
+					if (obj.scenes != null) {
+						for (var scene of obj.scenes)
+							if (scene === id)
+								inScenes = true;
+						if ((!inScenes && s) || (inScenes && !s))
+							game.root.remove(obj);
+					} else {
+						game.root.remove(obj);
+					}
 				}
-			})
+			});
 
 			game.root.clearEvents()
 
