@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-const VERSION = "2.3.2"
+const VERSION = "2.3.3"
 
 import fs from "fs"
 import cp from "child_process"
@@ -273,6 +273,7 @@ create(dir(dest, [
 		})),
 	] : []),
 	file(".gitignore", `
+node_modules/
 www/main.js
 dist/
 ${desktop ? "bin/" : ""}
