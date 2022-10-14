@@ -150,6 +150,7 @@ timer.pause()
 timer.resume()
 ```
 
+- `kaboom()` now automatically focuses the canvas
 - added `quit()` to end everything
 - added `download()`, `downloadText()`, `downloadJSON()`, `downloadBlob()`
 - added `Recording#stop()` to stop the recording and returns the video data as mp4 Blob

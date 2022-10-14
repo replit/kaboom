@@ -1,4 +1,4 @@
-const VERSION = "3000.0.0-alpha.6"
+const VERSION = "3000.0.0-alpha.7"
 
 import {
 	sat,
@@ -6256,6 +6256,45 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 	}
 
+	// TODO: tween vec2
+	function tween(
+		min: number,
+		max: number,
+		duration: number,
+		setter: (value: number) => void,
+		easeFunc = easings.linear,
+	): TimerController {
+		let curTime = 0
+		const onFinishEvents: Array<() => void> = []
+		const ev = onUpdate(() => {
+			curTime += dt()
+			const t = Math.min(curTime / duration, 1)
+			setter(lerp(min, max, easeFunc(t)))
+			if (t === 1) {
+				onFinishEvents.forEach((action) => action())
+				ev.cancel()
+			}
+		})
+		return {
+			get paused() {
+				return ev.paused
+			},
+			set paused(p) {
+				ev.paused = p
+			},
+			onFinish(action: () => void) {
+				onFinishEvents.push(action)
+			},
+			then(action: () => void) {
+				this.onFinish(action)
+				return this
+			},
+			cancel() {
+				ev.cancel()
+			},
+		}
+	}
+
 	loadBitmapFont(
 		"happy",
 		happyFontSrc,
@@ -6300,45 +6339,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		}
 
 	})
-
-	// TODO: tween vec2
-	function tween(
-		min: number,
-		max: number,
-		duration: number,
-		setter: (value: number) => void,
-		easeFunc = easings.linear,
-	): TimerController {
-		let curTime = 0
-		const onFinishEvents: Array<() => void> = []
-		const ev = onUpdate(() => {
-			curTime += dt()
-			const t = Math.min(curTime / duration, 1)
-			setter(lerp(min, max, easeFunc(t)))
-			if (t === 1) {
-				onFinishEvents.forEach((action) => action())
-				ev.cancel()
-			}
-		})
-		return {
-			get paused() {
-				return ev.paused
-			},
-			set paused(p) {
-				ev.paused = p
-			},
-			onFinish(action: () => void) {
-				onFinishEvents.push(action)
-			},
-			then(action: () => void) {
-				this.onFinish(action)
-				return this
-			},
-			cancel() {
-				ev.cancel()
-			},
-		}
-	}
 
 	// the exported ctx handle
 	const ctx: KaboomCtx = {
@@ -6577,6 +6577,8 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			window[k] = ctx[k]
 		}
 	}
+
+	app.canvas.focus()
 
 	return ctx
 
