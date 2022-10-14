@@ -5185,21 +5185,9 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			game.objEvents = new EventHandler()
 
 			game.root.get().forEach((obj) => {
-				if (!obj.stay) {
-					game.root.remove(obj);
-				} else {
-					if (obj.scenesToStay != null) {
-						var inScenes = false;
-						for (var scene of obj.scenesToStay)
-							if (scene === id)
-								inScenes = true;
-						if (!inScenes)
-							game.root.remove(obj);
-					} else {
-						game.root.remove(obj);
-					}
-				}
-			});
+				if (!obj.stay || (obj.scenesToStay != null && !obj.scenesToStay.includes(id)))
+					game.root.remove(obj)
+			})
 
 			game.root.clearEvents()
 
