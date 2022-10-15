@@ -136,10 +136,16 @@ scene("game", () => {
 	// both keys will trigger
 	onKeyDown("left", () => {
 		bean.move(-PLAYER_SPEED, 0)
+		if (bean.pos.x < 0) {
+			bean.pos.x = width()
+		}
 	})
 
 	onKeyDown("right", () => {
 		bean.move(PLAYER_SPEED, 0)
+		if (bean.pos.x > width()) {
+			bean.pos.x = 0
+		}
 	})
 
 	let timeLeft = 30

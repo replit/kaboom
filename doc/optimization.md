@@ -1,4 +1,6 @@
+# Optimizations
 
+Here's some tips on optimizing performance / maintainability for kaboom games
 
 ## Hide Off-Screen Objects
 

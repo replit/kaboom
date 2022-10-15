@@ -4,6 +4,7 @@ kaboom({
 
 // Load a custom font from a .ttf file
 loadFont("FlowerSketches", "/examples/fonts/FlowerSketches.ttf")
+loadFont("apl386", "/examples/fonts/apl386.ttf")
 // Load custom bitmap font, specifying the width and height of each character in the image
 loadBitmapFont("unscii", "/examples/fonts/unscii_8x8.png", 8, 8)
 loadBitmapFont("4x4", "/examples/fonts/4x4.png", 4, 4)
@@ -19,6 +20,7 @@ const fonts = [
 	"4x4",
 	"unscii",
 	"FlowerSketches",
+	"apl386",
 	"Sans-Serif",
 ]
 
