@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-const VERSION = "2.3.3"
+const VERSION = "2.4.0"
 
 import fs from "fs"
 import cp from "child_process"
@@ -220,7 +220,7 @@ create(dir(dest, [
 			"dev": "esbuild --bundle src/game.ts --outfile=www/main.js --servedir=www",
 			"zip": "npm run build && mkdir -p dist && zip -r dist/game.zip www -x \"**/.DS_Store\"",
 			...(ts ? {
-				"check": "tsc --noEmit src/game.ts",
+				"check": "tsc",
 			} : {}),
 			...(desktop ? {
 				"run:desktop": "npm run build && neu run",
@@ -245,6 +245,18 @@ create(dir(dest, [
 	dir("src", [
 		file(`game.${ext}`, startCode),
 	]),
+	...(ts ? [
+		file("tsconfig.json", stringify({
+			compilerOptions: {
+				noEmit: true,
+				target: "esnext",
+				moduleResolution: "node",
+			},
+			include: [
+				"src/**/*.ts",
+			],
+		})),
+	] : []),
 	...(desktop ? [
 		file("neutralino.config.json", stringify({
 			"applicationId": `com.kaboomjs.${toAlphaNumeric(dest)}`,
