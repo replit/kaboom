@@ -2086,6 +2086,18 @@ export interface KaboomCtx {
 	 */
 	quit: () => void,
 	/**
+	 * EventHandler for one single event.
+	 *
+	 * @since v3000.0
+	 */
+	Event: typeof Event,
+	/**
+	 * EventHandler for multiple events.
+	 *
+	 * @since v3000.0
+	 */
+	EventHandler: typeof EventHandler,
+	/**
 	 * Current Kaboom library version.
 	 *
 	 * @since v3000.0
@@ -4518,6 +4530,22 @@ export type EventController = {
 	 * Cancel the event handler.
 	 */
 	cancel(): void,
+}
+
+export declare class Event<Args extends any[] = any[]> {
+	add(action: (...args: Args) => void): EventController
+	addOnce(action: (...args) => void): EventController
+	trigger(...args: Args)
+	numListeners(): number
+}
+
+export declare class EventHandler<E = string> {
+	on(name: E, action: (...args) => void): EventController
+	onOnce(name: E, action: (...args) => void): EventController
+	trigger(name: E, ...args)
+	remove(name: E)
+	clear()
+	numListeners(name: E): number
 }
 
 export default kaboom

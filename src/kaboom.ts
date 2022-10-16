@@ -1,4 +1,4 @@
-const VERSION = "3000.0.0-alpha.8"
+const VERSION = "3000.0.0-alpha.9"
 
 import {
 	sat,
@@ -6575,6 +6575,9 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		WHITE: Color.WHITE,
 		BLACK: Color.BLACK,
 		quit,
+		// helpers
+		Event,
+		EventHandler,
 	}
 
 	if (gopt.plugins) {

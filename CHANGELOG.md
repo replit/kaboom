@@ -130,6 +130,7 @@ onMousePress(() => {
 ```
 
 - (**BREAK**) changed all event handlers to return a `EventController` object instead of a function to cancel event
+- added `Event` and `EventHandler`
 
 ```js
 // previous
