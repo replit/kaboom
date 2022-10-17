@@ -33,10 +33,13 @@ export class Event<Args extends any[] = any[]> {
 	}
 	addOnce(action: (...args) => void): EventController {
 		const ev = this.add((...args) => {
-			action(...args)
 			ev.cancel()
+			action(...args)
 		})
 		return ev
+	}
+	next(): Promise<Args> {
+		return new Promise((res) => this.addOnce(res))
 	}
 	trigger(...args: Args) {
 		this.handlers.forEach((action) => action(...args))
@@ -57,10 +60,15 @@ export class EventHandler<E = string> {
 	}
 	onOnce(name: E, action: (...args) => void): EventController {
 		const ev = this.on(name, (...args) => {
-			action(...args)
 			ev.cancel()
+			action(...args)
 		})
 		return ev
+	}
+	next(name: E): Promise<unknown> {
+		return new Promise((res) => {
+			this.onOnce(name, res)
+		})
 	}
 	trigger(name: E, ...args) {
 		if (this.handlers.get(name)) {

@@ -1837,6 +1837,12 @@ export interface KaboomCtx extends KaboomCoreCtx {
 	 */
 	onUpdate(action: () => void): EventController,
 	/**
+	 * Wait for the next update event.
+	 *
+	 * @since v3000.0
+	 */
+	onUpdate(): Promise<void>,
+	/**
 	 * Register an event that runs every frame (~60 times per second) for all game objs with certain tag (this is the same as onUpdate but all draw events are run after update events, drawXXX() functions only work in this phase).
 	 *
 	 * @since v2000.1
@@ -1859,6 +1865,12 @@ export interface KaboomCtx extends KaboomCoreCtx {
 	 * ```
 	 */
 	onDraw(action: () => void): EventController,
+	/**
+	 * Wait for the next draw event.
+	 *
+	 * @since v3000.0
+	 */
+	onDraw(): Promise<void>,
 	onAdd(tag: Tag, action: (obj: GameObj) => void): EventController,
 	onAdd(action: (obj: GameObj) => void): EventController,
 	onDestroy(tag: Tag, action: (obj: GameObj) => void): EventController,
@@ -1970,7 +1982,7 @@ export interface KaboomCtx extends KaboomCoreCtx {
 	 * })
 	 * ```
 	 */
-	onKeyDown(k: Key | Key[], action: () => void): EventController,
+	onKeyDown(k: Key, action: () => void): EventController,
 	/**
 	 * Register an event that runs when user presses certain key.
 	 *
@@ -1984,7 +1996,7 @@ export interface KaboomCtx extends KaboomCoreCtx {
 	 * })
 	 * ```
 	 */
-	onKeyPress(k: Key | Key[], action: () => void): EventController,
+	onKeyPress(k: Key, action: (k: Key) => void): EventController,
 	/**
 	 * Register an event that runs when user presses any key.
 	 *
@@ -1998,7 +2010,19 @@ export interface KaboomCtx extends KaboomCoreCtx {
 	 * })
 	 * ```
 	 */
-	onKeyPress(action: () => void): EventController,
+	onKeyPress(action: (key: Key) => void): EventController,
+	/**
+	 * Wait for the next key press.
+	 *
+	 * @since v3000.0
+	 */
+	onKeyPress(key: Key): Promise<Key>,
+	/**
+	 * Wait for the next key press.
+	 *
+	 * @since v3000.0
+	 */
+	onKeyPress(): Promise<Key>,
 	/**
 	 * Register an event that runs when user presses certain key (also fires repeatedly when they key is being held down).
 	 *
@@ -2012,15 +2036,15 @@ export interface KaboomCtx extends KaboomCoreCtx {
 	 * })
 	 * ```
 	 */
-	onKeyPressRepeat(k: Key | Key[], action: () => void): EventController,
-	onKeyPressRepeat(action: () => void): EventController,
+	onKeyPressRepeat(k: Key, action: (k: Key) => void): EventController,
+	onKeyPressRepeat(action: (k: Key) => void): EventController,
 	/**
 	 * Register an event that runs when user releases certain key.
 	 *
 	 * @since v2000.1
 	 */
-	onKeyRelease(k: Key | Key[], action: () => void): EventController,
-	onKeyRelease(action: () => void): EventController,
+	onKeyRelease(k: Key, action: (k: Key) => void): EventController,
+	onKeyRelease(action: (k: Key) => void): EventController,
 	/**
 	 * Register an event that runs when user inputs text.
 	 *
@@ -5783,6 +5807,7 @@ export type EventController = {
 export declare class Event<Args extends any[] = any[]> {
 	add(action: (...args: Args) => void): EventController
 	addOnce(action: (...args) => void): EventController
+	next(): Promise<Args>
 	trigger(...args: Args)
 	numListeners(): number
 }
@@ -5790,6 +5815,7 @@ export declare class Event<Args extends any[] = any[]> {
 export declare class EventHandler<E = string> {
 	on(name: E, action: (...args) => void): EventController
 	onOnce(name: E, action: (...args) => void): EventController
+	next(name: E): Promise<unknown>
 	trigger(name: E, ...args)
 	remove(name: E)
 	clear()

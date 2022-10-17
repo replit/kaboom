@@ -1,3 +1,6 @@
+// TODO: event registers return Promise for next event when callback not passed?
+// TODO: pass original browser event in input handlers
+
 const VERSION = "3000.0.0-alpha.9"
 
 import {
@@ -2909,6 +2912,7 @@ export default (gopt: KaboomOpt = {}): KaboomCoreCtx | KaboomCtx => {
 			app.charInputted.push(" ")
 		}
 
+		// TODO: record just pressed keys
 		if (e.repeat) {
 			app.isKeyPressedRepeat = true
 			app.keyStates[k] = "rpressed"
@@ -3503,8 +3507,17 @@ export default (gopt: KaboomOpt = {}): KaboomCoreCtx | KaboomCtx => {
 		})
 	}
 
+	function promisifyEvent(event: (action: () => void) => EventController): Promise<void> {
+		return new Promise((res) => {
+			const ev = event(() => {
+				ev.cancel()
+				res()
+			})
+		})
+	}
+
 	// add update event to a tag or global update
-	function onUpdate(tag: Tag | (() => void), action?: (obj: GameObj) => void) {
+	const onUpdate = ((tag: Tag | (() => void), action?: (obj: GameObj) => void) => {
 		if (typeof tag === "function" && action === undefined) {
 			const obj = add([{ update: tag }])
 			return {
@@ -3518,11 +3531,13 @@ export default (gopt: KaboomOpt = {}): KaboomCoreCtx | KaboomCtx => {
 			}
 		} else if (typeof tag === "string") {
 			return on("update", tag, action)
+		} else if (tag === undefined && action === undefined) {
+			return promisifyEvent(onUpdate)
 		}
-	}
+	}) as KaboomCtx["onUpdate"]
 
 	// add draw event to a tag or global draw
-	function onDraw(tag: Tag | (() => void), action?: (obj: GameObj) => void) {
+	const onDraw = ((tag: Tag | (() => void), action?: (obj: GameObj) => void) => {
 		if (typeof tag === "function" && action === undefined) {
 			const obj = add([{ draw: tag }])
 			return {
@@ -3536,8 +3551,10 @@ export default (gopt: KaboomOpt = {}): KaboomCoreCtx | KaboomCtx => {
 			}
 		} else if (typeof tag === "string") {
 			return on("draw", tag, action)
+		} else if (tag === undefined && action === undefined) {
+			return promisifyEvent(onDraw)
 		}
-	}
+	}) as KaboomCtx["onDraw"]
 
 	function onAdd(tag: Tag | ((obj: GameObj) => void), action?: (obj: GameObj) => void) {
 		if (typeof tag === "function" && action === undefined) {
@@ -3681,43 +3698,60 @@ export default (gopt: KaboomOpt = {}): KaboomCoreCtx | KaboomCtx => {
 	}
 
 	// input callbacks
-	function onKeyDown(k: Key | Key[], f: () => void): EventController {
-		if (Array.isArray(k)) {
-			return joinEventControllers(k.map((key) => onKeyDown(key, f)))
-		} else {
-			return game.ev.on("input", () => isKeyDown(k) && f())
-		}
+	function onKeyDown(k: Key, f: () => void): EventController {
+		return game.ev.on("input", () => isKeyDown(k) && f())
 	}
 
-	function onKeyPress(k: Key | Key[] | (() => void), f?: () => void): EventController {
-		if (Array.isArray(k)) {
-			return joinEventControllers(k.map((key) => onKeyPress(key, f)))
-		} else if (typeof k === "function") {
+	const onKeyPress = ((
+		k?: Key | ((k: Key) => void),
+		f?: (k: Key) => void,
+	) => {
+		if (typeof k === "function") {
+			// TODO: pass the pressed key
+			// @ts-ignore
 			return game.ev.on("input", () => isKeyPressed() && k())
-		} else {
-			return game.ev.on("input", () => isKeyPressed(k) && f())
+		} else if (typeof k === "string" && typeof f === "function") {
+			return game.ev.on("input", () => isKeyPressed(k) && f(k))
+		} else if (typeof k === "string" && f === undefined) {
+			return promisifyEvent(onKeyPress.bind(undefined, k))
+		} else if (typeof k === undefined && f === undefined) {
+			return promisifyEvent(onKeyPress)
 		}
-	}
+	}) as KaboomCtx["onKeyPress"]
 
-	function onKeyPressRepeat(k: Key | Key[] | (() => void), f?: () => void): EventController {
-		if (Array.isArray(k)) {
-			return joinEventControllers(k.map((key) => onKeyPressRepeat(key, f)))
-		} else if (typeof k === "function") {
-			return game.ev.on("input", () => isKeyPressed() && k())
-		} else {
-			return game.ev.on("input", () => isKeyPressedRepeat(k) && f())
+	const onKeyPressRepeat = ((
+		k?: Key | ((k: Key) => void),
+		f?: (k: Key) => void,
+	) => {
+		if (typeof k === "function") {
+			// TODO: pass the pressed key
+			// @ts-ignore
+			return game.ev.on("input", () => isKeyPressedRepeat() && k())
+		} else if (typeof k === "string" && typeof f === "function") {
+			return game.ev.on("input", () => isKeyPressedRepeat(k) && f(k))
+		} else if (typeof k === "string" && f === undefined) {
+			return promisifyEvent(onKeyPressRepeat.bind(undefined, k))
+		} else if (typeof k === undefined && f === undefined) {
+			return promisifyEvent(onKeyPressRepeat)
 		}
-	}
+	}) as KaboomCtx["onKeyPressRepeat"]
 
-	function onKeyRelease(k: Key | Key[] | (() => void), f?: () => void): EventController {
-		if (Array.isArray(k)) {
-			return joinEventControllers(k.map((key) => onKeyRelease(key, f)))
-		} else if (typeof k === "function") {
+	const onKeyRelease = ((
+		k?: Key | ((k: Key) => void),
+		f?: (k: Key) => void,
+	) => {
+		if (typeof k === "function") {
+			// TODO: pass the pressed key
+			// @ts-ignore
 			return game.ev.on("input", () => isKeyReleased() && k())
-		} else {
-			return game.ev.on("input", () => isKeyReleased(k) && f())
+		} else if (typeof k === "string" && typeof f === "function") {
+			return game.ev.on("input", () => isKeyReleased(k) && f(k))
+		} else if (typeof k === "string" && f === undefined) {
+			return promisifyEvent(onKeyRelease.bind(undefined, k))
+		} else if (typeof k === undefined && f === undefined) {
+			return promisifyEvent(onKeyRelease)
 		}
-	}
+	}) as KaboomCtx["onKeyRelease"]
 
 	function onMouseDown(
 		m: MouseButton | ((pos?: Vec2) => void),
@@ -3813,7 +3847,7 @@ export default (gopt: KaboomOpt = {}): KaboomCoreCtx | KaboomCtx => {
 	}
 
 	function enterBurpMode() {
-		onKeyPress("b", burp)
+		onKeyPress("b", () => burp())
 	}
 
 	// get / set gravity
