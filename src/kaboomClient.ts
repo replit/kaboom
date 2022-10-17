@@ -425,6 +425,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		scene,
 		go,
 		center,
+		run,
 	} = kaboomCore()
 	const appCore = app
 	const gfxCore = gfx
@@ -4832,6 +4833,47 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		game.ev.on("error", action)
 	}
 
+	//function run(f: () => void) {
+	run = function (f: () => void) {
+		if (app.loopID !== null) {
+			cancelAnimationFrame(app.loopID)
+		}
+
+		const frame = (t: number) => {
+
+			if (app.stopped) return
+
+			if (document.visibilityState !== "visible") {
+				app.loopID = requestAnimationFrame(frame)
+				return
+			}
+
+			const realTime = t / 1000
+			const realDt = realTime - app.realTime
+
+			app.realTime = realTime
+
+			if (!app.skipTime) {
+				app.dt = realDt
+				app.time += dt()
+				app.fpsCounter.tick(app.dt)
+			}
+
+			app.skipTime = false
+			app.numFrames++
+
+			frameStart()
+			f()
+			frameEnd()
+
+			resetInputState()
+			game.ev.trigger("frameEnd")
+			app.loopID = requestAnimationFrame(frame)
+
+		}
+		frame(0)
+	}
+
 	function handleErr(err: Error) {
 
 		// TODO: this should only run once
@@ -4905,49 +4947,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		app.isKeyPressed = false
 		app.isKeyPressedRepeat = false
 		app.isKeyReleased = false
-
-	}
-
-	function run(f: () => void) {
-
-		if (app.loopID !== null) {
-			cancelAnimationFrame(app.loopID)
-		}
-
-		const frame = (t: number) => {
-
-			if (app.stopped) return
-
-			if (document.visibilityState !== "visible") {
-				app.loopID = requestAnimationFrame(frame)
-				return
-			}
-
-			const realTime = t / 1000
-			const realDt = realTime - app.realTime
-
-			app.realTime = realTime
-
-			if (!app.skipTime) {
-				app.dt = realDt
-				app.time += dt()
-				app.fpsCounter.tick(app.dt)
-			}
-
-			app.skipTime = false
-			app.numFrames++
-
-			frameStart()
-			f()
-			frameEnd()
-
-			resetInputState()
-			game.ev.trigger("frameEnd")
-			app.loopID = requestAnimationFrame(frame)
-
-		}
-
-		frame(0)
 
 	}
 

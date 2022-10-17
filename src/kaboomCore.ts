@@ -2406,6 +2406,7 @@ export default (gopt: KaboomOpt = {}): KaboomCoreCtx => {
 		anchorPt,
 		getRenderProps,
 		make,
+		run,
 	}
 
 	return ctx

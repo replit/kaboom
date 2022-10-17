@@ -1013,86 +1013,6 @@ export interface KaboomCoreCtx {
 	 * @since v3000.0
 	 */
 	EventHandler: typeof EventHandler,
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 	gc: Array<() => void>,
 	app: any,
 	gfx: any,
@@ -1327,6 +1247,7 @@ export interface KaboomCoreCtx {
 	 * ```
 	 */
 	body(options?: BodyCompOpt): BodyCompCore,
+	run(f: () => void): void
 }
 
 /**
