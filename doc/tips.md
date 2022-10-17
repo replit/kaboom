@@ -1,4 +1,4 @@
-# Optimizations
+# Tips
 
 Here's some tips on optimizing performance / maintainability for kaboom games
 
@@ -33,4 +33,28 @@ for (let i = 0; i < 1000; i++) {
 		offscreen({ hide: true, pause: true })
 	])
 }
+```
+
+## Use `await`
+
+Kaboom use a lot of `Promise` and `Promise`-like in time / event related stuff, use `await` on those to make code look nicer
+
+```js
+async function example() {
+    await wait(3)
+    await onKeyPress("space")
+    await tween(0, 100, 1, (x) => mark.pos.x = x)
+}
+```
+
+## Avoid Global Namespace
+
+By default Kaboom uses a lot of common names like `pos`, `sprite` that occupies global namespace, it's often better to use `global: false` to not export kaboom functions to `window`
+
+```js
+kaboom({
+    global: false
+})
+
+const pos = k.vec2(120, 200)
 ```
