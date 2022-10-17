@@ -30,7 +30,7 @@
  * k.vec2(...)
  * ```
  */
-declare function kaboom(options?: KaboomOpt): KaboomCtx
+declare function kaboom(options?: KaboomOpt): KaboomCoreCtx | KaboomCtx
 
 /**
  * Context handle that contains every core kaboom function.
@@ -3166,6 +3166,7 @@ export interface KaboomCtx extends KaboomCoreCtx {
 	 * @since v3000.0
 	 */
 	EventHandler: typeof EventHandler,
+	onHoverUpdate(t: Tag, action: (obj: GameObj) => void): EventController,
 }
 
 export type Tag = string
@@ -3827,10 +3828,10 @@ export declare class Texture {
 	height: number
 	constructor(w: number, h: number, opt?: TextureOpt)
 	static fromImage(img: TexImageSource, opt?: TextureOpt): Texture
-	update(x: number, y: number, gl: any, img: TexImageSource)
-	bind(gl: any)
-	unbind(gl: any)
-	free(gl: any)
+	update(x: number, y: number, img: TexImageSource)
+	bind()
+	unbind()
+	free()
 }
 
 export interface GfxFont {
