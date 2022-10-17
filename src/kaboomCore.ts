@@ -3,8 +3,6 @@ const VERSION = "3000.0.0-alpha.10"
 import {
 	sat,
 	vec2,
-	vec3,
-	Vec3,
 	Rect,
 	Polygon,
 	Line,
@@ -22,7 +20,6 @@ import {
 	randSeed,
 	chance,
 	choose,
-	clamp,
 	lerp,
 	map,
 	mapc,
@@ -32,7 +29,6 @@ import {
 	testRectLine,
 	testRectPoint,
 	testPolygonPoint,
-	testCirclePoint,
 	deg2rad,
 	rad2deg,
 	easings,
@@ -47,47 +43,22 @@ import {
 	downloadJSON,
 	downloadBlob,
 	uid,
-	isDataURL,
-	deepEq,
-	dataURLToArrayBuffer,
 	// eslint-disable-next-line
 	warn,
 	// eslint-disable-next-line
 	benchmark,
-	fetchURL
+	fetchURL,
 } from "./utils"
 
 import {
-	GfxShader,
-	GfxFont,
-	RenderProps,
 	CharTransform,
-	TextureOpt,
-	FormattedText,
 	FormattedChar,
-	DrawRectOpt,
-	DrawLineOpt,
-	DrawLinesOpt,
-	DrawTriangleOpt,
-	DrawPolygonOpt,
-	DrawCircleOpt,
-	DrawEllipseOpt,
-	DrawUVQuadOpt,
-	Vertex,
 	FontData,
 	BitmapFontData,
 	ShaderData,
-	LoadSpriteSrc,
-	LoadSpriteOpt,
-	SpriteAtlasData,
-	LoadBitmapFontOpt,
 	KaboomCoreCtx,
 	KaboomOpt,
-	AudioPlay,
-	AudioPlayOpt,
 	DrawSpriteOpt,
-	DrawTextOpt,
-	TextAlign,
 	GameObjCore,
 	EventController,
 	SceneID,
@@ -95,8 +66,6 @@ import {
 	CompList,
 	Comp,
 	Tag,
-	Key,
-	MouseButton,
 	PosCompCore,
 	ScaleComp,
 	RotateComp,
@@ -105,18 +74,11 @@ import {
 	Anchor,
 	AnchorComp,
 	ZComp,
-	FollowComp,
 	MoveComp,
-	OffScreenCompOpt,
-	OffScreenComp,
 	AreaCompOpt,
 	AreaCompCore,
 	SpriteCompCore,
 	SpriteCompOpt,
-	SpriteAnimPlayOpt,
-	SpriteAnims,
-	TextComp,
-	TextCompOpt,
 	RectComp,
 	RectCompOpt,
 	UVQuadComp,
@@ -134,24 +96,13 @@ import {
 	LifespanCompOpt,
 	StateComp,
 	Debug,
-	KaboomPlugin,
-	MergeObj,
 	LevelCompCore,
 	LevelOpt,
-	Cursor,
-	Recording,
-	BoomOpt,
-	PeditFile,
 	Shape,
-	DoubleJumpComp,
-	VirtualButton,
 	TimerController,
 	TweenController,
-	GameObj,
-	SoundData,
-	SpriteData,
 } from "./types"
-import { TextureCore, SpriteDataCore, Asset, AssetBucket, SpriteCurAnim, CollisionCore, GridComp } from "./classes"
+import { SpriteDataCore, Asset, AssetBucket, CollisionCore, GridComp } from "./classes"
 
 import FPSCounter from "./fps"
 import Timer from "./timer"
@@ -248,7 +199,7 @@ export default (gopt: KaboomOpt = {}): KaboomCoreCtx => {
 			transformStack: [],
 
 			width: gopt.width,
-			height: gopt.height
+			height: gopt.height,
 
 		}
 	})()
@@ -1237,7 +1188,6 @@ export default (gopt: KaboomOpt = {}): KaboomCoreCtx => {
 	): SpriteCompCore {
 
 		let spriteData: SpriteDataCore | null = null
-		let curAnim: SpriteCurAnim | null = null
 
 		if (!src) {
 			throw new Error("Please pass the resource name or data to sprite()")
@@ -1974,23 +1924,6 @@ export default (gopt: KaboomOpt = {}): KaboomCoreCtx => {
 	const get = game.root.get.bind(game.root)
 	const getAll = game.root.getAll.bind(game.root)
 
-	// TODO: expose this
-	function boom(speed: number = 2, size: number = 1): Comp {
-		let time = 0
-		return {
-			id: "boom",
-			require: ["scale"],
-			update(this: GameObjCore<ScaleComp>) {
-				const s = Math.sin(time * speed) * size
-				if (s < 0) {
-					this.destroy()
-				}
-				this.scale = vec2(s)
-				time += dt()
-			},
-		}
-	}
-
 	function updateFrame() {
 		// update every obj
 		game.root.update()
@@ -2114,6 +2047,8 @@ export default (gopt: KaboomOpt = {}): KaboomCoreCtx => {
 		try {
 			setImmediate(() => f(Date.now()))
 		} catch (e) {
+			console.log("Kaboom Core Loop Error")
+			quit()
 		}
 	}
 

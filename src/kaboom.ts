@@ -6638,7 +6638,7 @@ export default (gopt: KaboomOpt = {}): KaboomCoreCtx | KaboomCtx => {
 		DEF_ANCHOR,
 		anchorPt,
 		getRenderProps,
-		run
+		run,
 	}
 
 	if (gopt.plugins) {

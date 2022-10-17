@@ -618,7 +618,7 @@ export interface KaboomCoreCtx {
 	/**
 	 * Get / set gravity.
 	 */
-	gravity(g: number): number,
+	gravity(g?: number): number,
 	/**
 	 * Run the callback after n seconds.
 	 *
@@ -1200,7 +1200,6 @@ export interface KaboomCoreCtx {
 	 */
 	on(event: string, tag: Tag, cb: (obj: GameObjCore, ...args: any[]) => void): EventController,
 	joinEventControllers(events: EventController[]): EventController,
-	gravity(g?: number): number,
 	//scale(...args: any[]): ScaleComp,
 	//color(...args: any[]): ColorComp,
 	toFixed(n: number, f: number): number,
@@ -3685,17 +3684,17 @@ export type LoadSpriteSrc = string | TexImageSource
 export declare class SpriteDataCore {
 	tex: TextureCore
 
-    constructor(tex: TextureCore)
+	constructor(tex: TextureCore)
 
-    static from(src: LoadSpriteSrc, gopt: any, gl: any, gc: any, opt?: LoadSpriteOpt): Promise<SpriteDataCore>
-    static fromImage(data: TexImageSource, gopt: any, gl: any, gc: any, opt?: LoadSpriteOpt): SpriteDataCore
-    static fromURL(url: string, assets: any, gopt: any, gl: any, gc: any, opt?: LoadSpriteOpt): Promise<SpriteDataCore>
+	static from(src: LoadSpriteSrc, gopt: any, gl: any, gc: any, opt?: LoadSpriteOpt): Promise<SpriteDataCore>
+	static fromImage(data: TexImageSource, gopt: any, gl: any, gc: any, opt?: LoadSpriteOpt): SpriteDataCore
+	static fromURL(url: string, assets: any, gopt: any, gl: any, gc: any, opt?: LoadSpriteOpt): Promise<SpriteDataCore>
 
     // get an array of frames based on configuration on how to slice the image
-    static slice(x?, y?, dx?, dy?, w?, h?): Quad[]
+	static slice(x?, y?, dx?, dy?, w?, h?): Quad[]
 
     // wrapper around image loader to get a Promise
-    static loadImg(src: string, assets: any): Promise<HTMLImageElement>
+	static loadImg(src: string, assets: any): Promise<HTMLImageElement>
 }
 
 export declare class SpriteData {
@@ -3840,10 +3839,10 @@ export type TextureOpt = {
 }
 
 export declare class TextureCore {
-    width: number
-    height: number
-    constructor(w: number, h: number, opt?: TextureOpt)
-    static fromImage(img: TexImageSource, gopt: any, gl: any, gc: any, opt?: TextureOpt): TextureCore
+	width: number
+	height: number
+	constructor(w: number, h: number, opt?: TextureOpt)
+	static fromImage(img: TexImageSource, gopt: any, gl: any, gc: any, opt?: TextureOpt): TextureCore
 }
 
 export declare class Texture {
@@ -4654,8 +4653,7 @@ export interface CompCore {
 	drawInspect?: () => void,
 }
 
-export interface Comp extends CompCore {
-}
+export type Comp = CompCore
 
 export type GameObjID = number
 
@@ -4679,7 +4677,6 @@ export interface PosCompCore extends CompCore {
 	 */
 	moveTo(dest: Vec2, speed?: number): void,
 	moveTo(x: number, y: number, speed?: number): void,
-	moveBy(dx: number, dy: number): void,
 }
 
 export interface PosComp extends PosCompCore, Comp {
