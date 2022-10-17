@@ -2111,7 +2111,10 @@ export default (gopt: KaboomOpt = {}): KaboomCoreCtx => {
 	}
 
 	function requestHeadlessFrame(f) {
-		setImmediate(() => f(Date.now()))
+		try {
+			setImmediate(() => f(Date.now()))
+		} catch (e) {
+		}
 	}
 
 	function run(f: () => void) {
