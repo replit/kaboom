@@ -435,6 +435,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	const posCore = pos
 	const spriteCore = sprite
 	const goCore = go
+	const makeCore = make
 
 	app = (() => {
 		const root = gopt.root ?? document.body
@@ -650,7 +651,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	make = function <T>(comps: CompList<T>): GameObj<T> {
 		// TODO: "this" should be typed here
 		const obj = {
-			...make(comps),
+			...makeCore(comps),
 
 			draw(this: GameObj<PosComp | ScaleComp | RotateComp>) {
 				if (this.hidden) return
