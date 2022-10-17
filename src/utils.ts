@@ -184,3 +184,15 @@ export function benchmark(task: () => void, times: number = 1) {
 	const t2 = performance.now()
 	return t2 - t1
 }
+
+// wrapper around fetch() that applies urlPrefix and basic error handling
+export function fetchURL(path: string, assets: any) {
+	const url = assets.urlPrefix + path
+	return fetch(url)
+		.then((res) => {
+			if (!res.ok) {
+				throw new Error(`Failed to fetch ${url}`)
+			}
+			return res
+		})
+}

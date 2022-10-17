@@ -149,7 +149,10 @@ import {
 	VirtualButton,
 	TimerController,
 	TweenController,
+	GameObjCore,
+	KaboomCoreCtx,
 } from "./types"
+import kaboomCore from "./kaboomCore"
 
 import FPSCounter from "./fps"
 import Timer from "./timer"
@@ -403,7 +406,10 @@ function createEmptyAudioBuffer(ctx: AudioContext) {
 }
 
 // only exports one kaboom() which contains all the state
-export default (gopt: KaboomOpt = {}): KaboomCtx => {
+export default (gopt: KaboomOpt = {}): KaboomCoreCtx | KaboomCtx => {
+	if (gopt.headless) {
+		return kaboomCore(gopt)
+	}
 
 	const gc: Array<() => void> = []
 
@@ -6612,6 +6618,27 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		// helpers
 		Event,
 		EventHandler,
+		gc,
+		app,
+		gfx,
+		assets,
+		game,
+		fetchJSON,
+		fetchText,
+		getArcPts,
+		applyCharTransform,
+		charInputted,
+		LOG_MAX,
+		calcTransform,
+		COMP_DESC,
+		COMP_EVENTS,
+		make,
+		joinEventControllers,
+		toFixed,
+		DEF_ANCHOR,
+		anchorPt,
+		getRenderProps,
+		run,
 	}
 
 	if (gopt.plugins) {

@@ -30,12 +30,1229 @@
  * k.vec2(...)
  * ```
  */
-declare function kaboom(options?: KaboomOpt): KaboomCtx
+declare function kaboom(options?: KaboomOpt): KaboomCoreCtx | KaboomCtx
+
+/**
+ * Context handle that contains every core kaboom function.
+ */
+export interface KaboomCoreCtx {
+	/**
+	 * Assemble a game object from a list of components, and add it to the game
+	 *
+	 * @returns The added game object that contains all properties and methods each component offers.
+	 *
+	 * @section Game Obj
+	 *
+	 * @example
+	 * ```js
+	 * const player = add([
+	 *     // List of components, each offers a set of functionalities
+	 *     sprite("mark"),
+	 *     pos(100, 200),
+	 *     area(),
+	 *     body(),
+	 *     health(8),
+	 *     // Plain strings are tags, a quicker way to let us define behaviors for a group
+	 *     "player",
+	 *     "friendly",
+	 *     // Components are just plain objects, you can pass an object literal as a component.
+	 *     {
+	 *         dir: LEFT,
+	 *         dead: false,
+	 *         speed: 240,
+	 *     },
+	 * ])
+	 *
+	 * // .jump is provided by body()
+	 * player.jump()
+
+	 * // .moveTo is provided by pos()
+	 * player.moveTo(300, 200)
+	 *
+	 * // .onUpdate() is on every game object, it registers an event that runs every frame
+	 * player.onUpdate(() => {
+	 *     // .move() is provided by pos()
+	 *     player.move(player.dir.scale(player.speed))
+	 * })
+	 *
+	 * // .onCollide is provided by area()
+	 * player.onCollide("tree", () => {
+	 *     destroy(player)
+	 * })
+	 * ```
+	 */
+	add<T>(comps: CompList<T> | GameObj<T>): GameObj<T>,
+	/**
+	 * Remove and re-add the game obj, without triggering add / destroy events.
+	 */
+	readd(obj: GameObj),
+	/**
+	 * Get a list of all game objs with certain tag.
+	 *
+	 * @example
+	 * ```js
+	 * // get a list of all game objs with tag "bomb"
+	 * const allBombs = get("bomb")
+	 *
+	 * // without args returns all current objs in the game
+	 * const allObjs = get()
+	 * ```
+	 */
+	get(tag?: Tag | Tag[]): GameObj[],
+	/**
+	 * Recursively a list of all game objs with certain tag including children of children.
+	 *
+	 * @since v3000.0
+	 */
+	getAll(tag?: Tag | Tag[]): GameObj[],
+	/**
+	 * Remove the game obj.
+	 *
+	 * @example
+	 * ```js
+	 * // every time froggy collides with anything with tag "fruit", remove it
+	 * froggy.onCollide("fruit", (fruit) => {
+	 *     destroy(fruit)
+	 * })
+	 * ```
+	 */
+	destroy(obj: GameObj): void,
+	/**
+	 * Remove all game objs with certain tag.
+	 *
+	 * @example
+	 * ```js
+	 * // destroy all objects with tag "bomb" when you click one
+	 * onClick("bomb", () => {
+	 *     destroyAll("bomb")
+	 * })
+	 * ```
+	 */
+	destroyAll(tag: Tag): void,
+	/**
+	 * Position
+	 *
+	 * @section Components
+	 *
+	 * @example
+	 * ```js
+	 * // This game object will draw a "froggy" sprite at (100, 200)
+	 * add([
+	 *     pos(100, 200),
+	 *     sprite("froggy"),
+	 * ])
+	 * ```
+	 */
+	pos(...args: any[]): PosCompCore,
+	pos(x: number, y: number): PosCompCore,
+	pos(xy: number): PosCompCore,
+	pos(p: Vec2): PosCompCore,
+	pos(): PosCompCore,
+	/**
+	 * Scale.
+	 */
+	scale(x: number, y: number): ScaleComp,
+	scale(xy: number | Vec2): ScaleComp,
+	scale(): ScaleComp,
+	/**
+	 * Rotation (in degrees). (This doesn't work with the area() collider yet)
+	 */
+	rotate(a: number): RotateComp,
+	/**
+	 * Sets color (rgb 0-255).
+	 *
+	 * @example
+	 * ```js
+	 * // blue frog
+	 * add([
+	 *     sprite("froggy"),
+	 *     color(0, 0, 255)
+	 * ])
+	 * ```
+	 */
+	color(r: number, g: number, b: number): ColorComp,
+	color(c: Color): ColorComp,
+	color(): ColorComp,
+	/**
+	 * Sets opacity (0.0 - 1.0).
+	 */
+	opacity(o?: number): OpacityComp,
+	/**
+	 * Render as a sprite.
+	 *
+	 * @example
+	 * ```js
+	 * // minimal setup
+	 * add([
+	 *     sprite("froggy"),
+	 * ])
+	 *
+	 * // with options
+	 * const froggy = add([
+	 *     sprite("froggy", {
+	 *         // start with animation "idle"
+	 *         anim: "idle",
+	 *     }),
+	 * ])
+	 *
+	 * // play / stop an anim
+	 * froggy.play("jump")
+	 * froggy.stop()
+	 *
+	 * // manually setting a frame
+	 * froggy.frame = 3
+	 * ```
+	 */
+	//sprite(spr: string | SpriteDataCore, options?: SpriteCompOpt): SpriteCompCore,
+	sprite(src: string | SpriteDataCore | Asset<SpriteDataCore>, opt?: SpriteCompOpt): SpriteCompCore,
+	/**
+	 * Render as a rectangle.
+	 *
+	 * @example
+	 * ```js
+	 * // i don't know, could be an obstacle or something
+	 * add([
+	 *     pos(80, 120),
+	 *     rect(20, 40),
+	 *     outline(4),
+	 *     area(),
+	 * ])
+	 * ```
+	 */
+	rect(w: number, h: number, opt?: RectCompOpt): RectComp,
+	/**
+	 * Render as a circle.
+	 *
+	 * @example
+	 * ```js
+	 * add([
+	 *     pos(80, 120),
+	 *     circle(16),
+	 * ])
+	 * ```
+	 */
+	circle(radius: number): CircleComp,
+	/**
+	 * Render as a UV quad.
+	 *
+	 * @example
+	 * ```js
+	 * add([
+	 *     uvquad(width(), height()),
+	 *     shader("spiral"),
+	 * ])
+	 * ```
+	 */
+	uvquad(w: number, h: number): UVQuadComp,
+	/**
+	 * Generates collider area from shape and enables collision detection.
+	 *
+	 * @example
+	 * ```js
+	 * // Automatically generate area information from the shape of render
+	 * const player = add([
+	 *     sprite("froggy"),
+	 *     area(),
+	 * ])
+	 *
+	 * // Die if player collides with another game obj with tag "tree"
+	 * player.onCollide("tree", () => {
+	 *     destroy(player)
+	 *     go("lose")
+	 * })
+	 *
+	 * // Check for collision manually every frame instead of registering an event
+	 * player.onUpdate(() => {
+	 *     if (player.isColliding(bomb)) {
+	 *         score += 1
+	 *     }
+	 * })
+	 * ```
+	 */
+	area(): AreaCompCore,
+	/**
+	 * Define collider area and enables collision detection.
+	 *
+	 * @example
+	 * ```js
+	 * add([
+	 *     sprite("flower"),
+	 *     // Scale to 0.6 of the generated area
+	 *     area({ scale: 0.6 }),
+	 *     // If we want the area scale to be calculated from the center
+	 *     anchor("center"),
+	 * ])
+	 *
+	 * add([
+	 *     sprite("froggy"),
+	 *     // Define custom area with width and height
+	 *     area({ width: 20, height: 40. }),
+	 * ])
+	 * ```
+	 */
+	area(options: AreaCompOpt): AreaCompCore,
+	/**
+	 * Anchor point for render (default "topleft").
+	 *
+	 * @example
+	 * ```js
+	 * // set anchor to "center" so it'll rotate from center
+	 * add([
+	 *     rect(40, 10),
+	 *     rotate(45),
+	 *     anchor("center"),
+	 * ])
+	 * ```
+	 */
+	anchor(o: Anchor | Vec2): AnchorComp,
+	/**
+	 * Determines the draw order for objects on the same layer. Object will be drawn on top if z value is bigger.
+	 */
+	z(z: number): ZComp,
+	/**
+	 * Give obj an outline.
+	 */
+	outline(width?: number, color?: Color): OutlineComp,
+	/**
+	 * Move towards a direction infinitely, and destroys when it leaves game view. Requires "pos" component.
+	 *
+	 * @example
+	 * ```js
+	 * // enemy throwing feces at player
+	 * const projectile = add([
+	 *     sprite("feces"),
+	 *     pos(enemy.pos),
+	 *     area(),
+	 *     move(player.pos.angle(enemy.pos), 1200),
+	 *     offscreen({ destroy: true }),
+	 * ])
+	 * ```
+	 */
+	move(direction: number | Vec2, speed: number): MoveComp,
+	/**
+	 * Run certain action after some time.
+	 */
+	timer(n?: number, action?: () => void): TimerComp,
+	/**
+	 * Make object unaffected by camera or parent object transforms, and render at last.
+	 *
+	 * @example
+	 * ```js
+	 * // this will be be fixed on top left and not affected by camera
+	 * const score = add([
+	 *     text(0),
+	 *     pos(12, 12),
+	 *     fixed(),
+	 * ])
+	 * ```
+	 */
+	fixed(): FixedComp,
+	/**
+	 * Don't get destroyed on scene switch.
+	 *
+	 * @example
+	 * ```js
+	 * player.onCollide("bomb", () => {
+	 *     // spawn an explosion and switch scene, but don't destroy the explosion game obj on scene switch
+	 *     add([
+	 *         sprite("explosion", { anim: "burst", }),
+	 *         stay(),
+	 *         lifespan(1),
+	 *     ])
+	 *     go("lose", score)
+	 * })
+	 * ```
+	 */
+	stay(scenesToStay?: string[]): StayComp,
+	/**
+	 * Handles health related logic and events.
+	 *
+	 * @example
+	 * ```js
+	 * const player = add([
+	 *     health(3),
+	 * ])
+	 *
+	 * player.onCollide("bad", (bad) => {
+	 *     player.hurt(1)
+	 *     bad.hurt(1)
+	 * })
+	 *
+	 * player.onCollide("apple", () => {
+	 *     player.heal(1)
+	 * })
+	 *
+	 * player.on("hurt", () => {
+	 *     play("ouch")
+	 * })
+	 *
+	 * // triggers when hp reaches 0
+	 * player.on("death", () => {
+	 *     destroy(player)
+	 *     go("lose")
+	 * })
+	 * ```
+	 */
+	health(hp: number): HealthComp,
+	/**
+	 * Destroy the game obj after certain amount of time
+	 *
+	 * @example
+	 * ```js
+	 * // spawn an explosion, destroy after 1 seconds, start fading away after 0.5 second
+	 * add([
+	 *     sprite("explosion", { anim: "burst", }),
+	 *     lifespan(1, { fade: 0.5 }),
+	 * ])
+	 * ```
+	 */
+	lifespan(time: number, options?: LifespanCompOpt): LifespanComp,
+	/**
+	 * Finite state machine.
+	 *
+	 * @since v2000.1
+	 *
+	 * @example
+	 * ```js
+	 * const enemy = add([
+	 *     pos(80, 100),
+	 *     sprite("robot"),
+	 *     state("idle", ["idle", "attack", "move"]),
+	 * ])
+	 *
+	 * // this callback will run once when enters "attack" state
+	 * enemy.onStateEnter("attack", () => {
+	 *     // enter "idle" state when the attack animation ends
+	 *     enemy.play("attackAnim", {
+	 *         // any additional arguments will be passed into the onStateEnter() callback
+	 *         onEnd: () => enemy.enterState("idle", rand(1, 3)),
+	 *     })
+	 *     checkHit(enemy, player)
+	 * })
+	 *
+	 * // this will run once when enters "idle" state
+	 * enemy.onStateEnter("idle", (time) => {
+	 *     enemy.play("idleAnim")
+	 *     wait(time, () => enemy.enterState("move"))
+	 * })
+	 *
+	 * // this will run every frame when current state is "move"
+	 * enemy.onStateUpdate("move", () => {
+	 *     enemy.follow(player)
+	 *     if (enemy.pos.dist(player.pos) < 16) {
+	 *         enemy.enterState("attack")
+	 *     }
+	 * })
+	 * ```
+	 */
+	state(
+		initialState: string,
+		stateList?: string[],
+	): StateComp,
+	/**
+	 * state() with pre-defined transitions.
+	 *
+	 * @since v2000.2
+	 *
+	 * @example
+	 * ```js
+	 * const enemy = add([
+	 *     pos(80, 100),
+	 *     sprite("robot"),
+	 *     state("idle", ["idle", "attack", "move"], {
+	 *         "idle": "attack",
+	 *         "attack": "move",
+	 *         "move": [ "idle", "attack" ],
+	 *     }),
+	 * ])
+	 *
+	 * // this callback will only run once when enter "attack" state from "idle"
+	 * enemy.onStateTransition("idle", "attack", () => {
+	 *     checkHit(enemy, player)
+	 * })
+	 * ```
+	 */
+	state(
+		initialState: string,
+		stateList: string[],
+		transitions: Record<string, string | string[]>,
+	): StateComp,
+	/**
+	 * Fade object in.
+	 *
+	 * @since v3000.0
+	 */
+	fadeIn(time: number): Comp,
+	/**
+	 * Register an event that runs every frame (~60 times per second) for all game objs with certain tag.
+	 *
+	 * @since v2000.1
+	 *
+	 * @example
+	 * ```js
+	 * // move every "tree" 120 pixels per second to the left, destroy it when it leaves screen
+	 * // there'll be nothing to run if there's no "tree" obj in the scene
+	 * onUpdate("tree", (tree) => {
+	 *     tree.move(-120, 0)
+	 *     if (tree.pos.x < 0) {
+	 *         destroy(tree)
+	 *     }
+	 * })
+	 * ```
+	 */
+	onUpdate(tag: Tag, action: (obj: GameObjCore) => void): EventController,
+	/**
+	 * Register an event that runs every frame (~60 times per second).
+	 *
+	 * @since v2000.1
+	 *
+	 * @example
+	 * ```js
+	 * // This will run every frame
+	 * onUpdate(() => {
+	 *     debug.log("ohhi")
+	 * })
+	 * ```
+	 */
+	onUpdate(action: () => void): EventController,
+	/**
+	 * Register an event that runs every frame (~60 times per second) for all game objs with certain tag (this is the same as onUpdate but all draw events are run after update events, drawXXX() functions only work in this phase).
+	 *
+	 * @since v2000.1
+	 */
+	onDraw(tag: Tag, action: (obj: GameObjCore) => void): EventController,
+	/**
+	 * Register an event that runs every frame (~60 times per second) (this is the same as onUpdate but all draw events are run after update events, drawXXX() functions only work in this phase).
+	 *
+	 * @since v2000.1
+	 *
+	 * @example
+	 * ```js
+	 * onDraw(() => {
+	 *     drawLine({
+	 *         p1: vec2(0),
+	 *         p2: mousePos(),
+	 *         color: rgb(0, 0, 255),
+	 *     })
+	 * })
+	 * ```
+	 */
+	onDraw(action: () => void): EventController,
+	onAdd(tag: Tag, action: (obj: GameObjCore) => void): EventController,
+	onAdd(action: (obj: GameObjCore) => void): EventController,
+	onDestroy(tag: Tag, action: (obj: GameObjCore) => void): EventController,
+	onDestroy(action: (obj: GameObjCore) => void): EventController,
+	/**
+	 * Register an event that runs when all assets finished loading.
+	 *
+	 * @since v2000.1
+	 *
+	 * @example
+	 * ```js
+	 * const froggy = add([
+	 *     sprite("froggy"),
+	 * ])
+	 *
+	 * // certain assets related data are only available when the game finishes loading
+	 * onLoad(() => {
+	 *     debug.log(froggy.width)
+	 * })
+	 * ```
+	 */
+	onLoad(action: () => void): void,
+	/**
+	 * Register a custom loading screen. The callback is run every frame during loading.
+	 *
+	 * @since v3000.0
+	 */
+	onLoadUpdate(action: (err: Error) => void): void,
+	/**
+	 * Register a custom error handler. Can be used to draw a custom error screen.
+	 *
+	 * @since v3000.0
+	 */
+	onError(action: (err: Error) => void): void,
+	/**
+	 * Register an event that runs when the canvas resizes
+	 *
+	 * @since v3000.0
+	 */
+	onResize(action: (
+		prevWidth: number,
+		prevHeight: number,
+		curWidth: number,
+		curHeight: number,
+	) => void): void,
+	/**
+	 * Register an event that runs when 2 game objs with certain tags collides (required to have area() component).
+	 *
+	 * @since v2000.1
+	 *
+	 * @example
+	 * ```js
+	 * onCollide("sun", "earth", () => {
+	 *     addExplosion()
+	 * })
+	 * ```
+	 */
+	onCollide(
+		t1: Tag,
+		t2: Tag,
+		action: (a: GameObjCore, b: GameObjCore, col?: CollisionCore) => void,
+	): EventController,
+	Asset: typeof Asset,
+	/**
+	 * Get the center point of view.
+	 *
+	 * @example
+	 * ```js
+	 * // add froggy to the center of the screen
+	 * add([
+	 *     sprite("froggy"),
+	 *     pos(center()),
+	 *     // ...
+	 * ])
+	 * ```
+	 */
+	center(): Vec2,
+	/**
+	 * Get / set gravity.
+	 */
+	gravity(g?: number): number,
+	/**
+	 * Run the callback after n seconds.
+	 *
+	 * @section Timer
+	 *
+	 * @example
+	 * ```js
+	 * // 3 seconds until explosion! Runnn!
+	 * wait(3, () => {
+	 *     explode()
+	 * })
+	 *
+	 * // wait() returns a PromiseLike that can be used with await
+	 * await wait(1)
+	 * ```
+	 */
+	wait(n: number, action?: () => void): TimerController,
+	/**
+	 * Run the callback every n seconds.
+	 *
+	 * @example
+	 * ```js
+	 * // spawn a butterfly at random position every 1 second
+	 * loop(1, () => {
+	 *     add([
+	 *         sprite("butterfly"),
+	 *         pos(rand(vec2(width(), height()))),
+	 *         area(),
+	 *         "friend",
+	 *     ])
+	 * })
+	 * ```
+	 */
+	loop(t: number, action: () => void): EventController,
+	Timer: typeof Timer,
+	/**
+	 * Get a random number between 0 - 1.
+	 *
+	 * @section Math
+	 */
+	rand(): number,
+	/**
+	 * Get a random value between 0 and the given value.
+	 *
+	 * @example
+	 * ```js
+	 * // a random number between 0 - 8
+	 * rand(8)
+	 *
+	 * // a random point on screen
+	 * rand(vec2(width(), height()))
+	 *
+	 * // a random color
+	 * rand(rgb(255, 255, 255))
+	 * ```
+	 */
+	rand<T extends RNGValue>(n: T): T,
+	/**
+	 * Get a random value between the given bound.
+	 *
+	 * @example
+	 * ```js
+	 * rand(50, 100)
+	 * rand(vec2(20), vec2(100))
+	 *
+	 * // spawn something on the right side of the screen but with random y value within screen height
+	 * add([
+	 *     pos(width(), rand(0, height())),
+	 * ])
+	 * ```
+	 */
+	rand<T extends RNGValue>(a: T, b: T): T,
+	/**
+	 * rand() but floored to integer.
+	 *
+	 * @example
+	 * ```js
+	 * randi(10) // returns 0 to 9
+	 * ```
+	 */
+	randi(n: number): number,
+	/**
+	 * rand() but floored to integer.
+	 *
+	 * @example
+	 * ```js
+	 * randi(0, 3) // returns 0, 1, or 2
+	 * ```
+	 */
+	randi(a: number, b: number): number,
+	/**
+	 * rand() but floored to integer.
+	 *
+	 * @example
+	 * ```js
+	 * randi() // returns either 0 or 1
+	 * ```
+	 */
+	randi(): number,
+	/**
+	 * Get / set the random number generator seed.
+	 *
+	 * @example
+	 * ```js
+	 * randSeed(Date.now())
+	 * ```
+	 */
+	randSeed(seed?: number): number,
+	/**
+	 * Create a 2d vector.
+	 *
+	 * @example
+	 * ```js
+	 * // { x: 0, y: 0 }
+	 * vec2()
+	 *
+	 * // { x: 10, y: 10 }
+	 * vec2(10)
+	 *
+	 * // { x: 100, y: 80 }
+	 * vec2(100, 80)
+	 *
+	 * // move to 150 degrees direction with by length 10
+	 * player.pos = pos.add(Vec2.fromAngle(150).scale(10))
+	 * ```
+	 */
+	vec2(x: number, y: number): Vec2,
+	vec2(p: Vec2): Vec2,
+	vec2(xy: number): Vec2,
+	vec2(): Vec2,
+	/**
+	 * RGB color (0 - 255).
+	 *
+	 * @example
+	 * ```js
+	 * // update the color of the sky to light blue
+	 * sky.color = rgb(0, 128, 255)
+	 * ```
+	 */
+	rgb(r: number, g: number, b: number): Color,
+	/**
+	 * Convert HSL color (all values in 0.0 - 1.0 range) to RGB color.
+	 *
+	 * @since v2000.1
+	 *
+	 * @example
+	 * ```js
+	 * // animate rainbow color
+	 * onUpdate("rainbow", (obj) => {
+	 *     obj.color = hsl2rgb(wave(0, 1, time()), 0.6, 0.6)
+	 * })
+	 * ```
+	 */
+	hsl2rgb(hue: number, saturation: number, lightness: number): Color,
+	/**
+	 * Rectangle area (0.0 - 1.0).
+	 */
+	quad(x: number, y: number, w: number, h: number): Quad,
+	/**
+	 * Choose a random item from a list.
+	 *
+	 * @example
+	 * ```js
+	 * // decide the best fruit randomly
+	 * const bestFruit = choose(["apple", "banana", "pear", "watermelon"])
+	 * ```
+	 */
+	choose<T>(lst: T[]): T,
+	/**
+	 * rand(1) <= p
+	 *
+	 * @example
+	 * ```js
+	 * // every frame all objs with tag "unlucky" have 50% chance die
+	 * onUpdate("unlucky", (o) => {
+	 *     if (chance(0.5)) {
+	 *         destroy(o)
+	 *     }
+	 * })
+	 * ```
+	 */
+	chance(p: number): boolean,
+	/**
+	 * Linear interpolation.
+	 */
+	lerp(from: number, to: number, t: number): number,
+	/**
+	 * Tweeeeeeeening!
+	 *
+	 * @since v3000.0
+	 *
+	 * @example
+	 * ```js
+	 * // tween bean to mouse position
+	 * tween(bean.pos.x, mousePos().x, 1, (val) => bean.pos.x = val, easings.easeOutBounce)
+	 * tween(bean.pos.y, mousePos().y, 1, (val) => bean.pos.y = val, easings.easeOutBounce)
+	 *
+	 * // tween() returns a PromiseLike that can be used with await
+	 * await tween(bean.opacity, 1, 2, (val) => bean.opacity = val, easings.easeOutQuad)
+	 * ```
+	 */
+	tween(
+		min: number,
+		max: number,
+		duration: number,
+		setValue: (value: number) => void,
+		easeFunc: (t: number) => number,
+	): TweenController,
+	/**
+	 * A collection of easing functions for tweening.
+	 *
+	 * @since v3000.0
+	 */
+	easings: Record<EaseFuncs, EaseFunc>,
+	/**
+	 * Map a value from one range to another range.
+	 */
+	map(
+		v: number,
+		l1: number,
+		h1: number,
+		l2: number,
+		h2: number,
+	): number,
+	/**
+	 * Map a value from one range to another range, and clamp to the dest range.
+	 */
+	mapc(
+		v: number,
+		l1: number,
+		h1: number,
+		l2: number,
+		h2: number,
+	): number,
+	/**
+	 * Interpolate between 2 values (Optionally takes a custom periodic function, which default to Math.sin).
+	 *
+	 * @example
+	 * ```js
+	 * // bounce color between 2 values as time goes on
+	 * onUpdate("colorful", (c) => {
+	 *     c.color.r = wave(0, 255, time())
+	 *     c.color.g = wave(0, 255, time() + 1)
+	 *     c.color.b = wave(0, 255, time() + 2)
+	 * })
+	 * ```
+	 */
+	wave(lo: number, hi: number, t: number, func?: (x: number) => number): number,
+	/**
+	 * Convert degrees to radians.
+	 */
+	deg2rad(deg: number): number,
+	/**
+	 * Convert radians to degrees.
+	 */
+	rad2deg(rad: number): number,
+	/**
+	 * Check if 2 lines intersects, if yes returns the intersection point.
+	 */
+	testLineLine(l1: Line, l2: Line): Vec2 | null,
+	/**
+	 * Check if 2 rectangle overlaps.
+	 */
+	testRectRect(r1: Rect, r2: Rect): boolean,
+	/**
+	 * Check if a line and a rectangle overlaps.
+	 */
+	testRectLine(r: Rect, l: Line): boolean,
+	/**
+	 * Check if a point is inside a rectangle.
+	 */
+	testRectPoint(r: Rect, pt: Point): boolean,
+	Line: typeof Line,
+	Rect: typeof Rect,
+	Circle: typeof Circle,
+	Polygon: typeof Polygon,
+	Vec2: typeof Vec2,
+	Color: typeof Color,
+	Mat4: typeof Mat4,
+	Quad: typeof Quad,
+	RNG: typeof RNG,
+	/**
+	 * Define a scene.
+	 *
+	 * @section Scene
+	 */
+	scene(id: SceneID, def: SceneDef): void,
+	/**
+	 * Go to a scene, passing all rest args to scene callback.
+	 */
+	go(id: SceneID, ...args: any): void,
+	/**
+	 * Construct a level based on symbols.
+	 *
+	 * @section Level
+	 *
+	 * @example
+	 * ```js
+	 * addLevel([
+	 *     "                          $",
+	 *     "                          $",
+	 *     "           $$         =   $",
+	 *     "  %      ====         =   $",
+	 *     "                      =    ",
+	 *     "       ^^      = >    =   &",
+	 *     "===========================",
+	 * ], {
+	 *     // define the size of each block
+	 *     width: 32,
+	 *     height: 32,
+	 *     // define what each symbol means, by a function returning a component list (what will be passed to add())
+	 *     "=": () => [
+	 *         sprite("floor"),
+	 *         area(),
+	 *         solid(),
+	 *     ],
+	 *     "$": () => [
+	 *         sprite("coin"),
+	 *         area(),
+	 *         pos(0, -9),
+	 *     ],
+	 *     "^": () => [
+	 *         sprite("spike"),
+	 *         area(),
+	 *         "danger",
+	 *     ],
+	 * })
+	 * ```
+	 */
+	addLevel(map: string[], options: LevelOpt): GameObjCore,
+	/**
+	 * Trigger a file download from a url.
+	 *
+	 * @since v3000.0
+	 */
+	download(filename: string, dataurl: string): void,
+	/**
+	 * Trigger a text file download.
+	 *
+	 * @since v3000.0
+	 */
+	downloadText(filename: string, text: string): void,
+	/**
+	 * Trigger a json download from a .
+	 *
+	 * @since v3000.0
+	 */
+	downloadJSON(filename: string, data: any): void,
+	/**
+	 * Trigger a file download from a blob.
+	 *
+	 * @since v3000.0
+	 */
+	downloadBlob(filename: string, blob: Blob): void,
+	/**
+	 * Left directional vector vec2(-1, 0).
+	 */
+	LEFT: Vec2,
+	/**
+	 * Right directional vector vec2(1, 0).
+	 */
+	RIGHT: Vec2,
+	/**
+	 * Up directional vector vec2(0, -1).
+	 */
+	UP: Vec2,
+	/**
+	 * Down directional vector vec2(0, 1).
+	 */
+	DOWN: Vec2,
+	RED: Color,
+	GREEN: Color,
+	BLUE: Color,
+	YELLOW: Color,
+	MAGENTA: Color,
+	CYAN: Color,
+	WHITE: Color,
+	BLACK: Color,
+	/**
+	 * End everything.
+	 */
+	quit: () => void,
+	/**
+	 * EventHandler for one single event.
+	 *
+	 * @since v3000.0
+	 */
+	Event: typeof Event,
+	/**
+	 * EventHandler for multiple events.
+	 *
+	 * @since v3000.0
+	 */
+	EventHandler: typeof EventHandler,
+	gc: Array<() => void>,
+	app: any,
+	gfx: any,
+	assets: any,
+	game: any,
+	/**
+	 * Add a new loader to wait for before starting the game.
+	 *
+	 * @example
+	 * ```js
+	 * load(new Promise((resolve, reject) => {
+	 *     // anything you want to do that stalls the game in loading state
+	 *     resolve("ok")
+	 * }))
+	 * ```
+	 */
+	//load: <T>(prom: Promise<T>) => Asset<T>
+	load<T>(l: Promise<T>): Asset<T>,
+	/**
+	 * Get the global asset loading progress (0.0 - 1.0).
+	 *
+	 * @since v3000.0
+	 */
+	loadProgress(): number,
+	fetchJSON(path: string): Promise<any>,
+	fetchText(path: string): Promise<any>,
+	/**
+	 * Current Kaboom library version.
+	 *
+	 * @since v3000.0
+	 */
+	VERSION: string,
+	/**
+	 * Sets the root for all subsequent resource urls.
+	 *
+	 * @section Assets
+	 *
+	 * @example
+	 * ```js
+	 * loadRoot("https://myassets.com/")
+	 * loadSprite("froggy", "sprites/froggy.png") // will resolve to "https://myassets.com/sprites/frogg.png"
+	 * ```
+	 */
+	loadRoot(path?: string): string,
+	/**
+	 * Apply a transform matrix, ignore all prior transforms.
+	 *
+	 * @since v3000.0
+	 */
+	pushMatrix(mat: Mat4): void,
+	/**
+	 * Translate all subsequent draws.
+	 *
+	 * @example
+	 * ```js
+	 * pushTranslate(100, 100)
+	 *
+	 * // this will be drawn at (120, 120)
+	 * drawText({
+	 *     text: "oh hi",
+	 *     pos: vec2(20, 20),
+	 * })
+	 * ```
+	 */
+	pushTranslate(x: number, y: number): void,
+	pushTranslate(p: Vec2): void,
+	/**
+	 * Scale all subsequent draws.
+	 */
+	pushScale(x: number, y: number): void,
+	pushScale(s: Vec2 | number): void,
+	/**
+	 * Rotate all subsequent draws.
+	 */
+	pushRotate(angle: number): void,
+	/**
+	 * Rotate all subsequent draws on X axis.
+	 *
+	 * @since v3000.0
+	 */
+	pushRotateX(angle: number): void,
+	/**
+	 * Rotate all subsequent draws on Y axis.
+	 *
+	 * @since v3000.0
+	 */
+	pushRotateY(angle: number): void,
+	/**
+	 * Rotate all subsequent draws on Z axis (the default).
+	 *
+	 * @since v3000.0
+	 */
+	pushRotateZ(angle: number): void,
+	/**
+	 * Push current transform matrix to the transform stack.
+	 *
+	 * @example
+	 * ```js
+	 * pushTransform()
+	 *
+	 * // these transforms will affect every render until popTransform()
+	 * pushTranslate(120, 200)
+	 * pushRotate(time() * 120)
+	 * pushScale(6)
+	 *
+	 * drawSprite("froggy")
+	 * drawCircle(vec2(0), 120)
+	 *
+	 * // restore the transformation stack to when last pushed
+	 * popTransform()
+	 * ```
+	 */
+	pushTransform(): void,
+	/**
+	 * Pop the topmost transform matrix from the transform stack.
+	 */
+	popTransform(): void,
+	getArcPts(
+		pos: Vec2,
+		radiusX: number,
+		radiusY: number,
+		start: number,
+		end: number,
+		res?: number): Vec2[],
+	applyCharTransform(fchar: FormattedChar, tr: CharTransform): void,
+	/**
+	 * Get the width of game.
+	 *
+	 * @section Info
+	 */
+	width(): number,
+	/**
+	 * Get the height of game.
+	 */
+	height(): number,
+	charInputted(): string[],
+	/**
+	 * Get the delta time since last frame.
+	 *
+	 * @example
+	 * ```js
+	 * // rotate froggy 100 deg per second
+	 * froggy.onUpdate(() => {
+	 *     froggy.angle += 100 * dt()
+	 * })
+	 * ```
+	 */
+	dt(): number,
+	/**
+	 * Get the total time since beginning.
+	 */
+	time(): number,
+	LOG_MAX: number,
+	/**
+	 * @section Debug
+	 *
+	 * @example
+	 * ```js
+	 * // pause the whole game
+	 * debug.paused = true
+	 *
+	 * // enter inspect mode
+	 * debug.inspect = true
+	 * ```
+	 */
+	debug: Debug,
+	calcTransform(obj: GameObj): Mat4,
+	COMP_DESC: Set<string>,
+	COMP_EVENTS: Set<string>,
+	make: <T>(comps: CompList<T>) => GameObjCore<T>,
+	/**
+	 * Register an event on all game objs with certain tag.
+	 *
+	 * @section Events
+	 *
+	 * @example
+	 * ```js
+	 * // a custom event defined by body() comp
+	 * // every time an obj with tag "bomb" hits the floor, destroy it and addKaboom()
+	 * on("ground", "bomb", (bomb) => {
+	 *     destroy(bomb)
+	 *     addKaboom()
+	 * })
+	 * ```
+	 */
+	on(event: string, tag: Tag, cb: (obj: GameObjCore, ...args: any[]) => void): EventController,
+	joinEventControllers(events: EventController[]): EventController,
+	//scale(...args: any[]): ScaleComp,
+	//color(...args: any[]): ColorComp,
+	toFixed(n: number, f: number): number,
+	DEF_ANCHOR: "topleft",
+	anchorPt(orig: Anchor | Vec2): Vec2,
+	getRenderProps(obj: GameObjCore<any>): {
+		color: any;
+		opacity: any;
+		anchor: any;
+		outline: any;
+		fixed: any;
+		shader: any;
+		uniform: any;
+	},
+	shader(id: string, uniform?: Uniform): ShaderComp,
+	//state(initState: string, stateList?: string[], transitions?: Record<string, string | string[]>): StateComp,
+	//go(id: SceneID, ...args: any[]): void,
+	/**
+	 * Physical body that responds to gravity. Requires "area" and "pos" comp. This also makes the object "solid".
+	 *
+	 * @example
+	 * ```js
+	 * // froggy jumpy
+	 * const froggy = add([
+	 *     sprite("froggy"),
+	 *     // body() requires "pos" and "area" component
+	 *     pos(),
+	 *     area(),
+	 *     body(),
+	 * ])
+	 *
+	 * // when froggy is grounded, press space to jump
+	 * // check out #BodyComp for more methods
+	 * onKeyPress("space", () => {
+	 *     if (froggy.isGrounded()) {
+	 *         froggy.jump()
+	 *     }
+	 * })
+	 *
+	 * // run something when froggy falls and hits a ground
+	 * froggy.onGround(() => {
+	 *     debug.log("oh no!")
+	 * })
+	 * ```
+	 */
+	body(options?: BodyCompOpt): BodyCompCore,
+	run(f: () => void): void
+}
 
 /**
  * Context handle that contains every kaboom function.
  */
-export interface KaboomCtx {
+export interface KaboomCtx extends KaboomCoreCtx {
 	/**
 	 * Assemble a game object from a list of components, and add it to the game
 	 *
@@ -464,7 +1681,7 @@ export interface KaboomCtx {
 	 *     player.hurt(1)
 	 *     bad.hurt(1)
 	 * })
-     *
+	 *
 	 * player.onCollide("apple", () => {
 	 *     player.heal(1)
 	 * })
@@ -746,12 +1963,6 @@ export interface KaboomCtx {
 	 */
 	onHover(tag: Tag, action: (a: GameObj) => void): EventController,
 	/**
-	 * Register an event that runs every frame when game objs with certain tags are hovered (required to have area() component).
-	 *
-	 * @since v3000.0
-	 */
-	onHoverUpdate(tag: Tag, onHover: (a: GameObj) => void, onNotHover: (a: GameObj) => void): EventController,
-	/**
 	 * Register an event that runs once when game objs with certain tags are unhovered (required to have area() component).
 	 *
 	 * @since v3000.0
@@ -910,18 +2121,6 @@ export interface KaboomCtx {
 	 * @since v3000.0
 	 */
 	onVirtualButtonRelease(btn: VirtualButton, action: () => void): EventController,
-	/**
-	 * Sets the root for all subsequent resource urls.
-	 *
-	 * @section Assets
-	 *
-	 * @example
-	 * ```js
-	 * loadRoot("https://myassets.com/")
-	 * loadSprite("froggy", "sprites/froggy.png") // will resolve to "https://myassets.com/sprites/frogg.png"
-	 * ```
-	 */
-	loadRoot(path?: string): string,
 	/**
 	 * Load a sprite into asset manager, with name and resource url and optional config.
 	 *
@@ -1106,24 +2305,6 @@ export interface KaboomCtx {
 		isUrl?: boolean,
 	): Asset<ShaderData>,
 	/**
-	 * Add a new loader to wait for before starting the game.
-	 *
-	 * @example
-	 * ```js
-	 * load(new Promise((resolve, reject) => {
-	 *     // anything you want to do that stalls the game in loading state
-	 *     resolve("ok")
-	 * }))
-	 * ```
-	 */
-	load<T>(l: Promise<T>): Asset<T>,
-	/**
-	 * Get the global asset loading progress (0.0 - 1.0).
-	 *
-	 * @since v3000.0
-	 */
-	loadProgress(): number,
-	/**
 	 * Get SpriteData from handle if loaded.
 	 *
 	 * @since v3000.0
@@ -1157,16 +2338,6 @@ export interface KaboomCtx {
 	SpriteData: typeof SpriteData,
 	SoundData: typeof SoundData,
 	/**
-	 * Get the width of game.
-	 *
-	 * @section Info
-	 */
-	width(): number,
-	/**
-	 * Get the height of game.
-	 */
-	height(): number,
-	/**
 	 * Get the center point of view.
 	 *
 	 * @example
@@ -1180,22 +2351,6 @@ export interface KaboomCtx {
 	 * ```
 	 */
 	center(): Vec2,
-	/**
-	 * Get the delta time since last frame.
-	 *
-	 * @example
-	 * ```js
-	 * // rotate froggy 100 deg per second
-	 * froggy.onUpdate(() => {
-	 *     froggy.angle += 100 * dt()
-	 * })
-	 * ```
-	 */
-	dt(): number,
-	/**
-	 * Get the total time since beginning.
-	 */
-	time(): number,
 	/**
 	 * If the game canvas is currently focused.
 	 *
@@ -1918,80 +3073,6 @@ export interface KaboomCtx {
 	 */
 	drawSubtracted(content: () => void, mask: () => void): void,
 	/**
-	 * Push current transform matrix to the transform stack.
-	 *
-	 * @example
-	 * ```js
-	 * pushTransform()
-	 *
-	 * // these transforms will affect every render until popTransform()
-	 * pushTranslate(120, 200)
-	 * pushRotate(time() * 120)
-	 * pushScale(6)
-	 *
-	 * drawSprite("froggy")
-	 * drawCircle(vec2(0), 120)
-	 *
-	 * // restore the transformation stack to when last pushed
-	 * popTransform()
-	 * ```
-	 */
-	pushTransform(): void,
-	/**
-	 * Pop the topmost transform matrix from the transform stack.
-	 */
-	popTransform(): void,
-	/**
-	 * Translate all subsequent draws.
-	 *
-	 * @example
-	 * ```js
-	 * pushTranslate(100, 100)
-	 *
-	 * // this will be drawn at (120, 120)
-	 * drawText({
-	 *     text: "oh hi",
-	 *     pos: vec2(20, 20),
-	 * })
-	 * ```
-	 */
-	pushTranslate(x: number, y: number): void,
-	pushTranslate(p: Vec2): void,
-	/**
-	 * Scale all subsequent draws.
-	 */
-	pushScale(x: number, y: number): void,
-	pushScale(s: number): void,
-	pushScale(s: Vec2): void,
-	/**
-	 * Rotate all subsequent draws.
-	 */
-	pushRotate(angle: number): void,
-	/**
-	 * Rotate all subsequent draws on X axis.
-	 *
-	 * @since v3000.0
-	 */
-	pushRotateX(angle: number): void,
-	/**
-	 * Rotate all subsequent draws on Y axis.
-	 *
-	 * @since v3000.0
-	 */
-	pushRotateY(angle: number): void,
-	/**
-	 * Rotate all subsequent draws on Z axis (the default).
-	 *
-	 * @since v3000.0
-	 */
-	pushRotateZ(angle: number): void,
-	/**
-	 * Apply a transform matrix, ignore all prior transforms.
-	 *
-	 * @since v3000.0
-	 */
-	pushMatrix(mat: Mat4): void,
-	/**
 	 * Format a piece of text without drawing (for getting dimensions, etc).
 	 *
 	 * @since v2000.2
@@ -2012,19 +3093,6 @@ export interface KaboomCtx {
 	 * ```
 	 */
 	formatText(options: DrawTextOpt): FormattedText,
-	/**
-	 * @section Debug
-	 *
-	 * @example
-	 * ```js
-	 * // pause the whole game
-	 * debug.paused = true
-	 *
-	 * // enter inspect mode
-	 * debug.inspect = true
-	 * ```
-	 */
-	debug: Debug,
 	/**
 	 * Import a plugin.
 	 *
@@ -2121,12 +3189,7 @@ export interface KaboomCtx {
 	 * @since v3000.0
 	 */
 	EventHandler: typeof EventHandler,
-	/**
-	 * Current Kaboom library version.
-	 *
-	 * @since v3000.0
-	 */
-	VERSION: string,
+	onHoverUpdate(t: Tag, action: (obj: GameObj) => void): EventController,
 }
 
 export type Tag = string
@@ -2257,30 +3320,34 @@ export interface KaboomOpt {
 	 * Enter burp mode.
 	 */
 	burp?: boolean,
+	/**
+	 * Headless mode
+	 */
+	headless?: boolean,
 }
 
 export type KaboomPlugin<T> = (k: KaboomCtx) => T
 
 /**
- * Base interface of all game objects.
+ * Base interface of all core game objects.
  */
-export interface GameObjRaw {
+export interface GameObjRawCore {
 	/**
 	 * Add a child.
 	 *
 	 * @since v3000.0
 	 */
-	add<T>(comps: CompList<T> | GameObj<T>): GameObj<T>,
+	add<T>(comps: CompList<T> | GameObjCore<T>): GameObjCore<T>,
 	/**
 	 * Remove and re-add the game obj, without triggering add / destroy events.
 	 */
-	readd(obj: GameObj),
+	readd(obj: GameObjCore),
 	/**
 	 * Remove a child.
 	 *
 	 * @since v3000.0
 	 */
-	remove(obj: GameObj): void,
+	remove(obj: GameObjCore): void,
 	/**
 	 * Remove all children with a certain tag.
 	 *
@@ -2292,37 +3359,31 @@ export interface GameObjRaw {
 	 *
 	 * @since v3000.0
 	 */
-	get(tag?: Tag | Tag[]): GameObj[],
+	get(tag?: Tag | Tag[]): GameObjCore[],
 	/**
 	 * Recursively a list of all game objs with certain tag including children of children.
 	 *
 	 * @since v3000.0
 	 */
-	getAll(tag?: Tag | Tag[]): GameObj[],
+	getAll(tag?: Tag | Tag[]): GameObjCore[],
 	/**
 	 * Get the parent game obj, if have any.
 	 *
 	 * @since v3000.0
 	 */
-	parent: GameObj | null,
+	parent: GameObjCore | null,
 	/**
 	 * Get all children game objects.
 	 *
 	 * @since v3000.0
 	 */
-	children: GameObj[],
+	children: GameObjCore[],
 	/**
 	 * Update this game object and all children game objects.
 	 *
 	 * @since v3000.0
 	 */
 	update(): void,
-	/**
-	 * Draw this game object and all children game objects.
-	 *
-	 * @since v3000.0
-	 */
-	draw(): void,
 	/**
 	 * If there's certain tag(s) on the game obj.
 	 */
@@ -2364,12 +3425,6 @@ export interface GameObjRaw {
 	 */
 	onUpdate(action: () => void): EventController,
 	/**
-	 * Register an event that runs every frame as long as the game obj exists (this is the same as `onUpdate()`, but all draw events are run after all update events).
-	 *
-	 * @since v2000.1
-	 */
-	onDraw(action: () => void): EventController,
-	/**
 	 * Register an event that runs when the game obj is destroyed.
 	 *
 	 * @since v2000.1
@@ -2384,7 +3439,7 @@ export interface GameObjRaw {
 	 *
 	 * @since v3000.0
 	 */
-	isAncestorOf(obj: GameObj): boolean,
+	isAncestorOf(obj: GameObjCore): boolean,
 	/**
 	 * Calculated transform matrix of a game object.
 	 *
@@ -2404,11 +3459,75 @@ export interface GameObjRaw {
 	 */
 	id: GameObjID | null,
 }
+/**
+ * Base interface of all game objects.
+ */
+export interface GameObjRaw extends GameObjRawCore {
+	/**
+	 * Add a child.
+	 *
+	 * @since v3000.0
+	 */
+	add<T>(comps: CompList<T> | GameObj<T>): GameObj<T>,
+	/**
+	 * Remove and re-add the game obj, without triggering add / destroy events.
+	 */
+	readd(obj: GameObj),
+	/**
+	 * Remove a child.
+	 *
+	 * @since v3000.0
+	 */
+	remove(obj: GameObj): void,
+	/**
+	 * Get a list of all game objs with certain tag.
+	 *
+	 * @since v3000.0
+	 */
+	get(tag?: Tag | Tag[]): GameObj[],
+	/**
+	 * Recursively a list of all game objs with certain tag including children of children.
+	 *
+	 * @since v3000.0
+	 */
+	getAll(tag?: Tag | Tag[]): GameObj[],
+	/**
+	 * Get the parent game obj, if have any.
+	 *
+	 * @since v3000.0
+	 */
+	parent: GameObj | null,
+	/**
+	 * Get all children game objects.
+	 *
+	 * @since v3000.0
+	 */
+	children: GameObj[],
+	/**
+	 * Draw this game object and all children game objects.
+	 *
+	 * @since v3000.0
+	 */
+	draw(): void,
+	/**
+	 * Register an event that runs every frame as long as the game obj exists (this is the same as `onUpdate()`, but all draw events are run after all update events).
+	 *
+	 * @since v2000.1
+	 */
+	onDraw(action: () => void): EventController,
+	/**
+	 * Check if is an ancestor (recursive parent) of another game object
+	 *
+	 * @since v3000.0
+	 */
+	isAncestorOf(obj: GameObj): boolean,
+}
 
 /**
  * The basic unit of object in Kaboom. The player, a butterfly, a tree, or even a piece of text.
  */
 export type GameObj<T = any> = GameObjRaw & MergeComps<T>
+export type GameObjCore<T = any> = GameObjRawCore & MergeComps<T>
 
 export type SceneID = string
 export type SceneDef = (...args) => void
@@ -2562,20 +3681,36 @@ export declare class Asset<D> {
 
 export type LoadSpriteSrc = string | TexImageSource
 
+export declare class SpriteDataCore {
+	tex: TextureCore
+
+	constructor(tex: TextureCore)
+
+	static from(src: LoadSpriteSrc, gopt: any, gl: any, gc: any, opt?: LoadSpriteOpt): Promise<SpriteDataCore>
+	static fromImage(data: TexImageSource, gopt: any, gl: any, gc: any, opt?: LoadSpriteOpt): SpriteDataCore
+	static fromURL(url: string, assets: any, gopt: any, gl: any, gc: any, opt?: LoadSpriteOpt): Promise<SpriteDataCore>
+
+    // get an array of frames based on configuration on how to slice the image
+	static slice(x?, y?, dx?, dy?, w?, h?): Quad[]
+
+    // wrapper around image loader to get a Promise
+	static loadImg(src: string, assets: any): Promise<HTMLImageElement>
+}
+
 export declare class SpriteData {
 	tex: Texture
 	frames: Quad[]
 	anims: SpriteAnims
 	constructor(tex: Texture, frames?: Quad[], anims?: SpriteAnims)
-	static fromImage(data: TexImageSource, opt?: LoadSpriteOpt): SpriteData
-	static fromURL(url: string, opt?: LoadSpriteOpt): Promise<SpriteData>
+	static fromImage(data: TexImageSource, gopt: any, gl: any, gc: any, opt?: LoadSpriteOpt): SpriteData
+	static fromURL(url: string, assets: any, gopt: any, gl: any, gc: any, opt?: LoadSpriteOpt): Promise<SpriteData>
 }
 
 export declare class SoundData {
 	buf: AudioBuffer
 	constructor(buf: AudioBuffer)
-	static fromArrayBuffer(buf: ArrayBuffer): Promise<SoundData>
-	static fromURL(url: string): Promise<SoundData>
+	static fromArrayBuffer(buf: ArrayBuffer, audio: any): Promise<SoundData>
+	static fromURL(url: string, assets: any, audio: any): Promise<SoundData>
 }
 
 export interface LoadBitmapFontOpt {
@@ -2703,6 +3838,13 @@ export type TextureOpt = {
 	wrap?: TexWrap,
 }
 
+export declare class TextureCore {
+	width: number
+	height: number
+	constructor(w: number, h: number, opt?: TextureOpt)
+	static fromImage(img: TexImageSource, gopt: any, gl: any, gc: any, opt?: TextureOpt): TextureCore
+}
+
 export declare class Texture {
 	glTex: WebGLTexture
 	width: number
@@ -2755,7 +3897,7 @@ export type DrawSpriteOpt = RenderProps & {
 	/**
 	 * The sprite name in the asset manager, or the raw sprite data.
 	 */
-	sprite: string | SpriteData | Asset<SpriteData>,
+	sprite: string | SpriteData | Asset<SpriteData> | SpriteDataCore | Asset<SpriteDataCore>,
 	/**
 	 * If the sprite is loaded with multiple frames, or sliced, use the frame option to specify which frame to draw.
 	 */
@@ -3474,7 +4616,7 @@ export declare class RNG {
 	genAny<T extends RNGValue>(...args: T[]): T
 }
 
-export interface Comp {
+export interface CompCore {
 	/**
 	 * Component ID (if left out won't be treated as a comp).
 	 */
@@ -3511,9 +4653,11 @@ export interface Comp {
 	drawInspect?: () => void,
 }
 
+export type Comp = CompCore
+
 export type GameObjID = number
 
-export interface PosComp extends Comp {
+export interface PosCompCore extends CompCore {
 	/**
 	 * Object's current world position.
 	 */
@@ -3533,6 +4677,9 @@ export interface PosComp extends Comp {
 	 */
 	moveTo(dest: Vec2, speed?: number): void,
 	moveTo(x: number, y: number, speed?: number): void,
+}
+
+export interface PosComp extends PosCompCore, Comp {
 	/**
 	 * Get position on screen after camera transform.
 	 */
@@ -3541,6 +4688,7 @@ export interface PosComp extends Comp {
 	 * Get position on screen after camera transform.
 	 */
 	worldPos(): Vec2,
+	drawInspect(): void,
 }
 
 export interface ScaleComp extends Comp {
@@ -3636,15 +4784,15 @@ export interface OffScreenComp extends Comp {
 /**
  * Collision resolution data.
  */
-export interface Collision {
+export interface CollisionCore {
 	/**
 	 * The first game object in the collision.
 	 */
-	source: GameObj,
+	source: GameObjCore,
 	/**
 	 * The second game object in the collision.
 	 */
-	target: GameObj,
+	target: GameObjCore,
 	/**
 	 * The displacement source game object have to make to avoid the collision.
 	 */
@@ -3662,7 +4810,7 @@ export interface Collision {
 	/**
 	 * Get a new collision with reversed source and target relationship.
 	 */
-	reverse(): Collision,
+	reverse(): CollisionCore,
 	/**
 	 * If the collision happened (roughly) on the top side.
 	 */
@@ -3679,6 +4827,24 @@ export interface Collision {
 	 * If the collision happened (roughly) on the right side.
 	 */
 	isRight(): boolean,
+}
+
+/**
+ * Collision resolution data.
+ */
+export interface Collision extends CollisionCore {
+	/**
+	 * The first game object in the collision.
+	 */
+	source: GameObj,
+	/**
+	 * The second game object in the collision.
+	 */
+	target: GameObj,
+	/**
+	 * Get a new collision with reversed source and target relationship.
+	 */
+	reverse(): Collision,
 }
 
 export interface AreaCompOpt {
@@ -3706,7 +4872,7 @@ export interface AreaCompOpt {
 	collisionIgnore?: Tag[],
 }
 
-export interface AreaComp extends Comp {
+export interface AreaCompCore extends Comp {
 	/**
 	 * Collider area info.
 	 */
@@ -3739,7 +4905,142 @@ export interface AreaComp extends Comp {
 	 *
 	 * @since v3000.0
 	 */
-	colliding: Record<GameObjID, Collision>,
+	colliding: Record<GameObjID, CollisionCore>,
+	/**
+	 * Check collision with another game obj.
+	 *
+	 * @since v3000.0
+	 * @returns The minimal displacement vector if collided
+	 */
+	checkCollision(other: GameObjCore<AreaCompCore>): Vec2 | null,
+	/**
+	 * If is currently colliding with another game obj.
+	 */
+	isColliding(o: GameObjCore<AreaCompCore>): boolean,
+	/**
+	 * If is currently touching another game obj.
+	 */
+	isTouching(o: GameObjCore<AreaCompCore>): boolean,
+	/**
+	 * Register an event runs once when collide with another game obj with certain tag.
+	 *
+	 * @since v2001.0
+	 */
+	onCollide(tag: Tag, f: (obj: GameObjCore, col?: CollisionCore) => void): void,
+	/**
+	 * Register an event runs once when collide with another game obj.
+	 *
+	 * @since v2000.1
+	 */
+	onCollide(f: (obj: GameObjCore, col?: CollisionCore) => void): void,
+	/**
+	 * Register an event runs every frame when collide with another game obj with certain tag.
+	 *
+	 * @since v3000.0
+	 */
+	onCollideUpdate(tag: Tag, f: (obj: GameObjCore, col?: CollisionCore) => void): EventController,
+	/**
+	 * Register an event runs every frame when collide with another game obj.
+	 *
+	 * @since v3000.0
+	 */
+	onCollideUpdate(f: (obj: GameObjCore, col?: CollisionCore) => void): EventController,
+	/**
+	 * Register an event runs once when stopped colliding with another game obj with certain tag.
+	 *
+	 * @since v3000.0
+	 */
+	onCollideEnd(tag: Tag, f: (obj: GameObjCore) => void): EventController,
+	/**
+	 * Register an event runs once when stopped colliding with another game obj.
+	 *
+	 * @since v3000.0
+	 */
+	onCollideEnd(f: (obj: GameObjCore) => void): void,
+	/**
+	 * If has a certain point inside collider.
+	 */
+	hasPoint(p: Vec2): boolean,
+	/**
+	 * Push out from another solid game obj if currently overlapping.
+	 */
+	pushOut(obj: GameObjCore): void,
+	/**
+	 * Push out from all other solid game objs if currently overlapping.
+	 */
+	pushOutAll(): void,
+	/**
+	 * Get the geometry data for the collider in local coordinate space.
+	 *
+	 * @since v3000.0
+	 */
+	localArea(): Shape,
+	/**
+	 * Get the geometry data for the collider in world coordinate space.
+	 */
+	worldArea(): Polygon,
+	/**
+	 * Get the geometry data for the collider in screen coordinate space.
+	 */
+	screenArea(): Polygon,
+}
+
+export interface AreaComp extends AreaCompCore {
+	/**
+	* Check collision with another game obj.
+	*
+	* @since v3000.0
+	* @returns The minimal displacement vector if collided
+	*/
+	checkCollision(other: GameObj<AreaComp>): Vec2 | null,
+	/**
+	* If is currently colliding with another game obj.
+	*/
+	isColliding(o: GameObj<AreaComp>): boolean,
+	/**
+	* If is currently touching another game obj.
+	*/
+	isTouching(o: GameObj<AreaComp>): boolean,
+	/**
+	* Register an event runs once when collide with another game obj with certain tag.
+	*
+	* @since v2001.0
+	*/
+	onCollide(tag: Tag, f: (obj: GameObj, col?: Collision) => void): void,
+	/**
+	* Register an event runs once when collide with another game obj.
+	*
+	* @since v2000.1
+	*/
+	onCollide(f: (obj: GameObj, col?: Collision) => void): void,
+	/**
+	* Register an event runs every frame when collide with another game obj with certain tag.
+	*
+	* @since v3000.0
+	*/
+	onCollideUpdate(tag: Tag, f: (obj: GameObj, col?: Collision) => void): EventController,
+	/**
+	* Register an event runs every frame when collide with another game obj.
+	*
+	* @since v3000.0
+	*/
+	onCollideUpdate(f: (obj: GameObj, col?: Collision) => void): EventController,
+	/**
+	* Register an event runs once when stopped colliding with another game obj with certain tag.
+	*
+	* @since v3000.0
+	*/
+	onCollideEnd(tag: Tag, f: (obj: GameObj) => void): EventController,
+	/**
+	* Register an event runs once when stopped colliding with another game obj.
+	*
+	* @since v3000.0
+	*/
+	onCollideEnd(f: (obj: GameObj) => void): void,
+	/**
+	* Push out from another solid game obj if currently overlapping.
+	*/
+	pushOut(obj: GameObj): void,
 	/**
 	 * If was just clicked on last frame.
 	 */
@@ -3748,21 +5049,6 @@ export interface AreaComp extends Comp {
 	 * If is being hovered on.
 	 */
 	isHovering(): boolean,
-	/**
-	 * Check collision with another game obj.
-	 *
-	 * @since v3000.0
-	 * @returns The minimal displacement vector if collided
-	 */
-	checkCollision(other: GameObj<AreaComp>): Vec2 | null,
-	/**
-	 * If is currently colliding with another game obj.
-	 */
-	isColliding(o: GameObj<AreaComp>): boolean,
-	/**
-	 * If is currently touching another game obj.
-	 */
-	isTouching(o: GameObj<AreaComp>): boolean,
 	/**
 	 * Register an event runs when clicked.
 	 *
@@ -3787,68 +5073,6 @@ export interface AreaComp extends Comp {
 	 * @since v3000.0
 	 */
 	onHoverEnd(action: () => void): EventController,
-	/**
-	 * Register an event runs once when collide with another game obj with certain tag.
-	 *
-	 * @since v2001.0
-	 */
-	onCollide(tag: Tag, f: (obj: GameObj, col?: Collision) => void): void,
-	/**
-	 * Register an event runs once when collide with another game obj.
-	 *
-	 * @since v2000.1
-	 */
-	onCollide(f: (obj: GameObj, col?: Collision) => void): void,
-	/**
-	 * Register an event runs every frame when collide with another game obj with certain tag.
-	 *
-	 * @since v3000.0
-	 */
-	onCollideUpdate(tag: Tag, f: (obj: GameObj, col?: Collision) => void): EventController,
-	/**
-	 * Register an event runs every frame when collide with another game obj.
-	 *
-	 * @since v3000.0
-	 */
-	onCollideUpdate(f: (obj: GameObj, col?: Collision) => void): EventController,
-	/**
-	 * Register an event runs once when stopped colliding with another game obj with certain tag.
-	 *
-	 * @since v3000.0
-	 */
-	onCollideEnd(tag: Tag, f: (obj: GameObj) => void): EventController,
-	/**
-	 * Register an event runs once when stopped colliding with another game obj.
-	 *
-	 * @since v3000.0
-	 */
-	onCollideEnd(f: (obj: GameObj) => void): void,
-	/**
-	 * If has a certain point inside collider.
-	 */
-	hasPoint(p: Vec2): boolean,
-	/**
-	 * Push out from another solid game obj if currently overlapping.
-	 */
-	pushOut(obj: GameObj): void,
-	/**
-	 * Push out from all other solid game objs if currently overlapping.
-	 */
-	pushOutAll(): void,
-	/**
-	 * Get the geometry data for the collider in local coordinate space.
-	 *
-	 * @since v3000.0
-	 */
-	localArea(): Shape,
-	/**
-	 * Get the geometry data for the collider in world coordinate space.
-	 */
-	worldArea(): Polygon,
-	/**
-	 * Get the geometry data for the collider in screen coordinate space.
-	 */
-	screenArea(): Polygon,
 }
 
 export interface SpriteCompOpt {
@@ -3890,7 +5114,7 @@ export interface SpriteCompOpt {
 	quad?: Quad,
 }
 
-export interface SpriteComp extends Comp {
+export interface SpriteCompCore extends CompCore {
 	/**
 	 * Width for sprite.
 	 */
@@ -3907,6 +5131,21 @@ export interface SpriteComp extends Comp {
 	 * The rectangular area of the texture to render.
 	 */
 	quad: Quad,
+	/**
+	 * Flip texture horizontally.
+	 */
+	flipX(b: boolean): void,
+	/**
+	 * Flip texture vertically.
+	 */
+	flipY(b: boolean): void,
+	/**
+	 * @since v3000.0
+	 */
+	renderArea(): Rect,
+}
+
+export interface SpriteComp extends SpriteCompCore, Comp {
 	/**
 	 * Play a piece of anim.
 	 */
@@ -3928,14 +5167,6 @@ export interface SpriteComp extends Comp {
 	 */
 	animSpeed: number,
 	/**
-	 * Flip texture horizontally.
-	 */
-	flipX(b: boolean): void,
-	/**
-	 * Flip texture vertically.
-	 */
-	flipY(b: boolean): void,
-	/**
 	 * Register an event that runs when an animation is played.
 	 */
 	onAnimStart(name: string, action: () => void): EventController,
@@ -3943,10 +5174,6 @@ export interface SpriteComp extends Comp {
 	 * Register an event that runs when an animation is ended.
 	 */
 	onAnimEnd(name: string, action: () => void): EventController,
-	/**
-	 * @since v3000.0
-	 */
-	renderArea(): Rect,
 }
 
 export interface TextComp extends Comp {
@@ -4184,7 +5411,7 @@ export interface ShaderComp extends Comp {
 	shader: string,
 }
 
-export interface BodyComp extends Comp {
+export interface BodyCompCore extends CompCore {
 	/**
 	 * If object is static, won't move, and all non static objects won't move past it.
 	 */
@@ -4210,7 +5437,7 @@ export interface BodyComp extends Comp {
 	/**
 	 * Current platform landing on.
 	 */
-	curPlatform(): GameObj | null,
+	curPlatform(): GameObjCore | null,
 	/**
 	 * If currently landing on a platform.
 	 *
@@ -4238,7 +5465,7 @@ export interface BodyComp extends Comp {
 	 *
 	 * @since v3000.0
 	 */
-	onPhysicsResolve(action: (col: Collision) => void): EventController,
+	onPhysicsResolve(action: (col: CollisionCore) => void): EventController,
 	/**
 	 * Register an event that runs before a collision would be resolved.
 	 *
@@ -4269,6 +5496,19 @@ export interface BodyComp extends Comp {
 	 * @since v2000.1
 	 */
 	onHeadbutt(action: () => void): EventController,
+}
+
+export interface BodyComp extends BodyCompCore, Comp {
+	/**
+	 * Current platform landing on.
+	 */
+	curPlatform(): GameObj | null,
+	/**
+	 * Register an event that runs when a collision is resolved.
+	 *
+	 * @since v3000.0
+	 */
+	onPhysicsResolve(action: (col: Collision) => void): EventController,
 }
 
 export interface DoubleJumpComp extends Comp {
@@ -4458,15 +5698,20 @@ export interface LevelOpt {
 	[sym: string]: any,
 }
 
-export interface LevelComp extends Comp {
+export interface LevelCompCore extends CompCore {
 	gridWidth(): number,
 	gridHeight(): number,
 	getPos(p: Vec2): Vec2,
 	getPos(x: number, y: number): Vec2,
-	spawn(sym: string, p: Vec2): GameObj,
-	spawn(sym: string, x: number, y: number): GameObj,
+	spawn(sym: string, p: Vec2): GameObjCore,
+	spawn(sym: string, x: number, y: number): GameObjCore,
 	levelWidth(): number,
 	levelHeight(): number,
+}
+
+export interface LevelComp extends LevelCompCore, Comp {
+	spawn(sym: string, p: Vec2): GameObj,
+	spawn(sym: string, x: number, y: number): GameObj,
 }
 
 export interface BoomOpt {
