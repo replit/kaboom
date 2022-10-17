@@ -400,7 +400,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		joinEventControllers,
 		gravity,
 		pos,
-		make,
 		scale,
 		rotate,
 		opacity,
@@ -431,7 +430,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	const posCore = pos
 	const spriteCore = sprite
 	const goCore = go
-	const makeCore = make
 
 	app = (() => {
 		const root = gopt.root ?? document.body
@@ -667,12 +665,69 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		sprites: new AssetBucket<SpriteData>(),
 		sounds: new AssetBucket<SoundData>(),
 	}
+	function make<T>(comps: CompList<T>): GameObj<T> {
 
-	//function make<T>(comps: CompList<T>): GameObj<T> {
-	make = function <T>(comps: CompList<T>): GameObj<T> {
+		const compStates = new Map()
+		const customState = {}
+		const ev = new EventHandler()
+
 		// TODO: "this" should be typed here
 		const obj = {
-			...makeCore(comps),
+
+			id: uid(),
+			// TODO: a nice way to hide / pause when add()-ing
+			hidden: false,
+			paused: false,
+			transform: new Mat4(),
+			children: [],
+			parent: null,
+
+			add<T2>(a: CompList<T2> | GameObj<T2>): GameObj<T2> {
+				const obj = (() => {
+					if (Array.isArray(a)) {
+						return make(a)
+					}
+					if (a.parent) {
+						throw new Error("Cannot add a game obj that already has a parent.")
+					}
+					return a
+				})()
+				obj.parent = this
+				obj.transform = calcTransform(obj)
+				this.children.push(obj)
+				obj.trigger("add", this)
+				game.ev.trigger("add", this)
+				return obj
+			},
+
+			readd(obj: GameObj): GameObj {
+				const idx = this.children.indexOf(obj)
+				if (idx !== -1) {
+					this.children.splice(idx, 1)
+					this.children.push(obj)
+				}
+				return obj
+			},
+
+			remove(obj: GameObj): void {
+				const idx = this.children.indexOf(obj)
+				if (idx !== -1) {
+					obj.parent = null
+					obj.trigger("destroy")
+					game.ev.trigger("destroy", obj)
+					this.children.splice(idx, 1)
+				}
+			},
+
+			removeAll(tag: Tag) {
+				this.get(tag).forEach((obj) => this.remove(obj))
+			},
+
+			update() {
+				if (this.paused) return
+				this.get().forEach((child) => child.update())
+				this.trigger("update")
+			},
 
 			draw(this: GameObj<PosComp | ScaleComp | RotateComp>) {
 				if (this.hidden) return
@@ -695,14 +750,203 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				this.trigger("drawInspect")
 				popTransform()
 			},
-		} as unknown as GameObj<T>
+
+			// use a comp, or tag
+			use(comp: Comp | Tag) {
+
+				if (!comp) {
+					return
+				}
+
+				// tag
+				if (typeof comp === "string") {
+					return this.use({
+						id: comp,
+					})
+				}
+
+				// clear if overwrite
+				if (comp.id) {
+					this.unuse(comp.id)
+					compStates.set(comp.id, {
+						cleanups: [],
+					})
+				}
+
+				// state source location
+				const state = comp.id ? compStates.get(comp.id) : customState
+				const cleanups = comp.id ? state.cleanups : []
+
+				// check for component dependencies
+				const checkDeps = () => {
+					if (comp.require) {
+						for (const dep of comp.require) {
+							if (!this.c(dep)) {
+								throw new Error(`Component "${comp.id}" requires component "${dep}"`)
+							}
+						}
+					}
+				}
+
+				if (comp.destroy) {
+					cleanups.push(comp.destroy)
+				}
+
+				if (comp.require && !this.exists() && state.cleanups) {
+					cleanups.push(this.on("add", checkDeps))
+				}
+
+				for (const k in comp) {
+
+					if (COMP_DESC.has(k)) {
+						continue
+					}
+
+					// event / custom method
+					if (typeof comp[k] === "function") {
+						const func = comp[k].bind(this)
+						if (COMP_EVENTS.has(k)) {
+							cleanups.push(this.on(k, func))
+							state[k] = func
+							// don't bind to game object if it's an event
+							continue
+						} else {
+							state[k] = func
+						}
+					} else {
+						state[k] = comp[k]
+					}
+
+					if (this[k] === undefined) {
+						// assign comp fields to game obj
+						Object.defineProperty(this, k, {
+							get: () => state[k],
+							set: (val) => state[k] = val,
+							configurable: true,
+							enumerable: true,
+						})
+					} else {
+						throw new Error(`Duplicate component property: "${k}"`)
+					}
+
+				}
+
+				// manually trigger add event if object already exist
+				if (this.exists()) {
+					checkDeps()
+					if (comp.add) {
+						comp.add.call(this)
+					}
+				}
+
+			},
+
+			unuse(id: Tag) {
+				if (compStates.has(id)) {
+					const comp = compStates.get(id)
+					comp.cleanups.forEach((e) => e.cancel())
+					for (const k in comp) {
+						delete comp[k]
+					}
+				}
+				compStates.delete(id)
+			},
+
+			c(id: Tag): Comp {
+				return compStates.get(id)
+			},
+
+			// TODO: cache sorted list? update each frame?
+			get(t?: Tag | Tag[]): GameObj[] {
+				return this.children
+					.filter((child) => t ? child.is(t) : true)
+					.sort((o1, o2) => (o1.z ?? 0) - (o2.z ?? 0))
+			},
+
+			getAll(t?: Tag | Tag[]): GameObj[] {
+				return this.children
+					.sort((o1, o2) => (o1.z ?? 0) - (o2.z ?? 0))
+					.flatMap((child) => [child, ...child.getAll(t)])
+					.filter((child) => t ? child.is(t) : true)
+			},
+
+			isAncestorOf(obj: GameObj) {
+				if (!obj.parent) {
+					return false
+				}
+				return obj.parent === this || this.isAncestorOf(obj.parent)
+			},
+
+			exists(): boolean {
+				return game.root.isAncestorOf(this)
+			},
+
+			is(tag: Tag | Tag[]): boolean {
+				if (tag === "*") {
+					return true
+				}
+				if (Array.isArray(tag)) {
+					for (const t of tag) {
+						if (!this.c(t)) {
+							return false
+						}
+					}
+					return true
+				} else {
+					return this.c(tag) != null
+				}
+			},
+
+			on(name: string, action: (...args) => void): EventController {
+				return ev.on(name, action.bind(this))
+			},
+
+			trigger(name: string, ...args): void {
+				ev.trigger(name, ...args)
+				game.objEvents.trigger(name, this, ...args)
+			},
+
+			destroy() {
+				if (this.parent) {
+					this.parent.remove(this)
+				}
+			},
+
+			inspect() {
+				const info = {}
+				for (const [tag, comp] of compStates) {
+					info[tag] = comp.inspect ? comp.inspect() : null
+				}
+				return info
+			},
+
+			onAdd(cb: () => void): EventController {
+				return this.on("add", cb)
+			},
+
+			onUpdate(cb: () => void): EventController {
+				return this.on("update", cb)
+			},
+
+			onDraw(cb: () => void): EventController {
+				return this.on("draw", cb)
+			},
+
+			onDestroy(action: () => void): EventController {
+				return this.on("destroy", action)
+			},
+
+			clearEvents() {
+				ev.clear()
+			},
+
+		}
 
 		for (const comp of comps) {
 			obj.use(comp)
 		}
 		return obj as unknown as GameObj<T>
 	}
-
 
 	game = {
 		...gameCore,
