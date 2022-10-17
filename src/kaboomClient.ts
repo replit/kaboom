@@ -365,7 +365,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		VERSION,
 		gc,
 		app,
-		gfx,
 		assets,
 		game,
 		loadRoot,
@@ -382,8 +381,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		popTransform,
 		getArcPts,
 		applyCharTransform,
-		width,
-		height,
 		charInputted,
 		dt,
 		time,
@@ -428,7 +425,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		run,
 	} = kaboomCore()
 	const appCore = app
-	const gfxCore = gfx
 	const assetsCore = assets
 	const gameCore = game
 	const debugCore = debug
@@ -528,7 +524,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			preserveDrawingBuffer: true,
 		})
 
-	gfx = (() => {
+	const gfx = (() => {
 
 		const defShader = makeShader(DEF_VERT, DEF_FRAG)
 
@@ -536,7 +532,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		// we use a texture for those so we can use only 1 pipeline for drawing sprites + shapes
 		const emptyTex = Texture.fromImage(
 			new ImageData(new Uint8ClampedArray([255, 255, 255, 255]), 1, 1),
-			gopt, gl, gc,
+			gopt, gl, gc
 		)
 
 		if (gopt.background) {
@@ -589,17 +585,32 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		)
 
 		return {
-			...gfxCore,
+
+			// keep track of how many draw calls we're doing this frame
+			drawCalls: 0,
+			// how many draw calls we're doing last frame, this is the number we give to users
+			lastDrawCalls: 0,
 
 			// gfx states
 			defShader: defShader,
 			curShader: defShader,
 			defTex: emptyTex,
 			curTex: emptyTex,
+			curUniform: {},
 			vbuf: vbuf,
 			ibuf: ibuf,
 
+			// local vertex / index buffer queue
+			vqueue: [],
+			iqueue: [],
+
+			transform: new Mat4(),
+			transformStack: [],
+
 			bgTex: bgTex,
+
+			width: gopt.width,
+			height: gopt.height,
 
 			viewport: {
 				x: 0,
@@ -611,6 +622,16 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		}
 
 	})()
+
+	// get game width
+	function width(): number {
+		return gfx.width
+	}
+
+	// get game height
+	function height(): number {
+		return gfx.height
+	}
 
 	const audio = (() => {
 
@@ -772,7 +793,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			return map
 		}))
 	}
-	
+
 	// load a sprite to asset manager
 	function loadSprite(
 		name: string | null,
@@ -1404,9 +1425,9 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		gl.bufferSubData(gl.ELEMENT_ARRAY_BUFFER, 0, new Uint16Array(gfx.iqueue))
 		gfx.curShader.bind()
 		gfx.curShader.send(gfx.curUniform)
-		gfx.curTex.bind()
+		gfx.curTex.bind(gl)
 		gl.drawElements(gl.TRIANGLES, gfx.iqueue.length, gl.UNSIGNED_SHORT, 0)
-		gfx.curTex.unbind()
+		gfx.curTex.unbind(gl)
 		gfx.curShader.unbind()
 		gl.bindBuffer(gl.ARRAY_BUFFER, null)
 		gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null)
