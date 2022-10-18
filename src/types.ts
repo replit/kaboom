@@ -464,7 +464,7 @@ export interface KaboomCtx {
 	 *     player.hurt(1)
 	 *     bad.hurt(1)
 	 * })
-     *
+	 *
 	 * player.onCollide("apple", () => {
 	 *     player.heal(1)
 	 * })
@@ -2567,15 +2567,21 @@ export declare class SpriteData {
 	frames: Quad[]
 	anims: SpriteAnims
 	constructor(tex: Texture, frames?: Quad[], anims?: SpriteAnims)
-	static fromImage(data: TexImageSource, opt?: LoadSpriteOpt): SpriteData
-	static fromURL(url: string, opt?: LoadSpriteOpt): Promise<SpriteData>
+	static fromImage(data: TexImageSource, gl: WebGLRenderingContext, gc: (() => void)[], gopt: KaboomOpt, slice: any, opt?: LoadSpriteOpt): SpriteData
+	static fromURL(url: string, loadImg, gl: WebGLRenderingContext, gc: (() => void)[], gopt: KaboomOpt, slice, opt?: LoadSpriteOpt): Promise<SpriteData>
+}
+
+export type AudioData = {
+    ctx: AudioContext;
+    masterNode: GainNode;
+    burpSnd: SoundData;
 }
 
 export declare class SoundData {
 	buf: AudioBuffer
 	constructor(buf: AudioBuffer)
-	static fromArrayBuffer(buf: ArrayBuffer): Promise<SoundData>
-	static fromURL(url: string): Promise<SoundData>
+	static fromArrayBuffer(buf: ArrayBuffer, audio: AudioData): Promise<SoundData>
+	static fromURL(url: string, audio: AudioData, fetchArrayBuffer): Promise<SoundData>
 }
 
 export interface LoadBitmapFontOpt {
@@ -2704,11 +2710,14 @@ export type TextureOpt = {
 }
 
 export declare class Texture {
+	gl: WebGLRenderingContext
+	gc: (() => void)[]
+	gopt: KaboomOpt
 	glTex: WebGLTexture
 	width: number
 	height: number
-	constructor(w: number, h: number, opt?: TextureOpt)
-	static fromImage(img: TexImageSource, opt?: TextureOpt): Texture
+	constructor(w: number, h: number, gl: WebGLRenderingContext, gc: (() => void)[], gopt: KaboomOpt, opt?: TextureOpt)
+	static fromImage(img: TexImageSource, gl: WebGLRenderingContext, gc: (() => void)[], gopt: KaboomOpt, opt?: TextureOpt): Texture
 	update(x: number, y: number, img: TexImageSource)
 	bind()
 	unbind()
