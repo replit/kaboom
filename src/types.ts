@@ -2569,35 +2569,20 @@ export declare class Asset<D> {
 
 export type LoadSpriteSrc = string | TexImageSource
 
-export interface SpriteCurAnim {
-	name: string,
-	timer: number,
-	loop: boolean,
-	speed: number,
-	pingpong: boolean,
-	onEnd: () => void,
-}
-
 export declare class SpriteData {
 	tex: Texture
 	frames: Quad[]
 	anims: SpriteAnims
 	constructor(tex: Texture, frames?: Quad[], anims?: SpriteAnims)
-	static fromImage(data: TexImageSource, gl: WebGLRenderingContext, gc: (() => void)[], gopt: KaboomOpt, slice: any, opt?: LoadSpriteOpt): SpriteData
-	static fromURL(url: string, loadImg, gl: WebGLRenderingContext, gc: (() => void)[], gopt: KaboomOpt, slice, opt?: LoadSpriteOpt): Promise<SpriteData>
-}
-
-export type AudioData = {
-    ctx: AudioContext;
-    masterNode: GainNode;
-    burpSnd: SoundData;
+	static fromImage(data: TexImageSource, opt?: LoadSpriteOpt): SpriteData
+	static fromURL(url: string, opt?: LoadSpriteOpt): Promise<SpriteData>
 }
 
 export declare class SoundData {
 	buf: AudioBuffer
 	constructor(buf: AudioBuffer)
-	static fromArrayBuffer(buf: ArrayBuffer, audio: AudioData): Promise<SoundData>
-	static fromURL(url: string, audio: AudioData, fetchArrayBuffer): Promise<SoundData>
+	static fromArrayBuffer(buf: ArrayBuffer): Promise<SoundData>
+	static fromURL(url: string): Promise<SoundData>
 }
 
 export interface LoadBitmapFontOpt {
@@ -2726,14 +2711,11 @@ export type TextureOpt = {
 }
 
 export declare class Texture {
-	gl: WebGLRenderingContext
-	gc: (() => void)[]
-	gopt: KaboomOpt
 	glTex: WebGLTexture
 	width: number
 	height: number
-	constructor(w: number, h: number, gl: WebGLRenderingContext, gc: (() => void)[], gopt: KaboomOpt, opt?: TextureOpt)
-	static fromImage(img: TexImageSource, gl: WebGLRenderingContext, gc: (() => void)[], gopt: KaboomOpt, opt?: TextureOpt): Texture
+	constructor(w: number, h: number, opt?: TextureOpt)
+	static fromImage(img: TexImageSource, opt?: TextureOpt): Texture
 	update(x: number, y: number, img: TexImageSource)
 	bind()
 	unbind()
@@ -4568,10 +4550,6 @@ export type TweenController = TimerController & {
 	 * Finish the tween now and cancel.
 	 */
 	finish(): void,
-}
-
-export type EventList<M> = {
-	[event in keyof M]?: (event: M[event]) => void
 }
 
 export type EventController = {

@@ -1,6 +1,6 @@
 import { vec2 } from "./math"
-import { EventController, TextAlign } from "./types"
-import { Anchor, Vec2, ButtonState } from "./types"
+import { Asset, SpriteData } from "./types"
+import type { EventController, TextAlign, Anchor, Vec2, ButtonState, DrawSpriteOpt } from "./types"
 
 export class IDList<T> extends Map<number, T> {
 	private lastID: number
@@ -185,6 +185,56 @@ export function benchmark(task: () => void, times: number = 1) {
 	}
 	const t2 = performance.now()
 	return t2 - t1
+}
+
+// get current load progress
+export function loadProgress(assets: any): number {
+	const buckets = [
+		assets.sprites,
+		assets.sounds,
+		assets.shaders,
+		assets.fonts,
+		assets.bitmapFonts,
+		assets.custom,
+	]
+	return buckets.reduce((n, bucket) => n + bucket.progress(), 0) / buckets.length
+}
+
+function getSprite(assets, handle: string): Asset<SpriteData> | void {
+	return assets.sprites.get(handle)
+}
+
+export function resolveSprite(
+	assets,
+	src: DrawSpriteOpt["sprite"],
+): Asset<SpriteData> | null {
+	if (typeof src === "string") {
+		const spr = getSprite(assets, src)
+		if (spr) {
+			// if it's already loaded or being loading, return it
+			return spr
+		} else if (loadProgress(assets) < 1) {
+			// if there's any other ongoing loading task we return empty and don't error yet
+			return null
+		} else {
+			// if all other assets are loaded and we still haven't found this sprite, throw
+			throw new Error(`Sprite not found: ${src}`)
+		}
+	} else if (src instanceof SpriteData) {
+		return Asset.loaded(src)
+	} else if (src instanceof Asset) {
+		return src
+	} else {
+		throw new Error(`Invalid sprite: ${src}`)
+	}
+}
+
+export function dt(app, debug) {
+	return app.dt * debug.timeScale
+}
+
+export function center(gfx): Vec2 {
+	return vec2(gfx.width / 2, gfx.height / 2)
 }
 
 // transform the button state to the next state
