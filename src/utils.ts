@@ -1,4 +1,6 @@
-import { EventController } from "./types"
+import { vec2 } from "./math"
+import { EventController, TextAlign } from "./types"
+import { Anchor, Vec2, ButtonState } from "./types"
 
 export class IDList<T> extends Map<number, T> {
 	private lastID: number
@@ -183,4 +185,64 @@ export function benchmark(task: () => void, times: number = 1) {
 	}
 	const t2 = performance.now()
 	return t2 - t1
+}
+
+// transform the button state to the next state
+// e.g. if a button becomes "pressed" one frame, it should become "down" next frame
+export function processButtonState(s: ButtonState): ButtonState {
+	if (s === "pressed" || s === "rpressed") {
+		return "down"
+	} else if (s === "released") {
+		return "up"
+	} else {
+		return s
+	}
+}
+
+// wrappers around full screen functions to work across browsers
+export function enterFullscreen(el: HTMLElement) {
+	if (el.requestFullscreen) el.requestFullscreen()
+	// @ts-ignore
+	else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen()
+}
+
+export function exitFullscreen() {
+	if (document.exitFullscreen) document.exitFullscreen()
+	// @ts-ignore
+	else if (document.webkitExitFullScreen) document.webkitExitFullScreen()
+}
+
+export function getFullscreenElement(): Element | void {
+	return document.fullscreenElement
+		// @ts-ignore
+		|| document.webkitFullscreenElement
+}
+
+// convert anchor string to a vec2 offset
+export function anchorPt(orig: Anchor | Vec2): Vec2 {
+	switch (orig) {
+		case "topleft": return vec2(-1, -1)
+		case "top": return vec2(0, -1)
+		case "topright": return vec2(1, -1)
+		case "left": return vec2(-1, 0)
+		case "center": return vec2(0, 0)
+		case "right": return vec2(1, 0)
+		case "botleft": return vec2(-1, 1)
+		case "bot": return vec2(0, 1)
+		case "botright": return vec2(1, 1)
+		default: return orig
+	}
+}
+
+export function alignPt(align: TextAlign): number {
+	switch (align) {
+		case "left": return 0
+		case "center": return 0.5
+		case "right": return 1
+		default: return 0
+	}
+}
+
+export function createEmptyAudioBuffer(ctx: AudioContext) {
+	return ctx.createBuffer(1, 1, 44100)
 }

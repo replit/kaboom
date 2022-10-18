@@ -1,8 +1,6 @@
 // TODO: event registers return Promise for next event when callback not passed?
 // TODO: pass original browser event in input handlers
 
-const VERSION = "3000.0.0-alpha.9"
-
 import {
 	sat,
 	vec2,
@@ -57,6 +55,13 @@ import {
 	warn,
 	// eslint-disable-next-line
 	benchmark,
+	processButtonState,
+	enterFullscreen,
+	exitFullscreen,
+	getFullscreenElement,
+	anchorPt,
+	alignPt,
+	createEmptyAudioBuffer,
 } from "./utils"
 
 import {
@@ -149,7 +154,40 @@ import {
 	VirtualButton,
 	TimerController,
 	TweenController,
+	ButtonState,
+	EventList,
+	SpriteCurAnim,
+
 } from "./types"
+
+import {
+	VERSION,
+	KEY_ALIAS,
+	MOUSE_BUTTONS,
+	PREVENT_DEFAULT_KEYS,
+	ASCII_CHARS,
+	MIN_GAIN,
+	MAX_GAIN,
+	MIN_SPEED,
+	MAX_SPEED,
+	MIN_DETUNE,
+	MAX_DETUNE,
+	DEF_ANCHOR,
+	BG_GRID_SIZE,
+	DEF_FONT,
+	DBG_FONT,
+	DEF_TEXT_SIZE
+	, DEF_TEXT_CACHE_SIZE,
+	FONT_ATLAS_SIZE,
+	UV_PAD,
+	LOG_MAX,
+	VERTEX_FORMAT,
+	STRIDE,
+	MAX_BATCHED_QUAD,
+	MAX_BATCHED_VERTS,
+	MAX_BATCHED_INDICES,
+	VERT_TEMPLATE, FRAG_TEMPLATE, DEF_VERT, DEF_FRAG, COMP_DESC, COMP_EVENTS,
+} from "./constants"
 
 import { Texture } from "./classes/Texture"
 import { SpriteData } from "./classes/SpriteData"
@@ -171,243 +209,6 @@ import burpSoundSrc from "./assets/burp.mp3"
 import kaSpriteSrc from "./assets/ka.png"
 // @ts-ignore
 import boomSpriteSrc from "./assets/boom.png"
-
-type ButtonState =
-	"up"
-	| "pressed"
-	| "rpressed"
-	| "down"
-	| "released"
-
-type EventList<M> = {
-	[event in keyof M]?: (event: M[event]) => void
-}
-
-interface SpriteCurAnim {
-	name: string,
-	timer: number,
-	loop: boolean,
-	speed: number,
-	pingpong: boolean,
-	onEnd: () => void,
-}
-
-// translate these key names to a simpler version
-const KEY_ALIAS = {
-	"ArrowLeft": "left",
-	"ArrowRight": "right",
-	"ArrowUp": "up",
-	"ArrowDown": "down",
-	" ": "space",
-}
-
-// according to https://developer.mozilla.org/en-US/docs/Web/API/MouseEvent/button
-const MOUSE_BUTTONS = [
-	"left",
-	"middle",
-	"right",
-	"back",
-	"forward",
-]
-
-// don't trigger browser default event when these keys are pressed
-const PREVENT_DEFAULT_KEYS = [
-	"space",
-	"left",
-	"right",
-	"up",
-	"down",
-	"tab",
-	"f1",
-	"f2",
-	"f3",
-	"f4",
-	"f5",
-	"f6",
-	"f7",
-	"f8",
-	"f9",
-	"f10",
-	"f11",
-	"s",
-]
-
-// some default charsets for loading bitmap fonts
-const ASCII_CHARS = " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~"
-
-// audio gain range
-const MIN_GAIN = 0
-const MAX_GAIN = 3
-
-// audio speed range
-const MIN_SPEED = 0
-const MAX_SPEED = 3
-
-// audio detune range
-const MIN_DETUNE = -1200
-const MAX_DETUNE = 1200
-
-const DEF_ANCHOR = "topleft"
-const BG_GRID_SIZE = 64
-
-const DEF_FONT = "happy"
-const DBG_FONT = "monospace"
-const DEF_TEXT_SIZE = 36
-const DEF_TEXT_CACHE_SIZE = 64
-const FONT_ATLAS_SIZE = 1024
-// 0.1 pixel padding to texture coordinates to prevent artifact
-const UV_PAD = 0.1
-
-const LOG_MAX = 1
-
-const VERTEX_FORMAT = [
-	{ name: "a_pos", size: 3 },
-	{ name: "a_uv", size: 2 },
-	{ name: "a_color", size: 4 },
-]
-
-const STRIDE = VERTEX_FORMAT.reduce((sum, f) => sum + f.size, 0)
-
-const MAX_BATCHED_QUAD = 2048
-const MAX_BATCHED_VERTS = MAX_BATCHED_QUAD * 4 * STRIDE
-const MAX_BATCHED_INDICES = MAX_BATCHED_QUAD * 6
-
-// vertex shader template, replace {{user}} with user vertex shader code
-const VERT_TEMPLATE = `
-attribute vec3 a_pos;
-attribute vec2 a_uv;
-attribute vec4 a_color;
-
-varying vec3 v_pos;
-varying vec2 v_uv;
-varying vec4 v_color;
-
-vec4 def_vert() {
-	return vec4(a_pos, 1.0);
-}
-
-{{user}}
-
-void main() {
-	vec4 pos = vert(a_pos, a_uv, a_color);
-	v_pos = a_pos;
-	v_uv = a_uv;
-	v_color = a_color;
-	gl_Position = pos;
-}
-`
-
-// fragment shader template, replace {{user}} with user fragment shader code
-const FRAG_TEMPLATE = `
-precision mediump float;
-
-varying vec3 v_pos;
-varying vec2 v_uv;
-varying vec4 v_color;
-
-uniform sampler2D u_tex;
-
-vec4 def_frag() {
-	return v_color * texture2D(u_tex, v_uv);
-}
-
-{{user}}
-
-void main() {
-	gl_FragColor = frag(v_pos, v_uv, v_color, u_tex);
-	if (gl_FragColor.a == 0.0) {
-		discard;
-	}
-}
-`
-
-// default {{user}} vertex shader code
-const DEF_VERT = `
-vec4 vert(vec3 pos, vec2 uv, vec4 color) {
-	return def_vert();
-}
-`
-
-// default {{user}} fragment shader code
-const DEF_FRAG = `
-vec4 frag(vec3 pos, vec2 uv, vec4 color, sampler2D tex) {
-	return def_frag();
-}
-`
-
-const COMP_DESC = new Set([
-	"id",
-	"require",
-])
-
-const COMP_EVENTS = new Set([
-	"add",
-	"update",
-	"draw",
-	"destroy",
-	"inspect",
-	"drawInspect",
-])
-
-// transform the button state to the next state
-// e.g. if a button becomes "pressed" one frame, it should become "down" next frame
-function processButtonState(s: ButtonState): ButtonState {
-	if (s === "pressed" || s === "rpressed") {
-		return "down"
-	} else if (s === "released") {
-		return "up"
-	} else {
-		return s
-	}
-}
-
-// wrappers around full screen functions to work across browsers
-function enterFullscreen(el: HTMLElement) {
-	if (el.requestFullscreen) el.requestFullscreen()
-	// @ts-ignore
-	else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen()
-}
-
-function exitFullscreen() {
-	if (document.exitFullscreen) document.exitFullscreen()
-	// @ts-ignore
-	else if (document.webkitExitFullScreen) document.webkitExitFullScreen()
-}
-
-function getFullscreenElement(): Element | void {
-	return document.fullscreenElement
-		// @ts-ignore
-		|| document.webkitFullscreenElement
-}
-
-// convert anchor string to a vec2 offset
-function anchorPt(orig: Anchor | Vec2): Vec2 {
-	switch (orig) {
-		case "topleft": return vec2(-1, -1)
-		case "top": return vec2(0, -1)
-		case "topright": return vec2(1, -1)
-		case "left": return vec2(-1, 0)
-		case "center": return vec2(0, 0)
-		case "right": return vec2(1, 0)
-		case "botleft": return vec2(-1, 1)
-		case "bot": return vec2(0, 1)
-		case "botright": return vec2(1, 1)
-		default: return orig
-	}
-}
-
-function alignPt(align: TextAlign): number {
-	switch (align) {
-		case "left": return 0
-		case "center": return 0.5
-		case "right": return 1
-		default: return 0
-	}
-}
-
-function createEmptyAudioBuffer(ctx: AudioContext) {
-	return ctx.createBuffer(1, 1, 44100)
-}
 
 // only exports one kaboom() which contains all the state
 export default (gopt: KaboomOpt = {}): KaboomCtx => {
@@ -634,7 +435,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		}
 
 	})()
-
+  
 	const audio = (() => {
 
 		// TODO: handle when audio context is unavailable
