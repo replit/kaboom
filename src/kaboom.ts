@@ -189,6 +189,13 @@ import {
 	VERT_TEMPLATE, FRAG_TEMPLATE, DEF_VERT, DEF_FRAG, COMP_DESC, COMP_EVENTS,
 } from "./constants"
 
+import { Texture } from "./classes/Texture"
+import { SpriteData } from "./classes/SpriteData"
+import { SoundData } from "./classes/SoundData"
+import { Asset } from "./classes/Asset"
+import { AssetBucket } from "./classes/AssetBucket"
+import { Collision } from "./classes/Collision"
+
 import FPSCounter from "./fps"
 import Timer from "./timer"
 
@@ -330,88 +337,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			preserveDrawingBuffer: true,
 		})
 
-	class Texture {
-
-		glTex: WebGLTexture
-		width: number
-		height: number
-
-		constructor(w: number, h: number, opt: TextureOpt = {}) {
-
-			this.glTex = gl.createTexture()
-			gc.push(() => this.free())
-			this.bind()
-
-			if (w && h) {
-				gl.texImage2D(
-					gl.TEXTURE_2D,
-					0, gl.RGBA,
-					w,
-					h,
-					0,
-					gl.RGBA,
-					gl.UNSIGNED_BYTE,
-					null,
-				)
-			}
-
-			this.width = w
-			this.height = h
-
-			const filter = (() => {
-				switch (opt.filter ?? gopt.texFilter) {
-					case "linear": return gl.LINEAR
-					case "nearest": return gl.NEAREST
-					default: return gl.NEAREST
-				}
-			})()
-
-			const wrap = (() => {
-				switch (opt.wrap) {
-					case "repeat": return gl.REPEAT
-					case "clampToEdge": return gl.CLAMP_TO_EDGE
-					default: return gl.CLAMP_TO_EDGE
-				}
-			})()
-
-			gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, filter)
-			gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, filter)
-			gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, wrap)
-			gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, wrap)
-			this.unbind()
-
-		}
-
-		static fromImage(img: TexImageSource, opt: TextureOpt = {}): Texture {
-			const tex = new Texture(0, 0, opt)
-			tex.bind()
-			gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, img)
-			tex.width = img.width
-			tex.height = img.height
-			tex.unbind()
-			return tex
-		}
-
-		update(x: number, y: number, img: TexImageSource) {
-			this.bind()
-			gl.texSubImage2D(gl.TEXTURE_2D, 0, x, y, gl.RGBA, gl.UNSIGNED_BYTE, img)
-			this.unbind()
-		}
-
-		bind() {
-			gl.bindTexture(gl.TEXTURE_2D, this.glTex)
-		}
-
-		unbind() {
-			gl.bindTexture(gl.TEXTURE_2D, null)
-		}
-
-		free() {
-			gl.deleteTexture(this.glTex)
-		}
-
-	}
-
 	const gfx = (() => {
 
 		const defShader = makeShader(DEF_VERT, DEF_FRAG)
@@ -420,6 +345,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		// we use a texture for those so we can use only 1 pipeline for drawing sprites + shapes
 		const emptyTex = Texture.fromImage(
 			new ImageData(new Uint8ClampedArray([255, 255, 255, 255]), 1, 1),
+			gl, gc, gopt,
 		)
 
 		if (gopt.background) {
@@ -463,7 +389,9 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				190, 190, 190, 255,
 				190, 190, 190, 255,
 				128, 128, 128, 255,
-			]), 2, 2), {
+			]), 2, 2),
+			gl, gc, gopt,
+			{
 				wrap: "repeat",
 				filter: "nearest",
 			},
@@ -507,64 +435,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		}
 
 	})()
-
-	class SpriteData {
-
-		tex: Texture
-		frames: Quad[] = [new Quad(0, 0, 1, 1)]
-		anims: SpriteAnims = {}
-
-		constructor(tex: Texture, frames?: Quad[], anims: SpriteAnims = {}) {
-			this.tex = tex
-			if (frames) this.frames = frames
-			this.anims = anims
-		}
-
-		static from(src: LoadSpriteSrc, opt: LoadSpriteOpt = {}): Promise<SpriteData> {
-			return typeof src === "string"
-				? SpriteData.fromURL(src, opt)
-				: Promise.resolve(SpriteData.fromImage(src, opt),
-				)
-		}
-
-		static fromImage(data: TexImageSource, opt: LoadSpriteOpt = {}): SpriteData {
-			return new SpriteData(
-				Texture.fromImage(data, opt),
-				slice(opt.sliceX || 1, opt.sliceY || 1),
-				opt.anims ?? {},
-			)
-		}
-
-		static fromURL(url: string, opt: LoadSpriteOpt = {}): Promise<SpriteData> {
-			return loadImg(url).then((img) => SpriteData.fromImage(img, opt))
-		}
-
-	}
-
-	class SoundData {
-
-		buf: AudioBuffer
-
-		constructor(buf: AudioBuffer) {
-			this.buf = buf
-		}
-
-		static fromArrayBuffer(buf: ArrayBuffer): Promise<SoundData> {
-			return new Promise((resolve, reject) =>
-				audio.ctx.decodeAudioData(buf, resolve, reject),
-			).then((buf: AudioBuffer) => new SoundData(buf))
-		}
-
-		static fromURL(url: string): Promise<SoundData> {
-			if (isDataURL(url)) {
-				return SoundData.fromArrayBuffer(dataURLToArrayBuffer(url))
-			} else {
-				return fetchArrayBuffer(url).then((buf) => SoundData.fromArrayBuffer(buf))
-			}
-		}
-
-	}
-
+  
 	const audio = (() => {
 
 		// TODO: handle when audio context is unavailable
@@ -591,90 +462,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		}
 
 	})()
-
-	class Asset<D> {
-		done: boolean = false
-		data: D | null = null
-		error: Error | null = null
-		private onLoadEvents: Event<[D]> = new Event()
-		private onErrorEvents: Event<[Error]> = new Event()
-		private onFinishEvents: Event<[]> = new Event()
-		constructor(loader: Promise<D>) {
-			loader.then((data) => {
-				this.data = data
-				this.onLoadEvents.trigger(data)
-			}).catch((err) => {
-				this.error = err
-				if (this.onErrorEvents.numListeners() > 0) {
-					this.onErrorEvents.trigger(err)
-				} else {
-					throw err
-				}
-			}).finally(() => {
-				this.onFinishEvents.trigger()
-				this.done = true
-			})
-		}
-		static loaded<D>(data: D): Asset<D> {
-			const asset = new Asset(Promise.resolve(data))
-			asset.data = data
-			asset.done = true
-			return asset
-		}
-		onLoad(action: (data: D) => void) {
-			this.onLoadEvents.add(action)
-			return this
-		}
-		onError(action: (err: Error) => void) {
-			this.onErrorEvents.add(action)
-			return this
-		}
-		onFinish(action: () => void) {
-			this.onFinishEvents.add(action)
-			return this
-		}
-		then(action: (data: D) => void): Asset<D> {
-			return this.onLoad(action)
-		}
-		catch(action: (err: Error) => void): Asset<D> {
-			return this.onError(action)
-		}
-		finally(action: () => void): Asset<D> {
-			return this.onFinish(action)
-		}
-	}
-
-	class AssetBucket<D> {
-		assets: Map<string, Asset<D>> = new Map()
-		lastUID: number = 0
-		add(name: string | null, loader: Promise<D>): Asset<D> {
-			// if user don't provide a name we use a generated one
-			const id = name ?? (this.lastUID++ + "")
-			const asset = new Asset(loader)
-			this.assets.set(id, asset)
-			return asset
-		}
-		addLoaded(name: string | null, data: D) {
-			const id = name ?? (this.lastUID++ + "")
-			const asset = Asset.loaded(data)
-			this.assets.set(id, asset)
-		}
-		get(handle: string): Asset<D> | void {
-			return this.assets.get(handle)
-		}
-		progress(): number {
-			if (this.assets.size === 0) {
-				return 1
-			}
-			let loaded = 0
-			this.assets.forEach((asset) => {
-				if (asset.done) {
-					loaded++
-				}
-			})
-			return loaded / this.assets.size
-		}
-	}
 
 	const assets = {
 		// prefix for when loading from a url
@@ -799,7 +586,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		return assets.bitmapFonts.add(name, loadImg(src)
 			.then((img) => {
 				return makeFont(
-					Texture.fromImage(img, opt),
+					Texture.fromImage(img, gl, gc, gopt, opt),
 					gw,
 					gh,
 					opt.chars ?? ASCII_CHARS,
@@ -837,7 +624,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				})
 			}))
 		}
-		return load(SpriteData.from(src).then((atlas) => {
+		return load(SpriteData.from(src, loadImg, gl, gc, gopt, slice).then((atlas) => {
 			const map = {}
 			for (const name in data) {
 				const w = atlas.tex.width
@@ -875,8 +662,8 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		return assets.sprites.add(
 			name,
 			typeof src === "string"
-				? SpriteData.fromURL(src, opt)
-				: Promise.resolve(SpriteData.fromImage(src, opt),
+				? SpriteData.fromURL(src, loadImg, gl, gc, gopt, slice, opt)
+				: Promise.resolve(SpriteData.fromImage(src, gl, gc, gopt, slice, opt),
 				),
 		)
 	}
@@ -984,8 +771,8 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		return assets.sounds.add(
 			name,
 			typeof src === "string"
-				? SoundData.fromURL(src)
-				: SoundData.fromArrayBuffer(src),
+				? SoundData.fromURL(src, audio, fetchArrayBuffer)
+				: SoundData.fromArrayBuffer(src, audio),
 		)
 	}
 
@@ -2241,9 +2028,11 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 			const atlas: FontAtlas = fontAtlases[fontName] ?? {
 				font: {
-					tex: new Texture(FONT_ATLAS_SIZE, FONT_ATLAS_SIZE, {
-						filter: "linear",
-					}),
+					tex: new Texture(FONT_ATLAS_SIZE, FONT_ATLAS_SIZE,
+						gl, gc, gopt,
+						{
+							filter: "linear",
+						}),
 					map: {},
 					size: DEF_TEXT_CACHE_SIZE,
 				},
@@ -5367,42 +5156,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	}
 
 	const DEF_HASH_GRID_SIZE = 64
-
-	class Collision {
-		source: GameObj
-		target: GameObj
-		displacement: Vec2
-		resolved: boolean = false
-		constructor(source: GameObj, target: GameObj, dis: Vec2, resolved = false) {
-			this.source = source
-			this.target = target
-			this.displacement = dis
-			this.resolved = resolved
-		}
-		reverse() {
-			return new Collision(
-				this.target,
-				this.source,
-				this.displacement.scale(-1),
-				this.resolved,
-			)
-		}
-		isLeft() {
-			return this.displacement.x > 0
-		}
-		isRight() {
-			return this.displacement.x < 0
-		}
-		isTop() {
-			return this.displacement.y > 0
-		}
-		isBottom() {
-			return this.displacement.y < 0
-		}
-		preventResolve() {
-			this.resolved = true
-		}
-	}
 
 	function checkFrame() {
 
