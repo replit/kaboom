@@ -1,8 +1,6 @@
 // TODO: event registers return Promise for next event when callback not passed?
 // TODO: pass original browser event in input handlers
 
-const VERSION = "3000.0.0-alpha.9"
-
 import {
 	sat,
 	vec2,
@@ -57,6 +55,13 @@ import {
 	warn,
 	// eslint-disable-next-line
 	benchmark,
+	processButtonState,
+	enterFullscreen,
+	exitFullscreen,
+	getFullscreenElement,
+	anchorPt,
+	alignPt,
+	createEmptyAudioBuffer,
 } from "./utils"
 
 import {
@@ -149,7 +154,40 @@ import {
 	VirtualButton,
 	TimerController,
 	TweenController,
+	ButtonState,
+	EventList,
+	SpriteCurAnim,
+
 } from "./types"
+
+import {
+	VERSION,
+	KEY_ALIAS,
+	MOUSE_BUTTONS,
+	PREVENT_DEFAULT_KEYS,
+	ASCII_CHARS,
+	MIN_GAIN,
+	MAX_GAIN,
+	MIN_SPEED,
+	MAX_SPEED,
+	MIN_DETUNE,
+	MAX_DETUNE,
+	DEF_ANCHOR,
+	BG_GRID_SIZE,
+	DEF_FONT,
+	DBG_FONT,
+	DEF_TEXT_SIZE
+	, DEF_TEXT_CACHE_SIZE,
+	FONT_ATLAS_SIZE,
+	UV_PAD,
+	LOG_MAX,
+	VERTEX_FORMAT,
+	STRIDE,
+	MAX_BATCHED_QUAD,
+	MAX_BATCHED_VERTS,
+	MAX_BATCHED_INDICES,
+	VERT_TEMPLATE, FRAG_TEMPLATE, DEF_VERT, DEF_FRAG, COMP_DESC, COMP_EVENTS,
+} from "./constants"
 
 import FPSCounter from "./fps"
 import Timer from "./timer"
@@ -164,243 +202,6 @@ import burpSoundSrc from "./assets/burp.mp3"
 import kaSpriteSrc from "./assets/ka.png"
 // @ts-ignore
 import boomSpriteSrc from "./assets/boom.png"
-
-type ButtonState =
-	"up"
-	| "pressed"
-	| "rpressed"
-	| "down"
-	| "released"
-
-type EventList<M> = {
-	[event in keyof M]?: (event: M[event]) => void
-}
-
-interface SpriteCurAnim {
-	name: string,
-	timer: number,
-	loop: boolean,
-	speed: number,
-	pingpong: boolean,
-	onEnd: () => void,
-}
-
-// translate these key names to a simpler version
-const KEY_ALIAS = {
-	"ArrowLeft": "left",
-	"ArrowRight": "right",
-	"ArrowUp": "up",
-	"ArrowDown": "down",
-	" ": "space",
-}
-
-// according to https://developer.mozilla.org/en-US/docs/Web/API/MouseEvent/button
-const MOUSE_BUTTONS = [
-	"left",
-	"middle",
-	"right",
-	"back",
-	"forward",
-]
-
-// don't trigger browser default event when these keys are pressed
-const PREVENT_DEFAULT_KEYS = [
-	"space",
-	"left",
-	"right",
-	"up",
-	"down",
-	"tab",
-	"f1",
-	"f2",
-	"f3",
-	"f4",
-	"f5",
-	"f6",
-	"f7",
-	"f8",
-	"f9",
-	"f10",
-	"f11",
-	"s",
-]
-
-// some default charsets for loading bitmap fonts
-const ASCII_CHARS = " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~"
-
-// audio gain range
-const MIN_GAIN = 0
-const MAX_GAIN = 3
-
-// audio speed range
-const MIN_SPEED = 0
-const MAX_SPEED = 3
-
-// audio detune range
-const MIN_DETUNE = -1200
-const MAX_DETUNE = 1200
-
-const DEF_ANCHOR = "topleft"
-const BG_GRID_SIZE = 64
-
-const DEF_FONT = "happy"
-const DBG_FONT = "monospace"
-const DEF_TEXT_SIZE = 36
-const DEF_TEXT_CACHE_SIZE = 64
-const FONT_ATLAS_SIZE = 1024
-// 0.1 pixel padding to texture coordinates to prevent artifact
-const UV_PAD = 0.1
-
-const LOG_MAX = 1
-
-const VERTEX_FORMAT = [
-	{ name: "a_pos", size: 3 },
-	{ name: "a_uv", size: 2 },
-	{ name: "a_color", size: 4 },
-]
-
-const STRIDE = VERTEX_FORMAT.reduce((sum, f) => sum + f.size, 0)
-
-const MAX_BATCHED_QUAD = 2048
-const MAX_BATCHED_VERTS = MAX_BATCHED_QUAD * 4 * STRIDE
-const MAX_BATCHED_INDICES = MAX_BATCHED_QUAD * 6
-
-// vertex shader template, replace {{user}} with user vertex shader code
-const VERT_TEMPLATE = `
-attribute vec3 a_pos;
-attribute vec2 a_uv;
-attribute vec4 a_color;
-
-varying vec3 v_pos;
-varying vec2 v_uv;
-varying vec4 v_color;
-
-vec4 def_vert() {
-	return vec4(a_pos, 1.0);
-}
-
-{{user}}
-
-void main() {
-	vec4 pos = vert(a_pos, a_uv, a_color);
-	v_pos = a_pos;
-	v_uv = a_uv;
-	v_color = a_color;
-	gl_Position = pos;
-}
-`
-
-// fragment shader template, replace {{user}} with user fragment shader code
-const FRAG_TEMPLATE = `
-precision mediump float;
-
-varying vec3 v_pos;
-varying vec2 v_uv;
-varying vec4 v_color;
-
-uniform sampler2D u_tex;
-
-vec4 def_frag() {
-	return v_color * texture2D(u_tex, v_uv);
-}
-
-{{user}}
-
-void main() {
-	gl_FragColor = frag(v_pos, v_uv, v_color, u_tex);
-	if (gl_FragColor.a == 0.0) {
-		discard;
-	}
-}
-`
-
-// default {{user}} vertex shader code
-const DEF_VERT = `
-vec4 vert(vec3 pos, vec2 uv, vec4 color) {
-	return def_vert();
-}
-`
-
-// default {{user}} fragment shader code
-const DEF_FRAG = `
-vec4 frag(vec3 pos, vec2 uv, vec4 color, sampler2D tex) {
-	return def_frag();
-}
-`
-
-const COMP_DESC = new Set([
-	"id",
-	"require",
-])
-
-const COMP_EVENTS = new Set([
-	"add",
-	"update",
-	"draw",
-	"destroy",
-	"inspect",
-	"drawInspect",
-])
-
-// transform the button state to the next state
-// e.g. if a button becomes "pressed" one frame, it should become "down" next frame
-function processButtonState(s: ButtonState): ButtonState {
-	if (s === "pressed" || s === "rpressed") {
-		return "down"
-	} else if (s === "released") {
-		return "up"
-	} else {
-		return s
-	}
-}
-
-// wrappers around full screen functions to work across browsers
-function enterFullscreen(el: HTMLElement) {
-	if (el.requestFullscreen) el.requestFullscreen()
-	// @ts-ignore
-	else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen()
-}
-
-function exitFullscreen() {
-	if (document.exitFullscreen) document.exitFullscreen()
-	// @ts-ignore
-	else if (document.webkitExitFullScreen) document.webkitExitFullScreen()
-}
-
-function getFullscreenElement(): Element | void {
-	return document.fullscreenElement
-		// @ts-ignore
-		|| document.webkitFullscreenElement
-}
-
-// convert anchor string to a vec2 offset
-function anchorPt(orig: Anchor | Vec2): Vec2 {
-	switch (orig) {
-		case "topleft": return vec2(-1, -1)
-		case "top": return vec2(0, -1)
-		case "topright": return vec2(1, -1)
-		case "left": return vec2(-1, 0)
-		case "center": return vec2(0, 0)
-		case "right": return vec2(1, 0)
-		case "botleft": return vec2(-1, 1)
-		case "bot": return vec2(0, 1)
-		case "botright": return vec2(1, 1)
-		default: return orig
-	}
-}
-
-function alignPt(align: TextAlign): number {
-	switch (align) {
-		case "left": return 0
-		case "center": return 0.5
-		case "right": return 1
-		default: return 0
-	}
-}
-
-function createEmptyAudioBuffer(ctx: AudioContext) {
-	return ctx.createBuffer(1, 1, 44100)
-}
 
 // only exports one kaboom() which contains all the state
 export default (gopt: KaboomOpt = {}): KaboomCtx => {
@@ -618,7 +419,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		// a 1x1 white texture to draw raw shapes like rectangles and polygons
 		// we use a texture for those so we can use only 1 pipeline for drawing sprites + shapes
 		const emptyTex = Texture.fromImage(
-			new ImageData(new Uint8ClampedArray([ 255, 255, 255, 255 ]), 1, 1),
+			new ImageData(new Uint8ClampedArray([255, 255, 255, 255]), 1, 1),
 		)
 
 		if (gopt.background) {
@@ -710,7 +511,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	class SpriteData {
 
 		tex: Texture
-		frames: Quad[] = [ new Quad(0, 0, 1, 1) ]
+		frames: Quad[] = [new Quad(0, 0, 1, 1)]
 		anims: SpriteAnims = {}
 
 		constructor(tex: Texture, frames?: Quad[], anims: SpriteAnims = {}) {
@@ -1288,8 +1089,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		| BitmapFontData
 		| Asset<BitmapFontData>
 		| string
-		| void
-	{
+		| void {
 		if (!src) {
 			return resolveFont(gopt.font ?? DEF_FONT)
 		}
@@ -2272,7 +2072,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 		if (opt.outline) {
 			drawLines({
-				pts: [ ...opt.pts, opt.pts[0] ],
+				pts: [...opt.pts, opt.pts[0]],
 				radius: opt.radius,
 				width: opt.outline.width,
 				color: opt.outline.color,
@@ -3066,8 +2866,8 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			return app.numKeyDown > 0
 		} else {
 			return app.keyStates[k] === "pressed"
-			|| app.keyStates[k] === "rpressed"
-			|| app.keyStates[k] === "down"
+				|| app.keyStates[k] === "rpressed"
+				|| app.keyStates[k] === "down"
 		}
 	}
 
@@ -4011,7 +3811,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	function follow(obj: GameObj, offset?: Vec2): FollowComp {
 		return {
 			id: "follow",
-			require: [ "pos" ],
+			require: ["pos"],
 			follow: {
 				obj: obj,
 				offset: offset ?? vec2(0),
@@ -4033,7 +3833,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		const d = typeof dir === "number" ? Vec2.fromAngle(dir) : dir.unit()
 		return {
 			id: "move",
-			require: [ "pos" ],
+			require: ["pos"],
 			update(this: GameObj<PosComp>) {
 				this.move(d.scale(speed))
 			},
@@ -4047,7 +3847,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		let isOut = false
 		return {
 			id: "offscreen",
-			require: [ "pos" ],
+			require: ["pos"],
 			isOffScreen(this: GameObj<PosComp>): boolean {
 				const pos = toScreen(this.pos)
 				const screenRect = new Rect(vec2(0), width(), height())
@@ -4186,7 +3986,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 					return null
 				}
 				// if (this.colliding[other.id]) {
-					// return this.colliding[other.id]
+				// return this.colliding[other.id]
 				// }
 				const a1 = this.worldArea()
 				const a2 = other.worldArea()
@@ -4518,7 +4318,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 						loop: false,
 						pingpong: false,
 						speed: 0,
-						onEnd: () => {},
+						onEnd: () => { },
 					}
 					: {
 						name: name,
@@ -4526,7 +4326,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 						loop: opt.loop ?? anim.loop ?? false,
 						pingpong: opt.pingpong ?? anim.pingpong ?? false,
 						speed: opt.speed ?? anim.speed ?? 10,
-						onEnd: opt.onEnd ?? (() => {}),
+						onEnd: opt.onEnd ?? (() => { }),
 					}
 
 				this.frame = typeof anim === "number"
@@ -4779,7 +4579,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		return {
 
 			id: "body",
-			require: [ "pos", "area" ],
+			require: ["pos", "area"],
 			jumpForce: opt.jumpForce ?? DEF_JUMP_FORCE,
 			gravityScale: opt.gravityScale ?? 1,
 			isStatic: opt.isStatic ?? false,
@@ -4951,7 +4751,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		const events = []
 		return {
 			id: "doubleJump",
-			require: [ "body" ],
+			require: ["body"],
 			numJumps: numJumps,
 			add(this: GameObj<BodyComp | DoubleJumpComp>) {
 				events.push(this.onGround(() => {
@@ -5155,7 +4955,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			},
 
 			update() {
-			// execute the enter event for initState
+				// execute the enter event for initState
 				if (!didFirstEnter) {
 					trigger("enter", initState)
 					didFirstEnter = true
@@ -5179,7 +4979,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		let t = 0
 		let done = false
 		return {
-			require: [ "opacity" ],
+			require: ["opacity"],
 			add(this: GameObj<OpacityComp>) {
 				this.opacity = 0
 			},
@@ -5512,7 +5312,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		let time = 0
 		return {
 			id: "boom",
-			require: [ "scale" ],
+			require: ["scale"],
 			update(this: GameObj<ScaleComp>) {
 				const s = Math.sin(time * speed) * size
 				if (s < 0) {
@@ -5646,10 +5446,10 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				// insert & check against all covered grids
 				for (let x = xmin; x <= xmax; x++) {
 					for (let y = ymin; y <= ymax; y++) {
-						if(!grid[x]) {
+						if (!grid[x]) {
 							grid[x] = {}
 							grid[x][y] = [aobj]
-						} else if(!grid[x][y]) {
+						} else if (!grid[x][y]) {
 							grid[x][y] = [aobj]
 						} else {
 							const cell = grid[x][y]

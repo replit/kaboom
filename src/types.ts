@@ -464,7 +464,7 @@ export interface KaboomCtx {
 	 *     player.hurt(1)
 	 *     bad.hurt(1)
 	 * })
-     *
+	 *
 	 * player.onCollide("apple", () => {
 	 *     player.heal(1)
 	 * })
@@ -2149,6 +2149,13 @@ export type Key =
 	| "backspace" | "enter" | "tab" | "space" | " "
 	| "left" | "right" | "up" | "down"
 
+export type ButtonState =
+	"up"
+	| "pressed"
+	| "rpressed"
+	| "down"
+	| "released"
+
 export type MouseButton =
 	| "left"
 	| "right"
@@ -2561,6 +2568,15 @@ export declare class Asset<D> {
 }
 
 export type LoadSpriteSrc = string | TexImageSource
+
+export interface SpriteCurAnim {
+	name: string,
+	timer: number,
+	loop: boolean,
+	speed: number,
+	pingpong: boolean,
+	onEnd: () => void,
+}
 
 export declare class SpriteData {
 	tex: Texture
@@ -4543,6 +4559,10 @@ export type TweenController = TimerController & {
 	 * Finish the tween now and cancel.
 	 */
 	finish(): void,
+}
+
+export type EventList<M> = {
+	[event in keyof M]?: (event: M[event]) => void
 }
 
 export type EventController = {
