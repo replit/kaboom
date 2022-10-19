@@ -26,12 +26,12 @@ Sometimes you might be drawing a lot of objects that's not on screen (e.g. if yo
 ```js
 // planting flowers all over the map
 for (let i = 0; i < 1000; i++) {
-	add([
-		sprite("flower"),
-		pos(rand(-5000, 5000), rand(-5000, 5000)),
+    add([
+        sprite("flower"),
+        pos(rand(-5000, 5000), rand(-5000, 5000)),
         // don't draw or update the flower when they're out of view
-		offscreen({ hide: true, pause: true })
-	])
+        offscreen({ hide: true, pause: true })
+    ])
 }
 ```
 
@@ -42,7 +42,6 @@ Kaboom use a lot of `Promise` and `Promise`-like in time / event related stuff, 
 ```js
 async function example() {
     await wait(3)
-    await onKeyPress("space")
     await tween(0, 100, 1, (x) => mark.pos.x = x)
 }
 ```
