@@ -1,6 +1,6 @@
 import { Event } from "../utils"
 
-export class Asset<D> {
+export class AssetData<D> {
 	done: boolean = false
 	data: D | null = null
 	error: Error | null = null
@@ -23,8 +23,8 @@ export class Asset<D> {
 			this.done = true
 		})
 	}
-	static loaded<D>(data: D): Asset<D> {
-		const asset = new Asset(Promise.resolve(data))
+	static loaded<D>(data: D): AssetData<D> {
+		const asset = new AssetData(Promise.resolve(data))
 		asset.data = data
 		asset.done = true
 		return asset
@@ -41,13 +41,13 @@ export class Asset<D> {
 		this.onFinishEvents.add(action)
 		return this
 	}
-	then(action: (data: D) => void): Asset<D> {
+	then(action: (data: D) => void): AssetData<D> {
 		return this.onLoad(action)
 	}
-	catch(action: (err: Error) => void): Asset<D> {
+	catch(action: (err: Error) => void): AssetData<D> {
 		return this.onError(action)
 	}
-	finally(action: () => void): Asset<D> {
+	finally(action: () => void): AssetData<D> {
 		return this.onFinish(action)
 	}
 }

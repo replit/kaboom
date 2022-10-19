@@ -1,21 +1,21 @@
-import { Asset } from "./Asset"
+import { AssetData } from "./AssetData"
 
 export class AssetBucket<D> {
-	assets: Map<string, Asset<D>> = new Map()
+	assets: Map<string, AssetData<D>> = new Map()
 	lastUID: number = 0
-	add(name: string | null, loader: Promise<D>): Asset<D> {
+	add(name: string | null, loader: Promise<D>): AssetData<D> {
         // if user don't provide a name we use a generated one
 		const id = name ?? (this.lastUID++ + "")
-		const asset = new Asset(loader)
+		const asset = new AssetData(loader)
 		this.assets.set(id, asset)
 		return asset
 	}
 	addLoaded(name: string | null, data: D) {
 		const id = name ?? (this.lastUID++ + "")
-		const asset = Asset.loaded(data)
+		const asset = AssetData.loaded(data)
 		this.assets.set(id, asset)
 	}
-	get(handle: string): Asset<D> | void {
+	get(handle: string): AssetData<D> | void {
 		return this.assets.get(handle)
 	}
 	progress(): number {

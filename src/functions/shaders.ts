@@ -1,21 +1,19 @@
-import { Asset, ShaderData, RenderProps } from "../types"
-import { loadProgress } from "../utils"
+import { AssetData } from "../classes/AssetData"
+import { ShaderData, RenderProps } from "../types"
+import { loadProgress, getShader } from "../utils"
 import type { ShaderCtx } from "../types/shaders"
 
 //shaders
 export default (gfx: any, assets: any): ShaderCtx => {
-    function getShader(handle: string): Asset<ShaderData> | void {
-        return assets.shaders.get(handle)
-    }
 
     function resolveShader(
         src: RenderProps["shader"],
-    ): ShaderData | Asset<ShaderData> | null {
+    ): ShaderData | AssetData<ShaderData> | null {
         if (!src) {
             return gfx.defShader
         }
         if (typeof src === "string") {
-            const shader = getShader(src)
+            const shader = getShader(assets, src)
             if (shader) {
                 return shader.data ? shader.data : shader
             } else if (loadProgress(assets) < 1) {
@@ -23,7 +21,7 @@ export default (gfx: any, assets: any): ShaderCtx => {
             } else {
                 throw new Error(`Shader not found: ${src}`)
             }
-        } else if (src instanceof Asset) {
+        } else if (src instanceof AssetData) {
             return src.data ? src.data : src
         }
         // TODO: check type
@@ -32,7 +30,6 @@ export default (gfx: any, assets: any): ShaderCtx => {
     }
 
     return {
-        getShader,
         resolveShader
     }
 }

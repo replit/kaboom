@@ -56,8 +56,17 @@ import {
 	// eslint-disable-next-line
 	benchmark,
 	loadProgress,
-	anchorPt,
 	resolveSprite,
+	processButtonState,
+	enterFullscreen,
+	exitFullscreen,
+	getFullscreenElement,
+	anchorPt,
+	alignPt,
+	createEmptyAudioBuffer,
+	getSprite,
+	getBitmapFont,
+	getShader,
 } from "./utils"
 
 import {
@@ -150,10 +159,52 @@ import {
 	VirtualButton,
 	TimerController,
 	TweenController,
+	ButtonState,
+	EventList,
+	SpriteCurAnim,
 } from "./types"
 
-import draw from "./functions/draw"
+import {
+	VERSION,
+	KEY_ALIAS,
+	MOUSE_BUTTONS,
+	PREVENT_DEFAULT_KEYS,
+	ASCII_CHARS,
+	MIN_GAIN,
+	MAX_GAIN,
+	MIN_SPEED,
+	MAX_SPEED,
+	MIN_DETUNE,
+	MAX_DETUNE,
+	DEF_ANCHOR,
+	BG_GRID_SIZE,
+	DEF_FONT,
+	DBG_FONT,
+	DEF_TEXT_SIZE,
+	DEF_TEXT_CACHE_SIZE,
+	FONT_ATLAS_SIZE,
+	UV_PAD,
+	LOG_MAX,
+	VERTEX_FORMAT,
+	STRIDE,
+	MAX_BATCHED_QUAD,
+	MAX_BATCHED_VERTS,
+	MAX_BATCHED_INDICES,
+	VERT_TEMPLATE, FRAG_TEMPLATE, DEF_VERT, DEF_FRAG, COMP_DESC, COMP_EVENTS,
+} from "./constants"
+
+import { Texture } from "./classes/Texture"
+import { SpriteData } from "./classes/SpriteData"
+import { SoundData } from "./classes/SoundData"
+import { AssetData } from "./classes/AssetData"
+import { AssetBucket } from "./classes/AssetBucket"
+import { Collision } from "./classes/Collision"
+
+import drawFunc from "./functions/draw"
 import textFunc from "./functions/text"
+
+import { TextCtx } from "./types/text"
+import { DrawCtx } from "./types/draw"
 
 import FPSCounter from "./fps"
 import Timer from "./timer"
@@ -168,218 +219,6 @@ import burpSoundSrc from "./assets/burp.mp3"
 import kaSpriteSrc from "./assets/ka.png"
 // @ts-ignore
 import boomSpriteSrc from "./assets/boom.png"
-
-type ButtonState =
-	"up"
-	| "pressed"
-	| "rpressed"
-	| "down"
-	| "released"
-
-type EventList<M> = {
-	[event in keyof M]?: (event: M[event]) => void
-}
-
-interface SpriteCurAnim {
-	name: string,
-	timer: number,
-	loop: boolean,
-	speed: number,
-	pingpong: boolean,
-	onEnd: () => void,
-}
-
-// translate these key names to a simpler version
-const KEY_ALIAS = {
-	"ArrowLeft": "left",
-	"ArrowRight": "right",
-	"ArrowUp": "up",
-	"ArrowDown": "down",
-	" ": "space",
-}
-
-// according to https://developer.mozilla.org/en-US/docs/Web/API/MouseEvent/button
-const MOUSE_BUTTONS = [
-	"left",
-	"middle",
-	"right",
-	"back",
-	"forward",
-]
-
-// don't trigger browser default event when these keys are pressed
-const PREVENT_DEFAULT_KEYS = [
-	"space",
-	"left",
-	"right",
-	"up",
-	"down",
-	"tab",
-	"f1",
-	"f2",
-	"f3",
-	"f4",
-	"f5",
-	"f6",
-	"f7",
-	"f8",
-	"f9",
-	"f10",
-	"f11",
-	"s",
-]
-
-// some default charsets for loading bitmap fonts
-const ASCII_CHARS = " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~"
-
-// audio gain range
-const MIN_GAIN = 0
-const MAX_GAIN = 3
-
-// audio speed range
-const MIN_SPEED = 0
-const MAX_SPEED = 3
-
-// audio detune range
-const MIN_DETUNE = -1200
-const MAX_DETUNE = 1200
-
-const DEF_ANCHOR = "topleft"
-const BG_GRID_SIZE = 64
-
-const DEF_FONT = "happy"
-const DBG_FONT = "monospace"
-const DEF_TEXT_SIZE = 36
-const DEF_TEXT_CACHE_SIZE = 64
-const FONT_ATLAS_SIZE = 1024
-// 0.1 pixel padding to texture coordinates to prevent artifact
-const UV_PAD = 0.1
-
-const LOG_MAX = 1
-
-const VERTEX_FORMAT = [
-	{ name: "a_pos", size: 3 },
-	{ name: "a_uv", size: 2 },
-	{ name: "a_color", size: 4 },
-]
-
-const STRIDE = VERTEX_FORMAT.reduce((sum, f) => sum + f.size, 0)
-
-const MAX_BATCHED_QUAD = 2048
-const MAX_BATCHED_VERTS = MAX_BATCHED_QUAD * 4 * STRIDE
-const MAX_BATCHED_INDICES = MAX_BATCHED_QUAD * 6
-
-// vertex shader template, replace {{user}} with user vertex shader code
-const VERT_TEMPLATE = `
-attribute vec3 a_pos;
-attribute vec2 a_uv;
-attribute vec4 a_color;
-
-varying vec3 v_pos;
-varying vec2 v_uv;
-varying vec4 v_color;
-
-vec4 def_vert() {
-	return vec4(a_pos, 1.0);
-}
-
-{{user}}
-
-void main() {
-	vec4 pos = vert(a_pos, a_uv, a_color);
-	v_pos = a_pos;
-	v_uv = a_uv;
-	v_color = a_color;
-	gl_Position = pos;
-}
-`
-
-// fragment shader template, replace {{user}} with user fragment shader code
-const FRAG_TEMPLATE = `
-precision mediump float;
-
-varying vec3 v_pos;
-varying vec2 v_uv;
-varying vec4 v_color;
-
-uniform sampler2D u_tex;
-
-vec4 def_frag() {
-	return v_color * texture2D(u_tex, v_uv);
-}
-
-{{user}}
-
-void main() {
-	gl_FragColor = frag(v_pos, v_uv, v_color, u_tex);
-	if (gl_FragColor.a == 0.0) {
-		discard;
-	}
-}
-`
-
-// default {{user}} vertex shader code
-const DEF_VERT = `
-vec4 vert(vec3 pos, vec2 uv, vec4 color) {
-	return def_vert();
-}
-`
-
-// default {{user}} fragment shader code
-const DEF_FRAG = `
-vec4 frag(vec3 pos, vec2 uv, vec4 color, sampler2D tex) {
-	return def_frag();
-}
-`
-
-const COMP_DESC = new Set([
-	"id",
-	"require",
-])
-
-const COMP_EVENTS = new Set([
-	"add",
-	"update",
-	"draw",
-	"destroy",
-	"inspect",
-	"drawInspect",
-])
-
-// transform the button state to the next state
-// e.g. if a button becomes "pressed" one frame, it should become "down" next frame
-function processButtonState(s: ButtonState): ButtonState {
-	if (s === "pressed" || s === "rpressed") {
-		return "down"
-	} else if (s === "released") {
-		return "up"
-	} else {
-		return s
-	}
-}
-
-// wrappers around full screen functions to work across browsers
-function enterFullscreen(el: HTMLElement) {
-	if (el.requestFullscreen) el.requestFullscreen()
-	// @ts-ignore
-	else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen()
-}
-
-function exitFullscreen() {
-	if (document.exitFullscreen) document.exitFullscreen()
-	// @ts-ignore
-	else if (document.webkitExitFullScreen) document.webkitExitFullScreen()
-}
-
-function getFullscreenElement(): Element | void {
-	return document.fullscreenElement
-		// @ts-ignore
-		|| document.webkitFullscreenElement
-}
-
-function createEmptyAudioBuffer(ctx: AudioContext) {
-	return ctx.createBuffer(1, 1, 44100)
-}
 
 // only exports one kaboom() which contains all the state
 export default (gopt: KaboomOpt = {}): KaboomCtx => {
@@ -507,88 +346,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			preserveDrawingBuffer: true,
 		})
 
-	class Texture {
-
-		glTex: WebGLTexture
-		width: number
-		height: number
-
-		constructor(w: number, h: number, opt: TextureOpt = {}) {
-
-			this.glTex = gl.createTexture()
-			gc.push(() => this.free())
-			this.bind()
-
-			if (w && h) {
-				gl.texImage2D(
-					gl.TEXTURE_2D,
-					0, gl.RGBA,
-					w,
-					h,
-					0,
-					gl.RGBA,
-					gl.UNSIGNED_BYTE,
-					null,
-				)
-			}
-
-			this.width = w
-			this.height = h
-
-			const filter = (() => {
-				switch (opt.filter ?? gopt.texFilter) {
-					case "linear": return gl.LINEAR
-					case "nearest": return gl.NEAREST
-					default: return gl.NEAREST
-				}
-			})()
-
-			const wrap = (() => {
-				switch (opt.wrap) {
-					case "repeat": return gl.REPEAT
-					case "clampToEdge": return gl.CLAMP_TO_EDGE
-					default: return gl.CLAMP_TO_EDGE
-				}
-			})()
-
-			gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, filter)
-			gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, filter)
-			gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, wrap)
-			gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, wrap)
-			this.unbind()
-
-		}
-
-		static fromImage(img: TexImageSource, opt: TextureOpt = {}): Texture {
-			const tex = new Texture(0, 0, opt)
-			tex.bind()
-			gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, img)
-			tex.width = img.width
-			tex.height = img.height
-			tex.unbind()
-			return tex
-		}
-
-		update(x: number, y: number, img: TexImageSource) {
-			this.bind()
-			gl.texSubImage2D(gl.TEXTURE_2D, 0, x, y, gl.RGBA, gl.UNSIGNED_BYTE, img)
-			this.unbind()
-		}
-
-		bind() {
-			gl.bindTexture(gl.TEXTURE_2D, this.glTex)
-		}
-
-		unbind() {
-			gl.bindTexture(gl.TEXTURE_2D, null)
-		}
-
-		free() {
-			gl.deleteTexture(this.glTex)
-		}
-
-	}
-
 	const gfx = (() => {
 
 		const defShader = makeShader(DEF_VERT, DEF_FRAG)
@@ -597,6 +354,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		// we use a texture for those so we can use only 1 pipeline for drawing sprites + shapes
 		const emptyTex = Texture.fromImage(
 			new ImageData(new Uint8ClampedArray([255, 255, 255, 255]), 1, 1),
+			gl, gc, gopt
 		)
 
 		if (gopt.background) {
@@ -640,10 +398,12 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				190, 190, 190, 255,
 				190, 190, 190, 255,
 				128, 128, 128, 255,
-			]), 2, 2), {
-			wrap: "repeat",
-			filter: "nearest",
-		},
+			]), 2, 2),
+			gl, gc, gopt,
+			{
+				wrap: "repeat",
+				filter: "nearest",
+			},
 		)
 
 		return {
@@ -685,63 +445,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 	})()
 
-	class SpriteData {
-
-		tex: Texture
-		frames: Quad[] = [new Quad(0, 0, 1, 1)]
-		anims: SpriteAnims = {}
-
-		constructor(tex: Texture, frames?: Quad[], anims: SpriteAnims = {}) {
-			this.tex = tex
-			if (frames) this.frames = frames
-			this.anims = anims
-		}
-
-		static from(src: LoadSpriteSrc, opt: LoadSpriteOpt = {}): Promise<SpriteData> {
-			return typeof src === "string"
-				? SpriteData.fromURL(src, opt)
-				: Promise.resolve(SpriteData.fromImage(src, opt),
-				)
-		}
-
-		static fromImage(data: TexImageSource, opt: LoadSpriteOpt = {}): SpriteData {
-			return new SpriteData(
-				Texture.fromImage(data, opt),
-				slice(opt.sliceX || 1, opt.sliceY || 1),
-				opt.anims ?? {},
-			)
-		}
-
-		static fromURL(url: string, opt: LoadSpriteOpt = {}): Promise<SpriteData> {
-			return loadImg(url).then((img) => SpriteData.fromImage(img, opt))
-		}
-
-	}
-
-	class SoundData {
-
-		buf: AudioBuffer
-
-		constructor(buf: AudioBuffer) {
-			this.buf = buf
-		}
-
-		static fromArrayBuffer(buf: ArrayBuffer): Promise<SoundData> {
-			return new Promise((resolve, reject) =>
-				audio.ctx.decodeAudioData(buf, resolve, reject),
-			).then((buf: AudioBuffer) => new SoundData(buf))
-		}
-
-		static fromURL(url: string): Promise<SoundData> {
-			if (isDataURL(url)) {
-				return SoundData.fromArrayBuffer(dataURLToArrayBuffer(url))
-			} else {
-				return fetchArrayBuffer(url).then((buf) => SoundData.fromArrayBuffer(buf))
-			}
-		}
-
-	}
-
 	const audio = (() => {
 
 		// TODO: handle when audio context is unavailable
@@ -768,90 +471,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		}
 
 	})()
-
-	class Asset<D> {
-		done: boolean = false
-		data: D | null = null
-		error: Error | null = null
-		private onLoadEvents: Event<[D]> = new Event()
-		private onErrorEvents: Event<[Error]> = new Event()
-		private onFinishEvents: Event<[]> = new Event()
-		constructor(loader: Promise<D>) {
-			loader.then((data) => {
-				this.data = data
-				this.onLoadEvents.trigger(data)
-			}).catch((err) => {
-				this.error = err
-				if (this.onErrorEvents.numListeners() > 0) {
-					this.onErrorEvents.trigger(err)
-				} else {
-					throw err
-				}
-			}).finally(() => {
-				this.onFinishEvents.trigger()
-				this.done = true
-			})
-		}
-		static loaded<D>(data: D): Asset<D> {
-			const asset = new Asset(Promise.resolve(data))
-			asset.data = data
-			asset.done = true
-			return asset
-		}
-		onLoad(action: (data: D) => void) {
-			this.onLoadEvents.add(action)
-			return this
-		}
-		onError(action: (err: Error) => void) {
-			this.onErrorEvents.add(action)
-			return this
-		}
-		onFinish(action: () => void) {
-			this.onFinishEvents.add(action)
-			return this
-		}
-		then(action: (data: D) => void): Asset<D> {
-			return this.onLoad(action)
-		}
-		catch(action: (err: Error) => void): Asset<D> {
-			return this.onError(action)
-		}
-		finally(action: () => void): Asset<D> {
-			return this.onFinish(action)
-		}
-	}
-
-	class AssetBucket<D> {
-		assets: Map<string, Asset<D>> = new Map()
-		lastUID: number = 0
-		add(name: string | null, loader: Promise<D>): Asset<D> {
-			// if user don't provide a name we use a generated one
-			const id = name ?? (this.lastUID++ + "")
-			const asset = new Asset(loader)
-			this.assets.set(id, asset)
-			return asset
-		}
-		addLoaded(name: string | null, data: D) {
-			const id = name ?? (this.lastUID++ + "")
-			const asset = Asset.loaded(data)
-			this.assets.set(id, asset)
-		}
-		get(handle: string): Asset<D> | void {
-			return this.assets.get(handle)
-		}
-		progress(): number {
-			if (this.assets.size === 0) {
-				return 1
-			}
-			let loaded = 0
-			this.assets.forEach((asset) => {
-				if (asset.done) {
-					loaded++
-				}
-			})
-			return loaded / this.assets.size
-		}
-	}
 
 	const assets = {
 		// prefix for when loading from a url
@@ -896,7 +515,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 	// TODO: accept Asset<T>?
 	// wrap individual loaders with global loader counter, for stuff like progress bar
-	function load<T>(prom: Promise<T>): Asset<T> {
+	function load<T>(prom: Promise<T>): AssetData<T> {
 		return assets.custom.add(null, prom)
 	}
 
@@ -943,7 +562,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		})
 	}
 
-	function loadFont(name: string, src: string | ArrayBuffer): Asset<FontData> {
+	function loadFont(name: string, src: string | ArrayBuffer): AssetData<FontData> {
 		const font = new FontFace(name, typeof src === "string" ? `url(${src})` : src)
 		document.fonts.add(font)
 		return assets.fonts.add(name, font.load().catch(() => {
@@ -958,11 +577,11 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		gw: number,
 		gh: number,
 		opt: LoadBitmapFontOpt = {},
-	): Asset<BitmapFontData> {
+	): AssetData<BitmapFontData> {
 		return assets.bitmapFonts.add(name, loadImg(src)
 			.then((img) => {
 				return makeFont(
-					Texture.fromImage(img, opt),
+					Texture.fromImage(img, gl, gc, gopt, opt),
 					gw,
 					gh,
 					opt.chars ?? ASCII_CHARS,
@@ -992,7 +611,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	function loadSpriteAtlas(
 		src: LoadSpriteSrc,
 		data: SpriteAtlasData | string,
-	): Asset<Record<string, SpriteData>> {
+	): AssetData<Record<string, SpriteData>> {
 		if (typeof data === "string") {
 			return load(new Promise((res, rej) => {
 				fetchJSON(data).then((data2) => {
@@ -1000,7 +619,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				})
 			}))
 		}
-		return load(SpriteData.from(src).then((atlas) => {
+		return load(SpriteData.from(src, loadImg, gl, gc, gopt, slice).then((atlas) => {
 			const map = {}
 			for (const name in data) {
 				const w = atlas.tex.width
@@ -1034,17 +653,17 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			sliceY: 1,
 			anims: {},
 		},
-	): Asset<SpriteData> {
+	): AssetData<SpriteData> {
 		return assets.sprites.add(
 			name,
 			typeof src === "string"
-				? SpriteData.fromURL(src, opt)
-				: Promise.resolve(SpriteData.fromImage(src, opt),
+				? SpriteData.fromURL(src, loadImg, gl, gc, gopt, slice, opt)
+				: Promise.resolve(SpriteData.fromImage(src, gl, gc, gopt, slice, opt),
 				),
 		)
 	}
 
-	function loadPedit(name: string | null, src: string | PeditFile): Asset<SpriteData> {
+	function loadPedit(name: string | null, src: string | PeditFile): AssetData<SpriteData> {
 
 		// eslint-disable-next-line
 		return assets.sprites.add(name, new Promise(async (resolve) => {
@@ -1076,7 +695,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		name: string | null,
 		imgSrc: LoadSpriteSrc,
 		jsonSrc: string,
-	): Asset<SpriteData> {
+	): AssetData<SpriteData> {
 		// eslint-disable-next-line
 		return assets.sprites.add(name, new Promise(async (resolve) => {
 			const spr = await loadSprite(null, imgSrc)
@@ -1112,7 +731,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		vert?: string,
 		frag?: string,
 		isUrl: boolean = false,
-	): Asset<ShaderData> {
+	): AssetData<ShaderData> {
 
 		return assets.shaders.add(name, new Promise<ShaderData>((resolve, reject) => {
 
@@ -1143,30 +762,30 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	function loadSound(
 		name: string | null,
 		src: string | ArrayBuffer,
-	): Asset<SoundData> {
+	): AssetData<SoundData> {
 		return assets.sounds.add(
 			name,
 			typeof src === "string"
-				? SoundData.fromURL(src)
-				: SoundData.fromArrayBuffer(src),
+				? SoundData.fromURL(src, audio, fetchArrayBuffer)
+				: SoundData.fromArrayBuffer(src, audio),
 		)
 	}
 
-	function loadBean(name: string = "bean"): Asset<SpriteData> {
+	function loadBean(name: string = "bean"): AssetData<SpriteData> {
 		return loadSprite(name, beanSpriteSrc)
 	}
 
-	function getSound(handle: string): Asset<SoundData> | void {
+	function getSound(handle: string): AssetData<SoundData> | void {
 		return assets.sounds.get(handle)
 	}
 
-	function getFont(handle: string): Asset<FontData> | void {
+	function getFont(handle: string): AssetData<FontData> | void {
 		return assets.fonts.get(handle)
 	}
 
 	function resolveSound(
 		src: Parameters<typeof play>[0],
-	): SoundData | Asset<SoundData> | null {
+	): SoundData | AssetData<SoundData> | null {
 		if (typeof src === "string") {
 			const snd = getSound(src)
 			if (snd) {
@@ -1178,7 +797,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			}
 		} else if (src instanceof SoundData) {
 			return src
-		} else if (src instanceof Asset) {
+		} else if (src instanceof AssetData) {
 			return src.data ? src.data : src
 		} else {
 			throw new Error(`Invalid sound: ${src}`)
@@ -1195,7 +814,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 	// plays a sound, returns a control handle
 	function play(
-		src: string | SoundData | Asset<SoundData>,
+		src: string | SoundData | AssetData<SoundData>,
 		opt: AudioPlayOpt = {
 			loop: false,
 			volume: 1,
@@ -1207,7 +826,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 		const snd = resolveSound(src)
 
-		if (snd instanceof Asset) {
+		if (snd instanceof AssetData) {
 			const pb = play(new SoundData(createEmptyAudioBuffer(audio.ctx)))
 			const doPlay = (snd: SoundData) => {
 				const pb2 = play(snd, opt)
@@ -1492,9 +1111,9 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		gl.clear(gl.COLOR_BUFFER_BIT)
 
 		if (!gopt.background) {
-			const drawFunc = draw(gopt, gfx, assets, game, app, debug, gl)
-			drawFunc.drawUnscaled(() => {
-				drawFunc.drawUVQuad({
+			const DRAW = drawFunc(gopt, gfx, assets, game, app, debug, gl)
+			DRAW.drawUnscaled(() => {
+				DRAW.drawUVQuad({
 					width: width(),
 					height: height(),
 					quad: new Quad(
@@ -1516,8 +1135,8 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	}
 
 	function frameEnd() {
-		const drawFunc = draw(gopt, gfx, assets, game, app, debug, gl)
-		drawFunc.flush()
+		const DRAW = drawFunc(gopt, gfx, assets, game, app, debug, gl)
+		DRAW.flush()
 		gfx.lastDrawCalls = gfx.drawCalls
 	}
 
@@ -2101,28 +1720,28 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 			draw(this: GameObj<PosComp | ScaleComp | RotateComp>) {
 				if (this.hidden) return
-				const drawFunc = draw(gopt, gfx, assets, game, app, debug, gl)
+				const DRAW = drawFunc(gopt, gfx, assets, game, app, debug, gl)
 
-				drawFunc.pushTransform()
-				drawFunc.pushTranslate(this.pos)
-				drawFunc.pushScale(this.scale)
-				drawFunc.pushRotateZ(this.angle)
+				DRAW.pushTransform()
+				DRAW.pushTranslate(this.pos)
+				DRAW.pushScale(this.scale)
+				DRAW.pushRotateZ(this.angle)
 				this.trigger("draw")
 				this.get().forEach((child) => child.draw())
-				drawFunc.popTransform()
+				DRAW.popTransform()
 			},
 
 			drawInspect(this: GameObj<PosComp | ScaleComp | RotateComp>) {
 				if (this.hidden) return
-				const drawFunc = draw(gopt, gfx, assets, game, app, debug, gl)
+				const DRAW = drawFunc(gopt, gfx, assets, game, app, debug, gl)
 
-				drawFunc.pushTransform()
-				drawFunc.pushTranslate(this.pos)
-				drawFunc.pushScale(this.scale)
-				drawFunc.pushRotateZ(this.angle)
+				DRAW.pushTransform()
+				DRAW.pushTranslate(this.pos)
+				DRAW.pushScale(this.scale)
+				DRAW.pushRotateZ(this.angle)
 				this.get().forEach((child) => child.drawInspect())
 				this.trigger("drawInspect")
-				drawFunc.popTransform()
+				DRAW.popTransform()
 			},
 
 			// use a comp, or tag
@@ -2741,9 +2360,9 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			},
 
 			drawInspect() {
-				const drawFunc = draw(gopt, gfx, assets, game, app, debug, gl)
+				const DRAW = drawFunc(gopt, gfx, assets, game, app, debug, gl)
 
-				drawFunc.drawCircle({
+				DRAW.drawCircle({
 					color: rgb(255, 0, 0),
 					radius: 4 / getViewportScale(),
 				})
@@ -2957,13 +2576,13 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			},
 
 			drawInspect(this: GameObj<AreaComp | AnchorComp | FixedComp>) {
-				const drawFunc = draw(gopt, gfx, assets, game, app, debug, gl)
+				const DRAW = drawFunc(gopt, gfx, assets, game, app, debug, gl)
 
 				const a = this.localArea()
 
-				drawFunc.pushTransform()
-				drawFunc.pushScale(this.area.scale)
-				drawFunc.pushTranslate(this.area.offset)
+				DRAW.pushTransform()
+				DRAW.pushScale(this.area.scale)
+				DRAW.pushTranslate(this.area.offset)
 
 				const opts = {
 					outline: {
@@ -2976,26 +2595,26 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				}
 
 				if (a instanceof Rect) {
-					drawFunc.drawRect({
+					DRAW.drawRect({
 						...opts,
 						pos: a.pos,
 						width: a.width,
 						height: a.height,
 					})
 				} else if (a instanceof Polygon) {
-					drawFunc.drawPolygon({
+					DRAW.drawPolygon({
 						...opts,
 						pts: a.pts,
 					})
 				} else if (a instanceof Circle) {
-					drawFunc.drawCircle({
+					DRAW.drawCircle({
 						...opts,
 						pos: a.center,
 						radius: a.radius,
 					})
 				}
 
-				drawFunc.popTransform()
+				DRAW.popTransform()
 
 			},
 
@@ -3202,7 +2821,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 	// TODO: clean
 	function sprite(
-		src: string | SpriteData | Asset<SpriteData>,
+		src: string | SpriteData | AssetData<SpriteData>,
 		opt: SpriteCompOpt = {},
 	): SpriteComp {
 
@@ -3240,9 +2859,9 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 			draw(this: GameObj<SpriteComp>) {
 				if (!spriteData) return
-				const drawFunc = draw(gopt, gfx, assets, game, app, debug, gl)
+				const DRAW = drawFunc(gopt, gfx, assets, game, app, debug, gl)
 
-				drawFunc.drawSprite({
+				DRAW.drawSprite({
 					...getRenderProps(this),
 					sprite: spriteData,
 					frame: this.frame,
@@ -3490,9 +3109,9 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			},
 
 			draw(this: GameObj<TextComp>) {
-				const drawFunc = draw(gopt, gfx, assets, game, app, debug, gl)
+				const DRAW = drawFunc(gopt, gfx, assets, game, app, debug, gl)
 
-				drawFunc.drawFormattedText(update(this))
+				DRAW.drawFormattedText(update(this))
 			},
 
 			renderArea() {
@@ -3510,9 +3129,9 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			height: h,
 			radius: opt.radius || 0,
 			draw(this: GameObj<RectComp>) {
-				const drawFunc = draw(gopt, gfx, assets, game, app, debug, gl)
+				const DRAW = drawFunc(gopt, gfx, assets, game, app, debug, gl)
 
-				drawFunc.drawRect({
+				DRAW.drawRect({
 					...getRenderProps(this),
 					width: this.width,
 					height: this.height,
@@ -3534,9 +3153,9 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			width: w,
 			height: h,
 			draw(this: GameObj<UVQuadComp>) {
-				const drawFunc = draw(gopt, gfx, assets, game, app, debug, gl)
+				const DRAW = drawFunc(gopt, gfx, assets, game, app, debug, gl)
 
-				drawFunc.drawUVQuad({
+				DRAW.drawUVQuad({
 					...getRenderProps(this),
 					width: this.width,
 					height: this.height,
@@ -3556,9 +3175,9 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			id: "circle",
 			radius: radius,
 			draw(this: GameObj<CircleComp>) {
-				const drawFunc = draw(gopt, gfx, assets, game, app, debug, gl)
+				const DRAW = drawFunc(gopt, gfx, assets, game, app, debug, gl)
 
-				drawFunc.drawCircle({
+				DRAW.drawCircle({
 					...getRenderProps(this),
 					radius: this.radius,
 				})
@@ -4417,42 +4036,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 	const DEF_HASH_GRID_SIZE = 64
 
-	class Collision {
-		source: GameObj
-		target: GameObj
-		displacement: Vec2
-		resolved: boolean = false
-		constructor(source: GameObj, target: GameObj, dis: Vec2, resolved = false) {
-			this.source = source
-			this.target = target
-			this.displacement = dis
-			this.resolved = resolved
-		}
-		reverse() {
-			return new Collision(
-				this.target,
-				this.source,
-				this.displacement.scale(-1),
-				this.resolved,
-			)
-		}
-		isLeft() {
-			return this.displacement.x > 0
-		}
-		isRight() {
-			return this.displacement.x < 0
-		}
-		isTop() {
-			return this.displacement.y > 0
-		}
-		isBottom() {
-			return this.displacement.y < 0
-		}
-		preventResolve() {
-			this.resolved = true
-		}
-	}
-
 	function checkFrame() {
 
 		// TODO: persistent grid?
@@ -4577,9 +4160,10 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 		// TODO: this should only run once
 		run(() => {
-			const drawFunc = draw(gopt, gfx, assets, game, app, debug, gl)
+			const DRAW = drawFunc(gopt, gfx, assets, game, app, debug, gl)
+			const newText = textFunc(gopt, assets, gl, gc, app)
 
-			drawFunc.drawUnscaled(() => {
+			DRAW.drawUnscaled(() => {
 
 				const pad = 32
 				const gap = 16
@@ -4595,14 +4179,14 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 					fixed: true,
 				}
 
-				drawFunc.drawRect({
+				DRAW.drawRect({
 					width: gw,
 					height: gh,
 					color: rgb(0, 0, 255),
 					fixed: true,
 				})
 
-				const title = drawFunc.formatText({
+				const title = newText.formatText({
 					...textStyle,
 					text: err.name,
 					pos: vec2(pad),
@@ -4610,16 +4194,16 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 					fixed: true,
 				})
 
-				drawFunc.drawFormattedText(title)
+				DRAW.drawFormattedText(title)
 
-				drawFunc.drawText({
+				DRAW.drawText({
 					...textStyle,
 					text: err.message,
 					pos: vec2(pad, pad + title.height + gap),
 					fixed: true,
 				})
 
-				drawFunc.popTransform()
+				DRAW.popTransform()
 				game.ev.trigger("error", err)
 
 			})
@@ -4795,7 +4379,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 	// main game loop
 	run(() => {
-		const drawFunc = draw(gopt, gfx, assets, game, app, debug, gl)
+		const DRAW = drawFunc(gopt, gfx, assets, game, app, debug, gl)
 
 		if (!assets.loaded) {
 			if (loadProgress(assets) === 1) {
@@ -4807,7 +4391,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		if (!assets.loaded && gopt.loadingScreen !== false) {
 
 			// TODO: Currently if assets are not initially loaded no updates or timers will be run, however they will run if loadingScreen is set to false. What's the desired behavior or should we make them consistent?
-			drawFunc.drawLoadScreen()
+			DRAW.drawLoadScreen()
 
 		} else {
 
@@ -4818,19 +4402,20 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			}
 
 			checkFrame()
-			drawFunc.drawFrame()
+			DRAW.drawFrame()
 
 			if (gopt.debug !== false) {
-				drawFunc.drawDebug(getAll, mousePos, time)
+				DRAW.drawDebug(getAll, mousePos, time)
 			}
 
 			if (gopt.virtualControls && isTouchScreen()) {
-				drawFunc.drawVirtualControls(mousePos, isMousePressed, isMouseReleased, testCirclePoint, Circle, testRectPoint)
+				DRAW.drawVirtualControls(mousePos, isMousePressed, isMouseReleased, testCirclePoint, Circle, testRectPoint)
 			}
-
 		}
-
 	})
+
+	const drawCtx: DrawCtx = drawFunc(gopt, gfx, assets, game, app, debug, gl)
+	const textCtx: TextCtx = textFunc(gopt, assets, gl, gc, app)
 
 	// the exported ctx handle
 	const ctx: KaboomCtx = {
@@ -4853,7 +4438,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		getFont,
 		getBitmapFont,
 		getShader,
-		Asset,
+		AssetData,
 		SpriteData,
 		SoundData,
 		// query
@@ -4997,28 +4582,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		testRectLine,
 		testRectPoint,
 		// raw draw
-		drawSprite,
-		drawText,
-		formatText,
-		drawRect,
-		drawLine,
-		drawLines,
-		drawTriangle,
-		drawCircle,
-		drawEllipse,
-		drawUVQuad,
-		drawPolygon,
-		drawFormattedText,
-		drawMasked,
-		drawSubtracted,
-		pushTransform,
-		popTransform,
-		pushTranslate,
-		pushScale,
-		pushRotate,
-		pushRotateX,
-		pushRotateY,
-		pushRotateZ,
+		...drawCtx,
 		pushMatrix,
 		// debug
 		debug,
@@ -5060,6 +4624,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		// helpers
 		Event,
 		EventHandler,
+		...textCtx,
 	}
 
 	if (gopt.plugins) {

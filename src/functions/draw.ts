@@ -1,7 +1,9 @@
 import {
-    Quad, vec2, vec3, rgb, deg2rad, Color, rand, lerp, Mat4,
-	wave, Rect
+    Quad, vec3, rgb, deg2rad, Color, rand, lerp, Mat4,
+    wave, Rect, vec2, Vec2
 } from "../math"
+
+import { AssetData } from "../classes/AssetData"
 
 import {
     Vertex, Texture, RenderProps,
@@ -9,8 +11,8 @@ import {
     DrawTriangleOpt, DrawPolygonOpt, DrawCircleOpt,
     DrawEllipseOpt, DrawUVQuadOpt, DrawSpriteOpt,
     DrawTextOpt, FormattedText, Uniform,
-    VirtualButton, Asset,
-    Anchor, Vec2
+    VirtualButton,
+    Anchor
 } from "../types"
 
 import {
@@ -21,6 +23,8 @@ import { STRIDE, MAX_BATCHED_VERTS, MAX_BATCHED_INDICES, DEF_ANCHOR, UV_PAD, DBG
 
 import shaders from "./shaders"
 import textFunc from "./text"
+
+import type { DrawCtx } from "../types/draw"
 
 type DrawTextureOpt = RenderProps & {
     tex: Texture,
@@ -33,7 +37,7 @@ type DrawTextureOpt = RenderProps & {
     anchor?: Anchor | Vec2,
 }
 
-export default (gopt, gfx: any, assets: any, game: any, app, debug, gl: WebGLRenderingContext): any => {
+export default (gopt, gfx: any, assets: any, game: any, app, debug, gl: WebGLRenderingContext): DrawCtx => {
     // convert a screen space coordinate to webgl normalized device coordinate
     function screen2ndc(pt: Vec2): Vec2 {
         return vec2(
@@ -46,16 +50,32 @@ export default (gopt, gfx: any, assets: any, game: any, app, debug, gl: WebGLRen
         gfx.transformStack.push(gfx.transform.clone())
     }
 
+    /*
     function pushTranslate(...args) {
         if (args[0] === undefined) return
         const p = vec2(...args)
         if (p.x === 0 && p.y === 0) return
         gfx.transform = gfx.transform.translate(p)
     }
+    */
+    function pushTranslate(x: Vec2 | number, y?: number) {
+        if (x === undefined) return
+        const p = x instanceof Vec2 ? vec2(x) : vec2(x, y)
+        if (p.x === 0 && p.y === 0) return
+        gfx.transform = gfx.transform.translate(p)
+    }
 
+    /*
     function pushScale(...args) {
         if (args[0] === undefined) return
         const p = vec2(...args)
+        if (p.x === 1 && p.y === 1) return
+        gfx.transform = gfx.transform.scale(p)
+    }
+    */
+    function pushScale(x: Vec2 | number, y?: number) {
+        if (x === undefined) return
+        const p = x instanceof Vec2 ? vec2(x) : vec2(x, y)
         if (p.x === 1 && p.y === 1) return
         gfx.transform = gfx.transform.scale(p)
     }
@@ -101,7 +121,7 @@ export default (gopt, gfx: any, assets: any, game: any, app, debug, gl: WebGLRen
 
         const shader = shaders(gfx, assets).resolveShader(shaderSrc)
 
-        if (!shader || shader instanceof Asset) {
+        if (!shader || shader instanceof AssetData) {
             return
         }
 
@@ -745,7 +765,7 @@ export default (gopt, gfx: any, assets: any, game: any, app, debug, gl: WebGLRen
     function height() {
         return gfx.height
     }
-    
+
     function drawLoadScreen() {
 
         const progress = loadProgress(assets)
@@ -830,13 +850,13 @@ export default (gopt, gfx: any, assets: any, game: any, app, debug, gl: WebGLRen
 
     }
 
-	// transform a point from content space to view space
-	function contentToView(pt: Vec2) {
-		return vec2(
-			pt.x * gfx.viewport.width / gfx.width,
-			pt.y * gfx.viewport.height / gfx.height,
-		)
-	}
+    // transform a point from content space to view space
+    function contentToView(pt: Vec2) {
+        return vec2(
+            pt.x * gfx.viewport.width / gfx.width,
+            pt.y * gfx.viewport.height / gfx.height,
+        )
+    }
 
     function drawDebug(getAll, mousePos, time) {
         const newText = textFunc(gopt, assets, gl, gc, app)
@@ -1173,6 +1193,10 @@ export default (gopt, gfx: any, assets: any, game: any, app, debug, gl: WebGLRen
     }
 
     return {
+        drawText, drawRect, drawLine, drawLines,
+        drawTriangle, drawCircle, drawEllipse, drawPolygon,
+        drawUVQuad, drawFormattedText, drawMasked, drawSubtracted,
+        drawSprite,
         pushTransform,
         pushTranslate,
         pushScale,
@@ -1182,6 +1206,10 @@ export default (gopt, gfx: any, assets: any, game: any, app, debug, gl: WebGLRen
         pushRotate,
         popTransform,
         drawUnscaled,
-        flush
+        drawLoadScreen,
+        drawFrame,
+        drawDebug,
+        drawVirtualControls,
+        flush,
     }
 }

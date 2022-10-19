@@ -1,6 +1,8 @@
 import { vec2 } from "./math"
-import { Asset, SpriteData } from "./types"
-import type { EventController, TextAlign, Anchor, Vec2, ButtonState, DrawSpriteOpt } from "./types"
+import { ShaderData } from "./types"
+import { AssetData } from "./classes/AssetData"
+import { SpriteData } from "./classes/SpriteData"
+import type { EventController, TextAlign, Anchor, Vec2, ButtonState, DrawSpriteOpt, BitmapFontData } from "./types"
 
 export class IDList<T> extends Map<number, T> {
 	private lastID: number
@@ -200,14 +202,14 @@ export function loadProgress(assets: any): number {
 	return buckets.reduce((n, bucket) => n + bucket.progress(), 0) / buckets.length
 }
 
-function getSprite(assets, handle: string): Asset<SpriteData> | void {
+export function getSprite(assets, handle: string): AssetData<SpriteData> | void {
 	return assets.sprites.get(handle)
 }
 
 export function resolveSprite(
 	assets,
 	src: DrawSpriteOpt["sprite"],
-): Asset<SpriteData> | null {
+): AssetData<SpriteData> | null {
 	if (typeof src === "string") {
 		const spr = getSprite(assets, src)
 		if (spr) {
@@ -221,8 +223,8 @@ export function resolveSprite(
 			throw new Error(`Sprite not found: ${src}`)
 		}
 	} else if (src instanceof SpriteData) {
-		return Asset.loaded(src)
-	} else if (src instanceof Asset) {
+		return AssetData.loaded(src)
+	} else if (src instanceof AssetData) {
 		return src
 	} else {
 		throw new Error(`Invalid sprite: ${src}`)
@@ -295,4 +297,12 @@ export function alignPt(align: TextAlign): number {
 
 export function createEmptyAudioBuffer(ctx: AudioContext) {
 	return ctx.createBuffer(1, 1, 44100)
+}
+
+export function getBitmapFont(assets, handle: string): AssetData<BitmapFontData> | void {
+	return assets.bitmapFonts.get(handle)
+}
+
+export function getShader(assets, handle: string): AssetData<ShaderData> | void {
+	return assets.shaders.get(handle)
 }

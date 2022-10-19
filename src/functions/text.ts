@@ -1,14 +1,18 @@
 import {
-    EventController, Anchor, Vec2, DrawSpriteOpt, Asset, SpriteData,
+    EventController, Anchor, DrawSpriteOpt, SpriteData,
     DrawTextOpt, FormattedText, FontData, BitmapFontData, FormattedChar,
     TextAlign, CharTransform
 } from "../types"
-import { vec2, Quad, Color } from "../math"
+import { Vec2, vec2, Quad, Color } from "../math"
 import { DEF_FONT, DEF_TEXT_CACHE_SIZE, FONT_ATLAS_SIZE } from "../constants"
-import { loadProgress } from "../utils"
+import { loadProgress, getBitmapFont } from "../utils"
 import { Texture } from "../classes/Texture"
+import { TextCtx } from "../types/text"
 
-export default (gopt, assets, gl, gc, app): any => {
+import { AssetData } from "../classes/AssetData"
+
+//export function textFunc(gopt, assets, gl, gc, app): any {
+export default (gopt, assets, gl, gc, app): TextCtx => {
     type FontAtlas = {
         font: BitmapFontData,
         cursor: Vec2,
@@ -16,17 +20,13 @@ export default (gopt, assets, gl, gc, app): any => {
 
     const fontAtlases: Record<string, FontAtlas> = {}
 
-    function getBitmapFont(assets, handle: string): Asset<BitmapFontData> | void {
-        return assets.bitmapFonts.get(handle)
-    }
-
     function resolveFont(
         src: DrawTextOpt["font"],
     ):
         | FontData
-        | Asset<FontData>
+        | AssetData<FontData>
         | BitmapFontData
-        | Asset<BitmapFontData>
+        | AssetData<BitmapFontData>
         | string
         | void {
         if (!src) {
@@ -43,7 +43,7 @@ export default (gopt, assets, gl, gc, app): any => {
             } else {
                 throw new Error(`Font not found: ${src}`)
             }
-        } else if (src instanceof Asset) {
+        } else if (src instanceof AssetData) {
             return src.data ? src.data : src
         }
         // TODO: check type
@@ -121,7 +121,7 @@ export default (gopt, assets, gl, gc, app): any => {
         let font = resolveFont(opt.font)
 
         // if it's still loading
-        if (opt.text === "" || font instanceof Asset || !font) {
+        if (opt.text === "" || font instanceof AssetData || !font) {
             return {
                 width: 0,
                 height: 0,
