@@ -1,4 +1,4 @@
-const VERSION = "3000.0.0-alpha.10"
+const VERSION = "3000.0.0-alpha.11"
 
 import {
 	sat,
@@ -162,13 +162,6 @@ import kaSpriteSrc from "./assets/ka.png"
 // @ts-ignore
 import boomSpriteSrc from "./assets/boom.png"
 
-type ButtonState =
-	"up"
-	| "pressed"
-	| "rpressed"
-	| "down"
-	| "released"
-
 type EventList<M> = {
 	[event in keyof M]?: (event: M[event]) => void
 }
@@ -202,7 +195,7 @@ const PREVENT_DEFAULT_KEYS = new Set([
 ])
 
 // according to https://developer.mozilla.org/en-US/docs/Web/API/MouseEvent/button
-const MOUSE_BUTTONS = [
+const MOUSE_BUTTONS: MouseButton[] = [
 	"left",
 	"middle",
 	"right",
@@ -327,18 +320,6 @@ const COMP_EVENTS = new Set([
 	"drawInspect",
 ])
 
-// transform the button state to the next state
-// e.g. if a button becomes "pressed" one frame, it should become "down" next frame
-function processButtonState(s: ButtonState): ButtonState {
-	if (s === "pressed" || s === "rpressed") {
-		return "down"
-	} else if (s === "released") {
-		return "up"
-	} else {
-		return s
-	}
-}
-
 // wrappers around full screen functions to work across browsers
 function enterFullscreen(el: HTMLElement) {
 	if (el.requestFullscreen) el.requestFullscreen()
@@ -385,6 +366,31 @@ function alignPt(align: TextAlign): number {
 
 function createEmptyAudioBuffer(ctx: AudioContext) {
 	return ctx.createBuffer(1, 1, 44100)
+}
+
+class ButtonState<T = string> {
+	pressed: Set<T> = new Set([])
+	pressedRepeat: Set<T> = new Set([])
+	released: Set<T> = new Set([])
+	down: Set<T> = new Set([])
+	update() {
+		this.pressed.clear()
+		this.released.clear()
+		this.pressedRepeat.clear()
+	}
+	press(btn: T) {
+		this.pressed.add(btn)
+		this.pressedRepeat.add(btn)
+		this.down.add(btn)
+	}
+	pressRepeat(btn: T) {
+		this.pressedRepeat.add(btn)
+	}
+	release(btn: T) {
+		this.down.delete(btn)
+		this.pressed.delete(btn)
+		this.released.add(btn)
+	}
 }
 
 // only exports one kaboom() which contains all the state
@@ -464,9 +470,9 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			lastParentHeight: ph,
 
 			// keep track of all button states
-			keyStates: {} as Record<Key, ButtonState>,
-			mouseStates: {} as Record<MouseButton, ButtonState>,
-			virtualButtonStates: {} as Record<VirtualButton, ButtonState>,
+			keyState: new ButtonState<Key>(),
+			mouseState: new ButtonState<MouseButton>(),
+			virtualButtonState: new ButtonState<VirtualButton>(),
 
 			// input states from last frame, should reset every frame
 			bufferedEvents: {
@@ -2883,7 +2889,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		})
 		if (gopt.touchToMouse !== false) {
 			setMousePos(touches[0].clientX, touches[0].clientY)
-			app.mouseStates["left"] = "pressed"
+			app.mouseState.press("left")
 		}
 	}
 
@@ -2913,13 +2919,13 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			)
 		})
 		if (gopt.touchToMouse !== false) {
-			app.mouseStates["left"] = "released"
+			app.mouseState.release("left")
 		}
 	}
 
 	canvasEvents.touchcancel = () => {
 		if (gopt.touchToMouse !== false) {
-			app.mouseStates["left"] = "released"
+			app.mouseState.release("left")
 		}
 	}
 
@@ -2973,86 +2979,55 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	}
 
 	function isMousePressed(m: MouseButton = "left"): boolean {
-		return app.mouseStates[m] === "pressed"
+		return app.mouseState.pressed.has(m)
 	}
 
 	function isMouseDown(m: MouseButton = "left"): boolean {
-		return app.mouseStates[m] === "pressed" || app.mouseStates[m] === "down"
+		return app.mouseState.down.has(m)
 	}
 
 	function isMouseReleased(m: MouseButton = "left"): boolean {
-		return app.mouseStates[m] === "released"
+		return app.mouseState.released.has(m)
 	}
 
 	function isMouseMoved(): boolean {
 		return app.isMouseMoved
 	}
 
-	function isKeyPressed(k?: string): boolean {
-		if (k === undefined) {
-			for (const k in app.keyStates) {
-				if (app.keyStates[k] === "pressed") {
-					return true
-				}
-			}
-			return false
-		} else {
-			return app.keyStates[k] === "pressed"
-		}
+	function isKeyPressed(k?: Key): boolean {
+		return k === undefined
+			? app.keyState.pressed.size > 0
+			: app.keyState.pressed.has(k)
 	}
 
-	function isKeyPressedRepeat(k?: string): boolean {
-		if (k === undefined) {
-			for (const k in app.keyStates) {
-				if (app.keyStates[k] === "pressed" || app.keyStates[k] === "rpressed") {
-					return true
-				}
-			}
-			return false
-		} else {
-			return app.keyStates[k] === "pressed" || app.keyStates[k] === "rpressed"
-		}
+	function isKeyPressedRepeat(k?: Key): boolean {
+		return k === undefined
+			? app.keyState.pressedRepeat.size > 0
+			: app.keyState.pressedRepeat.has(k)
 	}
 
-	function isKeyDown(k?: string): boolean {
-		if (k === undefined) {
-			for (const k in app.keyStates) {
-				if (app.keyStates[k] === "pressed" || app.keyStates[k] === "rpressed" || app.keyStates[k] === "down") {
-					return true
-				}
-			}
-			return false
-		} else {
-			return app.keyStates[k] === "pressed"
-			|| app.keyStates[k] === "rpressed"
-			|| app.keyStates[k] === "down"
-		}
+	function isKeyDown(k?: Key): boolean {
+		return k === undefined
+			? app.keyState.down.size > 0
+			: app.keyState.down.has(k)
 	}
 
-	function isKeyReleased(k?: string): boolean {
-		if (k === undefined) {
-			for (const k in app.keyStates) {
-				if (app.keyStates[k] === "released") {
-					return true
-				}
-			}
-			return false
-		} else {
-			return app.keyStates[k] === "released"
-		}
+	function isKeyReleased(k?: Key): boolean {
+		return k === undefined
+			? app.keyState.released.size > 0
+			: app.keyState.released.has(k)
 	}
 
 	function isVirtualButtonPressed(btn: VirtualButton): boolean {
-		return app.virtualButtonStates[btn] === "pressed"
+		return app.virtualButtonState.pressed.has(btn)
 	}
 
 	function isVirtualButtonDown(btn: VirtualButton): boolean {
-		return app.virtualButtonStates[btn] === "pressed"
-			|| app.virtualButtonStates[btn] === "down"
+		return app.virtualButtonState.down.has(btn)
 	}
 
 	function isVirtualButtonReleased(btn: VirtualButton): boolean {
-		return app.virtualButtonStates[btn] === "released"
+		return app.virtualButtonState.released.has(btn)
 	}
 
 	function charInputted(): string[] {
@@ -5522,16 +5497,17 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 						app.charInputted.push(" ")
 					}
 					if (e.repeat) {
-						app.keyStates[k] = "rpressed"
+						app.keyState.pressRepeat(k)
 						game.ev.trigger("keyPressRepeat", k)
 					} else {
-						app.keyStates[k] = "pressed"
+						app.keyState.press(k)
+						game.ev.trigger("keyPressRepeat", k)
 						game.ev.trigger("keyPress", k)
 					}
 					break
 				}
 				case "keyup": {
-					app.keyStates[k] = "released"
+					app.keyState.release(k)
 					game.ev.trigger("keyRelease", k)
 					break
 				}
@@ -5547,31 +5523,20 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 					break
 				}
 				case "mousedown": {
-					if (m) app.mouseStates[m] = "pressed"
+					if (m) app.mouseState.press(m)
 					game.ev.trigger("mousePress", m)
 					break
 				}
 				case "mouseup": {
-					if (m) app.mouseStates[m] = "released"
+					if (m) app.mouseState.release(m)
 					game.ev.trigger("mouseRelease", m)
 					break
 				}
 			}
 		}
 
-		for (const k in app.keyStates) {
-			const state = app.keyStates[k]
-			if (state === "pressed" || state === "rpressed" || state === "down") {
-				game.ev.trigger("keyDown", k)
-			}
-		}
-
-		for (const m in app.mouseStates) {
-			const state = app.mouseStates[m]
-			if (state === "pressed" || state === "rpressed" || state === "down") {
-				game.ev.trigger("mouseDown", m)
-			}
-		}
+		app.keyState.down.forEach((k) => game.ev.trigger("keyDown", k))
+		app.mouseState.down.forEach((k) => game.ev.trigger("mouseDown", k))
 
 	}
 
@@ -6046,17 +6011,17 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			if (isMousePressed("left")) {
 				if (testCirclePoint(new Circle(pos, size / 2), mpos)) {
 					game.ev.onOnce("frameEnd", () => {
-						app.virtualButtonStates[btn] = "pressed"
+						app.virtualButtonState.press(btn)
 						// TODO: caller specify another value as connected key?
-						app.keyStates[btn] = "pressed"
+						app.keyState.press(btn)
 					})
 				}
 			}
 
 			if (isMouseReleased("left")) {
 				game.ev.onOnce("frameEnd", () => {
-					app.virtualButtonStates[btn] = "released"
-					app.keyStates[btn] = "released"
+					app.virtualButtonState.release(btn)
+					app.keyState.release(btn)
 				})
 			}
 
@@ -6092,16 +6057,16 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			if (isMousePressed("left")) {
 				if (testRectPoint(new Rect(pos.add(-size / 2, -size / 2), size, size), mpos)) {
 					game.ev.onOnce("frameEnd", () => {
-						app.virtualButtonStates[btn] = "pressed"
-						app.keyStates[btn] = "pressed"
+						app.virtualButtonState.press(btn)
+						app.keyState.press(btn)
 					})
 				}
 			}
 
 			if (isMouseReleased("left")) {
 				game.ev.onOnce("frameEnd", () => {
-					app.virtualButtonStates[btn] = "released"
-					app.keyStates[btn] = "released"
+					app.virtualButtonState.release(btn)
+					app.keyState.release(btn)
 				})
 			}
 
@@ -6198,27 +6163,13 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	}
 
 	function resetInputState() {
-
-		for (const k in app.keyStates) {
-			app.keyStates[k] = processButtonState(app.keyStates[k])
-			if (app.keyStates[k] === "up") delete app.keyStates[k]
-		}
-
-		for (const m in app.mouseStates) {
-			app.mouseStates[m] = processButtonState(app.mouseStates[m])
-			if (app.mouseStates[m] === "up") delete app.mouseStates[m]
-		}
-
-		for (const b in app.virtualButtonStates) {
-			app.virtualButtonStates[b] = processButtonState(app.virtualButtonStates[b])
-			if (app.virtualButtonStates[b] === "up") delete app.virtualButtonStates[b]
-		}
-
+		app.keyState.update()
+		app.mouseState.update()
+		app.virtualButtonState.update()
 		app.charInputted = []
 		app.isMouseMoved = false
 		app.bufferedEvents.key = []
 		app.bufferedEvents.mouse = []
-
 	}
 
 	function run(f: () => void) {
