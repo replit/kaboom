@@ -5504,6 +5504,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 					if (gopt.touchToMouse !== false) {
 						setMousePos(touches[0].clientX, touches[0].clientY)
 						app.mouseState.press("left")
+						game.ev.trigger("mousePress", "left")
 					}
 					break
 				}
@@ -5516,6 +5517,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 						)
 					})
 					if (gopt.touchToMouse !== false) {
+						game.ev.trigger("mouseMove", "left")
 						setMousePos(touches[0].clientX, touches[0].clientY)
 					}
 					break
@@ -5530,6 +5532,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 					})
 					if (gopt.touchToMouse !== false) {
 						app.mouseState.release("left")
+						game.ev.trigger("mouseRelease", "left")
 					}
 					break
 				}
@@ -5543,6 +5546,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 					})
 					if (gopt.touchToMouse !== false) {
 						app.mouseState.release("left")
+						game.ev.trigger("mouseRelease", "left")
 					}
 					break
 				}
