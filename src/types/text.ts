@@ -24,4 +24,5 @@ export type TextCtx = {
      * ```
      */
     formatText(opt: DrawTextOpt): FormattedText
+    fetchText(path: string): Promise<string>
 }

@@ -1,5 +1,12 @@
 import { TextCtx } from "./types/text"
 import { DrawCtx } from "./types/draw"
+import { AudioCtx } from "./types/audio"
+import { MouseCtx } from "./types/mouse"
+import { AssetBucket } from "./classes/AssetBucket"
+import { ButtonState } from "./classes/ButtonState"
+import { AssetData } from "./classes/AssetData"
+import FPSCounter from "./fps"
+import { CamCtx } from "./types/cam"
 
 /**
  * Initialize kaboom context. The starting point of all kaboom games.
@@ -38,7 +45,7 @@ declare function kaboom(options?: KaboomOpt): KaboomCtx
 /**
  * Context handle that contains every kaboom function.
  */
-export interface KaboomCtx extends DrawCtx, TextCtx {
+export interface KaboomCtx extends AudioCtx, DrawCtx, TextCtx, MouseCtx, CamCtx {
 	/**
 	 * Assemble a game object from a list of components, and add it to the game
 	 *
@@ -89,19 +96,6 @@ export interface KaboomCtx extends DrawCtx, TextCtx {
 	 * Remove and re-add the game obj, without triggering add / destroy events.
 	 */
 	readd(obj: GameObj),
-	/**
-	 * Get a list of all game objs with certain tag.
-	 *
-	 * @example
-	 * ```js
-	 * // get a list of all game objs with tag "bomb"
-	 * const allBombs = get("bomb")
-	 *
-	 * // without args returns all current objs in the game
-	 * const allObjs = get()
-	 * ```
-	 */
-	get(tag?: Tag | Tag[]): GameObj[],
 	/**
 	 * Recursively a list of all game objs with certain tag including children of children.
 	 *
@@ -644,8 +638,6 @@ export interface KaboomCtx extends DrawCtx, TextCtx {
 	 * ```
 	 */
 	onDraw(action: () => void): EventController,
-	onAdd(tag: Tag, action: (obj: GameObj) => void): EventController,
-	onAdd(action: (obj: GameObj) => void): EventController,
 	onDestroy(tag: Tag, action: (obj: GameObj) => void): EventController,
 	onDestroy(action: (obj: GameObj) => void): EventController,
 	/**
@@ -665,7 +657,7 @@ export interface KaboomCtx extends DrawCtx, TextCtx {
 	 * })
 	 * ```
 	 */
-	onLoad(action: () => void): void,
+	onLoad(game: gameType, assets: assetsType, action: () => void): void,
 	/**
 	 * Register a custom loading screen. The callback is run every frame during loading.
 	 *
@@ -706,48 +698,6 @@ export interface KaboomCtx extends DrawCtx, TextCtx {
 		t2: Tag,
 		action: (a: GameObj, b: GameObj, col?: Collision) => void,
 	): EventController,
-	/**
-	 * Register an event that runs when game objs with certain tags are clicked (required to have the area() component).
-	 *
-	 * @since v2000.1
-	 *
-	 * @example
-	 * ```js
-	 * // click on any "chest" to open
-	 * onClick("chest", (chest) => chest.open())
-	 * ```
-	 */
-	onClick(tag: Tag, action: (a: GameObj) => void): EventController,
-	/**
-	 * Register an event that runs when users clicks.
-	 *
-	 * @since v2000.1
-	 *
-	 * @example
-	 * ```js
-	 * // click on anywhere to go to "game" scene
-	 * onClick(() => go("game"))
-	 * ```
-	 */
-	onClick(action: () => void): EventController,
-	/**
-	 * Register an event that runs once when game objs with certain tags are hovered (required to have area() component).
-	 *
-	 * @since v3000.0
-	 */
-	onHover(tag: Tag, action: (a: GameObj) => void): EventController,
-	/**
-	 * Register an event that runs every frame when game objs with certain tags are hovered (required to have area() component).
-	 *
-	 * @since v3000.0
-	 */
-	onHoverUpdate(tag: Tag, onHover: (a: GameObj) => void, onNotHover: (a: GameObj) => void): EventController,
-	/**
-	 * Register an event that runs once when game objs with certain tags are unhovered (required to have area() component).
-	 *
-	 * @since v3000.0
-	 */
-	onHoverEnd(tag: Tag, action: (a: GameObj) => void): EventController,
 	/**
 	 * Register an event that runs every frame when a key is held down.
 	 *
@@ -826,33 +776,6 @@ export interface KaboomCtx extends DrawCtx, TextCtx {
 	 * ```
 	 */
 	onCharInput(action: (ch: string) => void): EventController,
-	/**
-	 * Register an event that runs every frame when a mouse button is being held down.
-	 *
-	 * @since v2000.1
-	 */
-	onMouseDown(action: (m: MouseButton) => void): EventController,
-	onMouseDown(button: MouseButton, action: (m: MouseButton) => void): EventController,
-	/**
-	 * Register an event that runs when user clicks mouse.
-	 *
-	 * @since v2000.1
-	 */
-	onMousePress(action: (m: MouseButton) => void): EventController,
-	onMousePress(button: MouseButton, action: (m: MouseButton) => void): EventController,
-	/**
-	 * Register an event that runs when user releases mouse.
-	 *
-	 * @since v2000.1
-	 */
-	onMouseRelease(action: (m: MouseButton) => void): EventController,
-	onMouseRelease(button: MouseButton, action: (m: MouseButton) => void): EventController,
-	/**
-	 * Register an event that runs whenever user move the mouse.
-	 *
-	 * @since v2000.1
-	 */
-	onMouseMove(action: (pos: Vec2) => void): EventController,
 	/**
 	 * Register an event that runs when a touch starts.
 	 *
@@ -1012,19 +935,6 @@ export interface KaboomCtx extends DrawCtx, TextCtx {
 	 */
 	loadBean(name?: string): Asset<SpriteData>,
 	/**
-	 * Load a sound into asset manager, with name and resource url.
-	 *
-	 * @example
-	 * ```js
-	 * loadSound("shoot", "horse.ogg")
-	 * loadSound("shoot", "https://kaboomjs.com/sounds/scream6.mp3")
-	 * ```
-	 */
-	loadSound(
-		name: string | null,
-		src: string,
-	): Asset<SoundData>,
-	/**
 	 * Load a font (any format supported by the browser, e.g. ttf, otf, woff)
 	 *
 	 * @since v3000.0
@@ -1107,13 +1017,7 @@ export interface KaboomCtx extends DrawCtx, TextCtx {
 	 *
 	 * @since v3000.0
 	 */
-	getSprite(assets, handle: string): Asset<SpriteData> | void,
-	/**
-	 * Get SoundData from handle if loaded.
-	 *
-	 * @since v3000.0
-	 */
-	getSound(handle: string): Asset<SoundData> | void,
+	getSprite(assets: assetsType, handle: string): Asset<SpriteData> | void,
 	/**
 	 * Get FontData from handle if loaded.
 	 *
@@ -1125,13 +1029,13 @@ export interface KaboomCtx extends DrawCtx, TextCtx {
 	 *
 	 * @since v3000.0
 	 */
-	getBitmapFont(assets, handle: string): Asset<BitmapFontData> | void,
+	getBitmapFont(assets: assetsType, handle: string): Asset<BitmapFontData> | void,
 	/**
 	 * Get ShaderData from handle if loaded.
 	 *
 	 * @since v3000.0
 	 */
-	getShader(assets, handle: string): Asset<ShaderData> | void,
+	getShader(assets: assetsType, handle: string): Asset<ShaderData> | void,
 	AssetData: typeof Asset,
 	SpriteData: typeof SpriteData,
 	SoundData: typeof SoundData,
@@ -1145,20 +1049,6 @@ export interface KaboomCtx extends DrawCtx, TextCtx {
 	 * Get the height of game.
 	 */
 	height(): number,
-	/**
-	 * Get the center point of view.
-	 *
-	 * @example
-	 * ```js
-	 * // add froggy to the center of the screen
-	 * add([
-	 *     sprite("froggy"),
-	 *     pos(center()),
-	 *     // ...
-	 * ])
-	 * ```
-	 */
-	center(): Vec2,
 	/**
 	 * Get the delta time since last frame.
 	 *
@@ -1187,14 +1077,6 @@ export interface KaboomCtx extends DrawCtx, TextCtx {
 	 * @since v3000.0
 	 */
 	isTouchScreen(): boolean,
-	/**
-	 * Get current mouse position (without camera transform).
-	 */
-	mousePos(): Vec2,
-	/**
-	 * How much mouse moved last frame.
-	 */
-	mouseDeltaPos(): Vec2,
 	/**
 	 * If certain key is currently down.
 	 *
@@ -1230,30 +1112,6 @@ export interface KaboomCtx extends DrawCtx, TextCtx {
 	 */
 	isKeyReleased(k?: Key): boolean,
 	/**
-	 * If a mouse button is currently down.
-	 *
-	 * @since v2000.1
-	 */
-	isMouseDown(button?: MouseButton): boolean,
-	/**
-	 * If a mouse button is just clicked last frame.
-	 *
-	 * @since v2000.1
-	 */
-	isMousePressed(button?: MouseButton): boolean,
-	/**
-	 * If a mouse button is just released last frame.
-	 *
-	 * @since v2000.1
-	 */
-	isMouseReleased(button?: MouseButton): boolean,
-	/**
-	 * If mouse moved last frame.
-	 *
-	 * @since v2000.1
-	 */
-	isMouseMoved(): boolean,
-	/**
 	 * If a virtual button is just pressed last frame.
 	 *
 	 * @since v3000.0
@@ -1277,46 +1135,6 @@ export interface KaboomCtx extends DrawCtx, TextCtx {
 	 * @since v3000.0
 	 */
 	charInputted(): string[],
-	/**
-	 * Camera shake.
-	 *
-	 * @example
-	 * ```js
-	 * // shake intensively when froggy collides with a "bomb"
-	 * froggy.onCollide("bomb", () => {
-	 *     shake(120)
-	 * })
-	 * ```
-	 */
-	shake(intensity: number): void,
-	/**
-	 * Get / set camera position.
-	 *
-	 * @example
-	 * ```js
-	 * // camera follows player
-	 * player.onUpdate(() => {
-	 *     camPos(player.pos)
-	 * })
-	 * ```
-	 */
-	camPos(pos?: Vec2): Vec2,
-	/**
-	 * Get / set camera scale.
-	 */
-	camScale(scale?: Vec2): Vec2,
-	/**
-	 * Get / set camera rotation.
-	 */
-	camRot(angle?: number): number,
-	/**
-	 * Transform a point from world position to screen position.
-	 */
-	toScreen(p: Vec2): Vec2,
-	/**
-	 * Transform a point from screen position to world position.
-	 */
-	toWorld(p: Vec2): Vec2,
 	/**
 	 * Get / set gravity.
 	 */
@@ -1383,44 +1201,6 @@ export interface KaboomCtx extends DrawCtx, TextCtx {
 	 */
 	loop(t: number, action: () => void): EventController,
 	Timer: typeof Timer,
-	/**
-	 * Play a piece of audio.
-	 *
-	 * @section Audio
-	 *
-	 * @returns A control handle.
-	 *
-	 * @example
-	 * ```js
-	 * // play a one off sound
-	 * play("wooosh")
-	 *
-	 * // play a looping soundtrack (check out AudioPlayOpt for more options)
-	 * const music = play("OverworldlyFoe", {
-	 *     volume: 0.8,
-	 *     loop: true
-	 * })
-	 *
-	 * // using the handle to control (check out AudioPlay for more controls / info)
-	 * music.pause()
-	 * music.play()
-	 * ```
-	 */
-	play(src: string | SoundData | Asset<SoundData>, options?: AudioPlayOpt): AudioPlay,
-	/**
-	 * Yep.
-	 */
-	burp(options?: AudioPlayOpt): AudioPlay,
-	/**
-	 * Sets global volume.
-	 *
-	 * @example
-	 * ```js
-	 * // makes everything quieter
-	 * volume(0.5)
-	 * ```
-	 */
-	volume(v?: number): number,
 	/**
 	 * Get the underlying browser AudioContext.
 	 */
@@ -2306,9 +2086,9 @@ export declare class SpriteData {
 }
 
 export type AudioData = {
-    ctx: AudioContext;
-    masterNode: GainNode;
-    burpSnd: SoundData;
+	ctx: AudioContext;
+	masterNode: GainNode;
+	burpSnd: SoundData;
 }
 
 export declare class SoundData {
@@ -4329,4 +4109,102 @@ export declare class EventHandler<E = string> {
 	numListeners(name: E): number
 }
 
+export type assetsType = {
+	urlPrefix: string;
+	sprites: AssetBucket<SpriteData>;
+	fonts: AssetBucket<FontFace>;
+	bitmapFonts: AssetBucket<GfxFont>;
+	sounds: AssetBucket<SoundData>;
+	shaders: AssetBucket<ShaderData>;
+	custom: AssetBucket<any>;
+	loaded: boolean;
+}
+
+export type gfxType = {
+	drawCalls: number;
+	lastDrawCalls: number;
+	defShader: GfxShader;
+	curShader: GfxShader;
+	defTex: Texture;
+	curTex: Texture;
+	curUniform: {};
+	vbuf: WebGLBuffer;
+	ibuf: WebGLBuffer,
+	// local vertex / index buffer queue
+	vqueue: any[],
+	iqueue: any[],
+
+	transform: Mat4,
+	transformStack: any[],
+
+	bgTex: Texture,
+
+	width: number,
+	height: number,
+
+	viewport: {
+		x: number,
+		y: number,
+		width: number,
+		height: number,
+	},
+}
+
+export type appType = {
+	canvas: HTMLCanvasElement;
+	canvas2: HTMLCanvasElement;
+	pixelDensity: number;
+	stretchToParent: boolean;
+	lastParentWidth: number;
+	lastParentHeight: number;
+	// keep track of all button states
+	keyState: ButtonState<Key>,
+	mouseState: ButtonState<MouseButton>,
+	virtualButtonState: ButtonState<VirtualButton>,
+
+	// input states from last frame, should reset every frame
+	charInputted: any[],
+	isMouseMoved: boolean,
+	mouseStarted: boolean,
+	mousePos: Vec2,
+	mouseDeltaPos: Vec2,
+
+	// total time elapsed
+	time: number,
+	// real total time elapsed (including paused time)
+	realTime: number,
+	// if we should skip next dt, to prevent the massive dt surge if user switch to another tab for a while and comeback
+	skipTime: boolean,
+	// how much time last frame took
+	dt: number,
+	// total frames elapsed
+	numFrames: number,
+
+	// if we're on a touch device
+	isTouchScreen: boolean,
+
+	// requestAnimationFrame id
+	loopID: number,
+	// if our game loop is currently stopped / paused
+	stopped: boolean,
+	paused: boolean,
+
+	fpsCounter: FPSCounter;
+}
+
+export type gameType = {
+	ev: EventHandler<string>;
+	objEvents: EventHandler<string>;
+	root: GameObj<any>;
+	gravity: number;
+	scenes: {};
+	logs: any[];
+	cam: {
+		pos: any;
+		scale: Vec2;
+		angle: number;
+		shake: number;
+		transform: Mat4;
+	};
+}
 export default kaboom

@@ -1,55 +1,23 @@
 import {
     EventController, Anchor, DrawSpriteOpt, SpriteData,
     DrawTextOpt, FormattedText, FontData, BitmapFontData, FormattedChar,
-    TextAlign, CharTransform
+    TextAlign, CharTransform, assetsType, appType,
 } from "../types"
 import { Vec2, vec2, Quad, Color } from "../math"
+import { fetchURL } from "../utils"
+
 import { DEF_FONT, DEF_TEXT_CACHE_SIZE, FONT_ATLAS_SIZE } from "../constants"
 import { loadProgress, getBitmapFont } from "../utils"
 import { Texture } from "../classes/Texture"
 import { TextCtx } from "../types/text"
+import { FontAtlas } from "../types/font"
 
 import { AssetData } from "../classes/AssetData"
 
-//export function textFunc(gopt, assets, gl, gc, app): any {
-export default (gopt, assets, gl, gc, app): TextCtx => {
-    type FontAtlas = {
-        font: BitmapFontData,
-        cursor: Vec2,
-    }
+import fontFunc from "../functions/font"
 
-    const fontAtlases: Record<string, FontAtlas> = {}
-
-    function resolveFont(
-        src: DrawTextOpt["font"],
-    ):
-        | FontData
-        | AssetData<FontData>
-        | BitmapFontData
-        | AssetData<BitmapFontData>
-        | string
-        | void {
-        if (!src) {
-            return resolveFont(gopt.font ?? DEF_FONT)
-        }
-        if (typeof src === "string") {
-            const font = getBitmapFont(assets, src)
-            if (font) {
-                return font.data ? font.data : font
-            } else if (document.fonts.check(`${DEF_TEXT_CACHE_SIZE}px ${src}`)) {
-                return src
-            } else if (loadProgress(assets) < 1) {
-                return null
-            } else {
-                throw new Error(`Font not found: ${src}`)
-            }
-        } else if (src instanceof AssetData) {
-            return src.data ? src.data : src
-        }
-        // TODO: check type
-        // @ts-ignore
-        return src
-    }
+export default (gopt, assets: assetsType, gl, gc, app: appType): TextCtx => {
+    const fontStuff = fontFunc(gopt, assets, gl, gc, app)
 
     // TODO: escape
     // eslint-disable-next-line
@@ -118,7 +86,7 @@ export default (gopt, assets, gl, gc, app): TextCtx => {
             throw new Error("formatText() requires property \"text\".")
         }
 
-        let font = resolveFont(opt.font)
+        let font = fontStuff.resolveFont(opt.font)
 
         // if it's still loading
         if (opt.text === "" || font instanceof AssetData || !font) {
@@ -138,7 +106,7 @@ export default (gopt, assets, gl, gc, app): TextCtx => {
 
             const fontName = font instanceof FontFace ? font.family : font
 
-            const atlas: FontAtlas = fontAtlases[fontName] ?? {
+            const atlas: FontAtlas = fontStuff.fontAtlases[fontName] ?? {
                 font: {
                     tex: new Texture(FONT_ATLAS_SIZE, FONT_ATLAS_SIZE,
                         gl, gc, gopt,
@@ -151,8 +119,8 @@ export default (gopt, assets, gl, gc, app): TextCtx => {
                 cursor: vec2(0),
             }
 
-            if (!fontAtlases[fontName]) {
-                fontAtlases[fontName] = atlas
+            if (!fontStuff.fontAtlases[fontName]) {
+                fontStuff.fontAtlases[fontName] = atlas
             }
 
             font = atlas.font
@@ -361,5 +329,9 @@ export default (gopt, assets, gl, gc, app): TextCtx => {
         }
     }
 
-    return { formatText }
+	function fetchText(path: string) {
+		return fetchURL(assets, path).then((res) => res.text())
+	}
+
+    return { formatText, fetchText }
 }

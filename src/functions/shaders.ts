@@ -1,10 +1,10 @@
 import { AssetData } from "../classes/AssetData"
-import { ShaderData, RenderProps } from "../types"
+import { ShaderData, RenderProps, assetsType, gfxType, } from "../types"
 import { loadProgress, getShader } from "../utils"
 import type { ShaderCtx } from "../types/shaders"
 
 //shaders
-export default (gfx: any, assets: any): ShaderCtx => {
+export default (gfx: gfxType, assets: assetsType): ShaderCtx => {
 
     function resolveShader(
         src: RenderProps["shader"],

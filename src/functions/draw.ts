@@ -6,13 +6,13 @@ import {
 import { AssetData } from "../classes/AssetData"
 
 import {
-    Vertex, Texture, RenderProps,
+    Vertex, Texture, RenderProps, Debug,
     DrawRectOpt, DrawLineOpt, DrawLinesOpt,
     DrawTriangleOpt, DrawPolygonOpt, DrawCircleOpt,
     DrawEllipseOpt, DrawUVQuadOpt, DrawSpriteOpt,
     DrawTextOpt, FormattedText, Uniform,
-    VirtualButton,
-    Anchor
+    VirtualButton, assetsType, gameType,
+    Anchor, gfxType, appType,
 } from "../types"
 
 import {
@@ -37,7 +37,7 @@ type DrawTextureOpt = RenderProps & {
     anchor?: Anchor | Vec2,
 }
 
-export default (gopt, gfx: any, assets: any, game: any, app, debug, gl: WebGLRenderingContext): DrawCtx => {
+export default (gopt, gfx: gfxType, assets: assetsType, game: gameType, app: appType, debug: Debug, gl: WebGLRenderingContext): DrawCtx => {
     // convert a screen space coordinate to webgl normalized device coordinate
     function screen2ndc(pt: Vec2): Vec2 {
         return vec2(

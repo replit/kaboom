@@ -1,5 +1,5 @@
 import { vec2 } from "./math"
-import { ShaderData } from "./types"
+import { ShaderData, assetsType, gfxType, appType, Debug, gameType, } from "./types"
 import { AssetData } from "./classes/AssetData"
 import { SpriteData } from "./classes/SpriteData"
 import type { EventController, TextAlign, Anchor, Vec2, DrawSpriteOpt, BitmapFontData } from "./types"
@@ -190,7 +190,7 @@ export function benchmark(task: () => void, times: number = 1) {
 }
 
 // get current load progress
-export function loadProgress(assets: any): number {
+export function loadProgress(assets: assetsType): number {
 	const buckets = [
 		assets.sprites,
 		assets.sounds,
@@ -202,14 +202,11 @@ export function loadProgress(assets: any): number {
 	return buckets.reduce((n, bucket) => n + bucket.progress(), 0) / buckets.length
 }
 
-export function getSprite(assets, handle: string): AssetData<SpriteData> | void {
+export function getSprite(assets: assetsType, handle: string): AssetData<SpriteData> | void {
 	return assets.sprites.get(handle)
 }
 
-export function resolveSprite(
-	assets,
-	src: DrawSpriteOpt["sprite"],
-): AssetData<SpriteData> | null {
+export function resolveSprite(assets: assetsType, src: DrawSpriteOpt["sprite"]): AssetData<SpriteData> | null {
 	if (typeof src === "string") {
 		const spr = getSprite(assets, src)
 		if (spr) {
@@ -231,11 +228,11 @@ export function resolveSprite(
 	}
 }
 
-export function dt(app, debug) {
+export function dt(app: appType, debug: Debug) {
 	return app.dt * debug.timeScale
 }
 
-export function center(gfx): Vec2 {
+export function center(gfx: gfxType): Vec2 {
 	return vec2(gfx.width / 2, gfx.height / 2)
 }
 
@@ -287,10 +284,30 @@ export function createEmptyAudioBuffer(ctx: AudioContext) {
 	return ctx.createBuffer(1, 1, 44100)
 }
 
-export function getBitmapFont(assets, handle: string): AssetData<BitmapFontData> | void {
+export function getBitmapFont(assets: assetsType, handle: string): AssetData<BitmapFontData> | void {
 	return assets.bitmapFonts.get(handle)
 }
 
-export function getShader(assets, handle: string): AssetData<ShaderData> | void {
+export function getShader(assets: assetsType, handle: string): AssetData<ShaderData> | void {
 	return assets.shaders.get(handle)
+}
+
+// wrapper around fetch() that applies urlPrefix and basic error handling
+export function fetchURL(assets: assetsType, path: string) {
+	const url = assets.urlPrefix + path
+	return fetch(url)
+		.then((res) => {
+			if (!res.ok) {
+				throw new Error(`Failed to fetch ${url}`)
+			}
+			return res
+		})
+}
+
+export function onLoad(game: gameType, assets: assetsType, cb: () => void): void {
+	if (assets.loaded) {
+		cb()
+	} else {
+		game.ev.on("load", cb)
+	}
 }
