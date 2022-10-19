@@ -478,6 +478,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			bufferedEvents: {
 				key: [] as KeyboardEvent[],
 				mouse: [] as MouseEvent[],
+				touch: [] as TouchEvent[],
 			},
 			charInputted: [],
 			isMouseMoved: false,
@@ -2863,7 +2864,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		app.isMouseMoved = true
 	}
 
-	// TODO: prevent default here
 	canvasEvents.mousemove = (e) => app.bufferedEvents.mouse.push(e)
 	canvasEvents.mousedown = (e) => app.bufferedEvents.mouse.push(e)
 	canvasEvents.mouseup = (e) => app.bufferedEvents.mouse.push(e)
@@ -2874,64 +2874,19 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		app.bufferedEvents.key.push(e)
 	}
 	canvasEvents.keyup = (e) => app.bufferedEvents.key.push(e)
-
 	canvasEvents.touchstart = (e) => {
 		// disable long tap context menu
 		e.preventDefault()
-		const touches = [...e.changedTouches]
-		// TODO: pass touchlist instead of individual touches
-		touches.forEach((t) => {
-			game.ev.trigger(
-				"onTouchStart",
-				windowToContent(vec2(t.clientX, t.clientY)),
-				t,
-			)
-		})
-		if (gopt.touchToMouse !== false) {
-			setMousePos(touches[0].clientX, touches[0].clientY)
-			app.mouseState.press("left")
-		}
+		app.bufferedEvents.touch.push(e)
 	}
-
 	canvasEvents.touchmove = (e) => {
 		// disable scrolling
 		e.preventDefault()
-		const touches = [...e.changedTouches]
-		touches.forEach((t) => {
-			game.ev.trigger(
-				"onTouchMove",
-				windowToContent(vec2(t.clientX, t.clientY)),
-				t,
-			)
-		})
-		if (gopt.touchToMouse !== false) {
-			setMousePos(touches[0].clientX, touches[0].clientY)
-		}
+		app.bufferedEvents.touch.push(e)
 	}
-
-	canvasEvents.touchend = (e) => {
-		const touches = [...e.changedTouches]
-		touches.forEach((t) => {
-			game.ev.trigger(
-				"onTouchEnd",
-				windowToContent(vec2(t.clientX, t.clientY)),
-				t,
-			)
-		})
-		if (gopt.touchToMouse !== false) {
-			app.mouseState.release("left")
-		}
-	}
-
-	canvasEvents.touchcancel = () => {
-		if (gopt.touchToMouse !== false) {
-			app.mouseState.release("left")
-		}
-	}
-
-	canvasEvents.contextmenu = function (e) {
-		e.preventDefault()
-	}
+	canvasEvents.touchend = (e) => app.bufferedEvents.touch.push(e)
+	canvasEvents.touchcancel = (e) => app.bufferedEvents.touch.push(e)
+	canvasEvents.contextmenu = (e) => e.preventDefault()
 
 	docEvents.visibilitychange = () => {
 		switch (document.visibilityState) {
@@ -5535,6 +5490,65 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			}
 		}
 
+		for (const e of app.bufferedEvents.touch) {
+			const touches = [...e.changedTouches]
+			switch (e.type) {
+				case "touchstart": {
+					touches.forEach((t) => {
+						game.ev.trigger(
+							"onTouchStart",
+							windowToContent(vec2(t.clientX, t.clientY)),
+							t,
+						)
+					})
+					if (gopt.touchToMouse !== false) {
+						setMousePos(touches[0].clientX, touches[0].clientY)
+						app.mouseState.press("left")
+					}
+					break
+				}
+				case "touchmove": {
+					touches.forEach((t) => {
+						game.ev.trigger(
+							"onTouchMove",
+							windowToContent(vec2(t.clientX, t.clientY)),
+							t,
+						)
+					})
+					if (gopt.touchToMouse !== false) {
+						setMousePos(touches[0].clientX, touches[0].clientY)
+					}
+					break
+				}
+				case "touchend": {
+					touches.forEach((t) => {
+						game.ev.trigger(
+							"onTouchEnd",
+							windowToContent(vec2(t.clientX, t.clientY)),
+							t,
+						)
+					})
+					if (gopt.touchToMouse !== false) {
+						app.mouseState.release("left")
+					}
+					break
+				}
+				case "touchcancel": {
+					touches.forEach((t) => {
+						game.ev.trigger(
+							"onTouchEnd",
+							windowToContent(vec2(t.clientX, t.clientY)),
+							t,
+						)
+					})
+					if (gopt.touchToMouse !== false) {
+						app.mouseState.release("left")
+					}
+					break
+				}
+			}
+		}
+
 		app.keyState.down.forEach((k) => game.ev.trigger("keyDown", k))
 		app.mouseState.down.forEach((k) => game.ev.trigger("mouseDown", k))
 
@@ -6170,6 +6184,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		app.isMouseMoved = false
 		app.bufferedEvents.key = []
 		app.bufferedEvents.mouse = []
+		app.bufferedEvents.touch = []
 	}
 
 	function run(f: () => void) {
