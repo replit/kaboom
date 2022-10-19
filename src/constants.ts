@@ -1,4 +1,6 @@
-export const VERSION = "3000.0.0-alpha.9"
+import { MouseButton } from "./types"
+
+export const VERSION = "3000.0.0-alpha.11"
 
 // translate these key names to a simpler version
 export const KEY_ALIAS = {
@@ -10,7 +12,7 @@ export const KEY_ALIAS = {
 }
 
 // according to https://developer.mozilla.org/en-US/docs/Web/API/MouseEvent/button
-export const MOUSE_BUTTONS = [
+export const MOUSE_BUTTONS: MouseButton[] = [
 	"left",
 	"middle",
 	"right",
@@ -18,6 +20,7 @@ export const MOUSE_BUTTONS = [
 	"forward",
 ]
 
+/*
 // don't trigger browser default event when these keys are pressed
 export const PREVENT_DEFAULT_KEYS = [
 	"space",
@@ -39,6 +42,17 @@ export const PREVENT_DEFAULT_KEYS = [
 	"f11",
 	"s",
 ]
+*/
+
+// don't trigger browser default event when these keys are pressed
+export const PREVENT_DEFAULT_KEYS = new Set([
+	" ",
+	"ArrowLeft",
+	"ArrowRight",
+	"ArrowUp",
+	"ArrowDown",
+	"tab",
+])
 
 // some default charsets for loading bitmap fonts
 export const ASCII_CHARS = " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~"

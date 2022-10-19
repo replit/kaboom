@@ -1891,13 +1891,6 @@ export type Key =
 	| "backspace" | "enter" | "tab" | "space" | " "
 	| "left" | "right" | "up" | "down"
 
-export type ButtonState =
-	"up"
-	| "pressed"
-	| "rpressed"
-	| "down"
-	| "released"
-
 export type MouseButton =
 	| "left"
 	| "right"

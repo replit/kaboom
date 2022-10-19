@@ -4,3 +4,5 @@ node_modules/
 .idea/
 neutralinojs.log
 bin/
+/.vscode/settings.json
+/yarn.lock

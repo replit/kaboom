@@ -2,7 +2,7 @@ import { vec2 } from "./math"
 import { ShaderData } from "./types"
 import { AssetData } from "./classes/AssetData"
 import { SpriteData } from "./classes/SpriteData"
-import type { EventController, TextAlign, Anchor, Vec2, ButtonState, DrawSpriteOpt, BitmapFontData } from "./types"
+import type { EventController, TextAlign, Anchor, Vec2, DrawSpriteOpt, BitmapFontData } from "./types"
 
 export class IDList<T> extends Map<number, T> {
 	private lastID: number
@@ -237,18 +237,6 @@ export function dt(app, debug) {
 
 export function center(gfx): Vec2 {
 	return vec2(gfx.width / 2, gfx.height / 2)
-}
-
-// transform the button state to the next state
-// e.g. if a button becomes "pressed" one frame, it should become "down" next frame
-export function processButtonState(s: ButtonState): ButtonState {
-	if (s === "pressed" || s === "rpressed") {
-		return "down"
-	} else if (s === "released") {
-		return "up"
-	} else {
-		return s
-	}
 }
 
 // wrappers around full screen functions to work across browsers
