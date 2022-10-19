@@ -1087,21 +1087,24 @@ export default (gopt, gfx: any, assets: any, game: any, app, debug, gl: WebGLRen
             // TODO: touch
             if (isMousePressed("left")) {
                 if (testCirclePoint(new Circle(pos, size / 2), mpos)) {
-                    game.ev.onOnce("frameEnd", () => {
-                        app.virtualButtonStates[btn] = "pressed"
+                    game.ev.onOnce("input", () => {
                         // TODO: caller specify another value as connected key?
-                        app.keyStates[btn] = "pressed"
+                        app.virtualButtonState.press(btn)
+                        game.ev.trigger("virtualButtonPress", btn)
+                        app.keyState.press(btn)
+                        game.ev.trigger("keyPress", btn)
                     })
                 }
             }
 
             if (isMouseReleased("left")) {
-                game.ev.onOnce("frameEnd", () => {
-                    app.virtualButtonStates[btn] = "released"
-                    app.keyStates[btn] = "released"
+                game.ev.onOnce("input", () => {
+                    app.virtualButtonState.release(btn)
+                    game.ev.trigger("virtualButtonRelease", btn)
+                    app.keyState.release(btn)
+                    game.ev.trigger("keyRelease", btn)
                 })
             }
-
         }
 
         const drawSquareButton = (pos: Vec2, btn: VirtualButton, text?: string) => {
@@ -1134,22 +1137,22 @@ export default (gopt, gfx: any, assets: any, game: any, app, debug, gl: WebGLRen
             if (isMousePressed("left")) {
                 if (testRectPoint(new Rect(pos.add(-size / 2, -size / 2), size, size), mpos)) {
                     game.ev.onOnce("input", () => {
-						// TODO: caller specify another value as connected key?
-						app.virtualButtonState.press(btn)
-						game.ev.trigger("virtualButtonPress", btn)
-						app.keyState.press(btn)
-						game.ev.trigger("keyPress", btn)
-					})
+                        // TODO: caller specify another value as connected key?
+                        app.virtualButtonState.press(btn)
+                        game.ev.trigger("virtualButtonPress", btn)
+                        app.keyState.press(btn)
+                        game.ev.trigger("keyPress", btn)
+                    })
                 }
             }
 
             if (isMouseReleased("left")) {
                 game.ev.onOnce("input", () => {
-					app.virtualButtonState.release(btn)
-					game.ev.trigger("virtualButtonRelease", btn)
-					app.keyState.release(btn)
-					game.ev.trigger("keyRelease", btn)
-				})
+                    app.virtualButtonState.release(btn)
+                    game.ev.trigger("virtualButtonRelease", btn)
+                    app.keyState.release(btn)
+                    game.ev.trigger("keyRelease", btn)
+                })
             }
 
         }
