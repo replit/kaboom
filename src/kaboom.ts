@@ -1,7 +1,4 @@
-// TODO: event registers return Promise for next event when callback not passed?
-// TODO: pass original browser event in input handlers
-
-const VERSION = "3000.0.0-alpha.9"
+const VERSION = "3000.0.0-alpha.10"
 
 import {
 	sat,
@@ -194,6 +191,16 @@ const KEY_ALIAS = {
 	" ": "space",
 }
 
+// don't trigger browser default event when these keys are pressed
+const PREVENT_DEFAULT_KEYS = new Set([
+	" ",
+	"ArrowLeft",
+	"ArrowRight",
+	"ArrowUp",
+	"ArrowDown",
+	"tab",
+])
+
 // according to https://developer.mozilla.org/en-US/docs/Web/API/MouseEvent/button
 const MOUSE_BUTTONS = [
 	"left",
@@ -201,28 +208,6 @@ const MOUSE_BUTTONS = [
 	"right",
 	"back",
 	"forward",
-]
-
-// don't trigger browser default event when these keys are pressed
-const PREVENT_DEFAULT_KEYS = [
-	"space",
-	"left",
-	"right",
-	"up",
-	"down",
-	"tab",
-	"f1",
-	"f2",
-	"f3",
-	"f4",
-	"f5",
-	"f6",
-	"f7",
-	"f8",
-	"f9",
-	"f10",
-	"f11",
-	"s",
 ]
 
 // some default charsets for loading bitmap fonts
@@ -484,12 +469,12 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			virtualButtonStates: {} as Record<VirtualButton, ButtonState>,
 
 			// input states from last frame, should reset every frame
+			bufferedEvents: {
+				key: [] as KeyboardEvent[],
+				mouse: [] as MouseEvent[],
+			},
 			charInputted: [],
-			numKeyDown: 0,
 			isMouseMoved: false,
-			isKeyPressed: false,
-			isKeyPressedRepeat: false,
-			isKeyReleased: false,
 			mouseStarted: false,
 			mousePos: vec2(0, 0),
 			mouseDeltaPos: vec2(0, 0),
@@ -2872,59 +2857,17 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		app.isMouseMoved = true
 	}
 
-	canvasEvents.mousemove = (e) => {
-		setMousePos(e.offsetX, e.offsetY)
-	}
-
-	canvasEvents.mousedown = (e) => {
-		const m = MOUSE_BUTTONS[e.button]
-		if (m) {
-			app.mouseStates[m] = "pressed"
-		}
-	}
-
-	canvasEvents.mouseup = (e) => {
-		const m = MOUSE_BUTTONS[e.button]
-		if (m) {
-			app.mouseStates[m] = "released"
-		}
-	}
-
+	// TODO: prevent default here
+	canvasEvents.mousemove = (e) => app.bufferedEvents.mouse.push(e)
+	canvasEvents.mousedown = (e) => app.bufferedEvents.mouse.push(e)
+	canvasEvents.mouseup = (e) => app.bufferedEvents.mouse.push(e)
 	canvasEvents.keydown = (e) => {
-
-		const k = KEY_ALIAS[e.key] || e.key.toLowerCase()
-
-		if (PREVENT_DEFAULT_KEYS.includes(k)) {
+		if (PREVENT_DEFAULT_KEYS.has(e.key)) {
 			e.preventDefault()
 		}
-
-		if (k.length === 1) {
-			app.charInputted.push(e.key)
-		}
-
-		if (k === "space") {
-			app.charInputted.push(" ")
-		}
-
-		// TODO: record just pressed keys
-		if (e.repeat) {
-			app.isKeyPressedRepeat = true
-			app.keyStates[k] = "rpressed"
-		} else {
-			app.isKeyPressed = true
-			app.keyStates[k] = "pressed"
-		}
-
-		app.numKeyDown++
-
+		app.bufferedEvents.key.push(e)
 	}
-
-	canvasEvents.keyup = (e: KeyboardEvent) => {
-		const k = KEY_ALIAS[e.key] || e.key.toLowerCase()
-		app.keyStates[k] = "released"
-		app.isKeyReleased = true
-		app.numKeyDown--
-	}
+	canvasEvents.keyup = (e) => app.bufferedEvents.key.push(e)
 
 	canvasEvents.touchstart = (e) => {
 		// disable long tap context menu
@@ -3047,7 +2990,12 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 	function isKeyPressed(k?: string): boolean {
 		if (k === undefined) {
-			return app.isKeyPressed
+			for (const k in app.keyStates) {
+				if (app.keyStates[k] === "pressed") {
+					return true
+				}
+			}
+			return false
 		} else {
 			return app.keyStates[k] === "pressed"
 		}
@@ -3055,7 +3003,12 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 	function isKeyPressedRepeat(k?: string): boolean {
 		if (k === undefined) {
-			return app.isKeyPressedRepeat
+			for (const k in app.keyStates) {
+				if (app.keyStates[k] === "pressed" || app.keyStates[k] === "rpressed") {
+					return true
+				}
+			}
+			return false
 		} else {
 			return app.keyStates[k] === "pressed" || app.keyStates[k] === "rpressed"
 		}
@@ -3063,7 +3016,12 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 	function isKeyDown(k?: string): boolean {
 		if (k === undefined) {
-			return app.numKeyDown > 0
+			for (const k in app.keyStates) {
+				if (app.keyStates[k] === "pressed" || app.keyStates[k] === "rpressed" || app.keyStates[k] === "down") {
+					return true
+				}
+			}
+			return false
 		} else {
 			return app.keyStates[k] === "pressed"
 			|| app.keyStates[k] === "rpressed"
@@ -3073,7 +3031,12 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 	function isKeyReleased(k?: string): boolean {
 		if (k === undefined) {
-			return app.isKeyReleased
+			for (const k in app.keyStates) {
+				if (app.keyStates[k] === "released") {
+					return true
+				}
+			}
+			return false
 		} else {
 			return app.keyStates[k] === "released"
 		}
@@ -3501,15 +3464,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		})
 	}
 
-	function promisifyEvent(event: (action: () => void) => EventController): Promise<void> {
-		return new Promise((res) => {
-			const ev = event(() => {
-				ev.cancel()
-				res()
-			})
-		})
-	}
-
 	// add update event to a tag or global update
 	const onUpdate = ((tag: Tag | (() => void), action?: (obj: GameObj) => void) => {
 		if (typeof tag === "function" && action === undefined) {
@@ -3525,8 +3479,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			}
 		} else if (typeof tag === "string") {
 			return on("update", tag, action)
-		} else if (tag === undefined && action === undefined) {
-			return promisifyEvent(onUpdate)
 		}
 	}) as KaboomCtx["onUpdate"]
 
@@ -3545,8 +3497,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			}
 		} else if (typeof tag === "string") {
 			return on("draw", tag, action)
-		} else if (tag === undefined && action === undefined) {
-			return promisifyEvent(onDraw)
 		}
 	}) as KaboomCtx["onDraw"]
 
@@ -3655,17 +3605,17 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	}
 
 	// add an event that's run every t seconds
-	function loop(t: number, f: () => void): EventController {
+	function loop(t: number, action: () => void): EventController {
 
 		let curTimer: null | TimerController = null
 
-		const newF = () => {
+		const newAction = () => {
 			// TODO: should f be execute right away as loop() is called?
-			f()
-			curTimer = wait(t, newF)
+			action()
+			curTimer = wait(t, newAction)
 		}
 
-		newF()
+		newAction()
 
 		return {
 			get paused() {
@@ -3692,100 +3642,89 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	}
 
 	// input callbacks
-	function onKeyDown(k: Key, f: () => void): EventController {
-		return game.ev.on("input", () => isKeyDown(k) && f())
-	}
+	const onKeyDown = ((
+		key?: Key | ((k: Key) => void),
+		action?: (k: Key) => void,
+	) => {
+		if (typeof key === "function") {
+			return game.ev.on("keyDown", key)
+		} else if (typeof key === "string" && typeof action === "function") {
+			return game.ev.on("keyDown", (k) => k === key && action(key))
+		}
+	}) as KaboomCtx["onKeyDown"]
 
 	const onKeyPress = ((
-		k?: Key | ((k: Key) => void),
-		f?: (k: Key) => void,
+		key?: Key | ((k: Key) => void),
+		action?: (k: Key) => void,
 	) => {
-		if (typeof k === "function") {
-			// TODO: pass the pressed key
-			// @ts-ignore
-			return game.ev.on("input", () => isKeyPressed() && k())
-		} else if (typeof k === "string" && typeof f === "function") {
-			return game.ev.on("input", () => isKeyPressed(k) && f(k))
-		} else if (typeof k === "string" && f === undefined) {
-			return promisifyEvent(onKeyPress.bind(undefined, k))
-		} else if (typeof k === undefined && f === undefined) {
-			return promisifyEvent(onKeyPress)
+		if (typeof key === "function") {
+			return game.ev.on("keyPress", key)
+		} else if (typeof key === "string" && typeof action === "function") {
+			return game.ev.on("keyPress", (k) => k === key && action(key))
 		}
 	}) as KaboomCtx["onKeyPress"]
 
 	const onKeyPressRepeat = ((
-		k?: Key | ((k: Key) => void),
-		f?: (k: Key) => void,
+		key?: Key | ((k: Key) => void),
+		action?: (k: Key) => void,
 	) => {
-		if (typeof k === "function") {
-			// TODO: pass the pressed key
-			// @ts-ignore
-			return game.ev.on("input", () => isKeyPressedRepeat() && k())
-		} else if (typeof k === "string" && typeof f === "function") {
-			return game.ev.on("input", () => isKeyPressedRepeat(k) && f(k))
-		} else if (typeof k === "string" && f === undefined) {
-			return promisifyEvent(onKeyPressRepeat.bind(undefined, k))
-		} else if (typeof k === undefined && f === undefined) {
-			return promisifyEvent(onKeyPressRepeat)
+		if (typeof key === "function") {
+			return game.ev.on("keyPressRepeat", key)
+		} else if (typeof key === "string" && typeof action === "function") {
+			return game.ev.on("keyPressRepeat", (k) => k === key && action(key))
 		}
 	}) as KaboomCtx["onKeyPressRepeat"]
 
 	const onKeyRelease = ((
-		k?: Key | ((k: Key) => void),
-		f?: (k: Key) => void,
+		key?: Key | ((k: Key) => void),
+		action?: (k: Key) => void,
 	) => {
-		if (typeof k === "function") {
-			// TODO: pass the pressed key
-			// @ts-ignore
-			return game.ev.on("input", () => isKeyReleased() && k())
-		} else if (typeof k === "string" && typeof f === "function") {
-			return game.ev.on("input", () => isKeyReleased(k) && f(k))
-		} else if (typeof k === "string" && f === undefined) {
-			return promisifyEvent(onKeyRelease.bind(undefined, k))
-		} else if (typeof k === undefined && f === undefined) {
-			return promisifyEvent(onKeyRelease)
+		if (typeof key === "function") {
+			return game.ev.on("keyRelease", key)
+		} else if (typeof key === "string" && typeof action === "function") {
+			return game.ev.on("keyRelease", (k) => k === key && action(key))
 		}
 	}) as KaboomCtx["onKeyRelease"]
 
 	function onMouseDown(
-		m: MouseButton | ((pos?: Vec2) => void),
-		action?: (pos?: Vec2) => void,
+		mouse: MouseButton | ((m: MouseButton) => void),
+		action?: (m: MouseButton) => void,
 	): EventController {
-		if (typeof m === "function") {
-			return game.ev.on("input", () => isMouseDown() && m(mousePos()))
+		if (typeof mouse === "function") {
+			return game.ev.on("mouseDown", (m) => mouse(m))
 		} else {
-			return game.ev.on("input", () => isMouseDown(m) && action(mousePos()))
+			return game.ev.on("mouseDown", (m) => m === mouse && action(m))
 		}
 	}
 
 	function onMousePress(
-		m: MouseButton | ((pos?: Vec2) => void),
-		action?: (pos?: Vec2) => void,
+		mouse: MouseButton | ((m: MouseButton) => void),
+		action?: (m: MouseButton) => void,
 	): EventController {
-		if (typeof m === "function") {
-			return game.ev.on("input", () => isMousePressed() && m(mousePos()))
+		if (typeof mouse === "function") {
+			return game.ev.on("mousePress", (m) => mouse(m))
 		} else {
-			return game.ev.on("input", () => isMousePressed(m) && action(mousePos()))
+			return game.ev.on("mousePress", (m) => m === mouse && action(m))
 		}
 	}
 
 	function onMouseRelease(
-		m: MouseButton | ((pos?: Vec2) => void),
-		action?: (pos?: Vec2) => void,
+		mouse: MouseButton | ((m: MouseButton) => void),
+		action?: (m: MouseButton) => void,
 	): EventController {
-		if (typeof m === "function") {
-			return game.ev.on("input", () => isMouseReleased() && m(mousePos()))
+		if (typeof mouse === "function") {
+			return game.ev.on("mouseRelease", (m) => mouse(m))
 		} else {
-			return game.ev.on("input", () => isMouseReleased(m) && action(mousePos()))
+			return game.ev.on("mouseRelease", (m) => m === mouse && action(m))
 		}
 	}
 
 	function onMouseMove(f: (pos: Vec2, dpos: Vec2) => void): EventController {
-		return game.ev.on("input", () => isMouseMoved() && f(mousePos(), mouseDeltaPos()))
+		return game.ev.on("mouseMove", () => f(mousePos(), mouseDeltaPos()))
 	}
 
-	function onCharInput(f: (ch: string) => void): EventController {
-		return game.ev.on("input", () => charInputted().forEach((ch) => f(ch)))
+	function onCharInput(action: (ch: string) => void): EventController {
+		return game.ev.on("charInput", action)
 	}
 
 	function onTouchStart(f: (pos: Vec2, t: Touch) => void): EventController {
@@ -3801,6 +3740,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	}
 
 	function onVirtualButtonPress(btn: VirtualButton, action: () => void): EventController {
+		// TODO: move off on("input")
 		return game.ev.on("input", () => isVirtualButtonPressed(btn) && action())
 	}
 
@@ -4740,8 +4680,9 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		}
 		return {
 			id: "timer",
-			wait(time: number, action: () => void): EventController {
-				const timer = new Timer(time, action)
+			wait(time: number, action: () => void): TimerController {
+				const actions = [ action ]
+				const timer = new Timer(time, () => actions.forEach((f) => f()))
 				const cancel = timers.pushd(timer)
 				return {
 					get paused() {
@@ -4751,6 +4692,13 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 						timer.paused = p
 					},
 					cancel: cancel,
+					onFinish(action) {
+						actions.push(action)
+					},
+					then(action) {
+						this.onFinish(action)
+						return this
+					},
 				}
 			},
 			update() {
@@ -5559,6 +5507,74 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 	}
 
+	function inputFrame() {
+
+		// TODO: pass original browser event in input handlers
+		for (const e of app.bufferedEvents.key) {
+			const k = KEY_ALIAS[e.key] || e.key.toLowerCase()
+			switch (e.type) {
+				case "keydown": {
+					if (k.length === 1) {
+						game.ev.trigger("charInput", k)
+						app.charInputted.push(k)
+					} else if (k === "space") {
+						game.ev.trigger("charInput", " ")
+						app.charInputted.push(" ")
+					}
+					if (e.repeat) {
+						app.keyStates[k] = "rpressed"
+						game.ev.trigger("keyPressRepeat", k)
+					} else {
+						app.keyStates[k] = "pressed"
+						game.ev.trigger("keyPress", k)
+					}
+					break
+				}
+				case "keyup": {
+					app.keyStates[k] = "released"
+					game.ev.trigger("keyRelease", k)
+					break
+				}
+			}
+		}
+
+		for (const e of app.bufferedEvents.mouse) {
+			const m = MOUSE_BUTTONS[e.button]
+			switch (e.type) {
+				case "mousemove": {
+					setMousePos(e.offsetX, e.offsetY)
+					game.ev.trigger("mouseMove")
+					break
+				}
+				case "mousedown": {
+					if (m) app.mouseStates[m] = "pressed"
+					game.ev.trigger("mousePress", m)
+					break
+				}
+				case "mouseup": {
+					if (m) app.mouseStates[m] = "released"
+					game.ev.trigger("mouseRelease", m)
+					break
+				}
+			}
+		}
+
+		for (const k in app.keyStates) {
+			const state = app.keyStates[k]
+			if (state === "pressed" || state === "rpressed" || state === "down") {
+				game.ev.trigger("keyDown", k)
+			}
+		}
+
+		for (const m in app.mouseStates) {
+			const state = app.mouseStates[m]
+			if (state === "pressed" || state === "rpressed" || state === "down") {
+				game.ev.trigger("mouseDown", m)
+			}
+		}
+
+	}
+
 	function updateFrame() {
 
 		// update every obj
@@ -6185,21 +6201,23 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 		for (const k in app.keyStates) {
 			app.keyStates[k] = processButtonState(app.keyStates[k])
+			if (app.keyStates[k] === "up") delete app.keyStates[k]
 		}
 
 		for (const m in app.mouseStates) {
 			app.mouseStates[m] = processButtonState(app.mouseStates[m])
+			if (app.mouseStates[m] === "up") delete app.mouseStates[m]
 		}
 
 		for (const b in app.virtualButtonStates) {
 			app.virtualButtonStates[b] = processButtonState(app.virtualButtonStates[b])
+			if (app.virtualButtonStates[b] === "up") delete app.virtualButtonStates[b]
 		}
 
 		app.charInputted = []
 		app.isMouseMoved = false
-		app.isKeyPressed = false
-		app.isKeyPressedRepeat = false
-		app.isKeyReleased = false
+		app.bufferedEvents.key = []
+		app.bufferedEvents.mouse = []
 
 	}
 
@@ -6363,12 +6381,8 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 		} else {
 
-			game.ev.trigger("input")
-
-			if (!debug.paused) {
-				updateFrame()
-			}
-
+			inputFrame()
+			if (!debug.paused) updateFrame()
 			checkFrame()
 			drawFrame()
 
@@ -6508,6 +6522,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		isVirtualButtonPressed,
 		isVirtualButtonDown,
 		isVirtualButtonReleased,
+		charInputted,
 		// timer
 		loop,
 		wait,
