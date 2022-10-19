@@ -1,5 +1,3 @@
-const VERSION = "3000.0.0-alpha.11"
-
 import {
 	sat,
 	vec2,
@@ -54,6 +52,17 @@ import {
 	warn,
 	// eslint-disable-next-line
 	benchmark,
+	loadProgress,
+	resolveSprite,
+	enterFullscreen,
+	exitFullscreen,
+	getFullscreenElement,
+	anchorPt,
+	alignPt,
+	createEmptyAudioBuffer,
+	getSprite,
+	getBitmapFont,
+	getShader,
 } from "./utils"
 
 import {
@@ -146,7 +155,53 @@ import {
 	VirtualButton,
 	TimerController,
 	TweenController,
+	EventList,
+	SpriteCurAnim,
 } from "./types"
+
+import {
+	VERSION,
+	KEY_ALIAS,
+	MOUSE_BUTTONS,
+	PREVENT_DEFAULT_KEYS,
+	ASCII_CHARS,
+	MIN_GAIN,
+	MAX_GAIN,
+	MIN_SPEED,
+	MAX_SPEED,
+	MIN_DETUNE,
+	MAX_DETUNE,
+	DEF_ANCHOR,
+	BG_GRID_SIZE,
+	DEF_FONT,
+	DBG_FONT,
+	DEF_TEXT_SIZE,
+	DEF_TEXT_CACHE_SIZE,
+	FONT_ATLAS_SIZE,
+	UV_PAD,
+	LOG_MAX,
+	VERTEX_FORMAT,
+	STRIDE,
+	MAX_BATCHED_QUAD,
+	MAX_BATCHED_VERTS,
+	MAX_BATCHED_INDICES,
+	VERT_TEMPLATE, FRAG_TEMPLATE, DEF_VERT, DEF_FRAG, COMP_DESC, COMP_EVENTS,
+} from "./constants"
+
+import { Texture } from "./classes/Texture"
+import { SpriteData } from "./classes/SpriteData"
+import { SoundData } from "./classes/SoundData"
+import { AssetData } from "./classes/AssetData"
+import { AssetBucket } from "./classes/AssetBucket"
+import { Collision } from "./classes/Collision"
+import { ButtonState } from "./classes/ButtonState"
+
+
+import drawFunc from "./functions/draw"
+import textFunc from "./functions/text"
+
+import { TextCtx } from "./types/text"
+import { DrawCtx } from "./types/draw"
 
 import FPSCounter from "./fps"
 import Timer from "./timer"
@@ -162,240 +217,8 @@ import kaSpriteSrc from "./assets/ka.png"
 // @ts-ignore
 import boomSpriteSrc from "./assets/boom.png"
 
-type EventList<M> = {
-	[event in keyof M]?: (event: M[event]) => void
-}
-
-interface SpriteCurAnim {
-	name: string,
-	timer: number,
-	loop: boolean,
-	speed: number,
-	pingpong: boolean,
-	onEnd: () => void,
-}
-
-// translate these key names to a simpler version
-const KEY_ALIAS = {
-	"ArrowLeft": "left",
-	"ArrowRight": "right",
-	"ArrowUp": "up",
-	"ArrowDown": "down",
-	" ": "space",
-}
-
-// don't trigger browser default event when these keys are pressed
-const PREVENT_DEFAULT_KEYS = new Set([
-	" ",
-	"ArrowLeft",
-	"ArrowRight",
-	"ArrowUp",
-	"ArrowDown",
-	"tab",
-])
-
-// according to https://developer.mozilla.org/en-US/docs/Web/API/MouseEvent/button
-const MOUSE_BUTTONS: MouseButton[] = [
-	"left",
-	"middle",
-	"right",
-	"back",
-	"forward",
-]
-
-// some default charsets for loading bitmap fonts
-const ASCII_CHARS = " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~"
-
-// audio gain range
-const MIN_GAIN = 0
-const MAX_GAIN = 3
-
-// audio speed range
-const MIN_SPEED = 0
-const MAX_SPEED = 3
-
-// audio detune range
-const MIN_DETUNE = -1200
-const MAX_DETUNE = 1200
-
-const DEF_ANCHOR = "topleft"
-const BG_GRID_SIZE = 64
-
-const DEF_FONT = "happy"
-const DBG_FONT = "monospace"
-const DEF_TEXT_SIZE = 36
-const DEF_TEXT_CACHE_SIZE = 64
-const FONT_ATLAS_SIZE = 1024
-// 0.1 pixel padding to texture coordinates to prevent artifact
-const UV_PAD = 0.1
-
-const LOG_MAX = 1
-
-const VERTEX_FORMAT = [
-	{ name: "a_pos", size: 3 },
-	{ name: "a_uv", size: 2 },
-	{ name: "a_color", size: 4 },
-]
-
-const STRIDE = VERTEX_FORMAT.reduce((sum, f) => sum + f.size, 0)
-
-const MAX_BATCHED_QUAD = 2048
-const MAX_BATCHED_VERTS = MAX_BATCHED_QUAD * 4 * STRIDE
-const MAX_BATCHED_INDICES = MAX_BATCHED_QUAD * 6
-
-// vertex shader template, replace {{user}} with user vertex shader code
-const VERT_TEMPLATE = `
-attribute vec3 a_pos;
-attribute vec2 a_uv;
-attribute vec4 a_color;
-
-varying vec3 v_pos;
-varying vec2 v_uv;
-varying vec4 v_color;
-
-vec4 def_vert() {
-	return vec4(a_pos, 1.0);
-}
-
-{{user}}
-
-void main() {
-	vec4 pos = vert(a_pos, a_uv, a_color);
-	v_pos = a_pos;
-	v_uv = a_uv;
-	v_color = a_color;
-	gl_Position = pos;
-}
-`
-
-// fragment shader template, replace {{user}} with user fragment shader code
-const FRAG_TEMPLATE = `
-precision mediump float;
-
-varying vec3 v_pos;
-varying vec2 v_uv;
-varying vec4 v_color;
-
-uniform sampler2D u_tex;
-
-vec4 def_frag() {
-	return v_color * texture2D(u_tex, v_uv);
-}
-
-{{user}}
-
-void main() {
-	gl_FragColor = frag(v_pos, v_uv, v_color, u_tex);
-	if (gl_FragColor.a == 0.0) {
-		discard;
-	}
-}
-`
-
-// default {{user}} vertex shader code
-const DEF_VERT = `
-vec4 vert(vec3 pos, vec2 uv, vec4 color) {
-	return def_vert();
-}
-`
-
-// default {{user}} fragment shader code
-const DEF_FRAG = `
-vec4 frag(vec3 pos, vec2 uv, vec4 color, sampler2D tex) {
-	return def_frag();
-}
-`
-
-const COMP_DESC = new Set([
-	"id",
-	"require",
-])
-
-const COMP_EVENTS = new Set([
-	"add",
-	"update",
-	"draw",
-	"destroy",
-	"inspect",
-	"drawInspect",
-])
-
-// wrappers around full screen functions to work across browsers
-function enterFullscreen(el: HTMLElement) {
-	if (el.requestFullscreen) el.requestFullscreen()
-	// @ts-ignore
-	else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen()
-}
-
-function exitFullscreen() {
-	if (document.exitFullscreen) document.exitFullscreen()
-	// @ts-ignore
-	else if (document.webkitExitFullScreen) document.webkitExitFullScreen()
-}
-
-function getFullscreenElement(): Element | void {
-	return document.fullscreenElement
-		// @ts-ignore
-		|| document.webkitFullscreenElement
-}
-
-// convert anchor string to a vec2 offset
-function anchorPt(orig: Anchor | Vec2): Vec2 {
-	switch (orig) {
-		case "topleft": return vec2(-1, -1)
-		case "top": return vec2(0, -1)
-		case "topright": return vec2(1, -1)
-		case "left": return vec2(-1, 0)
-		case "center": return vec2(0, 0)
-		case "right": return vec2(1, 0)
-		case "botleft": return vec2(-1, 1)
-		case "bot": return vec2(0, 1)
-		case "botright": return vec2(1, 1)
-		default: return orig
-	}
-}
-
-function alignPt(align: TextAlign): number {
-	switch (align) {
-		case "left": return 0
-		case "center": return 0.5
-		case "right": return 1
-		default: return 0
-	}
-}
-
-function createEmptyAudioBuffer(ctx: AudioContext) {
-	return ctx.createBuffer(1, 1, 44100)
-}
-
-class ButtonState<T = string> {
-	pressed: Set<T> = new Set([])
-	pressedRepeat: Set<T> = new Set([])
-	released: Set<T> = new Set([])
-	down: Set<T> = new Set([])
-	update() {
-		this.pressed.clear()
-		this.released.clear()
-		this.pressedRepeat.clear()
-	}
-	press(btn: T) {
-		this.pressed.add(btn)
-		this.pressedRepeat.add(btn)
-		this.down.add(btn)
-	}
-	pressRepeat(btn: T) {
-		this.pressedRepeat.add(btn)
-	}
-	release(btn: T) {
-		this.down.delete(btn)
-		this.pressed.delete(btn)
-		this.released.add(btn)
-	}
-}
-
 // only exports one kaboom() which contains all the state
 export default (gopt: KaboomOpt = {}): KaboomCtx => {
-
 	const gc: Array<() => void> = []
 
 	const app = (() => {
@@ -516,88 +339,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			preserveDrawingBuffer: true,
 		})
 
-	class Texture {
-
-		glTex: WebGLTexture
-		width: number
-		height: number
-
-		constructor(w: number, h: number, opt: TextureOpt = {}) {
-
-			this.glTex = gl.createTexture()
-			gc.push(() => this.free())
-			this.bind()
-
-			if (w && h) {
-				gl.texImage2D(
-					gl.TEXTURE_2D,
-					0, gl.RGBA,
-					w,
-					h,
-					0,
-					gl.RGBA,
-					gl.UNSIGNED_BYTE,
-					null,
-				)
-			}
-
-			this.width = w
-			this.height = h
-
-			const filter = (() => {
-				switch (opt.filter ?? gopt.texFilter) {
-					case "linear": return gl.LINEAR
-					case "nearest": return gl.NEAREST
-					default: return gl.NEAREST
-				}
-			})()
-
-			const wrap = (() => {
-				switch (opt.wrap) {
-					case "repeat": return gl.REPEAT
-					case "clampToEdge": return gl.CLAMP_TO_EDGE
-					default: return gl.CLAMP_TO_EDGE
-				}
-			})()
-
-			gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, filter)
-			gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, filter)
-			gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, wrap)
-			gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, wrap)
-			this.unbind()
-
-		}
-
-		static fromImage(img: TexImageSource, opt: TextureOpt = {}): Texture {
-			const tex = new Texture(0, 0, opt)
-			tex.bind()
-			gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, img)
-			tex.width = img.width
-			tex.height = img.height
-			tex.unbind()
-			return tex
-		}
-
-		update(x: number, y: number, img: TexImageSource) {
-			this.bind()
-			gl.texSubImage2D(gl.TEXTURE_2D, 0, x, y, gl.RGBA, gl.UNSIGNED_BYTE, img)
-			this.unbind()
-		}
-
-		bind() {
-			gl.bindTexture(gl.TEXTURE_2D, this.glTex)
-		}
-
-		unbind() {
-			gl.bindTexture(gl.TEXTURE_2D, null)
-		}
-
-		free() {
-			gl.deleteTexture(this.glTex)
-		}
-
-	}
-
 	const gfx = (() => {
 
 		const defShader = makeShader(DEF_VERT, DEF_FRAG)
@@ -605,7 +346,8 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		// a 1x1 white texture to draw raw shapes like rectangles and polygons
 		// we use a texture for those so we can use only 1 pipeline for drawing sprites + shapes
 		const emptyTex = Texture.fromImage(
-			new ImageData(new Uint8ClampedArray([ 255, 255, 255, 255 ]), 1, 1),
+			new ImageData(new Uint8ClampedArray([255, 255, 255, 255]), 1, 1),
+			gl, gc, gopt
 		)
 
 		if (gopt.background) {
@@ -649,7 +391,9 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				190, 190, 190, 255,
 				190, 190, 190, 255,
 				128, 128, 128, 255,
-			]), 2, 2), {
+			]), 2, 2),
+			gl, gc, gopt,
+			{
 				wrap: "repeat",
 				filter: "nearest",
 			},
@@ -694,63 +438,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 	})()
 
-	class SpriteData {
-
-		tex: Texture
-		frames: Quad[] = [ new Quad(0, 0, 1, 1) ]
-		anims: SpriteAnims = {}
-
-		constructor(tex: Texture, frames?: Quad[], anims: SpriteAnims = {}) {
-			this.tex = tex
-			if (frames) this.frames = frames
-			this.anims = anims
-		}
-
-		static from(src: LoadSpriteSrc, opt: LoadSpriteOpt = {}): Promise<SpriteData> {
-			return typeof src === "string"
-				? SpriteData.fromURL(src, opt)
-				: Promise.resolve(SpriteData.fromImage(src, opt),
-				)
-		}
-
-		static fromImage(data: TexImageSource, opt: LoadSpriteOpt = {}): SpriteData {
-			return new SpriteData(
-				Texture.fromImage(data, opt),
-				slice(opt.sliceX || 1, opt.sliceY || 1),
-				opt.anims ?? {},
-			)
-		}
-
-		static fromURL(url: string, opt: LoadSpriteOpt = {}): Promise<SpriteData> {
-			return loadImg(url).then((img) => SpriteData.fromImage(img, opt))
-		}
-
-	}
-
-	class SoundData {
-
-		buf: AudioBuffer
-
-		constructor(buf: AudioBuffer) {
-			this.buf = buf
-		}
-
-		static fromArrayBuffer(buf: ArrayBuffer): Promise<SoundData> {
-			return new Promise((resolve, reject) =>
-				audio.ctx.decodeAudioData(buf, resolve, reject),
-			).then((buf: AudioBuffer) => new SoundData(buf))
-		}
-
-		static fromURL(url: string): Promise<SoundData> {
-			if (isDataURL(url)) {
-				return SoundData.fromArrayBuffer(dataURLToArrayBuffer(url))
-			} else {
-				return fetchArrayBuffer(url).then((buf) => SoundData.fromArrayBuffer(buf))
-			}
-		}
-
-	}
-
 	const audio = (() => {
 
 		// TODO: handle when audio context is unavailable
@@ -777,90 +464,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		}
 
 	})()
-
-	class Asset<D> {
-		done: boolean = false
-		data: D | null = null
-		error: Error | null = null
-		private onLoadEvents: Event<[D]> = new Event()
-		private onErrorEvents: Event<[Error]> = new Event()
-		private onFinishEvents: Event<[]> = new Event()
-		constructor(loader: Promise<D>) {
-			loader.then((data) => {
-				this.data = data
-				this.onLoadEvents.trigger(data)
-			}).catch((err) => {
-				this.error = err
-				if (this.onErrorEvents.numListeners() > 0) {
-					this.onErrorEvents.trigger(err)
-				} else {
-					throw err
-				}
-			}).finally(() => {
-				this.onFinishEvents.trigger()
-				this.done = true
-			})
-		}
-		static loaded<D>(data: D): Asset<D> {
-			const asset = new Asset(Promise.resolve(data))
-			asset.data = data
-			asset.done = true
-			return asset
-		}
-		onLoad(action: (data: D) => void) {
-			this.onLoadEvents.add(action)
-			return this
-		}
-		onError(action: (err: Error) => void) {
-			this.onErrorEvents.add(action)
-			return this
-		}
-		onFinish(action: () => void) {
-			this.onFinishEvents.add(action)
-			return this
-		}
-		then(action: (data: D) => void): Asset<D> {
-			return this.onLoad(action)
-		}
-		catch(action: (err: Error) => void): Asset<D> {
-			return this.onError(action)
-		}
-		finally(action: () => void): Asset<D> {
-			return this.onFinish(action)
-		}
-	}
-
-	class AssetBucket<D> {
-		assets: Map<string, Asset<D>> = new Map()
-		lastUID: number = 0
-		add(name: string | null, loader: Promise<D>): Asset<D> {
-			// if user don't provide a name we use a generated one
-			const id = name ?? (this.lastUID++ + "")
-			const asset = new Asset(loader)
-			this.assets.set(id, asset)
-			return asset
-		}
-		addLoaded(name: string | null, data: D) {
-			const id = name ?? (this.lastUID++ + "")
-			const asset = Asset.loaded(data)
-			this.assets.set(id, asset)
-		}
-		get(handle: string): Asset<D> | void {
-			return this.assets.get(handle)
-		}
-		progress(): number {
-			if (this.assets.size === 0) {
-				return 1
-			}
-			let loaded = 0
-			this.assets.forEach((asset) => {
-				if (asset.done) {
-					loaded++
-				}
-			})
-			return loaded / this.assets.size
-		}
-	}
 
 	const assets = {
 		// prefix for when loading from a url
@@ -901,26 +504,12 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			shake: 0,
 			transform: new Mat4(),
 		},
-
 	}
 
 	// TODO: accept Asset<T>?
 	// wrap individual loaders with global loader counter, for stuff like progress bar
-	function load<T>(prom: Promise<T>): Asset<T> {
+	function load<T>(prom: Promise<T>): AssetData<T> {
 		return assets.custom.add(null, prom)
-	}
-
-	// get current load progress
-	function loadProgress(): number {
-		const buckets = [
-			assets.sprites,
-			assets.sounds,
-			assets.shaders,
-			assets.fonts,
-			assets.bitmapFonts,
-			assets.custom,
-		]
-		return buckets.reduce((n, bucket) => n + bucket.progress(), 0) / buckets.length
 	}
 
 	// global load path prefix
@@ -966,7 +555,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		})
 	}
 
-	function loadFont(name: string, src: string | ArrayBuffer): Asset<FontData> {
+	function loadFont(name: string, src: string | ArrayBuffer): AssetData<FontData> {
 		const font = new FontFace(name, typeof src === "string" ? `url(${src})` : src)
 		document.fonts.add(font)
 		return assets.fonts.add(name, font.load().catch(() => {
@@ -981,11 +570,11 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		gw: number,
 		gh: number,
 		opt: LoadBitmapFontOpt = {},
-	): Asset<BitmapFontData> {
+	): AssetData<BitmapFontData> {
 		return assets.bitmapFonts.add(name, loadImg(src)
 			.then((img) => {
 				return makeFont(
-					Texture.fromImage(img, opt),
+					Texture.fromImage(img, gl, gc, gopt, opt),
 					gw,
 					gh,
 					opt.chars ?? ASCII_CHARS,
@@ -1015,7 +604,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	function loadSpriteAtlas(
 		src: LoadSpriteSrc,
 		data: SpriteAtlasData | string,
-	): Asset<Record<string, SpriteData>> {
+	): AssetData<Record<string, SpriteData>> {
 		if (typeof data === "string") {
 			return load(new Promise((res, rej) => {
 				fetchJSON(data).then((data2) => {
@@ -1023,7 +612,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				})
 			}))
 		}
-		return load(SpriteData.from(src).then((atlas) => {
+		return load(SpriteData.from(src, loadImg, gl, gc, gopt, slice).then((atlas) => {
 			const map = {}
 			for (const name in data) {
 				const w = atlas.tex.width
@@ -1057,17 +646,17 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			sliceY: 1,
 			anims: {},
 		},
-	): Asset<SpriteData> {
+	): AssetData<SpriteData> {
 		return assets.sprites.add(
 			name,
 			typeof src === "string"
-				? SpriteData.fromURL(src, opt)
-				: Promise.resolve(SpriteData.fromImage(src, opt),
+				? SpriteData.fromURL(src, loadImg, gl, gc, gopt, slice, opt)
+				: Promise.resolve(SpriteData.fromImage(src, gl, gc, gopt, slice, opt),
 				),
 		)
 	}
 
-	function loadPedit(name: string | null, src: string | PeditFile): Asset<SpriteData> {
+	function loadPedit(name: string | null, src: string | PeditFile): AssetData<SpriteData> {
 
 		// eslint-disable-next-line
 		return assets.sprites.add(name, new Promise(async (resolve) => {
@@ -1099,7 +688,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		name: string | null,
 		imgSrc: LoadSpriteSrc,
 		jsonSrc: string,
-	): Asset<SpriteData> {
+	): AssetData<SpriteData> {
 		// eslint-disable-next-line
 		return assets.sprites.add(name, new Promise(async (resolve) => {
 			const spr = await loadSprite(null, imgSrc)
@@ -1135,7 +724,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		vert?: string,
 		frag?: string,
 		isUrl: boolean = false,
-	): Asset<ShaderData> {
+	): AssetData<ShaderData> {
 
 		return assets.shaders.add(name, new Promise<ShaderData>((resolve, reject) => {
 
@@ -1166,137 +755,46 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	function loadSound(
 		name: string | null,
 		src: string | ArrayBuffer,
-	): Asset<SoundData> {
+	): AssetData<SoundData> {
 		return assets.sounds.add(
 			name,
 			typeof src === "string"
-				? SoundData.fromURL(src)
-				: SoundData.fromArrayBuffer(src),
+				? SoundData.fromURL(src, audio, fetchArrayBuffer)
+				: SoundData.fromArrayBuffer(src, audio),
 		)
 	}
 
-	function loadBean(name: string = "bean"): Asset<SpriteData> {
+	function loadBean(name: string = "bean"): AssetData<SpriteData> {
 		return loadSprite(name, beanSpriteSrc)
 	}
 
-	function getSprite(handle: string): Asset<SpriteData> | void {
-		return assets.sprites.get(handle)
-	}
-
-	function getSound(handle: string): Asset<SoundData> | void {
+	function getSound(handle: string): AssetData<SoundData> | void {
 		return assets.sounds.get(handle)
 	}
 
-	function getFont(handle: string): Asset<FontData> | void {
+	function getFont(handle: string): AssetData<FontData> | void {
 		return assets.fonts.get(handle)
-	}
-
-	function getBitmapFont(handle: string): Asset<BitmapFontData> | void {
-		return assets.bitmapFonts.get(handle)
-	}
-
-	function getShader(handle: string): Asset<ShaderData> | void {
-		return assets.shaders.get(handle)
-	}
-
-	function resolveSprite(
-		src: DrawSpriteOpt["sprite"],
-	): Asset<SpriteData> | null {
-		if (typeof src === "string") {
-			const spr = getSprite(src)
-			if (spr) {
-				// if it's already loaded or being loading, return it
-				return spr
-			} else if (loadProgress() < 1) {
-				// if there's any other ongoing loading task we return empty and don't error yet
-				return null
-			} else {
-				// if all other assets are loaded and we still haven't found this sprite, throw
-				throw new Error(`Sprite not found: ${src}`)
-			}
-		} else if (src instanceof SpriteData) {
-			return Asset.loaded(src)
-		} else if (src instanceof Asset) {
-			return src
-		} else {
-			throw new Error(`Invalid sprite: ${src}`)
-		}
 	}
 
 	function resolveSound(
 		src: Parameters<typeof play>[0],
-	): SoundData | Asset<SoundData> | null {
+	): SoundData | AssetData<SoundData> | null {
 		if (typeof src === "string") {
 			const snd = getSound(src)
 			if (snd) {
 				return snd.data ? snd.data : snd
-			} else if (loadProgress() < 1) {
+			} else if (loadProgress(assets) < 1) {
 				return null
 			} else {
 				throw new Error(`Sound not found: ${src}`)
 			}
 		} else if (src instanceof SoundData) {
 			return src
-		} else if (src instanceof Asset) {
+		} else if (src instanceof AssetData) {
 			return src.data ? src.data : src
 		} else {
 			throw new Error(`Invalid sound: ${src}`)
 		}
-	}
-
-	function resolveShader(
-		src: RenderProps["shader"],
-	): ShaderData | Asset<ShaderData> | null {
-		if (!src) {
-			return gfx.defShader
-		}
-		if (typeof src === "string") {
-			const shader = getShader(src)
-			if (shader) {
-				return shader.data ? shader.data : shader
-			} else if (loadProgress() < 1) {
-				return null
-			} else {
-				throw new Error(`Shader not found: ${src}`)
-			}
-		} else if (src instanceof Asset) {
-			return src.data ? src.data : src
-		}
-		// TODO: check type
-		// @ts-ignore
-		return src
-	}
-
-	function resolveFont(
-		src: DrawTextOpt["font"],
-	):
-		| FontData
-		| Asset<FontData>
-		| BitmapFontData
-		| Asset<BitmapFontData>
-		| string
-		| void
-	{
-		if (!src) {
-			return resolveFont(gopt.font ?? DEF_FONT)
-		}
-		if (typeof src === "string") {
-			const font = getBitmapFont(src)
-			if (font) {
-				return font.data ? font.data : font
-			} else if (document.fonts.check(`${DEF_TEXT_CACHE_SIZE}px ${src}`)) {
-				return src
-			} else if (loadProgress() < 1) {
-				return null
-			} else {
-				throw new Error(`Font not found: ${src}`)
-			}
-		} else if (src instanceof Asset) {
-			return src.data ? src.data : src
-		}
-		// TODO: check type
-		// @ts-ignore
-		return src
 	}
 
 	// get / set master volume
@@ -1309,7 +807,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 	// plays a sound, returns a control handle
 	function play(
-		src: string | SoundData | Asset<SoundData>,
+		src: string | SoundData | AssetData<SoundData>,
 		opt: AudioPlayOpt = {
 			loop: false,
 			volume: 1,
@@ -1321,7 +819,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 		const snd = resolveSound(src)
 
-		if (snd instanceof Asset) {
+		if (snd instanceof AssetData) {
 			const pb = play(new SoundData(createEmptyAudioBuffer(audio.ctx)))
 			const doPlay = (snd: SoundData) => {
 				const pb2 = play(snd, opt)
@@ -1473,17 +971,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		return play(audio.burpSnd, opt)
 	}
 
-	type DrawTextureOpt = RenderProps & {
-		tex: Texture,
-		width?: number,
-		height?: number,
-		tiled?: boolean,
-		flipX?: boolean,
-		flipY?: boolean,
-		quad?: Quad,
-		anchor?: Anchor | Vec2,
-	}
-
 	function makeShader(
 		vertSrc: string | null = DEF_VERT,
 		fragSrc: string | null = DEF_FRAG,
@@ -1606,92 +1093,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			map: map,
 			size: gh,
 		}
-
-	}
-
-	// TODO: expose
-	function drawRaw(
-		verts: Vertex[],
-		indices: number[],
-		fixed: boolean,
-		tex: Texture = gfx.defTex,
-		shaderSrc: RenderProps["shader"] = gfx.defShader,
-		uniform: Uniform = {},
-	) {
-
-		const shader = resolveShader(shaderSrc)
-
-		if (!shader || shader instanceof Asset) {
-			return
-		}
-
-		// flush on texture / shader change and overflow
-		if (
-			tex !== gfx.curTex
-			|| shader !== gfx.curShader
-			|| !deepEq(gfx.curUniform, uniform)
-			|| gfx.vqueue.length + verts.length * STRIDE > MAX_BATCHED_VERTS
-			|| gfx.iqueue.length + indices.length > MAX_BATCHED_INDICES
-		) {
-			flush()
-		}
-
-		for (const v of verts) {
-
-			// TODO: cache camTransform * gfxTransform?
-			const transform = fixed ? gfx.transform : game.cam.transform.mult(gfx.transform)
-
-			// normalized world space coordinate [-1.0 ~ 1.0]
-			const pt = screen2ndc(transform.multVec2(v.pos.xy()))
-
-			gfx.vqueue.push(
-				pt.x, pt.y, v.pos.z,
-				v.uv.x, v.uv.y,
-				v.color.r / 255, v.color.g / 255, v.color.b / 255, v.opacity,
-			)
-
-		}
-
-		for (const i of indices) {
-			gfx.iqueue.push(i + gfx.vqueue.length / STRIDE - verts.length)
-		}
-
-		gfx.curTex = tex
-		gfx.curShader = shader
-		gfx.curUniform = uniform
-
-	}
-
-	// draw all batched shapes
-	function flush() {
-
-		if (
-			!gfx.curTex
-			|| !gfx.curShader
-			|| gfx.vqueue.length === 0
-			|| gfx.iqueue.length === 0
-		) {
-			return
-		}
-
-		gl.bindBuffer(gl.ARRAY_BUFFER, gfx.vbuf)
-		gl.bufferSubData(gl.ARRAY_BUFFER, 0, new Float32Array(gfx.vqueue))
-		gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, gfx.ibuf)
-		gl.bufferSubData(gl.ELEMENT_ARRAY_BUFFER, 0, new Uint16Array(gfx.iqueue))
-		gfx.curShader.bind()
-		gfx.curShader.send(gfx.curUniform)
-		gfx.curTex.bind()
-		gl.drawElements(gl.TRIANGLES, gfx.iqueue.length, gl.UNSIGNED_SHORT, 0)
-		gfx.curTex.unbind()
-		gfx.curShader.unbind()
-		gl.bindBuffer(gl.ARRAY_BUFFER, null)
-		gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null)
-
-		gfx.vqueue = []
-		gfx.iqueue = []
-
-		gfx.drawCalls++
-
 	}
 
 	// start a rendering frame, reset some states
@@ -1703,8 +1104,9 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		gl.clear(gl.COLOR_BUFFER_BIT)
 
 		if (!gopt.background) {
-			drawUnscaled(() => {
-				drawUVQuad({
+			const DRAW = drawFunc(gopt, gfx, assets, game, app, debug, gl)
+			DRAW.drawUnscaled(() => {
+				DRAW.drawUVQuad({
 					width: width(),
 					height: height(),
 					quad: new Quad(
@@ -1726,955 +1128,17 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	}
 
 	function frameEnd() {
-		flush()
+		const DRAW = drawFunc(gopt, gfx, assets, game, app, debug, gl)
+		DRAW.flush()
 		gfx.lastDrawCalls = gfx.drawCalls
-	}
-
-	// convert a screen space coordinate to webgl normalized device coordinate
-	function screen2ndc(pt: Vec2): Vec2 {
-		return vec2(
-			pt.x / width() * 2 - 1,
-			-pt.y / height() * 2 + 1,
-		)
 	}
 
 	function pushMatrix(m: Mat4) {
 		gfx.transform = m.clone()
 	}
 
-	function pushTranslate(...args) {
-		if (args[0] === undefined) return
-		const p = vec2(...args)
-		if (p.x === 0 && p.y === 0) return
-		gfx.transform = gfx.transform.translate(p)
-	}
-
-	function pushScale(...args) {
-		if (args[0] === undefined) return
-		const p = vec2(...args)
-		if (p.x === 1 && p.y === 1) return
-		gfx.transform = gfx.transform.scale(p)
-	}
-
-	function pushRotateX(a: number) {
-		if (!a) {
-			return
-		}
-		gfx.transform = gfx.transform.rotateX(a)
-	}
-
-	function pushRotateY(a: number) {
-		if (!a) {
-			return
-		}
-		gfx.transform = gfx.transform.rotateY(a)
-	}
-
-	function pushRotateZ(a: number) {
-		if (!a) {
-			return
-		}
-		gfx.transform = gfx.transform.rotateZ(a)
-	}
-
-	const pushRotate = pushRotateZ
-
-	function pushTransform() {
-		gfx.transformStack.push(gfx.transform.clone())
-	}
-
-	function popTransform() {
-		if (gfx.transformStack.length > 0) {
-			gfx.transform = gfx.transformStack.pop()
-		}
-	}
-
-	// draw a uv textured quad
-	function drawUVQuad(opt: DrawUVQuadOpt) {
-
-		if (opt.width === undefined || opt.height === undefined) {
-			throw new Error("drawUVQuad() requires property \"width\" and \"height\".")
-		}
-
-		if (opt.width <= 0 || opt.height <= 0) {
-			return
-		}
-
-		const w = opt.width
-		const h = opt.height
-		const anchor = anchorPt(opt.anchor || DEF_ANCHOR)
-		const offset = anchor.scale(vec2(w, h).scale(-0.5))
-		const q = opt.quad || new Quad(0, 0, 1, 1)
-		const color = opt.color || rgb(255, 255, 255)
-		const opacity = opt.opacity ?? 1
-
-		// apply uv padding to avoid artifacts
-		const uvPadX = opt.tex ? UV_PAD / opt.tex.width : 0
-		const uvPadY = opt.tex ? UV_PAD / opt.tex.height : 0
-		const qx = q.x + uvPadX
-		const qy = q.y + uvPadY
-		const qw = q.w - uvPadX * 2
-		const qh = q.h - uvPadY * 2
-
-		pushTransform()
-		pushTranslate(opt.pos)
-		pushRotateZ(opt.angle)
-		pushScale(opt.scale)
-		pushTranslate(offset)
-
-		drawRaw([
-			{
-				pos: vec3(-w / 2, h / 2, 0),
-				uv: vec2(opt.flipX ? qx + qw : qx, opt.flipY ? qy : qy + qh),
-				color: color,
-				opacity: opacity,
-			},
-			{
-				pos: vec3(-w / 2, -h / 2, 0),
-				uv: vec2(opt.flipX ? qx + qw : qx, opt.flipY ? qy + qh : qy),
-				color: color,
-				opacity: opacity,
-			},
-			{
-				pos: vec3(w / 2, -h / 2, 0),
-				uv: vec2(opt.flipX ? qx : qx + qw, opt.flipY ? qy + qh : qy),
-				color: color,
-				opacity: opacity,
-			},
-			{
-				pos: vec3(w / 2, h / 2, 0),
-				uv: vec2(opt.flipX ? qx : qx + qw, opt.flipY ? qy : qy + qh),
-				color: color,
-				opacity: opacity,
-			},
-		], [0, 1, 3, 1, 2, 3], opt.fixed, opt.tex, opt.shader, opt.uniform)
-
-		popTransform()
-
-	}
-
-	// TODO: clean
-	function drawTexture(opt: DrawTextureOpt) {
-
-		if (!opt.tex) {
-			throw new Error("drawTexture() requires property \"tex\".")
-		}
-
-		const q = opt.quad ?? new Quad(0, 0, 1, 1)
-		const w = opt.tex.width * q.w
-		const h = opt.tex.height * q.h
-		const scale = vec2(1)
-
-		if (opt.tiled) {
-
-			// TODO: draw fract
-			const repX = Math.ceil((opt.width || w) / w)
-			const repY = Math.ceil((opt.height || h) / h)
-			const anchor = anchorPt(opt.anchor || DEF_ANCHOR).add(vec2(1, 1)).scale(0.5)
-			const offset = anchor.scale(repX * w, repY * h)
-
-			// TODO: rotation
-			for (let i = 0; i < repX; i++) {
-				for (let j = 0; j < repY; j++) {
-					drawUVQuad({
-						...opt,
-						pos: (opt.pos || vec2(0)).add(vec2(w * i, h * j)).sub(offset),
-						scale: scale.scale(opt.scale || vec2(1)),
-						tex: opt.tex,
-						quad: q,
-						width: w,
-						height: h,
-						anchor: "topleft",
-					})
-				}
-			}
-		} else {
-
-			// TODO: should this ignore scale?
-			if (opt.width && opt.height) {
-				scale.x = opt.width / w
-				scale.y = opt.height / h
-			} else if (opt.width) {
-				scale.x = opt.width / w
-				scale.y = scale.x
-			} else if (opt.height) {
-				scale.y = opt.height / h
-				scale.x = scale.y
-			}
-
-			drawUVQuad({
-				...opt,
-				scale: scale.scale(opt.scale || vec2(1)),
-				tex: opt.tex,
-				quad: q,
-				width: w,
-				height: h,
-			})
-
-		}
-
-	}
-
-	function drawSprite(opt: DrawSpriteOpt) {
-
-		if (!opt.sprite) {
-			throw new Error("drawSprite() requires property \"sprite\"")
-		}
-
-		const spr = resolveSprite(opt.sprite)
-
-		if (!spr || !spr.data) {
-			return
-		}
-
-		const q = spr.data.frames[opt.frame ?? 0]
-
-		if (!q) {
-			throw new Error(`Frame not found: ${opt.frame ?? 0}`)
-		}
-
-		drawTexture({
-			...opt,
-			tex: spr.data.tex,
-			quad: q.scale(opt.quad || new Quad(0, 0, 1, 1)),
-		})
-
-	}
-
-	// generate vertices to form an arc
-	function getArcPts(
-		pos: Vec2,
-		radiusX: number,
-		radiusY: number,
-		start: number,
-		end: number,
-		res: number = 1,
-	): Vec2[] {
-
-		// normalize and turn start and end angles to radians
-		start = deg2rad(start % 360)
-		end = deg2rad(end % 360)
-		if (end <= start) end += Math.PI * 2
-
-		// TODO: better way to get this?
-		// the number of vertices is sqrt(r1 + r2) * 3 * res with a minimum of 16
-		const nverts = Math.ceil(Math.max(Math.sqrt(radiusX + radiusY) * 3 * (res || 1), 16))
-		const step = (end - start) / nverts
-		const pts = []
-
-		// calculate vertices
-		for (let a = start; a < end; a += step) {
-			pts.push(pos.add(radiusX * Math.cos(a), radiusY * Math.sin(a)))
-		}
-
-		// doing this on the side due to possible floating point inaccuracy
-		pts.push(pos.add(radiusX * Math.cos(end), radiusY * Math.sin(end)))
-
-		return pts
-
-	}
-
-	function drawRect(opt: DrawRectOpt) {
-
-		if (opt.width === undefined || opt.height === undefined) {
-			throw new Error("drawRect() requires property \"width\" and \"height\".")
-		}
-
-		if (opt.width <= 0 || opt.height <= 0) {
-			return
-		}
-
-		const w = opt.width
-		const h = opt.height
-		const anchor = anchorPt(opt.anchor || DEF_ANCHOR).add(1, 1)
-		const offset = anchor.scale(vec2(w, h).scale(-0.5))
-
-		let pts = [
-			vec2(0, 0),
-			vec2(w, 0),
-			vec2(w, h),
-			vec2(0, h),
-		]
-
-		// TODO: gradient for rounded rect
-		// TODO: drawPolygon should handle generic rounded corners
-		if (opt.radius) {
-
-			// maxium radius is half the shortest side
-			const r = Math.min(Math.min(w, h) / 2, opt.radius)
-
-			pts = [
-				vec2(r, 0),
-				vec2(w - r, 0),
-				...getArcPts(vec2(w - r, r), r, r, 270, 360),
-				vec2(w, r),
-				vec2(w, h - r),
-				...getArcPts(vec2(w - r, h - r), r, r, 0, 90),
-				vec2(w - r, h),
-				vec2(r, h),
-				...getArcPts(vec2(r, h - r), r, r, 90, 180),
-				vec2(0, h - r),
-				vec2(0, r),
-				...getArcPts(vec2(r, r), r, r, 180, 270),
-			]
-
-		}
-
-		drawPolygon({
-			...opt,
-			offset,
-			pts,
-			...(opt.gradient ? {
-				colors: opt.horizontal ? [
-					opt.gradient[0],
-					opt.gradient[1],
-					opt.gradient[1],
-					opt.gradient[0],
-				] : [
-					opt.gradient[0],
-					opt.gradient[0],
-					opt.gradient[1],
-					opt.gradient[1],
-				],
-			} : {}),
-		})
-
-	}
-
-	function drawLine(opt: DrawLineOpt) {
-
-		const { p1, p2 } = opt
-
-		if (!p1 || !p2) {
-			throw new Error("drawLine() requires properties \"p1\" and \"p2\".")
-		}
-
-		const w = opt.width || 1
-
-		// the displacement from the line end point to the corner point
-		const dis = p2.sub(p1).unit().normal().scale(w * 0.5)
-
-		// calculate the 4 corner points of the line polygon
-		const verts = [
-			p1.sub(dis),
-			p1.add(dis),
-			p2.add(dis),
-			p2.sub(dis),
-		].map((p) => ({
-			pos: vec3(p.x, p.y, 0),
-			uv: vec2(0),
-			color: opt.color ?? Color.WHITE,
-			opacity: opt.opacity ?? 1,
-		}))
-
-		drawRaw(verts, [0, 1, 3, 1, 2, 3], opt.fixed, gfx.defTex, opt.shader, opt.uniform)
-
-	}
-
-	function drawLines(opt: DrawLinesOpt) {
-
-		const pts = opt.pts
-
-		if (!pts) {
-			throw new Error("drawLines() requires property \"pts\".")
-		}
-
-		if (pts.length < 2) {
-			return
-		}
-
-		if (opt.radius && pts.length >= 3) {
-
-			// TODO: line joines
-			// TODO: rounded vertices for arbitury polygonic shape
-			let minLen = pts[0].dist(pts[1])
-
-			for (let i = 1; i < pts.length - 1; i++) {
-				minLen = Math.min(pts[i].dist(pts[i + 1]), minLen)
-			}
-
-			// eslint-disable-next-line
-			const radius = Math.min(opt.radius, minLen / 2)
-
-			drawLine({ ...opt, p1: pts[0], p2: pts[1] })
-
-			for (let i = 1; i < pts.length - 2; i++) {
-				const p1 = pts[i]
-				const p2 = pts[i + 1]
-				drawLine({
-					...opt,
-					p1: p1,
-					p2: p2,
-				})
-			}
-
-			drawLine({ ...opt, p1: pts[pts.length - 2], p2: pts[pts.length - 1] })
-
-		} else {
-
-			for (let i = 0; i < pts.length - 1; i++) {
-				drawLine({
-					...opt,
-					p1: pts[i],
-					p2: pts[i + 1],
-				})
-				// TODO: other line join types
-				if (opt.join !== "none") {
-					drawCircle({
-						...opt,
-						pos: pts[i],
-						radius: opt.width / 2,
-					})
-				}
-			}
-
-		}
-
-	}
-
-	function drawTriangle(opt: DrawTriangleOpt) {
-		if (!opt.p1 || !opt.p2 || !opt.p3) {
-			throw new Error("drawPolygon() requires properties \"p1\", \"p2\" and \"p3\".")
-		}
-		return drawPolygon({
-			...opt,
-			pts: [opt.p1, opt.p2, opt.p3],
-		})
-	}
-
-	// TODO: anchor
-	function drawCircle(opt: DrawCircleOpt) {
-
-		if (!opt.radius) {
-			throw new Error("drawCircle() requires property \"radius\".")
-		}
-
-		if (opt.radius === 0) {
-			return
-		}
-
-		drawEllipse({
-			...opt,
-			radiusX: opt.radius,
-			radiusY: opt.radius,
-			angle: 0,
-		})
-
-	}
-
-	function drawEllipse(opt: DrawEllipseOpt) {
-
-		if (opt.radiusX === undefined || opt.radiusY === undefined) {
-			throw new Error("drawEllipse() requires properties \"radiusX\" and \"radiusY\".")
-		}
-
-		if (opt.radiusX === 0 || opt.radiusY === 0) {
-			return
-		}
-
-		const start = opt.start ?? 0
-		const end = opt.end ?? 360
-
-		const pts = getArcPts(
-			vec2(0),
-			opt.radiusX,
-			opt.radiusY,
-			start,
-			end,
-			opt.resolution,
-		)
-
-		// center
-		pts.unshift(vec2(0))
-
-		const polyOpt = {
-			...opt,
-			pts,
-			radius: 0,
-			...(opt.gradient ? {
-				colors: [
-					opt.gradient[0],
-					...Array(pts.length - 1).fill(opt.gradient[1]),
-				],
-			} : {}),
-		}
-
-		// full circle with outline shouldn't have the center point
-		if (end - start >= 360 && opt.outline) {
-			if (opt.fill !== false) {
-				drawPolygon({
-					...polyOpt,
-					outline: null,
-				})
-			}
-			drawPolygon({
-				...polyOpt,
-				pts: pts.slice(1),
-				fill: false,
-			})
-			return
-		}
-
-		drawPolygon(polyOpt)
-
-	}
-
-	function drawPolygon(opt: DrawPolygonOpt) {
-
-		if (!opt.pts) {
-			throw new Error("drawPolygon() requires property \"pts\".")
-		}
-
-		const npts = opt.pts.length
-
-		if (npts < 3) {
-			return
-		}
-
-		pushTransform()
-		pushTranslate(opt.pos)
-		pushScale(opt.scale)
-		pushRotateZ(opt.angle)
-		pushTranslate(opt.offset)
-
-		if (opt.fill !== false) {
-
-			const color = opt.color ?? Color.WHITE
-
-			const verts = opt.pts.map((pt, i) => ({
-				pos: vec3(pt.x, pt.y, 0),
-				uv: vec2(0, 0),
-				color: opt.colors ? (opt.colors[i] ?? color) : color,
-				opacity: opt.opacity ?? 1,
-			}))
-
-			// TODO: better triangulation
-			const indices = [...Array(npts - 2).keys()]
-				.map((n) => [0, n + 1, n + 2])
-				.flat()
-
-			drawRaw(verts, opt.indices ?? indices, opt.fixed, gfx.defTex, opt.shader, opt.uniform)
-
-		}
-
-		if (opt.outline) {
-			drawLines({
-				pts: [ ...opt.pts, opt.pts[0] ],
-				radius: opt.radius,
-				width: opt.outline.width,
-				color: opt.outline.color,
-				join: opt.outline.join,
-				uniform: opt.uniform,
-				fixed: opt.fixed,
-				opacity: opt.opacity,
-			})
-		}
-
-		popTransform()
-
-	}
-
-	function drawStenciled(content: () => void, mask: () => void, test: number) {
-
-		flush()
-		gl.clear(gl.STENCIL_BUFFER_BIT)
-		gl.enable(gl.STENCIL_TEST)
-
-		// don't perform test, pure write
-		gl.stencilFunc(
-			gl.NEVER,
-			1,
-			0xFF,
-		)
-
-		// always replace since we're writing to the buffer
-		gl.stencilOp(
-			gl.REPLACE,
-			gl.REPLACE,
-			gl.REPLACE,
-		)
-
-		mask()
-		flush()
-
-		// perform test
-		gl.stencilFunc(
-			test,
-			1,
-			0xFF,
-		)
-
-		// don't write since we're only testing
-		gl.stencilOp(
-			gl.KEEP,
-			gl.KEEP,
-			gl.KEEP,
-		)
-
-		content()
-		flush()
-		gl.disable(gl.STENCIL_TEST)
-
-	}
-
-	function drawMasked(content: () => void, mask: () => void) {
-		drawStenciled(content, mask, gl.EQUAL)
-	}
-
-	function drawSubtracted(content: () => void, mask: () => void) {
-		drawStenciled(content, mask, gl.NOTEQUAL)
-	}
-
 	function getViewportScale() {
 		return (gfx.viewport.width + gfx.viewport.height) / (gfx.width + gfx.height)
-	}
-
-	function drawUnscaled(content: () => void) {
-		flush()
-		const ow = gfx.width
-		const oh = gfx.height
-		gfx.width = gfx.viewport.width
-		gfx.height = gfx.viewport.height
-		content()
-		flush()
-		gfx.width = ow
-		gfx.height = oh
-	}
-
-	function applyCharTransform(fchar: FormattedChar, tr: CharTransform) {
-		if (tr.pos) fchar.pos = fchar.pos.add(tr.pos)
-		if (tr.scale) fchar.scale = fchar.scale.scale(vec2(tr.scale))
-		if (tr.angle) fchar.angle += tr.angle
-		if (tr.color) fchar.color = fchar.color.mult(tr.color)
-		if (tr.opacity) fchar.opacity *= tr.opacity
-	}
-
-	// TODO: escape
-	// eslint-disable-next-line
-	const TEXT_STYLE_RE = /\[(?<text>[^\]]*)\]\.(?<style>[\w\.]+)+/g
-
-	function compileStyledText(text: string): {
-		charStyleMap: Record<number, {
-			localIdx: number,
-			styles: string[],
-		}>,
-		text: string,
-	} {
-
-		const charStyleMap = {}
-		// get the text without the styling syntax
-		const renderText = text.replace(TEXT_STYLE_RE, "$1")
-		let idxOffset = 0
-
-		// put each styled char index into a map for easy access when iterating each char
-		for (const match of text.matchAll(TEXT_STYLE_RE)) {
-			const styles = match.groups.style.split(".")
-			const origIdx = match.index - idxOffset
-			for (
-				let i = origIdx;
-				i < match.index + match.groups.text.length;
-				i++
-			) {
-				charStyleMap[i] = {
-					localIdx: i - origIdx,
-					styles: styles,
-				}
-			}
-			// omit "[", "]", "." and the style text in the format string when calculating index
-			idxOffset += 3 + match.groups.style.length
-		}
-
-		return {
-			charStyleMap: charStyleMap,
-			text: renderText,
-		}
-
-	}
-
-	type FontAtlas = {
-		font: BitmapFontData,
-		cursor: Vec2,
-	}
-
-	const fontAtlases: Record<string, FontAtlas> = {}
-
-	// TODO: cache formatted text
-	// format text and return a list of chars with their calculated position
-	function formatText(opt: DrawTextOpt): FormattedText {
-
-		if (opt.text === undefined) {
-			throw new Error("formatText() requires property \"text\".")
-		}
-
-		let font = resolveFont(opt.font)
-
-		// if it's still loading
-		if (opt.text === "" || font instanceof Asset || !font) {
-			return {
-				width: 0,
-				height: 0,
-				chars: [],
-				opt: opt,
-			}
-		}
-
-		const { charStyleMap, text } = compileStyledText(opt.text + "")
-		const chars = text.split("")
-
-		// if it's not bitmap font, we draw it with 2d canvas or use cached image
-		if (font instanceof FontFace || typeof font === "string") {
-
-			const fontName = font instanceof FontFace ? font.family : font
-
-			const atlas: FontAtlas = fontAtlases[fontName] ?? {
-				font: {
-					tex: new Texture(FONT_ATLAS_SIZE, FONT_ATLAS_SIZE, {
-						filter: "linear",
-					}),
-					map: {},
-					size: DEF_TEXT_CACHE_SIZE,
-				},
-				cursor: vec2(0),
-			}
-
-			if (!fontAtlases[fontName]) {
-				fontAtlases[fontName] = atlas
-			}
-
-			font = atlas.font
-
-			for (const ch of chars) {
-
-				if (!atlas.font.map[ch]) {
-
-					const c2d = app.canvas2.getContext("2d")
-					c2d.font = `${font.size}px ${fontName}`
-					c2d.clearRect(0, 0, app.canvas2.width, app.canvas2.height)
-					c2d.textBaseline = "top"
-					c2d.textAlign = "left"
-					c2d.fillStyle = "rgb(255, 255, 255)"
-					c2d.fillText(ch, 0, 0)
-					const m = c2d.measureText(ch)
-					const w = Math.ceil(m.width)
-					const img = c2d.getImageData(0, 0, w, font.size)
-
-					// if we are about to exceed the X axis of the texture, go to another line
-					if (atlas.cursor.x + w > FONT_ATLAS_SIZE) {
-						atlas.cursor.x = 0
-						atlas.cursor.y += font.size
-						if (atlas.cursor.y > FONT_ATLAS_SIZE) {
-							// TODO: create another tex
-							throw new Error("Font atlas exceeds character limit")
-						}
-					}
-
-					font.tex.update(atlas.cursor.x, atlas.cursor.y, img)
-					font.map[ch] = new Quad(atlas.cursor.x, atlas.cursor.y, w, font.size)
-					atlas.cursor.x += w
-
-				}
-
-			}
-
-		}
-
-		const size = opt.size || font.size
-		const scale = vec2(opt.scale ?? 1).scale(size / font.size)
-		const lineSpacing = opt.lineSpacing ?? 0
-		const letterSpacing = opt.letterSpacing ?? 0
-		let curX = 0
-		let tw = 0
-		let th = 0
-		const lines: Array<{
-			width: number,
-			chars: FormattedChar[],
-		}> = []
-		let curLine: FormattedChar[] = []
-		let cursor = 0
-		let lastSpace = null
-		let lastSpaceWidth = null
-
-		// TODO: word break
-		while (cursor < chars.length) {
-
-			let ch = chars[cursor]
-
-			// always new line on '\n'
-			if (ch === "\n") {
-
-				th += size + lineSpacing
-
-				lines.push({
-					width: curX - letterSpacing,
-					chars: curLine,
-				})
-
-				lastSpace = null
-				lastSpaceWidth = null
-				curX = 0
-				curLine = []
-
-			} else {
-
-				let q = font.map[ch]
-
-				// TODO: leave space if character not found?
-				if (q) {
-
-					let gw = q.w * scale.x
-
-					if (opt.width && curX + gw > opt.width) {
-						// new line on last word if width exceeds
-						th += size + lineSpacing
-						if (lastSpace != null) {
-							cursor -= curLine.length - lastSpace
-							ch = chars[cursor]
-							q = font.map[ch]
-							gw = q.w * scale.x
-							// omit trailing space
-							curLine = curLine.slice(0, lastSpace - 1)
-							curX = lastSpaceWidth
-						}
-						lastSpace = null
-						lastSpaceWidth = null
-						lines.push({
-							width: curX - letterSpacing,
-							chars: curLine,
-						})
-						curX = 0
-						curLine = []
-					}
-
-					// push char
-					curLine.push({
-						tex: font.tex,
-						width: q.w,
-						height: q.h,
-						// without some padding there'll be visual artifacts on edges
-						quad: new Quad(
-							q.x / font.tex.width,
-							q.y / font.tex.height,
-							q.w / font.tex.width,
-							q.h / font.tex.height,
-						),
-						ch: ch,
-						pos: vec2(curX, th),
-						opacity: opt.opacity ?? 1,
-						color: opt.color ?? Color.WHITE,
-						scale: vec2(scale),
-						angle: 0,
-					})
-
-					if (ch === " ") {
-						lastSpace = curLine.length
-						lastSpaceWidth = curX
-					}
-
-					curX += gw
-					tw = Math.max(tw, curX)
-					curX += letterSpacing
-
-				}
-
-			}
-
-			cursor++
-
-		}
-
-		lines.push({
-			width: curX - letterSpacing,
-			chars: curLine,
-		})
-
-		th += size
-
-		if (opt.width) {
-			tw = opt.width
-		}
-
-		const fchars: FormattedChar[] = []
-
-		for (const line of lines) {
-
-			const ox = (tw - line.width) * alignPt(opt.align ?? "left")
-
-			for (const fchar of line.chars) {
-
-				const q = font.map[fchar.ch]
-				const idx = fchars.length
-
-				const offset = new Vec2(
-					q.w * scale.x * 0.5,
-					q.h * scale.y * 0.5,
-				)
-
-				fchar.pos = fchar.pos.add(ox, 0).add(offset)
-
-				if (opt.transform) {
-					const tr = typeof opt.transform === "function"
-						? opt.transform(idx, fchar.ch)
-						: opt.transform
-					if (tr) {
-						applyCharTransform(fchar, tr)
-					}
-				}
-
-				if (charStyleMap[idx]) {
-					const { styles, localIdx } = charStyleMap[idx]
-					for (const name of styles) {
-						const style = opt.styles[name]
-						const tr = typeof style === "function"
-							? style(localIdx, fchar.ch)
-							: style
-						if (tr) {
-							applyCharTransform(fchar, tr)
-						}
-					}
-				}
-
-				fchars.push(fchar)
-
-			}
-
-		}
-
-		return {
-			width: tw,
-			height: th,
-			chars: fchars,
-			opt: opt,
-		}
-
-	}
-
-	function drawText(opt: DrawTextOpt) {
-		drawFormattedText(formatText(opt))
-	}
-
-	function drawFormattedText(ftext: FormattedText) {
-		pushTransform()
-		pushTranslate(ftext.opt.pos)
-		pushRotateZ(ftext.opt.angle)
-		pushTranslate(anchorPt(ftext.opt.anchor ?? "topleft").add(1, 1).scale(ftext.width, ftext.height).scale(-0.5))
-		ftext.chars.forEach((ch) => {
-			drawUVQuad({
-				tex: ch.tex,
-				width: ch.width,
-				height: ch.height,
-				pos: ch.pos,
-				scale: ch.scale,
-				angle: ch.angle,
-				color: ch.color,
-				opacity: ch.opacity,
-				quad: ch.quad,
-				anchor: "center",
-				uniform: ftext.opt.uniform,
-				shader: ftext.opt.shader,
-				fixed: ftext.opt.fixed,
-			})
-		})
-		popTransform()
 	}
 
 	// update viewport based on user setting and fullscreen state
@@ -2837,14 +1301,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		return vec2(
 			(pt.x - gfx.viewport.x) * width() / gfx.viewport.width,
 			(pt.y - gfx.viewport.y) * height() / gfx.viewport.height,
-		)
-	}
-
-	// transform a point from content space to view space
-	function contentToView(pt: Vec2) {
-		return vec2(
-			pt.x * gfx.viewport.width / gfx.width,
-			pt.y * gfx.viewport.height / gfx.height,
 		)
 	}
 
@@ -3264,24 +1720,28 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 			draw(this: GameObj<PosComp | ScaleComp | RotateComp>) {
 				if (this.hidden) return
-				pushTransform()
-				pushTranslate(this.pos)
-				pushScale(this.scale)
-				pushRotateZ(this.angle)
+				const DRAW = drawFunc(gopt, gfx, assets, game, app, debug, gl)
+
+				DRAW.pushTransform()
+				DRAW.pushTranslate(this.pos)
+				DRAW.pushScale(this.scale)
+				DRAW.pushRotateZ(this.angle)
 				this.trigger("draw")
 				this.get().forEach((child) => child.draw())
-				popTransform()
+				DRAW.popTransform()
 			},
 
 			drawInspect(this: GameObj<PosComp | ScaleComp | RotateComp>) {
 				if (this.hidden) return
-				pushTransform()
-				pushTranslate(this.pos)
-				pushScale(this.scale)
-				pushRotateZ(this.angle)
+				const DRAW = drawFunc(gopt, gfx, assets, game, app, debug, gl)
+
+				DRAW.pushTransform()
+				DRAW.pushTranslate(this.pos)
+				DRAW.pushScale(this.scale)
+				DRAW.pushRotateZ(this.angle)
 				this.get().forEach((child) => child.drawInspect())
 				this.trigger("drawInspect")
-				popTransform()
+				DRAW.popTransform()
 			},
 
 			// use a comp, or tag
@@ -3876,7 +2336,9 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			},
 
 			drawInspect() {
-				drawCircle({
+				const DRAW = drawFunc(gopt, gfx, assets, game, app, debug, gl)
+
+				DRAW.drawCircle({
 					color: rgb(255, 0, 0),
 					radius: 4 / getViewportScale(),
 				})
@@ -3981,7 +2443,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	function follow(obj: GameObj, offset?: Vec2): FollowComp {
 		return {
 			id: "follow",
-			require: [ "pos" ],
+			require: ["pos"],
 			follow: {
 				obj: obj,
 				offset: offset ?? vec2(0),
@@ -4003,7 +2465,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		const d = typeof dir === "number" ? Vec2.fromAngle(dir) : dir.unit()
 		return {
 			id: "move",
-			require: [ "pos" ],
+			require: ["pos"],
 			update(this: GameObj<PosComp>) {
 				this.move(d.scale(speed))
 			},
@@ -4017,7 +2479,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		let isOut = false
 		return {
 			id: "offscreen",
-			require: [ "pos" ],
+			require: ["pos"],
 			isOffScreen(this: GameObj<PosComp>): boolean {
 				const pos = toScreen(this.pos)
 				const screenRect = new Rect(vec2(0), width(), height())
@@ -4090,12 +2552,13 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			},
 
 			drawInspect(this: GameObj<AreaComp | AnchorComp | FixedComp>) {
+				const DRAW = drawFunc(gopt, gfx, assets, game, app, debug, gl)
 
 				const a = this.localArea()
 
-				pushTransform()
-				pushScale(this.area.scale)
-				pushTranslate(this.area.offset)
+				DRAW.pushTransform()
+				DRAW.pushScale(this.area.scale)
+				DRAW.pushTranslate(this.area.offset)
 
 				const opts = {
 					outline: {
@@ -4108,26 +2571,26 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				}
 
 				if (a instanceof Rect) {
-					drawRect({
+					DRAW.drawRect({
 						...opts,
 						pos: a.pos,
 						width: a.width,
 						height: a.height,
 					})
 				} else if (a instanceof Polygon) {
-					drawPolygon({
+					DRAW.drawPolygon({
 						...opts,
 						pts: a.pts,
 					})
 				} else if (a instanceof Circle) {
-					drawCircle({
+					DRAW.drawCircle({
 						...opts,
 						pos: a.center,
 						radius: a.radius,
 					})
 				}
 
-				popTransform()
+				DRAW.popTransform()
 
 			},
 
@@ -4156,7 +2619,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 					return null
 				}
 				// if (this.colliding[other.id]) {
-					// return this.colliding[other.id]
+				// return this.colliding[other.id]
 				// }
 				const a1 = this.worldArea()
 				const a2 = other.worldArea()
@@ -4334,7 +2797,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 	// TODO: clean
 	function sprite(
-		src: string | SpriteData | Asset<SpriteData>,
+		src: string | SpriteData | AssetData<SpriteData>,
 		opt: SpriteCompOpt = {},
 	): SpriteComp {
 
@@ -4372,7 +2835,9 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 			draw(this: GameObj<SpriteComp>) {
 				if (!spriteData) return
-				drawSprite({
+				const DRAW = drawFunc(gopt, gfx, assets, game, app, debug, gl)
+
+				DRAW.drawSprite({
 					...getRenderProps(this),
 					sprite: spriteData,
 					frame: this.frame,
@@ -4389,7 +2854,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 				if (!spriteData) {
 
-					const spr = resolveSprite(src)
+					const spr = resolveSprite(assets, src)
 
 					if (!spr || !spr.data) {
 						return
@@ -4488,7 +2953,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 						loop: false,
 						pingpong: false,
 						speed: 0,
-						onEnd: () => {},
+						onEnd: () => { },
 					}
 					: {
 						name: name,
@@ -4496,7 +2961,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 						loop: opt.loop ?? anim.loop ?? false,
 						pingpong: opt.pingpong ?? anim.pingpong ?? false,
 						speed: opt.speed ?? anim.speed ?? 10,
-						onEnd: opt.onEnd ?? (() => {}),
+						onEnd: opt.onEnd ?? (() => { }),
 					}
 
 				this.frame = typeof anim === "number"
@@ -4576,8 +3041,9 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	function text(t: string, opt: TextCompOpt = {}): TextComp {
 
 		function update(obj: GameObj<TextComp | any>) {
+			const newText = textFunc(gopt, assets, gl, gc, app)
 
-			const ftext = formatText({
+			const ftext = newText.formatText({
 				...getRenderProps(obj),
 				text: obj.text + "",
 				size: obj.textSize,
@@ -4619,7 +3085,9 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			},
 
 			draw(this: GameObj<TextComp>) {
-				drawFormattedText(update(this))
+				const DRAW = drawFunc(gopt, gfx, assets, game, app, debug, gl)
+
+				DRAW.drawFormattedText(update(this))
 			},
 
 			renderArea() {
@@ -4637,7 +3105,9 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			height: h,
 			radius: opt.radius || 0,
 			draw(this: GameObj<RectComp>) {
-				drawRect({
+				const DRAW = drawFunc(gopt, gfx, assets, game, app, debug, gl)
+
+				DRAW.drawRect({
 					...getRenderProps(this),
 					width: this.width,
 					height: this.height,
@@ -4659,7 +3129,9 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			width: w,
 			height: h,
 			draw(this: GameObj<UVQuadComp>) {
-				drawUVQuad({
+				const DRAW = drawFunc(gopt, gfx, assets, game, app, debug, gl)
+
+				DRAW.drawUVQuad({
 					...getRenderProps(this),
 					width: this.width,
 					height: this.height,
@@ -4679,7 +3151,9 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			id: "circle",
 			radius: radius,
 			draw(this: GameObj<CircleComp>) {
-				drawCircle({
+				const DRAW = drawFunc(gopt, gfx, assets, game, app, debug, gl)
+
+				DRAW.drawCircle({
 					...getRenderProps(this),
 					radius: this.radius,
 				})
@@ -4741,6 +3215,14 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		}
 	}
 
+	function inputFrame() {
+		// TODO: pass original browser event in input handlers
+		game.ev.trigger("input")
+		app.keyState.down.forEach((k) => game.ev.trigger("keyDown", k))
+		app.mouseState.down.forEach((k) => game.ev.trigger("mouseDown", k))
+		app.virtualButtonState.down.forEach((k) => game.ev.trigger("virtualButtonDown", k))
+	}
+	
 	// maximum y velocity with body()
 	const DEF_JUMP_FORCE = 640
 	const MAX_VEL = 65536
@@ -4757,7 +3239,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		return {
 
 			id: "body",
-			require: [ "pos", "area" ],
+			require: ["pos", "area"],
 			jumpForce: opt.jumpForce ?? DEF_JUMP_FORCE,
 			gravityScale: opt.gravityScale ?? 1,
 			isStatic: opt.isStatic ?? false,
@@ -4929,7 +3411,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		const events = []
 		return {
 			id: "doubleJump",
-			require: [ "body" ],
+			require: ["body"],
 			numJumps: numJumps,
 			add(this: GameObj<BodyComp | DoubleJumpComp>) {
 				events.push(this.onGround(() => {
@@ -5133,7 +3615,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			},
 
 			update() {
-			// execute the enter event for initState
+				// execute the enter event for initState
 				if (!didFirstEnter) {
 					trigger("enter", initState)
 					didFirstEnter = true
@@ -5157,7 +3639,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		let t = 0
 		let done = false
 		return {
-			require: [ "opacity" ],
+			require: ["opacity"],
 			add(this: GameObj<OpacityComp>) {
 				this.opacity = 0
 			},
@@ -5490,7 +3972,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		let time = 0
 		return {
 			id: "boom",
-			require: [ "scale" ],
+			require: ["scale"],
 			update(this: GameObj<ScaleComp>) {
 				const s = Math.sin(time * speed) * size
 				if (s < 0) {
@@ -5537,14 +4019,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 	}
 
-	function inputFrame() {
-		// TODO: pass original browser event in input handlers
-		game.ev.trigger("input")
-		app.keyState.down.forEach((k) => game.ev.trigger("keyDown", k))
-		app.mouseState.down.forEach((k) => game.ev.trigger("mouseDown", k))
-		app.virtualButtonState.down.forEach((k) => game.ev.trigger("virtualButtonDown", k))
-	}
-
 	function updateFrame() {
 
 		// update every obj
@@ -5553,42 +4027,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	}
 
 	const DEF_HASH_GRID_SIZE = 64
-
-	class Collision {
-		source: GameObj
-		target: GameObj
-		displacement: Vec2
-		resolved: boolean = false
-		constructor(source: GameObj, target: GameObj, dis: Vec2, resolved = false) {
-			this.source = source
-			this.target = target
-			this.displacement = dis
-			this.resolved = resolved
-		}
-		reverse() {
-			return new Collision(
-				this.target,
-				this.source,
-				this.displacement.scale(-1),
-				this.resolved,
-			)
-		}
-		isLeft() {
-			return this.displacement.x > 0
-		}
-		isRight() {
-			return this.displacement.x < 0
-		}
-		isTop() {
-			return this.displacement.y > 0
-		}
-		isBottom() {
-			return this.displacement.y < 0
-		}
-		preventResolve() {
-			this.resolved = true
-		}
-	}
 
 	function checkFrame() {
 
@@ -5632,10 +4070,10 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				// insert & check against all covered grids
 				for (let x = xmin; x <= xmax; x++) {
 					for (let y = ymin; y <= ymax; y++) {
-						if(!grid[x]) {
+						if (!grid[x]) {
 							grid[x] = {}
 							grid[x][y] = [aobj]
-						} else if(!grid[x][y]) {
+						} else if (!grid[x][y]) {
 							grid[x][y] = [aobj]
 						} else {
 							const cell = grid[x][y]
@@ -5685,418 +4123,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 	}
 
-	function drawFrame() {
-
-		// calculate camera matrix
-		const cam = game.cam
-		const shake = Vec2.fromAngle(rand(0, 360)).scale(cam.shake)
-
-		cam.shake = lerp(cam.shake, 0, 5 * dt())
-		cam.transform = new Mat4()
-			.translate(center())
-			.scale(cam.scale)
-			.rotateZ(cam.angle)
-			.translate((cam.pos ?? center()).scale(-1).add(shake))
-
-		game.root.draw()
-		flush()
-
-	}
-
-	function drawLoadScreen() {
-
-		const progress = loadProgress()
-
-		drawUnscaled(() => {
-
-			const w = width() / 2
-			const h = 24
-			const pos = vec2(width() / 2, height() / 2).sub(vec2(w / 2, h / 2))
-
-			drawRect({
-				pos: vec2(0),
-				width: width(),
-				height: height(),
-				color: rgb(0, 0, 0),
-			})
-
-			drawRect({
-				pos: pos,
-				width: w,
-				height: h,
-				fill: false,
-				outline: {
-					width: 4,
-				},
-			})
-
-			drawRect({
-				pos: pos,
-				width: w * progress,
-				height: h,
-			})
-
-		})
-
-		game.ev.trigger("loading", progress)
-
-	}
-
-	function drawInspectText(pos, txt) {
-
-		drawUnscaled(() => {
-
-			const pad = vec2(8)
-
-			pushTransform()
-			pushTranslate(pos)
-
-			const ftxt = formatText({
-				text: txt,
-				font: DBG_FONT,
-				size: 16,
-				pos: pad,
-				color: rgb(255, 255, 255),
-				fixed: true,
-			})
-
-			const bw = ftxt.width + pad.x * 2
-			const bh = ftxt.height + pad.x * 2
-
-			if (pos.x + bw >= width()) {
-				pushTranslate(vec2(-bw, 0))
-			}
-
-			if (pos.y + bh >= height()) {
-				pushTranslate(vec2(0, -bh))
-			}
-
-			drawRect({
-				width: bw,
-				height: bh,
-				color: rgb(0, 0, 0),
-				radius: 4,
-				opacity: 0.8,
-				fixed: true,
-			})
-
-			drawFormattedText(ftxt)
-			popTransform()
-
-		})
-
-	}
-
-	function drawDebug() {
-
-		if (debug.inspect) {
-
-			let inspecting = null
-
-			for (const obj of getAll()) {
-				if (obj.c("area") && obj.isHovering()) {
-					inspecting = obj
-					break
-				}
-			}
-
-			game.root.drawInspect()
-
-			if (inspecting) {
-
-				const lines = []
-				const data = inspecting.inspect()
-
-				for (const tag in data) {
-					if (data[tag]) {
-						lines.push(`${tag}: ${data[tag]}`)
-					} else {
-						lines.push(`${tag}`)
-					}
-				}
-
-				drawInspectText(contentToView(mousePos()), lines.join("\n"))
-
-			}
-
-			drawInspectText(vec2(8), `FPS: ${debug.fps()}`)
-
-		}
-
-		if (debug.paused) {
-
-			drawUnscaled(() => {
-
-				// top right corner
-				pushTransform()
-				pushTranslate(width(), 0)
-				pushTranslate(-8, 8)
-
-				const size = 32
-
-				// bg
-				drawRect({
-					width: size,
-					height: size,
-					anchor: "topright",
-					color: rgb(0, 0, 0),
-					opacity: 0.8,
-					radius: 4,
-					fixed: true,
-				})
-
-				// pause icon
-				for (let i = 1; i <= 2; i++) {
-					drawRect({
-						width: 4,
-						height: size * 0.6,
-						anchor: "center",
-						pos: vec2(-size / 3 * i, size * 0.5),
-						color: rgb(255, 255, 255),
-						radius: 2,
-						fixed: true,
-					})
-				}
-
-				popTransform()
-
-			})
-
-		}
-
-		if (debug.timeScale !== 1) {
-
-			drawUnscaled(() => {
-
-				// bottom right corner
-				pushTransform()
-				pushTranslate(width(), height())
-				pushTranslate(-8, -8)
-
-				const pad = 8
-
-				// format text first to get text size
-				const ftxt = formatText({
-					text: debug.timeScale.toFixed(1),
-					font: DBG_FONT,
-					size: 16,
-					color: rgb(255, 255, 255),
-					pos: vec2(-pad),
-					anchor: "botright",
-					fixed: true,
-				})
-
-				// bg
-				drawRect({
-					width: ftxt.width + pad * 2 + pad * 4,
-					height: ftxt.height + pad * 2,
-					anchor: "botright",
-					color: rgb(0, 0, 0),
-					opacity: 0.8,
-					radius: 4,
-					fixed: true,
-				})
-
-				// fast forward / slow down icon
-				for (let i = 0; i < 2; i++) {
-					const flipped = debug.timeScale < 1
-					drawTriangle({
-						p1: vec2(-ftxt.width - pad * (flipped ? 2 : 3.5), -pad),
-						p2: vec2(-ftxt.width - pad * (flipped ? 2 : 3.5), -pad - ftxt.height),
-						p3: vec2(-ftxt.width - pad * (flipped ? 3.5 : 2), -pad - ftxt.height / 2),
-						pos: vec2(-i * pad * 1 + (flipped ? -pad * 0.5 : 0), 0),
-						color: rgb(255, 255, 255),
-						fixed: true,
-					})
-				}
-
-				// text
-				drawFormattedText(ftxt)
-
-				popTransform()
-
-			})
-
-		}
-
-		if (debug.curRecording) {
-
-			drawUnscaled(() => {
-
-				pushTransform()
-				pushTranslate(0, height())
-				pushTranslate(24, -24)
-
-				drawCircle({
-					radius: 12,
-					color: rgb(255, 0, 0),
-					opacity: wave(0, 1, time() * 4),
-					fixed: true,
-				})
-
-				popTransform()
-
-			})
-
-		}
-
-		if (debug.showLog && game.logs.length > 0) {
-
-			drawUnscaled(() => {
-
-				pushTransform()
-				pushTranslate(0, height())
-				pushTranslate(8, -8)
-
-				const pad = 8
-
-				const ftext = formatText({
-					text: game.logs.join("\n"),
-					font: DBG_FONT,
-					pos: vec2(pad, -pad),
-					anchor: "botleft",
-					size: 16,
-					width: width() * 0.6,
-					lineSpacing: pad / 2,
-					fixed: true,
-					styles: {
-						"time": { color: rgb(127, 127, 127) },
-						"info": { color: rgb(255, 255, 255) },
-						"error": { color: rgb(255, 0, 127) },
-					},
-				})
-
-				drawRect({
-					width: ftext.width + pad * 2,
-					height: ftext.height + pad * 2,
-					anchor: "botleft",
-					color: rgb(0, 0, 0),
-					radius: 4,
-					opacity: 0.8,
-					fixed: true,
-				})
-
-				drawFormattedText(ftext)
-				popTransform()
-
-			})
-
-		}
-
-	}
-
-	function drawVirtualControls() {
-
-		// TODO: mousePos incorrect in "stretch" mode
-		const mpos = mousePos()
-
-		const drawCircleButton = (pos: Vec2, btn: VirtualButton, text?: string) => {
-
-			const size = 80
-
-			drawCircle({
-				radius: size / 2,
-				pos: pos,
-				outline: { width: 4, color: rgb(0, 0, 0) },
-				opacity: 0.5,
-			})
-
-			if (text) {
-				drawText({
-					text: text,
-					pos: pos,
-					color: rgb(0, 0, 0),
-					size: 40,
-					anchor: "center",
-					opacity: 0.5,
-				})
-			}
-
-			// TODO: touch
-			if (isMousePressed("left")) {
-				if (testCirclePoint(new Circle(pos, size / 2), mpos)) {
-					game.ev.onOnce("input", () => {
-						// TODO: caller specify another value as connected key?
-						app.virtualButtonState.press(btn)
-						game.ev.trigger("virtualButtonPress", btn)
-						app.keyState.press(btn)
-						game.ev.trigger("keyPress", btn)
-					})
-				}
-			}
-
-			if (isMouseReleased("left")) {
-				game.ev.onOnce("input", () => {
-					app.virtualButtonState.release(btn)
-					game.ev.trigger("virtualButtonRelease", btn)
-					app.keyState.release(btn)
-					game.ev.trigger("keyRelease", btn)
-				})
-			}
-
-		}
-
-		const drawSquareButton = (pos: Vec2, btn: VirtualButton, text?: string) => {
-
-			// TODO: mousePos incorrect in "stretch" mode
-			const size = 64
-
-			drawRect({
-				width: size,
-				height: size,
-				pos: pos,
-				outline: { width: 4, color: rgb(0, 0, 0) },
-				radius: 4,
-				anchor: "center",
-				opacity: 0.5,
-			})
-
-			if (text) {
-				drawText({
-					text: text,
-					pos: pos,
-					color: rgb(0, 0, 0),
-					size: 40,
-					anchor: "center",
-					opacity: 0.5,
-				})
-			}
-
-			// TODO: touch
-			if (isMousePressed("left")) {
-				if (testRectPoint(new Rect(pos.add(-size / 2, -size / 2), size, size), mpos)) {
-					game.ev.onOnce("input", () => {
-						// TODO: caller specify another value as connected key?
-						app.virtualButtonState.press(btn)
-						game.ev.trigger("virtualButtonPress", btn)
-						app.keyState.press(btn)
-						game.ev.trigger("keyPress", btn)
-					})
-				}
-			}
-
-			if (isMouseReleased("left")) {
-				game.ev.onOnce("input", () => {
-					app.virtualButtonState.release(btn)
-					game.ev.trigger("virtualButtonRelease", btn)
-					app.keyState.release(btn)
-					game.ev.trigger("keyRelease", btn)
-				})
-			}
-
-		}
-
-		drawUnscaled(() => {
-			drawCircleButton(vec2(width() - 80, height() - 160), "a")
-			drawCircleButton(vec2(width() - 160, height() - 80), "b")
-			drawSquareButton(vec2(60, height() - 124), "left")
-			drawSquareButton(vec2(188, height() - 124), "right")
-			drawSquareButton(vec2(124, height() - 188), "up")
-			drawSquareButton(vec2(124, height() - 60), "down")
-		})
-
-	}
-
 	if (gopt.debug !== false) {
 		enterDebugMode()
 	}
@@ -6126,8 +4152,10 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 		// TODO: this should only run once
 		run(() => {
+			const DRAW = drawFunc(gopt, gfx, assets, game, app, debug, gl)
+			const newText = textFunc(gopt, assets, gl, gc, app)
 
-			drawUnscaled(() => {
+			DRAW.drawUnscaled(() => {
 
 				const pad = 32
 				const gap = 16
@@ -6143,14 +4171,14 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 					fixed: true,
 				}
 
-				drawRect({
+				DRAW.drawRect({
 					width: gw,
 					height: gh,
 					color: rgb(0, 0, 255),
 					fixed: true,
 				})
 
-				const title = formatText({
+				const title = newText.formatText({
 					...textStyle,
 					text: err.name,
 					pos: vec2(pad),
@@ -6158,16 +4186,16 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 					fixed: true,
 				})
 
-				drawFormattedText(title)
+				DRAW.drawFormattedText(title)
 
-				drawText({
+				DRAW.drawText({
 					...textStyle,
 					text: err.message,
 					pos: vec2(pad, pad + title.height + gap),
 					fixed: true,
 				})
 
-				popTransform()
+				DRAW.popTransform()
 				game.ev.trigger("error", err)
 
 			})
@@ -6329,9 +4357,10 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 	// main game loop
 	run(() => {
+		const DRAW = drawFunc(gopt, gfx, assets, game, app, debug, gl)
 
 		if (!assets.loaded) {
-			if (loadProgress() === 1) {
+			if (loadProgress(assets) === 1) {
 				assets.loaded = true
 				game.ev.trigger("load")
 			}
@@ -6340,26 +4369,28 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		if (!assets.loaded && gopt.loadingScreen !== false) {
 
 			// TODO: Currently if assets are not initially loaded no updates or timers will be run, however they will run if loadingScreen is set to false. What's the desired behavior or should we make them consistent?
-			drawLoadScreen()
+			DRAW.drawLoadScreen()
 
 		} else {
 
 			inputFrame()
 			if (!debug.paused) updateFrame()
 			checkFrame()
-			drawFrame()
+			DRAW.drawFrame()
+
 
 			if (gopt.debug !== false) {
-				drawDebug()
+				DRAW.drawDebug(getAll, mousePos, time)
 			}
 
 			if (gopt.virtualControls && isTouchScreen()) {
-				drawVirtualControls()
+				DRAW.drawVirtualControls(mousePos, isMousePressed, isMouseReleased, testCirclePoint, Circle, testRectPoint)
 			}
-
 		}
-
 	})
+
+	const drawCtx: DrawCtx = drawFunc(gopt, gfx, assets, game, app, debug, gl)
+	const textCtx: TextCtx = textFunc(gopt, assets, gl, gc, app)
 
 	// the exported ctx handle
 	const ctx: KaboomCtx = {
@@ -6382,7 +4413,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		getFont,
 		getBitmapFont,
 		getShader,
-		Asset,
+		AssetData,
 		SpriteData,
 		SoundData,
 		// query
@@ -6527,28 +4558,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		testRectLine,
 		testRectPoint,
 		// raw draw
-		drawSprite,
-		drawText,
-		formatText,
-		drawRect,
-		drawLine,
-		drawLines,
-		drawTriangle,
-		drawCircle,
-		drawEllipse,
-		drawUVQuad,
-		drawPolygon,
-		drawFormattedText,
-		drawMasked,
-		drawSubtracted,
-		pushTransform,
-		popTransform,
-		pushTranslate,
-		pushScale,
-		pushRotate,
-		pushRotateX,
-		pushRotateY,
-		pushRotateZ,
+		...drawCtx,
 		pushMatrix,
 		// debug
 		debug,
@@ -6590,6 +4600,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		// helpers
 		Event,
 		EventHandler,
+		...textCtx,
 	}
 
 	if (gopt.plugins) {
