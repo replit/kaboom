@@ -3775,12 +3775,11 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	}
 
 	function onVirtualButtonPress(btn: VirtualButton, action: () => void): EventController {
-		// TODO: move off on("input")
-		return game.ev.on("input", () => isVirtualButtonPressed(btn) && action())
+		return game.ev.on("virtualButtonPress", (b) => b === btn && action())
 	}
 
 	function onVirtualButtonRelease(btn: VirtualButton, action: () => void): EventController {
-		return game.ev.on("input", () => isVirtualButtonReleased(btn) && action())
+		return game.ev.on("virtualButtonRelease", (b) => b === btn && action())
 	}
 
 	function enterDebugMode() {
@@ -6016,18 +6015,22 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			// TODO: touch
 			if (isMousePressed("left")) {
 				if (testCirclePoint(new Circle(pos, size / 2), mpos)) {
-					game.ev.onOnce("frameEnd", () => {
-						app.virtualButtonState.press(btn)
+					game.ev.onOnce("input", () => {
 						// TODO: caller specify another value as connected key?
+						app.virtualButtonState.press(btn)
+						game.ev.trigger("virtualButtonPress", btn)
 						app.keyState.press(btn)
+						game.ev.trigger("keyPress", btn)
 					})
 				}
 			}
 
 			if (isMouseReleased("left")) {
-				game.ev.onOnce("frameEnd", () => {
+				game.ev.onOnce("input", () => {
 					app.virtualButtonState.release(btn)
+					game.ev.trigger("virtualButtonRelease", btn)
 					app.keyState.release(btn)
+					game.ev.trigger("keyRelease", btn)
 				})
 			}
 
@@ -6062,17 +6065,22 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			// TODO: touch
 			if (isMousePressed("left")) {
 				if (testRectPoint(new Rect(pos.add(-size / 2, -size / 2), size, size), mpos)) {
-					game.ev.onOnce("frameEnd", () => {
+					game.ev.onOnce("input", () => {
+						// TODO: caller specify another value as connected key?
 						app.virtualButtonState.press(btn)
+						game.ev.trigger("virtualButtonPress", btn)
 						app.keyState.press(btn)
+						game.ev.trigger("keyPress", btn)
 					})
 				}
 			}
 
 			if (isMouseReleased("left")) {
-				game.ev.onOnce("frameEnd", () => {
+				game.ev.onOnce("input", () => {
 					app.virtualButtonState.release(btn)
+					game.ev.trigger("virtualButtonRelease", btn)
 					app.keyState.release(btn)
+					game.ev.trigger("keyRelease", btn)
 				})
 			}
 
