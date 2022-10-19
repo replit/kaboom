@@ -475,11 +475,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			virtualButtonState: new ButtonState<VirtualButton>(),
 
 			// input states from last frame, should reset every frame
-			bufferedEvents: {
-				key: [] as KeyboardEvent[],
-				mouse: [] as MouseEvent[],
-				touch: [] as TouchEvent[],
-			},
 			charInputted: [],
 			isMouseMoved: false,
 			mouseStarted: false,
@@ -2864,28 +2859,134 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		app.isMouseMoved = true
 	}
 
-	canvasEvents.mousemove = (e) => app.bufferedEvents.mouse.push(e)
-	canvasEvents.mousedown = (e) => app.bufferedEvents.mouse.push(e)
-	canvasEvents.mouseup = (e) => app.bufferedEvents.mouse.push(e)
+	canvasEvents.mousemove = (e) => {
+		game.ev.onOnce("input", () => {
+			setMousePos(e.offsetX, e.offsetY)
+			game.ev.trigger("mouseMove")
+		})
+	}
+
+	canvasEvents.mousedown = (e) => {
+		game.ev.onOnce("input", () => {
+			const m = MOUSE_BUTTONS[e.button]
+			if (m) app.mouseState.press(m)
+			game.ev.trigger("mousePress", m)
+		})
+	}
+
+	canvasEvents.mouseup = (e) => {
+		game.ev.onOnce("input", () => {
+			const m = MOUSE_BUTTONS[e.button]
+			if (m) app.mouseState.release(m)
+			game.ev.trigger("mouseRelease", m)
+		})
+	}
+
 	canvasEvents.keydown = (e) => {
 		if (PREVENT_DEFAULT_KEYS.has(e.key)) {
 			e.preventDefault()
 		}
-		app.bufferedEvents.key.push(e)
+		game.ev.onOnce("input", () => {
+			const k = KEY_ALIAS[e.key] || e.key.toLowerCase()
+			if (k.length === 1) {
+				game.ev.trigger("charInput", k)
+				app.charInputted.push(k)
+			} else if (k === "space") {
+				game.ev.trigger("charInput", " ")
+				app.charInputted.push(" ")
+			}
+			if (e.repeat) {
+				app.keyState.pressRepeat(k)
+				game.ev.trigger("keyPressRepeat", k)
+			} else {
+				app.keyState.press(k)
+				game.ev.trigger("keyPressRepeat", k)
+				game.ev.trigger("keyPress", k)
+			}
+		})
 	}
-	canvasEvents.keyup = (e) => app.bufferedEvents.key.push(e)
+
+	canvasEvents.keyup = (e) => {
+		game.ev.onOnce("input", () => {
+			const k = KEY_ALIAS[e.key] || e.key.toLowerCase()
+			app.keyState.release(k)
+			game.ev.trigger("keyRelease", k)
+		})
+	}
+
 	canvasEvents.touchstart = (e) => {
 		// disable long tap context menu
 		e.preventDefault()
-		app.bufferedEvents.touch.push(e)
+		game.ev.onOnce("input", () => {
+			const touches = [...e.changedTouches]
+			touches.forEach((t) => {
+				game.ev.trigger(
+					"onTouchStart",
+					windowToContent(vec2(t.clientX, t.clientY)),
+					t,
+				)
+			})
+			if (gopt.touchToMouse !== false) {
+				setMousePos(touches[0].clientX, touches[0].clientY)
+				app.mouseState.press("left")
+				game.ev.trigger("mousePress", "left")
+			}
+		})
 	}
+
 	canvasEvents.touchmove = (e) => {
 		// disable scrolling
 		e.preventDefault()
-		app.bufferedEvents.touch.push(e)
+		game.ev.onOnce("input", () => {
+			const touches = [...e.changedTouches]
+			touches.forEach((t) => {
+				game.ev.trigger(
+					"onTouchMove",
+					windowToContent(vec2(t.clientX, t.clientY)),
+					t,
+				)
+			})
+			if (gopt.touchToMouse !== false) {
+				game.ev.trigger("mouseMove", "left")
+				setMousePos(touches[0].clientX, touches[0].clientY)
+			}
+		})
 	}
-	canvasEvents.touchend = (e) => app.bufferedEvents.touch.push(e)
-	canvasEvents.touchcancel = (e) => app.bufferedEvents.touch.push(e)
+
+	canvasEvents.touchend = (e) => {
+		game.ev.onOnce("input", () => {
+			const touches = [...e.changedTouches]
+			touches.forEach((t) => {
+				game.ev.trigger(
+					"onTouchEnd",
+					windowToContent(vec2(t.clientX, t.clientY)),
+					t,
+				)
+			})
+			if (gopt.touchToMouse !== false) {
+				app.mouseState.release("left")
+				game.ev.trigger("mouseRelease", "left")
+			}
+		})
+	}
+
+	canvasEvents.touchcancel = (e) => {
+		game.ev.onOnce("input", () => {
+			const touches = [...e.changedTouches]
+			touches.forEach((t) => {
+				game.ev.trigger(
+					"onTouchEnd",
+					windowToContent(vec2(t.clientX, t.clientY)),
+					t,
+				)
+			})
+			if (gopt.touchToMouse !== false) {
+				app.mouseState.release("left")
+				game.ev.trigger("mouseRelease", "left")
+			}
+		})
+	}
+
 	canvasEvents.contextmenu = (e) => e.preventDefault()
 
 	docEvents.visibilitychange = () => {
@@ -3669,13 +3770,13 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		return game.ev.on("onTouchEnd", f)
 	}
 
+	function onVirtualButtonDown(btn: VirtualButton, action: () => void): EventController {
+		return game.ev.on("virtualButtonDown", (b) => b === btn && action())
+	}
+
 	function onVirtualButtonPress(btn: VirtualButton, action: () => void): EventController {
 		// TODO: move off on("input")
 		return game.ev.on("input", () => isVirtualButtonPressed(btn) && action())
-	}
-
-	function onVirtualButtonDown(btn: VirtualButton, action: () => void): EventController {
-		return game.ev.on("input", () => isVirtualButtonDown(btn) && action())
 	}
 
 	function onVirtualButtonRelease(btn: VirtualButton, action: () => void): EventController {
@@ -5438,124 +5539,11 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	}
 
 	function inputFrame() {
-
 		// TODO: pass original browser event in input handlers
-		for (const e of app.bufferedEvents.key) {
-			const k = KEY_ALIAS[e.key] || e.key.toLowerCase()
-			switch (e.type) {
-				case "keydown": {
-					if (k.length === 1) {
-						game.ev.trigger("charInput", k)
-						app.charInputted.push(k)
-					} else if (k === "space") {
-						game.ev.trigger("charInput", " ")
-						app.charInputted.push(" ")
-					}
-					if (e.repeat) {
-						app.keyState.pressRepeat(k)
-						game.ev.trigger("keyPressRepeat", k)
-					} else {
-						app.keyState.press(k)
-						game.ev.trigger("keyPressRepeat", k)
-						game.ev.trigger("keyPress", k)
-					}
-					break
-				}
-				case "keyup": {
-					app.keyState.release(k)
-					game.ev.trigger("keyRelease", k)
-					break
-				}
-			}
-		}
-
-		for (const e of app.bufferedEvents.mouse) {
-			const m = MOUSE_BUTTONS[e.button]
-			switch (e.type) {
-				case "mousemove": {
-					setMousePos(e.offsetX, e.offsetY)
-					game.ev.trigger("mouseMove")
-					break
-				}
-				case "mousedown": {
-					if (m) app.mouseState.press(m)
-					game.ev.trigger("mousePress", m)
-					break
-				}
-				case "mouseup": {
-					if (m) app.mouseState.release(m)
-					game.ev.trigger("mouseRelease", m)
-					break
-				}
-			}
-		}
-
-		for (const e of app.bufferedEvents.touch) {
-			const touches = [...e.changedTouches]
-			switch (e.type) {
-				case "touchstart": {
-					touches.forEach((t) => {
-						game.ev.trigger(
-							"onTouchStart",
-							windowToContent(vec2(t.clientX, t.clientY)),
-							t,
-						)
-					})
-					if (gopt.touchToMouse !== false) {
-						setMousePos(touches[0].clientX, touches[0].clientY)
-						app.mouseState.press("left")
-						game.ev.trigger("mousePress", "left")
-					}
-					break
-				}
-				case "touchmove": {
-					touches.forEach((t) => {
-						game.ev.trigger(
-							"onTouchMove",
-							windowToContent(vec2(t.clientX, t.clientY)),
-							t,
-						)
-					})
-					if (gopt.touchToMouse !== false) {
-						game.ev.trigger("mouseMove", "left")
-						setMousePos(touches[0].clientX, touches[0].clientY)
-					}
-					break
-				}
-				case "touchend": {
-					touches.forEach((t) => {
-						game.ev.trigger(
-							"onTouchEnd",
-							windowToContent(vec2(t.clientX, t.clientY)),
-							t,
-						)
-					})
-					if (gopt.touchToMouse !== false) {
-						app.mouseState.release("left")
-						game.ev.trigger("mouseRelease", "left")
-					}
-					break
-				}
-				case "touchcancel": {
-					touches.forEach((t) => {
-						game.ev.trigger(
-							"onTouchEnd",
-							windowToContent(vec2(t.clientX, t.clientY)),
-							t,
-						)
-					})
-					if (gopt.touchToMouse !== false) {
-						app.mouseState.release("left")
-						game.ev.trigger("mouseRelease", "left")
-					}
-					break
-				}
-			}
-		}
-
+		game.ev.trigger("input")
 		app.keyState.down.forEach((k) => game.ev.trigger("keyDown", k))
 		app.mouseState.down.forEach((k) => game.ev.trigger("mouseDown", k))
-
+		app.virtualButtonState.down.forEach((k) => game.ev.trigger("virtualButtonDown", k))
 	}
 
 	function updateFrame() {
@@ -6186,9 +6174,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		app.virtualButtonState.update()
 		app.charInputted = []
 		app.isMouseMoved = false
-		app.bufferedEvents.key = []
-		app.bufferedEvents.mouse = []
-		app.bufferedEvents.touch = []
 	}
 
 	function run(f: () => void) {
