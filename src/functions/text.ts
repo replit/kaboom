@@ -1,9 +1,9 @@
 import {
-    EventController, Anchor, DrawSpriteOpt, SpriteData,
+    KaboomOpt, glType, gcType,
     DrawTextOpt, FormattedText, FontData, BitmapFontData, FormattedChar,
     TextAlign, CharTransform, assetsType, appType,
 } from "../types"
-import { Vec2, vec2, Quad, Color } from "../math"
+import { Vec2, Quad, Color } from "../math"
 import { fetchURL } from "../utils"
 
 import { DEF_FONT, DEF_TEXT_CACHE_SIZE, FONT_ATLAS_SIZE } from "../constants"
@@ -13,11 +13,12 @@ import { TextCtx } from "../types/text"
 import { FontAtlas } from "../types/font"
 
 import { AssetData } from "../classes/AssetData"
+import { SpriteData } from "../classes/SpriteData"
 
 import fontFunc from "../functions/font"
 
-export default (gopt, assets: assetsType, gl, gc, app: appType): TextCtx => {
-    const fontStuff = fontFunc(gopt, assets, gl, gc, app)
+export default (gopt: KaboomOpt, assets: assetsType, gl: glType, gc: gcType, app: appType): TextCtx => {
+    const fontStuff = fontFunc(gopt, assets, gl, gc)
 
     // TODO: escape
     // eslint-disable-next-line
@@ -72,7 +73,7 @@ export default (gopt, assets: assetsType, gl, gc, app: appType): TextCtx => {
 
     function applyCharTransform(fchar: FormattedChar, tr: CharTransform) {
         if (tr.pos) fchar.pos = fchar.pos.add(tr.pos)
-        if (tr.scale) fchar.scale = fchar.scale.scale(vec2(tr.scale))
+        if (tr.scale) fchar.scale = fchar.scale.scale(new Vec2(tr.scale))
         if (tr.angle) fchar.angle += tr.angle
         if (tr.color) fchar.color = fchar.color.mult(tr.color)
         if (tr.opacity) fchar.opacity *= tr.opacity
@@ -116,7 +117,7 @@ export default (gopt, assets: assetsType, gl, gc, app: appType): TextCtx => {
                     map: {},
                     size: DEF_TEXT_CACHE_SIZE,
                 },
-                cursor: vec2(0),
+                cursor: new Vec2(0),
             }
 
             if (!fontStuff.fontAtlases[fontName]) {
@@ -161,7 +162,7 @@ export default (gopt, assets: assetsType, gl, gc, app: appType): TextCtx => {
         }
 
         const size = opt.size || font.size
-        const scale = vec2(opt.scale ?? 1).scale(size / font.size)
+        const scale = new Vec2(opt.scale ?? 1).scale(size / font.size)
         const lineSpacing = opt.lineSpacing ?? 0
         const letterSpacing = opt.letterSpacing ?? 0
         let curX = 0
@@ -240,10 +241,10 @@ export default (gopt, assets: assetsType, gl, gc, app: appType): TextCtx => {
                             q.h / font.tex.height,
                         ),
                         ch: ch,
-                        pos: vec2(curX, th),
+                        pos: new Vec2(curX, th),
                         opacity: opt.opacity ?? 1,
                         color: opt.color ?? Color.WHITE,
-                        scale: vec2(scale),
+                        scale: new Vec2(scale),
                         angle: 0,
                     })
 
@@ -291,7 +292,7 @@ export default (gopt, assets: assetsType, gl, gc, app: appType): TextCtx => {
                     q.h * scale.y * 0.5,
                 )
 
-                fchar.pos = fchar.pos.add(ox, 0).add(offset)
+                fchar.pos = fchar.pos.add(new Vec2(ox, 0)).add(offset)
 
                 if (opt.transform) {
                     const tr = typeof opt.transform === "function"

@@ -20,18 +20,18 @@ import {
 } from "./utils"
 
 import {
-	GridComp, GfxFont, RenderProps, CharTransform, TextureOpt, FormattedText, RenderPropsType,
+	GridComp, gfxCoreType, gameCoreType, DebugCore, GameCoreObj, FormattedText, RenderPropsType,
 	DrawRectOpt, DrawLineOpt, DrawLinesOpt, DrawTriangleOpt, DrawPolygonOpt, DrawCircleOpt,
 	DrawEllipseOpt, DrawUVQuadOpt, Vertex, FontData, BitmapFontData, ShaderData, LoadSpriteSrc,
 	LoadSpriteOpt, SpriteAtlasData, LoadBitmapFontOpt, KaboomCtx, KaboomOpt, AudioPlay, AudioPlayOpt,
-	DrawSpriteOpt, DrawTextOpt, TextAlign, GameObj, EventController, SceneID, SceneDef, CompList,
-	Comp, Tag, Key, MouseButton, PosComp, ScaleComp, RotateComp, ColorComp, OpacityComp, Anchor,
-	AnchorComp, ZComp, FollowComp, MoveComp, OffScreenCompOpt, OffScreenComp, AreaCompOpt, AreaComp,
+	DrawSpriteOpt, DrawTextOpt, TextAlign, EventController, SceneID, SceneDef, CompList,
+	Comp, Tag, Key, MouseButton, PosCoreComp, ScaleComp, RotateComp, ColorComp, OpacityComp, Anchor,
+	AnchorComp, ZComp, FollowCompCore, MoveComp, OffScreenCompOpt, OffScreenComp, AreaCompOpt, AreaCompCore,
 	SpriteComp, SpriteCompOpt, SpriteAnimPlayOpt, SpriteAnims, TextComp, TextCompOpt, RectComp, RectCompOpt,
 	UVQuadComp, CircleComp, OutlineComp, TimerComp, BodyComp, BodyCompOpt, Uniform, ShaderComp, FixedComp,
 	StayComp, HealthComp, LifespanComp, LifespanCompOpt, StateComp, Debug, KaboomPlugin, MergeObj, LevelComp, LevelOpt,
 	Cursor, Recording, BoomOpt, PeditFile, Shape, DoubleJumpComp, VirtualButton, TimerController, TweenController,
-	EventList, SpriteCurAnim, assetsType, gfxType, appType, gameType, glType, gcType
+	EventList, SpriteCurAnim, assetsType, gfxType, appType, gameType, glType, gcType, appCoreType
 } from "./types"
 
 import {
@@ -75,102 +75,12 @@ import { DrawCtx } from "./types/draw"
 import FPSCounter from "./fps"
 import Timer from "./timer"
 
-// @ts-ignore
-import happyFontSrc from "./assets/happy_28x36.png"
-// @ts-ignore
-import beanSpriteSrc from "./assets/bean.png"
-// @ts-ignore
-import kaSpriteSrc from "./assets/ka.png"
-// @ts-ignore
-import boomSpriteSrc from "./assets/boom.png"
-
 // only exports one kaboom() which contains all the state
 export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	const gc: gcType = []
 
-	const app: appType = (() => {
-
-		const root = gopt.root ?? document.body
-
-		// if root is not defined (which falls back to <body>) we assume user is using kaboom on a clean page, and modify <body> to better fit a full screen canvas
-		if (root === document.body) {
-			document.body.style["width"] = "100%"
-			document.body.style["height"] = "100%"
-			document.body.style["margin"] = "0px"
-			document.documentElement.style["width"] = "100%"
-			document.documentElement.style["height"] = "100%"
-		}
-
-		// create a <canvas> if user didn't provide one
-		const canvas = gopt.canvas ?? (() => {
-			const canvas = document.createElement("canvas")
-			root.appendChild(canvas)
-			return canvas
-		})()
-
-		// global pixel scale
-		const gscale = gopt.scale ?? 1
-		const stretchToParent = !(gopt.width && gopt.height && !gopt.stretch && !gopt.letterbox)
-		const pw = canvas.parentElement.offsetWidth
-		const ph = canvas.parentElement.offsetHeight
-
-		// adjust canvas size according to user size / viewport settings
-		if (stretchToParent) {
-			canvas.width = pw
-			canvas.height = ph
-		} else {
-			canvas.width = gopt.width * gscale
-			canvas.height = gopt.height * gscale
-		}
-
-		const cw = canvas.width
-		const ch = canvas.height
-		const pixelDensity = gopt.pixelDensity || window.devicePixelRatio
-
-		canvas.width *= pixelDensity
-		canvas.height *= pixelDensity
-
-		// canvas css styles
-		const styles = [
-			`width: ${cw}px`,
-			`height: ${ch}px`,
-			"outline: none",
-			"cursor: default",
-		]
-
-		if (gopt.crisp) {
-			// chrome only supports pixelated and firefox only supports crisp-edges
-			styles.push("image-rendering: pixelated")
-			styles.push("image-rendering: crisp-edges")
-		}
-
-		canvas.style.cssText = styles.join(";")
-		// make canvas focusable
-		canvas.tabIndex = 0
-
+	const app: appCoreType = (() => {
 		return {
-
-			canvas: canvas,
-			// for 2d context
-			canvas2: canvas.cloneNode() as HTMLCanvasElement,
-			pixelDensity: pixelDensity,
-
-			stretchToParent: stretchToParent,
-			lastParentWidth: pw,
-			lastParentHeight: ph,
-
-			// keep track of all button states
-			keyState: new ButtonState<Key>(),
-			mouseState: new ButtonState<MouseButton>(),
-			virtualButtonState: new ButtonState<VirtualButton>(),
-
-			// input states from last frame, should reset every frame
-			charInputted: [],
-			isMouseMoved: false,
-			mouseStarted: false,
-			mousePos: new Vec2(0, 0),
-			mouseDeltaPos: new Vec2(0, 0),
-
 			// total time elapsed
 			time: 0,
 			// real total time elapsed (including paused time)
@@ -182,31 +92,22 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			// total frames elapsed
 			numFrames: 0,
 
-			// if we're on a touch device
-			isTouchScreen: ("ontouchstart" in window) || navigator.maxTouchPoints > 0,
-
 			// requestAnimationFrame id
 			loopID: null,
 			// if our game loop is currently stopped / paused
 			stopped: false,
 			paused: false,
-
-			fpsCounter: new FPSCounter(),
-
 		}
-
 	})()
 
-	const gl: glType = app.canvas
-		.getContext("webgl", {
-			antialias: true,
-			depth: true,
-			stencil: true,
-			alpha: true,
-			preserveDrawingBuffer: true,
-		})
+	const assets = {
+		// prefix for when loading from a url
+		urlPrefix: "",
+		// if we finished initially loading all assets
+		loaded: false,
+	}
 
-	const assets: assetsType = {
+	const assets22: assetsType = {
 		// prefix for when loading from a url
 		urlPrefix: "",
 		// asset holders
@@ -220,81 +121,8 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		loaded: false,
 	}
 
-	const shaderStuff = shaderFunc(gopt, assets, gl, gc, app)
-
-	const gfx: gfxType = (() => {
-		// a 1x1 white texture to draw raw shapes like rectangles and polygons
-		// we use a texture for those so we can use only 1 pipeline for drawing sprites + shapes
-		const emptyTex = Texture.fromImage(
-			new ImageData(new Uint8ClampedArray([255, 255, 255, 255]), 1, 1),
-			gl, gc, gopt
-		)
-
-		if (gopt.background) {
-			const c = Color.fromArray(gopt.background)
-			gl.clearColor(c.r / 255, c.g / 255, c.b / 255, gopt.background[3] ?? 1)
-		}
-
-		gl.enable(gl.BLEND)
-		gl.enable(gl.SCISSOR_TEST)
-		gl.blendFuncSeparate(
-			gl.SRC_ALPHA,
-			gl.ONE_MINUS_SRC_ALPHA,
-			gl.ONE,
-			gl.ONE_MINUS_SRC_ALPHA,
-		)
-
-		// we only use one vertex and index buffer that batches all draw calls
-		const vbuf = gl.createBuffer()
-
-		gl.bindBuffer(gl.ARRAY_BUFFER, vbuf)
-		gl.bufferData(gl.ARRAY_BUFFER, MAX_BATCHED_VERTS * 4, gl.DYNAMIC_DRAW)
-
-		VERTEX_FORMAT.reduce((offset, f, i) => {
-			gl.vertexAttribPointer(i, f.size, gl.FLOAT, false, STRIDE * 4, offset)
-			gl.enableVertexAttribArray(i)
-			return offset + f.size * 4
-		}, 0)
-
-		gl.bindBuffer(gl.ARRAY_BUFFER, null)
-
-		const ibuf = gl.createBuffer()
-
-		gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, ibuf)
-		gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, MAX_BATCHED_INDICES * 4, gl.DYNAMIC_DRAW)
-		gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null)
-
-		// a checkerboard texture used for the default background
-		const bgTex = Texture.fromImage(
-			new ImageData(new Uint8ClampedArray([
-				128, 128, 128, 255,
-				190, 190, 190, 255,
-				190, 190, 190, 255,
-				128, 128, 128, 255,
-			]), 2, 2),
-			gl, gc, gopt,
-			{
-				wrap: "repeat",
-				filter: "nearest",
-			},
-		)
-
+	const gfx: gfxCoreType = (() => {
 		return {
-
-			// keep track of how many draw calls we're doing this frame
-			drawCalls: 0,
-			// how many draw calls we're doing last frame, this is the number we give to users
-			lastDrawCalls: 0,
-
-			// gfx states
-			defShader: shaderStuff.defShader,
-			curShader: shaderStuff.defShader,
-			defTex: emptyTex,
-			curTex: emptyTex,
-			curUniform: {},
-			vbuf: vbuf,
-			ibuf: ibuf,
-
 			// local vertex / index buffer queue
 			vqueue: [],
 			iqueue: [],
@@ -302,23 +130,12 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			transform: new Mat4(),
 			transformStack: [],
 
-			bgTex: bgTex,
-
 			width: gopt.width,
 			height: gopt.height,
-
-			viewport: {
-				x: 0,
-				y: 0,
-				width: gl.drawingBufferWidth,
-				height: gl.drawingBufferHeight,
-			},
-
 		}
-
 	})()
 
-	const game: gameType = {
+	const game: gameCoreType = {
 
 		// general events
 		ev: new EventHandler(),
@@ -334,18 +151,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 		// on screen log
 		logs: [],
-
-		// camera
-		cam: {
-			pos: null,
-			scale: new Vec2(1),
-			angle: 0,
-			shake: 0,
-			transform: new Mat4(),
-		},
 	}
-
-	const audio = audioFunc(game, assets);
 
 	// global load path prefix
 	function loadRoot(path?: string): string {
@@ -355,14 +161,12 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		return assets.urlPrefix
 	}
 
-	const debug: Debug = {
+	const debug: DebugCore = {
 		inspect: false,
 		timeScale: 1,
 		showLog: true,
-		fps: () => app.fpsCounter.fps,
 		numFrames: () => app.numFrames,
 		stepFrame: updateFrame,
-		drawCalls: () => gfx.drawCalls,
 		clearLog: () => game.logs = [],
 		log: (msg) => {
 			const max = gopt.logMax ?? LOG_MAX
@@ -378,15 +182,8 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		},
 		set paused(v) {
 			app.paused = v
-			if (v) {
-				audio.ctx.suspend()
-			} else {
-				audio.ctx.resume()
-			}
 		},
 	}
-
-	const screenStuff = screenFunc(game, app, gfx, gopt, gl, assets, debug)
 
 	function pushMatrix(m: Mat4) {
 		gfx.transform = m.clone()
@@ -402,41 +199,15 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		return gfx.height
 	}
 
-	// make the list of common render properties from the "pos", "scale", "color", "opacity", "rotate", "anchor", "outline", and "shader" components of a game object
-	const getRenderProps: RenderPropsType = function (obj: GameObj<any>) {
-		return {
-			color: obj.color,
-			opacity: obj.opacity,
-			anchor: obj.anchor,
-			outline: obj.outline,
-			fixed: obj.fixed,
-			shader: obj.shader,
-			uniform: obj.uniform,
-		}
-	}
-
-	const canvasEvents: EventList<HTMLElementEventMap> = canvasEventsFunc(game, app, gfx, gopt)
-	const docEvents: EventList<DocumentEventMap> = docEventsFunc(app, debug, audio)
-	const winEvents: EventList<WindowEventMap> = winEventsFunc(run, gopt, gfx, assets, game, app, debug, gl, gc, getRenderProps, width(), height())
-
-	const mouseStuff = mouseFunc(app, game, on);
-	const keyStuff = keyFunc(game, app);
-
-	const virtualStuff = virtualFunc(game, app)
-
 	function time(): number {
 		return app.time
 	}
-
-	const touchStuff = touchFunc(game, app)
 
 	function dt() {
 		return app.dt * debug.timeScale
 	}
 
-	const camStuff = camFunc(game, width(), height());
-
-	function make<T>(comps: CompList<T>): GameObj<T> {
+	function make<T>(comps: CompList<T>): GameCoreObj<T> {
 
 		const compStates = new Map()
 		const customState = {}
@@ -453,7 +224,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			children: [],
 			parent: null,
 
-			add<T2>(a: CompList<T2> | GameObj<T2>): GameObj<T2> {
+			add<T2>(a: CompList<T2> | GameCoreObj<T2>): GameCoreObj<T2> {
 				const obj = (() => {
 					if (Array.isArray(a)) {
 						return make(a)
@@ -471,7 +242,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				return obj
 			},
 
-			readd(obj: GameObj): GameObj {
+			readd(obj: GameCoreObj): GameCoreObj {
 				const idx = this.children.indexOf(obj)
 				if (idx !== -1) {
 					this.children.splice(idx, 1)
@@ -480,7 +251,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				return obj
 			},
 
-			remove(obj: GameObj): void {
+			remove(obj: GameCoreObj): void {
 				const idx = this.children.indexOf(obj)
 				if (idx !== -1) {
 					obj.parent = null
@@ -498,32 +269,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				if (this.paused) return
 				this.get().forEach((child) => child.update())
 				this.trigger("update")
-			},
-
-			draw(this: GameObj<PosComp | ScaleComp | RotateComp>) {
-				if (this.hidden) return
-				const DRAW = drawFunc(gopt, gfx, assets, game, app, debug, gl, gc, getRenderProps)
-
-				DRAW.pushTransform()
-				DRAW.pushTranslate(this.pos)
-				DRAW.pushScale(this.scale)
-				DRAW.pushRotateZ(this.angle)
-				this.trigger("draw")
-				this.get().forEach((child) => child.draw())
-				DRAW.popTransform()
-			},
-
-			drawInspect(this: GameObj<PosComp | ScaleComp | RotateComp>) {
-				if (this.hidden) return
-				const DRAW = drawFunc(gopt, gfx, assets, game, app, debug, gl, gc, getRenderProps)
-
-				DRAW.pushTransform()
-				DRAW.pushTranslate(this.pos)
-				DRAW.pushScale(this.scale)
-				DRAW.pushRotateZ(this.angle)
-				this.get().forEach((child) => child.drawInspect())
-				this.trigger("drawInspect")
-				DRAW.popTransform()
 			},
 
 			// use a comp, or tag
@@ -632,20 +377,20 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			},
 
 			// TODO: cache sorted list? update each frame?
-			get(t?: Tag | Tag[]): GameObj[] {
+			get(t?: Tag | Tag[]): GameCoreObj[] {
 				return this.children
 					.filter((child) => t ? child.is(t) : true)
 					.sort((o1, o2) => (o1.z ?? 0) - (o2.z ?? 0))
 			},
 
-			getAll(t?: Tag | Tag[]): GameObj[] {
+			getAll(t?: Tag | Tag[]): GameCoreObj[] {
 				return this.children
 					.sort((o1, o2) => (o1.z ?? 0) - (o2.z ?? 0))
 					.flatMap((child) => [child, ...child.getAll(t)])
 					.filter((child) => t ? child.is(t) : true)
 			},
 
-			isAncestorOf(obj: GameObj) {
+			isAncestorOf(obj: GameCoreObj) {
 				if (!obj.parent) {
 					return false
 				}
@@ -703,10 +448,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				return this.on("update", cb)
 			},
 
-			onDraw(cb: () => void): EventController {
-				return this.on("draw", cb)
-			},
-
 			onDestroy(action: () => void): EventController {
 				return this.on("destroy", action)
 			},
@@ -721,12 +462,12 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			obj.use(comp)
 		}
 
-		return obj as unknown as GameObj<T>
+		return obj as unknown as GameCoreObj<T>
 
 	}
 
 	// add an event to a tag
-	function on(event: string, tag: Tag, cb: (obj: GameObj, ...args) => void): EventController {
+	function on(event: string, tag: Tag, cb: (obj: GameCoreObj, ...args) => void): EventController {
 		if (!game.objEvents[event]) {
 			game.objEvents[event] = new IDList()
 		}
@@ -738,7 +479,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	}
 
 	// add update event to a tag or global update
-	const onUpdate = ((tag: Tag | (() => void), action?: (obj: GameObj) => void) => {
+	const onUpdate = ((tag: Tag | (() => void), action?: (obj: GameCoreObj) => void) => {
 		if (typeof tag === "function" && action === undefined) {
 			const obj = add([{ update: tag }])
 			return {
@@ -756,7 +497,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	}) as KaboomCtx["onUpdate"]
 
 	// add draw event to a tag or global draw
-	const onDraw = ((tag: Tag | (() => void), action?: (obj: GameObj) => void) => {
+	const onDraw = ((tag: Tag | (() => void), action?: (obj: GameCoreObj) => void) => {
 		if (typeof tag === "function" && action === undefined) {
 			const obj = add([{ draw: tag }])
 			return {
@@ -774,7 +515,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	}) as KaboomCtx["onDraw"]
 
 
-	function onDestroy(tag: Tag | ((obj: GameObj) => void), action?: (obj: GameObj) => void) {
+	function onDestroy(tag: Tag | ((obj: GameCoreObj) => void), action?: (obj: GameCoreObj) => void) {
 		if (typeof tag === "function" && action === undefined) {
 			return game.ev.on("destroy", tag)
 		} else if (typeof tag === "string") {
@@ -786,7 +527,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	function onCollide(
 		t1: Tag,
 		t2: Tag,
-		f: (a: GameObj, b: GameObj, col?: Collision) => void,
+		f: (a: GameCoreObj, b: GameCoreObj, col?: Collision) => void,
 	): EventController {
 		return on("collide", t1, (a, b, col) => b.is(t2) && f(a, b, col))
 	}
@@ -842,38 +583,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 	}
 
-	function enterDebugMode() {
-
-		keyStuff.onKeyPress("f1", () => {
-			debug.inspect = !debug.inspect
-		})
-
-		keyStuff.onKeyPress("f2", () => {
-			debug.clearLog()
-		})
-
-		keyStuff.onKeyPress("f8", () => {
-			debug.paused = !debug.paused
-		})
-
-		keyStuff.onKeyPress("f7", () => {
-			debug.timeScale = toFixed(clamp(debug.timeScale - 0.2, 0, 2), 1)
-		})
-
-		keyStuff.onKeyPress("f9", () => {
-			debug.timeScale = toFixed(clamp(debug.timeScale + 0.2, 0, 2), 1)
-		})
-
-		keyStuff.onKeyPress("f10", () => {
-			debug.stepFrame()
-		})
-
-	}
-
-	function enterBurpMode() {
-		keyStuff.onKeyPress("b", () => audio.burp())
-	}
-
 	// get / set gravity
 	function gravity(g?: number): number {
 		if (g !== undefined) {
@@ -883,7 +592,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	}
 
 	// TODO: manage global velocity here?
-	function pos(...args): PosComp {
+	function pos(...args): PosCoreComp {
 
 		return {
 
@@ -919,32 +628,9 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				this.move(diff.unit().scale(speed))
 			},
 
-			worldPos(this: GameObj<PosComp>): Vec2 {
-				return this.parent
-					? this.parent.transform.multVec2(this.pos)
-					: this.pos
-			},
-
-			// get the screen position (transformed by camera)
-			screenPos(this: GameObj<PosComp | FixedComp>): Vec2 {
-				return this.fixed
-					? this.pos
-					: camStuff.toScreen(this.pos)
-			},
-
 			inspect() {
 				return `(${Math.round(this.pos.x)}, ${Math.round(this.pos.y)})`
 			},
-
-			drawInspect() {
-				const DRAW = drawFunc(gopt, gfx, assets, game, app, debug, gl, gc, getRenderProps)
-
-				DRAW.drawCircle({
-					color: rgb([255, 0, 0]),
-					radius: 4 / screenStuff.getViewportScale(),
-				})
-			},
-
 		}
 
 	}
@@ -1041,7 +727,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		}
 	}
 
-	function follow(obj: GameObj, offset?: Vec2): FollowComp {
+	function follow(obj: GameCoreObj, offset?: Vec2): FollowCompCore {
 		return {
 			id: "follow",
 			require: ["pos"],
@@ -1049,12 +735,12 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				obj: obj,
 				offset: offset ?? new Vec2(0),
 			},
-			add(this: GameObj<FollowComp | PosComp>) {
+			add(this: GameCoreObj<FollowCompCore | PosCoreComp>) {
 				if (obj.exists()) {
 					this.pos = this.follow.obj.pos.add(this.follow.offset)
 				}
 			},
-			update(this: GameObj<FollowComp | PosComp>) {
+			update(this: GameCoreObj<FollowCompCore | PosCoreComp>) {
 				if (obj.exists()) {
 					this.pos = this.follow.obj.pos.add(this.follow.offset)
 				}
@@ -1067,13 +753,13 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		return {
 			id: "move",
 			require: ["pos"],
-			update(this: GameObj<PosComp>) {
+			update(this: GameCoreObj<PosCoreComp>) {
 				this.move(d.scale(speed))
 			},
 		}
 	}
 
-	function area(opt: AreaCompOpt = {}): AreaComp {
+	function area(opt: AreaCompOpt = {}): AreaCompCore {
 
 		const events: Array<EventController> = []
 
@@ -1083,72 +769,23 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			colliding: {},
 			collisionIgnore: opt.collisionIgnore ?? [],
 
-			add(this: GameObj<AreaComp>) {
-
-				if (this.area.cursor) {
-					events.push(this.onHover(() => mouseStuff.setCursor(this.area.cursor)))
-				}
-
+			add(this: GameCoreObj<AreaCompCore>) {
 				events.push(this.onCollideUpdate((obj, col) => {
 					if (!this.colliding[obj.id]) {
 						this.trigger("collide", obj, col)
 					}
 					this.colliding[obj.id] = col
 				}))
-
 			},
 
-			update(this: GameObj) {
+			update(this: GameCoreObj) {
 				for (const id in this.colliding) {
 					const col = this.colliding[id]
-					if (!this.checkCollision(col.target as GameObj<AreaComp>)) {
+					if (!this.checkCollision(col.target as GameCoreObj<AreaCompCore>)) {
 						delete this.colliding[id]
 						this.trigger("collideEnd", col.target, col)
 					}
 				}
-			},
-
-			drawInspect(this: GameObj<AreaComp | AnchorComp | FixedComp>) {
-				const DRAW = drawFunc(gopt, gfx, assets, game, app, debug, gl, gc, getRenderProps)
-
-				const a = this.localArea()
-
-				DRAW.pushTransform()
-				DRAW.pushScale(this.area.scale)
-				DRAW.pushTranslate(this.area.offset)
-
-				const opts = {
-					outline: {
-						width: 4 / screenStuff.getViewportScale(),
-						color: rgb([0, 0, 255]),
-					},
-					anchor: this.anchor,
-					fill: false,
-					fixed: this.fixed,
-				}
-
-				if (a instanceof Rect) {
-					DRAW.drawRect({
-						...opts,
-						pos: a.pos,
-						width: a.width,
-						height: a.height,
-					})
-				} else if (a instanceof Polygon) {
-					DRAW.drawPolygon({
-						...opts,
-						pts: a.pts,
-					})
-				} else if (a instanceof Circle) {
-					DRAW.drawCircle({
-						...opts,
-						pos: a.center,
-						radius: a.radius,
-					})
-				}
-
-				DRAW.popTransform()
-
 			},
 
 			destroy() {
@@ -1166,12 +803,12 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				return mouseStuff.isMousePressed() && this.isHovering()
 			},
 
-			isHovering(this: GameObj) {
+			isHovering(this: GameCoreObj) {
 				const mpos = this.fixed ? mouseStuff.mousePos() : camStuff.toWorld(mouseStuff.mousePos())
 				return this.hasPoint(mpos)
 			},
 
-			checkCollision(this: GameObj, other: GameObj<AreaComp>) {
+			checkCollision(this: GameCoreObj, other: GameCoreObj<AreaCompCore>) {
 				if (this === other || !other.area || !other.exists()) {
 					return null
 				}
@@ -1183,7 +820,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				return sat(a1, a2)
 			},
 
-			isColliding(other: GameObj<AreaComp>) {
+			isColliding(other: GameCoreObj<AreaCompCore>) {
 				const res = this.checkCollision(other)
 				return res && !res.isZero()
 			},
@@ -1192,7 +829,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				return Boolean(this.checkCollision(other))
 			},
 
-			onClick(this: GameObj, f: () => void): EventController {
+			onClick(this: GameCoreObj, f: () => void): EventController {
 				return this.onUpdate(() => {
 					if (this.isClicked()) {
 						f()
@@ -1200,7 +837,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				})
 			},
 
-			onHover(this: GameObj, action: () => void): EventController {
+			onHover(this: GameCoreObj, action: () => void): EventController {
 				let hovering = false
 				return this.onUpdate(() => {
 					if (!hovering) {
@@ -1214,7 +851,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				})
 			},
 
-			onHoverUpdate(this: GameObj, onHover: () => void): EventController {
+			onHoverUpdate(this: GameCoreObj, onHover: () => void): EventController {
 				return this.onUpdate(() => {
 					if (this.isHovering()) {
 						onHover()
@@ -1222,7 +859,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				})
 			},
 
-			onHoverEnd(this: GameObj, action: () => void): EventController {
+			onHoverEnd(this: GameCoreObj, action: () => void): EventController {
 				let hovering = false
 				return this.onUpdate(() => {
 					if (hovering) {
@@ -1237,9 +874,9 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			},
 
 			onCollide(
-				this: GameObj,
-				tag: Tag | ((obj: GameObj, col?: Collision) => void),
-				cb?: (obj: GameObj, col?: Collision) => void,
+				this: GameCoreObj,
+				tag: Tag | ((obj: GameCoreObj, col?: Collision) => void),
+				cb?: (obj: GameCoreObj, col?: Collision) => void,
 			): EventController {
 				if (typeof tag === "function" && cb === undefined) {
 					return this.on("collide", tag)
@@ -1253,9 +890,9 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			},
 
 			onCollideUpdate(
-				this: GameObj<AreaComp>,
-				tag: Tag | ((obj: GameObj, col?: Collision) => void),
-				cb?: (obj: GameObj, col?: Collision) => void,
+				this: GameCoreObj<AreaCompCore>,
+				tag: Tag | ((obj: GameCoreObj, col?: Collision) => void),
+				cb?: (obj: GameCoreObj, col?: Collision) => void,
 			): EventController {
 				if (typeof tag === "function" && cb === undefined) {
 					return this.on("collideUpdate", tag)
@@ -1265,9 +902,9 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			},
 
 			onCollideEnd(
-				this: GameObj<AreaComp>,
-				tag: Tag | ((obj: GameObj) => void),
-				cb?: (obj: GameObj) => void,
+				this: GameCoreObj<AreaCompCore>,
+				tag: Tag | ((obj: GameCoreObj) => void),
+				cb?: (obj: GameCoreObj) => void,
 			): EventController {
 				if (typeof tag === "function" && cb === undefined) {
 					return this.on("collideEnd", tag)
@@ -1281,7 +918,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			},
 
 			// push an obj out of another if they're overlapped
-			pushOut(this: GameObj<AreaComp | PosComp>, obj: GameObj<AreaComp>) {
+			pushOut(this: GameCoreObj<AreaCompCore | PosCoreComp>, obj: GameCoreObj<AreaCompCore>) {
 				const res = this.checkCollision(obj)
 				if (res) {
 					this.pos = this.pos.add(res)
@@ -1294,14 +931,14 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				game.root.getAll().forEach(this.pushOut)
 			},
 
-			localArea(this: GameObj<AreaComp | { renderArea(): Shape }>): Shape {
+			localArea(this: GameCoreObj<AreaCompCore | { renderArea(): Shape }>): Shape {
 				return this.area.shape
 					? this.area.shape
 					: this.renderArea()
 			},
 
 			// TODO: cache
-			worldArea(this: GameObj<AreaComp | AnchorComp>): Polygon {
+			worldArea(this: GameCoreObj<AreaCompCore | AnchorComp>): Polygon {
 
 				const localArea = this.localArea()
 
@@ -1326,7 +963,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 			},
 
-			screenArea(this: GameObj<AreaComp | FixedComp>): Polygon {
+			screenArea(this: GameCoreObj<AreaCompCore | FixedComp>): Polygon {
 				const area = this.worldArea()
 				if (this.fixed) {
 					return area
@@ -1341,7 +978,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 	function text(t: string, opt: TextCompOpt = {}): TextComp {
 
-		function update(obj: GameObj<TextComp | any>) {
+		function update(obj: GameCoreObj<TextComp | any>) {
 			const newText = textFunc(gopt, assets, gl, gc, app)
 
 			const ftext = newText.formatText({
@@ -1381,11 +1018,11 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			textTransform: opt.transform,
 			textStyles: opt.styles,
 
-			add(this: GameObj<TextComp>) {
+			add(this: GameCoreObj<TextComp>) {
 				onLoad(game, assets, () => update(this))
 			},
 
-			draw(this: GameObj<TextComp>) {
+			draw(this: GameCoreObj<TextComp>) {
 				const DRAW = drawFunc(gopt, gfx, assets, game, app, debug, gl, gc, getRenderProps)
 
 				DRAW.drawFormattedText(update(this))
@@ -1405,7 +1042,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			width: w,
 			height: h,
 			radius: opt.radius || 0,
-			draw(this: GameObj<RectComp>) {
+			draw(this: GameCoreObj<RectComp>) {
 				const DRAW = drawFunc(gopt, gfx, assets, game, app, debug, gl, gc, getRenderProps)
 
 				DRAW.drawRect({
@@ -1429,7 +1066,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			id: "rect",
 			width: w,
 			height: h,
-			draw(this: GameObj<UVQuadComp>) {
+			draw(this: GameCoreObj<UVQuadComp>) {
 				const DRAW = drawFunc(gopt, gfx, assets, game, app, debug, gl, gc, getRenderProps)
 
 				DRAW.drawUVQuad({
@@ -1451,7 +1088,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		return {
 			id: "circle",
 			radius: radius,
-			draw(this: GameObj<CircleComp>) {
+			draw(this: GameCoreObj<CircleComp>) {
 				const DRAW = drawFunc(gopt, gfx, assets, game, app, debug, gl, gc, getRenderProps)
 
 				DRAW.drawCircle({
@@ -1528,7 +1165,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	function body(opt: BodyCompOpt = {}): BodyComp {
 
 		let velY = 0
-		let curPlatform: GameObj<PosComp | AreaComp | BodyComp> | null = null
+		let curPlatform: GameCoreObj<PosCoreComp | AreaCompCore | BodyComp> | null = null
 		let lastPlatformPos = null
 		let wantFall = false
 		const events: Array<EventController> = []
@@ -1542,7 +1179,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			isStatic: opt.isStatic ?? false,
 			mass: opt.mass ?? 0,
 
-			add(this: GameObj<BodyComp | AreaComp>) {
+			add(this: GameCoreObj<BodyComp | AreaCompCore>) {
 
 				// TODO
 				// static vs static: don't resolve
@@ -1587,7 +1224,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 					if (game.gravity) {
 						if (col.isBottom() && this.isFalling()) {
 							velY = 0
-							curPlatform = col.target as GameObj<PosComp | BodyComp | AreaComp>
+							curPlatform = col.target as GameCoreObj<PosCoreComp | BodyComp | AreaCompCore>
 							lastPlatformPos = col.target.pos
 							if (wantFall) {
 								wantFall = false
@@ -1603,7 +1240,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 			},
 
-			update(this: GameObj<PosComp | BodyComp | AreaComp>) {
+			update(this: GameCoreObj<PosCoreComp | BodyComp | AreaCompCore>) {
 
 				if (!game.gravity) {
 					return
@@ -1653,15 +1290,15 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				events.forEach((e) => e.cancel())
 			},
 
-			onPhysicsResolve(this: GameObj, action) {
+			onPhysicsResolve(this: GameCoreObj, action) {
 				return this.on("physicsResolve", action)
 			},
 
-			onBeforePhysicsResolve(this: GameObj, action) {
+			onBeforePhysicsResolve(this: GameCoreObj, action) {
 				return this.on("beforePhysicsResolve", action)
 			},
 
-			curPlatform(): GameObj | null {
+			curPlatform(): GameCoreObj | null {
 				return curPlatform
 			},
 
@@ -1683,19 +1320,19 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				velY = -force || -this.jumpForce
 			},
 
-			onGround(this: GameObj, action: () => void): EventController {
+			onGround(this: GameCoreObj, action: () => void): EventController {
 				return this.on("ground", action)
 			},
 
-			onFall(this: GameObj, action: () => void): EventController {
+			onFall(this: GameCoreObj, action: () => void): EventController {
 				return this.on("fall", action)
 			},
 
-			onFallOff(this: GameObj, action: () => void): EventController {
+			onFallOff(this: GameCoreObj, action: () => void): EventController {
 				return this.on("fallOff", action)
 			},
 
-			onHeadbutt(this: GameObj, action: () => void): EventController {
+			onHeadbutt(this: GameCoreObj, action: () => void): EventController {
 				return this.on("headbutt", action)
 			},
 
@@ -1710,7 +1347,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			id: "doubleJump",
 			require: ["body"],
 			numJumps: numJumps,
-			add(this: GameObj<BodyComp | DoubleJumpComp>) {
+			add(this: GameCoreObj<BodyComp | DoubleJumpComp>) {
 				events.push(this.onGround(() => {
 					jumpsLeft = this.numJumps
 				}))
@@ -1718,7 +1355,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			destroy() {
 				events.forEach((e) => e.cancel())
 			},
-			doubleJump(this: GameObj<BodyComp | DoubleJumpComp>, force?: number) {
+			doubleJump(this: GameCoreObj<BodyComp | DoubleJumpComp>, force?: number) {
 				if (jumpsLeft <= 0) {
 					return
 				}
@@ -1728,10 +1365,10 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				jumpsLeft--
 				this.jump(force)
 			},
-			onDoubleJump(this: GameObj, action: () => void): EventController {
+			onDoubleJump(this: GameCoreObj, action: () => void): EventController {
 				return this.on("doubleJump", action)
 			},
-			inspect(this: GameObj<BodyComp | DoubleJumpComp>) {
+			inspect(this: GameCoreObj<BodyComp | DoubleJumpComp>) {
 				return `${jumpsLeft}`
 			},
 		}
@@ -1759,30 +1396,30 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		}
 		return {
 			id: "health",
-			hurt(this: GameObj, n: number = 1) {
+			hurt(this: GameCoreObj, n: number = 1) {
 				this.setHP(hp - n)
 				this.trigger("hurt")
 			},
-			heal(this: GameObj, n: number = 1) {
+			heal(this: GameCoreObj, n: number = 1) {
 				this.setHP(hp + n)
 				this.trigger("heal")
 			},
 			hp(): number {
 				return hp
 			},
-			setHP(this: GameObj, n: number) {
+			setHP(this: GameCoreObj, n: number) {
 				hp = n
 				if (hp <= 0) {
 					this.trigger("death")
 				}
 			},
-			onHurt(this: GameObj, action: () => void): EventController {
+			onHurt(this: GameCoreObj, action: () => void): EventController {
 				return this.on("hurt", action)
 			},
-			onHeal(this: GameObj, action: () => void): EventController {
+			onHeal(this: GameCoreObj, action: () => void): EventController {
 				return this.on("heal", action)
 			},
-			onDeath(this: GameObj, action: () => void): EventController {
+			onDeath(this: GameCoreObj, action: () => void): EventController {
 				return this.on("death", action)
 			},
 			inspect() {
@@ -1798,7 +1435,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		const fade = opt.fade ?? 0
 		return {
 			id: "lifespan",
-			async add(this: GameObj<OpacityComp>) {
+			async add(this: GameCoreObj<OpacityComp>) {
 				await wait(time)
 				// TODO: this secretively requires opacity comp, make opacity on every game obj?
 				if (fade > 0 && this.opacity) {
@@ -1929,10 +1566,10 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		let done = false
 		return {
 			require: ["opacity"],
-			add(this: GameObj<OpacityComp>) {
+			add(this: GameCoreObj<OpacityComp>) {
 				this.opacity = 0
 			},
-			update(this: GameObj<OpacityComp>) {
+			update(this: GameCoreObj<OpacityComp>) {
 				if (done) return
 				t += dt()
 				this.opacity = map(t, 0, time, 0, 1)
@@ -2024,14 +1661,14 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		return ctx as unknown as MergeObj<T> & KaboomCtx
 	}
 
-	function grid(level: GameObj<LevelComp>, p: Vec2): GridComp {
+	function grid(level: GameCoreObj<LevelComp>, p: Vec2): GridComp {
 
 		return {
 
 			id: "grid",
 			gridPos: p.clone(),
 
-			setGridPos(this: GameObj<GridComp | PosComp>, ...args) {
+			setGridPos(this: GameCoreObj<GridComp | PosCoreComp>, ...args) {
 				const p = new Vec2(...args)
 				this.gridPos = p.clone()
 				this.pos = new Vec2(
@@ -2060,7 +1697,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 	}
 
-	function addLevel(map: string[], opt: LevelOpt): GameObj<PosComp | LevelComp> {
+	function addLevel(map: string[], opt: LevelOpt): GameCoreObj<PosCoreComp | LevelComp> {
 
 		if (!opt.width || !opt.height) {
 			throw new Error("Must provide level grid width & height.")
@@ -2092,7 +1729,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				)
 			},
 
-			spawn(this: GameObj<LevelComp>, key: string, ...args): GameObj {
+			spawn(this: GameCoreObj<LevelComp>, key: string, ...args): GameCoreObj {
 
 				const p = new Vec2(...args)
 
@@ -2224,7 +1861,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		return document.activeElement === app.canvas
 	}
 
-	function destroy(obj: GameObj) {
+	function destroy(obj: GameCoreObj) {
 		obj.destroy()
 	}
 
@@ -2241,7 +1878,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		return {
 			id: "boom",
 			require: ["scale"],
-			update(this: GameObj<ScaleComp>) {
+			update(this: GameCoreObj<ScaleComp>) {
 				const s = Math.sin(time * speed) * size
 				if (s < 0) {
 					this.destroy()
@@ -2261,7 +1898,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 		// TODO: persistent grid?
 		// start a spatial hash grid for more efficient collision detection
-		const grid: Record<number, Record<number, GameObj<AreaComp>[]>> = {}
+		const grid: Record<number, Record<number, GameCoreObj<AreaCompCore>[]>> = {}
 		const cellSize = gopt.hashGridSize || DEF_HASH_GRID_SIZE
 
 		// current transform
@@ -2270,7 +1907,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		// a local transform stack
 		const stack = []
 
-		function checkObj(obj: GameObj) {
+		function checkObj(obj: GameCoreObj) {
 
 			stack.push(tr)
 
@@ -2283,7 +1920,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			if (obj.c("area") && !obj.paused) {
 
 				// TODO: only update worldArea if transform changed
-				const aobj = obj as GameObj<AreaComp>
+				const aobj = obj as GameCoreObj<AreaCompCore>
 				const area = aobj.worldArea()
 				const bbox = area.bbox()
 
@@ -2571,7 +2208,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	const kaSprite = spriteStuff.loadSprite(null, kaSpriteSrc)
 	const boomSprite = spriteStuff.loadSprite(null, boomSpriteSrc)
 
-	function addKaboom(p: Vec2, opt: BoomOpt = {}): GameObj {
+	function addKaboom(p: Vec2, opt: BoomOpt = {}): GameCoreObj {
 
 		const kaboom = add([
 			pos(p),

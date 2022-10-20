@@ -170,3 +170,11 @@ export const COMP_EVENTS = new Set([
 	"inspect",
 	"drawInspect",
 ])
+
+export const DEF_HASH_GRID_SIZE = 64
+
+export const DEF_OFFSCREEN_DIS = 200
+
+// maximum y velocity with body()
+export const DEF_JUMP_FORCE = 640
+export const MAX_VEL = 65536

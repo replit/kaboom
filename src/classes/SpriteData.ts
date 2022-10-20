@@ -1,6 +1,18 @@
 import { Quad } from "../math"
 import { Texture } from "./Texture"
-import type { SpriteAnims, LoadSpriteSrc, LoadSpriteOpt, KaboomOpt } from "../types"
+import type { SpriteAnims, LoadSpriteSrc, LoadSpriteOpt, KaboomOpt, assetsType } from "../types"
+import { loadImg } from "../utils"
+
+/*
+export declare class SpriteData {
+	tex: Texture
+	frames: Quad[]
+	anims: SpriteAnims
+	constructor(tex: Texture, frames?: Quad[], anims?: SpriteAnims)
+	static fromImage(data: TexImageSource, gl: WebGLRenderingContext, gc: (() => void)[], gopt: KaboomOpt, slice: any, opt?: LoadSpriteOpt): SpriteData
+	static fromURL(url: string, imgPromise: Promise<HTMLImageElement>, gl: WebGLRenderingContext, gc: (() => void)[], gopt: KaboomOpt, slice, opt?: LoadSpriteOpt): Promise<SpriteData>
+}
+*/
 
 export class SpriteData {
 
@@ -14,9 +26,9 @@ export class SpriteData {
 		this.anims = anims
 	}
 
-	static from(src: LoadSpriteSrc, loadImg, gl: WebGLRenderingContext, gc: (() => void)[], gopt: KaboomOpt, slice, opt: LoadSpriteOpt = {}): Promise<SpriteData> {
+	static from(src: LoadSpriteSrc, assets: assetsType, gl: WebGLRenderingContext, gc: (() => void)[], gopt: KaboomOpt, slice, opt: LoadSpriteOpt = {}): Promise<SpriteData> {
 		return typeof src === "string"
-			? SpriteData.fromURL(src, loadImg, gl, gc, gopt, slice, opt)
+			? SpriteData.fromURL(src, assets, gl, gc, gopt, slice, opt)
 			: Promise.resolve(SpriteData.fromImage(src, gl, gc, gopt, slice, opt),
 			)
 	}
@@ -29,8 +41,8 @@ export class SpriteData {
 		)
 	}
 
-	static fromURL(url: string, loadImg, gl: WebGLRenderingContext, gc: (() => void)[], gopt: KaboomOpt, slice, opt: LoadSpriteOpt = {}): Promise<SpriteData> {
-		return loadImg(url).then((img) => SpriteData.fromImage(img, gl, gc, gopt, slice, opt))
+	static fromURL(url: string, assets: assetsType, gl: WebGLRenderingContext, gc: (() => void)[], gopt: KaboomOpt, slice, opt: LoadSpriteOpt = {}): Promise<SpriteData> {
+		return loadImg(url, assets).then((img) => SpriteData.fromImage(img, gl, gc, gopt, slice, opt))
 	}
 
 }

@@ -1,4 +1,4 @@
-import { vec2, Vec2 } from "../math"
+import { Vec2 } from "../math"
 import { EventList, gfxType, appType, gameType } from "../types"
 import { MOUSE_BUTTONS, PREVENT_DEFAULT_KEYS, KEY_ALIAS } from "../constants"
 
@@ -16,7 +16,7 @@ export default (game: gameType, app: appType, gfx: gfxType, gopt): EventList<HTM
 
 	// transform a point from window space to content space
 	function windowToContent(pt: Vec2) {
-		return vec2(
+		return new Vec2(
 			(pt.x - gfx.viewport.x) * width() / gfx.viewport.width,
 			(pt.y - gfx.viewport.y) * height() / gfx.viewport.height,
 		)
@@ -24,7 +24,7 @@ export default (game: gameType, app: appType, gfx: gfxType, gopt): EventList<HTM
 
     // set game mouse pos from window mouse pos
     function setMousePos(x: number, y: number) {
-        const mpos = windowToContent(vec2(x, y))
+        const mpos = windowToContent(new Vec2(x, y))
         if (app.mouseStarted) {
             app.mouseDeltaPos = mpos.sub(app.mousePos)
         }
@@ -96,7 +96,7 @@ export default (game: gameType, app: appType, gfx: gfxType, gopt): EventList<HTM
             touches.forEach((t) => {
                 game.ev.trigger(
                     "onTouchStart",
-                    windowToContent(vec2(t.clientX, t.clientY)),
+                    windowToContent(new Vec2(t.clientX, t.clientY)),
                     t,
                 )
             })
@@ -116,7 +116,7 @@ export default (game: gameType, app: appType, gfx: gfxType, gopt): EventList<HTM
             touches.forEach((t) => {
                 game.ev.trigger(
                     "onTouchMove",
-                    windowToContent(vec2(t.clientX, t.clientY)),
+                    windowToContent(new Vec2(t.clientX, t.clientY)),
                     t,
                 )
             })
@@ -133,7 +133,7 @@ export default (game: gameType, app: appType, gfx: gfxType, gopt): EventList<HTM
             touches.forEach((t) => {
                 game.ev.trigger(
                     "onTouchEnd",
-                    windowToContent(vec2(t.clientX, t.clientY)),
+                    windowToContent(new Vec2(t.clientX, t.clientY)),
                     t,
                 )
             })
@@ -150,7 +150,7 @@ export default (game: gameType, app: appType, gfx: gfxType, gopt): EventList<HTM
             touches.forEach((t) => {
                 game.ev.trigger(
                     "onTouchEnd",
-                    windowToContent(vec2(t.clientX, t.clientY)),
+                    windowToContent(new Vec2(t.clientX, t.clientY)),
                     t,
                 )
             })

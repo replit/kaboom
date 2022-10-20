@@ -1,17 +1,18 @@
 import {
-    EventController, Anchor, DrawSpriteOpt, SpriteData,
+    LoadBitmapFontOpt, GfxFont, DrawSpriteOpt, gcType, glType,
     DrawTextOpt, FormattedText, FontData, BitmapFontData, FormattedChar,
-    TextAlign, CharTransform, assetsType, appType,
+    TextAlign, CharTransform, assetsType, appType, KaboomOpt
 } from "../types"
-import { Vec2, vec2, Quad, Color } from "../math"
-import { DEF_FONT, DEF_TEXT_CACHE_SIZE, FONT_ATLAS_SIZE } from "../constants"
-import { loadProgress, getBitmapFont } from "../utils"
+import { Quad, Color } from "../math"
+import { DEF_FONT, DEF_TEXT_CACHE_SIZE, ASCII_CHARS } from "../constants"
+import { loadProgress, getBitmapFont, loadImg } from "../utils"
 import { Texture } from "../classes/Texture"
+import { SpriteData } from "../classes/SpriteData"
 import { FontCtx, FontAtlas } from "../types/font"
 
 import { AssetData } from "../classes/AssetData"
 
-export default (gopt, assets: assetsType, gl, gc, app: appType): FontCtx => {
+export default (gopt: KaboomOpt, assets: assetsType, gl: glType, gc: gcType): FontCtx => {
     const fontAtlases: Record<string, FontAtlas> = {}
 
     function resolveFont(
@@ -45,5 +46,67 @@ export default (gopt, assets: assetsType, gl, gc, app: appType): FontCtx => {
         return src
     }
 
-    return { fontAtlases, resolveFont }
+    function makeFont(
+        tex: Texture,
+        gw: number,
+        gh: number,
+        chars: string,
+    ): GfxFont {
+
+        const cols = tex.width / gw
+        const map: Record<string, Quad> = {}
+        const charMap = chars.split("").entries()
+
+        for (const [i, ch] of charMap) {
+            map[ch] = new Quad(
+                (i % cols) * gw,
+                Math.floor(i / cols) * gh,
+                gw,
+                gh,
+            )
+        }
+
+        return {
+            tex: tex,
+            map: map,
+            size: gh,
+        }
+    }
+
+    // TODO: support LoadSpriteSrc
+    function loadBitmapFont(
+        name: string | null,
+        src: string,
+        gw: number,
+        gh: number,
+        opt: LoadBitmapFontOpt = {},
+    ): AssetData<BitmapFontData> {
+        return assets.bitmapFonts.add(name, loadImg(src, assets)
+            .then((img) => {
+                return makeFont(
+                    Texture.fromImage(img, gl, gc, gopt, opt),
+                    gw,
+                    gh,
+                    opt.chars ?? ASCII_CHARS,
+                )
+            }),
+        )
+    }
+
+    function loadFont(name: string, src: string | ArrayBuffer): AssetData<FontData> {
+        const font = new FontFace(name, typeof src === "string" ? `url(${src})` : src)
+        document.fonts.add(font)
+        return assets.fonts.add(name, font.load().catch(() => {
+            throw new Error(`Failed to load font from "${src}"`)
+        }))
+    }
+
+    function getFont(handle: string): AssetData<FontData> | void {
+        return assets.fonts.get(handle)
+    }
+
+    return {
+        fontAtlases, resolveFont, loadBitmapFont, loadFont,
+		getFont,
+    }
 }

@@ -1,17 +1,16 @@
-
+import { Vec2 } from "../math"
 import {
-	FormattedText,
-	DrawRectOpt,
-	DrawLineOpt,
-	DrawLinesOpt,
-	DrawTriangleOpt,
-	DrawPolygonOpt,
-	DrawCircleOpt,
-	DrawEllipseOpt,
-	DrawUVQuadOpt,
-	DrawSpriteOpt,
-	DrawTextOpt,
-    Vec2
+    FormattedText,
+    DrawRectOpt,
+    DrawLineOpt,
+    DrawLinesOpt,
+    DrawTriangleOpt,
+    DrawPolygonOpt,
+    DrawCircleOpt,
+    DrawEllipseOpt,
+    DrawUVQuadOpt,
+    DrawSpriteOpt,
+    DrawTextOpt,
 } from "../types"
 
 export type DrawCtx = {
@@ -255,22 +254,22 @@ export type DrawCtx = {
      * @since v3000.0
      */
     pushRotateZ(angle: number): void,
-	/**
-	 * Draw a piece of text.
-	 *
-	 * @example
-	 * ```js
-	 * drawText({
-	 *     text: "oh hi",
-	 *     size: 48,
-	 *     font: "sans-serif",
-	 *     width: 120,
-	 *     pos: vec2(100, 200),
-	 *     color: rgb(0, 0, 255),
-	 * })
-	 * ```
-	 */
-	drawText(options: DrawTextOpt): void,
+    /**
+     * Draw a piece of text.
+     *
+     * @example
+     * ```js
+     * drawText({
+     *     text: "oh hi",
+     *     size: 48,
+     *     font: "sans-serif",
+     *     width: 120,
+     *     pos: vec2(100, 200),
+     *     color: rgb(0, 0, 255),
+     * })
+     * ```
+     */
+    drawText(options: DrawTextOpt): void,
     drawUnscaled(content: () => void): void,
     flush(): void,
     drawLoadScreen(): void,

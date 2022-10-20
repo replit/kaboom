@@ -1,5 +1,5 @@
 import { Vec2 } from "../math"
-import { GameObj, EventController, Tag, MouseButton } from "../types"
+import { GameObj, EventController, Tag, MouseButton, Cursor } from "../types"
 
 export type MouseCtx = {
 	/**
@@ -120,4 +120,15 @@ export type MouseCtx = {
 	 * @since v2000.1
 	 */
 	isMouseMoved(): boolean,
+	/**
+	 * Get / set the cursor (css). Cursor will be reset to "default" every frame so use this in an per-frame action.
+	 *
+	 * @example
+	 * ```js
+	 * button.onHover((c) => {
+	 *     setCursor("pointer")
+	 * })
+	 * ```
+	 */
+	setCursor(c?: Cursor): Cursor,
 }

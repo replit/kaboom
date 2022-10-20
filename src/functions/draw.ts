@@ -1,28 +1,29 @@
 import {
     Quad, vec3, rgb, deg2rad, Color, rand, lerp, Mat4,
-    wave, Rect, vec2, Vec2
+    wave, Rect, Vec2
 } from "../math"
 
 import { AssetData } from "../classes/AssetData"
 
 import {
-    Vertex, Texture, RenderProps, Debug,
+    Vertex, RenderProps, Debug, RenderPropsType,
     DrawRectOpt, DrawLineOpt, DrawLinesOpt,
     DrawTriangleOpt, DrawPolygonOpt, DrawCircleOpt,
     DrawEllipseOpt, DrawUVQuadOpt, DrawSpriteOpt,
     DrawTextOpt, FormattedText, Uniform,
     VirtualButton, assetsType, gameType,
-    Anchor, gfxType, appType,
+    Anchor, gfxType, appType, gcType, KaboomOpt,
 } from "../types"
 
-import {
-    deepEq, anchorPt, resolveSprite, dt, center, loadProgress
-} from "../utils"
+import { deepEq, anchorPt, dt, center, loadProgress } from "../utils"
 
 import { STRIDE, MAX_BATCHED_VERTS, MAX_BATCHED_INDICES, DEF_ANCHOR, UV_PAD, DBG_FONT } from "../constants"
 
 import shaders from "./shaders"
 import textFunc from "./text"
+import spriteFunc from "./sprite"
+
+import { Texture } from "../classes/Texture"
 
 import type { DrawCtx } from "../types/draw"
 
@@ -37,10 +38,10 @@ type DrawTextureOpt = RenderProps & {
     anchor?: Anchor | Vec2,
 }
 
-export default (gopt, gfx: gfxType, assets: assetsType, game: gameType, app: appType, debug: Debug, gl: WebGLRenderingContext): DrawCtx => {
+export default (gopt: KaboomOpt, gfx: gfxType, assets: assetsType, game: gameType, app: appType, debug: Debug, gl: WebGLRenderingContext, gc: gcType, getRenderProps: RenderPropsType): DrawCtx => {
     // convert a screen space coordinate to webgl normalized device coordinate
     function screen2ndc(pt: Vec2): Vec2 {
-        return vec2(
+        return new Vec2(
             pt.x / gfx.width * 2 - 1,
             -pt.y / gfx.height * 2 + 1,
         )
@@ -60,7 +61,7 @@ export default (gopt, gfx: gfxType, assets: assetsType, game: gameType, app: app
     */
     function pushTranslate(x: Vec2 | number, y?: number) {
         if (x === undefined) return
-        const p = x instanceof Vec2 ? vec2(x) : vec2(x, y)
+        const p = x instanceof Vec2 ? new Vec2(x) : new Vec2(x, y)
         if (p.x === 0 && p.y === 0) return
         gfx.transform = gfx.transform.translate(p)
     }
@@ -75,7 +76,7 @@ export default (gopt, gfx: gfxType, assets: assetsType, game: gameType, app: app
     */
     function pushScale(x: Vec2 | number, y?: number) {
         if (x === undefined) return
-        const p = x instanceof Vec2 ? vec2(x) : vec2(x, y)
+        const p = x instanceof Vec2 ? new Vec2(x) : new Vec2(x, y)
         if (p.x === 1 && p.y === 1) return
         gfx.transform = gfx.transform.scale(p)
     }
@@ -176,9 +177,9 @@ export default (gopt, gfx: gfxType, assets: assetsType, game: gameType, app: app
         const w = opt.width
         const h = opt.height
         const anchor = anchorPt(opt.anchor || DEF_ANCHOR)
-        const offset = anchor.scale(vec2(w, h).scale(-0.5))
+        const offset = anchor.scale(new Vec2(w, h).scale(-0.5))
         const q = opt.quad || new Quad(0, 0, 1, 1)
-        const color = opt.color || rgb(255, 255, 255)
+        const color = opt.color || rgb([255, 255, 255])
         const opacity = opt.opacity ?? 1
 
         // apply uv padding to avoid artifacts
@@ -198,25 +199,25 @@ export default (gopt, gfx: gfxType, assets: assetsType, game: gameType, app: app
         drawRaw([
             {
                 pos: vec3(-w / 2, h / 2, 0),
-                uv: vec2(opt.flipX ? qx + qw : qx, opt.flipY ? qy : qy + qh),
+                uv: new Vec2(opt.flipX ? qx + qw : qx, opt.flipY ? qy : qy + qh),
                 color: color,
                 opacity: opacity,
             },
             {
                 pos: vec3(-w / 2, -h / 2, 0),
-                uv: vec2(opt.flipX ? qx + qw : qx, opt.flipY ? qy + qh : qy),
+                uv: new Vec2(opt.flipX ? qx + qw : qx, opt.flipY ? qy + qh : qy),
                 color: color,
                 opacity: opacity,
             },
             {
                 pos: vec3(w / 2, -h / 2, 0),
-                uv: vec2(opt.flipX ? qx : qx + qw, opt.flipY ? qy + qh : qy),
+                uv: new Vec2(opt.flipX ? qx : qx + qw, opt.flipY ? qy + qh : qy),
                 color: color,
                 opacity: opacity,
             },
             {
                 pos: vec3(w / 2, h / 2, 0),
-                uv: vec2(opt.flipX ? qx : qx + qw, opt.flipY ? qy : qy + qh),
+                uv: new Vec2(opt.flipX ? qx : qx + qw, opt.flipY ? qy : qy + qh),
                 color: color,
                 opacity: opacity,
             },
@@ -236,23 +237,23 @@ export default (gopt, gfx: gfxType, assets: assetsType, game: gameType, app: app
         const q = opt.quad ?? new Quad(0, 0, 1, 1)
         const w = opt.tex.width * q.w
         const h = opt.tex.height * q.h
-        const scale = vec2(1)
+        const scale = new Vec2(1)
 
         if (opt.tiled) {
 
             // TODO: draw fract
             const repX = Math.ceil((opt.width || w) / w)
             const repY = Math.ceil((opt.height || h) / h)
-            const anchor = anchorPt(opt.anchor || DEF_ANCHOR).add(vec2(1, 1)).scale(0.5)
-            const offset = anchor.scale(repX * w, repY * h)
+            const anchor = anchorPt(opt.anchor || DEF_ANCHOR).add(new Vec2(1, 1)).scale(0.5)
+            const offset = anchor.scale(new Vec2(repX * w, repY * h))
 
             // TODO: rotation
             for (let i = 0; i < repX; i++) {
                 for (let j = 0; j < repY; j++) {
                     drawUVQuad({
                         ...opt,
-                        pos: (opt.pos || vec2(0)).add(vec2(w * i, h * j)).sub(offset),
-                        scale: scale.scale(opt.scale || vec2(1)),
+                        pos: (opt.pos || new Vec2(0)).add(new Vec2(w * i, h * j)).sub(offset),
+                        scale: scale.scale(opt.scale || new Vec2(1)),
                         tex: opt.tex,
                         quad: q,
                         width: w,
@@ -277,7 +278,7 @@ export default (gopt, gfx: gfxType, assets: assetsType, game: gameType, app: app
 
             drawUVQuad({
                 ...opt,
-                scale: scale.scale(opt.scale || vec2(1)),
+                scale: scale.scale(opt.scale || new Vec2(1)),
                 tex: opt.tex,
                 quad: q,
                 width: w,
@@ -289,12 +290,13 @@ export default (gopt, gfx: gfxType, assets: assetsType, game: gameType, app: app
     }
 
     function drawSprite(opt: DrawSpriteOpt) {
+        const spriteSuff = spriteFunc(gl, gc, gopt, assets, gfx, game, app, debug, getRenderProps)
 
         if (!opt.sprite) {
             throw new Error("drawSprite() requires property \"sprite\"")
         }
 
-        const spr = resolveSprite(assets, opt.sprite)
+        const spr = spriteSuff.resolveSprite(opt.sprite)
 
         if (!spr || !spr.data) {
             return
@@ -337,11 +339,11 @@ export default (gopt, gfx: gfxType, assets: assetsType, game: gameType, app: app
 
         // calculate vertices
         for (let a = start; a < end; a += step) {
-            pts.push(pos.add(radiusX * Math.cos(a), radiusY * Math.sin(a)))
+            pts.push(pos.add(new Vec2(radiusX * Math.cos(a), radiusY * Math.sin(a))))
         }
 
         // doing this on the side due to possible floating point inaccuracy
-        pts.push(pos.add(radiusX * Math.cos(end), radiusY * Math.sin(end)))
+        pts.push(pos.add(new Vec2(radiusX * Math.cos(end), radiusY * Math.sin(end))))
 
         return pts
 
@@ -359,14 +361,14 @@ export default (gopt, gfx: gfxType, assets: assetsType, game: gameType, app: app
 
         const w = opt.width
         const h = opt.height
-        const anchor = anchorPt(opt.anchor || DEF_ANCHOR).add(1, 1)
-        const offset = anchor.scale(vec2(w, h).scale(-0.5))
+        const anchor = anchorPt(opt.anchor || DEF_ANCHOR).add(new Vec2(1, 1))
+        const offset = anchor.scale(new Vec2(w, h).scale(-0.5))
 
         let pts = [
-            vec2(0, 0),
-            vec2(w, 0),
-            vec2(w, h),
-            vec2(0, h),
+            new Vec2(0, 0),
+            new Vec2(w, 0),
+            new Vec2(w, h),
+            new Vec2(0, h),
         ]
 
         // TODO: gradient for rounded rect
@@ -377,18 +379,18 @@ export default (gopt, gfx: gfxType, assets: assetsType, game: gameType, app: app
             const r = Math.min(Math.min(w, h) / 2, opt.radius)
 
             pts = [
-                vec2(r, 0),
-                vec2(w - r, 0),
-                ...getArcPts(vec2(w - r, r), r, r, 270, 360),
-                vec2(w, r),
-                vec2(w, h - r),
-                ...getArcPts(vec2(w - r, h - r), r, r, 0, 90),
-                vec2(w - r, h),
-                vec2(r, h),
-                ...getArcPts(vec2(r, h - r), r, r, 90, 180),
-                vec2(0, h - r),
-                vec2(0, r),
-                ...getArcPts(vec2(r, r), r, r, 180, 270),
+                new Vec2(r, 0),
+                new Vec2(w - r, 0),
+                ...getArcPts(new Vec2(w - r, r), r, r, 270, 360),
+                new Vec2(w, r),
+                new Vec2(w, h - r),
+                ...getArcPts(new Vec2(w - r, h - r), r, r, 0, 90),
+                new Vec2(w - r, h),
+                new Vec2(r, h),
+                ...getArcPts(new Vec2(r, h - r), r, r, 90, 180),
+                new Vec2(0, h - r),
+                new Vec2(0, r),
+                ...getArcPts(new Vec2(r, r), r, r, 180, 270),
             ]
 
         }
@@ -435,7 +437,7 @@ export default (gopt, gfx: gfxType, assets: assetsType, game: gameType, app: app
             p2.sub(dis),
         ].map((p) => ({
             pos: vec3(p.x, p.y, 0),
-            uv: vec2(0),
+            uv: new Vec2(0),
             color: opt.color ?? Color.WHITE,
             opacity: opt.opacity ?? 1,
         }))
@@ -549,7 +551,7 @@ export default (gopt, gfx: gfxType, assets: assetsType, game: gameType, app: app
         const end = opt.end ?? 360
 
         const pts = getArcPts(
-            vec2(0),
+            new Vec2(0),
             opt.radiusX,
             opt.radiusY,
             start,
@@ -558,7 +560,7 @@ export default (gopt, gfx: gfxType, assets: assetsType, game: gameType, app: app
         )
 
         // center
-        pts.unshift(vec2(0))
+        pts.unshift(new Vec2(0))
 
         const polyOpt = {
             ...opt,
@@ -616,7 +618,7 @@ export default (gopt, gfx: gfxType, assets: assetsType, game: gameType, app: app
 
             const verts = opt.pts.map((pt, i) => ({
                 pos: vec3(pt.x, pt.y, 0),
-                uv: vec2(0, 0),
+                uv: new Vec2(0, 0),
                 color: opt.colors ? (opt.colors[i] ?? color) : color,
                 opacity: opt.opacity ?? 1,
             }))
@@ -719,7 +721,7 @@ export default (gopt, gfx: gfxType, assets: assetsType, game: gameType, app: app
         pushTransform()
         pushTranslate(ftext.opt.pos)
         pushRotateZ(ftext.opt.angle)
-        pushTranslate(anchorPt(ftext.opt.anchor ?? "topleft").add(1, 1).scale(ftext.width, ftext.height).scale(-0.5))
+        pushTranslate(anchorPt(ftext.opt.anchor ?? "topleft").add(new Vec2(1, 1)).scale(new Vec2(ftext.width, ftext.height)).scale(-0.5))
         ftext.chars.forEach((ch) => {
             drawUVQuad({
                 tex: ch.tex,
@@ -745,7 +747,7 @@ export default (gopt, gfx: gfxType, assets: assetsType, game: gameType, app: app
 
         // calculate camera matrix
         const cam = game.cam
-        const shake = Vec2.fromAngle(rand(0, 360)).scale(cam.shake)
+        const shake = Vec2.fromAngle(rand(0, 360) as number).scale(cam.shake)
 
         cam.shake = lerp(cam.shake, 0, 5 * dt(app, debug))
         cam.transform = new Mat4()
@@ -774,13 +776,13 @@ export default (gopt, gfx: gfxType, assets: assetsType, game: gameType, app: app
 
             const w = width() / 2
             const h = 24
-            const pos = vec2(width() / 2, height() / 2).sub(vec2(w / 2, h / 2))
+            const pos = new Vec2(width() / 2, height() / 2).sub(new Vec2(w / 2, h / 2))
 
             drawRect({
-                pos: vec2(0),
+                pos: new Vec2(0),
                 width: width(),
                 height: height(),
-                color: rgb(0, 0, 0),
+                color: rgb([0, 0, 0]),
             })
 
             drawRect({
@@ -809,7 +811,7 @@ export default (gopt, gfx: gfxType, assets: assetsType, game: gameType, app: app
 
         drawUnscaled(() => {
 
-            const pad = vec2(8)
+            const pad = new Vec2(8)
 
             pushTransform()
             pushTranslate(pos)
@@ -819,7 +821,7 @@ export default (gopt, gfx: gfxType, assets: assetsType, game: gameType, app: app
                 font: DBG_FONT,
                 size: 16,
                 pos: pad,
-                color: rgb(255, 255, 255),
+                color: rgb([255, 255, 255]),
                 fixed: true,
             })
 
@@ -827,17 +829,17 @@ export default (gopt, gfx: gfxType, assets: assetsType, game: gameType, app: app
             const bh = ftxt.height + pad.x * 2
 
             if (pos.x + bw >= width()) {
-                pushTranslate(vec2(-bw, 0))
+                pushTranslate(new Vec2(-bw, 0))
             }
 
             if (pos.y + bh >= height()) {
-                pushTranslate(vec2(0, -bh))
+                pushTranslate(new Vec2(0, -bh))
             }
 
             drawRect({
                 width: bw,
                 height: bh,
-                color: rgb(0, 0, 0),
+                color: rgb([0, 0, 0]),
                 radius: 4,
                 opacity: 0.8,
                 fixed: true,
@@ -852,7 +854,7 @@ export default (gopt, gfx: gfxType, assets: assetsType, game: gameType, app: app
 
     // transform a point from content space to view space
     function contentToView(pt: Vec2) {
-        return vec2(
+        return new Vec2(
             pt.x * gfx.viewport.width / gfx.width,
             pt.y * gfx.viewport.height / gfx.height,
         )
@@ -891,7 +893,7 @@ export default (gopt, gfx: gfxType, assets: assetsType, game: gameType, app: app
 
             }
 
-            drawInspectText(vec2(8), `FPS: ${debug.fps()}`)
+            drawInspectText(new Vec2(8), `FPS: ${debug.fps()}`)
 
         }
 
@@ -911,7 +913,7 @@ export default (gopt, gfx: gfxType, assets: assetsType, game: gameType, app: app
                     width: size,
                     height: size,
                     anchor: "topright",
-                    color: rgb(0, 0, 0),
+                    color: rgb([0, 0, 0]),
                     opacity: 0.8,
                     radius: 4,
                     fixed: true,
@@ -923,8 +925,8 @@ export default (gopt, gfx: gfxType, assets: assetsType, game: gameType, app: app
                         width: 4,
                         height: size * 0.6,
                         anchor: "center",
-                        pos: vec2(-size / 3 * i, size * 0.5),
-                        color: rgb(255, 255, 255),
+                        pos: new Vec2(-size / 3 * i, size * 0.5),
+                        color: rgb([255, 255, 255]),
                         radius: 2,
                         fixed: true,
                     })
@@ -952,8 +954,8 @@ export default (gopt, gfx: gfxType, assets: assetsType, game: gameType, app: app
                     text: debug.timeScale.toFixed(1),
                     font: DBG_FONT,
                     size: 16,
-                    color: rgb(255, 255, 255),
-                    pos: vec2(-pad),
+                    color: rgb([255, 255, 255]),
+                    pos: new Vec2(-pad),
                     anchor: "botright",
                     fixed: true,
                 })
@@ -963,7 +965,7 @@ export default (gopt, gfx: gfxType, assets: assetsType, game: gameType, app: app
                     width: ftxt.width + pad * 2 + pad * 4,
                     height: ftxt.height + pad * 2,
                     anchor: "botright",
-                    color: rgb(0, 0, 0),
+                    color: rgb([0, 0, 0]),
                     opacity: 0.8,
                     radius: 4,
                     fixed: true,
@@ -973,11 +975,11 @@ export default (gopt, gfx: gfxType, assets: assetsType, game: gameType, app: app
                 for (let i = 0; i < 2; i++) {
                     const flipped = debug.timeScale < 1
                     drawTriangle({
-                        p1: vec2(-ftxt.width - pad * (flipped ? 2 : 3.5), -pad),
-                        p2: vec2(-ftxt.width - pad * (flipped ? 2 : 3.5), -pad - ftxt.height),
-                        p3: vec2(-ftxt.width - pad * (flipped ? 3.5 : 2), -pad - ftxt.height / 2),
-                        pos: vec2(-i * pad * 1 + (flipped ? -pad * 0.5 : 0), 0),
-                        color: rgb(255, 255, 255),
+                        p1: new Vec2(-ftxt.width - pad * (flipped ? 2 : 3.5), -pad),
+                        p2: new Vec2(-ftxt.width - pad * (flipped ? 2 : 3.5), -pad - ftxt.height),
+                        p3: new Vec2(-ftxt.width - pad * (flipped ? 3.5 : 2), -pad - ftxt.height / 2),
+                        pos: new Vec2(-i * pad * 1 + (flipped ? -pad * 0.5 : 0), 0),
+                        color: rgb([255, 255, 255]),
                         fixed: true,
                     })
                 }
@@ -1001,7 +1003,7 @@ export default (gopt, gfx: gfxType, assets: assetsType, game: gameType, app: app
 
                 drawCircle({
                     radius: 12,
-                    color: rgb(255, 0, 0),
+                    color: rgb([255, 0, 0]),
                     opacity: wave(0, 1, time() * 4),
                     fixed: true,
                 })
@@ -1025,16 +1027,16 @@ export default (gopt, gfx: gfxType, assets: assetsType, game: gameType, app: app
                 const ftext = newText.formatText({
                     text: game.logs.join("\n"),
                     font: DBG_FONT,
-                    pos: vec2(pad, -pad),
+                    pos: new Vec2(pad, -pad),
                     anchor: "botleft",
                     size: 16,
                     width: width() * 0.6,
                     lineSpacing: pad / 2,
                     fixed: true,
                     styles: {
-                        "time": { color: rgb(127, 127, 127) },
-                        "info": { color: rgb(255, 255, 255) },
-                        "error": { color: rgb(255, 0, 127) },
+                        "time": { color: rgb([127, 127, 127]) },
+                        "info": { color: rgb([255, 255, 255]) },
+                        "error": { color: rgb([255, 0, 127]) },
                     },
                 })
 
@@ -1042,7 +1044,7 @@ export default (gopt, gfx: gfxType, assets: assetsType, game: gameType, app: app
                     width: ftext.width + pad * 2,
                     height: ftext.height + pad * 2,
                     anchor: "botleft",
-                    color: rgb(0, 0, 0),
+                    color: rgb([0, 0, 0]),
                     radius: 4,
                     opacity: 0.8,
                     fixed: true,
@@ -1069,7 +1071,7 @@ export default (gopt, gfx: gfxType, assets: assetsType, game: gameType, app: app
             drawCircle({
                 radius: size / 2,
                 pos: pos,
-                outline: { width: 4, color: rgb(0, 0, 0) },
+                outline: { width: 4, color: rgb([0, 0, 0]) },
                 opacity: 0.5,
             })
 
@@ -1077,7 +1079,7 @@ export default (gopt, gfx: gfxType, assets: assetsType, game: gameType, app: app
                 drawText({
                     text: text,
                     pos: pos,
-                    color: rgb(0, 0, 0),
+                    color: rgb([0, 0, 0]),
                     size: 40,
                     anchor: "center",
                     opacity: 0.5,
@@ -1116,7 +1118,7 @@ export default (gopt, gfx: gfxType, assets: assetsType, game: gameType, app: app
                 width: size,
                 height: size,
                 pos: pos,
-                outline: { width: 4, color: rgb(0, 0, 0) },
+                outline: { width: 4, color: rgb([0, 0, 0]) },
                 radius: 4,
                 anchor: "center",
                 opacity: 0.5,
@@ -1126,7 +1128,7 @@ export default (gopt, gfx: gfxType, assets: assetsType, game: gameType, app: app
                 drawText({
                     text: text,
                     pos: pos,
-                    color: rgb(0, 0, 0),
+                    color: rgb([0, 0, 0]),
                     size: 40,
                     anchor: "center",
                     opacity: 0.5,
@@ -1135,7 +1137,7 @@ export default (gopt, gfx: gfxType, assets: assetsType, game: gameType, app: app
 
             // TODO: touch
             if (isMousePressed("left")) {
-                if (testRectPoint(new Rect(pos.add(-size / 2, -size / 2), size, size), mpos)) {
+                if (testRectPoint(new Rect(pos.add(new Vec2(-size / 2, -size / 2)), size, size), mpos)) {
                     game.ev.onOnce("input", () => {
                         // TODO: caller specify another value as connected key?
                         app.virtualButtonState.press(btn)
@@ -1158,12 +1160,12 @@ export default (gopt, gfx: gfxType, assets: assetsType, game: gameType, app: app
         }
 
         drawUnscaled(() => {
-            drawCircleButton(vec2(width() - 80, height() - 160), "a")
-            drawCircleButton(vec2(width() - 160, height() - 80), "b")
-            drawSquareButton(vec2(60, height() - 124), "left")
-            drawSquareButton(vec2(188, height() - 124), "right")
-            drawSquareButton(vec2(124, height() - 188), "up")
-            drawSquareButton(vec2(124, height() - 60), "down")
+            drawCircleButton(new Vec2(width() - 80, height() - 160), "a")
+            drawCircleButton(new Vec2(width() - 160, height() - 80), "b")
+            drawSquareButton(new Vec2(60, height() - 124), "left")
+            drawSquareButton(new Vec2(188, height() - 124), "right")
+            drawSquareButton(new Vec2(124, height() - 188), "up")
+            drawSquareButton(new Vec2(124, height() - 60), "down")
         })
 
     }

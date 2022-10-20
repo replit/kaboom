@@ -1,11 +1,11 @@
-import { EventList, KaboomOpt } from "../types"
-import { vec2, rgb } from "../math"
+import { EventList, KaboomOpt, gcType, RenderPropsType } from "../types"
+import { rgb, Vec2 } from "../math"
 import drawFunc from "./draw"
 import textFunc from "./text"
 import { DBG_FONT } from "../constants"
 
 import {
-    Vertex, Texture, RenderProps, Debug,
+    Vertex, RenderProps, Debug,
     DrawRectOpt, DrawLineOpt, DrawLinesOpt,
     DrawTriangleOpt, DrawPolygonOpt, DrawCircleOpt,
     DrawEllipseOpt, DrawUVQuadOpt, DrawSpriteOpt,
@@ -14,9 +14,12 @@ import {
     Anchor, gfxType, appType,
 } from "../types"
 
+import { Texture } from "../classes/Texture"
+
 export default (run,
     gopt: KaboomOpt, gfx: gfxType, assets: assetsType, game: gameType, app: appType, debug: Debug,
-    gl: WebGLRenderingContext, width: number, height: number): EventList<WindowEventMap> => {
+    gl: WebGLRenderingContext, gc: gcType, getRenderProps: RenderPropsType, width: number, height: number
+): EventList<WindowEventMap> => {
 
     const winEvents: EventList<WindowEventMap> = {}
 
@@ -25,7 +28,7 @@ export default (run,
 
         // TODO: this should only run once
         run(() => {
-            const DRAW = drawFunc(gopt, gfx, assets, game, app, debug, gl)
+            const DRAW = drawFunc(gopt, gfx, assets, game, app, debug, gl, gc, getRenderProps)
             const newText = textFunc(gopt, assets, gl, gc, app)
 
             DRAW.drawUnscaled(() => {
@@ -47,15 +50,15 @@ export default (run,
                 DRAW.drawRect({
                     width: gw,
                     height: gh,
-                    color: rgb(0, 0, 255),
+                    color: rgb([0, 0, 255]),
                     fixed: true,
                 })
 
                 const title = newText.formatText({
                     ...textStyle,
                     text: err.name,
-                    pos: vec2(pad),
-                    color: rgb(255, 128, 0),
+                    pos: new Vec2(pad),
+                    color: rgb([255, 128, 0]),
                     fixed: true,
                 })
 
@@ -64,7 +67,7 @@ export default (run,
                 DRAW.drawText({
                     ...textStyle,
                     text: err.message,
-                    pos: vec2(pad, pad + title.height + gap),
+                    pos: new Vec2(pad, pad + title.height + gap),
                     fixed: true,
                 })
 

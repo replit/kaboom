@@ -1,5 +1,20 @@
 import { KaboomOpt, TextureOpt } from "../types"
-
+/*
+export declare class Texture {
+	gl: WebGLRenderingContext
+	gc: (() => void)[]
+	gopt: KaboomOpt
+	glTex: WebGLTexture
+	width: number
+	height: number
+	constructor(w: number, h: number, gl: WebGLRenderingContext, gc: (() => void)[], gopt: KaboomOpt, opt?: TextureOpt)
+	static fromImage(img: TexImageSource, gl: WebGLRenderingContext, gc: (() => void)[], gopt: KaboomOpt, opt?: TextureOpt): Texture
+	update(x: number, y: number, img: TexImageSource)
+	bind()
+	unbind()
+	free()
+}
+*/
 export class Texture {
 	gl: WebGLRenderingContext
 	gc: (() => void)[]

@@ -1,5 +1,5 @@
 import { Vec2 } from "../math"
-import { appType, MouseButton, GameObj, EventController, Tag, gameType } from "../types"
+import { appType, MouseButton, GameObj, EventController, Tag, gameType, Cursor } from "../types"
 import type { MouseCtx } from "../types/mouse"
 
 type onType = (event: string, tag: Tag, cb: (obj: GameObj, ...args: any[]) => void) => EventController
@@ -141,6 +141,12 @@ export default (app: appType, game: gameType, on: onType): MouseCtx => {
         return game.ev.on("mouseMove", () => f(mousePos(), mouseDeltaPos()))
     }
 
+	function setCursor(c?: Cursor): Cursor {
+		if (c) {
+			app.canvas.style.cursor = c
+		}
+		return app.canvas.style.cursor
+	}
     return {
         get,
         onAdd, onClick, onHover,
@@ -156,5 +162,6 @@ export default (app: appType, game: gameType, on: onType): MouseCtx => {
         isMousePressed,
         isMouseReleased,
         isMouseMoved,
+		setCursor,
     }
 }

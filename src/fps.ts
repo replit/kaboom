@@ -14,7 +14,5 @@ export default class FPSCounter {
 			this.fps = Math.round(1 / (this.dts.reduce((a, b) => a + b) / this.dts.length))
 			this.dts = []
 		}
-
 	}
-
 }
