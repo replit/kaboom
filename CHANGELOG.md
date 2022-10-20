@@ -98,16 +98,6 @@ bean.destroy()
 
 - (**BREAK**) removed all deprecated functions in v2000.2
 - (**BREAK**) raised esbuild target to `esnext`
-- all event handlers now returns a `Promise` when the action is not passed. The Promise gets resolved when the event is triggered first time after the call
-
-```js
-async function test() {
-    await onKeyPress("space")
-    await wait(4)
-    await player.onGround()
-}
-```
-
 - moved type defs for global functions to `import "kaboom/global"`
 
 ```js

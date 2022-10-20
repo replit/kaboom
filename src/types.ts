@@ -619,12 +619,6 @@ export interface KaboomCtx {
 	 */
 	onUpdate(action: () => void): EventController,
 	/**
-	 * Wait for the next update event.
-	 *
-	 * @since v3000.0
-	 */
-	onUpdate(): Promise<void>,
-	/**
 	 * Register an event that runs every frame (~60 times per second) for all game objs with certain tag (this is the same as onUpdate but all draw events are run after update events, drawXXX() functions only work in this phase).
 	 *
 	 * @since v2000.1
@@ -647,12 +641,6 @@ export interface KaboomCtx {
 	 * ```
 	 */
 	onDraw(action: () => void): EventController,
-	/**
-	 * Wait for the next draw event.
-	 *
-	 * @since v3000.0
-	 */
-	onDraw(): Promise<void>,
 	onAdd(tag: Tag, action: (obj: GameObj) => void): EventController,
 	onAdd(action: (obj: GameObj) => void): EventController,
 	onDestroy(tag: Tag, action: (obj: GameObj) => void): EventController,
@@ -800,18 +788,6 @@ export interface KaboomCtx {
 	 */
 	onKeyPress(action: (key: Key) => void): EventController,
 	/**
-	 * Wait for the next key press.
-	 *
-	 * @since v3000.0
-	 */
-	onKeyPress(key: Key): Promise<Key>,
-	/**
-	 * Wait for the next key press.
-	 *
-	 * @since v3000.0
-	 */
-	onKeyPress(): Promise<Key>,
-	/**
 	 * Register an event that runs when user presses certain key (also fires repeatedly when they key is being held down).
 	 *
 	 * @since v2000.1
@@ -852,22 +828,22 @@ export interface KaboomCtx {
 	 *
 	 * @since v2000.1
 	 */
-	onMouseDown(action: (pos: Vec2) => void): EventController,
-	onMouseDown(button: MouseButton, action: (pos: Vec2) => void): EventController,
+	onMouseDown(action: (m: MouseButton) => void): EventController,
+	onMouseDown(button: MouseButton, action: (m: MouseButton) => void): EventController,
 	/**
 	 * Register an event that runs when user clicks mouse.
 	 *
 	 * @since v2000.1
 	 */
-	onMousePress(action: (pos: Vec2) => void): EventController,
-	onMousePress(button: MouseButton, action: (pos: Vec2) => void): EventController,
+	onMousePress(action: (m: MouseButton) => void): EventController,
+	onMousePress(button: MouseButton, action: (m: MouseButton) => void): EventController,
 	/**
 	 * Register an event that runs when user releases mouse.
 	 *
 	 * @since v2000.1
 	 */
-	onMouseRelease(action: (pos: Vec2) => void): EventController,
-	onMouseRelease(button: MouseButton, action: (pos: Vec2) => void): EventController,
+	onMouseRelease(action: (m: MouseButton) => void): EventController,
+	onMouseRelease(button: MouseButton, action: (m: MouseButton) => void): EventController,
 	/**
 	 * Register an event that runs whenever user move the mouse.
 	 *
@@ -1292,6 +1268,12 @@ export interface KaboomCtx {
 	 * @since v3000.0
 	 */
 	isVirtualButtonReleased(btn: VirtualButton): boolean,
+	/**
+	 * List of characters inputted since last frame.
+	 *
+	 * @since v3000.0
+	 */
+	charInputted(): string[],
 	/**
 	 * Camera shake.
 	 *
@@ -2146,7 +2128,7 @@ export type Key =
 	| "q" | "w" | "e" | "r" | "t" | "y" | "u" | "i" | "o" | "p" | "[" | "]" | "\\"
 	| "a" | "s" | "d" | "f" | "g" | "h" | "j" | "k" | "l" | "" | "'"
 	| "z" | "x" | "c" | "v" | "b" | "n" | "m" | "," | "." | "/"
-	| "backspace" | "enter" | "tab" | "space" | " "
+	| "escape" | "backspace" | "enter" | "tab" | "space" | " "
 	| "left" | "right" | "up" | "down"
 
 export type MouseButton =
@@ -4346,7 +4328,7 @@ export interface TimerComp extends Comp {
 	/**
 	 * Run the callback after n seconds.
 	 */
-	wait(n: number, action: () => void): EventController,
+	wait(n: number, action: () => void): TimerController,
 }
 
 export interface FixedComp extends Comp {
@@ -4539,7 +4521,15 @@ export type EaseFuncs =
 export type EaseFunc = (t: number) => number
 
 // TODO: use PromiseLike or extend Promise?
-export type TimerController = EventController & {
+export type TimerController = {
+	/**
+	 * If the event handler is paused.
+	 */
+	paused: boolean,
+	/**
+	 * Cancel the event handler.
+	 */
+	cancel(): void,
 	/**
 	 * Register an event when finished.
 	 */
