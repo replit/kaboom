@@ -45,7 +45,7 @@ fmts.forEach((fmt) => {
 			".mp3": "binary",
 		},
 		watch: isDev ? { onRebuild: log } : false,
-		entryPoints: [ srcPath ],
+		entryPoints: [srcPath],
 		globalName: "kaboom",
 		format: fmt.format,
 		outfile: distPath,
@@ -61,10 +61,39 @@ function writeFile(path, content) {
 
 buildTypes()
 
+function getTypeFileString(location) {
+	let file = fs.readFileSync(location, "utf-8")
+	const endImports = file.search("export ")
+	file = file.substring(endImports)
+	return file
+}
+
 // generate .d.ts / docs data
 function buildTypes() {
 
+	let importTypeFiles = []
+
+	fs.readdirSync(srcDir + "/types").forEach(file => {
+		if (file.indexOf(".") === -1) {
+			fs.readdirSync(srcDir + "/types/" + file).forEach(file2 => {
+				const location = srcDir + "/types/" + file + "/" + file2
+				const fileData = getTypeFileString(location)
+				importTypeFiles.push(fileData)
+			});
+		} else {
+			const location = srcDir + "/types/" + file
+			const fileData = getTypeFileString(location)
+			importTypeFiles.push(fileData)
+		}
+	});
+
 	let dts = fs.readFileSync(`${srcDir}/types.ts`, "utf-8")
+	const stoppingPoint = dts.search("declare ")
+	dts = dts.substring(stoppingPoint)
+
+	importTypeFiles.forEach((fileData) => {
+		dts = fileData + dts
+	})
 
 	const f = ts.createSourceFile(
 		"ts",
@@ -147,7 +176,7 @@ function buildTypes() {
 	const types = {}
 	const sections = [{
 		name: "Start",
-		entries: [ "kaboom" ],
+		entries: ["kaboom"],
 	}]
 
 	// generate global decls for KaboomCtx members

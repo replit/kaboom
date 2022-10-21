@@ -1,23 +1,5 @@
 import { KaboomEvent } from "./KaboomEvent"
 
-/*
-// TODO: use PromiseLike or extend Promise?
-//export declare class Asset<D> {
-	declare class Asset<D> {
-		done: boolean
-		data: D | null
-		error: Error | null
-		constructor(loader: Promise<D>)
-		static loaded<D>(data: D): Asset<D>
-		onLoad(action: (data: D) => void): Asset<D>
-		onError(action: (err: Error) => void): Asset<D>
-		onFinish(action: () => void): Asset<D>
-		then(action: (data: D) => void): Asset<D>
-		catch(action: (err: Error) => void): Asset<D>
-		finally(action: () => void): Asset<D>
-	}
-*/
-
 export class AssetData<D> {
 	done: boolean = false
 	data: D | null = null

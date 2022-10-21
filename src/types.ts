@@ -1,26 +1,28 @@
-import { Color, Vec2, Vec3, Mat4, Quad, Line, Rect, Circle, Polygon, RNG, Ellipse } from "./math"
-import { TextCtx } from "./types/text"
-import { DrawCtx } from "./types/draw"
-import { AudioCtx } from "./types/audio"
-import { MouseCtx } from "./types/mouse"
-import { AssetBucket } from "./classes/AssetBucket"
-import { ButtonState } from "./classes/ButtonState"
-import { AssetData } from "./classes/AssetData"
-import { SpriteData } from "./classes/SpriteData"
-import { SoundData } from "./classes/SoundData"
-import { KaboomEvent } from "./classes/KaboomEvent"
-import { EventHandler } from "./classes/EventHandler"
-import { Texture } from "./classes/Texture"
+import { Color, Vec2, Vec3, Mat4, Quad, Line, Rect, Circle, Polygon, RNG, Ellipse } from "./types/math"
 
-import FPSCounter from "./fps"
-import { CamCtx } from "./types/cam"
-import { VirtualCtx } from "./types/virtual"
-import { TouchCtx } from "./types/touch"
-import { KeyCtx } from "./types/key"
-import { ScreenCtx } from "./types/screen"
-import { SpriteCtx } from "./types/sprite"
-import { FontCtx } from "./types/font"
-import { ShaderCtx } from "./types/shaders"
+import { AudioCtx } from "./types/functions/audio"
+import { TextCtx } from "./types/functions/text"
+import { DrawCtx } from "./types/functions/draw"
+import { MouseCtx } from "./types/functions/mouse"
+import { CamCtx } from "./types/functions/cam"
+import { VirtualCtx } from "./types/functions/virtual"
+import { TouchCtx } from "./types/functions/touch"
+import { KeyCtx } from "./types/functions/key"
+import { ScreenCtx } from "./types/functions/screen"
+import { SpriteCtx } from "./types/functions/sprite"
+import { FontCtx } from "./types/functions/font"
+import { ShaderCtx } from "./types/functions/shaders"
+
+import { AssetBucket } from "./types/classes/AssetBucket"
+import { AssetData } from "./types/classes/AssetData"
+import { ButtonState } from "./types/classes/ButtonState"
+import { EventHandler } from "./types/classes/EventHandler"
+import { KaboomEvent } from "./types/classes/KaboomEvent"
+import { SoundData } from "./types/classes/SoundData"
+import { SpriteData } from "./types/classes/SpriteData"
+import { Texture } from "./types/classes/Texture"
+
+import { FPSCounter } from "./types/fps"
 
 /**
  * Initialize kaboom context. The starting point of all kaboom games.
@@ -54,7 +56,7 @@ import { ShaderCtx } from "./types/shaders"
  * k.vec2(...)
  * ```
  */
-declare function kaboom(options?: KaboomOpt): KaboomCtx
+declare function kaboom(options?: KaboomOpt): KaboomCoreCtx | KaboomCtx
 
 /**
  * Context handle that contains every kaboom function.
@@ -666,9 +668,6 @@ export interface KaboomCoreCtx {
 	 * @since v3000.0
 	 */
 	getShader(assets: assetsType, handle: string): AssetData<ShaderData> | void,
-	AssetData: typeof AssetData,
-	SpriteData: typeof SpriteData,
-	SoundData: typeof SoundData,
 	/**
 	 * Get the width of game.
 	 *
@@ -1294,6 +1293,9 @@ export interface KaboomCtx extends KaboomCoreCtx, AudioCtx, CamCtx, DrawCtx, Fon
 	 * The canvas DOM kaboom is currently using.
 	 */
 	canvas: HTMLCanvasElement,
+	AssetData: typeof AssetData,
+	SpriteData: typeof SpriteData,
+	SoundData: typeof SoundData,
 }
 
 export type Tag = string
@@ -2712,6 +2714,64 @@ export interface AreaCompCore extends CompCore {
 	 * @since v2000.1
 	 */
 	onClick(f: () => void): void,
+
+
+
+
+
+
+
+
+
+
+	/**
+	 * Register an event runs once when collide with another game obj with certain tag.
+	 *
+	 * @since v2001.0
+	 */
+	onCollide(tag: Tag, f: (obj: GameCoreObj, col?: CollisionCore) => void): void,
+	/**
+	 * Register an event runs once when collide with another game obj.
+	 *
+	 * @since v2000.1
+	 */
+	onCollide(f: (obj: GameCoreObj, col?: CollisionCore) => void): void,
+	/**
+	 * Register an event runs every frame when collide with another game obj with certain tag.
+	 *
+	 * @since v3000.0
+	 */
+	onCollideUpdate(tag: Tag, f: (obj: GameCoreObj, col?: CollisionCore) => void): EventController,
+	/**
+	 * Register an event runs every frame when collide with another game obj.
+	 *
+	 * @since v3000.0
+	 */
+	onCollideUpdate(f: (obj: GameCoreObj, col?: CollisionCore) => void): EventController,
+	/**
+	 * Register an event runs once when stopped colliding with another game obj with certain tag.
+	 *
+	 * @since v3000.0
+	 */
+	onCollideEnd(tag: Tag, f: (obj: GameCoreObj) => void): EventController,
+	/**
+	 * Register an event runs once when stopped colliding with another game obj.
+	 *
+	 * @since v3000.0
+	 */
+	onCollideEnd(f: (obj: GameCoreObj) => void): void,
+
+
+
+
+
+
+
+
+
+
+
+
 	/**
 	 * Register an event runs once when collide with another game obj with certain tag.
 	 *
@@ -2726,7 +2786,7 @@ export interface AreaCompCore extends CompCore {
 	//onCollide(f: (obj: GameObj, col?: Collision) => void): void,
 	//onCollide(tag: string, f: (obj: GameObj<any>, col?: Collision) => void): void
 	//onCollide: (tag: string, f: (obj: GameObj<any>, col?: Collision) => void): void; (tag: string, f: (obj: GameObj<any>, col?: Collision) => void): void;
-	onCollide: (this: GameCoreObj<any>, tag: string | ((obj: GameCoreObj<any>, col?: CollisionCore) => void), cb?: (obj: GameCoreObj<any>, col?: CollisionCore) => void) => EventController
+	//onCollide: (this: GameCoreObj<any>, tag: string | ((obj: GameCoreObj<any>, col?: CollisionCore) => void), cb?: (obj: GameCoreObj<any>, col?: CollisionCore) => void) => EventController
 	/**
 	 * Register an event runs every frame when collide with another game obj with certain tag.
 	 *
@@ -2739,7 +2799,7 @@ export interface AreaCompCore extends CompCore {
 	 * @since v3000.0
 	 */
 	//onCollideUpdate(f: (obj: GameObj, col?: Collision) => void): EventController,
-	onCollideUpdate: (this: GameCoreObj<AreaCompCore>, tag: string | ((obj: GameCoreObj<any>, col?: CollisionCore) => void), cb?: (obj: GameCoreObj<any>, col?: CollisionCore) => void) => EventController,
+	//onCollideUpdate: (this: GameCoreObj<AreaCompCore>, tag: string | ((obj: GameCoreObj<any>, col?: CollisionCore) => void), cb?: (obj: GameCoreObj<any>, col?: CollisionCore) => void) => EventController,
 	/**
 	 * Register an event runs once when stopped colliding with another game obj with certain tag.
 	 *
@@ -2752,7 +2812,21 @@ export interface AreaCompCore extends CompCore {
 	 * @since v3000.0
 	 */
 	//onCollideEnd(f: (obj: GameObj) => void): void,
-	onCollideEnd: (this: GameCoreObj<AreaCompCore>, tag: string | ((obj: GameCoreObj<any>) => void), cb?: (obj: GameCoreObj<any>) => void) => EventController,
+	//onCollideEnd: (this: GameCoreObj<AreaCompCore>, tag: string | ((obj: GameCoreObj<any>) => void), cb?: (obj: GameCoreObj<any>) => void) => EventController,
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 	/**
 	 * If has a certain point inside collider.
 	 */
@@ -3624,7 +3698,7 @@ export type assetsCoreType = {
 }
 
 export type assetsType = assetsCoreType & {
-	sprites: AssetBucket<SpriteData>;
+	sprites: AssetBucket<AssetData<SpriteData>>;
 	fonts: AssetBucket<FontFace>;
 	bitmapFonts: AssetBucket<GfxFont>;
 	sounds: AssetBucket<SoundData>;
@@ -3750,5 +3824,12 @@ export interface GridComp extends Comp {
 	moveUp(),
 	moveDown(),
 }
+
+export type AudioData = {
+	ctx: AudioContext;
+	masterNode: GainNode;
+	burpSnd: SoundData;
+}
+
 
 export default kaboom

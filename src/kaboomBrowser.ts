@@ -69,8 +69,8 @@ import fontFunc from "./functions/font"
 import spriteFunc from "./functions/sprite"
 import shaderFunc from "./functions/shaders"
 
-import { TextCtx } from "./types/text"
-import { DrawCtx } from "./types/draw"
+import { TextCtx } from "./types/functions/text"
+import { DrawCtx } from "./types/functions/draw"
 
 import FPSCounter from "./fps"
 import Timer from "./timer"
@@ -83,7 +83,7 @@ import beanSpriteSrc from "./assets/bean.png"
 import kaSpriteSrc from "./assets/ka.png"
 // @ts-ignore
 import boomSpriteSrc from "./assets/boom.png"
-import { SpriteCtx } from "./types/sprite"
+import { SpriteCtx } from "./types/functions/sprite"
 
 // only exports one kaboom() which contains all the state
 export default (gopt: KaboomOpt = {}): KaboomCtx => {
@@ -193,9 +193,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			paused: false,
 
 			fpsCounter: new FPSCounter(),
-
 		}
-
 	})()
 
 	const gl: glType = app.canvas
@@ -211,12 +209,12 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		// prefix for when loading from a url
 		urlPrefix: "",
 		// asset holders
-		sprites: new AssetBucket<SpriteData>(),
-		fonts: new AssetBucket<FontData>(),
-		bitmapFonts: new AssetBucket<BitmapFontData>(),
-		sounds: new AssetBucket<SoundData>(),
-		shaders: new AssetBucket<ShaderData>(),
-		custom: new AssetBucket<any>(),
+		sprites: new AssetBucket<SpriteData>() as any,
+		fonts: new AssetBucket<FontData>() as any,
+		bitmapFonts: new AssetBucket<BitmapFontData>() as any,
+		sounds: new AssetBucket<SoundData>() as any,
+		shaders: new AssetBucket<ShaderData>() as any,
+		custom: new AssetBucket<any>() as any,
 		// if we finished initially loading all assets
 		loaded: false,
 	}

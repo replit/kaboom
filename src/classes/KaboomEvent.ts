@@ -1,14 +1,6 @@
 import { IDList } from "./IDList"
 import type { EventController } from "../types"
-/*
-export declare class Event<Args extends any[] = any[]> {
-    add(action: (...args: Args) => void): EventController
-    addOnce(action: (...args) => void): EventController
-    next(): Promise<Args>
-    trigger(...args: Args)
-    numListeners(): number
-}
-*/
+
 export class KaboomEvent<Args extends any[] = any[]> {
     private handlers: IDList<(...args: Args) => void> = new IDList()
     

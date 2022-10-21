@@ -1,16 +1,6 @@
 import { EventController } from "../types"
 import { KaboomEvent } from "./KaboomEvent"
-/*
-export declare class EventHandler<E = string> {
-    on(name: E, action: (...args) => void): EventController
-    onOnce(name: E, action: (...args) => void): EventController
-    next(name: E): Promise<unknown>
-    trigger(name: E, ...args)
-    remove(name: E)
-    clear()
-    numListeners(name: E): number
-}
-*/
+
 // TODO: be able to type each event
 export class EventHandler<E = string> {
     private handlers: Map<E, KaboomEvent> = new Map()

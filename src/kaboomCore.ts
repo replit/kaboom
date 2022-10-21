@@ -1,76 +1,45 @@
 import {
-    sat, Vec2, Vec3, Rect, Polygon, Line, Circle,
+    sat, Vec2, Rect, Polygon, Line, Circle,
     Color, Mat4, Quad, RNG, quad, rgb, hsl2rgb,
-    rand, randi, randSeed, chance, choose, clamp, lerp, map,
+    rand, randi, randSeed, chance, choose, lerp, map,
     mapc, wave, testLineLine, testRectRect,
     testRectLine, testRectPoint, testPolygonPoint,
-    testCirclePoint, deg2rad, rad2deg, easings,
+    deg2rad, rad2deg, easings,
 } from "./math"
 
 import {
     download, onLoad, calcTransform,
     downloadText, downloadJSON, downloadBlob,
-    uid, isDataURL, deepEq,
-    dataURLToArrayBuffer,
-    // eslint-disable-next-line
-    warn,
-    // eslint-disable-next-line
-    benchmark,
-    loadProgress, anchorPt, alignPt, createEmptyAudioBuffer, getBitmapFont, getShader, fetchURL
+    uid, loadProgress, anchorPt, getBitmapFont, getShader
 } from "./utils"
 
 import {
-    GridComp, gfxCoreType, gameCoreType, DebugCore, GameCoreObj, FormattedText, RenderPropsType,
-    DrawRectOpt, DrawLineOpt, DrawLinesOpt, DrawTriangleOpt, DrawPolygonOpt, DrawCircleOpt,
-    DrawEllipseOpt, DrawUVQuadOpt, Vertex, FontData, BitmapFontData, ShaderData, LoadSpriteSrc,
-    LoadSpriteOpt, SpriteAtlasData, LoadBitmapFontOpt, KaboomCoreCtx, KaboomOpt, AudioPlay, AudioPlayOpt,
-    DrawSpriteOpt, DrawTextOpt, TextAlign, EventController, SceneID, SceneDef, CompList,
-    Comp, Tag, Key, MouseButton, PosCoreComp, ScaleComp, RotateComp, ColorComp, OpacityComp, Anchor,
-    AnchorComp, ZComp, FollowCompCore, MoveComp, OffScreenCompOpt, OffScreenComp, AreaCompOpt, AreaCompCore,
-    SpriteComp, SpriteCompOpt, SpriteAnimPlayOpt, SpriteAnims, TextCompCore, TextCompOpt, RectCompCore, RectCompOpt,
-    UVQuadCompCore, CircleCompCore, OutlineComp, TimerComp, BodyCompCore, BodyCompOpt, Uniform, ShaderComp, FixedComp,
-    StayComp, HealthComp, LifespanComp, LifespanCompOpt, StateComp, Debug, KaboomPlugin, MergeObj, LevelCompCore, LevelOpt,
-    Cursor, Recording, BoomOpt, PeditFile, Shape, DoubleJumpComp, VirtualButton, TimerController, TweenController,
-    EventList, SpriteCurAnim, assetsCoreType, gfxType, appType, gameType, glType, gcType, appCoreType
+    GridComp, gfxCoreType, gameCoreType, DebugCore, GameCoreObj, FontData, BitmapFontData, ShaderData,
+    KaboomCoreCtx, KaboomOpt, EventController, SceneID, SceneDef, CompList,
+    Comp, Tag, PosCoreComp, ScaleComp, RotateComp, ColorComp, OpacityComp, Anchor,
+    AnchorComp, ZComp, FollowCompCore, MoveComp, AreaCompOpt, AreaCompCore,
+    RectCompCore, RectCompOpt,
+    UVQuadCompCore, CircleCompCore, OutlineComp, TimerComp, BodyCompCore, BodyCompOpt, FixedComp,
+    StayComp, HealthComp, LifespanComp, LifespanCompOpt, StateComp, LevelCompCore, LevelOpt,
+    Shape, DoubleJumpComp, TimerController, TweenController,
+    assetsCoreType, gcType, appCoreType
 } from "./types"
 
 import {
-    VERSION, KEY_ALIAS, MOUSE_BUTTONS, PREVENT_DEFAULT_KEYS, ASCII_CHARS, DEF_JUMP_FORCE, MAX_VEL, MIN_SPEED,
-    MAX_SPEED, MIN_DETUNE, MAX_DETUNE, DEF_ANCHOR, BG_GRID_SIZE, DEF_FONT, DBG_FONT, DEF_TEXT_SIZE, DEF_TEXT_CACHE_SIZE,
-    FONT_ATLAS_SIZE, UV_PAD, LOG_MAX, VERTEX_FORMAT, STRIDE, MAX_BATCHED_QUAD, MAX_BATCHED_VERTS, MAX_BATCHED_INDICES,
-    VERT_TEMPLATE, FRAG_TEMPLATE, DEF_VERT, DEF_FRAG, COMP_DESC, COMP_EVENTS, DEF_HASH_GRID_SIZE
+    VERSION, ASCII_CHARS, DEF_JUMP_FORCE, MAX_VEL, DEF_ANCHOR,
+    LOG_MAX, COMP_DESC, COMP_EVENTS, DEF_HASH_GRID_SIZE
 } from "./constants"
 
-import { Texture } from "./classes/Texture"
+import { EventHandler } from "./classes/EventHandler"
+import { IDList } from "./classes/IDList"
+import { CollisionCore } from "./classes/Collision"
+import { KaboomEvent } from "./classes/KaboomEvent"
+/*
 import { SpriteData } from "./classes/SpriteData"
 import { SoundData } from "./classes/SoundData"
 import { AssetData } from "./classes/AssetData"
-import { AssetBucket } from "./classes/AssetBucket"
-import { CollisionCore } from "./classes/Collision"
-import { IDList } from "./classes/IDList"
-import { KaboomEvent } from "./classes/KaboomEvent"
 import { ButtonState } from "./classes/ButtonState"
-import { EventHandler } from "./classes/EventHandler"
-
-
-import drawFunc from "./functions/draw"
-import textFunc from "./functions/text"
-import docEventsFunc from "./functions/docEvents"
-import canvasEventsFunc from "./functions/canvasEvents"
-import winEventsFunc from "./functions/winEvents"
-import audioFunc from "./functions/audio"
-import mouseFunc from "./functions/mouse"
-import camFunc from "./functions/cam"
-import virtualFunc from "./functions/virtual"
-import keyFunc from "./functions/key"
-import touchFunc from "./functions/touch"
-import screenFunc from "./functions/screen"
-import fontFunc from "./functions/font"
-import spriteFunc from "./functions/sprite"
-import shaderFunc from "./functions/shaders"
-
-import { TextCtx } from "./types/text"
-import { DrawCtx } from "./types/draw"
+*/
 
 import FPSCounter from "./fps"
 import Timer from "./timer"
@@ -103,20 +72,6 @@ export default (gopt: KaboomOpt = {}): KaboomCoreCtx => {
     const assets: assetsCoreType = {
         // prefix for when loading from a url
         urlPrefix: "",
-        // if we finished initially loading all assets
-        loaded: false,
-    }
-
-    const assets22 = {
-        // prefix for when loading from a url
-        urlPrefix: "",
-        // asset holders
-        sprites: new AssetBucket<SpriteData>(),
-        fonts: new AssetBucket<FontData>(),
-        bitmapFonts: new AssetBucket<BitmapFontData>(),
-        sounds: new AssetBucket<SoundData>(),
-        shaders: new AssetBucket<ShaderData>(),
-        custom: new AssetBucket<any>(),
         // if we finished initially loading all assets
         loaded: false,
     }
@@ -1759,20 +1714,33 @@ export default (gopt: KaboomOpt = {}): KaboomCoreCtx => {
         game.ev.on("error", action)
     }
 
-    function run(f: () => void) {
+    function requestHeadlessFrame(f) {
+        try {
+            setImmediate(() => f(Date.now()))
+        } catch (e) {
+            console.log("Kaboom Core Loop Error")
+            quit()
+        }
+        return Date.now()
+    }
 
+    function run(f: () => void) {
+        /*
         if (app.loopID !== null) {
             cancelAnimationFrame(app.loopID)
         }
+        */
 
         const frame = (t: number) => {
 
             if (app.stopped) return
 
+            /*
             if (document.visibilityState !== "visible") {
                 app.loopID = requestAnimationFrame(frame)
                 return
             }
+            */
 
             const realTime = t / 1000
             const realDt = realTime - app.realTime
@@ -1790,12 +1758,13 @@ export default (gopt: KaboomOpt = {}): KaboomCoreCtx => {
             f()
 
             game.ev.trigger("frameEnd")
-            app.loopID = requestAnimationFrame(frame)
-
+            // app.loopID = requestAnimationFrame(frame)
+            app.loopID = requestHeadlessFrame(frame)
         }
-
-        frame(0)
-
+        
+		app.realTime = Date.now()
+		frame(app.realTime)
+        //frame(0)
     }
 
     function quit() {
@@ -1869,9 +1838,6 @@ export default (gopt: KaboomOpt = {}): KaboomCoreCtx => {
         loadProgress,
         getBitmapFont,
         getShader,
-        AssetData,
-        SpriteData,
-        SoundData,
         // query
         width,
         height,

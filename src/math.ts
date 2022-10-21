@@ -1,9 +1,4 @@
-export declare class Vec4 {
-	x: number
-	y: number
-	z: number
-	w: number
-}
+import { Vec4 } from "./types/math"
 
 export function deg2rad(deg: number): number {
 	return deg * Math.PI / 180

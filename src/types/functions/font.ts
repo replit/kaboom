@@ -1,15 +1,6 @@
-import {
-    EventController, Anchor, DrawSpriteOpt, LoadBitmapFontOpt,
-    DrawTextOpt, FormattedText, FontData, BitmapFontData, FormattedChar,
-    TextAlign, CharTransform, assetsType, appType,
-} from "../types"
-import { Vec2, Quad, Color } from "../math"
-import { DEF_FONT, DEF_TEXT_CACHE_SIZE, FONT_ATLAS_SIZE } from "../constants"
-import { loadProgress, getBitmapFont } from "../utils"
-import { SpriteData } from "../classes/SpriteData"
-import { TextCtx } from "../types/text"
-
-import { AssetData } from "../classes/AssetData"
+import { LoadBitmapFontOpt, DrawTextOpt, FontData, BitmapFontData } from "../../types"
+import { AssetData } from "../../classes/AssetData"
+import { Vec2 } from "../../math"
 
 export type FontCtx = {
 	/**
@@ -34,9 +25,9 @@ export type FontCtx = {
 		gridHeight: number,
 		options?: LoadBitmapFontOpt,
 	): AssetData<BitmapFontData>
-    //loadBitmapFont(name: string | null, src: string, gw: number, gh: number, opt?: LoadBitmapFontOpt): AssetData<BitmapFontData>
-    fontAtlases: Record<string, FontAtlas>
-    resolveFont: (src: DrawTextOpt["font"]) => FontData | AssetData<FontData> | BitmapFontData | AssetData<BitmapFontData> | string | void
+	//loadBitmapFont(name: string | null, src: string, gw: number, gh: number, opt?: LoadBitmapFontOpt): AssetData<BitmapFontData>
+	fontAtlases: Record<string, FontAtlas>
+	resolveFont: (src: DrawTextOpt["font"]) => FontData | AssetData<FontData> | BitmapFontData | AssetData<BitmapFontData> | string | void
 	/**
 	 * Load a font (any format supported by the browser, e.g. ttf, otf, woff)
 	 *
@@ -58,6 +49,6 @@ export type FontCtx = {
 }
 
 export type FontAtlas = {
-    font: BitmapFontData,
-    cursor: Vec2,
+	font: BitmapFontData,
+	cursor: Vec2,
 }

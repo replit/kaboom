@@ -1,5 +1,5 @@
-import { AssetData } from "../classes/AssetData"
-import { ShaderData, RenderProps, GfxShader, ShaderComp } from "../types"
+import { AssetData } from "../../classes/AssetData"
+import { ShaderData, RenderProps, GfxShader, ShaderComp } from "../../types"
 
 export type ShaderCtx = {
 	/**

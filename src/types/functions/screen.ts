@@ -1,4 +1,4 @@
-import { OffScreenCompOpt, OffScreenComp } from "../types"
+import { OffScreenCompOpt, OffScreenComp } from "../../types"
 
 export type ScreenCtx = {
     /**

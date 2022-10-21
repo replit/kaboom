@@ -1,4 +1,4 @@
-import { Vec2 } from "../math"
+import { Vec2 } from "../../math"
 import {
     FormattedText,
     DrawRectOpt,
@@ -11,7 +11,7 @@ import {
     DrawUVQuadOpt,
     DrawSpriteOpt,
     DrawTextOpt,
-} from "../types"
+} from "../../types"
 
 export type DrawCtx = {
     /**

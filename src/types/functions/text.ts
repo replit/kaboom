@@ -1,6 +1,4 @@
-import {
-    DrawTextOpt, FormattedText, TextCompOpt, TextComp
-} from "../types"
+import { DrawTextOpt, FormattedText, TextCompOpt, TextComp } from "../../types"
 
 export type TextCtx = {
     /**

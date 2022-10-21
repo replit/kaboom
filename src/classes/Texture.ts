@@ -1,20 +1,5 @@
-import { KaboomOpt, TextureOpt } from "../types"
-/*
-export declare class Texture {
-	gl: WebGLRenderingContext
-	gc: (() => void)[]
-	gopt: KaboomOpt
-	glTex: WebGLTexture
-	width: number
-	height: number
-	constructor(w: number, h: number, gl: WebGLRenderingContext, gc: (() => void)[], gopt: KaboomOpt, opt?: TextureOpt)
-	static fromImage(img: TexImageSource, gl: WebGLRenderingContext, gc: (() => void)[], gopt: KaboomOpt, opt?: TextureOpt): Texture
-	update(x: number, y: number, img: TexImageSource)
-	bind()
-	unbind()
-	free()
-}
-*/
+import { KaboomOpt, TextureOpt, glType, gcType } from "../types"
+
 export class Texture {
 	gl: WebGLRenderingContext
 	gc: (() => void)[]
@@ -24,7 +9,7 @@ export class Texture {
 	width: number
 	height: number
 
-	constructor(w: number, h: number, gl: WebGLRenderingContext, gc: (() => void)[], gopt: KaboomOpt, opt: TextureOpt = {}) {
+	constructor(w: number, h: number, gl: glType, gc: gcType, gopt: KaboomOpt, opt: TextureOpt = {}) {
 		this.gl = gl
 		this.gc = gc
 		this.gopt = gopt
@@ -73,7 +58,7 @@ export class Texture {
 
 	}
 
-	static fromImage(img: TexImageSource, gl: WebGLRenderingContext, gc: (() => void)[], gopt: KaboomOpt, opt: TextureOpt = {}): Texture {
+	static fromImage(img: TexImageSource, gl: glType, gc: gcType, gopt: KaboomOpt, opt: TextureOpt = {}): Texture {
 		const tex = new Texture(0, 0, gl, gc, gopt, opt)
 		tex.bind()
 		gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, img)

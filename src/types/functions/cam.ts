@@ -1,4 +1,4 @@
-import { Vec2 } from "../math"
+import { Vec2 } from "../../math"
 
 export type CamCtx = {
     /**

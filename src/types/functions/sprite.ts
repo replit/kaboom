@@ -1,15 +1,6 @@
-import {
-    LoadSpriteSrc, LoadSpriteOpt, SpriteAtlasData, SpriteCompOpt,
-    SpriteComp, DrawSpriteOpt, FontData, BitmapFontData, FormattedChar,
-    TextAlign, CharTransform, assetsType, appType,
-} from "../types"
-import { Vec2, Quad, Color } from "../math"
-import { DEF_FONT, DEF_TEXT_CACHE_SIZE, FONT_ATLAS_SIZE } from "../constants"
-import { loadProgress, getBitmapFont } from "../utils"
-import { SpriteData } from "../classes/SpriteData"
-import { TextCtx } from "../types/text"
-
-import { AssetData } from "../classes/AssetData"
+import { LoadSpriteSrc, LoadSpriteOpt, SpriteAtlasData, SpriteCompOpt, SpriteComp, DrawSpriteOpt } from "../../types"
+import { SpriteData } from "../../classes/SpriteData"
+import { AssetData } from "../../classes/AssetData"
 
 export type SpriteCtx = {
 	/**

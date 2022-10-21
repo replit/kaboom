@@ -1,4 +1,4 @@
-import { Key, EventController } from "../types"
+import { Key, EventController } from "../../types"
 
 export type KeyCtx = {
     /**

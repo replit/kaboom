@@ -1,5 +1,5 @@
-import { Vec2 } from "../math"
-import { GameObj, EventController, Tag, MouseButton, Cursor } from "../types"
+import { Vec2 } from "../../math"
+import { GameObj, EventController, Tag, MouseButton, Cursor } from "../../types"
 
 export type MouseCtx = {
 	/**

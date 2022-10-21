@@ -1,4 +1,4 @@
-import { VirtualButton, EventController, gameType, appType } from "../types"
+import { VirtualButton, EventController } from "../../types"
 
 export type VirtualCtx = {
 	/**

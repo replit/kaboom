@@ -1,5 +1,5 @@
-import { Vec2 } from "../math"
-import { EventController } from "../types"
+import { Vec2 } from "../../math"
+import { EventController } from "../../types"
 
 export type TouchCtx = {
 	/**

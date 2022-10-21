@@ -1,6 +1,6 @@
-import { SoundData } from "../classes/SoundData"
-import { AssetData } from "../classes/AssetData"
-import { AudioPlayOpt, AudioPlay } from "../types"
+import { SoundData } from "../../classes/SoundData"
+import { AssetData } from "../../classes/AssetData"
+import { AudioPlayOpt, AudioPlay } from "../../types"
 
 export type AudioCtx = {
     ctx: AudioContext

@@ -4,7 +4,7 @@ export class AssetBucket<D> {
 	assets: Map<string, AssetData<D>> = new Map()
 	lastUID: number = 0
 	add(name: string | null, loader: Promise<D>): AssetData<D> {
-        // if user don't provide a name we use a generated one
+		// if user don't provide a name we use a generated one
 		const id = name ?? (this.lastUID++ + "")
 		const asset = new AssetData(loader)
 		this.assets.set(id, asset)
