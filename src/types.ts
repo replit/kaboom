@@ -611,17 +611,6 @@ export interface KaboomCoreCtx {
 	 */
 	onError(action: (err: Error) => void): void,
 	/**
-	 * Register an event that runs when the canvas resizes
-	 *
-	 * @since v3000.0
-	 */
-	onResize(action: (
-		prevWidth: number,
-		prevHeight: number,
-		curWidth: number,
-		curHeight: number,
-	) => void): void,
-	/**
 	 * Register an event that runs when 2 game objs with certain tags collides (required to have area() component).
 	 *
 	 * @since v2000.1
@@ -1296,6 +1285,17 @@ export interface KaboomCtx extends KaboomCoreCtx, AudioCtx, CamCtx, DrawCtx, Fon
 	AssetData: typeof AssetData,
 	SpriteData: typeof SpriteData,
 	SoundData: typeof SoundData,
+	/**
+	 * Register an event that runs when the canvas resizes
+	 *
+	 * @since v3000.0
+	 */
+	onResize(action: (
+		prevWidth: number,
+		prevHeight: number,
+		curWidth: number,
+		curHeight: number,
+	) => void): void,
 }
 
 export type Tag = string
@@ -2844,10 +2844,6 @@ export interface AreaCompCore extends CompCore {
 	 * Get the geometry data for the collider in world coordinate space.
 	 */
 	worldArea(): Polygon,
-	/**
-	 * Get the geometry data for the collider in screen coordinate space.
-	 */
-	screenArea(): Polygon,
 }
 
 export interface AreaComp extends AreaCompCore, Comp {
@@ -2944,6 +2940,10 @@ export interface AreaComp extends AreaCompCore, Comp {
 	 * @since v2000.1
 	 */
 	onClick(f: () => void): void,
+	/**
+	 * Get the geometry data for the collider in screen coordinate space.
+	 */
+	screenArea(): Polygon,
 }
 
 export interface SpriteCompOpt {

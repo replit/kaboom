@@ -4,7 +4,7 @@ import {
     rand, randi, randSeed, chance, choose, lerp, map,
     mapc, wave, testLineLine, testRectRect,
     testRectLine, testRectPoint, testPolygonPoint,
-    deg2rad, rad2deg, easings,
+    deg2rad, rad2deg, easings, vec2
 } from "./math"
 
 import {
@@ -14,7 +14,7 @@ import {
 } from "./utils"
 
 import {
-    GridComp, gfxCoreType, gameCoreType, DebugCore, GameCoreObj, FontData, BitmapFontData, ShaderData,
+    GridComp, gfxCoreType, gameCoreType, DebugCore, GameCoreObj,
     KaboomCoreCtx, KaboomOpt, EventController, SceneID, SceneDef, CompList,
     Comp, Tag, PosCoreComp, ScaleComp, RotateComp, ColorComp, OpacityComp, Anchor,
     AnchorComp, ZComp, FollowCompCore, MoveComp, AreaCompOpt, AreaCompCore,
@@ -34,14 +34,7 @@ import { EventHandler } from "./classes/EventHandler"
 import { IDList } from "./classes/IDList"
 import { CollisionCore } from "./classes/Collision"
 import { KaboomEvent } from "./classes/KaboomEvent"
-/*
-import { SpriteData } from "./classes/SpriteData"
-import { SoundData } from "./classes/SoundData"
-import { AssetData } from "./classes/AssetData"
-import { ButtonState } from "./classes/ButtonState"
-*/
 
-import FPSCounter from "./fps"
 import Timer from "./timer"
 
 // only exports one kaboom() which contains all the state
@@ -552,32 +545,32 @@ export default (gopt: KaboomOpt = {}): KaboomCoreCtx => {
         return {
 
             id: "pos",
-            pos: new Vec2(...args),
+            pos: vec2(...args),
 
             moveBy(...args) {
-                this.pos = this.pos.add(new Vec2(...args))
+                this.pos = this.pos.add(vec2(...args))
             },
 
             // move with velocity (pixels per second)
             move(...args) {
                 const delta = dt()
-                this.moveBy(new Vec2(...args).scale(new Vec2(delta, delta)))
+                this.moveBy(vec2(...args).scale(vec2(delta)))
             },
 
             // move to a destination, with optional speed
             moveTo(...args) {
                 if (typeof args[0] === "number" && typeof args[1] === "number") {
-                    return this.moveTo(new Vec2(args[0], args[1]), args[2])
+                    return this.moveTo(vec2(args[0], args[1]), args[2])
                 }
                 const dest = args[0]
                 const speed = args[1]
                 if (speed === undefined) {
-                    this.pos = new Vec2(dest)
+                    this.pos = vec2(dest)
                     return
                 }
                 const diff = dest.sub(this.pos)
                 if (diff.len() <= speed * dt()) {
-                    this.pos = new Vec2(dest)
+                    this.pos = vec2(dest)
                     return
                 }
                 this.move(diff.unit().scale(speed))
@@ -597,9 +590,9 @@ export default (gopt: KaboomOpt = {}): KaboomCoreCtx => {
         }
         return {
             id: "scale",
-            scale: new Vec2(...args),
+            scale: vec2(...args),
             scaleTo(...args) {
-                this.scale = new Vec2(...args)
+                this.scale = vec2(...args)
             },
             inspect() {
                 if (typeof this.scale === "number") {
@@ -688,7 +681,7 @@ export default (gopt: KaboomOpt = {}): KaboomCoreCtx => {
             require: ["pos"],
             follow: {
                 obj: obj,
-                offset: offset ?? new Vec2(0),
+                offset: offset ?? vec2(0),
             },
             add(this: GameCoreObj<FollowCompCore | PosCoreComp>) {
                 if (obj.exists()) {
@@ -749,8 +742,8 @@ export default (gopt: KaboomOpt = {}): KaboomCoreCtx => {
 
             area: {
                 shape: opt.shape ?? null,
-                scale: opt.scale ?? new Vec2(1),
-                offset: opt.offset ?? new Vec2(0),
+                scale: opt.scale ?? vec2(1),
+                offset: opt.offset ?? vec2(0),
                 cursor: opt.cursor ?? null,
             },
 
@@ -773,14 +766,6 @@ export default (gopt: KaboomOpt = {}): KaboomCoreCtx => {
 
             isTouching(other) {
                 return Boolean(this.checkCollision(other))
-            },
-
-            onClick(this: GameCoreObj, f: () => void): EventController {
-                return this.onUpdate(() => {
-                    if (this.isClicked()) {
-                        f()
-                    }
-                })
             },
 
             onCollide(
@@ -857,15 +842,15 @@ export default (gopt: KaboomOpt = {}): KaboomCoreCtx => {
                 }
 
                 let transform = this.transform
-                    .scale(new Vec2(this.area.scale ?? 1))
+                    .scale(vec2(this.area.scale ?? 1))
                     .translate(this.area.offset)
 
                 if (localArea instanceof Rect) {
                     const bbox = localArea.bbox()
                     const offset = anchorPt(this.anchor || DEF_ANCHOR)
-                        .add(new Vec2(1, 1))
+                        .add(vec2(1, 1))
                         .scale(-0.5)
-                        .scale(new Vec2(bbox.width, bbox.height))
+                        .scale(vec2(bbox.width, bbox.height))
                     transform = transform.translate(offset)
                 }
 
@@ -882,7 +867,7 @@ export default (gopt: KaboomOpt = {}): KaboomCoreCtx => {
             height: h,
             radius: opt.radius || 0,
             renderArea() {
-                return new Rect(new Vec2(0), this.width, this.height)
+                return new Rect(vec2(0), this.width, this.height)
             },
             inspect() {
                 return `${Math.ceil(this.width)}, ${Math.ceil(this.height)}`
@@ -896,7 +881,7 @@ export default (gopt: KaboomOpt = {}): KaboomCoreCtx => {
             width: w,
             height: h,
             renderArea() {
-                return new Rect(new Vec2(0), this.width, this.height)
+                return new Rect(vec2(0), this.width, this.height)
             },
             inspect() {
                 return `${Math.ceil(this.width)}, ${Math.ceil(this.height)}`
@@ -909,7 +894,7 @@ export default (gopt: KaboomOpt = {}): KaboomCoreCtx => {
             id: "circle",
             radius: radius,
             renderArea() {
-                return new Circle(new Vec2(0), this.radius)
+                return new Circle(vec2(0), this.radius)
             },
             inspect() {
                 return `${Math.ceil(this.radius)}`
@@ -1442,28 +1427,28 @@ export default (gopt: KaboomOpt = {}): KaboomCoreCtx => {
             gridPos: p.clone(),
 
             setGridPos(this: GameCoreObj<GridComp | PosCoreComp>, ...args) {
-                const p = new Vec2(...args)
+                const p = vec2(...args)
                 this.gridPos = p.clone()
-                this.pos = new Vec2(
+                this.pos = vec2(
                     this.gridPos.x * level.gridWidth(),
                     this.gridPos.y * level.gridHeight(),
                 )
             },
 
             moveLeft() {
-                this.setGridPos(this.gridPos.add(new Vec2(-1, 0)))
+                this.setGridPos(this.gridPos.add(vec2(-1, 0)))
             },
 
             moveRight() {
-                this.setGridPos(this.gridPos.add(new Vec2(1, 0)))
+                this.setGridPos(this.gridPos.add(vec2(1, 0)))
             },
 
             moveUp() {
-                this.setGridPos(this.gridPos.add(new Vec2(0, -1)))
+                this.setGridPos(this.gridPos.add(vec2(0, -1)))
             },
 
             moveDown() {
-                this.setGridPos(this.gridPos.add(new Vec2(0, 1)))
+                this.setGridPos(this.gridPos.add(vec2(0, 1)))
             },
 
         }
@@ -1477,7 +1462,7 @@ export default (gopt: KaboomOpt = {}): KaboomCoreCtx => {
         }
 
         const level = add([
-            pos(opt.pos ?? new Vec2(0)),
+            pos(opt.pos ?? vec2(0)),
         ])
 
         let maxRowLen = 0
@@ -1495,8 +1480,8 @@ export default (gopt: KaboomOpt = {}): KaboomCoreCtx => {
             },
 
             getPos(...args): Vec2 {
-                const p = new Vec2(...args)
-                return new Vec2(
+                const p = vec2(...args)
+                return vec2(
                     p.x * opt.width,
                     p.y * opt.height,
                 )
@@ -1504,7 +1489,7 @@ export default (gopt: KaboomOpt = {}): KaboomCoreCtx => {
 
             spawn(this: GameCoreObj<LevelCompCore>, key: string, ...args): GameCoreObj {
 
-                const p = new Vec2(...args)
+                const p = vec2(...args)
 
                 const comps = (() => {
                     if (opt[key]) {
@@ -1521,7 +1506,7 @@ export default (gopt: KaboomOpt = {}): KaboomCoreCtx => {
                     return
                 }
 
-                const posComp = new Vec2(
+                const posComp = vec2(
                     p.x * opt.width,
                     p.y * opt.height,
                 )
@@ -1560,7 +1545,7 @@ export default (gopt: KaboomOpt = {}): KaboomCoreCtx => {
             maxRowLen = Math.max(keys.length, maxRowLen)
 
             keys.forEach((key, j) => {
-                level.spawn(key, new Vec2(j, i))
+                level.spawn(key, vec2(j, i))
             })
 
         })
@@ -1579,23 +1564,6 @@ export default (gopt: KaboomOpt = {}): KaboomCoreCtx => {
     const destroyAll = game.root.removeAll.bind(game.root)
     //const get = game.root.get.bind(game.root)
     const getAll = game.root.getAll.bind(game.root)
-
-    // TODO: expose this
-    function boom(speed: number = 2, size: number = 1): Comp {
-        let time = 0
-        return {
-            id: "boom",
-            require: ["scale"],
-            update(this: GameCoreObj<ScaleComp>) {
-                const s = Math.sin(time * speed) * size
-                if (s < 0) {
-                    this.destroy()
-                }
-                this.scale = new Vec2(s)
-                time += dt()
-            },
-        }
-    }
 
     function updateFrame() {
         // update every obj
@@ -1699,15 +1667,6 @@ export default (gopt: KaboomOpt = {}): KaboomCoreCtx => {
 
     function onLoadUpdate(action: (err: Error) => void) {
         game.ev.on("loading", action)
-    }
-
-    function onResize(action: (
-        prevWidth: number,
-        prevHeight: number,
-        curWidth: number,
-        curHeight: number,
-    ) => void) {
-        game.ev.on("resize", action)
     }
 
     function onError(action: (err: Error) => void) {
@@ -1845,7 +1804,6 @@ export default (gopt: KaboomOpt = {}): KaboomCoreCtx => {
         time,
         onLoad,
         onLoadUpdate,
-        onResize,
         onError,
         gravity,
         // obj
