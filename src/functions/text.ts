@@ -1,12 +1,12 @@
 import {
-    KaboomOpt, glType, gcType,
+    KaboomOpt, glType, gcType, TextCompOpt, TextComp, GameObj, RenderPropsType,
     DrawTextOpt, FormattedText, FontData, BitmapFontData, FormattedChar,
-    TextAlign, CharTransform, assetsType, appType,
+    TextAlign, CharTransform, assetsType, appType, gameType, gfxType, Debug,
 } from "../types"
-import { Vec2, Quad, Color } from "../math"
-import { fetchURL } from "../utils"
+import { Vec2, Quad, Color, Rect } from "../math"
+import { fetchURL, onLoad } from "../utils"
 
-import { DEF_FONT, DEF_TEXT_CACHE_SIZE, FONT_ATLAS_SIZE } from "../constants"
+import { DEF_FONT, DEF_TEXT_CACHE_SIZE, FONT_ATLAS_SIZE, DEF_TEXT_SIZE } from "../constants"
 import { loadProgress, getBitmapFont } from "../utils"
 import { Texture } from "../classes/Texture"
 import { TextCtx } from "../types/text"
@@ -16,8 +16,9 @@ import { AssetData } from "../classes/AssetData"
 import { SpriteData } from "../classes/SpriteData"
 
 import fontFunc from "../functions/font"
+import drawFunc from "../functions/draw"
 
-export default (gopt: KaboomOpt, assets: assetsType, gl: glType, gc: gcType, app: appType): TextCtx => {
+export default (game: gameType, gfx: gfxType, gopt: KaboomOpt, assets: assetsType, gl: glType, gc: gcType, app: appType, debug: Debug, getRenderProps: RenderPropsType): TextCtx => {
     const fontStuff = fontFunc(gopt, assets, gl, gc)
 
     // TODO: escape
@@ -330,9 +331,65 @@ export default (gopt: KaboomOpt, assets: assetsType, gl: glType, gc: gcType, app
         }
     }
 
-	function fetchText(path: string) {
-		return fetchURL(assets, path).then((res) => res.text())
-	}
+    function fetchText(path: string) {
+        return fetchURL(assets, path).then((res) => res.text())
+    }
 
-    return { formatText, fetchText }
+    function text(t: string, opt: TextCompOpt = {}): TextComp {
+
+        function update(obj: GameObj<TextComp | any>) {
+            const ftext = formatText({
+                ...getRenderProps(obj),
+                text: obj.text + "",
+                size: obj.textSize,
+                font: obj.font,
+                width: opt.width && obj.width,
+                align: obj.align,
+                letterSpacing: obj.letterSpacing,
+                lineSpacing: obj.lineSpacing,
+                transform: obj.textTransform,
+                styles: obj.textStyles,
+            })
+
+            if (!opt.width) {
+                obj.width = ftext.width / (obj.scale?.x || 1)
+            }
+
+            obj.height = ftext.height / (obj.scale?.y || 1)
+
+            return ftext
+
+        }
+
+        return {
+
+            id: "text",
+            text: t,
+            textSize: opt.size ?? DEF_TEXT_SIZE,
+            font: opt.font,
+            width: opt.width,
+            height: 0,
+            align: opt.align,
+            lineSpacing: opt.lineSpacing,
+            letterSpacing: opt.letterSpacing,
+            textTransform: opt.transform,
+            textStyles: opt.styles,
+
+            add(this: GameObj<TextComp>) {
+                onLoad(game, assets, () => update(this))
+            },
+
+            draw(this: GameObj<TextComp>) {
+                const DRAW = drawFunc(gopt, gfx, assets, game, app, debug, gl, gc, getRenderProps)
+
+                DRAW.drawFormattedText(update(this))
+            },
+
+            renderArea() {
+                return new Rect(new Vec2(0), this.width, this.height)
+            },
+        }
+    }
+
+    return { formatText, text, fetchText }
 }

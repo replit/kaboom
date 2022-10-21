@@ -59,7 +59,7 @@ declare function kaboom(options?: KaboomOpt): KaboomCtx
 /**
  * Context handle that contains every kaboom function.
  */
-export interface KaboomCtx extends AudioCtx, CamCtx, DrawCtx, FontCtx, KeyCtx, MouseCtx, ScreenCtx, ShaderCtx, SpriteCtx, TextCtx, TouchCtx, VirtualCtx {
+export interface KaboomCoreCtx {
 	/**
 	 * Assemble a game object from a list of components, and add it to the game
 	 *
@@ -154,10 +154,10 @@ export interface KaboomCtx extends AudioCtx, CamCtx, DrawCtx, FontCtx, KeyCtx, M
 	 * ])
 	 * ```
 	 */
-	pos(x: number, y: number): PosComp,
-	pos(xy: number): PosComp,
-	pos(p: Vec2): PosComp,
-	pos(): PosComp,
+	pos(x: number, y: number): PosCoreComp,
+	pos(xy: number): PosCoreComp,
+	pos(p: Vec2): PosCoreComp,
+	pos(): PosCoreComp,
 	/**
 	 * Scale.
 	 */
@@ -188,35 +188,6 @@ export interface KaboomCtx extends AudioCtx, CamCtx, DrawCtx, FontCtx, KeyCtx, M
 	 * Sets opacity (0.0 - 1.0).
 	 */
 	opacity(o?: number): OpacityComp,
-	/**
-	 * Render as text.
-	 *
-	 * @example
-	 * ```js
-	 * // a simple score counter
-	 * const score = add([
-	 *     text("Score: 0"),
-	 *     pos(24, 24),
-	 *     { value: 0 },
-	 * ])
-	 *
-	 * player.onCollide("coin", () => {
-	 *     score.value += 1
-	 *     score.text = "Score:" + score.value
-	 * })
-	 *
-	 * // with options
-	 * add([
-	 *     pos(24, 24),
-	 *     text("ohhi", {
-	 *         size: 48, // 48 pixels tall
-	 *         width: 320, // it'll wrap to next line when width exceeds this value
-	 *         font: "happy", // specify any font you loaded or browser built-in ("happy" is the kaboom built-in font)
-	 *     }),
-	 * ])
-	 * ```
-	 */
-	text(txt: string, options?: TextCompOpt): TextComp,
 	/**
 	 * Render as a rectangle.
 	 *
@@ -281,7 +252,7 @@ export interface KaboomCtx extends AudioCtx, CamCtx, DrawCtx, FontCtx, KeyCtx, M
 	 * })
 	 * ```
 	 */
-	area(): AreaComp,
+	area(): AreaCompCore,
 	/**
 	 * Define collider area and enables collision detection.
 	 *
@@ -302,7 +273,7 @@ export interface KaboomCtx extends AudioCtx, CamCtx, DrawCtx, FontCtx, KeyCtx, M
 	 * ])
 	 * ```
 	 */
-	area(options: AreaCompOpt): AreaComp,
+	area(options: AreaCompOpt): AreaCompCore,
 	/**
 	 * Anchor point for render (default "topleft").
 	 *
@@ -379,7 +350,7 @@ export interface KaboomCtx extends AudioCtx, CamCtx, DrawCtx, FontCtx, KeyCtx, M
 	/**
 	 * Follow another game obj's position.
 	 */
-	follow(obj: GameObj | null, offset?: Vec2): FollowComp,
+	follow(obj: GameCoreObj | null, offset?: Vec2): FollowCompCore,
 	/**
 	 * Run certain action after some time.
 	 */
@@ -549,7 +520,7 @@ export interface KaboomCtx extends AudioCtx, CamCtx, DrawCtx, FontCtx, KeyCtx, M
 	 * })
 	 * ```
 	 */
-	on(event: string, tag: Tag, action: (obj: GameObj, ...args) => void): EventController,
+	on(event: string, tag: Tag, action: (obj: GameCoreObj, ...args) => void): EventController,
 	/**
 	 * Register an event that runs every frame (~60 times per second) for all game objs with certain tag.
 	 *
@@ -605,8 +576,8 @@ export interface KaboomCtx extends AudioCtx, CamCtx, DrawCtx, FontCtx, KeyCtx, M
 	 * ```
 	 */
 	onDraw(action: () => void): EventController,
-	onDestroy(tag: Tag, action: (obj: GameObj) => void): EventController,
-	onDestroy(action: (obj: GameObj) => void): EventController,
+	onDestroy(tag: Tag, action: (obj: GameCoreObj) => void): EventController,
+	onDestroy(action: (obj: GameCoreObj) => void): EventController,
 	/**
 	 * Register an event that runs when all assets finished loading.
 	 *
@@ -663,7 +634,7 @@ export interface KaboomCtx extends AudioCtx, CamCtx, DrawCtx, FontCtx, KeyCtx, M
 	onCollide(
 		t1: Tag,
 		t2: Tag,
-		action: (a: GameObj, b: GameObj, col?: Collision) => void,
+		action: (a: GameCoreObj, b: GameCoreObj, col?: CollisionCore) => void,
 	): EventController,
 	/**
 	 * Sets the root for all subsequent resource urls.
@@ -725,12 +696,6 @@ export interface KaboomCtx extends AudioCtx, CamCtx, DrawCtx, FontCtx, KeyCtx, M
 	 */
 	time(): number,
 	/**
-	 * If the game canvas is currently focused.
-	 *
-	 * @since v2000.1
-	 */
-	isFocused(): boolean,
-	/**
 	 * Get / set gravity.
 	 */
 	gravity(g: number): number,
@@ -769,10 +734,6 @@ export interface KaboomCtx extends AudioCtx, CamCtx, DrawCtx, FontCtx, KeyCtx, M
 	 */
 	loop(t: number, action: () => void): EventController,
 	Timer: typeof Timer,
-	/**
-	 * Get the underlying browser AudioContext.
-	 */
-	audioCtx: AudioContext,
 	/**
 	 * Get a random value between 0 and the given value.
 	 *
@@ -1038,7 +999,7 @@ export interface KaboomCtx extends AudioCtx, CamCtx, DrawCtx, FontCtx, KeyCtx, M
 	 * })
 	 * ```
 	 */
-	addLevel(map: string[], options: LevelOpt): GameObj,
+	addLevel(map: string[], options: LevelOpt): GameCoreObj,
 	/**
 	 * Get data from local storage, if not present can set to a default value.
 	 *
@@ -1067,13 +1028,7 @@ export interface KaboomCtx extends AudioCtx, CamCtx, DrawCtx, FontCtx, KeyCtx, M
 	 * debug.inspect = true
 	 * ```
 	 */
-	debug: Debug,
-	/**
-	 * Import a plugin.
-	 *
-	 * @section Misc
-	 */
-	plug<T>(plugin: KaboomPlugin<T>): void,
+	debug: DebugCore,
 	/**
 	 * Trigger a file download from a url.
 	 *
@@ -1098,18 +1053,6 @@ export interface KaboomCtx extends AudioCtx, CamCtx, DrawCtx, FontCtx, KeyCtx, M
 	 * @since v3000.0
 	 */
 	downloadBlob(filename: string, blob: Blob): void,
-	/**
-	 * Start recording the canvas into a video. If framerate is not specified, a new frame will be captured each time the canvas changes.
-	 *
-	 * @returns A control handle.
-	 *
-	 * @since v2000.1
-	 */
-	record(frameRate?: number): Recording,
-	/**
-	 * Add an explosion
-	 */
-	addKaboom(pos: Vec2, opt?: BoomOpt): GameObj,
 	/**
 	 * All chars in ASCII.
 	 */
@@ -1139,10 +1082,6 @@ export interface KaboomCtx extends AudioCtx, CamCtx, DrawCtx, FontCtx, KeyCtx, M
 	WHITE: Color,
 	BLACK: Color,
 	/**
-	 * The canvas DOM kaboom is currently using.
-	 */
-	canvas: HTMLCanvasElement,
-	/**
 	 * End everything.
 	 */
 	quit: () => void,
@@ -1164,6 +1103,197 @@ export interface KaboomCtx extends AudioCtx, CamCtx, DrawCtx, FontCtx, KeyCtx, M
 	 * @since v3000.0
 	 */
 	VERSION: string,
+}
+
+export interface KaboomCtx extends KaboomCoreCtx, AudioCtx, CamCtx, DrawCtx, FontCtx, KeyCtx, MouseCtx, ScreenCtx, ShaderCtx, SpriteCtx, TextCtx, TouchCtx, VirtualCtx {
+	/**
+	 * Start recording the canvas into a video. If framerate is not specified, a new frame will be captured each time the canvas changes.
+	 *
+	 * @returns A control handle.
+	 *
+	 * @since v2000.1
+	 */
+	record(frameRate?: number): Recording,
+	/**
+	 * Add an explosion
+	 */
+	addKaboom(pos: Vec2, opt?: BoomOpt): GameObj,
+	/**
+	 * If the game canvas is currently focused.
+	 *
+	 * @since v2000.1
+	 */
+	isFocused(): boolean,
+	/**
+	 * Position
+	 *
+	 * @section Components
+	 *
+	 * @example
+	 * ```js
+	 * // This game object will draw a "froggy" sprite at (100, 200)
+	 * add([
+	 *     pos(100, 200),
+	 *     sprite("froggy"),
+	 * ])
+	 * ```
+	 */
+	pos(x: number, y: number): PosComp,
+	pos(xy: number): PosComp,
+	pos(p: Vec2): PosComp,
+	pos(): PosComp,
+	/**
+	 * Generates collider area from shape and enables collision detection.
+	 *
+	 * @example
+	 * ```js
+	 * // Automatically generate area information from the shape of render
+	 * const player = add([
+	 *     sprite("froggy"),
+	 *     area(),
+	 * ])
+	 *
+	 * // Die if player collides with another game obj with tag "tree"
+	 * player.onCollide("tree", () => {
+	 *     destroy(player)
+	 *     go("lose")
+	 * })
+	 *
+	 * // Check for collision manually every frame instead of registering an event
+	 * player.onUpdate(() => {
+	 *     if (player.isColliding(bomb)) {
+	 *         score += 1
+	 *     }
+	 * })
+	 * ```
+	 */
+	area(): AreaComp,
+	/**
+	 * Define collider area and enables collision detection.
+	 *
+	 * @example
+	 * ```js
+	 * add([
+	 *     sprite("flower"),
+	 *     // Scale to 0.6 of the generated area
+	 *     area({ scale: 0.6 }),
+	 *     // If we want the area scale to be calculated from the center
+	 *     anchor("center"),
+	 * ])
+	 *
+	 * add([
+	 *     sprite("froggy"),
+	 *     // Define custom area with width and height
+	 *     area({ width: 20, height: 40. }),
+	 * ])
+	 * ```
+	 */
+	area(options: AreaCompOpt): AreaComp,
+	/**
+	 * Follow another game obj's position.
+	 */
+	follow(obj: GameObj | null, offset?: Vec2): FollowComp,
+	/**
+	 * Register an event on all game objs with certain tag.
+	 *
+	 * @section Events
+	 *
+	 * @example
+	 * ```js
+	 * // a custom event defined by body() comp
+	 * // every time an obj with tag "bomb" hits the floor, destroy it and addKaboom()
+	 * on("ground", "bomb", (bomb) => {
+	 *     destroy(bomb)
+	 *     addKaboom()
+	 * })
+	 * ```
+	 */
+	on(event: string, tag: Tag, action: (obj: GameObj, ...args) => void): EventController,
+	onDestroy(tag: Tag, action: (obj: GameObj) => void): EventController,
+	onDestroy(action: (obj: GameObj) => void): EventController,
+	/**
+	 * Register an event that runs when 2 game objs with certain tags collides (required to have area() component).
+	 *
+	 * @since v2000.1
+	 *
+	 * @example
+	 * ```js
+	 * onCollide("sun", "earth", () => {
+	 *     addExplosion()
+	 * })
+	 * ```
+	 */
+	onCollide(
+		t1: Tag,
+		t2: Tag,
+		action: (a: GameObj, b: GameObj, col?: Collision) => void,
+	): EventController,
+	/**
+	 * Get the underlying browser AudioContext.
+	 */
+	audioCtx: AudioContext,
+	/**
+	 * @section Debug
+	 *
+	 * @example
+	 * ```js
+	 * // pause the whole game
+	 * debug.paused = true
+	 *
+	 * // enter inspect mode
+	 * debug.inspect = true
+	 * ```
+	 */
+	debug: Debug,
+	/**
+	 * Construct a level based on symbols.
+	 *
+	 * @section Level
+	 *
+	 * @example
+	 * ```js
+	 * addLevel([
+	 *     "                          $",
+	 *     "                          $",
+	 *     "           $$         =   $",
+	 *     "  %      ====         =   $",
+	 *     "                      =    ",
+	 *     "       ^^      = >    =   &",
+	 *     "===========================",
+	 * ], {
+	 *     // define the size of each block
+	 *     width: 32,
+	 *     height: 32,
+	 *     // define what each symbol means, by a function returning a component list (what will be passed to add())
+	 *     "=": () => [
+	 *         sprite("floor"),
+	 *         area(),
+	 *         solid(),
+	 *     ],
+	 *     "$": () => [
+	 *         sprite("coin"),
+	 *         area(),
+	 *         pos(0, -9),
+	 *     ],
+	 *     "^": () => [
+	 *         sprite("spike"),
+	 *         area(),
+	 *         "danger",
+	 *     ],
+	 * })
+	 * ```
+	 */
+	addLevel(map: string[], options: LevelOpt): GameObj,
+	/**
+	 * Import a plugin.
+	 *
+	 * @section Misc
+	 */
+	plug<T>(plugin: KaboomPlugin<T>): void,
+	/**
+	 * The canvas DOM kaboom is currently using.
+	 */
+	canvas: HTMLCanvasElement,
 }
 
 export type Tag = string
@@ -1294,6 +1424,7 @@ export interface KaboomOpt {
 	 * Enter burp mode.
 	 */
 	burp?: boolean,
+	headless?: boolean,
 }
 
 export type KaboomPlugin<T> = (k: KaboomCtx) => T
@@ -2453,15 +2584,15 @@ export interface OffScreenComp extends Comp {
 /**
  * Collision resolution data.
  */
-export interface Collision {
+export interface CollisionCore {
 	/**
 	 * The first game object in the collision.
 	 */
-	source: GameObj,
+	source: GameCoreObj,
 	/**
 	 * The second game object in the collision.
 	 */
-	target: GameObj,
+	target: GameCoreObj,
 	/**
 	 * The displacement source game object have to make to avoid the collision.
 	 */
@@ -2479,7 +2610,7 @@ export interface Collision {
 	/**
 	 * Get a new collision with reversed source and target relationship.
 	 */
-	reverse(): Collision,
+	reverse(): CollisionCore,
 	/**
 	 * If the collision happened (roughly) on the top side.
 	 */
@@ -2496,6 +2627,9 @@ export interface Collision {
 	 * If the collision happened (roughly) on the right side.
 	 */
 	isRight(): boolean,
+}
+
+export interface Collision extends CollisionCore {
 }
 
 export interface AreaCompOpt {
@@ -2556,7 +2690,95 @@ export interface AreaCompCore extends CompCore {
 	 *
 	 * @since v3000.0
 	 */
-	colliding: Record<GameObjID, Collision>,
+	colliding: Record<GameObjID, CollisionCore>,
+	/**
+	 * Check collision with another game obj.
+	 *
+	 * @since v3000.0
+	 * @returns The minimal displacement vector if collided
+	 */
+	checkCollision(other: GameCoreObj<AreaCompCore>): Vec2 | null,
+	/**
+	 * If is currently colliding with another game obj.
+	 */
+	isColliding(o: GameCoreObj<AreaCompCore>): boolean,
+	/**
+	 * If is currently touching another game obj.
+	 */
+	isTouching(o: GameCoreObj<AreaCompCore>): boolean,
+	/**
+	 * Register an event runs when clicked.
+	 *
+	 * @since v2000.1
+	 */
+	onClick(f: () => void): void,
+	/**
+	 * Register an event runs once when collide with another game obj with certain tag.
+	 *
+	 * @since v2001.0
+	 */
+	//onCollide(tag: Tag, f: (obj: GameObj, col?: Collision) => void): void,
+	/**
+	 * Register an event runs once when collide with another game obj.
+	 *
+	 * @since v2000.1
+	 */
+	//onCollide(f: (obj: GameObj, col?: Collision) => void): void,
+	//onCollide(tag: string, f: (obj: GameObj<any>, col?: Collision) => void): void
+	//onCollide: (tag: string, f: (obj: GameObj<any>, col?: Collision) => void): void; (tag: string, f: (obj: GameObj<any>, col?: Collision) => void): void;
+	onCollide: (this: GameCoreObj<any>, tag: string | ((obj: GameCoreObj<any>, col?: CollisionCore) => void), cb?: (obj: GameCoreObj<any>, col?: CollisionCore) => void) => EventController
+	/**
+	 * Register an event runs every frame when collide with another game obj with certain tag.
+	 *
+	 * @since v3000.0
+	 */
+	//onCollideUpdate(tag: Tag, f: (obj: GameObj, col?: Collision) => void): EventController,
+	/**
+	 * Register an event runs every frame when collide with another game obj.
+	 *
+	 * @since v3000.0
+	 */
+	//onCollideUpdate(f: (obj: GameObj, col?: Collision) => void): EventController,
+	onCollideUpdate: (this: GameCoreObj<AreaCompCore>, tag: string | ((obj: GameCoreObj<any>, col?: CollisionCore) => void), cb?: (obj: GameCoreObj<any>, col?: CollisionCore) => void) => EventController,
+	/**
+	 * Register an event runs once when stopped colliding with another game obj with certain tag.
+	 *
+	 * @since v3000.0
+	 */
+	//onCollideEnd(tag: Tag, f: (obj: GameObj) => void): EventController,
+	/**
+	 * Register an event runs once when stopped colliding with another game obj.
+	 *
+	 * @since v3000.0
+	 */
+	//onCollideEnd(f: (obj: GameObj) => void): void,
+	onCollideEnd: (this: GameCoreObj<AreaCompCore>, tag: string | ((obj: GameCoreObj<any>) => void), cb?: (obj: GameCoreObj<any>) => void) => EventController,
+	/**
+	 * If has a certain point inside collider.
+	 */
+	hasPoint(p: Vec2): boolean,
+	/**
+	 * Push out from another solid game obj if currently overlapping.
+	 */
+	//pushOut(obj: GameObj): void,
+	pushOut: (this: GameCoreObj<AreaCompCore | PosCoreComp>, obj: GameCoreObj<AreaCompCore>) => void
+	/**
+	 * Push out from all other solid game objs if currently overlapping.
+	 */
+	pushOutAll(): void,
+	/**
+	 * Get the geometry data for the collider in local coordinate space.
+	 *
+	 * @since v3000.0
+	 */
+	localArea(): Shape,
+	/**
+	 * Get the geometry data for the collider in world coordinate space.
+	 */
+	worldArea(): Polygon,
+}
+
+export interface AreaComp extends AreaCompCore, Comp {
 	/**
 	 * Check collision with another game obj.
 	 *
@@ -2573,11 +2795,59 @@ export interface AreaCompCore extends CompCore {
 	 */
 	isTouching(o: GameObj<AreaComp>): boolean,
 	/**
-	 * Register an event runs when clicked.
+	 * Register an event runs once when collide with another game obj with certain tag.
+	 *
+	 * @since v2001.0
+	 */
+	//onCollide(tag: Tag, f: (obj: GameObj, col?: Collision) => void): void,
+	/**
+	 * Register an event runs once when collide with another game obj.
 	 *
 	 * @since v2000.1
 	 */
-	onClick(f: () => void): void,
+	//onCollide(f: (obj: GameObj, col?: Collision) => void): void,
+	//onCollide(tag: string, f: (obj: GameObj<any>, col?: Collision) => void): void
+	//onCollide: (tag: string, f: (obj: GameObj<any>, col?: Collision) => void): void; (tag: string, f: (obj: GameObj<any>, col?: Collision) => void): void;
+	onCollide: (this: GameObj<any>, tag: string | ((obj: GameObj<any>, col?: Collision) => void), cb?: (obj: GameObj<any>, col?: Collision) => void) => EventController
+	/**
+	 * Register an event runs every frame when collide with another game obj with certain tag.
+	 *
+	 * @since v3000.0
+	 */
+	//onCollideUpdate(tag: Tag, f: (obj: GameObj, col?: Collision) => void): EventController,
+	/**
+	 * Register an event runs every frame when collide with another game obj.
+	 *
+	 * @since v3000.0
+	 */
+	//onCollideUpdate(f: (obj: GameObj, col?: Collision) => void): EventController,
+	onCollideUpdate: (this: GameObj<AreaCompCore>, tag: string | ((obj: GameObj<any>, col?: Collision) => void), cb?: (obj: GameObj<any>, col?: Collision) => void) => EventController,
+	/**
+	 * Register an event runs once when stopped colliding with another game obj with certain tag.
+	 *
+	 * @since v3000.0
+	 */
+	//onCollideEnd(tag: Tag, f: (obj: GameObj) => void): EventController,
+	/**
+	 * Register an event runs once when stopped colliding with another game obj.
+	 *
+	 * @since v3000.0
+	 */
+	//onCollideEnd(f: (obj: GameObj) => void): void,
+	onCollideEnd: (this: GameObj<AreaCompCore>, tag: string | ((obj: GameObj<any>) => void), cb?: (obj: GameObj<any>) => void) => EventController,
+	/**
+	 * Push out from another solid game obj if currently overlapping.
+	 */
+	//pushOut(obj: GameObj): void,
+	pushOut: (this: GameObj<AreaCompCore | PosCoreComp>, obj: GameObj<AreaCompCore>) => void
+	/**
+	 * If was just clicked on last frame.
+	 */
+	isClicked(): boolean,
+	/**
+	 * If is being hovered on.
+	 */
+	isHovering(): boolean,
 	/**
 	 * Register an event runs once when hovered.
 	 *
@@ -2597,78 +2867,9 @@ export interface AreaCompCore extends CompCore {
 	 */
 	onHoverEnd(action: () => void): EventController,
 	/**
-	 * Register an event runs once when collide with another game obj with certain tag.
-	 *
-	 * @since v2001.0
-	 */
-	onCollide(tag: Tag, f: (obj: GameObj, col?: Collision) => void): void,
-	/**
-	 * Register an event runs once when collide with another game obj.
-	 *
-	 * @since v2000.1
-	 */
-	onCollide(f: (obj: GameObj, col?: Collision) => void): void,
-	/**
-	 * Register an event runs every frame when collide with another game obj with certain tag.
-	 *
-	 * @since v3000.0
-	 */
-	onCollideUpdate(tag: Tag, f: (obj: GameObj, col?: Collision) => void): EventController,
-	/**
-	 * Register an event runs every frame when collide with another game obj.
-	 *
-	 * @since v3000.0
-	 */
-	onCollideUpdate(f: (obj: GameObj, col?: Collision) => void): EventController,
-	/**
-	 * Register an event runs once when stopped colliding with another game obj with certain tag.
-	 *
-	 * @since v3000.0
-	 */
-	onCollideEnd(tag: Tag, f: (obj: GameObj) => void): EventController,
-	/**
-	 * Register an event runs once when stopped colliding with another game obj.
-	 *
-	 * @since v3000.0
-	 */
-	onCollideEnd(f: (obj: GameObj) => void): void,
-	/**
-	 * If has a certain point inside collider.
-	 */
-	hasPoint(p: Vec2): boolean,
-	/**
-	 * Push out from another solid game obj if currently overlapping.
-	 */
-	pushOut(obj: GameObj): void,
-	/**
-	 * Push out from all other solid game objs if currently overlapping.
-	 */
-	pushOutAll(): void,
-	/**
-	 * Get the geometry data for the collider in local coordinate space.
-	 *
-	 * @since v3000.0
-	 */
-	localArea(): Shape,
-	/**
-	 * Get the geometry data for the collider in world coordinate space.
-	 */
-	worldArea(): Polygon,
-	/**
 	 * Get the geometry data for the collider in screen coordinate space.
 	 */
 	screenArea(): Polygon,
-}
-
-export interface AreaComp extends AreaCompCore, Comp {
-	/**
-	 * If was just clicked on last frame.
-	 */
-	isClicked(): boolean,
-	/**
-	 * If is being hovered on.
-	 */
-	isHovering(): boolean,
 }
 
 export interface SpriteCompOpt {
@@ -2769,7 +2970,7 @@ export interface SpriteComp extends Comp {
 	renderArea(): Rect,
 }
 
-export interface TextComp extends Comp {
+export interface TextCompCore extends CompCore {
 	/**
 	 * The text to render.
 	 */
@@ -2826,6 +3027,9 @@ export interface TextComp extends Comp {
 	renderArea(): Rect,
 }
 
+export interface TextComp extends TextCompCore, Comp {
+}
+
 export interface TextCompOpt {
 	/**
 	 * Height of text.
@@ -2878,7 +3082,7 @@ export interface RectCompOpt {
 	radius?: number,
 }
 
-export interface RectComp extends Comp {
+export interface RectCompCore extends CompCore {
 	/**
 	 * Width of rectangle.
 	 */
@@ -2897,7 +3101,10 @@ export interface RectComp extends Comp {
 	renderArea(): Rect,
 }
 
-export interface CircleComp extends Comp {
+export interface RectComp extends RectCompCore, Comp {
+}
+
+export interface CircleCompCore extends CompCore {
 	/**
 	 * Radius of circle.
 	 */
@@ -2908,7 +3115,18 @@ export interface CircleComp extends Comp {
 	renderArea(): Circle,
 }
 
-export interface UVQuadComp extends Comp {
+export interface CircleComp extends CircleCompCore, Comp {
+	/**
+	 * Radius of circle.
+	 */
+	radius: number,
+	/**
+	 * @since v3000.0
+	 */
+	renderArea(): Circle,
+}
+
+export interface UVQuadCompCore extends CompCore {
 	/**
 	 * Width of rect.
 	 */
@@ -2921,6 +3139,9 @@ export interface UVQuadComp extends Comp {
 	 * @since v3000.0
 	 */
 	renderArea(): Rect,
+}
+
+export interface UVQuadComp extends UVQuadCompCore, Comp {
 }
 
 export type Shape =
@@ -3007,7 +3228,7 @@ export interface ShaderComp extends Comp {
 	shader: string,
 }
 
-export interface BodyComp extends Comp {
+export interface BodyCompCore extends CompCore {
 	/**
 	 * If object is static, won't move, and all non static objects won't move past it.
 	 */
@@ -3033,7 +3254,7 @@ export interface BodyComp extends Comp {
 	/**
 	 * Current platform landing on.
 	 */
-	curPlatform(): GameObj | null,
+	curPlatform(): GameCoreObj | null,
 	/**
 	 * If currently landing on a platform.
 	 *
@@ -3092,6 +3313,9 @@ export interface BodyComp extends Comp {
 	 * @since v2000.1
 	 */
 	onHeadbutt(action: () => void): EventController,
+}
+
+export interface BodyComp extends BodyCompCore, Comp {
 }
 
 export interface DoubleJumpComp extends Comp {
@@ -3281,15 +3505,18 @@ export interface LevelOpt {
 	[sym: string]: any,
 }
 
-export interface LevelComp extends Comp {
+export interface LevelCompCore extends CompCore {
 	gridWidth(): number,
 	gridHeight(): number,
 	getPos(p: Vec2): Vec2,
 	getPos(x: number, y: number): Vec2,
-	spawn(sym: string, p: Vec2): GameObj,
-	spawn(sym: string, x: number, y: number): GameObj,
+	spawn(sym: string, p: Vec2): GameCoreObj,
+	spawn(sym: string, x: number, y: number): GameCoreObj,
 	levelWidth(): number,
 	levelHeight(): number,
+}
+
+export interface LevelComp extends LevelCompCore, Comp {
 }
 
 export interface BoomOpt {
@@ -3391,15 +3618,18 @@ export type EventController = {
 	cancel(): void,
 }
 
-export type assetsType = {
+export type assetsCoreType = {
 	urlPrefix: string;
+	loaded: boolean;
+}
+
+export type assetsType = assetsCoreType & {
 	sprites: AssetBucket<SpriteData>;
 	fonts: AssetBucket<FontFace>;
 	bitmapFonts: AssetBucket<GfxFont>;
 	sounds: AssetBucket<SoundData>;
 	shaders: AssetBucket<ShaderData>;
 	custom: AssetBucket<any>;
-	loaded: boolean;
 }
 
 export type gfxCoreType = {

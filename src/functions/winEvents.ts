@@ -28,10 +28,10 @@ export default (run,
 
         // TODO: this should only run once
         run(() => {
-            const DRAW = drawFunc(gopt, gfx, assets, game, app, debug, gl, gc, getRenderProps)
-            const newText = textFunc(gopt, assets, gl, gc, app)
+            const drawStuff = drawFunc(gopt, gfx, assets, game, app, debug, gl, gc, getRenderProps)
+            const textStuff = textFunc(game, gfx, gopt, assets, gl, gc, app, debug, getRenderProps)
 
-            DRAW.drawUnscaled(() => {
+            drawStuff.drawUnscaled(() => {
 
                 const pad = 32
                 const gap = 16
@@ -47,14 +47,14 @@ export default (run,
                     fixed: true,
                 }
 
-                DRAW.drawRect({
+                drawStuff.drawRect({
                     width: gw,
                     height: gh,
                     color: rgb([0, 0, 255]),
                     fixed: true,
                 })
 
-                const title = newText.formatText({
+                const title = textStuff.formatText({
                     ...textStyle,
                     text: err.name,
                     pos: new Vec2(pad),
@@ -62,16 +62,16 @@ export default (run,
                     fixed: true,
                 })
 
-                DRAW.drawFormattedText(title)
+                drawStuff.drawFormattedText(title)
 
-                DRAW.drawText({
+                drawStuff.drawText({
                     ...textStyle,
                     text: err.message,
                     pos: new Vec2(pad, pad + title.height + gap),
                     fixed: true,
                 })
 
-                DRAW.popTransform()
+                drawStuff.popTransform()
                 game.ev.trigger("error", err)
 
             })

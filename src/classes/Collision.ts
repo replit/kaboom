@@ -1,18 +1,19 @@
-import { GameObj, Vec2 } from "../types"
+import { Vec2 } from "../math"
+import { GameCoreObj, GameObj } from "../types"
 
-export class Collision {
-	source: GameObj
-	target: GameObj
+export class CollisionCore {
+	source: GameCoreObj
+	target: GameCoreObj
 	displacement: Vec2
 	resolved: boolean = false
-	constructor(source: GameObj, target: GameObj, dis: Vec2, resolved = false) {
+	constructor(source: GameCoreObj, target: GameCoreObj, dis: Vec2, resolved = false) {
 		this.source = source
 		this.target = target
 		this.displacement = dis
 		this.resolved = resolved
 	}
 	reverse() {
-		return new Collision(
+		return new CollisionCore(
 			this.target,
 			this.source,
 			this.displacement.scale(-1),
@@ -33,5 +34,27 @@ export class Collision {
 	}
 	preventResolve() {
 		this.resolved = true
+	}
+}
+
+export class Collision extends CollisionCore {
+	declare source: GameObj
+	declare target: GameObj
+
+	constructor(source: GameObj, target: GameObj, dis: Vec2, resolved = false) {
+		super(source, target, dis, resolved)
+
+		this.source = source
+		this.target = target
+		this.displacement = dis
+		this.resolved = resolved
+	}
+	reverse() {
+		return new Collision(
+			this.target,
+			this.source,
+			this.displacement.scale(-1),
+			this.resolved,
+		)
 	}
 }

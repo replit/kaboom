@@ -1,5 +1,5 @@
 import { Vec2, Mat4 } from "./math"
-import { ShaderData, assetsType, gfxType, appType, Debug, gameType, GameObj, GameCoreObj } from "./types"
+import { ShaderData, assetsType, gfxType, appType, Debug, gameCoreType, gameType, GameObj, GameCoreObj } from "./types"
 import { AssetData } from "./classes/AssetData"
 import { SpriteData } from "./classes/SpriteData"
 import type { EventController, TextAlign, Anchor, DrawSpriteOpt, BitmapFontData } from "./types"
@@ -162,7 +162,7 @@ export function fetchURL(assets: assetsType, path: string) {
 		})
 }
 
-export function onLoad(game: gameType, assets: assetsType, cb: () => void): void {
+export function onLoad(game: gameCoreType | gameType, assets: assetsType, cb: () => void): void {
 	if (assets.loaded) {
 		cb()
 	} else {

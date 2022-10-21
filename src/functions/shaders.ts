@@ -1,5 +1,8 @@
 import { AssetData } from "../classes/AssetData"
-import { ShaderData, RenderProps, assetsType, gfxType, KaboomOpt, glType, gcType, appType, GfxShader, Uniform, ShaderComp } from "../types"
+import {
+    ShaderData, RenderProps, assetsType, gfxType, KaboomOpt, glType, gcType, appType, GfxShader, Uniform, ShaderComp, gameType,
+    Debug, RenderPropsType
+} from "../types"
 import { loadProgress, getShader } from "../utils"
 import { DEF_VERT, DEF_FRAG, VERT_TEMPLATE, FRAG_TEMPLATE } from "../constants"
 
@@ -9,7 +12,7 @@ import { Mat4, Color, Vec2, Vec3 } from "../math"
 import textFunc from "./text"
 
 //shaders
-export default (gopt: KaboomOpt, assets: assetsType, gl: glType, gc: gcType, app: appType): ShaderCtx => {
+export default (game: gameType, gfx: gfxType, gopt: KaboomOpt, assets: assetsType, gl: glType, gc: gcType, app: appType, debug: Debug, getRenderProps: RenderPropsType): ShaderCtx => {
 
     const defShader = makeShader(DEF_VERT, DEF_FRAG)
 
@@ -139,7 +142,7 @@ export default (gopt: KaboomOpt, assets: assetsType, gl: glType, gc: gcType, app
         frag?: string,
         isUrl: boolean = false,
     ): AssetData<ShaderData> {
-        const newText = textFunc(gopt, assets, gl, gc, app)
+        const newText = textFunc(game, gfx, gopt, assets, gl, gc, app, debug, getRenderProps)
 
         return assets.shaders.add(name, new Promise<ShaderData>((resolve, reject) => {
 
@@ -176,6 +179,6 @@ export default (gopt: KaboomOpt, assets: assetsType, gl: glType, gc: gcType, app
         loadShader,
         resolveShader,
         defShader,
-		shader,
+        shader,
     }
 }

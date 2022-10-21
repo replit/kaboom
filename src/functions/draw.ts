@@ -19,7 +19,7 @@ import { deepEq, anchorPt, dt, center, loadProgress } from "../utils"
 
 import { STRIDE, MAX_BATCHED_VERTS, MAX_BATCHED_INDICES, DEF_ANCHOR, UV_PAD, DBG_FONT } from "../constants"
 
-import shaders from "./shaders"
+import shaderFunc from "./shaders"
 import textFunc from "./text"
 import spriteFunc from "./sprite"
 
@@ -120,7 +120,8 @@ export default (gopt: KaboomOpt, gfx: gfxType, assets: assetsType, game: gameTyp
         uniform: Uniform = {},
     ) {
 
-        const shader = shaders(gfx, assets).resolveShader(shaderSrc)
+        const shaderStuff = shaderFunc(game, gfx, gopt, assets, gl, gc, app, debug, getRenderProps)
+        const shader = shaderStuff.resolveShader(shaderSrc)
 
         if (!shader || shader instanceof AssetData) {
             return
@@ -713,8 +714,8 @@ export default (gopt: KaboomOpt, gfx: gfxType, assets: assetsType, game: gameTyp
     }
 
     function drawText(opt: DrawTextOpt) {
-        const newText = textFunc(gopt, assets, gl, gc, app)
-        drawFormattedText(newText.formatText(opt))
+        const textStuff = textFunc(game, gfx, gopt, assets, gl, gc, app, debug, getRenderProps)
+        drawFormattedText(textStuff.formatText(opt))
     }
 
     function drawFormattedText(ftext: FormattedText) {
@@ -816,7 +817,9 @@ export default (gopt: KaboomOpt, gfx: gfxType, assets: assetsType, game: gameTyp
             pushTransform()
             pushTranslate(pos)
 
-            const ftxt = textFunc(gopt, assets, gl, gc, app).formatText({
+            const textStuff = textFunc(game, gfx, gopt, assets, gl, gc, app, debug, getRenderProps)
+
+            const ftxt = textStuff.formatText({
                 text: txt,
                 font: DBG_FONT,
                 size: 16,
@@ -861,7 +864,7 @@ export default (gopt: KaboomOpt, gfx: gfxType, assets: assetsType, game: gameTyp
     }
 
     function drawDebug(getAll, mousePos, time) {
-        const newText = textFunc(gopt, assets, gl, gc, app)
+        const textStuff = textFunc(game, gfx, gopt, assets, gl, gc, app, debug, getRenderProps)
 
         if (debug.inspect) {
 
@@ -950,7 +953,7 @@ export default (gopt: KaboomOpt, gfx: gfxType, assets: assetsType, game: gameTyp
                 const pad = 8
 
                 // format text first to get text size
-                const ftxt = newText.formatText({
+                const ftxt = textStuff.formatText({
                     text: debug.timeScale.toFixed(1),
                     font: DBG_FONT,
                     size: 16,
@@ -1024,7 +1027,7 @@ export default (gopt: KaboomOpt, gfx: gfxType, assets: assetsType, game: gameTyp
 
                 const pad = 8
 
-                const ftext = newText.formatText({
+                const ftext = textStuff.formatText({
                     text: game.logs.join("\n"),
                     font: DBG_FONT,
                     pos: new Vec2(pad, -pad),

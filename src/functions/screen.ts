@@ -3,7 +3,7 @@ import { BG_GRID_SIZE, DEF_OFFSCREEN_DIS } from "../constants"
 
 import {
     GameObj, EventController, PosComp, OffScreenCompOpt, OffScreenComp, gfxType, gameType, appType,
-    KaboomOpt, glType, assetsType, Debug
+    KaboomOpt, glType, assetsType, Debug, gcType, RenderPropsType
 } from "../types"
 
 import drawFunc from "./draw"
@@ -11,7 +11,7 @@ import camFunc from "./cam"
 
 import type { ScreenCtx } from "../types/screen"
 
-export default (game: gameType, app: appType, gfx: gfxType, gopt: KaboomOpt, gl: glType, assets: assetsType, debug: Debug): ScreenCtx => {
+export default (game: gameType, app: appType, gfx: gfxType, gopt: KaboomOpt, gl: glType, assets: assetsType, debug: Debug, gc: gcType, getRenderProps: RenderPropsType): ScreenCtx => {
 
     // wrappers around full screen functions to work across browsers
     function enterFullscreen(el: HTMLElement) {
@@ -186,9 +186,10 @@ export default (game: gameType, app: appType, gfx: gfxType, gopt: KaboomOpt, gl:
         gl.clear(gl.COLOR_BUFFER_BIT)
 
         if (!gopt.background) {
-            const DRAW = drawFunc(gopt, gfx, assets, game, app, debug, gl)
-            DRAW.drawUnscaled(() => {
-                DRAW.drawUVQuad({
+            const drawStuff = drawFunc(gopt, gfx, assets, game, app, debug, gl, gc, getRenderProps)
+
+            drawStuff.drawUnscaled(() => {
+                drawStuff.drawUVQuad({
                     width: gfx.width,
                     height: gfx.height,
                     quad: new Quad(
@@ -210,8 +211,8 @@ export default (game: gameType, app: appType, gfx: gfxType, gopt: KaboomOpt, gl:
     }
 
     function frameEnd() {
-        const DRAW = drawFunc(gopt, gfx, assets, game, app, debug, gl)
-        DRAW.flush()
+        const drawStuff = drawFunc(gopt, gfx, assets, game, app, debug, gl, gc, getRenderProps)
+        drawStuff.flush()
         gfx.lastDrawCalls = gfx.drawCalls
     }
 
