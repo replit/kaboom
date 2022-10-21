@@ -1,4 +1,4 @@
-import { Vec4 } from "./types/math"
+import { Vec4, RNGValue } from "./types/math"
 
 export function deg2rad(deg: number): number {
 	return deg * Math.PI / 180
@@ -50,14 +50,9 @@ export function mapc(
 export class Vec2 {
 	x: number = 0
 	y: number = 0
-	constructor(val: Vec2 | number = 0, val2?: number) {
-		if (val instanceof Vec2) {
-			this.x = val.x
-			this.y = val.y
-		} else {
-			this.x = val
-			this.y = val2 ? val2 : val
-		}
+	constructor(x: number = 0, y: number = x) {
+		this.x = x
+		this.y = y
 	}
 	static fromAngle(deg: number) {
 		const angle = deg2rad(deg)
@@ -70,23 +65,23 @@ export class Vec2 {
 	clone(): Vec2 {
 		return new Vec2(this.x, this.y)
 	}
-	add(vec2: Vec2): Vec2 {
-		return new Vec2(this.x + vec2.x, this.y + vec2.y)
+	add(...args): Vec2 {
+		const p2 = vec2(...args)
+		return new Vec2(this.x + p2.x, this.y + p2.y)
 	}
-	sub(vec2: Vec2): Vec2 {
-		return new Vec2(this.x - vec2.x, this.y - vec2.y)
+	sub(...args): Vec2 {
+		const p2 = vec2(...args)
+		return new Vec2(this.x - p2.x, this.y - p2.y)
 	}
-	scale(val: number | Vec2): Vec2 {
-		if (val instanceof Vec2) {
-			return new Vec2(this.x * val.x, this.y * val.y)
-		} else {
-			return new Vec2(this.x * val, this.y * val)
-		}
+	scale(...args): Vec2 {
+		const s = vec2(...args)
+		return new Vec2(this.x * s.x, this.y * s.y)
 	}
-	dist(vec2: Vec2): number {
+	dist(...args): number {
+		const p2 = vec2(...args)
 		return Math.sqrt(
-			(this.x - vec2.x) * (this.x - vec2.x)
-			+ (this.y - vec2.y) * (this.y - vec2.y),
+			(this.x - p2.x) * (this.x - p2.x)
+			+ (this.y - p2.y) * (this.y - p2.y),
 		)
 	}
 	len(): number {
@@ -94,7 +89,7 @@ export class Vec2 {
 	}
 	unit(): Vec2 {
 		const len = this.len()
-		return len === 0 ? new Vec2(0) : this.scale(new Vec2(1 / len, 1 / len))
+		return len === 0 ? new Vec2(0) : this.scale(1 / len)
 	}
 	normal(): Vec2 {
 		return new Vec2(this.y, -this.x)
@@ -102,8 +97,9 @@ export class Vec2 {
 	dot(p2: Vec2): number {
 		return this.x * p2.x + this.y * p2.y
 	}
-	angle(vec2: Vec2): number {
-		return rad2deg(Math.atan2(this.y - vec2.y, this.x - vec2.x))
+	angle(...args): number {
+		const p2 = vec2(...args)
+		return rad2deg(Math.atan2(this.y - p2.y, this.x - p2.x))
 	}
 	lerp(p2: Vec2, t: number): Vec2 {
 		return new Vec2(lerp(this.x, p2.x, t), lerp(this.y, p2.y, t))
@@ -122,6 +118,17 @@ export class Vec2 {
 	}
 }
 
+export function vec2(...args): Vec2 {
+	if (args.length === 1) {
+		if (args[0] instanceof Vec2) {
+			return vec2(args[0].x, args[0].y)
+		} else if (Array.isArray(args[0]) && args[0].length === 2) {
+			return vec2(...args[0])
+		}
+	}
+	return new Vec2(...args)
+}
+
 export class Vec3 {
 	x: number = 0
 	y: number = 0
@@ -132,7 +139,7 @@ export class Vec3 {
 		this.z = z
 	}
 	xy() {
-		return new Vec2(this.x, this.y)
+		return vec2(this.x, this.y)
 	}
 }
 
@@ -173,8 +180,8 @@ export class Color {
 
 	static fromHSL(h: number, s: number, l: number) {
 
-		if (s == 0) {
-			return rgb([255 * l, 255 * l, 255 * l])
+		if (s == 0){
+			return rgb(255 * l, 255 * l, 255 * l)
 		}
 
 		const hue2rgb = (p, q, t) => {
@@ -182,7 +189,7 @@ export class Color {
 			if (t > 1) t -= 1
 			if (t < 1 / 6) return p + (q - p) * 6 * t
 			if (t < 1 / 2) return q
-			if (t < 2 / 3) return p + (q - p) * (2 / 3 - t) * 6
+			if (t < 2 / 3) return p + (q - p) * (2/3 - t) * 6
 			return p
 		}
 
@@ -196,14 +203,14 @@ export class Color {
 
 	}
 
-	static RED = rgb([255, 0, 0])
-	static GREEN = rgb([0, 255, 0])
-	static BLUE = rgb([0, 0, 255])
-	static YELLOW = rgb([255, 255, 0])
-	static MAGENTA = rgb([255, 0, 255])
-	static CYAN = rgb([0, 255, 255])
-	static WHITE = rgb([255, 255, 255])
-	static BLACK = rgb([0, 0, 0])
+	static RED = rgb(255, 0, 0)
+	static GREEN = rgb(0, 255, 0)
+	static BLUE = rgb(0, 0, 255)
+	static YELLOW = rgb(255, 255, 0)
+	static MAGENTA = rgb(255, 0, 255)
+	static CYAN = rgb(0, 255, 255)
+	static WHITE = rgb(255, 255, 255)
+	static BLACK = rgb(0, 0, 0)
 
 	clone(): Color {
 		return new Color(this.r, this.g, this.b)
@@ -246,16 +253,18 @@ export class Color {
 
 }
 
-export function rgb(color?: Color | number[]): Color {
-	if (color) {
-		if (color instanceof Color) {
-			return color.clone()
-		} else if (Array.isArray(color) && color.length === 3) {
-			return Color.fromArray(color)
-		}
-	} else {
+export function rgb(...args): Color {
+	if (args.length === 0) {
 		return new Color(255, 255, 255)
+	} else if (args.length === 1) {
+		if (args[0] instanceof Color) {
+			return args[0].clone()
+		} else if (Array.isArray(args[0]) && args[0].length === 3) {
+			return Color.fromArray(args[0])
+		}
 	}
+	// @ts-ignore
+	return new Color(...args)
 }
 
 export const hsl2rgb = (h, s, l) => Color.fromHSL(h, s, l)
@@ -418,7 +427,7 @@ export class Mat4 {
 	}
 
 	multVec2(p: Vec2): Vec2 {
-		return new Vec2(
+		return vec2(
 			p.x * this.m[0] + p.y * this.m[4] + 0 * this.m[8] + 1 * this.m[12],
 			p.x * this.m[1] + p.y * this.m[5] + 0 * this.m[9] + 1 * this.m[13],
 		)
@@ -528,25 +537,25 @@ export class RNG {
 			this.genNumber(a.b, b.b),
 		)
 	}
-	genAny(val?: number | Vec2 | Color, val2?: number | Vec2 | Color): number | Vec2 | Color {
-		if (val && val2) {
-			if (typeof val === "number" && typeof val2 === "number") {
-				return this.genNumber(val, val2) as number
-			} else if (val instanceof Vec2 && val2 instanceof Vec2) {
-				return this.genVec2(val, val2) as Vec2
-			} else if (val instanceof Color && val2 instanceof Color) {
-				return this.genColor(val, val2) as Color
+	genAny<T extends RNGValue>(...args: T[]): T {
+		if (args.length === 0) {
+			return this.gen() as T
+		} else if (args.length === 1) {
+			if (typeof args[0] === "number") {
+				return this.genNumber(0, args[0]) as T
+			} else if (args[0] instanceof Vec2) {
+				return this.genVec2(vec2(0, 0), args[0]) as T
+			} else if (args[0] instanceof Color) {
+				return this.genColor(rgb(0, 0, 0), args[0]) as T
 			}
-		} else if (val) {
-			if (typeof val === "number") {
-				return this.genNumber(0, val) as number
-			} else if (val instanceof Vec2) {
-				return this.genVec2(new Vec2(0, 0), val) as Vec2
-			} else if (val instanceof Color) {
-				return this.genColor(rgb([0, 0, 0]), val) as Color
+		} else if (args.length === 2) {
+			if (typeof args[0] === "number" && typeof args[1] === "number") {
+				return this.genNumber(args[0], args[1]) as T
+			} else if (args[0] instanceof Vec2 && args[1] instanceof Vec2) {
+				return this.genVec2(args[0], args[1]) as T
+			} else if (args[0] instanceof Color && args[1] instanceof Color) {
+				return this.genColor(args[0], args[1]) as T
 			}
-		} else {
-			return this.gen() as number
 		}
 	}
 }
@@ -561,13 +570,14 @@ export function randSeed(seed?: number): number {
 	return defRNG.seed
 }
 
-export function rand(val?: number | Vec2 | Color, val2?: number | Vec2 | Color) {
-	return defRNG.genAny(val, val2)
+export function rand(...args) {
+	// @ts-ignore
+	return defRNG.genAny(...args)
 }
 
 // TODO: randi() to return 0 / 1?
-export function randi(val?: number, val2?: number) {
-	return Math.floor(rand(val, val2) as number)
+export function randi(...args: number[]) {
+	return Math.floor(rand(...args))
 }
 
 export function chance(p: number): boolean {
@@ -622,7 +632,7 @@ export function testLineLineT(l1: Line, l2: Line): number | null {
 export function testLineLine(l1: Line, l2: Line): Vec2 | null {
 	const t = testLineLineT(l1, l2)
 	if (!t) return null
-	return new Vec2(
+	return vec2(
 		l1.p1.x + t * (l1.p2.x - l1.p1.x),
 		l1.p1.y + t * (l1.p2.y - l1.p1.y),
 	)
@@ -656,7 +666,7 @@ export function testRectPoint(r: Rect, pt: Vec2): boolean {
 export function testRectCircle(r: Rect, c: Circle): boolean {
 	const nx = Math.max(r.pos.x, Math.min(c.center.x, r.pos.x + r.width))
 	const ny = Math.max(r.pos.y, Math.min(c.center.y, r.pos.y + r.height))
-	const nearestPoint = new Vec2(nx, ny)
+	const nearestPoint = vec2(nx, ny)
 	return nearestPoint.dist(c.center) <= c.radius
 }
 
@@ -772,9 +782,9 @@ export class Rect {
 	points(): [Vec2, Vec2, Vec2, Vec2] {
 		return [
 			this.pos,
-			this.pos.add(new Vec2(this.width, 0)),
-			this.pos.add(new Vec2(this.width, this.height)),
-			this.pos.add(new Vec2(0, this.height)),
+			this.pos.add(this.width, 0),
+			this.pos.add(this.width, this.height),
+			this.pos.add(0, this.height),
 		]
 	}
 	transform(m: Mat4): Polygon {
@@ -785,7 +795,7 @@ export class Rect {
 	}
 	distToPoint(p: Vec2): number {
 		const min = this.pos
-		const max = this.pos.add(new Vec2(this.width, this.height))
+		const max = this.pos.add(this.width, this.height)
 		const dx = Math.max(min.x - p.x, 0, p.x - max.x)
 		const dy = Math.max(min.y - p.y, 0, p.y - max.y)
 		return Math.sqrt(dx * dx + dy * dy)
@@ -804,8 +814,8 @@ export class Circle {
 	}
 	bbox(): Rect {
 		return Rect.fromPoints(
-			this.center.sub(new Vec2(this.radius)),
-			this.center.add(new Vec2(this.radius)),
+			this.center.sub(vec2(this.radius)),
+			this.center.add(vec2(this.radius)),
 		)
 	}
 }
@@ -828,8 +838,8 @@ export class Ellipse {
 	}
 	bbox(): Rect {
 		return Rect.fromPoints(
-			this.center.sub(new Vec2(this.radiusX, this.radiusY)),
-			this.center.add(new Vec2(this.radiusX, this.radiusY)),
+			this.center.sub(vec2(this.radiusX, this.radiusY)),
+			this.center.add(vec2(this.radiusX, this.radiusY)),
 		)
 	}
 }
@@ -846,8 +856,8 @@ export class Polygon {
 		return new Polygon(this.pts.map((pt) => m.multVec2(pt)))
 	}
 	bbox(): Rect {
-		const p1 = new Vec2(Number.MAX_VALUE)
-		const p2 = new Vec2(-Number.MAX_VALUE)
+		const p1 = vec2(Number.MAX_VALUE)
+		const p2 = vec2(-Number.MAX_VALUE)
 		for (const pt of this.pts) {
 			p1.x = Math.min(p1.x, pt.x)
 			p2.x = Math.max(p2.x, pt.x)
@@ -860,7 +870,7 @@ export class Polygon {
 
 export function sat(p1: Polygon, p2: Polygon): Vec2 | null {
 	let overlap = Number.MAX_VALUE
-	let displacement = new Vec2(0)
+	let displacement = vec2(0)
 	for (const poly of [p1, p2]) {
 		for (let i = 0; i < poly.pts.length; i++) {
 			const a = poly.pts[i]
@@ -888,7 +898,7 @@ export function sat(p1: Polygon, p2: Polygon): Vec2 | null {
 				const o1 = max2 - min1
 				const o2 = min2 - max1
 				overlap = Math.abs(o1) < Math.abs(o2) ? o1 : o2
-				displacement = axisProj.scale(new Vec2(overlap))
+				displacement = axisProj.scale(overlap)
 			}
 		}
 	}

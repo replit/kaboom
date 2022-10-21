@@ -1,3 +1,5 @@
+export type RNGValue = number | Vec2 | Color
+
 export declare class Vec2 {
 	x: number
 	y: number
@@ -6,21 +8,26 @@ export declare class Vec2 {
 	static UP: Vec2
 	static DOWN: Vec2
 	static fromAngle(deg: number): Vec2
-	constructor(val: Vec2 | number, val2?: number)
+	constructor(x: number, y: number)
+	constructor(xy: number)
 	constructor()
 	clone(): Vec2
 	/**
 	 * Returns the addition with another vector.
 	 */
 	add(p: Vec2): Vec2
+	add(x: number, y: number): Vec2
 	/**
 	 * Returns the subtraction with another vector.
 	 */
 	sub(p: Vec2): Vec2
+	sub(x: number, y: number): Vec2
 	/**
 	 * Scale by another vector, or a single number.
 	 */
-	scale(p: number | Vec2): Vec2
+	scale(p: Vec2): Vec2
+	scale(s: number): Vec2
+	scale(sx: number, sy: number): Vec2
 	/**
 	 * Get the dot product with another vector.
 	 */
@@ -169,6 +176,13 @@ export declare class Quad {
 	eq(q: Quad): boolean
 }
 
+export interface RNG {
+	seed: number,
+	gen(): number,
+	gen<T extends RNGValue>(n: T): T,
+	gen<T extends RNGValue>(a: T, b: T): T,
+}
+
 export declare class Rect {
 	pos: Vec2
 	width: number
@@ -221,5 +235,5 @@ export declare class RNG {
 	genNumber(a: number, b: number): number
 	genVec2(a: Vec2, b?: Vec2): Vec2
 	genColor(a: Color, b: Color): Color
-    genAny(val?: number | Vec2 | Color, val2?: number | Vec2 | Color): number | Vec2 | Color
+	genAny<T extends RNGValue>(...args: T[]): T
 }

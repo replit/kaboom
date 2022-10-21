@@ -2708,12 +2708,6 @@ export interface AreaCompCore extends CompCore {
 	 * If is currently touching another game obj.
 	 */
 	isTouching(o: GameCoreObj<AreaCompCore>): boolean,
-	/**
-	 * Register an event runs when clicked.
-	 *
-	 * @since v2000.1
-	 */
-	onClick(f: () => void): void,
 
 
 
@@ -2850,6 +2844,10 @@ export interface AreaCompCore extends CompCore {
 	 * Get the geometry data for the collider in world coordinate space.
 	 */
 	worldArea(): Polygon,
+	/**
+	 * Get the geometry data for the collider in screen coordinate space.
+	 */
+	screenArea(): Polygon,
 }
 
 export interface AreaComp extends AreaCompCore, Comp {
@@ -2941,9 +2939,11 @@ export interface AreaComp extends AreaCompCore, Comp {
 	 */
 	onHoverEnd(action: () => void): EventController,
 	/**
-	 * Get the geometry data for the collider in screen coordinate space.
+	 * Register an event runs when clicked.
+	 *
+	 * @since v2000.1
 	 */
-	screenArea(): Polygon,
+	onClick(f: () => void): void,
 }
 
 export interface SpriteCompOpt {
