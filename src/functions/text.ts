@@ -1,19 +1,17 @@
 import {
     KaboomOpt, glType, gcType, TextCompOpt, TextComp, GameObj, RenderPropsType,
-    DrawTextOpt, FormattedText, FontData, BitmapFontData, FormattedChar,
+    DrawTextOpt, FormattedText, FormattedChar,
     TextAlign, CharTransform, assetsType, appType, gameType, gfxType, Debug,
 } from "../types"
 import { Vec2, Quad, Color, Rect } from "../math"
 import { fetchURL, onLoad } from "../utils"
 
-import { DEF_FONT, DEF_TEXT_CACHE_SIZE, FONT_ATLAS_SIZE, DEF_TEXT_SIZE } from "../constants"
-import { loadProgress, getBitmapFont } from "../utils"
+import { DEF_TEXT_CACHE_SIZE, FONT_ATLAS_SIZE, DEF_TEXT_SIZE } from "../constants"
 import { Texture } from "../classes/Texture"
-import { TextCtx } from "../types/text"
-import { FontAtlas } from "../types/font"
+import { TextCtx } from "../types/functions/text"
+import { FontAtlas } from "../types/functions/font"
 
 import { AssetData } from "../classes/AssetData"
-import { SpriteData } from "../classes/SpriteData"
 
 import fontFunc from "../functions/font"
 import drawFunc from "../functions/draw"

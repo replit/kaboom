@@ -1,6 +1,6 @@
 import {
     Quad, vec3, rgb, deg2rad, Color, rand, lerp, Mat4,
-    wave, Rect, Vec2
+    wave, Rect, vec2, Vec2
 } from "../math"
 
 import { AssetData } from "../classes/AssetData"
@@ -25,7 +25,7 @@ import spriteFunc from "./sprite"
 
 import { Texture } from "../classes/Texture"
 
-import type { DrawCtx } from "../types/draw"
+import type { DrawCtx } from "../types/functions/draw"
 
 type DrawTextureOpt = RenderProps & {
     tex: Texture,
@@ -61,7 +61,7 @@ export default (gopt: KaboomOpt, gfx: gfxType, assets: assetsType, game: gameTyp
     */
     function pushTranslate(x: Vec2 | number, y?: number) {
         if (x === undefined) return
-        const p = x instanceof Vec2 ? new Vec2(x) : new Vec2(x, y)
+        const p = x instanceof Vec2 ? vec2(x) : new Vec2(x, y)
         if (p.x === 0 && p.y === 0) return
         gfx.transform = gfx.transform.translate(p)
     }
@@ -76,7 +76,7 @@ export default (gopt: KaboomOpt, gfx: gfxType, assets: assetsType, game: gameTyp
     */
     function pushScale(x: Vec2 | number, y?: number) {
         if (x === undefined) return
-        const p = x instanceof Vec2 ? new Vec2(x) : new Vec2(x, y)
+        const p = x instanceof Vec2 ? vec2(x) : new Vec2(x, y)
         if (p.x === 1 && p.y === 1) return
         gfx.transform = gfx.transform.scale(p)
     }

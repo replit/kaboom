@@ -1,6 +1,6 @@
 import { Vec2 } from "../math"
-import { gameType, assetsType } from "../types"
-import { CamCtx } from "../types/cam"
+import { gameType } from "../types"
+import { CamCtx } from "../types/functions/cam"
 
 export default (game: gameType, width: number, height: number): CamCtx => {
 

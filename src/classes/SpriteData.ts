@@ -4,14 +4,13 @@ import type { SpriteAnims, LoadSpriteSrc, LoadSpriteOpt, KaboomOpt, assetsType, 
 import { loadImg } from "../utils"
 import { AssetData } from "./AssetData"
 
-export class SpriteData extends AssetData<SpriteData> {
+export class SpriteData {
 
 	tex: Texture
 	frames: Quad[] = [new Quad(0, 0, 1, 1)]
 	anims: SpriteAnims = {}
 
 	constructor(tex: Texture, frames?: Quad[], anims: SpriteAnims = {}) {
-		super(null)
 		this.tex = tex
 		if (frames) this.frames = frames
 		this.anims = anims

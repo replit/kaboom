@@ -2,7 +2,7 @@ import { clamp } from "../math"
 import { AudioPlayOpt, AudioPlay, gameType, assetsType } from "../types"
 import { loadProgress, createEmptyAudioBuffer, fetchURL, onLoad } from "../utils"
 import { MIN_GAIN, MAX_GAIN, MIN_SPEED, MAX_SPEED, MIN_DETUNE, MAX_DETUNE } from "../constants"
-import type { AudioCtx } from "../types/audio"
+import type { AudioCtx } from "../types/functions/audio"
 
 import { SoundData } from "../classes/SoundData"
 import { AssetData } from "../classes/AssetData"

@@ -1,5 +1,5 @@
 import { VirtualButton, EventController, gameType, appType } from "../types"
-import { VirtualCtx } from "../types/virtual"
+import { VirtualCtx } from "../types/functions/virtual"
 
 export default (game: gameType, app: appType): VirtualCtx => {
 

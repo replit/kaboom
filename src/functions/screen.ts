@@ -9,7 +9,7 @@ import {
 import drawFunc from "./draw"
 import camFunc from "./cam"
 
-import type { ScreenCtx } from "../types/screen"
+import type { ScreenCtx } from "../types/functions/screen"
 
 export default (game: gameType, app: appType, gfx: gfxType, gopt: KaboomOpt, gl: glType, assets: assetsType, debug: Debug, gc: gcType, getRenderProps: RenderPropsType): ScreenCtx => {
 

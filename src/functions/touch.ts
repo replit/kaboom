@@ -1,6 +1,6 @@
 import { Vec2 } from "../math"
-import { VirtualButton, EventController, gameType, appType } from "../types"
-import { TouchCtx } from "../types/touch"
+import { EventController, gameType, appType } from "../types"
+import { TouchCtx } from "../types/functions/touch"
 
 export default (game: gameType, app: appType): TouchCtx => {
     function isTouchScreen() {

@@ -1,5 +1,5 @@
 import { gameType, appType, Key, EventController } from "../types"
-import { KeyCtx } from "../types/key"
+import { KeyCtx } from "../types/functions/key"
 
 export default (game: gameType, app: appType): KeyCtx => {
     function isKeyPressed(k?: Key): boolean {

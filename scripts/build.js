@@ -86,6 +86,23 @@ function buildTypes() {
 			importTypeFiles.push(fileData)
 		}
 	});
+	
+	/*
+	fs.readdirSync(srcDir + "/classes").forEach(file => {
+		if (file.indexOf(".") === -1) {
+			fs.readdirSync(srcDir + "/classes/" + file).forEach(file2 => {
+				const location = srcDir + "/classes/" + file + "/" + file2
+				const fileData = getTypeFileString(location)
+				importTypeFiles.push(fileData)
+			});
+		} else {
+			const location = srcDir + "/classes/" + file
+			const fileData = getTypeFileString(location)
+			importTypeFiles.push(fileData)
+		}
+	});
+	*/
+
 
 	let dts = fs.readFileSync(`${srcDir}/types.ts`, "utf-8")
 	const stoppingPoint = dts.search("declare ")

@@ -1,5 +1,5 @@
 import {
-	sat, Vec2, Vec3, Rect, Polygon, Line, Circle,
+	sat, Vec2, Rect, Polygon, Line, Circle,
 	Color, Mat4, Quad, RNG, quad, rgb, hsl2rgb,
 	rand, randi, randSeed, chance, choose, clamp, lerp, map,
 	mapc, wave, testLineLine, testRectRect,
@@ -10,35 +10,25 @@ import {
 import {
 	download, onLoad, calcTransform,
 	downloadText, downloadJSON, downloadBlob,
-	uid, isDataURL, deepEq,
-	dataURLToArrayBuffer,
-	// eslint-disable-next-line
-	warn,
-	// eslint-disable-next-line
-	benchmark,
-	loadProgress, anchorPt, alignPt, createEmptyAudioBuffer, getBitmapFont, getShader, fetchURL
+	uid, loadProgress, anchorPt, getBitmapFont, getShader
 } from "./utils"
 
 import {
-	GridComp, GfxFont, RenderProps, CharTransform, TextureOpt, FormattedText, RenderPropsType,
-	DrawRectOpt, DrawLineOpt, DrawLinesOpt, DrawTriangleOpt, DrawPolygonOpt, DrawCircleOpt,
-	DrawEllipseOpt, DrawUVQuadOpt, Vertex, FontData, BitmapFontData, ShaderData, LoadSpriteSrc,
-	LoadSpriteOpt, SpriteAtlasData, LoadBitmapFontOpt, KaboomCtx, KaboomOpt, AudioPlay, AudioPlayOpt,
-	DrawSpriteOpt, DrawTextOpt, TextAlign, GameObj, EventController, SceneID, SceneDef, CompList,
+	GridComp, RenderPropsType, FontData, BitmapFontData, ShaderData,
+	KaboomCtx, KaboomOpt, GameObj, EventController, SceneID, SceneDef, CompList,
 	Comp, Tag, Key, MouseButton, PosComp, ScaleComp, RotateComp, ColorComp, OpacityComp, Anchor,
-	AnchorComp, ZComp, FollowComp, MoveComp, OffScreenCompOpt, OffScreenComp, AreaCompOpt, AreaComp,
-	SpriteComp, SpriteCompOpt, SpriteAnimPlayOpt, SpriteAnims, TextComp, TextCompOpt, RectComp, RectCompOpt,
-	UVQuadComp, CircleComp, OutlineComp, TimerComp, BodyComp, BodyCompOpt, Uniform, ShaderComp, FixedComp,
+	AnchorComp, ZComp, FollowComp, MoveComp, AreaCompOpt, AreaComp,
+	RectComp, RectCompOpt,
+	UVQuadComp, CircleComp, OutlineComp, TimerComp, BodyComp, BodyCompOpt, FixedComp,
 	StayComp, HealthComp, LifespanComp, LifespanCompOpt, StateComp, Debug, KaboomPlugin, MergeObj, LevelComp, LevelOpt,
-	Cursor, Recording, BoomOpt, PeditFile, Shape, DoubleJumpComp, VirtualButton, TimerController, TweenController,
-	EventList, SpriteCurAnim, assetsType, gfxType, appType, gameType, glType, gcType
+	Recording, BoomOpt, Shape, DoubleJumpComp, VirtualButton, TimerController, TweenController,
+	EventList, assetsType, gfxType, appType, gameType, glType, gcType
 } from "./types"
 
 import {
-	VERSION, KEY_ALIAS, MOUSE_BUTTONS, PREVENT_DEFAULT_KEYS, ASCII_CHARS, DEF_JUMP_FORCE, MAX_VEL, MIN_SPEED,
-	MAX_SPEED, MIN_DETUNE, MAX_DETUNE, DEF_ANCHOR, BG_GRID_SIZE, DEF_FONT, DBG_FONT, DEF_TEXT_SIZE, DEF_TEXT_CACHE_SIZE,
-	FONT_ATLAS_SIZE, UV_PAD, LOG_MAX, VERTEX_FORMAT, STRIDE, MAX_BATCHED_QUAD, MAX_BATCHED_VERTS, MAX_BATCHED_INDICES,
-	VERT_TEMPLATE, FRAG_TEMPLATE, DEF_VERT, DEF_FRAG, COMP_DESC, COMP_EVENTS, DEF_HASH_GRID_SIZE
+	VERSION, ASCII_CHARS, DEF_JUMP_FORCE, MAX_VEL,
+	DEF_ANCHOR, LOG_MAX, VERTEX_FORMAT, STRIDE, MAX_BATCHED_VERTS, MAX_BATCHED_INDICES,
+	COMP_DESC, COMP_EVENTS, DEF_HASH_GRID_SIZE
 } from "./constants"
 
 import { Texture } from "./classes/Texture"
@@ -55,9 +45,9 @@ import { EventHandler } from "./classes/EventHandler"
 
 import drawFunc from "./functions/draw"
 import textFunc from "./functions/text"
-import docEventsFunc from "./functions/docEvents"
-import canvasEventsFunc from "./functions/canvasEvents"
-import winEventsFunc from "./functions/winEvents"
+import docEventsFunc from "./functions/events/doc"
+import canvasEventsFunc from "./functions/events/canvas"
+import winEventsFunc from "./functions/events/win"
 import audioFunc from "./functions/audio"
 import mouseFunc from "./functions/mouse"
 import camFunc from "./functions/cam"
@@ -77,8 +67,6 @@ import Timer from "./timer"
 
 // @ts-ignore
 import happyFontSrc from "./assets/happy_28x36.png"
-// @ts-ignore
-import beanSpriteSrc from "./assets/bean.png"
 // @ts-ignore
 import kaSpriteSrc from "./assets/ka.png"
 // @ts-ignore

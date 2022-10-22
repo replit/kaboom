@@ -1,4 +1,4 @@
-import { EventList, appType, Debug, } from "../types"
+import { EventList, appType, Debug, } from "../../types"
 
 export default (app: appType, debug: Debug, audio) => {
     const docEvents: EventList<DocumentEventMap> = {}

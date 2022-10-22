@@ -1,29 +1,21 @@
 import {
-    LoadSpriteSrc, SpriteAtlasData, GfxFont, DrawSpriteOpt, SpriteCurAnim,
-    DrawTextOpt, FormattedText, FontData, BitmapFontData, FormattedChar,
-    TextAlign, CharTransform, assetsType, appType, KaboomOpt, GameObj,
+    LoadSpriteSrc, SpriteAtlasData, DrawSpriteOpt, SpriteCurAnim,assetsType, appType, KaboomOpt, GameObj,
     glType, gcType, LoadSpriteOpt, PeditFile, SpriteCompOpt, SpriteComp,
     gfxType, gameType, Debug, RenderPropsType, SpriteAnimPlayOpt, EventController,
-    BoomOpt
 } from "../types"
 import { Vec2, Quad, Rect } from "../math"
-import { DEF_FONT, DEF_TEXT_CACHE_SIZE, ASCII_CHARS } from "../constants"
-import { loadProgress, getBitmapFont, loadImg, fetchURL, dt } from "../utils"
+import { loadProgress, loadImg, fetchURL, dt } from "../utils"
 
 import { Texture } from "../classes/Texture"
 import { SpriteData } from "../classes/SpriteData"
 
-import { SpriteCtx } from "../types/sprite"
+import { SpriteCtx } from "../types/functions/sprite"
 
 import { AssetData } from "../classes/AssetData"
 import drawFunc from "./draw"
 
 // @ts-ignore
 import beanSpriteSrc from "../assets/bean.png"
-// @ts-ignore
-import kaSpriteSrc from "../assets/ka.png"
-// @ts-ignore
-import boomSpriteSrc from "../assets/boom.png"
 
 export default (gl: glType, gc: gcType, gopt: KaboomOpt, assets: assetsType, gfx: gfxType, game: gameType, app: appType, debug: Debug, getRenderProps: RenderPropsType): SpriteCtx => {
 

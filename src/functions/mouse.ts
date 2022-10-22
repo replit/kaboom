@@ -1,6 +1,6 @@
 import { Vec2 } from "../math"
 import { appType, MouseButton, GameObj, EventController, Tag, gameType, Cursor } from "../types"
-import type { MouseCtx } from "../types/mouse"
+import type { MouseCtx } from "../types/functions/mouse"
 
 type onType = (event: string, tag: Tag, cb: (obj: GameObj, ...args: any[]) => void) => EventController
 

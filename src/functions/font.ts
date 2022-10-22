@@ -1,14 +1,13 @@
 import {
-    LoadBitmapFontOpt, GfxFont, DrawSpriteOpt, gcType, glType,
-    DrawTextOpt, FormattedText, FontData, BitmapFontData, FormattedChar,
-    TextAlign, CharTransform, assetsType, appType, KaboomOpt
+    LoadBitmapFontOpt, GfxFont, gcType, glType,
+    DrawTextOpt, FontData, BitmapFontData,
+    assetsType, KaboomOpt
 } from "../types"
-import { Quad, Color } from "../math"
+import { Quad } from "../math"
 import { DEF_FONT, DEF_TEXT_CACHE_SIZE, ASCII_CHARS } from "../constants"
 import { loadProgress, getBitmapFont, loadImg } from "../utils"
 import { Texture } from "../classes/Texture"
-import { SpriteData } from "../classes/SpriteData"
-import { FontCtx, FontAtlas } from "../types/font"
+import { FontCtx, FontAtlas } from "../types/functions/font"
 
 import { AssetData } from "../classes/AssetData"
 

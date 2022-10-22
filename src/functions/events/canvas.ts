@@ -1,6 +1,6 @@
-import { Vec2 } from "../math"
-import { EventList, gfxType, appType, gameType } from "../types"
-import { MOUSE_BUTTONS, PREVENT_DEFAULT_KEYS, KEY_ALIAS } from "../constants"
+import { Vec2 } from "../../math"
+import { EventList, gfxType, appType, gameType } from "../../types"
+import { MOUSE_BUTTONS, PREVENT_DEFAULT_KEYS, KEY_ALIAS } from "../../constants"
 
 export default (game: gameType, app: appType, gfx: gfxType, gopt): EventList<HTMLElementEventMap> => {
 

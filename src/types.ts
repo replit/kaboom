@@ -13,6 +13,16 @@ import { SpriteCtx } from "./types/functions/sprite"
 import { FontCtx } from "./types/functions/font"
 import { ShaderCtx } from "./types/functions/shaders"
 
+import { AssetBucket } from "./classes/AssetBucket"
+import { AssetData } from "./classes/AssetData"
+import { ButtonState } from "./classes/ButtonState"
+import { EventHandler } from "./classes/EventHandler"
+import { KaboomEvent } from "./classes/KaboomEvent"
+import { SoundData } from "./classes/SoundData"
+import { SpriteData } from "./classes/SpriteData"
+import { Texture } from "./classes/Texture"
+
+/*
 import { AssetBucket } from "./types/classes/AssetBucket"
 import { AssetData } from "./types/classes/AssetData"
 import { ButtonState } from "./types/classes/ButtonState"
@@ -21,6 +31,7 @@ import { KaboomEvent } from "./types/classes/KaboomEvent"
 import { SoundData } from "./types/classes/SoundData"
 import { SpriteData } from "./types/classes/SpriteData"
 import { Texture } from "./types/classes/Texture"
+*/
 
 import { FPSCounter } from "./types/fps"
 

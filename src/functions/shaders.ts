@@ -6,7 +6,7 @@ import {
 import { loadProgress, getShader } from "../utils"
 import { DEF_VERT, DEF_FRAG, VERT_TEMPLATE, FRAG_TEMPLATE } from "../constants"
 
-import type { ShaderCtx } from "../types/shaders"
+import type { ShaderCtx } from "../types/functions/shaders"
 
 import { Mat4, Color, Vec2, Vec3 } from "../math"
 import textFunc from "./text"

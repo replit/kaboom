@@ -1,20 +1,10 @@
-import { EventList, KaboomOpt, gcType, RenderPropsType } from "../types"
-import { rgb, Vec2 } from "../math"
-import drawFunc from "./draw"
-import textFunc from "./text"
-import { DBG_FONT } from "../constants"
+import { EventList, KaboomOpt, gcType, RenderPropsType } from "../../types"
+import { rgb, Vec2 } from "../../math"
+import drawFunc from "../draw"
+import textFunc from "../text"
+import { DBG_FONT } from "../../constants"
 
-import {
-    Vertex, RenderProps, Debug,
-    DrawRectOpt, DrawLineOpt, DrawLinesOpt,
-    DrawTriangleOpt, DrawPolygonOpt, DrawCircleOpt,
-    DrawEllipseOpt, DrawUVQuadOpt, DrawSpriteOpt,
-    DrawTextOpt, FormattedText, Uniform,
-    VirtualButton, assetsType, gameType,
-    Anchor, gfxType, appType,
-} from "../types"
-
-import { Texture } from "../classes/Texture"
+import { Debug, assetsType, gameType, gfxType, appType } from "../../types"
 
 export default (run,
     gopt: KaboomOpt, gfx: gfxType, assets: assetsType, game: gameType, app: appType, debug: Debug,
