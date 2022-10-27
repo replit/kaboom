@@ -869,6 +869,12 @@ export interface KaboomCtx {
 	 */
 	onTouchEnd(action: (pos: Vec2, t: Touch) => void): EventController,
 	/**
+	 * Register an event that runs when mouse wheel scrolled.
+	 *
+	 * @since v3000.0
+	 */
+	onScroll(action: (delta: Vec2) => void): EventController,
+	/**
 	 * Register an event that runs when a virtual control button is pressed.
 	 *
 	 * @since v3000.0

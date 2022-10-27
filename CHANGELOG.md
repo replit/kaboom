@@ -88,6 +88,7 @@ bean.destroy()
 
 ## Input
 
+- added `onScroll(action: (delta: Vec2) => void)` to listen mouse wheel scroll
 - added virtual controls for mobile, enabled with `virtualControls: true` in `kaboom()`
 - added `isVirtualButtonPressed()`, `isVirtualButtonDown()`, `isVirtualButtonReleased()`
 - added `onVirtualButtonPress()`, `onVirtualButtonDown()`, `onVirtualButtonRelease()`

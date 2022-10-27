@@ -2691,6 +2691,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			const pw = app.canvas.parentElement.offsetWidth
 			const ph = app.canvas.parentElement.offsetHeight
 			if (pw !== app.lastParentWidth || ph !== app.lastParentHeight) {
+				// TODO: slow to resize, only apply resize when user stopped draggin?
 				app.canvas.width = pw * app.pixelDensity
 				app.canvas.height = ph * app.pixelDensity
 				app.canvas.style.width = pw + "px"
@@ -2984,6 +2985,13 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				app.mouseState.release("left")
 				game.ev.trigger("mouseRelease", "left")
 			}
+		})
+	}
+
+	canvasEvents.wheel = (e) => {
+		e.preventDefault()
+		game.ev.onOnce("input", () => {
+			game.ev.trigger("scroll", vec2(e.deltaX, e.deltaY))
 		})
 	}
 
@@ -3768,6 +3776,10 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 	function onTouchEnd(f: (pos: Vec2, t: Touch) => void): EventController {
 		return game.ev.on("onTouchEnd", f)
+	}
+
+	function onScroll(action: (delta: Vec2) => void): EventController {
+		return game.ev.on("scroll", action)
 	}
 
 	function onVirtualButtonDown(btn: VirtualButton, action: () => void): EventController {
@@ -5987,7 +5999,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 	function drawVirtualControls() {
 
-		// TODO: mousePos incorrect in "stretch" mode
+		// TODO: mousePos incorrect in "stretch" mode and gopt.scale
 		const mpos = mousePos()
 
 		const drawCircleButton = (pos: Vec2, btn: VirtualButton, text?: string) => {
@@ -5999,6 +6011,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				pos: pos,
 				outline: { width: 4, color: rgb(0, 0, 0) },
 				opacity: 0.5,
+				fixed: true,
 			})
 
 			if (text) {
@@ -6009,6 +6022,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 					size: 40,
 					anchor: "center",
 					opacity: 0.5,
+					fixed: true,
 				})
 			}
 
@@ -6038,7 +6052,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 		const drawSquareButton = (pos: Vec2, btn: VirtualButton, text?: string) => {
 
-			// TODO: mousePos incorrect in "stretch" mode
 			const size = 64
 
 			drawRect({
@@ -6049,6 +6062,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				radius: 4,
 				anchor: "center",
 				opacity: 0.5,
+				fixed: true,
 			})
 
 			if (text) {
@@ -6059,6 +6073,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 					size: 40,
 					anchor: "center",
 					opacity: 0.5,
+					fixed: true,
 				})
 			}
 
@@ -6469,6 +6484,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		onTouchStart,
 		onTouchMove,
 		onTouchEnd,
+		onScroll,
 		onVirtualButtonPress,
 		onVirtualButtonDown,
 		onVirtualButtonRelease,
