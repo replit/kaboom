@@ -849,7 +849,7 @@ export interface KaboomCtx {
 	 *
 	 * @since v2000.1
 	 */
-	onMouseMove(action: (pos: Vec2) => void): EventController,
+	onMouseMove(action: (pos: Vec2, delta: Vec2) => void): EventController,
 	/**
 	 * Register an event that runs when a touch starts.
 	 *

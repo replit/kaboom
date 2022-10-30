@@ -191,7 +191,7 @@ const PREVENT_DEFAULT_KEYS = new Set([
 	"ArrowRight",
 	"ArrowUp",
 	"ArrowDown",
-	"tab",
+	"Tab",
 ])
 
 // according to https://developer.mozilla.org/en-US/docs/Web/API/MouseEvent/button
@@ -2853,6 +2853,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	function setMousePos(x: number, y: number) {
 		const mpos = windowToContent(vec2(x, y))
 		if (app.mouseStarted) {
+			// TODO: mouseDelta has a minimum of 5 for some reason
 			app.mouseDeltaPos = mpos.sub(app.mousePos)
 		}
 		app.mousePos = mpos
