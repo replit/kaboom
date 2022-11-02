@@ -60,6 +60,6 @@ const pos = k.vec2(120, 200)
 
 ## Pack sprites into a single sprite
 
-Kaboom will optimize sprites using a single image into batched render, otherwise every sprite draw will initiate a separate draw call which is expensive.
+Kaboom will optimize sprites using a single image into batched render, otherwise every sprite draw will initiate a separate draw call which is expensive. It also makes asset loading faster since you're merging multiple HTTP requests into one.
 
 Check out this example [kaboom_texpack](https://github.com/slmjkdbtl/kaboom_texpack), where it uses [free-tex-packer-core](https://www.npmjs.com/package/free-tex-packer-core) to pack sprites at built time and `loadSpriteAtlas()` to load the packed sprite, makes it very convenient to enable batched sprite optimization.

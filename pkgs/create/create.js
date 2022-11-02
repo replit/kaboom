@@ -215,9 +215,8 @@ create(dir(dest, [
 	file("package.json", stringify({
 		"name": dest,
 		"scripts": {
-			"watch": "esbuild --bundle src/game.ts --outfile=www/main.js --watch",
-			"build": "esbuild --bundle src/game.ts --outfile=www/main.js",
-			"dev": "esbuild --bundle src/game.ts --outfile=www/main.js --servedir=www",
+			"build": `esbuild --bundle src/main.${ext} --outfile=www/main.js`,
+			"dev": `esbuild --bundle src/main.${ext} --outfile=www/main.js --servedir=www`,
 			"zip": "npm run build && mkdir -p dist && zip -r dist/game.zip www -x \"**/.DS_Store\"",
 			...(ts ? {
 				"check": "tsc",
@@ -243,8 +242,9 @@ create(dir(dest, [
 		dir("sprites", []),
 	]),
 	dir("src", [
-		file(`game.${ext}`, startCode),
+		file(`main.${ext}`, startCode),
 	]),
+	file("README.md", ""),
 	...(ts ? [
 		file("tsconfig.json", stringify({
 			compilerOptions: {
@@ -322,5 +322,5 @@ Success! Now
   $ cd ${dest}
   $ npm run dev
 
-and start editing src/game.${ext}!
+and start editing src/main.${ext}!
 `.trim())

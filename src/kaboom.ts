@@ -1,4 +1,4 @@
-const VERSION = "3000.0.0-alpha.11"
+const VERSION = "3000.0.0-alpha.12"
 
 import {
 	sat,
@@ -518,6 +518,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 	class Texture {
 
+		src: null | TexImageSource = null
 		glTex: WebGLTexture
 		width: number
 		height: number
@@ -575,6 +576,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			tex.width = img.width
 			tex.height = img.height
 			tex.unbind()
+			tex.src = img
 			return tex
 		}
 

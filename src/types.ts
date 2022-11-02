@@ -2693,6 +2693,7 @@ export type TextureOpt = {
 
 export declare class Texture {
 	glTex: WebGLTexture
+	src: null | TexImageSource
 	width: number
 	height: number
 	constructor(w: number, h: number, opt?: TextureOpt)
