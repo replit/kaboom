@@ -2134,7 +2134,7 @@ export type Key =
 	| "q" | "w" | "e" | "r" | "t" | "y" | "u" | "i" | "o" | "p" | "[" | "]" | "\\"
 	| "a" | "s" | "d" | "f" | "g" | "h" | "j" | "k" | "l" | "" | "'"
 	| "z" | "x" | "c" | "v" | "b" | "n" | "m" | "," | "." | "/"
-	| "escape" | "backspace" | "enter" | "tab" | "space" | " "
+	| "escape" | "backspace" | "enter" | "tab" | "control" | "alt" | "meta" | "space" | " "
 	| "left" | "right" | "up" | "down"
 
 export type MouseButton =
