@@ -3508,6 +3508,10 @@ export interface PosComp extends Comp {
 	 */
 	pos: Vec2,
 	/**
+	 * Object's current velocity.
+	 */
+	vel: Vec2,
+	/**
 	 * Move how many pixels per second. If object is 'solid', it won't move into other 'solid' objects.
 	 */
 	move(xVel: number, yVel: number): void,

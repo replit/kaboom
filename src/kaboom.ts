@@ -3844,6 +3844,13 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 			id: "pos",
 			pos: vec2(...args),
+			vel: vec2(0),
+
+			update() {
+				if (!this.vel.isZero()) {
+					this.pos = this.pos.add(this.vel.scale(dt()))
+				}
+			},
 
 			moveBy(...args) {
 				this.pos = this.pos.add(vec2(...args))
@@ -4763,7 +4770,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	// TODO: land on wall
 	function body(opt: BodyCompOpt = {}): BodyComp {
 
-		let velY = 0
 		let curPlatform: GameObj<PosComp | AreaComp | BodyComp> | null = null
 		let lastPlatformPos = null
 		let wantFall = false
@@ -4778,7 +4784,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			isStatic: opt.isStatic ?? false,
 			mass: opt.mass ?? 0,
 
-			add(this: GameObj<BodyComp | AreaComp>) {
+			add(this: GameObj<PosComp | BodyComp | AreaComp>) {
 
 				// TODO
 				// static vs static: don't resolve
@@ -4820,20 +4826,19 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				}))
 
 				events.push(this.onPhysicsResolve((col) => {
-					if (game.gravity) {
-						if (col.isBottom() && this.isFalling()) {
-							velY = 0
-							curPlatform = col.target as GameObj<PosComp | BodyComp | AreaComp>
-							lastPlatformPos = col.target.pos
-							if (wantFall) {
-								wantFall = false
-							} else {
-								this.trigger("ground", curPlatform)
-							}
-						} else if (col.isTop() && this.isJumping()) {
-							velY = 0
-							this.trigger("headbutt", col.target)
+					if (!game.gravity) return
+					if (col.isBottom() && this.isFalling()) {
+						this.vel.y = 0
+						curPlatform = col.target as GameObj<PosComp | BodyComp | AreaComp>
+						lastPlatformPos = col.target.pos
+						if (wantFall) {
+							wantFall = false
+						} else {
+							this.trigger("ground", curPlatform)
 						}
+					} else if (col.isTop() && this.isJumping()) {
+						this.vel.y = 0
+						this.trigger("headbutt", col.target)
 					}
 				}))
 
@@ -4875,13 +4880,12 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 					}
 				}
 
-				const prevVelY = velY
-				velY += game.gravity * this.gravityScale * dt()
-				velY = Math.min(velY, opt.maxVelocity ?? MAX_VEL)
-				if (prevVelY < 0 && velY >= 0) {
+				const prevVelY = this.vel.y
+				this.vel.y += game.gravity * this.gravityScale * dt()
+				this.vel.y = Math.min(this.vel.y, opt.maxVelocity ?? MAX_VEL)
+				if (prevVelY < 0 && this.vel.y >= 0) {
 					this.trigger("fall")
 				}
-				this.move(0, velY)
 
 			},
 
@@ -4905,18 +4909,18 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				return curPlatform !== null
 			},
 
-			isFalling(): boolean {
-				return velY > 0
+			isFalling(this: GameObj<PosComp | BodyComp>): boolean {
+				return this.vel.y > 0
 			},
 
-			isJumping(): boolean {
-				return velY < 0
+			isJumping(this: GameObj<PosComp | BodyComp>): boolean {
+				return this.vel.y < 0
 			},
 
-			jump(force: number) {
+			jump(this: GameObj<PosComp | BodyComp>, force: number) {
 				curPlatform = null
 				lastPlatformPos = null
-				velY = -force || -this.jumpForce
+				this.vel.y = -force || -this.jumpForce
 			},
 
 			onGround(this: GameObj, action: () => void): EventController {
