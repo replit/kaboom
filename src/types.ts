@@ -936,6 +936,16 @@ export interface KaboomCtx {
 		options?: LoadSpriteOpt,
 	): Asset<SpriteData>,
 	/**
+	 * Load sprite from load image data syncronously.
+	 *
+	 * @since v3000.0
+	 */
+	loadSpriteSync(
+		name: string | null,
+		src: TexImageSource | TexImageSource[],
+		options?: LoadSpriteOpt,
+	): Asset<SpriteData>,
+	/**
 	 * Load sprites from a sprite atlas.
 	 *
 	 * @example
@@ -2555,6 +2565,7 @@ export declare class SpriteData {
 	frames: Quad[]
 	anims: SpriteAnims
 	constructor(tex: Texture, frames?: Quad[], anims?: SpriteAnims)
+	static from(src: LoadSpriteSrc, opt?: LoadSpriteOpt): Promise<SpriteData>
 	static fromImage(data: TexImageSource, opt?: LoadSpriteOpt): SpriteData
 	static fromURL(url: string, opt?: LoadSpriteOpt): Promise<SpriteData>
 }

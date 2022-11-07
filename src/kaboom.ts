@@ -842,10 +842,11 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			this.assets.set(id, asset)
 			return asset
 		}
-		addLoaded(name: string | null, data: D) {
+		addLoaded(name: string | null, data: D): Asset<D> {
 			const id = name ?? (this.lastUID++ + "")
 			const asset = Asset.loaded(data)
 			this.assets.set(id, asset)
+			return asset
 		}
 		get(handle: string): Asset<D> | void {
 			return this.assets.get(handle)
@@ -1050,6 +1051,47 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		}))
 	}
 
+	function createSpriteSheet(
+		images: TexImageSource[],
+		opt: LoadSpriteOpt = {},
+	): SpriteData {
+		const canvas = document.createElement("canvas")
+		const width = images[0].width
+		const height = images[0].height
+		canvas.width = width * images.length
+		canvas.height = height
+		const ctx = canvas.getContext("2d")
+		images.forEach((img, i) => {
+			if (img instanceof ImageData) {
+				ctx.putImageData(img, i * width, 0)
+			} else {
+				ctx.drawImage(img, i * width, 0)
+			}
+		})
+		const merged = ctx.getImageData(0, 0, images.length * width, height)
+		return SpriteData.fromImage(merged, {
+			...opt,
+			sliceX: images.length,
+			sliceY: 1,
+		})
+	}
+
+	function loadSpriteSync(
+		name: string | null,
+		src: TexImageSource | TexImageSource[],
+		opt: LoadSpriteOpt = {
+			sliceX: 1,
+			sliceY: 1,
+			anims: {},
+		},
+	): Asset<SpriteData> {
+		if (Array.isArray(src)) {
+			return assets.sprites.addLoaded(name, createSpriteSheet(src, opt))
+		} else {
+			return assets.sprites.addLoaded(name, SpriteData.fromImage(src, opt))
+		}
+	}
+
 	// load a sprite to asset manager
 	function loadSprite(
 		name: string | null,
@@ -1065,27 +1107,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				name,
 				Promise.all(src.map((s) => {
 					return typeof s === "string" ? loadImg(s) : Promise.resolve(s)
-				})).then((images) => {
-					const canvas = document.createElement("canvas")
-					const width = images[0].width
-					const height = images[0].height
-					canvas.width = width * images.length
-					canvas.height = height
-					const ctx = canvas.getContext("2d")
-					images.forEach((img, i) => {
-						if (img instanceof ImageData) {
-							ctx.putImageData(img, i * width, 0)
-						} else {
-							ctx.drawImage(img, i * width, 0)
-						}
-					})
-					const merged = ctx.getImageData(0, 0, images.length * width, height)
-					return SpriteData.from(merged, {
-						...opt,
-						sliceX: images.length,
-						sliceY: 1,
-					})
-				}),
+				})).then((images) => createSpriteSheet(images, opt)),
 			)
 		} else {
 			return assets.sprites.add(name, SpriteData.from(src, opt))
@@ -6409,6 +6431,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		loadRoot,
 		loadProgress,
 		loadSprite,
+		loadSpriteSync,
 		loadSpriteAtlas,
 		loadSound,
 		loadBitmapFont,

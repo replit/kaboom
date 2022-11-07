@@ -3,7 +3,6 @@
 ## Game Objects
 
 - added scene graph, game objects are now stored in a tree-like structure and can have children with `obj.add()`
-
 ```js
 const bean = add([
     sprite("bean"),
@@ -29,7 +28,6 @@ bean.moveBy(100, 200)
 // children will be destroyed alongside the parent
 bean.destroy()
 ```
-
 - added `GameObj#getAll()` for recursively getting children game objects (`get()` only gets from direct children)
 - changed object update order from reversed to not reversed
 - (**BREAK**) removed `GameObj#every()` and `GameObj#revery()` in favor of `obj.get().forEach()`
@@ -46,15 +44,15 @@ bean.destroy()
 - added `Body#onFall()` which fires when object starts falling
 - added `Body#onPhysicsResolve()` and `Body#onBeforePhysicsResolve()` to register events relating to collision resolution
 - added `body({ stickToPlatform: false })` option to turn off object moving with platform
-- added `doubleJump()` component to enable double jump
+- added `doubleJump()` component to enable double jump (or any number of jumps)
 - (**BREAK**) removed `Body#doubleJump()` in favor of `doubleJump()` component
 - (**BREAK**) renamed `Body#weight` to `Body#gravityScale`
 - (**BREAK**) renamed `Body#onFall()` to `Body#onFallOff()` which triggers when object fall off a platform
 - (**BREAK**) removed `solid()` in favor of `body({ isStatic: true })`
 - (**BREAK**) defining `gravity()` is now required for enabling gravity, `body()` by default will only prevent objects from going through each other
-- (**BREAK**) renamed `origin()` to `anchor()`, so it won't mess up typescript in global context
+- (**BREAK**) renamed `origin()` to `anchor()`, so it won't mess up typescript in global mode
 - (**BREAK**) `anchor` (previously `origin`) no longer controls text alignment, use `align` option instead
-- (**BREAK**) changed `outview()` to `offscreen()`, and uses a much more performant check for if object is offscreen
+- (**BREAK**) renamed `outview()` to `offscreen()`, and uses a much more performant check (but less accurate) for if object is offscreen
   - removed `offset` option in favor of a simpler `distance` option
   - renamed `onExitView()` and `onEnterView()` to `onExitScreen()` and `onEnterScreen()`
 - (**BREAK**) removed `cleanup()` component in favor of `offscreen({ destroy: true })`
@@ -68,17 +66,13 @@ bean.destroy()
 - added option `loadingScreen` to `kaboom()` where you can turn off the default loading screen
 - added `onLoadUpdate()` to register a custom loading screen (see "loader" example)
 ```js
-kaboom({
-    loadingScreen: false
-})
-
 // custom loading screen
 onLoadUpdate((progress) => {
-	drawCircle({
-		pos: center(),
-		radius: 32,
-		end: map(progress, 0, 1, 0, 360),
-	})
+    drawCircle({
+        pos: center(),
+        radius: 32,
+        end: map(progress, 0, 1, 0, 360),
+    })
 })
 ```
 - added support for multiple sprite sources as frames in `loadSprite()`
@@ -88,6 +82,14 @@ loadSprite("player", [
     "sprites/player_run.png",
     "sprites/player_jump.png",
 ])
+```
+- added `loadSpriteSync()` to synchronously load image from local image data
+```js
+const s = loadSpriteSync(
+    "reddot",
+    new ImageData(new Uint8ClampedArray([ 255, 0, 0, 255 ]), 1, 1)
+)
+console.log(s.data)
 ```
 
 ## Font

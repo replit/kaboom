@@ -3,7 +3,7 @@
 kaboom({
 	// Optionally turn off loading screen entirely
 	// Unloaded assets simply won't be drawn
-	// loadingScreen: false,
+	loadingScreen: false,
 })
 
 let spr = null
