@@ -65,7 +65,22 @@ bean.destroy()
 ## Assets
 
 - added `loadProgress()` that returns a `0.0 - 1.0` that indicates current asset loading progress
+- added option `loadingScreen` to `kaboom()` where you can turn off the default loading screen
 - added `onLoadUpdate()` to register a custom loading screen (see "loader" example)
+```js
+kaboom({
+    loadingScreen: false
+})
+
+// custom loading screen
+onLoadUpdate((progress) => {
+	drawCircle({
+		pos: center(),
+		radius: 32,
+		end: map(progress, 0, 1, 0, 360),
+	})
+})
+```
 - added support for multiple sprite sources as frames in `loadSprite()`
 ```js
 loadSprite("player", [
@@ -88,7 +103,6 @@ loadSprite("player", [
 - fixed visual artifacts on text rendering
 - added `colors` option to `drawPolygon()` that controls the color of each corner
 - added `gradient` option to `drawRect()` that specifies the start and end color
-- added option `loadingScreen` to `kaboom()` where you can turn off the default loading screen
 - added `drawMasked()` and `drawSubtracted()`
 - added `pushRotateX()`, `pushRotateY()` and `pushRotateZ()`
 - added `pixelDensity` option to `kaboom()`
