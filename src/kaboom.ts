@@ -1076,7 +1076,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		})
 	}
 
-	function loadSpriteSync(
+	function loadSpriteLocal(
 		name: string | null,
 		src: TexImageSource | TexImageSource[],
 		opt: LoadSpriteOpt = {
@@ -1181,32 +1181,25 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		name: string | null,
 		vert?: string,
 		frag?: string,
-		isUrl: boolean = false,
+	) {
+		return assets.shaders.addLoaded(name, makeShader(vert, frag))
+	}
+
+	function loadShaderFromURL(
+		name: string | null,
+		vert?: string,
+		frag?: string,
 	): Asset<ShaderData> {
-
-		return assets.shaders.add(name, new Promise<ShaderData>((resolve, reject) => {
-
+		return assets.shaders.add(name, new Promise<ShaderData>((resolve) => {
 			const resolveUrl = (url?: string) =>
 				url
 					? fetchText(url)
 					: new Promise((r) => r(null))
-
-			if (isUrl) {
-				Promise.all([resolveUrl(vert), resolveUrl(frag)])
-					.then(([vcode, fcode]: [string | null, string | null]) => {
-						resolve(makeShader(vcode, fcode))
-					})
-					.catch(reject)
-			} else {
-				try {
-					resolve(makeShader(vert, frag))
-				} catch (err) {
-					reject(err)
-				}
-			}
-
+			return Promise.all([resolveUrl(vert), resolveUrl(frag)])
+				.then(([vcode, fcode]: [string | null, string | null]) => {
+					resolve(makeShader(vcode, fcode))
+				})
 		}))
-
 	}
 
 	// load a sound to asset manager
@@ -6431,12 +6424,13 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		loadRoot,
 		loadProgress,
 		loadSprite,
-		loadSpriteSync,
+		loadSpriteLocal,
 		loadSpriteAtlas,
 		loadSound,
 		loadBitmapFont,
 		loadFont,
 		loadShader,
+		loadShaderFromURL,
 		loadAseprite,
 		loadPedit,
 		loadBean,

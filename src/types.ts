@@ -940,7 +940,7 @@ export interface KaboomCtx {
 	 *
 	 * @since v3000.0
 	 */
-	loadSpriteSync(
+	loadSpriteLocal(
 		name: string | null,
 		src: TexImageSource | TexImageSource[],
 		options?: LoadSpriteOpt,
@@ -1095,7 +1095,14 @@ export interface KaboomCtx {
 		name: string | null,
 		vert?: string,
 		frag?: string,
-		isUrl?: boolean,
+	): Asset<ShaderData>,
+	/**
+	 * @since v3000.0
+	 */
+	loadShaderFromURL(
+		name: string | null,
+		vert?: string,
+		frag?: string,
 	): Asset<ShaderData>,
 	/**
 	 * Add a new loader to wait for before starting the game.

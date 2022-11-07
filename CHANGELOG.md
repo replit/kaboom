@@ -83,14 +83,15 @@ loadSprite("player", [
     "sprites/player_jump.png",
 ])
 ```
-- added `loadSpriteSync()` to synchronously load image from local image data
+- added `loadSpriteLocal()` to synchronously load image from local image data
 ```js
-const s = loadSpriteSync(
+const s = loadSpriteLocal(
     "reddot",
     new ImageData(new Uint8ClampedArray([ 255, 0, 0, 255 ]), 1, 1)
 )
 console.log(s.data)
 ```
+- added `loadShaderURL()`
 
 ## Font
 
