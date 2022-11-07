@@ -66,6 +66,14 @@ bean.destroy()
 
 - added `loadProgress()` that returns a `0.0 - 1.0` that indicates current asset loading progress
 - added `onLoadUpdate()` to register a custom loading screen (see "loader" example)
+- added support for multiple sprite sources as frames in `loadSprite()`
+```js
+loadSprite("player", [
+    "sprites/player_idle.png",
+    "sprites/player_run.png",
+    "sprites/player_jump.png",
+])
+```
 
 ## Font
 

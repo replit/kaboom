@@ -1053,20 +1053,43 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	// load a sprite to asset manager
 	function loadSprite(
 		name: string | null,
-		src: LoadSpriteSrc,
+		src: LoadSpriteSrc | LoadSpriteSrc[],
 		opt: LoadSpriteOpt = {
 			sliceX: 1,
 			sliceY: 1,
 			anims: {},
 		},
 	): Asset<SpriteData> {
-		return assets.sprites.add(
-			name,
-			typeof src === "string"
-				? SpriteData.fromURL(src, opt)
-				: Promise.resolve(SpriteData.fromImage(src, opt),
-				),
-		)
+		if (Array.isArray(src)) {
+			return assets.sprites.add(
+				name,
+				Promise.all(src.map((s) => {
+					return typeof s === "string" ? loadImg(s) : Promise.resolve(s)
+				})).then((images) => {
+					const canvas = document.createElement("canvas")
+					const width = images[0].width
+					const height = images[0].height
+					canvas.width = width * images.length
+					canvas.height = height
+					const ctx = canvas.getContext("2d")
+					images.forEach((img, i) => {
+						if (img instanceof ImageData) {
+							ctx.putImageData(img, i * width, 0)
+						} else {
+							ctx.drawImage(img, i * width, 0)
+						}
+					})
+					const merged = ctx.getImageData(0, 0, images.length * width, height)
+					return SpriteData.from(merged, {
+						...opt,
+						sliceX: images.length,
+						sliceY: 1,
+					})
+				}),
+			)
+		} else {
+			return assets.sprites.add(name, SpriteData.from(src, opt))
+		}
 	}
 
 	function loadPedit(name: string | null, src: string | PeditFile): Asset<SpriteData> {

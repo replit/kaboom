@@ -11,7 +11,7 @@ function mergeImg(urls) {
 	return Promise.all(urls.map((url) => new Promise((resolve, reject) => {
 		const img = new Image()
 		img.src = url
-		img.crossanchor = "anonymous"
+		img.crossOrigin = "anonymous"
 		img.onload = () => resolve(img)
 		img.onerror = () => reject(new Error(`Failed to load ${url}`))
 	}))).then((images) => {

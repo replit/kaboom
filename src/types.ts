@@ -932,7 +932,7 @@ export interface KaboomCtx {
 	 */
 	loadSprite(
 		name: string | null,
-		src: LoadSpriteSrc,
+		src: LoadSpriteSrc | LoadSpriteSrc[],
 		options?: LoadSpriteOpt,
 	): Asset<SpriteData>,
 	/**
