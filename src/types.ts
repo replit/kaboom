@@ -1072,13 +1072,10 @@ export interface KaboomCtx {
 		options?: LoadBitmapFontOpt,
 	): Asset<BitmapFontData>,
 	/**
-	 * Load a shader into asset manager with vertex and fragment code / file url.
+	 * Load a shader with vertex and fragment code.
 	 *
 	 * @example
 	 * ```js
-	 * // load only a fragment shader from URL
-	 * loadShader("outline", null, "/shaders/outline.glsl", true)
-	 *
 	 * // default shaders and custom shader format
 	 * loadShader("outline",
 	 *     `vec4 vert(vec3 pos, vec2 uv, vec4 color) {
@@ -1097,9 +1094,17 @@ export interface KaboomCtx {
 		frag?: string,
 	): Asset<ShaderData>,
 	/**
+	 * Load a shader with vertex and fragment code file url.
+	 *
 	 * @since v3000.0
+	 *
+	 * @example
+	 * ```js
+	 * // load only a fragment shader from URL
+	 * loadShader("outline", null, "/shaders/outline.glsl", true)
+	 * ```
 	 */
-	loadShaderFromURL(
+	loadShaderURL(
 		name: string | null,
 		vert?: string,
 		frag?: string,

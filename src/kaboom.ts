@@ -1185,7 +1185,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		return assets.shaders.addLoaded(name, makeShader(vert, frag))
 	}
 
-	function loadShaderFromURL(
+	function loadShaderURL(
 		name: string | null,
 		vert?: string,
 		frag?: string,
@@ -6430,7 +6430,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		loadBitmapFont,
 		loadFont,
 		loadShader,
-		loadShaderFromURL,
+		loadShaderURL,
 		loadAseprite,
 		loadPedit,
 		loadBean,
