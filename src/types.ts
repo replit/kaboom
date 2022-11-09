@@ -1078,7 +1078,7 @@ export interface KaboomCtx {
 	 * ```js
 	 * // default shaders and custom shader format
 	 * loadShader("outline",
-	 *     `vec4 vert(vec3 pos, vec2 uv, vec4 color) {
+	 * `vec4 vert(vec3 pos, vec2 uv, vec4 color) {
 	 *     // predefined functions to get the default value by kaboom
 	 *     return def_vert()
 	 * }`,

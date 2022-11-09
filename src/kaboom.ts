@@ -3691,11 +3691,11 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 		const newAction = () => {
 			// TODO: should f be execute right away as loop() is called?
-			action()
 			curTimer = wait(t, newAction)
+			action()
 		}
 
-		newAction()
+		curTimer = wait(0, newAction)
 
 		return {
 			get paused() {
