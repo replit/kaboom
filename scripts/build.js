@@ -2,7 +2,7 @@ import fs from "fs"
 import path from "path"
 import esbuild from "esbuild"
 import ts from "typescript"
-import serve from "./serve"
+import serve from "./serve.js"
 
 const isDev = process.env.NODE_ENV === "development"
 const srcDir = "src"
