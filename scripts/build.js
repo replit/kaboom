@@ -2,11 +2,12 @@ import fs from "fs"
 import path from "path"
 import esbuild from "esbuild"
 import ts from "typescript"
-import serve from "./serve.js"
+import serve from "serve"
 
 const isDev = process.env.NODE_ENV === "development"
 const srcDir = "src"
 const distDir = "dist"
+const srcPath = `${srcDir}/kaboom.ts`
 
 if (isDev) {
 	serve()
@@ -15,25 +16,20 @@ if (isDev) {
 const fmts = [
 	{
 		format: "iife",
-		ext: "js",
-		config: {
-			footer: {
-				js: "window.kaboom = kaboom.default",
-			},
+		globalName: "kaboom",
+		outfile: `${distDir}/kaboom.js`,
+		footer: {
+			js: "window.kaboom = kaboom.default",
 		},
 	},
 	...(isDev ? [] : [
-		{ format: "cjs", ext: "cjs" },
-		{ format: "esm", ext: "mjs" },
+		{ format: "cjs", outfile: `${distDir}/kaboom.cjs` },
+		{ format: "esm", outfile: `${distDir}/kaboom.mjs` },
 	]),
 ]
 
 fmts.forEach((fmt) => {
-
-	const srcPath = `${srcDir}/kaboom.ts`
-	const distPath = `${distDir}/kaboom.${fmt.ext}`
-	const log = () => console.log(`-> ${distPath}`)
-
+	const log = () => console.log(`-> ${fmt.outfile}`)
 	esbuild.build({
 		bundle: true,
 		sourcemap: true,
@@ -44,14 +40,10 @@ fmts.forEach((fmt) => {
 			".glsl": "text",
 			".mp3": "binary",
 		},
-		watch: isDev ? { onRebuild: log } : false,
 		entryPoints: [ srcPath ],
-		globalName: "kaboom",
-		format: fmt.format,
-		outfile: distPath,
-		...(fmt.config ?? {}),
+		watch: isDev ? { onRebuild: log } : false,
+		...fmt,
 	}).then(log)
-
 })
 
 function writeFile(path, content) {
