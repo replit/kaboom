@@ -1,5 +1,3 @@
-// NOTE: children game obj is not usable yet, will come in next major release!
-
 kaboom()
 
 loadSprite("bean", "/sprites/bean.png")

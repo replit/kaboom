@@ -96,11 +96,13 @@ onKeyDown("right", () => {
 	}
 })
 
-onKeyRelease(["left", "right"], () => {
+;["left", "right"].forEach((key) => {
+	onKeyRelease(key, () => {
 	// Only reset to "idle" if player is not holding any of these keys
-	if (player.isGrounded() && !isKeyDown("left") && !isKeyDown("right")) {
-		player.play("idle")
-	}
+		if (player.isGrounded() && !isKeyDown("left") && !isKeyDown("right")) {
+			player.play("idle")
+		}
+	})
 })
 
 const getInfo = () => `

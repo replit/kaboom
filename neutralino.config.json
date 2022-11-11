@@ -2,21 +2,21 @@
 	"applicationId": "com.kaboomjs.lib",
 	"version": "1.0.0",
 	"defaultMode": "window",
-	"documentRoot": "/www/",
+	"documentRoot": "/desktop/",
 	"url": "/",
 	"enableServer": true,
 	"enableNativeAPI": true,
 	"modes": {
 		"window": {
 			"title": "kaboom",
-			"icon": "/www/icon.png",
+			"icon": "/desktop/icon.png",
 			"width": 640,
 			"height": 480
 		}
 	},
 	"cli": {
 		"binaryName": "kaboom",
-		"resourcesPath": "/www/",
+		"resourcesPath": "/desktop/",
 		"extensionsPath": "/extensions/",
 		"clientLibrary": "/bin/neutralino.js",
 		"binaryVersion": "4.7.0",

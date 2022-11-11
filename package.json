@@ -26,7 +26,9 @@
 	},
 	"keywords": [
 		"game",
-		"gamedev"
+		"gamedev",
+		"fun",
+		"mark"
 	],
 	"files": [
 		"dist/",
@@ -41,7 +43,7 @@
 		"lint": "eslint src examples",
 		"fmt": "eslint --fix src examples",
 		"test": "node scripts/test.js",
-		"run:desktop": "neu run",
+		"desktop": "node scripts/desktop.js",
 		"prepare": "npm run build"
 	},
 	"devDependencies": {
