@@ -126,18 +126,21 @@ const levelConf = {
 		area(),
 		body({ isStatic: true }),
 		anchor("bot"),
+		offscreen({ hide: true }),
 		"platform",
 	],
 	"-": () => [
 		sprite("steel"),
 		area(),
 		body({ isStatic: true }),
+		offscreen({ hide: true }),
 		anchor("bot"),
 	],
 	"0": () => [
 		sprite("bag"),
 		area(),
 		body({ isStatic: true }),
+		offscreen({ hide: true }),
 		anchor("bot"),
 	],
 	"$": () => [
@@ -145,6 +148,7 @@ const levelConf = {
 		area(),
 		pos(0, -9),
 		anchor("bot"),
+		offscreen({ hide: true }),
 		"coin",
 	],
 	"%": () => [
@@ -152,6 +156,7 @@ const levelConf = {
 		area(),
 		body({ isStatic: true }),
 		anchor("bot"),
+		offscreen({ hide: true }),
 		"prize",
 	],
 	"^": () => [
@@ -159,6 +164,7 @@ const levelConf = {
 		area(),
 		body({ isStatic: true }),
 		anchor("bot"),
+		offscreen({ hide: true }),
 		"danger",
 	],
 	"#": () => [
@@ -166,6 +172,7 @@ const levelConf = {
 		area(),
 		anchor("bot"),
 		body(),
+		offscreen({ hide: true }),
 		"apple",
 	],
 	">": () => [
@@ -174,6 +181,7 @@ const levelConf = {
 		anchor("bot"),
 		body(),
 		patrol(),
+		offscreen({ hide: true }),
 		"enemy",
 	],
 	"@": () => [
@@ -181,6 +189,7 @@ const levelConf = {
 		area({ scale: 0.5 }),
 		anchor("bot"),
 		pos(0, -12),
+		offscreen({ hide: true }),
 		"portal",
 	],
 }

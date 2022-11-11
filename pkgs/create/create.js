@@ -16,9 +16,7 @@ const fail = (msg, ifHelp) => {
 	process.exit(1)
 }
 
-const info = (msg) => {
-	console.log(`\x1b[33m${msg}\x1b[0m`)
-}
+const info = (msg) => console.log(c(33, msg))
 
 const optMap = [
 	{ long: "help", short: "h", desc: "Print this message" },
