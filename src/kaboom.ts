@@ -600,6 +600,41 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 	}
 
+	class FrameBuffer {
+
+		tex: Texture
+		glFrameBuffer: WebGLFramebuffer
+
+		constructor(w: number, h: number, opt: TextureOpt = {}) {
+			this.tex = new Texture(w, h, opt)
+			this.glFrameBuffer = gl.createFramebuffer()
+			gc.push(() => this.free())
+			this.bind()
+			gl.framebufferTexture2D(
+				gl.FRAMEBUFFER,
+				gl.COLOR_ATTACHMENT0,
+				gl.TEXTURE_2D,
+				this.tex.glTex,
+				0,
+			)
+			this.unbind()
+		}
+
+		bind() {
+			gl.bindFramebuffer(gl.FRAMEBUFFER, this.glFrameBuffer)
+			// gl.viewport(0, 0, this.tex.width, this.tex.height)
+		}
+
+		unbind() {
+			gl.bindFramebuffer(gl.FRAMEBUFFER, null)
+		}
+
+		free() {
+			gl.deleteFramebuffer(this.glFrameBuffer)
+		}
+
+	}
+
 	const gfx = (() => {
 
 		const defShader = makeShader(DEF_VERT, DEF_FRAG)
@@ -610,11 +645,15 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			new ImageData(new Uint8ClampedArray([ 255, 255, 255, 255 ]), 1, 1),
 		)
 
+		// TODO: correct frame buffer size
+		const defFrameBuffer = new FrameBuffer(500, 500)
+
 		if (gopt.background) {
 			const c = Color.fromArray(gopt.background)
 			gl.clearColor(c.r / 255, c.g / 255, c.b / 255, gopt.background[3] ?? 1)
 		}
 
+		gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true)
 		gl.enable(gl.BLEND)
 		gl.enable(gl.SCISSOR_TEST)
 		gl.blendFuncSeparate(
@@ -667,6 +706,8 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			// gfx states
 			defShader: defShader,
 			curShader: defShader,
+			defFrameBuffer: defFrameBuffer,
+			curFrameBuffer: defFrameBuffer,
 			defTex: emptyTex,
 			curTex: emptyTex,
 			curUniform: {},
@@ -1737,6 +1778,8 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	// start a rendering frame, reset some states
 	function frameStart() {
 
+		gfx.curFrameBuffer.bind()
+
 		// running this every frame now mainly because isFullscreen() is not updated real time when requested fullscreen
 		updateViewport()
 
@@ -1766,6 +1809,11 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	}
 
 	function frameEnd() {
+		gfx.curFrameBuffer.unbind()
+		flush()
+		drawTexture({
+			tex: gfx.curFrameBuffer.tex,
+		})
 		flush()
 		gfx.lastDrawCalls = gfx.drawCalls
 	}
