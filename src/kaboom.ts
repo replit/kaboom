@@ -972,8 +972,8 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	function loadFont(name: string, src: string | ArrayBuffer): Asset<FontData> {
 		const font = new FontFace(name, typeof src === "string" ? `url(${src})` : src)
 		document.fonts.add(font)
-		return assets.fonts.add(name, font.load().catch(() => {
-			throw new Error(`Failed to load font from "${src}"`)
+		return assets.fonts.add(name, font.load().catch((err) => {
+			throw new Error(`Failed to load font from "${src}": ${err}`)
 		}))
 	}
 
