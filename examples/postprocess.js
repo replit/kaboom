@@ -11,16 +11,18 @@ loadSprite("grass", "/sprites/grass.png")
 loadSprite("ghosty", "/sprites/ghosty.png")
 loadSound("score", "/examples/sounds/score.mp3")
 loadShader("blue", null, `
+uniform float u_time;
+uniform float u_invert;
+
 vec4 frag(vec3 pos, vec2 uv, vec4 color, sampler2D tex) {
-	 return def_frag() * vec4(0, 0, 1, 1);
+	vec4 c = def_frag();
+	return mix(c, vec4(1.0 - c.r, 1.0 - c.g, 1.0 - c.b, c.a), u_invert);
 }
 `)
 
 const SPEED = 480
 
 gravity(2400)
-
-useEffect("blue")
 
 const level = addLevel([
 	// Design the level layout with symbols
@@ -87,4 +89,24 @@ player.onCollide("danger", () => {
 player.onCollide("coin", (coin) => {
 	destroy(coin)
 	play("score")
+})
+
+let invert = 0
+
+player.onGround(async () => {
+	shake(12)
+	invert = 1
+	await wait(0.05)
+	invert = 0
+	await wait(0.05)
+	invert = 1
+	await wait(0.05)
+	invert = 0
+})
+
+onUpdate(() => {
+	usePostProcess("blue", {
+		"u_time": time(),
+		"u_invert": invert,
+	})
 })

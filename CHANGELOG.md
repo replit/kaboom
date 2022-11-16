@@ -101,7 +101,7 @@ console.log(s.data)
 - added default font `happy`
 - changed default font size to `36`
 
-## Drawing
+## Graphics
 
 - fixed visual artifacts on text rendering
 - added `colors` option to `drawPolygon()` that controls the color of each corner
@@ -109,6 +109,17 @@ console.log(s.data)
 - added `drawMasked()` and `drawSubtracted()`
 - added `pushRotateX()`, `pushRotateY()` and `pushRotateZ()`
 - added `pixelDensity` option to `kaboom()`
+- added `usePostProcess()` to add post process shader
+```js
+loadShader("invert", null, `
+vec4 frag(vec3 pos, vec2 uv, vec4 color, sampler2D tex) {
+    vec4 c = def_frag();
+    return vec4(1.0 - c.r, 1.0 - c.g, 1.0 - c.b, c.a);
+}
+`)
+
+usePostProcess("invert")
+```
 - shader error logs now yields the correct line number
 
 ## Input

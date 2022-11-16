@@ -705,7 +705,8 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			defShader: defShader,
 			curShader: defShader,
 			frameBuffer: frameBuffer,
-			postshader: null,
+			postShader: null,
+			postShaderUniform: null,
 			defTex: emptyTex,
 			curTex: emptyTex,
 			curUniform: {},
@@ -1806,8 +1807,9 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 	}
 
-	function useEffect(name: string) {
-		gfx.postshader = name
+	function usePostProcess(name: string, uniform?: Uniform) {
+		gfx.postShader = name
+		gfx.postShaderUniform = uniform ?? null
 	}
 
 	function frameEnd() {
@@ -1818,7 +1820,8 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			flipY: true,
 			tex: gfx.frameBuffer.tex,
 			scale: vec2(1 / app.pixelDensity),
-			shader: gfx.postshader,
+			shader: gfx.postShader,
+			uniform: gfx.postShaderUniform,
 		})
 		flush()
 		gfx.lastDrawCalls = gfx.drawCalls
@@ -6663,7 +6666,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		pushRotateY,
 		pushRotateZ,
 		pushMatrix,
-		useEffect,
+		usePostProcess,
 		// debug
 		debug,
 		// scene

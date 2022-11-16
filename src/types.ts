@@ -2008,14 +2008,17 @@ export interface KaboomCtx {
 	 *
 	 * @example
 	 * ```js
-	 * loadShader("blue", null, `
-	 *
+	 * loadShader("invert", null, `
+	 * vec4 frag(vec3 pos, vec2 uv, vec4 color, sampler2D tex) {
+	 *     vec4 c = def_frag();
+	 *     return vec4(1.0 - c.r, 1.0 - c.g, 1.0 - c.b, c.a);
+	 * }
 	 * `)
 	 *
-	 * useEffect("blue")
+	 * usePostProcess("invert")
 	 * ```
 	 */
-	useEffect(name: string): void,
+	usePostProcess(name: string, uniform?: Uniform),
 	/**
 	 * Format a piece of text without drawing (for getting dimensions, etc).
 	 *
