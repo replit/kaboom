@@ -645,15 +645,13 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			new ImageData(new Uint8ClampedArray([ 255, 255, 255, 255 ]), 1, 1),
 		)
 
-		// TODO: correct frame buffer size
-		const defFrameBuffer = new FrameBuffer(500, 500)
+		const frameBuffer = new FrameBuffer(gl.drawingBufferWidth, gl.drawingBufferHeight)
 
 		if (gopt.background) {
 			const c = Color.fromArray(gopt.background)
 			gl.clearColor(c.r / 255, c.g / 255, c.b / 255, gopt.background[3] ?? 1)
 		}
 
-		gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true)
 		gl.enable(gl.BLEND)
 		gl.enable(gl.SCISSOR_TEST)
 		gl.blendFuncSeparate(
@@ -706,8 +704,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			// gfx states
 			defShader: defShader,
 			curShader: defShader,
-			defFrameBuffer: defFrameBuffer,
-			curFrameBuffer: defFrameBuffer,
+			frameBuffer: frameBuffer,
 			defTex: emptyTex,
 			curTex: emptyTex,
 			curUniform: {},
@@ -1778,7 +1775,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	// start a rendering frame, reset some states
 	function frameStart() {
 
-		gfx.curFrameBuffer.bind()
+		gfx.frameBuffer.bind()
 
 		// running this every frame now mainly because isFullscreen() is not updated real time when requested fullscreen
 		updateViewport()
@@ -1809,10 +1806,12 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	}
 
 	function frameEnd() {
-		gfx.curFrameBuffer.unbind()
+		gfx.frameBuffer.unbind()
 		flush()
 		drawTexture({
-			tex: gfx.curFrameBuffer.tex,
+			flipY: true,
+			tex: gfx.frameBuffer.tex,
+			scale: vec2(1 / app.pixelDensity),
 		})
 		flush()
 		gfx.lastDrawCalls = gfx.drawCalls
