@@ -705,6 +705,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			defShader: defShader,
 			curShader: defShader,
 			frameBuffer: frameBuffer,
+			postshader: null,
 			defTex: emptyTex,
 			curTex: emptyTex,
 			curUniform: {},
@@ -1805,13 +1806,19 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 	}
 
+	function useEffect(name: string) {
+		gfx.postshader = name
+	}
+
 	function frameEnd() {
-		gfx.frameBuffer.unbind()
+		// TODO: camera doesn't work properly
 		flush()
+		gfx.frameBuffer.unbind()
 		drawTexture({
 			flipY: true,
 			tex: gfx.frameBuffer.tex,
 			scale: vec2(1 / app.pixelDensity),
+			shader: gfx.postshader,
 		})
 		flush()
 		gfx.lastDrawCalls = gfx.drawCalls
@@ -6656,6 +6663,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		pushRotateY,
 		pushRotateZ,
 		pushMatrix,
+		useEffect,
 		// debug
 		debug,
 		// scene
