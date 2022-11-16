@@ -10,7 +10,7 @@ loadSprite("spike", "/sprites/spike.png")
 loadSprite("grass", "/sprites/grass.png")
 loadSprite("ghosty", "/sprites/ghosty.png")
 loadSound("score", "/examples/sounds/score.mp3")
-loadShader("blue", null, `
+loadShader("invert", null, `
 uniform float u_time;
 uniform float u_invert;
 
@@ -19,6 +19,8 @@ vec4 frag(vec3 pos, vec2 uv, vec4 color, sampler2D tex) {
 	return mix(c, vec4(1.0 - c.r, 1.0 - c.g, 1.0 - c.b, c.a), u_invert);
 }
 `)
+loadShaderURL("vhs", null, "/examples/shaders/vhs.frag")
+loadShaderURL("pixelate", null, "/examples/shaders/pixelate.frag")
 
 const SPEED = 480
 
@@ -105,8 +107,15 @@ player.onGround(async () => {
 })
 
 onUpdate(() => {
-	usePostProcess("blue", {
-		"u_time": time(),
-		"u_invert": invert,
+	// usePostProcess("invert", {
+		// "u_time": time(),
+		// "u_invert": invert,
+	// })
+	// usePostProcess("vhs", {
+		// "u_intensity": 8,
+	// })
+	usePostProcess("pixelate", {
+		"u_resolution": vec2(width(), height()),
+		"u_size": mousePos().x / width() * 16,
 	})
 })
