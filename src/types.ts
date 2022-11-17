@@ -2015,10 +2015,10 @@ export interface KaboomCtx {
 	 * }
 	 * `)
 	 *
-	 * usePostProcess("invert")
+	 * usePostEffect("invert")
 	 * ```
 	 */
-	usePostProcess(name: string, uniform?: Uniform),
+	usePostEffect(name: string, uniform?: Uniform),
 	/**
 	 * Format a piece of text without drawing (for getting dimensions, etc).
 	 *
