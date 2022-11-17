@@ -1814,15 +1814,18 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 	function frameEnd() {
 		// TODO: don't render debug UI with framebuffer
+		// TODO: polish framebuffer rendering / sizing issues
 		flush()
 		gfx.frameBuffer.unbind()
-		drawTexture({
-			flipY: true,
-			tex: gfx.frameBuffer.tex,
-			scale: vec2(1 / app.pixelDensity),
-			shader: gfx.postShader,
-			uniform: gfx.postShaderUniform,
-			fixed: true,
+		drawUnscaled(() => {
+			drawTexture({
+				flipY: true,
+				tex: gfx.frameBuffer.tex,
+				scale: vec2(1 / app.pixelDensity),
+				shader: gfx.postShader,
+				uniform: gfx.postShaderUniform,
+				fixed: true,
+			})
 		})
 		flush()
 		gfx.lastDrawCalls = gfx.drawCalls
