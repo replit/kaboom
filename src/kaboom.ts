@@ -600,6 +600,41 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 	}
 
+	class FrameBuffer {
+
+		tex: Texture
+		glFrameBuffer: WebGLFramebuffer
+
+		constructor(w: number, h: number, opt: TextureOpt = {}) {
+			this.tex = new Texture(w, h, opt)
+			this.glFrameBuffer = gl.createFramebuffer()
+			gc.push(() => this.free())
+			this.bind()
+			gl.framebufferTexture2D(
+				gl.FRAMEBUFFER,
+				gl.COLOR_ATTACHMENT0,
+				gl.TEXTURE_2D,
+				this.tex.glTex,
+				0,
+			)
+			this.unbind()
+		}
+
+		bind() {
+			gl.bindFramebuffer(gl.FRAMEBUFFER, this.glFrameBuffer)
+			// gl.viewport(0, 0, this.tex.width, this.tex.height)
+		}
+
+		unbind() {
+			gl.bindFramebuffer(gl.FRAMEBUFFER, null)
+		}
+
+		free() {
+			gl.deleteFramebuffer(this.glFrameBuffer)
+		}
+
+	}
+
 	const gfx = (() => {
 
 		const defShader = makeShader(DEF_VERT, DEF_FRAG)
@@ -609,6 +644,8 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		const emptyTex = Texture.fromImage(
 			new ImageData(new Uint8ClampedArray([ 255, 255, 255, 255 ]), 1, 1),
 		)
+
+		const frameBuffer = new FrameBuffer(gl.drawingBufferWidth, gl.drawingBufferHeight)
 
 		if (gopt.background) {
 			const c = Color.fromArray(gopt.background)
@@ -667,6 +704,9 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			// gfx states
 			defShader: defShader,
 			curShader: defShader,
+			frameBuffer: frameBuffer,
+			postShader: null,
+			postShaderUniform: null,
 			defTex: emptyTex,
 			curTex: emptyTex,
 			curUniform: {},
@@ -1737,6 +1777,8 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	// start a rendering frame, reset some states
 	function frameStart() {
 
+		gfx.frameBuffer.bind()
+
 		// running this every frame now mainly because isFullscreen() is not updated real time when requested fullscreen
 		updateViewport()
 
@@ -1765,7 +1807,26 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 	}
 
+	function usePostEffect(name: string, uniform?: Uniform) {
+		gfx.postShader = name
+		gfx.postShaderUniform = uniform ?? null
+	}
+
 	function frameEnd() {
+		// TODO: don't render debug UI with framebuffer
+		// TODO: polish framebuffer rendering / sizing issues
+		flush()
+		gfx.frameBuffer.unbind()
+		drawUnscaled(() => {
+			drawTexture({
+				flipY: true,
+				tex: gfx.frameBuffer.tex,
+				scale: vec2(1 / app.pixelDensity),
+				shader: gfx.postShader,
+				uniform: gfx.postShaderUniform,
+				fixed: true,
+			})
+		})
 		flush()
 		gfx.lastDrawCalls = gfx.drawCalls
 	}
@@ -6609,6 +6670,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		pushRotateY,
 		pushRotateZ,
 		pushMatrix,
+		usePostEffect,
 		// debug
 		debug,
 		// scene

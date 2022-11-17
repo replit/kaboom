@@ -1,3 +1,5 @@
+// TODO: shader documentation in doc/
+
 // Custom shader
 kaboom()
 

@@ -1080,11 +1080,11 @@ export interface KaboomCtx {
 	 * loadShader("outline",
 	 * `vec4 vert(vec3 pos, vec2 uv, vec4 color) {
 	 *     // predefined functions to get the default value by kaboom
-	 *     return def_vert()
+	 *     return def_vert();
 	 * }`,
 	 * `vec4 frag(vec3 pos, vec2 uv, vec4 color, sampler2D tex) {
 	 *     // turn everything blue-ish
-	 *     return def_frag() * vec4(0, 0, 1, 1)
+	 *     return def_frag() * vec4(0, 0, 1, 1);
 	 * }`, false)
 	 * ```
 	 */
@@ -2001,6 +2001,24 @@ export interface KaboomCtx {
 	 * @since v3000.0
 	 */
 	pushMatrix(mat: Mat4): void,
+	/**
+	 * Apply a post process effect from a shader name.
+	 *
+	 * @since v3000.0
+	 *
+	 * @example
+	 * ```js
+	 * loadShader("invert", null, `
+	 * vec4 frag(vec3 pos, vec2 uv, vec4 color, sampler2D tex) {
+	 *     vec4 c = def_frag();
+	 *     return vec4(1.0 - c.r, 1.0 - c.g, 1.0 - c.b, c.a);
+	 * }
+	 * `)
+	 *
+	 * usePostEffect("invert")
+	 * ```
+	 */
+	usePostEffect(name: string, uniform?: Uniform),
 	/**
 	 * Format a piece of text without drawing (for getting dimensions, etc).
 	 *
