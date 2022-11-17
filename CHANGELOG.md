@@ -109,7 +109,7 @@ console.log(s.data)
 - added `drawMasked()` and `drawSubtracted()`
 - added `pushRotateX()`, `pushRotateY()` and `pushRotateZ()`
 - added `pixelDensity` option to `kaboom()`
-- added `usePostProcess()` to add post process shader
+- added `usePostEffect()` to add post process shader
 ```js
 loadShader("invert", null, `
 vec4 frag(vec3 pos, vec2 uv, vec4 color, sampler2D tex) {
@@ -118,7 +118,7 @@ vec4 frag(vec3 pos, vec2 uv, vec4 color, sampler2D tex) {
 }
 `)
 
-usePostProcess("invert")
+usePostEffect("invert")
 ```
 - shader error logs now yields the correct line number
 

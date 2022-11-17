@@ -107,14 +107,14 @@ player.onGround(async () => {
 })
 
 onUpdate(() => {
-	// usePostProcess("invert", {
+	// usePostEffect("invert", {
 		// "u_time": time(),
 		// "u_invert": invert,
 	// })
-	// usePostProcess("vhs", {
+	// usePostEffect("vhs", {
 		// "u_intensity": 8,
 	// })
-	usePostProcess("pixelate", {
+	usePostEffect("pixelate", {
 		"u_resolution": vec2(width(), height()),
 		"u_size": mousePos().x / width() * 16,
 	})

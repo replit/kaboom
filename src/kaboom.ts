@@ -1807,7 +1807,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 	}
 
-	function usePostProcess(name: string, uniform?: Uniform) {
+	function usePostEffect(name: string, uniform?: Uniform) {
 		gfx.postShader = name
 		gfx.postShaderUniform = uniform ?? null
 	}
@@ -6670,7 +6670,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		pushRotateY,
 		pushRotateZ,
 		pushMatrix,
-		usePostProcess,
+		usePostEffect,
 		// debug
 		debug,
 		// scene
