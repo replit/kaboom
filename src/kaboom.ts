@@ -1813,7 +1813,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	}
 
 	function frameEnd() {
-		// TODO: camera doesn't work properly
+		// TODO: don't render debug UI with framebuffer
 		flush()
 		gfx.frameBuffer.unbind()
 		drawTexture({
@@ -1822,6 +1822,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			scale: vec2(1 / app.pixelDensity),
 			shader: gfx.postShader,
 			uniform: gfx.postShaderUniform,
+			fixed: true,
 		})
 		flush()
 		gfx.lastDrawCalls = gfx.drawCalls
