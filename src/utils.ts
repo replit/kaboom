@@ -92,7 +92,7 @@ export function deepEq(o1: any, o2: any): boolean {
 	if (t1 !== t2) {
 		return false
 	}
-	if (t1 === "object" && t2 === "object") {
+	if (t1 === "object" && t2 === "object" && o1 !== null && o2 !== null) {
 		const k1 = Object.keys(o1)
 		const k2 = Object.keys(o2)
 		if (k1.length !== k2.length) {

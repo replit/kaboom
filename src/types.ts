@@ -738,7 +738,7 @@ export interface KaboomCtx {
 	 *
 	 * @since v3000.0
 	 */
-	onHoverUpdate(tag: Tag, onHover: (a: GameObj) => void, onNotHover: (a: GameObj) => void): EventController,
+	onHoverUpdate(tag: Tag, onHover: (a: GameObj) => void): EventController,
 	/**
 	 * Register an event that runs once when game objs with certain tags are unhovered (required to have area() component).
 	 *
@@ -1048,7 +1048,7 @@ export interface KaboomCtx {
 	 * loadFont("frogblock", "fonts/frogblock.ttf")
 	 * ```
 	 */
-	loadFont(name: string, src: string | ArrayBuffer): Asset<FontFace>,
+	loadFont(name: string, src: string | ArrayBuffer, opt?: LoadFontOpt): Asset<FontFace>,
 	/**
 	 * Load a bitmap font into asset manager, with name and resource url and infomation on the layout of the bitmap.
 	 *
@@ -2607,13 +2607,13 @@ export declare class SoundData {
 	static fromURL(url: string): Promise<SoundData>
 }
 
-export interface LoadBitmapFontOpt {
-	chars?: string,
+export interface LoadFontOpt {
 	filter?: TexFilter,
 }
 
-export interface SoundData {
-	buf: AudioBuffer,
+export interface LoadBitmapFontOpt {
+	chars?: string,
+	filter?: TexFilter,
 }
 
 export type FontData = FontFace

@@ -146,6 +146,7 @@ import {
 	VirtualButton,
 	TimerController,
 	TweenController,
+	LoadFontOpt,
 } from "./types"
 
 import FPSCounter from "./fps"
@@ -1007,7 +1008,11 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		})
 	}
 
-	function loadFont(name: string, src: string | ArrayBuffer): Asset<FontData> {
+	function loadFont(
+		name: string,
+		src: string | ArrayBuffer,
+		opt: LoadFontOpt = {},
+	): Asset<FontData> {
 		const font = new FontFace(name, typeof src === "string" ? `url(${src})` : src)
 		document.fonts.add(font)
 		return assets.fonts.add(name, font.load().catch((err) => {
@@ -1138,6 +1143,8 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			sliceX: 1,
 			sliceY: 1,
 			anims: {},
+			filter: "nearest",
+			wrap: "clampToEdge",
 		},
 	): Asset<SpriteData> {
 		if (Array.isArray(src)) {
@@ -2525,6 +2532,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 			const fontName = font instanceof FontFace ? font.family : font
 
+			// TODO: customizable font tex filter
 			const atlas: FontAtlas = fontAtlases[fontName] ?? {
 				font: {
 					tex: new Texture(FONT_ATLAS_SIZE, FONT_ATLAS_SIZE),
