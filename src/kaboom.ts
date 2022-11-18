@@ -152,8 +152,6 @@ import FPSCounter from "./fps"
 import Timer from "./timer"
 
 // @ts-ignore
-import happyFontSrc from "./assets/happy_28x36.png"
-// @ts-ignore
 import beanSpriteSrc from "./assets/bean.png"
 // @ts-ignore
 import burpSoundSrc from "./assets/burp.mp3"
@@ -221,7 +219,7 @@ const MAX_DETUNE = 1200
 const DEF_ANCHOR = "topleft"
 const BG_GRID_SIZE = 64
 
-const DEF_FONT = "happy"
+const DEF_FONT = "monospace"
 const DBG_FONT = "monospace"
 const DEF_TEXT_SIZE = 36
 const DEF_TEXT_CACHE_SIZE = 64
@@ -2529,9 +2527,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 			const atlas: FontAtlas = fontAtlases[fontName] ?? {
 				font: {
-					tex: new Texture(FONT_ATLAS_SIZE, FONT_ATLAS_SIZE, {
-						filter: "linear",
-					}),
+					tex: new Texture(FONT_ATLAS_SIZE, FONT_ATLAS_SIZE),
 					map: {},
 					size: DEF_TEXT_CACHE_SIZE,
 				},
@@ -6436,13 +6432,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			},
 		}
 	}
-
-	loadBitmapFont(
-		"happy",
-		happyFontSrc,
-		28,
-		36,
-	)
 
 	// main game loop
 	run(() => {

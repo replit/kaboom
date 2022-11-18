@@ -227,7 +227,7 @@ export interface KaboomCtx {
 	 *     text("ohhi", {
 	 *         size: 48, // 48 pixels tall
 	 *         width: 320, // it'll wrap to next line when width exceeds this value
-	 *         font: "happy", // specify any font you loaded or browser built-in ("happy" is the kaboom built-in font)
+	 *         font: "sans-serif", // specify any font you loaded or browser built-in
 	 *     }),
 	 * ])
 	 * ```
@@ -2218,7 +2218,7 @@ export interface KaboomOpt {
 	 */
 	debug?: boolean,
 	/**
-	 * Default font (defaults to "happy").
+	 * Default font (defaults to "monospace").
 	 */
 	font?: string,
 	/**

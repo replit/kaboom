@@ -10,18 +10,14 @@ loadSprite("spike", "/sprites/spike.png")
 loadSprite("grass", "/sprites/grass.png")
 loadSprite("ghosty", "/sprites/ghosty.png")
 loadSound("score", "/examples/sounds/score.mp3")
-loadShader("invert", null, `
-uniform float u_time;
-uniform float u_invert;
 
-vec4 frag(vec3 pos, vec2 uv, vec4 color, sampler2D tex) {
-	vec4 c = def_frag();
-	return mix(c, vec4(1.0 - c.r, 1.0 - c.g, 1.0 - c.b, c.a), u_invert);
-}
-`)
-loadShaderURL("vhs", null, "/examples/shaders/vhs.frag")
-loadShaderURL("pixelate", null, "/examples/shaders/pixelate.frag")
+const effects = [ "vhs", "pixelate", "invert" ]
 
+effects.forEach((effect) => {
+	loadShaderURL(effect, null, `/examples/shaders/${effect}.frag`)
+})
+
+let curEffect = 0
 const SPEED = 480
 
 gravity(2400)
@@ -93,29 +89,32 @@ player.onCollide("coin", (coin) => {
 	play("score")
 })
 
-let invert = 0
-
-player.onGround(async () => {
-	shake(12)
-	invert = 1
-	await wait(0.05)
-	invert = 0
-	await wait(0.05)
-	invert = 1
-	await wait(0.05)
-	invert = 0
+onKeyPress("up", () => {
+	curEffect = curEffect === 0 ? effects.length - 1 : curEffect - 1
+	label.text = effects[curEffect]
 })
 
+onKeyPress("down", () => {
+	curEffect = (curEffect + 1) % effects.length
+	label.text = effects[curEffect]
+})
+
+const label = add([
+	pos(8, 8),
+	text(effects[curEffect]),
+])
+
+add([
+	pos(8, height() - 8),
+	text("Press up / down to switch effects"),
+	anchor("botleft"),
+])
+
 onUpdate(() => {
-	// usePostEffect("invert", {
-		// "u_time": time(),
-		// "u_invert": invert,
-	// })
-	// usePostEffect("vhs", {
-		// "u_intensity": 8,
-	// })
-	usePostEffect("pixelate", {
+	usePostEffect(effects[curEffect], {
 		"u_resolution": vec2(width(), height()),
-		"u_size": mousePos().x / width() * 16,
+		"u_size": wave(2, 16, time() * 2),
+		"u_intensity": 8,
+		"u_invert": 1,
 	})
 })

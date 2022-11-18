@@ -11,7 +11,7 @@ loadBitmapFont("4x4", "/examples/fonts/4x4.png", 4, 4)
 
 // List of built-in fonts ("o" at the end means the outlined version)
 const builtinFonts = [
-	"happy",
+	"monospace",
 ]
 
 // Make a list of fonts that we cycle through
