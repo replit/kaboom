@@ -213,7 +213,7 @@ create(dir(dest, [
 	file("package.json", stringify({
 		"name": dest,
 		"scripts": {
-			"build": `esbuild --bundle src/main.${ext} --outfile=www/main.js`,
+			"build": `esbuild --bundle src/main.${ext} --outfile=www/main.js --minify`,
 			"dev": `esbuild --bundle src/main.${ext} --outfile=www/main.js --servedir=www`,
 			"zip": "npm run build && mkdir -p dist && zip -r dist/game.zip www -x \"**/.DS_Store\"",
 			...(ts ? {

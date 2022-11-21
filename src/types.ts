@@ -1617,11 +1617,11 @@ export interface KaboomCtx {
 	 * ```
 	 */
 	tween(
-		min: number,
-		max: number,
+		from: number,
+		to: number,
 		duration: number,
 		setValue: (value: number) => void,
-		easeFunc: (t: number) => number,
+		easeFunc?: (t: number) => number,
 	): TweenController,
 	/**
 	 * A collection of easing functions for tweening.
@@ -3601,7 +3601,16 @@ export interface ColorComp extends Comp {
 
 export interface OpacityComp extends Comp {
 	opacity: number,
-	fadeOut(time: number, easeFunc?: EaseFunc): TimerController,
+	fadeOut(time?: number, easeFunc?: EaseFunc): TweenController,
+}
+
+export interface OpacityOpt {
+	/**
+	 * Fade in n seconds when object is added to scene.
+	 *
+	 * @since v3000.0
+	 */
+	fadeIn?: number,
 }
 
 export interface AnchorComp extends Comp {
@@ -4201,7 +4210,8 @@ export interface Debug {
 }
 
 export type UniformValue =
-	Vec2
+	number
+	| Vec2
 	| Vec3
 	| Color
 	| Mat4
@@ -4425,6 +4435,7 @@ export interface HealthComp extends Comp {
 	onDeath(action: () => void): EventController,
 }
 
+// TODO: this doesn't work
 export type LifespanComp = Comp
 
 export interface LifespanCompOpt {

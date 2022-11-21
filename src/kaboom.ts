@@ -4063,7 +4063,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			inspect() {
 				return `${toFixed(this.opacity, 1)}`
 			},
-			fadeOut(time, easeFunc = easings.linear) {
+			fadeOut(time = 1, easeFunc = easings.linear): TweenController {
 				return tween(this.opacity, 0, time, (a) => this.opacity = a, easeFunc)
 			},
 		}
@@ -6398,8 +6398,8 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 	// TODO: tween vec2
 	function tween(
-		min: number,
-		max: number,
+		from: number,
+		to: number,
 		duration: number,
 		setValue: (value: number) => void,
 		easeFunc = easings.linear,
@@ -6409,10 +6409,10 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		const ev = onUpdate(() => {
 			curTime += dt()
 			const t = Math.min(curTime / duration, 1)
-			setValue(lerp(min, max, easeFunc(t)))
+			setValue(lerp(from, to, easeFunc(t)))
 			if (t === 1) {
 				ev.cancel()
-				setValue(max)
+				setValue(to)
 				onFinishEvents.forEach((action) => action())
 			}
 		})
@@ -6435,7 +6435,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			},
 			finish() {
 				ev.cancel()
-				setValue(max)
+				setValue(to)
 				onFinishEvents.forEach((action) => action())
 			},
 		}
