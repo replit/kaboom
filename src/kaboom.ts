@@ -2967,8 +2967,9 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	}
 
 	canvasEvents.mousemove = (e) => {
+		const [x, y] = [e.offsetX, e.offsetY]
 		game.ev.onOnce("input", () => {
-			setMousePos(e.offsetX, e.offsetY)
+			setMousePos(x, y)
 			game.ev.trigger("mouseMove")
 		})
 	}
