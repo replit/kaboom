@@ -11,11 +11,25 @@ loadSprite("grass", "/sprites/grass.png")
 loadSprite("ghosty", "/sprites/ghosty.png")
 loadSound("score", "/examples/sounds/score.mp3")
 
-const effects = [ "vhs", "pixelate", "invert" ]
+const effects = {
+	vhs: () => ({
+		"u_intensity": 8,
+	}),
+	pixelate: () => ({
+		"u_resolution": vec2(width(), height()),
+		"u_size": wave(2, 16, time() * 2),
+	}),
+	invert: () => ({
+		"u_invert": 1,
+	}),
+	crt: () => ({
+		"u_flatness": 3,
+	}),
+}
 
-effects.forEach((effect) => {
+for (const effect in effects) {
 	loadShaderURL(effect, null, `/examples/shaders/${effect}.frag`)
-})
+}
 
 let curEffect = 0
 const SPEED = 480
@@ -90,13 +104,15 @@ player.onCollide("coin", (coin) => {
 })
 
 onKeyPress("up", () => {
-	curEffect = curEffect === 0 ? effects.length - 1 : curEffect - 1
-	label.text = effects[curEffect]
+	const list = Object.keys(effects)
+	curEffect = curEffect === 0 ? list.length - 1 : curEffect - 1
+	label.text = list[curEffect]
 })
 
 onKeyPress("down", () => {
-	curEffect = (curEffect + 1) % effects.length
-	label.text = effects[curEffect]
+	const list = Object.keys(effects)
+	curEffect = (curEffect + 1) % list.length
+	label.text = list[curEffect]
 })
 
 const label = add([
@@ -111,10 +127,6 @@ add([
 ])
 
 onUpdate(() => {
-	usePostEffect(effects[curEffect], {
-		"u_resolution": vec2(width(), height()),
-		"u_size": wave(2, 16, time() * 2),
-		"u_intensity": 8,
-		"u_invert": 1,
-	})
+	const effect = Object.keys(effects)[curEffect]
+	usePostEffect(effect, effects[effect]())
 })
