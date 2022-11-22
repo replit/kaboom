@@ -81,7 +81,7 @@ onKeyPress("space", () => {
 
 onKeyDown("left", () => {
 	player.move(-SPEED, 0)
-	player.flipX(true)
+	player.flipX = true
 	// .play() will reset to the first frame of the anim, so we want to make sure it only runs when the current animation is not "run"
 	if (player.isGrounded() && player.curAnim() !== "run") {
 		player.play("run")
@@ -90,7 +90,7 @@ onKeyDown("left", () => {
 
 onKeyDown("right", () => {
 	player.move(SPEED, 0)
-	player.flipX(false)
+	player.flipX = false
 	if (player.isGrounded() && player.curAnim() !== "run") {
 		player.play("run")
 	}

@@ -302,15 +302,15 @@ player.onPhysicsResolve(() => {
 })
 
 onKeyDown("right", () => {
-	player.flipX(false)
-	sword.flipX(false)
+	player.flipX = false
+	sword.flipX = false
 	player.move(SPEED, 0)
 	sword.follow.offset = vec2(-4, 9)
 })
 
 onKeyDown("left", () => {
-	player.flipX(true)
-	sword.flipX(true)
+	player.flipX = true
+	sword.flipX = true
 	player.move(-SPEED, 0)
 	sword.follow.offset = vec2(4, 9)
 })
