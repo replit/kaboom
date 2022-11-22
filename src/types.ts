@@ -3969,11 +3969,11 @@ export interface SpriteComp extends Comp {
 	/**
 	 * Flip texture horizontally.
 	 */
-	flipX(b: boolean): void,
+	flipX: boolean,
 	/**
 	 * Flip texture vertically.
 	 */
-	flipY(b: boolean): void,
+	flipY: boolean,
 	/**
 	 * Register an event that runs when an animation is played.
 	 */

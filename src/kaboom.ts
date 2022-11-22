@@ -35,8 +35,9 @@ import {
 	testCirclePoint,
 	deg2rad,
 	rad2deg,
-	easings,
 } from "./math"
+
+import easings from "./easings"
 
 import {
 	IDList,
@@ -4488,6 +4489,8 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			frame: opt.frame || 0,
 			quad: opt.quad || new Quad(0, 0, 1, 1),
 			animSpeed: opt.animSpeed ?? 1,
+			flipX: opt.flipX ?? false,
+			flipY: opt.flipY ?? false,
 
 			draw(this: GameObj<SpriteComp>) {
 				if (!spriteData) return
@@ -4496,8 +4499,8 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 					sprite: spriteData,
 					frame: this.frame,
 					quad: this.quad,
-					flipX: opt.flipX,
-					flipY: opt.flipY,
+					flipX: this.flipX,
+					flipY: this.flipY,
 					tiled: opt.tiled,
 					width: opt.width,
 					height: opt.height,
@@ -4644,14 +4647,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 			curAnim() {
 				return curAnim?.name
-			},
-
-			flipX(b: boolean) {
-				opt.flipX = b
-			},
-
-			flipY(b: boolean) {
-				opt.flipY = b
 			},
 
 			onAnimEnd(

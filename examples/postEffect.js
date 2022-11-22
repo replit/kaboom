@@ -12,8 +12,11 @@ loadSprite("ghosty", "/sprites/ghosty.png")
 loadSound("score", "/examples/sounds/score.mp3")
 
 const effects = {
+	crt: () => ({
+		"u_flatness": 3,
+	}),
 	vhs: () => ({
-		"u_intensity": 8,
+		"u_intensity": 12,
 	}),
 	pixelate: () => ({
 		"u_resolution": vec2(width(), height()),
@@ -21,9 +24,6 @@ const effects = {
 	}),
 	invert: () => ({
 		"u_invert": 1,
-	}),
-	crt: () => ({
-		"u_flatness": 3,
 	}),
 }
 
@@ -117,7 +117,7 @@ onKeyPress("down", () => {
 
 const label = add([
 	pos(8, 8),
-	text(effects[curEffect]),
+	text(Object.keys(effects)[curEffect]),
 ])
 
 add([

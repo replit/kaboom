@@ -59,6 +59,7 @@ bean.destroy()
 - added `OpacityComp#fadeOut()`
 - added `fadeIn()` component
 - `stay()` now accepts a list of scenes to stay for, like `stay(["gameover", "menu"])`
+- (**BREAK**) changed `SpriteComp#flipX` and `SpriteComp#flipY` to properties instead of functions
 
 ## Assets
 
