@@ -1,4 +1,4 @@
-const VERSION = "3000.0.0-alpha.12"
+const VERSION = "3000.0.0-alpha.17"
 
 import {
 	sat,
@@ -4018,11 +4018,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				this.scale = vec2(...args)
 			},
 			inspect() {
-				if (typeof this.scale === "number") {
-					return `${toFixed(this.scale, 2)}`
-				} else {
-					return `(${toFixed(this.scale.x, 2)}, ${toFixed(this.scale.y, 2)})`
-				}
+				return `(${toFixed(this.scale.x, 2)}, ${toFixed(this.scale.y, 2)})`
 			},
 		}
 	}

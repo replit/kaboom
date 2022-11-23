@@ -60,6 +60,7 @@ bean.destroy()
 - added `fadeIn()` component
 - `stay()` now accepts a list of scenes to stay for, like `stay(["gameover", "menu"])`
 - (**BREAK**) changed `SpriteComp#flipX` and `SpriteComp#flipY` to properties instead of functions
+- (**BREAK**) `ScaleComp#scale` will always be a `Vec2` not `number`
 
 ## Assets
 

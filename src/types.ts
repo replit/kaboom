@@ -3574,7 +3574,7 @@ export interface PosComp extends Comp {
 }
 
 export interface ScaleComp extends Comp {
-	scale: Vec2 | number,
+	scale: Vec2,
 	scaleTo(s: number): void,
 	scaleTo(s: Vec2): void,
 	scaleTo(sx: number, sy: number): void,
