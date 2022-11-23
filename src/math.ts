@@ -345,29 +345,35 @@ export class Mat4 {
 
 	static rotateX(a: number): Mat4 {
 		a = deg2rad(-a)
+		const c = Math.cos(a)
+		const s = Math.sin(a)
 		return new Mat4([
 			1, 0, 0, 0,
-			0, Math.cos(a), -Math.sin(a), 0,
-			0, Math.sin(a), Math.cos(a), 0,
+			0, c, -s, 0,
+			0, s, c, 0,
 			0, 0, 0, 1,
 		])
 	}
 
 	static rotateY(a: number): Mat4 {
 		a = deg2rad(-a)
+		const c = Math.cos(a)
+		const s = Math.sin(a)
 		return new Mat4([
-			Math.cos(a), 0, Math.sin(a), 0,
+			c, 0, s, 0,
 			0, 1, 0, 0,
-			-Math.sin(a), 0, Math.cos(a), 0,
+			-s, 0, c, 0,
 			0, 0, 0, 1,
 		])
 	}
 
 	static rotateZ(a: number): Mat4 {
 		a = deg2rad(-a)
+		const c = Math.cos(a)
+		const s = Math.sin(a)
 		return new Mat4([
-			Math.cos(a), -Math.sin(a), 0, 0,
-			Math.sin(a), Math.cos(a), 0, 0,
+			c, -s, 0, 0,
+			s, c, 0, 0,
 			0, 0, 1, 0,
 			0, 0, 0, 1,
 		])
@@ -377,8 +383,28 @@ export class Mat4 {
 		return this.mult(Mat4.translate(p))
 	}
 
+	translate2(p: Vec2) {
+		this.m[12] += this.m[0] * p.x + this.m[4] * p.y
+		this.m[13] += this.m[1] * p.x + this.m[5] * p.y
+		this.m[14] += this.m[2] * p.x + this.m[6] * p.y
+		this.m[15] += this.m[3] * p.x + this.m[7] * p.y
+		return this
+	}
+
 	scale(s: Vec2): Mat4 {
 		return this.mult(Mat4.scale(s))
+	}
+
+	scale2(p: Vec2) {
+		this.m[0] *= p.x
+		this.m[4] *= p.y
+		this.m[1] *= p.x
+		this.m[5] *= p.y
+		this.m[2] *= p.x
+		this.m[6] *= p.y
+		this.m[3] *= p.x
+		this.m[7] *= p.y
+		return this
 	}
 
 	rotateX(a: number): Mat4 {
@@ -411,29 +437,10 @@ export class Mat4 {
 
 	}
 
-	multVec4(p: Vec4): Vec4 {
-		return {
-			x: p.x * this.m[0] + p.y * this.m[4] + p.z * this.m[8] + p.w * this.m[12],
-			y: p.x * this.m[1] + p.y * this.m[5] + p.z * this.m[9] + p.w * this.m[13],
-			z: p.x * this.m[2] + p.y * this.m[6] + p.z * this.m[10] + p.w * this.m[14],
-			w: p.x * this.m[3] + p.y * this.m[7] + p.z * this.m[11] + p.w * this.m[15],
-		}
-	}
-
-	multVec3(p: Vec3): Vec3 {
-		const p4 = this.multVec4({
-			x: p.x,
-			y: p.y,
-			z: p.z,
-			w: 1.0,
-		})
-		return vec3(p4.x, p4.y, p4.z)
-	}
-
 	multVec2(p: Vec2): Vec2 {
 		return vec2(
-			p.x * this.m[0] + p.y * this.m[4] + 0 * this.m[8] + 1 * this.m[12],
-			p.x * this.m[1] + p.y * this.m[5] + 0 * this.m[9] + 1 * this.m[13],
+			p.x * this.m[0] + p.y * this.m[4] + this.m[12],
+			p.x * this.m[1] + p.y * this.m[5] + this.m[13],
 		)
 	}
 
@@ -498,7 +505,7 @@ export class Mat4 {
 	}
 
 	clone(): Mat4 {
-		return new Mat4(this.m)
+		return new Mat4([...this.m])
 	}
 
 	toString(): string {

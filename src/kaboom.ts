@@ -1853,14 +1853,16 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		if (args[0] === undefined) return
 		const p = vec2(...args)
 		if (p.x === 0 && p.y === 0) return
-		gfx.transform = gfx.transform.translate(p)
+		gfx.transform.translate2(p)
+		// gfx.transform = gfx.transform.translate(p)
 	}
 
 	function pushScale(...args) {
 		if (args[0] === undefined) return
 		const p = vec2(...args)
 		if (p.x === 1 && p.y === 1) return
-		gfx.transform = gfx.transform.scale(p)
+		gfx.transform.scale2(p)
+		// gfx.transform = gfx.transform.scale(p)
 	}
 
 	function pushRotateX(a: number) {
@@ -3308,8 +3310,8 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 	function calcTransform(obj: GameObj): Mat4 {
 		let tr = new Mat4()
-		if (obj.pos) tr = tr.translate(obj.pos)
-		if (obj.scale) tr = tr.scale(obj.scale)
+		if (obj.pos) tr.translate2(obj.pos)
+		if (obj.scale) tr.scale2(obj.scale)
 		if (obj.angle) tr = tr.rotateZ(obj.angle)
 		return obj.parent ? tr.mult(obj.parent.transform) : tr
 	}

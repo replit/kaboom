@@ -3351,11 +3351,11 @@ export declare class Mat4 {
 	static rotateZ(a: number): Mat4
 	clone(): Mat4
 	mult(other: Mat4): Mat4
-	multVec4(p: Vec4): Vec4
-	multVec3(p: Vec3): Vec3
 	multVec2(p: Vec2): Vec2
 	translate(p: Vec2): Mat4
+	translate2(p: Vec2): Mat4
 	scale(s: Vec2): Mat4
+	scale2(s: Vec2): Mat4
 	rotateX(a: number): Mat4
 	rotateY(a: number): Mat4
 	rotateZ(a: number): Mat4

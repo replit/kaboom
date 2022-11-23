@@ -4,22 +4,19 @@ kaboom()
 
 loadBean()
 
+for (let i = 0; i < 5000; i++) {
+	add([
+		sprite("bean"),
+		pos(rand(0, width()), rand(0, height())),
+		anchor("center"),
+	])
+}
+
 onDraw(() => {
-
-	const w = width()
-	const h = height()
-
-	for (let i = 0; i < 5000; i++) {
-		drawSprite({
-			sprite: "bean",
-			pos: vec2(rand(0, w), rand(0, h)),
-			anchor: "center",
-		})
-	}
 
 	drawText({
 		text: debug.fps(),
-		pos: vec2(w / 2, h / 2),
+		pos: vec2(width() / 2, height() / 2),
 		anchor: "center",
 		color: rgb(255, 127, 255),
 	})
