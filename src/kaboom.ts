@@ -2010,6 +2010,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			throw new Error("drawSprite() requires property \"sprite\"")
 		}
 
+		// TODO: slow
 		const spr = resolveSprite(opt.sprite)
 
 		if (!spr || !spr.data) {
@@ -4418,19 +4419,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 	}
 
-	// make the list of common render properties from the "pos", "scale", "color", "opacity", "rotate", "anchor", "outline", and "shader" components of a game object
-	function getRenderProps(obj: GameObj<any>) {
-		return {
-			color: obj.color,
-			opacity: obj.opacity,
-			anchor: obj.anchor,
-			outline: obj.outline,
-			fixed: obj.fixed,
-			shader: obj.shader,
-			uniform: obj.uniform,
-		}
-	}
-
 	// TODO: clean
 	function sprite(
 		src: string | SpriteData | Asset<SpriteData>,
@@ -4471,10 +4459,9 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			flipX: opt.flipX ?? false,
 			flipY: opt.flipY ?? false,
 
-			draw(this: GameObj<SpriteComp>) {
+			draw(this: GameObj<SpriteComp | any>) {
 				if (!spriteData) return
 				drawSprite({
-					...getRenderProps(this),
 					sprite: spriteData,
 					frame: this.frame,
 					quad: this.quad,
@@ -4483,6 +4470,13 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 					tiled: opt.tiled,
 					width: opt.width,
 					height: opt.height,
+					color: this.color,
+					opacity: this.opacity,
+					anchor: this.anchor,
+					outline: this.outline,
+					fixed: this.fixed,
+					shader: this.shader,
+					uniform: this.uniform,
 				})
 			},
 
@@ -4671,7 +4665,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		function update(obj: GameObj<TextComp | any>) {
 
 			const ftext = formatText({
-				...getRenderProps(obj),
 				text: obj.text + "",
 				size: obj.textSize,
 				font: obj.font,
@@ -4681,6 +4674,13 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				lineSpacing: obj.lineSpacing,
 				transform: obj.textTransform,
 				styles: obj.textStyles,
+				color: obj.color,
+				opacity: obj.opacity,
+				anchor: obj.anchor,
+				outline: obj.outline,
+				fixed: obj.fixed,
+				shader: obj.shader,
+				uniform: obj.uniform,
 			})
 
 			if (!opt.width) {
@@ -4729,12 +4729,18 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			width: w,
 			height: h,
 			radius: opt.radius || 0,
-			draw(this: GameObj<RectComp>) {
+			draw(this: GameObj<RectComp | any>) {
 				drawRect({
-					...getRenderProps(this),
 					width: this.width,
 					height: this.height,
 					radius: this.radius,
+					color: this.color,
+					opacity: this.opacity,
+					anchor: this.anchor,
+					outline: this.outline,
+					fixed: this.fixed,
+					shader: this.shader,
+					uniform: this.uniform,
 				})
 			},
 			renderArea() {
@@ -4751,11 +4757,17 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			id: "rect",
 			width: w,
 			height: h,
-			draw(this: GameObj<UVQuadComp>) {
+			draw(this: GameObj<UVQuadComp | any>) {
 				drawUVQuad({
-					...getRenderProps(this),
 					width: this.width,
 					height: this.height,
+					color: this.color,
+					opacity: this.opacity,
+					anchor: this.anchor,
+					outline: this.outline,
+					fixed: this.fixed,
+					shader: this.shader,
+					uniform: this.uniform,
 				})
 			},
 			renderArea() {
@@ -4771,10 +4783,16 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		return {
 			id: "circle",
 			radius: radius,
-			draw(this: GameObj<CircleComp>) {
+			draw(this: GameObj<CircleComp | any>) {
 				drawCircle({
-					...getRenderProps(this),
 					radius: this.radius,
+					color: this.color,
+					opacity: this.opacity,
+					anchor: this.anchor,
+					outline: this.outline,
+					fixed: this.fixed,
+					shader: this.shader,
+					uniform: this.uniform,
 				})
 			},
 			renderArea() {

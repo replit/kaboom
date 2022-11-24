@@ -2758,6 +2758,7 @@ export interface RenderProps {
 	fixed?: boolean,
 	shader?: string | ShaderData | Asset<ShaderData>,
 	uniform?: Uniform,
+	outline?: Outline,
 }
 
 /**
@@ -2845,10 +2846,6 @@ export type DrawRectOpt = RenderProps & {
 	 * Height of the rectangle.
 	 */
 	height: number,
-	/**
-	 * If draw an outline around the shape.
-	 */
-	outline?: Outline,
 	/**
 	 * Use gradient instead of solid color.
 	 *
@@ -2938,10 +2935,6 @@ export type DrawTriangleOpt = RenderProps & {
 	 */
 	p3: Vec2,
 	/**
-	 * If draw an outline around the shape.
-	 */
-	outline?: Outline,
-	/**
 	 * If fill the shape with color (set this to false if you only want an outline).
 	 */
 	fill?: boolean,
@@ -2967,10 +2960,6 @@ export type DrawCircleOpt = Omit<RenderProps, "angle"> & {
 	 * Ending angle.
 	 */
 	end?: number,
-	/**
-	 * If draw an outline around the shape.
-	 */
-	outline?: Outline,
 	/**
 	 * If fill the shape with color (set this to false if you only want an outline).
 	 */
@@ -3012,10 +3001,6 @@ export type DrawEllipseOpt = RenderProps & {
 	 */
 	end?: number,
 	/**
-	 * If draw an outline around the shape.
-	 */
-	outline?: Outline,
-	/**
 	 * If fill the shape with color (set this to false if you only want an outline).
 	 */
 	fill?: boolean,
@@ -3043,10 +3028,6 @@ export type DrawPolygonOpt = RenderProps & {
 	 * The points that make up the polygon
 	 */
 	pts: Vec2[],
-	/**
-	 * If draw an outline around the shape.
-	 */
-	outline?: Outline,
 	/**
 	 * If fill the shape with color (set this to false if you only want an outline).
 	 */
