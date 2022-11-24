@@ -1854,7 +1854,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		const p = vec2(...args)
 		if (p.x === 0 && p.y === 0) return
 		gfx.transform.translate2(p)
-		// gfx.transform = gfx.transform.translate(p)
 	}
 
 	function pushScale(...args) {
@@ -1862,27 +1861,20 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		const p = vec2(...args)
 		if (p.x === 1 && p.y === 1) return
 		gfx.transform.scale2(p)
-		// gfx.transform = gfx.transform.scale(p)
 	}
 
 	function pushRotateX(a: number) {
-		if (!a) {
-			return
-		}
+		if (!a) return
 		gfx.transform = gfx.transform.rotateX(a)
 	}
 
 	function pushRotateY(a: number) {
-		if (!a) {
-			return
-		}
+		if (!a) return
 		gfx.transform = gfx.transform.rotateY(a)
 	}
 
 	function pushRotateZ(a: number) {
-		if (!a) {
-			return
-		}
+		if (!a) return
 		gfx.transform = gfx.transform.rotateZ(a)
 	}
 
@@ -3386,6 +3378,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				pushTranslate(this.pos)
 				pushScale(this.scale)
 				pushRotateZ(this.angle)
+				// TODO: automatically don't draw if offscreen
 				this.trigger("draw")
 				this.get().forEach((child) => child.draw())
 				popTransform()
@@ -4407,17 +4400,17 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 					throw new Error("Only support polygon and rect shapes for now")
 				}
 
-				let transform = this.transform
-					.scale(vec2(this.area.scale ?? 1))
-					.translate(this.area.offset)
+				const transform = this.transform
+					.clone()
+					.scale2(vec2(this.area.scale ?? 1))
+					.translate2(this.area.offset)
 
 				if (localArea instanceof Rect) {
-					const bbox = localArea.bbox()
 					const offset = anchorPt(this.anchor || DEF_ANCHOR)
 						.add(1, 1)
 						.scale(-0.5)
-						.scale(bbox.width, bbox.height)
-					transform = transform.translate(offset)
+						.scale(localArea.width, localArea.height)
+					transform.translate2(offset)
 				}
 
 				return localArea.transform(transform) as Polygon
@@ -5717,11 +5710,11 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 		function checkObj(obj: GameObj) {
 
-			stack.push(tr)
+			stack.push(tr.clone())
 
 			// Update object transform here. This will be the transform later used in rendering.
-			if (obj.pos) tr = tr.translate(obj.pos)
-			if (obj.scale) tr = tr.scale(obj.scale)
+			if (obj.pos) tr.translate2(obj.pos)
+			if (obj.scale) tr.scale2(obj.scale)
 			if (obj.angle) tr = tr.rotateZ(obj.angle)
 			obj.transform = tr.clone()
 

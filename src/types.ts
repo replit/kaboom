@@ -3322,6 +3322,12 @@ export declare class Vec2 {
 	 * To n precision floating point.
 	 */
 	toFixed(n: number): Vec2
+	/**
+	 * Multiply by a Mat4.
+	 *
+	 * @since v3000.0
+	 */
+	transform(n: Mat4): Vec2
 	eq(p: Vec2): boolean
 	toString(): string
 }
@@ -3457,6 +3463,7 @@ export declare class Rect {
 	points(): [Vec2, Vec2, Vec2, Vec2]
 	transform(m: Mat4): Polygon
 	bbox(): Rect
+	clone(): Rect
 	distToPoint(p: Vec2): number
 }
 
@@ -3466,6 +3473,7 @@ export declare class Line {
 	constructor(p1: Vec2, p2: Vec2)
 	transform(m: Mat4): Line
 	bbox(): Rect
+	clone(): Line
 }
 
 export declare class Circle {
@@ -3474,6 +3482,7 @@ export declare class Circle {
 	constructor(pos: Vec2, radius: number)
 	transform(m: Mat4): Ellipse
 	bbox(): Rect
+	clone(): Circle
 }
 
 export declare class Ellipse {
@@ -3483,6 +3492,7 @@ export declare class Ellipse {
 	constructor(pos: Vec2, rx: number, ry: number)
 	transform(m: Mat4): Ellipse
 	bbox(): Rect
+	clone(): Ellipse
 }
 
 export declare class Polygon {
@@ -3490,6 +3500,7 @@ export declare class Polygon {
 	constructor(pts: Vec2[])
 	transform(m: Mat4): Polygon
 	bbox(): Rect
+	clone(): Polygon
 }
 
 export type Point = Vec2

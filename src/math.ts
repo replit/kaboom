@@ -114,6 +114,9 @@ export class Vec2 {
 	toFixed(n: number): Vec2 {
 		return new Vec2(Number(this.x.toFixed(n)), Number(this.y.toFixed(n)))
 	}
+	transform(m: Mat4): Vec2 {
+		return m.multVec2(this)
+	}
 	eq(other: Vec2): boolean {
 		return this.x === other.x && this.y === other.y
 	}
@@ -419,6 +422,7 @@ export class Mat4 {
 		return this.mult(Mat4.rotateZ(a))
 	}
 
+	// TODO: in-place variant
 	mult(other: Mat4): Mat4 {
 
 		const out = []
@@ -764,14 +768,17 @@ export class Line {
 	p1: Vec2
 	p2: Vec2
 	constructor(p1: Vec2, p2: Vec2) {
-		this.p1 = p1
-		this.p2 = p2
+		this.p1 = p1.clone()
+		this.p2 = p2.clone()
 	}
 	transform(m: Mat4): Line {
 		return new Line(m.multVec2(this.p1), m.multVec2(this.p2))
 	}
 	bbox(): Rect {
 		return Rect.fromPoints(this.p1, this.p2)
+	}
+	clone(): Line {
+		return new Line(this.p1, this.p2)
 	}
 }
 
@@ -780,7 +787,7 @@ export class Rect {
 	width: number
 	height: number
 	constructor(pos: Vec2, width: number, height: number) {
-		this.pos = pos
+		this.pos = pos.clone()
 		this.width = width
 		this.height = height
 	}
@@ -802,6 +809,9 @@ export class Rect {
 		return new Polygon(this.points().map((pt) => m.multVec2(pt)))
 	}
 	bbox(): Rect {
+		return this.clone()
+	}
+	clone(): Rect {
 		return new Rect(this.pos.clone(), this.width, this.height)
 	}
 	distToPoint(p: Vec2): number {
@@ -817,7 +827,7 @@ export class Circle {
 	center: Vec2
 	radius: number
 	constructor(center: Vec2, radius: number) {
-		this.center = center
+		this.center = center.clone()
 		this.radius = radius
 	}
 	transform(tr: Mat4): Ellipse {
@@ -829,6 +839,9 @@ export class Circle {
 			this.center.add(vec2(this.radius)),
 		)
 	}
+	clone(): Circle {
+		return new Circle(this.center, this.radius)
+	}
 }
 
 export class Ellipse {
@@ -836,7 +849,7 @@ export class Ellipse {
 	radiusX: number
 	radiusY: number
 	constructor(center: Vec2, rx: number, ry: number) {
-		this.center = center
+		this.center = center.clone()
 		this.radiusX = rx
 		this.radiusY = ry
 	}
@@ -852,6 +865,9 @@ export class Ellipse {
 			this.center.sub(vec2(this.radiusX, this.radiusY)),
 			this.center.add(vec2(this.radiusX, this.radiusY)),
 		)
+	}
+	clone(): Ellipse {
+		return new Ellipse(this.center, this.radiusX, this.radiusY)
 	}
 }
 
@@ -876,6 +892,9 @@ export class Polygon {
 			p2.y = Math.max(p2.y, pt.y)
 		}
 		return Rect.fromPoints(p1, p2)
+	}
+	clone(): Polygon {
+		return new Polygon(this.pts.map((pt) => pt.clone()))
 	}
 }
 
