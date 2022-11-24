@@ -37,7 +37,7 @@ body:
     attributes:
       label: Minimum reproducible code
       description: If there's a small piece of code that can reliably reproduce the bug
-      placeholder: kaboom()
+      placeholder: "```js\n```"
       render: shell
   - type: input
     id: live-demo
