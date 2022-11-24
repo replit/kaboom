@@ -1978,24 +1978,6 @@ export interface KaboomCtx {
 	 */
 	pushRotate(angle: number): void,
 	/**
-	 * Rotate all subsequent draws on X axis.
-	 *
-	 * @since v3000.0
-	 */
-	pushRotateX(angle: number): void,
-	/**
-	 * Rotate all subsequent draws on Y axis.
-	 *
-	 * @since v3000.0
-	 */
-	pushRotateY(angle: number): void,
-	/**
-	 * Rotate all subsequent draws on Z axis (the default).
-	 *
-	 * @since v3000.0
-	 */
-	pushRotateZ(angle: number): void,
-	/**
 	 * Apply a transform matrix, ignore all prior transforms.
 	 *
 	 * @since v3000.0
@@ -3359,12 +3341,8 @@ export declare class Mat4 {
 	mult(other: Mat4): Mat4
 	multVec2(p: Vec2): Vec2
 	translate(p: Vec2): Mat4
-	translate2(p: Vec2): Mat4
 	scale(s: Vec2): Mat4
-	scale2(s: Vec2): Mat4
-	rotateX(a: number): Mat4
-	rotateY(a: number): Mat4
-	rotateZ(a: number): Mat4
+	rotate(a: number): Mat4
 	invert(): Mat4
 	toString(): string
 }

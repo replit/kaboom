@@ -1853,32 +1853,20 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		if (args[0] === undefined) return
 		const p = vec2(...args)
 		if (p.x === 0 && p.y === 0) return
-		gfx.transform.translate2(p)
+		gfx.transform.translate(p)
 	}
 
 	function pushScale(...args) {
 		if (args[0] === undefined) return
 		const p = vec2(...args)
 		if (p.x === 1 && p.y === 1) return
-		gfx.transform.scale2(p)
+		gfx.transform.scale(p)
 	}
 
-	function pushRotateX(a: number) {
+	function pushRotate(a: number) {
 		if (!a) return
-		gfx.transform = gfx.transform.rotateX(a)
+		gfx.transform.rotate(a)
 	}
-
-	function pushRotateY(a: number) {
-		if (!a) return
-		gfx.transform = gfx.transform.rotateY(a)
-	}
-
-	function pushRotateZ(a: number) {
-		if (!a) return
-		gfx.transform = gfx.transform.rotateZ(a)
-	}
-
-	const pushRotate = pushRotateZ
 
 	function pushTransform() {
 		gfx.transformStack.push(gfx.transform.clone())
@@ -1919,7 +1907,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 		pushTransform()
 		pushTranslate(opt.pos)
-		pushRotateZ(opt.angle)
+		pushRotate(opt.angle)
 		pushScale(opt.scale)
 		pushTranslate(offset)
 
@@ -2335,7 +2323,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		pushTransform()
 		pushTranslate(opt.pos)
 		pushScale(opt.scale)
-		pushRotateZ(opt.angle)
+		pushRotate(opt.angle)
 		pushTranslate(opt.offset)
 
 		if (opt.fill !== false) {
@@ -2755,7 +2743,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	function drawFormattedText(ftext: FormattedText) {
 		pushTransform()
 		pushTranslate(ftext.opt.pos)
-		pushRotateZ(ftext.opt.angle)
+		pushRotate(ftext.opt.angle)
 		pushTranslate(anchorPt(ftext.opt.anchor ?? "topleft").add(1, 1).scale(ftext.width, ftext.height).scale(-0.5))
 		ftext.chars.forEach((ch) => {
 			drawUVQuad({
@@ -3301,10 +3289,10 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	}
 
 	function calcTransform(obj: GameObj): Mat4 {
-		let tr = new Mat4()
-		if (obj.pos) tr.translate2(obj.pos)
-		if (obj.scale) tr.scale2(obj.scale)
-		if (obj.angle) tr = tr.rotateZ(obj.angle)
+		const tr = new Mat4()
+		if (obj.pos) tr.translate(obj.pos)
+		if (obj.scale) tr.scale(obj.scale)
+		if (obj.angle) tr.rotate(obj.angle)
 		return obj.parent ? tr.mult(obj.parent.transform) : tr
 	}
 
@@ -3377,7 +3365,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				pushTransform()
 				pushTranslate(this.pos)
 				pushScale(this.scale)
-				pushRotateZ(this.angle)
+				pushRotate(this.angle)
 				// TODO: automatically don't draw if offscreen
 				this.trigger("draw")
 				this.get().forEach((child) => child.draw())
@@ -3389,7 +3377,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				pushTransform()
 				pushTranslate(this.pos)
 				pushScale(this.scale)
-				pushRotateZ(this.angle)
+				pushRotate(this.angle)
 				this.get().forEach((child) => child.drawInspect())
 				this.trigger("drawInspect")
 				popTransform()
@@ -4402,15 +4390,15 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 				const transform = this.transform
 					.clone()
-					.scale2(vec2(this.area.scale ?? 1))
-					.translate2(this.area.offset)
+					.scale(vec2(this.area.scale ?? 1))
+					.translate(this.area.offset)
 
 				if (localArea instanceof Rect) {
 					const offset = anchorPt(this.anchor || DEF_ANCHOR)
 						.add(1, 1)
 						.scale(-0.5)
 						.scale(localArea.width, localArea.height)
-					transform.translate2(offset)
+					transform.translate(offset)
 				}
 
 				return localArea.transform(transform) as Polygon
@@ -5713,9 +5701,9 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			stack.push(tr.clone())
 
 			// Update object transform here. This will be the transform later used in rendering.
-			if (obj.pos) tr.translate2(obj.pos)
-			if (obj.scale) tr.scale2(obj.scale)
-			if (obj.angle) tr = tr.rotateZ(obj.angle)
+			if (obj.pos) tr.translate(obj.pos)
+			if (obj.scale) tr.scale(obj.scale)
+			if (obj.angle) tr.rotate(obj.angle)
 			obj.transform = tr.clone()
 
 			if (obj.c("area") && !obj.paused) {
@@ -5800,7 +5788,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		cam.transform = new Mat4()
 			.translate(center())
 			.scale(cam.scale)
-			.rotateZ(cam.angle)
+			.rotate(cam.angle)
 			.translate((cam.pos ?? center()).scale(-1).add(shake))
 
 		game.root.draw()
@@ -6650,9 +6638,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		pushTranslate,
 		pushScale,
 		pushRotate,
-		pushRotateX,
-		pushRotateY,
-		pushRotateZ,
 		pushMatrix,
 		usePostEffect,
 		// debug

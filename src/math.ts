@@ -382,11 +382,7 @@ export class Mat4 {
 		])
 	}
 
-	translate(p: Vec2): Mat4 {
-		return this.mult(Mat4.translate(p))
-	}
-
-	translate2(p: Vec2) {
+	translate(p: Vec2) {
 		this.m[12] += this.m[0] * p.x + this.m[4] * p.y
 		this.m[13] += this.m[1] * p.x + this.m[5] * p.y
 		this.m[14] += this.m[2] * p.x + this.m[6] * p.y
@@ -394,11 +390,7 @@ export class Mat4 {
 		return this
 	}
 
-	scale(s: Vec2): Mat4 {
-		return this.mult(Mat4.scale(s))
-	}
-
-	scale2(p: Vec2) {
+	scale(p: Vec2) {
 		this.m[0] *= p.x
 		this.m[4] *= p.y
 		this.m[1] *= p.x
@@ -410,16 +402,19 @@ export class Mat4 {
 		return this
 	}
 
-	rotateX(a: number): Mat4 {
-		return this.mult(Mat4.rotateX(a))
-	}
-
-	rotateY(a: number): Mat4 {
-		return this.mult(Mat4.rotateY(a))
-	}
-
-	rotateZ(a: number): Mat4 {
-		return this.mult(Mat4.rotateZ(a))
+	rotate(a: number): Mat4 {
+		a = deg2rad(-a)
+		const c = Math.cos(a)
+		const s = Math.sin(a)
+		const m0 = this.m[0]
+		const m1 = this.m[1]
+		const m4 = this.m[4]
+		const m5 = this.m[5]
+		this.m[0] = m0 * c + m1 * s
+		this.m[1] = -m0 * s + m1 * c
+		this.m[4] = m4 * c + m5 * s
+		this.m[5] = -m4 * s + m5 * c
+		return this
 	}
 
 	// TODO: in-place variant
