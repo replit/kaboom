@@ -184,3 +184,7 @@ export function benchmark(task: () => void, times: number = 1) {
 	const t2 = performance.now()
 	return t2 - t1
 }
+
+export function comparePerf(t1: () => void, t2: () => void, times: number = 1) {
+	return benchmark(t2, times) / benchmark(t1, times)
+}

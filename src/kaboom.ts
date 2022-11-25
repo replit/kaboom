@@ -55,6 +55,8 @@ import {
 	warn,
 	// eslint-disable-next-line
 	benchmark,
+	// eslint-disable-next-line
+	comparePerf,
 } from "./utils"
 
 import {
@@ -225,6 +227,7 @@ const DEF_FONT = "monospace"
 const DBG_FONT = "monospace"
 const DEF_TEXT_SIZE = 36
 const DEF_TEXT_CACHE_SIZE = 64
+const MAX_TEXT_CACHE_SIZE = 256
 const FONT_ATLAS_SIZE = 1024
 // 0.1 pixel padding to texture coordinates to prevent artifact
 const UV_PAD = 0.1
@@ -458,12 +461,19 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		// make canvas focusable
 		canvas.tabIndex = 0
 
+		const fontCacheCanvas = document.createElement("canvas")
+		fontCacheCanvas.width = MAX_TEXT_CACHE_SIZE
+		fontCacheCanvas.height = MAX_TEXT_CACHE_SIZE
+		const fontCacheCtx = fontCacheCanvas.getContext("2d", {
+			willReadFrequently: true,
+		})
+
 		return {
 
 			canvas: canvas,
-			// for 2d context
-			canvas2: canvas.cloneNode() as HTMLCanvasElement,
 			pixelDensity: pixelDensity,
+			fontCacheCanvas: fontCacheCanvas,
+			fontCacheCtx: fontCacheCtx,
 
 			stretchToParent: stretchToParent,
 			lastParentWidth: pw,
@@ -2523,9 +2533,9 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 				if (!atlas.font.map[ch]) {
 
-					const c2d = app.canvas2.getContext("2d")
+					const c2d = app.fontCacheCtx
 					c2d.font = `${font.size}px ${fontName}`
-					c2d.clearRect(0, 0, app.canvas2.width, app.canvas2.height)
+					c2d.clearRect(0, 0, app.fontCacheCanvas.width, app.fontCacheCanvas.height)
 					c2d.textBaseline = "top"
 					c2d.textAlign = "left"
 					c2d.fillStyle = "rgb(255, 255, 255)"

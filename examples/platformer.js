@@ -225,7 +225,7 @@ scene("game", ({ levelId, coins } = { levelId: 0, coins: 0 }) => {
 	})
 
 	player.onBeforePhysicsResolve((collision) => {
-		if (collision.target.is("platform") && player.isJumping()) {
+		if (collision.target.is(["platform", "soft"]) && player.isJumping()) {
 			collision.preventResolve()
 		}
 	})
