@@ -1693,7 +1693,7 @@ export interface KaboomCtx {
 	Polygon: typeof Polygon,
 	Vec2: typeof Vec2,
 	Color: typeof Color,
-	Mat4: typeof Mat4,
+	Mat3: typeof Mat3,
 	Quad: typeof Quad,
 	RNG: typeof RNG,
 	/**
@@ -1982,7 +1982,7 @@ export interface KaboomCtx {
 	 *
 	 * @since v3000.0
 	 */
-	pushMatrix(mat: Mat4): void,
+	pushMatrix(mat: Mat3): void,
 	/**
 	 * Apply a post process effect from a shader name.
 	 *
@@ -2400,7 +2400,7 @@ export interface GameObjRaw {
 	 *
 	 * @since v3000.0
 	 */
-	transform: Mat4,
+	transform: Mat3,
 	/**
 	 * If draw the game obj (run "draw" event or not).
 	 */
@@ -3286,11 +3286,11 @@ export declare class Vec2 {
 	 */
 	toFixed(n: number): Vec2
 	/**
-	 * Multiply by a Mat4.
+	 * Multiply by a Mat3.
 	 *
 	 * @since v3000.0
 	 */
-	transform(n: Mat4): Vec2
+	transform(n: Mat3): Vec2
 	eq(p: Vec2): boolean
 	toString(): string
 }
@@ -3310,21 +3310,21 @@ export declare class Vec4 {
 	w: number
 }
 
-export declare class Mat4 {
+export declare class Mat3 {
 	m: number[]
 	constructor(m?: number[])
-	static translate(p: Vec2): Mat4
-	static scale(s: Vec2): Mat4
-	static rotateX(a: number): Mat4
-	static rotateY(a: number): Mat4
-	static rotateZ(a: number): Mat4
-	clone(): Mat4
-	mult(other: Mat4): Mat4
+	static translate(p: Vec2): Mat3
+	static scale(s: Vec2): Mat3
+	static rotateX(a: number): Mat3
+	static rotateY(a: number): Mat3
+	static rotateZ(a: number): Mat3
+	clone(): Mat3
+	mult(other: Mat3): Mat3
 	multVec2(p: Vec2): Vec2
-	translate(p: Vec2): Mat4
-	scale(s: Vec2): Mat4
-	rotate(a: number): Mat4
-	invert(): Mat4
+	translate(p: Vec2): Mat3
+	scale(s: Vec2): Mat3
+	rotate(a: number): Mat3
+	invert(): Mat3
 	toString(): string
 }
 
@@ -3420,7 +3420,7 @@ export declare class Rect {
 	static fromPoints(p1: Vec2, p2: Vec2): Rect
 	center(): Vec2
 	points(): [Vec2, Vec2, Vec2, Vec2]
-	transform(m: Mat4): Polygon
+	transform(m: Mat3): Polygon
 	bbox(): Rect
 	clone(): Rect
 	distToPoint(p: Vec2): number
@@ -3430,7 +3430,7 @@ export declare class Line {
 	p1: Vec2
 	p2: Vec2
 	constructor(p1: Vec2, p2: Vec2)
-	transform(m: Mat4): Line
+	transform(m: Mat3): Line
 	bbox(): Rect
 	clone(): Line
 }
@@ -3439,7 +3439,7 @@ export declare class Circle {
 	center: Vec2
 	radius: number
 	constructor(pos: Vec2, radius: number)
-	transform(m: Mat4): Ellipse
+	transform(m: Mat3): Ellipse
 	bbox(): Rect
 	clone(): Circle
 }
@@ -3449,7 +3449,7 @@ export declare class Ellipse {
 	radiusX: number
 	radiusY: number
 	constructor(pos: Vec2, rx: number, ry: number)
-	transform(m: Mat4): Ellipse
+	transform(m: Mat3): Ellipse
 	bbox(): Rect
 	clone(): Ellipse
 }
@@ -3457,7 +3457,7 @@ export declare class Ellipse {
 export declare class Polygon {
 	pts: Vec2[]
 	constructor(pts: Vec2[])
-	transform(m: Mat4): Polygon
+	transform(m: Mat3): Polygon
 	bbox(): Rect
 	clone(): Polygon
 }
@@ -4184,7 +4184,7 @@ export type UniformValue =
 	| Vec2
 	| Vec3
 	| Color
-	| Mat4
+	| Mat3
 
 export type UniformKey = Exclude<string, "u_tex">
 export type Uniform = Record<UniformKey, UniformValue>

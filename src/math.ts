@@ -114,7 +114,7 @@ export class Vec2 {
 	toFixed(n: number): Vec2 {
 		return new Vec2(Number(this.x.toFixed(n)), Number(this.y.toFixed(n)))
 	}
-	transform(m: Mat4): Vec2 {
+	transform(m: Mat3): Vec2 {
 		return m.multVec2(this)
 	}
 	eq(other: Vec2): boolean {
@@ -313,7 +313,7 @@ export function quad(x: number, y: number, w: number, h: number): Quad {
 	return new Quad(x, y, w, h)
 }
 
-export class Mat4 {
+export class Mat3 {
 
 	m: number[] = [
 		1, 0, 0,
@@ -327,49 +327,49 @@ export class Mat4 {
 		}
 	}
 
-	static translate(p: Vec2): Mat4 {
-		return new Mat4([
+	static translate(p: Vec2): Mat3 {
+		return new Mat3([
 			1, 0, 0,
 			0, 1, 0,
 			p.x, p.y, 1,
 		])
 	}
 
-	static scale(s: Vec2): Mat4 {
-		return new Mat4([
+	static scale(s: Vec2): Mat3 {
+		return new Mat3([
 			s.x, 0, 0,
 			0, s.y, 0,
 			0, 0, 1,
 		])
 	}
 
-	static rotateX(a: number): Mat4 {
+	static rotateX(a: number): Mat3 {
 		a = deg2rad(-a)
 		const c = Math.cos(a)
 		const s = Math.sin(a)
-		return new Mat4([
+		return new Mat3([
 			1, 0, 0,
 			0, c, -s,
 			0, s, c,
 		])
 	}
 
-	static rotateY(a: number): Mat4 {
+	static rotateY(a: number): Mat3 {
 		a = deg2rad(-a)
 		const c = Math.cos(a)
 		const s = Math.sin(a)
-		return new Mat4([
+		return new Mat3([
 			c, 0, s,
 			0, 1, 0,
 			-s, 0, c,
 		])
 	}
 
-	static rotateZ(a: number): Mat4 {
+	static rotateZ(a: number): Mat3 {
 		a = deg2rad(-a)
 		const c = Math.cos(a)
 		const s = Math.sin(a)
-		return new Mat4([
+		return new Mat3([
 			c, -s, 0,
 			s, c, 0,
 			0, 0, 1,
@@ -379,7 +379,6 @@ export class Mat4 {
 	translate(p: Vec2) {
 		this.m[6] += this.m[0] * p.x + this.m[3] * p.y
 		this.m[7] += this.m[1] * p.x + this.m[4] * p.y
-		this.m[8] += this.m[2] * p.x + this.m[5] * p.y
 		return this
 	}
 
@@ -395,23 +394,23 @@ export class Mat4 {
 		return this
 	}
 
-	rotate(a: number): Mat4 {
+	rotate(a: number): Mat3 {
 		a = deg2rad(-a)
 		const c = Math.cos(a)
 		const s = Math.sin(a)
 		const m0 = this.m[0]
 		const m1 = this.m[1]
+		const m3 = this.m[3]
 		const m4 = this.m[4]
-		const m5 = this.m[5]
 		this.m[0] = m0 * c + m1 * s
 		this.m[1] = -m0 * s + m1 * c
-		this.m[3] = m4 * c + m5 * s
-		this.m[4] = -m4 * s + m5 * c
+		this.m[3] = m3 * c + m4 * s
+		this.m[4] = -m3 * s + m4 * c
 		return this
 	}
 
 	// TODO: in-place variant
-	mult(other: Mat4): Mat4 {
+	mult(other: Mat3): Mat3 {
 
 		const out = []
 
@@ -424,7 +423,7 @@ export class Mat4 {
 			}
 		}
 
-		return new Mat4(out)
+		return new Mat3(out)
 
 	}
 
@@ -435,7 +434,7 @@ export class Mat4 {
 		)
 	}
 
-	invert(): Mat4 {
+	invert(): Mat3 {
 
 		const out = []
 
@@ -491,12 +490,12 @@ export class Mat4 {
 			}
 		}
 
-		return new Mat4(out)
+		return new Mat3(out)
 
 	}
 
-	clone(): Mat4 {
-		return new Mat4([...this.m])
+	clone(): Mat3 {
+		return new Mat3([...this.m])
 	}
 
 	toString(): string {
@@ -758,7 +757,7 @@ export class Line {
 		this.p1 = p1.clone()
 		this.p2 = p2.clone()
 	}
-	transform(m: Mat4): Line {
+	transform(m: Mat3): Line {
 		return new Line(m.multVec2(this.p1), m.multVec2(this.p2))
 	}
 	bbox(): Rect {
@@ -792,7 +791,7 @@ export class Rect {
 			this.pos.add(0, this.height),
 		]
 	}
-	transform(m: Mat4): Polygon {
+	transform(m: Mat3): Polygon {
 		return new Polygon(this.points().map((pt) => m.multVec2(pt)))
 	}
 	bbox(): Rect {
@@ -817,7 +816,7 @@ export class Circle {
 		this.center = center.clone()
 		this.radius = radius
 	}
-	transform(tr: Mat4): Ellipse {
+	transform(tr: Mat3): Ellipse {
 		return new Ellipse(this.center, this.radius, this.radius).transform(tr)
 	}
 	bbox(): Rect {
@@ -840,7 +839,7 @@ export class Ellipse {
 		this.radiusX = rx
 		this.radiusY = ry
 	}
-	transform(tr: Mat4): Ellipse {
+	transform(tr: Mat3): Ellipse {
 		return new Ellipse(
 			tr.multVec2(this.center),
 			tr.m[0] * this.radiusX,
@@ -866,7 +865,7 @@ export class Polygon {
 		}
 		this.pts = pts
 	}
-	transform(m: Mat4): Polygon {
+	transform(m: Mat3): Polygon {
 		return new Polygon(this.pts.map((pt) => m.multVec2(pt)))
 	}
 	bbox(): Rect {

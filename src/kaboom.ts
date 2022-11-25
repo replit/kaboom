@@ -11,7 +11,7 @@ import {
 	Circle,
 	Color,
 	Vec2,
-	Mat4,
+	Mat3,
 	Quad,
 	RNG,
 	quad,
@@ -717,7 +717,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			vqueue: [],
 			iqueue: [],
 
-			transform: new Mat4(),
+			transform: new Mat3(),
 			transformStack: [],
 
 			bgTex: bgTex,
@@ -942,7 +942,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			scale: vec2(1),
 			angle: 0,
 			shake: 0,
-			transform: new Mat4(),
+			transform: new Mat3(),
 		},
 
 	}
@@ -1650,7 +1650,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 					const loc = gl.getUniformLocation(prog, name)
 					if (typeof val === "number") {
 						gl.uniform1f(loc, val)
-					} else if (val instanceof Mat4) {
+					} else if (val instanceof Mat3) {
 						gl.uniformMatrix4fv(loc, false, new Float32Array(val.m))
 					} else if (val instanceof Color) {
 						// TODO: opacity?
@@ -1809,7 +1809,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 		gfx.drawCalls = 0
 		gfx.transformStack = []
-		gfx.transform = new Mat4()
+		gfx.transform = new Mat3()
 
 	}
 
@@ -1845,7 +1845,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		)
 	}
 
-	function pushMatrix(m: Mat4) {
+	function pushMatrix(m: Mat3) {
 		gfx.transform = m.clone()
 	}
 
@@ -3289,8 +3289,8 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		return game.cam.transform.invert().multVec2(p)
 	}
 
-	function calcTransform(obj: GameObj): Mat4 {
-		const tr = new Mat4()
+	function calcTransform(obj: GameObj): Mat3 {
+		const tr = new Mat3()
 		if (obj.pos) tr.translate(obj.pos)
 		if (obj.scale) tr.scale(obj.scale)
 		if (obj.angle) tr.rotate(obj.angle)
@@ -3310,7 +3310,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			// TODO: a nice way to hide / pause when add()-ing
 			hidden: false,
 			paused: false,
-			transform: new Mat4(),
+			transform: new Mat3(),
 			children: [],
 			parent: null,
 
@@ -5309,7 +5309,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				scale: vec2(1),
 				angle: 0,
 				shake: 0,
-				transform: new Mat4(),
+				transform: new Mat3(),
 			}
 
 			game.gravity = 0
@@ -5694,7 +5694,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		const cellSize = gopt.hashGridSize || DEF_HASH_GRID_SIZE
 
 		// current transform
-		let tr = new Mat4()
+		let tr = new Mat3()
 
 		// a local transform stack
 		const stack = []
@@ -5788,7 +5788,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		const shake = Vec2.fromAngle(rand(0, 360)).scale(cam.shake)
 
 		cam.shake = lerp(cam.shake, 0, 5 * dt())
-		cam.transform = new Mat4()
+		cam.transform = new Mat3()
 			.translate(center())
 			.scale(cam.scale)
 			.rotate(cam.angle)
@@ -6597,7 +6597,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		Polygon,
 		Vec2,
 		Color,
-		Mat4,
+		Mat3,
 		Quad,
 		RNG,
 		rand,
