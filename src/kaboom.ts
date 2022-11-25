@@ -4419,6 +4419,18 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 	}
 
+	function getRenderProps(obj: GameObj<any>) {
+		return {
+			color: obj.color,
+			opacity: obj.opacity,
+			anchor: obj.anchor,
+			outline: obj.outline,
+			fixed: obj.fixed,
+			shader: obj.shader,
+			uniform: obj.uniform,
+		}
+	}
+
 	// TODO: clean
 	function sprite(
 		src: string | SpriteData | Asset<SpriteData>,
@@ -4461,7 +4473,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 			draw(this: GameObj<SpriteComp | any>) {
 				if (!spriteData) return
-				drawSprite({
+				drawSprite(Object.assign(getRenderProps(this), {
 					sprite: spriteData,
 					frame: this.frame,
 					quad: this.quad,
@@ -4470,14 +4482,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 					tiled: opt.tiled,
 					width: opt.width,
 					height: opt.height,
-					color: this.color,
-					opacity: this.opacity,
-					anchor: this.anchor,
-					outline: this.outline,
-					fixed: this.fixed,
-					shader: this.shader,
-					uniform: this.uniform,
-				})
+				}))
 			},
 
 			update(this: GameObj<SpriteComp>) {
@@ -4664,7 +4669,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 		function update(obj: GameObj<TextComp | any>) {
 
-			const ftext = formatText({
+			const ftext = formatText(Object.assign(getRenderProps(obj), {
 				text: obj.text + "",
 				size: obj.textSize,
 				font: obj.font,
@@ -4674,14 +4679,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				lineSpacing: obj.lineSpacing,
 				transform: obj.textTransform,
 				styles: obj.textStyles,
-				color: obj.color,
-				opacity: obj.opacity,
-				anchor: obj.anchor,
-				outline: obj.outline,
-				fixed: obj.fixed,
-				shader: obj.shader,
-				uniform: obj.uniform,
-			})
+			}))
 
 			if (!opt.width) {
 				obj.width = ftext.width / (obj.scale?.x || 1)
@@ -4729,19 +4727,12 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			width: w,
 			height: h,
 			radius: opt.radius || 0,
-			draw(this: GameObj<RectComp | any>) {
-				drawRect({
+			draw(this: GameObj<RectComp>) {
+				drawRect(Object.assign(getRenderProps(this), {
 					width: this.width,
 					height: this.height,
 					radius: this.radius,
-					color: this.color,
-					opacity: this.opacity,
-					anchor: this.anchor,
-					outline: this.outline,
-					fixed: this.fixed,
-					shader: this.shader,
-					uniform: this.uniform,
-				})
+				}))
 			},
 			renderArea() {
 				return new Rect(vec2(0), this.width, this.height)
@@ -4757,18 +4748,11 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			id: "rect",
 			width: w,
 			height: h,
-			draw(this: GameObj<UVQuadComp | any>) {
-				drawUVQuad({
+			draw(this: GameObj<UVQuadComp>) {
+				drawUVQuad(Object.assign(getRenderProps(this), {
 					width: this.width,
 					height: this.height,
-					color: this.color,
-					opacity: this.opacity,
-					anchor: this.anchor,
-					outline: this.outline,
-					fixed: this.fixed,
-					shader: this.shader,
-					uniform: this.uniform,
-				})
+				}))
 			},
 			renderArea() {
 				return new Rect(vec2(0), this.width, this.height)
@@ -4783,17 +4767,10 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		return {
 			id: "circle",
 			radius: radius,
-			draw(this: GameObj<CircleComp | any>) {
-				drawCircle({
+			draw(this: GameObj<CircleComp>) {
+				drawCircle(Object.assign(getRenderProps(this), {
 					radius: this.radius,
-					color: this.color,
-					opacity: this.opacity,
-					anchor: this.anchor,
-					outline: this.outline,
-					fixed: this.fixed,
-					shader: this.shader,
-					uniform: this.uniform,
-				})
+				}))
 			},
 			renderArea() {
 				return new Circle(vec2(0), this.radius)
