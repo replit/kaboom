@@ -52,45 +52,47 @@ scene("main", (levelIdx) => {
 	]
 
 	const level = addLevel(levels[levelIdx], {
-		width: 64,
-		height: 64,
+		tileWidth: 64,
+		tileHeight: 64,
 		pos: vec2(64, 64),
-		"=": () => [
-			sprite("grass"),
-			area(),
-			body({ isStatic: true }),
-			anchor("center"),
-		],
-		"-": () => [
-			sprite("steel"),
-			area(),
-			body({ isStatic: true }),
-			anchor("center"),
-		],
-		"$": () => [
-			sprite("key"),
-			area(),
-			anchor("center"),
-			"key",
-		],
-		"@": () => [
-			sprite("bean"),
-			area(),
-			body(),
-			anchor("center"),
-			"player",
-		],
-		"|": () => [
-			sprite("door"),
-			area(),
-			body({ isStatic: true }),
-			anchor("center"),
-			"door",
-		],
+		tiles: {
+			"=": () => [
+				sprite("grass"),
+				area(),
+				body({ isStatic: true }),
+				anchor("center"),
+			],
+			"-": () => [
+				sprite("steel"),
+				area(),
+				body({ isStatic: true }),
+				anchor("center"),
+			],
+			"$": () => [
+				sprite("key"),
+				area(),
+				anchor("center"),
+				"key",
+			],
+			"@": () => [
+				sprite("bean"),
+				area(),
+				body(),
+				anchor("center"),
+				"player",
+			],
+			"|": () => [
+				sprite("door"),
+				area(),
+				body({ isStatic: true }),
+				anchor("center"),
+				"door",
+			],
+		},
 		// any() is a special function that gets called everytime there's a
 		// symbole not defined above and is supposed to return what that symbol
 		// means
-		any(ch) {
+		wildcardTile(ch) {
 			const char = characters[ch]
 			if (char) {
 				return [

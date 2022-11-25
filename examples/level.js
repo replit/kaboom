@@ -21,36 +21,38 @@ const level = addLevel([
 	"=======",
 ], {
 	// The size of each grid
-	width: 64,
-	height: 64,
+	tileWidth: 64,
+	tileHeight: 64,
 	// The position of the top left block
 	pos: vec2(100, 200),
 	// Define what each symbol means (in components)
-	"@": () => [
-		sprite("bean"),
-		area(),
-		body(),
-		anchor("bot"),
-		"player",
-	],
-	"=": () => [
-		sprite("grass"),
-		area(),
-		body({ isStatic: true }),
-		anchor("bot"),
-	],
-	"$": () => [
-		sprite("coin"),
-		area(),
-		anchor("bot"),
-		"coin",
-	],
-	"^": () => [
-		sprite("spike"),
-		area(),
-		anchor("bot"),
-		"danger",
-	],
+	tiles: {
+		"@": () => [
+			sprite("bean"),
+			area(),
+			body(),
+			anchor("bot"),
+			"player",
+		],
+		"=": () => [
+			sprite("grass"),
+			area(),
+			body({ isStatic: true }),
+			anchor("bot"),
+		],
+		"$": () => [
+			sprite("coin"),
+			area(),
+			anchor("bot"),
+			"coin",
+		],
+		"^": () => [
+			sprite("spike"),
+			area(),
+			anchor("bot"),
+			"danger",
+		],
+	},
 })
 
 // Get the player object from tag

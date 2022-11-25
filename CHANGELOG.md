@@ -133,6 +133,40 @@ usePostEffect("invert")
 - fixed touches not treated as mouse
 - (**BREAK**) changed `onTouchStart()`, `onTouchMove()` and `onTouchEnd()` callback signature to `(pos: Vec2, touch: Touch) => void` (exposes the native `Touch` object)
 
+## Level
+
+- (**BREAK**) changed `addLevel()` options API
+  - renamed `width` and `height` to `tileWidth` and `tileHeight`
+  - renamed `any` to `wildcardTile`
+  - now all tile symbols are defined in the `tiles` object
+
+```js
+addLevel([
+    "@  ^ $$",
+    "=======",
+], {
+    tileWidth: 32,
+    tileHeight: 32,
+    tiles: {
+        "=": () => [
+            sprite("grass"),
+            area(),
+            body({ isStatic: true }),
+        ],
+        "$": () => [
+            sprite("coin"),
+            area(),
+            "coin",
+        ],
+    },
+    wildcardTile: (symbol) => {
+        if (symbol === "@") {
+            return [ /* ... */ ]
+        }
+    },
+})
+```
+
 ## Misc
 
 - (**BREAK**) removed all deprecated functions in v2000.2
@@ -169,7 +203,6 @@ onMousePress(() => {
 ```
 
 - (**BREAK**) changed all event handlers to return a `EventController` object instead of a function to cancel event
-- added `Event` and `EventHandler`
 
 ```js
 // previous

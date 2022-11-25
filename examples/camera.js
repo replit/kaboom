@@ -18,28 +18,30 @@ const level = addLevel([
 	"@  =  $",
 	"=======",
 ], {
-	width: 64,
-	height: 64,
+	tileWidth: 64,
+	tileHeight: 64,
 	pos: vec2(100, 200),
-	"@": () => [
-		sprite("bean"),
-		area(),
-		body(),
-		anchor("bot"),
-		"player",
-	],
-	"=": () => [
-		sprite("grass"),
-		area(),
-		body({ isStatic: true }),
-		anchor("bot"),
-	],
-	"$": () => [
-		sprite("coin"),
-		area(),
-		anchor("bot"),
-		"coin",
-	],
+	tiles: {
+		"@": () => [
+			sprite("bean"),
+			area(),
+			body(),
+			anchor("bot"),
+			"player",
+		],
+		"=": () => [
+			sprite("grass"),
+			area(),
+			body({ isStatic: true }),
+			anchor("bot"),
+		],
+		"$": () => [
+			sprite("coin"),
+			area(),
+			anchor("bot"),
+			"coin",
+		],
+	},
 })
 
 // Get the player object from tag

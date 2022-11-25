@@ -18,16 +18,18 @@ addLevel([
 	"=======",
 ], {
 	// The size of each grid
-	width: 64,
-	height: 64,
+	tileWidth: 64,
+	tileHeight: 64,
 	// The position of the top left block
 	pos: vec2(100),
 	// Define what each symbol means (in components)
-	"=": () => [
-		sprite("grass"),
-		area(),
-		body({ isStatic: true }),
-	],
+	tiles: {
+		"=": () => [
+			sprite("grass"),
+			area(),
+			body({ isStatic: true }),
+		],
+	},
 })
 
 loop(0.2, () => {

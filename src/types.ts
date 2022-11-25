@@ -4452,30 +4452,45 @@ export interface LevelOpt {
 	/**
 	 * Width of each block.
 	 */
-	width: number,
+	tileWidth: number,
 	/**
 	 * Height of each block.
 	 */
-	height: number,
+	tileHeight: number,
 	/**
 	 * Position of the first block.
 	 */
 	pos?: Vec2,
 	/**
-	 * Called when encountered an undefined symbol.
+	 * Definition of each tile.
 	 */
-	any?: (s: string, pos: Vec2) => CompList<any> | undefined,
-	// TODO: should return CompList<any>
-	[sym: string]: any,
+	tiles: {
+		[sym: string]: (pos: Vec2) => CompList<any>,
+	},
+	/**
+	 * Called when encountered a symbol not defined in "tiles".
+	 */
+	wildcardTile?: (sym: string, pos: Vec2) => CompList<any> | null | undefined,
+}
+
+export interface TileComp extends Comp {
+	tilePos: Vec2,
+	setTilePos(...args),
+	moveLeft(),
+	moveRight(),
+	moveUp(),
+	moveDown(),
 }
 
 export interface LevelComp extends Comp {
-	gridWidth(): number,
-	gridHeight(): number,
+	tileWidth(): number,
+	tileHeight(): number,
 	getPos(p: Vec2): Vec2,
 	getPos(x: number, y: number): Vec2,
 	spawn(sym: string, p: Vec2): GameObj,
 	spawn(sym: string, x: number, y: number): GameObj,
+	numRows(): number,
+	numColumns(): number,
 	levelWidth(): number,
 	levelHeight(): number,
 }
