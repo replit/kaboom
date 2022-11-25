@@ -441,7 +441,7 @@ export class Mat4 {
 	}
 
 	multVec2(p: Vec2): Vec2 {
-		return vec2(
+		return new Vec2(
 			p.x * this.m[0] + p.y * this.m[4] + this.m[12],
 			p.x * this.m[1] + p.y * this.m[5] + this.m[13],
 		)
@@ -719,7 +719,7 @@ export function testLinePolygon(l: Line, p: Polygon): boolean {
 }
 
 export function testCirclePoint(c: Circle, p: Point): boolean {
-	return c.center.dist(p) < c.radius
+	return c.center.sdist(p) < c.radius * c.radius
 }
 
 export function testCircleCircle(c1: Circle, c2: Circle): boolean {
