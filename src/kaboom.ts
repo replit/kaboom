@@ -2181,14 +2181,14 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 			// TODO: line joines
 			// TODO: rounded vertices for arbitury polygonic shape
-			let minLen = pts[0].dist(pts[1])
+			let minSLen = pts[0].sdist(pts[1])
 
 			for (let i = 1; i < pts.length - 1; i++) {
-				minLen = Math.min(pts[i].dist(pts[i + 1]), minLen)
+				minSLen = Math.min(pts[i].sdist(pts[i + 1]), minSLen)
 			}
 
 			// eslint-disable-next-line
-			const radius = Math.min(opt.radius, minLen / 2)
+			const radius = Math.min(opt.radius, Math.sqrt(minSLen) / 2)
 
 			drawLine(Object.assign(opt, { p1: pts[0], p2: pts[1] }))
 
