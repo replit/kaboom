@@ -323,17 +323,18 @@ onKeyDown("down", () => {
 	player.move(0, SPEED)
 })
 
-onKeyPress(["left", "right", "up", "down"], () => {
-	player.play("run")
-})
-
-onKeyRelease(["left", "right", "up", "down"], () => {
-	if (
-		!isKeyDown("left")
-		&& !isKeyDown("right")
-		&& !isKeyDown("up")
-		&& !isKeyDown("down")
-	) {
-		player.play("idle")
-	}
+;["left", "right", "up", "down"].forEach((key) => {
+	onKeyPress(key, () => {
+		player.play("run")
+	})
+	onKeyRelease(key, () => {
+		if (
+			!isKeyDown("left")
+			&& !isKeyDown("right")
+			&& !isKeyDown("up")
+			&& !isKeyDown("down")
+		) {
+			player.play("idle")
+		}
+	})
 })

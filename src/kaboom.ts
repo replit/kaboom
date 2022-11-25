@@ -4471,18 +4471,26 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			flipX: opt.flipX ?? false,
 			flipY: opt.flipY ?? false,
 
-			draw(this: GameObj<SpriteComp | any>) {
+			draw(this: GameObj<SpriteComp>) {
+
 				if (!spriteData) return
-				drawSprite(Object.assign(getRenderProps(this), {
-					sprite: spriteData,
-					frame: this.frame,
-					quad: this.quad,
+
+				const q = spriteData.frames[this.frame ?? 0]
+
+				if (!q) {
+					throw new Error(`Frame not found: ${this.frame ?? 0}`)
+				}
+
+				drawTexture(Object.assign(getRenderProps(this), {
+					tex: spriteData.tex,
+					quad: q,
 					flipX: this.flipX,
 					flipY: this.flipY,
 					tiled: opt.tiled,
 					width: opt.width,
 					height: opt.height,
 				}))
+
 			},
 
 			update(this: GameObj<SpriteComp>) {
