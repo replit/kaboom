@@ -6706,8 +6706,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 	app.canvas.focus()
 
-	loop(1, () => console.log(debug.fps()))
-
 	return ctx
 
 }

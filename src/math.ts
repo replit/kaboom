@@ -681,7 +681,7 @@ export function testRectCircle(r: Rect, c: Circle): boolean {
 	const nx = Math.max(r.pos.x, Math.min(c.center.x, r.pos.x + r.width))
 	const ny = Math.max(r.pos.y, Math.min(c.center.y, r.pos.y + r.height))
 	const nearestPoint = vec2(nx, ny)
-	return nearestPoint.dist(c.center) <= c.radius
+	return nearestPoint.sdist(c.center) <= c.radius * c.radius
 }
 
 export function testRectPolygon(r: Rect, p: Polygon): boolean {
@@ -723,7 +723,7 @@ export function testCirclePoint(c: Circle, p: Point): boolean {
 }
 
 export function testCircleCircle(c1: Circle, c2: Circle): boolean {
-	return c1.center.dist(c2.center) < c1.radius + c2.radius
+	return c1.center.sdist(c2.center) < (c1.radius + c2.radius) * (c1.radius + c2.radius)
 }
 
 // TODO
