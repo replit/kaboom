@@ -409,7 +409,6 @@ export class Mat3 {
 		return this
 	}
 
-	// TODO: in-place variant
 	mult(other: Mat3): Mat3 {
 
 		const out = []
@@ -436,59 +435,37 @@ export class Mat3 {
 
 	invert(): Mat3 {
 
+		const a00 = this.m[0]
+		const a01 = this.m[1]
+		const a02 = this.m[2]
+		const a10 = this.m[3]
+		const a11 = this.m[4]
+		const a12 = this.m[5]
+		const a20 = this.m[6]
+		const a21 = this.m[7]
+		const a22 = this.m[8]
+
+		const b01 = a22 * a11 - a12 * a21
+		const b11 = -a22 * a10 + a12 * a20
+		const b21 = a21 * a10 - a11 * a20
+
 		const out = []
+		let det = a00 * b01 + a01 * b11 + a02 * b21
 
-		const f00 = this.m[10] * this.m[15] - this.m[14] * this.m[11]
-		const f01 = this.m[9] * this.m[15] - this.m[13] * this.m[11]
-		const f02 = this.m[9] * this.m[14] - this.m[13] * this.m[10]
-		const f03 = this.m[8] * this.m[15] - this.m[12] * this.m[11]
-		const f04 = this.m[8] * this.m[14] - this.m[12] * this.m[10]
-		const f05 = this.m[8] * this.m[13] - this.m[12] * this.m[9]
-		const f06 = this.m[6] * this.m[15] - this.m[14] * this.m[7]
-		const f07 = this.m[5] * this.m[15] - this.m[13] * this.m[7]
-		const f08 = this.m[5] * this.m[14] - this.m[13] * this.m[6]
-		const f09 = this.m[4] * this.m[15] - this.m[12] * this.m[7]
-		const f10 = this.m[4] * this.m[14] - this.m[12] * this.m[6]
-		const f11 = this.m[5] * this.m[15] - this.m[13] * this.m[7]
-		const f12 = this.m[4] * this.m[13] - this.m[12] * this.m[5]
-		const f13 = this.m[6] * this.m[11] - this.m[10] * this.m[7]
-		const f14 = this.m[5] * this.m[11] - this.m[9] * this.m[7]
-		const f15 = this.m[5] * this.m[10] - this.m[9] * this.m[6]
-		const f16 = this.m[4] * this.m[11] - this.m[8] * this.m[7]
-		const f17 = this.m[4] * this.m[10] - this.m[8] * this.m[6]
-		const f18 = this.m[4] * this.m[9] - this.m[8] * this.m[5]
-
-		out[0] = this.m[5] * f00 - this.m[6] * f01 + this.m[7] * f02
-		out[4] = -(this.m[4] * f00 - this.m[6] * f03 + this.m[7] * f04)
-		out[8] = this.m[4] * f01 - this.m[5] * f03 + this.m[7] * f05
-		out[12] = -(this.m[4] * f02 - this.m[5] * f04 + this.m[6] * f05)
-
-		out[1] = -(this.m[1] * f00 - this.m[2] * f01 + this.m[3] * f02)
-		out[5] = this.m[0] * f00 - this.m[2] * f03 + this.m[3] * f04
-		out[9] = -(this.m[0] * f01 - this.m[1] * f03 + this.m[3] * f05)
-		out[13] = this.m[0] * f02 - this.m[1] * f04 + this.m[2] * f05
-
-		out[2] = this.m[1] * f06 - this.m[2] * f07 + this.m[3] * f08
-		out[6] = -(this.m[0] * f06 - this.m[2] * f09 + this.m[3] * f10)
-		out[10] = this.m[0] * f11 - this.m[1] * f09 + this.m[3] * f12
-		out[14] = -(this.m[0] * f08 - this.m[1] * f10 + this.m[2] * f12)
-
-		out[3] = -(this.m[1] * f13 - this.m[2] * f14 + this.m[3] * f15)
-		out[7] = this.m[0] * f13 - this.m[2] * f16 + this.m[3] * f17
-		out[11] = -(this.m[0] * f14 - this.m[1] * f16 + this.m[3] * f18)
-		out[15] = this.m[0] * f15 - this.m[1] * f17 + this.m[2] * f18
-
-		const det =
-			this.m[0] * out[0] +
-			this.m[1] * out[4] +
-			this.m[2] * out[8] +
-			this.m[3] * out[12]
-
-		for (let i = 0; i < 4; i++) {
-			for (let j = 0; j < 4; j++) {
-				out[i * 4 + j] *= (1.0 / det)
-			}
+		if (!det) {
+			return null
 		}
+		det = 1.0 / det
+
+		out[0] = b01 * det
+		out[1] = (-a22 * a01 + a02 * a21) * det
+		out[2] = (a12 * a01 - a02 * a11) * det
+		out[3] = b11 * det
+		out[4] = (a22 * a00 - a02 * a20) * det
+		out[5] = (-a12 * a00 + a02 * a10) * det
+		out[6] = b21 * det
+		out[7] = (-a21 * a00 + a01 * a20) * det
+		out[8] = (a11 * a00 - a01 * a10) * det
 
 		return new Mat3(out)
 
