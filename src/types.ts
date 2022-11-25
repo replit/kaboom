@@ -571,6 +571,12 @@ export interface KaboomCtx {
 	 */
 	fadeIn(time: number): Comp,
 	/**
+	 * An obstacle in a tilemap.
+	 *
+	 * @since v3000.0
+	 */
+	obstacle(): ObstacleComp,
+	/**
 	 * Register an event on all game objs with certain tag.
 	 *
 	 * @section Events
@@ -3258,6 +3264,12 @@ export declare class Vec2 {
 	 * Get distance between another vector.
 	 */
 	dist(p: Vec2): number
+	/**
+	 * Get squared distance between another vector.
+	 *
+	 * @since v3000.0
+	 */
+	sdist(p: Vec2): number
 	len(): number
 	/**
 	 * Get the unit vector (length of 1).
@@ -3424,6 +3436,7 @@ export declare class Rect {
 	bbox(): Rect
 	clone(): Rect
 	distToPoint(p: Vec2): number
+	sdistToPoint(p: Vec2): number
 }
 
 export declare class Line {
@@ -4480,6 +4493,10 @@ export interface TileComp extends Comp {
 	moveRight(),
 	moveUp(),
 	moveDown(),
+}
+
+export interface ObstacleComp extends Comp {
+	isObstacle: boolean,
 }
 
 export interface LevelComp extends Comp {

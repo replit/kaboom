@@ -182,8 +182,8 @@ kaboom()
 
 // will have definition
 add()
-
-
+```
+```js
 // if don't use global function
 import "kaboom"
 

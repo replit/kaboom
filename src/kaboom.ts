@@ -140,6 +140,7 @@ import {
 	MergeObj,
 	LevelComp,
 	TileComp,
+	ObstacleComp,
 	LevelOpt,
 	Cursor,
 	Recording,
@@ -4120,7 +4121,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				const pos = toScreen(this.pos)
 				const screenRect = new Rect(vec2(0), width(), height())
 				return !testRectPoint(screenRect, pos)
-					&& screenRect.distToPoint(pos) > distance
+					&& screenRect.sdistToPoint(pos) > distance * distance
 			},
 			onExitScreen(this: GameObj, action: () => void): EventController {
 				return this.on("exitView", action)
@@ -5395,6 +5396,14 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 	}
 
+	function obstacle(): ObstacleComp {
+		return {
+			id: "obstacle",
+			require: [ "tile" ],
+			isObstacle: true,
+		}
+	}
+
 	function addLevel(map: string[], opt: LevelOpt): GameObj<PosComp | LevelComp> {
 
 		if (!opt.tileWidth || !opt.tileHeight) {
@@ -6537,6 +6546,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		follow,
 		state,
 		fadeIn,
+		obstacle,
 		// group events
 		on,
 		onUpdate,

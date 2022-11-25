@@ -88,6 +88,10 @@ export class Vec2 {
 			+ (this.y - p2.y) * (this.y - p2.y),
 		)
 	}
+	sdist(...args): number {
+		const p2 = vec2(...args)
+		return (this.x - p2.x) * (this.x - p2.x) + (this.y - p2.y) * (this.y - p2.y)
+	}
 	len(): number {
 		return this.dist(new Vec2(0, 0))
 	}
@@ -810,11 +814,14 @@ export class Rect {
 		return new Rect(this.pos.clone(), this.width, this.height)
 	}
 	distToPoint(p: Vec2): number {
+		return Math.sqrt(this.sdistToPoint(p))
+	}
+	sdistToPoint(p: Vec2): number {
 		const min = this.pos
 		const max = this.pos.add(this.width, this.height)
 		const dx = Math.max(min.x - p.x, 0, p.x - max.x)
 		const dy = Math.max(min.y - p.y, 0, p.y - max.y)
-		return Math.sqrt(dx * dx + dy * dy)
+		return dx * dx + dy * dy
 	}
 }
 
