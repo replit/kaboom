@@ -1722,20 +1722,16 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			flush()
 		}
 
+		const transform = fixed ? gfx.transform : game.cam.transform.mult(gfx.transform)
+
 		for (const v of verts) {
-
-			// TODO: cache camTransform * gfxTransform?
-			const transform = fixed ? gfx.transform : game.cam.transform.mult(gfx.transform)
-
 			// normalized world space coordinate [-1.0 ~ 1.0]
 			const pt = screen2ndc(transform.multVec2(v.pos.xy()))
-
 			gfx.vqueue.push(
 				pt.x, pt.y, v.pos.z,
 				v.uv.x, v.uv.y,
 				v.color.r / 255, v.color.g / 255, v.color.b / 255, v.opacity,
 			)
-
 		}
 
 		for (const i of indices) {
