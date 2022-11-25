@@ -1,4 +1,4 @@
-const VERSION = "3000.0.0-alpha.19"
+const VERSION = "3000.0.0-alpha.20"
 
 import {
 	sat,
@@ -1961,8 +1961,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			// TODO: rotation
 			for (let i = 0; i < repX; i++) {
 				for (let j = 0; j < repY; j++) {
-					drawUVQuad({
-						...opt,
+					drawUVQuad(Object.assign(opt, {
 						pos: (opt.pos || vec2(0)).add(vec2(w * i, h * j)).sub(offset),
 						scale: scale.scale(opt.scale || vec2(1)),
 						tex: opt.tex,
@@ -1970,7 +1969,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 						width: w,
 						height: h,
 						anchor: "topleft",
-					})
+					}))
 				}
 			}
 		} else {
@@ -1987,14 +1986,13 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				scale.x = scale.y
 			}
 
-			drawUVQuad({
-				...opt,
+			drawUVQuad(Object.assign(opt, {
 				scale: scale.scale(opt.scale || vec2(1)),
 				tex: opt.tex,
 				quad: q,
 				width: w,
 				height: h,
-			})
+			}))
 
 		}
 
@@ -2019,11 +2017,10 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			throw new Error(`Frame not found: ${opt.frame ?? 0}`)
 		}
 
-		drawTexture({
-			...opt,
+		drawTexture(Object.assign(opt, {
 			tex: spr.data.tex,
 			quad: q.scale(opt.quad || new Quad(0, 0, 1, 1)),
-		})
+		}))
 
 	}
 
@@ -2106,8 +2103,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 		}
 
-		drawPolygon({
-			...opt,
+		drawPolygon(Object.assign(opt, {
 			offset,
 			pts,
 			...(opt.gradient ? {
@@ -2123,7 +2119,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 					opt.gradient[1],
 				],
 			} : {}),
-		})
+		}))
 
 	}
 
@@ -2182,35 +2178,35 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			// eslint-disable-next-line
 			const radius = Math.min(opt.radius, minLen / 2)
 
-			drawLine({ ...opt, p1: pts[0], p2: pts[1] })
+			drawLine(Object.assign(opt, { p1: pts[0], p2: pts[1] }))
 
 			for (let i = 1; i < pts.length - 2; i++) {
 				const p1 = pts[i]
 				const p2 = pts[i + 1]
-				drawLine({
-					...opt,
+				drawLine(Object.assign(opt, {
 					p1: p1,
 					p2: p2,
-				})
+				}))
 			}
 
-			drawLine({ ...opt, p1: pts[pts.length - 2], p2: pts[pts.length - 1] })
+			drawLine(Object.assign(opt, {
+				p1: pts[pts.length - 2],
+				p2: pts[pts.length - 1],
+			}))
 
 		} else {
 
 			for (let i = 0; i < pts.length - 1; i++) {
-				drawLine({
-					...opt,
+				drawLine(Object.assign(opt, {
 					p1: pts[i],
 					p2: pts[i + 1],
-				})
+				}))
 				// TODO: other line join types
 				if (opt.join !== "none") {
-					drawCircle({
-						...opt,
+					drawCircle(Object.assign(opt, {
 						pos: pts[i],
 						radius: opt.width / 2,
-					})
+					}))
 				}
 			}
 
@@ -2222,10 +2218,9 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		if (!opt.p1 || !opt.p2 || !opt.p3) {
 			throw new Error("drawPolygon() requires properties \"p1\", \"p2\" and \"p3\".")
 		}
-		return drawPolygon({
-			...opt,
+		return drawPolygon(Object.assign(opt, {
 			pts: [opt.p1, opt.p2, opt.p3],
-		})
+		}))
 	}
 
 	// TODO: anchor
@@ -2239,12 +2234,11 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			return
 		}
 
-		drawEllipse({
-			...opt,
+		drawEllipse(Object.assign(opt, {
 			radiusX: opt.radius,
 			radiusY: opt.radius,
 			angle: 0,
-		})
+		}))
 
 	}
 
@@ -2273,8 +2267,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		// center
 		pts.unshift(vec2(0))
 
-		const polyOpt = {
-			...opt,
+		const polyOpt = Object.assign(opt, {
 			pts,
 			radius: 0,
 			...(opt.gradient ? {
@@ -2283,21 +2276,19 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 					...Array(pts.length - 1).fill(opt.gradient[1]),
 				],
 			} : {}),
-		}
+		})
 
 		// full circle with outline shouldn't have the center point
 		if (end - start >= 360 && opt.outline) {
 			if (opt.fill !== false) {
-				drawPolygon({
-					...polyOpt,
+				drawPolygon(Object.assign(polyOpt, {
 					outline: null,
-				})
+				}))
 			}
-			drawPolygon({
-				...polyOpt,
+			drawPolygon(Object.assign(polyOpt, {
 				pts: pts.slice(1),
 				fill: false,
-			})
+			}))
 			return
 		}
 
@@ -6693,6 +6684,8 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	}
 
 	app.canvas.focus()
+
+	loop(1, () => console.log(debug.fps()))
 
 	return ctx
 
