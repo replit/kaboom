@@ -3996,7 +3996,7 @@ function sprite(id: string | SpriteData, opt: SpriteCompOpt = {}): SpriteComp {
 
 			if (!spr) {
 				onLoad(() => {
-					this.play(name);
+					this.play(name, opt);
 				});
 				return;
 			}

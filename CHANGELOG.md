@@ -1,3 +1,7 @@
+### v2000.2.10
+
+- fixed `sprite.play("name", { speed: 100 })` options (like speed) not working
+
 ### v2000.2.9
 
 - allow transparent background with the 4th element in `background` option to `kaboom()`, e.g. `[0, 0, 0, 0]`
