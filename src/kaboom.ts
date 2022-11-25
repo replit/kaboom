@@ -59,6 +59,8 @@ import {
 	comparePerf,
 } from "./utils"
 
+import packImages from "./pack"
+
 import {
 	GfxShader,
 	GfxFont,
@@ -6705,6 +6707,29 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	}
 
 	app.canvas.focus()
+
+	onLoad(() => {
+		const images = []
+		assets.sprites.assets.forEach((spr) => {
+			const src = spr.data.tex.src
+			images.push({
+				width: src.width,
+				height: src.height,
+				id: src,
+			})
+		})
+		const w = 512
+		const h = 512
+		const packed = packImages(w, h, images)
+		const canvas = document.createElement("canvas")
+		canvas.width = w
+		canvas.height = h
+		const c2d = canvas.getContext("2d")
+		for (const img of packed) {
+			c2d.drawImage(img.id, img.x, img.y)
+		}
+		loadSpriteLocal("pack", canvas)
+	})
 
 	return ctx
 
