@@ -316,10 +316,9 @@ export function quad(x: number, y: number, w: number, h: number): Quad {
 export class Mat4 {
 
 	m: number[] = [
-		1, 0, 0, 0,
-		0, 1, 0, 0,
-		0, 0, 1, 0,
-		0, 0, 0, 1,
+		1, 0, 0,
+		0, 1, 0,
+		0, 0, 1,
 	]
 
 	constructor(m?: number[]) {
@@ -330,19 +329,17 @@ export class Mat4 {
 
 	static translate(p: Vec2): Mat4 {
 		return new Mat4([
-			1, 0, 0, 0,
-			0, 1, 0, 0,
-			0, 0, 1, 0,
-			p.x, p.y, 0, 1,
+			1, 0, 0,
+			0, 1, 0,
+			p.x, p.y, 1,
 		])
 	}
 
 	static scale(s: Vec2): Mat4 {
 		return new Mat4([
-			s.x, 0, 0, 0,
-			0, s.y, 0, 0,
-			0, 0, 1, 0,
-			0, 0, 0, 1,
+			s.x, 0, 0,
+			0, s.y, 0,
+			0, 0, 1,
 		])
 	}
 
@@ -351,10 +348,9 @@ export class Mat4 {
 		const c = Math.cos(a)
 		const s = Math.sin(a)
 		return new Mat4([
-			1, 0, 0, 0,
-			0, c, -s, 0,
-			0, s, c, 0,
-			0, 0, 0, 1,
+			1, 0, 0,
+			0, c, -s,
+			0, s, c,
 		])
 	}
 
@@ -363,10 +359,9 @@ export class Mat4 {
 		const c = Math.cos(a)
 		const s = Math.sin(a)
 		return new Mat4([
-			c, 0, s, 0,
-			0, 1, 0, 0,
-			-s, 0, c, 0,
-			0, 0, 0, 1,
+			c, 0, s,
+			0, 1, 0,
+			-s, 0, c,
 		])
 	}
 
@@ -375,30 +370,28 @@ export class Mat4 {
 		const c = Math.cos(a)
 		const s = Math.sin(a)
 		return new Mat4([
-			c, -s, 0, 0,
-			s, c, 0, 0,
-			0, 0, 1, 0,
-			0, 0, 0, 1,
+			c, -s, 0,
+			s, c, 0,
+			0, 0, 1,
 		])
 	}
 
 	translate(p: Vec2) {
-		this.m[12] += this.m[0] * p.x + this.m[4] * p.y
-		this.m[13] += this.m[1] * p.x + this.m[5] * p.y
-		this.m[14] += this.m[2] * p.x + this.m[6] * p.y
-		this.m[15] += this.m[3] * p.x + this.m[7] * p.y
+		this.m[6] += this.m[0] * p.x + this.m[3] * p.y
+		this.m[7] += this.m[1] * p.x + this.m[4] * p.y
+		this.m[8] += this.m[2] * p.x + this.m[5] * p.y
 		return this
 	}
 
 	scale(p: Vec2) {
 		this.m[0] *= p.x
-		this.m[4] *= p.y
+		this.m[3] *= p.y
 		this.m[1] *= p.x
-		this.m[5] *= p.y
+		this.m[4] *= p.y
 		this.m[2] *= p.x
-		this.m[6] *= p.y
+		this.m[5] *= p.y
 		this.m[3] *= p.x
-		this.m[7] *= p.y
+		this.m[6] *= p.y
 		return this
 	}
 
@@ -412,8 +405,8 @@ export class Mat4 {
 		const m5 = this.m[5]
 		this.m[0] = m0 * c + m1 * s
 		this.m[1] = -m0 * s + m1 * c
-		this.m[4] = m4 * c + m5 * s
-		this.m[5] = -m4 * s + m5 * c
+		this.m[3] = m4 * c + m5 * s
+		this.m[4] = -m4 * s + m5 * c
 		return this
 	}
 
@@ -422,13 +415,12 @@ export class Mat4 {
 
 		const out = []
 
-		for (let i = 0; i < 4; i++) {
-			for (let j = 0; j < 4; j++) {
-				out[i * 4 + j] =
-					this.m[0 * 4 + j] * other.m[i * 4 + 0] +
-					this.m[1 * 4 + j] * other.m[i * 4 + 1] +
-					this.m[2 * 4 + j] * other.m[i * 4 + 2] +
-					this.m[3 * 4 + j] * other.m[i * 4 + 3]
+		for (let i = 0; i < 3; i++) {
+			for (let j = 0; j < 3; j++) {
+				out[i * 3 + j] =
+					this.m[0 * 3 + j] * other.m[i * 3 + 0] +
+					this.m[1 * 3 + j] * other.m[i * 3 + 1] +
+					this.m[2 * 3 + j] * other.m[i * 3 + 2]
 			}
 		}
 
@@ -437,9 +429,9 @@ export class Mat4 {
 	}
 
 	multVec2(p: Vec2): Vec2 {
-		return vec2(
-			p.x * this.m[0] + p.y * this.m[4] + this.m[12],
-			p.x * this.m[1] + p.y * this.m[5] + this.m[13],
+		return new Vec2(
+			p.x * this.m[0] + p.y * this.m[3] + this.m[6],
+			p.x * this.m[1] + p.y * this.m[4] + this.m[7],
 		)
 	}
 
