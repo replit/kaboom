@@ -3558,6 +3558,9 @@ export interface ScaleComp extends Comp {
 	scaleTo(s: number): void,
 	scaleTo(s: Vec2): void,
 	scaleTo(sx: number, sy: number): void,
+	scaleBy(s: number): void,
+	scaleBy(s: Vec2): void,
+	scaleBy(sx: number, sy: number): void,
 }
 
 export interface RotateComp extends Comp {
@@ -3566,13 +3569,15 @@ export interface RotateComp extends Comp {
 	 */
 	angle: number,
 	/**
-	 * Rotate in degrees (in angle per second, dt multiplied)
-	 */
-	rotate(angle: number): void,
-	/**
-	 * Rotate in degrees (without dt multiplied, directly adding angle to current angle)
+	 * Rotate in degrees.
 	 */
 	rotateBy(angle: number): void,
+	/**
+	 * Rotate to a degree (like directly assign to .angle)
+	 *
+	 * @since v3000.0
+	 */
+	rotateTo(s: number): void,
 }
 
 export interface ColorComp extends Comp {

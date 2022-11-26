@@ -59,7 +59,7 @@ import {
 	comparePerf,
 } from "./utils"
 
-import packImages from "./pack"
+import packRects from "./pack"
 
 import {
 	GfxShader,
@@ -1236,8 +1236,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		}))
 	}
 
-	// automatically pack sprites
-	onLoad(() => {
+	function packSprites() {
 		const images = [...assets.sprites.assets.entries()].map(([name, spr]) => {
 			const src = spr.data.tex.src
 			return {
@@ -1256,7 +1255,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		canvas.width = SPRITE_ATLAS_WIDTH
 		canvas.height = SPRITE_ATLAS_HEIGHT
 		const ctx = canvas.getContext("2d")
-		const { packed } = packImages(canvas.width, canvas.height, images)
+		const { packed } = packRects(canvas.width, canvas.height, images)
 		const map: SpriteAtlasData = {}
 		for (const rect of packed) {
 			const name = rect.data.name
@@ -1284,7 +1283,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			}
 		}
 		loadSpriteAtlas(canvas, map)
-	})
+	}
 
 	function loadShader(
 		name: string | null,
@@ -4051,6 +4050,9 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			scaleTo(...args) {
 				this.scale = vec2(...args)
 			},
+			scaleBy(...args) {
+				this.scale.scale(vec2(...args))
+			},
 			inspect() {
 				return `(${toFixed(this.scale.x, 2)}, ${toFixed(this.scale.y, 2)})`
 			},
@@ -4061,11 +4063,11 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		return {
 			id: "rotate",
 			angle: r ?? 0,
-			rotate(angle: number) {
-				this.rotateBy(angle * dt())
-			},
 			rotateBy(angle: number) {
 				this.angle += angle
+			},
+			rotateTo(angle: number) {
+				this.angle = angle
 			},
 			inspect() {
 				return `${Math.round(this.angle)}`
@@ -6485,6 +6487,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		if (!assets.loaded) {
 			if (loadProgress() === 1 && !isFirstFrame) {
 				assets.loaded = true
+				packSprites()
 				game.ev.trigger("load")
 			}
 		}
