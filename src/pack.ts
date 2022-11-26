@@ -17,18 +17,25 @@ export default function packRects(
 	packed: PackedRect[],
 	failed: Rect[],
 } {
-	const sortedRects = rects.sort((i1, i2) => i2.height - i1.height)
+	rects = rects.sort((i1, i2) => i2.height - i1.height)
 	const packed: PackedRect[] = []
+	const failed: Rect[] = []
 	let x = 0
 	let y = 0
 	let curHeight = 0
-	for (const rect of sortedRects) {
+	for (let i = 0; i < rects.length; i++) {
+		const rect = rects[i]
+		if (rect.width > w) {
+			failed.push(rect)
+			continue
+		}
 		if (x + rect.width > w) {
 			x = 0
 			y += curHeight
-			curHeight = null
+			curHeight = 0
 		}
 		if (y + rect.height > h) {
+			failed.push(...rects.slice(i))
 			break
 		}
 		packed.push({
@@ -45,6 +52,6 @@ export default function packRects(
 	}
 	return {
 		packed: packed,
-		failed: [],
+		failed: failed,
 	}
 }

@@ -31,12 +31,6 @@ const friends = [
 	"steel",
 	"key",
 	"k",
-	"k2",
-	"k3",
-	"k4",
-	"btfly2",
-	"btfly3",
-	"btfly4",
 ]
 
 for (const friend of friends) {

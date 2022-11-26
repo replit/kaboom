@@ -6724,24 +6724,19 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				data: src,
 			})
 		})
-		const w = 512
-		const h = 512
-		const { packed, failed } = packImages(w, h, images)
+		const ATLAS_WIDTH = 2048
+		const ATLAS_HEIGHT = 2048
+		const { packed, failed } = packImages(ATLAS_WIDTH, ATLAS_HEIGHT, images)
 		const canvas = document.createElement("canvas")
-		canvas.width = w
-		canvas.height = h
+		canvas.width = ATLAS_WIDTH
+		canvas.height = ATLAS_HEIGHT
 		const c2d = canvas.getContext("2d")
 		c2d.lineWidth = 4
 		for (const rect of packed) {
 			c2d.drawImage(rect.data, rect.x, rect.y)
-			// c2d.strokeRect(rect.x, rect.y, rect.width, rect.height)
 		}
-		c2d.strokeRect(0, 0, w, h)
+		c2d.strokeRect(0, 0, canvas.width, canvas.height)
 		loadSpriteLocal("pack", canvas)
-		for (const f of failed) {
-			console.log(f)
-		}
-		debug.log("failed: " + failed.length)
 	})
 
 	return ctx
