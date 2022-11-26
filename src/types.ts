@@ -942,16 +942,6 @@ export interface KaboomCtx {
 		options?: LoadSpriteOpt,
 	): Asset<SpriteData>,
 	/**
-	 * Load sprite from load image data syncronously.
-	 *
-	 * @since v3000.0
-	 */
-	loadSpriteLocal(
-		name: string | null,
-		src: TexImageSource | TexImageSource[],
-		options?: LoadSpriteOpt,
-	): Asset<SpriteData>,
-	/**
 	 * Load sprites from a sprite atlas.
 	 *
 	 * @example
@@ -2518,6 +2508,7 @@ export type SpriteAnims = Record<string, SpriteAnim>
  * Sprite loading configuration.
  */
 export interface LoadSpriteOpt {
+	frames?: Quad[],
 	sliceX?: number,
 	sliceY?: number,
 	anims?: SpriteAnims,
@@ -2547,6 +2538,12 @@ export interface SpriteAtlasEntry {
 	 * Sprite area height.
 	 */
 	height: number,
+	/**
+	 * Individual frames.
+	 *
+	 * @since v3000.0
+	 */
+	frames?: Quad[],
 	/**
 	 * If the defined area contains multiple sprites, how many frames are in the area hozizontally.
 	 */

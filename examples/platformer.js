@@ -275,7 +275,7 @@ scene("game", ({ levelId, coins } = { levelId: 0, coins: 0 }) => {
 	// grow an apple if player's head bumps into an obj with "prize" tag
 	player.onHeadbutt((obj) => {
 		if (obj.is("prize") && !hasApple) {
-			const apple = level.spawn("#", obj.gridPos.sub(0, 1))
+			const apple = level.spawn("#", obj.tilePos.sub(0, 1))
 			apple.jump()
 			hasApple = true
 			play("blip")

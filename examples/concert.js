@@ -114,7 +114,7 @@ function jump() {
 }
 
 // jump when user press space
-onKeyPress(["space", "up"], jump)
+onKeyPress("space", jump)
 onKeyDown("left", () => player.move(-PLAYER_SPEED, 0))
 onKeyDown("right", () => player.move(PLAYER_SPEED, 0))
 

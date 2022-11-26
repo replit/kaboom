@@ -59,6 +59,8 @@ import {
 	comparePerf,
 } from "./utils"
 
+import packImages from "./pack"
+
 import {
 	GfxShader,
 	GfxFont,
@@ -230,7 +232,10 @@ const DBG_FONT = "monospace"
 const DEF_TEXT_SIZE = 36
 const DEF_TEXT_CACHE_SIZE = 64
 const MAX_TEXT_CACHE_SIZE = 256
-const FONT_ATLAS_SIZE = 1024
+const FONT_ATLAS_WIDTH = 2048
+const FONT_ATLAS_HEIGHT = 2048
+const SPRITE_ATLAS_WIDTH = 2048
+const SPRITE_ATLAS_HEIGHT = 2048
 // 0.1 pixel padding to texture coordinates to prevent artifact
 const UV_PAD = 0.1
 
@@ -1071,6 +1076,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		return frames
 	}
 
+	// TODO: load synchronously if passed TexImageSource
 	function loadSpriteAtlas(
 		src: LoadSpriteSrc,
 		data: SpriteAtlasData | string,
@@ -1088,18 +1094,21 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				const w = atlas.tex.width
 				const h = atlas.tex.height
 				const info = data[name]
-				const spr = new SpriteData(
-					atlas.tex,
-					slice(
-						info.sliceX,
-						info.sliceY,
-						info.x / w,
-						info.y / h,
-						info.width / w,
-						info.height / h,
-					),
-					info.anims,
+				// TODO: calculate info.frames from pixel values
+				const frames = info.frames ? info.frames.map((f) => new Quad(
+					(info.x + f.x) / w,
+					(info.y + f.y) / h,
+					f.w / w,
+					f.h / h,
+				)) : slice(
+					info.sliceX,
+					info.sliceY,
+					info.x / w,
+					info.y / h,
+					info.width / w,
+					info.height / h,
 				)
+				const spr = new SpriteData(atlas.tex, frames, info.anims)
 				assets.sprites.addLoaded(name, spr)
 				map[name] = spr
 			}
@@ -1132,22 +1141,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		})
 	}
 
-	function loadSpriteLocal(
-		name: string | null,
-		src: TexImageSource | TexImageSource[],
-		opt: LoadSpriteOpt = {
-			sliceX: 1,
-			sliceY: 1,
-			anims: {},
-		},
-	): Asset<SpriteData> {
-		if (Array.isArray(src)) {
-			return assets.sprites.addLoaded(name, createSpriteSheet(src, opt))
-		} else {
-			return assets.sprites.addLoaded(name, SpriteData.fromImage(src, opt))
-		}
-	}
-
 	// load a sprite to asset manager
 	function loadSprite(
 		name: string | null,
@@ -1161,14 +1154,22 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		},
 	): Asset<SpriteData> {
 		if (Array.isArray(src)) {
-			return assets.sprites.add(
-				name,
-				Promise.all(src.map((s) => {
-					return typeof s === "string" ? loadImg(s) : Promise.resolve(s)
-				})).then((images) => createSpriteSheet(images, opt)),
-			)
+			if (src.some((s) => typeof s === "string")) {
+				return assets.sprites.add(
+					name,
+					Promise.all(src.map((s) => {
+						return typeof s === "string" ? loadImg(s) : Promise.resolve(s)
+					})).then((images) => createSpriteSheet(images, opt)),
+				)
+			} else {
+				return assets.sprites.addLoaded(name, createSpriteSheet(src as TexImageSource[], opt))
+			}
 		} else {
-			return assets.sprites.add(name, SpriteData.from(src, opt))
+			if (typeof src === "string") {
+				return assets.sprites.add(name, SpriteData.from(src, opt))
+			} else {
+				return assets.sprites.addLoaded(name, SpriteData.fromImage(src, opt))
+			}
 		}
 	}
 
@@ -1234,6 +1235,55 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			resolve(spr)
 		}))
 	}
+
+	// automatically pack sprites
+	// TODO: deal with sprites that failed to fit in
+	onLoad(() => {
+		const images = [...assets.sprites.assets.entries()].map(([name, spr]) => {
+			const src = spr.data.tex.src
+			spr.data.tex.free()
+			return {
+				width: src.width,
+				height: src.height,
+				data: {
+					src: src,
+					name: name,
+					frames: spr.data.frames,
+					anims: spr.data.anims,
+				},
+			}
+		})
+		const canvas = document.createElement("canvas")
+		canvas.width = SPRITE_ATLAS_WIDTH
+		canvas.height = SPRITE_ATLAS_HEIGHT
+		const ctx = canvas.getContext("2d")
+		const { packed } = packImages(canvas.width, canvas.height, images)
+		const map: SpriteAtlasData = {}
+		for (const rect of packed) {
+			map[rect.data.name] = {
+				x: rect.x,
+				y: rect.y,
+				width: rect.width,
+				height: rect.height,
+				anims: rect.data.anims,
+			}
+			if (rect.data.frames) {
+				map[rect.data.name].frames = rect.data.frames.map((f) => new Quad(
+					f.x * rect.width,
+					f.y * rect.height,
+					f.w * rect.width,
+					f.h * rect.height,
+				))
+			}
+			if (rect.data.src instanceof ImageData) {
+				ctx.putImageData(rect.data.src, rect.x, rect.y)
+			} else {
+				ctx.drawImage(rect.data.src, rect.x, rect.y)
+			}
+		}
+		assets.sprites = new AssetBucket<SpriteData>()
+		loadSpriteAtlas(canvas, map)
+	})
 
 	function loadShader(
 		name: string | null,
@@ -2518,7 +2568,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			// TODO: customizable font tex filter
 			const atlas: FontAtlas = fontAtlases[fontName] ?? {
 				font: {
-					tex: new Texture(FONT_ATLAS_SIZE, FONT_ATLAS_SIZE),
+					tex: new Texture(FONT_ATLAS_WIDTH, FONT_ATLAS_HEIGHT),
 					map: {},
 					size: DEF_TEXT_CACHE_SIZE,
 				},
@@ -2547,11 +2597,11 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 					const img = c2d.getImageData(0, 0, w, font.size)
 
 					// if we are about to exceed the X axis of the texture, go to another line
-					if (atlas.cursor.x + w > FONT_ATLAS_SIZE) {
+					if (atlas.cursor.x + w > FONT_ATLAS_WIDTH) {
 						atlas.cursor.x = 0
 						atlas.cursor.y += font.size
-						if (atlas.cursor.y > FONT_ATLAS_SIZE) {
-							// TODO: create another tex
+						if (atlas.cursor.y > FONT_ATLAS_HEIGHT) {
+							// TODO: create another atlas
 							throw new Error("Font atlas exceeds character limit")
 						}
 					}
@@ -6426,17 +6476,19 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		}
 	}
 
+	let isFirstFrame = true
+
 	// main game loop
 	run(() => {
 
 		if (!assets.loaded) {
-			if (loadProgress() === 1) {
+			if (loadProgress() === 1 && !isFirstFrame) {
 				assets.loaded = true
 				game.ev.trigger("load")
 			}
 		}
 
-		if (!assets.loaded && gopt.loadingScreen !== false) {
+		if (!assets.loaded && gopt.loadingScreen !== false || isFirstFrame) {
 
 			// TODO: Currently if assets are not initially loaded no updates or timers will be run, however they will run if loadingScreen is set to false. What's the desired behavior or should we make them consistent?
 			drawLoadScreen()
@@ -6458,6 +6510,10 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 		}
 
+		if (isFirstFrame) {
+			isFirstFrame = false
+		}
+
 	})
 
 	// the exported ctx handle
@@ -6467,7 +6523,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		loadRoot,
 		loadProgress,
 		loadSprite,
-		loadSpriteLocal,
 		loadSpriteAtlas,
 		loadSound,
 		loadBitmapFont,
