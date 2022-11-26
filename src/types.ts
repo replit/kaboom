@@ -2508,6 +2508,7 @@ export type SpriteAnims = Record<string, SpriteAnim>
  * Sprite loading configuration.
  */
 export interface LoadSpriteOpt {
+	frames?: Quad[],
 	sliceX?: number,
 	sliceY?: number,
 	anims?: SpriteAnims,
@@ -2537,6 +2538,12 @@ export interface SpriteAtlasEntry {
 	 * Sprite area height.
 	 */
 	height: number,
+	/**
+	 * Individual frames.
+	 *
+	 * @since v3000.0
+	 */
+	frames?: Quad[],
 	/**
 	 * If the defined area contains multiple sprites, how many frames are in the area hozizontally.
 	 */

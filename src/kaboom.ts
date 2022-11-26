@@ -1094,18 +1094,21 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				const w = atlas.tex.width
 				const h = atlas.tex.height
 				const info = data[name]
-				const spr = new SpriteData(
-					atlas.tex,
-					slice(
-						info.sliceX,
-						info.sliceY,
-						info.x / w,
-						info.y / h,
-						info.width / w,
-						info.height / h,
-					),
-					info.anims,
+				// TODO: calculate info.frames from pixel values
+				const frames = info.frames ? info.frames.map((f) => new Quad(
+					(info.x + f.x) / w,
+					(info.y + f.y) / h,
+					f.w / w,
+					f.h / h,
+				)) : slice(
+					info.sliceX,
+					info.sliceY,
+					info.x / w,
+					info.y / h,
+					info.width / w,
+					info.height / h,
 				)
+				const spr = new SpriteData(atlas.tex, frames, info.anims)
 				assets.sprites.addLoaded(name, spr)
 				map[name] = spr
 			}
@@ -1234,7 +1237,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	}
 
 	// automatically pack sprites
-	// TODO: deal with animation
 	// TODO: deal with sprites that failed to fit in
 	onLoad(() => {
 		const images = [...assets.sprites.assets.entries()].map(([name, spr]) => {
@@ -1256,13 +1258,22 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		canvas.height = SPRITE_ATLAS_HEIGHT
 		const ctx = canvas.getContext("2d")
 		const { packed } = packImages(canvas.width, canvas.height, images)
-		const map = {}
+		const map: SpriteAtlasData = {}
 		for (const rect of packed) {
 			map[rect.data.name] = {
 				x: rect.x,
 				y: rect.y,
 				width: rect.width,
 				height: rect.height,
+				anims: rect.data.anims,
+			}
+			if (rect.data.frames) {
+				map[rect.data.name].frames = rect.data.frames.map((f) => new Quad(
+					f.x * rect.width,
+					f.y * rect.height,
+					f.w * rect.width,
+					f.h * rect.height,
+				))
 			}
 			if (rect.data.src instanceof ImageData) {
 				ctx.putImageData(rect.data.src, rect.x, rect.y)
