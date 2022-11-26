@@ -942,16 +942,6 @@ export interface KaboomCtx {
 		options?: LoadSpriteOpt,
 	): Asset<SpriteData>,
 	/**
-	 * Load sprite from load image data syncronously.
-	 *
-	 * @since v3000.0
-	 */
-	loadSpriteLocal(
-		name: string | null,
-		src: TexImageSource | TexImageSource[],
-		options?: LoadSpriteOpt,
-	): Asset<SpriteData>,
-	/**
 	 * Load sprites from a sprite atlas.
 	 *
 	 * @example

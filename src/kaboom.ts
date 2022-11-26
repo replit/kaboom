@@ -232,7 +232,10 @@ const DBG_FONT = "monospace"
 const DEF_TEXT_SIZE = 36
 const DEF_TEXT_CACHE_SIZE = 64
 const MAX_TEXT_CACHE_SIZE = 256
-const FONT_ATLAS_SIZE = 1024
+const FONT_ATLAS_WIDTH = 2048
+const FONT_ATLAS_HEIGHT = 2048
+const SPRITE_ATLAS_WIDTH = 2048
+const SPRITE_ATLAS_HEIGHT = 2048
 // 0.1 pixel padding to texture coordinates to prevent artifact
 const UV_PAD = 0.1
 
@@ -1134,22 +1137,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		})
 	}
 
-	function loadSpriteLocal(
-		name: string | null,
-		src: TexImageSource | TexImageSource[],
-		opt: LoadSpriteOpt = {
-			sliceX: 1,
-			sliceY: 1,
-			anims: {},
-		},
-	): Asset<SpriteData> {
-		if (Array.isArray(src)) {
-			return assets.sprites.addLoaded(name, createSpriteSheet(src, opt))
-		} else {
-			return assets.sprites.addLoaded(name, SpriteData.fromImage(src, opt))
-		}
-	}
-
 	// load a sprite to asset manager
 	function loadSprite(
 		name: string | null,
@@ -1235,6 +1222,27 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			}
 			resolve(spr)
 		}))
+	}
+
+	function packSprites(): HTMLCanvasElement {
+		const images = []
+		assets.sprites.assets.forEach((spr) => {
+			const src = spr.data.tex.src
+			images.push({
+				width: src.width,
+				height: src.height,
+				data: src,
+			})
+		})
+		const { packed } = packImages(SPRITE_ATLAS_WIDTH, SPRITE_ATLAS_HEIGHT, images)
+		const canvas = document.createElement("canvas")
+		canvas.width = SPRITE_ATLAS_WIDTH
+		canvas.height = SPRITE_ATLAS_HEIGHT
+		const c2d = canvas.getContext("2d")
+		for (const rect of packed) {
+			c2d.drawImage(rect.data, rect.x, rect.y)
+		}
+		return canvas
 	}
 
 	function loadShader(
@@ -2520,7 +2528,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			// TODO: customizable font tex filter
 			const atlas: FontAtlas = fontAtlases[fontName] ?? {
 				font: {
-					tex: new Texture(FONT_ATLAS_SIZE, FONT_ATLAS_SIZE),
+					tex: new Texture(FONT_ATLAS_WIDTH, FONT_ATLAS_HEIGHT),
 					map: {},
 					size: DEF_TEXT_CACHE_SIZE,
 				},
@@ -2549,11 +2557,11 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 					const img = c2d.getImageData(0, 0, w, font.size)
 
 					// if we are about to exceed the X axis of the texture, go to another line
-					if (atlas.cursor.x + w > FONT_ATLAS_SIZE) {
+					if (atlas.cursor.x + w > FONT_ATLAS_WIDTH) {
 						atlas.cursor.x = 0
 						atlas.cursor.y += font.size
-						if (atlas.cursor.y > FONT_ATLAS_SIZE) {
-							// TODO: create another tex
+						if (atlas.cursor.y > FONT_ATLAS_HEIGHT) {
+							// TODO: create another atlas
 							throw new Error("Font atlas exceeds character limit")
 						}
 					}
@@ -5607,40 +5615,40 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		}
 	}
 
-	// const kaSprite = loadSprite(null, kaSpriteSrc)
-	// const boomSprite = loadSprite(null, boomSpriteSrc)
+	const kaSprite = loadSprite(null, kaSpriteSrc)
+	const boomSprite = loadSprite(null, boomSpriteSrc)
 
-	// function addKaboom(p: Vec2, opt: BoomOpt = {}): GameObj {
+	function addKaboom(p: Vec2, opt: BoomOpt = {}): GameObj {
 
-		// const kaboom = add([
-			// pos(p),
-			// stay(),
-		// ])
+		const kaboom = add([
+			pos(p),
+			stay(),
+		])
 
-		// const speed = (opt.speed || 1) * 5
-		// const s = opt.scale || 1
+		const speed = (opt.speed || 1) * 5
+		const s = opt.scale || 1
 
-		// kaboom.add([
-			// sprite(boomSprite),
-			// scale(0),
-			// anchor("center"),
-			// boom(speed, s),
-			// ...opt.comps ?? [],
-		// ])
+		kaboom.add([
+			sprite(boomSprite),
+			scale(0),
+			anchor("center"),
+			boom(speed, s),
+			...opt.comps ?? [],
+		])
 
-		// const ka = kaboom.add([
-			// sprite(kaSprite),
-			// scale(0),
-			// anchor("center"),
-			// timer(0.4 / speed, () => ka.use(boom(speed, s))),
-			// ...opt.comps ?? [],
-		// ])
+		const ka = kaboom.add([
+			sprite(kaSprite),
+			scale(0),
+			anchor("center"),
+			timer(0.4 / speed, () => ka.use(boom(speed, s))),
+			...opt.comps ?? [],
+		])
 
-		// ka.onDestroy(() => kaboom.destroy())
+		ka.onDestroy(() => kaboom.destroy())
 
-		// return kaboom
+		return kaboom
 
-	// }
+	}
 
 	function inputFrame() {
 		// TODO: pass original browser event in input handlers
@@ -6475,7 +6483,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		loadRoot,
 		loadProgress,
 		loadSprite,
-		loadSpriteLocal,
 		loadSpriteAtlas,
 		loadSound,
 		loadBitmapFont,
@@ -6680,7 +6687,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		// dom
 		canvas: app.canvas,
 		// misc
-		// addKaboom,
+		addKaboom,
 		// dirs
 		LEFT: Vec2.LEFT,
 		RIGHT: Vec2.RIGHT,
@@ -6713,31 +6720,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	}
 
 	app.canvas.focus()
-
-	onLoad(() => {
-		const images = []
-		assets.sprites.assets.forEach((spr) => {
-			const src = spr.data.tex.src
-			images.push({
-				width: src.width,
-				height: src.height,
-				data: src,
-			})
-		})
-		const ATLAS_WIDTH = 2048
-		const ATLAS_HEIGHT = 2048
-		const { packed, failed } = packImages(ATLAS_WIDTH, ATLAS_HEIGHT, images)
-		const canvas = document.createElement("canvas")
-		canvas.width = ATLAS_WIDTH
-		canvas.height = ATLAS_HEIGHT
-		const c2d = canvas.getContext("2d")
-		c2d.lineWidth = 4
-		for (const rect of packed) {
-			c2d.drawImage(rect.data, rect.x, rect.y)
-		}
-		c2d.strokeRect(0, 0, canvas.width, canvas.height)
-		loadSpriteLocal("pack", canvas)
-	})
 
 	return ctx
 

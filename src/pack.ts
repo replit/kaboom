@@ -9,6 +9,7 @@ type PackedRect = Rect & {
 	y: number,
 }
 
+// very simple row-based rect pack
 export default function packRects(
 	w: number,
 	h: number,
