@@ -5607,40 +5607,40 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		}
 	}
 
-	const kaSprite = loadSprite(null, kaSpriteSrc)
-	const boomSprite = loadSprite(null, boomSpriteSrc)
+	// const kaSprite = loadSprite(null, kaSpriteSrc)
+	// const boomSprite = loadSprite(null, boomSpriteSrc)
 
-	function addKaboom(p: Vec2, opt: BoomOpt = {}): GameObj {
+	// function addKaboom(p: Vec2, opt: BoomOpt = {}): GameObj {
 
-		const kaboom = add([
-			pos(p),
-			stay(),
-		])
+		// const kaboom = add([
+			// pos(p),
+			// stay(),
+		// ])
 
-		const speed = (opt.speed || 1) * 5
-		const s = opt.scale || 1
+		// const speed = (opt.speed || 1) * 5
+		// const s = opt.scale || 1
 
-		kaboom.add([
-			sprite(boomSprite),
-			scale(0),
-			anchor("center"),
-			boom(speed, s),
-			...opt.comps ?? [],
-		])
+		// kaboom.add([
+			// sprite(boomSprite),
+			// scale(0),
+			// anchor("center"),
+			// boom(speed, s),
+			// ...opt.comps ?? [],
+		// ])
 
-		const ka = kaboom.add([
-			sprite(kaSprite),
-			scale(0),
-			anchor("center"),
-			timer(0.4 / speed, () => ka.use(boom(speed, s))),
-			...opt.comps ?? [],
-		])
+		// const ka = kaboom.add([
+			// sprite(kaSprite),
+			// scale(0),
+			// anchor("center"),
+			// timer(0.4 / speed, () => ka.use(boom(speed, s))),
+			// ...opt.comps ?? [],
+		// ])
 
-		ka.onDestroy(() => kaboom.destroy())
+		// ka.onDestroy(() => kaboom.destroy())
 
-		return kaboom
+		// return kaboom
 
-	}
+	// }
 
 	function inputFrame() {
 		// TODO: pass original browser event in input handlers
@@ -6428,17 +6428,19 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		}
 	}
 
+	let isFirstFrame = true
+
 	// main game loop
 	run(() => {
 
 		if (!assets.loaded) {
-			if (loadProgress() === 1) {
+			if (loadProgress() === 1 && !isFirstFrame) {
 				assets.loaded = true
 				game.ev.trigger("load")
 			}
 		}
 
-		if (!assets.loaded && gopt.loadingScreen !== false) {
+		if (!assets.loaded && gopt.loadingScreen !== false || isFirstFrame) {
 
 			// TODO: Currently if assets are not initially loaded no updates or timers will be run, however they will run if loadingScreen is set to false. What's the desired behavior or should we make them consistent?
 			drawLoadScreen()
@@ -6458,6 +6460,10 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				drawVirtualControls()
 			}
 
+		}
+
+		if (isFirstFrame) {
+			isFirstFrame = false
 		}
 
 	})
@@ -6674,7 +6680,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		// dom
 		canvas: app.canvas,
 		// misc
-		addKaboom,
+		// addKaboom,
 		// dirs
 		LEFT: Vec2.LEFT,
 		RIGHT: Vec2.RIGHT,
@@ -6715,20 +6721,27 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			images.push({
 				width: src.width,
 				height: src.height,
-				id: src,
+				data: src,
 			})
 		})
 		const w = 512
 		const h = 512
-		const packed = packImages(w, h, images)
+		const { packed, failed } = packImages(w, h, images)
 		const canvas = document.createElement("canvas")
 		canvas.width = w
 		canvas.height = h
 		const c2d = canvas.getContext("2d")
-		for (const img of packed) {
-			c2d.drawImage(img.id, img.x, img.y)
+		c2d.lineWidth = 4
+		for (const rect of packed) {
+			c2d.drawImage(rect.data, rect.x, rect.y)
+			// c2d.strokeRect(rect.x, rect.y, rect.width, rect.height)
 		}
+		c2d.strokeRect(0, 0, w, h)
 		loadSpriteLocal("pack", canvas)
+		for (const f of failed) {
+			console.log(f)
+		}
+		debug.log("failed: " + failed.length)
 	})
 
 	return ctx
