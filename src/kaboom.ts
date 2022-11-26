@@ -1150,14 +1150,22 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		},
 	): Asset<SpriteData> {
 		if (Array.isArray(src)) {
-			return assets.sprites.add(
-				name,
-				Promise.all(src.map((s) => {
-					return typeof s === "string" ? loadImg(s) : Promise.resolve(s)
-				})).then((images) => createSpriteSheet(images, opt)),
-			)
+			if (src.some((s) => typeof s === "string")) {
+				return assets.sprites.add(
+					name,
+					Promise.all(src.map((s) => {
+						return typeof s === "string" ? loadImg(s) : Promise.resolve(s)
+					})).then((images) => createSpriteSheet(images, opt)),
+				)
+			} else {
+				return assets.sprites.addLoaded(name, createSpriteSheet(src as TexImageSource[], opt))
+			}
 		} else {
-			return assets.sprites.add(name, SpriteData.from(src, opt))
+			if (typeof src === "string") {
+				return assets.sprites.add(name, SpriteData.from(src, opt))
+			} else {
+				return assets.sprites.addLoaded(name, SpriteData.fromImage(src, opt))
+			}
 		}
 	}
 
@@ -1224,26 +1232,45 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		}))
 	}
 
-	function packSprites(): HTMLCanvasElement {
+	// automatically pack sprites
+	// TODO: deal with animation
+	// TODO: deal with sprites that failed to fit in
+	onLoad(() => {
 		const images = []
-		assets.sprites.assets.forEach((spr) => {
+		assets.sprites.assets.forEach((spr, name) => {
 			const src = spr.data.tex.src
+			spr.data.tex.free()
 			images.push({
 				width: src.width,
 				height: src.height,
-				data: src,
+				data: {
+					src: src,
+					name: name,
+				},
 			})
 		})
-		const { packed } = packImages(SPRITE_ATLAS_WIDTH, SPRITE_ATLAS_HEIGHT, images)
 		const canvas = document.createElement("canvas")
 		canvas.width = SPRITE_ATLAS_WIDTH
 		canvas.height = SPRITE_ATLAS_HEIGHT
-		const c2d = canvas.getContext("2d")
+		const ctx = canvas.getContext("2d")
+		const { packed } = packImages<{ src: TexImageSource, name: string }>(canvas.width, canvas.height, images)
+		const map = {}
 		for (const rect of packed) {
-			c2d.drawImage(rect.data, rect.x, rect.y)
+			map[rect.data.name] = {
+				x: rect.x,
+				y: rect.y,
+				width: rect.width,
+				height: rect.height,
+			}
+			if (rect.data.src instanceof ImageData) {
+				ctx.putImageData(rect.data.src, rect.x, rect.y)
+			} else {
+				ctx.drawImage(rect.data.src, rect.x, rect.y)
+			}
 		}
-		return canvas
-	}
+		assets.sprites = new AssetBucket<SpriteData>()
+		loadSpriteAtlas(canvas, map)
+	})
 
 	function loadShader(
 		name: string | null,

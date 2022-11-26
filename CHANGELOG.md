@@ -85,15 +85,7 @@ loadSprite("player", [
     "sprites/player_jump.png",
 ])
 ```
-- added `loadSpriteLocal()` to synchronously load image from local image data
-```js
-const s = loadSpriteLocal(
-    "reddot",
-    new ImageData(new Uint8ClampedArray([ 255, 0, 0, 255 ]), 1, 1)
-)
-console.log(s.data)
-```
-- added `loadShaderURL()`
+- (**BREAK**) added `loadShaderURL()`, `loadShader()` now only load shader code not files
 
 ## Font
 
@@ -169,6 +161,7 @@ addLevel([
 
 ## Misc
 
+- sprites are now automatically packed, improving performance
 - (**BREAK**) removed all deprecated functions in v2000.2
 - (**BREAK**) raised esbuild target to `esnext`
 - moved type defs for global functions to `import "kaboom/global"`

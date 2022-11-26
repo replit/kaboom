@@ -1,26 +1,26 @@
-type Rect = {
-	data: any,
+type Rect<D = any> = {
+	data: D,
 	width: number,
 	height: number,
 }
 
-type PackedRect = Rect & {
+type PackedRect<D = any> = Rect<D> & {
 	x: number,
 	y: number,
 }
 
 // very simple row-based rect pack
-export default function packRects(
+export default function packRects<D = any>(
 	w: number,
 	h: number,
-	rects: Rect[],
+	rects: Rect<D>[],
 ): {
-	packed: PackedRect[],
-	failed: Rect[],
+	packed: PackedRect<D>[],
+	failed: Rect<D>[],
 } {
 	rects = rects.sort((i1, i2) => i2.height - i1.height)
-	const packed: PackedRect[] = []
-	const failed: Rect[] = []
+	const packed: PackedRect<D>[] = []
+	const failed: Rect<D>[] = []
 	let x = 0
 	let y = 0
 	let curHeight = 0
