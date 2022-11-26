@@ -1,4 +1,4 @@
-const VERSION = "3000.0.0-alpha.20"
+const VERSION = "3000.0.0-alpha.21"
 
 import {
 	sat,
@@ -1237,11 +1237,9 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	}
 
 	// automatically pack sprites
-	// TODO: deal with sprites that failed to fit in
 	onLoad(() => {
 		const images = [...assets.sprites.assets.entries()].map(([name, spr]) => {
 			const src = spr.data.tex.src
-			spr.data.tex.free()
 			return {
 				width: src.width,
 				height: src.height,
@@ -1250,6 +1248,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 					name: name,
 					frames: spr.data.frames,
 					anims: spr.data.anims,
+					tex: spr.data.tex,
 				},
 			}
 		})
@@ -1260,6 +1259,9 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		const { packed } = packImages(canvas.width, canvas.height, images)
 		const map: SpriteAtlasData = {}
 		for (const rect of packed) {
+			const name = rect.data.name
+			assets.sprites.assets.delete(name)
+			rect.data.tex.free()
 			map[rect.data.name] = {
 				x: rect.x,
 				y: rect.y,
@@ -1281,7 +1283,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				ctx.drawImage(rect.data.src, rect.x, rect.y)
 			}
 		}
-		assets.sprites = new AssetBucket<SpriteData>()
 		loadSpriteAtlas(canvas, map)
 	})
 
