@@ -1236,24 +1236,25 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	// TODO: deal with animation
 	// TODO: deal with sprites that failed to fit in
 	onLoad(() => {
-		const images = []
-		assets.sprites.assets.forEach((spr, name) => {
+		const images = [...assets.sprites.assets.entries()].map(([name, spr]) => {
 			const src = spr.data.tex.src
 			spr.data.tex.free()
-			images.push({
+			return {
 				width: src.width,
 				height: src.height,
 				data: {
 					src: src,
 					name: name,
+					frames: spr.data.frames,
+					anims: spr.data.anims,
 				},
-			})
+			}
 		})
 		const canvas = document.createElement("canvas")
 		canvas.width = SPRITE_ATLAS_WIDTH
 		canvas.height = SPRITE_ATLAS_HEIGHT
 		const ctx = canvas.getContext("2d")
-		const { packed } = packImages<{ src: TexImageSource, name: string }>(canvas.width, canvas.height, images)
+		const { packed } = packImages(canvas.width, canvas.height, images)
 		const map = {}
 		for (const rect of packed) {
 			map[rect.data.name] = {
