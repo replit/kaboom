@@ -1076,6 +1076,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		return frames
 	}
 
+	// TODO: load synchronously if passed TexImageSource
 	function loadSpriteAtlas(
 		src: LoadSpriteSrc,
 		data: SpriteAtlasData | string,
