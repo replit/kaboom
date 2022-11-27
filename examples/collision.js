@@ -46,11 +46,11 @@ onKeyDown("down", () => {
 })
 
 onKeyDown("q", () => {
-	player.rotate(-SPEED)
+	player.angle -= SPEED * dt()
 })
 
 onKeyDown("e", () => {
-	player.rotate(SPEED)
+	player.angle += SPEED * dt()
 })
 
 // Add enemies

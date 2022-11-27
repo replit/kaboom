@@ -772,6 +772,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				)
 		}
 
+		// TODO: pack sprites here on the go instead of onLoad?
 		static fromImage(data: TexImageSource, opt: LoadSpriteOpt = {}): SpriteData {
 			return new SpriteData(
 				Texture.fromImage(data, opt),

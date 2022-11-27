@@ -17,6 +17,7 @@ export default function packRects<D = any>(
 ): {
 	packed: PackedRect<D>[],
 	failed: Rect<D>[],
+	isFull: boolean,
 } {
 	rects = rects.sort((i1, i2) => i2.height - i1.height)
 	const packed: PackedRect<D>[] = []
@@ -24,6 +25,7 @@ export default function packRects<D = any>(
 	let x = 0
 	let y = 0
 	let curHeight = 0
+	let isFull = false
 	for (let i = 0; i < rects.length; i++) {
 		const rect = rects[i]
 		if (rect.width > w) {
@@ -37,6 +39,7 @@ export default function packRects<D = any>(
 		}
 		if (y + rect.height > h) {
 			failed.push(...rects.slice(i))
+			isFull = true
 			break
 		}
 		packed.push({
@@ -54,5 +57,6 @@ export default function packRects<D = any>(
 	return {
 		packed: packed,
 		failed: failed,
+		isFull: isFull,
 	}
 }
