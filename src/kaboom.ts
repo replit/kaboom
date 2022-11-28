@@ -1786,15 +1786,32 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		}
 
 		const transform = fixed ? gfx.transform : game.cam.transform.mult(gfx.transform)
+		const objMin = new Vec2(Number.MAX_VALUE)
+		const objMax = new Vec2(-Number.MAX_VALUE)
 
 		for (const v of verts) {
 			// normalized world space coordinate [-1.0 ~ 1.0]
 			const pt = screen2ndc(transform.multVec2(v.pos.xy()))
+			// get the bounding rectangle for the polygon
+			objMin.x = Math.min(objMin.x, pt.x)
+			objMax.x = Math.max(objMax.x, pt.x)
+			objMin.y = Math.min(objMin.y, pt.y)
+			objMax.y = Math.max(objMax.y, pt.y)
 			gfx.vqueue.push(
 				pt.x, pt.y, v.pos.z,
 				v.uv.x, v.uv.y,
 				v.color.r / 255, v.color.g / 255, v.color.b / 255, v.opacity,
 			)
+		}
+
+		// if the object bound is totally outside, we don't render
+		if (!testRectRect(
+			Rect.fromPoints(objMin, objMax),
+			Rect.fromPoints(new Vec2(-1), new Vec2(1)),
+		)) {
+			const num = verts.length * STRIDE
+			gfx.vqueue.splice(gfx.vqueue.length - num, num)
+			return
 		}
 
 		for (const i of indices) {
