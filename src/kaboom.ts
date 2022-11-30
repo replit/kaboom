@@ -1842,12 +1842,14 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	// start a rendering frame, reset some states
 	function frameStart() {
 
+		// clear backbuffer
+		gl.clear(gl.COLOR_BUFFER_BIT)
 		gfx.frameBuffer.bind()
+		// clear framebuffer
+		gl.clear(gl.COLOR_BUFFER_BIT)
 
 		// running this every frame now mainly because isFullscreen() is not updated real time when requested fullscreen
 		updateViewport()
-
-		gl.clear(gl.COLOR_BUFFER_BIT)
 
 		if (!gopt.background) {
 			drawUnscaled(() => {
