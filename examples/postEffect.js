@@ -29,6 +29,7 @@ const effects = {
 		"u_radius": 64,
 		"u_blur": 64,
 		"u_resolution": vec2(width(), height()),
+		"u_mouse": mousePos(),
 	}),
 }
 
