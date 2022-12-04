@@ -2252,6 +2252,12 @@ export interface KaboomOpt {
 	 */
 	virtualControls?: boolean,
 	/**
+	 * If pause audio when tab is not active (default false).
+	 *
+	 * @since v3000.0
+	 */
+	backgroundAudio?: boolean,
+	/**
 	 * If import all kaboom functions to global (default true).
 	 */
 	global?: boolean,

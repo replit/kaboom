@@ -116,6 +116,10 @@ usePostEffect("invert")
 ```
 - shader error logs now yields the correct line number
 
+## Audio
+
+- added option `kaboom({ backgroundAudio: false })` to not pause audio when tab not active
+
 ## Input
 
 - added `onScroll(action: (delta: Vec2) => void)` to listen mouse wheel scroll

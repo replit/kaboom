@@ -3150,7 +3150,9 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				}
 				break
 			case "hidden":
-				audio.ctx.suspend()
+				if (!gopt.backgroundAudio) {
+					audio.ctx.suspend()
+				}
 				break
 		}
 	}

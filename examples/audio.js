@@ -1,6 +1,9 @@
 // audio playback & control
 
-kaboom()
+kaboom({
+	// don't pause audio when tab is not active
+	backgroundAudio: true,
+})
 
 loadSound("bell", "/examples/sounds/bell.mp3")
 loadSound("OtherworldlyFoe", "/examples/sounds/OtherworldlyFoe.mp3")
