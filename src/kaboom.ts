@@ -666,7 +666,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 		if (gopt.background) {
 			const c = Color.fromArray(gopt.background)
-			gl.clearColor(c.r / 255, c.g / 255, c.b / 255, gopt.background[3] ?? 1)
+			gl.clearColor(c.r / 255, c.g / 255, c.b / 255, (gopt.background[3] ?? 255) / 255)
 		}
 
 		gl.enable(gl.BLEND)
@@ -3131,6 +3131,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		})
 	}
 
+	// TODO: option to not prevent default?
 	canvasEvents.wheel = (e) => {
 		e.preventDefault()
 		game.ev.onOnce("input", () => {

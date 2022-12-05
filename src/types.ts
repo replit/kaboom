@@ -2218,7 +2218,7 @@ export interface KaboomOpt {
 	 */
 	root?: HTMLElement,
 	/**
-	 * Background color. E.g. [ 0, 0, 255 ] for solid blue background.
+	 * Background color. E.g. [ 0, 0, 255 ] for solid blue background, or [ 0, 0, 0, 0 ] for transparent background.
 	 */
 	background?: number[],
 	/**
