@@ -4115,7 +4115,7 @@ export interface CircleComp extends Comp {
 	/**
 	 * @since v3000.0
 	 */
-	renderArea(): Circle,
+	renderArea(): Rect,
 }
 
 export interface UVQuadComp extends Comp {

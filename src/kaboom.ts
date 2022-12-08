@@ -4839,7 +4839,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				}))
 			},
 			renderArea() {
-				return new Circle(vec2(0), this.radius)
+				return new Rect(vec2(-this.radius), this.radius * 2, this.radius * 2)
 			},
 			inspect() {
 				return `${Math.ceil(this.radius)}`
@@ -5473,8 +5473,8 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			pos(opt.pos ?? vec2(0)),
 		])
 
-		const numColumns = map.length
-		let numRows = 0
+		const numRows = map.length
+		let numColumns = 0
 
 		const levelComp: LevelComp = {
 
@@ -5535,20 +5535,20 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 			},
 
-			numRows() {
-				return numRows
-			},
-
 			numColumns() {
 				return numColumns
 			},
 
+			numRows() {
+				return numRows
+			},
+
 			levelWidth() {
-				return numRows * opt.tileWidth
+				return numColumns * opt.tileWidth
 			},
 
 			levelHeight() {
-				return numColumns * opt.tileHeight
+				return numRows * opt.tileHeight
 			},
 
 		}
@@ -5559,7 +5559,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 			const keys = row.split("")
 
-			numRows = Math.max(keys.length, numRows)
+			numColumns = Math.max(keys.length, numColumns)
 
 			keys.forEach((key, j) => {
 				level.spawn(key, vec2(j, i))
