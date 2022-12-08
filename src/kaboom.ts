@@ -5801,22 +5801,21 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 							grid[x][y] = [aobj]
 						} else {
 							const cell = grid[x][y]
-							for (const other of cell) {
+							check: for (const other of cell) {
 								if (!other.exists()) {
 									continue
 								}
 								if (checked.has(other.id)) {
 									continue
 								}
-								// TODO: is this too slow
 								for (const tag of aobj.collisionIgnore) {
 									if (other.is(tag)) {
-										continue
+										continue check
 									}
 								}
 								for (const tag of other.collisionIgnore) {
 									if (aobj.is(tag)) {
-										continue
+										continue check
 									}
 								}
 								const res = aobj.checkCollision(other)
