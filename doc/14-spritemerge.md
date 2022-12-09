@@ -12,7 +12,7 @@ We'll cover the following:
 
 You can find the code we use in this tutorial [in our repl](https://replit.com/@ritza/sprite-merge), or try out the embedded repl at the end of this tutorial.
 
-![sprite merge](spritemerge.png)
+![sprite merge](tutorials/spritemerge.png)
 
 ## Getting started with the code
 
@@ -255,4 +255,4 @@ Here are some things you can try to enhance the game:
 
 You can also try out the repl below:
 
-<iframe frameborder="0" width="100%" height="500px" src="https://replit.com/@ritza/demo-embed?embed=true"></iframe>
+<iframe frameborder="0" width="100%" height="500px" src="https://replit.com/@ritza/sprite-merge?embed=true"></iframe>

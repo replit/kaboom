@@ -67,6 +67,7 @@ export interface ViewProps {
 	pad?: number,
 	padX?: number,
 	padY?: number,
+	children?: React.ReactNode,
 }
 
 type Props = React.PropsWithChildren<
@@ -106,7 +107,6 @@ const View = React.forwardRef<HTMLDivElement, Props>(({
 	...props
 }, ref) => {
 
-	const marginSide = dir === "row" ? "marginRight" : "marginBottom"
 	const px = (padX ?? pad ?? 0) * 8
 	const py = (padY ?? pad ?? 0) * 8
 	const { inspect } = React.useContext(Ctx)
@@ -122,7 +122,7 @@ const View = React.forwardRef<HTMLDivElement, Props>(({
 				pushTooltip({ name, desc })
 			}
 		}
-	}, [ inspect, name, desc, pushTooltip ])
+	}, [ inspect, name, desc, pushTooltip, curRef ])
 
 	return <div
 		ref={curRef}

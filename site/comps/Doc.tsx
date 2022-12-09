@@ -112,6 +112,7 @@ function isType(entry: any): boolean {
 const Title: React.FC<{
 	data: any,
 	small?: boolean,
+	children?: React.ReactNode,
 }> = ({ data, small, children }) => (
 	<View gap={1} dir="row" align="center">
 		{ isType(data) && <Tag name="type" /> }
@@ -222,7 +223,7 @@ const InterfaceDeclaration: React.FC<EntryProps> = ({ data }) => {
 	)
 }
 
-const ClassDeclaration: React.FC<EntryProps> = ({ data }) => {
+const ClassDeclaration = ({ data }: EntryProps) => {
 	return (
 		<View gap={2} stretchX>
 			<View gap={1} stretchX>

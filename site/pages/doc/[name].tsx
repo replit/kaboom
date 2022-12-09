@@ -1,12 +1,8 @@
 import fs from "fs/promises"
 import { GetServerSideProps } from "next"
-import { useRouter } from "next/router"
-import Link from "next/link"
 import Head from "comps/Head"
 import Markdown from "comps/Markdown"
 import Nav from "comps/Nav"
-import Text from "comps/Text"
-import Button from "comps/Button"
 import { capitalize } from "lib/str"
 
 interface DocProps {

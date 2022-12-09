@@ -10,7 +10,7 @@
  * kaboom({
  *     width: 320,
  *     height: 240,
- *     font: "sinko",
+ *     font: "sans-serif",
  *     canvas: document.querySelector("#mycanvas"),
  *     background: [ 0, 0, 255, ],
  * })
@@ -52,7 +52,6 @@ export interface KaboomCtx {
 	 *     area(),
 	 *     body(),
 	 *     health(8),
-	 *     doubleJump(),
 	 *     // Plain strings are tags, a quicker way to let us define behaviors for a group
 	 *     "player",
 	 *     "friendly",
@@ -84,12 +83,6 @@ export interface KaboomCtx {
 	 */
 	add<T>(comps: CompList<T> | GameObj<T>): GameObj<T>,
 	/**
-	 * Create a game object from a list of components, without adding it to the scene.
-	 *
-	 * @since v2001.0
-	 */
-	make<T>(comps?: CompList<T>): GameObj<T>,
-	/**
 	 * Remove and re-add the game obj, without triggering add / destroy events.
 	 */
 	readd(obj: GameObj),
@@ -109,7 +102,7 @@ export interface KaboomCtx {
 	/**
 	 * Recursively a list of all game objs with certain tag including children of children.
 	 *
-	 * @since v2001.0
+	 * @since v3000.0
 	 */
 	getAll(tag?: Tag | Tag[]): GameObj[],
 	/**
@@ -234,7 +227,7 @@ export interface KaboomCtx {
 	 *     text("ohhi", {
 	 *         size: 48, // 48 pixels tall
 	 *         width: 320, // it'll wrap to next line when width exceeds this value
-	 *         font: "sink", // there're 4 built-in fonts: "apl386", "apl386o", "sink", and "sinko"
+	 *         font: "sans-serif", // specify any font you loaded or browser built-in
 	 *     }),
 	 * ])
 	 * ```
@@ -254,7 +247,7 @@ export interface KaboomCtx {
 	 * ])
 	 * ```
 	 */
-	rect(w: number, h: number): RectComp,
+	rect(w: number, h: number, opt?: RectCompOpt): RectComp,
 	/**
 	 * Render as a circle.
 	 *
@@ -315,7 +308,7 @@ export interface KaboomCtx {
 	 *     // Scale to 0.6 of the generated area
 	 *     area({ scale: 0.6 }),
 	 *     // If we want the area scale to be calculated from the center
-	 *     origin("center"),
+	 *     anchor("center"),
 	 * ])
 	 *
 	 * add([
@@ -327,19 +320,19 @@ export interface KaboomCtx {
 	 */
 	area(options: AreaCompOpt): AreaComp,
 	/**
-	 * Origin point for render (default "topleft").
+	 * Anchor point for render (default "topleft").
 	 *
 	 * @example
 	 * ```js
-	 * // set origin to "center" so it'll rotate from center
+	 * // set anchor to "center" so it'll rotate from center
 	 * add([
 	 *     rect(40, 10),
 	 *     rotate(45),
-	 *     origin("center"),
+	 *     anchor("center"),
 	 * ])
 	 * ```
 	 */
-	origin(o: Origin | Vec2): OriginComp,
+	anchor(o: Anchor | Vec2): AnchorComp,
 	/**
 	 * Determines the draw order for objects on the same layer. Object will be drawn on top if z value is bigger.
 	 */
@@ -378,7 +371,13 @@ export interface KaboomCtx {
 	 */
 	body(options?: BodyCompOpt): BodyComp,
 	/**
-	 * Move towards a direction infinitely, and destroys when it leaves game view. Requires "pos" comp.
+	 * Enables double jump. Requires "body" component.
+	 *
+	 * @since v3000.0
+	 */
+	doubleJump(numJumps?: number): DoubleJumpComp,
+	/**
+	 * Move towards a direction infinitely, and destroys when it leaves game view. Requires "pos" component.
 	 *
 	 * @example
 	 * ```js
@@ -388,7 +387,7 @@ export interface KaboomCtx {
 	 *     pos(enemy.pos),
 	 *     area(),
 	 *     move(player.pos.angle(enemy.pos), 1200),
-	 *     cleanup(),
+	 *     offscreen({ destroy: true }),
 	 * ])
 	 * ```
 	 */
@@ -401,26 +400,14 @@ export interface KaboomCtx {
 	 * @example
 	 * ```js
 	 * add([
-	 *     pos(1200, 80),
-	 *     outview({ hide: true, pause: true }),
+	 *     pos(player.pos),
+	 *     sprite("bullet"),
+	 *     offscreen({ destroy: true }),
+	 *     "projectile",
 	 * ])
 	 * ```
 	 */
-	outview(opt?: OutviewCompOpt): OutviewComp,
-	/**
-	 * destroy() the object if it goes out of screen. Optionally specify the amount of time it has to be off-screen before removal.
-	 *
-	 * @example
-	 * ```js
-	 * // destroy when it leaves screen
-	 * const bullet = add([
-	 *     pos(80, 80),
-	 *     move(LEFT, 960),
-	 *     cleanup(),
-	 * ])
-	 * ```
-	 */
-	cleanup(opt?: CleanupCompOpt): CleanupComp,
+	offscreen(opt?: OffScreenCompOpt): OffScreenComp,
 	/**
 	 * Follow another game obj's position.
 	 */
@@ -463,7 +450,7 @@ export interface KaboomCtx {
 	 * })
 	 * ```
 	 */
-	stay(): StayComp,
+	stay(scenesToStay?: string[]): StayComp,
 	/**
 	 * Handles health related logic and events.
 	 *
@@ -578,6 +565,18 @@ export interface KaboomCtx {
 		transitions: Record<string, string | string[]>,
 	): StateComp,
 	/**
+	 * Fade object in.
+	 *
+	 * @since v3000.0
+	 */
+	fadeIn(time: number): Comp,
+	/**
+	 * An obstacle in a tilemap.
+	 *
+	 * @since v3000.0
+	 */
+	obstacle(): ObstacleComp,
+	/**
 	 * Register an event on all game objs with certain tag.
 	 *
 	 * @section Events
@@ -592,7 +591,7 @@ export interface KaboomCtx {
 	 * })
 	 * ```
 	 */
-	on(event: string, tag: Tag, action: (obj: GameObj, ...args) => void): EventCanceller,
+	on(event: string, tag: Tag, action: (obj: GameObj, ...args) => void): EventController,
 	/**
 	 * Register an event that runs every frame (~60 times per second) for all game objs with certain tag.
 	 *
@@ -610,7 +609,7 @@ export interface KaboomCtx {
 	 * })
 	 * ```
 	 */
-	onUpdate(tag: Tag, action: (obj: GameObj) => void): EventCanceller,
+	onUpdate(tag: Tag, action: (obj: GameObj) => void): EventController,
 	/**
 	 * Register an event that runs every frame (~60 times per second).
 	 *
@@ -624,13 +623,13 @@ export interface KaboomCtx {
 	 * })
 	 * ```
 	 */
-	onUpdate(action: () => void): EventCanceller,
+	onUpdate(action: () => void): EventController,
 	/**
 	 * Register an event that runs every frame (~60 times per second) for all game objs with certain tag (this is the same as onUpdate but all draw events are run after update events, drawXXX() functions only work in this phase).
 	 *
 	 * @since v2000.1
 	 */
-	onDraw(tag: Tag, action: (obj: GameObj) => void): EventCanceller,
+	onDraw(tag: Tag, action: (obj: GameObj) => void): EventController,
 	/**
 	 * Register an event that runs every frame (~60 times per second) (this is the same as onUpdate but all draw events are run after update events, drawXXX() functions only work in this phase).
 	 *
@@ -647,7 +646,11 @@ export interface KaboomCtx {
 	 * })
 	 * ```
 	 */
-	onDraw(action: () => void): EventCanceller,
+	onDraw(action: () => void): EventController,
+	onAdd(tag: Tag, action: (obj: GameObj) => void): EventController,
+	onAdd(action: (obj: GameObj) => void): EventController,
+	onDestroy(tag: Tag, action: (obj: GameObj) => void): EventController,
+	onDestroy(action: (obj: GameObj) => void): EventController,
 	/**
 	 * Register an event that runs when all assets finished loading.
 	 *
@@ -669,19 +672,19 @@ export interface KaboomCtx {
 	/**
 	 * Register a custom loading screen. The callback is run every frame during loading.
 	 *
-	 * @since v2001.0
+	 * @since v3000.0
 	 */
-	onLoading(action: (err: Error) => void): void,
+	onLoadUpdate(action: (err: Error) => void): void,
 	/**
 	 * Register a custom error handler. Can be used to draw a custom error screen.
 	 *
-	 * @since v2001.0
+	 * @since v3000.0
 	 */
 	onError(action: (err: Error) => void): void,
 	/**
 	 * Register an event that runs when the canvas resizes
 	 *
-	 * @since v2001.0
+	 * @since v3000.0
 	 */
 	onResize(action: (
 		prevWidth: number,
@@ -705,7 +708,7 @@ export interface KaboomCtx {
 		t1: Tag,
 		t2: Tag,
 		action: (a: GameObj, b: GameObj, col?: Collision) => void,
-	): EventCanceller,
+	): EventController,
 	/**
 	 * Register an event that runs when game objs with certain tags are clicked (required to have the area() component).
 	 *
@@ -717,7 +720,7 @@ export interface KaboomCtx {
 	 * onClick("chest", (chest) => chest.open())
 	 * ```
 	 */
-	onClick(tag: Tag, action: (a: GameObj) => void): EventCanceller,
+	onClick(tag: Tag, action: (a: GameObj) => void): EventController,
 	/**
 	 * Register an event that runs when users clicks.
 	 *
@@ -729,16 +732,25 @@ export interface KaboomCtx {
 	 * onClick(() => go("game"))
 	 * ```
 	 */
-	onClick(action: () => void): EventCanceller,
+	onClick(action: () => void): EventController,
 	/**
-	 * Register an event that runs when game objs with certain tags are hovered (required to have area() component).
+	 * Register an event that runs once when game objs with certain tags are hovered (required to have area() component).
 	 *
-	 * @since v2000.1
+	 * @since v3000.0
 	 */
-	onHover(
-		tag: Tag,
-		action: (a: GameObj) => void,
-	): EventCanceller,
+	onHover(tag: Tag, action: (a: GameObj) => void): EventController,
+	/**
+	 * Register an event that runs every frame when game objs with certain tags are hovered (required to have area() component).
+	 *
+	 * @since v3000.0
+	 */
+	onHoverUpdate(tag: Tag, onHover: (a: GameObj) => void): EventController,
+	/**
+	 * Register an event that runs once when game objs with certain tags are unhovered (required to have area() component).
+	 *
+	 * @since v3000.0
+	 */
+	onHoverEnd(tag: Tag, action: (a: GameObj) => void): EventController,
 	/**
 	 * Register an event that runs every frame when a key is held down.
 	 *
@@ -752,7 +764,7 @@ export interface KaboomCtx {
 	 * })
 	 * ```
 	 */
-	onKeyDown(k: Key | Key[], action: () => void): EventCanceller,
+	onKeyDown(k: Key, action: () => void): EventController,
 	/**
 	 * Register an event that runs when user presses certain key.
 	 *
@@ -766,7 +778,7 @@ export interface KaboomCtx {
 	 * })
 	 * ```
 	 */
-	onKeyPress(k: Key | Key[], action: () => void): EventCanceller,
+	onKeyPress(k: Key, action: (k: Key) => void): EventController,
 	/**
 	 * Register an event that runs when user presses any key.
 	 *
@@ -780,7 +792,7 @@ export interface KaboomCtx {
 	 * })
 	 * ```
 	 */
-	onKeyPress(action: () => void): EventCanceller,
+	onKeyPress(action: (key: Key) => void): EventController,
 	/**
 	 * Register an event that runs when user presses certain key (also fires repeatedly when they key is being held down).
 	 *
@@ -794,15 +806,15 @@ export interface KaboomCtx {
 	 * })
 	 * ```
 	 */
-	onKeyPressRepeat(k: Key | Key[], action: () => void): EventCanceller,
-	onKeyPressRepeat(action: () => void): EventCanceller,
+	onKeyPressRepeat(k: Key, action: (k: Key) => void): EventController,
+	onKeyPressRepeat(action: (k: Key) => void): EventController,
 	/**
 	 * Register an event that runs when user releases certain key.
 	 *
 	 * @since v2000.1
 	 */
-	onKeyRelease(k: Key | Key[], action: () => void): EventCanceller,
-	onKeyRelease(action: () => void): EventCanceller,
+	onKeyRelease(k: Key, action: (k: Key) => void): EventController,
+	onKeyRelease(action: (k: Key) => void): EventController,
 	/**
 	 * Register an event that runs when user inputs text.
 	 *
@@ -816,52 +828,76 @@ export interface KaboomCtx {
 	 * })
 	 * ```
 	 */
-	onCharInput(action: (ch: string) => void): EventCanceller,
+	onCharInput(action: (ch: string) => void): EventController,
 	/**
 	 * Register an event that runs every frame when a mouse button is being held down.
 	 *
 	 * @since v2000.1
 	 */
-	onMouseDown(action: (pos: Vec2) => void): EventCanceller,
-	onMouseDown(button: MouseButton, action: (pos: Vec2) => void): EventCanceller,
+	onMouseDown(action: (m: MouseButton) => void): EventController,
+	onMouseDown(button: MouseButton, action: (m: MouseButton) => void): EventController,
 	/**
 	 * Register an event that runs when user clicks mouse.
 	 *
 	 * @since v2000.1
 	 */
-	onMousePress(action: (pos: Vec2) => void): EventCanceller,
-	onMousePress(button: MouseButton, action: (pos: Vec2) => void): EventCanceller,
+	onMousePress(action: (m: MouseButton) => void): EventController,
+	onMousePress(button: MouseButton, action: (m: MouseButton) => void): EventController,
 	/**
 	 * Register an event that runs when user releases mouse.
 	 *
 	 * @since v2000.1
 	 */
-	onMouseRelease(action: (pos: Vec2) => void): EventCanceller,
-	onMouseRelease(button: MouseButton, action: (pos: Vec2) => void): EventCanceller,
+	onMouseRelease(action: (m: MouseButton) => void): EventController,
+	onMouseRelease(button: MouseButton, action: (m: MouseButton) => void): EventController,
 	/**
 	 * Register an event that runs whenever user move the mouse.
 	 *
 	 * @since v2000.1
 	 */
-	onMouseMove(action: (pos: Vec2) => void): EventCanceller,
+	onMouseMove(action: (pos: Vec2, delta: Vec2) => void): EventController,
 	/**
 	 * Register an event that runs when a touch starts.
 	 *
 	 * @since v2000.1
 	 */
-	onTouchStart(action: (pos: Vec2, t: Touch) => void): EventCanceller,
+	onTouchStart(action: (pos: Vec2, t: Touch) => void): EventController,
 	/**
 	 * Register an event that runs whenever touch moves.
 	 *
 	 * @since v2000.1
 	 */
-	onTouchMove(action: (pos: Vec2, t: Touch) => void): EventCanceller,
+	onTouchMove(action: (pos: Vec2, t: Touch) => void): EventController,
 	/**
 	 * Register an event that runs when a touch ends.
 	 *
 	 * @since v2000.1
 	 */
-	onTouchEnd(action: (pos: Vec2, t: Touch) => void): EventCanceller,
+	onTouchEnd(action: (pos: Vec2, t: Touch) => void): EventController,
+	/**
+	 * Register an event that runs when mouse wheel scrolled.
+	 *
+	 * @since v3000.0
+	 */
+	onScroll(action: (delta: Vec2) => void): EventController,
+	/**
+	 * Register an event that runs when a virtual control button is pressed.
+	 *
+	 * @since v3000.0
+	 */
+	onVirtualButtonPress(btn: VirtualButton, action: () => void): EventController,
+	/**
+	 * Register an event that runs when a virtual control button is pressed.
+	 *
+	 * @since v3000.0
+	 */
+	onVirtualButtonDown(btn: VirtualButton, action: () => void): EventController,
+	/**
+	 * Register an event that runs when a virtual control button is pressed.
+	 *
+	 * @since v3000.0
+	 */
+	onVirtualButtonRelease(btn: VirtualButton, action: () => void): EventController,
 	/**
 	 * Sets the root for all subsequent resource urls.
 	 *
@@ -902,7 +938,7 @@ export interface KaboomCtx {
 	 */
 	loadSprite(
 		name: string | null,
-		src: LoadSpriteSrc,
+		src: LoadSpriteSrc | LoadSpriteSrc[],
 		options?: LoadSpriteOpt,
 	): Asset<SpriteData>,
 	/**
@@ -998,9 +1034,9 @@ export interface KaboomCtx {
 		src: string,
 	): Asset<SoundData>,
 	/**
-	 * Load a font through browser FontFace.
+	 * Load a font (any format supported by the browser, e.g. ttf, otf, woff)
 	 *
-	 * @since v2001.0
+	 * @since v3000.0
 	 *
 	 * @example
 	 * ```js
@@ -1008,11 +1044,11 @@ export interface KaboomCtx {
 	 * loadFont("frogblock", "fonts/frogblock.ttf")
 	 * ```
 	 */
-	loadFont(name: string, src: string | ArrayBuffer): Asset<FontFace>,
+	loadFont(name: string, src: string | ArrayBuffer, opt?: LoadFontOpt): Asset<FontFace>,
 	/**
 	 * Load a bitmap font into asset manager, with name and resource url and infomation on the layout of the bitmap.
 	 *
-	 * @since v2001.0
+	 * @since v3000.0
 	 *
 	 * @example
 	 * ```js
@@ -1032,22 +1068,19 @@ export interface KaboomCtx {
 		options?: LoadBitmapFontOpt,
 	): Asset<BitmapFontData>,
 	/**
-	 * Load a shader into asset manager with vertex and fragment code / file url.
+	 * Load a shader with vertex and fragment code.
 	 *
 	 * @example
 	 * ```js
-	 * // load only a fragment shader from URL
-	 * loadShader("outline", null, "/shaders/outline.glsl", true)
-	 *
 	 * // default shaders and custom shader format
 	 * loadShader("outline",
-	 *     `vec4 vert(vec3 pos, vec2 uv, vec4 color) {
+	 * `vec4 vert(vec3 pos, vec2 uv, vec4 color) {
 	 *     // predefined functions to get the default value by kaboom
-	 *     return def_vert()
+	 *     return def_vert();
 	 * }`,
 	 * `vec4 frag(vec3 pos, vec2 uv, vec4 color, sampler2D tex) {
 	 *     // turn everything blue-ish
-	 *     return def_frag() * vec4(0, 0, 1, 1)
+	 *     return def_frag() * vec4(0, 0, 1, 1);
 	 * }`, false)
 	 * ```
 	 */
@@ -1055,7 +1088,22 @@ export interface KaboomCtx {
 		name: string | null,
 		vert?: string,
 		frag?: string,
-		isUrl?: boolean,
+	): Asset<ShaderData>,
+	/**
+	 * Load a shader with vertex and fragment code file url.
+	 *
+	 * @since v3000.0
+	 *
+	 * @example
+	 * ```js
+	 * // load only a fragment shader from URL
+	 * loadShader("outline", null, "/shaders/outline.glsl", true)
+	 * ```
+	 */
+	loadShaderURL(
+		name: string | null,
+		vert?: string,
+		frag?: string,
 	): Asset<ShaderData>,
 	/**
 	 * Add a new loader to wait for before starting the game.
@@ -1072,37 +1120,37 @@ export interface KaboomCtx {
 	/**
 	 * Get the global asset loading progress (0.0 - 1.0).
 	 *
-	 * @since v2001.0
+	 * @since v3000.0
 	 */
 	loadProgress(): number,
 	/**
 	 * Get SpriteData from handle if loaded.
 	 *
-	 * @since v2001.0
+	 * @since v3000.0
 	 */
 	getSprite(handle: string): Asset<SpriteData> | void,
 	/**
 	 * Get SoundData from handle if loaded.
 	 *
-	 * @since v2001.0
+	 * @since v3000.0
 	 */
 	getSound(handle: string): Asset<SoundData> | void,
 	/**
 	 * Get FontData from handle if loaded.
 	 *
-	 * @since v2001.0
+	 * @since v3000.0
 	 */
 	getFont(handle: string): Asset<FontData> | void,
 	/**
 	 * Get BitmapFontData from handle if loaded.
 	 *
-	 * @since v2001.0
+	 * @since v3000.0
 	 */
 	getBitmapFont(handle: string): Asset<BitmapFontData> | void,
 	/**
 	 * Get ShaderData from handle if loaded.
 	 *
-	 * @since v2001.0
+	 * @since v3000.0
 	 */
 	getShader(handle: string): Asset<ShaderData> | void,
 	Asset: typeof Asset,
@@ -1156,8 +1204,10 @@ export interface KaboomCtx {
 	isFocused(): boolean,
 	/**
 	 * Is currently on a touch screen device.
+	 *
+	 * @since v3000.0
 	 */
-	isTouch(): boolean,
+	isTouchScreen(): boolean,
 	/**
 	 * Get current mouse position (without camera transform).
 	 */
@@ -1224,6 +1274,30 @@ export interface KaboomCtx {
 	 * @since v2000.1
 	 */
 	isMouseMoved(): boolean,
+	/**
+	 * If a virtual button is just pressed last frame.
+	 *
+	 * @since v3000.0
+	 */
+	isVirtualButtonPressed(btn: VirtualButton): boolean,
+	/**
+	 * If a virtual button is currently held down.
+	 *
+	 * @since v3000.0
+	 */
+	isVirtualButtonDown(btn: VirtualButton): boolean,
+	/**
+	 * If a virtual button is just released last frame.
+	 *
+	 * @since v3000.0
+	 */
+	isVirtualButtonReleased(btn: VirtualButton): boolean,
+	/**
+	 * List of characters inputted since last frame.
+	 *
+	 * @since v3000.0
+	 */
+	charInputted(): string[],
 	/**
 	 * Camera shake.
 	 *
@@ -1306,9 +1380,12 @@ export interface KaboomCtx {
 	 * wait(3, () => {
 	 *     explode()
 	 * })
+	 *
+	 * // wait() returns a PromiseLike that can be used with await
+	 * await wait(1)
 	 * ```
 	 */
-	wait(n: number, action?: () => void): Promise<void>,
+	wait(n: number, action?: () => void): TimerController,
 	/**
 	 * Run the callback every n seconds.
 	 *
@@ -1325,7 +1402,7 @@ export interface KaboomCtx {
 	 * })
 	 * ```
 	 */
-	loop(t: number, action: () => void): EventCanceller,
+	loop(t: number, action: () => void): EventController,
 	Timer: typeof Timer,
 	/**
 	 * Play a piece of audio.
@@ -1411,7 +1488,25 @@ export interface KaboomCtx {
 	 *
 	 * @example
 	 * ```js
-	 * randi(0, 3) // will give either 0, 1, or 2
+	 * randi(10) // returns 0 to 9
+	 * ```
+	 */
+	randi(n: number): number,
+	/**
+	 * rand() but floored to integer.
+	 *
+	 * @example
+	 * ```js
+	 * randi(0, 3) // returns 0, 1, or 2
+	 * ```
+	 */
+	randi(a: number, b: number): number,
+	/**
+	 * rand() but floored to integer.
+	 *
+	 * @example
+	 * ```js
+	 * randi() // returns either 0 or 1
 	 * ```
 	 */
 	randi(): number,
@@ -1503,6 +1598,34 @@ export interface KaboomCtx {
 	 */
 	lerp(from: number, to: number, t: number): number,
 	/**
+	 * Tweeeeeeeening!
+	 *
+	 * @since v3000.0
+	 *
+	 * @example
+	 * ```js
+	 * // tween bean to mouse position
+	 * tween(bean.pos.x, mousePos().x, 1, (val) => bean.pos.x = val, easings.easeOutBounce)
+	 * tween(bean.pos.y, mousePos().y, 1, (val) => bean.pos.y = val, easings.easeOutBounce)
+	 *
+	 * // tween() returns a PromiseLike that can be used with await
+	 * await tween(bean.opacity, 1, 2, (val) => bean.opacity = val, easings.easeOutQuad)
+	 * ```
+	 */
+	tween(
+		from: number,
+		to: number,
+		duration: number,
+		setValue: (value: number) => void,
+		easeFunc?: (t: number) => number,
+	): TweenController,
+	/**
+	 * A collection of easing functions for tweening.
+	 *
+	 * @since v3000.0
+	 */
+	easings: Record<EaseFuncs, EaseFunc>,
+	/**
 	 * Map a value from one range to another range.
 	 */
 	map(
@@ -1564,7 +1687,6 @@ export interface KaboomCtx {
 	Rect: typeof Rect,
 	Circle: typeof Circle,
 	Polygon: typeof Polygon,
-	Point: typeof Point,
 	Vec2: typeof Vec2,
 	Color: typeof Color,
 	Mat4: typeof Mat4,
@@ -1652,7 +1774,7 @@ export interface KaboomCtx {
 	 * drawText({
 	 *     text: "oh hi",
 	 *     size: 48,
-	 *     font: "sink",
+	 *     font: "sans-serif",
 	 *     width: 120,
 	 *     pos: vec2(100, 200),
 	 *     color: rgb(0, 0, 255),
@@ -1792,13 +1914,13 @@ export interface KaboomCtx {
 	/**
 	 * Whatever drawn in content will only be drawn if it's also drawn in mask (mask will not be rendered).
 	 *
-	 * @since v2001.0
+	 * @since v3000.0
 	 */
 	drawMasked(content: () => void, mask: () => void): void,
 	/**
 	 * Subtract whatever drawn in content by whatever drawn in mask (mask will not be rendered).
 	 *
-	 * @since v2001.0
+	 * @since v3000.0
 	 */
 	drawSubtracted(content: () => void, mask: () => void): void,
 	/**
@@ -1852,29 +1974,29 @@ export interface KaboomCtx {
 	 */
 	pushRotate(angle: number): void,
 	/**
-	 * Rotate all subsequent draws on X axis.
-	 *
-	 * @since v2001.0
-	 */
-	pushRotateX(angle: number): void,
-	/**
-	 * Rotate all subsequent draws on Y axis.
-	 *
-	 * @since v2001.0
-	 */
-	pushRotateY(angle: number): void,
-	/**
-	 * Rotate all subsequent draws on Z axis (the default).
-	 *
-	 * @since v2001.0
-	 */
-	pushRotateZ(angle: number): void,
-	/**
 	 * Apply a transform matrix, ignore all prior transforms.
 	 *
-	 * @since v2001.0
+	 * @since v3000.0
 	 */
 	pushMatrix(mat: Mat4): void,
+	/**
+	 * Apply a post process effect from a shader name.
+	 *
+	 * @since v3000.0
+	 *
+	 * @example
+	 * ```js
+	 * loadShader("invert", null, `
+	 * vec4 frag(vec3 pos, vec2 uv, vec4 color, sampler2D tex) {
+	 *     vec4 c = def_frag();
+	 *     return vec4(1.0 - c.r, 1.0 - c.g, 1.0 - c.b, c.a);
+	 * }
+	 * `)
+	 *
+	 * usePostEffect("invert")
+	 * ```
+	 */
+	usePostEffect(name: string, uniform?: Uniform),
 	/**
 	 * Format a piece of text without drawing (for getting dimensions, etc).
 	 *
@@ -1924,25 +2046,25 @@ export interface KaboomCtx {
 	/**
 	 * Trigger a file download from a url.
 	 *
-	 * @since v2001.0
+	 * @since v3000.0
 	 */
 	download(filename: string, dataurl: string): void,
 	/**
 	 * Trigger a text file download.
 	 *
-	 * @since v2001.0
+	 * @since v3000.0
 	 */
 	downloadText(filename: string, text: string): void,
 	/**
 	 * Trigger a json download from a .
 	 *
-	 * @since v2001.0
+	 * @since v3000.0
 	 */
 	downloadJSON(filename: string, data: any): void,
 	/**
 	 * Trigger a file download from a blob.
 	 *
-	 * @since v2001.0
+	 * @since v3000.0
 	 */
 	downloadBlob(filename: string, blob: Blob): void,
 	/**
@@ -1961,10 +2083,6 @@ export interface KaboomCtx {
 	 * All chars in ASCII.
 	 */
 	ASCII_CHARS: string,
-	/**
-	 * All chars in CP437.
-	 */
-	CP437_CHARS: string,
 	/**
 	 * Left directional vector vec2(-1, 0).
 	 */
@@ -1997,6 +2115,24 @@ export interface KaboomCtx {
 	 * End everything.
 	 */
 	quit: () => void,
+	/**
+	 * EventHandler for one single event.
+	 *
+	 * @since v3000.0
+	 */
+	Event: typeof Event,
+	/**
+	 * EventHandler for multiple events.
+	 *
+	 * @since v3000.0
+	 */
+	EventHandler: typeof EventHandler,
+	/**
+	 * Current Kaboom library version.
+	 *
+	 * @since v3000.0
+	 */
+	VERSION: string,
 }
 
 export type Tag = string
@@ -2016,7 +2152,7 @@ export type Key =
 	| "q" | "w" | "e" | "r" | "t" | "y" | "u" | "i" | "o" | "p" | "[" | "]" | "\\"
 	| "a" | "s" | "d" | "f" | "g" | "h" | "j" | "k" | "l" | "" | "'"
 	| "z" | "x" | "c" | "v" | "b" | "n" | "m" | "," | "." | "/"
-	| "backspace" | "enter" | "tab" | "space" | " "
+	| "escape" | "backspace" | "enter" | "tab" | "control" | "alt" | "meta" | "space" | " "
 	| "left" | "right" | "up" | "down"
 
 export type MouseButton =
@@ -2060,13 +2196,13 @@ export interface KaboomOpt {
 	 */
 	debug?: boolean,
 	/**
-	 * Default font (defaults to "apl386o", with "apl386", "sink", "sinko" as other built-in options).
+	 * Default font (defaults to "monospace").
 	 */
 	font?: string,
 	/**
 	 * Device pixel scale (defaults to window.devicePixelRatio, high pixel density will hurt performance).
 	 *
-	 * @since v2001.0
+	 * @since v3000.0
 	 */
 	pixelDensity?: number,
 	/**
@@ -2082,7 +2218,7 @@ export interface KaboomOpt {
 	 */
 	root?: HTMLElement,
 	/**
-	 * Background color. E.g. [ 0, 0, 255 ] for solid blue background.
+	 * Background color. E.g. [ 0, 0, 255 ] for solid blue background, or [ 0, 0, 0, 0 ] for transparent background.
 	 */
 	background?: number[],
 	/**
@@ -2094,13 +2230,9 @@ export interface KaboomOpt {
 	 */
 	logMax?: number,
 	/**
-	 * If log messages should include also print time.
-	 */
-	logTime?: boolean,
-	/**
 	 * Size of the spatial hash grid for collision detection (default 64)
 	 *
-	 * @since v2001.0
+	 * @since v3000.0
 	 */
 	hashGridSize?: number,
 	/**
@@ -2110,9 +2242,21 @@ export interface KaboomOpt {
 	/**
 	 * If kaboom should render a default loading screen when assets are not fully ready (default true).
 	 *
-	 * @since v2001.0
+	 * @since v3000.0
 	 */
 	loadingScreen?: boolean,
+	/**
+	 * If enable virtual controls for mobile (default false).
+	 *
+	 * @since v3000.0
+	 */
+	virtualControls?: boolean,
+	/**
+	 * If pause audio when tab is not active (default false).
+	 *
+	 * @since v3000.0
+	 */
+	backgroundAudio?: boolean,
 	/**
 	 * If import all kaboom functions to global (default true).
 	 */
@@ -2136,7 +2280,7 @@ export interface GameObjRaw {
 	/**
 	 * Add a child.
 	 *
-	 * @since v2001.0
+	 * @since v3000.0
 	 */
 	add<T>(comps: CompList<T> | GameObj<T>): GameObj<T>,
 	/**
@@ -2146,49 +2290,49 @@ export interface GameObjRaw {
 	/**
 	 * Remove a child.
 	 *
-	 * @since v2001.0
+	 * @since v3000.0
 	 */
 	remove(obj: GameObj): void,
 	/**
 	 * Remove all children with a certain tag.
 	 *
-	 * @since v2001.0
+	 * @since v3000.0
 	 */
 	removeAll(tag: Tag): void,
 	/**
 	 * Get a list of all game objs with certain tag.
 	 *
-	 * @since v2001.0
+	 * @since v3000.0
 	 */
 	get(tag?: Tag | Tag[]): GameObj[],
 	/**
 	 * Recursively a list of all game objs with certain tag including children of children.
 	 *
-	 * @since v2001.0
+	 * @since v3000.0
 	 */
 	getAll(tag?: Tag | Tag[]): GameObj[],
 	/**
 	 * Get the parent game obj, if have any.
 	 *
-	 * @since v2001.0
+	 * @since v3000.0
 	 */
 	parent: GameObj | null,
 	/**
 	 * Get all children game objects.
 	 *
-	 * @since v2001.0
+	 * @since v3000.0
 	 */
 	children: GameObj[],
 	/**
 	 * Update this game object and all children game objects.
 	 *
-	 * @since v2001.0
+	 * @since v3000.0
 	 */
 	update(): void,
 	/**
 	 * Draw this game object and all children game objects.
 	 *
-	 * @since v2001.0
+	 * @since v3000.0
 	 */
 	draw(): void,
 	/**
@@ -2208,7 +2352,7 @@ export interface GameObjRaw {
 	/**
 	 * Register an event.
 	 */
-	on(event: string, action: () => void): EventCanceller,
+	on(event: string, action: (...args) => void): EventController,
 	/**
 	 * Trigger an event.
 	 */
@@ -2230,19 +2374,19 @@ export interface GameObjRaw {
 	 *
 	 * @since v2000.1
 	 */
-	onUpdate(action: () => void): EventCanceller,
+	onUpdate(action: () => void): EventController,
 	/**
 	 * Register an event that runs every frame as long as the game obj exists (this is the same as `onUpdate()`, but all draw events are run after all update events).
 	 *
 	 * @since v2000.1
 	 */
-	onDraw(action: () => void): EventCanceller,
+	onDraw(action: () => void): EventController,
 	/**
 	 * Register an event that runs when the game obj is destroyed.
 	 *
 	 * @since v2000.1
 	 */
-	onDestroy(action: () => void): EventCanceller,
+	onDestroy(action: () => void): EventController,
 	/**
 	 * If game obj is attached to the scene graph.
 	 */
@@ -2250,13 +2394,13 @@ export interface GameObjRaw {
 	/**
 	 * Check if is an ancestor (recursive parent) of another game object
 	 *
-	 * @since v2001.0
+	 * @since v3000.0
 	 */
 	isAncestorOf(obj: GameObj): boolean,
 	/**
 	 * Calculated transform matrix of a game object.
 	 *
-	 * @since v2001.0
+	 * @since v3000.0
 	 */
 	transform: Mat4,
 	/**
@@ -2270,7 +2414,7 @@ export interface GameObjRaw {
 	/**
 	 * A unique number ID for each game object in each kaboom instance.
 	 */
-	id: number | null,
+	id: GameObjID | null,
 }
 
 /**
@@ -2280,11 +2424,6 @@ export type GameObj<T = any> = GameObjRaw & MergeComps<T>
 
 export type SceneID = string
 export type SceneDef = (...args) => void
-
-/**
- * Cancel the event.
- */
-export type EventCanceller = () => void
 
 /**
  * Screen recording control handle.
@@ -2301,7 +2440,7 @@ export interface Recording {
 	/**
 	 * Stop the recording and get the video data as mp4 Blob.
 	 *
-	 * @since v2001.0
+	 * @since v3000.0
 	 */
 	stop(): Promise<Blob>,
 	/**
@@ -2375,6 +2514,7 @@ export type SpriteAnims = Record<string, SpriteAnim>
  * Sprite loading configuration.
  */
 export interface LoadSpriteOpt {
+	frames?: Quad[],
 	sliceX?: number,
 	sliceY?: number,
 	anims?: SpriteAnims,
@@ -2405,6 +2545,12 @@ export interface SpriteAtlasEntry {
 	 */
 	height: number,
 	/**
+	 * Individual frames.
+	 *
+	 * @since v3000.0
+	 */
+	frames?: Quad[],
+	/**
 	 * If the defined area contains multiple sprites, how many frames are in the area hozizontally.
 	 */
 	sliceX?: number,
@@ -2418,6 +2564,7 @@ export interface SpriteAtlasEntry {
 	anims?: SpriteAnims,
 }
 
+// TODO: use PromiseLike or extend Promise?
 export declare class Asset<D> {
 	done: boolean
 	data: D | null
@@ -2439,6 +2586,7 @@ export declare class SpriteData {
 	frames: Quad[]
 	anims: SpriteAnims
 	constructor(tex: Texture, frames?: Quad[], anims?: SpriteAnims)
+	static from(src: LoadSpriteSrc, opt?: LoadSpriteOpt): Promise<SpriteData>
 	static fromImage(data: TexImageSource, opt?: LoadSpriteOpt): SpriteData
 	static fromURL(url: string, opt?: LoadSpriteOpt): Promise<SpriteData>
 }
@@ -2450,13 +2598,13 @@ export declare class SoundData {
 	static fromURL(url: string): Promise<SoundData>
 }
 
-export interface LoadBitmapFontOpt {
-	chars?: string,
+export interface LoadFontOpt {
 	filter?: TexFilter,
 }
 
-export interface SoundData {
-	buf: AudioBuffer,
+export interface LoadBitmapFontOpt {
+	chars?: string,
+	filter?: TexFilter,
 }
 
 export type FontData = FontFace
@@ -2577,6 +2725,7 @@ export type TextureOpt = {
 
 export declare class Texture {
 	glTex: WebGLTexture
+	src: null | TexImageSource
 	width: number
 	height: number
 	constructor(w: number, h: number, opt?: TextureOpt)
@@ -2618,6 +2767,7 @@ export interface RenderProps {
 	fixed?: boolean,
 	shader?: string | ShaderData | Asset<ShaderData>,
 	uniform?: Uniform,
+	outline?: Outline,
 }
 
 /**
@@ -2657,9 +2807,9 @@ export type DrawSpriteOpt = RenderProps & {
 	 */
 	quad?: Quad,
 	/**
-	 * The origin point, or the pivot point. Default to "topleft".
+	 * The anchor point, or the pivot point. Default to "topleft".
 	 */
-	origin?: Origin | Vec2,
+	anchor?: Anchor | Vec2,
 }
 
 export type DrawUVQuadOpt = RenderProps & {
@@ -2688,9 +2838,9 @@ export type DrawUVQuadOpt = RenderProps & {
 	 */
 	quad?: Quad,
 	/**
-	 * The origin point, or the pivot point. Default to "topleft".
+	 * The anchor point, or the pivot point. Default to "topleft".
 	 */
-	origin?: Origin | Vec2,
+	anchor?: Anchor | Vec2,
 }
 
 /**
@@ -2706,19 +2856,15 @@ export type DrawRectOpt = RenderProps & {
 	 */
 	height: number,
 	/**
-	 * If draw an outline around the shape.
-	 */
-	outline?: Outline,
-	/**
 	 * Use gradient instead of solid color.
 	 *
-	 * @since v2001.0
+	 * @since v3000.0
 	 */
 	gradient?: [Color, Color],
 	/**
 	 * If the gradient should be horizontal.
 	 *
-	 * @since v2001.0
+	 * @since v3000.0
 	 */
 	horizontal?: boolean,
 	/**
@@ -2730,9 +2876,9 @@ export type DrawRectOpt = RenderProps & {
 	 */
 	radius?: number,
 	/**
-	 * The origin point, or the pivot point. Default to "topleft".
+	 * The anchor point, or the pivot point. Default to "topleft".
 	 */
-	origin?: Origin | Vec2,
+	anchor?: Anchor | Vec2,
 }
 
 /**
@@ -2753,6 +2899,12 @@ export type DrawLineOpt = Omit<RenderProps, "angle" | "scale"> & {
 	width?: number,
 }
 
+export type LineJoin =
+	| "none"
+	| "round"
+	| "bevel"
+	| "miter"
+
 /**
  * How the lines should look like.
  */
@@ -2769,6 +2921,10 @@ export type DrawLinesOpt = Omit<RenderProps, "angle" | "scale"> & {
 	 * The radius of each corner.
 	 */
 	radius?: number,
+	/**
+	 * Line join style (default "none").
+	 */
+	join?: LineJoin,
 }
 
 /**
@@ -2787,10 +2943,6 @@ export type DrawTriangleOpt = RenderProps & {
 	 * Third point of triangle.
 	 */
 	p3: Vec2,
-	/**
-	 * If draw an outline around the shape.
-	 */
-	outline?: Outline,
 	/**
 	 * If fill the shape with color (set this to false if you only want an outline).
 	 */
@@ -2818,17 +2970,13 @@ export type DrawCircleOpt = Omit<RenderProps, "angle"> & {
 	 */
 	end?: number,
 	/**
-	 * If draw an outline around the shape.
-	 */
-	outline?: Outline,
-	/**
 	 * If fill the shape with color (set this to false if you only want an outline).
 	 */
 	fill?: boolean,
 	/**
 	 * Use gradient instead of solid color.
 	 *
-	 * @since v2001.0
+	 * @since v3000.0
 	 */
 	gradient?: [Color, Color],
 	/**
@@ -2836,9 +2984,9 @@ export type DrawCircleOpt = Omit<RenderProps, "angle"> & {
 	 */
 	resolution?: number,
 	/**
-	 * The origin point, or the pivot point. Default to "topleft".
+	 * The anchor point, or the pivot point. Default to "topleft".
 	 */
-	origin?: Origin | Vec2,
+	anchor?: Anchor | Vec2,
 }
 
 /**
@@ -2862,17 +3010,13 @@ export type DrawEllipseOpt = RenderProps & {
 	 */
 	end?: number,
 	/**
-	 * If draw an outline around the shape.
-	 */
-	outline?: Outline,
-	/**
 	 * If fill the shape with color (set this to false if you only want an outline).
 	 */
 	fill?: boolean,
 	/**
 	 * Use gradient instead of solid color.
 	 *
-	 * @since v2001.0
+	 * @since v3000.0
 	 */
 	gradient?: [Color, Color],
 	/**
@@ -2880,9 +3024,9 @@ export type DrawEllipseOpt = RenderProps & {
 	 */
 	resolution?: number,
 	/**
-	 * The origin point, or the pivot point. Default to "topleft".
+	 * The anchor point, or the pivot point. Default to "topleft".
 	 */
-	origin?: Origin | Vec2,
+	anchor?: Anchor | Vec2,
 }
 
 /**
@@ -2893,10 +3037,6 @@ export type DrawPolygonOpt = RenderProps & {
 	 * The points that make up the polygon
 	 */
 	pts: Vec2[],
-	/**
-	 * If draw an outline around the shape.
-	 */
-	outline?: Outline,
 	/**
 	 * If fill the shape with color (set this to false if you only want an outline).
 	 */
@@ -2916,7 +3056,7 @@ export type DrawPolygonOpt = RenderProps & {
 	/**
 	 * The color of each vertice.
 	 *
-	 * @since v2001.0
+	 * @since v3000.0
 	 */
 	colors?: Color[],
 }
@@ -2930,6 +3070,12 @@ export interface Outline {
 	 * The color of the line.
 	 */
 	color?: Color,
+	/**
+	 * Line join.
+	 *
+	 * @since v3000.0
+	 */
+	join?: LineJoin,
 }
 
 export type TextAlign =
@@ -2956,7 +3102,7 @@ export type DrawTextOpt = RenderProps & {
 	/**
 	 * Text alignment (default "left")
 	 *
-	 * @since v2001.0
+	 * @since v3000.0
 	 */
 	align?: TextAlign,
 	/**
@@ -2976,9 +3122,9 @@ export type DrawTextOpt = RenderProps & {
 	 */
 	letterSpacing?: number,
 	/**
-	 * The origin point, or the pivot point. Default to "topleft".
+	 * The anchor point, or the pivot point. Default to "topleft".
 	 */
-	origin?: Origin | Vec2,
+	anchor?: Anchor | Vec2,
 	/**
 	 * Transform the pos, scale, rotation or color for each character based on the index or char (only available for bitmap fonts).
 	 *
@@ -3074,7 +3220,7 @@ export type Cursor =
 	| "zoom-int"
 	| "zoom-out"
 
-export type Origin =
+export type Anchor =
 	"topleft"
 	| "top"
 	| "topright"
@@ -3121,6 +3267,12 @@ export declare class Vec2 {
 	 * Get distance between another vector.
 	 */
 	dist(p: Vec2): number
+	/**
+	 * Get squared distance between another vector.
+	 *
+	 * @since v3000.0
+	 */
+	sdist(p: Vec2): number
 	len(): number
 	/**
 	 * Get the unit vector (length of 1).
@@ -3141,13 +3293,19 @@ export declare class Vec2 {
 	/**
 	 * If both x and y is 0.
 	 *
-	 * @since v2001.0
+	 * @since v3000.0
 	 */
 	isZero(): boolean
 	/**
 	 * To n precision floating point.
 	 */
 	toFixed(n: number): Vec2
+	/**
+	 * Multiply by a Mat4.
+	 *
+	 * @since v3000.0
+	 */
+	transform(n: Mat4): Vec2
 	eq(p: Vec2): boolean
 	toString(): string
 }
@@ -3177,14 +3335,10 @@ export declare class Mat4 {
 	static rotateZ(a: number): Mat4
 	clone(): Mat4
 	mult(other: Mat4): Mat4
-	multVec4(p: Vec4): Vec4
-	multVec3(p: Vec3): Vec3
 	multVec2(p: Vec2): Vec2
 	translate(p: Vec2): Mat4
 	scale(s: Vec2): Mat4
-	rotateX(a: number): Mat4
-	rotateY(a: number): Mat4
-	rotateZ(a: number): Mat4
+	rotate(a: number): Mat4
 	invert(): Mat4
 	toString(): string
 }
@@ -3207,6 +3361,20 @@ export declare class Color {
 	b: number
 	constructor(r: number, g: number, b: number)
 	static fromArray(arr: number[]): Color
+	static fromHSL(h: number, s: number, l: number): Color
+	/**
+	 * Create color from hex string or literal.
+	 *
+	 * @since v3000.0
+	 *
+	 * @example
+	 * ```js
+	 * Color.fromHex(0xfcef8d)
+	 * Color.fromHex("#5ba675")
+	 * Color.fromHex("d46eb3")
+	 * ```
+	 */
+	static fromHex(hex: number | string): Color
 	static RED: Color
 	static GREEN: Color
 	static BLUE: Color
@@ -3228,6 +3396,12 @@ export declare class Color {
 	mult(other: Color): Color
 	eq(c: Color): boolean
 	toString(): string
+	/**
+	 * Return the hex string of color.
+	 *
+	 * @since v3000.0
+	 */
+	toHex(): string
 }
 
 export declare class Quad {
@@ -3263,6 +3437,9 @@ export declare class Rect {
 	points(): [Vec2, Vec2, Vec2, Vec2]
 	transform(m: Mat4): Polygon
 	bbox(): Rect
+	clone(): Rect
+	distToPoint(p: Vec2): number
+	sdistToPoint(p: Vec2): number
 }
 
 export declare class Line {
@@ -3271,6 +3448,7 @@ export declare class Line {
 	constructor(p1: Vec2, p2: Vec2)
 	transform(m: Mat4): Line
 	bbox(): Rect
+	clone(): Line
 }
 
 export declare class Circle {
@@ -3279,6 +3457,7 @@ export declare class Circle {
 	constructor(pos: Vec2, radius: number)
 	transform(m: Mat4): Ellipse
 	bbox(): Rect
+	clone(): Circle
 }
 
 export declare class Ellipse {
@@ -3288,6 +3467,7 @@ export declare class Ellipse {
 	constructor(pos: Vec2, rx: number, ry: number)
 	transform(m: Mat4): Ellipse
 	bbox(): Rect
+	clone(): Ellipse
 }
 
 export declare class Polygon {
@@ -3295,17 +3475,10 @@ export declare class Polygon {
 	constructor(pts: Vec2[])
 	transform(m: Mat4): Polygon
 	bbox(): Rect
+	clone(): Polygon
 }
 
-export declare class Point {
-	x: number
-	y: number
-	constructor(x: number, y: number)
-	static fromVec2(p: Vec2): Point
-	toVec2(): Vec2
-	transform(tr: Mat4): Point
-	bbox(): Rect
-}
+export type Point = Vec2
 
 export declare class RNG {
 	seed: number
@@ -3349,7 +3522,7 @@ export interface Comp {
 	/**
 	 * Draw debug info in inspect mode
 	 *
-	 * @since v2001.0
+	 * @since v3000.0
 	 */
 	drawInspect?: () => void,
 }
@@ -3387,10 +3560,13 @@ export interface PosComp extends Comp {
 }
 
 export interface ScaleComp extends Comp {
-	scale: Vec2 | number,
+	scale: Vec2,
 	scaleTo(s: number): void,
 	scaleTo(s: Vec2): void,
 	scaleTo(sx: number, sy: number): void,
+	scaleBy(s: number): void,
+	scaleBy(s: Vec2): void,
+	scaleBy(sx: number, sy: number): void,
 }
 
 export interface RotateComp extends Comp {
@@ -3399,13 +3575,15 @@ export interface RotateComp extends Comp {
 	 */
 	angle: number,
 	/**
-	 * Rotate in degrees (in angle per second, dt multiplied)
-	 */
-	rotate(angle: number): void,
-	/**
-	 * Rotate in degrees (without dt multiplied, directly adding angle to current angle)
+	 * Rotate in degrees.
 	 */
 	rotateBy(angle: number): void,
+	/**
+	 * Rotate to a degree (like directly assign to .angle)
+	 *
+	 * @since v3000.0
+	 */
+	rotateTo(s: number): void,
 }
 
 export interface ColorComp extends Comp {
@@ -3414,13 +3592,23 @@ export interface ColorComp extends Comp {
 
 export interface OpacityComp extends Comp {
 	opacity: number,
+	fadeOut(time?: number, easeFunc?: EaseFunc): TweenController,
 }
 
-export interface OriginComp extends Comp {
+export interface OpacityOpt {
 	/**
-	 * Origin point for render.
+	 * Fade in n seconds when object is added to scene.
+	 *
+	 * @since v3000.0
 	 */
-	origin: Origin | Vec2,
+	fadeIn?: number,
+}
+
+export interface AnchorComp extends Comp {
+	/**
+	 * Anchor point for render.
+	 */
+	anchor: Anchor | Vec2,
 }
 
 export interface ZComp extends Comp {
@@ -3439,7 +3627,7 @@ export interface FollowComp extends Comp {
 
 export type MoveComp = Comp
 
-export interface OutviewCompOpt {
+export interface OffScreenCompOpt {
 	/**
 	 * If hide object when out of view.
 	 */
@@ -3453,54 +3641,27 @@ export interface OutviewCompOpt {
 	 */
 	destroy?: boolean,
 	/**
-	 * The screen bound offset.
+	 * The distance when out of view is triggered (default 64).
+	 *
+	 * @since v3000.0
 	 */
-	offset?: number | Vec2,
-	/**
-	 * If it needs to stay out of view for a period of time before proceed to action.
-	 */
-	delay?: number,
-	/**
-	 * Register an event that runs when object goes out of view.
-	 */
-	onExitView?: () => void,
-	/**
-	 * Register an event that runs when object enters view.
-	 */
-	onEnterView?: () => void,
+	distance?: number,
 }
 
-export interface OutviewComp extends Comp {
+export interface OffScreenComp extends Comp {
 	/**
 	 * If object is currently out of view.
 	 */
-	isOutOfView(): boolean,
+	isOffScreen(): boolean,
 	/**
 	 * Register an event that runs when object goes out of view.
 	 */
-	onExitView(action: () => void): EventCanceller,
+	onExitScreen(action: () => void): EventController,
 	/**
 	 * Register an event that runs when object enters view.
 	 */
-	onEnterView(action: () => void): EventCanceller,
+	onEnterScreen(action: () => void): EventController,
 }
-
-export interface CleanupCompOpt {
-	/**
-	 * The screen bound offset.
-	 */
-	offset?: number | Vec2,
-	/**
-	 * If it needs to stay out of view for a period of time before proceed to destroy.
-	 */
-	delay?: number,
-	/**
-	 * Register an event that runs when object gets cleaned up.
-	 */
-	onCleanup?: () => void,
-}
-
-export type CleanupComp = Comp
 
 /**
  * Collision resolution data.
@@ -3518,6 +3679,16 @@ export interface Collision {
 	 * The displacement source game object have to make to avoid the collision.
 	 */
 	displacement: Vec2,
+	/**
+	 * If the collision is resolved.
+	 */
+	resolved: boolean,
+	/**
+	 * Prevent collision resolution if not yet resolved.
+	 *
+	 * @since v3000.0
+	 */
+	preventResolve(): void,
 	/**
 	 * Get a new collision with reversed source and target relationship.
 	 */
@@ -3560,7 +3731,7 @@ export interface AreaCompOpt {
 	/**
 	 * If this object should ignore collisions against certain other objects.
 	 *
-	 * @since v2001.0
+	 * @since v3000.0
 	 */
 	collisionIgnore?: Tag[],
 }
@@ -3590,10 +3761,15 @@ export interface AreaComp extends Comp {
 	/**
 	 * If this object should ignore collisions against certain other objects.
 	 *
-	 * @since v2001.0
+	 * @since v3000.0
 	 */
 	collisionIgnore: Tag[],
-	colliding: Record<number, Collision>,
+	/**
+	 * A list of all collisions happening at the moment.
+	 *
+	 * @since v3000.0
+	 */
+	colliding: Record<GameObjID, Collision>,
 	/**
 	 * If was just clicked on last frame.
 	 */
@@ -3605,7 +3781,7 @@ export interface AreaComp extends Comp {
 	/**
 	 * Check collision with another game obj.
 	 *
-	 * @since v2001.0
+	 * @since v3000.0
 	 * @returns The minimal displacement vector if collided
 	 */
 	checkCollision(other: GameObj<AreaComp>): Vec2 | null,
@@ -3616,7 +3792,7 @@ export interface AreaComp extends Comp {
 	/**
 	 * If is currently touching another game obj.
 	 */
-	isTouching(o: GameObj): boolean,
+	isTouching(o: GameObj<AreaComp>): boolean,
 	/**
 	 * Register an event runs when clicked.
 	 *
@@ -3624,15 +3800,27 @@ export interface AreaComp extends Comp {
 	 */
 	onClick(f: () => void): void,
 	/**
+	 * Register an event runs once when hovered.
+	 *
+	 * @since v3000.0
+	 */
+	onHover(action: () => void): EventController,
+	/**
 	 * Register an event runs every frame when hovered.
 	 *
-	 * @since v2000.1
+	 * @since v3000.0
 	 */
-	onHover(onHover: () => void, onNotHover?: () => void): void,
+	onHoverUpdate(action: () => void): EventController,
+	/**
+	 * Register an event runs once when unhovered.
+	 *
+	 * @since v3000.0
+	 */
+	onHoverEnd(action: () => void): EventController,
 	/**
 	 * Register an event runs once when collide with another game obj with certain tag.
 	 *
-	 * @since v2000.1
+	 * @since v2001.0
 	 */
 	onCollide(tag: Tag, f: (obj: GameObj, col?: Collision) => void): void,
 	/**
@@ -3644,27 +3832,27 @@ export interface AreaComp extends Comp {
 	/**
 	 * Register an event runs every frame when collide with another game obj with certain tag.
 	 *
-	 * @since v2001.0
+	 * @since v3000.0
 	 */
-	onCollisionActive(tag: Tag, f: (obj: GameObj, col?: Collision) => void): void,
+	onCollideUpdate(tag: Tag, f: (obj: GameObj, col?: Collision) => void): EventController,
 	/**
 	 * Register an event runs every frame when collide with another game obj.
 	 *
-	 * @since v2001.0
+	 * @since v3000.0
 	 */
-	onCollisionActive(f: (obj: GameObj, col?: Collision) => void): void,
+	onCollideUpdate(f: (obj: GameObj, col?: Collision) => void): EventController,
 	/**
 	 * Register an event runs once when stopped colliding with another game obj with certain tag.
 	 *
-	 * @since v2001.0
+	 * @since v3000.0
 	 */
-	onCollisionEnd(tag: Tag, f: (obj: GameObj) => void): void,
+	onCollideEnd(tag: Tag, f: (obj: GameObj) => void): EventController,
 	/**
 	 * Register an event runs once when stopped colliding with another game obj.
 	 *
-	 * @since v2001.0
+	 * @since v3000.0
 	 */
-	onCollisionEnd(f: (obj: GameObj) => void): void,
+	onCollideEnd(f: (obj: GameObj) => void): void,
 	/**
 	 * If has a certain point inside collider.
 	 */
@@ -3680,7 +3868,7 @@ export interface AreaComp extends Comp {
 	/**
 	 * Get the geometry data for the collider in local coordinate space.
 	 *
-	 * @since v2001.0
+	 * @since v3000.0
 	 */
 	localArea(): Shape,
 	/**
@@ -3715,7 +3903,7 @@ export interface SpriteCompOpt {
 	 */
 	anim?: string,
 	/**
-	 * Animation speed scale multiplier.
+	 * Speed multiplier for all animations (for the actual fps for an anim use .play("anim", { speed: 10 })).
 	 */
 	animSpeed?: number,
 	/**
@@ -3766,27 +3954,27 @@ export interface SpriteComp extends Comp {
 	 */
 	curAnim(): string,
 	/**
-	 * Frame animation speed scale multiplier.
+	 * Speed multiplier for all animations (for the actual fps for an anim use .play("anim", { speed: 10 })).
 	 */
 	animSpeed: number,
 	/**
 	 * Flip texture horizontally.
 	 */
-	flipX(b: boolean): void,
+	flipX: boolean,
 	/**
 	 * Flip texture vertically.
 	 */
-	flipY(b: boolean): void,
+	flipY: boolean,
 	/**
 	 * Register an event that runs when an animation is played.
 	 */
-	onAnimStart(name: string, action: () => void): EventCanceller,
+	onAnimStart(name: string, action: () => void): EventController,
 	/**
 	 * Register an event that runs when an animation is ended.
 	 */
-	onAnimEnd(name: string, action: () => void): EventCanceller,
+	onAnimEnd(name: string, action: () => void): EventController,
 	/**
-	 * @since v2001.0
+	 * @since v3000.0
 	 */
 	renderArea(): Rect,
 }
@@ -3815,7 +4003,7 @@ export interface TextComp extends Comp {
 	/**
 	 * Text alignment ("left", "center" or "right", default "left").
 	 *
-	 * @since v2001.0
+	 * @since v3000.0
 	 */
 	align: TextAlign,
 	/**
@@ -3843,7 +4031,7 @@ export interface TextComp extends Comp {
 	 */
 	textStyles: Record<string, CharTransform | CharTransformFunc>,
 	/**
-	 * @since v2001.0
+	 * @since v3000.0
 	 */
 	renderArea(): Rect,
 }
@@ -3864,7 +4052,7 @@ export interface TextCompOpt {
 	/**
 	 * Text alignment ("left", "center" or "right", default "left").
 	 *
-	 * @since v2001.0
+	 * @since v3000.0
 	 */
 	align?: TextAlign,
 	/**
@@ -3914,7 +4102,7 @@ export interface RectComp extends Comp {
 	 */
 	radius?: number,
 	/**
-	 * @since v2001.0
+	 * @since v3000.0
 	 */
 	renderArea(): Rect,
 }
@@ -3925,9 +4113,9 @@ export interface CircleComp extends Comp {
 	 */
 	radius: number,
 	/**
-	 * @since v2001.0
+	 * @since v3000.0
 	 */
-	renderArea(): Circle,
+	renderArea(): Rect,
 }
 
 export interface UVQuadComp extends Comp {
@@ -3940,7 +4128,7 @@ export interface UVQuadComp extends Comp {
 	 */
 	height: number,
 	/**
-	 * @since v2001.0
+	 * @since v3000.0
 	 */
 	renderArea(): Rect,
 }
@@ -3981,7 +4169,7 @@ export interface Debug {
 	/**
 	 * Total number of frames elapsed.
 	 *
-	 * @since v2001.0
+	 * @since v3000.0
 	 */
 	numFrames(): number,
 	/**
@@ -4013,7 +4201,8 @@ export interface Debug {
 }
 
 export type UniformValue =
-	Vec2
+	number
+	| Vec2
 	| Vec3
 	| Color
 	| Mat4
@@ -4044,6 +4233,12 @@ export interface BodyComp extends Comp {
 	 */
 	mass?: number,
 	/**
+	 * If object should move with moving platform (default true).
+	 *
+	 * @since v3000.0
+	 */
+	stickToPlatform?: boolean,
+	/**
 	 * Current platform landing on.
 	 */
 	curPlatform(): GameObj | null,
@@ -4062,53 +4257,64 @@ export interface BodyComp extends Comp {
 	/**
 	 * If currently rising.
 	 *
-	 * @since v2001.0
+	 * @since v3000.0
 	 */
-	isRising(): boolean,
+	isJumping(): boolean,
 	/**
 	 * Upward thrust.
 	 */
 	jump(force?: number): void,
 	/**
-	 * Performs double jump (the initial jump only happens if player is grounded).
-	 */
-	doubleJump(f?: number): void,
-	/**
 	 * Register an event that runs when a collision is resolved.
 	 *
-	 * @since v2001.0
+	 * @since v3000.0
 	 */
-	onCollisionResolve(action: (col: Collision) => void): EventCanceller,
+	onPhysicsResolve(action: (col: Collision) => void): EventController,
+	/**
+	 * Register an event that runs before a collision would be resolved.
+	 *
+	 * @since v3000.0
+	 */
+	onBeforePhysicsResolve(action: (col: Collision) => void): EventController,
 	/**
 	 * Register an event that runs when the object is grounded.
 	 *
 	 * @since v2000.1
 	 */
-	onGround(action: () => void): EventCanceller,
+	onGround(action: () => void): EventController,
 	/**
 	 * Register an event that runs when the object starts falling.
 	 *
 	 * @since v2000.1
 	 */
-	onFall(action: () => void): EventCanceller,
+	onFall(action: () => void): EventController,
 	/**
 	 * Register an event that runs when the object falls off platform.
 	 *
-	 * @since v2001.0
+	 * @since v3000.0
 	 */
-	onFallOff(action: () => void): EventCanceller,
+	onFallOff(action: () => void): EventController,
 	/**
 	 * Register an event that runs when the object bumps into something on the head.
 	 *
 	 * @since v2000.1
 	 */
-	onHeadbutt(action: () => void): EventCanceller,
+	onHeadbutt(action: () => void): EventController,
+}
+
+export interface DoubleJumpComp extends Comp {
+	/**
+	 * Number of jumps allowed.
+	 */
+	numJumps: number,
+	/**
+	 * Performs double jump (the initial jump only happens if player is grounded).
+	 */
+	doubleJump(force?: number): void,
 	/**
 	 * Register an event that runs when the object performs the second jump when double jumping.
-	 *
-	 * @since v2000.1
 	 */
-	onDoubleJump(action: () => void): EventCanceller,
+	onDoubleJump(action: () => void): EventController,
 }
 
 export interface BodyCompOpt {
@@ -4126,8 +4332,16 @@ export interface BodyCompOpt {
 	gravityScale?: number,
 	/**
 	 * If object is static, won't move, and all non static objects won't move past it.
+	 *
+	 * @since v3000.0
 	 */
 	isStatic?: boolean,
+	/**
+	 * If object should move with moving platform (default true).
+	 *
+	 * @since v3000.0
+	 */
+	stickToPlatform?: boolean,
 	/**
 	 * Decides how much objects can push another.
 	 */
@@ -4154,7 +4368,7 @@ export interface TimerComp extends Comp {
 	/**
 	 * Run the callback after n seconds.
 	 */
-	wait(n: number, action: () => void): EventCanceller,
+	wait(n: number, action: () => void): TimerController,
 }
 
 export interface FixedComp extends Comp {
@@ -4169,6 +4383,10 @@ export interface StayComp extends Comp {
 	 * If the obj should not be destroyed on scene switch.
 	 */
 	stay: boolean,
+	/**
+	 * Array of scenes that the obj will stay on.
+	 */
+	scenesToStay: string[],
 }
 
 export interface HealthComp extends Comp {
@@ -4193,21 +4411,22 @@ export interface HealthComp extends Comp {
 	 *
 	 * @since v2000.1
 	 */
-	onHurt(action: () => void): EventCanceller,
+	onHurt(action: () => void): EventController,
 	/**
 	 * Register an event that runs when heal() is called upon the object.
 	 *
 	 * @since v2000.1
 	 */
-	onHeal(action: () => void): EventCanceller,
+	onHeal(action: () => void): EventController,
 	/**
 	 * Register an event that runs when object's HP is equal or below 0.
 	 *
 	 * @since v2000.1
 	 */
-	onDeath(action: () => void): EventCanceller,
+	onDeath(action: () => void): EventController,
 }
 
+// TODO: this doesn't work
 export type LifespanComp = Comp
 
 export interface LifespanCompOpt {
@@ -4223,7 +4442,7 @@ export interface StateComp extends Comp {
 	 */
 	state: string,
 	/**
-	 * Enter a state, trigger onStateLeave for previous state and onStateEnter for the new State state.
+	 * Enter a state, trigger onStateEnd for previous state and onStateEnter for the new State state.
 	 */
 	enterState: (state: string, ...args) => void,
 	/**
@@ -4231,53 +4450,72 @@ export interface StateComp extends Comp {
 	 *
 	 * @since v2000.2
 	 */
-	onStateTransition(from: string, to: string, action: () => void): EventCanceller,
+	onStateTransition(from: string, to: string, action: () => void): EventController,
 	/**
 	 * Register event that runs once when enters a specific state. Accepts arguments passed from `enterState(name, ...args)`.
 	 */
-	onStateEnter: (state: string, action: (...args) => void) => EventCanceller,
+	onStateEnter: (state: string, action: (...args) => void) => EventController,
 	/**
 	 * Register an event that runs once when leaves a specific state.
 	 */
-	onStateLeave: (state: string, action: () => void) => EventCanceller,
+	onStateEnd: (state: string, action: () => void) => EventController,
 	/**
 	 * Register an event that runs every frame when in a specific state.
 	 */
-	onStateUpdate: (state: string, action: () => void) => EventCanceller,
+	onStateUpdate: (state: string, action: () => void) => EventController,
 	/**
 	 * Register an event that runs every frame when in a specific state.
 	 */
-	onStateDraw: (state: string, action: () => void) => EventCanceller,
+	onStateDraw: (state: string, action: () => void) => EventController,
 }
 
 export interface LevelOpt {
 	/**
 	 * Width of each block.
 	 */
-	width: number,
+	tileWidth: number,
 	/**
 	 * Height of each block.
 	 */
-	height: number,
+	tileHeight: number,
 	/**
 	 * Position of the first block.
 	 */
 	pos?: Vec2,
 	/**
-	 * Called when encountered an undefined symbol.
+	 * Definition of each tile.
 	 */
-	any?: (s: string, pos: Vec2) => CompList<any> | undefined,
-	// TODO: should return CompList<any>
-	[sym: string]: any,
+	tiles: {
+		[sym: string]: (pos: Vec2) => CompList<any>,
+	},
+	/**
+	 * Called when encountered a symbol not defined in "tiles".
+	 */
+	wildcardTile?: (sym: string, pos: Vec2) => CompList<any> | null | undefined,
+}
+
+export interface TileComp extends Comp {
+	tilePos: Vec2,
+	setTilePos(...args),
+	moveLeft(),
+	moveRight(),
+	moveUp(),
+	moveDown(),
+}
+
+export interface ObstacleComp extends Comp {
+	isObstacle: boolean,
 }
 
 export interface LevelComp extends Comp {
-	gridWidth(): number,
-	gridHeight(): number,
+	tileWidth(): number,
+	tileHeight(): number,
 	getPos(p: Vec2): Vec2,
 	getPos(x: number, y: number): Vec2,
 	spawn(sym: string, p: Vec2): GameObj,
 	spawn(sym: string, x: number, y: number): GameObj,
+	numRows(): number,
+	numColumns(): number,
 	levelWidth(): number,
 	levelHeight(): number,
 }
@@ -4292,13 +4530,107 @@ export interface BoomOpt {
 	 */
 	scale?: number,
 	/**
-	 * Additional ka components.
+	 * Additional components.
+	 *
+	 * @since v3000.0
 	 */
-	kaComps?: () => CompList<any>,
+	comps?: CompList<any>,
+}
+
+export type VirtualButton =
+	| "a"
+	| "b"
+	| "left"
+	| "right"
+	| "up"
+	| "down"
+
+export type EaseFuncs =
+	| "linear"
+	| "easeInSine"
+	| "easeOutSine"
+	| "easeInOutSine"
+	| "easeInQuad"
+	| "easeOutQuad"
+	| "easeInOutQuad"
+	| "easeInCubic"
+	| "easeOutCubic"
+	| "easeInOutCubic"
+	| "easeInQuart"
+	| "easeOutQuart"
+	| "easeInOutQuart"
+	| "easeInQuint"
+	| "easeOutQuint"
+	| "easeInOutQuint"
+	| "easeInExpo"
+	| "easeOutExpo"
+	| "easeInOutExpo"
+	| "easeInCirc"
+	| "easeOutCirc"
+	| "easeInOutCirc"
+	| "easeInBack"
+	| "easeOutBack"
+	| "easeInOutBack"
+	| "easeInElastic"
+	| "easeOutElastic"
+	| "easeInOutElastic"
+	| "easeInBounce"
+	| "easeOutBounce"
+	| "easeInOutBounce"
+
+export type EaseFunc = (t: number) => number
+
+// TODO: use PromiseLike or extend Promise?
+export type TimerController = {
 	/**
-	 * Additional boom components.
+	 * If the event handler is paused.
 	 */
-	boomComps?: () => CompList<any>,
+	paused: boolean,
+	/**
+	 * Cancel the event handler.
+	 */
+	cancel(): void,
+	/**
+	 * Register an event when finished.
+	 */
+	onFinish(action: () => void): void,
+	then(action: () => void): TimerController,
+}
+
+export type TweenController = TimerController & {
+	/**
+	 * Finish the tween now and cancel.
+	 */
+	finish(): void,
+}
+
+export type EventController = {
+	/**
+	 * If the event handler is paused.
+	 */
+	paused: boolean,
+	/**
+	 * Cancel the event handler.
+	 */
+	cancel(): void,
+}
+
+export declare class Event<Args extends any[] = any[]> {
+	add(action: (...args: Args) => void): EventController
+	addOnce(action: (...args) => void): EventController
+	next(): Promise<Args>
+	trigger(...args: Args)
+	numListeners(): number
+}
+
+export declare class EventHandler<E = string> {
+	on(name: E, action: (...args) => void): EventController
+	onOnce(name: E, action: (...args) => void): EventController
+	next(name: E): Promise<unknown>
+	trigger(name: E, ...args)
+	remove(name: E)
+	clear()
+	numListeners(name: E): number
 }
 
 export default kaboom

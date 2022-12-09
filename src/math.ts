@@ -1,5 +1,6 @@
 import {
 	Vec4,
+	Point,
 	RNGValue,
 } from "./types"
 
@@ -87,11 +88,16 @@ export class Vec2 {
 			+ (this.y - p2.y) * (this.y - p2.y),
 		)
 	}
+	sdist(...args): number {
+		const p2 = vec2(...args)
+		return (this.x - p2.x) * (this.x - p2.x) + (this.y - p2.y) * (this.y - p2.y)
+	}
 	len(): number {
 		return this.dist(new Vec2(0, 0))
 	}
 	unit(): Vec2 {
-		return this.scale(1 / this.len())
+		const len = this.len()
+		return len === 0 ? new Vec2(0) : this.scale(1 / len)
 	}
 	normal(): Vec2 {
 		return new Vec2(this.y, -this.x)
@@ -111,6 +117,9 @@ export class Vec2 {
 	}
 	toFixed(n: number): Vec2 {
 		return new Vec2(Number(this.x.toFixed(n)), Number(this.y.toFixed(n)))
+	}
+	transform(m: Mat4): Vec2 {
+		return m.multVec2(this)
 	}
 	eq(other: Vec2): boolean {
 		return this.x === other.x && this.y === other.y
@@ -163,6 +172,48 @@ export class Color {
 		return new Color(arr[0], arr[1], arr[2])
 	}
 
+	static fromHex(hex: string | number) {
+		if (typeof hex === "number") {
+			return new Color(
+				(hex >> 16) & 0xff,
+				(hex >> 8) & 0xff,
+				(hex >> 0) & 0xff,
+			)
+		} else {
+			const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex)
+			return new Color(
+				parseInt(result[1], 16),
+				parseInt(result[2], 16),
+				parseInt(result[3], 16),
+			)
+		}
+	}
+
+	static fromHSL(h: number, s: number, l: number) {
+
+		if (s == 0){
+			return rgb(255 * l, 255 * l, 255 * l)
+		}
+
+		const hue2rgb = (p, q, t) => {
+			if (t < 0) t += 1
+			if (t > 1) t -= 1
+			if (t < 1 / 6) return p + (q - p) * 6 * t
+			if (t < 1 / 2) return q
+			if (t < 2 / 3) return p + (q - p) * (2/3 - t) * 6
+			return p
+		}
+
+		const q = l < 0.5 ? l * (1 + s) : l + s - l * s
+		const p = 2 * l - q
+		const r = hue2rgb(p, q, h + 1 / 3)
+		const g = hue2rgb(p, q, h)
+		const b = hue2rgb(p, q, h - 1 / 3)
+
+		return new Color(Math.round(r * 255), Math.round(g * 255), Math.round(b * 255))
+
+	}
+
 	static RED = rgb(255, 0, 0)
 	static GREEN = rgb(0, 255, 0)
 	static BLUE = rgb(0, 0, 255)
@@ -207,29 +258,8 @@ export class Color {
 		return `rgb(${this.r}, ${this.g}, ${this.b})`
 	}
 
-	static fromHSL(h: number, s: number, l: number) {
-
-		if (s == 0){
-			return rgb(255 * l, 255 * l, 255 * l)
-		}
-
-		const hue2rgb = (p, q, t) => {
-			if (t < 0) t += 1
-			if (t > 1) t -= 1
-			if (t < 1 / 6) return p + (q - p) * 6 * t
-			if (t < 1 / 2) return q
-			if (t < 2 / 3) return p + (q - p) * (2/3 - t) * 6
-			return p
-		}
-
-		const q = l < 0.5 ? l * (1 + s) : l + s - l * s
-		const p = 2 * l - q
-		const r = hue2rgb(p, q, h + 1 / 3)
-		const g = hue2rgb(p, q, h)
-		const b = hue2rgb(p, q, h - 1 / 3)
-
-		return new Color(Math.round(r * 255), Math.round(g * 255), Math.round(b * 255))
-
+	toHex(): string {
+		return "#" + ((1 << 24) + (this.r << 16) + (this.g << 8) + this.b).toString(16).slice(1)
 	}
 
 }
@@ -322,54 +352,76 @@ export class Mat4 {
 
 	static rotateX(a: number): Mat4 {
 		a = deg2rad(-a)
+		const c = Math.cos(a)
+		const s = Math.sin(a)
 		return new Mat4([
 			1, 0, 0, 0,
-			0, Math.cos(a), -Math.sin(a), 0,
-			0, Math.sin(a), Math.cos(a), 0,
+			0, c, -s, 0,
+			0, s, c, 0,
 			0, 0, 0, 1,
 		])
 	}
 
 	static rotateY(a: number): Mat4 {
 		a = deg2rad(-a)
+		const c = Math.cos(a)
+		const s = Math.sin(a)
 		return new Mat4([
-			Math.cos(a), 0, Math.sin(a), 0,
+			c, 0, s, 0,
 			0, 1, 0, 0,
-			-Math.sin(a), 0, Math.cos(a), 0,
+			-s, 0, c, 0,
 			0, 0, 0, 1,
 		])
 	}
 
 	static rotateZ(a: number): Mat4 {
 		a = deg2rad(-a)
+		const c = Math.cos(a)
+		const s = Math.sin(a)
 		return new Mat4([
-			Math.cos(a), -Math.sin(a), 0, 0,
-			Math.sin(a), Math.cos(a), 0, 0,
+			c, -s, 0, 0,
+			s, c, 0, 0,
 			0, 0, 1, 0,
 			0, 0, 0, 1,
 		])
 	}
 
-	translate(p: Vec2): Mat4 {
-		return this.mult(Mat4.translate(p))
+	translate(p: Vec2) {
+		this.m[12] += this.m[0] * p.x + this.m[4] * p.y
+		this.m[13] += this.m[1] * p.x + this.m[5] * p.y
+		this.m[14] += this.m[2] * p.x + this.m[6] * p.y
+		this.m[15] += this.m[3] * p.x + this.m[7] * p.y
+		return this
 	}
 
-	scale(s: Vec2): Mat4 {
-		return this.mult(Mat4.scale(s))
+	scale(p: Vec2) {
+		this.m[0] *= p.x
+		this.m[4] *= p.y
+		this.m[1] *= p.x
+		this.m[5] *= p.y
+		this.m[2] *= p.x
+		this.m[6] *= p.y
+		this.m[3] *= p.x
+		this.m[7] *= p.y
+		return this
 	}
 
-	rotateX(a: number): Mat4 {
-		return this.mult(Mat4.rotateX(a))
+	rotate(a: number): Mat4 {
+		a = deg2rad(-a)
+		const c = Math.cos(a)
+		const s = Math.sin(a)
+		const m0 = this.m[0]
+		const m1 = this.m[1]
+		const m4 = this.m[4]
+		const m5 = this.m[5]
+		this.m[0] = m0 * c + m1 * s
+		this.m[1] = -m0 * s + m1 * c
+		this.m[4] = m4 * c + m5 * s
+		this.m[5] = -m4 * s + m5 * c
+		return this
 	}
 
-	rotateY(a: number): Mat4 {
-		return this.mult(Mat4.rotateY(a))
-	}
-
-	rotateZ(a: number): Mat4 {
-		return this.mult(Mat4.rotateZ(a))
-	}
-
+	// TODO: in-place variant
 	mult(other: Mat4): Mat4 {
 
 		const out = []
@@ -388,29 +440,10 @@ export class Mat4 {
 
 	}
 
-	multVec4(p: Vec4): Vec4 {
-		return {
-			x: p.x * this.m[0] + p.y * this.m[4] + p.z * this.m[8] + p.w * this.m[12],
-			y: p.x * this.m[1] + p.y * this.m[5] + p.z * this.m[9] + p.w * this.m[13],
-			z: p.x * this.m[2] + p.y * this.m[6] + p.z * this.m[10] + p.w * this.m[14],
-			w: p.x * this.m[3] + p.y * this.m[7] + p.z * this.m[11] + p.w * this.m[15],
-		}
-	}
-
-	multVec3(p: Vec3): Vec3 {
-		const p4 = this.multVec4({
-			x: p.x,
-			y: p.y,
-			z: p.z,
-			w: 1.0,
-		})
-		return vec3(p4.x, p4.y, p4.z)
-	}
-
 	multVec2(p: Vec2): Vec2 {
-		return vec2(
-			p.x * this.m[0] + p.y * this.m[4] + 0 * this.m[8] + 1 * this.m[12],
-			p.x * this.m[1] + p.y * this.m[5] + 0 * this.m[9] + 1 * this.m[13],
+		return new Vec2(
+			p.x * this.m[0] + p.y * this.m[4] + this.m[12],
+			p.x * this.m[1] + p.y * this.m[5] + this.m[13],
 		)
 	}
 
@@ -475,7 +508,7 @@ export class Mat4 {
 	}
 
 	clone(): Mat4 {
-		return new Mat4(this.m)
+		return new Mat4([...this.m])
 	}
 
 	toString(): string {
@@ -620,7 +653,7 @@ export function testLineLine(l1: Line, l2: Line): Vec2 | null {
 }
 
 export function testRectLine(r: Rect, l: Line): boolean {
-	if (testRectPoint(r, Point.fromVec2(l.p1)) || testRectPoint(r, Point.fromVec2(l.p2))) {
+	if (testRectPoint(r, l.p1) || testRectPoint(r, l.p2)) {
 		return true
 	}
 	const pts = r.points()
@@ -648,7 +681,7 @@ export function testRectCircle(r: Rect, c: Circle): boolean {
 	const nx = Math.max(r.pos.x, Math.min(c.center.x, r.pos.x + r.width))
 	const ny = Math.max(r.pos.y, Math.min(c.center.y, r.pos.y + r.height))
 	const nearestPoint = vec2(nx, ny)
-	return nearestPoint.dist(c.center) <= c.radius
+	return nearestPoint.sdist(c.center) <= c.radius * c.radius
 }
 
 export function testRectPolygon(r: Rect, p: Polygon): boolean {
@@ -668,7 +701,7 @@ export function testLineCircle(l: Line, c: Circle): boolean {
 export function testLinePolygon(l: Line, p: Polygon): boolean {
 
 	// test if line is inside
-	if (testPolygonPoint(p, Point.fromVec2(l.p1)) || testPolygonPoint(p, Point.fromVec2(l.p2))) {
+	if (testPolygonPoint(p, l.p1) || testPolygonPoint(p, l.p2)) {
 		return true
 	}
 
@@ -686,11 +719,11 @@ export function testLinePolygon(l: Line, p: Polygon): boolean {
 }
 
 export function testCirclePoint(c: Circle, p: Point): boolean {
-	return c.center.dist(p) < c.radius
+	return c.center.sdist(p) < c.radius * c.radius
 }
 
 export function testCircleCircle(c1: Circle, c2: Circle): boolean {
-	return c1.center.dist(c2.center) < c1.radius + c2.radius
+	return c1.center.sdist(c2.center) < (c1.radius + c2.radius) * (c1.radius + c2.radius)
 }
 
 // TODO
@@ -734,14 +767,17 @@ export class Line {
 	p1: Vec2
 	p2: Vec2
 	constructor(p1: Vec2, p2: Vec2) {
-		this.p1 = p1
-		this.p2 = p2
+		this.p1 = p1.clone()
+		this.p2 = p2.clone()
 	}
 	transform(m: Mat4): Line {
 		return new Line(m.multVec2(this.p1), m.multVec2(this.p2))
 	}
 	bbox(): Rect {
 		return Rect.fromPoints(this.p1, this.p2)
+	}
+	clone(): Line {
+		return new Line(this.p1, this.p2)
 	}
 }
 
@@ -750,7 +786,7 @@ export class Rect {
 	width: number
 	height: number
 	constructor(pos: Vec2, width: number, height: number) {
-		this.pos = pos
+		this.pos = pos.clone()
 		this.width = width
 		this.height = height
 	}
@@ -772,7 +808,20 @@ export class Rect {
 		return new Polygon(this.points().map((pt) => m.multVec2(pt)))
 	}
 	bbox(): Rect {
+		return this.clone()
+	}
+	clone(): Rect {
 		return new Rect(this.pos.clone(), this.width, this.height)
+	}
+	distToPoint(p: Vec2): number {
+		return Math.sqrt(this.sdistToPoint(p))
+	}
+	sdistToPoint(p: Vec2): number {
+		const min = this.pos
+		const max = this.pos.add(this.width, this.height)
+		const dx = Math.max(min.x - p.x, 0, p.x - max.x)
+		const dy = Math.max(min.y - p.y, 0, p.y - max.y)
+		return dx * dx + dy * dy
 	}
 }
 
@@ -780,7 +829,7 @@ export class Circle {
 	center: Vec2
 	radius: number
 	constructor(center: Vec2, radius: number) {
-		this.center = center
+		this.center = center.clone()
 		this.radius = radius
 	}
 	transform(tr: Mat4): Ellipse {
@@ -792,6 +841,9 @@ export class Circle {
 			this.center.add(vec2(this.radius)),
 		)
 	}
+	clone(): Circle {
+		return new Circle(this.center, this.radius)
+	}
 }
 
 export class Ellipse {
@@ -799,7 +851,7 @@ export class Ellipse {
 	radiusX: number
 	radiusY: number
 	constructor(center: Vec2, rx: number, ry: number) {
-		this.center = center
+		this.center = center.clone()
 		this.radiusX = rx
 		this.radiusY = ry
 	}
@@ -815,6 +867,9 @@ export class Ellipse {
 			this.center.sub(vec2(this.radiusX, this.radiusY)),
 			this.center.add(vec2(this.radiusX, this.radiusY)),
 		)
+	}
+	clone(): Ellipse {
+		return new Ellipse(this.center, this.radiusX, this.radiusY)
 	}
 }
 
@@ -840,26 +895,8 @@ export class Polygon {
 		}
 		return Rect.fromPoints(p1, p2)
 	}
-}
-
-export class Point {
-	x: number
-	y: number
-	constructor(x: number, y: number) {
-		this.x = x
-		this.y = y
-	}
-	static fromVec2(p: Vec2): Point {
-		return new Point(p.x, p.y)
-	}
-	toVec2(): Vec2 {
-		return new Vec2(this.x, this.y)
-	}
-	transform(tr: Mat4): Point {
-		return Point.fromVec2(tr.multVec2(this.toVec2()))
-	}
-	bbox(): Rect {
-		return new Rect(this.toVec2(), 0, 0)
+	clone(): Polygon {
+		return new Polygon(this.pts.map((pt) => pt.clone()))
 	}
 }
 

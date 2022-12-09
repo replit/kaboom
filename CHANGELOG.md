@@ -1,47 +1,243 @@
-# v2001.0.0 "A Kaboom Odyssey"
+# v3000.0.0 (Unreleased)
 
-- (**BREAK**) removed all deprecated functions in v2000.2
-- game objects can have children with `obj.add()` now which share the parent transform
-- (**BREAK**) raised esbuild target to `esnext`
-- added `make()` to make a game object without adding to the scene
-- added support for `add()` to add unattached game objects to the scene `add(make([...comps]))`
+## Game Objects
+
+- added scene graph, game objects are now stored in a tree-like structure and can have children with `obj.add()`
+```js
+const bean = add([
+    sprite("bean"),
+    pos(160, 120),
+])
+
+const sword = bean.add([
+    sprite("sword"),
+    // transforms will be relative to parent bean object
+    pos(20, 20),
+    rotate(20),
+])
+
+const hat = bean.add([
+    sprite("hat"),
+    // transforms will be relative to parent bean object
+    pos(0, -10),
+])
+
+// children will be moved alongside the parent
+bean.moveBy(100, 200)
+
+// children will be destroyed alongside the parent
+bean.destroy()
+```
+- added `GameObj#getAll()` for recursively getting children game objects (`get()` only gets from direct children)
+- changed object update order from reversed to not reversed
+- (**BREAK**) removed `GameObj#every()` and `GameObj#revery()` in favor of `obj.get().forEach()`
+- (**BREAK**) renamed `GameObj#_id` to `GameObj#id`
+- (**BREAK**) `addLevel()` now returns a `GameObj` which has all individual grid objects as its children game objects, with `LevelComp` containing its previous methods
+
+## Components
+
+- added collision support for rotate shapes and polygons
+- added `Area#onCollideUpdate()` and `Area#onCollideEnd()` events
+- added `Area#onHover()` and `onHover()` to register an event that runs once when an object(s) is hovered
+- added `Area#onHoverEnd()` and `onHoverEnd()` to register an event that runs once when an object(s) stopped being hovered
+- (**BREAK**) renamed `onHover()` to `onHoverUpdate()` (it registers an event that runs every frame when an object is hovered)
+- added `Body#onFall()` which fires when object starts falling
+- added `Body#onPhysicsResolve()` and `Body#onBeforePhysicsResolve()` to register events relating to collision resolution
+- added `body({ stickToPlatform: false })` option to turn off object moving with platform
+- added `doubleJump()` component to enable double jump (or any number of jumps)
+- (**BREAK**) removed `Body#doubleJump()` in favor of `doubleJump()` component
+- (**BREAK**) renamed `Body#weight` to `Body#gravityScale`
+- (**BREAK**) renamed `Body#onFall()` to `Body#onFallOff()` which triggers when object fall off a platform
+- (**BREAK**) removed `solid()` in favor of `body({ isStatic: true })`
+- (**BREAK**) defining `gravity()` is now required for enabling gravity, `body()` by default will only prevent objects from going through each other
+- (**BREAK**) renamed `origin()` to `anchor()`, so it won't mess up typescript in global mode
+- (**BREAK**) `anchor` (previously `origin`) no longer controls text alignment, use `align` option instead
+- (**BREAK**) renamed `outview()` to `offscreen()`, and uses a much more performant check (but less accurate) for if object is offscreen
+  - removed `offset` option in favor of a simpler `distance` option
+  - renamed `onExitView()` and `onEnterView()` to `onExitScreen()` and `onEnterScreen()`
+- (**BREAK**) removed `cleanup()` component in favor of `offscreen({ destroy: true })`
+- added `OpacityComp#fadeOut()`
+- added `fadeIn()` component
+- `stay()` now accepts a list of scenes to stay for, like `stay(["gameover", "menu"])`
+- (**BREAK**) changed `SpriteComp#flipX` and `SpriteComp#flipY` to properties instead of functions
+- (**BREAK**) `ScaleComp#scale` will always be a `Vec2` not `number`
+
+## Assets
+
+- added `loadProgress()` that returns a `0.0 - 1.0` that indicates current asset loading progress
+- added option `loadingScreen` to `kaboom()` where you can turn off the default loading screen
+- added `onLoadUpdate()` to register a custom loading screen (see "loader" example)
+```js
+// custom loading screen
+onLoadUpdate((progress) => {
+    drawCircle({
+        pos: center(),
+        radius: 32,
+        end: map(progress, 0, 1, 0, 360),
+    })
+})
+```
+- added support for multiple sprite sources as frames in `loadSprite()`
+```js
+loadSprite("player", [
+    "sprites/player_idle.png",
+    "sprites/player_run.png",
+    "sprites/player_jump.png",
+])
+```
+- (**BREAK**) added `loadShaderURL()`, `loadShader()` now only load shader code not files
+
+## Font
+
+- added `loadFont()` to load `.ttf`, `.otf`, `.woff2` or any font supported by browser `FontFace`
+- (**BREAK**) renamed previous `loadFont()` to `loadBitmapFont()`
+- (**BREAK**) removed built-in `apl386`, `apl386o`, `sink`, `sinko` (still available under `examples/fonts`)
+- added default font `happy`
+- changed default font size to `36`
+
+## Graphics
+
+- fixed visual artifacts on text rendering
 - added `colors` option to `drawPolygon()` that controls the color of each corner
 - added `gradient` option to `drawRect()` that specifies the start and end color
-- added `loadProgress()` that returns a `0.0 - 1.0` that indicates current asset loading progress
-- added `kaboom()` option `loadingScreen` where you can turn off the default loading screen
 - added `drawMasked()` and `drawSubtracted()`
-- (**BREAK**) removed `layers()` in favor of parent game objects (see "layers" demo)
 - added `pushRotateX()`, `pushRotateY()` and `pushRotateZ()`
 - added `pixelDensity` option to `kaboom()`
-- added support for non bitmap fonts
-- (**BREAK**) rename `loadFont()` to `loadBitmapFont()`
-- added `loadFont()` to load `.ttf`, `.otf`, `.woff2` or any font supported by browser `FontFace`
-- (**BREAK**) `origin` no longer controls text alignment, use `align` option instead
-- added `quit()` to end everything
+- added `usePostEffect()` to add post process shader
+```js
+loadShader("invert", null, `
+vec4 frag(vec3 pos, vec2 uv, vec4 color, sampler2D tex) {
+    vec4 c = def_frag();
+    return vec4(1.0 - c.r, 1.0 - c.g, 1.0 - c.b, c.a);
+}
+`)
+
+usePostEffect("invert")
+```
 - shader error logs now yields the correct line number
-- changed object update order from reversed to not reversed
+
+## Audio
+
+- added option `kaboom({ backgroundAudio: false })` to not pause audio when tab not active
+
+## Input
+
+- added `onScroll(action: (delta: Vec2) => void)` to listen mouse wheel scroll
+- added virtual controls for mobile, enabled with `virtualControls: true` in `kaboom()`
+- added `isVirtualButtonPressed()`, `isVirtualButtonDown()`, `isVirtualButtonReleased()`
+- added `onVirtualButtonPress()`, `onVirtualButtonDown()`, `onVirtualButtonRelease()`
+- fixed touches not treated as mouse
+- (**BREAK**) changed `onTouchStart()`, `onTouchMove()` and `onTouchEnd()` callback signature to `(pos: Vec2, touch: Touch) => void` (exposes the native `Touch` object)
+
+## Level
+
+- (**BREAK**) changed `addLevel()` options API
+  - renamed `width` and `height` to `tileWidth` and `tileHeight`
+  - renamed `any` to `wildcardTile`
+  - now all tile symbols are defined in the `tiles` object
+
+```js
+addLevel([
+    "@  ^ $$",
+    "=======",
+], {
+    tileWidth: 32,
+    tileHeight: 32,
+    tiles: {
+        "=": () => [
+            sprite("grass"),
+            area(),
+            body({ isStatic: true }),
+        ],
+        "$": () => [
+            sprite("coin"),
+            area(),
+            "coin",
+        ],
+    },
+    wildcardTile: (symbol) => {
+        if (symbol === "@") {
+            return [ /* ... */ ]
+        }
+    },
+})
+```
+
+## Misc
+
+- sprites are now automatically packed, improving performance
+- (**BREAK**) removed all deprecated functions in v2000.2
+- (**BREAK**) raised esbuild target to `esnext`
+- moved type defs for global functions to `import "kaboom/global"`
+
+```js
+// if use global functions
+import "kaboom"
+import "kaboom/global" // required to load global types
+
+kaboom()
+
+// will have definition
+add()
+```
+```js
+// if don't use global function
+import "kaboom"
+
+kaboom({ global: false })
+
+// type error, won't pollute global namespace if not manually import "kaboom/global"
+add()
+```
+
+- added `tween()` for tweening, and a set of built-in easing functions in `easings`
+
+```js
+onMousePress(() => {
+	tween(bean.pos.x, mousePos().x, 1, (val) => bean.pos.x = val, easings.easeOutBounce)
+	tween(bean.pos.y, mousePos().y, 1, (val) => bean.pos.y = val, easings.easeOutBounce)
+})
+```
+
+- (**BREAK**) changed all event handlers to return a `EventController` object instead of a function to cancel event
+
+```js
+// previous
+const cancel = onUpdate(() => { /* ... */ })
+cancel()
+
+// now, can do more stuff
+const ev = onUpdate(() => { /* ... */ })
+ev.paused = true
+ev.cancel()
+```
+
+- timers can now be paused
+
+```js
+const timer = wait(4, () => { /* ... */ })
+timer.paused = true
+timer.resume()
+
+const timer = loop(1, () => { /* ... */ })
+timer.paused = true
+timer.resume()
+```
+
+- `kaboom()` now automatically focuses the canvas
+- added `quit()` to end everything
 - added `download()`, `downloadText()`, `downloadJSON()`, `downloadBlob()`
 - added `Recording#stop()` to stop the recording and returns the video data as mp4 Blob
 - added `debug.numFrames()` to get the total number of frames elapsed
-- fixed visual artifacts on text
 - added `onError()` to handle error or even custom error screen
-- added `onLoading()` to register a custom loading screen (see "loader" example)
-- fixed touches not treated as mouse
-- (**BREAK**) changed `onTouchStart()`, `onTouchMove()` and `onTouchEnd()` callback signature to `(pos: Vec2, touch: Touch) => void` (exposes the native `Touch` object)
 - added `onResize()` to register an event that runs when canvas resizes
-- (**BREAK**) `GameObj#_id` has been renamed to `GameObj#id`
-- (**BREAK**) removed `load()` event for components, use `onLoad()` in `add()` event
-- (**BREAK**) renamed `Body#onFall()` to `Body#onFallOff()` which triggers when object fall off a platform, added `Body#onFall()` which fires when object starts falling
-- (**BREAK**) `addLevel()` now returns a `GameObj` which has all individual grid objects as its children game objects, with `LevelComp` containing its previous methods
-- (**BREAK**) defining `gravity()` is now required for enabling gravity, `body()` by default will only prevent objects from going through each other, removed `solid()` in favor of `body({ isStatic: true })`
-- (**BREAK**) renamed `Body#weight` to `Body#gravityScale`
-- (**BREAK**) removed `GameObj#every()` and `GameObj#revery()` in favor of `obj.get().forEach()`
-- added `GameObj#getAll()` for recursively getting children game objects (`get()` only gets from direct children)
-- added `Area#onCollisionActive()` and `Area#onCollisionEnd()` events
-- removed `debug.objCount()` in favor of `getAll().length`
-- added `debug.numFrames()` to get the current frame count
 - (**BREAK**) renamed `cursor()` to `setCursor()`
 - (**BREAK**) renamed `fullscreen()` to `setFullscreen()`
+- (**BREAK**) renamed `isTouch()` to `isTouchScreen()`
+- (**BREAK**) removed `layers()` in favor of parent game objects (see "layers" example)
+- (**BREAK**) removed `load()` event for components, use `onLoad()` in `add()` event
+- (**BREAK**) removed `debug.objCount()` in favor of `getAll().length`
+- added `debug.numFrames()` to get the current frame count
 
 ### v2000.2.6
 

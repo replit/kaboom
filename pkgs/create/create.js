@@ -1,10 +1,14 @@
 #!/usr/bin/env node
 
-import fs from "fs";
+const VERSION = "2.4.1"
+
+import fs from "fs"
 import cp from "child_process"
 import https from "https"
 
+const cwd = process.cwd()
 const c = (n, msg) => `\x1b[${n}m${msg}\x1b[0m`
+const isWindows = /^win/.test(process.platform)
 
 const fail = (msg, ifHelp) => {
 	console.error(c(31, msg))
@@ -12,30 +16,28 @@ const fail = (msg, ifHelp) => {
 	process.exit(1)
 }
 
-const info = (msg) => {
-	console.log(`\x1b[33m${msg}\x1b[0m`)
-}
+const info = (msg) => console.log(c(33, msg))
 
 const optMap = [
-	{ long: "help", short: "h", desc: "Print this message", },
-	{ long: "typescript", short: "t", desc: "Use TypeScript", },
-	{ long: "start", short: "s", desc: "Start the dev server right away", },
-	{ long: "no-hmr", desc: "Don't use vite hmr / hot reload", },
-	{ long: "demo", short: "d", value: "name", desc: "Start from a demo listed on kaboomjs.com/play", },
-	{ long: "spaces", value: "num", desc: "Use spaces instead of tabs for generated files", },
-	{ long: "version", short: "v", value: "label", desc: "Use a specific kaboom version (default latest)", },
+	{ long: "help", short: "h", desc: "Print this message" },
+	{ long: "typescript", short: "t", desc: "Use TypeScript" },
+	{ long: "desktop", short: "d", desc: "Enable packaging for desktop release" },
+	{ long: "example", short: "e", value: "name", desc: "Start from a example listed on kaboomjs.com/play" },
+	{ long: "spaces", value: "level", desc: "Use spaces instead of tabs for generated files" },
+	{ long: "version", short: "v", value: "label", desc: "Use a specific kaboom version (default latest)" },
 ]
 
 // constructing help msg
 const optDisplay = optMap.map((opt) => ({
 	usage: `${opt.short ? `-${opt.short},` : "   "} --${opt.long}${opt.value ? ` <${opt.value}>` : ""}`,
 	desc: opt.desc,
-}));
+}))
 
-const usageLen = optDisplay.reduce((len, dis) => dis.usage.length > len ? dis.usage.length : len, 0)
+const usageLen = optDisplay
+	.reduce((len, dis) => dis.usage.length > len ? dis.usage.length : len, 0)
 
 const help = `
-create-kaboom v1.2.0
+create-kaboom v${VERSION}
 
 ${c(33, "USAGE")}
 
@@ -55,7 +57,7 @@ ${c(33, "EXAMPLE")}
   $ npm init kaboom mygame
 
   ${c(30, "# need to put all args after -- if using with npm init")}
-  $ npm init kaboom -- --typescript --demo burp mygame
+  $ npm init kaboom -- --typescript --example burp mygame
 
   ${c(30, "# if installed locally you don't need to use -- when passing options")}
   $ create-kaboom -t -s -d burp mygame
@@ -66,7 +68,7 @@ const args = []
 
 // process opts and args
 iterargs: for (let i = 2; i < process.argv.length; i++) {
-	const arg = process.argv[i];
+	const arg = process.argv[i]
 	if (arg.startsWith("-")) {
 		for (const opt of optMap) {
 			if (arg === `--${opt.long}` || arg === `-${opt.short}`) {
@@ -95,6 +97,7 @@ if (opts["help"]) {
 
 const dest = args[0]
 
+// TODO: interactive creation
 if (!dest) {
 	console.log(help)
 	process.exit()
@@ -104,31 +107,42 @@ if (fs.existsSync(dest)) {
 	fail(`Directory "${dest}" already exists!`)
 }
 
+const stringify = (obj) => JSON.stringify(obj, null, "\t")
 const ts = opts["typescript"]
+const desktop = opts["desktop"]
+const ext = ts ? "ts" : "js"
 
-const fetch = async (opt) => new Promise((resolve) => {
+const download = async (url, to) => new Promise((resolve) => {
+	const file = fs.createWriteStream(to)
+	https.get(url, (res) => {
+		res.pipe(file)
+		file.on("finish", () => {
+			file.close()
+			resolve()
+		})
+	})
+})
 
+const request = async (opt) => new Promise((resolve) => {
 	const req = https.request(opt, (res) => {
 		res.on("data", resolve)
 	})
-
 	req.on("error", fail)
 	req.end()
-
 })
 
 const exec = async (cmd, args, opts) => new Promise((resolve) => {
-	const proc = cp.spawn(cmd, args, opts)
+	const proc = cp.spawn(isWindows ? cmd + ".cmd" : cmd, args, opts)
 	proc.on("exit", resolve)
 	proc.on("error", fail)
 })
 
 let startCode = `
-import kaboom from "kaboom"
+import kaboom from "kaboom"${ts ? "\nimport \"kaboom/global\"" : ""}
 
 kaboom()
 
-loadBean()
+loadSprite("bean", "sprites/bean.png")
 
 add([
 	pos(120, 80),
@@ -138,18 +152,18 @@ add([
 onClick(() => addKaboom(mousePos()))
 `.trim()
 
-// TODO: support pulling assets used by demo
-if (opts["demo"]) {
+// TODO: pull assets used by example
+if (opts["example"]) {
 
-	info(`- fetching demo "${opts["demo"]}"`)
+	info(`- fetching example "${opts["example"]}"`)
 
-	const demo = await fetch({
+	const example = await request({
 		hostname: "raw.githubusercontent.com",
-		path: `replit/kaboom/master/demo/${opts["demo"]}.js`,
+		path: `replit/kaboom/master/example/${opts["example"]}.js`,
 		method: "GET",
 	})
 
-	startCode = `import kaboom from "kaboom"\n\n` + demo.toString().trim()
+	startCode = "import kaboom from \"kaboom\"\n\n" + example.toString().trim()
 
 }
 
@@ -158,8 +172,9 @@ const pkgs = [
 ]
 
 const devPkgs = [
-	"vite@latest",
+	"esbuild@latest",
 	...(ts ? [ "typescript@latest" ] : []),
+	...(desktop ? [ "@neutralinojs/neu@latest" ] : []),
 ]
 
 const file = (name, content) => ({
@@ -174,91 +189,136 @@ const dir = (name, items) => ({
 	items,
 })
 
-const stringify = (obj) => JSON.stringify(obj, null, "\t")
-const ext = ts ? "ts" : "js";
+const create = (item) => {
+	if (item.type === "dir") {
+		fs.mkdirSync(item.name)
+		process.chdir(item.name)
+		item.items.forEach(create)
+		process.chdir("..")
+	} else if (item.type === "file") {
+		const content = opts["spaces"]
+			? item.content.replaceAll("\t", " ".repeat(opts["spaces"]))
+			: item.content
+		const dir = process.cwd().replace(new RegExp(`^${cwd}/`), "")
+		info(`- creating ${dir}/${item.name}`)
+		fs.writeFileSync(item.name, content)
+	}
+}
 
-// describe files to generate
-const template = dir(dest, [
+const toAlphaNumeric = (text) => text.toLowerCase().replace(/[^a-z0-9]/g, "")
+
+// TODO: create README.md with guide
+// generate core files
+create(dir(dest, [
 	file("package.json", stringify({
 		"name": dest,
 		"scripts": {
-			"dev": "vite",
-			"build": "vite build",
-			"preview": "vite preview",
+			"build": `esbuild --bundle src/main.${ext} --outfile=www/main.js --minify`,
+			"dev": `esbuild --bundle src/main.${ext} --outfile=www/main.js --servedir=www`,
+			"zip": "npm run build && mkdir -p dist && zip -r dist/game.zip www -x \"**/.DS_Store\"",
 			...(ts ? {
-				"check": "tsc --noEmit src/game.ts",
+				"check": "tsc",
+			} : {}),
+			...(desktop ? {
+				"run:desktop": "npm run build && neu run",
+				"build:desktop": "npm run build && neu build --release",
 			} : {}),
 		},
 	})),
-	file("index.html", `
+	dir("www", [
+		file("index.html", `
 <!DOCTYPE html>
-
 <html>
-
 <head>
 	<title>${dest}</title>
 </head>
-
 <body>
-	<script type="module" src="/src/game.${ext}"></script>
+	<script src="main.js"></script>
 </body>
-
 </html>
-	`),
-	file(`vite.config.${ext}`, `
-import { defineConfig } from "vite"
-
-export default defineConfig(${stringify(opts["no-hmr"] ? {
-	server: {
-		hmr: false,
-	},
-} : {})})
-	`),
-	dir("src", [
-		file(`game.${ext}`, startCode),
+		`),
+		dir("sprites", []),
 	]),
-])
+	dir("src", [
+		file(`main.${ext}`, startCode),
+	]),
+	file("README.md", ""),
+	...(ts ? [
+		file("tsconfig.json", stringify({
+			compilerOptions: {
+				noEmit: true,
+				target: "esnext",
+				moduleResolution: "node",
+			},
+			include: [
+				"src/**/*.ts",
+			],
+		})),
+	] : []),
+	...(desktop ? [
+		file("neutralino.config.json", stringify({
+			"applicationId": `com.kaboomjs.${toAlphaNumeric(dest)}`,
+			"version": "1.0.0",
+			"defaultMode": "window",
+			"documentRoot": "/www/",
+			"url": "/",
+			"enableServer": true,
+			"enableNativeAPI": true,
+			"modes": {
+				"window": {
+					"title": dest,
+					"icon": "/www/icon.png",
+					"width": 640,
+					"height": 480,
+				},
+			},
+			"cli": {
+				"binaryName": dest,
+				"resourcesPath": "/www/",
+				"extensionsPath": "/extensions/",
+				"clientLibrary": "/bin/neutralino.js",
+				"binaryVersion": "4.7.0",
+				"clientVersion": "3.6.0",
+			},
+		})),
+	] : []),
+	file(".gitignore", `
+node_modules/
+www/main.js
+dist/
+${desktop ? "bin/" : ""}
+	`),
+]))
 
-let curDir = []
-
-const create = (dir) => {
-	fs.mkdirSync(dir.name)
-	process.chdir(dir.name)
-	curDir.push(dir.name)
-	for (const item of dir.items) {
-		if (item.type === "dir") {
-			create(item)
-		} else if (item.type === "file") {
-			const content = opts["spaces"]
-				? item.content.replaceAll("\t", " ".repeat(opts["spaces"]))
-				: item.content
-			info(`- creating ${curDir.join("/")}/${item.name}`)
-			fs.writeFileSync(item.name, content)
-		}
-	}
-	process.chdir("..")
-	curDir.pop()
-}
-
-create(template)
 process.chdir(dest)
 
-info(`- installing packages ${pkgs.map((pkg) => `"${pkg}"`).join(", ")}`)
-await exec("npm", [ "install", ...pkgs, ], { stdio: [ "inherit", "ignore", "inherit" ], })
-info(`- installing dev packages ${devPkgs.map((pkg) => `"${pkg}"`).join(", ")}`)
-await exec("npm", [ "install", "-D", ...devPkgs, ], { stdio: [ "inherit", "ignore", "inherit" ], })
+info("- downloading default sprites")
+await download(
+	"https://raw.githubusercontent.com/replit/kaboom/master/sprites/bean.png",
+	"www/sprites/bean.png",
+)
 
-if (opts["start"]) {
-	info(`- starting dev server`)
-	await exec("npm", [ "run", "dev", ], { stdio: "inherit", })
-} else {
-	console.log("")
-	console.log(`
+info(`- installing packages ${pkgs.map((pkg) => `"${pkg}"`).join(", ")}`)
+await exec("npm", [ "install", ...pkgs ], { stdio: [ "inherit", "ignore", "inherit" ] })
+info(`- installing dev packages ${devPkgs.map((pkg) => `"${pkg}"`).join(", ")}`)
+await exec("npm", [ "install", "-D", ...devPkgs ], { stdio: [ "inherit", "ignore", "inherit" ] })
+
+if (desktop) {
+	info("- downloading neutralino files")
+	await exec("npx", [ "neu", "update" ], { stdio: "inherit" })
+	info("- downloading icon")
+	await download(
+		"https://raw.githubusercontent.com/replit/kaboom/master/sprites/k.png",
+		"www/icon.png",
+	)
+}
+
+console.log("")
+console.log(`
 Success! Now
 
   $ cd ${dest}
   $ npm run dev
 
-and start editing src/game.${ext}!
-	`.trim())
-}
+and start editing src/main.${ext}!
+`.trim())

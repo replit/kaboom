@@ -11,7 +11,11 @@ import useSavedState from "hooks/useSavedState"
 import useKey from "hooks/useKey"
 import IDList from "lib/idlist"
 
-const Page: React.FC = ({ children }) => {
+const Page = ({
+	children,
+}: {
+	children?: React.ReactNode,
+}) => {
 
 	const [ theme, setTheme ] = useSavedState("theme", DEF_THEME)
 	const [ inspect, setInspect ] = React.useState(false)
@@ -94,11 +98,11 @@ const Page: React.FC = ({ children }) => {
 					${cssVars}
 					@font-face {
 						font-family: IBM Plex Sans;
-						src: url(/site/fonts/IBMPlexSans-Regular.ttf) format("truetype");
+						src: url(/static/fonts/IBMPlexSans-Regular.ttf) format("truetype");
 					}
 					@font-face {
 						font-family: IBM Plex Mono;
-						src: url(/site/fonts/IBMPlexMono-Regular.ttf) format("truetype");
+						src: url(/static/fonts/IBMPlexMono-Regular.ttf) format("truetype");
 					}
 					* {
 						margin: 0;

@@ -14,43 +14,37 @@ import {
 	drawSelection,
 	placeholder as cmPlaceholder,
 	KeyBinding,
+	lineNumbers,
+	highlightActiveLineGutter,
 } from "@codemirror/view"
 
 import {
-	defaultHighlightStyle,
-	HighlightStyle,
 	tags as t,
-} from "@codemirror/highlight"
+} from "@lezer/highlight"
 
 import {
 	defaultKeymap,
 	indentWithTab,
+	history,
+	historyKeymap,
 } from "@codemirror/commands"
 
 import {
 	indentUnit,
 	indentOnInput,
+	foldGutter,
+	defaultHighlightStyle,
+	HighlightStyle,
+	bracketMatching,
+	syntaxHighlighting,
 } from "@codemirror/language"
-
-import {
-	lineNumbers,
-	highlightActiveLineGutter,
-} from "@codemirror/gutter"
-
-import {
-	history,
-	historyKeymap,
-} from "@codemirror/history"
 
 import {
 	searchKeymap,
 	highlightSelectionMatches,
 } from "@codemirror/search"
 
-import { bracketMatching } from "@codemirror/matchbrackets"
-import { closeBrackets } from "@codemirror/closebrackets"
-import { commentKeymap } from "@codemirror/comment"
-import { foldGutter } from "@codemirror/fold"
+import { closeBrackets } from "@codemirror/autocomplete"
 import { javascript } from "@codemirror/lang-javascript"
 
 import useUpdateEffect from "hooks/useUpdateEffect"
@@ -63,6 +57,7 @@ import interact, { interactRule } from "lib/cm/interact"
 import drop, { dropRule } from "lib/cm/drop"
 import dropCursor from "lib/cm/dropCursor"
 import img from "lib/cm/img"
+import useCompartment from "lib/cm/useCompartment"
 
 // @ts-ignore
 const cmThemes: Record<Theme, [ Extension, HighlightStyle ]> = {}
@@ -290,6 +285,8 @@ const Editor = React.forwardRef<EditorRef, ViewPropsAnd<EditorProps>>(({
 	const editorDOMRef = React.useRef(null)
 	const [ view, setView ] = React.useState<EditorView | null>(null)
 	const { theme } = React.useContext(Ctx)
+	const themeConf = useCompartment({view})
+	const hlConf = useCompartment({view})
 
 	React.useImperativeHandle(ref, () => ({
 		getContent() {
@@ -335,7 +332,6 @@ const Editor = React.forwardRef<EditorRef, ViewPropsAnd<EditorProps>>(({
 		}
 
 		const editorDOM = editorDOMRef.current
-		const themeConf = new Compartment()
 
 		const origins = [
 			"topleft", "top", "topright",
@@ -355,7 +351,8 @@ const Editor = React.forwardRef<EditorRef, ViewPropsAnd<EditorProps>>(({
 			state: EditorState.create({
 				doc: (typeof content === "function" ? content() : content) ?? "",
 				extensions: [
-					themeConf.of(cmThemes[theme]),
+					themeConf.of(cmThemes[theme][0]),
+					hlConf.of(syntaxHighlighting(cmThemes[theme][1])),
 					EditorState.tabSize.of(4),
 					EditorState.allowMultipleSelections.of(true),
 					indentUnit.of("\t"),
@@ -373,7 +370,7 @@ const Editor = React.forwardRef<EditorRef, ViewPropsAnd<EditorProps>>(({
 					indentOnInput(),
 					drawSelection(),
 					dropCursor,
-					defaultHighlightStyle,
+					syntaxHighlighting(defaultHighlightStyle),
 					EditorView.updateListener.of((update) => {
 						const state = update.state
 						if (update.docChanged) {
@@ -392,7 +389,6 @@ const Editor = React.forwardRef<EditorRef, ViewPropsAnd<EditorProps>>(({
 					keymap.of([
 						...defaultKeymap,
 						...historyKeymap,
-						...commentKeymap,
 						...searchKeymap,
 						indentWithTab,
 						...(keys ?? []),
@@ -427,7 +423,7 @@ const Editor = React.forwardRef<EditorRef, ViewPropsAnd<EditorProps>>(({
 						cursor: "move",
 						onDrag: (text, setText, e) => {
 							const res = /vec2\((?<x>-?\b\d+\.?\d*\b)\s*(,\s*(?<y>-?\b\d+\.?\d*\b))?\)/.exec(text)
-							let x = Number(res?.groups?.x)
+							const x = Number(res?.groups?.x)
 							let y = Number(res?.groups?.y)
 							if (isNaN(x)) return
 							if (isNaN(y)) y = x
@@ -512,6 +508,8 @@ const Editor = React.forwardRef<EditorRef, ViewPropsAnd<EditorProps>>(({
 
 		setView(view)
 
+		return () => view.destroy()
+
 	}, [])
 
 	useUpdateEffect(() => {
@@ -526,9 +524,12 @@ const Editor = React.forwardRef<EditorRef, ViewPropsAnd<EditorProps>>(({
 	}, [ content ])
 
 	useUpdateEffect(() => {
-		const themeConf = new Compartment()
+		// TODO: not working
 		view?.dispatch({
-			effects: themeConf.reconfigure(cmThemes[theme]),
+			effects: themeConf.reconfigure(cmThemes[theme][0]),
+		})
+		view?.dispatch({
+			effects: hlConf.reconfigure(syntaxHighlighting(cmThemes[theme][1])),
 		})
 	}, [ theme ])
 

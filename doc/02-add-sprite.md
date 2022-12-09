@@ -18,7 +18,7 @@ import kaboom from "kaboom";
 kaboom();
 ```
 
-![Checkerboard pattern](https://kaboomjs.com/site/doc/intro/empty.png)
+![Checkerboard pattern](tutorials/empty.png)
 
 Here's the code to load a sprite to make it available in our game:
 
