@@ -1,5 +1,4 @@
 import {
-	Vec4,
 	Point,
 	RNGValue,
 } from "./types"

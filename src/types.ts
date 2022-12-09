@@ -3319,13 +3319,6 @@ export declare class Vec3 {
 	xy(): Vec2
 }
 
-export declare class Vec4 {
-	x: number
-	y: number
-	z: number
-	w: number
-}
-
 export declare class Mat4 {
 	m: number[]
 	constructor(m?: number[])
