@@ -5,7 +5,7 @@ kaboom()
 loadSprite("bean", "sprites/bean.png")
 loadSprite("bag", "sprites/bag.png")
 
-for (let i = 0; i < 1000; i++) {
+for (let i = 0; i < 3000; i++) {
 	add([
 		sprite("bean"),
 		pos(rand(0, width()), rand(0, height())),

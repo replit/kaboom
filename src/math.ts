@@ -142,22 +142,6 @@ export function vec2(...args): Vec2 {
 	return new Vec2(...args)
 }
 
-export class Vec3 {
-	x: number = 0
-	y: number = 0
-	z: number = 0
-	constructor(x: number, y: number, z: number) {
-		this.x = x
-		this.y = y
-		this.z = z
-	}
-	xy() {
-		return vec2(this.x, this.y)
-	}
-}
-
-export const vec3 = (x, y, z) => new Vec3(x, y, z)
-
 export class Color {
 
 	r: number = 255

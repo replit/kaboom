@@ -2,7 +2,7 @@ uniform float u_flatness;
 uniform float u_scanline_height;
 uniform float u_screen_height;
 
-vec4 frag(vec3 pos, vec2 uv, vec4 color, sampler2D tex) {
+vec4 frag(vec2 pos, vec2 uv, vec4 color, sampler2D tex) {
 	vec2 center = vec2(0.5, 0.5);
 	vec2 off_center = uv - center;
 	off_center *= 1.0 + pow(abs(off_center.yx), vec2(u_flatness));

@@ -68,7 +68,7 @@ vec3 blur(sampler2D samp, vec2 uv, float d) {
 
 }
 
-vec4 frag(vec3 pos, vec2 uv, vec4 cc, sampler2D tex) {
+vec4 frag(vec2 pos, vec2 uv, vec4 cc, sampler2D tex) {
 
 	vec4 color = def_frag();
 	float c = u_intensity;

@@ -1074,11 +1074,11 @@ export interface KaboomCtx {
 	 * ```js
 	 * // default shaders and custom shader format
 	 * loadShader("outline",
-	 * `vec4 vert(vec3 pos, vec2 uv, vec4 color) {
+	 * `vec4 vert(vec2 pos, vec2 uv, vec4 color) {
 	 *     // predefined functions to get the default value by kaboom
 	 *     return def_vert();
 	 * }`,
-	 * `vec4 frag(vec3 pos, vec2 uv, vec4 color, sampler2D tex) {
+	 * `vec4 frag(vec2 pos, vec2 uv, vec4 color, sampler2D tex) {
 	 *     // turn everything blue-ish
 	 *     return def_frag() * vec4(0, 0, 1, 1);
 	 * }`, false)
@@ -1987,7 +1987,7 @@ export interface KaboomCtx {
 	 * @example
 	 * ```js
 	 * loadShader("invert", null, `
-	 * vec4 frag(vec3 pos, vec2 uv, vec4 color, sampler2D tex) {
+	 * vec4 frag(vec2 pos, vec2 uv, vec4 color, sampler2D tex) {
 	 *     vec4 c = def_frag();
 	 *     return vec4(1.0 - c.r, 1.0 - c.g, 1.0 - c.b, c.a);
 	 * }
@@ -2743,7 +2743,7 @@ export interface GfxFont {
 }
 
 export interface Vertex {
-	pos: Vec3,
+	pos: Vec2,
 	uv: Vec2,
 	color: Color,
 	opacity: number,
@@ -3309,14 +3309,6 @@ export declare class Vec2 {
 	bbox(): Rect
 	eq(p: Vec2): boolean
 	toString(): string
-}
-
-export declare class Vec3 {
-	x: number
-	y: number
-	z: number
-	constructor(x: number, y: number, z: number)
-	xy(): Vec2
 }
 
 export declare class Mat4 {
@@ -4202,7 +4194,6 @@ export interface Debug {
 export type UniformValue =
 	number
 	| Vec2
-	| Vec3
 	| Color
 	| Mat4
 

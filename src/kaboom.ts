@@ -3,8 +3,6 @@ const VERSION = "3000.0.0-alpha.21"
 import {
 	sat,
 	vec2,
-	vec3,
-	Vec3,
 	Rect,
 	Polygon,
 	Line,
@@ -242,7 +240,7 @@ const UV_PAD = 0.1
 const LOG_MAX = 1
 
 const VERTEX_FORMAT = [
-	{ name: "a_pos", size: 3 },
+	{ name: "a_pos", size: 2 },
 	{ name: "a_uv", size: 2 },
 	{ name: "a_color", size: 4 },
 ]
@@ -255,16 +253,16 @@ const MAX_BATCHED_INDICES = MAX_BATCHED_QUAD * 6
 
 // vertex shader template, replace {{user}} with user vertex shader code
 const VERT_TEMPLATE = `
-attribute vec3 a_pos;
+attribute vec2 a_pos;
 attribute vec2 a_uv;
 attribute vec4 a_color;
 
-varying vec3 v_pos;
+varying vec2 v_pos;
 varying vec2 v_uv;
 varying vec4 v_color;
 
 vec4 def_vert() {
-	return vec4(a_pos, 1.0);
+	return vec4(a_pos, 0.0, 1.0);
 }
 
 {{user}}
@@ -282,7 +280,7 @@ void main() {
 const FRAG_TEMPLATE = `
 precision mediump float;
 
-varying vec3 v_pos;
+varying vec2 v_pos;
 varying vec2 v_uv;
 varying vec4 v_color;
 
@@ -304,14 +302,14 @@ void main() {
 
 // default {{user}} vertex shader code
 const DEF_VERT = `
-vec4 vert(vec3 pos, vec2 uv, vec4 color) {
+vec4 vert(vec2 pos, vec2 uv, vec4 color) {
 	return def_vert();
 }
 `
 
 // default {{user}} fragment shader code
 const DEF_FRAG = `
-vec4 frag(vec3 pos, vec2 uv, vec4 color, sampler2D tex) {
+vec4 frag(vec2 pos, vec2 uv, vec4 color, sampler2D tex) {
 	return def_frag();
 }
 `
@@ -352,15 +350,15 @@ function getFullscreenElement(): Element | void {
 // convert anchor string to a vec2 offset
 function anchorPt(orig: Anchor | Vec2): Vec2 {
 	switch (orig) {
-		case "topleft": return vec2(-1, -1)
-		case "top": return vec2(0, -1)
-		case "topright": return vec2(1, -1)
-		case "left": return vec2(-1, 0)
-		case "center": return vec2(0, 0)
-		case "right": return vec2(1, 0)
-		case "botleft": return vec2(-1, 1)
-		case "bot": return vec2(0, 1)
-		case "botright": return vec2(1, 1)
+		case "topleft": return new Vec2(-1, -1)
+		case "top": return new Vec2(0, -1)
+		case "topright": return new Vec2(1, -1)
+		case "left": return new Vec2(-1, 0)
+		case "center": return new Vec2(0, 0)
+		case "right": return new Vec2(1, 0)
+		case "botleft": return new Vec2(-1, 1)
+		case "bot": return new Vec2(0, 1)
+		case "botright": return new Vec2(1, 1)
 		default: return orig
 	}
 }
@@ -495,8 +493,8 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			charInputted: [],
 			isMouseMoved: false,
 			mouseStarted: false,
-			mousePos: vec2(0, 0),
-			mouseDeltaPos: vec2(0, 0),
+			mousePos: new Vec2(0, 0),
+			mouseDeltaPos: new Vec2(0, 0),
 
 			// total time elapsed
 			time: 0,
@@ -957,7 +955,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		// camera
 		cam: {
 			pos: null,
-			scale: vec2(1),
+			scale: new Vec2(1),
 			angle: 0,
 			shake: 0,
 			transform: new Mat4(),
@@ -1718,8 +1716,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 					} else if (val instanceof Color) {
 						// TODO: opacity?
 						gl.uniform3f(loc, val.r, val.g, val.b)
-					} else if (val instanceof Vec3) {
-						gl.uniform3f(loc, val.x, val.y, val.z)
 					} else if (val instanceof Vec2) {
 						gl.uniform2f(loc, val.x, val.y)
 					}
@@ -1789,9 +1785,9 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 		for (const v of verts) {
 			// normalized world space coordinate [-1.0 ~ 1.0]
-			const pt = screen2ndc(transform.multVec2(v.pos.xy()))
+			const pt = screen2ndc(transform.multVec2(v.pos))
 			gfx.vqueue.push(
-				pt.x, pt.y, v.pos.z,
+				pt.x, pt.y,
 				v.uv.x, v.uv.y,
 				v.color.r / 255, v.color.g / 255, v.color.b / 255, v.opacity,
 			)
@@ -1888,7 +1884,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			drawTexture({
 				flipY: true,
 				tex: gfx.frameBuffer.tex,
-				scale: vec2(1 / app.pixelDensity),
+				scale: new Vec2(1 / app.pixelDensity),
 				shader: gfx.postShader,
 				uniform: gfx.postShaderUniform,
 				fixed: true,
@@ -1900,7 +1896,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 	// convert a screen space coordinate to webgl normalized device coordinate
 	function screen2ndc(pt: Vec2): Vec2 {
-		return vec2(
+		return new Vec2(
 			pt.x / width() * 2 - 1,
 			-pt.y / height() * 2 + 1,
 		)
@@ -1953,7 +1949,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		const w = opt.width
 		const h = opt.height
 		const anchor = anchorPt(opt.anchor || DEF_ANCHOR)
-		const offset = anchor.scale(vec2(w, h).scale(-0.5))
+		const offset = anchor.scale(new Vec2(w, h).scale(-0.5))
 		const q = opt.quad || new Quad(0, 0, 1, 1)
 		const color = opt.color || rgb(255, 255, 255)
 		const opacity = opt.opacity ?? 1
@@ -1974,26 +1970,26 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 		drawRaw([
 			{
-				pos: vec3(-w / 2, h / 2, 0),
-				uv: vec2(opt.flipX ? qx + qw : qx, opt.flipY ? qy : qy + qh),
+				pos: new Vec2(-w / 2, h / 2),
+				uv: new Vec2(opt.flipX ? qx + qw : qx, opt.flipY ? qy : qy + qh),
 				color: color,
 				opacity: opacity,
 			},
 			{
-				pos: vec3(-w / 2, -h / 2, 0),
-				uv: vec2(opt.flipX ? qx + qw : qx, opt.flipY ? qy + qh : qy),
+				pos: new Vec2(-w / 2, -h / 2),
+				uv: new Vec2(opt.flipX ? qx + qw : qx, opt.flipY ? qy + qh : qy),
 				color: color,
 				opacity: opacity,
 			},
 			{
-				pos: vec3(w / 2, -h / 2, 0),
-				uv: vec2(opt.flipX ? qx : qx + qw, opt.flipY ? qy + qh : qy),
+				pos: new Vec2(w / 2, -h / 2),
+				uv: new Vec2(opt.flipX ? qx : qx + qw, opt.flipY ? qy + qh : qy),
 				color: color,
 				opacity: opacity,
 			},
 			{
-				pos: vec3(w / 2, h / 2, 0),
-				uv: vec2(opt.flipX ? qx : qx + qw, opt.flipY ? qy : qy + qh),
+				pos: new Vec2(w / 2, h / 2),
+				uv: new Vec2(opt.flipX ? qx : qx + qw, opt.flipY ? qy : qy + qh),
 				color: color,
 				opacity: opacity,
 			},
@@ -2013,22 +2009,22 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		const q = opt.quad ?? new Quad(0, 0, 1, 1)
 		const w = opt.tex.width * q.w
 		const h = opt.tex.height * q.h
-		const scale = vec2(1)
+		const scale = new Vec2(1)
 
 		if (opt.tiled) {
 
 			// TODO: draw fract
 			const repX = Math.ceil((opt.width || w) / w)
 			const repY = Math.ceil((opt.height || h) / h)
-			const anchor = anchorPt(opt.anchor || DEF_ANCHOR).add(vec2(1, 1)).scale(0.5)
+			const anchor = anchorPt(opt.anchor || DEF_ANCHOR).add(new Vec2(1, 1)).scale(0.5)
 			const offset = anchor.scale(repX * w, repY * h)
 
 			// TODO: rotation
 			for (let i = 0; i < repX; i++) {
 				for (let j = 0; j < repY; j++) {
 					drawUVQuad(Object.assign(opt, {
-						pos: (opt.pos || vec2(0)).add(vec2(w * i, h * j)).sub(offset),
-						scale: scale.scale(opt.scale || vec2(1)),
+						pos: (opt.pos || new Vec2(0)).add(new Vec2(w * i, h * j)).sub(offset),
+						scale: scale.scale(opt.scale || new Vec2(1)),
 						tex: opt.tex,
 						quad: q,
 						width: w,
@@ -2052,7 +2048,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			}
 
 			drawUVQuad(Object.assign(opt, {
-				scale: scale.scale(opt.scale || vec2(1)),
+				scale: scale.scale(opt.scale || new Vec2(1)),
 				tex: opt.tex,
 				quad: q,
 				width: w,
@@ -2135,13 +2131,13 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		const w = opt.width
 		const h = opt.height
 		const anchor = anchorPt(opt.anchor || DEF_ANCHOR).add(1, 1)
-		const offset = anchor.scale(vec2(w, h).scale(-0.5))
+		const offset = anchor.scale(new Vec2(w, h).scale(-0.5))
 
 		let pts = [
-			vec2(0, 0),
-			vec2(w, 0),
-			vec2(w, h),
-			vec2(0, h),
+			new Vec2(0, 0),
+			new Vec2(w, 0),
+			new Vec2(w, h),
+			new Vec2(0, h),
 		]
 
 		// TODO: gradient for rounded rect
@@ -2152,18 +2148,18 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			const r = Math.min(Math.min(w, h) / 2, opt.radius)
 
 			pts = [
-				vec2(r, 0),
-				vec2(w - r, 0),
-				...getArcPts(vec2(w - r, r), r, r, 270, 360),
-				vec2(w, r),
-				vec2(w, h - r),
-				...getArcPts(vec2(w - r, h - r), r, r, 0, 90),
-				vec2(w - r, h),
-				vec2(r, h),
-				...getArcPts(vec2(r, h - r), r, r, 90, 180),
-				vec2(0, h - r),
-				vec2(0, r),
-				...getArcPts(vec2(r, r), r, r, 180, 270),
+				new Vec2(r, 0),
+				new Vec2(w - r, 0),
+				...getArcPts(new Vec2(w - r, r), r, r, 270, 360),
+				new Vec2(w, r),
+				new Vec2(w, h - r),
+				...getArcPts(new Vec2(w - r, h - r), r, r, 0, 90),
+				new Vec2(w - r, h),
+				new Vec2(r, h),
+				...getArcPts(new Vec2(r, h - r), r, r, 90, 180),
+				new Vec2(0, h - r),
+				new Vec2(0, r),
+				...getArcPts(new Vec2(r, r), r, r, 180, 270),
 			]
 
 		}
@@ -2208,8 +2204,8 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			p2.add(dis),
 			p2.sub(dis),
 		].map((p) => ({
-			pos: vec3(p.x, p.y, 0),
-			uv: vec2(0),
+			pos: new Vec2(p.x, p.y),
+			uv: new Vec2(0),
 			color: opt.color ?? Color.WHITE,
 			opacity: opt.opacity ?? 1,
 		}))
@@ -2321,7 +2317,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		const end = opt.end ?? 360
 
 		const pts = getArcPts(
-			vec2(0),
+			new Vec2(0),
 			opt.radiusX,
 			opt.radiusY,
 			start,
@@ -2330,7 +2326,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		)
 
 		// center
-		pts.unshift(vec2(0))
+		pts.unshift(new Vec2(0))
 
 		const polyOpt = Object.assign(opt, {
 			pts,
@@ -2384,8 +2380,8 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			const color = opt.color ?? Color.WHITE
 
 			const verts = opt.pts.map((pt, i) => ({
-				pos: vec3(pt.x, pt.y, 0),
-				uv: vec2(0, 0),
+				pos: new Vec2(pt.x, pt.y),
+				uv: new Vec2(0, 0),
 				color: opt.colors ? (opt.colors[i] ?? color) : color,
 				opacity: opt.opacity ?? 1,
 			}))
@@ -2575,7 +2571,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 					map: {},
 					size: DEF_TEXT_CACHE_SIZE,
 				},
-				cursor: vec2(0),
+				cursor: new Vec2(0),
 			}
 
 			if (!fontAtlases[fontName]) {
@@ -2699,7 +2695,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 							q.h / font.tex.height,
 						),
 						ch: ch,
-						pos: vec2(curX, th),
+						pos: new Vec2(curX, th),
 						opacity: opt.opacity ?? 1,
 						color: opt.color ?? Color.WHITE,
 						scale: vec2(scale),
@@ -2976,7 +2972,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 	// transform a point from window space to content space
 	function windowToContent(pt: Vec2) {
-		return vec2(
+		return new Vec2(
 			(pt.x - gfx.viewport.x) * width() / gfx.viewport.width,
 			(pt.y - gfx.viewport.y) * height() / gfx.viewport.height,
 		)
@@ -2984,7 +2980,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 	// transform a point from content space to view space
 	function contentToView(pt: Vec2) {
-		return vec2(
+		return new Vec2(
 			pt.x * gfx.viewport.width / gfx.width,
 			pt.y * gfx.viewport.height / gfx.height,
 		)
@@ -2992,7 +2988,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 	// set game mouse pos from window mouse pos
 	function setMousePos(x: number, y: number) {
-		const mpos = windowToContent(vec2(x, y))
+		const mpos = windowToContent(new Vec2(x, y))
 		if (app.mouseStarted) {
 			// TODO: mouseDelta has a minimum of 5 for some reason
 			app.mouseDeltaPos = mpos.sub(app.mousePos)
@@ -3066,7 +3062,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			touches.forEach((t) => {
 				game.ev.trigger(
 					"onTouchStart",
-					windowToContent(vec2(t.clientX, t.clientY)),
+					windowToContent(new Vec2(t.clientX, t.clientY)),
 					t,
 				)
 			})
@@ -3086,7 +3082,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			touches.forEach((t) => {
 				game.ev.trigger(
 					"onTouchMove",
-					windowToContent(vec2(t.clientX, t.clientY)),
+					windowToContent(new Vec2(t.clientX, t.clientY)),
 					t,
 				)
 			})
@@ -3103,7 +3099,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			touches.forEach((t) => {
 				game.ev.trigger(
 					"onTouchEnd",
-					windowToContent(vec2(t.clientX, t.clientY)),
+					windowToContent(new Vec2(t.clientX, t.clientY)),
 					t,
 				)
 			})
@@ -3120,7 +3116,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			touches.forEach((t) => {
 				game.ev.trigger(
 					"onTouchEnd",
-					windowToContent(vec2(t.clientX, t.clientY)),
+					windowToContent(new Vec2(t.clientX, t.clientY)),
 					t,
 				)
 			})
@@ -3135,7 +3131,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	canvasEvents.wheel = (e) => {
 		e.preventDefault()
 		game.ev.onOnce("input", () => {
-			game.ev.trigger("scroll", vec2(e.deltaX, e.deltaY))
+			game.ev.trigger("scroll", new Vec2(e.deltaX, e.deltaY))
 		})
 	}
 

@@ -103,10 +103,11 @@ loadSprite("player", [
 - added `drawMasked()` and `drawSubtracted()`
 - added `pushRotateX()`, `pushRotateY()` and `pushRotateZ()`
 - added `pixelDensity` option to `kaboom()`
+- (**BREAK**) changed position vertex format from `vec3` to `vec2` (which is passed in as the first argument of custom `frag` and `vert` shader functions)
 - added `usePostEffect()` to add post process shader
 ```js
 loadShader("invert", null, `
-vec4 frag(vec3 pos, vec2 uv, vec4 color, sampler2D tex) {
+vec4 frag(vec2 pos, vec2 uv, vec4 color, sampler2D tex) {
     vec4 c = def_frag();
     return vec4(1.0 - c.r, 1.0 - c.g, 1.0 - c.b, c.a);
 }

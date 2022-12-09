@@ -6,7 +6,7 @@ loadSprite("bean", "/sprites/bean.png")
 loadShader("spiral", null, `
 uniform float u_time;
 uniform vec2 u_mpos;
-vec4 frag(vec3 pos, vec2 uv, vec4 color, sampler2D tex) {
+vec4 frag(vec2 pos, vec2 uv, vec4 color, sampler2D tex) {
 	vec2 pp = uv - u_mpos;
 	float angle = atan(pp.y, pp.x);
 	float dis = length(pp);
