@@ -1,4 +1,4 @@
-const VERSION = "3000.0.0-alpha.21"
+const VERSION = "3000.0.0-alpha.22"
 
 import {
 	sat,
@@ -1705,6 +1705,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				gl.deleteProgram(prog)
 			},
 
+			// TODO: support vec3 and vec4
 			send(uniform: Uniform) {
 				for (const name in uniform) {
 					const val = uniform[name]
