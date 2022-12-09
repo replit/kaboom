@@ -1,4 +1,19 @@
-import type { KaboomCtx, GameObj, Comp, Anchor, Vec2, PosComp, RotateComp, AreaComp, AreaCompOpt, AnchorComp, Shape } from "kaboom"
+import type {
+	KaboomCtx,
+	GameObj,
+	Comp,
+	Anchor,
+	Vec2,
+	PosComp,
+	RotateComp,
+	AreaComp,
+	AreaCompOpt,
+	AnchorComp,
+	Shape,
+	Tag,
+	Collision,
+	EventController,
+} from "kaboom"
 import * as Matter from "matter-js"
 
 export type MatterPlugin = {
@@ -118,6 +133,7 @@ export default (k: KaboomCtx): MatterPlugin => {
 							isSensor: true,
 						},
 					)
+					this.body.obj = this
 				} else if (area instanceof k.Circle) {
 					this.body = Matter.Bodies.circle(
 						this.pos.x,
@@ -129,6 +145,7 @@ export default (k: KaboomCtx): MatterPlugin => {
 							isSensor: true,
 						},
 					)
+					this.body.obj = this
 				} else if (area instanceof k.Polygon) {
 					this.body = Matter.Bodies.fromVertices(
 						this.pos.x,
@@ -140,6 +157,7 @@ export default (k: KaboomCtx): MatterPlugin => {
 							isSensor: true,
 						},
 					)
+					this.body.obj = this
 				} else {
 					throw new Error("Only support rect for now")
 				}
@@ -150,6 +168,46 @@ export default (k: KaboomCtx): MatterPlugin => {
 
 			destroy() {
 				Matter.World.remove(engine.world, this.body)
+			},
+
+			onCollide(
+				this: GameObj,
+				tag: Tag | ((obj: GameObj, col?: Collision) => void),
+				cb?: (obj: GameObj, col?: Collision) => void,
+			): EventController {
+				if (typeof tag === "function" && cb === undefined) {
+					return this.on("collide", tag)
+				} else if (typeof tag === "string") {
+					return this.onCollide((obj, col) => {
+						if (obj.is(tag)) {
+							cb(obj, col)
+						}
+					})
+				}
+			},
+
+			onCollideUpdate(
+				this: GameObj,
+				tag: Tag | ((obj: GameObj, col?: Collision) => void),
+				cb?: (obj: GameObj, col?: Collision) => void,
+			): EventController {
+				if (typeof tag === "function" && cb === undefined) {
+					return this.on("collideUpdate", tag)
+				} else if (typeof tag === "string") {
+					return this.on("collideUpdate", (obj, col) => obj.is(tag) && cb(obj, col))
+				}
+			},
+
+			onCollideEnd(
+				this: GameObj,
+				tag: Tag | ((obj: GameObj) => void),
+				cb?: (obj: GameObj) => void,
+			): EventController {
+				if (typeof tag === "function" && cb === undefined) {
+					return this.on("collideEnd", tag)
+				} else if (typeof tag === "string") {
+					return this.on("collideEnd", (obj) => obj.is(tag) && cb(obj))
+				}
 			},
 
 			localArea(): Shape {
@@ -171,7 +229,7 @@ export default (k: KaboomCtx): MatterPlugin => {
 						width: 4,
 						color: k.rgb(0, 0, 255),
 					},
-					origin: this.origin,
+					anchor: this.anchor,
 					fill: false,
 					fixed: this.fixed,
 				}
@@ -220,7 +278,7 @@ export default (k: KaboomCtx): MatterPlugin => {
 				if (!this.body) {
 					return
 				}
-// 				Matter.Body.applyForce(this.body, pos, force)
+				// Matter.Body.applyForce(this.body, pos, force)
 				Matter.Body.applyForce(this.body, this.body.position, force)
 			},
 
@@ -229,17 +287,32 @@ export default (k: KaboomCtx): MatterPlugin => {
 
 	Matter.Events.on(engine, "collisionStart", (event) => {
 		const pairs = event.pairs
-		console.log(k.time(), pairs)
+		for (const pair of event.pairs) {
+			const o1 = pair.bodyA.obj
+			const o2 = pair.bodyB.obj
+			o1.trigger("collide", o2)
+			o2.trigger("collide", o1)
+		}
 	})
 
 	Matter.Events.on(engine, "collisionActive", (event) => {
 		const pairs = event.pairs
-// 		console.log(k.time(), pairs)
+		for (const pair of event.pairs) {
+			const o1 = pair.bodyA.obj
+			const o2 = pair.bodyB.obj
+			o1.trigger("collideUpdate", o2)
+			o2.trigger("collideUpdate", o1)
+		}
 	})
 
 	Matter.Events.on(engine, "collisionEnd", (event) => {
 		const pairs = event.pairs
-// 		console.log(k.time(), pairs)
+		for (const pair of event.pairs) {
+			const o1 = pair.bodyA.obj
+			const o2 = pair.bodyB.obj
+			o1.trigger("collideEnd", o2)
+			o2.trigger("collideEnd", o1)
+		}
 	})
 
 	return {

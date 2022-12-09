@@ -6,7 +6,7 @@ const me = k.add([
 	k.rect(48, 24),
 	marea(),
 	k.rotate(45),
-	k.origin("center"),
+	k.anchor("center"),
 // 	mbody(),
 ])
 
@@ -15,7 +15,7 @@ k.add([
 	k.rect(48, 24),
 	marea(),
 	k.rotate(45),
-	k.origin("center"),
+	k.anchor("center"),
 // 	mbody(),
 ])
 
@@ -23,7 +23,7 @@ k.add([
 	k.pos(40, 160),
 	k.rect(240, 24),
 	marea(),
-	k.origin("center"),
+	k.anchor("center"),
 // 	mbody({ isStatic: true }),
 ])
 
