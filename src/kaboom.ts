@@ -4917,7 +4917,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			isStatic: opt.isStatic ?? false,
 			mass: opt.mass ?? 0,
 
-			add(this: GameObj<BodyComp | AreaComp>) {
+			add(this: GameObj<PosComp | BodyComp | AreaComp>) {
 
 				// TODO
 				// static vs static: don't resolve
@@ -4933,28 +4933,33 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 						return
 					}
 
-					if (this.isStatic && other.isStatic) {
-						return
-					}
-
-					// TODO: if both not static, use mass, or use velocity?
-
-					// resolve the non static one
-					const col2 = (!this.isStatic && other.isStatic) ? col : col.reverse()
-					col2.source.trigger("beforePhysicsResolve", col2)
-					col2.target.trigger("beforePhysicsResolve", col2.reverse())
+					this.trigger("beforePhysicsResolve", col)
+					other.trigger("beforePhysicsResolve", col.reverse())
 
 					// user can mark 'resolved' in beforePhysicsResolve to stop a resolution
 					if (col.resolved) {
 						return
 					}
 
-					col2.source.pos = col2.source.pos.add(col2.displacement)
-					// TODO: update all children transform?
-					col2.source.transform = calcTransform(col2.source)
+					if (this.isStatic && other.isStatic) {
+						return
+					} else if (!this.isStatic && !other.isStatic) {
+						// TODO: take mass
+						// TODO: update all children transform?
+						this.pos = this.pos.add(col.displacement.scale(0.5))
+						other.pos = other.pos.add(col.displacement.scale(-0.5))
+						this.transform = calcTransform(this)
+						other.transform = calcTransform(other)
+					} else {
+						// if one is static and on is not, resolve the non static one
+						const col2 = (!this.isStatic && other.isStatic) ? col : col.reverse()
+						col2.source.pos = col2.source.pos.add(col2.displacement)
+						col2.source.transform = calcTransform(col2.source)
+					}
+
 					col.resolved = true
-					col2.source.trigger("physicsResolve", col2)
-					col2.target.trigger("physicsResolve", col2.reverse())
+					this.trigger("physicsResolve", col)
+					other.trigger("physicsResolve", col.reverse())
 
 				}))
 
