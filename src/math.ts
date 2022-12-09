@@ -124,6 +124,9 @@ export class Vec2 {
 	eq(other: Vec2): boolean {
 		return this.x === other.x && this.y === other.y
 	}
+	bbox(): Rect {
+		return new Rect(this, 0, 0)
+	}
 	toString(): string {
 		return `vec2(${this.x.toFixed(2)}, ${this.y.toFixed(2)})`
 	}

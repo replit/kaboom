@@ -1,4 +1,4 @@
-import type { KaboomCtx, GameObj, Comp, Origin, Vec2, PosComp, RotateComp, AreaComp, AreaCompOpt, OriginComp, Shape } from "kaboom"
+import type { KaboomCtx, GameObj, Comp, Anchor, Vec2, PosComp, RotateComp, AreaComp, AreaCompOpt, AnchorComp, Shape } from "kaboom"
 import * as Matter from "matter-js"
 
 export type MatterPlugin = {
@@ -17,22 +17,22 @@ export type MatterAreaComp = AreaComp & {
 	body: Matter.Body | null,
 }
 
-function originPt(orig: Origin | Vec2): Vec2 {
-	switch (orig) {
-		case "topleft": return vec2(-1, -1)
-		case "top": return vec2(0, -1)
-		case "topright": return vec2(1, -1)
-		case "left": return vec2(-1, 0)
-		case "center": return vec2(0, 0)
-		case "right": return vec2(1, 0)
-		case "botleft": return vec2(-1, 1)
-		case "bot": return vec2(0, 1)
-		case "botright": return vec2(1, 1)
-		default: return orig
-	}
-}
-
 export default (k: KaboomCtx): MatterPlugin => {
+
+	function originPt(orig: Anchor | Vec2): Vec2 {
+		switch (orig) {
+			case "topleft": return k.vec2(-1, -1)
+			case "top": return k.vec2(0, -1)
+			case "topright": return k.vec2(1, -1)
+			case "left": return k.vec2(-1, 0)
+			case "center": return k.vec2(0, 0)
+			case "right": return k.vec2(1, 0)
+			case "botleft": return k.vec2(-1, 1)
+			case "bot": return k.vec2(0, 1)
+			case "botright": return k.vec2(1, 1)
+			default: return orig
+		}
+	}
 
 	const engine = Matter.Engine.create()
 
@@ -42,7 +42,7 @@ export default (k: KaboomCtx): MatterPlugin => {
 
 	k.onUpdate(() => {
 
-		const objs = get("marea")
+		const objs = k.get("marea")
 
 		// apply transform changes outside of matter
 		objs.forEach((obj: GameObj<MatterAreaComp | PosComp | RotateComp>) => {
@@ -54,7 +54,7 @@ export default (k: KaboomCtx): MatterPlugin => {
 				Matter.Body.translate(obj.body, obj.pos.sub(positions[id]))
 			}
 			if (angles[id] !== obj.angle) {
-				Matter.Body.rotate(obj.body, deg2rad(obj.angle - angles[id]))
+				Matter.Body.rotate(obj.body, k.deg2rad(obj.angle - angles[id]))
 			}
 		})
 
@@ -62,7 +62,7 @@ export default (k: KaboomCtx): MatterPlugin => {
 		Matter.Engine.update(engine, k.dt() * 1000)
 
 		// sync kaboom object transform with matter object transform
-		objs.forEach((obj: GameObj<MatterAreaComp | MatterBodyComp | PosComp | RotateComp | AreaComp | OriginComp>) => {
+		objs.forEach((obj: GameObj<MatterAreaComp | MatterBodyComp | PosComp | RotateComp | AreaComp | AnchorComp>) => {
 			if (!obj.body) {
 				return
 			}
@@ -70,14 +70,14 @@ export default (k: KaboomCtx): MatterPlugin => {
 				// syncing matter.js body transform to kaboom object transform
 				const area = obj.localArea()
 				const bbox = area.bbox()
-				const offset = originPt(obj.origin ?? "topleft")
+				const offset = originPt(obj.anchor ?? "topleft")
 					.scale(bbox.width, bbox.height)
 					.scale(-0.5)
-				const angle = rad2deg(obj.body.angle)
-				const o = Mat4.rotateZ(angle).multVec2(offset)
+				const angle = k.rad2deg(obj.body.angle)
+				const o = k.Mat4.rotateZ(angle).multVec2(offset)
 				obj.pos.x = obj.body.position.x - o.x
 				obj.pos.y = obj.body.position.y - o.y
-				obj.angle = rad2deg(obj.body.angle)
+				obj.angle = k.rad2deg(obj.body.angle)
 			}
 			positions[obj.id] = obj.pos
 			angles[obj.id] = obj.angle
@@ -94,8 +94,8 @@ export default (k: KaboomCtx): MatterPlugin => {
 
 			area: {
 				shape: opt.shape ?? null,
-				scale: opt.scale ?? vec2(1),
-				offset: opt.offset ?? vec2(0),
+				scale: opt.scale ?? k.vec2(1),
+				offset: opt.offset ?? k.vec2(0),
 				cursor: opt.cursor ?? null,
 			},
 
@@ -114,7 +114,7 @@ export default (k: KaboomCtx): MatterPlugin => {
 						area.height,
 						{
 							...opt,
-							angle: deg2rad(this.angle ?? 0),
+							angle: k.deg2rad(this.angle ?? 0),
 							isSensor: true,
 						},
 					)
@@ -125,7 +125,7 @@ export default (k: KaboomCtx): MatterPlugin => {
 						area.radius,
 						{
 							...opt,
-							angle: deg2rad(this.angle ?? 0),
+							angle: k.deg2rad(this.angle ?? 0),
 							isSensor: true,
 						},
 					)
@@ -136,7 +136,7 @@ export default (k: KaboomCtx): MatterPlugin => {
 						[area.pts],
 						{
 							...opt,
-							angle: deg2rad(this.angle ?? 0),
+							angle: k.deg2rad(this.angle ?? 0),
 							isSensor: true,
 						},
 					)
@@ -162,42 +162,41 @@ export default (k: KaboomCtx): MatterPlugin => {
 
 				const a = this.localArea()
 
-				pushTransform()
-				pushScale(this.area.scale)
-				pushTranslate(this.area.offset)
+				k.pushTransform()
+				k.pushScale(this.area.scale)
+				k.pushTranslate(this.area.offset)
 
 				const opts = {
 					outline: {
 						width: 4,
-						color: rgb(0, 0, 255),
+						color: k.rgb(0, 0, 255),
 					},
 					origin: this.origin,
 					fill: false,
 					fixed: this.fixed,
 				}
 
-				if (a instanceof Rect) {
-					drawRect({
+				if (a instanceof k.Rect) {
+					k.drawRect({
 						...opts,
 						pos: a.pos,
 						width: a.width,
 						height: a.height,
 					})
-				} else if (a instanceof Polygon) {
-					drawPolygon({
+				} else if (a instanceof k.Polygon) {
+					k.drawPolygon({
 						...opts,
 						pts: a.pts,
 					})
-				} else if (a instanceof Circle) {
-					drawCircle({
+				} else if (a instanceof k.Circle) {
+					k.drawCircle({
 						...opts,
 						pos: a.center,
 						radius: a.radius,
 					})
 				}
 
-				popTransform()
-
+				k.popTransform()
 
 			},
 

@@ -1,8 +1,8 @@
-import esbuild from "esbuild";
+import esbuild from "esbuild"
 
-const dev = process.env.NODE_ENV === "development";
-const srcDir = "src";
-const distDir = "dist";
+const dev = process.env.NODE_ENV === "development"
+const srcDir = "src"
+const distDir = "dist"
 
 const fmts = [
 	{
@@ -15,16 +15,16 @@ const fmts = [
 		},
 	},
 	...(dev ? [] : [
-		{ format: "cjs",  ext: "cjs", },
-		{ format: "esm",  ext: "mjs", },
+		{ format: "cjs",  ext: "cjs" },
+		{ format: "esm",  ext: "mjs" },
 	]),
-];
+]
 
 fmts.forEach((fmt) => {
 
-	const srcPath = `${srcDir}/kmatter.ts`;
-	const distPath = `${distDir}/kmatter.${fmt.ext}`;
-	const log = () => console.log(`-> ${distPath}`);
+	const srcPath = `${srcDir}/kmatter.ts`
+	const distPath = `${distDir}/kmatter.${fmt.ext}`
+	const log = () => console.log(`-> ${distPath}`)
 
 	esbuild.build({
 		bundle: true,
@@ -36,7 +36,7 @@ fmts.forEach((fmt) => {
 		globalName: "kmatter",
 		format: fmt.format,
 		outfile: distPath,
-		...(fmt.config ?? {})
-	}).then(log);
+		...(fmt.config ?? {}),
+	}).then(log)
 
-});
+})

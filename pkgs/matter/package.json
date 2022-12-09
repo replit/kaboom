@@ -29,15 +29,15 @@
 		"prepare": "npm run build"
 	},
 	"peerDependencies": {
-		"kaboom": "2001.x"
+		"kaboom": "file:../.."
 	},
 	"devDependencies": {
-		"@types/matter-js": "^0.17.7",
-		"@typescript-eslint/eslint-plugin": "^5.13.0",
-		"esbuild": "^0.14.21",
-		"eslint": "^8.10.0",
+		"@types/matter-js": "^0.18.2",
+		"@typescript-eslint/eslint-plugin": "^5.46.0",
+		"esbuild": "^0.16.3",
+		"eslint": "^8.29.0",
 		"kaboom": "file:../..",
-		"typescript": "^4.5.5"
+		"typescript": "^4.9.4"
 	},
 	"dependencies": {
 		"matter-js": "^0.18.0"

@@ -3306,6 +3306,7 @@ export declare class Vec2 {
 	 * @since v3000.0
 	 */
 	transform(n: Mat4): Vec2
+	bbox(): Rect
 	eq(p: Vec2): boolean
 	toString(): string
 }
