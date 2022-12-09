@@ -4915,15 +4915,20 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			jumpForce: opt.jumpForce ?? DEF_JUMP_FORCE,
 			gravityScale: opt.gravityScale ?? 1,
 			isStatic: opt.isStatic ?? false,
-			mass: opt.mass ?? 0,
+			// TODO: prefer density * area()
+			mass: opt.mass ?? 1,
 
 			add(this: GameObj<PosComp | BodyComp | AreaComp>) {
+
+				if (this.mass === 0) {
+					throw new Error("Can't set body mass to 0")
+				}
 
 				// TODO
 				// static vs static: don't resolve
 				// static vs non-static: always resolve non-static
 				// non-static vs non-static: resolve the first one
-				events.push(this.onCollideUpdate((other, col) => {
+				events.push(this.onCollideUpdate((other: GameObj<PosComp | BodyComp>, col) => {
 
 					if (!other.is("body")) {
 						return
@@ -4944,10 +4949,10 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 					if (this.isStatic && other.isStatic) {
 						return
 					} else if (!this.isStatic && !other.isStatic) {
-						// TODO: take mass
 						// TODO: update all children transform?
-						this.pos = this.pos.add(col.displacement.scale(0.5))
-						other.pos = other.pos.add(col.displacement.scale(-0.5))
+						const tmass = this.mass + other.mass
+						this.pos = this.pos.add(col.displacement.scale(other.mass / tmass))
+						other.pos = other.pos.add(col.displacement.scale(-this.mass / tmass))
 						this.transform = calcTransform(this)
 						other.transform = calcTransform(other)
 					} else {

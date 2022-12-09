@@ -779,6 +779,9 @@ export class Line {
 	bbox(): Rect {
 		return Rect.fromPoints(this.p1, this.p2)
 	}
+	area(): number {
+		return this.p1.dist(this.p2)
+	}
 	clone(): Line {
 		return new Line(this.p1, this.p2)
 	}
@@ -813,6 +816,9 @@ export class Rect {
 	bbox(): Rect {
 		return this.clone()
 	}
+	area(): number {
+		return this.width * this.height
+	}
 	clone(): Rect {
 		return new Rect(this.pos.clone(), this.width, this.height)
 	}
@@ -844,6 +850,9 @@ export class Circle {
 			this.center.add(vec2(this.radius)),
 		)
 	}
+	area(): number {
+		return this.radius * this.radius * Math.PI
+	}
 	clone(): Circle {
 		return new Circle(this.center, this.radius)
 	}
@@ -871,6 +880,9 @@ export class Ellipse {
 			this.center.add(vec2(this.radiusX, this.radiusY)),
 		)
 	}
+	area(): number {
+		return this.radiusX * this.radiusY * Math.PI
+	}
 	clone(): Ellipse {
 		return new Ellipse(this.center, this.radiusX, this.radiusY)
 	}
@@ -897,6 +909,17 @@ export class Polygon {
 			p2.y = Math.max(p2.y, pt.y)
 		}
 		return Rect.fromPoints(p1, p2)
+	}
+	area(): number {
+		let total = 0
+		const l = this.pts.length
+		for (let i = 0; i < l; i++) {
+			const p1 = this.pts[i]
+			const p2 = this.pts[(i + 1) % l]
+			total += (p1.x * p2.y * 0.5)
+			total -= (p2.x * p1.y * 0.5)
+		}
+		return Math.abs(total)
 	}
 	clone(): Polygon {
 		return new Polygon(this.pts.map((pt) => pt.clone()))

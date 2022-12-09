@@ -3438,6 +3438,7 @@ export declare class Rect {
 	points(): [Vec2, Vec2, Vec2, Vec2]
 	transform(m: Mat4): Polygon
 	bbox(): Rect
+	area(): number
 	clone(): Rect
 	distToPoint(p: Vec2): number
 	sdistToPoint(p: Vec2): number
@@ -3449,6 +3450,7 @@ export declare class Line {
 	constructor(p1: Vec2, p2: Vec2)
 	transform(m: Mat4): Line
 	bbox(): Rect
+	area(): number
 	clone(): Line
 }
 
@@ -3458,6 +3460,7 @@ export declare class Circle {
 	constructor(pos: Vec2, radius: number)
 	transform(m: Mat4): Ellipse
 	bbox(): Rect
+	area(): number
 	clone(): Circle
 }
 
@@ -3468,6 +3471,7 @@ export declare class Ellipse {
 	constructor(pos: Vec2, rx: number, ry: number)
 	transform(m: Mat4): Ellipse
 	bbox(): Rect
+	area(): number
 	clone(): Ellipse
 }
 
@@ -3476,6 +3480,7 @@ export declare class Polygon {
 	constructor(pts: Vec2[])
 	transform(m: Mat4): Polygon
 	bbox(): Rect
+	area(): number
 	clone(): Polygon
 }
 
@@ -4230,7 +4235,9 @@ export interface BodyComp extends Comp {
 	 */
 	gravityScale: number,
 	/**
-	 * Decides how much objects can push another.
+	 * Mass of the body, decides how much a non-static body should move when resolves with another non-static body. (default 1).
+	 *
+	 * @since v3000.0
 	 */
 	mass?: number,
 	/**
@@ -4344,7 +4351,9 @@ export interface BodyCompOpt {
 	 */
 	stickToPlatform?: boolean,
 	/**
-	 * Decides how much objects can push another.
+	 * Mass of the body, decides how much a non-static body should move when resolves with another non-static body. (default 1).
+	 *
+	 * @since v3000.0
 	 */
 	mass?: number,
 }
