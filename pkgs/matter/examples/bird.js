@@ -8,6 +8,10 @@ const me = k.add([
 	mbody(),
 ])
 
+me.onClick(() => {
+	// ...
+})
+
 k.add([
 	k.pos(40, 160),
 	k.rect(240, 24),

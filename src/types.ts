@@ -2980,7 +2980,7 @@ export type DrawCircleOpt = Omit<RenderProps, "angle"> & {
 	 */
 	gradient?: [Color, Color],
 	/**
-	 * Low = round circle but slow. High = janky circle but fast (default 8)
+	 * Multiplier for circle vertices resolution (default 1)
 	 */
 	resolution?: number,
 	/**
@@ -3020,7 +3020,7 @@ export type DrawEllipseOpt = RenderProps & {
 	 */
 	gradient?: [Color, Color],
 	/**
-	 * Low = round circle but slow. High = janky circle but fast (default 8)
+	 * Multiplier for circle vertices resolution (default 1)
 	 */
 	resolution?: number,
 	/**

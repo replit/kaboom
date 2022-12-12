@@ -995,9 +995,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		const url = assets.urlPrefix + path
 		return fetch(url)
 			.then((res) => {
-				if (!res.ok) {
-					throw new Error(`Failed to fetch ${url}`)
-				}
+				if (!res.ok) throw new Error(`Failed to fetch ${url}`)
 				return res
 			})
 	}
@@ -2093,7 +2091,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		radiusY: number,
 		start: number,
 		end: number,
-		res: number = 8,
+		res: number = 1,
 	): Vec2[] {
 
 		// normalize and turn start and end angles to radians
@@ -2102,7 +2100,8 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		if (end <= start) end += Math.PI * 2
 
 		const pts = []
-		const step = deg2rad(res)
+		const nverts = Math.ceil((end - start) / deg2rad(8) * res)
+		const step = (end - start) / nverts
 
 		// calculate vertices
 		for (let a = start; a < end; a += step) {
