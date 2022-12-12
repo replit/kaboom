@@ -2980,7 +2980,7 @@ export type DrawCircleOpt = Omit<RenderProps, "angle"> & {
 	 */
 	gradient?: [Color, Color],
 	/**
-	 * Multipliyer for the number of polygon segments.
+	 * Low = round circle but slow. High = janky circle but fast (default 8)
 	 */
 	resolution?: number,
 	/**
@@ -3020,7 +3020,7 @@ export type DrawEllipseOpt = RenderProps & {
 	 */
 	gradient?: [Color, Color],
 	/**
-	 * Multipliyer for the number of polygon segments.
+	 * Low = round circle but slow. High = janky circle but fast (default 8)
 	 */
 	resolution?: number,
 	/**
@@ -3679,7 +3679,7 @@ export interface Collision {
 	 *
 	 * @since v3000.0
 	 */
-	preventResolve(): void,
+	preventResolution(): void,
 	/**
 	 * Get a new collision with reversed source and target relationship.
 	 */

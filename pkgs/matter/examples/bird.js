@@ -3,23 +3,8 @@ const { marea, mbody } = kmatter(k)
 
 const me = k.add([
 	k.pos(60, 120),
-	k.rect(48, 24),
+	k.circle(24, 24),
 	marea(),
-	k.rotate(45),
-	k.anchor("center"),
-	mbody(),
-])
-
-me.onCollideEnd((obj) => {
-	console.log(obj)
-})
-
-k.add([
-	k.pos(90, 120),
-	k.rect(48, 24),
-	marea(),
-	k.rotate(45),
-	// k.anchor("center"),
 	mbody(),
 ])
 

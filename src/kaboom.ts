@@ -2093,7 +2093,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		radiusY: number,
 		start: number,
 		end: number,
-		res: number = 1,
+		res: number = 8,
 	): Vec2[] {
 
 		// normalize and turn start and end angles to radians
@@ -2101,18 +2101,14 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		end = deg2rad(end % 360)
 		if (end <= start) end += Math.PI * 2
 
-		// TODO: better way to get this?
-		// the number of vertices is sqrt(r1 + r2) * 3 * res with a minimum of 16
-		const nverts = Math.ceil(Math.max(Math.sqrt(radiusX + radiusY) * 3 * (res || 1), 16))
-		const step = (end - start) / nverts
 		const pts = []
+		const step = deg2rad(res)
 
 		// calculate vertices
 		for (let a = start; a < end; a += step) {
 			pts.push(pos.add(radiusX * Math.cos(a), radiusY * Math.sin(a)))
 		}
 
-		// doing this on the side due to possible floating point inaccuracy
 		pts.push(pos.add(radiusX * Math.cos(end), radiusY * Math.sin(end)))
 
 		return pts
@@ -2316,9 +2312,10 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 		const start = opt.start ?? 0
 		const end = opt.end ?? 360
+		const offset = anchorPt(opt.anchor ?? "center").scale(new Vec2(-opt.radiusX, -opt.radiusY))
 
 		const pts = getArcPts(
-			new Vec2(0),
+			offset,
 			opt.radiusX,
 			opt.radiusY,
 			start,
@@ -2327,7 +2324,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		)
 
 		// center
-		pts.unshift(new Vec2(0))
+		pts.unshift(offset)
 
 		const polyOpt = Object.assign(opt, {
 			pts,
@@ -2456,6 +2453,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 	}
 
+	// TODO: not working
 	function drawMasked(content: () => void, mask: () => void) {
 		drawStenciled(content, mask, gl.EQUAL)
 	}
@@ -4835,8 +4833,8 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 					radius: this.radius,
 				}))
 			},
-			renderArea() {
-				return new Rect(vec2(-this.radius), this.radius * 2, this.radius * 2)
+			renderArea(this: GameObj<AnchorComp | CircleComp>) {
+				return new Rect(new Vec2(this.anchor ? 0 : -this.radius), this.radius * 2, this.radius * 2)
 			},
 			inspect() {
 				return `${Math.ceil(this.radius)}`
@@ -5754,7 +5752,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		isBottom() {
 			return this.displacement.y < 0
 		}
-		preventResolve() {
+		preventResolution() {
 			this.resolved = true
 		}
 	}

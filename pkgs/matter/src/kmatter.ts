@@ -24,11 +24,11 @@ export type MatterPlugin = {
 
 export type MatterBodyOpt = Matter.IBodyDefinition
 
-export type MatterBodyComp = Comp & {
+export interface MatterBodyComp extends Comp {
 	applyForce(pos: Vec2, force: Vec2): void,
 }
 
-export type MatterAreaComp = AreaComp & {
+export interface MatterAreaComp extends AreaComp {
 	body: Matter.Body | null,
 }
 
@@ -274,10 +274,13 @@ export default (k: KaboomCtx): MatterPlugin => {
 				this.body.isStatic = opt.isStatic ?? false
 			},
 
+			destroy() {
+				this.body.isSensor = true
+				this.body.isStatic = false
+			},
+
 			applyForce(pos, force) {
-				if (!this.body) {
-					return
-				}
+				if (!this.body) return
 				// Matter.Body.applyForce(this.body, pos, force)
 				Matter.Body.applyForce(this.body, this.body.position, force)
 			},
@@ -286,7 +289,6 @@ export default (k: KaboomCtx): MatterPlugin => {
 	}
 
 	Matter.Events.on(engine, "collisionStart", (event) => {
-		const pairs = event.pairs
 		for (const pair of event.pairs) {
 			const o1 = pair.bodyA.obj
 			const o2 = pair.bodyB.obj
@@ -296,7 +298,6 @@ export default (k: KaboomCtx): MatterPlugin => {
 	})
 
 	Matter.Events.on(engine, "collisionActive", (event) => {
-		const pairs = event.pairs
 		for (const pair of event.pairs) {
 			const o1 = pair.bodyA.obj
 			const o2 = pair.bodyB.obj
@@ -306,7 +307,6 @@ export default (k: KaboomCtx): MatterPlugin => {
 	})
 
 	Matter.Events.on(engine, "collisionEnd", (event) => {
-		const pairs = event.pairs
 		for (const pair of event.pairs) {
 			const o1 = pair.bodyA.obj
 			const o2 = pair.bodyB.obj

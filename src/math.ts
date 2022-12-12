@@ -134,9 +134,9 @@ export class Vec2 {
 export function vec2(...args): Vec2 {
 	if (args.length === 1) {
 		if (args[0] instanceof Vec2) {
-			return vec2(args[0].x, args[0].y)
+			return new Vec2(args[0].x, args[0].y)
 		} else if (Array.isArray(args[0]) && args[0].length === 2) {
-			return vec2(...args[0])
+			return new Vec2(...args[0])
 		}
 	}
 	return new Vec2(...args)
