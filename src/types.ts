@@ -1341,7 +1341,7 @@ export interface KaboomCtx {
 	/**
 	 * Get / set gravity.
 	 */
-	gravity(g: number): number,
+	gravity(g?: number): number,
 	/**
 	 * Get / set the cursor (css). Cursor will be reset to "default" every frame so use this in an per-frame action.
 	 *

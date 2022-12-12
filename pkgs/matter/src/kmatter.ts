@@ -20,11 +20,13 @@ export type MatterPlugin = {
 	marea(opt?: AreaCompOpt): MatterAreaComp,
 	mbody(opt?: MatterBodyOpt): MatterBodyComp,
 	Matter: typeof Matter,
+	engine: Matter.Engine,
 }
 
 export type MatterBodyOpt = Matter.IBodyDefinition
 
 export interface MatterBodyComp extends Comp {
+	jump(force: number): void,
 	applyForce(pos: Vec2, force: Vec2): void,
 }
 
@@ -50,6 +52,8 @@ export default (k: KaboomCtx): MatterPlugin => {
 	}
 
 	const engine = Matter.Engine.create()
+
+	// engine.gravity.y = k.gravity()
 
 	// cache the last positions and angles of all objects so we know what objects transforms are changed on kaboom side
 	const positions: Record<number, Vec2> = {}
@@ -216,6 +220,27 @@ export default (k: KaboomCtx): MatterPlugin => {
 					: this.renderArea()
 			},
 
+			onClick(this: GameObj, f: () => void): EventController {
+				return this.onUpdate(() => {
+					if (this.isClicked()) {
+						f()
+					}
+				})
+			},
+
+			isClicked(): boolean {
+				return k.isMousePressed() && this.isHovering()
+			},
+
+			isHovering(this: GameObj) {
+				const mpos = this.fixed ? k.mousePos() : k.toWorld(k.mousePos())
+				return this.hasPoint(mpos)
+			},
+
+			hasPoint(pt: Vec2): boolean {
+				return Matter.Query.point([this.body], pt).length > 0
+			},
+
 			drawInspect() {
 
 				const a = this.localArea()
@@ -271,12 +296,16 @@ export default (k: KaboomCtx): MatterPlugin => {
 
 			add() {
 				this.body.isSensor = false
-				this.body.isStatic = opt.isStatic ?? false
+				Matter.Body.setStatic(this.body, opt.isStatic ?? false)
 			},
 
 			destroy() {
 				this.body.isSensor = true
-				this.body.isStatic = false
+				Matter.Body.setStatic(this.body, false)
+			},
+
+			jump(this: GameObj<MatterAreaComp | MatterBodyComp>, force: number = 6) {
+				Matter.Body.setVelocity(this.body, k.vec2(0, -force))
 			},
 
 			applyForce(pos, force) {
@@ -319,6 +348,7 @@ export default (k: KaboomCtx): MatterPlugin => {
 		marea,
 		mbody,
 		Matter,
+		engine,
 	}
 
 }

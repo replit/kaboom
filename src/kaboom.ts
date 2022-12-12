@@ -4409,6 +4409,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			},
 
 			hasPoint(pt: Vec2): boolean {
+				// TODO: convert to pt to local space instead
 				return testPolygonPoint(this.worldArea(), pt)
 			},
 
@@ -4547,6 +4548,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 			update(this: GameObj<SpriteComp>) {
 
+				// TODO: get sprite data in add()
 				if (!spriteData) {
 
 					const spr = resolveSprite(src)
