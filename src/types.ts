@@ -3275,6 +3275,12 @@ export declare class Vec2 {
 	sdist(p: Vec2): number
 	len(): number
 	/**
+	 * Get squared length of a vector.
+	 *
+	 * @since v3000.0
+	 */
+	slen(): number
+	/**
 	 * Get the unit vector (length of 1).
 	 */
 	unit(): Vec2
@@ -3283,13 +3289,43 @@ export declare class Vec2 {
 	 */
 	normal(): Vec2
 	/**
-	 * Get the angle between another vector
+	 * Get the reflection of a vector with a normal.
+	 *
+	 * @since v3000.0
+	 */
+	reflect(normal: Vec2): Vec2
+	/**
+	 * Get the projection of a vector onto another vector.
+	 *
+	 * @since v3000.0
+	 */
+	project(on: Vec2): Vec2
+	/**
+	 * Get the rejection of a vector onto another vector.
+	 *
+	 * @since v3000.0
+	 */
+	reject(on: Vec2): Vec2
+	/**
+	 * Get the angle of the vector from p towards this.
 	 */
 	angle(p: Vec2): number
 	/**
-	 * Linear interpolate to a destination vector
+	 * Get the angle between this vector and another vector.
+	 *
+	 * @since v3000.0
+	 */
+	angleBetween(...args): number
+	/**
+	 * Linear interpolate to a destination vector (for positions).
 	 */
 	lerp(p: Vec2, t: number): Vec2
+	/**
+	 * Spherical linear interpolate to a destination vector (for rotations).
+	 *
+	 * @since v3000.0
+	 */
+	slerp(p: Vec2, t: number): Vec2
 	/**
 	 * If both x and y is 0.
 	 *
