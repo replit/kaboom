@@ -381,7 +381,7 @@ const Play: React.FC = () => {
 						<Link href="/" passHref>
 							<a>
 								<img
-									src="/site/img/k.png"
+									src="/static/img/k.png"
 									css={{
 										width: 48,
 										cursor: "pointer",

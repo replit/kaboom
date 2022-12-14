@@ -18,17 +18,15 @@ import Select from "comps/Select"
 import View from "comps/View"
 import Text from "comps/Text"
 import Menu from "comps/Menu"
-import Inspect from "comps/Inspect"
 import Drop from "comps/Drop"
 import Drawer from "comps/Drawer"
 import Background from "comps/Background"
 import Doc from "comps/Doc"
 import download from "lib/download"
 import wrapHTML from "lib/wrapHTML"
-import Ctx from "lib/Ctx"
-import DEMO_CFG from "public/site/demo/demo.json"
+import EXAMPLES_CFG from "public/static/examples/examples.json"
 
-const DEF_DEMO = "add"
+const DEFAULT_EXAMPLE = "add"
 
 interface SpriteEntryProps {
 	name: string,
@@ -117,16 +115,16 @@ interface Sound {
 }
 
 interface PlayProps {
-	demos: Record<string, string>,
+	examples: Record<string, string>,
 }
 
 const Play: React.FC<PlayProps> = ({
-	demos,
+	examples,
 }) => {
 
 	const router = useRouter()
-	const demo = router.query.demo as string || DEF_DEMO
-	const code = demos[demo]
+	const example = router.query.example as string || DEFAULT_EXAMPLE
+	const code = examples[example]
 	const [ backpackOpen, setBackpackOpen ] = React.useState(false)
 	const [ sprites, setSprites ] = useSavedState<Sprite[]>("sprites", [])
 	const [ sounds, setSounds ] = useSavedState<Sound[]>("sounds", [])
@@ -138,20 +136,20 @@ const Play: React.FC<PlayProps> = ({
 	const spaceUsed = useSpaceUsed()
 	const [ make, setMake ] = React.useState(false)
 
-	// DEMO_ORDER defines the demos that should appear at the top of the list
+	// EXAMPLE_ORDER defines the demos that should appear at the top of the list
 	// names not defined in the list just fall to their default order
-	const demoList = React.useMemo(() => {
+	const exampleList = React.useMemo(() => {
 		return [...new Set([
-			...DEMO_CFG.order,
-			...Object.keys(demos),
-		])].filter((name) => !DEMO_CFG.hidden.includes(name))
-	}, [ demos ])
+			...EXAMPLES_CFG.order,
+			...Object.keys(examples),
+		])].filter((name) => !EXAMPLES_CFG.hidden.includes(name))
+	}, [ examples ])
 
 	React.useEffect(() => {
-		if (router.isReady && !router.query.demo) {
+		if (router.isReady && !router.query.example) {
 			router.replace({
 				query: {
-					demo: DEF_DEMO,
+					example: DEFAULT_EXAMPLE,
 				},
 			}, undefined, { shallow: true })
 		}
@@ -175,7 +173,7 @@ const Play: React.FC<PlayProps> = ({
 			title="Kaboom Playground"
 			scale={0.6}
 			twitterPlayer={{
-				url: `https://kaboomjs.com/demo/${demo}`,
+				url: `https://kaboomjs.com/example/${example}`,
 				width: 480,
 				height: 480,
 			}}
@@ -197,7 +195,7 @@ const Play: React.FC<PlayProps> = ({
 						<Link href="/" passHref>
 							<a>
 								<img
-									src="/site/img/k.png"
+									src="/static/img/k.png"
 									css={{
 										width: 48,
 										cursor: "pointer",
@@ -209,13 +207,13 @@ const Play: React.FC<PlayProps> = ({
 					</View>
 					{ !make &&
 						<Select
-							name="Demo Selector"
-							desc="Select a demo to run"
-							options={demoList}
-							value={demo}
-							onChange={(demo) => router.push({
+							name="Example Selector"
+							desc="Select a example to run"
+							options={exampleList}
+							value={example}
+							onChange={(example) => router.push({
 								query: {
-									demo: demo,
+									example: example,
 								},
 							}, undefined, { shallow: true })}
 						/>
@@ -443,23 +441,23 @@ const Play: React.FC<PlayProps> = ({
 
 }
 
-// TODO: getServerSideProps is handy for dev when you're changing demos, but getStaticProps makes more sense for prod since it won't change
+// TODO: getServerSideProps is handy for dev when you're changing examples, but getStaticProps makes more sense for prod since it won't change
 export const getServerSideProps: GetServerSideProps = async (ctx) => {
-	const { demo } = ctx.query
-	const demodir = (await fs.readdir("public/site/demo"))
+	const { example } = ctx.query
+	const examplesdir = (await fs.readdir("public/static/examples"))
 		.filter((p) => !p.startsWith("."))
-	const demos: Record<string, string> = {}
-	for (const file of demodir) {
+	const examples: Record<string, string> = {}
+	for (const file of examplesdir) {
 		const ext = path.extname(file)
 		const name = path.basename(file, ext)
 		if (ext === ".js") {
-			demos[name] = await fs.readFile(`public/site/demo/${file}`, "utf8")
+			examples[name] = await fs.readFile(`public/static/examples/${file}`, "utf8")
 		}
 	}
-	if (!demo || demos[demo as string]) {
+	if (!example || examples[example as string]) {
 		return {
 			props: {
-				demos,
+				examples,
 			},
 		}
 	} else {

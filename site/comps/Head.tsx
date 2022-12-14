@@ -17,8 +17,8 @@ interface HeadProps {
 
 const DEF_TITLE = "Kaboom"
 const DEF_DESC = "JavaScript game programming library that helps you make games fast and fun"
-const DEF_ICON = "/site/img/k.png"
-const DEF_IMG = "https://kaboomjs.com/site/img/k.png"
+const DEF_ICON = "/static/img/k.png"
+const DEF_IMG = "https://kaboomjs.com/static/img/k.png"
 
 const Head: React.FC<HeadProps> = ({
 	title,

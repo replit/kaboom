@@ -9,10 +9,11 @@ export default (opt = {}) => {
 
 	app.use(express.static("assets"))
 	app.use("/dist", express.static("dist"))
-	app.use("/demo", express.static("demo"))
+	app.use("/sprites", express.static("sprites"))
+	app.use("/examples", express.static("examples"))
 
 	app.get("/", (req, res) => {
-		const demos = (fs.readdirSync("demo"))
+		const examples = (fs.readdirSync("examples"))
 			.filter((p) => !p.startsWith(".") && p.endsWith(".js"))
 			.map((d) => path.basename(d, ".js"))
 		res.setHeader("Content-Type", "text/html")
@@ -44,13 +45,13 @@ a:hover {
 </style>
 </head>
 <body>
-${demos.map((demo) => `<li><a href="/demo/${demo}">${demo}</a></li>`).join("")}
+${examples.map((example) => `<li><a href="/${example}">${example}</a></li>`).join("")}
 </body>
 </html>
 		`)
 	})
 
-	app.get("/demo/:name", (req, res) => {
+	app.get("/:name", (req, res) => {
 		res.setHeader("Content-Type", "text/html")
 		res.send(`
 <!DOCTYPE html>
@@ -59,7 +60,7 @@ ${demos.map((demo) => `<li><a href="/demo/${demo}">${demo}</a></li>`).join("")}
 </head>
 <body>
 <script src="/dist/kaboom.js"></script>
-<script src="/demo/${req.params.name}.js"></script>
+<script src="/examples/${req.params.name}.js"></script>
 </body>
 </html>
 		`)

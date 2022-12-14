@@ -3,6 +3,7 @@ import { GetServerSideProps } from "next"
 import Head from "comps/Head"
 import Markdown from "comps/Markdown"
 import Nav from "comps/Nav"
+import matter from "gray-matter"
 import { capitalize } from "lib/str"
 
 interface BlogProps {
@@ -16,13 +17,13 @@ const Blog: React.FC<BlogProps> = ({
 }) => (
 	<Nav>
 		<Head title={`Kaboom - ${capitalize(name)}`} />
-		<Markdown src={src} baseUrl="/site/blog/" />
+		<Markdown src={matter(src).content} baseUrl="/static/blog/" />
 	</Nav>
 )
 
 export const getServerSideProps: GetServerSideProps = async (ctx) => {
 	const { name } = ctx.query
-	const path = `public/site/blog/${name}.md`
+	const path = `public/static/blog/${name}.md`
 	try {
 		return {
 			props: {

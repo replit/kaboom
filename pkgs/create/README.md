@@ -15,10 +15,9 @@ OPTIONS
 
   -h, --help             Print this message
   -t, --typescript       Use TypeScript
-  -s, --start            Start the dev server right away
-      --no-hmr           Don't use vite hmr / hot reload
-  -d, --demo <name>      Start from a demo listed on kaboomjs.com/play
-      --spaces <num>     Use spaces instead of tabs for generated files
+  -d, --desktop          Enable packaging for desktop release
+  -e, --example <name>   Start from a example listed on kaboomjs.com/play
+      --spaces <level>   Use spaces instead of tabs for generated files
   -v, --version <label>  Use a specific kaboom version (default latest)
 
 EXAMPLE
@@ -27,8 +26,8 @@ EXAMPLE
   $ npm init kaboom mygame
 
   # need to put all args after -- if using with npm init
-  $ npm init kaboom -- --typescript --demo burp mygame
+  $ npm init kaboom -- --typescript --example burp mygame
 
   # if installed locally you don't need to use -- when passing options
   $ create-kaboom -t -s -d burp mygame
-```
+  ```

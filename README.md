@@ -1,15 +1,10 @@
-<div align="center">
-    <img src="kaboom.png" alt="Kaboom Logo">
-    <h3>:boom: KABOOM.JS :boom:</h3>
-    <p><a href="https://kaboomjs.com/"><b>Kaboom</b></a> is a JavaScript library that helps you make games fast and fun!</p>
-    <img alt="GitHub" src="https://img.shields.io/github/license/replit/kaboom">
-    <img alt="GitHub issues" src="https://img.shields.io/github/issues/replit/kaboom">
-    <img alt="GitHub last commit" src="https://img.shields.io/github/last-commit/replit/kaboom">
-    <h6>Start playing around with it in the <a href="https://kaboomjs.com/play">Kaboom Playground</a></h6>
-    <br>
-    <h4>Community</h4>
-    <a href="https://twitter.com/kaboomjs" target="_blank"><img alt="Twitter Follow" src="https://img.shields.io/twitter/follow/Kaboomjs?style=social"></a>
-</div>
+# Kaboom
+
+![kaboom](kaboom.png)
+
+[**Kaboom**](https://kaboomjs.com) is a JavaScript library that helps you make games fast and fun!
+
+Start playing around with it in the [Kaboom Playground](https://kaboomjs.com/play)
 
 ## Examples
 
@@ -17,11 +12,11 @@
 // initialize context
 kaboom()
 
-// load a sprite called "froggy"
-loadSprite("froggy", "sprites/froggy.png")
+// load a sprite called "bean"
+loadSprite("bean", "sprites/bean.png")
 
 // compose the player game object from multiple components and add it to the game
-const froggy = add([
+const bean = add([
     sprite("bean"),
     pos(80, 40),
     area(),
@@ -31,7 +26,7 @@ const froggy = add([
 // press space to jump
 onKeyPress("space", () => {
     // this method is provided by the "body" component above
-    froggy.jump()
+    bean.jump()
 })
 ```
 
@@ -97,7 +92,24 @@ onKeyDown("w", () => {
 
 ## Usage
 
-### NPM
+### Start a Project With `create-kaboom`
+
+The fastest way to start a Kaboom game is with [`create-kaboom`](https://github.com/replit/kaboom/tree/master/pkgs/create)
+
+```sh
+$ npm init kaboom mygame
+```
+
+This will create a directory called `mygame` for you, containing all the files we need
+
+```sh
+$ cd mygame
+$ npm run dev
+```
+
+Then open http://localhost:5173 and edit `src/game.js`
+
+### Install as NPM Package
 
 ```sh
 $ npm install kaboom
@@ -146,13 +158,12 @@ works all CDNs that supports NPM packages, e.g. jsdelivr, skypack
 
 ## Dev
 
-1. `npm run setup` to setup first time (installing dev packages)
-1. `npm run dev` to watch & build lib and the website (the website might take some time to build for the first time)
-1. go to http://localhost:3000/play
-1. edit demos in `demo/` to test
-1. make sure not to break any existing demos
+1. `npm install` to install dev packages
+1. `npm run dev` to start dev server
+1. go to http://localhost:8000/ and pick an example
+1. edit examples in `examples/` to test
 
-also check out [CONTRIBUTION.md](CONTRIBUTING.md)
+Check out [CONTRIBUTION.md](CONTRIBUTING.md) for more
 
 ## Community
 
@@ -174,6 +185,7 @@ also check out [CONTRIBUTION.md](CONTRIBUTING.md)
 - Thanks to [Polyducks](http://polyducks.co.uk/) for the amazing [kitchen sink font](https://polyducks.itch.io/kitchen-sink-textmode-font) font
 - Thanks to [0x72](https://0x72.itch.io/) for the amazing [Dungeon Tileset](https://0x72.itch.io/dungeontileset-ii)
 - Thanks to [Kenney](https://kenney.nl/) for the amazing [1-Bit Platformer Pack](https://kenney.nl/assets/bit-platformer-pack)
+- Thanks to [mulfok](https://twitter.com/MulfoK) for the amazing [mulfok32](https://lospec.com/palette-list/mulfok32) color palette
 - Find bitmap fonts: [Oldschool PC Font](https://int10h.org/oldschool-pc-fonts)
 - Featured on [Console 50](https://console.substack.com/p/console-50)
 - Thanks to [Umayr](https://github.com/umayr) for kindly offering the "kaboom" npm package name

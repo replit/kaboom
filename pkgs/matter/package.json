@@ -1,0 +1,45 @@
+{
+	"name": "@kaboom/matter",
+	"description": "Kaboom x MatterJS physics",
+	"version": "0.0.0",
+	"license": "MIT",
+	"homepage": "https://kaboomjs.com/",
+	"repository": "github:replit/kaboom",
+	"author": "tga <tga@space55.xyz>",
+	"type": "module",
+	"main": "./dist/kmatter.cjs",
+	"module": "./dist/kmatter.mjs",
+	"types": "./dist/kmatter.d.ts",
+	"exports": {
+		"import": "./dist/kmatter.mjs",
+		"require": "./dist/kmatter.cjs"
+	},
+	"files": [
+		"dist/",
+		"src/",
+		"CHANGELOG.md"
+	],
+	"scripts": {
+		"build": "node build.js",
+		"dev": "env NODE_ENV=development node build.js",
+		"check": "tsc --noEmit",
+		"lint": "eslint src demo",
+		"fmt": "eslint --fix src demo",
+		"test": "",
+		"prepare": "npm run build"
+	},
+	"peerDependencies": {
+		"kaboom": "file:../.."
+	},
+	"devDependencies": {
+		"@types/matter-js": "^0.18.2",
+		"@typescript-eslint/eslint-plugin": "^5.46.0",
+		"esbuild": "^0.16.3",
+		"eslint": "^8.29.0",
+		"kaboom": "file:../..",
+		"typescript": "^4.9.4"
+	},
+	"dependencies": {
+		"matter-js": "^0.18.0"
+	}
+}
