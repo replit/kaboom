@@ -101,6 +101,15 @@ export class Vec2 {
 	normal(): Vec2 {
 		return new Vec2(this.y, -this.x)
 	}
+	reflect(normal: Vec2) {
+		return this.sub(normal.scale(2 * this.dot(normal)))
+	}
+	project(on: Vec2) {
+		return on.scale(on.dot(this) / on.len())
+	}
+	reject(on: Vec2) {
+		return this.sub(this.project(on))
+	}
 	dot(p2: Vec2): number {
 		return this.x * p2.x + this.y * p2.y
 	}
