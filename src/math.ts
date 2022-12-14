@@ -86,14 +86,10 @@ export class Vec2 {
 	}
 	sdist(...args): number {
 		const p2 = vec2(...args)
-		return (this.x - p2.x) * (this.x - p2.x) + (this.y - p2.y) * (this.y - p2.y)
+		return this.sub(p2).slen()
 	}
 	len(): number {
 		return Math.sqrt(this.dot(this))
-	}
-	sdist(...args): number {
-		const p2 = vec2(...args)
-		return this.sub(p2).slen()
 	}
 	slen(): number {
 		return this.dot(this)
@@ -109,7 +105,7 @@ export class Vec2 {
 		return this.x * p2.x + this.y * p2.y
 	}
 	cross(p2: Vec2): number {
-	    return this.x * p2.y - this.y * p2.x;
+	    return this.x * p2.y - this.y * p2.x
 	}
 	angle(...args): number {
 		const p2 = vec2(...args)
@@ -123,10 +119,10 @@ export class Vec2 {
 		return new Vec2(lerp(this.x, p2.x, t), lerp(this.y, p2.y, t))
 	}
 	slerp(p2: Vec2, t: number): Vec2 {
-		const cos = this.dot(p2);
-		const sin = this.cross(p2);
-		const angle = Math.atan2(sin, cos);
-		return this.scale(Math.sin((1 - t) * angle)).add(p2.scale(Math.sin(t * angle))).scale(1 / sin);
+		const cos = this.dot(p2)
+		const sin = this.cross(p2)
+		const angle = Math.atan2(sin, cos)
+		return this.scale(Math.sin((1 - t) * angle)).add(p2.scale(Math.sin(t * angle))).scale(1 / sin)
 	}
 	isZero(): boolean {
 		return this.x === 0 && this.y === 0
