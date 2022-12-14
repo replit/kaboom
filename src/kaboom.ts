@@ -3935,6 +3935,30 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		return game.ev.on("virtualButtonRelease", (b) => b === btn && action())
 	}
 
+	function onGamepadButtonDown(btn: string | ((btn: string) => void), action?: (btn: string) => void): EventController {
+		if (typeof btn === "function") {
+			return game.ev.on("gamepadButtonDown", btn)
+		} else if (typeof btn === "string" && typeof action === "function") {
+			return game.ev.on("gamepadButtonDown", (b) => b === btn && action(btn))
+		}
+	}
+
+	function onGamepadButtonPress(btn: string | ((btn: string) => void), action?: (btn: string) => void): EventController {
+		if (typeof btn === "function") {
+			return game.ev.on("gamepadButtonPress", btn)
+		} else if (typeof btn === "string" && typeof action === "function") {
+			return game.ev.on("gamepadButtonPress", (b) => b === btn && action(btn))
+		}
+	}
+
+	function onGamepadButtonRelease(btn: string | ((btn: string) => void), action?: (btn: string) => void): EventController {
+		if (typeof btn === "function") {
+			return game.ev.on("gamepadButtonRelease", btn)
+		} else if (typeof btn === "string" && typeof action === "function") {
+			return game.ev.on("gamepadButtonRelease", (b) => b === btn && action(btn))
+		}
+	}
+
 	function enterDebugMode() {
 
 		onKeyPress("f1", () => {
@@ -4209,11 +4233,12 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	function area(opt: AreaCompOpt = {}): AreaComp {
 
 		const events: Array<EventController> = []
+		const colliding = {}
+		const collidingThisFrame = new Set()
 
 		return {
 
 			id: "area",
-			colliding: {},
 			collisionIgnore: opt.collisionIgnore ?? [],
 
 			add(this: GameObj<AreaComp>) {
@@ -4223,22 +4248,23 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				}
 
 				events.push(this.onCollideUpdate((obj, col) => {
-					if (!this.colliding[obj.id]) {
+					if (!colliding[obj.id]) {
 						this.trigger("collide", obj, col)
 					}
-					this.colliding[obj.id] = col
+					colliding[obj.id] = col
+					collidingThisFrame.add(obj.id)
 				}))
 
 			},
 
-			update(this: GameObj) {
-				for (const id in this.colliding) {
-					const col = this.colliding[id]
-					if (!this.checkCollision(col.target as GameObj<AreaComp>)) {
-						delete this.colliding[id]
-						this.trigger("collideEnd", col.target, col)
+			update(this: GameObj<AreaComp>) {
+				for (const id in colliding) {
+					if (!collidingThisFrame.has(Number(id))) {
+						this.trigger("collideEnd", colliding[id].target)
+						delete colliding[id]
 					}
 				}
+				collidingThisFrame.clear()
 			},
 
 			drawInspect(this: GameObj<AreaComp | AnchorComp | FixedComp>) {
@@ -4304,24 +4330,16 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			},
 
 			checkCollision(this: GameObj, other: GameObj<AreaComp>) {
-				if (this === other || !other.area || !other.exists()) {
-					return null
-				}
-				// if (this.colliding[other.id]) {
-					// return this.colliding[other.id]
-				// }
-				const a1 = this.worldArea()
-				const a2 = other.worldArea()
-				return sat(a1, a2)
+				return this.colliding[other.id] ?? null
 			},
 
 			isColliding(other: GameObj<AreaComp>) {
-				const res = this.checkCollision(other)
-				return res && !res.isZero()
+				return Boolean(colliding[other.id])
 			},
 
-			isTouching(other) {
-				return Boolean(this.checkCollision(other))
+			isOverlapping(other) {
+				const col = colliding[other.id]
+				return col && col.isOverlapping()
 			},
 
 			onClick(this: GameObj, f: () => void): EventController {
@@ -4417,7 +4435,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			pushOut(this: GameObj<AreaComp | PosComp>, obj: GameObj<AreaComp>) {
 				const res = this.checkCollision(obj)
 				if (res) {
-					this.pos = this.pos.add(res)
+					this.pos = this.pos.add(res.displacement)
 				}
 			},
 
@@ -5003,7 +5021,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 				if (curPlatform) {
 					if (
-						!this.isTouching(curPlatform)
+						!this.isColliding(curPlatform)
 						|| !curPlatform.exists()
 						|| !curPlatform.is("body")
 					) {
@@ -5711,6 +5729,9 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		app.keyState.down.forEach((k) => game.ev.trigger("keyDown", k))
 		app.mouseState.down.forEach((k) => game.ev.trigger("mouseDown", k))
 		app.virtualButtonState.down.forEach((k) => game.ev.trigger("virtualButtonDown", k))
+		for (const gamepad of navigator.getGamepads()) {
+			// TODO
+		}
 	}
 
 	function updateFrame() {
@@ -5740,6 +5761,9 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				this.displacement.scale(-1),
 				this.resolved,
 			)
+		}
+		isOverlapping() {
+			return !this.displacement.isZero()
 		}
 		isLeft() {
 			return this.displacement.x > 0
@@ -5824,8 +5848,8 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 										continue check
 									}
 								}
-								const res = aobj.checkCollision(other)
-								if (res && !res.isZero()) {
+								const res = sat(aobj.worldArea(), other.worldArea())
+								if (res) {
 									// TODO: rehash if the object position is changed after resolution?
 									const col1 = new Collision(aobj, other, res)
 									aobj.trigger("collideUpdate", other, col1)
@@ -6645,6 +6669,9 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		onVirtualButtonPress,
 		onVirtualButtonDown,
 		onVirtualButtonRelease,
+		onGamepadButtonDown,
+		onGamepadButtonPress,
+		onGamepadButtonRelease,
 		mousePos,
 		mouseDeltaPos,
 		isKeyDown,

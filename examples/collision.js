@@ -75,6 +75,7 @@ add([
 	area(),
 	// This game object also has isStatic, so our player won't be able to move pass this
 	body({ isStatic: true }),
+	"grass",
 ])
 
 // .onCollide() is provided by area() component, it registers an event that runs when an objects collides with another object with certain tag
@@ -85,12 +86,11 @@ player.onCollide("enemy", (enemy) => {
 
 // .onCollideUpdate() runs every frame when an object collides with another object
 player.onCollideUpdate("enemy", () => {
-	// ...
 })
 
 // .onCollideEnd() runs once when an object stopped colliding with another object
-player.onCollideEnd("enemy", () => {
-	// ...
+player.onCollideEnd("grass", (a) => {
+	debug.log("leave grass")
 })
 
 // .clicks() is provided by area() component, it registers an event that runs when the object is clicked

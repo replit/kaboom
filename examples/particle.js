@@ -29,6 +29,7 @@ loop(0.1, () => {
 		area({ collisionIgnore: ["particle"] }),
 		body(),
 		lifespan(1, { fade: 0.5 }),
+		opacity(1),
 		move(choose([LEFT, RIGHT]), rand(60, 240)),
 		"particle",
 	])

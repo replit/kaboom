@@ -898,6 +898,12 @@ export interface KaboomCtx {
 	 * @since v3000.0
 	 */
 	onVirtualButtonRelease(btn: VirtualButton, action: () => void): EventController,
+	onGamepadButtonDown(btn: string, action: (btn: string) => void): EventController,
+	onGamepadButtonDown(action: (btn) => void): EventController,
+	onGamepadButtonPress(btn: string, action: (btn: string) => void): EventController,
+	onGamepadButtonPress(action: (btn) => void): EventController,
+	onGamepadButtonRelease(btn: string, action: (btn: string) => void): EventController,
+	onGamepadButtonRelease(action: (btn) => void): EventController,
 	/**
 	 * Sets the root for all subsequent resource urls.
 	 *
@@ -3723,6 +3729,12 @@ export interface Collision {
 	 */
 	preventResolution(): void,
 	/**
+	 * If the 2 objects have any overlap, or they're just touching edges.
+	 *
+	 * @since v3000.0
+	 */
+	isOverlapping(): void,
+	/**
 	 * Get a new collision with reversed source and target relationship.
 	 */
 	reverse(): Collision,
@@ -3798,12 +3810,6 @@ export interface AreaComp extends Comp {
 	 */
 	collisionIgnore: Tag[],
 	/**
-	 * A list of all collisions happening at the moment.
-	 *
-	 * @since v3000.0
-	 */
-	colliding: Record<GameObjID, Collision>,
-	/**
 	 * If was just clicked on last frame.
 	 */
 	isClicked(): boolean,
@@ -3815,17 +3821,16 @@ export interface AreaComp extends Comp {
 	 * Check collision with another game obj.
 	 *
 	 * @since v3000.0
-	 * @returns The minimal displacement vector if collided
 	 */
-	checkCollision(other: GameObj<AreaComp>): Vec2 | null,
+	checkCollision(other: GameObj<AreaComp>): Collision | null,
 	/**
 	 * If is currently colliding with another game obj.
 	 */
 	isColliding(o: GameObj<AreaComp>): boolean,
 	/**
-	 * If is currently touching another game obj.
+	 * If is currently overlapping with another game obj (like isColliding, but will return false if the objects are just touching edges).
 	 */
-	isTouching(o: GameObj<AreaComp>): boolean,
+	isOverlapping(o: GameObj<AreaComp>): boolean,
 	/**
 	 * Register an event runs when clicked.
 	 *
