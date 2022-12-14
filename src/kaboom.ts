@@ -1827,8 +1827,8 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		gl.bindBuffer(gl.ARRAY_BUFFER, null)
 		gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null)
 
-		gfx.vqueue = []
-		gfx.iqueue = []
+		gfx.vqueue.length = 0
+		gfx.iqueue.length = 0
 
 		gfx.drawCalls++
 
@@ -1864,7 +1864,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		}
 
 		gfx.drawCalls = 0
-		gfx.transformStack = []
+		gfx.transformStack.length = 0
 		gfx.transform = new Mat4()
 
 	}
