@@ -3264,6 +3264,12 @@ export declare class Vec2 {
 	 */
 	dot(p: Vec2): number
 	/**
+	 * Get the cross product with another vector.
+	 *
+	 * @since v3000.0
+	 */
+	cross(p2: Vec2): number
+	/**
 	 * Get distance between another vector.
 	 */
 	dist(p: Vec2): number

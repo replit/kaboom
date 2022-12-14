@@ -114,7 +114,7 @@ export class Vec2 {
 		return this.x * p2.x + this.y * p2.y
 	}
 	cross(p2: Vec2): number {
-	    return this.x * p2.y - this.y * p2.x
+		return this.x * p2.y - this.y * p2.x
 	}
 	angle(...args): number {
 		const p2 = vec2(...args)
