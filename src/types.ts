@@ -2736,7 +2736,7 @@ export declare class Texture {
 	height: number
 	constructor(w: number, h: number, opt?: TextureOpt)
 	static fromImage(img: TexImageSource, opt?: TextureOpt): Texture
-	update(x: number, y: number, img: TexImageSource)
+	update(img: TexImageSource, x: number, y: number)
 	bind()
 	unbind()
 	free()

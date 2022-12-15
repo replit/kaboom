@@ -57,8 +57,6 @@ import {
 	comparePerf,
 } from "./utils"
 
-import packRects from "./pack"
-
 import {
 	GfxShader,
 	GfxFont,
@@ -595,7 +593,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			return tex
 		}
 
-		update(x: number, y: number, img: TexImageSource) {
+		update(img: TexImageSource, x = 0, y = 0) {
 			this.bind()
 			gl.texSubImage2D(gl.TEXTURE_2D, 0, x, y, gl.RGBA, gl.UNSIGNED_BYTE, img)
 			this.unbind()
@@ -613,6 +611,56 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			gl.deleteTexture(this.glTex)
 		}
 
+	}
+
+	class TexPacker {
+		private tex: Texture
+		private canvas: HTMLCanvasElement
+		private ctx: CanvasRenderingContext2D
+		private x: number = 0
+		private y: number = 0
+		private curHeight: number = 0
+		constructor(w: number, h: number) {
+			this.canvas = document.createElement("canvas")
+			this.canvas.width = w
+			this.canvas.height = h
+			this.tex = Texture.fromImage(this.canvas)
+			this.ctx = this.canvas.getContext("2d")
+		}
+		add(img: TexImageSource): [Texture, Quad] {
+			if (img.width > this.canvas.width || img.height > this.canvas.height) {
+				throw new Error(`Texture size (${img.width} x ${img.height}) exceeds limit (${this.canvas.width} x ${this.canvas.height})`)
+			}
+			if (this.x + img.width > this.canvas.width) {
+				this.x = 0
+				this.y += this.curHeight
+				this.curHeight = 0
+			}
+			if (this.y + img.height > this.canvas.height) {
+				this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height)
+				this.tex = Texture.fromImage(this.canvas)
+				this.x = 0
+				this.y = 0
+				this.curHeight = 0
+			}
+			const pos = new Vec2(this.x, this.y)
+			this.x += img.width
+			if (img.height > this.curHeight) {
+				this.curHeight = img.height
+			}
+			if (img instanceof ImageData) {
+				this.ctx.putImageData(img, pos.x, pos.y)
+			} else {
+				this.ctx.drawImage(img, pos.x, pos.y)
+			}
+			this.tex.update(this.canvas)
+			return [this.tex, new Quad(
+				pos.x / this.canvas.width,
+				pos.y / this.canvas.height,
+				img.width / this.canvas.width,
+				img.height / this.canvas.height,
+			)]
+		}
 	}
 
 	class FrameBuffer {
@@ -782,13 +830,15 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				)
 		}
 
-		// TODO: pack sprites here on the go instead of onLoad?
 		static fromImage(data: TexImageSource, opt: LoadSpriteOpt = {}): SpriteData {
-			return new SpriteData(
-				Texture.fromImage(data, opt),
-				slice(opt.sliceX || 1, opt.sliceY || 1),
-				opt.anims ?? {},
-			)
+			const [tex, quad] = assets.packer.add(data)
+			const frames = opt.frames ? opt.frames.map((f) => new Quad(
+				quad.x + f.x * quad.w,
+				quad.y + f.y * quad.h,
+				f.w * quad.w,
+				f.h * quad.h,
+			)) : slice(opt.sliceX || 1, opt.sliceY || 1, quad.x, quad.y, quad.w, quad.h)
+			return new SpriteData(tex, frames, opt.anims ?? {})
 		}
 
 		static fromURL(url: string, opt: LoadSpriteOpt = {}): Promise<SpriteData> {
@@ -943,6 +993,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		sounds: new AssetBucket<SoundData>(),
 		shaders: new AssetBucket<ShaderData>(),
 		custom: new AssetBucket<any>(),
+		packer: new TexPacker(SPRITE_ATLAS_WIDTH, SPRITE_ATLAS_HEIGHT),
 		// if we finished initially loading all assets
 		loaded: false,
 	}
@@ -1100,22 +1151,22 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		return load(SpriteData.from(src).then((atlas) => {
 			const map = {}
 			for (const name in data) {
-				const w = atlas.tex.width
-				const h = atlas.tex.height
 				const info = data[name]
-				// TODO: calculate info.frames from pixel values
+				const quad = atlas.frames[0]
+				const w = SPRITE_ATLAS_WIDTH * quad.w
+				const h = SPRITE_ATLAS_HEIGHT * quad.h
 				const frames = info.frames ? info.frames.map((f) => new Quad(
-					(info.x + f.x) / w,
-					(info.y + f.y) / h,
-					f.w / w,
-					f.h / h,
+					quad.x + (info.x + f.x) / w * quad.w,
+					quad.y + (info.y + f.y) / h * quad.h,
+					f.w / w * quad.w,
+					f.h / h * quad.h,
 				)) : slice(
-					info.sliceX,
-					info.sliceY,
-					info.x / w,
-					info.y / h,
-					info.width / w,
-					info.height / h,
+					info.sliceX || 1,
+					info.sliceY || 1,
+					quad.x + info.x / w * quad.w,
+					quad.y + info.y / h * quad.h,
+					info.width / w * quad.w,
+					info.height / h * quad.h,
 				)
 				const spr = new SpriteData(atlas.tex, frames, info.anims)
 				assets.sprites.addLoaded(name, spr)
@@ -1243,55 +1294,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			}
 			resolve(spr)
 		}))
-	}
-
-	function packSprites() {
-		const images = [...assets.sprites.assets.entries()].map(([name, spr]) => {
-			const src = spr.data.tex.src
-			return {
-				width: src.width,
-				height: src.height,
-				data: {
-					src: src,
-					name: name,
-					frames: spr.data.frames,
-					anims: spr.data.anims,
-					tex: spr.data.tex,
-				},
-			}
-		})
-		const canvas = document.createElement("canvas")
-		canvas.width = SPRITE_ATLAS_WIDTH
-		canvas.height = SPRITE_ATLAS_HEIGHT
-		const ctx = canvas.getContext("2d")
-		const { packed } = packRects(canvas.width, canvas.height, images)
-		const map: SpriteAtlasData = {}
-		for (const rect of packed) {
-			const name = rect.data.name
-			assets.sprites.assets.delete(name)
-			rect.data.tex.free()
-			map[rect.data.name] = {
-				x: rect.x,
-				y: rect.y,
-				width: rect.width,
-				height: rect.height,
-				anims: rect.data.anims,
-			}
-			if (rect.data.frames) {
-				map[rect.data.name].frames = rect.data.frames.map((f) => new Quad(
-					f.x * rect.width,
-					f.y * rect.height,
-					f.w * rect.width,
-					f.h * rect.height,
-				))
-			}
-			if (rect.data.src instanceof ImageData) {
-				ctx.putImageData(rect.data.src, rect.x, rect.y)
-			} else {
-				ctx.drawImage(rect.data.src, rect.x, rect.y)
-			}
-		}
-		loadSpriteAtlas(canvas, map)
 	}
 
 	function loadShader(
@@ -2615,7 +2617,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 						}
 					}
 
-					font.tex.update(atlas.cursor.x, atlas.cursor.y, img)
+					font.tex.update(img, atlas.cursor.x, atlas.cursor.y)
 					font.map[ch] = new Quad(atlas.cursor.x, atlas.cursor.y, w, font.size)
 					atlas.cursor.x += w
 
@@ -6535,7 +6537,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		if (!assets.loaded) {
 			if (loadProgress() === 1 && !isFirstFrame) {
 				assets.loaded = true
-				packSprites()
 				game.ev.trigger("load")
 			}
 		}
