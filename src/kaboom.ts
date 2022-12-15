@@ -1209,8 +1209,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			sliceX: 1,
 			sliceY: 1,
 			anims: {},
-			filter: "nearest",
-			wrap: "clampToEdge",
 		},
 	): Asset<SpriteData> {
 		if (Array.isArray(src)) {
@@ -2294,7 +2292,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		}))
 	}
 
-	// TODO: anchor
 	function drawCircle(opt: DrawCircleOpt) {
 
 		if (!opt.radius) {
@@ -2466,7 +2463,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 	}
 
-	// TODO: not working
 	function drawMasked(content: () => void, mask: () => void) {
 		drawStenciled(content, mask, gl.EQUAL)
 	}

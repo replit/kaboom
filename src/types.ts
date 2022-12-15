@@ -2524,8 +2524,6 @@ export interface LoadSpriteOpt {
 	sliceX?: number,
 	sliceY?: number,
 	anims?: SpriteAnims,
-	filter?: TexFilter,
-	wrap?: TexWrap,
 }
 
 export type SpriteAtlasData = Record<string, SpriteAtlasEntry>
