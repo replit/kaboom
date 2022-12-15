@@ -3733,7 +3733,7 @@ export interface Collision {
 	 *
 	 * @since v3000.0
 	 */
-	isOverlapping(): void,
+	hasOverlap(): void,
 	/**
 	 * Get a new collision with reversed source and target relationship.
 	 */

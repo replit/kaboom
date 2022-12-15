@@ -619,12 +619,15 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 		tex: Texture
 		glFrameBuffer: WebGLFramebuffer
+		glRenderBuffer: WebGLRenderbuffer
 
 		constructor(w: number, h: number, opt: TextureOpt = {}) {
 			this.tex = new Texture(w, h, opt)
 			this.glFrameBuffer = gl.createFramebuffer()
+			this.glRenderBuffer = gl.createRenderbuffer()
 			gc.push(() => this.free())
 			this.bind()
+			gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_STENCIL, w, h)
 			gl.framebufferTexture2D(
 				gl.FRAMEBUFFER,
 				gl.COLOR_ATTACHMENT0,
@@ -632,20 +635,29 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				this.tex.glTex,
 				0,
 			)
+			gl.framebufferRenderbuffer(
+				gl.FRAMEBUFFER,
+				gl.DEPTH_STENCIL_ATTACHMENT,
+				gl.RENDERBUFFER,
+				this.glRenderBuffer,
+			)
 			this.unbind()
 		}
 
 		bind() {
 			gl.bindFramebuffer(gl.FRAMEBUFFER, this.glFrameBuffer)
+			gl.bindRenderbuffer(gl.RENDERBUFFER, this.glRenderBuffer)
 			// gl.viewport(0, 0, this.tex.width, this.tex.height)
 		}
 
 		unbind() {
 			gl.bindFramebuffer(gl.FRAMEBUFFER, null)
+			gl.bindRenderbuffer(gl.RENDERBUFFER, null)
 		}
 
 		free() {
 			gl.deleteFramebuffer(this.glFrameBuffer)
+			gl.deleteRenderbuffer(this.glRenderBuffer)
 		}
 
 	}
@@ -4339,7 +4351,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 			isOverlapping(other) {
 				const col = colliding[other.id]
-				return col && col.isOverlapping()
+				return col && col.hasOverlap()
 			},
 
 			onClick(this: GameObj, f: () => void): EventController {
@@ -5762,7 +5774,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				this.resolved,
 			)
 		}
-		isOverlapping() {
+		hasOverlap() {
 			return !this.displacement.isZero()
 		}
 		isLeft() {
@@ -5848,6 +5860,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 										continue check
 									}
 								}
+								// TODO: cache the world area here
 								const res = sat(aobj.worldArea(), other.worldArea())
 								if (res) {
 									// TODO: rehash if the object position is changed after resolution?
