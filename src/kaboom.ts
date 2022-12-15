@@ -1,4 +1,4 @@
-const VERSION = "3000.0.0-alpha.22"
+const VERSION = "3000.0.0-alpha.23"
 
 import {
 	sat,
