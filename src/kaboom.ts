@@ -2504,14 +2504,11 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 	// TODO: escape
 	// eslint-disable-next-line
-	const TEXT_STYLE_RE = /\[(?<style>\w+)\](?<text>.*)\[\/\k<style>\]/g
+	const TEXT_STYLE_RE = /\[(?<style>\w+)\](?<text>.*?)\[\/\k<style>\]/g
 
 	// TODO: handle nested
 	function compileStyledText(text: string): {
-		charStyleMap: Record<number, {
-			localIdx: number,
-			styles: string[],
-		}>,
+		charStyleMap: Record<number, string[]>,
 		text: string,
 	} {
 
@@ -2524,13 +2521,10 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		for (const match of text.matchAll(TEXT_STYLE_RE)) {
 			const origIdx = match.index - idxOffset
 			for (let i = 0; i < match.groups.text.length; i++) {
-				charStyleMap[i + origIdx] = {
-					localIdx: i,
-					styles: [match.groups.style],
-				}
+				charStyleMap[i + origIdx] = [match.groups.style]
 			}
-			// omit "[", "]", "[/" and the style text in the format string when calculating index
-			idxOffset += 5 + match.groups.style.length * 2
+			// omit the style syntax in format string when calculating index
+			idxOffset += match[0].length - match.groups.text.length
 		}
 
 		return {
@@ -2768,11 +2762,11 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				}
 
 				if (charStyleMap[idx]) {
-					const { styles, localIdx } = charStyleMap[idx]
+					const styles = charStyleMap[idx]
 					for (const name of styles) {
 						const style = opt.styles[name]
 						const tr = typeof style === "function"
-							? style(localIdx, fchar.ch)
+							? style(idx, fchar.ch)
 							: style
 						if (tr) {
 							applyCharTransform(fchar, tr)
