@@ -157,12 +157,12 @@ scene("battle", () => {
 
 	onKeyPress("up", () => {
 		insaneMode = true
-		music.speed(2)
+		music.speed = 2
 	})
 
 	onKeyRelease("up", () => {
 		insaneMode = false
-		music.speed(1)
+		music.speed = 1
 	})
 
 	player.onCollide("enemy", (e) => {
