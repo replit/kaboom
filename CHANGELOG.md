@@ -87,13 +87,20 @@ loadSprite("player", [
 ```
 - (**BREAK**) added `loadShaderURL()`, `loadShader()` now only load shader code not files
 
-## Font
+## Text
 
 - added `loadFont()` to load `.ttf`, `.otf`, `.woff2` or any font supported by browser `FontFace`
 - (**BREAK**) renamed previous `loadFont()` to `loadBitmapFont()`
 - (**BREAK**) removed built-in `apl386`, `apl386o`, `sink`, `sinko` (still available under `examples/fonts`)
 - added default font `happy`
 - changed default font size to `36`
+- (**BREAK**) changed to bbcode syntax for styled text
+```js
+// before
+"[oh hi].green here's some [styled].wavy text"
+// now
+"[green]oh hi[/green] here's some [wavy]styled[/wavy] text"
+```
 
 ## Graphics
 
