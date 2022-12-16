@@ -2506,6 +2506,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	// eslint-disable-next-line
 	const TEXT_STYLE_RE = /\[(?<style>\w+)\](?<text>.*)\[\/\k<style>\]/g
 
+	// TODO: handle nested
 	function compileStyledText(text: string): {
 		charStyleMap: Record<number, {
 			localIdx: number,
@@ -2516,21 +2517,16 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 		const charStyleMap = {}
 		// get the text without the styling syntax
-		const renderText = text.replace(TEXT_STYLE_RE, "$1")
+		const renderText = text.replace(TEXT_STYLE_RE, "$2")
 		let idxOffset = 0
 
 		// put each styled char index into a map for easy access when iterating each char
 		for (const match of text.matchAll(TEXT_STYLE_RE)) {
-			const styles = match.groups.style.split(".")
 			const origIdx = match.index - idxOffset
-			for (
-				let i = origIdx;
-				i < match.index + match.groups.text.length;
-				i++
-			) {
-				charStyleMap[i] = {
-					localIdx: i - origIdx,
-					styles: styles,
+			for (let i = 0; i < match.groups.text.length; i++) {
+				charStyleMap[i + origIdx] = {
+					localIdx: i,
+					styles: [match.groups.style],
 				}
 			}
 			// omit "[", "]", "[/" and the style text in the format string when calculating index
@@ -2757,12 +2753,10 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				const q = font.map[fchar.ch]
 				const idx = fchars.length
 
-				const offset = new Vec2(
+				fchar.pos = fchar.pos.add(ox, 0).add(
 					q.w * scale.x * 0.5,
 					q.h * scale.y * 0.5,
 				)
-
-				fchar.pos = fchar.pos.add(ox, 0).add(offset)
 
 				if (opt.transform) {
 					const tr = typeof opt.transform === "function"
@@ -3299,7 +3293,8 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		clearLog: () => game.logs = [],
 		log: (msg) => {
 			const max = gopt.logMax ?? LOG_MAX
-			game.logs.unshift(`${`[${time().toFixed(2)}].time `}[${msg?.toString ? msg.toString() : msg}].${msg instanceof Error ? "error" : "info"}`)
+			const style = msg instanceof Error ? "error" : "info"
+			game.logs.unshift(`${`[time]${time().toFixed(2)}[/time] `}[${style}]${msg?.toString ? msg.toString() : msg}[/${style}]`)
 			if (game.logs.length > max) {
 				game.logs = game.logs.slice(0, max)
 			}

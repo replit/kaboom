@@ -100,7 +100,7 @@ onKeyDown("down", () => {
 
 // Use this syntax and style option to style chunks of text, with CharTransformFunc.
 add([
-	text("[green]oh hi[/green] here's some [wavy]styled[/wavy] text", {
+	text("[green][wavy]oh hi[/wavy][/green] here's some [wavy]styled[/wavy] text", {
 		width: width(),
 		styles: {
 			"green": {
