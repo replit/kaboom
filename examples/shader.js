@@ -18,17 +18,12 @@ vec4 frag(vec2 pos, vec2 uv, vec4 color, sampler2D tex) {
 }
 `)
 
-const bean = add([
+add([
 	sprite("bean"),
 	pos(80, 40),
 	scale(8),
 	// Use the shader with shader() component and pass uniforms
-	shader("invert", {
+	shader("invert", () => ({
 		"u_time": time(),
-	}),
+	})),
 ])
-
-bean.onUpdate(() => {
-	// Update uniform at runtime
-	bean.uniform["u_time"] = time()
-})

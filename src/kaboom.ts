@@ -5154,11 +5154,18 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		}
 	}
 
-	function shader(id: string, uniform: Uniform = {}): ShaderComp {
+	function shader(id: string, uniform?: Uniform | (() => Uniform)): ShaderComp {
 		return {
 			id: "shader",
 			shader: id,
-			uniform: uniform,
+			...(typeof uniform === "function" ? {
+				uniform: uniform(),
+				update() {
+					this.uniform = uniform()
+				},
+			} : {
+				uniform: uniform,
+			}),
 		}
 	}
 

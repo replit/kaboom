@@ -415,7 +415,7 @@ export interface KaboomCtx {
 	/**
 	 * Custom shader.
 	 */
-	shader(id: string): ShaderComp,
+	shader(id: string, uniform?: Uniform | (() => Uniform)): ShaderComp,
 	/**
 	 * Run certain action after some time.
 	 */
