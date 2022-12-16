@@ -1476,20 +1476,15 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		const pos = opt.seek ?? 0
 		let startTime = 0
 		let stopTime = 0
+		let started = false
+		let speed = opt.speed ?? 1
 
 		srcNode.loop = Boolean(opt.loop)
 		srcNode.detune.value = opt.detune ?? 0
-		srcNode.playbackRate.value = opt.speed ?? 1
+		srcNode.playbackRate.value = paused ? opt.speed ?? 1 : 0
 		srcNode.connect(gainNode)
 		gainNode.connect(audio.masterNode)
 		gainNode.gain.value = opt.volume ?? 1
-
-		let started = false
-		let lastPlaybackRate = srcNode.playbackRate.value
-
-		if (paused) {
-			srcNode.playbackRate.value = 0
-		}
 
 		const start = (data: SoundData) => {
 			srcNode.buffer = data.buf
@@ -1523,7 +1518,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				if (paused === p) return
 				paused = p
 				if (p) {
-					lastPlaybackRate = srcNode.playbackRate.value
 					srcNode.playbackRate.value = 0
 					stopTime = ctx.currentTime
 				} else {
@@ -1531,7 +1525,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 						srcNode.start(0, pos)
 						started = true
 					}
-					srcNode.playbackRate.value = lastPlaybackRate
+					srcNode.playbackRate.value = speed
 					startTime += ctx.currentTime - stopTime
 					stopTime = 0
 				}
@@ -1557,11 +1551,11 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			// TODO: affect time()
 			set speed(val: number) {
 				if (!paused) srcNode.playbackRate.value = val
-				lastPlaybackRate = val
+				speed = val
 			},
 
 			get speed() {
-				return paused ? lastPlaybackRate : srcNode.playbackRate.value
+				return paused ? speed : srcNode.playbackRate.value
 			},
 
 			set detune(val: number) {
