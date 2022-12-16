@@ -3136,7 +3136,7 @@ export type DrawTextOpt = RenderProps & {
 	 */
 	transform?: CharTransform | CharTransformFunc,
 	/**
-	 * Stylesheet for styled chunks, in the syntax of "this is a [styled].stylename word" (only available for bitmap fonts).
+	 * Stylesheet for styled chunks, in the syntax of "this is a [stylename]styled[/stylename] word" (only available for bitmap fonts).
 	 *
 	 * @since v2000.2
 	 */

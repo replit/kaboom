@@ -2504,7 +2504,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 	// TODO: escape
 	// eslint-disable-next-line
-	const TEXT_STYLE_RE = /\[(?<text>[^\]]*)\]\.(?<style>[\w\.]+)+/g
+	const TEXT_STYLE_RE = /\[(?<style>\w+)\](?<text>.*)\[\/\k<style>\]/g
 
 	function compileStyledText(text: string): {
 		charStyleMap: Record<number, {
@@ -2533,8 +2533,8 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 					styles: styles,
 				}
 			}
-			// omit "[", "]", "." and the style text in the format string when calculating index
-			idxOffset += 3 + match.groups.style.length
+			// omit "[", "]", "[/" and the style text in the format string when calculating index
+			idxOffset += 5 + match.groups.style.length * 2
 		}
 
 		return {
@@ -2599,6 +2599,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 				if (!atlas.font.map[ch]) {
 
+					// TODO: use assets.packer to pack font texture
 					const c2d = app.fontCacheCtx
 					c2d.font = `${font.size}px ${fontName}`
 					c2d.clearRect(0, 0, app.fontCacheCanvas.width, app.fontCacheCanvas.height)
