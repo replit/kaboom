@@ -1476,7 +1476,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		const pos = opt.seek ?? 0
 		let startTime = 0
 		let stopTime = 0
-		let started = false
 
 		srcNode.loop = Boolean(opt.loop)
 		srcNode.detune.value = opt.detune ?? 0
@@ -1485,22 +1484,26 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		gainNode.connect(audio.masterNode)
 		gainNode.gain.value = opt.volume ?? 1
 
-		if (snd instanceof Asset) {
-			snd.onLoad((data) => {
-				srcNode.buffer = data.buf
-				if (!paused) {
-					startTime = ctx.currentTime
-					srcNode.start(0, pos)
-					started = true
-				}
-			})
-		} else if (snd instanceof SoundData) {
-			srcNode.buffer = snd.buf
+		let started = false
+		let lastPlaybackRate = srcNode.playbackRate.value
+
+		if (paused) {
+			srcNode.playbackRate.value = 0
+		}
+
+		const start = (data: SoundData) => {
+			srcNode.buffer = data.buf
 			if (!paused) {
 				startTime = ctx.currentTime
 				srcNode.start(0, pos)
 				started = true
 			}
+		}
+
+		if (snd instanceof Asset) {
+			snd.onLoad(start)
+		} else if (snd instanceof SoundData) {
+			start(snd)
 		}
 
 		const cloneNode = (oldNode: AudioBufferSourceNode) => {
@@ -1520,17 +1523,16 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				if (paused === p) return
 				paused = p
 				if (p) {
-					if (started) {
-						srcNode.stop()
-						started = false
-					}
+					lastPlaybackRate = srcNode.playbackRate.value
+					srcNode.playbackRate.value = 0
 					stopTime = ctx.currentTime
 				} else {
-					srcNode = cloneNode(srcNode)
-					const pos = stopTime - startTime
-					srcNode.start(0, pos)
-					started = true
-					startTime = ctx.currentTime - pos
+					if (!started) {
+						srcNode.start(0, pos)
+						started = true
+					}
+					srcNode.playbackRate.value = lastPlaybackRate
+					startTime += ctx.currentTime - stopTime
 					stopTime = 0
 				}
 			},
@@ -1540,26 +1542,26 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			},
 
 			seek(time: number) {
+				if (started) srcNode.stop()
+				srcNode = cloneNode(srcNode)
+				srcNode.start(0, time)
+				started = true
 				if (paused) {
-					srcNode = cloneNode(srcNode)
 					startTime = stopTime - time
 				} else {
-					srcNode.stop()
-					srcNode = cloneNode(srcNode)
 					startTime = ctx.currentTime - time
-					srcNode.start(0, time)
-					started = true
 					stopTime = 0
 				}
 			},
 
 			// TODO: affect time()
 			set speed(val: number) {
-				srcNode.playbackRate.value = val
+				if (!paused) srcNode.playbackRate.value = val
+				lastPlaybackRate = val
 			},
 
 			get speed() {
-				return srcNode.playbackRate.value
+				return paused ? lastPlaybackRate : srcNode.playbackRate.value
 			},
 
 			set detune(val: number) {
