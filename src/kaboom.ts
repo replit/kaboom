@@ -209,18 +209,6 @@ const MOUSE_BUTTONS: MouseButton[] = [
 // some default charsets for loading bitmap fonts
 const ASCII_CHARS = " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~"
 
-// audio gain range
-const MIN_GAIN = 0
-const MAX_GAIN = 3
-
-// audio speed range
-const MIN_SPEED = 0
-const MAX_SPEED = 3
-
-// audio detune range
-const MIN_DETUNE = -1200
-const MAX_DETUNE = 1200
-
 const DEF_ANCHOR = "topleft"
 const BG_GRID_SIZE = 64
 
@@ -900,7 +888,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	})()
 
 	class Asset<D> {
-		done: boolean = false
+		loaded: boolean = false
 		data: D | null = null
 		error: Error | null = null
 		private onLoadEvents: Event<[D]> = new Event()
@@ -919,13 +907,13 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				}
 			}).finally(() => {
 				this.onFinishEvents.trigger()
-				this.done = true
+				this.loaded = true
 			})
 		}
 		static loaded<D>(data: D): Asset<D> {
 			const asset = new Asset(Promise.resolve(data))
 			asset.data = data
-			asset.done = true
+			asset.loaded = true
 			return asset
 		}
 		onLoad(action: (data: D) => void) {
@@ -976,7 +964,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			}
 			let loaded = 0
 			this.assets.forEach((asset) => {
-				if (asset.done) {
+				if (asset.loaded) {
 					loaded++
 				}
 			})
@@ -1466,170 +1454,155 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	// get / set master volume
 	function volume(v?: number): number {
 		if (v !== undefined) {
-			audio.masterNode.gain.value = clamp(v, MIN_GAIN, MAX_GAIN)
+			audio.masterNode.gain.value = v
 		}
 		return audio.masterNode.gain.value
 	}
 
+	// TODO: time() not correct when looped over or ended
+	// TODO: onEnd() not working
 	// plays a sound, returns a control handle
 	function play(
 		src: string | SoundData | Asset<SoundData>,
-		opt: AudioPlayOpt = {
-			loop: false,
-			volume: 1,
-			speed: 1,
-			detune: 0,
-			seek: 0,
-		},
+		opt: AudioPlayOpt = {},
 	): AudioPlay {
 
 		const snd = resolveSound(src)
-
-		if (snd instanceof Asset) {
-			const pb = play(new SoundData(createEmptyAudioBuffer(audio.ctx)))
-			const doPlay = (snd: SoundData) => {
-				const pb2 = play(snd, opt)
-				for (const k in pb2) {
-					pb[k] = pb2[k]
-				}
-			}
-			snd.onLoad(doPlay)
-			return pb
-		} else if (snd === null) {
-			const pb = play(new SoundData(createEmptyAudioBuffer(audio.ctx)))
-			onLoad(() => {
-				// TODO: check again when every asset is loaded
-			})
-			return pb
-		}
-
 		const ctx = audio.ctx
-		let stopped = false
+		let paused = opt.paused ?? false
 		let srcNode = ctx.createBufferSource()
-
-		srcNode.buffer = snd.buf
-		srcNode.loop = opt.loop ? true : false
-
+		const onEndEvents = new Event()
 		const gainNode = ctx.createGain()
+		const pos = opt.seek ?? 0
+		let startTime = 0
+		let stopTime = 0
+		let started = false
 
+		srcNode.loop = Boolean(opt.loop)
+		srcNode.detune.value = opt.detune ?? 0
+		srcNode.playbackRate.value = opt.speed ?? 1
 		srcNode.connect(gainNode)
 		gainNode.connect(audio.masterNode)
+		gainNode.gain.value = opt.volume ?? 1
 
-		const pos = opt.seek ?? 0
-
-		srcNode.start(0, pos)
-
-		let startTime = ctx.currentTime - pos
-		let stopTime: number | null = null
-
-		const handle = {
-
-			stop() {
-				if (stopped) {
-					return
+		if (snd instanceof Asset) {
+			snd.onLoad((data) => {
+				srcNode.buffer = data.buf
+				if (!paused) {
+					startTime = ctx.currentTime
+					srcNode.start(0, pos)
+					started = true
 				}
-				this.pause()
+			})
+		} else if (snd instanceof SoundData) {
+			srcNode.buffer = snd.buf
+			if (!paused) {
 				startTime = ctx.currentTime
-			},
-
-			play(seek?: number) {
-
-				if (!stopped) {
-					return
-				}
-
-				const oldNode = srcNode
-
-				srcNode = ctx.createBufferSource()
-				srcNode.buffer = oldNode.buffer
-				srcNode.loop = oldNode.loop
-				srcNode.playbackRate.value = oldNode.playbackRate.value
-
-				if (srcNode.detune) {
-					srcNode.detune.value = oldNode.detune.value
-				}
-
-				srcNode.connect(gainNode)
-
-				const pos = seek ?? this.time()
-
 				srcNode.start(0, pos)
-				startTime = ctx.currentTime - pos
-				stopped = false
-				stopTime = null
+				started = true
+			}
+		}
 
-			},
+		const cloneNode = (oldNode: AudioBufferSourceNode) => {
+			const newNode = ctx.createBufferSource()
+			newNode.buffer = oldNode.buffer
+			newNode.loop = oldNode.loop
+			newNode.playbackRate.value = oldNode.playbackRate.value
+			newNode.detune.value = oldNode.detune.value
+			newNode.onended = oldNode.onended
+			newNode.connect(gainNode)
+			return newNode
+		}
 
-			pause() {
-				if (stopped) {
-					return
+		return {
+
+			set paused(p: boolean) {
+				if (paused === p) return
+				paused = p
+				if (p) {
+					if (started) {
+						srcNode.stop()
+						started = false
+					}
+					stopTime = ctx.currentTime
+				} else {
+					srcNode = cloneNode(srcNode)
+					const pos = stopTime - startTime
+					srcNode.start(0, pos)
+					started = true
+					startTime = ctx.currentTime - pos
+					stopTime = 0
 				}
-				srcNode.stop()
-				stopped = true
-				stopTime = ctx.currentTime
 			},
 
-			isPaused(): boolean {
-				return stopped
+			get paused() {
+				return paused
 			},
 
-			isStopped(): boolean {
-				return stopped
+			seek(time: number) {
+				if (paused) {
+					srcNode = cloneNode(srcNode)
+					startTime = stopTime - time
+				} else {
+					srcNode.stop()
+					srcNode = cloneNode(srcNode)
+					startTime = ctx.currentTime - time
+					srcNode.start(0, time)
+					started = true
+					stopTime = 0
+				}
 			},
 
 			// TODO: affect time()
-			speed(val?: number): number {
-				if (val !== undefined) {
-					srcNode.playbackRate.value = clamp(val, MIN_SPEED, MAX_SPEED)
-				}
+			set speed(val: number) {
+				srcNode.playbackRate.value = val
+			},
+
+			get speed() {
 				return srcNode.playbackRate.value
 			},
 
-			detune(val?: number): number {
-				if (!srcNode.detune) {
-					return 0
-				}
-				if (val !== undefined) {
-					srcNode.detune.value = clamp(val, MIN_DETUNE, MAX_DETUNE)
-				}
+			set detune(val: number) {
+				srcNode.detune.value = val
+			},
+
+			get detune() {
 				return srcNode.detune.value
 			},
 
-			volume(val?: number): number {
-				if (val !== undefined) {
-					gainNode.gain.value = clamp(val, MIN_GAIN, MAX_GAIN)
-				}
+			set volume(val: number) {
+				gainNode.gain.value = val
+			},
+
+			get volume() {
 				return gainNode.gain.value
 			},
 
-			loop() {
-				srcNode.loop = true
+			set loop(l: boolean) {
+				srcNode.loop = l
 			},
 
-			unloop() {
-				srcNode.loop = false
+			get loop() {
+				return srcNode.loop
 			},
 
 			duration(): number {
-				return snd.buf.duration
+				return srcNode.buffer?.duration ?? 0
 			},
 
 			time(): number {
-				if (stopped) {
+				if (paused) {
 					return stopTime - startTime
 				} else {
 					return ctx.currentTime - startTime
 				}
 			},
 
+			onEnd(action: () => void) {
+				return onEndEvents.add(action)
+			},
+
 		}
-
-		handle.speed(opt.speed)
-		handle.detune(opt.detune)
-		handle.volume(opt.volume)
-
-		return handle
-
 	}
 
 	// core kaboom logic

@@ -2570,7 +2570,7 @@ export interface SpriteAtlasEntry {
 
 // TODO: use PromiseLike or extend Promise?
 export declare class Asset<D> {
-	done: boolean
+	loaded: boolean
 	data: D | null
 	error: Error | null
 	constructor(loader: Promise<D>)
@@ -2621,6 +2621,12 @@ export type ShaderData = GfxShader
  */
 export interface AudioPlayOpt {
 	/**
+	 * If audio should start out paused.
+	 *
+	 * @since v3000.0
+	 */
+	paused?: boolean,
+	/**
 	 * If audio should be played again from start when its ended.
 	 */
 	loop?: boolean,
@@ -2652,50 +2658,42 @@ export interface AudioPlayOpt {
 
 export interface AudioPlay {
 	/**
-	 * Play the sound. Optionally pass in the time where it starts.
+	 * Seek time.
+	 *
+	 * @since v3000.0
 	 */
-	play(seek?: number): void,
-	/**
-	 * Stop the sound.
-	 */
-	stop(): void,
-	/**
-	 * Pause the sound.
-	 */
-	pause(): void,
+	seek(time?: number): void,
 	/**
 	 * If the sound is paused.
 	 *
 	 * @since v2000.1
 	 */
-	isPaused(): boolean,
+	paused: boolean,
 	/**
-	 * If the sound is stopped or ended.
-	 *
-	 * @since v2000.1
+	 * Playback speed of the sound. 1.0 means normal playback speed, 2.0 means twice as fast.
 	 */
-	isStopped(): boolean,
-	/**
-	 * Change the playback speed of the sound. 1.0 means normal playback speed, 2.0 means twice as fast.
-	 */
-	speed(s?: number): number,
+	speed: number,
 	/**
 	 * Detune the sound. Every 100 means a semitone.
 	 *
 	 * @example
 	 * ```js
 	 * // tune down a semitone
-	 * music.detune(-100)
+	 * music.detune = -100
 	 *
 	 * // tune up an octave
-	 * music.detune(1200)
+	 * music.detune = 1200
 	 * ```
 	 */
-	detune(d?: number): number,
+	detune: number,
 	/**
-	 * Change the volume of the sound. 1.0 means full volume, 0.5 means half volume.
+	 * Volume of the sound. 1.0 means full volume, 0.5 means half volume.
 	 */
-	volume(v?: number): number,
+	volume: number,
+	/**
+	 * If the audio should start again when it ends.
+	 */
+	loop: boolean,
 	/**
 	 * The current playing time.
 	 */
@@ -2705,13 +2703,11 @@ export interface AudioPlay {
 	 */
 	duration(): number,
 	/**
-	 * Set audio to play in loop.
+	 * The total duration.
+	 *
+	 * @since v3000.0
 	 */
-	loop(): void,
-	/**
-	 * Set audio to not play in loop.
-	 */
-	unloop(): void,
+	onEnd(action: () => void): EventController,
 }
 
 // TODO: hide

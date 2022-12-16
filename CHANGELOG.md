@@ -137,6 +137,19 @@ usePostEffect("invert")
 ## Audio
 
 - added option `kaboom({ backgroundAudio: false })` to not pause audio when tab not active
+- changed `speed`, `detune`, `volume`, `loop` in `AudioPlay` from functions to properties
+```js
+// before
+const music = play("song")
+music.speed(2)
+music.volume(0.5)
+music.loop(true)
+
+const music = play("song")
+music.speed = 2
+music.volume = 0.5
+music.loop = true
+```
 
 ## Input
 

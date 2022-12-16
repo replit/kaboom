@@ -1,8 +1,9 @@
 // audio playback & control
 
 kaboom({
-	// don't pause audio when tab is not active
+	// Don't pause audio when tab is not active
 	backgroundAudio: true,
+	background: [0, 0, 0],
 })
 
 loadSound("bell", "/examples/sounds/bell.mp3")
@@ -12,6 +13,7 @@ loadSound("OtherworldlyFoe", "/examples/sounds/OtherworldlyFoe.mp3")
 // (This might not play until user input due to browser policy)
 const music = play("OtherworldlyFoe", {
 	loop: true,
+	paused: true,
 })
 
 // Adjust global volume
@@ -23,10 +25,14 @@ const label = add([
 
 function updateText() {
 	label.text = `
-${music.isPaused() ? "Paused" : "Playing"}
+${music.paused ? "Paused" : "Playing"}
 Time: ${music.time().toFixed(2)}
-Tolume: ${music.volume().toFixed(2)}
-Tetune: ${music.detune().toFixed(2)}
+Volume: ${music.volume.toFixed(2)}
+Detune: ${music.detune.toFixed(2)}
+
+[space] play/pause
+[up/down] volume
+[left/right] detune
 	`.trim()
 }
 
@@ -36,19 +42,12 @@ updateText()
 onUpdate(updateText)
 
 // Adjust music properties through input
-onKeyPress("space", () => {
-	if (music.isPaused()) {
-		music.play()
-	} else {
-		music.pause()
-	}
-})
-
-onKeyPress("up", () => music.volume(music.volume() + 0.1))
-onKeyPress("down", () => music.volume(music.volume() - 0.1))
-onKeyPress("left", () => music.detune(music.detune() - 100))
-onKeyPress("right", () => music.detune(music.detune() + 100))
-onKeyPress("escape", () => music.stop())
+onKeyPress("space", () => music.paused = !music.paused)
+onKeyPressRepeat("up", () => music.volume += 0.1)
+onKeyPressRepeat("down", () => music.volume -= 0.1)
+onKeyPressRepeat("left", () => music.detune -= 100)
+onKeyPressRepeat("right", () => music.detune += 100)
+onKeyPress("m", () => music.seek(4.24))
 
 const keyboard = "awsedftgyhujk"
 
@@ -61,3 +60,14 @@ for (let i = 0; i < keyboard.length; i++) {
 		})
 	})
 }
+
+// Draw music progress bar
+onDraw(() => {
+	if (!music.duration()) return
+	const h = 16
+	drawRect({
+		pos: vec2(0, height() - h),
+		width: music.time() / music.duration() * width(),
+		height: h,
+	})
+})
