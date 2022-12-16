@@ -147,9 +147,8 @@ export function downloadBlob(filename: string, blob: Blob) {
 	URL.revokeObjectURL(url)
 }
 
-export function isDataURL(str: string) {
-	return str.match(/^data:\w+\/\w+;base64,.+/)
-}
+export const isDataURL = (str: string) => str.match(/^data:\w+\/\w+;base64,.+/)
+export const getExt = (p: string) => p.split(".").pop()
 
 export const uid = (() => {
 	let id = 0

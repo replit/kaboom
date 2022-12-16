@@ -21,7 +21,7 @@ loadSprite("bean", "/sprites/bean.png").onError((err) => {
 load(new Promise((res) => {
 	// wait() won't work here because timers are not run during loading so we use setTimeout
 	setTimeout(() => {
-		// loadAseprite("ghosty", "/sprites/ghosty2.png", "/sprites/ghosty2.json")
+		loadAseprite("you", "/examples/sprites/you.png")
 		loadSprite("ghosty", "/sprites/ghosty.png")
 		res()
 	}, 1000)
@@ -38,7 +38,7 @@ volume(0.1)
 onKeyPress("space", () => play(bugSound))
 
 add([
-	sprite("ghosty"),
+	sprite("you"),
 	pos(120),
 ])
 

@@ -47,6 +47,7 @@ import {
 	downloadBlob,
 	uid,
 	isDataURL,
+	getExt,
 	deepEq,
 	dataURLToArrayBuffer,
 	// eslint-disable-next-line
@@ -1264,12 +1265,15 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		imgSrc: LoadSpriteSrc,
 		jsonSrc: string,
 	): Asset<SpriteData> {
-		// eslint-disable-next-line
-		return assets.sprites.add(name, new Promise(async (resolve) => {
-			const spr = await loadSprite(null, imgSrc)
-			const data = typeof jsonSrc === "string" ? await fetchJSON(jsonSrc) : jsonSrc
+		if (typeof imgSrc === "string" && !jsonSrc) {
+			jsonSrc = imgSrc.replace(new RegExp(`${getExt(imgSrc)}$`), "json")
+		}
+		const resolveJSON = typeof jsonSrc === "string"
+			? fetchJSON(jsonSrc)
+			: Promise.resolve(jsonSrc)
+		return assets.sprites.add(name, resolveJSON.then((data) => {
 			const size = data.meta.size
-			spr.frames = data.frames.map((f: any) => {
+			const frames = data.frames.map((f: any) => {
 				return new Quad(
 					f.frame.x / size.w,
 					f.frame.y / size.h,
@@ -1277,11 +1281,12 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 					f.frame.h / size.h,
 				)
 			})
+			const anims = {}
 			for (const anim of data.meta.frameTags) {
 				if (anim.from === anim.to) {
-					spr.anims[anim.name] = anim.from
+					anims[anim.name] = anim.from
 				} else {
-					spr.anims[anim.name] = {
+					anims[anim.name] = {
 						from: anim.from,
 						to: anim.to,
 						speed: 10,
@@ -1290,7 +1295,10 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 					}
 				}
 			}
-			resolve(spr)
+			return SpriteData.from(imgSrc, {
+				frames: frames,
+				anims: anims,
+			})
 		}))
 	}
 
@@ -1307,16 +1315,15 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		vert?: string,
 		frag?: string,
 	): Asset<ShaderData> {
-		return assets.shaders.add(name, new Promise<ShaderData>((resolve) => {
-			const resolveUrl = (url?: string) =>
-				url
-					? fetchText(url)
-					: new Promise((r) => r(null))
-			return Promise.all([resolveUrl(vert), resolveUrl(frag)])
-				.then(([vcode, fcode]: [string | null, string | null]) => {
-					resolve(makeShader(vcode, fcode))
-				})
-		}))
+		const resolveUrl = (url?: string) =>
+			url
+				? fetchText(url)
+				: Promise.resolve(null)
+		const load = Promise.all([resolveUrl(vert), resolveUrl(frag)])
+			.then(([vcode, fcode]: [string | null, string | null]) => {
+				return makeShader(vcode, fcode)
+			})
+		return assets.shaders.add(name, load)
 	}
 
 	// load a sound to asset manager
