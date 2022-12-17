@@ -1481,7 +1481,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 		srcNode.loop = Boolean(opt.loop)
 		srcNode.detune.value = opt.detune ?? 0
-		srcNode.playbackRate.value = paused ? opt.speed ?? 1 : 0
+		srcNode.playbackRate.value = paused ? 0 : speed
 		srcNode.connect(gainNode)
 		gainNode.connect(audio.masterNode)
 		gainNode.gain.value = opt.volume ?? 1
