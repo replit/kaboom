@@ -1535,6 +1535,11 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				return paused
 			},
 
+			play(time: number = 0) {
+				this.seek(time)
+				this.paused = false
+			},
+
 			seek(time: number) {
 				if (started) srcNode.stop()
 				srcNode = cloneNode(srcNode)

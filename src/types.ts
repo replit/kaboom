@@ -2658,11 +2658,17 @@ export interface AudioPlayOpt {
 
 export interface AudioPlay {
 	/**
+	 * Start playing audio.
+	 *
+	 * @since v3000.0
+	 */
+	play(time?: number): void,
+	/**
 	 * Seek time.
 	 *
 	 * @since v3000.0
 	 */
-	seek(time?: number): void,
+	seek(time: number): void,
 	/**
 	 * If the sound is paused.
 	 *
