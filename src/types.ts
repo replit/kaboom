@@ -4607,7 +4607,7 @@ export interface EdgesComp extends Comp {
 
 export interface PathfindingComp extends Comp {
 	invalidateNavigationMap(),
-	onNavigationMapChanged(cb: () => void),
+	onNavigationMapChanged(cb: () => void): EventController,
 	getTilePath(from: Vec2, to: Vec2, diagonals?: boolean): Vec2[],
 	getPath(from: Vec2, to: Vec2, diagonals?: boolean): Vec2[],
 	_getNeighbours(node: number, diagonals?: boolean): number[],
@@ -4632,8 +4632,8 @@ export interface LevelComp extends Comp {
 	tile2Pos(tilePos: Vec2): Vec2,
 	pos2Tile(pos: Vec2): Vec2,
 	getSpatialMap(): GameObj<any>[][],
-	onSpatialMapChanged(cb: () => void),
-	onNavigationMapInvalid(cb: () => void),
+	onSpatialMapChanged(cb: () => void): EventController,
+	onNavigationMapInvalid(cb: () => void): EventController,
 	getAt(tilePos: Vec2): GameObj<any>[],
 	_tile2Hash(tilePos: Vec2): number,
 	_hash2Tile(hash: number): Vec2,
@@ -4653,10 +4653,10 @@ export interface AgentComp extends Comp {
 	isTargetReached(): boolean,
 	setTarget(target: Vec2),
 	setSpeed(speed: number),
-	onNavigationStarted(cb: () => void),
-	onNavigationNext(cb: () => void),
-	onNavigationEnded(cb: () => void),
-	onTargetReached(cb: () => void)
+	onNavigationStarted(cb: () => void): EventController,
+	onNavigationNext(cb: () => void): EventController,
+	onNavigationEnded(cb: () => void): EventController,
+	onTargetReached(cb: () => void): EventController,
 }
 
 export interface BoomOpt {
