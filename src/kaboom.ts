@@ -7192,6 +7192,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		cost,
 		edges,
 		pathfinding,
+		agent,
 		// group events
 		on,
 		onUpdate,
