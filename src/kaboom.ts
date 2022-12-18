@@ -5543,7 +5543,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			},
 	
 			onNavigationMapChanged(this: GameObj<LevelComp | PathfindingComp>, cb: () => void) {
-				this.on("navigation_map_changed", cb)
+				return this.on("navigation_map_changed", cb)
 			},
 	
 			getTilePath(this: GameObj<LevelComp | PathfindingComp>, from: Vec2, to: Vec2, diagonals: boolean) {
@@ -6034,7 +6034,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		let _index: number | null = null
 		let _speed = speed || 1
 		const _diagonals = diagonals
-		let changedEventCleanup: () => void | null = null
+		let _changedEventCleanup: EventController | null = null
 		return {
 			id: "agent",
 			require: ["pos", "tile"],
@@ -6065,8 +6065,8 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				_path = this.getLevel().getPath(this.pos, target, _diagonals)
 				_index = _path ? 0 : null
 				if (_path) {
-					if (!changedEventCleanup) {
-						changedEventCleanup = this.getLevel().onNavigationMapChanged(() => {
+					if (!_changedEventCleanup) {
+						_changedEventCleanup = this.getLevel().onNavigationMapChanged(() => {
 							if (_path && _index !== null) {
 								_path = this.getLevel().getPath(this.pos, target, _diagonals)
 								_index = _path ? 0 : null
@@ -6078,6 +6078,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 								}
 							}
 						})
+						this.onDestroy(() => { _changedEventCleanup.cancel() })
 					}
 					this.trigger("navigation-started", this)
 					this.trigger("navigation-next", this, _path[_index])
@@ -6109,16 +6110,16 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				}
 			},
 			onNavigationStarted(this: GameObj<AgentComp>, cb: () => void) {
-				this.on("navigation-started", cb)
+				return this.on("navigation-started", cb)
 			},
 			onNavigationNext(this: GameObj<AgentComp>, cb: () => void) {
-				this.on("navigation-next", cb)
+				return this.on("navigation-next", cb)
 			},
 			onNavigationEnded(this: GameObj<AgentComp>, cb: () => void) {
-				this.on("navigation-ended", cb)
+				return this.on("navigation-ended", cb)
 			},
 			onTargetReached(this: GameObj<AgentComp>, cb: () => void) {
-				this.on("target-reached", cb)
+				return this.on("target-reached", cb)
 			},
 			inspect() {
 				return JSON.stringify({
