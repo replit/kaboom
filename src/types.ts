@@ -595,6 +595,12 @@ export interface KaboomCtx {
 	 */
 	pathfinding(): PathfindingComp,
 	/**
+	 * An agent which can finds it way on a tilemap.
+	 *
+	 * @since v3000.0
+	 */
+	agent(): AgentComp,
+	/**
 	 * Register an event on all game objs with certain tag.
 	 *
 	 * @section Events
