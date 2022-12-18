@@ -5454,7 +5454,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			},
 
 			getLevel() {
-				return level;
+				return level
 			},
 
 			moveLeft() {
@@ -5484,13 +5484,13 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			require: [ "tile" ],
 			setObstacle(this: GameObj<ObstacleComp | TileComp>, isObstacle: boolean) {
 				if (_isObstacle !== isObstacle) {
-					_isObstacle = isObstacle;
-					this.getLevel().invalidateNavigationMap();
+					_isObstacle = isObstacle
+					this.getLevel().invalidateNavigationMap()
 				}
 			},
 			isObstacle() {
-				return _isObstacle;
-			}
+				return _isObstacle
+			},
 		}
 	}
 
@@ -5512,136 +5512,136 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 		const _mask: EdgeMask = Array.isArray(mask) ?
 			mask.map(s => lookup[s] || 0).reduce((mask, dir) => mask | dir, 0) :
-			mask;
+			mask
 
 		return {
 			id: "edges",
 			require: ["tile"],
-			mask: _mask
+			mask: _mask,
 		}
 	}
 
 	function pathfinding() : PathfindingComp {
-		let _costMap: number[] | undefined;
-		let _edgeMap: number[] | undefined;
-		let _connectivityMap: number[] | undefined;
+		let _costMap: number[] | undefined
+		let _edgeMap: number[] | undefined
+		let _connectivityMap: number[] | undefined
 	
 		return {
 			id: "pathfinding",
 			require: ["level"],
 			add(this: GameObj<LevelComp | PathfindingComp>) {
 				this.onNavigationMapInvalid(() => {
-					this.invalidateNavigationMap();
-					this.trigger("navigation_map_changed");
-				});
+					this.invalidateNavigationMap()
+					this.trigger("navigation_map_changed")
+				})
 			},
 	
 			invalidateNavigationMap() {
-				_costMap = null;
-				_edgeMap = null;
-				_connectivityMap = null;
+				_costMap = null
+				_edgeMap = null
+				_connectivityMap = null
 			},
 	
 			onNavigationMapChanged(this: GameObj<LevelComp | PathfindingComp>, cb: () => void) {
-				this.on("navigation_map_changed", cb);
+				this.on("navigation_map_changed", cb)
 			},
 	
 			getTilePath(this: GameObj<LevelComp | PathfindingComp>, from: Vec2, to: Vec2, diagonals: boolean) {
 				if (!_costMap) {
-					this._createCostMap();
+					this._createCostMap()
 				}
 				if (!_edgeMap) {
-					this._createEdgeMap();
+					this._createEdgeMap()
 				}
 				if (!_connectivityMap) {
-					this._createConnectivityMap();
+					this._createConnectivityMap()
 				}
 	
 				// Tiles are outside the grid
-				const numColumns = this.numColumns();
-				const numRows = this.numRows();
+				const numColumns = this.numColumns()
+				const numRows = this.numRows()
 				if (from.x < 0 || from.x >= numColumns ||
 					from.y < 0 || from.y >= numRows) {
-					return null;
+					return null
 				}
 				if (to.x < 0 || to.x >= numColumns ||
 					to.y < 0 || to.y >= numRows) {
-					return null;
+					return null
 				}
 	
-				const start = this._tile2Hash(from);
-				const goal = this._tile2Hash(to);
+				const start = this._tile2Hash(from)
+				const goal = this._tile2Hash(to)
 	
 				// Tiles are not accessible
 				// If we test the start tile, we may get stuck
 				/*if (_costMap[start] === Infinity) {
-					return null;
+					return null
 				}*/
 				if (_costMap[goal] === Infinity) {
-					return null;
+					return null
 				}
 	
 				// Same Tile, no waypoints needed
 				if (start === goal) {
-					return [];
+					return []
 				}
 	
 				// Tiles are not within the same section
 				// If we test the start tile when invalid, we may get stuck
 				if (_connectivityMap[start] != -1 && _connectivityMap[start] !== _connectivityMap[goal]) {
-					return null;
+					return null
 				}
 	
 				// Find a path
-				interface CostNode { cost: number, node: number };
-				const frontier = new BinaryHeap<CostNode>((a: CostNode, b: CostNode) => a.cost < b.cost);
-				frontier.insert({ cost: 0, node: start });
+				interface CostNode { cost: number, node: number }
+				const frontier = new BinaryHeap<CostNode>((a: CostNode, b: CostNode) => a.cost < b.cost)
+				frontier.insert({ cost: 0, node: start })
 	
-				const cameFrom = new Map<number, number>();
-				cameFrom.set(start, start);
-				const costSoFar = new Map<number, number>();
-				costSoFar.set(start, 0);
+				const cameFrom = new Map<number, number>()
+				cameFrom.set(start, start)
+				const costSoFar = new Map<number, number>()
+				costSoFar.set(start, 0)
 	
 				while (frontier.length !== 0) {
-					const current = frontier.remove()?.node;
+					const current = frontier.remove()?.node
 	
 					if (current === goal)
-						break;
+						break
 	
-					const neighbours = this._getNeighbours(current, diagonals);
-					for (let next of neighbours) {
+					const neighbours = this._getNeighbours(current, diagonals)
+					for (const next of neighbours) {
 						const newCost = (costSoFar.get(current) || 0) +
 							this._getCost(current, next) +
-							this._getHeuristic(next, goal);
+							this._getHeuristic(next, goal)
 						if (!costSoFar.has(next) || newCost < costSoFar.get(next)) {
-							costSoFar.set(next, newCost);
-							frontier.insert({ cost: newCost, node: next });
-							cameFrom.set(next, current);
+							costSoFar.set(next, newCost)
+							frontier.insert({ cost: newCost, node: next })
+							cameFrom.set(next, current)
 						}
 					}
 				}
 	
-				const path = [];
-				let node = goal;
-				const p = this._hash2Tile(node);
-				path.push(p);
+				const path = []
+				let node = goal
+				const p = this._hash2Tile(node)
+				path.push(p)
 				while (node !== start) {
-					node = cameFrom.get(node);
-					const p = this._hash2Tile(node);
-					path.push(p);
+					node = cameFrom.get(node)
+					const p = this._hash2Tile(node)
+					path.push(p)
 				}
-				return path.reverse();
+				return path.reverse()
 			},
 	
 			getPath(this: GameObj<LevelComp | PathfindingComp>, from: Vec2, to: Vec2, diagonals: boolean) {
-				const tw = this.tileWidth();
-				const th = this.tileHeight();
-				const path = this.getTilePath(this.pos2Tile(from), this.pos2Tile(to), diagonals);
+				const tw = this.tileWidth()
+				const th = this.tileHeight()
+				const path = this.getTilePath(this.pos2Tile(from), this.pos2Tile(to), diagonals)
 				if (path) {
-					return [from, ...path.slice(1, -1).map(tilePos => tilePos.scale(tw, th).add(tw / 2, th / 2)), to];
+					return [from, ...path.slice(1, -1).map(tilePos => tilePos.scale(tw, th).add(tw / 2, th / 2)), to]
 				}
 				else {
-					return null;
+					return null
 				}
 			},
 	
@@ -5650,126 +5650,126 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			 */
 	
 			_getNeighbours(this: GameObj<LevelComp | PathfindingComp>, node: number, diagonals?: boolean) {
-				const numColumns = this.numColumns();
-				const numRows = this.numRows();
-				const n = [];
-				const x = Math.floor(node % numColumns);
+				const numColumns = this.numColumns()
+				const numRows = this.numRows()
+				const n = []
+				const x = Math.floor(node % numColumns)
 				const left = x > 0 &&
 					(_edgeMap[node] & EdgeMask.Left) &&
-					_costMap[node - 1] !== Infinity;
+					_costMap[node - 1] !== Infinity
 				const top = node >= numColumns &&
 					(_edgeMap[node] & EdgeMask.Top) &&
-					_costMap[node - numColumns] !== Infinity;
+					_costMap[node - numColumns] !== Infinity
 				const right = x < numColumns - 1 &&
 					(_edgeMap[node] & EdgeMask.Right) &&
-					_costMap[node + 1] !== Infinity;
+					_costMap[node + 1] !== Infinity
 				const bottom = node < numColumns * numRows - numColumns - 1 &&
 					(_edgeMap[node] & EdgeMask.Bottom) &&
-					_costMap[node + numColumns] !== Infinity;
+					_costMap[node + numColumns] !== Infinity
 				if (diagonals) {
 					if (left) {
-						if (top) { n.push(node - numColumns - 1); }
-						n.push(node - 1);
-						if (bottom) { n.push(node + numColumns - 1); }
+						if (top) { n.push(node - numColumns - 1) }
+						n.push(node - 1)
+						if (bottom) { n.push(node + numColumns - 1) }
 					}
 					if (top) {
-						n.push(node - numColumns);
+						n.push(node - numColumns)
 					}
 					if (right) {
-						if (top) { n.push(node - numColumns + 1); }
-						n.push(node + 1);
-						if (bottom) { n.push(node + numColumns + 1); }
+						if (top) { n.push(node - numColumns + 1) }
+						n.push(node + 1)
+						if (bottom) { n.push(node + numColumns + 1) }
 					}
 					if (bottom) {
-						n.push(node + numColumns);
+						n.push(node + numColumns)
 					}
 				}
 				else {
 					if (left) {
-						n.push(node - 1);
+						n.push(node - 1)
 					}
 					if (top) {
-						n.push(node - numColumns);
+						n.push(node - numColumns)
 					}
 					if (right) {
-						n.push(node + 1);
+						n.push(node + 1)
 					}
 					if (bottom) {
-						n.push(node + numColumns);
+						n.push(node + numColumns)
 					}
 				}
-				return n;
+				return n
 			},
 	
 			_getCost(this: GameObj<LevelComp | PathfindingComp>, node: number, neighbour: number) {
 				// Cost of destination tile
-				return _costMap[neighbour];
+				return _costMap[neighbour]
 			},
 	
 			_getHeuristic(this: GameObj<LevelComp | PathfindingComp>, node: number, goal: number) {
 				// Euclidian distance to target
-				const p1 = this._hash2Tile(node);
-				const p2 = this._hash2Tile(goal);
-				return p1.dist(p2);
+				const p1 = this._hash2Tile(node)
+				const p2 = this._hash2Tile(goal)
+				return p1.dist(p2)
 			},
 	
 			// The obstacle map tells which tiles are accessible
 			// Cost: accessible with cost
 			// Infinite: inaccessible
 			_createCostMap(this: GameObj<LevelComp | PathfindingComp>) {
-				const spatialMap = this.getSpatialMap();
-				const size = this.numRows() * this.numColumns();
+				const spatialMap = this.getSpatialMap()
+				const size = this.numRows() * this.numColumns()
 				if (!_costMap) {
-					_costMap = new Array<number>(size);
+					_costMap = new Array<number>(size)
 				}
 				else {
-					_costMap.length = size;
+					_costMap.length = size
 				}
-				_costMap.fill(1, 0, size);
+				_costMap.fill(1, 0, size)
 				for (let i = 0; i < spatialMap.length; i++) {
-					const objects = spatialMap[i];
+					const objects = spatialMap[i]
 					if (objects) {
-						const len = objects.length;
-						let cost = 0;
+						const len = objects.length
+						let cost = 0
 						for (let j = 0; j < len; j++) {
-							const object = objects[j];
+							const object = objects[j]
 							if (object.isObstacle) {
 								if (object.isObstacle()) {
-									cost = Infinity;
-									break;
+									cost = Infinity
+									break
 								}
 							}
 							else {
-								cost += object.cost || 0;
+								cost += object.cost || 0
 							}
 						}
-						_costMap[i] = cost || 1;
+						_costMap[i] = cost || 1
 					}
 				}
 			},
 	
 			// The edge map tells which edges between nodes are walkable
 			_createEdgeMap(this: GameObj<LevelComp | PathfindingComp>) {
-				const spatialMap = this.getSpatialMap();
-				const size = this.numRows() * this.numColumns();
+				const spatialMap = this.getSpatialMap()
+				const size = this.numRows() * this.numColumns()
 				if (!_edgeMap) {
-					_edgeMap = new Array<number>(size);
+					_edgeMap = new Array<number>(size)
 				}
 				else {
-					_edgeMap.length = size;
+					_edgeMap.length = size
 				}
-				_edgeMap.fill(EdgeMask.All, 0, size);
+				_edgeMap.fill(EdgeMask.All, 0, size)
 				for (let i = 0; i < spatialMap.length; i++) {
-					const objects = spatialMap[i];
+					const objects = spatialMap[i]
 					if (objects) {
-						const len = objects.length;
-						let mask = EdgeMask.All;
+						const len = objects.length
+						let mask = EdgeMask.All
 						for (let j = 0; j < len; j++) {
 							if (objects[j].mask !== undefined) {
-								mask &= objects[j].mask;
+								mask &= objects[j].mask
 							}
 						}
-						_edgeMap[i] = mask;
+						_edgeMap[i] = mask
 					}
 				}
 			},
@@ -5778,34 +5778,34 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			// -1: inaccesible n: connectivity group
 			_createConnectivityMap(this: GameObj<LevelComp | PathfindingComp>) {
 				const traverse = (i: number, index: number) => {
-					let frontier: number[] = [];
-					frontier.push(i);
+					const frontier: number[] = []
+					frontier.push(i)
 					while (frontier.length > 0) {
-						const i = frontier.pop();
+						const i = frontier.pop()
 						this._getNeighbours(i).forEach((i) => {
 							if (_connectivityMap[i] < 0) {
-								_connectivityMap[i] = index;
-								frontier.push(i);
+								_connectivityMap[i] = index
+								frontier.push(i)
 							}
-						});
+						})
 					}
 				}
 	
-				const size = this.numRows() * this.numColumns();
+				const size = this.numRows() * this.numColumns()
 				if (!_connectivityMap) {
-					_connectivityMap = new Array<number>(size);
+					_connectivityMap = new Array<number>(size)
 				}
 				else {
-					_connectivityMap.length = size;
+					_connectivityMap.length = size
 				}
-				_connectivityMap.fill(-1, 0, size);
-				let index = 0;
+				_connectivityMap.fill(-1, 0, size)
+				let index = 0
 				for (let i = 0; i < _costMap.length; i++) {
-					if (_connectivityMap[i] >= 0) { index++; continue; }
-					traverse(i, index);
-					index++;
+					if (_connectivityMap[i] >= 0) { index++; continue }
+					traverse(i, index)
+					index++
 				}
-			}
+			},
 		}
 	}
 
@@ -5821,7 +5821,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 		const numRows = map.length
 		let numColumns = 0
-		let spatialMap: GameObj[][] | undefined;
+		let spatialMap: GameObj[][] | undefined
 
 		const levelComp: LevelComp = {
 
@@ -5878,13 +5878,13 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				comps.push(pos(posComp))
 				comps.push(tile(this, p))
 
-				const object = level.add(comps);
+				const object = level.add(comps)
 
 				if (spatialMap) {
-					this._insertIntoSpatialMap(object);
-					this.trigger("spatial_map_changed");
+					this._insertIntoSpatialMap(object)
+					this.trigger("spatial_map_changed")
 					if (object.isObstacle || object.cost) {
-						this.trigger("navigation_map_invalid");
+						this.trigger("navigation_map_invalid")
 					}
 				}
 
@@ -5909,39 +5909,39 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			},
 
 			tile2Pos(tilePos: Vec2) {
-				return tilePos.scale(opt.tileWidth, opt.tileHeight);
+				return tilePos.scale(opt.tileWidth, opt.tileHeight)
 			},
 	
 			pos2Tile(pos: Vec2) {
-				return vec2(Math.floor(pos.x / opt.tileWidth), Math.floor(pos.y / opt.tileHeight));
+				return vec2(Math.floor(pos.x / opt.tileWidth), Math.floor(pos.y / opt.tileHeight))
 			},
 	
 			getSpatialMap() {
 				if (!spatialMap) {
-					this._createSpatialMap();
+					this._createSpatialMap()
 				}
-				return spatialMap;
+				return spatialMap
 			},
 	
 			onSpatialMapChanged(this: GameObj<LevelComp>, cb: () => void) {
-				return this.on("spatial_map_changed", cb);
+				return this.on("spatial_map_changed", cb)
 			},
 	
 			onNavigationMapInvalid(this: GameObj<LevelComp>, cb: () => void) {
-				return this.on("navigation_map_invalid", cb);
+				return this.on("navigation_map_invalid", cb)
 			},
 	
 			getAt(tilePos: Vec2) {
 				if (!spatialMap) {
-					this._createSpatialMap();
+					this._createSpatialMap()
 				}
-				const hash = this._tile2Hash(tilePos);
-				return spatialMap[hash] || [];
+				const hash = this._tile2Hash(tilePos)
+				return spatialMap[hash] || []
 			},
 	
 			update() {
 				if (spatialMap) {
-					this._updateSpatialMap();
+					this._updateSpatialMap()
 				}
 			},
 
@@ -5950,62 +5950,62 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			 */
 
 			_tile2Hash(tilePos: Vec2) {
-				return tilePos.x + tilePos.y * numColumns;
+				return tilePos.x + tilePos.y * numColumns
 			},
 	
 			_hash2Tile(hash: number) {
-				return vec2(Math.floor(hash % numColumns), Math.floor(hash / numColumns));
+				return vec2(Math.floor(hash % numColumns), Math.floor(hash / numColumns))
 			},
 	
 			// The spatial map keeps track of the objects at each location
 			_createSpatialMap(this: GameObj<LevelComp>) {
-				spatialMap = [];
+				spatialMap = []
 				for (const child of this.children) {
-					this._insertIntoSpatialMap(child);
+					this._insertIntoSpatialMap(child)
 				}
 			},
 	
 			_updateSpatialMap(this: GameObj<LevelComp>) {
-				let spatialMapChanged = false;
-				let navigationMapChanged = false;
+				let spatialMapChanged = false
+				let navigationMapChanged = false
 				for (const child of this.children) {
-					const tilePos = this.pos2Tile(child.pos);
+					const tilePos = this.pos2Tile(child.pos)
 					if (child.tilePos.x != tilePos.x || child.tilePos.y != tilePos.y) {
 						spatialMapChanged = true
-						navigationMapChanged = navigationMapChanged || (child.isObstacle || child.cost);
-						this._removeFromSpatialMap(child);
-						child.tilePos.x = tilePos.x;
-						child.tilePos.y = tilePos.y;
-						this._insertIntoSpatialMap(child);
+						navigationMapChanged = navigationMapChanged || (child.isObstacle || child.cost)
+						this._removeFromSpatialMap(child)
+						child.tilePos.x = tilePos.x
+						child.tilePos.y = tilePos.y
+						this._insertIntoSpatialMap(child)
 					}
 				}
 				if (spatialMapChanged) {
-					this.trigger("spatial_map_changed");
+					this.trigger("spatial_map_changed")
 				}
 				if (navigationMapChanged) {
-					this.trigger("navigation_map_invalid");
+					this.trigger("navigation_map_invalid")
 				}
 			},
 	
 			_insertIntoSpatialMap(object: GameObj<any>) {
-				const hash = this._tile2Hash(object.tilePos);
+				const hash = this._tile2Hash(object.tilePos)
 				if (spatialMap[hash]) {
-					spatialMap[hash].push(object);
+					spatialMap[hash].push(object)
 				}
 				else {
-					spatialMap[hash] = [object];
+					spatialMap[hash] = [object]
 				}
 			},
 	
 			_removeFromSpatialMap(object: GameObj<any>) {
-				const hash = this._tile2Hash(object.tilePos);
+				const hash = this._tile2Hash(object.tilePos)
 				if (spatialMap[hash]) {
-					const index = spatialMap[hash].indexOf(object);
+					const index = spatialMap[hash].indexOf(object)
 					if (index >= 0) {
-						spatialMap[hash].splice(index, 1);
+						spatialMap[hash].splice(index, 1)
 					}
 				}
-			}
+			},
 		}
 
 		level.use(levelComp)
@@ -6029,102 +6029,102 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	}
 
 	function agent({ speed = 64, diagonals = true }: { speed?: number, diagonals?: boolean } = {}) : AgentComp {
-		let _target: Vec2 | null = null;
-		let _path: Vec2[] | null = null;
-		let _index: number | null = null;
-		let _speed = speed || 1;
-		let _diagonals = diagonals;
-		let changedEventCleanup: () => void | null = null;
+		let _target: Vec2 | null = null
+		let _path: Vec2[] | null = null
+		let _index: number | null = null
+		let _speed = speed || 1
+		const _diagonals = diagonals
+		let changedEventCleanup: () => void | null = null
 		return {
 			id: "agent",
 			require: ["pos", "tile"],
 	
 			getDistanceToTarget(this: GameObj<AgentComp | PosComp>) {
-				return _target ? this.pos.dist(_target) : 0;
+				return _target ? this.pos.dist(_target) : 0
 			},
 			getNextLocation() {
-				return _path && _index ? _path[_index] : null;
+				return _path && _index ? _path[_index] : null
 			},
 			getPath() {
-				return _path ? _path.slice() : null;
+				return _path ? _path.slice() : null
 			},
 			getTarget() {
-				return _target;
+				return _target
 			},
 			isNavigationFinished() {
-				return _path ? _index === null : true;
+				return _path ? _index === null : true
 			},
 			isTargetReachable() {
-				return _path !== null;
+				return _path !== null
 			},
 			isTargetReached(this: GameObj<AgentComp | PosComp>) {
-				return _target ? this.pos.eq(_target) : true;
+				return _target ? this.pos.eq(_target) : true
 			},
 			setTarget(this: GameObj<AgentComp | TileComp | PosComp>, target: Vec2) {
-				_target = target;
-				_path = this.getLevel().getPath(this.pos, target, _diagonals);
-				_index = _path ? 0 : null;
+				_target = target
+				_path = this.getLevel().getPath(this.pos, target, _diagonals)
+				_index = _path ? 0 : null
 				if (_path) {
 					if (!changedEventCleanup) {
 						changedEventCleanup = this.getLevel().onNavigationMapChanged(() => {
 							if (_path && _index !== null) {
-								_path = this.getLevel().getPath(this.pos, target, _diagonals);
-								_index = _path ? 0 : null;
+								_path = this.getLevel().getPath(this.pos, target, _diagonals)
+								_index = _path ? 0 : null
 								if (_path) {
-									this.trigger("navigation-next", this, _path[_index]);
+									this.trigger("navigation-next", this, _path[_index])
 								}
 								else {
-									this.trigger("navigation-ended", this);
+									this.trigger("navigation-ended", this)
 								}
 							}
-						});
+						})
 					}
-					this.trigger("navigation-started", this);
-					this.trigger("navigation-next", this, _path[_index]);
+					this.trigger("navigation-started", this)
+					this.trigger("navigation-next", this, _path[_index])
 				}
 				else {
-					this.trigger("navigation-ended", this);
+					this.trigger("navigation-ended", this)
 				}
 			},
 			setSpeed(speed: number) {
-				_speed = speed;
+				_speed = speed
 			},
 			update(this: GameObj<AgentComp | PosComp>) {
 				if (_path && _index !== null) {
 					if (this.pos.sdist(_path[_index]) < 2) {
 						if (_index === _path.length - 1) {
-							this.pos = _target.clone();
-							_index = null;
-							this.trigger("navigation-ended", this);
-							this.trigger("target-reached", this);
-							return;
+							this.pos = _target.clone()
+							_index = null
+							this.trigger("navigation-ended", this)
+							this.trigger("target-reached", this)
+							return
 						}
 						else {
-							_index++;
-							this.trigger("navigation-next", this, _path[_index]);
+							_index++
+							this.trigger("navigation-next", this, _path[_index])
 						}
 	
 					}
-					this.moveTo(_path[_index], _speed);
+					this.moveTo(_path[_index], _speed)
 				}
 			},
 			onNavigationStarted(this: GameObj<AgentComp>, cb: () => void) {
-				this.on("navigation-started", cb);
+				this.on("navigation-started", cb)
 			},
 			onNavigationNext(this: GameObj<AgentComp>, cb: () => void) {
-				this.on("navigation-next", cb);
+				this.on("navigation-next", cb)
 			},
 			onNavigationEnded(this: GameObj<AgentComp>, cb: () => void) {
-				this.on("navigation-ended", cb);
+				this.on("navigation-ended", cb)
 			},
 			onTargetReached(this: GameObj<AgentComp>, cb: () => void) {
-				this.on("target-reached", cb);
+				this.on("target-reached", cb)
 			},
 			inspect() {
 				return JSON.stringify({
 					target: JSON.stringify(_target),
-					path: JSON.stringify(_path)
-				});
+					path: JSON.stringify(_path),
+				})
 			},
 		}
 	}
