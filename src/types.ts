@@ -577,6 +577,24 @@ export interface KaboomCtx {
 	 */
 	obstacle(): ObstacleComp,
 	/**
+	 * The cost of a tile in a tilemap.
+	 *
+	 * @since v3000.0
+	 */
+	cost(): CostComp,
+	/**
+	 * The allowed transitions to neighbours of a tile in a tilemap.
+	 *
+	 * @since v3000.0
+	 */
+	edges(): EdgesComp,
+	/**
+	 * Interfaces to find a path to a target on a tilemap.
+	 *
+	 * @since v3000.0
+	 */
+	pathfinding(): PathfindingComp,
+	/**
 	 * Register an event on all game objs with certain tag.
 	 *
 	 * @section Events
@@ -4533,11 +4551,16 @@ export interface LevelOpt {
 	 * Called when encountered a symbol not defined in "tiles".
 	 */
 	wildcardTile?: (sym: string, pos: Vec2) => CompList<any> | null | undefined,
+	/**
+	 * Enables pathfinding if true.
+	 */
+	usePathfinding?: boolean
 }
 
 export interface TileComp extends Comp {
 	tilePos: Vec2,
 	setTilePos(...args),
+	getLevel(): GameObj<any>,
 	moveLeft(),
 	moveRight(),
 	moveUp(),
@@ -4545,7 +4568,48 @@ export interface TileComp extends Comp {
 }
 
 export interface ObstacleComp extends Comp {
-	isObstacle: boolean,
+	setObstacle(isObstacle: boolean)
+	isObstacle(): boolean,
+}
+
+export interface CostComp extends Comp {
+    cost: number
+}
+
+export enum EdgeMask {
+    None = 0,
+    Left = 1,
+    Top = 2,
+    LeftTop = 3,
+    Right = 4,
+    Horizontal = 5,
+    RightTop = 6,
+    HorizontalTop = 7,
+    Bottom = 8,
+    LeftBottom = 9,
+    Vertical = 10,
+    LeftVertical = 11,
+    RightBottom = 12,
+    HorizontalBottom = 13,
+    RightVertical = 14,
+    All = 15,
+}
+
+export interface EdgesComp extends Comp {
+    mask: EdgeMask
+}
+
+export interface PathfindingComp extends Comp {
+	invalidateNavigationMap(),
+	onNavigationMapChanged(cb: () => void),
+	getTilePath(from: Vec2, to: Vec2, diagonals?: boolean): Vec2[],
+	getPath(from: Vec2, to: Vec2, diagonals?: boolean): Vec2[],
+	_getNeighbours(node: number, diagonals?: boolean): number[],
+	_getCost(node: number, neighbour: number): number,
+	_getHeuristic(node: number, goal: number): number,
+	_createCostMap(),
+	_createEdgeMap(),
+	_createConnectivityMap(),
 }
 
 export interface LevelComp extends Comp {
@@ -4559,6 +4623,34 @@ export interface LevelComp extends Comp {
 	numColumns(): number,
 	levelWidth(): number,
 	levelHeight(): number,
+	tile2Pos(tilePos: Vec2): Vec2,
+	pos2Tile(pos: Vec2): Vec2,
+	getSpatialMap(): GameObj<any>[][],
+	onSpatialMapChanged(cb: () => void),
+	onNavigationMapInvalid(cb: () => void),
+	getAt(tilePos: Vec2): GameObj<any>[],
+	_tile2Hash(tilePos: Vec2): number,
+	_hash2Tile(hash: number): Vec2,
+	_createSpatialMap(),
+	_updateSpatialMap(),
+	_insertIntoSpatialMap(object: GameObj<any>),
+	_removeFromSpatialMap(object: GameObj<any>),
+}
+
+export interface AgentComp extends Comp {
+	getDistanceToTarget(): number,
+	getNextLocation(): Vec2 | null,
+	getPath(): Vec2[] | null,
+	getTarget(): Vec2 | null,
+	isNavigationFinished(): boolean,
+	isTargetReachable(): boolean,
+	isTargetReached(): boolean,
+	setTarget(target: Vec2),
+	setSpeed(speed: number),
+	onNavigationStarted(cb: () => void),
+	onNavigationNext(cb: () => void),
+	onNavigationEnded(cb: () => void),
+	onTargetReached(cb: () => void)
 }
 
 export interface BoomOpt {
