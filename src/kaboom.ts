@@ -5531,14 +5531,12 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			require: ["level"],
 			add(this: GameObj<LevelComp | PathfindingComp>) {
 				this.onNavigationMapInvalid(() => {
-					console.log("onNavigationMapInvalid")
 					this.invalidateNavigationMap();
 					this.trigger("navigation_map_changed");
 				});
 			},
 	
 			invalidateNavigationMap() {
-				console.log("Invalidating maps");
 				_costMap = null;
 				_edgeMap = null;
 				_connectivityMap = null;
@@ -5551,15 +5549,12 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			getTilePath(this: GameObj<LevelComp | PathfindingComp>, from: Vec2, to: Vec2, diagonals: boolean) {
 				if (!_costMap) {
 					this._createCostMap();
-					console.log("Cost map", _costMap);
 				}
 				if (!_edgeMap) {
 					this._createEdgeMap();
-					console.log("Edge map", _edgeMap);
 				}
 				if (!_connectivityMap) {
 					this._createConnectivityMap();
-					console.log("Connectivity map", _connectivityMap);
 				}
 	
 				// Tiles are outside the grid
@@ -5567,12 +5562,10 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				const numRows = this.numRows();
 				if (from.x < 0 || from.x >= numColumns ||
 					from.y < 0 || from.y >= numRows) {
-					console.log("start outside grid"); // throw Exception?
 					return null;
 				}
 				if (to.x < 0 || to.x >= numColumns ||
 					to.y < 0 || to.y >= numRows) {
-					console.log("goal outside grid"); // throw Exception?
 					return null;
 				}
 	
@@ -5582,24 +5575,20 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				// Tiles are not accessible
 				// If we test the start tile, we may get stuck
 				/*if (_costMap[start] === Infinity) {
-					console.log("start inaccessible"); // throw Exception?
 					return null;
 				}*/
 				if (_costMap[goal] === Infinity) {
-					console.log("goal inaccessible"); // throw Exception?
 					return null;
 				}
 	
 				// Same Tile, no waypoints needed
 				if (start === goal) {
-					console.log("same tile");
 					return [];
 				}
 	
 				// Tiles are not within the same section
 				// If we test the start tile when invalid, we may get stuck
 				if (_connectivityMap[start] != -1 && _connectivityMap[start] !== _connectivityMap[goal]) {
-					console.log("different region");
 					return null;
 				}
 	
@@ -5991,11 +5980,9 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 					}
 				}
 				if (spatialMapChanged) {
-					console.log("spatialMapChanged");
 					this.trigger("spatial_map_changed");
 				}
 				if (navigationMapChanged) {
-					console.log("navigationMapChanged");
 					this.trigger("navigation_map_invalid");
 				}
 			},
@@ -6081,7 +6068,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 					if (!changedEventCleanup) {
 						changedEventCleanup = this.getLevel().onNavigationMapChanged(() => {
 							if (_path && _index !== null) {
-								console.log("recalculating path");
 								_path = this.getLevel().getPath(this.pos, target, _diagonals);
 								_index = _path ? 0 : null;
 								if (_path) {
