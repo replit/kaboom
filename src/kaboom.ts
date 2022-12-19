@@ -1616,6 +1616,10 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				return onEndEvents.add(action)
 			},
 
+			then(action: () => void) {
+				return this.onEnd(action)
+			},
+
 		}
 
 	}

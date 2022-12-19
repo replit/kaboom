@@ -2714,6 +2714,7 @@ export interface AudioPlay {
 	 * @since v3000.0
 	 */
 	onEnd(action: () => void): EventController,
+	then(action: () => void): EventController,
 }
 
 // TODO: hide
