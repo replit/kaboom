@@ -1477,12 +1477,16 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		let startTime = 0
 		let stopTime = 0
 		let started = false
-		let speed = opt.speed ?? 1
 
 		srcNode.loop = Boolean(opt.loop)
 		srcNode.detune.value = opt.detune ?? 0
-		srcNode.playbackRate.value = paused ? 0 : speed
+		srcNode.playbackRate.value = opt.speed ?? 1
 		srcNode.connect(gainNode)
+		srcNode.onended = () => {
+			if (getTime() >= srcNode.buffer?.duration ?? Number.POSITIVE_INFINITY) {
+				onEndEvents.trigger()
+			}
+		}
 		gainNode.connect(audio.masterNode)
 		gainNode.gain.value = opt.volume ?? 1
 
@@ -1499,6 +1503,15 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			snd.onLoad(start)
 		} else if (snd instanceof SoundData) {
 			start(snd)
+		}
+
+		const getTime = () => {
+			if (!srcNode.buffer) return 0
+			const t = paused
+				? stopTime - startTime
+				: ctx.currentTime - startTime
+			const d = srcNode.buffer.duration
+			return srcNode.loop ? t % d : Math.min(t, d)
 		}
 
 		const cloneNode = (oldNode: AudioBufferSourceNode) => {
@@ -1518,15 +1531,17 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				if (paused === p) return
 				paused = p
 				if (p) {
-					srcNode.playbackRate.value = 0
+					if (started) {
+						srcNode.stop()
+						started = false
+					}
 					stopTime = ctx.currentTime
 				} else {
-					if (!started) {
-						srcNode.start(0, pos)
-						started = true
-					}
-					srcNode.playbackRate.value = speed
-					startTime += ctx.currentTime - stopTime
+					srcNode = cloneNode(srcNode)
+					const pos = stopTime - startTime
+					srcNode.start(0, pos)
+					started = true
+					startTime = ctx.currentTime - pos
 					stopTime = 0
 				}
 			},
@@ -1541,26 +1556,28 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			},
 
 			seek(time: number) {
-				if (started) srcNode.stop()
-				srcNode = cloneNode(srcNode)
-				srcNode.start(0, time)
-				started = true
+				if (!srcNode.buffer?.duration) return
+				if (time > srcNode.buffer.duration) return
 				if (paused) {
+					srcNode = cloneNode(srcNode)
 					startTime = stopTime - time
 				} else {
+					srcNode.stop()
+					srcNode = cloneNode(srcNode)
 					startTime = ctx.currentTime - time
+					srcNode.start(0, time)
+					started = true
 					stopTime = 0
 				}
 			},
 
 			// TODO: affect time()
 			set speed(val: number) {
-				if (!paused) srcNode.playbackRate.value = val
-				speed = val
+				srcNode.playbackRate.value = val
 			},
 
 			get speed() {
-				return paused ? speed : srcNode.playbackRate.value
+				return srcNode.playbackRate.value
 			},
 
 			set detune(val: number) {
@@ -1592,11 +1609,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			},
 
 			time(): number {
-				if (paused) {
-					return stopTime - startTime
-				} else {
-					return ctx.currentTime - startTime
-				}
+				return getTime()
 			},
 
 			onEnd(action: () => void) {
@@ -1604,6 +1617,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			},
 
 		}
+
 	}
 
 	// core kaboom logic

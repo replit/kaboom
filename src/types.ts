@@ -2701,7 +2701,7 @@ export interface AudioPlay {
 	 */
 	loop: boolean,
 	/**
-	 * The current playing time.
+	 * The current playing time (not accurate if speed is changed).
 	 */
 	time(): number,
 	/**
@@ -2709,7 +2709,7 @@ export interface AudioPlay {
 	 */
 	duration(): number,
 	/**
-	 * The total duration.
+	 * Register an event that runs when audio ends.
 	 *
 	 * @since v3000.0
 	 */
