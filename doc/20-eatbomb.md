@@ -251,4 +251,4 @@ This will display the "start" scene before the game starts.
 
 Try out the embedded repl below:
 
-<iframe frameborder="0" width="100%" height="500px" src="https://replit.com/@ritza/eatbomb?embed=true"></iframe>
+<iframe frameborder="0" width="100%" height="500px" src="https://replit.com/@ritza/eatbomb?embed=true"</iframe>
