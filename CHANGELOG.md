@@ -28,11 +28,29 @@ bean.moveBy(100, 200)
 // children will be destroyed alongside the parent
 bean.destroy()
 ```
-- added `GameObj#getAll()` for recursively getting children game objects (`get()` only gets from direct children)
+- added `recursive` and `liveUpdate` options to `get()`
+```js
+const enemies = get("enemies", {
+    // get from all children and descendants, instead of only direct children
+    recursive: true,
+    // live update the returned list to listen to onAdd and onDestroy events
+    liveUpdate: true,
+})
+
+console.log(enemies.length) // 3
+
+add([
+    sprite("bigbird"),
+    "enemy",
+])
+
+console.log(enemies.length) // 4
+```
 - changed object update order from reversed to not reversed
 - (**BREAK**) removed `GameObj#every()` and `GameObj#revery()` in favor of `obj.get().forEach()`
 - (**BREAK**) renamed `GameObj#_id` to `GameObj#id`
 - (**BREAK**) `addLevel()` now returns a `GameObj` which has all individual grid objects as its children game objects, with `LevelComp` containing its previous methods
+- added `onAdd()` and `onDestroy` events to listen to added / destroyed game objects
 
 ## Components
 
@@ -138,6 +156,7 @@ usePostEffect("invert")
 
 - added option `kaboom({ backgroundAudio: false })` to not pause audio when tab not active
 - changed `speed`, `detune`, `volume`, `loop` in `AudioPlay` from functions to properties
+- added `onEnd()` event for `const pb = play("sound")`
 ```js
 // before
 const music = play("song")

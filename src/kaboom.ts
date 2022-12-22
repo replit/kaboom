@@ -151,6 +151,7 @@ import {
 	TimerController,
 	TweenController,
 	LoadFontOpt,
+	GetOpt,
 } from "./types"
 
 import FPSCounter from "./fps"
@@ -3375,8 +3376,8 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				obj.parent = this
 				obj.transform = calcTransform(obj)
 				this.children.push(obj)
-				obj.trigger("add", this)
-				game.ev.trigger("add", this)
+				obj.trigger("add", obj)
+				game.ev.trigger("add", obj)
 				return obj
 			},
 
@@ -3392,9 +3393,9 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			remove(obj: GameObj): void {
 				const idx = this.children.indexOf(obj)
 				if (idx !== -1) {
-					obj.parent = null
 					obj.trigger("destroy")
 					game.ev.trigger("destroy", obj)
+					obj.parent = null
 					this.children.splice(idx, 1)
 				}
 			},
@@ -3405,7 +3406,9 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 			update() {
 				if (this.paused) return
-				this.get().forEach((child) => child.update())
+				this.children
+					.sort((o1, o2) => (o1.z ?? 0) - (o2.z ?? 0))
+					.forEach((child) => child.update())
 				this.trigger("update")
 			},
 
@@ -3417,7 +3420,9 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				pushRotate(this.angle)
 				// TODO: automatically don't draw if offscreen
 				this.trigger("draw")
-				this.get().forEach((child) => child.draw())
+				this.children
+					.sort((o1, o2) => (o1.z ?? 0) - (o2.z ?? 0))
+					.forEach((child) => child.draw())
 				popTransform()
 			},
 
@@ -3427,7 +3432,9 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				pushTranslate(this.pos)
 				pushScale(this.scale)
 				pushRotate(this.angle)
-				this.get().forEach((child) => child.drawInspect())
+				this.children
+					.sort((o1, o2) => (o1.z ?? 0) - (o2.z ?? 0))
+					.forEach((child) => child.drawInspect())
 				this.trigger("drawInspect")
 				popTransform()
 			},
@@ -3537,18 +3544,33 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				return compStates.get(id)
 			},
 
-			// TODO: cache sorted list? update each frame?
-			get(t?: Tag | Tag[]): GameObj[] {
-				return this.children
-					.filter((child) => t ? child.is(t) : true)
-					.sort((o1, o2) => (o1.z ?? 0) - (o2.z ?? 0))
-			},
-
-			getAll(t?: Tag | Tag[]): GameObj[] {
-				return this.children
-					.sort((o1, o2) => (o1.z ?? 0) - (o2.z ?? 0))
-					.flatMap((child) => [child, ...child.getAll(t)])
-					.filter((child) => t ? child.is(t) : true)
+			get(t: Tag | Tag[], opts: GetOpt = {}): GameObj[] {
+				let list: GameObj[] = opts.recursive
+					? this.children.flatMap((child) => [child, ...child.children])
+					: this.children
+				list = list.filter((child) => t ? child.is(t) : true)
+				if (opts.liveUpdate) {
+					const isChild = (obj) => {
+						return opts.recursive
+							? this.isAncestorOf(obj)
+							: obj.parent === this
+					}
+					// TODO: a way to cancel the events?
+					onAdd((obj) => {
+						if (isChild(obj) && obj.is(t)) {
+							list.push(obj)
+						}
+					})
+					onDestroy((obj) => {
+						if (isChild(obj) && obj.is(t)) {
+							const idx = list.findIndex((o) => o.id === obj.id)
+							if (idx !== -1) {
+								list.splice(idx, 1)
+							}
+						}
+					})
+				}
+				return list
 			},
 
 			isAncestorOf(obj: GameObj) {
@@ -5380,7 +5402,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			game.ev = new EventHandler()
 			game.objEvents = new EventHandler()
 
-			game.root.get().forEach((obj) => {
+			;[...game.root.children].forEach((obj) => {
 				if (
 					!obj.stay
 					|| (obj.scenesToStay && !obj.scenesToStay.includes(id))
@@ -5675,7 +5697,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	const readd = game.root.readd.bind(game.root)
 	const destroyAll = game.root.removeAll.bind(game.root)
 	const get = game.root.get.bind(game.root)
-	const getAll = game.root.getAll.bind(game.root)
 
 	// TODO: expose this
 	function boom(speed: number = 2, size: number = 1): Comp {
@@ -5874,7 +5895,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 			}
 
-			obj.get().forEach(checkObj)
+			obj.children.forEach(checkObj)
 			tr = stack.pop()
 
 		}
@@ -5991,7 +6012,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 			let inspecting = null
 
-			for (const obj of getAll()) {
+			for (const obj of game.root.get("*", { recursive: true })) {
 				if (obj.c("area") && obj.isHovering()) {
 					inspecting = obj
 					break
@@ -6616,7 +6637,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		destroy,
 		destroyAll,
 		get,
-		getAll,
 		readd,
 		// comps
 		pos,
