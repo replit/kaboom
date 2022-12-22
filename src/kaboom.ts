@@ -3555,6 +3555,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 							? this.isAncestorOf(obj)
 							: obj.parent === this
 					}
+					// TODO: handle when object add / remove tags
 					// TODO: a way to cancel the events?
 					onAdd((obj) => {
 						if (isChild(obj) && obj.is(t)) {
