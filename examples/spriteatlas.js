@@ -270,7 +270,7 @@ function spin() {
 
 onKeyPress("space", () => {
 	let interacted = false
-	getAll("chest").forEach((c) => {
+	get("chest", { recursive: true }).forEach((c) => {
 		if (player.isColliding(c)) {
 			if (c.opened) {
 				c.play("close")
