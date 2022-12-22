@@ -111,22 +111,4 @@ player.onUpdate(() => {
 // Can also be toggled by pressing F1
 debug.inspect = true
 
-const enemies = get("enemy", { recursive: true, liveUpdate: true })
-
-onKeyPress("s", () => debug.log(enemies.length))
-
-onKeyPress("k", () => {
-	const x = rand(0, width())
-	const y = rand(0, height())
-
-	add([
-		sprite("ghosty"),
-		pos(x, y),
-		// Both objects must have area() component to enable collision detection between
-		area(),
-		"enemy",
-	])
-
-})
-
 // Check out https://kaboomjs.com#AreaComp for everything area() provides
