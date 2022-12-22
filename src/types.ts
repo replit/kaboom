@@ -4574,8 +4574,8 @@ export interface TileComp extends Comp {
 }
 
 export interface ObstacleComp extends Comp {
-	setObstacle(isObstacle: boolean)
-	isObstacle(): boolean,
+	set isObstacle(isObstacle: boolean)
+	get isObstacle(): boolean,
 }
 
 export interface CostComp extends Comp {
