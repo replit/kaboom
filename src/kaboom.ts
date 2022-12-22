@@ -5477,20 +5477,20 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 	}
 
-	function obstacle(isObstacle: boolean = true): ObstacleComp {
+	function obstacle(isObstacle: boolean = true) : ObstacleComp {
 		let _isObstacle = isObstacle
 		return {
 			id: "obstacle",
-			require: [ "tile" ],
-			setObstacle(this: GameObj<ObstacleComp | TileComp>, isObstacle: boolean) {
+			require: ["tile"],
+			set isObstacle(isObstacle: boolean) {
 				if (_isObstacle !== isObstacle) {
-					_isObstacle = isObstacle
-					this.getLevel().invalidateNavigationMap()
+					_isObstacle = isObstacle;
+					(this as unknown as GameObj<ObstacleComp | TileComp>).getLevel().invalidateNavigationMap();
 				}
 			},
-			isObstacle() {
-				return _isObstacle
-			},
+			get isObstacle(): boolean {
+				return _isObstacle;
+			}
 		}
 	}
 
