@@ -5733,8 +5733,8 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 						let cost = 0
 						for (let j = 0; j < len; j++) {
 							const object = objects[j]
-							if (object.isObstacle) {
-								if (object.isObstacle()) {
+							if (object.isObstacle !== undefined) {
+								if (object.isObstacle) {
 									cost = Infinity
 									break
 								}
@@ -5883,7 +5883,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				if (spatialMap) {
 					this._insertIntoSpatialMap(object)
 					this.trigger("spatial_map_changed")
-					if (object.isObstacle || object.cost) {
+					if (object.isObstacle !== undefined || object.cost) {
 						this.trigger("navigation_map_invalid")
 					}
 				}
@@ -5972,7 +5972,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 					const tilePos = this.pos2Tile(child.pos)
 					if (child.tilePos.x != tilePos.x || child.tilePos.y != tilePos.y) {
 						spatialMapChanged = true
-						navigationMapChanged = navigationMapChanged || (child.isObstacle || child.cost)
+						navigationMapChanged = navigationMapChanged || (child.isObstacle !== undefined || child.cost)
 						this._removeFromSpatialMap(child)
 						child.tilePos.x = tilePos.x
 						child.tilePos.y = tilePos.y
