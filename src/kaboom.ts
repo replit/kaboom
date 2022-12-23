@@ -5522,9 +5522,9 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	}
 
 	function pathfinding() : PathfindingComp {
-		let _costMap: number[] | undefined
-		let _edgeMap: number[] | undefined
-		let _connectivityMap: number[] | undefined
+		let _costMap: number[] | null = null
+		let _edgeMap: number[] | null = null
+		let _connectivityMap: number[] | null = null
 	
 		return {
 			id: "pathfinding",
@@ -5733,14 +5733,12 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 						let cost = 0
 						for (let j = 0; j < len; j++) {
 							const object = objects[j]
-							if (object.isObstacle !== undefined) {
-								if (object.isObstacle) {
-									cost = Infinity
-									break
-								}
+							if (object.isObstacle !== undefined && object.isObstacle) {
+								cost = Infinity;
+								break;
 							}
 							else {
-								cost += object.cost || 0
+								cost += object.cost || 0;
 							}
 						}
 						_costMap[i] = cost || 1
