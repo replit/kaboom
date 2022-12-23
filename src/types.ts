@@ -4608,8 +4608,8 @@ export interface EdgesComp extends Comp {
 export interface PathfindingComp extends Comp {
 	invalidateNavigationMap(),
 	onNavigationMapChanged(cb: () => void): EventController,
-	getTilePath(from: Vec2, to: Vec2, diagonals?: boolean): Vec2[],
-	getPath(from: Vec2, to: Vec2, diagonals?: boolean): Vec2[],
+	getTilePath(from: Vec2, to: Vec2, diagonals?: boolean): Vec2[] | null,
+	getPath(from: Vec2, to: Vec2, diagonals?: boolean): Vec2[] | null,
 	_getNeighbours(node: number, diagonals?: boolean): number[],
 	_getCost(node: number, neighbour: number): number,
 	_getHeuristic(node: number, goal: number): number,
