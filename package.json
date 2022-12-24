@@ -37,7 +37,7 @@
 		"CHANGELOG.md"
 	],
 	"scripts": {
-		"dev": "NODE_ENV=development node scripts/build.js",
+		"dev": "node scripts/build.js",
 		"build": "node scripts/build.js",
 		"check": "tsc",
 		"lint": "eslint src examples",

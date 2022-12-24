@@ -179,6 +179,14 @@ interface SpriteCurAnim {
 	onEnd: () => void,
 }
 
+// translate gamepad button names to a simpler version
+const GAMEPAD_ALIAS = {
+	"0": "north",
+	"1": "est",
+	"2": "south",
+	"3": "west",
+}
+
 // translate these key names to a simpler version
 const KEY_ALIAS = {
 	"ArrowLeft": "left",
@@ -5751,14 +5759,44 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 	}
 
+	const GamepadButtonsMap = new Map()
+
 	function inputFrame() {
 		// TODO: pass original browser event in input handlers
 		game.ev.trigger("input")
 		app.keyState.down.forEach((k) => game.ev.trigger("keyDown", k))
 		app.mouseState.down.forEach((k) => game.ev.trigger("mouseDown", k))
 		app.virtualButtonState.down.forEach((k) => game.ev.trigger("virtualButtonDown", k))
+		
 		for (const gamepad of navigator.getGamepads()) {
-			// TODO
+			if(!gamepad) return
+			if(!gamepad.buttons) return
+
+			for(let i  =0; i < gamepad.buttons.length; i++) {
+				const btnData = GamepadButtonsMap.get(gamepad.id+i)
+				let framesPressed = btnData?.framesPressed
+
+				if(gamepad.buttons[i].pressed) {
+					console.log(framesPressed)
+
+					if(btnData) {
+						framesPressed += 1
+						GamepadButtonsMap.set(gamepad.id+i, { framesPressed: framesPressed })
+					} else {
+						framesPressed = 0
+						GamepadButtonsMap.set(gamepad.id+i, { framesPressed: 0 })
+					}
+
+					if(framesPressed === 0) game.ev.trigger("gamepadButtonPress", GAMEPAD_ALIAS[i])
+
+					game.ev.trigger("gamepadButtonDown", GAMEPAD_ALIAS[i])
+				}
+				else {
+					if(btnData) {
+						GamepadButtonsMap.set(gamepad.id+i, { framesPressed: -1 })
+					}
+				}
+			}
 		}
 	}
 

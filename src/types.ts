@@ -2165,6 +2165,12 @@ export type MouseButton =
 	| "back"
 	| "forward"
 
+export type GamepadButton = 
+	| "north"
+	| "est"
+	| "south"
+	| "west"
+
 /**
  * Inspect info for a character.
  */
