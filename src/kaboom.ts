@@ -3214,6 +3214,10 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		}
 	}
 
+	winEvents.gamepadconnected = (e) => {
+		game.ev.trigger("gamepad", e.gamepad);
+	}
+
 	winEvents.unhandledrejection = (e) => handleErr(e.reason)
 
 	for (const name in canvasEvents) {
@@ -6418,6 +6422,10 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		game.ev.on("resize", action)
 	}
 
+	function onGamepadConnect(action: (gamepad: Gamepad) => void) {
+		game.ev.on("gamepadConnect", action)
+	}
+
 	function onError(action: (err: Error) => void) {
 		game.ev.on("error", action)
 	}
@@ -6701,6 +6709,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		onLoad,
 		onLoadUpdate,
 		onResize,
+		onGamepadConnect,
 		onError,
 		// misc
 		camPos,

@@ -690,6 +690,12 @@ export interface KaboomCtx {
 		curHeight: number,
 	) => void): void,
 	/**
+	 * Register an event that runs when a gamepad is connected.
+	 * 
+	 * 
+	 */
+	onGamepadConnect(action: (gamepad: Gamepad) => void): void,
+	/**
 	 * Register an event that runs when 2 game objs with certain tags collides (required to have area() component).
 	 *
 	 * @since v2000.1
