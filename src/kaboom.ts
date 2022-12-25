@@ -366,7 +366,7 @@ const GAMEPAD_MAPS = {
 		"9": "start",
 		"10": "lstick",
 		"11": "rstick",
-	}
+	},
 }
 
 const gamepadData = new Map()
@@ -5815,13 +5815,14 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		
 		for (const gamepad of navigator.getGamepads()) {
 			if(!gamepad) return // there can be a gamepad disconnection while is running this
-			let map = GAMEPAD_MAPS[gamepad.id];
+			let map = GAMEPAD_MAPS[gamepad.id]
+			if(!map) map = GAMEPAD_MAPS["default"]
 
 			for(let i = 0; i < gamepad.buttons.length; i++) {
 				const btnData = gamepadData.get(gamepad.id + i)
 				let framesPressed = btnData?.framesPressed
 
-				if(!btnData) gamepadData.set(gamepad.id+i, { framesPressed: 0 });
+				if(!btnData) gamepadData.set(gamepad.id+i, { framesPressed: 0 })
 
 				if(gamepad.buttons[i].pressed) {
 					game.ev.trigger("gamepadButtonDown", map[i])
