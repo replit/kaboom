@@ -895,12 +895,42 @@ export interface KaboomCtx {
 	 * @since v3000.0
 	 */
 	onVirtualButtonRelease(btn: VirtualButton, action: () => void): EventController,
-	onGamepadButtonDown(btn: string, action: (btn: string) => void): EventController,
-	onGamepadButtonDown(action: (btn) => void): EventController,
-	onGamepadButtonPress(btn: string, action: (btn: string) => void): EventController,
-	onGamepadButtonPress(action: (btn) => void): EventController,
-	onGamepadButtonRelease(btn: string, action: (btn: string) => void): EventController,
-	onGamepadButtonRelease(action: (btn) => void): EventController,
+	/**
+	 * Register an event that runs every frame when certain gamepad button is held down.
+	 * 
+	 * @since v3000.0
+	 */
+	onGamepadButtonDown(btn: GamepadButton, action: (btn: GamepadButton) => void): EventController,
+	/**
+	 * Register an event that runs every frame when any gamepad button is held down.
+	 * 
+	 * @since v3000.0
+	 */
+	onGamepadButtonDown(action: (btn: GamepadButton) => GamepadButton): EventController,
+	/**
+	 * Register an event that runs when user presses certain gamepad button.
+	 * 
+	 * @since v3000.0
+	 */
+	onGamepadButtonPress(btn: GamepadButton, action: (btn: GamepadButton) => void): EventController,
+	/**
+	 * Register an event that runs when user presses any gamepad button.
+	 * 
+	 * @since v3000.0
+	 */
+	onGamepadButtonPress(action: (btn: GamepadButton) => GamepadButton): EventController,
+	/**
+	 * Register an event that runs when user releases any gamepad button.
+	 *
+	 * @since v3000.0
+	 */
+	onGamepadButtonRelease(btn: GamepadButton, action: (btn: GamepadButton) => void): EventController,
+		/**
+	 * Register an event that runs when user releases certain gamepad button.
+	 *
+	 * @since v3000.0
+	 */
+	onGamepadButtonRelease(action: (btn: GamepadButton) => void): EventController,
 	/**
 	 * Sets the root for all subsequent resource urls.
 	 *
@@ -2167,9 +2197,21 @@ export type MouseButton =
 
 export type GamepadButton = 
 	| "north"
-	| "est"
+	| "east"
 	| "south"
 	| "west"
+	| "ltrigger"
+	| "rtrigger"
+    | "lshoulder"
+    | "rshoulder"
+	| "select"
+    | "start"
+	| "lstick"
+	| "rstick"
+	| "dpad-north"
+    | "dpad-east"
+	| "dpad-south"
+    | "dpad-west"
 
 /**
  * Inspect info for a character.

@@ -152,6 +152,7 @@ import {
 	TweenController,
 	LoadFontOpt,
 	GetOpt,
+	GamepadButton,
 } from "./types"
 
 import FPSCounter from "./fps"
@@ -177,14 +178,6 @@ interface SpriteCurAnim {
 	speed: number,
 	pingpong: boolean,
 	onEnd: () => void,
-}
-
-// translate gamepad button names to a simpler version
-const GAMEPAD_ALIAS = {
-	"0": "north",
-	"1": "est",
-	"2": "south",
-	"3": "west",
 }
 
 // translate these key names to a simpler version
@@ -323,6 +316,60 @@ const COMP_EVENTS = new Set([
 	"inspect",
 	"drawInspect",
 ])
+
+const GAMEPAD_MAPS = {
+	// Generic gamepads
+	"Generic   USB  Joystick   (Vendor: 0079 Product: 0006)": {
+		"0": "north",
+		"1": "east",
+		"2": "south",
+		"3": "west",
+		"4": "ltrigger",
+		"5": "rtrigger",
+		"6": "lshoulder",
+		"7": "rshoulder",
+		"8": "select",
+		"9": "start",
+		"10": "lstick",
+		"11": "rstick",
+	},
+	// Nintendo Switch JoyCon L+R
+	"Joy-Con L+R (STANDARD GAMEPAD Vendor: 057e Product: 200e)": {
+		"0": "south",
+		"1": "east",
+		"2": "north",
+		"3": "west",
+		"4": "ltrigger",
+		"5": "rtrigger",
+		"6": "lshoulder",
+		"7": "rshoulder",
+		"8": "select",
+		"9": "start",
+		"10": "lstick",
+		"11": "rstick",
+		"12": "dpad-south",
+		"13": "dpad-east",
+		"14": "dpad-north",
+		"15": "dpad-west",
+	},
+	// if the gamepad isn't recognized
+	"default": {
+		"0": "north",
+		"1": "east",
+		"2": "south",
+		"3": "west",
+		"4": "ltrigger",
+		"5": "rtrigger",
+		"6": "lshoulder",
+		"7": "rshoulder",
+		"8": "select",
+		"9": "start",
+		"10": "lstick",
+		"11": "rstick",
+	}
+}
+
+const gamepadData = new Map()
 
 // wrappers around full screen functions to work across browsers
 function enterFullscreen(el: HTMLElement) {
@@ -3965,7 +4012,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		return game.ev.on("virtualButtonRelease", (b) => b === btn && action())
 	}
 
-	function onGamepadButtonDown(btn: string | ((btn: string) => void), action?: (btn: string) => void): EventController {
+	function onGamepadButtonDown(btn: GamepadButton | ((btn: GamepadButton) => void), action?: (btn: GamepadButton) => void): EventController {
 		if (typeof btn === "function") {
 			return game.ev.on("gamepadButtonDown", btn)
 		} else if (typeof btn === "string" && typeof action === "function") {
@@ -3973,7 +4020,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		}
 	}
 
-	function onGamepadButtonPress(btn: string | ((btn: string) => void), action?: (btn: string) => void): EventController {
+	function onGamepadButtonPress(btn: GamepadButton | ((btn: GamepadButton) => void), action?: (btn: GamepadButton) => void): EventController {
 		if (typeof btn === "function") {
 			return game.ev.on("gamepadButtonPress", btn)
 		} else if (typeof btn === "string" && typeof action === "function") {
@@ -3981,7 +4028,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		}
 	}
 
-	function onGamepadButtonRelease(btn: string | ((btn: string) => void), action?: (btn: string) => void): EventController {
+	function onGamepadButtonRelease(btn: GamepadButton | ((btn: GamepadButton) => void), action?: (btn: GamepadButton) => void): EventController {
 		if (typeof btn === "function") {
 			return game.ev.on("gamepadButtonRelease", btn)
 		} else if (typeof btn === "string" && typeof action === "function") {
@@ -5759,8 +5806,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 	}
 
-	const GamepadButtonsMap = new Map()
-
 	function inputFrame() {
 		// TODO: pass original browser event in input handlers
 		game.ev.trigger("input")
@@ -5769,32 +5814,25 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		app.virtualButtonState.down.forEach((k) => game.ev.trigger("virtualButtonDown", k))
 		
 		for (const gamepad of navigator.getGamepads()) {
-			if(!gamepad) return
-			if(!gamepad.buttons) return
+			if(!gamepad) return // there can be a gamepad disconnection while is running this
+			let map = GAMEPAD_MAPS[gamepad.id];
 
-			for(let i  =0; i < gamepad.buttons.length; i++) {
-				const btnData = GamepadButtonsMap.get(gamepad.id+i)
+			for(let i = 0; i < gamepad.buttons.length; i++) {
+				const btnData = gamepadData.get(gamepad.id + i)
 				let framesPressed = btnData?.framesPressed
 
+				if(!btnData) gamepadData.set(gamepad.id+i, { framesPressed: 0 });
+
 				if(gamepad.buttons[i].pressed) {
-					console.log(framesPressed)
+					game.ev.trigger("gamepadButtonDown", map[i])
+					if(framesPressed === 0) game.ev.trigger("gamepadButtonPress", map[i])
 
-					if(btnData) {
-						framesPressed += 1
-						GamepadButtonsMap.set(gamepad.id+i, { framesPressed: framesPressed })
-					} else {
-						framesPressed = 0
-						GamepadButtonsMap.set(gamepad.id+i, { framesPressed: 0 })
-					}
-
-					if(framesPressed === 0) game.ev.trigger("gamepadButtonPress", GAMEPAD_ALIAS[i])
-
-					game.ev.trigger("gamepadButtonDown", GAMEPAD_ALIAS[i])
+					framesPressed += 1
+					gamepadData.set(gamepad.id+i, { framesPressed: framesPressed })
 				}
-				else {
-					if(btnData) {
-						GamepadButtonsMap.set(gamepad.id+i, { framesPressed: -1 })
-					}
+				else {	
+					game.ev.trigger("gamepadButtonRelease", map[i])
+					gamepadData.set(gamepad.id+i, { framesPressed: 0 })
 				}
 			}
 		}

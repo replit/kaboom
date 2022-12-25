@@ -9,7 +9,7 @@ const srcDir = "src"
 const distDir = "dist"
 const srcPath = `${srcDir}/kaboom.ts`
 
-if (isDev) {
+if (true) {
 	serve()
 }
 
