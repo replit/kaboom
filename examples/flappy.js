@@ -42,11 +42,6 @@ scene("game", () => {
 		play("wooosh")
 	})
 
-	onGamepadButtonPress("south", () => {
-		bean.jump(JUMP_FORCE)
-		play("wooosh")
-	})
-
 	// mobile
 	onClick(() => {
 		bean.jump(JUMP_FORCE)
