@@ -2,44 +2,48 @@ kaboom()
 
 loadSprite("bean", "/sprites/bean.png")
 
-const buttons = [
-	"north",
-	"east",
-	"south",
-	"west",
-	"ltrigger",
-	"rtrigger",
-	"lshoulder",
-	"rshoulder",
-	"select",
-	"start",
-	"lstick",
-	"rstick",
-]
-
-const positions = [
-	vec2(340, 220),
-	vec2(400, 280),
-	vec2(340, 340),
-	vec2(280, 280),
-	vec2(140, 140),
-	vec2(340, 140),
-	vec2(140, 100),
-	vec2(340, 100),
-]
-
-for(const position in positions) {
-	const bean = add([
-		sprite("bean"),
-		pos(positions[position]),
-		color(GREEN),
+scene("nogamepad", () => {
+	add([
+		text("No found/disconnected gamepad. Connect a gamepad to try this demo."),
 	])
 
-	onGamepadButtonDown(buttons[position], () => {
-		bean.color = RED
+	onGamepadConnect(() => {
+		go("game")
+	})
+})
+
+scene("game", () => {
+	gravity(2400)
+
+	const player = add([
+		pos(center()),
+		anchor("center"),
+		sprite("bean"),
+		area(),
+		body(),
+	])
+
+	// platform
+	add([
+		pos(0, height()),
+		anchor("botleft"),
+		rect(width(), 140),
+		area(),
+		body({isStatic: true}),
+	])
+
+	onGamepadButtonPress("south", () => {
+		player.jump()
 	})
 
-	onGamepadButtonRelease(buttons[position], () => {
-		bean.color = GREEN
+	onGamepadDisconnect(() => {
+		go("nogamepad")
 	})
+})
+
+if(getConnectedGamepads().length > 0) {
+	go("game")
+}
+else {
+	go("nogamepad")
 }

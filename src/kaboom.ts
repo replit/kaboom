@@ -369,8 +369,6 @@ const GAMEPAD_MAPS = {
 	},
 }
 
-const gamepadData = new Map()
-
 // wrappers around full screen functions to work across browsers
 function enterFullscreen(el: HTMLElement) {
 	if (el.requestFullscreen) el.requestFullscreen()
@@ -531,6 +529,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			keyState: new ButtonState<Key>(),
 			mouseState: new ButtonState<MouseButton>(),
 			virtualButtonState: new ButtonState<VirtualButton>(),
+			gamepadButtonState: new ButtonState<GamepadButton>(),
 
 			// input states from last frame, should reset every frame
 			charInputted: [],
@@ -3215,7 +3214,11 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	}
 
 	winEvents.gamepadconnected = (e) => {
-		game.ev.trigger("gamepad", e.gamepad);
+		game.ev.trigger("gamepadConnect", e.gamepad)
+	}
+
+	winEvents.gamepaddisconnected = (e) => {
+		game.ev.trigger("gamepadDisconnect", e.gamepad)
 	}
 
 	winEvents.unhandledrejection = (e) => handleErr(e.reason)
@@ -3290,6 +3293,24 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 	function isVirtualButtonReleased(btn: VirtualButton): boolean {
 		return app.virtualButtonState.released.has(btn)
+	}
+
+	function isGamepadButtonPressed(btn?: GamepadButton): boolean {
+		return btn === undefined
+			? app.gamepadButtonState.pressed.size > 0
+			: app.gamepadButtonState.pressed.has(btn)
+	}
+
+	function isGamepadButtonDown(btn?: GamepadButton): boolean {
+		return btn === undefined
+			? app.gamepadButtonState.down.size > 0
+			: app.gamepadButtonState.down.has(btn)
+	}
+
+	function isGamepadButtonReleased(btn?: GamepadButton): boolean {
+		return btn === undefined
+			? app.gamepadButtonState.released.size > 0
+			: app.gamepadButtonState.released.has(btn)
 	}
 
 	function charInputted(): string[] {
@@ -4078,6 +4099,11 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			game.gravity = g
 		}
 		return game.gravity
+	}
+
+	// Get connected gamepads
+	function getConnectedGamepads(): Gamepad[] {
+		return navigator.getGamepads().filter((g) => g !== null);
 	}
 
 	// TODO: manage global velocity here?
@@ -5823,21 +5849,19 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			if(!map) map = GAMEPAD_MAPS["default"]
 
 			for(let i = 0; i < gamepad.buttons.length; i++) {
-				const btnData = gamepadData.get(gamepad.id + i)
-				let framesPressed = btnData?.framesPressed
-
-				if(!btnData) gamepadData.set(gamepad.id+i, { framesPressed: 0 })
-
 				if(gamepad.buttons[i].pressed) {
-					game.ev.trigger("gamepadButtonDown", map[i])
-					if(framesPressed === 0) game.ev.trigger("gamepadButtonPress", map[i])
+					if(!app.gamepadButtonState.down.has(map[i])) {
+						app.gamepadButtonState.press(map[i])
+						game.ev.trigger("gamepadButtonPress", map[i])
+					}
 
-					framesPressed += 1
-					gamepadData.set(gamepad.id+i, { framesPressed: framesPressed })
+					game.ev.trigger("gamepadButtonDown", map[i])
 				}
-				else {	
-					game.ev.trigger("gamepadButtonRelease", map[i])
-					gamepadData.set(gamepad.id+i, { framesPressed: 0 })
+				else {
+					if(app.gamepadButtonState.pressed.has(map[i]) || app.gamepadButtonState.down.has(map[i])) {
+						app.gamepadButtonState.release(map[i])
+						game.ev.trigger("gamepadButtonRelease", map[i])
+					}
 				}
 			}
 		}
@@ -6426,6 +6450,10 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		game.ev.on("gamepadConnect", action)
 	}
 
+	function onGamepadDisconnect(action: (gamepad: Gamepad) => void) {
+		game.ev.on("gamepadDisconnect", action)
+	}
+
 	function onError(action: (err: Error) => void) {
 		game.ev.on("error", action)
 	}
@@ -6488,6 +6516,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		app.keyState.update()
 		app.mouseState.update()
 		app.virtualButtonState.update()
+		app.gamepadButtonState.update()
 		app.charInputted = []
 		app.isMouseMoved = false
 	}
@@ -6710,6 +6739,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		onLoadUpdate,
 		onResize,
 		onGamepadConnect,
+		onGamepadDisconnect,
 		onError,
 		// misc
 		camPos,
@@ -6719,6 +6749,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		toScreen,
 		toWorld,
 		gravity,
+		getConnectedGamepads,
 		// obj
 		add,
 		destroy,
@@ -6798,6 +6829,9 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		isVirtualButtonPressed,
 		isVirtualButtonDown,
 		isVirtualButtonReleased,
+		isGamepadButtonPressed,
+		isGamepadButtonDown,
+		isGamepadButtonReleased,
 		charInputted,
 		// timer
 		loop,

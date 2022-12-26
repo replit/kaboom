@@ -692,9 +692,15 @@ export interface KaboomCtx {
 	/**
 	 * Register an event that runs when a gamepad is connected.
 	 * 
-	 * 
+	 * @since v3000.0
 	 */
 	onGamepadConnect(action: (gamepad: Gamepad) => void): void,
+	/**
+	 * Register an event that runs when a gamepad is disconnected.
+	 * 
+	 * @since v3000.0
+	 */
+	onGamepadDisconnect(action: (gamepad: Gamepad) => void): void,
 	/**
 	 * Register an event that runs when 2 game objs with certain tags collides (required to have area() component).
 	 *
@@ -1332,6 +1338,24 @@ export interface KaboomCtx {
 	 */
 	isVirtualButtonReleased(btn: VirtualButton): boolean,
 	/**
+	 * If a gamepad button is just pressed last frame
+	 *
+	 * @since v3000.0
+	 */
+	isGamepadButtonPressed(btn?: GamepadButton): boolean,
+	/**
+	 * If a gamepad button is currently held down.
+	 *
+	 * @since v3000.0
+	 */
+	isGamepadButtonDown(btn?: GamepadButton): boolean,
+	/**
+	 * If a gamepad button is just released last frame.
+	 *
+	 * @since v3000.0
+	 */
+	isGamepadButtonReleased(btn?: GamepadButton): boolean,
+	/**
 	 * List of characters inputted since last frame.
 	 *
 	 * @since v3000.0
@@ -1381,6 +1405,12 @@ export interface KaboomCtx {
 	 * Get / set gravity.
 	 */
 	gravity(g?: number): number,
+	/**
+	 * Get connected gamepads.
+	 * 
+	 * @since v3000.0
+	 */
+	getConnectedGamepads(): Gamepad[],
 	/**
 	 * Get / set the cursor (css). Cursor will be reset to "default" every frame so use this in an per-frame action.
 	 *
