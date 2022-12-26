@@ -586,12 +586,6 @@ export interface KaboomCtx {
 	 */
 	edges(): EdgesComp,
 	/**
-	 * Interfaces to find a path to a target on a tilemap.
-	 *
-	 * @since v3000.0
-	 */
-	pathfinding(): PathfindingComp,
-	/**
 	 * An agent which can finds it way on a tilemap.
 	 *
 	 * @since v3000.0
@@ -4560,10 +4554,6 @@ export interface LevelOpt {
 	 * Called when encountered a symbol not defined in "tiles".
 	 */
 	wildcardTile?: (sym: string, pos: Vec2) => CompList<any> | null | undefined,
-	/**
-	 * Enables pathfinding if true.
-	 */
-	usePathfinding?: boolean
 }
 
 export interface TileComp extends Comp {
@@ -4608,19 +4598,6 @@ export interface EdgesComp extends Comp {
     mask: EdgeMask
 }
 
-export interface PathfindingComp extends Comp {
-	invalidateNavigationMap(),
-	onNavigationMapChanged(cb: () => void): EventController,
-	getTilePath(from: Vec2, to: Vec2, diagonals?: boolean): Vec2[] | null,
-	getPath(from: Vec2, to: Vec2, diagonals?: boolean): Vec2[] | null,
-	_getNeighbours(node: number, diagonals?: boolean): number[],
-	_getCost(node: number, neighbour: number): number,
-	_getHeuristic(node: number, goal: number): number,
-	_createCostMap(),
-	_createEdgeMap(),
-	_createConnectivityMap(),
-}
-
 export interface LevelComp extends Comp {
 	tileWidth(): number,
 	tileHeight(): number,
@@ -4632,18 +4609,22 @@ export interface LevelComp extends Comp {
 	numColumns(): number,
 	levelWidth(): number,
 	levelHeight(): number,
+	getAt(tilePos: Vec2): GameObj[],
 	tile2Pos(tilePos: Vec2): Vec2,
 	pos2Tile(pos: Vec2): Vec2,
-	getSpatialMap(): GameObj<any>[][],
+	getSpatialMap(): GameObj[][],
 	onSpatialMapChanged(cb: () => void): EventController,
 	onNavigationMapInvalid(cb: () => void): EventController,
-	getAt(tilePos: Vec2): GameObj<any>[],
-	_tile2Hash(tilePos: Vec2): number,
-	_hash2Tile(hash: number): Vec2,
-	_createSpatialMap(),
-	_updateSpatialMap(),
-	_insertIntoSpatialMap(object: GameObj<any>),
-	_removeFromSpatialMap(object: GameObj<any>),
+	invalidateNavigationMap(),
+	onNavigationMapChanged(cb: () => void): EventController,
+	getTilePath(from: Vec2, to: Vec2, diagonals?: boolean): Vec2[] | null,
+	getPath(from: Vec2, to: Vec2, diagonals?: boolean): Vec2[] | null,
+	_getNeighbours(node: number, diagonals?: boolean): number[],
+	_getCost(node: number, neighbour: number): number,
+	_getHeuristic(node: number, goal: number): number,
+	_createCostMap(),
+	_createEdgeMap(),
+	_createConnectivityMap(),
 }
 
 export interface AgentComp extends Comp {
