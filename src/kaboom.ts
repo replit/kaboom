@@ -157,6 +157,7 @@ import {
 	EdgesComp,
 	PathfindingComp,
 	AgentComp,
+	GetOpt,
 } from "./types"
 
 import FPSCounter from "./fps"
@@ -1483,12 +1484,16 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		let startTime = 0
 		let stopTime = 0
 		let started = false
-		let speed = opt.speed ?? 1
 
 		srcNode.loop = Boolean(opt.loop)
 		srcNode.detune.value = opt.detune ?? 0
-		srcNode.playbackRate.value = paused ? 0 : speed
+		srcNode.playbackRate.value = opt.speed ?? 1
 		srcNode.connect(gainNode)
+		srcNode.onended = () => {
+			if (getTime() >= srcNode.buffer?.duration ?? Number.POSITIVE_INFINITY) {
+				onEndEvents.trigger()
+			}
+		}
 		gainNode.connect(audio.masterNode)
 		gainNode.gain.value = opt.volume ?? 1
 
@@ -1505,6 +1510,15 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			snd.onLoad(start)
 		} else if (snd instanceof SoundData) {
 			start(snd)
+		}
+
+		const getTime = () => {
+			if (!srcNode.buffer) return 0
+			const t = paused
+				? stopTime - startTime
+				: ctx.currentTime - startTime
+			const d = srcNode.buffer.duration
+			return srcNode.loop ? t % d : Math.min(t, d)
 		}
 
 		const cloneNode = (oldNode: AudioBufferSourceNode) => {
@@ -1524,15 +1538,17 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				if (paused === p) return
 				paused = p
 				if (p) {
-					srcNode.playbackRate.value = 0
+					if (started) {
+						srcNode.stop()
+						started = false
+					}
 					stopTime = ctx.currentTime
 				} else {
-					if (!started) {
-						srcNode.start(0, pos)
-						started = true
-					}
-					srcNode.playbackRate.value = speed
-					startTime += ctx.currentTime - stopTime
+					srcNode = cloneNode(srcNode)
+					const pos = stopTime - startTime
+					srcNode.start(0, pos)
+					started = true
+					startTime = ctx.currentTime - pos
 					stopTime = 0
 				}
 			},
@@ -1547,26 +1563,28 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			},
 
 			seek(time: number) {
-				if (started) srcNode.stop()
-				srcNode = cloneNode(srcNode)
-				srcNode.start(0, time)
-				started = true
+				if (!srcNode.buffer?.duration) return
+				if (time > srcNode.buffer.duration) return
 				if (paused) {
+					srcNode = cloneNode(srcNode)
 					startTime = stopTime - time
 				} else {
+					srcNode.stop()
+					srcNode = cloneNode(srcNode)
 					startTime = ctx.currentTime - time
+					srcNode.start(0, time)
+					started = true
 					stopTime = 0
 				}
 			},
 
 			// TODO: affect time()
 			set speed(val: number) {
-				if (!paused) srcNode.playbackRate.value = val
-				speed = val
+				srcNode.playbackRate.value = val
 			},
 
 			get speed() {
-				return paused ? speed : srcNode.playbackRate.value
+				return srcNode.playbackRate.value
 			},
 
 			set detune(val: number) {
@@ -1598,18 +1616,19 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			},
 
 			time(): number {
-				if (paused) {
-					return stopTime - startTime
-				} else {
-					return ctx.currentTime - startTime
-				}
+				return getTime()
 			},
 
 			onEnd(action: () => void) {
 				return onEndEvents.add(action)
 			},
 
+			then(action: () => void) {
+				return this.onEnd(action)
+			},
+
 		}
+
 	}
 
 	// core kaboom logic
@@ -3363,8 +3382,8 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				obj.parent = this
 				obj.transform = calcTransform(obj)
 				this.children.push(obj)
-				obj.trigger("add", this)
-				game.ev.trigger("add", this)
+				obj.trigger("add", obj)
+				game.ev.trigger("add", obj)
 				return obj
 			},
 
@@ -3380,9 +3399,9 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			remove(obj: GameObj): void {
 				const idx = this.children.indexOf(obj)
 				if (idx !== -1) {
-					obj.parent = null
 					obj.trigger("destroy")
 					game.ev.trigger("destroy", obj)
+					obj.parent = null
 					this.children.splice(idx, 1)
 				}
 			},
@@ -3393,7 +3412,9 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 			update() {
 				if (this.paused) return
-				this.get().forEach((child) => child.update())
+				this.children
+					.sort((o1, o2) => (o1.z ?? 0) - (o2.z ?? 0))
+					.forEach((child) => child.update())
 				this.trigger("update")
 			},
 
@@ -3405,7 +3426,9 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				pushRotate(this.angle)
 				// TODO: automatically don't draw if offscreen
 				this.trigger("draw")
-				this.get().forEach((child) => child.draw())
+				this.children
+					.sort((o1, o2) => (o1.z ?? 0) - (o2.z ?? 0))
+					.forEach((child) => child.draw())
 				popTransform()
 			},
 
@@ -3415,7 +3438,9 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				pushTranslate(this.pos)
 				pushScale(this.scale)
 				pushRotate(this.angle)
-				this.get().forEach((child) => child.drawInspect())
+				this.children
+					.sort((o1, o2) => (o1.z ?? 0) - (o2.z ?? 0))
+					.forEach((child) => child.drawInspect())
 				this.trigger("drawInspect")
 				popTransform()
 			},
@@ -3525,18 +3550,34 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				return compStates.get(id)
 			},
 
-			// TODO: cache sorted list? update each frame?
-			get(t?: Tag | Tag[]): GameObj[] {
-				return this.children
-					.filter((child) => t ? child.is(t) : true)
-					.sort((o1, o2) => (o1.z ?? 0) - (o2.z ?? 0))
-			},
-
-			getAll(t?: Tag | Tag[]): GameObj[] {
-				return this.children
-					.sort((o1, o2) => (o1.z ?? 0) - (o2.z ?? 0))
-					.flatMap((child) => [child, ...child.getAll(t)])
-					.filter((child) => t ? child.is(t) : true)
+			get(t: Tag | Tag[], opts: GetOpt = {}): GameObj[] {
+				let list: GameObj[] = opts.recursive
+					? this.children.flatMap((child) => [child, ...child.children])
+					: this.children
+				list = list.filter((child) => t ? child.is(t) : true)
+				if (opts.liveUpdate) {
+					const isChild = (obj) => {
+						return opts.recursive
+							? this.isAncestorOf(obj)
+							: obj.parent === this
+					}
+					// TODO: handle when object add / remove tags
+					// TODO: a way to cancel the events?
+					onAdd((obj) => {
+						if (isChild(obj) && obj.is(t)) {
+							list.push(obj)
+						}
+					})
+					onDestroy((obj) => {
+						if (isChild(obj) && obj.is(t)) {
+							const idx = list.findIndex((o) => o.id === obj.id)
+							if (idx !== -1) {
+								list.splice(idx, 1)
+							}
+						}
+					})
+				}
+				return list
 			},
 
 			isAncestorOf(obj: GameObj) {
@@ -5368,7 +5409,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			game.ev = new EventHandler()
 			game.objEvents = new EventHandler()
 
-			game.root.get().forEach((obj) => {
+			;[...game.root.children].forEach((obj) => {
 				if (
 					!obj.stay
 					|| (obj.scenesToStay && !obj.scenesToStay.includes(id))
@@ -6202,7 +6243,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	const readd = game.root.readd.bind(game.root)
 	const destroyAll = game.root.removeAll.bind(game.root)
 	const get = game.root.get.bind(game.root)
-	const getAll = game.root.getAll.bind(game.root)
 
 	// TODO: expose this
 	function boom(speed: number = 2, size: number = 1): Comp {
@@ -6401,7 +6441,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 			}
 
-			obj.get().forEach(checkObj)
+			obj.children.forEach(checkObj)
 			tr = stack.pop()
 
 		}
@@ -6518,7 +6558,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 			let inspecting = null
 
-			for (const obj of getAll()) {
+			for (const obj of game.root.get("*", { recursive: true })) {
 				if (obj.c("area") && obj.isHovering()) {
 					inspecting = obj
 					break
@@ -7143,7 +7183,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		destroy,
 		destroyAll,
 		get,
-		getAll,
 		readd,
 		// comps
 		pos,

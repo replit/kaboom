@@ -65,7 +65,7 @@ onKeyPress("space", () => {
 
 // HATCH
 onKeyPress("enter", () => {
-	getAll("egg").forEach((e) => {
+	get("egg", { recursive: true }).forEach((e) => {
 		if (e.stage === 0) {
 			e.stage = 1
 			e.rock()

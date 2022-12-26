@@ -94,17 +94,14 @@ export interface KaboomCtx {
 	 * // get a list of all game objs with tag "bomb"
 	 * const allBombs = get("bomb")
 	 *
-	 * // without args returns all current objs in the game
-	 * const allObjs = get()
+	 * // To get all objects use "*"
+	 * const allObjs = get("*")
+	 *
+	 * // Recursively get all children and descendents
+	 * const allObjs = get("*", { recursive: true })
 	 * ```
 	 */
-	get(tag?: Tag | Tag[]): GameObj[],
-	/**
-	 * Recursively a list of all game objs with certain tag including children of children.
-	 *
-	 * @since v3000.0
-	 */
-	getAll(tag?: Tag | Tag[]): GameObj[],
+	get(tag: Tag | Tag[], opts?: GetOpt): GameObj[],
 	/**
 	 * Remove the game obj.
 	 *
@@ -2334,13 +2331,7 @@ export interface GameObjRaw {
 	 *
 	 * @since v3000.0
 	 */
-	get(tag?: Tag | Tag[]): GameObj[],
-	/**
-	 * Recursively a list of all game objs with certain tag including children of children.
-	 *
-	 * @since v3000.0
-	 */
-	getAll(tag?: Tag | Tag[]): GameObj[],
+	get(tag: Tag | Tag[], opts?: GetOpt): GameObj[],
 	/**
 	 * Get the parent game obj, if have any.
 	 *
@@ -2454,6 +2445,17 @@ export type GameObj<T = any> = GameObjRaw & MergeComps<T>
 
 export type SceneID = string
 export type SceneDef = (...args) => void
+
+export type GetOpt = {
+	/**
+	 * Recursively get all children and their descendents.
+	 */
+	recursive?: boolean,
+	/**
+	 * Live update the returned list every time object is added / removed.
+	 */
+	liveUpdate?: boolean,
+}
 
 /**
  * Screen recording control handle.
@@ -2725,7 +2727,7 @@ export interface AudioPlay {
 	 */
 	loop: boolean,
 	/**
-	 * The current playing time.
+	 * The current playing time (not accurate if speed is changed).
 	 */
 	time(): number,
 	/**
@@ -2733,11 +2735,12 @@ export interface AudioPlay {
 	 */
 	duration(): number,
 	/**
-	 * The total duration.
+	 * Register an event that runs when audio ends.
 	 *
 	 * @since v3000.0
 	 */
 	onEnd(action: () => void): EventController,
+	then(action: () => void): EventController,
 }
 
 // TODO: hide

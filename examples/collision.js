@@ -9,6 +9,7 @@ kaboom({
 loadSprite("bean", "/sprites/bean.png")
 loadSprite("ghosty", "/sprites/ghosty.png")
 loadSprite("grass", "/sprites/grass.png")
+loadSprite("steel", "/sprites/steel.png")
 
 // Define player movement speed
 const SPEED = 320
@@ -76,6 +77,14 @@ add([
 	// This game object also has isStatic, so our player won't be able to move pass this
 	body({ isStatic: true }),
 	"grass",
+])
+
+add([
+	sprite("steel"),
+	pos(100, 200),
+	area(),
+	// This will not be static, but have a big mass that's hard to push over
+	body({ mass: 10 }),
 ])
 
 // .onCollide() is provided by area() component, it registers an event that runs when an objects collides with another object with certain tag
