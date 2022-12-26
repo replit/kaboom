@@ -30,7 +30,7 @@ bean.destroy()
 ```
 - added `recursive` and `liveUpdate` options to `get()`
 ```js
-const enemies = get("enemies", {
+const enemies = get("enemy", {
     // get from all children and descendants, instead of only direct children
     recursive: true,
     // live update the returned list to listen to onAdd and onDestroy events
