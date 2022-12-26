@@ -155,7 +155,6 @@ import {
 	CostComp,
 	EdgeMask,
 	EdgesComp,
-	PathfindingComp,
 	AgentComp,
 	GetOpt,
 } from "./types"
@@ -5766,11 +5765,11 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				_connectivityMap = null
 			},
 
-			onNavigationMapChanged(this: GameObj<LevelComp | PathfindingComp>, cb: () => void) {
+			onNavigationMapChanged(this: GameObj<LevelComp>, cb: () => void) {
 				return this.on("navigation_map_changed", cb)
 			},
 
-			getTilePath(this: GameObj<LevelComp | PathfindingComp>, from: Vec2, to: Vec2, diagonals: boolean) {
+			getTilePath(this: GameObj<LevelComp>, from: Vec2, to: Vec2, diagonals: boolean) {
 				if (!_costMap) {
 					this._createCostMap()
 				}
@@ -5857,7 +5856,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				return path.reverse()
 			},
 
-			getPath(this: GameObj<LevelComp | PathfindingComp>, from: Vec2, to: Vec2, diagonals: boolean) {
+			getPath(this: GameObj<LevelComp>, from: Vec2, to: Vec2, diagonals: boolean) {
 				const tw = this.tileWidth()
 				const th = this.tileHeight()
 				const path = this.getTilePath(
@@ -5883,7 +5882,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			 * Private methods start here
 			 */
 
-			_getNeighbours(this: GameObj<LevelComp | PathfindingComp>, node: number, diagonals?: boolean) {
+			_getNeighbours(this: GameObj<LevelComp>, node: number, diagonals?: boolean) {
 				const numColumns = this.numColumns()
 				const numRows = this.numRows()
 				const n = []
@@ -5934,12 +5933,12 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				return n
 			},
 
-			_getCost(this: GameObj<LevelComp | PathfindingComp>, node: number, neighbour: number) {
+			_getCost(this: GameObj<LevelComp>, node: number, neighbour: number) {
 				// Cost of destination tile
 				return _costMap[neighbour]
 			},
 
-			_getHeuristic(this: GameObj<LevelComp | PathfindingComp>, node: number, goal: number) {
+			_getHeuristic(this: GameObj<LevelComp>, node: number, goal: number) {
 				// Euclidian distance to target
 				const p1 = hash2Tile(node)
 				const p2 = hash2Tile(goal)
@@ -5949,7 +5948,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			// The obstacle map tells which tiles are accessible
 			// Cost: accessible with cost
 			// Infinite: inaccessible
-			_createCostMap(this: GameObj<LevelComp | PathfindingComp>) {
+			_createCostMap(this: GameObj<LevelComp>) {
 				const spatialMap = this.getSpatialMap()
 				const size = this.numRows() * this.numColumns()
 				if (!_costMap) {
@@ -5980,7 +5979,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			},
 
 			// The edge map tells which edges between nodes are walkable
-			_createEdgeMap(this: GameObj<LevelComp | PathfindingComp>) {
+			_createEdgeMap(this: GameObj<LevelComp>) {
 				const spatialMap = this.getSpatialMap()
 				const size = this.numRows() * this.numColumns()
 				if (!_edgeMap) {
@@ -6007,7 +6006,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 			// The connectivity map is used to see whether two locations are connected
 			// -1: inaccesible n: connectivity group
-			_createConnectivityMap(this: GameObj<LevelComp | PathfindingComp>) {
+			_createConnectivityMap(this: GameObj<LevelComp>) {
 				const traverse = (i: number, index: number) => {
 					const frontier: number[] = []
 					frontier.push(i)

@@ -103,6 +103,7 @@ const level = addLevel(
 			"#": () => [
 				rect(64, 64),
 				color(WHITE),
+				tile({ obstacle: true }),
 				obstacle(),
 			],
 			" ": () => {
