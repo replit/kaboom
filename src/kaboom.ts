@@ -5659,7 +5659,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				)
 			},
 
-			spawn(this: GameObj<LevelComp>, key: string | CompList<any>, ...args): GameObj {
+			spawn(this: GameObj<LevelComp>, key: string | CompList<any>, ...args): GameObj | null {
 
 				const p = vec2(...args)
 
@@ -5680,8 +5680,9 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 					}
 				})()
 
+				// empty tile
 				if (!comps) {
-					throw new Error("Failed to spawn object.")
+					return null
 				}
 
 				const posComp = vec2(
