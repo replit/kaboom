@@ -1,18 +1,23 @@
 kaboom({
 	scale: 0.5,
+	background: [0, 0, 0],
 })
 
 loadSprite("bean", "sprites/bean.png")
+loadSprite("steel", "sprites/steel.png")
+
+const TILE_WIDTH = 64
+const TILE_HEIGHT = TILE_WIDTH
 
 function createMazeMap(width, height) {
 	const size = width * height
 	function getUnvisitedNeighbours(map, index) {
 		const n = []
 		const x = Math.floor(index / width)
-		if (x > 1 && map[index - 2] === 2) { n.push(index - 2) }
-		if (x < width - 2 && map[index + 2] === 2) { n.push(index + 2) }
-		if (index >= 2 * width && map[index - 2 * width] === 2) { n.push(index - 2 * width) }
-		if (index < size - 2 * width && map[index + 2 * width] === 2) { n.push(index + 2 * width) }
+		if (x > 1 && map[index - 2] === 2) n.push(index - 2)
+		if (x < width - 2 && map[index + 2] === 2) n.push(index + 2)
+		if (index >= 2 * width && map[index - 2 * width] === 2) n.push(index - 2 * width)
+		if (index < size - 2 * width && map[index + 2 * width] === 2) n.push(index + 2 * width)
 		return n
 	}
 	const map = new Array(size).fill(1, 0, size)
@@ -86,47 +91,33 @@ function createMazeLevelMap(width, height, options) {
 	return levelMap
 }
 
-add([
-	rect(width(), height()),
-	z(-2),
-	color(BLACK),
-])
-
-beanSpawned = false
 const level = addLevel(
 	createMazeLevelMap(15, 15, {}),
 	{
-		tileWidth: 64,
-		tileHeight: 64,
-		usePathfinding: true,
+		tileWidth: TILE_WIDTH,
+		tileHeight: TILE_HEIGHT,
 		tiles: {
 			"#": () => [
-				rect(64, 64),
-				color(WHITE),
+				sprite("steel"),
 				tile({ isObstacle: true }),
 			],
-			" ": () => {
-				if (!beanSpawned) {
-					beanSpawned = true
-					return [
-						sprite("bean"),
-						anchor("center"),
-						pos(32, 32),
-						tile(),
-						agent({ speed: 640, diagonals: false }),
-						"bean",
-					]
-				} else {
-					return []
-				}
-			},
 		},
 	},
 )
 
-const bean = level.get("bean")[0]
+const bean = level.spawn([
+	sprite("bean"),
+	anchor("center"),
+	pos(32, 32),
+	tile(),
+	agent({ speed: 640, diagonals: false }),
+	"bean",
+], 1, 1)
 
 onClick(() => {
 	const pos = mousePos()
-	bean.setTarget(vec2(Math.floor(pos.x / 64) * 64 + 32, Math.floor(pos.y / 64) * 64 + 32))
+	bean.setTarget(vec2(
+		Math.floor(pos.x / TILE_WIDTH) * TILE_WIDTH + TILE_WIDTH / 2,
+		Math.floor(pos.y / TILE_HEIGHT) * TILE_HEIGHT + TILE_HEIGHT / 2,
+	))
 })

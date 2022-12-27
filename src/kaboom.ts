@@ -5586,9 +5586,9 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 		// The spatial map keeps track of the objects at each location
 		let spatialMap: GameObj[][] | null = null
-		let _costMap: number[] | null = null
-		let _edgeMap: number[] | null = null
-		let _connectivityMap: number[] | null = null
+		let costMap: number[] | null = null
+		let edgeMap: number[] | null = null
+		let connectivityMap: number[] | null = null
 
 		const tile2Hash = (tilePos: Vec2) => tilePos.x + tilePos.y * numColumns
 		const hash2Tile = (hash: number) => vec2(
@@ -5659,18 +5659,24 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				)
 			},
 
-			spawn(this: GameObj<LevelComp>, key: string, ...args): GameObj {
+			spawn(this: GameObj<LevelComp>, key: string | CompList<any>, ...args): GameObj {
 
 				const p = vec2(...args)
 
 				const comps = (() => {
-					if (opt.tiles[key]) {
-						if (typeof opt.tiles[key] !== "function") {
-							throw new Error("Level symbol def must be a function returning a component list")
+					if (typeof key === "string") {
+						if (opt.tiles[key]) {
+							if (typeof opt.tiles[key] !== "function") {
+								throw new Error("Level symbol def must be a function returning a component list")
+							}
+							return opt.tiles[key](p)
+						} else if (opt.wildcardTile) {
+							return opt.wildcardTile(key, p)
 						}
-						return opt.tiles[key](p)
-					} else if (opt.wildcardTile) {
-						return opt.wildcardTile(key, p)
+					} else if (Array.isArray(key)) {
+						return key
+					} else {
+						throw new Error("Expected a symbol or a component list")
 					}
 				})()
 
@@ -5768,9 +5774,9 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			},
 
 			invalidateNavigationMap() {
-				_costMap = null
-				_edgeMap = null
-				_connectivityMap = null
+				costMap = null
+				edgeMap = null
+				connectivityMap = null
 			},
 
 			onNavigationMapChanged(this: GameObj<LevelComp>, cb: () => void) {
@@ -5778,13 +5784,13 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			},
 
 			getTilePath(this: GameObj<LevelComp>, from: Vec2, to: Vec2, diagonals: boolean) {
-				if (!_costMap) {
+				if (!costMap) {
 					this._createCostMap()
 				}
-				if (!_edgeMap) {
+				if (!edgeMap) {
 					this._createEdgeMap()
 				}
-				if (!_connectivityMap) {
+				if (!connectivityMap) {
 					this._createConnectivityMap()
 				}
 
@@ -5805,10 +5811,10 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 				// Tiles are not accessible
 				// If we test the start tile, we may get stuck
-				/*if (_costMap[start] === Infinity) {
+				/*if (costMap[start] === Infinity) {
 					return null
 				}*/
-				if (_costMap[goal] === Infinity) {
+				if (costMap[goal] === Infinity) {
 					return null
 				}
 
@@ -5819,7 +5825,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 				// Tiles are not within the same section
 				// If we test the start tile when invalid, we may get stuck
-				if (_connectivityMap[start] != -1 && _connectivityMap[start] !== _connectivityMap[goal]) {
+				if (connectivityMap[start] != -1 && connectivityMap[start] !== connectivityMap[goal]) {
 					return null
 				}
 
@@ -5896,17 +5902,17 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				const n = []
 				const x = Math.floor(node % numColumns)
 				const left = x > 0 &&
-					(_edgeMap[node] & EdgeMask.Left) &&
-					_costMap[node - 1] !== Infinity
+					(edgeMap[node] & EdgeMask.Left) &&
+					costMap[node - 1] !== Infinity
 				const top = node >= numColumns &&
-					(_edgeMap[node] & EdgeMask.Top) &&
-					_costMap[node - numColumns] !== Infinity
+					(edgeMap[node] & EdgeMask.Top) &&
+					costMap[node - numColumns] !== Infinity
 				const right = x < numColumns - 1 &&
-					(_edgeMap[node] & EdgeMask.Right) &&
-					_costMap[node + 1] !== Infinity
+					(edgeMap[node] & EdgeMask.Right) &&
+					costMap[node + 1] !== Infinity
 				const bottom = node < numColumns * numRows - numColumns - 1 &&
-					(_edgeMap[node] & EdgeMask.Bottom) &&
-					_costMap[node + numColumns] !== Infinity
+					(edgeMap[node] & EdgeMask.Bottom) &&
+					costMap[node + numColumns] !== Infinity
 				if (diagonals) {
 					if (left) {
 						if (top) { n.push(node - numColumns - 1) }
@@ -5943,7 +5949,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 			_getCost(this: GameObj<LevelComp>, node: number, neighbour: number) {
 				// Cost of destination tile
-				return _costMap[neighbour]
+				return costMap[neighbour]
 			},
 
 			_getHeuristic(this: GameObj<LevelComp>, node: number, goal: number) {
@@ -5959,13 +5965,13 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			_createCostMap(this: GameObj<LevelComp>) {
 				const spatialMap = this.getSpatialMap()
 				const size = this.numRows() * this.numColumns()
-				if (!_costMap) {
-					_costMap = new Array<number>(size)
+				if (!costMap) {
+					costMap = new Array<number>(size)
 				}
 				else {
-					_costMap.length = size
+					costMap.length = size
 				}
-				_costMap.fill(1, 0, size)
+				costMap.fill(1, 0, size)
 				for (let i = 0; i < spatialMap.length; i++) {
 					const objects = spatialMap[i]
 					if (objects) {
@@ -5978,7 +5984,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 								cost += obj.cost
 							}
 						}
-						_costMap[i] = cost || 1
+						costMap[i] = cost || 1
 					}
 				}
 			},
@@ -5987,13 +5993,13 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			_createEdgeMap(this: GameObj<LevelComp>) {
 				const spatialMap = this.getSpatialMap()
 				const size = this.numRows() * this.numColumns()
-				if (!_edgeMap) {
-					_edgeMap = new Array<number>(size)
+				if (!edgeMap) {
+					edgeMap = new Array<number>(size)
 				}
 				else {
-					_edgeMap.length = size
+					edgeMap.length = size
 				}
-				_edgeMap.fill(EdgeMask.All, 0, size)
+				edgeMap.fill(EdgeMask.All, 0, size)
 				for (let i = 0; i < spatialMap.length; i++) {
 					const objects = spatialMap[i]
 					if (objects) {
@@ -6002,7 +6008,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 						for (let j = 0; j < len; j++) {
 							mask |= objects[j].edgeMask
 						}
-						_edgeMap[i] = mask
+						edgeMap[i] = mask
 					}
 				}
 			},
@@ -6016,8 +6022,8 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 					while (frontier.length > 0) {
 						const i = frontier.pop()
 						this._getNeighbours(i).forEach((i) => {
-							if (_connectivityMap[i] < 0) {
-								_connectivityMap[i] = index
+							if (connectivityMap[i] < 0) {
+								connectivityMap[i] = index
 								frontier.push(i)
 							}
 						})
@@ -6025,16 +6031,16 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				}
 
 				const size = this.numRows() * this.numColumns()
-				if (!_connectivityMap) {
-					_connectivityMap = new Array<number>(size)
+				if (!connectivityMap) {
+					connectivityMap = new Array<number>(size)
 				}
 				else {
-					_connectivityMap.length = size
+					connectivityMap.length = size
 				}
-				_connectivityMap.fill(-1, 0, size)
+				connectivityMap.fill(-1, 0, size)
 				let index = 0
-				for (let i = 0; i < _costMap.length; i++) {
-					if (_connectivityMap[i] >= 0) { index++; continue }
+				for (let i = 0; i < costMap.length; i++) {
+					if (connectivityMap[i] >= 0) { index++; continue }
 					traverse(i, index)
 					index++
 				}

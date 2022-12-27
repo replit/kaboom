@@ -4595,6 +4595,8 @@ export interface LevelComp extends Comp {
 	getPos(x: number, y: number): Vec2,
 	spawn(sym: string, p: Vec2): GameObj,
 	spawn(sym: string, x: number, y: number): GameObj,
+	spawn<T>(obj: CompList<T>, p: Vec2): GameObj<T>,
+	spawn<T>(sym: CompList<T>, x: number, y: number): GameObj<T>,
 	numRows(): number,
 	numColumns(): number,
 	levelWidth(): number,
