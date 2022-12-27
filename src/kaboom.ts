@@ -5639,6 +5639,155 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			}
 		}
 
+		// The obstacle map tells which tiles are accessible
+		// Cost: accessible with cost
+		// Infinite: inaccessible
+		const createCostMap = () => {
+			const spatialMap = level.getSpatialMap()
+			const size = level.numRows() * level.numColumns()
+			if (!costMap) {
+				costMap = new Array<number>(size)
+			}
+			else {
+				costMap.length = size
+			}
+			costMap.fill(1, 0, size)
+			for (let i = 0; i < spatialMap.length; i++) {
+				const objects = spatialMap[i]
+				if (objects) {
+					let cost = 0
+					for (const obj of objects) {
+						if (obj.isObstacle) {
+							cost = Infinity
+							break
+						} else {
+							cost += obj.cost
+						}
+					}
+					costMap[i] = cost || 1
+				}
+			}
+		}
+
+		// The edge map tells which edges between nodes are walkable
+		const createEdgeMap = () => {
+			const spatialMap = level.getSpatialMap()
+			const size = level.numRows() * level.numColumns()
+			if (!edgeMap) {
+				edgeMap = new Array<number>(size)
+			}
+			else {
+				edgeMap.length = size
+			}
+			edgeMap.fill(EdgeMask.All, 0, size)
+			for (let i = 0; i < spatialMap.length; i++) {
+				const objects = spatialMap[i]
+				if (objects) {
+					const len = objects.length
+					let mask = EdgeMask.All
+					for (let j = 0; j < len; j++) {
+						mask |= objects[j].edgeMask
+					}
+					edgeMap[i] = mask
+				}
+			}
+		}
+
+		// The connectivity map is used to see whether two locations are connected
+		// -1: inaccesible n: connectivity group
+		const createConnectivityMap = () => {
+			const size = level.numRows() * level.numColumns()
+			const traverse = (i: number, index: number) => {
+				const frontier: number[] = []
+				frontier.push(i)
+				while (frontier.length > 0) {
+					const i = frontier.pop()
+					getNeighbours(i).forEach((i) => {
+						if (connectivityMap[i] < 0) {
+							connectivityMap[i] = index
+							frontier.push(i)
+						}
+					})
+				}
+			}
+			if (!connectivityMap) {
+				connectivityMap = new Array<number>(size)
+			}
+			else {
+				connectivityMap.length = size
+			}
+			connectivityMap.fill(-1, 0, size)
+			let index = 0
+			for (let i = 0; i < costMap.length; i++) {
+				if (connectivityMap[i] >= 0) { index++; continue }
+				traverse(i, index)
+				index++
+			}
+		}
+
+		const getCost = (node: number, neighbour: number) => {
+			// Cost of destination tile
+			return costMap[neighbour]
+		}
+
+		const getHeuristic = (node: number, goal: number) => {
+			// Euclidian distance to target
+			const p1 = hash2Tile(node)
+			const p2 = hash2Tile(goal)
+			return p1.dist(p2)
+		}
+
+		const getNeighbours = (node: number, diagonals?: boolean) => {
+			const numColumns = level.numColumns()
+			const numRows = level.numRows()
+			const n = []
+			const x = Math.floor(node % numColumns)
+			const left = x > 0 &&
+				(edgeMap[node] & EdgeMask.Left) &&
+				costMap[node - 1] !== Infinity
+			const top = node >= numColumns &&
+				(edgeMap[node] & EdgeMask.Top) &&
+				costMap[node - numColumns] !== Infinity
+			const right = x < numColumns - 1 &&
+				(edgeMap[node] & EdgeMask.Right) &&
+				costMap[node + 1] !== Infinity
+			const bottom = node < numColumns * numRows - numColumns - 1 &&
+				(edgeMap[node] & EdgeMask.Bottom) &&
+				costMap[node + numColumns] !== Infinity
+			if (diagonals) {
+				if (left) {
+					if (top) { n.push(node - numColumns - 1) }
+					n.push(node - 1)
+					if (bottom) { n.push(node + numColumns - 1) }
+				}
+				if (top) {
+					n.push(node - numColumns)
+				}
+				if (right) {
+					if (top) { n.push(node - numColumns + 1) }
+					n.push(node + 1)
+					if (bottom) { n.push(node + numColumns + 1) }
+				}
+				if (bottom) {
+					n.push(node + numColumns)
+				}
+			} else {
+				if (left) {
+					n.push(node - 1)
+				}
+				if (top) {
+					n.push(node - numColumns)
+				}
+				if (right) {
+					n.push(node + 1)
+				}
+				if (bottom) {
+					n.push(node + numColumns)
+				}
+			}
+			return n
+		}
+
 		const levelComp: LevelComp = {
 
 			id: "level",
@@ -5786,13 +5935,13 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 			getTilePath(this: GameObj<LevelComp>, from: Vec2, to: Vec2, diagonals: boolean) {
 				if (!costMap) {
-					this._createCostMap()
+					createCostMap()
 				}
 				if (!edgeMap) {
-					this._createEdgeMap()
+					createEdgeMap()
 				}
 				if (!connectivityMap) {
-					this._createConnectivityMap()
+					createConnectivityMap()
 				}
 
 				// Tiles are outside the grid
@@ -5846,11 +5995,11 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 					if (current === goal)
 						break
 
-					const neighbours = this._getNeighbours(current, diagonals)
+					const neighbours = getNeighbours(current, diagonals)
 					for (const next of neighbours) {
 						const newCost = (costSoFar.get(current) || 0) +
-							this._getCost(current, next) +
-							this._getHeuristic(next, goal)
+							getCost(current, next) +
+							getHeuristic(next, goal)
 						if (!costSoFar.has(next) || newCost < costSoFar.get(next)) {
 							costSoFar.set(next, newCost)
 							frontier.insert({ cost: newCost, node: next })
@@ -5893,160 +6042,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				}
 			},
 
-			/**
-			 * Private methods start here
-			 */
-
-			_getNeighbours(this: GameObj<LevelComp>, node: number, diagonals?: boolean) {
-				const numColumns = this.numColumns()
-				const numRows = this.numRows()
-				const n = []
-				const x = Math.floor(node % numColumns)
-				const left = x > 0 &&
-					(edgeMap[node] & EdgeMask.Left) &&
-					costMap[node - 1] !== Infinity
-				const top = node >= numColumns &&
-					(edgeMap[node] & EdgeMask.Top) &&
-					costMap[node - numColumns] !== Infinity
-				const right = x < numColumns - 1 &&
-					(edgeMap[node] & EdgeMask.Right) &&
-					costMap[node + 1] !== Infinity
-				const bottom = node < numColumns * numRows - numColumns - 1 &&
-					(edgeMap[node] & EdgeMask.Bottom) &&
-					costMap[node + numColumns] !== Infinity
-				if (diagonals) {
-					if (left) {
-						if (top) { n.push(node - numColumns - 1) }
-						n.push(node - 1)
-						if (bottom) { n.push(node + numColumns - 1) }
-					}
-					if (top) {
-						n.push(node - numColumns)
-					}
-					if (right) {
-						if (top) { n.push(node - numColumns + 1) }
-						n.push(node + 1)
-						if (bottom) { n.push(node + numColumns + 1) }
-					}
-					if (bottom) {
-						n.push(node + numColumns)
-					}
-				} else {
-					if (left) {
-						n.push(node - 1)
-					}
-					if (top) {
-						n.push(node - numColumns)
-					}
-					if (right) {
-						n.push(node + 1)
-					}
-					if (bottom) {
-						n.push(node + numColumns)
-					}
-				}
-				return n
-			},
-
-			_getCost(this: GameObj<LevelComp>, node: number, neighbour: number) {
-				// Cost of destination tile
-				return costMap[neighbour]
-			},
-
-			_getHeuristic(this: GameObj<LevelComp>, node: number, goal: number) {
-				// Euclidian distance to target
-				const p1 = hash2Tile(node)
-				const p2 = hash2Tile(goal)
-				return p1.dist(p2)
-			},
-
-			// The obstacle map tells which tiles are accessible
-			// Cost: accessible with cost
-			// Infinite: inaccessible
-			_createCostMap(this: GameObj<LevelComp>) {
-				const spatialMap = this.getSpatialMap()
-				const size = this.numRows() * this.numColumns()
-				if (!costMap) {
-					costMap = new Array<number>(size)
-				}
-				else {
-					costMap.length = size
-				}
-				costMap.fill(1, 0, size)
-				for (let i = 0; i < spatialMap.length; i++) {
-					const objects = spatialMap[i]
-					if (objects) {
-						let cost = 0
-						for (const obj of objects) {
-							if (obj.isObstacle) {
-								cost = Infinity
-								break
-							} else {
-								cost += obj.cost
-							}
-						}
-						costMap[i] = cost || 1
-					}
-				}
-			},
-
-			// The edge map tells which edges between nodes are walkable
-			_createEdgeMap(this: GameObj<LevelComp>) {
-				const spatialMap = this.getSpatialMap()
-				const size = this.numRows() * this.numColumns()
-				if (!edgeMap) {
-					edgeMap = new Array<number>(size)
-				}
-				else {
-					edgeMap.length = size
-				}
-				edgeMap.fill(EdgeMask.All, 0, size)
-				for (let i = 0; i < spatialMap.length; i++) {
-					const objects = spatialMap[i]
-					if (objects) {
-						const len = objects.length
-						let mask = EdgeMask.All
-						for (let j = 0; j < len; j++) {
-							mask |= objects[j].edgeMask
-						}
-						edgeMap[i] = mask
-					}
-				}
-			},
-
-			// The connectivity map is used to see whether two locations are connected
-			// -1: inaccesible n: connectivity group
-			_createConnectivityMap(this: GameObj<LevelComp>) {
-				const traverse = (i: number, index: number) => {
-					const frontier: number[] = []
-					frontier.push(i)
-					while (frontier.length > 0) {
-						const i = frontier.pop()
-						this._getNeighbours(i).forEach((i) => {
-							if (connectivityMap[i] < 0) {
-								connectivityMap[i] = index
-								frontier.push(i)
-							}
-						})
-					}
-				}
-
-				const size = this.numRows() * this.numColumns()
-				if (!connectivityMap) {
-					connectivityMap = new Array<number>(size)
-				}
-				else {
-					connectivityMap.length = size
-				}
-				connectivityMap.fill(-1, 0, size)
-				let index = 0
-				for (let i = 0; i < costMap.length; i++) {
-					if (connectivityMap[i] >= 0) { index++; continue }
-					traverse(i, index)
-					index++
-				}
-			},
-
 		}
 
 		level.use(levelComp)
@@ -6057,18 +6052,15 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		})
 
 		map.forEach((row, i) => {
-
 			const keys = row.split("")
-
 			numColumns = Math.max(keys.length, numColumns)
-
 			keys.forEach((key, j) => {
 				level.spawn(key, vec2(j, i))
 			})
-
 		})
 
 		return level
+
 	}
 
 	function agent({ speed = 64, diagonals = true }: { speed?: number, diagonals?: boolean } = {}) : AgentComp {

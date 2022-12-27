@@ -4611,12 +4611,6 @@ export interface LevelComp extends Comp {
 	onNavigationMapChanged(cb: () => void): EventController,
 	getTilePath(from: Vec2, to: Vec2, diagonals?: boolean): Vec2[] | null,
 	getPath(from: Vec2, to: Vec2, diagonals?: boolean): Vec2[] | null,
-	_getNeighbours(node: number, diagonals?: boolean): number[],
-	_getCost(node: number, neighbour: number): number,
-	_getHeuristic(node: number, goal: number): number,
-	_createCostMap(),
-	_createEdgeMap(),
-	_createConnectivityMap(),
 }
 
 export interface AgentComp extends Comp {
