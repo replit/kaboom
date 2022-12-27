@@ -5681,7 +5681,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				})()
 
 				if (!comps) {
-					return
+					throw new Error("Failed to spawn object.")
 				}
 
 				const posComp = vec2(
