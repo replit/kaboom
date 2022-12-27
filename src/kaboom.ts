@@ -4102,7 +4102,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	}
 
 	// Get connected gamepads
-	function getConnectedGamepads(): Gamepad[] {
+	function getGamepads(): Gamepad[] {
 		return navigator.getGamepads().filter((g) => g !== null);
 	}
 
@@ -6749,7 +6749,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		toScreen,
 		toWorld,
 		gravity,
-		getConnectedGamepads,
+		getGamepads,
 		// obj
 		add,
 		destroy,

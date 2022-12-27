@@ -179,7 +179,7 @@ music.loop = true
 - fixed touches not treated as mouse
 - (**BREAK**) changed `onTouchStart()`, `onTouchMove()` and `onTouchEnd()` callback signature to `(pos: Vec2, touch: Touch) => void` (exposes the native `Touch` object)
 - added `onGamepadButtonPress()`, `onGamepadButtonDown()`, `onGamepadButtonRelease()`
-- added `isGamepadButtonPressed()`, `isGamepadButtonDown()`, `isGamepadButtonRelease()`
+- added `isGamepadButtonPressed()`, `isGamepadButtonDown()`, `isGamepadButtonReleased()`
 - added `getConnectedGamepads()`
 - added `onGamepadConnect()` and `onGamepadDisconnect()`
 

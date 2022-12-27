@@ -1410,7 +1410,7 @@ export interface KaboomCtx {
 	 * 
 	 * @since v3000.0
 	 */
-	getConnectedGamepads(): Gamepad[],
+	getGamepads(): Gamepad[],
 	/**
 	 * Get / set the cursor (css). Cursor will be reset to "default" every frame so use this in an per-frame action.
 	 *
