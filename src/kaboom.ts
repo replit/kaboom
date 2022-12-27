@@ -5740,8 +5740,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		}
 
 		const getNeighbours = (node: number, diagonals?: boolean) => {
-			const numColumns = level.numColumns()
-			const numRows = level.numRows()
 			const n = []
 			const x = Math.floor(node % numColumns)
 			const left = x > 0 &&
@@ -5802,14 +5800,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				return opt.tileHeight
 			},
 
-			getPos(...args): Vec2 {
-				const p = vec2(...args)
-				return vec2(
-					p.x * opt.tileWidth,
-					p.y * opt.tileHeight,
-				)
-			},
-
 			spawn(this: GameObj<LevelComp>, key: string | CompList<any>, ...args): GameObj | null {
 
 				const p = vec2(...args)
@@ -5837,8 +5827,8 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				}
 
 				const posComp = vec2(
-					p.x * opt.tileWidth,
-					p.y * opt.tileHeight,
+					p.x * this.tileWidth(),
+					p.y * this.tileHeight(),
 				)
 
 				for (const comp of comps) {
@@ -5878,21 +5868,21 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			},
 
 			levelWidth() {
-				return numColumns * opt.tileWidth
+				return numColumns * this.tileWidth()
 			},
 
 			levelHeight() {
-				return numRows * opt.tileHeight
+				return numRows * this.tileHeight()
 			},
 
 			tile2Pos(tilePos: Vec2) {
-				return tilePos.scale(opt.tileWidth, opt.tileHeight)
+				return tilePos.scale(this.tileWidth, this.tileHeight)
 			},
 
 			pos2Tile(pos: Vec2) {
 				return vec2(
-					Math.floor(pos.x / opt.tileWidth),
-					Math.floor(pos.y / opt.tileHeight),
+					Math.floor(pos.x / this.tileWidth()),
+					Math.floor(pos.y / this.tileHeight()),
 				)
 			},
 
@@ -5947,8 +5937,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				}
 
 				// Tiles are outside the grid
-				const numColumns = this.numColumns()
-				const numRows = this.numRows()
 				if (from.x < 0 || from.x >= numColumns ||
 					from.y < 0 || from.y >= numRows) {
 					return null
@@ -6073,7 +6061,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		return {
 			id: "agent",
 			require: ["pos", "tile"],
-			agentSpeed: opts.speed ?? 1,
+			agentSpeed: opts.speed ?? 100,
 			allowDiagonals: opts.allowDiagonals ?? true,
 			getDistanceToTarget(this: GameObj<AgentComp | PosComp>) {
 				return target ? this.pos.dist(target) : 0

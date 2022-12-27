@@ -4570,17 +4570,38 @@ export enum EdgeMask {
 }
 
 export type TileCompOpt = {
+	/**
+	 * If the tile is an obstacle in pathfinding.
+	 */
 	isObstacle?: boolean,
+	/**
+	 * How much a tile is cost to traverse in pathfinding (default 0).
+	 */
 	cost?: number,
+	/**
+	 * If the tile has hard edges that cannot pass in pathfinding.
+	 */
 	edges?: Edge[],
 }
 
 export interface TileComp extends Comp {
+	/**
+	 * The tile position inside the level.
+	 */
 	tilePos: Vec2,
+	/**
+	 * If the tile is an obstacle in pathfinding.
+	 */
 	isObstacle: boolean,
+	/**
+	 * How much a tile is cost to traverse in pathfinding (default 0).
+	 */
 	cost: number,
+	/**
+	 * If the tile has hard edges that cannot pass in pathfinding.
+	 */
 	edges: Edge[],
-	edgeMask: EdgeMask,
+	readonly edgeMask: EdgeMask,
 	getLevel(): GameObj<LevelComp>,
 	moveLeft(): void,
 	moveRight(): void,
@@ -4591,26 +4612,55 @@ export interface TileComp extends Comp {
 export interface LevelComp extends Comp {
 	tileWidth(): number,
 	tileHeight(): number,
-	getPos(p: Vec2): Vec2,
-	getPos(x: number, y: number): Vec2,
-	spawn(sym: string, p: Vec2): GameObj | null,
-	spawn(sym: string, x: number, y: number): GameObj | null,
-	spawn<T>(obj: CompList<T>, p: Vec2): GameObj<T> | null,
-	spawn<T>(sym: CompList<T>, x: number, y: number): GameObj<T> | null,
 	numRows(): number,
 	numColumns(): number,
+	/**
+	 * Spawn a tile from a symbol defined previously.
+	 */
+	spawn(sym: string, p: Vec2): GameObj | null,
+	spawn(sym: string, x: number, y: number): GameObj | null,
+	/**
+	 * Spawn a tile from a component list.
+	 */
+	spawn<T>(obj: CompList<T>, p: Vec2): GameObj<T> | null,
+	spawn<T>(sym: CompList<T>, x: number, y: number): GameObj<T> | null,
+	/**
+	 * Total width of level in pixels.
+	 */
 	levelWidth(): number,
+	/**
+	 * Total height of level in pixels.
+	 */
 	levelHeight(): number,
+	/**
+	 * Get all game objects that's currently inside a given tile.
+	 */
 	getAt(tilePos: Vec2): GameObj[],
+	/**
+	 * Convert tile position to pixel position.
+	 */
 	tile2Pos(tilePos: Vec2): Vec2,
+	/**
+	 * Convert pixel position to tile position.
+	 */
 	pos2Tile(pos: Vec2): Vec2,
+	/**
+	 * Find the path to navigate from one tile to another tile.
+	 *
+	 * @returns A list of traverse points in tile positions.
+	 */
+	getTilePath(from: Vec2, to: Vec2, opts?: PathFindOpt): Vec2[] | null,
+	/**
+	 * Find the path to navigate from one tile to another tile.
+	 *
+	 * @returns A list of traverse points in pixel positions.
+	 */
+	getPath(from: Vec2, to: Vec2, opts?: PathFindOpt): Vec2[] | null,
 	getSpatialMap(): GameObj[][],
 	onSpatialMapChanged(cb: () => void): EventController,
 	onNavigationMapInvalid(cb: () => void): EventController,
-	invalidateNavigationMap(),
+	invalidateNavigationMap(): void,
 	onNavigationMapChanged(cb: () => void): EventController,
-	getTilePath(from: Vec2, to: Vec2, opts?: PathFindOpt): Vec2[] | null,
-	getPath(from: Vec2, to: Vec2, opts?: PathFindOpt): Vec2[] | null,
 }
 
 export type PathFindOpt = {
