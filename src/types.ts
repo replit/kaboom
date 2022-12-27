@@ -4609,11 +4609,22 @@ export interface LevelComp extends Comp {
 	onNavigationMapInvalid(cb: () => void): EventController,
 	invalidateNavigationMap(),
 	onNavigationMapChanged(cb: () => void): EventController,
-	getTilePath(from: Vec2, to: Vec2, diagonals?: boolean): Vec2[] | null,
-	getPath(from: Vec2, to: Vec2, diagonals?: boolean): Vec2[] | null,
+	getTilePath(from: Vec2, to: Vec2, opts?: PathFindOpt): Vec2[] | null,
+	getPath(from: Vec2, to: Vec2, opts?: PathFindOpt): Vec2[] | null,
+}
+
+export type PathFindOpt = {
+	allowDiagonals?: boolean,
+}
+
+export type AgentCompOpt = {
+	speed?: number,
+	allowDiagonals?: boolean,
 }
 
 export interface AgentComp extends Comp {
+	agentSpeed: number,
+	allowDiagonals: boolean,
 	getDistanceToTarget(): number,
 	getNextLocation(): Vec2 | null,
 	getPath(): Vec2[] | null,
@@ -4622,7 +4633,6 @@ export interface AgentComp extends Comp {
 	isTargetReachable(): boolean,
 	isTargetReached(): boolean,
 	setTarget(target: Vec2),
-	setSpeed(speed: number),
 	onNavigationStarted(cb: () => void): EventController,
 	onNavigationNext(cb: () => void): EventController,
 	onNavigationEnded(cb: () => void): EventController,

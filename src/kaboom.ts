@@ -155,6 +155,8 @@ import {
 	TweenController,
 	LoadFontOpt,
 	AgentComp,
+	AgentCompOpt,
+	PathFindOpt,
 	GetOpt,
 } from "./types"
 
@@ -5933,7 +5935,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				return this.on("navigation_map_changed", cb)
 			},
 
-			getTilePath(this: GameObj<LevelComp>, from: Vec2, to: Vec2, diagonals: boolean) {
+			getTilePath(this: GameObj<LevelComp>, from: Vec2, to: Vec2, opts: PathFindOpt = {}) {
 				if (!costMap) {
 					createCostMap()
 				}
@@ -5995,7 +5997,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 					if (current === goal)
 						break
 
-					const neighbours = getNeighbours(current, diagonals)
+					const neighbours = getNeighbours(current, opts.allowDiagonals)
 					for (const next of neighbours) {
 						const newCost = (costSoFar.get(current) || 0) +
 							getCost(current, next) +
@@ -6020,13 +6022,13 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				return path.reverse()
 			},
 
-			getPath(this: GameObj<LevelComp>, from: Vec2, to: Vec2, diagonals: boolean) {
+			getPath(this: GameObj<LevelComp>, from: Vec2, to: Vec2, opts: PathFindOpt = {}) {
 				const tw = this.tileWidth()
 				const th = this.tileHeight()
 				const path = this.getTilePath(
 					this.pos2Tile(from),
 					this.pos2Tile(to),
-					diagonals,
+					opts,
 				)
 				if (path) {
 					return [
@@ -6063,85 +6065,82 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 	}
 
-	function agent({ speed = 64, diagonals = true }: { speed?: number, diagonals?: boolean } = {}) : AgentComp {
-		let _target: Vec2 | null = null
-		let _path: Vec2[] | null = null
-		let _index: number | null = null
-		let _speed = speed || 1
-		const _diagonals = diagonals
-		let _changedEventCleanup: EventController | null = null
+	function agent(opts: AgentCompOpt = {}) : AgentComp {
+		let target: Vec2 | null = null
+		let path: Vec2[] | null = null
+		let index: number | null = null
+		let navMapChangedEvent: EventController | null = null
 		return {
 			id: "agent",
 			require: ["pos", "tile"],
-
+			agentSpeed: opts.speed ?? 1,
+			allowDiagonals: opts.allowDiagonals ?? true,
 			getDistanceToTarget(this: GameObj<AgentComp | PosComp>) {
-				return _target ? this.pos.dist(_target) : 0
+				return target ? this.pos.dist(target) : 0
 			},
 			getNextLocation() {
-				return _path && _index ? _path[_index] : null
+				return path && index ? path[index] : null
 			},
 			getPath() {
-				return _path ? _path.slice() : null
+				return path ? path.slice() : null
 			},
 			getTarget() {
-				return _target
+				return target
 			},
 			isNavigationFinished() {
-				return _path ? _index === null : true
+				return path ? index === null : true
 			},
 			isTargetReachable() {
-				return _path !== null
+				return path !== null
 			},
 			isTargetReached(this: GameObj<AgentComp | PosComp>) {
-				return _target ? this.pos.eq(_target) : true
+				return target ? this.pos.eq(target) : true
 			},
-			setTarget(this: GameObj<AgentComp | TileComp | PosComp>, target: Vec2) {
-				_target = target
-				_path = this.getLevel().getPath(this.pos, target, _diagonals)
-				_index = _path ? 0 : null
-				if (_path) {
-					if (!_changedEventCleanup) {
-						_changedEventCleanup = this.getLevel().onNavigationMapChanged(() => {
-							if (_path && _index !== null) {
-								_path = this.getLevel().getPath(this.pos, target, _diagonals)
-								_index = _path ? 0 : null
-								if (_path) {
-									this.trigger("navigation-next", this, _path[_index])
-								}
-								else {
+			setTarget(this: GameObj<AgentComp | TileComp | PosComp>, p: Vec2) {
+				target = p
+				path = this.getLevel().getPath(this.pos, target, {
+					allowDiagonals: this.allowDiagonals,
+				})
+				index = path ? 0 : null
+				if (path) {
+					if (!navMapChangedEvent) {
+						navMapChangedEvent = this.getLevel().onNavigationMapChanged(() => {
+							if (path && index !== null) {
+								path = this.getLevel().getPath(this.pos, target, {
+									allowDiagonals: this.allowDiagonals,
+								})
+								index = path ? 0 : null
+								if (path) {
+									this.trigger("navigation-next", this, path[index])
+								} else {
 									this.trigger("navigation-ended", this)
 								}
 							}
 						})
-						this.onDestroy(() => { _changedEventCleanup.cancel() })
+						this.onDestroy(() => navMapChangedEvent.cancel())
 					}
 					this.trigger("navigation-started", this)
-					this.trigger("navigation-next", this, _path[_index])
-				}
-				else {
+					this.trigger("navigation-next", this, path[index])
+				} else {
 					this.trigger("navigation-ended", this)
 				}
 			},
-			setSpeed(speed: number) {
-				_speed = speed
-			},
 			update(this: GameObj<AgentComp | PosComp>) {
-				if (_path && _index !== null) {
-					if (this.pos.sdist(_path[_index]) < 2) {
-						if (_index === _path.length - 1) {
-							this.pos = _target.clone()
-							_index = null
+				if (path && index !== null) {
+					if (this.pos.sdist(path[index]) < 2) {
+						if (index === path.length - 1) {
+							this.pos = target.clone()
+							index = null
 							this.trigger("navigation-ended", this)
 							this.trigger("target-reached", this)
 							return
-						}
-						else {
-							_index++
-							this.trigger("navigation-next", this, _path[_index])
+						} else {
+							index++
+							this.trigger("navigation-next", this, path[index])
 						}
 
 					}
-					this.moveTo(_path[_index], _speed)
+					this.moveTo(path[index], this.agentSpeed)
 				}
 			},
 			onNavigationStarted(this: GameObj<AgentComp>, cb: () => void) {
@@ -6158,8 +6157,8 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			},
 			inspect() {
 				return JSON.stringify({
-					target: JSON.stringify(_target),
-					path: JSON.stringify(_path),
+					target: JSON.stringify(target),
+					path: JSON.stringify(path),
 				})
 			},
 		}
