@@ -139,8 +139,10 @@ import {
 	KaboomPlugin,
 	MergeObj,
 	LevelComp,
+	Edge,
+	EdgeMask,
 	TileComp,
-	ObstacleComp,
+	TileCompOpt,
 	LevelOpt,
 	Cursor,
 	Recording,
@@ -152,9 +154,6 @@ import {
 	TimerController,
 	TweenController,
 	LoadFontOpt,
-	CostComp,
-	EdgeMask,
-	EdgesComp,
 	AgentComp,
 	GetOpt,
 } from "./types"
@@ -5477,88 +5476,95 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		return vec2(width() / 2, height() / 2)
 	}
 
-	function tile(level: GameObj<LevelComp>, p: Vec2): TileComp {
+	function tile(opts: TileCompOpt = {}): TileComp {
+
+		let tilePos = vec2(0)
+		let isObstacle = opts.isObstacle ?? false
+		let cost = opts.cost ?? 0
+		let edges = opts.edges ?? []
+
+		const getEdgeMask = () => {
+			const loopup = {
+				"left": EdgeMask.Left,
+				"top": EdgeMask.Top,
+				"right": EdgeMask.Right,
+				"bottom": EdgeMask.Bottom,
+			}
+			return edges.map(s => loopup[s] || 0).reduce((mask, dir) => mask | dir, 0)
+		}
+
+		let edgeMask = getEdgeMask()
 
 		return {
 
 			id: "tile",
-			tilePos: p.clone(),
 
-			setTilePos(this: GameObj<TileComp | PosComp>, ...args) {
-				const p = vec2(...args)
-				this.tilePos = p.clone()
+			set tilePos(p: Vec2) {
+				const level = this.getLevel()
+				tilePos = p.clone()
+				// @ts-ignore
 				this.pos = vec2(
 					this.tilePos.x * level.tileWidth(),
 					this.tilePos.y * level.tileHeight(),
 				)
 			},
 
-			getLevel() {
-				return level
+			get tilePos() {
+				return tilePos
+			},
+
+			set isObstacle(is: boolean) {
+				if (isObstacle === is) return
+				isObstacle = is
+				this.getLevel().invalidateNavigationMap()
+			},
+
+			get isObstacle() {
+				return isObstacle
+			},
+
+			set cost(n: number) {
+				if (cost === n) return
+				cost = n
+				this.getLevel().invalidateNavigationMap()
+			},
+
+			get cost() {
+				return cost
+			},
+
+			set edges(e: Edge[]) {
+				edges = e
+				edgeMask = getEdgeMask()
+				this.getLevel().invalidateNavigationMap()
+			},
+
+			get edges() {
+				return edges
+			},
+
+			getLevel(this: GameObj) {
+				return this.parent as GameObj<LevelComp>
 			},
 
 			moveLeft() {
-				this.setTilePos(this.tilePos.add(vec2(-1, 0)))
+				this.tilePos = this.tilePos.add(vec2(-1, 0))
 			},
 
 			moveRight() {
-				this.setTilePos(this.tilePos.add(vec2(1, 0)))
+				this.tilePos = this.tilePos.add(vec2(1, 0))
 			},
 
 			moveUp() {
-				this.setTilePos(this.tilePos.add(vec2(0, -1)))
+				this.tilePos = this.tilePos.add(vec2(0, -1))
 			},
 
 			moveDown() {
-				this.setTilePos(this.tilePos.add(vec2(0, 1)))
+				this.tilePos = this.tilePos.add(vec2(0, 1))
 			},
 
 		}
 
-	}
-
-	function obstacle(isObstacle: boolean = true) : ObstacleComp {
-		let _isObstacle = isObstacle
-		return {
-			id: "obstacle",
-			require: ["tile"],
-			set isObstacle(isObstacle: boolean) {
-				if (_isObstacle !== isObstacle) {
-					_isObstacle = isObstacle;
-					(this as unknown as GameObj<ObstacleComp | TileComp>).getLevel().invalidateNavigationMap()
-				}
-			},
-			get isObstacle(): boolean {
-				return _isObstacle
-			},
-		}
-	}
-
-	function cost(cost: number = 1) : CostComp {
-		return {
-			id: "cost",
-			require: ["tile"],
-			cost: cost,
-		}
-	}
-
-	function edges(mask: EdgeMask | string[] = EdgeMask.All) : EdgesComp {
-		const lookup = {
-			"left": EdgeMask.Left,
-			"top": EdgeMask.Top,
-			"right": EdgeMask.Right,
-			"bottom": EdgeMask.Bottom,
-		}
-
-		const _mask: EdgeMask = Array.isArray(mask) ?
-			mask.map(s => lookup[s] || 0).reduce((mask, dir) => mask | dir, 0) :
-			mask
-
-		return {
-			id: "edges",
-			require: ["tile"],
-			mask: _mask,
-		}
 	}
 
 	function addLevel(map: string[], opt: LevelOpt): GameObj<PosComp | LevelComp> {
@@ -5614,12 +5620,10 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 		const updateSpatialMap = () => {
 			let spatialMapChanged = false
-			let navigationMapChanged = false
 			for (const child of level.children) {
 				const tilePos = level.pos2Tile(child.pos)
 				if (child.tilePos.x != tilePos.x || child.tilePos.y != tilePos.y) {
 					spatialMapChanged = true
-					navigationMapChanged = navigationMapChanged || (child.isObstacle !== undefined || child.cost)
 					removeFromSpatialMap(child)
 					child.tilePos.x = tilePos.x
 					child.tilePos.y = tilePos.y
@@ -5628,9 +5632,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			}
 			if (spatialMapChanged) {
 				level.trigger("spatial_map_changed")
-			}
-			if (navigationMapChanged) {
-				level.trigger("navigation_map_invalid")
 			}
 		}
 
@@ -5687,16 +5688,19 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				}
 
 				comps.push(pos(posComp))
-				comps.push(tile(this, p))
 
 				const obj = level.add(comps)
+
+				if (!obj.is("tile")) {
+					obj.use(tile())
+				}
+
+				obj.tilePos = p
 
 				if (spatialMap) {
 					insertIntoSpatialMap(obj)
 					this.trigger("spatial_map_changed")
-					if (obj.isObstacle !== undefined || obj.cost) {
-						this.trigger("navigation_map_invalid")
-					}
+					this.trigger("navigation_map_invalid")
 				}
 
 				return obj
@@ -5817,7 +5821,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 				// Find a path
 				interface CostNode { cost: number, node: number }
-				const frontier = new BinaryHeap<CostNode>((a: CostNode, b: CostNode) => a.cost < b.cost)
+				const frontier = new BinaryHeap<CostNode>((a, b) => a.cost < b.cost)
 				frontier.insert({ cost: 0, node: start })
 
 				const cameFrom = new Map<number, number>()
@@ -5961,16 +5965,13 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				for (let i = 0; i < spatialMap.length; i++) {
 					const objects = spatialMap[i]
 					if (objects) {
-						const len = objects.length
 						let cost = 0
-						for (let j = 0; j < len; j++) {
-							const object = objects[j]
-							if (object.isObstacle !== undefined && object.isObstacle) {
+						for (const obj of objects) {
+							if (obj.isObstacle) {
 								cost = Infinity
 								break
-							}
-							else {
-								cost += object.cost || 0
+							} else {
+								cost += obj.cost
 							}
 						}
 						_costMap[i] = cost || 1
@@ -7206,9 +7207,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		follow,
 		state,
 		fadeIn,
-		obstacle,
-		cost,
-		edges,
+		tile,
 		agent,
 		// group events
 		on,

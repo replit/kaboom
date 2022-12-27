@@ -103,7 +103,7 @@ const level = addLevel(
 			"#": () => [
 				rect(64, 64),
 				color(WHITE),
-				obstacle(),
+				tile({ isObstacle: true }),
 			],
 			" ": () => {
 				if (!beanSpawned) {
@@ -112,8 +112,9 @@ const level = addLevel(
 						sprite("bean"),
 						anchor("center"),
 						pos(32, 32),
-						"bean",
+						tile(),
 						agent({ speed: 640, diagonals: false }),
+						"bean",
 					]
 				}
 				else {

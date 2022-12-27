@@ -568,23 +568,11 @@ export interface KaboomCtx {
 	 */
 	fadeIn(time: number): Comp,
 	/**
-	 * An obstacle in a tilemap.
+	 * A tile on a tile map.
 	 *
 	 * @since v3000.0
 	 */
-	obstacle(): ObstacleComp,
-	/**
-	 * The cost of a tile in a tilemap.
-	 *
-	 * @since v3000.0
-	 */
-	cost(): CostComp,
-	/**
-	 * The allowed transitions to neighbours of a tile in a tilemap.
-	 *
-	 * @since v3000.0
-	 */
-	edges(): EdgesComp,
+	tile(opt: TileCompOpt): TileComp,
 	/**
 	 * An agent which can finds it way on a tilemap.
 	 *
@@ -4556,46 +4544,47 @@ export interface LevelOpt {
 	wildcardTile?: (sym: string, pos: Vec2) => CompList<any> | null | undefined,
 }
 
-export interface TileComp extends Comp {
-	tilePos: Vec2,
-	setTilePos(...args),
-	getLevel(): GameObj<any>,
-	moveLeft(),
-	moveRight(),
-	moveUp(),
-	moveDown(),
-}
-
-export interface ObstacleComp extends Comp {
-	set isObstacle(isObstacle: boolean)
-	get isObstacle(): boolean,
-}
-
-export interface CostComp extends Comp {
-    cost: number
-}
+export type Edge =
+	| "left"
+	| "right"
+	| "top"
+	| "bottom"
 
 export enum EdgeMask {
-    None = 0,
-    Left = 1,
-    Top = 2,
-    LeftTop = 3,
-    Right = 4,
-    Horizontal = 5,
-    RightTop = 6,
-    HorizontalTop = 7,
-    Bottom = 8,
-    LeftBottom = 9,
-    Vertical = 10,
-    LeftVertical = 11,
-    RightBottom = 12,
-    HorizontalBottom = 13,
-    RightVertical = 14,
-    All = 15,
+	None = 0,
+	Left = 1,
+	Top = 2,
+	LeftTop = 3,
+	Right = 4,
+	Horizontal = 5,
+	RightTop = 6,
+	HorizontalTop = 7,
+	Bottom = 8,
+	LeftBottom = 9,
+	Vertical = 10,
+	LeftVertical = 11,
+	RightBottom = 12,
+	HorizontalBottom = 13,
+	RightVertical = 14,
+	All = 15,
 }
 
-export interface EdgesComp extends Comp {
-    mask: EdgeMask
+export type TileCompOpt = {
+	isObstacle?: boolean,
+	cost?: number,
+	edges?: Edge[],
+}
+
+export interface TileComp extends Comp {
+	tilePos: Vec2,
+	isObstacle: boolean,
+	cost: number,
+	edges?: Edge[],
+	getLevel(): GameObj<LevelComp>,
+	moveLeft(): void,
+	moveRight(): void,
+	moveUp(): void,
+	moveDown(): void,
 }
 
 export interface LevelComp extends Comp {
