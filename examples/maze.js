@@ -116,11 +116,8 @@ const level = addLevel(
 						agent({ speed: 640, diagonals: false }),
 						"bean",
 					]
-				}
-				else {
-					return [
-
-					]
+				} else {
+					return []
 				}
 			},
 		},

@@ -5543,6 +5543,10 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				return edges
 			},
 
+			get edgeMask() {
+				return edgeMask
+			},
+
 			getLevel(this: GameObj) {
 				return this.parent as GameObj<LevelComp>
 			},
@@ -5996,9 +6000,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 						const len = objects.length
 						let mask = EdgeMask.All
 						for (let j = 0; j < len; j++) {
-							if (objects[j].mask !== undefined) {
-								mask &= objects[j].mask
-							}
+							mask |= objects[j].edgeMask
 						}
 						_edgeMap[i] = mask
 					}
