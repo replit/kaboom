@@ -3151,6 +3151,10 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				}
 				break
 			case "hidden":
+				// reset input when visibility changed
+				app.keyState = new ButtonState()
+				app.mouseState = new ButtonState()
+				app.virtualButtonState = new ButtonState()
 				if (!gopt.backgroundAudio) {
 					audio.ctx.suspend()
 				}
