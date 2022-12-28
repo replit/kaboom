@@ -1924,14 +1924,14 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		gfx.transform = m.clone()
 	}
 
-	function pushTranslate(...args) {
+	function pushTranslate(...args: Vec2Args) {
 		if (args[0] === undefined) return
 		const p = vec2(...args)
 		if (p.x === 0 && p.y === 0) return
 		gfx.transform.translate(p)
 	}
 
-	function pushScale(...args) {
+	function pushScale(...args: Vec2Args) {
 		if (args[0] === undefined) return
 		const p = vec2(...args)
 		if (p.x === 1 && p.y === 1) return
@@ -3312,14 +3312,14 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		return app.dt * debug.timeScale
 	}
 
-	function camPos(...pos): Vec2 {
+	function camPos(...pos: Vec2Args): Vec2 {
 		if (pos.length > 0) {
 			game.cam.pos = vec2(...pos)
 		}
 		return game.cam.pos ? game.cam.pos.clone() : center()
 	}
 
-	function camScale(...scale): Vec2 {
+	function camScale(...scale: Vec2Args): Vec2 {
 		if (scale.length > 0) {
 			game.cam.scale = vec2(...scale)
 		}
@@ -4093,17 +4093,17 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	}
 
 	// TODO: allow single number assignment
-	function scale(...args): ScaleComp {
+	function scale(...args: Vec2Args): ScaleComp {
 		if (args.length === 0) {
 			return scale(1)
 		}
 		return {
 			id: "scale",
 			scale: vec2(...args),
-			scaleTo(...args) {
+			scaleTo(...args: Vec2Args) {
 				this.scale = vec2(...args)
 			},
-			scaleBy(...args) {
+			scaleBy(...args: Vec2Args) {
 				this.scale.scale(vec2(...args))
 			},
 			inspect() {
@@ -5801,7 +5801,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				return opt.tileHeight
 			},
 
-			spawn(this: GameObj<LevelComp>, key: string | CompList<any>, ...args): GameObj | null {
+			spawn(this: GameObj<LevelComp>, key: string | CompList<any>, ...args: Vec2Args): GameObj | null {
 
 				const p = vec2(...args)
 
@@ -5876,11 +5876,11 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				return numRows * this.tileHeight()
 			},
 
-			tile2Pos(...args) {
+			tile2Pos(...args: Vec2Args) {
 				return vec2(...args).scale(this.tileWidth(), this.tileHeight())
 			},
 
-			pos2Tile(...args) {
+			pos2Tile(...args: Vec2Args) {
 				const p = vec2(...args)
 				return vec2(
 					Math.floor(p.x / this.tileWidth()),

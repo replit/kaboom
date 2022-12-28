@@ -1330,11 +1330,15 @@ export interface KaboomCtx {
 	 * })
 	 * ```
 	 */
-	camPos(pos?: Vec2): Vec2,
+	camPos(pos: Vec2): Vec2,
+	camPos(x: number, y: number): Vec2,
+	camPos(): Vec2,
 	/**
 	 * Get / set camera scale.
 	 */
-	camScale(scale?: Vec2): Vec2,
+	camScale(scale: Vec2): Vec2,
+	camScale(x: number, y: number): Vec2,
+	camScale(): Vec2,
 	/**
 	 * Get / set camera rotation.
 	 */
@@ -3246,7 +3250,7 @@ export type Anchor =
 	| "bot"
 	| "botright"
 
-export type Vec2Args = [number, number] | [number] | [Vec2]
+export type Vec2Args = [number, number] | [number] | [Vec2] | [number | Vec2] | []
 
 export declare class Vec2 {
 	x: number

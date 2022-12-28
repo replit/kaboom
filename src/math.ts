@@ -1,6 +1,7 @@
 import {
 	Point,
 	RNGValue,
+	Vec2Args,
 } from "./types"
 
 export function deg2rad(deg: number): number {
@@ -68,23 +69,23 @@ export class Vec2 {
 	clone(): Vec2 {
 		return new Vec2(this.x, this.y)
 	}
-	add(...args): Vec2 {
+	add(...args: Vec2Args): Vec2 {
 		const p2 = vec2(...args)
 		return new Vec2(this.x + p2.x, this.y + p2.y)
 	}
-	sub(...args): Vec2 {
+	sub(...args: Vec2Args): Vec2 {
 		const p2 = vec2(...args)
 		return new Vec2(this.x - p2.x, this.y - p2.y)
 	}
-	scale(...args): Vec2 {
+	scale(...args: Vec2Args): Vec2 {
 		const s = vec2(...args)
 		return new Vec2(this.x * s.x, this.y * s.y)
 	}
-	dist(...args): number {
+	dist(...args: Vec2Args): number {
 		const p2 = vec2(...args)
 		return this.sub(p2).len()
 	}
-	sdist(...args): number {
+	sdist(...args: Vec2Args): number {
 		const p2 = vec2(...args)
 		return this.sub(p2).slen()
 	}
@@ -116,11 +117,11 @@ export class Vec2 {
 	cross(p2: Vec2): number {
 		return this.x * p2.y - this.y * p2.x
 	}
-	angle(...args): number {
+	angle(...args: Vec2Args): number {
 		const p2 = vec2(...args)
 		return rad2deg(Math.atan2(this.y - p2.y, this.x - p2.x))
 	}
-	angleBetween(...args): number {
+	angleBetween(...args: Vec2Args): number {
 		const p2 = vec2(...args)
 		return rad2deg(Math.atan2(this.cross(p2), this.dot(p2)))
 	}
@@ -161,6 +162,7 @@ export function vec2(...args: Vec2Args): Vec2 {
 			return new Vec2(...args[0])
 		}
 	}
+	// @ts-ignore
 	return new Vec2(...args)
 }
 
