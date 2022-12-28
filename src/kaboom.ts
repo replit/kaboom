@@ -158,6 +158,7 @@ import {
 	AgentCompOpt,
 	PathFindOpt,
 	GetOpt,
+	Vec2Args,
 } from "./types"
 
 import FPSCounter from "./fps"
@@ -4028,19 +4029,19 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	}
 
 	// TODO: manage global velocity here?
-	function pos(...args): PosComp {
+	function pos(...args: Vec2Args): PosComp {
 
 		return {
 
 			id: "pos",
 			pos: vec2(...args),
 
-			moveBy(...args) {
+			moveBy(...args: Vec2Args) {
 				this.pos = this.pos.add(vec2(...args))
 			},
 
 			// move with velocity (pixels per second)
-			move(...args) {
+			move(...args: Vec2Args) {
 				this.moveBy(vec2(...args).scale(dt()))
 			},
 
@@ -4343,7 +4344,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 			area: {
 				shape: opt.shape ?? null,
-				scale: opt.scale ?? vec2(1),
+				scale: opt.scale ? vec2(opt.scale) : vec2(1),
 				offset: opt.offset ?? vec2(0),
 				cursor: opt.cursor ?? null,
 			},

@@ -3246,6 +3246,8 @@ export type Anchor =
 	| "bot"
 	| "botright"
 
+export type Vec2Args = [number, number] | [number] | [Vec2]
+
 export declare class Vec2 {
 	x: number
 	y: number
@@ -3802,7 +3804,7 @@ export interface AreaComp extends Comp {
 		/**
 		 * Area scale.
 		 */
-		scale: number | Vec2,
+		scale: Vec2,
 		/**
 		 * Area offset.
 		 */

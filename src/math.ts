@@ -153,7 +153,7 @@ export class Vec2 {
 	}
 }
 
-export function vec2(...args): Vec2 {
+export function vec2(...args: Vec2Args): Vec2 {
 	if (args.length === 1) {
 		if (args[0] instanceof Vec2) {
 			return new Vec2(args[0].x, args[0].y)
