@@ -225,7 +225,7 @@ const map = addLevel([
 })
 
 const player = add([
-	pos(map.getPos(2, 2)),
+	pos(map.tile2Pos(2, 2)),
 	sprite("hero", { anim: "idle" }),
 	area({ shape: new Rect(vec2(0, 6), 12, 12) }),
 	body(),
@@ -234,7 +234,7 @@ const player = add([
 
 const ogre = add([
 	sprite("ogre"),
-	pos(map.getPos(4, 4)),
+	pos(map.tile2Pos(4, 4)),
 	anchor("bot"),
 	area({ scale: 0.5 }),
 	body({ isStatic: true }),

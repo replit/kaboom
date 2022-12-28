@@ -5875,14 +5875,15 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				return numRows * this.tileHeight()
 			},
 
-			tile2Pos(tilePos: Vec2) {
-				return tilePos.scale(this.tileWidth, this.tileHeight)
+			tile2Pos(...args) {
+				return vec2(...args).scale(this.tileWidth, this.tileHeight)
 			},
 
-			pos2Tile(pos: Vec2) {
+			pos2Tile(...args) {
+				const p = vec2(...args)
 				return vec2(
-					Math.floor(pos.x / this.tileWidth()),
-					Math.floor(pos.y / this.tileHeight()),
+					Math.floor(p.x / this.tileWidth()),
+					Math.floor(p.y / this.tileHeight()),
 				)
 			},
 

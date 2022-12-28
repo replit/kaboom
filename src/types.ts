@@ -4640,10 +4640,12 @@ export interface LevelComp extends Comp {
 	 * Convert tile position to pixel position.
 	 */
 	tile2Pos(tilePos: Vec2): Vec2,
+	tile2Pos(x: number, y: number): Vec2,
 	/**
 	 * Convert pixel position to tile position.
 	 */
 	pos2Tile(pos: Vec2): Vec2,
+	pos2Tile(x: number, y: number): Vec2,
 	/**
 	 * Find the path to navigate from one tile to another tile.
 	 *
