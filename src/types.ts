@@ -4622,8 +4622,8 @@ export interface LevelComp extends Comp {
 	/**
 	 * Spawn a tile from a component list.
 	 */
-	spawn<T>(obj: CompList<T>, p: Vec2): GameObj<T> | null,
-	spawn<T>(sym: CompList<T>, x: number, y: number): GameObj<T> | null,
+	spawn<T>(obj: CompList<T>, p: Vec2): GameObj<T>,
+	spawn<T>(sym: CompList<T>, x: number, y: number): GameObj<T>,
 	/**
 	 * Total width of level in pixels.
 	 */
