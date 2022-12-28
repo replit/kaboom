@@ -231,6 +231,7 @@ const SPRITE_ATLAS_WIDTH = 2048
 const SPRITE_ATLAS_HEIGHT = 2048
 // 0.1 pixel padding to texture coordinates to prevent artifact
 const UV_PAD = 0.1
+const DEF_HASH_GRID_SIZE = 64
 
 const LOG_MAX = 1
 
@@ -4257,9 +4258,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 					if (opt.pause) this.paused = false
 				}
 			},
-			inspect() {
-				return `${this.isOffScreen()}`
-			},
 		}
 	}
 
@@ -6286,7 +6284,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	}
 
 	function inputFrame() {
-		// TODO: pass original browser event in input handlers
 		game.ev.trigger("input")
 		app.keyState.down.forEach((k) => game.ev.trigger("keyDown", k))
 		app.mouseState.down.forEach((k) => game.ev.trigger("mouseDown", k))
@@ -6297,13 +6294,9 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	}
 
 	function updateFrame() {
-
 		// update every obj
 		game.root.update()
-
 	}
-
-	const DEF_HASH_GRID_SIZE = 64
 
 	class Collision {
 		source: GameObj
