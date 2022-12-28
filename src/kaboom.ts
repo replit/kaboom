@@ -5876,7 +5876,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			},
 
 			tile2Pos(...args) {
-				return vec2(...args).scale(this.tileWidth, this.tileHeight)
+				return vec2(...args).scale(this.tileWidth(), this.tileHeight())
 			},
 
 			pos2Tile(...args) {
