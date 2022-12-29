@@ -3551,6 +3551,8 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				if (cleanups[id]) {
 					cleanups[id].forEach((e) => e())
 					delete cleanups[id]
+				}
+				if (compStates.has(id)) {
 					compStates.delete(id)
 				}
 			},
