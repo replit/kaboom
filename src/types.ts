@@ -2566,10 +2566,49 @@ export type SpriteAnims = Record<string, SpriteAnim>
  * Sprite loading configuration.
  */
 export interface LoadSpriteOpt {
-	frames?: Quad[],
+	/**
+	 * If the defined area contains multiple sprites, how many frames are in the area hozizontally.
+	 */
 	sliceX?: number,
+	/**
+	 * If the defined area contains multiple sprites, how many frames are in the area vertically.
+	 */
 	sliceY?: number,
+	/**
+	 * 9 slice sprite for proportional scaling.
+	 *
+	 * @since v3000.0
+	 */
+	slice9?: NineSlice,
+	/**
+	 * Individual frames.
+	 *
+	 * @since v3000.0
+	 */
+	frames?: Quad[],
+	/**
+	 * Animation configuration.
+	 */
 	anims?: SpriteAnims,
+}
+
+export type NineSlice = {
+	/**
+	 * The width of the 9-slice's left column.
+	 */
+	left: number,
+	/**
+	 * The width of the 9-slice's right column.
+	 */
+	right: number,
+	/**
+	 * The height of the 9-slice's top row.
+	 */
+	top: number,
+	/**
+	 * The height of the 9-slice's bottom row.
+	 */
+	bottom: number,
 }
 
 export type SpriteAtlasData = Record<string, SpriteAtlasEntry>
@@ -2577,7 +2616,7 @@ export type SpriteAtlasData = Record<string, SpriteAtlasEntry>
 /**
  * A sprite in a sprite atlas.
  */
-export interface SpriteAtlasEntry {
+export type SpriteAtlasEntry = LoadSpriteOpt & {
 	/**
 	 * X position of the top left corner.
 	 */
@@ -2594,24 +2633,6 @@ export interface SpriteAtlasEntry {
 	 * Sprite area height.
 	 */
 	height: number,
-	/**
-	 * Individual frames.
-	 *
-	 * @since v3000.0
-	 */
-	frames?: Quad[],
-	/**
-	 * If the defined area contains multiple sprites, how many frames are in the area hozizontally.
-	 */
-	sliceX?: number,
-	/**
-	 * If the defined area contains multiple sprites, how many frames are in the area vertically.
-	 */
-	sliceY?: number,
-	/**
-	 * Animation configuration.
-	 */
-	anims?: SpriteAnims,
 }
 
 // TODO: use PromiseLike or extend Promise?
@@ -2635,6 +2656,7 @@ export declare class SpriteData {
 	tex: Texture
 	frames: Quad[]
 	anims: SpriteAnims
+	slice9: NineSlice | null
 	constructor(tex: Texture, frames?: Quad[], anims?: SpriteAnims)
 	static from(src: LoadSpriteSrc, opt?: LoadSpriteOpt): Promise<SpriteData>
 	static fromImage(data: TexImageSource, opt?: LoadSpriteOpt): SpriteData

@@ -159,6 +159,7 @@ import {
 	PathFindOpt,
 	GetOpt,
 	Vec2Args,
+	NineSlice,
 } from "./types"
 
 import FPSCounter from "./fps"
@@ -814,18 +815,24 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		tex: Texture
 		frames: Quad[] = [ new Quad(0, 0, 1, 1) ]
 		anims: SpriteAnims = {}
+		slice9: NineSlice | null = null
 
-		constructor(tex: Texture, frames?: Quad[], anims: SpriteAnims = {}) {
+		constructor(
+			tex: Texture,
+			frames?: Quad[],
+			anims: SpriteAnims = {},
+			slice9: NineSlice = null,
+		) {
 			this.tex = tex
 			if (frames) this.frames = frames
 			this.anims = anims
+			this.slice9 = slice9
 		}
 
 		static from(src: LoadSpriteSrc, opt: LoadSpriteOpt = {}): Promise<SpriteData> {
 			return typeof src === "string"
 				? SpriteData.fromURL(src, opt)
-				: Promise.resolve(SpriteData.fromImage(src, opt),
-				)
+				: Promise.resolve(SpriteData.fromImage(src, opt))
 		}
 
 		static fromImage(data: TexImageSource, opt: LoadSpriteOpt = {}): SpriteData {
@@ -836,7 +843,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				f.w * quad.w,
 				f.h * quad.h,
 			)) : slice(opt.sliceX || 1, opt.sliceY || 1, quad.x, quad.y, quad.w, quad.h)
-			return new SpriteData(tex, frames, opt.anims ?? {})
+			return new SpriteData(tex, frames, opt.anims, opt.slice9)
 		}
 
 		static fromURL(url: string, opt: LoadSpriteOpt = {}): Promise<SpriteData> {
@@ -4604,15 +4611,45 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 					throw new Error(`Frame not found: ${this.frame ?? 0}`)
 				}
 
-				drawTexture(Object.assign(getRenderProps(this), {
-					tex: spriteData.tex,
-					quad: q,
-					flipX: this.flipX,
-					flipY: this.flipY,
-					tiled: opt.tiled,
-					width: opt.width,
-					height: opt.height,
-				}))
+				if (spriteData.slice9) {
+					const { left, right, top, bottom } = spriteData.slice9
+					const w1 = left / this.width
+					const w3 = right / this.width
+					const w2 = 1 - w1 - w3
+					const h1 = top / this.height
+					const h3 = bottom / this.height
+					const h2 = 1 - h1 - h3
+					const quads = [
+						quad(0,       0,       w1, h1),
+						quad(w1,      0,       w2, h1),
+						quad(w1 + w2, 0,       w3, h1),
+						quad(0,       h1,      w1, h2),
+						quad(w1,      h1,      w2, h2),
+						quad(w1 + w2, h1,      w3, h2),
+						quad(0,       h1 + h2, w1, h3),
+						quad(w1,      h1 + h2, w2, h3),
+						quad(w1 + w2, h1 + h2, w3, h3),
+					]
+					drawTexture(Object.assign(getRenderProps(this), {
+						tex: spriteData.tex,
+						quad: q,
+						flipX: this.flipX,
+						flipY: this.flipY,
+						tiled: opt.tiled,
+						width: this.width,
+						height: this.height,
+					}))
+				} else {
+					drawTexture(Object.assign(getRenderProps(this), {
+						tex: spriteData.tex,
+						quad: q,
+						flipX: this.flipX,
+						flipY: this.flipY,
+						tiled: opt.tiled,
+						width: this.width,
+						height: this.height,
+					}))
+				}
 
 			},
 
