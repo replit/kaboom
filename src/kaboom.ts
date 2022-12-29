@@ -3744,6 +3744,22 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		return on("collide", t1, (a, b, col) => b.is(t2) && f(a, b, col))
 	}
 
+	function onCollideUpdate(
+		t1: Tag,
+		t2: Tag,
+		f: (a: GameObj, b: GameObj, col?: Collision) => void,
+	): EventController {
+		return on("collideUpdate", t1, (a, b, col) => b.is(t2) && f(a, b, col))
+	}
+
+	function onCollideEnd(
+		t1: Tag,
+		t2: Tag,
+		f: (a: GameObj, b: GameObj, col?: Collision) => void,
+	): EventController {
+		return on("collideEnd", t1, (a, b, col) => b.is(t2) && f(a, b, col))
+	}
+
 	function forAllCurrentAndFuture(t: Tag, action: (obj: GameObj) => void) {
 		get(t).forEach(action)
 		onAdd(t, action)
@@ -7204,8 +7220,10 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		onDraw,
 		onAdd,
 		onDestroy,
-		onCollide,
 		onClick,
+		onCollide,
+		onCollideUpdate,
+		onCollideEnd,
 		onHover,
 		onHoverUpdate,
 		onHoverEnd,

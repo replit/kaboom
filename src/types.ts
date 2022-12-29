@@ -696,7 +696,7 @@ export interface KaboomCtx {
 		curHeight: number,
 	) => void): void,
 	/**
-	 * Register an event that runs when 2 game objs with certain tags collides (required to have area() component).
+	 * Register an event that runs once when 2 game objs with certain tags collides (required to have area() component).
 	 *
 	 * @since v2000.1
 	 *
@@ -708,6 +708,40 @@ export interface KaboomCtx {
 	 * ```
 	 */
 	onCollide(
+		t1: Tag,
+		t2: Tag,
+		action: (a: GameObj, b: GameObj, col?: Collision) => void,
+	): EventController,
+	/**
+	 * Register an event that runs every frame when 2 game objs with certain tags collides (required to have area() component).
+	 *
+	 * @since v3000.0
+	 *
+	 * @example
+	 * ```js
+	 * onCollideUpdate("sun", "earth", () => {
+	 *     runWorldEndTimer()
+	 * })
+	 * ```
+	 */
+	onCollideUpdate(
+		t1: Tag,
+		t2: Tag,
+		action: (a: GameObj, b: GameObj, col?: Collision) => void,
+	): EventController,
+	/**
+	 * Register an event that runs once frame when 2 game objs with certain tags stops colliding (required to have area() component).
+	 *
+	 * @since v3000.0
+	 *
+	 * @example
+	 * ```js
+	 * onCollideEnd("bean", "earth", () => {
+	 *     worldEnd()
+	 * })
+	 * ```
+	 */
+	onCollideEnd(
 		t1: Tag,
 		t2: Tag,
 		action: (a: GameObj, b: GameObj, col?: Collision) => void,

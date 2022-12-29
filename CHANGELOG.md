@@ -54,8 +54,20 @@ console.log(enemies.length) // 4
 
 ## Components
 
+- getter and setters now work in component properties
 - added collision support for rotate shapes and polygons
-- added `Area#onCollideUpdate()` and `Area#onCollideEnd()` events
+- added option `collisionIgnore` to `area()` component, which accepts a list of tags to ignore when checking collision
+```js
+const bean = add([
+    sprite("bean"),
+    pos(100, 80),
+    area({
+        collisionIgnore: [ "cloud", "particle" ],
+    }),
+])
+```
+- added `Area#onCollideUpdate()` and `onCollideUpdate()` to register an event that runs every frame when 2 object is colising
+- added `Area#onCollideEnd()` and `onCollideEnd()` to register an event that runs once when 2 objects stopped colliding
 - added `Area#onHover()` and `onHover()` to register an event that runs once when an object(s) is hovered
 - added `Area#onHoverEnd()` and `onHoverEnd()` to register an event that runs once when an object(s) stopped being hovered
 - (**BREAK**) renamed `onHover()` to `onHoverUpdate()` (it registers an event that runs every frame when an object is hovered)
