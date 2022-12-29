@@ -49,40 +49,49 @@ export class Event<Args extends any[] = any[]> {
 	}
 }
 
-// TODO: be able to type each event
-export class EventHandler<E = string> {
-	private handlers: Map<E, Event> = new Map()
-	on(name: E, action: (...args) => void): EventController {
-		if (!this.handlers.get(name)) {
-			this.handlers.set(name, new Event())
+// TODO: only accept one argument?
+export class EventHandler<EventMap extends Record<string, any[]>> {
+	private handlers: Partial<{
+		[Name in keyof EventMap]: Event<EventMap[Name]>
+	}> = {}
+	on<Name extends keyof EventMap>(
+		name: Name,
+		action: (...args: EventMap[Name]) => void,
+	): EventController {
+		if (!this.handlers[name]) {
+			this.handlers[name] = new Event<EventMap[Name]>()
 		}
-		return this.handlers.get(name).add(action)
+		return this.handlers[name].add(action)
 	}
-	onOnce(name: E, action: (...args) => void): EventController {
+	onOnce<Name extends keyof EventMap>(
+		name: Name,
+		action: (...args: EventMap[Name]) => void,
+	): EventController {
 		const ev = this.on(name, (...args) => {
 			ev.cancel()
 			action(...args)
 		})
 		return ev
 	}
-	next(name: E): Promise<unknown> {
+	next<Name extends keyof EventMap>(name: Name): Promise<unknown> {
 		return new Promise((res) => {
-			this.onOnce(name, res)
+			// TODO: can only pass 1 val to resolve()
+			this.onOnce(name, (...args: EventMap[Name]) => res(args[0]))
 		})
 	}
-	trigger(name: E, ...args) {
-		if (this.handlers.get(name)) {
-			this.handlers.get(name).trigger(...args)
+	trigger<Name extends keyof EventMap>(name: Name, ...args: EventMap[Name]) {
+		if (this.handlers[name]) {
+			this.handlers[name].trigger(...args)
 		}
 	}
-	remove(name: E) {
-		this.handlers.delete(name)
+	remove<Name extends keyof EventMap>(name: Name) {
+		delete this.handlers[name]
 	}
 	clear() {
-		this.handlers = new Map()
+		this.handlers = {}
 	}
-	numListeners(name: E): number {
-		return this.handlers.get(name)?.numListeners() ?? 0
+	numListeners<Name extends keyof EventMap>(name: Name): number {
+		return this.handlers[name]?.numListeners() ?? 0
 	}
 }
 

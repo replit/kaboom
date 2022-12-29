@@ -677,7 +677,7 @@ export interface KaboomCtx {
 	 *
 	 * @since v3000.0
 	 */
-	onLoadUpdate(action: (err: Error) => void): void,
+	onLoadUpdate(action: (progress: number) => void): void,
 	/**
 	 * Register a custom error handler. Can be used to draw a custom error screen.
 	 *
@@ -4864,14 +4864,14 @@ export declare class Event<Args extends any[] = any[]> {
 	numListeners(): number
 }
 
-export declare class EventHandler<E = string> {
-	on(name: E, action: (...args) => void): EventController
-	onOnce(name: E, action: (...args) => void): EventController
-	next(name: E): Promise<unknown>
-	trigger(name: E, ...args)
-	remove(name: E)
+export declare class EventHandler<EventMap extends Record<string, any[]>> {
+	on<Name extends keyof EventMap>(name: Name, action: (...args: EventMap[Name]) => void): EventController
+	onOnce<Name extends keyof EventMap>(name: Name, action: (...args: EventMap[Name]) => void): EventController
+	next<Name extends keyof EventMap>(name: Name): Promise<unknown>
+	trigger<Name extends keyof EventMap>(name: Name, ...args: EventMap[Name])
+	remove<Name extends keyof EventMap>(name: Name)
 	clear()
-	numListeners(name: E): number
+	numListeners<Name extends keyof EventMap>(name: Name): number
 }
 
 export default kaboom

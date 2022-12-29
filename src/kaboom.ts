@@ -1006,7 +1006,35 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	const game = {
 
 		// general events
-		ev: new EventHandler(),
+		ev: new EventHandler<{
+			mouseMove: [],
+			mouseDown: [MouseButton],
+			mousePress: [MouseButton],
+			mouseRelease: [MouseButton],
+			charInput: [string],
+			keyPress: [Key],
+			keyDown: [Key],
+			keyPressRepeat: [Key],
+			keyRelease: [Key],
+			touchStart: [Vec2, Touch],
+			touchMove: [Vec2, Touch],
+			touchEnd: [Vec2, Touch],
+			virtualButtonDown: [VirtualButton],
+			virtualButtonPress: [VirtualButton],
+			virtualButtonRelease: [VirtualButton],
+			gamepadButtonDown: [string],
+			gamepadButtonPress: [string],
+			gamepadButtonRelease: [string],
+			scroll: [Vec2],
+			add: [GameObj],
+			destroy: [GameObj],
+			load: [],
+			loadUpdate: [number],
+			error: [Error],
+			input: [],
+			frameEnd: [],
+			resize: [number, number, number, number],
+		}>(),
 		// object events
 		objEvents: new EventHandler(),
 
@@ -3073,7 +3101,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			const touches = [...e.changedTouches]
 			touches.forEach((t) => {
 				game.ev.trigger(
-					"onTouchStart",
+					"touchStart",
 					windowToContent(new Vec2(t.clientX, t.clientY)),
 					t,
 				)
@@ -3093,13 +3121,13 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			const touches = [...e.changedTouches]
 			touches.forEach((t) => {
 				game.ev.trigger(
-					"onTouchMove",
+					"touchMove",
 					windowToContent(new Vec2(t.clientX, t.clientY)),
 					t,
 				)
 			})
 			if (gopt.touchToMouse !== false) {
-				game.ev.trigger("mouseMove", "left")
+				game.ev.trigger("mouseMove")
 				setMousePos(touches[0].clientX, touches[0].clientY)
 			}
 		})
@@ -3110,7 +3138,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			const touches = [...e.changedTouches]
 			touches.forEach((t) => {
 				game.ev.trigger(
-					"onTouchEnd",
+					"touchEnd",
 					windowToContent(new Vec2(t.clientX, t.clientY)),
 					t,
 				)
@@ -3127,7 +3155,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			const touches = [...e.changedTouches]
 			touches.forEach((t) => {
 				game.ev.trigger(
-					"onTouchEnd",
+					"touchEnd",
 					windowToContent(new Vec2(t.clientX, t.clientY)),
 					t,
 				)
@@ -3970,15 +3998,15 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	}
 
 	function onTouchStart(f: (pos: Vec2, t: Touch) => void): EventController {
-		return game.ev.on("onTouchStart", f)
+		return game.ev.on("touchStart", f)
 	}
 
 	function onTouchMove(f: (pos: Vec2, t: Touch) => void): EventController {
-		return game.ev.on("onTouchMove", f)
+		return game.ev.on("touchMove", f)
 	}
 
 	function onTouchEnd(f: (pos: Vec2, t: Touch) => void): EventController {
-		return game.ev.on("onTouchEnd", f)
+		return game.ev.on("touchEnd", f)
 	}
 
 	function onScroll(action: (delta: Vec2) => void): EventController {
@@ -4569,6 +4597,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 		let spriteData: SpriteData | null = null
 		let curAnim: SpriteCurAnim | null = null
+		const spriteLoadedEvent = new Event<[SpriteData]>()
 
 		if (!src) {
 			throw new Error("Please pass the resource name or data to sprite()")
@@ -4680,7 +4709,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 					}
 
 					spriteData = spr.data
-					this.trigger("spriteLoaded", spriteData)
+					spriteLoadedEvent.trigger(spriteData)
 
 				}
 
@@ -4734,9 +4763,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			play(this: GameObj<SpriteComp>, name: string, opt: SpriteAnimPlayOpt = {}) {
 
 				if (!spriteData) {
-					this.on("spriteLoaded", () => {
-						this.play(name, opt)
-					})
+					spriteLoadedEvent.add(() => this.play(name, opt))
 					return
 				}
 
@@ -6540,7 +6567,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 		})
 
-		game.ev.trigger("loading", progress)
+		game.ev.trigger("loadUpdate", progress)
 
 	}
 
@@ -6910,8 +6937,8 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		enterBurpMode()
 	}
 
-	function onLoadUpdate(action: (err: Error) => void) {
-		game.ev.on("loading", action)
+	function onLoadUpdate(action: (progress: number) => void) {
+		game.ev.on("loadUpdate", action)
 	}
 
 	function onResize(action: (
