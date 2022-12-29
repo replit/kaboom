@@ -75,7 +75,7 @@ onKeyDown("right", () => {
 
 // Back to the original position if hit a "danger" item
 player.onCollide("danger", () => {
-	player.pos = level.getPos(0, 0)
+	player.pos = level.tile2Pos(0, 0)
 })
 
 // Eat the coin!

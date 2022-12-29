@@ -3361,7 +3361,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	function make<T>(comps: CompList<T>): GameObj<T> {
 
 		const compStates = new Map()
-		const customState = {}
+		const cleanups = {}
 		const ev = new EventHandler()
 
 		// TODO: "this" should be typed here
@@ -3465,17 +3465,15 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 					})
 				}
 
+				let gc = []
+
 				// clear if overwrite
 				if (comp.id) {
 					this.unuse(comp.id)
-					compStates.set(comp.id, {
-						cleanups: [],
-					})
+					cleanups[comp.id] = []
+					gc = cleanups[comp.id]
+					compStates.set(comp.id, comp)
 				}
-
-				// state source location
-				const state = comp.id ? compStates.get(comp.id) : customState
-				const cleanups = comp.id ? state.cleanups : []
 
 				// check for component dependencies
 				const checkDeps = () => {
@@ -3489,11 +3487,11 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				}
 
 				if (comp.destroy) {
-					cleanups.push(comp.destroy)
+					gc.push(comp.destroy)
 				}
 
-				if (comp.require && !this.exists() && state.cleanups) {
-					cleanups.push(this.on("add", checkDeps))
+				if (comp.require && !this.exists()) {
+					gc.push(this.on("add", checkDeps).cancel)
 				}
 
 				for (const k in comp) {
@@ -3502,31 +3500,39 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 						continue
 					}
 
-					// event / custom method
-					if (typeof comp[k] === "function") {
-						const func = comp[k].bind(this)
-						if (COMP_EVENTS.has(k)) {
-							cleanups.push(this.on(k, func))
-							state[k] = func
-							// don't bind to game object if it's an event
-							continue
-						} else {
-							state[k] = func
-						}
-					} else {
-						state[k] = comp[k]
+					const p = Object.getOwnPropertyDescriptor(comp, k)
+
+					if (typeof p.value === "function") {
+						comp[k] = comp[k].bind(this)
 					}
 
-					if (this[k] === undefined) {
-						// assign comp fields to game obj
-						Object.defineProperty(this, k, {
-							get: () => state[k],
-							set: (val) => state[k] = val,
-							configurable: true,
-							enumerable: true,
+					if (p.set) {
+						Object.defineProperty(comp, k, {
+							set: p.set.bind(this),
 						})
+					}
+
+					if (p.get) {
+						Object.defineProperty(comp, k, {
+							get: p.get.bind(this),
+						})
+					}
+
+					if (COMP_EVENTS.has(k)) {
+						gc.push(this.on(k, comp[k]).cancel)
 					} else {
-						throw new Error(`Duplicate component property: "${k}"`)
+						if (this[k] === undefined) {
+							// assign comp fields to game obj
+							Object.defineProperty(this, k, {
+								get: () => comp[k],
+								set: (val) => comp[k] = val,
+								configurable: true,
+								enumerable: true,
+							})
+							gc.push(() => delete this[k])
+						} else {
+							throw new Error(`Duplicate component property: "${k}"`)
+						}
 					}
 
 				}
@@ -3542,14 +3548,11 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			},
 
 			unuse(id: Tag) {
-				if (compStates.has(id)) {
-					const comp = compStates.get(id)
-					comp.cleanups.forEach((e) => e.cancel())
-					for (const k in comp) {
-						delete comp[k]
-					}
+				if (cleanups[id]) {
+					cleanups[id].forEach((e) => e())
+					delete cleanups[id]
+					compStates.delete(id)
 				}
-				compStates.delete(id)
 			},
 
 			c(id: Tag): Comp {
