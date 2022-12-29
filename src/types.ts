@@ -4588,6 +4588,10 @@ export type TileCompOpt = {
 	 * If the tile has hard edges that cannot pass in pathfinding.
 	 */
 	edges?: Edge[],
+	/**
+	 * Position offset when setting `tilePos`.
+	 */
+	offset?: Vec2,
 }
 
 export interface TileComp extends Comp {
@@ -4607,6 +4611,10 @@ export interface TileComp extends Comp {
 	 * If the tile has hard edges that cannot pass in pathfinding.
 	 */
 	edges: Edge[],
+	/**
+	 * Position offset when setting `tilePos`.
+	 */
+	tilePosOffset: Vec2,
 	readonly edgeMask: EdgeMask,
 	getLevel(): GameObj<LevelComp>,
 	moveLeft(): void,

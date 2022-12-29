@@ -3500,21 +3500,21 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 						continue
 					}
 
-					const p = Object.getOwnPropertyDescriptor(comp, k)
+					const prop = Object.getOwnPropertyDescriptor(comp, k)
 
-					if (typeof p.value === "function") {
+					if (typeof prop.value === "function") {
 						comp[k] = comp[k].bind(this)
 					}
 
-					if (p.set) {
+					if (prop.set) {
 						Object.defineProperty(comp, k, {
-							set: p.set.bind(this),
+							set: prop.set.bind(this),
 						})
 					}
 
-					if (p.get) {
+					if (prop.get) {
 						Object.defineProperty(comp, k, {
-							get: p.get.bind(this),
+							get: prop.get.bind(this),
 						})
 					}
 
@@ -5508,6 +5508,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		return {
 
 			id: "tile",
+			tilePosOffset: opts.offset ?? vec2(0),
 
 			set tilePos(p: Vec2) {
 				const level = this.getLevel()
@@ -5516,7 +5517,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				this.pos = vec2(
 					this.tilePos.x * level.tileWidth(),
 					this.tilePos.y * level.tileHeight(),
-				)
+				).add(this.tilePosOffset)
 			},
 
 			get tilePos() {
@@ -5834,25 +5835,21 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 					return null
 				}
 
-				const posComp = vec2(
-					p.x * this.tileWidth(),
-					p.y * this.tileHeight(),
-				)
+				let hasPos = false
+				let hasTile = false
 
 				for (const comp of comps) {
-					if (comp.id === "pos") {
-						posComp.x += comp.pos.x
-						posComp.y += comp.pos.y
-						break
-					}
+					if (comp.id === "tile") hasTile = true
+					if (comp.id === "pos") hasPos = true
 				}
 
-				comps.push(pos(posComp))
+				if (!hasPos) comps.push(pos())
+				if (!hasTile) comps.push(tile())
 
 				const obj = level.add(comps)
 
-				if (!obj.is("tile")) {
-					obj.use(tile())
+				if (hasPos) {
+					obj.tilePosOffset = obj.pos.clone()
 				}
 
 				obj.tilePos = p
