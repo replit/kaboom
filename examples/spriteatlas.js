@@ -270,8 +270,9 @@ function spin() {
 
 onKeyPress("space", () => {
 	let interacted = false
-	get("chest", { recursive: true }).forEach((c) => {
-		if (player.isColliding(c)) {
+	for (const col of player.getCollisions()) {
+		const c = col.target
+		if (c.is("chest")) {
 			if (c.opened) {
 				c.play("close")
 				c.opened = false
@@ -281,7 +282,7 @@ onKeyPress("space", () => {
 			}
 			interacted = true
 		}
-	})
+	}
 	if (!interacted) {
 		sword.spin()
 	}

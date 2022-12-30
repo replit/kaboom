@@ -4417,6 +4417,10 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				return colliding[other.id] ?? null
 			},
 
+			getCollisions() {
+				return Object.values(colliding)
+			},
+
 			isColliding(other: GameObj<AreaComp>) {
 				return Boolean(colliding[other.id])
 			},

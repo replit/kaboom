@@ -3895,6 +3895,12 @@ export interface AreaComp extends Comp {
 	 */
 	checkCollision(other: GameObj<AreaComp>): Collision | null,
 	/**
+	 * Get all collisions currently happening.
+	 *
+	 * @since v3000.0
+	 */
+	getCollisions(): Collision[],
+	/**
 	 * If is currently colliding with another game obj.
 	 */
 	isColliding(o: GameObj<AreaComp>): boolean,

@@ -66,6 +66,7 @@ const bean = add([
     }),
 ])
 ```
+- added `Area#getCollisions` to get a list of all current collisions happening
 - added `Area#onCollideUpdate()` and `onCollideUpdate()` to register an event that runs every frame when 2 object is colising
 - added `Area#onCollideEnd()` and `onCollideEnd()` to register an event that runs once when 2 objects stopped colliding
 - added `Area#onHover()` and `onHover()` to register an event that runs once when an object(s) is hovered
