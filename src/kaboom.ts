@@ -3510,25 +3510,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 					compStates.set(comp.id, comp)
 				}
 
-				// check for component dependencies
-				const checkDeps = () => {
-					if (comp.require) {
-						for (const dep of comp.require) {
-							if (!this.c(dep)) {
-								throw new Error(`Component "${comp.id}" requires component "${dep}"`)
-							}
-						}
-					}
-				}
-
-				if (comp.destroy) {
-					gc.push(comp.destroy)
-				}
-
-				if (comp.require && !this.exists()) {
-					gc.push(this.on("add", checkDeps).cancel)
-				}
-
 				for (const k in comp) {
 
 					if (COMP_DESC.has(k)) {
@@ -3572,11 +3553,27 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 				}
 
+				// check for component dependencies
+				const checkDeps = () => {
+					if (!comp.require) return
+					for (const dep of comp.require) {
+						if (!this.c(dep)) {
+							throw new Error(`Component "${comp.id}" requires component "${dep}"`)
+						}
+					}
+				}
+
+				if (comp.destroy) {
+					gc.push(comp.destroy.bind(this))
+				}
+
 				// manually trigger add event if object already exist
 				if (this.exists()) {
 					checkDeps()
-					if (comp.add) {
-						comp.add.call(this)
+					if (comp.add) comp.add.call(this)
+				} else {
+					if (comp.require) {
+						gc.push(this.on("add", checkDeps).cancel)
 					}
 				}
 
