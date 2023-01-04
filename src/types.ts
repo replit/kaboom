@@ -3516,6 +3516,7 @@ export declare class Quad {
 	h: number
 	constructor(x: number, y: number, w: number, h: number)
 	scale(q: Quad): Quad
+	pos(): Vec2
 	clone(): Quad
 	eq(q: Quad): boolean
 }

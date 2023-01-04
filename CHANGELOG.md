@@ -47,14 +47,17 @@ add([
 console.log(enemies.length) // 4
 ```
 - changed object update order from reversed to not reversed
-- (**BREAK**) removed `GameObj#every()` and `GameObj#revery()` in favor of `obj.get().forEach()`
+- (**BREAK**) removed `GameObj#every()` and `GameObj#revery()` in favor of `obj.get("*").forEach()`
 - (**BREAK**) renamed `GameObj#_id` to `GameObj#id`
 - (**BREAK**) `addLevel()` now returns a `GameObj` which has all individual grid objects as its children game objects, with `LevelComp` containing its previous methods
-- added `onAdd()` and `onDestroy` events to listen to added / destroyed game objects
+- added `onAdd()` and `onDestroy()` events to listen to added / destroyed game objects
 
 ## Components
 
 - getter and setters now work in component properties
+
+#### Area
+
 - added collision support for rotate shapes and polygons
 - added option `collisionIgnore` to `area()` component, which accepts a list of tags to ignore when checking collision
 ```js
@@ -67,23 +70,46 @@ const bean = add([
 ])
 ```
 - added `Area#getCollisions` to get a list of all current collisions happening
+```js
+for (const col of player.getCollisions()) {
+    const c = col.target
+    if (c.is("chest")) {
+        c.open()
+    }
+}
+```
 - added `Area#onCollideUpdate()` and `onCollideUpdate()` to register an event that runs every frame when 2 object is colising
 - added `Area#onCollideEnd()` and `onCollideEnd()` to register an event that runs once when 2 objects stopped colliding
 - added `Area#onHover()` and `onHover()` to register an event that runs once when an object(s) is hovered
 - added `Area#onHoverEnd()` and `onHoverEnd()` to register an event that runs once when an object(s) stopped being hovered
 - (**BREAK**) renamed `onHover()` to `onHoverUpdate()` (it registers an event that runs every frame when an object is hovered)
+
+#### Body
+
 - added `Body#onFall()` which fires when object starts falling
 - added `Body#onPhysicsResolve()` and `Body#onBeforePhysicsResolve()` to register events relating to collision resolution
-- added `body({ stickToPlatform: false })` option to turn off object moving with platform
-- added `doubleJump()` component to enable double jump (or any number of jumps)
+```js
+// make semi-solid platforms that doesn't block player when player is jumping over it
+player.onBeforePhysicsResolve((collision) => {
+    if (collision.target.is(["platform", "soft"]) && player.isJumping()) {
+        collision.preventResolution()
+    }
+})
+```
+- (**BREAK**) removed `solid()` in favor of `body({ isStatic: true })`
+- added option `body({ mass: 3 })` to define how hard a non-static body is to be pushed by another non-static body
+- added option `body({ stickToPlatform: false })` to turn off object moving with platform
 - (**BREAK**) removed `Body#doubleJump()` in favor of `doubleJump()` component
 - (**BREAK**) renamed `Body#weight` to `Body#gravityScale`
 - (**BREAK**) renamed `Body#onFall()` to `Body#onFallOff()` which triggers when object fall off a platform
-- (**BREAK**) removed `solid()` in favor of `body({ isStatic: true })`
 - (**BREAK**) defining `gravity()` is now required for enabling gravity, `body()` by default will only prevent objects from going through each other
+
+#### Others
+
 - (**BREAK**) renamed `origin()` to `anchor()`, so it won't mess up typescript in global mode
-- (**BREAK**) `anchor` (previously `origin`) no longer controls text alignment, use `align` option instead
-- (**BREAK**) renamed `outview()` to `offscreen()`, and uses a much more performant check (but less accurate) for if object is offscreen
+- (**BREAK**) `anchor` (previously `origin`) no longer controls text alignment, use `text({ align: "left" })` option instead
+- added `doubleJump()` component to enable double jump (or any number of jumps)
+- (**BREAK**) renamed `outview()` to `offscreen()`, and uses a much faster check (but less accurate) for if object is offscreen
   - removed `offset` option in favor of a simpler `distance` option
   - renamed `onExitView()` and `onEnterView()` to `onExitScreen()` and `onEnterScreen()`
 - (**BREAK**) removed `cleanup()` component in favor of `offscreen({ destroy: true })`
@@ -164,6 +190,28 @@ vec4 frag(vec2 pos, vec2 uv, vec4 color, sampler2D tex) {
 usePostEffect("invert")
 ```
 - shader error logs now yields the correct line number
+- added `slice9` option to `loadSprite()` to enable [9 slice scaling](https://en.wikipedia.org/wiki/9-slice_scaling)
+```js
+loadSprite("grass", "/sprites/grass.png", {
+	slice9: {
+		left: 8,
+		right: 8,
+		top: 8,
+		bottom: 8,
+	},
+})
+
+const g = add([
+	sprite("grass"),
+])
+
+onMouseMove(() => {
+	const mpos = mousePos()
+    // updating width / height will scale the image but not the sliced frame
+	g.width = mpos.x
+	g.height = mpos.y
+})
+```
 
 ## Audio
 

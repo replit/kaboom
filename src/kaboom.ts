@@ -4642,14 +4642,20 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				}
 
 				if (spriteData.slice9) {
+					// TODO: use scale or width / height, or both?
 					const { left, right, top, bottom } = spriteData.slice9
-					const w1 = left / this.width
-					const w3 = right / this.width
+					const tw = spriteData.tex.width * q.w
+					const th = spriteData.tex.height * q.h
+					const iw = this.width - left - right
+					const ih = this.height - top - bottom
+					const w1 = left / tw
+					const w3 = right / tw
 					const w2 = 1 - w1 - w3
-					const h1 = top / this.height
-					const h3 = bottom / this.height
+					const h1 = top / th
+					const h3 = bottom / th
 					const h2 = 1 - h1 - h3
 					const quads = [
+						// uv
 						quad(0,       0,       w1, h1),
 						quad(w1,      0,       w2, h1),
 						quad(w1 + w2, 0,       w3, h1),
@@ -4659,16 +4665,32 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 						quad(0,       h1 + h2, w1, h3),
 						quad(w1,      h1 + h2, w2, h3),
 						quad(w1 + w2, h1 + h2, w3, h3),
+						// transform
+						quad(0,         0,        left,  top),
+						quad(left,      0,        iw,    top),
+						quad(left + iw, 0,        right, top),
+						quad(0,         top,      left,  ih),
+						quad(left,      top,      iw,    ih),
+						quad(left + iw, top,      right, ih),
+						quad(0,         top + ih, left,  bottom),
+						quad(left,      top + ih, iw,    bottom),
+						quad(left + iw, top + ih, right, bottom),
 					]
-					drawTexture(Object.assign(getRenderProps(this), {
-						tex: spriteData.tex,
-						quad: q,
-						flipX: this.flipX,
-						flipY: this.flipY,
-						tiled: opt.tiled,
-						width: this.width,
-						height: this.height,
-					}))
+					for (let i = 0; i < 9; i++) {
+						const uv = quads[i]
+						const transform = quads[i + 9]
+						drawTexture(Object.assign(getRenderProps(this), {
+							pos: transform.pos(),
+							tex: spriteData.tex,
+							quad: q.scale(uv),
+							flipX: this.flipX,
+							flipY: this.flipY,
+							tiled: opt.tiled,
+							width: transform.w,
+							height: transform.h,
+						}))
+					}
+
 				} else {
 					drawTexture(Object.assign(getRenderProps(this), {
 						tex: spriteData.tex,
@@ -5033,7 +5055,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	// TODO: land on wall
 	function body(opt: BodyCompOpt = {}): BodyComp {
 
-		let velY = 0
+		const vel = vec2(0)
 		let curPlatform: GameObj<PosComp | AreaComp | BodyComp> | null = null
 		let lastPlatformPos = null
 		let wantFall = false
@@ -5102,7 +5124,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				events.push(this.onPhysicsResolve((col) => {
 					if (game.gravity) {
 						if (col.isBottom() && this.isFalling()) {
-							velY = 0
+							vel.y = 0
 							curPlatform = col.target as GameObj<PosComp | BodyComp | AreaComp>
 							lastPlatformPos = col.target.pos
 							if (wantFall) {
@@ -5111,7 +5133,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 								this.trigger("ground", curPlatform)
 							}
 						} else if (col.isTop() && this.isJumping()) {
-							velY = 0
+							vel.y = 0
 							this.trigger("headbutt", col.target)
 						}
 					}
@@ -5155,13 +5177,13 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 					}
 				}
 
-				const prevVelY = velY
-				velY += game.gravity * this.gravityScale * dt()
-				velY = Math.min(velY, opt.maxVelocity ?? MAX_VEL)
-				if (prevVelY < 0 && velY >= 0) {
+				const prevVelY = vel.y
+				vel.y += game.gravity * this.gravityScale * dt()
+				vel.y = Math.min(vel.y, opt.maxVelocity ?? MAX_VEL)
+				if (prevVelY < 0 && vel.y >= 0) {
 					this.trigger("fall")
 				}
-				this.move(0, velY)
+				this.move(vel)
 
 			},
 
@@ -5186,17 +5208,17 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			},
 
 			isFalling(): boolean {
-				return velY > 0
+				return vel.y > 0
 			},
 
 			isJumping(): boolean {
-				return velY < 0
+				return vel.y < 0
 			},
 
 			jump(force: number) {
 				curPlatform = null
 				lastPlatformPos = null
-				velY = -force || -this.jumpForce
+				vel.y = -force || -this.jumpForce
 			},
 
 			onGround(this: GameObj, action: () => void): EventController {

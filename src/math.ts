@@ -309,6 +309,9 @@ export class Quad {
 			this.h * other.h,
 		)
 	}
+	pos() {
+		return new Vec2(this.x, this.y)
+	}
 	clone(): Quad {
 		return new Quad(this.x, this.y, this.w, this.h)
 	}
@@ -433,9 +436,7 @@ export class Mat4 {
 
 	// TODO: in-place variant
 	mult(other: Mat4): Mat4 {
-
 		const out = []
-
 		for (let i = 0; i < 4; i++) {
 			for (let j = 0; j < 4; j++) {
 				out[i * 4 + j] =
@@ -445,9 +446,7 @@ export class Mat4 {
 					this.m[3 * 4 + j] * other.m[i * 4 + 3]
 			}
 		}
-
 		return new Mat4(out)
-
 	}
 
 	multVec2(p: Vec2): Vec2 {
