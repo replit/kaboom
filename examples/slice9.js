@@ -1,24 +1,25 @@
-// Adding game objects to screen
+// 9 slice sprite scaling
 
-// Start a kaboom game
 kaboom()
 
-// Load a sprite asset from "sprites/bean.png", with the name "bean"
-loadSprite("grass", "/sprites/grass.png", {
+// Load a sprite that's made for 9 slice scaling
+loadSprite("9slice", "/examples/sprites/9slice.png", {
+	// Define the slice by the margins of 4 sides
 	slice9: {
-		left: 8,
-		right: 8,
-		top: 8,
-		bottom: 8,
+		left: 32,
+		right: 32,
+		top: 32,
+		bottom: 32,
 	},
 })
 
 const g = add([
-	sprite("grass"),
+	sprite("9slice"),
 ])
 
 onMouseMove(() => {
 	const mpos = mousePos()
+	// Scaling the image will keep the aspect ratio of the sliced frames
 	g.width = mpos.x
 	g.height = mpos.y
 })

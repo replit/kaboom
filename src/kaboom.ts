@@ -4642,6 +4642,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				}
 
 				if (spriteData.slice9) {
+					// TODO: tile
 					// TODO: use scale or width / height, or both?
 					const { left, right, top, bottom } = spriteData.slice9
 					const tw = spriteData.tex.width * q.w

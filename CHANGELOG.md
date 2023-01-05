@@ -49,7 +49,7 @@ console.log(enemies.length) // 4
 - changed object update order from reversed to not reversed
 - (**BREAK**) removed `GameObj#every()` and `GameObj#revery()` in favor of `obj.get("*").forEach()`
 - (**BREAK**) renamed `GameObj#_id` to `GameObj#id`
-- (**BREAK**) `addLevel()` now returns a `GameObj` which has all individual grid objects as its children game objects, with `LevelComp` containing its previous methods
+- `addLevel()` now returns a `GameObj` which has all individual grid objects as its children game objects, with `LevelComp` containing its previous methods
 - added `onAdd()` and `onDestroy()` events to listen to added / destroyed game objects
 
 ## Components
@@ -159,7 +159,6 @@ loadSprite("player", [
 - added `loadFont()` to load `.ttf`, `.otf`, `.woff2` or any font supported by browser `FontFace`
 - (**BREAK**) renamed previous `loadFont()` to `loadBitmapFont()`
 - (**BREAK**) removed built-in `apl386`, `apl386o`, `sink`, `sinko` (still available under `examples/fonts`)
-- added default font `happy`
 - changed default font size to `36`
 - (**BREAK**) changed to bbcode syntax for styled text
 ```js

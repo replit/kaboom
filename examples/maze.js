@@ -110,7 +110,7 @@ const bean = level.spawn([
 	anchor("center"),
 	pos(32, 32),
 	tile(),
-	agent({ speed: 640, diagonals: false }),
+	agent({ speed: 640, allowDiagonals: true }),
 	"bean",
 ], 1, 1)
 
