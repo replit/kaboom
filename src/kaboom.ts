@@ -163,6 +163,8 @@ import {
 	GamepadButton,
 } from "./types"
 
+import { GAMEPAD_MAPS } from "./gamepads"
+
 import FPSCounter from "./fps"
 import Timer from "./timer"
 
@@ -325,78 +327,6 @@ const COMP_EVENTS = new Set([
 	"inspect",
 	"drawInspect",
 ])
-
-const GAMEPAD_MAPS = {
-	// Generic gamepads
-	"Generic   USB  Joystick   (Vendor: 0079 Product: 0006)": {
-		buttons: {
-			"0": "north",
-			"1": "east",
-			"2": "south",
-			"3": "west",
-			"4": "ltrigger",
-			"5": "rtrigger",
-			"6": "lshoulder",
-			"7": "rshoulder",
-			"8": "select",
-			"9": "start",
-			"10": "lstick",
-			"11": "rstick",
-		},
-		axes: {
-			"left": { x: 0, y: 1 },
-			"right": { x: 2, y: 5 },
-		},
-	},
-
-	// Nintendo Switch JoyCon L+R
-	"Joy-Con L+R (STANDARD GAMEPAD Vendor: 057e Product: 200e)": {
-		buttons: {
-			"0": "south",
-			"1": "east",
-			"2": "north",
-			"3": "west",
-			"4": "ltrigger",
-			"5": "rtrigger",
-			"6": "lshoulder",
-			"7": "rshoulder",
-			"8": "select",
-			"9": "start",
-			"10": "lstick",
-			"11": "rstick",
-			"12": "dpad-south",
-			"13": "dpad-east",
-			"14": "dpad-north",
-			"15": "dpad-west",
-		},
-		axes: {
-			"left": { x: 0, y: 1 },
-			"right": { x: 2, y: 5 },
-		},
-	},
-
-	// if the gamepad isn't recognized
-	"default": {
-		buttons: {
-			"0": "north",
-			"1": "east",
-			"2": "south",
-			"3": "west",
-			"4": "ltrigger",
-			"5": "rtrigger",
-			"6": "lshoulder",
-			"7": "rshoulder",
-			"8": "select",
-			"9": "start",
-			"10": "lstick",
-			"11": "rstick",
-		},
-		axes: {
-			"left": { x: 0, y: 1 },
-			"right": { x: 2, y: 5 },
-		},
-	},
-}
 
 // wrappers around full screen functions to work across browsers
 function enterFullscreen(el: HTMLElement) {
@@ -1080,7 +1010,39 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	const game = {
 
 		// general events
-		ev: new EventHandler(),
+		ev: new EventHandler<{
+			mouseMove: [],
+			mouseDown: [MouseButton],
+			mousePress: [MouseButton],
+			mouseRelease: [MouseButton],
+			charInput: [string],
+			keyPress: [Key],
+			keyDown: [Key],
+			keyPressRepeat: [Key],
+			keyRelease: [Key],
+			touchStart: [Vec2, Touch],
+			touchMove: [Vec2, Touch],
+			touchEnd: [Vec2, Touch],
+			virtualButtonDown: [VirtualButton],
+			virtualButtonPress: [VirtualButton],
+			virtualButtonRelease: [VirtualButton],
+			gamepadButtonDown: [string],
+			gamepadButtonPress: [string],
+			gamepadButtonRelease: [string],
+			gamepadStick: [string, Vec2],
+			gamepadConnect: [Gamepad],
+			gamepadDisconnect: [Gamepad],
+			scroll: [Vec2],
+			add: [GameObj],
+			destroy: [GameObj],
+			load: [],
+			loadUpdate: [number],
+			error: [Error],
+			input: [],
+			frameEnd: [],
+			resize: [number, number, number, number],
+		}>(),
+
 		// object events
 		objEvents: new EventHandler(),
 
@@ -3253,11 +3215,15 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	}
 
 	winEvents.gamepadconnected = (e) => {
-		game.ev.trigger("gamepadConnect", e.gamepad)
+		game.ev.onOnce("input", () => {
+			game.ev.trigger("gamepadConnect", e.gamepad)
+		})
 	}
 
 	winEvents.gamepaddisconnected = (e) => {
-		game.ev.trigger("gamepadDisconnect", e.gamepad)
+		game.ev.onOnce("input", () => {
+			game.ev.trigger("gamepadDisconnect", e.gamepad)
+		})
 	}
 
 	winEvents.unhandledrejection = (e) => handleErr(e.reason)
@@ -3351,6 +3317,10 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			? app.gamepadButtonState.released.size > 0
 			: app.gamepadButtonState.released.has(btn)
 	}
+
+	// function getGamepadStick(stick: "left" | "right"): boolean {
+		
+	// }
 
 	function charInputted(): string[] {
 		return [...app.charInputted]
@@ -4119,7 +4089,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	}
 
 	function onGamepadStick(stick: "left" | "right", action: (value: Vec2) => void): EventController {
-		return game.ev.on("gamepadAxe", ((a: string, v: Vec2) => a === stick && action(v)))
+		return game.ev.on("gamepadStick", ((a: string, v: Vec2) => a === stick && action(v)))
 	}
 
 	function enterDebugMode() {
@@ -6491,21 +6461,21 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 					game.ev.trigger("gamepadButtonDown", map.buttons[i])
 				}
 				else {
-					if(app.gamepadButtonState.pressed.has(map.buttons[i]) || app.gamepadButtonState.down.has(map.buttons[i])) {
+					if(app.gamepadButtonState.down.has(map.buttons[i])) {
 						app.gamepadButtonState.release(map.buttons[i])
 						game.ev.trigger("gamepadButtonRelease", map.buttons[i])
 					}
 				}
 			}
 
-			for(const axeName in map.axes) {
-				const axe = map.axes[axeName]
+			for(const stickName in map.sticks) {
+				const stick = map.sticks[stickName];
 
-				const axeX = gamepad.axes[axe.x]
-				const axeY = gamepad.axes[axe.y]
+				const axiX = gamepad.axes[stick.x]
+				const axiY = gamepad.axes[stick.y]
 
-				if(axeX && axeY) {
-					game.ev.trigger("gamepadAxe", axeName, new Vec2(axeX, axeY))
+				if(axiX && axiY) {
+					game.ev.trigger("gamepadStick", stickName, new Vec2(axiX, axiY))
 				}
 			}
 		}
@@ -7477,6 +7447,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		isGamepadButtonPressed,
 		isGamepadButtonDown,
 		isGamepadButtonReleased,
+		// getGamepadStick,
 		charInputted,
 		// timer
 		loop,

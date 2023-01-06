@@ -40,7 +40,7 @@ scene("game", () => {
 		go("nogamepad")
 	})
 
-	onGamepadAxe("left", (v) => {
+	onGamepadStick("left", (v) => {
 		if(v.x > 0.2) player.move(200, 0)
 		else if (v.x < -0.2) player.move(-200, 0)
 	})
