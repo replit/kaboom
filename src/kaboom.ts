@@ -56,6 +56,7 @@ import {
 	benchmark,
 	// eslint-disable-next-line
 	comparePerf,
+	BinaryHeap,
 } from "./utils"
 
 import {
@@ -138,8 +139,10 @@ import {
 	KaboomPlugin,
 	MergeObj,
 	LevelComp,
+	Edge,
+	EdgeMask,
 	TileComp,
-	ObstacleComp,
+	TileCompOpt,
 	LevelOpt,
 	Cursor,
 	Recording,
@@ -151,7 +154,12 @@ import {
 	TimerController,
 	TweenController,
 	LoadFontOpt,
+	AgentComp,
+	AgentCompOpt,
+	PathFindOpt,
 	GetOpt,
+	Vec2Args,
+	NineSlice,
 	GamepadButton,
 } from "./types"
 
@@ -225,6 +233,7 @@ const SPRITE_ATLAS_WIDTH = 2048
 const SPRITE_ATLAS_HEIGHT = 2048
 // 0.1 pixel padding to texture coordinates to prevent artifact
 const UV_PAD = 0.1
+const DEF_HASH_GRID_SIZE = 64
 
 const LOG_MAX = 1
 
@@ -880,18 +889,24 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		tex: Texture
 		frames: Quad[] = [ new Quad(0, 0, 1, 1) ]
 		anims: SpriteAnims = {}
+		slice9: NineSlice | null = null
 
-		constructor(tex: Texture, frames?: Quad[], anims: SpriteAnims = {}) {
+		constructor(
+			tex: Texture,
+			frames?: Quad[],
+			anims: SpriteAnims = {},
+			slice9: NineSlice = null,
+		) {
 			this.tex = tex
 			if (frames) this.frames = frames
 			this.anims = anims
+			this.slice9 = slice9
 		}
 
 		static from(src: LoadSpriteSrc, opt: LoadSpriteOpt = {}): Promise<SpriteData> {
 			return typeof src === "string"
 				? SpriteData.fromURL(src, opt)
-				: Promise.resolve(SpriteData.fromImage(src, opt),
-				)
+				: Promise.resolve(SpriteData.fromImage(src, opt))
 		}
 
 		static fromImage(data: TexImageSource, opt: LoadSpriteOpt = {}): SpriteData {
@@ -902,7 +917,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				f.w * quad.w,
 				f.h * quad.h,
 			)) : slice(opt.sliceX || 1, opt.sliceY || 1, quad.x, quad.y, quad.w, quad.h)
-			return new SpriteData(tex, frames, opt.anims ?? {})
+			return new SpriteData(tex, frames, opt.anims, opt.slice9)
 		}
 
 		static fromURL(url: string, opt: LoadSpriteOpt = {}): Promise<SpriteData> {
@@ -1991,14 +2006,14 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		gfx.transform = m.clone()
 	}
 
-	function pushTranslate(...args) {
+	function pushTranslate(...args: Vec2Args) {
 		if (args[0] === undefined) return
 		const p = vec2(...args)
 		if (p.x === 0 && p.y === 0) return
 		gfx.transform.translate(p)
 	}
 
-	function pushScale(...args) {
+	function pushScale(...args: Vec2Args) {
 		if (args[0] === undefined) return
 		const p = vec2(...args)
 		if (p.x === 1 && p.y === 1) return
@@ -3132,7 +3147,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			const touches = [...e.changedTouches]
 			touches.forEach((t) => {
 				game.ev.trigger(
-					"onTouchStart",
+					"touchStart",
 					windowToContent(new Vec2(t.clientX, t.clientY)),
 					t,
 				)
@@ -3152,13 +3167,13 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			const touches = [...e.changedTouches]
 			touches.forEach((t) => {
 				game.ev.trigger(
-					"onTouchMove",
+					"touchMove",
 					windowToContent(new Vec2(t.clientX, t.clientY)),
 					t,
 				)
 			})
 			if (gopt.touchToMouse !== false) {
-				game.ev.trigger("mouseMove", "left")
+				game.ev.trigger("mouseMove")
 				setMousePos(touches[0].clientX, touches[0].clientY)
 			}
 		})
@@ -3169,7 +3184,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			const touches = [...e.changedTouches]
 			touches.forEach((t) => {
 				game.ev.trigger(
-					"onTouchEnd",
+					"touchEnd",
 					windowToContent(new Vec2(t.clientX, t.clientY)),
 					t,
 				)
@@ -3186,7 +3201,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			const touches = [...e.changedTouches]
 			touches.forEach((t) => {
 				game.ev.trigger(
-					"onTouchEnd",
+					"touchEnd",
 					windowToContent(new Vec2(t.clientX, t.clientY)),
 					t,
 				)
@@ -3218,6 +3233,10 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				}
 				break
 			case "hidden":
+				// reset input when visibility changed
+				app.keyState = new ButtonState()
+				app.mouseState = new ButtonState()
+				app.virtualButtonState = new ButtonState()
 				if (!gopt.backgroundAudio) {
 					audio.ctx.suspend()
 				}
@@ -3405,14 +3424,14 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		return app.dt * debug.timeScale
 	}
 
-	function camPos(...pos): Vec2 {
+	function camPos(...pos: Vec2Args): Vec2 {
 		if (pos.length > 0) {
 			game.cam.pos = vec2(...pos)
 		}
 		return game.cam.pos ? game.cam.pos.clone() : center()
 	}
 
-	function camScale(...scale): Vec2 {
+	function camScale(...scale: Vec2Args): Vec2 {
 		if (scale.length > 0) {
 			game.cam.scale = vec2(...scale)
 		}
@@ -3449,7 +3468,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	function make<T>(comps: CompList<T>): GameObj<T> {
 
 		const compStates = new Map()
-		const customState = {}
+		const cleanups = {}
 		const ev = new EventHandler()
 
 		// TODO: "this" should be typed here
@@ -3553,35 +3572,14 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 					})
 				}
 
+				let gc = []
+
 				// clear if overwrite
 				if (comp.id) {
 					this.unuse(comp.id)
-					compStates.set(comp.id, {
-						cleanups: [],
-					})
-				}
-
-				// state source location
-				const state = comp.id ? compStates.get(comp.id) : customState
-				const cleanups = comp.id ? state.cleanups : []
-
-				// check for component dependencies
-				const checkDeps = () => {
-					if (comp.require) {
-						for (const dep of comp.require) {
-							if (!this.c(dep)) {
-								throw new Error(`Component "${comp.id}" requires component "${dep}"`)
-							}
-						}
-					}
-				}
-
-				if (comp.destroy) {
-					cleanups.push(comp.destroy)
-				}
-
-				if (comp.require && !this.exists() && state.cleanups) {
-					cleanups.push(this.on("add", checkDeps))
+					cleanups[comp.id] = []
+					gc = cleanups[comp.id]
+					compStates.set(comp.id, comp)
 				}
 
 				for (const k in comp) {
@@ -3590,54 +3588,77 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 						continue
 					}
 
-					// event / custom method
-					if (typeof comp[k] === "function") {
-						const func = comp[k].bind(this)
-						if (COMP_EVENTS.has(k)) {
-							cleanups.push(this.on(k, func))
-							state[k] = func
-							// don't bind to game object if it's an event
-							continue
-						} else {
-							state[k] = func
-						}
-					} else {
-						state[k] = comp[k]
+					const prop = Object.getOwnPropertyDescriptor(comp, k)
+
+					if (typeof prop.value === "function") {
+						comp[k] = comp[k].bind(this)
 					}
 
-					if (this[k] === undefined) {
-						// assign comp fields to game obj
-						Object.defineProperty(this, k, {
-							get: () => state[k],
-							set: (val) => state[k] = val,
-							configurable: true,
-							enumerable: true,
+					if (prop.set) {
+						Object.defineProperty(comp, k, {
+							set: prop.set.bind(this),
 						})
-					} else {
-						throw new Error(`Duplicate component property: "${k}"`)
 					}
 
+					if (prop.get) {
+						Object.defineProperty(comp, k, {
+							get: prop.get.bind(this),
+						})
+					}
+
+					if (COMP_EVENTS.has(k)) {
+						gc.push(this.on(k, comp[k]).cancel)
+					} else {
+						if (this[k] === undefined) {
+							// assign comp fields to game obj
+							Object.defineProperty(this, k, {
+								get: () => comp[k],
+								set: (val) => comp[k] = val,
+								configurable: true,
+								enumerable: true,
+							})
+							gc.push(() => delete this[k])
+						} else {
+							throw new Error(`Duplicate component property: "${k}"`)
+						}
+					}
+
+				}
+
+				// check for component dependencies
+				const checkDeps = () => {
+					if (!comp.require) return
+					for (const dep of comp.require) {
+						if (!this.c(dep)) {
+							throw new Error(`Component "${comp.id}" requires component "${dep}"`)
+						}
+					}
+				}
+
+				if (comp.destroy) {
+					gc.push(comp.destroy.bind(this))
 				}
 
 				// manually trigger add event if object already exist
 				if (this.exists()) {
 					checkDeps()
-					if (comp.add) {
-						comp.add.call(this)
+					if (comp.add) comp.add.call(this)
+				} else {
+					if (comp.require) {
+						gc.push(this.on("add", checkDeps).cancel)
 					}
 				}
 
 			},
 
 			unuse(id: Tag) {
-				if (compStates.has(id)) {
-					const comp = compStates.get(id)
-					comp.cleanups.forEach((e) => e.cancel())
-					for (const k in comp) {
-						delete comp[k]
-					}
+				if (cleanups[id]) {
+					cleanups[id].forEach((e) => e())
+					delete cleanups[id]
 				}
-				compStates.delete(id)
+				if (compStates.has(id)) {
+					compStates.delete(id)
+				}
 			},
 
 			c(id: Tag): Comp {
@@ -3825,6 +3846,22 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		f: (a: GameObj, b: GameObj, col?: Collision) => void,
 	): EventController {
 		return on("collide", t1, (a, b, col) => b.is(t2) && f(a, b, col))
+	}
+
+	function onCollideUpdate(
+		t1: Tag,
+		t2: Tag,
+		f: (a: GameObj, b: GameObj, col?: Collision) => void,
+	): EventController {
+		return on("collideUpdate", t1, (a, b, col) => b.is(t2) && f(a, b, col))
+	}
+
+	function onCollideEnd(
+		t1: Tag,
+		t2: Tag,
+		f: (a: GameObj, b: GameObj, col?: Collision) => void,
+	): EventController {
+		return on("collideEnd", t1, (a, b, col) => b.is(t2) && f(a, b, col))
 	}
 
 	function forAllCurrentAndFuture(t: Tag, action: (obj: GameObj) => void) {
@@ -4030,15 +4067,15 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	}
 
 	function onTouchStart(f: (pos: Vec2, t: Touch) => void): EventController {
-		return game.ev.on("onTouchStart", f)
+		return game.ev.on("touchStart", f)
 	}
 
 	function onTouchMove(f: (pos: Vec2, t: Touch) => void): EventController {
-		return game.ev.on("onTouchMove", f)
+		return game.ev.on("touchMove", f)
 	}
 
 	function onTouchEnd(f: (pos: Vec2, t: Touch) => void): EventController {
-		return game.ev.on("onTouchEnd", f)
+		return game.ev.on("touchEnd", f)
 	}
 
 	function onScroll(action: (delta: Vec2) => void): EventController {
@@ -4131,19 +4168,19 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	}
 
 	// TODO: manage global velocity here?
-	function pos(...args): PosComp {
+	function pos(...args: Vec2Args): PosComp {
 
 		return {
 
 			id: "pos",
 			pos: vec2(...args),
 
-			moveBy(...args) {
+			moveBy(...args: Vec2Args) {
 				this.pos = this.pos.add(vec2(...args))
 			},
 
 			// move with velocity (pixels per second)
-			move(...args) {
+			move(...args: Vec2Args) {
 				this.moveBy(vec2(...args).scale(dt()))
 			},
 
@@ -4195,17 +4232,17 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	}
 
 	// TODO: allow single number assignment
-	function scale(...args): ScaleComp {
+	function scale(...args: Vec2Args): ScaleComp {
 		if (args.length === 0) {
 			return scale(1)
 		}
 		return {
 			id: "scale",
 			scale: vec2(...args),
-			scaleTo(...args) {
+			scaleTo(...args: Vec2Args) {
 				this.scale = vec2(...args)
 			},
-			scaleBy(...args) {
+			scaleBy(...args: Vec2Args) {
 				this.scale.scale(vec2(...args))
 			},
 			inspect() {
@@ -4355,9 +4392,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 					if (opt.pause) this.paused = false
 				}
 			},
-			inspect() {
-				return `${this.isOffScreen()}`
-			},
 		}
 	}
 
@@ -4446,7 +4480,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 			area: {
 				shape: opt.shape ?? null,
-				scale: opt.scale ?? vec2(1),
+				scale: opt.scale ? vec2(opt.scale) : vec2(1),
 				offset: opt.offset ?? vec2(0),
 				cursor: opt.cursor ?? null,
 			},
@@ -4461,7 +4495,11 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			},
 
 			checkCollision(this: GameObj, other: GameObj<AreaComp>) {
-				return this.colliding[other.id] ?? null
+				return colliding[other.id] ?? null
+			},
+
+			getCollisions() {
+				return Object.values(colliding)
 			},
 
 			isColliding(other: GameObj<AreaComp>) {
@@ -4641,6 +4679,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 		let spriteData: SpriteData | null = null
 		let curAnim: SpriteCurAnim | null = null
+		const spriteLoadedEvent = new Event<[SpriteData]>()
 
 		if (!src) {
 			throw new Error("Please pass the resource name or data to sprite()")
@@ -4683,15 +4722,68 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 					throw new Error(`Frame not found: ${this.frame ?? 0}`)
 				}
 
-				drawTexture(Object.assign(getRenderProps(this), {
-					tex: spriteData.tex,
-					quad: q,
-					flipX: this.flipX,
-					flipY: this.flipY,
-					tiled: opt.tiled,
-					width: opt.width,
-					height: opt.height,
-				}))
+				if (spriteData.slice9) {
+					// TODO: tile
+					// TODO: use scale or width / height, or both?
+					const { left, right, top, bottom } = spriteData.slice9
+					const tw = spriteData.tex.width * q.w
+					const th = spriteData.tex.height * q.h
+					const iw = this.width - left - right
+					const ih = this.height - top - bottom
+					const w1 = left / tw
+					const w3 = right / tw
+					const w2 = 1 - w1 - w3
+					const h1 = top / th
+					const h3 = bottom / th
+					const h2 = 1 - h1 - h3
+					const quads = [
+						// uv
+						quad(0,       0,       w1, h1),
+						quad(w1,      0,       w2, h1),
+						quad(w1 + w2, 0,       w3, h1),
+						quad(0,       h1,      w1, h2),
+						quad(w1,      h1,      w2, h2),
+						quad(w1 + w2, h1,      w3, h2),
+						quad(0,       h1 + h2, w1, h3),
+						quad(w1,      h1 + h2, w2, h3),
+						quad(w1 + w2, h1 + h2, w3, h3),
+						// transform
+						quad(0,         0,        left,  top),
+						quad(left,      0,        iw,    top),
+						quad(left + iw, 0,        right, top),
+						quad(0,         top,      left,  ih),
+						quad(left,      top,      iw,    ih),
+						quad(left + iw, top,      right, ih),
+						quad(0,         top + ih, left,  bottom),
+						quad(left,      top + ih, iw,    bottom),
+						quad(left + iw, top + ih, right, bottom),
+					]
+					for (let i = 0; i < 9; i++) {
+						const uv = quads[i]
+						const transform = quads[i + 9]
+						drawTexture(Object.assign(getRenderProps(this), {
+							pos: transform.pos(),
+							tex: spriteData.tex,
+							quad: q.scale(uv),
+							flipX: this.flipX,
+							flipY: this.flipY,
+							tiled: opt.tiled,
+							width: transform.w,
+							height: transform.h,
+						}))
+					}
+
+				} else {
+					drawTexture(Object.assign(getRenderProps(this), {
+						tex: spriteData.tex,
+						quad: q,
+						flipX: this.flipX,
+						flipY: this.flipY,
+						tiled: opt.tiled,
+						width: this.width,
+						height: this.height,
+					}))
+				}
 
 			},
 
@@ -4722,7 +4814,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 					}
 
 					spriteData = spr.data
-					this.trigger("spriteLoaded", spriteData)
+					spriteLoadedEvent.trigger(spriteData)
 
 				}
 
@@ -4776,9 +4868,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			play(this: GameObj<SpriteComp>, name: string, opt: SpriteAnimPlayOpt = {}) {
 
 				if (!spriteData) {
-					this.on("spriteLoaded", () => {
-						this.play(name, opt)
-					})
+					spriteLoadedEvent.add(() => this.play(name, opt))
 					return
 				}
 
@@ -5047,7 +5137,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	// TODO: land on wall
 	function body(opt: BodyCompOpt = {}): BodyComp {
 
-		let velY = 0
+		const vel = vec2(0)
 		let curPlatform: GameObj<PosComp | AreaComp | BodyComp> | null = null
 		let lastPlatformPos = null
 		let wantFall = false
@@ -5116,7 +5206,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				events.push(this.onPhysicsResolve((col) => {
 					if (game.gravity) {
 						if (col.isBottom() && this.isFalling()) {
-							velY = 0
+							vel.y = 0
 							curPlatform = col.target as GameObj<PosComp | BodyComp | AreaComp>
 							lastPlatformPos = col.target.pos
 							if (wantFall) {
@@ -5125,7 +5215,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 								this.trigger("ground", curPlatform)
 							}
 						} else if (col.isTop() && this.isJumping()) {
-							velY = 0
+							vel.y = 0
 							this.trigger("headbutt", col.target)
 						}
 					}
@@ -5169,13 +5259,13 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 					}
 				}
 
-				const prevVelY = velY
-				velY += game.gravity * this.gravityScale * dt()
-				velY = Math.min(velY, opt.maxVelocity ?? MAX_VEL)
-				if (prevVelY < 0 && velY >= 0) {
+				const prevVelY = vel.y
+				vel.y += game.gravity * this.gravityScale * dt()
+				vel.y = Math.min(vel.y, opt.maxVelocity ?? MAX_VEL)
+				if (prevVelY < 0 && vel.y >= 0) {
 					this.trigger("fall")
 				}
-				this.move(0, velY)
+				this.move(vel)
 
 			},
 
@@ -5200,17 +5290,17 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			},
 
 			isFalling(): boolean {
-				return velY > 0
+				return vel.y > 0
 			},
 
 			isJumping(): boolean {
-				return velY < 0
+				return vel.y < 0
 			},
 
 			jump(force: number) {
 				curPlatform = null
 				lastPlatformPos = null
-				velY = -force || -this.jumpForce
+				vel.y = -force || -this.jumpForce
 			},
 
 			onGround(this: GameObj, action: () => void): EventController {
@@ -5581,48 +5671,100 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		return vec2(width() / 2, height() / 2)
 	}
 
-	function tile(level: GameObj<LevelComp>, p: Vec2): TileComp {
+	function tile(opts: TileCompOpt = {}): TileComp {
+
+		let tilePos = vec2(0)
+		let isObstacle = opts.isObstacle ?? false
+		let cost = opts.cost ?? 0
+		let edges = opts.edges ?? []
+
+		const getEdgeMask = () => {
+			const loopup = {
+				"left": EdgeMask.Left,
+				"top": EdgeMask.Top,
+				"right": EdgeMask.Right,
+				"bottom": EdgeMask.Bottom,
+			}
+			return edges.map(s => loopup[s] || 0).reduce((mask, dir) => mask | dir, 0)
+		}
+
+		let edgeMask = getEdgeMask()
 
 		return {
 
 			id: "tile",
-			tilePos: p.clone(),
+			tilePosOffset: opts.offset ?? vec2(0),
 
-			setTilePos(this: GameObj<TileComp | PosComp>, ...args) {
-				const p = vec2(...args)
-				this.tilePos = p.clone()
+			set tilePos(p: Vec2) {
+				const level = this.getLevel()
+				tilePos = p.clone()
+				// @ts-ignore
 				this.pos = vec2(
 					this.tilePos.x * level.tileWidth(),
 					this.tilePos.y * level.tileHeight(),
-				)
+				).add(this.tilePosOffset)
+			},
+
+			get tilePos() {
+				return tilePos
+			},
+
+			set isObstacle(is: boolean) {
+				if (isObstacle === is) return
+				isObstacle = is
+				this.getLevel().invalidateNavigationMap()
+			},
+
+			get isObstacle() {
+				return isObstacle
+			},
+
+			set cost(n: number) {
+				if (cost === n) return
+				cost = n
+				this.getLevel().invalidateNavigationMap()
+			},
+
+			get cost() {
+				return cost
+			},
+
+			set edges(e: Edge[]) {
+				edges = e
+				edgeMask = getEdgeMask()
+				this.getLevel().invalidateNavigationMap()
+			},
+
+			get edges() {
+				return edges
+			},
+
+			get edgeMask() {
+				return edgeMask
+			},
+
+			getLevel(this: GameObj) {
+				return this.parent as GameObj<LevelComp>
 			},
 
 			moveLeft() {
-				this.setTilePos(this.tilePos.add(vec2(-1, 0)))
+				this.tilePos = this.tilePos.add(vec2(-1, 0))
 			},
 
 			moveRight() {
-				this.setTilePos(this.tilePos.add(vec2(1, 0)))
+				this.tilePos = this.tilePos.add(vec2(1, 0))
 			},
 
 			moveUp() {
-				this.setTilePos(this.tilePos.add(vec2(0, -1)))
+				this.tilePos = this.tilePos.add(vec2(0, -1))
 			},
 
 			moveDown() {
-				this.setTilePos(this.tilePos.add(vec2(0, 1)))
+				this.tilePos = this.tilePos.add(vec2(0, 1))
 			},
 
 		}
 
-	}
-
-	function obstacle(): ObstacleComp {
-		return {
-			id: "obstacle",
-			require: [ "tile" ],
-			isObstacle: true,
-		}
 	}
 
 	function addLevel(map: string[], opt: LevelOpt): GameObj<PosComp | LevelComp> {
@@ -5633,10 +5775,212 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 		const level = add([
 			pos(opt.pos ?? vec2(0)),
-		])
+		]) as GameObj<PosComp | LevelComp>
 
 		const numRows = map.length
 		let numColumns = 0
+
+		// The spatial map keeps track of the objects at each location
+		let spatialMap: GameObj[][] | null = null
+		let costMap: number[] | null = null
+		let edgeMap: number[] | null = null
+		let connectivityMap: number[] | null = null
+
+		const tile2Hash = (tilePos: Vec2) => tilePos.x + tilePos.y * numColumns
+		const hash2Tile = (hash: number) => vec2(
+			Math.floor(hash % numColumns),
+			Math.floor(hash / numColumns),
+		)
+
+		const createSpatialMap = () => {
+			spatialMap = []
+			for (const child of level.children) {
+				insertIntoSpatialMap(child)
+			}
+		}
+
+		const insertIntoSpatialMap = (obj: GameObj) => {
+			const i = tile2Hash(obj.tilePos)
+			if (spatialMap[i]) {
+				spatialMap[i].push(obj)
+			} else {
+				spatialMap[i] = [obj]
+			}
+		}
+
+		const removeFromSpatialMap = (obj: GameObj) => {
+			const i = tile2Hash(obj.tilePos)
+			if (spatialMap[i]) {
+				const index = spatialMap[i].indexOf(obj)
+				if (index >= 0) {
+					spatialMap[i].splice(index, 1)
+				}
+			}
+		}
+
+		const updateSpatialMap = () => {
+			let spatialMapChanged = false
+			for (const child of level.children) {
+				const tilePos = level.pos2Tile(child.pos)
+				if (child.tilePos.x != tilePos.x || child.tilePos.y != tilePos.y) {
+					spatialMapChanged = true
+					removeFromSpatialMap(child)
+					child.tilePos.x = tilePos.x
+					child.tilePos.y = tilePos.y
+					insertIntoSpatialMap(child)
+				}
+			}
+			if (spatialMapChanged) {
+				level.trigger("spatial_map_changed")
+			}
+		}
+
+		// The obstacle map tells which tiles are accessible
+		// Cost: accessible with cost
+		// Infinite: inaccessible
+		const createCostMap = () => {
+			const spatialMap = level.getSpatialMap()
+			const size = level.numRows() * level.numColumns()
+			if (!costMap) {
+				costMap = new Array<number>(size)
+			}
+			else {
+				costMap.length = size
+			}
+			costMap.fill(1, 0, size)
+			for (let i = 0; i < spatialMap.length; i++) {
+				const objects = spatialMap[i]
+				if (objects) {
+					let cost = 0
+					for (const obj of objects) {
+						if (obj.isObstacle) {
+							cost = Infinity
+							break
+						} else {
+							cost += obj.cost
+						}
+					}
+					costMap[i] = cost || 1
+				}
+			}
+		}
+
+		// The edge map tells which edges between nodes are walkable
+		const createEdgeMap = () => {
+			const spatialMap = level.getSpatialMap()
+			const size = level.numRows() * level.numColumns()
+			if (!edgeMap) {
+				edgeMap = new Array<number>(size)
+			}
+			else {
+				edgeMap.length = size
+			}
+			edgeMap.fill(EdgeMask.All, 0, size)
+			for (let i = 0; i < spatialMap.length; i++) {
+				const objects = spatialMap[i]
+				if (objects) {
+					const len = objects.length
+					let mask = EdgeMask.All
+					for (let j = 0; j < len; j++) {
+						mask |= objects[j].edgeMask
+					}
+					edgeMap[i] = mask
+				}
+			}
+		}
+
+		// The connectivity map is used to see whether two locations are connected
+		// -1: inaccesible n: connectivity group
+		const createConnectivityMap = () => {
+			const size = level.numRows() * level.numColumns()
+			const traverse = (i: number, index: number) => {
+				const frontier: number[] = []
+				frontier.push(i)
+				while (frontier.length > 0) {
+					const i = frontier.pop()
+					getNeighbours(i).forEach((i) => {
+						if (connectivityMap[i] < 0) {
+							connectivityMap[i] = index
+							frontier.push(i)
+						}
+					})
+				}
+			}
+			if (!connectivityMap) {
+				connectivityMap = new Array<number>(size)
+			}
+			else {
+				connectivityMap.length = size
+			}
+			connectivityMap.fill(-1, 0, size)
+			let index = 0
+			for (let i = 0; i < costMap.length; i++) {
+				if (connectivityMap[i] >= 0) { index++; continue }
+				traverse(i, index)
+				index++
+			}
+		}
+
+		const getCost = (node: number, neighbour: number) => {
+			// Cost of destination tile
+			return costMap[neighbour]
+		}
+
+		const getHeuristic = (node: number, goal: number) => {
+			// Euclidian distance to target
+			const p1 = hash2Tile(node)
+			const p2 = hash2Tile(goal)
+			return p1.dist(p2)
+		}
+
+		const getNeighbours = (node: number, diagonals?: boolean) => {
+			const n = []
+			const x = Math.floor(node % numColumns)
+			const left = x > 0 &&
+				(edgeMap[node] & EdgeMask.Left) &&
+				costMap[node - 1] !== Infinity
+			const top = node >= numColumns &&
+				(edgeMap[node] & EdgeMask.Top) &&
+				costMap[node - numColumns] !== Infinity
+			const right = x < numColumns - 1 &&
+				(edgeMap[node] & EdgeMask.Right) &&
+				costMap[node + 1] !== Infinity
+			const bottom = node < numColumns * numRows - numColumns - 1 &&
+				(edgeMap[node] & EdgeMask.Bottom) &&
+				costMap[node + numColumns] !== Infinity
+			if (diagonals) {
+				if (left) {
+					if (top) { n.push(node - numColumns - 1) }
+					n.push(node - 1)
+					if (bottom) { n.push(node + numColumns - 1) }
+				}
+				if (top) {
+					n.push(node - numColumns)
+				}
+				if (right) {
+					if (top) { n.push(node - numColumns + 1) }
+					n.push(node + 1)
+					if (bottom) { n.push(node + numColumns + 1) }
+				}
+				if (bottom) {
+					n.push(node + numColumns)
+				}
+			} else {
+				if (left) {
+					n.push(node - 1)
+				}
+				if (top) {
+					n.push(node - numColumns)
+				}
+				if (right) {
+					n.push(node + 1)
+				}
+				if (bottom) {
+					n.push(node + numColumns)
+				}
+			}
+			return n
+		}
 
 		const levelComp: LevelComp = {
 
@@ -5650,50 +5994,58 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				return opt.tileHeight
 			},
 
-			getPos(...args): Vec2 {
-				const p = vec2(...args)
-				return vec2(
-					p.x * opt.tileWidth,
-					p.y * opt.tileHeight,
-				)
-			},
-
-			spawn(this: GameObj<LevelComp>, key: string, ...args): GameObj {
+			spawn(this: GameObj<LevelComp>, key: string | CompList<any>, ...args: Vec2Args): GameObj | null {
 
 				const p = vec2(...args)
 
 				const comps = (() => {
-					if (opt.tiles[key]) {
-						if (typeof opt.tiles[key] !== "function") {
-							throw new Error("Level symbol def must be a function returning a component list")
+					if (typeof key === "string") {
+						if (opt.tiles[key]) {
+							if (typeof opt.tiles[key] !== "function") {
+								throw new Error("Level symbol def must be a function returning a component list")
+							}
+							return opt.tiles[key](p)
+						} else if (opt.wildcardTile) {
+							return opt.wildcardTile(key, p)
 						}
-						return opt.tiles[key](p)
-					} else if (opt.wildcardTile) {
-						return opt.wildcardTile(key, p)
+					} else if (Array.isArray(key)) {
+						return key
+					} else {
+						throw new Error("Expected a symbol or a component list")
 					}
 				})()
 
+				// empty tile
 				if (!comps) {
-					return
+					return null
 				}
 
-				const posComp = vec2(
-					p.x * opt.tileWidth,
-					p.y * opt.tileHeight,
-				)
+				let hasPos = false
+				let hasTile = false
 
 				for (const comp of comps) {
-					if (comp.id === "pos") {
-						posComp.x += comp.pos.x
-						posComp.y += comp.pos.y
-						break
-					}
+					if (comp.id === "tile") hasTile = true
+					if (comp.id === "pos") hasPos = true
 				}
 
-				comps.push(pos(posComp))
-				comps.push(tile(this, p))
+				if (!hasPos) comps.push(pos())
+				if (!hasTile) comps.push(tile())
 
-				return level.add(comps)
+				const obj = level.add(comps)
+
+				if (hasPos) {
+					obj.tilePosOffset = obj.pos.clone()
+				}
+
+				obj.tilePos = p
+
+				if (spatialMap) {
+					insertIntoSpatialMap(obj)
+					this.trigger("spatial_map_changed")
+					this.trigger("navigation_map_invalid")
+				}
+
+				return obj
 
 			},
 
@@ -5706,31 +6058,289 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			},
 
 			levelWidth() {
-				return numColumns * opt.tileWidth
+				return numColumns * this.tileWidth()
 			},
 
 			levelHeight() {
-				return numRows * opt.tileHeight
+				return numRows * this.tileHeight()
+			},
+
+			tile2Pos(...args: Vec2Args) {
+				return vec2(...args).scale(this.tileWidth(), this.tileHeight())
+			},
+
+			pos2Tile(...args: Vec2Args) {
+				const p = vec2(...args)
+				return vec2(
+					Math.floor(p.x / this.tileWidth()),
+					Math.floor(p.y / this.tileHeight()),
+				)
+			},
+
+			getSpatialMap() {
+				if (!spatialMap) {
+					createSpatialMap()
+				}
+				return spatialMap
+			},
+
+			onSpatialMapChanged(this: GameObj<LevelComp>, cb: () => void) {
+				return this.on("spatial_map_changed", cb)
+			},
+
+			onNavigationMapInvalid(this: GameObj<LevelComp>, cb: () => void) {
+				return this.on("navigation_map_invalid", cb)
+			},
+
+			getAt(tilePos: Vec2) {
+				if (!spatialMap) {
+					createSpatialMap()
+				}
+				const hash = tile2Hash(tilePos)
+				return spatialMap[hash] || []
+			},
+
+			update() {
+				if (spatialMap) {
+					updateSpatialMap()
+				}
+			},
+
+			invalidateNavigationMap() {
+				costMap = null
+				edgeMap = null
+				connectivityMap = null
+			},
+
+			onNavigationMapChanged(this: GameObj<LevelComp>, cb: () => void) {
+				return this.on("navigation_map_changed", cb)
+			},
+
+			getTilePath(this: GameObj<LevelComp>, from: Vec2, to: Vec2, opts: PathFindOpt = {}) {
+				if (!costMap) {
+					createCostMap()
+				}
+				if (!edgeMap) {
+					createEdgeMap()
+				}
+				if (!connectivityMap) {
+					createConnectivityMap()
+				}
+
+				// Tiles are outside the grid
+				if (from.x < 0 || from.x >= numColumns ||
+					from.y < 0 || from.y >= numRows) {
+					return null
+				}
+				if (to.x < 0 || to.x >= numColumns ||
+					to.y < 0 || to.y >= numRows) {
+					return null
+				}
+
+				const start = tile2Hash(from)
+				const goal = tile2Hash(to)
+
+				// Tiles are not accessible
+				// If we test the start tile, we may get stuck
+				/*if (costMap[start] === Infinity) {
+					return null
+				}*/
+				if (costMap[goal] === Infinity) {
+					return null
+				}
+
+				// Same Tile, no waypoints needed
+				if (start === goal) {
+					return []
+				}
+
+				// Tiles are not within the same section
+				// If we test the start tile when invalid, we may get stuck
+				if (connectivityMap[start] != -1 && connectivityMap[start] !== connectivityMap[goal]) {
+					return null
+				}
+
+				// Find a path
+				interface CostNode { cost: number, node: number }
+				const frontier = new BinaryHeap<CostNode>((a, b) => a.cost < b.cost)
+				frontier.insert({ cost: 0, node: start })
+
+				const cameFrom = new Map<number, number>()
+				cameFrom.set(start, start)
+				const costSoFar = new Map<number, number>()
+				costSoFar.set(start, 0)
+
+				while (frontier.length !== 0) {
+					const current = frontier.remove()?.node
+
+					if (current === goal)
+						break
+
+					const neighbours = getNeighbours(current, opts.allowDiagonals)
+					for (const next of neighbours) {
+						const newCost = (costSoFar.get(current) || 0) +
+							getCost(current, next) +
+							getHeuristic(next, goal)
+						if (!costSoFar.has(next) || newCost < costSoFar.get(next)) {
+							costSoFar.set(next, newCost)
+							frontier.insert({ cost: newCost, node: next })
+							cameFrom.set(next, current)
+						}
+					}
+				}
+
+				const path = []
+				let node = goal
+				const p = hash2Tile(node)
+				path.push(p)
+				while (node !== start) {
+					node = cameFrom.get(node)
+					const p = hash2Tile(node)
+					path.push(p)
+				}
+				return path.reverse()
+			},
+
+			getPath(this: GameObj<LevelComp>, from: Vec2, to: Vec2, opts: PathFindOpt = {}) {
+				const tw = this.tileWidth()
+				const th = this.tileHeight()
+				const path = this.getTilePath(
+					this.pos2Tile(from),
+					this.pos2Tile(to),
+					opts,
+				)
+				if (path) {
+					return [
+						from,
+						...path
+							.slice(1, -1)
+							.map((tilePos) => tilePos.scale(tw, th).add(tw / 2, th / 2)),
+						to,
+					]
+				}
+				else {
+					return null
+				}
 			},
 
 		}
 
 		level.use(levelComp)
 
+		level.onNavigationMapInvalid(() => {
+			level.invalidateNavigationMap()
+			level.trigger("navigation_map_changed")
+		})
+
 		map.forEach((row, i) => {
-
 			const keys = row.split("")
-
 			numColumns = Math.max(keys.length, numColumns)
-
 			keys.forEach((key, j) => {
 				level.spawn(key, vec2(j, i))
 			})
-
 		})
 
 		return level
 
+	}
+
+	function agent(opts: AgentCompOpt = {}) : AgentComp {
+		let target: Vec2 | null = null
+		let path: Vec2[] | null = null
+		let index: number | null = null
+		let navMapChangedEvent: EventController | null = null
+		return {
+			id: "agent",
+			require: ["pos", "tile"],
+			agentSpeed: opts.speed ?? 100,
+			allowDiagonals: opts.allowDiagonals ?? true,
+			getDistanceToTarget(this: GameObj<AgentComp | PosComp>) {
+				return target ? this.pos.dist(target) : 0
+			},
+			getNextLocation() {
+				return path && index ? path[index] : null
+			},
+			getPath() {
+				return path ? path.slice() : null
+			},
+			getTarget() {
+				return target
+			},
+			isNavigationFinished() {
+				return path ? index === null : true
+			},
+			isTargetReachable() {
+				return path !== null
+			},
+			isTargetReached(this: GameObj<AgentComp | PosComp>) {
+				return target ? this.pos.eq(target) : true
+			},
+			setTarget(this: GameObj<AgentComp | TileComp | PosComp>, p: Vec2) {
+				target = p
+				path = this.getLevel().getPath(this.pos, target, {
+					allowDiagonals: this.allowDiagonals,
+				})
+				index = path ? 0 : null
+				if (path) {
+					if (!navMapChangedEvent) {
+						navMapChangedEvent = this.getLevel().onNavigationMapChanged(() => {
+							if (path && index !== null) {
+								path = this.getLevel().getPath(this.pos, target, {
+									allowDiagonals: this.allowDiagonals,
+								})
+								index = path ? 0 : null
+								if (path) {
+									this.trigger("navigation-next", this, path[index])
+								} else {
+									this.trigger("navigation-ended", this)
+								}
+							}
+						})
+						this.onDestroy(() => navMapChangedEvent.cancel())
+					}
+					this.trigger("navigation-started", this)
+					this.trigger("navigation-next", this, path[index])
+				} else {
+					this.trigger("navigation-ended", this)
+				}
+			},
+			update(this: GameObj<AgentComp | PosComp>) {
+				if (path && index !== null) {
+					if (this.pos.sdist(path[index]) < 2) {
+						if (index === path.length - 1) {
+							this.pos = target.clone()
+							index = null
+							this.trigger("navigation-ended", this)
+							this.trigger("target-reached", this)
+							return
+						} else {
+							index++
+							this.trigger("navigation-next", this, path[index])
+						}
+
+					}
+					this.moveTo(path[index], this.agentSpeed)
+				}
+			},
+			onNavigationStarted(this: GameObj<AgentComp>, cb: () => void) {
+				return this.on("navigation-started", cb)
+			},
+			onNavigationNext(this: GameObj<AgentComp>, cb: () => void) {
+				return this.on("navigation-next", cb)
+			},
+			onNavigationEnded(this: GameObj<AgentComp>, cb: () => void) {
+				return this.on("navigation-ended", cb)
+			},
+			onTargetReached(this: GameObj<AgentComp>, cb: () => void) {
+				return this.on("target-reached", cb)
+			},
+			inspect() {
+				return JSON.stringify({
+					target: JSON.stringify(target),
+					path: JSON.stringify(path),
+				})
+			},
+		}
 	}
 
 	function record(frameRate?): Recording {
@@ -5803,10 +6413,10 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	}
 
 	// aliases for root game obj operations
-	const add = game.root.add.bind(game.root)
-	const readd = game.root.readd.bind(game.root)
-	const destroyAll = game.root.removeAll.bind(game.root)
-	const get = game.root.get.bind(game.root)
+	const add: KaboomCtx["add"] = game.root.add.bind(game.root)
+	const readd: KaboomCtx["readd"] = game.root.readd.bind(game.root)
+	const destroyAll: KaboomCtx["destroyAll"] = game.root.removeAll.bind(game.root)
+	const get: KaboomCtx["get"] = game.root.get.bind(game.root)
 
 	// TODO: expose this
 	function boom(speed: number = 2, size: number = 1): Comp {
@@ -5861,7 +6471,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	}
 
 	function inputFrame() {
-		// TODO: pass original browser event in input handlers
 		game.ev.trigger("input")
 		app.keyState.down.forEach((k) => game.ev.trigger("keyDown", k))
 		app.mouseState.down.forEach((k) => game.ev.trigger("mouseDown", k))
@@ -5906,10 +6515,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 		// update every obj
 		game.root.update()
-
 	}
-
-	const DEF_HASH_GRID_SIZE = 64
 
 	class Collision {
 		source: GameObj
@@ -6098,7 +6704,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 		})
 
-		game.ev.trigger("loading", progress)
+		game.ev.trigger("loadUpdate", progress)
 
 	}
 
@@ -6468,8 +7074,8 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		enterBurpMode()
 	}
 
-	function onLoadUpdate(action: (err: Error) => void) {
-		game.ev.on("loading", action)
+	function onLoadUpdate(action: (progress: number) => void) {
+		game.ev.on("loadUpdate", action)
 	}
 
 	function onResize(action: (
@@ -6819,15 +7425,18 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		follow,
 		state,
 		fadeIn,
-		obstacle,
+		tile,
+		agent,
 		// group events
 		on,
 		onUpdate,
 		onDraw,
 		onAdd,
 		onDestroy,
-		onCollide,
 		onClick,
+		onCollide,
+		onCollideUpdate,
+		onCollideEnd,
 		onHover,
 		onHoverUpdate,
 		onHoverEnd,

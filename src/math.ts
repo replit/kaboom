@@ -1,6 +1,7 @@
 import {
 	Point,
 	RNGValue,
+	Vec2Args,
 } from "./types"
 
 export function deg2rad(deg: number): number {
@@ -68,23 +69,23 @@ export class Vec2 {
 	clone(): Vec2 {
 		return new Vec2(this.x, this.y)
 	}
-	add(...args): Vec2 {
+	add(...args: Vec2Args): Vec2 {
 		const p2 = vec2(...args)
 		return new Vec2(this.x + p2.x, this.y + p2.y)
 	}
-	sub(...args): Vec2 {
+	sub(...args: Vec2Args): Vec2 {
 		const p2 = vec2(...args)
 		return new Vec2(this.x - p2.x, this.y - p2.y)
 	}
-	scale(...args): Vec2 {
+	scale(...args: Vec2Args): Vec2 {
 		const s = vec2(...args)
 		return new Vec2(this.x * s.x, this.y * s.y)
 	}
-	dist(...args): number {
+	dist(...args: Vec2Args): number {
 		const p2 = vec2(...args)
 		return this.sub(p2).len()
 	}
-	sdist(...args): number {
+	sdist(...args: Vec2Args): number {
 		const p2 = vec2(...args)
 		return this.sub(p2).slen()
 	}
@@ -116,11 +117,11 @@ export class Vec2 {
 	cross(p2: Vec2): number {
 		return this.x * p2.y - this.y * p2.x
 	}
-	angle(...args): number {
+	angle(...args: Vec2Args): number {
 		const p2 = vec2(...args)
 		return rad2deg(Math.atan2(this.y - p2.y, this.x - p2.x))
 	}
-	angleBetween(...args): number {
+	angleBetween(...args: Vec2Args): number {
 		const p2 = vec2(...args)
 		return rad2deg(Math.atan2(this.cross(p2), this.dot(p2)))
 	}
@@ -153,7 +154,7 @@ export class Vec2 {
 	}
 }
 
-export function vec2(...args): Vec2 {
+export function vec2(...args: Vec2Args): Vec2 {
 	if (args.length === 1) {
 		if (args[0] instanceof Vec2) {
 			return new Vec2(args[0].x, args[0].y)
@@ -161,6 +162,7 @@ export function vec2(...args): Vec2 {
 			return new Vec2(...args[0])
 		}
 	}
+	// @ts-ignore
 	return new Vec2(...args)
 }
 
@@ -307,6 +309,9 @@ export class Quad {
 			this.h * other.h,
 		)
 	}
+	pos() {
+		return new Vec2(this.x, this.y)
+	}
 	clone(): Quad {
 		return new Quad(this.x, this.y, this.w, this.h)
 	}
@@ -431,9 +436,7 @@ export class Mat4 {
 
 	// TODO: in-place variant
 	mult(other: Mat4): Mat4 {
-
 		const out = []
-
 		for (let i = 0; i < 4; i++) {
 			for (let j = 0; j < 4; j++) {
 				out[i * 4 + j] =
@@ -443,9 +446,7 @@ export class Mat4 {
 					this.m[3 * 4 + j] * other.m[i * 4 + 3]
 			}
 		}
-
 		return new Mat4(out)
-
 	}
 
 	multVec2(p: Vec2): Vec2 {

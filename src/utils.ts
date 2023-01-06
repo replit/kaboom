@@ -49,40 +49,49 @@ export class Event<Args extends any[] = any[]> {
 	}
 }
 
-// TODO: be able to type each event
-export class EventHandler<E = string> {
-	private handlers: Map<E, Event> = new Map()
-	on(name: E, action: (...args) => void): EventController {
-		if (!this.handlers.get(name)) {
-			this.handlers.set(name, new Event())
+// TODO: only accept one argument?
+export class EventHandler<EventMap extends Record<string, any[]>> {
+	private handlers: Partial<{
+		[Name in keyof EventMap]: Event<EventMap[Name]>
+	}> = {}
+	on<Name extends keyof EventMap>(
+		name: Name,
+		action: (...args: EventMap[Name]) => void,
+	): EventController {
+		if (!this.handlers[name]) {
+			this.handlers[name] = new Event<EventMap[Name]>()
 		}
-		return this.handlers.get(name).add(action)
+		return this.handlers[name].add(action)
 	}
-	onOnce(name: E, action: (...args) => void): EventController {
+	onOnce<Name extends keyof EventMap>(
+		name: Name,
+		action: (...args: EventMap[Name]) => void,
+	): EventController {
 		const ev = this.on(name, (...args) => {
 			ev.cancel()
 			action(...args)
 		})
 		return ev
 	}
-	next(name: E): Promise<unknown> {
+	next<Name extends keyof EventMap>(name: Name): Promise<unknown> {
 		return new Promise((res) => {
-			this.onOnce(name, res)
+			// TODO: can only pass 1 val to resolve()
+			this.onOnce(name, (...args: EventMap[Name]) => res(args[0]))
 		})
 	}
-	trigger(name: E, ...args) {
-		if (this.handlers.get(name)) {
-			this.handlers.get(name).trigger(...args)
+	trigger<Name extends keyof EventMap>(name: Name, ...args: EventMap[Name]) {
+		if (this.handlers[name]) {
+			this.handlers[name].trigger(...args)
 		}
 	}
-	remove(name: E) {
-		this.handlers.delete(name)
+	remove<Name extends keyof EventMap>(name: Name) {
+		delete this.handlers[name]
 	}
 	clear() {
-		this.handlers = new Map()
+		this.handlers = {}
 	}
-	numListeners(name: E): number {
-		return this.handlers.get(name)?.numListeners() ?? 0
+	numListeners<Name extends keyof EventMap>(name: Name): number {
+		return this.handlers[name]?.numListeners() ?? 0
 	}
 }
 
@@ -186,4 +195,83 @@ export function benchmark(task: () => void, times: number = 1) {
 
 export function comparePerf(t1: () => void, t2: () => void, times: number = 1) {
 	return benchmark(t2, times) / benchmark(t1, times)
+}
+
+export class BinaryHeap<T> {
+	_items: T[]
+	_compareFn: (a: T, b: T) => boolean
+
+	/**
+	 * Creates a binary heap with the given compare function
+	 * Not passing a compare function will give a min heap
+	 */
+	constructor(compareFn = (a: T, b: T) => a < b) {
+		this._compareFn = compareFn
+		this._items = []
+	}
+
+	/**
+	 * Insert an item into the binary heap
+	 */
+	insert(item: T) {
+		this._items.push(item)
+		this.moveUp(this._items.length - 1)
+	}
+
+	/**
+	 * Remove the smallest item from the binary heap in case of a min heap
+	 * or the greatest item from the binary heap in case of a max heap
+	 */
+	remove() {
+		if (this._items.length === 0)
+			return null
+		const item = this._items[0]
+		const lastItem = this._items.pop()
+		if (this._items.length !== 0) {
+			this._items[0] = lastItem as T
+			this.moveDown(0)
+		}
+		return item
+	}
+
+	/**
+	 * Remove all items
+	 */
+	clear() {
+		this._items.splice(0, this._items.length)
+	}
+
+	moveUp(pos: number) {
+		while (pos > 0) {
+			const parent = Math.floor((pos - 1) / 2)
+			if (!this._compareFn(this._items[pos], this._items[parent]))
+				if (this._items[pos] >= this._items[parent])
+					break
+			this.swap(pos, parent)
+			pos = parent
+		}
+	}
+
+	moveDown(pos: number) {
+		while (pos < Math.floor(this._items.length / 2)) {
+			let child = 2 * pos + 1
+			if (child < this._items.length - 1 && !this._compareFn(this._items[child], this._items[child + 1]))
+				++child
+			if (this._compareFn(this._items[pos], this._items[child]))
+				break
+			this.swap(pos, child)
+			pos = child
+		}
+	}
+
+	swap(index1: number, index2: number) {
+		[this._items[index1], this._items[index2]] = [this._items[index2], this._items[index1]]
+	}
+
+	/**
+	 * Returns the amount of items
+	 */
+	get length() {
+		return this._items.length
+	}
 }

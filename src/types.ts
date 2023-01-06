@@ -568,11 +568,17 @@ export interface KaboomCtx {
 	 */
 	fadeIn(time: number): Comp,
 	/**
-	 * An obstacle in a tilemap.
+	 * A tile on a tile map.
 	 *
 	 * @since v3000.0
 	 */
-	obstacle(): ObstacleComp,
+	tile(opt: TileCompOpt): TileComp,
+	/**
+	 * An agent which can finds it way on a tilemap.
+	 *
+	 * @since v3000.0
+	 */
+	agent(): AgentComp,
 	/**
 	 * Register an event on all game objs with certain tag.
 	 *
@@ -671,7 +677,7 @@ export interface KaboomCtx {
 	 *
 	 * @since v3000.0
 	 */
-	onLoadUpdate(action: (err: Error) => void): void,
+	onLoadUpdate(action: (progress: number) => void): void,
 	/**
 	 * Register a custom error handler. Can be used to draw a custom error screen.
 	 *
@@ -702,7 +708,7 @@ export interface KaboomCtx {
 	 */
 	onGamepadDisconnect(action: (gamepad: Gamepad) => void): void,
 	/**
-	 * Register an event that runs when 2 game objs with certain tags collides (required to have area() component).
+	 * Register an event that runs once when 2 game objs with certain tags collides (required to have area() component).
 	 *
 	 * @since v2000.1
 	 *
@@ -714,6 +720,40 @@ export interface KaboomCtx {
 	 * ```
 	 */
 	onCollide(
+		t1: Tag,
+		t2: Tag,
+		action: (a: GameObj, b: GameObj, col?: Collision) => void,
+	): EventController,
+	/**
+	 * Register an event that runs every frame when 2 game objs with certain tags collides (required to have area() component).
+	 *
+	 * @since v3000.0
+	 *
+	 * @example
+	 * ```js
+	 * onCollideUpdate("sun", "earth", () => {
+	 *     runWorldEndTimer()
+	 * })
+	 * ```
+	 */
+	onCollideUpdate(
+		t1: Tag,
+		t2: Tag,
+		action: (a: GameObj, b: GameObj, col?: Collision) => void,
+	): EventController,
+	/**
+	 * Register an event that runs once frame when 2 game objs with certain tags stops colliding (required to have area() component).
+	 *
+	 * @since v3000.0
+	 *
+	 * @example
+	 * ```js
+	 * onCollideEnd("bean", "earth", () => {
+	 *     worldEnd()
+	 * })
+	 * ```
+	 */
+	onCollideEnd(
 		t1: Tag,
 		t2: Tag,
 		action: (a: GameObj, b: GameObj, col?: Collision) => void,
@@ -1390,11 +1430,15 @@ export interface KaboomCtx {
 	 * })
 	 * ```
 	 */
-	camPos(pos?: Vec2): Vec2,
+	camPos(pos: Vec2): Vec2,
+	camPos(x: number, y: number): Vec2,
+	camPos(): Vec2,
 	/**
 	 * Get / set camera scale.
 	 */
-	camScale(scale?: Vec2): Vec2,
+	camScale(scale: Vec2): Vec2,
+	camScale(x: number, y: number): Vec2,
+	camScale(): Vec2,
 	/**
 	 * Get / set camera rotation.
 	 */
@@ -2451,7 +2495,7 @@ export interface GameObjRaw {
 	/**
 	 * Get state for a specific comp.
 	 */
-	c(id: Tag): Comp,
+	c(id: Tag): Comp | undefined,
 	/**
 	 * Gather debug info of all comps.
 	 */
@@ -2612,10 +2656,49 @@ export type SpriteAnims = Record<string, SpriteAnim>
  * Sprite loading configuration.
  */
 export interface LoadSpriteOpt {
-	frames?: Quad[],
+	/**
+	 * If the defined area contains multiple sprites, how many frames are in the area hozizontally.
+	 */
 	sliceX?: number,
+	/**
+	 * If the defined area contains multiple sprites, how many frames are in the area vertically.
+	 */
 	sliceY?: number,
+	/**
+	 * 9 slice sprite for proportional scaling.
+	 *
+	 * @since v3000.0
+	 */
+	slice9?: NineSlice,
+	/**
+	 * Individual frames.
+	 *
+	 * @since v3000.0
+	 */
+	frames?: Quad[],
+	/**
+	 * Animation configuration.
+	 */
 	anims?: SpriteAnims,
+}
+
+export type NineSlice = {
+	/**
+	 * The width of the 9-slice's left column.
+	 */
+	left: number,
+	/**
+	 * The width of the 9-slice's right column.
+	 */
+	right: number,
+	/**
+	 * The height of the 9-slice's top row.
+	 */
+	top: number,
+	/**
+	 * The height of the 9-slice's bottom row.
+	 */
+	bottom: number,
 }
 
 export type SpriteAtlasData = Record<string, SpriteAtlasEntry>
@@ -2623,7 +2706,7 @@ export type SpriteAtlasData = Record<string, SpriteAtlasEntry>
 /**
  * A sprite in a sprite atlas.
  */
-export interface SpriteAtlasEntry {
+export type SpriteAtlasEntry = LoadSpriteOpt & {
 	/**
 	 * X position of the top left corner.
 	 */
@@ -2640,24 +2723,6 @@ export interface SpriteAtlasEntry {
 	 * Sprite area height.
 	 */
 	height: number,
-	/**
-	 * Individual frames.
-	 *
-	 * @since v3000.0
-	 */
-	frames?: Quad[],
-	/**
-	 * If the defined area contains multiple sprites, how many frames are in the area hozizontally.
-	 */
-	sliceX?: number,
-	/**
-	 * If the defined area contains multiple sprites, how many frames are in the area vertically.
-	 */
-	sliceY?: number,
-	/**
-	 * Animation configuration.
-	 */
-	anims?: SpriteAnims,
 }
 
 // TODO: use PromiseLike or extend Promise?
@@ -2681,6 +2746,7 @@ export declare class SpriteData {
 	tex: Texture
 	frames: Quad[]
 	anims: SpriteAnims
+	slice9: NineSlice | null
 	constructor(tex: Texture, frames?: Quad[], anims?: SpriteAnims)
 	static from(src: LoadSpriteSrc, opt?: LoadSpriteOpt): Promise<SpriteData>
 	static fromImage(data: TexImageSource, opt?: LoadSpriteOpt): SpriteData
@@ -3330,6 +3396,8 @@ export type Anchor =
 	| "bot"
 	| "botright"
 
+export type Vec2Args = [number, number] | [number] | [Vec2] | [number | Vec2] | []
+
 export declare class Vec2 {
 	x: number
 	y: number
@@ -3538,6 +3606,7 @@ export declare class Quad {
 	h: number
 	constructor(x: number, y: number, w: number, h: number)
 	scale(q: Quad): Quad
+	pos(): Vec2
 	clone(): Quad
 	eq(q: Quad): boolean
 }
@@ -3886,7 +3955,7 @@ export interface AreaComp extends Comp {
 		/**
 		 * Area scale.
 		 */
-		scale: number | Vec2,
+		scale: Vec2,
 		/**
 		 * Area offset.
 		 */
@@ -3916,6 +3985,12 @@ export interface AreaComp extends Comp {
 	 * @since v3000.0
 	 */
 	checkCollision(other: GameObj<AreaComp>): Collision | null,
+	/**
+	 * Get all collisions currently happening.
+	 *
+	 * @since v3000.0
+	 */
+	getCollisions(): Collision[],
 	/**
 	 * If is currently colliding with another game obj.
 	 */
@@ -4628,30 +4703,159 @@ export interface LevelOpt {
 	wildcardTile?: (sym: string, pos: Vec2) => CompList<any> | null | undefined,
 }
 
-export interface TileComp extends Comp {
-	tilePos: Vec2,
-	setTilePos(...args),
-	moveLeft(),
-	moveRight(),
-	moveUp(),
-	moveDown(),
+export type Edge =
+	| "left"
+	| "right"
+	| "top"
+	| "bottom"
+
+export enum EdgeMask {
+	None = 0,
+	Left = 1,
+	Top = 2,
+	LeftTop = 3,
+	Right = 4,
+	Horizontal = 5,
+	RightTop = 6,
+	HorizontalTop = 7,
+	Bottom = 8,
+	LeftBottom = 9,
+	Vertical = 10,
+	LeftVertical = 11,
+	RightBottom = 12,
+	HorizontalBottom = 13,
+	RightVertical = 14,
+	All = 15,
 }
 
-export interface ObstacleComp extends Comp {
+export type TileCompOpt = {
+	/**
+	 * If the tile is an obstacle in pathfinding.
+	 */
+	isObstacle?: boolean,
+	/**
+	 * How much a tile is cost to traverse in pathfinding (default 0).
+	 */
+	cost?: number,
+	/**
+	 * If the tile has hard edges that cannot pass in pathfinding.
+	 */
+	edges?: Edge[],
+	/**
+	 * Position offset when setting `tilePos`.
+	 */
+	offset?: Vec2,
+}
+
+export interface TileComp extends Comp {
+	/**
+	 * The tile position inside the level.
+	 */
+	tilePos: Vec2,
+	/**
+	 * If the tile is an obstacle in pathfinding.
+	 */
 	isObstacle: boolean,
+	/**
+	 * How much a tile is cost to traverse in pathfinding (default 0).
+	 */
+	cost: number,
+	/**
+	 * If the tile has hard edges that cannot pass in pathfinding.
+	 */
+	edges: Edge[],
+	/**
+	 * Position offset when setting `tilePos`.
+	 */
+	tilePosOffset: Vec2,
+	readonly edgeMask: EdgeMask,
+	getLevel(): GameObj<LevelComp>,
+	moveLeft(): void,
+	moveRight(): void,
+	moveUp(): void,
+	moveDown(): void,
 }
 
 export interface LevelComp extends Comp {
 	tileWidth(): number,
 	tileHeight(): number,
-	getPos(p: Vec2): Vec2,
-	getPos(x: number, y: number): Vec2,
-	spawn(sym: string, p: Vec2): GameObj,
-	spawn(sym: string, x: number, y: number): GameObj,
 	numRows(): number,
 	numColumns(): number,
+	/**
+	 * Spawn a tile from a symbol defined previously.
+	 */
+	spawn(sym: string, p: Vec2): GameObj | null,
+	spawn(sym: string, x: number, y: number): GameObj | null,
+	/**
+	 * Spawn a tile from a component list.
+	 */
+	spawn<T>(obj: CompList<T>, p: Vec2): GameObj<T>,
+	spawn<T>(sym: CompList<T>, x: number, y: number): GameObj<T>,
+	/**
+	 * Total width of level in pixels.
+	 */
 	levelWidth(): number,
+	/**
+	 * Total height of level in pixels.
+	 */
 	levelHeight(): number,
+	/**
+	 * Get all game objects that's currently inside a given tile.
+	 */
+	getAt(tilePos: Vec2): GameObj[],
+	/**
+	 * Convert tile position to pixel position.
+	 */
+	tile2Pos(tilePos: Vec2): Vec2,
+	tile2Pos(x: number, y: number): Vec2,
+	/**
+	 * Convert pixel position to tile position.
+	 */
+	pos2Tile(pos: Vec2): Vec2,
+	pos2Tile(x: number, y: number): Vec2,
+	/**
+	 * Find the path to navigate from one tile to another tile.
+	 *
+	 * @returns A list of traverse points in tile positions.
+	 */
+	getTilePath(from: Vec2, to: Vec2, opts?: PathFindOpt): Vec2[] | null,
+	/**
+	 * Find the path to navigate from one tile to another tile.
+	 *
+	 * @returns A list of traverse points in pixel positions.
+	 */
+	getPath(from: Vec2, to: Vec2, opts?: PathFindOpt): Vec2[] | null,
+	getSpatialMap(): GameObj[][],
+	onSpatialMapChanged(cb: () => void): EventController,
+	onNavigationMapInvalid(cb: () => void): EventController,
+	invalidateNavigationMap(): void,
+	onNavigationMapChanged(cb: () => void): EventController,
+}
+
+export type PathFindOpt = {
+	allowDiagonals?: boolean,
+}
+
+export type AgentCompOpt = {
+	speed?: number,
+	allowDiagonals?: boolean,
+}
+
+export interface AgentComp extends Comp {
+	agentSpeed: number,
+	allowDiagonals: boolean,
+	getDistanceToTarget(): number,
+	getNextLocation(): Vec2 | null,
+	getPath(): Vec2[] | null,
+	getTarget(): Vec2 | null,
+	isNavigationFinished(): boolean,
+	isTargetReachable(): boolean,
+	isTargetReached(): boolean,
+	setTarget(target: Vec2),
+	onNavigationStarted(cb: () => void): EventController,
+	onNavigationNext(cb: () => void): EventController,
+	onNavigationEnded(cb: () => void): EventController,
+	onTargetReached(cb: () => void): EventController,
 }
 
 export interface BoomOpt {
@@ -4757,14 +4961,14 @@ export declare class Event<Args extends any[] = any[]> {
 	numListeners(): number
 }
 
-export declare class EventHandler<E = string> {
-	on(name: E, action: (...args) => void): EventController
-	onOnce(name: E, action: (...args) => void): EventController
-	next(name: E): Promise<unknown>
-	trigger(name: E, ...args)
-	remove(name: E)
+export declare class EventHandler<EventMap extends Record<string, any[]>> {
+	on<Name extends keyof EventMap>(name: Name, action: (...args: EventMap[Name]) => void): EventController
+	onOnce<Name extends keyof EventMap>(name: Name, action: (...args: EventMap[Name]) => void): EventController
+	next<Name extends keyof EventMap>(name: Name): Promise<unknown>
+	trigger<Name extends keyof EventMap>(name: Name, ...args: EventMap[Name])
+	remove<Name extends keyof EventMap>(name: Name)
 	clear()
-	numListeners(name: E): number
+	numListeners<Name extends keyof EventMap>(name: Name): number
 }
 
 export default kaboom
