@@ -39,9 +39,14 @@ scene("game", () => {
 	onGamepadDisconnect(() => {
 		go("nogamepad")
 	})
+
+	onGamepadAxe("left", (v) => {
+		if(v.x > 0.2) player.move(200, 0)
+		else if (v.x < -0.2) player.move(-200, 0)
+	})
 })
 
-if(getConnectedGamepads().length > 0) {
+if(getGamepads().length > 0) {
 	go("game")
 }
 else {

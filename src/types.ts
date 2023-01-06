@@ -937,12 +937,18 @@ export interface KaboomCtx {
 	 * @since v3000.0
 	 */
 	onGamepadButtonRelease(btn: GamepadButton, action: (btn: GamepadButton) => void): EventController,
-		/**
+	/**
 	 * Register an event that runs when user releases certain gamepad button.
 	 *
 	 * @since v3000.0
 	 */
 	onGamepadButtonRelease(action: (btn: GamepadButton) => void): EventController,
+	/**
+	 * Register an event that runs when the gamepad axis exists.
+	 * 
+	 * @since v3000.0
+	 */
+	onGamepadStick(stick: "left" | "right", action: (value: Vec2) => void): EventController,
 	/**
 	 * Sets the root for all subsequent resource urls.
 	 *

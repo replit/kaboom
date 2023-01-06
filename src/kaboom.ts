@@ -320,52 +320,72 @@ const COMP_EVENTS = new Set([
 const GAMEPAD_MAPS = {
 	// Generic gamepads
 	"Generic   USB  Joystick   (Vendor: 0079 Product: 0006)": {
-		"0": "north",
-		"1": "east",
-		"2": "south",
-		"3": "west",
-		"4": "ltrigger",
-		"5": "rtrigger",
-		"6": "lshoulder",
-		"7": "rshoulder",
-		"8": "select",
-		"9": "start",
-		"10": "lstick",
-		"11": "rstick",
+		buttons: {
+			"0": "north",
+			"1": "east",
+			"2": "south",
+			"3": "west",
+			"4": "ltrigger",
+			"5": "rtrigger",
+			"6": "lshoulder",
+			"7": "rshoulder",
+			"8": "select",
+			"9": "start",
+			"10": "lstick",
+			"11": "rstick",
+		},
+		axes: {
+			"left": { x: 0, y: 1 },
+			"right": { x: 2, y: 5 },
+		},
 	},
+
 	// Nintendo Switch JoyCon L+R
 	"Joy-Con L+R (STANDARD GAMEPAD Vendor: 057e Product: 200e)": {
-		"0": "south",
-		"1": "east",
-		"2": "north",
-		"3": "west",
-		"4": "ltrigger",
-		"5": "rtrigger",
-		"6": "lshoulder",
-		"7": "rshoulder",
-		"8": "select",
-		"9": "start",
-		"10": "lstick",
-		"11": "rstick",
-		"12": "dpad-south",
-		"13": "dpad-east",
-		"14": "dpad-north",
-		"15": "dpad-west",
+		buttons: {
+			"0": "south",
+			"1": "east",
+			"2": "north",
+			"3": "west",
+			"4": "ltrigger",
+			"5": "rtrigger",
+			"6": "lshoulder",
+			"7": "rshoulder",
+			"8": "select",
+			"9": "start",
+			"10": "lstick",
+			"11": "rstick",
+			"12": "dpad-south",
+			"13": "dpad-east",
+			"14": "dpad-north",
+			"15": "dpad-west",
+		},
+		axes: {
+			"left": { x: 0, y: 1 },
+			"right": { x: 2, y: 5 },
+		},
 	},
+
 	// if the gamepad isn't recognized
 	"default": {
-		"0": "north",
-		"1": "east",
-		"2": "south",
-		"3": "west",
-		"4": "ltrigger",
-		"5": "rtrigger",
-		"6": "lshoulder",
-		"7": "rshoulder",
-		"8": "select",
-		"9": "start",
-		"10": "lstick",
-		"11": "rstick",
+		buttons: {
+			"0": "north",
+			"1": "east",
+			"2": "south",
+			"3": "west",
+			"4": "ltrigger",
+			"5": "rtrigger",
+			"6": "lshoulder",
+			"7": "rshoulder",
+			"8": "select",
+			"9": "start",
+			"10": "lstick",
+			"11": "rstick",
+		},
+		axes: {
+			"left": { x: 0, y: 1 },
+			"right": { x: 2, y: 5 },
+		},
 	},
 }
 
@@ -4061,6 +4081,10 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		}
 	}
 
+	function onGamepadStick(stick: "left" | "right", action: (value: Vec2) => void): EventController {
+		return game.ev.on("gamepadAxe", ((a: string, v: Vec2) => a === stick && action(v)))
+	}
+
 	function enterDebugMode() {
 
 		onKeyPress("f1", () => {
@@ -4103,7 +4127,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 	// Get connected gamepads
 	function getGamepads(): Gamepad[] {
-		return navigator.getGamepads().filter((g) => g !== null);
+		return navigator.getGamepads().filter((g) => g !== null)
 	}
 
 	// TODO: manage global velocity here?
@@ -5844,24 +5868,35 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		app.virtualButtonState.down.forEach((k) => game.ev.trigger("virtualButtonDown", k))
 		
 		for (const gamepad of navigator.getGamepads()) {
-			if(!gamepad) return // there can be a gamepad disconnection while is running this
+			if(!gamepad) return // the gamepad can return null if isn't a gamepad or is disconnected
 			let map = GAMEPAD_MAPS[gamepad.id]
 			if(!map) map = GAMEPAD_MAPS["default"]
 
 			for(let i = 0; i < gamepad.buttons.length; i++) {
 				if(gamepad.buttons[i].pressed) {
-					if(!app.gamepadButtonState.down.has(map[i])) {
-						app.gamepadButtonState.press(map[i])
-						game.ev.trigger("gamepadButtonPress", map[i])
+					if(!app.gamepadButtonState.down.has(map.buttons[i])) {
+						app.gamepadButtonState.press(map.buttons[i])
+						game.ev.trigger("gamepadButtonPress", map.buttons[i])
 					}
 
-					game.ev.trigger("gamepadButtonDown", map[i])
+					game.ev.trigger("gamepadButtonDown", map.buttons[i])
 				}
 				else {
-					if(app.gamepadButtonState.pressed.has(map[i]) || app.gamepadButtonState.down.has(map[i])) {
-						app.gamepadButtonState.release(map[i])
-						game.ev.trigger("gamepadButtonRelease", map[i])
+					if(app.gamepadButtonState.pressed.has(map.buttons[i]) || app.gamepadButtonState.down.has(map.buttons[i])) {
+						app.gamepadButtonState.release(map.buttons[i])
+						game.ev.trigger("gamepadButtonRelease", map.buttons[i])
 					}
+				}
+			}
+
+			for(const axeName in map.axes) {
+				const axe = map.axes[axeName]
+
+				const axeX = gamepad.axes[axe.x]
+				const axeY = gamepad.axes[axe.y]
+
+				if(axeX && axeY) {
+					game.ev.trigger("gamepadAxe", axeName, new Vec2(axeX, axeY))
 				}
 			}
 		}
@@ -6816,6 +6851,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		onGamepadButtonDown,
 		onGamepadButtonPress,
 		onGamepadButtonRelease,
+		onGamepadStick,
 		mousePos,
 		mouseDeltaPos,
 		isKeyDown,
