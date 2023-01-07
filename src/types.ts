@@ -4084,11 +4084,11 @@ export interface SpriteComp extends Comp {
 	/**
 	 * Register an event that runs when an animation is played.
 	 */
-	onAnimStart(name: string, action: () => void): EventController,
+	onAnimStart(action: (anim: string) => void): EventController,
 	/**
 	 * Register an event that runs when an animation is ended.
 	 */
-	onAnimEnd(name: string, action: () => void): EventController,
+	onAnimEnd(action: (anim: string) => void): EventController,
 	/**
 	 * @since v3000.0
 	 */

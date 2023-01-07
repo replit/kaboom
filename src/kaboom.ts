@@ -4837,10 +4837,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			},
 
 			numFrames() {
-				if (!spriteData) {
-					return 0
-				}
-				return spriteData.frames.length
+				return spriteData?.frames.length ?? 0
 			},
 
 			curAnim() {
@@ -4849,26 +4846,16 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 			onAnimEnd(
 				this: GameObj<SpriteComp>,
-				name: string,
-				action: () => void,
+				action: (name: string) => void,
 			): EventController {
-				return this.on("animEnd", (anim) => {
-					if (anim === name) {
-						action()
-					}
-				})
+				return this.on("animEnd", action)
 			},
 
 			onAnimStart(
 				this: GameObj<SpriteComp>,
-				name: string,
-				action: () => void,
+				action: (name: string) => void,
 			): EventController {
-				return this.on("animStart", (anim) => {
-					if (anim === name) {
-						action()
-					}
-				})
+				return this.on("animStart", action)
 			},
 
 			renderArea() {

@@ -117,6 +117,20 @@ player.onBeforePhysicsResolve((collision) => {
 - added `fadeIn()` component
 - `stay()` now accepts a list of scenes to stay for, like `stay(["gameover", "menu"])`
 - (**BREAK**) changed `SpriteComp#flipX` and `SpriteComp#flipY` to properties instead of functions
+- (**BREAK**) changed `SpriteComp#onAnimStart()` and `SpriteComp#onAnimEnd()`
+```js
+// before
+obj.onAnimEnd("walk", () => {
+    // do something
+})
+
+// v3000
+obj.onAnimEnd((anim) => {
+    if (anim === "walk") {
+        // do something
+    }
+})
+```
 - (**BREAK**) `ScaleComp#scale` will always be a `Vec2` not `number`
 - `shader()` comp `uniform` parameter now supports a callback that returns the uniform every frame
 ```js
@@ -164,7 +178,7 @@ loadSprite("player", [
 ```js
 // before
 "[oh hi].green here's some [styled].wavy text"
-// now
+// v3000
 "[green]oh hi[/green] here's some [wavy]styled[/wavy] text"
 ```
 
@@ -224,6 +238,7 @@ music.speed(2)
 music.volume(0.5)
 music.loop(true)
 
+// v3000
 const music = play("song")
 music.speed = 2
 music.volume = 0.5
@@ -247,6 +262,31 @@ music.loop = true
   - now all tile symbols are defined in the `tiles` object
 
 ```js
+// before
+addLevel([
+    "@  ^ $$",
+    "=======",
+], {
+    width: 32,
+    height: 32,
+    "=": () => [
+        sprite("grass"),
+        area(),
+        body({ isStatic: true }),
+    ],
+    "$": () => [
+        sprite("coin"),
+        area(),
+        "coin",
+    ],
+    any: (symbol) => {
+        if (symbol === "@") {
+            return [ /* ... */ ]
+        }
+    },
+})
+
+// v3000
 addLevel([
     "@  ^ $$",
     "=======",
