@@ -4,7 +4,7 @@ import { capitalize } from "lib/str"
 
 export const getServerSideProps: GetServerSideProps = async (ctx) => {
 	const { name } = ctx.query
-	const path = `public/static/example/${name}.js`
+	const path = `public/static/examples/${name}.js`
 	let code = ""
 	try {
 		code = await fs.readFile(path, "utf8")

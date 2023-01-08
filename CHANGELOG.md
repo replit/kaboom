@@ -117,7 +117,7 @@ player.onBeforePhysicsResolve((collision) => {
 - added `fadeIn()` component
 - `stay()` now accepts a list of scenes to stay for, like `stay(["gameover", "menu"])`
 - (**BREAK**) changed `SpriteComp#flipX` and `SpriteComp#flipY` to properties instead of functions
-- (**BREAK**) changed `SpriteComp#onAnimStart()` and `SpriteComp#onAnimEnd()`
+- (**BEARK**) `sprite.onAnimStart()` and `sprite.onAnimEnd()` now triggers on any animation
 ```js
 // before
 obj.onAnimEnd("walk", () => {
@@ -358,11 +358,11 @@ onMousePress(() => {
 - (**BREAK**) changed all event handlers to return a `EventController` object instead of a function to cancel event
 
 ```js
-// previous
+// before
 const cancel = onUpdate(() => { /* ... */ })
 cancel()
 
-// now, can do more stuff
+// v3000
 const ev = onUpdate(() => { /* ... */ })
 ev.paused = true
 ev.cancel()
