@@ -697,14 +697,53 @@ export function testRectPolygon(r: Rect, p: Polygon): boolean {
 	return testPolygonPolygon(p, new Polygon(r.points()))
 }
 
-// TODO
 export function testLinePoint(l: Line, pt: Vec2): boolean {
-	return false
+	const v1 = pt.sub(l.p1)
+    	const v2 = l.p2.sub(l.p1)
+
+    	// Check if sine is 0, in that case lines are parallel.
+    	// If not parallel, the point cannot lie on the line.
+    	if (Math.abs(v1.cross(v2)) > Number.EPSILON) {
+        	return false
+    	}
+
+    	// Scalar projection of v1 on v2
+    	const t = v1.dot(v2) / v2.dot(v2)
+    	// Since t is percentual distance of pt from line.p1 on the line,
+    	// it should be between 0% and 100%
+    	return t >= 0 && t <= 1
 }
 
-// TODO
-export function testLineCircle(l: Line, c: Circle): boolean {
-	return false
+export function testLineCircle(l: Line, circle: Circle): boolean {
+	const v = l.p2.sub(l.p1)
+    	const a = v.dot(v);
+    	const centerToOrigin = l.p1.sub(circle.center);
+    	const b = 2 * v.dot(centerToOrigin);
+    	const c = centerToOrigin.dot(centerToOrigin) - circle.radius * circle.radius;
+    	// Calculate the determinant of ax^2 + bx + c
+    	const det = b * b - 4 * a * c;
+
+    	// No root
+    	if ((a <= Number.EPSILON) || (det < 0)) {
+        	return false;
+    	}
+    	// One possible root
+    	else if (det == 0) {
+        	const t = -b / (2 * a);
+        	if (t < 0 || t > 1) {
+            	return false
+        	}
+    	}
+    	// Two possible roots
+    	else {
+        	let t1 = (-b + Math.sqrt(det)) / (2 * a);
+        	let t2 = (-b - Math.sqrt(det)) / (2 * a);
+        	if ((t1 < 0 || t1 > 1) && (t2 < 0 || t2 > 1)) {
+        	    return false
+        	}
+    	}
+
+    	return true
 }
 
 export function testLinePolygon(l: Line, p: Polygon): boolean {
