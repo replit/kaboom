@@ -4131,6 +4131,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		return game.gravity
 	}
 
+	// TODO: return custom Gamepad type with isButtonPressed(), getStick() methods etc
 	// Get connected gamepads
 	function getGamepads(): Gamepad[] {
 		return navigator.getGamepads().filter((g) => g !== null)
