@@ -2247,6 +2247,12 @@ export interface KaboomCtx {
 	 */
 	EventHandler: typeof EventHandler,
 	/**
+	 * The object that can pause or cancel an event.
+	 *
+	 * @since v3000.0
+	 */
+	EventController: typeof EventController,
+	/**
 	 * Current Kaboom library version.
 	 *
 	 * @since v3000.0
@@ -4942,15 +4948,17 @@ export type TweenController = TimerController & {
 	finish(): void,
 }
 
-export type EventController = {
+export declare class EventController {
 	/**
 	 * If the event handler is paused.
 	 */
-	paused: boolean,
+	paused: boolean
 	/**
 	 * Cancel the event handler.
 	 */
-	cancel(): void,
+	readonly cancel: () => void
+	constructor(cancel: () => void)
+	static join(events: EventController[]): EventController
 }
 
 export declare class Event<Args extends any[] = any[]> {

@@ -50,6 +50,7 @@ import {
 	getExt,
 	deepEq,
 	dataURLToArrayBuffer,
+	EventController,
 	// eslint-disable-next-line
 	warn,
 	// eslint-disable-next-line
@@ -91,7 +92,6 @@ import {
 	DrawTextOpt,
 	TextAlign,
 	GameObj,
-	EventController,
 	SceneID,
 	SceneDef,
 	CompList,
@@ -3849,7 +3849,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 					throw new Error("onClick() requires the object to have area() component")
 				events.push(obj.onClick(() => action(obj)))
 			})
-			return joinEventControllers(events)
+			return EventController.join(events)
 		}
 	}
 
@@ -3861,7 +3861,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				throw new Error("onHover() requires the object to have area() component")
 			events.push(obj.onHover(() => action(obj)))
 		})
-		return joinEventControllers(events)
+		return EventController.join(events)
 	}
 
 	// add an event that runs once when objs with tag t is hovered
@@ -3872,7 +3872,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				throw new Error("onHoverUpdate() requires the object to have area() component")
 			events.push(obj.onHoverUpdate(() => action(obj)))
 		})
-		return joinEventControllers(events)
+		return EventController.join(events)
 	}
 
 	// add an event that runs once when objs with tag t is unhovered
@@ -3883,7 +3883,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				throw new Error("onHoverEnd() requires the object to have area() component")
 			events.push(obj.onHoverEnd(() => action(obj)))
 		})
-		return joinEventControllers(events)
+		return EventController.join(events)
 	}
 
 	// TODO: use PromiseLike?
@@ -3935,18 +3935,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			cancel: () => curTimer.cancel(),
 		}
 
-	}
-
-	function joinEventControllers(events: EventController[]): EventController {
-		return {
-			get paused() {
-				return events[0].paused
-			},
-			set paused(p) {
-				events.forEach((e) => e.paused = p)
-			},
-			cancel: () => events.forEach((e) => e.cancel()),
-		}
 	}
 
 	// input callbacks
@@ -7541,6 +7529,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		// helpers
 		Event,
 		EventHandler,
+		EventController,
 	}
 
 	if (gopt.plugins) {

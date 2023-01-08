@@ -1,5 +1,3 @@
-import { EventController } from "./types"
-
 export class IDList<T> extends Map<number, T> {
 	private lastID: number
 	constructor(...args) {
@@ -18,18 +16,32 @@ export class IDList<T> extends Map<number, T> {
 	}
 }
 
+export class EventController {
+	paused: boolean = false
+	readonly cancel: () => void
+	constructor(cancel: () => void) {
+		this.cancel = cancel
+	}
+	static join(events: EventController[]): EventController {
+		const ev = new EventController(() => events.forEach((e) => e.cancel()))
+		Object.defineProperty(ev, "paused", {
+			get: () => events[0].paused,
+			set: (p: boolean) => events.forEach((e) => e.paused = p),
+		})
+		ev.paused = false
+		return ev
+	}
+}
+
 export class Event<Args extends any[] = any[]> {
 	private handlers: IDList<(...args: Args) => void> = new IDList()
 	add(action: (...args: Args) => void): EventController {
 		const cancel = this.handlers.pushd((...args: Args) => {
-			if (handle.paused) return
+			if (ev.paused) return
 			action(...args)
 		})
-		const handle = {
-			paused: false,
-			cancel: cancel,
-		}
-		return handle
+		const ev = new EventController(cancel)
+		return ev
 	}
 	addOnce(action: (...args) => void): EventController {
 		const ev = this.add((...args) => {
