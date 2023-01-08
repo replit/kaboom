@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-const VERSION = "2.4.1"
+const VERSION = "2.5.0"
 
 import fs from "fs"
 import cp from "child_process"
@@ -138,18 +138,18 @@ const exec = async (cmd, args, opts) => new Promise((resolve) => {
 })
 
 let startCode = `
-import kaboom from "kaboom"${ts ? "\nimport \"kaboom/global\"" : ""}
+import kaboom from "kaboom"
 
-kaboom()
+const k = kaboom()
 
-loadSprite("bean", "sprites/bean.png")
+k.loadSprite("bean", "sprites/bean.png")
 
-add([
-	pos(120, 80),
-	sprite("bean"),
+k.add([
+	k.pos(120, 80),
+	k.sprite("bean"),
 ])
 
-onClick(() => addKaboom(mousePos()))
+k.onClick(() => k.addKaboom(k.mousePos()))
 `.trim()
 
 // TODO: pull assets used by example
