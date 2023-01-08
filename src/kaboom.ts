@@ -160,7 +160,10 @@ import {
 	GetOpt,
 	Vec2Args,
 	NineSlice,
+	GamepadButton,
 } from "./types"
+
+import { GAMEPAD_MAPS } from "./gamepads"
 
 import FPSCounter from "./fps"
 import Timer from "./timer"
@@ -485,6 +488,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			keyState: new ButtonState<Key>(),
 			mouseState: new ButtonState<MouseButton>(),
 			virtualButtonState: new ButtonState<VirtualButton>(),
+			gamepadButtonState: new ButtonState<GamepadButton>(),
 
 			// input states from last frame, should reset every frame
 			charInputted: [],
@@ -1025,6 +1029,9 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			gamepadButtonDown: [string],
 			gamepadButtonPress: [string],
 			gamepadButtonRelease: [string],
+			gamepadStick: [string, Vec2],
+			gamepadConnect: [Gamepad],
+			gamepadDisconnect: [Gamepad],
 			scroll: [Vec2],
 			add: [GameObj],
 			destroy: [GameObj],
@@ -1035,6 +1042,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			frameEnd: [],
 			resize: [number, number, number, number],
 		}>(),
+
 		// object events
 		objEvents: new EventHandler(),
 
@@ -3206,6 +3214,18 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		}
 	}
 
+	winEvents.gamepadconnected = (e) => {
+		game.ev.onOnce("input", () => {
+			game.ev.trigger("gamepadConnect", e.gamepad)
+		})
+	}
+
+	winEvents.gamepaddisconnected = (e) => {
+		game.ev.onOnce("input", () => {
+			game.ev.trigger("gamepadDisconnect", e.gamepad)
+		})
+	}
+
 	winEvents.unhandledrejection = (e) => handleErr(e.reason)
 
 	for (const name in canvasEvents) {
@@ -3279,6 +3299,28 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	function isVirtualButtonReleased(btn: VirtualButton): boolean {
 		return app.virtualButtonState.released.has(btn)
 	}
+
+	function isGamepadButtonPressed(btn?: GamepadButton): boolean {
+		return btn === undefined
+			? app.gamepadButtonState.pressed.size > 0
+			: app.gamepadButtonState.pressed.has(btn)
+	}
+
+	function isGamepadButtonDown(btn?: GamepadButton): boolean {
+		return btn === undefined
+			? app.gamepadButtonState.down.size > 0
+			: app.gamepadButtonState.down.has(btn)
+	}
+
+	function isGamepadButtonReleased(btn?: GamepadButton): boolean {
+		return btn === undefined
+			? app.gamepadButtonState.released.size > 0
+			: app.gamepadButtonState.released.has(btn)
+	}
+
+	// function getGamepadStick(stick: "left" | "right"): boolean {
+		
+	// }
 
 	function charInputted(): string[] {
 		return [...app.charInputted]
@@ -4022,7 +4064,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		return game.ev.on("virtualButtonRelease", (b) => b === btn && action())
 	}
 
-	function onGamepadButtonDown(btn: string | ((btn: string) => void), action?: (btn: string) => void): EventController {
+	function onGamepadButtonDown(btn: GamepadButton | ((btn: GamepadButton) => void), action?: (btn: GamepadButton) => void): EventController {
 		if (typeof btn === "function") {
 			return game.ev.on("gamepadButtonDown", btn)
 		} else if (typeof btn === "string" && typeof action === "function") {
@@ -4030,7 +4072,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		}
 	}
 
-	function onGamepadButtonPress(btn: string | ((btn: string) => void), action?: (btn: string) => void): EventController {
+	function onGamepadButtonPress(btn: GamepadButton | ((btn: GamepadButton) => void), action?: (btn: GamepadButton) => void): EventController {
 		if (typeof btn === "function") {
 			return game.ev.on("gamepadButtonPress", btn)
 		} else if (typeof btn === "string" && typeof action === "function") {
@@ -4038,12 +4080,16 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		}
 	}
 
-	function onGamepadButtonRelease(btn: string | ((btn: string) => void), action?: (btn: string) => void): EventController {
+	function onGamepadButtonRelease(btn: GamepadButton | ((btn: GamepadButton) => void), action?: (btn: GamepadButton) => void): EventController {
 		if (typeof btn === "function") {
 			return game.ev.on("gamepadButtonRelease", btn)
 		} else if (typeof btn === "string" && typeof action === "function") {
 			return game.ev.on("gamepadButtonRelease", (b) => b === btn && action(btn))
 		}
+	}
+
+	function onGamepadStick(stick: "left" | "right", action: (value: Vec2) => void): EventController {
+		return game.ev.on("gamepadStick", ((a: string, v: Vec2) => a === stick && action(v)))
 	}
 
 	function enterDebugMode() {
@@ -4084,6 +4130,11 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			game.gravity = g
 		}
 		return game.gravity
+	}
+
+	// Get connected gamepads
+	function getGamepads(): Gamepad[] {
+		return navigator.getGamepads().filter((g) => g !== null)
 	}
 
 	// TODO: manage global velocity here?
@@ -6381,12 +6432,44 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		app.keyState.down.forEach((k) => game.ev.trigger("keyDown", k))
 		app.mouseState.down.forEach((k) => game.ev.trigger("mouseDown", k))
 		app.virtualButtonState.down.forEach((k) => game.ev.trigger("virtualButtonDown", k))
+		
 		for (const gamepad of navigator.getGamepads()) {
-			// TODO
+			if(!gamepad) return // the gamepad can return null if isn't a gamepad or is disconnected
+			let map = GAMEPAD_MAPS[gamepad.id]
+			if(!map) map = GAMEPAD_MAPS["default"]
+
+			for(let i = 0; i < gamepad.buttons.length; i++) {
+				if(gamepad.buttons[i].pressed) {
+					if(!app.gamepadButtonState.down.has(map.buttons[i])) {
+						app.gamepadButtonState.press(map.buttons[i])
+						game.ev.trigger("gamepadButtonPress", map.buttons[i])
+					}
+
+					game.ev.trigger("gamepadButtonDown", map.buttons[i])
+				}
+				else {
+					if(app.gamepadButtonState.down.has(map.buttons[i])) {
+						app.gamepadButtonState.release(map.buttons[i])
+						game.ev.trigger("gamepadButtonRelease", map.buttons[i])
+					}
+				}
+			}
+
+			for(const stickName in map.sticks) {
+				const stick = map.sticks[stickName];
+
+				const axiX = gamepad.axes[stick.x]
+				const axiY = gamepad.axes[stick.y]
+
+				if(axiX && axiY) {
+					game.ev.trigger("gamepadStick", stickName, new Vec2(axiX, axiY))
+				}
+			}
 		}
 	}
 
 	function updateFrame() {
+
 		// update every obj
 		game.root.update()
 	}
@@ -6961,6 +7044,14 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		game.ev.on("resize", action)
 	}
 
+	function onGamepadConnect(action: (gamepad: Gamepad) => void) {
+		game.ev.on("gamepadConnect", action)
+	}
+
+	function onGamepadDisconnect(action: (gamepad: Gamepad) => void) {
+		game.ev.on("gamepadDisconnect", action)
+	}
+
 	function onError(action: (err: Error) => void) {
 		game.ev.on("error", action)
 	}
@@ -7023,6 +7114,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		app.keyState.update()
 		app.mouseState.update()
 		app.virtualButtonState.update()
+		app.gamepadButtonState.update()
 		app.charInputted = []
 		app.isMouseMoved = false
 	}
@@ -7244,6 +7336,8 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		onLoad,
 		onLoadUpdate,
 		onResize,
+		onGamepadConnect,
+		onGamepadDisconnect,
 		onError,
 		// misc
 		camPos,
@@ -7253,6 +7347,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		toScreen,
 		toWorld,
 		gravity,
+		getGamepads,
 		// obj
 		add,
 		destroy,
@@ -7322,6 +7417,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		onGamepadButtonDown,
 		onGamepadButtonPress,
 		onGamepadButtonRelease,
+		onGamepadStick,
 		mousePos,
 		mouseDeltaPos,
 		isKeyDown,
@@ -7335,6 +7431,10 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		isVirtualButtonPressed,
 		isVirtualButtonDown,
 		isVirtualButtonReleased,
+		isGamepadButtonPressed,
+		isGamepadButtonDown,
+		isGamepadButtonReleased,
+		// getGamepadStick,
 		charInputted,
 		// timer
 		loop,
