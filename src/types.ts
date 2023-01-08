@@ -1787,9 +1787,17 @@ export interface KaboomCtx {
 	 */
 	rad2deg(rad: number): number,
 	/**
+	 * Check if a line and a point intersect.
+	 */
+	testLinePoint(l: Line, pt: Vec2): boolean
+	/**
 	 * Check if 2 lines intersects, if yes returns the intersection point.
 	 */
 	testLineLine(l1: Line, l2: Line): Vec2 | null,
+	/**
+	 * Check if a line and a circle intersect.
+	 */
+	testLineCircle(l: Line, circle: Circle): boolean
 	/**
 	 * Check if 2 rectangle overlaps.
 	 */
