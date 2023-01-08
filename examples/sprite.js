@@ -68,8 +68,10 @@ player.onGround(() => {
 	}
 })
 
-player.onAnimEnd("idle", () => {
-	// You can also register an event that runs when certain anim ends
+player.onAnimEnd((anim) => {
+	if (anim === "idle") {
+		// You can also register an event that runs when certain anim ends
+	}
 })
 
 onKeyPress("space", () => {

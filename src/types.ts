@@ -697,13 +697,13 @@ export interface KaboomCtx {
 	) => void): void,
 	/**
 	 * Register an event that runs when a gamepad is connected.
-	 * 
+	 *
 	 * @since v3000.0
 	 */
 	onGamepadConnect(action: (gamepad: Gamepad) => void): void,
 	/**
 	 * Register an event that runs when a gamepad is disconnected.
-	 * 
+	 *
 	 * @since v3000.0
 	 */
 	onGamepadDisconnect(action: (gamepad: Gamepad) => void): void,
@@ -949,25 +949,25 @@ export interface KaboomCtx {
 	onVirtualButtonRelease(btn: VirtualButton, action: () => void): EventController,
 	/**
 	 * Register an event that runs every frame when certain gamepad button is held down.
-	 * 
+	 *
 	 * @since v3000.0
 	 */
 	onGamepadButtonDown(btn: GamepadButton, action: (btn: GamepadButton) => void): EventController,
 	/**
 	 * Register an event that runs every frame when any gamepad button is held down.
-	 * 
+	 *
 	 * @since v3000.0
 	 */
 	onGamepadButtonDown(action: (btn: GamepadButton) => GamepadButton): EventController,
 	/**
 	 * Register an event that runs when user presses certain gamepad button.
-	 * 
+	 *
 	 * @since v3000.0
 	 */
 	onGamepadButtonPress(btn: GamepadButton, action: (btn: GamepadButton) => void): EventController,
 	/**
 	 * Register an event that runs when user presses any gamepad button.
-	 * 
+	 *
 	 * @since v3000.0
 	 */
 	onGamepadButtonPress(action: (btn: GamepadButton) => GamepadButton): EventController,
@@ -985,7 +985,7 @@ export interface KaboomCtx {
 	onGamepadButtonRelease(action: (btn: GamepadButton) => void): EventController,
 	/**
 	 * Register an event that runs when the gamepad axis exists.
-	 * 
+	 *
 	 * @since v3000.0
 	 */
 	onGamepadStick(stick: "left" | "right", action: (value: Vec2) => void): EventController,
@@ -1457,7 +1457,7 @@ export interface KaboomCtx {
 	gravity(g?: number): number,
 	/**
 	 * Get connected gamepads.
-	 * 
+	 *
 	 * @since v3000.0
 	 */
 	getGamepads(): Gamepad[],
@@ -2281,23 +2281,23 @@ export type MouseButton =
 	| "back"
 	| "forward"
 
-export type GamepadButton = 
+export type GamepadButton =
 	| "north"
 	| "east"
 	| "south"
 	| "west"
 	| "ltrigger"
 	| "rtrigger"
-    | "lshoulder"
-    | "rshoulder"
+	| "lshoulder"
+	| "rshoulder"
 	| "select"
-    | "start"
+	| "start"
 	| "lstick"
 	| "rstick"
 	| "dpad-north"
-    | "dpad-east"
+	| "dpad-east"
 	| "dpad-south"
-    | "dpad-west"
+	| "dpad-west"
 
 /**
  * Inspect info for a character.
