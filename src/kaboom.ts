@@ -163,10 +163,9 @@ import {
 	GamepadButton,
 } from "./types"
 
-import { GAMEPAD_MAPS } from "./gamepads"
-
 import FPSCounter from "./fps"
 import Timer from "./timer"
+import GAMEPAD_MAP from "./gamepad.json"
 
 // @ts-ignore
 import beanSpriteSrc from "./assets/bean.png"
@@ -3319,7 +3318,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	}
 
 	// function getGamepadStick(stick: "left" | "right"): boolean {
-		
+
 	// }
 
 	function charInputted(): string[] {
@@ -6427,49 +6426,52 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 	}
 
-	function inputFrame() {
-		game.ev.trigger("input")
-		app.keyState.down.forEach((k) => game.ev.trigger("keyDown", k))
-		app.mouseState.down.forEach((k) => game.ev.trigger("mouseDown", k))
-		app.virtualButtonState.down.forEach((k) => game.ev.trigger("virtualButtonDown", k))
-		
-		for (const gamepad of navigator.getGamepads()) {
-			if(!gamepad) return // the gamepad can return null if isn't a gamepad or is disconnected
-			let map = GAMEPAD_MAPS[gamepad.id]
-			if(!map) map = GAMEPAD_MAPS["default"]
+	function processGamepad() {
 
-			for(let i = 0; i < gamepad.buttons.length; i++) {
-				if(gamepad.buttons[i].pressed) {
-					if(!app.gamepadButtonState.down.has(map.buttons[i])) {
+		for (const gamepad of navigator.getGamepads()) {
+
+			// the gamepad can return null if isn't a gamepad or is disconnected
+			if (!gamepad) return
+
+			const map = GAMEPAD_MAP[gamepad.id] ?? GAMEPAD_MAP["default"]
+
+			for (let i = 0; i < gamepad.buttons.length; i++) {
+				if (gamepad.buttons[i].pressed) {
+					if (!app.gamepadButtonState.down.has(map.buttons[i])) {
 						app.gamepadButtonState.press(map.buttons[i])
 						game.ev.trigger("gamepadButtonPress", map.buttons[i])
 					}
-
 					game.ev.trigger("gamepadButtonDown", map.buttons[i])
-				}
-				else {
-					if(app.gamepadButtonState.down.has(map.buttons[i])) {
+				} else {
+					if (app.gamepadButtonState.down.has(map.buttons[i])) {
 						app.gamepadButtonState.release(map.buttons[i])
 						game.ev.trigger("gamepadButtonRelease", map.buttons[i])
 					}
 				}
 			}
 
-			for(const stickName in map.sticks) {
-				const stick = map.sticks[stickName];
-
-				const axiX = gamepad.axes[stick.x]
-				const axiY = gamepad.axes[stick.y]
-
-				if(axiX && axiY) {
-					game.ev.trigger("gamepadStick", stickName, new Vec2(axiX, axiY))
+			for (const stickName in map.sticks) {
+				const stick = map.sticks[stickName]
+				const axisX = gamepad.axes[stick.x]
+				const axisY = gamepad.axes[stick.y]
+				if (axisX && axisY) {
+					game.ev.trigger("gamepadStick", stickName, new Vec2(axisX, axisY))
 				}
 			}
+
 		}
+
+	}
+
+	function inputFrame() {
+		game.ev.trigger("input")
+		app.keyState.down.forEach((k) => game.ev.trigger("keyDown", k))
+		app.mouseState.down.forEach((k) => game.ev.trigger("mouseDown", k))
+		app.virtualButtonState.down.forEach((k) => game.ev.trigger("virtualButtonDown", k))
+		processGamepad()
 	}
 
 	function updateFrame() {
-
 		// update every obj
 		game.root.update()
 	}
