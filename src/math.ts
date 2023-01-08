@@ -1,6 +1,7 @@
 import {
 	Point,
 	RNGValue,
+	LerpValue,
 	Vec2Args,
 } from "./types"
 
@@ -23,12 +24,19 @@ export function clamp(
 	return Math.min(Math.max(val, min), max)
 }
 
-export function lerp(
-	a: number,
-	b: number,
+export function lerp<V extends LerpValue>(
+	a: V,
+	b: V,
 	t: number,
-): number {
-	return a + (b - a) * t
+): V {
+	if (typeof a === "number" && typeof b === "number") {
+		return a + (b - a) * t as V
+	} else if (a instanceof Vec2 && b instanceof Vec2) {
+		return a.lerp(b, t) as V
+	} else if (a instanceof Color && b instanceof Color) {
+		return a.lerp(b, t) as V
+	}
+	throw new Error(`Bad value for lerp(): ${a}, ${b}. Only number, Vec2 and Color is supported.`)
 }
 
 export function map(
@@ -125,14 +133,17 @@ export class Vec2 {
 		const p2 = vec2(...args)
 		return rad2deg(Math.atan2(this.cross(p2), this.dot(p2)))
 	}
-	lerp(p2: Vec2, t: number): Vec2 {
-		return new Vec2(lerp(this.x, p2.x, t), lerp(this.y, p2.y, t))
+	lerp(dest: Vec2, t: number): Vec2 {
+		return new Vec2(lerp(this.x, dest.x, t), lerp(this.y, dest.y, t))
 	}
-	slerp(p2: Vec2, t: number): Vec2 {
-		const cos = this.dot(p2)
-		const sin = this.cross(p2)
+	slerp(dest: Vec2, t: number): Vec2 {
+		const cos = this.dot(dest)
+		const sin = this.cross(dest)
 		const angle = Math.atan2(sin, cos)
-		return this.scale(Math.sin((1 - t) * angle)).add(p2.scale(Math.sin(t * angle))).scale(1 / sin)
+		return this
+			.scale(Math.sin((1 - t) * angle))
+			.add(dest.scale(Math.sin(t * angle)))
+			.scale(1 / sin)
 	}
 	isZero(): boolean {
 		return this.x === 0 && this.y === 0
@@ -254,6 +265,14 @@ export class Color {
 			this.r * other.r / 255,
 			this.g * other.g / 255,
 			this.b * other.b / 255,
+		)
+	}
+
+	lerp(dest: Color, t: number): Color {
+		return new Color(
+			lerp(this.r, dest.r, t),
+			lerp(this.g, dest.g, t),
+			lerp(this.b, dest.b, t),
 		)
 	}
 

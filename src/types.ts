@@ -1715,7 +1715,7 @@ export interface KaboomCtx {
 	/**
 	 * Linear interpolation.
 	 */
-	lerp(from: number, to: number, t: number): number,
+	lerp<V extends LerpValue>(from: V, to: V, t: number): V,
 	/**
 	 * Tweeeeeeeening!
 	 *
@@ -3595,6 +3595,12 @@ export declare class Color {
 	darken(n: number): Color
 	invert(): Color
 	mult(other: Color): Color
+	/**
+	 * Linear interpolate to a destination color.
+	 *
+	 * @since v3000.0
+	 */
+	lerp(dest: Color, t: number): Color
 	eq(c: Color): boolean
 	toString(): string
 	/**
@@ -3616,6 +3622,11 @@ export declare class Quad {
 	clone(): Quad
 	eq(q: Quad): boolean
 }
+
+export type LerpValue =
+	number
+	| Vec2
+	| Color
 
 export type RNGValue =
 	number
@@ -4937,7 +4948,7 @@ export type TimerController = {
 	/**
 	 * Register an event when finished.
 	 */
-	onFinish(action: () => void): void,
+	onEnd(action: () => void): void,
 	then(action: () => void): TimerController,
 }
 

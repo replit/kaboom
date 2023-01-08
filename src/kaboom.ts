@@ -161,6 +161,7 @@ import {
 	Vec2Args,
 	NineSlice,
 	GamepadButton,
+	LerpValue,
 } from "./types"
 
 import FPSCounter from "./fps"
@@ -3902,11 +3903,11 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		return {
 			paused: ev.paused,
 			cancel: ev.cancel,
-			onFinish(action) {
+			onEnd(action) {
 				actions.push(action)
 			},
 			then(action) {
-				this.onFinish(action)
+				this.onEnd(action)
 				return this
 			},
 		}
@@ -5056,11 +5057,11 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 						timer.paused = p
 					},
 					cancel: cancel,
-					onFinish(action) {
+					onEnd(action) {
 						actions.push(action)
 					},
 					then(action) {
-						this.onFinish(action)
+						this.onEnd(action)
 						return this
 					},
 				}
@@ -7201,16 +7202,15 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 	}
 
-	// TODO: tween vec2
-	function tween(
-		from: number,
-		to: number,
+	function tween<V extends LerpValue>(
+		from: V,
+		to: V,
 		duration: number,
-		setValue: (value: number) => void,
+		setValue: (value: V) => void,
 		easeFunc = easings.linear,
 	): TweenController {
 		let curTime = 0
-		const onFinishEvents: Array<() => void> = []
+		const onEndEvents: Array<() => void> = []
 		const ev = onUpdate(() => {
 			curTime += dt()
 			const t = Math.min(curTime / duration, 1)
@@ -7218,7 +7218,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			if (t === 1) {
 				ev.cancel()
 				setValue(to)
-				onFinishEvents.forEach((action) => action())
+				onEndEvents.forEach((action) => action())
 			}
 		})
 		return {
@@ -7228,11 +7228,11 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			set paused(p) {
 				ev.paused = p
 			},
-			onFinish(action: () => void) {
-				onFinishEvents.push(action)
+			onEnd(action: () => void) {
+				onEndEvents.push(action)
 			},
 			then(action: () => void) {
-				this.onFinish(action)
+				this.onEnd(action)
 				return this
 			},
 			cancel() {
@@ -7241,7 +7241,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			finish() {
 				ev.cancel()
 				setValue(to)
-				onFinishEvents.forEach((action) => action())
+				onEndEvents.forEach((action) => action())
 			},
 		}
 	}

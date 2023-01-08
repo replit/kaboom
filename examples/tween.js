@@ -40,6 +40,5 @@ onKeyPress("right", () => {
 
 onMousePress(() => {
 	const easeType = easeTypes[curEaseType]
-	tween(bean.pos.x, mousePos().x, duration, (val) => bean.pos.x = val, easings[easeType])
-	tween(bean.pos.y, mousePos().y, duration, (val) => bean.pos.y = val, easings[easeType])
+	tween(bean.pos, mousePos(), duration, (val) => bean.pos = val, easings[easeType])
 })
