@@ -473,6 +473,15 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			willReadFrequently: true,
 		})
 
+		const resizeObserver = new ResizeObserver((entries) => {
+			for (const entry of entries) {
+				if (entry.target !== canvas) continue
+				// TODO: handle resize here
+			}
+		})
+
+		resizeObserver.observe(canvas)
+
 		return {
 
 			canvas: canvas,

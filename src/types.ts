@@ -4972,6 +4972,7 @@ export declare class EventController {
 	static join(events: EventController[]): EventController
 }
 
+// TODO: global name conflict, renamed to KEvent?
 export declare class Event<Args extends any[] = any[]> {
 	add(action: (...args: Args) => void): EventController
 	addOnce(action: (...args) => void): EventController

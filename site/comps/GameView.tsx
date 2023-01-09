@@ -28,13 +28,6 @@ const wrapGame = (code: string) => `
 		body {
 			background: var(--color-bg2);
 		}
-		canvas {
-			border: solid 2px var(--color-outline);
-			border-radius: 8px;
-		}
-		canvas:focus {
-			border: solid 2px var(--color-highlight);
-		}
 	</style>
 </head>
 <body>
@@ -86,7 +79,9 @@ const GameView = React.forwardRef<GameViewRef, GameViewProps & ViewProps>(({
 	}, [ theme ])
 
 	return (
-		<View rounded {...args}>
+		<View {...args} css={{
+			overflow: "hidden",
+		}}>
 			<iframe
 				ref={iframeRef}
 				tabIndex={0}
@@ -94,7 +89,6 @@ const GameView = React.forwardRef<GameViewRef, GameViewProps & ViewProps>(({
 				css={{
 					border: "none",
 					background: "var(--background-bg2)",
-					borderRadius: "8px",
 					width: "100%",
 					height: "100%",
 				}}

@@ -307,6 +307,7 @@ const Play: React.FC<PlayProps> = ({
 					desc="Where your game runs"
 					ref={gameviewRef}
 					code={code}
+					rounded
 					width={isNarrow ? "100%" : "auto"}
 					height={isNarrow ? "auto" : "100%"}
 					css={{
