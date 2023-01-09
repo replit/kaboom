@@ -1810,6 +1810,10 @@ export interface KaboomCtx {
 	 * Check if a point is inside a rectangle.
 	 */
 	testRectPoint(r: Rect, pt: Point): boolean,
+	/**
+	 * Check if a circle and polygon intersect linewise.
+	 */
+	testCirclePolygon(c: Circle, p: Polygon): boolean,
 	Line: typeof Line,
 	Rect: typeof Rect,
 	Circle: typeof Circle,
