@@ -774,8 +774,14 @@ export function testCircleCircle(c1: Circle, c2: Circle): boolean {
 	return c1.center.sdist(c2.center) < (c1.radius + c2.radius) * (c1.radius + c2.radius)
 }
 
-// TODO
 export function testCirclePolygon(c: Circle, p: Polygon): boolean {
+	let prev = p.pts[p.pts.length - 1]
+	for (const cur of p.pts) {
+		if (testLineCircle(new Line(prev, cur), c)) {
+			return true
+		}
+		prev = cur
+	}
 	return false
 }
 
