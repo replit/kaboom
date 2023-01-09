@@ -33,6 +33,7 @@ import {
 	testRectPoint,
 	testPolygonPoint,
 	testCirclePoint,
+	testCirclePolygon,
 	deg2rad,
 	rad2deg,
 } from "./math"
