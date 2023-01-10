@@ -743,7 +743,9 @@ export function testLineCircle(l: Line, circle: Circle): boolean {
 		}
 	}
 
-	return true
+	// Check if line is completely within the circle
+	// We only need to check one point, since the line didn't cross the circle
+	return testCirclePoint(circle, l.p1);
 }
 
 export function testLinePolygon(l: Line, p: Polygon): boolean {
@@ -775,6 +777,7 @@ export function testCircleCircle(c1: Circle, c2: Circle): boolean {
 }
 
 export function testCirclePolygon(c: Circle, p: Polygon): boolean {
+	// For each edge check for intersection
 	let prev = p.pts[p.pts.length - 1]
 	for (const cur of p.pts) {
 		if (testLineCircle(new Line(prev, cur), c)) {
@@ -782,7 +785,15 @@ export function testCirclePolygon(c: Circle, p: Polygon): boolean {
 		}
 		prev = cur
 	}
-	return false
+
+	// Check if the polygon is completely within the circle
+	// We only need to check one point, since the polygon didn't cross the circle
+	if (testCirclePoint(c, p.pts[0])) {
+		return true
+	}
+
+	// Check if the circle is completely within the polygon
+	return testPolygonPoint(p, c.center)
 }
 
 export function testPolygonPolygon(p1: Polygon, p2: Polygon): boolean {
