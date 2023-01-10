@@ -760,14 +760,55 @@ export function testRectPolygon(r: Rect, p: Polygon): boolean {
 	return testPolygonPolygon(p, new Polygon(r.points()))
 }
 
-// TODO
 export function testLinePoint(l: Line, pt: Vec2): boolean {
-	return false
+	const v1 = pt.sub(l.p1)
+	const v2 = l.p2.sub(l.p1)
+
+	// Check if sine is 0, in that case lines are parallel.
+	// If not parallel, the point cannot lie on the line.
+	if (Math.abs(v1.cross(v2)) > Number.EPSILON) {
+		return false
+	}
+
+	// Scalar projection of v1 on v2
+	const t = v1.dot(v2) / v2.dot(v2)
+	// Since t is percentual distance of pt from line.p1 on the line,
+	// it should be between 0% and 100%
+	return t >= 0 && t <= 1
 }
 
-// TODO
-export function testLineCircle(l: Line, c: Circle): boolean {
-	return false
+export function testLineCircle(l: Line, circle: Circle): boolean {
+	const v = l.p2.sub(l.p1)
+	const a = v.dot(v)
+	const centerToOrigin = l.p1.sub(circle.center)
+	const b = 2 * v.dot(centerToOrigin)
+	const c = centerToOrigin.dot(centerToOrigin) - circle.radius * circle.radius
+	// Calculate the discriminant of ax^2 + bx + c
+	const dis = b * b - 4 * a * c
+
+	// No root
+	if ((a <= Number.EPSILON) || (dis < 0)) {
+		return false
+	}
+	// One possible root
+	else if (dis == 0) {
+		const t = -b / (2 * a)
+		if (t < 0 || t > 1) {
+			return false
+		}
+	}
+	// Two possible roots
+	else {
+		const t1 = (-b + Math.sqrt(dis)) / (2 * a)
+		const t2 = (-b - Math.sqrt(dis)) / (2 * a)
+		if ((t1 < 0 || t1 > 1) && (t2 < 0 || t2 > 1)) {
+			return false
+		}
+	}
+
+	// Check if line is completely within the circle
+	// We only need to check one point, since the line didn't cross the circle
+	return testCirclePoint(circle, l.p1);
 }
 
 export function testLinePolygon(l: Line, p: Polygon): boolean {
@@ -798,9 +839,24 @@ export function testCircleCircle(c1: Circle, c2: Circle): boolean {
 	return c1.center.sdist(c2.center) < (c1.radius + c2.radius) * (c1.radius + c2.radius)
 }
 
-// TODO
 export function testCirclePolygon(c: Circle, p: Polygon): boolean {
-	return false
+	// For each edge check for intersection
+	let prev = p.pts[p.pts.length - 1]
+	for (const cur of p.pts) {
+		if (testLineCircle(new Line(prev, cur), c)) {
+			return true
+		}
+		prev = cur
+	}
+
+	// Check if the polygon is completely within the circle
+	// We only need to check one point, since the polygon didn't cross the circle
+	if (testCirclePoint(c, p.pts[0])) {
+		return true
+	}
+
+	// Check if the circle is completely within the polygon
+	return testPolygonPoint(p, c.center)
 }
 
 export function testPolygonPolygon(p1: Polygon, p2: Polygon): boolean {
