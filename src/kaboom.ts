@@ -7479,6 +7479,9 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		testRectRect,
 		testRectLine,
 		testRectPoint,
+		testCirclePolygon,
+		testLinePoint,
+		testLineCircle,
 		// raw draw
 		drawSprite,
 		drawText,
