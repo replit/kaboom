@@ -200,13 +200,15 @@ export class Color {
 				(hex >> 8) & 0xff,
 				(hex >> 0) & 0xff,
 			)
-		} else {
+		} else if (typeof hex === "string") {
 			const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex)
 			return new Color(
 				parseInt(result[1], 16),
 				parseInt(result[2], 16),
 				parseInt(result[3], 16),
 			)
+		} else {
+			throw new Error("Invalid hex color format")
 		}
 	}
 
@@ -299,6 +301,8 @@ export function rgb(...args): Color {
 	} else if (args.length === 1) {
 		if (args[0] instanceof Color) {
 			return args[0].clone()
+		} else if (typeof args[0] === "string") {
+			return Color.fromHex(args[0])
 		} else if (Array.isArray(args[0]) && args[0].length === 3) {
 			return Color.fromArray(args[0])
 		}
