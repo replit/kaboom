@@ -808,7 +808,7 @@ export function testLineCircle(l: Line, circle: Circle): boolean {
 
 	// Check if line is completely within the circle
 	// We only need to check one point, since the line didn't cross the circle
-	return testCirclePoint(circle, l.p1);
+	return testCirclePoint(circle, l.p1)
 }
 
 export function testLinePolygon(l: Line, p: Polygon): boolean {
