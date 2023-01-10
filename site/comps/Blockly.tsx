@@ -9,6 +9,8 @@ import { javascriptGenerator } from "blockly/javascript"
 
 export interface BlocklyEditorRef {
 	genCode: () => string,
+	save: () => any,
+	load: (data: any) => void,
 }
 
 const FONT_SIZE = 16
@@ -32,8 +34,8 @@ Blockly.defineBlocksWithJsonArray([{
 }])
 
 Blockly.defineBlocksWithJsonArray([{
-	"type": "add",
-	"message0": "%1 add",
+	"type": "loadSprite",
+	"message0": "%1 load sprite %2 from %3",
 	"args0": [
 		{
 			"type": "field_image",
@@ -41,6 +43,39 @@ Blockly.defineBlocksWithJsonArray([{
 			"width": ICON_SIZE,
 			"height": ICON_SIZE,
 			"alt": "*",
+		},
+		{
+			"type": "field_input",
+			"name": "NAME",
+			"text": "bean",
+			"spellcheck": false,
+		},
+		{
+			"type": "field_input",
+			"name": "SOURCE",
+			"text": "sprites/bean.png",
+			"spellcheck": false,
+		},
+	],
+	"colour": 200,
+	"tooltip": "Component to render a sprite",
+	"helpUrl": "https://kaboomjs.com#sprite",
+}])
+
+Blockly.defineBlocksWithJsonArray([{
+	"type": "add",
+	"message0": "%1 add %2",
+	"args0": [
+		{
+			"type": "field_image",
+			"src": "https://github.com/replit/kaboom/raw/master/sprites/bean.png",
+			"width": ICON_SIZE,
+			"height": ICON_SIZE,
+			"alt": "*",
+		},
+		{
+			"type": "input_value",
+			"name": "COMPS",
 		},
 	],
 	"output": "Object",
@@ -62,7 +97,7 @@ Blockly.defineBlocksWithJsonArray([{
 		},
 		{
 			"type": "field_input",
-			"name": "name",
+			"name": "NAME",
 			"text": "bean",
 			"spellcheck": false,
 		},
@@ -86,12 +121,12 @@ Blockly.defineBlocksWithJsonArray([{
 		},
 		{
 			"type": "field_number",
-			"name": "x",
+			"name": "X",
 			"value": 0,
 		},
 		{
 			"type": "field_number",
-			"name": "y",
+			"name": "Y",
 			"value": 0,
 		},
 	],
@@ -114,7 +149,7 @@ Blockly.defineBlocksWithJsonArray([{
 		},
 		{
 			"type": "field_colour",
-			"name": "FIELDNAME",
+			"name": "COLOR",
 			"colour": "#ff4040",
 		},
 	],
@@ -137,17 +172,17 @@ Blockly.defineBlocksWithJsonArray([{
 		},
 		{
 			"type": "field_dropdown",
-			"name": "value",
+			"name": "ANCHOR",
 			"options": [
-				[ "topleft", "TOPLEFT" ],
-				[ "top", "TOP" ],
-				[ "topright", "TOPRIGHT" ],
-				[ "left", "LEFT" ],
-				[ "center", "CENTER" ],
-				[ "right", "RIGHT" ],
-				[ "botleft", "BOTLEFT" ],
-				[ "bot", "BOT" ],
-				[ "botright", "BOTRIGHT" ],
+				[ "topleft", "topleft" ],
+				[ "top", "top" ],
+				[ "topright", "topright" ],
+				[ "left", "left" ],
+				[ "center", "center" ],
+				[ "right", "right" ],
+				[ "botleft", "botleft" ],
+				[ "bot", "bot" ],
+				[ "botright", "botright" ],
 			],
 		},
 	],
@@ -170,7 +205,7 @@ Blockly.defineBlocksWithJsonArray([{
 		},
 		{
 			"type": "field_angle",
-			"name": "angle",
+			"name": "ANGLE",
 			"angle": 0,
 		},
 	],
@@ -181,32 +216,47 @@ Blockly.defineBlocksWithJsonArray([{
 }])
 
 javascriptGenerator["kaboom"] = (block: BlockSvg) => {
-	console.log(block)
 	return "kaboom()"
 }
 
+javascriptGenerator["loadSprite"] = (block: BlockSvg) => {
+	const name = block.getFieldValue("NAME")
+	const source = block.getFieldValue("SOURCE")
+	return `loadSprite("${name}", "${source}")`
+}
+
 javascriptGenerator["add"] = (block: BlockSvg) => {
-	return ["add()", javascriptGenerator.ORDER_FUNCTION_CALL]
+	const comps = javascriptGenerator.valueToCode(block, "COMPS", javascriptGenerator.ORDER_ADDITION)
+	if (!comps) {
+		throw new Error("Failed to add()")
+	}
+	return [`add(${comps})`, javascriptGenerator.ORDER_FUNCTION_CALL]
 }
 
 javascriptGenerator["sprite"] = (block: BlockSvg) => {
-	return ["sprite()", javascriptGenerator.ORDER_FUNCTION_CALL]
+	const name = block.getFieldValue("NAME")
+	return [`sprite("${name}")`, javascriptGenerator.ORDER_FUNCTION_CALL]
 }
 
 javascriptGenerator["pos"] = (block: BlockSvg) => {
-	return ["pos()", javascriptGenerator.ORDER_FUNCTION_CALL]
+	const x = block.getFieldValue("X")
+	const y = block.getFieldValue("Y")
+	return [`pos(${x}, ${y})`, javascriptGenerator.ORDER_FUNCTION_CALL]
 }
 
 javascriptGenerator["color"] = (block: BlockSvg) => {
-	return ["color()", javascriptGenerator.ORDER_FUNCTION_CALL]
+	const color = block.getFieldValue("COLOR")
+	return [`color("${color}")`, javascriptGenerator.ORDER_FUNCTION_CALL]
 }
 
 javascriptGenerator["anchor"] = (block: BlockSvg) => {
-	return ["anchor()", javascriptGenerator.ORDER_FUNCTION_CALL]
+	const anchor = block.getFieldValue("ANCHOR")
+	return [`anchor("${anchor}")`, javascriptGenerator.ORDER_FUNCTION_CALL]
 }
 
 javascriptGenerator["rotate"] = (block: BlockSvg) => {
-	return ["rotate()", javascriptGenerator.ORDER_FUNCTION_CALL]
+	const angle = block.getFieldValue("ANGLE")
+	return [`rotate(${angle})`, javascriptGenerator.ORDER_FUNCTION_CALL]
 }
 
 const blocks = [
@@ -214,10 +264,11 @@ const blocks = [
 		name: "kaboom",
 		blocks: [
 			"kaboom",
+			"loadSprite",
+			"add",
 			"sprite",
 			"pos",
 			"color",
-			"add",
 			"anchor",
 			"rotate",
 		],
@@ -304,13 +355,21 @@ const blocks = [
 	},
 ]
 
-const BlocklyEditor = forwardRef(({...props}, ref) => {
+const BlocklyEditor = forwardRef<BlocklyEditorRef>(({...props}, ref) => {
 	const divRef = useRef(null)
 	const workspaceRef = useRef<WorkspaceSvg | null>(null)
 	useImperativeHandle(ref, () => ({
 		genCode() {
-			if (!workspaceRef.current) throw new Error("Workspace not initialized")
+			if (!workspaceRef.current) throw new Error("Blockly workspace not initialized")
 			return javascriptGenerator.workspaceToCode(workspaceRef.current)
+		},
+		save() {
+			if (!workspaceRef.current) throw new Error("Blockly workspace not initialized")
+			return Blockly.serialization.workspaces.save(workspaceRef.current)
+		},
+		load(data) {
+			if (!workspaceRef.current) throw new Error("Blockly workspace not initialized")
+			Blockly.serialization.workspaces.load(data, workspaceRef.current)
 		},
 	}))
 	useEffect(() => {
