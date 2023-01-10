@@ -3540,6 +3540,10 @@ export declare class Mat4 {
 	translate(p: Vec2): Mat4
 	scale(s: Vec2): Mat4
 	rotate(a: number): Mat4
+	getTranslation(): Vec2
+	getScale(): Vec2
+	getRotation(): number
+	getSkew(): Vec2
 	invert(): Mat4
 	toString(): string
 }
