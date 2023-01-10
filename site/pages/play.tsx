@@ -4,6 +4,7 @@ import * as React from "react"
 import { GetServerSideProps } from "next"
 import Link from "next/link"
 import { useRouter } from "next/router"
+import pako from "pako"
 import useKey from "hooks/useKey"
 import useSavedState from "hooks/useSavedState"
 import useClickOutside from "hooks/useClickOutside"
@@ -118,13 +119,35 @@ interface PlayProps {
 	examples: Record<string, string>,
 }
 
+function compressStr(str: string) {
+	return btoa(String.fromCharCode.apply(null, pako.deflate(str)))
+}
+
+function decompressStr(str: string) {
+	return pako.inflate(
+		new Uint8Array(atob(str).split("").map((c) => c.charCodeAt(0))),
+		{ to: "string" },
+	)
+}
+
 const Play: React.FC<PlayProps> = ({
 	examples,
 }) => {
-
 	const router = useRouter()
-	const example = router.query.example as string || DEFAULT_EXAMPLE
-	const code = examples[example]
+	const query = (() => {
+		const q: Record<string, string> = {}
+		for (const name in router.query) {
+			const value = router.query[name]
+			if (typeof value === "string") {
+				q[name] = value
+			} else if (Array.isArray(value)) {
+				q[name] = value[0]
+			}
+		}
+		return q
+	})()
+	const example = query["example"] || DEFAULT_EXAMPLE
+	const code = query["code"] ? decompressStr(query["code"]) : examples[example]
 	const [ backpackOpen, setBackpackOpen ] = React.useState(false)
 	const [ sprites, setSprites ] = useSavedState<Sprite[]>("sprites", [])
 	const [ sounds, setSounds ] = useSavedState<Sound[]>("sounds", [])
@@ -149,6 +172,7 @@ const Play: React.FC<PlayProps> = ({
 		if (router.isReady && !router.query.example) {
 			router.replace({
 				query: {
+					...router.query,
 					example: DEFAULT_EXAMPLE,
 				},
 			}, undefined, { shallow: true })
@@ -219,9 +243,9 @@ const Play: React.FC<PlayProps> = ({
 						/>
 					}
 					<Button
+						text="Run"
 						name="Run Button"
 						desc="Run current code (Cmd+s)"
-						text="Run"
 						action={() => {
 							if (!editorRef.current) return
 							if (!gameviewRef.current) return
@@ -229,6 +253,23 @@ const Play: React.FC<PlayProps> = ({
 							if (content) {
 								gameviewRef.current.run(content)
 							}
+						}}
+					/>
+					<Button
+						text="Share"
+						name="Share"
+						desc="Generate a link of the current code"
+						action={() => {
+							if (!editorRef.current) return
+							const content = editorRef.current.getContent() ?? ""
+							const compressed = compressStr(content)
+							const queryCopy = { ...query }
+							queryCopy["code"] = encodeURIComponent(compressed)
+							const queryStr = Object.entries(queryCopy).map(([k, v]) => `${k}=${v}`).join("&")
+							navigator.clipboard.writeText(`${window.location.origin}${window.location.pathname}?${queryStr}`).then(() => {
+								// TODO: display message
+								console.log("copied!")
+							})
 						}}
 					/>
 				</View>
