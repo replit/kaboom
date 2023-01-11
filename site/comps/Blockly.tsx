@@ -23,6 +23,10 @@ const blocks = [
 			"kaboom_kaboom",
 			"kaboom_loadSprite",
 			"kaboom_add",
+			"kaboom_addNoRet",
+			"kaboom_destroy",
+			"kaboom_mouseX",
+			"kaboom_mouseY",
 		],
 	},
 	{
@@ -32,6 +36,7 @@ const blocks = [
 			"kaboom_rect",
 			"kaboom_text",
 			"kaboom_pos",
+			"kaboom_pos2",
 			"kaboom_scale",
 			"kaboom_rotate",
 			"kaboom_color",
@@ -54,7 +59,9 @@ const blocks = [
 		blocks: [
 			"kaboom_onUpdate",
 			"kaboom_onKey",
-			"kaboom_onClick",
+			"kaboom_onMouse",
+			"kaboom_onObj",
+			"kaboom_onCollide",
 		],
 	},
 	{
