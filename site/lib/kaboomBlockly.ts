@@ -147,8 +147,11 @@ Blockly.Blocks["kaboom_rect"] = {
 		this.appendDummyInput()
 			.appendField(img("bean"))
 			.appendField("rect")
-			.appendField(new Blockly.FieldNumber(40), "WIDTH")
-			.appendField(new Blockly.FieldNumber(40), "HEIGHT")
+		this.appendValueInput("WIDTH")
+			.setCheck("Number")
+		this.appendValueInput("HEIGHT")
+			.setCheck("Number")
+		this.setInputsInline(true)
 		this.setColour(200)
 		this.setOutput(true, "Object")
 		this.setTooltip("Component to render rectangle")
@@ -157,8 +160,8 @@ Blockly.Blocks["kaboom_rect"] = {
 }
 
 js["kaboom_rect"] = (block: BlockSvg) => {
-	const w = block.getFieldValue("WIDTH")
-	const h = block.getFieldValue("HEIGHT")
+	const w = js.valueToCode(block, "WIDTH", js.ORDER_ATOMIC)
+	const h = js.valueToCode(block, "HEIGHT", js.ORDER_ATOMIC)
 	return [`rect(${w}, ${h})`, js.ORDER_FUNCTION_CALL]
 }
 
@@ -167,7 +170,9 @@ Blockly.Blocks["kaboom_text"] = {
 		this.appendDummyInput()
 			.appendField(img("bean"))
 			.appendField("text")
-			.appendField(new Blockly.FieldTextInput(), "TEXT")
+		this.appendValueInput("TEXT")
+			.setCheck("String")
+		this.setInputsInline(true)
 		this.setColour(200)
 		this.setOutput(true, "Object")
 		this.setTooltip("Component to render a text")
@@ -176,7 +181,7 @@ Blockly.Blocks["kaboom_text"] = {
 }
 
 js["kaboom_text"] = (block: BlockSvg) => {
-	const text = block.getFieldValue("TEXT")
+	const text = js.valueToCode(block, "TEXT", js.ORDER_ATOMIC)
 	return [`text("${text}")`, js.ORDER_FUNCTION_CALL]
 }
 
@@ -379,8 +384,11 @@ Blockly.Blocks["kaboom_scaleTo"] = {
 			.appendField("scale")
 			.appendField(new Blockly.FieldVariable("obj"), "OBJ")
 			.appendField("to")
-			.appendField(new Blockly.FieldNumber(), "X")
-			.appendField(new Blockly.FieldNumber(), "Y")
+		this.appendValueInput("X")
+			.setCheck("Number")
+		this.appendValueInput("Y")
+			.setCheck("Number")
+		this.setInputsInline(true)
 		this.setColour(200)
 		this.setPreviousStatement(true)
 		this.setNextStatement(true)
@@ -392,9 +400,33 @@ Blockly.Blocks["kaboom_scaleTo"] = {
 js["kaboom_scaleTo"] = (block: BlockSvg) => {
 	const obj = getVarName(block, "OBJ")
 	if (!obj) return ""
-	const x = block.getFieldValue("X")
-	const y = block.getFieldValue("Y")
+	const x = js.valueToCode(block, "X", js.ORDER_ATOMIC)
+	const y = js.valueToCode(block, "Y", js.ORDER_ATOMIC)
 	return `${obj}.scaleTo(${x}, ${y})\n`
+}
+
+Blockly.Blocks["kaboom_rotateTo"] = {
+	init(this: Block) {
+		this.appendDummyInput()
+			.appendField(img("bean"))
+			.appendField("rotate")
+			.appendField(new Blockly.FieldVariable("obj"), "OBJ")
+			.appendField("to")
+		this.appendValueInput("ANGLE")
+		this.setInputsInline(true)
+		this.setColour(200)
+		this.setPreviousStatement(true)
+		this.setNextStatement(true)
+		this.setTooltip("Rotate an object to an angle")
+		this.setHelpUrl("https://kaboomjs.com#rotate")
+	},
+}
+
+js["kaboom_rotateTo"] = (block: BlockSvg) => {
+	const obj = getVarName(block, "OBJ")
+	if (!obj) return ""
+	const angle = js.valueToCode(block, "ANGLE", js.ORDER_ATOMIC)
+	return `${obj}.rotateTo(${angle}})\n`
 }
 
 Blockly.Blocks["kaboom_jump"] = {
@@ -404,7 +436,8 @@ Blockly.Blocks["kaboom_jump"] = {
 			.appendField("jump")
 			.appendField(new Blockly.FieldVariable("obj"), "OBJ")
 			.appendField("with force")
-			.appendField(new Blockly.FieldNumber(640), "FORCE")
+		this.appendValueInput("FORCE")
+		this.setInputsInline(true)
 		this.setColour(200)
 		this.setPreviousStatement(true)
 		this.setNextStatement(true)
@@ -416,7 +449,7 @@ Blockly.Blocks["kaboom_jump"] = {
 js["kaboom_jump"] = (block: BlockSvg) => {
 	const obj = getVarName(block, "OBJ")
 	if (!obj) return ""
-	const force = block.getFieldValue("FORCE")
+	const force = js.valueToCode(block, "FORCE", js.ORDER_ATOMIC)
 	return `${obj}.jump(${force})\n`
 }
 

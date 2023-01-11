@@ -35,6 +35,34 @@ specialBlocks["kaboom_pos"] = {
 	},
 }
 
+specialBlocks["kaboom_rect"] = {
+	inputs: {
+		"WIDTH": {
+			shadow: {
+				type: "math_number",
+				fields: { "NUM": 40 },
+			},
+		},
+		"HEIGHT": {
+			shadow: {
+				type: "math_number",
+				fields: { "NUM": 40 },
+			},
+		},
+	},
+}
+
+specialBlocks["kaboom_text"] = {
+	inputs: {
+		"TEXT": {
+			shadow: {
+				type: "text",
+				fields: { "TEXT": "" },
+			},
+		},
+	},
+}
+
 specialBlocks["kaboom_moveTo"] = {
 	inputs: {
 		"X": {
@@ -47,6 +75,45 @@ specialBlocks["kaboom_moveTo"] = {
 			shadow: {
 				type: "math_number",
 				fields: { "NUM": 0 },
+			},
+		},
+	},
+}
+
+specialBlocks["kaboom_scaleTo"] = {
+	inputs: {
+		"X": {
+			shadow: {
+				type: "math_number",
+				fields: { "NUM": 1 },
+			},
+		},
+		"Y": {
+			shadow: {
+				type: "math_number",
+				fields: { "NUM": 1 },
+			},
+		},
+	},
+}
+
+specialBlocks["kaboom_rotateTo"] = {
+	inputs: {
+		"ANGLE": {
+			shadow: {
+				type: "math_number",
+				fields: { "NUM": 0 },
+			},
+		},
+	},
+}
+
+specialBlocks["kaboom_jump"] = {
+	inputs: {
+		"FORCE": {
+			shadow: {
+				type: "math_number",
+				fields: { "NUM": 640 },
 			},
 		},
 	},
@@ -86,6 +153,7 @@ const blocks = [
 			"kaboom_moveTo",
 			"kaboom_moveBy",
 			"kaboom_scaleTo",
+			"kaboom_rotateTo",
 			"kaboom_jump",
 		],
 	},
