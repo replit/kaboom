@@ -53,7 +53,8 @@ const blocks = [
 		name: "events",
 		blocks: [
 			"kaboom_onUpdate",
-			"kaboom_onKeyPress",
+			"kaboom_onKey",
+			"kaboom_onClick",
 		],
 	},
 	{

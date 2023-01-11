@@ -4,6 +4,15 @@ import Blockly, { Block, BlockSvg } from "blockly"
 import { javascriptGenerator as js } from "blockly/javascript"
 
 const ICON_SIZE = 24
+const KEYS = [
+	"space", "left", "right", "up", "down", "enter",
+	"a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z",
+	"1", "2", "3", "4", "5", "6", "7", "8", "9", "0",
+	"escape", "backspace", "tab", "control", "alt", "meta",
+	"-", "=", " ", "`", "[", "]", "\\", ";", "'", ",", ".", "/",
+	"f1", "f2", "f3", "f4", "f5", "f6", "f7", "f8", "f9", "f10", "f11", "f12",
+]
+
 const img = (name: string) => new Blockly.FieldImage(`https://github.com/replit/kaboom/raw/master/sprites/${name}.png`, ICON_SIZE, ICON_SIZE)
 
 function getVarName(block: BlockSvg, field: string) {
@@ -14,10 +23,6 @@ function getVarName(block: BlockSvg, field: string) {
 		}
 	}
 	return null
-}
-
-function getFirstVar(block: BlockSvg) {
-	return block.getVarModels()[0]?.name
 }
 
 Blockly.Blocks["kaboom_kaboom"] = {
@@ -55,6 +60,7 @@ js["kaboom_loadSprite"] = (block: BlockSvg) => {
 	return `loadSprite("${name}", "${source}")`
 }
 
+// TODO: mimic lists_create_with
 Blockly.Blocks["kaboom_add"] = {
 	init(this: Block) {
 		this.appendDummyInput()
@@ -384,22 +390,49 @@ js["kaboom_onUpdate"] = (block: BlockSvg) => {
 	return `onUpdate(() => {${action}})`
 }
 
-Blockly.Blocks["kaboom_onKeyPress"] = {
+Blockly.Blocks["kaboom_onKey"] = {
 	init(this: Block) {
 		this.appendDummyInput()
 			.appendField(img("bean"))
 			.appendField("when key")
-			.appendField(new Blockly.FieldTextInput(), "KEY")
-			.appendField("is pressed")
+			.appendField(new Blockly.FieldDropdown(KEYS.map((k) => [k, k])), "KEY")
+			.appendField("is")
+			.appendField(new Blockly.FieldDropdown([
+				[ "pressed", "onKeyPress" ],
+				[ "held down", "onKeyDown" ],
+				[ "released", "onKeyRelease" ],
+			]), "EVENT")
 		this.appendStatementInput("ACTION")
 		this.setColour(200)
-		this.setTooltip("Run something when a key is pressed")
+		this.setTooltip(() => `Run something when a key is ${this.getFieldValue("EVENT")}`)
 		this.setHelpUrl("https://kaboomjs.com#onKeyPress")
 	},
 }
 
-js["kaboom_onKeyPress"] = (block: BlockSvg) => {
+js["kaboom_onKey"] = (block: BlockSvg) => {
 	const key = block.getFieldValue("KEY")
+	const event = block.getFieldValue("EVENT")
 	const action = js.statementToCode(block, "ACTION", js.ORDER_ADDITION)
-	return `onKeyPress("${key}", () => {${action}})`
+	return `${event}("${key}", () => {${action}})`
+}
+
+Blockly.Blocks["kaboom_onClick"] = {
+	init(this: Block) {
+		this.appendDummyInput()
+			.appendField(img("bean"))
+			.appendField("when")
+			.appendField(new Blockly.FieldVariable("obj"), "OBJ")
+			.appendField("is clicked")
+		this.appendStatementInput("ACTION")
+		this.setColour(200)
+		this.setTooltip("Run something when an object is clicked")
+		this.setHelpUrl("https://kaboomjs.com#area")
+	},
+}
+
+js["kaboom_onClick"] = (block: BlockSvg) => {
+	const obj = getVarName(block, "OBJ")
+	if (!obj) return ""
+	const action = js.statementToCode(block, "ACTION", js.ORDER_ADDITION)
+	return `${obj}.onClick(() => {${action}})`
 }
