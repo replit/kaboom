@@ -6,6 +6,7 @@ import {
 } from "react"
 import Blockly, { WorkspaceSvg, BlockSvg } from "blockly"
 import { javascriptGenerator } from "blockly/javascript"
+import "lib/kaboomBlockly"
 
 export interface BlocklyEditorRef {
 	genCode: () => string,
@@ -14,250 +15,6 @@ export interface BlocklyEditorRef {
 }
 
 const FONT_SIZE = 16
-const ICON_SIZE = FONT_SIZE * 1.6
-
-Blockly.defineBlocksWithJsonArray([{
-	"type": "kaboom",
-	"message0": "%1 kaboom",
-	"args0": [
-		{
-			"type": "field_image",
-			"src": "https://github.com/replit/kaboom/raw/master/sprites/k.png",
-			"width": ICON_SIZE,
-			"height": ICON_SIZE,
-			"alt": "*",
-		},
-	],
-	"colour": 250,
-	"tooltip": "Start a Kaboom game",
-	"helpUrl": "https://kaboomjs.com#kaboom",
-}])
-
-Blockly.defineBlocksWithJsonArray([{
-	"type": "loadSprite",
-	"message0": "%1 load sprite %2 from %3",
-	"args0": [
-		{
-			"type": "field_image",
-			"src": "https://github.com/replit/kaboom/raw/master/sprites/bean.png",
-			"width": ICON_SIZE,
-			"height": ICON_SIZE,
-			"alt": "*",
-		},
-		{
-			"type": "field_input",
-			"name": "NAME",
-			"text": "bean",
-			"spellcheck": false,
-		},
-		{
-			"type": "field_input",
-			"name": "SOURCE",
-			"text": "sprites/bean.png",
-			"spellcheck": false,
-		},
-	],
-	"colour": 200,
-	"tooltip": "Component to render a sprite",
-	"helpUrl": "https://kaboomjs.com#sprite",
-}])
-
-Blockly.defineBlocksWithJsonArray([{
-	"type": "add",
-	"message0": "%1 add %2",
-	"args0": [
-		{
-			"type": "field_image",
-			"src": "https://github.com/replit/kaboom/raw/master/sprites/bean.png",
-			"width": ICON_SIZE,
-			"height": ICON_SIZE,
-			"alt": "*",
-		},
-		{
-			"type": "input_value",
-			"name": "COMPS",
-		},
-	],
-	"output": "Object",
-	"colour": 200,
-	"tooltip": "Add a game object",
-	"helpUrl": "https://kaboomjs.com#add",
-}])
-
-Blockly.defineBlocksWithJsonArray([{
-	"type": "sprite",
-	"message0": "%1 sprite %2",
-	"args0": [
-		{
-			"type": "field_image",
-			"src": "https://github.com/replit/kaboom/raw/master/sprites/bean.png",
-			"width": ICON_SIZE,
-			"height": ICON_SIZE,
-			"alt": "*",
-		},
-		{
-			"type": "field_input",
-			"name": "NAME",
-			"text": "bean",
-			"spellcheck": false,
-		},
-	],
-	"output": "Object",
-	"colour": 200,
-	"tooltip": "Component to render a sprite",
-	"helpUrl": "https://kaboomjs.com#sprite",
-}])
-
-Blockly.defineBlocksWithJsonArray([{
-	"type": "pos",
-	"message0": "%1 pos %2 %3",
-	"args0": [
-		{
-			"type": "field_image",
-			"src": "https://github.com/replit/kaboom/raw/master/sprites/bean.png",
-			"width": ICON_SIZE,
-			"height": ICON_SIZE,
-			"alt": "*",
-		},
-		{
-			"type": "field_number",
-			"name": "X",
-			"value": 0,
-		},
-		{
-			"type": "field_number",
-			"name": "Y",
-			"value": 0,
-		},
-	],
-	"output": "Object",
-	"colour": 200,
-	"tooltip": "Component to set object position",
-	"helpUrl": "https://kaboomjs.com#pos",
-}])
-
-Blockly.defineBlocksWithJsonArray([{
-	"type": "color",
-	"message0": "%1 color %2",
-	"args0": [
-		{
-			"type": "field_image",
-			"src": "https://github.com/replit/kaboom/raw/master/sprites/bean.png",
-			"width": ICON_SIZE,
-			"height": ICON_SIZE,
-			"alt": "*",
-		},
-		{
-			"type": "field_colour",
-			"name": "COLOR",
-			"colour": "#ff4040",
-		},
-	],
-	"output": "Object",
-	"colour": 200,
-	"tooltip": "Component to set object color",
-	"helpUrl": "https://kaboomjs.com#color",
-}])
-
-Blockly.defineBlocksWithJsonArray([{
-	"type": "anchor",
-	"message0": "%1 anchor %2",
-	"args0": [
-		{
-			"type": "field_image",
-			"src": "https://github.com/replit/kaboom/raw/master/sprites/bean.png",
-			"width": ICON_SIZE,
-			"height": ICON_SIZE,
-			"alt": "*",
-		},
-		{
-			"type": "field_dropdown",
-			"name": "ANCHOR",
-			"options": [
-				[ "topleft", "topleft" ],
-				[ "top", "top" ],
-				[ "topright", "topright" ],
-				[ "left", "left" ],
-				[ "center", "center" ],
-				[ "right", "right" ],
-				[ "botleft", "botleft" ],
-				[ "bot", "bot" ],
-				[ "botright", "botright" ],
-			],
-		},
-	],
-	"output": "Object",
-	"colour": 200,
-	"tooltip": "Component to set object's anchor point",
-	"helpUrl": "https://kaboomjs.com#anchor",
-}])
-
-Blockly.defineBlocksWithJsonArray([{
-	"type": "rotate",
-	"message0": "%1 rotate %2",
-	"args0": [
-		{
-			"type": "field_image",
-			"src": "https://github.com/replit/kaboom/raw/master/sprites/bean.png",
-			"width": ICON_SIZE,
-			"height": ICON_SIZE,
-			"alt": "*",
-		},
-		{
-			"type": "field_angle",
-			"name": "ANGLE",
-			"angle": 0,
-		},
-	],
-	"output": "Object",
-	"colour": 200,
-	"tooltip": "Component to set object's angle",
-	"helpUrl": "https://kaboomjs.com#rotate",
-}])
-
-javascriptGenerator["kaboom"] = (block: BlockSvg) => {
-	return "kaboom()"
-}
-
-javascriptGenerator["loadSprite"] = (block: BlockSvg) => {
-	const name = block.getFieldValue("NAME")
-	const source = block.getFieldValue("SOURCE")
-	return `loadSprite("${name}", "${source}")`
-}
-
-javascriptGenerator["add"] = (block: BlockSvg) => {
-	const comps = javascriptGenerator.valueToCode(block, "COMPS", javascriptGenerator.ORDER_ADDITION)
-	if (!comps) {
-		throw new Error("Failed to add()")
-	}
-	return [`add(${comps})`, javascriptGenerator.ORDER_FUNCTION_CALL]
-}
-
-javascriptGenerator["sprite"] = (block: BlockSvg) => {
-	const name = block.getFieldValue("NAME")
-	return [`sprite("${name}")`, javascriptGenerator.ORDER_FUNCTION_CALL]
-}
-
-javascriptGenerator["pos"] = (block: BlockSvg) => {
-	const x = block.getFieldValue("X")
-	const y = block.getFieldValue("Y")
-	return [`pos(${x}, ${y})`, javascriptGenerator.ORDER_FUNCTION_CALL]
-}
-
-javascriptGenerator["color"] = (block: BlockSvg) => {
-	const color = block.getFieldValue("COLOR")
-	return [`color("${color}")`, javascriptGenerator.ORDER_FUNCTION_CALL]
-}
-
-javascriptGenerator["anchor"] = (block: BlockSvg) => {
-	const anchor = block.getFieldValue("ANCHOR")
-	return [`anchor("${anchor}")`, javascriptGenerator.ORDER_FUNCTION_CALL]
-}
-
-javascriptGenerator["rotate"] = (block: BlockSvg) => {
-	const angle = block.getFieldValue("ANGLE")
-	return [`rotate(${angle})`, javascriptGenerator.ORDER_FUNCTION_CALL]
-}
 
 const blocks = [
 	{
@@ -267,10 +24,17 @@ const blocks = [
 			"loadSprite",
 			"add",
 			"sprite",
+			"rect",
 			"pos",
 			"color",
 			"anchor",
 			"rotate",
+			"area",
+			"body",
+			"moveTo",
+			"moveBy",
+			"onUpdate",
+			"onKeyPress",
 		],
 	},
 	{

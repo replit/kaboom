@@ -7,6 +7,17 @@ import Button from "comps/Button"
 export default function BlocklyPage() {
 	const editorRef = useRef<BlocklyEditorRef | null>(null)
 	const gameviewRef = useRef<GameViewRef | null>(null)
+	useEffect(() => {
+		if (!editorRef.current) return
+		const blocks = localStorage.getItem("blocks")
+		if (blocks) {
+			editorRef.current.load(JSON.parse(blocks))
+			const code = editorRef.current.genCode()
+			if (code) {
+				gameviewRef.current?.run(code)
+			}
+		}
+	}, [])
 	return (
 		<View stretch dir="column">
 			<View stretchX bg={1} gap={2} pad={2} dir="row" justify="between">
@@ -28,7 +39,7 @@ export default function BlocklyPage() {
 							editorRef.current.load(JSON.parse(blocks))
 							const code = editorRef.current.genCode()
 							if (code) {
-								gameviewRef.current?.run()
+								gameviewRef.current?.run(code)
 							}
 						}
 					}} />
