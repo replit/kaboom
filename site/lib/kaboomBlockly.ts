@@ -66,7 +66,6 @@ Blockly.Blocks["kaboom_add"] = {
 		this.appendDummyInput()
 			.appendField(img("bean"))
 			.appendField("add")
-		// TODO: this appears in a new line
 		this.appendValueInput("COMPS")
 		this.setColour(200)
 		this.setOutput(true, "Object")
@@ -121,7 +120,7 @@ Blockly.Blocks["kaboom_destroy"] = {
 js["kaboom_destroy"] = (block: BlockSvg) => {
 	const obj = getVarName(block, "OBJ")
 	if (!obj) return ""
-	return `destroy(${obj})`
+	return `destroy(${obj})\n`
 }
 
 Blockly.Blocks["kaboom_sprite"] = {
@@ -466,7 +465,7 @@ Blockly.Blocks["kaboom_mouseX"] = {
 }
 
 js["kaboom_mouseX"] = () => {
-	return ["mousePos().x", js.ORDER_FUNCTION_CALL]
+	return ["mousePos().x", js.ORDER_MEMBER]
 }
 
 Blockly.Blocks["kaboom_mouseY"] = {
@@ -482,7 +481,7 @@ Blockly.Blocks["kaboom_mouseY"] = {
 }
 
 js["kaboom_mouseY"] = () => {
-	return ["mousePos().y", js.ORDER_FUNCTION_CALL]
+	return ["mousePos().y", js.ORDER_MEMBER]
 }
 
 Blockly.Blocks["kaboom_onUpdate"] = {
@@ -525,7 +524,7 @@ js["kaboom_onKey"] = (block: BlockSvg) => {
 	const key = block.getFieldValue("KEY")
 	const event = block.getFieldValue("EVENT")
 	const action = js.statementToCode(block, "ACTION", js.ORDER_ATOMIC)
-	return `${event}("${key}", () => {${action}})`
+	return `${event}("${key}", () => {\n${action}\n})`
 }
 
 Blockly.Blocks["kaboom_onMouse"] = {
@@ -548,7 +547,7 @@ Blockly.Blocks["kaboom_onMouse"] = {
 js["kaboom_onMouse"] = (block: BlockSvg) => {
 	const event = block.getFieldValue("EVENT")
 	const action = js.statementToCode(block, "ACTION", js.ORDER_ATOMIC)
-	return `${event}(() => {${action}})`
+	return `${event}(() => {\n${action}\n})`
 }
 
 Blockly.Blocks["kaboom_onObj"] = {
@@ -560,7 +559,9 @@ Blockly.Blocks["kaboom_onObj"] = {
 			.appendField("is")
 			.appendField(new Blockly.FieldDropdown([
 				[ "clicked", "onClick" ],
+				[ "hovered", "onHover" ],
 				[ "grounded", "onGround" ],
+				[ "destroy", "onDestroy" ],
 			]), "EVENT")
 		this.appendStatementInput("ACTION")
 		this.setColour(200)
@@ -574,7 +575,7 @@ js["kaboom_onObj"] = (block: BlockSvg) => {
 	if (!obj) return ""
 	const action = js.statementToCode(block, "ACTION", js.ORDER_ATOMIC)
 	const event = block.getFieldValue("EVENT")
-	return `${obj}.${event}(() => {${action}})`
+	return `${obj}.${event}(() => {\n${action}\n})`
 }
 
 Blockly.Blocks["kaboom_onCollide"] = {
@@ -583,7 +584,7 @@ Blockly.Blocks["kaboom_onCollide"] = {
 			.appendField(img("bean"))
 			.appendField("when")
 			.appendField(new Blockly.FieldVariable("obj"), "OBJ")
-			.appendField("is collided with a")
+			.appendField("collides with a")
 			.appendField(new Blockly.FieldTextInput(), "TAG")
 		this.appendStatementInput("ACTION")
 		this.setColour(200)
@@ -597,5 +598,6 @@ js["kaboom_onCollide"] = (block: BlockSvg) => {
 	if (!obj) return ""
 	const action = js.statementToCode(block, "ACTION", js.ORDER_ATOMIC)
 	const tag = block.getFieldValue("TAG")
-	return `${obj}.onCollide("${tag}", () => {${action}})`
+	// TODO: "collided"
+	return `${obj}.onCollide("${tag}", (collided) => {\n${action}\n})`
 }
