@@ -16,6 +16,42 @@ export interface BlocklyEditorRef {
 
 const FONT_SIZE = 16
 
+const specialBlocks = {}
+
+specialBlocks["kaboom_pos"] = {
+	inputs: {
+		"X": {
+			shadow: {
+				type: "math_number",
+				fields: { "NUM": 0 },
+			},
+		},
+		"Y": {
+			shadow: {
+				type: "math_number",
+				fields: { "NUM": 0 },
+			},
+		},
+	},
+}
+
+specialBlocks["kaboom_moveTo"] = {
+	inputs: {
+		"X": {
+			shadow: {
+				type: "math_number",
+				fields: { "NUM": 0 },
+			},
+		},
+		"Y": {
+			shadow: {
+				type: "math_number",
+				fields: { "NUM": 0 },
+			},
+		},
+	},
+}
+
 const blocks = [
 	{
 		name: "kaboom",
@@ -36,7 +72,6 @@ const blocks = [
 			"kaboom_rect",
 			"kaboom_text",
 			"kaboom_pos",
-			"kaboom_pos2",
 			"kaboom_scale",
 			"kaboom_rotate",
 			"kaboom_color",
@@ -175,6 +210,7 @@ const BlocklyEditor = forwardRef<BlocklyEditorRef>(({...props}, ref) => {
 					contents: c.blocks.map((b) => ({
 						kind: "block",
 						type: b,
+						...(specialBlocks[b] ?? {}),
 					})),
 				})),
 			},

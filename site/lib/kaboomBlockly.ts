@@ -185,26 +185,6 @@ Blockly.Blocks["kaboom_pos"] = {
 		this.appendDummyInput()
 			.appendField(img("bean"))
 			.appendField("pos")
-			.appendField(new Blockly.FieldNumber(), "X")
-			.appendField(new Blockly.FieldNumber(), "Y")
-		this.setColour(200)
-		this.setOutput(true, "Object")
-		this.setTooltip("Component to set position")
-		this.setHelpUrl("https://kaboomjs.com#pos")
-	},
-}
-
-js["kaboom_pos"] = (block: BlockSvg) => {
-	const x = block.getFieldValue("X")
-	const y = block.getFieldValue("Y")
-	return [`pos(${x}, ${y})`, js.ORDER_FUNCTION_CALL]
-}
-
-Blockly.Blocks["kaboom_pos2"] = {
-	init(this: Block) {
-		this.appendDummyInput()
-			.appendField(img("bean"))
-			.appendField("pos")
 		this.appendValueInput("X")
 			.setCheck("Number")
 		this.appendValueInput("Y")
@@ -217,7 +197,7 @@ Blockly.Blocks["kaboom_pos2"] = {
 	},
 }
 
-js["kaboom_pos2"] = (block: BlockSvg) => {
+js["kaboom_pos"] = (block: BlockSvg) => {
 	const x = js.valueToCode(block, "X", js.ORDER_ATOMIC)
 	const y = js.valueToCode(block, "Y", js.ORDER_ATOMIC)
 	return [`pos(${x}, ${y})`, js.ORDER_FUNCTION_CALL]
@@ -371,8 +351,11 @@ Blockly.Blocks["kaboom_moveTo"] = {
 			.appendField("move")
 			.appendField(new Blockly.FieldVariable("obj"), "OBJ")
 			.appendField("to")
-			.appendField(new Blockly.FieldNumber(), "X")
-			.appendField(new Blockly.FieldNumber(), "Y")
+		this.appendValueInput("X")
+			.setCheck("Number")
+		this.appendValueInput("Y")
+			.setCheck("Number")
+		this.setInputsInline(true)
 		this.setColour(200)
 		this.setPreviousStatement(true)
 		this.setNextStatement(true)
@@ -384,8 +367,8 @@ Blockly.Blocks["kaboom_moveTo"] = {
 js["kaboom_moveTo"] = (block: BlockSvg) => {
 	const obj = getVarName(block, "OBJ")
 	if (!obj) return ""
-	const x = block.getFieldValue("X")
-	const y = block.getFieldValue("Y")
+	const x = js.valueToCode(block, "X", js.ORDER_ATOMIC)
+	const y = js.valueToCode(block, "Y", js.ORDER_ATOMIC)
 	return `${obj}.moveTo(${x}, ${y})\n`
 }
 
