@@ -1,6 +1,8 @@
 import { useEffect, useRef } from "react"
 import BlocklyEditor, { BlocklyEditorRef } from "comps/Blockly"
 import GameView, { GameViewRef } from "comps/GameView"
+import download from "lib/download"
+import openFileDialog from "lib/upload"
 import View from "comps/View"
 import Button from "comps/Button"
 
@@ -42,6 +44,27 @@ export default function BlocklyPage() {
 								gameviewRef.current?.run(code)
 							}
 						}
+					}} />
+					<Button text="Save File" action={() => {
+						if (!editorRef.current) return
+						download("blocks.json", JSON.stringify(editorRef.current.save()))
+					}} />
+					<Button text="Load File" action={() => {
+						if (!editorRef.current) return
+						openFileDialog((file) => {
+							const reader = new FileReader()
+							reader.readAsText(file)
+							reader.onload = (e) => {
+								if (!editorRef.current) return
+								if (e.target?.result) {
+									editorRef.current.load(JSON.parse(e.target.result as string))
+									const code = editorRef.current.genCode()
+									if (code) {
+										gameviewRef.current?.run(code)
+									}
+								}
+							}
+						}, [ "application/json" ])
 					}} />
 				</View>
 			</View>
