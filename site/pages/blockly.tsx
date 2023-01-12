@@ -47,7 +47,10 @@ export default function BlocklyPage() {
 					}} />
 					<Button text="Save File" action={() => {
 						if (!editorRef.current) return
-						download("blocks.json", JSON.stringify(editorRef.current.save()))
+						const name = window.prompt("File name:", "blocks.json")
+						if (name) {
+							download(name, JSON.stringify(editorRef.current.save()))
+						}
 					}} />
 					<Button text="Load File" action={() => {
 						if (!editorRef.current) return

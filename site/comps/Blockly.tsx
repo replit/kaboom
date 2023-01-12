@@ -119,12 +119,41 @@ specialBlocks["kaboom_jump"] = {
 	},
 }
 
+specialBlocks["kaboom_setText"] = {
+	inputs: {
+		"TEXT": {
+			shadow: {
+				type: "text",
+				fields: { "TEXT": "" },
+			},
+		},
+	},
+}
+
+specialBlocks["math_random_int"] = {
+	inputs: {
+		"FROM": {
+			shadow: {
+				type: "math_number",
+				fields: { "NUM": 0 },
+			},
+		},
+		"TO": {
+			shadow: {
+				type: "math_number",
+				fields: { "NUM": 10 },
+			},
+		},
+	},
+}
+
 const blocks = [
 	{
 		name: "kaboom",
 		blocks: [
 			"kaboom_kaboom",
 			"kaboom_burp",
+			"kaboom_shake",
 			"kaboom_gravity",
 			"kaboom_loadSprite",
 			"kaboom_add",
@@ -150,11 +179,15 @@ const blocks = [
 			"kaboom_anchor",
 			"kaboom_area",
 			"kaboom_body",
+			"kaboom_outline",
+			"kaboom_offscreen",
 		],
 	},
 	{
 		name: "actions",
 		blocks: [
+			"kaboom_getPosX",
+			"kaboom_getPosY",
 			"kaboom_moveTo",
 			"kaboom_moveBy",
 			"kaboom_scaleTo",
@@ -167,7 +200,10 @@ const blocks = [
 	{
 		name: "events",
 		blocks: [
+			"kaboom_loop",
+			"kaboom_wait",
 			"kaboom_onUpdate",
+			"kaboom_onUpdateTag",
 			"kaboom_onKey",
 			"kaboom_onMouse",
 			"kaboom_onObj",

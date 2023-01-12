@@ -364,6 +364,42 @@ js["kaboom_body"] = (block: BlockSvg) => {
 	return [`body({ isStatic: ${solid} })`, js.ORDER_FUNCTION_CALL]
 }
 
+Blockly.Blocks["kaboom_outline"] = {
+	init(this: Block) {
+		this.appendDummyInput()
+			.appendField(img("bean"))
+			.appendField("outline")
+			.appendField(new Blockly.FieldNumber(1), "WIDTH")
+		this.setColour(200)
+		this.setOutput(true, "Object")
+		this.setTooltip("Component to give object an outline")
+		this.setHelpUrl("https://kaboomjs.com#outline")
+	},
+}
+
+js["kaboom_outline"] = (block: BlockSvg) => {
+	const width = block.getFieldValue("WIDTH")
+	return [`outline(${width})`, js.ORDER_FUNCTION_CALL]
+}
+
+Blockly.Blocks["kaboom_offscreen"] = {
+	init(this: Block) {
+		this.appendDummyInput()
+			.appendField(img("bean"))
+			.appendField("offscreen destroy")
+			.appendField(new Blockly.FieldCheckbox(1), "DESTROY")
+		this.setColour(200)
+		this.setOutput(true, "Object")
+		this.setTooltip("Component to define object behavior when offscreen")
+		this.setHelpUrl("https://kaboomjs.com#offscreen")
+	},
+}
+
+js["kaboom_offscreen"] = (block: BlockSvg) => {
+	const destroy = block.getFieldValue("DESTROY").toLowerCase()
+	return [`offscreen({ destroy: ${destroy} })`, js.ORDER_FUNCTION_CALL]
+}
+
 Blockly.Blocks["kaboom_moveBy"] = {
 	init(this: Block) {
 		this.appendDummyInput()
@@ -517,6 +553,44 @@ js["kaboom_jump"] = (block: BlockSvg) => {
 	return `${obj}.jump(${force})\n`
 }
 
+Blockly.Blocks["kaboom_getPosX"] = {
+	init(this: Block) {
+		this.appendDummyInput()
+			.appendField(img("bean"))
+			.appendField(new Blockly.FieldVariable("obj"), "OBJ")
+			.appendField("x position")
+		this.setOutput(true, "Number")
+		this.setColour(200)
+		this.setTooltip("Get object X position")
+		this.setHelpUrl("https://kaboomjs.com#pos")
+	},
+}
+
+js["kaboom_getPosX"] = (block: BlockSvg) => {
+	const obj = getVarName(block, "OBJ")
+	if (!obj) return ["0", js.ORDER_ATOMIC]
+	return [`${obj}.pos.x`, js.ORDER_MEMBER]
+}
+
+Blockly.Blocks["kaboom_getPosY"] = {
+	init(this: Block) {
+		this.appendDummyInput()
+			.appendField(img("bean"))
+			.appendField(new Blockly.FieldVariable("obj"), "OBJ")
+			.appendField("y position")
+		this.setOutput(true, "Number")
+		this.setColour(200)
+		this.setTooltip("Get object Y position")
+		this.setHelpUrl("https://kaboomjs.com#pos")
+	},
+}
+
+js["kaboom_getPosY"] = (block: BlockSvg) => {
+	const obj = getVarName(block, "OBJ")
+	if (!obj) return ["0", js.ORDER_ATOMIC]
+	return [`${obj}.pos.y`, js.ORDER_MEMBER]
+}
+
 Blockly.Blocks["kaboom_isGrounded"] = {
 	init(this: Block) {
 		this.appendDummyInput()
@@ -634,6 +708,25 @@ js["kaboom_onUpdate"] = (block: BlockSvg) => {
 	return `onUpdate(() => {${action}})`
 }
 
+Blockly.Blocks["kaboom_onUpdateTag"] = {
+	init(this: Block) {
+		this.appendDummyInput()
+			.appendField(img("bean"))
+			.appendField("every frame for tag")
+			.appendField(new Blockly.FieldTextInput(), "TAG")
+		this.appendStatementInput("ACTION")
+		this.setColour(200)
+		this.setTooltip("Run something every frame for all objects with a tag")
+		this.setHelpUrl("https://kaboomjs.com#onUpdate")
+	},
+}
+
+js["kaboom_onUpdateTag"] = (block: BlockSvg) => {
+	const action = js.statementToCode(block, "ACTION", js.ORDER_ATOMIC)
+	const tag = block.getFieldValue("TAG")
+	return `onUpdate("${tag}", (obj) => {${action}})`
+}
+
 Blockly.Blocks["kaboom_onKey"] = {
 	init(this: Block) {
 		this.appendDummyInput()
@@ -731,6 +824,62 @@ js["kaboom_onCollide"] = (block: BlockSvg) => {
 	if (!obj) return ""
 	const action = js.statementToCode(block, "ACTION", js.ORDER_ATOMIC)
 	const tag = block.getFieldValue("TAG")
-	// TODO: "collided"
-	return `${obj}.onCollide("${tag}", (collided) => {\n${action}\n})`
+	return `${obj}.onCollide("${tag}", (obj) => {\n${action}\n})`
+}
+
+Blockly.Blocks["kaboom_loop"] = {
+	init(this: Block) {
+		this.appendDummyInput()
+			.appendField(img("bean"))
+			.appendField("every")
+			.appendField(new Blockly.FieldNumber(1), "TIME")
+			.appendField("seconds")
+		this.appendStatementInput("ACTION")
+		this.setColour(200)
+		this.setTooltip("Run something every n seconds")
+		this.setHelpUrl("https://kaboomjs.com#loop")
+	},
+}
+
+js["kaboom_loop"] = (block: BlockSvg) => {
+	const action = js.statementToCode(block, "ACTION", js.ORDER_ATOMIC)
+	const time = block.getFieldValue("TIME")
+	return `loop(${time}, () => {\n${action}\n})`
+}
+
+Blockly.Blocks["kaboom_wait"] = {
+	init(this: Block) {
+		this.appendDummyInput()
+			.appendField(img("bean"))
+			.appendField("after")
+			.appendField(new Blockly.FieldNumber(1), "TIME")
+			.appendField("seconds")
+		this.appendStatementInput("ACTION")
+		this.setColour(200)
+		this.setTooltip("Run something after n seconds")
+		this.setHelpUrl("https://kaboomjs.com#wait")
+	},
+}
+
+js["kaboom_wait"] = (block: BlockSvg) => {
+	const action = js.statementToCode(block, "ACTION", js.ORDER_ATOMIC)
+	const time = block.getFieldValue("TIME")
+	return `wait(${time}, () => {\n${action}\n})`
+}
+
+Blockly.Blocks["kaboom_shake"] = {
+	init(this: Block) {
+		this.appendDummyInput()
+			.appendField(img("bean"))
+			.appendField("shake")
+		this.setPreviousStatement(true)
+		this.setNextStatement(true)
+		this.setColour(200)
+		this.setTooltip("Screen shake")
+		this.setHelpUrl("https://kaboomjs.com#shake")
+	},
+}
+
+js["kaboom_shake"] = () => {
+	return "shake()"
 }
