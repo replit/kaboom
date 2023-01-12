@@ -16,6 +16,20 @@ const KEYS = [
 const imgURL = (name: string) => `https://github.com/replit/kaboom/raw/master/sprites/${name}.png`
 const img = (name: string) => new Blockly.FieldImage(imgURL(name), ICON_SIZE, ICON_SIZE)
 
+const minusImage =
+    "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAw" +
+    "MC9zdmciIHZlcnNpb249IjEuMSIgd2lkdGg9IjI0IiBoZWlnaHQ9IjI0Ij48cGF0aCBkPS" +
+    "JNMTggMTFoLTEyYy0xLjEwNCAwLTIgLjg5Ni0yIDJzLjg5NiAyIDIgMmgxMmMxLjEwNCAw" +
+    "IDItLjg5NiAyLTJzLS44OTYtMi0yLTJ6IiBmaWxsPSJ3aGl0ZSIgLz48L3N2Zz4K"
+
+const plusImage =
+    "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC" +
+    "9zdmciIHZlcnNpb249IjEuMSIgd2lkdGg9IjI0IiBoZWlnaHQ9IjI0Ij48cGF0aCBkPSJNMT" +
+    "ggMTBoLTR2LTRjMC0xLjEwNC0uODk2LTItMi0ycy0yIC44OTYtMiAybC4wNzEgNGgtNC4wNz" +
+    "FjLTEuMTA0IDAtMiAuODk2LTIgMnMuODk2IDIgMiAybDQuMDcxLS4wNzEtLjA3MSA0LjA3MW" +
+    "MwIDEuMTA0Ljg5NiAyIDIgMnMyLS44OTYgMi0ydi00LjA3MWw0IC4wNzFjMS4xMDQgMCAyLS" +
+    "44OTYgMi0ycy0uODk2LTItMi0yeiIgZmlsbD0id2hpdGUiIC8+PC9zdmc+Cg=="
+
 function getVarName(block: BlockSvg, field: string) {
 	const id = block.getFieldValue(field)
 	for (const v of block.getVarModels()) {
@@ -78,63 +92,6 @@ js["kaboom_loadSprite"] = (block: BlockSvg) => {
 	return `loadSprite("${name}", "${source}")`
 }
 
-// TODO: mimic lists_create_with
-Blockly.Blocks["kaboom_add"] = {
-	init(this: Block) {
-		this.appendDummyInput()
-			.appendField(img("bean"))
-			.appendField("add")
-		this.appendValueInput("COMPS")
-		this.setColour(200)
-		this.setOutput(true, "Object")
-		this.setPreviousStatement(true)
-		this.setNextStatement(true)
-		this.setTooltip("Add a game object from a list of components")
-		this.setHelpUrl("https://kaboomjs.com#add")
-	},
-}
-
-js["kaboom_add"] = (block: BlockSvg) => {
-	const comps = js.valueToCode(block, "COMPS", js.ORDER_ATOMIC)
-	if (!comps) return ""
-	return [`add(${comps})\n`, js.ORDER_FUNCTION_CALL]
-}
-
-// TODO: mimic lists_create_with
-Blockly.Blocks["kaboom_addNoRet"] = {
-	init(this: Block) {
-		this.appendDummyInput()
-			.appendField(img("bean"))
-			.appendField("add")
-		this.appendValueInput("COMPS")
-		this.setColour(200)
-		this.setPreviousStatement(true)
-		this.setNextStatement(true)
-		this.setTooltip("Add a game object from a list of components")
-		this.setHelpUrl("https://kaboomjs.com#add")
-	},
-}
-
-js["kaboom_addNoRet"] = (block: BlockSvg) => {
-	const comps = js.valueToCode(block, "COMPS", js.ORDER_ATOMIC)
-	if (!comps) return ""
-	return `add(${comps})\n`
-}
-
-const minusImage =
-    "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAw" +
-    "MC9zdmciIHZlcnNpb249IjEuMSIgd2lkdGg9IjI0IiBoZWlnaHQ9IjI0Ij48cGF0aCBkPS" +
-    "JNMTggMTFoLTEyYy0xLjEwNCAwLTIgLjg5Ni0yIDJzLjg5NiAyIDIgMmgxMmMxLjEwNCAw" +
-    "IDItLjg5NiAyLTJzLS44OTYtMi0yLTJ6IiBmaWxsPSJ3aGl0ZSIgLz48L3N2Zz4K"
-
-const plusImage =
-    "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC" +
-    "9zdmciIHZlcnNpb249IjEuMSIgd2lkdGg9IjI0IiBoZWlnaHQ9IjI0Ij48cGF0aCBkPSJNMT" +
-    "ggMTBoLTR2LTRjMC0xLjEwNC0uODk2LTItMi0ycy0yIC44OTYtMiAybC4wNzEgNGgtNC4wNz" +
-    "FjLTEuMTA0IDAtMiAuODk2LTIgMnMuODk2IDIgMiAybDQuMDcxLS4wNzEtLjA3MSA0LjA3MW" +
-    "MwIDEuMTA0Ljg5NiAyIDIgMnMyLS44OTYgMi0ydi00LjA3MWw0IC4wNzFjMS4xMDQgMCAyLS" +
-    "44OTYgMi0ycy0uODk2LTItMi0yeiIgZmlsbD0id2hpdGUiIC8+PC9zdmc+Cg=="
-
 function getExtraBlockState(block: Block) {
 	if (block.saveExtraState) {
 		const state = block.saveExtraState()
@@ -173,7 +130,7 @@ type AddBlock = Block & {
 	updateShape(count: number): void,
 }
 
-Blockly.Blocks["kaboom_add2"] = {
+Blockly.Blocks["kaboom_add"] = {
 	itemCount: 3,
 	hasOutput: false,
 	init(this: AddBlock) {
@@ -250,12 +207,13 @@ Blockly.Blocks["kaboom_add2"] = {
 	},
 }
 
-js["kaboom_add2"] = (block: AddBlock) => {
+js["kaboom_add"] = (block: AddBlock) => {
 	const comps = [...Array(block.itemCount).keys()]
 		.map((i) => js.valueToCode(block, `COMP${i}`, js.ORDER_ATOMIC))
 		.filter((c) => c)
-		.join(",")
-	return [`add([${comps}])`, js.ORDER_FUNCTION_CALL]
+		.join(",\n")
+	const code = `add([\n${comps}\n])\n`
+	return block.hasOutput ? [code, js.ORDER_FUNCTION_CALL] : code
 }
 
 Blockly.Blocks["kaboom_destroy"] = {

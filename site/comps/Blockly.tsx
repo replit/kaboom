@@ -157,8 +157,6 @@ const blocks = [
 			"kaboom_gravity",
 			"kaboom_loadSprite",
 			"kaboom_add",
-			"kaboom_addNoRet",
-			"kaboom_add2",
 			"kaboom_destroy",
 			"kaboom_mouseX",
 			"kaboom_mouseY",
