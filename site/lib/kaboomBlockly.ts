@@ -13,7 +13,8 @@ const KEYS = [
 	"f1", "f2", "f3", "f4", "f5", "f6", "f7", "f8", "f9", "f10", "f11", "f12",
 ]
 
-const img = (name: string) => new Blockly.FieldImage(`https://github.com/replit/kaboom/raw/master/sprites/${name}.png`, ICON_SIZE, ICON_SIZE)
+const imgURL = (name: string) => `https://github.com/replit/kaboom/raw/master/sprites/${name}.png`
+const img = (name: string) => new Blockly.FieldImage(imgURL(name), ICON_SIZE, ICON_SIZE)
 
 function getVarName(block: BlockSvg, field: string) {
 	const id = block.getFieldValue(field)
@@ -165,13 +166,16 @@ function mutateBlock(block: Block, action: () => void) {
 
 type AddBlock = Block & {
 	itemCount: number,
+	hasOutput: boolean,
 	addComp(): void,
 	removeComp(): void,
+	setHasOutput(has: boolean): void,
 	updateShape(count: number): void,
 }
 
 Blockly.Blocks["kaboom_add2"] = {
 	itemCount: 3,
+	hasOutput: false,
 	init(this: AddBlock) {
 		this.appendDummyInput()
 			.appendField(new Blockly.FieldImage(minusImage, 16, 16, undefined, () => {
@@ -180,17 +184,30 @@ Blockly.Blocks["kaboom_add2"] = {
 			.appendField(new Blockly.FieldImage(plusImage, 16, 16, undefined, () => {
 				mutateBlock(this, () => this.addComp())
 			}))
+			.appendField(new Blockly.FieldImage(imgURL("bag"), 16, 16, undefined, () => {
+				mutateBlock(this, () => this.setHasOutput(!this.hasOutput))
+			}))
 			.appendField(img("bean"))
 			.appendField("add")
 		for (let i = 0; i < this.itemCount; i++) {
 			this.appendValueInput(`COMP${i}`)
 		}
 		this.setColour(200)
-		this.setOutput(true, "Object")
+		if (this.hasOutput) {
+			this.setOutput(true, "Object")
+		}
 		this.setPreviousStatement(true)
 		this.setNextStatement(true)
 		this.setTooltip("Add a game object from a list of components")
 		this.setHelpUrl("https://kaboomjs.com#add")
+	},
+	setHasOutput(this: AddBlock, has: boolean) {
+		this.hasOutput = has
+		if (this.hasOutput) {
+			this.setOutput(true, "Object")
+		} else {
+			this.setOutput(false)
+		}
 	},
 	removeComp(this: AddBlock) {
 		if (this.itemCount <= 1) return
@@ -206,23 +223,30 @@ Blockly.Blocks["kaboom_add2"] = {
 		while (this.itemCount > targetCount) this.removeComp()
 	},
 	mutationToDom(this: AddBlock) {
-		const container = Blockly.utils.xml.createElement("mutation")
-		container.setAttribute("itemCount", this.itemCount + "")
-		return container
+		const xml = Blockly.utils.xml.createElement("mutation")
+		xml.setAttribute("itemCount", this.itemCount + "")
+		xml.setAttribute("hasOutput", this.hasOutput + "")
+		return xml
 	},
 	domToMutation(this: AddBlock, xml: Element) {
-		const val = xml.getAttribute("itemCount")
-		if (!val) return
-		const targetCount = parseInt(val, 10)
-		this.updateShape(targetCount)
+		const itemCount = xml.getAttribute("itemCount")
+		if (itemCount) {
+			this.updateShape(parseInt(itemCount, 10))
+		}
+		const hasOutput = xml.getAttribute("hasOutput")
+		if (hasOutput) {
+			this.updateShape(JSON.parse(hasOutput))
+		}
 	},
 	saveExtraState(this: AddBlock) {
 		return {
 			"itemCount": this.itemCount,
+			"hasOutput": this.hasOutput,
 		}
 	},
 	loadExtraState(state: any) {
 		this.updateShape(state["itemCount"])
+		this.setHasOutput(state["hasOutput"])
 	},
 }
 
