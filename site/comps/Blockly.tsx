@@ -4,7 +4,7 @@ import {
 	useImperativeHandle,
 	forwardRef,
 } from "react"
-import Blockly, { WorkspaceSvg, BlockSvg } from "blockly"
+import Blockly, { WorkspaceSvg } from "blockly"
 import { javascriptGenerator } from "blockly/javascript"
 import "lib/kaboomBlockly"
 
@@ -158,6 +158,7 @@ const blocks = [
 			"kaboom_loadSprite",
 			"kaboom_add",
 			"kaboom_addNoRet",
+			"kaboom_add2",
 			"kaboom_destroy",
 			"kaboom_mouseX",
 			"kaboom_mouseY",
@@ -329,11 +330,11 @@ const BlocklyEditor = forwardRef<BlocklyEditorRef>(({...props}, ref) => {
 				spacing: 16,
 			},
 			zoom: {
-				controls: true,
+				// controls: true,
 				pinch: true,
 				wheel: true,
 			},
-			trashcan: true,
+			// trashcan: true,
 			theme: {
 				name: "kaboom",
 				base: Blockly.Themes.Classic,

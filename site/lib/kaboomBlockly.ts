@@ -120,6 +120,134 @@ js["kaboom_addNoRet"] = (block: BlockSvg) => {
 	return `add(${comps})\n`
 }
 
+const minusImage =
+    "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAw" +
+    "MC9zdmciIHZlcnNpb249IjEuMSIgd2lkdGg9IjI0IiBoZWlnaHQ9IjI0Ij48cGF0aCBkPS" +
+    "JNMTggMTFoLTEyYy0xLjEwNCAwLTIgLjg5Ni0yIDJzLjg5NiAyIDIgMmgxMmMxLjEwNCAw" +
+    "IDItLjg5NiAyLTJzLS44OTYtMi0yLTJ6IiBmaWxsPSJ3aGl0ZSIgLz48L3N2Zz4K"
+
+const plusImage =
+    "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC" +
+    "9zdmciIHZlcnNpb249IjEuMSIgd2lkdGg9IjI0IiBoZWlnaHQ9IjI0Ij48cGF0aCBkPSJNMT" +
+    "ggMTBoLTR2LTRjMC0xLjEwNC0uODk2LTItMi0ycy0yIC44OTYtMiAybC4wNzEgNGgtNC4wNz" +
+    "FjLTEuMTA0IDAtMiAuODk2LTIgMnMuODk2IDIgMiAybDQuMDcxLS4wNzEtLjA3MSA0LjA3MW" +
+    "MwIDEuMTA0Ljg5NiAyIDIgMnMyLS44OTYgMi0ydi00LjA3MWw0IC4wNzFjMS4xMDQgMCAyLS" +
+    "44OTYgMi0ycy0uODk2LTItMi0yeiIgZmlsbD0id2hpdGUiIC8+PC9zdmc+Cg=="
+
+function getExtraBlockState(block: Block) {
+	if (block.saveExtraState) {
+		const state = block.saveExtraState()
+		return state ? JSON.stringify(state) : ""
+	} else if (block.mutationToDom) {
+		const state = block.mutationToDom()
+		return state ? Blockly.Xml.domToText(state) : ""
+	}
+	return ""
+}
+
+function createPlusField(action: () => void) {
+	return new Blockly.FieldImage(plusImage, 16, 16, undefined, (field) => {
+		const block = field.getSourceBlock()
+		if (!block) return
+		if (block.isInFlyout) return
+		Blockly.Events.setGroup(true)
+		const oldExtraState = getExtraBlockState(block)
+		action()
+		const newExtraState = getExtraBlockState(block)
+		if (oldExtraState != newExtraState) {
+			Blockly.Events.fire(new Blockly.Events.BlockChange(
+				block,
+				"mutation",
+				null,
+				oldExtraState,
+				newExtraState,
+			))
+		}
+		Blockly.Events.setGroup(false)
+	})
+}
+
+function createMinusField(action: () => void) {
+	return new Blockly.FieldImage(minusImage, 16, 16, undefined, (field) => {
+		const block = field.getSourceBlock()
+		if (!block) return
+		if (block.isInFlyout) return
+		Blockly.Events.setGroup(true)
+		const oldExtraState = getExtraBlockState(block)
+		action()
+		const newExtraState = getExtraBlockState(block)
+		if (oldExtraState != newExtraState) {
+			Blockly.Events.fire(new Blockly.Events.BlockChange(
+				block,
+				"mutation",
+				null,
+				oldExtraState,
+				newExtraState,
+			))
+		}
+		Blockly.Events.setGroup(false)
+	})
+}
+
+type AddBlock = Block & {
+	itemCount: number,
+	addComp(): void,
+	removeComp(): void,
+	updateShape(count: number): void,
+}
+
+Blockly.Blocks["kaboom_add2"] = {
+	itemCount: 3,
+	init(this: AddBlock) {
+		this.appendDummyInput()
+			.appendField(createMinusField(() => this.removeComp()))
+			.appendField(createPlusField(() => this.addComp()))
+			.appendField(img("bean"))
+			.appendField("add")
+		for (let i = 0; i < this.itemCount; i++) {
+			this.appendValueInput(`COMP${i}`)
+		}
+		this.setColour(200)
+		this.setOutput(true, "Object")
+		this.setPreviousStatement(true)
+		this.setNextStatement(true)
+		this.setTooltip("Add a game object from a list of components")
+		this.setHelpUrl("https://kaboomjs.com#add")
+	},
+	removeComp(this: AddBlock) {
+		if (this.itemCount <= 1) return
+		this.itemCount--
+		this.removeInput("COMP" + this.itemCount)
+	},
+	addComp(this: AddBlock) {
+		this.appendValueInput("COMP" + this.itemCount)
+		this.itemCount++
+	},
+	mutationToDom(this: AddBlock) {
+		const container = Blockly.utils.xml.createElement("mutation")
+		container.setAttribute("items", this.itemCount + "")
+		return container
+	},
+	domToMutation(this: AddBlock, xmlElement: Element) {
+		const val = xmlElement.getAttribute("items")
+		if (!val) return
+		const targetCount = parseInt(val, 10)
+		this.updateShape(targetCount)
+	},
+	updateShape(this: AddBlock, targetCount: number) {
+		while (this.itemCount < targetCount) this.addComp()
+		while (this.itemCount > targetCount) this.removeComp()
+	},
+}
+
+js["kaboom_add2"] = (block: AddBlock) => {
+	const comps = [...Array(block.itemCount).keys()]
+		.map((i) => js.valueToCode(block, `COMP${i}`, js.ORDER_ATOMIC))
+		.filter((c) => c)
+		.join(",")
+	return [`add([${comps}])`, js.ORDER_FUNCTION_CALL]
+}
+
 Blockly.Blocks["kaboom_destroy"] = {
 	init(this: Block) {
 		this.appendDummyInput()
