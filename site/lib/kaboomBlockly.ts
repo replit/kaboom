@@ -30,6 +30,16 @@ const plusImage =
     "MwIDEuMTA0Ljg5NiAyIDIgMnMyLS44OTYgMi0ydi00LjA3MWw0IC4wNzFjMS4xMDQgMCAyLS" +
     "44OTYgMi0ycy0uODk2LTItMi0yeiIgZmlsbD0id2hpdGUiIC8+PC9zdmc+Cg=="
 
+const colors = {
+	kaboom: 250,
+	obj: 250,
+	component: 200,
+	action: 180,
+	loader: 320,
+	query: 220,
+	event: 130,
+}
+
 function getVarName(block: Block, field: string) {
 	const id = block.getFieldValue(field)
 	for (const v of block.getVarModels()) {
@@ -74,7 +84,7 @@ Blockly.Blocks["kaboom_kaboom"] = {
 		this.appendDummyInput()
 			.appendField(img("k"))
 			.appendField("kaboom")
-		this.setColour(250)
+		this.setColour(colors.kaboom)
 		this.setTooltip("Start a Kaboom game")
 		this.setHelpUrl("https://kaboomjs.com#kaboom")
 	},
@@ -91,7 +101,7 @@ Blockly.Blocks["kaboom_burp"] = {
 			.appendField("burp")
 		this.setPreviousStatement(true)
 		this.setNextStatement(true)
-		this.setColour(200)
+		this.setColour(colors.action)
 		this.setTooltip("Burp")
 		this.setHelpUrl("https://kaboomjs.com#burp")
 	},
@@ -109,7 +119,7 @@ Blockly.Blocks["kaboom_loadSprite"] = {
 			.appendField(new Blockly.FieldTextInput(), "NAME")
 			.appendField("from")
 			.appendField(new Blockly.FieldTextInput(), "SOURCE")
-		this.setColour(200)
+		this.setColour(colors.loader)
 		this.setTooltip("Load a sprite from image")
 		this.setHelpUrl("https://kaboomjs.com#loadSprite")
 	},
@@ -129,7 +139,7 @@ Blockly.Blocks["kaboom_loadSound"] = {
 			.appendField(new Blockly.FieldTextInput(), "NAME")
 			.appendField("from")
 			.appendField(new Blockly.FieldTextInput(), "SOURCE")
-		this.setColour(200)
+		this.setColour(colors.loader)
 		this.setTooltip("Load a sound")
 		this.setHelpUrl("https://kaboomjs.com#loadSound")
 	},
@@ -169,7 +179,7 @@ Blockly.Blocks["kaboom_add"] = {
 		for (let i = 0; i < this.itemCount; i++) {
 			this.appendValueInput(`COMP${i}`)
 		}
-		this.setColour(180)
+		this.setColour(colors.obj)
 		if (this.hasOutput) {
 			this.setOutput(true, "Object")
 		}
@@ -242,7 +252,7 @@ Blockly.Blocks["kaboom_destroy"] = {
 			.appendField(img("bean"))
 			.appendField("destroy")
 			.appendField(new Blockly.FieldVariable("obj"), "OBJ")
-		this.setColour(200)
+		this.setColour(colors.obj)
 		this.setPreviousStatement(true)
 		this.setNextStatement(true)
 		this.setTooltip("Remove a game object")
@@ -262,7 +272,7 @@ Blockly.Blocks["kaboom_sprite"] = {
 			.appendField(img("bean"))
 			.appendField("sprite")
 			.appendField(new Blockly.FieldTextInput(), "NAME")
-		this.setColour(200)
+		this.setColour(colors.component)
 		this.setOutput(true, "Object")
 		this.setTooltip("Component to render a sprite")
 		this.setHelpUrl("https://kaboomjs.com#sprite")
@@ -284,7 +294,7 @@ Blockly.Blocks["kaboom_rect"] = {
 		this.appendValueInput("HEIGHT")
 			.setCheck("Number")
 		this.setInputsInline(true)
-		this.setColour(200)
+		this.setColour(colors.component)
 		this.setOutput(true, "Object")
 		this.setTooltip("Component to render rectangle")
 		this.setHelpUrl("https://kaboomjs.com#rect")
@@ -305,7 +315,7 @@ Blockly.Blocks["kaboom_text"] = {
 		this.appendValueInput("TEXT")
 			.setCheck("String")
 		this.setInputsInline(true)
-		this.setColour(200)
+		this.setColour(colors.component)
 		this.setOutput(true, "Object")
 		this.setTooltip("Component to render a text")
 		this.setHelpUrl("https://kaboomjs.com#text")
@@ -327,7 +337,7 @@ Blockly.Blocks["kaboom_pos"] = {
 		this.appendValueInput("Y")
 			.setCheck("Number")
 		this.setInputsInline(true)
-		this.setColour(200)
+		this.setColour(colors.component)
 		this.setOutput(true, "Object")
 		this.setTooltip("Component to set position")
 		this.setHelpUrl("https://kaboomjs.com#pos")
@@ -347,7 +357,7 @@ Blockly.Blocks["kaboom_scale"] = {
 			.appendField("scale")
 			.appendField(new Blockly.FieldNumber(1), "X")
 			.appendField(new Blockly.FieldNumber(1), "Y")
-		this.setColour(200)
+		this.setColour(colors.component)
 		this.setOutput(true, "Object")
 		this.setTooltip("Component to set scale")
 		this.setHelpUrl("https://kaboomjs.com#scale")
@@ -366,7 +376,7 @@ Blockly.Blocks["kaboom_rotate"] = {
 			.appendField(img("bean"))
 			.appendField("rotate")
 			.appendField(new Blockly.FieldAngle(), "ANGLE")
-		this.setColour(200)
+		this.setColour(colors.component)
 		this.setOutput(true, "Object")
 		this.setTooltip("Component to set rotation")
 		this.setHelpUrl("https://kaboomjs.com#rotate")
@@ -384,7 +394,7 @@ Blockly.Blocks["kaboom_color"] = {
 			.appendField(img("bean"))
 			.appendField("color")
 			.appendField(new Blockly.FieldColour(), "COLOR")
-		this.setColour(200)
+		this.setColour(colors.component)
 		this.setOutput(true, "Object")
 		this.setTooltip("Component to set color")
 		this.setHelpUrl("https://kaboomjs.com#color")
@@ -404,7 +414,7 @@ Blockly.Blocks["kaboom_color2"] = {
 			.appendField(new Blockly.FieldNumber(), "R")
 			.appendField(new Blockly.FieldNumber(), "G")
 			.appendField(new Blockly.FieldNumber(), "B")
-		this.setColour(200)
+		this.setColour(colors.component)
 		this.setOutput(true, "Object")
 		this.setTooltip("Component to set color")
 		this.setHelpUrl("https://kaboomjs.com#color")
@@ -434,7 +444,7 @@ Blockly.Blocks["kaboom_anchor"] = {
 				[ "bot", "bot" ],
 				[ "botright", "botright" ],
 			]), "ANCHOR")
-		this.setColour(200)
+		this.setColour(colors.component)
 		this.setOutput(true, "Object")
 		this.setTooltip("Component to set anchor point")
 		this.setHelpUrl("https://kaboomjs.com#anchor")
@@ -451,7 +461,7 @@ Blockly.Blocks["kaboom_area"] = {
 		this.appendDummyInput()
 			.appendField(img("bean"))
 			.appendField("area")
-		this.setColour(200)
+		this.setColour(colors.component)
 		this.setOutput(true, "Object")
 		this.setTooltip("Component to give object collider")
 		this.setHelpUrl("https://kaboomjs.com#area")
@@ -468,7 +478,7 @@ Blockly.Blocks["kaboom_body"] = {
 			.appendField(img("bean"))
 			.appendField("body static")
 			.appendField(new Blockly.FieldCheckbox(), "STATIC")
-		this.setColour(200)
+		this.setColour(colors.component)
 		this.setOutput(true, "Object")
 		this.setTooltip("Component to give object physics body")
 		this.setHelpUrl("https://kaboomjs.com#body")
@@ -486,7 +496,7 @@ Blockly.Blocks["kaboom_outline"] = {
 			.appendField(img("bean"))
 			.appendField("outline")
 			.appendField(new Blockly.FieldNumber(1), "WIDTH")
-		this.setColour(200)
+		this.setColour(colors.component)
 		this.setOutput(true, "Object")
 		this.setTooltip("Component to give object an outline")
 		this.setHelpUrl("https://kaboomjs.com#outline")
@@ -504,7 +514,7 @@ Blockly.Blocks["kaboom_offscreen"] = {
 			.appendField(img("bean"))
 			.appendField("offscreen destroy")
 			.appendField(new Blockly.FieldCheckbox(1), "DESTROY")
-		this.setColour(200)
+		this.setColour(colors.component)
 		this.setOutput(true, "Object")
 		this.setTooltip("Component to define object behavior when offscreen")
 		this.setHelpUrl("https://kaboomjs.com#offscreen")
@@ -521,7 +531,7 @@ Blockly.Blocks["kaboom_fixed"] = {
 		this.appendDummyInput()
 			.appendField(img("bean"))
 			.appendField("fixed")
-		this.setColour(200)
+		this.setColour(colors.component)
 		this.setOutput(true, "Object")
 		this.setTooltip("Component to make object ignore camera")
 		this.setHelpUrl("https://kaboomjs.com#fixed")
@@ -541,7 +551,7 @@ Blockly.Blocks["kaboom_moveBy"] = {
 			.appendField("by")
 			.appendField(new Blockly.FieldNumber(), "X")
 			.appendField(new Blockly.FieldNumber(), "Y")
-		this.setColour(200)
+		this.setColour(colors.action)
 		this.setPreviousStatement(true)
 		this.setNextStatement(true)
 		this.setTooltip("Move an object")
@@ -569,7 +579,7 @@ Blockly.Blocks["kaboom_moveTo"] = {
 		this.appendValueInput("Y")
 			.setCheck("Number")
 		this.setInputsInline(true)
-		this.setColour(200)
+		this.setColour(colors.action)
 		this.setPreviousStatement(true)
 		this.setNextStatement(true)
 		this.setTooltip("Move an object to a position")
@@ -597,7 +607,7 @@ Blockly.Blocks["kaboom_scaleTo"] = {
 		this.appendValueInput("Y")
 			.setCheck("Number")
 		this.setInputsInline(true)
-		this.setColour(200)
+		this.setColour(colors.action)
 		this.setPreviousStatement(true)
 		this.setNextStatement(true)
 		this.setTooltip("Scale an object to a scale")
@@ -622,7 +632,7 @@ Blockly.Blocks["kaboom_rotateTo"] = {
 			.appendField("to")
 		this.appendValueInput("ANGLE")
 		this.setInputsInline(true)
-		this.setColour(200)
+		this.setColour(colors.action)
 		this.setPreviousStatement(true)
 		this.setNextStatement(true)
 		this.setTooltip("Rotate an object to an angle")
@@ -646,7 +656,7 @@ Blockly.Blocks["kaboom_setText"] = {
 		this.appendValueInput("TEXT")
 			.setCheck("String")
 		this.setInputsInline(true)
-		this.setColour(200)
+		this.setColour(colors.action)
 		this.setPreviousStatement(true)
 		this.setNextStatement(true)
 		this.setTooltip("Set text")
@@ -670,7 +680,7 @@ Blockly.Blocks["kaboom_jump"] = {
 			.appendField("with force")
 		this.appendValueInput("FORCE")
 		this.setInputsInline(true)
-		this.setColour(200)
+		this.setColour(colors.action)
 		this.setPreviousStatement(true)
 		this.setNextStatement(true)
 		this.setTooltip("Make an object jump (requires body)")
@@ -692,7 +702,7 @@ Blockly.Blocks["kaboom_getPosX"] = {
 			.appendField(new Blockly.FieldVariable("obj"), "OBJ")
 			.appendField("x position")
 		this.setOutput(true, "Number")
-		this.setColour(200)
+		this.setColour(colors.action)
 		this.setTooltip("Get object X position")
 		this.setHelpUrl("https://kaboomjs.com#pos")
 	},
@@ -711,7 +721,7 @@ Blockly.Blocks["kaboom_getPosY"] = {
 			.appendField(new Blockly.FieldVariable("obj"), "OBJ")
 			.appendField("y position")
 		this.setOutput(true, "Number")
-		this.setColour(200)
+		this.setColour(colors.action)
 		this.setTooltip("Get object Y position")
 		this.setHelpUrl("https://kaboomjs.com#pos")
 	},
@@ -730,7 +740,7 @@ Blockly.Blocks["kaboom_isGrounded"] = {
 			.appendField(new Blockly.FieldVariable("obj"), "OBJ")
 			.appendField("is grounded")
 		this.setOutput(true, "Boolean")
-		this.setColour(200)
+		this.setColour(colors.action)
 		this.setTooltip("If an object is currently grounded (requires body)")
 		this.setHelpUrl("https://kaboomjs.com#body")
 	},
@@ -747,7 +757,7 @@ Blockly.Blocks["kaboom_mouseX"] = {
 		this.appendDummyInput()
 			.appendField(img("bean"))
 			.appendField("mouse x")
-		this.setColour(200)
+		this.setColour(colors.query)
 		this.setOutput(true, "Number")
 		this.setTooltip("Get mouse x position")
 		this.setHelpUrl("https://kaboomjs.com#mousePos")
@@ -763,7 +773,7 @@ Blockly.Blocks["kaboom_mouseY"] = {
 		this.appendDummyInput()
 			.appendField(img("bean"))
 			.appendField("mouse y")
-		this.setColour(200)
+		this.setColour(colors.query)
 		this.setOutput(true, "Number")
 		this.setTooltip("Get mouse y position")
 		this.setHelpUrl("https://kaboomjs.com#mousePos")
@@ -779,7 +789,7 @@ Blockly.Blocks["kaboom_width"] = {
 		this.appendDummyInput()
 			.appendField(img("bean"))
 			.appendField("width")
-		this.setColour(200)
+		this.setColour(colors.query)
 		this.setOutput(true, "Number")
 		this.setTooltip("Get game width")
 		this.setHelpUrl("https://kaboomjs.com#width")
@@ -795,7 +805,7 @@ Blockly.Blocks["kaboom_height"] = {
 		this.appendDummyInput()
 			.appendField(img("bean"))
 			.appendField("height")
-		this.setColour(200)
+		this.setColour(colors.query)
 		this.setOutput(true, "Number")
 		this.setTooltip("Get game height")
 		this.setHelpUrl("https://kaboomjs.com#height")
@@ -812,7 +822,7 @@ Blockly.Blocks["kaboom_gravity"] = {
 			.appendField(img("bean"))
 			.appendField("set gravity to")
 			.appendField(new Blockly.FieldNumber(), "VALUE")
-		this.setColour(200)
+		this.setColour(colors.query)
 		this.setTooltip("Set gravity")
 		this.setHelpUrl("https://kaboomjs.com#gravity")
 	},
@@ -829,7 +839,7 @@ Blockly.Blocks["kaboom_onUpdate"] = {
 			.appendField(img("bean"))
 			.appendField("every frame")
 		this.appendStatementInput("ACTION")
-		this.setColour(200)
+		this.setColour(colors.event)
 		this.setTooltip("Run something every frame")
 		this.setHelpUrl("https://kaboomjs.com#onUpdate")
 	},
@@ -847,7 +857,7 @@ Blockly.Blocks["kaboom_onUpdateTag"] = {
 			.appendField("every frame for tag")
 			.appendField(new Blockly.FieldTextInput(), "TAG")
 		this.appendStatementInput("ACTION")
-		this.setColour(200)
+		this.setColour(colors.event)
 		this.setTooltip("Run something every frame for all objects with a tag")
 		this.setHelpUrl("https://kaboomjs.com#onUpdate")
 	},
@@ -872,7 +882,7 @@ Blockly.Blocks["kaboom_onKey"] = {
 				[ "released", "onKeyRelease" ],
 			]), "EVENT")
 		this.appendStatementInput("ACTION")
-		this.setColour(200)
+		this.setColour(colors.event)
 		this.setTooltip(() => `Run something when a key is ${this.getField("EVENT")?.getText()}`)
 		this.setHelpUrl("https://kaboomjs.com#onKeyPress")
 	},
@@ -896,7 +906,7 @@ Blockly.Blocks["kaboom_onMouse"] = {
 				[ "released", "onMouseRelease" ],
 			]), "EVENT")
 		this.appendStatementInput("ACTION")
-		this.setColour(200)
+		this.setColour(colors.event)
 		this.setTooltip(() => `Run something when mouse is ${this.getField("EVENT")?.getText()}`)
 		this.setHelpUrl("https://kaboomjs.com#onMousePress")
 	},
@@ -922,7 +932,7 @@ Blockly.Blocks["kaboom_onObj"] = {
 				[ "destroy", "onDestroy" ],
 			]), "EVENT")
 		this.appendStatementInput("ACTION")
-		this.setColour(200)
+		this.setColour(colors.event)
 		this.setTooltip(() => `Run something when object is ${this.getField("EVENT")?.getText()}`)
 		this.setHelpUrl("https://kaboomjs.com#area")
 	},
@@ -945,7 +955,7 @@ Blockly.Blocks["kaboom_onCollide"] = {
 			.appendField("collides with a")
 			.appendField(new Blockly.FieldTextInput(), "TAG")
 		this.appendStatementInput("ACTION")
-		this.setColour(200)
+		this.setColour(colors.event)
 		this.setTooltip("Run something when object is collided with another object with a tag")
 		this.setHelpUrl("https://kaboomjs.com#area")
 	},
@@ -967,7 +977,7 @@ Blockly.Blocks["kaboom_loop"] = {
 			.appendField(new Blockly.FieldNumber(1), "TIME")
 			.appendField("seconds")
 		this.appendStatementInput("ACTION")
-		this.setColour(200)
+		this.setColour(colors.event)
 		this.setTooltip("Run something every n seconds")
 		this.setHelpUrl("https://kaboomjs.com#loop")
 	},
@@ -987,7 +997,7 @@ Blockly.Blocks["kaboom_wait"] = {
 			.appendField(new Blockly.FieldNumber(1), "TIME")
 			.appendField("seconds")
 		this.appendStatementInput("ACTION")
-		this.setColour(200)
+		this.setColour(colors.event)
 		this.setTooltip("Run something after n seconds")
 		this.setHelpUrl("https://kaboomjs.com#wait")
 	},
@@ -1006,7 +1016,7 @@ Blockly.Blocks["kaboom_shake"] = {
 			.appendField("shake")
 		this.setPreviousStatement(true)
 		this.setNextStatement(true)
-		this.setColour(200)
+		this.setColour(colors.action)
 		this.setTooltip("Screen shake")
 		this.setHelpUrl("https://kaboomjs.com#shake")
 	},
@@ -1024,7 +1034,7 @@ Blockly.Blocks["kaboom_play"] = {
 			.appendField(new Blockly.FieldTextInput(), "NAME")
 		this.setPreviousStatement(true)
 		this.setNextStatement(true)
-		this.setColour(200)
+		this.setColour(colors.action)
 		this.setTooltip("Screen shake")
 		this.setHelpUrl("https://kaboomjs.com#shake")
 	},
@@ -1041,7 +1051,7 @@ Blockly.Blocks["kaboom_dt"] = {
 			.appendField(img("bean"))
 			.appendField("delta time")
 		this.setOutput(true, "Number")
-		this.setColour(200)
+		this.setColour(colors.query)
 		this.setTooltip("Delta time between frame")
 		this.setHelpUrl("https://kaboomjs.com#dt")
 	},
