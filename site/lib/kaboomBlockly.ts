@@ -171,10 +171,9 @@ Blockly.Blocks["kaboom_add"] = {
 			.appendField(new Blockly.FieldImage(plusImage, 16, 16, undefined, () => {
 				mutateBlock(this, () => this.addComp())
 			}))
-			.appendField(new Blockly.FieldImage(imgURL("bag"), 16, 16, undefined, () => {
+			.appendField(new Blockly.FieldImage(imgURL("love"), ICON_SIZE, ICON_SIZE, undefined, () => {
 				mutateBlock(this, () => this.setHasOutput(!this.hasOutput))
 			}))
-			.appendField(img("bean"))
 			.appendField("add")
 		for (let i = 0; i < this.itemCount; i++) {
 			this.appendValueInput(`COMP${i}`)
@@ -189,6 +188,7 @@ Blockly.Blocks["kaboom_add"] = {
 		this.setHelpUrl("https://kaboomjs.com#add")
 	},
 	setHasOutput(this: AddBlock, has: boolean) {
+		if (!has && this.getParent()) return
 		this.hasOutput = has
 		if (this.hasOutput) {
 			this.setOutput(true, "Object")
@@ -198,11 +198,12 @@ Blockly.Blocks["kaboom_add"] = {
 	},
 	removeComp(this: AddBlock) {
 		if (this.itemCount <= 1) return
+		if (this.allInputsFilled()) return
 		this.itemCount--
-		this.removeInput("COMP" + this.itemCount)
+		this.removeInput(`COMP${this.itemCount}`)
 	},
 	addComp(this: AddBlock) {
-		this.appendValueInput("COMP" + this.itemCount)
+		this.appendValueInput(`COMP${this.itemCount}`)
 		this.itemCount++
 	},
 	updateShape(this: AddBlock, targetCount: number) {
