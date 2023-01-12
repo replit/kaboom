@@ -59,10 +59,6 @@ export default function BlocklyPage() {
 								if (!editorRef.current) return
 								if (e.target?.result) {
 									editorRef.current.load(JSON.parse(e.target.result as string))
-									const code = editorRef.current.genCode()
-									if (code) {
-										gameviewRef.current?.run(code)
-									}
 								}
 							}
 						}, [ "application/json" ])

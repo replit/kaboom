@@ -3,7 +3,7 @@
 import Blockly, { Block } from "blockly"
 import { javascriptGenerator as js } from "blockly/javascript"
 
-const ICON_SIZE = 24
+const ICON_SIZE = 16
 const KEYS = [
 	"space", "left", "right", "up", "down", "enter",
 	"a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z",
@@ -550,8 +550,11 @@ Blockly.Blocks["kaboom_moveBy"] = {
 			.appendField("move")
 			.appendField(new Blockly.FieldVariable("obj"), "OBJ")
 			.appendField("by")
-			.appendField(new Blockly.FieldNumber(), "X")
-			.appendField(new Blockly.FieldNumber(), "Y")
+		this.appendValueInput("X")
+			.setCheck("Number")
+		this.appendValueInput("Y")
+			.setCheck("Number")
+		this.setInputsInline(true)
 		this.setColour(colors.action)
 		this.setPreviousStatement(true)
 		this.setNextStatement(true)
@@ -563,8 +566,8 @@ Blockly.Blocks["kaboom_moveBy"] = {
 js["kaboom_moveBy"] = (block: Block) => {
 	const obj = getVarName(block, "OBJ")
 	if (!obj) return ""
-	const x = block.getFieldValue("X")
-	const y = block.getFieldValue("Y")
+	const x = js.valueToCode(block, "X", js.ORDER_ATOMIC)
+	const y = js.valueToCode(block, "Y", js.ORDER_ATOMIC)
 	return `${obj}.moveBy(${x}, ${y})\n`
 }
 

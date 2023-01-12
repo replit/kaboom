@@ -14,7 +14,12 @@ export interface BlocklyEditorRef {
 	load: (data: any) => void,
 }
 
-const FONT_SIZE = 16
+const SAVE_EVENTS = new Set([
+	Blockly.Events.BLOCK_CHANGE,
+	Blockly.Events.BLOCK_CREATE,
+	Blockly.Events.BLOCK_DELETE,
+	Blockly.Events.BLOCK_MOVE,
+])
 
 const specialBlocks: Record<string, any> = {}
 
@@ -58,6 +63,23 @@ specialBlocks["kaboom_text"] = {
 			shadow: {
 				type: "text",
 				fields: { "TEXT": "" },
+			},
+		},
+	},
+}
+
+specialBlocks["kaboom_moveBy"] = {
+	inputs: {
+		"X": {
+			shadow: {
+				type: "math_number",
+				fields: { "NUM": 0 },
+			},
+		},
+		"Y": {
+			shadow: {
+				type: "math_number",
+				fields: { "NUM": 0 },
 			},
 		},
 	},
@@ -294,8 +316,11 @@ const blocks = [
 ]
 
 const BlocklyEditor = forwardRef<BlocklyEditorRef>(({...props}, ref) => {
-	const divRef = useRef(null)
+
+	const divRef = useRef<HTMLDivElement | null>(null)
 	const workspaceRef = useRef<Workspace | null>(null)
+	const isLoadingRef = useRef(false)
+
 	useImperativeHandle(ref, () => ({
 		genCode() {
 			if (!workspaceRef.current) throw new Error("Blockly workspace not initialized")
@@ -307,13 +332,17 @@ const BlocklyEditor = forwardRef<BlocklyEditorRef>(({...props}, ref) => {
 		},
 		load(data) {
 			if (!workspaceRef.current) throw new Error("Blockly workspace not initialized")
+			isLoadingRef.current = true
 			Blockly.serialization.workspaces.load(data, workspaceRef.current)
+			isLoadingRef.current = false
 		},
 	}))
+
 	useEffect(() => {
 		if (!divRef.current) return
+		const div = divRef.current
 		Blockly.registry.unregister("theme", "kaboom")
-		const workspace = Blockly.inject(divRef.current, {
+		const workspace = Blockly.inject(div, {
 			toolbox: {
 				kind: "categoryToolbox",
 				contents: blocks.map((c) => ({
@@ -346,8 +375,6 @@ const BlocklyEditor = forwardRef<BlocklyEditorRef>(({...props}, ref) => {
 				base: Blockly.Themes.Classic,
 				fontStyle: {
 					family: "IBM Plex Mono",
-					weight: "bold",
-					size: FONT_SIZE,
 				},
 				componentStyles: {
 					toolboxBackgroundColour: "#eeeeee",
@@ -360,12 +387,39 @@ const BlocklyEditor = forwardRef<BlocklyEditorRef>(({...props}, ref) => {
 				},
 			},
 		})
+
 		workspaceRef.current = workspace
-		return () => workspace.dispose()
+
+		workspace.addChangeListener((e) => {
+			if (isLoadingRef.current) return
+			if (SAVE_EVENTS.has(e.type)) {
+				console.log(e.type)
+			}
+		})
+
+		let toolboxVisible = true
+
+		const keyDownHandler = (e: KeyboardEvent) => {
+			if (e.key === "Tab") {
+				e.preventDefault()
+				toolboxVisible = !toolboxVisible
+				workspace.getToolbox()?.setVisible(toolboxVisible)
+			}
+		}
+
+		div.addEventListener("keydown", keyDownHandler)
+
+		return () => {
+			div.removeEventListener("keydown", keyDownHandler)
+			workspace.dispose()
+		}
+
 	}, [])
+
 	return (
 		<div ref={divRef} {...props} />
 	)
+
 })
 
 export default BlocklyEditor
