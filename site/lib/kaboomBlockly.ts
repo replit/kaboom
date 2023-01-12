@@ -1,6 +1,6 @@
 // TODO: be its own package
 
-import Blockly, { Block, BlockSvg } from "blockly"
+import Blockly, { Block } from "blockly"
 import { javascriptGenerator as js } from "blockly/javascript"
 
 const ICON_SIZE = 24
@@ -30,7 +30,7 @@ const plusImage =
     "MwIDEuMTA0Ljg5NiAyIDIgMnMyLS44OTYgMi0ydi00LjA3MWw0IC4wNzFjMS4xMDQgMCAyLS" +
     "44OTYgMi0ycy0uODk2LTItMi0yeiIgZmlsbD0id2hpdGUiIC8+PC9zdmc+Cg=="
 
-function getVarName(block: BlockSvg, field: string) {
+function getVarName(block: Block, field: string) {
 	const id = block.getFieldValue(field)
 	for (const v of block.getVarModels()) {
 		if (v.getId() === id) {
@@ -38,6 +38,35 @@ function getVarName(block: BlockSvg, field: string) {
 		}
 	}
 	return null
+}
+
+function getExtraBlockState(block: Block) {
+	if (block.saveExtraState) {
+		const state = block.saveExtraState()
+		return state ? JSON.stringify(state) : ""
+	} else if (block.mutationToDom) {
+		const state = block.mutationToDom()
+		return state ? Blockly.Xml.domToText(state) : ""
+	}
+	return ""
+}
+
+function mutateBlock(block: Block, action: () => void) {
+	if (block.isInFlyout) return
+	Blockly.Events.setGroup(true)
+	const oldExtraState = getExtraBlockState(block)
+	action()
+	const newExtraState = getExtraBlockState(block)
+	if (oldExtraState !== newExtraState) {
+		Blockly.Events.fire(new Blockly.Events.BlockChange(
+			block,
+			"mutation",
+			null,
+			oldExtraState,
+			newExtraState,
+		))
+	}
+	Blockly.Events.setGroup(false)
 }
 
 Blockly.Blocks["kaboom_kaboom"] = {
@@ -86,39 +115,30 @@ Blockly.Blocks["kaboom_loadSprite"] = {
 	},
 }
 
-js["kaboom_loadSprite"] = (block: BlockSvg) => {
+js["kaboom_loadSprite"] = (block: Block) => {
 	const name = block.getFieldValue("NAME")
 	const source = block.getFieldValue("SOURCE")
 	return `loadSprite("${name}", "${source}")`
 }
 
-function getExtraBlockState(block: Block) {
-	if (block.saveExtraState) {
-		const state = block.saveExtraState()
-		return state ? JSON.stringify(state) : ""
-	} else if (block.mutationToDom) {
-		const state = block.mutationToDom()
-		return state ? Blockly.Xml.domToText(state) : ""
-	}
-	return ""
+Blockly.Blocks["kaboom_loadSound"] = {
+	init(this: Block) {
+		this.appendDummyInput()
+			.appendField(img("bean"))
+			.appendField("load sound")
+			.appendField(new Blockly.FieldTextInput(), "NAME")
+			.appendField("from")
+			.appendField(new Blockly.FieldTextInput(), "SOURCE")
+		this.setColour(200)
+		this.setTooltip("Load a sound")
+		this.setHelpUrl("https://kaboomjs.com#loadSound")
+	},
 }
 
-function mutateBlock(block: Block, action: () => void) {
-	if (block.isInFlyout) return
-	Blockly.Events.setGroup(true)
-	const oldExtraState = getExtraBlockState(block)
-	action()
-	const newExtraState = getExtraBlockState(block)
-	if (oldExtraState !== newExtraState) {
-		Blockly.Events.fire(new Blockly.Events.BlockChange(
-			block,
-			"mutation",
-			null,
-			oldExtraState,
-			newExtraState,
-		))
-	}
-	Blockly.Events.setGroup(false)
+js["kaboom_loadSound"] = (block: Block) => {
+	const name = block.getFieldValue("NAME")
+	const source = block.getFieldValue("SOURCE")
+	return `loadSound("${name}", "${source}")`
 }
 
 type AddBlock = Block & {
@@ -149,7 +169,7 @@ Blockly.Blocks["kaboom_add"] = {
 		for (let i = 0; i < this.itemCount; i++) {
 			this.appendValueInput(`COMP${i}`)
 		}
-		this.setColour(200)
+		this.setColour(180)
 		if (this.hasOutput) {
 			this.setOutput(true, "Object")
 		}
@@ -192,7 +212,7 @@ Blockly.Blocks["kaboom_add"] = {
 		}
 		const hasOutput = xml.getAttribute("hasOutput")
 		if (hasOutput) {
-			this.updateShape(JSON.parse(hasOutput))
+			this.updateShape(JSON.parse(hasOutput.toLowerCase()))
 		}
 	},
 	saveExtraState(this: AddBlock) {
@@ -230,7 +250,7 @@ Blockly.Blocks["kaboom_destroy"] = {
 	},
 }
 
-js["kaboom_destroy"] = (block: BlockSvg) => {
+js["kaboom_destroy"] = (block: Block) => {
 	const obj = getVarName(block, "OBJ")
 	if (!obj) return ""
 	return `destroy(${obj})\n`
@@ -249,7 +269,7 @@ Blockly.Blocks["kaboom_sprite"] = {
 	},
 }
 
-js["kaboom_sprite"] = (block: BlockSvg) => {
+js["kaboom_sprite"] = (block: Block) => {
 	const name = block.getFieldValue("NAME")
 	return [`sprite("${name}")`, js.ORDER_FUNCTION_CALL]
 }
@@ -271,7 +291,7 @@ Blockly.Blocks["kaboom_rect"] = {
 	},
 }
 
-js["kaboom_rect"] = (block: BlockSvg) => {
+js["kaboom_rect"] = (block: Block) => {
 	const w = js.valueToCode(block, "WIDTH", js.ORDER_ATOMIC)
 	const h = js.valueToCode(block, "HEIGHT", js.ORDER_ATOMIC)
 	return [`rect(${w}, ${h})`, js.ORDER_FUNCTION_CALL]
@@ -292,7 +312,7 @@ Blockly.Blocks["kaboom_text"] = {
 	},
 }
 
-js["kaboom_text"] = (block: BlockSvg) => {
+js["kaboom_text"] = (block: Block) => {
 	const text = js.valueToCode(block, "TEXT", js.ORDER_ATOMIC)
 	return [`text(${text})`, js.ORDER_FUNCTION_CALL]
 }
@@ -314,7 +334,7 @@ Blockly.Blocks["kaboom_pos"] = {
 	},
 }
 
-js["kaboom_pos"] = (block: BlockSvg) => {
+js["kaboom_pos"] = (block: Block) => {
 	const x = js.valueToCode(block, "X", js.ORDER_ATOMIC)
 	const y = js.valueToCode(block, "Y", js.ORDER_ATOMIC)
 	return [`pos(${x}, ${y})`, js.ORDER_FUNCTION_CALL]
@@ -334,7 +354,7 @@ Blockly.Blocks["kaboom_scale"] = {
 	},
 }
 
-js["kaboom_scale"] = (block: BlockSvg) => {
+js["kaboom_scale"] = (block: Block) => {
 	const x = block.getFieldValue("X")
 	const y = block.getFieldValue("Y")
 	return [`scale(${x}, ${y})`, js.ORDER_FUNCTION_CALL]
@@ -353,7 +373,7 @@ Blockly.Blocks["kaboom_rotate"] = {
 	},
 }
 
-js["kaboom_rotate"] = (block: BlockSvg) => {
+js["kaboom_rotate"] = (block: Block) => {
 	const angle = block.getFieldValue("ANGLE")
 	return [`rotate(${angle})`, js.ORDER_FUNCTION_CALL]
 }
@@ -371,7 +391,7 @@ Blockly.Blocks["kaboom_color"] = {
 	},
 }
 
-js["kaboom_color"] = (block: BlockSvg) => {
+js["kaboom_color"] = (block: Block) => {
 	const color = block.getFieldValue("COLOR")
 	return [`color("${color}")`, js.ORDER_FUNCTION_CALL]
 }
@@ -391,7 +411,7 @@ Blockly.Blocks["kaboom_color2"] = {
 	},
 }
 
-js["kaboom_color2"] = (block: BlockSvg) => {
+js["kaboom_color2"] = (block: Block) => {
 	const r = block.getFieldValue("R")
 	const g = block.getFieldValue("G")
 	const b = block.getFieldValue("B")
@@ -421,7 +441,7 @@ Blockly.Blocks["kaboom_anchor"] = {
 	},
 }
 
-js["kaboom_anchor"] = (block: BlockSvg) => {
+js["kaboom_anchor"] = (block: Block) => {
 	const anchor = block.getFieldValue("ANCHOR")
 	return [`anchor("${anchor}")`, js.ORDER_FUNCTION_CALL]
 }
@@ -455,7 +475,7 @@ Blockly.Blocks["kaboom_body"] = {
 	},
 }
 
-js["kaboom_body"] = (block: BlockSvg) => {
+js["kaboom_body"] = (block: Block) => {
 	const solid = block.getFieldValue("STATIC").toLowerCase()
 	return [`body({ isStatic: ${solid} })`, js.ORDER_FUNCTION_CALL]
 }
@@ -473,7 +493,7 @@ Blockly.Blocks["kaboom_outline"] = {
 	},
 }
 
-js["kaboom_outline"] = (block: BlockSvg) => {
+js["kaboom_outline"] = (block: Block) => {
 	const width = block.getFieldValue("WIDTH")
 	return [`outline(${width})`, js.ORDER_FUNCTION_CALL]
 }
@@ -491,9 +511,25 @@ Blockly.Blocks["kaboom_offscreen"] = {
 	},
 }
 
-js["kaboom_offscreen"] = (block: BlockSvg) => {
+js["kaboom_offscreen"] = (block: Block) => {
 	const destroy = block.getFieldValue("DESTROY").toLowerCase()
 	return [`offscreen({ destroy: ${destroy} })`, js.ORDER_FUNCTION_CALL]
+}
+
+Blockly.Blocks["kaboom_fixed"] = {
+	init(this: Block) {
+		this.appendDummyInput()
+			.appendField(img("bean"))
+			.appendField("fixed")
+		this.setColour(200)
+		this.setOutput(true, "Object")
+		this.setTooltip("Component to make object ignore camera")
+		this.setHelpUrl("https://kaboomjs.com#fixed")
+	},
+}
+
+js["kaboom_fixed"] = () => {
+	return ["fixed()", js.ORDER_FUNCTION_CALL]
 }
 
 Blockly.Blocks["kaboom_moveBy"] = {
@@ -513,7 +549,7 @@ Blockly.Blocks["kaboom_moveBy"] = {
 	},
 }
 
-js["kaboom_moveBy"] = (block: BlockSvg) => {
+js["kaboom_moveBy"] = (block: Block) => {
 	const obj = getVarName(block, "OBJ")
 	if (!obj) return ""
 	const x = block.getFieldValue("X")
@@ -541,7 +577,7 @@ Blockly.Blocks["kaboom_moveTo"] = {
 	},
 }
 
-js["kaboom_moveTo"] = (block: BlockSvg) => {
+js["kaboom_moveTo"] = (block: Block) => {
 	const obj = getVarName(block, "OBJ")
 	if (!obj) return ""
 	const x = js.valueToCode(block, "X", js.ORDER_ATOMIC)
@@ -569,7 +605,7 @@ Blockly.Blocks["kaboom_scaleTo"] = {
 	},
 }
 
-js["kaboom_scaleTo"] = (block: BlockSvg) => {
+js["kaboom_scaleTo"] = (block: Block) => {
 	const obj = getVarName(block, "OBJ")
 	if (!obj) return ""
 	const x = js.valueToCode(block, "X", js.ORDER_ATOMIC)
@@ -594,7 +630,7 @@ Blockly.Blocks["kaboom_rotateTo"] = {
 	},
 }
 
-js["kaboom_rotateTo"] = (block: BlockSvg) => {
+js["kaboom_rotateTo"] = (block: Block) => {
 	const obj = getVarName(block, "OBJ")
 	if (!obj) return ""
 	const angle = js.valueToCode(block, "ANGLE", js.ORDER_ATOMIC)
@@ -618,7 +654,7 @@ Blockly.Blocks["kaboom_setText"] = {
 	},
 }
 
-js["kaboom_setText"] = (block: BlockSvg) => {
+js["kaboom_setText"] = (block: Block) => {
 	const obj = getVarName(block, "OBJ")
 	if (!obj) return ""
 	const text = js.valueToCode(block, "TEXT", js.ORDER_ATOMIC)
@@ -642,7 +678,7 @@ Blockly.Blocks["kaboom_jump"] = {
 	},
 }
 
-js["kaboom_jump"] = (block: BlockSvg) => {
+js["kaboom_jump"] = (block: Block) => {
 	const obj = getVarName(block, "OBJ")
 	if (!obj) return ""
 	const force = js.valueToCode(block, "FORCE", js.ORDER_ATOMIC)
@@ -662,7 +698,7 @@ Blockly.Blocks["kaboom_getPosX"] = {
 	},
 }
 
-js["kaboom_getPosX"] = (block: BlockSvg) => {
+js["kaboom_getPosX"] = (block: Block) => {
 	const obj = getVarName(block, "OBJ")
 	if (!obj) return ["0", js.ORDER_ATOMIC]
 	return [`${obj}.pos.x`, js.ORDER_MEMBER]
@@ -681,7 +717,7 @@ Blockly.Blocks["kaboom_getPosY"] = {
 	},
 }
 
-js["kaboom_getPosY"] = (block: BlockSvg) => {
+js["kaboom_getPosY"] = (block: Block) => {
 	const obj = getVarName(block, "OBJ")
 	if (!obj) return ["0", js.ORDER_ATOMIC]
 	return [`${obj}.pos.y`, js.ORDER_MEMBER]
@@ -700,7 +736,7 @@ Blockly.Blocks["kaboom_isGrounded"] = {
 	},
 }
 
-js["kaboom_isGrounded"] = (block: BlockSvg) => {
+js["kaboom_isGrounded"] = (block: Block) => {
 	const obj = getVarName(block, "OBJ")
 	if (!obj) return ["false", js.ORDER_FUNCTION_CALL]
 	return [`${obj}.isGrounded()`, js.ORDER_FUNCTION_CALL]
@@ -782,7 +818,7 @@ Blockly.Blocks["kaboom_gravity"] = {
 	},
 }
 
-js["kaboom_gravity"] = (block: BlockSvg) => {
+js["kaboom_gravity"] = (block: Block) => {
 	const value = block.getFieldValue("VALUE")
 	return `gravity(${value})`
 }
@@ -799,7 +835,7 @@ Blockly.Blocks["kaboom_onUpdate"] = {
 	},
 }
 
-js["kaboom_onUpdate"] = (block: BlockSvg) => {
+js["kaboom_onUpdate"] = (block: Block) => {
 	const action = js.statementToCode(block, "ACTION", js.ORDER_ATOMIC)
 	return `onUpdate(() => {${action}})`
 }
@@ -817,7 +853,7 @@ Blockly.Blocks["kaboom_onUpdateTag"] = {
 	},
 }
 
-js["kaboom_onUpdateTag"] = (block: BlockSvg) => {
+js["kaboom_onUpdateTag"] = (block: Block) => {
 	const action = js.statementToCode(block, "ACTION", js.ORDER_ATOMIC)
 	const tag = block.getFieldValue("TAG")
 	return `onUpdate("${tag}", (obj) => {${action}})`
@@ -842,7 +878,7 @@ Blockly.Blocks["kaboom_onKey"] = {
 	},
 }
 
-js["kaboom_onKey"] = (block: BlockSvg) => {
+js["kaboom_onKey"] = (block: Block) => {
 	const key = block.getFieldValue("KEY")
 	const event = block.getFieldValue("EVENT")
 	const action = js.statementToCode(block, "ACTION", js.ORDER_ATOMIC)
@@ -866,7 +902,7 @@ Blockly.Blocks["kaboom_onMouse"] = {
 	},
 }
 
-js["kaboom_onMouse"] = (block: BlockSvg) => {
+js["kaboom_onMouse"] = (block: Block) => {
 	const event = block.getFieldValue("EVENT")
 	const action = js.statementToCode(block, "ACTION", js.ORDER_ATOMIC)
 	return `${event}(() => {\n${action}\n})`
@@ -892,7 +928,7 @@ Blockly.Blocks["kaboom_onObj"] = {
 	},
 }
 
-js["kaboom_onObj"] = (block: BlockSvg) => {
+js["kaboom_onObj"] = (block: Block) => {
 	const obj = getVarName(block, "OBJ")
 	if (!obj) return ""
 	const action = js.statementToCode(block, "ACTION", js.ORDER_ATOMIC)
@@ -915,7 +951,7 @@ Blockly.Blocks["kaboom_onCollide"] = {
 	},
 }
 
-js["kaboom_onCollide"] = (block: BlockSvg) => {
+js["kaboom_onCollide"] = (block: Block) => {
 	const obj = getVarName(block, "OBJ")
 	if (!obj) return ""
 	const action = js.statementToCode(block, "ACTION", js.ORDER_ATOMIC)
@@ -937,7 +973,7 @@ Blockly.Blocks["kaboom_loop"] = {
 	},
 }
 
-js["kaboom_loop"] = (block: BlockSvg) => {
+js["kaboom_loop"] = (block: Block) => {
 	const action = js.statementToCode(block, "ACTION", js.ORDER_ATOMIC)
 	const time = block.getFieldValue("TIME")
 	return `loop(${time}, () => {\n${action}\n})`
@@ -957,7 +993,7 @@ Blockly.Blocks["kaboom_wait"] = {
 	},
 }
 
-js["kaboom_wait"] = (block: BlockSvg) => {
+js["kaboom_wait"] = (block: Block) => {
 	const action = js.statementToCode(block, "ACTION", js.ORDER_ATOMIC)
 	const time = block.getFieldValue("TIME")
 	return `wait(${time}, () => {\n${action}\n})`
@@ -978,4 +1014,39 @@ Blockly.Blocks["kaboom_shake"] = {
 
 js["kaboom_shake"] = () => {
 	return "shake()"
+}
+
+Blockly.Blocks["kaboom_play"] = {
+	init(this: Block) {
+		this.appendDummyInput()
+			.appendField(img("bean"))
+			.appendField("play sound")
+			.appendField(new Blockly.FieldTextInput(), "NAME")
+		this.setPreviousStatement(true)
+		this.setNextStatement(true)
+		this.setColour(200)
+		this.setTooltip("Screen shake")
+		this.setHelpUrl("https://kaboomjs.com#shake")
+	},
+}
+
+js["kaboom_play"] = (block: Block) => {
+	const name = block.getFieldValue("NAME")
+	return `play(${name})`
+}
+
+Blockly.Blocks["kaboom_dt"] = {
+	init(this: Block) {
+		this.appendDummyInput()
+			.appendField(img("bean"))
+			.appendField("delta time")
+		this.setOutput(true, "Number")
+		this.setColour(200)
+		this.setTooltip("Delta time between frame")
+		this.setHelpUrl("https://kaboomjs.com#dt")
+	},
+}
+
+js["kaboom_dt"] = () => {
+	return "dt()"
 }

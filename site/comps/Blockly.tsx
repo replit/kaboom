@@ -4,7 +4,7 @@ import {
 	useImperativeHandle,
 	forwardRef,
 } from "react"
-import Blockly, { WorkspaceSvg } from "blockly"
+import Blockly, { Workspace } from "blockly"
 import { javascriptGenerator } from "blockly/javascript"
 import "lib/kaboomBlockly"
 
@@ -16,7 +16,7 @@ export interface BlocklyEditorRef {
 
 const FONT_SIZE = 16
 
-const specialBlocks = {}
+const specialBlocks: Record<string, any> = {}
 
 specialBlocks["kaboom_pos"] = {
 	inputs: {
@@ -156,12 +156,14 @@ const blocks = [
 			"kaboom_shake",
 			"kaboom_gravity",
 			"kaboom_loadSprite",
+			"kaboom_loadSound",
 			"kaboom_add",
 			"kaboom_destroy",
 			"kaboom_mouseX",
 			"kaboom_mouseY",
 			"kaboom_width",
 			"kaboom_height",
+			"kaboom_dt",
 		],
 	},
 	{
@@ -293,7 +295,7 @@ const blocks = [
 
 const BlocklyEditor = forwardRef<BlocklyEditorRef>(({...props}, ref) => {
 	const divRef = useRef(null)
-	const workspaceRef = useRef<WorkspaceSvg | null>(null)
+	const workspaceRef = useRef<Workspace | null>(null)
 	useImperativeHandle(ref, () => ({
 		genCode() {
 			if (!workspaceRef.current) throw new Error("Blockly workspace not initialized")
@@ -327,12 +329,18 @@ const BlocklyEditor = forwardRef<BlocklyEditorRef>(({...props}, ref) => {
 			grid: {
 				spacing: 16,
 			},
+			comments: true,
+			move: {
+				drag: true,
+				scrollbars: true,
+				wheel: true,
+			},
 			zoom: {
-				// controls: true,
+				controls: true,
 				pinch: true,
 				wheel: true,
 			},
-			// trashcan: true,
+			trashcan: true,
 			theme: {
 				name: "kaboom",
 				base: Blockly.Themes.Classic,
