@@ -145,48 +145,22 @@ function getExtraBlockState(block: Block) {
 	return ""
 }
 
-function createPlusField(action: () => void) {
-	return new Blockly.FieldImage(plusImage, 16, 16, undefined, (field) => {
-		const block = field.getSourceBlock()
-		if (!block) return
-		if (block.isInFlyout) return
-		Blockly.Events.setGroup(true)
-		const oldExtraState = getExtraBlockState(block)
-		action()
-		const newExtraState = getExtraBlockState(block)
-		if (oldExtraState != newExtraState) {
-			Blockly.Events.fire(new Blockly.Events.BlockChange(
-				block,
-				"mutation",
-				null,
-				oldExtraState,
-				newExtraState,
-			))
-		}
-		Blockly.Events.setGroup(false)
-	})
-}
-
-function createMinusField(action: () => void) {
-	return new Blockly.FieldImage(minusImage, 16, 16, undefined, (field) => {
-		const block = field.getSourceBlock()
-		if (!block) return
-		if (block.isInFlyout) return
-		Blockly.Events.setGroup(true)
-		const oldExtraState = getExtraBlockState(block)
-		action()
-		const newExtraState = getExtraBlockState(block)
-		if (oldExtraState != newExtraState) {
-			Blockly.Events.fire(new Blockly.Events.BlockChange(
-				block,
-				"mutation",
-				null,
-				oldExtraState,
-				newExtraState,
-			))
-		}
-		Blockly.Events.setGroup(false)
-	})
+function mutateBlock(block: Block, action: () => void) {
+	if (block.isInFlyout) return
+	Blockly.Events.setGroup(true)
+	const oldExtraState = getExtraBlockState(block)
+	action()
+	const newExtraState = getExtraBlockState(block)
+	if (oldExtraState !== newExtraState) {
+		Blockly.Events.fire(new Blockly.Events.BlockChange(
+			block,
+			"mutation",
+			null,
+			oldExtraState,
+			newExtraState,
+		))
+	}
+	Blockly.Events.setGroup(false)
 }
 
 type AddBlock = Block & {
@@ -200,8 +174,12 @@ Blockly.Blocks["kaboom_add2"] = {
 	itemCount: 3,
 	init(this: AddBlock) {
 		this.appendDummyInput()
-			.appendField(createMinusField(() => this.removeComp()))
-			.appendField(createPlusField(() => this.addComp()))
+			.appendField(new Blockly.FieldImage(minusImage, 16, 16, undefined, () => {
+				mutateBlock(this, () => this.removeComp())
+			}))
+			.appendField(new Blockly.FieldImage(plusImage, 16, 16, undefined, () => {
+				mutateBlock(this, () => this.addComp())
+			}))
 			.appendField(img("bean"))
 			.appendField("add")
 		for (let i = 0; i < this.itemCount; i++) {
@@ -223,20 +201,28 @@ Blockly.Blocks["kaboom_add2"] = {
 		this.appendValueInput("COMP" + this.itemCount)
 		this.itemCount++
 	},
+	updateShape(this: AddBlock, targetCount: number) {
+		while (this.itemCount < targetCount) this.addComp()
+		while (this.itemCount > targetCount) this.removeComp()
+	},
 	mutationToDom(this: AddBlock) {
 		const container = Blockly.utils.xml.createElement("mutation")
-		container.setAttribute("items", this.itemCount + "")
+		container.setAttribute("itemCount", this.itemCount + "")
 		return container
 	},
-	domToMutation(this: AddBlock, xmlElement: Element) {
-		const val = xmlElement.getAttribute("items")
+	domToMutation(this: AddBlock, xml: Element) {
+		const val = xml.getAttribute("itemCount")
 		if (!val) return
 		const targetCount = parseInt(val, 10)
 		this.updateShape(targetCount)
 	},
-	updateShape(this: AddBlock, targetCount: number) {
-		while (this.itemCount < targetCount) this.addComp()
-		while (this.itemCount > targetCount) this.removeComp()
+	saveExtraState(this: AddBlock) {
+		return {
+			"itemCount": this.itemCount,
+		}
+	},
+	loadExtraState(state: any) {
+		this.updateShape(state["itemCount"])
 	},
 }
 
