@@ -14,11 +14,23 @@ export interface BlocklyEditorRef {
 	load: (data: any) => void,
 }
 
+// https://developers.google.com/blockly/guides/configure/web/events
+type WorkspaceEvent = {
+	type: string
+	isUiEvent: boolean
+	workspaceId: string
+	blockId: string
+	group: string
+}
+
 const SAVE_EVENTS = new Set([
 	Blockly.Events.BLOCK_CHANGE,
 	Blockly.Events.BLOCK_CREATE,
 	Blockly.Events.BLOCK_DELETE,
 	Blockly.Events.BLOCK_MOVE,
+	Blockly.Events.VAR_CREATE,
+	Blockly.Events.VAR_DELETE,
+	Blockly.Events.VAR_RENAME,
 ])
 
 const specialBlocks: Record<string, any> = {}
@@ -319,7 +331,6 @@ const BlocklyEditor = forwardRef<BlocklyEditorRef>(({...props}, ref) => {
 
 	const divRef = useRef<HTMLDivElement | null>(null)
 	const workspaceRef = useRef<Workspace | null>(null)
-	const isLoadingRef = useRef(false)
 
 	useImperativeHandle(ref, () => ({
 		genCode() {
@@ -332,9 +343,9 @@ const BlocklyEditor = forwardRef<BlocklyEditorRef>(({...props}, ref) => {
 		},
 		load(data) {
 			if (!workspaceRef.current) throw new Error("Blockly workspace not initialized")
-			isLoadingRef.current = true
+			Blockly.Events.disable()
 			Blockly.serialization.workspaces.load(data, workspaceRef.current)
-			isLoadingRef.current = false
+			Blockly.Events.enable()
 		},
 	}))
 
@@ -390,10 +401,9 @@ const BlocklyEditor = forwardRef<BlocklyEditorRef>(({...props}, ref) => {
 
 		workspaceRef.current = workspace
 
-		workspace.addChangeListener((e) => {
-			if (isLoadingRef.current) return
+		workspace.addChangeListener((e: WorkspaceEvent) => {
 			if (SAVE_EVENTS.has(e.type)) {
-				console.log(e.type)
+				// TODO: auto save
 			}
 		})
 
