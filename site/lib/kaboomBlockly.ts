@@ -21,7 +21,6 @@ const plusImage = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5
 
 const images = {
 	heart: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACcAAAAiCAYAAADcbsCGAAAAAXNSR0IArs4c6QAAASpJREFUWIXVmMEVgjAMhtM+B3AD796cyFF4jsJE3LizARvoSV/FJE3SBOp/g1d+PtKQNk2wgy7n61MyblnnVF4namDNcGvUAkX5oi/QmGKQFijM08W4BGwFKz2/4FqMl3VO3PPTMJLP3h53Ho4y3ppiRpw4KM63Cqf9WisY5ZetxpoXS4T5ZQB7rnGAHvCnVuNpGD9T4h1NFE4rb6i3yJzrQdmraEao78htb0Tlj0X/Fbme9AOnXTsj1XfkJDvaPaRa+I/Wss4Jhesl7zKArFmJFBUMclr3ih61RQc4OOdqAag2OFHLGQVWplg1chHTKwEDUPStHhHkPhT7KdUdvxZSEnmqWpjPSlrbxhoYAAP3VtROWVJbRcXXE1BT8MUDvU6ONDItW9bDQK1eux+SirvKsYAAAAAASUVORK5CYII=",
-	bean: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAD0AAAA1CAYAAADyMeOEAAAAAXNSR0IArs4c6QAAAn5JREFUaIHdm7txAkEMhnUMBUAFEEPmcUgHhHRBQXThkA4IGTKIoQLoAEcw60PS6XkP/zNO7Nt/95O099hdV5Co2WTx9LS/PS5V1FhKhZt6QTlFBSHEJBOUkicAbugugEtZ4M3QUtjVbq32Pmz3quu14GpoCawFlJM0CFJ4FXQTcDQspqYASMDF0BxwG7B1UfBh0H0DLoXBN4E3QlPAXcOW0oKPOLMhAFPiqpOMxtCANXMczfTQgAF0Y/uIghWYe5R4gkX5Up6S+S2CxjrQvjVRPpS0/i9vNbQE2ALb5BnlLwVn797l4A7bfQgwNSju917fut7Q3C0+CpbzjAwoVkklH5lp6fy73s8h11jacX/nxj8C0H8TX+/n94+mjbYP63VU1bw40Uy3/TyuD9JaGVKxNzJK8+kS5tOluk3bopI39iz3SEEsAZJkm/LlKnU2WTxFmc4o9yZPSzVJfAGQ8qYaRYLXvaK8MR/sd6o5vdqt3QPMCqqm/djbgeSlQjog7jUywv8lE7SnQ42n9gtLKjd0prLeF0zP6aHrAzrj46Jv+veZxpI4vj0uVcQmXFsV4p3nt8elQjOtBWhzSkT0NQLI2/HvWlSAyDk99Bsat06W9pz++foO89qcjmFeAEWmPSXet00A12qop8SjsxOpP9BYtrue29rgSRb7w15OsBL3ZHtzOqLtI6bSB3R0tqnBR11fSrpPjd68PLuWmdNBux1E3ZxT9qejwa07pmpoAP9Zk+zNPq4P7hFsPnMiHRQ3sCxf90EbgG4OzHHighh6jgwg92ikRBEH5wCSjknW1bfzoekHYrPV6ingl7qEt34kDepkP0DMgkfqiklf/4fjF/Soc3nSQqqQAAAAAElFTkSuQmCC",
 	k: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAAAAXNSR0IArs4c6QAAAzlJREFUeJztW8ttwzAMZYoOkA2Morcci27SETJXR+gmQY65FUU2yAbuxSoUWaQeJVIy0DygQOooovjEjz400QNjMO0P87Q/zKPHsRshNFX8ersMGQfRAAK4WR9FgrvQaX8gIqLr7cIqHzCChKceQhDlR8GdAE75r7f3VdsRJLkSEMw/RVB+CyS4W0BJodEkuBGwzD5k+rlnvfDs0alGeaGPuTYrpK53vV3Yti5pBw16KT7Op9UzlARO6dKii+1cw2Lyu6aZ50jIBdR4TJq4EZMgsgt0ukuJSX9T498pCfGALQJk3B8bA0BBM5fqLOGZFVzTYG1098wKmhjQxLqFErl4oJUpuRORMgbEAqTBWc5gTg7aP5JVsgRM+4NqDb9VlGafiIkBIbKPPKjoBSkLwLlfgtZVWkwelRuDzQKLC1R3jLRNv+faa4NhDpw1i2lwsYAqN0AHHdppybJCUbmajY3XYEtyJfmcBRR3g4sr7ChDAorvn+Pd/68vn3D7UlsEUjCvXgl6zXJKljcgAlpigQYWymsnBrYAi5QoIae8t/kTNW6GrNwAVd5jFaoiwGplGCtsqXzNhDRvh2ut4Pvn6D7zyISpCfDcH/Qy+xhqArZ6xVVriSoCvLfHOZf4OJ+qlEMttSkGeJgntxbwWnjBBLSYvjafa0loIQciQGv6FpbRaAlwoEZ2g2a3PEjaq0mNyNEXB9ECcgci6Owi7XKK5Z5xwZHDUoBVlE8kEMCdA/QASkIARzZCQpYAi9vdHDTB8PXls2kzhG7euAMRE+W/3t6b01ctCej1OlQfYJnvOYWCDJSwdEwc2aXT7ZULWC91teQh7dE+EV3uTKRW+dKAkFm1uiPQpkQTAlKgykjta9FEAJEvCT2gLbNZxYClcfxnNpAe0BJvUYWlrgP0hsYNqsrkkrTiEkditF6YSmsC8+Mty0MTSzfqRgCRDQkeMQQukPAQZHmtbgmXUlmiv+JGVTyQFLeuFQxwve/TuIKg/KoYU5AXPq7kdo0BMRASOOV71Cj1emcoS0LB1+GZb0G3KjDUb0NhdA/liTq9NIWit/JEnd8blKxghPJEG3hx8j8UY66wlfeGH3iA6Bc9b+qsgyPL1wAAAABJRU5ErkJggg==",
 	rect: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAAAAXNSR0IArs4c6QAAAKxJREFUeJzt2jEOgCAQBVHW+98Zq20USCx0zDKvRIvP1LQmSZIkbSlWH3vv/ashb4qI6T2nH6pcPs0iDA+rXT6NItwOql4+XSMc1JC/MAA9gGYAegDNAPQAmgHoATQD0ANoBqAH0AxAD6AZgB5AMwA9gGYAegDNAPQAmgHoATQD0ANoBqAH0AxAD6AZgB5AMwA9gGYAegDNZ3Kzn6tFePRQMlWJsHoqK0mStK0TRs4cUlgjqMAAAAAASUVORK5CYII=",
 	pos: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAAAAXNSR0IArs4c6QAAATtJREFUeJztm8ENwjAMRRPERjAB3YPOBnvABHSmcLJEQ1ugNH6R8t+NHvD3q0Rco4YgRNNEqvDjdE6vn4/3K5IFKZo3bxAS3AvONW94S9h5FqsRCaAD0EgAHYBGAugANBJAB6CRADoAjQTQAWgkgA5A07yAPVH0cLtMXh+63jmJ80YopbS4DTJijG653Ap927zhJcGlyK/NGx4SihdY27xRWkLRL/+3eaOkhMlT4NPq2put8kyt3N8ubFVs7qhby1ZHZC5hNAjVdudLkPfY/CQoAXQAmpEA6i9qT/IeJxuu7SQodQKEoEFIo7AehkoXMJp+HDZqXIi4zgExxrj0iz50vWvzIUA7QWL3N4cmQToAjQTQAWgkgA5AIwF0ABoJoAPQSAAdgEYC6AA0EkAHoNFrc94FjVpenBSicZ4f0GAqyNmV8AAAAABJRU5ErkJggg==",
@@ -42,6 +41,10 @@ const images = {
 	cloud: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAAAAXNSR0IArs4c6QAAAS1JREFUeJztmNESgyAMBAPT//9l+pRpalFBAinJ7RvojNwmrQgRAAAAAACISbJ8eCmlXF1PKU1fn4mAu+BHZopYJqA3dI0ZIqYL0Agu0ZYwVYB2eImWiGkCZoZnNCRMEbAiPDMqQV3AyvDMiISsuRArRqSrdoBF9SVPOkGtA6zDP8XFT4B5UgQVAbtWn8hZBxD1F+O16kH/SpcAL6ElTQI8Bmdu35s7h2/ZF1zesHN4yZWI0wtewjNnEqqT3sIzNQk/E17DM0cJXwPv4Rkpwd1OsAVZ6FybjETIDiD6FDzLQUTCdgADAdYLsAYCrBdgDQRYL8AK3g5nOYhIyA6QBQ/3NXj5OUzkW0LTgQiRTwldR2JEfiTc/cG7PhUePhZndhMR+bUOAAAAAAAAaOMNO4uEInQPNi0AAAAASUVORK5CYII=",
 	shake: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAAAAXNSR0IArs4c6QAAAi5JREFUeJztW0tuhDAMNVUPxDlYjnqbbthwG9Rlz9Eb0VWkTEiC7dgGB95ylDC85288GYCbY5B4yDS+tvSz378fkWdrg/2SOdIpPIjwSd2AIe4JJAtRyHuwPgBSgF7cPYfDl66R90o6RpVAiXwPxAOKRO5AHqAgALeuh32eREIJcETIcyO06wOodZ7TF3x/zdk9yzqbi7b7Qor1qXmiRDyFpRAf3I1a5MNayvoWvIUA1p2pMW9FhoOqB+RIWZK3EI4dAgHaltcWgSQAJeNLvrimCE0eIJHwsNASoTkEvOMR4OwXOBuPAJTFcdLzctg5Anko2gvxgNuHQLHVbbW0dN3WOiGqurOkCC4FAJARQXM+YJLQWkTQHo6YZXSOCBaTIZMqcOWByOVzgOsQkLK8yyR46z5AK+ZbRcg1eeICaCc8rgil3ztEqwCGfKsVpQU2PQwdkZeI82l8bZThLfk4zAWWXLyOau2Y+DS+NsyBTtQDSiTP+NETC/EQSMlKk5d+nkoISL3kss5DHAYanmSWA7jQDp9uRmLcC5xdCNByRcdcgFpp4zQ5rfeTTAXAEMSKUGp4qMPcS4/ESgmQej2nJpS6B1hNgyiWj9eqCtBKvrQ/Jcu5yRbgYiAidQQG2It12kAkJXW0hyoCNkF20QekoFQHcwGWdR5y1pRqeaml0cVABCMOty8wE4AzEMHsq02AMKXxsoMKDCT+ztNlEqQ0Ra49AODdC3q7vvPgwQN9/AM971JfOLy3NwAAAABJRU5ErkJggg==",
 	mouse: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAAAAXNSR0IArs4c6QAAAhJJREFUeJztmT9SwkAUh5+OQ+kV7HDAyqGh0cYjOBRY6TWUhoJz0EnFEWywoWGslNHOK1jaYKGbWZf9v7+wG31fhUhe8vvystlkiRiGYRiGYRiGYRiGYf4Ze7Ebbh4/NlWRs8PoOrmJOnA5fFWooRKCD1oXvir2I6FJ3QEVMFvMaXh+ub0Ti4T7ydRYT+Xq7gYuEybAFJ7oW0BIUBdIEd6F5AAi6Gwx//UbnQD1N0gQIpwFQs+cSU5dpEqwbqwLP7y9JiKi0WBMJ6dHKfuGkSIhaHAS4QUlSSCKE7Gv+9I20pdMzEC7JUCE1w1oo8FY+7kkQiVstYwQYBrEnp/eq88ltb+K7+UAmaCUio8E+G2wNFwStINgSIGmEzUTRNPrd6z/Xy3X0bVdJzDq7CJkuELriBFRiwCZUBkxwVVCRCSPASh6/Q4kvKjlg+npVAYywJm6ABXYhK0T5PC29xGwEV6VUHd4gU6CaHufN1PQW9z9ZLoR5t8+X5ClrcgS1GveJeEAdRDqA1S71YVJaLe6ROSWGjNngQio6+lRBJf/ViWsluukyRqsA1TUdnt9WAZJUsPLHF/0d/9O0AX6VThq7cF1XEXP81Ol+mxf2yWAYBeLKkV3QAq+3VOkAORdxdVFRQio6zbqcwllF5AzPFFmAabwu1xRziaglCX0LDsuJTxRBgElhc9GU5feGIZhGIZhmL/EF3cI8tGO+6W7AAAAAElFTkSuQmCC",
+	mark: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADgAAAA0CAYAAADfRPtlAAAAAXNSR0IArs4c6QAAAedJREFUaIHtms2NAyEMhd+MUsB2sIpy27ZSV9rKbbVKB+kge5qIEAP+YzBS3imKBuwPM4wxLDDq++vnYe2jpdv9umjbqhvuAZZLA6oCHAGXSgIqAvQE+/07P3+fjhdxey4kG7AFlzrspRY4B7L5wAiwXBbQKmANbg+wXDXQEmQRMBpcqhIoBUkCRobbxIVkA0YBS8WBfAOcBW5TC3JtdRAZDij7twVqpf6cTbUgvEzRHHDkp0Bjm5quzwhGiF7qoCZ9owal+A5yR/B0vKic2UvNRaYm64jnSgfV6/U4ADGm5ybv956MINdIjxH31sEavahgm94iGN1hqUyLzAz6AM6uD+DsmgKQmw5Wk+2osqSDt/t1CQ3okd+GBpSoNBhhASmHJVkWuybDcWT0frBmP9R+sNaXJnoAAWhx1APSezasltNTSj0GqBa9lr0FsFXTagYkdR1NH1Q7snRvrWb3WmRaPuR2qdno8pnosUmWwpW0ArZbDFyHJP1o+ioxFCOoLbxaQD3e2VzV0r3E6F7iLCypwqZqlDSzaprzQcmxdSrREfYoUC0coLiEsDekBQ4Ifo3ECgc4XAQC/GE192FKYj0sOb/QwnJWyK63DUcfsWmzrfDXKa1ppKlxb1CPHNl1s2sF9t58A8A/00UHqR2QHnEAAAAASUVORK5CYII=",
+	gravity: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAAAAXNSR0IArs4c6QAAAjFJREFUeJztWcuxwjAMVJjXDj3RCCcaoScK8rsQxmRiW5K1kjJkjxDrs7Y+lolOnDjxy1hmBZRSypfAZZmW6YkpY7fOfwlWErHK9CJSraTn/Ee40Ik9mWgipnaJpYDpwEgmigixUInzHyUD47kyESRcrAVKISFUQ/4IoQS0Yn4Fd80MwgjgJLwWEZYkuBNQ3tj+3otvZCVwrQKtddJKYUmIax8wSwAC6hAYGc11PhoudwFE12gFuFJE12gJqEJE12gNiLLZePckwVyRVbLzIiH8LtCCV9UwJSBrqesh7Qkg8iE0NQFEfBJad4wR0hNANCah/l9KwiEIIGrv8GyYQAlAlLKaCIshKvwEoOq51QTZjADEG4FkrVaHye5wd0Marx7zBMjLUM8gixF4LWM2xMxHYhyDoh5BdnVJF1jGeoaHVbMkeLRX4RViAriz+6PgT7PoyA5vcZhWGIWTgGgDakQMVMJjOfrNIJwAolgSUoRAZFVJcQJWZHw83cX9+iz36zPNBHjGHjGzW0WP1y10d2btSZEDInE4ArjHnfvdkABJfKFzQy27p4f7HdGAAIlCidLeWgn21klldRPGzG5ykpEmgUltGsnsngBthkdWBolszrfDHCB1xqMscnRw7WAbOzp6Gsctegq3PuDxui0t4VyliIpS69YQqDquq2EShXs7xflNqkcKtzYWXVG0cO3jNSSgk6r7RUZCgkdFCbnJISqKFqmuskTx12t3ZBuunPg1/AOiXJF4B19Z+gAAAABJRU5ErkJggg==",
+	collide: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAAAAXNSR0IArs4c6QAAAllJREFUeJztmb1OwzAUhU8RIwPqCyBVTAy0oD4BIxsNMy+ChBASL8JM6cbIE1SQMnRCSH2BqgM7DMjFMY4TJ9fXLtxvoaVN6nPu8U9sQBAEQRAEQdgsTgejT4r7dChuwo0p/jF/aKxju31z+KCqus7GJKBKfNMUJG+AT9WbmLDlewEnISJvkmQC2gj3TUFyBlBU3ceEZGYBjrjbSCIBIcTXTQHrIDg9uSgIPR2MPkNVvu592QxQ4tXfWJE3YekCZuUB4Gr5wfHTlV0heAL2dg9C/4STqqQFN2B8PLQ24Ka747yu6nMfXCaQdQE95tnztLNYzX9FfzDuI89mheuulh9OsVRdpawrkBhg6+Mmg3F//do0oQzqccJmAkkXGD7dJbGeqMLWFUhWguZAp6qtKq1X3/Zep246qCAxYLGaI3tGxxzwXEJtcIsHCGeBxWpOdSsAfOuEIA9DeTbzrn5oymYB0nUA1WDIMfornA2+PL/2Wq+fLd8L731SoPf/0HO/TmkCfMWbxO4CdR+HycYAvfoxxftuiZEYYEY/Bk23xckfhppWX7/O90Eo6smQWX3OKbCNcEVrAybdHoCiEeaKLoQhFOIBxzTYdhYA3ANjnWWvbTqkEq4IuiGi0gH8CM6zWeM1P7V4gOFcYNLtrZNg2wypQwjhCpZdYT0Jrv/ZCCkeiHAypAs/2j/Ey9ur9XuhhSvYDCiruM0ELvFAIsfjR/uH69ec4oFEDAC+TdCN4CIZA2IhBsRuQGzEgNgNiI0YELsBsfn3BpBui7fl9v56Iw5ZBUEQBEH4G3wB+SPkYjlTNbQAAAAASUVORK5CYII=",
+	grounded: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAAAAXNSR0IArs4c6QAAAhJJREFUeJztmL1uwjAUha9RZ4ZOiI29Q5eOzEiVOtCXYKvUJ6nUjadg6MTM2LV7t6pTh7yAO10UjOPY106OBfeTkALxJecc/8QJkaIoiqIoypVicv/g6+XDxrS7e3/KvtYQZImKNc/UGIJYUKp5prYQRGKk5pmaQkgWkmueqSWECVoAmuQA5ovZEDpgiEbAfDHLCqKmEG9yitnIz/dvUvuayAqAqdFYLLoIogWg0QDQAtBoAGgBaJL3439vn0WeBUpy+/ogfq64iBGQ0ykXEQCRPISzoWMPjSUiMsupd1ilXmi725/9tlmvkmtja3zTIeTJ+BoeT3oKUgLwmWdChqR1TDuEPk/BKeAWpxAyETovrfMRo/8kAF+PS0KIFem2k9bF4vN3NgK65n4Om/Xq+JHUSojtuEHuAm3RroGUc/zdDU8SSlfHdvZ218pZ40bIhRfBvjsaUeCFyBBTYWxiPJxMAXtobM7KPwTb3V686PlwPU7aJ3zHJUk1026bG4JrnI87p4A9NLbkNPCZ6VrMSvY4UbhDjwGY5dS4DUuH4JJitPTtkH0NshHyITWQU9tnnmikjRAz5kbIh1lOjesPtg/oG/5S4+7TYN9eQNTbtW6GJG+GxMO9thCkr8XM4/1zVUbG5mJeiUnRANAC0GgAaAFoNAC0ADQaAFoAGg0ALQCNBoAWgEYDQAtAowGgBaC5+gD+AV/F8zTh/nRTAAAAAElFTkSuQmCC",
 }
 
 
@@ -95,7 +98,7 @@ function mutateBlock(block: Block, action: () => void) {
 }
 
 Blockly.Blocks["kaboom_kaboom"] = {
-	init(this: Block) {
+	init() {
 		this.appendDummyInput()
 			.appendField(icon("k"))
 			.appendField("kaboom")
@@ -103,7 +106,7 @@ Blockly.Blocks["kaboom_kaboom"] = {
 		this.setTooltip("Start a Kaboom game")
 		this.setHelpUrl("https://kaboomjs.com#kaboom")
 	},
-}
+} as Block
 
 js["kaboom_kaboom"] = () => {
 	return "kaboom()"
@@ -178,7 +181,7 @@ type AddBlock = Block & {
 Blockly.Blocks["kaboom_add"] = {
 	itemCount: 3,
 	hasOutput: false,
-	init(this: AddBlock) {
+	init() {
 		this.appendDummyInput()
 			.appendField(new Blockly.FieldImage(minusImage, 16, 16, "Remove a component field", () => {
 				mutateBlock(this, () => this.removeComp())
@@ -186,7 +189,7 @@ Blockly.Blocks["kaboom_add"] = {
 			.appendField(new Blockly.FieldImage(plusImage, 16, 16, "Add a component field", () => {
 				mutateBlock(this, () => this.addComp())
 			}))
-			.appendField(icon("bean", () => {
+			.appendField(icon("mark", () => {
 				mutateBlock(this, () => this.setHasOutput(!this.hasOutput))
 			}))
 			.appendField("add")
@@ -202,7 +205,7 @@ Blockly.Blocks["kaboom_add"] = {
 		this.setTooltip("Add a game object from a list of components")
 		this.setHelpUrl("https://kaboomjs.com#add")
 	},
-	setHasOutput(this: AddBlock, has: boolean) {
+	setHasOutput(has: boolean) {
 		if (!has && this.getParent()) return
 		this.hasOutput = has
 		if (this.hasOutput) {
@@ -211,27 +214,27 @@ Blockly.Blocks["kaboom_add"] = {
 			this.setOutput(false)
 		}
 	},
-	removeComp(this: AddBlock) {
+	removeComp() {
 		if (this.itemCount <= 1) return
 		if (this.allInputsFilled()) return
 		this.itemCount--
 		this.removeInput(`COMP${this.itemCount}`)
 	},
-	addComp(this: AddBlock) {
+	addComp() {
 		this.appendValueInput(`COMP${this.itemCount}`)
 		this.itemCount++
 	},
-	updateShape(this: AddBlock, targetCount: number) {
+	updateShape(targetCount: number) {
 		while (this.itemCount < targetCount) this.addComp()
 		while (this.itemCount > targetCount) this.removeComp()
 	},
-	mutationToDom(this: AddBlock) {
+	mutationToDom() {
 		const xml = Blockly.utils.xml.createElement("mutation")
 		xml.setAttribute("itemCount", this.itemCount + "")
 		xml.setAttribute("hasOutput", this.hasOutput + "")
 		return xml
 	},
-	domToMutation(this: AddBlock, xml: Element) {
+	domToMutation(xml: Element) {
 		const itemCount = xml.getAttribute("itemCount")
 		if (itemCount) {
 			this.updateShape(parseInt(itemCount, 10))
@@ -241,7 +244,7 @@ Blockly.Blocks["kaboom_add"] = {
 			this.updateShape(JSON.parse(hasOutput.toLowerCase()))
 		}
 	},
-	saveExtraState(this: AddBlock) {
+	saveExtraState() {
 		return {
 			"itemCount": this.itemCount,
 			"hasOutput": this.hasOutput,
@@ -251,7 +254,7 @@ Blockly.Blocks["kaboom_add"] = {
 		this.updateShape(state["itemCount"])
 		this.setHasOutput(state["hasOutput"])
 	},
-}
+} as AddBlock
 
 js["kaboom_add"] = (block: AddBlock) => {
 	const comps = [...Array(block.itemCount).keys()]
@@ -746,6 +749,7 @@ js["kaboom_getPosY"] = (block: Block) => {
 Blockly.Blocks["kaboom_isGrounded"] = {
 	init(this: Block) {
 		this.appendDummyInput()
+			.appendField(icon("grounded"))
 			.appendField(new Blockly.FieldVariable("obj"), "OBJ")
 			.appendField("is grounded")
 		this.setOutput(true, "Boolean")
@@ -826,6 +830,7 @@ js["kaboom_height"] = () => {
 Blockly.Blocks["kaboom_gravity"] = {
 	init(this: Block) {
 		this.appendDummyInput()
+			.appendField(icon("gravity"))
 			.appendField("set gravity to")
 			.appendField(new Blockly.FieldNumber(), "VALUE")
 		this.setColour(colors.query)
@@ -852,7 +857,7 @@ Blockly.Blocks["kaboom_onUpdate"] = {
 
 js["kaboom_onUpdate"] = (block: Block) => {
 	const action = js.statementToCode(block, "ACTION", js.ORDER_ATOMIC)
-	return `onUpdate(() => {${action}})`
+	return `onUpdate(() => {\n${action}\n})`
 }
 
 Blockly.Blocks["kaboom_onUpdateTag"] = {
@@ -870,7 +875,7 @@ Blockly.Blocks["kaboom_onUpdateTag"] = {
 js["kaboom_onUpdateTag"] = (block: Block) => {
 	const action = js.statementToCode(block, "ACTION", js.ORDER_ATOMIC)
 	const tag = block.getFieldValue("TAG")
-	return `onUpdate("${tag}", (obj) => {${action}})`
+	return `onUpdate("${tag}", (obj) => {\n${action}\n})`
 }
 
 Blockly.Blocks["kaboom_onKey"] = {
@@ -952,6 +957,7 @@ js["kaboom_onObj"] = (block: Block) => {
 Blockly.Blocks["kaboom_onCollide"] = {
 	init(this: Block) {
 		this.appendDummyInput()
+			.appendField(icon("collide"))
 			.appendField("when")
 			.appendField(new Blockly.FieldVariable("obj"), "OBJ")
 			.appendField("collides with a")
