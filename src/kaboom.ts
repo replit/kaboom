@@ -1,4 +1,4 @@
-const VERSION = "3000.0.0-alpha.24"
+const VERSION = "3000.0.0-alpha.25"
 
 import {
 	sat,
@@ -63,7 +63,7 @@ import {
 	BinaryHeap,
 } from "./utils"
 
-import {
+import type {
 	GfxShader,
 	GfxFont,
 	RenderProps,
@@ -143,7 +143,6 @@ import {
 	MergeObj,
 	LevelComp,
 	Edge,
-	EdgeMask,
 	TileComp,
 	TileCompOpt,
 	LevelOpt,
@@ -5614,6 +5613,25 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 	function center(): Vec2 {
 		return vec2(width() / 2, height() / 2)
+	}
+
+	enum EdgeMask {
+		None = 0,
+		Left = 1,
+		Top = 2,
+		LeftTop = 3,
+		Right = 4,
+		Horizontal = 5,
+		RightTop = 6,
+		HorizontalTop = 7,
+		Bottom = 8,
+		LeftBottom = 9,
+		Vertical = 10,
+		LeftVertical = 11,
+		RightBottom = 12,
+		HorizontalBottom = 13,
+		RightVertical = 14,
+		All = 15,
 	}
 
 	function tile(opts: TileCompOpt = {}): TileComp {
