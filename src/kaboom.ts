@@ -7023,12 +7023,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		game.ev.on("loadUpdate", action)
 	}
 
-	function onResize(action: (
-		prevWidth: number,
-		prevHeight: number,
-		curWidth: number,
-		curHeight: number,
-	) => void) {
+	function onResize(action: () => void) {
 		game.ev.on("resize", action)
 	}
 

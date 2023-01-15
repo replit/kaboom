@@ -689,12 +689,7 @@ export interface KaboomCtx {
 	 *
 	 * @since v3000.0
 	 */
-	onResize(action: (
-		prevWidth: number,
-		prevHeight: number,
-		curWidth: number,
-		curHeight: number,
-	) => void): void,
+	onResize(action: () => void): void,
 	/**
 	 * Register an event that runs when a gamepad is connected.
 	 *
