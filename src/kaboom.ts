@@ -453,11 +453,17 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 		// canvas css styles
 		const styles = [
-			`width: ${cw}px`,
-			`height: ${ch}px`,
 			"outline: none",
 			"cursor: default",
 		]
+
+		if (stretchToParent) {
+			styles.push("width: 100%")
+			styles.push("height: 100%")
+		} else {
+			styles.push(`width: ${cw}px`)
+			styles.push(`height: ${ch}px`)
+		}
 
 		if (gopt.crisp) {
 			// chrome only supports pixelated and firefox only supports crisp-edges
@@ -479,7 +485,14 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		const resizeObserver = new ResizeObserver((entries) => {
 			for (const entry of entries) {
 				if (entry.target !== canvas) continue
-				// TODO: handle resize here
+				canvas.width = entry.contentRect.width * pixelDensity
+				canvas.height = entry.contentRect.height * pixelDensity
+				gfx.frameBuffer = new FrameBuffer(gl.drawingBufferWidth, gl.drawingBufferHeight)
+				updateViewport()
+				game.ev.onOnce("frameEnd", () => {
+					// should we also pass window / view size?
+					game.ev.trigger("resize")
+				})
 			}
 		})
 
@@ -493,8 +506,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			fontCacheCtx: fontCacheCtx,
 
 			stretchToParent: stretchToParent,
-			lastParentWidth: pw,
-			lastParentHeight: ph,
 
 			// keep track of all button states
 			keyState: new ButtonState<Key>(),
@@ -1052,7 +1063,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			error: [Error],
 			input: [],
 			frameEnd: [],
-			resize: [number, number, number, number],
+			resize: [],
 		}>(),
 
 		// object events
@@ -1917,9 +1928,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		gfx.frameBuffer.bind()
 		// clear framebuffer
 		gl.clear(gl.COLOR_BUFFER_BIT)
-
-		// running this every frame now mainly because isFullscreen() is not updated real time when requested fullscreen
-		updateViewport()
 
 		if (!gopt.background) {
 			drawUnscaled(() => {
@@ -2880,30 +2888,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		// content size (scaled content size, with scale, stretch and letterbox)
 		// view size (unscaled viewport size)
 		// window size (will be the same as view size except letterbox mode)
-
-		// check for resize
-		if (app.stretchToParent && !isFullscreen()) {
-			// TODO: update cam pos
-			// TODO: if <html>/<body> height not set to 100% the height keeps growing
-			const pw = app.canvas.parentElement.offsetWidth
-			const ph = app.canvas.parentElement.offsetHeight
-			if (pw !== app.lastParentWidth || ph !== app.lastParentHeight) {
-				// TODO: slow to resize, only apply resize when user stopped draggin?
-				app.canvas.width = pw * app.pixelDensity
-				app.canvas.height = ph * app.pixelDensity
-				app.canvas.style.width = pw + "px"
-				app.canvas.style.height = ph + "px"
-				const prevWidth = width()
-				const prevHeight = height()
-				// trigger "resize" on frame end so width() and height() will get the updated value
-				game.ev.onOnce("frameEnd", () => {
-					// should we also pass window / view size?
-					game.ev.trigger("resize", prevWidth, prevHeight, width(), height())
-				})
-			}
-			app.lastParentWidth = pw
-			app.lastParentHeight = ph
-		}
 
 		// canvas size
 		const pd = app.pixelDensity
