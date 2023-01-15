@@ -4,7 +4,7 @@ kaboom()
 
 const sprites = [
 	"apple",
-	"love",
+	"heart",
 	"coin",
 	"meat",
 	"lightening",

@@ -12,7 +12,7 @@ for (const fruit of fruits) {
 }
 
 loadSprite("bean", "/sprites/bean.png")
-loadSprite("love", "/sprites/love.png")
+loadSprite("heart", "/sprites/heart.png")
 loadSound("hit", "/examples/sounds/hit.mp3")
 loadSound("wooosh", "/examples/sounds/wooosh.mp3")
 
@@ -28,7 +28,7 @@ scene("start", () => {
 	])
 
 	add([
-		sprite("love"),
+		sprite("heart"),
 		pos(center().add(0, 100)),
 		scale(2),
 		anchor("center"),
@@ -71,11 +71,11 @@ scene("game", () => {
 		}
 	})
 
-	onUpdate("love", (love) => {
-		if (love.pos.x <= 0) {
+	onUpdate("heart", (heart) => {
+		if (heart.pos.x <= 0) {
 			go("lose", score)
 			play("hit")
-			addKaboom(love.pos)
+			addKaboom(heart.pos)
 		}
 	})
 
@@ -87,11 +87,11 @@ scene("game", () => {
 		pos(12, 12),
 	])
 
-	// increment score if player eats a love
-	player.onCollide("love", (love) => {
+	// increment score if player eats a heart
+	player.onCollide("heart", (heart) => {
 		addKaboom(player.pos)
 		score += 1
-		destroy(love)
+		destroy(heart)
 		scoreLabel.text = score
 		burp()
 		shake(12)
@@ -106,9 +106,9 @@ scene("game", () => {
 		const y = rand(0, height())
 		// get a random speed
 		const speed = rand(SPEED_MIN, SPEED_MAX)
-		// 50% percent chance is love
-		const isLove = chance(0.5)
-		const spriteName = isLove ? "love" : choose(fruits)
+		// 50% percent chance is heart
+		const isHeart = chance(0.5)
+		const spriteName = isHeart ? "heart" : choose(fruits)
 
 		add([
 			sprite(spriteName),
@@ -116,7 +116,7 @@ scene("game", () => {
 			area({ scale: 0.5 }),
 			anchor("center"),
 			"food",
-			isLove ? "love" : "fruit",
+			isHeart ? "heart" : "fruit",
 			{ speed: speed },
 		])
 

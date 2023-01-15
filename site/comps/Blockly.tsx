@@ -4,8 +4,9 @@ import {
 	useImperativeHandle,
 	forwardRef,
 } from "react"
-import Blockly, { WorkspaceSvg, BlockSvg } from "blockly"
+import Blockly, { Workspace } from "blockly"
 import { javascriptGenerator } from "blockly/javascript"
+import "lib/kaboomBlockly"
 
 export interface BlocklyEditorRef {
 	genCode: () => string,
@@ -13,264 +14,235 @@ export interface BlocklyEditorRef {
 	load: (data: any) => void,
 }
 
-const FONT_SIZE = 16
-const ICON_SIZE = FONT_SIZE * 1.6
-
-Blockly.defineBlocksWithJsonArray([{
-	"type": "kaboom",
-	"message0": "%1 kaboom",
-	"args0": [
-		{
-			"type": "field_image",
-			"src": "https://github.com/replit/kaboom/raw/master/sprites/k.png",
-			"width": ICON_SIZE,
-			"height": ICON_SIZE,
-			"alt": "*",
-		},
-	],
-	"colour": 250,
-	"tooltip": "Start a Kaboom game",
-	"helpUrl": "https://kaboomjs.com#kaboom",
-}])
-
-Blockly.defineBlocksWithJsonArray([{
-	"type": "loadSprite",
-	"message0": "%1 load sprite %2 from %3",
-	"args0": [
-		{
-			"type": "field_image",
-			"src": "https://github.com/replit/kaboom/raw/master/sprites/bean.png",
-			"width": ICON_SIZE,
-			"height": ICON_SIZE,
-			"alt": "*",
-		},
-		{
-			"type": "field_input",
-			"name": "NAME",
-			"text": "bean",
-			"spellcheck": false,
-		},
-		{
-			"type": "field_input",
-			"name": "SOURCE",
-			"text": "sprites/bean.png",
-			"spellcheck": false,
-		},
-	],
-	"colour": 200,
-	"tooltip": "Component to render a sprite",
-	"helpUrl": "https://kaboomjs.com#sprite",
-}])
-
-Blockly.defineBlocksWithJsonArray([{
-	"type": "add",
-	"message0": "%1 add %2",
-	"args0": [
-		{
-			"type": "field_image",
-			"src": "https://github.com/replit/kaboom/raw/master/sprites/bean.png",
-			"width": ICON_SIZE,
-			"height": ICON_SIZE,
-			"alt": "*",
-		},
-		{
-			"type": "input_value",
-			"name": "COMPS",
-		},
-	],
-	"output": "Object",
-	"colour": 200,
-	"tooltip": "Add a game object",
-	"helpUrl": "https://kaboomjs.com#add",
-}])
-
-Blockly.defineBlocksWithJsonArray([{
-	"type": "sprite",
-	"message0": "%1 sprite %2",
-	"args0": [
-		{
-			"type": "field_image",
-			"src": "https://github.com/replit/kaboom/raw/master/sprites/bean.png",
-			"width": ICON_SIZE,
-			"height": ICON_SIZE,
-			"alt": "*",
-		},
-		{
-			"type": "field_input",
-			"name": "NAME",
-			"text": "bean",
-			"spellcheck": false,
-		},
-	],
-	"output": "Object",
-	"colour": 200,
-	"tooltip": "Component to render a sprite",
-	"helpUrl": "https://kaboomjs.com#sprite",
-}])
-
-Blockly.defineBlocksWithJsonArray([{
-	"type": "pos",
-	"message0": "%1 pos %2 %3",
-	"args0": [
-		{
-			"type": "field_image",
-			"src": "https://github.com/replit/kaboom/raw/master/sprites/bean.png",
-			"width": ICON_SIZE,
-			"height": ICON_SIZE,
-			"alt": "*",
-		},
-		{
-			"type": "field_number",
-			"name": "X",
-			"value": 0,
-		},
-		{
-			"type": "field_number",
-			"name": "Y",
-			"value": 0,
-		},
-	],
-	"output": "Object",
-	"colour": 200,
-	"tooltip": "Component to set object position",
-	"helpUrl": "https://kaboomjs.com#pos",
-}])
-
-Blockly.defineBlocksWithJsonArray([{
-	"type": "color",
-	"message0": "%1 color %2",
-	"args0": [
-		{
-			"type": "field_image",
-			"src": "https://github.com/replit/kaboom/raw/master/sprites/bean.png",
-			"width": ICON_SIZE,
-			"height": ICON_SIZE,
-			"alt": "*",
-		},
-		{
-			"type": "field_colour",
-			"name": "COLOR",
-			"colour": "#ff4040",
-		},
-	],
-	"output": "Object",
-	"colour": 200,
-	"tooltip": "Component to set object color",
-	"helpUrl": "https://kaboomjs.com#color",
-}])
-
-Blockly.defineBlocksWithJsonArray([{
-	"type": "anchor",
-	"message0": "%1 anchor %2",
-	"args0": [
-		{
-			"type": "field_image",
-			"src": "https://github.com/replit/kaboom/raw/master/sprites/bean.png",
-			"width": ICON_SIZE,
-			"height": ICON_SIZE,
-			"alt": "*",
-		},
-		{
-			"type": "field_dropdown",
-			"name": "ANCHOR",
-			"options": [
-				[ "topleft", "topleft" ],
-				[ "top", "top" ],
-				[ "topright", "topright" ],
-				[ "left", "left" ],
-				[ "center", "center" ],
-				[ "right", "right" ],
-				[ "botleft", "botleft" ],
-				[ "bot", "bot" ],
-				[ "botright", "botright" ],
-			],
-		},
-	],
-	"output": "Object",
-	"colour": 200,
-	"tooltip": "Component to set object's anchor point",
-	"helpUrl": "https://kaboomjs.com#anchor",
-}])
-
-Blockly.defineBlocksWithJsonArray([{
-	"type": "rotate",
-	"message0": "%1 rotate %2",
-	"args0": [
-		{
-			"type": "field_image",
-			"src": "https://github.com/replit/kaboom/raw/master/sprites/bean.png",
-			"width": ICON_SIZE,
-			"height": ICON_SIZE,
-			"alt": "*",
-		},
-		{
-			"type": "field_angle",
-			"name": "ANGLE",
-			"angle": 0,
-		},
-	],
-	"output": "Object",
-	"colour": 200,
-	"tooltip": "Component to set object's angle",
-	"helpUrl": "https://kaboomjs.com#rotate",
-}])
-
-javascriptGenerator["kaboom"] = (block: BlockSvg) => {
-	return "kaboom()"
+// https://developers.google.com/blockly/guides/configure/web/events
+type WorkspaceEvent = {
+	type: string
+	isUiEvent: boolean
+	workspaceId: string
+	blockId: string
+	group: string
 }
 
-javascriptGenerator["loadSprite"] = (block: BlockSvg) => {
-	const name = block.getFieldValue("NAME")
-	const source = block.getFieldValue("SOURCE")
-	return `loadSprite("${name}", "${source}")`
+const SAVE_EVENTS = new Set([
+	Blockly.Events.BLOCK_CHANGE,
+	Blockly.Events.BLOCK_CREATE,
+	Blockly.Events.BLOCK_DELETE,
+	Blockly.Events.BLOCK_MOVE,
+	Blockly.Events.VAR_CREATE,
+	Blockly.Events.VAR_DELETE,
+	Blockly.Events.VAR_RENAME,
+])
+
+const specialBlocks: Record<string, any> = {}
+
+specialBlocks["kaboom_pos"] = {
+	inputs: {
+		"X": {
+			shadow: {
+				type: "math_number",
+				fields: { "NUM": 0 },
+			},
+		},
+		"Y": {
+			shadow: {
+				type: "math_number",
+				fields: { "NUM": 0 },
+			},
+		},
+	},
 }
 
-javascriptGenerator["add"] = (block: BlockSvg) => {
-	const comps = javascriptGenerator.valueToCode(block, "COMPS", javascriptGenerator.ORDER_ADDITION)
-	if (!comps) {
-		throw new Error("Failed to add()")
-	}
-	return [`add(${comps})`, javascriptGenerator.ORDER_FUNCTION_CALL]
+specialBlocks["kaboom_rect"] = {
+	inputs: {
+		"WIDTH": {
+			shadow: {
+				type: "math_number",
+				fields: { "NUM": 40 },
+			},
+		},
+		"HEIGHT": {
+			shadow: {
+				type: "math_number",
+				fields: { "NUM": 40 },
+			},
+		},
+	},
 }
 
-javascriptGenerator["sprite"] = (block: BlockSvg) => {
-	const name = block.getFieldValue("NAME")
-	return [`sprite("${name}")`, javascriptGenerator.ORDER_FUNCTION_CALL]
+specialBlocks["kaboom_text"] = {
+	inputs: {
+		"TEXT": {
+			shadow: {
+				type: "text",
+				fields: { "TEXT": "" },
+			},
+		},
+	},
 }
 
-javascriptGenerator["pos"] = (block: BlockSvg) => {
-	const x = block.getFieldValue("X")
-	const y = block.getFieldValue("Y")
-	return [`pos(${x}, ${y})`, javascriptGenerator.ORDER_FUNCTION_CALL]
+specialBlocks["kaboom_moveBy"] = {
+	inputs: {
+		"X": {
+			shadow: {
+				type: "math_number",
+				fields: { "NUM": 0 },
+			},
+		},
+		"Y": {
+			shadow: {
+				type: "math_number",
+				fields: { "NUM": 0 },
+			},
+		},
+	},
 }
 
-javascriptGenerator["color"] = (block: BlockSvg) => {
-	const color = block.getFieldValue("COLOR")
-	return [`color("${color}")`, javascriptGenerator.ORDER_FUNCTION_CALL]
+specialBlocks["kaboom_moveTo"] = {
+	inputs: {
+		"X": {
+			shadow: {
+				type: "math_number",
+				fields: { "NUM": 0 },
+			},
+		},
+		"Y": {
+			shadow: {
+				type: "math_number",
+				fields: { "NUM": 0 },
+			},
+		},
+	},
 }
 
-javascriptGenerator["anchor"] = (block: BlockSvg) => {
-	const anchor = block.getFieldValue("ANCHOR")
-	return [`anchor("${anchor}")`, javascriptGenerator.ORDER_FUNCTION_CALL]
+specialBlocks["kaboom_scaleTo"] = {
+	inputs: {
+		"X": {
+			shadow: {
+				type: "math_number",
+				fields: { "NUM": 1 },
+			},
+		},
+		"Y": {
+			shadow: {
+				type: "math_number",
+				fields: { "NUM": 1 },
+			},
+		},
+	},
 }
 
-javascriptGenerator["rotate"] = (block: BlockSvg) => {
-	const angle = block.getFieldValue("ANGLE")
-	return [`rotate(${angle})`, javascriptGenerator.ORDER_FUNCTION_CALL]
+specialBlocks["kaboom_rotateTo"] = {
+	inputs: {
+		"ANGLE": {
+			shadow: {
+				type: "math_number",
+				fields: { "NUM": 0 },
+			},
+		},
+	},
+}
+
+specialBlocks["kaboom_jump"] = {
+	inputs: {
+		"FORCE": {
+			shadow: {
+				type: "math_number",
+				fields: { "NUM": 640 },
+			},
+		},
+	},
+}
+
+specialBlocks["kaboom_setText"] = {
+	inputs: {
+		"TEXT": {
+			shadow: {
+				type: "text",
+				fields: { "TEXT": "" },
+			},
+		},
+	},
+}
+
+specialBlocks["math_random_int"] = {
+	inputs: {
+		"FROM": {
+			shadow: {
+				type: "math_number",
+				fields: { "NUM": 0 },
+			},
+		},
+		"TO": {
+			shadow: {
+				type: "math_number",
+				fields: { "NUM": 10 },
+			},
+		},
+	},
 }
 
 const blocks = [
 	{
 		name: "kaboom",
 		blocks: [
-			"kaboom",
-			"loadSprite",
-			"add",
-			"sprite",
-			"pos",
-			"color",
-			"anchor",
-			"rotate",
+			"kaboom_kaboom",
+			"kaboom_burp",
+			"kaboom_shake",
+			"kaboom_gravity",
+			"kaboom_loadSprite",
+			"kaboom_loadSound",
+			"kaboom_add",
+			"kaboom_destroy",
+			"kaboom_mouseX",
+			"kaboom_mouseY",
+			"kaboom_width",
+			"kaboom_height",
+			"kaboom_dt",
+		],
+	},
+	{
+		name: "components",
+		blocks: [
+			"kaboom_sprite",
+			"kaboom_rect",
+			"kaboom_text",
+			"kaboom_pos",
+			"kaboom_scale",
+			"kaboom_rotate",
+			"kaboom_color",
+			"kaboom_color2",
+			"kaboom_anchor",
+			"kaboom_area",
+			"kaboom_body",
+			"kaboom_outline",
+			"kaboom_offscreen",
+		],
+	},
+	{
+		name: "actions",
+		blocks: [
+			"kaboom_getPosX",
+			"kaboom_getPosY",
+			"kaboom_moveTo",
+			"kaboom_moveBy",
+			"kaboom_scaleTo",
+			"kaboom_rotateTo",
+			"kaboom_setText",
+			"kaboom_jump",
+			"kaboom_isGrounded",
+		],
+	},
+	{
+		name: "events",
+		blocks: [
+			"kaboom_loop",
+			"kaboom_wait",
+			"kaboom_onUpdate",
+			"kaboom_onUpdateTag",
+			"kaboom_onKey",
+			"kaboom_onMouse",
+			"kaboom_onObj",
+			"kaboom_onCollide",
 		],
 	},
 	{
@@ -356,8 +328,10 @@ const blocks = [
 ]
 
 const BlocklyEditor = forwardRef<BlocklyEditorRef>(({...props}, ref) => {
-	const divRef = useRef(null)
-	const workspaceRef = useRef<WorkspaceSvg | null>(null)
+
+	const divRef = useRef<HTMLDivElement | null>(null)
+	const workspaceRef = useRef<Workspace | null>(null)
+
 	useImperativeHandle(ref, () => ({
 		genCode() {
 			if (!workspaceRef.current) throw new Error("Blockly workspace not initialized")
@@ -369,13 +343,17 @@ const BlocklyEditor = forwardRef<BlocklyEditorRef>(({...props}, ref) => {
 		},
 		load(data) {
 			if (!workspaceRef.current) throw new Error("Blockly workspace not initialized")
+			Blockly.Events.disable()
 			Blockly.serialization.workspaces.load(data, workspaceRef.current)
+			Blockly.Events.enable()
 		},
 	}))
+
 	useEffect(() => {
 		if (!divRef.current) return
+		const div = divRef.current
 		Blockly.registry.unregister("theme", "kaboom")
-		const workspace = Blockly.inject(divRef.current, {
+		const workspace = Blockly.inject(div, {
 			toolbox: {
 				kind: "categoryToolbox",
 				contents: blocks.map((c) => ({
@@ -384,11 +362,18 @@ const BlocklyEditor = forwardRef<BlocklyEditorRef>(({...props}, ref) => {
 					contents: c.blocks.map((b) => ({
 						kind: "block",
 						type: b,
+						...(specialBlocks[b] ?? {}),
 					})),
 				})),
 			},
 			grid: {
 				spacing: 16,
+			},
+			comments: true,
+			move: {
+				drag: true,
+				scrollbars: true,
+				wheel: true,
 			},
 			zoom: {
 				controls: true,
@@ -401,8 +386,6 @@ const BlocklyEditor = forwardRef<BlocklyEditorRef>(({...props}, ref) => {
 				base: Blockly.Themes.Classic,
 				fontStyle: {
 					family: "IBM Plex Mono",
-					weight: "bold",
-					size: FONT_SIZE,
 				},
 				componentStyles: {
 					toolboxBackgroundColour: "#eeeeee",
@@ -415,12 +398,38 @@ const BlocklyEditor = forwardRef<BlocklyEditorRef>(({...props}, ref) => {
 				},
 			},
 		})
+
 		workspaceRef.current = workspace
-		return () => workspace.dispose()
+
+		workspace.addChangeListener((e: WorkspaceEvent) => {
+			if (SAVE_EVENTS.has(e.type)) {
+				// TODO: auto save
+			}
+		})
+
+		let toolboxVisible = true
+
+		const keyDownHandler = (e: KeyboardEvent) => {
+			if (e.key === "Tab") {
+				e.preventDefault()
+				toolboxVisible = !toolboxVisible
+				workspace.getToolbox()?.setVisible(toolboxVisible)
+			}
+		}
+
+		div.addEventListener("keydown", keyDownHandler)
+
+		return () => {
+			div.removeEventListener("keydown", keyDownHandler)
+			workspace.dispose()
+		}
+
 	}, [])
+
 	return (
 		<div ref={divRef} {...props} />
 	)
+
 })
 
 export default BlocklyEditor
