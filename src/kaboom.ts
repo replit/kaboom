@@ -431,17 +431,15 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 		// global pixel scale
 		const gscale = gopt.scale ?? 1
-		const stretchToParent = !(gopt.width && gopt.height && !gopt.stretch && !gopt.letterbox)
-		const pw = canvas.parentElement.offsetWidth
-		const ph = canvas.parentElement.offsetHeight
+		const fixedSize = gopt.width && gopt.height && !gopt.stretch && !gopt.letterbox
 
 		// adjust canvas size according to user size / viewport settings
-		if (stretchToParent) {
-			canvas.width = pw
-			canvas.height = ph
-		} else {
+		if (fixedSize) {
 			canvas.width = gopt.width * gscale
 			canvas.height = gopt.height * gscale
+		} else {
+			canvas.width = canvas.parentElement.offsetWidth
+			canvas.height = canvas.parentElement.offsetHeight
 		}
 
 		const cw = canvas.width
@@ -457,12 +455,12 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			"cursor: default",
 		]
 
-		if (stretchToParent) {
-			styles.push("width: 100%")
-			styles.push("height: 100%")
-		} else {
+		if (fixedSize) {
 			styles.push(`width: ${cw}px`)
 			styles.push(`height: ${ch}px`)
+		} else {
+			styles.push("width: 100%")
+			styles.push("height: 100%")
 		}
 
 		if (gopt.crisp) {
@@ -482,11 +480,17 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			willReadFrequently: true,
 		})
 
+		let lastWidth = canvas.offsetWidth
+		let lastHeight = canvas.offsetHeight
+
 		const resizeObserver = new ResizeObserver((entries) => {
 			for (const entry of entries) {
 				if (entry.target !== canvas) continue
-				canvas.width = entry.contentRect.width * pixelDensity
-				canvas.height = entry.contentRect.height * pixelDensity
+				if (lastWidth === canvas.offsetWidth && lastHeight === canvas.offsetHeight) return
+				lastWidth = canvas.offsetWidth
+				lastHeight = canvas.offsetHeight
+				canvas.width = lastWidth * pixelDensity
+				canvas.height = lastHeight * pixelDensity
 				gfx.frameBuffer = new FrameBuffer(gl.drawingBufferWidth, gl.drawingBufferHeight)
 				updateViewport()
 				game.ev.onOnce("frameEnd", () => {
@@ -504,8 +508,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			pixelDensity: pixelDensity,
 			fontCacheCanvas: fontCacheCanvas,
 			fontCacheCtx: fontCacheCtx,
-
-			stretchToParent: stretchToParent,
 
 			// keep track of all button states
 			keyState: new ButtonState<Key>(),
@@ -7276,6 +7278,8 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		}
 
 	})
+
+	updateViewport()
 
 	// the exported ctx handle
 	const ctx: KaboomCtx = {
