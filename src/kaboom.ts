@@ -491,6 +491,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				lastHeight = canvas.offsetHeight
 				canvas.width = lastWidth * pixelDensity
 				canvas.height = lastHeight * pixelDensity
+				gfx.frameBuffer.free()
 				gfx.frameBuffer = new FrameBuffer(gl.drawingBufferWidth, gl.drawingBufferHeight)
 				updateViewport()
 				game.ev.onOnce("frameEnd", () => {
