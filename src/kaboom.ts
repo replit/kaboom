@@ -1,4 +1,4 @@
-const VERSION = "3000.0.0-alpha.23"
+const VERSION = "3000.0.0-alpha.24"
 
 import {
 	sat,
@@ -2988,10 +2988,10 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			return
 		}
 
-		const scale = gopt.scale ?? 1
+		const gscale = gopt.scale ?? 1
 
-		gfx.width = cw / scale
-		gfx.height = ch / scale
+		gfx.width = cw / gscale
+		gfx.height = ch / gscale
 		gl.viewport(0, 0, cw * pd, ch * pd)
 
 		gfx.viewport = {
