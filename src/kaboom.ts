@@ -957,7 +957,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			})
 		}
 		static loaded<D>(data: D): Asset<D> {
-			const asset = new Asset(Promise.resolve(data))
+			const asset = new Asset(Promise.resolve(data)) as Asset<D>
 			asset.data = data
 			asset.loaded = true
 			return asset
