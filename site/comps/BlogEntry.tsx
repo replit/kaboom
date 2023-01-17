@@ -24,10 +24,10 @@ const BlogEntry: React.FC<BlogEntryProps & ViewProps> = ({
 	...args
 }) => {
 	return (
-		<View stretchX outlined rounded height={180} dir="row" bg={3} padX={1} padY={1} css={{
+		<View stretchX outlined rounded height={180} dir="row" bg={3} pad={1} gap={2} css={{
 			[`@media (max-width: ${MOBILE}px)`]: {
 				flexDirection: "column",
-				height: 320,
+				height: "auto",
 			},
 		}}>
 			<img src={image} css={{
@@ -36,18 +36,14 @@ const BlogEntry: React.FC<BlogEntryProps & ViewProps> = ({
 				height: "100%",
 				objectFit: "cover",
 				display: "block",
-				marginRight: 14,
 				[`@media (max-width: ${MOBILE}px)`]: {
 					width: "100%",
-					height: "30%",
+					height: 200,
 				},
 			}}/>
-
-			<View bg={"none"} dir="column">
+			<View gap={0.5} dir="column">
 				<Text size="huge">{title}</Text>
-
 				<Text size="small" italic color={3}>{author}, {date}</Text>
-
 				<Text size="normal">{description}</Text>
 			</View>
 		</View>

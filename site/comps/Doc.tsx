@@ -119,7 +119,6 @@ const Title: React.FC<{
 		<Text
 			code
 			color={1}
-			select
 			size={small ? "normal" : "big"}
 		>
 			{ small ? (
@@ -127,7 +126,9 @@ const Title: React.FC<{
 			) : (
 				<DocCtx.Consumer>
 					{(ctx) => <Link href={`#${ctx.anchor}`}>
-						<a onClick={ctx.onAnchor}>
+						<a onClick={ctx.onAnchor} css={{
+							color: "var(--color-fg1)",
+						}}>
 							{data.name}
 						</a>
 					</Link>}
@@ -165,7 +166,6 @@ const FunctionDeclaration: React.FC<EntryProps> = ({ data }) => (
 		<Text
 			code
 			color={1}
-			select
 			size="big"
 		>
 			{data.name}(<FuncParams data={data} />)
@@ -279,7 +279,7 @@ const JSDoc: React.FC<EntryProps> = ({data}) => {
 	return data.jsDoc ? (
 		<View gap={1} stretchX>
 			{ data.jsDoc.doc &&
-				<Text select color={3}>{data.jsDoc.doc}</Text>
+				<Text color={3}>{data.jsDoc.doc}</Text>
 			}
 			{ Object.entries(data.jsDoc.tags).map(([name, items]) => {
 				return (items as string[]).map((content) => {
@@ -289,7 +289,7 @@ const JSDoc: React.FC<EntryProps> = ({data}) => {
 						default: return (
 							<View key={content} gap={1} dir="row">
 								<Tag name={name} />
-								<Text select color={3}>{content}</Text>
+								<Text color={3}>{content}</Text>
 							</View>
 						)
 					}

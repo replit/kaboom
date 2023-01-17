@@ -4094,11 +4094,7 @@ export interface AreaComp extends Comp {
 	/**
 	 * Push out from another solid game obj if currently overlapping.
 	 */
-	pushOut(obj: GameObj): void,
-	/**
-	 * Push out from all other solid game objs if currently overlapping.
-	 */
-	pushOutAll(): void,
+	resolveCollision(obj: GameObj): void,
 	/**
 	 * Get the geometry data for the collider in local coordinate space.
 	 *

@@ -6,7 +6,7 @@ interface TextProps {
 	size?: FontSize,
 	bold?: boolean,
 	italic?: boolean,
-	select?: boolean,
+	noselect?: boolean,
 	code?: boolean,
 	underline?: boolean,
 }
@@ -19,7 +19,7 @@ const Text: React.FC<Props> = (({
 	bold,
 	italic,
 	children,
-	select,
+	noselect,
 	code,
 	underline,
 	...props
@@ -34,7 +34,7 @@ const Text: React.FC<Props> = (({
 			color: color === undefined
 				? "var(--color-fg1)"
 				: typeof color === "number" ? `var(--color-fg${color})` : color,
-			userSelect: select ? "text" : "none",
+			userSelect: noselect ? "none" : "text",
 		}}
 		{...props}
 	>

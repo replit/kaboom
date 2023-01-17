@@ -83,6 +83,7 @@ for (const col of player.getCollisions()) {
 - added `Area#onHover()` and `onHover()` to register an event that runs once when an object(s) is hovered
 - added `Area#onHoverEnd()` and `onHoverEnd()` to register an event that runs once when an object(s) stopped being hovered
 - (**BREAK**) renamed `onHover()` to `onHoverUpdate()` (it registers an event that runs every frame when an object is hovered)
+- (**BREAK**) renamed `pushOut()` to `resolveCollision()`
 
 #### Body
 

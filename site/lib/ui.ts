@@ -135,7 +135,7 @@ export const themes: ThemeBook = {
 		"outline": "var(--color-bg4)",
 		"bgpat": "rgb(10, 110, 90)",
 		"fghl": "rgb(255, 255, 255)",
-		"highlight": "rgb(40, 160, 160)",
+		"highlight": "rgb(250, 180, 250)",
 		"accent": "rgb(19, 33, 49)",
 		"danger": "rgb(255, 90, 90)",
 		"errbg": "rgb(30, 10, 10)",

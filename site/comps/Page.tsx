@@ -99,10 +99,12 @@ const Page = ({
 					@font-face {
 						font-family: IBM Plex Sans;
 						src: url(/static/fonts/IBMPlexSans-Regular.ttf) format("truetype");
+						font-display: block;
 					}
 					@font-face {
 						font-family: IBM Plex Mono;
 						src: url(/static/fonts/IBMPlexMono-Regular.ttf) format("truetype");
+						font-display: block;
 					}
 					* {
 						margin: 0;
@@ -126,28 +128,10 @@ const Page = ({
 						height: 100%;
 						overflow: hidden;
 					}
-					::-webkit-scrollbar {
-						width: 8px;
-						height: 8px;
-					}
-					::-webkit-scrollbar-track {
-						background: rgba(0, 0, 0, 0.1);
-					}
-					::-webkit-scrollbar-track:hover {
-						background: rgba(0, 0, 0, 0.2);
-					}
-					::-webkit-scrollbar-thumb {
-						background: rgba(0, 0, 0, 0.3);
-						border-radius: 4px;
-					}
-					::-webkit-scrollbar-thumb:hover {
-						background: rgba(0, 0, 0, 0.4);
-					}
-					::-webkit-scrollbar-corner {
-						background: rgba(0, 0, 0, 0.1);
-					}
 					a {
 						text-decoration: none;
+						color: var(--color-highlight);
+						cursor: pointer;
 					}
 					#__next {
 						width: 100%;

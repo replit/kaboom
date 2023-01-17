@@ -482,6 +482,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		let lastWidth = canvas.offsetWidth
 		let lastHeight = canvas.offsetHeight
 
+		// TODO: don't resize framebuffer if fixedSize
 		const resizeObserver = new ResizeObserver((entries) => {
 			for (const entry of entries) {
 				if (entry.target !== canvas) continue
@@ -2164,7 +2165,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 		drawTexture(Object.assign(opt, {
 			tex: spr.data.tex,
-			quad: q.scale(opt.quad || new Quad(0, 0, 1, 1)),
+			quad: q.scale(opt.quad ?? new Quad(0, 0, 1, 1)),
 		}))
 
 	}
@@ -4558,17 +4559,12 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			},
 
 			// push an obj out of another if they're overlapped
-			pushOut(this: GameObj<AreaComp | PosComp>, obj: GameObj<AreaComp>) {
-				const res = this.checkCollision(obj)
-				if (res) {
-					this.pos = this.pos.add(res.displacement)
+			resolveCollision(this: GameObj<AreaComp | PosComp>, obj: GameObj<AreaComp>) {
+				const col = this.checkCollision(obj)
+				if (col && !col.resolved) {
+					this.pos = this.pos.add(col.displacement)
+					col.resolved = true
 				}
-			},
-
-			// TODO: recursive
-			// push object out of other solid objects
-			pushOutAll() {
-				game.root.getAll().forEach(this.pushOut)
 			},
 
 			localArea(this: GameObj<AreaComp | { renderArea(): Shape }>): Shape {
