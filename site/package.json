@@ -29,6 +29,7 @@
 	"devDependencies": {
 		"@emotion/babel-plugin": "^11.9.2",
 		"@types/marked": "^4.0.3",
+		"@types/pako": "^2.0.0",
 		"@types/react": "^18.0.15",
 		"eslint": "^8.19.0",
 		"eslint-config-next": "^12.2.2",

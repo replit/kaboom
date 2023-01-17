@@ -120,7 +120,7 @@ interface PlayProps {
 }
 
 function compressStr(str: string) {
-	return btoa(String.fromCharCode.apply(null, pako.deflate(str)))
+	return btoa(String.fromCharCode.apply(null, Array.from(pako.deflate(str))))
 }
 
 function decompressStr(str: string) {

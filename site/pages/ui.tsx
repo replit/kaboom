@@ -74,7 +74,7 @@ const UI: React.FC = () => (
 			<ThemeSwitch />
 		</Example>
 		<Example thing="a text">
-			<Text select italic bold size="huge">oh hi mark</Text>
+			<Text italic bold size="huge">oh hi mark</Text>
 		</Example>
 		<Example thing="a button">
 			<Button text="Run" name="Run Button" desc="run current code" />
