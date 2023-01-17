@@ -15,14 +15,18 @@ const ErrorPage: NextPage<ErrorPageProps> = ({ statusCode }) => (
 		<Head title="Error" />
 		<Background align="center" justify="center">
 			<View align="center" gap={2}>
-				<Text
-					color={4}
-					bold
-					css={{
-						fontSize: 120 ,
-					}}>
-					{statusCode ?? 404}
-				</Text>
+				{ statusCode ? (
+					<Text
+						color={4}
+						bold
+						css={{
+							fontSize: 120,
+						}}>
+						{statusCode ?? "Something went wrong"}
+					</Text>
+				) : (
+					<Text color={4} bold size="big">Something went wrong</Text>
+				) }
 				<ThemeSwitch />
 			</View>
 		</Background>

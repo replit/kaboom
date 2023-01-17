@@ -2,7 +2,6 @@ import * as React from "react"
 
 import {
 	EditorState,
-	Compartment,
 	Extension,
 } from "@codemirror/state"
 

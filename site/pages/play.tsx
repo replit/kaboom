@@ -266,10 +266,14 @@ const Play: React.FC<PlayProps> = ({
 							const queryCopy = { ...query }
 							queryCopy["code"] = encodeURIComponent(compressed)
 							const queryStr = Object.entries(queryCopy).map(([k, v]) => `${k}=${v}`).join("&")
-							navigator.clipboard.writeText(`${window.location.origin}${window.location.pathname}?${queryStr}`).then(() => {
-								// TODO: display message
-								console.log("copied!")
-							})
+							const url = `${window.location.origin}${window.location.pathname}?${queryStr}`
+							if (url.length <= 2048) {
+								navigator.clipboard.writeText(url).then(() => {
+									alert("Share link copied to clipboard!")
+								})
+							} else {
+								alert("Code too long to encode in URL")
+							}
 						}}
 					/>
 				</View>

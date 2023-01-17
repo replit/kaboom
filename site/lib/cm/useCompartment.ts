@@ -21,20 +21,9 @@ export default function useCompartment({
 }) {
 	const compartmentRef = useRef(new Compartment())
 
-	if (process.env.NODE_ENV === "development") {
-		// Fast Refresh forces all hooks to re-run
-		// see: https://github.com/apollographql/apollo-client/issues/5870#issuecomment-689098185
-		// this sometimes causes our view to be appended with
-		// the same compartment which crashes codemirror.
-		// To get around that, we will create a new compartment
-		// for every Fast Refresh update! Effects that
-		// rely on this compartment should re-run anyway
-
-		// eslint-disable-next-line react-hooks/rules-of-hooks
-		useEffect(() => {
-			compartmentRef.current = new Compartment()
-		}, [])
-	}
+	useEffect(() => {
+		compartmentRef.current = new Compartment()
+	}, [])
 
 	useEffect(() => {
 		if (!view) {
@@ -53,7 +42,7 @@ export default function useCompartment({
 			})
 		}
     // initialExtension excluded intentionally
-	}, [view, compartmentRef.current])
+	}, [view])
 
 	return compartmentRef.current
 }

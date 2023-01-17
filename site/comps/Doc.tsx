@@ -65,7 +65,7 @@ const TypeSig: React.FC<EntryProps> = ({ data }) => (
 		{ data?.typeArguments &&
 			<span>
 				{"<"}{data.typeArguments.map((arg: any, i: number) => (
-					<React.Fragment key={arg.typeName + i}>
+					<React.Fragment key={i}>
 						<TypeSig data={arg} />
 						{ i === data.typeArguments.length - 1 ? "" : ", " }
 					</React.Fragment>
