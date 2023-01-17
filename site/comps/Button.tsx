@@ -1,8 +1,9 @@
+import { ReactNode } from "react"
 import View, { ViewProps } from "comps/View"
 import Text from "comps/Text"
 
 interface ButtonProps {
-	text: string,
+	text?: string,
 	action?: () => void,
 	danger?: boolean,
 }
@@ -11,6 +12,7 @@ const Button: React.FC<ButtonProps & ViewProps> = ({
 	text,
 	action,
 	danger,
+	children,
 	...args
 }) => (
 	<View
@@ -34,7 +36,9 @@ const Button: React.FC<ButtonProps & ViewProps> = ({
 		}}
 		{...args}
 	>
-		<Text color={1}>{text}</Text>
+		{ text ? (
+			<Text color={1}>{text}</Text>
+		) : children }
 	</View>
 )
 

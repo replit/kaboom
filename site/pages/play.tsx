@@ -5,6 +5,7 @@ import { GetServerSideProps } from "next"
 import Link from "next/link"
 import { useRouter } from "next/router"
 import pako from "pako"
+import { Share2 } from "react-feather"
 import useKey from "hooks/useKey"
 import useSavedState from "hooks/useSavedState"
 import useClickOutside from "hooks/useClickOutside"
@@ -256,7 +257,6 @@ const Play: React.FC<PlayProps> = ({
 						}}
 					/>
 					<Button
-						text="Share"
 						name="Share"
 						desc="Generate a link of the current code"
 						action={() => {
@@ -275,7 +275,9 @@ const Play: React.FC<PlayProps> = ({
 								alert("Code too long to encode in URL")
 							}
 						}}
-					/>
+					>
+						<Share2 />
+					</Button>
 				</View>
 				<View dir="row" gap={2} align="center">
 					{ !isNarrow &&
