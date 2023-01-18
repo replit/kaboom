@@ -1,6 +1,9 @@
 export default {
 	reactStrictMode: true,
 	swcMinify: true,
+	compiler: {
+		emotion: true,
+	},
 	headers: async () => [
 		{ source: "/:path*", headers: [
 			{ key: "Access-Control-Allow-Origin", value: "*" },
