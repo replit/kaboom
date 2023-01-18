@@ -126,11 +126,11 @@ const Title: React.FC<{
 			) : (
 				<DocCtx.Consumer>
 					{(ctx) => <Link href={`#${ctx.anchor}`}>
-						<a onClick={ctx.onAnchor} css={{
+						<div onClick={ctx.onAnchor} css={{
 							color: "var(--color-fg1)",
 						}}>
 							{data.name}
-						</a>
+						</div>
 					</Link>}
 				</DocCtx.Consumer>
 			) }

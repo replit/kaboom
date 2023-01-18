@@ -1,12 +1,8 @@
-import fs from "fs/promises"
 import path from "path"
 import * as React from "react"
-import { GetServerSideProps } from "next"
 import Link from "next/link"
-import { useRouter } from "next/router"
 import useKey from "hooks/useKey"
 import useSavedState from "hooks/useSavedState"
-import useClickOutside from "hooks/useClickOutside"
 import useSpaceUsed from "hooks/useSpaceUsed"
 import useMediaQuery from "hooks/useMediaQuery"
 import Head from "comps/Head"
@@ -14,17 +10,11 @@ import Editor, { EditorRef } from "comps/Editor"
 import GameView, { GameViewRef } from "comps/GameView"
 import Button from "comps/Button"
 import ThemeSwitch from "comps/ThemeSwitch"
-import Select from "comps/Select"
 import View from "comps/View"
 import Text from "comps/Text"
-import Menu from "comps/Menu"
-import Inspect from "comps/Inspect"
 import Drop from "comps/Drop"
 import Drawer from "comps/Drawer"
 import Background from "comps/Background"
-import Doc from "comps/Doc"
-import download from "lib/download"
-import wrapHTML from "lib/wrapHTML"
 import Ctx from "lib/Ctx"
 
 // TODO: CLEAN
@@ -378,17 +368,15 @@ const Play: React.FC = () => {
 						rounded
 						desc="Back to home"
 					>
-						<Link href="/" passHref>
-							<a>
-								<img
-									src="/static/img/k.png"
-									css={{
-										width: 48,
-										cursor: "pointer",
-									}}
-									alt="logo"
-								/>
-							</a>
+						<Link href="/">
+							<img
+								src="/static/img/k.png"
+								css={{
+									width: 48,
+									cursor: "pointer",
+								}}
+								alt="logo"
+							/>
 						</Link>
 					</View>
 					<Button

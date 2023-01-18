@@ -28,39 +28,37 @@ const popping = keyframes(`
 `)
 
 const Logo: React.FC = () => (
-	<Link href="/" passHref>
-		<a>
-			<View
-				desc="Back to home"
-				rounded
+	<Link href="/">
+		<View
+			desc="Back to home"
+			rounded
+			css={{
+				"cursor": "pointer",
+			}}
+		>
+			<img
+				src="/static/img/boom.svg"
+				alt="boom"
 				css={{
-					"cursor": "pointer",
+					position: "relative",
+					width: "80%",
+					left: "10%",
+					animation: `${popping} 5s infinite`,
 				}}
-			>
-				<img
-					src="/static/img/boom.svg"
-					alt="boom"
-					css={{
-						position: "relative",
-						width: "80%",
-						left: "10%",
-						animation: `${popping} 5s infinite`,
-					}}
-				/>
-				<img
-					src="/static/img/ka.svg"
-					alt="ka"
-					css={{
-						width: "90%",
-						position: "absolute",
-						left: "2px",
-						top: "28px",
-						animation: `${popping} 5s infinite`,
-						animationDelay: "0.08s",
-					}}
-				/>
-			</View>
-		</a>
+			/>
+			<img
+				src="/static/img/ka.svg"
+				alt="ka"
+				css={{
+					width: "90%",
+					position: "absolute",
+					left: "2px",
+					top: "28px",
+					animation: `${popping} 5s infinite`,
+					animationDelay: "0.08s",
+				}}
+			/>
+		</View>
 	</Link>
 )
 
@@ -73,28 +71,26 @@ const NavLink: React.FC<NavLinkProps> = ({
 	text,
 	link,
 }) => (
-	<Link href={link} passHref>
-		<a>
-			<View
-				focusable
-				padX={1}
-				padY={0.5}
-				rounded
-				css={{
-					cursor: "pointer",
-					position: "relative",
-					left: "-4px",
-					":hover": {
-						background: "var(--color-highlight)",
-						"> *": {
-							color: "var(--color-fghl) !important",
-						},
+	<Link href={link}>
+		<View
+			focusable
+			padX={1}
+			padY={0.5}
+			rounded
+			css={{
+				cursor: "pointer",
+				position: "relative",
+				left: "-4px",
+				":hover": {
+					background: "var(--color-highlight)",
+					"> *": {
+						color: "var(--color-fghl) !important",
 					},
-				}}
-			>
-				<Text color={2}>{text}</Text>
-			</View>
-		</a>
+				},
+			}}
+		>
+			<Text color={2}>{text}</Text>
+		</View>
 	</Link>
 )
 

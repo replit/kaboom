@@ -1,8 +1,7 @@
 import * as React from "react"
-import Link from "next/link"
 import Head from "comps/Head"
-import Editor, { EditorRef } from "comps/Editor"
-import GameView, { GameViewRef } from "comps/GameView"
+import Editor from "comps/Editor"
+import GameView from "comps/GameView"
 import Button from "comps/Button"
 import Toggle from "comps/Toggle"
 import ThemeSwitch from "comps/ThemeSwitch"
@@ -11,12 +10,10 @@ import Select from "comps/Select"
 import View, { ViewProps } from "comps/View"
 import Menu from "comps/Menu"
 import Input from "comps/Input"
-import Markdown from "comps/Markdown"
 import Inspect from "comps/Inspect"
 import Background from "comps/Background"
 import Doc from "comps/Doc"
 import Drop from "comps/Drop"
-import Modal from "comps/Modal"
 
 interface ExampleProps {
 	thing: string,

@@ -217,17 +217,15 @@ const Play: React.FC<PlayProps> = ({
 						rounded
 						desc="Back to home"
 					>
-						<Link href="/" passHref>
-							<a>
-								<img
-									src="/static/img/k.png"
-									css={{
-										width: 48,
-										cursor: "pointer",
-									}}
-									alt="logo"
-								/>
-							</a>
+						<Link href="/">
+							<img
+								src="/static/img/k.png"
+								css={{
+									width: 48,
+									cursor: "pointer",
+								}}
+								alt="logo"
+							/>
 						</Link>
 					</View>
 					{ !make &&

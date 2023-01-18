@@ -16,13 +16,13 @@ const Doc: React.FC<DocProps> = ({
 }) => (
 	<Nav>
 		<Head title={`Kaboom - ${capitalize(name)}`} />
-		<Markdown src={src} baseUrl="/site/doc/" />
+		<Markdown src={src} baseUrl="/static/doc/" />
 	</Nav>
 )
 
 export const getServerSideProps: GetServerSideProps = async (ctx) => {
 	const { name } = ctx.query
-	const path = `public/site/doc/${name}.md`
+	const path = `public/static/doc/${name}.md`
 	try {
 		return {
 			props: {

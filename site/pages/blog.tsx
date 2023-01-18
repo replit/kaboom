@@ -1,6 +1,5 @@
 import * as React from "react"
 import matter from "gray-matter"
-import Background from "comps/Background"
 import fs from "fs/promises"
 import { GetServerSideProps } from "next"
 import Nav from "comps/Nav"
@@ -22,32 +21,24 @@ interface BlogProps {
 	blogs: Blog[];
 }
 
-const BlogEntries: React.FC<BlogProps> = ({ blogs }) => {
-	return(
-		<View gap={4}>
-			{blogs.map((blog) => (
-				<a key={blog.link} href={blog.link} css={{ width: "100%" }}>
-					<BlogEntry
-						title={blog.title}
-						author={blog.author}
-						date={blog.date}
-						description={blog.description}
-						image={`static/blog/banners/${blog.image}`}
-					/></a>))}
-		</View>
-	)
-}
 const Blog: React.FC<BlogProps> = ({
 	blogs,
 }) => {
 	return (
 		<Nav>
-			<Head title="KaBlog" />
-
+			<Head title="Kaboom Blog" />
 			<Text size="huge" bold>Blog</Text>
-			<Text size="normal">Welcome to the KaBlog, where we share news, jams and cool stuff arround Kaboom :&gt;</Text>
-
-			<BlogEntries blogs={blogs}/>
+			<View gap={4}>
+				{blogs.map((blog) => (
+					<a key={blog.link} href={blog.link} css={{ width: "100%" }}>
+						<BlogEntry
+							title={blog.title}
+							author={blog.author}
+							date={blog.date}
+							description={blog.description}
+							image={`static/blog/banners/${blog.image}`}
+						/></a>))}
+			</View>
 		</Nav>
 	)
 }
