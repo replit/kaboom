@@ -26,6 +26,7 @@ import Background from "comps/Background"
 import Doc from "comps/Doc"
 import download from "lib/download"
 import wrapHTML from "lib/wrapHTML"
+import { getFirstQueries } from "lib/utils"
 import EXAMPLES_CFG from "public/static/examples/examples.json"
 
 const DEFAULT_EXAMPLE = "add"
@@ -135,18 +136,7 @@ const Play: React.FC<PlayProps> = ({
 	examples,
 }) => {
 	const router = useRouter()
-	const query = (() => {
-		const q: Record<string, string> = {}
-		for (const name in router.query) {
-			const value = router.query[name]
-			if (typeof value === "string") {
-				q[name] = value
-			} else if (Array.isArray(value)) {
-				q[name] = value[0]
-			}
-		}
-		return q
-	})()
+	const query = getFirstQueries(router.query)
 	const example = query["example"] || DEFAULT_EXAMPLE
 	const code = query["code"] ? decompressStr(query["code"]) : examples[example]
 	const [ backpackOpen, setBackpackOpen ] = React.useState(false)
@@ -312,6 +302,8 @@ const Play: React.FC<PlayProps> = ({
 				<Editor
 					name="Editor"
 					desc="Where you edit the code"
+					rounded
+					outlined
 					ref={editorRef}
 					content={code}
 					width={isNarrow ? "100%" : "45%"}
@@ -487,29 +479,21 @@ const Play: React.FC<PlayProps> = ({
 
 }
 
-// TODO: getServerSideProps is handy for dev when you're changing examples, but getStaticProps makes more sense for prod since it won't change
-export const getServerSideProps: GetServerSideProps = async (ctx) => {
-	const { example } = ctx.query
-	const examplesdir = (await fs.readdir("public/static/examples"))
+export const getStaticProps: GetServerSideProps = async () => {
+	const examplesDir = (await fs.readdir("public/static/examples"))
 		.filter((p) => !p.startsWith("."))
 	const examples: Record<string, string> = {}
-	for (const file of examplesdir) {
+	for (const file of examplesDir) {
 		const ext = path.extname(file)
 		const name = path.basename(file, ext)
 		if (ext === ".js") {
 			examples[name] = await fs.readFile(`public/static/examples/${file}`, "utf8")
 		}
 	}
-	if (!example || examples[example as string]) {
-		return {
-			props: {
-				examples,
-			},
-		}
-	} else {
-		return {
-			notFound: true,
-		}
+	return {
+		props: {
+			examples,
+		},
 	}
 }
 

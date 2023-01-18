@@ -536,8 +536,6 @@ const Editor = React.forwardRef<EditorRef, ViewPropsAnd<EditorProps>>(({
 		<View
 			ref={editorDOMRef}
 			bg={2}
-			outlined
-			rounded
 			css={{
 				fontFamily: "IBM Plex Mono",
 				overflow: "hidden",
