@@ -14,7 +14,7 @@ sprites.forEach((spr) => {
 	loadSprite(spr, `/sprites/${spr}.png`)
 })
 
-gravity(800)
+setGravity(800)
 
 // Spawn one particle every 0.1 second
 loop(0.1, () => {

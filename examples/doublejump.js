@@ -8,6 +8,8 @@ loadSprite("grass", "/sprites/grass.png")
 loadSprite("spike", "/sprites/spike.png")
 loadSound("coin", "/examples/sounds/score.mp3")
 
+setGravity(4000)
+
 const PLAYER_SPEED = 640
 const JUMP_FORCE = 1200
 const NUM_PLATFORMS = 5
@@ -34,8 +36,6 @@ function spin(speed = 1200) {
 }
 
 scene("game", () => {
-
-	gravity(4000)
 
 	const score = add([
 		text("0", 24),

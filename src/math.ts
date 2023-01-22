@@ -215,7 +215,7 @@ export class Color {
 	static fromHSL(h: number, s: number, l: number) {
 
 		if (s == 0){
-			return rgb(255 * l, 255 * l, 255 * l)
+			return new Color(255 * l, 255 * l, 255 * l)
 		}
 
 		const hue2rgb = (p, q, t) => {
@@ -237,14 +237,14 @@ export class Color {
 
 	}
 
-	static RED = rgb(255, 0, 0)
-	static GREEN = rgb(0, 255, 0)
-	static BLUE = rgb(0, 0, 255)
-	static YELLOW = rgb(255, 255, 0)
-	static MAGENTA = rgb(255, 0, 255)
-	static CYAN = rgb(0, 255, 255)
-	static WHITE = rgb(255, 255, 255)
-	static BLACK = rgb(0, 0, 0)
+	static RED = new Color(255, 0, 0)
+	static GREEN = new Color(0, 255, 0)
+	static BLUE = new Color(0, 0, 255)
+	static YELLOW = new Color(255, 255, 0)
+	static MAGENTA = new Color(255, 0, 255)
+	static CYAN = new Color(0, 255, 255)
+	static WHITE = new Color(255, 255, 255)
+	static BLACK = new Color(0, 0, 0)
 
 	clone(): Color {
 		return new Color(this.r, this.g, this.b)

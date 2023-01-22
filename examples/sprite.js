@@ -36,7 +36,7 @@ loadSprite("dino", "/examples/sprites/dino.png", {
 const SPEED = 120
 const JUMP_FORCE = 240
 
-gravity(640)
+setGravity(640)
 
 // Add our player character
 const player = add([

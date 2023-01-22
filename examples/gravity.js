@@ -7,7 +7,7 @@ kaboom()
 loadSprite("bean", "/sprites/bean.png")
 
 // Set the gravity acceleration (pixels per second)
-gravity(1600)
+setGravity(1600)
 
 // Add player game object
 const player = add([

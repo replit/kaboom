@@ -1,5 +1,5 @@
 kaboom()
-
+setGravity(2400)
 loadSprite("bean", "/sprites/bean.png")
 
 scene("nogamepad", () => {
@@ -13,7 +13,6 @@ scene("nogamepad", () => {
 })
 
 scene("game", () => {
-	gravity(2400)
 
 	const player = add([
 		pos(center()),
@@ -41,14 +40,13 @@ scene("game", () => {
 	})
 
 	onGamepadStick("left", (v) => {
-		if(v.x > 0.2) player.move(200, 0)
+		if (v.x > 0.2) player.move(200, 0)
 		else if (v.x < -0.2) player.move(-200, 0)
 	})
 })
 
 if(getGamepads().length > 0) {
 	go("game")
-}
-else {
+} else {
 	go("nogamepad")
 }

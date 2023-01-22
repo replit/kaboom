@@ -19,6 +19,8 @@ loadSound("blip", "/examples/sounds/blip.mp3")
 loadSound("hit", "/examples/sounds/hit.mp3")
 loadSound("portal", "/examples/sounds/portal.mp3")
 
+setGravity(3200)
+
 // custom component controlling enemy patrol movement
 function patrol(speed = 60, dir = 1) {
 	return {
@@ -195,8 +197,6 @@ const levelConf = {
 }
 
 scene("game", ({ levelId, coins } = { levelId: 0, coins: 0 }) => {
-
-	gravity(3200)
 
 	// add level to scene
 	const level = addLevel(LEVELS[levelId ?? 0], levelConf)

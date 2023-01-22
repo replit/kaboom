@@ -38,11 +38,23 @@ onKeyPress("right", () => {
 	label.text = easeTypes[curEaseType]
 })
 
-let t = null
+let curTween = null
 
 onMousePress(() => {
 	const easeType = easeTypes[curEaseType]
 	// stop previous lerp, or there will be jittering
-	if (t) t.cancel()
-	t = tween(bean.pos, mousePos(), duration, (val) => bean.pos = val, easings[easeType])
+	if (curTween) curTween.cancel()
+	// start the tween
+	curTween = tween(
+		// start value (accepts number, Vec2 and Color)
+		bean.pos,
+		// destination value
+		mousePos(),
+		// duration (in seconds)
+		duration,
+		// how value should be updated
+		(val) => bean.pos = val,
+		// interpolation function (defaults to easings.linear)
+		easings[easeType],
+	)
 })

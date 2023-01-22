@@ -673,11 +673,11 @@ export interface KaboomCtx {
 	 */
 	onLoad(action: () => void): void,
 	/**
-	 * Register a custom loading screen. The callback is run every frame during loading.
+	 * Register an event that runs every frame when assets are initially loading. Can be used to draw a custom loading screen
 	 *
 	 * @since v3000.0
 	 */
-	onLoadUpdate(action: (progress: number) => void): void,
+	onLoading(action: (progress: number) => void): void,
 	/**
 	 * Register a custom error handler. Can be used to draw a custom error screen.
 	 *
@@ -1447,9 +1447,22 @@ export interface KaboomCtx {
 	 */
 	toWorld(p: Vec2): Vec2,
 	/**
-	 * Get / set gravity.
+	 * Set gravity.
 	 */
-	gravity(g?: number): number,
+	setGravity(g: number): void,
+	/**
+	 * Get gravity.
+	 */
+	getGravity(): number,
+	/**
+	 * Set background color.
+	 */
+	setBackground(color: Color, alpha?: number): void,
+	setBackground(r: number, g: number, b: number, alpha?: number): void,
+	/**
+	 * Get background color.
+	 */
+	getBackground(): Color,
 	/**
 	 * Get connected gamepads.
 	 *
@@ -1719,11 +1732,10 @@ export interface KaboomCtx {
 	 * @example
 	 * ```js
 	 * // tween bean to mouse position
-	 * tween(bean.pos.x, mousePos().x, 1, (val) => bean.pos.x = val, easings.easeOutBounce)
-	 * tween(bean.pos.y, mousePos().y, 1, (val) => bean.pos.y = val, easings.easeOutBounce)
+	 * tween(bean.pos, mousePos(), 1, (p) => bean.pos = p, easings.easeOutBounce)
 	 *
-	 * // tween() returns a PromiseLike that can be used with await
-	 * await tween(bean.opacity, 1, 2, (val) => bean.opacity = val, easings.easeOutQuad)
+	 * // tween() returns a then-able that can be used with await
+	 * await tween(bean.opacity, 1, 0.5, (val) => bean.opacity = val, easings.easeOutQuad)
 	 * ```
 	 */
 	tween(
@@ -2122,7 +2134,7 @@ export interface KaboomCtx {
 	 * usePostEffect("invert")
 	 * ```
 	 */
-	usePostEffect(name: string, uniform?: Uniform),
+	usePostEffect(name: string, uniform?: Uniform | (() => Uniform)),
 	/**
 	 * Format a piece of text without drawing (for getting dimensions, etc).
 	 *
@@ -4255,7 +4267,7 @@ export interface TextComp extends Comp {
 	 */
 	textTransform: CharTransform | CharTransformFunc,
 	/**
-	 * Stylesheet for styled chunks, in the syntax of "this is a [styled].stylename word".
+	 * Stylesheet for styled chunks, in the syntax of "this is a [style]text[/style] word".
 	 *
 	 * @since v2000.2
 	 */
@@ -4304,7 +4316,7 @@ export interface TextCompOpt {
 	 */
 	transform?: CharTransform | CharTransformFunc,
 	/**
-	 * Stylesheet for styled chunks, in the syntax of "this is a [styled].stylename word".
+	 * Stylesheet for styled chunks, in the syntax of "this is a [style]text[/style] word".
 	 *
 	 * @since v2000.2
 	 */

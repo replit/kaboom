@@ -1,6 +1,5 @@
 export default {
 	reactStrictMode: true,
-	swcMinify: true,
 	compiler: {
 		emotion: true,
 	},

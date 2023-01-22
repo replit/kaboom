@@ -13,6 +13,8 @@ loadSprite("portal", "/sprites/portal.png")
 loadSound("score", "/examples/sounds/score.mp3")
 loadSound("portal", "/examples/sounds/portal.mp3")
 
+setGravity(2400)
+
 const SPEED = 480
 
 // Design 2 levels
@@ -30,8 +32,6 @@ const LEVELS = [
 // Define a scene called "game". The callback will be run when we go() to the scene
 // Scenes can accept argument from go()
 scene("game", ({ levelIdx, score }) => {
-
-	gravity(2400)
 
 	// Use the level passed, or first level
 	const level = addLevel(LEVELS[levelIdx || 0], {

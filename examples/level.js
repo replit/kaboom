@@ -13,7 +13,7 @@ loadSound("score", "/examples/sounds/score.mp3")
 
 const SPEED = 480
 
-gravity(2400)
+setGravity(2400)
 
 const level = addLevel([
 	// Design the level layout with symbols

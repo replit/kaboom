@@ -35,7 +35,7 @@ let music = null
 let burping = false
 
 // define gravity
-gravity(2400)
+setGravity(2400)
 
 // add a game object to screen
 const player = add([

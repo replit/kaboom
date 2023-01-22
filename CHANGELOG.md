@@ -103,7 +103,7 @@ player.onBeforePhysicsResolve((collision) => {
 - (**BREAK**) removed `Body#doubleJump()` in favor of `doubleJump()` component
 - (**BREAK**) renamed `Body#weight` to `Body#gravityScale`
 - (**BREAK**) renamed `Body#onFall()` to `Body#onFallOff()` which triggers when object fall off a platform
-- (**BREAK**) defining `gravity()` is now required for enabling gravity, `body()` by default will only prevent objects from going through each other
+- (**BREAK**) defining `setGravity()` is now required for enabling gravity, `body()` by default will only prevent objects from going through each other
 
 #### Others
 
@@ -323,8 +323,10 @@ addLevel([
 ## Misc
 
 - sprites are now automatically packed, improving performance
+- (**BREAK**) renamed `gravity()` into `getGravity()` and `setGravity()`
 - (**BREAK**) removed all deprecated functions in v2000.2
 - (**BREAK**) raised esbuild target to `esnext`
+- added `setBackground()` and `getBackground()` in addition to `background` option in `kaboom()`
 - moved type defs for global functions to `import "kaboom/global"`
 
 ```js

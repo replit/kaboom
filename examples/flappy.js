@@ -5,6 +5,9 @@ loadSound("score", "/examples/sounds/score.mp3")
 loadSound("wooosh", "/examples/sounds/wooosh.mp3")
 loadSound("hit", "/examples/sounds/hit.mp3")
 
+// define gravity
+setGravity(3200)
+
 scene("game", () => {
 
 	const PIPE_OPEN = 240
@@ -12,9 +15,6 @@ scene("game", () => {
 	const JUMP_FORCE = 800
 	const SPEED = 320
 	const CEILING = -60
-
-	// define gravity
-	gravity(3200)
 
 	// a game object consists of a list of components and tags
 	const bean = add([

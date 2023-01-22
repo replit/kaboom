@@ -11,7 +11,7 @@ loadSound("score", "/examples/sounds/score.mp3")
 
 const SPEED = 480
 
-gravity(2400)
+setGravity(2400)
 
 // Setup a basic level
 const level = addLevel([

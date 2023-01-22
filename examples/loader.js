@@ -3,13 +3,13 @@
 kaboom({
 	// Optionally turn off loading screen entirely
 	// Unloaded assets simply won't be drawn
-	loadingScreen: false,
+	// loadingScreen: false,
 })
 
 let spr = null
 
 // Every loadXXX() function returns a Asset<Data> where you can customize the error handling (by default it'll stop the game and log on screen), or deal with the raw asset data yourself instead of using a name.
-loadSprite("bean", "/sprites/bean.png").onError((err) => {
+loadSprite("bean", "/sprites/bean.png").onError(() => {
 	alert("oh no we failed to load bean")
 }).onLoad((data) => {
 	// The promise resolves to the raw sprite data
@@ -44,15 +44,16 @@ add([
 
 // Custom loading screen
 // Runs the callback every frame during loading
-onLoadUpdate((progress) => {
+onLoading((progress) => {
 
-	// Draw a fullscreen rect to cover up the default screen
+	// Black background
 	drawRect({
 		width: width(),
 		height: height(),
 		color: rgb(0, 0, 0),
 	})
 
+	// A pie representing current load progress
 	drawCircle({
 		pos: center(),
 		radius: 32,

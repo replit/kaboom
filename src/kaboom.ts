@@ -750,10 +750,18 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		)
 
 		const frameBuffer = new FrameBuffer(gl.drawingBufferWidth, gl.drawingBufferHeight)
+		let bgColor: null | Color = null
+		let bgAlpha = 1
 
 		if (gopt.background) {
-			const c = Color.fromArray(gopt.background)
-			gl.clearColor(c.r / 255, c.g / 255, c.b / 255, (gopt.background[3] ?? 255) / 255)
+			bgColor = Color.fromArray(gopt.background)
+			bgAlpha = gopt.background[3] ?? 1
+			gl.clearColor(
+				bgColor.r / 255,
+				bgColor.g / 255,
+				bgColor.b / 255,
+				bgAlpha,
+			)
 		}
 
 		gl.enable(gl.BLEND)
@@ -825,6 +833,8 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			transformStack: [],
 
 			bgTex: bgTex,
+			bgColor: bgColor,
+			bgAlpha: bgAlpha,
 
 			width: gopt.width,
 			height: gopt.height,
@@ -1062,7 +1072,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			add: [GameObj],
 			destroy: [GameObj],
 			load: [],
-			loadUpdate: [number],
+			loading: [number],
 			error: [Error],
 			input: [],
 			frameEnd: [],
@@ -1932,7 +1942,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		// clear framebuffer
 		gl.clear(gl.COLOR_BUFFER_BIT)
 
-		if (!gopt.background) {
+		if (!gfx.bgColor) {
 			drawUnscaled(() => {
 				drawUVQuad({
 					width: width(),
@@ -1955,7 +1965,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 	}
 
-	function usePostEffect(name: string, uniform?: Uniform) {
+	function usePostEffect(name: string, uniform?: Uniform | (() => Uniform)) {
 		gfx.postShader = name
 		gfx.postShaderUniform = uniform ?? null
 	}
@@ -1971,7 +1981,9 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				tex: gfx.frameBuffer.tex,
 				scale: new Vec2(1 / app.pixelDensity),
 				shader: gfx.postShader,
-				uniform: gfx.postShaderUniform,
+				uniform: typeof gfx.postShaderUniform === "function"
+					? gfx.postShaderUniform()
+					: gfx.postShaderUniform,
 				fixed: true,
 			})
 		})
@@ -4111,12 +4123,32 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		onKeyPress("b", () => burp())
 	}
 
-	// get / set gravity
-	function gravity(g?: number): number {
-		if (g !== undefined) {
-			game.gravity = g
-		}
+	function setGravity(g: number) {
+		game.gravity = g
+	}
+
+	function getGravity() {
 		return game.gravity
+	}
+
+	function setBackground(...args) {
+		if (args.length === 1 || args.length === 2) {
+			gfx.bgColor = rgb(args[0])
+			if (args[1]) gfx.bgAlpha = args[1]
+		} else if (args.length === 3 || args.length === 4) {
+			gfx.bgColor = rgb(args[0], args[1], args[2])
+			if (args[3]) gfx.bgAlpha = args[3]
+		}
+		gl.clearColor(
+			gfx.bgColor.r / 255,
+			gfx.bgColor.g / 255,
+			gfx.bgColor.b / 255,
+			gfx.bgAlpha,
+		)
+	}
+
+	function getBackground() {
+		return gfx.bgColor.clone()
 	}
 
 	// TODO: return custom Gamepad type with isButtonPressed(), getStick() methods etc
@@ -5562,7 +5594,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				transform: new Mat4(),
 			}
 
-			game.gravity = 0
 			game.scenes[id](...args)
 
 			if (gopt.debug !== false) {
@@ -6635,38 +6666,35 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 		const progress = loadProgress()
 
-		drawUnscaled(() => {
-
-			const w = width() / 2
-			const h = 24
-			const pos = vec2(width() / 2, height() / 2).sub(vec2(w / 2, h / 2))
-
-			drawRect({
-				pos: vec2(0),
-				width: width(),
-				height: height(),
-				color: rgb(0, 0, 0),
+		if (game.ev.numListeners("loading") > 0) {
+			game.ev.trigger("loading", progress)
+		} else {
+			drawUnscaled(() => {
+				const w = width() / 2
+				const h = 24
+				const pos = vec2(width() / 2, height() / 2).sub(vec2(w / 2, h / 2))
+				drawRect({
+					pos: vec2(0),
+					width: width(),
+					height: height(),
+					color: rgb(0, 0, 0),
+				})
+				drawRect({
+					pos: pos,
+					width: w,
+					height: h,
+					fill: false,
+					outline: {
+						width: 4,
+					},
+				})
+				drawRect({
+					pos: pos,
+					width: w * progress,
+					height: h,
+				})
 			})
-
-			drawRect({
-				pos: pos,
-				width: w,
-				height: h,
-				fill: false,
-				outline: {
-					width: 4,
-				},
-			})
-
-			drawRect({
-				pos: pos,
-				width: w * progress,
-				height: h,
-			})
-
-		})
-
-		game.ev.trigger("loadUpdate", progress)
+		}
 
 	}
 
@@ -7036,8 +7064,8 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		enterBurpMode()
 	}
 
-	function onLoadUpdate(action: (progress: number) => void) {
-		game.ev.on("loadUpdate", action)
+	function onLoading(action: (progress: number) => void) {
+		game.ev.on("loading", action)
 	}
 
 	function onResize(action: () => void) {
@@ -7335,7 +7363,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		isFullscreen,
 		isTouchScreen,
 		onLoad,
-		onLoadUpdate,
+		onLoading,
 		onResize,
 		onGamepadConnect,
 		onGamepadDisconnect,
@@ -7347,7 +7375,10 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		shake,
 		toScreen,
 		toWorld,
-		gravity,
+		setGravity,
+		getGravity,
+		setBackground,
+		getBackground,
 		getGamepads,
 		// obj
 		add,

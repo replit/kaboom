@@ -7,7 +7,7 @@ kaboom()
 loadSprite("coin", "/sprites/coin.png")
 loadSprite("grass", "/sprites/grass.png")
 
-gravity(2400)
+setGravity(2400)
 
 addLevel([
 	// Design the level layout with symbols
