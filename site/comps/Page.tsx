@@ -144,6 +144,8 @@ const Page: React.FC = ({ children }) => {
 					}
 					a {
 						text-decoration: none;
+						color: var(--color-highlight);
+						cursor: pointer;
 					}
 					#__next {
 						width: 100%;
