@@ -1,5 +1,6 @@
 import * as React from "react";
 import Image from "next/image";
+import Link from "next/Link";
 import { keyframes } from '@emotion/react';
 import Head from "comps/Head";
 import Nav from "comps/Nav";
@@ -57,6 +58,9 @@ const Home: React.FC = () => {
 	const isNarrow = useMediaQuery(`(max-width: ${NARROW}px)`);
 	return <Nav>
 		<Head title="Kaboom" scale={0.8} />
+		<View bg={3} outlined pad={2} rounded>
+			<Text>Kaboom v3000.0 beta released! Checkout <Link href="/blog/3000">this article</Link> for more info. View v3000 doc / examples <a href="http://3000.kaboomjs.com/">here</a>.</Text>
+		</View>
 		<Text select size="huge" color={1}>Kaboom is a Javascript game programming library that helps you make games fast and <Fun />.</Text>
 		<Markdown stretchX src={`
 \`\`\`js
