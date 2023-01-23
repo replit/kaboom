@@ -1,6 +1,6 @@
 import * as React from "react";
 import Image from "next/image";
-import Link from "next/Link";
+import Link from "next/link";
 import { keyframes } from '@emotion/react';
 import Head from "comps/Head";
 import Nav from "comps/Nav";
