@@ -80,7 +80,6 @@ import type {
 	DrawEllipseOpt,
 	DrawUVQuadOpt,
 	Vertex,
-	FontData,
 	BitmapFontData,
 	ShaderData,
 	LoadSpriteSrc,
@@ -164,6 +163,7 @@ import type {
 	NineSlice,
 	GamepadButton,
 	LerpValue,
+	TexFilter,
 } from "./types"
 
 import FPSCounter from "./fps"
@@ -1163,6 +1163,17 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		})
 	}
 
+	class FontData {
+		fontface: FontFace
+		outline: number
+		filter: TexFilter
+		constructor(face: FontFace, opt: LoadFontOpt = {}) {
+			this.fontface = face
+			this.outline = opt.outline ?? 0
+			this.filter = opt.filter ?? "nearest"
+		}
+	}
+
 	function loadFont(
 		name: string,
 		src: string | ArrayBuffer,
@@ -1172,7 +1183,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		document.fonts.add(font)
 		return assets.fonts.add(name, font.load().catch((err) => {
 			throw new Error(`Failed to load font from "${src}": ${err}`)
-		}))
+		}).then((face) => new FontData(face, opt)))
 	}
 
 	// TODO: support LoadSpriteSrc
@@ -1402,6 +1413,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		return assets.shaders.add(name, load)
 	}
 
+	// TODO: allow stream big audio
 	// load a sound to asset manager
 	function loadSound(
 		name: string | null,
@@ -1469,7 +1481,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		if (typeof src === "string") {
 			const snd = getSound(src)
 			if (snd) {
-				return snd.data ? snd.data : snd
+				return snd.data ?? snd
 			} else if (loadProgress() < 1) {
 				return null
 			} else {
@@ -1493,7 +1505,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		if (typeof src === "string") {
 			const shader = getShader(src)
 			if (shader) {
-				return shader.data ? shader.data : shader
+				return shader.data ?? shader
 			} else if (loadProgress() < 1) {
 				return null
 			} else {
@@ -1521,9 +1533,12 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			return resolveFont(gopt.font ?? DEF_FONT)
 		}
 		if (typeof src === "string") {
-			const font = getBitmapFont(src)
-			if (font) {
-				return font.data ? font.data : font
+			const bfont = getBitmapFont(src)
+			const font = getFont(src)
+			if (bfont) {
+				return bfont.data ?? bfont
+			} else if (font) {
+				return font.data ?? font
 			} else if (document.fonts.check(`${DEF_TEXT_CACHE_SIZE}px ${src}`)) {
 				return src
 			} else if (loadProgress() < 1) {
@@ -2616,6 +2631,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	type FontAtlas = {
 		font: BitmapFontData,
 		cursor: Vec2,
+		outline: number,
 	}
 
 	const fontAtlases: Record<string, FontAtlas> = {}
@@ -2644,18 +2660,28 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		const chars = text.split("")
 
 		// if it's not bitmap font, we draw it with 2d canvas or use cached image
-		if (font instanceof FontFace || typeof font === "string") {
+		if (font instanceof FontData || typeof font === "string") {
 
-			const fontName = font instanceof FontFace ? font.family : font
+			const fontName = font instanceof FontData ? font.fontface.family : font
+			const opts: LoadFontOpt = font instanceof FontData ? {
+				outline: font.outline,
+				filter: font.filter,
+			} : {
+				outline: 0,
+				filter: "nearest",
+			}
 
 			// TODO: customizable font tex filter
 			const atlas: FontAtlas = fontAtlases[fontName] ?? {
 				font: {
-					tex: new Texture(FONT_ATLAS_WIDTH, FONT_ATLAS_HEIGHT),
+					tex: new Texture(FONT_ATLAS_WIDTH, FONT_ATLAS_HEIGHT, {
+						filter: opts.filter,
+					}),
 					map: {},
 					size: DEF_TEXT_CACHE_SIZE,
 				},
 				cursor: new Vec2(0),
+				outline: opts.outline,
 			}
 
 			if (!fontAtlases[fontName]) {
@@ -2674,16 +2700,26 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 					c2d.clearRect(0, 0, app.fontCacheCanvas.width, app.fontCacheCanvas.height)
 					c2d.textBaseline = "top"
 					c2d.textAlign = "left"
-					c2d.fillStyle = "rgb(255, 255, 255)"
+					c2d.fillStyle = "#ffffff"
 					c2d.fillText(ch, 0, 0)
 					const m = c2d.measureText(ch)
-					const w = Math.ceil(m.width)
-					const img = c2d.getImageData(0, 0, w, font.size)
+					let w = Math.ceil(m.width)
+					let h = font.size
+
+					if (atlas.outline) {
+						c2d.strokeStyle = "#000000"
+						c2d.lineWidth = atlas.outline
+						c2d.strokeText(ch, 0, 0)
+						w += atlas.outline * 2
+						h += atlas.outline * 2
+					}
+
+					const img = c2d.getImageData(0, 0, w, h)
 
 					// if we are about to exceed the X axis of the texture, go to another line
 					if (atlas.cursor.x + w > FONT_ATLAS_WIDTH) {
 						atlas.cursor.x = 0
-						atlas.cursor.y += font.size
+						atlas.cursor.y += h
 						if (atlas.cursor.y > FONT_ATLAS_HEIGHT) {
 							// TODO: create another atlas
 							throw new Error("Font atlas exceeds character limit")
@@ -2691,7 +2727,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 					}
 
 					font.tex.update(img, atlas.cursor.x, atlas.cursor.y)
-					font.map[ch] = new Quad(atlas.cursor.x, atlas.cursor.y, w, font.size)
+					font.map[ch] = new Quad(atlas.cursor.x, atlas.cursor.y, w, h)
 					atlas.cursor.x += w
 
 				}

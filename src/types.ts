@@ -1130,7 +1130,7 @@ export interface KaboomCtx {
 	 * loadFont("frogblock", "fonts/frogblock.ttf")
 	 * ```
 	 */
-	loadFont(name: string, src: string | ArrayBuffer, opt?: LoadFontOpt): Asset<FontFace>,
+	loadFont(name: string, src: string | ArrayBuffer, opt?: LoadFontOpt): Asset<FontData>,
 	/**
 	 * Load a bitmap font into asset manager, with name and resource url and infomation on the layout of the bitmap.
 	 *
@@ -2787,6 +2787,7 @@ export declare class SoundData {
 
 export interface LoadFontOpt {
 	filter?: TexFilter,
+	outline?: number,
 }
 
 export interface LoadBitmapFontOpt {
@@ -2794,7 +2795,12 @@ export interface LoadBitmapFontOpt {
 	filter?: TexFilter,
 }
 
-export type FontData = FontFace
+export declare class FontData {
+	fontface: FontFace
+	outline: number
+	filter: TexFilter
+}
+
 export type BitmapFontData = GfxFont
 export type ShaderData = GfxShader
 

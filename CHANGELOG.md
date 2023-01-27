@@ -54,7 +54,7 @@ console.log(enemies.length) // 4
 
 ## Components
 
-- getter and setters now work in component properties
+- added support for getter and setters in component properties
 
 #### Area
 
