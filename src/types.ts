@@ -2793,6 +2793,7 @@ export interface LoadFontOpt {
 export interface LoadBitmapFontOpt {
 	chars?: string,
 	filter?: TexFilter,
+	outline?: number,
 }
 
 export declare class FontData {

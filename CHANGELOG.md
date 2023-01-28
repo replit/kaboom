@@ -172,6 +172,13 @@ loadSprite("player", [
 ## Text
 
 - added `loadFont()` to load `.ttf`, `.otf`, `.woff2` or any font supported by browser `FontFace`
+```js
+// Load a custom font from a .ttf file
+loadFont("FlowerSketches", "/examples/fonts/FlowerSketches.ttf")
+
+// Load a custom font with options
+loadFont("apl386", "/examples/fonts/apl386.ttf", { outline: 4, filter: "linear" })
+```
 - (**BREAK**) renamed previous `loadFont()` to `loadBitmapFont()`
 - (**BREAK**) removed built-in `apl386`, `apl386o`, `sink`, `sinko` (still available under `examples/fonts`)
 - changed default font size to `36`

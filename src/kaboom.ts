@@ -1186,6 +1186,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		}).then((face) => new FontData(face, opt)))
 	}
 
+	// TODO: support outline
 	// TODO: support LoadSpriteSrc
 	function loadBitmapFont(
 		name: string | null,
@@ -2696,23 +2697,22 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 					// TODO: use assets.packer to pack font texture
 					const c2d = app.fontCacheCtx
-					c2d.font = `${font.size}px ${fontName}`
 					c2d.clearRect(0, 0, app.fontCacheCanvas.width, app.fontCacheCanvas.height)
+					c2d.font = `${font.size}px ${fontName}`
 					c2d.textBaseline = "top"
 					c2d.textAlign = "left"
 					c2d.fillStyle = "#ffffff"
-					c2d.fillText(ch, 0, 0)
 					const m = c2d.measureText(ch)
 					let w = Math.ceil(m.width)
 					let h = font.size
-
 					if (atlas.outline) {
 						c2d.strokeStyle = "#000000"
-						c2d.lineWidth = atlas.outline
-						c2d.strokeText(ch, 0, 0)
+						c2d.lineWidth = atlas.outline * 2
+						c2d.strokeText(ch, atlas.outline, atlas.outline)
 						w += atlas.outline * 2
 						h += atlas.outline * 2
 					}
+					c2d.fillText(ch, atlas.outline, atlas.outline)
 
 					const img = c2d.getImageData(0, 0, w, h)
 
