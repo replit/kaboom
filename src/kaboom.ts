@@ -2706,11 +2706,12 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 					let w = Math.ceil(m.width)
 					let h = font.size
 					if (atlas.outline) {
-						c2d.strokeStyle = "#000000"
+						c2d.lineJoin = "round"
 						c2d.lineWidth = atlas.outline * 2
+						c2d.strokeStyle = "#000000"
 						c2d.strokeText(ch, atlas.outline, atlas.outline)
 						w += atlas.outline * 2
-						h += atlas.outline * 2
+						h += atlas.outline * 3
 					}
 					c2d.fillText(ch, atlas.outline, atlas.outline)
 
