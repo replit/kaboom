@@ -1714,7 +1714,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			},
 
 			time(): number {
-				return getTime()
+				return getTime() % this.duration()
 			},
 
 			onEnd(action: () => void) {
