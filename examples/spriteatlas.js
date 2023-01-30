@@ -345,11 +345,11 @@ onGamepadStick("left", (v) => {
 	if (v.x < 0) {
 		player.flipX = true
 		sword.flipX = true
-		sword.follow.offset = vec2(4, 9)
+		sword.pos = vec2(4, 9)
 	} else if (v.x > 0) {
 		player.flipX = false
 		sword.flipX = false
-		sword.follow.offset = vec2(-4, 9)
+		sword.pos = vec2(-4, 9)
 	}
 	player.move(v.scale(SPEED))
 	if (v.isZero()) {

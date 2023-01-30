@@ -1,4 +1,5 @@
 import fs from "fs/promises"
+import { useMemo } from "react"
 import { GetServerSideProps } from "next"
 import Head from "comps/Head"
 import Markdown from "comps/Markdown"
@@ -14,12 +15,15 @@ interface BlogProps {
 const Blog: React.FC<BlogProps> = ({
 	src,
 	name,
-}) => (
-	<Nav>
-		<Head title={`Kaboom - ${capitalize(name)}`} />
-		<Markdown src={matter(src).content} baseUrl="/static/blog/" />
-	</Nav>
-)
+}) => {
+	const doc = useMemo(() => matter(src), [src])
+	return (
+		<Nav>
+			<Head title={`Kaboom - ${capitalize(name)}`} img={`/static/blog/banners/${doc.data.image}`} />
+			<Markdown src={doc.content} baseUrl="/static/blog/" />
+		</Nav>
+	)
+}
 
 export const getServerSideProps: GetServerSideProps = async (ctx) => {
 	const { name } = ctx.query

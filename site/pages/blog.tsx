@@ -36,7 +36,7 @@ const Blog: React.FC<BlogProps> = ({
 							author={blog.author}
 							date={blog.date}
 							description={blog.description}
-							image={`static/blog/banners/${blog.image}`}
+							image={`/static/blog/banners/${blog.image}`}
 						/></a>))}
 			</View>
 		</Nav>
