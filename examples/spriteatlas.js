@@ -332,8 +332,7 @@ onKeyDown("down", () => {
 
 onGamepadButtonPress("south", interact)
 
-// TODO: anim
-onGamepadStick("right", (v) => {
+onGamepadStick("left", (v) => {
 	if (v.x < 0) {
 		player.flipX = true
 		sword.flipX = true
@@ -344,6 +343,11 @@ onGamepadStick("right", (v) => {
 		sword.follow.offset = vec2(-4, 9)
 	}
 	player.move(v.scale(SPEED))
+	if (v.isZero()) {
+		if (player.curAnim() !== "idle") player.play("idle")
+	} else {
+		if (player.curAnim() !== "run") player.play("run")
+	}
 })
 
 ;["left", "right", "up", "down"].forEach((key) => {

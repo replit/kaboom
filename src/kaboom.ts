@@ -239,6 +239,7 @@ const SPRITE_ATLAS_HEIGHT = 2048
 // 0.1 pixel padding to texture coordinates to prevent artifact
 const UV_PAD = 0.1
 const DEF_HASH_GRID_SIZE = 64
+const DEF_FONT_FILTER = "nearest"
 
 const LOG_MAX = 1
 
@@ -1171,10 +1172,11 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		constructor(face: FontFace, opt: LoadFontOpt = {}) {
 			this.fontface = face
 			this.outline = opt.outline ?? 0
-			this.filter = opt.filter ?? "nearest"
+			this.filter = opt.filter ?? DEF_FONT_FILTER
 		}
 	}
 
+	// TODO: pass in null src to store opt for default fonts like "monospace"
 	function loadFont(
 		name: string,
 		src: string | ArrayBuffer,
@@ -2670,7 +2672,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				filter: font.filter,
 			} : {
 				outline: 0,
-				filter: "nearest",
+				filter: DEF_FONT_FILTER,
 			}
 
 			// TODO: customizable font tex filter
@@ -6502,8 +6504,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 		for (const gamepad of navigator.getGamepads()) {
 
-			// the gamepad can return null if isn't a gamepad or is disconnected
-			if (!gamepad) return
+			if (!gamepad) continue
 
 			const custom = gopt.gamepads ?? {}
 			const map = custom[gamepad.id] ?? GAMEPAD_MAP[gamepad.id] ?? GAMEPAD_MAP["default"]
@@ -6527,9 +6528,8 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				const stick = map.sticks[stickName]
 				const axisX = gamepad.axes[stick.x]
 				const axisY = gamepad.axes[stick.y]
-				if (axisX && axisY) {
-					game.ev.trigger("gamepadStick", stickName, new Vec2(axisX, axisY))
-				}
+				// TODO: should these send every frame or when it changed?
+				game.ev.trigger("gamepadStick", stickName, new Vec2(axisX, axisY))
 			}
 
 		}

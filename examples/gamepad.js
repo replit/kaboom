@@ -1,11 +1,16 @@
 kaboom()
 setGravity(2400)
-setBackground(141, 183, 255)
+setBackground(0, 0, 0)
 loadSprite("bean", "/sprites/bean.png")
 
 scene("nogamepad", () => {
 	add([
-		text("Gamepad not found. Connect a gamepad or press a button on connected gamepad!.", { width: width() }),
+		text("Gamepad not found.\nConnect a gamepad and press a button!", {
+			width: width() - 80,
+			align: "center",
+		}),
+		pos(center()),
+		anchor("center"),
 	])
 	onGamepadConnect(() => {
 		go("game")
