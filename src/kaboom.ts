@@ -109,7 +109,6 @@ import type {
 	Anchor,
 	AnchorComp,
 	ZComp,
-	FollowComp,
 	MoveComp,
 	OffScreenCompOpt,
 	OffScreenComp,
@@ -4352,27 +4351,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		}
 	}
 
-	function follow(obj: GameObj, offset?: Vec2): FollowComp {
-		return {
-			id: "follow",
-			require: [ "pos" ],
-			follow: {
-				obj: obj,
-				offset: offset ?? vec2(0),
-			},
-			add(this: GameObj<FollowComp | PosComp>) {
-				if (obj.exists()) {
-					this.pos = this.follow.obj.pos.add(this.follow.offset)
-				}
-			},
-			update(this: GameObj<FollowComp | PosComp>) {
-				if (obj.exists()) {
-					this.pos = this.follow.obj.pos.add(this.follow.offset)
-				}
-			},
-		}
-	}
-
 	function move(dir: number | Vec2, speed: number): MoveComp {
 		const d = typeof dir === "number" ? Vec2.fromAngle(dir) : dir.unit()
 		return {
@@ -7450,7 +7428,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		z,
 		move,
 		offscreen,
-		follow,
 		state,
 		fadeIn,
 		tile,

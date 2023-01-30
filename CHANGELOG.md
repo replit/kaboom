@@ -143,6 +143,7 @@ const player = add([
     })),
 ])
 ```
+- (**BREAK**) removed `follow()` component, use child game object or just use an `onUpdate()` block to set the position
 
 ## Assets
 

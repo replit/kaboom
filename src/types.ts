@@ -406,10 +406,6 @@ export interface KaboomCtx {
 	 */
 	offscreen(opt?: OffScreenCompOpt): OffScreenComp,
 	/**
-	 * Follow another game obj's position.
-	 */
-	follow(obj: GameObj | null, offset?: Vec2): FollowComp,
-	/**
 	 * Custom shader.
 	 */
 	shader(id: string, uniform?: Uniform | (() => Uniform)): ShaderComp,
@@ -3879,13 +3875,6 @@ export interface ZComp extends Comp {
 	 * Defines the z-index of this game obj
 	 */
 	z: number,
-}
-
-export interface FollowComp extends Comp {
-	follow: {
-		obj: GameObj,
-		offset: Vec2,
-	},
 }
 
 export type MoveComp = Comp
