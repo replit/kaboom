@@ -315,13 +315,15 @@ scene("game", ({ levelId, coins } = { levelId: 0, coins: 0 }) => {
 		fixed(),
 	])
 
-	// jump with space
-	onKeyPress("space", () => {
+	function jump() {
 		// these 2 functions are provided by body() component
 		if (player.isGrounded()) {
 			player.jump(JUMP_FORCE)
 		}
-	})
+	}
+
+	// jump with space
+	onKeyPress("space", jump)
 
 	onKeyDown("left", () => {
 		player.move(-MOVE_SPEED, 0)
@@ -337,6 +339,12 @@ scene("game", ({ levelId, coins } = { levelId: 0, coins: 0 }) => {
 
 	onKeyRelease("down", () => {
 		player.weight = 1
+	})
+
+	onGamepadButtonPress("south", jump)
+
+	onGamepadStick("left", (v) => {
+		player.move(v.x * MOVE_SPEED, 0)
 	})
 
 	onKeyPress("f", () => {

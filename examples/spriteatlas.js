@@ -268,7 +268,7 @@ function spin() {
 	}
 }
 
-onKeyPress("space", () => {
+function interact() {
 	let interacted = false
 	for (const col of player.getCollisions()) {
 		const c = col.target
@@ -286,7 +286,9 @@ onKeyPress("space", () => {
 	if (!interacted) {
 		sword.spin()
 	}
-})
+}
+
+onKeyPress("space", interact)
 
 const SPEED = 120
 
@@ -326,6 +328,22 @@ onKeyDown("up", () => {
 
 onKeyDown("down", () => {
 	player.move(0, SPEED)
+})
+
+onGamepadButtonPress("south", interact)
+
+// TODO: anim
+onGamepadStick("right", (v) => {
+	if (v.x < 0) {
+		player.flipX = true
+		sword.flipX = true
+		sword.follow.offset = vec2(4, 9)
+	} else if (v.x > 0) {
+		player.flipX = false
+		sword.flipX = false
+		sword.follow.offset = vec2(-4, 9)
+	}
+	player.move(v.scale(SPEED))
 })
 
 ;["left", "right", "up", "down"].forEach((key) => {

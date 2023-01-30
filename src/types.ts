@@ -2430,6 +2430,8 @@ export interface KaboomOpt {
 	backgroundAudio?: boolean,
 	/**
 	 * Custom gamepad definitions (see gamepad.json for reference of the format)
+	 *
+	 * @since v3000.0
 	 */
 	gamepads?: Record<string, GamepadDef>,
 	/**

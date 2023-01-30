@@ -1,12 +1,12 @@
 kaboom()
 setGravity(2400)
+setBackground(141, 183, 255)
 loadSprite("bean", "/sprites/bean.png")
 
 scene("nogamepad", () => {
 	add([
-		text("No found/disconnected gamepad. Connect a gamepad to try this demo."),
+		text("Gamepad not found. Connect a gamepad or press a button on connected gamepad!.", { width: width() }),
 	])
-
 	onGamepadConnect(() => {
 		go("game")
 	})
@@ -31,18 +31,22 @@ scene("game", () => {
 		body({isStatic: true}),
 	])
 
+	onGamepadButtonPress((b) => {
+		debug.log(b)
+	})
+
 	onGamepadButtonPress("south", () => {
 		player.jump()
+	})
+
+	onGamepadStick("left", (v) => {
+		player.move(v.x * 400, 0)
 	})
 
 	onGamepadDisconnect(() => {
 		go("nogamepad")
 	})
 
-	onGamepadStick("left", (v) => {
-		if (v.x > 0.2) player.move(200, 0)
-		else if (v.x < -0.2) player.move(-200, 0)
-	})
 })
 
 if(getGamepads().length > 0) {

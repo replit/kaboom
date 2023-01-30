@@ -6505,7 +6505,8 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			// the gamepad can return null if isn't a gamepad or is disconnected
 			if (!gamepad) return
 
-			const map = gopt.gamepads[gamepad.id] ?? GAMEPAD_MAP[gamepad.id] ?? GAMEPAD_MAP["default"]
+			const custom = gopt.gamepads ?? {}
+			const map = custom[gamepad.id] ?? GAMEPAD_MAP[gamepad.id] ?? GAMEPAD_MAP["default"]
 
 			for (let i = 0; i < gamepad.buttons.length; i++) {
 				if (gamepad.buttons[i].pressed) {
