@@ -22,8 +22,8 @@
 		"@codemirror/view": "0.19.39",
 		"@emotion/react": "11.7.1",
 		"gray-matter": "^4.0.3",
-		"highlight.js": "11.4.0",
-		"marked": "4.0.10",
+		"highlight.js": "11.7.0",
+		"marked": "4.2.12",
 		"next": "12.0.8",
 		"react": "17.0.2",
 		"react-dom": "17.0.2"
