@@ -797,16 +797,16 @@ export function testLineCircle(l: Line, circle: Circle): boolean {
 	// One possible root
 	else if (dis == 0) {
 		const t = -b / (2 * a)
-		if (t < 0 || t > 1) {
-			return false
+		if (t >= 0 && t <= 1) {
+			return true
 		}
 	}
 	// Two possible roots
 	else {
 		const t1 = (-b + Math.sqrt(dis)) / (2 * a)
 		const t2 = (-b - Math.sqrt(dis)) / (2 * a)
-		if ((t1 < 0 || t1 > 1) && (t2 < 0 || t2 > 1)) {
-			return false
+		if ((t1 >= 0 && t1 <= 1) || (t2 >= 0 && t2 <= 1)) {
+			return true
 		}
 	}
 
