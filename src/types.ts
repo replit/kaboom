@@ -983,7 +983,7 @@ export interface KaboomCtx {
 	 *
 	 * @since v3000.0
 	 */
-	onGamepadStick(stick: "left" | "right", action: (value: Vec2) => void): EventController,
+	onGamepadStick(stick: GamepadStick, action: (value: Vec2) => void): EventController,
 	/**
 	 * Sets the root for all subsequent resource urls.
 	 *
@@ -2326,6 +2326,13 @@ export type GamepadButton =
 	| "home"
 	| "capture"
 
+export type GamepadStick = "left" | "right"
+
+export type GamepadDef = {
+	buttons: Record<string, GamepadButton>,
+	sticks: Partial<Record<GamepadStick, { x: number, y: number }>>,
+}
+
 /**
  * Inspect info for a character.
  */
@@ -2421,6 +2428,10 @@ export interface KaboomOpt {
 	 * @since v3000.0
 	 */
 	backgroundAudio?: boolean,
+	/**
+	 * Custom gamepad definitions (see gamepad.json for reference of the format)
+	 */
+	gamepads?: Record<string, GamepadDef>,
 	/**
 	 * If import all kaboom functions to global (default true).
 	 */

@@ -162,6 +162,7 @@ import type {
 	Vec2Args,
 	NineSlice,
 	GamepadButton,
+	GamepadStick,
 	LerpValue,
 	TexFilter,
 } from "./types"
@@ -4124,7 +4125,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		}
 	}
 
-	function onGamepadStick(stick: "left" | "right", action: (value: Vec2) => void): EventController {
+	function onGamepadStick(stick: GamepadStick, action: (value: Vec2) => void): EventController {
 		return game.ev.on("gamepadStick", ((a: string, v: Vec2) => a === stick && action(v)))
 	}
 
@@ -6504,7 +6505,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			// the gamepad can return null if isn't a gamepad or is disconnected
 			if (!gamepad) return
 
-			const map = GAMEPAD_MAP[gamepad.id] ?? GAMEPAD_MAP["default"]
+			const map = gopt.gamepads[gamepad.id] ?? GAMEPAD_MAP[gamepad.id] ?? GAMEPAD_MAP["default"]
 
 			for (let i = 0; i < gamepad.buttons.length; i++) {
 				if (gamepad.buttons[i].pressed) {

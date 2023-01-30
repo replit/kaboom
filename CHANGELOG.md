@@ -266,6 +266,7 @@ music.loop = true
 - added `onGamepadStick()` to handle gamepad axes info for left and right sticks
 - added `getConnectedGamepads()`
 - added `onGamepadConnect()` and `onGamepadDisconnect()`
+- added `gamepads` option to `kaboom()` to define custom gamepads
 
 
 ## Level
