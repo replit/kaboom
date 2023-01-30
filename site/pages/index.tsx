@@ -66,6 +66,9 @@ const Home: React.FC = () => {
 // start the game
 kaboom()
 
+// define gravity
+setGravity(2400)
+
 // load a default sprite
 loadBean()
 

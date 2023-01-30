@@ -107,8 +107,8 @@ export interface KaboomCtx {
 	 *
 	 * @example
 	 * ```js
-	 * // every time froggy collides with anything with tag "fruit", remove it
-	 * froggy.onCollide("fruit", (fruit) => {
+	 * // every time bean collides with anything with tag "fruit", remove it
+	 * bean.onCollide("fruit", (fruit) => {
 	 *     destroy(fruit)
 	 * })
 	 * ```
@@ -133,10 +133,10 @@ export interface KaboomCtx {
 	 *
 	 * @example
 	 * ```js
-	 * // This game object will draw a "froggy" sprite at (100, 200)
+	 * // This game object will draw a "bean" sprite at (100, 200)
 	 * add([
 	 *     pos(100, 200),
-	 *     sprite("froggy"),
+	 *     sprite("bean"),
 	 * ])
 	 * ```
 	 */
@@ -162,7 +162,7 @@ export interface KaboomCtx {
 	 * ```js
 	 * // blue frog
 	 * add([
-	 *     sprite("froggy"),
+	 *     sprite("bean"),
 	 *     color(0, 0, 255)
 	 * ])
 	 * ```
@@ -181,23 +181,23 @@ export interface KaboomCtx {
 	 * ```js
 	 * // minimal setup
 	 * add([
-	 *     sprite("froggy"),
+	 *     sprite("bean"),
 	 * ])
 	 *
 	 * // with options
-	 * const froggy = add([
-	 *     sprite("froggy", {
+	 * const bean = add([
+	 *     sprite("bean", {
 	 *         // start with animation "idle"
 	 *         anim: "idle",
 	 *     }),
 	 * ])
 	 *
 	 * // play / stop an anim
-	 * froggy.play("jump")
-	 * froggy.stop()
+	 * bean.play("jump")
+	 * bean.stop()
 	 *
 	 * // manually setting a frame
-	 * froggy.frame = 3
+	 * bean.frame = 3
 	 * ```
 	 */
 	sprite(spr: string | SpriteData, options?: SpriteCompOpt): SpriteComp,
@@ -276,7 +276,7 @@ export interface KaboomCtx {
 	 * ```js
 	 * // Automatically generate area information from the shape of render
 	 * const player = add([
-	 *     sprite("froggy"),
+	 *     sprite("bean"),
 	 *     area(),
 	 * ])
 	 *
@@ -309,7 +309,7 @@ export interface KaboomCtx {
 	 * ])
 	 *
 	 * add([
-	 *     sprite("froggy"),
+	 *     sprite("bean"),
 	 *     // Define custom area with width and height
 	 *     area({ width: 20, height: 40. }),
 	 * ])
@@ -343,25 +343,25 @@ export interface KaboomCtx {
 	 *
 	 * @example
 	 * ```js
-	 * // froggy jumpy
-	 * const froggy = add([
-	 *     sprite("froggy"),
+	 * // bean jumpy
+	 * const bean = add([
+	 *     sprite("bean"),
 	 *     // body() requires "pos" and "area" component
 	 *     pos(),
 	 *     area(),
 	 *     body(),
 	 * ])
 	 *
-	 * // when froggy is grounded, press space to jump
+	 * // when bean is grounded, press space to jump
 	 * // check out #BodyComp for more methods
 	 * onKeyPress("space", () => {
-	 *     if (froggy.isGrounded()) {
-	 *         froggy.jump()
+	 *     if (bean.isGrounded()) {
+	 *         bean.jump()
 	 *     }
 	 * })
 	 *
-	 * // run something when froggy falls and hits a ground
-	 * froggy.onGround(() => {
+	 * // run something when bean falls and hits a ground
+	 * bean.onGround(() => {
 	 *     debug.log("oh no!")
 	 * })
 	 * ```
@@ -661,13 +661,13 @@ export interface KaboomCtx {
 	 *
 	 * @example
 	 * ```js
-	 * const froggy = add([
-	 *     sprite("froggy"),
+	 * const bean = add([
+	 *     sprite("bean"),
 	 * ])
 	 *
 	 * // certain assets related data are only available when the game finishes loading
 	 * onLoad(() => {
-	 *     debug.log(froggy.width)
+	 *     debug.log(bean.width)
 	 * })
 	 * ```
 	 */
@@ -804,7 +804,7 @@ export interface KaboomCtx {
 	 * ```js
 	 * // move left by SPEED pixels per frame every frame when left arrow key is being held down
 	 * onKeyDown("left", () => {
-	 *     froggy.move(-SPEED, 0)
+	 *     bean.move(-SPEED, 0)
 	 * })
 	 * ```
 	 */
@@ -818,7 +818,7 @@ export interface KaboomCtx {
 	 * ```js
 	 * // .jump() once when "space" is just being pressed
 	 * onKeyPress("space", () => {
-	 *     froggy.jump()
+	 *     bean.jump()
 	 * })
 	 * ```
 	 */
@@ -992,7 +992,7 @@ export interface KaboomCtx {
 	 * @example
 	 * ```js
 	 * loadRoot("https://myassets.com/")
-	 * loadSprite("froggy", "sprites/froggy.png") // will resolve to "https://myassets.com/sprites/frogg.png"
+	 * loadSprite("bean", "sprites/bean.png") // will resolve to "https://myassets.com/sprites/frogg.png"
 	 * ```
 	 */
 	loadRoot(path?: string): string,
@@ -1002,11 +1002,11 @@ export interface KaboomCtx {
 	 * @example
 	 * ```js
 	 * // due to browser policies you'll need a static file server to load local files
-	 * loadSprite("froggy", "froggy.png")
+	 * loadSprite("bean", "bean.png")
 	 * loadSprite("apple", "https://kaboomjs.com/sprites/apple.png")
 	 *
 	 * // slice a spritesheet and add anims manually
-	 * loadSprite("froggy", "froggy.png", {
+	 * loadSprite("bean", "bean.png", {
 	 *     sliceX: 4,
 	 *     sliceY: 1,
 	 *     anims: {
@@ -1257,9 +1257,9 @@ export interface KaboomCtx {
 	 *
 	 * @example
 	 * ```js
-	 * // add froggy to the center of the screen
+	 * // add bean to the center of the screen
 	 * add([
-	 *     sprite("froggy"),
+	 *     sprite("bean"),
 	 *     pos(center()),
 	 *     // ...
 	 * ])
@@ -1271,9 +1271,9 @@ export interface KaboomCtx {
 	 *
 	 * @example
 	 * ```js
-	 * // rotate froggy 100 deg per second
-	 * froggy.onUpdate(() => {
-	 *     froggy.angle += 100 * dt()
+	 * // rotate bean 100 deg per second
+	 * bean.onUpdate(() => {
+	 *     bean.angle += 100 * dt()
 	 * })
 	 * ```
 	 */
@@ -1309,10 +1309,10 @@ export interface KaboomCtx {
 	 *
 	 * @example
 	 * ```js
-	 * // equivalent to the calling froggy.move() in an onKeyDown("left")
+	 * // equivalent to the calling bean.move() in an onKeyDown("left")
 	 * onUpdate(() => {
 	 *     if (isKeyDown("left")) {
-	 *         froggy.move(-SPEED, 0)
+	 *         bean.move(-SPEED, 0)
 	 *     }
 	 * })
 	 * ```
@@ -1407,8 +1407,8 @@ export interface KaboomCtx {
 	 *
 	 * @example
 	 * ```js
-	 * // shake intensively when froggy collides with a "bomb"
-	 * froggy.onCollide("bomb", () => {
+	 * // shake intensively when bean collides with a "bomb"
+	 * bean.onCollide("bomb", () => {
 	 *     shake(120)
 	 * })
 	 * ```
@@ -1897,7 +1897,7 @@ export interface KaboomCtx {
 	 * @example
 	 * ```js
 	 * drawSprite({
-	 *     sprite: "froggy",
+	 *     sprite: "bean",
 	 *     pos: vec2(100, 200),
 	 *     frame: 3,
 	 * })
@@ -2073,7 +2073,7 @@ export interface KaboomCtx {
 	 * pushRotate(time() * 120)
 	 * pushScale(6)
 	 *
-	 * drawSprite("froggy")
+	 * drawSprite("bean")
 	 * drawCircle(vec2(0), 120)
 	 *
 	 * // restore the transformation stack to when last pushed

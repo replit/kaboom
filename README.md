@@ -12,6 +12,9 @@ Start playing around with it in the [Kaboom Playground](https://kaboomjs.com/pla
 // initialize context
 kaboom()
 
+// define gravity
+setGravity(2400)
+
 // load a sprite called "bean"
 loadSprite("bean", "sprites/bean.png")
 
