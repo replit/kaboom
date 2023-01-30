@@ -26,6 +26,7 @@ In a classic rogue like style, this game is about going down dungeons and defeat
 
 Different types of enemies will accompany us on our adventures through the dungeons. With a excellent
 graphic apart
+
 ![](markjam-4-winners/image_2.png)
 
 By getting coins, you can also get upgrades and become a better knight, get the highest score!
@@ -39,6 +40,7 @@ By getting coins, you can also get upgrades and become a better knight, get the 
 
 In this game we have the clear task of escaping from a dark
 Mark that will chase us through a maze, where our goal is to find a sword to kill him.
+
 ![](markjam-4-winners/scary.png)
 
 > danie, scary scary scary scary.
