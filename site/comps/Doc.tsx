@@ -125,12 +125,10 @@ const Title: React.FC<{
 				<>{data.name}</>
 			) : (
 				<DocCtx.Consumer>
-					{(ctx) => <Link href={`#${ctx.anchor}`}>
-						<div onClick={ctx.onAnchor} css={{
-							color: "var(--color-fg1)",
-						}}>
-							{data.name}
-						</div>
+					{(ctx) => <Link href={`#${ctx.anchor}`} onClick={ctx.onAnchor} css={{
+						color: "var(--color-fg1)",
+					}}>
+						{data.name}
 					</Link>}
 				</DocCtx.Consumer>
 			) }
