@@ -2323,6 +2323,8 @@ export type GamepadButton =
 	| "dpad-east"
 	| "dpad-south"
 	| "dpad-west"
+	| "home"
+	| "capture"
 
 /**
  * Inspect info for a character.

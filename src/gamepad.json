@@ -23,24 +23,84 @@
 		"buttons": {
 			"0": "south",
 			"1": "east",
-			"2": "north",
-			"3": "west",
-			"4": "ltrigger",
-			"5": "rtrigger",
-			"6": "lshoulder",
-			"7": "rshoulder",
+			"2": "west",
+			"3": "north",
+			"4": "lshoulder",
+			"5": "rshoulder",
+			"6": "ltrigger",
+			"7": "rtrigger",
 			"8": "select",
 			"9": "start",
 			"10": "lstick",
 			"11": "rstick",
-			"12": "dpad-south",
-			"13": "dpad-east",
-			"14": "dpad-north",
-			"15": "dpad-west"
+			"12": "dpad-north",
+			"13": "dpad-south",
+			"14": "dpad-west",
+			"15": "dpad-east",
+			"16": "home",
+			"17": "capture"
 		},
 		"sticks": {
 			"left": { "x": 0, "y": 1 },
-			"right": { "x": 2, "y": 5 }
+			"right": { "x": 2, "y": 3 }
+		}
+	},
+	"Joy-Con (L) (STANDARD GAMEPAD Vendor: 057e Product: 2006)": {
+		"buttons": {
+			"0": "south",
+			"1": "east",
+			"2": "west",
+			"3": "north",
+			"4": "lshoulder",
+			"5": "rshoulder",
+			"9": "select",
+			"10": "lstick",
+			"16": "start"
+		},
+		"sticks": {
+			"left": { "x": 0, "y": 1 }
+		}
+	},
+	"Joy-Con (R) (STANDARD GAMEPAD Vendor: 057e Product: 2007)": {
+		"buttons": {
+			"0": "south",
+			"1": "east",
+			"2": "west",
+			"3": "north",
+			"4": "lshoulder",
+			"5": "rshoulder",
+			"9": "start",
+			"10": "lstick",
+			"16": "select"
+		},
+		"sticks": {
+			"left": { "x": 0, "y": 1 }
+		}
+	},
+	"Pro Controller (STANDARD GAMEPAD Vendor: 057e Product: 2009)": {
+		"buttons": {
+			"0": "south",
+			"1": "east",
+			"2": "west",
+			"3": "north",
+			"4": "lshoulder",
+			"5": "rshoulder",
+			"6": "ltrigger",
+			"7": "rtrigger",
+			"8": "select",
+			"9": "start",
+			"10": "lstick",
+			"11": "rstick",
+			"12": "dpad-north",
+			"13": "dpad-south",
+			"14": "dpad-west",
+			"15": "dpad-east",
+			"16": "home",
+			"17": "capture"
+		},
+		"sticks": {
+			"left": { "x": 0, "y": 1 },
+			"right": { "x": 2, "y": 3 }
 		}
 	},
 	"default": {
