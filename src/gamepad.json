@@ -1,24 +1,4 @@
 {
-	"Generic   USB  Joystick   (Vendor: 0079 Product: 0006)": {
-		"buttons": {
-			"0": "north",
-			"1": "east",
-			"2": "south",
-			"3": "west",
-			"4": "ltrigger",
-			"5": "rtrigger",
-			"6": "lshoulder",
-			"7": "rshoulder",
-			"8": "select",
-			"9": "start",
-			"10": "lstick",
-			"11": "rstick"
-		},
-		"sticks": {
-			"left": { "x": 0, "y": 1 },
-			"right": { "x": 2, "y": 5 }
-		}
-	},
 	"Joy-Con L+R (STANDARD GAMEPAD Vendor: 057e Product: 200e)": {
 		"buttons": {
 			"0": "south",
