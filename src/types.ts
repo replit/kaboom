@@ -310,8 +310,8 @@ export interface KaboomCtx {
 	 *
 	 * add([
 	 *     sprite("bean"),
-	 *     // Define custom area with width and height
-	 *     area({ width: 20, height: 40. }),
+	 *     // Define area with custom shape
+	 *     area({ shape: new Polygon([vec2(0), vec2(100), vec2(-100, 100)]) }),
 	 * ])
 	 * ```
 	 */
@@ -1470,7 +1470,9 @@ export interface KaboomCtx {
 	 */
 	getGamepads(): Gamepad[],
 	/**
-	 * Get / set the cursor (css). Cursor will be reset to "default" every frame so use this in an per-frame action.
+	 * Set cursor style (check Cursor type for possible values). Cursor will be reset to "default" every frame so use this in an per-frame action.
+	 *
+	 * @since v3000.0
 	 *
 	 * @example
 	 * ```js
@@ -1479,7 +1481,14 @@ export interface KaboomCtx {
 	 * })
 	 * ```
 	 */
-	setCursor(c?: Cursor): Cursor,
+	setCursor(c: Cursor): void,
+	/**
+	 * Get current cursor style.
+	 *
+	 * @since v3000.0
+	 * ```
+	 */
+	getCursor(): Cursor,
 	/**
 	 * Enter / exit fullscreen mode. (note: mouse position is not working in fullscreen mode at the moment)
 	 *

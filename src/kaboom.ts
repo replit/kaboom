@@ -3386,10 +3386,11 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		return app.canvas.toDataURL()
 	}
 
-	function setCursor(c?: Cursor): Cursor {
-		if (c) {
-			app.canvas.style.cursor = c
-		}
+	function setCursor(c: Cursor): void {
+		app.canvas.style.cursor = c
+	}
+
+	function getCursor(): Cursor {
 		return app.canvas.style.cursor
 	}
 
@@ -7398,6 +7399,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		record,
 		isFocused,
 		setCursor,
+		getCursor,
 		setFullscreen,
 		isFullscreen,
 		isTouchScreen,
