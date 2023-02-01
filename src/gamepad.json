@@ -83,7 +83,7 @@
 			"right": { "x": 2, "y": 3 }
 		}
 	},
-	"Xbox 360 Controller (STANDARD GAMEPAD Vendor: 045e Product: 028e)": {
+	"default": {
 		"buttons": {
 			"0": "south",
 			"1": "east",
@@ -106,26 +106,6 @@
 		"sticks": {
 			"left": { "x": 0, "y": 1 },
 			"right": { "x": 2, "y": 3 }
-		}
-	},
-	"default": {
-		"buttons": {
-			"0": "north",
-			"1": "east",
-			"2": "south",
-			"3": "west",
-			"4": "ltrigger",
-			"5": "rtrigger",
-			"6": "lshoulder",
-			"7": "rshoulder",
-			"8": "select",
-			"9": "start",
-			"10": "lstick",
-			"11": "rstick"
-		},
-		"sticks": {
-			"left": { "x": 0, "y": 1 },
-			"right": { "x": 2, "y": 5 }
 		}
 	}
 }
