@@ -152,7 +152,7 @@ export interface KaboomCtx {
 	scale(s: Vec2): ScaleComp,
 	scale(): ScaleComp,
 	/**
-	 * Rotation (in degrees). (This doesn't work with the area() collider yet)
+	 * Rotation (in degrees).
 	 */
 	rotate(a: number): RotateComp,
 	/**
@@ -590,7 +590,7 @@ export interface KaboomCtx {
 	 * // every time an obj with tag "bomb" hits the floor, destroy it and addKaboom()
 	 * on("ground", "bomb", (bomb) => {
 	 *     destroy(bomb)
-	 *     addKaboom()
+	 *     addKaboom(bomb.pos)
 	 * })
 	 * ```
 	 */
@@ -673,7 +673,7 @@ export interface KaboomCtx {
 	 */
 	onLoad(action: () => void): void,
 	/**
-	 * Register an event that runs every frame when assets are initially loading. Can be used to draw a custom loading screen
+	 * Register an event that runs every frame when assets are initially loading. Can be used to draw a custom loading screen.
 	 *
 	 * @since v3000.0
 	 */
@@ -685,7 +685,7 @@ export interface KaboomCtx {
 	 */
 	onError(action: (err: Error) => void): void,
 	/**
-	 * Register an event that runs when the canvas resizes
+	 * Register an event that runs when the canvas resizes.
 	 *
 	 * @since v3000.0
 	 */
@@ -1079,7 +1079,7 @@ export interface KaboomCtx {
 		url: string,
 	): Asset<Record<string, SpriteData>>,
 	/**
-	 * Load a sprite with aseprite spritesheet json.
+	 * Load a sprite with aseprite spritesheet json (should use "array" in the export options).
 	 *
 	 * @example
 	 * ```js
@@ -1120,7 +1120,7 @@ export interface KaboomCtx {
 		src: string,
 	): Asset<SoundData>,
 	/**
-	 * Load a font (any format supported by the browser, e.g. ttf, otf, woff)
+	 * Load a font (any format supported by the browser, e.g. ttf, otf, woff).
 	 *
 	 * @since v3000.0
 	 *
@@ -2423,7 +2423,7 @@ export interface KaboomOpt {
 	 */
 	logMax?: number,
 	/**
-	 * Size of the spatial hash grid for collision detection (default 64)
+	 * Size of the spatial hash grid for collision detection (default 64).
 	 *
 	 * @since v3000.0
 	 */
@@ -2451,7 +2451,7 @@ export interface KaboomOpt {
 	 */
 	backgroundAudio?: boolean,
 	/**
-	 * Custom gamepad definitions (see gamepad.json for reference of the format)
+	 * Custom gamepad definitions (see gamepad.json for reference of the format).
 	 *
 	 * @since v3000.0
 	 */
