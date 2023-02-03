@@ -1,4 +1,4 @@
-const VERSION = "3000.0.0-alpha.25"
+const VERSION = "3000.0.0-beta.2"
 
 import {
 	sat,
@@ -3088,10 +3088,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	// set game mouse pos from window mouse pos
 	function setMousePos(x: number, y: number) {
 		const mpos = windowToContent(new Vec2(x, y))
-		if (app.mouseStarted) {
-			// TODO: mouseDelta has a minimum of 5 for some reason
-			app.mouseDeltaPos = mpos.sub(app.mousePos)
-		}
 		app.mousePos = mpos
 		app.mouseStarted = true
 		app.isMouseMoved = true
@@ -3099,8 +3095,10 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 	canvasEvents.mousemove = (e) => {
 		const [x, y] = [e.offsetX, e.offsetY]
+		const [dx, dy] = [e.movementX, e.movementY]
 		game.ev.onOnce("input", () => {
 			setMousePos(x, y)
+			app.mouseDeltaPos = vec2(dx, dy)
 			game.ev.trigger("mouseMove")
 		})
 	}
@@ -3392,6 +3390,25 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 	function getCursor(): Cursor {
 		return app.canvas.style.cursor
+	}
+
+	function setCursorLocked(b: boolean): void {
+		if (b) {
+			try {
+				const res = app.canvas.requestPointerLock() as unknown as Promise<void>
+				if (res.catch) {
+					res.catch((e) => console.error(e))
+				}
+			} catch (e) {
+				console.error(e)
+			}
+		} else {
+			document.exitPointerLock()
+		}
+	}
+
+	function isCursorLocked(): boolean {
+		return !!document.pointerLockElement
 	}
 
 	function setFullscreen(f: boolean = true) {
@@ -7400,6 +7417,8 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		isFocused,
 		setCursor,
 		getCursor,
+		setCursorLocked,
+		isCursorLocked,
 		setFullscreen,
 		isFullscreen,
 		isTouchScreen,

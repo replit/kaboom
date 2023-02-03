@@ -398,6 +398,7 @@ timer.resume()
 - added `debug.numFrames()` to get the total number of frames elapsed
 - added `onError()` to handle error or even custom error screen
 - added `onResize()` to register an event that runs when canvas resizes
+- added `setCursorLocked()` and `isCursorLocked()`
 - (**BREAK**) renamed `cursor()` to `setCursor()`
 - (**BREAK**) renamed `fullscreen()` to `setFullscreen()`
 - (**BREAK**) renamed `isTouch()` to `isTouchScreen()`

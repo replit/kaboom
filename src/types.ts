@@ -1481,7 +1481,7 @@ export interface KaboomCtx {
 	 * })
 	 * ```
 	 */
-	setCursor(c: Cursor): void,
+	setCursor(style: Cursor): void,
 	/**
 	 * Get current cursor style.
 	 *
@@ -1489,6 +1489,19 @@ export interface KaboomCtx {
 	 * ```
 	 */
 	getCursor(): Cursor,
+	/**
+	 * Lock / unlock cursor. Note that you cannot lock cursor within 1 second after user unlocking the cursor with the default unlock gesture (typically the esc key) due to browser policy.
+	 *
+	 * @since v3000.0
+	 */
+	setCursorLocked(locked: boolean): void,
+	/**
+	 * Get if cursor is currently locked.
+	 *
+	 * @since v3000.0
+	 * ```
+	 */
+	isCursorLocked(): boolean,
 	/**
 	 * Enter / exit fullscreen mode. (note: mouse position is not working in fullscreen mode at the moment)
 	 *
