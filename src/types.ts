@@ -1572,8 +1572,8 @@ export interface KaboomCtx {
 	 * })
 	 *
 	 * // using the handle to control (check out AudioPlay for more controls / info)
-	 * music.pause()
-	 * music.play()
+	 * music.paused = true
+	 * music.speed = 1.2
 	 * ```
 	 */
 	play(src: string | SoundData | Asset<SoundData>, options?: AudioPlayOpt): AudioPlay,
