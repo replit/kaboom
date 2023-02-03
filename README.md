@@ -199,5 +199,4 @@ Collection of games made with Kaboom, selected by Kaboom, [here](https://itch.io
 - Featured on [Console 50](https://console.substack.com/p/console-50)
 - Thanks to [Umayr](https://github.com/umayr) for kindly offering the "kaboom" npm package name
 - Please buy fireworks on [kaboom.com](http://www.kaboom.com/)
-- Documentation for v0.5 [here](https://kaboomlegacy.repl.co/)
 - [How to do a KABOOM on a Trampoline](https://www.youtube.com/watch?v=3CemcWdc_Hc)
