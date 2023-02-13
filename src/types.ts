@@ -578,7 +578,7 @@ export interface KaboomCtx {
 	 *
 	 * @since v3000.0
 	 */
-	agent(): AgentComp,
+	agent(opt: AgentCompOpt): AgentComp,
 	/**
 	 * Register an event on all game objs with certain tag.
 	 *
