@@ -1,8 +1,7 @@
 By default kaboom starts in debug mode, which enables key bindings that calls out various debug utilities:
 
 - `f1` to toggle inspect mode
-- `f5` to take screenshot
-- `f6` to toggle recording
+- `f2` to clear debug console
 - `f7` to slow down
 - `f8` to pause / resume
 - `f9` to speed up

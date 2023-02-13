@@ -136,7 +136,7 @@ player.onHeadbutt((block) => {
 	} else if (block.is("burp")) {
 		burp()
 		shake(480)
-		if (music) music.stop()
+		if (music) music.paused = true
 		burping = true
 		player.paused = true
 	}

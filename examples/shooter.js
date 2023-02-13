@@ -170,10 +170,10 @@ scene("battle", () => {
 		destroy(player)
 		shake(120)
 		play("explode")
-		music.detune(-1200)
+		music.detune = -1200
 		addExplode(center(), 12, 120, 30)
 		wait(1, () => {
-			music.stop()
+			music.paused = true
 			go("battle")
 		})
 	})
@@ -354,7 +354,7 @@ scene("win", ({ time, boss }) => {
 	})
 
 	loop(0.5, () => {
-		b.detune(rand(-1200, 1200))
+		b.detune = rand(-1200, 1200)
 	})
 
 	add([
