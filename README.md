@@ -159,6 +159,12 @@ kaboom()
 
 works all CDNs that supports NPM packages, e.g. jsdelivr, skypack
 
+## Documentation
+- **v3000**: https://3000.kaboomjs.com/
+- **v2000**: https://2000.kaboomjs.com/
+- **v0.5.0**: https://legacy.kaboomjs.com/
+
+
 ## Dev
 
 1. `npm install` to install dev packages
@@ -170,20 +176,20 @@ Check out [CONTRIBUTION.md](CONTRIBUTING.md) for more
 
 ## Community
 
-[Itch.io Community](https://kaboomjs.itch.io/kaboom/community) <br>
-[Discord Server](https://discord.gg/aQ6RuQm3TF) <br>
-[GitHub Discussions](https://github.com/replit/kaboom/discussions) <br>
-[Twitter](https://twitter.com/Kaboomjs)
+- [Discord Server](https://discord.gg/aQ6RuQm3TF)
+- [GitHub Discussions](https://github.com/replit/kaboom/discussions) 
+- [Twitter](https://twitter.com/Kaboomjs)
 
 ## Games
+Collection of games made with Kaboom, selected by Kaboom, [here](https://itch.io/c/2645141/made-in-kaboom).
 
-[on Itch.io](https://itch.io/games/tag-kaboomjs) <br>
-[on Replit](https://replit.com/apps/kaboom) <br>
-[on Newgrounds](https://www.newgrounds.com/search/conduct/games?tags=kaboomjs)
+- [on Itch.io](https://itch.io/games/tag-kaboomjs)
+- [on Replit](https://replit.com/apps/kaboom)
+- [on Newgrounds](https://www.newgrounds.com/search/conduct/games?tags=kaboomjs)
 
 ## Misc
 
-- Thanks to [LaJBel](https://lajbel.land/) for help building the Kaboom community
+- Thanks to [LaJBel](https://lajbel.repl.co/) for help building the Kaboom community
 - Thanks to [abrudz](https://github.com/abrudz) for the amazing [APL386 font](https://abrudz.github.io/APL386/)
 - Thanks to [Polyducks](http://polyducks.co.uk/) for the amazing [kitchen sink font](https://polyducks.itch.io/kitchen-sink-textmode-font) font
 - Thanks to [0x72](https://0x72.itch.io/) for the amazing [Dungeon Tileset](https://0x72.itch.io/dungeontileset-ii)
@@ -193,5 +199,4 @@ Check out [CONTRIBUTION.md](CONTRIBUTING.md) for more
 - Featured on [Console 50](https://console.substack.com/p/console-50)
 - Thanks to [Umayr](https://github.com/umayr) for kindly offering the "kaboom" npm package name
 - Please buy fireworks on [kaboom.com](http://www.kaboom.com/)
-- Documentation for v0.5 [here](https://kaboomlegacy.repl.co/)
 - [How to do a KABOOM on a Trampoline](https://www.youtube.com/watch?v=3CemcWdc_Hc)
