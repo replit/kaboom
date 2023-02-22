@@ -1,5 +1,7 @@
 const VERSION = "3000.0.0-beta.2"
 
+import initApp from "./app"
+
 import {
 	sat,
 	vec2,
@@ -145,7 +147,6 @@ import type {
 	TileComp,
 	TileCompOpt,
 	LevelOpt,
-	Cursor,
 	Recording,
 	BoomOpt,
 	PeditFile,
@@ -161,15 +162,11 @@ import type {
 	GetOpt,
 	Vec2Args,
 	NineSlice,
-	GamepadButton,
-	GamepadStick,
 	LerpValue,
 	TexFilter,
 } from "./types"
 
-import FPSCounter from "./fps"
 import Timer from "./timer"
-import GAMEPAD_MAP from "./gamepad.json"
 
 // @ts-ignore
 import beanSpriteSrc from "./assets/bean.png"
@@ -192,34 +189,6 @@ interface SpriteCurAnim {
 	pingpong: boolean,
 	onEnd: () => void,
 }
-
-// translate these key names to a simpler version
-const KEY_ALIAS = {
-	"ArrowLeft": "left",
-	"ArrowRight": "right",
-	"ArrowUp": "up",
-	"ArrowDown": "down",
-	" ": "space",
-}
-
-// don't trigger browser default event when these keys are pressed
-const PREVENT_DEFAULT_KEYS = new Set([
-	" ",
-	"ArrowLeft",
-	"ArrowRight",
-	"ArrowUp",
-	"ArrowDown",
-	"Tab",
-])
-
-// according to https://developer.mozilla.org/en-US/docs/Web/API/MouseEvent/button
-const MOUSE_BUTTONS: MouseButton[] = [
-	"left",
-	"middle",
-	"right",
-	"back",
-	"forward",
-]
 
 // some default charsets for loading bitmap fonts
 const ASCII_CHARS = " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~"
@@ -332,25 +301,6 @@ const COMP_EVENTS = new Set([
 	"drawInspect",
 ])
 
-// wrappers around full screen functions to work across browsers
-function enterFullscreen(el: HTMLElement) {
-	if (el.requestFullscreen) el.requestFullscreen()
-	// @ts-ignore
-	else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen()
-}
-
-function exitFullscreen() {
-	if (document.exitFullscreen) document.exitFullscreen()
-	// @ts-ignore
-	else if (document.webkitExitFullScreen) document.webkitExitFullScreen()
-}
-
-function getFullscreenElement(): Element | void {
-	return document.fullscreenElement
-		// @ts-ignore
-		|| document.webkitFullscreenElement
-}
-
 // convert anchor string to a vec2 offset
 function anchorPt(orig: Anchor | Vec2): Vec2 {
 	switch (orig) {
@@ -380,178 +330,85 @@ function createEmptyAudioBuffer(ctx: AudioContext) {
 	return ctx.createBuffer(1, 1, 44100)
 }
 
-class ButtonState<T = string> {
-	pressed: Set<T> = new Set([])
-	pressedRepeat: Set<T> = new Set([])
-	released: Set<T> = new Set([])
-	down: Set<T> = new Set([])
-	update() {
-		this.pressed.clear()
-		this.released.clear()
-		this.pressedRepeat.clear()
-	}
-	press(btn: T) {
-		this.pressed.add(btn)
-		this.pressedRepeat.add(btn)
-		this.down.add(btn)
-	}
-	pressRepeat(btn: T) {
-		this.pressedRepeat.add(btn)
-	}
-	release(btn: T) {
-		this.down.delete(btn)
-		this.pressed.delete(btn)
-		this.released.add(btn)
-	}
-}
-
 // only exports one kaboom() which contains all the state
 export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
-	const gc: Array<() => void> = []
+	const root = gopt.root ?? document.body
 
-	const app = (() => {
+	// if root is not defined (which falls back to <body>) we assume user is using kaboom on a clean page, and modify <body> to better fit a full screen canvas
+	if (root === document.body) {
+		document.body.style["width"] = "100%"
+		document.body.style["height"] = "100%"
+		document.body.style["margin"] = "0px"
+		document.documentElement.style["width"] = "100%"
+		document.documentElement.style["height"] = "100%"
+	}
 
-		const root = gopt.root ?? document.body
-
-		// if root is not defined (which falls back to <body>) we assume user is using kaboom on a clean page, and modify <body> to better fit a full screen canvas
-		if (root === document.body) {
-			document.body.style["width"] = "100%"
-			document.body.style["height"] = "100%"
-			document.body.style["margin"] = "0px"
-			document.documentElement.style["width"] = "100%"
-			document.documentElement.style["height"] = "100%"
-		}
-
-		// create a <canvas> if user didn't provide one
-		const canvas = gopt.canvas ?? (() => {
-			const canvas = document.createElement("canvas")
-			root.appendChild(canvas)
-			return canvas
-		})()
-
-		// global pixel scale
-		const gscale = gopt.scale ?? 1
-		const fixedSize = gopt.width && gopt.height && !gopt.stretch && !gopt.letterbox
-
-		// adjust canvas size according to user size / viewport settings
-		if (fixedSize) {
-			canvas.width = gopt.width * gscale
-			canvas.height = gopt.height * gscale
-		} else {
-			canvas.width = canvas.parentElement.offsetWidth
-			canvas.height = canvas.parentElement.offsetHeight
-		}
-
-		const cw = canvas.width
-		const ch = canvas.height
-		const pixelDensity = gopt.pixelDensity || window.devicePixelRatio
-
-		canvas.width *= pixelDensity
-		canvas.height *= pixelDensity
-
-		// canvas css styles
-		const styles = [
-			"outline: none",
-			"cursor: default",
-		]
-
-		if (fixedSize) {
-			styles.push(`width: ${cw}px`)
-			styles.push(`height: ${ch}px`)
-		} else {
-			styles.push("width: 100%")
-			styles.push("height: 100%")
-		}
-
-		if (gopt.crisp) {
-			// chrome only supports pixelated and firefox only supports crisp-edges
-			styles.push("image-rendering: pixelated")
-			styles.push("image-rendering: crisp-edges")
-		}
-
-		canvas.style.cssText = styles.join(";")
-		// make canvas focusable
-		canvas.tabIndex = 0
-
-		const fontCacheCanvas = document.createElement("canvas")
-		fontCacheCanvas.width = MAX_TEXT_CACHE_SIZE
-		fontCacheCanvas.height = MAX_TEXT_CACHE_SIZE
-		const fontCacheCtx = fontCacheCanvas.getContext("2d", {
-			willReadFrequently: true,
-		})
-
-		let lastWidth = canvas.offsetWidth
-		let lastHeight = canvas.offsetHeight
-
-		// TODO: don't resize framebuffer if fixedSize
-		const resizeObserver = new ResizeObserver((entries) => {
-			for (const entry of entries) {
-				if (entry.target !== canvas) continue
-				if (lastWidth === canvas.offsetWidth && lastHeight === canvas.offsetHeight) return
-				lastWidth = canvas.offsetWidth
-				lastHeight = canvas.offsetHeight
-				canvas.width = lastWidth * pixelDensity
-				canvas.height = lastHeight * pixelDensity
-				gfx.frameBuffer.free()
-				gfx.frameBuffer = new FrameBuffer(gl.drawingBufferWidth, gl.drawingBufferHeight)
-				updateViewport()
-				game.ev.onOnce("frameEnd", () => {
-					// should we also pass window / view size?
-					game.ev.trigger("resize")
-				})
-			}
-		})
-
-		resizeObserver.observe(canvas)
-
-		return {
-
-			canvas: canvas,
-			pixelDensity: pixelDensity,
-			fontCacheCanvas: fontCacheCanvas,
-			fontCacheCtx: fontCacheCtx,
-
-			// keep track of all button states
-			keyState: new ButtonState<Key>(),
-			mouseState: new ButtonState<MouseButton>(),
-			virtualButtonState: new ButtonState<VirtualButton>(),
-			gamepadButtonState: new ButtonState<GamepadButton>(),
-
-			// input states from last frame, should reset every frame
-			charInputted: [],
-			isMouseMoved: false,
-			mouseStarted: false,
-			mousePos: new Vec2(0, 0),
-			mouseDeltaPos: new Vec2(0, 0),
-
-			// total time elapsed
-			time: 0,
-			// real total time elapsed (including paused time)
-			realTime: 0,
-			// if we should skip next dt, to prevent the massive dt surge if user switch to another tab for a while and comeback
-			skipTime: false,
-			// how much time last frame took
-			dt: 0.0,
-			// total frames elapsed
-			numFrames: 0,
-
-			// if we're on a touch device
-			isTouchScreen: ("ontouchstart" in window) || navigator.maxTouchPoints > 0,
-
-			// requestAnimationFrame id
-			loopID: null,
-			// if our game loop is currently stopped / paused
-			stopped: false,
-			paused: false,
-
-			fpsCounter: new FPSCounter(),
-
-		}
-
+	// create a <canvas> if user didn't provide one
+	const canvas = gopt.canvas ?? (() => {
+		const canvas = document.createElement("canvas")
+		root.appendChild(canvas)
+		return canvas
 	})()
 
-	const gl = app.canvas
+	// global pixel scale
+	const gscale = gopt.scale ?? 1
+	const fixedSize = gopt.width && gopt.height && !gopt.stretch && !gopt.letterbox
+
+	// adjust canvas size according to user size / viewport settings
+	if (fixedSize) {
+		canvas.width = gopt.width * gscale
+		canvas.height = gopt.height * gscale
+	} else {
+		canvas.width = canvas.parentElement.offsetWidth
+		canvas.height = canvas.parentElement.offsetHeight
+	}
+
+	const cw = canvas.width
+	const ch = canvas.height
+	const pixelDensity = gopt.pixelDensity || window.devicePixelRatio
+
+	canvas.width *= pixelDensity
+	canvas.height *= pixelDensity
+
+	// canvas css styles
+	const styles = [
+		"outline: none",
+		"cursor: default",
+	]
+
+	if (fixedSize) {
+		styles.push(`width: ${cw}px`)
+		styles.push(`height: ${ch}px`)
+	} else {
+		styles.push("width: 100%")
+		styles.push("height: 100%")
+	}
+
+	if (gopt.crisp) {
+		// chrome only supports pixelated and firefox only supports crisp-edges
+		styles.push("image-rendering: pixelated")
+		styles.push("image-rendering: crisp-edges")
+	}
+
+	canvas.style.cssText = styles.join(";")
+	// make canvas focusable
+	canvas.tabIndex = 0
+
+	const fontCacheCanvas = document.createElement("canvas")
+	fontCacheCanvas.width = MAX_TEXT_CACHE_SIZE
+	fontCacheCanvas.height = MAX_TEXT_CACHE_SIZE
+	const fontCacheCtx = fontCacheCanvas.getContext("2d", {
+		willReadFrequently: true,
+	})
+
+	const app = initApp({
+		canvas: canvas,
+	})
+
+	const gc: Array<() => void> = []
+
+	const gl = app.canvas()
 		.getContext("webgl", {
 			antialias: true,
 			depth: true,
@@ -1998,7 +1855,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			drawTexture({
 				flipY: true,
 				tex: gfx.frameBuffer.tex,
-				scale: new Vec2(1 / app.pixelDensity),
+				scale: new Vec2(1 / pixelDensity),
 				shader: gfx.postShader,
 				uniform: typeof gfx.postShaderUniform === "function"
 					? gfx.postShaderUniform()
@@ -2699,8 +2556,8 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				if (!atlas.font.map[ch]) {
 
 					// TODO: use assets.packer to pack font texture
-					const c2d = app.fontCacheCtx
-					c2d.clearRect(0, 0, app.fontCacheCanvas.width, app.fontCacheCanvas.height)
+					const c2d = fontCacheCtx
+					c2d.clearRect(0, 0, fontCacheCanvas.width, fontCacheCanvas.height)
 					c2d.font = `${font.size}px ${fontName}`
 					c2d.textBaseline = "top"
 					c2d.textAlign = "left"
@@ -2945,11 +2802,11 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		// window size (will be the same as view size except letterbox mode)
 
 		// canvas size
-		const pd = app.pixelDensity
+		const pd = pixelDensity
 		const cw = gl.drawingBufferWidth / pd
 		const ch = gl.drawingBufferHeight / pd
 
-		if (isFullscreen()) {
+		if (app.isFullscreen()) {
 			// TODO: doesn't work with letterbox
 			const ww = window.innerWidth
 			const wh = window.innerHeight
@@ -3065,8 +2922,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		return gfx.height
 	}
 
-	const canvasEvents: EventList<HTMLElementEventMap> = {}
-	const docEvents: EventList<DocumentEventMap> = {}
 	const winEvents: EventList<WindowEventMap> = {}
 
 	// transform a point from window space to content space
@@ -3085,176 +2940,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		)
 	}
 
-	// set game mouse pos from window mouse pos
-	function setMousePos(x: number, y: number) {
-		const mpos = windowToContent(new Vec2(x, y))
-		app.mousePos = mpos
-		app.mouseStarted = true
-		app.isMouseMoved = true
-	}
-
-	canvasEvents.mousemove = (e) => {
-		const [x, y] = [e.offsetX, e.offsetY]
-		const [dx, dy] = [e.movementX, e.movementY]
-		game.ev.onOnce("input", () => {
-			setMousePos(x, y)
-			app.mouseDeltaPos = vec2(dx, dy)
-			game.ev.trigger("mouseMove")
-		})
-	}
-
-	canvasEvents.mousedown = (e) => {
-		game.ev.onOnce("input", () => {
-			const m = MOUSE_BUTTONS[e.button]
-			if (m) app.mouseState.press(m)
-			game.ev.trigger("mousePress", m)
-		})
-	}
-
-	canvasEvents.mouseup = (e) => {
-		game.ev.onOnce("input", () => {
-			const m = MOUSE_BUTTONS[e.button]
-			if (m) app.mouseState.release(m)
-			game.ev.trigger("mouseRelease", m)
-		})
-	}
-
-	canvasEvents.keydown = (e) => {
-		if (PREVENT_DEFAULT_KEYS.has(e.key)) {
-			e.preventDefault()
-		}
-		game.ev.onOnce("input", () => {
-			const k = KEY_ALIAS[e.key] || e.key.toLowerCase()
-			if (k.length === 1) {
-				game.ev.trigger("charInput", k)
-				app.charInputted.push(k)
-			} else if (k === "space") {
-				game.ev.trigger("charInput", " ")
-				app.charInputted.push(" ")
-			}
-			if (e.repeat) {
-				app.keyState.pressRepeat(k)
-				game.ev.trigger("keyPressRepeat", k)
-			} else {
-				app.keyState.press(k)
-				game.ev.trigger("keyPressRepeat", k)
-				game.ev.trigger("keyPress", k)
-			}
-		})
-	}
-
-	canvasEvents.keyup = (e) => {
-		game.ev.onOnce("input", () => {
-			const k = KEY_ALIAS[e.key] || e.key.toLowerCase()
-			app.keyState.release(k)
-			game.ev.trigger("keyRelease", k)
-		})
-	}
-
-	canvasEvents.touchstart = (e) => {
-		// disable long tap context menu
-		e.preventDefault()
-		game.ev.onOnce("input", () => {
-			const touches = [...e.changedTouches]
-			touches.forEach((t) => {
-				game.ev.trigger(
-					"touchStart",
-					windowToContent(new Vec2(t.clientX, t.clientY)),
-					t,
-				)
-			})
-			if (gopt.touchToMouse !== false) {
-				setMousePos(touches[0].clientX, touches[0].clientY)
-				app.mouseState.press("left")
-				game.ev.trigger("mousePress", "left")
-			}
-		})
-	}
-
-	canvasEvents.touchmove = (e) => {
-		// disable scrolling
-		e.preventDefault()
-		game.ev.onOnce("input", () => {
-			const touches = [...e.changedTouches]
-			touches.forEach((t) => {
-				game.ev.trigger(
-					"touchMove",
-					windowToContent(new Vec2(t.clientX, t.clientY)),
-					t,
-				)
-			})
-			if (gopt.touchToMouse !== false) {
-				game.ev.trigger("mouseMove")
-				setMousePos(touches[0].clientX, touches[0].clientY)
-			}
-		})
-	}
-
-	canvasEvents.touchend = (e) => {
-		game.ev.onOnce("input", () => {
-			const touches = [...e.changedTouches]
-			touches.forEach((t) => {
-				game.ev.trigger(
-					"touchEnd",
-					windowToContent(new Vec2(t.clientX, t.clientY)),
-					t,
-				)
-			})
-			if (gopt.touchToMouse !== false) {
-				app.mouseState.release("left")
-				game.ev.trigger("mouseRelease", "left")
-			}
-		})
-	}
-
-	canvasEvents.touchcancel = (e) => {
-		game.ev.onOnce("input", () => {
-			const touches = [...e.changedTouches]
-			touches.forEach((t) => {
-				game.ev.trigger(
-					"touchEnd",
-					windowToContent(new Vec2(t.clientX, t.clientY)),
-					t,
-				)
-			})
-			if (gopt.touchToMouse !== false) {
-				app.mouseState.release("left")
-				game.ev.trigger("mouseRelease", "left")
-			}
-		})
-	}
-
-	// TODO: option to not prevent default?
-	canvasEvents.wheel = (e) => {
-		e.preventDefault()
-		game.ev.onOnce("input", () => {
-			game.ev.trigger("scroll", new Vec2(e.deltaX, e.deltaY))
-		})
-	}
-
-	canvasEvents.contextmenu = (e) => e.preventDefault()
-
-	docEvents.visibilitychange = () => {
-		switch (document.visibilityState) {
-			case "visible":
-				// prevent a surge of dt() when switch back after the tab being hidden for a while
-				app.skipTime = true
-				if (!debug.paused) {
-					audio.ctx.resume()
-				}
-				break
-			case "hidden":
-				// reset input when visibility changed
-				app.keyState = new ButtonState()
-				app.mouseState = new ButtonState()
-				app.virtualButtonState = new ButtonState()
-				if (!gopt.backgroundAudio) {
-					audio.ctx.suspend()
-				}
-				break
-		}
-	}
-
 	winEvents.error = (e) => {
 		if (e.error) {
 			handleErr(e.error)
@@ -3263,183 +2948,25 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		}
 	}
 
-	winEvents.gamepadconnected = (e) => {
-		game.ev.onOnce("input", () => {
-			game.ev.trigger("gamepadConnect", e.gamepad)
-		})
-	}
-
-	winEvents.gamepaddisconnected = (e) => {
-		game.ev.onOnce("input", () => {
-			game.ev.trigger("gamepadDisconnect", e.gamepad)
-		})
-	}
-
 	winEvents.unhandledrejection = (e) => handleErr(e.reason)
-
-	for (const name in canvasEvents) {
-		app.canvas.addEventListener(name, canvasEvents[name])
-	}
-
-	for (const name in docEvents) {
-		document.addEventListener(name, docEvents[name])
-	}
 
 	for (const name in winEvents) {
 		window.addEventListener(name, winEvents[name])
-	}
-
-	function mousePos(): Vec2 {
-		return app.mousePos.clone()
-	}
-
-	function mouseDeltaPos(): Vec2 {
-		return app.mouseDeltaPos.clone()
-	}
-
-	function isMousePressed(m: MouseButton = "left"): boolean {
-		return app.mouseState.pressed.has(m)
-	}
-
-	function isMouseDown(m: MouseButton = "left"): boolean {
-		return app.mouseState.down.has(m)
-	}
-
-	function isMouseReleased(m: MouseButton = "left"): boolean {
-		return app.mouseState.released.has(m)
-	}
-
-	function isMouseMoved(): boolean {
-		return app.isMouseMoved
-	}
-
-	function isKeyPressed(k?: Key): boolean {
-		return k === undefined
-			? app.keyState.pressed.size > 0
-			: app.keyState.pressed.has(k)
-	}
-
-	function isKeyPressedRepeat(k?: Key): boolean {
-		return k === undefined
-			? app.keyState.pressedRepeat.size > 0
-			: app.keyState.pressedRepeat.has(k)
-	}
-
-	function isKeyDown(k?: Key): boolean {
-		return k === undefined
-			? app.keyState.down.size > 0
-			: app.keyState.down.has(k)
-	}
-
-	function isKeyReleased(k?: Key): boolean {
-		return k === undefined
-			? app.keyState.released.size > 0
-			: app.keyState.released.has(k)
-	}
-
-	function isVirtualButtonPressed(btn: VirtualButton): boolean {
-		return app.virtualButtonState.pressed.has(btn)
-	}
-
-	function isVirtualButtonDown(btn: VirtualButton): boolean {
-		return app.virtualButtonState.down.has(btn)
-	}
-
-	function isVirtualButtonReleased(btn: VirtualButton): boolean {
-		return app.virtualButtonState.released.has(btn)
-	}
-
-	function isGamepadButtonPressed(btn?: GamepadButton): boolean {
-		return btn === undefined
-			? app.gamepadButtonState.pressed.size > 0
-			: app.gamepadButtonState.pressed.has(btn)
-	}
-
-	function isGamepadButtonDown(btn?: GamepadButton): boolean {
-		return btn === undefined
-			? app.gamepadButtonState.down.size > 0
-			: app.gamepadButtonState.down.has(btn)
-	}
-
-	function isGamepadButtonReleased(btn?: GamepadButton): boolean {
-		return btn === undefined
-			? app.gamepadButtonState.released.size > 0
-			: app.gamepadButtonState.released.has(btn)
-	}
-
-	// function getGamepadStick(stick: "left" | "right"): boolean {
-
-	// }
-
-	function charInputted(): string[] {
-		return [...app.charInputted]
-	}
-
-	function time(): number {
-		return app.time
-	}
-
-	// get a base64 png image of canvas
-	function screenshot(): string {
-		return app.canvas.toDataURL()
-	}
-
-	function setCursor(c: Cursor): void {
-		app.canvas.style.cursor = c
-	}
-
-	function getCursor(): Cursor {
-		return app.canvas.style.cursor
-	}
-
-	function setCursorLocked(b: boolean): void {
-		if (b) {
-			try {
-				const res = app.canvas.requestPointerLock() as unknown as Promise<void>
-				if (res.catch) {
-					res.catch((e) => console.error(e))
-				}
-			} catch (e) {
-				console.error(e)
-			}
-		} else {
-			document.exitPointerLock()
-		}
-	}
-
-	function isCursorLocked(): boolean {
-		return !!document.pointerLockElement
-	}
-
-	function setFullscreen(f: boolean = true) {
-		if (f) {
-			enterFullscreen(app.canvas)
-		} else {
-			exitFullscreen()
-		}
-	}
-
-	function isFullscreen(): boolean {
-		return Boolean(getFullscreenElement())
-	}
-
-	function isTouchScreen() {
-		return app.isTouchScreen
 	}
 
 	const debug: Debug = {
 		inspect: false,
 		timeScale: 1,
 		showLog: true,
-		fps: () => app.fpsCounter.fps,
-		numFrames: () => app.numFrames,
+		fps: () => app.fps(),
+		numFrames: () => app.numFrames(),
 		stepFrame: updateFrame,
 		drawCalls: () => gfx.drawCalls,
 		clearLog: () => game.logs = [],
 		log: (msg) => {
 			const max = gopt.logMax ?? LOG_MAX
 			const style = msg instanceof Error ? "error" : "info"
-			game.logs.unshift(`${`[time]${time().toFixed(2)}[/time] `}[${style}]${msg?.toString ? msg.toString() : msg}[/${style}]`)
+			game.logs.unshift(`${`[time]${app.time().toFixed(2)}[/time] `}[${style}]${msg?.toString ? msg.toString() : msg}[/${style}]`)
 			if (game.logs.length > max) {
 				game.logs = game.logs.slice(0, max)
 			}
@@ -3460,7 +2987,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	}
 
 	function dt() {
-		return app.dt * debug.timeScale
+		return app.dt()
 	}
 
 	function camPos(...pos: Vec2Args): Vec2 {
@@ -3911,7 +3438,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	// add an event that runs when objs with tag t is clicked
 	function onClick(tag: Tag | (() => void), action?: (obj: GameObj) => void): EventController {
 		if (typeof tag === "function") {
-			return onMousePress(tag)
+			return app.onMousePress(tag)
 		} else {
 			const events = []
 			forAllCurrentAndFuture(tag, (obj) => {
@@ -4007,178 +3534,36 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 	}
 
-	// input callbacks
-	const onKeyDown = ((
-		key?: Key | ((k: Key) => void),
-		action?: (k: Key) => void,
-	) => {
-		if (typeof key === "function") {
-			return game.ev.on("keyDown", key)
-		} else if (typeof key === "string" && typeof action === "function") {
-			return game.ev.on("keyDown", (k) => k === key && action(key))
-		}
-	}) as KaboomCtx["onKeyDown"]
-
-	const onKeyPress = ((
-		key?: Key | ((k: Key) => void),
-		action?: (k: Key) => void,
-	) => {
-		if (typeof key === "function") {
-			return game.ev.on("keyPress", key)
-		} else if (typeof key === "string" && typeof action === "function") {
-			return game.ev.on("keyPress", (k) => k === key && action(key))
-		}
-	}) as KaboomCtx["onKeyPress"]
-
-	const onKeyPressRepeat = ((
-		key?: Key | ((k: Key) => void),
-		action?: (k: Key) => void,
-	) => {
-		if (typeof key === "function") {
-			return game.ev.on("keyPressRepeat", key)
-		} else if (typeof key === "string" && typeof action === "function") {
-			return game.ev.on("keyPressRepeat", (k) => k === key && action(key))
-		}
-	}) as KaboomCtx["onKeyPressRepeat"]
-
-	const onKeyRelease = ((
-		key?: Key | ((k: Key) => void),
-		action?: (k: Key) => void,
-	) => {
-		if (typeof key === "function") {
-			return game.ev.on("keyRelease", key)
-		} else if (typeof key === "string" && typeof action === "function") {
-			return game.ev.on("keyRelease", (k) => k === key && action(key))
-		}
-	}) as KaboomCtx["onKeyRelease"]
-
-	function onMouseDown(
-		mouse: MouseButton | ((m: MouseButton) => void),
-		action?: (m: MouseButton) => void,
-	): EventController {
-		if (typeof mouse === "function") {
-			return game.ev.on("mouseDown", (m) => mouse(m))
-		} else {
-			return game.ev.on("mouseDown", (m) => m === mouse && action(m))
-		}
-	}
-
-	function onMousePress(
-		mouse: MouseButton | ((m: MouseButton) => void),
-		action?: (m: MouseButton) => void,
-	): EventController {
-		if (typeof mouse === "function") {
-			return game.ev.on("mousePress", (m) => mouse(m))
-		} else {
-			return game.ev.on("mousePress", (m) => m === mouse && action(m))
-		}
-	}
-
-	function onMouseRelease(
-		mouse: MouseButton | ((m: MouseButton) => void),
-		action?: (m: MouseButton) => void,
-	): EventController {
-		if (typeof mouse === "function") {
-			return game.ev.on("mouseRelease", (m) => mouse(m))
-		} else {
-			return game.ev.on("mouseRelease", (m) => m === mouse && action(m))
-		}
-	}
-
-	function onMouseMove(f: (pos: Vec2, dpos: Vec2) => void): EventController {
-		return game.ev.on("mouseMove", () => f(mousePos(), mouseDeltaPos()))
-	}
-
-	function onCharInput(action: (ch: string) => void): EventController {
-		return game.ev.on("charInput", action)
-	}
-
-	function onTouchStart(f: (pos: Vec2, t: Touch) => void): EventController {
-		return game.ev.on("touchStart", f)
-	}
-
-	function onTouchMove(f: (pos: Vec2, t: Touch) => void): EventController {
-		return game.ev.on("touchMove", f)
-	}
-
-	function onTouchEnd(f: (pos: Vec2, t: Touch) => void): EventController {
-		return game.ev.on("touchEnd", f)
-	}
-
-	function onScroll(action: (delta: Vec2) => void): EventController {
-		return game.ev.on("scroll", action)
-	}
-
-	function onVirtualButtonDown(btn: VirtualButton, action: () => void): EventController {
-		return game.ev.on("virtualButtonDown", (b) => b === btn && action())
-	}
-
-	function onVirtualButtonPress(btn: VirtualButton, action: () => void): EventController {
-		return game.ev.on("virtualButtonPress", (b) => b === btn && action())
-	}
-
-	function onVirtualButtonRelease(btn: VirtualButton, action: () => void): EventController {
-		return game.ev.on("virtualButtonRelease", (b) => b === btn && action())
-	}
-
-	function onGamepadButtonDown(btn: GamepadButton | ((btn: GamepadButton) => void), action?: (btn: GamepadButton) => void): EventController {
-		if (typeof btn === "function") {
-			return game.ev.on("gamepadButtonDown", btn)
-		} else if (typeof btn === "string" && typeof action === "function") {
-			return game.ev.on("gamepadButtonDown", (b) => b === btn && action(btn))
-		}
-	}
-
-	function onGamepadButtonPress(btn: GamepadButton | ((btn: GamepadButton) => void), action?: (btn: GamepadButton) => void): EventController {
-		if (typeof btn === "function") {
-			return game.ev.on("gamepadButtonPress", btn)
-		} else if (typeof btn === "string" && typeof action === "function") {
-			return game.ev.on("gamepadButtonPress", (b) => b === btn && action(btn))
-		}
-	}
-
-	function onGamepadButtonRelease(btn: GamepadButton | ((btn: GamepadButton) => void), action?: (btn: GamepadButton) => void): EventController {
-		if (typeof btn === "function") {
-			return game.ev.on("gamepadButtonRelease", btn)
-		} else if (typeof btn === "string" && typeof action === "function") {
-			return game.ev.on("gamepadButtonRelease", (b) => b === btn && action(btn))
-		}
-	}
-
-	function onGamepadStick(stick: GamepadStick, action: (value: Vec2) => void): EventController {
-		return game.ev.on("gamepadStick", ((a: string, v: Vec2) => a === stick && action(v)))
-	}
-
 	function enterDebugMode() {
 
-		onKeyPress("f1", () => {
+		app.onKeyPress("f1", () => {
 			debug.inspect = !debug.inspect
 		})
 
-		onKeyPress("f2", () => {
+		app.onKeyPress("f2", () => {
 			debug.clearLog()
 		})
 
-		onKeyPress("f8", () => {
+		app.onKeyPress("f8", () => {
 			debug.paused = !debug.paused
 		})
 
-		onKeyPress("f7", () => {
+		app.onKeyPress("f7", () => {
 			debug.timeScale = toFixed(clamp(debug.timeScale - 0.2, 0, 2), 1)
 		})
 
-		onKeyPress("f9", () => {
+		app.onKeyPress("f9", () => {
 			debug.timeScale = toFixed(clamp(debug.timeScale + 0.2, 0, 2), 1)
 		})
 
-		onKeyPress("f10", () => {
+		app.onKeyPress("f10", () => {
 			debug.stepFrame()
 		})
 
 	}
 
 	function enterBurpMode() {
-		onKeyPress("b", () => burp())
+		app.onKeyPress("b", () => burp())
 	}
 
 	function setGravity(g: number) {
@@ -4457,7 +3842,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			add(this: GameObj<AreaComp>) {
 
 				if (this.area.cursor) {
-					events.push(this.onHover(() => setCursor(this.area.cursor)))
+					events.push(this.onHover(() => app.setCursor(this.area.cursor)))
 				}
 
 				events.push(this.onCollideUpdate((obj, col) => {
@@ -4534,11 +3919,11 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			},
 
 			isClicked(): boolean {
-				return isMousePressed() && this.isHovering()
+				return app.isMousePressed() && this.isHovering()
 			},
 
 			isHovering(this: GameObj) {
-				const mpos = this.fixed ? mousePos() : toWorld(mousePos())
+				const mpos = this.fixed ? app.mousePos() : toWorld(app.mousePos())
 				return this.hasPoint(mpos)
 			},
 
@@ -6393,7 +5778,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 	function record(frameRate?): Recording {
 
-		const stream = app.canvas.captureStream(frameRate)
+		const stream = app.canvas().captureStream(frameRate)
 		const audioDest = audio.ctx.createMediaStreamDestination()
 
 		audio.masterNode.connect(audioDest)
@@ -6453,7 +5838,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	}
 
 	function isFocused(): boolean {
-		return document.activeElement === app.canvas
+		return document.activeElement === app.canvas()
 	}
 
 	function destroy(obj: GameObj) {
@@ -6516,50 +5901,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 		return kaboom
 
-	}
-
-	function processGamepad() {
-
-		for (const gamepad of navigator.getGamepads()) {
-
-			if (!gamepad) continue
-
-			const custom = gopt.gamepads ?? {}
-			const map = custom[gamepad.id] ?? GAMEPAD_MAP[gamepad.id] ?? GAMEPAD_MAP["default"]
-
-			for (let i = 0; i < gamepad.buttons.length; i++) {
-				if (gamepad.buttons[i].pressed) {
-					if (!app.gamepadButtonState.down.has(map.buttons[i])) {
-						app.gamepadButtonState.press(map.buttons[i])
-						game.ev.trigger("gamepadButtonPress", map.buttons[i])
-					}
-					game.ev.trigger("gamepadButtonDown", map.buttons[i])
-				} else {
-					if (app.gamepadButtonState.down.has(map.buttons[i])) {
-						app.gamepadButtonState.release(map.buttons[i])
-						game.ev.trigger("gamepadButtonRelease", map.buttons[i])
-					}
-				}
-			}
-
-			for (const stickName in map.sticks) {
-				const stick = map.sticks[stickName]
-				const axisX = gamepad.axes[stick.x]
-				const axisY = gamepad.axes[stick.y]
-				// TODO: should these send every frame or when it changed?
-				game.ev.trigger("gamepadStick", stickName, new Vec2(axisX, axisY))
-			}
-
-		}
-
-	}
-
-	function inputFrame() {
-		game.ev.trigger("input")
-		app.keyState.down.forEach((k) => game.ev.trigger("keyDown", k))
-		app.mouseState.down.forEach((k) => game.ev.trigger("mouseDown", k))
-		app.virtualButtonState.down.forEach((k) => game.ev.trigger("virtualButtonDown", k))
-		processGamepad()
 	}
 
 	function updateFrame() {
@@ -6828,7 +6169,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 					}
 				}
 
-				drawInspectText(contentToView(mousePos()), lines.join("\n"))
+				drawInspectText(contentToView(app.mousePos()), lines.join("\n"))
 
 			}
 
@@ -6943,7 +6284,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				drawCircle({
 					radius: 12,
 					color: rgb(255, 0, 0),
-					opacity: wave(0, 1, time() * 4),
+					opacity: wave(0, 1, app.time() * 4),
 					fixed: true,
 				})
 
@@ -6998,121 +6339,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 	}
 
-	function drawVirtualControls() {
-
-		// TODO: mousePos incorrect in "stretch" mode and gopt.scale
-		const mpos = mousePos()
-
-		const drawCircleButton = (pos: Vec2, btn: VirtualButton, text?: string) => {
-
-			const size = 80
-
-			drawCircle({
-				radius: size / 2,
-				pos: pos,
-				outline: { width: 4, color: rgb(0, 0, 0) },
-				opacity: 0.5,
-				fixed: true,
-			})
-
-			if (text) {
-				drawText({
-					text: text,
-					pos: pos,
-					color: rgb(0, 0, 0),
-					size: 40,
-					anchor: "center",
-					opacity: 0.5,
-					fixed: true,
-				})
-			}
-
-			// TODO: touch
-			if (isMousePressed("left")) {
-				if (testCirclePoint(new Circle(pos, size / 2), mpos)) {
-					game.ev.onOnce("input", () => {
-						// TODO: caller specify another value as connected key?
-						app.virtualButtonState.press(btn)
-						game.ev.trigger("virtualButtonPress", btn)
-						app.keyState.press(btn)
-						game.ev.trigger("keyPress", btn)
-					})
-				}
-			}
-
-			if (isMouseReleased("left")) {
-				game.ev.onOnce("input", () => {
-					app.virtualButtonState.release(btn)
-					game.ev.trigger("virtualButtonRelease", btn)
-					app.keyState.release(btn)
-					game.ev.trigger("keyRelease", btn)
-				})
-			}
-
-		}
-
-		const drawSquareButton = (pos: Vec2, btn: VirtualButton, text?: string) => {
-
-			const size = 64
-
-			drawRect({
-				width: size,
-				height: size,
-				pos: pos,
-				outline: { width: 4, color: rgb(0, 0, 0) },
-				radius: 4,
-				anchor: "center",
-				opacity: 0.5,
-				fixed: true,
-			})
-
-			if (text) {
-				drawText({
-					text: text,
-					pos: pos,
-					color: rgb(0, 0, 0),
-					size: 40,
-					anchor: "center",
-					opacity: 0.5,
-					fixed: true,
-				})
-			}
-
-			// TODO: touch
-			if (isMousePressed("left")) {
-				if (testRectPoint(new Rect(pos.add(-size / 2, -size / 2), size, size), mpos)) {
-					game.ev.onOnce("input", () => {
-						// TODO: caller specify another value as connected key?
-						app.virtualButtonState.press(btn)
-						game.ev.trigger("virtualButtonPress", btn)
-						app.keyState.press(btn)
-						game.ev.trigger("keyPress", btn)
-					})
-				}
-			}
-
-			if (isMouseReleased("left")) {
-				game.ev.onOnce("input", () => {
-					app.virtualButtonState.release(btn)
-					game.ev.trigger("virtualButtonRelease", btn)
-					app.keyState.release(btn)
-					game.ev.trigger("keyRelease", btn)
-				})
-			}
-
-		}
-
-		drawUnscaled(() => {
-			drawCircleButton(vec2(width() - 80, height() - 160), "a")
-			drawCircleButton(vec2(width() - 160, height() - 80), "b")
-			drawSquareButton(vec2(60, height() - 124), "left")
-			drawSquareButton(vec2(188, height() - 124), "right")
-			drawSquareButton(vec2(124, height() - 188), "up")
-			drawSquareButton(vec2(124, height() - 60), "down")
-		})
-
-	}
-
 	if (gopt.debug !== false) {
 		enterDebugMode()
 	}
@@ -7144,7 +6370,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	function handleErr(err: Error) {
 
 		// TODO: this should only run once
-		run(() => {
+		app.run(() => {
 
 			drawUnscaled(() => {
 
@@ -7195,64 +6421,15 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 	}
 
-	function resetInputState() {
-		app.keyState.update()
-		app.mouseState.update()
-		app.virtualButtonState.update()
-		app.gamepadButtonState.update()
-		app.charInputted = []
-		app.isMouseMoved = false
-	}
-
-	function run(f: () => void) {
-
-		if (app.loopID !== null) {
-			cancelAnimationFrame(app.loopID)
-		}
-
-		const frame = (t: number) => {
-
-			if (app.stopped) return
-
-			if (document.visibilityState !== "visible") {
-				app.loopID = requestAnimationFrame(frame)
-				return
-			}
-
-			const realTime = t / 1000
-			const realDt = realTime - app.realTime
-
-			app.realTime = realTime
-
-			if (!app.skipTime) {
-				app.dt = realDt
-				app.time += dt()
-				app.fpsCounter.tick(app.dt)
-			}
-
-			app.skipTime = false
-			app.numFrames++
-
-			frameStart()
-			f()
-			frameEnd()
-
-			resetInputState()
-			game.ev.trigger("frameEnd")
-			app.loopID = requestAnimationFrame(frame)
-
-		}
-
-		frame(0)
-
-	}
-
 	function quit() {
 
 		game.ev.onOnce("frameEnd", () => {
 
-			// stop the loop
-			app.stopped = true
+			app.quit()
+
+			for (const name in winEvents) {
+				window.removeEventListener(name, winEvents[name])
+			}
 
 			// clear canvas
 			gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT | gl.STENCIL_BUFFER_BIT)
@@ -7277,19 +6454,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			// delete webgl buffers
 			gl.deleteBuffer(gfx.vbuf)
 			gl.deleteBuffer(gfx.ibuf)
-
-			// unregister events
-			for (const name in canvasEvents) {
-				app.canvas.removeEventListener(name, canvasEvents[name])
-			}
-
-			for (const name in docEvents) {
-				document.removeEventListener(name, docEvents[name])
-			}
-
-			for (const name in winEvents) {
-				window.removeEventListener(name, winEvents[name])
-			}
 
 		})
 
@@ -7342,7 +6506,9 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	let isFirstFrame = true
 
 	// main game loop
-	run(() => {
+	app.run(() => {
+
+		frameStart()
 
 		if (!assets.loaded) {
 			if (loadProgress() === 1 && !isFirstFrame) {
@@ -7358,7 +6524,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 		} else {
 
-			inputFrame()
 			if (!debug.paused) updateFrame()
 			checkFrame()
 			drawFrame()
@@ -7367,15 +6532,14 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				drawDebug()
 			}
 
-			if (gopt.virtualControls && isTouchScreen()) {
-				drawVirtualControls()
-			}
-
 		}
 
 		if (isFirstFrame) {
 			isFirstFrame = false
 		}
+
+		frameEnd()
+		game.ev.trigger("frameEnd")
 
 	})
 
@@ -7411,17 +6575,17 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		height,
 		center,
 		dt,
-		time,
-		screenshot,
+		time: app.time,
+		screenshot: app.screenshot,
 		record,
 		isFocused,
-		setCursor,
-		getCursor,
-		setCursorLocked,
-		isCursorLocked,
-		setFullscreen,
-		isFullscreen,
-		isTouchScreen,
+		setCursor: app.setCursor,
+		getCursor: app.getCursor,
+		setCursorLocked: app.setCursorLocked,
+		isCursorLocked: app.isCursorLocked,
+		setFullscreen: app.setFullscreen,
+		isFullscreen: app.isFullscreen,
+		isTouchScreen: app.isTouchScreen,
 		onLoad,
 		onLoading,
 		onResize,
@@ -7490,44 +6654,38 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		onHoverUpdate,
 		onHoverEnd,
 		// input
-		onKeyDown,
-		onKeyPress,
-		onKeyPressRepeat,
-		onKeyRelease,
-		onMouseDown,
-		onMousePress,
-		onMouseRelease,
-		onMouseMove,
-		onCharInput,
-		onTouchStart,
-		onTouchMove,
-		onTouchEnd,
-		onScroll,
-		onVirtualButtonPress,
-		onVirtualButtonDown,
-		onVirtualButtonRelease,
-		onGamepadButtonDown,
-		onGamepadButtonPress,
-		onGamepadButtonRelease,
-		onGamepadStick,
-		mousePos,
-		mouseDeltaPos,
-		isKeyDown,
-		isKeyPressed,
-		isKeyPressedRepeat,
-		isKeyReleased,
-		isMouseDown,
-		isMousePressed,
-		isMouseReleased,
-		isMouseMoved,
-		isVirtualButtonPressed,
-		isVirtualButtonDown,
-		isVirtualButtonReleased,
-		isGamepadButtonPressed,
-		isGamepadButtonDown,
-		isGamepadButtonReleased,
+		onKeyDown: app.onKeyDown,
+		onKeyPress: app.onKeyPress,
+		onKeyPressRepeat: app.onKeyPressRepeat,
+		onKeyRelease: app.onKeyRelease,
+		onMouseDown: app.onMouseDown,
+		onMousePress: app.onMousePress,
+		onMouseRelease: app.onMouseRelease,
+		onMouseMove: app.onMouseMove,
+		onCharInput: app.onCharInput,
+		onTouchStart: app.onTouchStart,
+		onTouchMove: app.onTouchMove,
+		onTouchEnd: app.onTouchEnd,
+		onScroll: app.onScroll,
+		onGamepadButtonDown: app.onGamepadButtonDown,
+		onGamepadButtonPress: app.onGamepadButtonPress,
+		onGamepadButtonRelease: app.onGamepadButtonRelease,
+		onGamepadStick: app.onGamepadStick,
+		mousePos: app.mousePos,
+		mouseDeltaPos: app.mouseDeltaPos,
+		isKeyDown: app.isKeyDown,
+		isKeyPressed: app.isKeyPressed,
+		isKeyPressedRepeat: app.isKeyPressedRepeat,
+		isKeyReleased: app.isKeyReleased,
+		isMouseDown: app.isMouseDown,
+		isMousePressed: app.isMousePressed,
+		isMouseReleased: app.isMouseReleased,
+		isMouseMoved: app.isMouseMoved,
+		isGamepadButtonPressed: app.isGamepadButtonPressed,
+		isGamepadButtonDown: app.isGamepadButtonDown,
+		isGamepadButtonReleased: app.isGamepadButtonReleased,
 		// getGamepadStick,
-		charInputted,
+		charInputted: app.charInputted,
 		// timer
 		loop,
 		wait,
@@ -7612,7 +6770,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		// char sets
 		ASCII_CHARS,
 		// dom
-		canvas: app.canvas,
+		canvas: app.canvas(),
 		// misc
 		addKaboom,
 		// dirs
@@ -7647,7 +6805,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		}
 	}
 
-	app.canvas.focus()
+	app.canvas().focus()
 
 	return ctx
 

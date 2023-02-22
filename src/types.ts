@@ -925,24 +925,6 @@ export interface KaboomCtx {
 	 */
 	onScroll(action: (delta: Vec2) => void): EventController,
 	/**
-	 * Register an event that runs when a virtual control button is pressed.
-	 *
-	 * @since v3000.0
-	 */
-	onVirtualButtonPress(btn: VirtualButton, action: () => void): EventController,
-	/**
-	 * Register an event that runs when a virtual control button is pressed.
-	 *
-	 * @since v3000.0
-	 */
-	onVirtualButtonDown(btn: VirtualButton, action: () => void): EventController,
-	/**
-	 * Register an event that runs when a virtual control button is pressed.
-	 *
-	 * @since v3000.0
-	 */
-	onVirtualButtonRelease(btn: VirtualButton, action: () => void): EventController,
-	/**
 	 * Register an event that runs every frame when certain gamepad button is held down.
 	 *
 	 * @since v3000.0
@@ -1360,24 +1342,6 @@ export interface KaboomCtx {
 	 * @since v2000.1
 	 */
 	isMouseMoved(): boolean,
-	/**
-	 * If a virtual button is just pressed last frame.
-	 *
-	 * @since v3000.0
-	 */
-	isVirtualButtonPressed(btn: VirtualButton): boolean,
-	/**
-	 * If a virtual button is currently held down.
-	 *
-	 * @since v3000.0
-	 */
-	isVirtualButtonDown(btn: VirtualButton): boolean,
-	/**
-	 * If a virtual button is just released last frame.
-	 *
-	 * @since v3000.0
-	 */
-	isVirtualButtonReleased(btn: VirtualButton): boolean,
 	/**
 	 * If a gamepad button is just pressed last frame
 	 *

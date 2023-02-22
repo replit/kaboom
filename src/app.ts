@@ -2,6 +2,7 @@
 
 import type {
 	KaboomCtx,
+	Cursor,
 	Key,
 	MouseButton,
 	VirtualButton,
@@ -22,7 +23,7 @@ import {
 
 import GAMEPAD_MAP from "./gamepad.json"
 
-class ButtonState<T = string> {
+export class ButtonState<T = string> {
 	pressed: Set<T> = new Set([])
 	pressedRepeat: Set<T> = new Set([])
 	released: Set<T> = new Set([])
@@ -89,7 +90,6 @@ export default (opt: {
 		mouseDeltaPos: new Vec2(0),
 		keyState: new ButtonState<Key>(),
 		mouseState: new ButtonState<MouseButton>(),
-		virtualButtonState: new ButtonState<VirtualButton>(),
 		gamepadButtonState: new ButtonState<GamepadButton>(),
 		charInputted: [],
 		isMouseMoved: false,
@@ -135,8 +135,88 @@ export default (opt: {
 		return state.time
 	}
 
+	function fps() {
+		return state.fpsCounter.fps
+	}
+
 	function numFrames() {
 		return state.numFrames
+	}
+
+	function screenshot(): string {
+		return state.canvas.toDataURL()
+	}
+
+	function setCursor(c: Cursor): void {
+		state.canvas.style.cursor = c
+	}
+
+	function getCursor(): Cursor {
+		return state.canvas.style.cursor
+	}
+
+	function setCursorLocked(b: boolean): void {
+		if (b) {
+			try {
+				const res = state.canvas.requestPointerLock() as unknown as Promise<void>
+				if (res.catch) {
+					res.catch((e) => console.error(e))
+				}
+			} catch (e) {
+				console.error(e)
+			}
+		} else {
+			document.exitPointerLock()
+		}
+	}
+
+	function isCursorLocked(): boolean {
+		return !!document.pointerLockElement
+	}
+
+	// wrappers around full screen functions to work across browsers
+	function enterFullscreen(el: HTMLElement) {
+		if (el.requestFullscreen) el.requestFullscreen()
+		// @ts-ignore
+		else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen()
+	}
+
+	function exitFullscreen() {
+		if (document.exitFullscreen) document.exitFullscreen()
+		// @ts-ignore
+		else if (document.webkitExitFullScreen) document.webkitExitFullScreen()
+	}
+
+	function getFullscreenElement(): Element | void {
+		return document.fullscreenElement
+			// @ts-ignore
+			|| document.webkitFullscreenElement
+	}
+
+	function setFullscreen(f: boolean = true) {
+		if (f) {
+			enterFullscreen(state.canvas)
+		} else {
+			exitFullscreen()
+		}
+	}
+
+	function isFullscreen(): boolean {
+		return Boolean(getFullscreenElement())
+	}
+
+	function quit() {
+		state.stopped = true
+		for (const name in canvasEvents) {
+			state.canvas.removeEventListener(name, canvasEvents[name])
+		}
+		for (const name in docEvents) {
+			document.removeEventListener(name, docEvents[name])
+		}
+		for (const name in winEvents) {
+			window.removeEventListener(name, winEvents[name])
+		}
+		resizeObserver.disconnect()
 	}
 
 	function run(action: () => void) {
@@ -168,8 +248,9 @@ export default (opt: {
 
 			state.skipTime = false
 			state.numFrames++
-			inputFrame()
+			processInput()
 			action()
+			resetInput()
 			state.loopID = requestAnimationFrame(frame)
 
 		}
@@ -228,18 +309,6 @@ export default (opt: {
 		return k === undefined
 			? state.keyState.released.size > 0
 			: state.keyState.released.has(k)
-	}
-
-	function isVirtualButtonPressed(btn: VirtualButton): boolean {
-		return state.virtualButtonState.pressed.has(btn)
-	}
-
-	function isVirtualButtonDown(btn: VirtualButton): boolean {
-		return state.virtualButtonState.down.has(btn)
-	}
-
-	function isVirtualButtonReleased(btn: VirtualButton): boolean {
-		return state.virtualButtonState.released.has(btn)
 	}
 
 	function isGamepadButtonPressed(btn?: GamepadButton): boolean {
@@ -350,18 +419,6 @@ export default (opt: {
 		return state.events.on("scroll", action)
 	}
 
-	function onVirtualButtonDown(btn: VirtualButton, action: () => void): EventController {
-		return state.events.on("virtualButtonDown", (b) => b === btn && action())
-	}
-
-	function onVirtualButtonPress(btn: VirtualButton, action: () => void): EventController {
-		return state.events.on("virtualButtonPress", (b) => b === btn && action())
-	}
-
-	function onVirtualButtonRelease(btn: VirtualButton, action: () => void): EventController {
-		return state.events.on("virtualButtonRelease", (b) => b === btn && action())
-	}
-
 	function onGamepadButtonDown(btn: GamepadButton | ((btn: GamepadButton) => void), action?: (btn: GamepadButton) => void): EventController {
 		if (typeof btn === "function") {
 			return state.events.on("gamepadButtonDown", btn)
@@ -404,12 +461,19 @@ export default (opt: {
 		return []
 	}
 
-	function inputFrame() {
+	function processInput() {
 		state.events.trigger("input")
 		state.keyState.down.forEach((k) => state.events.trigger("keyDown", k))
 		state.mouseState.down.forEach((k) => state.events.trigger("mouseDown", k))
-		state.virtualButtonState.down.forEach((k) => state.events.trigger("virtualButtonDown", k))
 		processGamepad()
+	}
+
+	function resetInput() {
+		state.keyState.update()
+		state.mouseState.update()
+		state.gamepadButtonState.update()
+		state.charInputted = []
+		state.isMouseMoved = false
 	}
 
 	function processGamepad() {
@@ -664,27 +728,22 @@ export default (opt: {
 
 	resizeObserver.observe(state.canvas)
 
-	function cleanup() {
-		for (const name in canvasEvents) {
-			state.canvas.removeEventListener(name, canvasEvents[name])
-		}
-		for (const name in docEvents) {
-			document.removeEventListener(name, docEvents[name])
-		}
-		for (const name in winEvents) {
-			window.removeEventListener(name, winEvents[name])
-		}
-		resizeObserver.disconnect()
-	}
-
 	return {
 		dt,
 		time,
 		run,
 		canvas,
+		fps,
 		numFrames,
+		quit,
+		setFullscreen,
+		isFullscreen,
+		setCursor,
+		screenshot,
+		getCursor,
+		setCursorLocked,
+		isCursorLocked,
 		isTouchScreen,
-		cleanup,
 		mousePos,
 		mouseDeltaPos,
 		isKeyDown,
@@ -695,9 +754,6 @@ export default (opt: {
 		isMousePressed,
 		isMouseReleased,
 		isMouseMoved,
-		isVirtualButtonPressed,
-		isVirtualButtonDown,
-		isVirtualButtonReleased,
 		isGamepadButtonPressed,
 		isGamepadButtonDown,
 		isGamepadButtonReleased,
@@ -716,9 +772,6 @@ export default (opt: {
 		onTouchMove,
 		onTouchEnd,
 		onScroll,
-		onVirtualButtonPress,
-		onVirtualButtonDown,
-		onVirtualButtonRelease,
 		onGamepadButtonDown,
 		onGamepadButtonPress,
 		onGamepadButtonRelease,
