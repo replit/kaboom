@@ -808,7 +808,7 @@ export interface KaboomCtx {
 	 * })
 	 * ```
 	 */
-	onKeyDown(k: Key, action: () => void): EventController,
+	onKeyDown(key: Key, action: (key: Key) => void): EventController,
 	/**
 	 * Register an event that runs when user presses certain key.
 	 *
@@ -822,7 +822,7 @@ export interface KaboomCtx {
 	 * })
 	 * ```
 	 */
-	onKeyPress(k: Key, action: (k: Key) => void): EventController,
+	onKeyPress(key: Key, action: (key: Key) => void): EventController,
 	/**
 	 * Register an event that runs when user presses any key.
 	 *
@@ -2355,6 +2355,13 @@ export type GamepadStick = "left" | "right"
 export type GamepadDef = {
 	buttons: Record<string, GamepadButton>,
 	sticks: Partial<Record<GamepadStick, { x: number, y: number }>>,
+}
+
+export type KGamePad = {
+	isPressed(b: GamepadButton): boolean,
+	isDown(b: GamepadButton): boolean,
+	isReleased(b: GamepadButton): boolean,
+	getStick(stick: GamepadStick): Vec2,
 }
 
 /**

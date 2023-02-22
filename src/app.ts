@@ -1,0 +1,734 @@
+// everything related to canvas, game loop and input
+
+import type {
+	KaboomCtx,
+	Key,
+	MouseButton,
+	VirtualButton,
+	GamepadButton,
+	GamepadStick,
+	GamepadDef,
+	KGamePad,
+} from "./types"
+
+import {
+	Vec2,
+} from "./math"
+
+import {
+	EventHandler,
+	EventController,
+} from "./utils"
+
+import GAMEPAD_MAP from "./gamepad.json"
+
+class ButtonState<T = string> {
+	pressed: Set<T> = new Set([])
+	pressedRepeat: Set<T> = new Set([])
+	released: Set<T> = new Set([])
+	down: Set<T> = new Set([])
+	update() {
+		this.pressed.clear()
+		this.released.clear()
+		this.pressedRepeat.clear()
+	}
+	press(btn: T) {
+		this.pressed.add(btn)
+		this.pressedRepeat.add(btn)
+		this.down.add(btn)
+	}
+	pressRepeat(btn: T) {
+		this.pressedRepeat.add(btn)
+	}
+	release(btn: T) {
+		this.down.delete(btn)
+		this.pressed.delete(btn)
+		this.released.add(btn)
+	}
+}
+
+class FPSCounter {
+	private dts: number[] = []
+	private timer: number = 0
+	fps: number = 0
+	tick(dt: number) {
+		this.dts.push(dt)
+		this.timer += dt
+		if (this.timer >= 1) {
+			this.timer = 0
+			this.fps = Math.round(1 / (this.dts.reduce((a, b) => a + b) / this.dts.length))
+			this.dts = []
+		}
+	}
+}
+
+export default (opt: {
+	canvas: HTMLCanvasElement,
+	touchToMouse?: boolean,
+	gamepads?: Record<string, GamepadDef>,
+	pixelDensity?: number,
+}) => {
+
+	if (!opt.canvas) {
+		throw new Error("Please provide a canvas")
+	}
+
+	const state = {
+		canvas: opt.canvas,
+		loopID: null as null | number,
+		stopped: false,
+		dt: 0,
+		time: 0,
+		realTime: 0,
+		fpsCounter: new FPSCounter(),
+		timeScale: 1,
+		skipTime: false,
+		numFrames: 0,
+		paused: false,
+		mousePos: new Vec2(0),
+		mouseDeltaPos: new Vec2(0),
+		keyState: new ButtonState<Key>(),
+		mouseState: new ButtonState<MouseButton>(),
+		virtualButtonState: new ButtonState<VirtualButton>(),
+		gamepadButtonState: new ButtonState<GamepadButton>(),
+		charInputted: [],
+		isMouseMoved: false,
+		lastWidth: opt.canvas.offsetWidth,
+		lastHeight: opt.canvas.offsetHeight,
+		events: new EventHandler<{
+			mouseMove: [],
+			mouseDown: [MouseButton],
+			mousePress: [MouseButton],
+			mouseRelease: [MouseButton],
+			charInput: [string],
+			keyPress: [Key],
+			keyDown: [Key],
+			keyPressRepeat: [Key],
+			keyRelease: [Key],
+			touchStart: [Vec2, Touch],
+			touchMove: [Vec2, Touch],
+			touchEnd: [Vec2, Touch],
+			virtualButtonDown: [VirtualButton],
+			virtualButtonPress: [VirtualButton],
+			virtualButtonRelease: [VirtualButton],
+			gamepadButtonDown: [string],
+			gamepadButtonPress: [string],
+			gamepadButtonRelease: [string],
+			gamepadStick: [string, Vec2],
+			gamepadConnect: [Gamepad],
+			gamepadDisconnect: [Gamepad],
+			scroll: [Vec2],
+			resize: [],
+			input: [],
+		}>(),
+	}
+
+	function canvas() {
+		return state.canvas
+	}
+
+	function dt() {
+		return state.dt * state.timeScale
+	}
+
+	function time() {
+		return state.time
+	}
+
+	function numFrames() {
+		return state.numFrames
+	}
+
+	function run(action: () => void) {
+
+		if (state.loopID !== null) {
+			cancelAnimationFrame(state.loopID)
+		}
+
+		const frame = (t: number) => {
+
+			if (state.stopped) return
+
+			// TODO: allow background actions?
+			if (state.paused || document.visibilityState !== "visible") {
+				state.loopID = requestAnimationFrame(frame)
+				return
+			}
+
+			const loopTime = t / 1000
+			const realDt = loopTime - state.realTime
+
+			state.realTime = loopTime
+
+			if (!state.skipTime) {
+				state.dt = realDt
+				state.time += dt()
+				state.fpsCounter.tick(state.dt)
+			}
+
+			state.skipTime = false
+			state.numFrames++
+			inputFrame()
+			action()
+			state.loopID = requestAnimationFrame(frame)
+
+		}
+
+		frame(0)
+
+	}
+
+	function isTouchScreen() {
+		return ("ontouchstart" in window) || navigator.maxTouchPoints > 0
+	}
+
+	function mousePos(): Vec2 {
+		return state.mousePos.clone()
+	}
+
+	function mouseDeltaPos(): Vec2 {
+		return state.mouseDeltaPos.clone()
+	}
+
+	function isMousePressed(m: MouseButton = "left"): boolean {
+		return state.mouseState.pressed.has(m)
+	}
+
+	function isMouseDown(m: MouseButton = "left"): boolean {
+		return state.mouseState.down.has(m)
+	}
+
+	function isMouseReleased(m: MouseButton = "left"): boolean {
+		return state.mouseState.released.has(m)
+	}
+
+	function isMouseMoved(): boolean {
+		return state.isMouseMoved
+	}
+
+	function isKeyPressed(k?: Key): boolean {
+		return k === undefined
+			? state.keyState.pressed.size > 0
+			: state.keyState.pressed.has(k)
+	}
+
+	function isKeyPressedRepeat(k?: Key): boolean {
+		return k === undefined
+			? state.keyState.pressedRepeat.size > 0
+			: state.keyState.pressedRepeat.has(k)
+	}
+
+	function isKeyDown(k?: Key): boolean {
+		return k === undefined
+			? state.keyState.down.size > 0
+			: state.keyState.down.has(k)
+	}
+
+	function isKeyReleased(k?: Key): boolean {
+		return k === undefined
+			? state.keyState.released.size > 0
+			: state.keyState.released.has(k)
+	}
+
+	function isVirtualButtonPressed(btn: VirtualButton): boolean {
+		return state.virtualButtonState.pressed.has(btn)
+	}
+
+	function isVirtualButtonDown(btn: VirtualButton): boolean {
+		return state.virtualButtonState.down.has(btn)
+	}
+
+	function isVirtualButtonReleased(btn: VirtualButton): boolean {
+		return state.virtualButtonState.released.has(btn)
+	}
+
+	function isGamepadButtonPressed(btn?: GamepadButton): boolean {
+		return btn === undefined
+			? state.gamepadButtonState.pressed.size > 0
+			: state.gamepadButtonState.pressed.has(btn)
+	}
+
+	function isGamepadButtonDown(btn?: GamepadButton): boolean {
+		return btn === undefined
+			? state.gamepadButtonState.down.size > 0
+			: state.gamepadButtonState.down.has(btn)
+	}
+
+	function isGamepadButtonReleased(btn?: GamepadButton): boolean {
+		return btn === undefined
+			? state.gamepadButtonState.released.size > 0
+			: state.gamepadButtonState.released.has(btn)
+	}
+
+	// input callbacks
+	const onKeyDown = ((key, action) => {
+		if (typeof key === "function") {
+			return state.events.on("keyDown", key)
+		} else if (typeof key === "string" && typeof action === "function") {
+			return state.events.on("keyDown", (k) => k === key && action(key))
+		}
+	}) as KaboomCtx["onKeyDown"]
+
+	const onKeyPress = ((key, action) => {
+		if (typeof key === "function") {
+			return state.events.on("keyPress", key)
+		} else if (typeof key === "string" && typeof action === "function") {
+			return state.events.on("keyPress", (k) => k === key && action(key))
+		}
+	}) as KaboomCtx["onKeyPress"]
+
+	const onKeyPressRepeat = ((key, action) => {
+		if (typeof key === "function") {
+			return state.events.on("keyPressRepeat", key)
+		} else if (typeof key === "string" && typeof action === "function") {
+			return state.events.on("keyPressRepeat", (k) => k === key && action(key))
+		}
+	}) as KaboomCtx["onKeyPressRepeat"]
+
+	const onKeyRelease = ((key, action) => {
+		if (typeof key === "function") {
+			return state.events.on("keyRelease", key)
+		} else if (typeof key === "string" && typeof action === "function") {
+			return state.events.on("keyRelease", (k) => k === key && action(key))
+		}
+	}) as KaboomCtx["onKeyRelease"]
+
+	function onMouseDown(
+		mouse: MouseButton | ((m: MouseButton) => void),
+		action?: (m: MouseButton) => void,
+	): EventController {
+		if (typeof mouse === "function") {
+			return state.events.on("mouseDown", (m) => mouse(m))
+		} else {
+			return state.events.on("mouseDown", (m) => m === mouse && action(m))
+		}
+	}
+
+	function onMousePress(
+		mouse: MouseButton | ((m: MouseButton) => void),
+		action?: (m: MouseButton) => void,
+	): EventController {
+		if (typeof mouse === "function") {
+			return state.events.on("mousePress", (m) => mouse(m))
+		} else {
+			return state.events.on("mousePress", (m) => m === mouse && action(m))
+		}
+	}
+
+	function onMouseRelease(
+		mouse: MouseButton | ((m: MouseButton) => void),
+		action?: (m: MouseButton) => void,
+	): EventController {
+		if (typeof mouse === "function") {
+			return state.events.on("mouseRelease", (m) => mouse(m))
+		} else {
+			return state.events.on("mouseRelease", (m) => m === mouse && action(m))
+		}
+	}
+
+	function onMouseMove(f: (pos: Vec2, dpos: Vec2) => void): EventController {
+		return state.events.on("mouseMove", () => f(mousePos(), mouseDeltaPos()))
+	}
+
+	function onCharInput(action: (ch: string) => void): EventController {
+		return state.events.on("charInput", action)
+	}
+
+	function onTouchStart(f: (pos: Vec2, t: Touch) => void): EventController {
+		return state.events.on("touchStart", f)
+	}
+
+	function onTouchMove(f: (pos: Vec2, t: Touch) => void): EventController {
+		return state.events.on("touchMove", f)
+	}
+
+	function onTouchEnd(f: (pos: Vec2, t: Touch) => void): EventController {
+		return state.events.on("touchEnd", f)
+	}
+
+	function onScroll(action: (delta: Vec2) => void): EventController {
+		return state.events.on("scroll", action)
+	}
+
+	function onVirtualButtonDown(btn: VirtualButton, action: () => void): EventController {
+		return state.events.on("virtualButtonDown", (b) => b === btn && action())
+	}
+
+	function onVirtualButtonPress(btn: VirtualButton, action: () => void): EventController {
+		return state.events.on("virtualButtonPress", (b) => b === btn && action())
+	}
+
+	function onVirtualButtonRelease(btn: VirtualButton, action: () => void): EventController {
+		return state.events.on("virtualButtonRelease", (b) => b === btn && action())
+	}
+
+	function onGamepadButtonDown(btn: GamepadButton | ((btn: GamepadButton) => void), action?: (btn: GamepadButton) => void): EventController {
+		if (typeof btn === "function") {
+			return state.events.on("gamepadButtonDown", btn)
+		} else if (typeof btn === "string" && typeof action === "function") {
+			return state.events.on("gamepadButtonDown", (b) => b === btn && action(btn))
+		}
+	}
+
+	function onGamepadButtonPress(btn: GamepadButton | ((btn: GamepadButton) => void), action?: (btn: GamepadButton) => void): EventController {
+		if (typeof btn === "function") {
+			return state.events.on("gamepadButtonPress", btn)
+		} else if (typeof btn === "string" && typeof action === "function") {
+			return state.events.on("gamepadButtonPress", (b) => b === btn && action(btn))
+		}
+	}
+
+	function onGamepadButtonRelease(btn: GamepadButton | ((btn: GamepadButton) => void), action?: (btn: GamepadButton) => void): EventController {
+		if (typeof btn === "function") {
+			return state.events.on("gamepadButtonRelease", btn)
+		} else if (typeof btn === "string" && typeof action === "function") {
+			return state.events.on("gamepadButtonRelease", (b) => b === btn && action(btn))
+		}
+	}
+
+	function onGamepadStick(stick: GamepadStick, action: (value: Vec2) => void): EventController {
+		return state.events.on("gamepadStick", ((a: string, v: Vec2) => a === stick && action(v)))
+	}
+
+	function getGamepadStick(stick: GamepadStick): Vec2 {
+		// TODO
+		return new Vec2(0)
+	}
+
+	function charInputted(): string[] {
+		return [...state.charInputted]
+	}
+
+	function getGamepads(): KGamePad[] {
+		// TODO
+		return []
+	}
+
+	function inputFrame() {
+		state.events.trigger("input")
+		state.keyState.down.forEach((k) => state.events.trigger("keyDown", k))
+		state.mouseState.down.forEach((k) => state.events.trigger("mouseDown", k))
+		state.virtualButtonState.down.forEach((k) => state.events.trigger("virtualButtonDown", k))
+		processGamepad()
+	}
+
+	function processGamepad() {
+
+		for (const gamepad of navigator.getGamepads()) {
+
+			if (!gamepad) continue
+
+			const custom = opt.gamepads ?? {}
+			const map = custom[gamepad.id] ?? GAMEPAD_MAP[gamepad.id] ?? GAMEPAD_MAP["default"]
+
+			for (let i = 0; i < gamepad.buttons.length; i++) {
+				if (gamepad.buttons[i].pressed) {
+					if (!state.gamepadButtonState.down.has(map.buttons[i])) {
+						state.gamepadButtonState.press(map.buttons[i])
+						state.events.trigger("gamepadButtonPress", map.buttons[i])
+					}
+					state.events.trigger("gamepadButtonDown", map.buttons[i])
+				} else {
+					if (state.gamepadButtonState.down.has(map.buttons[i])) {
+						state.gamepadButtonState.release(map.buttons[i])
+						state.events.trigger("gamepadButtonRelease", map.buttons[i])
+					}
+				}
+			}
+
+			for (const stickName in map.sticks) {
+				const stick = map.sticks[stickName]
+				const axisX = gamepad.axes[stick.x]
+				const axisY = gamepad.axes[stick.y]
+				// TODO: should these send every frame or when it changed?
+				state.events.trigger("gamepadStick", stickName, new Vec2(axisX, axisY))
+			}
+
+		}
+
+	}
+
+	type EventList<M> = {
+		[event in keyof M]?: (event: M[event]) => void
+	}
+
+	const canvasEvents: EventList<HTMLElementEventMap> = {}
+	const docEvents: EventList<DocumentEventMap> = {}
+	const winEvents: EventList<WindowEventMap> = {}
+
+	canvasEvents.mousemove = (e) => {
+		const mousePos = new Vec2(e.offsetX, e.offsetY)
+		const mouseDeltaPos = new Vec2(e.movementX, e.movementY)
+		state.events.onOnce("input", () => {
+			state.isMouseMoved = true
+			state.mousePos = mousePos
+			state.mouseDeltaPos = mouseDeltaPos
+			state.events.trigger("mouseMove")
+		})
+	}
+
+	const MOUSE_BUTTONS: MouseButton[] = [
+		"left",
+		"middle",
+		"right",
+		"back",
+		"forward",
+	]
+
+	canvasEvents.mousedown = (e) => {
+		state.events.onOnce("input", () => {
+			const m = MOUSE_BUTTONS[e.button]
+			if (!m) return
+			state.mouseState.press(m)
+			state.events.trigger("mousePress", m)
+		})
+	}
+
+	canvasEvents.mouseup = (e) => {
+		state.events.onOnce("input", () => {
+			const m = MOUSE_BUTTONS[e.button]
+			if (!m) return
+			state.mouseState.release(m)
+			state.events.trigger("mouseRelease", m)
+		})
+	}
+
+	const PREVENT_DEFAULT_KEYS = new Set([
+		" ",
+		"ArrowLeft",
+		"ArrowRight",
+		"ArrowUp",
+		"ArrowDown",
+		"Tab",
+	])
+
+	// translate these key names to a simpler version
+	const KEY_ALIAS = {
+		"ArrowLeft": "left",
+		"ArrowRight": "right",
+		"ArrowUp": "up",
+		"ArrowDown": "down",
+		" ": "space",
+	}
+
+	canvasEvents.keydown = (e) => {
+		if (PREVENT_DEFAULT_KEYS.has(e.key)) {
+			e.preventDefault()
+		}
+		state.events.onOnce("input", () => {
+			const k = KEY_ALIAS[e.key] || e.key.toLowerCase()
+			if (k.length === 1) {
+				state.events.trigger("charInput", k)
+				state.charInputted.push(k)
+			} else if (k === "space") {
+				state.events.trigger("charInput", " ")
+				state.charInputted.push(" ")
+			}
+			if (e.repeat) {
+				state.keyState.pressRepeat(k)
+				state.events.trigger("keyPressRepeat", k)
+			} else {
+				state.keyState.press(k)
+				state.events.trigger("keyPressRepeat", k)
+				state.events.trigger("keyPress", k)
+			}
+		})
+	}
+
+	canvasEvents.keyup = (e) => {
+		state.events.onOnce("input", () => {
+			const k = KEY_ALIAS[e.key] || e.key.toLowerCase()
+			state.keyState.release(k)
+			state.events.trigger("keyRelease", k)
+		})
+	}
+
+	canvasEvents.touchstart = (e) => {
+		// disable long tap context menu
+		e.preventDefault()
+		state.events.onOnce("input", () => {
+			const touches = [...e.changedTouches]
+			touches.forEach((t) => {
+				state.events.trigger(
+					"touchStart",
+					new Vec2(t.clientX, t.clientY),
+					t,
+				)
+			})
+			if (opt.touchToMouse !== false) {
+				state.mousePos = new Vec2(touches[0].clientX, touches[0].clientY)
+				state.mouseState.press("left")
+				state.events.trigger("mousePress", "left")
+			}
+		})
+	}
+
+	canvasEvents.touchmove = (e) => {
+		// disable scrolling
+		e.preventDefault()
+		state.events.onOnce("input", () => {
+			const touches = [...e.changedTouches]
+			touches.forEach((t) => {
+				state.events.trigger("touchMove", new Vec2(t.clientX, t.clientY), t)
+			})
+			if (opt.touchToMouse !== false) {
+				state.mousePos = new Vec2(touches[0].clientX, touches[0].clientY)
+				state.events.trigger("mouseMove")
+			}
+		})
+	}
+
+	canvasEvents.touchend = (e) => {
+		state.events.onOnce("input", () => {
+			const touches = [...e.changedTouches]
+			touches.forEach((t) => {
+				state.events.trigger("touchEnd", new Vec2(t.clientX, t.clientY), t)
+			})
+			if (opt.touchToMouse !== false) {
+				state.mousePos = new Vec2(touches[0].clientX, touches[0].clientY)
+				state.mouseState.release("left")
+				state.events.trigger("mouseRelease", "left")
+			}
+		})
+	}
+
+	canvasEvents.touchcancel = (e) => {
+		state.events.onOnce("input", () => {
+			const touches = [...e.changedTouches]
+			touches.forEach((t) => {
+				state.events.trigger("touchEnd", new Vec2(t.clientX, t.clientY), t)
+			})
+			if (opt.touchToMouse !== false) {
+				state.mousePos = new Vec2(touches[0].clientX, touches[0].clientY)
+				state.mouseState.release("left")
+				state.events.trigger("mouseRelease", "left")
+			}
+		})
+	}
+
+	// TODO: option to not prevent default?
+	canvasEvents.wheel = (e) => {
+		e.preventDefault()
+		state.events.onOnce("input", () => {
+			state.events.trigger("scroll", new Vec2(e.deltaX, e.deltaY))
+		})
+	}
+
+	canvasEvents.contextmenu = (e) => e.preventDefault()
+
+	docEvents.visibilitychange = () => {
+		if (document.visibilityState === "visible") {
+			// prevent a surge of dt when switch back after the tab being hidden for a while
+			state.skipTime = true
+		}
+	}
+
+	winEvents.gamepadconnected = (e) => {
+		state.events.onOnce("input", () => {
+			state.events.trigger("gamepadConnect", e.gamepad)
+		})
+	}
+
+	winEvents.gamepaddisconnected = (e) => {
+		state.events.onOnce("input", () => {
+			state.events.trigger("gamepadDisconnect", e.gamepad)
+		})
+	}
+
+	for (const name in canvasEvents) {
+		state.canvas.addEventListener(name, canvasEvents[name])
+	}
+
+	for (const name in docEvents) {
+		document.addEventListener(name, docEvents[name])
+	}
+
+	for (const name in winEvents) {
+		window.addEventListener(name, winEvents[name])
+	}
+
+	const resizeObserver = new ResizeObserver((entries) => {
+		for (const entry of entries) {
+			if (entry.target !== state.canvas) continue
+			if (
+				state.lastWidth === state.canvas.offsetWidth
+				&& state.lastHeight === state.canvas.offsetHeight
+			) return
+			state.lastWidth = state.canvas.offsetWidth
+			state.lastHeight = state.canvas.offsetHeight
+			state.events.onOnce("input", () => {
+				state.events.trigger("resize")
+			})
+		}
+	})
+
+	resizeObserver.observe(state.canvas)
+
+	function cleanup() {
+		for (const name in canvasEvents) {
+			state.canvas.removeEventListener(name, canvasEvents[name])
+		}
+		for (const name in docEvents) {
+			document.removeEventListener(name, docEvents[name])
+		}
+		for (const name in winEvents) {
+			window.removeEventListener(name, winEvents[name])
+		}
+		resizeObserver.disconnect()
+	}
+
+	return {
+		dt,
+		time,
+		run,
+		canvas,
+		numFrames,
+		isTouchScreen,
+		cleanup,
+		mousePos,
+		mouseDeltaPos,
+		isKeyDown,
+		isKeyPressed,
+		isKeyPressedRepeat,
+		isKeyReleased,
+		isMouseDown,
+		isMousePressed,
+		isMouseReleased,
+		isMouseMoved,
+		isVirtualButtonPressed,
+		isVirtualButtonDown,
+		isVirtualButtonReleased,
+		isGamepadButtonPressed,
+		isGamepadButtonDown,
+		isGamepadButtonReleased,
+		getGamepadStick,
+		charInputted,
+		onKeyDown,
+		onKeyPress,
+		onKeyPressRepeat,
+		onKeyRelease,
+		onMouseDown,
+		onMousePress,
+		onMouseRelease,
+		onMouseMove,
+		onCharInput,
+		onTouchStart,
+		onTouchMove,
+		onTouchEnd,
+		onScroll,
+		onVirtualButtonPress,
+		onVirtualButtonDown,
+		onVirtualButtonRelease,
+		onGamepadButtonDown,
+		onGamepadButtonPress,
+		onGamepadButtonRelease,
+		onGamepadStick,
+		get paused() {
+			return state.paused
+		},
+		set paused(p: boolean) {
+			state.paused = p
+		},
+	}
+
+}
