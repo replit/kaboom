@@ -1,4 +1,4 @@
-const VERSION = "3000.0.0-beta.2"
+const VERSION = "3000.0.0-beta.3"
 
 import initApp from "./app"
 
@@ -4657,7 +4657,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 				if (curPlatform) {
 					if (
-						!this.isColliding(curPlatform)
+						!this.isOverlapping(curPlatform)
 						|| !curPlatform.exists()
 						|| !curPlatform.is("body")
 					) {
