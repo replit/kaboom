@@ -691,6 +691,12 @@ export interface KaboomCtx {
 	 */
 	onResize(action: () => void): void,
 	/**
+	 * Cleanup function to run when quit() is called.
+	 *
+	 * @since v3000.0
+	 */
+	onCleanup(action: () => void): void,
+	/**
 	 * Register an event that runs when a gamepad is connected.
 	 *
 	 * @since v3000.0
@@ -809,6 +815,12 @@ export interface KaboomCtx {
 	 * ```
 	 */
 	onKeyDown(key: Key, action: (key: Key) => void): EventController,
+	/**
+	 * Register an event that runs every frame when any key is held down.
+	 *
+	 * @since v2000.1
+	 */
+	onKeyDown(action: (key: Key) => void): EventController,
 	/**
 	 * Register an event that runs when user presses certain key.
 	 *
@@ -4062,6 +4074,12 @@ export interface AreaComp extends Comp {
 	 * @since v2000.1
 	 */
 	onClick(f: () => void): void,
+	/**
+	 * Register an event runs every frame when object is dragged.
+	 *
+	 * @since v3000.0
+	 */
+	onDragging(f: () => void): void,
 	/**
 	 * Register an event runs once when hovered.
 	 *

@@ -3944,9 +3944,9 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				return col && col.hasOverlap()
 			},
 
-			onClick(this: GameObj, f: () => void): EventController {
-				return this.onUpdate(() => {
-					if (this.isClicked()) {
+			onClick(this: GameObj<AreaComp>, f: () => void): EventController {
+				return app.onMousePress("left", () => {
+					if (this.isHovering()) {
 						f()
 					}
 				})
@@ -6421,6 +6421,10 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 	}
 
+	function onCleanup(action: () => void) {
+		gc.push(action)
+	}
+
 	function quit() {
 
 		game.ev.onOnce("frameEnd", () => {
@@ -6592,6 +6596,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		onGamepadConnect,
 		onGamepadDisconnect,
 		onError,
+		onCleanup,
 		// misc
 		camPos,
 		camScale,
