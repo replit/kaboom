@@ -3895,7 +3895,7 @@ export interface FollowComp extends Comp {
 	},
 }
 
-export type MoveComp = Comp
+export interface MoveComp extends Comp {}
 
 export interface OffScreenCompOpt {
 	/**
@@ -4074,12 +4074,6 @@ export interface AreaComp extends Comp {
 	 * @since v2000.1
 	 */
 	onClick(f: () => void): void,
-	/**
-	 * Register an event runs every frame when object is dragged.
-	 *
-	 * @since v3000.0
-	 */
-	onDragging(f: () => void): void,
 	/**
 	 * Register an event runs once when hovered.
 	 *
