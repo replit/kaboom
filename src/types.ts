@@ -3895,7 +3895,7 @@ export interface FollowComp extends Comp {
 	},
 }
 
-export interface MoveComp extends Comp {}
+export type MoveComp = Comp
 
 export interface OffScreenCompOpt {
 	/**
