@@ -701,13 +701,13 @@ export interface KaboomCtx {
 	 *
 	 * @since v3000.0
 	 */
-	onGamepadConnect(action: (gamepad: Gamepad) => void): void,
+	onGamepadConnect(action: (gamepad: KGamePad) => void): void,
 	/**
 	 * Register an event that runs when a gamepad is disconnected.
 	 *
 	 * @since v3000.0
 	 */
-	onGamepadDisconnect(action: (gamepad: Gamepad) => void): void,
+	onGamepadDisconnect(action: (gamepad: KGamePad) => void): void,
 	/**
 	 * Register an event that runs once when 2 game objs with certain tags collides (required to have area() component).
 	 *
@@ -1444,7 +1444,7 @@ export interface KaboomCtx {
 	 *
 	 * @since v3000.0
 	 */
-	getGamepads(): Gamepad[],
+	getGamepads(): KGamePad[],
 	/**
 	 * Set cursor style (check Cursor type for possible values). Cursor will be reset to "default" every frame so use this in an per-frame action.
 	 *
@@ -2333,10 +2333,17 @@ export type GamepadDef = {
 	sticks: Partial<Record<GamepadStick, { x: number, y: number }>>,
 }
 
+/** A Kaboom's gamepad */
 export type KGamePad = {
+	/** The order of the gamepad in the gamepad list. */
+	index: number;
+	/** If certain button is pressed. */
 	isPressed(b: GamepadButton): boolean,
+	/** If certain button is held down. */
 	isDown(b: GamepadButton): boolean,
+	/** If certain button is released. */
 	isReleased(b: GamepadButton): boolean,
+	/** Get the value of a stick. */
 	getStick(stick: GamepadStick): Vec2,
 }
 

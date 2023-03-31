@@ -48,6 +48,11 @@ export class ButtonState<T = string> {
 	}
 }
 
+class GamepadState {
+	buttonState: ButtonState<GamepadButton> = new ButtonState()
+	stickState: Map<GamepadStick, Vec2> = new Map()
+}
+
 class FPSCounter {
 	private dts: number[] = []
 	private timer: number = 0
@@ -90,7 +95,9 @@ export default (opt: {
 		mouseDeltaPos: new Vec2(0),
 		keyState: new ButtonState<Key>(),
 		mouseState: new ButtonState<MouseButton>(),
-		gamepadButtonState: new ButtonState<GamepadButton>(),
+		mergedGamepadState: new GamepadState(),
+		gamepadStates: new Map<string, GamepadState>(),
+		gamepads: [] as KGamePad[],
 		charInputted: [],
 		isMouseMoved: false,
 		lastWidth: opt.canvas.offsetWidth,
@@ -115,8 +122,8 @@ export default (opt: {
 			gamepadButtonPress: [string],
 			gamepadButtonRelease: [string],
 			gamepadStick: [string, Vec2],
-			gamepadConnect: [Gamepad],
-			gamepadDisconnect: [Gamepad],
+			gamepadConnect: [KGamePad],
+			gamepadDisconnect: [KGamePad],
 			scroll: [Vec2],
 			resize: [],
 			input: [],
@@ -313,20 +320,20 @@ export default (opt: {
 
 	function isGamepadButtonPressed(btn?: GamepadButton): boolean {
 		return btn === undefined
-			? state.gamepadButtonState.pressed.size > 0
-			: state.gamepadButtonState.pressed.has(btn)
+			? state.mergedGamepadState.buttonState.pressed.size > 0
+			: state.mergedGamepadState.buttonState.pressed.has(btn)
 	}
 
 	function isGamepadButtonDown(btn?: GamepadButton): boolean {
 		return btn === undefined
-			? state.gamepadButtonState.down.size > 0
-			: state.gamepadButtonState.down.has(btn)
+			? state.mergedGamepadState.buttonState.down.size > 0
+			: state.mergedGamepadState.buttonState.down.has(btn)
 	}
 
 	function isGamepadButtonReleased(btn?: GamepadButton): boolean {
 		return btn === undefined
-			? state.gamepadButtonState.released.size > 0
-			: state.gamepadButtonState.released.has(btn)
+			? state.mergedGamepadState.buttonState.released.size > 0
+			: state.mergedGamepadState.buttonState.released.has(btn)
 	}
 
 	// input callbacks
@@ -447,9 +454,16 @@ export default (opt: {
 		return state.events.on("gamepadStick", ((a: string, v: Vec2) => a === stick && action(v)))
 	}
 
+	function onGamepadConnect(action: (gamepad: KGamePad) => void) {
+		state.events.on("gamepadConnect", action)
+	}
+
+	function onGamepadDisconnect(action: (gamepad: KGamePad) => void) {
+		state.events.on("gamepadDisconnect", action)
+	}
+
 	function getGamepadStick(stick: GamepadStick): Vec2 {
-		// TODO
-		return new Vec2(0)
+		return state.mergedGamepadState.stickState.get(stick) || new Vec2(0)
 	}
 
 	function charInputted(): string[] {
@@ -457,8 +471,7 @@ export default (opt: {
 	}
 
 	function getGamepads(): KGamePad[] {
-		// TODO
-		return []
+		return [...state.gamepads]
 	}
 
 	function processInput() {
@@ -471,30 +484,85 @@ export default (opt: {
 	function resetInput() {
 		state.keyState.update()
 		state.mouseState.update()
-		state.gamepadButtonState.update()
+		state.mergedGamepadState.buttonState.update()
+		state.mergedGamepadState.stickState.forEach((v, k) => {
+			state.mergedGamepadState.stickState.set(k, new Vec2(0))
+		})
 		state.charInputted = []
 		state.isMouseMoved = false
+
+		state.gamepadStates.forEach((s) => {
+			s.buttonState.update()
+			s.stickState.forEach((v, k) => {
+				s.stickState.set(k, new Vec2(0))
+			})
+		})
+	}
+
+	function registerGamepad(gamepad: Gamepad) {
+		const kbGamepad = {
+			index: gamepad.index,
+
+			isPressed(btn: GamepadButton) {
+				return state.gamepadStates.get(gamepad.index.toString()).buttonState.pressed.has(btn)
+			},
+
+			isDown(btn: GamepadButton) {	
+				return state.gamepadStates.get(gamepad.index.toString()).buttonState.down.has(btn)
+			},
+
+			isReleased(btn: GamepadButton) {
+				return state.gamepadStates.get(gamepad.index.toString()).buttonState.released.has(btn)
+			},
+
+			getStick(stick: GamepadStick) {
+				return state.gamepadStates.get(gamepad.index.toString()).stickState.get(stick)
+			},
+		}
+
+		state.gamepads.push(kbGamepad)
+
+		state.gamepadStates.set(gamepad.index.toString(), {
+			buttonState: new ButtonState(),
+			stickState: new Map([
+				["left", new Vec2(0)],
+				["right", new Vec2(0)],
+			]),
+		})
+
+		return kbGamepad
+	}
+
+	function removeGamepad(gamepad: Gamepad) {
+		state.gamepads = state.gamepads.filter((g) => g.index !== gamepad.index)
+		state.gamepadStates.delete(gamepad.index.toString())
 	}
 
 	function processGamepad() {
+		for (const browserGamepad of navigator.getGamepads()) {
+			if (browserGamepad && !state.gamepadStates.has(browserGamepad.index.toString())) {
+				registerGamepad(browserGamepad)
+			}
+		}
 
-		for (const gamepad of navigator.getGamepads()) {
+		for (const gamepad of state.gamepads) {
+			const browserGamepad = navigator.getGamepads()[gamepad.index]
 
-			if (!gamepad) continue
+			const customMap = opt.gamepads ?? {}
+			const map = customMap[browserGamepad.id] ?? GAMEPAD_MAP[browserGamepad.id] ?? GAMEPAD_MAP["default"]
 
-			const custom = opt.gamepads ?? {}
-			const map = custom[gamepad.id] ?? GAMEPAD_MAP[gamepad.id] ?? GAMEPAD_MAP["default"]
-
-			for (let i = 0; i < gamepad.buttons.length; i++) {
-				if (gamepad.buttons[i].pressed) {
-					if (!state.gamepadButtonState.down.has(map.buttons[i])) {
-						state.gamepadButtonState.press(map.buttons[i])
+			for (let i = 0; i < browserGamepad.buttons.length; i++) {
+				if (browserGamepad.buttons[i].pressed) {
+					if (!state.gamepadStates.get(gamepad.index.toString()).buttonState.down.has(map.buttons[i])) {
+						state.mergedGamepadState.buttonState.press(map.buttons[i])
+						state.gamepadStates.get(gamepad.index.toString()).buttonState.press(map.buttons[i])
 						state.events.trigger("gamepadButtonPress", map.buttons[i])
 					}
 					state.events.trigger("gamepadButtonDown", map.buttons[i])
 				} else {
-					if (state.gamepadButtonState.down.has(map.buttons[i])) {
-						state.gamepadButtonState.release(map.buttons[i])
+					if (state.gamepadStates.get(gamepad.index.toString()).buttonState.down.has(map.buttons[i])) {
+						state.mergedGamepadState.buttonState.release(map.buttons[i])
+						state.gamepadStates.get(gamepad.index.toString()).buttonState.release(map.buttons[i])
 						state.events.trigger("gamepadButtonRelease", map.buttons[i])
 					}
 				}
@@ -502,14 +570,15 @@ export default (opt: {
 
 			for (const stickName in map.sticks) {
 				const stick = map.sticks[stickName]
-				const axisX = gamepad.axes[stick.x]
-				const axisY = gamepad.axes[stick.y]
-				// TODO: should these send every frame or when it changed?
-				state.events.trigger("gamepadStick", stickName, new Vec2(axisX, axisY))
+				const value = new Vec2(
+					browserGamepad.axes[stick.x],
+					browserGamepad.axes[stick.y],
+				)
+				state.gamepadStates.get(gamepad.index.toString()).stickState.set(stickName as GamepadStick, value)
+				state.mergedGamepadState.stickState.set(stickName as GamepadStick, value)
+				state.events.trigger("gamepadStick", stickName, value)
 			}
-
 		}
-
 	}
 
 	type EventList<M> = {
@@ -688,14 +757,19 @@ export default (opt: {
 	}
 
 	winEvents.gamepadconnected = (e) => {
-		state.events.onOnce("input", () => {
-			state.events.trigger("gamepadConnect", e.gamepad)
+		const kbGamepad = registerGamepad(e.gamepad)
+
+		state.events.onOnce("input", () => {	
+			state.events.trigger("gamepadConnect", kbGamepad)
 		})
 	}
 
 	winEvents.gamepaddisconnected = (e) => {
+		const kbGamepad = getGamepads().filter((g) => g.index === e.gamepad.index)[0]
+		removeGamepad(e.gamepad)
+
 		state.events.onOnce("input", () => {
-			state.events.trigger("gamepadDisconnect", e.gamepad)
+			state.events.trigger("gamepadDisconnect", kbGamepad)
 		})
 	}
 
@@ -740,6 +814,7 @@ export default (opt: {
 		isFullscreen,
 		setCursor,
 		screenshot,
+		getGamepads,
 		getCursor,
 		setCursorLocked,
 		isCursorLocked,
@@ -776,6 +851,8 @@ export default (opt: {
 		onGamepadButtonPress,
 		onGamepadButtonRelease,
 		onGamepadStick,
+		onGamepadConnect,
+		onGamepadDisconnect,
 		get paused() {
 			return state.paused
 		},

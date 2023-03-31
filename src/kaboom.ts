@@ -3594,12 +3594,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		return gfx.bgColor.clone()
 	}
 
-	// TODO: return custom Gamepad type with isButtonPressed(), getStick() methods etc
-	// Get connected gamepads
-	function getGamepads(): Gamepad[] {
-		return navigator.getGamepads().filter((g) => g !== null)
-	}
-
 	// TODO: manage global velocity here?
 	function pos(...args: Vec2Args): PosComp {
 
@@ -6355,14 +6349,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		game.ev.on("resize", action)
 	}
 
-	function onGamepadConnect(action: (gamepad: Gamepad) => void) {
-		game.ev.on("gamepadConnect", action)
-	}
-
-	function onGamepadDisconnect(action: (gamepad: Gamepad) => void) {
-		game.ev.on("gamepadDisconnect", action)
-	}
-
 	function onError(action: (err: Error) => void) {
 		game.ev.on("error", action)
 	}
@@ -6593,8 +6579,8 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		onLoad,
 		onLoading,
 		onResize,
-		onGamepadConnect,
-		onGamepadDisconnect,
+		onGamepadConnect: app.onGamepadConnect,
+		onGamepadDisconnect: app.onGamepadDisconnect,
 		onError,
 		onCleanup,
 		// misc
@@ -6608,7 +6594,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		getGravity,
 		setBackground,
 		getBackground,
-		getGamepads,
+		getGamepads: app.getGamepads,
 		// obj
 		add,
 		destroy,
