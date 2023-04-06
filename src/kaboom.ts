@@ -3431,7 +3431,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	}
 
 	function forAllCurrentAndFuture(t: Tag, action: (obj: GameObj) => void) {
-		get(t).forEach(action)
+		get(t, { recursive: true }).forEach(action)
 		onAdd(t, action)
 	}
 
