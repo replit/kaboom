@@ -2940,6 +2940,10 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		)
 	}
 
+	function mousePos() {
+		return windowToContent(app.mousePos())
+	}
+
 	winEvents.error = (e) => {
 		if (e.error) {
 			handleErr(e.error)
@@ -3923,7 +3927,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			},
 
 			isHovering(this: GameObj) {
-				const mpos = this.fixed ? app.mousePos() : toWorld(app.mousePos())
+				const mpos = this.fixed ? mousePos() : toWorld(mousePos())
 				return this.hasPoint(mpos)
 			},
 
@@ -6169,7 +6173,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 					}
 				}
 
-				drawInspectText(contentToView(app.mousePos()), lines.join("\n"))
+				drawInspectText(contentToView(mousePos()), lines.join("\n"))
 
 			}
 
@@ -6676,7 +6680,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		onGamepadButtonPress: app.onGamepadButtonPress,
 		onGamepadButtonRelease: app.onGamepadButtonRelease,
 		onGamepadStick: app.onGamepadStick,
-		mousePos: app.mousePos,
+		mousePos: mousePos,
 		mouseDeltaPos: app.mouseDeltaPos,
 		isKeyDown: app.isKeyDown,
 		isKeyPressed: app.isKeyPressed,
