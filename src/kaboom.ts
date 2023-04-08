@@ -1553,7 +1553,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			},
 
 			set volume(val: number) {
-				gainNode.gain.value = val
+				gainNode.gain.value = Math.max(val, 0)
 			},
 
 			get volume() {
