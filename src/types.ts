@@ -1085,7 +1085,7 @@ export interface KaboomCtx {
 		imgSrc: LoadSpriteSrc,
 		jsonSrc: string
 	): Asset<SpriteData>,
-	loadPedit(name: string, src: string): Asset<SpriteData>,
+	loadPedit(name: string | null, src: string): Asset<SpriteData>,
 	/**
 	 * Load default sprite "bean".
 	 *
@@ -1100,6 +1100,12 @@ export interface KaboomCtx {
 	 * ```
 	 */
 	loadBean(name?: string): Asset<SpriteData>,
+	/**
+	 * Load custom JSON data from url.
+	 *
+	 * @since v3000.0
+	 */
+	loadJSON(name: string | null, url: string): Asset<any>,
 	/**
 	 * Load a sound into asset manager, with name and resource url.
 	 *
@@ -1204,35 +1210,41 @@ export interface KaboomCtx {
 	 */
 	loadProgress(): number,
 	/**
-	 * Get SpriteData from handle if loaded.
+	 * Get SpriteData from name.
 	 *
 	 * @since v3000.0
 	 */
-	getSprite(handle: string): Asset<SpriteData> | void,
+	getSprite(name: string): Asset<SpriteData> | void,
 	/**
-	 * Get SoundData from handle if loaded.
+	 * Get SoundData from name.
 	 *
 	 * @since v3000.0
 	 */
-	getSound(handle: string): Asset<SoundData> | void,
+	getSound(name: string): Asset<SoundData> | void,
 	/**
-	 * Get FontData from handle if loaded.
+	 * Get FontData from name.
 	 *
 	 * @since v3000.0
 	 */
-	getFont(handle: string): Asset<FontData> | void,
+	getFont(name: string): Asset<FontData> | void,
 	/**
-	 * Get BitmapFontData from handle if loaded.
+	 * Get BitmapFontData from name.
 	 *
 	 * @since v3000.0
 	 */
-	getBitmapFont(handle: string): Asset<BitmapFontData> | void,
+	getBitmapFont(name: string): Asset<BitmapFontData> | void,
 	/**
-	 * Get ShaderData from handle if loaded.
+	 * Get ShaderData from name.
 	 *
 	 * @since v3000.0
 	 */
-	getShader(handle: string): Asset<ShaderData> | void,
+	getShader(name: string): Asset<ShaderData> | void,
+	/**
+	 * Get custom data from name.
+	 *
+	 * @since v3000.0
+	 */
+	getAsset(name: string): Asset<any> | void,
 	Asset: typeof Asset,
 	SpriteData: typeof SpriteData,
 	SoundData: typeof SoundData,

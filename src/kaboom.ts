@@ -1038,6 +1038,10 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		})
 	}
 
+	function loadJSON(name, url) {
+		return assets.custom.add(name, fetchJSON(url))
+	}
+
 	class FontData {
 		fontface: FontFace
 		outline: number
@@ -1327,6 +1331,10 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 	function getShader(handle: string): Asset<ShaderData> | void {
 		return assets.shaders.get(handle)
+	}
+
+	function getAsset(handle: string): Asset<any> | void {
+		return assets.custom.get(handle)
 	}
 
 	function resolveSprite(
@@ -6578,12 +6586,14 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		loadAseprite,
 		loadPedit,
 		loadBean,
+		loadJSON,
 		load,
 		getSprite,
 		getSound,
 		getFont,
 		getBitmapFont,
 		getShader,
+		getAsset,
 		Asset,
 		SpriteData,
 		SoundData,
