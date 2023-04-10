@@ -34,7 +34,6 @@ import {
 	testRectLine,
 	testRectPoint,
 	testPolygonPoint,
-	testCirclePoint,
 	testCirclePolygon,
 	deg2rad,
 	rad2deg,
@@ -86,6 +85,7 @@ import type {
 	ShaderData,
 	LoadSpriteSrc,
 	LoadSpriteOpt,
+	LoadSoundOpt,
 	SpriteAtlasData,
 	LoadBitmapFontOpt,
 	KaboomCtx,
@@ -404,6 +404,10 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 	const app = initApp({
 		canvas: canvas,
+		touchToMouse: gopt.touchToMouse,
+		gamepads: gopt.gamepads,
+		pixelDensity: gopt.pixelDensity,
+		maxFPS: gopt.maxFPS,
 	})
 
 	const gc: Array<() => void> = []
@@ -832,15 +836,27 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			return asset
 		}
 		onLoad(action: (data: D) => void) {
-			this.onLoadEvents.add(action)
+			if (this.loaded && this.data) {
+				action(this.data)
+			} else {
+				this.onLoadEvents.add(action)
+			}
 			return this
 		}
 		onError(action: (err: Error) => void) {
-			this.onErrorEvents.add(action)
+			if (this.loaded && this.error) {
+				action(this.error)
+			} else {
+				this.onErrorEvents.add(action)
+			}
 			return this
 		}
 		onFinish(action: () => void) {
-			this.onFinishEvents.add(action)
+			if (this.loaded) {
+				action()
+			} else {
+				this.onFinishEvents.add(action)
+			}
 			return this
 		}
 		then(action: (data: D) => void): Asset<D> {
@@ -1092,8 +1108,8 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	): Asset<Record<string, SpriteData>> {
 		if (typeof data === "string") {
 			return load(new Promise((res, rej) => {
-				fetchJSON(data).then((data2) => {
-					loadSpriteAtlas(src, data2).then(res).catch(rej)
+				fetchJSON(data).then((json) => {
+					loadSpriteAtlas(src, json).then(res).catch(rej)
 				})
 			}))
 		}
@@ -1279,6 +1295,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	function loadSound(
 		name: string | null,
 		src: string | ArrayBuffer,
+		opts: LoadSoundOpt = {},
 	): Asset<SoundData> {
 		return assets.sounds.add(
 			name,
@@ -1338,20 +1355,20 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 	function resolveSound(
 		src: Parameters<typeof play>[0],
-	): SoundData | Asset<SoundData> | null {
+	): Asset<SoundData> | null {
 		if (typeof src === "string") {
 			const snd = getSound(src)
 			if (snd) {
-				return snd.data ?? snd
+				return snd
 			} else if (loadProgress() < 1) {
 				return null
 			} else {
 				throw new Error(`Sound not found: ${src}`)
 			}
 		} else if (src instanceof SoundData) {
-			return src
+			return Asset.loaded(src)
 		} else if (src instanceof Asset) {
-			return src.data ? src.data : src
+			return src
 		} else {
 			throw new Error(`Invalid sound: ${src}`)
 		}
@@ -1431,7 +1448,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		opt: AudioPlayOpt = {},
 	): AudioPlay {
 
-		const snd = resolveSound(src)
 		const ctx = audio.ctx
 		let paused = opt.paused ?? false
 		let srcNode = ctx.createBufferSource()
@@ -1463,10 +1479,10 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			}
 		}
 
+		const snd = resolveSound(src)
+
 		if (snd instanceof Asset) {
 			snd.onLoad(start)
-		} else if (snd instanceof SoundData) {
-			start(snd)
 		}
 
 		const getTime = () => {
@@ -1553,7 +1569,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			},
 
 			set volume(val: number) {
-				gainNode.gain.value = val
+				gainNode.gain.value = Math.max(val, 0)
 			},
 
 			get volume() {
@@ -2940,6 +2956,10 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		)
 	}
 
+	function mousePos() {
+		return windowToContent(app.mousePos())
+	}
+
 	winEvents.error = (e) => {
 		if (e.error) {
 			handleErr(e.error)
@@ -3288,6 +3308,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				}
 			},
 
+			// TODO: catch events in component "add" event so they don't have to manually clean up
 			on(name: string, action: (...args) => void): EventController {
 				return ev.on(name, action.bind(this))
 			},
@@ -3431,7 +3452,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	}
 
 	function forAllCurrentAndFuture(t: Tag, action: (obj: GameObj) => void) {
-		get(t).forEach(action)
+		get(t, { recursive: true }).forEach(action)
 		onAdd(t, action)
 	}
 
@@ -3917,7 +3938,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			},
 
 			isHovering(this: GameObj) {
-				const mpos = this.fixed ? app.mousePos() : toWorld(app.mousePos())
+				const mpos = this.fixed ? mousePos() : toWorld(mousePos())
 				return this.hasPoint(mpos)
 			},
 
@@ -4209,36 +4230,41 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 			},
 
-			update(this: GameObj<SpriteComp>) {
+			add(this: GameObj<SpriteComp>) {
 
-				// TODO: get sprite data in add()
-				if (!spriteData) {
+				const setSpriteData = (spr) => {
 
-					const spr = resolveSprite(src)
-
-					if (!spr || !spr.data) {
-						return
-					}
-
-					let q = spr.data.frames[0].clone()
+					let q = spr.frames[0].clone()
 
 					if (opt.quad) {
 						q = q.scale(opt.quad)
 					}
 
-					const scale = calcTexScale(spr.data.tex, q, opt.width, opt.height)
+					const scale = calcTexScale(spr.tex, q, opt.width, opt.height)
 
-					this.width = spr.data.tex.width * q.w * scale.x
-					this.height = spr.data.tex.height * q.h * scale.y
+					this.width = spr.tex.width * q.w * scale.x
+					this.height = spr.tex.height * q.h * scale.y
 
 					if (opt.anim) {
 						this.play(opt.anim)
 					}
 
-					spriteData = spr.data
+					spriteData = spr
 					spriteLoadedEvent.trigger(spriteData)
 
 				}
+
+				const spr = resolveSprite(src)
+
+				if (spr) {
+					spr.onLoad(setSpriteData)
+				} else {
+					onLoad(() => setSpriteData(resolveSprite(src).data))
+				}
+
+			},
+
+			update(this: GameObj<SpriteComp>) {
 
 				if (!curAnim) {
 					return
@@ -4805,11 +4831,11 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			id: "health",
 			hurt(this: GameObj, n: number = 1) {
 				this.setHP(hp - n)
-				this.trigger("hurt")
+				this.trigger("hurt", n)
 			},
 			heal(this: GameObj, n: number = 1) {
 				this.setHP(hp + n)
-				this.trigger("heal")
+				this.trigger("heal", n)
 			},
 			hp(): number {
 				return hp
@@ -4820,10 +4846,10 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 					this.trigger("death")
 				}
 			},
-			onHurt(this: GameObj, action: () => void): EventController {
+			onHurt(this: GameObj, action: (amount?: number) => void): EventController {
 				return this.on("hurt", action)
 			},
-			onHeal(this: GameObj, action: () => void): EventController {
+			onHeal(this: GameObj, action: (amount?: number) => void): EventController {
 				return this.on("heal", action)
 			},
 			onDeath(this: GameObj, action: () => void): EventController {
@@ -5008,8 +5034,9 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 		game.ev.onOnce("frameEnd", () => {
 
-			game.ev = new EventHandler()
-			game.objEvents = new EventHandler()
+			app.events.clear()
+			game.ev.clear()
+			game.objEvents.clear()
 
 			;[...game.root.children].forEach((obj) => {
 				if (
@@ -6163,7 +6190,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 					}
 				}
 
-				drawInspectText(contentToView(app.mousePos()), lines.join("\n"))
+				drawInspectText(contentToView(mousePos()), lines.join("\n"))
 
 			}
 
@@ -6662,7 +6689,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		onGamepadButtonPress: app.onGamepadButtonPress,
 		onGamepadButtonRelease: app.onGamepadButtonRelease,
 		onGamepadStick: app.onGamepadStick,
-		mousePos: app.mousePos,
+		mousePos: mousePos,
 		mouseDeltaPos: app.mouseDeltaPos,
 		isKeyDown: app.isKeyDown,
 		isKeyPressed: app.isKeyPressed,

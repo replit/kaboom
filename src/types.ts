@@ -2449,6 +2449,12 @@ export interface KaboomOpt {
 	 */
 	gamepads?: Record<string, GamepadDef>,
 	/**
+	 * Limit framerate to an amount per second.
+	 *
+	 * @since v3000.0
+	 */
+	maxFPS?: number,
+	/**
 	 * If import all kaboom functions to global (default true).
 	 */
 	global?: boolean,
@@ -2734,6 +2740,13 @@ export interface LoadSpriteOpt {
 	 * Animation configuration.
 	 */
 	anims?: SpriteAnims,
+}
+
+export interface LoadSoundOpt {
+	/**
+	 * If stream audio instead of loading the entire audio upfront, use this for large audio files like background music.
+	 */
+	stream?: boolean,
 }
 
 export type NineSlice = {
@@ -4692,13 +4705,13 @@ export interface HealthComp extends Comp {
 	 *
 	 * @since v2000.1
 	 */
-	onHurt(action: () => void): EventController,
+	onHurt(action: (amount?: number) => void): EventController,
 	/**
 	 * Register an event that runs when heal() is called upon the object.
 	 *
 	 * @since v2000.1
 	 */
-	onHeal(action: () => void): EventController,
+	onHeal(action: (amount?: number) => void): EventController,
 	/**
 	 * Register an event that runs when object's HP is equal or below 0.
 	 *
