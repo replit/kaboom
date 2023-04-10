@@ -226,6 +226,8 @@ export default (opt: {
 			cancelAnimationFrame(state.loopID)
 		}
 
+		let accumulatedDt = 0
+
 		const frame = (t: number) => {
 
 			if (state.stopped) return
@@ -238,20 +240,25 @@ export default (opt: {
 
 			const loopTime = t / 1000
 			const realDt = loopTime - state.realTime
+			const desiredDt = opt.maxFPS ? 1 / opt.maxFPS : 0
 
 			state.realTime = loopTime
+			accumulatedDt += realDt
 
-			if (!state.skipTime) {
-				state.dt = realDt
-				state.time += dt()
-				state.fpsCounter.tick(state.dt)
+			if (accumulatedDt > desiredDt) {
+				if (!state.skipTime) {
+					state.dt = accumulatedDt
+					state.time += dt()
+					state.fpsCounter.tick(state.dt)
+				}
+				accumulatedDt = 0
+				state.skipTime = false
+				state.numFrames++
+				processInput()
+				action()
+				resetInput()
 			}
 
-			state.skipTime = false
-			state.numFrames++
-			processInput()
-			action()
-			resetInput()
 			state.loopID = requestAnimationFrame(frame)
 
 		}
