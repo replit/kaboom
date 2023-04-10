@@ -2729,6 +2729,13 @@ export interface LoadSpriteOpt {
 	anims?: SpriteAnims,
 }
 
+export interface LoadSoundOpt {
+	/**
+	 * If stream audio instead of loading the entire audio upfront, use this for large audio files like background music.
+	 */
+	stream?: boolean,
+}
+
 export type NineSlice = {
 	/**
 	 * The width of the 9-slice's left column.

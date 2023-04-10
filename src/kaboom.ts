@@ -34,7 +34,6 @@ import {
 	testRectLine,
 	testRectPoint,
 	testPolygonPoint,
-	testCirclePoint,
 	testCirclePolygon,
 	deg2rad,
 	rad2deg,
@@ -86,6 +85,7 @@ import type {
 	ShaderData,
 	LoadSpriteSrc,
 	LoadSpriteOpt,
+	LoadSoundOpt,
 	SpriteAtlasData,
 	LoadBitmapFontOpt,
 	KaboomCtx,
@@ -1104,8 +1104,8 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	): Asset<Record<string, SpriteData>> {
 		if (typeof data === "string") {
 			return load(new Promise((res, rej) => {
-				fetchJSON(data).then((data2) => {
-					loadSpriteAtlas(src, data2).then(res).catch(rej)
+				fetchJSON(data).then((json) => {
+					loadSpriteAtlas(src, json).then(res).catch(rej)
 				})
 			}))
 		}
@@ -1291,6 +1291,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	function loadSound(
 		name: string | null,
 		src: string | ArrayBuffer,
+		opts: LoadSoundOpt = {},
 	): Asset<SoundData> {
 		return assets.sounds.add(
 			name,
@@ -1350,20 +1351,20 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 	function resolveSound(
 		src: Parameters<typeof play>[0],
-	): SoundData | Asset<SoundData> | null {
+	): Asset<SoundData> | null {
 		if (typeof src === "string") {
 			const snd = getSound(src)
 			if (snd) {
-				return snd.data ?? snd
+				return snd
 			} else if (loadProgress() < 1) {
 				return null
 			} else {
 				throw new Error(`Sound not found: ${src}`)
 			}
 		} else if (src instanceof SoundData) {
-			return src
+			return Asset.loaded(src)
 		} else if (src instanceof Asset) {
-			return src.data ? src.data : src
+			return src
 		} else {
 			throw new Error(`Invalid sound: ${src}`)
 		}
@@ -1443,7 +1444,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		opt: AudioPlayOpt = {},
 	): AudioPlay {
 
-		const snd = resolveSound(src)
 		const ctx = audio.ctx
 		let paused = opt.paused ?? false
 		let srcNode = ctx.createBufferSource()
@@ -1475,10 +1475,10 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			}
 		}
 
+		const snd = resolveSound(src)
+
 		if (snd instanceof Asset) {
 			snd.onLoad(start)
-		} else if (snd instanceof SoundData) {
-			start(snd)
 		}
 
 		const getTime = () => {
