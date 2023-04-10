@@ -832,15 +832,27 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			return asset
 		}
 		onLoad(action: (data: D) => void) {
-			this.onLoadEvents.add(action)
+			if (this.loaded && this.data) {
+				action(this.data)
+			} else {
+				this.onLoadEvents.add(action)
+			}
 			return this
 		}
 		onError(action: (err: Error) => void) {
-			this.onErrorEvents.add(action)
+			if (this.loaded && this.error) {
+				action(this.error)
+			} else {
+				this.onErrorEvents.add(action)
+			}
 			return this
 		}
 		onFinish(action: () => void) {
-			this.onFinishEvents.add(action)
+			if (this.loaded) {
+				action()
+			} else {
+				this.onFinishEvents.add(action)
+			}
 			return this
 		}
 		then(action: (data: D) => void): Asset<D> {
@@ -3292,6 +3304,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				}
 			},
 
+			// TODO: catch events in component "add" event so they don't have to manually clean up
 			on(name: string, action: (...args) => void): EventController {
 				return ev.on(name, action.bind(this))
 			},
@@ -4219,16 +4232,16 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 			},
 
-			update(this: GameObj<SpriteComp>) {
+			add(this: GameObj<SpriteComp>) {
 
-				// TODO: get sprite data in add()
-				if (!spriteData) {
+				const spr = resolveSprite(src)
 
-					const spr = resolveSprite(src)
+				if (!spr) {
+					throw new Error(`Sprite not found: ${src}`)
+				}
 
-					if (!spr || !spr.data) {
-						return
-					}
+				// TODO: does this run if it's already loaded
+				spr.onLoad(() => {
 
 					let q = spr.data.frames[0].clone()
 
@@ -4248,7 +4261,11 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 					spriteData = spr.data
 					spriteLoadedEvent.trigger(spriteData)
 
-				}
+				})
+
+			},
+
+			update(this: GameObj<SpriteComp>) {
 
 				if (!curAnim) {
 					return

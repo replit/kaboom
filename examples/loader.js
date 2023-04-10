@@ -16,13 +16,13 @@ loadSprite("bean", "/sprites/bean.png").onError(() => {
 	spr = data
 })
 
+loadSprite("ghosty", "/sprites/ghosty.png")
+
 // load() adds a Promise under kaboom's management, which affects loadProgress()
 // Here we intentionally stall the loading by 1sec to see the loading screen
 load(new Promise((res) => {
 	// wait() won't work here because timers are not run during loading so we use setTimeout
 	setTimeout(() => {
-		loadAseprite("you", "/examples/sprites/you.png")
-		loadSprite("ghosty", "/sprites/ghosty.png")
 		res()
 	}, 1000)
 }))
@@ -36,11 +36,6 @@ const bugSound = loadSound("bug", "/examples/sounds/bug.mp3")
 volume(0.1)
 
 onKeyPress("space", () => play(bugSound))
-
-add([
-	sprite("you"),
-	pos(120),
-])
 
 // Custom loading screen
 // Runs the callback every frame during loading
