@@ -52,6 +52,12 @@ ${examples.map((example) => `<li><a href="/${example}">${example}</a></li>`).joi
 	})
 
 	app.get("/:name", (req, res) => {
+		const name = req.params.name
+		if (!fs.existsSync(`examples/${name}.js`)) {
+			res.status(404)
+			res.send(`example not found: ${name}`)
+			return
+		}
 		res.setHeader("Content-Type", "text/html")
 		res.send(`
 <!DOCTYPE html>
@@ -60,7 +66,7 @@ ${examples.map((example) => `<li><a href="/${example}">${example}</a></li>`).joi
 </head>
 <body>
 <script src="/dist/kaboom.js"></script>
-<script src="/examples/${req.params.name}.js"></script>
+<script src="/examples/${name}.js"></script>
 </body>
 </html>
 		`)
