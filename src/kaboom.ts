@@ -4234,34 +4234,35 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 			add(this: GameObj<SpriteComp>) {
 
-				const spr = resolveSprite(src)
+				const setSpriteData = (spr) => {
 
-				if (!spr) {
-					throw new Error(`Sprite not found: ${src}`)
-				}
-
-				// TODO: does this run if it's already loaded
-				spr.onLoad(() => {
-
-					let q = spr.data.frames[0].clone()
+					let q = spr.frames[0].clone()
 
 					if (opt.quad) {
 						q = q.scale(opt.quad)
 					}
 
-					const scale = calcTexScale(spr.data.tex, q, opt.width, opt.height)
+					const scale = calcTexScale(spr.tex, q, opt.width, opt.height)
 
-					this.width = spr.data.tex.width * q.w * scale.x
-					this.height = spr.data.tex.height * q.h * scale.y
+					this.width = spr.tex.width * q.w * scale.x
+					this.height = spr.tex.height * q.h * scale.y
 
 					if (opt.anim) {
 						this.play(opt.anim)
 					}
 
-					spriteData = spr.data
+					spriteData = spr
 					spriteLoadedEvent.trigger(spriteData)
 
-				})
+				}
+
+				const spr = resolveSprite(src)
+
+				if (spr) {
+					spr.onLoad(setSpriteData)
+				} else {
+					onLoad(() => setSpriteData(resolveSprite(src).data))
+				}
 
 			},
 

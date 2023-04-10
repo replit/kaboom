@@ -7,6 +7,10 @@ kaboom()
 loadSprite("bean", "/sprites/bean.png")
 loadSprite("ghosty", "/sprites/ghosty.png")
 
+onLoad(() => {
+	console.log(player.width)
+})
+
 // A "Game Object" is the basic unit of entity in kaboom
 // Game objects are composed from components
 // Each component gives a game object certain capabilities
