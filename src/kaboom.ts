@@ -5036,8 +5036,9 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 		game.ev.onOnce("frameEnd", () => {
 
-			game.ev = new EventHandler()
-			game.objEvents = new EventHandler()
+			app.events.clear()
+			game.ev.clear()
+			game.objEvents.clear()
 
 			;[...game.root.children].forEach((obj) => {
 				if (

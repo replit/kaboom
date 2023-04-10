@@ -776,6 +776,7 @@ export default (opt: {
 		onGamepadButtonPress,
 		onGamepadButtonRelease,
 		onGamepadStick,
+		events: state.events,
 		get paused() {
 			return state.paused
 		},
