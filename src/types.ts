@@ -4692,13 +4692,13 @@ export interface HealthComp extends Comp {
 	 *
 	 * @since v2000.1
 	 */
-	onHurt(action: () => void): EventController,
+	onHurt(action: (amount?: number) => void): EventController,
 	/**
 	 * Register an event that runs when heal() is called upon the object.
 	 *
 	 * @since v2000.1
 	 */
-	onHeal(action: () => void): EventController,
+	onHeal(action: (amount?: number) => void): EventController,
 	/**
 	 * Register an event that runs when object's HP is equal or below 0.
 	 *

@@ -4833,11 +4833,11 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			id: "health",
 			hurt(this: GameObj, n: number = 1) {
 				this.setHP(hp - n)
-				this.trigger("hurt")
+				this.trigger("hurt", n)
 			},
 			heal(this: GameObj, n: number = 1) {
 				this.setHP(hp + n)
-				this.trigger("heal")
+				this.trigger("heal", n)
 			},
 			hp(): number {
 				return hp
@@ -4848,10 +4848,10 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 					this.trigger("death")
 				}
 			},
-			onHurt(this: GameObj, action: () => void): EventController {
+			onHurt(this: GameObj, action: (amount?: number) => void): EventController {
 				return this.on("hurt", action)
 			},
-			onHeal(this: GameObj, action: () => void): EventController {
+			onHeal(this: GameObj, action: (amount?: number) => void): EventController {
 				return this.on("heal", action)
 			},
 			onDeath(this: GameObj, action: () => void): EventController {
