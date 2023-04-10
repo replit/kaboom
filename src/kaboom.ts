@@ -404,6 +404,10 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 	const app = initApp({
 		canvas: canvas,
+		touchToMouse: gopt.touchToMouse,
+		gamepads: gopt.gamepads,
+		pixelDensity: gopt.pixelDensity,
+		maxFPS: gopt.maxFPS,
 	})
 
 	const gc: Array<() => void> = []

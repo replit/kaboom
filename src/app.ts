@@ -68,6 +68,7 @@ export default (opt: {
 	touchToMouse?: boolean,
 	gamepads?: Record<string, GamepadDef>,
 	pixelDensity?: number,
+	maxFPS?: number,
 }) => {
 
 	if (!opt.canvas) {

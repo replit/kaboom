@@ -2442,6 +2442,12 @@ export interface KaboomOpt {
 	 */
 	gamepads?: Record<string, GamepadDef>,
 	/**
+	 * Limit framerate to an amount per second.
+	 *
+	 * @since v3000.0
+	 */
+	maxFPS?: number,
+	/**
 	 * If import all kaboom functions to global (default true).
 	 */
 	global?: boolean,
