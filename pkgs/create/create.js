@@ -205,8 +205,6 @@ const create = (item) => {
 	}
 }
 
-const toAlphaNumeric = (text) => text.toLowerCase().replace(/[^a-z0-9]/g, "")
-
 // TODO: create README.md with guide
 // generate core files
 create(dir(dest, [
