@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-const VERSION = "2.5.0"
+const VERSION = "2.6.0"
 
 import fs from "fs"
 import cp from "child_process"
@@ -21,7 +21,7 @@ const info = (msg) => console.log(c(33, msg))
 const optMap = [
 	{ long: "help", short: "h", desc: "Print this message" },
 	{ long: "typescript", short: "t", desc: "Use TypeScript" },
-	{ long: "desktop", short: "d", desc: "Enable packaging for desktop release" },
+	{ long: "desktop", short: "d", desc: "Enable packaging for desktop with tauri" },
 	{ long: "example", short: "e", value: "name", desc: "Start from a example listed on kaboomjs.com/play" },
 	{ long: "spaces", value: "level", desc: "Use spaces instead of tabs for generated files" },
 	{ long: "version", short: "v", value: "label", desc: "Use a specific kaboom version (default latest)" },
@@ -174,7 +174,7 @@ const pkgs = [
 const devPkgs = [
 	"esbuild@latest",
 	...(ts ? [ "typescript@latest" ] : []),
-	...(desktop ? [ "@neutralinojs/neu@latest" ] : []),
+	...(desktop ? [ "@tauri-apps/cli@latest" ] : []),
 ]
 
 const file = (name, content) => ({
@@ -220,8 +220,8 @@ create(dir(dest, [
 				"check": "tsc",
 			} : {}),
 			...(desktop ? {
-				"run:desktop": "npm run build && neu run",
-				"build:desktop": "npm run build && neu build --release",
+				"dev:desktop": "tauri dev",
+				"build:desktop": "tauri build",
 			} : {}),
 		},
 	})),
@@ -255,33 +255,6 @@ create(dir(dest, [
 			],
 		})),
 	] : []),
-	...(desktop ? [
-		file("neutralino.config.json", stringify({
-			"applicationId": `com.kaboomjs.${toAlphaNumeric(dest)}`,
-			"version": "1.0.0",
-			"defaultMode": "window",
-			"documentRoot": "/www/",
-			"url": "/",
-			"enableServer": true,
-			"enableNativeAPI": true,
-			"modes": {
-				"window": {
-					"title": dest,
-					"icon": "/www/icon.png",
-					"width": 640,
-					"height": 480,
-				},
-			},
-			"cli": {
-				"binaryName": dest,
-				"resourcesPath": "/www/",
-				"extensionsPath": "/extensions/",
-				"clientLibrary": "/bin/neutralino.js",
-				"binaryVersion": "4.7.0",
-				"clientVersion": "3.6.0",
-			},
-		})),
-	] : []),
 	file(".gitignore", `
 node_modules/
 www/main.js
@@ -304,13 +277,17 @@ info(`- installing dev packages ${devPkgs.map((pkg) => `"${pkg}"`).join(", ")}`)
 await exec("npm", [ "install", "-D", ...devPkgs ], { stdio: [ "inherit", "ignore", "inherit" ] })
 
 if (desktop) {
-	info("- downloading neutralino files")
-	await exec("npx", [ "neu", "update" ], { stdio: "inherit" })
-	info("- downloading icon")
-	await download(
-		"https://raw.githubusercontent.com/replit/kaboom/master/sprites/k.png",
-		"www/icon.png",
-	)
+	info("- starting tauri project for desktop build")
+	await exec("npx", [
+		"tauri", "init",
+		"--app-name", dest,
+		"--window-title", dest,
+		"--dist-dir", "../www",
+		"--dev-path", "http://localhost:8000",
+		"--before-dev-command", "npm run dev",
+		"--before-build-command", "npm run build",
+		"--ci",
+	], { stdio: "inherit" })
 }
 
 console.log("")
