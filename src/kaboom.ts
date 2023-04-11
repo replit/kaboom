@@ -921,7 +921,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	const game = {
 
 		// general events
-		ev: new EventHandler<{
+		events: new EventHandler<{
 			mouseMove: [],
 			mouseDown: [MouseButton],
 			mousePress: [MouseButton],
@@ -3063,7 +3063,8 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 		const compStates = new Map()
 		const cleanups = {}
-		const ev = new EventHandler()
+		const events = new EventHandler()
+		let onCurCompCleanup = null
 
 		// TODO: "this" should be typed here
 		const obj = {
@@ -3090,7 +3091,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				obj.transform = calcTransform(obj)
 				this.children.push(obj)
 				obj.trigger("add", obj)
-				game.ev.trigger("add", obj)
+				game.events.trigger("add", obj)
 				return obj
 			},
 
@@ -3107,7 +3108,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				const idx = this.children.indexOf(obj)
 				if (idx !== -1) {
 					obj.trigger("destroy")
-					game.ev.trigger("destroy", obj)
+					game.events.trigger("destroy", obj)
 					obj.parent = null
 					this.children.splice(idx, 1)
 				}
@@ -3201,7 +3202,13 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 					}
 
 					if (COMP_EVENTS.has(k)) {
-						gc.push(this.on(k, comp[k]).cancel)
+						// automatically clean up events created by components in add() stage
+						const func = k === "add" ? () => {
+							onCurCompCleanup = (c) => gc.push(c)
+							comp[k]()
+							onCurCompCleanup = null
+						} : comp[k]
+						gc.push(this.on(k, func).cancel)
 					} else {
 						if (this[k] === undefined) {
 							// assign comp fields to game obj
@@ -3236,7 +3243,11 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				// manually trigger add event if object already exist
 				if (this.exists()) {
 					checkDeps()
-					if (comp.add) comp.add.call(this)
+					if (comp.add) {
+						onCurCompCleanup = (c) => gc.push(c)
+						comp.add.call(this)
+						onCurCompCleanup = null
+					}
 				} else {
 					if (comp.require) {
 						gc.push(this.on("add", checkDeps).cancel)
@@ -3316,13 +3327,16 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				}
 			},
 
-			// TODO: catch events in component "add" event so they don't have to manually clean up
 			on(name: string, action: (...args) => void): EventController {
-				return ev.on(name, action.bind(this))
+				const ctrl = events.on(name, action.bind(this))
+				if (onCurCompCleanup) {
+					onCurCompCleanup(() => ctrl.cancel())
+				}
+				return ctrl
 			},
 
 			trigger(name: string, ...args): void {
-				ev.trigger(name, ...args)
+				events.trigger(name, ...args)
 				game.objEvents.trigger(name, this, ...args)
 			},
 
@@ -3357,7 +3371,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			},
 
 			clearEvents() {
-				ev.clear()
+				events.clear()
 			},
 
 		}
@@ -3420,7 +3434,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 	function onAdd(tag: Tag | ((obj: GameObj) => void), action?: (obj: GameObj) => void) {
 		if (typeof tag === "function" && action === undefined) {
-			return game.ev.on("add", tag)
+			return game.events.on("add", tag)
 		} else if (typeof tag === "string") {
 			return on("add", tag, action)
 		}
@@ -3428,7 +3442,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 	function onDestroy(tag: Tag | ((obj: GameObj) => void), action?: (obj: GameObj) => void) {
 		if (typeof tag === "function" && action === undefined) {
-			return game.ev.on("destroy", tag)
+			return game.events.on("destroy", tag)
 		} else if (typeof tag === "string") {
 			return on("destroy", tag, action)
 		}
@@ -3853,7 +3867,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 	function area(opt: AreaCompOpt = {}): AreaComp {
 
-		const events: Array<EventController> = []
 		const colliding = {}
 		const collidingThisFrame = new Set()
 
@@ -3865,16 +3878,16 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			add(this: GameObj<AreaComp>) {
 
 				if (this.area.cursor) {
-					events.push(this.onHover(() => app.setCursor(this.area.cursor)))
+					this.onHover(() => app.setCursor(this.area.cursor))
 				}
 
-				events.push(this.onCollideUpdate((obj, col) => {
+				this.onCollideUpdate((obj, col) => {
 					if (!colliding[obj.id]) {
 						this.trigger("collide", obj, col)
 					}
 					colliding[obj.id] = col
 					collidingThisFrame.add(obj.id)
-				}))
+				})
 
 			},
 
@@ -3928,10 +3941,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 				popTransform()
 
-			},
-
-			destroy() {
-				events.forEach((e) => e.cancel())
 			},
 
 			area: {
@@ -4584,7 +4593,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		let curPlatform: GameObj<PosComp | AreaComp | BodyComp> | null = null
 		let lastPlatformPos = null
 		let wantFall = false
-		const events: Array<EventController> = []
 
 		return {
 
@@ -4606,7 +4614,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				// static vs static: don't resolve
 				// static vs non-static: always resolve non-static
 				// non-static vs non-static: resolve the first one
-				events.push(this.onCollideUpdate((other: GameObj<PosComp | BodyComp>, col) => {
+				this.onCollideUpdate((other: GameObj<PosComp | BodyComp>, col) => {
 
 					if (!other.is("body")) {
 						return
@@ -4644,9 +4652,9 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 					this.trigger("physicsResolve", col)
 					other.trigger("physicsResolve", col.reverse())
 
-				}))
+				})
 
-				events.push(this.onPhysicsResolve((col) => {
+				this.onPhysicsResolve((col) => {
 					if (game.gravity) {
 						if (col.isBottom() && this.isFalling()) {
 							vel.y = 0
@@ -4662,7 +4670,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 							this.trigger("headbutt", col.target)
 						}
 					}
-				}))
+				})
 
 			},
 
@@ -4710,10 +4718,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				}
 				this.move(vel)
 
-			},
-
-			destroy() {
-				events.forEach((e) => e.cancel())
 			},
 
 			onPhysicsResolve(this: GameObj, action) {
@@ -4768,18 +4772,14 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 	function doubleJump(numJumps: number = 2): DoubleJumpComp {
 		let jumpsLeft = numJumps
-		const events = []
 		return {
 			id: "doubleJump",
 			require: [ "body" ],
 			numJumps: numJumps,
 			add(this: GameObj<BodyComp | DoubleJumpComp>) {
-				events.push(this.onGround(() => {
+				this.onGround(() => {
 					jumpsLeft = this.numJumps
-				}))
-			},
-			destroy() {
-				events.forEach((e) => e.cancel())
+				})
 			},
 			doubleJump(this: GameObj<BodyComp | DoubleJumpComp>, force?: number) {
 				if (jumpsLeft <= 0) {
@@ -5026,7 +5026,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		if (assets.loaded) {
 			cb()
 		} else {
-			game.ev.on("load", cb)
+			game.events.on("load", cb)
 		}
 	}
 
@@ -5040,10 +5040,10 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			throw new Error(`Scene not found: ${id}`)
 		}
 
-		game.ev.onOnce("frameEnd", () => {
+		game.events.onOnce("frameEnd", () => {
 
 			app.events.clear()
-			game.ev.clear()
+			game.events.clear()
 			game.objEvents.clear()
 
 			;[...game.root.children].forEach((obj) => {
@@ -6093,8 +6093,8 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 		const progress = loadProgress()
 
-		if (game.ev.numListeners("loading") > 0) {
-			game.ev.trigger("loading", progress)
+		if (game.events.numListeners("loading") > 0) {
+			game.events.trigger("loading", progress)
 		} else {
 			drawUnscaled(() => {
 				const w = width() / 2
@@ -6377,15 +6377,15 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	}
 
 	function onLoading(action: (progress: number) => void) {
-		game.ev.on("loading", action)
+		game.events.on("loading", action)
 	}
 
 	function onResize(action: () => void) {
-		game.ev.on("resize", action)
+		game.events.on("resize", action)
 	}
 
 	function onError(action: (err: Error) => void) {
-		game.ev.on("error", action)
+		game.events.on("error", action)
 	}
 
 	function handleErr(err: Error) {
@@ -6434,7 +6434,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				})
 
 				popTransform()
-				game.ev.trigger("error", err)
+				game.events.trigger("error", err)
 
 			})
 
@@ -6448,7 +6448,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 	function quit() {
 
-		game.ev.onOnce("frameEnd", () => {
+		game.events.onOnce("frameEnd", () => {
 
 			app.quit()
 
@@ -6538,7 +6538,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		if (!assets.loaded) {
 			if (loadProgress() === 1 && !isFirstFrame) {
 				assets.loaded = true
-				game.ev.trigger("load")
+				game.events.trigger("load")
 			}
 		}
 
@@ -6564,7 +6564,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		}
 
 		frameEnd()
-		game.ev.trigger("frameEnd")
+		game.events.trigger("frameEnd")
 
 	})
 
