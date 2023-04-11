@@ -91,7 +91,12 @@ onKeyPress("space", () => {
 
 onKeyPress("r", () => {
 	// .use() is on every game object, it adds a component at runtime
-	bean.use(rotate(180))
+	bean.use(rotate(rand(0, 360)))
+})
+
+onKeyPress("escape", () => {
+	// .unuse() removes a component from the game object
+	bean.unuse("funky")
 })
 
 add([
