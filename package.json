@@ -43,11 +43,11 @@
 		"lint": "eslint src examples",
 		"fmt": "eslint --fix src examples",
 		"test": "node scripts/test.js",
-		"desktop": "node scripts/desktop.js",
+		"desktop": "tauri dev",
 		"prepare": "npm run build"
 	},
 	"devDependencies": {
-		"@neutralinojs/neu": "^9.5.0",
+		"@tauri-apps/cli": "^1.2.3",
 		"@typescript-eslint/eslint-plugin": "^5.58.0",
 		"esbuild": "^0.17.16",
 		"eslint": "^8.38.0",
