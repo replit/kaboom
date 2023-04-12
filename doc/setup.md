@@ -80,14 +80,14 @@ Let's say you have a folder structure like this:
 │   ├── froggy.png
 │   └── cloud.png
 ├── sounds
-│   └── horse.png
+│   └── horse.mp3
 └── index.html
 ```
 
 and you have the static file server running on port `8000`, just go to `http://localhost:8000/index.html`, and you should be able to load stuff from relative paths like
 ```js
 loadSprite("froggy", "sprites/froggy.png");
-laodSound("horse", "sounds/horse.mp3");
+loadSound("horse", "sounds/horse.mp3");
 ```
 
 To learn more check out this [MDN doc](https://developer.mozilla.org/en-US/docs/Learn/Common_questions/set_up_a_local_testing_server).
