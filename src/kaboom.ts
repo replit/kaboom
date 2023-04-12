@@ -96,7 +96,7 @@ import type {
 	DrawTextOpt,
 	TextAlign,
 	GameObj,
-	SceneID,
+	SceneName,
 	SceneDef,
 	CompList,
 	Comp,
@@ -952,6 +952,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			input: [],
 			frameEnd: [],
 			resize: [],
+			sceneLeave: [string],
 		}>(),
 
 		// object events
@@ -5088,18 +5089,19 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		}
 	}
 
-	function scene(id: SceneID, def: SceneDef) {
+	function scene(id: SceneName, def: SceneDef) {
 		game.scenes[id] = def
 	}
 
-	function go(id: SceneID, ...args) {
+	function go(name: SceneName, ...args) {
 
-		if (!game.scenes[id]) {
-			throw new Error(`Scene not found: ${id}`)
+		if (!game.scenes[name]) {
+			throw new Error(`Scene not found: ${name}`)
 		}
 
 		game.events.onOnce("frameEnd", () => {
 
+			game.events.trigger("sceneLeave", name)
 			app.events.clear()
 			game.events.clear()
 			game.objEvents.clear()
@@ -5107,7 +5109,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			;[...game.root.children].forEach((obj) => {
 				if (
 					!obj.stay
-					|| (obj.scenesToStay && !obj.scenesToStay.includes(id))
+					|| (obj.scenesToStay && !obj.scenesToStay.includes(name))
 				) {
 					game.root.remove(obj)
 				}
@@ -5124,7 +5126,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				transform: new Mat4(),
 			}
 
-			game.scenes[id](...args)
+			game.scenes[name](...args)
 
 			if (gopt.debug !== false) {
 				enterDebugMode()
@@ -5136,6 +5138,10 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 		})
 
+	}
+
+	function onSceneLeave(action: (newScene?: string) => void): EventController {
+		return game.events.on("sceneLeave", action)
 	}
 
 	function getData<T>(key: string, def?: T): T {
@@ -6843,6 +6849,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		// scene
 		scene,
 		go,
+		onSceneLeave,
 		// level
 		addLevel,
 		// storage

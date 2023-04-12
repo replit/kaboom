@@ -990,6 +990,12 @@ export interface KaboomCtx {
 	 */
 	onGamepadStick(stick: GamepadStick, action: (value: Vec2) => void): EventController,
 	/**
+	 * Register an event that runs when current scene ends.
+	 *
+	 * @since v3000.0
+	 */
+	onSceneLeave(action: (newScene?: string) => void),
+	/**
 	 * Sets the root for all subsequent resource urls.
 	 *
 	 * @section Assets
@@ -1856,11 +1862,11 @@ export interface KaboomCtx {
 	 *
 	 * @section Scene
 	 */
-	scene(id: SceneID, def: SceneDef): void,
+	scene(id: SceneName, def: SceneDef): void,
 	/**
 	 * Go to a scene, passing all rest args to scene callback.
 	 */
-	go(id: SceneID, ...args): void,
+	go(id: SceneName, ...args): void,
 	/**
 	 * Construct a level based on symbols.
 	 *
@@ -2636,7 +2642,7 @@ export interface GameObjRaw {
  */
 export type GameObj<T = any> = GameObjRaw & MergeComps<T>
 
-export type SceneID = string
+export type SceneName = string
 export type SceneDef = (...args) => void
 
 export type GetOpt = {
