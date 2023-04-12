@@ -415,6 +415,17 @@ export interface KaboomCtx {
 	shader(id: string, uniform?: Uniform | (() => Uniform)): ShaderComp,
 	/**
 	 * Enable timer related functions like wait(), loop(), tween() on the game object.
+	 *
+	 * @example
+	 * ```js
+	 * const obj = add([
+	 *     timer(),
+	 * ])
+	 *
+	 * obj.wait(2, () => { ... })
+	 * obj.loop(0.5, () => { ... })
+	 * obj.tween(obj.pos, mousePos(), 0.5, (p) => obj.pos = p, easings.easeOutElastic)
+	 * ```
 	 */
 	timer(): TimerComp,
 	/**
@@ -4677,8 +4688,15 @@ export interface TimerComp extends Comp {
 	wait(time: number, action: () => void): TimerController,
 	/**
 	 * Run the callback every n seconds.
+	 *
+	 * @since v3000.0
 	 */
 	loop(time: number, action: () => void): EventController,
+	/**
+	 * Tweeeeen! Note that this doesn't specifically mean tweening on this object's property, this just registers the timer on this object, so the tween will cancel with the object gets destroyed, or paused when obj.paused is true.
+	 *
+	 * @since v3000.0
+	 */
 	tween<V extends LerpValue>(
 		from: V,
 		to: V,
