@@ -4545,11 +4545,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		}
 	}
 
-	function timer(time?: number, action?: () => void): TimerComp {
-		const timers: IDList<Timer> = new IDList()
-		if (time && action) {
-			timers.pushd(new Timer(time, action))
-		}
+	function timer(): TimerComp {
 		return {
 			id: "timer",
 			wait(this: GameObj<TimerComp>, time: number, action: () => void): TimerController {

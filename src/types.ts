@@ -414,9 +414,9 @@ export interface KaboomCtx {
 	 */
 	shader(id: string, uniform?: Uniform | (() => Uniform)): ShaderComp,
 	/**
-	 * Run certain action after some time.
+	 * Enable timer related functions like wait(), loop(), tween() on the game object.
 	 */
-	timer(n?: number, action?: () => void): TimerComp,
+	timer(): TimerComp,
 	/**
 	 * Make object unaffected by camera or parent object transforms, and render at last.
 	 *
