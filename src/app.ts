@@ -239,6 +239,7 @@ export default (opt: {
 
 			if (state.stopped) return
 
+			// TODO: paused should still process input
 			// TODO: allow background actions?
 			if (state.paused || document.visibilityState !== "visible") {
 				state.loopID = requestAnimationFrame(frame)

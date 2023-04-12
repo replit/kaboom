@@ -4572,6 +4572,68 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 					},
 				}
 			},
+			loop(t: number, action: () => void): EventController {
+				let curTimer: null | TimerController = null
+				const newAction = () => {
+					// TODO: should f be execute right away as loop() is called?
+					curTimer = this.wait(t, newAction)
+					action()
+				}
+				curTimer = wait(0, newAction)
+				return {
+					get paused() {
+						return curTimer.paused
+					},
+					set paused(p) {
+						curTimer.paused = p
+					},
+					cancel: () => curTimer.cancel(),
+				}
+			},
+			tween<V extends LerpValue>(
+				this: GameObj<TimerComp>,
+				from: V,
+				to: V,
+				duration: number,
+				setValue: (value: V) => void,
+				easeFunc = easings.linear,
+			) {
+				let curTime = 0
+				const onEndEvents: Array<() => void> = []
+				const ev = this.onUpdate(() => {
+					curTime += dt()
+					const t = Math.min(curTime / duration, 1)
+					setValue(lerp(from, to, easeFunc(t)))
+					if (t === 1) {
+						ev.cancel()
+						setValue(to)
+						onEndEvents.forEach((action) => action())
+					}
+				})
+				return {
+					get paused() {
+						return ev.paused
+					},
+					set paused(p) {
+						ev.paused = p
+					},
+					onEnd(action: () => void) {
+						onEndEvents.push(action)
+					},
+					then(action: () => void) {
+						this.onEnd(action)
+						return this
+					},
+					cancel() {
+						ev.cancel()
+					},
+					finish() {
+						ev.cancel()
+						setValue(to)
+						onEndEvents.forEach((action) => action())
+					},
+				}
+			},
 			update() {
 				timers.forEach((timer, id) => {
 					if (timer.tick(dt())) {

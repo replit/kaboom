@@ -1748,12 +1748,12 @@ export interface KaboomCtx {
 	 * await tween(bean.opacity, 1, 0.5, (val) => bean.opacity = val, easings.easeOutQuad)
 	 * ```
 	 */
-	tween(
-		from: number,
-		to: number,
+	tween<V extends LerpValue>(
+		from: V,
+		to: V,
 		duration: number,
-		setValue: (value: number) => void,
-		easeFunc?: (t: number) => number,
+		setValue: (value: V) => void,
+		easeFunc?: (t: V) => number,
 	): TweenController,
 	/**
 	 * A collection of easing functions for tweening.
@@ -4674,7 +4674,18 @@ export interface TimerComp extends Comp {
 	/**
 	 * Run the callback after n seconds.
 	 */
-	wait(n: number, action: () => void): TimerController,
+	wait(time: number, action: () => void): TimerController,
+	/**
+	 * Run the callback every n seconds.
+	 */
+	loop(time: number, action: () => void): EventController,
+	tween<V extends LerpValue>(
+		from: V,
+		to: V,
+		duration: number,
+		setValue: (value: V) => void,
+		easeFunc?: (t: V) => number,
+	): TweenController,
 }
 
 export interface FixedComp extends Comp {
