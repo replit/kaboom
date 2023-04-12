@@ -5980,10 +5980,11 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			sprite(kaSprite),
 			scale(0),
 			anchor("center"),
-			timer(0.4 / speed, () => ka.use(boom(speed, s))),
+			timer(),
 			...opt.comps ?? [],
 		])
 
+		ka.wait(0.4 / speed, () => ka.use(boom(speed, s)))
 		ka.onDestroy(() => kaboom.destroy())
 
 		return kaboom
