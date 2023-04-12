@@ -3527,6 +3527,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	}
 
 	// TODO: use PromiseLike?
+	// TODO: use root game object and timer()?
 	// add an event that'd be run after t
 	function wait(time: number, action?: () => void): TimerController {
 		let t = 0
@@ -4551,18 +4552,24 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		}
 		return {
 			id: "timer",
-			wait(time: number, action: () => void): TimerController {
+			wait(this: GameObj<TimerComp>, time: number, action: () => void): TimerController {
 				const actions = [ action ]
-				const timer = new Timer(time, () => actions.forEach((f) => f()))
-				const cancel = timers.pushd(timer)
+				let t = 0
+				const ev = this.onUpdate(() => {
+					t += dt()
+					if (t >= time) {
+						actions.forEach((f) => f())
+						ev.cancel()
+					}
+				})
 				return {
 					get paused() {
-						return timer.paused
+						return ev.paused
 					},
 					set paused(p) {
-						timer.paused = p
+						ev.paused = p
 					},
-					cancel: cancel,
+					cancel: ev.cancel,
 					onEnd(action) {
 						actions.push(action)
 					},
@@ -4633,13 +4640,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 						onEndEvents.forEach((action) => action())
 					},
 				}
-			},
-			update() {
-				timers.forEach((timer, id) => {
-					if (timer.tick(dt())) {
-						timers.delete(id)
-					}
-				})
 			},
 		}
 	}

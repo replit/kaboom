@@ -137,15 +137,10 @@ scene("game", () => {
 		game.paused = !game.paused
 		if (curTween) curTween.cancel()
 		curTween = tween(
-			// start value (accepts number, Vec2 and Color)
 			pauseMenu.pos,
-			// destination value
 			game.paused ? center() : center().add(0, 700),
-			// duration (in seconds)
-			0.5,
-			// how value should be updated
+			1,
 			(p) => pauseMenu.pos = p,
-			// interpolation function (defaults to easings.linear)
 			easings.easeOutElastic,
 		)
 		if (game.paused) {
