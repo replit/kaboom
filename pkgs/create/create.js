@@ -137,6 +137,11 @@ const exec = async (cmd, args, opts) => new Promise((resolve) => {
 	proc.on("error", fail)
 })
 
+const updateJSONFile = (path, action) => {
+	const json = JSON.parse(fs.readFileSync(path, "utf8"))
+	fs.writeFileSync(path, JSON.stringify(action(json)))
+}
+
 let startCode = `
 import kaboom from "kaboom"
 
@@ -205,7 +210,6 @@ const create = (item) => {
 	}
 }
 
-// TODO: create README.md with guide
 // generate core files
 create(dir(dest, [
 	file("package.json", stringify({
@@ -213,7 +217,7 @@ create(dir(dest, [
 		"scripts": {
 			"build": `esbuild --bundle src/main.${ext} --outfile=www/main.js --minify`,
 			"dev": `esbuild --bundle src/main.${ext} --outfile=www/main.js --servedir=www`,
-			"zip": "npm run build && mkdir -p dist && zip -r dist/game.zip www -x \"**/.DS_Store\"",
+			"bundle": "npm run build && mkdir -p dist && zip -r dist/game.zip www -x \"**/.DS_Store\"",
 			...(ts ? {
 				"check": "tsc",
 			} : {}),
@@ -257,7 +261,56 @@ create(dir(dest, [
 node_modules/
 www/main.js
 dist/
-${desktop ? "bin/" : ""}
+${desktop ? "src-tauri/target/" : ""}
+	`),
+	file("README.md", `
+# Folder structure
+
+- \`src\` - source code for your kaboom project
+- \`www\` - distribution folder, contains your index.html, built js bundle and static assets
+${desktop ? "- `src-tauri` - tauri project folder, contains tauri config file, icons, rust source if you need native code" : ""}
+
+## Development
+
+\`\`\`sh
+$ npm run dev
+\`\`\`
+
+will start a dev server at http://localhost:8000
+
+## Distribution
+
+\`\`\`sh
+$ npm run build
+\`\`\`
+
+will build your js files into \`www/main.js\`
+
+\`\`\`sh
+$ npm run bundle
+\`\`\`
+
+will build your game and package into a .zip file, you can upload to your server or itch.io / newground etc.
+
+${desktop ? `
+## Desktop
+
+This project uses tauri for desktop builds, you have to have \`rust\` installed on your system for desktop to work, check out [tauri setup guide](https://tauri.app/v1/guides/getting-started/prerequisites/)
+
+For tauri native APIs look [here](https://tauri.app/v1/api/js/)
+
+\`\`\`sh
+$ npm run dev:desktop
+\`\`\`
+
+will start the dev server and a native window that servers content from that dev server
+
+\`\`\`sh
+$ npm run build:desktop
+\`\`\`
+
+will create distributable native app package
+` : ""}
 	`),
 ]))
 
@@ -286,6 +339,15 @@ if (desktop) {
 		"--before-build-command", "npm run build",
 		"--ci",
 	], { stdio: "inherit" })
+	await download(
+		"https://raw.githubusercontent.com/replit/kaboom/master/sprites/k.png",
+		"www/icon.png",
+	)
+	await exec("npx", ["tauri", "icon", "www/icon.png"], { stdio: "inherit" })
+	updateJSONFile("src-tauri/tauri.conf.json", (cfg) => {
+		cfg.tauri.bundle.identifier = "com.kaboom.dev"
+		return cfg
+	})
 }
 
 console.log("")

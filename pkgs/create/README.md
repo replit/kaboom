@@ -31,7 +31,3 @@ EXAMPLE
   # if installed locally you don't need to use -- when passing options
   $ create-kaboom -t -s -d burp mygame
   ```
-
-## Desktop
-
-`create-kaboom` uses tauri for desktop builds, you have to have `rust` installed on your system for desktop to work, check out [tauri setup guide](https://tauri.app/v1/guides/getting-started/prerequisites/)
