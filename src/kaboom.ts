@@ -2016,12 +2016,13 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			const repY = Math.ceil((opt.height || h) / h)
 			const anchor = anchorPt(opt.anchor || DEF_ANCHOR).add(new Vec2(1, 1)).scale(0.5)
 			const offset = anchor.scale(repX * w, repY * h)
+			const pos = opt.pos ? opt.pos.clone() : new Vec2(0)
 
 			// TODO: rotation
 			for (let i = 0; i < repX; i++) {
 				for (let j = 0; j < repY; j++) {
 					drawUVQuad(Object.assign(opt, {
-						pos: (opt.pos || new Vec2(0)).add(new Vec2(w * i, h * j)).sub(offset),
+						pos: pos.add(new Vec2(w * i, h * j)).sub(offset),
 						scale: scale.scale(opt.scale || new Vec2(1)),
 						tex: opt.tex,
 						quad: q,
