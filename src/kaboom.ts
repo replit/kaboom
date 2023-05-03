@@ -1,4 +1,4 @@
-const VERSION = "3000.0.0-beta.3"
+const VERSION = "3000.0.0-beta.5"
 
 import initApp from "./app"
 
@@ -2045,7 +2045,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				scale.x = scale.y
 			}
 
-			drawUVQuad(Object.assign(opt, {
+			drawUVQuad(Object.assign({}, opt, {
 				scale: scale.scale(opt.scale || new Vec2(1)),
 				tex: opt.tex,
 				quad: q,
@@ -2076,7 +2076,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			throw new Error(`Frame not found: ${opt.frame ?? 0}`)
 		}
 
-		drawTexture(Object.assign(opt, {
+		drawTexture(Object.assign({}, opt, {
 			tex: spr.data.tex,
 			quad: q.scale(opt.quad ?? new Quad(0, 0, 1, 1)),
 		}))
@@ -2159,7 +2159,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 		}
 
-		drawPolygon(Object.assign(opt, {
+		drawPolygon(Object.assign({}, opt, {
 			offset,
 			pts,
 			...(opt.gradient ? {
@@ -2234,18 +2234,18 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			// eslint-disable-next-line
 			const radius = Math.min(opt.radius, Math.sqrt(minSLen) / 2)
 
-			drawLine(Object.assign(opt, { p1: pts[0], p2: pts[1] }))
+			drawLine(Object.assign({}, opt, { p1: pts[0], p2: pts[1] }))
 
 			for (let i = 1; i < pts.length - 2; i++) {
 				const p1 = pts[i]
 				const p2 = pts[i + 1]
-				drawLine(Object.assign(opt, {
+				drawLine(Object.assign({}, opt, {
 					p1: p1,
 					p2: p2,
 				}))
 			}
 
-			drawLine(Object.assign(opt, {
+			drawLine(Object.assign({}, opt, {
 				p1: pts[pts.length - 2],
 				p2: pts[pts.length - 1],
 			}))
@@ -2253,13 +2253,13 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		} else {
 
 			for (let i = 0; i < pts.length - 1; i++) {
-				drawLine(Object.assign(opt, {
+				drawLine(Object.assign({}, opt, {
 					p1: pts[i],
 					p2: pts[i + 1],
 				}))
 				// TODO: other line join types
 				if (opt.join !== "none") {
-					drawCircle(Object.assign(opt, {
+					drawCircle(Object.assign({}, opt, {
 						pos: pts[i],
 						radius: opt.width / 2,
 					}))
@@ -2274,7 +2274,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		if (!opt.p1 || !opt.p2 || !opt.p3) {
 			throw new Error("drawPolygon() requires properties \"p1\", \"p2\" and \"p3\".")
 		}
-		return drawPolygon(Object.assign(opt, {
+		return drawPolygon(Object.assign({}, opt, {
 			pts: [opt.p1, opt.p2, opt.p3],
 		}))
 	}
@@ -2289,7 +2289,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			return
 		}
 
-		drawEllipse(Object.assign(opt, {
+		drawEllipse(Object.assign({}, opt, {
 			radiusX: opt.radius,
 			radiusY: opt.radius,
 			angle: 0,
@@ -2323,7 +2323,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		// center
 		pts.unshift(offset)
 
-		const polyOpt = Object.assign(opt, {
+		const polyOpt = Object.assign({}, opt, {
 			pts,
 			radius: 0,
 			...(opt.gradient ? {
