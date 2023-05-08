@@ -1,4 +1,4 @@
-const VERSION = "3000.0.0-beta.5"
+const VERSION = "3000.0.0-beta.6"
 
 import initApp from "./app"
 
@@ -4341,7 +4341,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 				const anim = spriteData.anims[name]
 
-				if (!anim) {
+				if (anim === undefined) {
 					throw new Error(`Anim not found: ${name}`)
 				}
 
