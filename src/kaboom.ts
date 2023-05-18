@@ -598,6 +598,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		free() {
 			gl.deleteFramebuffer(this.glFrameBuffer)
 			gl.deleteRenderbuffer(this.glRenderBuffer)
+			this.tex.free()
 		}
 
 	}
@@ -6631,6 +6632,13 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		frameEnd()
 		game.events.trigger("frameEnd")
 
+	})
+
+	app.onResize(() => {
+		canvas.width = canvas.offsetWidth * pixelDensity
+		canvas.height = canvas.offsetHeight * pixelDensity
+		gfx.frameBuffer.free()
+		gfx.frameBuffer = new FrameBuffer(gl.drawingBufferWidth, gl.drawingBufferHeight)
 	})
 
 	updateViewport()

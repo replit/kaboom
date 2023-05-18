@@ -345,6 +345,10 @@ export default (opt: {
 			: state.mergedGamepadState.buttonState.released.has(btn)
 	}
 
+	function onResize(action: () => void): EventController {
+		return state.events.on("resize", action)
+	}
+
 	// input callbacks
 	const onKeyDown = ((key, action) => {
 		if (typeof key === "function") {
@@ -843,6 +847,7 @@ export default (opt: {
 		isGamepadButtonReleased,
 		getGamepadStick,
 		charInputted,
+		onResize,
 		onKeyDown,
 		onKeyPress,
 		onKeyPressRepeat,
