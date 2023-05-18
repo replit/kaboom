@@ -6447,7 +6447,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	}
 
 	function onResize(action: () => void) {
-		game.events.on("resize", action)
+		app.onResize(action)
 	}
 
 	function onError(action: (err: Error) => void) {
@@ -6639,6 +6639,15 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		canvas.height = canvas.offsetHeight * pixelDensity
 		gfx.frameBuffer.free()
 		gfx.frameBuffer = new FrameBuffer(gl.drawingBufferWidth, gl.drawingBufferHeight)
+		gfx.width = gl.drawingBufferWidth / pixelDensity
+		gfx.height = gl.drawingBufferHeight / pixelDensity
+		gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight)
+		gfx.viewport = {
+			x: 0,
+			y: 0,
+			width: gfx.width,
+			height: gfx.height,
+		}
 	})
 
 	updateViewport()
