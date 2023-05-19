@@ -92,7 +92,7 @@ scene("game", ({ levelIdx, score }) => {
 	})
 
 	player.onCollide("danger", () => {
-		player.pos = level.getPos(0, 0)
+		player.pos = level.tile2Pos(0, 0)
 		// Go to "lose" scene when we hit a "danger"
 		go("lose")
 	})

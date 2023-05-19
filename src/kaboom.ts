@@ -587,7 +587,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		bind() {
 			gl.bindFramebuffer(gl.FRAMEBUFFER, this.glFrameBuffer)
 			gl.bindRenderbuffer(gl.RENDERBUFFER, this.glRenderBuffer)
-			// gl.viewport(0, 0, this.tex.width, this.tex.height)
+			gl.viewport(0, 0, this.tex.width, this.tex.height)
 		}
 
 		unbind() {
@@ -613,7 +613,10 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			new ImageData(new Uint8ClampedArray([ 255, 255, 255, 255 ]), 1, 1),
 		)
 
-		const frameBuffer = new FrameBuffer(gl.drawingBufferWidth, gl.drawingBufferHeight)
+		const frameBuffer = (gopt.width && gopt.height)
+			? new FrameBuffer(gopt.width * pixelDensity, gopt.height * pixelDensity)
+			: new FrameBuffer(gl.drawingBufferWidth, gl.drawingBufferHeight)
+		// const frameBuffer = new FrameBuffer(gl.drawingBufferWidth, gl.drawingBufferHeight)
 		let bgColor: null | Color = null
 		let bgAlpha = 1
 
@@ -700,8 +703,8 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			bgColor: bgColor,
 			bgAlpha: bgAlpha,
 
-			width: gopt.width,
-			height: gopt.height,
+			width: gopt.width ?? gl.drawingBufferWidth / pixelDensity,
+			height: gopt.height ?? gl.drawingBufferHeight / pixelDensity,
 
 			viewport: {
 				x: 0,
@@ -1877,19 +1880,30 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		// TODO: polish framebuffer rendering / sizing issues
 		flush()
 		gfx.frameBuffer.unbind()
-		drawUnscaled(() => {
-			drawTexture({
-				flipY: true,
-				tex: gfx.frameBuffer.tex,
-				scale: new Vec2(1 / pixelDensity),
-				shader: gfx.postShader,
-				uniform: typeof gfx.postShaderUniform === "function"
-					? gfx.postShaderUniform()
-					: gfx.postShaderUniform,
-				fixed: true,
-			})
-		})
+		gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight)
+
 		flush()
+		const ow = gfx.width
+		const oh = gfx.height
+		gfx.width = gl.drawingBufferWidth / pixelDensity
+		gfx.height = gl.drawingBufferHeight / pixelDensity
+
+		drawTexture({
+			flipY: true,
+			tex: gfx.frameBuffer.tex,
+			pos: new Vec2(gfx.viewport.x, gfx.viewport.y),
+			width: gfx.viewport.width,
+			height: gfx.viewport.height,
+			shader: gfx.postShader,
+			uniform: typeof gfx.postShaderUniform === "function"
+				? gfx.postShaderUniform()
+				: gfx.postShaderUniform,
+			fixed: true,
+		})
+
+		flush()
+		gfx.width = ow
+		gfx.height = oh
 		gfx.lastDrawCalls = gfx.drawCalls
 	}
 
@@ -2868,15 +2882,14 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			const rg = gopt.width / gopt.height
 
 			if (rc > rg) {
-				if (!gopt.stretch) {
-					gfx.width = ch * rg
-					gfx.height = ch
-				}
+				// if (!gopt.stretch) {
+					// gfx.width = ch * rg
+					// gfx.height = ch
+				// }
 				const sw = ch * rg
 				const sh = ch
 				const x = (cw - sw) / 2
-				gl.scissor(x * pd, 0, sw * pd, sh * pd)
-				gl.viewport(x * pd, 0, sw * pd, ch * pd)
+				// gl.scissor(x * pd, 0, sw * pd, sh * pd)
 				gfx.viewport = {
 					x: x,
 					y: 0,
@@ -2884,15 +2897,14 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 					height: ch,
 				}
 			} else {
-				if (!gopt.stretch) {
-					gfx.width = cw
-					gfx.height = cw / rg
-				}
+				// if (!gopt.stretch) {
+					// gfx.width = cw
+					// gfx.height = cw / rg
+				// }
 				const sw = cw
 				const sh = cw / rg
 				const y = (ch - sh) / 2
-				gl.scissor(0, y * pd, sw * pd, sh * pd)
-				gl.viewport(0, y * pd, cw * pd, sh * pd)
+				// gl.scissor(0, y * pd, sw * pd, sh * pd)
 				gfx.viewport = {
 					x: 0,
 					y: y,
@@ -2911,8 +2923,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				throw new Error("Stretching requires width and height defined.")
 			}
 
-			gl.viewport(0, 0, cw * pd, ch * pd)
-
 			gfx.viewport = {
 				x: 0,
 				y: 0,
@@ -2922,12 +2932,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 			return
 		}
-
-		const gscale = gopt.scale ?? 1
-
-		gfx.width = cw / gscale
-		gfx.height = ch / gscale
-		gl.viewport(0, 0, cw * pd, ch * pd)
 
 		gfx.viewport = {
 			x: 0,
@@ -6634,19 +6638,29 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 	})
 
+	// if (width && height)
+	//   if (stretch)
+	//     resize canvas
+	//   else
+	//     noop
+
+	// TODO: this clears on scene change
 	app.onResize(() => {
+		const fixedSize = gopt.width && gopt.height
+		if (fixedSize && !gopt.stretch) return
 		canvas.width = canvas.offsetWidth * pixelDensity
 		canvas.height = canvas.offsetHeight * pixelDensity
-		gfx.frameBuffer.free()
-		gfx.frameBuffer = new FrameBuffer(gl.drawingBufferWidth, gl.drawingBufferHeight)
-		gfx.width = gl.drawingBufferWidth / pixelDensity
-		gfx.height = gl.drawingBufferHeight / pixelDensity
-		gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight)
-		gfx.viewport = {
-			x: 0,
-			y: 0,
-			width: gfx.width,
-			height: gfx.height,
+		if (!fixedSize) {
+			gfx.frameBuffer.free()
+			gfx.frameBuffer = new FrameBuffer(gl.drawingBufferWidth, gl.drawingBufferHeight)
+			gfx.width = gl.drawingBufferWidth / pixelDensity
+			gfx.height = gl.drawingBufferHeight / pixelDensity
+			gfx.viewport = {
+				x: 0,
+				y: 0,
+				width: gfx.width,
+				height: gfx.height,
+			}
 		}
 	})
 
