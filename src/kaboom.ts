@@ -2834,114 +2834,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		popTransform()
 	}
 
-	// update viewport based on user setting and fullscreen state
-	function updateViewport() {
-
-		// content size (scaled content size, with scale, stretch and letterbox)
-		// view size (unscaled viewport size)
-		// window size (will be the same as view size except letterbox mode)
-
-		// canvas size
-		const pd = pixelDensity
-		const cw = gl.drawingBufferWidth / pd
-		const ch = gl.drawingBufferHeight / pd
-
-		if (app.isFullscreen()) {
-			// TODO: doesn't work with letterbox
-			const ww = window.innerWidth
-			const wh = window.innerHeight
-			const rw = ww / wh
-			const rc = cw / ch
-			if (rw > rc) {
-				const sw = window.innerHeight * rc
-				gfx.viewport = {
-					x: (ww - sw) / 2,
-					y: 0,
-					width: sw,
-					height: wh,
-				}
-			} else {
-				const sh = window.innerWidth / rc
-				gfx.viewport = {
-					x: 0,
-					y: (wh - sh) / 2,
-					width: ww,
-					height: sh,
-				}
-			}
-			return
-		}
-
-		if (gopt.letterbox) {
-
-			if (!gopt.width || !gopt.height) {
-				throw new Error("Letterboxing requires width and height defined.")
-			}
-
-			const rc = cw / ch
-			const rg = gopt.width / gopt.height
-
-			if (rc > rg) {
-				// if (!gopt.stretch) {
-					// gfx.width = ch * rg
-					// gfx.height = ch
-				// }
-				const sw = ch * rg
-				const sh = ch
-				const x = (cw - sw) / 2
-				// gl.scissor(x * pd, 0, sw * pd, sh * pd)
-				gfx.viewport = {
-					x: x,
-					y: 0,
-					width: sw,
-					height: ch,
-				}
-			} else {
-				// if (!gopt.stretch) {
-					// gfx.width = cw
-					// gfx.height = cw / rg
-				// }
-				const sw = cw
-				const sh = cw / rg
-				const y = (ch - sh) / 2
-				// gl.scissor(0, y * pd, sw * pd, sh * pd)
-				gfx.viewport = {
-					x: 0,
-					y: y,
-					width: cw,
-					height: sh,
-				}
-			}
-
-			return
-
-		}
-
-		if (gopt.stretch) {
-
-			if (!gopt.width || !gopt.height) {
-				throw new Error("Stretching requires width and height defined.")
-			}
-
-			gfx.viewport = {
-				x: 0,
-				y: 0,
-				width: cw,
-				height: ch,
-			}
-
-			return
-		}
-
-		gfx.viewport = {
-			x: 0,
-			y: 0,
-			width: cw,
-			height: ch,
-		}
-
-	}
-
 	// get game width
 	function width(): number {
 		return gfx.width
@@ -6638,29 +6530,106 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 	})
 
-	// if (width && height)
-	//   if (stretch)
-	//     resize canvas
-	//   else
-	//     noop
+	// update viewport based on user setting and fullscreen state
+	function updateViewport() {
 
+		// content size (scaled content size, with scale, stretch and letterbox)
+		// view size (unscaled viewport size)
+		// window size (will be the same as view size except letterbox mode)
+
+		// canvas size
+		const pd = pixelDensity
+		const cw = gl.drawingBufferWidth / pd
+		const ch = gl.drawingBufferHeight / pd
+
+		// TODO: fix
+		if (app.isFullscreen()) {
+			// TODO: doesn't work with letterbox
+			const ww = window.innerWidth
+			const wh = window.innerHeight
+			const rw = ww / wh
+			const rc = cw / ch
+			if (rw > rc) {
+				const sw = window.innerHeight * rc
+				gfx.viewport = {
+					x: (ww - sw) / 2,
+					y: 0,
+					width: sw,
+					height: wh,
+				}
+			} else {
+				const sh = window.innerWidth / rc
+				gfx.viewport = {
+					x: 0,
+					y: (wh - sh) / 2,
+					width: ww,
+					height: sh,
+				}
+			}
+			return
+		}
+
+		if (gopt.letterbox) {
+
+			if (!gopt.width || !gopt.height) {
+				throw new Error("Letterboxing requires width and height defined.")
+			}
+
+			const rc = cw / ch
+			const rg = gopt.width / gopt.height
+
+			if (rc > rg) {
+				const sw = ch * rg
+				const x = (cw - sw) / 2
+				gfx.viewport = {
+					x: x,
+					y: 0,
+					width: sw,
+					height: ch,
+				}
+			} else {
+				const sh = cw / rg
+				const y = (ch - sh) / 2
+				gfx.viewport = {
+					x: 0,
+					y: y,
+					width: cw,
+					height: sh,
+				}
+			}
+
+			return
+
+		}
+
+		if (gopt.stretch) {
+			if (!gopt.width || !gopt.height) {
+				throw new Error("Stretching requires width and height defined.")
+			}
+		}
+
+		gfx.viewport = {
+			x: 0,
+			y: 0,
+			width: cw,
+			height: ch,
+		}
+
+	}
+
+	// TODO: if you resize to larger than the initial size it'll leave white space
 	// TODO: this clears on scene change
 	app.onResize(() => {
 		const fixedSize = gopt.width && gopt.height
-		if (fixedSize && !gopt.stretch) return
+		if (fixedSize && !gopt.stretch && !gopt.letterbox) return
 		canvas.width = canvas.offsetWidth * pixelDensity
 		canvas.height = canvas.offsetHeight * pixelDensity
+		updateViewport()
 		if (!fixedSize) {
 			gfx.frameBuffer.free()
 			gfx.frameBuffer = new FrameBuffer(gl.drawingBufferWidth, gl.drawingBufferHeight)
 			gfx.width = gl.drawingBufferWidth / pixelDensity
 			gfx.height = gl.drawingBufferHeight / pixelDensity
-			gfx.viewport = {
-				x: 0,
-				y: 0,
-				width: gfx.width,
-				height: gfx.height,
-			}
 		}
 	})
 
