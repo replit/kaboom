@@ -6617,9 +6617,11 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 	}
 
+	// TODO: white artifact when scrolling, but disappears when done
 	// TODO: if you resize to larger than the initial size it'll leave white space
 	// TODO: this clears on scene change
 	app.onResize(() => {
+		if (app.isFullscreen()) return
 		const fixedSize = gopt.width && gopt.height
 		if (fixedSize && !gopt.stretch && !gopt.letterbox) return
 		canvas.width = canvas.offsetWidth * pixelDensity
