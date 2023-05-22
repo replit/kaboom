@@ -4566,7 +4566,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 					throw new Error("Can't set body mass to 0")
 				}
 
-				// TODO
 				// static vs static: don't resolve
 				// static vs non-static: always resolve non-static
 				// non-static vs non-static: resolve the first one
@@ -5841,7 +5840,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	const destroyAll: KaboomCtx["destroyAll"] = game.root.removeAll.bind(game.root)
 	const get: KaboomCtx["get"] = game.root.get.bind(game.root)
 
-	// TODO: expose this
 	function boom(speed: number = 2, size: number = 1): Comp {
 		let time = 0
 		return {
@@ -6542,9 +6540,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		const cw = gl.drawingBufferWidth / pd
 		const ch = gl.drawingBufferHeight / pd
 
-		// TODO: fix
 		if (app.isFullscreen()) {
-			// TODO: doesn't work with letterbox
 			const ww = window.innerWidth
 			const wh = window.innerHeight
 			const rw = ww / wh
