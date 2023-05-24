@@ -2460,12 +2460,6 @@ export interface KaboomOpt {
 	 */
 	loadingScreen?: boolean,
 	/**
-	 * If enable virtual controls for mobile (default false).
-	 *
-	 * @since v3000.0
-	 */
-	virtualControls?: boolean,
-	/**
 	 * If pause audio when tab is not active (default false).
 	 *
 	 * @since v3000.0
@@ -5006,14 +5000,6 @@ export interface BoomOpt {
 	 */
 	comps?: CompList<any>,
 }
-
-export type VirtualButton =
-	| "a"
-	| "b"
-	| "left"
-	| "right"
-	| "up"
-	| "down"
 
 export type EaseFuncs =
 	| "linear"

@@ -256,9 +256,6 @@ music.loop = true
 ## Input
 
 - added `onScroll(action: (delta: Vec2) => void)` to listen mouse wheel scroll
-- added virtual controls for mobile, enabled with `virtualControls: true` in `kaboom()`
-- added `isVirtualButtonPressed()`, `isVirtualButtonDown()`, `isVirtualButtonReleased()`
-- added `onVirtualButtonPress()`, `onVirtualButtonDown()`, `onVirtualButtonRelease()`
 - fixed touches not treated as mouse
 - (**BREAK**) changed `onTouchStart()`, `onTouchMove()` and `onTouchEnd()` callback signature to `(pos: Vec2, touch: Touch) => void` (exposes the native `Touch` object)
 - added `onGamepadButtonPress()`, `onGamepadButtonDown()`, `onGamepadButtonRelease()`
