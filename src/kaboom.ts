@@ -584,10 +584,17 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			this.unbind()
 		}
 
+		get width() {
+			return this.tex.width
+		}
+
+		get height() {
+			return this.tex.height
+		}
+
 		bind() {
 			gl.bindFramebuffer(gl.FRAMEBUFFER, this.glFrameBuffer)
 			gl.bindRenderbuffer(gl.RENDERBUFFER, this.glRenderBuffer)
-			gl.viewport(0, 0, this.tex.width, this.tex.height)
 		}
 
 		unbind() {
@@ -615,8 +622,8 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 		const frameBuffer = (gopt.width && gopt.height)
 			? new FrameBuffer(gopt.width * pixelDensity, gopt.height * pixelDensity)
-			: new FrameBuffer(gl.drawingBufferWidth, gl.drawingBufferHeight)
-		// const frameBuffer = new FrameBuffer(gl.drawingBufferWidth, gl.drawingBufferHeight)
+			: new FrameBuffer(gl.drawingBufferWidth / gscale, gl.drawingBufferHeight / gscale)
+
 		let bgColor: null | Color = null
 		let bgAlpha = 1
 
@@ -703,8 +710,8 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			bgColor: bgColor,
 			bgAlpha: bgAlpha,
 
-			width: gopt.width ?? gl.drawingBufferWidth / pixelDensity,
-			height: gopt.height ?? gl.drawingBufferHeight / pixelDensity,
+			width: gopt.width ?? gl.drawingBufferWidth / pixelDensity / gscale,
+			height: gopt.height ?? gl.drawingBufferHeight / pixelDensity / gscale,
 
 			viewport: {
 				x: 0,
@@ -1844,6 +1851,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		// clear backbuffer
 		gl.clear(gl.COLOR_BUFFER_BIT)
 		gfx.frameBuffer.bind()
+		gl.viewport(0, 0, gfx.frameBuffer.width, gfx.frameBuffer.height)
 		// clear framebuffer
 		gl.clear(gl.COLOR_BUFFER_BIT)
 
