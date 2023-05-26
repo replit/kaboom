@@ -58,7 +58,7 @@ const Home: React.FC = () => {
 	return <Nav>
 		<Head title="Kaboom" scale={0.8} />
 		<View bg={3} outlined pad={2} rounded>
-			<Text>Kaboom v3000.0 beta released! Checkout <Link href="/blog/3000">this article</Link> for more info. For v2000 doc go <a href="http://2000.kaboomjs.com/">here</a>.</Text>
+			<Text>Kaboom v3000.0 released! Checkout <Link href="/blog/3000">this article</Link> for more info. For v2000 doc go <a href="http://2000.kaboomjs.com/">here</a>.</Text>
 		</View>
 		<Text size="huge" color={1}>Kaboom is a Javascript game programming library that helps you make games fast and <Fun />.</Text>
 		<Markdown stretchX src={`

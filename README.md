@@ -46,7 +46,7 @@ const player = add([
     area(),
     // it is a physical body which will respond to physics
     body(),
-    // it has 8 health
+    // it has 8 of health
     health(8),
     // or give it tags for easier group behaviors
     "player",
@@ -142,7 +142,7 @@ Note that you'll need to use a bundler like `esbuild` or `webpack` to use Kaboom
 This exports a global `kaboom` function
 
 ```html
-<script src="https://unpkg.com/kaboom/dist/kaboom.js"></script>
+<script src="https://unpkg.com/kaboom@3000.0.1/dist/kaboom.js"></script>
 <script>
 kaboom()
 </script>
@@ -152,7 +152,7 @@ or use with es modules
 
 ```html
 <script type="module">
-import kaboom from "https://unpkg.com/kaboom/dist/kaboom.mjs"
+import kaboom from "https://unpkg.com/kaboom@3000.0.1/dist/kaboom.mjs"
 kaboom()
 </script>
 ```
@@ -160,7 +160,7 @@ kaboom()
 works all CDNs that supports NPM packages, e.g. jsdelivr, skypack
 
 ## Documentation
-- **v3000**: https://3000.kaboomjs.com/
+- **v3000**: https://kaboomjs.com/
 - **v2000**: https://2000.kaboomjs.com/
 - **v0.5.0**: https://legacy.kaboomjs.com/
 
@@ -172,7 +172,7 @@ works all CDNs that supports NPM packages, e.g. jsdelivr, skypack
 1. go to http://localhost:8000/ and pick an example
 1. edit examples in `examples/` to test
 
-Check out [CONTRIBUTION.md](CONTRIBUTING.md) for more
+Check out [CONTRIBUTION.md](CONTRIBUTING.md) for full info.
 
 ## Community
 
@@ -180,7 +180,7 @@ Check out [CONTRIBUTION.md](CONTRIBUTING.md) for more
 - [GitHub Discussions](https://github.com/replit/kaboom/discussions) 
 - [Twitter](https://twitter.com/Kaboomjs)
 
-## Games
+### Games
 Collection of games made with Kaboom, selected by Kaboom, [here](https://itch.io/c/2645141/made-in-kaboom).
 
 - [on Itch.io](https://itch.io/games/tag-kaboomjs)

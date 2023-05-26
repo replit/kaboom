@@ -2,11 +2,7 @@
 
 Welcome! Kaboom is a JavaScript library that helps you make games fast and fun :D
 
-This is an intro tutorial that will cover the basic concepts and make a very simple [Chrome Dino](https://en.wikipedia.org/wiki/Dinosaur_Game) - ish game. For setting up Kaboom development, see the [setup guide](/doc/setup). Or if you're looking for a video tutorial, check out [this one](https://www.youtube.com/watch?v=hgReGsh5xVU).
-
-If you're looking for smaller concept tutorials, check out [these](/doc/concept-tutorials).
-
-If you're looking for more project-based tutorials, check out [these](https://makejsgames.com/).
+This is an intro tutorial that will cover the basic concepts and make a very simple [Chrome Dino](https://en.wikipedia.org/wiki/Dinosaur_Game) - ish game. For setting up Kaboom development, see the [setup guide](/doc/setup).
 
 ![game](intro/game.png)
 
@@ -92,11 +88,11 @@ Let's see what components we're using:
 - `sprite()` makes it render as a sprite, with the `"bean"` sprite we just loaded with `loadSprite()`
 - `pos()` gives it a position on screen, at X: 80 Y: 40
 - `area()` gives it a collider area, so we can check for collisions with other characters later on
-- `body()` gives it a physical body, making it fall due to gravity and ability to jump
+- `body()` gives it a physical body, making it fall due to gravity and ability to jump,
 
 We're also testing out our player character with a little interaction here. `onKeyPress()` registers an event that runs every time user presses a certain key. In this case, we're calling the `.jump()` method (which is provided by the `body()` component) when `"space"` key is pressed. Go ahead and slap that space key!
 
-With the `body()` component, our Bean is going to keep falling into oblivion if we don't hit "space" key enough. Let's add a solid platform for Bean to land on.
+With the `body()` component, our Bean is going to keep falling into oblivion if we don't hit "space" key enough. Let's add a static platform for Bean to land on.
 
 ```js
 // add platform
@@ -105,7 +101,7 @@ add([
 	pos(0, height() - 48),
 	outline(4),
 	area(),
-	solid(),
+	body({ isStatic: true }),
 	color(127, 200, 255),
 ])
 ```
@@ -116,10 +112,10 @@ Woah! That looks like a lot, but it's actually really simple, let's look at each
 - `pos()` position. We give it a x: 0 and y: `height() - 48` so it sits right on the bottom of the screen
 - `outline()` renders an outline of `4` pixels
 - `area()` adds a collider to it
-- `solid()` makes other objects impossible to pass through
+- `body({ isStatic: true })` the object won't move, and all non static objects won't move past it
 - `color()` makes it render with an RGB color, we give it a R: 127 G: 200 B: 255 which is a blue-ish color
 
-Pretty straightforward! Refresh the game and you should see our Bean is now safely landed on a solid blue platform.
+Pretty straightforward! Refresh the game and you should see our Bean is now safely landed on a static blue platform.
 
 ![land](intro/land.png)
 
@@ -144,14 +140,14 @@ add([
 	area(),
 	outline(4),
 	pos(width(), height() - 48),
-	origin("botleft"),
+	anchor("botleft"),
 	color(255, 180, 255),
 	move(LEFT, 240),
 ]);
 ```
 
 A lot of these we have already seen you should know what they do, but some new ones here:
-- `origin()` defines the origin point of positioning. By default `pos()` defines the top left point of the shape, here we change it to the bottom left point because we want it to be just above the platform, so we give it Y position of `height() - 48`
+- `anchor()` defines the origin point of positioning. By default `pos()` defines the top left point of the shape, here we change it to the bottom left point because we want it to be just above the platform, so we give it Y position of `height() - 48`
 - `move()` makes it move towards a direction infinitely. In this case we move towards the `LEFT` by `480` pixels per second
 
 ![tree](intro/tree.png)
@@ -171,7 +167,7 @@ add([
 	area(),
 	outline(4),
 	pos(width(), height() - 48),
-	origin("botleft"),
+	anchor("botleft"),
 	color(255, 180, 255),
 	move(LEFT, 240),
 	"tree", // add a tag here
@@ -211,7 +207,7 @@ loop(1, () => {
 		area(),
 		outline(4),
 		pos(width(), height() - 48),
-		origin("botleft"),
+		anchor("botleft"),
 		color(255, 180, 255),
 		move(LEFT, 240),
 		"tree", // add a tag here
@@ -291,7 +287,7 @@ scene("lose", () => {
 	add([
 		text("Game Over"),
 		pos(center()),
-		origin("center"),
+		anchor("center"),
 	])
 })
 ```
@@ -348,7 +344,7 @@ loadSprite("bean", "sprites/bean.png");
 scene("game", () => {
 
 	// define gravity
-	gravity(2400);
+	setGravity(2400);
 
 	// add a game object to screen
 	const player = add([
@@ -364,9 +360,9 @@ scene("game", () => {
 		rect(width(), FLOOR_HEIGHT),
 		outline(4),
 		pos(0, height()),
-		origin("botleft"),
+		anchor("botleft"),
 		area(),
-		solid(),
+		body({ isStatic: true }),
 		color(127, 200, 255),
 	]);
 
@@ -388,7 +384,7 @@ scene("game", () => {
 			area(),
 			outline(4),
 			pos(width(), height() - FLOOR_HEIGHT),
-			origin("botleft"),
+			anchor("botleft"),
 			color(255, 180, 255),
 			move(LEFT, SPEED),
 			"tree",
@@ -432,7 +428,7 @@ scene("lose", (score) => {
 		sprite("bean"),
 		pos(width() / 2, height() / 2 - 80),
 		scale(2),
-		origin("center"),
+		anchor("center"),
 	]);
 
 	// display score
@@ -440,7 +436,7 @@ scene("lose", (score) => {
 		text(score),
 		pos(width() / 2, height() / 2 + 80),
 		scale(2),
-		origin("center"),
+		anchor("center"),
 	]);
 
 	// go back to game with space is pressed
