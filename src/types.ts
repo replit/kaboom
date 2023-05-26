@@ -1316,7 +1316,7 @@ export interface KaboomCtx {
 	 *
 	 * @since v3000.0
 	 */
-	isTouchScreen(): boolean,
+	isTouchscreen(): boolean,
 	/**
 	 * Get current mouse position (without camera transform).
 	 */
@@ -3867,7 +3867,7 @@ export interface PosComp extends Comp {
 	 */
 	screenPos(): Vec2,
 	/**
-	 * Get position on screen after camera transform.
+	 * Get position on screen after camera / parent transform.
 	 */
 	worldPos(): Vec2,
 }

@@ -271,7 +271,7 @@ export default (opt: {
 
 	}
 
-	function isTouchScreen() {
+	function isTouchscreen() {
 		return ("ontouchstart" in window) || navigator.maxTouchPoints > 0
 	}
 
@@ -827,7 +827,7 @@ export default (opt: {
 		getCursor,
 		setCursorLocked,
 		isCursorLocked,
-		isTouchScreen,
+		isTouchscreen,
 		mousePos,
 		mouseDeltaPos,
 		isKeyDown,

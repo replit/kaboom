@@ -398,7 +398,7 @@ timer.resume()
 - added `setCursorLocked()` and `isCursorLocked()`
 - (**BREAK**) renamed `cursor()` to `setCursor()`
 - (**BREAK**) renamed `fullscreen()` to `setFullscreen()`
-- (**BREAK**) renamed `isTouch()` to `isTouchScreen()`
+- (**BREAK**) renamed `isTouch()` to `isTouchscreen()`
 - (**BREAK**) removed `layers()` in favor of parent game objects (see "layers" example)
 - (**BREAK**) removed `load()` event for components, use `onLoad()` in `add()` event
 - (**BREAK**) removed `debug.objCount()` in favor of `getAll().length`

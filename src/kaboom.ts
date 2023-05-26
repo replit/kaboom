@@ -1,4 +1,4 @@
-const VERSION = "3000.0.1"
+const VERSION = "3000.0.2"
 
 import initApp from "./app"
 
@@ -6681,7 +6681,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		isCursorLocked: app.isCursorLocked,
 		setFullscreen: app.setFullscreen,
 		isFullscreen: app.isFullscreen,
-		isTouchScreen: app.isTouchScreen,
+		isTouchscreen: app.isTouchscreen,
 		onLoad,
 		onLoading,
 		onResize,
