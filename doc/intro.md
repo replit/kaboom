@@ -33,7 +33,7 @@ add([
 
 Introducing Frog the "Bean"! A happy frog that enjoys life. You'll see Bean a lot around here.
 
-![bean](intro/bean.png)
+![isbean](intro/bean.png)
 
 Before explaining what this code does, let's try adding some more stuff to it and see what happens:
 
@@ -115,6 +115,11 @@ Woah! That looks like a lot, but it's actually really simple, let's look at each
 - `body({ isStatic: true })` the object won't move, and all non static objects won't move past it
 - `color()` makes it render with an RGB color, we give it a R: 127 G: 200 B: 255 which is a blue-ish color
 
+Now, before run, we should define the gravity of our world:
+```js
+setGravity(1600)
+```
+
 Pretty straightforward! Refresh the game and you should see our Bean is now safely landed on a static blue platform.
 
 ![land](intro/land.png)
@@ -193,7 +198,7 @@ The second thing is `shake()`, which just shakes the screen,
 
 Here's a trick. Try pressing `F1` in the game. See all the blue outlines? This is inspect mode and it'll show all the bounding boxes of every game obj with `area()` component. Also try hovering over each game object to inspect its states like position and tags.
 
-![inspect](intro/inspect.png)
+![inspect](intro/debug.png)
 
 Now it's time to add more trees. How can we keep them spawning constantly?
 
@@ -344,7 +349,7 @@ loadSprite("bean", "sprites/bean.png");
 scene("game", () => {
 
 	// define gravity
-	setGravity(2400);
+	setGravity(1600);
 
 	// add a game object to screen
 	const player = add([
