@@ -1,4 +1,4 @@
-const VERSION = "3000.0.0"
+const VERSION = "3000.0.1"
 
 import initApp from "./app"
 
@@ -3880,11 +3880,13 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			},
 
 			onClick(this: GameObj<AreaComp>, f: () => void): EventController {
-				return app.onMousePress("left", () => {
+				const e = app.onMousePress("left", () => {
 					if (this.isHovering()) {
 						f()
 					}
 				})
+				this.onDestroy(() => e.cancel())
+				return e
 			},
 
 			onHover(this: GameObj, action: () => void): EventController {
