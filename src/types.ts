@@ -83,6 +83,25 @@ export interface KaboomCtx {
 	 */
 	add<T>(comps: CompList<T> | GameObj<T>): GameObj<T>,
 	/**
+	 * Create a game object like add(), but not adding to the scene.
+	 *
+	 * @since v3000.0
+	 *
+	 * @example
+	 * ```js
+	 * const label = make([
+	 *     text("oh hi"),
+	 * ])
+
+	 * add([
+	 *     rect(label.width, label.height),
+	 *     color(0, 0, 255),
+	 *     children(label),
+	 * ])
+	 * ```
+	 */
+	make<T>(comps: CompList<T>): GameObj<T>,
+	/**
 	 * Remove and re-add the game obj, without triggering add / destroy events.
 	 */
 	readd(obj: GameObj),

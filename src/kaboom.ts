@@ -1,4 +1,4 @@
-const VERSION = "3000.0.2"
+const VERSION = "3000.0.3"
 
 import initApp from "./app"
 
@@ -4036,6 +4036,16 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		}
 	}
 
+	function children(list) {
+		return {
+			add(this: GameObj) {
+				for (const child of list) {
+					this.add(list)
+				}
+			},
+		}
+	}
+
 	// TODO: clean
 	function sprite(
 		src: string | SpriteData | Asset<SpriteData>,
@@ -6703,6 +6713,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		getGamepads: app.getGamepads,
 		// obj
 		add,
+		make,
 		destroy,
 		destroyAll,
 		get,
