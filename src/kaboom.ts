@@ -3174,7 +3174,9 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 			get(t: Tag | Tag[], opts: GetOpt = {}): GameObj[] {
 				let list: GameObj[] = opts.recursive
-					? this.children.flatMap((child) => [child, ...child.children])
+					? this.children.flatMap(function recurse(child) {
+						return [child, ...child.children.flatMap(recurse)]
+					})
 					: this.children
 				list = list.filter((child) => t ? child.is(t) : true)
 				if (opts.liveUpdate) {
