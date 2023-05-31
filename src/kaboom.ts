@@ -2874,6 +2874,9 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		if (e.error) {
 			handleErr(e.error)
 		} else {
+			// ignore errors from somewhere else, e.g. iframes
+			if (e.message === "Script error.") return
+
 			handleErr(new Error(e.message))
 		}
 	}
