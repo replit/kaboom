@@ -30,7 +30,7 @@
  * k.vec2(...)
  * ```
  */
-declare function kaboom(options?: KaboomOpt): KaboomCtx
+declare function kaboom<T = any>(options?: KaboomOpt<T>): KaboomCtx & MergePlugins<T>;
 
 /**
  * Context handle that contains every kaboom function.
@@ -85,7 +85,7 @@ export interface KaboomCtx {
 	/**
 	 * Remove and re-add the game obj, without triggering add / destroy events.
 	 */
-	readd(obj: GameObj),
+	readd(obj: GameObj): void,
 	/**
 	 * Get a list of all game objs with certain tag.
 	 *
@@ -605,7 +605,7 @@ export interface KaboomCtx {
 	 * })
 	 * ```
 	 */
-	on(event: string, tag: Tag, action: (obj: GameObj, ...args) => void): EventController,
+	on(event: string, tag: Tag, action: (obj: GameObj, ...args: any) => void): EventController,
 	/**
 	 * Register an event that runs every frame (~60 times per second) for all game objs with certain tag.
 	 *
@@ -994,7 +994,7 @@ export interface KaboomCtx {
 	 *
 	 * @since v3000.0
 	 */
-	onSceneLeave(action: (newScene?: string) => void),
+	onSceneLeave(action: (newScene?: string) => void): EventController,
 	/**
 	 * Sets the root for all subsequent resource urls.
 	 *
@@ -1866,7 +1866,7 @@ export interface KaboomCtx {
 	/**
 	 * Go to a scene, passing all rest args to scene callback.
 	 */
-	go(id: SceneName, ...args): void,
+	go(id: SceneName, ...args: any): void,
 	/**
 	 * Construct a level based on symbols.
 	 *
@@ -2163,7 +2163,7 @@ export interface KaboomCtx {
 	 * usePostEffect("invert")
 	 * ```
 	 */
-	usePostEffect(name: string, uniform?: Uniform | (() => Uniform)),
+	usePostEffect(name: string, uniform?: Uniform | (() => Uniform)): void,
 	/**
 	 * Format a piece of text without drawing (for getting dimensions, etc).
 	 *
@@ -2316,8 +2316,10 @@ type Defined<T> = T extends any ? Pick<T, { [K in keyof T]-?: T[K] extends undef
 type Expand<T> = T extends infer U ? { [K in keyof U]: U[K] } : never
 export type MergeObj<T> = Expand<UnionToIntersection<Defined<T>>>
 export type MergeComps<T> = Omit<MergeObj<T>, keyof Comp>
+export type MergePlugins<T = any> = MergeObj<ReturnType<T extends (...args: any) => any ? T : never>>
 
 export type CompList<T> = Array<T | Tag>
+export type PluginList<T> = Array<T | KaboomPlugin<T extends Array<KaboomPlugin<any>> ? T[number] : never>>
 
 export type Key =
 	| "f1" | "f2" | "f3" | "f4" | "f5" | "f6" | "f7" | "f8" | "f9" | "f10" | "f11" | "f12"
@@ -2326,7 +2328,7 @@ export type Key =
 	| "a" | "s" | "d" | "f" | "g" | "h" | "j" | "k" | "l" | ";" | "'"
 	| "z" | "x" | "c" | "v" | "b" | "n" | "m" | "," | "." | "/"
 	| "escape" | "backspace" | "enter" | "tab" | "control" | "alt" | "meta" | "space" | " "
-	| "left" | "right" | "up" | "down"
+	| "left" | "right" | "up" | "down" | "shift"
 
 export type MouseButton =
 	| "left"
@@ -2384,7 +2386,7 @@ export type GameObjInspect = Record<Tag, string | null>
 /**
  * Kaboom configurations.
  */
-export interface KaboomOpt {
+export interface KaboomOpt<T = any> {
 	/**
 	 * Width of game.
 	 */
@@ -2484,7 +2486,7 @@ export interface KaboomOpt {
 	/**
 	 * List of plugins to import.
 	 */
-	plugins?: KaboomPlugin<any>[],
+	plugins?: PluginList<T>,
 	/**
 	 * Enter burp mode.
 	 */
@@ -2497,7 +2499,7 @@ export type KaboomPlugin<T> = (k: KaboomCtx) => T
  * Base interface of all game objects.
  */
 export interface GameObjRaw {
-	/**
+	/**F
 	 * Add a child.
 	 *
 	 * @since v3000.0
@@ -2506,7 +2508,7 @@ export interface GameObjRaw {
 	/**
 	 * Remove and re-add the game obj, without triggering add / destroy events.
 	 */
-	readd(obj: GameObj),
+	readd<T>(obj: GameObj<T>): GameObj<T>,
 	/**
 	 * Remove a child.
 	 *
@@ -2566,11 +2568,11 @@ export interface GameObjRaw {
 	/**
 	 * Register an event.
 	 */
-	on(event: string, action: (...args) => void): EventController,
+	on(event: string, action: (...args: any) => void): EventController,
 	/**
 	 * Trigger an event.
 	 */
-	trigger(event: string, ...args): void,
+	trigger(event: string, ...args: any): void,
 	/**
 	 * Remove the game obj from scene.
 	 */
@@ -2637,7 +2639,7 @@ export interface GameObjRaw {
 export type GameObj<T = any> = GameObjRaw & MergeComps<T>
 
 export type SceneName = string
-export type SceneDef = (...args) => void
+export type SceneDef = (...args: any) => void
 
 export type GetOpt = {
 	/**
@@ -2992,10 +2994,10 @@ export declare class Texture {
 	height: number
 	constructor(w: number, h: number, opt?: TextureOpt)
 	static fromImage(img: TexImageSource, opt?: TextureOpt): Texture
-	update(img: TexImageSource, x: number, y: number)
-	bind()
-	unbind()
-	free()
+	update(img: TexImageSource, x: number, y: number): void
+	bind(): void
+	unbind(): void
+	free(): void
 }
 
 export interface GfxFont {
@@ -3585,7 +3587,7 @@ export declare class Vec2 {
 	 *
 	 * @since v3000.0
 	 */
-	angleBetween(...args): number
+	angleBetween(...args: any): number
 	/**
 	 * Linear interpolate to a destination vector (for positions).
 	 */
@@ -4779,7 +4781,7 @@ export interface StateComp extends Comp {
 	/**
 	 * Enter a state, trigger onStateEnd for previous state and onStateEnter for the new State state.
 	 */
-	enterState: (state: string, ...args) => void,
+	enterState: (state: string, ...args: any) => void,
 	/**
 	 * Register event that runs once when a specific state transition happens. Accepts arguments passed from `enterState(name, ...args)`.
 	 *
@@ -4789,7 +4791,7 @@ export interface StateComp extends Comp {
 	/**
 	 * Register event that runs once when enters a specific state. Accepts arguments passed from `enterState(name, ...args)`.
 	 */
-	onStateEnter: (state: string, action: (...args) => void) => EventController,
+	onStateEnter: (state: string, action: (...args: any) => void) => EventController,
 	/**
 	 * Register an event that runs once when leaves a specific state.
 	 */
@@ -4977,7 +4979,7 @@ export interface AgentComp extends Comp {
 	isNavigationFinished(): boolean,
 	isTargetReachable(): boolean,
 	isTargetReached(): boolean,
-	setTarget(target: Vec2),
+	setTarget(target: Vec2): void,
 	onNavigationStarted(cb: () => void): EventController,
 	onNavigationNext(cb: () => void): EventController,
 	onNavigationEnded(cb: () => void): EventController,
@@ -5076,9 +5078,9 @@ export declare class EventController {
 // TODO: global name conflict, renamed to KEvent?
 export declare class Event<Args extends any[] = any[]> {
 	add(action: (...args: Args) => void): EventController
-	addOnce(action: (...args) => void): EventController
+	addOnce(action: (...args: any) => void): EventController
 	next(): Promise<Args>
-	trigger(...args: Args)
+	trigger(...args: Args): void;
 	numListeners(): number
 }
 
@@ -5086,10 +5088,33 @@ export declare class EventHandler<EventMap extends Record<string, any[]>> {
 	on<Name extends keyof EventMap>(name: Name, action: (...args: EventMap[Name]) => void): EventController
 	onOnce<Name extends keyof EventMap>(name: Name, action: (...args: EventMap[Name]) => void): EventController
 	next<Name extends keyof EventMap>(name: Name): Promise<unknown>
-	trigger<Name extends keyof EventMap>(name: Name, ...args: EventMap[Name])
-	remove<Name extends keyof EventMap>(name: Name)
-	clear()
+	trigger<Name extends keyof EventMap>(name: Name, ...args: EventMap[Name]): void
+	remove<Name extends keyof EventMap>(name: Name): void
+	clear(): void
 	numListeners<Name extends keyof EventMap>(name: Name): number
 }
 
 export default kaboom
+
+const plugin = (k: KaboomCtx) => {
+  return {
+    myComp1() {}
+  }
+}
+
+const plugin2 = (k: KaboomCtx) => {
+  return {
+    myComp2() {}
+  }
+}
+
+const k = kaboom( {
+	plugins: [
+	  plugin,
+	  plugin2,
+	]
+  });
+
+  k.myComp1();
+
+
