@@ -1,5 +1,19 @@
 # Setting up Kaboom Development
 
+## Using `create-kaboom` to generate kaboom project
+
+```sh
+$ npm init kaboom -- mygame
+```
+
+This will create a directory `mygame` containing everything you need to start a Kaboom project, go to that directory and run `npm run dev` to start the development server, and edit `src/main.js` to develop the game.
+
+to see all options, run
+
+```sh
+$ npm init kaboom -- --help
+```
+
 ## Using CDN
 
 Getting the package from a CDN provider is the quickest and easiest way to start using Kaboom.

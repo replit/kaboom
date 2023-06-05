@@ -4491,6 +4491,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 					},
 				}
 			},
+			// TODO: use this.wait
 			loop(t: number, action: () => void): EventController {
 				let curTimer: null | TimerController = null
 				const newAction = () => {
