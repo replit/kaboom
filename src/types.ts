@@ -2518,7 +2518,7 @@ export type KaboomPlugin<T> = (k: KaboomCtx) => T
  * Base interface of all game objects.
  */
 export interface GameObjRaw {
-	/**F
+	/**
 	 * Add a child.
 	 *
 	 * @since v3000.0
