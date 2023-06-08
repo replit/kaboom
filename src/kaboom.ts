@@ -1,4 +1,4 @@
-const VERSION = "3000.0.4"
+const VERSION = "3000.0.5"
 
 import initApp from "./app"
 
@@ -621,7 +621,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 		const frameBuffer = (gopt.width && gopt.height)
 			? new FrameBuffer(gopt.width * pixelDensity, gopt.height * pixelDensity)
-			: new FrameBuffer(gl.drawingBufferWidth / gscale, gl.drawingBufferHeight / gscale)
+			: new FrameBuffer(gl.drawingBufferWidth, gl.drawingBufferHeight)
 
 		let bgColor: null | Color = null
 		let bgAlpha = 1
