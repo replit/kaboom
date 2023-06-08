@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["../../src/plugins/04b03.ts"],
+  "sourcesContent": ["// font 04b03\n\n// @ts-ignore\nimport b04b03Src from \"./04b03_6x8.png\";\n\n// @ts-ignore\nmodule.exports = (k: KaboomCtx) => {\n\nfunction load04b03(): Promise<FontData> {\n\treturn k.loadFont(\n\t\t\"04b03\",\n\t\tb04b03Src,\n\t\t6,\n\t\t8\n\t);\n}\n\nreturn {\n\tload04b03,\n};\n\n};\n"],
+  "mappings": "ozCAAA,gBAGA,IAGA,EAAO,QAAU,AAAC,GAAiB,CAEnC,YAAwC,CACvC,MAAO,GAAE,SACR,QACA,EACA,EACA,GALO,wBASF,CACN",
+  "names": []
+}
