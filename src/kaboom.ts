@@ -6515,8 +6515,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	// main game loop
 	app.run(() => {
 
-		frameStart()
-
 		if (!assets.loaded) {
 			if (loadProgress() === 1 && !isFirstFrame) {
 				assets.loaded = true
@@ -6525,27 +6523,23 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		}
 
 		if (!assets.loaded && gopt.loadingScreen !== false || isFirstFrame) {
-
+			frameStart()
 			// TODO: Currently if assets are not initially loaded no updates or timers will be run, however they will run if loadingScreen is set to false. What's the desired behavior or should we make them consistent?
 			drawLoadScreen()
-
+			frameEnd()
 		} else {
-
 			if (!debug.paused) updateFrame()
 			checkFrame()
+			frameStart()
 			drawFrame()
-
-			if (gopt.debug !== false) {
-				drawDebug()
-			}
-
+			if (gopt.debug !== false) drawDebug()
+			frameEnd()
 		}
 
 		if (isFirstFrame) {
 			isFirstFrame = false
 		}
 
-		frameEnd()
 		game.events.trigger("frameEnd")
 
 	})
