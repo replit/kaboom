@@ -1,7 +1,7 @@
 {
 	"name": "kaboom",
 	"description": "kaboom.js is a JavaScript library that helps you make games fast and fun!",
-	"version": "3000.0.6",
+	"version": "3000.0.7",
 	"license": "MIT",
 	"homepage": "https://kaboomjs.com/",
 	"repository": "github:replit/kaboom",
@@ -12,8 +12,14 @@
 	"types": "./dist/kaboom.d.ts",
 	"exports": {
 		".": {
-			"import": "./dist/kaboom.mjs",
-			"require": "./dist/kaboom.cjs"
+			"import": {
+				"types": "./dist/kaboom.d.ts",
+				"default": "./dist/kaboom.mjs"
+			},
+			"require": {
+				"types": "./dist/kaboom.d.ts",
+				"default": "./dist/kaboom.cjs"
+			}
 		},
 		"./global": "./dist/global.js"
 	},
