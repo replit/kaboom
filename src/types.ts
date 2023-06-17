@@ -2222,7 +2222,7 @@ export interface KaboomCtx {
 	 *
 	 * @section Misc
 	 */
-	plug<T>(plugin: KaboomPlugin<T>): void,
+	plug<T extends Record<string, any>>(plugin: KaboomPlugin<T>): KaboomCtx & T,
 	/**
 	 * Take a screenshot and get the dataurl of the image.
 	 *
@@ -2398,14 +2398,14 @@ export type KGamePad = {
 }
 
 /**
- * Inspect info for a character.
+ * Inspect info for a game object.
  */
 export type GameObjInspect = Record<Tag, string | null>
 
 /**
  * Kaboom configurations.
  */
-export interface KaboomOpt<T extends PluginList<any> = undefined> {
+export interface KaboomOpt<T extends PluginList<any> = any> {
 	/**
 	 * Width of game.
 	 */
@@ -2512,7 +2512,7 @@ export interface KaboomOpt<T extends PluginList<any> = undefined> {
 	burp?: boolean,
 }
 
-export type KaboomPlugin<T> = (k: KaboomCtx) => T
+export type KaboomPlugin<T> = (k: KaboomCtx) => T | ((...args: any) => (k: KaboomCtx) => T)
 
 /**
  * Base interface of all game objects.
@@ -4783,7 +4783,7 @@ export interface HealthComp extends Comp {
 }
 
 // TODO: this doesn't work
-export type LifespanComp = Comp
+export type LifespanComp = Comp 
 
 export interface LifespanCompOpt {
 	/**

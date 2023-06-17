@@ -477,7 +477,9 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			const tex = new Texture(0, 0, opt)
 			tex.bind()
 			gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, img)
+			// @ts-ignore
 			tex.width = img.width
+			// @ts-ignore
 			tex.height = img.height
 			tex.unbind()
 			tex.src = img
@@ -519,14 +521,18 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			this.ctx = this.canvas.getContext("2d")
 		}
 		add(img: TexImageSource): [Texture, Quad] {
+			// @ts-ignore
 			if (img.width > this.canvas.width || img.height > this.canvas.height) {
+				// @ts-ignore
 				throw new Error(`Texture size (${img.width} x ${img.height}) exceeds limit (${this.canvas.width} x ${this.canvas.height})`)
 			}
+			// @ts-ignore
 			if (this.x + img.width > this.canvas.width) {
 				this.x = 0
 				this.y += this.curHeight
 				this.curHeight = 0
 			}
+			// @ts-ignore
 			if (this.y + img.height > this.canvas.height) {
 				this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height)
 				this.tex = Texture.fromImage(this.canvas)
@@ -535,8 +541,11 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				this.curHeight = 0
 			}
 			const pos = new Vec2(this.x, this.y)
+			// @ts-ignore
 			this.x += img.width
+			// @ts-ignore
 			if (img.height > this.curHeight) {
+				// @ts-ignore
 				this.curHeight = img.height
 			}
 			if (img instanceof ImageData) {
@@ -548,7 +557,9 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			return [this.tex, new Quad(
 				pos.x / this.canvas.width,
 				pos.y / this.canvas.height,
+				// @ts-ignore
 				img.width / this.canvas.width,
+				// @ts-ignore
 				img.height / this.canvas.height,
 			)]
 		}
@@ -1158,7 +1169,9 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		opt: LoadSpriteOpt = {},
 	): SpriteData {
 		const canvas = document.createElement("canvas")
+		// @ts-ignore
 		const width = images[0].width
+		// @ts-ignore
 		const height = images[0].height
 		canvas.width = width * images.length
 		canvas.height = height
@@ -5079,17 +5092,25 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		window.localStorage[key] = JSON.stringify(data)
 	}
 
-	function plug<T>(plugin: KaboomPlugin<T>): MergeObj<T> & KaboomCtx {
+	function plug<T extends Record<string, any>>(plugin: KaboomPlugin<T>, ...args: any): KaboomCtx & T {
 		const funcs = plugin(ctx)
-		for (const k in funcs) {
+		let funcsObj: T
+		if (typeof funcs === "function") {
+			const plugWithOptions = funcs(...args)
+			funcsObj = plugWithOptions(ctx)
+		}
+		else {
+			funcsObj = funcs
+		}
+		for (const k in funcsObj) {
 			// @ts-ignore
-			ctx[k] = funcs[k]
+			ctx[k] = funcsObj[k]
 			if (gopt.global !== false) {
 				// @ts-ignore
-				window[k] = funcs[k]
+				window[k] = funcsObj[k]
 			}
 		}
-		return ctx as unknown as MergeObj<T> & KaboomCtx
+		return ctx as KaboomCtx & T
 	}
 
 	function center(): Vec2 {
