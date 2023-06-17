@@ -30,7 +30,7 @@
  * k.vec2(...)
  * ```
  */
-declare function kaboom<T = any>(options?: KaboomOpt<T>): KaboomCtx & MergePlugins<T>;
+declare function kaboom<T extends PluginList<unknown> = undefined>(options?: KaboomOpt<T>): T extends undefined ? KaboomCtx : KaboomCtx & MergePlugins<T>;
 
 /**
  * Context handle that contains every kaboom function.
@@ -2335,10 +2335,10 @@ type Defined<T> = T extends any ? Pick<T, { [K in keyof T]-?: T[K] extends undef
 type Expand<T> = T extends infer U ? { [K in keyof U]: U[K] } : never
 export type MergeObj<T> = Expand<UnionToIntersection<Defined<T>>>
 export type MergeComps<T> = Omit<MergeObj<T>, keyof Comp>
-export type MergePlugins<T = any> = MergeObj<ReturnType<T extends (...args: any) => any ? T : never>>
+export type MergePlugins<T extends PluginList<any>> = MergeObj<ReturnType<T[number]>>
 
 export type CompList<T> = Array<T | Tag>
-export type PluginList<T> = Array<T | KaboomPlugin<T extends Array<KaboomPlugin<any>> ? T[number] : never>>
+export type PluginList<T> = Array<T | KaboomPlugin<any>>
 
 export type Key =
 	| "f1" | "f2" | "f3" | "f4" | "f5" | "f6" | "f7" | "f8" | "f9" | "f10" | "f11" | "f12"
@@ -2405,7 +2405,7 @@ export type GameObjInspect = Record<Tag, string | null>
 /**
  * Kaboom configurations.
  */
-export interface KaboomOpt<T = any> {
+export interface KaboomOpt<T extends PluginList<any> = undefined> {
 	/**
 	 * Width of game.
 	 */
@@ -2505,7 +2505,7 @@ export interface KaboomOpt<T = any> {
 	/**
 	 * List of plugins to import.
 	 */
-	plugins?: PluginList<T>,
+	plugins?: T,
 	/**
 	 * Enter burp mode.
 	 */
