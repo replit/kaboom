@@ -30,7 +30,7 @@
  * k.vec2(...)
  * ```
  */
-declare function kaboom<T extends PluginList<unknown> = undefined>(options?: KaboomOpt<T>): T extends undefined ? KaboomCtx : KaboomCtx & MergePlugins<T>;
+declare function kaboom<T extends PluginList<unknown> = [undefined]>(options?: KaboomOpt<T>): T extends [undefined] ? KaboomCtx : KaboomCtx & MergePlugins<T>;
 
 /**
  * Context handle that contains every kaboom function.
