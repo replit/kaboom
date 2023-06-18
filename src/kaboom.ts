@@ -112,7 +112,6 @@ import type {
 	AnchorComp,
 	ZComp,
 	FollowComp,
-	MoveComp,
 	OffScreenCompOpt,
 	OffScreenComp,
 	AreaCompOpt,
@@ -136,12 +135,12 @@ import type {
 	FixedComp,
 	StayComp,
 	HealthComp,
-	LifespanComp,
 	LifespanCompOpt,
 	StateComp,
 	Debug,
 	KaboomPlugin,
 	MergeObj,
+	EmptyComp,
 	LevelComp,
 	Edge,
 	TileComp,
@@ -3734,7 +3733,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		}
 	}
 
-	function move(dir: number | Vec2, speed: number): MoveComp {
+	function move(dir: number | Vec2, speed: number): EmptyComp {
 		const d = typeof dir === "number" ? Vec2.fromAngle(dir) : dir.unit()
 		return {
 			id: "move",
@@ -4859,7 +4858,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		}
 	}
 
-	function lifespan(time: number, opt: LifespanCompOpt = {}): LifespanComp {
+	function lifespan(time: number, opt: LifespanCompOpt = {}): EmptyComp {
 		if (time == null) {
 			throw new Error("lifespan() requires time")
 		}

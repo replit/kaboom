@@ -407,7 +407,7 @@ export interface KaboomCtx {
 	 * ])
 	 * ```
 	 */
-	move(direction: number | Vec2, speed: number): MoveComp,
+	move(direction: number | Vec2, speed: number): EmptyComp,
 	/**
 	 * Control the behavior of object when it goes out of view.
 	 *
@@ -520,7 +520,7 @@ export interface KaboomCtx {
 	 * ])
 	 * ```
 	 */
-	lifespan(time: number, options?: LifespanCompOpt): LifespanComp,
+	lifespan(time: number, options?: LifespanCompOpt): EmptyComp,
 	/**
 	 * Finite state machine.
 	 *
@@ -3863,6 +3863,11 @@ export interface Comp {
 
 export type GameObjID = number
 
+/**
+ * A component without own properties.
+ */
+export type EmptyComp = { id: string } & Comp;
+
 export interface PosComp extends Comp {
 	/**
 	 * Object's current world position.
@@ -3958,8 +3963,6 @@ export interface FollowComp extends Comp {
 		offset: Vec2,
 	},
 }
-
-export type MoveComp = Comp
 
 export interface OffScreenCompOpt {
 	/**
@@ -4781,9 +4784,6 @@ export interface HealthComp extends Comp {
 	 */
 	onDeath(action: () => void): EventController,
 }
-
-// TODO: this doesn't work
-export type LifespanComp = Comp 
 
 export interface LifespanCompOpt {
 	/**
