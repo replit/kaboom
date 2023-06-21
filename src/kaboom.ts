@@ -6830,6 +6830,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		wave,
 		deg2rad,
 		rad2deg,
+		clamp,
 		testLineLine,
 		testRectRect,
 		testRectLine,
