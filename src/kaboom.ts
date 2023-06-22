@@ -1,4 +1,4 @@
-const VERSION = "3000.0.7"
+const VERSION = "3000.0.10"
 
 import initApp from "./app"
 
@@ -3012,15 +3012,23 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			remove(obj: GameObj): void {
 				const idx = this.children.indexOf(obj)
 				if (idx !== -1) {
-					obj.trigger("destroy")
-					game.events.trigger("destroy", obj)
 					obj.parent = null
 					this.children.splice(idx, 1)
+					const trigger = (o) => {
+						o.trigger("destroy")
+						game.events.trigger("destroy", o)
+						o.children.forEach((child) => trigger(child))
+					}
+					trigger(obj)
 				}
 			},
 
-			removeAll(tag: Tag) {
-				this.get(tag).forEach((obj) => this.remove(obj))
+			removeAll(tag?: Tag) {
+				if (tag) {
+					this.get(tag).forEach((obj) => this.remove(obj))
+				} else {
+					for (const child of [...this.children]) this.remove(child)
+				}
 			},
 
 			update() {

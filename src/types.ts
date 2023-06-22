@@ -2542,6 +2542,12 @@ export interface GameObjRaw {
 	 */
 	removeAll(tag: Tag): void,
 	/**
+	 * Remove all children.
+	 *
+	 * @since v3000.0
+	 */
+	removeAll() void,
+	/**
 	 * Get a list of all game objs with certain tag.
 	 *
 	 * @since v3000.0
@@ -4724,7 +4730,7 @@ export interface TimerComp extends Comp {
 		to: V,
 		duration: number,
 		setValue: (value: V) => void,
-		easeFunc?: (t: V) => number,
+		easeFunc?: (t: number) => number,
 	): TweenController,
 }
 
