@@ -4041,16 +4041,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		}
 	}
 
-	function children(list) {
-		return {
-			add(this: GameObj) {
-				for (const child of list) {
-					this.add(list)
-				}
-			},
-		}
-	}
-
 	// TODO: clean
 	function sprite(
 		src: string | SpriteData | Asset<SpriteData>,
@@ -4467,8 +4457,9 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	function timer(): TimerComp {
 		return {
 			id: "timer",
-			wait(this: GameObj<TimerComp>, time: number, action: () => void): TimerController {
-				const actions = [ action ]
+			wait(this: GameObj<TimerComp>, time: number, action?: () => void): TimerController {
+				const actions = []
+				if (action) actions.push(action)
 				let t = 0
 				const ev = this.onUpdate(() => {
 					t += dt()
@@ -4494,7 +4485,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 					},
 				}
 			},
-			// TODO: use this.wait
 			loop(t: number, action: () => void): EventController {
 				let curTimer: null | TimerController = null
 				const newAction = () => {
@@ -4502,7 +4492,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 					curTimer = this.wait(t, newAction)
 					action()
 				}
-				curTimer = wait(0, newAction)
+				curTimer = this.wait(0, newAction)
 				return {
 					get paused() {
 						return curTimer.paused

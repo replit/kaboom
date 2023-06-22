@@ -4707,7 +4707,7 @@ export interface TimerComp extends Comp {
 	/**
 	 * Run the callback after n seconds.
 	 */
-	wait(time: number, action: () => void): TimerController,
+	wait(time: number, action?: () => void): TimerController,
 	/**
 	 * Run the callback every n seconds.
 	 *
