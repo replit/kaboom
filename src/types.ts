@@ -188,6 +188,7 @@ export interface KaboomCtx {
 	 */
 	color(r: number, g: number, b: number): ColorComp,
 	color(c: Color): ColorComp,
+	color(rgb: [number, number, number]): ColorComp,
 	color(): ColorComp,
 	/**
 	 * Sets opacity (0.0 - 1.0).
@@ -1789,7 +1790,7 @@ export interface KaboomCtx {
 		to: V,
 		duration: number,
 		setValue: (value: V) => void,
-		easeFunc?: (t: V) => number,
+		easeFunc?: (t: number) => number,
 	): TweenController,
 	/**
 	 * A collection of easing functions for tweening.
