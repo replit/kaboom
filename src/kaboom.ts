@@ -1,4 +1,4 @@
-const VERSION = "3000.0.10"
+const VERSION = "3000.0.11"
 
 import initApp from "./app"
 
@@ -2300,7 +2300,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 	function drawCircle(opt: DrawCircleOpt) {
 
-		if (!opt.radius) {
+		if (typeof opt.radius !== "number") {
 			throw new Error("drawCircle() requires property \"radius\".")
 		}
 
@@ -4348,6 +4348,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				align: obj.align,
 				letterSpacing: obj.letterSpacing,
 				lineSpacing: obj.lineSpacing,
+				// TODO: shouldn't run when object / ancestor is paused
 				transform: obj.textTransform,
 				styles: obj.textStyles,
 			}))

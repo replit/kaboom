@@ -107,7 +107,7 @@ if (fs.existsSync(dest)) {
 	fail(`Directory "${dest}" already exists!`)
 }
 
-const stringify = (obj) => JSON.stringify(obj, null, "\t")
+const stringify = (obj) => JSON.stringify(obj, null, opts["spaces"] ? 4 : "\t")
 const ts = opts["typescript"]
 const desktop = opts["desktop"]
 const ext = ts ? "ts" : "js"
@@ -139,7 +139,7 @@ const exec = async (cmd, args, opts) => new Promise((resolve) => {
 
 const updateJSONFile = (path, action) => {
 	const json = JSON.parse(fs.readFileSync(path, "utf8"))
-	fs.writeFileSync(path, JSON.stringify(action(json)))
+	fs.writeFileSync(path, stringify(action(json)))
 }
 
 let startCode = `

@@ -2546,7 +2546,7 @@ export interface GameObjRaw {
 	 *
 	 * @since v3000.0
 	 */
-	removeAll() void,
+	removeAll(): void,
 	/**
 	 * Get a list of all game objs with certain tag.
 	 *
