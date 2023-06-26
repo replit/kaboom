@@ -2945,7 +2945,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	}
 
 	function shake(intensity: number = 12) {
-		game.cam.shake = intensity
+		game.cam.shake += intensity
 	}
 
 	function toScreen(p: Vec2): Vec2 {
