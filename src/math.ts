@@ -916,6 +916,7 @@ export class Line {
 	}
 }
 
+// TODO: use x: number y: number (x, y, width, height)
 export class Rect {
 	pos: Vec2
 	width: number

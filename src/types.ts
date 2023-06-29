@@ -4770,6 +4770,10 @@ export interface HealthComp extends Comp {
 	 */
 	setHP(hp: number): void,
 	/**
+	 * Max amount of HP.
+	 */
+	maxHP(): number,
+	/**
 	 * Register an event that runs when hurt() is called upon the object.
 	 *
 	 * @since v2000.1

@@ -1,4 +1,4 @@
-const VERSION = "3000.0.11"
+const VERSION = "3000.0.13"
 
 import initApp from "./app"
 
@@ -3023,6 +3023,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				}
 			},
 
+			// TODO: recursive
 			removeAll(tag?: Tag) {
 				if (tag) {
 					this.get(tag).forEach((obj) => this.remove(obj))
@@ -4811,6 +4812,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		if (hp == null) {
 			throw new Error("health() requires the initial amount of hp")
 		}
+		const maxHP = hp
 		return {
 			id: "health",
 			hurt(this: GameObj, n: number = 1) {
@@ -4823,6 +4825,9 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			},
 			hp(): number {
 				return hp
+			},
+			maxHP(): number {
+				return maxHP
 			},
 			setHP(this: GameObj, n: number) {
 				hp = n
@@ -4958,7 +4963,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			},
 
 			update() {
-			// execute the enter event for initState
+				// execute the enter event for initState
 				if (!didFirstEnter) {
 					trigger("enter", initState)
 					didFirstEnter = true

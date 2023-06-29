@@ -692,6 +692,11 @@ export default (opt: {
 		e.preventDefault()
 		state.events.onOnce("input", () => {
 			const touches = [...e.changedTouches]
+			if (opt.touchToMouse !== false) {
+				state.mousePos = new Vec2(touches[0].clientX, touches[0].clientY)
+				state.mouseState.press("left")
+				state.events.trigger("mousePress", "left")
+			}
 			touches.forEach((t) => {
 				state.events.trigger(
 					"touchStart",
@@ -699,11 +704,6 @@ export default (opt: {
 					t,
 				)
 			})
-			if (opt.touchToMouse !== false) {
-				state.mousePos = new Vec2(touches[0].clientX, touches[0].clientY)
-				state.mouseState.press("left")
-				state.events.trigger("mousePress", "left")
-			}
 		})
 	}
 
@@ -712,41 +712,41 @@ export default (opt: {
 		e.preventDefault()
 		state.events.onOnce("input", () => {
 			const touches = [...e.changedTouches]
-			touches.forEach((t) => {
-				state.events.trigger("touchMove", new Vec2(t.clientX, t.clientY), t)
-			})
 			if (opt.touchToMouse !== false) {
 				state.mousePos = new Vec2(touches[0].clientX, touches[0].clientY)
 				state.events.trigger("mouseMove")
 			}
+			touches.forEach((t) => {
+				state.events.trigger("touchMove", new Vec2(t.clientX, t.clientY), t)
+			})
 		})
 	}
 
 	canvasEvents.touchend = (e) => {
 		state.events.onOnce("input", () => {
 			const touches = [...e.changedTouches]
-			touches.forEach((t) => {
-				state.events.trigger("touchEnd", new Vec2(t.clientX, t.clientY), t)
-			})
 			if (opt.touchToMouse !== false) {
 				state.mousePos = new Vec2(touches[0].clientX, touches[0].clientY)
 				state.mouseState.release("left")
 				state.events.trigger("mouseRelease", "left")
 			}
+			touches.forEach((t) => {
+				state.events.trigger("touchEnd", new Vec2(t.clientX, t.clientY), t)
+			})
 		})
 	}
 
 	canvasEvents.touchcancel = (e) => {
 		state.events.onOnce("input", () => {
 			const touches = [...e.changedTouches]
-			touches.forEach((t) => {
-				state.events.trigger("touchEnd", new Vec2(t.clientX, t.clientY), t)
-			})
 			if (opt.touchToMouse !== false) {
 				state.mousePos = new Vec2(touches[0].clientX, touches[0].clientY)
 				state.mouseState.release("left")
 				state.events.trigger("mouseRelease", "left")
 			}
+			touches.forEach((t) => {
+				state.events.trigger("touchEnd", new Vec2(t.clientX, t.clientY), t)
+			})
 		})
 	}
 
