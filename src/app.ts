@@ -692,15 +692,19 @@ export default (opt: {
 		e.preventDefault()
 		state.events.onOnce("input", () => {
 			const touches = [...e.changedTouches]
+			const box = state.canvas.getBoundingClientRect()
 			if (opt.touchToMouse !== false) {
-				state.mousePos = new Vec2(touches[0].clientX, touches[0].clientY)
+				state.mousePos = new Vec2(
+					touches[0].clientX - box.x,
+					touches[0].clientY - box.y,
+				)
 				state.mouseState.press("left")
 				state.events.trigger("mousePress", "left")
 			}
 			touches.forEach((t) => {
 				state.events.trigger(
 					"touchStart",
-					new Vec2(t.clientX, t.clientY),
+					new Vec2(t.clientX - box.x, t.clientY - box.y),
 					t,
 				)
 			})
@@ -712,12 +716,20 @@ export default (opt: {
 		e.preventDefault()
 		state.events.onOnce("input", () => {
 			const touches = [...e.changedTouches]
+			const box = state.canvas.getBoundingClientRect()
 			if (opt.touchToMouse !== false) {
-				state.mousePos = new Vec2(touches[0].clientX, touches[0].clientY)
+				state.mousePos = new Vec2(
+					touches[0].clientX - box.x,
+					touches[0].clientY - box.y,
+				)
 				state.events.trigger("mouseMove")
 			}
 			touches.forEach((t) => {
-				state.events.trigger("touchMove", new Vec2(t.clientX, t.clientY), t)
+				state.events.trigger(
+					"touchMove",
+					new Vec2(t.clientX - box.x, t.clientY - box.y),
+					t,
+				)
 			})
 		})
 	}
@@ -725,13 +737,21 @@ export default (opt: {
 	canvasEvents.touchend = (e) => {
 		state.events.onOnce("input", () => {
 			const touches = [...e.changedTouches]
+			const box = state.canvas.getBoundingClientRect()
 			if (opt.touchToMouse !== false) {
-				state.mousePos = new Vec2(touches[0].clientX, touches[0].clientY)
+				state.mousePos = new Vec2(
+					touches[0].clientX - box.x,
+					touches[0].clientY - box.y,
+				)
 				state.mouseState.release("left")
 				state.events.trigger("mouseRelease", "left")
 			}
 			touches.forEach((t) => {
-				state.events.trigger("touchEnd", new Vec2(t.clientX, t.clientY), t)
+				state.events.trigger(
+					"touchEnd",
+					new Vec2(t.clientX - box.x, t.clientY - box.y),
+					t,
+				)
 			})
 		})
 	}
@@ -739,13 +759,21 @@ export default (opt: {
 	canvasEvents.touchcancel = (e) => {
 		state.events.onOnce("input", () => {
 			const touches = [...e.changedTouches]
+			const box = state.canvas.getBoundingClientRect()
 			if (opt.touchToMouse !== false) {
-				state.mousePos = new Vec2(touches[0].clientX, touches[0].clientY)
+				state.mousePos = new Vec2(
+					touches[0].clientX - box.x,
+					touches[0].clientY - box.y,
+				)
 				state.mouseState.release("left")
 				state.events.trigger("mouseRelease", "left")
 			}
 			touches.forEach((t) => {
-				state.events.trigger("touchEnd", new Vec2(t.clientX, t.clientY), t)
+				state.events.trigger(
+					"touchEnd",
+					new Vec2(t.clientX - box.x, t.clientY - box.y),
+					t,
+				)
 			})
 		})
 	}
