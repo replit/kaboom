@@ -112,7 +112,6 @@ import type {
 	AnchorComp,
 	ZComp,
 	FollowComp,
-	MoveComp,
 	OffScreenCompOpt,
 	OffScreenComp,
 	AreaCompOpt,
@@ -136,12 +135,12 @@ import type {
 	FixedComp,
 	StayComp,
 	HealthComp,
-	LifespanComp,
 	LifespanCompOpt,
 	StateComp,
 	Debug,
 	KaboomPlugin,
 	MergeObj,
+	EmptyComp,
 	LevelComp,
 	Edge,
 	TileComp,
@@ -3730,7 +3729,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		}
 	}
 
-	function move(dir: number | Vec2, speed: number): MoveComp {
+	function move(dir: number | Vec2, speed: number): EmptyComp {
 		const d = typeof dir === "number" ? Vec2.fromAngle(dir) : dir.unit()
 		return {
 			id: "move",
@@ -4850,7 +4849,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		}
 	}
 
-	function lifespan(time: number, opt: LifespanCompOpt = {}): LifespanComp {
+	function lifespan(time: number, opt: LifespanCompOpt = {}): EmptyComp {
 		if (time == null) {
 			throw new Error("lifespan() requires time")
 		}
@@ -5083,17 +5082,25 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		window.localStorage[key] = JSON.stringify(data)
 	}
 
-	function plug<T>(plugin: KaboomPlugin<T>): MergeObj<T> & KaboomCtx {
+	function plug<T extends Record<string, any>>(plugin: KaboomPlugin<T>, ...args: any): KaboomCtx & T {
 		const funcs = plugin(ctx)
-		for (const k in funcs) {
+		let funcsObj: T
+		if (typeof funcs === "function") {
+			const plugWithOptions = funcs(...args)
+			funcsObj = plugWithOptions(ctx)
+		}
+		else {
+			funcsObj = funcs
+		}
+		for (const k in funcsObj) {
 			// @ts-ignore
-			ctx[k] = funcs[k]
+			ctx[k] = funcsObj[k]
 			if (gopt.global !== false) {
 				// @ts-ignore
-				window[k] = funcs[k]
+				window[k] = funcsObj[k]
 			}
 		}
-		return ctx as unknown as MergeObj<T> & KaboomCtx
+		return ctx as KaboomCtx & T
 	}
 
 	function center(): Vec2 {

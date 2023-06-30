@@ -30,7 +30,7 @@
  * k.vec2(...)
  * ```
  */
-declare function kaboom<T = any>(options?: KaboomOpt<T>): KaboomCtx & MergePlugins<T>;
+declare function kaboom<T extends PluginList<unknown> = [undefined]>(options?: KaboomOpt<T>): T extends [undefined] ? KaboomCtx : KaboomCtx & MergePlugins<T>;
 
 /**
  * Context handle that contains every kaboom function.
@@ -408,7 +408,7 @@ export interface KaboomCtx {
 	 * ])
 	 * ```
 	 */
-	move(direction: number | Vec2, speed: number): MoveComp,
+	move(direction: number | Vec2, speed: number): EmptyComp,
 	/**
 	 * Control the behavior of object when it goes out of view.
 	 *
@@ -521,7 +521,7 @@ export interface KaboomCtx {
 	 * ])
 	 * ```
 	 */
-	lifespan(time: number, options?: LifespanCompOpt): LifespanComp,
+	lifespan(time: number, options?: LifespanCompOpt): EmptyComp,
 	/**
 	 * Finite state machine.
 	 *
@@ -2223,7 +2223,7 @@ export interface KaboomCtx {
 	 *
 	 * @section Misc
 	 */
-	plug<T>(plugin: KaboomPlugin<T>): void,
+	plug<T extends Record<string, any>>(plugin: KaboomPlugin<T>): KaboomCtx & T,
 	/**
 	 * Take a screenshot and get the dataurl of the image.
 	 *
@@ -2336,10 +2336,10 @@ type Defined<T> = T extends any ? Pick<T, { [K in keyof T]-?: T[K] extends undef
 type Expand<T> = T extends infer U ? { [K in keyof U]: U[K] } : never
 export type MergeObj<T> = Expand<UnionToIntersection<Defined<T>>>
 export type MergeComps<T> = Omit<MergeObj<T>, keyof Comp>
-export type MergePlugins<T = any> = MergeObj<ReturnType<T extends (...args: any) => any ? T : never>>
+export type MergePlugins<T extends PluginList<any>> = MergeObj<ReturnType<T[number]>>
 
 export type CompList<T> = Array<T | Tag>
-export type PluginList<T> = Array<T | KaboomPlugin<T extends Array<KaboomPlugin<any>> ? T[number] : never>>
+export type PluginList<T> = Array<T | KaboomPlugin<any>>
 
 export type Key =
 	| "f1" | "f2" | "f3" | "f4" | "f5" | "f6" | "f7" | "f8" | "f9" | "f10" | "f11" | "f12"
@@ -2399,14 +2399,14 @@ export type KGamePad = {
 }
 
 /**
- * Inspect info for a character.
+ * Inspect info for a game object.
  */
 export type GameObjInspect = Record<Tag, string | null>
 
 /**
  * Kaboom configurations.
  */
-export interface KaboomOpt<T = any> {
+export interface KaboomOpt<T extends PluginList<any> = any> {
 	/**
 	 * Width of game.
 	 */
@@ -2506,14 +2506,14 @@ export interface KaboomOpt<T = any> {
 	/**
 	 * List of plugins to import.
 	 */
-	plugins?: PluginList<T>,
+	plugins?: T,
 	/**
 	 * Enter burp mode.
 	 */
 	burp?: boolean,
 }
 
-export type KaboomPlugin<T> = (k: KaboomCtx) => T
+export type KaboomPlugin<T> = (k: KaboomCtx) => T | ((...args: any) => (k: KaboomCtx) => T)
 
 /**
  * Base interface of all game objects.
@@ -3870,6 +3870,11 @@ export interface Comp {
 
 export type GameObjID = number
 
+/**
+ * A component without own properties.
+ */
+export type EmptyComp = { id: string } & Comp;
+
 export interface PosComp extends Comp {
 	/**
 	 * Object's current world position.
@@ -3965,8 +3970,6 @@ export interface FollowComp extends Comp {
 		offset: Vec2,
 	},
 }
-
-export type MoveComp = Comp
 
 export interface OffScreenCompOpt {
 	/**
@@ -4792,9 +4795,6 @@ export interface HealthComp extends Comp {
 	 */
 	onDeath(action: () => void): EventController,
 }
-
-// TODO: this doesn't work
-export type LifespanComp = Comp
 
 export interface LifespanCompOpt {
 	/**
