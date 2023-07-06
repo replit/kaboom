@@ -208,7 +208,7 @@ const UV_PAD = 0.1
 const DEF_HASH_GRID_SIZE = 64
 const DEF_FONT_FILTER = "nearest"
 
-const LOG_MAX = 1
+const LOG_MAX = 10
 
 const VERTEX_FORMAT = [
 	{ name: "a_pos", size: 2 },
