@@ -3985,7 +3985,7 @@ export interface OffScreenCompOpt {
 	 */
 	destroy?: boolean,
 	/**
-	 * The distance when out of view is triggered (default 64).
+	 * The distance when out of view is triggered (default 200).
 	 *
 	 * @since v3000.0
 	 */
