@@ -4224,8 +4224,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 					this.frame += curAnimDir
 
-					if (this.frame < Math.min(anim.from, anim.to) ||
-							this.frame > Math.max(anim.from, anim.to)) {
+					if (this.frame < Math.min(anim.from, anim.to) || this.frame > Math.max(anim.from, anim.to)) {
 						if (curAnim.loop) {
 							if (curAnim.pingpong) {
 								curAnimDir *= -1
