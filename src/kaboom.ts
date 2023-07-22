@@ -718,6 +718,8 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				height: gl.drawingBufferHeight,
 			},
 
+			fixed: 0,
+
 		}
 
 	})()
@@ -1786,6 +1788,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			flush()
 		}
 
+		if (gfx.fixed > 0) fixed = true
 		const transform = fixed ? gfx.transform : game.cam.transform.mult(gfx.transform)
 
 		for (const v of verts) {
@@ -1868,6 +1871,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		}
 
 		gfx.drawCalls = 0
+		gfx.fixed = 0
 		gfx.transformStack.length = 0
 		gfx.transform = new Mat4()
 
@@ -3039,8 +3043,9 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				this.trigger("update")
 			},
 
-			draw(this: GameObj<PosComp | ScaleComp | RotateComp>) {
+			draw(this: GameObj<PosComp | ScaleComp | RotateComp | FixedComp>) {
 				if (this.hidden) return
+				if (this.fixed) gfx.fixed += 1
 				pushTransform()
 				pushTranslate(this.pos)
 				pushScale(this.scale)
@@ -3051,6 +3056,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 					.sort((o1, o2) => (o1.z ?? 0) - (o2.z ?? 0))
 					.forEach((child) => child.draw())
 				popTransform()
+				if (this.fixed) gfx.fixed -= 1
 			},
 
 			drawInspect(this: GameObj<PosComp | ScaleComp | RotateComp>) {
@@ -4043,7 +4049,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			opacity: obj.opacity,
 			anchor: obj.anchor,
 			outline: obj.outline,
-			fixed: obj.fixed,
 			shader: obj.shader,
 			uniform: obj.uniform,
 		}

@@ -74,7 +74,7 @@ ${examples.map((example) => `<li><a href="/${example}">${example}</a></li>`).joi
 	})
 
 	return app.listen(port, () => {
-		console.log(`server started at localhost:${port}`)
+		console.log(`server started at http://localhost:${port}`)
 	})
 
 }
