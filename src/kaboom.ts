@@ -139,7 +139,6 @@ import type {
 	StateComp,
 	Debug,
 	KaboomPlugin,
-	MergeObj,
 	EmptyComp,
 	LevelComp,
 	Edge,
@@ -718,7 +717,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				height: gl.drawingBufferHeight,
 			},
 
-			fixed: 0,
+			fixed: false,
 
 		}
 
@@ -1788,8 +1787,9 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			flush()
 		}
 
-		if (gfx.fixed > 0) fixed = true
-		const transform = fixed ? gfx.transform : game.cam.transform.mult(gfx.transform)
+		const transform = (gfx.fixed || fixed)
+			? gfx.transform
+			: game.cam.transform.mult(gfx.transform)
 
 		for (const v of verts) {
 			// normalized world space coordinate [-1.0 ~ 1.0]
@@ -1871,7 +1871,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		}
 
 		gfx.drawCalls = 0
-		gfx.fixed = 0
+		gfx.fixed = false
 		gfx.transformStack.length = 0
 		gfx.transform = new Mat4()
 
@@ -3045,7 +3045,8 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 			draw(this: GameObj<PosComp | ScaleComp | RotateComp | FixedComp>) {
 				if (this.hidden) return
-				if (this.fixed) gfx.fixed += 1
+				const f = gfx.fixed
+				if (this.fixed) gfx.fixed = true
 				pushTransform()
 				pushTranslate(this.pos)
 				pushScale(this.scale)
@@ -3056,7 +3057,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 					.sort((o1, o2) => (o1.z ?? 0) - (o2.z ?? 0))
 					.forEach((child) => child.draw())
 				popTransform()
-				if (this.fixed) gfx.fixed -= 1
+				gfx.fixed = f
 			},
 
 			drawInspect(this: GameObj<PosComp | ScaleComp | RotateComp>) {
