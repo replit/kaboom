@@ -2858,7 +2858,7 @@ export declare class Asset<D> {
 	finally(action: () => void): Asset<D>
 }
 
-export type LoadSpriteSrc = string | TexImageSource
+export type LoadSpriteSrc = string | KaboomImageSource
 
 export declare class SpriteData {
 	tex: Texture
@@ -2867,7 +2867,7 @@ export declare class SpriteData {
 	slice9: NineSlice | null
 	constructor(tex: Texture, frames?: Quad[], anims?: SpriteAnims)
 	static from(src: LoadSpriteSrc, opt?: LoadSpriteOpt): Promise<SpriteData>
-	static fromImage(data: TexImageSource, opt?: LoadSpriteOpt): SpriteData
+	static fromImage(data: KaboomImageSource, opt?: LoadSpriteOpt): SpriteData
 	static fromURL(url: string, opt?: LoadSpriteOpt): Promise<SpriteData>
 }
 
@@ -3013,14 +3013,16 @@ export type TextureOpt = {
 	wrap?: TexWrap,
 }
 
+export type KaboomImageSource = Exclude<TexImageSource, VideoFrame>
+
 export declare class Texture {
 	glTex: WebGLTexture
-	src: null | TexImageSource
+	src: null | KaboomImageSource
 	width: number
 	height: number
 	constructor(w: number, h: number, opt?: TextureOpt)
-	static fromImage(img: TexImageSource, opt?: TextureOpt): Texture
-	update(img: TexImageSource, x: number, y: number): void
+	static fromImage(img: KaboomImageSource, opt?: TextureOpt): Texture
+	update(img: KaboomImageSource, x: number, y: number): void
 	bind(): void
 	unbind(): void
 	free(): void
@@ -3755,13 +3757,6 @@ export type RNGValue =
 	number
 	| Vec2
 	| Color
-
-export interface RNG {
-	seed: number,
-	gen(): number,
-	gen<T extends RNGValue>(n: T): T,
-	gen<T extends RNGValue>(a: T, b: T): T,
-}
 
 export declare class Rect {
 	pos: Vec2

@@ -70,6 +70,7 @@ import type {
 	RenderProps,
 	CharTransform,
 	TextureOpt,
+	KaboomImageSource,
 	FormattedText,
 	FormattedChar,
 	DrawRectOpt,
@@ -85,7 +86,6 @@ import type {
 	ShaderData,
 	LoadSpriteSrc,
 	LoadSpriteOpt,
-	LoadSoundOpt,
 	SpriteAtlasData,
 	LoadBitmapFontOpt,
 	KaboomCtx,
@@ -420,7 +420,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 	class Texture {
 
-		src: null | TexImageSource = null
+		src: null | KaboomImageSource = null
 		glTex: WebGLTexture
 		width: number
 		height: number
@@ -471,7 +471,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 		}
 
-		static fromImage(img: TexImageSource, opt: TextureOpt = {}): Texture {
+		static fromImage(img: KaboomImageSource, opt: TextureOpt = {}): Texture {
 			const tex = new Texture(0, 0, opt)
 			tex.bind()
 			gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, img)
@@ -482,7 +482,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			return tex
 		}
 
-		update(img: TexImageSource, x = 0, y = 0) {
+		update(img: KaboomImageSource, x = 0, y = 0) {
 			this.bind()
 			gl.texSubImage2D(gl.TEXTURE_2D, 0, x, y, gl.RGBA, gl.UNSIGNED_BYTE, img)
 			this.unbind()
@@ -516,7 +516,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			this.tex = Texture.fromImage(this.canvas)
 			this.ctx = this.canvas.getContext("2d")
 		}
-		add(img: TexImageSource): [Texture, Quad] {
+		add(img: KaboomImageSource): [Texture, Quad] {
 			if (img.width > this.canvas.width || img.height > this.canvas.height) {
 				throw new Error(`Texture size (${img.width} x ${img.height}) exceeds limit (${this.canvas.width} x ${this.canvas.height})`)
 			}
@@ -748,7 +748,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				: Promise.resolve(SpriteData.fromImage(src, opt))
 		}
 
-		static fromImage(data: TexImageSource, opt: LoadSpriteOpt = {}): SpriteData {
+		static fromImage(data: KaboomImageSource, opt: LoadSpriteOpt = {}): SpriteData {
 			const [tex, quad] = assets.packer.add(data)
 			const frames = opt.frames ? opt.frames.map((f) => new Quad(
 				quad.x + f.x * quad.w,
@@ -1113,7 +1113,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		return frames
 	}
 
-	// TODO: load synchronously if passed TexImageSource
+	// TODO: load synchronously if passed KaboomImageSource
 	function loadSpriteAtlas(
 		src: LoadSpriteSrc,
 		data: SpriteAtlasData | string,
@@ -1154,7 +1154,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	}
 
 	function createSpriteSheet(
-		images: TexImageSource[],
+		images: KaboomImageSource[],
 		opt: LoadSpriteOpt = {},
 	): SpriteData {
 		const canvas = document.createElement("canvas")
@@ -1197,7 +1197,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 					})).then((images) => createSpriteSheet(images, opt)),
 				)
 			} else {
-				return assets.sprites.addLoaded(name, createSpriteSheet(src as TexImageSource[], opt))
+				return assets.sprites.addLoaded(name, createSpriteSheet(src as KaboomImageSource[], opt))
 			}
 		} else {
 			if (typeof src === "string") {
@@ -1307,7 +1307,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	function loadSound(
 		name: string | null,
 		src: string | ArrayBuffer,
-		opts: LoadSoundOpt = {},
 	): Asset<SoundData> {
 		return assets.sounds.add(
 			name,

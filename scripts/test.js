@@ -7,6 +7,7 @@ import { wait } from "./utils.js"
 const port = process.env.PORT || 8001
 const server = serve({ port: port })
 
+// TODO: build first
 const run = async () => {
 
 	let failed = false
