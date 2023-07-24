@@ -2858,7 +2858,7 @@ export declare class Asset<D> {
 	finally(action: () => void): Asset<D>
 }
 
-export type LoadSpriteSrc = string | KaboomImageSource
+export type LoadSpriteSrc = string | ImageSource
 
 export declare class SpriteData {
 	tex: Texture
@@ -2867,7 +2867,7 @@ export declare class SpriteData {
 	slice9: NineSlice | null
 	constructor(tex: Texture, frames?: Quad[], anims?: SpriteAnims)
 	static from(src: LoadSpriteSrc, opt?: LoadSpriteOpt): Promise<SpriteData>
-	static fromImage(data: KaboomImageSource, opt?: LoadSpriteOpt): SpriteData
+	static fromImage(data: ImageSource, opt?: LoadSpriteOpt): SpriteData
 	static fromURL(url: string, opt?: LoadSpriteOpt): Promise<SpriteData>
 }
 
@@ -3013,16 +3013,16 @@ export type TextureOpt = {
 	wrap?: TexWrap,
 }
 
-export type KaboomImageSource = Exclude<TexImageSource, VideoFrame>
+export type ImageSource = Exclude<TexImageSource, VideoFrame>
 
 export declare class Texture {
 	glTex: WebGLTexture
-	src: null | KaboomImageSource
+	src: null | ImageSource
 	width: number
 	height: number
 	constructor(w: number, h: number, opt?: TextureOpt)
-	static fromImage(img: KaboomImageSource, opt?: TextureOpt): Texture
-	update(img: KaboomImageSource, x: number, y: number): void
+	static fromImage(img: ImageSource, opt?: TextureOpt): Texture
+	update(img: ImageSource, x: number, y: number): void
 	bind(): void
 	unbind(): void
 	free(): void

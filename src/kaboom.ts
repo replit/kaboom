@@ -70,7 +70,7 @@ import type {
 	RenderProps,
 	CharTransform,
 	TextureOpt,
-	KaboomImageSource,
+	ImageSource,
 	FormattedText,
 	FormattedChar,
 	DrawRectOpt,
@@ -420,7 +420,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 	class Texture {
 
-		src: null | KaboomImageSource = null
+		src: null | ImageSource = null
 		glTex: WebGLTexture
 		width: number
 		height: number
@@ -471,7 +471,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 		}
 
-		static fromImage(img: KaboomImageSource, opt: TextureOpt = {}): Texture {
+		static fromImage(img: ImageSource, opt: TextureOpt = {}): Texture {
 			const tex = new Texture(0, 0, opt)
 			tex.bind()
 			gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, img)
@@ -482,7 +482,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			return tex
 		}
 
-		update(img: KaboomImageSource, x = 0, y = 0) {
+		update(img: ImageSource, x = 0, y = 0) {
 			this.bind()
 			gl.texSubImage2D(gl.TEXTURE_2D, 0, x, y, gl.RGBA, gl.UNSIGNED_BYTE, img)
 			this.unbind()
@@ -516,7 +516,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			this.tex = Texture.fromImage(this.canvas)
 			this.ctx = this.canvas.getContext("2d")
 		}
-		add(img: KaboomImageSource): [Texture, Quad] {
+		add(img: ImageSource): [Texture, Quad] {
 			if (img.width > this.canvas.width || img.height > this.canvas.height) {
 				throw new Error(`Texture size (${img.width} x ${img.height}) exceeds limit (${this.canvas.width} x ${this.canvas.height})`)
 			}
@@ -748,7 +748,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				: Promise.resolve(SpriteData.fromImage(src, opt))
 		}
 
-		static fromImage(data: KaboomImageSource, opt: LoadSpriteOpt = {}): SpriteData {
+		static fromImage(data: ImageSource, opt: LoadSpriteOpt = {}): SpriteData {
 			const [tex, quad] = assets.packer.add(data)
 			const frames = opt.frames ? opt.frames.map((f) => new Quad(
 				quad.x + f.x * quad.w,
@@ -1113,7 +1113,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		return frames
 	}
 
-	// TODO: load synchronously if passed KaboomImageSource
+	// TODO: load synchronously if passed ImageSource
 	function loadSpriteAtlas(
 		src: LoadSpriteSrc,
 		data: SpriteAtlasData | string,
@@ -1154,7 +1154,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	}
 
 	function createSpriteSheet(
-		images: KaboomImageSource[],
+		images: ImageSource[],
 		opt: LoadSpriteOpt = {},
 	): SpriteData {
 		const canvas = document.createElement("canvas")
@@ -1197,7 +1197,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 					})).then((images) => createSpriteSheet(images, opt)),
 				)
 			} else {
-				return assets.sprites.addLoaded(name, createSpriteSheet(src as KaboomImageSource[], opt))
+				return assets.sprites.addLoaded(name, createSpriteSheet(src as ImageSource[], opt))
 			}
 		} else {
 			if (typeof src === "string") {

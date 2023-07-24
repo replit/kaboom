@@ -1,13 +1,12 @@
 import puppeteer from "puppeteer"
 import path from "path"
 import fs from "fs/promises"
-import serve from "./serve.js"
-import { wait } from "./utils.js"
+import { build, serve, wait } from "./lib.js"
 
+await build()
 const port = process.env.PORT || 8001
 const server = serve({ port: port })
 
-// TODO: build first
 const run = async () => {
 
 	let failed = false
