@@ -1,5 +1,6 @@
 import * as React from "react"
 import { marked } from "marked"
+import { markedHighlight } from "marked-highlight"
 import hljs from "highlight.js/lib/core"
 import javascript from "highlight.js/lib/languages/javascript"
 import typescript from "highlight.js/lib/languages/typescript"
@@ -14,13 +15,13 @@ hljs.registerLanguage("xml", xml)
 hljs.registerLanguage("shell", shell)
 hljs.registerLanguage("bash", bash)
 
-marked.setOptions({
-	highlight: (code, lang) => {
-		return hljs.highlight(code, {
-			language: lang,
-		}).value
+marked.use(markedHighlight({
+	highlight(code, lang) {
+		const language = hljs.getLanguage(lang) ? lang : "plaintext"
+		return hljs.highlight(code, { language }).value
 	},
-})
+}))
+
 
 interface MarkdownProps {
 	src: string,
@@ -41,6 +42,8 @@ const Markdown: React.FC<MarkdownProps & ViewProps> = ({
 		dangerouslySetInnerHTML={{
 			__html: marked(src, {
 				baseUrl: baseUrl,
+				mangle: false,
+				headerIds: false,
 			}),
 		}}
 		css={{
