@@ -4062,6 +4062,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 		let spriteData: SpriteData | null = null
 		let curAnim: SpriteCurAnim | null = null
+		let curAnimDir: -1 | 1 | null = null // 1 - from small index to large index; -1 - reverse
 		const spriteLoadedEvent = new Event<[SpriteData]>()
 
 		if (!src) {
@@ -4225,28 +4226,22 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 				if (curAnim.timer >= (1 / curAnim.speed)) {
 					curAnim.timer = 0
-					// TODO: clean up
-					if (anim.from > anim.to) {
-						this.frame--
-						if (this.frame < anim.to) {
-							if (curAnim.loop) {
-								this.frame = anim.from
+
+					this.frame += curAnimDir
+
+					if (this.frame < Math.min(anim.from, anim.to) || this.frame > Math.max(anim.from, anim.to)) {
+						if (curAnim.loop) {
+							if (curAnim.pingpong) {
+								curAnimDir *= -1
+								this.frame += curAnimDir
+								this.frame += curAnimDir
 							} else {
-								this.frame++
-								curAnim.onEnd()
-								this.stop()
-							}
-						}
-					} else {
-						this.frame++
-						if (this.frame > anim.to) {
-							if (curAnim.loop) {
 								this.frame = anim.from
-							} else {
-								this.frame--
-								curAnim.onEnd()
-								this.stop()
 							}
+						} else {
+							this.frame -= curAnimDir
+							curAnim.onEnd()
+							this.stop()
 						}
 					}
 				}
@@ -4287,6 +4282,10 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 						speed: opt.speed ?? anim.speed ?? 10,
 						onEnd: opt.onEnd ?? (() => {}),
 					}
+
+				curAnimDir = typeof anim === "number"
+					? null
+					: anim.from < anim.to ? 1 : -1
 
 				this.frame = typeof anim === "number"
 					? anim
