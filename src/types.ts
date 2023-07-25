@@ -1840,6 +1840,10 @@ export interface KaboomCtx {
 	 */
 	rad2deg(rad: number): number,
 	/**
+	 * Return a value clamped to an inclusive range of min and max.
+	 */
+	clamp(n: number, min: number, max: number): number,
+	/**
 	 * Check if a line and a point intersect.
 	 */
 	testLinePoint(l: Line, pt: Vec2): boolean
