@@ -4062,7 +4062,9 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 		let spriteData: SpriteData | null = null
 		let curAnim: SpriteCurAnim | null = null
-		let curAnimDir: -1 | 1 | null = null // 1 - from small index to large index; -1 - reverse
+		// 1  - from small index to large index
+		// -1 - reverse
+		let curAnimDir: -1 | 1 | null = null
 		const spriteLoadedEvent = new Event<[SpriteData]>()
 
 		if (!src) {
@@ -4225,25 +4227,27 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				curAnim.timer += dt() * this.animSpeed
 
 				if (curAnim.timer >= (1 / curAnim.speed)) {
-					curAnim.timer = 0
 
+					curAnim.timer = 0
 					this.frame += curAnimDir
 
-					if (this.frame < Math.min(anim.from, anim.to) || this.frame > Math.max(anim.from, anim.to)) {
+					if (this.frame < Math.min(anim.from, anim.to) ||
+						this.frame > Math.max(anim.from, anim.to)) {
 						if (curAnim.loop) {
 							if (curAnim.pingpong) {
+								this.frame -= curAnimDir
 								curAnimDir *= -1
-								this.frame += curAnimDir
 								this.frame += curAnimDir
 							} else {
 								this.frame = anim.from
 							}
 						} else {
-							this.frame -= curAnimDir
+							this.frame = anim.to
 							curAnim.onEnd()
 							this.stop()
 						}
 					}
+
 				}
 
 			},

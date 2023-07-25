@@ -2615,7 +2615,7 @@ export interface GameObjRaw {
 	 * Gather debug info of all comps.
 	 */
 	inspect(): GameObjInspect,
-	/** 
+	/**
 	 * Register an event that runs when the game obj is added to the scene.
 	 */
 	onAdd(action: () => void): EventController,
