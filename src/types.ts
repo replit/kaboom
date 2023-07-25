@@ -3025,6 +3025,9 @@ export declare class Texture {
 	update(img: ImageSource, x: number, y: number): void
 	bind(): void
 	unbind(): void
+	/**
+	 * Frees up texture memory. Call this once the texture is no longer being used to avoid memory leaks.
+	 */
 	free(): void
 }
 
