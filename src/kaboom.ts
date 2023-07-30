@@ -618,7 +618,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		)
 
 		const frameBuffer = (gopt.width && gopt.height)
-			? new FrameBuffer(gopt.width * pixelDensity, gopt.height * pixelDensity)
+			? new FrameBuffer(gopt.width * pixelDensity * gscale, gopt.height * pixelDensity * gscale)
 			: new FrameBuffer(gl.drawingBufferWidth, gl.drawingBufferHeight)
 
 		let bgColor: null | Color = null
