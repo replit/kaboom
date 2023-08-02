@@ -1,4 +1,48 @@
-# v3000.0.0 (Unreleased)
+## v3000.1.0
+
+- added `make()` to create game object without adding to the scene
+```js
+const obj = make([
+  sprite("bean"),
+  pos(120, 60),
+])
+
+add(obj)
+```
+
+- fixed children not inheriting `fixed()` from parent
+```js
+// before
+const ui = add([
+  fixed(),
+])
+
+ui.add([
+  rect(),
+  // have to also give all children game objects fixed()
+  fixed(),
+])
+
+// now
+const ui = add([
+  fixed(),
+])
+
+// you don't have to add fixed() to children
+ui.add([
+  rect(100, 100),
+])
+```
+
+- fixed `AreaComp#onClick()` event not getting cleaned up when game object is destroyed
+- fixed typo `isTouchScreen()` -> `isTouchscreen()`
+- fixed inspect mode doesn't show the properties box of indirect children game objects
+- fixed some problem causing kaboom to not work with vite
+- fixed "destroy" event not run on children game objects
+- calling `shake()` when another shake is happening adds to the shake instead of reset it?
+- fixed incorrect touch position when canvas is not at top left of page
+
+# v3000.0.0
 
 ## Game Objects
 

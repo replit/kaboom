@@ -207,7 +207,8 @@ const UV_PAD = 0.1
 const DEF_HASH_GRID_SIZE = 64
 const DEF_FONT_FILTER = "nearest"
 
-const LOG_MAX = 10
+const LOG_MAX = 8
+const LOG_TIME = 4
 
 const VERTEX_FORMAT = [
 	{ name: "a_pos", size: 2 },
@@ -2900,8 +2901,10 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		clearLog: () => game.logs = [],
 		log: (msg) => {
 			const max = gopt.logMax ?? LOG_MAX
-			const style = msg instanceof Error ? "error" : "info"
-			game.logs.unshift(`${`[time]${app.time().toFixed(2)}[/time] `}[${style}]${msg?.toString ? msg.toString() : msg}[/${style}]`)
+			game.logs.unshift({
+				msg: msg,
+				time: app.time(),
+			})
 			if (game.logs.length > max) {
 				game.logs = game.logs.slice(0, max)
 			}
@@ -3603,9 +3606,10 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 			// get the screen position (transformed by camera)
 			screenPos(this: GameObj<PosComp | FixedComp>): Vec2 {
+				const pos = this.worldPos()
 				return this.fixed
-					? this.pos
-					: toScreen(this.pos)
+					? pos
+					: toScreen(pos)
 			},
 
 			inspect() {
@@ -3755,7 +3759,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			id: "offscreen",
 			require: [ "pos" ],
 			isOffScreen(this: GameObj<PosComp>): boolean {
-				const pos = toScreen(this.pos)
+				const pos = this.screenPos()
 				const screenRect = new Rect(vec2(0), width(), height())
 				return !testRectPoint(screenRect, pos)
 					&& screenRect.sdistToPoint(pos) > distance * distance
@@ -6333,9 +6337,22 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				pushTranslate(8, -8)
 
 				const pad = 8
+				const logs = []
+
+				for (const log of game.logs) {
+					let str = ""
+					const style = log.msg instanceof Error ? "error" : "info"
+					str += `[time]${log.time.toFixed(2)}[/time]`
+					str += " "
+					str += `[${style}]${log.msg?.toString ? log.msg.toString() : log.msg}[/${style}]`
+					logs.push(str)
+				}
+
+				game.logs = game.logs
+					.filter((log) => app.time() - log.time < (gopt.logTime || LOG_TIME))
 
 				const ftext = formatText({
-					text: game.logs.join("\n"),
+					text: logs.join("\n"),
 					font: DBG_FONT,
 					pos: vec2(pad, -pad),
 					anchor: "botleft",

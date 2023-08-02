@@ -2466,9 +2466,15 @@ export interface KaboomOpt<T extends PluginList<any> = any> {
 	 */
 	texFilter?: TexFilter,
 	/**
-	 * How many log messages can there be on one screen.
+	 * How many log messages can there be on one screen (default 8).
 	 */
 	logMax?: number,
+	/**
+	 * How many seconds log messages stay on screen (default 4).
+	 *
+	 * @since v3000.1
+	 */
+	logTime?: number,
 	/**
 	 * Size of the spatial hash grid for collision detection (default 64).
 	 *
