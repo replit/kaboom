@@ -2671,6 +2671,33 @@ export interface GameObjRaw {
 	 * A unique number ID for each game object in each kaboom instance.
 	 */
 	id: GameObjID | null,
+	onKeyDown(key: Key, action: (key: Key) => void): EventController,
+	onKeyDown(action: (key: Key) => void): EventController,
+	onKeyPress(key: Key, action: (key: Key) => void): EventController,
+	onKeyPress(action: (key: Key) => void): EventController,
+	onKeyPressRepeat(k: Key, action: (k: Key) => void): EventController,
+	onKeyPressRepeat(action: (k: Key) => void): EventController,
+	onKeyRelease(k: Key, action: (k: Key) => void): EventController,
+	onKeyRelease(action: (k: Key) => void): EventController,
+	onCharInput(action: (ch: string) => void): EventController,
+	onMouseDown(action: (m: MouseButton) => void): EventController,
+	onMouseDown(button: MouseButton, action: (m: MouseButton) => void): EventController,
+	onMousePress(action: (m: MouseButton) => void): EventController,
+	onMousePress(button: MouseButton, action: (m: MouseButton) => void): EventController,
+	onMouseRelease(action: (m: MouseButton) => void): EventController,
+	onMouseRelease(button: MouseButton, action: (m: MouseButton) => void): EventController,
+	onMouseMove(action: (pos: Vec2, delta: Vec2) => void): EventController,
+	onTouchStart(action: (pos: Vec2, t: Touch) => void): EventController,
+	onTouchMove(action: (pos: Vec2, t: Touch) => void): EventController,
+	onTouchEnd(action: (pos: Vec2, t: Touch) => void): EventController,
+	onScroll(action: (delta: Vec2) => void): EventController,
+	onGamepadButtonDown(btn: GamepadButton, action: (btn: GamepadButton) => void): EventController,
+	onGamepadButtonDown(action: (btn: GamepadButton) => GamepadButton): EventController,
+	onGamepadButtonPress(btn: GamepadButton, action: (btn: GamepadButton) => void): EventController,
+	onGamepadButtonPress(action: (btn: GamepadButton) => GamepadButton): EventController,
+	onGamepadButtonRelease(btn: GamepadButton, action: (btn: GamepadButton) => void): EventController,
+	onGamepadButtonRelease(action: (btn: GamepadButton) => void): EventController,
+	onGamepadStick(stick: GamepadStick, action: (value: Vec2) => void): EventController,
 }
 
 /**

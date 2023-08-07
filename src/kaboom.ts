@@ -2974,7 +2974,9 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		const compStates = new Map()
 		const cleanups = {}
 		const events = new EventHandler()
+		const inputEvents: EventController[] = []
 		let onCurCompCleanup = null
+		let paused = false
 
 		// TODO: "this" should be typed here
 		const obj = {
@@ -2982,24 +2984,30 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			id: uid(),
 			// TODO: a nice way to hide / pause when add()-ing
 			hidden: false,
-			paused: false,
 			transform: new Mat4(),
 			children: [],
 			parent: null,
 
+			set paused(p) {
+				paused = p
+				for (const e of inputEvents) {
+					e.paused = p
+				}
+			},
+
+			get paused() {
+				return paused
+			},
+
 			add<T2>(a: CompList<T2> | GameObj<T2>): GameObj<T2> {
-				const obj = (() => {
-					if (Array.isArray(a)) {
-						return make(a)
-					}
-					if (a.parent) {
-						throw new Error("Cannot add a game obj that already has a parent.")
-					}
-					return a
-				})()
+				const obj = Array.isArray(a) ? make(a) : a
+				if (obj.parent) {
+					throw new Error("Cannot add a game obj that already has a parent.")
+				}
 				obj.parent = this
 				obj.transform = calcTransform(obj)
 				this.children.push(obj)
+				// TODO: trigger add for children
 				obj.trigger("add", obj)
 				game.events.trigger("add", obj)
 				return obj
@@ -3298,6 +3306,39 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				events.clear()
 			},
 
+		}
+
+		const evs = [
+			"onKeyPress",
+			"onKeyPressRepeat",
+			"onKeyDown",
+			"onKeyRelease",
+			"onMousePress",
+			"onMouseDown",
+			"onMouseRelease",
+			"onMouseMove",
+			"onCharInput",
+			"onMouseMove",
+			"onTouchStart",
+			"onTouchMove",
+			"onTouchEnd",
+			"onScroll",
+			"onGamepadButtonPress",
+			"onGamepadButtonDown",
+			"onGamepadButtonRelease",
+			"onGamepadStick",
+		]
+
+		for (const e of evs) {
+			obj[e] = (...args) => {
+				const ev = app[e](...args)
+				inputEvents.push(ev)
+				obj.onDestroy(() => {
+					ev.cancel()
+					inputEvents.splice(inputEvents.indexOf(ev), 1)
+				})
+				return ev
+			}
 		}
 
 		for (const comp of comps) {
