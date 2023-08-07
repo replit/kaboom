@@ -2978,8 +2978,9 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		let onCurCompCleanup = null
 		let paused = false
 
-		// TODO: "this" should be typed here
-		const obj = {
+		// TODO
+		// @ts-ignore
+		const obj: GameObj = {
 
 			id: uid(),
 			// TODO: a nice way to hide / pause when add()-ing

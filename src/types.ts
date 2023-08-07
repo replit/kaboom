@@ -2668,7 +2668,7 @@ export interface GameObjRaw {
 	 */
 	paused: boolean,
 	/**
-	 * A unique number ID for each game object in each kaboom instance.
+	 * A unique number ID for each game object.
 	 */
 	id: GameObjID | null,
 	onKeyDown(key: Key, action: (key: Key) => void): EventController,
