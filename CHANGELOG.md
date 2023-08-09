@@ -2,6 +2,41 @@
 
 - added game object level input handling
 
+```js
+// add a scene game object
+const scene = add([])
+
+const bean = scene.add([
+  sprite("bean"),
+  pos(100, 200),
+  area(),
+  body(),
+])
+
+scene.onKeyPress("space", () => {
+  bean.jump()
+})
+
+scene.onMousePress(() => {
+  bean.jump()
+})
+
+// setting scene.paused will pause all the input events
+scene.paused = true
+
+// destroying scene will cancel all its input events
+scene.destroy()
+
+const ui = add([])
+
+ui.add(makeButton())
+
+// these will only work if ui game object is active
+ui.onMousePress(() => {
+  // ...
+})
+```
+
 - added `make()` to create game object without adding to the scene
 ```js
 const obj = make([

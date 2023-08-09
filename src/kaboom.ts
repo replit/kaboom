@@ -2990,6 +2990,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			parent: null,
 
 			set paused(p) {
+				if (p === paused) return
 				paused = p
 				for (const e of inputEvents) {
 					e.paused = p
@@ -3309,6 +3310,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 		}
 
+		// TODO: type with as const
 		const evs = [
 			"onKeyPress",
 			"onKeyPressRepeat",
@@ -3334,10 +3336,8 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			obj[e] = (...args) => {
 				const ev = app[e](...args)
 				inputEvents.push(ev)
-				obj.onDestroy(() => {
-					ev.cancel()
-					inputEvents.splice(inputEvents.indexOf(ev), 1)
-				})
+				// TODO: what if the game object is destroy and re-added
+				obj.onDestroy(() => ev.cancel())
 				return ev
 			}
 		}
