@@ -1,7 +1,7 @@
 {
 	"name": "kaboom",
 	"description": "kaboom.js is a JavaScript library that helps you make games fast and fun!",
-	"version": "3000.0.15",
+	"version": "3000.1.0",
 	"license": "MIT",
 	"homepage": "https://kaboomjs.com/",
 	"repository": "github:replit/kaboom",
@@ -54,11 +54,11 @@
 	},
 	"devDependencies": {
 		"@tauri-apps/cli": "^1.4.0",
-		"@typescript-eslint/eslint-plugin": "^6.2.1",
-		"esbuild": "^0.18.18",
+		"@typescript-eslint/eslint-plugin": "^6.3.0",
+		"esbuild": "^0.19.0",
 		"eslint": "^8.46.0",
 		"express": "^4.18.2",
-		"puppeteer": "^21.0.1",
+		"puppeteer": "^21.0.2",
 		"typescript": "^5.1.6"
 	}
 }

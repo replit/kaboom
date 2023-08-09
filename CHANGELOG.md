@@ -1,5 +1,7 @@
 ## v3000.1.0
 
+- added game object level input handling
+
 - added `make()` to create game object without adding to the scene
 ```js
 const obj = make([
