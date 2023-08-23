@@ -2879,7 +2879,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		} else {
 			// ignore errors from somewhere else, e.g. iframes
 			if (e.message === "Script error.") return
-
 			handleErr(new Error(e.message))
 		}
 	}
@@ -6444,6 +6443,8 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	}
 
 	function handleErr(err: Error) {
+
+		audio.ctx.suspend()
 
 		// TODO: this should only run once
 		app.run(() => {
