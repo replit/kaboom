@@ -2,7 +2,7 @@
 
 - added `onHide()` and `onShow()` for tab visibility event
 
-### v3000.1.2 (unreleased)
+### v3000.1.2
 
 - fixed audio not pausing when tab hidden and `backgroundAudio` not set
 
