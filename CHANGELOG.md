@@ -1,4 +1,16 @@
-## v3000.1.0
+## v3000.2 (unreleased)
+
+- added `onHide()` and `onShow()` for tab visibility event
+
+### v3000.1.2 (unreleased)
+
+- fixed audio not pausing when tab hidden and `backgroundAudio` not set
+
+### v3000.1.1
+
+- fixed some indirect `fixed` related issues
+
+## v3000.1
 
 - added game object level input handling
 
@@ -35,6 +47,16 @@ ui.add(makeButton())
 ui.onMousePress(() => {
   // ...
 })
+
+// before you'll have to manually clean up events on obj.onDestroy()
+const scene = add([])
+const evs = []
+scene.onDestroy(() => {
+  evs.forEach((ev) => ev.cancel())
+})
+evs.push(k.onKeyPress("space", () => {
+  doSomeSceneSpecificStuff()
+}))
 ```
 
 - added `make()` to create game object without adding to the scene
@@ -79,7 +101,7 @@ ui.add([
 - calling `shake()` when another shake is happening adds to the shake instead of reset it?
 - fixed incorrect touch position when canvas is not at top left of page
 
-# v3000.0.0
+# v3000
 
 ## Game Objects
 
@@ -511,7 +533,7 @@ timer.resume()
 
 - fixed updates not running at all when `kaboom({ debug: false })`
 
-## v2000.2.0 "Fancy Text Mode"
+## v2000.2 "Fancy Text Mode"
 
 - added `formatText()` and `drawFormattedText()`
 - added `charSpacing` and `lineSpacing` in `TextCompOpt` and `DrawTextOpt`
@@ -559,7 +581,7 @@ timer.resume()
 
 - fixed `StateComp#enterState()` not accepting any state
 
-## v2000.1.0 "Record Mode"
+## v2000.1 "Record Mode"
 
 - added `hsl2rgb()` for converting HSL color to kaboom RGB
 - added `record()` to start a screen recording
@@ -617,7 +639,7 @@ timer.resume()
   - `AudioPlay#isStopped()`
   - `AudioPlay#isPaused()`
 
-# v2000.0.0 "Burp Mode"
+# v2000 "Burp Mode"
 - version jumped to v2000.0.0 (still semver, just big)
 - added `burp()` for easy burping
 - added decent typescript / autocomplete support and jsdocs
@@ -831,7 +853,7 @@ if (area.shape === "rect") {
 ### v0.5.1
 - added plugins npm package support e.g. `import asepritePlugin from "kaboom/plugins/aseprite"`
 
-# v0.5.0 "Sticky Type"
+# v0.5 "Sticky Type"
 - platforms are now sticky
 - moved to TypeScript
 - improved graphics performance
@@ -867,7 +889,7 @@ if (area.shape === "rect") {
 - fixed `on("destroy")` handler getting called twice
 - fixed sprite `play()` not playing
 
-# v0.4.0 "Multiboom"
+# v0.4 "Multiboom"
 - **BREAK** removed `init()` and `kaboom.global()`, in favor of `kaboom()`, also allows multiple kaboom games on one page
 ```js
 // replaces init(), and added a 'global' flag for previous kaboom.global()
@@ -895,7 +917,7 @@ k.vec2();
 - added `numFrames()` by `sprite()`
 - added `screenshot()` that returns of a png base64 data url for a screenshot
 
-# v0.3.0 "King Dedede...Bug!"
+# v0.3 "King Dedede...Bug!"
 - **BREAK** removed `pause()` and `paused()` in favor to `kaboom.debug.paused`
 - **BREAK** removed `velY`, `curPlatform` and `maxVel` fields by `body()`
 - **BREAK** changed `curAnim` by `sprite()` to method `curAnim()`
@@ -912,7 +934,7 @@ k.vec2();
 - added on screen logging with `log()` and `error()`
 - fixed `loadRoot()` sometimes doesn't work in async tasks
 
-# v0.2.0 "Hear the Tremble"
+# v0.2 "Hear the Tremble"
 - **BREAK** removed `aseSpriteSheet` conf field from `loadSprite(name, src, conf)`
 - added `pause()`, `resume()`, `stop()`, `loop()`, `unloop()`, `volume()`, `detune()`, `speed()` methods to the handle returned by `play()`
 - added `camShake()` for built in camera shake
@@ -928,7 +950,7 @@ k.vec2();
 - added `readd()` to re-add an object to the scene without triggering events
 - added `level.spawn()`
 
-# v0.1.0 "Oh Hi Mark"
+# v0.1 "Oh Hi Mark"
 - **BREAK** changed default origin point to `"topleft"`, so if you want object origin point to be at center you'll need to manual `origin("center")`
 - **BREAK** integrated `kit/physics` and `kit/level` to main lib
 - **BREAK** makes `collides()` only run on first collision, not run every frame during the same collision

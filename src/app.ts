@@ -122,6 +122,8 @@ export default (opt: {
 			gamepadConnect: [KGamePad],
 			gamepadDisconnect: [KGamePad],
 			scroll: [Vec2],
+			hide: [],
+			show: [],
 			resize: [],
 			input: [],
 		}>(),
@@ -433,6 +435,14 @@ export default (opt: {
 
 	function onScroll(action: (delta: Vec2) => void): EventController {
 		return state.events.on("scroll", action)
+	}
+
+	function onHide(action: () => void): EventController {
+		return state.events.on("hide", action)
+	}
+
+	function onShow(action: () => void): EventController {
+		return state.events.on("show", action)
 	}
 
 	function onGamepadButtonDown(btn: GamepadButton | ((btn: GamepadButton) => void), action?: (btn: GamepadButton) => void): EventController {
@@ -792,6 +802,9 @@ export default (opt: {
 		if (document.visibilityState === "visible") {
 			// prevent a surge of dt when switch back after the tab being hidden for a while
 			state.skipTime = true
+			state.events.trigger("show")
+		} else {
+			state.events.trigger("hide")
 		}
 	}
 
@@ -885,6 +898,8 @@ export default (opt: {
 		onTouchMove,
 		onTouchEnd,
 		onScroll,
+		onHide,
+		onShow,
 		onGamepadButtonDown,
 		onGamepadButtonPress,
 		onGamepadButtonRelease,

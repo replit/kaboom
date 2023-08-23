@@ -3649,7 +3649,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			// get the screen position (transformed by camera)
 			screenPos(this: GameObj<PosComp | FixedComp>): Vec2 {
 				const pos = this.worldPos()
-				return this.fixed
+				return isFixed(this)
 					? pos
 					: toScreen(pos)
 			},
@@ -3833,6 +3833,11 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		}
 	}
 
+	function isFixed(obj: GameObj) {
+		if (obj.fixed) return true
+		return obj.parent ? isFixed(obj.parent) : false
+	}
+
 	function area(opt: AreaCompOpt = {}): AreaComp {
 
 		const colliding = {}
@@ -3884,7 +3889,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 					},
 					anchor: this.anchor,
 					fill: false,
-					fixed: this.fixed,
+					fixed: isFixed(this),
 				}
 
 				if (a instanceof Rect) {
@@ -3923,7 +3928,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			},
 
 			isHovering(this: GameObj) {
-				const mpos = this.fixed ? mousePos() : toWorld(mousePos())
+				const mpos = isFixed(this) ? mousePos() : toWorld(mousePos())
 				return this.hasPoint(mpos)
 			},
 
@@ -4078,7 +4083,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 			screenArea(this: GameObj<AreaComp | FixedComp>): Polygon {
 				const area = this.worldArea()
-				if (this.fixed) {
+				if (isFixed(this)) {
 					return area
 				} else {
 					return area.transform(game.cam.transform)
@@ -6707,6 +6712,18 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 	}
 
+	app.onHide(() => {
+		if (!gopt.backgroundAudio) {
+			audio.ctx.suspend()
+		}
+	})
+
+	app.onShow(() => {
+		if (!gopt.backgroundAudio) {
+			audio.ctx.resume()
+		}
+	})
+
 	// TODO: white artifact when scrolling, but disappears when done
 	// TODO: if you resize to larger than the initial size it'll leave white space
 	// TODO: this clears on scene change
@@ -6853,6 +6870,8 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		onTouchMove: app.onTouchMove,
 		onTouchEnd: app.onTouchEnd,
 		onScroll: app.onScroll,
+		onHide: app.onHide,
+		onShow: app.onShow,
 		onGamepadButtonDown: app.onGamepadButtonDown,
 		onGamepadButtonPress: app.onGamepadButtonPress,
 		onGamepadButtonRelease: app.onGamepadButtonRelease,

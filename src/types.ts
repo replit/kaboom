@@ -85,7 +85,7 @@ export interface KaboomCtx {
 	/**
 	 * Create a game object like add(), but not adding to the scene.
 	 *
-	 * @since v3000.0
+	 * @since v3000.1
 	 *
 	 * @example
 	 * ```js
@@ -967,6 +967,18 @@ export interface KaboomCtx {
 	 * @since v3000.0
 	 */
 	onScroll(action: (delta: Vec2) => void): EventController,
+	/**
+	 * Register an event that runs when tab is hidden.
+	 *
+	 * @since v3000.2
+	 */
+	onHide(action: () => void): EventController,
+	/**
+	 * Register an event that runs when tab is shown.
+	 *
+	 * @since v3000.2
+	 */
+	onShow(action: () => void): EventController,
 	/**
 	 * Register an event that runs every frame when certain gamepad button is held down.
 	 *
