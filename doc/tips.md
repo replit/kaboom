@@ -9,13 +9,13 @@ Sometimes there are some objects that gets created, leaves screen, and never see
 `offscreen()` is a component that helps you define behavior when objects go off-screen.
 
 ```js
-add([
-    sprite("bullet"),
-    pos(player.pos),
+k.add([
+    k.sprite("bullet"),
+    k.pos(player.pos),
     // the bullet move left forever
-    move(LEFT, 600),
+    k.move(LEFT, 600),
     // destroy the bullet when it's far out of view
-    offscreen({ destroy: true })
+    k.offscreen({ destroy: true })
 ])
 ```
 
@@ -26,11 +26,11 @@ Sometimes you might be drawing a lot of objects that's not on screen (e.g. if yo
 ```js
 // planting flowers all over the map
 for (let i = 0; i < 1000; i++) {
-    add([
-        sprite("flower"),
-        pos(rand(-5000, 5000), rand(-5000, 5000)),
+    k.add([
+        k.sprite("flower"),
+        k.pos(k.rand(-5000, 5000), k.rand(-5000, 5000)),
         // don't draw or update the flower when they're out of view
-        offscreen({ hide: true, pause: true })
+        k.offscreen({ hide: true, pause: true })
     ])
 }
 ```
@@ -41,8 +41,8 @@ Kaboom use a lot of `Promise` and `Promise`-like in time / event related stuff, 
 
 ```js
 async function example() {
-    await wait(3)
-    await tween(0, 100, 1, (x) => mark.pos.x = x)
+    await k.wait(3)
+    await k.tween(0, 100, 1, (x) => mark.pos.x = x)
 }
 ```
 
@@ -58,27 +58,6 @@ kaboom({
 const pos = k.vec2(120, 200)
 ```
 
-## Pack sprites into a single sprite
-
-Kaboom will optimize sprites using a single image into batched render, otherwise every sprite draw will initiate a separate draw call which is expensive. It also makes asset loading faster since you're merging multiple HTTP requests into one.
-
-Check out this example [kaboom_texpack](https://github.com/slmjkdbtl/kaboom_texpack), where it uses [free-tex-packer-core](https://www.npmjs.com/package/free-tex-packer-core) to pack sprites at built time and `loadSpriteAtlas()` to load the packed sprite, makes it very convenient to enable batched sprite optimization.
-
-## Disable `global` mode
-
-By default kaboom exports all functions to global namespace to make it look simple for beginners, however it's not great for more advanced users since it pollutes global namespace with a lot of common words.
-
-```js
-// do this instead
-const k = kaboom({
-  global: false,
-})
-
-k.add([
-  // ...
-])
-```
-
 ## Use Game Object local timers
 
 When programming timer / tween behavior for a specific game object, it's better to attach `timer()` component to the game object and use that instead of global timer functions. This way the timer is tied to the life cycle of the game object, when then game object pauses or gets destroyed, the timer will not run.
@@ -86,10 +65,10 @@ When programming timer / tween behavior for a specific game object, it's better 
 ```js
 // prefer
 const player = k.add([
-  k.sprite("bean"),
-  k.pos(100, 200),
-  k.timer(),
-  k.state("idle"),
+    k.sprite("bean"),
+    k.pos(100, 200),
+    k.timer(),
+    k.state("idle"),
 ])
 
 // these timers will only run when player game object is not paused / destroyed
@@ -98,11 +77,11 @@ player.wait(2, () => {
 })
 
 await player.tween(
-  player.pos,
-  k.mousePos(),
-  0.5,
-  (p) => player.pos = p,
-  k.easings.easeOutQuad,
+    player.pos,
+    k.mousePos(),
+    0.5,
+    (p) => player.pos = p,
+    k.easings.easeOutQuad,
 )
 
 // this will pause all the timer events
@@ -112,17 +91,17 @@ player.paused = true
 player.destory()
 
 player.onStateEnter("attack", async () => {
-  // ... state code
-  // if we use global k.wait() here it'll create infinitely running state transitions
-  await player.wait(2)
-  player.enterState("idle")
+    // ... state code
+    // if we use global k.wait() here it'll create infinitely running state transitions
+    await player.wait(2)
+    player.enterState("idle")
 })
 
 player.onStateEnter("idle", async () => {
-  // ... state code
-  // if we use global k.wait() here it'll create infinitely running state transitions
-  await player.wait(1)
-  player.enterState("attack")
+    // ... state code
+    // if we use global k.wait() here it'll create infinitely running state transitions
+    await player.wait(1)
+    player.enterState("attack")
 })
 ```
 
@@ -134,15 +113,15 @@ Similar to above, it's often better to use local input handlers as opposed to gl
 const gameScene = k.add([])
 
 const player = gameScene.add([
-  k.sprite("bean"),
-  k.pos(100, 200),
-  k.area(),
-  k.body(),
+    k.sprite("bean"),
+    k.pos(100, 200),
+    k.area(),
+    k.body(),
 ])
 
 // these
 gameScene.onKeyPress("space", () => {
-  player.jump()
+    player.jump()
 })
 
 // this will pause all the input events
