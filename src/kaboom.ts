@@ -4203,7 +4203,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				} else {
 					drawTexture(Object.assign(getRenderProps(this), {
 						tex: spriteData.tex,
-						quad: q,
+						quad: q.scale(this.quad ?? new Quad(0, 0, 1, 1)),
 						flipX: this.flipX,
 						flipY: this.flipY,
 						tiled: opt.tiled,

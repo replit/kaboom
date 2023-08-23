@@ -7,6 +7,7 @@
 - fixed audio not pausing when tab hidden and `backgroundAudio` not set
 - fixed `debug.timeScale` not working
 - fixed `debug.paused` not able to resume
+- fixed `quad` option not working in `sprite()` component
 
 ### v3000.1.1
 
