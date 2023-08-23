@@ -2911,17 +2911,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		},
 		error: (msg) => debug.log(new Error(msg.toString ? msg.toString() : msg as string)),
 		curRecording: null,
-		get paused() {
-			return app.paused
-		},
-		set paused(v) {
-			app.paused = v
-			if (v) {
-				audio.ctx.suspend()
-			} else {
-				audio.ctx.resume()
-			}
-		},
+		paused: false,
 	}
 
 	function dt() {

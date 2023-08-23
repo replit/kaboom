@@ -90,7 +90,6 @@ export default (opt: {
 		timeScale: 1,
 		skipTime: false,
 		numFrames: 0,
-		paused: false,
 		mousePos: new Vec2(0),
 		mouseDeltaPos: new Vec2(0),
 		keyState: new ButtonState<Key>(),
@@ -237,9 +236,8 @@ export default (opt: {
 
 			if (state.stopped) return
 
-			// TODO: paused should still process input
 			// TODO: allow background actions?
-			if (state.paused || document.visibilityState !== "visible") {
+			if (document.visibilityState !== "visible") {
 				state.loopID = requestAnimationFrame(frame)
 				return
 			}
@@ -907,12 +905,6 @@ export default (opt: {
 		onGamepadConnect,
 		onGamepadDisconnect,
 		events: state.events,
-		get paused() {
-			return state.paused
-		},
-		set paused(p: boolean) {
-			state.paused = p
-		},
 	}
 
 }

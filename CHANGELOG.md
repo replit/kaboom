@@ -5,6 +5,8 @@
 ### v3000.1.2
 
 - fixed audio not pausing when tab hidden and `backgroundAudio` not set
+- fixed `debug.timeScale` not working
+- fixed `debug.paused` not able to resume
 
 ### v3000.1.1
 
