@@ -1738,6 +1738,10 @@ export interface KaboomCtx {
 	 */
 	rgb(r: number, g: number, b: number): Color,
 	/**
+	 * Same as rgb(255, 255, 255).
+	 */
+	rgb(): Color,
+	/**
 	 * Convert HSL color (all values in 0.0 - 1.0 range) to RGB color.
 	 *
 	 * @since v2000.1

@@ -92,14 +92,14 @@ player.destory()
 
 player.onStateEnter("attack", async () => {
     // ... state code
-    // if we use global k.wait() here it'll create infinitely running state transitions
+    // if we use global k.wait() here it'll create infinitely running state transitions even when player game object doesn't exist anymore
     await player.wait(2)
     player.enterState("idle")
 })
 
 player.onStateEnter("idle", async () => {
     // ... state code
-    // if we use global k.wait() here it'll create infinitely running state transitions
+    // if we use global k.wait() here it'll create infinitely running state transitions even when player game object doesn't exist anymore
     await player.wait(1)
     player.enterState("attack")
 })
