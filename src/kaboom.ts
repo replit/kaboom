@@ -2925,7 +2925,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	}
 
 	function dt() {
-		return app.dt()
+		return app.dt() * debug.timeScale
 	}
 
 	function camPos(...pos: Vec2Args): Vec2 {
