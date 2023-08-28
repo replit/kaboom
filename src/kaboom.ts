@@ -2919,6 +2919,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		error: (msg) => debug.log(new Error(msg.toString ? msg.toString() : msg as string)),
 		curRecording: null,
 		paused: false,
+		numObjects: () => get("*", { recursive: true }).length,
 	}
 
 	function dt() {
@@ -6075,12 +6076,9 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 						} else {
 							const cell = grid[x][y]
 							check: for (const other of cell) {
-								if (!other.exists()) {
-									continue
-								}
-								if (checked.has(other.id)) {
-									continue
-								}
+								if (other.paused) continue
+								if (!other.exists()) continue
+								if (checked.has(other.id)) continue
 								for (const tag of aobj.collisionIgnore) {
 									if (other.is(tag)) {
 										continue check

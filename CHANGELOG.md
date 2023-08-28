@@ -1,6 +1,7 @@
 ## v3000.2 (unreleased)
 
 - added `onHide()` and `onShow()` for tab visibility event
+- added `debug.numObjects()`
 - added `width` and `height` properties to `SpriteData`
 ```js
 // get sprite size
@@ -8,6 +9,10 @@ getSprite("bean").then((spr) => {
     console.log(spr.width, spr.height)
 })
 ```
+
+### v3000.1.3
+
+- fixed `onCollideUpdate()` still runs when object is paused
 
 ### v3000.1.2
 

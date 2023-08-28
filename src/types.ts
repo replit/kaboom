@@ -2921,7 +2921,13 @@ export declare class SpriteData {
 	tex: Texture
 	frames: Quad[]
 	anims: SpriteAnims
+	/**
+	 * @since v3000.2
+	 */
 	width: number
+	/**
+	 * @since v3000.2
+	 */
 	height: number
 	slice9: NineSlice | null
 	constructor(tex: Texture, frames?: Quad[], anims?: SpriteAnims)
@@ -4600,6 +4606,12 @@ export interface Debug {
 	 * @since v2000.1
 	 */
 	curRecording: Recording | null,
+	/**
+	 * Get total number of objects.
+	 *
+	 * @since v3000.2
+	 */
+	numObjects(): number
 }
 
 export type UniformValue =
