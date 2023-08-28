@@ -1,4 +1,4 @@
-const VERSION = "3000.1.0"
+const VERSION = "3000.1.3"
 
 import initApp from "./app"
 
@@ -741,6 +741,14 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			if (frames) this.frames = frames
 			this.anims = anims
 			this.slice9 = slice9
+		}
+
+		get width() {
+			return this.tex.width * this.frames[0].w
+		}
+
+		get height() {
+			return this.tex.height * this.frames[0].h
 		}
 
 		static from(src: LoadSpriteSrc, opt: LoadSpriteOpt = {}): Promise<SpriteData> {

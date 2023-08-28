@@ -1,6 +1,13 @@
 ## v3000.2 (unreleased)
 
 - added `onHide()` and `onShow()` for tab visibility event
+- added `width` and `height` properties to `SpriteData`
+```js
+// get sprite size
+getSprite("bean").then((spr) => {
+    console.log(spr.width, spr.height)
+})
+```
 
 ### v3000.1.2
 
@@ -22,10 +29,10 @@
 const scene = add([])
 
 const bean = scene.add([
-  sprite("bean"),
-  pos(100, 200),
-  area(),
-  body(),
+    sprite("bean"),
+    pos(100, 200),
+    area(),
+    body(),
 ])
 
 scene.onKeyPress("space", () => {

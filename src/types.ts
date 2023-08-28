@@ -2921,6 +2921,8 @@ export declare class SpriteData {
 	tex: Texture
 	frames: Quad[]
 	anims: SpriteAnims
+	width: number
+	height: number
 	slice9: NineSlice | null
 	constructor(tex: Texture, frames?: Quad[], anims?: SpriteAnims)
 	static from(src: LoadSpriteSrc, opt?: LoadSpriteOpt): Promise<SpriteData>
