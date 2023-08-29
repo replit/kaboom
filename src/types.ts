@@ -81,7 +81,7 @@ export interface KaboomCtx {
 	 * })
 	 * ```
 	 */
-	add<T>(comps: CompList<T> | GameObj<T>): GameObj<T>,
+	add<T>(comps?: CompList<T> | GameObj<T>): GameObj<T>,
 	/**
 	 * Create a game object like add(), but not adding to the scene.
 	 *
@@ -2550,7 +2550,7 @@ export interface GameObjRaw {
 	 *
 	 * @since v3000.0
 	 */
-	add<T>(comps: CompList<T> | GameObj<T>): GameObj<T>,
+	add<T>(comps?: CompList<T> | GameObj<T>): GameObj<T>,
 	/**
 	 * Remove and re-add the game obj, without triggering add / destroy events.
 	 */

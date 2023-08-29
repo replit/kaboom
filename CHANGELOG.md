@@ -13,6 +13,7 @@ getSprite("bean").then((spr) => {
 ### v3000.1.3
 
 - fixed `onCollideUpdate()` still runs when object is paused
+- allow `add()` and `make()` without arguments
 
 ### v3000.1.2
 
