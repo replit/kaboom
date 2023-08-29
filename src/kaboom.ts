@@ -1027,7 +1027,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		const url = assets.urlPrefix + path
 		return fetch(url)
 			.then((res) => {
-				if (!res.ok) throw new Error(`Failed to fetch ${url}`)
+				if (!res.ok) throw new Error(`Failed to fetch "${url}"`)
 				return res
 			})
 	}
