@@ -9,6 +9,11 @@ getSprite("bean").then((spr) => {
     console.log(spr.width, spr.height)
 })
 ```
+- added `audio.stop()` method
+```js
+const music = play("music")
+music.stop()
+```
 
 ### v3000.1.3
 

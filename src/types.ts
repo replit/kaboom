@@ -100,7 +100,7 @@ export interface KaboomCtx {
 	 * ])
 	 * ```
 	 */
-	make<T>(comps: CompList<T>): GameObj<T>,
+	make<T>(comps?: CompList<T>): GameObj<T>,
 	/**
 	 * Remove and re-add the game obj, without triggering add / destroy events.
 	 */
@@ -3017,6 +3017,12 @@ export interface AudioPlay {
 	 * @since v3000.0
 	 */
 	seek(time: number): void,
+	/**
+	 * Stop the sound.
+	 *
+	 * @since v3000.2
+	 */
+	stop(): void,
 	/**
 	 * If the sound is paused.
 	 *

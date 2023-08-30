@@ -1,4 +1,4 @@
-const VERSION = "3000.1.3"
+const VERSION = "3000.1.4"
 
 import initApp from "./app"
 
@@ -1530,6 +1530,11 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		}
 
 		return {
+
+			stop() {
+				this.paused = true
+				this.seek(0)
+			},
 
 			set paused(p: boolean) {
 				if (paused === p) return
@@ -5287,6 +5292,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			throw new Error("Must provide tileWidth and tileHeight.")
 		}
 
+		// TODO: custom parent
 		const level = add([
 			pos(opt.pos ?? vec2(0)),
 		]) as GameObj<PosComp | LevelComp>
