@@ -1,5 +1,22 @@
-## v3000.2 (unreleased)
+### v3000.1.4
+- added `Event#clear()` method
 
+### v3000.1.3
+
+- fixed `onCollideUpdate()` still runs when object is paused
+- allow `add()` and `make()` without arguments
+- added `audio.stop()` method
+```js
+const music = play("music")
+music.stop()
+```
+
+### v3000.1.2
+
+- fixed audio not pausing when tab hidden and `backgroundAudio` not set
+- fixed `debug.timeScale` not working
+- fixed `debug.paused` not able to resume
+- fixed `quad` option not working in `sprite()` component
 - added `onHide()` and `onShow()` for tab visibility event
 - added `debug.numObjects()`
 - added `width` and `height` properties to `SpriteData`
@@ -9,23 +26,6 @@ getSprite("bean").then((spr) => {
     console.log(spr.width, spr.height)
 })
 ```
-- added `audio.stop()` method
-```js
-const music = play("music")
-music.stop()
-```
-
-### v3000.1.3
-
-- fixed `onCollideUpdate()` still runs when object is paused
-- allow `add()` and `make()` without arguments
-
-### v3000.1.2
-
-- fixed audio not pausing when tab hidden and `backgroundAudio` not set
-- fixed `debug.timeScale` not working
-- fixed `debug.paused` not able to resume
-- fixed `quad` option not working in `sprite()` component
 
 ### v3000.1.1
 

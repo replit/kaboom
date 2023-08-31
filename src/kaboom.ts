@@ -1464,6 +1464,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		return audio.masterNode.gain.value
 	}
 
+	// TODO: method to completely destory audio?
 	// TODO: time() not correct when looped over or ended
 	// TODO: onEnd() not working
 	// plays a sound, returns a control handle

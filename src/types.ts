@@ -5185,8 +5185,9 @@ export declare class Event<Args extends any[] = any[]> {
 	add(action: (...args: Args) => void): EventController
 	addOnce(action: (...args: any) => void): EventController
 	next(): Promise<Args>
-	trigger(...args: Args): void;
+	trigger(...args: Args): void
 	numListeners(): number
+	clear(): void
 }
 
 export declare class EventHandler<EventMap extends Record<string, any[]>> {

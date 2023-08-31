@@ -59,6 +59,9 @@ export class Event<Args extends any[] = any[]> {
 	numListeners(): number {
 		return this.handlers.size
 	}
+	clear() {
+		this.handlers.clear()
+	}
 }
 
 // TODO: only accept one argument?
