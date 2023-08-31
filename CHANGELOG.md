@@ -1,5 +1,6 @@
 ### v3000.1.4
 - added `Event#clear()` method
+- fixed `add()` without argument
 
 ### v3000.1.3
 

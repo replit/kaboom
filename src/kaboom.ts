@@ -2973,7 +2973,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		return obj.parent ? tr.mult(obj.parent.transform) : tr
 	}
 
-	function make<T>(comps?: CompList<T>): GameObj<T> {
+	function make<T>(comps: CompList<T> = []): GameObj<T> {
 
 		const compStates = new Map()
 		const cleanups = {}
@@ -3005,7 +3005,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				return paused
 			},
 
-			add<T2>(a?: CompList<T2> | GameObj<T2>): GameObj<T2> {
+			add<T2>(a: CompList<T2> | GameObj<T2> = []): GameObj<T2> {
 				const obj = Array.isArray(a) ? make(a) : a
 				if (obj.parent) {
 					throw new Error("Cannot add a game obj that already has a parent.")
@@ -3346,10 +3346,8 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			}
 		}
 
-		if (comps) {
-			for (const comp of comps) {
-				obj.use(comp)
-			}
+		for (const comp of comps) {
+			obj.use(comp)
 		}
 
 		return obj as unknown as GameObj<T>
