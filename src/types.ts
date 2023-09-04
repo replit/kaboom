@@ -1166,7 +1166,7 @@ export interface KaboomCtx {
 	 */
 	loadSound(
 		name: string | null,
-		src: string,
+		src: string | ArrayBuffer,
 	): Asset<SoundData>,
 	/**
 	 * Load a font (any format supported by the browser, e.g. ttf, otf, woff).
@@ -1179,7 +1179,7 @@ export interface KaboomCtx {
 	 * loadFont("frogblock", "fonts/frogblock.ttf")
 	 * ```
 	 */
-	loadFont(name: string, src: string | ArrayBuffer, opt?: LoadFontOpt): Asset<FontData>,
+	loadFont(name: string, src: string | BinaryData, opt?: LoadFontOpt): Asset<FontData>,
 	/**
 	 * Load a bitmap font into asset manager, with name and resource url and infomation on the layout of the bitmap.
 	 *

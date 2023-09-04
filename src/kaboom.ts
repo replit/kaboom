@@ -1,4 +1,4 @@
-const VERSION = "3000.1.5"
+const VERSION = "3000.1.6"
 
 import initApp from "./app"
 
@@ -165,13 +165,9 @@ import type {
 
 import Timer from "./timer"
 
-// @ts-ignore
 import beanSpriteSrc from "./assets/bean.png"
-// @ts-ignore
 import burpSoundSrc from "./assets/burp.mp3"
-// @ts-ignore
 import kaSpriteSrc from "./assets/ka.png"
-// @ts-ignore
 import boomSpriteSrc from "./assets/boom.png"
 
 type EventList<M> = {
@@ -1073,7 +1069,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	// TODO: pass in null src to store opt for default fonts like "monospace"
 	function loadFont(
 		name: string,
-		src: string | ArrayBuffer,
+		src: string | BinaryData,
 		opt: LoadFontOpt = {},
 	): Asset<FontData> {
 		const font = new FontFace(name, typeof src === "string" ? `url(${src})` : src)
@@ -3220,7 +3216,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 							: obj.parent === this
 					}
 					// TODO: handle when object add / remove tags
-					// TODO: a way to cancel the events?
+					// TODO: clean up when obj destroyed
 					onAdd((obj) => {
 						if (isChild(obj) && obj.is(t)) {
 							list.push(obj)

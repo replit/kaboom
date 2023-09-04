@@ -1,3 +1,6 @@
+### v3000.1.6
+- fixed `loadSound` typing to accept `ArrayBuffer`
+
 ### v3000.1.5
 - added `Event#clear()` method
 - fixed `add()` without argument
