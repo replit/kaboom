@@ -1,3 +1,6 @@
+### v3000.1.7
+- fixed `debug.paused` not pausing audio
+
 ### v3000.1.6
 - fixed `loadSound` typing to accept `ArrayBuffer`
 

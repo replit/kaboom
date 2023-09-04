@@ -1,4 +1,4 @@
-const VERSION = "3000.1.6"
+const VERSION = "3000.1.7"
 
 import initApp from "./app"
 
@@ -2899,6 +2899,8 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		window.addEventListener(name, winEvents[name])
 	}
 
+	let debugPaused = false
+
 	const debug: Debug = {
 		inspect: false,
 		timeScale: 1,
@@ -2920,8 +2922,18 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		},
 		error: (msg) => debug.log(new Error(msg.toString ? msg.toString() : msg as string)),
 		curRecording: null,
-		paused: false,
 		numObjects: () => get("*", { recursive: true }).length,
+		get paused() {
+			return debugPaused
+		},
+		set paused(v) {
+			debugPaused = v
+			if (v) {
+				audio.ctx.suspend()
+			} else {
+				audio.ctx.resume()
+			}
+		},
 	}
 
 	function dt() {
