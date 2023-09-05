@@ -6,10 +6,14 @@
 		"target": "esnext",
 		"moduleResolution": "node",
 		"noImplicitThis": true,
-		"resolveJsonModule": true
+		"resolveJsonModule": true,
+		"paths": {
+			"kaboom": ["./src/kaboom.ts"]
+		}
 	},
 	"include": [
-		"scripts/*.js",
-		"src/**/*.ts"
+		"src/**/*",
+		"examples/**/*",
+		"scripts/**/*"
 	]
 }

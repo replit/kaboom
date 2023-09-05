@@ -6,3 +6,4 @@ desktop/
 .env
 .vscode
 src-tauri/target/
+examples/www
