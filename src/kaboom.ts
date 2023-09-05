@@ -161,6 +161,9 @@ import type {
 	NineSlice,
 	LerpValue,
 	TexFilter,
+	MaskComp,
+	Mask,
+	Outline,
 } from "./types"
 
 import Timer from "./timer"
@@ -1057,12 +1060,23 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 	class FontData {
 		fontface: FontFace
-		outline: number
-		filter: TexFilter
+		filter: TexFilter = DEF_FONT_FILTER
+		outline: Outline | null = null
 		constructor(face: FontFace, opt: LoadFontOpt = {}) {
 			this.fontface = face
-			this.outline = opt.outline ?? 0
 			this.filter = opt.filter ?? DEF_FONT_FILTER
+			if (opt.outline) {
+				this.outline = {
+					width: 1,
+					color: rgb(0, 0, 0),
+				}
+				if (typeof opt.outline === "number") {
+					this.outline.width = opt.outline
+				} else if (typeof opt.outline === "object") {
+					if (opt.outline.width) this.outline.width = opt.outline.width
+					if (opt.outline.color) this.outline.color = opt.outline.color
+				}
+			}
 		}
 	}
 
@@ -2549,7 +2563,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	type FontAtlas = {
 		font: BitmapFontData,
 		cursor: Vec2,
-		outline: number,
+		outline: Outline | null,
 	}
 
 	const fontAtlases: Record<string, FontAtlas> = {}
@@ -2581,11 +2595,14 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		if (font instanceof FontData || typeof font === "string") {
 
 			const fontName = font instanceof FontData ? font.fontface.family : font
-			const opts: LoadFontOpt = font instanceof FontData ? {
+			const opts: {
+				outline: Outline | null,
+				filter: TexFilter,
+			} = font instanceof FontData ? {
 				outline: font.outline,
 				filter: font.filter,
 			} : {
-				outline: 0,
+				outline: null,
 				filter: DEF_FONT_FILTER,
 			}
 
@@ -2624,13 +2641,13 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 					let h = font.size
 					if (atlas.outline) {
 						c2d.lineJoin = "round"
-						c2d.lineWidth = atlas.outline * 2
-						c2d.strokeStyle = "#000000"
-						c2d.strokeText(ch, atlas.outline, atlas.outline)
-						w += atlas.outline * 2
-						h += atlas.outline * 3
+						c2d.lineWidth = atlas.outline.width * 2
+						c2d.strokeStyle = atlas.outline.color.toHex()
+						c2d.strokeText(ch, atlas.outline.width, atlas.outline.width)
+						w += atlas.outline.width * 2
+						h += atlas.outline.width * 3
 					}
-					c2d.fillText(ch, atlas.outline, atlas.outline)
+					c2d.fillText(ch, atlas.outline?.width ?? 0, atlas.outline?.width ?? 0)
 
 					const img = c2d.getImageData(0, 0, w, h)
 
@@ -3067,7 +3084,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				this.trigger("update")
 			},
 
-			draw(this: GameObj<PosComp | ScaleComp | RotateComp | FixedComp>) {
+			draw(this: GameObj<PosComp | ScaleComp | RotateComp | FixedComp | MaskComp>) {
 				if (this.hidden) return
 				const f = gfx.fixed
 				if (this.fixed) gfx.fixed = true
@@ -3075,11 +3092,19 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				pushTranslate(this.pos)
 				pushScale(this.scale)
 				pushRotate(this.angle)
+				const children = this.children.sort((o1, o2) => (o1.z ?? 0) - (o2.z ?? 0))
 				// TODO: automatically don't draw if offscreen
-				this.trigger("draw")
-				this.children
-					.sort((o1, o2) => (o1.z ?? 0) - (o2.z ?? 0))
-					.forEach((child) => child.draw())
+				if (this.mask) {
+					const maskFunc = this.mask === "subtract" ? drawSubtracted : drawMasked
+					maskFunc(() => {
+						children.forEach((child) => child.draw())
+					}, () => {
+						this.trigger("draw")
+					})
+				} else {
+					this.trigger("draw")
+					children.forEach((child) => child.draw())
+				}
 				popTransform()
 				gfx.fixed = f
 			},
@@ -5073,6 +5098,13 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		}
 	}
 
+	function mask(m: Mask = "mask"): MaskComp {
+		return {
+			id: "mask",
+			mask: m,
+		}
+	}
+
 	function onLoad(cb: () => void): void {
 		if (assets.loaded) {
 			cb()
@@ -6853,6 +6885,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		follow,
 		state,
 		fadeIn,
+		mask,
 		tile,
 		agent,
 		// group events

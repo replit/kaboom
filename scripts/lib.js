@@ -1,7 +1,7 @@
 import fs from "fs/promises"
 import cp from "child_process"
 import path from "path"
-import esbuild from "esbuild"
+import * as esbuild from "esbuild"
 import express from "express"
 import ts from "typescript"
 

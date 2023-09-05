@@ -599,6 +599,12 @@ export interface KaboomCtx {
 	 */
 	fadeIn(time: number): Comp,
 	/**
+	 * Mask all children object render.
+	 *
+	 * @since v3000.2
+	 */
+	mask(maskType?: Mask): MaskComp,
+	/**
 	 * A tile on a tile map.
 	 *
 	 * @since v3000.0
@@ -2945,7 +2951,7 @@ export declare class SoundData {
 
 export interface LoadFontOpt {
 	filter?: TexFilter,
-	outline?: number,
+	outline?: number | Outline,
 }
 
 export interface LoadBitmapFontOpt {
@@ -2956,8 +2962,8 @@ export interface LoadBitmapFontOpt {
 
 export declare class FontData {
 	fontface: FontFace
-	outline: number
 	filter: TexFilter
+	outline: Outline | null
 }
 
 export type BitmapFontData = GfxFont
@@ -4909,6 +4915,13 @@ export interface StateComp extends Comp {
 	 * Register an event that runs every frame when in a specific state.
 	 */
 	onStateDraw: (state: string, action: () => void) => EventController,
+}
+
+// TODO: naming
+export type Mask = "mask" | "subtract"
+
+export interface MaskComp extends Comp {
+	mask: Mask,
 }
 
 export interface LevelOpt {
