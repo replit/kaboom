@@ -4917,8 +4917,7 @@ export interface StateComp extends Comp {
 	onStateDraw: (state: string, action: () => void) => EventController,
 }
 
-// TODO: naming
-export type Mask = "mask" | "subtract"
+export type Mask = "intersect" | "subtract"
 
 export interface MaskComp extends Comp {
 	mask: Mask,

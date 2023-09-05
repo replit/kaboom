@@ -3095,7 +3095,13 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				const children = this.children.sort((o1, o2) => (o1.z ?? 0) - (o2.z ?? 0))
 				// TODO: automatically don't draw if offscreen
 				if (this.mask) {
-					const maskFunc = this.mask === "subtract" ? drawSubtracted : drawMasked
+					const maskFunc = {
+						intersect: drawMasked,
+						subtract: drawSubtracted,
+					}[this.mask]
+					if (!maskFunc) {
+						throw new Error(`Invalid mask func: "${this.mask}"`)
+					}
 					maskFunc(() => {
 						children.forEach((child) => child.draw())
 					}, () => {
@@ -5098,7 +5104,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		}
 	}
 
-	function mask(m: Mask = "mask"): MaskComp {
+	function mask(m: Mask = "intersect"): MaskComp {
 		return {
 			id: "mask",
 			mask: m,
