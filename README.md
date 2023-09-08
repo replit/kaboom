@@ -177,7 +177,7 @@ Check out [CONTRIBUTION.md](CONTRIBUTING.md) for full info.
 ## Community
 
 - [Discord Server](https://discord.gg/aQ6RuQm3TF)
-- [GitHub Discussions](https://github.com/replit/kaboom/discussions) 
+- [GitHub Discussions](https://github.com/replit/kaboom/discussions)
 - [Twitter](https://twitter.com/Kaboomjs)
 
 ### Games

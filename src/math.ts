@@ -593,7 +593,7 @@ export class Mat4 {
 
 }
 
-export function wave(lo: number, hi: number, t: number, f = Math.sin): number {
+export function wave(lo: number, hi: number, t: number, f = (t) => -Math.cos(t)): number {
 	return lo + (f(t) + 1) / 2 * (hi - lo)
 }
 

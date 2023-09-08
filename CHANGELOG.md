@@ -10,6 +10,8 @@ loadFont("apl386", "/examples/fonts/apl386.ttf", {
 	},
 })
 ```
+- fixed `wave()` not starting at `0` when time is `0`
+- kaboom now only displays error screen for kaboom's own error, instead of catching all errors in current window
 
 ### v3000.1.6
 - fixed `loadSound` typing to accept `ArrayBuffer`

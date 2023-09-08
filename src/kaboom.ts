@@ -502,6 +502,13 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 	}
 
+	class KaboomError extends Error {
+		constructor(msg) {
+			super(msg)
+			this.name = "KaboomError"
+		}
+	}
+
 	class TexPacker {
 		private tex: Texture
 		private canvas: HTMLCanvasElement
@@ -518,7 +525,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		}
 		add(img: ImageSource): [Texture, Quad] {
 			if (img.width > this.canvas.width || img.height > this.canvas.height) {
-				throw new Error(`Texture size (${img.width} x ${img.height}) exceeds limit (${this.canvas.width} x ${this.canvas.height})`)
+				throw new KaboomError(`Texture size (${img.width} x ${img.height}) exceeds limit (${this.canvas.width} x ${this.canvas.height})`)
 			}
 			if (this.x + img.width > this.canvas.width) {
 				this.x = 0
@@ -1026,7 +1033,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		const url = assets.urlPrefix + path
 		return fetch(url)
 			.then((res) => {
-				if (!res.ok) throw new Error(`Failed to fetch "${url}"`)
+				if (!res.ok) throw new KaboomError(`Failed to fetch "${url}"`)
 				return res
 			})
 	}
@@ -1050,7 +1057,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		img.src = isDataURL(src) ? src : assets.urlPrefix + src
 		return new Promise<HTMLImageElement>((resolve, reject) => {
 			img.onload = () => resolve(img)
-			img.onerror = () => reject(new Error(`Failed to load image from "${src}"`))
+			img.onerror = () => reject(new KaboomError(`Failed to load image from "${src}"`))
 		})
 	}
 
@@ -1089,7 +1096,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		const font = new FontFace(name, typeof src === "string" ? `url(${src})` : src)
 		document.fonts.add(font)
 		return assets.fonts.add(name, font.load().catch((err) => {
-			throw new Error(`Failed to load font from "${src}": ${err}`)
+			throw new KaboomError(`Failed to load font from "${src}": ${err}`)
 		}).then((face) => new FontData(face, opt)))
 	}
 
@@ -1376,14 +1383,14 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				return null
 			} else {
 				// if all other assets are loaded and we still haven't found this sprite, throw
-				throw new Error(`Sprite not found: ${src}`)
+				throw new KaboomError(`Sprite not found: ${src}`)
 			}
 		} else if (src instanceof SpriteData) {
 			return Asset.loaded(src)
 		} else if (src instanceof Asset) {
 			return src
 		} else {
-			throw new Error(`Invalid sprite: ${src}`)
+			throw new KaboomError(`Invalid sprite: ${src}`)
 		}
 	}
 
@@ -1397,14 +1404,14 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			} else if (loadProgress() < 1) {
 				return null
 			} else {
-				throw new Error(`Sound not found: ${src}`)
+				throw new KaboomError(`Sound not found: ${src}`)
 			}
 		} else if (src instanceof SoundData) {
 			return Asset.loaded(src)
 		} else if (src instanceof Asset) {
 			return src
 		} else {
-			throw new Error(`Invalid sound: ${src}`)
+			throw new KaboomError(`Invalid sound: ${src}`)
 		}
 	}
 
@@ -1421,7 +1428,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			} else if (loadProgress() < 1) {
 				return null
 			} else {
-				throw new Error(`Shader not found: ${src}`)
+				throw new KaboomError(`Shader not found: ${src}`)
 			}
 		} else if (src instanceof Asset) {
 			return src.data ? src.data : src
@@ -1456,7 +1463,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			} else if (loadProgress() < 1) {
 				return null
 			} else {
-				throw new Error(`Font not found: ${src}`)
+				throw new KaboomError(`Font not found: ${src}`)
 			}
 		} else if (src instanceof Asset) {
 			return src.data ? src.data : src
@@ -1713,7 +1720,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				msg += `Fragment shader line ${err.line - 14}: ${err.msg}`
 			}
 
-			throw new Error(msg)
+			throw new KaboomError(msg)
 
 		}
 
@@ -1983,7 +1990,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	function drawUVQuad(opt: DrawUVQuadOpt) {
 
 		if (opt.width === undefined || opt.height === undefined) {
-			throw new Error("drawUVQuad() requires property \"width\" and \"height\".")
+			throw new KaboomError("drawUVQuad() requires property \"width\" and \"height\".")
 		}
 
 		if (opt.width <= 0 || opt.height <= 0) {
@@ -2047,7 +2054,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	function drawTexture(opt: DrawTextureOpt) {
 
 		if (!opt.tex) {
-			throw new Error("drawTexture() requires property \"tex\".")
+			throw new KaboomError("drawTexture() requires property \"tex\".")
 		}
 
 		const q = opt.quad ?? new Quad(0, 0, 1, 1)
@@ -2106,7 +2113,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	function drawSprite(opt: DrawSpriteOpt) {
 
 		if (!opt.sprite) {
-			throw new Error("drawSprite() requires property \"sprite\"")
+			throw new KaboomError("drawSprite() requires property \"sprite\"")
 		}
 
 		// TODO: slow
@@ -2119,7 +2126,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		const q = spr.data.frames[opt.frame ?? 0]
 
 		if (!q) {
-			throw new Error(`Frame not found: ${opt.frame ?? 0}`)
+			throw new KaboomError(`Frame not found: ${opt.frame ?? 0}`)
 		}
 
 		drawTexture(Object.assign({}, opt, {
@@ -2162,7 +2169,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	function drawRect(opt: DrawRectOpt) {
 
 		if (opt.width === undefined || opt.height === undefined) {
-			throw new Error("drawRect() requires property \"width\" and \"height\".")
+			throw new KaboomError("drawRect() requires property \"width\" and \"height\".")
 		}
 
 		if (opt.width <= 0 || opt.height <= 0) {
@@ -2230,7 +2237,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		const { p1, p2 } = opt
 
 		if (!p1 || !p2) {
-			throw new Error("drawLine() requires properties \"p1\" and \"p2\".")
+			throw new KaboomError("drawLine() requires properties \"p1\" and \"p2\".")
 		}
 
 		const w = opt.width || 1
@@ -2260,7 +2267,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		const pts = opt.pts
 
 		if (!pts) {
-			throw new Error("drawLines() requires property \"pts\".")
+			throw new KaboomError("drawLines() requires property \"pts\".")
 		}
 
 		if (pts.length < 2) {
@@ -2318,7 +2325,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 	function drawTriangle(opt: DrawTriangleOpt) {
 		if (!opt.p1 || !opt.p2 || !opt.p3) {
-			throw new Error("drawPolygon() requires properties \"p1\", \"p2\" and \"p3\".")
+			throw new KaboomError("drawPolygon() requires properties \"p1\", \"p2\" and \"p3\".")
 		}
 		return drawPolygon(Object.assign({}, opt, {
 			pts: [opt.p1, opt.p2, opt.p3],
@@ -2328,7 +2335,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	function drawCircle(opt: DrawCircleOpt) {
 
 		if (typeof opt.radius !== "number") {
-			throw new Error("drawCircle() requires property \"radius\".")
+			throw new KaboomError("drawCircle() requires property \"radius\".")
 		}
 
 		if (opt.radius === 0) {
@@ -2346,7 +2353,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	function drawEllipse(opt: DrawEllipseOpt) {
 
 		if (opt.radiusX === undefined || opt.radiusY === undefined) {
-			throw new Error("drawEllipse() requires properties \"radiusX\" and \"radiusY\".")
+			throw new KaboomError("drawEllipse() requires properties \"radiusX\" and \"radiusY\".")
 		}
 
 		if (opt.radiusX === 0 || opt.radiusY === 0) {
@@ -2401,7 +2408,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	function drawPolygon(opt: DrawPolygonOpt) {
 
 		if (!opt.pts) {
-			throw new Error("drawPolygon() requires property \"pts\".")
+			throw new KaboomError("drawPolygon() requires property \"pts\".")
 		}
 
 		const npts = opt.pts.length
@@ -2573,7 +2580,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	function formatText(opt: DrawTextOpt): FormattedText {
 
 		if (opt.text === undefined) {
-			throw new Error("formatText() requires property \"text\".")
+			throw new KaboomError("formatText() requires property \"text\".")
 		}
 
 		let font = resolveFont(opt.font)
@@ -2657,7 +2664,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 						atlas.cursor.y += h
 						if (atlas.cursor.y > FONT_ATLAS_HEIGHT) {
 							// TODO: create another atlas
-							throw new Error("Font atlas exceeds character limit")
+							throw new KaboomError("Font atlas exceeds character limit")
 						}
 					}
 
@@ -2901,16 +2908,18 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	}
 
 	winEvents.error = (e) => {
-		if (e.error) {
+		if (e.error && e.error instanceof KaboomError) {
 			handleErr(e.error)
-		} else {
-			// ignore errors from somewhere else, e.g. iframes
-			if (e.message === "Script error.") return
-			handleErr(new Error(e.message))
+		} else if (e instanceof KaboomError) {
+			handleErr(e)
 		}
 	}
 
-	winEvents.unhandledrejection = (e) => handleErr(e.reason)
+	winEvents.unhandledrejection = (e) => {
+		if (e.reason instanceof KaboomError) {
+			handleErr(e.reason)
+		}
+	}
 
 	for (const name in winEvents) {
 		window.addEventListener(name, winEvents[name])
@@ -2937,7 +2946,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				game.logs = game.logs.slice(0, max)
 			}
 		},
-		error: (msg) => debug.log(new Error(msg.toString ? msg.toString() : msg as string)),
+		error: (msg) => debug.log(new KaboomError(msg.toString ? msg.toString() : msg as string)),
 		curRecording: null,
 		numObjects: () => get("*", { recursive: true }).length,
 		get paused() {
@@ -3033,7 +3042,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			add<T2>(a: CompList<T2> | GameObj<T2> = []): GameObj<T2> {
 				const obj = Array.isArray(a) ? make(a) : a
 				if (obj.parent) {
-					throw new Error("Cannot add a game obj that already has a parent.")
+					throw new KaboomError("Cannot add a game obj that already has a parent.")
 				}
 				obj.parent = this
 				obj.transform = calcTransform(obj)
@@ -3100,7 +3109,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 						subtract: drawSubtracted,
 					}[this.mask]
 					if (!maskFunc) {
-						throw new Error(`Invalid mask func: "${this.mask}"`)
+						throw new KaboomError(`Invalid mask func: "${this.mask}"`)
 					}
 					maskFunc(() => {
 						children.forEach((child) => child.draw())
@@ -3195,7 +3204,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 							})
 							gc.push(() => delete this[k])
 						} else {
-							throw new Error(`Duplicate component property: "${k}"`)
+							throw new KaboomError(`Duplicate component property: "${k}"`)
 						}
 					}
 
@@ -3206,7 +3215,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 					if (!comp.require) return
 					for (const dep of comp.require) {
 						if (!this.c(dep)) {
-							throw new Error(`Component "${comp.id}" requires component "${dep}"`)
+							throw new KaboomError(`Component "${comp.id}" requires component "${dep}"`)
 						}
 					}
 				}
@@ -3495,7 +3504,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			const events = []
 			forAllCurrentAndFuture(tag, (obj) => {
 				if (!obj.area)
-					throw new Error("onClick() requires the object to have area() component")
+					throw new KaboomError("onClick() requires the object to have area() component")
 				events.push(obj.onClick(() => action(obj)))
 			})
 			return EventController.join(events)
@@ -3507,7 +3516,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		const events = []
 		forAllCurrentAndFuture(t, (obj) => {
 			if (!obj.area)
-				throw new Error("onHover() requires the object to have area() component")
+				throw new KaboomError("onHover() requires the object to have area() component")
 			events.push(obj.onHover(() => action(obj)))
 		})
 		return EventController.join(events)
@@ -3518,7 +3527,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		const events = []
 		forAllCurrentAndFuture(t, (obj) => {
 			if (!obj.area)
-				throw new Error("onHoverUpdate() requires the object to have area() component")
+				throw new KaboomError("onHoverUpdate() requires the object to have area() component")
 			events.push(obj.onHoverUpdate(() => action(obj)))
 		})
 		return EventController.join(events)
@@ -3529,7 +3538,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		const events = []
 		forAllCurrentAndFuture(t, (obj) => {
 			if (!obj.area)
-				throw new Error("onHoverEnd() requires the object to have area() component")
+				throw new KaboomError("onHoverEnd() requires the object to have area() component")
 			events.push(obj.onHoverEnd(() => action(obj)))
 		})
 		return EventController.join(events)
@@ -3778,7 +3787,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 	function anchor(o: Anchor | Vec2): AnchorComp {
 		if (!o) {
-			throw new Error("Please define an anchor")
+			throw new KaboomError("Please define an anchor")
 		}
 		return {
 			id: "anchor",
@@ -4104,7 +4113,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				const localArea = this.localArea()
 
 				if (!(localArea instanceof Polygon || localArea instanceof Rect)) {
-					throw new Error("Only support polygon and rect shapes for now")
+					throw new KaboomError("Only support polygon and rect shapes for now")
 				}
 
 				const transform = this.transform
@@ -4162,7 +4171,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		const spriteLoadedEvent = new Event<[SpriteData]>()
 
 		if (!src) {
-			throw new Error("Please pass the resource name or data to sprite()")
+			throw new KaboomError("Please pass the resource name or data to sprite()")
 		}
 
 		const calcTexScale = (tex: Texture, q: Quad, w?: number, h?: number): Vec2 => {
@@ -4199,7 +4208,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				const q = spriteData.frames[this.frame ?? 0]
 
 				if (!q) {
-					throw new Error(`Frame not found: ${this.frame ?? 0}`)
+					throw new KaboomError(`Frame not found: ${this.frame ?? 0}`)
 				}
 
 				if (spriteData.slice9) {
@@ -4315,7 +4324,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				}
 
 				if (anim.speed === 0) {
-					throw new Error("Sprite anim speed cannot be 0")
+					throw new KaboomError("Sprite anim speed cannot be 0")
 				}
 
 				curAnim.timer += dt() * this.animSpeed
@@ -4356,7 +4365,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				const anim = spriteData.anims[name]
 
 				if (anim === undefined) {
-					throw new Error(`Anim not found: ${name}`)
+					throw new KaboomError(`Anim not found: ${name}`)
 				}
 
 				if (curAnim) {
@@ -4686,7 +4695,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			add(this: GameObj<PosComp | BodyComp | AreaComp>) {
 
 				if (this.mass === 0) {
-					throw new Error("Can't set body mass to 0")
+					throw new KaboomError("Can't set body mass to 0")
 				}
 
 				// static vs static: don't resolve
@@ -4911,7 +4920,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 	function health(hp: number): HealthComp {
 		if (hp == null) {
-			throw new Error("health() requires the initial amount of hp")
+			throw new KaboomError("health() requires the initial amount of hp")
 		}
 		const maxHP = hp
 		return {
@@ -4953,7 +4962,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 	function lifespan(time: number, opt: LifespanCompOpt = {}): EmptyComp {
 		if (time == null) {
-			throw new Error("lifespan() requires time")
+			throw new KaboomError("lifespan() requires time")
 		}
 		const fade = opt.fade ?? 0
 		return {
@@ -4976,7 +4985,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	): StateComp {
 
 		if (!initState) {
-			throw new Error("state() requires an initial state")
+			throw new KaboomError("state() requires an initial state")
 		}
 
 		const events = {}
@@ -5014,7 +5023,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				didFirstEnter = true
 
 				if (stateList && !stateList.includes(state)) {
-					throw new Error(`State not found: ${state}`)
+					throw new KaboomError(`State not found: ${state}`)
 				}
 
 				const oldState = this.state
@@ -5031,7 +5040,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 						: transitions[oldState] as string[]
 
 					if (!available.includes(state)) {
-						throw new Error(`Cannot transition state from "${oldState}" to "${state}". Available transitions: ${available.map((s) => `"${s}"`).join(", ")}`)
+						throw new KaboomError(`Cannot transition state from "${oldState}" to "${state}". Available transitions: ${available.map((s) => `"${s}"`).join(", ")}`)
 					}
 
 				}
@@ -5126,7 +5135,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	function go(name: SceneName, ...args) {
 
 		if (!game.scenes[name]) {
-			throw new Error(`Scene not found: ${name}`)
+			throw new KaboomError(`Scene not found: ${name}`)
 		}
 
 		game.events.onOnce("frameEnd", () => {
@@ -5334,7 +5343,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	function addLevel(map: string[], opt: LevelOpt): GameObj<PosComp | LevelComp> {
 
 		if (!opt.tileWidth || !opt.tileHeight) {
-			throw new Error("Must provide tileWidth and tileHeight.")
+			throw new KaboomError("Must provide tileWidth and tileHeight.")
 		}
 
 		// TODO: custom parent
@@ -5567,7 +5576,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 					if (typeof key === "string") {
 						if (opt.tiles[key]) {
 							if (typeof opt.tiles[key] !== "function") {
-								throw new Error("Level symbol def must be a function returning a component list")
+								throw new KaboomError("Level symbol def must be a function returning a component list")
 							}
 							return opt.tiles[key](p)
 						} else if (opt.wildcardTile) {
@@ -5576,7 +5585,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 					} else if (Array.isArray(key)) {
 						return key
 					} else {
-						throw new Error("Expected a symbol or a component list")
+						throw new KaboomError("Expected a symbol or a component list")
 					}
 				})()
 
@@ -6717,7 +6726,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		if (gopt.letterbox) {
 
 			if (!gopt.width || !gopt.height) {
-				throw new Error("Letterboxing requires width and height defined.")
+				throw new KaboomError("Letterboxing requires width and height defined.")
 			}
 
 			const rc = cw / ch
@@ -6749,7 +6758,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 		if (gopt.stretch) {
 			if (!gopt.width || !gopt.height) {
-				throw new Error("Stretching requires width and height defined.")
+				throw new KaboomError("Stretching requires width and height defined.")
 			}
 		}
 
@@ -7050,6 +7059,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		Event,
 		EventHandler,
 		EventController,
+		KaboomError,
 	}
 
 	if (gopt.plugins) {

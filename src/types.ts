@@ -2347,6 +2347,12 @@ export interface KaboomCtx {
 	 */
 	EventController: typeof EventController,
 	/**
+	 * Error related to this kaboom instance.
+	 *
+	 * @since v3000.2
+	 */
+	KaboomError: typeof KaboomError,
+	/**
 	 * Current Kaboom library version.
 	 *
 	 * @since v3000.0
@@ -5191,6 +5197,8 @@ export declare class EventController {
 	constructor(cancel: () => void)
 	static join(events: EventController[]): EventController
 }
+
+export declare class KaboomError extends Error {}
 
 // TODO: global name conflict, renamed to KEvent?
 export declare class Event<Args extends any[] = any[]> {
