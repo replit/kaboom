@@ -6542,7 +6542,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 				const title = formatText({
 					...textStyle,
-					text: err.name,
+					text: "Error",
 					pos: vec2(pad),
 					color: rgb(255, 128, 0),
 					fixed: true,
