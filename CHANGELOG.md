@@ -1,3 +1,6 @@
+### v3000.1.9
+- added `fill` option to `rect()`, `circle()` and `sprite()`
+
 ### v3000.1.8
 - fixed `scale` option acting weird when width and height are defined (by @hirnsalat)
 

@@ -1,4 +1,4 @@
-const VERSION = "3000.1.8"
+const VERSION = "3000.1.9"
 
 import initApp from "./app"
 
@@ -125,6 +125,7 @@ import type {
 	RectComp,
 	RectCompOpt,
 	UVQuadComp,
+	CircleCompOpt,
 	CircleComp,
 	OutlineComp,
 	TimerComp,
@@ -4527,6 +4528,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 					width: this.width,
 					height: this.height,
 					radius: this.radius,
+					fill: opt.fill,
 				}))
 			},
 			renderArea() {
@@ -4558,13 +4560,14 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		}
 	}
 
-	function circle(radius: number): CircleComp {
+	function circle(radius: number, opt: CircleCompOpt = {}): CircleComp {
 		return {
 			id: "circle",
 			radius: radius,
 			draw(this: GameObj<CircleComp>) {
 				drawCircle(Object.assign(getRenderProps(this), {
 					radius: this.radius,
+					fill: opt.fill,
 				}))
 			},
 			renderArea(this: GameObj<AnchorComp | CircleComp>) {

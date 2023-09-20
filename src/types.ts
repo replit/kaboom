@@ -4344,6 +4344,10 @@ export interface SpriteCompOpt {
 	 * The rectangular sub-area of the texture to render, default to full texture `quad(0, 0, 1, 1)`.
 	 */
 	quad?: Quad,
+	/**
+	 * If fill the sprite (useful if you only want to render outline with outline() component).
+	 */
+	fill?: boolean,
 }
 
 export interface SpriteComp extends Comp {
@@ -4512,6 +4516,10 @@ export interface RectCompOpt {
 	 * Radius of the rectangle corners.
 	 */
 	radius?: number,
+	/**
+	 * If fill the rectangle (useful if you only want to render outline with outline() component).
+	 */
+	fill?: boolean,
 }
 
 export interface RectComp extends Comp {
@@ -4531,6 +4539,13 @@ export interface RectComp extends Comp {
 	 * @since v3000.0
 	 */
 	renderArea(): Rect,
+}
+
+export interface CircleCompOpt {
+	/**
+	 * If fill the circle (useful if you only want to render outline with outline() component).
+	 */
+	fill?: boolean,
 }
 
 export interface CircleComp extends Comp {
