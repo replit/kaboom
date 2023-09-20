@@ -1,4 +1,4 @@
-const VERSION = "3000.1.7"
+const VERSION = "3000.1.8"
 
 import initApp from "./app"
 

@@ -1,3 +1,6 @@
+### v3000.1.8
+- fixed `scale` option acting weird when width and height are defined (by @hirnsalat)
+
 ### v3000.1.7
 - fixed `debug.paused` not pausing audio
 - added `mask()` component
