@@ -13,6 +13,21 @@ loadFont("apl386", "/examples/fonts/apl386.ttf", {
 - fixed `wave()` not starting at `0` when time is `0`
 - kaboom now only displays error screen for kaboom's own error, instead of catching all errors in current window
 - added `KaboomError` class for errors related to current kaboom instance
+- setting `obj.text` with `text()` component now immediately updates `width` and `height` property
+```js
+const obj = add([
+    text("oh hi"),
+    pos(100, 200),
+])
+
+// before
+obj.text = "bye"
+console.log(obj.width) // still the width of "oh hi" until next render
+
+// before
+obj.text = "bye"
+console.log(obj.width) // will be updated to the width of "bye"
+```
 
 ### v3000.1.6
 - fixed `loadSound` typing to accept `ArrayBuffer`

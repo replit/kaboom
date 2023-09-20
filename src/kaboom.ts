@@ -4474,13 +4474,20 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 		}
 
-		return {
+		const obj = {
 
 			id: "text",
-			text: t,
+			set text(nt) {
+				t = nt
+				// @ts-ignore
+				update(this)
+			},
+			get text() {
+				return t
+			},
 			textSize: opt.size ?? DEF_TEXT_SIZE,
 			font: opt.font,
-			width: opt.width,
+			width: opt.width ?? 0,
 			height: 0,
 			align: opt.align,
 			lineSpacing: opt.lineSpacing,
@@ -4501,6 +4508,11 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			},
 
 		}
+
+		// @ts-ignore
+		update(obj)
+
+		return obj
 
 	}
 
