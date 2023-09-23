@@ -3,6 +3,7 @@ import View, { ViewProps } from "comps/View"
 import Text from "comps/Text"
 import useClickOutside from "hooks/useClickOutside"
 import useKey from "hooks/useKey"
+import { findLastIndex } from "lib/array"
 
 interface PromptProps {
 	name: string,
@@ -67,7 +68,6 @@ interface SelectProps {
 }
 
 // TODO: scroll to cur at expand
-// TODO: jump with key
 const Select: React.FC<SelectProps & ViewProps> = ({
 	options,
 	value,
@@ -78,6 +78,7 @@ const Select: React.FC<SelectProps & ViewProps> = ({
 
 	const dropdownRef = React.useRef<HTMLDivElement>(null)
 	const [ curItem, setCurItem ] = React.useState(value ?? options[0])
+	const [ curItemIndex, setCurItemIndex ] = React.useState<number | null>(0)
 	const [ expanded, setExpanded ] = React.useState(false)
 
 	useClickOutside(dropdownRef, () => setExpanded(false), [ setExpanded ])
@@ -138,13 +139,42 @@ const Select: React.FC<SelectProps & ViewProps> = ({
 				<Prompt name={curItem} options={options} expanded={expanded} />
 				<View height={2} stretchX bg={4} />
 				<View
-// 					focusable
+					// focusable
 					ref={dropdownRef}
+					tabIndex={0}
 					stretchX
 					bg={2}
 					onKeyDown={(e) => {
-						// TODO
-						console.log(e.key)
+						const indexFound = options.findIndex((opt, i) => {
+							if (curItem[0] === e.key) {
+								if (!curItemIndex) return e.key === opt[0] && i > 0
+								if (curItemIndex === findLastIndex(options, curItem, 0)) {
+									setCurItemIndex(null)
+									return e.key === opt[0]
+								}
+								else return e.key === opt[0] && curItemIndex < i
+							} else if (curItem[0] !== e.key) {
+								return e.key === opt[0]
+							}
+						})
+
+						const newItem = options[indexFound]
+
+						if (e.key !== "Enter" && newItem && curItem !== newItem) {
+							setCurItem(newItem)
+							setCurItemIndex(indexFound)
+							
+							const selected = dropdownRef.current!.children[indexFound] as HTMLDivElement
+							
+							if (selected) {
+								dropdownRef.current!.scrollTop = selected.offsetTop
+							}
+						}
+
+						if (e.key === "Enter") {
+							onChange && onChange(curItem)
+						}
+
 					}}
 					css={{
 						overflowY: "auto",
