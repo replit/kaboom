@@ -532,7 +532,7 @@ Blockly.Blocks["kaboom_offscreen"] = {
 		this.appendDummyInput()
 			.appendField(icon("offscreen"))
 			.appendField("offscreen | destroy")
-			.appendField(new Blockly.FieldCheckbox(1), "DESTROY")
+			.appendField(new Blockly.FieldCheckbox(), "DESTROY")
 		this.setColour(colors.component)
 		this.setOutput(true, "Object")
 		this.setTooltip("Component to define object behavior when offscreen")

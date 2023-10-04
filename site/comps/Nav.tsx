@@ -170,6 +170,7 @@ const IndexContent: React.FC<IndexContentProps> = ({
 				<NavLink link="/blog" text="Blog" />
 				<NavLink link="https://github.com/replit/kaboom" text="GitHub" />
 				<NavLink link="https://discord.com/invite/aQ6RuQm3TF" text="Discord" />
+				<NavLink link="/kaboomware" text="KaboomWare" />
 			</View>
 
 			<Input value={query} onChange={setQuery} placeholder="Search in doc" />
@@ -193,7 +194,6 @@ const IndexContent: React.FC<IndexContentProps> = ({
 								return (
 									<a key={name} href={`/#${name}`}>
 										<View
-											padX={1}
 											padY={0.5}
 											onClick={shrink}
 											css={{

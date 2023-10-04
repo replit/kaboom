@@ -3993,6 +3993,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				return Object.values(colliding)
 			},
 
+			// TODO: perform check instead of use cache
 			isColliding(other: GameObj<AreaComp>) {
 				return Boolean(colliding[other.id])
 			},

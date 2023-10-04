@@ -49,30 +49,20 @@ const Page = ({
 
 	// push a tooltip into tooltip stack, returning the id
 	const pushTooltip = React.useCallback((t: Tooltip) => {
-
-		return new Promise<number>((resolve, reject) => {
-
+		return new Promise<number>((resolve) => {
 			setTooltipStack((prevStack) => {
-
 				// if it's already the current tooltip, we just return that
 				const last = Array.from(prevStack)[prevStack.size - 1]
-
 				if (last && t.name === last[1].name && t.desc === last[1].desc) {
 					resolve(last[0])
 					return prevStack
 				}
-
 				const newStack = prevStack.clone()
 				const id = newStack.push(t)
-
 				resolve(id)
-
 				return newStack
-
 			})
-
 		})
-
 	}, [ setTooltipStack ])
 
 	// pop a tooltip from tooltip stack with id
@@ -121,12 +111,11 @@ const Page = ({
 						font-family: IBM Plex Sans;
 						font-size: var(--text-normal);
 						color: var(--color-fg1);
-						overflow: hidden;
 					}
 					body {
 						width: 100%;
 						height: 100%;
-						overflow: hidden;
+						background: var(--color-bg1);
 					}
 					a {
 						text-decoration: none;

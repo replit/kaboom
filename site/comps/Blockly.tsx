@@ -401,7 +401,7 @@ const BlocklyEditor = forwardRef<BlocklyEditorRef>(({...props}, ref) => {
 
 		workspaceRef.current = workspace
 
-		workspace.addChangeListener((e: WorkspaceEvent) => {
+		workspace.addChangeListener((e) => {
 			if (SAVE_EVENTS.has(e.type)) {
 				// TODO: auto save
 			}
