@@ -122,6 +122,12 @@ const Page = ({
 						color: var(--color-highlight);
 						cursor: pointer;
 					}
+					code {
+						background: red;
+						padding: 2px 8px;
+						border-radius: 4px;
+						background: var(--color-bg3);
+					}
 					#__next {
 						width: 100%;
 						height: 100%;

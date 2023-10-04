@@ -49,6 +49,23 @@ const squeezeGame = {
 \`\`\`
 `.trim()
 
+const props = [
+	{ name: "prompt", desc: "The title of the game, telling player what they should do. (Usually just a simple verb!)" },
+]
+
+const Prop = ({
+	title,
+	desc,
+}: {
+	title: string,
+	desc: string,
+}) => (
+	<View dir="row" align="center" gap={2}>
+		<Text code size="big" bold><code>{title}</code></Text>
+		<Text>{desc}</Text>
+	</View>
+)
+
 export default function Doc() {
 	const wareRef = React.useRef(null)
 	React.useEffect(() => {
@@ -57,12 +74,12 @@ export default function Doc() {
 	return (
 		<View
 			align="center"
-			gap={5}
+			gap={4}
 			padX={3}
 			stretch
 			css={{
 				width: "100%",
-				maxWidth: "640px",
+				maxWidth: "800px",
 				margin: "64px auto",
 			}}>
 			<Global
@@ -74,7 +91,7 @@ export default function Doc() {
 				`}
 			/>
 			<img
-				src="/static/img/kaboomware.png"
+				src="/static/img/kaboomware/logo.png"
 				css={{
 					width: 480,
 					maxWidth: "100%",
@@ -87,12 +104,7 @@ export default function Doc() {
 				align="center"
 				width="100%"
 			>
-				<img
-					src="/static/img/ken.png"
-					css={{
-						width: 160,
-					}}
-				/>
+				<img src="/static/img/kaboomware/ken.png" css={{ width: 160 }} />
 				<View gap={2} dir="column" stretchY justify="between" css={{ flex: 1 }}>
 					<View bg="#ffffff" pad={2} rounded css={bubble}>
 						<Text color="#000000">You must supply 100 mini-games per month, or we have to destroy your planet.</Text>
@@ -100,7 +112,21 @@ export default function Doc() {
 					<Text color={3}>Ken (alien), KaboomWare operation lead</Text>
 				</View>
 			</View>
+			<View dir="row" gap={2} align="center">
+				<Text>There will be a monthly KaboomWare game jam, where you make as many KaboomWare mini-games as possible! (they have to be fun tho)</Text>
+				<img src="/static/img/kaboomware/cal.png" />
+			</View>
+			<Text color={2}>A KaboomWare mini-game is just a JavaScript object, with 5 entries:</Text>
+			<View gap={2}>
+				<Prop title="prompt" desc="The title of the game, telling player what they should do. (Usually just a simple verb!)" />
+				<Prop title="author" desc="Your name" />
+				<Prop title="hue" desc="Hue of the background of the game (0.0 - 1.0)." />
+				<Prop title="onLoad" desc="Load assets of your mini-game" />
+				<Prop title="onStart" desc="Main entry point of your mini-game gameplay. Should return a Kaboom game object that contains the entire scene and behavior." />
+			</View>
+			<Text color={2}>Here is an example mini-game!</Text>
 			<Markdown src={example} />
+			<Text>For more examples, see <a href="https://github.com/slmjkdbtl/kaboomware/tree/master/example/games">here</a></Text>
 		</View>
 	)
 }

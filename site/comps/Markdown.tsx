@@ -1,3 +1,5 @@
+// TODO: use react-markdown
+
 import * as React from "react"
 import { Marked } from "marked"
 import { markedHighlight } from "marked-highlight"
@@ -28,7 +30,7 @@ const Markdown: React.FC<MarkdownProps & ViewProps> = ({
 	dim,
 	...args
 }) => {
-	const [marked, _] = React.useState(() => {
+	const [marked] = React.useState(() => {
 		const marked = new Marked()
 		if (baseUrl) {
 			marked.use(markedBaseUrl.baseUrl(baseUrl))
@@ -41,13 +43,18 @@ const Markdown: React.FC<MarkdownProps & ViewProps> = ({
 		}))
 		return marked
 	})
+	const html = React.useMemo(() => {
+		const res = marked.parse(src)
+		if (res instanceof Promise) throw new Error("wtf???")
+		return res
+	}, [src, marked])
 	return (
 		<View
 			stretchX
 			gap={2}
-		// @ts-ignore
+			// @ts-ignore
 			dangerouslySetInnerHTML={{
-				__html: marked.parse(src),
+				__html: html,
 			}}
 			css={{
 				"*": {
