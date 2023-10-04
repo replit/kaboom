@@ -23,7 +23,7 @@
 		"kaboomware": "^0.1.2",
 		"marked": "^5.1.2",
 		"marked-highlight": "^2.0.1",
-		"next": "^13.4.12",
+		"next": "^13.5.4",
 		"pako": "^2.1.0",
 		"react": "^18.2.0",
 		"react-dom": "^18.2.0",
