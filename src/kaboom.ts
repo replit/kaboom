@@ -419,6 +419,33 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			preserveDrawingBuffer: true,
 		})
 
+	function genBindFunc<T>(func: (ty: GLenum, item: T) => void) {
+		const bindings = {}
+		return {
+			cur: (ty: GLenum) => {
+				const stack = bindings[ty] ?? []
+				return stack[stack.length - 1]
+			},
+			push: (ty: GLenum, item: T) => {
+				if (!bindings[ty]) bindings[ty] = []
+				const stack = bindings[ty]
+				stack.push(item)
+				func(ty, item)
+			},
+			pop: (ty: GLenum) => {
+				const stack = bindings[ty]
+				if (!stack) throw new Error(`Unknown WebGL type: ${ty}`)
+				if (stack.length <= 0) throw new Error("Can't unbind texture when there's no texture bound")
+				stack.pop()
+				func(ty, stack[stack.length - 1] ?? null)
+			},
+		}
+	}
+
+	const glTextureBinder = genBindFunc(gl.bindTexture.bind(gl))
+	const glFramebufferBinder = genBindFunc(gl.bindFramebuffer.bind(gl))
+	const glRenderbufferBinder = genBindFunc(gl.bindRenderbuffer.bind(gl))
+
 	class Texture {
 
 		src: null | ImageSource = null
@@ -490,11 +517,11 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		}
 
 		bind() {
-			gl.bindTexture(gl.TEXTURE_2D, this.glTex)
+			glTextureBinder.push(gl.TEXTURE_2D, this.glTex)
 		}
 
 		unbind() {
-			gl.bindTexture(gl.TEXTURE_2D, null)
+			glTextureBinder.pop(gl.TEXTURE_2D)
 		}
 
 		free() {
@@ -563,13 +590,13 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	class FrameBuffer {
 
 		tex: Texture
-		glFrameBuffer: WebGLFramebuffer
-		glRenderBuffer: WebGLRenderbuffer
+		glFramebuffer: WebGLFramebuffer
+		glRenderbuffer: WebGLRenderbuffer
 
 		constructor(w: number, h: number, opt: TextureOpt = {}) {
 			this.tex = new Texture(w, h, opt)
-			this.glFrameBuffer = gl.createFramebuffer()
-			this.glRenderBuffer = gl.createRenderbuffer()
+			this.glFramebuffer = gl.createFramebuffer()
+			this.glRenderbuffer = gl.createRenderbuffer()
 			gc.push(() => this.free())
 			this.bind()
 			gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_STENCIL, w, h)
@@ -584,7 +611,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				gl.FRAMEBUFFER,
 				gl.DEPTH_STENCIL_ATTACHMENT,
 				gl.RENDERBUFFER,
-				this.glRenderBuffer,
+				this.glRenderbuffer,
 			)
 			this.unbind()
 		}
@@ -597,33 +624,37 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			return this.tex.height
 		}
 
-		toDataURL() {
+		// TODO: flipped on Y
+		toImageData() {
 			const data = new Uint8ClampedArray(this.width * this.height * 4)
 			this.bind()
 			gl.readPixels(0, 0, this.width, this.height, gl.RGBA, gl.UNSIGNED_BYTE, data)
 			this.unbind()
+			return new ImageData(data, this.width, this.height)
+		}
+
+		toDataURL() {
 			const canvas = document.createElement("canvas")
+			const ctx = canvas.getContext("2d")
 			canvas.width = this.width
 			canvas.height = this.height
-			const ctx = canvas.getContext("2d")
-			const imgData = new ImageData(data, this.width, this.height)
-			ctx.putImageData(imgData, 0, 0)
+			ctx.putImageData(this.toImageData(), 0, 0)
 			return canvas.toDataURL()
 		}
 
 		bind() {
-			gl.bindFramebuffer(gl.FRAMEBUFFER, this.glFrameBuffer)
-			gl.bindRenderbuffer(gl.RENDERBUFFER, this.glRenderBuffer)
+			glFramebufferBinder.push(gl.FRAMEBUFFER, this.glFramebuffer)
+			glRenderbufferBinder.push(gl.RENDERBUFFER, this.glRenderbuffer)
 		}
 
 		unbind() {
-			gl.bindFramebuffer(gl.FRAMEBUFFER, null)
-			gl.bindRenderbuffer(gl.RENDERBUFFER, null)
+			glFramebufferBinder.pop(gl.FRAMEBUFFER)
+			glRenderbufferBinder.pop(gl.RENDERBUFFER)
 		}
 
 		free() {
-			gl.deleteFramebuffer(this.glFrameBuffer)
-			gl.deleteRenderbuffer(this.glRenderBuffer)
+			gl.deleteFramebuffer(this.glFramebuffer)
+			gl.deleteRenderbuffer(this.glRenderbuffer)
 			this.tex.free()
 		}
 
