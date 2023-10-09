@@ -3,7 +3,6 @@ import * as React from "react"
 import kaboomware from "kaboomware"
 import View from "comps/View"
 import Text from "comps/Text"
-import Button from "comps/Button"
 import Markdown from "comps/Markdown"
 
 const bubble = css(`
@@ -49,10 +48,6 @@ const squeezeGame = {
 }
 \`\`\`
 `.trim()
-
-const props = [
-	{ name: "prompt", desc: "The title of the game, telling player what they should do. (Usually just a simple verb!)" },
-]
 
 const Prop = ({
 	title,
@@ -117,9 +112,6 @@ export default function Doc() {
 				<Text>There will be a monthly KaboomWare game jam, where you make as many KaboomWare mini-games as possible! (they have to be fun tho)</Text>
 				<img src="/static/img/kaboomware/cal.png" />
 			</View>
-			<a href="https://replit.com/@replit/KaboomWare?v=1" target="_blank">
-				<Button>Code on Replit!</Button>
-			</a>
 			<View align="center" gap={2}>
 				<img src="/static/img/kaboomware/engine.png" />
 				<Text color={2}>A KaboomWare mini-game is just a JavaScript object, with 5 entries:</Text>

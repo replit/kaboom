@@ -362,13 +362,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		canvas.height = canvas.parentElement.offsetHeight
 	}
 
-	const cw = canvas.width
-	const ch = canvas.height
-	const pixelDensity = gopt.pixelDensity || window.devicePixelRatio
-
-	canvas.width *= pixelDensity
-	canvas.height *= pixelDensity
-
 	// canvas css styles
 	const styles = [
 		"outline: none",
@@ -376,6 +369,8 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	]
 
 	if (fixedSize) {
+		const cw = canvas.width
+		const ch = canvas.height
 		styles.push(`width: ${cw}px`)
 		styles.push(`height: ${ch}px`)
 	} else {
@@ -390,6 +385,11 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	}
 
 	canvas.style.cssText = styles.join(";")
+
+	const pixelDensity = gopt.pixelDensity || window.devicePixelRatio
+
+	canvas.width *= pixelDensity
+	canvas.height *= pixelDensity
 	// make canvas focusable
 	canvas.tabIndex = 0
 
@@ -597,6 +597,20 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			return this.tex.height
 		}
 
+		toDataURL() {
+			const data = new Uint8ClampedArray(this.width * this.height * 4)
+			this.bind()
+			gl.readPixels(0, 0, this.width, this.height, gl.RGBA, gl.UNSIGNED_BYTE, data)
+			this.unbind()
+			const canvas = document.createElement("canvas")
+			canvas.width = this.width
+			canvas.height = this.height
+			const ctx = canvas.getContext("2d")
+			const imgData = new ImageData(data, this.width, this.height)
+			ctx.putImageData(imgData, 0, 0)
+			return canvas.toDataURL()
+		}
+
 		bind() {
 			gl.bindFramebuffer(gl.FRAMEBUFFER, this.glFrameBuffer)
 			gl.bindRenderbuffer(gl.RENDERBUFFER, this.glRenderBuffer)
@@ -644,7 +658,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		}
 
 		gl.enable(gl.BLEND)
-		gl.enable(gl.SCISSOR_TEST)
 		gl.blendFuncSeparate(
 			gl.SRC_ALPHA,
 			gl.ONE_MINUS_SRC_ALPHA,
@@ -1915,13 +1928,14 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	}
 
 	function frameEnd() {
+
 		// TODO: don't render debug UI with framebuffer
 		// TODO: polish framebuffer rendering / sizing issues
 		flush()
+		gfx.lastDrawCalls = gfx.drawCalls
 		gfx.frameBuffer.unbind()
 		gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight)
 
-		flush()
 		const ow = gfx.width
 		const oh = gfx.height
 		gfx.width = gl.drawingBufferWidth / pixelDensity
@@ -1943,7 +1957,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		flush()
 		gfx.width = ow
 		gfx.height = oh
-		gfx.lastDrawCalls = gfx.drawCalls
+
 	}
 
 	// convert a screen space coordinate to webgl normalized device coordinate
@@ -2935,7 +2949,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		fps: () => app.fps(),
 		numFrames: () => app.numFrames(),
 		stepFrame: updateFrame,
-		drawCalls: () => gfx.drawCalls,
+		drawCalls: () => gfx.lastDrawCalls,
 		clearLog: () => game.logs = [],
 		log: (msg) => {
 			const max = gopt.logMax ?? LOG_MAX
@@ -6818,6 +6832,11 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	})
 
 	updateViewport()
+
+	app.onKeyPress("space", () => {
+		const url = gfx.frameBuffer.toDataURL()
+		download("test.png", url)
+	})
 
 	// the exported ctx handle
 	const ctx: KaboomCtx = {
