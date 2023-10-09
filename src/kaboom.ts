@@ -657,6 +657,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			)
 		}
 
+		// gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true)
 		gl.enable(gl.BLEND)
 		gl.blendFuncSeparate(
 			gl.SRC_ALPHA,
@@ -5171,7 +5172,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		game.events.onOnce("frameEnd", () => {
 
 			game.events.trigger("sceneLeave", name)
-			// TODO: this clears the resize event
 			app.events.clear()
 			game.events.clear()
 			game.objEvents.clear()
@@ -5186,6 +5186,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			})
 
 			game.root.clearEvents()
+			initEvents()
 
 			// cam
 			game.cam = {
@@ -5197,14 +5198,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			}
 
 			game.scenes[name](...args)
-
-			if (gopt.debug !== false) {
-				enterDebugMode()
-			}
-
-			if (gopt.burp) {
-				enterBurpMode()
-			}
 
 		})
 
@@ -6521,14 +6514,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 	}
 
-	if (gopt.debug !== false) {
-		enterDebugMode()
-	}
-
-	if (gopt.burp) {
-		enterBurpMode()
-	}
-
 	function onLoading(action: (progress: number) => void) {
 		game.events.on("loading", action)
 	}
@@ -6802,37 +6787,47 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 	}
 
-	app.onHide(() => {
-		if (!gopt.backgroundAudio) {
-			audio.ctx.suspend()
-		}
-	})
+	function initEvents() {
 
-	app.onShow(() => {
-		if (!gopt.backgroundAudio) {
-			audio.ctx.resume()
-		}
-	})
+		app.onHide(() => {
+			if (!gopt.backgroundAudio) {
+				audio.ctx.suspend()
+			}
+		})
 
-	// TODO: white artifact when scrolling, but disappears when done
-	// TODO: if you resize to larger than the initial size it'll leave white space
-	// TODO: this clears on scene change
-	app.onResize(() => {
-		if (app.isFullscreen()) return
-		const fixedSize = gopt.width && gopt.height
-		if (fixedSize && !gopt.stretch && !gopt.letterbox) return
-		canvas.width = canvas.offsetWidth * pixelDensity
-		canvas.height = canvas.offsetHeight * pixelDensity
-		updateViewport()
-		if (!fixedSize) {
-			gfx.frameBuffer.free()
-			gfx.frameBuffer = new FrameBuffer(gl.drawingBufferWidth, gl.drawingBufferHeight)
-			gfx.width = gl.drawingBufferWidth / pixelDensity
-			gfx.height = gl.drawingBufferHeight / pixelDensity
+		app.onShow(() => {
+			if (!gopt.backgroundAudio) {
+				audio.ctx.resume()
+			}
+		})
+
+		app.onResize(() => {
+			if (app.isFullscreen()) return
+			const fixedSize = gopt.width && gopt.height
+			if (fixedSize && !gopt.stretch && !gopt.letterbox) return
+			canvas.width = canvas.offsetWidth * pixelDensity
+			canvas.height = canvas.offsetHeight * pixelDensity
+			updateViewport()
+			if (!fixedSize) {
+				gfx.frameBuffer.free()
+				gfx.frameBuffer = new FrameBuffer(gl.drawingBufferWidth, gl.drawingBufferHeight)
+				gfx.width = gl.drawingBufferWidth / pixelDensity
+				gfx.height = gl.drawingBufferHeight / pixelDensity
+			}
+		})
+
+		if (gopt.debug !== false) {
+			enterDebugMode()
 		}
-	})
+
+		if (gopt.burp) {
+			enterBurpMode()
+		}
+
+	}
 
 	updateViewport()
+	initEvents()
 
 	// the exported ctx handle
 	const ctx: KaboomCtx = {
