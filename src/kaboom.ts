@@ -5171,6 +5171,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		game.events.onOnce("frameEnd", () => {
 
 			game.events.trigger("sceneLeave", name)
+			// TODO: this clears the resize event
 			app.events.clear()
 			game.events.clear()
 			game.objEvents.clear()
@@ -6832,11 +6833,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	})
 
 	updateViewport()
-
-	app.onKeyPress("space", () => {
-		const url = gfx.frameBuffer.toDataURL()
-		download("test.png", url)
-	})
 
 	// the exported ctx handle
 	const ctx: KaboomCtx = {

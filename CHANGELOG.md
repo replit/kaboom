@@ -1,3 +1,6 @@
+### v3000.1.10
+- fix test code accidentally getting shipped (where a screenshot will be downloaded every time you press space)
+
 ### v3000.1.9
 - added `fill` option to `rect()`, `circle()` and `sprite()`
 - fix view getting cut off in letterbox mode
