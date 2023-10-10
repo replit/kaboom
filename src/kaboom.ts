@@ -624,12 +624,21 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			return this.tex.height
 		}
 
-		// TODO: flipped on Y
 		toImageData() {
 			const data = new Uint8ClampedArray(this.width * this.height * 4)
 			this.bind()
 			gl.readPixels(0, 0, this.width, this.height, gl.RGBA, gl.UNSIGNED_BYTE, data)
 			this.unbind()
+			// flip vertically
+			const bytesPerRow = this.width * 4
+			const temp = new Uint8Array(bytesPerRow)
+			for (let y = 0; y < (this.height / 2 | 0); y++) {
+				const topOffset = y * bytesPerRow
+				const bottomOffset = (this.height - y - 1) * bytesPerRow
+				temp.set(data.subarray(topOffset, topOffset + bytesPerRow))
+				data.copyWithin(topOffset, bottomOffset, bottomOffset + bytesPerRow)
+				data.set(temp, bottomOffset)
+			}
 			return new ImageData(data, this.width, this.height)
 		}
 
