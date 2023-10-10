@@ -3819,6 +3819,12 @@ export declare class Color {
 	 */
 	lerp(dest: Color, t: number): Color
 	eq(c: Color): boolean
+	/**
+	 * Convert color into HSL format.
+	 *
+	 * @since v3000.2
+	 */
+	toHSL(): [number, number, number]
 	toString(): string
 	/**
 	 * Return the hex string of color.

@@ -2,6 +2,7 @@
 - added option `kaboom({ focus: false })` to disable focus on start
 - fixed `rand()` typing for numbers
 - fixed mouse position in fullscreen
+- added `Color#toHSL()`
 
 ### v3000.1.10
 - fix test code accidentally getting shipped (where a screenshot will be downloaded every time you press space)

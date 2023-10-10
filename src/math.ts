@@ -213,28 +213,7 @@ export class Color {
 	}
 
 	static fromHSL(h: number, s: number, l: number) {
-
-		if (s == 0){
-			return new Color(255 * l, 255 * l, 255 * l)
-		}
-
-		const hue2rgb = (p, q, t) => {
-			if (t < 0) t += 1
-			if (t > 1) t -= 1
-			if (t < 1 / 6) return p + (q - p) * 6 * t
-			if (t < 1 / 2) return q
-			if (t < 2 / 3) return p + (q - p) * (2/3 - t) * 6
-			return p
-		}
-
-		const q = l < 0.5 ? l * (1 + s) : l + s - l * s
-		const p = 2 * l - q
-		const r = hue2rgb(p, q, h + 1 / 3)
-		const g = hue2rgb(p, q, h)
-		const b = hue2rgb(p, q, h - 1 / 3)
-
-		return new Color(Math.round(r * 255), Math.round(g * 255), Math.round(b * 255))
-
+		return Color.fromArray(hsl2rgb(h, s, l))
 	}
 
 	static RED = new Color(255, 0, 0)
@@ -278,6 +257,10 @@ export class Color {
 		)
 	}
 
+	toHSL(): [number, number, number] {
+		return rgb2hsl(this.r, this.g, this.b)
+	}
+
 	eq(other: Color): boolean {
 		return this.r === other.r
 			&& this.g === other.g
@@ -311,7 +294,47 @@ export function rgb(...args): Color {
 	return new Color(...args)
 }
 
-export const hsl2rgb = (h, s, l) => Color.fromHSL(h, s, l)
+export const hsl2rgb = (h, s, l) => {
+	if (s == 0) return [255 * l, 255 * l, 255 * l]
+	const hue2rgb = (p, q, t) => {
+		if (t < 0) t += 1
+		if (t > 1) t -= 1
+		if (t < 1 / 6) return p + (q - p) * 6 * t
+		if (t < 1 / 2) return q
+		if (t < 2 / 3) return p + (q - p) * (2/3 - t) * 6
+		return p
+	}
+	const q = l < 0.5 ? l * (1 + s) : l + s - l * s
+	const p = 2 * l - q
+	const r = hue2rgb(p, q, h + 1 / 3)
+	const g = hue2rgb(p, q, h)
+	const b = hue2rgb(p, q, h - 1 / 3)
+	return [Math.round(r * 255), Math.round(g * 255), Math.round(b * 255)]
+}
+
+// TODO: use range of [0, 360] [0, 100] [0, 100]?
+export const rgb2hsl = (r, g, b): [number, number, number] => {
+	r /= 255
+	g /= 255
+	b /= 255
+	const max = Math.max(r, g, b), min = Math.min(r, g, b)
+	let h = (max + min) / 2
+	let s = h
+	const l = h
+	if (max == min) {
+		h = s = 0
+	} else {
+		const d = max - min
+		s = l > 0.5 ? d / (2 - max - min) : d / (max + min)
+		switch (max) {
+			case r: h = (g - b) / d + (g < b ? 6 : 0); break
+			case g: h = (b - r) / d + 2; break
+			case b: h = (r - g) / d + 4; break
+		}
+		h /= 6
+	}
+	return [ h, s, l ]
+}
 
 export class Quad {
 	x: number = 0
