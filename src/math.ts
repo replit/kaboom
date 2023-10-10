@@ -627,7 +627,7 @@ export class RNG {
 			this.genNumber(a.b, b.b),
 		)
 	}
-	genAny<T extends RNGValue>(...args: T[]): T {
+	genAny<T = RNGValue>(...args: T[]): T {
 		if (args.length === 0) {
 			return this.gen() as T
 		} else if (args.length === 1) {

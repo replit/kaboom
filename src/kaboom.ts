@@ -697,7 +697,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			)
 		}
 
-		// gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true)
 		gl.enable(gl.BLEND)
 		gl.blendFuncSeparate(
 			gl.SRC_ALPHA,
@@ -861,10 +860,10 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 	const audio = (() => {
 
-		// TODO: handle when audio context is unavailable
 		const ctx = new (
 			window.AudioContext || (window as any).webkitAudioContext
 		)() as AudioContext
+
 		const masterNode = ctx.createGain()
 		masterNode.connect(ctx.destination)
 
@@ -3072,7 +3071,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		let onCurCompCleanup = null
 		let paused = false
 
-		// TODO
 		// @ts-ignore
 		const obj: GameObj = {
 
@@ -3323,19 +3321,25 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 							? this.isAncestorOf(obj)
 							: obj.parent === this
 					}
+					const events = []
 					// TODO: handle when object add / remove tags
 					// TODO: clean up when obj destroyed
-					onAdd((obj) => {
+					events.push(onAdd((obj) => {
 						if (isChild(obj) && obj.is(t)) {
 							list.push(obj)
 						}
-					})
-					onDestroy((obj) => {
+					}))
+					events.push(onDestroy((obj) => {
 						if (isChild(obj) && obj.is(t)) {
 							const idx = list.findIndex((o) => o.id === obj.id)
 							if (idx !== -1) {
 								list.splice(idx, 1)
 							}
+						}
+					}))
+					this.onDestroy(() => {
+						for (const ev of events) {
+							ev.cancel()
 						}
 					})
 				}
@@ -4973,7 +4977,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		}
 	}
 
-	// TODO: all children should be fixed
 	function fixed(): FixedComp {
 		return {
 			id: "fixed",
@@ -6754,31 +6757,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		const cw = gl.drawingBufferWidth / pd
 		const ch = gl.drawingBufferHeight / pd
 
-		if (app.isFullscreen()) {
-			const ww = window.innerWidth
-			const wh = window.innerHeight
-			const rw = ww / wh
-			const rc = cw / ch
-			if (rw > rc) {
-				const sw = window.innerHeight * rc
-				gfx.viewport = {
-					x: (ww - sw) / 2,
-					y: 0,
-					width: sw,
-					height: wh,
-				}
-			} else {
-				const sh = window.innerWidth / rc
-				gfx.viewport = {
-					x: 0,
-					y: (wh - sh) / 2,
-					width: ww,
-					height: sh,
-				}
-			}
-			return
-		}
-
 		if (gopt.letterbox) {
 
 			if (!gopt.width || !gopt.height) {
@@ -7139,7 +7117,9 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		}
 	}
 
-	app.canvas().focus()
+	if (gopt.focus !== false) {
+		app.canvas().focus()
+	}
 
 	return ctx
 

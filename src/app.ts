@@ -13,6 +13,7 @@ import type {
 
 import {
 	Vec2,
+	map,
 } from "./math"
 
 import {
@@ -608,9 +609,30 @@ export default (opt: {
 	const docEvents: EventList<DocumentEventMap> = {}
 	const winEvents: EventList<WindowEventMap> = {}
 
+	const pd = opt.pixelDensity || window.devicePixelRatio || 1
+
 	canvasEvents.mousemove = (e) => {
 		const mousePos = new Vec2(e.offsetX, e.offsetY)
 		const mouseDeltaPos = new Vec2(e.movementX, e.movementY)
+		if (isFullscreen()) {
+			const cw = state.canvas.width / pd
+			const ch = state.canvas.height / pd
+			const ww = window.innerWidth
+			const wh = window.innerHeight
+			const rw = ww / wh
+			const rc = cw / ch
+			if (rw > rc) {
+				const ratio = wh / ch
+				const offset = (ww - (cw * ratio)) / 2
+				mousePos.x = map(e.offsetX - offset, 0, cw * ratio, 0, cw)
+				mousePos.y = map(e.offsetY, 0, ch * ratio, 0, ch)
+			} else {
+				const ratio = ww / cw
+				const offset = (wh - (ch * ratio)) / 2
+				mousePos.x = map(e.offsetX , 0, cw * ratio, 0, cw)
+				mousePos.y = map(e.offsetY - offset, 0, ch * ratio, 0, ch)
+			}
+		}
 		state.events.onOnce("input", () => {
 			state.isMouseMoved = true
 			state.mousePos = mousePos

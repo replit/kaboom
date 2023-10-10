@@ -1659,7 +1659,7 @@ export interface KaboomCtx {
 	 * rand(rgb(255, 255, 255))
 	 * ```
 	 */
-	rand<T extends RNGValue>(n: T): T,
+	rand<T = RNGValue>(n: T): T,
 	/**
 	 * Get a random value between the given bound.
 	 *
@@ -1674,7 +1674,7 @@ export interface KaboomCtx {
 	 * ])
 	 * ```
 	 */
-	rand<T extends RNGValue>(a: T, b: T): T,
+	rand<T = RNGValue>(a: T, b: T): T,
 	/**
 	 * rand() but floored to integer.
 	 *
@@ -2537,6 +2537,12 @@ export interface KaboomOpt<T extends PluginList<any> = any> {
 	 * @since v3000.0
 	 */
 	maxFPS?: number,
+	/**
+	 * If focus on the canvas on start (default true).
+	 *
+	 * @since v3000.2
+	 */
+	focus?: boolean,
 	/**
 	 * If import all kaboom functions to global (default true).
 	 */
@@ -3909,7 +3915,7 @@ export declare class RNG {
 	genNumber(a: number, b: number): number
 	genVec2(a: Vec2, b?: Vec2): Vec2
 	genColor(a: Color, b: Color): Color
-	genAny<T extends RNGValue>(...args: T[]): T
+	genAny<T = RNGValue>(...args: T[]): T
 }
 
 export interface Comp {
