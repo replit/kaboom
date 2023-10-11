@@ -1,4 +1,5 @@
 import { Global, css } from "@emotion/react"
+import Link from "next/link"
 import * as React from "react"
 import kaboomware from "kaboomware"
 import View from "comps/View"
@@ -70,7 +71,7 @@ export default function Doc() {
 	return (
 		<View
 			align="center"
-			gap={5}
+			gap={4}
 			padX={3}
 			stretch
 			css={{
@@ -103,7 +104,7 @@ export default function Doc() {
 				<img src="/static/img/kaboomware/ken.png" css={{ width: 160 }} />
 				<View gap={2} dir="column" stretchY justify="between" css={{ flex: 1 }}>
 					<View bg="#ffffff" pad={2} rounded css={bubble}>
-						<Text color="#000000">You must supply 100 mini-games per month, or we have to destroy your planet.</Text>
+						<Text color="#000000">You must supply 200 minigames by the end of 2023, or we have to destroy your planet.</Text>
 					</View>
 					<Text color={3}>Ken (alien), KaboomWare operation lead</Text>
 				</View>
@@ -115,6 +116,9 @@ export default function Doc() {
 			<View align="center" gap={2}>
 				<img src="/static/img/kaboomware/engine.png" />
 				<Text color={2}>A KaboomWare mini-game is just a JavaScript object, with 5 entries:</Text>
+			</View>
+			<View pad={2} bg={2} rounded outlined>
+				<Text>KaboomWare is based on <Link href="/">Kaboom</Link>, if you&apos;re not familiar with Kaboom start with <Link href="/doc/intro">this tutorial</Link>!</Text>
 			</View>
 			<View gap={2}>
 				<Prop title="prompt" desc="The title of the game, telling player what they should do. (Usually just a simple verb!)" />
