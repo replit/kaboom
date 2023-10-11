@@ -236,7 +236,6 @@ export class Color {
 
 		return new Color(Math.round(r * 255), Math.round(g * 255), Math.round(b * 255))
 
-
 	}
 
 	static RED = new Color(255, 0, 0)
@@ -322,6 +321,8 @@ export class Color {
 
 export function rgb(...args): Color {
 	if (args.length === 0) {
+		return new Color(255, 255, 255)
+	} else if (args.length === 1) {
 		if (args[0] instanceof Color) {
 			return args[0].clone()
 		} else if (typeof args[0] === "string") {

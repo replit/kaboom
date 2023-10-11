@@ -1,3 +1,6 @@
+### v3000.1.12
+- fix `color()` and `rgb()` not working
+
 ### v3000.1.11
 - added option `kaboom({ focus: false })` to disable focus on start
 - fixed `rand()` typing for numbers
