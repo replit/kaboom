@@ -5,6 +5,7 @@ import initGfx, {
 	Texture,
 	FrameBuffer,
 	Shader,
+	BatchRenderer,
 } from "./gfx"
 
 import {
@@ -57,7 +58,6 @@ import {
 	uid,
 	isDataURL,
 	getExt,
-	deepEq,
 	dataURLToArrayBuffer,
 	EventController,
 	// eslint-disable-next-line
@@ -70,7 +70,6 @@ import {
 } from "./utils"
 
 import type {
-	GfxShader,
 	GfxFont,
 	RenderProps,
 	CharTransform,
@@ -423,7 +422,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			preserveDrawingBuffer: true,
 		})
 
-	const ggfx = initGfx(gl)
+	const ggl = initGfx(gl)
 
 	class KaboomError extends Error {
 		constructor(msg) {
@@ -443,7 +442,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			this.canvas = document.createElement("canvas")
 			this.canvas.width = w
 			this.canvas.height = h
-			this.tex = Texture.fromImage(ggfx, this.canvas)
+			this.tex = Texture.fromImage(ggl, this.canvas)
 			this.ctx = this.canvas.getContext("2d")
 		}
 		add(img: ImageSource): [Texture, Quad] {
@@ -457,7 +456,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			}
 			if (this.y + img.height > this.canvas.height) {
 				this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height)
-				this.tex = Texture.fromImage(ggfx, this.canvas)
+				this.tex = Texture.fromImage(ggl, this.canvas)
 				this.x = 0
 				this.y = 0
 				this.curHeight = 0
@@ -489,13 +488,13 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		// a 1x1 white texture to draw raw shapes like rectangles and polygons
 		// we use a texture for those so we can use only 1 pipeline for drawing sprites + shapes
 		const emptyTex = Texture.fromImage(
-			ggfx,
+			ggl,
 			new ImageData(new Uint8ClampedArray([ 255, 255, 255, 255 ]), 1, 1),
 		)
 
 		const frameBuffer = (gopt.width && gopt.height)
-			? new FrameBuffer(ggfx, gopt.width * pixelDensity * gscale, gopt.height * pixelDensity * gscale)
-			: new FrameBuffer(ggfx, gl.drawingBufferWidth, gl.drawingBufferHeight)
+			? new FrameBuffer(ggl, gopt.width * pixelDensity * gscale, gopt.height * pixelDensity * gscale)
+			: new FrameBuffer(ggl, gl.drawingBufferWidth, gl.drawingBufferHeight)
 
 		let bgColor: null | Color = null
 		let bgAlpha = 1
@@ -519,29 +518,11 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			gl.ONE_MINUS_SRC_ALPHA,
 		)
 
-		// we only use one vertex and index buffer that batches all draw calls
-		const vbuf = gl.createBuffer()
-
-		gl.bindBuffer(gl.ARRAY_BUFFER, vbuf)
-		gl.bufferData(gl.ARRAY_BUFFER, MAX_BATCHED_VERTS * 4, gl.DYNAMIC_DRAW)
-
-		VERTEX_FORMAT.reduce((offset, f, i) => {
-			gl.vertexAttribPointer(i, f.size, gl.FLOAT, false, STRIDE * 4, offset)
-			gl.enableVertexAttribArray(i)
-			return offset + f.size * 4
-		}, 0)
-
-		gl.bindBuffer(gl.ARRAY_BUFFER, null)
-
-		const ibuf = gl.createBuffer()
-
-		gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, ibuf)
-		gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, MAX_BATCHED_INDICES * 4, gl.DYNAMIC_DRAW)
-		gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null)
+		const renderer = new BatchRenderer(ggl, VERTEX_FORMAT, MAX_BATCHED_VERTS, MAX_BATCHED_INDICES)
 
 		// a checkerboard texture used for the default background
 		const bgTex = Texture.fromImage(
-			ggfx,
+			ggl,
 			new ImageData(new Uint8ClampedArray([
 				128, 128, 128, 255,
 				190, 190, 190, 255,
@@ -562,19 +543,11 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 			// gfx states
 			defShader: defShader,
-			curShader: defShader,
+			defTex: emptyTex,
 			frameBuffer: frameBuffer,
 			postShader: null,
 			postShaderUniform: null,
-			defTex: emptyTex,
-			curTex: emptyTex,
-			curUniform: {},
-			vbuf: vbuf,
-			ibuf: ibuf,
-
-			// local vertex / index buffer queue
-			vqueue: [],
-			iqueue: [],
+			renderer: renderer,
 
 			transform: new Mat4(),
 			transformStack: [],
@@ -981,7 +954,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		return assets.bitmapFonts.add(name, loadImg(src)
 			.then((img) => {
 				return makeFont(
-					Texture.fromImage(ggfx, img, opt),
+					Texture.fromImage(ggl, img, opt),
 					gw,
 					gh,
 					opt.chars ?? ASCII_CHARS,
@@ -1539,10 +1512,10 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	function makeShader(
 		vertSrc: string | null = DEF_VERT,
 		fragSrc: string | null = DEF_FRAG,
-	): GfxShader {
+	): Shader {
 		const vcode = VERT_TEMPLATE.replace("{{user}}", vertSrc ?? DEF_VERT)
 		const fcode = FRAG_TEMPLATE.replace("{{user}}", fragSrc ?? DEF_FRAG)
-		return new Shader(ggfx, vcode, fcode, VERTEX_FORMAT.map((vert) => vert.name))
+		return new Shader(ggl, vcode, fcode, VERTEX_FORMAT.map((vert) => vert.name))
 	}
 
 	function makeFont(
@@ -1589,71 +1562,29 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			return
 		}
 
-		// flush on texture / shader change and overflow
-		if (
-			tex !== gfx.curTex
-			|| shader !== gfx.curShader
-			|| !deepEq(gfx.curUniform, uniform)
-			|| gfx.vqueue.length + verts.length * STRIDE > MAX_BATCHED_VERTS
-			|| gfx.iqueue.length + indices.length > MAX_BATCHED_INDICES
-		) {
-			flush()
-		}
-
 		const transform = (gfx.fixed || fixed)
 			? gfx.transform
 			: game.cam.transform.mult(gfx.transform)
 
+		const vv = []
+
 		for (const v of verts) {
 			// normalized world space coordinate [-1.0 ~ 1.0]
 			const pt = screen2ndc(transform.multVec2(v.pos))
-			gfx.vqueue.push(
+			vv.push(
 				pt.x, pt.y,
 				v.uv.x, v.uv.y,
 				v.color.r / 255, v.color.g / 255, v.color.b / 255, v.opacity,
 			)
 		}
 
-		for (const i of indices) {
-			gfx.iqueue.push(i + gfx.vqueue.length / STRIDE - verts.length)
-		}
-
-		gfx.curTex = tex
-		gfx.curShader = shader
-		gfx.curUniform = uniform
+		gfx.renderer.push(gl.TRIANGLES, vv, indices, shader, tex, uniform)
 
 	}
 
 	// draw all batched shapes
 	function flush() {
-
-		if (
-			!gfx.curTex
-			|| !gfx.curShader
-			|| gfx.vqueue.length === 0
-			|| gfx.iqueue.length === 0
-		) {
-			return
-		}
-
-		gl.bindBuffer(gl.ARRAY_BUFFER, gfx.vbuf)
-		gl.bufferSubData(gl.ARRAY_BUFFER, 0, new Float32Array(gfx.vqueue))
-		gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, gfx.ibuf)
-		gl.bufferSubData(gl.ELEMENT_ARRAY_BUFFER, 0, new Uint16Array(gfx.iqueue))
-		gfx.curShader.bind()
-		gfx.curShader.send(gfx.curUniform)
-		gfx.curTex.bind()
-		gl.drawElements(gl.TRIANGLES, gfx.iqueue.length, gl.UNSIGNED_SHORT, 0)
-		gfx.curTex.unbind()
-		gfx.curShader.unbind()
-		gl.bindBuffer(gl.ARRAY_BUFFER, null)
-		gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null)
-
-		gfx.vqueue.length = 0
-		gfx.iqueue.length = 0
-
-		gfx.drawCalls++
-
+		gfx.renderer.flush()
 	}
 
 	// start a rendering frame, reset some states
@@ -2399,7 +2330,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			// TODO: customizable font tex filter
 			const atlas: FontAtlas = fontAtlases[fontName] ?? {
 				font: {
-					tex: new Texture(ggfx, FONT_ATLAS_WIDTH, FONT_ATLAS_HEIGHT, {
+					tex: new Texture(ggl, FONT_ATLAS_WIDTH, FONT_ATLAS_HEIGHT, {
 						filter: opts.filter,
 					}),
 					map: {},
@@ -6385,12 +6316,8 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			gl.bindFramebuffer(gl.FRAMEBUFFER, null)
 
 			// run all scattered gc events
-			ggfx.destroy()
+			ggl.destroy()
 			gc.forEach((f) => f())
-
-			// delete webgl buffers
-			gl.deleteBuffer(gfx.vbuf)
-			gl.deleteBuffer(gfx.ibuf)
 
 		})
 
@@ -6557,7 +6484,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			updateViewport()
 			if (!fixedSize) {
 				gfx.frameBuffer.free()
-				gfx.frameBuffer = new FrameBuffer(ggfx, gl.drawingBufferWidth, gl.drawingBufferHeight)
+				gfx.frameBuffer = new FrameBuffer(ggl, gl.drawingBufferWidth, gl.drawingBufferHeight)
 				gfx.width = gl.drawingBufferWidth / pixelDensity
 				gfx.height = gl.drawingBufferHeight / pixelDensity
 			}

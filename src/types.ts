@@ -2979,7 +2979,7 @@ export declare class FontData {
 }
 
 export type BitmapFontData = GfxFont
-export type ShaderData = GfxShader
+export type ShaderData = Shader
 
 // TODO: enable setting on load, make part of SoundData
 /**
@@ -3089,12 +3089,14 @@ export interface AudioPlay {
 	then(action: () => void): EventController,
 }
 
-// TODO: hide
-export interface GfxShader {
-	bind(): void,
-	unbind(): void,
-	send(uniform: Uniform): void,
-	free(): void,
+export declare class Shader {
+	ctx: GFXCtx
+	glProgram: WebGLProgram
+	constructor(ctx: GFXCtx, vert: string, frag: string, attribs: string[])
+	bind()
+	unbind()
+	send(uniform: Uniform)
+	free()
 }
 
 export type TextureOpt = {
@@ -3104,7 +3106,7 @@ export type TextureOpt = {
 
 export type ImageSource = Exclude<TexImageSource, VideoFrame>
 
-type GFXCtx = unknown
+type GFXCtx = any
 
 export declare class Texture {
 	ctx: GFXCtx

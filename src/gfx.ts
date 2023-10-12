@@ -11,6 +11,10 @@ import {
 	Color,
 } from "./math"
 
+import {
+	deepEq,
+} from "./utils"
+
 type GFXCtx = {
 	gl: WebGLRenderingContext,
 	onDestroy: (action: () => void) => void,
@@ -22,6 +26,7 @@ type GFXCtx = {
 	popFramebuffer: (ty: GLenum) => void,
 	pushRenderbuffer: (ty: GLenum, tex: WebGLRenderbuffer) => void,
 	popRenderbuffer: (ty: GLenum) => void,
+	setVertexFormat: (fmt: VertexFormat) => void,
 	destroy: () => void,
 }
 
@@ -293,37 +298,158 @@ export class Shader {
 
 }
 
+export type VertexFormat = {
+	name: string,
+	size: number,
+}[]
+
+export class BatchRenderer {
+
+	ctx: GFXCtx
+
+	vbuf: WebGLBuffer
+	ibuf: WebGLBuffer
+	vqueue: number[] = []
+	iqueue: number[] = []
+	stride: number
+	maxVertices: number
+	maxIndices: number
+
+	vertexFormat: VertexFormat
+	numDraws: number = 0
+
+	curPrimitive: GLenum | null = null
+	curTex: Texture | null = null
+	curShader: Shader | null = null
+	curUniform: Uniform = {}
+
+	constructor(ctx: GFXCtx, format: VertexFormat, maxVertices: number, maxIndices: number) {
+
+		const gl = ctx.gl
+
+		this.vertexFormat = format
+		this.ctx = ctx
+		this.stride = format.reduce((sum, f) => sum + f.size, 0)
+		this.maxVertices = maxVertices
+		this.maxIndices = maxIndices
+
+		this.vbuf = gl.createBuffer()
+		ctx.pushBuffer(gl.ARRAY_BUFFER, this.vbuf)
+		gl.bufferData(gl.ARRAY_BUFFER, maxVertices * 4, gl.DYNAMIC_DRAW)
+		ctx.popBuffer(gl.ARRAY_BUFFER)
+
+		this.ibuf = gl.createBuffer()
+		ctx.pushBuffer(gl.ELEMENT_ARRAY_BUFFER, this.ibuf)
+		gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, maxIndices * 4, gl.DYNAMIC_DRAW)
+		ctx.popBuffer(gl.ELEMENT_ARRAY_BUFFER)
+
+	}
+
+	push(
+		primitive: GLenum,
+		verts: number[],
+		indices: number[],
+		shader: Shader,
+		tex: Texture | null = null,
+		uniform: Uniform = {},
+	) {
+		if (
+			primitive !== this.curPrimitive
+			|| tex !== this.curTex
+			|| shader !== this.curShader
+			|| !deepEq(this.curUniform, uniform)
+			|| this.vqueue.length + verts.length * this.stride > this.maxVertices
+			|| this.iqueue.length + indices.length > this.maxIndices
+		) {
+			this.flush()
+		}
+		const indexOffset = this.vqueue.length / this.stride
+		for (const v of verts) {
+			this.vqueue.push(v)
+		}
+		for (const i of indices) {
+			this.iqueue.push(i + indexOffset)
+		}
+		this.curPrimitive = primitive
+		this.curShader = shader
+		this.curTex = tex
+		this.curUniform = uniform
+	}
+
+	flush() {
+
+		if (
+			!this.curPrimitive
+			|| !this.curShader
+			|| this.vqueue.length === 0
+			|| this.iqueue.length === 0
+		) {
+			return
+		}
+
+		const gl = this.ctx.gl
+
+		this.ctx.pushBuffer(gl.ARRAY_BUFFER, this.vbuf)
+		gl.bufferSubData(gl.ARRAY_BUFFER, 0, new Float32Array(this.vqueue))
+		this.ctx.pushBuffer(gl.ELEMENT_ARRAY_BUFFER, this.ibuf)
+		gl.bufferSubData(gl.ELEMENT_ARRAY_BUFFER, 0, new Uint16Array(this.iqueue))
+		this.ctx.setVertexFormat(this.vertexFormat)
+		this.curShader.bind()
+		this.curShader.send(this.curUniform)
+		this.curTex?.bind()
+		gl.drawElements(this.curPrimitive, this.iqueue.length, gl.UNSIGNED_SHORT, 0)
+		this.curTex?.unbind()
+		this.curShader.unbind()
+
+		this.ctx.popBuffer(gl.ARRAY_BUFFER)
+		this.ctx.popBuffer(gl.ELEMENT_ARRAY_BUFFER)
+
+		this.vqueue = []
+		this.iqueue = []
+		this.numDraws++
+
+	}
+
+	free() {
+		const gl = this.ctx.gl
+		gl.deleteBuffer(this.vbuf)
+		gl.deleteBuffer(this.ibuf)
+	}
+
+}
+
+// TODO: support useProgram
+function genBinder<T>(func: (ty: GLenum, item: T) => void) {
+	const bindings = {}
+	return {
+		cur: (ty: GLenum) => {
+			const stack = bindings[ty] ?? []
+			return stack[stack.length - 1]
+		},
+		push: (ty: GLenum, item: T) => {
+			if (!bindings[ty]) bindings[ty] = []
+			const stack = bindings[ty]
+			stack.push(item)
+			func(ty, item)
+		},
+		pop: (ty: GLenum) => {
+			const stack = bindings[ty]
+			if (!stack) throw new Error(`Unknown WebGL type: ${ty}`)
+			if (stack.length <= 0) throw new Error("Can't unbind texture when there's no texture bound")
+			stack.pop()
+			func(ty, stack[stack.length - 1] ?? null)
+		},
+	}
+}
+
 export default (gl: WebGLRenderingContext, gopt: {
 	texFilter?: TexFilter,
 } = {}): GFXCtx => {
 
-	function genBindFunc<T>(func: (ty: GLenum, item: T) => void) {
-		const bindings = {}
-		return {
-			cur: (ty: GLenum) => {
-				const stack = bindings[ty] ?? []
-				return stack[stack.length - 1]
-			},
-			push: (ty: GLenum, item: T) => {
-				if (!bindings[ty]) bindings[ty] = []
-				const stack = bindings[ty]
-				stack.push(item)
-				func(ty, item)
-			},
-			pop: (ty: GLenum) => {
-				const stack = bindings[ty]
-				if (!stack) throw new Error(`Unknown WebGL type: ${ty}`)
-				if (stack.length <= 0) throw new Error("Can't unbind texture when there's no texture bound")
-				stack.pop()
-				func(ty, stack[stack.length - 1] ?? null)
-			},
-		}
-	}
-
-	const textureBinder = genBindFunc(gl.bindTexture.bind(gl))
-	const bufferBinder = genBindFunc(gl.bindBuffer.bind(gl))
-	const framebufferBinder = genBindFunc(gl.bindFramebuffer.bind(gl))
-	const renderbufferBinder = genBindFunc(gl.bindRenderbuffer.bind(gl))
+	const textureBinder = genBinder(gl.bindTexture.bind(gl))
+	const bufferBinder = genBinder(gl.bindBuffer.bind(gl))
+	const framebufferBinder = genBinder(gl.bindFramebuffer.bind(gl))
+	const renderbufferBinder = genBinder(gl.bindRenderbuffer.bind(gl))
 	const gc: Array<() => void> = []
 
 	function onDestroy(action) {
@@ -332,10 +458,24 @@ export default (gl: WebGLRenderingContext, gopt: {
 
 	function destroy() {
 		gc.forEach((action) => action())
+		gl.getExtension("WEBGL_lose_context").loseContext()
+	}
+
+	let curVertexFormat = null
+
+	function setVertexFormat(fmt: VertexFormat) {
+		if (deepEq(fmt, curVertexFormat)) return
+		curVertexFormat = fmt
+		const stride = fmt.reduce((sum, f) => sum + f.size, 0)
+		fmt.reduce((offset, f, i) => {
+			gl.vertexAttribPointer(i, f.size, gl.FLOAT, false, stride * 4, offset)
+			gl.enableVertexAttribArray(i)
+			return offset + f.size * 4
+		}, 0)
 	}
 
 	return {
-		gl: gl,
+		gl,
 		onDestroy,
 		destroy,
 		pushTexture: textureBinder.push,
@@ -346,6 +486,7 @@ export default (gl: WebGLRenderingContext, gopt: {
 		popFramebuffer: framebufferBinder.pop,
 		pushRenderbuffer: renderbufferBinder.push,
 		popRenderbuffer: renderbufferBinder.pop,
+		setVertexFormat,
 	}
 
 }
