@@ -152,13 +152,6 @@ export async function genDTS() {
 	// check if global defs are being generated
 	let globalGenerated = false
 
-	// contain the type data for doc gen
-	const types = {}
-	const sections = [{
-		name: "Start",
-		entries: [ "kaboom" ],
-	}]
-
 	// generate global decls for KaboomCtx members
 	let globalDts = ""
 
@@ -166,51 +159,15 @@ export async function genDTS() {
 	globalDts += "declare global {\n"
 
 	for (const stmt of stmts) {
-
-		if (!types[stmt.name]) {
-			types[stmt.name] = []
-		}
-
-		types[stmt.name].push(stmt)
-
 		if (stmt.name === "KaboomCtx") {
-
 			if (stmt.kind !== "InterfaceDeclaration") {
 				throw new Error("KaboomCtx must be an interface.")
 			}
-
 			for (const name in stmt.members) {
-
-				const mem = stmt.members[name]
-
 				globalDts += `\tconst ${name}: KaboomCtx["${name}"]\n`
-
-				const tags = mem[0].jsDoc?.tags ?? {}
-
-				if (tags["section"]) {
-					const name = tags["section"][0]
-					const docPath = path.resolve(`doc/sections/${name}.md`)
-					sections.push({
-						name: name,
-						entries: [],
-						doc: await isFile(docPath)
-							? await fs.readFile(docPath, "utf8")
-							: null,
-					})
-				}
-
-				const curSection = sections[sections.length - 1]
-
-				if (name && !curSection.entries.includes(name)) {
-					curSection.entries.push(name)
-				}
-
 			}
-
 			globalGenerated = true
-
 		}
-
 	}
 
 	globalDts += "}\n"
@@ -218,11 +175,6 @@ export async function genDTS() {
 	if (!globalGenerated) {
 		throw new Error("KaboomCtx not found, failed to generate global defs.")
 	}
-
-	writeFile("site/doc.json", JSON.stringify({
-		types,
-		sections,
-	}))
 
 	writeFile(`${distDir}/kaboom.d.ts`, dts)
 	writeFile(`${distDir}/global.d.ts`, globalDts)
