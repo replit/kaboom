@@ -1,6 +1,11 @@
 const VERSION = "3000.1.12"
 
 import initApp from "./app"
+import initGfx, {
+	Texture,
+	FrameBuffer,
+	Shader,
+} from "./gfx"
 
 import {
 	sat,
@@ -69,7 +74,6 @@ import type {
 	GfxFont,
 	RenderProps,
 	CharTransform,
-	TextureOpt,
 	ImageSource,
 	FormattedText,
 	FormattedChar,
@@ -419,116 +423,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			preserveDrawingBuffer: true,
 		})
 
-	function genBindFunc<T>(func: (ty: GLenum, item: T) => void) {
-		const bindings = {}
-		return {
-			cur: (ty: GLenum) => {
-				const stack = bindings[ty] ?? []
-				return stack[stack.length - 1]
-			},
-			push: (ty: GLenum, item: T) => {
-				if (!bindings[ty]) bindings[ty] = []
-				const stack = bindings[ty]
-				stack.push(item)
-				func(ty, item)
-			},
-			pop: (ty: GLenum) => {
-				const stack = bindings[ty]
-				if (!stack) throw new Error(`Unknown WebGL type: ${ty}`)
-				if (stack.length <= 0) throw new Error("Can't unbind texture when there's no texture bound")
-				stack.pop()
-				func(ty, stack[stack.length - 1] ?? null)
-			},
-		}
-	}
-
-	const glTextureBinder = genBindFunc(gl.bindTexture.bind(gl))
-	const glFramebufferBinder = genBindFunc(gl.bindFramebuffer.bind(gl))
-	const glRenderbufferBinder = genBindFunc(gl.bindRenderbuffer.bind(gl))
-
-	class Texture {
-
-		src: null | ImageSource = null
-		glTex: WebGLTexture
-		width: number
-		height: number
-
-		constructor(w: number, h: number, opt: TextureOpt = {}) {
-
-			this.glTex = gl.createTexture()
-			gc.push(() => this.free())
-			this.bind()
-
-			if (w && h) {
-				gl.texImage2D(
-					gl.TEXTURE_2D,
-					0, gl.RGBA,
-					w,
-					h,
-					0,
-					gl.RGBA,
-					gl.UNSIGNED_BYTE,
-					null,
-				)
-			}
-
-			this.width = w
-			this.height = h
-
-			const filter = (() => {
-				switch (opt.filter ?? gopt.texFilter) {
-					case "linear": return gl.LINEAR
-					case "nearest": return gl.NEAREST
-					default: return gl.NEAREST
-				}
-			})()
-
-			const wrap = (() => {
-				switch (opt.wrap) {
-					case "repeat": return gl.REPEAT
-					case "clampToEdge": return gl.CLAMP_TO_EDGE
-					default: return gl.CLAMP_TO_EDGE
-				}
-			})()
-
-			gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, filter)
-			gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, filter)
-			gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, wrap)
-			gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, wrap)
-			this.unbind()
-
-		}
-
-		static fromImage(img: ImageSource, opt: TextureOpt = {}): Texture {
-			const tex = new Texture(0, 0, opt)
-			tex.bind()
-			gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, img)
-			tex.width = img.width
-			tex.height = img.height
-			tex.unbind()
-			tex.src = img
-			return tex
-		}
-
-		update(img: ImageSource, x = 0, y = 0) {
-			this.bind()
-			gl.texSubImage2D(gl.TEXTURE_2D, 0, x, y, gl.RGBA, gl.UNSIGNED_BYTE, img)
-			this.unbind()
-		}
-
-		bind() {
-			glTextureBinder.push(gl.TEXTURE_2D, this.glTex)
-		}
-
-		unbind() {
-			glTextureBinder.pop(gl.TEXTURE_2D)
-		}
-
-		free() {
-			gl.deleteTexture(this.glTex)
-		}
-
-	}
+	const ggfx = initGfx(gl)
 
 	class KaboomError extends Error {
 		constructor(msg) {
@@ -548,7 +443,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			this.canvas = document.createElement("canvas")
 			this.canvas.width = w
 			this.canvas.height = h
-			this.tex = Texture.fromImage(this.canvas)
+			this.tex = Texture.fromImage(ggfx, this.canvas)
 			this.ctx = this.canvas.getContext("2d")
 		}
 		add(img: ImageSource): [Texture, Quad] {
@@ -562,7 +457,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			}
 			if (this.y + img.height > this.canvas.height) {
 				this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height)
-				this.tex = Texture.fromImage(this.canvas)
+				this.tex = Texture.fromImage(ggfx, this.canvas)
 				this.x = 0
 				this.y = 0
 				this.curHeight = 0
@@ -587,88 +482,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		}
 	}
 
-	class FrameBuffer {
-
-		tex: Texture
-		glFramebuffer: WebGLFramebuffer
-		glRenderbuffer: WebGLRenderbuffer
-
-		constructor(w: number, h: number, opt: TextureOpt = {}) {
-			this.tex = new Texture(w, h, opt)
-			this.glFramebuffer = gl.createFramebuffer()
-			this.glRenderbuffer = gl.createRenderbuffer()
-			gc.push(() => this.free())
-			this.bind()
-			gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_STENCIL, w, h)
-			gl.framebufferTexture2D(
-				gl.FRAMEBUFFER,
-				gl.COLOR_ATTACHMENT0,
-				gl.TEXTURE_2D,
-				this.tex.glTex,
-				0,
-			)
-			gl.framebufferRenderbuffer(
-				gl.FRAMEBUFFER,
-				gl.DEPTH_STENCIL_ATTACHMENT,
-				gl.RENDERBUFFER,
-				this.glRenderbuffer,
-			)
-			this.unbind()
-		}
-
-		get width() {
-			return this.tex.width
-		}
-
-		get height() {
-			return this.tex.height
-		}
-
-		toImageData() {
-			const data = new Uint8ClampedArray(this.width * this.height * 4)
-			this.bind()
-			gl.readPixels(0, 0, this.width, this.height, gl.RGBA, gl.UNSIGNED_BYTE, data)
-			this.unbind()
-			// flip vertically
-			const bytesPerRow = this.width * 4
-			const temp = new Uint8Array(bytesPerRow)
-			for (let y = 0; y < (this.height / 2 | 0); y++) {
-				const topOffset = y * bytesPerRow
-				const bottomOffset = (this.height - y - 1) * bytesPerRow
-				temp.set(data.subarray(topOffset, topOffset + bytesPerRow))
-				data.copyWithin(topOffset, bottomOffset, bottomOffset + bytesPerRow)
-				data.set(temp, bottomOffset)
-			}
-			return new ImageData(data, this.width, this.height)
-		}
-
-		toDataURL() {
-			const canvas = document.createElement("canvas")
-			const ctx = canvas.getContext("2d")
-			canvas.width = this.width
-			canvas.height = this.height
-			ctx.putImageData(this.toImageData(), 0, 0)
-			return canvas.toDataURL()
-		}
-
-		bind() {
-			glFramebufferBinder.push(gl.FRAMEBUFFER, this.glFramebuffer)
-			glRenderbufferBinder.push(gl.RENDERBUFFER, this.glRenderbuffer)
-		}
-
-		unbind() {
-			glFramebufferBinder.pop(gl.FRAMEBUFFER)
-			glRenderbufferBinder.pop(gl.RENDERBUFFER)
-		}
-
-		free() {
-			gl.deleteFramebuffer(this.glFramebuffer)
-			gl.deleteRenderbuffer(this.glRenderbuffer)
-			this.tex.free()
-		}
-
-	}
-
 	const gfx = (() => {
 
 		const defShader = makeShader(DEF_VERT, DEF_FRAG)
@@ -676,12 +489,13 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		// a 1x1 white texture to draw raw shapes like rectangles and polygons
 		// we use a texture for those so we can use only 1 pipeline for drawing sprites + shapes
 		const emptyTex = Texture.fromImage(
+			ggfx,
 			new ImageData(new Uint8ClampedArray([ 255, 255, 255, 255 ]), 1, 1),
 		)
 
 		const frameBuffer = (gopt.width && gopt.height)
-			? new FrameBuffer(gopt.width * pixelDensity * gscale, gopt.height * pixelDensity * gscale)
-			: new FrameBuffer(gl.drawingBufferWidth, gl.drawingBufferHeight)
+			? new FrameBuffer(ggfx, gopt.width * pixelDensity * gscale, gopt.height * pixelDensity * gscale)
+			: new FrameBuffer(ggfx, gl.drawingBufferWidth, gl.drawingBufferHeight)
 
 		let bgColor: null | Color = null
 		let bgAlpha = 1
@@ -727,6 +541,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 		// a checkerboard texture used for the default background
 		const bgTex = Texture.fromImage(
+			ggfx,
 			new ImageData(new Uint8ClampedArray([
 				128, 128, 128, 255,
 				190, 190, 190, 255,
@@ -1166,7 +981,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		return assets.bitmapFonts.add(name, loadImg(src)
 			.then((img) => {
 				return makeFont(
-					Texture.fromImage(img, opt),
+					Texture.fromImage(ggfx, img, opt),
 					gw,
 					gh,
 					opt.chars ?? ASCII_CHARS,
@@ -1725,96 +1540,9 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		vertSrc: string | null = DEF_VERT,
 		fragSrc: string | null = DEF_FRAG,
 	): GfxShader {
-
 		const vcode = VERT_TEMPLATE.replace("{{user}}", vertSrc ?? DEF_VERT)
 		const fcode = FRAG_TEMPLATE.replace("{{user}}", fragSrc ?? DEF_FRAG)
-		const vertShader = gl.createShader(gl.VERTEX_SHADER)
-		const fragShader = gl.createShader(gl.FRAGMENT_SHADER)
-
-		gl.shaderSource(vertShader, vcode)
-		gl.shaderSource(fragShader, fcode)
-		gl.compileShader(vertShader)
-		gl.compileShader(fragShader)
-
-		const prog = gl.createProgram()
-
-		gc.push(() => gl.deleteProgram(prog))
-		gl.attachShader(prog, vertShader)
-		gl.attachShader(prog, fragShader)
-
-		gl.bindAttribLocation(prog, 0, "a_pos")
-		gl.bindAttribLocation(prog, 1, "a_uv")
-		gl.bindAttribLocation(prog, 2, "a_color")
-
-		gl.linkProgram(prog)
-
-		if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) {
-
-			const formatShaderError = (msg: string) => {
-				const FMT = /^ERROR:\s0:(?<line>\d+):\s(?<msg>.+)/
-				const match = msg.match(FMT)
-				return {
-					line: Number(match.groups.line),
-					// seem to be a \n\0 at the end of error messages, causing unwanted line break
-					msg: match.groups.msg.replace(/\n\0$/, ""),
-				}
-			}
-
-			const vertError = gl.getShaderInfoLog(vertShader)
-			const fragError = gl.getShaderInfoLog(fragShader)
-			let msg = ""
-
-			if (vertError) {
-				const err = formatShaderError(vertError)
-				msg += `Vertex shader line ${err.line - 14}: ${err.msg}`
-			}
-
-			if (fragError) {
-				const err = formatShaderError(fragError)
-				msg += `Fragment shader line ${err.line - 14}: ${err.msg}`
-			}
-
-			throw new KaboomError(msg)
-
-		}
-
-		gl.deleteShader(vertShader)
-		gl.deleteShader(fragShader)
-
-		return {
-
-			bind() {
-				gl.useProgram(prog)
-			},
-
-			unbind() {
-				gl.useProgram(null)
-			},
-
-			free() {
-				gl.deleteProgram(prog)
-			},
-
-			// TODO: support vec3 and vec4
-			send(uniform: Uniform) {
-				for (const name in uniform) {
-					const val = uniform[name]
-					const loc = gl.getUniformLocation(prog, name)
-					if (typeof val === "number") {
-						gl.uniform1f(loc, val)
-					} else if (val instanceof Mat4) {
-						gl.uniformMatrix4fv(loc, false, new Float32Array(val.m))
-					} else if (val instanceof Color) {
-						// TODO: opacity?
-						gl.uniform3f(loc, val.r, val.g, val.b)
-					} else if (val instanceof Vec2) {
-						gl.uniform2f(loc, val.x, val.y)
-					}
-				}
-			},
-
-		}
-
+		return new Shader(ggfx, vcode, fcode, VERTEX_FORMAT.map((vert) => vert.name))
 	}
 
 	function makeFont(
@@ -2671,7 +2399,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			// TODO: customizable font tex filter
 			const atlas: FontAtlas = fontAtlases[fontName] ?? {
 				font: {
-					tex: new Texture(FONT_ATLAS_WIDTH, FONT_ATLAS_HEIGHT, {
+					tex: new Texture(ggfx, FONT_ATLAS_WIDTH, FONT_ATLAS_HEIGHT, {
 						filter: opts.filter,
 					}),
 					map: {},
@@ -6657,6 +6385,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			gl.bindFramebuffer(gl.FRAMEBUFFER, null)
 
 			// run all scattered gc events
+			ggfx.destroy()
 			gc.forEach((f) => f())
 
 			// delete webgl buffers
@@ -6828,7 +6557,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			updateViewport()
 			if (!fixedSize) {
 				gfx.frameBuffer.free()
-				gfx.frameBuffer = new FrameBuffer(gl.drawingBufferWidth, gl.drawingBufferHeight)
+				gfx.frameBuffer = new FrameBuffer(ggfx, gl.drawingBufferWidth, gl.drawingBufferHeight)
 				gfx.width = gl.drawingBufferWidth / pixelDensity
 				gfx.height = gl.drawingBufferHeight / pixelDensity
 			}

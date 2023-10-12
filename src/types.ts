@@ -3104,16 +3104,19 @@ export type TextureOpt = {
 
 export type ImageSource = Exclude<TexImageSource, VideoFrame>
 
+type GFXCtx = unknown
+
 export declare class Texture {
-	glTex: WebGLTexture
+	ctx: GFXCtx
 	src: null | ImageSource
+	glTex: WebGLTexture
 	width: number
 	height: number
-	constructor(w: number, h: number, opt?: TextureOpt)
-	static fromImage(img: ImageSource, opt?: TextureOpt): Texture
-	update(img: ImageSource, x: number, y: number): void
-	bind(): void
-	unbind(): void
+	constructor(gfx: GFXCtx, w: number, h: number, opt?: TextureOpt)
+	static fromImage(ctx: GFXCtx, img: ImageSource, opt?: TextureOpt): Texture
+	update(img: ImageSource, x?: number, y?: number)
+	bind()
+	unbind()
 	/**
 	 * Frees up texture memory. Call this once the texture is no longer being used to avoid memory leaks.
 	 */

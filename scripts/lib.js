@@ -73,7 +73,7 @@ async function writeFile(path, content) {
 export async function genDTS() {
 
 	// generate .d.ts / docs data
-	let dts = await fs.readFile(`${srcDir}/types.ts`, "utf-8")
+	const dts = await fs.readFile(`${srcDir}/types.ts`, "utf-8")
 
 	const f = ts.createSourceFile(
 		"ts",
