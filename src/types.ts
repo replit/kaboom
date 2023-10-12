@@ -4363,6 +4363,7 @@ export interface SpriteCompOpt {
 }
 
 export interface SpriteComp extends Comp {
+	draw: Comp["draw"],
 	/**
 	 * Width for sprite.
 	 */
@@ -4422,6 +4423,7 @@ export interface SpriteComp extends Comp {
 }
 
 export interface TextComp extends Comp {
+	draw: Comp["draw"],
 	/**
 	 * The text to render.
 	 */
@@ -4535,6 +4537,7 @@ export interface RectCompOpt {
 }
 
 export interface RectComp extends Comp {
+	draw: Comp["draw"],
 	/**
 	 * Width of rectangle.
 	 */
@@ -4561,6 +4564,7 @@ export interface CircleCompOpt {
 }
 
 export interface CircleComp extends Comp {
+	draw: Comp["draw"],
 	/**
 	 * Radius of circle.
 	 */
@@ -4572,6 +4576,7 @@ export interface CircleComp extends Comp {
 }
 
 export interface UVQuadComp extends Comp {
+	draw: Comp["draw"],
 	/**
 	 * Width of rect.
 	 */
