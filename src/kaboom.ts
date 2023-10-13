@@ -66,6 +66,7 @@ import {
 	getExt,
 	dataURLToArrayBuffer,
 	EventController,
+	getErrorMessage,
 	// eslint-disable-next-line
 	warn,
 	// eslint-disable-next-line
@@ -1373,8 +1374,8 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			return new Shader(ggl, vcode, fcode, VERTEX_FORMAT.map((vert) => vert.name))
 		} catch (e) {
 			const lineOffset = 14
-			const fmtRegex = /(?<type>^\w+) SHADER ERROR: 0:(?<line>\d+): (?<msg>.+)/
-			const match = (e as Error).message.match(fmtRegex)
+			const fmt = /(?<type>^\w+) SHADER ERROR: 0:(?<line>\d+): (?<msg>.+)/
+			const match = getErrorMessage(e).match(fmt)
 			const line = Number(match.groups.line) - lineOffset
 			const msg = match.groups.msg.trim()
 			const ty = match.groups.type.toLowerCase()

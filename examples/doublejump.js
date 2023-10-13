@@ -49,8 +49,7 @@ scene("game", () => {
 		anchor("center"),
 		pos(0, 0),
 		body({ jumpForce: JUMP_FORCE }),
-		// allow 3 jumps
-		doubleJump(3),
+		doubleJump(),
 		rotate(0),
 		spin(),
 	])
