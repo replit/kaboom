@@ -2347,12 +2347,6 @@ export interface KaboomCtx {
 	 */
 	EventController: typeof EventController,
 	/**
-	 * Error related to this kaboom instance.
-	 *
-	 * @since v3000.2
-	 */
-	KaboomError: typeof KaboomError,
-	/**
 	 * Current Kaboom library version.
 	 *
 	 * @since v3000.0
@@ -2621,6 +2615,13 @@ export interface GameObjRaw {
 	 * @since v3000.0
 	 */
 	draw(): void,
+	/**
+	 * Draw debug info in inspect mode
+	 *
+	 * @since v3000.0
+	 */
+	drawInspect: () => void,
+	clearEvents: () => void,
 	/**
 	 * If there's certain tag(s) on the game obj.
 	 */
@@ -3090,9 +3091,9 @@ export interface AudioPlay {
 }
 
 export declare class Shader {
-	ctx: GFXCtx
+	ctx: GfxCtx
 	glProgram: WebGLProgram
-	constructor(ctx: GFXCtx, vert: string, frag: string, attribs: string[])
+	constructor(ctx: GfxCtx, vert: string, frag: string, attribs: string[])
 	bind()
 	unbind()
 	send(uniform: Uniform)
@@ -3106,16 +3107,16 @@ export type TextureOpt = {
 
 export type ImageSource = Exclude<TexImageSource, VideoFrame>
 
-type GFXCtx = any
+type GfxCtx = any
 
 export declare class Texture {
-	ctx: GFXCtx
+	ctx: GfxCtx
 	src: null | ImageSource
 	glTex: WebGLTexture
 	width: number
 	height: number
-	constructor(gfx: GFXCtx, w: number, h: number, opt?: TextureOpt)
-	static fromImage(ctx: GFXCtx, img: ImageSource, opt?: TextureOpt): Texture
+	constructor(ctx: GfxCtx, w: number, h: number, opt?: TextureOpt)
+	static fromImage(ctx: GfxCtx, img: ImageSource, opt?: TextureOpt): Texture
 	update(img: ImageSource, x?: number, y?: number)
 	bind()
 	unbind()
@@ -5234,8 +5235,6 @@ export declare class EventController {
 	constructor(cancel: () => void)
 	static join(events: EventController[]): EventController
 }
-
-export declare class KaboomError extends Error {}
 
 // TODO: global name conflict, renamed to KEvent?
 export declare class Event<Args extends any[] = any[]> {

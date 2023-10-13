@@ -1,7 +1,6 @@
 import type {
 	ImageSource,
 	TextureOpt,
-	TexFilter,
 	Uniform,
 } from "./types"
 
@@ -15,7 +14,7 @@ import {
 	deepEq,
 } from "./utils"
 
-type GFXCtx = {
+export type GfxCtx = {
 	gl: WebGLRenderingContext,
 	onDestroy: (action: () => void) => void,
 	pushTexture: (ty: GLenum, tex: WebGLTexture) => void,
@@ -32,18 +31,33 @@ type GFXCtx = {
 
 export class Texture {
 
-	ctx: GFXCtx
+	ctx: GfxCtx
 	src: null | ImageSource = null
 	glTex: WebGLTexture
 	width: number
 	height: number
 
-	constructor(ctx: GFXCtx, w: number, h: number, opt: TextureOpt = {}) {
+	constructor(ctx: GfxCtx, w: number, h: number, opt: TextureOpt = {}) {
 
 		this.ctx = ctx
 		const gl = ctx.gl
 		this.glTex = ctx.gl.createTexture()
 		ctx.onDestroy(() => this.free())
+
+		this.width = w
+		this.height = h
+
+		// TODO: no default
+		const filter = {
+			"linear": gl.LINEAR,
+			"nearest": gl.NEAREST,
+		}[opt.filter] ?? gl.NEAREST
+
+		const wrap = {
+			"repeat": gl.REPEAT,
+			"clampToEadge": gl.CLAMP_TO_EDGE,
+		}[opt.wrap] ?? gl.CLAMP_TO_EDGE
+
 		this.bind()
 
 		if (w && h) {
@@ -59,19 +73,6 @@ export class Texture {
 			)
 		}
 
-		this.width = w
-		this.height = h
-
-		const filter = {
-			"linear": gl.LINEAR,
-			"nearest": gl.NEAREST,
-		}[opt.filter] ?? gl.NEAREST
-
-		const wrap = {
-			"repeat": gl.REPEAT,
-			"clampToEadge": gl.CLAMP_TO_EDGE,
-		}[opt.wrap] ?? gl.CLAMP_TO_EDGE
-
 		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, filter)
 		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, filter)
 		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, wrap)
@@ -80,14 +81,9 @@ export class Texture {
 
 	}
 
-	static fromImage(ctx: GFXCtx, img: ImageSource, opt: TextureOpt = {}): Texture {
-		const gl = ctx.gl
-		const tex = new Texture(ctx, 0, 0, opt)
-		tex.bind()
-		gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, img)
-		tex.width = img.width
-		tex.height = img.height
-		tex.unbind()
+	static fromImage(ctx: GfxCtx, img: ImageSource, opt: TextureOpt = {}): Texture {
+		const tex = new Texture(ctx, img.width, img.height, opt)
+		tex.update(img)
 		tex.src = img
 		return tex
 	}
@@ -115,12 +111,12 @@ export class Texture {
 
 export class FrameBuffer {
 
-	ctx: GFXCtx
+	ctx: GfxCtx
 	tex: Texture
 	glFramebuffer: WebGLFramebuffer
 	glRenderbuffer: WebGLRenderbuffer
 
-	constructor(ctx: GFXCtx, w: number, h: number, opt: TextureOpt = {}) {
+	constructor(ctx: GfxCtx, w: number, h: number, opt: TextureOpt = {}) {
 
 		this.ctx = ctx
 		const gl = ctx.gl
@@ -182,6 +178,12 @@ export class FrameBuffer {
 		return canvas.toDataURL()
 	}
 
+	draw(action: () => void) {
+		this.bind()
+		action()
+		this.unbind()
+	}
+
 	bind() {
 		const gl = this.ctx.gl
 		this.ctx.pushFramebuffer(gl.FRAMEBUFFER, this.glFramebuffer)
@@ -205,10 +207,10 @@ export class FrameBuffer {
 
 export class Shader {
 
-	ctx: GFXCtx
+	ctx: GfxCtx
 	glProgram: WebGLProgram
 
-	constructor(ctx: GFXCtx, vert: string, frag: string, attribs: string[]) {
+	constructor(ctx: GfxCtx, vert: string, frag: string, attribs: string[]) {
 
 		this.ctx = ctx
 		ctx.onDestroy(() => this.free())
@@ -233,33 +235,12 @@ export class Shader {
 		gl.linkProgram(prog)
 
 		if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) {
-
-			const formatShaderError = (msg: string) => {
-				const FMT = /^ERROR:\s0:(?<line>\d+):\s(?<msg>.+)/
-				const match = msg.match(FMT)
-				return {
-					line: Number(match.groups.line),
-					// seem to be a \n\0 at the end of error messages, causing unwanted line break
-					msg: match.groups.msg.replace(/\n\0$/, ""),
-				}
-			}
-
 			const vertError = gl.getShaderInfoLog(vertShader)
 			const fragError = gl.getShaderInfoLog(fragShader)
 			let msg = ""
-
-			if (vertError) {
-				const err = formatShaderError(vertError)
-				msg += `Vertex shader line ${err.line - 14}: ${err.msg}`
-			}
-
-			if (fragError) {
-				const err = formatShaderError(fragError)
-				msg += `Fragment shader line ${err.line - 14}: ${err.msg}`
-			}
-
+			if (vertError) msg += vertError
+			if (fragError) msg += fragError
 			throw new Error(msg)
-
 		}
 
 		gl.deleteShader(vertShader)
@@ -305,10 +286,10 @@ export type VertexFormat = {
 
 export class BatchRenderer {
 
-	ctx: GFXCtx
+	ctx: GfxCtx
 
-	vbuf: WebGLBuffer
-	ibuf: WebGLBuffer
+	glVBuf: WebGLBuffer
+	glIBuf: WebGLBuffer
 	vqueue: number[] = []
 	iqueue: number[] = []
 	stride: number
@@ -323,7 +304,7 @@ export class BatchRenderer {
 	curShader: Shader | null = null
 	curUniform: Uniform = {}
 
-	constructor(ctx: GFXCtx, format: VertexFormat, maxVertices: number, maxIndices: number) {
+	constructor(ctx: GfxCtx, format: VertexFormat, maxVertices: number, maxIndices: number) {
 
 		const gl = ctx.gl
 
@@ -333,13 +314,13 @@ export class BatchRenderer {
 		this.maxVertices = maxVertices
 		this.maxIndices = maxIndices
 
-		this.vbuf = gl.createBuffer()
-		ctx.pushBuffer(gl.ARRAY_BUFFER, this.vbuf)
+		this.glVBuf = gl.createBuffer()
+		ctx.pushBuffer(gl.ARRAY_BUFFER, this.glVBuf)
 		gl.bufferData(gl.ARRAY_BUFFER, maxVertices * 4, gl.DYNAMIC_DRAW)
 		ctx.popBuffer(gl.ARRAY_BUFFER)
 
-		this.ibuf = gl.createBuffer()
-		ctx.pushBuffer(gl.ELEMENT_ARRAY_BUFFER, this.ibuf)
+		this.glIBuf = gl.createBuffer()
+		ctx.pushBuffer(gl.ELEMENT_ARRAY_BUFFER, this.glIBuf)
 		gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, maxIndices * 4, gl.DYNAMIC_DRAW)
 		ctx.popBuffer(gl.ELEMENT_ARRAY_BUFFER)
 
@@ -389,9 +370,9 @@ export class BatchRenderer {
 
 		const gl = this.ctx.gl
 
-		this.ctx.pushBuffer(gl.ARRAY_BUFFER, this.vbuf)
+		this.ctx.pushBuffer(gl.ARRAY_BUFFER, this.glVBuf)
 		gl.bufferSubData(gl.ARRAY_BUFFER, 0, new Float32Array(this.vqueue))
-		this.ctx.pushBuffer(gl.ELEMENT_ARRAY_BUFFER, this.ibuf)
+		this.ctx.pushBuffer(gl.ELEMENT_ARRAY_BUFFER, this.glIBuf)
 		gl.bufferSubData(gl.ELEMENT_ARRAY_BUFFER, 0, new Uint16Array(this.iqueue))
 		this.ctx.setVertexFormat(this.vertexFormat)
 		this.curShader.bind()
@@ -412,9 +393,57 @@ export class BatchRenderer {
 
 	free() {
 		const gl = this.ctx.gl
-		gl.deleteBuffer(this.vbuf)
-		gl.deleteBuffer(this.ibuf)
+		gl.deleteBuffer(this.glVBuf)
+		gl.deleteBuffer(this.glIBuf)
 	}
+
+}
+
+export class Mesh {
+
+	ctx: GfxCtx
+	glVBuf: WebGLBuffer
+	glIBuf: WebGLBuffer
+	vertexFormat: VertexFormat
+	count: number
+
+	constructor(ctx: GfxCtx, format: VertexFormat, verts: number[], indices: number[]) {
+
+		const gl = ctx.gl
+
+		this.vertexFormat = format
+		this.ctx = ctx
+
+		this.glVBuf = gl.createBuffer()
+		ctx.pushBuffer(gl.ARRAY_BUFFER, this.glVBuf)
+		gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(verts), gl.STATIC_DRAW)
+		ctx.popBuffer(gl.ARRAY_BUFFER)
+
+		this.glIBuf = gl.createBuffer()
+		ctx.pushBuffer(gl.ELEMENT_ARRAY_BUFFER, this.glIBuf)
+		gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(indices), gl.STATIC_DRAW)
+		ctx.popBuffer(gl.ELEMENT_ARRAY_BUFFER)
+
+		this.count = indices.length
+
+	}
+
+	draw(primitive?: GLenum) {
+		const gl = this.ctx.gl
+		this.ctx.pushBuffer(gl.ARRAY_BUFFER, this.glVBuf)
+		this.ctx.pushBuffer(gl.ELEMENT_ARRAY_BUFFER, this.glIBuf)
+		this.ctx.setVertexFormat(this.vertexFormat)
+		gl.drawElements(primitive ?? gl.TRIANGLES, this.count, gl.UNSIGNED_SHORT, 0)
+		this.ctx.popBuffer(gl.ARRAY_BUFFER)
+		this.ctx.popBuffer(gl.ELEMENT_ARRAY_BUFFER)
+	}
+
+	free() {
+		const gl = this.ctx.gl
+		gl.deleteBuffer(this.glVBuf)
+		gl.deleteBuffer(this.glIBuf)
+	}
+
 
 }
 
@@ -442,9 +471,7 @@ function genBinder<T>(func: (ty: GLenum, item: T) => void) {
 	}
 }
 
-export default (gl: WebGLRenderingContext, gopt: {
-	texFilter?: TexFilter,
-} = {}): GFXCtx => {
+export default (gl: WebGLRenderingContext): GfxCtx => {
 
 	const textureBinder = genBinder(gl.bindTexture.bind(gl))
 	const bufferBinder = genBinder(gl.bindBuffer.bind(gl))
