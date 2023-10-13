@@ -236,11 +236,9 @@ export class Shader {
 
 		if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) {
 			const vertError = gl.getShaderInfoLog(vertShader)
+			if (vertError) throw new Error("VERTEX SHADER " + vertError)
 			const fragError = gl.getShaderInfoLog(fragShader)
-			let msg = ""
-			if (vertError) msg += vertError
-			if (fragError) msg += fragError
-			throw new Error(msg)
+			if (fragError) throw new Error("FRAGMENT SHADER " + fragError)
 		}
 
 		gl.deleteShader(vertShader)

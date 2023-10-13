@@ -1369,7 +1369,17 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	): Shader {
 		const vcode = VERT_TEMPLATE.replace("{{user}}", vertSrc ?? DEF_VERT)
 		const fcode = FRAG_TEMPLATE.replace("{{user}}", fragSrc ?? DEF_FRAG)
-		return new Shader(ggl, vcode, fcode, VERTEX_FORMAT.map((vert) => vert.name))
+		try {
+			return new Shader(ggl, vcode, fcode, VERTEX_FORMAT.map((vert) => vert.name))
+		} catch (e) {
+			const lineOffset = 14
+			const fmtRegex = /(?<type>^\w+) SHADER ERROR: 0:(?<line>\d+): (?<msg>.+)/
+			const match = (e as Error).message.match(fmtRegex)
+			const line = Number(match.groups.line) - lineOffset
+			const msg = match.groups.msg.trim()
+			const ty = match.groups.type.toLowerCase()
+			throw new Error(`${ty} shader line ${line}: ${msg}`)
+		}
 	}
 
 	function makeFont(
