@@ -4327,7 +4327,8 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 				if (curPlatform) {
 					if (
-						!this.isOverlapping(curPlatform)
+						// TODO: this prevents from falling when on edge
+						!this.isColliding(curPlatform)
 						|| !curPlatform.exists()
 						|| !curPlatform.is("body")
 					) {
