@@ -1440,6 +1440,12 @@ export interface KaboomCtx {
 	 */
 	isGamepadButtonReleased(btn?: GamepadButton): boolean,
 	/**
+	 * Get stick axis values from a gamepad.
+	 *
+	 * @since v3000.2
+	 */
+	getGamepadStick(stick: GamepadStick): Vec2,
+	/**
 	 * List of characters inputted since last frame.
 	 *
 	 * @since v3000.0

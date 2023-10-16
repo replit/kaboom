@@ -1,4 +1,4 @@
-const VERSION = "3000.1.12"
+const VERSION = "3000.1.13"
 
 import initApp from "./app"
 import initGfx, {
@@ -8,7 +8,7 @@ import initGfx, {
 	BatchRenderer,
 } from "./gfx"
 
-import {
+import initAssets, {
 	Asset,
 	AssetBucket,
 } from "./assets"
@@ -431,6 +431,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		})
 
 	const ggl = initGfx(gl)
+	const ass = initAssets()
 
 	const gfx = (() => {
 
@@ -568,7 +569,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		}
 
 		static fromURL(url: string, opt: LoadSpriteOpt = {}): Promise<SpriteData> {
-			return loadImg(url).then((img) => SpriteData.fromImage(img, opt))
+			return ass.loadImg(url).then((img) => SpriteData.fromImage(img, opt))
 		}
 
 	}
@@ -591,7 +592,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			if (isDataURL(url)) {
 				return SoundData.fromArrayBuffer(dataURLToArrayBuffer(url))
 			} else {
-				return fetchArrayBuffer(url).then((buf) => SoundData.fromArrayBuffer(buf))
+				return ass.fetchArrayBuffer(url).then((buf) => SoundData.fromArrayBuffer(buf))
 			}
 		}
 
@@ -625,8 +626,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	})()
 
 	const assets = {
-		// prefix for when loading from a url
-		urlPrefix: "",
 		// asset holders
 		sprites: new AssetBucket<SpriteData>(),
 		fonts: new AssetBucket<FontData>(),
@@ -721,46 +720,13 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	// global load path prefix
 	function loadRoot(path?: string): string {
 		if (path !== undefined) {
-			assets.urlPrefix = path
+			ass.setURLPrefix(path)
 		}
-		return assets.urlPrefix
-	}
-
-	// wrapper around fetch() that applies urlPrefix and basic error handling
-	function fetchURL(path: string) {
-		const url = assets.urlPrefix + path
-		return fetch(url)
-			.then((res) => {
-				if (!res.ok) throw new Error(`Failed to fetch "${url}"`)
-				return res
-			})
-	}
-
-	function fetchJSON(path: string) {
-		return fetchURL(path).then((res) => res.json())
-	}
-
-	function fetchText(path: string) {
-		return fetchURL(path).then((res) => res.text())
-	}
-
-	function fetchArrayBuffer(path: string) {
-		return fetchURL(path).then((res) => res.arrayBuffer())
-	}
-
-	// wrapper around image loader to get a Promise
-	function loadImg(src: string): Promise<HTMLImageElement> {
-		const img = new Image()
-		img.crossOrigin = "anonymous"
-		img.src = isDataURL(src) ? src : assets.urlPrefix + src
-		return new Promise<HTMLImageElement>((resolve, reject) => {
-			img.onload = () => resolve(img)
-			img.onerror = () => reject(new Error(`Failed to load image from "${src}"`))
-		})
+		return ass.getURLPrefix()
 	}
 
 	function loadJSON(name, url) {
-		return assets.custom.add(name, fetchJSON(url))
+		return assets.custom.add(name, ass.fetchJSON(url))
 	}
 
 	class FontData {
@@ -807,7 +773,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		gh: number,
 		opt: LoadBitmapFontOpt = {},
 	): Asset<BitmapFontData> {
-		return assets.bitmapFonts.add(name, loadImg(src)
+		return assets.bitmapFonts.add(name, ass.loadImg(src)
 			.then((img) => {
 				return makeFont(
 					Texture.fromImage(ggl, img, opt),
@@ -844,7 +810,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	): Asset<Record<string, SpriteData>> {
 		if (typeof data === "string") {
 			return load(new Promise((res, rej) => {
-				fetchJSON(data).then((json) => {
+				ass.fetchJSON(data).then((json) => {
 					loadSpriteAtlas(src, json).then(res).catch(rej)
 				})
 			}))
@@ -917,7 +883,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				return assets.sprites.add(
 					name,
 					Promise.all(src.map((s) => {
-						return typeof s === "string" ? loadImg(s) : Promise.resolve(s)
+						return typeof s === "string" ? ass.loadImg(s) : Promise.resolve(s)
 					})).then((images) => createSpriteSheet(images, opt)),
 				)
 			} else {
@@ -937,8 +903,8 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		// eslint-disable-next-line
 		return assets.sprites.add(name, new Promise(async (resolve) => {
 
-			const data = typeof src === "string" ? await fetchJSON(src) : src
-			const images = await Promise.all(data.frames.map(loadImg))
+			const data = typeof src === "string" ? await ass.fetchJSON(src) : src
+			const images = await Promise.all(data.frames.map(ass.loadImg))
 			const canvas = document.createElement("canvas")
 			canvas.width = data.width
 			canvas.height = data.height * data.frames.length
@@ -969,7 +935,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			jsonSrc = imgSrc.replace(new RegExp(`${getExt(imgSrc)}$`), "json")
 		}
 		const resolveJSON = typeof jsonSrc === "string"
-			? fetchJSON(jsonSrc)
+			? ass.fetchJSON(jsonSrc)
 			: Promise.resolve(jsonSrc)
 		return assets.sprites.add(name, resolveJSON.then((data) => {
 			const size = data.meta.size
@@ -1017,7 +983,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	): Asset<ShaderData> {
 		const resolveUrl = (url?: string) =>
 			url
-				? fetchText(url)
+				? ass.fetchText(url)
 				: Promise.resolve(null)
 		const load = Promise.all([resolveUrl(vert), resolveUrl(frag)])
 			.then(([vcode, fcode]: [string | null, string | null]) => {
@@ -1905,7 +1871,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 	function drawTriangle(opt: DrawTriangleOpt) {
 		if (!opt.p1 || !opt.p2 || !opt.p3) {
-			throw new Error("drawPolygon() requires properties \"p1\", \"p2\" and \"p3\".")
+			throw new Error("drawTriangle() requires properties \"p1\", \"p2\" and \"p3\".")
 		}
 		return drawPolygon(Object.assign({}, opt, {
 			pts: [opt.p1, opt.p2, opt.p3],
@@ -6423,7 +6389,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		isGamepadButtonPressed: app.isGamepadButtonPressed,
 		isGamepadButtonDown: app.isGamepadButtonDown,
 		isGamepadButtonReleased: app.isGamepadButtonReleased,
-		// getGamepadStick,
+		getGamepadStick: app.getGamepadStick,
 		charInputted: app.charInputted,
 		// timer
 		loop,
