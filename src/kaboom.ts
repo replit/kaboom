@@ -2077,7 +2077,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		if (tr.pos) fchar.pos = fchar.pos.add(tr.pos)
 		if (tr.scale) fchar.scale = fchar.scale.scale(vec2(tr.scale))
 		if (tr.angle) fchar.angle += tr.angle
-		if (tr.color) fchar.color = runes(fchar.ch).length !== fchar.ch.length ? Color.WHITE : fchar.color.mult(tr.color)
+		if (tr.color && fchar.ch.length === 1) fchar.color = fchar.color.mult(tr.color)
 		if (tr.opacity) fchar.opacity *= tr.opacity
 	}
 

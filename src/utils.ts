@@ -298,7 +298,7 @@ export class BinaryHeap<T> {
 	}
 }
 
-export const enum EnumRunesCode {
+const enum EnumRunesCode {
 	HIGH_SURROGATE_START = 0xd800,
 	HIGH_SURROGATE_END = 0xdbff,
 
@@ -323,7 +323,7 @@ export const enum EnumRunesCode {
 	ZWJ = 0x200d,
 }
 
-export const GRAPHEMES = Object.freeze([
+const GRAPHEMES = Object.freeze([
 	0x0308, // ( ◌̈ ) COMBINING DIAERESIS
 	0x0937, // ( ष ) DEVANAGARI LETTER SSA
 	0x093F, // ( ि ) DEVANAGARI VOWEL SIGN I
@@ -337,39 +337,33 @@ export const GRAPHEMES = Object.freeze([
 	0x1100, // ( ᄀ ) HANGUL CHOSEONG KIYEOK
 	0x1161, // ( ᅡ ) HANGUL JUNGSEONG A
 	0x11A8, // ( ᆨ ) HANGUL JONGSEONG KIYEOK
-]);
+])
 
-export const enum EnumCodeUnits {
+enum EnumCodeUnits {
 	unit_1 = 1,
 	unit_2 = 2,
 	unit_4 = 4,
 }
 
 export function runes(string: string): string[] {
-	if (typeof string !== 'string')
-	{
-		throw new TypeError('string cannot be undefined or null')
+	if (typeof string !== "string") {
+		throw new TypeError("string cannot be undefined or null")
 	}
 	const result: string[] = []
 	let i = 0
 	let increment = 0
-	while (i < string.length)
-	{
+	while (i < string.length) {
 		increment += nextUnits(i + increment, string)
-		if (isGrapheme(string[i + increment]))
-		{
+		if (isGrapheme(string[i + increment])) {
 			increment++
 		}
-		if (isVariationSelector(string[i + increment]))
-		{
+		if (isVariationSelector(string[i + increment])) {
 			increment++
 		}
-		if (isDiacriticalMark(string[i + increment]))
-		{
+		if (isDiacriticalMark(string[i + increment])) {
 			increment++
 		}
-		if (isZeroWidthJoiner(string[i + increment]))
-		{
+		if (isZeroWidthJoiner(string[i + increment])) {
 			increment++
 			continue
 		}
@@ -387,24 +381,22 @@ export function runes(string: string): string[] {
 // Country flags: 4 code units (2 code points)
 // Variations: 2 code units
 // Subdivision flags: 14 code units (7 code points)
-export function nextUnits(i: number, string: string) {
+function nextUnits(i: number, string: string) {
 	const current = string[i]
 	// If we don't have a value that is part of a surrogate pair, or we're at
 	// the end, only take the value at i
-	if (!isFirstOfSurrogatePair(current) || i === string.length - 1)
-	{
+	if (!isFirstOfSurrogatePair(current) || i === string.length - 1) {
 		return EnumCodeUnits.unit_1
 	}
 
 	const currentPair = current + string[i + 1]
-	let nextPair = string.substring(i + 2, i + 5)
+	const nextPair = string.substring(i + 2, i + 5)
 
 	// Country flags are comprised of two regional indicator symbols,
 	// each represented by a surrogate pair.
 	// See http://emojipedia.org/flags/
 	// If both pairs are regional indicator symbols, take 4
-	if (isRegionalIndicator(currentPair) && isRegionalIndicator(nextPair))
-	{
+	if (isRegionalIndicator(currentPair) && isRegionalIndicator(nextPair)) {
 		return EnumCodeUnits.unit_4
 	}
 
@@ -412,8 +404,7 @@ export function nextUnits(i: number, string: string) {
 	// See https://emojipedia.org/emoji-tag-sequence/
 	// If nextPair is in Tags(https://en.wikipedia.org/wiki/Tags_(Unicode_block)),
 	// then find next closest U+E007F(CANCEL TAG)
-	if (isSubdivisionFlag(currentPair) &&	isSupplementarySpecialpurposePlane(nextPair))
-	{
+	if (isSubdivisionFlag(currentPair) &&	isSupplementarySpecialpurposePlane(nextPair)) {
 		return string.slice(i).indexOf(String.fromCodePoint(EnumRunesCode.TAGS_END)) + 2
 	}
 
@@ -424,76 +415,72 @@ export function nextUnits(i: number, string: string) {
 	// combined with the skin tone modifiers. This function
 	// does not check the current pair to see if it is
 	// one of them.
-	if (isFitzpatrickModifier(nextPair))
-	{
+	if (isFitzpatrickModifier(nextPair)) {
 		return EnumCodeUnits.unit_4
 	}
 	return EnumCodeUnits.unit_2
 }
 
-export function isFirstOfSurrogatePair(string: string) {
+function isFirstOfSurrogatePair(string: string) {
 	return string && betweenInclusive(string[0].charCodeAt(0), EnumRunesCode.HIGH_SURROGATE_START, EnumRunesCode.HIGH_SURROGATE_END)
 }
 
-export function isRegionalIndicator(string: string) {
+function isRegionalIndicator(string: string) {
 	return betweenInclusive(codePointFromSurrogatePair(string), EnumRunesCode.REGIONAL_INDICATOR_START, EnumRunesCode.REGIONAL_INDICATOR_END)
 }
 
-export function isSubdivisionFlag(string: string) {
+function isSubdivisionFlag(string: string) {
 	return betweenInclusive(codePointFromSurrogatePair(string),	EnumRunesCode.SUBDIVISION_INDICATOR_START, EnumRunesCode.SUBDIVISION_INDICATOR_START)
 }
 
-export function isFitzpatrickModifier(string: string) {
+function isFitzpatrickModifier(string: string) {
 	return betweenInclusive(codePointFromSurrogatePair(string), EnumRunesCode.FITZPATRICK_MODIFIER_START, EnumRunesCode.FITZPATRICK_MODIFIER_END)
 }
 
-export function isVariationSelector(string: string) {
-	return typeof string === 'string' && betweenInclusive(string.charCodeAt(0), EnumRunesCode.VARIATION_MODIFIER_START, EnumRunesCode.VARIATION_MODIFIER_END)
+function isVariationSelector(string: string) {
+	return typeof string === "string" && betweenInclusive(string.charCodeAt(0), EnumRunesCode.VARIATION_MODIFIER_START, EnumRunesCode.VARIATION_MODIFIER_END)
 }
 
-export function isDiacriticalMark(string: string) {
-	return typeof string === 'string' && betweenInclusive(string.charCodeAt(0), EnumRunesCode.DIACRITICAL_MARKS_START, EnumRunesCode.DIACRITICAL_MARKS_END)
+function isDiacriticalMark(string: string) {
+	return typeof string === "string" && betweenInclusive(string.charCodeAt(0), EnumRunesCode.DIACRITICAL_MARKS_START, EnumRunesCode.DIACRITICAL_MARKS_END)
 }
 
-export function isSupplementarySpecialpurposePlane(string: string) {
+function isSupplementarySpecialpurposePlane(string: string) {
 	const codePoint = string.codePointAt(0)
-	return (typeof string === 'string' &&	typeof codePoint === 'number' && betweenInclusive(codePoint, EnumRunesCode.TAGS_START, EnumRunesCode.TAGS_END))
+	return (typeof string === "string" &&	typeof codePoint === "number" && betweenInclusive(codePoint, EnumRunesCode.TAGS_START, EnumRunesCode.TAGS_END))
 }
 
-export function isGrapheme(string: string) {
-	return typeof string === 'string' && GRAPHEMES.includes(string.charCodeAt(0))
+function isGrapheme(string: string) {
+	return typeof string === "string" && GRAPHEMES.includes(string.charCodeAt(0))
 }
 
-export function isZeroWidthJoiner(string: string) {
-	return typeof string === 'string' && string.charCodeAt(0) === EnumRunesCode.ZWJ
+function isZeroWidthJoiner(string: string) {
+	return typeof string === "string" && string.charCodeAt(0) === EnumRunesCode.ZWJ
 }
 
-export function codePointFromSurrogatePair(pair: string) {
+function codePointFromSurrogatePair(pair: string) {
 	const highOffset = pair.charCodeAt(0) - EnumRunesCode.HIGH_SURROGATE_START
 	const lowOffset = pair.charCodeAt(1) - EnumRunesCode.LOW_SURROGATE_START
 	return (highOffset << 10) + lowOffset + 0x10000
 }
 
-export function betweenInclusive(value: number, lower: number, upper: number) {
+function betweenInclusive(value: number, lower: number, upper: number) {
 	return value >= lower && value <= upper
 }
 
 export function substring(string: string, start?: number, width?: number) {
 	const chars = runes(string)
-	if (start === undefined)
-	{
+	if (start === undefined) {
 		return string
 	}
-	if (start >= chars.length)
-	{
-		return ''
+	if (start >= chars.length) {
+		return ""
 	}
 	const rest = chars.length - start
 	const stringWidth = width === undefined ? rest : width
 	let endIndex = start + stringWidth
-	if (endIndex > (start + rest))
-	{
+	if (endIndex > (start + rest)) {
 		endIndex = undefined
 	}
-	return chars.slice(start, endIndex).join('')
+	return chars.slice(start, endIndex).join("")
 }
