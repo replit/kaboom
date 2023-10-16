@@ -74,6 +74,7 @@ import {
 	// eslint-disable-next-line
 	comparePerf,
 	BinaryHeap,
+	runes,
 } from "./utils"
 
 import type {
@@ -2175,7 +2176,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		}
 
 		const { charStyleMap, text } = compileStyledText(opt.text + "")
-		const chars = text.split("")
+		const chars = runes(text)
 
 		// if it's not bitmap font, we draw it with 2d canvas or use cached image
 		if (font instanceof FontData || typeof font === "string") {
