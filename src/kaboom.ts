@@ -2430,8 +2430,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		return gfx.height
 	}
 
-	const winEvents: EventList<WindowEventMap> = {}
-
 	// transform a point from window space to content space
 	function windowToContent(pt: Vec2) {
 		return new Vec2(
@@ -2450,24 +2448,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 	function mousePos() {
 		return windowToContent(app.mousePos())
-	}
-
-	winEvents.error = (e) => {
-		if (e.error && e.error instanceof Error) {
-			handleErr(e.error)
-		} else if (e instanceof Error) {
-			handleErr(e)
-		}
-	}
-
-	winEvents.unhandledrejection = (e) => {
-		if (e.reason instanceof Error) {
-			handleErr(e.reason)
-		}
-	}
-
-	for (const name in winEvents) {
-		window.addEventListener(name, winEvents[name])
 	}
 
 	let debugPaused = false
@@ -6044,10 +6024,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 			app.quit()
 
-			for (const name in winEvents) {
-				window.removeEventListener(name, winEvents[name])
-			}
-
 			// clear canvas
 			gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT | gl.STENCIL_BUFFER_BIT)
 
@@ -6078,32 +6054,38 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	// main game loop
 	app.run(() => {
 
-		if (!assets.loaded) {
-			if (loadProgress() === 1 && !isFirstFrame) {
-				assets.loaded = true
-				game.events.trigger("load")
+		try {
+
+			if (!assets.loaded) {
+				if (loadProgress() === 1 && !isFirstFrame) {
+					assets.loaded = true
+					game.events.trigger("load")
+				}
 			}
-		}
 
-		if (!assets.loaded && gopt.loadingScreen !== false || isFirstFrame) {
-			frameStart()
-			// TODO: Currently if assets are not initially loaded no updates or timers will be run, however they will run if loadingScreen is set to false. What's the desired behavior or should we make them consistent?
-			drawLoadScreen()
-			frameEnd()
-		} else {
-			if (!debug.paused) updateFrame()
-			checkFrame()
-			frameStart()
-			drawFrame()
-			if (gopt.debug !== false) drawDebug()
-			frameEnd()
-		}
+			if (!assets.loaded && gopt.loadingScreen !== false || isFirstFrame) {
+				frameStart()
+				// TODO: Currently if assets are not initially loaded no updates or timers will be run, however they will run if loadingScreen is set to false. What's the desired behavior or should we make them consistent?
+				drawLoadScreen()
+				frameEnd()
+			} else {
+				if (!debug.paused) updateFrame()
+				checkFrame()
+				frameStart()
+				drawFrame()
+				if (gopt.debug !== false) drawDebug()
+				frameEnd()
+			}
 
-		if (isFirstFrame) {
-			isFirstFrame = false
-		}
+			if (isFirstFrame) {
+				isFirstFrame = false
+			}
 
-		game.events.trigger("frameEnd")
+			game.events.trigger("frameEnd")
+
+		} catch (e) {
+			handleErr(e)
+		}
 
 	})
 
