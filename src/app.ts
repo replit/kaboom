@@ -694,6 +694,7 @@ export default (opt: {
 		})
 	}
 
+	// TODO: handle all touches at once instead of sequentially
 	canvasEvents.touchstart = (e) => {
 		// disable long tap context menu
 		e.preventDefault()

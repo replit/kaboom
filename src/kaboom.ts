@@ -178,8 +178,6 @@ import type {
 	Outline,
 } from "./types"
 
-import Timer from "./timer"
-
 import beanSpriteSrc from "./assets/bean.png"
 import burpSoundSrc from "./assets/burp.mp3"
 import kaSpriteSrc from "./assets/ka.png"
@@ -4432,11 +4430,10 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		}
 	}
 
-	function health(hp: number): HealthComp {
+	function health(hp: number, maxHP?: number): HealthComp {
 		if (hp == null) {
 			throw new Error("health() requires the initial amount of hp")
 		}
-		const maxHP = hp
 		return {
 			id: "health",
 			hurt(this: GameObj, n: number = 1) {
@@ -4444,17 +4441,25 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				this.trigger("hurt", n)
 			},
 			heal(this: GameObj, n: number = 1) {
+				const origHP = hp
 				this.setHP(hp + n)
-				this.trigger("heal", n)
+				this.trigger("heal", hp - origHP)
 			},
 			hp(): number {
 				return hp
 			},
-			maxHP(): number {
-				return maxHP
+			maxHP(): number | null {
+				return maxHP ?? null
+			},
+			setMaxHP(n: number): void {
+				maxHP = n
 			},
 			setHP(this: GameObj, n: number) {
-				hp = n
+				if (maxHP) {
+					hp = Math.min(maxHP, n)
+				} else {
+					hp = n
+				}
 				if (hp <= 0) {
 					this.trigger("death")
 				}
@@ -6400,7 +6405,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		burp,
 		audioCtx: audio.ctx,
 		// math
-		Timer,
 		Line,
 		Rect,
 		Circle,

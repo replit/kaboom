@@ -1601,7 +1601,6 @@ export interface KaboomCtx {
 	 * ```
 	 */
 	loop(t: number, action: () => void): EventController,
-	Timer: typeof Timer,
 	/**
 	 * Play a piece of audio.
 	 *
@@ -4827,22 +4826,6 @@ export interface BodyCompOpt {
 	mass?: number,
 }
 
-export declare class Timer {
-	/**
-	 * Time left.
-	 */
-	time: number
-	/**
-	 * The action to take when timer is up
-	 */
-	action: () => void
-	readonly finished: boolean
-	paused: boolean
-	constructor(time: number, action: () => void)
-	tick(dt: number): boolean
-	reset(time: number): void
-}
-
 export interface TimerComp extends Comp {
 	/**
 	 * Run the callback after n seconds.
@@ -4906,7 +4889,11 @@ export interface HealthComp extends Comp {
 	/**
 	 * Max amount of HP.
 	 */
-	maxHP(): number,
+	maxHP(): number | null,
+	/**
+	 * Set max amount of HP.
+	 */
+	setMaxHP(hp: number): void,
 	/**
 	 * Register an event that runs when hurt() is called upon the object.
 	 *
