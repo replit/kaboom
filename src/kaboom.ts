@@ -54,7 +54,7 @@ import easings from "./easings"
 import TexPacker from "./texPacker"
 
 import {
-	IDList,
+	Registry,
 	Event,
 	EventHandler,
 	download,
@@ -64,6 +64,7 @@ import {
 	uid,
 	isDataURL,
 	getExt,
+	overload2,
 	dataURLToArrayBuffer,
 	EventController,
 	getErrorMessage,
@@ -460,8 +461,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			)
 		}
 
-		// TODO: use this instead of change UV
-		// gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true)
 		gl.enable(gl.BLEND)
 		gl.blendFuncSeparate(
 			gl.SRC_ALPHA,
@@ -696,7 +695,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 	game.root.use(timer())
 
-	// TODO: accept Asset<T>?
 	// wrap individual loaders with global loader counter, for stuff like progress bar
 	function load<T>(prom: Promise<T>): Asset<T> {
 		return assets.custom.add(null, prom)
@@ -1329,6 +1327,10 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		anchor?: Anchor | Vec2,
 	}
 
+	function makeCanvas(w: number, h: number) {
+		return new FrameBuffer(ggl, w, h)
+	}
+
 	function makeShader(
 		vertSrc: string | null = DEF_VERT,
 		fragSrc: string | null = DEF_FRAG,
@@ -1423,7 +1425,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		// clear backbuffer
 		gl.clear(gl.COLOR_BUFFER_BIT)
 		gfx.frameBuffer.bind()
-		gl.viewport(0, 0, gfx.frameBuffer.width, gfx.frameBuffer.height)
 		// clear framebuffer
 		gl.clear(gl.COLOR_BUFFER_BIT)
 
@@ -2638,6 +2639,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 			draw(this: GameObj<PosComp | ScaleComp | RotateComp | FixedComp | MaskComp>) {
 				if (this.hidden) return
+				if (this.canvas) this.canvas.bind()
 				const f = gfx.fixed
 				if (this.fixed) gfx.fixed = true
 				pushTransform()
@@ -2665,6 +2667,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				}
 				popTransform()
 				gfx.fixed = f
+				if (this.canvas) this.canvas.unbind()
 			},
 
 			drawInspect(this: GameObj<PosComp | ScaleComp | RotateComp>) {
@@ -2954,7 +2957,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	// add an event to a tag
 	function on(event: string, tag: Tag, cb: (obj: GameObj, ...args) => void): EventController {
 		if (!game.objEvents[event]) {
-			game.objEvents[event] = new IDList()
+			game.objEvents[event] = new Registry()
 		}
 		return game.objEvents.on(event, (obj, ...args) => {
 			if (obj.is(tag)) {
@@ -2963,57 +2966,47 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		})
 	}
 
-	// add update event to a tag or global update
-	const onUpdate = ((tag: Tag | (() => void), action?: (obj: GameObj) => void) => {
-		if (typeof tag === "function" && action === undefined) {
-			const obj = add([{ update: tag }])
-			return {
-				get paused() {
-					return obj.paused
-				},
-				set paused(p) {
-					obj.paused = p
-				},
-				cancel: () => obj.destroy(),
-			}
-		} else if (typeof tag === "string") {
-			return on("update", tag, action)
+	const onUpdate = overload2((action: () => void): EventController => {
+		const obj = add([{ update: action }])
+		return {
+			get paused() {
+				return obj.paused
+			},
+			set paused(p) {
+				obj.paused = p
+			},
+			cancel: () => obj.destroy(),
 		}
-	}) as KaboomCtx["onUpdate"]
+	}, (tag: Tag, action: (obj: GameObj) => void) => {
+		return on("update", tag, action)
+	})
 
-	// add draw event to a tag or global draw
-	const onDraw = ((tag: Tag | (() => void), action?: (obj: GameObj) => void) => {
-		if (typeof tag === "function" && action === undefined) {
-			const obj = add([{ draw: tag }])
-			return {
-				get paused() {
-					return obj.hidden
-				},
-				set paused(p) {
-					obj.hidden = p
-				},
-				cancel: () => obj.destroy(),
-			}
-		} else if (typeof tag === "string") {
-			return on("draw", tag, action)
+	const onDraw = overload2((action: () => void): EventController => {
+		const obj = add([{ draw: action }])
+		return {
+			get paused() {
+				return obj.hidden
+			},
+			set paused(p) {
+				obj.hidden = p
+			},
+			cancel: () => obj.destroy(),
 		}
-	}) as KaboomCtx["onDraw"]
+	}, (tag: Tag, action: (obj: GameObj) => void) => {
+		return on("draw", tag, action)
+	})
 
-	function onAdd(tag: Tag | ((obj: GameObj) => void), action?: (obj: GameObj) => void) {
-		if (typeof tag === "function" && action === undefined) {
-			return game.events.on("add", tag)
-		} else if (typeof tag === "string") {
-			return on("add", tag, action)
-		}
-	}
+	const onAdd = overload2((action: (obj: GameObj) => void) => {
+		return game.events.on("add", action)
+	}, (tag: Tag, action: (obj: GameObj) => void) => {
+		return on("add", tag, action)
+	})
 
-	function onDestroy(tag: Tag | ((obj: GameObj) => void), action?: (obj: GameObj) => void) {
-		if (typeof tag === "function" && action === undefined) {
-			return game.events.on("destroy", tag)
-		} else if (typeof tag === "string") {
-			return on("destroy", tag, action)
-		}
-	}
+	const onDestroy = overload2((action: (obj: GameObj) => void) => {
+		return game.events.on("destroy", action)
+	}, (tag: Tag, action: (obj: GameObj) => void) => {
+		return on("destroy", tag, action)
+	})
 
 	// add an event that runs with objs with t1 collides with objs with t2
 	function onCollide(
@@ -3045,20 +3038,17 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		onAdd(t, action)
 	}
 
-	// add an event that runs when objs with tag t is clicked
-	function onClick(tag: Tag | (() => void), action?: (obj: GameObj) => void): EventController {
-		if (typeof tag === "function") {
-			return app.onMousePress(tag)
-		} else {
-			const events = []
-			forAllCurrentAndFuture(tag, (obj) => {
-				if (!obj.area)
-					throw new Error("onClick() requires the object to have area() component")
-				events.push(obj.onClick(() => action(obj)))
-			})
-			return EventController.join(events)
-		}
-	}
+	const onClick = overload2((action: () => void) => {
+		return app.onMousePress(action)
+	}, (tag: Tag, action: (obj: GameObj) => void) => {
+		const events = []
+		forAllCurrentAndFuture(tag, (obj) => {
+			if (!obj.area)
+				throw new Error("onClick() requires the object to have area() component")
+			events.push(obj.onClick(() => action(obj)))
+		})
+		return EventController.join(events)
+	})
 
 	// add an event that runs once when objs with tag t is hovered
 	function onHover(t: Tag, action: (obj: GameObj) => void): EventController {
@@ -3091,38 +3081,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			events.push(obj.onHoverEnd(() => action(obj)))
 		})
 		return EventController.join(events)
-	}
-
-	function enterDebugMode() {
-
-		app.onKeyPress("f1", () => {
-			debug.inspect = !debug.inspect
-		})
-
-		app.onKeyPress("f2", () => {
-			debug.clearLog()
-		})
-
-		app.onKeyPress("f8", () => {
-			debug.paused = !debug.paused
-		})
-
-		app.onKeyPress("f7", () => {
-			debug.timeScale = toFixed(clamp(debug.timeScale - 0.2, 0, 2), 1)
-		})
-
-		app.onKeyPress("f9", () => {
-			debug.timeScale = toFixed(clamp(debug.timeScale + 0.2, 0, 2), 1)
-		})
-
-		app.onKeyPress("f10", () => {
-			debug.stepFrame()
-		})
-
-	}
-
-	function enterBurpMode() {
-		app.onKeyPress("b", () => burp())
 	}
 
 	function setGravity(g: number) {
@@ -4455,11 +4413,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				maxHP = n
 			},
 			setHP(this: GameObj, n: number) {
-				if (maxHP) {
-					hp = Math.min(maxHP, n)
-				} else {
-					hp = n
-				}
+				hp = maxHP ? Math.min(maxHP, n) : n
 				if (hp <= 0) {
 					this.trigger("death")
 				}
@@ -4636,6 +4590,14 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		return {
 			id: "mask",
 			mask: m,
+		}
+	}
+
+	function drawon(c: FrameBuffer) {
+		return {
+			add(this: GameObj) {
+				this.canvas = c
+			},
 		}
 	}
 
@@ -5510,7 +5472,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	function boom(speed: number = 2, size: number = 1): Comp {
 		let time = 0
 		return {
-			id: "boom",
 			require: [ "scale" ],
 			update(this: GameObj<ScaleComp>) {
 				const s = Math.sin(time * speed) * size
@@ -6236,11 +6197,20 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		})
 
 		if (gopt.debug !== false) {
-			enterDebugMode()
+			app.onKeyPress("f1", () => debug.inspect = !debug.inspect)
+			app.onKeyPress("f2", () => debug.clearLog())
+			app.onKeyPress("f8", () => debug.paused = !debug.paused)
+			app.onKeyPress("f7", () => {
+				debug.timeScale = toFixed(clamp(debug.timeScale - 0.2, 0, 2), 1)
+			})
+			app.onKeyPress("f9", () => {
+				debug.timeScale = toFixed(clamp(debug.timeScale + 0.2, 0, 2), 1)
+			})
+			app.onKeyPress("f10", () => debug.stepFrame())
 		}
 
 		if (gopt.burp) {
-			enterBurpMode()
+			app.onKeyPress("b", () => burp())
 		}
 
 	}
@@ -6346,6 +6316,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		state,
 		fadeIn,
 		mask,
+		drawon,
 		tile,
 		agent,
 		// group events
@@ -6461,6 +6432,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		pushRotate,
 		pushMatrix,
 		usePostEffect,
+		makeCanvas,
 		// debug
 		debug,
 		// scene

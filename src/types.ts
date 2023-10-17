@@ -604,6 +604,7 @@ export interface KaboomCtx {
 	 * @since v3000.2
 	 */
 	mask(maskType?: Mask): MaskComp,
+	drawon(canvas: FrameBuffer): Comp,
 	/**
 	 * A tile on a tile map.
 	 *
@@ -2237,6 +2238,12 @@ export interface KaboomCtx {
 	 */
 	formatText(options: DrawTextOpt): FormattedText,
 	/**
+	 * Create a canvas to draw stuff offscreen.
+	 *
+	 * @since v3000.2
+	 */
+	makeCanvas(w: number, h: number): FrameBuffer
+	/**
 	 * @section Debug
 	 *
 	 * @example
@@ -2711,6 +2718,12 @@ export interface GameObjRaw {
 	 * A unique number ID for each game object.
 	 */
 	id: GameObjID | null,
+	/**
+	 * The canvas to draw this game object on
+	 *
+	 * @since v3000.2
+	 */
+	canvas: FrameBuffer | null,
 	onKeyDown(key: Key, action: (key: Key) => void): EventController,
 	onKeyDown(action: (key: Key) => void): EventController,
 	onKeyPress(key: Key, action: (key: Key) => void): EventController,
@@ -3128,6 +3141,22 @@ export declare class Texture {
 	/**
 	 * Frees up texture memory. Call this once the texture is no longer being used to avoid memory leaks.
 	 */
+	free(): void
+}
+
+export declare class FrameBuffer {
+	ctx: GfxCtx
+	tex: Texture
+	glFramebuffer: WebGLFramebuffer
+	glRenderbuffer: WebGLRenderbuffer
+	constructor(ctx: GfxCtx, w: number, h: number, opt?: TextureOpt)
+	width: number
+	height: number
+	toImageData(): ImageData
+	toDataURL(): string
+	draw(action: () => void): void
+	bind(): void
+	unbind(): void
 	free(): void
 }
 

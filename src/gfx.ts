@@ -14,20 +14,7 @@ import {
 	deepEq,
 } from "./utils"
 
-export type GfxCtx = {
-	gl: WebGLRenderingContext,
-	onDestroy: (action: () => void) => void,
-	pushTexture: (ty: GLenum, tex: WebGLTexture) => void,
-	popTexture: (ty: GLenum) => void,
-	pushBuffer: (ty: GLenum, tex: WebGLBuffer) => void,
-	popBuffer: (ty: GLenum) => void,
-	pushFramebuffer: (ty: GLenum, tex: WebGLFramebuffer) => void,
-	popFramebuffer: (ty: GLenum) => void,
-	pushRenderbuffer: (ty: GLenum, tex: WebGLRenderbuffer) => void,
-	popRenderbuffer: (ty: GLenum) => void,
-	setVertexFormat: (fmt: VertexFormat) => void,
-	destroy: () => void,
-}
+export type GfxCtx = ReturnType<typeof initGfx>
 
 export class Texture {
 
@@ -96,11 +83,11 @@ export class Texture {
 	}
 
 	bind() {
-		this.ctx.pushTexture(this.ctx.gl.TEXTURE_2D, this.glTex)
+		this.ctx.pushTexture2D(this.glTex)
 	}
 
 	unbind() {
-		this.ctx.popTexture(this.ctx.gl.TEXTURE_2D)
+		this.ctx.popTexture2D()
 	}
 
 	free() {
@@ -185,15 +172,15 @@ export class FrameBuffer {
 	}
 
 	bind() {
-		const gl = this.ctx.gl
-		this.ctx.pushFramebuffer(gl.FRAMEBUFFER, this.glFramebuffer)
-		this.ctx.pushRenderbuffer(gl.RENDERBUFFER, this.glRenderbuffer)
+		this.ctx.pushFramebuffer(this.glFramebuffer)
+		this.ctx.pushRenderbuffer(this.glRenderbuffer)
+		this.ctx.pushViewport({ x: 0, y: 0, w: this.width, h: this.height })
 	}
 
 	unbind() {
-		const gl = this.ctx.gl
-		this.ctx.popFramebuffer(gl.FRAMEBUFFER)
-		this.ctx.popRenderbuffer(gl.RENDERBUFFER)
+		this.ctx.popFramebuffer()
+		this.ctx.popRenderbuffer()
+		this.ctx.popViewport()
 	}
 
 	free() {
@@ -247,11 +234,11 @@ export class Shader {
 	}
 
 	bind() {
-		this.ctx.gl.useProgram(this.glProgram)
+		this.ctx.pushProgram(this.glProgram)
 	}
 
 	unbind() {
-		this.ctx.gl.useProgram(null)
+		this.ctx.popProgram()
 	}
 
 	send(uniform: Uniform) {
@@ -313,14 +300,14 @@ export class BatchRenderer {
 		this.maxIndices = maxIndices
 
 		this.glVBuf = gl.createBuffer()
-		ctx.pushBuffer(gl.ARRAY_BUFFER, this.glVBuf)
+		ctx.pushArrayBuffer(this.glVBuf)
 		gl.bufferData(gl.ARRAY_BUFFER, maxVertices * 4, gl.DYNAMIC_DRAW)
-		ctx.popBuffer(gl.ARRAY_BUFFER)
+		ctx.popArrayBuffer()
 
 		this.glIBuf = gl.createBuffer()
-		ctx.pushBuffer(gl.ELEMENT_ARRAY_BUFFER, this.glIBuf)
+		ctx.pushElementArrayBuffer(this.glIBuf)
 		gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, maxIndices * 4, gl.DYNAMIC_DRAW)
-		ctx.popBuffer(gl.ELEMENT_ARRAY_BUFFER)
+		ctx.popElementArrayBuffer()
 
 	}
 
@@ -368,9 +355,9 @@ export class BatchRenderer {
 
 		const gl = this.ctx.gl
 
-		this.ctx.pushBuffer(gl.ARRAY_BUFFER, this.glVBuf)
+		this.ctx.pushArrayBuffer(this.glVBuf)
 		gl.bufferSubData(gl.ARRAY_BUFFER, 0, new Float32Array(this.vqueue))
-		this.ctx.pushBuffer(gl.ELEMENT_ARRAY_BUFFER, this.glIBuf)
+		this.ctx.pushElementArrayBuffer(this.glIBuf)
 		gl.bufferSubData(gl.ELEMENT_ARRAY_BUFFER, 0, new Uint16Array(this.iqueue))
 		this.ctx.setVertexFormat(this.vertexFormat)
 		this.curShader.bind()
@@ -380,8 +367,8 @@ export class BatchRenderer {
 		this.curTex?.unbind()
 		this.curShader.unbind()
 
-		this.ctx.popBuffer(gl.ARRAY_BUFFER)
-		this.ctx.popBuffer(gl.ELEMENT_ARRAY_BUFFER)
+		this.ctx.popArrayBuffer()
+		this.ctx.popElementArrayBuffer()
 
 		this.vqueue = []
 		this.iqueue = []
@@ -413,14 +400,14 @@ export class Mesh {
 		this.ctx = ctx
 
 		this.glVBuf = gl.createBuffer()
-		ctx.pushBuffer(gl.ARRAY_BUFFER, this.glVBuf)
+		ctx.pushArrayBuffer(this.glVBuf)
 		gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(verts), gl.STATIC_DRAW)
-		ctx.popBuffer(gl.ARRAY_BUFFER)
+		ctx.popArrayBuffer()
 
 		this.glIBuf = gl.createBuffer()
-		ctx.pushBuffer(gl.ELEMENT_ARRAY_BUFFER, this.glIBuf)
+		ctx.pushElementArrayBuffer(this.glIBuf)
 		gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(indices), gl.STATIC_DRAW)
-		ctx.popBuffer(gl.ELEMENT_ARRAY_BUFFER)
+		ctx.popElementArrayBuffer()
 
 		this.count = indices.length
 
@@ -428,12 +415,12 @@ export class Mesh {
 
 	draw(primitive?: GLenum) {
 		const gl = this.ctx.gl
-		this.ctx.pushBuffer(gl.ARRAY_BUFFER, this.glVBuf)
-		this.ctx.pushBuffer(gl.ELEMENT_ARRAY_BUFFER, this.glIBuf)
+		this.ctx.pushArrayBuffer(this.glVBuf)
+		this.ctx.pushElementArrayBuffer(this.glIBuf)
 		this.ctx.setVertexFormat(this.vertexFormat)
 		gl.drawElements(primitive ?? gl.TRIANGLES, this.count, gl.UNSIGNED_SHORT, 0)
-		this.ctx.popBuffer(gl.ARRAY_BUFFER)
-		this.ctx.popBuffer(gl.ELEMENT_ARRAY_BUFFER)
+		this.ctx.popArrayBuffer()
+		this.ctx.popElementArrayBuffer()
 	}
 
 	free() {
@@ -445,36 +432,22 @@ export class Mesh {
 
 }
 
-// TODO: support useProgram
-function genBinder<T>(func: (ty: GLenum, item: T) => void) {
-	const bindings = {}
-	return {
-		cur: (ty: GLenum) => {
-			const stack = bindings[ty] ?? []
-			return stack[stack.length - 1]
-		},
-		push: (ty: GLenum, item: T) => {
-			if (!bindings[ty]) bindings[ty] = []
-			const stack = bindings[ty]
-			stack.push(item)
-			func(ty, item)
-		},
-		pop: (ty: GLenum) => {
-			const stack = bindings[ty]
-			if (!stack) throw new Error(`Unknown WebGL type: ${ty}`)
-			if (stack.length <= 0) throw new Error("Can't unbind texture when there's no texture bound")
-			stack.pop()
-			func(ty, stack[stack.length - 1] ?? null)
-		},
+function genStack<T>(setFunc: (item: T) => void) {
+	const stack: T[] = []
+	const push = (item: T) => {
+		stack.push(item)
+		setFunc(item)
 	}
+	const pop = () => {
+		stack.pop()
+		setFunc(cur() ?? null)
+	}
+	const cur = () => stack[stack.length - 1]
+	return [push, pop, cur] as const
 }
 
-export default (gl: WebGLRenderingContext): GfxCtx => {
+export default function initGfx(gl: WebGLRenderingContext) {
 
-	const textureBinder = genBinder(gl.bindTexture.bind(gl))
-	const bufferBinder = genBinder(gl.bindBuffer.bind(gl))
-	const framebufferBinder = genBinder(gl.bindFramebuffer.bind(gl))
-	const renderbufferBinder = genBinder(gl.bindRenderbuffer.bind(gl))
 	const gc: Array<() => void> = []
 
 	function onDestroy(action) {
@@ -499,18 +472,48 @@ export default (gl: WebGLRenderingContext): GfxCtx => {
 		}, 0)
 	}
 
+	const [ pushTexture2D, popTexture2D ] =
+		genStack<WebGLTexture>((t) => gl.bindTexture(gl.TEXTURE_2D, t))
+
+	const [ pushArrayBuffer, popArrayBuffer ] =
+		genStack<WebGLBuffer>((b) => gl.bindBuffer(gl.ARRAY_BUFFER, b))
+
+	const [ pushElementArrayBuffer, popElementArrayBuffer ] =
+		genStack<WebGLBuffer>((b) => gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, b))
+
+	const [ pushFramebuffer, popFramebuffer ] =
+		genStack<WebGLFramebuffer>((b) => gl.bindFramebuffer(gl.FRAMEBUFFER, b))
+
+	const [ pushRenderbuffer, popRenderbuffer ] =
+		genStack<WebGLRenderbuffer>((b) => gl.bindRenderbuffer(gl.RENDERBUFFER, b))
+
+	const [ pushViewport, popViewport ] =
+		genStack<{ x: number, y: number, w: number, h: number }>(({ x, y, w, h }) => {
+			gl.viewport(x, y, w, h)
+		})
+
+	const [ pushProgram, popProgram ] = genStack<WebGLProgram>((p) => gl.useProgram(p))
+
+	pushViewport({ x: 0, y: 0, w: gl.drawingBufferWidth, h: gl.drawingBufferHeight })
+
 	return {
 		gl,
 		onDestroy,
 		destroy,
-		pushTexture: textureBinder.push,
-		popTexture: textureBinder.pop,
-		pushBuffer: bufferBinder.push,
-		popBuffer: bufferBinder.pop,
-		pushFramebuffer: framebufferBinder.push,
-		popFramebuffer: framebufferBinder.pop,
-		pushRenderbuffer: renderbufferBinder.push,
-		popRenderbuffer: renderbufferBinder.pop,
+		pushTexture2D,
+		popTexture2D,
+		pushArrayBuffer,
+		popArrayBuffer,
+		pushElementArrayBuffer,
+		popElementArrayBuffer,
+		pushFramebuffer,
+		popFramebuffer,
+		pushRenderbuffer,
+		popRenderbuffer,
+		pushViewport,
+		popViewport,
+		pushProgram,
+		popProgram,
 		setVertexFormat,
 	}
 

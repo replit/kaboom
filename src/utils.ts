@@ -1,4 +1,4 @@
-export class IDList<T> extends Map<number, T> {
+export class Registry<T> extends Map<number, T> {
 	private lastID: number
 	constructor(...args) {
 		super(...args)
@@ -34,7 +34,7 @@ export class EventController {
 }
 
 export class Event<Args extends any[] = any[]> {
-	private handlers: IDList<(...args: Args) => void> = new IDList()
+	private handlers: Registry<(...args: Args) => void> = new Registry()
 	add(action: (...args: Args) => void): EventController {
 		const cancel = this.handlers.pushd((...args: Args) => {
 			if (ev.paused) return
