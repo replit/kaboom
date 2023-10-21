@@ -251,6 +251,21 @@ export interface KaboomCtx {
 	 */
 	text(txt: string, options?: TextCompOpt): TextComp,
 	/**
+	 * Render as a polygon.
+	 *
+	 * @example
+	 * ```js
+	 * // Make a square the hard way
+	 * add([
+	 *     pos(80, 120),
+	 *     polygon([vec2(0,0), vec2(50,0), vec2(50,50), vec2(0,50)]),
+	 *     outline(4),
+	 *     area(),
+	 * ])
+	 * ```
+	 */
+	polygon(pts: Vec2[], opt?: PolygonCompOpt): PolygonComp,
+	/**
 	 * Render as a rectangle.
 	 *
 	 * @example
@@ -4576,6 +4591,7 @@ export interface RectCompOpt {
 	fill?: boolean,
 }
 
+export type PolygonCompOpt = Omit<DrawPolygonOpt,"pts">
 export interface RectComp extends Comp {
 	draw: Comp["draw"],
 	/**
@@ -4592,6 +4608,19 @@ export interface RectComp extends Comp {
 	radius?: number,
 	/**
 	 * @since v3000.0
+	 */
+	renderArea(): Rect,
+}
+
+export interface PolygonComp extends Comp {
+	draw: Comp["draw"],
+
+	/**
+	 * @since 3000.1.13
+	 */
+	pts: Vec2[]
+	/**
+	 * @since 3000.1.13
 	 */
 	renderArea(): Rect,
 }

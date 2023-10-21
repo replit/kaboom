@@ -176,7 +176,7 @@ import type {
 	TexFilter,
 	MaskComp,
 	Mask,
-	Outline,
+	Outline, PolygonComp, PolygonCompOpt,
 } from "./types"
 
 import beanSpriteSrc from "./assets/bean.png"
@@ -3952,6 +3952,44 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 	}
 
+	function polygon(pts: Vec2[], opt: PolygonCompOpt = {}): PolygonComp {
+		if(pts.length < 3) throw new Error(`Polygon's need more than two points, ${pts.length} points provided`)
+		return {
+			id: "polygon",
+			pts,
+			draw(this: GameObj<PolygonComp>) {
+				drawPolygon(Object.assign(getRenderProps(this), Object.assign(opt,{
+					pts,
+				})))
+			},
+			renderArea(this: GameObj<AnchorComp | PolygonComp>) {
+				let minX = this.pts[0].x
+				let minY = this.pts[0].y
+				let maxX = this.pts[0].x
+				let maxY =  this.pts[0].y
+
+				for(const pt of this.pts) {
+					if(pt.x <= minX) minX = pt.x
+					if(pt.y <= minY) minY = pt.y
+					if(pt.x >= maxX) maxX = pt.x
+					if(pt.y >= maxY) maxY = pt.y
+				}
+
+				const width = maxX - minX
+				const height = maxY - minY
+
+				return new Rect(
+					new Vec2(0),
+					width,
+					height,
+				)
+			},
+			inspect() {
+				return this.pts.map(p => `[${p.x},${p.y}]`).join(",")
+			},
+		}
+	}
+
 	function rect(w: number, h: number, opt: RectCompOpt = {}): RectComp {
 		return {
 			id: "rect",
@@ -6279,6 +6317,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		area,
 		sprite,
 		text,
+		polygon,
 		rect,
 		circle,
 		uvquad,
