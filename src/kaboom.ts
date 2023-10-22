@@ -176,7 +176,9 @@ import type {
 	TexFilter,
 	MaskComp,
 	Mask,
-	Outline, PolygonComp, PolygonCompOpt,
+	Outline,
+	PolygonComp,
+	PolygonCompOpt,
 } from "./types"
 
 import beanSpriteSrc from "./assets/bean.png"
