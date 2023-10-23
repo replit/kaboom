@@ -1,6 +1,7 @@
 import type {
 	ImageSource,
 	TextureOpt,
+	TexFilter,
 	Uniform,
 } from "./types"
 
@@ -38,7 +39,7 @@ export class Texture {
 		const filter = {
 			"linear": gl.LINEAR,
 			"nearest": gl.NEAREST,
-		}[opt.filter] ?? gl.NEAREST
+		}[opt.filter ?? ctx.opts.texFilter] ?? gl.NEAREST
 
 		const wrap = {
 			"repeat": gl.REPEAT,
@@ -446,7 +447,9 @@ function genStack<T>(setFunc: (item: T) => void) {
 	return [push, pop, cur] as const
 }
 
-export default function initGfx(gl: WebGLRenderingContext) {
+export default function initGfx(gl: WebGLRenderingContext, opts: {
+	texFilter?: TexFilter,
+} = {}) {
 
 	const gc: Array<() => void> = []
 
@@ -498,6 +501,7 @@ export default function initGfx(gl: WebGLRenderingContext) {
 
 	return {
 		gl,
+		opts,
 		onDestroy,
 		destroy,
 		pushTexture2D,

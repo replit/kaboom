@@ -234,7 +234,7 @@ ${examples.map((example) => `<li><a href="/${example}">${example}</a></li>`).joi
 
 	app.get("/:name", async (req, res) => {
 		const name = req.params.name
-		if (!isFile(`examples/${name}.js`)) {
+		if (!await isFile(`examples/${name}.js`)) {
 			res.status(404)
 			res.send(`example not found: ${name}`)
 			return

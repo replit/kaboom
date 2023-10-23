@@ -184,10 +184,6 @@ import burpSoundSrc from "./assets/burp.mp3"
 import kaSpriteSrc from "./assets/ka.png"
 import boomSpriteSrc from "./assets/boom.png"
 
-type EventList<M> = {
-	[event in keyof M]?: (event: M[event]) => void
-}
-
 interface SpriteCurAnim {
 	name: string,
 	timer: number,
@@ -429,7 +425,10 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			preserveDrawingBuffer: true,
 		})
 
-	const ggl = initGfx(gl)
+	const ggl = initGfx(gl, {
+		texFilter: gopt.texFilter,
+	})
+
 	const ass = initAssets()
 
 	const gfx = (() => {
