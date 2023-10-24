@@ -3958,12 +3958,17 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		return {
 			id: "polygon",
 			pts,
+			colors: opt.colors,
+			radius: opt.radius,
 			draw(this: GameObj<PolygonComp>) {
 				drawPolygon(Object.assign(getRenderProps(this), {
 					pts: this.pts,
+					colors: this.colors,
+					radius: this.radius,
+					fill: opt.fill,
 				}))
 			},
-			renderArea(this: GameObj<AnchorComp | PolygonComp>) {
+			renderArea(this: GameObj<PolygonComp>) {
 				return new Polygon(this.pts)
 			},
 			inspect() {

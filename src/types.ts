@@ -253,6 +253,8 @@ export interface KaboomCtx {
 	/**
 	 * Render as a polygon.
 	 *
+	 * @since v3000.2
+	 *
 	 * @example
 	 * ```js
 	 * // Make a square the hard way
@@ -4591,7 +4593,6 @@ export interface RectCompOpt {
 	fill?: boolean,
 }
 
-export type PolygonCompOpt = Omit<DrawPolygonOpt,"pts">
 export interface RectComp extends Comp {
 	draw: Comp["draw"],
 	/**
@@ -4612,17 +4613,27 @@ export interface RectComp extends Comp {
 	renderArea(): Rect,
 }
 
+export type PolygonCompOpt = Omit<DrawPolygonOpt,"pts">
+
+/**
+ * Component to draw a polygon.
+ *
+ * @since v3000.2
+ */
 export interface PolygonComp extends Comp {
 	draw: Comp["draw"],
-
 	/**
-	 * Points in the polygon
-	 * @since 3000.1.13
+	 * Points in the polygon.
 	 */
 	pts: Vec2[]
 	/**
-	 * @since 3000.1.13
+	 * The radius of each corner.
 	 */
+	radius?: number,
+	/**
+	 * The color of each vertice.
+	 */
+	colors?: Color[],
 	renderArea(): Polygon,
 }
 
