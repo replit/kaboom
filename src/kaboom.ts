@@ -3965,7 +3965,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				}))
 			},
 			renderArea(this: GameObj<AnchorComp | PolygonComp>) {
-				return new Polygon(pts)
+				return new Polygon(this.pts)
 			},
 			inspect() {
 				return this.pts.map(p => `[${p.x},${p.y}]`).join(",")
