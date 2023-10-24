@@ -4616,13 +4616,14 @@ export interface PolygonComp extends Comp {
 	draw: Comp["draw"],
 
 	/**
+	 * Points in the polygon
 	 * @since 3000.1.13
 	 */
 	pts: Vec2[]
 	/**
 	 * @since 3000.1.13
 	 */
-	renderArea(): Rect,
+	renderArea(): Polygon,
 }
 
 export interface CircleCompOpt {
