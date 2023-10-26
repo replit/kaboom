@@ -213,7 +213,7 @@ const SPRITE_ATLAS_HEIGHT = 2048
 // 0.1 pixel padding to texture coordinates to prevent artifact
 const UV_PAD = 0.1
 const DEF_HASH_GRID_SIZE = 64
-const DEF_FONT_FILTER = "nearest"
+const DEF_FONT_FILTER = "linear"
 
 const LOG_MAX = 8
 const LOG_TIME = 4
@@ -1976,7 +1976,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			const verts = opt.pts.map((pt, i) => ({
 				pos: new Vec2(pt.x, pt.y),
 				uv: new Vec2(0, 0),
-				color: opt.colors ? (opt.colors[i] ?? color) : color,
+				color: opt.colors ? (opt.colors[i] ? opt.colors[i].mult(color) : color) : color,
 				opacity: opt.opacity ?? 1,
 			}))
 

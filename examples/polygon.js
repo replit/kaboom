@@ -1,39 +1,72 @@
 kaboom()
 
-// Add a thing that follows the mouse
-var CURSOR = "cursor"
+setBackground(0, 0, 0)
 
-const cursor = add([
-	circle(10),
-	area(),
-	pos(),
-	z(100),
-	CURSOR,
+add([
+	text("Drag corners of the polygon"),
+	pos(20, 20),
 ])
-
-cursor.onMouseMove(pos => {
-	cursor.pos = pos
-})
 
 // Make a weird shape
 const poly = add([
 	polygon([
-		vec2(0, 0),
-		vec2(200, 0),
-		vec2(50, 300),
-		vec2(0, 100),
-	]),
-	pos(80, 120),
-	outline(4),
+		vec2(0, -160),
+		vec2(160, 0),
+		vec2(80, 80),
+		vec2(-60, 120),
+		vec2(-120, 0),
+	], {
+		colors: [
+			rgb(128, 255, 128),
+			rgb(255, 128, 128),
+			rgb(128, 128, 255),
+			rgb(255, 128, 128),
+			rgb(128, 128, 128),
+		],
+	}),
+	pos(300, 300),
 	area(),
-	color(rgb(255, 0, 0)),
+	color(),
 ])
 
-// Change the color when the cursor object collides with the polygon
-poly.onCollide(CURSOR, () => {
-	poly.color = rgb(0, 0, 255)
+let dragging = null
+let hovering = null
+
+poly.onDraw(() => {
+	if (hovering !== null) {
+		drawCircle({
+			pos: poly.pts[hovering],
+			radius: 16,
+		})
+	}
 })
 
-poly.onCollideEnd(CURSOR, obj => {
-	poly.color = rgb(255, 0, 0)
+onMousePress(() => {
+	dragging = hovering
+})
+
+onMouseRelease(() => {
+	dragging = null
+})
+
+onMouseMove(() => {
+	hovering = null
+	const mp = mousePos().sub(poly.pos)
+	for (let i = 0; i < poly.pts.length; i++) {
+		if (mp.dist(poly.pts[i]) < 16) {
+			hovering = i
+			break
+		}
+	}
+	if (dragging !== null) {
+		poly.pts[dragging] = mousePos().sub(poly.pos)
+	}
+})
+
+poly.onHover(() => {
+	poly.color = rgb(200, 200, 255)
+})
+
+poly.onHoverEnd(() => {
+	poly.color = rgb(255, 255, 255)
 })
