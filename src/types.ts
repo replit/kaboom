@@ -1156,7 +1156,7 @@ export interface KaboomCtx {
 	loadAseprite(
 		name: string | null,
 		imgSrc: LoadSpriteSrc,
-		jsonSrc: string
+		jsonSrc: string | AsepriteData,
 	): Asset<SpriteData>,
 	loadPedit(name: string | null, src: string): Asset<SpriteData>,
 	/**
@@ -1757,7 +1757,7 @@ export interface KaboomCtx {
 	vec2(xy: number): Vec2,
 	vec2(): Vec2,
 	/**
-	 * RGB color (0 - 255).
+	 * Create a color from RGB values (0 - 255).
 	 *
 	 * @example
 	 * ```js
@@ -1766,6 +1766,16 @@ export interface KaboomCtx {
 	 * ```
 	 */
 	rgb(r: number, g: number, b: number): Color,
+	/**
+	 * Create a color from hex string.
+	 *
+	 * @since v3000.2
+	 *
+	 * @example
+	 * ```js
+	 * sky.color = rgb("#ef6360")
+	 */
+	rgb(hex: string): Color,
 	/**
 	 * Same as rgb(255, 255, 255).
 	 */
@@ -2511,7 +2521,7 @@ export interface KaboomOpt<T extends PluginList<any> = any> {
 	/**
 	 * Background color. E.g. [ 0, 0, 255 ] for solid blue background, or [ 0, 0, 0, 0 ] for transparent background.
 	 */
-	background?: number[],
+	background?: number[] | string,
 	/**
 	 * Default texture filter.
 	 */
@@ -2971,6 +2981,26 @@ export declare class Asset<D> {
 
 export type LoadSpriteSrc = string | ImageSource
 
+export type AsepriteData = {
+	frames: Array<{
+		frame: {
+			x: number,
+			y: number,
+			w: number,
+			h: number,
+		},
+	}>,
+	meta: {
+		size: { w: number, h: number },
+		frameTags: Array<{
+			name: string,
+			from: number,
+			to: number,
+			direction: "forward" | "reverse" | "pingpong",
+		}>,
+	},
+}
+
 export declare class SpriteData {
 	tex: Texture
 	frames: Quad[]
@@ -3000,6 +3030,12 @@ export declare class SoundData {
 export interface LoadFontOpt {
 	filter?: TexFilter,
 	outline?: number | Outline,
+	/**
+	 * The size to load the font in (default 64).
+	 *
+	 * @since v3000.2
+	 */
+	size?: number,
 }
 
 export interface LoadBitmapFontOpt {

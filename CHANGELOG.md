@@ -1,5 +1,9 @@
+### v3000.1.15
+- fixed `loadRoot()` not working sometimes
+- fixed audio being resumed when the tab is switched on but `debug.paused` is true
+
 ### v3000.1.12
-- fix `color()` and `rgb()` not working
+- fixed `color()` and `rgb()` not working
 
 ### v3000.1.11
 - added option `kaboom({ focus: false })` to disable focus on start
@@ -8,11 +12,11 @@
 - added `Color#toHSL()`
 
 ### v3000.1.10
-- fix test code accidentally getting shipped (where a screenshot will be downloaded every time you press space)
+- fixed test code accidentally getting shipped (where a screenshot will be downloaded every time you press space)
 
 ### v3000.1.9
 - added `fill` option to `rect()`, `circle()` and `sprite()`
-- fix view getting cut off in letterbox mode
+- fixed view getting cut off in letterbox mode
 
 ### v3000.1.8
 - fixed `scale` option acting weird when width and height are defined (by @hirnsalat)

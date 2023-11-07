@@ -1,6 +1,5 @@
 import {
 	Event,
-	isDataURL,
 } from "./utils"
 
 export class Asset<D> {
@@ -100,61 +99,33 @@ export class AssetBucket<D> {
 	}
 }
 
-export default () => {
-
-	const state = {
-		urlPrefix: "",
-		loaded: false,
-	}
-
-	function setURLPrefix(prefix: string) {
-		state.urlPrefix = prefix
-	}
-
-	function getURLPrefix() {
-		return state.urlPrefix
-	}
-
-	function fetchURL(path: string) {
-		const url = state.urlPrefix + path
-		return fetch(url)
-			.then((res) => {
-				if (!res.ok) throw new Error(`Failed to fetch "${url}"`)
-				return res
-			})
-	}
-
-	function fetchJSON(path: string) {
-		return fetchURL(path).then((res) => res.json())
-	}
-
-	function fetchText(path: string) {
-		return fetchURL(path).then((res) => res.text())
-	}
-
-	function fetchArrayBuffer(path: string) {
-		return fetchURL(path).then((res) => res.arrayBuffer())
-	}
-
-	// wrapper around image loader to get a Promise
-	function loadImg(src: string): Promise<HTMLImageElement> {
-		const img = new Image()
-		img.crossOrigin = "anonymous"
-		img.src = isDataURL(src) ? src : state.urlPrefix + src
-		return new Promise<HTMLImageElement>((resolve, reject) => {
-			img.onload = () => resolve(img)
-			img.onerror = () => reject(new Error(`Failed to load image from "${src}"`))
+export function fetchURL(url: string) {
+	return fetch(url)
+		.then((res) => {
+			if (!res.ok) throw new Error(`Failed to fetch "${url}"`)
+			return res
 		})
-	}
+}
 
-	return {
-		setURLPrefix,
-		getURLPrefix,
-		loadImg,
-		fetchURL,
-		fetchJSON,
-		fetchText,
-		fetchArrayBuffer,
-	}
+export function fetchJSON(path: string) {
+	return fetchURL(path).then((res) => res.json())
+}
 
+export function fetchText(path: string) {
+	return fetchURL(path).then((res) => res.text())
+}
+
+export function fetchArrayBuffer(path: string) {
+	return fetchURL(path).then((res) => res.arrayBuffer())
+}
+
+// wrapper around image loader to get a Promise
+export function loadImg(src: string): Promise<HTMLImageElement> {
+	const img = new Image()
+	img.crossOrigin = "anonymous"
+	img.src = src
+	return new Promise<HTMLImageElement>((resolve, reject) => {
+		img.onload = () => resolve(img)
+		img.onerror = () => reject(new Error(`Failed to load image from "${src}"`))
+	})
 }

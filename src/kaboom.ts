@@ -1,4 +1,4 @@
-const VERSION = "3000.1.13"
+const VERSION = "3000.1.15"
 
 import initApp from "./app"
 import initGfx, {
@@ -8,9 +8,13 @@ import initGfx, {
 	BatchRenderer,
 } from "./gfx"
 
-import initAssets, {
+import {
 	Asset,
 	AssetBucket,
+	fetchArrayBuffer,
+	fetchJSON,
+	fetchText,
+	loadImg,
 } from "./assets"
 
 import {
@@ -63,7 +67,7 @@ import {
 	downloadBlob,
 	uid,
 	isDataURL,
-	getExt,
+	getFileName,
 	overload2,
 	dataURLToArrayBuffer,
 	EventController,
@@ -96,6 +100,7 @@ import type {
 	Vertex,
 	BitmapFontData,
 	ShaderData,
+	AsepriteData,
 	LoadSpriteSrc,
 	LoadSpriteOpt,
 	SpriteAtlasData,
@@ -431,8 +436,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		texFilter: gopt.texFilter,
 	})
 
-	const ass = initAssets()
-
 	const gfx = (() => {
 
 		const defShader = makeShader(DEF_VERT, DEF_FRAG)
@@ -452,13 +455,13 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		let bgAlpha = 1
 
 		if (gopt.background) {
-			bgColor = Color.fromArray(gopt.background)
-			bgAlpha = gopt.background[3] ?? 1
+			bgColor = rgb(gopt.background)
+			bgAlpha = Array.isArray(gopt.background) ? gopt.background[3] : 1
 			gl.clearColor(
 				bgColor.r / 255,
 				bgColor.g / 255,
 				bgColor.b / 255,
-				bgAlpha,
+				bgAlpha ?? 1,
 			)
 		}
 
@@ -567,7 +570,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		}
 
 		static fromURL(url: string, opt: LoadSpriteOpt = {}): Promise<SpriteData> {
-			return ass.loadImg(url).then((img) => SpriteData.fromImage(img, opt))
+			return loadImg(url).then((img) => SpriteData.fromImage(img, opt))
 		}
 
 	}
@@ -590,7 +593,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			if (isDataURL(url)) {
 				return SoundData.fromArrayBuffer(dataURLToArrayBuffer(url))
 			} else {
-				return ass.fetchArrayBuffer(url).then((buf) => SoundData.fromArrayBuffer(buf))
+				return fetchArrayBuffer(url).then((buf) => SoundData.fromArrayBuffer(buf))
 			}
 		}
 
@@ -624,6 +627,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	})()
 
 	const assets = {
+		urlPrefix: "",
 		// asset holders
 		sprites: new AssetBucket<SpriteData>(),
 		fonts: new AssetBucket<FontData>(),
@@ -634,6 +638,11 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		packer: new TexPacker(ggl, SPRITE_ATLAS_WIDTH, SPRITE_ATLAS_HEIGHT),
 		// if we finished initially loading all assets
 		loaded: false,
+	}
+
+	function fixURL<D>(url: D): D {
+		if (typeof url !== "string" || isDataURL(url)) return url
+		return assets.urlPrefix + url as D
 	}
 
 	const game = {
@@ -717,22 +726,27 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	// global load path prefix
 	function loadRoot(path?: string): string {
 		if (path !== undefined) {
-			ass.setURLPrefix(path)
+			assets.urlPrefix = path
 		}
-		return ass.getURLPrefix()
+		return assets.urlPrefix
 	}
 
 	function loadJSON(name, url) {
-		return assets.custom.add(name, ass.fetchJSON(url))
+		return assets.custom.add(name, fetchJSON(url))
 	}
 
 	class FontData {
 		fontface: FontFace
 		filter: TexFilter = DEF_FONT_FILTER
 		outline: Outline | null = null
+		size: number = DEF_TEXT_CACHE_SIZE
 		constructor(face: FontFace, opt: LoadFontOpt = {}) {
 			this.fontface = face
 			this.filter = opt.filter ?? DEF_FONT_FILTER
+			this.size = opt.size ?? DEF_TEXT_CACHE_SIZE
+			if (this.size > MAX_TEXT_CACHE_SIZE) {
+				throw new Error(`Max font size: ${MAX_TEXT_CACHE_SIZE}`)
+			}
 			if (opt.outline) {
 				this.outline = {
 					width: 1,
@@ -770,7 +784,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		gh: number,
 		opt: LoadBitmapFontOpt = {},
 	): Asset<BitmapFontData> {
-		return assets.bitmapFonts.add(name, ass.loadImg(src)
+		return assets.bitmapFonts.add(name, loadImg(src)
 			.then((img) => {
 				return makeFont(
 					Texture.fromImage(ggl, img, opt),
@@ -805,9 +819,10 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		src: LoadSpriteSrc,
 		data: SpriteAtlasData | string,
 	): Asset<Record<string, SpriteData>> {
+		src = fixURL(src)
 		if (typeof data === "string") {
 			return load(new Promise((res, rej) => {
-				ass.fetchJSON(data).then((json) => {
+				fetchJSON(data).then((json) => {
 					loadSpriteAtlas(src, json).then(res).catch(rej)
 				})
 			}))
@@ -875,12 +890,13 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			anims: {},
 		},
 	): Asset<SpriteData> {
+		src = fixURL(src)
 		if (Array.isArray(src)) {
 			if (src.some((s) => typeof s === "string")) {
 				return assets.sprites.add(
 					name,
 					Promise.all(src.map((s) => {
-						return typeof s === "string" ? ass.loadImg(s) : Promise.resolve(s)
+						return typeof s === "string" ? loadImg(s) : Promise.resolve(s)
 					})).then((images) => createSpriteSheet(images, opt)),
 				)
 			} else {
@@ -897,11 +913,13 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 	function loadPedit(name: string | null, src: string | PeditFile): Asset<SpriteData> {
 
+		src = fixURL(src)
+
 		// eslint-disable-next-line
 		return assets.sprites.add(name, new Promise(async (resolve) => {
 
-			const data = typeof src === "string" ? await ass.fetchJSON(src) : src
-			const images = await Promise.all(data.frames.map(ass.loadImg))
+			const data = typeof src === "string" ? await fetchJSON(src) : src
+			const images = await Promise.all(data.frames.map(loadImg))
 			const canvas = document.createElement("canvas")
 			canvas.width = data.width
 			canvas.height = data.height * data.frames.length
@@ -926,15 +944,21 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	function loadAseprite(
 		name: string | null,
 		imgSrc: LoadSpriteSrc,
-		jsonSrc: string,
+		jsonSrc: string | AsepriteData,
 	): Asset<SpriteData> {
+
+		imgSrc = fixURL(imgSrc)
+		jsonSrc = fixURL(jsonSrc)
+
 		if (typeof imgSrc === "string" && !jsonSrc) {
-			jsonSrc = imgSrc.replace(new RegExp(`${getExt(imgSrc)}$`), "json")
+			jsonSrc = getFileName(imgSrc) + ".json"
 		}
+
 		const resolveJSON = typeof jsonSrc === "string"
-			? ass.fetchJSON(jsonSrc)
+			? fetchJSON(jsonSrc)
 			: Promise.resolve(jsonSrc)
-		return assets.sprites.add(name, resolveJSON.then((data) => {
+
+		return assets.sprites.add(name, resolveJSON.then((data: AsepriteData) => {
 			const size = data.meta.size
 			const frames = data.frames.map((f: any) => {
 				return new Quad(
@@ -963,6 +987,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				anims: anims,
 			})
 		}))
+
 	}
 
 	function loadShader(
@@ -978,9 +1003,11 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		vert?: string,
 		frag?: string,
 	): Asset<ShaderData> {
+		vert = fixURL(vert)
+		frag = fixURL(frag)
 		const resolveUrl = (url?: string) =>
 			url
-				? ass.fetchText(url)
+				? fetchText(url)
 				: Promise.resolve(null)
 		const load = Promise.all([resolveUrl(vert), resolveUrl(frag)])
 			.then(([vcode, fcode]: [string | null, string | null]) => {
@@ -995,6 +1022,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		name: string | null,
 		src: string | ArrayBuffer,
 	): Asset<SoundData> {
+		src = fixURL(src)
 		return assets.sounds.add(
 			name,
 			typeof src === "string"
@@ -6183,7 +6211,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		})
 
 		app.onShow(() => {
-			if (!gopt.backgroundAudio) {
+			if (!gopt.backgroundAudio && !debug.paused) {
 				audio.ctx.resume()
 			}
 		})

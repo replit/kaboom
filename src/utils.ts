@@ -176,7 +176,8 @@ export function downloadBlob(filename: string, blob: Blob) {
 }
 
 export const isDataURL = (str: string) => str.match(/^data:\w+\/\w+;base64,.+/)
-export const getExt = (p: string) => p.split(".").pop()
+export const getFileExt = (p: string) => p.split(".").pop()
+export const getFileName = (p: string) => p.split(".").slice(0, -1).join(".")
 
 type Func = (...args: any[]) => any
 
