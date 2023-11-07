@@ -1,4 +1,4 @@
-const VERSION = "3000.1.15"
+const VERSION = "3000.1.16"
 
 import initApp from "./app"
 import initGfx, {
@@ -423,7 +423,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 	const gc: Array<() => void> = []
 
-	const gl = app.canvas()
+	const gl = app.canvas
 		.getContext("webgl", {
 			antialias: true,
 			depth: true,
@@ -1035,28 +1035,28 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		return loadSprite(name, beanSpriteSrc)
 	}
 
-	function getSprite(handle: string): Asset<SpriteData> | void {
-		return assets.sprites.get(handle)
+	function getSprite(name: string): Asset<SpriteData> | void {
+		return assets.sprites.get(name)
 	}
 
-	function getSound(handle: string): Asset<SoundData> | void {
-		return assets.sounds.get(handle)
+	function getSound(name: string): Asset<SoundData> | void {
+		return assets.sounds.get(name)
 	}
 
-	function getFont(handle: string): Asset<FontData> | void {
-		return assets.fonts.get(handle)
+	function getFont(name: string): Asset<FontData> | void {
+		return assets.fonts.get(name)
 	}
 
-	function getBitmapFont(handle: string): Asset<BitmapFontData> | void {
-		return assets.bitmapFonts.get(handle)
+	function getBitmapFont(name: string): Asset<BitmapFontData> | void {
+		return assets.bitmapFonts.get(name)
 	}
 
-	function getShader(handle: string): Asset<ShaderData> | void {
-		return assets.shaders.get(handle)
+	function getShader(name: string): Asset<ShaderData> | void {
+		return assets.shaders.get(name)
 	}
 
-	function getAsset(handle: string): Asset<any> | void {
-		return assets.custom.get(handle)
+	function getAsset(name: string): Asset<any> | void {
+		return assets.custom.get(name)
 	}
 
 	function resolveSprite(
@@ -5426,7 +5426,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 	function record(frameRate?): Recording {
 
-		const stream = app.canvas().captureStream(frameRate)
+		const stream = app.canvas.captureStream(frameRate)
 		const audioDest = audio.ctx.createMediaStreamDestination()
 
 		audio.masterNode.connect(audioDest)
@@ -5486,7 +5486,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	}
 
 	function isFocused(): boolean {
-		return document.activeElement === app.canvas()
+		return document.activeElement === app.canvas
 	}
 
 	function destroy(obj: GameObj) {
@@ -6013,10 +6013,14 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 	function handleErr(err: Error) {
 
+		console.error(err)
+
 		audio.ctx.suspend()
 
 		// TODO: this should only run once
 		app.run(() => {
+
+			frameStart()
 
 			drawUnscaled(() => {
 
@@ -6062,6 +6066,8 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				game.events.trigger("error", err)
 
 			})
+
+			frameEnd()
 
 		})
 
@@ -6489,7 +6495,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		// char sets
 		ASCII_CHARS,
 		// dom
-		canvas: app.canvas(),
+		canvas: app.canvas,
 		// misc
 		addKaboom,
 		// dirs
@@ -6525,7 +6531,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	}
 
 	if (gopt.focus !== false) {
-		app.canvas().focus()
+		app.canvas.focus()
 	}
 
 	return ctx

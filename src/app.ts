@@ -129,10 +129,6 @@ export default (opt: {
 		}>(),
 	}
 
-	function canvas() {
-		return state.canvas
-	}
-
 	function dt() {
 		return state.dt * state.timeScale
 	}
@@ -854,7 +850,7 @@ export default (opt: {
 		dt,
 		time,
 		run,
-		canvas,
+		canvas: state.canvas,
 		fps,
 		numFrames,
 		quit,

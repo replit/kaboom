@@ -1,3 +1,7 @@
+### v3000.1.16
+- fixed error not being logged
+- fixed error screen scaling error in letterbox mode
+
 ### v3000.1.15
 - fixed `loadRoot()` not working sometimes
 - fixed audio being resumed when the tab is switched on but `debug.paused` is true
