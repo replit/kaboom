@@ -4847,6 +4847,10 @@ export interface BodyComp extends Comp {
 	 */
 	jump(force?: number): void,
 	/**
+	 * Cut a jump short with a different vertical force, or cut velocity in half if no force provided.
+	 */
+	jumpRelease(force?: number | null): void,
+	/**
 	 * Register an event that runs when a collision is resolved.
 	 *
 	 * @since v3000.0

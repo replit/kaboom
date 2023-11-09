@@ -4341,6 +4341,12 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				vel.y = -force || -this.jumpForce
 			},
 
+			jumpRelease(force?: number | null) {
+				if (vel.y < 0 || force) {
+					vel.y = force ? force : vel.y * 0.5
+				}
+			},
+
 			onGround(this: GameObj, action: () => void): EventController {
 				return this.on("ground", action)
 			},
