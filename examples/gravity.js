@@ -31,6 +31,13 @@ player.onGround(() => {
 	debug.log("ouch")
 })
 
+// Accelerate falling when player holding down arrow key
+onKeyDown("down", () => {
+	if (player.vel.y > 0 && !player.isGrounded()) {
+		player.vel.y *= 1.1
+	}
+})
+
 // Add a platform to hold the player
 add([
 	rect(width(), 48),

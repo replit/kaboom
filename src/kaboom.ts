@@ -4180,7 +4180,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	// TODO: land on wall
 	function body(opt: BodyCompOpt = {}): BodyComp {
 
-		const vel = vec2(0)
 		let curPlatform: GameObj<PosComp | AreaComp | BodyComp> | null = null
 		let lastPlatformPos = null
 		let wantFall = false
@@ -4189,6 +4188,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 			id: "body",
 			require: [ "pos", "area" ],
+			vel: new Vec2(0),
 			jumpForce: opt.jumpForce ?? DEF_JUMP_FORCE,
 			gravityScale: opt.gravityScale ?? 1,
 			isStatic: opt.isStatic ?? false,
@@ -4247,7 +4247,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				this.onPhysicsResolve((col) => {
 					if (game.gravity) {
 						if (col.isBottom() && this.isFalling()) {
-							vel.y = 0
+							this.vel.y = 0
 							curPlatform = col.target as GameObj<PosComp | BodyComp | AreaComp>
 							lastPlatformPos = col.target.pos
 							if (wantFall) {
@@ -4256,7 +4256,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 								this.trigger("ground", curPlatform)
 							}
 						} else if (col.isTop() && this.isJumping()) {
-							vel.y = 0
+							this.vel.y = 0
 							this.trigger("headbutt", col.target)
 						}
 					}
@@ -4301,13 +4301,13 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 					}
 				}
 
-				const prevVelY = vel.y
-				vel.y += game.gravity * this.gravityScale * dt()
-				vel.y = Math.min(vel.y, opt.maxVelocity ?? MAX_VEL)
-				if (prevVelY < 0 && vel.y >= 0) {
+				const prevVelY = this.vel.y
+				this.vel.y += game.gravity * this.gravityScale * dt()
+				this.vel.y = Math.min(this.vel.y, opt.maxVelocity ?? MAX_VEL)
+				if (prevVelY < 0 && this.vel.y >= 0) {
 					this.trigger("fall")
 				}
-				this.move(vel)
+				this.move(this.vel)
 
 			},
 
@@ -4328,17 +4328,17 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			},
 
 			isFalling(): boolean {
-				return vel.y > 0
+				return this.vel.y > 0
 			},
 
 			isJumping(): boolean {
-				return vel.y < 0
+				return this.vel.y < 0
 			},
 
 			jump(force: number) {
 				curPlatform = null
 				lastPlatformPos = null
-				vel.y = -force || -this.jumpForce
+				this.vel.y = -force || -this.jumpForce
 			},
 
 			onGround(this: GameObj, action: () => void): EventController {

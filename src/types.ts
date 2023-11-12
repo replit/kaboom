@@ -4797,9 +4797,15 @@ export interface ShaderComp extends Comp {
 
 export interface BodyComp extends Comp {
 	/**
+	 * Object current velocity.
+	 *
+	 * @since v3000.2
+	 */
+	vel: Vec2,
+	/**
 	 * If object is static, won't move, and all non static objects won't move past it.
 	 */
-	isStatic?: boolean,
+	isStatic: boolean,
 	/**
 	 * Initial speed in pixels per second for jump().
 	 */
