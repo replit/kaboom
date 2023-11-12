@@ -33,8 +33,15 @@ player.onGround(() => {
 
 // Accelerate falling when player holding down arrow key
 onKeyDown("down", () => {
-	if (player.vel.y > 0 && !player.isGrounded()) {
-		player.vel.y *= 1.1
+	if (!player.isGrounded()) {
+		player.vel.y += dt() * 1200
+	}
+})
+
+// Jump higher if space is held
+onKeyDown("space", () => {
+	if (!player.isGrounded() && player.vel.y < 0) {
+		player.vel.y -= dt() * 600
 	}
 })
 
