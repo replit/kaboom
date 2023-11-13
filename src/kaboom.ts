@@ -4182,17 +4182,18 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 		let curPlatform: GameObj<PosComp | AreaComp | BodyComp> | null = null
 		let lastPlatformPos = null
-		let wantFall = false
+		let willFall = false
 
 		return {
 
 			id: "body",
-			require: [ "pos", "area" ],
+			require: [ "pos" ],
 			vel: new Vec2(0),
+			drag: opt.drag ?? 0,
 			jumpForce: opt.jumpForce ?? DEF_JUMP_FORCE,
 			gravityScale: opt.gravityScale ?? 1,
 			isStatic: opt.isStatic ?? false,
-			// TODO: prefer density * area()
+			// TODO: prefer density * area
 			mass: opt.mass ?? 1,
 
 			add(this: GameObj<PosComp | BodyComp | AreaComp>) {
@@ -4201,112 +4202,118 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 					throw new Error("Can't set body mass to 0")
 				}
 
-				// static vs static: don't resolve
-				// static vs non-static: always resolve non-static
-				// non-static vs non-static: resolve the first one
-				this.onCollideUpdate((other: GameObj<PosComp | BodyComp>, col) => {
+				if (this.is("area")) {
 
-					if (!other.is("body")) {
-						return
-					}
+					// static vs static: don't resolve
+					// static vs non-static: always resolve non-static
+					// non-static vs non-static: resolve the first one
+					this.onCollideUpdate((other: GameObj<PosComp | BodyComp>, col) => {
 
-					if (col.resolved) {
-						return
-					}
-
-					this.trigger("beforePhysicsResolve", col)
-					other.trigger("beforePhysicsResolve", col.reverse())
-
-					// user can mark 'resolved' in beforePhysicsResolve to stop a resolution
-					if (col.resolved) {
-						return
-					}
-
-					if (this.isStatic && other.isStatic) {
-						return
-					} else if (!this.isStatic && !other.isStatic) {
-						// TODO: update all children transform?
-						const tmass = this.mass + other.mass
-						this.pos = this.pos.add(col.displacement.scale(other.mass / tmass))
-						other.pos = other.pos.add(col.displacement.scale(-this.mass / tmass))
-						this.transform = calcTransform(this)
-						other.transform = calcTransform(other)
-					} else {
-						// if one is static and on is not, resolve the non static one
-						const col2 = (!this.isStatic && other.isStatic) ? col : col.reverse()
-						col2.source.pos = col2.source.pos.add(col2.displacement)
-						col2.source.transform = calcTransform(col2.source)
-					}
-
-					col.resolved = true
-					this.trigger("physicsResolve", col)
-					other.trigger("physicsResolve", col.reverse())
-
-				})
-
-				this.onPhysicsResolve((col) => {
-					if (game.gravity) {
-						if (col.isBottom() && this.isFalling()) {
-							this.vel.y = 0
-							curPlatform = col.target as GameObj<PosComp | BodyComp | AreaComp>
-							lastPlatformPos = col.target.pos
-							if (wantFall) {
-								wantFall = false
-							} else {
-								this.trigger("ground", curPlatform)
-							}
-						} else if (col.isTop() && this.isJumping()) {
-							this.vel.y = 0
-							this.trigger("headbutt", col.target)
+						if (!other.is("body")) {
+							return
 						}
-					}
-				})
+
+						if (col.resolved) {
+							return
+						}
+
+						this.trigger("beforePhysicsResolve", col)
+						other.trigger("beforePhysicsResolve", col.reverse())
+
+						// user can mark 'resolved' in beforePhysicsResolve to stop a resolution
+						if (col.resolved) {
+							return
+						}
+
+						if (this.isStatic && other.isStatic) {
+							return
+						} else if (!this.isStatic && !other.isStatic) {
+							// TODO: update all children transform?
+							const tmass = this.mass + other.mass
+							this.pos = this.pos.add(col.displacement.scale(other.mass / tmass))
+							other.pos = other.pos.add(col.displacement.scale(-this.mass / tmass))
+							this.transform = calcTransform(this)
+							other.transform = calcTransform(other)
+						} else {
+							// if one is static and on is not, resolve the non static one
+							const col2 = (!this.isStatic && other.isStatic) ? col : col.reverse()
+							col2.source.pos = col2.source.pos.add(col2.displacement)
+							col2.source.transform = calcTransform(col2.source)
+						}
+
+						col.resolved = true
+						this.trigger("physicsResolve", col)
+						other.trigger("physicsResolve", col.reverse())
+
+					})
+
+					this.onPhysicsResolve((col) => {
+						if (game.gravity) {
+							if (col.isBottom() && this.isFalling()) {
+								this.vel.y = 0
+								curPlatform = col.target as GameObj<PosComp | BodyComp | AreaComp>
+								lastPlatformPos = col.target.pos
+								if (willFall) {
+									willFall = false
+								} else {
+									this.trigger("ground", curPlatform)
+								}
+							} else if (col.isTop() && this.isJumping()) {
+								this.vel.y = 0
+								this.trigger("headbutt", col.target)
+							}
+						}
+					})
+
+				}
 
 			},
 
-			update(this: GameObj<PosComp | BodyComp | AreaComp>) {
+			update(this: GameObj<PosComp | BodyComp>) {
 
-				if (!game.gravity) {
-					return
-				}
+				if (game.gravity && !this.isStatic) {
 
-				if (this.isStatic) {
-					return
-				}
-
-				if (wantFall) {
-					curPlatform = null
-					lastPlatformPos = null
-					this.trigger("fallOff")
-					wantFall = false
-				}
-
-				if (curPlatform) {
-					if (
-						// TODO: this prevents from falling when on edge
-						!this.isColliding(curPlatform)
-						|| !curPlatform.exists()
-						|| !curPlatform.is("body")
-					) {
-						wantFall = true
-					} else {
-						if (
-							!curPlatform.pos.eq(lastPlatformPos)
-							&& opt.stickToPlatform !== false
-						) {
-							this.moveBy(curPlatform.pos.sub(lastPlatformPos))
-						}
-						lastPlatformPos = curPlatform.pos
-						return
+					if (willFall) {
+						curPlatform = null
+						lastPlatformPos = null
+						this.trigger("fallOff")
+						willFall = false
 					}
+
+					if (curPlatform) {
+						if (
+							// TODO: this prevents from falling when on edge
+							!this.isColliding(curPlatform)
+							|| !curPlatform.exists()
+							|| !curPlatform.is("body")
+						) {
+							willFall = true
+						} else {
+							if (
+								!curPlatform.pos.eq(lastPlatformPos)
+								&& opt.stickToPlatform !== false
+							) {
+								this.moveBy(curPlatform.pos.sub(lastPlatformPos))
+							}
+							lastPlatformPos = curPlatform.pos
+							return
+						}
+					}
+
+					const prevVelY = this.vel.y
+
+					this.vel.y += game.gravity * this.gravityScale * dt()
+					this.vel.y = Math.min(this.vel.y, opt.maxVelocity ?? MAX_VEL)
+
+					if (prevVelY < 0 && this.vel.y >= 0) {
+						this.trigger("fall")
+					}
+
 				}
 
-				const prevVelY = this.vel.y
-				this.vel.y += game.gravity * this.gravityScale * dt()
-				this.vel.y = Math.min(this.vel.y, opt.maxVelocity ?? MAX_VEL)
-				if (prevVelY < 0 && this.vel.y >= 0) {
-					this.trigger("fall")
-				}
+				this.vel.x *= (1 - this.drag)
+				this.vel.y *= (1 - this.drag)
+
 				this.move(this.vel)
 
 			},

@@ -4803,6 +4803,12 @@ export interface BodyComp extends Comp {
 	 */
 	vel: Vec2,
 	/**
+	 * How much velocity decays (velocity *= (1 - drag) every frame).
+	 *
+	 * @since v3000.2
+	 */
+	drag: number,
+	/**
 	 * If object is static, won't move, and all non static objects won't move past it.
 	 */
 	isStatic: boolean,
@@ -4906,6 +4912,12 @@ export interface DoubleJumpComp extends Comp {
 }
 
 export interface BodyCompOpt {
+	/**
+	 * How much velocity decays (velocity *= (1 - drag) every frame).
+	 *
+	 * @since v3000.2
+	 */
+	drag?: number,
 	/**
 	 * Initial speed in pixels per second for jump().
 	 */
