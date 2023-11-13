@@ -1,4 +1,4 @@
-const VERSION = "3000.1.16"
+const VERSION = "3000.1.17"
 
 import initApp from "./app"
 import initGfx, {

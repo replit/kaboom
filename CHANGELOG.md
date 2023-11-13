@@ -1,3 +1,6 @@
+### v3000.1.17
+- exposed `vel` property on `BodyComp`
+
 ### v3000.1.16
 - fixed error not being logged
 - fixed error screen scaling error in letterbox mode
