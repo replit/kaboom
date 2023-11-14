@@ -2219,6 +2219,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 					c2d.fillStyle = "#ffffff"
 					const m = c2d.measureText(ch)
 					let w = Math.ceil(m.width)
+					if (!w) continue
 					let h = font.size
 					if (atlas.outline) {
 						c2d.lineJoin = "round"
