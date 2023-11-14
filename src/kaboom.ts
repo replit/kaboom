@@ -4270,7 +4270,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 			},
 
-			update(this: GameObj<PosComp | BodyComp>) {
+			update(this: GameObj<PosComp | BodyComp | AreaComp >) {
 
 				if (game.gravity && !this.isStatic) {
 
