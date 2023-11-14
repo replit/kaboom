@@ -198,7 +198,7 @@ The second thing is `shake()`, which just shakes the screen,
 
 Here's a trick. Try pressing `F1` in the game. See all the blue outlines? This is inspect mode and it'll show all the bounding boxes of every game obj with `area()` component. Also try hovering over each game object to inspect its states like position and tags.
 
-![inspect](intro/debug.png)
+![inspect](intro/inspect.png)
 
 Now it's time to add more trees. How can we keep them spawning constantly?
 
