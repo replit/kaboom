@@ -3811,9 +3811,22 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 								this.frame = anim.from
 							}
 						} else {
-							this.frame = anim.to
-							curAnim.onEnd()
-							this.stop()
+							if (curAnim.pingpong) {
+								const isForward = curAnimDir === Math.sign(anim.to - anim.from)
+								if (isForward) {
+									this.frame = anim.to
+									curAnimDir *= -1
+									this.frame += curAnimDir
+								} else {
+									this.frame = anim.from
+									curAnim.onEnd()
+									this.stop()
+								}
+							} else {
+								this.frame = anim.to
+								curAnim.onEnd()
+								this.stop()
+							}
 						}
 					}
 
