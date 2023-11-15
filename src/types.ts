@@ -4249,7 +4249,17 @@ export interface Collision {
 
 export interface AreaCompOpt {
 	/**
-	 * The shape of the area.
+	 * The shape of the area (currently only Rect and Polygon is supported).
+	 *
+	 * @example
+	 * ```js
+	 * add([
+	 *     sprite("butterfly"),
+	 *     pos(100, 200),
+	 *     // a triangle shape!
+	 *     area({ shape: new Polygon([vec2(0), vec2(100), vec2(-100, 100)]) }),
+	 * ])
+	 * ```
 	 */
 	shape?: Shape,
 	/**
