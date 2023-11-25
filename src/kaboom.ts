@@ -6253,8 +6253,8 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			if (!fixedSize) {
 				gfx.frameBuffer.free()
 				gfx.frameBuffer = new FrameBuffer(ggl, gl.drawingBufferWidth, gl.drawingBufferHeight)
-				gfx.width = gl.drawingBufferWidth / pixelDensity
-				gfx.height = gl.drawingBufferHeight / pixelDensity
+				gfx.width = gl.drawingBufferWidth / pixelDensity / gscale
+				gfx.height = gl.drawingBufferHeight / pixelDensity / gscale
 			}
 		})
 
