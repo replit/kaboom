@@ -2519,7 +2519,7 @@ export interface KaboomOpt<T extends PluginList<any> = any> {
 	 */
 	root?: HTMLElement,
 	/**
-	 * Background color. E.g. [ 0, 0, 255 ] for solid blue background, or [ 0, 0, 0, 0 ] for transparent background.
+	 * Background color. E.g. [ 0, 0, 255 ] for solid blue background, or [ 0, 0, 0, 0 ] for transparent background. Accepts RGB value array or string hex codes.
 	 */
 	background?: number[] | string,
 	/**
