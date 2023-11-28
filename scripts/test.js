@@ -11,7 +11,9 @@ const run = async () => {
 
 	let failed = false
 	console.log("launching browser")
-	const browser = await puppeteer.launch()
+	const browser = await puppeteer.launch({
+		headless: "new"
+	})
 	console.log("getting examples list")
 	const examples = (await fs.readdir("examples"))
 		.filter((p) => !p.startsWith(".") && p.endsWith(".js"))
