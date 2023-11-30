@@ -509,7 +509,7 @@ export interface KaboomCtx {
 	 *     player.hurt(1)
 	 *     bad.hurt(1)
 	 * })
-     *
+  	 *
 	 * player.onCollide("apple", () => {
 	 *     player.heal(1)
 	 * })
