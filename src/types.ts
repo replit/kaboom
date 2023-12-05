@@ -1576,7 +1576,7 @@ export interface KaboomCtx {
 	 * ```js
 	 * // toggle fullscreen mode on "f"
 	 * onKeyPress("f", (c) => {
-	 *     fullscreen(!isFullscreen())
+	 *     setFullscreen(!isFullscreen())
 	 * })
 	 * ```
 	 */
