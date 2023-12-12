@@ -164,7 +164,7 @@ if (opts["example"]) {
 
 	const example = await request({
 		hostname: "raw.githubusercontent.com",
-		path: `replit/kaboom/master/example/${opts["example"]}.js`,
+		path: `replit/kaboom/master/examples/${opts["example"]}.js`,
 		method: "GET",
 	})
 
