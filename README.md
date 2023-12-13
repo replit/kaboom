@@ -142,7 +142,7 @@ Note that you'll need to use a bundler like `esbuild` or `webpack` to use Kaboom
 This exports a global `kaboom` function
 
 ```html
-<script src="https://unpkg.com/kaboom@3000.0.1/dist/kaboom.js"></script>
+<script src="https://unpkg.com/kaboom@3000/dist/kaboom.js"></script>
 <script>
 kaboom()
 </script>
@@ -152,7 +152,7 @@ or use with es modules
 
 ```html
 <script type="module">
-import kaboom from "https://unpkg.com/kaboom@3000.0.1/dist/kaboom.mjs"
+import kaboom from "https://unpkg.com/kaboom@3000/dist/kaboom.mjs"
 kaboom()
 </script>
 ```
