@@ -525,7 +525,7 @@ export interface KaboomCtx {
 	 * })
 	 * ```
 	 */
-	health(hp: number): HealthComp,
+	health(hp: number, maxHP?: number): HealthComp,
 	/**
 	 * Destroy the game obj after certain amount of time
 	 *
