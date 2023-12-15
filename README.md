@@ -189,8 +189,8 @@ Collection of games made with Kaboom, selected by Kaboom, [here](https://itch.io
 
 ## Misc
 
-- This project has no relation to Activision's game (Kaboom!)[https://en.wikipedia.org/wiki/Kaboom!_(video_game)]
-- Thanks to [LaJBel](https://lajbel.repl.co/) for help building the Kaboom community
+- This project has no relation to Activision's game [Kaboom!](https://en.wikipedia.org/wiki/Kaboom!_(video_game))
+- Thanks to [lajbel](https://lajbel.github.io/) for help building the Kaboom community
 - Thanks to [abrudz](https://github.com/abrudz) for the amazing [APL386 font](https://abrudz.github.io/APL386/)
 - Thanks to [Polyducks](http://polyducks.co.uk/) for the amazing [kitchen sink font](https://polyducks.itch.io/kitchen-sink-textmode-font) font
 - Thanks to [0x72](https://0x72.itch.io/) for the amazing [Dungeon Tileset](https://0x72.itch.io/dungeontileset-ii)
