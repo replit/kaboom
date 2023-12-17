@@ -1124,14 +1124,14 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			if (music) {
 				return music.data
 			} else {
-				throw new Error(`Music not found: ${src}`)
+				return null
 			}
 		} else if (src instanceof HTMLAudioElement) {
 			return src
-		} else if (src instanceof Asset) {
+		} else if (src instanceof Asset && src.data instanceof HTMLAudioElement) {
 			return src.data
 		} else {
-			throw new Error(`Invalid music: ${src}`)
+			return null
 		}
 	}
 
@@ -1255,7 +1255,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			},
 
 			set volume(val: number) {
-				music.volume = val
+				music.volume = clamp(val, 0, 1)
 			},
 
 			get volume() {
@@ -1300,7 +1300,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		const music = resolveMusic(src)
 
 		if (music) {
-			return playMusic(music)
+			return playMusic(music, opt)
 		}
 
 		const ctx = audio.ctx
