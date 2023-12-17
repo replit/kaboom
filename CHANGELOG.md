@@ -1,3 +1,6 @@
+## v3000.2
+- added `loadMusic()` to load streaming audio (doesn't block in loading screen)
+
 ### v3000.1.17
 - exposed `vel` property on `BodyComp`
 

@@ -1,9 +1,5 @@
 export class Registry<T> extends Map<number, T> {
-	private lastID: number
-	constructor(...args) {
-		super(...args)
-		this.lastID = 0
-	}
+	private lastID: number = 0
 	push(v: T): number {
 		const id = this.lastID
 		this.set(id, v)

@@ -11,6 +11,7 @@ export class Asset<D> {
 	private onFinishEvents: Event<[]> = new Event()
 	constructor(loader: Promise<D>) {
 		loader.then((data) => {
+			this.loaded = true
 			this.data = data
 			this.onLoadEvents.trigger(data)
 		}).catch((err) => {

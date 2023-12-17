@@ -1184,14 +1184,27 @@ export interface KaboomCtx {
 	 *
 	 * @example
 	 * ```js
-	 * loadSound("shoot", "horse.ogg")
-	 * loadSound("shoot", "https://kaboomjs.com/sounds/scream6.mp3")
+	 * loadSound("shoot", "/sounds/horse.ogg")
+	 * loadSound("shoot", "/sounds/squeeze.mp3")
+	 * loadSound("shoot", "/sounds/shoot.wav")
 	 * ```
 	 */
 	loadSound(
 		name: string | null,
 		src: string | ArrayBuffer,
 	): Asset<SoundData>,
+	/**
+	 * Like loadSound(), but the audio is streamed and won't block loading. Use this for big audio files like background music.
+	 *
+	 * @example
+	 * ```js
+	 * loadMusic("shoot", "/music/bossfight.mp3")
+	 * ```
+	 */
+	loadMusic(
+		name: string | null,
+		url: string,
+	): Asset<MusicData>,
 	/**
 	 * Load a font (any format supported by the browser, e.g. ttf, otf, woff).
 	 *
@@ -1642,7 +1655,10 @@ export interface KaboomCtx {
 	 * music.speed = 1.2
 	 * ```
 	 */
-	play(src: string | SoundData | Asset<SoundData>, options?: AudioPlayOpt): AudioPlay,
+	play(
+		src: string | SoundData | Asset<SoundData> | MusicData | Asset<MusicData>,
+		options?: AudioPlayOpt,
+	): AudioPlay,
 	/**
 	 * Yep.
 	 */
@@ -2914,13 +2930,6 @@ export interface LoadSpriteOpt {
 	anims?: SpriteAnims,
 }
 
-export interface LoadSoundOpt {
-	/**
-	 * If stream audio instead of loading the entire audio upfront, use this for large audio files like background music.
-	 */
-	stream?: boolean,
-}
-
 export type NineSlice = {
 	/**
 	 * The width of the 9-slice's left column.
@@ -3026,6 +3035,8 @@ export declare class SoundData {
 	static fromArrayBuffer(buf: ArrayBuffer): Promise<SoundData>
 	static fromURL(url: string): Promise<SoundData>
 }
+
+export type MusicData = HTMLAudioElement
 
 export interface LoadFontOpt {
 	filter?: TexFilter,
