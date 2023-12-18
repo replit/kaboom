@@ -9,7 +9,7 @@ loadSprite("coin", "/sprites/coin.png")
 loadSprite("spike", "/sprites/spike.png")
 loadSprite("grass", "/sprites/grass.png")
 loadSprite("ghosty", "/sprites/ghosty.png")
-loadSound("score", "/examples/sounds/score.mp3")
+loadSound("score", "/static/examples/sounds/score.mp3")
 
 const effects = {
 	crt: () => ({
@@ -34,7 +34,7 @@ const effects = {
 }
 
 for (const effect in effects) {
-	loadShaderURL(effect, null, `/examples/shaders/${effect}.frag`)
+	loadShaderURL(effect, null, `/static/examples/shaders/${effect}.frag`)
 }
 
 let curEffect = 0
