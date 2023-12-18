@@ -7,7 +7,7 @@ kaboom()
 loadSprite("bean", "/sprites/bean.png")
 loadSprite("coin", "/sprites/coin.png")
 loadSprite("grass", "/sprites/grass.png")
-loadSound("score", "/examples/sounds/score.mp3")
+loadSound("score", "/static/examples/sounds/score.mp3")
 
 const SPEED = 480
 

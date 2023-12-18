@@ -4,7 +4,7 @@ kaboom({
 })
 
 // https://0x72.itch.io/dungeontileset-ii
-loadSpriteAtlas("/examples/sprites/dungeon.png", {
+loadSpriteAtlas("/static/examples/sprites/dungeon.png", {
 	"hero": {
 		"x": 128,
 		"y": 196,

@@ -10,8 +10,8 @@ loadSprite("spike", "/sprites/spike.png")
 loadSprite("grass", "/sprites/grass.png")
 loadSprite("ghosty", "/sprites/ghosty.png")
 loadSprite("portal", "/sprites/portal.png")
-loadSound("score", "/examples/sounds/score.mp3")
-loadSound("portal", "/examples/sounds/portal.mp3")
+loadSound("score", "/static/examples/sounds/score.mp3")
+loadSound("portal", "/static/examples/sounds/portal.mp3")
 
 setGravity(2400)
 
