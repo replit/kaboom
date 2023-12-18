@@ -9,7 +9,7 @@ loadSprite("coin", "/sprites/coin.png")
 loadSprite("spike", "/sprites/spike.png")
 loadSprite("grass", "/sprites/grass.png")
 loadSprite("ghosty", "/sprites/ghosty.png")
-loadSound("score", "/examples/sounds/score.mp3")
+loadSound("score", "/static/examples/sounds/score.mp3")
 
 const SPEED = 480
 
