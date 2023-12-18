@@ -9,7 +9,7 @@ kaboom({
 })
 
 // Loading a multi-frame sprite
-loadSprite("dino", "/examples/sprites/dino.png", {
+loadSprite("dino", "/static/examples/sprites/dino.png", {
 	// The image contains 9 frames layed out horizontally, slice it into individual frames
 	sliceX: 9,
 	// Define animations
