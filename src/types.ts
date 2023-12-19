@@ -1059,7 +1059,7 @@ export interface KaboomCtx {
 	 * @example
 	 * ```js
 	 * loadRoot("https://myassets.com/")
-	 * loadSprite("bean", "sprites/bean.png") // will resolve to "https://myassets.com/sprites/frogg.png"
+	 * loadSprite("bean", "sprites/bean.png") // will resolve to "https://myassets.com/sprites/bean.png"
 	 * ```
 	 */
 	loadRoot(path?: string): string,
