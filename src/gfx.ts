@@ -166,6 +166,11 @@ export class FrameBuffer {
 		return canvas.toDataURL()
 	}
 
+	clear() {
+		const gl = this.ctx.gl
+		gl.clear(gl.COLOR_BUFFER_BIT)
+	}
+
 	draw(action: () => void) {
 		this.bind()
 		action()
@@ -435,6 +440,7 @@ export class Mesh {
 
 function genStack<T>(setFunc: (item: T) => void) {
 	const stack: T[] = []
+	// TODO: don't do anything if pushed item is the same as the one on top?
 	const push = (item: T) => {
 		stack.push(item)
 		setFunc(item)

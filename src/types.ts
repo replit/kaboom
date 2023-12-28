@@ -3219,6 +3219,7 @@ export declare class FrameBuffer {
 	height: number
 	toImageData(): ImageData
 	toDataURL(): string
+	clear(): void
 	draw(action: () => void): void
 	bind(): void
 	unbind(): void
