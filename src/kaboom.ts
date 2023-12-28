@@ -1491,6 +1491,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			width: fb.width,
 			height: fb.height,
 			draw: (action) => {
+				flush()
 				fb.bind()
 				action()
 				flush()
