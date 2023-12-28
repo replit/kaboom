@@ -1482,7 +1482,21 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	}
 
 	function makeCanvas(w: number, h: number) {
-		return new FrameBuffer(ggl, w, h)
+		const fb = new FrameBuffer(ggl, w, h)
+		return {
+			clear: () => fb.clear(),
+			free: () => fb.free(),
+			toDataURL: () => fb.toDataURL(),
+			toImageData: () => fb.toImageData(),
+			width: fb.width,
+			height: fb.height,
+			draw: (action) => {
+				fb.bind()
+				action()
+				flush()
+				fb.unbind()
+			},
+		}
 	}
 
 	function makeShader(

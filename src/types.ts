@@ -2286,7 +2286,7 @@ export interface KaboomCtx {
 	 *
 	 * @since v3000.2
 	 */
-	makeCanvas(w: number, h: number): FrameBuffer
+	makeCanvas(w: number, h: number): Canvas
 	/**
 	 * @section Debug
 	 *
@@ -3223,6 +3223,16 @@ export declare class FrameBuffer {
 	draw(action: () => void): void
 	bind(): void
 	unbind(): void
+	free(): void
+}
+
+export type Canvas = {
+	width: number
+	height: number
+	toImageData(): ImageData
+	toDataURL(): string
+	clear(): void
+	draw(action: () => void): void
 	free(): void
 }
 
