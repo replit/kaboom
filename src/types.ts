@@ -1205,7 +1205,7 @@ export interface KaboomCtx {
 	loadMusic(
 		name: string | null,
 		url: string,
-	): Asset<MusicData>,
+	): void,
 	/**
 	 * Load a font (any format supported by the browser, e.g. ttf, otf, woff).
 	 *
@@ -3037,7 +3037,7 @@ export declare class SoundData {
 	static fromURL(url: string): Promise<SoundData>
 }
 
-export type MusicData = HTMLAudioElement
+export type MusicData = string
 
 export interface LoadFontOpt {
 	filter?: TexFilter,

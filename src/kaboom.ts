@@ -634,9 +634,9 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		fonts: new AssetBucket<FontData>(),
 		bitmapFonts: new AssetBucket<BitmapFontData>(),
 		sounds: new AssetBucket<SoundData>(),
-		music: new AssetBucket<MusicData>(),
 		shaders: new AssetBucket<ShaderData>(),
 		custom: new AssetBucket<any>(),
+		music: {},
 		packer: new TexPacker(ggl, SPRITE_ATLAS_WIDTH, SPRITE_ATLAS_HEIGHT),
 		// if we finished initially loading all assets
 		loaded: false,
@@ -1036,7 +1036,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		name: string | null,
 		url: string,
 	) {
-		return assets.music.addLoaded(name, new Audio(fixURL(url)))
+		return assets.music[name] = fixURL(url)
 	}
 
 	function loadBean(name: string = "bean"): Asset<SpriteData> {
@@ -1049,10 +1049,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 	function getSound(name: string): Asset<SoundData> | void {
 		return assets.sounds.get(name)
-	}
-
-	function getMusic(name: string): Asset<MusicData> | void {
-		return assets.music.get(name)
 	}
 
 	function getFont(name: string): Asset<FontData> | void {
@@ -1113,25 +1109,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			return src
 		} else {
 			throw new Error(`Invalid sound: ${src}`)
-		}
-	}
-
-	function resolveMusic(
-		src: string | MusicData | Asset<MusicData>,
-	): MusicData | null {
-		if (typeof src === "string") {
-			const music = getMusic(src)
-			if (music) {
-				return music.data
-			} else {
-				return null
-			}
-		} else if (src instanceof HTMLAudioElement) {
-			return src
-		} else if (src instanceof Asset && src.data instanceof HTMLAudioElement) {
-			return src.data
-		} else {
-			return null
 		}
 	}
 
@@ -1201,73 +1178,81 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		return audio.masterNode.gain.value
 	}
 
-	// TODO: create new Audio() on every call?
-	function playMusic(music: MusicData, opt: AudioPlayOpt = {}): AudioPlay {
+	function playMusic(url: string, opt: AudioPlayOpt = {}): AudioPlay {
 
 		const onEndEvents = new Event()
+		const el = new Audio(url)
+		const src = audio.ctx.createMediaElementSource(el)
+
+		src.connect(audio.masterNode)
 
 		if (!opt.paused) {
-			music.play()
+			// TODO: check debug.paused and tab hidden state
+			audio.ctx.resume()
+			el.play()
 		}
 
-		music.onended = () => onEndEvents.trigger()
+		el.onended = () => onEndEvents.trigger()
 
 		return {
 
-			play(time: number) {
-				this.seek(time)
+			play() {
+				audio.ctx.resume()
+				el.play()
 			},
 
-			seek() {
-				music.play()
+			seek(time: number) {
+				el.currentTime = time
 			},
 
 			stop() {
-				music.play
+				el.pause()
+				this.seek(0)
 			},
 
 			set loop(l: boolean) {
-				music.loop = l
+				el.loop = l
 			},
 
 			get loop() {
-				return music.loop
+				return el.loop
 			},
 
 			set paused(p: boolean) {
 				if (p) {
-					music.pause()
+					el.pause()
 				} else {
-					music.play()
+					audio.ctx.resume()
+					el.play()
 				}
 			},
 
 			get paused() {
-				return music.paused
+				return el.paused
 			},
 
 			time() {
-				return music.currentTime
+				return el.currentTime
 			},
 
 			duration() {
-				return music.duration
+				return el.duration
 			},
 
 			set volume(val: number) {
-				music.volume = clamp(val, 0, 1)
+				el.volume = clamp(val, 0, 1)
 			},
 
 			get volume() {
-				return music.volume
+				return el.volume
 			},
 
 			set speed(s) {
-				music.playbackRate = Math.max(s, 0)
+				el.playbackRate = Math.max(s, 0)
 			},
 
 			get speed() {
-				return music.playbackRate
+				return el.playbackRate
 			},
 
 			set detune(d) {
@@ -1296,11 +1281,8 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		opt: AudioPlayOpt = {},
 	): AudioPlay {
 
-		// @ts-ignore
-		const music = resolveMusic(src)
-
-		if (music) {
-			return playMusic(music, opt)
+		if (typeof src === "string" && assets.music[src]) {
+			return playMusic(assets.music[src], opt)
 		}
 
 		const ctx = audio.ctx
