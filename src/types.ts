@@ -189,6 +189,7 @@ export interface KaboomCtx {
 	color(r: number, g: number, b: number): ColorComp,
 	color(c: Color): ColorComp,
 	color(rgb: [number, number, number]): ColorComp,
+	color(c: string): ColorComp,
 	color(): ColorComp,
 	/**
 	 * Sets opacity (0.0 - 1.0).
@@ -509,7 +510,7 @@ export interface KaboomCtx {
 	 *     player.hurt(1)
 	 *     bad.hurt(1)
 	 * })
-  	 *
+		 *
 	 * player.onCollide("apple", () => {
 	 *     player.heal(1)
 	 * })
@@ -4670,7 +4671,7 @@ export interface RectComp extends Comp {
 	renderArea(): Rect,
 }
 
-export type PolygonCompOpt = Omit<DrawPolygonOpt,"pts">
+export type PolygonCompOpt = Omit<DrawPolygonOpt, "pts">
 
 /**
  * Component to draw a polygon.
