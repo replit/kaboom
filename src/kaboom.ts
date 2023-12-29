@@ -1188,10 +1188,19 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 		src.connect(audio.masterNode)
 
-		if (!opt.paused) {
-			// TODO: check debug.paused and tab hidden state
+		function resumeAudioCtx() {
+			if (debug.paused) return
+			if (app.isHidden() && !gopt.backgroundAudio) return
 			audio.ctx.resume()
+		}
+
+		function play() {
+			resumeAudioCtx()
 			el.play()
+		}
+
+		if (!opt.paused) {
+			play()
 		}
 
 		el.onended = () => onEndEvents.trigger()
@@ -1199,8 +1208,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		return {
 
 			play() {
-				audio.ctx.resume()
-				el.play()
+				play()
 			},
 
 			seek(time: number) {
@@ -1224,8 +1232,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				if (p) {
 					el.pause()
 				} else {
-					audio.ctx.resume()
-					el.play()
+					play()
 				}
 			},
 
@@ -6166,7 +6173,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	function handleErr(err: Error) {
 
 		console.error(err)
-
 		audio.ctx.suspend()
 
 		// TODO: this should only run once
