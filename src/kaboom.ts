@@ -1036,6 +1036,8 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		name: string | null,
 		url: string,
 	) {
+		const a = new Audio(url)
+		a.preload = "auto"
 		return assets.music[name] = fixURL(url)
 	}
 
@@ -2771,7 +2773,10 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 			draw(this: GameObj<PosComp | ScaleComp | RotateComp | FixedComp | MaskComp>) {
 				if (this.hidden) return
-				if (this.canvas) this.canvas.bind()
+				if (this.canvas) {
+					flush()
+					this.canvas.bind()
+				}
 				const f = gfx.fixed
 				if (this.fixed) gfx.fixed = true
 				pushTransform()
@@ -2799,7 +2804,10 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				}
 				popTransform()
 				gfx.fixed = f
-				if (this.canvas) this.canvas.unbind()
+				if (this.canvas) {
+					flush()
+					this.canvas.unbind()
+				}
 			},
 
 			drawInspect(this: GameObj<PosComp | ScaleComp | RotateComp>) {
@@ -3745,6 +3753,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		}
 	}
 
+	// TODO: accept canvas
 	// TODO: clean
 	function sprite(
 		src: string | SpriteData | Asset<SpriteData>,
