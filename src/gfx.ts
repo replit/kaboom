@@ -270,7 +270,7 @@ export class Shader {
 					gl.uniform3fv(loc, val.map(v => [v.r, v.g, v.b]).flat())
 				}
 			} else if (typeof val === "object") {
-				throw new Error("Unsupported uniform data type.");
+				throw new Error("Unsupported uniform data type.")
 				// TODO allow for struct like objects to be sent as a uniform
  			}
 		}
