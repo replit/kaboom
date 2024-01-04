@@ -1,4 +1,198 @@
-# v3000.0.0 (Unreleased)
+## v3000.2
+- added `loadMusic()` to load streaming audio (doesn't block in loading screen)
+
+### v3000.1.17
+- exposed `vel` property on `BodyComp`
+
+### v3000.1.16
+- fixed error not being logged
+- fixed error screen scaling error in letterbox mode
+
+### v3000.1.15
+- fixed `loadRoot()` not working sometimes
+- fixed audio being resumed when the tab is switched on but `debug.paused` is true
+
+### v3000.1.12
+- fixed `color()` and `rgb()` not working
+
+### v3000.1.11
+- added option `kaboom({ focus: false })` to disable focus on start
+- fixed `rand()` typing for numbers
+- fixed mouse position in fullscreen
+- added `Color#toHSL()`
+
+### v3000.1.10
+- fixed test code accidentally getting shipped (where a screenshot will be downloaded every time you press space)
+
+### v3000.1.9
+- added `fill` option to `rect()`, `circle()` and `sprite()`
+- fixed view getting cut off in letterbox mode
+
+### v3000.1.8
+- fixed `scale` option acting weird when width and height are defined (by @hirnsalat)
+
+### v3000.1.7
+- fixed `debug.paused` not pausing audio
+- added `mask()` component
+- added support for colored font outline
+```js
+loadFont("apl386", "/examples/fonts/apl386.ttf", {
+	outline: {
+		width: 8,
+		color: rgb(0, 0, 255),
+	},
+})
+```
+- fixed `wave()` not starting at `0` when time is `0`
+- kaboom now only displays error screen for kaboom's own error, instead of catching all errors in current window
+- added `KaboomError` class for errors related to current kaboom instance
+- setting `obj.text` with `text()` component now immediately updates `width` and `height` property
+```js
+const obj = add([
+    text("oh hi"),
+    pos(100, 200),
+])
+
+// before
+obj.text = "bye"
+console.log(obj.width) // still the width of "oh hi" until next render
+
+// before
+obj.text = "bye"
+console.log(obj.width) // will be updated to the width of "bye"
+```
+
+### v3000.1.6
+- fixed `loadSound` typing to accept `ArrayBuffer`
+
+### v3000.1.5
+- added `Event#clear()` method
+- fixed `add()` without argument
+
+### v3000.1.4
+- added `audio.stop()` method
+```js
+const music = play("music")
+music.stop()
+```
+
+### v3000.1.3
+
+- fixed `onCollideUpdate()` still runs when object is paused
+- allow `add()` and `make()` without arguments
+- added `debug.numObjects()`
+- added `width` and `height` properties to `SpriteData`
+```js
+// get sprite size
+getSprite("bean").then((spr) => {
+    console.log(spr.width, spr.height)
+})
+```
+
+### v3000.1.2
+
+- fixed audio not pausing when tab hidden and `backgroundAudio` not set
+- fixed `debug.timeScale` not working
+- fixed `debug.paused` not able to resume
+- fixed `quad` option not working in `sprite()` component
+- added `onHide()` and `onShow()` for tab visibility event
+
+### v3000.1.1
+
+- fixed some indirect `fixed` related issues
+
+## v3000.1
+
+- added game object level input handling
+
+```js
+// add a scene game object
+const scene = add([])
+
+const bean = scene.add([
+    sprite("bean"),
+    pos(100, 200),
+    area(),
+    body(),
+])
+
+scene.onKeyPress("space", () => {
+  bean.jump()
+})
+
+scene.onMousePress(() => {
+  bean.jump()
+})
+
+// setting scene.paused will pause all the input events
+scene.paused = true
+
+// destroying scene will cancel all its input events
+scene.destroy()
+
+const ui = add([])
+
+ui.add(makeButton())
+
+// these will only work if ui game object is active
+ui.onMousePress(() => {
+  // ...
+})
+
+// before you'll have to manually clean up events on obj.onDestroy()
+const scene = add([])
+const evs = []
+scene.onDestroy(() => {
+  evs.forEach((ev) => ev.cancel())
+})
+evs.push(k.onKeyPress("space", () => {
+  doSomeSceneSpecificStuff()
+}))
+```
+
+- added `make()` to create game object without adding to the scene
+```js
+const obj = make([
+  sprite("bean"),
+  pos(120, 60),
+])
+
+add(obj)
+```
+
+- fixed children not inheriting `fixed()` from parent
+```js
+// before
+const ui = add([
+  fixed(),
+])
+
+ui.add([
+  rect(),
+  // have to also give all children game objects fixed()
+  fixed(),
+])
+
+// now
+const ui = add([
+  fixed(),
+])
+
+// you don't have to add fixed() to children
+ui.add([
+  rect(100, 100),
+])
+```
+
+- fixed `AreaComp#onClick()` event not getting cleaned up when game object is destroyed
+- fixed typo `isTouchScreen()` -> `isTouchscreen()`
+- fixed inspect mode doesn't show the properties box of indirect children game objects
+- fixed some problem causing kaboom to not work with vite
+- fixed "destroy" event not run on children game objects
+- calling `shake()` when another shake is happening adds to the shake instead of reset it?
+- fixed incorrect touch position when canvas is not at top left of page
+
+# v3000
 
 ## Game Objects
 
@@ -54,7 +248,7 @@ console.log(enemies.length) // 4
 
 ## Components
 
-- getter and setters now work in component properties
+- added support for getter and setters in component properties
 
 #### Area
 
@@ -172,6 +366,13 @@ loadSprite("player", [
 ## Text
 
 - added `loadFont()` to load `.ttf`, `.otf`, `.woff2` or any font supported by browser `FontFace`
+```js
+// Load a custom font from a .ttf file
+loadFont("FlowerSketches", "/examples/fonts/FlowerSketches.ttf")
+
+// Load a custom font with options
+loadFont("apl386", "/examples/fonts/apl386.ttf", { outline: 4, filter: "linear" })
+```
 - (**BREAK**) renamed previous `loadFont()` to `loadBitmapFont()`
 - (**BREAK**) removed built-in `apl386`, `apl386o`, `sink`, `sinko` (still available under `examples/fonts`)
 - changed default font size to `36`
@@ -249,9 +450,6 @@ music.loop = true
 ## Input
 
 - added `onScroll(action: (delta: Vec2) => void)` to listen mouse wheel scroll
-- added virtual controls for mobile, enabled with `virtualControls: true` in `kaboom()`
-- added `isVirtualButtonPressed()`, `isVirtualButtonDown()`, `isVirtualButtonReleased()`
-- added `onVirtualButtonPress()`, `onVirtualButtonDown()`, `onVirtualButtonRelease()`
 - fixed touches not treated as mouse
 - (**BREAK**) changed `onTouchStart()`, `onTouchMove()` and `onTouchEnd()` callback signature to `(pos: Vec2, touch: Touch) => void` (exposes the native `Touch` object)
 - added `onGamepadButtonPress()`, `onGamepadButtonDown()`, `onGamepadButtonRelease()`
@@ -259,6 +457,7 @@ music.loop = true
 - added `onGamepadStick()` to handle gamepad axes info for left and right sticks
 - added `getConnectedGamepads()`
 - added `onGamepadConnect()` and `onGamepadDisconnect()`
+- added `gamepads` option to `kaboom()` to define custom gamepads
 
 
 ## Level
@@ -390,9 +589,10 @@ timer.resume()
 - added `debug.numFrames()` to get the total number of frames elapsed
 - added `onError()` to handle error or even custom error screen
 - added `onResize()` to register an event that runs when canvas resizes
+- added `setCursorLocked()` and `isCursorLocked()`
 - (**BREAK**) renamed `cursor()` to `setCursor()`
 - (**BREAK**) renamed `fullscreen()` to `setFullscreen()`
-- (**BREAK**) renamed `isTouch()` to `isTouchScreen()`
+- (**BREAK**) renamed `isTouch()` to `isTouchscreen()`
 - (**BREAK**) removed `layers()` in favor of parent game objects (see "layers" example)
 - (**BREAK**) removed `load()` event for components, use `onLoad()` in `add()` event
 - (**BREAK**) removed `debug.objCount()` in favor of `getAll().length`
@@ -424,7 +624,7 @@ timer.resume()
 
 - fixed updates not running at all when `kaboom({ debug: false })`
 
-## v2000.2.0 "Fancy Text Mode"
+## v2000.2 "Fancy Text Mode"
 
 - added `formatText()` and `drawFormattedText()`
 - added `charSpacing` and `lineSpacing` in `TextCompOpt` and `DrawTextOpt`
@@ -472,7 +672,7 @@ timer.resume()
 
 - fixed `StateComp#enterState()` not accepting any state
 
-## v2000.1.0 "Record Mode"
+## v2000.1 "Record Mode"
 
 - added `hsl2rgb()` for converting HSL color to kaboom RGB
 - added `record()` to start a screen recording
@@ -530,7 +730,7 @@ timer.resume()
   - `AudioPlay#isStopped()`
   - `AudioPlay#isPaused()`
 
-# v2000.0.0 "Burp Mode"
+# v2000 "Burp Mode"
 - version jumped to v2000.0.0 (still semver, just big)
 - added `burp()` for easy burping
 - added decent typescript / autocomplete support and jsdocs
@@ -744,7 +944,7 @@ if (area.shape === "rect") {
 ### v0.5.1
 - added plugins npm package support e.g. `import asepritePlugin from "kaboom/plugins/aseprite"`
 
-# v0.5.0 "Sticky Type"
+# v0.5 "Sticky Type"
 - platforms are now sticky
 - moved to TypeScript
 - improved graphics performance
@@ -780,7 +980,7 @@ if (area.shape === "rect") {
 - fixed `on("destroy")` handler getting called twice
 - fixed sprite `play()` not playing
 
-# v0.4.0 "Multiboom"
+# v0.4 "Multiboom"
 - **BREAK** removed `init()` and `kaboom.global()`, in favor of `kaboom()`, also allows multiple kaboom games on one page
 ```js
 // replaces init(), and added a 'global' flag for previous kaboom.global()
@@ -808,7 +1008,7 @@ k.vec2();
 - added `numFrames()` by `sprite()`
 - added `screenshot()` that returns of a png base64 data url for a screenshot
 
-# v0.3.0 "King Dedede...Bug!"
+# v0.3 "King Dedede...Bug!"
 - **BREAK** removed `pause()` and `paused()` in favor to `kaboom.debug.paused`
 - **BREAK** removed `velY`, `curPlatform` and `maxVel` fields by `body()`
 - **BREAK** changed `curAnim` by `sprite()` to method `curAnim()`
@@ -825,7 +1025,7 @@ k.vec2();
 - added on screen logging with `log()` and `error()`
 - fixed `loadRoot()` sometimes doesn't work in async tasks
 
-# v0.2.0 "Hear the Tremble"
+# v0.2 "Hear the Tremble"
 - **BREAK** removed `aseSpriteSheet` conf field from `loadSprite(name, src, conf)`
 - added `pause()`, `resume()`, `stop()`, `loop()`, `unloop()`, `volume()`, `detune()`, `speed()` methods to the handle returned by `play()`
 - added `camShake()` for built in camera shake
@@ -841,7 +1041,7 @@ k.vec2();
 - added `readd()` to re-add an object to the scene without triggering events
 - added `level.spawn()`
 
-# v0.1.0 "Oh Hi Mark"
+# v0.1 "Oh Hi Mark"
 - **BREAK** changed default origin point to `"topleft"`, so if you want object origin point to be at center you'll need to manual `origin("center")`
 - **BREAK** integrated `kit/physics` and `kit/level` to main lib
 - **BREAK** makes `collides()` only run on first collision, not run every frame during the same collision

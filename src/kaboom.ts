@@ -1,4 +1,21 @@
-const VERSION = "3000.0.0-alpha.25"
+const VERSION = "3000.1.17"
+
+import initApp from "./app"
+import initGfx, {
+	Texture,
+	FrameBuffer,
+	Shader,
+	BatchRenderer,
+} from "./gfx"
+
+import {
+	Asset,
+	AssetBucket,
+	fetchArrayBuffer,
+	fetchJSON,
+	fetchText,
+	loadImg,
+} from "./assets"
 
 import {
 	sat,
@@ -32,16 +49,16 @@ import {
 	testRectLine,
 	testRectPoint,
 	testPolygonPoint,
-	testCirclePoint,
 	testCirclePolygon,
 	deg2rad,
 	rad2deg,
 } from "./math"
 
 import easings from "./easings"
+import TexPacker from "./texPacker"
 
 import {
-	IDList,
+	Registry,
 	Event,
 	EventHandler,
 	download,
@@ -50,10 +67,11 @@ import {
 	downloadBlob,
 	uid,
 	isDataURL,
-	getExt,
-	deepEq,
+	getFileName,
+	overload2,
 	dataURLToArrayBuffer,
 	EventController,
+	getErrorMessage,
 	// eslint-disable-next-line
 	warn,
 	// eslint-disable-next-line
@@ -61,14 +79,14 @@ import {
 	// eslint-disable-next-line
 	comparePerf,
 	BinaryHeap,
+	runes,
 } from "./utils"
 
 import type {
-	GfxShader,
 	GfxFont,
 	RenderProps,
 	CharTransform,
-	TextureOpt,
+	ImageSource,
 	FormattedText,
 	FormattedChar,
 	DrawRectOpt,
@@ -80,9 +98,9 @@ import type {
 	DrawEllipseOpt,
 	DrawUVQuadOpt,
 	Vertex,
-	FontData,
 	BitmapFontData,
 	ShaderData,
+	AsepriteData,
 	LoadSpriteSrc,
 	LoadSpriteOpt,
 	SpriteAtlasData,
@@ -95,7 +113,7 @@ import type {
 	DrawTextOpt,
 	TextAlign,
 	GameObj,
-	SceneID,
+	SceneName,
 	SceneDef,
 	CompList,
 	Comp,
@@ -111,7 +129,6 @@ import type {
 	AnchorComp,
 	ZComp,
 	FollowComp,
-	MoveComp,
 	OffScreenCompOpt,
 	OffScreenComp,
 	AreaCompOpt,
@@ -125,6 +142,7 @@ import type {
 	RectComp,
 	RectCompOpt,
 	UVQuadComp,
+	CircleCompOpt,
 	CircleComp,
 	OutlineComp,
 	TimerComp,
@@ -135,24 +153,21 @@ import type {
 	FixedComp,
 	StayComp,
 	HealthComp,
-	LifespanComp,
 	LifespanCompOpt,
 	StateComp,
 	Debug,
 	KaboomPlugin,
-	MergeObj,
+	EmptyComp,
 	LevelComp,
 	Edge,
 	TileComp,
 	TileCompOpt,
 	LevelOpt,
-	Cursor,
 	Recording,
 	BoomOpt,
 	PeditFile,
 	Shape,
 	DoubleJumpComp,
-	VirtualButton,
 	TimerController,
 	TweenController,
 	LoadFontOpt,
@@ -162,26 +177,20 @@ import type {
 	GetOpt,
 	Vec2Args,
 	NineSlice,
-	GamepadButton,
 	LerpValue,
+	TexFilter,
+	MaskComp,
+	Mask,
+	Outline,
+	PolygonComp,
+	PolygonCompOpt,
+	MusicData,
 } from "./types"
 
-import FPSCounter from "./fps"
-import Timer from "./timer"
-import GAMEPAD_MAP from "./gamepad.json"
-
-// @ts-ignore
 import beanSpriteSrc from "./assets/bean.png"
-// @ts-ignore
 import burpSoundSrc from "./assets/burp.mp3"
-// @ts-ignore
 import kaSpriteSrc from "./assets/ka.png"
-// @ts-ignore
 import boomSpriteSrc from "./assets/boom.png"
-
-type EventList<M> = {
-	[event in keyof M]?: (event: M[event]) => void
-}
 
 interface SpriteCurAnim {
 	name: string,
@@ -191,34 +200,6 @@ interface SpriteCurAnim {
 	pingpong: boolean,
 	onEnd: () => void,
 }
-
-// translate these key names to a simpler version
-const KEY_ALIAS = {
-	"ArrowLeft": "left",
-	"ArrowRight": "right",
-	"ArrowUp": "up",
-	"ArrowDown": "down",
-	" ": "space",
-}
-
-// don't trigger browser default event when these keys are pressed
-const PREVENT_DEFAULT_KEYS = new Set([
-	" ",
-	"ArrowLeft",
-	"ArrowRight",
-	"ArrowUp",
-	"ArrowDown",
-	"Tab",
-])
-
-// according to https://developer.mozilla.org/en-US/docs/Web/API/MouseEvent/button
-const MOUSE_BUTTONS: MouseButton[] = [
-	"left",
-	"middle",
-	"right",
-	"back",
-	"forward",
-]
 
 // some default charsets for loading bitmap fonts
 const ASCII_CHARS = " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~"
@@ -238,8 +219,10 @@ const SPRITE_ATLAS_HEIGHT = 2048
 // 0.1 pixel padding to texture coordinates to prevent artifact
 const UV_PAD = 0.1
 const DEF_HASH_GRID_SIZE = 64
+const DEF_FONT_FILTER = "linear"
 
-const LOG_MAX = 1
+const LOG_MAX = 8
+const LOG_TIME = 4
 
 const VERTEX_FORMAT = [
 	{ name: "a_pos", size: 2 },
@@ -330,25 +313,6 @@ const COMP_EVENTS = new Set([
 	"drawInspect",
 ])
 
-// wrappers around full screen functions to work across browsers
-function enterFullscreen(el: HTMLElement) {
-	if (el.requestFullscreen) el.requestFullscreen()
-	// @ts-ignore
-	else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen()
-}
-
-function exitFullscreen() {
-	if (document.exitFullscreen) document.exitFullscreen()
-	// @ts-ignore
-	else if (document.webkitExitFullScreen) document.webkitExitFullScreen()
-}
-
-function getFullscreenElement(): Element | void {
-	return document.fullscreenElement
-		// @ts-ignore
-		|| document.webkitFullscreenElement
-}
-
 // convert anchor string to a vec2 offset
 function anchorPt(orig: Anchor | Vec2): Vec2 {
 	switch (orig) {
@@ -378,176 +342,87 @@ function createEmptyAudioBuffer(ctx: AudioContext) {
 	return ctx.createBuffer(1, 1, 44100)
 }
 
-class ButtonState<T = string> {
-	pressed: Set<T> = new Set([])
-	pressedRepeat: Set<T> = new Set([])
-	released: Set<T> = new Set([])
-	down: Set<T> = new Set([])
-	update() {
-		this.pressed.clear()
-		this.released.clear()
-		this.pressedRepeat.clear()
-	}
-	press(btn: T) {
-		this.pressed.add(btn)
-		this.pressedRepeat.add(btn)
-		this.down.add(btn)
-	}
-	pressRepeat(btn: T) {
-		this.pressedRepeat.add(btn)
-	}
-	release(btn: T) {
-		this.down.delete(btn)
-		this.pressed.delete(btn)
-		this.released.add(btn)
-	}
-}
-
 // only exports one kaboom() which contains all the state
 export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
-	const gc: Array<() => void> = []
+	const root = gopt.root ?? document.body
 
-	const app = (() => {
+	// if root is not defined (which falls back to <body>) we assume user is using kaboom on a clean page, and modify <body> to better fit a full screen canvas
+	if (root === document.body) {
+		document.body.style["width"] = "100%"
+		document.body.style["height"] = "100%"
+		document.body.style["margin"] = "0px"
+		document.documentElement.style["width"] = "100%"
+		document.documentElement.style["height"] = "100%"
+	}
 
-		const root = gopt.root ?? document.body
+	// create a <canvas> if user didn't provide one
+	const canvas = gopt.canvas ?? (() => {
+		const canvas = document.createElement("canvas")
+		root.appendChild(canvas)
+		return canvas
+	})()
 
-		// if root is not defined (which falls back to <body>) we assume user is using kaboom on a clean page, and modify <body> to better fit a full screen canvas
-		if (root === document.body) {
-			document.body.style["width"] = "100%"
-			document.body.style["height"] = "100%"
-			document.body.style["margin"] = "0px"
-			document.documentElement.style["width"] = "100%"
-			document.documentElement.style["height"] = "100%"
-		}
+	// global pixel scale
+	const gscale = gopt.scale ?? 1
+	const fixedSize = gopt.width && gopt.height && !gopt.stretch && !gopt.letterbox
 
-		// create a <canvas> if user didn't provide one
-		const canvas = gopt.canvas ?? (() => {
-			const canvas = document.createElement("canvas")
-			root.appendChild(canvas)
-			return canvas
-		})()
+	// adjust canvas size according to user size / viewport settings
+	if (fixedSize) {
+		canvas.width = gopt.width * gscale
+		canvas.height = gopt.height * gscale
+	} else {
+		canvas.width = canvas.parentElement.offsetWidth
+		canvas.height = canvas.parentElement.offsetHeight
+	}
 
-		// global pixel scale
-		const gscale = gopt.scale ?? 1
-		const fixedSize = gopt.width && gopt.height && !gopt.stretch && !gopt.letterbox
+	// canvas css styles
+	const styles = [
+		"outline: none",
+		"cursor: default",
+	]
 
-		// adjust canvas size according to user size / viewport settings
-		if (fixedSize) {
-			canvas.width = gopt.width * gscale
-			canvas.height = gopt.height * gscale
-		} else {
-			canvas.width = canvas.parentElement.offsetWidth
-			canvas.height = canvas.parentElement.offsetHeight
-		}
-
+	if (fixedSize) {
 		const cw = canvas.width
 		const ch = canvas.height
-		const pixelDensity = gopt.pixelDensity || window.devicePixelRatio
+		styles.push(`width: ${cw}px`)
+		styles.push(`height: ${ch}px`)
+	} else {
+		styles.push("width: 100%")
+		styles.push("height: 100%")
+	}
 
-		canvas.width *= pixelDensity
-		canvas.height *= pixelDensity
+	if (gopt.crisp) {
+		// chrome only supports pixelated and firefox only supports crisp-edges
+		styles.push("image-rendering: pixelated")
+		styles.push("image-rendering: crisp-edges")
+	}
 
-		// canvas css styles
-		const styles = [
-			"outline: none",
-			"cursor: default",
-		]
+	canvas.style.cssText = styles.join(";")
 
-		if (fixedSize) {
-			styles.push(`width: ${cw}px`)
-			styles.push(`height: ${ch}px`)
-		} else {
-			styles.push("width: 100%")
-			styles.push("height: 100%")
-		}
+	const pixelDensity = gopt.pixelDensity || window.devicePixelRatio
 
-		if (gopt.crisp) {
-			// chrome only supports pixelated and firefox only supports crisp-edges
-			styles.push("image-rendering: pixelated")
-			styles.push("image-rendering: crisp-edges")
-		}
+	canvas.width *= pixelDensity
+	canvas.height *= pixelDensity
+	// make canvas focusable
+	canvas.tabIndex = 0
 
-		canvas.style.cssText = styles.join(";")
-		// make canvas focusable
-		canvas.tabIndex = 0
+	const fontCacheCanvas = document.createElement("canvas")
+	fontCacheCanvas.width = MAX_TEXT_CACHE_SIZE
+	fontCacheCanvas.height = MAX_TEXT_CACHE_SIZE
+	const fontCacheC2d = fontCacheCanvas.getContext("2d", {
+		willReadFrequently: true,
+	})
 
-		const fontCacheCanvas = document.createElement("canvas")
-		fontCacheCanvas.width = MAX_TEXT_CACHE_SIZE
-		fontCacheCanvas.height = MAX_TEXT_CACHE_SIZE
-		const fontCacheCtx = fontCacheCanvas.getContext("2d", {
-			willReadFrequently: true,
-		})
+	const app = initApp({
+		canvas: canvas,
+		touchToMouse: gopt.touchToMouse,
+		gamepads: gopt.gamepads,
+		pixelDensity: gopt.pixelDensity,
+		maxFPS: gopt.maxFPS,
+	})
 
-		let lastWidth = canvas.offsetWidth
-		let lastHeight = canvas.offsetHeight
-
-		// TODO: don't resize framebuffer if fixedSize
-		const resizeObserver = new ResizeObserver((entries) => {
-			for (const entry of entries) {
-				if (entry.target !== canvas) continue
-				if (lastWidth === canvas.offsetWidth && lastHeight === canvas.offsetHeight) return
-				lastWidth = canvas.offsetWidth
-				lastHeight = canvas.offsetHeight
-				canvas.width = lastWidth * pixelDensity
-				canvas.height = lastHeight * pixelDensity
-				gfx.frameBuffer.free()
-				gfx.frameBuffer = new FrameBuffer(gl.drawingBufferWidth, gl.drawingBufferHeight)
-				updateViewport()
-				game.ev.onOnce("frameEnd", () => {
-					// should we also pass window / view size?
-					game.ev.trigger("resize")
-				})
-			}
-		})
-
-		resizeObserver.observe(canvas)
-
-		return {
-
-			canvas: canvas,
-			pixelDensity: pixelDensity,
-			fontCacheCanvas: fontCacheCanvas,
-			fontCacheCtx: fontCacheCtx,
-
-			// keep track of all button states
-			keyState: new ButtonState<Key>(),
-			mouseState: new ButtonState<MouseButton>(),
-			virtualButtonState: new ButtonState<VirtualButton>(),
-			gamepadButtonState: new ButtonState<GamepadButton>(),
-
-			// input states from last frame, should reset every frame
-			charInputted: [],
-			isMouseMoved: false,
-			mouseStarted: false,
-			mousePos: new Vec2(0, 0),
-			mouseDeltaPos: new Vec2(0, 0),
-
-			// total time elapsed
-			time: 0,
-			// real total time elapsed (including paused time)
-			realTime: 0,
-			// if we should skip next dt, to prevent the massive dt surge if user switch to another tab for a while and comeback
-			skipTime: false,
-			// how much time last frame took
-			dt: 0.0,
-			// total frames elapsed
-			numFrames: 0,
-
-			// if we're on a touch device
-			isTouchScreen: ("ontouchstart" in window) || navigator.maxTouchPoints > 0,
-
-			// requestAnimationFrame id
-			loopID: null,
-			// if our game loop is currently stopped / paused
-			stopped: false,
-			paused: false,
-
-			fpsCounter: new FPSCounter(),
-
-		}
-
-	})()
+	const gc: Array<() => void> = []
 
 	const gl = app.canvas
 		.getContext("webgl", {
@@ -558,186 +433,9 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			preserveDrawingBuffer: true,
 		})
 
-	class Texture {
-
-		src: null | TexImageSource = null
-		glTex: WebGLTexture
-		width: number
-		height: number
-
-		constructor(w: number, h: number, opt: TextureOpt = {}) {
-
-			this.glTex = gl.createTexture()
-			gc.push(() => this.free())
-			this.bind()
-
-			if (w && h) {
-				gl.texImage2D(
-					gl.TEXTURE_2D,
-					0, gl.RGBA,
-					w,
-					h,
-					0,
-					gl.RGBA,
-					gl.UNSIGNED_BYTE,
-					null,
-				)
-			}
-
-			this.width = w
-			this.height = h
-
-			const filter = (() => {
-				switch (opt.filter ?? gopt.texFilter) {
-					case "linear": return gl.LINEAR
-					case "nearest": return gl.NEAREST
-					default: return gl.NEAREST
-				}
-			})()
-
-			const wrap = (() => {
-				switch (opt.wrap) {
-					case "repeat": return gl.REPEAT
-					case "clampToEdge": return gl.CLAMP_TO_EDGE
-					default: return gl.CLAMP_TO_EDGE
-				}
-			})()
-
-			gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, filter)
-			gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, filter)
-			gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, wrap)
-			gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, wrap)
-			this.unbind()
-
-		}
-
-		static fromImage(img: TexImageSource, opt: TextureOpt = {}): Texture {
-			const tex = new Texture(0, 0, opt)
-			tex.bind()
-			gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, img)
-			tex.width = img.width
-			tex.height = img.height
-			tex.unbind()
-			tex.src = img
-			return tex
-		}
-
-		update(img: TexImageSource, x = 0, y = 0) {
-			this.bind()
-			gl.texSubImage2D(gl.TEXTURE_2D, 0, x, y, gl.RGBA, gl.UNSIGNED_BYTE, img)
-			this.unbind()
-		}
-
-		bind() {
-			gl.bindTexture(gl.TEXTURE_2D, this.glTex)
-		}
-
-		unbind() {
-			gl.bindTexture(gl.TEXTURE_2D, null)
-		}
-
-		free() {
-			gl.deleteTexture(this.glTex)
-		}
-
-	}
-
-	class TexPacker {
-		private tex: Texture
-		private canvas: HTMLCanvasElement
-		private ctx: CanvasRenderingContext2D
-		private x: number = 0
-		private y: number = 0
-		private curHeight: number = 0
-		constructor(w: number, h: number) {
-			this.canvas = document.createElement("canvas")
-			this.canvas.width = w
-			this.canvas.height = h
-			this.tex = Texture.fromImage(this.canvas)
-			this.ctx = this.canvas.getContext("2d")
-		}
-		add(img: TexImageSource): [Texture, Quad] {
-			if (img.width > this.canvas.width || img.height > this.canvas.height) {
-				throw new Error(`Texture size (${img.width} x ${img.height}) exceeds limit (${this.canvas.width} x ${this.canvas.height})`)
-			}
-			if (this.x + img.width > this.canvas.width) {
-				this.x = 0
-				this.y += this.curHeight
-				this.curHeight = 0
-			}
-			if (this.y + img.height > this.canvas.height) {
-				this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height)
-				this.tex = Texture.fromImage(this.canvas)
-				this.x = 0
-				this.y = 0
-				this.curHeight = 0
-			}
-			const pos = new Vec2(this.x, this.y)
-			this.x += img.width
-			if (img.height > this.curHeight) {
-				this.curHeight = img.height
-			}
-			if (img instanceof ImageData) {
-				this.ctx.putImageData(img, pos.x, pos.y)
-			} else {
-				this.ctx.drawImage(img, pos.x, pos.y)
-			}
-			this.tex.update(this.canvas)
-			return [this.tex, new Quad(
-				pos.x / this.canvas.width,
-				pos.y / this.canvas.height,
-				img.width / this.canvas.width,
-				img.height / this.canvas.height,
-			)]
-		}
-	}
-
-	class FrameBuffer {
-
-		tex: Texture
-		glFrameBuffer: WebGLFramebuffer
-		glRenderBuffer: WebGLRenderbuffer
-
-		constructor(w: number, h: number, opt: TextureOpt = {}) {
-			this.tex = new Texture(w, h, opt)
-			this.glFrameBuffer = gl.createFramebuffer()
-			this.glRenderBuffer = gl.createRenderbuffer()
-			gc.push(() => this.free())
-			this.bind()
-			gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_STENCIL, w, h)
-			gl.framebufferTexture2D(
-				gl.FRAMEBUFFER,
-				gl.COLOR_ATTACHMENT0,
-				gl.TEXTURE_2D,
-				this.tex.glTex,
-				0,
-			)
-			gl.framebufferRenderbuffer(
-				gl.FRAMEBUFFER,
-				gl.DEPTH_STENCIL_ATTACHMENT,
-				gl.RENDERBUFFER,
-				this.glRenderBuffer,
-			)
-			this.unbind()
-		}
-
-		bind() {
-			gl.bindFramebuffer(gl.FRAMEBUFFER, this.glFrameBuffer)
-			gl.bindRenderbuffer(gl.RENDERBUFFER, this.glRenderBuffer)
-			// gl.viewport(0, 0, this.tex.width, this.tex.height)
-		}
-
-		unbind() {
-			gl.bindFramebuffer(gl.FRAMEBUFFER, null)
-			gl.bindRenderbuffer(gl.RENDERBUFFER, null)
-		}
-
-		free() {
-			gl.deleteFramebuffer(this.glFrameBuffer)
-			gl.deleteRenderbuffer(this.glRenderBuffer)
-		}
-
-	}
+	const ggl = initGfx(gl, {
+		texFilter: gopt.texFilter,
+	})
 
 	const gfx = (() => {
 
@@ -746,26 +444,29 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		// a 1x1 white texture to draw raw shapes like rectangles and polygons
 		// we use a texture for those so we can use only 1 pipeline for drawing sprites + shapes
 		const emptyTex = Texture.fromImage(
+			ggl,
 			new ImageData(new Uint8ClampedArray([ 255, 255, 255, 255 ]), 1, 1),
 		)
 
-		const frameBuffer = new FrameBuffer(gl.drawingBufferWidth, gl.drawingBufferHeight)
+		const frameBuffer = (gopt.width && gopt.height)
+			? new FrameBuffer(ggl, gopt.width * pixelDensity * gscale, gopt.height * pixelDensity * gscale)
+			: new FrameBuffer(ggl, gl.drawingBufferWidth, gl.drawingBufferHeight)
+
 		let bgColor: null | Color = null
 		let bgAlpha = 1
 
 		if (gopt.background) {
-			bgColor = Color.fromArray(gopt.background)
-			bgAlpha = gopt.background[3] ?? 1
+			bgColor = rgb(gopt.background)
+			bgAlpha = Array.isArray(gopt.background) ? gopt.background[3] : 1
 			gl.clearColor(
 				bgColor.r / 255,
 				bgColor.g / 255,
 				bgColor.b / 255,
-				bgAlpha,
+				bgAlpha ?? 1,
 			)
 		}
 
 		gl.enable(gl.BLEND)
-		gl.enable(gl.SCISSOR_TEST)
 		gl.blendFuncSeparate(
 			gl.SRC_ALPHA,
 			gl.ONE_MINUS_SRC_ALPHA,
@@ -773,28 +474,11 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			gl.ONE_MINUS_SRC_ALPHA,
 		)
 
-		// we only use one vertex and index buffer that batches all draw calls
-		const vbuf = gl.createBuffer()
-
-		gl.bindBuffer(gl.ARRAY_BUFFER, vbuf)
-		gl.bufferData(gl.ARRAY_BUFFER, MAX_BATCHED_VERTS * 4, gl.DYNAMIC_DRAW)
-
-		VERTEX_FORMAT.reduce((offset, f, i) => {
-			gl.vertexAttribPointer(i, f.size, gl.FLOAT, false, STRIDE * 4, offset)
-			gl.enableVertexAttribArray(i)
-			return offset + f.size * 4
-		}, 0)
-
-		gl.bindBuffer(gl.ARRAY_BUFFER, null)
-
-		const ibuf = gl.createBuffer()
-
-		gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, ibuf)
-		gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, MAX_BATCHED_INDICES * 4, gl.DYNAMIC_DRAW)
-		gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null)
+		const renderer = new BatchRenderer(ggl, VERTEX_FORMAT, MAX_BATCHED_VERTS, MAX_BATCHED_INDICES)
 
 		// a checkerboard texture used for the default background
 		const bgTex = Texture.fromImage(
+			ggl,
 			new ImageData(new Uint8ClampedArray([
 				128, 128, 128, 255,
 				190, 190, 190, 255,
@@ -808,26 +492,16 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 		return {
 
-			// keep track of how many draw calls we're doing this frame
-			drawCalls: 0,
 			// how many draw calls we're doing last frame, this is the number we give to users
 			lastDrawCalls: 0,
 
 			// gfx states
 			defShader: defShader,
-			curShader: defShader,
+			defTex: emptyTex,
 			frameBuffer: frameBuffer,
 			postShader: null,
 			postShaderUniform: null,
-			defTex: emptyTex,
-			curTex: emptyTex,
-			curUniform: {},
-			vbuf: vbuf,
-			ibuf: ibuf,
-
-			// local vertex / index buffer queue
-			vqueue: [],
-			iqueue: [],
+			renderer: renderer,
 
 			transform: new Mat4(),
 			transformStack: [],
@@ -836,8 +510,8 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			bgColor: bgColor,
 			bgAlpha: bgAlpha,
 
-			width: gopt.width,
-			height: gopt.height,
+			width: gopt.width ?? gl.drawingBufferWidth / pixelDensity / gscale,
+			height: gopt.height ?? gl.drawingBufferHeight / pixelDensity / gscale,
 
 			viewport: {
 				x: 0,
@@ -845,6 +519,8 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				width: gl.drawingBufferWidth,
 				height: gl.drawingBufferHeight,
 			},
+
+			fixed: false,
 
 		}
 
@@ -869,13 +545,21 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			this.slice9 = slice9
 		}
 
+		get width() {
+			return this.tex.width * this.frames[0].w
+		}
+
+		get height() {
+			return this.tex.height * this.frames[0].h
+		}
+
 		static from(src: LoadSpriteSrc, opt: LoadSpriteOpt = {}): Promise<SpriteData> {
 			return typeof src === "string"
 				? SpriteData.fromURL(src, opt)
 				: Promise.resolve(SpriteData.fromImage(src, opt))
 		}
 
-		static fromImage(data: TexImageSource, opt: LoadSpriteOpt = {}): SpriteData {
+		static fromImage(data: ImageSource, opt: LoadSpriteOpt = {}): SpriteData {
 			const [tex, quad] = assets.packer.add(data)
 			const frames = opt.frames ? opt.frames.map((f) => new Quad(
 				quad.x + f.x * quad.w,
@@ -918,10 +602,10 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 	const audio = (() => {
 
-		// TODO: handle when audio context is unavailable
 		const ctx = new (
 			window.AudioContext || (window as any).webkitAudioContext
 		)() as AudioContext
+
 		const masterNode = ctx.createGain()
 		masterNode.connect(ctx.destination)
 
@@ -943,93 +627,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 	})()
 
-	class Asset<D> {
-		loaded: boolean = false
-		data: D | null = null
-		error: Error | null = null
-		private onLoadEvents: Event<[D]> = new Event()
-		private onErrorEvents: Event<[Error]> = new Event()
-		private onFinishEvents: Event<[]> = new Event()
-		constructor(loader: Promise<D>) {
-			loader.then((data) => {
-				this.data = data
-				this.onLoadEvents.trigger(data)
-			}).catch((err) => {
-				this.error = err
-				if (this.onErrorEvents.numListeners() > 0) {
-					this.onErrorEvents.trigger(err)
-				} else {
-					throw err
-				}
-			}).finally(() => {
-				this.onFinishEvents.trigger()
-				this.loaded = true
-			})
-		}
-		static loaded<D>(data: D): Asset<D> {
-			const asset = new Asset(Promise.resolve(data)) as Asset<D>
-			asset.data = data
-			asset.loaded = true
-			return asset
-		}
-		onLoad(action: (data: D) => void) {
-			this.onLoadEvents.add(action)
-			return this
-		}
-		onError(action: (err: Error) => void) {
-			this.onErrorEvents.add(action)
-			return this
-		}
-		onFinish(action: () => void) {
-			this.onFinishEvents.add(action)
-			return this
-		}
-		then(action: (data: D) => void): Asset<D> {
-			return this.onLoad(action)
-		}
-		catch(action: (err: Error) => void): Asset<D> {
-			return this.onError(action)
-		}
-		finally(action: () => void): Asset<D> {
-			return this.onFinish(action)
-		}
-	}
-
-	class AssetBucket<D> {
-		assets: Map<string, Asset<D>> = new Map()
-		lastUID: number = 0
-		add(name: string | null, loader: Promise<D>): Asset<D> {
-			// if user don't provide a name we use a generated one
-			const id = name ?? (this.lastUID++ + "")
-			const asset = new Asset(loader)
-			this.assets.set(id, asset)
-			return asset
-		}
-		addLoaded(name: string | null, data: D): Asset<D> {
-			const id = name ?? (this.lastUID++ + "")
-			const asset = Asset.loaded(data)
-			this.assets.set(id, asset)
-			return asset
-		}
-		get(handle: string): Asset<D> | void {
-			return this.assets.get(handle)
-		}
-		progress(): number {
-			if (this.assets.size === 0) {
-				return 1
-			}
-			let loaded = 0
-			this.assets.forEach((asset) => {
-				if (asset.loaded) {
-					loaded++
-				}
-			})
-			return loaded / this.assets.size
-		}
-	}
-
 	const assets = {
-		// prefix for when loading from a url
 		urlPrefix: "",
 		// asset holders
 		sprites: new AssetBucket<SpriteData>(),
@@ -1038,15 +636,21 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		sounds: new AssetBucket<SoundData>(),
 		shaders: new AssetBucket<ShaderData>(),
 		custom: new AssetBucket<any>(),
-		packer: new TexPacker(SPRITE_ATLAS_WIDTH, SPRITE_ATLAS_HEIGHT),
+		music: {},
+		packer: new TexPacker(ggl, SPRITE_ATLAS_WIDTH, SPRITE_ATLAS_HEIGHT),
 		// if we finished initially loading all assets
 		loaded: false,
+	}
+
+	function fixURL<D>(url: D): D {
+		if (typeof url !== "string" || isDataURL(url)) return url
+		return assets.urlPrefix + url as D
 	}
 
 	const game = {
 
 		// general events
-		ev: new EventHandler<{
+		events: new EventHandler<{
 			mouseMove: [],
 			mouseDown: [MouseButton],
 			mousePress: [MouseButton],
@@ -1059,9 +663,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			touchStart: [Vec2, Touch],
 			touchMove: [Vec2, Touch],
 			touchEnd: [Vec2, Touch],
-			virtualButtonDown: [VirtualButton],
-			virtualButtonPress: [VirtualButton],
-			virtualButtonRelease: [VirtualButton],
 			gamepadButtonDown: [string],
 			gamepadButtonPress: [string],
 			gamepadButtonRelease: [string],
@@ -1077,6 +678,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			input: [],
 			frameEnd: [],
 			resize: [],
+			sceneLeave: [string],
 		}>(),
 
 		// object events
@@ -1103,7 +705,8 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 	}
 
-	// TODO: accept Asset<T>?
+	game.root.use(timer())
+
 	// wrap individual loaders with global loader counter, for stuff like progress bar
 	function load<T>(prom: Promise<T>): Asset<T> {
 		return assets.custom.add(null, prom)
@@ -1130,51 +733,51 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		return assets.urlPrefix
 	}
 
-	// wrapper around fetch() that applies urlPrefix and basic error handling
-	function fetchURL(path: string) {
-		const url = assets.urlPrefix + path
-		return fetch(url)
-			.then((res) => {
-				if (!res.ok) throw new Error(`Failed to fetch ${url}`)
-				return res
-			})
+	function loadJSON(name, url) {
+		return assets.custom.add(name, fetchJSON(url))
 	}
 
-	function fetchJSON(path: string) {
-		return fetchURL(path).then((res) => res.json())
+	class FontData {
+		fontface: FontFace
+		filter: TexFilter = DEF_FONT_FILTER
+		outline: Outline | null = null
+		size: number = DEF_TEXT_CACHE_SIZE
+		constructor(face: FontFace, opt: LoadFontOpt = {}) {
+			this.fontface = face
+			this.filter = opt.filter ?? DEF_FONT_FILTER
+			this.size = opt.size ?? DEF_TEXT_CACHE_SIZE
+			if (this.size > MAX_TEXT_CACHE_SIZE) {
+				throw new Error(`Max font size: ${MAX_TEXT_CACHE_SIZE}`)
+			}
+			if (opt.outline) {
+				this.outline = {
+					width: 1,
+					color: rgb(0, 0, 0),
+				}
+				if (typeof opt.outline === "number") {
+					this.outline.width = opt.outline
+				} else if (typeof opt.outline === "object") {
+					if (opt.outline.width) this.outline.width = opt.outline.width
+					if (opt.outline.color) this.outline.color = opt.outline.color
+				}
+			}
+		}
 	}
 
-	function fetchText(path: string) {
-		return fetchURL(path).then((res) => res.text())
-	}
-
-	function fetchArrayBuffer(path: string) {
-		return fetchURL(path).then((res) => res.arrayBuffer())
-	}
-
-	// wrapper around image loader to get a Promise
-	function loadImg(src: string): Promise<HTMLImageElement> {
-		const img = new Image()
-		img.crossOrigin = "anonymous"
-		img.src = isDataURL(src) ? src : assets.urlPrefix + src
-		return new Promise<HTMLImageElement>((resolve, reject) => {
-			img.onload = () => resolve(img)
-			img.onerror = () => reject(new Error(`Failed to load image from "${src}"`))
-		})
-	}
-
+	// TODO: pass in null src to store opt for default fonts like "monospace"
 	function loadFont(
 		name: string,
-		src: string | ArrayBuffer,
+		src: string | BinaryData,
 		opt: LoadFontOpt = {},
 	): Asset<FontData> {
 		const font = new FontFace(name, typeof src === "string" ? `url(${src})` : src)
 		document.fonts.add(font)
 		return assets.fonts.add(name, font.load().catch((err) => {
 			throw new Error(`Failed to load font from "${src}": ${err}`)
-		}))
+		}).then((face) => new FontData(face, opt)))
 	}
 
+	// TODO: support outline
 	// TODO: support LoadSpriteSrc
 	function loadBitmapFont(
 		name: string | null,
@@ -1186,7 +789,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		return assets.bitmapFonts.add(name, loadImg(src)
 			.then((img) => {
 				return makeFont(
-					Texture.fromImage(img, opt),
+					Texture.fromImage(ggl, img, opt),
 					gw,
 					gh,
 					opt.chars ?? ASCII_CHARS,
@@ -1213,15 +816,16 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		return frames
 	}
 
-	// TODO: load synchronously if passed TexImageSource
+	// TODO: load synchronously if passed ImageSource
 	function loadSpriteAtlas(
 		src: LoadSpriteSrc,
 		data: SpriteAtlasData | string,
 	): Asset<Record<string, SpriteData>> {
+		src = fixURL(src)
 		if (typeof data === "string") {
 			return load(new Promise((res, rej) => {
-				fetchJSON(data).then((data2) => {
-					loadSpriteAtlas(src, data2).then(res).catch(rej)
+				fetchJSON(data).then((json) => {
+					loadSpriteAtlas(src, json).then(res).catch(rej)
 				})
 			}))
 		}
@@ -1254,7 +858,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	}
 
 	function createSpriteSheet(
-		images: TexImageSource[],
+		images: ImageSource[],
 		opt: LoadSpriteOpt = {},
 	): SpriteData {
 		const canvas = document.createElement("canvas")
@@ -1262,15 +866,15 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		const height = images[0].height
 		canvas.width = width * images.length
 		canvas.height = height
-		const ctx = canvas.getContext("2d")
+		const c2d = canvas.getContext("2d")
 		images.forEach((img, i) => {
 			if (img instanceof ImageData) {
-				ctx.putImageData(img, i * width, 0)
+				c2d.putImageData(img, i * width, 0)
 			} else {
-				ctx.drawImage(img, i * width, 0)
+				c2d.drawImage(img, i * width, 0)
 			}
 		})
-		const merged = ctx.getImageData(0, 0, images.length * width, height)
+		const merged = c2d.getImageData(0, 0, images.length * width, height)
 		return SpriteData.fromImage(merged, {
 			...opt,
 			sliceX: images.length,
@@ -1288,6 +892,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			anims: {},
 		},
 	): Asset<SpriteData> {
+		src = fixURL(src)
 		if (Array.isArray(src)) {
 			if (src.some((s) => typeof s === "string")) {
 				return assets.sprites.add(
@@ -1297,7 +902,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 					})).then((images) => createSpriteSheet(images, opt)),
 				)
 			} else {
-				return assets.sprites.addLoaded(name, createSpriteSheet(src as TexImageSource[], opt))
+				return assets.sprites.addLoaded(name, createSpriteSheet(src as ImageSource[], opt))
 			}
 		} else {
 			if (typeof src === "string") {
@@ -1310,6 +915,8 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 	function loadPedit(name: string | null, src: string | PeditFile): Asset<SpriteData> {
 
+		src = fixURL(src)
+
 		// eslint-disable-next-line
 		return assets.sprites.add(name, new Promise(async (resolve) => {
 
@@ -1319,10 +926,10 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			canvas.width = data.width
 			canvas.height = data.height * data.frames.length
 
-			const ctx = canvas.getContext("2d")
+			const c2d = canvas.getContext("2d")
 
 			images.forEach((img: HTMLImageElement, i) => {
-				ctx.drawImage(img, 0, i * data.height)
+				c2d.drawImage(img, 0, i * data.height)
 			})
 
 			const spr = await loadSprite(null, canvas, {
@@ -1339,15 +946,21 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	function loadAseprite(
 		name: string | null,
 		imgSrc: LoadSpriteSrc,
-		jsonSrc: string,
+		jsonSrc: string | AsepriteData,
 	): Asset<SpriteData> {
+
+		imgSrc = fixURL(imgSrc)
+		jsonSrc = fixURL(jsonSrc)
+
 		if (typeof imgSrc === "string" && !jsonSrc) {
-			jsonSrc = imgSrc.replace(new RegExp(`${getExt(imgSrc)}$`), "json")
+			jsonSrc = getFileName(imgSrc) + ".json"
 		}
+
 		const resolveJSON = typeof jsonSrc === "string"
 			? fetchJSON(jsonSrc)
 			: Promise.resolve(jsonSrc)
-		return assets.sprites.add(name, resolveJSON.then((data) => {
+
+		return assets.sprites.add(name, resolveJSON.then((data: AsepriteData) => {
 			const size = data.meta.size
 			const frames = data.frames.map((f: any) => {
 				return new Quad(
@@ -1376,6 +989,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				anims: anims,
 			})
 		}))
+
 	}
 
 	function loadShader(
@@ -1391,6 +1005,8 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		vert?: string,
 		frag?: string,
 	): Asset<ShaderData> {
+		vert = fixURL(vert)
+		frag = fixURL(frag)
 		const resolveUrl = (url?: string) =>
 			url
 				? fetchText(url)
@@ -1407,6 +1023,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		name: string | null,
 		src: string | ArrayBuffer,
 	): Asset<SoundData> {
+		src = fixURL(src)
 		return assets.sounds.add(
 			name,
 			typeof src === "string"
@@ -1415,28 +1032,41 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		)
 	}
 
+	function loadMusic(
+		name: string | null,
+		url: string,
+	) {
+		const a = new Audio(url)
+		a.preload = "auto"
+		return assets.music[name] = fixURL(url)
+	}
+
 	function loadBean(name: string = "bean"): Asset<SpriteData> {
 		return loadSprite(name, beanSpriteSrc)
 	}
 
-	function getSprite(handle: string): Asset<SpriteData> | void {
-		return assets.sprites.get(handle)
+	function getSprite(name: string): Asset<SpriteData> | void {
+		return assets.sprites.get(name)
 	}
 
-	function getSound(handle: string): Asset<SoundData> | void {
-		return assets.sounds.get(handle)
+	function getSound(name: string): Asset<SoundData> | void {
+		return assets.sounds.get(name)
 	}
 
-	function getFont(handle: string): Asset<FontData> | void {
-		return assets.fonts.get(handle)
+	function getFont(name: string): Asset<FontData> | void {
+		return assets.fonts.get(name)
 	}
 
-	function getBitmapFont(handle: string): Asset<BitmapFontData> | void {
-		return assets.bitmapFonts.get(handle)
+	function getBitmapFont(name: string): Asset<BitmapFontData> | void {
+		return assets.bitmapFonts.get(name)
 	}
 
-	function getShader(handle: string): Asset<ShaderData> | void {
-		return assets.shaders.get(handle)
+	function getShader(name: string): Asset<ShaderData> | void {
+		return assets.shaders.get(name)
+	}
+
+	function getAsset(name: string): Asset<any> | void {
+		return assets.custom.get(name)
 	}
 
 	function resolveSprite(
@@ -1464,21 +1094,21 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	}
 
 	function resolveSound(
-		src: Parameters<typeof play>[0],
-	): SoundData | Asset<SoundData> | null {
+		src: string | SoundData | Asset<SoundData>,
+	): Asset<SoundData> | null {
 		if (typeof src === "string") {
 			const snd = getSound(src)
 			if (snd) {
-				return snd.data ? snd.data : snd
+				return snd
 			} else if (loadProgress() < 1) {
 				return null
 			} else {
 				throw new Error(`Sound not found: ${src}`)
 			}
 		} else if (src instanceof SoundData) {
-			return src
+			return Asset.loaded(src)
 		} else if (src instanceof Asset) {
-			return src.data ? src.data : src
+			return src
 		} else {
 			throw new Error(`Invalid sound: ${src}`)
 		}
@@ -1493,7 +1123,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		if (typeof src === "string") {
 			const shader = getShader(src)
 			if (shader) {
-				return shader.data ? shader.data : shader
+				return shader.data ?? shader
 			} else if (loadProgress() < 1) {
 				return null
 			} else {
@@ -1521,9 +1151,12 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			return resolveFont(gopt.font ?? DEF_FONT)
 		}
 		if (typeof src === "string") {
-			const font = getBitmapFont(src)
-			if (font) {
-				return font.data ? font.data : font
+			const bfont = getBitmapFont(src)
+			const font = getFont(src)
+			if (bfont) {
+				return bfont.data ?? bfont
+			} else if (font) {
+				return font.data ?? font
 			} else if (document.fonts.check(`${DEF_TEXT_CACHE_SIZE}px ${src}`)) {
 				return src
 			} else if (loadProgress() < 1) {
@@ -1547,15 +1180,120 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		return audio.masterNode.gain.value
 	}
 
-	// TODO: time() not correct when looped over or ended
-	// TODO: onEnd() not working
-	// plays a sound, returns a control handle
+	function playMusic(url: string, opt: AudioPlayOpt = {}): AudioPlay {
+
+		const onEndEvents = new Event()
+		const el = new Audio(url)
+		const src = audio.ctx.createMediaElementSource(el)
+
+		src.connect(audio.masterNode)
+
+		function resumeAudioCtx() {
+			if (debug.paused) return
+			if (app.isHidden() && !gopt.backgroundAudio) return
+			audio.ctx.resume()
+		}
+
+		function play() {
+			resumeAudioCtx()
+			el.play()
+		}
+
+		if (!opt.paused) {
+			play()
+		}
+
+		el.onended = () => onEndEvents.trigger()
+
+		return {
+
+			play() {
+				play()
+			},
+
+			seek(time: number) {
+				el.currentTime = time
+			},
+
+			stop() {
+				el.pause()
+				this.seek(0)
+			},
+
+			set loop(l: boolean) {
+				el.loop = l
+			},
+
+			get loop() {
+				return el.loop
+			},
+
+			set paused(p: boolean) {
+				if (p) {
+					el.pause()
+				} else {
+					play()
+				}
+			},
+
+			get paused() {
+				return el.paused
+			},
+
+			time() {
+				return el.currentTime
+			},
+
+			duration() {
+				return el.duration
+			},
+
+			set volume(val: number) {
+				el.volume = clamp(val, 0, 1)
+			},
+
+			get volume() {
+				return el.volume
+			},
+
+			set speed(s) {
+				el.playbackRate = Math.max(s, 0)
+			},
+
+			get speed() {
+				return el.playbackRate
+			},
+
+			set detune(d) {
+				// TODO
+			},
+
+			get detune() {
+				// TODO
+				return 0
+			},
+
+			onEnd(action: () => void) {
+				return onEndEvents.add(action)
+			},
+
+			then(action: () => void) {
+				return this.onEnd(action)
+			},
+
+		}
+
+	}
+
 	function play(
-		src: string | SoundData | Asset<SoundData>,
+		src: string | SoundData | Asset<SoundData> | MusicData | Asset<MusicData>,
 		opt: AudioPlayOpt = {},
 	): AudioPlay {
 
-		const snd = resolveSound(src)
+		if (typeof src === "string" && assets.music[src]) {
+			return playMusic(assets.music[src], opt)
+		}
+
 		const ctx = audio.ctx
 		let paused = opt.paused ?? false
 		let srcNode = ctx.createBufferSource()
@@ -1587,10 +1325,11 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			}
 		}
 
+		// @ts-ignore
+		const snd = resolveSound(src)
+
 		if (snd instanceof Asset) {
 			snd.onLoad(start)
-		} else if (snd instanceof SoundData) {
-			start(snd)
 		}
 
 		const getTime = () => {
@@ -1614,6 +1353,11 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		}
 
 		return {
+
+			stop() {
+				this.paused = true
+				this.seek(0)
+			},
 
 			set paused(p: boolean) {
 				if (paused === p) return
@@ -1677,7 +1421,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			},
 
 			set volume(val: number) {
-				gainNode.gain.value = val
+				gainNode.gain.value = Math.max(val, 0)
 			},
 
 			get volume() {
@@ -1697,7 +1441,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			},
 
 			time(): number {
-				return getTime()
+				return getTime() % this.duration()
 			},
 
 			onEnd(action: () => void) {
@@ -1728,100 +1472,42 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		anchor?: Anchor | Vec2,
 	}
 
+	function makeCanvas(w: number, h: number) {
+		const fb = new FrameBuffer(ggl, w, h)
+		return {
+			clear: () => fb.clear(),
+			free: () => fb.free(),
+			toDataURL: () => fb.toDataURL(),
+			toImageData: () => fb.toImageData(),
+			width: fb.width,
+			height: fb.height,
+			draw: (action) => {
+				flush()
+				fb.bind()
+				action()
+				flush()
+				fb.unbind()
+			},
+		}
+	}
+
 	function makeShader(
 		vertSrc: string | null = DEF_VERT,
 		fragSrc: string | null = DEF_FRAG,
-	): GfxShader {
-
+	): Shader {
 		const vcode = VERT_TEMPLATE.replace("{{user}}", vertSrc ?? DEF_VERT)
 		const fcode = FRAG_TEMPLATE.replace("{{user}}", fragSrc ?? DEF_FRAG)
-		const vertShader = gl.createShader(gl.VERTEX_SHADER)
-		const fragShader = gl.createShader(gl.FRAGMENT_SHADER)
-
-		gl.shaderSource(vertShader, vcode)
-		gl.shaderSource(fragShader, fcode)
-		gl.compileShader(vertShader)
-		gl.compileShader(fragShader)
-
-		const prog = gl.createProgram()
-
-		gc.push(() => gl.deleteProgram(prog))
-		gl.attachShader(prog, vertShader)
-		gl.attachShader(prog, fragShader)
-
-		gl.bindAttribLocation(prog, 0, "a_pos")
-		gl.bindAttribLocation(prog, 1, "a_uv")
-		gl.bindAttribLocation(prog, 2, "a_color")
-
-		gl.linkProgram(prog)
-
-		if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) {
-
-			const formatShaderError = (msg: string) => {
-				const FMT = /^ERROR:\s0:(?<line>\d+):\s(?<msg>.+)/
-				const match = msg.match(FMT)
-				return {
-					line: Number(match.groups.line),
-					// seem to be a \n\0 at the end of error messages, causing unwanted line break
-					msg: match.groups.msg.replace(/\n\0$/, ""),
-				}
-			}
-
-			const vertError = gl.getShaderInfoLog(vertShader)
-			const fragError = gl.getShaderInfoLog(fragShader)
-			let msg = ""
-
-			if (vertError) {
-				const err = formatShaderError(vertError)
-				msg += `Vertex shader line ${err.line - 14}: ${err.msg}`
-			}
-
-			if (fragError) {
-				const err = formatShaderError(fragError)
-				msg += `Fragment shader line ${err.line - 14}: ${err.msg}`
-			}
-
-			throw new Error(msg)
-
+		try {
+			return new Shader(ggl, vcode, fcode, VERTEX_FORMAT.map((vert) => vert.name))
+		} catch (e) {
+			const lineOffset = 14
+			const fmt = /(?<type>^\w+) SHADER ERROR: 0:(?<line>\d+): (?<msg>.+)/
+			const match = getErrorMessage(e).match(fmt)
+			const line = Number(match.groups.line) - lineOffset
+			const msg = match.groups.msg.trim()
+			const ty = match.groups.type.toLowerCase()
+			throw new Error(`${ty} shader line ${line}: ${msg}`)
 		}
-
-		gl.deleteShader(vertShader)
-		gl.deleteShader(fragShader)
-
-		return {
-
-			bind() {
-				gl.useProgram(prog)
-			},
-
-			unbind() {
-				gl.useProgram(null)
-			},
-
-			free() {
-				gl.deleteProgram(prog)
-			},
-
-			// TODO: support vec3 and vec4
-			send(uniform: Uniform) {
-				for (const name in uniform) {
-					const val = uniform[name]
-					const loc = gl.getUniformLocation(prog, name)
-					if (typeof val === "number") {
-						gl.uniform1f(loc, val)
-					} else if (val instanceof Mat4) {
-						gl.uniformMatrix4fv(loc, false, new Float32Array(val.m))
-					} else if (val instanceof Color) {
-						// TODO: opacity?
-						gl.uniform3f(loc, val.r, val.g, val.b)
-					} else if (val instanceof Vec2) {
-						gl.uniform2f(loc, val.x, val.y)
-					}
-				}
-			},
-
-		}
-
 	}
 
 	function makeFont(
@@ -1868,69 +1554,29 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			return
 		}
 
-		// flush on texture / shader change and overflow
-		if (
-			tex !== gfx.curTex
-			|| shader !== gfx.curShader
-			|| !deepEq(gfx.curUniform, uniform)
-			|| gfx.vqueue.length + verts.length * STRIDE > MAX_BATCHED_VERTS
-			|| gfx.iqueue.length + indices.length > MAX_BATCHED_INDICES
-		) {
-			flush()
-		}
+		const transform = (gfx.fixed || fixed)
+			? gfx.transform
+			: game.cam.transform.mult(gfx.transform)
 
-		const transform = fixed ? gfx.transform : game.cam.transform.mult(gfx.transform)
+		const vv = []
 
 		for (const v of verts) {
 			// normalized world space coordinate [-1.0 ~ 1.0]
 			const pt = screen2ndc(transform.multVec2(v.pos))
-			gfx.vqueue.push(
+			vv.push(
 				pt.x, pt.y,
 				v.uv.x, v.uv.y,
 				v.color.r / 255, v.color.g / 255, v.color.b / 255, v.opacity,
 			)
 		}
 
-		for (const i of indices) {
-			gfx.iqueue.push(i + gfx.vqueue.length / STRIDE - verts.length)
-		}
-
-		gfx.curTex = tex
-		gfx.curShader = shader
-		gfx.curUniform = uniform
+		gfx.renderer.push(gl.TRIANGLES, vv, indices, shader, tex, uniform)
 
 	}
 
 	// draw all batched shapes
 	function flush() {
-
-		if (
-			!gfx.curTex
-			|| !gfx.curShader
-			|| gfx.vqueue.length === 0
-			|| gfx.iqueue.length === 0
-		) {
-			return
-		}
-
-		gl.bindBuffer(gl.ARRAY_BUFFER, gfx.vbuf)
-		gl.bufferSubData(gl.ARRAY_BUFFER, 0, new Float32Array(gfx.vqueue))
-		gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, gfx.ibuf)
-		gl.bufferSubData(gl.ELEMENT_ARRAY_BUFFER, 0, new Uint16Array(gfx.iqueue))
-		gfx.curShader.bind()
-		gfx.curShader.send(gfx.curUniform)
-		gfx.curTex.bind()
-		gl.drawElements(gl.TRIANGLES, gfx.iqueue.length, gl.UNSIGNED_SHORT, 0)
-		gfx.curTex.unbind()
-		gfx.curShader.unbind()
-		gl.bindBuffer(gl.ARRAY_BUFFER, null)
-		gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null)
-
-		gfx.vqueue.length = 0
-		gfx.iqueue.length = 0
-
-		gfx.drawCalls++
-
+		gfx.renderer.flush()
 	}
 
 	// start a rendering frame, reset some states
@@ -1959,7 +1605,8 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			})
 		}
 
-		gfx.drawCalls = 0
+		gfx.renderer.numDraws = 0
+		gfx.fixed = false
 		gfx.transformStack.length = 0
 		gfx.transform = new Mat4()
 
@@ -1971,24 +1618,36 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	}
 
 	function frameEnd() {
+
 		// TODO: don't render debug UI with framebuffer
 		// TODO: polish framebuffer rendering / sizing issues
 		flush()
+		gfx.lastDrawCalls = gfx.renderer.numDraws
 		gfx.frameBuffer.unbind()
-		drawUnscaled(() => {
-			drawTexture({
-				flipY: true,
-				tex: gfx.frameBuffer.tex,
-				scale: new Vec2(1 / app.pixelDensity),
-				shader: gfx.postShader,
-				uniform: typeof gfx.postShaderUniform === "function"
-					? gfx.postShaderUniform()
-					: gfx.postShaderUniform,
-				fixed: true,
-			})
+		gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight)
+
+		const ow = gfx.width
+		const oh = gfx.height
+		gfx.width = gl.drawingBufferWidth / pixelDensity
+		gfx.height = gl.drawingBufferHeight / pixelDensity
+
+		drawTexture({
+			flipY: true,
+			tex: gfx.frameBuffer.tex,
+			pos: new Vec2(gfx.viewport.x, gfx.viewport.y),
+			width: gfx.viewport.width,
+			height: gfx.viewport.height,
+			shader: gfx.postShader,
+			uniform: typeof gfx.postShaderUniform === "function"
+				? gfx.postShaderUniform()
+				: gfx.postShaderUniform,
+			fixed: true,
 		})
+
 		flush()
-		gfx.lastDrawCalls = gfx.drawCalls
+		gfx.width = ow
+		gfx.height = oh
+
 	}
 
 	// convert a screen space coordinate to webgl normalized device coordinate
@@ -2119,7 +1778,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			// TODO: rotation
 			for (let i = 0; i < repX; i++) {
 				for (let j = 0; j < repY; j++) {
-					drawUVQuad(Object.assign(opt, {
+					drawUVQuad(Object.assign({}, opt, {
 						pos: (opt.pos || new Vec2(0)).add(new Vec2(w * i, h * j)).sub(offset),
 						scale: scale.scale(opt.scale || new Vec2(1)),
 						tex: opt.tex,
@@ -2144,7 +1803,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				scale.x = scale.y
 			}
 
-			drawUVQuad(Object.assign(opt, {
+			drawUVQuad(Object.assign({}, opt, {
 				scale: scale.scale(opt.scale || new Vec2(1)),
 				tex: opt.tex,
 				quad: q,
@@ -2175,7 +1834,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			throw new Error(`Frame not found: ${opt.frame ?? 0}`)
 		}
 
-		drawTexture(Object.assign(opt, {
+		drawTexture(Object.assign({}, opt, {
 			tex: spr.data.tex,
 			quad: q.scale(opt.quad ?? new Quad(0, 0, 1, 1)),
 		}))
@@ -2258,7 +1917,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 		}
 
-		drawPolygon(Object.assign(opt, {
+		drawPolygon(Object.assign({}, opt, {
 			offset,
 			pts,
 			...(opt.gradient ? {
@@ -2333,18 +1992,18 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			// eslint-disable-next-line
 			const radius = Math.min(opt.radius, Math.sqrt(minSLen) / 2)
 
-			drawLine(Object.assign(opt, { p1: pts[0], p2: pts[1] }))
+			drawLine(Object.assign({}, opt, { p1: pts[0], p2: pts[1] }))
 
 			for (let i = 1; i < pts.length - 2; i++) {
 				const p1 = pts[i]
 				const p2 = pts[i + 1]
-				drawLine(Object.assign(opt, {
+				drawLine(Object.assign({}, opt, {
 					p1: p1,
 					p2: p2,
 				}))
 			}
 
-			drawLine(Object.assign(opt, {
+			drawLine(Object.assign({}, opt, {
 				p1: pts[pts.length - 2],
 				p2: pts[pts.length - 1],
 			}))
@@ -2352,13 +2011,13 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		} else {
 
 			for (let i = 0; i < pts.length - 1; i++) {
-				drawLine(Object.assign(opt, {
+				drawLine(Object.assign({}, opt, {
 					p1: pts[i],
 					p2: pts[i + 1],
 				}))
 				// TODO: other line join types
 				if (opt.join !== "none") {
-					drawCircle(Object.assign(opt, {
+					drawCircle(Object.assign({}, opt, {
 						pos: pts[i],
 						radius: opt.width / 2,
 					}))
@@ -2371,16 +2030,16 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 	function drawTriangle(opt: DrawTriangleOpt) {
 		if (!opt.p1 || !opt.p2 || !opt.p3) {
-			throw new Error("drawPolygon() requires properties \"p1\", \"p2\" and \"p3\".")
+			throw new Error("drawTriangle() requires properties \"p1\", \"p2\" and \"p3\".")
 		}
-		return drawPolygon(Object.assign(opt, {
+		return drawPolygon(Object.assign({}, opt, {
 			pts: [opt.p1, opt.p2, opt.p3],
 		}))
 	}
 
 	function drawCircle(opt: DrawCircleOpt) {
 
-		if (!opt.radius) {
+		if (typeof opt.radius !== "number") {
 			throw new Error("drawCircle() requires property \"radius\".")
 		}
 
@@ -2388,7 +2047,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			return
 		}
 
-		drawEllipse(Object.assign(opt, {
+		drawEllipse(Object.assign({}, opt, {
 			radiusX: opt.radius,
 			radiusY: opt.radius,
 			angle: 0,
@@ -2422,7 +2081,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		// center
 		pts.unshift(offset)
 
-		const polyOpt = Object.assign(opt, {
+		const polyOpt = Object.assign({}, opt, {
 			pts,
 			radius: 0,
 			...(opt.gradient ? {
@@ -2476,7 +2135,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			const verts = opt.pts.map((pt, i) => ({
 				pos: new Vec2(pt.x, pt.y),
 				uv: new Vec2(0, 0),
-				color: opt.colors ? (opt.colors[i] ?? color) : color,
+				color: opt.colors ? (opt.colors[i] ? opt.colors[i].mult(color) : color) : color,
 				opacity: opt.opacity ?? 1,
 			}))
 
@@ -2577,7 +2236,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		if (tr.pos) fchar.pos = fchar.pos.add(tr.pos)
 		if (tr.scale) fchar.scale = fchar.scale.scale(vec2(tr.scale))
 		if (tr.angle) fchar.angle += tr.angle
-		if (tr.color) fchar.color = fchar.color.mult(tr.color)
+		if (tr.color && fchar.ch.length === 1) fchar.color = fchar.color.mult(tr.color)
 		if (tr.opacity) fchar.opacity *= tr.opacity
 	}
 
@@ -2616,6 +2275,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	type FontAtlas = {
 		font: BitmapFontData,
 		cursor: Vec2,
+		outline: Outline | null,
 	}
 
 	const fontAtlases: Record<string, FontAtlas> = {}
@@ -2641,21 +2301,34 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		}
 
 		const { charStyleMap, text } = compileStyledText(opt.text + "")
-		const chars = text.split("")
+		const chars = runes(text)
 
 		// if it's not bitmap font, we draw it with 2d canvas or use cached image
-		if (font instanceof FontFace || typeof font === "string") {
+		if (font instanceof FontData || typeof font === "string") {
 
-			const fontName = font instanceof FontFace ? font.family : font
+			const fontName = font instanceof FontData ? font.fontface.family : font
+			const opts: {
+				outline: Outline | null,
+				filter: TexFilter,
+			} = font instanceof FontData ? {
+				outline: font.outline,
+				filter: font.filter,
+			} : {
+				outline: null,
+				filter: DEF_FONT_FILTER,
+			}
 
 			// TODO: customizable font tex filter
 			const atlas: FontAtlas = fontAtlases[fontName] ?? {
 				font: {
-					tex: new Texture(FONT_ATLAS_WIDTH, FONT_ATLAS_HEIGHT),
+					tex: new Texture(ggl, FONT_ATLAS_WIDTH, FONT_ATLAS_HEIGHT, {
+						filter: opts.filter,
+					}),
 					map: {},
 					size: DEF_TEXT_CACHE_SIZE,
 				},
 				cursor: new Vec2(0),
+				outline: opts.outline,
 			}
 
 			if (!fontAtlases[fontName]) {
@@ -2669,21 +2342,32 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				if (!atlas.font.map[ch]) {
 
 					// TODO: use assets.packer to pack font texture
-					const c2d = app.fontCacheCtx
+					const c2d = fontCacheC2d
+					c2d.clearRect(0, 0, fontCacheCanvas.width, fontCacheCanvas.height)
 					c2d.font = `${font.size}px ${fontName}`
-					c2d.clearRect(0, 0, app.fontCacheCanvas.width, app.fontCacheCanvas.height)
 					c2d.textBaseline = "top"
 					c2d.textAlign = "left"
-					c2d.fillStyle = "rgb(255, 255, 255)"
-					c2d.fillText(ch, 0, 0)
+					c2d.fillStyle = "#ffffff"
 					const m = c2d.measureText(ch)
-					const w = Math.ceil(m.width)
-					const img = c2d.getImageData(0, 0, w, font.size)
+					let w = Math.ceil(m.width)
+					if (!w) continue
+					let h = font.size
+					if (atlas.outline) {
+						c2d.lineJoin = "round"
+						c2d.lineWidth = atlas.outline.width * 2
+						c2d.strokeStyle = atlas.outline.color.toHex()
+						c2d.strokeText(ch, atlas.outline.width, atlas.outline.width)
+						w += atlas.outline.width * 2
+						h += atlas.outline.width * 3
+					}
+					c2d.fillText(ch, atlas.outline?.width ?? 0, atlas.outline?.width ?? 0)
+
+					const img = c2d.getImageData(0, 0, w, h)
 
 					// if we are about to exceed the X axis of the texture, go to another line
 					if (atlas.cursor.x + w > FONT_ATLAS_WIDTH) {
 						atlas.cursor.x = 0
-						atlas.cursor.y += font.size
+						atlas.cursor.y += h
 						if (atlas.cursor.y > FONT_ATLAS_HEIGHT) {
 							// TODO: create another atlas
 							throw new Error("Font atlas exceeds character limit")
@@ -2691,7 +2375,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 					}
 
 					font.tex.update(img, atlas.cursor.x, atlas.cursor.y)
-					font.map[ch] = new Quad(atlas.cursor.x, atlas.cursor.y, w, font.size)
+					font.map[ch] = new Quad(atlas.cursor.x, atlas.cursor.y, w, h)
 					atlas.cursor.x += w
 
 				}
@@ -2897,124 +2581,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		popTransform()
 	}
 
-	// update viewport based on user setting and fullscreen state
-	function updateViewport() {
-
-		// content size (scaled content size, with scale, stretch and letterbox)
-		// view size (unscaled viewport size)
-		// window size (will be the same as view size except letterbox mode)
-
-		// canvas size
-		const pd = app.pixelDensity
-		const cw = gl.drawingBufferWidth / pd
-		const ch = gl.drawingBufferHeight / pd
-
-		if (isFullscreen()) {
-			// TODO: doesn't work with letterbox
-			const ww = window.innerWidth
-			const wh = window.innerHeight
-			const rw = ww / wh
-			const rc = cw / ch
-			if (rw > rc) {
-				const sw = window.innerHeight * rc
-				gfx.viewport = {
-					x: (ww - sw) / 2,
-					y: 0,
-					width: sw,
-					height: wh,
-				}
-			} else {
-				const sh = window.innerWidth / rc
-				gfx.viewport = {
-					x: 0,
-					y: (wh - sh) / 2,
-					width: ww,
-					height: sh,
-				}
-			}
-			return
-		}
-
-		if (gopt.letterbox) {
-
-			if (!gopt.width || !gopt.height) {
-				throw new Error("Letterboxing requires width and height defined.")
-			}
-
-			const rc = cw / ch
-			const rg = gopt.width / gopt.height
-
-			if (rc > rg) {
-				if (!gopt.stretch) {
-					gfx.width = ch * rg
-					gfx.height = ch
-				}
-				const sw = ch * rg
-				const sh = ch
-				const x = (cw - sw) / 2
-				gl.scissor(x * pd, 0, sw * pd, sh * pd)
-				gl.viewport(x * pd, 0, sw * pd, ch * pd)
-				gfx.viewport = {
-					x: x,
-					y: 0,
-					width: sw,
-					height: ch,
-				}
-			} else {
-				if (!gopt.stretch) {
-					gfx.width = cw
-					gfx.height = cw / rg
-				}
-				const sw = cw
-				const sh = cw / rg
-				const y = (ch - sh) / 2
-				gl.scissor(0, y * pd, sw * pd, sh * pd)
-				gl.viewport(0, y * pd, cw * pd, sh * pd)
-				gfx.viewport = {
-					x: 0,
-					y: y,
-					width: cw,
-					height: sh,
-				}
-			}
-
-			return
-
-		}
-
-		if (gopt.stretch) {
-
-			if (!gopt.width || !gopt.height) {
-				throw new Error("Stretching requires width and height defined.")
-			}
-
-			gl.viewport(0, 0, cw * pd, ch * pd)
-
-			gfx.viewport = {
-				x: 0,
-				y: 0,
-				width: cw,
-				height: ch,
-			}
-
-			return
-		}
-
-		const gscale = gopt.scale ?? 1
-
-		gfx.width = cw / gscale
-		gfx.height = ch / gscale
-		gl.viewport(0, 0, cw * pd, ch * pd)
-
-		gfx.viewport = {
-			x: 0,
-			y: 0,
-			width: cw,
-			height: ch,
-		}
-
-	}
-
 	// get game width
 	function width(): number {
 		return gfx.width
@@ -3024,10 +2590,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	function height(): number {
 		return gfx.height
 	}
-
-	const canvasEvents: EventList<HTMLElementEventMap> = {}
-	const docEvents: EventList<DocumentEventMap> = {}
-	const winEvents: EventList<WindowEventMap> = {}
 
 	// transform a point from window space to content space
 	function windowToContent(pt: Vec2) {
@@ -3045,354 +2607,39 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		)
 	}
 
-	// set game mouse pos from window mouse pos
-	function setMousePos(x: number, y: number) {
-		const mpos = windowToContent(new Vec2(x, y))
-		if (app.mouseStarted) {
-			// TODO: mouseDelta has a minimum of 5 for some reason
-			app.mouseDeltaPos = mpos.sub(app.mousePos)
-		}
-		app.mousePos = mpos
-		app.mouseStarted = true
-		app.isMouseMoved = true
+	function mousePos() {
+		return windowToContent(app.mousePos())
 	}
 
-	canvasEvents.mousemove = (e) => {
-		const [x, y] = [e.offsetX, e.offsetY]
-		game.ev.onOnce("input", () => {
-			setMousePos(x, y)
-			game.ev.trigger("mouseMove")
-		})
-	}
-
-	canvasEvents.mousedown = (e) => {
-		game.ev.onOnce("input", () => {
-			const m = MOUSE_BUTTONS[e.button]
-			if (m) app.mouseState.press(m)
-			game.ev.trigger("mousePress", m)
-		})
-	}
-
-	canvasEvents.mouseup = (e) => {
-		game.ev.onOnce("input", () => {
-			const m = MOUSE_BUTTONS[e.button]
-			if (m) app.mouseState.release(m)
-			game.ev.trigger("mouseRelease", m)
-		})
-	}
-
-	canvasEvents.keydown = (e) => {
-		if (PREVENT_DEFAULT_KEYS.has(e.key)) {
-			e.preventDefault()
-		}
-		game.ev.onOnce("input", () => {
-			const k = KEY_ALIAS[e.key] || e.key.toLowerCase()
-			if (k.length === 1) {
-				game.ev.trigger("charInput", k)
-				app.charInputted.push(k)
-			} else if (k === "space") {
-				game.ev.trigger("charInput", " ")
-				app.charInputted.push(" ")
-			}
-			if (e.repeat) {
-				app.keyState.pressRepeat(k)
-				game.ev.trigger("keyPressRepeat", k)
-			} else {
-				app.keyState.press(k)
-				game.ev.trigger("keyPressRepeat", k)
-				game.ev.trigger("keyPress", k)
-			}
-		})
-	}
-
-	canvasEvents.keyup = (e) => {
-		game.ev.onOnce("input", () => {
-			const k = KEY_ALIAS[e.key] || e.key.toLowerCase()
-			app.keyState.release(k)
-			game.ev.trigger("keyRelease", k)
-		})
-	}
-
-	canvasEvents.touchstart = (e) => {
-		// disable long tap context menu
-		e.preventDefault()
-		game.ev.onOnce("input", () => {
-			const touches = [...e.changedTouches]
-			touches.forEach((t) => {
-				game.ev.trigger(
-					"touchStart",
-					windowToContent(new Vec2(t.clientX, t.clientY)),
-					t,
-				)
-			})
-			if (gopt.touchToMouse !== false) {
-				setMousePos(touches[0].clientX, touches[0].clientY)
-				app.mouseState.press("left")
-				game.ev.trigger("mousePress", "left")
-			}
-		})
-	}
-
-	canvasEvents.touchmove = (e) => {
-		// disable scrolling
-		e.preventDefault()
-		game.ev.onOnce("input", () => {
-			const touches = [...e.changedTouches]
-			touches.forEach((t) => {
-				game.ev.trigger(
-					"touchMove",
-					windowToContent(new Vec2(t.clientX, t.clientY)),
-					t,
-				)
-			})
-			if (gopt.touchToMouse !== false) {
-				game.ev.trigger("mouseMove")
-				setMousePos(touches[0].clientX, touches[0].clientY)
-			}
-		})
-	}
-
-	canvasEvents.touchend = (e) => {
-		game.ev.onOnce("input", () => {
-			const touches = [...e.changedTouches]
-			touches.forEach((t) => {
-				game.ev.trigger(
-					"touchEnd",
-					windowToContent(new Vec2(t.clientX, t.clientY)),
-					t,
-				)
-			})
-			if (gopt.touchToMouse !== false) {
-				app.mouseState.release("left")
-				game.ev.trigger("mouseRelease", "left")
-			}
-		})
-	}
-
-	canvasEvents.touchcancel = (e) => {
-		game.ev.onOnce("input", () => {
-			const touches = [...e.changedTouches]
-			touches.forEach((t) => {
-				game.ev.trigger(
-					"touchEnd",
-					windowToContent(new Vec2(t.clientX, t.clientY)),
-					t,
-				)
-			})
-			if (gopt.touchToMouse !== false) {
-				app.mouseState.release("left")
-				game.ev.trigger("mouseRelease", "left")
-			}
-		})
-	}
-
-	// TODO: option to not prevent default?
-	canvasEvents.wheel = (e) => {
-		e.preventDefault()
-		game.ev.onOnce("input", () => {
-			game.ev.trigger("scroll", new Vec2(e.deltaX, e.deltaY))
-		})
-	}
-
-	canvasEvents.contextmenu = (e) => e.preventDefault()
-
-	docEvents.visibilitychange = () => {
-		switch (document.visibilityState) {
-			case "visible":
-				// prevent a surge of dt() when switch back after the tab being hidden for a while
-				app.skipTime = true
-				if (!debug.paused) {
-					audio.ctx.resume()
-				}
-				break
-			case "hidden":
-				// reset input when visibility changed
-				app.keyState = new ButtonState()
-				app.mouseState = new ButtonState()
-				app.virtualButtonState = new ButtonState()
-				if (!gopt.backgroundAudio) {
-					audio.ctx.suspend()
-				}
-				break
-		}
-	}
-
-	winEvents.error = (e) => {
-		if (e.error) {
-			handleErr(e.error)
-		} else {
-			handleErr(new Error(e.message))
-		}
-	}
-
-	winEvents.gamepadconnected = (e) => {
-		game.ev.onOnce("input", () => {
-			game.ev.trigger("gamepadConnect", e.gamepad)
-		})
-	}
-
-	winEvents.gamepaddisconnected = (e) => {
-		game.ev.onOnce("input", () => {
-			game.ev.trigger("gamepadDisconnect", e.gamepad)
-		})
-	}
-
-	winEvents.unhandledrejection = (e) => handleErr(e.reason)
-
-	for (const name in canvasEvents) {
-		app.canvas.addEventListener(name, canvasEvents[name])
-	}
-
-	for (const name in docEvents) {
-		document.addEventListener(name, docEvents[name])
-	}
-
-	for (const name in winEvents) {
-		window.addEventListener(name, winEvents[name])
-	}
-
-	function mousePos(): Vec2 {
-		return app.mousePos.clone()
-	}
-
-	function mouseDeltaPos(): Vec2 {
-		return app.mouseDeltaPos.clone()
-	}
-
-	function isMousePressed(m: MouseButton = "left"): boolean {
-		return app.mouseState.pressed.has(m)
-	}
-
-	function isMouseDown(m: MouseButton = "left"): boolean {
-		return app.mouseState.down.has(m)
-	}
-
-	function isMouseReleased(m: MouseButton = "left"): boolean {
-		return app.mouseState.released.has(m)
-	}
-
-	function isMouseMoved(): boolean {
-		return app.isMouseMoved
-	}
-
-	function isKeyPressed(k?: Key): boolean {
-		return k === undefined
-			? app.keyState.pressed.size > 0
-			: app.keyState.pressed.has(k)
-	}
-
-	function isKeyPressedRepeat(k?: Key): boolean {
-		return k === undefined
-			? app.keyState.pressedRepeat.size > 0
-			: app.keyState.pressedRepeat.has(k)
-	}
-
-	function isKeyDown(k?: Key): boolean {
-		return k === undefined
-			? app.keyState.down.size > 0
-			: app.keyState.down.has(k)
-	}
-
-	function isKeyReleased(k?: Key): boolean {
-		return k === undefined
-			? app.keyState.released.size > 0
-			: app.keyState.released.has(k)
-	}
-
-	function isVirtualButtonPressed(btn: VirtualButton): boolean {
-		return app.virtualButtonState.pressed.has(btn)
-	}
-
-	function isVirtualButtonDown(btn: VirtualButton): boolean {
-		return app.virtualButtonState.down.has(btn)
-	}
-
-	function isVirtualButtonReleased(btn: VirtualButton): boolean {
-		return app.virtualButtonState.released.has(btn)
-	}
-
-	function isGamepadButtonPressed(btn?: GamepadButton): boolean {
-		return btn === undefined
-			? app.gamepadButtonState.pressed.size > 0
-			: app.gamepadButtonState.pressed.has(btn)
-	}
-
-	function isGamepadButtonDown(btn?: GamepadButton): boolean {
-		return btn === undefined
-			? app.gamepadButtonState.down.size > 0
-			: app.gamepadButtonState.down.has(btn)
-	}
-
-	function isGamepadButtonReleased(btn?: GamepadButton): boolean {
-		return btn === undefined
-			? app.gamepadButtonState.released.size > 0
-			: app.gamepadButtonState.released.has(btn)
-	}
-
-	// function getGamepadStick(stick: "left" | "right"): boolean {
-
-	// }
-
-	function charInputted(): string[] {
-		return [...app.charInputted]
-	}
-
-	function time(): number {
-		return app.time
-	}
-
-	// get a base64 png image of canvas
-	function screenshot(): string {
-		return app.canvas.toDataURL()
-	}
-
-	function setCursor(c?: Cursor): Cursor {
-		if (c) {
-			app.canvas.style.cursor = c
-		}
-		return app.canvas.style.cursor
-	}
-
-	function setFullscreen(f: boolean = true) {
-		if (f) {
-			enterFullscreen(app.canvas)
-		} else {
-			exitFullscreen()
-		}
-	}
-
-	function isFullscreen(): boolean {
-		return Boolean(getFullscreenElement())
-	}
-
-	function isTouchScreen() {
-		return app.isTouchScreen
-	}
+	let debugPaused = false
 
 	const debug: Debug = {
 		inspect: false,
 		timeScale: 1,
 		showLog: true,
-		fps: () => app.fpsCounter.fps,
-		numFrames: () => app.numFrames,
+		fps: () => app.fps(),
+		numFrames: () => app.numFrames(),
 		stepFrame: updateFrame,
-		drawCalls: () => gfx.drawCalls,
+		drawCalls: () => gfx.lastDrawCalls,
 		clearLog: () => game.logs = [],
 		log: (msg) => {
 			const max = gopt.logMax ?? LOG_MAX
-			const style = msg instanceof Error ? "error" : "info"
-			game.logs.unshift(`${`[time]${time().toFixed(2)}[/time] `}[${style}]${msg?.toString ? msg.toString() : msg}[/${style}]`)
+			game.logs.unshift({
+				msg: msg,
+				time: app.time(),
+			})
 			if (game.logs.length > max) {
 				game.logs = game.logs.slice(0, max)
 			}
 		},
 		error: (msg) => debug.log(new Error(msg.toString ? msg.toString() : msg as string)),
 		curRecording: null,
+		numObjects: () => get("*", { recursive: true }).length,
 		get paused() {
-			return app.paused
+			return debugPaused
 		},
 		set paused(v) {
-			app.paused = v
+			debugPaused = v
 			if (v) {
 				audio.ctx.suspend()
 			} else {
@@ -3402,7 +2649,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	}
 
 	function dt() {
-		return app.dt * debug.timeScale
+		return app.dt() * debug.timeScale
 	}
 
 	function camPos(...pos: Vec2Args): Vec2 {
@@ -3427,7 +2674,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	}
 
 	function shake(intensity: number = 12) {
-		game.cam.shake = intensity
+		game.cam.shake += intensity
 	}
 
 	function toScreen(p: Vec2): Vec2 {
@@ -3446,38 +2693,48 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		return obj.parent ? tr.mult(obj.parent.transform) : tr
 	}
 
-	function make<T>(comps: CompList<T>): GameObj<T> {
+	function make<T>(comps: CompList<T> = []): GameObj<T> {
 
 		const compStates = new Map()
 		const cleanups = {}
-		const ev = new EventHandler()
+		const events = new EventHandler()
+		const inputEvents: EventController[] = []
+		let onCurCompCleanup = null
+		let paused = false
 
-		// TODO: "this" should be typed here
-		const obj = {
+		// @ts-ignore
+		const obj: GameObj = {
 
 			id: uid(),
 			// TODO: a nice way to hide / pause when add()-ing
 			hidden: false,
-			paused: false,
 			transform: new Mat4(),
 			children: [],
 			parent: null,
 
-			add<T2>(a: CompList<T2> | GameObj<T2>): GameObj<T2> {
-				const obj = (() => {
-					if (Array.isArray(a)) {
-						return make(a)
-					}
-					if (a.parent) {
-						throw new Error("Cannot add a game obj that already has a parent.")
-					}
-					return a
-				})()
+			set paused(p) {
+				if (p === paused) return
+				paused = p
+				for (const e of inputEvents) {
+					e.paused = p
+				}
+			},
+
+			get paused() {
+				return paused
+			},
+
+			add<T2>(a: CompList<T2> | GameObj<T2> = []): GameObj<T2> {
+				const obj = Array.isArray(a) ? make(a) : a
+				if (obj.parent) {
+					throw new Error("Cannot add a game obj that already has a parent.")
+				}
 				obj.parent = this
 				obj.transform = calcTransform(obj)
 				this.children.push(obj)
+				// TODO: trigger add for children
 				obj.trigger("add", obj)
-				game.ev.trigger("add", obj)
+				game.events.trigger("add", obj)
 				return obj
 			},
 
@@ -3493,15 +2750,24 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			remove(obj: GameObj): void {
 				const idx = this.children.indexOf(obj)
 				if (idx !== -1) {
-					obj.trigger("destroy")
-					game.ev.trigger("destroy", obj)
 					obj.parent = null
 					this.children.splice(idx, 1)
+					const trigger = (o) => {
+						o.trigger("destroy")
+						game.events.trigger("destroy", o)
+						o.children.forEach((child) => trigger(child))
+					}
+					trigger(obj)
 				}
 			},
 
-			removeAll(tag: Tag) {
-				this.get(tag).forEach((obj) => this.remove(obj))
+			// TODO: recursive
+			removeAll(tag?: Tag) {
+				if (tag) {
+					this.get(tag).forEach((obj) => this.remove(obj))
+				} else {
+					for (const child of [...this.children]) this.remove(child)
+				}
 			},
 
 			update() {
@@ -3512,18 +2778,43 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				this.trigger("update")
 			},
 
-			draw(this: GameObj<PosComp | ScaleComp | RotateComp>) {
+			draw(this: GameObj<PosComp | ScaleComp | RotateComp | FixedComp | MaskComp>) {
 				if (this.hidden) return
+				if (this.canvas) {
+					flush()
+					this.canvas.bind()
+				}
+				const f = gfx.fixed
+				if (this.fixed) gfx.fixed = true
 				pushTransform()
 				pushTranslate(this.pos)
 				pushScale(this.scale)
 				pushRotate(this.angle)
+				const children = this.children.sort((o1, o2) => (o1.z ?? 0) - (o2.z ?? 0))
 				// TODO: automatically don't draw if offscreen
-				this.trigger("draw")
-				this.children
-					.sort((o1, o2) => (o1.z ?? 0) - (o2.z ?? 0))
-					.forEach((child) => child.draw())
+				if (this.mask) {
+					const maskFunc = {
+						intersect: drawMasked,
+						subtract: drawSubtracted,
+					}[this.mask]
+					if (!maskFunc) {
+						throw new Error(`Invalid mask func: "${this.mask}"`)
+					}
+					maskFunc(() => {
+						children.forEach((child) => child.draw())
+					}, () => {
+						this.trigger("draw")
+					})
+				} else {
+					this.trigger("draw")
+					children.forEach((child) => child.draw())
+				}
 				popTransform()
+				gfx.fixed = f
+				if (this.canvas) {
+					flush()
+					this.canvas.unbind()
+				}
 			},
 
 			drawInspect(this: GameObj<PosComp | ScaleComp | RotateComp>) {
@@ -3588,7 +2879,13 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 					}
 
 					if (COMP_EVENTS.has(k)) {
-						gc.push(this.on(k, comp[k]).cancel)
+						// automatically clean up events created by components in add() stage
+						const func = k === "add" ? () => {
+							onCurCompCleanup = (c) => gc.push(c)
+							comp[k]()
+							onCurCompCleanup = null
+						} : comp[k]
+						gc.push(this.on(k, func).cancel)
 					} else {
 						if (this[k] === undefined) {
 							// assign comp fields to game obj
@@ -3623,7 +2920,11 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				// manually trigger add event if object already exist
 				if (this.exists()) {
 					checkDeps()
-					if (comp.add) comp.add.call(this)
+					if (comp.add) {
+						onCurCompCleanup = (c) => gc.push(c)
+						comp.add.call(this)
+						onCurCompCleanup = null
+					}
 				} else {
 					if (comp.require) {
 						gc.push(this.on("add", checkDeps).cancel)
@@ -3648,7 +2949,9 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 			get(t: Tag | Tag[], opts: GetOpt = {}): GameObj[] {
 				let list: GameObj[] = opts.recursive
-					? this.children.flatMap((child) => [child, ...child.children])
+					? this.children.flatMap(function recurse(child) {
+						return [child, ...child.children.flatMap(recurse)]
+					})
 					: this.children
 				list = list.filter((child) => t ? child.is(t) : true)
 				if (opts.liveUpdate) {
@@ -3657,19 +2960,25 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 							? this.isAncestorOf(obj)
 							: obj.parent === this
 					}
+					const events = []
 					// TODO: handle when object add / remove tags
-					// TODO: a way to cancel the events?
-					onAdd((obj) => {
+					// TODO: clean up when obj destroyed
+					events.push(onAdd((obj) => {
 						if (isChild(obj) && obj.is(t)) {
 							list.push(obj)
 						}
-					})
-					onDestroy((obj) => {
+					}))
+					events.push(onDestroy((obj) => {
 						if (isChild(obj) && obj.is(t)) {
 							const idx = list.findIndex((o) => o.id === obj.id)
 							if (idx !== -1) {
 								list.splice(idx, 1)
 							}
+						}
+					}))
+					this.onDestroy(() => {
+						for (const ev of events) {
+							ev.cancel()
 						}
 					})
 				}
@@ -3704,11 +3013,15 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			},
 
 			on(name: string, action: (...args) => void): EventController {
-				return ev.on(name, action.bind(this))
+				const ctrl = events.on(name, action.bind(this))
+				if (onCurCompCleanup) {
+					onCurCompCleanup(() => ctrl.cancel())
+				}
+				return ctrl
 			},
 
 			trigger(name: string, ...args): void {
-				ev.trigger(name, ...args)
+				events.trigger(name, ...args)
 				game.objEvents.trigger(name, this, ...args)
 			},
 
@@ -3743,9 +3056,41 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			},
 
 			clearEvents() {
-				ev.clear()
+				events.clear()
 			},
 
+		}
+
+		// TODO: type with as const
+		const evs = [
+			"onKeyPress",
+			"onKeyPressRepeat",
+			"onKeyDown",
+			"onKeyRelease",
+			"onMousePress",
+			"onMouseDown",
+			"onMouseRelease",
+			"onMouseMove",
+			"onCharInput",
+			"onMouseMove",
+			"onTouchStart",
+			"onTouchMove",
+			"onTouchEnd",
+			"onScroll",
+			"onGamepadButtonPress",
+			"onGamepadButtonDown",
+			"onGamepadButtonRelease",
+			"onGamepadStick",
+		]
+
+		for (const e of evs) {
+			obj[e] = (...args) => {
+				const ev = app[e](...args)
+				inputEvents.push(ev)
+				// TODO: what if the game object is destroy and re-added
+				obj.onDestroy(() => ev.cancel())
+				return ev
+			}
 		}
 
 		for (const comp of comps) {
@@ -3759,7 +3104,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	// add an event to a tag
 	function on(event: string, tag: Tag, cb: (obj: GameObj, ...args) => void): EventController {
 		if (!game.objEvents[event]) {
-			game.objEvents[event] = new IDList()
+			game.objEvents[event] = new Registry()
 		}
 		return game.objEvents.on(event, (obj, ...args) => {
 			if (obj.is(tag)) {
@@ -3768,57 +3113,47 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		})
 	}
 
-	// add update event to a tag or global update
-	const onUpdate = ((tag: Tag | (() => void), action?: (obj: GameObj) => void) => {
-		if (typeof tag === "function" && action === undefined) {
-			const obj = add([{ update: tag }])
-			return {
-				get paused() {
-					return obj.paused
-				},
-				set paused(p) {
-					obj.paused = p
-				},
-				cancel: () => obj.destroy(),
-			}
-		} else if (typeof tag === "string") {
-			return on("update", tag, action)
+	const onUpdate = overload2((action: () => void): EventController => {
+		const obj = add([{ update: action }])
+		return {
+			get paused() {
+				return obj.paused
+			},
+			set paused(p) {
+				obj.paused = p
+			},
+			cancel: () => obj.destroy(),
 		}
-	}) as KaboomCtx["onUpdate"]
+	}, (tag: Tag, action: (obj: GameObj) => void) => {
+		return on("update", tag, action)
+	})
 
-	// add draw event to a tag or global draw
-	const onDraw = ((tag: Tag | (() => void), action?: (obj: GameObj) => void) => {
-		if (typeof tag === "function" && action === undefined) {
-			const obj = add([{ draw: tag }])
-			return {
-				get paused() {
-					return obj.hidden
-				},
-				set paused(p) {
-					obj.hidden = p
-				},
-				cancel: () => obj.destroy(),
-			}
-		} else if (typeof tag === "string") {
-			return on("draw", tag, action)
+	const onDraw = overload2((action: () => void): EventController => {
+		const obj = add([{ draw: action }])
+		return {
+			get paused() {
+				return obj.hidden
+			},
+			set paused(p) {
+				obj.hidden = p
+			},
+			cancel: () => obj.destroy(),
 		}
-	}) as KaboomCtx["onDraw"]
+	}, (tag: Tag, action: (obj: GameObj) => void) => {
+		return on("draw", tag, action)
+	})
 
-	function onAdd(tag: Tag | ((obj: GameObj) => void), action?: (obj: GameObj) => void) {
-		if (typeof tag === "function" && action === undefined) {
-			return game.ev.on("add", tag)
-		} else if (typeof tag === "string") {
-			return on("add", tag, action)
-		}
-	}
+	const onAdd = overload2((action: (obj: GameObj) => void) => {
+		return game.events.on("add", action)
+	}, (tag: Tag, action: (obj: GameObj) => void) => {
+		return on("add", tag, action)
+	})
 
-	function onDestroy(tag: Tag | ((obj: GameObj) => void), action?: (obj: GameObj) => void) {
-		if (typeof tag === "function" && action === undefined) {
-			return game.ev.on("destroy", tag)
-		} else if (typeof tag === "string") {
-			return on("destroy", tag, action)
-		}
-	}
+	const onDestroy = overload2((action: (obj: GameObj) => void) => {
+		return game.events.on("destroy", action)
+	}, (tag: Tag, action: (obj: GameObj) => void) => {
+		return on("destroy", tag, action)
+	})
 
 	// add an event that runs with objs with t1 collides with objs with t2
 	function onCollide(
@@ -3846,24 +3181,21 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	}
 
 	function forAllCurrentAndFuture(t: Tag, action: (obj: GameObj) => void) {
-		get(t).forEach(action)
+		get(t, { recursive: true }).forEach(action)
 		onAdd(t, action)
 	}
 
-	// add an event that runs when objs with tag t is clicked
-	function onClick(tag: Tag | (() => void), action?: (obj: GameObj) => void): EventController {
-		if (typeof tag === "function") {
-			return onMousePress(tag)
-		} else {
-			const events = []
-			forAllCurrentAndFuture(tag, (obj) => {
-				if (!obj.area)
-					throw new Error("onClick() requires the object to have area() component")
-				events.push(obj.onClick(() => action(obj)))
-			})
-			return EventController.join(events)
-		}
-	}
+	const onClick = overload2((action: () => void) => {
+		return app.onMousePress(action)
+	}, (tag: Tag, action: (obj: GameObj) => void) => {
+		const events = []
+		forAllCurrentAndFuture(tag, (obj) => {
+			if (!obj.area)
+				throw new Error("onClick() requires the object to have area() component")
+			events.push(obj.onClick(() => action(obj)))
+		})
+		return EventController.join(events)
+	})
 
 	// add an event that runs once when objs with tag t is hovered
 	function onHover(t: Tag, action: (obj: GameObj) => void): EventController {
@@ -3898,231 +3230,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		return EventController.join(events)
 	}
 
-	// TODO: use PromiseLike?
-	// add an event that'd be run after t
-	function wait(time: number, action?: () => void): TimerController {
-		let t = 0
-		const actions = []
-		if (action) actions.push(action)
-		const ev = onUpdate(() => {
-			t += dt()
-			if (t >= time) {
-				ev.cancel()
-				actions.forEach((action) => action())
-			}
-		})
-		return {
-			paused: ev.paused,
-			cancel: ev.cancel,
-			onEnd(action) {
-				actions.push(action)
-			},
-			then(action) {
-				this.onEnd(action)
-				return this
-			},
-		}
-	}
-
-	// add an event that's run every t seconds
-	function loop(t: number, action: () => void): EventController {
-
-		let curTimer: null | TimerController = null
-
-		const newAction = () => {
-			// TODO: should f be execute right away as loop() is called?
-			curTimer = wait(t, newAction)
-			action()
-		}
-
-		curTimer = wait(0, newAction)
-
-		return {
-			get paused() {
-				return curTimer.paused
-			},
-			set paused(p) {
-				curTimer.paused = p
-			},
-			cancel: () => curTimer.cancel(),
-		}
-
-	}
-
-	// input callbacks
-	const onKeyDown = ((
-		key?: Key | ((k: Key) => void),
-		action?: (k: Key) => void,
-	) => {
-		if (typeof key === "function") {
-			return game.ev.on("keyDown", key)
-		} else if (typeof key === "string" && typeof action === "function") {
-			return game.ev.on("keyDown", (k) => k === key && action(key))
-		}
-	}) as KaboomCtx["onKeyDown"]
-
-	const onKeyPress = ((
-		key?: Key | ((k: Key) => void),
-		action?: (k: Key) => void,
-	) => {
-		if (typeof key === "function") {
-			return game.ev.on("keyPress", key)
-		} else if (typeof key === "string" && typeof action === "function") {
-			return game.ev.on("keyPress", (k) => k === key && action(key))
-		}
-	}) as KaboomCtx["onKeyPress"]
-
-	const onKeyPressRepeat = ((
-		key?: Key | ((k: Key) => void),
-		action?: (k: Key) => void,
-	) => {
-		if (typeof key === "function") {
-			return game.ev.on("keyPressRepeat", key)
-		} else if (typeof key === "string" && typeof action === "function") {
-			return game.ev.on("keyPressRepeat", (k) => k === key && action(key))
-		}
-	}) as KaboomCtx["onKeyPressRepeat"]
-
-	const onKeyRelease = ((
-		key?: Key | ((k: Key) => void),
-		action?: (k: Key) => void,
-	) => {
-		if (typeof key === "function") {
-			return game.ev.on("keyRelease", key)
-		} else if (typeof key === "string" && typeof action === "function") {
-			return game.ev.on("keyRelease", (k) => k === key && action(key))
-		}
-	}) as KaboomCtx["onKeyRelease"]
-
-	function onMouseDown(
-		mouse: MouseButton | ((m: MouseButton) => void),
-		action?: (m: MouseButton) => void,
-	): EventController {
-		if (typeof mouse === "function") {
-			return game.ev.on("mouseDown", (m) => mouse(m))
-		} else {
-			return game.ev.on("mouseDown", (m) => m === mouse && action(m))
-		}
-	}
-
-	function onMousePress(
-		mouse: MouseButton | ((m: MouseButton) => void),
-		action?: (m: MouseButton) => void,
-	): EventController {
-		if (typeof mouse === "function") {
-			return game.ev.on("mousePress", (m) => mouse(m))
-		} else {
-			return game.ev.on("mousePress", (m) => m === mouse && action(m))
-		}
-	}
-
-	function onMouseRelease(
-		mouse: MouseButton | ((m: MouseButton) => void),
-		action?: (m: MouseButton) => void,
-	): EventController {
-		if (typeof mouse === "function") {
-			return game.ev.on("mouseRelease", (m) => mouse(m))
-		} else {
-			return game.ev.on("mouseRelease", (m) => m === mouse && action(m))
-		}
-	}
-
-	function onMouseMove(f: (pos: Vec2, dpos: Vec2) => void): EventController {
-		return game.ev.on("mouseMove", () => f(mousePos(), mouseDeltaPos()))
-	}
-
-	function onCharInput(action: (ch: string) => void): EventController {
-		return game.ev.on("charInput", action)
-	}
-
-	function onTouchStart(f: (pos: Vec2, t: Touch) => void): EventController {
-		return game.ev.on("touchStart", f)
-	}
-
-	function onTouchMove(f: (pos: Vec2, t: Touch) => void): EventController {
-		return game.ev.on("touchMove", f)
-	}
-
-	function onTouchEnd(f: (pos: Vec2, t: Touch) => void): EventController {
-		return game.ev.on("touchEnd", f)
-	}
-
-	function onScroll(action: (delta: Vec2) => void): EventController {
-		return game.ev.on("scroll", action)
-	}
-
-	function onVirtualButtonDown(btn: VirtualButton, action: () => void): EventController {
-		return game.ev.on("virtualButtonDown", (b) => b === btn && action())
-	}
-
-	function onVirtualButtonPress(btn: VirtualButton, action: () => void): EventController {
-		return game.ev.on("virtualButtonPress", (b) => b === btn && action())
-	}
-
-	function onVirtualButtonRelease(btn: VirtualButton, action: () => void): EventController {
-		return game.ev.on("virtualButtonRelease", (b) => b === btn && action())
-	}
-
-	function onGamepadButtonDown(btn: GamepadButton | ((btn: GamepadButton) => void), action?: (btn: GamepadButton) => void): EventController {
-		if (typeof btn === "function") {
-			return game.ev.on("gamepadButtonDown", btn)
-		} else if (typeof btn === "string" && typeof action === "function") {
-			return game.ev.on("gamepadButtonDown", (b) => b === btn && action(btn))
-		}
-	}
-
-	function onGamepadButtonPress(btn: GamepadButton | ((btn: GamepadButton) => void), action?: (btn: GamepadButton) => void): EventController {
-		if (typeof btn === "function") {
-			return game.ev.on("gamepadButtonPress", btn)
-		} else if (typeof btn === "string" && typeof action === "function") {
-			return game.ev.on("gamepadButtonPress", (b) => b === btn && action(btn))
-		}
-	}
-
-	function onGamepadButtonRelease(btn: GamepadButton | ((btn: GamepadButton) => void), action?: (btn: GamepadButton) => void): EventController {
-		if (typeof btn === "function") {
-			return game.ev.on("gamepadButtonRelease", btn)
-		} else if (typeof btn === "string" && typeof action === "function") {
-			return game.ev.on("gamepadButtonRelease", (b) => b === btn && action(btn))
-		}
-	}
-
-	function onGamepadStick(stick: "left" | "right", action: (value: Vec2) => void): EventController {
-		return game.ev.on("gamepadStick", ((a: string, v: Vec2) => a === stick && action(v)))
-	}
-
-	function enterDebugMode() {
-
-		onKeyPress("f1", () => {
-			debug.inspect = !debug.inspect
-		})
-
-		onKeyPress("f2", () => {
-			debug.clearLog()
-		})
-
-		onKeyPress("f8", () => {
-			debug.paused = !debug.paused
-		})
-
-		onKeyPress("f7", () => {
-			debug.timeScale = toFixed(clamp(debug.timeScale - 0.2, 0, 2), 1)
-		})
-
-		onKeyPress("f9", () => {
-			debug.timeScale = toFixed(clamp(debug.timeScale + 0.2, 0, 2), 1)
-		})
-
-		onKeyPress("f10", () => {
-			debug.stepFrame()
-		})
-
-	}
-
-	function enterBurpMode() {
-		onKeyPress("b", () => burp())
-	}
-
 	function setGravity(g: number) {
 		game.gravity = g
 	}
@@ -4149,12 +3256,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 	function getBackground() {
 		return gfx.bgColor.clone()
-	}
-
-	// TODO: return custom Gamepad type with isButtonPressed(), getStick() methods etc
-	// Get connected gamepads
-	function getGamepads(): Gamepad[] {
-		return navigator.getGamepads().filter((g) => g !== null)
 	}
 
 	// TODO: manage global velocity here?
@@ -4201,9 +3302,10 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 			// get the screen position (transformed by camera)
 			screenPos(this: GameObj<PosComp | FixedComp>): Vec2 {
-				return this.fixed
-					? this.pos
-					: toScreen(this.pos)
+				const pos = this.worldPos()
+				return isFixed(this)
+					? pos
+					: toScreen(pos)
 			},
 
 			inspect() {
@@ -4333,7 +3435,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		}
 	}
 
-	function move(dir: number | Vec2, speed: number): MoveComp {
+	function move(dir: number | Vec2, speed: number): EmptyComp {
 		const d = typeof dir === "number" ? Vec2.fromAngle(dir) : dir.unit()
 		return {
 			id: "move",
@@ -4353,7 +3455,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			id: "offscreen",
 			require: [ "pos" ],
 			isOffScreen(this: GameObj<PosComp>): boolean {
-				const pos = toScreen(this.pos)
+				const pos = this.screenPos()
 				const screenRect = new Rect(vec2(0), width(), height())
 				return !testRectPoint(screenRect, pos)
 					&& screenRect.sdistToPoint(pos) > distance * distance
@@ -4385,9 +3487,13 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		}
 	}
 
+	function isFixed(obj: GameObj) {
+		if (obj.fixed) return true
+		return obj.parent ? isFixed(obj.parent) : false
+	}
+
 	function area(opt: AreaCompOpt = {}): AreaComp {
 
-		const events: Array<EventController> = []
 		const colliding = {}
 		const collidingThisFrame = new Set()
 
@@ -4399,16 +3505,16 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			add(this: GameObj<AreaComp>) {
 
 				if (this.area.cursor) {
-					events.push(this.onHover(() => setCursor(this.area.cursor)))
+					this.onHover(() => app.setCursor(this.area.cursor))
 				}
 
-				events.push(this.onCollideUpdate((obj, col) => {
+				this.onCollideUpdate((obj, col) => {
 					if (!colliding[obj.id]) {
 						this.trigger("collide", obj, col)
 					}
 					colliding[obj.id] = col
 					collidingThisFrame.add(obj.id)
-				}))
+				})
 
 			},
 
@@ -4437,7 +3543,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 					},
 					anchor: this.anchor,
 					fill: false,
-					fixed: this.fixed,
+					fixed: isFixed(this),
 				}
 
 				if (a instanceof Rect) {
@@ -4464,10 +3570,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 			},
 
-			destroy() {
-				events.forEach((e) => e.cancel())
-			},
-
 			area: {
 				shape: opt.shape ?? null,
 				scale: opt.scale ? vec2(opt.scale) : vec2(1),
@@ -4476,11 +3578,11 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			},
 
 			isClicked(): boolean {
-				return isMousePressed() && this.isHovering()
+				return app.isMousePressed() && this.isHovering()
 			},
 
 			isHovering(this: GameObj) {
-				const mpos = this.fixed ? mousePos() : toWorld(mousePos())
+				const mpos = isFixed(this) ? mousePos() : toWorld(mousePos())
 				return this.hasPoint(mpos)
 			},
 
@@ -4492,6 +3594,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				return Object.values(colliding)
 			},
 
+			// TODO: perform check instead of use cache
 			isColliding(other: GameObj<AreaComp>) {
 				return Boolean(colliding[other.id])
 			},
@@ -4501,12 +3604,14 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				return col && col.hasOverlap()
 			},
 
-			onClick(this: GameObj, f: () => void): EventController {
-				return this.onUpdate(() => {
-					if (this.isClicked()) {
+			onClick(this: GameObj<AreaComp>, f: () => void): EventController {
+				const e = app.onMousePress("left", () => {
+					if (this.isHovering()) {
 						f()
 					}
 				})
+				this.onDestroy(() => e.cancel())
+				return e
 			},
 
 			onHover(this: GameObj, action: () => void): EventController {
@@ -4633,7 +3738,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 			screenArea(this: GameObj<AreaComp | FixedComp>): Polygon {
 				const area = this.worldArea()
-				if (this.fixed) {
+				if (isFixed(this)) {
 					return area
 				} else {
 					return area.transform(game.cam.transform)
@@ -4650,12 +3755,12 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			opacity: obj.opacity,
 			anchor: obj.anchor,
 			outline: obj.outline,
-			fixed: obj.fixed,
 			shader: obj.shader,
 			uniform: obj.uniform,
 		}
 	}
 
+	// TODO: accept canvas
 	// TODO: clean
 	function sprite(
 		src: string | SpriteData | Asset<SpriteData>,
@@ -4664,6 +3769,9 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 		let spriteData: SpriteData | null = null
 		let curAnim: SpriteCurAnim | null = null
+		// 1  - from small index to large index
+		// -1 - reverse
+		let curAnimDir: -1 | 1 | null = null
 		const spriteLoadedEvent = new Event<[SpriteData]>()
 
 		if (!src) {
@@ -4761,7 +3869,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				} else {
 					drawTexture(Object.assign(getRenderProps(this), {
 						tex: spriteData.tex,
-						quad: q,
+						quad: q.scale(this.quad ?? new Quad(0, 0, 1, 1)),
 						flipX: this.flipX,
 						flipY: this.flipY,
 						tiled: opt.tiled,
@@ -4772,36 +3880,41 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 			},
 
-			update(this: GameObj<SpriteComp>) {
+			add(this: GameObj<SpriteComp>) {
 
-				// TODO: get sprite data in add()
-				if (!spriteData) {
+				const setSpriteData = (spr) => {
 
-					const spr = resolveSprite(src)
-
-					if (!spr || !spr.data) {
-						return
-					}
-
-					let q = spr.data.frames[0].clone()
+					let q = spr.frames[0].clone()
 
 					if (opt.quad) {
 						q = q.scale(opt.quad)
 					}
 
-					const scale = calcTexScale(spr.data.tex, q, opt.width, opt.height)
+					const scale = calcTexScale(spr.tex, q, opt.width, opt.height)
 
-					this.width = spr.data.tex.width * q.w * scale.x
-					this.height = spr.data.tex.height * q.h * scale.y
+					this.width = spr.tex.width * q.w * scale.x
+					this.height = spr.tex.height * q.h * scale.y
 
 					if (opt.anim) {
 						this.play(opt.anim)
 					}
 
-					spriteData = spr.data
+					spriteData = spr
 					spriteLoadedEvent.trigger(spriteData)
 
 				}
+
+				const spr = resolveSprite(src)
+
+				if (spr) {
+					spr.onLoad(setSpriteData)
+				} else {
+					onLoad(() => setSpriteData(resolveSprite(src).data))
+				}
+
+			},
+
+			update(this: GameObj<SpriteComp>) {
 
 				if (!curAnim) {
 					return
@@ -4821,31 +3934,40 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				curAnim.timer += dt() * this.animSpeed
 
 				if (curAnim.timer >= (1 / curAnim.speed)) {
+
 					curAnim.timer = 0
-					// TODO: clean up
-					if (anim.from > anim.to) {
-						this.frame--
-						if (this.frame < anim.to) {
-							if (curAnim.loop) {
-								this.frame = anim.from
+					this.frame += curAnimDir
+
+					if (this.frame < Math.min(anim.from, anim.to) ||
+						this.frame > Math.max(anim.from, anim.to)) {
+						if (curAnim.loop) {
+							if (curAnim.pingpong) {
+								this.frame -= curAnimDir
+								curAnimDir *= -1
+								this.frame += curAnimDir
 							} else {
-								this.frame++
-								curAnim.onEnd()
-								this.stop()
+								this.frame = anim.from
 							}
-						}
-					} else {
-						this.frame++
-						if (this.frame > anim.to) {
-							if (curAnim.loop) {
-								this.frame = anim.from
+						} else {
+							if (curAnim.pingpong) {
+								const isForward = curAnimDir === Math.sign(anim.to - anim.from)
+								if (isForward) {
+									this.frame = anim.to
+									curAnimDir *= -1
+									this.frame += curAnimDir
+								} else {
+									this.frame = anim.from
+									curAnim.onEnd()
+									this.stop()
+								}
 							} else {
-								this.frame--
+								this.frame = anim.to
 								curAnim.onEnd()
 								this.stop()
 							}
 						}
 					}
+
 				}
 
 			},
@@ -4859,7 +3981,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 				const anim = spriteData.anims[name]
 
-				if (!anim) {
+				if (anim === undefined) {
 					throw new Error(`Anim not found: ${name}`)
 				}
 
@@ -4884,6 +4006,10 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 						speed: opt.speed ?? anim.speed ?? 10,
 						onEnd: opt.onEnd ?? (() => {}),
 					}
+
+				curAnimDir = typeof anim === "number"
+					? null
+					: anim.from < anim.to ? 1 : -1
 
 				this.frame = typeof anim === "number"
 					? anim
@@ -4950,6 +4076,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				align: obj.align,
 				letterSpacing: obj.letterSpacing,
 				lineSpacing: obj.lineSpacing,
+				// TODO: shouldn't run when object / ancestor is paused
 				transform: obj.textTransform,
 				styles: obj.textStyles,
 			}))
@@ -4964,13 +4091,20 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 		}
 
-		return {
+		const obj = {
 
 			id: "text",
-			text: t,
+			set text(nt) {
+				t = nt
+				// @ts-ignore
+				update(this)
+			},
+			get text() {
+				return t
+			},
 			textSize: opt.size ?? DEF_TEXT_SIZE,
 			font: opt.font,
-			width: opt.width,
+			width: opt.width ?? 0,
 			height: 0,
 			align: opt.align,
 			lineSpacing: opt.lineSpacing,
@@ -4992,6 +4126,35 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 		}
 
+		// @ts-ignore
+		update(obj)
+
+		return obj
+
+	}
+
+	function polygon(pts: Vec2[], opt: PolygonCompOpt = {}): PolygonComp {
+		if(pts.length < 3) throw new Error(`Polygon's need more than two points, ${pts.length} points provided`)
+		return {
+			id: "polygon",
+			pts,
+			colors: opt.colors,
+			radius: opt.radius,
+			draw(this: GameObj<PolygonComp>) {
+				drawPolygon(Object.assign(getRenderProps(this), {
+					pts: this.pts,
+					colors: this.colors,
+					radius: this.radius,
+					fill: opt.fill,
+				}))
+			},
+			renderArea(this: GameObj<PolygonComp>) {
+				return new Polygon(this.pts)
+			},
+			inspect() {
+				return this.pts.map(p => `[${p.x},${p.y}]`).join(",")
+			},
+		}
 	}
 
 	function rect(w: number, h: number, opt: RectCompOpt = {}): RectComp {
@@ -5005,6 +4168,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 					width: this.width,
 					height: this.height,
 					radius: this.radius,
+					fill: opt.fill,
 				}))
 			},
 			renderArea() {
@@ -5036,13 +4200,14 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		}
 	}
 
-	function circle(radius: number): CircleComp {
+	function circle(radius: number, opt: CircleCompOpt = {}): CircleComp {
 		return {
 			id: "circle",
 			radius: radius,
 			draw(this: GameObj<CircleComp>) {
 				drawCircle(Object.assign(getRenderProps(this), {
 					radius: this.radius,
+					fill: opt.fill,
 				}))
 			},
 			renderArea(this: GameObj<AnchorComp | CircleComp>) {
@@ -5064,25 +4229,28 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		}
 	}
 
-	function timer(time?: number, action?: () => void): TimerComp {
-		const timers: IDList<Timer> = new IDList()
-		if (time && action) {
-			timers.pushd(new Timer(time, action))
-		}
+	function timer(): TimerComp {
 		return {
 			id: "timer",
-			wait(time: number, action: () => void): TimerController {
-				const actions = [ action ]
-				const timer = new Timer(time, () => actions.forEach((f) => f()))
-				const cancel = timers.pushd(timer)
+			wait(this: GameObj<TimerComp>, time: number, action?: () => void): TimerController {
+				const actions = []
+				if (action) actions.push(action)
+				let t = 0
+				const ev = this.onUpdate(() => {
+					t += dt()
+					if (t >= time) {
+						actions.forEach((f) => f())
+						ev.cancel()
+					}
+				})
 				return {
 					get paused() {
-						return timer.paused
+						return ev.paused
 					},
 					set paused(p) {
-						timer.paused = p
+						ev.paused = p
 					},
-					cancel: cancel,
+					cancel: ev.cancel,
 					onEnd(action) {
 						actions.push(action)
 					},
@@ -5092,12 +4260,67 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 					},
 				}
 			},
-			update() {
-				timers.forEach((timer, id) => {
-					if (timer.tick(dt())) {
-						timers.delete(id)
+			loop(t: number, action: () => void): EventController {
+				let curTimer: null | TimerController = null
+				const newAction = () => {
+					// TODO: should f be execute right away as loop() is called?
+					curTimer = this.wait(t, newAction)
+					action()
+				}
+				curTimer = this.wait(0, newAction)
+				return {
+					get paused() {
+						return curTimer.paused
+					},
+					set paused(p) {
+						curTimer.paused = p
+					},
+					cancel: () => curTimer.cancel(),
+				}
+			},
+			tween<V extends LerpValue>(
+				this: GameObj<TimerComp>,
+				from: V,
+				to: V,
+				duration: number,
+				setValue: (value: V) => void,
+				easeFunc = easings.linear,
+			) {
+				let curTime = 0
+				const onEndEvents: Array<() => void> = []
+				const ev = this.onUpdate(() => {
+					curTime += dt()
+					const t = Math.min(curTime / duration, 1)
+					setValue(lerp(from, to, easeFunc(t)))
+					if (t === 1) {
+						ev.cancel()
+						setValue(to)
+						onEndEvents.forEach((action) => action())
 					}
 				})
+				return {
+					get paused() {
+						return ev.paused
+					},
+					set paused(p) {
+						ev.paused = p
+					},
+					onEnd(action: () => void) {
+						onEndEvents.push(action)
+					},
+					then(action: () => void) {
+						this.onEnd(action)
+						return this
+					},
+					cancel() {
+						ev.cancel()
+					},
+					finish() {
+						ev.cancel()
+						setValue(to)
+						onEndEvents.forEach((action) => action())
+					},
+				}
 			},
 		}
 	}
@@ -5109,20 +4332,20 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	// TODO: land on wall
 	function body(opt: BodyCompOpt = {}): BodyComp {
 
-		const vel = vec2(0)
 		let curPlatform: GameObj<PosComp | AreaComp | BodyComp> | null = null
 		let lastPlatformPos = null
-		let wantFall = false
-		const events: Array<EventController> = []
+		let willFall = false
 
 		return {
 
 			id: "body",
-			require: [ "pos", "area" ],
+			require: [ "pos" ],
+			vel: new Vec2(0),
+			drag: opt.drag ?? 0,
 			jumpForce: opt.jumpForce ?? DEF_JUMP_FORCE,
 			gravityScale: opt.gravityScale ?? 1,
 			isStatic: opt.isStatic ?? false,
-			// TODO: prefer density * area()
+			// TODO: prefer density * area
 			mass: opt.mass ?? 1,
 
 			add(this: GameObj<PosComp | BodyComp | AreaComp>) {
@@ -5131,118 +4354,120 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 					throw new Error("Can't set body mass to 0")
 				}
 
-				// TODO
-				// static vs static: don't resolve
-				// static vs non-static: always resolve non-static
-				// non-static vs non-static: resolve the first one
-				events.push(this.onCollideUpdate((other: GameObj<PosComp | BodyComp>, col) => {
+				if (this.is("area")) {
 
-					if (!other.is("body")) {
-						return
-					}
+					// static vs static: don't resolve
+					// static vs non-static: always resolve non-static
+					// non-static vs non-static: resolve the first one
+					this.onCollideUpdate((other: GameObj<PosComp | BodyComp>, col) => {
 
-					if (col.resolved) {
-						return
-					}
+						if (!other.is("body")) {
+							return
+						}
 
-					this.trigger("beforePhysicsResolve", col)
-					other.trigger("beforePhysicsResolve", col.reverse())
+						if (col.resolved) {
+							return
+						}
 
-					// user can mark 'resolved' in beforePhysicsResolve to stop a resolution
-					if (col.resolved) {
-						return
-					}
+						this.trigger("beforePhysicsResolve", col)
+						other.trigger("beforePhysicsResolve", col.reverse())
 
-					if (this.isStatic && other.isStatic) {
-						return
-					} else if (!this.isStatic && !other.isStatic) {
-						// TODO: update all children transform?
-						const tmass = this.mass + other.mass
-						this.pos = this.pos.add(col.displacement.scale(other.mass / tmass))
-						other.pos = other.pos.add(col.displacement.scale(-this.mass / tmass))
-						this.transform = calcTransform(this)
-						other.transform = calcTransform(other)
-					} else {
-						// if one is static and on is not, resolve the non static one
-						const col2 = (!this.isStatic && other.isStatic) ? col : col.reverse()
-						col2.source.pos = col2.source.pos.add(col2.displacement)
-						col2.source.transform = calcTransform(col2.source)
-					}
+						// user can mark 'resolved' in beforePhysicsResolve to stop a resolution
+						if (col.resolved) {
+							return
+						}
 
-					col.resolved = true
-					this.trigger("physicsResolve", col)
-					other.trigger("physicsResolve", col.reverse())
+						if (this.isStatic && other.isStatic) {
+							return
+						} else if (!this.isStatic && !other.isStatic) {
+							// TODO: update all children transform?
+							const tmass = this.mass + other.mass
+							this.pos = this.pos.add(col.displacement.scale(other.mass / tmass))
+							other.pos = other.pos.add(col.displacement.scale(-this.mass / tmass))
+							this.transform = calcTransform(this)
+							other.transform = calcTransform(other)
+						} else {
+							// if one is static and on is not, resolve the non static one
+							const col2 = (!this.isStatic && other.isStatic) ? col : col.reverse()
+							col2.source.pos = col2.source.pos.add(col2.displacement)
+							col2.source.transform = calcTransform(col2.source)
+						}
 
-				}))
+						col.resolved = true
+						this.trigger("physicsResolve", col)
+						other.trigger("physicsResolve", col.reverse())
 
-				events.push(this.onPhysicsResolve((col) => {
-					if (game.gravity) {
-						if (col.isBottom() && this.isFalling()) {
-							vel.y = 0
-							curPlatform = col.target as GameObj<PosComp | BodyComp | AreaComp>
-							lastPlatformPos = col.target.pos
-							if (wantFall) {
-								wantFall = false
-							} else {
-								this.trigger("ground", curPlatform)
+					})
+
+					this.onPhysicsResolve((col) => {
+						if (game.gravity) {
+							if (col.isBottom() && this.isFalling()) {
+								this.vel.y = 0
+								curPlatform = col.target as GameObj<PosComp | BodyComp | AreaComp>
+								lastPlatformPos = col.target.pos
+								if (willFall) {
+									willFall = false
+								} else {
+									this.trigger("ground", curPlatform)
+								}
+							} else if (col.isTop() && this.isJumping()) {
+								this.vel.y = 0
+								this.trigger("headbutt", col.target)
 							}
-						} else if (col.isTop() && this.isJumping()) {
-							vel.y = 0
-							this.trigger("headbutt", col.target)
 						}
-					}
-				}))
+					})
+
+				}
 
 			},
 
-			update(this: GameObj<PosComp | BodyComp | AreaComp>) {
+			update(this: GameObj<PosComp | BodyComp | AreaComp >) {
 
-				if (!game.gravity) {
-					return
-				}
+				if (game.gravity && !this.isStatic) {
 
-				if (this.isStatic) {
-					return
-				}
+					if (willFall) {
+						curPlatform = null
+						lastPlatformPos = null
+						this.trigger("fallOff")
+						willFall = false
+					}
 
-				if (wantFall) {
-					curPlatform = null
-					lastPlatformPos = null
-					this.trigger("fallOff")
-					wantFall = false
-				}
-
-				if (curPlatform) {
-					if (
-						!this.isColliding(curPlatform)
-						|| !curPlatform.exists()
-						|| !curPlatform.is("body")
-					) {
-						wantFall = true
-					} else {
+					if (curPlatform) {
 						if (
-							!curPlatform.pos.eq(lastPlatformPos)
-							&& opt.stickToPlatform !== false
+							// TODO: this prevents from falling when on edge
+							!this.isColliding(curPlatform)
+							|| !curPlatform.exists()
+							|| !curPlatform.is("body")
 						) {
-							this.moveBy(curPlatform.pos.sub(lastPlatformPos))
+							willFall = true
+						} else {
+							if (
+								!curPlatform.pos.eq(lastPlatformPos)
+								&& opt.stickToPlatform !== false
+							) {
+								this.moveBy(curPlatform.pos.sub(lastPlatformPos))
+							}
+							lastPlatformPos = curPlatform.pos
+							return
 						}
-						lastPlatformPos = curPlatform.pos
-						return
 					}
+
+					const prevVelY = this.vel.y
+
+					this.vel.y += game.gravity * this.gravityScale * dt()
+					this.vel.y = Math.min(this.vel.y, opt.maxVelocity ?? MAX_VEL)
+
+					if (prevVelY < 0 && this.vel.y >= 0) {
+						this.trigger("fall")
+					}
+
 				}
 
-				const prevVelY = vel.y
-				vel.y += game.gravity * this.gravityScale * dt()
-				vel.y = Math.min(vel.y, opt.maxVelocity ?? MAX_VEL)
-				if (prevVelY < 0 && vel.y >= 0) {
-					this.trigger("fall")
-				}
-				this.move(vel)
+				this.vel.x *= (1 - this.drag)
+				this.vel.y *= (1 - this.drag)
 
-			},
+				this.move(this.vel)
 
-			destroy() {
-				events.forEach((e) => e.cancel())
 			},
 
 			onPhysicsResolve(this: GameObj, action) {
@@ -5262,17 +4487,17 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			},
 
 			isFalling(): boolean {
-				return vel.y > 0
+				return this.vel.y > 0
 			},
 
 			isJumping(): boolean {
-				return vel.y < 0
+				return this.vel.y < 0
 			},
 
 			jump(force: number) {
 				curPlatform = null
 				lastPlatformPos = null
-				vel.y = -force || -this.jumpForce
+				this.vel.y = -force || -this.jumpForce
 			},
 
 			onGround(this: GameObj, action: () => void): EventController {
@@ -5297,18 +4522,14 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 	function doubleJump(numJumps: number = 2): DoubleJumpComp {
 		let jumpsLeft = numJumps
-		const events = []
 		return {
 			id: "doubleJump",
 			require: [ "body" ],
 			numJumps: numJumps,
 			add(this: GameObj<BodyComp | DoubleJumpComp>) {
-				events.push(this.onGround(() => {
+				this.onGround(() => {
 					jumpsLeft = this.numJumps
-				}))
-			},
-			destroy() {
-				events.forEach((e) => e.cancel())
+				})
 			},
 			doubleJump(this: GameObj<BodyComp | DoubleJumpComp>, force?: number) {
 				if (jumpsLeft <= 0) {
@@ -5344,7 +4565,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		}
 	}
 
-	// TODO: all children should be fixed
 	function fixed(): FixedComp {
 		return {
 			id: "fixed",
@@ -5360,7 +4580,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		}
 	}
 
-	function health(hp: number): HealthComp {
+	function health(hp: number, maxHP?: number): HealthComp {
 		if (hp == null) {
 			throw new Error("health() requires the initial amount of hp")
 		}
@@ -5368,25 +4588,32 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			id: "health",
 			hurt(this: GameObj, n: number = 1) {
 				this.setHP(hp - n)
-				this.trigger("hurt")
+				this.trigger("hurt", n)
 			},
 			heal(this: GameObj, n: number = 1) {
+				const origHP = hp
 				this.setHP(hp + n)
-				this.trigger("heal")
+				this.trigger("heal", hp - origHP)
 			},
 			hp(): number {
 				return hp
 			},
+			maxHP(): number | null {
+				return maxHP ?? null
+			},
+			setMaxHP(n: number): void {
+				maxHP = n
+			},
 			setHP(this: GameObj, n: number) {
-				hp = n
+				hp = maxHP ? Math.min(maxHP, n) : n
 				if (hp <= 0) {
 					this.trigger("death")
 				}
 			},
-			onHurt(this: GameObj, action: () => void): EventController {
+			onHurt(this: GameObj, action: (amount?: number) => void): EventController {
 				return this.on("hurt", action)
 			},
-			onHeal(this: GameObj, action: () => void): EventController {
+			onHeal(this: GameObj, action: (amount?: number) => void): EventController {
 				return this.on("heal", action)
 			},
 			onDeath(this: GameObj, action: () => void): EventController {
@@ -5398,7 +4625,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		}
 	}
 
-	function lifespan(time: number, opt: LifespanCompOpt = {}): LifespanComp {
+	function lifespan(time: number, opt: LifespanCompOpt = {}): EmptyComp {
 		if (time == null) {
 			throw new Error("lifespan() requires time")
 		}
@@ -5511,7 +4738,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			},
 
 			update() {
-			// execute the enter event for initState
+				// execute the enter event for initState
 				if (!didFirstEnter) {
 					trigger("enter", initState)
 					didFirstEnter = true
@@ -5551,39 +4778,57 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		}
 	}
 
+	function mask(m: Mask = "intersect"): MaskComp {
+		return {
+			id: "mask",
+			mask: m,
+		}
+	}
+
+	function drawon(c: FrameBuffer) {
+		return {
+			add(this: GameObj) {
+				this.canvas = c
+			},
+		}
+	}
+
 	function onLoad(cb: () => void): void {
 		if (assets.loaded) {
 			cb()
 		} else {
-			game.ev.on("load", cb)
+			game.events.on("load", cb)
 		}
 	}
 
-	function scene(id: SceneID, def: SceneDef) {
+	function scene(id: SceneName, def: SceneDef) {
 		game.scenes[id] = def
 	}
 
-	function go(id: SceneID, ...args) {
+	function go(name: SceneName, ...args) {
 
-		if (!game.scenes[id]) {
-			throw new Error(`Scene not found: ${id}`)
+		if (!game.scenes[name]) {
+			throw new Error(`Scene not found: ${name}`)
 		}
 
-		game.ev.onOnce("frameEnd", () => {
+		game.events.onOnce("frameEnd", () => {
 
-			game.ev = new EventHandler()
-			game.objEvents = new EventHandler()
+			game.events.trigger("sceneLeave", name)
+			app.events.clear()
+			game.events.clear()
+			game.objEvents.clear()
 
 			;[...game.root.children].forEach((obj) => {
 				if (
 					!obj.stay
-					|| (obj.scenesToStay && !obj.scenesToStay.includes(id))
+					|| (obj.scenesToStay && !obj.scenesToStay.includes(name))
 				) {
 					game.root.remove(obj)
 				}
 			})
 
 			game.root.clearEvents()
+			initEvents()
 
 			// cam
 			game.cam = {
@@ -5594,18 +4839,14 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				transform: new Mat4(),
 			}
 
-			game.scenes[id](...args)
-
-			if (gopt.debug !== false) {
-				enterDebugMode()
-			}
-
-			if (gopt.burp) {
-				enterBurpMode()
-			}
+			game.scenes[name](...args)
 
 		})
 
+	}
+
+	function onSceneLeave(action: (newScene?: string) => void): EventController {
+		return game.events.on("sceneLeave", action)
 	}
 
 	function getData<T>(key: string, def?: T): T {
@@ -5625,17 +4866,25 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		window.localStorage[key] = JSON.stringify(data)
 	}
 
-	function plug<T>(plugin: KaboomPlugin<T>): MergeObj<T> & KaboomCtx {
+	function plug<T extends Record<string, any>>(plugin: KaboomPlugin<T>, ...args: any): KaboomCtx & T {
 		const funcs = plugin(ctx)
-		for (const k in funcs) {
+		let funcsObj: T
+		if (typeof funcs === "function") {
+			const plugWithOptions = funcs(...args)
+			funcsObj = plugWithOptions(ctx)
+		}
+		else {
+			funcsObj = funcs
+		}
+		for (const k in funcsObj) {
 			// @ts-ignore
-			ctx[k] = funcs[k]
+			ctx[k] = funcsObj[k]
 			if (gopt.global !== false) {
 				// @ts-ignore
-				window[k] = funcs[k]
+				window[k] = funcsObj[k]
 			}
 		}
-		return ctx as unknown as MergeObj<T> & KaboomCtx
+		return ctx as KaboomCtx & T
 	}
 
 	function center(): Vec2 {
@@ -5763,6 +5012,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			throw new Error("Must provide tileWidth and tileHeight.")
 		}
 
+		// TODO: custom parent
 		const level = add([
 			pos(opt.pos ?? vec2(0)),
 		]) as GameObj<PosComp | LevelComp>
@@ -6403,16 +5653,17 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	}
 
 	// aliases for root game obj operations
-	const add: KaboomCtx["add"] = game.root.add.bind(game.root)
-	const readd: KaboomCtx["readd"] = game.root.readd.bind(game.root)
-	const destroyAll: KaboomCtx["destroyAll"] = game.root.removeAll.bind(game.root)
-	const get: KaboomCtx["get"] = game.root.get.bind(game.root)
+	const add = game.root.add.bind(game.root)
+	const readd = game.root.readd.bind(game.root)
+	const destroyAll = game.root.removeAll.bind(game.root)
+	const get = game.root.get.bind(game.root)
+	const wait = game.root.wait.bind(game.root)
+	const loop = game.root.loop.bind(game.root)
+	const tween = game.root.tween.bind(game.root)
 
-	// TODO: expose this
 	function boom(speed: number = 2, size: number = 1): Comp {
 		let time = 0
 		return {
-			id: "boom",
 			require: [ "scale" ],
 			update(this: GameObj<ScaleComp>) {
 				const s = Math.sin(time * speed) * size
@@ -6450,59 +5701,15 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			sprite(kaSprite),
 			scale(0),
 			anchor("center"),
-			timer(0.4 / speed, () => ka.use(boom(speed, s))),
+			timer(),
 			...opt.comps ?? [],
 		])
 
+		ka.wait(0.4 / speed, () => ka.use(boom(speed, s)))
 		ka.onDestroy(() => kaboom.destroy())
 
 		return kaboom
 
-	}
-
-	function processGamepad() {
-
-		for (const gamepad of navigator.getGamepads()) {
-
-			// the gamepad can return null if isn't a gamepad or is disconnected
-			if (!gamepad) return
-
-			const map = GAMEPAD_MAP[gamepad.id] ?? GAMEPAD_MAP["default"]
-
-			for (let i = 0; i < gamepad.buttons.length; i++) {
-				if (gamepad.buttons[i].pressed) {
-					if (!app.gamepadButtonState.down.has(map.buttons[i])) {
-						app.gamepadButtonState.press(map.buttons[i])
-						game.ev.trigger("gamepadButtonPress", map.buttons[i])
-					}
-					game.ev.trigger("gamepadButtonDown", map.buttons[i])
-				} else {
-					if (app.gamepadButtonState.down.has(map.buttons[i])) {
-						app.gamepadButtonState.release(map.buttons[i])
-						game.ev.trigger("gamepadButtonRelease", map.buttons[i])
-					}
-				}
-			}
-
-			for (const stickName in map.sticks) {
-				const stick = map.sticks[stickName]
-				const axisX = gamepad.axes[stick.x]
-				const axisY = gamepad.axes[stick.y]
-				if (axisX && axisY) {
-					game.ev.trigger("gamepadStick", stickName, new Vec2(axisX, axisY))
-				}
-			}
-
-		}
-
-	}
-
-	function inputFrame() {
-		game.ev.trigger("input")
-		app.keyState.down.forEach((k) => game.ev.trigger("keyDown", k))
-		app.mouseState.down.forEach((k) => game.ev.trigger("mouseDown", k))
-		app.virtualButtonState.down.forEach((k) => game.ev.trigger("virtualButtonDown", k))
-		processGamepad()
 	}
 
 	function updateFrame() {
@@ -6599,12 +5806,9 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 						} else {
 							const cell = grid[x][y]
 							check: for (const other of cell) {
-								if (!other.exists()) {
-									continue
-								}
-								if (checked.has(other.id)) {
-									continue
-								}
+								if (other.paused) continue
+								if (!other.exists()) continue
+								if (checked.has(other.id)) continue
 								for (const tag of aobj.collisionIgnore) {
 									if (other.is(tag)) {
 										continue check
@@ -6666,8 +5870,8 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 		const progress = loadProgress()
 
-		if (game.ev.numListeners("loading") > 0) {
-			game.ev.trigger("loading", progress)
+		if (game.events.numListeners("loading") > 0) {
+			game.events.trigger("loading", progress)
 		} else {
 			drawUnscaled(() => {
 				const w = width() / 2
@@ -6886,7 +6090,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				drawCircle({
 					radius: 12,
 					color: rgb(255, 0, 0),
-					opacity: wave(0, 1, time() * 4),
+					opacity: wave(0, 1, app.time() * 4),
 					fixed: true,
 				})
 
@@ -6905,9 +6109,22 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				pushTranslate(8, -8)
 
 				const pad = 8
+				const logs = []
+
+				for (const log of game.logs) {
+					let str = ""
+					const style = log.msg instanceof Error ? "error" : "info"
+					str += `[time]${log.time.toFixed(2)}[/time]`
+					str += " "
+					str += `[${style}]${log.msg?.toString ? log.msg.toString() : log.msg}[/${style}]`
+					logs.push(str)
+				}
+
+				game.logs = game.logs
+					.filter((log) => app.time() - log.time < (gopt.logTime || LOG_TIME))
 
 				const ftext = formatText({
-					text: game.logs.join("\n"),
+					text: logs.join("\n"),
 					font: DBG_FONT,
 					pos: vec2(pad, -pad),
 					anchor: "botleft",
@@ -6941,153 +6158,27 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 	}
 
-	function drawVirtualControls() {
-
-		// TODO: mousePos incorrect in "stretch" mode and gopt.scale
-		const mpos = mousePos()
-
-		const drawCircleButton = (pos: Vec2, btn: VirtualButton, text?: string) => {
-
-			const size = 80
-
-			drawCircle({
-				radius: size / 2,
-				pos: pos,
-				outline: { width: 4, color: rgb(0, 0, 0) },
-				opacity: 0.5,
-				fixed: true,
-			})
-
-			if (text) {
-				drawText({
-					text: text,
-					pos: pos,
-					color: rgb(0, 0, 0),
-					size: 40,
-					anchor: "center",
-					opacity: 0.5,
-					fixed: true,
-				})
-			}
-
-			// TODO: touch
-			if (isMousePressed("left")) {
-				if (testCirclePoint(new Circle(pos, size / 2), mpos)) {
-					game.ev.onOnce("input", () => {
-						// TODO: caller specify another value as connected key?
-						app.virtualButtonState.press(btn)
-						game.ev.trigger("virtualButtonPress", btn)
-						app.keyState.press(btn)
-						game.ev.trigger("keyPress", btn)
-					})
-				}
-			}
-
-			if (isMouseReleased("left")) {
-				game.ev.onOnce("input", () => {
-					app.virtualButtonState.release(btn)
-					game.ev.trigger("virtualButtonRelease", btn)
-					app.keyState.release(btn)
-					game.ev.trigger("keyRelease", btn)
-				})
-			}
-
-		}
-
-		const drawSquareButton = (pos: Vec2, btn: VirtualButton, text?: string) => {
-
-			const size = 64
-
-			drawRect({
-				width: size,
-				height: size,
-				pos: pos,
-				outline: { width: 4, color: rgb(0, 0, 0) },
-				radius: 4,
-				anchor: "center",
-				opacity: 0.5,
-				fixed: true,
-			})
-
-			if (text) {
-				drawText({
-					text: text,
-					pos: pos,
-					color: rgb(0, 0, 0),
-					size: 40,
-					anchor: "center",
-					opacity: 0.5,
-					fixed: true,
-				})
-			}
-
-			// TODO: touch
-			if (isMousePressed("left")) {
-				if (testRectPoint(new Rect(pos.add(-size / 2, -size / 2), size, size), mpos)) {
-					game.ev.onOnce("input", () => {
-						// TODO: caller specify another value as connected key?
-						app.virtualButtonState.press(btn)
-						game.ev.trigger("virtualButtonPress", btn)
-						app.keyState.press(btn)
-						game.ev.trigger("keyPress", btn)
-					})
-				}
-			}
-
-			if (isMouseReleased("left")) {
-				game.ev.onOnce("input", () => {
-					app.virtualButtonState.release(btn)
-					game.ev.trigger("virtualButtonRelease", btn)
-					app.keyState.release(btn)
-					game.ev.trigger("keyRelease", btn)
-				})
-			}
-
-		}
-
-		drawUnscaled(() => {
-			drawCircleButton(vec2(width() - 80, height() - 160), "a")
-			drawCircleButton(vec2(width() - 160, height() - 80), "b")
-			drawSquareButton(vec2(60, height() - 124), "left")
-			drawSquareButton(vec2(188, height() - 124), "right")
-			drawSquareButton(vec2(124, height() - 188), "up")
-			drawSquareButton(vec2(124, height() - 60), "down")
-		})
-
-	}
-
-	if (gopt.debug !== false) {
-		enterDebugMode()
-	}
-
-	if (gopt.burp) {
-		enterBurpMode()
-	}
-
 	function onLoading(action: (progress: number) => void) {
-		game.ev.on("loading", action)
+		game.events.on("loading", action)
 	}
 
 	function onResize(action: () => void) {
-		game.ev.on("resize", action)
-	}
-
-	function onGamepadConnect(action: (gamepad: Gamepad) => void) {
-		game.ev.on("gamepadConnect", action)
-	}
-
-	function onGamepadDisconnect(action: (gamepad: Gamepad) => void) {
-		game.ev.on("gamepadDisconnect", action)
+		app.onResize(action)
 	}
 
 	function onError(action: (err: Error) => void) {
-		game.ev.on("error", action)
+		game.events.on("error", action)
 	}
 
 	function handleErr(err: Error) {
 
+		console.error(err)
+		audio.ctx.suspend()
+
 		// TODO: this should only run once
-		run(() => {
+		app.run(() => {
+
+			frameStart()
 
 			drawUnscaled(() => {
 
@@ -7114,7 +6205,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 				const title = formatText({
 					...textStyle,
-					text: err.name,
+					text: "Error",
 					pos: vec2(pad),
 					color: rgb(255, 128, 0),
 					fixed: true,
@@ -7130,72 +6221,25 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				})
 
 				popTransform()
-				game.ev.trigger("error", err)
+				game.events.trigger("error", err)
 
 			})
+
+			frameEnd()
 
 		})
 
 	}
 
-	function resetInputState() {
-		app.keyState.update()
-		app.mouseState.update()
-		app.virtualButtonState.update()
-		app.gamepadButtonState.update()
-		app.charInputted = []
-		app.isMouseMoved = false
-	}
-
-	function run(f: () => void) {
-
-		if (app.loopID !== null) {
-			cancelAnimationFrame(app.loopID)
-		}
-
-		const frame = (t: number) => {
-
-			if (app.stopped) return
-
-			if (document.visibilityState !== "visible") {
-				app.loopID = requestAnimationFrame(frame)
-				return
-			}
-
-			const realTime = t / 1000
-			const realDt = realTime - app.realTime
-
-			app.realTime = realTime
-
-			if (!app.skipTime) {
-				app.dt = realDt
-				app.time += dt()
-				app.fpsCounter.tick(app.dt)
-			}
-
-			app.skipTime = false
-			app.numFrames++
-
-			frameStart()
-			f()
-			frameEnd()
-
-			resetInputState()
-			game.ev.trigger("frameEnd")
-			app.loopID = requestAnimationFrame(frame)
-
-		}
-
-		frame(0)
-
+	function onCleanup(action: () => void) {
+		gc.push(action)
 	}
 
 	function quit() {
 
-		game.ev.onOnce("frameEnd", () => {
+		game.events.onOnce("frameEnd", () => {
 
-			// stop the loop
-			app.stopped = true
+			app.quit()
 
 			// clear canvas
 			gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT | gl.STENCIL_BUFFER_BIT)
@@ -7215,114 +6259,163 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			gl.bindFramebuffer(gl.FRAMEBUFFER, null)
 
 			// run all scattered gc events
+			ggl.destroy()
 			gc.forEach((f) => f())
 
-			// delete webgl buffers
-			gl.deleteBuffer(gfx.vbuf)
-			gl.deleteBuffer(gfx.ibuf)
-
-			// unregister events
-			for (const name in canvasEvents) {
-				app.canvas.removeEventListener(name, canvasEvents[name])
-			}
-
-			for (const name in docEvents) {
-				document.removeEventListener(name, docEvents[name])
-			}
-
-			for (const name in winEvents) {
-				window.removeEventListener(name, winEvents[name])
-			}
-
 		})
 
-	}
-
-	function tween<V extends LerpValue>(
-		from: V,
-		to: V,
-		duration: number,
-		setValue: (value: V) => void,
-		easeFunc = easings.linear,
-	): TweenController {
-		let curTime = 0
-		const onEndEvents: Array<() => void> = []
-		const ev = onUpdate(() => {
-			curTime += dt()
-			const t = Math.min(curTime / duration, 1)
-			setValue(lerp(from, to, easeFunc(t)))
-			if (t === 1) {
-				ev.cancel()
-				setValue(to)
-				onEndEvents.forEach((action) => action())
-			}
-		})
-		return {
-			get paused() {
-				return ev.paused
-			},
-			set paused(p) {
-				ev.paused = p
-			},
-			onEnd(action: () => void) {
-				onEndEvents.push(action)
-			},
-			then(action: () => void) {
-				this.onEnd(action)
-				return this
-			},
-			cancel() {
-				ev.cancel()
-			},
-			finish() {
-				ev.cancel()
-				setValue(to)
-				onEndEvents.forEach((action) => action())
-			},
-		}
 	}
 
 	let isFirstFrame = true
 
 	// main game loop
-	run(() => {
+	app.run(() => {
 
-		if (!assets.loaded) {
-			if (loadProgress() === 1 && !isFirstFrame) {
-				assets.loaded = true
-				game.ev.trigger("load")
-			}
-		}
+		try {
 
-		if (!assets.loaded && gopt.loadingScreen !== false || isFirstFrame) {
-
-			// TODO: Currently if assets are not initially loaded no updates or timers will be run, however they will run if loadingScreen is set to false. What's the desired behavior or should we make them consistent?
-			drawLoadScreen()
-
-		} else {
-
-			inputFrame()
-			if (!debug.paused) updateFrame()
-			checkFrame()
-			drawFrame()
-
-			if (gopt.debug !== false) {
-				drawDebug()
+			if (!assets.loaded) {
+				if (loadProgress() === 1 && !isFirstFrame) {
+					assets.loaded = true
+					game.events.trigger("load")
+				}
 			}
 
-			if (gopt.virtualControls && isTouchScreen()) {
-				drawVirtualControls()
+			if (!assets.loaded && gopt.loadingScreen !== false || isFirstFrame) {
+				frameStart()
+				// TODO: Currently if assets are not initially loaded no updates or timers will be run, however they will run if loadingScreen is set to false. What's the desired behavior or should we make them consistent?
+				drawLoadScreen()
+				frameEnd()
+			} else {
+				if (!debug.paused) updateFrame()
+				checkFrame()
+				frameStart()
+				drawFrame()
+				if (gopt.debug !== false) drawDebug()
+				frameEnd()
 			}
 
-		}
+			if (isFirstFrame) {
+				isFirstFrame = false
+			}
 
-		if (isFirstFrame) {
-			isFirstFrame = false
+			game.events.trigger("frameEnd")
+
+		} catch (e) {
+			handleErr(e)
 		}
 
 	})
 
+	// update viewport based on user setting and fullscreen state
+	function updateViewport() {
+
+		// content size (scaled content size, with scale, stretch and letterbox)
+		// view size (unscaled viewport size)
+		// window size (will be the same as view size except letterbox mode)
+
+		// canvas size
+		const pd = pixelDensity
+		const cw = gl.drawingBufferWidth / pd
+		const ch = gl.drawingBufferHeight / pd
+
+		if (gopt.letterbox) {
+
+			if (!gopt.width || !gopt.height) {
+				throw new Error("Letterboxing requires width and height defined.")
+			}
+
+			const rc = cw / ch
+			const rg = gopt.width / gopt.height
+
+			if (rc > rg) {
+				const sw = ch * rg
+				const x = (cw - sw) / 2
+				gfx.viewport = {
+					x: x,
+					y: 0,
+					width: sw,
+					height: ch,
+				}
+			} else {
+				const sh = cw / rg
+				const y = (ch - sh) / 2
+				gfx.viewport = {
+					x: 0,
+					y: y,
+					width: cw,
+					height: sh,
+				}
+			}
+
+			return
+
+		}
+
+		if (gopt.stretch) {
+			if (!gopt.width || !gopt.height) {
+				throw new Error("Stretching requires width and height defined.")
+			}
+		}
+
+		gfx.viewport = {
+			x: 0,
+			y: 0,
+			width: cw,
+			height: ch,
+		}
+
+	}
+
+	function initEvents() {
+
+		app.onHide(() => {
+			if (!gopt.backgroundAudio) {
+				audio.ctx.suspend()
+			}
+		})
+
+		app.onShow(() => {
+			if (!gopt.backgroundAudio && !debug.paused) {
+				audio.ctx.resume()
+			}
+		})
+
+		app.onResize(() => {
+			if (app.isFullscreen()) return
+			const fixedSize = gopt.width && gopt.height
+			if (fixedSize && !gopt.stretch && !gopt.letterbox) return
+			canvas.width = canvas.offsetWidth * pixelDensity
+			canvas.height = canvas.offsetHeight * pixelDensity
+			updateViewport()
+			if (!fixedSize) {
+				gfx.frameBuffer.free()
+				gfx.frameBuffer = new FrameBuffer(ggl, gl.drawingBufferWidth, gl.drawingBufferHeight)
+				gfx.width = gl.drawingBufferWidth / pixelDensity / gscale
+				gfx.height = gl.drawingBufferHeight / pixelDensity / gscale
+			}
+		})
+
+		if (gopt.debug !== false) {
+			app.onKeyPress("f1", () => debug.inspect = !debug.inspect)
+			app.onKeyPress("f2", () => debug.clearLog())
+			app.onKeyPress("f8", () => debug.paused = !debug.paused)
+			app.onKeyPress("f7", () => {
+				debug.timeScale = toFixed(clamp(debug.timeScale - 0.2, 0, 2), 1)
+			})
+			app.onKeyPress("f9", () => {
+				debug.timeScale = toFixed(clamp(debug.timeScale + 0.2, 0, 2), 1)
+			})
+			app.onKeyPress("f10", () => debug.stepFrame())
+		}
+
+		if (gopt.burp) {
+			app.onKeyPress("b", () => burp())
+		}
+
+	}
+
 	updateViewport()
+	initEvents()
 
 	// the exported ctx handle
 	const ctx: KaboomCtx = {
@@ -7333,6 +6426,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		loadSprite,
 		loadSpriteAtlas,
 		loadSound,
+		loadMusic,
 		loadBitmapFont,
 		loadFont,
 		loadShader,
@@ -7340,12 +6434,14 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		loadAseprite,
 		loadPedit,
 		loadBean,
+		loadJSON,
 		load,
 		getSprite,
 		getSound,
 		getFont,
 		getBitmapFont,
 		getShader,
+		getAsset,
 		Asset,
 		SpriteData,
 		SoundData,
@@ -7354,20 +6450,24 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		height,
 		center,
 		dt,
-		time,
-		screenshot,
+		time: app.time,
+		screenshot: app.screenshot,
 		record,
 		isFocused,
-		setCursor,
-		setFullscreen,
-		isFullscreen,
-		isTouchScreen,
+		setCursor: app.setCursor,
+		getCursor: app.getCursor,
+		setCursorLocked: app.setCursorLocked,
+		isCursorLocked: app.isCursorLocked,
+		setFullscreen: app.setFullscreen,
+		isFullscreen: app.isFullscreen,
+		isTouchscreen: app.isTouchscreen,
 		onLoad,
 		onLoading,
 		onResize,
-		onGamepadConnect,
-		onGamepadDisconnect,
+		onGamepadConnect: app.onGamepadConnect,
+		onGamepadDisconnect: app.onGamepadDisconnect,
 		onError,
+		onCleanup,
 		// misc
 		camPos,
 		camScale,
@@ -7379,9 +6479,10 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		getGravity,
 		setBackground,
 		getBackground,
-		getGamepads,
+		getGamepads: app.getGamepads,
 		// obj
 		add,
+		make,
 		destroy,
 		destroyAll,
 		get,
@@ -7396,6 +6497,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		area,
 		sprite,
 		text,
+		polygon,
 		rect,
 		circle,
 		uvquad,
@@ -7414,6 +6516,8 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		follow,
 		state,
 		fadeIn,
+		mask,
+		drawon,
 		tile,
 		agent,
 		// group events
@@ -7430,44 +6534,40 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		onHoverUpdate,
 		onHoverEnd,
 		// input
-		onKeyDown,
-		onKeyPress,
-		onKeyPressRepeat,
-		onKeyRelease,
-		onMouseDown,
-		onMousePress,
-		onMouseRelease,
-		onMouseMove,
-		onCharInput,
-		onTouchStart,
-		onTouchMove,
-		onTouchEnd,
-		onScroll,
-		onVirtualButtonPress,
-		onVirtualButtonDown,
-		onVirtualButtonRelease,
-		onGamepadButtonDown,
-		onGamepadButtonPress,
-		onGamepadButtonRelease,
-		onGamepadStick,
-		mousePos,
-		mouseDeltaPos,
-		isKeyDown,
-		isKeyPressed,
-		isKeyPressedRepeat,
-		isKeyReleased,
-		isMouseDown,
-		isMousePressed,
-		isMouseReleased,
-		isMouseMoved,
-		isVirtualButtonPressed,
-		isVirtualButtonDown,
-		isVirtualButtonReleased,
-		isGamepadButtonPressed,
-		isGamepadButtonDown,
-		isGamepadButtonReleased,
-		// getGamepadStick,
-		charInputted,
+		onKeyDown: app.onKeyDown,
+		onKeyPress: app.onKeyPress,
+		onKeyPressRepeat: app.onKeyPressRepeat,
+		onKeyRelease: app.onKeyRelease,
+		onMouseDown: app.onMouseDown,
+		onMousePress: app.onMousePress,
+		onMouseRelease: app.onMouseRelease,
+		onMouseMove: app.onMouseMove,
+		onCharInput: app.onCharInput,
+		onTouchStart: app.onTouchStart,
+		onTouchMove: app.onTouchMove,
+		onTouchEnd: app.onTouchEnd,
+		onScroll: app.onScroll,
+		onHide: app.onHide,
+		onShow: app.onShow,
+		onGamepadButtonDown: app.onGamepadButtonDown,
+		onGamepadButtonPress: app.onGamepadButtonPress,
+		onGamepadButtonRelease: app.onGamepadButtonRelease,
+		onGamepadStick: app.onGamepadStick,
+		mousePos: mousePos,
+		mouseDeltaPos: app.mouseDeltaPos,
+		isKeyDown: app.isKeyDown,
+		isKeyPressed: app.isKeyPressed,
+		isKeyPressedRepeat: app.isKeyPressedRepeat,
+		isKeyReleased: app.isKeyReleased,
+		isMouseDown: app.isMouseDown,
+		isMousePressed: app.isMousePressed,
+		isMouseReleased: app.isMouseReleased,
+		isMouseMoved: app.isMouseMoved,
+		isGamepadButtonPressed: app.isGamepadButtonPressed,
+		isGamepadButtonDown: app.isGamepadButtonDown,
+		isGamepadButtonReleased: app.isGamepadButtonReleased,
+		getGamepadStick: app.getGamepadStick,
+		charInputted: app.charInputted,
 		// timer
 		loop,
 		wait,
@@ -7477,7 +6577,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		burp,
 		audioCtx: audio.ctx,
 		// math
-		Timer,
 		Line,
 		Rect,
 		Circle,
@@ -7504,6 +6603,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		wave,
 		deg2rad,
 		rad2deg,
+		clamp,
 		testLineLine,
 		testRectRect,
 		testRectLine,
@@ -7533,11 +6633,13 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		pushRotate,
 		pushMatrix,
 		usePostEffect,
+		makeCanvas,
 		// debug
 		debug,
 		// scene
 		scene,
 		go,
+		onSceneLeave,
 		// level
 		addLevel,
 		// storage
@@ -7587,7 +6689,9 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		}
 	}
 
-	app.canvas.focus()
+	if (gopt.focus !== false) {
+		app.canvas.focus()
+	}
 
 	return ctx
 

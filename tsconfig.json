@@ -9,7 +9,7 @@
 		"resolveJsonModule": true
 	},
 	"include": [
-		"scripts/*.js",
-		"src/**/*.ts"
+		"src/**/*",
+		"scripts/**/*"
 	]
 }

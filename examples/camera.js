@@ -77,12 +77,15 @@ onKeyDown("right", () => player.move(SPEED, 0))
 
 let score = 0
 
+// Add a ui layer with fixed() component to make the object not affected by camera
+const ui = add([
+	fixed(),
+])
+
 // Add a score counter
-add([
+ui.add([
 	text("0"),
 	pos(12),
-	// Use fixed() component to make the object not affected by camera
-	fixed(),
 	{ update() { this.text = score } },
 ])
 

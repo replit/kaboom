@@ -30,16 +30,15 @@ $ npm run check
 
 ## Folder structure
 
-- `src/` kaboom library source code
-- `demo/` examples
+- `blog/` blog posts
 - `dist/` built distribution files
-- `art/` source files for visual assets
 - `doc/` various documentations
-- `site/` kaboom website source code
+- `examples/` examples
+- `pkgs/` other related packages such `kaboom-create`
 - `scripts/` development scripts
-- `assets/` some default assets people can grab, also used in the assets library in the [Replit template](https://replit.com/@replit/Kaboom)
-- `env/` a simple dev server used in the Replit template
-
+- `site/` kaboom website source code
+- `sprites/` some examples sprites
+- `src/` kaboom library source code
 ## Source code overview
 
 (todo)

@@ -212,6 +212,7 @@ export class Color {
 		}
 	}
 
+	// TODO: use range of [0, 360] [0, 100] [0, 100]?
 	static fromHSL(h: number, s: number, l: number) {
 
 		if (s == 0){
@@ -276,6 +277,29 @@ export class Color {
 			lerp(this.g, dest.g, t),
 			lerp(this.b, dest.b, t),
 		)
+	}
+
+	toHSL(): [number, number, number] {
+		const r = this.r / 255
+		const g = this.g / 255
+		const b = this.b / 255
+		const max = Math.max(r, g, b), min = Math.min(r, g, b)
+		let h = (max + min) / 2
+		let s = h
+		const l = h
+		if (max == min) {
+			h = s = 0
+		} else {
+			const d = max - min
+			s = l > 0.5 ? d / (2 - max - min) : d / (max + min)
+			switch (max) {
+				case r: h = (g - b) / d + (g < b ? 6 : 0); break
+				case g: h = (b - r) / d + 2; break
+				case b: h = (r - g) / d + 4; break
+			}
+			h /= 6
+		}
+		return [ h, s, l ]
 	}
 
 	eq(other: Color): boolean {
@@ -593,7 +617,7 @@ export class Mat4 {
 
 }
 
-export function wave(lo: number, hi: number, t: number, f = Math.sin): number {
+export function wave(lo: number, hi: number, t: number, f = (t) => -Math.cos(t)): number {
 	return lo + (f(t) + 1) / 2 * (hi - lo)
 }
 
@@ -627,7 +651,7 @@ export class RNG {
 			this.genNumber(a.b, b.b),
 		)
 	}
-	genAny<T extends RNGValue>(...args: T[]): T {
+	genAny<T = RNGValue>(...args: T[]): T {
 		if (args.length === 0) {
 			return this.gen() as T
 		} else if (args.length === 1) {
@@ -797,16 +821,16 @@ export function testLineCircle(l: Line, circle: Circle): boolean {
 	// One possible root
 	else if (dis == 0) {
 		const t = -b / (2 * a)
-		if (t < 0 || t > 1) {
-			return false
+		if (t >= 0 && t <= 1) {
+			return true
 		}
 	}
 	// Two possible roots
 	else {
 		const t1 = (-b + Math.sqrt(dis)) / (2 * a)
 		const t2 = (-b - Math.sqrt(dis)) / (2 * a)
-		if ((t1 < 0 || t1 > 1) && (t2 < 0 || t2 > 1)) {
-			return false
+		if ((t1 >= 0 && t1 <= 1) || (t2 >= 0 && t2 <= 1)) {
+			return true
 		}
 	}
 
@@ -916,6 +940,7 @@ export class Line {
 	}
 }
 
+// TODO: use x: number y: number (x, y, width, height)
 export class Rect {
 	pos: Vec2
 	width: number

@@ -49,8 +49,7 @@ scene("game", () => {
 		anchor("center"),
 		pos(0, 0),
 		body({ jumpForce: JUMP_FORCE }),
-		// allow 3 jumps
-		doubleJump(3),
+		doubleJump(),
 		rotate(0),
 		spin(),
 	])
@@ -133,19 +132,28 @@ scene("game", () => {
 		bean.doubleJump()
 	})
 
-	// both keys will trigger
-	onKeyDown("left", () => {
-		bean.move(-PLAYER_SPEED, 0)
+	function move(x) {
+		bean.move(x, 0)
 		if (bean.pos.x < 0) {
 			bean.pos.x = width()
+		} else if (bean.pos.x > width()) {
+			bean.pos.x = 0
 		}
+	}
+
+	// both keys will trigger
+	onKeyDown("left", () => {
+		move(-PLAYER_SPEED)
 	})
 
 	onKeyDown("right", () => {
-		bean.move(PLAYER_SPEED, 0)
-		if (bean.pos.x > width()) {
-			bean.pos.x = 0
-		}
+		move(PLAYER_SPEED)
+	})
+
+	onGamepadButtonPress("south", () => bean.doubleJump())
+
+	onGamepadStick("left", (v) => {
+		move(v.x * PLAYER_SPEED)
 	})
 
 	let timeLeft = 30
@@ -185,6 +193,7 @@ scene("win", (score) => {
 
 	// go back to game with space is pressed
 	onKeyPress("space", () => go("game"))
+	onGamepadButtonPress("south", () => go("game"))
 
 })
 
@@ -192,9 +201,8 @@ scene("lose", () => {
 	add([
 		text("You Lose"),
 	])
-	onKeyPress("space", () => {
-		go("game")
-	})
+	onKeyPress("space", () => go("game"))
+	onGamepadButtonPress("south", () => go("game"))
 })
 
 go("game")

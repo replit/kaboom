@@ -1,5 +1,19 @@
 # Setting up Kaboom Development
 
+## Using `create-kaboom` to generate kaboom project
+
+```sh
+$ npm init kaboom -- mygame
+```
+
+This will create a directory `mygame` containing everything you need to start a Kaboom project, go to that directory and run `npm run dev` to start the development server, and edit `src/main.js` to develop the game.
+
+to see all options, run
+
+```sh
+$ npm init kaboom -- --help
+```
+
 ## Using CDN
 
 Getting the package from a CDN provider is the quickest and easiest way to start using Kaboom.
@@ -8,7 +22,7 @@ Getting the package from a CDN provider is the quickest and easiest way to start
 <script type="module">
 
 // import kaboom lib
-import kaboom from "https://unpkg.com/kaboom/dist/kaboom.mjs";
+import kaboom from "https://unpkg.com/kaboom@3000.0.1/dist/kaboom.mjs";
 
 // initialize kaboom context
 kaboom();
@@ -29,7 +43,7 @@ The Kaboom package is deployed to NPM, so it's availbale on various CDN provider
 The example above is using Kaboom with es6 module, you can also just include it with a `<script>` tag
 
 ```html
-<script src="https://unpkg.com/kaboom/dist/kaboom.js"></script>
+<script src="https://unpkg.com/kaboom@3000.0.1/dist/kaboom.js"></script>
 ```
 
 ## Using NPM
@@ -80,14 +94,14 @@ Let's say you have a folder structure like this:
 │   ├── froggy.png
 │   └── cloud.png
 ├── sounds
-│   └── horse.png
+│   └── horse.mp3
 └── index.html
 ```
 
 and you have the static file server running on port `8000`, just go to `http://localhost:8000/index.html`, and you should be able to load stuff from relative paths like
 ```js
 loadSprite("froggy", "sprites/froggy.png");
-laodSound("horse", "sounds/horse.mp3");
+loadSound("horse", "sounds/horse.mp3");
 ```
 
 To learn more check out this [MDN doc](https://developer.mozilla.org/en-US/docs/Learn/Common_questions/set_up_a_local_testing_server).
@@ -111,4 +125,4 @@ This is a complete package including
 
 A lighter version that only contains the barebone HTML and JS file.
 
-Cool! Now you should be all ready to start using Kaboom. Try this [intro tutorial](/doc/intro.md) if you don't know how to start.
+Cool! Now you should be all ready to start using Kaboom. Try this [intro tutorial](/doc/intro) if you don't know how to start.

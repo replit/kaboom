@@ -15,7 +15,7 @@ OPTIONS
 
   -h, --help             Print this message
   -t, --typescript       Use TypeScript
-  -d, --desktop          Enable packaging for desktop release
+  -d, --desktop          Enable packaging for desktop release (uses tauri and requires rust to be installed)
   -e, --example <name>   Start from a example listed on kaboomjs.com/play
       --spaces <level>   Use spaces instead of tabs for generated files
   -v, --version <label>  Use a specific kaboom version (default latest)

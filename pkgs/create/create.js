@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-const VERSION = "2.5.0"
+const VERSION = "2.6.0"
 
 import fs from "fs"
 import cp from "child_process"
@@ -21,7 +21,7 @@ const info = (msg) => console.log(c(33, msg))
 const optMap = [
 	{ long: "help", short: "h", desc: "Print this message" },
 	{ long: "typescript", short: "t", desc: "Use TypeScript" },
-	{ long: "desktop", short: "d", desc: "Enable packaging for desktop release" },
+	{ long: "desktop", short: "d", desc: "Enable packaging for desktop with tauri" },
 	{ long: "example", short: "e", value: "name", desc: "Start from a example listed on kaboomjs.com/play" },
 	{ long: "spaces", value: "level", desc: "Use spaces instead of tabs for generated files" },
 	{ long: "version", short: "v", value: "label", desc: "Use a specific kaboom version (default latest)" },
@@ -107,7 +107,7 @@ if (fs.existsSync(dest)) {
 	fail(`Directory "${dest}" already exists!`)
 }
 
-const stringify = (obj) => JSON.stringify(obj, null, "\t")
+const stringify = (obj) => JSON.stringify(obj, null, opts["spaces"] ? 4 : "\t")
 const ts = opts["typescript"]
 const desktop = opts["desktop"]
 const ext = ts ? "ts" : "js"
@@ -137,6 +137,11 @@ const exec = async (cmd, args, opts) => new Promise((resolve) => {
 	proc.on("error", fail)
 })
 
+const updateJSONFile = (path, action) => {
+	const json = JSON.parse(fs.readFileSync(path, "utf8"))
+	fs.writeFileSync(path, stringify(action(json)))
+}
+
 let startCode = `
 import kaboom from "kaboom"
 
@@ -159,7 +164,7 @@ if (opts["example"]) {
 
 	const example = await request({
 		hostname: "raw.githubusercontent.com",
-		path: `replit/kaboom/master/example/${opts["example"]}.js`,
+		path: `replit/kaboom/master/examples/${opts["example"]}.js`,
 		method: "GET",
 	})
 
@@ -174,7 +179,7 @@ const pkgs = [
 const devPkgs = [
 	"esbuild@latest",
 	...(ts ? [ "typescript@latest" ] : []),
-	...(desktop ? [ "@neutralinojs/neu@latest" ] : []),
+	...(desktop ? [ "@tauri-apps/cli@latest" ] : []),
 ]
 
 const file = (name, content) => ({
@@ -205,9 +210,6 @@ const create = (item) => {
 	}
 }
 
-const toAlphaNumeric = (text) => text.toLowerCase().replace(/[^a-z0-9]/g, "")
-
-// TODO: create README.md with guide
 // generate core files
 create(dir(dest, [
 	file("package.json", stringify({
@@ -215,13 +217,13 @@ create(dir(dest, [
 		"scripts": {
 			"build": `esbuild --bundle src/main.${ext} --outfile=www/main.js --minify`,
 			"dev": `esbuild --bundle src/main.${ext} --outfile=www/main.js --servedir=www`,
-			"zip": "npm run build && mkdir -p dist && zip -r dist/game.zip www -x \"**/.DS_Store\"",
+			"bundle": "npm run build && mkdir -p dist && zip -r dist/game.zip www -x \"**/.DS_Store\"",
 			...(ts ? {
 				"check": "tsc",
 			} : {}),
 			...(desktop ? {
-				"run:desktop": "npm run build && neu run",
-				"build:desktop": "npm run build && neu build --release",
+				"dev:desktop": "tauri dev",
+				"build:desktop": "tauri build",
 			} : {}),
 		},
 	})),
@@ -255,38 +257,60 @@ create(dir(dest, [
 			],
 		})),
 	] : []),
-	...(desktop ? [
-		file("neutralino.config.json", stringify({
-			"applicationId": `com.kaboomjs.${toAlphaNumeric(dest)}`,
-			"version": "1.0.0",
-			"defaultMode": "window",
-			"documentRoot": "/www/",
-			"url": "/",
-			"enableServer": true,
-			"enableNativeAPI": true,
-			"modes": {
-				"window": {
-					"title": dest,
-					"icon": "/www/icon.png",
-					"width": 640,
-					"height": 480,
-				},
-			},
-			"cli": {
-				"binaryName": dest,
-				"resourcesPath": "/www/",
-				"extensionsPath": "/extensions/",
-				"clientLibrary": "/bin/neutralino.js",
-				"binaryVersion": "4.7.0",
-				"clientVersion": "3.6.0",
-			},
-		})),
-	] : []),
 	file(".gitignore", `
 node_modules/
 www/main.js
 dist/
-${desktop ? "bin/" : ""}
+${desktop ? "src-tauri/target/" : ""}
+	`),
+	file("README.md", `
+# Folder structure
+
+- \`src\` - source code for your kaboom project
+- \`www\` - distribution folder, contains your index.html, built js bundle and static assets
+${desktop ? "- `src-tauri` - tauri project folder, contains tauri config file, icons, rust source if you need native code" : ""}
+
+## Development
+
+\`\`\`sh
+$ npm run dev
+\`\`\`
+
+will start a dev server at http://localhost:8000
+
+## Distribution
+
+\`\`\`sh
+$ npm run build
+\`\`\`
+
+will build your js files into \`www/main.js\`
+
+\`\`\`sh
+$ npm run bundle
+\`\`\`
+
+will build your game and package into a .zip file, you can upload to your server or itch.io / newground etc.
+
+${desktop ? `
+## Desktop
+
+This project uses tauri for desktop builds, you have to have \`rust\` installed on your system for desktop to work, check out [tauri setup guide](https://tauri.app/v1/guides/getting-started/prerequisites/)
+
+For tauri native APIs look [here](https://tauri.app/v1/api/js/)
+
+\`\`\`sh
+$ npm run dev:desktop
+\`\`\`
+
+will start the dev server and a native window that servers content from that dev server
+
+\`\`\`sh
+$ npm run build:desktop
+\`\`\`
+
+will create distributable native app package
+` : ""}
 	`),
 ]))
 
@@ -304,13 +328,26 @@ info(`- installing dev packages ${devPkgs.map((pkg) => `"${pkg}"`).join(", ")}`)
 await exec("npm", [ "install", "-D", ...devPkgs ], { stdio: [ "inherit", "ignore", "inherit" ] })
 
 if (desktop) {
-	info("- downloading neutralino files")
-	await exec("npx", [ "neu", "update" ], { stdio: "inherit" })
-	info("- downloading icon")
+	info("- starting tauri project for desktop build")
+	await exec("npx", [
+		"tauri", "init",
+		"--app-name", dest,
+		"--window-title", dest,
+		"--dist-dir", "../www",
+		"--dev-path", "http://localhost:8000",
+		"--before-dev-command", "npm run dev",
+		"--before-build-command", "npm run build",
+		"--ci",
+	], { stdio: "inherit" })
 	await download(
 		"https://raw.githubusercontent.com/replit/kaboom/master/sprites/k.png",
 		"www/icon.png",
 	)
+	await exec("npx", ["tauri", "icon", "www/icon.png"], { stdio: "inherit" })
+	updateJSONFile("src-tauri/tauri.conf.json", (cfg) => {
+		cfg.tauri.bundle.identifier = "com.kaboom.dev"
+		return cfg
+	})
 }
 
 console.log("")

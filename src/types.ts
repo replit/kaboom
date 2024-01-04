@@ -30,7 +30,7 @@
  * k.vec2(...)
  * ```
  */
-declare function kaboom(options?: KaboomOpt): KaboomCtx
+declare function kaboom<T extends PluginList<unknown> = [undefined]>(options?: KaboomOpt<T>): T extends [undefined] ? KaboomCtx : KaboomCtx & MergePlugins<T>;
 
 /**
  * Context handle that contains every kaboom function.
@@ -81,11 +81,30 @@ export interface KaboomCtx {
 	 * })
 	 * ```
 	 */
-	add<T>(comps: CompList<T> | GameObj<T>): GameObj<T>,
+	add<T>(comps?: CompList<T> | GameObj<T>): GameObj<T>,
+	/**
+	 * Create a game object like add(), but not adding to the scene.
+	 *
+	 * @since v3000.1
+	 *
+	 * @example
+	 * ```js
+	 * const label = make([
+	 *     text("oh hi"),
+	 * ])
+
+	 * add([
+	 *     rect(label.width, label.height),
+	 *     color(0, 0, 255),
+	 *     children(label),
+	 * ])
+	 * ```
+	 */
+	make<T>(comps?: CompList<T>): GameObj<T>,
 	/**
 	 * Remove and re-add the game obj, without triggering add / destroy events.
 	 */
-	readd(obj: GameObj),
+	readd(obj: GameObj): void,
 	/**
 	 * Get a list of all game objs with certain tag.
 	 *
@@ -107,8 +126,8 @@ export interface KaboomCtx {
 	 *
 	 * @example
 	 * ```js
-	 * // every time froggy collides with anything with tag "fruit", remove it
-	 * froggy.onCollide("fruit", (fruit) => {
+	 * // every time bean collides with anything with tag "fruit", remove it
+	 * bean.onCollide("fruit", (fruit) => {
 	 *     destroy(fruit)
 	 * })
 	 * ```
@@ -133,10 +152,10 @@ export interface KaboomCtx {
 	 *
 	 * @example
 	 * ```js
-	 * // This game object will draw a "froggy" sprite at (100, 200)
+	 * // This game object will draw a "bean" sprite at (100, 200)
 	 * add([
 	 *     pos(100, 200),
-	 *     sprite("froggy"),
+	 *     sprite("bean"),
 	 * ])
 	 * ```
 	 */
@@ -152,7 +171,7 @@ export interface KaboomCtx {
 	scale(s: Vec2): ScaleComp,
 	scale(): ScaleComp,
 	/**
-	 * Rotation (in degrees). (This doesn't work with the area() collider yet)
+	 * Rotation (in degrees).
 	 */
 	rotate(a: number): RotateComp,
 	/**
@@ -162,13 +181,15 @@ export interface KaboomCtx {
 	 * ```js
 	 * // blue frog
 	 * add([
-	 *     sprite("froggy"),
+	 *     sprite("bean"),
 	 *     color(0, 0, 255)
 	 * ])
 	 * ```
 	 */
 	color(r: number, g: number, b: number): ColorComp,
 	color(c: Color): ColorComp,
+	color(rgb: [number, number, number]): ColorComp,
+	color(c: string): ColorComp,
 	color(): ColorComp,
 	/**
 	 * Sets opacity (0.0 - 1.0).
@@ -181,23 +202,23 @@ export interface KaboomCtx {
 	 * ```js
 	 * // minimal setup
 	 * add([
-	 *     sprite("froggy"),
+	 *     sprite("bean"),
 	 * ])
 	 *
 	 * // with options
-	 * const froggy = add([
-	 *     sprite("froggy", {
+	 * const bean = add([
+	 *     sprite("bean", {
 	 *         // start with animation "idle"
 	 *         anim: "idle",
 	 *     }),
 	 * ])
 	 *
 	 * // play / stop an anim
-	 * froggy.play("jump")
-	 * froggy.stop()
+	 * bean.play("jump")
+	 * bean.stop()
 	 *
 	 * // manually setting a frame
-	 * froggy.frame = 3
+	 * bean.frame = 3
 	 * ```
 	 */
 	sprite(spr: string | SpriteData, options?: SpriteCompOpt): SpriteComp,
@@ -230,6 +251,23 @@ export interface KaboomCtx {
 	 * ```
 	 */
 	text(txt: string, options?: TextCompOpt): TextComp,
+	/**
+	 * Render as a polygon.
+	 *
+	 * @since v3000.2
+	 *
+	 * @example
+	 * ```js
+	 * // Make a square the hard way
+	 * add([
+	 *     pos(80, 120),
+	 *     polygon([vec2(0,0), vec2(50,0), vec2(50,50), vec2(0,50)]),
+	 *     outline(4),
+	 *     area(),
+	 * ])
+	 * ```
+	 */
+	polygon(pts: Vec2[], opt?: PolygonCompOpt): PolygonComp,
 	/**
 	 * Render as a rectangle.
 	 *
@@ -276,7 +314,7 @@ export interface KaboomCtx {
 	 * ```js
 	 * // Automatically generate area information from the shape of render
 	 * const player = add([
-	 *     sprite("froggy"),
+	 *     sprite("bean"),
 	 *     area(),
 	 * ])
 	 *
@@ -309,9 +347,9 @@ export interface KaboomCtx {
 	 * ])
 	 *
 	 * add([
-	 *     sprite("froggy"),
-	 *     // Define custom area with width and height
-	 *     area({ width: 20, height: 40. }),
+	 *     sprite("bean"),
+	 *     // Define area with custom shape
+	 *     area({ shape: new Polygon([vec2(0), vec2(100), vec2(-100, 100)]) }),
 	 * ])
 	 * ```
 	 */
@@ -343,25 +381,25 @@ export interface KaboomCtx {
 	 *
 	 * @example
 	 * ```js
-	 * // froggy jumpy
-	 * const froggy = add([
-	 *     sprite("froggy"),
+	 * // bean jumpy
+	 * const bean = add([
+	 *     sprite("bean"),
 	 *     // body() requires "pos" and "area" component
 	 *     pos(),
 	 *     area(),
 	 *     body(),
 	 * ])
 	 *
-	 * // when froggy is grounded, press space to jump
+	 * // when bean is grounded, press space to jump
 	 * // check out #BodyComp for more methods
 	 * onKeyPress("space", () => {
-	 *     if (froggy.isGrounded()) {
-	 *         froggy.jump()
+	 *     if (bean.isGrounded()) {
+	 *         bean.jump()
 	 *     }
 	 * })
 	 *
-	 * // run something when froggy falls and hits a ground
-	 * froggy.onGround(() => {
+	 * // run something when bean falls and hits a ground
+	 * bean.onGround(() => {
 	 *     debug.log("oh no!")
 	 * })
 	 * ```
@@ -388,7 +426,7 @@ export interface KaboomCtx {
 	 * ])
 	 * ```
 	 */
-	move(direction: number | Vec2, speed: number): MoveComp,
+	move(direction: number | Vec2, speed: number): EmptyComp,
 	/**
 	 * Control the behavior of object when it goes out of view.
 	 *
@@ -414,9 +452,20 @@ export interface KaboomCtx {
 	 */
 	shader(id: string, uniform?: Uniform | (() => Uniform)): ShaderComp,
 	/**
-	 * Run certain action after some time.
+	 * Enable timer related functions like wait(), loop(), tween() on the game object.
+	 *
+	 * @example
+	 * ```js
+	 * const obj = add([
+	 *     timer(),
+	 * ])
+	 *
+	 * obj.wait(2, () => { ... })
+	 * obj.loop(0.5, () => { ... })
+	 * obj.tween(obj.pos, mousePos(), 0.5, (p) => obj.pos = p, easings.easeOutElastic)
+	 * ```
 	 */
-	timer(n?: number, action?: () => void): TimerComp,
+	timer(): TimerComp,
 	/**
 	 * Make object unaffected by camera or parent object transforms, and render at last.
 	 *
@@ -461,7 +510,7 @@ export interface KaboomCtx {
 	 *     player.hurt(1)
 	 *     bad.hurt(1)
 	 * })
-     *
+		 *
 	 * player.onCollide("apple", () => {
 	 *     player.heal(1)
 	 * })
@@ -477,7 +526,7 @@ export interface KaboomCtx {
 	 * })
 	 * ```
 	 */
-	health(hp: number): HealthComp,
+	health(hp: number, maxHP?: number): HealthComp,
 	/**
 	 * Destroy the game obj after certain amount of time
 	 *
@@ -490,7 +539,7 @@ export interface KaboomCtx {
 	 * ])
 	 * ```
 	 */
-	lifespan(time: number, options?: LifespanCompOpt): LifespanComp,
+	lifespan(time: number, options?: LifespanCompOpt): EmptyComp,
 	/**
 	 * Finite state machine.
 	 *
@@ -568,6 +617,13 @@ export interface KaboomCtx {
 	 */
 	fadeIn(time: number): Comp,
 	/**
+	 * Mask all children object render.
+	 *
+	 * @since v3000.2
+	 */
+	mask(maskType?: Mask): MaskComp,
+	drawon(canvas: FrameBuffer): Comp,
+	/**
 	 * A tile on a tile map.
 	 *
 	 * @since v3000.0
@@ -578,7 +634,7 @@ export interface KaboomCtx {
 	 *
 	 * @since v3000.0
 	 */
-	agent(): AgentComp,
+	agent(opt?: AgentCompOpt): AgentComp,
 	/**
 	 * Register an event on all game objs with certain tag.
 	 *
@@ -590,11 +646,11 @@ export interface KaboomCtx {
 	 * // every time an obj with tag "bomb" hits the floor, destroy it and addKaboom()
 	 * on("ground", "bomb", (bomb) => {
 	 *     destroy(bomb)
-	 *     addKaboom()
+	 *     addKaboom(bomb.pos)
 	 * })
 	 * ```
 	 */
-	on(event: string, tag: Tag, action: (obj: GameObj, ...args) => void): EventController,
+	on(event: string, tag: Tag, action: (obj: GameObj, ...args: any) => void): EventController,
 	/**
 	 * Register an event that runs every frame (~60 times per second) for all game objs with certain tag.
 	 *
@@ -661,19 +717,19 @@ export interface KaboomCtx {
 	 *
 	 * @example
 	 * ```js
-	 * const froggy = add([
-	 *     sprite("froggy"),
+	 * const bean = add([
+	 *     sprite("bean"),
 	 * ])
 	 *
 	 * // certain assets related data are only available when the game finishes loading
 	 * onLoad(() => {
-	 *     debug.log(froggy.width)
+	 *     debug.log(bean.width)
 	 * })
 	 * ```
 	 */
 	onLoad(action: () => void): void,
 	/**
-	 * Register an event that runs every frame when assets are initially loading. Can be used to draw a custom loading screen
+	 * Register an event that runs every frame when assets are initially loading. Can be used to draw a custom loading screen.
 	 *
 	 * @since v3000.0
 	 */
@@ -685,23 +741,29 @@ export interface KaboomCtx {
 	 */
 	onError(action: (err: Error) => void): void,
 	/**
-	 * Register an event that runs when the canvas resizes
+	 * Register an event that runs when the canvas resizes.
 	 *
 	 * @since v3000.0
 	 */
 	onResize(action: () => void): void,
 	/**
+	 * Cleanup function to run when quit() is called.
+	 *
+	 * @since v3000.0
+	 */
+	onCleanup(action: () => void): void,
+	/**
 	 * Register an event that runs when a gamepad is connected.
 	 *
 	 * @since v3000.0
 	 */
-	onGamepadConnect(action: (gamepad: Gamepad) => void): void,
+	onGamepadConnect(action: (gamepad: KGamePad) => void): void,
 	/**
 	 * Register an event that runs when a gamepad is disconnected.
 	 *
 	 * @since v3000.0
 	 */
-	onGamepadDisconnect(action: (gamepad: Gamepad) => void): void,
+	onGamepadDisconnect(action: (gamepad: KGamePad) => void): void,
 	/**
 	 * Register an event that runs once when 2 game objs with certain tags collides (required to have area() component).
 	 *
@@ -804,11 +866,17 @@ export interface KaboomCtx {
 	 * ```js
 	 * // move left by SPEED pixels per frame every frame when left arrow key is being held down
 	 * onKeyDown("left", () => {
-	 *     froggy.move(-SPEED, 0)
+	 *     bean.move(-SPEED, 0)
 	 * })
 	 * ```
 	 */
-	onKeyDown(k: Key, action: () => void): EventController,
+	onKeyDown(key: Key, action: (key: Key) => void): EventController,
+	/**
+	 * Register an event that runs every frame when any key is held down.
+	 *
+	 * @since v2000.1
+	 */
+	onKeyDown(action: (key: Key) => void): EventController,
 	/**
 	 * Register an event that runs when user presses certain key.
 	 *
@@ -818,11 +886,11 @@ export interface KaboomCtx {
 	 * ```js
 	 * // .jump() once when "space" is just being pressed
 	 * onKeyPress("space", () => {
-	 *     froggy.jump()
+	 *     bean.jump()
 	 * })
 	 * ```
 	 */
-	onKeyPress(k: Key, action: (k: Key) => void): EventController,
+	onKeyPress(key: Key, action: (key: Key) => void): EventController,
 	/**
 	 * Register an event that runs when user presses any key.
 	 *
@@ -925,23 +993,17 @@ export interface KaboomCtx {
 	 */
 	onScroll(action: (delta: Vec2) => void): EventController,
 	/**
-	 * Register an event that runs when a virtual control button is pressed.
+	 * Register an event that runs when tab is hidden.
 	 *
-	 * @since v3000.0
+	 * @since v3000.2
 	 */
-	onVirtualButtonPress(btn: VirtualButton, action: () => void): EventController,
+	onHide(action: () => void): EventController,
 	/**
-	 * Register an event that runs when a virtual control button is pressed.
+	 * Register an event that runs when tab is shown.
 	 *
-	 * @since v3000.0
+	 * @since v3000.2
 	 */
-	onVirtualButtonDown(btn: VirtualButton, action: () => void): EventController,
-	/**
-	 * Register an event that runs when a virtual control button is pressed.
-	 *
-	 * @since v3000.0
-	 */
-	onVirtualButtonRelease(btn: VirtualButton, action: () => void): EventController,
+	onShow(action: () => void): EventController,
 	/**
 	 * Register an event that runs every frame when certain gamepad button is held down.
 	 *
@@ -983,7 +1045,13 @@ export interface KaboomCtx {
 	 *
 	 * @since v3000.0
 	 */
-	onGamepadStick(stick: "left" | "right", action: (value: Vec2) => void): EventController,
+	onGamepadStick(stick: GamepadStick, action: (value: Vec2) => void): EventController,
+	/**
+	 * Register an event that runs when current scene ends.
+	 *
+	 * @since v3000.0
+	 */
+	onSceneLeave(action: (newScene?: string) => void): EventController,
 	/**
 	 * Sets the root for all subsequent resource urls.
 	 *
@@ -992,7 +1060,7 @@ export interface KaboomCtx {
 	 * @example
 	 * ```js
 	 * loadRoot("https://myassets.com/")
-	 * loadSprite("froggy", "sprites/froggy.png") // will resolve to "https://myassets.com/sprites/frogg.png"
+	 * loadSprite("bean", "sprites/bean.png") // will resolve to "https://myassets.com/sprites/bean.png"
 	 * ```
 	 */
 	loadRoot(path?: string): string,
@@ -1002,11 +1070,11 @@ export interface KaboomCtx {
 	 * @example
 	 * ```js
 	 * // due to browser policies you'll need a static file server to load local files
-	 * loadSprite("froggy", "froggy.png")
+	 * loadSprite("bean", "bean.png")
 	 * loadSprite("apple", "https://kaboomjs.com/sprites/apple.png")
 	 *
 	 * // slice a spritesheet and add anims manually
-	 * loadSprite("froggy", "froggy.png", {
+	 * loadSprite("bean", "bean.png", {
 	 *     sliceX: 4,
 	 *     sliceY: 1,
 	 *     anims: {
@@ -1079,7 +1147,7 @@ export interface KaboomCtx {
 		url: string,
 	): Asset<Record<string, SpriteData>>,
 	/**
-	 * Load a sprite with aseprite spritesheet json.
+	 * Load a sprite with aseprite spritesheet json (should use "array" in the export options).
 	 *
 	 * @example
 	 * ```js
@@ -1089,9 +1157,9 @@ export interface KaboomCtx {
 	loadAseprite(
 		name: string | null,
 		imgSrc: LoadSpriteSrc,
-		jsonSrc: string
+		jsonSrc: string | AsepriteData,
 	): Asset<SpriteData>,
-	loadPedit(name: string, src: string): Asset<SpriteData>,
+	loadPedit(name: string | null, src: string): Asset<SpriteData>,
 	/**
 	 * Load default sprite "bean".
 	 *
@@ -1107,20 +1175,39 @@ export interface KaboomCtx {
 	 */
 	loadBean(name?: string): Asset<SpriteData>,
 	/**
+	 * Load custom JSON data from url.
+	 *
+	 * @since v3000.0
+	 */
+	loadJSON(name: string | null, url: string): Asset<any>,
+	/**
 	 * Load a sound into asset manager, with name and resource url.
 	 *
 	 * @example
 	 * ```js
-	 * loadSound("shoot", "horse.ogg")
-	 * loadSound("shoot", "https://kaboomjs.com/sounds/scream6.mp3")
+	 * loadSound("shoot", "/sounds/horse.ogg")
+	 * loadSound("shoot", "/sounds/squeeze.mp3")
+	 * loadSound("shoot", "/sounds/shoot.wav")
 	 * ```
 	 */
 	loadSound(
 		name: string | null,
-		src: string,
+		src: string | ArrayBuffer,
 	): Asset<SoundData>,
 	/**
-	 * Load a font (any format supported by the browser, e.g. ttf, otf, woff)
+	 * Like loadSound(), but the audio is streamed and won't block loading. Use this for big audio files like background music.
+	 *
+	 * @example
+	 * ```js
+	 * loadMusic("shoot", "/music/bossfight.mp3")
+	 * ```
+	 */
+	loadMusic(
+		name: string | null,
+		url: string,
+	): void,
+	/**
+	 * Load a font (any format supported by the browser, e.g. ttf, otf, woff).
 	 *
 	 * @since v3000.0
 	 *
@@ -1130,7 +1217,7 @@ export interface KaboomCtx {
 	 * loadFont("frogblock", "fonts/frogblock.ttf")
 	 * ```
 	 */
-	loadFont(name: string, src: string | ArrayBuffer, opt?: LoadFontOpt): Asset<FontFace>,
+	loadFont(name: string, src: string | BinaryData, opt?: LoadFontOpt): Asset<FontData>,
 	/**
 	 * Load a bitmap font into asset manager, with name and resource url and infomation on the layout of the bitmap.
 	 *
@@ -1210,35 +1297,41 @@ export interface KaboomCtx {
 	 */
 	loadProgress(): number,
 	/**
-	 * Get SpriteData from handle if loaded.
+	 * Get SpriteData from name.
 	 *
 	 * @since v3000.0
 	 */
-	getSprite(handle: string): Asset<SpriteData> | void,
+	getSprite(name: string): Asset<SpriteData> | void,
 	/**
-	 * Get SoundData from handle if loaded.
+	 * Get SoundData from name.
 	 *
 	 * @since v3000.0
 	 */
-	getSound(handle: string): Asset<SoundData> | void,
+	getSound(name: string): Asset<SoundData> | void,
 	/**
-	 * Get FontData from handle if loaded.
+	 * Get FontData from name.
 	 *
 	 * @since v3000.0
 	 */
-	getFont(handle: string): Asset<FontData> | void,
+	getFont(name: string): Asset<FontData> | void,
 	/**
-	 * Get BitmapFontData from handle if loaded.
+	 * Get BitmapFontData from name.
 	 *
 	 * @since v3000.0
 	 */
-	getBitmapFont(handle: string): Asset<BitmapFontData> | void,
+	getBitmapFont(name: string): Asset<BitmapFontData> | void,
 	/**
-	 * Get ShaderData from handle if loaded.
+	 * Get ShaderData from name.
 	 *
 	 * @since v3000.0
 	 */
-	getShader(handle: string): Asset<ShaderData> | void,
+	getShader(name: string): Asset<ShaderData> | void,
+	/**
+	 * Get custom data from name.
+	 *
+	 * @since v3000.0
+	 */
+	getAsset(name: string): Asset<any> | void,
 	Asset: typeof Asset,
 	SpriteData: typeof SpriteData,
 	SoundData: typeof SoundData,
@@ -1257,9 +1350,9 @@ export interface KaboomCtx {
 	 *
 	 * @example
 	 * ```js
-	 * // add froggy to the center of the screen
+	 * // add bean to the center of the screen
 	 * add([
-	 *     sprite("froggy"),
+	 *     sprite("bean"),
 	 *     pos(center()),
 	 *     // ...
 	 * ])
@@ -1271,9 +1364,9 @@ export interface KaboomCtx {
 	 *
 	 * @example
 	 * ```js
-	 * // rotate froggy 100 deg per second
-	 * froggy.onUpdate(() => {
-	 *     froggy.angle += 100 * dt()
+	 * // rotate bean 100 deg per second
+	 * bean.onUpdate(() => {
+	 *     bean.angle += 100 * dt()
 	 * })
 	 * ```
 	 */
@@ -1293,7 +1386,7 @@ export interface KaboomCtx {
 	 *
 	 * @since v3000.0
 	 */
-	isTouchScreen(): boolean,
+	isTouchscreen(): boolean,
 	/**
 	 * Get current mouse position (without camera transform).
 	 */
@@ -1309,10 +1402,10 @@ export interface KaboomCtx {
 	 *
 	 * @example
 	 * ```js
-	 * // equivalent to the calling froggy.move() in an onKeyDown("left")
+	 * // equivalent to the calling bean.move() in an onKeyDown("left")
 	 * onUpdate(() => {
 	 *     if (isKeyDown("left")) {
-	 *         froggy.move(-SPEED, 0)
+	 *         bean.move(-SPEED, 0)
 	 *     }
 	 * })
 	 * ```
@@ -1361,24 +1454,6 @@ export interface KaboomCtx {
 	 */
 	isMouseMoved(): boolean,
 	/**
-	 * If a virtual button is just pressed last frame.
-	 *
-	 * @since v3000.0
-	 */
-	isVirtualButtonPressed(btn: VirtualButton): boolean,
-	/**
-	 * If a virtual button is currently held down.
-	 *
-	 * @since v3000.0
-	 */
-	isVirtualButtonDown(btn: VirtualButton): boolean,
-	/**
-	 * If a virtual button is just released last frame.
-	 *
-	 * @since v3000.0
-	 */
-	isVirtualButtonReleased(btn: VirtualButton): boolean,
-	/**
 	 * If a gamepad button is just pressed last frame
 	 *
 	 * @since v3000.0
@@ -1397,6 +1472,12 @@ export interface KaboomCtx {
 	 */
 	isGamepadButtonReleased(btn?: GamepadButton): boolean,
 	/**
+	 * Get stick axis values from a gamepad.
+	 *
+	 * @since v3000.2
+	 */
+	getGamepadStick(stick: GamepadStick): Vec2,
+	/**
 	 * List of characters inputted since last frame.
 	 *
 	 * @since v3000.0
@@ -1407,8 +1488,8 @@ export interface KaboomCtx {
 	 *
 	 * @example
 	 * ```js
-	 * // shake intensively when froggy collides with a "bomb"
-	 * froggy.onCollide("bomb", () => {
+	 * // shake intensively when bean collides with a "bomb"
+	 * bean.onCollide("bomb", () => {
 	 *     shake(120)
 	 * })
 	 * ```
@@ -1468,9 +1549,11 @@ export interface KaboomCtx {
 	 *
 	 * @since v3000.0
 	 */
-	getGamepads(): Gamepad[],
+	getGamepads(): KGamePad[],
 	/**
-	 * Get / set the cursor (css). Cursor will be reset to "default" every frame so use this in an per-frame action.
+	 * Set cursor style (check Cursor type for possible values). Cursor will be reset to "default" every frame so use this in an per-frame action.
+	 *
+	 * @since v3000.0
 	 *
 	 * @example
 	 * ```js
@@ -1479,7 +1562,27 @@ export interface KaboomCtx {
 	 * })
 	 * ```
 	 */
-	setCursor(c?: Cursor): Cursor,
+	setCursor(style: Cursor): void,
+	/**
+	 * Get current cursor style.
+	 *
+	 * @since v3000.0
+	 * ```
+	 */
+	getCursor(): Cursor,
+	/**
+	 * Lock / unlock cursor. Note that you cannot lock cursor within 1 second after user unlocking the cursor with the default unlock gesture (typically the esc key) due to browser policy.
+	 *
+	 * @since v3000.0
+	 */
+	setCursorLocked(locked: boolean): void,
+	/**
+	 * Get if cursor is currently locked.
+	 *
+	 * @since v3000.0
+	 * ```
+	 */
+	isCursorLocked(): boolean,
 	/**
 	 * Enter / exit fullscreen mode. (note: mouse position is not working in fullscreen mode at the moment)
 	 *
@@ -1487,7 +1590,7 @@ export interface KaboomCtx {
 	 * ```js
 	 * // toggle fullscreen mode on "f"
 	 * onKeyPress("f", (c) => {
-	 *     fullscreen(!isFullscreen())
+	 *     setFullscreen(!isFullscreen())
 	 * })
 	 * ```
 	 */
@@ -1530,7 +1633,6 @@ export interface KaboomCtx {
 	 * ```
 	 */
 	loop(t: number, action: () => void): EventController,
-	Timer: typeof Timer,
 	/**
 	 * Play a piece of audio.
 	 *
@@ -1550,11 +1652,14 @@ export interface KaboomCtx {
 	 * })
 	 *
 	 * // using the handle to control (check out AudioPlay for more controls / info)
-	 * music.pause()
-	 * music.play()
+	 * music.paused = true
+	 * music.speed = 1.2
 	 * ```
 	 */
-	play(src: string | SoundData | Asset<SoundData>, options?: AudioPlayOpt): AudioPlay,
+	play(
+		src: string | SoundData | Asset<SoundData> | MusicData | Asset<MusicData>,
+		options?: AudioPlayOpt,
+	): AudioPlay,
 	/**
 	 * Yep.
 	 */
@@ -1594,7 +1699,7 @@ export interface KaboomCtx {
 	 * rand(rgb(255, 255, 255))
 	 * ```
 	 */
-	rand<T extends RNGValue>(n: T): T,
+	rand<T = RNGValue>(n: T): T,
 	/**
 	 * Get a random value between the given bound.
 	 *
@@ -1609,7 +1714,7 @@ export interface KaboomCtx {
 	 * ])
 	 * ```
 	 */
-	rand<T extends RNGValue>(a: T, b: T): T,
+	rand<T = RNGValue>(a: T, b: T): T,
 	/**
 	 * rand() but floored to integer.
 	 *
@@ -1669,7 +1774,7 @@ export interface KaboomCtx {
 	vec2(xy: number): Vec2,
 	vec2(): Vec2,
 	/**
-	 * RGB color (0 - 255).
+	 * Create a color from RGB values (0 - 255).
 	 *
 	 * @example
 	 * ```js
@@ -1678,6 +1783,20 @@ export interface KaboomCtx {
 	 * ```
 	 */
 	rgb(r: number, g: number, b: number): Color,
+	/**
+	 * Create a color from hex string.
+	 *
+	 * @since v3000.2
+	 *
+	 * @example
+	 * ```js
+	 * sky.color = rgb("#ef6360")
+	 */
+	rgb(hex: string): Color,
+	/**
+	 * Same as rgb(255, 255, 255).
+	 */
+	rgb(): Color,
 	/**
 	 * Convert HSL color (all values in 0.0 - 1.0 range) to RGB color.
 	 *
@@ -1738,11 +1857,11 @@ export interface KaboomCtx {
 	 * await tween(bean.opacity, 1, 0.5, (val) => bean.opacity = val, easings.easeOutQuad)
 	 * ```
 	 */
-	tween(
-		from: number,
-		to: number,
+	tween<V extends LerpValue>(
+		from: V,
+		to: V,
 		duration: number,
-		setValue: (value: number) => void,
+		setValue: (value: V) => void,
 		easeFunc?: (t: number) => number,
 	): TweenController,
 	/**
@@ -1794,6 +1913,10 @@ export interface KaboomCtx {
 	 */
 	rad2deg(rad: number): number,
 	/**
+	 * Return a value clamped to an inclusive range of min and max.
+	 */
+	clamp(n: number, min: number, max: number): number,
+	/**
 	 * Check if a line and a point intersect.
 	 */
 	testLinePoint(l: Line, pt: Vec2): boolean
@@ -1835,11 +1958,11 @@ export interface KaboomCtx {
 	 *
 	 * @section Scene
 	 */
-	scene(id: SceneID, def: SceneDef): void,
+	scene(id: SceneName, def: SceneDef): void,
 	/**
 	 * Go to a scene, passing all rest args to scene callback.
 	 */
-	go(id: SceneID, ...args): void,
+	go(id: SceneName, ...args: any): void,
 	/**
 	 * Construct a level based on symbols.
 	 *
@@ -1856,25 +1979,27 @@ export interface KaboomCtx {
 	 *     "       ^^      = >    =   &",
 	 *     "===========================",
 	 * ], {
-	 *     // define the size of each block
-	 *     width: 32,
-	 *     height: 32,
+	 *     // define the size of tile block
+	 *     tileWidth: 32,
+	 *     tileHeight: 32,
 	 *     // define what each symbol means, by a function returning a component list (what will be passed to add())
-	 *     "=": () => [
-	 *         sprite("floor"),
-	 *         area(),
-	 *         solid(),
-	 *     ],
-	 *     "$": () => [
-	 *         sprite("coin"),
-	 *         area(),
-	 *         pos(0, -9),
-	 *     ],
-	 *     "^": () => [
-	 *         sprite("spike"),
-	 *         area(),
-	 *         "danger",
-	 *     ],
+	 *     tiles: {
+	 *         "=": () => [
+	 *             sprite("floor"),
+	 *             area(),
+	 *             solid(),
+	 *         ],
+	 *         "$": () => [
+	 *             sprite("coin"),
+	 *             area(),
+	 *             pos(0, -9),
+	 *         ],
+	 *         "^": () => [
+	 *             sprite("spike"),
+	 *             area(),
+	 *             "danger",
+	 *         ],
+	 *     }
 	 * })
 	 * ```
 	 */
@@ -1897,7 +2022,7 @@ export interface KaboomCtx {
 	 * @example
 	 * ```js
 	 * drawSprite({
-	 *     sprite: "froggy",
+	 *     sprite: "bean",
 	 *     pos: vec2(100, 200),
 	 *     frame: 3,
 	 * })
@@ -2073,7 +2198,7 @@ export interface KaboomCtx {
 	 * pushRotate(time() * 120)
 	 * pushScale(6)
 	 *
-	 * drawSprite("froggy")
+	 * drawSprite("bean")
 	 * drawCircle(vec2(0), 120)
 	 *
 	 * // restore the transformation stack to when last pushed
@@ -2134,7 +2259,7 @@ export interface KaboomCtx {
 	 * usePostEffect("invert")
 	 * ```
 	 */
-	usePostEffect(name: string, uniform?: Uniform | (() => Uniform)),
+	usePostEffect(name: string, uniform?: Uniform | (() => Uniform)): void,
 	/**
 	 * Format a piece of text without drawing (for getting dimensions, etc).
 	 *
@@ -2157,6 +2282,12 @@ export interface KaboomCtx {
 	 */
 	formatText(options: DrawTextOpt): FormattedText,
 	/**
+	 * Create a canvas to draw stuff offscreen.
+	 *
+	 * @since v3000.2
+	 */
+	makeCanvas(w: number, h: number): Canvas
+	/**
 	 * @section Debug
 	 *
 	 * @example
@@ -2174,7 +2305,7 @@ export interface KaboomCtx {
 	 *
 	 * @section Misc
 	 */
-	plug<T>(plugin: KaboomPlugin<T>): void,
+	plug<T extends Record<string, any>>(plugin: KaboomPlugin<T>): KaboomCtx & T,
 	/**
 	 * Take a screenshot and get the dataurl of the image.
 	 *
@@ -2287,8 +2418,10 @@ type Defined<T> = T extends any ? Pick<T, { [K in keyof T]-?: T[K] extends undef
 type Expand<T> = T extends infer U ? { [K in keyof U]: U[K] } : never
 export type MergeObj<T> = Expand<UnionToIntersection<Defined<T>>>
 export type MergeComps<T> = Omit<MergeObj<T>, keyof Comp>
+export type MergePlugins<T extends PluginList<any>> = MergeObj<ReturnType<T[number]>>
 
 export type CompList<T> = Array<T | Tag>
+export type PluginList<T> = Array<T | KaboomPlugin<any>>
 
 export type Key =
 	| "f1" | "f2" | "f3" | "f4" | "f5" | "f6" | "f7" | "f8" | "f9" | "f10" | "f11" | "f12"
@@ -2297,7 +2430,7 @@ export type Key =
 	| "a" | "s" | "d" | "f" | "g" | "h" | "j" | "k" | "l" | ";" | "'"
 	| "z" | "x" | "c" | "v" | "b" | "n" | "m" | "," | "." | "/"
 	| "escape" | "backspace" | "enter" | "tab" | "control" | "alt" | "meta" | "space" | " "
-	| "left" | "right" | "up" | "down"
+	| "left" | "right" | "up" | "down" | "shift"
 
 export type MouseButton =
 	| "left"
@@ -2319,20 +2452,43 @@ export type GamepadButton =
 	| "start"
 	| "lstick"
 	| "rstick"
-	| "dpad-north"
-	| "dpad-east"
-	| "dpad-south"
-	| "dpad-west"
+	| "dpad-up"
+	| "dpad-right"
+	| "dpad-down"
+	| "dpad-left"
+	| "home"
+	| "capture"
+
+export type GamepadStick = "left" | "right"
+
+export type GamepadDef = {
+	buttons: Record<string, GamepadButton>,
+	sticks: Partial<Record<GamepadStick, { x: number, y: number }>>,
+}
+
+/** A Kaboom's gamepad */
+export type KGamePad = {
+	/** The order of the gamepad in the gamepad list. */
+	index: number;
+	/** If certain button is pressed. */
+	isPressed(b: GamepadButton): boolean,
+	/** If certain button is held down. */
+	isDown(b: GamepadButton): boolean,
+	/** If certain button is released. */
+	isReleased(b: GamepadButton): boolean,
+	/** Get the value of a stick. */
+	getStick(stick: GamepadStick): Vec2,
+}
 
 /**
- * Inspect info for a character.
+ * Inspect info for a game object.
  */
 export type GameObjInspect = Record<Tag, string | null>
 
 /**
  * Kaboom configurations.
  */
-export interface KaboomOpt {
+export interface KaboomOpt<T extends PluginList<any> = any> {
 	/**
 	 * Width of game.
 	 */
@@ -2380,19 +2536,25 @@ export interface KaboomOpt {
 	 */
 	root?: HTMLElement,
 	/**
-	 * Background color. E.g. [ 0, 0, 255 ] for solid blue background, or [ 0, 0, 0, 0 ] for transparent background.
+	 * Background color. E.g. [ 0, 0, 255 ] for solid blue background, or [ 0, 0, 0, 0 ] for transparent background. Accepts RGB value array or string hex codes.
 	 */
-	background?: number[],
+	background?: number[] | string,
 	/**
 	 * Default texture filter.
 	 */
 	texFilter?: TexFilter,
 	/**
-	 * How many log messages can there be on one screen.
+	 * How many log messages can there be on one screen (default 8).
 	 */
 	logMax?: number,
 	/**
-	 * Size of the spatial hash grid for collision detection (default 64)
+	 * How many seconds log messages stay on screen (default 4).
+	 *
+	 * @since v3000.1
+	 */
+	logTime?: number,
+	/**
+	 * Size of the spatial hash grid for collision detection (default 64).
 	 *
 	 * @since v3000.0
 	 */
@@ -2408,17 +2570,29 @@ export interface KaboomOpt {
 	 */
 	loadingScreen?: boolean,
 	/**
-	 * If enable virtual controls for mobile (default false).
-	 *
-	 * @since v3000.0
-	 */
-	virtualControls?: boolean,
-	/**
 	 * If pause audio when tab is not active (default false).
 	 *
 	 * @since v3000.0
 	 */
 	backgroundAudio?: boolean,
+	/**
+	 * Custom gamepad definitions (see gamepad.json for reference of the format).
+	 *
+	 * @since v3000.0
+	 */
+	gamepads?: Record<string, GamepadDef>,
+	/**
+	 * Limit framerate to an amount per second.
+	 *
+	 * @since v3000.0
+	 */
+	maxFPS?: number,
+	/**
+	 * If focus on the canvas on start (default true).
+	 *
+	 * @since v3000.2
+	 */
+	focus?: boolean,
 	/**
 	 * If import all kaboom functions to global (default true).
 	 */
@@ -2426,14 +2600,14 @@ export interface KaboomOpt {
 	/**
 	 * List of plugins to import.
 	 */
-	plugins?: KaboomPlugin<any>[],
+	plugins?: T,
 	/**
 	 * Enter burp mode.
 	 */
 	burp?: boolean,
 }
 
-export type KaboomPlugin<T> = (k: KaboomCtx) => T
+export type KaboomPlugin<T> = (k: KaboomCtx) => T | ((...args: any) => (k: KaboomCtx) => T)
 
 /**
  * Base interface of all game objects.
@@ -2444,11 +2618,11 @@ export interface GameObjRaw {
 	 *
 	 * @since v3000.0
 	 */
-	add<T>(comps: CompList<T> | GameObj<T>): GameObj<T>,
+	add<T>(comps?: CompList<T> | GameObj<T>): GameObj<T>,
 	/**
 	 * Remove and re-add the game obj, without triggering add / destroy events.
 	 */
-	readd(obj: GameObj),
+	readd<T>(obj: GameObj<T>): GameObj<T>,
 	/**
 	 * Remove a child.
 	 *
@@ -2461,6 +2635,12 @@ export interface GameObjRaw {
 	 * @since v3000.0
 	 */
 	removeAll(tag: Tag): void,
+	/**
+	 * Remove all children.
+	 *
+	 * @since v3000.0
+	 */
+	removeAll(): void,
 	/**
 	 * Get a list of all game objs with certain tag.
 	 *
@@ -2492,6 +2672,13 @@ export interface GameObjRaw {
 	 */
 	draw(): void,
 	/**
+	 * Draw debug info in inspect mode
+	 *
+	 * @since v3000.0
+	 */
+	drawInspect: () => void,
+	clearEvents: () => void,
+	/**
 	 * If there's certain tag(s) on the game obj.
 	 */
 	is(tag: Tag | Tag[]): boolean,
@@ -2508,11 +2695,11 @@ export interface GameObjRaw {
 	/**
 	 * Register an event.
 	 */
-	on(event: string, action: (...args) => void): EventController,
+	on(event: string, action: (...args: any) => void): EventController,
 	/**
 	 * Trigger an event.
 	 */
-	trigger(event: string, ...args): void,
+	trigger(event: string, ...args: any): void,
 	/**
 	 * Remove the game obj from scene.
 	 */
@@ -2525,6 +2712,10 @@ export interface GameObjRaw {
 	 * Gather debug info of all comps.
 	 */
 	inspect(): GameObjInspect,
+	/**
+	 * Register an event that runs when the game obj is added to the scene.
+	 */
+	onAdd(action: () => void): EventController,
 	/**
 	 * Register an event that runs every frame as long as the game obj exists.
 	 *
@@ -2568,9 +2759,42 @@ export interface GameObjRaw {
 	 */
 	paused: boolean,
 	/**
-	 * A unique number ID for each game object in each kaboom instance.
+	 * A unique number ID for each game object.
 	 */
 	id: GameObjID | null,
+	/**
+	 * The canvas to draw this game object on
+	 *
+	 * @since v3000.2
+	 */
+	canvas: FrameBuffer | null,
+	onKeyDown(key: Key, action: (key: Key) => void): EventController,
+	onKeyDown(action: (key: Key) => void): EventController,
+	onKeyPress(key: Key, action: (key: Key) => void): EventController,
+	onKeyPress(action: (key: Key) => void): EventController,
+	onKeyPressRepeat(k: Key, action: (k: Key) => void): EventController,
+	onKeyPressRepeat(action: (k: Key) => void): EventController,
+	onKeyRelease(k: Key, action: (k: Key) => void): EventController,
+	onKeyRelease(action: (k: Key) => void): EventController,
+	onCharInput(action: (ch: string) => void): EventController,
+	onMouseDown(action: (m: MouseButton) => void): EventController,
+	onMouseDown(button: MouseButton, action: (m: MouseButton) => void): EventController,
+	onMousePress(action: (m: MouseButton) => void): EventController,
+	onMousePress(button: MouseButton, action: (m: MouseButton) => void): EventController,
+	onMouseRelease(action: (m: MouseButton) => void): EventController,
+	onMouseRelease(button: MouseButton, action: (m: MouseButton) => void): EventController,
+	onMouseMove(action: (pos: Vec2, delta: Vec2) => void): EventController,
+	onTouchStart(action: (pos: Vec2, t: Touch) => void): EventController,
+	onTouchMove(action: (pos: Vec2, t: Touch) => void): EventController,
+	onTouchEnd(action: (pos: Vec2, t: Touch) => void): EventController,
+	onScroll(action: (delta: Vec2) => void): EventController,
+	onGamepadButtonDown(btn: GamepadButton, action: (btn: GamepadButton) => void): EventController,
+	onGamepadButtonDown(action: (btn: GamepadButton) => GamepadButton): EventController,
+	onGamepadButtonPress(btn: GamepadButton, action: (btn: GamepadButton) => void): EventController,
+	onGamepadButtonPress(action: (btn: GamepadButton) => GamepadButton): EventController,
+	onGamepadButtonRelease(btn: GamepadButton, action: (btn: GamepadButton) => void): EventController,
+	onGamepadButtonRelease(action: (btn: GamepadButton) => void): EventController,
+	onGamepadStick(stick: GamepadStick, action: (value: Vec2) => void): EventController,
 }
 
 /**
@@ -2578,8 +2802,8 @@ export interface GameObjRaw {
  */
 export type GameObj<T = any> = GameObjRaw & MergeComps<T>
 
-export type SceneID = string
-export type SceneDef = (...args) => void
+export type SceneName = string
+export type SceneDef = (...args: any) => void
 
 export type GetOpt = {
 	/**
@@ -2765,16 +2989,44 @@ export declare class Asset<D> {
 	finally(action: () => void): Asset<D>
 }
 
-export type LoadSpriteSrc = string | TexImageSource
+export type LoadSpriteSrc = string | ImageSource
+
+export type AsepriteData = {
+	frames: Array<{
+		frame: {
+			x: number,
+			y: number,
+			w: number,
+			h: number,
+		},
+	}>,
+	meta: {
+		size: { w: number, h: number },
+		frameTags: Array<{
+			name: string,
+			from: number,
+			to: number,
+			direction: "forward" | "reverse" | "pingpong",
+		}>,
+	},
+}
 
 export declare class SpriteData {
 	tex: Texture
 	frames: Quad[]
 	anims: SpriteAnims
+	/**
+	 * @since v3000.2
+	 */
+	width: number
+	/**
+	 * @since v3000.2
+	 */
+	height: number
 	slice9: NineSlice | null
 	constructor(tex: Texture, frames?: Quad[], anims?: SpriteAnims)
 	static from(src: LoadSpriteSrc, opt?: LoadSpriteOpt): Promise<SpriteData>
-	static fromImage(data: TexImageSource, opt?: LoadSpriteOpt): SpriteData
+	static fromImage(data: ImageSource, opt?: LoadSpriteOpt): SpriteData
 	static fromURL(url: string, opt?: LoadSpriteOpt): Promise<SpriteData>
 }
 
@@ -2785,18 +3037,33 @@ export declare class SoundData {
 	static fromURL(url: string): Promise<SoundData>
 }
 
+export type MusicData = string
+
 export interface LoadFontOpt {
 	filter?: TexFilter,
+	outline?: number | Outline,
+	/**
+	 * The size to load the font in (default 64).
+	 *
+	 * @since v3000.2
+	 */
+	size?: number,
 }
 
 export interface LoadBitmapFontOpt {
 	chars?: string,
 	filter?: TexFilter,
+	outline?: number,
 }
 
-export type FontData = FontFace
+export declare class FontData {
+	fontface: FontFace
+	filter: TexFilter
+	outline: Outline | null
+}
+
 export type BitmapFontData = GfxFont
-export type ShaderData = GfxShader
+export type ShaderData = Shader
 
 // TODO: enable setting on load, make part of SoundData
 /**
@@ -2853,6 +3120,12 @@ export interface AudioPlay {
 	 */
 	seek(time: number): void,
 	/**
+	 * Stop the sound.
+	 *
+	 * @since v3000.2
+	 */
+	stop(): void,
+	/**
 	 * If the sound is paused.
 	 *
 	 * @since v2000.1
@@ -2900,12 +3173,14 @@ export interface AudioPlay {
 	then(action: () => void): EventController,
 }
 
-// TODO: hide
-export interface GfxShader {
-	bind(): void,
-	unbind(): void,
-	send(uniform: Uniform): void,
-	free(): void,
+export declare class Shader {
+	ctx: GfxCtx
+	glProgram: WebGLProgram
+	constructor(ctx: GfxCtx, vert: string, frag: string, attribs: string[])
+	bind()
+	unbind()
+	send(uniform: Uniform)
+	free()
 }
 
 export type TextureOpt = {
@@ -2913,17 +3188,52 @@ export type TextureOpt = {
 	wrap?: TexWrap,
 }
 
+export type ImageSource = Exclude<TexImageSource, VideoFrame>
+
+type GfxCtx = any
+
 export declare class Texture {
+	ctx: GfxCtx
+	src: null | ImageSource
 	glTex: WebGLTexture
-	src: null | TexImageSource
 	width: number
 	height: number
-	constructor(w: number, h: number, opt?: TextureOpt)
-	static fromImage(img: TexImageSource, opt?: TextureOpt): Texture
-	update(img: TexImageSource, x: number, y: number)
+	constructor(ctx: GfxCtx, w: number, h: number, opt?: TextureOpt)
+	static fromImage(ctx: GfxCtx, img: ImageSource, opt?: TextureOpt): Texture
+	update(img: ImageSource, x?: number, y?: number)
 	bind()
 	unbind()
-	free()
+	/**
+	 * Frees up texture memory. Call this once the texture is no longer being used to avoid memory leaks.
+	 */
+	free(): void
+}
+
+export declare class FrameBuffer {
+	ctx: GfxCtx
+	tex: Texture
+	glFramebuffer: WebGLFramebuffer
+	glRenderbuffer: WebGLRenderbuffer
+	constructor(ctx: GfxCtx, w: number, h: number, opt?: TextureOpt)
+	width: number
+	height: number
+	toImageData(): ImageData
+	toDataURL(): string
+	clear(): void
+	draw(action: () => void): void
+	bind(): void
+	unbind(): void
+	free(): void
+}
+
+export type Canvas = {
+	width: number
+	height: number
+	toImageData(): ImageData
+	toDataURL(): string
+	clear(): void
+	draw(action: () => void): void
+	free(): void
 }
 
 export interface GfxFont {
@@ -3513,7 +3823,7 @@ export declare class Vec2 {
 	 *
 	 * @since v3000.0
 	 */
-	angleBetween(...args): number
+	angleBetween(...args: any): number
 	/**
 	 * Linear interpolate to a destination vector (for positions).
 	 */
@@ -3625,6 +3935,12 @@ export declare class Color {
 	 */
 	lerp(dest: Color, t: number): Color
 	eq(c: Color): boolean
+	/**
+	 * Convert color into HSL format.
+	 *
+	 * @since v3000.2
+	 */
+	toHSL(): [number, number, number]
 	toString(): string
 	/**
 	 * Return the hex string of color.
@@ -3655,13 +3971,6 @@ export type RNGValue =
 	number
 	| Vec2
 	| Color
-
-export interface RNG {
-	seed: number,
-	gen(): number,
-	gen<T extends RNGValue>(n: T): T,
-	gen<T extends RNGValue>(a: T, b: T): T,
-}
 
 export declare class Rect {
 	pos: Vec2
@@ -3728,7 +4037,7 @@ export declare class RNG {
 	genNumber(a: number, b: number): number
 	genVec2(a: Vec2, b?: Vec2): Vec2
 	genColor(a: Color, b: Color): Color
-	genAny<T extends RNGValue>(...args: T[]): T
+	genAny<T = RNGValue>(...args: T[]): T
 }
 
 export interface Comp {
@@ -3770,6 +4079,11 @@ export interface Comp {
 
 export type GameObjID = number
 
+/**
+ * A component without own properties.
+ */
+export type EmptyComp = { id: string } & Comp;
+
 export interface PosComp extends Comp {
 	/**
 	 * Object's current world position.
@@ -3795,7 +4109,7 @@ export interface PosComp extends Comp {
 	 */
 	screenPos(): Vec2,
 	/**
-	 * Get position on screen after camera transform.
+	 * Get position on screen after camera / parent transform.
 	 */
 	worldPos(): Vec2,
 }
@@ -3866,8 +4180,6 @@ export interface FollowComp extends Comp {
 	},
 }
 
-export type MoveComp = Comp
-
 export interface OffScreenCompOpt {
 	/**
 	 * If hide object when out of view.
@@ -3882,7 +4194,7 @@ export interface OffScreenCompOpt {
 	 */
 	destroy?: boolean,
 	/**
-	 * The distance when out of view is triggered (default 64).
+	 * The distance when out of view is triggered (default 200).
 	 *
 	 * @since v3000.0
 	 */
@@ -3960,7 +4272,17 @@ export interface Collision {
 
 export interface AreaCompOpt {
 	/**
-	 * The shape of the area.
+	 * The shape of the area (currently only Rect and Polygon is supported).
+	 *
+	 * @example
+	 * ```js
+	 * add([
+	 *     sprite("butterfly"),
+	 *     pos(100, 200),
+	 *     // a triangle shape!
+	 *     area({ shape: new Polygon([vec2(0), vec2(100), vec2(-100, 100)]) }),
+	 * ])
+	 * ```
 	 */
 	shape?: Shape,
 	/**
@@ -4160,9 +4482,14 @@ export interface SpriteCompOpt {
 	 * The rectangular sub-area of the texture to render, default to full texture `quad(0, 0, 1, 1)`.
 	 */
 	quad?: Quad,
+	/**
+	 * If fill the sprite (useful if you only want to render outline with outline() component).
+	 */
+	fill?: boolean,
 }
 
 export interface SpriteComp extends Comp {
+	draw: Comp["draw"],
 	/**
 	 * Width for sprite.
 	 */
@@ -4222,6 +4549,7 @@ export interface SpriteComp extends Comp {
 }
 
 export interface TextComp extends Comp {
+	draw: Comp["draw"],
 	/**
 	 * The text to render.
 	 */
@@ -4328,9 +4656,14 @@ export interface RectCompOpt {
 	 * Radius of the rectangle corners.
 	 */
 	radius?: number,
+	/**
+	 * If fill the rectangle (useful if you only want to render outline with outline() component).
+	 */
+	fill?: boolean,
 }
 
 export interface RectComp extends Comp {
+	draw: Comp["draw"],
 	/**
 	 * Width of rectangle.
 	 */
@@ -4349,7 +4682,39 @@ export interface RectComp extends Comp {
 	renderArea(): Rect,
 }
 
+export type PolygonCompOpt = Omit<DrawPolygonOpt, "pts">
+
+/**
+ * Component to draw a polygon.
+ *
+ * @since v3000.2
+ */
+export interface PolygonComp extends Comp {
+	draw: Comp["draw"],
+	/**
+	 * Points in the polygon.
+	 */
+	pts: Vec2[]
+	/**
+	 * The radius of each corner.
+	 */
+	radius?: number,
+	/**
+	 * The color of each vertice.
+	 */
+	colors?: Color[],
+	renderArea(): Polygon,
+}
+
+export interface CircleCompOpt {
+	/**
+	 * If fill the circle (useful if you only want to render outline with outline() component).
+	 */
+	fill?: boolean,
+}
+
 export interface CircleComp extends Comp {
+	draw: Comp["draw"],
 	/**
 	 * Radius of circle.
 	 */
@@ -4361,6 +4726,7 @@ export interface CircleComp extends Comp {
 }
 
 export interface UVQuadComp extends Comp {
+	draw: Comp["draw"],
 	/**
 	 * Width of rect.
 	 */
@@ -4440,6 +4806,12 @@ export interface Debug {
 	 * @since v2000.1
 	 */
 	curRecording: Recording | null,
+	/**
+	 * Get total number of objects.
+	 *
+	 * @since v3000.2
+	 */
+	numObjects(): number
 }
 
 export type UniformValue =
@@ -4458,9 +4830,21 @@ export interface ShaderComp extends Comp {
 
 export interface BodyComp extends Comp {
 	/**
+	 * Object current velocity.
+	 *
+	 * @since v3000.2
+	 */
+	vel: Vec2,
+	/**
+	 * How much velocity decays (velocity *= (1 - drag) every frame).
+	 *
+	 * @since v3000.2
+	 */
+	drag: number,
+	/**
 	 * If object is static, won't move, and all non static objects won't move past it.
 	 */
-	isStatic?: boolean,
+	isStatic: boolean,
 	/**
 	 * Initial speed in pixels per second for jump().
 	 */
@@ -4562,6 +4946,12 @@ export interface DoubleJumpComp extends Comp {
 
 export interface BodyCompOpt {
 	/**
+	 * How much velocity decays (velocity *= (1 - drag) every frame).
+	 *
+	 * @since v3000.2
+	 */
+	drag?: number,
+	/**
 	 * Initial speed in pixels per second for jump().
 	 */
 	jumpForce?: number,
@@ -4593,27 +4983,29 @@ export interface BodyCompOpt {
 	mass?: number,
 }
 
-export declare class Timer {
-	/**
-	 * Time left.
-	 */
-	time: number
-	/**
-	 * The action to take when timer is up
-	 */
-	action: () => void
-	readonly finished: boolean
-	paused: boolean
-	constructor(time: number, action: () => void)
-	tick(dt: number): boolean
-	reset(time: number): void
-}
-
 export interface TimerComp extends Comp {
 	/**
 	 * Run the callback after n seconds.
 	 */
-	wait(n: number, action: () => void): TimerController,
+	wait(time: number, action?: () => void): TimerController,
+	/**
+	 * Run the callback every n seconds.
+	 *
+	 * @since v3000.0
+	 */
+	loop(time: number, action: () => void): EventController,
+	/**
+	 * Tweeeeen! Note that this doesn't specifically mean tweening on this object's property, this just registers the timer on this object, so the tween will cancel with the object gets destroyed, or paused when obj.paused is true.
+	 *
+	 * @since v3000.0
+	 */
+	tween<V extends LerpValue>(
+		from: V,
+		to: V,
+		duration: number,
+		setValue: (value: V) => void,
+		easeFunc?: (t: number) => number,
+	): TweenController,
 }
 
 export interface FixedComp extends Comp {
@@ -4652,17 +5044,25 @@ export interface HealthComp extends Comp {
 	 */
 	setHP(hp: number): void,
 	/**
+	 * Max amount of HP.
+	 */
+	maxHP(): number | null,
+	/**
+	 * Set max amount of HP.
+	 */
+	setMaxHP(hp: number): void,
+	/**
 	 * Register an event that runs when hurt() is called upon the object.
 	 *
 	 * @since v2000.1
 	 */
-	onHurt(action: () => void): EventController,
+	onHurt(action: (amount?: number) => void): EventController,
 	/**
 	 * Register an event that runs when heal() is called upon the object.
 	 *
 	 * @since v2000.1
 	 */
-	onHeal(action: () => void): EventController,
+	onHeal(action: (amount?: number) => void): EventController,
 	/**
 	 * Register an event that runs when object's HP is equal or below 0.
 	 *
@@ -4670,9 +5070,6 @@ export interface HealthComp extends Comp {
 	 */
 	onDeath(action: () => void): EventController,
 }
-
-// TODO: this doesn't work
-export type LifespanComp = Comp
 
 export interface LifespanCompOpt {
 	/**
@@ -4689,7 +5086,7 @@ export interface StateComp extends Comp {
 	/**
 	 * Enter a state, trigger onStateEnd for previous state and onStateEnter for the new State state.
 	 */
-	enterState: (state: string, ...args) => void,
+	enterState: (state: string, ...args: any) => void,
 	/**
 	 * Register event that runs once when a specific state transition happens. Accepts arguments passed from `enterState(name, ...args)`.
 	 *
@@ -4699,7 +5096,7 @@ export interface StateComp extends Comp {
 	/**
 	 * Register event that runs once when enters a specific state. Accepts arguments passed from `enterState(name, ...args)`.
 	 */
-	onStateEnter: (state: string, action: (...args) => void) => EventController,
+	onStateEnter: (state: string, action: (...args: any) => void) => EventController,
 	/**
 	 * Register an event that runs once when leaves a specific state.
 	 */
@@ -4712,6 +5109,12 @@ export interface StateComp extends Comp {
 	 * Register an event that runs every frame when in a specific state.
 	 */
 	onStateDraw: (state: string, action: () => void) => EventController,
+}
+
+export type Mask = "intersect" | "subtract"
+
+export interface MaskComp extends Comp {
+	mask: Mask,
 }
 
 export interface LevelOpt {
@@ -4887,7 +5290,7 @@ export interface AgentComp extends Comp {
 	isNavigationFinished(): boolean,
 	isTargetReachable(): boolean,
 	isTargetReached(): boolean,
-	setTarget(target: Vec2),
+	setTarget(target: Vec2): void,
 	onNavigationStarted(cb: () => void): EventController,
 	onNavigationNext(cb: () => void): EventController,
 	onNavigationEnded(cb: () => void): EventController,
@@ -4910,14 +5313,6 @@ export interface BoomOpt {
 	 */
 	comps?: CompList<any>,
 }
-
-export type VirtualButton =
-	| "a"
-	| "b"
-	| "left"
-	| "right"
-	| "up"
-	| "down"
 
 export type EaseFuncs =
 	| "linear"
@@ -4994,19 +5389,20 @@ export declare class EventController {
 // TODO: global name conflict, renamed to KEvent?
 export declare class Event<Args extends any[] = any[]> {
 	add(action: (...args: Args) => void): EventController
-	addOnce(action: (...args) => void): EventController
+	addOnce(action: (...args: any) => void): EventController
 	next(): Promise<Args>
-	trigger(...args: Args)
+	trigger(...args: Args): void
 	numListeners(): number
+	clear(): void
 }
 
 export declare class EventHandler<EventMap extends Record<string, any[]>> {
 	on<Name extends keyof EventMap>(name: Name, action: (...args: EventMap[Name]) => void): EventController
 	onOnce<Name extends keyof EventMap>(name: Name, action: (...args: EventMap[Name]) => void): EventController
 	next<Name extends keyof EventMap>(name: Name): Promise<unknown>
-	trigger<Name extends keyof EventMap>(name: Name, ...args: EventMap[Name])
-	remove<Name extends keyof EventMap>(name: Name)
-	clear()
+	trigger<Name extends keyof EventMap>(name: Name, ...args: EventMap[Name]): void
+	remove<Name extends keyof EventMap>(name: Name): void
+	clear(): void
 	numListeners<Name extends keyof EventMap>(name: Name): number
 }
 

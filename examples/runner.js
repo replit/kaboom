@@ -3,9 +3,9 @@ const JUMP_FORCE = 800
 const SPEED = 480
 
 // initialize context
-kaboom({
-	background: [141, 183, 255],
-})
+kaboom()
+
+setBackground(141, 183, 255)
 
 // load assets
 loadSprite("bean", "/sprites/bean.png")

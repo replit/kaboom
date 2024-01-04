@@ -14,13 +14,13 @@ add([
 
 add([
 	text("onHoverUpdate()"),
-	pos(240, 80),
+	pos(340, 80),
 ])
 
 const redBean = add([
 	sprite("bean"),
 	color(RED),
-	pos(130, 140),
+	pos(130, 180),
 	anchor("center"),
 	area(),
 ])
@@ -28,7 +28,7 @@ const redBean = add([
 const blueBean = add([
 	sprite("bean"),
 	color(BLUE),
-	pos(290, 130),
+	pos(380, 180),
 	anchor("center"),
 	area(),
 ])

@@ -49,8 +49,6 @@ function rock() {
 
 onKeyPress("space", () => {
 
-	player.moveTo(rand(0, width()), rand(0, height()))
-
 	add([
 		sprite("egg"),
 		pos(player.pos.add(0, 24)),
@@ -60,6 +58,8 @@ onKeyPress("space", () => {
 		"egg",
 		{ stage: 0 },
 	])
+
+	player.moveTo(rand(0, width()), rand(0, height()))
 
 })
 
