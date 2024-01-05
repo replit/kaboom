@@ -6624,6 +6624,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		deg2rad,
 		rad2deg,
 		clamp,
+		evaluateBezier,
 		testLineLine,
 		testRectRect,
 		testRectLine,
