@@ -3460,7 +3460,7 @@ export type DrawLinesOpt = Omit<RenderProps, "angle" | "scale"> & {
 	join?: LineJoin,
 }
 
-type DrawCurveOpt = RenderProps & {
+export type DrawCurveOpt = RenderProps & {
 	/**
 	 * The amount of line segments to draw.
 	 */
@@ -3471,7 +3471,7 @@ type DrawCurveOpt = RenderProps & {
         width?: number
 }
 
-type DrawBezierOpt = DrawCurveOpt & {
+export type DrawBezierOpt = DrawCurveOpt & {
 	/**
 	 * The first point.
 	 */

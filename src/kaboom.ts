@@ -52,6 +52,7 @@ import {
 	testCirclePolygon,
 	deg2rad,
 	rad2deg,
+	evaluateBezier,
 } from "./math"
 
 import easings from "./easings"
@@ -92,7 +93,7 @@ import type {
 	DrawRectOpt,
 	DrawLineOpt,
 	DrawLinesOpt,
-	DrawCurveOpt.
+	DrawCurveOpt,
 	DrawBezierOpt,
 	DrawTriangleOpt,
 	DrawPolygonOpt,
@@ -2031,21 +2032,21 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	}
 
 	function drawCurve(curve: (t: number) => Vec2, opt: DrawCurveOpt) {
-	    const segments = opt.segments ?? 16
-	    const p: Vec2[] = []
-	    for (let i = 0; i <= segments; i++) {
-	        p.push(curve(i / segments))
-	    }
-	    drawLines({
-	        pts: p,
-	        width: opt.width || 1,
-	        pos: opt.pos,
-	        color: opt.color,
-	    });
+		const segments = opt.segments ?? 16
+		const p: Vec2[] = []
+		for (let i = 0; i <= segments; i++) {
+			p.push(curve(i / segments))
+		}
+		drawLines({
+			pts: p,
+			width: opt.width || 1,
+			pos: opt.pos,
+			color: opt.color,
+		})
 	}
 
 	function drawBezier(opt: DrawBezierOpt) {
-	    drawCurve(t => evaluateBezier(opt.pt1, opt.pt2, opt.pt3, opt.pt4, t), opt)
+		drawCurve(t => evaluateBezier(opt.pt1, opt.pt2, opt.pt3, opt.pt4, t), opt)
 	}
 
 	function drawTriangle(opt: DrawTriangleOpt) {
@@ -6644,6 +6645,8 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		drawEllipse,
 		drawUVQuad,
 		drawPolygon,
+		drawCurve,
+		drawBezier,
 		drawFormattedText,
 		drawMasked,
 		drawSubtracted,
