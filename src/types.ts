@@ -1917,6 +1917,10 @@ export interface KaboomCtx {
 	 */
 	clamp(n: number, min: number, max: number): number,
 	/**
+	 * Evaluate the Bezier at the given t
+	 */
+	export evaluateBezier(pt1: Vec2, pt2: Vec2, pt3: Vec2, pt4: Vec2, t: number): Vec2
+	/**
 	 * Check if a line and a point intersect.
 	 */
 	testLinePoint(l: Line, pt: Vec2): boolean
@@ -3913,8 +3917,6 @@ export declare class Vec2 {
 	eq(p: Vec2): boolean
 	toString(): string
 }
-
-export evaluateBezier(pt1: Vec2, pt2: Vec2, pt3: Vec2, pt4: Vec2, t: number): Vec2
 
 export declare class Mat4 {
 	m: number[]
