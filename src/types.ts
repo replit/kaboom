@@ -1919,7 +1919,7 @@ export interface KaboomCtx {
 	/**
 	 * Evaluate the Bezier at the given t
 	 */
-	export evaluateBezier(pt1: Vec2, pt2: Vec2, pt3: Vec2, pt4: Vec2, t: number): Vec2
+	evaluateBezier(pt1: Vec2, pt2: Vec2, pt3: Vec2, pt4: Vec2, t: number): Vec2,
 	/**
 	 * Check if a line and a point intersect.
 	 */
