@@ -1080,6 +1080,15 @@ export class Polygon {
 	}
 }
 
+export function evaluateBezier(pt1: Vec2, pt2: Vec2, pt3: Vec2, pt4: Vec2, t: number) {
+    const t2 = t * t
+    const t3 = t2 * t
+    const mt = 1 - t
+    const mt2 = mt * mt
+    const mt3 = mt2 * mt
+    return pt1.scale(mt3).add(pt2.scale(3 * mt2 * t)).add(pt3.scale(3 * mt * t2)).add(pt4.scale(t3))
+}
+
 export function sat(p1: Polygon, p2: Polygon): Vec2 | null {
 	let overlap = Number.MAX_VALUE
 	let displacement = vec2(0)
