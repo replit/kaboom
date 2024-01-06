@@ -4882,6 +4882,9 @@ export type UniformValue =
 	| Vec2
 	| Color
 	| Mat4
+	| number[]
+	| Vec2[]
+	| Color[]
 
 export type UniformKey = Exclude<string, "u_tex">
 export type Uniform = Record<UniformKey, UniformValue>
