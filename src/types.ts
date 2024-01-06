@@ -1917,6 +1917,10 @@ export interface KaboomCtx {
 	 */
 	clamp(n: number, min: number, max: number): number,
 	/**
+	 * Evaluate the Bezier at the given t
+	 */
+	evaluateBezier(pt1: Vec2, pt2: Vec2, pt3: Vec2, pt4: Vec2, t: number): Vec2,
+	/**
 	 * Check if a line and a point intersect.
 	 */
 	testLinePoint(l: Line, pt: Vec2): boolean
@@ -2088,6 +2092,35 @@ export interface KaboomCtx {
 	 * ```
 	 */
 	drawLines(options: DrawLinesOpt): void,
+	/**
+	 * Draw a curve.
+	 *
+	 * @example
+	 * ```js
+	 * drawCurve(t => evaluateBezier(a, b, c, d, t)
+         * {
+	 *     width: 2,
+	 *     color: rgb(0, 0, 255),
+	 * })
+	 * ```
+	 */
+	drawCurve(curve: (t: number) => Vec2, opt: DrawCurveOpt): void,
+	/**
+	 * Draw a cubic Bezier curve.
+	 *
+	 * @example
+	 * ```js
+	 * drawBezier({
+         *     pt1: vec2(100, 100),
+         *     pt2: vec2(200, 100),
+         *     pt3: vec2(200, 200),
+         *     pt4: vec2(100, 200),
+         *     width: 2,
+         *     color: GREEN
+	 * })
+	 * ```
+	 */
+	drawBezier(opt: DrawBezierOpt): void,
 	/**
 	 * Draw a triangle.
 	 *
@@ -3425,6 +3458,36 @@ export type DrawLinesOpt = Omit<RenderProps, "angle" | "scale"> & {
 	 * Line join style (default "none").
 	 */
 	join?: LineJoin,
+}
+
+export type DrawCurveOpt = RenderProps & {
+	/**
+	 * The amount of line segments to draw.
+	 */
+        segments?: number
+	/**
+	 * The width of the line.
+	 */
+        width?: number
+}
+
+export type DrawBezierOpt = DrawCurveOpt & {
+	/**
+	 * The first point.
+	 */
+        pt1: Vec2,
+	/**
+	 * The the first control point.
+	 */
+        pt2: Vec2,
+	/**
+	 * The the second control point.
+	 */
+        pt3: Vec2,
+	/**
+	 * The second point.
+	 */
+        pt4: Vec2,
 }
 
 /**
