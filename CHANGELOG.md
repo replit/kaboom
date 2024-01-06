@@ -1,3 +1,6 @@
+### v3000.2.1
+- added support for arrays in uniforms
+
 ## v3000.2
 - added `loadMusic()` to load streaming audio (doesn't block in loading screen)
 
