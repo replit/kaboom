@@ -74,7 +74,7 @@ const bean = add([
 	funky(),
 	// Tags are empty components, it's equivalent to a { id: "friend" }
 	"friend",
-	// Plain objects here are components too and work the same way, except unamed
+	// Plain objects here are components too and work the same way, except unnamed
 	{
 		coolness: 100,
 		friends: [],
@@ -82,7 +82,7 @@ const bean = add([
 ])
 
 onKeyPress("space", () => {
-	// .coolness is from our unamed component above
+	// .coolness is from our unnamed component above
 	if (bean.coolness >= 100) {
 		// We can use .getFunky() provided by the funky() component now
 		bean.getFunky()
