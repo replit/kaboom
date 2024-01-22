@@ -2539,7 +2539,7 @@ export interface KaboomOpt<T extends PluginList<any> = any> {
 	 */
 	stretch?: boolean,
 	/**
-	 * When stretching if keep aspect ratio and leave black bars on remaining spaces. (note: not working properly at the moment.)
+	 * When stretching if keep aspect ratio and leave black bars on remaining spaces.
 	 */
 	letterbox?: boolean,
 	/**
