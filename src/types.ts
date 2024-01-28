@@ -4049,6 +4049,8 @@ export declare class Rect {
 	clone(): Rect
 	distToPoint(p: Vec2): number
 	sdistToPoint(p: Vec2): number
+    collides(shape: any): boolean
+    contains(point: Vec2): boolean 
 }
 
 export declare class Line {
@@ -4059,6 +4061,8 @@ export declare class Line {
 	bbox(): Rect
 	area(): number
 	clone(): Line
+    collides(shape: any): boolean
+    contains(point: Vec2): boolean 
 }
 
 export declare class Circle {
@@ -4069,6 +4073,8 @@ export declare class Circle {
 	bbox(): Rect
 	area(): number
 	clone(): Circle
+    collides(shape: any): boolean
+    contains(point: Vec2): boolean 
 }
 
 export declare class Ellipse {
@@ -4089,6 +4095,8 @@ export declare class Polygon {
 	bbox(): Rect
 	area(): number
 	clone(): Polygon
+    collides(shape: any): boolean
+    contains(point: Vec2): boolean 
 }
 
 export type Point = Vec2
