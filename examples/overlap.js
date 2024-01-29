@@ -13,7 +13,7 @@ add([
 ])
 
 add([
-    pos(180, 190),
+    pos(180, 210),
     circle(20),
     color(BLUE),
     "shape",
@@ -38,7 +38,7 @@ add([
 
 add([
     pos(140, 130),
-    rect(40, 30),
+    rect(60, 50),
     color(BLUE),
     "shape",
     {
