@@ -2,7 +2,7 @@ kaboom()
 
 add([
     pos(80, 80),
-    circle(20),
+    circle(40),
     color(BLUE),
     "shape",
     {
@@ -49,8 +49,8 @@ add([
 ])
 
 add([
-    pos(180, 80),
-    polygon([vec2(-40, 40), vec2(0, 0), vec2(40, 40)]),
+    pos(180, 40),
+    polygon([vec2(-60, 60), vec2(0, 0), vec2(60, 60)]),
     color(BLUE),
     "shape",
     {
@@ -62,7 +62,7 @@ add([
 
 add([
     pos(280, 130),
-    polygon([vec2(-40, 40), vec2(0, 0), vec2(40, 40)]),
+    polygon([vec2(-20, 20), vec2(0, 0), vec2(20, 20)]),
     color(BLUE),
     "shape",
     {
@@ -98,9 +98,9 @@ add([
     {
         draw() {
             drawRect({
-                pos:vec2(-1, -1),
-                width:3,
-                height:3,
+                pos: vec2(-1, -1),
+                width: 3,
+                height: 3,
                 color: this.color
             })
         },

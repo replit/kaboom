@@ -893,12 +893,15 @@ export function testPolygonPolygon(p1: Polygon, p2: Polygon): boolean {
             return true
         }
     }
+    // Check if any of the points of the polygon lie in the other polygon
+    if (p1.pts.some(p => testPolygonPoint(p2, p)) || p2.pts.some(p => testPolygonPoint(p1, p))) {
+        return true
+    }
     return false
 }
 
 // https://wrf.ecse.rpi.edu/Research/Short_Notes/pnpoly.html
 export function testPolygonPoint(poly: Polygon, pt: Point): boolean {
-
     let c = false
     const p = poly.pts
 
@@ -912,7 +915,6 @@ export function testPolygonPoint(poly: Polygon, pt: Point): boolean {
     }
 
     return c
-
 }
 
 export function testPointPoint(p1: Point, p2: Point): boolean {
