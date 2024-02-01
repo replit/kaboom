@@ -753,15 +753,7 @@ export function testLineLine(l1: Line, l2: Line): Vec2 | null {
 }
 
 export function testRectLine(r: Rect, l: Line): boolean {
-	/*if (testRectPoint(r, l.p1) || testRectPoint(r, l.p2)) {
-		return true
-	}
-	const pts = r.points()
-	return !!testLineLine(l, new Line(pts[0], pts[1]))
-		|| !!testLineLine(l, new Line(pts[1], pts[2]))
-		|| !!testLineLine(l, new Line(pts[2], pts[3]))
-		|| !!testLineLine(l, new Line(pts[3], pts[0]))*/
-	let dir = l.p2.sub(l.p1)
+	const dir = l.p2.sub(l.p1)
 	let tmin = Number.NEGATIVE_INFINITY, tmax = Number.POSITIVE_INFINITY
 
 	if (dir.x != 0.0) {
