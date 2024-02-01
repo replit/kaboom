@@ -2098,7 +2098,7 @@ export interface KaboomCtx {
 	 * @example
 	 * ```js
 	 * drawCurve(t => evaluateBezier(a, b, c, d, t)
-         * {
+		 * {
 	 *     width: 2,
 	 *     color: rgb(0, 0, 255),
 	 * })
@@ -2111,12 +2111,12 @@ export interface KaboomCtx {
 	 * @example
 	 * ```js
 	 * drawBezier({
-         *     pt1: vec2(100, 100),
-         *     pt2: vec2(200, 100),
-         *     pt3: vec2(200, 200),
-         *     pt4: vec2(100, 200),
-         *     width: 2,
-         *     color: GREEN
+		 *     pt1: vec2(100, 100),
+		 *     pt2: vec2(200, 100),
+		 *     pt3: vec2(200, 200),
+		 *     pt4: vec2(100, 200),
+		 *     width: 2,
+		 *     color: GREEN
 	 * })
 	 * ```
 	 */
@@ -3464,30 +3464,30 @@ export type DrawCurveOpt = RenderProps & {
 	/**
 	 * The amount of line segments to draw.
 	 */
-        segments?: number
+	segments?: number
 	/**
 	 * The width of the line.
 	 */
-        width?: number
+	width?: number
 }
 
 export type DrawBezierOpt = DrawCurveOpt & {
 	/**
 	 * The first point.
 	 */
-        pt1: Vec2,
+	pt1: Vec2,
 	/**
 	 * The the first control point.
 	 */
-        pt2: Vec2,
+	pt2: Vec2,
 	/**
 	 * The the second control point.
 	 */
-        pt3: Vec2,
+	pt3: Vec2,
 	/**
 	 * The second point.
 	 */
-        pt4: Vec2,
+	pt4: Vec2,
 }
 
 /**
@@ -4035,6 +4035,13 @@ export type RNGValue =
 	| Vec2
 	| Color
 
+export type ShapeType =
+	Vec2
+	| Circle
+	| Line
+	| Rect
+	| Polygon
+
 export declare class Rect {
 	pos: Vec2
 	width: number
@@ -4049,6 +4056,8 @@ export declare class Rect {
 	clone(): Rect
 	distToPoint(p: Vec2): number
 	sdistToPoint(p: Vec2): number
+	collides(shape: ShapeType): boolean
+	contains(point: Vec2): boolean
 }
 
 export declare class Line {
@@ -4059,6 +4068,8 @@ export declare class Line {
 	bbox(): Rect
 	area(): number
 	clone(): Line
+	collides(shape: ShapeType): boolean
+	contains(point: Vec2): boolean
 }
 
 export declare class Circle {
@@ -4069,6 +4080,8 @@ export declare class Circle {
 	bbox(): Rect
 	area(): number
 	clone(): Circle
+	collides(shape: ShapeType): boolean
+	contains(point: Vec2): boolean
 }
 
 export declare class Ellipse {
@@ -4089,6 +4102,8 @@ export declare class Polygon {
 	bbox(): Rect
 	area(): number
 	clone(): Polygon
+	collides(shape: ShapeType): boolean
+	contains(point: Vec2): boolean
 }
 
 export type Point = Vec2
