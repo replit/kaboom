@@ -263,16 +263,15 @@ export class Shader {
 			} else if (Array.isArray(val)) {
 				const first = val[0]
 				if (typeof first === "number") {
-					gl.uniform1fv(loc, val)
+					gl.uniform1fv(loc, val as number[])
 				} else if (first instanceof Vec2) {
 					gl.uniform2fv(loc, val.map(v => [v.x, v.y]).flat())
 				} else if (first instanceof Color) {
 					gl.uniform3fv(loc, val.map(v => [v.r, v.g, v.b]).flat())
 				}
-			} else if (typeof val === "object") {
-				throw new Error("Unsupported uniform data type.")
-				// TODO allow for struct like objects to be sent as a uniform
- 			}
+			} else {
+				throw new Error("Unsupported uniform data type")
+			}
 		}
 	}
 
