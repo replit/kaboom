@@ -753,7 +753,15 @@ export function testLineLine(l1: Line, l2: Line): Vec2 | null {
 }
 
 export function testRectLine(r: Rect, l: Line): boolean {
-	const dir = l.p2.sub(l.p1)
+	/*if (testRectPoint(r, l.p1) || testRectPoint(r, l.p2)) {
+		return true
+	}
+	const pts = r.points()
+	return !!testLineLine(l, new Line(pts[0], pts[1]))
+		|| !!testLineLine(l, new Line(pts[1], pts[2]))
+		|| !!testLineLine(l, new Line(pts[2], pts[3]))
+		|| !!testLineLine(l, new Line(pts[3], pts[0]))*/
+	let dir = l.p2.sub(l.p1)
 	let tmin = Number.NEGATIVE_INFINITY, tmax = Number.POSITIVE_INFINITY
 
 	if (dir.x != 0.0) {
@@ -1061,6 +1069,156 @@ export function testShapeShape(shape1: ShapeType, shape2: ShapeType): boolean {
 	}
 }
 
+export type RaycastHit = {
+	fraction: number
+	normal: Vec2
+	point: Vec2
+}
+
+export type RaycastResult = RaycastHit | null
+
+function raycastLine(origin: Vec2, direction: Vec2, line: Line): RaycastResult {
+	const a = origin
+	const c = line.p1
+	const d = line.p2
+	const ab = direction
+	const cd = d.sub(c)
+	let abxcd = ab.cross(cd)
+	// If parallel, no intersection
+	if (Math.abs(abxcd) < Number.EPSILON) {
+		return null
+	}
+	const ac = c.sub(a)
+	const s = ac.cross(cd) / abxcd
+	// Outside the ray
+	if (s <= 0 || s >= 1) {
+		return null
+	}
+	// Outside the line
+	const t = ac.cross(ab) / abxcd
+	if (t <= 0 || t >= 1) {
+		return null
+	}
+
+	const normal = cd.normal().unit()
+	if (direction.dot(normal) > 0) {
+		normal.x *= -1;
+		normal.y *= -1;
+	}
+
+	return {
+		point: a.add(ab.scale(s)),
+		normal: normal,
+		fraction: s,
+	}
+}
+
+function raycastRect(origin: Vec2, direction: Vec2, rect: Rect) {
+	let tmin = Number.NEGATIVE_INFINITY, tmax = Number.POSITIVE_INFINITY
+	let normal
+
+	if (origin.x != 0.0) {
+		const tx1 = (rect.pos.x - origin.x) / direction.x
+		const tx2 = (rect.pos.x + rect.width - origin.x) / direction.x
+
+		normal = vec2(-Math.sign(direction.x), 0)
+
+		tmin = Math.max(tmin, Math.min(tx1, tx2))
+		tmax = Math.min(tmax, Math.max(tx1, tx2))
+	}
+
+	if (origin.y != 0.0) {
+		const ty1 = (rect.pos.y - origin.y) / direction.y
+		const ty2 = (rect.pos.y + rect.height - origin.y) / direction.y
+
+		if (Math.min(ty1, ty2) > tmin) {
+			normal = vec2(0, -Math.sign(direction.y))
+		}
+
+		tmin = Math.max(tmin, Math.min(ty1, ty2))
+		tmax = Math.min(tmax, Math.max(ty1, ty2))
+	}
+
+	if (tmax >= tmin && tmin >= 0 && tmin <= 1) {
+		const point = origin.add(direction.scale(tmin))
+		return {
+			point: point,
+			normal: normal,
+			fraction: tmin
+		}
+	}
+	else {
+		return null
+	}
+}
+
+function raycastCircle(origin: Vec2, direction: Vec2, circle: Circle): RaycastResult {
+	const a = origin
+	const c = circle.center
+	const ab = direction
+	const A = ab.dot(ab)
+	const centerToOrigin = a.sub(c)
+	const B = 2 * ab.dot(centerToOrigin)
+	const C = centerToOrigin.dot(centerToOrigin) - circle.radius * circle.radius
+	// Calculate the discriminant of ax^2 + bx + c
+	const disc = B * B - 4 * A * C
+	// No root
+	if ((A <= Number.EPSILON) || (disc < 0)) {
+		return null
+	}
+	// One possible root
+	else if (disc == 0) {
+		const t = -B / (2 * A)
+		if (t >= 0 && t <= 1) {
+			const point = a.add(ab.scale(t))
+			return {
+				point: point,
+				normal: point.sub(c),
+				fraction: t
+			}
+		}
+	}
+	// Two possible roots
+	else {
+		const t1 = (-B + Math.sqrt(disc)) / (2 * A)
+		const t2 = (-B - Math.sqrt(disc)) / (2 * A)
+		let t = null
+		if (t1 >= 0 && t1 <= 1) {
+			t = t1
+		}
+		if (t2 >= 0 && t2 <= 1) {
+			t = Math.min(t2, t ?? t2)
+		}
+		if (t != null) {
+			const point = a.add(ab.scale(t))
+			return {
+				point: point,
+				normal: point.sub(c).unit(),
+				fraction: t
+			}
+		}
+	}
+
+	return null
+}
+
+function raycastPolygon(origin: Vec2, direction: Vec2, polygon: Polygon): RaycastResult {
+	const points = polygon.pts
+	let minHit = null
+
+	let prev = points[points.length - 1]
+	for (let i = 0; i < points.length; i++) {
+		let cur = points[i]
+		const hit = raycastLine(origin, direction, new Line(prev, cur))
+		if (hit && (!minHit || minHit.fraction > hit.fraction)) {
+			minHit = hit
+		}
+		prev = cur
+	}
+
+	return minHit
+}
+
 export class Line {
 	p1: Vec2
 	p2: Vec2
@@ -1085,6 +1243,9 @@ export class Line {
 	}
 	contains(point: Vec2): boolean {
 		return this.collides(point)
+	}
+	raycast(origin: Vec2, direction: Vec2): RaycastResult {
+		return raycastLine(origin, direction, this)
 	}
 }
 
@@ -1140,6 +1301,9 @@ export class Rect {
 	contains(point: Vec2): boolean {
 		return this.collides(point)
 	}
+	raycast(origin: Vec2, direction: Vec2): RaycastResult {
+		return raycastRect(origin, direction, this)
+	}
 }
 
 export class Circle {
@@ -1169,6 +1333,9 @@ export class Circle {
 	}
 	contains(point: Vec2): boolean {
 		return this.collides(point)
+	}
+	raycast(origin: Vec2, direction: Vec2): RaycastResult {
+		return raycastCircle(origin, direction, this)
 	}
 }
 
@@ -1243,6 +1410,9 @@ export class Polygon {
 	}
 	contains(point: Vec2): boolean {
 		return this.collides(point)
+	}
+	raycast(origin: Vec2, direction: Vec2): RaycastResult {
+		return raycastPolygon(origin, direction, this)
 	}
 }
 
