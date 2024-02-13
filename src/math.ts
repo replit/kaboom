@@ -761,7 +761,7 @@ export function testRectLine(r: Rect, l: Line): boolean {
 		|| !!testLineLine(l, new Line(pts[1], pts[2]))
 		|| !!testLineLine(l, new Line(pts[2], pts[3]))
 		|| !!testLineLine(l, new Line(pts[3], pts[0]))*/
-	let dir = l.p2.sub(l.p1)
+	const dir = l.p2.sub(l.p1)
 	let tmin = Number.NEGATIVE_INFINITY, tmax = Number.POSITIVE_INFINITY
 
 	if (dir.x != 0.0) {
@@ -1083,7 +1083,7 @@ function raycastLine(origin: Vec2, direction: Vec2, line: Line): RaycastResult {
 	const d = line.p2
 	const ab = direction
 	const cd = d.sub(c)
-	let abxcd = ab.cross(cd)
+	const abxcd = ab.cross(cd)
 	// If parallel, no intersection
 	if (Math.abs(abxcd) < Number.EPSILON) {
 		return null
@@ -1102,8 +1102,8 @@ function raycastLine(origin: Vec2, direction: Vec2, line: Line): RaycastResult {
 
 	const normal = cd.normal().unit()
 	if (direction.dot(normal) > 0) {
-		normal.x *= -1;
-		normal.y *= -1;
+		normal.x *= -1
+		normal.y *= -1
 	}
 
 	return {
@@ -1144,7 +1144,7 @@ function raycastRect(origin: Vec2, direction: Vec2, rect: Rect) {
 		return {
 			point: point,
 			normal: normal,
-			fraction: tmin
+			fraction: tmin,
 		}
 	}
 	else {
@@ -1174,7 +1174,7 @@ function raycastCircle(origin: Vec2, direction: Vec2, circle: Circle): RaycastRe
 			return {
 				point: point,
 				normal: point.sub(c),
-				fraction: t
+				fraction: t,
 			}
 		}
 	}
@@ -1194,7 +1194,7 @@ function raycastCircle(origin: Vec2, direction: Vec2, circle: Circle): RaycastRe
 			return {
 				point: point,
 				normal: point.sub(c).unit(),
-				fraction: t
+				fraction: t,
 			}
 		}
 	}
@@ -1208,7 +1208,7 @@ function raycastPolygon(origin: Vec2, direction: Vec2, polygon: Polygon): Raycas
 
 	let prev = points[points.length - 1]
 	for (let i = 0; i < points.length; i++) {
-		let cur = points[i]
+		const cur = points[i]
 		const hit = raycastLine(origin, direction, new Line(prev, cur))
 		if (hit && (!minHit || minHit.fraction > hit.fraction)) {
 			minHit = hit
@@ -1339,6 +1339,7 @@ export class Circle {
 	}
 }
 
+// TODO: support rotation
 export class Ellipse {
 	center: Vec2
 	radiusX: number
