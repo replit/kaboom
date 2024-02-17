@@ -4044,6 +4044,14 @@ export type ShapeType =
 	| Rect
 	| Polygon
 
+export type RaycastHit = {
+	fraction: number
+	normal: Vec2
+	point: Vec2
+}
+
+export type RaycastResult = RaycastHit | null
+
 export declare class Rect {
 	pos: Vec2
 	width: number
@@ -4060,6 +4068,7 @@ export declare class Rect {
 	sdistToPoint(p: Vec2): number
 	collides(shape: ShapeType): boolean
 	contains(point: Vec2): boolean
+	raycast(origin: Vec2, direction: Vec2): RaycastResult
 }
 
 export declare class Line {
@@ -4072,6 +4081,7 @@ export declare class Line {
 	clone(): Line
 	collides(shape: ShapeType): boolean
 	contains(point: Vec2): boolean
+	raycast(origin: Vec2, direction: Vec2): RaycastResult
 }
 
 export declare class Circle {
@@ -4084,6 +4094,7 @@ export declare class Circle {
 	clone(): Circle
 	collides(shape: ShapeType): boolean
 	contains(point: Vec2): boolean
+	raycast(origin: Vec2, direction: Vec2): RaycastResult
 }
 
 export declare class Ellipse {
@@ -4108,6 +4119,7 @@ export declare class Polygon {
 	clone(): Polygon
 	collides(shape: ShapeType): boolean
 	contains(point: Vec2): boolean
+	raycast(origin: Vec2, direction: Vec2): RaycastResult
 }
 
 export type Point = Vec2
