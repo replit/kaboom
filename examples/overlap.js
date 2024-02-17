@@ -129,6 +129,26 @@ add([
 	},
 ])
 
+add([
+	pos(340, 120),
+	color(BLUE),
+	"shape",
+	{
+		getShape() {
+			return new Ellipse(this.pos, 40, 15, 45)
+		},
+		draw() {
+			pushRotate(45)
+			drawEllipse({
+				radiusX: 40,
+				radiusY: 15,
+				color: this.color,
+			})
+			popTransform()
+		}
+	},
+])
+
 onUpdate(() => {
 	const shapes = get("shape")
 	shapes.forEach(s1 => {

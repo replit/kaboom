@@ -1025,12 +1025,41 @@ export function testPolygonPoint(poly: Polygon, pt: Point): boolean {
 }
 
 export function testEllipsePoint(ellipse: Ellipse, pt: Point): boolean {
+	// Transform the point into the ellipse's unrotated coordinate system at the origin
 	pt = pt.sub(ellipse.center)
-	const c = Math.cos(ellipse.angle)
-	const s = Math.sin(ellipse.angle)
+	const angle = deg2rad(ellipse.angle)
+	const c = Math.cos(angle)
+	const s = Math.sin(angle)
 	const vx = pt.x * c + pt.y * s
 	const vy = -pt.x * s + pt.y * c
 	return vx * vx / (ellipse.radiusX * ellipse.radiusX) + vy * vy / (ellipse.radiusY * ellipse.radiusY) < 1
+}
+
+export function testEllipseCircle(ellipse: Ellipse, circle: Circle): boolean {
+	// Transform the circle's center into the ellipse's unrotated coordinate system at the origin
+	const center = circle.center.sub(ellipse.center)
+	const angle = deg2rad(ellipse.angle)
+	const c = Math.cos(angle)
+	const s = Math.sin(angle)
+	const cx = center.x * c + center.y * s
+	const cy = -center.x * s + center.y * c
+	// Test with an approximate Minkowski sum of the ellipse and the circle
+	return testEllipsePoint(new Ellipse(vec2(), ellipse.radiusX + circle.radius, ellipse.radiusY + circle.radius, 0), vec2(cx, cy))
+}
+
+export function testEllipseEllipse(ellipse1: Ellipse, ellipse2: Ellipse): boolean {
+	return false
+}
+
+export function testEllipseRect(ellipse: Ellipse, rect: Rect): boolean {
+	return testEllipsePolygon(ellipse, new Polygon(rect.points()))
+}
+
+export function testEllipsePolygon(ellipse: Ellipse, poly: Polygon): boolean {
+	// Transform the polygon to the coordinate system where the ellipse is a unit circle
+	const T = ellipse.toTransform().inverse
+	poly = new Polygon(poly.pts.map(p => T.transform(p.sub(ellipse.center))))
+	return testCirclePolygon(new Circle(vec2(), 1), poly)
 }
 
 export function testPointPoint(p1: Point, p2: Point): boolean {
@@ -1054,6 +1083,9 @@ export function testPointShape(point: Point, shape: ShapeType): boolean {
 	}
 	else if (shape instanceof Polygon) {
 		return testPolygonPoint(shape as Polygon, point)
+	}
+	else if (shape instanceof Ellipse) {
+		return testEllipsePoint(shape as Ellipse, point)
 	}
 	else {
 		return false
@@ -1097,6 +1129,9 @@ export function testCircleShape(circle: Circle, shape: ShapeType): boolean {
 	else if (shape instanceof Polygon) {
 		return testCirclePolygon(circle, shape as Polygon)
 	}
+	else if (shape instanceof Ellipse) {
+		return testEllipseCircle(shape as Ellipse, circle)
+	}
 	else {
 		return false
 	}
@@ -1117,6 +1152,9 @@ export function testRectShape(rect: Rect, shape: ShapeType): boolean {
 	}
 	else if (shape instanceof Polygon) {
 		return testRectPolygon(rect, shape as Polygon)
+	}
+	else if (shape instanceof Ellipse) {
+		return testEllipseRect(shape as Ellipse, rect)
 	}
 	else {
 		return false
@@ -1139,6 +1177,9 @@ export function testPolygonShape(polygon: Polygon, shape: ShapeType): boolean {
 	else if (shape instanceof Polygon) {
 		return testPolygonPolygon(shape as Polygon, polygon)
 	}
+	else if (shape instanceof Ellipse) {
+		return testEllipsePolygon(shape as Ellipse, polygon)
+	}
 	else {
 		return false
 	}
@@ -1148,18 +1189,21 @@ export function testEllipseShape(ellipse: Ellipse, shape: ShapeType): boolean {
 	if (shape instanceof Vec2) {
 		return testEllipsePoint(ellipse, shape as Point)
 	}
-	/*else if (shape instanceof Circle) {
-		return testEllipsePolygon(shape as Circle, ellipse)
+	else if (shape instanceof Circle) {
+		return testEllipseCircle(ellipse, shape as Circle)
 	}
-	else if (shape instanceof Line) {
+	/*else if (shape instanceof Line) {
 		return testLineEllipse(shape as Line, ellipse)
-	}
+	}*/
 	else if (shape instanceof Rect) {
-		return testRectEllipse(shape as Rect, ellipse)
+		return testEllipseRect(ellipse, shape as Rect)
+	}
+	else if (shape instanceof Polygon) {
+		return testEllipsePolygon(ellipse, shape as Polygon)
 	}
 	else if (shape instanceof Ellipse) {
 		return testEllipseEllipse(shape as Ellipse, ellipse)
-	}*/
+	}
 	else {
 		return false
 	}
@@ -1459,7 +1503,6 @@ export class Circle {
 	}
 }
 
-// TODO: support rotation
 export class Ellipse {
 	center: Vec2
 	radiusX: number
@@ -1488,7 +1531,7 @@ export class Ellipse {
 		}
 	}
 	toTransform(): Mat2 {
-		const a = deg2rad(this.angle)
+		const a = deg2rad(-this.angle)
 		const c = Math.cos(a)
 		const s = Math.sin(a)
 		return new Mat2(
@@ -1527,9 +1570,10 @@ export class Ellipse {
 		}
 		else {
 			// Rotation. We need to find the maximum x and y distance from the 
-			// center of the ellipse
-			const c = Math.cos(this.angle)
-			const s = Math.sin(this.angle)
+			// center of the rotated ellipse
+			const angle = deg2rad(this.angle)
+			const c = Math.cos(angle)
+			const s = Math.sin(angle)
 			const ux = this.radiusX * c
 			const uy = this.radiusX * s
 			const vx = this.radiusY * s
@@ -1551,16 +1595,18 @@ export class Ellipse {
 		return new Ellipse(this.center, this.radiusX, this.radiusY, this.angle)
 	}
 	collides(shape: ShapeType): boolean {
-		return false
+		return testEllipseShape(this, shape)
 	}
 	contains(point: Vec2): boolean {
+		// Both methods work, but the second one is faster
 		/*let T = this.toTransform()
 		point = point.sub(this.center)
 		point = T.inverse.transform(point)
 		return testCirclePoint(new Circle(vec2(), 1), point)*/
 		point = point.sub(this.center)
-		const c = Math.cos(this.angle)
-		const s = Math.sin(this.angle)
+		const angle = deg2rad(this.angle)
+		const c = Math.cos(angle)
+		const s = Math.sin(angle)
 		const vx = point.x * c + point.y * s
 		const vy = -point.x * s + point.y * c
 		return vx * vx / (this.radiusX * this.radiusX) + vy * vy / (this.radiusY * this.radiusY) < 1
