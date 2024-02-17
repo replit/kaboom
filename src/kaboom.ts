@@ -1312,7 +1312,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		srcNode.playbackRate.value = opt.speed ?? 1
 		srcNode.connect(gainNode)
 		srcNode.onended = () => {
-			if (getTime() >= srcNode.buffer?.duration ?? Number.POSITIVE_INFINITY) {
+			if (getTime() >= (srcNode.buffer?.duration ?? Number.POSITIVE_INFINITY)) {
 				onEndEvents.trigger()
 			}
 		}
