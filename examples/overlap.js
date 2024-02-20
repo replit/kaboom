@@ -125,7 +125,7 @@ add([
 				radiusY: 30,
 				color: this.color,
 			})
-		}
+		},
 	},
 ])
 
@@ -145,7 +145,7 @@ add([
 				color: this.color,
 			})
 			popTransform()
-		}
+		},
 	},
 ])
 
@@ -189,9 +189,9 @@ onDraw(() => {
 			height: rect.height,
 			outline: {
 				width: 1,
-				color: YELLOW
+				color: YELLOW,
 			},
-			fill: false
+			fill: false,
 		})
 	}
 })

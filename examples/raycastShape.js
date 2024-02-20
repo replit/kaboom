@@ -105,8 +105,46 @@ add([
 			})
 		},
 		getShape() {
-            // This would be point if we had a real class for it
+			// This would be point if we had a real class for it
 			return new Rect(vec2(-1, -1).add(this.pos), 3, 3)
+		},
+	},
+])
+
+add([
+	pos(280, 200),
+	color(BLUE),
+	"shape",
+	{
+		getShape() {
+			return new Ellipse(this.pos, 80, 30)
+		},
+		draw() {
+			drawEllipse({
+				radiusX: 80,
+				radiusY: 30,
+				color: this.color,
+			})
+		},
+	},
+])
+
+add([
+	pos(340, 120),
+	color(BLUE),
+	"shape",
+	{
+		getShape() {
+			return new Ellipse(this.pos, 40, 15, 45)
+		},
+		draw() {
+			pushRotate(45)
+			drawEllipse({
+				radiusX: 40,
+				radiusY: 15,
+				color: this.color,
+			})
+			popTransform()
 		},
 	},
 ])
@@ -210,30 +248,30 @@ function laser() {
 					break
 				}
 				const pos = hit.point.sub(this.pos)
-                // Draw hit point
+				// Draw hit point
 				drawCircle({
 					pos: pos,
 					radius: 4,
 					color: this.color,
 				})
-                // Draw hit normal
+				// Draw hit normal
 				drawLine({
 					p1: pos,
 					p2: pos.add(hit.normal.scale(20)),
 					width: 1,
 					color: BLUE,
 				})
-                // Draw hit distance
+				// Draw hit distance
 				drawLine({
 					p1: origin.sub(this.pos),
 					p2: pos,
 					width: 1,
 					color: this.color,
 				})
-                // Offset the point slightly, otherwise it might be too close to the surface
-                // and give internal reflections
+				// Offset the point slightly, otherwise it might be too close to the surface
+				// and give internal reflections
 				origin = hit.point.add(hit.normal.scale(0.001))
-                // Reflect vector
+				// Reflect vector
 				direction = direction.reflect(hit.normal)
 				traceDepth++
 			}

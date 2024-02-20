@@ -4108,6 +4108,7 @@ export declare class Ellipse {
 	clone(): Ellipse
 	collides(shape: ShapeType): boolean
 	contains(point: Vec2): boolean
+	raycast(origin: Vec2, direction: Vec2): RaycastResult
 }
 
 export declare class Polygon {
