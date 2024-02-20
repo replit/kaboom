@@ -589,6 +589,21 @@ class Mat3 {
 		this.m33 = m33
 	}
 
+	static fromMat2(m: Mat2) {
+		return new Mat3(
+			m.a, m.b, 0,
+			m.c, m.d, 0,
+			0, 0, 1,
+		)
+	}
+
+	toMat2() {
+		return new Mat2(
+			this.m11, this.m12,
+			this.m21, this.m22,
+		)
+	}
+
 	mul(other: Mat3): Mat3 {
 		return new Mat3(
 			this.m11 * other.m11 + this.m12 * other.m21 + this.m13 * other.m31,
@@ -1848,8 +1863,10 @@ export class Ellipse {
 			// ellipse and thus change the angle.
 			// Get the transformation which maps the unit circle onto the ellipse
 			let T = this.toMat2()
-			// Concatenate the transformation with the rotation+scale
-			T = T.mul(new Mat2(tr.m[0], tr.m[1], tr.m[4], tr.m[5]))
+			// Transform the transformation matrix with the rotation+scale matrix
+			const RS = new Mat3(tr.m[0], tr.m[1], 0, tr.m[4], tr.m[5], 0, tr.m[12], tr.m[13], 1)
+			const M = RS.transpose.mul(Mat3.fromMat2(T)).mul(RS)
+			T = M.toMat2()
 			// Return the ellipse made from the transformed unit circle
 			const ellipse = Ellipse.fromMat2(T)
 			ellipse.center = tr.multVec2(this.center)
