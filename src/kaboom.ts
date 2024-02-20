@@ -489,9 +489,9 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				190, 190, 190, 255,
 				128, 128, 128, 255,
 			]), 2, 2), {
-			wrap: "repeat",
-			filter: "nearest",
-		},
+				wrap: "repeat",
+				filter: "nearest",
+			},
 		)
 
 		return {
@@ -2335,9 +2335,9 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				outline: font.outline,
 				filter: font.filter,
 			} : {
-					outline: null,
-					filter: DEF_FONT_FILTER,
-				}
+				outline: null,
+				filter: DEF_FONT_FILTER,
+			}
 
 			// TODO: customizable font tex filter
 			const atlas: FontAtlas = fontAtlases[fontName] ?? {
@@ -4839,14 +4839,14 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			game.events.clear()
 			game.objEvents.clear()
 
-				;[...game.root.children].forEach((obj) => {
-					if (
-						!obj.stay
-						|| (obj.scenesToStay && !obj.scenesToStay.includes(name))
-					) {
-						game.root.remove(obj)
-					}
-				})
+			;[...game.root.children].forEach((obj) => {
+				if (
+					!obj.stay
+					|| (obj.scenesToStay && !obj.scenesToStay.includes(name))
+				) {
+					game.root.remove(obj)
+				}
+			})
 
 			game.root.clearEvents()
 			initEvents()
