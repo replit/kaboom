@@ -2116,11 +2116,11 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		// full circle with outline shouldn't have the center point
 		if (end - start >= 360 && opt.outline) {
 			if (opt.fill !== false) {
-				drawPolygon(Object.assign(polyOpt, {
+				drawPolygon(Object.assign({}, polyOpt, {
 					outline: null,
 				}))
 			}
-			drawPolygon(Object.assign(polyOpt, {
+			drawPolygon(Object.assign({}, polyOpt, {
 				pts: pts.slice(1),
 				fill: false,
 			}))
