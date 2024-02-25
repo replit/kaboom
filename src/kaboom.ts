@@ -4653,10 +4653,11 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		const fade = opt.fade ?? 0
 		return {
 			id: "lifespan",
+			require: [ "opacity" ],
 			async add(this: GameObj<OpacityComp>) {
 				await wait(time)
-				// TODO: this secretively requires opacity comp, make opacity on every game obj?
-				if (fade > 0 && this.opacity) {
+				this.opacity = this.opacity ?? 1
+				if (fade > 0) {
 					await tween(this.opacity, 0, fade, (a) => this.opacity = a, easings.linear)
 				}
 				this.destroy()
