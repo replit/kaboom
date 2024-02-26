@@ -4391,10 +4391,11 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 						}
 
 						this.trigger("beforePhysicsResolve", col)
-						other.trigger("beforePhysicsResolve", col.reverse())
+						const rcol = col.reverse()
+						other.trigger("beforePhysicsResolve", rcol)
 
 						// user can mark 'resolved' in beforePhysicsResolve to stop a resolution
-						if (col.resolved) {
+						if (col.resolved || rcol.resolved) {
 							return
 						}
 
