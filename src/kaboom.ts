@@ -2823,6 +2823,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			// TODO: recursive
 			removeAll(tag?: Tag) {
 				if (tag) {
+					tag = handleIfOakString(tag)
 					this.get(tag).forEach((obj) => this.remove(obj))
 				} else {
 					for (const child of [...this.children]) this.remove(child)
@@ -2897,6 +2898,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				}
 
 				// tag
+				comp = handleIfOakString(comp)
 				if (typeof comp === "string") {
 					return this.use({
 						id: comp,
@@ -2993,6 +2995,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			},
 
 			unuse(id: Tag) {
+				id = handleIfOakString(id)
 				if (cleanups[id]) {
 					cleanups[id].forEach((e) => e())
 					delete cleanups[id]
@@ -3003,6 +3006,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			},
 
 			c(id: Tag): Comp {
+				id = handleIfOakString(id)
 				return compStates.get(id)
 			},
 
@@ -3012,6 +3016,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 						return [child, ...child.children.flatMap(recurse)]
 					})
 					: this.children
+				t = handleIfOakString(t)
 				list = list.filter((child) => t ? child.is(t) : true)
 				if (opts.liveUpdate) {
 					const isChild = (obj) => {
@@ -3056,6 +3061,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			},
 
 			is(tag: Tag | Tag[]): boolean {
+				tag = handleIfOakString(tag)
 				if (tag === "*") {
 					return true
 				}
@@ -3072,6 +3078,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			},
 
 			on(name: string, action: (...args) => void): EventController {
+				name = handleIfOakString(name)
 				const ctrl = events.on(name, action.bind(this))
 				if (onCurCompCleanup) {
 					onCurCompCleanup(() => ctrl.cancel())
@@ -3080,6 +3087,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			},
 
 			trigger(name: string, ...args): void {
+				name = handleIfOakString(name)
 				events.trigger(name, ...args)
 				game.objEvents.trigger(name, this, ...args)
 			},
@@ -3162,6 +3170,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 	// add an event to a tag
 	function on(event: string, tag: Tag, cb: (obj: GameObj, ...args) => void): EventController {
+		[event, tag] = handleIfOakStrings(event, tag)
 		if (!game.objEvents[event]) {
 			game.objEvents[event] = new Registry()
 		}
@@ -3220,6 +3229,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		t2: Tag,
 		f: (a: GameObj, b: GameObj, col?: Collision) => void,
 	): EventController {
+		[t1, t2] = handleIfOakStrings(t1, t2)
 		return on("collide", t1, (a, b, col) => b.is(t2) && f(a, b, col))
 	}
 
@@ -3228,6 +3238,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		t2: Tag,
 		f: (a: GameObj, b: GameObj, col?: Collision) => void,
 	): EventController {
+		[t1, t2] = handleIfOakStrings(t1, t2)
 		return on("collideUpdate", t1, (a, b, col) => b.is(t2) && f(a, b, col))
 	}
 
@@ -3236,6 +3247,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		t2: Tag,
 		f: (a: GameObj, b: GameObj, col?: Collision) => void,
 	): EventController {
+		[t1, t2] = handleIfOakStrings(t1, t2)
 		return on("collideEnd", t1, (a, b, col) => b.is(t2) && f(a, b, col))
 	}
 
@@ -3258,6 +3270,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 	// add an event that runs once when objs with tag t is hovered
 	function onHover(t: Tag, action: (obj: GameObj) => void): EventController {
+		t = handleIfOakString(t)
 		const events = []
 		forAllCurrentAndFuture(t, (obj) => {
 			if (!obj.area)
@@ -3269,6 +3282,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 	// add an event that runs once when objs with tag t is hovered
 	function onHoverUpdate(t: Tag, action: (obj: GameObj) => void): EventController {
+		t = handleIfOakString(t)
 		const events = []
 		forAllCurrentAndFuture(t, (obj) => {
 			if (!obj.area)
@@ -3280,6 +3294,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 	// add an event that runs once when objs with tag t is unhovered
 	function onHoverEnd(t: Tag, action: (obj: GameObj) => void): EventController {
+		t = handleIfOakString(t)
 		const events = []
 		forAllCurrentAndFuture(t, (obj) => {
 			if (!obj.area)
@@ -3714,6 +3729,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				tag: Tag | ((obj: GameObj, col?: Collision) => void),
 				cb?: (obj: GameObj, col?: Collision) => void,
 			): EventController {
+				tag = handleIfOakString(tag)
 				if (typeof tag === "function" && cb === undefined) {
 					return this.on("collide", tag)
 				} else if (typeof tag === "string") {
@@ -3730,6 +3746,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				tag: Tag | ((obj: GameObj, col?: Collision) => void),
 				cb?: (obj: GameObj, col?: Collision) => void,
 			): EventController {
+				tag = handleIfOakString(tag)
 				if (typeof tag === "function" && cb === undefined) {
 					return this.on("collideUpdate", tag)
 				} else if (typeof tag === "string") {
@@ -3742,6 +3759,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				tag: Tag | ((obj: GameObj) => void),
 				cb?: (obj: GameObj) => void,
 			): EventController {
+				tag = handleIfOakString(tag)
 				if (typeof tag === "function" && cb === undefined) {
 					return this.on("collideEnd", tag)
 				} else if (typeof tag === "string") {
@@ -3833,6 +3851,8 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		let curAnimDir: -1 | 1 | null = null
 		const spriteLoadedEvent = new Event<[SpriteData]>()
 
+		src = handleIfOakString(src)
+		
 		if (!src) {
 			throw new Error("Please pass the resource name or data to sprite()")
 		}
@@ -4038,6 +4058,8 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 			play(this: GameObj<SpriteComp>, name: string, opt: SpriteAnimPlayOpt = {}) {
 
+				name = handleIfOakString(name)
+
 				if (!spriteData) {
 					spriteLoadedEvent.add(() => this.play(name, opt))
 					return
@@ -4130,6 +4152,8 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 	function text(t: string, opt: TextCompOpt = {}): TextComp {
 
+		t = handleIfOakString(t)
+		
 		function update(obj: GameObj<TextComp | any>) {
 
 			const ftext = formatText(Object.assign(getRenderProps(obj), {
@@ -4615,6 +4639,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	}
 
 	function shader(id: string, uniform?: Uniform | (() => Uniform)): ShaderComp {
+		id = handleIfOakString(id)
 		return {
 			id: "shader",
 			shader: id,
@@ -4717,6 +4742,9 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			throw new Error("state() requires an initial state")
 		}
 
+		initState = handleIfOakString(initState)
+		stateList & (stateList = handleIfOakStrings(...stateList))
+
 		const events = {}
 
 		function initStateEvents(state: string) {
@@ -4749,6 +4777,8 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 			enterState(state: string, ...args) {
 
+				state = handleIfOakString(state)
+
 				didFirstEnter = true
 
 				if (stateList && !stateList.includes(state)) {
@@ -4760,13 +4790,15 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				if (transitions) {
 
 					// check if the transition is legal, if transition graph is defined
-					if (!transitions?.[oldState]) {
+					if (!handleIfOakString(transitions?.[oldState])) {
 						return
 					}
 
 					const available = typeof transitions[oldState] === "string"
 						? [transitions[oldState]]
 						: transitions[oldState] as string[]
+
+					available = handleIfOakString(available)
 
 					if (!available.includes(state)) {
 						throw new Error(`Cannot transition state from "${oldState}" to "${state}". Available transitions: ${available.map((s) => `"${s}"`).join(", ")}`)
@@ -4782,22 +4814,27 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			},
 
 			onStateTransition(from: string, to: string, action: () => void): EventController {
+				[from, to] = handleIfOakStrings(from, to)
 				return on("enter", `${from} -> ${to}`, action)
 			},
 
 			onStateEnter(state: string, action: () => void): EventController {
+				state = handleIfOakString(state)
 				return on("enter", state, action)
 			},
 
 			onStateUpdate(state: string, action: () => void): EventController {
+				[from, to] = handleIfOakStrings(from, to)
 				return on("update", state, action)
 			},
 
 			onStateDraw(state: string, action: () => void): EventController {
+				state = handleIfOakString(state)
 				return on("draw", state, action)
 			},
 
 			onStateEnd(state: string, action: () => void): EventController {
+				state = handleIfOakString(state)
 				return on("end", state, action)
 			},
 
@@ -4866,10 +4903,13 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	}
 
 	function scene(id: SceneName, def: SceneDef) {
+		id = handleIfOakString(id)
 		game.scenes[id] = def
 	}
 
 	function go(name: SceneName, ...args) {
+
+		name = handleIfOakString(name)
 
 		if (!game.scenes[name]) {
 			throw new Error(`Scene not found: ${name}`)
