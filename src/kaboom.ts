@@ -345,6 +345,19 @@ function createEmptyAudioBuffer(ctx: AudioContext) {
 	return ctx.createBuffer(1, 1, 44100)
 }
 
+// Handle Oak strings.
+function handleOakString(string: any) {
+	let stringOrOSTR = string
+	if (typeof stringOrOSTR == 'object' && '__mark_oak_string' in stringOrOSTR) {
+		stringOrOSTR = stringOrOSTR.toString()
+	}
+	return stringOrOSTR
+}
+
+function handleIfOakStrings(...strings: any[]) {
+	return strings.map(handleOakString)
+}
+
 // only exports one kaboom() which contains all the state
 export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
@@ -574,6 +587,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		}
 
 		static fromURL(url: string, opt: LoadSpriteOpt = {}): Promise<SpriteData> {
+			url = handleIfOakString(url)
 			return loadImg(url).then((img) => SpriteData.fromImage(img, opt))
 		}
 
@@ -594,6 +608,8 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		}
 
 		static fromURL(url: string): Promise<SoundData> {
+			url = handleIfOakString(url)
+			
 			if (isDataURL(url)) {
 				return SoundData.fromArrayBuffer(dataURLToArrayBuffer(url))
 			} else {
@@ -731,12 +747,14 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	// global load path prefix
 	function loadRoot(path?: string): string {
 		if (path !== undefined) {
+			path = handleIfOakString(path)
 			assets.urlPrefix = path
 		}
 		return assets.urlPrefix
 	}
 
 	function loadJSON(name, url) {
+		[name, url] = handleIfOakStrings(name, url)
 		return assets.custom.add(name, fetchJSON(url))
 	}
 
@@ -773,6 +791,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		src: string | BinaryData,
 		opt: LoadFontOpt = {},
 	): Asset<FontData> {
+		[name, src] = handleIfOakStrings(name, src)
 		const font = new FontFace(name, typeof src === "string" ? `url(${src})` : src)
 		document.fonts.add(font)
 		return assets.fonts.add(name, font.load().catch((err) => {
@@ -789,6 +808,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		gh: number,
 		opt: LoadBitmapFontOpt = {},
 	): Asset<BitmapFontData> {
+		[name, src] = handleIfOakStrings(name, src)
 		return assets.bitmapFonts.add(name, loadImg(src)
 			.then((img) => {
 				return makeFont(
@@ -824,6 +844,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		src: LoadSpriteSrc,
 		data: SpriteAtlasData | string,
 	): Asset<Record<string, SpriteData>> {
+		[src, data] = handleIfOakStrings()
 		src = fixURL(src)
 		if (typeof data === "string") {
 			return load(new Promise((res, rej) => {
@@ -895,6 +916,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			anims: {},
 		},
 	): Asset<SpriteData> {
+		[name, src] = handleIfOakStrings(name, src)
 		src = fixURL(src)
 		if (Array.isArray(src)) {
 			if (src.some((s) => typeof s === "string")) {
@@ -917,7 +939,8 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	}
 
 	function loadPedit(name: string | null, src: string | PeditFile): Asset<SpriteData> {
-
+		
+		[name, src] = handleIfOakStrings(name, src)
 		src = fixURL(src)
 
 		// eslint-disable-next-line
@@ -952,6 +975,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		jsonSrc: string | AsepriteData,
 	): Asset<SpriteData> {
 
+		[name, imgSrc, jsonSrc] = handleIfOakStrings(name, imgSrc, jsonSrc)
 		imgSrc = fixURL(imgSrc)
 		jsonSrc = fixURL(jsonSrc)
 
@@ -1000,6 +1024,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		vert?: string,
 		frag?: string,
 	) {
+		[name, vert, frag] = handleIfOakStrings(name, vert, frag)
 		return assets.shaders.addLoaded(name, makeShader(vert, frag))
 	}
 
@@ -1008,6 +1033,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		vert?: string,
 		frag?: string,
 	): Asset<ShaderData> {
+		[name, vert, frag] = handleIfOakStrings(name, vert, frag)
 		vert = fixURL(vert)
 		frag = fixURL(frag)
 		const resolveUrl = (url?: string) =>
@@ -1026,6 +1052,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		name: string | null,
 		src: string | ArrayBuffer,
 	): Asset<SoundData> {
+		[name, src] = handleIfOakStrings(name, src)
 		src = fixURL(src)
 		return assets.sounds.add(
 			name,
@@ -1039,36 +1066,44 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		name: string | null,
 		url: string,
 	) {
+		[name, url] = handleIfOakStrings(name, url)
 		const a = new Audio(url)
 		a.preload = "auto"
 		return assets.music[name] = fixURL(url)
 	}
 
 	function loadBean(name: string = "bean"): Asset<SpriteData> {
+		name = handleIfOakString(name)
 		return loadSprite(name, beanSpriteSrc)
 	}
 
 	function getSprite(name: string): Asset<SpriteData> | void {
+		name = handleIfOakString(name)
 		return assets.sprites.get(name)
 	}
 
 	function getSound(name: string): Asset<SoundData> | void {
+		name = handleIfOakString(name)
 		return assets.sounds.get(name)
 	}
 
 	function getFont(name: string): Asset<FontData> | void {
+		name = handleIfOakString(name)
 		return assets.fonts.get(name)
 	}
 
 	function getBitmapFont(name: string): Asset<BitmapFontData> | void {
+		name = handleIfOakString(name)
 		return assets.bitmapFonts.get(name)
 	}
 
 	function getShader(name: string): Asset<ShaderData> | void {
+		name = handleIfOakString(name)
 		return assets.shaders.get(name)
 	}
 
 	function getAsset(name: string): Asset<any> | void {
+		name = handleIfOakString(name)
 		return assets.custom.get(name)
 	}
 
@@ -1292,6 +1327,8 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		src: string | SoundData | Asset<SoundData> | MusicData | Asset<MusicData>,
 		opt: AudioPlayOpt = {},
 	): AudioPlay {
+
+		src = handleIfOakString(src)
 
 		if (typeof src === "string" && assets.music[src]) {
 			return playMusic(assets.music[src], opt)
@@ -2644,6 +2681,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		drawCalls: () => gfx.lastDrawCalls,
 		clearLog: () => game.logs = [],
 		log: (msg) => {
+			msg = handleIfOakString(msg)
 			const max = gopt.logMax ?? LOG_MAX
 			game.logs.unshift({
 				msg: msg,
@@ -3797,6 +3835,11 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 		if (!src) {
 			throw new Error("Please pass the resource name or data to sprite()")
+		}
+
+		// Handle Oak strings.
+		if ('__mark_oak_string' in src) {
+			src = src.toString()
 		}
 
 		const calcTexScale = (tex: Texture, q: Quad, w?: number, h?: number): Vec2 => {
