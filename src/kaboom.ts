@@ -3462,6 +3462,9 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		if (!o) {
 			throw new Error("Please define an anchor")
 		}
+
+		o = handleIfOakString(o)
+    
 		return {
 			id: "anchor",
 			anchor: o,
