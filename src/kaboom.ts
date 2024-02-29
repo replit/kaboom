@@ -346,16 +346,16 @@ function createEmptyAudioBuffer(ctx: AudioContext) {
 }
 
 // Handle Oak strings.
-function handleOakString(string: any) {
+function handleIfOakString(string: any) {
 	let stringOrOSTR = string
-	if (typeof stringOrOSTR == 'object' && '__mark_oak_string' in stringOrOSTR) {
+	if (!!stringOrOSTR && typeof stringOrOSTR == "object" && "__mark_oak_string" in stringOrOSTR) {
 		stringOrOSTR = stringOrOSTR.toString()
 	}
 	return stringOrOSTR
 }
 
 function handleIfOakStrings(...strings: any[]) {
-	return strings.map(handleOakString)
+	return strings.map(handleIfOakString)
 }
 
 // only exports one kaboom() which contains all the state
@@ -587,7 +587,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		}
 
 		static fromURL(url: string, opt: LoadSpriteOpt = {}): Promise<SpriteData> {
-			url = handleIfOakString(url)
 			return loadImg(url).then((img) => SpriteData.fromImage(img, opt))
 		}
 
@@ -608,8 +607,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		}
 
 		static fromURL(url: string): Promise<SoundData> {
-			url = handleIfOakString(url)
-			
 			if (isDataURL(url)) {
 				return SoundData.fromArrayBuffer(dataURLToArrayBuffer(url))
 			} else {
@@ -844,7 +841,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		src: LoadSpriteSrc,
 		data: SpriteAtlasData | string,
 	): Asset<Record<string, SpriteData>> {
-		[src, data] = handleIfOakStrings()
+		[src, data] = handleIfOakStrings(src, data)
 		src = fixURL(src)
 		if (typeof data === "string") {
 			return load(new Promise((res, rej) => {
@@ -3857,11 +3854,6 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			throw new Error("Please pass the resource name or data to sprite()")
 		}
 
-		// Handle Oak strings.
-		if ('__mark_oak_string' in src) {
-			src = src.toString()
-		}
-
 		const calcTexScale = (tex: Texture, q: Quad, w?: number, h?: number): Vec2 => {
 			const scale = vec2(1, 1)
 			if (w && h) {
@@ -4743,7 +4735,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		}
 
 		initState = handleIfOakString(initState)
-		stateList & (stateList = handleIfOakStrings(...stateList))
+		stateList && (stateList = handleIfOakStrings(...stateList))
 
 		const events = {}
 
@@ -4794,11 +4786,11 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 						return
 					}
 
+					transitions[oldState] = handleIfOakString(transitions[oldState])
 					const available = typeof transitions[oldState] === "string"
 						? [transitions[oldState]]
 						: transitions[oldState] as string[]
 
-					available = handleIfOakString(available)
 
 					if (!available.includes(state)) {
 						throw new Error(`Cannot transition state from "${oldState}" to "${state}". Available transitions: ${available.map((s) => `"${s}"`).join(", ")}`)
@@ -4824,7 +4816,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			},
 
 			onStateUpdate(state: string, action: () => void): EventController {
-				[from, to] = handleIfOakStrings(from, to)
+				state = handleIfOakString(state)
 				return on("update", state, action)
 			},
 
