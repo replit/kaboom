@@ -2522,14 +2522,14 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 		const fchars: FormattedChar[] = []
 
-		for (const line of lines) {
+		for (let i = 0; i < lines.length; i++) {
 
-			const ox = (tw - line.width) * alignPt(opt.align ?? "left")
+			const ox = (tw - lines[i].width) * alignPt(opt.align ?? "left")
 
-			for (const fchar of line.chars) {
+			for (const fchar of lines[i].chars) {
 
 				const q = font.map[fchar.ch]
-				const idx = fchars.length
+				const idx = fchars.length + i
 
 				fchar.pos = fchar.pos.add(ox, 0).add(
 					q.w * scale.x * 0.5,
