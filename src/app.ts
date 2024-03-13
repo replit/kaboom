@@ -727,10 +727,12 @@ export default (opt: {
 			const touches = [...e.changedTouches]
 			const box = state.canvas.getBoundingClientRect()
 			if (opt.touchToMouse !== false) {
+				const lastMousePos = state.mousePos
 				state.mousePos = new Vec2(
 					touches[0].clientX - box.x,
 					touches[0].clientY - box.y,
 				)
+				state.mouseDeltaPos = state.mousePos.sub(lastMousePos)
 				state.events.trigger("mouseMove")
 			}
 			touches.forEach((t) => {
@@ -752,6 +754,7 @@ export default (opt: {
 					touches[0].clientX - box.x,
 					touches[0].clientY - box.y,
 				)
+				state.mouseDeltaPos = new Vec2(0,0)
 				state.mouseState.release("left")
 				state.events.trigger("mouseRelease", "left")
 			}
