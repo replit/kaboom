@@ -169,6 +169,26 @@ export interface KaboomCtx {
 	scale(x: number, y: number): ScaleComp,
 	scale(xy: number): ScaleComp,
 	scale(s: Vec2): ScaleComp,
+	/**
+	 * Scale the game obj.
+	 *
+	 * @example
+	 * ```js
+	 * // scale uniformly with one value 
+	 * add([
+	 *     sprite("bean"),
+	 * 	   scale(3),
+	 * ])
+	 * // scale with x & y values. In this case, scales more horizontally.
+	 * add([
+	 *     sprite("bean"),
+	 * 	   scale(3, 1),
+	 * ])
+	 *  // scale with vec2(x,y).
+	 * bean.scale = vec2(2,4)
+	 * 
+	 * ```
+	 */
 	scale(): ScaleComp,
 	/**
 	 * Rotation (in degrees).
