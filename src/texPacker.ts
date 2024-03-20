@@ -37,13 +37,13 @@ export default class TexPacker {
 			this.curHeight = 0
 		}
 		// next texture
-		if (this.y + img.height > this.canvas.height && img.height <= this.canvas.height) {
+		if (this.y + img.height > this.canvas.height && img.width <= this.canvas.width && img.height <= this.canvas.height) {
 			this.c2d.clearRect(0, 0, this.canvas.width, this.canvas.height)
 			this.textures.push(Texture.fromImage(this.gfx, this.canvas))
 			this.x = 0
 			this.y = 0
 			this.curHeight = 0
-		} else if (img.height > this.canvas.height) {	// image is larger than the canvas
+		} else if (img.width > this.canvas.width || img.height > this.canvas.height) {	// image is larger than the canvas
 			// store the current state
 			this.state = {
 				width: this.canvas.width,
@@ -78,7 +78,6 @@ export default class TexPacker {
 			img.width / this.canvas.width,
 			img.height / this.canvas.height,
 		)]
-		// restore previous state after a large image
 		if (this.state) {
 			// restore the current state
 			this.canvas.width = this.state.width
@@ -87,7 +86,7 @@ export default class TexPacker {
 			this.y = this.state.y
 			this.curHeight = this.state.curHeight
 			delete this.state
-			// swap the last two textures so the previous one can continue
+			// swap the last two textures so the previous one can continue to populate
 			const temp = this.textures[this.textures.length - 2]
 			this.textures[this.textures.length - 2] = this.textures[this.textures.length - 1]
 			this.textures[this.textures.length - 1] = temp
