@@ -48,6 +48,7 @@ export default class TexPacker {
 			this.state = {
 				width: this.canvas.width,
 				height: this.canvas.height,
+				imageData: this.c2d.getImageData(0,0,this.canvas.width, this.canvas.height),
 				x: this.x,
 				y: this.y,
 				curHeight: this.curHeight,
@@ -82,6 +83,7 @@ export default class TexPacker {
 			// restore the current state
 			this.canvas.width = this.state.width
 			this.canvas.height = this.state.height
+			this.c2d.putImageData(this.state.imageData, 0, 0)
 			this.x = this.state.x
 			this.y = this.state.y
 			this.curHeight = this.state.curHeight
