@@ -20,6 +20,7 @@ export default class TexPacker {
 	private y: number = 0
 	private curHeight: number = 0
 	private gfx: GfxCtx
+	private state: any
 	constructor(gfx: GfxCtx, w: number, h: number) {
 		this.gfx = gfx
 		this.canvas = document.createElement("canvas")
@@ -29,9 +30,6 @@ export default class TexPacker {
 		this.c2d = this.canvas.getContext("2d")
 	}
 	add(img: ImageSource): [Texture, Quad] {
-		if (img.width > this.canvas.width || img.height > this.canvas.height) {
-			throw new Error(`Texture size (${img.width} x ${img.height}) exceeds limit (${this.canvas.width} x ${this.canvas.height})`)
-		}
 		// next row
 		if (this.x + img.width > this.canvas.width) {
 			this.x = 0
@@ -39,7 +37,23 @@ export default class TexPacker {
 			this.curHeight = 0
 		}
 		// next texture
-		if (this.y + img.height > this.canvas.height) {
+		if (this.y + img.height > this.canvas.height && img.height <= this.canvas.height) {
+			this.c2d.clearRect(0, 0, this.canvas.width, this.canvas.height)
+			this.textures.push(Texture.fromImage(this.gfx, this.canvas))
+			this.x = 0
+			this.y = 0
+			this.curHeight = 0
+		} else if (img.height > this.canvas.height) {	// image is larger than the canvas
+			// store the current state
+			this.state = {
+				width: this.canvas.width,
+				height: this.canvas.height,
+				x: this.x,
+				y: this.y,
+				curHeight: this.curHeight,
+			}
+			this.canvas.width = img.width
+			this.canvas.height = img.height
 			this.c2d.clearRect(0, 0, this.canvas.width, this.canvas.height)
 			this.textures.push(Texture.fromImage(this.gfx, this.canvas))
 			this.x = 0
@@ -58,12 +72,25 @@ export default class TexPacker {
 			this.c2d.drawImage(img, pos.x, pos.y)
 		}
 		curTex.update(this.canvas)
-		return [curTex, new Quad(
+		const result:[Texture, Quad] = [curTex, new Quad(
 			pos.x / this.canvas.width,
 			pos.y / this.canvas.height,
 			img.width / this.canvas.width,
 			img.height / this.canvas.height,
 		)]
+		// restore previous state after a large image
+		if (this.state) {
+			// restore the current state
+			this.canvas.width = this.state.width
+			this.canvas.height = this.state.height
+			this.x = this.state.x
+			this.y = this.state.y
+			this.curHeight = this.state.curHeight
+			delete this.state
+			// swap the last two textures so the previous one can continue
+			this.textures[this.textures.length - 2] = this.textures.splice(this.textures.length - 1, 1, this.textures[this.textures.length - 2])[0]
+		}
+		return result
 	}
 	free() {
 		for (const tex of this.textures) {
