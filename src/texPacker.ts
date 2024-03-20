@@ -88,7 +88,9 @@ export default class TexPacker {
 			this.curHeight = this.state.curHeight
 			delete this.state
 			// swap the last two textures so the previous one can continue
-			this.textures[this.textures.length - 2] = this.textures.splice(this.textures.length - 1, 1, this.textures[this.textures.length - 2])[0]
+			const temp = this.textures[this.textures.length - 2]
+			this.textures[this.textures.length - 2] = this.textures[this.textures.length - 1]
+			this.textures[this.textures.length - 1] = temp
 		}
 		return result
 	}
