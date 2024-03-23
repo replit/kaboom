@@ -7,7 +7,7 @@ let cameraScale = 1
 loadSprite("large-image", "https://picsum.photos/2500/2500")
 
 add([
-	sprite("large-image")
+	sprite("large-image"),
 ])
 
 // Adds a label
