@@ -216,7 +216,7 @@ create(dir(dest, [
 		"name": dest,
 		"scripts": {
 			"build": `esbuild --bundle src/main.${ext} --outfile=www/main.js --minify`,
-			"dev": `esbuild --bundle src/main.${ext} --outfile=www/main.js --servedir=www`,
+			"dev": `esbuild --bundle --sourcemap --keep-names src/main.${ext} --outfile=www/main.js --servedir=www`,
 			"bundle": "npm run build && mkdir -p dist && zip -r dist/game.zip www -x \"**/.DS_Store\"",
 			...(ts ? {
 				"check": "tsc",
