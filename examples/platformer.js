@@ -3,6 +3,7 @@ kaboom({
 })
 
 // load assets
+loadSprite("bigyoshi", "/examples/sprites/YOSHI.png")
 loadSprite("bean", "/sprites/bean.png")
 loadSprite("bag", "/sprites/bag.png")
 loadSprite("ghosty", "/sprites/ghosty.png")

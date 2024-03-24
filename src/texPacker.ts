@@ -14,6 +14,7 @@ import {
 
 export default class TexPacker {
 	private textures: Texture[] = []
+	private bigTextures: Texture[] = []
 	private canvas: HTMLCanvasElement
 	private c2d: CanvasRenderingContext2D
 	private x: number = 0
@@ -26,11 +27,14 @@ export default class TexPacker {
 		this.canvas.width = w
 		this.canvas.height = h
 		this.textures = [Texture.fromImage(gfx, this.canvas)]
+		this.bigTextures = []
 		this.c2d = this.canvas.getContext("2d")
 	}
 	add(img: ImageSource): [Texture, Quad] {
 		if (img.width > this.canvas.width || img.height > this.canvas.height) {
-			throw new Error(`Texture size (${img.width} x ${img.height}) exceeds limit (${this.canvas.width} x ${this.canvas.height})`)
+			const tex = Texture.fromImage(this.gfx, img)
+			this.bigTextures.push(tex)
+			return [tex, new Quad(0, 0, 1, 1)]
 		}
 		// next row
 		if (this.x + img.width > this.canvas.width) {
@@ -67,6 +71,9 @@ export default class TexPacker {
 	}
 	free() {
 		for (const tex of this.textures) {
+			tex.free()
+		}
+		for (const tex of this.bigTextures) {
 			tex.free()
 		}
 	}
