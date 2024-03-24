@@ -1,4 +1,8 @@
-# Tips
+---
+title: Optimization
+---
+
+# Optimization Tips
 
 Here's some tips on optimizing performance / maintainability for kaboom games
 

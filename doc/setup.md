@@ -1,27 +1,33 @@
-# Setting up Kaboom Development
+---
+title: Installation
+---
 
-## Using `create-kaboom` to generate kaboom project
+# Installation
+
+The most easy way to get started with Kaboom is to use the [CLI tool](https://www.npmjs.com/package/create-kaboom), which will generate a Kaboom project for you:
 
 ```sh
 $ npm init kaboom -- mygame
+$ cd mygame
+$ npm run dev
 ```
 
-This will create a directory `mygame` containing everything you need to start a Kaboom project, go to that directory and run `npm run dev` to start the development server, and edit `src/main.js` to develop the game.
+This will create your game in the `mygame` directory, and start a development server for you to preview your game. If you edit `src/main.js` and refresh the page, you will see your changes.
 
-to see all options, run
+To see all options, run:
 
 ```sh
 $ npm init kaboom -- --help
 ```
 
-## Using CDN
+## Using a CDN
 
 Getting the package from a CDN provider is the quickest and easiest way to start using Kaboom.
 
 ```html
 <script type="module">
 
-// import kaboom lib
+// import kaboom.js
 import kaboom from "https://unpkg.com/kaboom@3000.0.1/dist/kaboom.mjs";
 
 // initialize kaboom context
@@ -38,23 +44,33 @@ add([
 
 You can paste this directly in a `.html` file and open with the browser. This will give you the standard fullscreen Kaboom canvas. Feel free to put more HTML in there.
 
-The Kaboom package is deployed to NPM, so it's availbale on various CDN providers, like `unpkg`, `skypack`, `jsdelivr`, etc.
+The Kaboom package is deployed to npm, so it's availbale on various CDN providers, like `unpkg`, `skypack`, `jsdelivr`, etc.
 
-The example above is using Kaboom with es6 module, you can also just include it with a `<script>` tag
-
+You can also just include it with a `<script>` tag.
 ```html
 <script src="https://unpkg.com/kaboom@3000.0.1/dist/kaboom.js"></script>
+
+<script>
+    kaboom();
+</script>
 ```
 
-## Using NPM
+## Setup your own Node.js environment
 
-With NPM it's easier have some other packages and do version control, also it's easier to get typescript autocomplete support and stuff, but it requires a bit more setup.
+With Node.js and npm it's easier have some other packages and use version control, also it's easier to get typescript autocomplete support, but it requires a bit more setup. (This is the way of `create-kaboom`)
 
 ```sh
 $ npm install kaboom
 ```
 
-but you'll need to use a bundler to use Kaboom with NPM. There's a lot of options like `esbuild`, `webpack`, `parcel`, `vite`, etc, here I'll give a short example of how to use Kaboom with [`esbuild`](https://esbuild.github.io/).
+You'll need to use a bundler to use Kaboom with NPM. There's a lot of options like:
+
+- `esbuild`, 
+- `webpack`,
+- `parcel`, 
+- `vitejs`,
+
+This is a short example of how to use Kaboom with ["esbuild"](https://esbuild.github.io/).
 
 Once you have `esbuild` installed, and you have this in a `.js` or `.ts` file:
 
