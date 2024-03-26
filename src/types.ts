@@ -103,6 +103,48 @@ export interface KaboomCtx {
 	make<T>(comps?: CompList<T>): GameObj<T>,
 	/**
 	 * Remove and re-add the game obj, without triggering add / destroy events.
+	 * @example
+	 * ```js
+	 * // Common way to use this is to have one sprite overlap another sprite, and use readd() to have the bottom sprite on top of the other.
+	 * 
+	 * // Create two sprites.
+	 * const greenBean = add([
+	 * 		sprite("bean"),
+	 * 		pos(200,140),
+	 * 		area({ cursor: "pointer" }),
+	 * 		anchor("center"),
+	 * 		scale(2.5),
+	 * 		color(255, 255, 255),  
+	 * ])
+	 * 
+	 * // This bean will overlap the green bean.
+	 * const purpleBean = add([
+	 * 		sprite("bean"),
+	 * 		pos(290,140),
+	 * 		area({ cursor: "pointer" }),
+	 * 		anchor("center"),
+	 * 		scale(2.5),
+	 * 		color(255, 0, 255),
+	 * ])
+	 * 
+	 * // Example 1: simply call readd() on the target you want on top.
+	 * // Now you will notice that the green bean is on top.
+	 * readd(greenBean)   
+	 * 
+	 * // Example 2: using onClick() or other functions with readd().
+	 * // If you comment out the first example, and use this readd() with a function like onClick(), you
+	 * can keep switching which sprite is above the other.
+	 * 
+	 * purpleBean.onClick(() => {
+	 * 		readd(greenBean)
+	 * 		console.log('green bean is on top!')
+	 * })
+	 *        
+	 * greenBean.onClick(() => {
+	 * 		readd(purpleBean)
+	 * 		console.log('purple bean is on top!')
+	 * })
+	 * ```
 	 */
 	readd(obj: GameObj): void,
 	/**
