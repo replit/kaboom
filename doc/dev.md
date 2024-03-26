@@ -1,3 +1,7 @@
+---
+title: Contributing
+---
+
 # Developing Kaboom
 
 To start developing Kaboom, first clone the github repo
@@ -36,6 +40,3 @@ $ npm run check
 - `scripts/` development scripts
 - `sprites/` some examples sprites
 - `src/` kaboom library source code
-## Source code overview
-
-(todo)

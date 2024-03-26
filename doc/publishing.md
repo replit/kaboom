@@ -1,3 +1,7 @@
+---
+title: Publishing
+---
+
 # Publishing a Kaboom game
 When we finish our game, the most important time it's here...
 Publish it! 

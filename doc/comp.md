@@ -1,4 +1,8 @@
-# Custom Component
+---
+title: Custom Components
+---
+
+# Custom Components
 
 Kaboom uses a flexible component system that helps you compose game logic.
 

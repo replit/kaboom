@@ -1,3 +1,7 @@
+---
+title: Getting started
+---
+
 # Intro to Kaboom
 
 Welcome! Kaboom is a JavaScript library that helps you make games fast and fun :D
