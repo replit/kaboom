@@ -1,5 +1,5 @@
 ---
-title: Migratin from v2000 to v3000
+title: Migrating from v2000 to v3000
 ---
 
 # Migrating from v2000 to v3000
