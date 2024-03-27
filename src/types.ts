@@ -111,9 +111,6 @@ export interface KaboomCtx {
 	 * const greenBean = add([
 	 * 		sprite("bean"),
 	 * 		pos(200,140),
-	 * 		area({ cursor: "pointer" }),
-	 * 		anchor("center"),
-	 * 		scale(2.5),
 	 * 		color(255, 255, 255),  
 	 * ])
 	 * 
@@ -121,14 +118,10 @@ export interface KaboomCtx {
 	 * const purpleBean = add([
 	 * 		sprite("bean"),
 	 * 		pos(290,140),
-	 * 		area({ cursor: "pointer" }),
-	 * 		anchor("center"),
-	 * 		scale(2.5),
 	 * 		color(255, 0, 255),
 	 * ])
 	 * 
 	 * // Example 1: simply call readd() on the target you want on top.
-	 * // Now you will notice that the green bean is on top.
 	 * readd(greenBean)   
 	 * 
 	 * // Example 2: using onClick() or other functions with readd().
@@ -137,12 +130,10 @@ export interface KaboomCtx {
 	 * 
 	 * purpleBean.onClick(() => {
 	 * 		readd(greenBean)
-	 * 		console.log('green bean is on top!')
 	 * })
 	 *        
 	 * greenBean.onClick(() => {
 	 * 		readd(purpleBean)
-	 * 		console.log('purple bean is on top!')
 	 * })
 	 * ```
 	 */
