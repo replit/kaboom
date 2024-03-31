@@ -3625,8 +3625,8 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				return col && col.hasOverlap()
 			},
 
-			onClick(this: GameObj<AreaComp>, f: () => void): EventController {
-				const e = app.onMousePress("left", () => {
+			onClick(this: GameObj<AreaComp>, f: () => void, m: MouseButton = "left"): EventController {
+				const e = app.onMousePress(m, () => {
 					if (this.isHovering()) {
 						f()
 					}
