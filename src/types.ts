@@ -1971,6 +1971,7 @@ export interface KaboomCtx {
 	Line: typeof Line,
 	Rect: typeof Rect,
 	Circle: typeof Circle,
+	Ellipse: typeof Ellipse,
 	Polygon: typeof Polygon,
 	Vec2: typeof Vec2,
 	Color: typeof Color,
@@ -4058,6 +4059,7 @@ export type RNGValue =
 export type ShapeType =
 	Vec2
 	| Circle
+	| Ellipse
 	| Line
 	| Rect
 	| Polygon
@@ -4124,6 +4126,9 @@ export declare class Ellipse {
 	bbox(): Rect
 	area(): number
 	clone(): Ellipse
+	collides(shape: ShapeType): boolean
+	contains(point: Vec2): boolean
+	raycast(origin: Vec2, direction: Vec2): RaycastResult
 }
 
 export declare class Polygon {

@@ -24,6 +24,7 @@ import {
 	Polygon,
 	Line,
 	Circle,
+	Ellipse,
 	Color,
 	Vec2,
 	Mat4,
@@ -448,7 +449,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		// we use a texture for those so we can use only 1 pipeline for drawing sprites + shapes
 		const emptyTex = Texture.fromImage(
 			ggl,
-			new ImageData(new Uint8ClampedArray([ 255, 255, 255, 255 ]), 1, 1),
+			new ImageData(new Uint8ClampedArray([255, 255, 255, 255]), 1, 1),
 		)
 
 		const frameBuffer = (gopt.width && gopt.height)
@@ -532,7 +533,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	class SpriteData {
 
 		tex: Texture
-		frames: Quad[] = [ new Quad(0, 0, 1, 1) ]
+		frames: Quad[] = [new Quad(0, 0, 1, 1)]
 		anims: SpriteAnims = {}
 		slice9: NineSlice | null = null
 
@@ -1148,8 +1149,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		| BitmapFontData
 		| Asset<BitmapFontData>
 		| string
-		| void
-	{
+		| void {
 		if (!src) {
 			return resolveFont(gopt.font ?? DEF_FONT)
 		}
@@ -2171,7 +2171,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 		if (opt.outline) {
 			drawLines({
-				pts: [ ...opt.pts, opt.pts[0] ],
+				pts: [...opt.pts, opt.pts[0]],
 				radius: opt.radius,
 				width: opt.outline.width,
 				color: opt.outline.color,
@@ -3438,7 +3438,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	function follow(obj: GameObj, offset?: Vec2): FollowComp {
 		return {
 			id: "follow",
-			require: [ "pos" ],
+			require: ["pos"],
 			follow: {
 				obj: obj,
 				offset: offset ?? vec2(0),
@@ -3460,7 +3460,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		const d = typeof dir === "number" ? Vec2.fromAngle(dir) : dir.unit()
 		return {
 			id: "move",
-			require: [ "pos" ],
+			require: ["pos"],
 			update(this: GameObj<PosComp>) {
 				this.move(d.scale(speed))
 			},
@@ -3474,7 +3474,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		let isOut = false
 		return {
 			id: "offscreen",
-			require: [ "pos" ],
+			require: ["pos"],
 			isOffScreen(this: GameObj<PosComp>): boolean {
 				const pos = this.screenPos()
 				const screenRect = new Rect(vec2(0), width(), height())
@@ -3852,24 +3852,24 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 					const h2 = 1 - h1 - h3
 					const quads = [
 						// uv
-						quad(0,       0,       w1, h1),
-						quad(w1,      0,       w2, h1),
-						quad(w1 + w2, 0,       w3, h1),
-						quad(0,       h1,      w1, h2),
-						quad(w1,      h1,      w2, h2),
-						quad(w1 + w2, h1,      w3, h2),
-						quad(0,       h1 + h2, w1, h3),
-						quad(w1,      h1 + h2, w2, h3),
+						quad(0, 0, w1, h1),
+						quad(w1, 0, w2, h1),
+						quad(w1 + w2, 0, w3, h1),
+						quad(0, h1, w1, h2),
+						quad(w1, h1, w2, h2),
+						quad(w1 + w2, h1, w3, h2),
+						quad(0, h1 + h2, w1, h3),
+						quad(w1, h1 + h2, w2, h3),
 						quad(w1 + w2, h1 + h2, w3, h3),
 						// transform
-						quad(0,         0,        left,  top),
-						quad(left,      0,        iw,    top),
-						quad(left + iw, 0,        right, top),
-						quad(0,         top,      left,  ih),
-						quad(left,      top,      iw,    ih),
-						quad(left + iw, top,      right, ih),
-						quad(0,         top + ih, left,  bottom),
-						quad(left,      top + ih, iw,    bottom),
+						quad(0, 0, left, top),
+						quad(left, 0, iw, top),
+						quad(left + iw, 0, right, top),
+						quad(0, top, left, ih),
+						quad(left, top, iw, ih),
+						quad(left + iw, top, right, ih),
+						quad(0, top + ih, left, bottom),
+						quad(left, top + ih, iw, bottom),
 						quad(left + iw, top + ih, right, bottom),
 					]
 					for (let i = 0; i < 9; i++) {
@@ -4017,7 +4017,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 						loop: false,
 						pingpong: false,
 						speed: 0,
-						onEnd: () => {},
+						onEnd: () => { },
 					}
 					: {
 						name: name,
@@ -4025,7 +4025,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 						loop: opt.loop ?? anim.loop ?? false,
 						pingpong: opt.pingpong ?? anim.pingpong ?? false,
 						speed: opt.speed ?? anim.speed ?? 10,
-						onEnd: opt.onEnd ?? (() => {}),
+						onEnd: opt.onEnd ?? (() => { }),
 					}
 
 				curAnimDir = typeof anim === "number"
@@ -4155,7 +4155,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	}
 
 	function polygon(pts: Vec2[], opt: PolygonCompOpt = {}): PolygonComp {
-		if(pts.length < 3) throw new Error(`Polygon's need more than two points, ${pts.length} points provided`)
+		if (pts.length < 3) throw new Error(`Polygon's need more than two points, ${pts.length} points provided`)
 		return {
 			id: "polygon",
 			pts,
@@ -4360,7 +4360,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		return {
 
 			id: "body",
-			require: [ "pos" ],
+			require: ["pos"],
 			vel: new Vec2(0),
 			drag: opt.drag ?? 0,
 			jumpForce: opt.jumpForce ?? DEF_JUMP_FORCE,
@@ -4443,7 +4443,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 			},
 
-			update(this: GameObj<PosComp | BodyComp | AreaComp >) {
+			update(this: GameObj<PosComp | BodyComp | AreaComp>) {
 
 				if (game.gravity && !this.isStatic) {
 
@@ -4546,7 +4546,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		let jumpsLeft = numJumps
 		return {
 			id: "doubleJump",
-			require: [ "body" ],
+			require: ["body"],
 			numJumps: numJumps,
 			add(this: GameObj<BodyComp | DoubleJumpComp>) {
 				this.onGround(() => {
@@ -4784,7 +4784,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		let t = 0
 		let done = false
 		return {
-			require: [ "opacity" ],
+			require: ["opacity"],
 			add(this: GameObj<OpacityComp>) {
 				this.opacity = 0
 			},
@@ -5506,7 +5506,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 	}
 
-	function agent(opts: AgentCompOpt = {}) : AgentComp {
+	function agent(opts: AgentCompOpt = {}): AgentComp {
 		let target: Vec2 | null = null
 		let path: Vec2[] | null = null
 		let index: number | null = null
@@ -5686,7 +5686,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	function boom(speed: number = 2, size: number = 1): Comp {
 		let time = 0
 		return {
-			require: [ "scale" ],
+			require: ["scale"],
 			update(this: GameObj<ScaleComp>) {
 				const s = Math.sin(time * speed) * size
 				if (s < 0) {
@@ -5820,10 +5820,10 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 				// insert & check against all covered grids
 				for (let x = xmin; x <= xmax; x++) {
 					for (let y = ymin; y <= ymax; y++) {
-						if(!grid[x]) {
+						if (!grid[x]) {
 							grid[x] = {}
 							grid[x][y] = [aobj]
-						} else if(!grid[x][y]) {
+						} else if (!grid[x][y]) {
 							grid[x][y] = [aobj]
 						} else {
 							const cell = grid[x][y]
@@ -6602,6 +6602,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 		Line,
 		Rect,
 		Circle,
+		Ellipse,
 		Polygon,
 		Vec2,
 		Color,

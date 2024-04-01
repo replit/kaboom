@@ -105,8 +105,46 @@ add([
 			})
 		},
 		getShape() {
-            // This would be point if we had a real class for it
+			// This would be point if we had a real class for it
 			return new Rect(vec2(-1, -1).add(this.pos), 3, 3)
+		},
+	},
+])
+
+add([
+	pos(280, 200),
+	color(BLUE),
+	"shape",
+	{
+		getShape() {
+			return new Ellipse(this.pos, 80, 30)
+		},
+		draw() {
+			drawEllipse({
+				radiusX: 80,
+				radiusY: 30,
+				color: this.color,
+			})
+		},
+	},
+])
+
+add([
+	pos(340, 120),
+	color(BLUE),
+	"shape",
+	{
+		getShape() {
+			return new Ellipse(this.pos, 40, 15, 45)
+		},
+		draw() {
+			pushRotate(45)
+			drawEllipse({
+				radiusX: 40,
+				radiusY: 15,
+				color: this.color,
+			})
+			popTransform()
 		},
 	},
 ])
@@ -140,4 +178,20 @@ onMouseMove((pos, delta) => {
 
 onMouseRelease(() => {
 	selection = null
+})
+
+onDraw(() => {
+	if (selection) {
+		const rect = selection.getShape().bbox()
+		drawRect({
+			pos: rect.pos,
+			width: rect.width,
+			height: rect.height,
+			outline: {
+				width: 1,
+				color: YELLOW,
+			},
+			fill: false,
+		})
+	}
 })
