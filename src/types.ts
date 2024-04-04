@@ -662,14 +662,14 @@ export interface KaboomCtx {
 	 *
 	 * @example
 	 * ```js
-   * // will display a message on the screen
-   * on("talk", (message, posX, posY) => {
-   *     add([text(message), pos(posX, posY - 100)])
-   * })
-   * onKeyPress("Space", () => {
-   *    npc.trigger("talk", "Hello World!", npc.pos.x, npc.pos.y)
-   * })
-   * 
+	 * // will display a message on the screen
+	 * on("talk", (message, posX, posY) => {
+	 *     add([text(message), pos(posX, posY - 100)])
+	 * })
+	 * onKeyPress("Space", () => {
+	 *    npc.trigger("talk", "Hello World!", npc.pos.x, npc.pos.y)
+	 * })
+	 * 
 	 * ```
 	 */
 	on(event: string, tag: Tag, action: (obj: GameObj, ...args: any) => void): EventController,
