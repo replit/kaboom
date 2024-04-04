@@ -656,18 +656,20 @@ export interface KaboomCtx {
 	 */
 	agent(opt?: AgentCompOpt): AgentComp,
 	/**
-	 * Register an event on all game objs with certain tag.
+	 * Register a custom event available to all game objs that triggers it.
 	 *
 	 * @section Events
 	 *
 	 * @example
 	 * ```js
-	 * // a custom event defined by body() comp
-	 * // every time an obj with tag "bomb" hits the floor, destroy it and addKaboom()
-	 * on("ground", "bomb", (bomb) => {
-	 *     destroy(bomb)
-	 *     addKaboom(bomb.pos)
-	 * })
+   * // will display a message on the screen
+   * on("talk", (message, posX, posY) => {
+   *     add([text(message), pos(posX, posY - 100)])
+   * })
+   * onKeyPress("Space", () => {
+   *    npc.trigger("talk", "Hello World!", npc.pos.x, npc.pos.y)
+   * })
+   * 
 	 * ```
 	 */
 	on(event: string, tag: Tag, action: (obj: GameObj, ...args: any) => void): EventController,
