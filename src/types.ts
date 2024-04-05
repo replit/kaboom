@@ -672,9 +672,12 @@ export interface KaboomCtx {
 	 * // a custom event can be defined manually
 	 * // by passing a name and a callback function
 	 * on("talk", (message, posX, posY) => {
-	 *     add([text(message), pos(posX, posY - 100)])
+	 *     add([
+	 * 		text(message), 
+	 * 		pos(posX, posY - 100)
+	 * 	   ])
 	 * })
-	 * onKeyPress("Space", () => {
+	 * onKeyPress("space", () => {
 	 *    	// the trigger method on game objs can be used to trigger a custom event
 	 * 		npc.trigger("talk", "Hello World!", npc.pos.x, npc.pos.y)
 	 * })
