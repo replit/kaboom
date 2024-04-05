@@ -109,18 +109,18 @@ export interface KaboomCtx {
 	 * 
 	 * // Create two sprites.
 	 * const greenBean = add([
-	 * 		sprite("bean"),
-	 * 		pos(200,140),
-	 * 		color(255, 255, 255),
-         *		area(),
+	 * sprite("bean"),
+	 * pos(200,140),
+	 * color(255, 255, 255),
+         * area(),
 	 * ])
 	 * 
 	 * // This bean will overlap the green bean.
 	 * const purpleBean = add([
-	 * 		sprite("bean"),
-	 * 		pos(230,140),
-	 * 		color(255, 0, 255),
-  	 *		area(),
+	 * sprite("bean"),
+	 * pos(230,140),
+	 * color(255, 0, 255),
+  	 * area(),
 	 * ])
 	 * 
 	 * // Example 1: simply call readd() on the target you want on top.
