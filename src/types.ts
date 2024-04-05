@@ -703,6 +703,20 @@ export interface KaboomCtx {
 	 *     destroy(bomb)
 	 *     addKaboom(bomb.pos)
 	 * })
+	 * 
+	 * // a custom event can be defined manually
+	 * // by passing a name and a callback function
+	 * on("talk", (message, posX, posY) => {
+	 *     add([
+	 *      text(message), 
+	 *      pos(posX, posY - 100)
+	 *     ])
+	 * })
+	 * onKeyPress("space", () => {
+	 *    // the trigger method on game objs can be used to trigger a custom event
+	 *    npc.trigger("talk", "Hello World!", npc.pos.x, npc.pos.y)
+	 * })
+	 * 
 	 * ```
 	 */
 	on(event: string, tag: Tag, action: (obj: GameObj, ...args: any) => void): EventController,
