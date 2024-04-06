@@ -227,6 +227,18 @@ export interface KaboomCtx {
 	scale(): ScaleComp,
 	/**
 	 * Rotation (in degrees).
+	 * 
+	 * @example
+	 * ```js
+	 * // bean WITH anchor: rotates bean based on sprite center 
+	 * // bean WITHOUT anchor: rotates bean relative to local space 
+	 * const rotateBean = add([
+	 * sprite("bean"),
+	 * pos(200,140),
+	 * anchor("center"),
+	 * rotate(-90),
+	 * ])
+	 * ```
 	 */
 	rotate(a: number): RotateComp,
 	/**
