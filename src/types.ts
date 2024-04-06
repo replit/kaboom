@@ -667,8 +667,31 @@ export interface KaboomCtx {
 	): StateComp,
 	/**
 	 * Fade object in.
-	 *
+	 * 
+	 * Uses opacity for finding what to fade into and to set opacity during fade animation.
+	 * 
 	 * @since v3000.0
+	 * 
+	 * @example
+	 * ```
+	 * const player = add([
+	 * 		sprite("bean"),   // sprite() component makes it render as a sprite
+	 *		pos(120, 80),     // pos() component gives it position, also enables movement
+	 * 		rotate(0),        // rotate() component gives it rotation
+	 * 		anchor("center"), // anchor() component defines the pivot point (defaults to "topleft")
+	 * 		opacity(),        // opacity() component gives it opacity
+	 * 		fadeIn(),         // fadeIn() component makes it fade in (will fade into what opacity is set to)
+	 * ])
+	 *
+   * let halfInvisibleBean = add([
+	 * 		sprite("bean"),   // sprite() component makes it render as a sprite
+	 * 		pos(240, 80),     // pos() component gives it position, also enables movement
+	 * 		rotate(0),        // rotate() component gives it rotation
+	 * 		anchor("center"), // anchor() component defines the pivot point (defaults to "topleft")
+	 * 		opacity(0.5),     // opacity() component gives it opacity (set to 0.5 so it will be half transparent)
+	 * 		fadeIn(),         // fadeIn() component makes it fade in (will fade into what opacity is set to)
+   * ])
+	 * ```
 	 */
 	fadeIn(time: number): Comp,
 	/**
