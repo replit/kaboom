@@ -4780,7 +4780,8 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 	}
 
-	function fadeIn(time: number = 1, finalOpacity: number = 1): Comp {
+	function fadeIn(time: number = 1): Comp {
+		let finalTime = this.opacity
 		let t = 0
 		let done = false
 		return {
