@@ -4780,7 +4780,7 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 
 	}
 
-	function fadeIn(time: number = 1): Comp {
+	function fadeIn(time: number = 1, finalOpacity: number = 1): Comp {
 		let t = 0
 		let done = false
 		return {
@@ -4791,9 +4791,9 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 			update(this: GameObj<OpacityComp>) {
 				if (done) return
 				t += dt()
-				this.opacity = map(t, 0, time, 0, 1)
+				this.opacity = map(t, 0, time, 0, finalOpacity)
 				if (t >= time) {
-					this.opacity = 1
+					this.opacity = finalOpacity
 					done = true
 				}
 			},
