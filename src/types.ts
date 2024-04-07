@@ -103,6 +103,41 @@ export interface KaboomCtx {
 	make<T>(comps?: CompList<T>): GameObj<T>,
 	/**
 	 * Remove and re-add the game obj, without triggering add / destroy events.
+	 * @example
+	 * ```js
+	 * // Common way to use this is to have one sprite overlap another sprite, and use readd() to have the bottom sprite on top of the other.
+	 * 
+	 * // Create two sprites.
+	 * const greenBean = add([
+	 * sprite("bean"),
+	 * pos(200,140),
+	 * color(255, 255, 255),
+         * area(),
+	 * ])
+	 * 
+	 * // This bean will overlap the green bean.
+	 * const purpleBean = add([
+	 * sprite("bean"),
+	 * pos(230,140),
+	 * color(255, 0, 255),
+  	 * area(),
+	 * ])
+	 * 
+	 * // Example 1: simply call readd() on the target you want on top.
+	 * readd(greenBean)   
+	 * 
+	 * // Example 2: using onClick() or other functions with readd().
+	 * // If you comment out the first example, and use this readd() with a function like onClick(), you
+	 * can keep switching which sprite is above the other ( click on edge of face ).
+	 * 
+	 * purpleBean.onClick(() => {
+	 * 		readd(greenBean)
+	 * })
+	 *        
+	 * greenBean.onClick(() => {
+	 * 		readd(purpleBean)
+	 * })
+	 * ```
 	 */
 	readd(obj: GameObj): void,
 	/**
@@ -668,6 +703,20 @@ export interface KaboomCtx {
 	 *     destroy(bomb)
 	 *     addKaboom(bomb.pos)
 	 * })
+	 * 
+	 * // a custom event can be defined manually
+	 * // by passing a name and a callback function
+	 * on("talk", (message, posX, posY) => {
+	 *     add([
+	 *      text(message), 
+	 *      pos(posX, posY - 100)
+	 *     ])
+	 * })
+	 * onKeyPress("space", () => {
+	 *    // the trigger method on game objs can be used to trigger a custom event
+	 *    npc.trigger("talk", "Hello World!", npc.pos.x, npc.pos.y)
+	 * })
+	 * 
 	 * ```
 	 */
 	on(event: string, tag: Tag, action: (obj: GameObj, ...args: any) => void): EventController,
