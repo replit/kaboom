@@ -5,6 +5,7 @@
 		"collision",
 		"gravity",
 		"sprite",
+		"fadeIn",
 		"text",
 		"audio",
 		"level",
