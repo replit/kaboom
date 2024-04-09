@@ -230,8 +230,8 @@ export interface KaboomCtx {
 	 * 
 	 * @example
 	 * ```js
-	 * // rotate() WITH anchor("center"): rotates bean based on sprite's center, and won't move bean's position on rotation
-	 * // rotate() WITHOUT anchor("center"): rotates bean based on default anchor that is top left, moving bean's position slightly on rotation
+	 * // rotate() with anchor("center"): will rotate based on sprite's center, and won't move bean's position on rotation
+	 * // rotate() without anchor("center"): will rotate based on the sprite anchor (by default, topleft), moving bean's position slightly on rotation
 	 * const bean = add([
 	 *	sprite("bean"),
 	 * 	pos(200,140),
