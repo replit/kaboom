@@ -92,12 +92,8 @@ export interface KaboomCtx {
 	 * const label = make([
 	 *     text("oh hi"),
 	 * ])
-
-	 * add([
-	 *     rect(label.width, label.height),
-	 *     color(0, 0, 255),
-	 *     children(label),
-	 * ])
+	 * 
+	 * add(label);
 	 * ```
 	 */
 	make<T>(comps?: CompList<T>): GameObj<T>,
@@ -105,38 +101,21 @@ export interface KaboomCtx {
 	 * Remove and re-add the game obj, without triggering add / destroy events.
 	 * @example
 	 * ```js
-	 * // Common way to use this is to have one sprite overlap another sprite, and use readd() to have the bottom sprite on top of the other.
+	 * // Useful to make an object on top of another object
 	 * 
-	 * // Create two sprites.
-	 * const greenBean = add([
-	 * sprite("bean"),
-	 * pos(200,140),
-	 * color(255, 255, 255),
-         * area(),
+	 * const bean = add([
+	 *     sprite("bean"),
+	 *     pos(20, 40),
 	 * ])
 	 * 
-	 * // This bean will overlap the green bean.
-	 * const purpleBean = add([
-	 * sprite("bean"),
-	 * pos(230,140),
-	 * color(255, 0, 255),
-  	 * area(),
+	 * // Mark will overlap bean
+	 * const mark = add([
+	 *     sprite("mark"),
+	 *     pos(20, 40),
 	 * ])
 	 * 
-	 * // Example 1: simply call readd() on the target you want on top.
-	 * readd(greenBean)   
-	 * 
-	 * // Example 2: using onClick() or other functions with readd().
-	 * // If you comment out the first example, and use this readd() with a function like onClick(), you
-	 * can keep switching which sprite is above the other ( click on edge of face ).
-	 * 
-	 * purpleBean.onClick(() => {
-	 * 		readd(greenBean)
-	 * })
-	 *        
-	 * greenBean.onClick(() => {
-	 * 		readd(purpleBean)
-	 * })
+	 * // Now bean overlap mark
+	 * readd(bean)
 	 * ```
 	 */
 	readd(obj: GameObj): void,
@@ -219,9 +198,9 @@ export interface KaboomCtx {
 	 *     sprite("bean"),
 	 * 	   scale(3, 1),
 	 * ])
+	 * 
 	 *  // scale with vec2(x,y).
 	 * bean.scale = vec2(2,4)
-	 * 
 	 * ```
 	 */
 	scale(): ScaleComp,
@@ -2060,8 +2039,7 @@ export interface KaboomCtx {
 	 *     tiles: {
 	 *         "=": () => [
 	 *             sprite("floor"),
-	 *             area(),
-	 *             solid(),
+	 *             area({ isStatic: true }),
 	 *         ],
 	 *         "$": () => [
 	 *             sprite("coin"),
