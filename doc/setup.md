@@ -1,5 +1,6 @@
 ---
 title: Installation
+description: Learn how to install Kaboom.
 ---
 
 # Installation

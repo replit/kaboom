@@ -1,5 +1,6 @@
 ---
 title: Getting started
+description: Learn the basics of Kaboom and make a simple game.
 ---
 
 # Intro to Kaboom

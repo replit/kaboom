@@ -1,5 +1,6 @@
 ---
 title: Optimization
+description: Tips on optimizing performance / maintainability for kaboom games.
 ---
 
 # Optimization Tips
