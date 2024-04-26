@@ -971,6 +971,18 @@ export function chance(p: number): boolean {
 	return rand() <= p
 }
 
+export function shuffle<T>(list: T[]): T[] {
+	for (let i = list.length - 1; i > 0; i--) {
+		const j = Math.floor(Math.random() * (i + 1));
+		[list[i], list[j]] = [list[j], list[i]]
+	}
+	return list
+}
+
+export function chooseMultiple<T>(list: T[], count: number): T[] {
+	return list.length <= count ? list.slice() : shuffle(list.slice()).slice(0, count)
+}
+
 export function choose<T>(list: T[]): T {
 	return list[randi(list.length)]
 }
@@ -1882,7 +1894,7 @@ export class Ellipse {
 			)
 		}
 		else {
-			// Rotation. We need to find the maximum x and y distance from the 
+			// Rotation. We need to find the maximum x and y distance from the
 			// center of the rotated ellipse
 			const angle = deg2rad(this.angle)
 			const c = Math.cos(angle)
