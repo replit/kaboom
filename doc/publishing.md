@@ -1,5 +1,6 @@
 ---
 title: Publishing
+description: Learn how to publish your Kaboom game in platforms like Itch.io or Newgrounds.com.
 ---
 
 # Publishing a Kaboom game

@@ -1,5 +1,6 @@
 ---
 title: Contributing
+description: Learn how to contribute to Kaboom.
 ---
 
 # Developing Kaboom

@@ -1,5 +1,6 @@
 ---
 title: Migrating from v2000 to v3000
+description: Migrate your codebase from Kaboom v2000 to v3000.
 ---
 
 # Migrating from v2000 to v3000

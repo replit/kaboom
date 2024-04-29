@@ -1,3 +1,8 @@
+---
+title: Shaders
+description: Learn how to write and use custom shaders in Kaboom.
+---
+
 # Writing a shader
 
 ## Vertex shader
