@@ -2,6 +2,7 @@
 - added `loadMusic()` to load streaming audio (doesn't block in loading screen)
 - added support for arrays in uniforms
 - added support for texture larger than 2048x2048
+- added `chooseMultiple()` and `shuffle()` helper functions
 
 ### v3000.1.17
 - exposed `vel` property on `BodyComp`
