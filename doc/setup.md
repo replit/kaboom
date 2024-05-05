@@ -29,7 +29,7 @@ Getting the package from a CDN provider is the quickest and easiest way to start
 <script type="module">
 
 // import kaboom.js
-import kaboom from "https://unpkg.com/kaboom@3000.0.1/dist/kaboom.mjs";
+import kaboom from "https://unpkg.com/kaboom@3000.1.17/dist/kaboom.mjs";
 
 // initialize kaboom context
 kaboom();
@@ -49,7 +49,7 @@ The Kaboom package is deployed to npm, so it's availbale on various CDN provider
 
 You can also just include it with a `<script>` tag.
 ```html
-<script src="https://unpkg.com/kaboom@3000.0.1/dist/kaboom.js"></script>
+<script src="https://unpkg.com/kaboom@3000.1.17/dist/kaboom.js"></script>
 
 <script>
     kaboom();
