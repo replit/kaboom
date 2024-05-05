@@ -624,6 +624,25 @@ class Mat3 {
 			this.m12 * this.m21 * this.m33 - this.m11 * this.m23 * this.m32
 	}
 
+	rotate(radians) {
+		const c = Math.cos(radians)
+		const s = Math.sin(radians)
+		const oldA = this.m11
+		const oldB = this.m12
+		this.m11 = c * this.m11 + s * this.m21
+		this.m12 = c * this.m12 + s * this.m22
+		this.m21 = c * this.m21 - s * oldA
+		this.m22 = c * this.m22 - s * oldB
+		return this
+	}
+	scale(x, y) {
+		this.m11 *= x
+		this.m12 *= x
+		this.m21 *= y
+		this.m22 *= y
+		return this
+	}
+
 	get inverse(): Mat3 {
 		const det = this.det
 		return new Mat3(
@@ -1532,6 +1551,7 @@ export type RaycastHit = {
 	fraction: number
 	normal: Vec2
 	point: Vec2
+	gridPos?: Vec2
 }
 
 export type RaycastResult = RaycastHit | null
@@ -1706,6 +1726,49 @@ function raycastEllipse(origin: Vec2, direction: Vec2, ellipse: Ellipse): Raycas
 	return result
 }
 
+export function raycastGrid(origin: Vec2, direction: Vec2, gridPosHit: (gridPos: Vec2) => boolean, maxDistance: number = 64): RaycastResult | null {
+	const pos = origin
+	const len = direction.len()
+	const dir = direction.scale(1 / len)
+	let t = 0
+	const gridPos = vec2(Math.floor(origin.x), Math.floor(origin.y))
+	const step = vec2(dir.x > 0 ? 1 : -1, dir.y > 0 ? 1 : -1)
+	const tDelta = vec2(Math.abs(1 / dir.x), Math.abs(1 / dir.y))
+	const dist = vec2((step.x > 0) ? (gridPos.x + 1 - origin.x) : (origin.x - gridPos.x),
+		(step.y > 0) ? (gridPos.y + 1 - origin.y) : (origin.y - gridPos.y))
+	const tMax = vec2((tDelta.x < Infinity) ? tDelta.x * dist.x : Infinity,
+		(tDelta.y < Infinity) ? tDelta.y * dist.y : Infinity)
+	let steppedIndex = -1
+	while (t <= maxDistance) {
+		const hit = gridPosHit(gridPos)
+		if (hit === true) {
+			return {
+				point: pos.add(dir.scale(t)),
+				normal: vec2(steppedIndex === 0 ? -step.x : 0,
+					steppedIndex === 1 ? -step.y : 0),
+				fraction: t / len, // Since dir is normalized, t is len times too large
+				gridPos,
+			}
+		}
+		else if (hit) {
+			return hit
+		}
+		if (tMax.x < tMax.y) {
+			gridPos.x += step.x
+			t = tMax.x
+			tMax.x += tDelta.x
+			steppedIndex = 0
+		} else {
+			gridPos.y += step.y
+			t = tMax.y
+			tMax.y += tDelta.y
+			steppedIndex = 1
+		}
+	}
+
+	return null
+}
+
 export class Line {
 	p1: Vec2
 	p2: Vec2
@@ -1854,7 +1917,7 @@ export class Ellipse {
 		}
 	}
 	toMat2(): Mat2 {
-		const a = deg2rad(-this.angle)
+		const a = deg2rad(this.angle)
 		const c = Math.cos(a)
 		const s = Math.sin(a)
 		return new Mat2(
@@ -1876,8 +1939,9 @@ export class Ellipse {
 			// Get the transformation which maps the unit circle onto the ellipse
 			let T = this.toMat2()
 			// Transform the transformation matrix with the rotation+scale matrix
-			const RS = new Mat3(tr.m[0], tr.m[1], 0, tr.m[4], tr.m[5], 0, tr.m[12], tr.m[13], 1)
-			const M = RS.transpose.mul(Mat3.fromMat2(T)).mul(RS)
+			const angle = tr.getRotation()
+			const scale = tr.getScale()
+			const M = Mat3.fromMat2(T).scale(scale.x, scale.y).rotate(angle)
 			T = M.toMat2()
 			// Return the ellipse made from the transformed unit circle
 			const ellipse = Ellipse.fromMat2(T)
@@ -1894,7 +1958,7 @@ export class Ellipse {
 			)
 		}
 		else {
-			// Rotation. We need to find the maximum x and y distance from the
+			// Rotation. We need to find the maximum x and y distance from the 
 			// center of the rotated ellipse
 			const angle = deg2rad(this.angle)
 			const c = Math.cos(angle)
