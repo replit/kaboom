@@ -667,7 +667,8 @@ export interface KaboomCtx {
 	): StateComp,
 	/**
 	 * Fade object in.
-	 *
+	 * 
+	 * Uses opacity for finding what to fade into and to set opacity during fade animation.
 	 * @since v3000.0
 	 */
 	fadeIn(time: number): Comp,

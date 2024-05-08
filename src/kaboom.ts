@@ -4783,19 +4783,21 @@ export default (gopt: KaboomOpt = {}): KaboomCtx => {
 	}
 
 	function fadeIn(time: number = 1): Comp {
+		let finalOpacity
 		let t = 0
 		let done = false
 		return {
 			require: ["opacity"],
 			add(this: GameObj<OpacityComp>) {
+				finalOpacity = this.opacity
 				this.opacity = 0
 			},
 			update(this: GameObj<OpacityComp>) {
 				if (done) return
 				t += dt()
-				this.opacity = map(t, 0, time, 0, 1)
+				this.opacity = map(t, 0, time, 0, finalOpacity)
 				if (t >= time) {
-					this.opacity = 1
+					this.opacity = finalOpacity
 					done = true
 				}
 			},
