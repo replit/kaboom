@@ -3,6 +3,7 @@
 - added support for arrays in uniforms
 - added support for texture larger than 2048x2048
 - added `chooseMultiple()` and `shuffle()` helper functions
+- added `fadeIn()` now uses `opacity()` to determinate the final opacity
 
 ### v3000.1.17
 - exposed `vel` property on `BodyComp`
