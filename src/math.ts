@@ -318,7 +318,7 @@ export class Color {
 	}
 
 	toArray(): Array<number> {
-		return new Array[this.r, this.g, this.b]
+		return [this.r, this.g, this.b]
 	}
 
 }
