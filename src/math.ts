@@ -317,6 +317,10 @@ export class Color {
 		return "#" + ((1 << 24) + (this.r << 16) + (this.g << 8) + this.b).toString(16).slice(1)
 	}
 
+	toArray(): Array<number> {
+		return [this.r, this.g, this.b]
+	}
+
 }
 
 export function rgb(...args): Color {

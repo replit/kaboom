@@ -4094,6 +4094,12 @@ export declare class Color {
 	 * @since v3000.0
 	 */
 	toHex(): string
+	/**
+	 * Return the color converted to an array.
+	 *
+	 * @since v3000.0
+	 */
+	toArray(): Array<number>
 }
 
 export declare class Quad {
