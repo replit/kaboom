@@ -227,6 +227,18 @@ export interface KaboomCtx {
 	scale(): ScaleComp,
 	/**
 	 * Rotation (in degrees).
+	 * 
+	 * @example
+	 * ```js
+	 * // rotate() with anchor("center"): will rotate based on sprite's center, and won't move bean's position on rotation
+	 * // rotate() without anchor("center"): will rotate based on the sprite anchor (by default, topleft), moving bean's position slightly on rotation
+	 * const bean = add([
+	 *	sprite("bean"),
+	 * 	pos(200,140),
+	 * 	anchor("center"),
+	 * 	rotate(-90),
+	 * ])
+	 * ```
 	 */
 	rotate(a: number): RotateComp,
 	/**
