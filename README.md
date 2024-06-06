@@ -1,3 +1,7 @@
+# Notice
+
+Replit no longer maintains Kaboom. You may be interested in the community fork [KaPlay](https://github.com/marklovers/kaplay).
+
 # Kaboom
 
 ![kaboom](kaboom.png)
