@@ -691,6 +691,7 @@ export interface KaboomCtx {
 	 * @since v3000.0
 	 */
 	agent(opt?: AgentCompOpt): AgentComp,
+	raycast(origin: Vec2, direction: Vec2, exclude?: string[]): RaycastResult
 	/**
 	 * Register an event on all game objs with certain tag.
 	 *
@@ -4130,6 +4131,8 @@ export type RaycastHit = {
 	fraction: number
 	normal: Vec2
 	point: Vec2
+	gridPos?: Vec2
+	object?: GameObj
 }
 
 export type RaycastResult = RaycastHit | null
@@ -5422,6 +5425,10 @@ export interface LevelComp extends Comp {
 	 * Get all game objects that's currently inside a given tile.
 	 */
 	getAt(tilePos: Vec2): GameObj[],
+	/**
+	 * Raycast all game objects on the given path.
+	 */
+	raycast(origin: Vec2, direction: Vec2) : RaycastResult,
 	/**
 	 * Convert tile position to pixel position.
 	 */
