@@ -1,6 +1,6 @@
-### Notice
+# Notice
 
-Kaboom is no longer maintained, check out the community fork [KaPlay](https://github.com/marklovers/kaplay).
+Replit no longer maintains Kaboom. You may be interested in the community fork [KaPlay](https://github.com/marklovers/kaplay).
 
 # Kaboom
 
