@@ -1,3 +1,7 @@
+### Notice
+
+Kaboom is no longer maintained, check out the community fork [KaPlay](https://github.com/marklovers/kaplay).
+
 # Kaboom
 
 ![kaboom](kaboom.png)
